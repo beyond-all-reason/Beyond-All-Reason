@@ -1214,7 +1214,7 @@ local options = {
         name 	= "Commander Respawning",
         desc   	= "Commanders can build one Effigy. The first one is free. When the commander dies, the Effigy is sacrificed in its place.",
         type 	= "list",
-        def 	= "dynamic",
+        def 	= "disabled",
         section = "options_experimental",
         items 	= {
             { key = "evocom", 	name = "Evolving Commanders Only" },
