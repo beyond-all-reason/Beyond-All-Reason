@@ -26,7 +26,7 @@ MMStatus(State)
 Create()
 {
 	move coverr to y-axis [100] now;
-	move coverl to y-axys [100] now;
+	move coverl to y-axis [100] now;
 	move coverr to z-axis [-20] now;
 	move coverl to z-axis [20] now;
 	Active = 0;
