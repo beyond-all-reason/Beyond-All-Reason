@@ -679,6 +679,7 @@ function UnitDef_Post(name, uDef)
 	local amphibList = {
 		VBOT5 = true,
 		COMMANDERBOT = true,
+		SCAVCOMMANDERBOT = true,
 		ATANK3 = true,
 		ABOT2 = true,
 		HABOT4 = true,
