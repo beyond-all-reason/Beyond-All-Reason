@@ -147,7 +147,7 @@ return {
 				rgbcolor2 = "0.8 0 0",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
-				soundstart = "helios-fire",
+				soundstart = "heliosfire",
 				soundtrigger = 1,
 				targetmoveerror = 0.2,
 				thickness = 1.5,
