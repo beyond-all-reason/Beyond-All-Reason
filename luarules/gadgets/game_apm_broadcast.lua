@@ -14,9 +14,10 @@ end
 if gadgetHandler:IsSyncedCode() then
 
 	local teamAddedActionFrame = {}
+	local ignoreUnits = {}
 	local gameFrame = Spring.GetGameFrame()
 	local startFrame = Spring.GetGameFrame()	-- used in case of luarules reload
-	local ignoreUnits = {}
+	local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 
 	local totalTeamActions = {}
 	for _, teamID in ipairs(Spring.GetTeamList()) do
@@ -43,8 +44,8 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	-- be aware that these arent exclusively user actioned commands
-	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
-		if not ignoreUnits[unitID] and not Spring.GetUnitIsBeingBuilt(unitID) then	-- believe it or not but unitcreated can come after AllowCommand (with nocost at least)
+	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, fromSynced, fromLua)
+		if not ignoreUnits[unitID] and not spGetUnitIsBeingBuilt(unitID) then	-- believe it or not but unitcreated can come after AllowCommand (with nocost at least)
 			-- limit to 1 action per gameframe
 			if not teamAddedActionFrame[teamID] and totalTeamActions[teamID] and not ignoreUnitDefs[unitID] then
 				totalTeamActions[teamID] = totalTeamActions[teamID] + 1
@@ -58,7 +59,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:GameFrame(gf)
 		gameFrame = gf
 		teamAddedActionFrame = {}
-		if gf % 45 == 1 then	-- every 15 secs
+		if gf % 300 == 1 then	-- every 10 secs
 			for teamID, totalActions in pairs(totalTeamActions) do
 				local apm = totalActions / ((gf-startFrame)/1800)	-- 1800 frames = 1 min
 				SendToUnsynced("apmBroadcast", teamID, math.floor(apm+0.5))
