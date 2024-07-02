@@ -14,7 +14,9 @@ end
 if gadgetHandler:IsSyncedCode() then
 
 	local teamAddedActionFrame = {}
+	local gameFrame = Spring.GetGameFrame()
 	local startFrame = Spring.GetGameFrame()	-- used in case of luarules reload
+	local ignoreUnits = {}
 
 	local totalTeamActions = {}
 	for _, teamID in ipairs(Spring.GetTeamList()) do
@@ -27,22 +29,44 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	local function addSkipOrder(unitID)
+		ignoreUnits[unitID] = gameFrame
+	end
+
+	function gadget:Initialize()
+		GG['apm'] = {}
+		GG['apm'].addSkipOrder = addSkipOrder
+	end
+
+	function gadget:UnitFinished(unitID, unitDefID, teamID, builderID)
+		ignoreUnits[unitID] = gameFrame + 1
+	end
+
 	-- be aware that these arent exclusively user actioned commands
 	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
-		-- limit to 1 action per gameframe
-		if not teamAddedActionFrame[teamID] and totalTeamActions[teamID] and not ignoreUnitDefs[unitDefID] then
-			totalTeamActions[teamID] = totalTeamActions[teamID] + 1
-			teamAddedActionFrame[teamID] = true
+		if not ignoreUnits[unitID] and not Spring.GetUnitIsBeingBuilt(unitID) then	-- believe it or not but unitcreated can come after AllowCommand (with nocost at least)
+			-- limit to 1 action per gameframe
+			if not teamAddedActionFrame[teamID] and totalTeamActions[teamID] and not ignoreUnitDefs[unitID] then
+				totalTeamActions[teamID] = totalTeamActions[teamID] + 1
+				teamAddedActionFrame[teamID] = true
+			end
 		end
+		ignoreUnits[unitID] = gameFrame + 7	-- dont count severe cmd spam
 		return true
 	end
 
 	function gadget:GameFrame(gf)
+		gameFrame = gf
 		teamAddedActionFrame = {}
-		if gf % 450 == 1 then	-- every 15 secs
+		if gf % 45 == 1 then	-- every 15 secs
 			for teamID, totalActions in pairs(totalTeamActions) do
 				local apm = totalActions / ((gf-startFrame)/1800)	-- 1800 frames = 1 min
 				SendToUnsynced("apmBroadcast", teamID, math.floor(apm+0.5))
+			end
+		end
+		for unitID, frame in pairs(ignoreUnits) do
+			if frame == gf then
+				ignoreUnits[unitID] = nil
 			end
 		end
 	end
