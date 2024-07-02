@@ -2252,6 +2252,35 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
+	['legeconv'] = {
+		enabled1 = {
+			lightType = 'point',
+			pieceName = 'flare',
+			lightConfig = { posx = 0, posy = 13, posz = 0, radius = 35,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = 0.9, g = 0.9, b = 0.45, a = 0.2,
+							modelfactor = 0.4, specular = 0, scattering = 0.4, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		enabled2 = {
+			lightType = 'point',
+			pieceName = 'flare',
+			lightConfig = { posx = -14, posy = 6, posz = 0, radius = 32,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = 0.9, g = 0.9, b = 0.45, a = 0.1,
+							modelfactor = 0.4, specular = 0, scattering = 0.4, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		enabled3 = {
+			lightType = 'point',
+			pieceName = 'flare',
+			lightConfig = { posx = 14, posy = 6, posz = 0, radius = 32,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = 0.9, g = 0.9, b = 0.45, a = 0.1,
+							modelfactor = 0.4, specular = 0, scattering = 0.4, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
 	['legscout'] = {
 		bodylight = {
 			lightType = 'point',
