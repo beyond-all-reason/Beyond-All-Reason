@@ -30,7 +30,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function addSkipOrder(unitID)
-		ignoreUnits[unitID] = gameFrame
+		ignoreUnits[unitID] = gameFrame + 1
 	end
 
 	function gadget:Initialize()
