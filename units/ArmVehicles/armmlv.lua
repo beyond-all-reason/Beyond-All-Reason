@@ -39,7 +39,7 @@ return {
 		script = "Units/ARMMLV.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 201,
+		sightdistance = 300,
 		stealth = true,
 		terraformspeed = 120,
 		trackoffset = 12,
@@ -59,6 +59,7 @@ return {
 			[5] = "armeyes",
 		},
 		customparams = {
+			minesweeper = 300,
 			unitgroup = 'builder',
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
