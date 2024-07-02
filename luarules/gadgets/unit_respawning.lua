@@ -192,8 +192,11 @@ if gadgetHandler:IsSyncedCode() then
 					local oldeffigyID = respawnMetaList[vipID].effigyID
 					
 					respawnMetaList[vipID].effigyID = unitID
+					local oldEffigyBuildProgress = select(5, spGetUnitHealth(oldeffigyID))
 					if oldeffigyID then
 						spDestroyUnit(oldeffigyID, false, true)
+					end
+					if oldEffigyBuildProgress == 1 then
 						Spring.SetUnitCosts(unitID, {buildTime = 1, metalCost = 1, energyCost = 1})
 					end
 					return
