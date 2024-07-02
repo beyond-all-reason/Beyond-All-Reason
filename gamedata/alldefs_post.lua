@@ -705,7 +705,7 @@ function UnitDef_Post(name, uDef)
 	categories["NOWEAPON"] = function(unitDef) return not categories.WEAPON(unitDef) end
 	categories["VTOL"] = function(unitDef) return unitDef.canfly == true end
 	categories["NOTAIR"] = function(unitDef) return not categories.VTOL(unitDef) end
-	categories["HOVER"] = function(unitDef) return hoverList[unitDef.movementclass] and unitDef.maxwaterdepth and unitDef.maxwaterdepth < 1 end -- convertible tank/boats have maxwaterdepth
+	categories["HOVER"] = function(unitDef) return hoverList[unitDef.movementclass] and (unitDef.maxwaterdepth == nil or unitDef.maxwaterdepth < 1) end -- convertible tank/boats have maxwaterdepth
 	categories["NOTHOVER"] = function(unitDef) return not categories.HOVER(unitDef) end
 	categories["SHIP"] = function(unitDef) return shipList[unitDef.movementclass] or (hoverList[unitDef.movementclass] and unitDef.maxwaterdepth and unitDef.maxwaterdepth >=1) end
 	categories["NOTSHIP"] = function(unitDef) return not categories.SHIP(unitDef) end
