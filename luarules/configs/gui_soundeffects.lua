@@ -2634,13 +2634,13 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "conalt-small",
 	},	
 	leghelios = {
-		BaseSoundSelectType = "cor-veh-small-sel",
-		BaseSoundMovementType = "cor-veh-small-ok",
-		BaseSoundWeaponType = "heatray",
+		BaseSoundSelectType = "leg-veh-small-sel",
+		BaseSoundMovementType = "leg-veh-small-ok",
+		BaseSoundWeaponType = "helios-weapon-type",
 	},
 	leghades = {
-		BaseSoundSelectType = "arm-veh-small-sel",
-		BaseSoundMovementType = "cor-veh-tiny-ok",
+		BaseSoundSelectType = "leg-veh-tiny-sel",
+		BaseSoundMovementType = "leg-veh-tiny-ok",
 		BaseSoundWeaponType = "plasma-small",
 	},
 	legbar = {
@@ -2649,9 +2649,9 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "flame-alt",
 	},
 	legrail = {
-		BaseSoundSelectType = "cor-veh-small-sel",
-		BaseSoundMovementType = "cor-veh-small-ok",
-		BaseSoundWeaponType = "aarocket-small",
+		BaseSoundSelectType = "leg-rail-small-sel",
+		BaseSoundMovementType = "leg-rail-small-ok",
+		BaseSoundWeaponType = "lance-weapon-type",
 	},
 	leggat = {
 		BaseSoundSelectType = "cor-tnk-small-sel",

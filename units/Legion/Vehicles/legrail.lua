@@ -133,7 +133,7 @@ return {
 				rgbcolor = "0.34 0.64 0.94",
 				soundhit = "mavgun3",
 				soundhitwet = "splshbig",
-				soundstart = "railgun3",
+				soundstart = "lancefire",
 				soundstartvolume = 13,
 				thickness = 2,
 				tolerance = 6000,
