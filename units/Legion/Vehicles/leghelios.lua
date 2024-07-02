@@ -149,7 +149,7 @@ return {
 				rgbcolor2 = "0.9 1.0 0.5",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
-				soundstart = "lasrfir3",
+				soundstart = "heliosfire",
 				soundtrigger = 1,
 				targetmoveerror = 0.2,
 				thickness = 2.0,
