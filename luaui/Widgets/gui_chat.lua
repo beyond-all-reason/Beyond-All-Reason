@@ -87,7 +87,6 @@ local playSound = true
 local sndChatFile  = 'beep4'
 local sndChatFileVolume = 0.55
 local sndMapmarkFile = 'sounds/ui/mappoint2.wav'
-local sndMapmarkFileVolume = 0.5
 
 local colorOther = {1,1,1} -- normal chat color
 local colorAlly = {0,1,0}
@@ -2266,12 +2265,6 @@ function widget:Initialize()
 	WG['chat'].setChatVolume = function(value)
 		sndChatFileVolume = value
 	end
-	WG['chat'].getMapmarkVolume = function()
-		return sndMapmarkFileVolume
-	end
-	WG['chat'].setMapmarkVolume = function(value)
-		sndMapmarkFileVolume = value
-	end
 	WG['chat'].getBackgroundOpacity = function()
 		return backgroundOpacity
 	end
@@ -2343,7 +2336,6 @@ function widget:GetConfigData(data)
 		fontsizeMult = fontsizeMult,
 		chatBackgroundOpacity = backgroundOpacity,
 		sndChatFileVolume = sndChatFileVolume,
-		sndMapmarkFileVolume = sndMapmarkFileVolume,
 		shutdownTime = os.clock(),
 		handleTextInput = handleTextInput,
 		inputButton = inputButton,
@@ -2376,9 +2368,6 @@ function widget:SetConfigData(data)
 	end
 	if data.enableShortcutClick ~= nil then
 		enableShortcutClick = data.enableShortcutClick
-	end
-	if data.sndMapmarkFileVolume ~= nil then
-		sndMapmarkFileVolume = data.sndMapmarkFileVolume
 	end
 	if data.chatBackgroundOpacity ~= nil then
 		backgroundOpacity = data.chatBackgroundOpacity

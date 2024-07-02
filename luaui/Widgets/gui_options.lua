@@ -2700,12 +2700,12 @@ function init()
 			  saveOptionValue('Chat', 'chat', 'setChatVolume', { 'sndChatFileVolume' }, value)
 		  end,
 		},
-		{ id = "console_mapmarkvolume", group = "sound", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.console_mapmarkvolume'), type = "slider", min = 0, max = 0.6, step = 0.01, value = (WG['chat'] ~= nil and WG['chat'].getMapmarkVolume() or 0), description = Spring.I18N('ui.settings.option.console_mapmarkvolume_descr'),
+		{ id = "mapmarkvolume", group = "sound", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.console_mapmarkvolume'), type = "slider", min = 0, max = 1, step = 0.01, value = (WG['mapmarkping'] ~= nil and WG['mapmarkping'].getMapmarkVolume() or 0.6), description = Spring.I18N('ui.settings.option.console_mapmarkvolume_descr'),
 		  onload = function(i)
-			  loadWidgetData("Chat", "console_mapmarkvolume", { 'sndMapmarkFileVolume' })
+			  loadWidgetData("Chat", "mapmarkvolume", { 'volume' })
 		  end,
 		  onchange = function(i, value)
-			  saveOptionValue('Chat', 'chat', 'setMapmarkVolume', { 'sndMapmarkFileVolume' }, value)
+			  saveOptionValue('Chat', 'mapmarkping', 'setMapmarkVolume', { 'volume' }, value)
 		  end,
 		},
 		{ id = "sndvolmusic", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.sndvolmusic'), type = "slider", min = 0, max = 99, step = 1, value = tonumber(Spring.GetConfigInt("snd_volmusic", 50) or 50),
