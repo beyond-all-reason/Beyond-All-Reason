@@ -550,7 +550,7 @@ TimeToRestore(addTime) {
     // This function may not be signal terminated
     // If it has to be, it _must_ be immediately restarted
     // PROBLEM: the time that is slept depends on number of aim calls.
-    while((timeLeft > 1) || Stunned){
+    while((timeLeft > 1) || Stunned) {
 		//get PRINT(timeLeft, get GAME_FRAME);
         addTime = timeLeft;
         timeLeft = 1;
@@ -601,7 +601,7 @@ Create()
 {
 	
 	restore_delay = 6000;
-	timeLeft = 0;
+	timeLeft = restore_delay;
 	//call-script TB_Init();
 	
 	spin ringinner around y-axis speed <200>;
