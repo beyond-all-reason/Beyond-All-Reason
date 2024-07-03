@@ -14,7 +14,8 @@ local economyScale = 1 * Spring.GetModOptions().multiplier_resourceincome *
 (0.67+(Spring.GetModOptions().multiplier_metalextraction*0.33)) *
 (0.67+(Spring.GetModOptions().multiplier_energyconversion*0.33)) *
 (0.67+(Spring.GetModOptions().multiplier_energyproduction*0.33)) *
-math.max(1, (((((Spring.GetModOptions().startmetal - 1000) / 9000) + 1) + (((Spring.GetModOptions().startenergy - 1000) / 9000) + 1)) * 0.5))
+(((((Spring.GetModOptions().startmetal - 1000) / 9000) + 1)*0.1)+0.9) *
+(((((Spring.GetModOptions().startenergy - 1000) / 9000) + 1)*0.1)+0.9)
 
 economyScale = (economyScale*0.25)+0.75
 
