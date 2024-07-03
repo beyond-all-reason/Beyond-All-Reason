@@ -104,7 +104,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-    function ReturnToBase(unitID)
+    function ReturnToBase(unitID, friendlyFire)
 		local x,y,z = spGetUnitPosition(unitID) -- usefull if you want to spawn explosions or other effects where you were.
 		local team = spGetUnitTeam(unitID)
 
@@ -121,7 +121,11 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			if respawnMetaList[unitID].destructive_respawn then
-				spDestroyUnit(respawnMetaList[unitID].effigyID, false, false)
+			    if friendlyFire then
+			        spDestroyUnit(respawnMetaList[unitID].effigyID, false, true)
+			    else
+				    spDestroyUnit(respawnMetaList[unitID].effigyID, false, false)
+				end
 				respawnMetaList[unitID].effigyID = nil
 			end
 			local stunDuration = maxHealth + (100*respawnMetaList[unitID].minimum_respawn_stun) + (diag((x-ex), (z-ez))*respawnMetaList[unitID].distance_stun_multiplier)
@@ -188,8 +192,12 @@ if gadgetHandler:IsSyncedCode() then
 					local oldeffigyID = respawnMetaList[vipID].effigyID
 					
 					respawnMetaList[vipID].effigyID = unitID
+					local oldEffigyBuildProgress = select(5, spGetUnitHealth(oldeffigyID))
 					if oldeffigyID then
 						spDestroyUnit(oldeffigyID, false, true)
+					end
+					if oldEffigyBuildProgress == 1 then
+						Spring.SetUnitCosts(unitID, {buildTime = 1, metalCost = 1, energyCost = 1})
 					end
 					return
 				end
@@ -237,7 +245,15 @@ if gadgetHandler:IsSyncedCode() then
 				if respawnMetaList[unitID].effigyID and (h-damage) <= respawnMetaList[unitID].respawn_health_threshold and (currentTime-respawnMetaList[unitID].respawnTimer) >= 5 then
 					local effigyBuildProgress = select(5, spGetUnitHealth(respawnMetaList[unitID].effigyID))
 					if effigyBuildProgress == 1 then
-						ReturnToBase(unitID)
+						if not attackerTeam then
+							attackerTeam = unitTeam -- lava damage team = nil, so set to self team if nil
+						end
+					    local friendlyFire = Spring.AreTeamsAllied(unitTeam, attackerTeam)
+					    local enemyNearby = spGetUnitNearestEnemy(unitID, 1000)
+					    if friendlyFire and enemyNearby then
+					        friendlyFire = false
+					    end
+						ReturnToBase(unitID, friendlyFire)
 						respawnMetaList[unitID].respawnTimer = spGetGameSeconds()
 						return 0, 0
 					end

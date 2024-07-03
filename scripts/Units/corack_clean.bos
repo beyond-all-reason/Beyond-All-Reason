@@ -136,7 +136,7 @@ Create()
 	hide cagelight_emit2;
 	isMoving = FALSE;
 	nanoNozzle = 0;
-	readyToBuild = 1;
+	readyToBuild = 0;
 	animSpeed = 5;
 }
 

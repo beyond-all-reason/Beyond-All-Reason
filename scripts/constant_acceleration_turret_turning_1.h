@@ -117,17 +117,21 @@ CATT1_Aim(heading, pitch){
 	*/
 
 	// Local vars
+	
 	var timetozero;
 	var deceleratethreshold;
 	var delta;
+	var temp;
 
 	#ifdef CATT1_PIECE_X
 		turn CATT1_PIECE_X to x-axis <0.0> - pitch speed CATT1_PITCH_SPEED;
 	#endif
 	
-	delta = heading - CATT1position;
+	delta = WRAPDELTA(heading - CATT1position);
 	
-	while( ( get ABS(delta) > CATT1_PRECISION ) OR (get ABS(CATT1velocity) > CATT1_JERK)){
+	while(ABSOLUTE_GREATER_THAN(delta, CATT1_PRECISION) OR ABSOLUTE_GREATER_THAN(CATT1velocity,  CATT1_JERK)){
+		
+	//while( ( get ABS(delta) > CATT1_PRECISION ) OR (get ABS(CATT1velocity) > CATT1_JERK)){
 		if (CATT1gameFrame != get(GAME_FRAME)){ //this is to make sure we dont get double-called, as previous aimweapon thread runs before new aimweaponthread can signal-kill previous one 
 			CATT1gameFrame = get(GAME_FRAME);
 	
@@ -138,33 +142,39 @@ CATT1_Aim(heading, pitch){
 			//number of frames required to decelerate to 0
 			timetozero = get ABS(CATT1velocity) / CATT1_ACCELERATION;
 			
-			//distance from target where we should start decelerating, always 'positive'
+			//distance from target where we should start decelerating, always 'positive' ensured by +1
 			//pos = t * v - (t*(t-1)*a/2)
-			deceleratethreshold = timetozero * (get ABS(CATT1velocity)) - (timetozero * (timetozero - 1) * CATT1_ACCELERATION / 2); 
+			deceleratethreshold = timetozero * (get ABS(CATT1velocity)) - (timetozero * (timetozero - 1) * CATT1_ACCELERATION / 2) + 1; 
 			
 			#ifdef CATT1_DEBUG
 				get PRINT ( delta , deceleratethreshold, CATT1velocity, timetozero );
 			#endif 
-
-			if (get ABS(delta) <= deceleratethreshold){ //we need to decelerate
+			
+			if (ABSOLUTE_LESS_THAN(delta, deceleratethreshold)){ //we need to decelerate
 				if (CATT1velocity > 0) CATT1velocity = CATT1velocity - CATT1_ACCELERATION;
 				else 				   CATT1velocity = CATT1velocity + CATT1_ACCELERATION;
 			}	
 			else //we need to accelerate
 			{
 				if (delta > 0) CATT1velocity = get MIN(       CATT1_MAX_VELOCITY, CATT1velocity + CATT1_ACCELERATION); 
-				else                CATT1velocity = get MAX((-1) * CATT1_MAX_VELOCITY, CATT1velocity - CATT1_ACCELERATION);
+				else           CATT1velocity = get MAX((-1) * CATT1_MAX_VELOCITY, CATT1velocity - CATT1_ACCELERATION);
 			}
 			
 			//Apply jerk at very low velocities
-			if (get ABS(CATT1velocity) < CATT1_JERK){
+			if (ABSOLUTE_LESS_THAN(CATT1velocity,  CATT1_JERK)){
 				if ((delta >        CATT1_JERK)) CATT1velocity =        CATT1_JERK;
 				if ((delta < (-1) * CATT1_JERK)) CATT1velocity = (-1) * CATT1_JERK;
 			}
+
+			// If we would need to move less than the delta, then just move the delta?
+
 			// Update our position with our velocity
 			CATT1position = CATT1position + CATT1velocity; 
 			delta = heading - CATT1position ; 	
 
+			#ifdef CATT1_DEBUG
+				get PRINT ( 888888, delta ,  CATT1velocity, CATT1position);
+			#endif 
 			// Perform the turn with a NOW, this means that this will be run every frame!
 			//turn CATT1_PIECE_Y to y-axis CATT1position now;
 
@@ -180,3 +190,29 @@ CATT1_Aim(heading, pitch){
 }
 
 #undef CATT_INDEX
+
+/*
+// Blocking vs non-blocking AimWeapons
+// also ensure once per frame calls
+
+
+
+CalledAim(heading,pitch)
+
+
+AimWeaponX(heading, pitch){
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	while (TRUE){
+
+		if (ANGLE_DIFFERENCE_LESS_THAN(CATT1position - heading, CATT1_PRECISION)){
+			return (1);
+		}
+		else{
+			sleep 30;
+		}
+	}
+}
+
+
+*/

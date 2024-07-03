@@ -94,12 +94,12 @@ end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	for unitID, unitDefID in pairs(extVisibleUnits) do
-		widget:VisibleUnitAdded(unitID, unitDefID)--, Spring.GetUnitTeam(unitID))
+		widget:VisibleUnitAdded(unitID, unitDefID, Spring.GetUnitTeam(unitID))
 	end
 end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
-	if unitConf[unitDefID] ~= nil then
+	if myTeamID == unitTeam and unitConf[unitDefID] ~= nil then
 		unitList[unitID] = unitDefID
 	end
 end
@@ -148,8 +148,10 @@ end
 local function updateList()
 	local prevIdleList = idleList
 	idleList = {}
+	local queue
 	for unitID, unitDefID in pairs(unitList) do
-		if not (unitConf[unitDefID] and spGetFactoryCommands(unitID, 1)[1] or spGetCommandQueue(unitID, 1)[1]) then
+		queue = unitConf[unitDefID] and spGetFactoryCommands(unitID, 1) or spGetCommandQueue(unitID, 1)
+		if not (queue and queue[1]) then
 			if spValidUnitID(unitID) and not spGetUnitIsDead(unitID) and not spGetUnitIsBeingBuilt(unitID) then
 				if idleList[unitDefID] then
 					idleList[unitDefID][#idleList[unitDefID] + 1] = unitID
