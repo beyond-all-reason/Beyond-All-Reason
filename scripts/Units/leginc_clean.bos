@@ -683,7 +683,7 @@ AimWeapon1(heading, pitch)
 		//targetswap = 1;
 	}
 	gameframe = get(GAME_FRAME);
-
+	lastfired = gameframe;
 	//get PRINT (456, oldhead, heading, get ABS(oldhead - heading));
 	if ((get ABS(oldhead - heading) < 500) AND oldhead != -1000000)
 	{
@@ -710,8 +710,7 @@ AimWeapon1(heading, pitch)
 
 
 	//code from fireweapon(), dodge a 1 frame bug when return(1)
-	gameframe = get(GAME_FRAME);
-	lastfired = gameframe;
+
 	//get PRINT (111);
 	targetswap = 0;
 	timer = timer + 1;
