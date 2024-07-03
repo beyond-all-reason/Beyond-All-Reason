@@ -11,36 +11,33 @@ function gadget:GetInfo()
     }
 end
 
+local spGetPlayerInfo = Spring.GetPlayerInfo
+
 local function GetAllyTeamID(teamID)
 	return select(6,Spring.GetTeamInfo(teamID,false))
 end
 
-local function AllPlayers()
-	local players = Spring.GetPlayerList()
-	for ct, id in pairs(players) do
-		if select(3,Spring.GetPlayerInfo(id,false)) then players[ct] = nil end
-	end
-	return players
-end
-
 local function PlayersInAllyTeamID(allyTeamID)
-	local players = AllPlayers()
+	local players = Spring.GetPlayerList()
+	local _,_,spec,_,allyTeam
 	for ct, id in pairs(players) do
-		if select(5,Spring.GetPlayerInfo(id,false)) ~= allyTeamID then players[ct] = nil end
+		_,_,spec,_,allyTeam = spGetPlayerInfo(id,false)
+		if not spec and allyTeam ~= allyTeamID then
+			players[ct] = nil
+		end
 	end
 	return players
 end
 
 local function AllButAllyTeamID(allyTeamID)
-	local players = AllPlayers()
+	local players = Spring.GetPlayerList()
+	local _,_,spec,_,allyTeam
 	for ct, id in pairs(players) do
-		if select(5,Spring.GetPlayerInfo(id,false)) == allyTeamID then players[ct] = nil end
+		_,_,spec,_,allyTeam = spGetPlayerInfo(id,false)
+		if not spec and allyTeam == allyTeamID then
+			players[ct] = nil
+		end
 	end
-	return players
-end
-
-local function PlayersInTeamID(teamID)
-	local players = Spring.GetPlayerList(teamID)
 	return players
 end
 
@@ -78,18 +75,10 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function gadget:TeamDied(teamID)
-
-	end
-
-	function gadget:TeamChanged(teamID)
-
-	end
-
 	-- UNITS RECEIVED send to all in team
 	function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 		if not _G.transferredUnits or not _G.transferredUnits[unitID] then	-- exclude upgraded units (t2 mex/geo) because allied players could have done this
-			local players = PlayersInTeamID(newTeam)
+			local players = Spring.GetPlayerList(newTeam)
 			for ct, player in pairs (players) do
 				if tostring(player) then
 					SendToUnsynced("NotificationEvent", "UnitsReceived", tostring(player))
@@ -113,7 +102,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	-- Player left send to all in allyteam
 	function gadget:PlayerRemoved(playerID, reason)
-		local players = PlayersInAllyTeamID(select(5,Spring.GetPlayerInfo(playerID,false)))
+		local players = PlayersInAllyTeamID(select(5,spGetPlayerInfo(playerID,false)))
 		for ct, player in pairs (players) do
 			if tostring(player) then
 				SendToUnsynced("NotificationEvent", "PlayerLeft", tostring(player))
@@ -123,11 +112,12 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitSeismicPing(x, y, z, strength, allyTeam, unitID, unitDefID)
 		local event = "StealthyUnitsDetected"
-		local players = AllPlayers()
+		local players = Spring.GetPlayerList()
 		local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
+		local _, _, spec, _, playerAllyTeam
 		for ct, playerID in pairs (players) do
 			if tostring(playerID) then
-				local _, _, spec, _, playerAllyTeam = Spring.GetPlayerInfo(playerID, false)
+				_, _, spec, _, playerAllyTeam = spGetPlayerInfo(playerID, false)
 				if not spec and playerAllyTeam == allyTeam and unitAllyTeam ~= playerAllyTeam then
 					SendToUnsynced("NotificationEvent", event, tostring(playerID))
 				end
@@ -198,7 +188,7 @@ else
 	end
 
 	function gadget:PlayerAdded(playerID)
-		if Spring.GetGameFrame() > 0 and not select(3,Spring.GetPlayerInfo(playerID, false)) then
+		if Spring.GetGameFrame() > 0 and not select(3,spGetPlayerInfo(playerID, false)) then
 			BroadcastEvent("NotificationEvent", 'PlayerAdded', tostring(myPlayerID))
 		end
 	end
