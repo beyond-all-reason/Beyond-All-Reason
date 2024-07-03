@@ -3,7 +3,7 @@
 
 piece body, aimy1, turret, aimx1, sleeve, flare, ringinner, ringouter, blfoot, blhinge, bltoes, brfoot, brhinge, brtoes, flfoot, flhinge, fltoes, frfoot, frhinge, frtoes;
 
-static-var  restore_delay, timeLeft, animSpeed, maxSpeed, animFramesPerKeyframe, Stunned, isMoving, oldhead, isfiring, targetswap, timer, gameframe, lastfired, firetime;
+static-var  restore_delay, timeLeft, animSpeed, maxSpeed, animFramesPerKeyframe, Stunned, isMoving, oldhead, isfiring, gameframe, lastfired, firetime;
 
 
 #define BASEPIECE body
@@ -15,11 +15,11 @@ static-var  restore_delay, timeLeft, animSpeed, maxSpeed, animFramesPerKeyframe,
 #include "../unit_hitbyweaponid_and_smoke.h"
 
 
-#define TB_BASE body 
-#define TB_TURNRATE <12.0> 
-#define TB_TILT_X <0.20>
-#define TB_BANK_Z <0.15> // Do not define this if you dont want banking
-#include "../tilt_bank_mobileunit.h"
+//#define TB_BASE body 
+//#define TB_TURNRATE <12.0> 
+//#define TB_TILT_X <0.20>
+//#define TB_BANK_Z <0.15> // Do not define this if you dont want banking
+//#include "../tilt_bank_mobileunit.h"
 
 
 
@@ -526,7 +526,7 @@ StartMoving(reversing)
 	isMoving = TRUE;
 	start-script UnitSpeed();
 	start-script walk();
-	START_TILTBANK;
+	//START_TILTBANK;
 }
 
 StopMoving()
@@ -534,7 +534,7 @@ StopMoving()
 	isMoving = FALSE;
 	signal SIGNAL_MOVE;
 	call-script StopWalking();
-	STOP_TILTBANK;
+	//STOP_TILTBANK;
 }
 Stop()
 {
@@ -572,8 +572,6 @@ TimeToRestore(addTime) {
 	//get PRINT(333333);
     isfiring = 0;
 	oldhead = -1000000;
-	timer = 0;
-	targetswap = 0;
 		
 	//stop-spin barrelMid around z-axis decelerate <5>;
 	//wait-for-turn turretBase around y-axis;
@@ -586,17 +584,13 @@ SweepFire()
 	set-signal-mask SIGNAL_LIGHT;
 	while (TRUE)
 	{
-		//p2=2145 p3=75 p4=2423
 		gameframe = get(GAME_FRAME);
+
 		//get PRINT(123, targetswap, isfiring, lastfired+firetime>gameframe);
 		//get PRINT(1234, lastfired, firetime, gameframe);
-		//get PRINT(1235, timer);
-		// targetswap == 1  AND
 		if (isfiring == 1 AND lastfired+firetime>gameframe)
 		{
-			//get PRINT(666);
 			emit-sfx 2048 from flare;
-			timer = timer + 1;
 		}
 		sleep 20;
 	}
@@ -608,7 +602,7 @@ Create()
 	
 	restore_delay = 6000;
 	timeLeft = 0;
-	call-script TB_Init();
+	//call-script TB_Init();
 	
 	spin ringinner around y-axis speed <200>;
 	spin ringouter around y-axis speed <-200>;
@@ -616,10 +610,8 @@ Create()
 	hide flare;
 	hide aimy1;
 	hide aimx1;
-	
-	//targetswap = 0; 	
+		
 	isfiring = 0;
-	timer = 0;
 	oldhead = -1000000;
 
 	firetime = 120;
@@ -634,12 +626,10 @@ Create()
 	start-script UnitSpeed();
 }
 
-
 SetMaxReloadTime(reloadMS)
 {
 	restore_delay = reloadMS * 2;
 }
-
 
 AimFromWeapon1(pieceIndex)
 {
@@ -656,71 +646,42 @@ SetStunned(State)
     Stunned = State;
 }
 
-
-
-#include "../debug.h"
+//#include "../debug.h"
 //#define DEBUG
 
 AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	
 	turn aimy1 to y-axis heading speed <30>;
 	turn aimx1 to x-axis -1*pitch speed <15>;
-	
-
     if (timeLeft == 0)
     {
         start-script TimeToRestore();
     }
     timeLeft = restore_delay;
-
-	//get PRINT (456, oldhead, heading, get ABS(oldhead - heading));
-
-	if (get ABS(oldhead - heading) > 500)
-	{
-		//targetswap = 1;
-	}
 	gameframe = get(GAME_FRAME);
-	lastfired = gameframe;
-	//get PRINT (456, oldhead, heading, get ABS(oldhead - heading));
 	if ((get ABS(oldhead - heading) < 500) AND oldhead != -1000000)
 	{
-		//skip the wait just do it
 		oldhead = heading;
 		isfiring = 1;
+		gameframe = get(GAME_FRAME);
+		lastfired = gameframe;
 		return (0);
 	}
-
-	oldhead = heading;
-	isfiring = 1;
-
-
-
-
-
-
-
-	
 	wait-for-turn aimy1 around y-axis;
 	wait-for-turn aimx1 around x-axis;
-	
-	//show flare;
-
-
-	//code from fireweapon(), dodge a 1 frame bug when return(1)
-
-	//get PRINT (111);
-	targetswap = 0;
-	timer = timer + 1;
-
+	oldhead = heading;
+	isfiring = 1;
+	gameframe = get(GAME_FRAME);
+	lastfired = gameframe;
 	return (0);
 }
 
 FireWeapon1()
 {
-
+	gameframe = get(GAME_FRAME);
+	lastfired = gameframe;
 	return (0);
 }
 
