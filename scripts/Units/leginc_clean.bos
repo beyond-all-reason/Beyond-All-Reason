@@ -690,7 +690,7 @@ AimWeapon1(heading, pitch)
 		//skip the wait just do it
 		oldhead = heading;
 		isfiring = 1;
-		return (1);
+		return (0);
 	}
 
 	oldhead = heading;
