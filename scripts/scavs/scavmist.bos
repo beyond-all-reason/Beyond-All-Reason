@@ -9,7 +9,7 @@
 // #define WALK_PERIOD 100
 
 
-piece	flare;
+piece	flare, spawnflare;
 
 // static-var fire_count, firing, open, maxreloadtime, restore_delay, wpn1_lasthead, animSpeed, maxSpeed, animFramesPerKeyframe, bMoving;
 
@@ -40,8 +40,11 @@ Emitsmoke()
 Create()
 {
 	hide flare;
+	hide spawnflare;
 	dont-shade flare;
 	dont-cache flare;
+	dont-shade spawnflare;
+	dont-cache spawnflare;
 	set ARMORED to 0;
 	//emit-sfx 1024 + 0 from flare;
 	sleep 500;
@@ -51,7 +54,7 @@ Create()
 
 QueryPrimary(piecenum)
 {
-	piecenum=flare;
+	piecenum=spawnflare;
 }
 
 AimPrimary()
@@ -61,7 +64,7 @@ AimPrimary()
 
 FirePrimary()
 {
-	emit-sfx 1024 + 0 from flare;
+	emit-sfx 1024 + 0 from spawnflare;
 	return(1);
 }
 
