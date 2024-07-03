@@ -1675,7 +1675,7 @@ if gadgetHandler:IsSyncedCode() then
 				currentMaxWaveSize = math.ceil((minWaveSize + math.ceil((techAnger*0.01)*(maxWaveSize - minWaveSize)))*(config.bossFightWaveSizeScale*0.01))
 			end
 			techAnger = math.max(math.min((t - config.gracePeriod) / ((bossTime/(Spring.GetModOptions().scav_bosstimemult)) - config.gracePeriod) * 100, 999), 0)
-			techAnger = math.ceil(techAnger*config.economyScale)
+			techAnger = math.ceil(techAnger*((config.economyScale*0.5)+0.5))
 			if t < config.gracePeriod then
 				bossAnger = 0
 				minBurrows = 8*(t/config.gracePeriod)
@@ -1795,6 +1795,30 @@ if gadgetHandler:IsSyncedCode() then
 							Spring.GiveOrderToUnit(scavs[i], CMD.RESURRECT, {pos.x+mRandom(-256, 256), pos.y, pos.z+mRandom(-256, 256), 20000} , {"shift"})
 							Spring.GiveOrderToUnit(scavs[i], CMD.FIGHT, {pos.x+mRandom(-256, 256), pos.y, pos.z+mRandom(-256, 256)} , {"shift"})
 						end
+					end
+				end
+			end
+			local allUnits = Spring.GetAllUnits()
+			for i = 1,#allUnits do
+				if math.random(0,3) == 0 then
+					local unitID = allUnits[i]
+					local ux, uy, uz = Spring.GetUnitPosition(unitID)
+					local captureProgress = select(4, Spring.GetUnitHealth(unitID))
+					if GG.IsPosInRaptorScum(ux, uy, uz) and Spring.GetUnitTeam(unitID) ~= scavTeamID then
+						if captureProgress+(1/30) >= 1 then
+							Spring.TransferUnit(unitID, scavTeamID, false)
+							Spring.SetUnitHealth(unitID, {capture = 0.75})
+							SendToUnsynced("unitCaptureFrame", unitID, 0.75)
+							Spring.SpawnCEG("scav-spawnexplo", ux, uy, uz, 0,0,0)
+						else
+							Spring.SetUnitHealth(unitID, {capture = math.min(captureProgress+(1/15), 1)})
+							SendToUnsynced("unitCaptureFrame", unitID, math.min(captureProgress+(1/15), 1))
+							Spring.SpawnCEG("scav-spawnexplo", ux, uy, uz, 0,0,0)
+						end
+					elseif captureProgress > 0 and Spring.GetUnitTeam(unitID) == scavTeamID then
+						Spring.SetUnitHealth(unitID, {capture = math.max(captureProgress-(1/30), 0)})
+						SendToUnsynced("unitCaptureFrame", unitID, math.min(captureProgress-(1/30), 0))
+						Spring.SpawnCEG("scav-spawnexplo", ux, uy, uz, 0,0,0)
 					end
 				end
 			end

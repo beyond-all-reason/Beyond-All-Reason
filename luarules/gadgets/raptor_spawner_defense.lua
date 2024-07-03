@@ -1796,7 +1796,7 @@ if gadgetHandler:IsSyncedCode() then
 				techAnger = math.max(math.min((t - (config.gracePeriod/Spring.GetModOptions().raptor_graceperiodmult)) / ((queenTime/(Spring.GetModOptions().raptor_queentimemult)) - (config.gracePeriod/Spring.GetModOptions().raptor_graceperiodmult)) * 100, 999), 0)
 			end
 
-			techAnger = math.ceil(techAnger*config.economyScale)
+			techAnger = math.ceil(techAnger*((config.economyScale*0.5)+0.5))
 
 			if t < config.gracePeriod then
 				queenAnger = 0
