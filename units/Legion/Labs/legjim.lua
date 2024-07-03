@@ -1,5 +1,5 @@
 return {
-	legsy = {
+	legjim = {
 		maxacc = 0,
 		maxdec = 0,
 		energycost = 1200,
@@ -33,18 +33,7 @@ return {
 		yardmap = "oyyyyyyoyccccccyyccccccyyccccccyyccccccyyccccccyyccccccyoyyyyyyo",
 		buildoptions = {
 			[1] = "legcs",
-			[2] = "legstingray",--
-			[3] = "legvelite",--
-			[4] = "legpontus",
-			[5] = "leghastatus",
-			[6] = "legtriarius",--
-			[7] = "legsub",--
-			[8] = "correcl",
-			[9] = "legoptio",
-			[10] = "leghastatusalt",
-			[11] = "legportent",
-			[12] = "legtriariusdrone",
-			[13] = "legtriariusheatray"--mortar
+
 
 		},
 		customparams = {

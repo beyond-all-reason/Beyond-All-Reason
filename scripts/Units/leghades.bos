@@ -1,17 +1,13 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
+
+// Signal definitions
+#define SIGNAL_MOVE 	1
+#define SIGNAL_AIM 	2
 
 piece  base, armor, aimy1, turret, aimx1, sleeve, barrel, flare, casing, wheelfl, wheelfr, wheelml, wheelmr, wheelbl, wheelbr;
 
 static-var  restore_delay, currentSpeed, moveSpeed, wheelSpeed, oldHeading;
-
-// Signal definitions
-#define SIG_MOVE 			2
-#define SIG_AIM				2
-
-
 
 #define BASEPIECE base
 #define HITSPEED <85.0>
@@ -19,10 +15,14 @@ static-var  restore_delay, currentSpeed, moveSpeed, wheelSpeed, oldHeading;
 #define UNITSIZE 1
 #define MAXTILT 100
 
+#define TB_BASE base 
+#define TB_TURNRATE <15.0> 
+#define TB_TILT_X <0.1>
+#define TB_BANK_Z <0.1> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
+
 Steering(heading, steery, currentSpeed)
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
 	while(1)
 	{
 		heading = get HEADING;
@@ -54,21 +54,30 @@ Create()
 	restore_delay = 3000;
 	moveSpeed = get MAX_SPEED;
 	oldheading = get HEADING;
+	call-script TB_Init();
+	start-script Steering();
+	SLEEP_UNTIL_UNITFINISHED;
 }
 
-StartMoving()
+StartMoving(reversing)
 {
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
     start-script Steering();
+	START_TILTBANK;
 }
 
 StopMoving()
 {
+	signal SIGNAL_MOVE;
+	
     stop-spin wheelfl around x-axis;
     stop-spin wheelfr around x-axis;
     stop-spin wheelml around x-axis;
     stop-spin wheelmr around x-axis;
     stop-spin wheelbl around x-axis;
     stop-spin wheelbr around x-axis;
+	STOP_TILTBANK;
 }
 
 
@@ -86,6 +95,7 @@ ExecuteRestoreAfterDelay()
 	turn aimy1 to y-axis <0.000000> speed <90>;
 	turn aimx1 to x-axis <0.000000> speed <50>;
 }
+
 SetStunned(State)
 {
     Stunned = State;
@@ -93,6 +103,7 @@ SetStunned(State)
 	    start-script ExecuteRestoreAfterDelay();
 	}
 }
+
 RestoreAfterDelay()
 {
 	sleep restore_delay;
@@ -101,12 +112,15 @@ RestoreAfterDelay()
 
 AimPrimary(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	turn aimy1 to y-axis heading speed <250.000000>;
-	turn aimx1 to x-axis <0.000000> - pitch speed <240.000000>;
+	signal SIGNAL_AIM;
+	set-signal-mask SIGNAL_AIM;
+	
+	turn aimy1 to y-axis heading speed <250>;
+	turn aimx1 to x-axis 0 - pitch speed <240>;
+	
 	wait-for-turn aimy1 around y-axis;
 	wait-for-turn aimx1 around x-axis;
+	
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -121,7 +135,7 @@ FirePrimary()
 
 AimFromPrimary(piecenum)
 {
-	piecenum = turret;
+	piecenum = aimx1;
 }
 
 QueryPrimary(piecenum)

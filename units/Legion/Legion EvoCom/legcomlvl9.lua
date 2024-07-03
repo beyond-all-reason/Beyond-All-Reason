@@ -122,7 +122,8 @@ return {
 			unitgroup = 'builder',
 			area_mex_def = "legmex",
 			iscommander = true,
-			isevocom = true,
+			effigy_offset = 1,
+			evocomlvl = 9,
 			--energyconv_capacity = 70,
 			--energyconv_efficiency = 1/70,
 			model_author = "FireStorm",
@@ -141,6 +142,9 @@ return {
 			inheritxpratemultiplier = 0.25,
 			childreninheritxp = "DRONE BOTCANNON",
 			parentsinheritxp = "MOBILEBUILT DRONE BOTCANNON",
+			effigy = "comeffigylvl5",
+			minimum_respawn_stun = 5,
+			distance_stun_multiplier = 1,
 		},
 		featuredefs = {
 			dead = {

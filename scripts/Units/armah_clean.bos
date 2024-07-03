@@ -75,7 +75,8 @@ QueryWeapon1(pieceIndex)
 
 AimWeapon2(heading, pitch)
 {
-
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 	turn turret to y-axis heading speed <370.0>;
 	turn sleeve to x-axis <0.0> - pitch speed <280.0>;
 	turn doorr to y-axis <-135> speed <370>;

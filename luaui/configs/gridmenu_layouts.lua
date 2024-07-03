@@ -784,7 +784,7 @@ local unitGrids = {
 		{
 			{ "legmex", "legsolar", "legwin", },                -- mex, solar, wind
 			{ "cormakr", "", "coruwms", "legtide"},             -- T1.5 mex, uw m storage, tidal
-			{ "corestor", "cormstor", "coruwes", "legfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
+			{ "corestor", "legmstor", "coruwes", "legfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
 		},
 		{
 			{ "leglht", "cortl", },                          -- LLT, offshore torp launcher
@@ -870,7 +870,7 @@ local unitGrids = {
 	},
 	legcomlvl5 = {
 		{
-			{ "cormoho", "legfus", "legwin", "legadvsol", },   		-- adv mex, fusion, wind, adv. solar
+			{ "legmoho", "legfus", "legwin", "legadvsol", },   		-- adv mex, fusion, wind, adv. solar
 			{ "cormmkr", "corageo", "", "legtide", },   			-- adv metalmaker, adv geo, empty, tidal generator
 			{ "coruwadves", "coruwadvms", "coruwmme", "coruwmmm", },-- hardened energy storage, hardened metal storage,
 		},
@@ -892,7 +892,7 @@ local unitGrids = {
 	},
 	legcomlvl6 = {
 		{
-			{ "cormoho", "legfus", "legwin", "legadvsol", },   		-- adv mex, fusion, wind, adv. solar
+			{ "legmoho", "legfus", "legwin", "legadvsol", },   		-- adv mex, fusion, wind, adv. solar
 			{ "cormmkr", "corageo", "", "legtide", },   			-- adv metalmaker, adv geo, empty, tidal generator
 			{ "coruwadves", "coruwadvms", "coruwmme", "coruwmmm", },-- hardened energy storage, hardened metal storage,
 		},
@@ -914,7 +914,7 @@ local unitGrids = {
 	},
 	legcomlvl7 = {
 		{
-			{ "cormoho", "legfus", "legwin", "legadvsol", },   		-- adv mex, fusion, wind, adv. solar
+			{ "legmoho", "legfus", "legwin", "legadvsol", },   		-- adv mex, fusion, wind, adv. solar
 			{ "cormmkr", "corageo", "", "legtide", },   			-- adv metalmaker, adv geo, empty, tidal generator
 			{ "coruwadves", "coruwadvms", "coruwmme", "coruwmmm", },-- hardened energy storage, hardened metal storage,
 		},
@@ -936,7 +936,7 @@ local unitGrids = {
 	},
 	legcomlvl8 = {
 		{
-			{ "cormoho", "legfus", "legwin", "legadvsol", },   		-- adv mex, fusion, wind, adv. solar
+			{ "legmoho", "legfus", "legwin", "legadvsol", },   		-- adv mex, fusion, wind, adv. solar
 			{ "cormmkr", "corageo", "", "legtide", },   			-- adv metalmaker, adv geo, empty, tidal generator
 			{ "coruwadves", "coruwadvms", "coruwmme", "coruwmmm", },-- hardened energy storage, hardened metal storage,
 		},
@@ -958,7 +958,7 @@ local unitGrids = {
 	},
 	legcomlvl9 = {
 		{
-			{ "cormoho", "legfus", "legwin", "legadvsol", },   		-- adv mex, fusion, wind, adv. solar
+			{ "legmoho", "legfus", "legwin", "legadvsol", },   		-- adv mex, fusion, wind, adv. solar
 			{ "cormmkr", "corageo", "", "legtide", },   			-- adv metalmaker, adv geo, empty, tidal generator
 			{ "coruwadves", "coruwadvms", "coruwmme", "coruwmmm", },-- hardened energy storage, hardened metal storage,
 		},
@@ -980,7 +980,7 @@ local unitGrids = {
 	},
 	legcomlvl10 = {
 		{
-			{ "cormoho", "legfus", "legwin", "legadvsol", },   		-- adv mex, fusion, wind, adv. solar
+			{ "legmoho", "legfus", "legwin", "legadvsol", },   		-- adv mex, fusion, wind, adv. solar
 			{ "cormmkr", "corageo", "", "legtide", },   			-- adv metalmaker, adv geo, empty, tidal generator
 			{ "coruwadves", "coruwadvms", "coruwmme", "coruwmmm", },-- hardened energy storage, hardened metal storage,
 		},
@@ -1050,7 +1050,7 @@ local unitGrids = {
 		{
 			{ "legmex", "legsolar", "legwin", "legadvsol", },   -- mex, solar, wind, adv. solar
 			{ "cormakr", "corgeo", "legmext15", },              -- T1 converter, geo, T1.5 legion mex, (tidal)
-			{ "corestor", "cormstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
+			{ "corestor", "legmstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
 			{ "leglht", "legmg", "", "legdtr", },     			-- LLT, machine gun, HLT, flame turret
@@ -1119,7 +1119,7 @@ local unitGrids = {
 		{
 			{ "legmex", "legsolar", "legwin", "legadvsol", },   -- mex, solar, wind, adv. solar
 			{ "cormakr", "corgeo", "legmext15", },              -- T1 converter, geo, T1.5 legion mex, (tidal)
-			{ "corestor", "cormstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
+			{ "corestor", "legmstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
 			{ "leglht", "legmg", "", "legdtr", },     			-- LLT, machine gun, HLT, flame turret
@@ -1187,7 +1187,7 @@ local unitGrids = {
 		{
 			{ "legmex", "legsolar", "legwin", "legadvsol", },   -- mex, solar, wind, adv. solar
 			{ "cormakr", "corgeo", "legmext15", },              -- T1 converter, geo, T1.5 legion mex, (tidal)
-			{ "corestor", "cormstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
+			{ "corestor", "legmstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
 			{ "leglht", "legmg", "", "legdtr", },     			-- LLT, machine gun, HLT, flame turret
@@ -1301,7 +1301,7 @@ local unitGrids = {
 		{
 			{ "legmex", "legsolar", "legwin", "legadvsol", },   -- mex, solar, wind, adv. solar
 			{ "cormakr", "corgeo", "legmext15", "legtide", },              -- T1 converter, geo, T1.5 legion mex, (tidal)
-			{ "corestor", "cormstor", "coruwes", "legfmkr", },  -- e storage, m storage, (uw e stor), (fl. T1 converter)
+			{ "corestor", "legmstor", "coruwes", "legfmkr", },  -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
 			{ "leglht", "legmg", "corhlt", "legdtr", },     -- LLT, machine gun, HLT, flame turret
@@ -1418,7 +1418,7 @@ local unitGrids = {
 		{
 			{ "legmex", "legsolar", "legwin", "legadvsol", },   -- mex, solar, wind, adv. solar
 			{ "cormakr", "corgeo", "legmext15", "legtide", },              -- T1 converter, geo, T1.5 legion mex, (tidal)
-			{ "corestor", "cormstor", "coruwes", "legfmkr", },  -- e storage, m storage, (uw e stor), (fl. T1 converter)
+			{ "corestor", "legmstor", "coruwes", "legfmkr", },  -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
 			{ "leglht", "legmg", "corhlt", "legdtr", },     -- LLT, machine gun, HLT, flame turret
@@ -1486,9 +1486,9 @@ local unitGrids = {
 
 	legack = {
 		{
-			{ "cormoho", "corfus", "corafus", },                -- moho, fusion, afus
+			{ "legmoho", "corfus", "corafus", },                -- moho, fusion, afus
 			{ "cormmkr", "corageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
-			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
+			{ "coruwadves", "legamstor", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
 			{ "legbombard", "legbastion", "legacluster", "legperdition", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
@@ -1556,9 +1556,9 @@ local unitGrids = {
 
 	legacv = {
 		{
-			{ "cormoho", "corfus", "corafus", },                -- moho, fusion, afus
+			{ "legmoho", "corfus", "corafus", },                -- moho, fusion, afus
 			{ "cormmkr", "corageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
-			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
+			{ "coruwadves", "legamstor", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
 			{ "legbombard", "legbastion", "legacluster", "legperdition", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
@@ -1625,9 +1625,9 @@ local unitGrids = {
 	},
 	legaca = {
 		{
-			{ "cormoho", "corfus", "corafus", },                -- moho, fusion, afus
+			{ "legmoho", "corfus", "corafus", },                -- moho, fusion, afus
 			{ "cormmkr", "corageo", "cormexp","coruwageo", },               -- T2 converter, T2 geo, armed moho
-			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
+			{ "coruwadves", "legamstor", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
 			{ "legbombard", "legbastion", "legacluster", "legperdition", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke

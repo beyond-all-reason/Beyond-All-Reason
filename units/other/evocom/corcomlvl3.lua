@@ -108,7 +108,8 @@ return {
 			unitgroup = 'builder',
 			area_mex_def = "cormex",
 			iscommander = true,
-			isevocom = true,
+			effigy_offset = 1,
+			evocomlvl = 3,
 			--energyconv_capacity = 70,
 			--energyconv_efficiency = 1/70,
 			model_author = "Mr Bob",
@@ -125,6 +126,9 @@ return {
 			shield_color_mult = 0.8,
 			shield_power = 6250,
 			shield_radius = 100,
+			effigy = "comeffigylvl2",
+			minimum_respawn_stun = 5,
+			distance_stun_multiplier = 1,
 		},
 		featuredefs = {
 			dead = {

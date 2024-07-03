@@ -18,15 +18,18 @@ local iconSequenceFrametime = 0.02	-- duration per frame
 
 local CMD_WAIT = CMD.WAIT
 
-local teamUnits = {} -- table of teamid to table of stallable unitID : unitDefID
+local unitScope = {} -- table of teamid to table of stallable unitID : unitDefID
 local teamList = {} -- {team1, team2, team3....}
-local unitBeingBuilt = {}
 
 local spGetCommandQueue = Spring.GetCommandQueue
 local spGetFactoryCommands = Spring.GetFactoryCommands
 local spGetUnitTeam = Spring.GetUnitTeam
 local spec, fullview = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
+local spValidUnitID = Spring.ValidUnitID
+local spGetUnitIsDead = Spring.GetUnitIsDead
+local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
+
 
 local unitConf = {}
 for udid, unitDef in pairs(UnitDefs) do
@@ -77,17 +80,9 @@ end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	spec, fullview = Spring.GetSpectatingState()
-	if spec then
-		fullview = select(2,Spring.GetSpectatingState())
-	end
-	if not fullview then
-		teamList = Spring.GetTeamList(Spring.GetMyAllyTeamID())
-	else
-		teamList = Spring.GetTeamList()
-	end
-
+	teamList = fullview and Spring.GetTeamList() or Spring.GetTeamList(Spring.GetMyAllyTeamID())
 	clearInstanceTable(iconVBO) -- clear all instances
-	teamUnits = {}
+	unitScope = {}
 	for unitID, unitDefID in pairs(extVisibleUnits) do
 		widget:VisibleUnitAdded(unitID, unitDefID, spGetUnitTeam(unitID))
 	end
@@ -96,16 +91,10 @@ end
 
 
 function widget:Initialize()
-	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
+	if spec or not gl.CreateShader or not initGL4() then -- no shader support, so just remove the widget itself, especially for headless
 		widgetHandler:RemoveWidget()
 		return
 	end
-	if spec then
-		widgetHandler:RemoveWidget()
-		return
-	end
-	if not initGL4() then return end
-
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
 	end
@@ -114,23 +103,11 @@ end
 local function updateIcons()
 	local gf = Spring.GetGameFrame()
 	local queue
-	for teamID, units in pairs(teamUnits) do
-		for unitID, unitDefID in pairs(units) do
-		end
-	end
-	if iconVBO.dirty then
-		uploadAllElements(iconVBO)
-	end
-end
-
-local function updateIcon(unitID, unitDefID, gf)
-	if unitBeingBuilt[unitID] and not Spring.GetUnitIsBeingBuilt(unitID) then
-		unitBeingBuilt[unitID] = nil
-	else
-		local queue = unitConf[unitDefID][3] and spGetFactoryCommands(unitID, 1) or spGetCommandQueue(unitID, 1)
+	for unitID, unitDefID in pairs(unitScope) do
+		queue = unitConf[unitDefID][3] and spGetFactoryCommands(unitID, 1) or spGetCommandQueue(unitID, 1)
 		if queue ~= nil and queue[1] and queue[1].id == CMD_WAIT then
 			if iconVBO.instanceIDtoIndex[unitID] == nil then -- not already being drawn
-				if Spring.ValidUnitID(unitID) and not Spring.GetUnitIsDead(unitID) then
+				if spValidUnitID(unitID) and not spGetUnitIsDead(unitID) and not spGetUnitIsBeingBuilt(unitID) then
 					pushElementInstance(
 						iconVBO, -- push into this Instance VBO Table
 						{unitConf[unitDefID][1], unitConf[unitDefID][1], 0, unitConf[unitDefID][2],  -- lengthwidthcornerheight
@@ -149,21 +126,6 @@ local function updateIcon(unitID, unitDefID, gf)
 			popElementInstance(iconVBO, unitID, true)
 		end
 	end
-end
-
-local function updateIcons()
-	local gf = Spring.GetGameFrame()
-	if onlyOwnTeam then
-		for unitID, unitDefID in pairs(teamUnits[myTeamID]) do
-			updateIcon(unitID, unitDefID)
-		end
-	else
-		for teamID, units in pairs(teamUnits) do
-			for unitID, unitDefID in pairs(units) do
-				updateIcon(unitID, unitDefID, gf)
-			end
-		end
-	end
 	if iconVBO.dirty then
 		uploadAllElements(iconVBO)
 	end
@@ -176,20 +138,13 @@ function widget:GameFrame(n)
 end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam) -- remove the corresponding ground plate if it exists
-	if unitConf[unitDefID] then
-		if teamUnits[unitTeam] == nil then teamUnits[unitTeam] = {} end
-		teamUnits[unitTeam][unitID] = unitDefID
-		if Spring.GetUnitIsBeingBuilt(unitID) then
-			unitBeingBuilt[unitID] = true
-		end
+	if (not onlyOwnTeam or myTeamID == unitTeam) and unitConf[unitDefID] then
+		unitScope[unitID] = unitDefID
 	end
 end
 
 function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground plate if it exists
-	local unitTeam = spGetUnitTeam(unitID)
-	if teamUnits[unitTeam] then
-		teamUnits[unitTeam][unitID] = nil
-	end
+	unitScope[unitID] = nil
 	if iconVBO.instanceIDtoIndex[unitID] then
 		popElementInstance(iconVBO, unitID)
 	end
@@ -215,26 +170,3 @@ function widget:DrawWorld()
 		gl.DepthMask(true)
 	end
 end
-
--- widget already disabled for specs so code below made irrelevant
---[[
-function widget:PlayerChanged(playerID)
-	spec, fullview = Spring.GetSpectatingState()
-	if spec then
-		widgetHandler:RemoveWidget()
-		return
-	end
-	local prevMyTeamID = myTeamID
-	myTeamID = Spring.GetMyTeamID()
-	if myTeamID ~= prevMyTeamID then
-		if onlyOwnTeam then
-			for unitID, unitDefID in pairs(teamUnits[myTeamID]) do
-				if iconVBO.instanceIDtoIndex[unitID] then
-					popElementInstance(iconVBO, unitID, true)
-				end
-				idleUnitList[unitID] = nil
-			end
-		end
-	end
-end
-]]--

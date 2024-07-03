@@ -85,6 +85,15 @@ local options = {
         }
     },
 
+	{
+		key 	= "no_comtrans",
+		name 	= "T1 transports cant load commanders",
+		desc 	= "Commanders will be too heavy for tech 1 transports to carry. (Tech 2 transports can still carry)",
+		type 	= "bool",
+		section = "restrictions",
+		def 	= false,
+	},
+
     {
         key    	= "allowuserwidgets",
         name   	= "Allow custom widgets",
@@ -1201,8 +1210,23 @@ local options = {
     },
 
     {
+        key 	= "comrespawn",
+        name 	= "Commander Respawning",
+        desc   	= "Commanders can build one Effigy. The first one is free. When the commander dies, the Effigy is sacrificed in its place.",
+        type 	= "list",
+        def 	= "evocom",
+        section = "options_experimental",
+        items 	= {
+            { key = "evocom", 	name = "Evolving Commanders Only" },
+            { key = "all", name = "All Commanders" },
+            { key = "disabled", name = "Disabled" },
+        }
+    },
+
+    {
         key 	= "evocom",
         name 	= "Evolving Commanders",
+        desc   	= "Commanders evolve, gaining new weapons and abilities.",
         type 	= "bool",
         def 	= false,
         section = "options_experimental",
@@ -1211,6 +1235,7 @@ local options = {
     {
         key 	= "evocomlevelupmethod",
         name 	= "Evolving Commanders: Method",
+        desc   	= "Dynamic: Commanders evolve to keep up with the highest power player. Timed: Static Evolution Rate",
         type 	= "list",
         def 	= "dynamic",
         section = "options_experimental",
@@ -1223,7 +1248,7 @@ local options = {
     {
         key    	= "evocomleveluprate",
         name   	= "Evolving Commanders: Time",
-        desc   	= "(Range 0.1 - 20 Minutes) Rate at which commanders will evolve and gain new (unbalanced) buffs, weapons and abilities.",
+        desc   	= "(Range 0.1 - 20 Minutes) Rate at which commanders will evolve if Timed method is selected.",
         type   	= "number",
         section	= "options_experimental",
         def    	= 5,
