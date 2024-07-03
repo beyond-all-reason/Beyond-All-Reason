@@ -622,7 +622,7 @@ Create()
 	timer = 0;
 	oldhead = -1000000;
 
-	firetime = 40;
+	firetime = 30;
 	lastfired = get(GAME_FRAME)-200;
 
 	
