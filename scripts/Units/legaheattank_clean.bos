@@ -27,15 +27,15 @@ static-var  statechg_DesiredState, statechg_StateChanging, restore_delay, whichG
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 7
 #define MAXTILT 100
-#define RECOIL_POWER 20000
+#define RECOIL_POWER 0
 #include "../unit_hitbyweaponid_and_smoke.h"
 
 
-#define TB_BASE base 
-#define TB_TURNRATE <12.0> 
-#define TB_TILT_X <0.20>
-#define TB_BANK_Z <0.15> // Do not define this if you dont want banking
-#include "../tilt_bank_mobileunit.h"
+// #define TB_BASE base 
+// #define TB_TURNRATE <12.0> 
+// #define TB_TILT_X <0.20>
+// #define TB_BANK_Z <0.15> // Do not define this if you dont want banking
+// #include "../tilt_bank_mobileunit.h"
 
 
 Create()
@@ -44,14 +44,14 @@ Create()
 	// hide flarer;
 	// hide flarel;
 	targetswap = 0;
-	firetime = 18;
+	firetime = 54;
 	isfiring = 0;
 	lastfired = get(GAME_FRAME)-200;	
 	
 	
 	restore_delay = 3000;
 	timeLeft = 0;
-	call-script TB_Init();
+	//call-script TB_Init();
 	call-script SweepFire();
 	whichGun = 0;
 	return (0);
@@ -69,14 +69,14 @@ StartMoving(reversing)
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
 	start-script Vehicle_Dirt_Ceg();
-	START_TILTBANK;
+	//START_TILTBANK;
 }
 
 
 StopMoving()
 {
 	signal SIGNAL_MOVE;
-	STOP_TILTBANK;
+	//STOP_TILTBANK;
 }
 
 
@@ -192,12 +192,14 @@ FireWeapon1()
 	lastfired = gameframe;
 	if (whichGun == 0){
 		//emit-sfx 1024 + 0  from flarer;
+		sleep 2000;
 		whichGun = 1;
 		return(0);
 	}
 
 	if (whichGun == 1){
 		//emit-sfx 1024 + 0  from flarel;
+		sleep 2000;
 		whichGun = 0;
 		return(0);
 	}
@@ -213,7 +215,15 @@ FireWeapon1()
 
 AimFromWeapon1(piecenum)
 {
-	piecenum = gun;
+	if (whichGun == 0){
+		piecenum = flarer;
+		//whichGun = 1;
+	}
+
+	if (whichGun == 1){
+		piecenum = flarel;
+		//whichGun = 0;
+	}
 	return (0);
 }
 

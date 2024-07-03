@@ -693,7 +693,7 @@ AimWeapon1(heading, pitch)
 	//get PRINT (456, oldhead, heading, get ABS(oldhead - heading));
 	if ((get ABS(oldhead - heading) < 500) AND oldhead != -1000000)
 	{
-		skip the wait just do it
+		//skip the wait just do it
 		oldhead = heading;
 		isfiring = 1;
 		return (1);
@@ -713,6 +713,7 @@ AimWeapon1(heading, pitch)
 	wait-for-turn aimx1 around x-axis;
 	
 	//show flare;
+
 	return (1);
 }
 
