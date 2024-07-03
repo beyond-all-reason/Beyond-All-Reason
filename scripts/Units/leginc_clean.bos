@@ -598,12 +598,6 @@ SweepFire()
 			emit-sfx 2048 from flare;
 			timer = timer + 1;
 		}
-		if (timer > 150)
-		{
-			//signal SIGNAL_AIM;
-			//timer = 0;
-			//start-script RestoreAfterDelay();
-		}
 		sleep 20;
 	}
 }
@@ -623,12 +617,12 @@ Create()
 	hide aimy1;
 	hide aimx1;
 	
-	targetswap = 0; 	
+	//targetswap = 0; 	
 	isfiring = 0;
 	timer = 0;
 	oldhead = -1000000;
 
-	firetime = 120;
+	firetime = 40;
 	lastfired = get(GAME_FRAME)-200;
 
 	
@@ -686,7 +680,7 @@ AimWeapon1(heading, pitch)
 
 	if (get ABS(oldhead - heading) > 500)
 	{
-		targetswap = 1;
+		//targetswap = 1;
 	}
 	gameframe = get(GAME_FRAME);
 

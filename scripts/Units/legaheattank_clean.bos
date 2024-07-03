@@ -31,11 +31,11 @@ static-var  statechg_DesiredState, statechg_StateChanging, restore_delay, whichG
 #include "../unit_hitbyweaponid_and_smoke.h"
 
 
-// #define TB_BASE base 
-// #define TB_TURNRATE <12.0> 
-// #define TB_TILT_X <0.20>
-// #define TB_BANK_Z <0.15> // Do not define this if you dont want banking
-// #include "../tilt_bank_mobileunit.h"
+#define TB_BASE base 
+#define TB_TURNRATE <12.0> 
+#define TB_TILT_X <0.20>
+#define TB_BANK_Z <0.15> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
 
 
 Create()
