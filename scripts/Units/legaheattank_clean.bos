@@ -44,7 +44,7 @@ Create()
 	// hide flarer;
 	// hide flarel;
 	targetswap = 0;
-	firetime = 75;
+	firetime = 18;
 	isfiring = 0;
 	lastfired = get(GAME_FRAME)-200;	
 	

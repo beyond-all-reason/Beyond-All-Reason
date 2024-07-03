@@ -152,7 +152,7 @@ return {
 					default = 100,
 				},
 				customparams = {
-					sweepfire=2.25,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
+					sweepfire=3.25,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
 				}
 			},
 		},
