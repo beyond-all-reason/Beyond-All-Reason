@@ -18,7 +18,6 @@ if gadgetHandler:IsSyncedCode() then
 	local gameFrame = Spring.GetGameFrame()
 	local startFrame = Spring.GetGameFrame()	-- used in case of luarules reload
 	local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
-	local spGetUnitNoSelect = Spring.GetUnitNoSelect
 
 	local totalTeamActions = {}
 	for _, teamID in ipairs(Spring.GetTeamList()) do
@@ -46,9 +45,9 @@ if gadgetHandler:IsSyncedCode() then
 
 	-- be aware that these arent exclusively user actioned commands
 	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, fromSynced, fromLua)
-		-- limit to 1 action per gameframe
-		if not teamAddedActionFrame[teamID] and totalTeamActions[teamID] and not ignoreUnitDefs[unitID] then
-			if not ignoreUnits[unitID] and not spGetUnitIsBeingBuilt(unitID) and not spGetUnitNoSelect(unitID) then	-- believe it or not but unitcreated can come after AllowCommand (with nocost at least)
+		if not ignoreUnits[unitID] and not spGetUnitIsBeingBuilt(unitID) then	-- believe it or not but unitcreated can come after AllowCommand (with nocost at least)
+			-- limit to 1 action per gameframe
+			if not teamAddedActionFrame[teamID] and totalTeamActions[teamID] and not ignoreUnitDefs[unitID] then
 				totalTeamActions[teamID] = totalTeamActions[teamID] + 1
 				teamAddedActionFrame[teamID] = true
 			end
