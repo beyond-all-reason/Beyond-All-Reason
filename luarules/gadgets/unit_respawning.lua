@@ -245,6 +245,9 @@ if gadgetHandler:IsSyncedCode() then
 				if respawnMetaList[unitID].effigyID and (h-damage) <= respawnMetaList[unitID].respawn_health_threshold and (currentTime-respawnMetaList[unitID].respawnTimer) >= 5 then
 					local effigyBuildProgress = select(5, spGetUnitHealth(respawnMetaList[unitID].effigyID))
 					if effigyBuildProgress == 1 then
+						if not attackerTeam then
+							attackerTeam = unitTeam -- lava damage team = nil, so set to self team if nil
+						end
 					    local friendlyFire = Spring.AreTeamsAllied(unitTeam, attackerTeam)
 					    local enemyNearby = spGetUnitNearestEnemy(unitID, 1000)
 					    if friendlyFire and enemyNearby then
