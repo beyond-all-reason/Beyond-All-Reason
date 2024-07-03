@@ -5,7 +5,10 @@ piece  flare, torso, head, pelvis, rthigh, rleg, lleg, lthigh,
        ruparm, luparm, lloarm, lhand, rloarm, gun1, gun2,
        barrel1, barrel2, laser, rhand, rfoot, lfoot, aimy1;
 
-static-var  GunOpen, isOpening, isMoving, restore_delay, laser_persist, wpn1_lasthead, animSpeed, maxSpeed, animFramesPerKeyframe,isAiming, shotcount;
+static-var  GunOpen, isMoving, restore_delay, laser_persist, wpn1_lasthead, animSpeed, maxSpeed, animFramesPerKeyframe, shotcount;
+
+
+#include "../opencloseanim.h"
 
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -28,7 +31,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rthigh to z-axis <0.0> speed <67.532454> / animSpeed; //delta=2.25 
 			turn rthigh to y-axis <-0.0> speed <109.581724> / animSpeed; //delta=3.65 
 
-			if ( !isAiming){
+			if ( IsClosed){
 				turn gun1 to x-axis <0.772685> speed <23.180562> / animSpeed; //delta=-0.77 
 				turn gun1 to z-axis <-0.186720> speed <5.601599> / animSpeed; //delta=0.19 
 				turn lfoot to x-axis <-14.996667> speed <406.337338> / animSpeed; //delta=13.54 
@@ -72,7 +75,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rthigh to z-axis <4.091463> speed <122.743891> / animSpeed; //delta=-4.09 
 			turn rthigh to y-axis <1.219738> speed <36.592132> / animSpeed; //delta=1.22 
 			turn torso to y-axis <-6.499999> speed <194.999984> / animSpeed; //delta=-6.50 
-			if ( !isAiming){
+			if ( IsClosed){
 				turn gun1 to x-axis <-3.756958> speed <135.889301> / animSpeed; //delta=4.53 
 				turn gun1 to z-axis <0.770919> speed <28.729173> / animSpeed; //delta=-0.96 
 				turn gun1 to y-axis <0.113303> speed <3.533130> / animSpeed; //delta=0.12 
@@ -119,7 +122,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rthigh to z-axis <-4.080012> speed <245.144258> / animSpeed; //delta=8.17 
 			turn rthigh to y-axis <-15.206740> speed <492.794332> / animSpeed; //delta=-16.43 
 			turn torso to y-axis <-13.0> speed <195.0> / animSpeed; //delta=-6.50 
-			if ( !isAiming){
+			if ( IsClosed){
 			turn gun1 to x-axis <-0.539146> speed <96.534344> / animSpeed; //delta=-3.22 
 			turn gun1 to z-axis <0.081834> speed <20.672543> / animSpeed; //delta=0.69 
 			turn gun1 to y-axis <1.102181> speed <29.666348> / animSpeed; //delta=0.99 
@@ -168,7 +171,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rthigh to z-axis <-3.434780> speed <19.356978> / animSpeed; //delta=-0.65 
 			turn rthigh to y-axis <-13.887951> speed <39.563674> / animSpeed; //delta=1.32 
 			turn torso to y-axis <-6.500000> speed <194.999984> / animSpeed; //delta=6.50 
-			if ( !isAiming){
+			if ( IsClosed){
 			
 				turn gun1 to x-axis <-1.433233> speed <26.822583> / animSpeed; //delta=0.89 
 				turn gun1 to z-axis <0.451129> speed <11.078842> / animSpeed; //delta=-0.37 
@@ -217,7 +220,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rthigh to z-axis <-1.234394> speed <66.011564> / animSpeed; //delta=-2.20 
 			turn rthigh to y-axis <-12.939601> speed <28.450487> / animSpeed; //delta=0.95 
 			turn torso to y-axis <0.0> speed <195.0> / animSpeed; //delta=6.50 
-			if ( !isAiming){
+			if ( IsClosed){
 			
 				turn gun1 to x-axis <-0.370413> speed <31.884599> / animSpeed; //delta=-1.06 
 				turn gun1 to z-axis <0.020843> speed <12.908589> / animSpeed; //delta=0.43 
@@ -258,7 +261,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rthigh to x-axis <12.015454> speed <491.671014> / animSpeed; //delta=-16.39 
 			turn rthigh to y-axis <-1.161903> speed <353.330948> / animSpeed; //delta=11.78 
 			turn torso to y-axis <6.499999> speed <194.999984> / animSpeed; //delta=6.50 
-			if ( !isAiming){
+			if ( IsClosed){
 		
 				turn gun1 to x-axis <-1.209430> speed <25.170528> / animSpeed; //delta=0.84 
 				turn head to x-axis <0.179201> speed <5.376042> / animSpeed; //delta=-0.18 
@@ -310,7 +313,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rthigh to z-axis <0.673230> speed <56.420867> / animSpeed; //delta=-1.88 
 			turn rthigh to y-axis <-1.901550> speed <22.189418> / animSpeed; //delta=-0.74 
 			turn torso to y-axis <13.0> speed <195.0> / animSpeed; //delta=6.50 
-			if ( !isAiming){
+			if ( IsClosed){
 			
 				turn gun1 to x-axis <-0.077355> speed <33.962247> / animSpeed; //delta=-1.13 
 				turn gun1 to z-axis <0.247506> speed <4.164802> / animSpeed; //delta=-0.14 
@@ -362,7 +365,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rthigh to y-axis <-2.543328> speed <19.253334> / animSpeed; //delta=-0.64 
 			turn torso to y-axis <6.500000> speed <194.999984> / animSpeed; //delta=-6.50 
 			
-			if ( !isAiming){
+			if ( IsClosed){
 			
 				turn gun1 to x-axis <-0.924425> speed <25.412091> / animSpeed; //delta=0.85 
 				turn gun1 to z-axis <0.127139> speed <3.611005> / animSpeed; //delta=0.12 
@@ -412,7 +415,7 @@ Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptas
 			turn rthigh to z-axis <0.0> speed <31.112494> / animSpeed; //delta=-1.04 
 			turn rthigh to y-axis <0.0> speed <76.299843> / animSpeed; //delta=2.54 
 			turn torso to y-axis <0.0> speed <195.0> / animSpeed; //delta=-6.50 
-			if ( !isAiming){
+			if ( IsClosed){
 			
 			turn gun1 to x-axis <0.772685> speed <50.913313> / animSpeed; //delta=-1.70 
 			turn gun1 to z-axis <-0.186720> speed <9.415771> / animSpeed; //delta=0.31 
@@ -465,7 +468,7 @@ StopWalking() {
 	turn rthigh to y-axis <-3.652724> speed <82.132389>;
 	turn rthigh to z-axis <2.251082> speed <40.857376>;
 	turn torso to y-axis <0.0> speed <32.500002>;
-	if ( !isAiming){
+	if ( IsClosed){
 	
 		turn barrel1 to x-axis <0.0> speed <46.418158>;
 		turn barrel1 to y-axis <0.0> speed <6.060343>;
@@ -527,131 +530,100 @@ StopMoving(){
 	isMoving=FALSE;
 	call-script StopWalking();
 }
+
+
 static-var gunProgress;
-OpenGun()
+Open()
 {
-	if (GunOpen) return (0);
-	if (isOpening) return (0);
-	isOpening = 1;
-	if (gunProgress < 1){
-		gunProgress = 1;
-		turn gun1 to x-axis <0.0> speed <22.648217>;
-		turn gun1 to y-axis <0.0> speed <5.438276>;
-		turn gun1 to z-axis <0.0> speed <4.788196>;
-		turn head to x-axis <0.0> speed <0.896007>;
-		turn head to y-axis <0.0> speed <22.532999>;
-		turn head to z-axis <0.0> speed <2.686012>;
-		turn lhand to x-axis <0.0> speed <23.371620>;
-		turn lhand to y-axis <0.0> speed <0.602438>;
-		turn lhand to z-axis <0.0> speed <1.987578>;
-		turn lloarm to x-axis <-10.350569> speed <75.665399>;
-		turn lloarm to y-axis <0.0> speed <6.282108>;
-		turn lloarm to z-axis <-2.233007> speed <13.319725>;
-		turn luparm to x-axis <0.0> speed <107.432310>;
-		turn luparm to y-axis <0.0> speed <6.951207>;
-		turn luparm to z-axis <0.0> speed <7.894356>;
-		turn rhand to x-axis <0.0> speed <124.863875>;
-		turn rhand to y-axis <0.0> speed <6.225055>;
-		turn rhand to z-axis <0.0> speed <19.346431>;
-		turn rloarm to x-axis <0.0> speed <54.374180>;
-		turn rloarm to y-axis <0.0> speed <16.608403>;
-		turn rloarm to z-axis <0.0> speed <8.119724>;
-		turn ruparm to x-axis <0.0> speed <52.757000>;
-		turn ruparm to y-axis <0.0> speed <5.520916>;
-		turn ruparm to z-axis <0.0> speed <9.367907>;
 
-		turn torso to x-axis <-3.0> speed <13.0>;
-		turn ruparm to x-axis <17.0> speed <67.0>;
-		turn rloarm to x-axis <-65.010989> speed <252.0>;
-		sleep 260;
-	}
+	turn gun1 to x-axis <0.0> speed <22.648217>;
+	turn gun1 to y-axis <0.0> speed <5.438276>;
+	turn gun1 to z-axis <0.0> speed <4.788196>;
+	turn head to x-axis <0.0> speed <0.896007>;
+	turn head to y-axis <0.0> speed <22.532999>;
+	turn head to z-axis <0.0> speed <2.686012>;
+	turn lhand to x-axis <0.0> speed <23.371620>;
+	turn lhand to y-axis <0.0> speed <0.602438>;
+	turn lhand to z-axis <0.0> speed <1.987578>;
+	turn lloarm to x-axis <-10.350569> speed <75.665399>;
+	turn lloarm to y-axis <0.0> speed <6.282108>;
+	turn lloarm to z-axis <-2.233007> speed <13.319725>;
+	turn luparm to x-axis <0.0> speed <107.432310>;
+	turn luparm to y-axis <0.0> speed <6.951207>;
+	turn luparm to z-axis <0.0> speed <7.894356>;
+	turn rhand to x-axis <0.0> speed <124.863875>;
+	turn rhand to y-axis <0.0> speed <6.225055>;
+	turn rhand to z-axis <0.0> speed <19.346431>;
+	turn rloarm to x-axis <0.0> speed <54.374180>;
+	turn rloarm to y-axis <0.0> speed <16.608403>;
+	turn rloarm to z-axis <0.0> speed <8.119724>;
+	turn ruparm to x-axis <0.0> speed <52.757000>;
+	turn ruparm to y-axis <0.0> speed <5.520916>;
+	turn ruparm to z-axis <0.0> speed <9.367907>;
 
-	
-	if (gunProgress < 2){
-		gunProgress = 2;
-		turn torso to x-axis <-8.0> speed <18.0>;
-		turn ruparm to x-axis <-11.0> speed <104.0>;
-		turn head to x-axis <-8.0> speed <30.0>;
-		turn rloarm to x-axis <-97.021978> speed <113.0>;
-		sleep 280;
-	}
-	
-	if (gunProgress < 3){
-		gunProgress = 3;
-		turn torso to x-axis <-2.0> speed <24.0>;
-		turn ruparm to x-axis <-46.010989> speed <132.0>;
-		turn head to x-axis <-4.0> speed <13.0>;
-		turn luparm to x-axis <-60.010989> speed <233.0>;
-		turn lloarm to z-axis <24.005495> speed <96.0>;
-		turn rloarm to x-axis <-59.010989> speed <147.0>;
-		sleep 260;
-	}
-	
-	
-	if (gunProgress < 4){
-		gunProgress = 4;
-		move luparm to y-axis [-0.400000] speed [1.0];
-		move lloarm to y-axis [-0.450000] speed [1.0];
-		move gun1 to z-axis [0.750000] speed [3.0];
-		turn torso to x-axis <-1.0> speed <5.0>;
-		turn ruparm to x-axis <-66.010989> speed <86.0>;
-		turn head to x-axis <-1.0> speed <13.0>;
-		turn luparm to x-axis <-89.016484> speed <120.0>;
-		turn lloarm to z-axis <34.005495> speed <39.0>;
-		turn rloarm to x-axis <-23.005495> speed <149.0>;
-		sleep 240;
-	}
+	turn torso to x-axis <-3.0> speed <13.0>;
+	turn ruparm to x-axis <17.0> speed <67.0>;
+	turn rloarm to x-axis <-65.010989> speed <252.0>;
+	sleep 260;
+
+	turn torso to x-axis <-8.0> speed <18.0>;
+	turn ruparm to x-axis <-11.0> speed <104.0>;
+	turn head to x-axis <-8.0> speed <30.0>;
+	turn rloarm to x-axis <-97.021978> speed <113.0>;
+	sleep 280;
+
+
+	turn torso to x-axis <-2.0> speed <24.0>;
+	turn ruparm to x-axis <-46.010989> speed <132.0>;
+	turn head to x-axis <-4.0> speed <13.0>;
+	turn luparm to x-axis <-60.010989> speed <233.0>;
+	turn lloarm to z-axis <24.005495> speed <96.0>;
+	turn rloarm to x-axis <-59.010989> speed <147.0>;
+	sleep 260;
 
 	
-	if (gunProgress < 5){
-		gunProgress = 5;
-		move luparm to y-axis [-0.450000] speed [0.0];
-		move lloarm to y-axis [-0.450000] speed [0.0];
-		turn luparm to x-axis <-90.021978> speed <3.0>;
-		turn lloarm to z-axis <35.005495> speed <7.0>;
-		sleep 98;
-	}
-	
-	if (gunProgress < 6){
-		gunProgress = 6;
-		turn gun2 to x-axis <-45.010989> speed <416.0>;
-		sleep 108;
-	}
-	
-	if (gunProgress < 7){
-		gunProgress = 7;
-		turn gun2 to x-axis <180.043956> speed <2813.0>;
-		sleep 48;
-	}
-	
-	if (gunProgress < 8){
-		gunProgress = 8;
 
-		move barrel1 to y-axis [1.5] speed [46.0];
-		sleep 78;
-	}
+	move luparm to y-axis [-0.400000] speed [1.0];
+	move lloarm to y-axis [-0.450000] speed [1.0];
+	move gun1 to z-axis [0.750000] speed [3.0];
+	turn torso to x-axis <-1.0> speed <5.0>;
+	turn ruparm to x-axis <-66.010989> speed <86.0>;
+	turn head to x-axis <-1.0> speed <13.0>;
+	turn luparm to x-axis <-89.016484> speed <120.0>;
+	turn lloarm to z-axis <34.005495> speed <39.0>;
+	turn rloarm to x-axis <-23.005495> speed <149.0>;
 
+
+
+	move luparm to y-axis [-0.450000] speed [0.0];
+	move lloarm to y-axis [-0.450000] speed [0.0];
+	turn luparm to x-axis <-90.021978> speed <3.0>;
+	turn lloarm to z-axis <35.005495> speed <7.0>;
+
+
+	turn gun2 to x-axis <-45.010989> speed <416.0>;
+	sleep 108;
+
+
+	turn gun2 to x-axis <180.043956> speed <2813.0>;
+
+
+
+	move barrel1 to y-axis [3.5] speed [46.0];
+
+
+	move barrel2 to y-axis [3.5] speed [46.0];
 	
-	if (gunProgress < 9){
-		gunProgress = 9;
-
-		move barrel2 to y-axis [1.5] speed [4.0];
-		sleep 18;
-	}
-
 	GunOpen = TRUE;
-	isOpening = 0;
 }
 
-FoldGun()
+Close()
 {
 	GunOpen = FALSE;
 	hide laser;
 
-	
-	if (gunProgress > 6){
-		gunProgress = 6;
-		move barrel2 to y-axis [-0.0] speed [2.0];
+
+		move barrel2 to y-axis [-0.0] speed [46.0];
 		turn torso to x-axis <-1.049451> speed <4.189341>;
 		turn ruparm to x-axis <-40.005495> speed <130.0>;
 		turn head to x-axis <-1.747253> speed <6.974921>;
@@ -662,24 +634,15 @@ FoldGun()
 		turn gun1 to x-axis <-90.021978> speed <389.849789>;
 		turn gun2 to x-axis <180.043956> speed <718.723857>;
 		wait-for-turn rloarm around x-axis;
-	}
 
-	
-	if (gunProgress > 5){
-		gunProgress = 5;
-		
 		move lloarm to y-axis [0.0] speed [2.0];
-		move barrel1 to y-axis [0.0] speed [3.0];
+		move barrel1 to y-axis [0.0] speed [46.0];
 		turn ruparm to x-axis <-29.005495> speed <54.0>;
 		turn luparm to x-axis <-40.005495> speed <93.0>;
 		turn lloarm to z-axis <10.0> speed <45.0>;
 		turn lhand to z-axis <13.0> speed <66.0>;
 		sleep 200;
-	}
 
-
-	if (gunProgress > 4){
-		gunProgress = 4;
 		move luparm to y-axis [0.0] speed [2.0];
 		move lloarm to y-axis [0.0] speed [0.0];
 		turn ruparm to x-axis <-48.010989> speed <94.0>;
@@ -688,21 +651,13 @@ FoldGun()
 		turn lhand to z-axis <0.0> speed <65.0>;
 		turn gun2 to x-axis <-90.021978> speed <450.0>;
 		sleep 200;
-	}
 
-
-	if (gunProgress > 3){
-		gunProgress = 3;
 		turn ruparm to x-axis <-13.0> speed <175.0>;
 		turn luparm to x-axis <-1.0> speed <123.0>;
 		turn lloarm to x-axis <-24.005495> speed <121.0>;
 		turn gun2 to x-axis <0.0> speed <450.0>;
 		sleep 200;
-	}
 
-
-	if (gunProgress > 2){
-		gunProgress = 1;
 		move gun1 to y-axis [0.0] speed [5.0];
 		turn ruparm to x-axis <0.0> speed <68.0>;
 		turn luparm to x-axis <-1.0> speed <0.0>;
@@ -710,10 +665,7 @@ FoldGun()
 		turn rloarm to x-axis <-26.005495> speed <15.0>;
 		turn gun1 to x-axis <-20.0> speed <348.0>;
 		sleep 200;
-	}
 
-	if (gunProgress > 1){
-		gunProgress = 1;
 		move gun1 to y-axis [0.0] speed [0.0];
 		move gun1 to z-axis [0.0] speed [3.0];
 		turn luparm to x-axis <0.0> speed <5.0>;
@@ -721,16 +673,12 @@ FoldGun()
 		turn rloarm to x-axis <-4.0> speed <107.0>;
 		turn gun1 to x-axis <20.0> speed <203.0>;
 		sleep 200;
-	}
 
-	if (gunProgress > 0){
-		gunProgress = 0;
 		turn rloarm to x-axis <0.0> speed <24.0>;
 		turn gun1 to x-axis <0.0> speed <101.0>;
 		sleep 200;
-	}
-	
-	isAiming = FALSE;
+
+
 }
 
 
@@ -748,10 +696,8 @@ Create()
 	hide flare;
 	hide laser;
 	hide aimy1;
-	isAiming = FALSE;
 	isMoving = FALSE;
 	GunOpen = 0;
-	isOpening = 0;
 	gunProgress = 0;
 	laser_persist = 3000; // miliseconds to hide laser after losing aim
 	hide flare;
@@ -771,12 +717,13 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	
 	set-signal-mask SIGNAL_AIM1;
 	turn aimy1 to y-axis <0.0> speed <200.0>;
 	wait-for-turn aimy1 around y-axis;
 	wpn1_lasthead = 0xbadface;
-	start-script FoldGun();
+	set-signal-mask 0;
+	start-script OpenCloseAnim(0);
+	
 }
 SetStunned(State)
 {
@@ -795,28 +742,30 @@ RestoreAfterDelay()
 }
 AimWeapon1(heading, pitch)
 {
-	// How do we prevent opening twice? 
-	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
-	isAiming = TRUE;
-	start-script OpenGun();
-	
-	
-	start-script RestoreAfterDelay();
-	
-	while( !GunOpen )
-	{
-		return(0);
+	if (!IsOpen) {
+		// Start without signal mask
+		start-script OpenCloseAnim(1);
 	}
+
+	signal SIGNAL_AIM1;
+	start-script RestoreAfterDelay();
+
+	turn aimy1 to y-axis heading speed <210.0>;
+	turn rloarm to x-axis <-23.005495> speed <50.0>;
+
+	//get PRINT(get GAME_FRAME, IsOpen, wpn1_lasthead, heading);
+	if (!IsOpen) {
+		return 0;
+	}
+	
+
 	//GET PRINT(1, GET GAME_FRAME, GET WEAPON_RELOADSTATE(1), GET WEAPON_RELOADTIME(1));
 	// Only show the aim laser if sniper will fire in 3 secs
 	if ((GET WEAPON_RELOADSTATE(1) - GET GAME_FRAME ) < 90){ // GET WEAPON_RELOADSTATE(1) gives the frame weapon 1 can fire on
 		show laser;
 	}
-	turn aimy1 to y-axis heading speed <210.0>;
-	turn rloarm to x-axis <-23.005495> speed <50.0>;
-	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <7>))
-	{
+
+	if ((wpn1_lasthead == 0xbadface) OR (ABSOLUTE_GREATER_THAN(WRAPDELTA(wpn1_lasthead - heading), <11>))){
 		wpn1_lasthead = 0xbadface;
 		wait-for-turn aimy1 around y-axis;
 		wait-for-turn rloarm around x-axis;

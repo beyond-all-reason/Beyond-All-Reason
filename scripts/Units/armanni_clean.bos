@@ -3,11 +3,12 @@
 
 piece  base, doorl, door, post, turret, sleeve, barrel, dish, flare, antenna, light, aimfromy;
 
-static-var  isOpen, shooting, shotcount, restore_delay;
+static-var  shooting, shotcount, restore_delay;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
 
+#include "../opencloseanim.h"
 
 Open()
 {	
@@ -27,12 +28,10 @@ Open()
 
 	wait-for-move barrel along z-axis;
 	wait-for-turn antenna around x-axis;
-	isOpen = TRUE;
 }
 
 Close()
 {
-	isOpen = FALSE;
 	stop-spin dish around y-axis;
 
 	turn turret to y-axis <0.0> speed <100.0>;
@@ -61,10 +60,9 @@ Create()
 {
 	hide flare;
 
-	isOpen = 1;
-
 	shooting = 0;
 	shotcount = 0;
+	start-script OpenCloseAnim(1);
 	SLEEP_UNTIL_UNITFINISHED;
 	spin dish around y-axis speed <90>;
 }
@@ -81,16 +79,13 @@ lua_UnitScriptLight(lightIndex, count)
 
 Activate()
 {
-	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
-	start-script Open();
+	start-script OpenCloseAnim(1);
 }
 
 Deactivate()
 {
 	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
-	start-script Close();
+	start-script OpenCloseAnim(0);
 }
 
 SetMaxReloadTime(reloadMS)
@@ -103,8 +98,9 @@ AimWeapon1(heading, pitch)
     if (shooting==1) {return(0);}
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	if (!isOpen){
-		call-script Open();
+	
+	while (!IsOpen){
+		sleep 150;
 	}
 	turn turret to y-axis heading speed <50.0>;
 	turn sleeve to x-axis <0.0> - pitch speed <50.0>;

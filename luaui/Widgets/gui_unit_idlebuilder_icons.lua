@@ -18,7 +18,7 @@ local iconSequenceImages = 'Luaui/Images/idleicon/idlecon_' 	-- must be png's
 local iconSequenceNum = 59	-- always starts at 1
 local iconSequenceFrametime = 0.02	-- duration per frame
 
-local teamUnits = {} -- table of teamid to table of stallable unitID : unitDefID
+local unitScope = {} -- table of teamid to table of stallable unitID : unitDefID
 local teamList = {} -- {team1, team2, team3....}
 local idleUnitList = {}
 
@@ -80,14 +80,9 @@ end
 
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
-	if not fullview then
-		teamList = Spring.GetTeamList(Spring.GetMyAllyTeamID())
-	else
-		teamList = Spring.GetTeamList()
-	end
-
+	teamList = fullview and Spring.GetTeamList() or Spring.GetTeamList(Spring.GetMyAllyTeamID())
 	clearInstanceTable(iconVBO) -- clear all instances
-	teamUnits = {}
+	unitScope = {}
 	for unitID, unitDefID in pairs(extVisibleUnits) do
 		widget:VisibleUnitAdded(unitID, unitDefID, spGetUnitTeam(unitID))
 	end
@@ -96,62 +91,47 @@ end
 
 
 function widget:Initialize()
-	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
+	if spec or not gl.CreateShader or  not initGL4() then -- no shader support, so just remove the widget itself, especially for headless
 		widgetHandler:RemoveWidget()
 		return
 	end
-	if spec then
-		widgetHandler:RemoveWidget()
-		return
-	end
-	if not initGL4() then return end
-
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
 	end
 end
 
-local function updateIcon(unitID, unitDefID, gf)
-	if not (unitConf[unitDefID][3] and spGetFactoryCommands(unitID, 1)[1] or spGetCommandQueue(unitID, 1)[1]) then
-		if iconVBO.instanceIDtoIndex[unitID] == nil then -- not already being drawn
-			if spValidUnitID(unitID) and not spGetUnitIsDead(unitID) and not spGetUnitIsBeingBuilt(unitID) then
-				if not idleUnitList[unitID] then
-					idleUnitList[unitID] = os.clock()
-				elseif idleUnitList[unitID] < os.clock() - idleUnitDelay then
-					pushElementInstance(
-						iconVBO, -- push into this Instance VBO Table
-						{unitConf[unitDefID][1], unitConf[unitDefID][1], 0, unitConf[unitDefID][2],  -- lengthwidthcornerheight
-						 0, --Spring.GetUnitTeam(featureID), -- teamID
-						 4, -- how many vertices should we make ( 2 is a quad)
-						 gf, 0, 0.8 , 0, -- the gameFrame (for animations), and any other parameters one might want to add
-						 1,0,1,0, -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
-						 0, 0, 0, 0}, -- these are just padding zeros, that will get filled in
-						unitID, -- this is the key inside the VBO Table, should be unique per unit
-						false, -- update existing element
-						true, -- noupload, dont use unless you know what you want to batch push/pop
-						unitID) -- last one should be featureID!
-				end
-			end
-		end
-	else
-		if iconVBO.instanceIDtoIndex[unitID] then
-			popElementInstance(iconVBO, unitID, true)
-		end
-		idleUnitList[unitID] = nil
-	end
-end
 
 local function updateIcons()
 	local gf = Spring.GetGameFrame()
-	if onlyOwnTeam then
-		for unitID, unitDefID in pairs(teamUnits[myTeamID]) do
-			updateIcon(unitID, unitDefID, gf)
-		end
-	else
-		for teamID, units in pairs(teamUnits) do
-			for unitID, unitDefID in pairs(units) do
-				updateIcon(unitID, unitDefID)
+	local queue
+	for unitID, unitDefID in pairs(unitScope) do
+		queue = unitConf[unitDefID][3] and spGetFactoryCommands(unitID, 1) or spGetCommandQueue(unitID, 1)
+		if not (queue and queue[1]) then
+			if iconVBO.instanceIDtoIndex[unitID] == nil then -- not already being drawn
+				if spValidUnitID(unitID) and not spGetUnitIsDead(unitID) and not spGetUnitIsBeingBuilt(unitID) then
+					if not idleUnitList[unitID] then
+						idleUnitList[unitID] = os.clock()
+					elseif idleUnitList[unitID] < os.clock() - idleUnitDelay then
+						pushElementInstance(
+							iconVBO, -- push into this Instance VBO Table
+							{unitConf[unitDefID][1], unitConf[unitDefID][1], 0, unitConf[unitDefID][2],  -- lengthwidthcornerheight
+							 0, --Spring.GetUnitTeam(featureID), -- teamID
+							 4, -- how many vertices should we make ( 2 is a quad)
+							 gf, 0, 0.8 , 0, -- the gameFrame (for animations), and any other parameters one might want to add
+							 1,0,1,0, -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
+							 0, 0, 0, 0}, -- these are just padding zeros, that will get filled in
+							unitID, -- this is the key inside the VBO Table, should be unique per unit
+							false, -- update existing element
+							true, -- noupload, dont use unless you know what you want to batch push/pop
+							unitID) -- last one should be featureID!
+					end
+				end
 			end
+		else
+			if iconVBO.instanceIDtoIndex[unitID] then
+				popElementInstance(iconVBO, unitID, true)
+			end
+			idleUnitList[unitID] = nil
 		end
 	end
 	if iconVBO.dirty then
@@ -166,17 +146,13 @@ function widget:GameFrame(n)
 end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam) -- remove the corresponding ground plate if it exists
-	if unitConf[unitDefID] then
-		if teamUnits[unitTeam] == nil then teamUnits[unitTeam] = {} end
-		teamUnits[unitTeam][unitID] = unitDefID
+	if (not onlyOwnTeam or myTeamID == unitTeam) and unitConf[unitDefID] then
+		unitScope[unitID] = unitDefID
 	end
 end
 
 function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground plate if it exists
-	local unitTeam = spGetUnitTeam(unitID)
-	if teamUnits[unitTeam] then
-		teamUnits[unitTeam][unitID] = nil
-	end
+	unitScope[unitID] = nil
 	if iconVBO.instanceIDtoIndex[unitID] then
 		popElementInstance(iconVBO, unitID)
 	end
@@ -203,26 +179,3 @@ function widget:DrawWorld()
 		gl.DepthMask(true)
 	end
 end
-
--- widget already disabled for specs so code below made irrelevant
---[[
-function widget:PlayerChanged(playerID)
-	spec, fullview = Spring.GetSpectatingState()
-	if spec then
-		widgetHandler:RemoveWidget()
-		return
-	end
-	local prevMyTeamID = myTeamID
-	myTeamID = Spring.GetMyTeamID()
-	if myTeamID ~= prevMyTeamID then
-		if onlyOwnTeam then
-			for unitID, unitDefID in pairs(teamUnits[myTeamID]) do
-				if iconVBO.instanceIDtoIndex[unitID] then
-					popElementInstance(iconVBO, unitID, true)
-				end
-				idleUnitList[unitID] = nil
-			end
-		end
-	end
-end
-]]--

@@ -387,7 +387,7 @@ Create()
 	isAiming = 0;
 	wpnheading = 0;
 	animSpeed = 4;
-	gun_1 = torso;
+	gun_1 = 0;
 }
 
 StartMoving(reversing)
@@ -415,14 +415,7 @@ AimFromWeapon1(pieceIndex)
 
 QueryWeapon1(pieceIndex)
 {
-	if( gun_1 == 0 )
-	{
-		pieceIndex = rfirept;
-	}
-	if( gun_1 == 1 )
-	{
-		pieceIndex = lfirept;
-	}
+	pieceIndex = rfirept + gun_1;
 }
 
 static-var  Stunned;
@@ -433,8 +426,7 @@ ExecuteRestoreAfterDelay()
     }
     turn aimy1 to y-axis <0.0> speed <90>;
     turn aimx1 to x-axis <0.0> speed <45>;
-    wpnheading = 0;
-    isAiming = 0;
+    wpnheading = 0xbadface;
 
 }
 SetStunned(State)
@@ -457,16 +449,14 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	
-	if (isAiming == 1) return;
 	turn aimy1 to y-axis heading speed <140>;
 	turn aimx1 to x-axis <0.0> - pitch speed <50>;
 	
 	//needed for luarules\gadgets\unit_continuous_aim.lua
-	if ((get ABS(wpnheading - heading)) > 500){
-		isAiming = 1;
+	if (wpnheading == 0xbadface OR ANGLE_DIFFERENCE_GREATER_THAN(wpnheading-heading, <5>)){
+		wpnheading = 0xbadface;
 		wait-for-turn aimy1 around y-axis;
 		wait-for-turn aimx1 around x-axis;
-		isAiming = 0;
 	}
 	wpnheading = heading;
 	start-script RestoreAfterDelay();
@@ -477,28 +467,23 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
-
-	if( gun_1 == 0 )
-	{
-		move rgun to z-axis [-2.0] speed [60.0];
-		emit-sfx 1024 + 0 from rfirept;
-		wait-for-move rgun along z-axis;
-		gun_1 = gun;
-		move rgun to z-axis [0.0] speed [4.0];
-		wait-for-move rgun along z-axis;
-		return (0);
-	}
+	gun_1 = !gun_1;
 	if( gun_1 == 1 )
 	{
-		move lgun to z-axis [-2.0] speed [60.0];
+		move rgun to z-axis [-2.0] now;
+		emit-sfx 1024 + 0 from rfirept;
+		wait-for-move rgun along z-axis;
+		move rgun to z-axis [0.0] speed [4.0];
+		wait-for-move rgun along z-axis;
+	}
+	else
+	{
+		move lgun to z-axis [-2.0] now;
 		emit-sfx 1024 + 0 from lfirept;
 		wait-for-move lgun along z-axis;
-		gun_1 = torso;
 		move lgun to z-axis [0.0] speed [4.0];
 		wait-for-move lgun along z-axis;
-		return (0);
 	}
-	gun_1 = !gun_1;
 }
 
 // For N:\animations\corthud_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 2, 8))

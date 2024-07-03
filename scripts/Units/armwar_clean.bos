@@ -377,16 +377,19 @@ FireWeapon1()
 AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	isAiming = TRUE;
-
+	// any other prep
 	turn aimy1 to y-axis heading speed <200.0>;
 	turn aimx1 to x-axis <0.0> - pitch speed <200.0>;
-	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <7>))
+	if ((wpn1_lasthead == 0xbadface) OR ANGLE_DIFFERENCE_GREATER_THAN((heading - wpn1_lasthead), <7>))
+	
+	//if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <7>))
 	{
 		wpn1_lasthead = 0xbadface;
 		wait-for-turn aimy1 around y-axis;
 		wait-for-turn aimx1 around x-axis;
-}
+	}
 	start-script RestoreAfterDelay();
 	wpn1_lasthead = heading;
 	return (1);
