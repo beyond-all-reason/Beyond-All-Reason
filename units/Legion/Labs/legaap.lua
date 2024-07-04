@@ -52,6 +52,7 @@ return {
 			buildinggrounddecalsizex = 9,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'buildert2',
+			airfactory = true,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbuildings/landfactories",

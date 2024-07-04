@@ -22,7 +22,10 @@ local LineTypes = {
 local utf8 = VFS.Include('common/luaUtilities/utf8.lua')
 
 local showHistoryWhenChatInput = true
+
+local showHistoryWhenCtrlShift = true
 local enableShortcutClick = true -- enable ctrl+click to goto mapmark coords... while not being in history mode
+
 local vsx, vsy = gl.GetViewSizes()
 local posY = 0.81
 local posX = 0.3
@@ -42,8 +45,8 @@ local inputButton = true
 local allowMultiAutocomplete = true
 local allowMultiAutocompleteMax = 10
 
-local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
-local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.7) or 0.6)
+local ui_scale = Spring.GetConfigFloat("ui_scale", 1)
+local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
 local widgetScale = (((vsx*0.3 + (vsy*2.33)) / 2000) * 0.55) * (0.95+(ui_scale-1)/1.5)
 
 local maxLinesScroll = maxLinesScrollFull
@@ -84,7 +87,6 @@ local playSound = true
 local sndChatFile  = 'beep4'
 local sndChatFileVolume = 0.55
 local sndMapmarkFile = 'sounds/ui/mappoint2.wav'
-local sndMapmarkFileVolume = 0.5
 
 local colorOther = {1,1,1} -- normal chat color
 local colorAlly = {0,1,0}
@@ -400,35 +402,64 @@ local autocompleteCommands = {
 local autocompleteText
 local autocompletePlayernames = {}
 local playersList = Spring.GetPlayerList()
+local playernames = {}
 for _, playerID in ipairs(playersList) do
 	local name = Spring.GetPlayerInfo(playerID, false)
 	autocompletePlayernames[#autocompletePlayernames+1] = name
+	playernames[name] = true
 end
 
 local autocompleteUnitNames = {}
 local autocompleteUnitCodename = {}
 local uniqueHumanNames = {}
 local unitTranslatedHumanName = {}
-for unitDefID, unitDef in pairs(UnitDefs) do
-	if not uniqueHumanNames[unitDef.translatedHumanName] then
-		uniqueHumanNames[unitDef.translatedHumanName] = true
-		autocompleteUnitNames[#autocompleteUnitNames+1] = unitDef.translatedHumanName
+local function refreshUnitDefs()
+	autocompleteUnitNames = {}
+	autocompleteUnitCodename = {}
+	uniqueHumanNames = {}
+	unitTranslatedHumanName = {}
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		if not uniqueHumanNames[unitDef.translatedHumanName] then
+			uniqueHumanNames[unitDef.translatedHumanName] = true
+			autocompleteUnitNames[#autocompleteUnitNames+1] = unitDef.translatedHumanName
+		end
+		if not string.find(unitDef.name, "_scav", nil, true) then
+			autocompleteUnitCodename[#autocompleteUnitCodename+1] = unitDef.name:lower()
+		end
+		unitTranslatedHumanName[unitDefID] = unitDef.translatedHumanName
 	end
-	if not string.find(unitDef.name, "_scav", nil, true) then
-		autocompleteUnitCodename[#autocompleteUnitCodename+1] = unitDef.name:lower()
+	uniqueHumanNames = nil
+	for featureDefID, featureDef in pairs(FeatureDefs) do
+		autocompleteUnitCodename[#autocompleteUnitCodename+1] = featureDef.name:lower()
 	end
-	unitTranslatedHumanName[unitDefID] = unitDef.translatedHumanName
 end
-uniqueHumanNames = nil
-for featureDefID, featureDef in pairs(FeatureDefs) do
-	autocompleteUnitCodename[#autocompleteUnitCodename+1] = featureDef.name:lower()
+refreshUnitDefs()
+
+local function getAIName(teamID)
+	local _, _, _, name, _, options = Spring.GetAIInfo(teamID)
+	local niceName = Spring.GetGameRulesParam('ainame_' .. teamID)
+
+	if niceName then
+		name = niceName
+
+		if Spring.Utilities.ShowDevUI() and options.profile then
+			name = name .. " [" .. options.profile .. "]"
+		end
+	end
+
+	return Spring.I18N('ui.playersList.aiName', { name = name })
 end
+
 
 local teamColorKeys = {}
 local teams = Spring.GetTeamList()
 for i = 1, #teams do
 	local r, g, b, a = spGetTeamColor(teams[i])
 	teamColorKeys[teams[i]] = r..'_'..g..'_'..b
+
+	if select(4, Spring.GetTeamInfo(teams[i], false)) then
+		playernames[getAIName(teams[i])] = true
+	end
 end
 teams = nil
 
@@ -516,8 +547,17 @@ local function teamcolorPlayername(playername)
 			return colourNames(teamID)..playername
 		end
 	end
+	local teams = Spring.GetTeamList()
+	for i = 1, #teams do
+		if select(4, Spring.GetTeamInfo(teams[i], false)) then
+			return colourNames(teams[i])..playername
+		end
+	end
 	return playername
 end
+
+local energyText = Spring.I18N('ui.topbar.resources.energy'):lower()
+local metalText = Spring.I18N('ui.topbar.resources.metal'):lower()
 
 local function addChat(gameFrame, lineType, name, text, isLive)
 	if not text or text == '' then return end
@@ -527,44 +567,83 @@ local function addChat(gameFrame, lineType, name, text, isLive)
 
 	local sendMetal, sendEnergy
 	local msgColor = '\255\180\180\180'
-	local metalColor = '\255\255\255\255'
+	local metalColor = '\255\233\233\233'
+	local metalValueColor = '\255\255\255\255'
 	local energyColor = '\255\255\255\180'
+	local energyValueColor = '\255\255\255\140'
 
-	-- metal/energy given
-	if lineType == LineTypes.Player and sfind(text, 'I sent ', nil, true) then
-		if sfind(text, ' metal to ', nil, true) then
-			sendMetal = tonumber(string.match(ssub(text, sfind(text, 'I sent ')+7), '([0-9]*)'))
-			local playername = teamcolorPlayername(ssub(text, sfind(text, ' metal to ')+10))
-			--text = ssub(text, 1, sfind(text, 'I sent ')-1)..' shared: '..sendMetal..' metal to '..playername
-			--msgColor = ssub(text, 1, sfind(text, 'I sent ')-1)
-			text = msgColor..'shared '..metalColor..sendMetal..metalColor.. ' metal'..msgColor..' to '..playername
-			lineType = LineTypes.System
-		elseif sfind(text, ' energy to ', nil, true) then
-			sendEnergy = tonumber(string.match(ssub(text, sfind(text, 'I sent ')+7), '([0-9]*)'))
-			local playername = teamcolorPlayername(ssub(text, sfind(text, ' energy to ')+11))	-- no dot stripping needed here
-			--text = ssub(text, 1, sfind(text, 'I sent ')-1)..' shared: '..sendEnergy..' energy to '..playername
-			--msgColor = ssub(text, 1, sfind(text, 'I sent ')-1)
-			text = msgColor..'shared '..energyColor..sendEnergy..energyColor..' energy'..msgColor..' to '..playername
-			lineType = LineTypes.System
-		end
-	-- player taken
-	elseif lineType == LineTypes.Player and sfind(text, 'I took ', nil, true) then	--<StarDoM> Allies: I took  --- .
-		if sfind(text, 'I took ', nil, true) then
-			local playernameStart = sfind(text, 'I took ')+7
-			local playername = ssub(text, playernameStart, slen(text)-1) -- strip dot.
-			local colonChar = sfind(playername, ':')
-			local addition = ''
-			if colonChar then
-				local leftover = playername
-				playername = ssub(playername, 1, colonChar-1)
-				addition = msgColor..ssub(leftover, colonChar)
+
+	if lineType == LineTypes.Player and ssub(text, 5, 6) == '> ' then
+		text = ssub(text, 7)
+		lineType = LineTypes.System
+		local params = string.split(text, ':')
+		local t = {}
+		if params[1] then
+			for k,v in pairs(params) do
+				if k > 1 then
+					local pair = string.split(v, '=')
+					if pair[2] then
+						if playernames[pair[2]] then
+							t[ pair[1] ] = teamcolorPlayername(pair[2])..msgColor
+						elseif params[1]:lower():find('energy', nil, true) then
+							t[ pair[1] ] = energyValueColor..pair[2]..msgColor
+						elseif params[1]:lower():find('metal', nil, true) then
+							t[ pair[1] ] = metalValueColor..pair[2]..msgColor
+						else
+							t[ pair[1] ] = pair[2]
+						end
+					end
+				end
 			end
-			playername = teamcolorPlayername(playername)
-			text = msgColor..'took '..playername..addition
-			lineType = LineTypes.System
+			text = Spring.I18N(params[1], t)
+			if text:lower():find(energyText, nil, true) then
+				local pos = text:lower():find(energyText, nil, true)
+				local len = slen(energyText)
+				text = ssub(text, 1, pos-1)..energyColor..ssub(text, pos, pos+len-1).. msgColor..ssub(text, pos+len)
+			end
+			if text:lower():find(metalText, nil, true) then
+				local pos = text:lower():find(metalText, nil, true)
+				local len = slen(metalText)
+				text = ssub(text, 1, pos-1)..metalColor..ssub(text, pos, pos+len-1).. msgColor..ssub(text, pos+len)
+			end
 		end
+		text = msgColor..text
 	end
 
+	-- metal/energy given
+	--if lineType == LineTypes.Player and sfind(text, 'I sent ', nil, true) then
+	--	if sfind(text, ' metal to ', nil, true) then
+	--		sendMetal = tonumber(string.match(ssub(text, sfind(text, 'I sent ')+7), '([0-9]*)')) or '---'
+	--		local playername = teamcolorPlayername(ssub(text, sfind(text, ' metal to ')+10))
+	--		--text = ssub(text, 1, sfind(text, 'I sent ')-1)..' shared: '..sendMetal..' metal to '..playername
+	--		--msgColor = ssub(text, 1, sfind(text, 'I sent ')-1)
+	--		text = msgColor..'shared '..metalColor..sendMetal..metalColor.. ' metal'..msgColor..' to '..playername
+	--		lineType = LineTypes.System
+	--	elseif sfind(text, ' energy to ', nil, true) then
+	--		sendEnergy = tonumber(string.match(ssub(text, sfind(text, 'I sent ')+7), '([0-9]*)')) or '---'
+	--		local playername = teamcolorPlayername(ssub(text, sfind(text, ' energy to ')+11))	-- no dot stripping needed here
+	--		--text = ssub(text, 1, sfind(text, 'I sent ')-1)..' shared: '..sendEnergy..' energy to '..playername
+	--		--msgColor = ssub(text, 1, sfind(text, 'I sent ')-1)
+	--		text = msgColor..'shared '..energyColor..sendEnergy..energyColor..' energy'..msgColor..' to '..playername
+	--		lineType = LineTypes.System
+	--	end
+	--	-- player taken
+	--elseif lineType == LineTypes.Player and sfind(text, 'I took ', nil, true) then	--<StarDoM> Allies: I took  --- .
+	--	if sfind(text, 'I took ', nil, true) then
+	--		local playernameStart = sfind(text, 'I took ')+7
+	--		local playername = ssub(text, playernameStart, slen(text)-1) -- strip dot.
+	--		local colonChar = sfind(playername, ':')
+	--		local addition = ''
+	--		if colonChar then
+	--			local leftover = playername
+	--			playername = ssub(playername, 1, colonChar-1)
+	--			addition = msgColor..ssub(leftover, colonChar)
+	--		end
+	--		playername = teamcolorPlayername(playername)
+	--		text = msgColor..'took '..playername..addition
+	--		lineType = LineTypes.System
+	--	end
+	--end
 	-- convert /n into lines
 	local textLines = string_lines(text)
 
@@ -648,21 +727,6 @@ local function commonUnitName(unitIDs)
 	end
 
 	return unitTranslatedHumanName[commonUnitDefID]
-end
-
-local function getAIName(teamID)
-	local _, _, _, name, _, options = Spring.GetAIInfo(teamID)
-	local niceName = Spring.GetGameRulesParam('ainame_' .. teamID)
-
-	if niceName then
-		name = niceName
-
-		if Spring.Utilities.ShowDevUI() and options.profile then
-			name = name .. " [" .. options.profile .. "]"
-		end
-	end
-
-	return Spring.I18N('ui.playersList.aiName', { name = name })
 end
 
 local function getTeamNames()
@@ -1271,7 +1335,7 @@ function widget:Update(dt)
 		currentChatLine = #chatLines
 	elseif math_isInRect(x, y, activationArea[1], activationArea[2], activationArea[3], activationArea[4]) then
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
-		if ctrl and shift then
+		if showHistoryWhenCtrlShift and ctrl and shift then
 			if math_isInRect(x, y, consoleActivationArea[1], consoleActivationArea[2], consoleActivationArea[3], consoleActivationArea[4]) then
 				historyMode = 'console'
 			else
@@ -2023,12 +2087,11 @@ end
 function widget:MapDrawCmd(playerID, cmdType, x, y, z, a, b, c)
 	if cmdType == 'point' then
 		lastMapmarkCoords = {x,y,z}
-		spPlaySoundFile( sndMapmarkFile, sndMapmarkFileVolume, nil, "ui" )
 	end
 end
 
 function widget:AddConsoleLine(lines, priority)
-	lines = lines:match('^\[f=[0-9]+\] (.*)$') or lines
+	lines = lines:match('^%[f=[0-9]+%] (.*)$') or lines
 	for line in lines:gmatch("[^\n]+") do
 		processAddConsoleLine(spGetGameFrame(), line, true)
 	end
@@ -2054,6 +2117,15 @@ function widget:TextCommand(command)
 			Spring.Echo("Hiding all spectator chat")
 		else
 			Spring.Echo("Showing all spectator chat again")
+		end
+	end
+	if string.sub(command, 1, 18) == 'preventhistorymode' then
+		showHistoryWhenCtrlShift = not showHistoryWhenCtrlShift
+		enableShortcutClick = not enableShortcutClick
+		if not showHistoryWhenCtrlShift then
+			Spring.Echo("Preventing toggling historymode via CTRL+SHIFT")
+		else
+			Spring.Echo("Enabled toggling historymode via CTRL+SHIFT")
 		end
 	end
 end
@@ -2137,6 +2209,13 @@ function widget:PlayerAdded(playerID)
 	autocompletePlayernames[#autocompletePlayernames+1] = name
 end
 
+
+function widget:LanguageChanged()
+	refreshUnitDefs()
+	energyText = Spring.I18N('ui.topbar.resources.energy'):lower()
+	metalText = Spring.I18N('ui.topbar.resources.metal'):lower()
+end
+
 function widget:Initialize()
 	Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 
@@ -2185,12 +2264,6 @@ function widget:Initialize()
 	end
 	WG['chat'].setChatVolume = function(value)
 		sndChatFileVolume = value
-	end
-	WG['chat'].getMapmarkVolume = function()
-		return sndMapmarkFileVolume
-	end
-	WG['chat'].setMapmarkVolume = function(value)
-		sndMapmarkFileVolume = value
 	end
 	WG['chat'].getBackgroundOpacity = function()
 		return backgroundOpacity
@@ -2263,12 +2336,13 @@ function widget:GetConfigData(data)
 		fontsizeMult = fontsizeMult,
 		chatBackgroundOpacity = backgroundOpacity,
 		sndChatFileVolume = sndChatFileVolume,
-		sndMapmarkFileVolume = sndMapmarkFileVolume,
 		shutdownTime = os.clock(),
 		handleTextInput = handleTextInput,
 		inputButton = inputButton,
 		hide = hide,
 		showHistoryWhenChatInput = showHistoryWhenChatInput,
+		showHistoryWhenCtrlShift = showHistoryWhenCtrlShift,
+		enableShortcutClick = enableShortcutClick,
 		version = 1,
 	}
 end
@@ -2289,8 +2363,11 @@ function widget:SetConfigData(data)
 	if data.sndChatFileVolume ~= nil then
 		sndChatFileVolume = data.sndChatFileVolume
 	end
-	if data.sndMapmarkFileVolume ~= nil then
-		sndMapmarkFileVolume = data.sndMapmarkFileVolume
+	if data.showHistoryWhenCtrlShift ~= nil then
+		showHistoryWhenCtrlShift = data.showHistoryWhenCtrlShift
+	end
+	if data.enableShortcutClick ~= nil then
+		enableShortcutClick = data.enableShortcutClick
 	end
 	if data.chatBackgroundOpacity ~= nil then
 		backgroundOpacity = data.chatBackgroundOpacity

@@ -40,7 +40,7 @@ return {
 			[3] = "legkam",
 			[4] = "legcib",
 			[5] = "legmos",
-			[6] = "corvalk",
+			[6] = "legatrans",
 		},
 		customparams = {
 			usebuildinggrounddecal = true,
@@ -49,6 +49,7 @@ return {
 			buildinggrounddecalsizex = 11,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'builder',
+			airfactory = true,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbuildings/landfactories",

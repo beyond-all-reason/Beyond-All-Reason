@@ -1,4 +1,3 @@
--- $Id: tablebin.lua 3171 2008-11-06 09:06:29Z det $
 --[[
 	Binary Search a Table
 	Binary Insert into Table (faster than table.insert and table.sort combined)
@@ -96,4 +95,4 @@ do
 		return (iMid+iState)
 	end
 end
--- CHILLCODE™
+-- CHILLCODEï¿½

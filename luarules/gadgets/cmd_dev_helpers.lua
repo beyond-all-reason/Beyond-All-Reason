@@ -13,7 +13,7 @@ function gadget:GetInfo()
 		date = "",
 		license = "GNU GPL, v2 or later, Horses",
 		layer = -1999999999,
-		enabled = true  --  loaded by default?
+		enabled = true
 	}
 end
 

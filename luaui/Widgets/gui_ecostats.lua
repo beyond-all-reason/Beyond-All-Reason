@@ -88,7 +88,7 @@ for i=1, #Spring.GetAllyTeamList()-1 do
 		maxTeamsize = #Spring.GetTeamList(i)
 	end
 end
-local playerScale = math.max(0.5, math.min(1, 14 / maxTeamsize))
+local playerScale = math.max(0.15, math.min(1, 14 / maxTeamsize))
 
 local widgetScale = 0.95 + (vsx * vsy / 7500000)        -- only used for rounded corners atm
 local sizeMultiplier = 1
@@ -906,7 +906,7 @@ local function DrawBackground(posY, allyID, sideimagesWidth)
 end
 
 local function DrawBox(hOffset, vOffset, r, g, b)
-	local w = tH * 0.36
+	local w = tH * 0.36 * playerScale
 	local h = tH * 0.36
 	local dx = 0
 	local dy = tH - (tH * 0.5)

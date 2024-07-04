@@ -27,6 +27,7 @@ return {
 		speed = 53.85,
 		minwaterdepth = 15,
 		movementclass = "BOAT8",
+		movestate = 0,
 		objectname = "Units/ARMEPOCH.s3o",
 		pushresistant = true,
 		radardistance = 1530,

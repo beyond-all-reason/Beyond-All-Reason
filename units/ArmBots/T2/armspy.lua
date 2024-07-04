@@ -32,6 +32,7 @@ return {
 		maxwaterdepth = 112,
 		mincloakdistance = 75,
 		movementclass = "BOT3",
+		movestate = 0,
 		objectname = "Units/ARMSPY.s3o",
 		onoffable = false,
 		script = "Units/ARMSPY.cob",

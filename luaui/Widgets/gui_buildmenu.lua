@@ -6,7 +6,7 @@ function widget:GetInfo()
 		date = "April 2020",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true,
+		enabled = false,
 		handler = true,
 	}
 end
@@ -77,8 +77,8 @@ local vsx, vsy = Spring.GetViewGeometry()
 local ordermenuLeft = vsx / 5
 local advplayerlistLeft = vsx * 0.8
 
-local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.7) or 0.6)
-local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
+local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
+local ui_scale = Spring.GetConfigFloat("ui_scale", 1)
 
 local units = VFS.Include("luaui/configs/unit_buildmenu_config.lua")
 
@@ -120,20 +120,28 @@ local unitMetal_extractor = {}
 local unitTranslatedHumanName = {}
 local unitTranslatedTooltip = {}
 local iconTypes = {}
-local orgIconTypes = VFS.Include("gamedata/icontypes.lua")
-for udid, ud in pairs(UnitDefs) do
-	unitName[udid] = ud.name
-	unitBuildOptions[udid] = ud.buildOptions
-	unitTranslatedHumanName[udid] = ud.translatedHumanName
-	unitTranslatedTooltip[udid] = ud.translatedTooltip
-	if ud.customParams.metal_extractor then
-		unitMetal_extractor[udid] = ud.customParams.metal_extractor
-	end
-	if ud.iconType and orgIconTypes[ud.iconType] and orgIconTypes[ud.iconType].bitmap then
-		iconTypes[ud.name] = orgIconTypes[ud.iconType].bitmap
+local function refreshUnitDefs()
+	unitName = {}
+	unitBuildOptions = {}
+	unitMetal_extractor = {}
+	unitTranslatedHumanName = {}
+	unitTranslatedTooltip = {}
+	iconTypes = {}
+	local orgIconTypes = VFS.Include("gamedata/icontypes.lua")
+	for udid, ud in pairs(UnitDefs) do
+		unitName[udid] = ud.name
+		unitBuildOptions[udid] = ud.buildOptions
+		unitTranslatedHumanName[udid] = ud.translatedHumanName
+		unitTranslatedTooltip[udid] = ud.translatedTooltip
+		if ud.customParams.metal_extractor then
+			unitMetal_extractor[udid] = ud.customParams.metal_extractor
+		end
+		if ud.iconType and orgIconTypes[ud.iconType] and orgIconTypes[ud.iconType].bitmap then
+			iconTypes[ud.name] = orgIconTypes[ud.iconType].bitmap
+		end
 	end
 end
-orgIconTypes = nil
+refreshUnitDefs()
 
 local spIsUnitSelected = Spring.IsUnitSelected
 local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
@@ -361,6 +369,12 @@ function widget:ViewResize()
 	backgroundRect = { posX, (posY - height) * vsy, posX2, posY * vsy }
 
 	checkGuishader(true)
+	clear()
+	doUpdate = true
+end
+
+function widget:LanguageChanged()
+	refreshUnitDefs()
 	clear()
 	doUpdate = true
 end
@@ -689,8 +703,10 @@ function widget:DrawScreen()
 
 	-- refresh buildmenu if active cmd changed
 	local prevActiveCmd = activeCmd
+
 	if Spring.GetGameFrame() == 0 and WG['pregame-build'] then
-		activeCmd = WG['pregame-build'].selectedID
+		activeCmd = WG["pregame-build"] and WG["pregame-build"].getPreGameDefID()
+		activeCmd = activeCmd and -activeCmd
 		if activeCmd then
 			activeCmd = units.unitName[activeCmd]
 		end
@@ -763,7 +779,11 @@ function widget:DrawScreen()
 								else
 									text = UnitDefs[uDefID].translatedHumanName
 								end
-								WG['tooltip'].ShowTooltip('buildmenu', "\255\240\240\240"..unitTranslatedTooltip[uDefID], nil, nil, text)
+								local tooltip = unitTranslatedTooltip[uDefID]
+								if unitMetal_extractor[uDefID] then
+									tooltip = tooltip .. "\n" .. Spring.I18N("ui.buildMenu.areamex_tooltip")
+								end
+								WG['tooltip'].ShowTooltip('buildmenu', "\255\240\240\240"..tooltip, nil, nil, text)
 							end
 
 							-- highlight --if b and not disableInput then

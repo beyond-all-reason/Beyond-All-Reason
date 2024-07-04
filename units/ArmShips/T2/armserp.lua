@@ -22,6 +22,7 @@ return {
 		speed = 45.0,
 		minwaterdepth = 20,
 		movementclass = "UBOAT4",
+		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMSERP.s3o",
 		script = "Units/ARMSERP.cob",

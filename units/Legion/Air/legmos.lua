@@ -32,8 +32,8 @@ return {
 		turnrate = 1400,
 		customparams = {
 			unitgroup = 'weapon',
-			model_author = "FireStorm",
-			normaltex = "unittextures/Arm_normal.dds",
+			model_author = "Tharsis",
+			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "armaircraft",
 		},
 		sfxtypes = {
@@ -86,7 +86,7 @@ return {
 				impulsefactor = 0.123,
 				intensity = 1.5,
 				metalpershot = 0,
-				model = "artshell-medium.s3o",
+				model = "legsmallrocket.s3o",
 				name = "Rockets",
 				noselfdamage = true,
 				range = 400,

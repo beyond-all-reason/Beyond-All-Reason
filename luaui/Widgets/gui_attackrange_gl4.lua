@@ -120,47 +120,6 @@ if chunk then
 end
 
 --helpers
-local function tableToString(t)
-	local result = ""
-
-	if type(t) ~= "table" then
-		result = tostring(t)
-	elseif t == nil then
-		result = "nil"
-	else
-		for k, v in pairs(t) do
-			result = result .. "[" .. tostring(k) .. "] = "
-
-			if type(v) == "table" then
-				result = result .. "{"
-
-				for k2, v2 in pairs(v) do
-					result = result .. "[" .. tostring(k2) .. "] = "
-
-					if type(v2) == "table" then
-						result = result .. "{"
-
-						for k3, v3 in pairs(v2) do
-							result = result .. "[" .. tostring(k3) .. "] = " .. tostring(v3) .. ", "
-						end
-
-						result = result .. "}, "
-					else
-						result = result .. tostring(v2) .. ", "
-					end
-				end
-
-				result = result .. "}, "
-			else
-				result = result .. tostring(v) .. ", "
-			end
-			result = result .. "  "
-		end
-	end
-
-	return "{" .. result:sub(1, -3) .. "}"
-end
-
 local function convertToBitmap(statusTable)
 	if type(statusTable) ~= "table" then
 		return 0
@@ -1101,7 +1060,7 @@ local function CycleUnitDisplay(direction)
 	-- some crude info display for now
 	Spring.Echo("Changed range display of " .. name ..
 		" to config " .. tostring(bitmap) ..
-		": " .. tableToString(unitToggles[name][allystring]))
+		": " .. table.toString(unitToggles[name][allystring]))
 
 	-- write toggle changes to file
 	table.save(unitToggles, "LuaUI/config/AttackRangeConfig2.lua", "--Attack Range Display Configuration (v2)")

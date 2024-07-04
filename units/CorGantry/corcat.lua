@@ -23,6 +23,7 @@ return {
 		speed = 48.0,
 		maxwaterdepth = 12,
 		movementclass = "HBOT4",
+		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORCAT.s3o",
 		script = "Units/CORCAT.cob",

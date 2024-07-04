@@ -99,7 +99,7 @@ return {
 				gravityaffected = "true",
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				model = "airbombt2.s3o",
+				model = "legbomb.s3o",
 				mygravity = 0.4,
 				name = "Heavy a2g napalm warheads",
 				noselfdamage = true,

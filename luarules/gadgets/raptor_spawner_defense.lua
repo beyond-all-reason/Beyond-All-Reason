@@ -144,7 +144,7 @@ if gadgetHandler:IsSyncedCode() then
 	local squadCreationQueue = {
 		units = {},
 		role = false,
-		life = 10,
+		life = math.ceil(10*Spring.GetModOptions().raptor_spawntimemult),
 		regroupenabled = true,
 		regrouping = false,
 		needsregroup = false,
@@ -153,7 +153,7 @@ if gadgetHandler:IsSyncedCode() then
 	squadCreationQueueDefaults = {
 		units = {},
 		role = false,
-		life = 10,
+		life = math.ceil(10*Spring.GetModOptions().raptor_spawntimemult),
 		regroupenabled = true,
 		regrouping = false,
 		needsregroup = false,
@@ -568,7 +568,7 @@ if gadgetHandler:IsSyncedCode() then
 				role = newSquad.role
 			end
 			if not newSquad.life then
-				newSquad.life = 10
+				newSquad.life = math.ceil(10*Spring.GetModOptions().raptor_spawntimemult)
 			end
 
 
@@ -715,7 +715,7 @@ if gadgetHandler:IsSyncedCode() then
 			local spread = config.burrowSize*1.5
 			local spawnPosX, spawnPosY, spawnPosZ
 
-			if config.useScum and config.burrowSpawnType ~= "alwaysbox" and GetGameSeconds() > config.gracePeriod then -- Attempt #1, find position in creep/scum (skipped if creep is disabled or alwaysbox is enabled)
+			if config.useScum then -- Attempt #1, find position in creep/scum (skipped if creep is disabled or alwaysbox is enabled)
 				for _ = 1,100 do
 					spawnPosX = mRandom(spread, MAPSIZEX - spread)
 					spawnPosZ = mRandom(spread, MAPSIZEZ - spread)
@@ -1140,28 +1140,37 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function spawnCreepStructure(unitDefName, spread)
+		tracy.ZoneBeginN("Raptors:spawnCreepStructure")
 		local canSpawnStructure = false
 		spread = spread or 128
 		local spawnPosX, spawnPosY, spawnPosZ
 
 		if config.useScum then -- If creep/scum is enabled, only allow to spawn turrets on the creep
-			for _ = 1,100 do
+			local flatCheck, occupancyCheck, scumCheck = 0,0,0
+			for _ = 1,5 do
 				spawnPosX = mRandom(spread, MAPSIZEX - spread)
 				spawnPosZ = mRandom(spread, MAPSIZEZ - spread)
 				spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
-				canSpawnStructure = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true)
+				canSpawnStructure = positionCheckLibrary.FlatAreaCheck(spawnPosX, spawnPosY, spawnPosZ, spread, 30, true) -- 90% of map should be flat
+				flatCheck = flatCheck + 1
 				if canSpawnStructure then
-					canSpawnStructure = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread)
+					canSpawnStructure = positionCheckLibrary.OccupancyCheck(spawnPosX, spawnPosY, spawnPosZ, spread) -- spread about 96 is suspicious, Probably this fails the most ofte
+					occupancyCheck = occupancyCheck + 1
 				end
 				if canSpawnStructure then
-					canSpawnStructure = GG.IsPosInRaptorScum(spawnPosX, spawnPosY, spawnPosZ)
+					canSpawnStructure = GG.IsPosInRaptorScum(spawnPosX, spawnPosY, spawnPosZ) -- this is a func of creep coverage, assume ~50 % of map covered
+					scumCheck = scumCheck + 1
 				end
 				if canSpawnStructure then
 					break
 				end
 			end
+			if tracy then
+				--tracy.Message(string.format("spawnCreepStructure: %s, flatCheck=%d, occupancyCheck=%d, scumCheck=%d", unitDefName, flatCheck, occupancyCheck, scumCheck))
+				-- testing determined that its mostly occupancy and scum check failing, as expected
+			end
 		else -- Otherwise use Raptor LoS as creep with Players sensors being the safety zone
-			for _ = 1,100 do
+			for _ = 1,5 do
 				spawnPosX = mRandom(lsx1 + spread, lsx2 - spread)
 				spawnPosZ = mRandom(lsz1 + spread, lsz2 - spread)
 				spawnPosY = Spring.GetGroundHeight(spawnPosX, spawnPosZ)
@@ -1185,9 +1194,15 @@ if gadgetHandler:IsSyncedCode() then
 			local structureUnitID = Spring.CreateUnit(unitDefName, spawnPosX, spawnPosY, spawnPosZ, mRandom(0,3), raptorTeamID)
 			if structureUnitID then
 				SetUnitBlocking(structureUnitID, false, false)
+				tracy.ZoneEnd()
 				return structureUnitID, spawnPosX, spawnPosY, spawnPosZ
+			else 
+				if tracy then
+					tracy.Message(string.format("spawnCreepStructure: Failed to spawn %s at %d*%d*%d ", unitDefName, spawnPosX, spawnPosY, spawnPosZ ))
+				end
 			end
 		end
+		tracy.ZoneEnd()
 	end
 
 	function spawnCreepStructuresWave()
@@ -1206,24 +1221,29 @@ if gadgetHandler:IsSyncedCode() then
 					maxAllowedToSpawn = math.ceil(maxExisting*(techAnger*0.01))
 				end
 				--Spring.Echo(uName,"MaxExisting",maxExisting,"MaxAllowed",maxAllowedToSpawn)
-				for i = 1, math.ceil(numOfTurrets) do
-					if mRandom() < config.spawnChance*math.min((GetGameSeconds()/config.gracePeriod),1) and (Spring.GetTeamUnitDefCount(raptorTeamID, UnitDefNames[uName].id) <= maxAllowedToSpawn) then
-						if i <= numOfTurrets or math.random() <= numOfTurrets%1 then
-							local attempts = 0
-							local footprintX = UnitDefNames[uName].xsize -- why the fuck is this footprint *2??????
-							local footprintZ = UnitDefNames[uName].zsize -- why the fuck is this footprint *2??????
-							local footprintAvg = 128
-							if footprintX and footprintZ then
-								footprintAvg = ((footprintX+footprintZ))*4
-							end
-							repeat
-								attempts = attempts + 1
-								local turretUnitID, spawnPosX, spawnPosY, spawnPosZ = spawnCreepStructure(uName, footprintAvg+32)
-								if turretUnitID then
-									setRaptorXP(turretUnitID)
-									Spring.GiveOrderToUnit(turretUnitID, CMD.PATROL, {spawnPosX + mRandom(-128,128), spawnPosY, spawnPosZ + mRandom(-128,128)}, {"meta"})
+				local currentCountOfTurretDef = Spring.GetTeamUnitDefCount(raptorTeamID, UnitDefNames[uName].id)
+				
+				if currentCountOfTurretDef < UnitDefNames[uName].maxThisUnit then  -- cause nutty raptors sets maxThisUnit which results in nil returns from Spring.CreateUnit!
+					for i = 1, math.ceil(numOfTurrets) do
+						if mRandom() < config.spawnChance*math.min((GetGameSeconds()/config.gracePeriod),1) and (currentCountOfTurretDef <= maxAllowedToSpawn) then
+							if i <= numOfTurrets or math.random() <= numOfTurrets%1 then
+								local attempts = 0
+								local footprintX = UnitDefNames[uName].xsize -- why the fuck is this footprint *2??????
+								local footprintZ = UnitDefNames[uName].zsize -- why the fuck is this footprint *2??????
+								local footprintAvg = 128
+								if footprintX and footprintZ then
+									footprintAvg = ((footprintX+footprintZ))*4 -- this is about (8 + 8) * 4 == 64 on average
 								end
-							until turretUnitID or attempts > 100
+								repeat
+									attempts = attempts + 1
+									local turretUnitID, spawnPosX, spawnPosY, spawnPosZ = spawnCreepStructure(uName, footprintAvg+32) -- call with 96 on average
+									if turretUnitID then
+										currentCountOfTurretDef = currentCountOfTurretDef + 1
+										setRaptorXP(turretUnitID)
+										Spring.GiveOrderToUnit(turretUnitID, CMD.PATROL, {spawnPosX + mRandom(-128,128), spawnPosY, spawnPosZ + mRandom(-128,128)}, {"meta"})
+									end
+								until turretUnitID or attempts > 10
+							end
 						end
 					end
 				end
@@ -1343,6 +1363,7 @@ if gadgetHandler:IsSyncedCode() then
 				return 0
 			end
 
+			damage = damage / config.healthMod
 		end
 
 		if attackerTeam == raptorTeamID then
@@ -1572,29 +1593,29 @@ if gadgetHandler:IsSyncedCode() then
 				if config.raptorBehaviours.HEALER[UnitDefNames[defs.unitName].id] then
 					squadCreationQueue.role = "healer"
 					squadCreationQueue.regroupenabled = false
-					if squadCreationQueue.life < 100 then
-						squadCreationQueue.life = 100
+					if squadCreationQueue.life < math.ceil(100*Spring.GetModOptions().raptor_spawntimemult) then
+						squadCreationQueue.life = math.ceil(100*Spring.GetModOptions().raptor_spawntimemult)
 					end
 				end
 				if config.raptorBehaviours.ARTILLERY[UnitDefNames[defs.unitName].id] then
 					squadCreationQueue.role = "artillery"
 					squadCreationQueue.regroupenabled = false
-					if squadCreationQueue.life < 100 then
-						squadCreationQueue.life = 100
+					if squadCreationQueue.life < math.ceil(100*Spring.GetModOptions().raptor_spawntimemult) then
+						squadCreationQueue.life = math.ceil(100*Spring.GetModOptions().raptor_spawntimemult)
 					end
 				end
 				if config.raptorBehaviours.KAMIKAZE[UnitDefNames[defs.unitName].id] then
 					squadCreationQueue.role = "kamikaze"
 					squadCreationQueue.regroupenabled = false
-					if squadCreationQueue.life < 100 then
-						squadCreationQueue.life = 100
+					if squadCreationQueue.life < math.ceil(100*Spring.GetModOptions().raptor_spawntimemult) then
+						squadCreationQueue.life = math.ceil(100*Spring.GetModOptions().raptor_spawntimemult)
 					end
 				end
 				if UnitDefNames[defs.unitName].canFly then
 					squadCreationQueue.role = "aircraft"
 					squadCreationQueue.regroupenabled = false
-					if squadCreationQueue.life < 100 then
-						squadCreationQueue.life = 100
+					if squadCreationQueue.life < math.ceil(100*Spring.GetModOptions().raptor_spawntimemult) then
+						squadCreationQueue.life = math.ceil(100*Spring.GetModOptions().raptor_spawntimemult)
 					end
 				end
 
@@ -1760,6 +1781,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		if n%30 == 16 then
 			t = GetGameSeconds()
+			local burrowCount = SetCount(burrows)
 			playerAggression = playerAggression*0.995
 			playerAggressionLevel = math.floor(playerAggression)
 			SetGameRulesParam("raptorPlayerAggressionLevel", playerAggressionLevel)
@@ -1768,21 +1790,27 @@ if gadgetHandler:IsSyncedCode() then
 			else
 				currentMaxWaveSize = math.ceil((minWaveSize + math.ceil((techAnger*0.01)*(maxWaveSize - minWaveSize)))*(config.bossFightWaveSizeScale*0.01))
 			end
-			if pastFirstQueen then
-				techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / ((queenTime/Spring.GetModOptions().raptor_queentimemult) - config.gracePeriod) * 100), 999), 0)
+			if pastFirstQueen or Spring.GetModOptions().raptor_graceperiodmult <= 1 then
+				techAnger = math.max(math.min((t - config.gracePeriod) / ((queenTime/(Spring.GetModOptions().raptor_queentimemult)) - config.gracePeriod) * 100, 999), 0)
 			else
-				techAnger = math.max(math.ceil(math.min((t - (config.gracePeriod/Spring.GetModOptions().raptor_graceperiodmult)) / ((queenTime/Spring.GetModOptions().raptor_queentimemult) - (config.gracePeriod/Spring.GetModOptions().raptor_graceperiodmult)) * 100), 999), 0)
+				techAnger = math.max(math.min((t - (config.gracePeriod/Spring.GetModOptions().raptor_graceperiodmult)) / ((queenTime/(Spring.GetModOptions().raptor_queentimemult)) - (config.gracePeriod/Spring.GetModOptions().raptor_graceperiodmult)) * 100, 999), 0)
 			end
+
+			techAnger = math.ceil(techAnger*((config.economyScale*0.5)+0.5))
+
 			if t < config.gracePeriod then
 				queenAnger = 0
-				minBurrows = SetCount(humanTeams)*(t/config.gracePeriod)
+				minBurrows = 8*(t/config.gracePeriod)
 			else
 				if not queenID then
 					queenAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (queenTime - config.gracePeriod) * 100) + queenAngerAggressionLevel, 100), 0)
-					minBurrows = SetCount(humanTeams)
+					minBurrows = 8
+					if burrowCount <= 2 then
+						playerAggression = playerAggression + 1
+					end
 				else
 					queenAnger = 100
-					minBurrows = SetCount(humanTeams)
+					minBurrows = 8
 				end
 				queenAngerAggressionLevel = queenAngerAggressionLevel + ((playerAggression*0.01)/(config.queenTime/3600)) + playerAggressionEcoValue
 				SetGameRulesParam("RaptorQueenAngerGain_Aggression", (playerAggression*0.01)/(config.queenTime/3600))
@@ -1797,7 +1825,7 @@ if gadgetHandler:IsSyncedCode() then
 				updateQueenLife()
 			end
 
-			local burrowCount = SetCount(burrows)
+			
 			if burrowCount < minBurrows then
 				SpawnBurrow()
 				timeOfLastSpawn = t

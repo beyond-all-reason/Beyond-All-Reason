@@ -26,6 +26,7 @@ return {
 		maxwaterdepth = 0,
 		mincloakdistance = 65,
 		movementclass = "TANK3",
+		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMGREMLIN.s3o",
 		script = "Units/ARMGREMLIN.cob",

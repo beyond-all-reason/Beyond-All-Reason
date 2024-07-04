@@ -131,7 +131,23 @@ local TimedDamageWeaponsNames = {
         range = 75,
         resistance = "test",
     },
+    ['leegmech_scav_aimhull'] = {
+        ceg = "fire-area-75",
+        damageCeg = "burnflamexl",
+        time = 10,
+        damage = 30,
+        range = 75,
+        resistance = "test",
+    },
 	['legbart_clusternapalm'] = {
+        ceg = "fire-area-75",
+        damageCeg = "burnflamexl",
+        time = 10,
+        damage = 30,
+        range = 75,
+        resistance = "test",
+    },
+    ['legbart_scav_clusternapalm'] = {
         ceg = "fire-area-75",
         damageCeg = "burnflamexl",
         time = 10,
@@ -147,7 +163,23 @@ local TimedDamageWeaponsNames = {
         range = 75,
         resistance = "test",
     },
+    ['legbar_scav_clusternapalm'] = {
+        ceg = "fire-area-75",
+        damageCeg = "burnflamexl",
+        time = 10,
+        damage = 30,
+        range = 75,
+        resistance = "test",
+    },
 	['leginc_heatraylarge'] = {
+        ceg = "burnflamexm",
+        damageCeg = "burnflamexl",
+        time = 1,
+        damage = 0,
+        range = 37,
+        resistance = "test",
+    },
+    ['leginc_scav_heatraylarge'] = {
         ceg = "burnflamexm",
         damageCeg = "burnflamexl",
         time = 1,
@@ -163,7 +195,23 @@ local TimedDamageWeaponsNames = {
         range = 50,
         resistance = "test",
     },
+    ['legbastion_scav_pineappleofdoom'] = {
+        ceg = "fire-incinerator",
+        damageCeg = "burnflamexl",
+        time = 2,
+        damage = 0,
+        range = 50,
+        resistance = "test",
+    },
 	['leginf_rapidnapalm'] = {
+        ceg = "fire-area-75",
+        damageCeg = "burnflamexl",
+        time = 10,
+        damage = 30,
+        range = 75,
+        resistance = "test",
+    },
+    ['leginf_scav_rapidnapalm'] = {
         ceg = "fire-area-75",
         damageCeg = "burnflamexl",
         time = 10,
@@ -179,6 +227,14 @@ local TimedDamageWeaponsNames = {
         range = 150,
         resistance = "test",
     },
+    ['legnap_scav_napalmbombs'] = {
+        ceg = "fire-area-150",
+        damageCeg = "burnflamexl",
+        time = 15,
+        damage = 30,
+        range = 150,
+        resistance = "test",
+    },
 	['legcom_napalmmissile'] = {
         ceg = "fire-area-150",
         damageCeg = "burnflamexl",
@@ -187,6 +243,14 @@ local TimedDamageWeaponsNames = {
         range = 100,
         resistance = "test",
     },
+    --['legcom_scav_napalmmissile'] = { -- These have been replaced with unit cannon
+    --    ceg = "fire-area-150",
+    --    damageCeg = "burnflamexl",
+    --    time = 10,
+    --    damage = 75,
+    --    range = 100,
+    --    resistance = "test",
+    --},
 	['legcomlvl2_napalmmissile'] = {
         ceg = "fire-area-150",
         damageCeg = "burnflamexl",
@@ -195,6 +259,14 @@ local TimedDamageWeaponsNames = {
         range = 100,
         resistance = "test",
     },
+    --['legcomlvl2_scav_napalmmissile'] = { -- These have been replaced with unit cannon
+    --    ceg = "fire-area-150",
+    --    damageCeg = "burnflamexl",
+    --    time = 10,
+    --    damage = 75,
+    --    range = 100,
+    --    resistance = "test",
+    --},
 	['legcomlvl3_napalmmissile'] = {
         ceg = "fire-area-150",
         damageCeg = "burnflamexl",
@@ -203,6 +275,14 @@ local TimedDamageWeaponsNames = {
         range = 150,
         resistance = "test",
     },
+    --['legcomlvl3_scav_napalmmissile'] = { -- These have been replaced with unit cannon
+    --    ceg = "fire-area-150",
+    --    damageCeg = "burnflamexl",
+    --    time = 10,
+    --    damage = 150,
+    --    range = 150,
+    --    resistance = "test",
+    --},
 	['legcomlvl4_napalmmissile'] = {
         ceg = "fire-area-150",
         damageCeg = "burnflamexl",
@@ -211,46 +291,14 @@ local TimedDamageWeaponsNames = {
         range = 150,
         resistance = "test",
     },
-	['legbart_scav_clusternapalm'] = {
-        ceg = "fire-area-75",
-        damageCeg = "burnflamexl",
-        time = 10,
-        damage = 30,
-        range = 75,
-        resistance = "test",
-    },
-	['legbar_scav_clusternapalm'] = {
-        ceg = "fire-area-75",
-        damageCeg = "burnflamexl",
-        time = 10,
-		damage = 30,
-        range = 70,
-        resistance = "test",
-    },
-	['leginc_scav_heatraylarge'] = {
-        ceg = "fire-incinerator",
-        damageCeg = "burnflame",
-        time = 1,
-        damage = 0,
-        range = 37,
-        resistance = "test",
-    },
-	['leginf_scav_rapidnapalm'] = {
-        ceg = "fire-area-75",
-        damageCeg = "burnflamexl",
-        time = 10,
-        damage = 30,
-        range = 75,
-        resistance = "test",
-    },
-	['legnap_scav_napalmbombs'] = {
-        ceg = "fire-area-150",
-        damageCeg = "burnflamexl",
-        time = 15,
-        damage = 30,
-        range = 150,
-        resistance = "test",
-    },
+    --['legcomlvl4_scav_napalmmissile'] = { -- These have been replaced with unit cannon
+    --    ceg = "fire-area-150",
+    --    damageCeg = "burnflamexl",
+    --    time = 10,
+    --    damage = 150,
+    --    range = 150,
+    --    resistance = "test",
+    --},
 	['legperdition_napalmmissile'] = {
         ceg = "fire-area-150",
         damageCeg = "burnflamexl",
@@ -259,7 +307,31 @@ local TimedDamageWeaponsNames = {
         range = 150,
         resistance = "test",
     },
+    ['legperdition_scav_napalmmissile'] = {
+        ceg = "fire-area-150",
+        damageCeg = "burnflamexl",
+        time = 15,
+        damage = 175,
+        range = 150,
+        resistance = "test",
+    },
+    ['scavengerbossv4_normal_turbo_napalm'] = {
+        ceg = "fire-area-75",
+        damageCeg = "burnflamexl",
+        time = 12,
+        damage = 20,
+        range = 150,
+        resistance = "test",
+    },
+
 }
+--duplicate entry for scavengerbossv4
+local scavengerBossV4Table = {'scavengerbossv4_veryeasy_turbo_napalm', 'scavengerbossv4_easy_turbo_napalm', 'scavengerbossv4_hard_turbo_napalm', 'scavengerbossv4_veryhard_turbo_napalm', 'scavengerbossv4_epic_turbo_napalm',
+ 'scavengerbossv4_veryeasy_scav_turbo_napalm', 'scavengerbossv4_easy_scav_turbo_napalm', 'scavengerbossv4_normal_scav_turbo_napalm', 'scavengerbossv4_hard_scav_turbo_napalm', 'scavengerbossv4_veryhard_scav_turbo_napalm', 'scavengerbossv4_epic_scav_turbo_napalm'}
+for _, name in pairs(scavengerBossV4Table) do
+	TimedDamageWeaponsNames[name] = table.copy(TimedDamageWeaponsNames['scavengerbossv4_normal_turbo_napalm'])
+end
+
 -- convert weaponname -> weaponDefID
 local TimedDamageWeapons = {}
 for name, params in pairs(TimedDamageWeaponsNames) do
@@ -409,12 +481,7 @@ function gadget:GameFrame(frame)
                     local unitID = unitsInRange[j]
                     local unitDefID = Spring.GetUnitDefID(unitID)
                     if (not UnitDefs[unitDefID].canFly) and (not (UnitDefs[unitDefID].customParams and UnitDefs[unitDefID].customParams.areadamageresistance and string.find(UnitDefs[unitDefID].customParams.areadamageresistance, resistance))) then
-                        local health = Spring.GetUnitHealth(unitID)
-                        if health > damage then
-                            Spring.SetUnitHealth(unitID, health - damage)
-                        else
-                            Spring.DestroyUnit(unitID, false, false)
-                        end
+                        Spring.AddUnitDamage(unitID, damage, 0, Spring.GetGaiaTeamID(), 1)
                         local ux, uy, uz = Spring.GetUnitPosition(unitID)
                         Spring.SpawnCEG(explosionStats.damageCeg, ux, uy + 8, uz, 0, 0, 0)
                     end

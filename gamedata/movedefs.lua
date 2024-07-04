@@ -150,7 +150,7 @@ local moveDatas = {
 	-- },
 	-- flagships/aircraft carriers
 	--why are bb and flagships/carriers different merge both
-	-- armcarry armepoch corblackhy armcarry2 armbats corbats corcarry corcarry2 corsentinel armtrident
+	-- armcarry armdronecarry armepoch corblackhy armbats corbats corcarry cordronecarry corsentinel armtrident
 	BOAT8 = {
 		crushstrength = 252,
 		footprintx = 8,
@@ -364,7 +364,7 @@ local moveDatas = {
 	-- 		maxValue = 0.7,
 	-- 	}
 	-- },
-	-- corgol leginf corban cortrem armmanni armmerl legkeres legmed
+	-- corgol leginf corban cortrem armmanni armmerl legkeres legmed corsiegebreaker
 	HTANK4 = {
 		crushstrength = 252,
 		footprintx = 4,
@@ -437,11 +437,25 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	-- corhrk armfido leggstr corthud armham
+	--  armfido leggstr
 	BOT4 = {
 		crushstrength = 25,
 		footprintx = 3,
 		footprintz = 3,
+		maxslope = 36,
+		maxwaterdepth = 22,
+		depthModParams = {
+			minHeight = 4,
+			linearCoeff = 0.03,
+			maxValue = 0.7,
+		}
+	},
+	-- this movedeff dies when seperation distance is a current feature in bar
+	-- corhrk
+	BOT5 = {
+		crushstrength = 25,
+		footprintx = 4,
+		footprintz = 4,
 		maxslope = 36,
 		maxwaterdepth = 22,
 		depthModParams = {
@@ -669,7 +683,7 @@ local moveDatas = {
 	},
 
 
-	-- legdefcarryt1 armnanotc cornanotc cornanotcplat  raptor_worm_green raptor_turret_acid_t2_v1 raptor_turret_meteor_t4_v1
+	-- leghive armnanotc cornanotc cornanotcplat  raptor_worm_green raptor_turret_acid_t2_v1 raptor_turret_meteor_t4_v1
 	NANO = {
 		crushstrength = 0,
 		footprintx = 3,

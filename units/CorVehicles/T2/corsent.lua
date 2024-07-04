@@ -24,6 +24,7 @@ return {
 		speed = 69.0,
 		maxwaterdepth = 12,
 		movementclass = "TANK3",
+		movestate = 0,
 		nochasecategory = "NOTAIR",
 		objectname = "Units/CORSENT.s3o",
 		script = "Units/CORSENT.cob",

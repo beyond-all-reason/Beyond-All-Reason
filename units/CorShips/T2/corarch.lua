@@ -24,6 +24,7 @@ return {
 		speed = 60.48,
 		minwaterdepth = 30,
 		movementclass = "BOAT4",
+		movestate = 0,
 		nochasecategory = "NOTAIR",
 		objectname = "Units/CORARCH.s3o",
 		script = "Units/CORARCH.cob",

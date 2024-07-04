@@ -53,6 +53,7 @@ local convertedUnitsNames = {
 	['armbanth'] = 1,
 	['corkorg'] = 1,
 	['armvang'] = 3,
+	['armcrus'] = 5,
 
 	-- the following units get a faster reaimtime to counteract their turret acceleration
   
@@ -78,7 +79,9 @@ local convertedUnitsNames = {
 	['armcom'] = 5,
 	['cordecom'] = 5,
 	['armdecom'] = 5,
+	['legdecom'] = 5,
 
+	['legah'] = 5,
 	['legbal'] = 5,
 	['legbastion'] = 5,
 	['legcen'] = 2,
@@ -109,8 +112,15 @@ local convertedUnitsNames = {
 	['leegmech'] = 5,
 	['legionnaire'] = 5,
 	['legvenator'] = 5,
-  ['legmed'] = 5,
+    ['legmed'] = 5,
+	['legaheattank'] = 5,
 }
+--add entries for scavboss
+local scavengerBossV4Table = {'scavengerbossv4_veryeasy', 'scavengerbossv4_easy', 'scavengerbossv4_normal', 'scavengerbossv4_hard', 'scavengerbossv4_veryhard', 'scavengerbossv4_epic',
+ 'scavengerbossv4_veryeasy_scav', 'scavengerbossv4_easy_scav', 'scavengerbossv4_normal_scav', 'scavengerbossv4_hard_scav', 'scavengerbossv4_veryhard_scav', 'scavengerbossv4_epic_scav'}
+for _, name in pairs(scavengerBossV4Table) do
+	convertedUnitsNames[name] = 4
+end
 --if Spring.GetModOptions().emprework then
 	--convertedUnitsNames['armdfly'] = 50
 --end

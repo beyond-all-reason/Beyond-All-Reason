@@ -1,7 +1,7 @@
 return {
 	armrock = {
-		maxacc = 0.138,
-		maxdec = 0.6486,
+		maxacc = 0.131,
+		maxdec = 0.6156,
 		energycost = 1000,
 		metalcost = 120,
 		buildpic = "ARMROCK.DDS",
@@ -19,9 +19,10 @@ return {
 		idletime = 1800,
 		health = 720,
 		maxslope = 14,
-		speed = 50.7,
+		speed = 48.2,
 		maxwaterdepth = 12,
 		movementclass = "BOT3",
+		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMROCK.s3o",
 		script = "Units/ARMROCK.cob",
