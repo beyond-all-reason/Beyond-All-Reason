@@ -27,6 +27,7 @@ local spGetUnitHealth = Spring.GetUnitHealth
 local spAreTeamsAllied = Spring.AreTeamsAllied
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitsInSphere = Spring.GetUnitsInSphere
+local spGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
 
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
@@ -48,6 +49,12 @@ for i = 1, #teams do
 		raptorsAITeamID = i - 1
 		break
 	end
+end
+
+-- used to only get a single raptor or scav teamID's units with GetUnitsInSphere
+local raptorScavTeamID
+if scavengerAITeamID ~= 999 or raptorsAITeamID ~= 999 and not (scavengerAITeamID ~= 999 and raptorsAITeamID ~= 999) then
+	raptorScavTeamID = scavengerAITeamID ~= 999 and scavengerAITeamID or raptorsAITeamID
 end
 
 local aliveHealers = {}
@@ -93,7 +100,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-    if healersTable[unitDefID] then
+    if healersTable[unitDefID] and (unitTeam == scavengerAITeamID or unitTeam == raptorsAITeamID) then
         aliveHealers[unitID] = {
 			teamID = unitTeam,
             healingpower = healersTable[unitDefID].healingpower,
@@ -110,30 +117,22 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
 end
 
 function gadget:GameFrame(frame)
-	local x,y,z,surroundingUnits,healedUnitID
+	local x,y,z,surroundingUnits,surroundingUnitID
     for unitID, statsTable in pairs(aliveHealers) do
-        if unitID % 30 == frame % 30 and (statsTable.teamID == scavengerAITeamID or statsTable.teamID == raptorsAITeamID) then
+        if unitID % 30 == frame % 30 then
             x,y,z = spGetUnitPosition(unitID)
-            surroundingUnits = spGetUnitsInSphere(x, y, z, statsTable.healingrange)
+            surroundingUnits = spGetUnitsInSphere(x, y, z, statsTable.healingrange, raptorScavTeamID)
             for i = 1, #surroundingUnits do
-                healedUnitID = surroundingUnits[i]
-                if not aliveHealers[healedUnitID] or (aliveHealers[healedUnitID].canbehealed and unitID ~= healedUnitID) then
-                    if spAreTeamsAllied(statsTable.teamID, unitTeams[healedUnitID]) then
-                        local oldHP, maxHP = spGetUnitHealth(healedUnitID)
+                surroundingUnitID = surroundingUnits[i]
+                if not aliveHealers[surroundingUnitID] or (aliveHealers[surroundingUnitID].canbehealed and unitID ~= surroundingUnitID) then
+                    if spAreTeamsAllied(statsTable.teamID, unitTeams[surroundingUnitID]) then
+                        local oldHP, maxHP = spGetUnitHealth(surroundingUnitID)
                         if oldHP < maxHP then
-                            local x2, y2, z2 = spGetUnitPosition(healedUnitID)
-                            local surroundingUnits2 = spGetUnitsInSphere(x2, y2, z2, math.ceil(statsTable.healingrange))
-                            local enemiesNearby = false
-                            for i = 1, #surroundingUnits2 do
-                                if unitTeams[surroundingUnits2[i]] ~= statsTable.teamID and unitTeams[surroundingUnits2[i]] ~= gaiaTeamID then
-                                    enemiesNearby = true
-                                    break
-                                end
-                            end
-                            if not enemiesNearby then
-                                local healedUnitBuildTime = unitBuildtime[Spring.GetUnitDefID(healedUnitID)].buildTime
+                            local x2, y2, z2 = spGetUnitPosition(surroundingUnitID)
+							if not spGetUnitNearestEnemy(surroundingUnitID, math.ceil(statsTable.healingrange)) then
+                                local healedUnitBuildTime = unitBuildtime[Spring.GetUnitDefID(surroundingUnitID)].buildTime
                                 local healValue = (maxHP/healedUnitBuildTime)*statsTable.healingpower
-                                Spring.SetUnitHealth(healedUnitID, oldHP+healValue)
+                                Spring.SetUnitHealth(surroundingUnitID, oldHP+healValue)
                                 Spring.SpawnCEG("heal", x2, y2+10, z2, 0,1,0)
                             end
                         end
