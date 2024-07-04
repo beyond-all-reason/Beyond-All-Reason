@@ -1,7 +1,3 @@
-if not Spring.Utilities.Gametype.IsScavengers() then
-	return false
-end
-
 function gadget:GetInfo()
     return {
         name = "Unit Capture Decay",
