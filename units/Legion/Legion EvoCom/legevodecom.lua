@@ -32,7 +32,7 @@ unitsTable['legdecomlvl10'].customparams.evolution_target = nil
 unitsTable['legdecomlvl10'].customparams.iscommander = nil
 unitsTable['legdecomlvl10'].customparams.effigy = nil
 unitsTable['legdecomlvl10'].customparams.i18nfromunit = "legcomlvl10"
-unitsTable['legdecomlvl10'].decoyfor = "legcomlvl3"
+unitsTable['legdecomlvl10'].decoyfor = "legcomlvl10"
 unitsTable['legdecomlvl10'].health = math.ceil(unitsTable['legdecomlvl10'].health*0.5)
 unitsTable['legdecomlvl10'].weapondefs.disintegrator.damage.default = 40
 
