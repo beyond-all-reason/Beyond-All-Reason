@@ -27,7 +27,7 @@ function gadget:GameFrame(frame)
     for unitID, data in pairs(aliveUnits) do
         if unitID%30 == frame%30 then
             local captureLevel = select(4, Spring.GetUnitHealth(unitID))
-            if captureLevel > 0 then
+            if captureLevel and captureLevel > 0 then
                 if captureLevel <= data.previousCaptureProgress then
                     aliveUnits[unitID].ticksFromLastCapture = aliveUnits[unitID].ticksFromLastCapture+1
                     SendToUnsynced("unitCaptureFrame", unitID, math.max(captureLevel, 0))
