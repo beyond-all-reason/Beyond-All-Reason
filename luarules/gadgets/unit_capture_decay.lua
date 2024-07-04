@@ -49,3 +49,11 @@ function gadget:AllowUnitCaptureStep(builderID, builderTeam, unitID, unitDefID, 
     end
     return true
 end
+
+function addUnitToCaptureDecay(unitID)
+    if not unitsWithCaptureProgress[unitID] then
+        unitsWithCaptureProgress[unitID] = {previousCaptureProgress = 0, ticksFromLastCapture = 999}
+    end
+end
+
+GG.addUnitToCaptureDecay = addUnitToCaptureDecay

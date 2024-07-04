@@ -1811,15 +1811,15 @@ if gadgetHandler:IsSyncedCode() then
 							Spring.SetUnitHealth(unitID, {capture = 0.50})
 							SendToUnsynced("unitCaptureFrame", unitID, 0.50)
 							Spring.SpawnCEG("scav-spawnexplo", ux, uy, uz, 0,0,0)
+							GG.addUnitToCaptureDecay(unitID)
 						else
 							Spring.SetUnitHealth(unitID, {capture = math.min(captureLevel+captureProgress, 1)})
 							SendToUnsynced("unitCaptureFrame", unitID, math.min(captureLevel+captureProgress, 1))
 							Spring.SpawnCEG("scav-spawnexplo", ux, uy, uz, 0,0,0)
+							GG.addUnitToCaptureDecay(unitID)
 						end
 					elseif captureLevel > 0 and Spring.GetUnitTeam(unitID) == scavTeamID then
-						Spring.SetUnitHealth(unitID, {capture = math.max(captureLevel-(captureProgress*2), 0)})
-						SendToUnsynced("unitCaptureFrame", unitID, math.min(captureLevel-(captureProgress*2), 0))
-						Spring.SpawnCEG("scav-spawnexplo", ux, uy, uz, 0,0,0)
+						GG.addUnitToCaptureDecay(unitID)
 					end
 				end
 			end
