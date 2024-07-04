@@ -125,7 +125,7 @@ function gadget:GameFrame(frame)
             for i = 1, #surroundingUnits do
                 surroundingUnitID = surroundingUnits[i]
                 if not aliveHealers[surroundingUnitID] or (aliveHealers[surroundingUnitID].canbehealed and unitID ~= surroundingUnitID) then
-                    if spAreTeamsAllied(statsTable.teamID, unitTeams[surroundingUnitID]) then
+                    if raptorScavTeamID or spAreTeamsAllied(statsTable.teamID, unitTeams[surroundingUnitID]) then
                         local oldHP, maxHP = spGetUnitHealth(surroundingUnitID)
                         if oldHP < maxHP then
                             local x2, y2, z2 = spGetUnitPosition(surroundingUnitID)
