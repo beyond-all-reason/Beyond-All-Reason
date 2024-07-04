@@ -41,6 +41,7 @@ return {
 		upright = true,
 		waterline = 40,
 		customparams = {
+			maxrange = "720",
 			unitgroup = 'nuke',--I mean also sub but?
 			model_author = "Hornet",
 			normaltex = "unittextures/cor_normal.dds",

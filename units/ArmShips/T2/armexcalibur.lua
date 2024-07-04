@@ -35,7 +35,7 @@ return {
 		turnrate = 540,
 		upright = true,
 		--usepiececollisionvolumes = 1,
-		waterline = 20,
+		waterline = 25,
 		customparams = {
 			unitgroup = 'sub',
 			model_author = "Hornet",
