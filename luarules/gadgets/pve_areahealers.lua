@@ -130,7 +130,7 @@ function gadget:GameFrame(frame)
                         if oldHP < maxHP then
                             local x2, y2, z2 = spGetUnitPosition(surroundingUnitID)
 							if not spGetUnitNearestEnemy(surroundingUnitID, math.ceil(statsTable.healingrange)) then
-                                local healedUnitBuildTime = unitBuildtime[Spring.GetUnitDefID(surroundingUnitID)].buildTime
+                                local healedUnitBuildTime = unitBuildtime[Spring.GetUnitDefID(surroundingUnitID)]
                                 local healValue = (maxHP/healedUnitBuildTime)*statsTable.healingpower
                                 Spring.SetUnitHealth(surroundingUnitID, oldHP+healValue)
                                 Spring.SpawnCEG("heal", x2, y2+10, z2, 0,1,0)
