@@ -1803,21 +1803,22 @@ if gadgetHandler:IsSyncedCode() then
 				if math.random(0,3) == 0 then
 					local unitID = allUnits[i]
 					local ux, uy, uz = Spring.GetUnitPosition(unitID)
-					local captureProgress = select(4, Spring.GetUnitHealth(unitID))
+					local captureLevel = select(4, Spring.GetUnitHealth(unitID))
+					local captureProgress = 0.01667 * (24/math.ceil(math.sqrt(math.sqrt(UnitDefs[Spring.GetUnitDefID(unitID)].health)))) * (techAnger/100) -- really wack formula that i really don't want to explain. All you need to know is that we take Behemoth 335000 health as the baseline of taking about 1 minute to capture at 100% tech anger.
 					if GG.IsPosInRaptorScum(ux, uy, uz) and Spring.GetUnitTeam(unitID) ~= scavTeamID then
-						if captureProgress+(1/30) >= 1 then
+						if captureLevel+captureProgress >= 0.99 then
 							Spring.TransferUnit(unitID, scavTeamID, false)
-							Spring.SetUnitHealth(unitID, {capture = 0.75})
-							SendToUnsynced("unitCaptureFrame", unitID, 0.75)
+							Spring.SetUnitHealth(unitID, {capture = 0.50})
+							SendToUnsynced("unitCaptureFrame", unitID, 0.50)
 							Spring.SpawnCEG("scav-spawnexplo", ux, uy, uz, 0,0,0)
 						else
-							Spring.SetUnitHealth(unitID, {capture = math.min(captureProgress+(1/15), 1)})
-							SendToUnsynced("unitCaptureFrame", unitID, math.min(captureProgress+(1/15), 1))
+							Spring.SetUnitHealth(unitID, {capture = math.min(captureLevel+captureProgress, 1)})
+							SendToUnsynced("unitCaptureFrame", unitID, math.min(captureLevel+captureProgress, 1))
 							Spring.SpawnCEG("scav-spawnexplo", ux, uy, uz, 0,0,0)
 						end
-					elseif captureProgress > 0 and Spring.GetUnitTeam(unitID) == scavTeamID then
-						Spring.SetUnitHealth(unitID, {capture = math.max(captureProgress-(1/30), 0)})
-						SendToUnsynced("unitCaptureFrame", unitID, math.min(captureProgress-(1/30), 0))
+					elseif captureLevel > 0 and Spring.GetUnitTeam(unitID) == scavTeamID then
+						Spring.SetUnitHealth(unitID, {capture = math.max(captureLevel-(captureProgress*2), 0)})
+						SendToUnsynced("unitCaptureFrame", unitID, math.min(captureLevel-(captureProgress*2), 0))
 						Spring.SpawnCEG("scav-spawnexplo", ux, uy, uz, 0,0,0)
 					end
 				end
