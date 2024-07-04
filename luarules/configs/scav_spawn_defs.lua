@@ -535,21 +535,21 @@ local LandUnitsList = {
 			["armack_scav"] = 1,
 			["armacv_scav"] = 1,
 			["armfark_scav"] = 1,
-			["armdecom_scav"] = 1,
+			["armdecomlvl3_scav"] = 1,
 			["armconsul_scav"] = 1,
 			--Cortex
 			["cornecro_scav"] = 20,
 			["corack_scav"] = 1,
 			["coracv_scav"] = 1,
 			["corfast_scav"] = 1,
-			["cordecom_scav"] = 1,
+			["cordecomlvl3_scav"] = 1,
 			["cormando_scav"] = 1,
 			["corforge_scav"] = 1,
 			--Legion
 			["legacv_scav"] = 1,
 			["legack_scav"] = 1,
 			["legaceb_scav"] = 1,
-			["legdecom_scav"] = 1,
+			["legdecomlvl3_scav"] = 1,
 		},
 		[6] = {
 			--Armada
@@ -557,21 +557,21 @@ local LandUnitsList = {
 			["armack_scav"] = 1,
 			["armacv_scav"] = 1,
 			["armfark_scav"] = 1,
-			["armdecom_scav"] = 1,
+			["armdecomlvl6_scav"] = 1,
 			["armconsul_scav"] = 1,
 			--Cortex
 			["cornecro_scav"] = 20,
 			["corack_scav"] = 1,
 			["coracv_scav"] = 1,
 			["corfast_scav"] = 1,
-			["cordecom_scav"] = 1,
+			["cordecomlvl6_scav"] = 1,
 			["cormando_scav"] = 1,
 			["corforge_scav"] = 1,
 			--Legion
 			["legacv_scav"] = 1,
 			["legack_scav"] = 1,
 			["legaceb_scav"] = 1,
-			["legdecom_scav"] = 1,
+			["legdecomlvl6_scav"] = 1,
 		},
 		[7] = {
 			--Armada
@@ -579,21 +579,21 @@ local LandUnitsList = {
 			["armack_scav"] = 1,
 			["armacv_scav"] = 1,
 			["armfark_scav"] = 1,
-			["armdecom_scav"] = 1,
+			["armdecomlvl10_scav"] = 1,
 			["armconsul_scav"] = 1,
 			--Cortex
 			["cornecro_scav"] = 20,
 			["corack_scav"] = 1,
 			["coracv_scav"] = 1,
 			["corfast_scav"] = 1,
-			["cordecom_scav"] = 1,
+			["cordecomlvl10_scav"] = 1,
 			["cormando_scav"] = 1,
 			["corforge_scav"] = 1,
 			--Legion
 			["legacv_scav"] = 1,
 			["legack_scav"] = 1,
 			["legaceb_scav"] = 1,
-			["legdecom_scav"] = 1,
+			["legdecomlvl10_scav"] = 1,
 		},
 	},
 }
@@ -1368,6 +1368,21 @@ scavBehaviours = {
 		[UnitDefNames["corcomlvl10_scav"].id] = true,
 		[UnitDefNames["legcomlvl10_scav"].id] = true,
 
+		[UnitDefNames["armdecom_scav"].id] = true,
+		[UnitDefNames["armdecomlvl3_scav"].id] = true,
+		[UnitDefNames["armdecomlvl6_scav"].id] = true,
+		[UnitDefNames["armdecomlvl10_scav"].id] = true,
+
+		[UnitDefNames["cordecom_scav"].id] = true,
+		[UnitDefNames["cordecomlvl3_scav"].id] = true,
+		[UnitDefNames["cordecomlvl6_scav"].id] = true,
+		[UnitDefNames["cordecomlvl10_scav"].id] = true,
+
+		[UnitDefNames["legdecom_scav"].id] = true,
+		[UnitDefNames["legdecomlvl3_scav"].id] = true,
+		[UnitDefNames["legdecomlvl6_scav"].id] = true,
+		[UnitDefNames["legdecomlvl10_scav"].id] = true,
+
 
 	},
 	ARTILLERY = { -- Long lifetime and no regrouping, always uses Fight command to keep distance
@@ -1411,7 +1426,6 @@ local squadSpawnOptionsTable = {
 		["armcomlvl8_scav"]  = { minAnger = 70, maxAnger = 110, maxAlive = 1 },
 		["armcomlvl9_scav"]  = { minAnger = 80, maxAnger = 120, maxAlive = 1 },
 		["armcomlvl10_scav"] = { minAnger = 90, maxAnger = 1000, maxAlive = 4 },
-		["armdecom_scav"]    = { minAnger = 25, maxAnger = 1000, maxAlive = 100 },
 		["corcom_scav"]      = { minAnger = 10, maxAnger = 40, maxAlive = 1 },
 		["corcomlvl2_scav"]  = { minAnger = 15, maxAnger = 50, maxAlive = 1 },
 		["corcomlvl3_scav"]  = { minAnger = 20, maxAnger = 60, maxAlive = 1 },
@@ -1422,7 +1436,6 @@ local squadSpawnOptionsTable = {
 		["corcomlvl8_scav"]  = { minAnger = 70, maxAnger = 110, maxAlive = 1 },
 		["corcomlvl9_scav"]  = { minAnger = 80, maxAnger = 120, maxAlive = 1 },
 		["corcomlvl10_scav"] = { minAnger = 90, maxAnger = 1000, maxAlive = 4 },
-		["cordecom_scav"]    = { minAnger = 25, maxAnger = 1000, maxAlive = 100 },
 		["legcom_scav"]      = { minAnger = 10, maxAnger = 40, maxAlive = 1 },
 		["legcomlvl2_scav"]  = { minAnger = 15, maxAnger = 50, maxAlive = 1 },
 		["legcomlvl3_scav"]  = { minAnger = 20, maxAnger = 60, maxAlive = 1 },
@@ -1433,7 +1446,21 @@ local squadSpawnOptionsTable = {
 		["legcomlvl8_scav"]  = { minAnger = 70, maxAnger = 110, maxAlive = 1 },
 		["legcomlvl9_scav"]  = { minAnger = 80, maxAnger = 120, maxAlive = 1 },
 		["legcomlvl10_scav"] = { minAnger = 90, maxAnger = 1000, maxAlive = 4 },
-		["legdecom_scav"]    = { minAnger = 25, maxAnger = 1000, maxAlive = 100 },
+
+		["armdecom_scav"]    = { minAnger = 10, maxAnger = 40, maxAlive = 100 },
+		["armdecomlvl3_scav"]    = { minAnger = 20, maxAnger = 60, maxAlive = 100 },
+		["armdecomlvl6_scav"]    = { minAnger = 50, maxAnger = 90, maxAlive = 100 },
+		["armdecomlvl10_scav"]    = { minAnger = 80, maxAnger = 1000, maxAlive = 100 },
+		
+		["cordecom_scav"]    = { minAnger = 10, maxAnger = 40, maxAlive = 100 },
+		["cordecomlvl3_scav"]    = { minAnger = 20, maxAnger = 60, maxAlive = 100 },
+		["cordecomlvl6_scav"]    = { minAnger = 50, maxAnger = 90, maxAlive = 100 },
+		["cordecomlvl10_scav"]    = { minAnger = 80, maxAnger = 1000, maxAlive = 100 },
+
+		["legdecom_scav"]    = { minAnger = 10, maxAnger = 40, maxAlive = 100 },
+		["legdecomlvl3_scav"]    = { minAnger = 20, maxAnger = 60, maxAlive = 100 },
+		["legdecomlvl6_scav"]    = { minAnger = 50, maxAnger = 90, maxAlive = 100 },
+		["legdecomlvl10_scav"]    = { minAnger = 80, maxAnger = 1000, maxAlive = 100 },
 	}
 }
 
