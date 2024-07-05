@@ -1,26 +1,38 @@
 
 
-#define TA			// This is a TA script
-
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, flare, tube, doorr, doorl, wake, firing,firing1,firing2, prop1, prop2;
 
-static-var  restore_delay, shotcount, silo_state;
+static-var  restore_delay, shotcount, silo_state, timeLeft, Stunned;
 // 0 = closed
 // 1 = opening
 // 2 = opened
 // 3 = closing, fired missile
 // 4 = closing, no missile fired
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+#define BASEPIECE base
+#define HITSPEED <25.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 5
+#define MAXTILT 200
+
+//#include "../unit_hitbyweaponid_and_smoke.h"
+
+#define TB_BASE base 
+#define TB_TURNRATE <30.0> 
+#define TB_TILT_X <-0.32>
+#define TB_BANK_Z <0.5> // Do not define this if you dont want banking
+#define TB_WAKE_PIECE base
+#define TB_WAKE_FOAM 1024 + 1
+#include "../tilt_bank_submarine.h"
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_MOVE			4
-#define SIG_AIM2			8
+#define SIGNAL_AIM1				2
+#define SIGNAL_MOVE				4
+#define SIGNAL_AIM2			8
+#define SIGNAL_RESTORE			16
+
 
 Create()
 {
@@ -32,10 +44,22 @@ Create()
 	hide firing1;
 	hide firing2;
 	shotcount = 0;
-	restore_delay = 15000;
+
+	restore_delay = 3000;
+	timeLeft = restore_delay;//seems needed to avoid instant cancellation of first aiming anims
+	call-script TB_Init();
+
 	silo_state = 0;
 	return (0);
 }
+
+
+
+SetStunned(State)
+{
+    Stunned = State;
+}
+
 
 lua_UnitScriptLight(lightIndex, count) 
 {
@@ -98,12 +122,27 @@ CloseSiloDoors()
 CloseSilo_Fired()
 {
 	silo_state = 3;
-	signal SIG_AIM2; // kill any OpenSilo threads
+	signal SIGNAL_AIM2; // kill any OpenSilo threads
 	start-script CloseSiloDoors();
 }
 
-RestoreAfterDelay()
-{
+
+
+
+TimeToRestore(addTime){
+	signal SIGNAL_RESTORE;
+	set-signal-mask SIGNAL_RESTORE;
+    // This function may not be signal terminated
+    // If it has to be, it _must_ be immediately restarted
+    // PROBLEM: the time that is slept depends on number of aim calls.
+    while((timeLeft > 1) || Stunned){
+		//get PRINT(timeLeft, get GAME_FRAME);
+        addTime = timeLeft;
+        timeLeft = 1;
+        sleep addTime;//can sometimes sleep 6000 but never wake up again?
+    }
+    // The restore section must be atomic :/
+
 	sleep restore_delay;
 	if ( NOT (silo_state==3) )
 	{
@@ -112,7 +151,10 @@ RestoreAfterDelay()
 		start-script CloseSiloDoors();
 	}
 	return (0);
+
+    timeLeft = 0;
 }
+
 
 
 
@@ -121,8 +163,8 @@ RestoreAfterDelay()
 
 AimPrimary(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	return (1);
 }
 
@@ -145,10 +187,9 @@ QueryPrimary(piecenum)
 
 AimSecondary(heading, pitch)
 {
-	signal SIG_AIM2;
-	set-signal-mask SIG_AIM2;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 	start-script OpenSilo();
-	start-script RestoreAfterDelay();
 	if (silo_state == 2)
 	{
 		return (1);
@@ -183,8 +224,8 @@ SweetSpot(piecenum)
 
 StartMoving()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	while( TRUE )
 	{
 		emit-sfx 1024 + 0 from wake;
@@ -197,7 +238,7 @@ StartMoving()
 
 StopMoving()
 {
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
 }
 
 

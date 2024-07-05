@@ -1,40 +1,40 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  rtube, ltube, flare1, flare2, base, tbrace, ring, wake, aimfrom, prop;
 
-static-var  gun_1;
+static-var Stunned;
 
 // Signal definitions
-#define SIG_MOVE			2
+#define SIGNAL_AIM1				2
+#define SIGNAL_MOVE				4
+#define SIGNAL_RESTORE			8
+#define SIGNAL_TURNON			16
+
+
+
+static-var  gun_1;
 
 #define BASEPIECE base
 #define HITSPEED <25.0>
 //how 'heavy' the unit is, on a scale of 1-10
-#define UNITSIZE 7
+#define UNITSIZE 5
 #define MAXTILT 200
-HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage is multiplied by 100
-{
-	var amount;//, speedz, speedx;
-	amount = damage / (100 * UNITSIZE);
-	if (amount < 3  ) return (0);
-	if (amount > MAXTILT) amount = MAXTILT;
-	//get PRINT(anglex, anglez, amount, damage);
-	//speedz = HITSPEED * get ABS(anglez) / 500; //nevermind this, the random error this produces actually looks better than the accurate version
-	turn BASEPIECE to z-axis (anglez * amount) / 100  speed HITSPEED;
-	turn BASEPIECE to x-axis <0> - (anglex * amount) /100 speed HITSPEED;
-	wait-for-turn BASEPIECE around z-axis;
-	wait-for-turn BASEPIECE around x-axis;
-	turn BASEPIECE to z-axis <0.000000> speed HITSPEED / 4;
-	turn BASEPIECE to x-axis <0.000000> speed HITSPEED / 4;
-}
-HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
-{
-	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
-	return (100); //return damage percent
-}
+
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+#define TB_BASE base 
+#define TB_TURNRATE <30.0> 
+#define TB_TILT_X <-0.32>
+#define TB_BANK_Z <0.5> // Do not define this if you dont want banking
+#define TB_WAKE_PIECE base
+#define TB_WAKE_FOAM 1024 + 1
+#include "../tilt_bank_submarine.h"
+
+// Signal definitions
+#define SIGNAL_AIM1				2
+#define SIGNAL_MOVE				4
+#define SIGNAL_AIM2				8
 
 
 
@@ -44,13 +44,24 @@ Create()
 	hide wake;
 	hide flare1;
 	hide flare2;
-	gun_1 = rtube;//0
+	gun_1 = 0;//0
+	
+	
+	
 }
+
+
+
+SetStunned(State)
+{
+    Stunned = State;
+}
+
 
 StartMoving()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	while( TRUE )
 	{
 		emit-sfx 1024 + 0 from wake;
@@ -63,7 +74,7 @@ StartMoving()
 
 StopMoving()
 {
-	signal SIG_MOVE;
+	signal SIGNAL_MOVE;
 }
 
 AimPrimary(heading, pitch)

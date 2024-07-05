@@ -25,7 +25,7 @@ return {
 		movementclass = "BOAT3",
 		nochasecategory = "VTOL",
 		objectname = "Units/armexcalibur.s3o",
-		script = "Units/armexcalibur.cob",
+		script = "Units/armexcalibur_clean.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd-uw",
 		sightdistance = 500,

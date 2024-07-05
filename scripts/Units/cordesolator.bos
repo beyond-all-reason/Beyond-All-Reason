@@ -1,9 +1,6 @@
 
+#include "../recoil_common_includes.h"
 
-#define TA			// This is a TA script
-
-#include "sfxtype.h"
-#include "exptype.h"
 
 piece  base, flare, tube, housing, rtube, ltube, wake, firing, firing1, firing2, prop, propr, propl;
 
@@ -14,13 +11,36 @@ static-var  restore_delay, shotcount, lastfired, silo_state;
 // 3 = closing, fired missile
 // 4 = closing, no missile fired
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+// Signal definitions
+#define SIGNAL_AIM1				2
+#define SIGNAL_MOVE				4
+#define SIGNAL_RESTORE			8
+#define SIGNAL_TURNON			16
+
+
+
+#define BASEPIECE base
+#define HITSPEED <25.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 5
+#define MAXTILT 200
+
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+#define TB_BASE base 
+#define TB_TURNRATE <30.0> 
+#define TB_TILT_X <-0.32>
+#define TB_BANK_Z <0.5> // Do not define this if you dont want banking
+#define TB_WAKE_PIECE base
+#define TB_WAKE_FOAM 1024 + 1
+#include "../tilt_bank_submarine.h"
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_MOVE			4
-#define SIG_AIM2			8
+#define SIGNAL_AIM1				2
+#define SIGNAL_MOVE				4
+#define SIGNAL_AIM2				8
+
+
 
 Create()
 {

@@ -29,7 +29,7 @@ return {
 		movementclass = "UBOAT4",
 		objectname = "Units/armseadragon.s3o",
 		radardistance = 50,
-		script = "Units/armseadragon.cob",
+		script = "Units/armseadragon_clean.cob",
 		seismicsignature = 0,
 		selfdestructas = "nukeBuildingSelfd",
 		sightdistance = 400,
