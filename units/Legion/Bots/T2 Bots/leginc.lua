@@ -145,15 +145,13 @@ return {
 					vtol = 11,
 				},
 				customparams = {
-					area_duration = 1.5,
-					area_ongoingCEG = "burnflamexl",
-					area_damagedCEG = "burnblack",
-					area_damageType = "napalm",
+					area_duration = 1,
+					area_damageType = "fire",
 				},
 			},
 			heatraylarge_area_timed_damage = {
-				areaofeffect = 37 * 2,
-				explosiongenerator = "custom:burnbrief", -- replace me
+				areaofeffect = 37.5 * 2,
+				explosiongenerator = "custom:brief-heatray-scald",
 				damage = {
 					default = 2
 				},

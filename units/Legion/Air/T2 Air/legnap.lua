@@ -115,14 +115,14 @@ return {
 				},
 				customparams = {
 					area_duration = 10,
-					area_ongoingCEG = "fire-area-150",
+					area_ongoingCEG = "fire-area-150-dur-300",
 					area_damagedCEG = "burnflamexm",
-					area_damageType = "napalm",
+					area_damageType = "fire",
 				},
 			},
 			napalmbombs_area_timed_damage = {
 				areaofeffect = 150 * 2,
-				explosiongenerator = "custom:burnrepeater", -- replace me
+				explosiongenerator = "custom:fire-repeat-150",
 				damage = {
 					default = 30,
 					subs    = 30 / 10,

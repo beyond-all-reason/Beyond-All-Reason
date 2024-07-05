@@ -171,18 +171,18 @@ return {
 				--weaponvelocity = 650,
 				damage = {
 					commanders = 700,
-					default = 2000,--plus 150*15 within 150 area
+					default = 2000, -- plus area weapon
 				},
 				customparams = {
 					area_duration = 15,
-					area_ongoingCEG = "fire-area-150",
+					area_ongoingCEG = "fire-area-150-dur-450",
 					area_damagedCEG = "burnflamexm",
-					area_damageType = "napalm",
+					area_damageType = "fire",
 				},
 			},
 			napalmmissile_area_timed_damage = {
 				areaofeffect = 150 * 2,
-				explosiongenerator = "custom:burnrepeater", -- replace me
+				explosiongenerator = "custom:fire-repeat-150",
 				damage = {
 					default = 175,
 					subs    = 175 / 10,
