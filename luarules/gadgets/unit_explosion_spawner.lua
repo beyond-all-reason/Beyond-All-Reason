@@ -259,11 +259,10 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			    names = strSplit(spawnDef.name),
 			    unitSequence = 1,
 			}
-			if spawnDef.mode == "random_locked" and spawnNames[weaponDefID] and spawnNames[weaponDefID].names then
+			Spring.Echo("unit created ", UnitDefs[unitDefID].name)
+			if spawnDef and spawnDef.mode == "random_locked" and spawnNames[weaponDefID] and spawnNames[weaponDefID].names then
 			    spawnNames[weaponDefID].unitSequence = random(#spawnNames[unitID].names)
 			end
-		    
-			
 		end
 	end
 end
