@@ -1801,7 +1801,9 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 			end
+		end
 
+		if n%7 == 2 then
 			if not captureRuns then captureRuns = 0 end
 			captureRuns = (captureRuns + 1)%4
 
