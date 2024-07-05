@@ -1983,8 +1983,6 @@ if gadgetHandler:IsSyncedCode() then
 		if unitTeam ~= scavTeamID and unitTeam ~= gaiaTeamID then
 			local unitTech = tonumber(UnitDefs[unitDefID].customParams.techlevel)
 			HumanTechLevel = math.max(HumanTechLevel, unitTech)
-			
-			end
 		end
 		if unitTeam ~= scavTeamID then
 			capturableUnits[unitID] = true
