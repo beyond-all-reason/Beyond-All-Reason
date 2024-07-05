@@ -55,7 +55,11 @@ end
 local areaImpulseRate   = 0.25                 -- Multiplies the impulse of area weapons. Tbh should be 0 or 1.
 local frameResolution   = 2                    -- The bin size, in frames, to loop over groups of areas.
 local loopDuration      = 1/3                  -- The time between area procs. Adjusts damage automagically.
-local shieldSuppression = false                -- Whether or not shields suppress timed areas.
+
+local briefTimedAreas   = true                 -- Whether or not short-lived areas are spawned. Can reduce FPS.
+local shieldSuppression = false                -- Whether or not shields suppress timed areas. Can reduce FPS.
+local suppressionCharge = 200                  -- Minimum total capacity for a shield to suppress timed areas.
+local suppressionRadius = 200                  -- Minimum shield radius for a shield to suppress timed areas.
 
 local defaultWeaponName = "area_timed_damage"  -- Fallback when area_weaponName is not specified in the def.
 
@@ -65,7 +69,6 @@ local defaultWeaponName = "area_timed_damage"  -- Fallback when area_weaponName 
 local ceil                 = math.ceil
 local max                  = math.max
 local sqrt                 = math.sqrt
-local remove               = table.remove
 
 local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGetGameFrame       = Spring.GetGameFrame
@@ -124,13 +127,12 @@ local timedAreaParams = {}
 local shieldUnitParams = {}
 
 do
-	local function AddTimedAreaDef(paramsTable, defID, def)
+	local function addTimedAreaDef(paramsTable, defID, def)
 		local areaWeaponName = def.customParams.area_weaponname or def.name.."_"..defaultWeaponName
 		local areaWeaponDef = WeaponDefNames[areaWeaponName]
 
 		if not areaWeaponDef then
 			Spring.Echo(warn..'Did not find area weapon for ' .. def.name)
-			return
 		end
 
 		-- Add two new entries, one for the area trigger and one for the area weapon.
@@ -141,22 +143,26 @@ do
 			area_damages     = areaWeaponDef.damages,
 			area_radius      = areaWeaponDef.damageAreaOfEffect / 2, -- diameter => radius
 			area_damagetype  = string.lower(def.customParams.area_damagetype or "any"),
-			area_ongoingceg  = tostring(def.customParams.area_ongoingceg),
-			area_damagedceg  = tostring(def.customParams.area_damagedceg),
+			area_ongoingceg  = def.customParams.area_ongoingceg and tostring(def.customParams.area_ongoingceg) or nil,
+			area_damagedceg  = def.customParams.area_damagedceg and tostring(def.customParams.area_damagedceg) or nil,
 		}
-
 		timedAreaParams[areaWeaponDef.id] = paramsTable[defID]
+		return true
 	end
 
 	for weaponDefID, weaponDef in pairs(WeaponDefs) do
-		if next(weaponDef.customParams) and tonumber(weaponDef.customParams.area_duration) then
-			AddTimedAreaDef(weaponTriggerParams, weaponDefID, weaponDef)
+		if tonumber(weaponDef.customParams.area_duration) then
+			if addTimedAreaDef(weaponTriggerParams, weaponDefID, weaponDef)
+				and not briefTimedAreas
+				and weaponTriggerParams[weaponDefID].area_duration <= shortDuration then
+				weaponTriggerParams[weaponDefID] = nil
+			end
 		end
 	end
 
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		if tonumber(unitDef.customParams.area_duration) then
-			AddTimedAreaDef(destroyTriggerParams, unitDefID, unitDef)
+			addTimedAreaDef(destroyTriggerParams, unitDefID, unitDef)
 		end
 	end
 end
@@ -166,7 +172,7 @@ local explosionCache = {
 	weaponDef          = 0, -- params.area_weapondefid
 	owner              = 0, -- 0 for destroy triggers, unitID otherwise
 	projectileID       = 0,
-	damages            = 1, -- params.area_damages
+	damages            = {}, -- params.area_damages
 	hitUnit            = 1,
 	hitFeature         = 1,
 	craterAreaOfEffect = 0,
@@ -179,15 +185,11 @@ local explosionCache = {
 }
 
 if shieldSuppression then
-	local suppressionCharge = 200 -- or whatever
-	local suppressionRadius = 200 -- or whatever
 	for unitDefID, unitDef in ipairs(UnitDefs) do
 		if unitDef.customParams.shield_radius then
 			local charge = tonumber(unitDef.customParams.shield_power)  or 0
 			local radius = tonumber(unitDef.customParams.shield_radius) or 0
-			if charge >= suppressionCharge and
-			   radius >= suppressionRadius then
-				-- Just straight up ignoring emitter height, offset:
+			if charge >= suppressionCharge and radius >= suppressionRadius then
 				shieldUnitParams[unitDefID] = radius ^ 2
 			end
 		end
@@ -195,7 +197,6 @@ if shieldSuppression then
 end
 
 -- We also keep a queue of delayed areas.
--- This also must be a contiguous array.
 local delayQueue = {}
 
 -- And a table of units with shields.
@@ -212,13 +213,12 @@ local function startTimedArea(x, y, z, weaponParams, ownerID)
 	-- Create an area on surface -- immediately.
 	if y <= lowCeiling then
 		local group = timedAreas[frame]
+		-- { endTime, weaponParams, owner, x, y, z }
 		group[#group+1] = {
-			weaponParams = weaponParams,
-			endTime      = weaponParams.area_duration + time,
-			owner        = ownerID,
-			x            = x,
-			y            = elevation,
-			z            = z,
+			weaponParams.area_duration + time,
+			weaponParams,
+			ownerID,
+			x, elevation, z,
 		}
 
 		-- Ideally, area timed weapons are represented by a continuous vfx.
@@ -234,16 +234,22 @@ local function startTimedArea(x, y, z, weaponParams, ownerID)
 		end
 	-- Create an area on surface -- eventually.
 	elseif shortDuration <= weaponParams.area_duration -- Brief effects cannot be delayed.
-	   and y <= lowCeiling + gravity / (2 * 3 * 3)     -- Up to a third of a second spent in free-fall.
+	   and y <= lowCeiling + gravity / (2 * 2 * 2)     -- Up to a half second spent in free-fall.
 	then
 		local timeToLand = sqrt((y - elevation) * 2 / gravity)
 		local frameStart = spGetGameFrame() + ceil(timeToLand / gameSpeed) -- at least +1 frame
-		if delayQueue[frameStart] then
-			delayQueue[frameStart][#delayQueue[frameStart]+1] = { x, elevation, z, weaponParams, ownerID }
+		if not delayQueue[frameStart] then
+			delayQueue[frameStart] = { x, elevation, z, weaponParams, ownerID }
 		else
-			delayQueue[frameStart] = { {x, elevation, z, weaponParams, ownerID} }
+			local queue = delayQueue[frameStart]
+			local sizeq = #queue
+			queue[sizeq + 1] = x
+			queue[sizeq + 2] = elevation
+			queue[sizeq + 3] = z
+			queue[sizeq + 4] = weaponParams
+			queue[sizeq + 5] = ownerID
 		end
-	-- Create an explosion in-place with no lasting effects.
+	-- Create a single explosion in-place with no lasting effects.
 	else
 		local params = explosionCache
 		params.weaponDef          = weaponParams.area_weapondefid
@@ -262,12 +268,12 @@ local function updateTimedAreas()
 	local index = 1
 	while index <= sizeg do
 		local timedArea = group[index]
-		if time <= timedArea.endTime then
-			params.weaponDef          = timedArea.weaponParams.area_weapondefid
-			params.damages            = timedArea.weaponParams.area_damages
-			params.damageAreaOfEffect = timedArea.weaponParams.area_radius * 2 -- radius => diameter
-			params.owner              = timedArea.owner
-			spSpawnExplosion(timedArea.x, timedArea.y, timedArea.z, 0, 0, 0, params)
+		if time <= timedArea[1] then
+			params.weaponDef          = timedArea[2].area_weapondefid
+			params.damages            = timedArea[2].area_damages
+			params.damageAreaOfEffect = timedArea[2].area_radius * 2 -- radius => diameter
+			params.owner              = timedArea[3]
+			spSpawnExplosion(timedArea[4], timedArea[5], timedArea[6], 0, 0, 0, params)
 		elseif index == sizeg then
 			group[index] = nil
 		else
@@ -282,27 +288,25 @@ end
 
 local function cancelDelayedAreas(maxGameFrame)
 	-- We probably have more shields than delayed areas, which are short-lived and circumstantial.
-	local radiusSq, sx, sy, sz, radiusTest, dx, dy, dz
-	for shieldUnitID, shieldParams in pairs(shieldUnits) do
-		shieldParams[1], shieldParams[2] = spGetUnitShieldState(shieldUnitID)
-		shieldParams[1] = shieldParams[1] and not spGetUnitIsStunned(shieldUnitID)
-		if shieldParams[1] and shieldParams[2] > 8 then
-			radiusSq = shieldParams[3]
+	-- And anyway, we don't want to repeat all this work updating our info on them:
+	local enabled, capacity, sx, sy, sz, dx, dy, dz, radiusTest
+	for shieldUnitID, radiusSq in pairs(shieldUnits) do
+		enabled, capacity = spGetUnitShieldState(shieldUnitID)
+		enabled = enabled and not spGetUnitIsStunned(shieldUnitID)
+		if enabled and capacity > 8 then
 			sx, sy, sz = spGetUnitPosition(shieldUnitID)
-
 			-- We don't care about the correctness of a short-lived, single-purpose array.
-			-- So when suppressing, we just replace a suppressed area with `false`.
-			for frame, delayFrames in pairs(delayQueue) do
+			-- So when suppressing, we just replace a suppressed area's xpos with `false`.
+			for frame, delayedAreas in pairs(delayQueue) do
 				if frame <= maxGameFrame then
-					for ii, delayedArea in ipairs(delayQueue) do
-						if delayedArea then
-							radiusTest = radiusSq + delayQueue[4].area_radius -- close enough
-							dx = delayQueue[1] - sx
-							dy = delayQueue[2] - sy
-							dz = delayQueue[3] - sz
-							-- Cylindrical check is occasionally magical:
+					for ii = 1, #delayedAreas, 5 do
+						if delayedAreas[ii] then
+							dx = delayedAreas[ii  ] - sx
+							dy = delayedAreas[ii+1] - sy
+							dz = delayedAreas[ii+2] - sz
+							radiusTest = delayedAreas[ii+3].area_radius + radiusSq
 							if dx*dx + dz*dz < radiusTest and dy*dy < radiusTest then
-								delayFrames[ii] = false
+								delayedAreas[ii] = false
 							end
 						end
 					end
@@ -323,21 +327,20 @@ function gadget:Initialize()
 	-- Start/restart timekeeping.
 
 	time  = 1 + (math.floor(Spring.GetGameFrame() / frameResolution))
-	frame = 1 + (time % groupCount)
+	frame = 1 + (math.floor(Spring.GetGameFrame() / frameResolution) % groupCount)
 	ticks = 1 + (Spring.GetGameFrame() % frameResolution)
-
-	-- Build/rebuild info tables.
 
 	for ii = 1, groupCount do
 		timedAreas[ii] = {}
 	end
 
+	-- Build/rebuild info tables.
+
 	if shieldSuppression then
 		for _, unitID in pairs(Spring.GetAllUnits()) do
 			local unitDefID = Spring.GetUnitDefID(unitID)
 			if unitDefID and shieldUnitParams[unitDefID] then
-				-- Initialize values: { active, capacity, search radius }
-				shieldUnits[unitID] = { false, 0, shieldUnitParams[unitDefID] }
+				shieldUnits[unitID] = shieldUnitParams[unitDefID]
 			end
 		end
 	end
@@ -352,10 +355,6 @@ end
 function gadget:Explosion(weaponDefID, px, py, pz, attackID, projID)
 	if weaponTriggerParams[weaponDefID] then
 		startTimedArea(px, py, pz, weaponTriggerParams[weaponDefID], attackID)
-	elseif timedAreaParams[weaponDefID] then
-		-- Consume the event and do whatever else to prevent these gadgets from running:
-		-- gfx_*, lups_shockwaves, unit_custom_weapons_cluster, unit_juno_*
-		return true
 	end
 end
 
@@ -371,7 +370,7 @@ end
 if shieldSuppression then
 	function gadget:UnitFinished(unitID, unitDefID, teamID)
 		if shieldUnitParams[unitDefID] then
-			shieldUnits[unitID] = { false, 0, shieldUnitParams[unitDefID] }
+			shieldUnits[unitID] = shieldUnitParams[unitDefID]
 		end
 	end
 end
@@ -392,9 +391,10 @@ function gadget:GameFrame(gameFrame)
 
 	-- Start any areas delayed until this frame.
 	if delayQueue[gameFrame] then
-		for _, args in ipairs(delayQueue[gameFrame]) do
-			if args then
-				startTimedArea(args[1], args[2], args[3], args[4], args[5])
+		local queue = delayQueue[gameFrame]
+		for ii = 1, #queue, 5 do
+			if queue[ii] then
+				startTimedArea(queue[ii], queue[ii+1], queue[ii+2], queue[ii+3], queue[ii+4], queue[ii+5])
 			end
 		end
 		delayQueue[gameFrame] = nil
@@ -423,7 +423,7 @@ function gadget:FeaturePreDamaged(featureID, featureDefID, featureTeam, damage, 
 		damage = damage * loopDuration
 		if weaponParams.area_damagedceg then
 			local _,_,_, x,y,z = spGetFeaturePosition(featureID, true)
-			spSpawnCEG(weaponParams.area_damagedceg, x, y + 8, z, 0, 0, 0, 0, damage)
+			spSpawnCEG(weaponParams.area_damagedceg, x, y + 12, z, 0, 0, 0, 0, damage)
 		end
 		return damage, areaImpulseRate
 	end
@@ -435,7 +435,7 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
 		local damagedCEG = timedAreaParams[weaponDefID].area_damagedceg
 		if damagedCEG then
 			local _,_,_, x,y,z = spGetUnitPosition(unitID, true)
-			spSpawnCEG(damagedCEG, x, y + 8, z, 0, 0, 0, 0, damage)
+			spSpawnCEG(damagedCEG, x, y + 18, z, 0, 0, 0, 0, damage)
 		end
 	end
 end
@@ -469,7 +469,7 @@ do
 		local highDamageTimesArea = 30 * 80 -- or whatever
 		local damage = areaDef.damages[0]
 		local radius = areaDef.damageAreaOfEffect / 2
-		if not params.area_damagedCEG then
+		if not params.area_damagedceg then
 			if not params.area_ongoingceg then
 				testmsg('Area weapon has no CEGs in customparams', areaDef.name)
 			elseif damage * radius > highDamageTimesArea then
@@ -480,9 +480,9 @@ do
 		end
 
 		-- Check for bad/missing/??? damage types and immunities.
-		local damageTypes = { 'acid', 'napalm' }
-		local immunities  = { 'acid', 'napalm', 'raptor', 'friendly', 'all' } -- idk
-		if isWeaponDef and not paramsTable[defID].area_damagetype or not type(paramsTable[defID].area_damagetype) == "string" then
+		local damageTypes = { 'acid', 'fire' }
+		local immunities  = { 'acid', 'fire', 'raptor', 'friendly', 'all' } -- idk
+		if isWeaponDef and not paramsTable[defID].area_damagetype then
 			testmsg('Weapon is missing its damage type(acid/napalm/...)', areaDef.name)
 		end
 	end
@@ -491,7 +491,7 @@ do
 		local areaWeaponName = def.customParams.area_weaponname or def.name.."_"..defaultWeaponName
 		local areaWeaponDef = WeaponDefNames[areaWeaponName]
 
-		---- Remove misconfigured area weapons.
+		---- Remove misconfigured area triggers and weapons.
 		local misconfigured = false
 		if tonumber(def.customParams.area_duration * groupDuration) <= 1 / gameSpeed then
 			warnmsg('Invalid area_duration', def.name)
@@ -515,8 +515,7 @@ do
 	for defID, _ in pairs(destroyTriggerParams) do FixIssues(destroyTriggerParams, defID, UnitDefs[defID])  end
 	local warnMessages = #messages - testMessages
 
-	-- Print everything together.
-	if #messages then
+	if #messages > 0 then
 		Spring.Echo('unit_area_timed_damage test results: '..testMessages..' tests and '..warnMessages..' issues.')
 		Spring.Echo('\n' .. table.concat(messages, '\n'))
 	end
