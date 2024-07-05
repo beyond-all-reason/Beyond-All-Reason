@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		version = '2.0',
 		date    = '2024-06-27',
 		license = 'GNU GPL, v2 or later',
-		layer   = 10, -- Sim logic within gadget:Explosion _must_ run before layer 0.
+		layer   = 10,
 		enabled = true
 	}
 end
@@ -34,8 +34,6 @@ end
 --    impulse*            -  Important. Set to 0 in most cases.
 --    weapontype          -  Important. Set to "Cannon" (or leave blank?) in most cases.
 --    damage              -  Important.
---	In all likelihood, you also want to set the following weapon customparam:
---    lups_noshockwave    -  Important. Set to true or 1 to remove a recurring shockwave effect.
 --
 --	Any other properties that control projectile behaviors are ignored, in addition to:
 --    crater*             -  No effect.
@@ -56,7 +54,7 @@ local areaImpulseRate   = 0.25                 -- Multiplies the impulse of area
 local frameResolution   = 2                    -- The bin size, in frames, to loop over groups of areas.
 local loopDuration      = 1/3                  -- The time between area procs. Adjusts damage automagically.
 
-local briefTimedAreas   = true                 -- Whether or not short-lived areas are spawned. Can reduce FPS.
+local briefTimedAreas   = false                -- Whether or not short-lived areas are spawned. Can reduce FPS.
 local shieldSuppression = false                -- Whether or not shields suppress timed areas. Can reduce FPS.
 local suppressionCharge = 200                  -- Minimum total capacity for a shield to suppress timed areas.
 local suppressionRadius = 200                  -- Minimum shield radius for a shield to suppress timed areas.
@@ -83,9 +81,9 @@ local spSpawnExplosion     = Spring.SpawnExplosion
 local gameSpeed            = Game.gameSpeed
 local gravity              = Game.gravity
 
-local info = '[area_timed_damage] [info] '
-local warn = '[area_timed_damage] [warn] '
-local test = '[area_timed_damage] [test] '
+local info = '[unit_area_timed_damage] [info] '
+local warn = '[unit_area_timed_damage] [warn] '
+local test = '[unit_area_timed_damage] [test] '
 
 ---------------------------------------------------------------------------------------------------------------
 ---- Initialization
@@ -105,6 +103,7 @@ local groupDuration = groupCount * (1 / gameSpeed)
 
 -- Units like the Legion Incinerator and Bastion invert the standard expectation of this script:
 -- They create short-duration areas (worse amortization) very quickly (every 30th of a second).
+-- Generally, these are toggled off with `briefTimedAreas = false` to save on FPS.
 local shortDuration = 3 -- in seconds
 shortDuration = math.round(shortDuration / groupDuration) -- in frame groups
 
