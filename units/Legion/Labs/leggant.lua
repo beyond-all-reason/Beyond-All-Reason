@@ -43,7 +43,7 @@ return {
 			[7] = "cordemon",
 			[8] = "legpede",
 			[9] = "leegmech",
-			[10] = "legekeres",
+			[10] = "legkeres",
 		},
 		customparams = {
 			usebuildinggrounddecal = true,

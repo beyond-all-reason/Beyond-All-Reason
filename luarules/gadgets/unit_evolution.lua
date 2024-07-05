@@ -272,7 +272,9 @@ if gadgetHandler:IsSyncedCode() then
 				inCombat = false,
 			}
 		end
+	end
 
+	function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		if UnitDefs[unitDefID].power then
 			if unitTeam < neutralTeamNumber then
 				if teamPowerList[unitTeam] then
