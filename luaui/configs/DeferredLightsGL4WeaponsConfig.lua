@@ -326,7 +326,7 @@ local function AssignLightsToAllWeapons()
 			r, g, b = 0.96, 0.3, 1
 			t.color2r, t.color2g, t.color2b = 0.96, 0.3, 1
 		end
-		local repeatingAreaWeapon = string.find(weaponDef.name, '_area_timed_')
+		local repeatingAreaWeapon = string.find(weaponDef.name, '_timed_')
 		if repeatingAreaWeapon then
 			explosionLight = false
 		end
