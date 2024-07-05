@@ -357,29 +357,6 @@ function gadget:Shutdown()
 	shieldUnits = {}
 end
 
-function gadget:Explosion(weaponDefID, px, py, pz, attackID, projID)
-	if weaponTriggerParams[weaponDefID] then
-		startTimedArea(px, py, pz, weaponTriggerParams[weaponDefID], attackID)
-	end
-end
-
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackID, attackDefID, attackTeam)
-	local weaponParams = destroyTriggerParams[unitDefID]
-	if weaponParams then
-		local ux, uy, uz = spGetUnitPosition(unitID)
-		startTimedArea(ux, uy, uz, weaponParams, 0)
-	end
-	shieldUnits[unitID] = nil
-end
-
-if shieldSuppression then
-	function gadget:UnitFinished(unitID, unitDefID, teamID)
-		if shieldUnitParams[unitDefID] then
-			shieldUnits[unitID] = shieldUnitParams[unitDefID]
-		end
-	end
-end
-
 function gadget:GameFrame(gameFrame)
 	-- Skip some frames between demanding work.
 	ticks = ticks + 1
@@ -404,6 +381,20 @@ function gadget:GameFrame(gameFrame)
 		end
 		delayQueue[gameFrame] = nil
 	end
+end
+
+function gadget:Explosion(weaponDefID, px, py, pz, attackID, projID)
+	if weaponTriggerParams[weaponDefID] then
+		startTimedArea(px, py, pz, weaponTriggerParams[weaponDefID], attackID or 0)
+	end
+end
+
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackID, attackDefID, attackTeam)
+	if destroyTriggerParams[unitDefID] then
+		local ux, uy, uz = spGetUnitPosition(unitID)
+		startTimedArea(ux, uy, uz, destroyTriggerParams[unitDefID], 0)
+	end
+	shieldUnits[unitID] = nil
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projID, attackID, attackDefID, attackTeam)
@@ -441,6 +432,14 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
 		if damagedCEG then
 			local _,_,_, x,y,z = spGetUnitPosition(unitID, true)
 			spSpawnCEG(damagedCEG, x, y + 18, z, 0, 0, 0, 0, damage)
+		end
+	end
+end
+
+if shieldSuppression then
+	function gadget:UnitFinished(unitID, unitDefID, teamID)
+		if shieldUnitParams[unitDefID] then
+			shieldUnits[unitID] = shieldUnitParams[unitDefID]
 		end
 	end
 end
