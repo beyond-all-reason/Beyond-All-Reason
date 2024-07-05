@@ -238,6 +238,8 @@ if gadgetHandler:IsSyncedCode() then
 							spDestroyUnit(respawnMetaList[unitID].effigyID, false, false)
 						end
 					end
+				elseif respawnMetaList[unitID].effigyID then
+					spDestroyUnit(respawnMetaList[unitID].effigyID, false, false)
 				end
 			end
 			respawnMetaList[unitID] = nil
