@@ -55,9 +55,9 @@ local frameResolution   = 2                    -- The bin size, in frames, to lo
 local loopDuration      = 1/3                  -- The time between area procs. Adjusts damage automagically.
 
 local briefTimedAreas   = false                -- Whether or not short-lived areas are spawned. Can reduce FPS.
-local shieldSuppression = false                -- Whether or not shields suppress timed areas. Can reduce FPS.
-local suppressionCharge = 200                  -- Minimum total capacity for a shield to suppress timed areas.
-local suppressionRadius = 200                  -- Minimum shield radius for a shield to suppress timed areas.
+local shieldSuppression = true                 -- Whether or not shields suppress timed areas. Can reduce FPS.
+local suppressionCharge = 100                  -- Minimum total capacity for a shield to suppress timed areas.
+local suppressionRadius = 100                  -- Minimum shield radius for a shield to suppress timed areas.
 
 local defaultWeaponName = "area_timed_damage"  -- Fallback when area_weaponName is not specified in the def.
 
@@ -224,12 +224,11 @@ local function startTimedArea(x, y, z, weaponParams, ownerID)
 		-- Ideally, area timed weapons are represented by a continuous vfx.
 		-- But another option is to use an explosiongenerator on the area weapon.
 		if weaponParams.area_ongoingceg then
+			local dx, dy, dz = Spring.GetGroundNormal(x, z)
 			spSpawnCEG(
 				weaponParams.area_ongoingceg,
 				x, elevation, z,
-				0, 0, 0,
-				weaponParams.area_radius * 2,
-				weaponParams.area_damages[0]
+				dx, dy, dz -- todo: make this do anything
 			)
 		end
 	-- If the timed area is not a brief area, it can be spawned after it "falls" to the ground.
@@ -311,6 +310,7 @@ local function cancelDelayedAreas(maxGameFrame)
 							dz = delayedAreas[ii+2] - sz
 							radiusTest = delayedAreas[ii+3].area_radius + radiusSq
 							if dx*dx + dz*dz < radiusTest and dy*dy < radiusTest then
+								-- Fairly uncommon to reach this point in testing.
 								delayedAreas[ii] = false
 							end
 						end
