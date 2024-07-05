@@ -185,24 +185,38 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if udcp.iseffigy  and builderID then
-			for vipID, _ in pairs(respawnMetaList) do
-				local team = spGetUnitTeam(vipID)
-				if team == unitTeam then
-					
-					local oldeffigyID = respawnMetaList[vipID].effigyID
-					
-					respawnMetaList[vipID].effigyID = unitID
-					if oldeffigyID then
-						local oldEffigyBuildProgress = select(5, spGetUnitHealth(oldeffigyID))
-						if oldEffigyBuildProgress == 1 then
-							Spring.SetUnitCosts(unitID, {buildTime = 1, metalCost = 1, energyCost = 1})
-						end
-						spDestroyUnit(oldeffigyID, false, true)
+			if respawnMetaList[builderID] then
+				local oldeffigyID = respawnMetaList[builderID].effigyID
+				respawnMetaList[builderID].effigyID = unitID
+		
+				if oldeffigyID theN
+					local oldEffigyBuildProgress = select(5, spGetUnitHealth(oldeffigyID))
+					if oldEffigyBuildProgress == 1 then
+						Spring.SetUnitCosts(unitID, {buildTime = 1, metalCost = 1, energyCost = 1})
 					end
-					
-					return
+					spDestroyUnit(oldeffigyID, false, true)
+				end
+			else
+				for vipID, _ in pairs(respawnMetaList) do
+					local team = spGetUnitTeam(vipID)
+					if team == unitTeam then
+				
+						local oldeffigyID = respawnMetaList[vipID].effigyID
+						
+						respawnMetaList[vipID].effigyID = unitID
+		
+						if oldeffigyID then
+							local oldEffigyBuildProgress = select(5, spGetUnitHealth(oldeffigyID))
+							if oldEffigyBuildProgress == 1 then
+								Spring.SetUnitCosts(unitID, {buildTime = 1, metalCost = 1, energyCost = 1})
+							end
+							spDestroyUnit(oldeffigyID, false, true)
+						end
+						return
+					end
 				end
 			end
+			
 		end
 	end
 
