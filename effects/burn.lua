@@ -621,7 +621,6 @@ return {
     },
   },
 
-
   ["burngreen"] = {
     groundflash = {
       circlealpha        = 0.1,
