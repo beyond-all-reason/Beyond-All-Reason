@@ -65,7 +65,24 @@ AimPrimary()
 FirePrimary()
 {
 	emit-sfx 1024 + 0 from spawnflare;
+	//emit-sfx 2048 + 1 from spawnflare;
 	return(1);
+}
+
+QuerySecondary(piecenum)
+{
+	piecenum=flare;
+}
+
+AimSecondary()
+{
+	return (0);
+}
+
+FireSecondary()
+{
+	emit-sfx 1024 + 0 from flare;
+	return(0);
 }
 
 StartBuilding(heading, pitch)

@@ -59,6 +59,7 @@ local spawnNames = {}
 for weaponDefID = 1, #WeaponDefs do
 	local wdcp = WeaponDefs[weaponDefID].customParams
 	if wdcp.spawns_name then
+		Spring.Echo("botcannon weapon name ", WeaponDefs[weaponDefID].name)
 		spawnDefs[weaponDefID] = {
 			name = wdcp.spawns_name,
 			expire = wdcp.spawns_expire and (tonumber(wdcp.spawns_expire) * GAME_SPEED),
