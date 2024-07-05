@@ -373,7 +373,7 @@ local function buttonTextRefresh()
 end
 
 local function PlayChooseStartLocSound()
-	if not startPointChosen and WG['notifications'] then
+	if not mySpec and not startPointChosen and WG['notifications'] then
 		WG['notifications'].addEvent('ChooseStartLoc', true)
 	end
 end

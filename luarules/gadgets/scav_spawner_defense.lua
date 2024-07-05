@@ -127,6 +127,7 @@ if gadgetHandler:IsSyncedCode() then
 	local unitTargetPool = {}
 	local unitCowardCooldown = {}
 	local unitTeleportCooldown = {}
+	capturableUnits = {}
 	local squadCreationQueue = {
 		units = {},
 		role = false,
@@ -1326,6 +1327,8 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			return
 		end
+		
+		capturableUnits[unitID] = true
 		if squadPotentialTarget[unitID] or squadPotentialHighValueTarget[unitID] then
 			squadPotentialTarget[unitID] = nil
 			squadPotentialHighValueTarget[unitID] = nil
@@ -1674,7 +1677,8 @@ if gadgetHandler:IsSyncedCode() then
 			else
 				currentMaxWaveSize = math.ceil((minWaveSize + math.ceil((techAnger*0.01)*(maxWaveSize - minWaveSize)))*(config.bossFightWaveSizeScale*0.01))
 			end
-			techAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / ((bossTime/(Spring.GetModOptions().scav_bosstimemult*((config.economyScale*0.5)+0.5))) - config.gracePeriod) * 100), 999), 0)
+			techAnger = math.max(math.min((t - config.gracePeriod) / ((bossTime/(Spring.GetModOptions().scav_bosstimemult)) - config.gracePeriod) * 100, 999), 0)
+			techAnger = math.ceil(techAnger*((config.economyScale*0.5)+0.5))
 			if t < config.gracePeriod then
 				bossAnger = 0
 				minBurrows = 8*(t/config.gracePeriod)
@@ -1798,6 +1802,35 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
+
+		if n%7 == 2 then
+			if not captureRuns then captureRuns = 0 end
+			captureRuns = (captureRuns + 1)%4
+
+			for unitID, _ in pairs(capturableUnits) do
+				if unitID%4 == captureRuns then
+					local ux, uy, uz = Spring.GetUnitPosition(unitID)
+					local captureLevel = select(4, Spring.GetUnitHealth(unitID))
+					local captureProgress = 0.01667 * (24/math.ceil(math.sqrt(math.sqrt(UnitDefs[Spring.GetUnitDefID(unitID)].health)))) * (techAnger/100) -- really wack formula that i really don't want to explain. All you need to know is that we take Behemoth 335000 health as the baseline of taking about 1 minute to capture at 100% tech anger.
+					if Spring.GetUnitTeam(unitID) ~= scavTeamID and GG.IsPosInRaptorScum(ux, uy, uz) then
+						if captureLevel+captureProgress >= 0.99 then
+							Spring.TransferUnit(unitID, scavTeamID, false)
+							Spring.SetUnitHealth(unitID, {capture = 0.50})
+							SendToUnsynced("unitCaptureFrame", unitID, 0.50)
+							Spring.SpawnCEG("scav-spawnexplo", ux, uy, uz, 0,0,0)
+							GG.addUnitToCaptureDecay(unitID)
+						else
+							Spring.SetUnitHealth(unitID, {capture = math.min(captureLevel+captureProgress, 1)})
+							SendToUnsynced("unitCaptureFrame", unitID, math.min(captureLevel+captureProgress, 1))
+							Spring.SpawnCEG("scav-spawnexplo", ux, uy, uz, 0,0,0)
+							GG.addUnitToCaptureDecay(unitID)
+						end
+					elseif Spring.GetUnitTeam(unitID) == scavTeamID and captureLevel > 0 then
+						GG.addUnitToCaptureDecay(unitID)
+					end
+				end
+			end
+		end
 		manageAllSquads()
 	end
 
@@ -1812,11 +1845,13 @@ if gadgetHandler:IsSyncedCode() then
 				end
 				unitSquadTable[unitID] = nil
 			end
+			capturableUnits[unitID] = true
 		end
 
 		if newTeam == scavTeamID then
 			squadPotentialTarget[unitID] = nil
 			squadPotentialHighValueTarget[unitID] = nil
+			capturableUnits[unitID] = nil
 			for squad in ipairs(unitTargetPool) do
 				if unitTargetPool[squad] == unitID then
 					refreshSquad(squad)
@@ -1838,7 +1873,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
-
 		if unitTeam == scavTeamID then
 			if string.find(UnitDefs[unitDefID].name, "scavbeacon") then
 				if mRandom() <= config.spawnChance then
@@ -1861,6 +1895,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		squadPotentialTarget[unitID] = nil
 		squadPotentialHighValueTarget[unitID] = nil
+		capturableUnits[unitID] = nil
 		for squad in ipairs(unitTargetPool) do
 			if unitTargetPool[squad] == unitID then
 				refreshSquad(squad)
@@ -1948,6 +1983,9 @@ if gadgetHandler:IsSyncedCode() then
 		if unitTeam ~= scavTeamID and unitTeam ~= gaiaTeamID then
 			local unitTech = tonumber(UnitDefs[unitDefID].customParams.techlevel)
 			HumanTechLevel = math.max(HumanTechLevel, unitTech)
+		end
+		if unitTeam ~= scavTeamID then
+			capturableUnits[unitID] = true
 		end
 	end
 

@@ -481,12 +481,7 @@ function gadget:GameFrame(frame)
                     local unitID = unitsInRange[j]
                     local unitDefID = Spring.GetUnitDefID(unitID)
                     if (not UnitDefs[unitDefID].canFly) and (not (UnitDefs[unitDefID].customParams and UnitDefs[unitDefID].customParams.areadamageresistance and string.find(UnitDefs[unitDefID].customParams.areadamageresistance, resistance))) then
-                        local health = Spring.GetUnitHealth(unitID)
-                        if health > damage then
-                            Spring.SetUnitHealth(unitID, health - damage)
-                        else
-                            Spring.DestroyUnit(unitID, false, false)
-                        end
+                        Spring.AddUnitDamage(unitID, damage, 0, Spring.GetGaiaTeamID(), 1)
                         local ux, uy, uz = Spring.GetUnitPosition(unitID)
                         Spring.SpawnCEG(explosionStats.damageCeg, ux, uy + 8, uz, 0, 0, 0)
                     end
