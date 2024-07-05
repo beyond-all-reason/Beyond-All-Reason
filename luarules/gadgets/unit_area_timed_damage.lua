@@ -99,7 +99,7 @@ local loopFrameCount = frameResolution * math.round(gameSpeed * loopDuration / f
 loopDuration = loopFrameCount * (1 / gameSpeed) -- note: may be outside the clamp range.
 
 local groupCount = loopFrameCount / frameResolution
-local groupDuration = groupCount * (1 / gameSpeed)
+local groupDuration = frameResolution * (1 / gameSpeed)
 
 -- Units like the Legion Incinerator and Bastion invert the standard expectation of this script:
 -- They create short-duration areas (worse amortization) very quickly (every 30th of a second).
@@ -206,12 +206,12 @@ local shieldFrame = math.clamp(math.round(frameResolution / 2), 1, math.round(ga
 ---- Functions
 
 local function startTimedArea(x, y, z, weaponParams, ownerID)
-	local elevation = max(0, spGetGroundHeight(x, z))
-	local lowCeiling = elevation + weaponParams.area_radius
 	local duration = weaponParams.area_duration
+	local radius = weaponParams.area_radius
+	local elevation = max(0, spGetGroundHeight(x, z))
 
 	-- Create an area on surface -- immediately.
-	if y <= lowCeiling then
+	if y <= elevation + radius then
 		local group = timedAreas[frame]
 		-- { endTime, weaponParams, owner, x, y, z }
 		group[#group+1] = {
@@ -238,8 +238,8 @@ local function startTimedArea(x, y, z, weaponParams, ownerID)
 	-- (2) The max time that the falling area effect might remain cohesive; just a heuristic formula.
 	elseif shortDuration < duration then
 		-- Create an area on surface -- eventually.
-		local timeToLand = sqrt((y - elevation) * 2 / gravity)
-		if timeToLand < 1 and timeToLand <= 0.25 + (duration - shortDuration) * 0.1 then
+		local timeToLand = sqrt((y - elevation - radius) * 2 / gravity)
+		if timeToLand < 1 and timeToLand <= 0.25 + (duration - shortDuration) * groupDuration * 0.1 then
 			local frameStart = spGetGameFrame() + ceil(timeToLand / gameSpeed) -- at least +1 frame
 			if not delayQueue[frameStart] then
 				delayQueue[frameStart] = { x, elevation, z, weaponParams, ownerID }
@@ -399,7 +399,7 @@ function gadget:GameFrame(gameFrame)
 		local queue = delayQueue[gameFrame]
 		for ii = 1, #queue, 5 do
 			if queue[ii] then
-				startTimedArea(queue[ii], queue[ii+1], queue[ii+2], queue[ii+3], queue[ii+4], queue[ii+5])
+				startTimedArea(queue[ii], queue[ii+1], queue[ii+2], queue[ii+3], queue[ii+4])
 			end
 		end
 		delayQueue[gameFrame] = nil
