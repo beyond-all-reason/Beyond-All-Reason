@@ -21,8 +21,8 @@
 local gameSpeed  = 30
 
 -- From unit_area_timed_damage:
-local loopSpeed  = math.round(gameSpeed * 0.5)
-local resolution = 3 -- bin size of frame groups
+local loopSpeed  = math.round(gameSpeed * 1/3)
+local resolution = 2 -- bin size of frame groups
 
 --------------------------------------------------------------------------------------------------------------
 ------ Configuration
