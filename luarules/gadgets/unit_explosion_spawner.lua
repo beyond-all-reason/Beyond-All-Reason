@@ -15,6 +15,14 @@ function gadget:GetInfo()
 	}
 end
 
+-- unit defs guide
+-- spawns_name = the string of the unit you want to spawn. If you list multiple, also include a spawns_mode entry example: "CORAK ARMPW CORJUGG"
+-- spawns_surface = sting. SEA and LAND are the only supported options
+-- spawns_mode = if you have multiple entries, use one of these strings: "random" "random_locked" or "sequential"
+-- spawns_expire = how long before your unit is destroyed in seconds
+-- spawns_ceg = use to spawn an arbitrary ceg in addition to the explosion effect used in the weapondefs. uses Spring.SpawnCEG()
+
+
 local spCreateFeature         = Spring.CreateFeature
 local spCreateUnit            = Spring.CreateUnit
 local spDestroyUnit           = Spring.DestroyUnit
@@ -25,6 +33,7 @@ local spGetUnitShieldState    = Spring.GetUnitShieldState
 local spGiveOrderToUnit       = Spring.GiveOrderToUnit
 local spSetFeatureDirection   = Spring.SetFeatureDirection
 local spSetUnitRulesParam     = Spring.SetUnitRulesParam
+local spSpawnCEG 			  = Spring.SpawnCEG
 
 local mapsizeX 				  = Game.mapSizeX
 local mapsizeZ 				  = Game.mapSizeZ
@@ -65,6 +74,7 @@ for weaponDefID = 1, #WeaponDefs do
 			feature = wdcp.spawns_feature,
 			surface = wdcp.spawns_surface,
 			mode = wdcp.spawns_mode,
+			ceg = wdcp.spawns_ceg
 		}
 		if wdcp.spawn_blocked_by_shield then
 			shieldCollide[weaponDefID] = WeaponDefs[weaponDefID].damages[Game.armorTypes.shield]
@@ -139,6 +149,9 @@ local function SpawnUnit(spawnData)
 					spawnUnitName = unitName[1]
 				end
 				unitID = spCreateUnit(spawnUnitName, spawnData.x, spawnData.y, spawnData.z, 0, spawnData.teamID)
+				if spawnDef.ceg then
+					spSpawnCEG(spawnDef.ceg, spawnData.x, spawnData.y, spawnData.z, 0,0,0)
+				end
 			end
 			if not unitID then
 				-- unit limit hit or invalid spawn surface
@@ -246,7 +259,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			    names = strSplit(spawnDef.name),
 			    unitSequence = 1,
 			}
-			if spawnDef.mode == "random_locked" then
+			if spawnDef.mode == "random_locked" and spawnNames[weaponDefID] and spawnNames[weaponDefID].names then
 			    spawnNames[weaponDefID].unitSequence = random(#spawnNames[unitID].names)
 			end
 		    
