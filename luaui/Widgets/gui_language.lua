@@ -39,6 +39,14 @@ function widget:Initialize()
 			Script.LuaUI.LanguageChanged()
 		end
 	end
+
+	WG['language'].setEnglishUnitNames = function(value)
+		Spring.SetConfigInt("language_english_unit_names", value and 1 or 0)
+
+		if Script.LuaUI('LanguageChanged') then
+			Script.LuaUI.LanguageChanged()
+		end
+	end
 end
 
 function widget:Shutdown()

@@ -1567,6 +1567,7 @@
 				"green": "green",
 				"blue": "blue",
 				"language": "Language",
+				"language_english_unit_names": "Display unit names in English",
 				"reclaimfieldhighlight": "Reclaim Field Highlight",
 				"reclaimfieldhighlight_descr": "Highlights clusters of reclaimable metal",
 				"reclaimfieldhighlight_always": "Always enabled",
