@@ -208,13 +208,14 @@ local shieldFrame = math.clamp(math.round(frameResolution / 2), 1, math.round(ga
 local function startTimedArea(x, y, z, weaponParams, ownerID)
 	local elevation = max(0, spGetGroundHeight(x, z))
 	local lowCeiling = elevation + weaponParams.area_radius
+	local duration = weaponParams.area_duration
 
 	-- Create an area on surface -- immediately.
 	if y <= lowCeiling then
 		local group = timedAreas[frame]
 		-- { endTime, weaponParams, owner, x, y, z }
 		group[#group+1] = {
-			weaponParams.area_duration + time,
+			duration + time,
 			weaponParams,
 			ownerID,
 			x, elevation, z,
@@ -231,31 +232,36 @@ local function startTimedArea(x, y, z, weaponParams, ownerID)
 				weaponParams.area_damages[0]
 			)
 		end
-	-- Create an area on surface -- eventually.
-	elseif shortDuration <= weaponParams.area_duration -- Brief effects cannot be delayed.
-	   and y <= lowCeiling + gravity / (2 * 2 * 2)     -- Up to a half second spent in free-fall.
-	then
+	-- If the timed area is not a brief area, it can be spawned after it "falls" to the ground.
+	-- The next check considers two different limits on the fall time:
+	-- (1) The max latency players associate a cause (impact) to an effect (area on ground); ~1 sec.
+	-- (2) The max time that the falling area effect might remain cohesive; just a heuristic formula.
+	elseif shortDuration < duration then
+		-- Create an area on surface -- eventually.
 		local timeToLand = sqrt((y - elevation) * 2 / gravity)
-		local frameStart = spGetGameFrame() + ceil(timeToLand / gameSpeed) -- at least +1 frame
-		if not delayQueue[frameStart] then
-			delayQueue[frameStart] = { x, elevation, z, weaponParams, ownerID }
+		if timeToLand < 1 and timeToLand <= 0.25 + (duration - shortDuration) * 0.1 then
+			local frameStart = spGetGameFrame() + ceil(timeToLand / gameSpeed) -- at least +1 frame
+			if not delayQueue[frameStart] then
+				delayQueue[frameStart] = { x, elevation, z, weaponParams, ownerID }
+			else
+				local queue = delayQueue[frameStart]
+				local sizeq = #queue
+				queue[sizeq + 1] = x
+				queue[sizeq + 2] = elevation
+				queue[sizeq + 3] = z
+				queue[sizeq + 4] = weaponParams
+				queue[sizeq + 5] = ownerID
+			end
+		-- Spawn a single explosion in-place with no recurring area.
+		-- This is useless except possibly to trigger the callins for other effects.
 		else
-			local queue = delayQueue[frameStart]
-			local sizeq = #queue
-			queue[sizeq + 1] = x
-			queue[sizeq + 2] = elevation
-			queue[sizeq + 3] = z
-			queue[sizeq + 4] = weaponParams
-			queue[sizeq + 5] = ownerID
+			local params = explosionCache
+			params.weaponDef          = weaponParams.area_weapondefid
+			params.damages            = weaponParams.area_damages
+			params.damageAreaOfEffect = weaponParams.area_radius * 2 -- radius => diameter
+			params.owner              = ownerID
+			spSpawnExplosion(x, y, z, 0, 0, 0, params)
 		end
-	-- Create a single explosion in-place with no lasting effects.
-	else
-		local params = explosionCache
-		params.weaponDef          = weaponParams.area_weapondefid
-		params.damages            = weaponParams.area_damages
-		params.damageAreaOfEffect = weaponParams.area_radius * 2 -- radius => diameter
-		params.owner              = ownerID
-		spSpawnExplosion(x, y, z, 0, 0, 0, params)
 	end
 end
 
