@@ -21,7 +21,7 @@
 local gameSpeed  = 30
 
 -- From unit_area_timed_damage:
-local loopSpeed  = math.round(gameSpeed * 1/3)
+local loopSpeed  = math.round(gameSpeed * 1 / 3)
 local resolution = 2 -- bin size of frame groups
 
 --------------------------------------------------------------------------------------------------------------
@@ -702,7 +702,7 @@ return {
 				emitrotspread       = 30,
 				emitvector          = [[0.2, -0.4, 0.2]],
 				gravity             = [[0, 0.03 r0.04, 0]],
-				numparticles        = getUniformRandomFrequency(0.28, 1),
+				numparticles        = getUniformRandomFrequency(0.20, 1),
 				particlelife        = lifetime.long,
 				particlelifespread  = lifetime.medlong,
 				particlesize        = 30,
@@ -714,6 +714,37 @@ return {
 				sizegrowth          = [[1.6 r0.6]],
 				sizemod             = 0.98,
 				texture             = [[FireBall02-anim]],
+			},
+		},
+		fireareadark = {
+			air        = true,
+			class      = [[CSimpleParticleSystem]],
+			count      = 1,
+			ground     = true,
+			properties = {
+				airdrag             = 0.8,
+				animParams          = [[16,6,30 r30]],
+				castShadow          = false,
+				colormap            =
+				[[0.26 0.29 0.21 0.1   0.36 0.27 0.29 0.40   0.34 0.43 0.40 0.38   0.33 0.29 0.20 0.35    0.33 0.27 0.18 0.6   0.29 0.22 0.14 0.4   0.29 0.20 0.13 0.25   0.22 0.16 0.11 0.25    0.05 0.06 0.09 0.15   0.021 0.022 0.023 0.1   0 0 0 0.01]],
+				directional         = false,
+				drawOrder           = layer.high,
+				emitrot             = 55,
+				emitrotspread       = 25,
+				emitvector          = [[0.28, 0.9, 0.28]],
+				gravity             = [[-0.02 r0.04, 0.15 r0.32, -0.02 r0.04]],
+				numparticles        = getUniformRandomFrequency(0.15, 1),
+				particlelife        = lifetime.long,
+				particlelifespread  = lifetime.medium,
+				particlesize        = 200,
+				particlesizespread  = 50,
+				particlespeed       = 0.10,
+				particlespeedspread = 0.16,
+				pos                 = [[0, 60 r40, 0]],
+				rotParams           = [[-5 r10, 0, -180 r360]],
+				sizegrowth          = [[1.6 r1.1]],
+				sizemod             = 0.98,
+				texture             = [[BARFlame02]],
 			},
 		},
 		fxsmoke = {
