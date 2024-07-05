@@ -1,0 +1,17 @@
+#include "../recoil_common_includes.h"
+
+piece base;
+
+Create()
+{
+	return 0;
+}
+
+
+
+Killed(severity, corpsetype)
+{
+	explode base type FALL| NOHEATCLOUD;
+	corpsetype = 1 ;
+	return corpsetype;
+}

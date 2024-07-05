@@ -115,7 +115,8 @@ return {
 			unitgroup = 'builder',
 			area_mex_def = "armmex",
 			iscommander = true,
-			isevocom = true,
+			effigy_offset = 1,
+			evocomlvl = 9,
 			--energyconv_capacity = 70,
 			--energyconv_efficiency = 1/70,
 			model_author = "FireStorm",
@@ -132,6 +133,9 @@ return {
 			stockpileLimit = 30,
 			workertimeboost = 4,
 			wtboostunittype = "MOBILE",
+			effigy = "comeffigylvl5",
+			minimum_respawn_stun = 5,
+			distance_stun_multiplier = 1,
 		},
 		featuredefs = {
 			dead = {

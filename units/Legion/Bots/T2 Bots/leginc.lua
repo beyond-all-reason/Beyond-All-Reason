@@ -26,7 +26,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "Units/leginc.s3o",
 		pushresistant = true,
-		script = "Units/leginc.cob",
+		script = "Units/leginc_clean.cob",
 		seismicsignature = 0,
 		selfdestructas = "penetrator",
 		sightdistance = 650,
@@ -126,7 +126,7 @@ return {
 				predictboost = 0,
 				proximitypriority = -1,
 				range = 750,
-				reloadtime = 50,
+				reloadtime = .033,
 				rgbcolor = "1 0.55 0",
 				rgbcolor2 = "0.9 1.0 0.5",
 				soundhitdry = "flamhit1",
@@ -144,6 +144,10 @@ return {
 					default = 33,
 					vtol = 11,
 				},
+				customparams = {
+					sweepfire=0.4,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
+				}
+
 			},
 		},
 		weapons = {

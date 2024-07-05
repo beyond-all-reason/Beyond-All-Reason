@@ -4,13 +4,14 @@
 //piece base, turretBase, gun, gearR, gearL, coverR, coverL;
 piece base, turretBase, turretStrut, gun, flarer, flarel, smoke1, smoke2;
 
-static-var  statechg_DesiredState, statechg_StateChanging, restore_delay, whichGun, timeLeft;
+static-var  statechg_DesiredState, statechg_StateChanging, restore_delay, whichGun, timeLeft, targetswap, isfiring, gameframe, lastfired, timer, firetime, oldhead;
 
 // Signal definitions
 // Signal definitions
 #define SIGNAL_AIM1 256
 #define SIGNAL_MOVE 1
-
+#define SIGNAL_LIGHT	4
+#define SIGNAL_RESTORE	8
 
 
 
@@ -26,7 +27,7 @@ static-var  statechg_DesiredState, statechg_StateChanging, restore_delay, whichG
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 7
 #define MAXTILT 100
-#define RECOIL_POWER 100000
+#define RECOIL_POWER 0
 #include "../unit_hitbyweaponid_and_smoke.h"
 
 
@@ -42,9 +43,16 @@ Create()
 	//hide flare;
 	// hide flarer;
 	// hide flarel;
+	targetswap = 0;
+	firetime = 54;
+	isfiring = 0;
+	lastfired = get(GAME_FRAME)-200;	
+	
+	
 	restore_delay = 3000;
 	timeLeft = 0;
-	call-script TB_Init();
+	//call-script TB_Init();
+	call-script SweepFire();
 	whichGun = 0;
 	return (0);
 }
@@ -61,14 +69,14 @@ StartMoving(reversing)
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
 	start-script Vehicle_Dirt_Ceg();
-	START_TILTBANK;
+	//START_TILTBANK;
 }
 
 
 StopMoving()
 {
 	signal SIGNAL_MOVE;
-	STOP_TILTBANK;
+	//STOP_TILTBANK;
 }
 
 
@@ -80,6 +88,8 @@ SetStunned(State)
 
 
 TimeToRestore(addTime){
+	signal SIGNAL_RESTORE;
+	set-signal-mask SIGNAL_RESTORE;
     // This function may not be signal terminated
     // If it has to be, it _must_ be immediately restarted
     // PROBLEM: the time that is slept depends on number of aim calls.
@@ -87,15 +97,50 @@ TimeToRestore(addTime){
 		//get PRINT(timeLeft, get GAME_FRAME);
         addTime = timeLeft;
         timeLeft = 1;
-        sleep addTime;
+        sleep addTime;//can sometimes sleep 6000 but never wake up again?
     }
+	//get PRINT(77, timeLeft, get GAME_FRAME);
     // The restore section must be atomic :/
-    timeLeft = 0;
-
 	turn turretBase to y-axis <0.000000> speed <40>;
 	turn turretStrut to x-axis <0.000000> speed <40>;
+
+    timeLeft = 0;
+    isfiring = 0;
+	oldhead = -1000000;
+	timer = 0;
+	targetswap = 0;
+		
 	//stop-spin barrelMid around z-axis decelerate <5>;
-	wait-for-turn turretBase around y-axis;
+	//wait-for-turn turretBase around y-axis;
+}
+
+
+SweepFire()
+{
+	signal SIGNAL_LIGHT;
+	set-signal-mask SIGNAL_LIGHT;
+	while (TRUE)
+	{
+		gameframe = get(GAME_FRAME);
+		//get PRINT(123, lastfired, gameframe, lastfired+firetime>gameframe);
+		//get PRINT(1235, targetswap, isfiring, timer);
+		if (targetswap == 1 AND isfiring == 1 AND lastfired+firetime>gameframe)
+		{
+			if (whichGun == 0) {
+				emit-sfx 2048 from flarer;
+			} else {
+				emit-sfx 2048 from flarel;
+			}
+			timer = timer + 1;
+		}
+		if (timer > 150)
+		{
+			//signal SIGNAL_AIM;
+			//timer = 0;
+			//start-script RestoreAfterDelay();
+		}
+		sleep 20;
+	}
 }
 
 
@@ -103,17 +148,36 @@ TimeToRestore(addTime){
 
 AimWeapon1(heading, pitch)
 {
+    signal SIGNAL_AIM1;
+    set-signal-mask SIGNAL_AIM1;
     if (timeLeft == 0)
     {
         start-script TimeToRestore();
     }
     timeLeft = restore_delay;
-   
-    signal SIGNAL_AIM1;
-    set-signal-mask SIGNAL_AIM1;
 
-	turn turretBase to y-axis heading speed <80>;
-	turn turretStrut to x-axis <0.000000> - pitch speed <80>;
+
+	if (get ABS(oldhead - heading) > 500)
+	{
+		targetswap = 1;
+	}
+	gameframe = get(GAME_FRAME);
+
+	if ((get ABS(oldhead - heading) < 500) AND oldhead != -1000000)
+	{
+		//get PRINT (456, oldhead, heading, get ABS(oldhead - heading));
+		//skip the wait just do it
+		//oldhead = heading;
+		//isfiring = 1;
+		//return (1);
+	}
+
+	oldhead = heading;
+	isfiring = 1;
+
+
+	turn turretBase to y-axis heading speed <65>;
+	turn turretStrut to x-axis <0.000000> - pitch speed <65>;
 	wait-for-turn turretBase around y-axis;
 	wait-for-turn turretStrut around x-axis;
 
@@ -124,15 +188,18 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
-	
+	gameframe = get(GAME_FRAME);
+	lastfired = gameframe;
 	if (whichGun == 0){
 		//emit-sfx 1024 + 0  from flarer;
+		sleep 2000;
 		whichGun = 1;
 		return(0);
 	}
 
 	if (whichGun == 1){
 		//emit-sfx 1024 + 0  from flarel;
+		sleep 2000;
 		whichGun = 0;
 		return(0);
 	}
@@ -148,7 +215,15 @@ FireWeapon1()
 
 AimFromWeapon1(piecenum)
 {
-	piecenum = gun;
+	if (whichGun == 0){
+		piecenum = flarer;
+		//whichGun = 1;
+	}
+
+	if (whichGun == 1){
+		piecenum = flarel;
+		//whichGun = 0;
+	}
 	return (0);
 }
 

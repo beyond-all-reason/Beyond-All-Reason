@@ -2400,9 +2400,17 @@ local icontypes = {
 		bitmap = "icons/mex_t1.png",
 		size = 1
 	},
-	legmext2 = {
+	legmstor = {
+		bitmap = "icons/metalstorage.png",
+		size = 1.10249984
+	},
+	legmoho = {
 		bitmap = "icons/mex_t2.png",
 		size = 1.20749986
+	},
+	legamstor = {
+		bitmap = "icons/metalstorage_t2.png",
+		size = 1.3125
 	},
 	legmg = {
 		bitmap = "icons/defence_2_mg.png",
@@ -2524,7 +2532,7 @@ local icontypes = {
 		bitmap = "icons/air_trans.png",
 		size = 1.83749986
 	},
-	legsy = {
+	legjim = {
 		bitmap = "icons/factory_ship.png",
 		size = 1.52250004
 	},
@@ -2532,6 +2540,10 @@ local icontypes = {
 		bitmap = "icons/energy1_1.0.png",
 		size = 1.04999995
 	},
+	legtl = {
+		bitmap = "icons/defence_1_naval.png",
+		size = 1.10249984
+	},	
 	legfmkr = {
 		bitmap = "icons/metalmaker_t1.png",
 		size = 0.78749996

@@ -308,7 +308,7 @@ Killed(severity, corpsetype)
 		//explode base type BITMAPONLY | BITMAP3 | NOHEATCLOUD;
 		//explode turret2 type BITMAPONLY | BITMAP2 | NOHEATCLOUD;
 		//explode wake1 type BITMAPONLY | BITMAP2 | NOHEATCLOUD;
-		explode wake2 type BITMAPONLY | BITMAP3 | NOHEATCLOUD;
+		//explode wake2 type BITMAPONLY | BITMAP3 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
@@ -316,12 +316,12 @@ Killed(severity, corpsetype)
 		corpsetype = 2;
 		//explode base type BITMAPONLY | BITMAP3 | NOHEATCLOUD;
 		//explode wake1 type FALL | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-		explode wake2 type FALL | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		//explode wake2 type FALL | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
 	//explode base type BITMAPONLY | BITMAP3 | NOHEATCLOUD;
-	explode wake1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-	explode wake2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+	//explode wake1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	//explode wake2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 	return corpsetype;
 }

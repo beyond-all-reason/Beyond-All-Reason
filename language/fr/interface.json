@@ -1492,6 +1492,7 @@
 				"green": "vert",
 				"blue": "bleu",
 				"language": "Langage",
+				"language_english_unit_names": "Afficher noms d'unités en anglais",
 				"reclaimfieldhighlight": "Surbrillance des épaves",
 				"reclaimfieldhighlight_descr": "Permet d'automatiquement mettre en valeur les concentrations d'épaves recyclables.",
 				"reclaimfieldhighlight_always": "Toujours actif",

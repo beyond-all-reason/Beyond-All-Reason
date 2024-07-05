@@ -109,7 +109,8 @@ return {
 			unitgroup = 'builder',
 			area_mex_def = "cormoho",
 			iscommander = true,
-			isevocom = true,
+			effigy_offset = 1,
+			evocomlvl = 10,
 			--energyconv_capacity = 70,
 			--energyconv_efficiency = 1/70,
 			model_author = "Mr Bob",
@@ -120,6 +121,9 @@ return {
 			shield_power = 30000,
 			shield_radius = 100,
 			maxrange = "500",
+			effigy = "comeffigylvl5",
+			minimum_respawn_stun = 5,
+			distance_stun_multiplier = 1,
 		},
 		featuredefs = {
 			dead = {

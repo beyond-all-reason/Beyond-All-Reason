@@ -40,9 +40,10 @@ return {
 			[4] = "corshiva",
 			[5] = "corcat",
 			[6] = "corsok",
-			[7] = "legpede",
-			[8] = "leegmech",
-			[9] = "legkeres",
+			[7] = "cordemon",
+			[8] = "legpede",
+			[9] = "leegmech",
+			[10] = "legekeres",
 		},
 		customparams = {
 			usebuildinggrounddecal = true,

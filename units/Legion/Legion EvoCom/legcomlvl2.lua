@@ -99,7 +99,8 @@ return {
 		customparams = {
 			unitgroup = 'builder',
 			iscommander = true,
-			isevocom = true,
+			effigy_offset = 1,
+			evocomlvl = 2,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
@@ -111,6 +112,9 @@ return {
 			evolution_power_threshold = 20000,
 			evolution_power_multiplier = 1,
 			combatradius = 0,
+			effigy = "comeffigylvl1",
+			minimum_respawn_stun = 5,
+			distance_stun_multiplier = 1,
 		},
 		featuredefs = {
 			dead = {
