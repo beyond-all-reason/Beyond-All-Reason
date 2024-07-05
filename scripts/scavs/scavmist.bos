@@ -65,6 +65,7 @@ AimPrimary()
 FirePrimary()
 {
 	emit-sfx 1024 + 0 from spawnflare;
+	emit-sfx 2048 + 1 from spawnflare;
 	//emit-sfx 2048 + 1 from spawnflare;
 	return(1);
 }

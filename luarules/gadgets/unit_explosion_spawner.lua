@@ -188,12 +188,14 @@ function gadget:Initialize()
 end
 
 function gadget:Explosion(weaponDefID, x, y, z, ownerID, proID)
+	Spring.Echo("explosion weapon name ", WeaponDefs[weaponDefID].name)
 	if noCreate then
 		noCreate = false
 		return
 	end
 
 	if spawnDefs[weaponDefID] then
+		Spring.Echo("tried spawning unit ", WeaponDefs[weaponDefID].name)
 		local spawnDef = spawnDefs[weaponDefID] -- guaranteed not nil by Explosion_GetWantedWeaponDef
 		local teamID = spGetProjectileTeamID(proID)
 		
