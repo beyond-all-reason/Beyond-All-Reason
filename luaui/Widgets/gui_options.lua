@@ -199,19 +199,7 @@ local resettedTonemapDefault = false
 local heightmapChangeClock
 local requireRestartDefaults = {}
 local gameOver = false
-
-local presetCodes = {}
-local presetNames = {}
 local presets = {}
-
-local reclaimFieldHighlightOptions = {
-	Spring.I18N('ui.settings.option.reclaimfieldhighlight_always'),
-	Spring.I18N('ui.settings.option.reclaimfieldhighlight_resource'),
-	Spring.I18N('ui.settings.option.reclaimfieldhighlight_reclaimer'),
-	Spring.I18N('ui.settings.option.reclaimfieldhighlight_resbot'),
-	Spring.I18N('ui.settings.option.reclaimfieldhighlight_order'),
-	Spring.I18N('ui.settings.option.reclaimfieldhighlight_disabled')
-}
 
 local startScript = VFS.LoadFile("_script.txt")
 if not startScript then
@@ -1430,21 +1418,6 @@ function saveOptionValue(widgetName, widgetApiName, widgetApiFunction, configVar
 	end
 end
 
-function loadPreset(preset)
-	for optionID, value in pairs(presets[preset]) do
-		local i = getOptionByID(optionID)
-		if options[i] ~= nil then
-			applyOptionValue(i, value, true)
-		end
-	end
-
-	if windowList then
-		gl.DeleteList(windowList)
-	end
-	windowList = gl.CreateList(DrawWindow)
-end
-
-
 function widget:KeyRelease()
 	-- Since we grab the keyboard, we need to specify a KeyRelease to make sure other release actions can be triggered
 	return false
@@ -1832,8 +1805,8 @@ function applyOptionValue(i, newValue, skipRedrawWindow, force)
 
 	if options[i].id ~= 'preset' and presets.lowest[options[i].id] ~= nil and manualChange then
 		if options[getOptionByID('preset')] then
-			options[getOptionByID('preset')].value = presetCodes.custom
-			Spring.SetConfigString('graphicsPreset', presetCodes[presetCodes.custom])
+			options[getOptionByID('preset')].value = Spring.I18N('ui.settings.option.preset_custom')
+			Spring.SetConfigString('graphicsPreset', 'custom')
 		end
 	end
 
@@ -1877,13 +1850,6 @@ function loadAllWidgetData()
 end
 
 function init()
-	presetCodes = { 'lowest', 'low', 'medium', 'high', 'ultra', 'custom', }
-	presetCodes = table.merge(presetCodes, table.invert(presetCodes))
-
-	for index, name in ipairs(presetCodes) do
-		presetNames[index] = Spring.I18N('ui.settings.option.preset_' .. name)
-	end
-
 	presets = {
 		lowest = {
 			bloomdeferred = false,
@@ -2125,17 +2091,37 @@ function init()
 
 	options = {
 		--GFX
-		{ id = "preset", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.preset'), type = "select", options = presetNames, value = presetCodes[Spring.GetConfigString('graphicsPreset')],
+		{ id = "preset", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.preset'), type = "select", options = { Spring.I18N('ui.settings.option.select_lowest'), Spring.I18N('ui.settings.option.select_low'), Spring.I18N('ui.settings.option.select_medium'), Spring.I18N('ui.settings.option.select_high'), Spring.I18N('ui.settings.option.select_ultra'), Spring.I18N('ui.settings.option.select_custom') },
 			onload = function(i)
+				local preset = Spring.GetConfigString('graphicsPreset', 'custom')
+				local configSettingValues = { 'lowest', 'low', 'medium', 'high', 'ultra', 'custom' }
+				for k, value in pairs(configSettingValues) do
+					if value == preset then
+						options[i].value = k
+						break
+					end
+				end
 			end,
 			onchange = function(i, value)
-				Spring.SetConfigString('graphicsPreset', presetCodes[value])
-
-				if value == presetCodes.custom then return end
+				local configSetting = 'custom'
+				local configSettingValues = { 'lowest', 'low', 'medium', 'high', 'ultra', 'custom' }
+				configSetting = configSettingValues[value]
+				Spring.SetConfigString('graphicsPreset', configSetting)
+				if configSetting == 'custom' then return end
 
 				Spring.Echo('Loading preset:   ' .. options[i].options[value])
 				manualChange = false
-				loadPreset(presetCodes[value])
+				for optionID, value in pairs(presets[configSetting]) do
+					local i = getOptionByID(optionID)
+					if options[i] ~= nil then
+						applyOptionValue(i, value, true)
+					end
+				end
+
+				if windowList then
+					gl.DeleteList(windowList)
+				end
+				windowList = gl.CreateList(DrawWindow)
 				manualChange = true
 			end,
 		},
@@ -2201,15 +2187,15 @@ function init()
 			  Spring.SetConfigInt("DualScreenMiniMapAspectRatio", value and 1 or 0)
 		  end,
 		},
-		{ id = "vsync", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.vsync'),  type = "select", options = { 'off', 'enabled', 'adaptive'}, value = 2, description = Spring.I18N('ui.settings.option.vsync_descr'),
+		{ id = "vsync", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.vsync'),  type = "select", options = { Spring.I18N('ui.settings.option.select_off'), Spring.I18N('ui.settings.option.select_enabled'), Spring.I18N('ui.settings.option.select_adaptive')}, value = 2, description = Spring.I18N('ui.settings.option.vsync_descr'),
 		  onload = function(i)
 			  local vsync = Spring.GetConfigInt("VSyncGame", -1)
 			  if vsync == 1 then
-			  	options[getOptionByID('vsync')].value = 2
+			  	options[i].value = 2
 			  elseif vsync == -1 then
-			  	options[getOptionByID('vsync')].value = 3
+			  	options[i].value = 3
 			  else
-				options[getOptionByID('vsync')].value = 1
+				options[i].value = 1
 			  end
 		  end,
 		  onchange = function(i, value)
@@ -2230,7 +2216,7 @@ function init()
 		  end,
 		},
 
-		{ id = "msaa", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.msaa'), type = "select", options = { 'off', 'x2', 'x4', 'x8'}, restart = true, value = tonumber(Spring.GetConfigInt("MSAALevel", 0) or 0), description = Spring.I18N('ui.settings.option.msaa_descr'),
+		{ id = "msaa", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.msaa'), type = "select", options = { Spring.I18N('ui.settings.option.select_off'), 'x2', 'x4', 'x8'}, restart = true, value = tonumber(Spring.GetConfigInt("MSAALevel", 0) or 0), description = Spring.I18N('ui.settings.option.msaa_descr'),
 		  onload = function(i)
 			  local msaa = tonumber(Spring.GetConfigInt("MSAALevel", 0) or 0)
 			  if msaa <= 0 then
@@ -2342,7 +2328,7 @@ function init()
 		  end,
 		},
 
-		{ id = "shadowslider", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.shadowslider'), type = "select", options = { 'off', 'lowest', 'low', 'medium', 'high', 'ultra'}, value = Spring.GetConfigInt("ShadowQuality", 3)+1, description = Spring.I18N('ui.settings.option.shadowslider_descr'),
+		{ id = "shadowslider", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.shadowslider'), type = "select", options = { Spring.I18N('ui.settings.option.select_off'), Spring.I18N('ui.settings.option.select_lowest'), Spring.I18N('ui.settings.option.select_low'), Spring.I18N('ui.settings.option.select_medium'), Spring.I18N('ui.settings.option.select_high'), Spring.I18N('ui.settings.option.select_ultra')}, value = Spring.GetConfigInt("ShadowQuality", 3)+1, description = Spring.I18N('ui.settings.option.shadowslider_descr'),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("ShadowQuality", value - 1)
 			  adjustShadowQuality()
@@ -2364,7 +2350,7 @@ function init()
 			  saveOptionValue('SSAO', 'ssao', 'setStrength', { 'strength' }, value)
 		  end,
 		},
-		{ id = "ssao_quality", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.ssao_quality'), type = "select", options = { 'low', 'medium', 'high'}, value = (WG['ssao'] ~= nil and WG['ssao'].getPreset() or 2), description = Spring.I18N('ui.settings.option.ssao_quality_descr'),
+		{ id = "ssao_quality", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.ssao_quality'), type = "select", options = { Spring.I18N('ui.settings.option.select_low'), Spring.I18N('ui.settings.option.select_medium'), Spring.I18N('ui.settings.option.select_high')}, value = (WG['ssao'] ~= nil and WG['ssao'].getPreset() or 2), description = Spring.I18N('ui.settings.option.ssao_quality_descr'),
 		  onload = function(i)
 			  if widgetHandler.configData["SSAO"] ~= nil and widgetHandler.configData["SSAO"].preset ~= nil then
 				  options[getOptionByID('ssao_quality')].value = widgetHandler.configData["SSAO"].preset
@@ -2384,7 +2370,7 @@ function init()
 			  saveOptionValue('Bloom Shader Deferred', 'bloomdeferred', 'setBrightness', { 'glowAmplifier' }, value)
 		  end,
 		},
-		{ id = "bloomdeferred_quality", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.bloomdeferred_quality'), type = "select", options = { 'low', 'medium', 'high'}, value = (WG['bloomdeferred'] ~= nil and WG['bloomdeferred'].getPreset() or 2), description = Spring.I18N('ui.settings.option.bloomdeferred_quality_descr'),
+		{ id = "bloomdeferred_quality", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.bloomdeferred_quality'), type = "select", options = { Spring.I18N('ui.settings.option.select_low'), Spring.I18N('ui.settings.option.select_medium'), Spring.I18N('ui.settings.option.select_high')}, value = (WG['bloomdeferred'] ~= nil and WG['bloomdeferred'].getPreset() or 2), description = Spring.I18N('ui.settings.option.bloomdeferred_quality_descr'),
 		  onload = function(i)
 			  if widgetHandler.configData["Bloom Shader Deferred"] ~= nil and widgetHandler.configData["Bloom Shader Deferred"].preset ~= nil then
 				  options[getOptionByID('bloomdeferred_quality')].value = widgetHandler.configData["Bloom Shader Deferred"].preset
@@ -2488,7 +2474,7 @@ function init()
 		--   end,
 		-- },
 
-		{ id = "water", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.water'), type = "select", options = { 'low', 'high' }, value = desiredWaterValue == 4 and 2 or 1,
+		{ id = "water", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.water'), type = "select", options = { Spring.I18N('ui.settings.option.select_low'), Spring.I18N('ui.settings.option.select_high') }, value = desiredWaterValue == 4 and 2 or 1,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -3066,7 +3052,7 @@ function init()
 		  end,
 		},
 
-		{ id = "camera", group = "control", category = types.basic, name = Spring.I18N('ui.settings.option.camera'), type = "select", options = { 'fps', 'overhead', 'spring', 'rot overhead', 'free' }, value = (tonumber((Spring.GetConfigInt("CamMode", 1) + 1) or 2)),
+		{ id = "camera", group = "control", category = types.basic, name = Spring.I18N('ui.settings.option.camera'), type = "select", options = { Spring.I18N('ui.settings.option.select_firstperson'), Spring.I18N('ui.settings.option.select_overhead'), Spring.I18N('ui.settings.option.select_spring'), Spring.I18N('ui.settings.option.select_rotoverhead'), Spring.I18N('ui.settings.option.select_free') }, value = (tonumber((Spring.GetConfigInt("CamMode", 1) + 1) or 2)),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("CamMode", (value - 1))
 			  if value == 1 then
@@ -3083,7 +3069,7 @@ function init()
 			  init()
 		  end,
 		},
-		{ id = "springcamheightmode", group = "control", category = types.advanced, name = widgetOptionColor .. "     " .. Spring.I18N('ui.settings.option.springcamheightmode'), type = "select", options = { Spring.I18N('ui.settings.option.constant'), Spring.I18N('ui.settings.option.terrain'), Spring.I18N('ui.settings.option.smooth')}, value = Spring.GetConfigInt("CamSpringTrackMapHeightMode", 0) + 1, description = Spring.I18N('ui.settings.option.springcamheightmode_descr'),
+		{ id = "springcamheightmode", group = "control", category = types.advanced, name = widgetOptionColor .. "     " .. Spring.I18N('ui.settings.option.springcamheightmode'), type = "select", options = { Spring.I18N('ui.settings.option.select_constant'), Spring.I18N('ui.settings.option.select_terrain'), Spring.I18N('ui.settings.option.select_smooth')}, value = Spring.GetConfigInt("CamSpringTrackMapHeightMode", 0) + 1, description = Spring.I18N('ui.settings.option.springcamheightmode_descr'),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("CamSpringTrackMapHeightMode", value - 1)
 		  end,
@@ -4032,7 +4018,7 @@ function init()
 
 		{ id = "givenunits", group = "ui", category = types.advanced, widget = "Given Units", name = Spring.I18N('ui.settings.option.givenunits'), type = "bool", value = GetWidgetToggleValue("Given Units"), description = Spring.I18N('ui.settings.option.givenunits_descr') },
 
-		{ id = "reclaimfieldhighlight", group = "ui", category = types.advanced, widget = "Reclaim Field Highlight", name = Spring.I18N('ui.settings.option.reclaimfieldhighlight'), type = "select", options = reclaimFieldHighlightOptions, value = 3, description = Spring.I18N('ui.settings.option.reclaimfieldhighlight_descr'),
+		{ id = "reclaimfieldhighlight", group = "ui", category = types.advanced, widget = "Reclaim Field Highlight", name = Spring.I18N('ui.settings.option.reclaimfieldhighlight'), type = "select", options = { Spring.I18N('ui.settings.option.reclaimfieldhighlight_always'), Spring.I18N('ui.settings.option.reclaimfieldhighlight_resource'), Spring.I18N('ui.settings.option.reclaimfieldhighlight_reclaimer'), Spring.I18N('ui.settings.option.reclaimfieldhighlight_resbot'), Spring.I18N('ui.settings.option.reclaimfieldhighlight_order'), Spring.I18N('ui.settings.option.reclaimfieldhighlight_disabled') }, value = 3, description = Spring.I18N('ui.settings.option.reclaimfieldhighlight_descr'),
 			onload = function(i)
 				loadWidgetData("Reclaim Field Highlight", "reclaimfieldhighlight", { 'showOption' })
 			end,
