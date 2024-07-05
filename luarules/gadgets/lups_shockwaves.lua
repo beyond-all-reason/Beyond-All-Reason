@@ -23,7 +23,7 @@ if (gadgetHandler:IsSyncedCode()) then
 		local wd = WeaponDefs[i]
 		local customParams = wd.customParams or {}
 
-		if (not customParams.lups_noshockwave) then
+		if (not customParams.lups_noshockwave) and (not string.find(wd.name, "_timed_")) then
 			local speed = 1
 			local life = 1
 			local normalShockwave = (wd.damageAreaOfEffect>62 and not wd.paralyzer and not customParams.disarmdamageonly)
