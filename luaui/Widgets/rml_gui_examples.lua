@@ -43,16 +43,30 @@ local function addPage(name, content)
 	end
 end
 
-local function createSection(name, content)
+local function createSection(name, content, code_only)
+	code_only = code_only or false
 	content = content:trim()
-	local rml_result = "<h3>" .. name .. "</h3>\n<div>" .. content .. "</div>\n"
-	local escaped_content = content
-	escaped_content = escaped_content:gsub('"', '&quot;')
-	escaped_content = escaped_content:gsub('\t', '  ')
-	rml_result = rml_result .. '<h4>Code</h4>\n'
-	rml_result = rml_result .. '<textarea class="example-code" value="' .. escaped_content .. '">'
-	rml_result = rml_result .. '</textarea>\n'	
+	local rml_result = "<h3>" .. name .. "</h3>\n"
+
+	if not code_only then
+		rml_result = rml_result .. "<div>" .. content .. "</div>\n"
+	end
+
+	local code_content = content
+	code_content = code_content:gsub('"', '&quot;')
+	code_content = code_content:gsub('\t', '  ')
+
+	if not code_only then
+		rml_result = rml_result .. '<h4>Code</h4>\n'
+	end
+	rml_result = rml_result .. '<textarea class="example-code" value="' .. code_content .. '">'
+	rml_result = rml_result .. '</textarea>\n'
 	return rml_result
+end
+
+local function createStylesSection(name, rcss_code)
+	document:AppendToStyleSheet(rcss_code)
+	return createSection(name, rcss_code, true)
 end
 
 function widget:Initialize()
@@ -86,6 +100,7 @@ function widget:Initialize()
 	createMediaElementsPage()
 	createInputElementsPage()
 	createBasicStylesPage()
+	createAnimationPage()
 
 	tabset.active_tab = -1
 	tabset.active_tab = 0
@@ -210,30 +225,40 @@ function createLayoutElementsPage()
 ]])
 
 	local flexBoxSection = createSection('Flex Box', [[
-<div style="display: flex; flex-direction: row;">
-	<div>div</div>
-	<div>div</div>
-	<div>div</div>
+<div style="display: flex; flex-direction: row; gap: 2em;">
+	<div class="container">div</div>
+	<div class="container">div</div>
+	<div class="container">div</div>
 </div>
 ]])
 
 	local nestedFlexBoxSection = createSection('Nested Flex Box', [[
-<div style="display: flex; flex-direction: column;">
-	<div style="display: flex; flex-direction: row;">
-		<div>div</div>
-		<div>div</div>
-		<div>div</div>
+<div style="display: flex; flex-direction: column; gap: 1em;">
+	<div style="display: flex; flex-direction: row; gap: 1em;">
+		<div class="container">div</div>
+		<div class="container">div</div>
+		<div class="container">div</div>
 	</div>
-	<div style="display: flex; flex-direction: row; justify-content: space-between;">
-		<div>div</div>
-		<div>div</div>
-		<div>div</div>
+	<div style="display: flex; flex-direction: row; gap: 1em; justify-content: space-between;">
+		<div class="container">div</div>
+		<div class="container">div</div>
+		<div class="container">div</div>
 	</div>
-	<div style="display: flex; flex-direction: row; justify-content: flex-end;">
-		<div>div</div>
-		<div>div</div>
-		<div>div</div>
+	<div style="display: flex; flex-direction: row; gap: 1em; justify-content: flex-end;">
+		<div class="container">div</div>
+		<div class="container">div</div>
+		<div class="container">div</div>
 	</div>
+</div>
+]])
+	
+	local wrappingFlexBoxSection = createSection('Wrapping Flex Box', [[
+<div style="display: flex; flex-wrap: wrap; gap: 2em 2dp; justify-content: center;">
+	<div class="container" style="min-width: 40%">div</div>
+	<div class="container" style="min-width: 40%">div</div>
+	<div class="container" style="min-width: 40%">div</div>
+	<div class="container" style="min-width: 40%">div</div>
+	<div class="container" style="min-width: 40%">div</div>
 </div>
 ]])
 
@@ -242,7 +267,8 @@ function createLayoutElementsPage()
 		listsSection ..
 			tableSection ..
 			flexBoxSection ..
-			nestedFlexBoxSection
+			nestedFlexBoxSection ..
+			wrappingFlexBoxSection
 	)
 end
 
@@ -396,13 +422,13 @@ function createInputElementsPage()
 			<input type="password" value="password"/>
 		</label>
 		<h4>Radio Buttons</h4>
-		<div style="display: flex; flex-direction: row;">
+		<div style="display: flex; flex-direction: row; gap: 0.5em;">
 			<label><input type="radio" name="radio" value="1"/>1</label>
 			<label><input type="radio" name="radio" value="2"/>2</label>
 			<label><input type="radio" name="radio" value="3"/>3</label>
 		</div>
 		<h4>Checkboxes</h4>
-		<div style="display: flex; flex-direction: row;">
+		<div style="display: flex; flex-direction: row; gap: 0.5em;">
 			<label><input type="checkbox" name="checkbox" value="1"/>1</label>
 			<label><input type="checkbox" name="checkbox" value="2"/>2</label>
 			<label><input type="checkbox" name="checkbox" value="3"/>3</label>
@@ -513,3 +539,95 @@ function createBasicStylesPage()
 			fontEffectsSection
 	)
 end
+
+------------------------
+---- ANIMATION PAGE ----
+------------------------
+
+function createAnimationPage()
+	local keyframesSection = createStylesSection('.rcss Keyframes', [[
+		/* Code inserted into <style> element in document <head> */
+		@keyframes spin {
+			0% { transform: rotate(0deg); }
+			100% { transform: rotate(360deg); }
+		}
+		@keyframes pulse {
+			0% { transform: scale(1); }
+			50% { transform: scale(1.1); }
+			100% { transform: scale(1); }
+		}
+		@keyframes bounce {
+			0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+			40% { transform: translateY(-30dp); }
+			60% { transform: translateY(-15dp); }
+		}
+		@keyframes shake {
+			0%, 100% { transform: translateX(0); }
+			10%, 30%, 50%, 70%, 90% { transform: translateX(-10dp); }
+			20%, 40%, 60%, 80% { transform: translateX(10dp); }
+		}
+	]])
+
+	local transformAnimationsSection = createSection('Transform Animations', [[
+		<div class="container" style="display: flex; flex-direction: row; align-items: center;">
+			<div style="width: 100dp; height: 100dp; border: 1dp white; background-color: #444; animation: 4s linear infinite spin;">Spin</div>
+			<div style="width: 100dp; height: 100dp; border: 1dp white; background-color: #444; animation: 2s linear infinite pulse;">Pulse</div>
+			<div style="width: 100dp; height: 100dp; border: 1dp white; background-color: #444; animation: 2s linear infinite bounce;">Bounce</div>
+			<div style="width: 100dp; height: 100dp; border: 1dp white; background-color: #444; animation: 2s linear infinite shake;">Shake</div>
+		</div>
+	]])
+
+	local transitionClassesSection = createStylesSection('.rcss Transition Classes', [[
+		/* Code inserted into <style> element in document <head> */
+		.transition-ex-1, .transition-ex-2, .transition-ex-3 {
+			width: 100dp; 
+			height: 100dp; 
+			border: 1dp white;
+			background-color: #444;
+			color: white;
+		}
+		
+		.transition-ex-1 {
+			transition: 2s transform;
+		}
+		
+		.transition-ex-1:hover {
+			transform: rotate(180deg);
+		}
+		
+		.transition-ex-2 {
+			transition: transform 2s, background-color 2s;
+		}
+		
+		.transition-ex-2:hover {
+			transform: rotate(180deg);
+			background-color: #888;
+		}
+		
+		.transition-ex-3 {
+			transition: transform 2s, background-color 2s, color 2s;
+		}
+		
+		.transition-ex-3:hover {
+			transform: rotate(180deg);
+			background-color: #888;
+			color: blue;
+		}
+		]])
+
+	local transitionSection = createSection('.rcss Transitions', [[
+		<div class="container" style="display: flex; flex-direction: row; align-items: center;">
+			<div class="transition-ex-1">Hover Me</div>
+			<div class="transition-ex-2">Hover Me</div>
+			<div class="transition-ex-3">Hover Me</div>
+		</div>
+	]])
+
+	addPage(
+		'Animation .rcss Styling',
+		--keyframesSection ..
+		--	transformAnimationsSection ..
+			transitionClassesSection ..
+			transitionSection
+	)
+end 
