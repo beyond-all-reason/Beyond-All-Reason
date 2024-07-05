@@ -3241,6 +3241,11 @@ function init()
 				end
 			end
 		},
+		{ id = "language_english_unit_names", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.language_english_unit_names'), type = "bool", value = (Spring.GetConfigInt("language_english_unit_names", 1) == 1),
+			onchange = function(i, value)
+				WG['language'].setEnglishUnitNames(value)
+			end,
+		},
 		{ id = "uiscale", group = "ui", category = types.basic, name = Spring.I18N('ui.settings.option.interface') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.uiscale'), type = "slider", min = 0.8, max = 1.3, step = 0.01, value = Spring.GetConfigFloat("ui_scale", 1), description = '',
 		  onload = function(i)
 		  end,
@@ -5594,6 +5599,10 @@ function init()
 		options[getOptionByID('gridmenu_labbuildmode')] = nil
 	end
 
+	-- hide English unit names toggle if using English
+	if Spring.I18N.getLocale() == 'en' then
+		options[getOptionByID('language_english_unit_names')] = nil
+	end
 
 	-- add fonts
 	if getOptionByID('font') then
