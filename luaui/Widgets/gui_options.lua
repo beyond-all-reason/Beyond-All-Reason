@@ -1271,8 +1271,8 @@ function widget:DrawScreen()
 									desc = desc..'\n\n\255\255\120\120'..Spring.I18N('ui.settings.changesrequirerestart')
 								end
 								local showTooltip = true
-								if options[i].nametext and string.find(options[i].nametext, desc) then
-									if string.len(desc) == (string.len(options[i].nametext)+1)-string.find(options[i].nametext, desc) then
+								if options[i].nametext and string.find(options[i].nametext, desc, nil, true) then
+									if string.len(desc) == (string.len(options[i].nametext)+1)-string.find(options[i].nametext, desc, nil, true) then
 										showTooltip = false
 									end
 								end
@@ -1997,33 +1997,30 @@ function init()
 	if infolog then
 		local fileLines = string.lines(infolog)
 		for i, line in ipairs(fileLines) do
-			if string.find(line, 'Main thread CPU') or string.find(line, '%[f=-00000') then
-				break
-			end
-			if string.find(line, '     %[') then
+			if string.find(line, '     [', nil, true) then
 				local device = string.sub(string.match(line, '     %[([0-9a-zA-Z _%/%%-%(%)]*)'), 1)
 				soundDevices[#soundDevices + 1] = device
 				soundDevicesByName[device] = #soundDevices
 			end
 			-- scan for shader version error
-			if string.find(line, 'error: GLSL 1.50 is not supported') then
+			if string.find(line, 'error: GLSL 1.50 is not supported', nil, true) then
 				Spring.SetConfigInt("LuaShaders", 0)
 			end
 
 			-- look for system hardware
-			if string.find(line, 'Physical CPU Cores') then
+			if string.find(line, 'Physical CPU Cores', nil, true) then
 				if tonumber(string.match(line, '([0-9].*)')) and tonumber(string.match(line, '([0-9].*)')) <= 2 then
 					isPotatoCpu = true
 				end
 			end
 
-			if string.find(line, 'Logical CPU Cores') then
+			if string.find(line, 'Logical CPU Cores', nil, true) then
 				if tonumber(string.match(line, '([0-9].*)')) and tonumber(string.match(line, '([0-9].*)')) <= 2 then
 					isPotatoCpu = true
 				end
 			end
 
-			if string.find(line:lower(), 'hardware config: ') then
+			if string.find(line:lower(), 'hardware config: ', nil, true) then
 				local s_ram = string.match(line, '([0-9]*MB RAM)')
 				if s_ram ~= nil then
 					s_ram = string.gsub(s_ram, " RAM", "")
@@ -2033,7 +2030,7 @@ function init()
 				end
 			end
 
-			if string.find(line, "Loading widget:") then
+			if string.find(line, "Loading widget:", nil, true) then
 				break
 			end
 		end
@@ -2907,7 +2904,7 @@ function init()
 			  -- enable grid menu for grid keybinds
 			  local preset = options[getOptionByID('keybindings')].options[value]
 			  Spring.Echo(preset)
-			  if string.find(string.lower(preset), "grid") then
+			  if string.find(string.lower(preset), "grid", nil, true) then
 				  widgetHandler:DisableWidget('Build menu')
 				  widgetHandler:EnableWidget('Grid menu')
 			  elseif preset == 'Custom' then
