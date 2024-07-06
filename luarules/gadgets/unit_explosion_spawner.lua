@@ -74,6 +74,7 @@ for weaponDefID = 1, #WeaponDefs do
 			feature = wdcp.spawns_feature,
 			surface = wdcp.spawns_surface,
 			mode = wdcp.spawns_mode,
+			ceg = wdcp.spawns_ceg,
 		}
 		if wdcp.spawn_blocked_by_shield then
 			shieldCollide[weaponDefID] = WeaponDefs[weaponDefID].damages[Game.armorTypes.shield]
