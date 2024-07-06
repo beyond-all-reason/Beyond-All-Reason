@@ -74,7 +74,6 @@ for weaponDefID = 1, #WeaponDefs do
 			feature = wdcp.spawns_feature,
 			surface = wdcp.spawns_surface,
 			mode = wdcp.spawns_mode,
-			ceg = wdcp.spawns_ceg
 		}
 		if wdcp.spawn_blocked_by_shield then
 			shieldCollide[weaponDefID] = WeaponDefs[weaponDefID].damages[Game.armorTypes.shield]
@@ -122,27 +121,26 @@ local function SpawnUnit(spawnData)
 			local unitID = nil
 			if validSurface == true then
 				local ownerID = spawnData.ownerID
-				local ownerWepDefID = spawnData.ownerWepDefID
 				local spawnUnitName
-				if ownerID and spawnNames[ownerWepDefID] then
+				if ownerID and spawnNames[ownerID] then
 					if spawnDef.mode == "random" then
-						local randomUnit = random(#spawnNames[ownerWepDefID].names)
-						spawnUnitName = spawnNames[ownerWepDefID].names[randomUnit]
+						local randomUnit = random(#spawnNames[ownerID].names)
+						spawnUnitName = spawnNames[ownerID].names[randomUnit]
 						
 					elseif spawnDef.mode == "sequential" then
-						local unitNumber = spawnNames[ownerWepDefID].unitSequence
-						spawnUnitName = spawnNames[ownerWepDefID].names[unitNumber]
-						if unitNumber < #spawnNames[ownerWepDefID].names then
-							spawnNames[ownerWepDefID].unitSequence = unitNumber + 1
+						local unitNumber = spawnNames[ownerID].unitSequence
+						spawnUnitName = spawnNames[ownerID].names[unitNumber]
+						if unitNumber < #spawnNames[ownerID].names then
+							spawnNames[ownerID].unitSequence = unitNumber + 1
 						else
-							spawnNames[ownerWepDefID].unitSequence = 1
+							spawnNames[ownerID].unitSequence = 1
 						end
 						
 					elseif spawnDef.mode == "random_locked" then
-						local unitNumber = spawnNames[ownerWepDefID].unitSequence
-						spawnUnitName = spawnNames[ownerWepDefID].names[unitNumber]
+						local unitNumber = spawnNames[ownerID].unitSequence
+						spawnUnitName = spawnNames[ownerID].names[unitNumber]
 					else
-						spawnUnitName = spawnNames[ownerWepDefID].names[1]
+						spawnUnitName = spawnNames[ownerID].names[1]
 					end
 				else
 					local unitName = strSplit(spawnDef.name)
@@ -220,7 +218,6 @@ function gadget:Explosion(weaponDefID, x, y, z, ownerID, proID)
 		spawnData.z = z
 		spawnData.ownerID = ownerID
 		spawnData.teamID = teamID
-		spawnData.ownerWepDefID = weaponDefID
 		spawnList[spawnCount] = spawnData
 	end
 end
@@ -255,14 +252,15 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		if weaponDefID and spawnDefs[weaponDefID] then
 
 			local spawnDef = spawnDefs[weaponDefID]
-			spawnNames[weaponDefID] = {
+			spawnNames[unitID] = {
 			    names = strSplit(spawnDef.name),
 			    unitSequence = 1,
 			}
-			Spring.Echo("unit created ", UnitDefs[unitDefID].name)
-			if spawnDef and spawnDef.mode == "random_locked" and spawnNames[weaponDefID] and spawnNames[weaponDefID].names then
-			    spawnNames[weaponDefID].unitSequence = random(#spawnNames[unitID].names)
+			if spawnDef.mode == "random_locked" then
+			    spawnNames[unitID].unitSequence = random(#spawnNames[unitID].names)
 			end
+		    
+			
 		end
 	end
 end
