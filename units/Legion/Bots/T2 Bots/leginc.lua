@@ -1,6 +1,6 @@
 return {
 	leginc = {
-		maxacc = 0.0552,
+		maxacc = 0.0585,
 		maxdec = 0.43125,
 		energycost = 46000,
 		metalcost = 2300,
@@ -18,9 +18,9 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		mass = 5001,
-		health = 7800,
+		health = 9000,
 		maxslope = 15,
-		speed = 22.5,
+		speed = 24,
 		maxwaterdepth = 23,
 		movementclass = "HBOT4",
 		nochasecategory = "VTOL",
@@ -145,7 +145,7 @@ return {
 					vtol = 11,
 				},
 				customparams = {
-					sweepfire=0.4,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
+					--sweepfire=0.4,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
 				}
 
 			},
