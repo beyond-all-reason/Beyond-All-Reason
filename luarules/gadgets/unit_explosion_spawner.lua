@@ -141,11 +141,7 @@ local function SpawnUnit(spawnData)
 					elseif spawnDef.mode == "random_locked" then
 						local unitNumber = spawnNames[ownerID].weapon[weaponDefID].unitSequence
 						spawnUnitName = spawnNames[ownerID].weapon[weaponDefID].names[unitNumber]
-						if unitNumber < #spawnNames[ownerID].weapon[weaponDefID].names then
-							spawnNames[ownerID].weapon[weaponDefID].unitSequence = unitNumber + 1
-						else
-							spawnNames[ownerID].weapon[weaponDefID].unitSequence = 1
-						end
+						
 					else
 						spawnUnitName = spawnNames[ownerID].weapon[weaponDefID].names[1]
 
