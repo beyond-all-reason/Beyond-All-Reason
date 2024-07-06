@@ -29,6 +29,9 @@ local mods = {
  deselect = false, -- whether to select units not present in current selection
  all      = false, -- whether to select all units
  mobile   = false, -- whether to select only mobile units
+ air      = false, -- whether to select only air units
+ notair   = false, -- whether to exclude air units in selection
+ builder  = false, -- whether to select only builders
 }
 local lastMods = mods
 local lastMouseSelection = {}
@@ -63,6 +66,7 @@ local combatFilter = {}
 local builderFilter = {}
 local buildingFilter = {}
 local mobileFilter = {}
+local airFilter = {}
 for udid, udef in pairs(UnitDefs) do
 	if udef.modCategories['object'] or udef.customParams.objectify then
 		ignoreUnits[udid] = true
@@ -72,6 +76,7 @@ for udid, udef in pairs(UnitDefs) do
 	local builder = (udef.canReclaim and udef.reclaimSpeed > 0)  or  (udef.canResurrect and udef.resurrectSpeed > 0)  or  (udef.canRepair and udef.repairSpeed > 0) or (udef.buildOptions and udef.buildOptions[1])
 	local building = (isMobile == false)
 	local combat = (not builder) and isMobile and (#udef.weapons > 0)
+	local isAir = udef.canfly
 
 	if string.find(udef.name, 'armspid') then
 		builder = false
@@ -80,6 +85,7 @@ for udid, udef in pairs(UnitDefs) do
 	builderFilter[udid] = builder
 	buildingFilter[udid] = building
 	mobileFilter[udid] = isMobile
+	airFilter[udid] = isAir
 end
 
 local dualScreen
@@ -213,11 +219,20 @@ function widget:Update()
 		end
 	end
 
-	if equalsMouseSelection and mods.idle == lastMods[1] and mods.same == lastMods[2] and mods.deselect == lastMods[3] and mods.all == lastMods[4] and mods.mobile == lastMods[5] then
+	if equalsMouseSelection
+		and mods.idle == lastMods[1]
+		and mods.same == lastMods[2]
+		and mods.deselect == lastMods[3]
+		and mods.all == lastMods[4]
+		and mods.mobile == lastMods[5]
+		and mods.air == lastMods[6]
+		and mods.notair == lastMods[7]
+		and mods.builder == lastMods[8]
+	then
 		return
 	end
 
-	lastMods = { mods.idle, mods.same, mods.deselect, mods.all, mods.mobile }
+	lastMods = { mods.idle, mods.same, mods.deselect, mods.all, mods.mobile, mods.air, mods.notair, mods.builder }
 
 	-- Fill dictionary for set comparison
 	-- We increase slightly the perf cost of cache misses but at the same
@@ -304,6 +319,48 @@ function widget:Update()
 			if #tmp == 0 then
 				tmp = tmp2
 			end
+			mouseSelection = tmp
+		end
+	end
+
+	if mods.air then  -- prefer air units
+		tmp = {}
+		for i = 1, #mouseSelection do
+			uid = mouseSelection[i]
+			if airFilter[ spGetUnitDefID(uid) ] then  -- is an air unit
+				tmp[#tmp + 1] = uid
+			end
+		end
+
+		if #tmp ~= 0 then
+			mouseSelection = tmp
+		end
+	end
+
+	if mods.notair then  -- don't prefer air units
+		tmp = {}
+		for i = 1, #mouseSelection do
+			uid = mouseSelection[i]
+			if not airFilter[ spGetUnitDefID(uid) ] then  -- isn't an air unit
+				tmp[#tmp + 1] = uid
+			end
+		end
+
+		if #tmp ~= 0 then
+			mouseSelection = tmp
+		end
+	end
+
+	if mods.builder then  -- prefer builders
+		tmp = {}
+		for i = 1, #mouseSelection do
+			uid = mouseSelection[i]
+			if builderFilter[ spGetUnitDefID(uid) ] then  -- is a builder
+				tmp[#tmp + 1] = uid
+			end
+		end
+
+		if #tmp ~= 0 then
 			mouseSelection = tmp
 		end
 	end
