@@ -32,6 +32,7 @@ local mods = {
  air      = false, -- whether to select only air units
  notair   = false, -- whether to exclude air units in selection
  builder  = false, -- whether to select only builders
+ custom   = false, -- custom modifier
 }
 local lastMods = mods
 local lastMouseSelection = {}
@@ -76,7 +77,7 @@ for udid, udef in pairs(UnitDefs) do
 	local builder = (udef.canReclaim and udef.reclaimSpeed > 0)  or  (udef.canResurrect and udef.resurrectSpeed > 0)  or  (udef.canRepair and udef.repairSpeed > 0) or (udef.buildOptions and udef.buildOptions[1])
 	local building = (isMobile == false)
 	local combat = (not builder) and isMobile and (#udef.weapons > 0)
-	local isAir = udef.canfly
+	local isAir = udef.canFly
 
 	if string.find(udef.name, 'armspid') then
 		builder = false
@@ -228,11 +229,12 @@ function widget:Update()
 		and mods.air == lastMods[6]
 		and mods.notair == lastMods[7]
 		and mods.builder == lastMods[8]
+		and mods.custom == lastMods[9]
 	then
 		return
 	end
 
-	lastMods = { mods.idle, mods.same, mods.deselect, mods.all, mods.mobile, mods.air, mods.notair, mods.builder }
+	lastMods = { mods.idle, mods.same, mods.deselect, mods.all, mods.mobile, mods.air, mods.notair, mods.builder, mods.custom }
 
 	-- Fill dictionary for set comparison
 	-- We increase slightly the perf cost of cache misses but at the same
@@ -358,6 +360,21 @@ function widget:Update()
 			if builderFilter[ spGetUnitDefID(uid) ] then  -- is a builder
 				tmp[#tmp + 1] = uid
 			end
+		end
+
+		if #tmp ~= 0 then
+			mouseSelection = tmp
+		end
+	end
+
+
+	if mods.custom then  -- custom modifier
+		tmp = {}
+		for i = 1, #mouseSelection do
+			uid = mouseSelection[i]
+			-- if customFilter[ spGetUnitDefID(uid) ] then  -- apply the custom filter
+			-- 	tmp[#tmp + 1] = uid
+			-- end
 		end
 
 		if #tmp ~= 0 then
