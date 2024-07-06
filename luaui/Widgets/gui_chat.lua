@@ -44,6 +44,7 @@ local maxTextInputChars = 127	-- tested 127 as being the true max
 local inputButton = true
 local allowMultiAutocomplete = true
 local allowMultiAutocompleteMax = 10
+local soundErrorsLimit = 15		-- limit max amount of sound errors (sometimes when your device disconnects you will get to see a sound error every call)
 
 local ui_scale = Spring.GetConfigFloat("ui_scale", 1)
 local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
@@ -86,7 +87,6 @@ local prevOrgLines
 local playSound = true
 local sndChatFile  = 'beep4'
 local sndChatFileVolume = 0.55
-local sndMapmarkFile = 'sounds/ui/mappoint2.wav'
 
 local colorOther = {1,1,1} -- normal chat color
 local colorAlly = {0,1,0}
@@ -159,6 +159,8 @@ local spGetTeamColor = Spring.GetTeamColor
 local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
 local spPlaySoundFile = Spring.PlaySoundFile
 local spGetGameFrame = Spring.GetGameFrame
+
+local soundErrors = {}
 
 local autocompleteCommands = {
 	-- engine
@@ -974,6 +976,12 @@ local function processAddConsoleLine(gameFrame, line, addOrgLine, doConsoleLine)
 			bypassThisMessage = true
 		elseif sfind(line,"HandleLobbyOverlay", nil, true) then
 			bypassThisMessage = true
+		elseif sfind(line,"could not load sound", nil, true) then
+			if soundErrors[line] or #soundErrors > soundErrorsLimit then
+				bypassThisMessage = true
+			else
+				soundErrors[line] = true
+			end
 
 			-- filter chobby (debug) messages
 		elseif sfind(line,"Chobby]", nil, true) then
@@ -2351,6 +2359,9 @@ function widget:SetConfigData(data)
 	if data.orgLines ~= nil then
 		if Spring.GetGameFrame() > 0 or (data.gameID and data.gameID == (Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID"))) then
 			orgLines = data.orgLines
+			if data.soundErrors then
+				soundErrors = data.soundErrors
+			end
 		elseif data.gameID then
 			prevGameID = data.gameID
 			prevOrgLines = data.orgLines
