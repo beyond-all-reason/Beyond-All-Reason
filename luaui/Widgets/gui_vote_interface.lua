@@ -444,8 +444,7 @@ function widget:AddConsoleLine(lines, priority)
 					local isTeamResignVote = teamResignTarget ~= nil
 
 					local isResignVote = isIndividualResignVote or isTeamResignVote
-					local isResignVoteMyTeam = (isIndividualResignVote and isTeamPlayer(individualResignTarget))
-						or (isTeamResignVote and isTeamPlayer(teamResignTarget))
+					local isResignVoteMyTeam = mySpec or (isIndividualResignVote and isTeamPlayer(individualResignTarget)) or (isTeamResignVote and isTeamPlayer(teamResignTarget))
 
 					-- colorize playername
 					if isResignVote or isResignVoteMyTeam then
