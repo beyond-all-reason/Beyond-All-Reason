@@ -122,26 +122,33 @@ local function SpawnUnit(spawnData)
 			local unitID = nil
 			if validSurface == true then
 				local ownerID = spawnData.ownerID
+				local weaponDefID = spawnData.weaponDefID
 				local spawnUnitName
-				if ownerID and spawnNames[ownerID] then
+				if ownerID and weaponDefID and spawnNames[ownerID] and spawnNames[ownerID].weapon[weaponDefID] then
 					if spawnDef.mode == "random" then
-						local randomUnit = random(#spawnNames[ownerID].names)
-						spawnUnitName = spawnNames[ownerID].names[randomUnit]
-						
+						local randomUnit = random(#spawnNames[ownerID].weapon[weaponDefID].names)
+						spawnUnitName = spawnNames[ownerID].weapon[weaponDefID].names[randomUnit]
 					elseif spawnDef.mode == "sequential" then
-						local unitNumber = spawnNames[ownerID].unitSequence
-						spawnUnitName = spawnNames[ownerID].names[unitNumber]
-						if unitNumber < #spawnNames[ownerID].names then
-							spawnNames[ownerID].unitSequence = unitNumber + 1
+						local unitNumber = spawnNames[ownerID].weapon[weaponDefID].unitSequence
+						spawnUnitName = spawnNames[ownerID].weapon[weaponDefID].names[unitNumber]
+						if unitNumber < #spawnNames[ownerID].weapon[weaponDefID].names then
+							spawnNames[ownerID].weapon[weaponDefID].unitSequence = unitNumber + 1
 						else
-							spawnNames[ownerID].unitSequence = 1
+							spawnNames[ownerID].weapon[weaponDefID].unitSequence = 1
+							
 						end
 						
 					elseif spawnDef.mode == "random_locked" then
-						local unitNumber = spawnNames[ownerID].unitSequence
-						spawnUnitName = spawnNames[ownerID].names[unitNumber]
+						local unitNumber = spawnNames[ownerID].weapon[weaponDefID].unitSequence
+						spawnUnitName = spawnNames[ownerID].weapon[weaponDefID].names[unitNumber]
+						if unitNumber < #spawnNames[ownerID].weapon[weaponDefID].names then
+							spawnNames[ownerID].weapon[weaponDefID].unitSequence = unitNumber + 1
+						else
+							spawnNames[ownerID].weapon[weaponDefID].unitSequence = 1
+						end
 					else
-						spawnUnitName = spawnNames[ownerID].names[1]
+						spawnUnitName = spawnNames[ownerID].weapon[weaponDefID].names[1]
+
 					end
 				else
 					local unitName = strSplit(spawnDef.name)
@@ -219,6 +226,7 @@ function gadget:Explosion(weaponDefID, x, y, z, ownerID, proID)
 		spawnData.z = z
 		spawnData.ownerID = ownerID
 		spawnData.teamID = teamID
+		spawnData.weaponDefID = weaponDefID
 		spawnList[spawnCount] = spawnData
 	end
 end
@@ -253,14 +261,20 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		if weaponDefID and spawnDefs[weaponDefID] then
 
 			local spawnDef = spawnDefs[weaponDefID]
-			spawnNames[unitID] = {
-			    names = strSplit(spawnDef.name),
-			    unitSequence = 1,
-			}
-			if spawnDef.mode == "random_locked" then
-			    spawnNames[unitID].unitSequence = random(#spawnNames[unitID].names)
+			if not spawnNames[unitID] then
+			    spawnNames[unitID] = {
+			        weapon = {}
+			    }
 			end
-		    
+			if spawnNames[unitID] then
+    			spawnNames[unitID].weapon[weaponDefID] = {
+    			    names = strSplit(spawnDef.name),
+    			    unitSequence = 1,
+    			}
+    			if spawnDef.mode == "random_locked" then
+    			    spawnNames[unitID].weapon[weaponDefID].unitSequence = random(#spawnNames[unitID].weapon[weaponDefID].names)
+    			end
+		    end
 			
 		end
 	end
