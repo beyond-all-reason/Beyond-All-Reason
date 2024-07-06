@@ -26,9 +26,8 @@ function gadget:GetInfo()
     
     local mapx = Game.mapSizeX
     local mapz = Game.mapSizeZ
-   local cloudMult = math.ceil((((mapx+mapz)*0.5)/8000)^2)
+    local cloudMult = math.ceil(((mapx+mapz)*0.5)/4000)
     local maxMists = (#teams-2)*5*cloudMult
-    Spring.Echo("cloudMult ", cloudMult)
     
     function gadget:GameFrame(frame)
         for _ = 1, cloudMult do
