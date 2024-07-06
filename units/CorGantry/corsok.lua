@@ -128,7 +128,7 @@ return {
 				intensity=2.2,
 				name = "Disruptor Bolt",
 				range = 725,
-				reloadtime = 5,
+				reloadtime = 4.5,
 				rgbcolor  = "0.0 0.5 0.8",
                 rgbcolor2 = "0.2 0.8 1.0",
 				soundhitdry = "xplosml5",
@@ -141,10 +141,11 @@ return {
 				turnrate = 20000,
 				turret = true,
 				weapontype = "LaserCannon",
-				weaponvelocity = 1600,
+				weaponvelocity = 1673,
 				damage = {
 					default = 750,
 					subs = 500,
+					vtol = 250,
 				},
 			},
 			depthcharge = {
