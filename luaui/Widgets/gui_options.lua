@@ -63,7 +63,8 @@ local hideOtherLanguagesVoicepacks = true	-- maybe later allow people to pick ot
 
 local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
 
-local devMode = Spring.Utilities.IsDevMode() or Spring.Utilities.ShowDevUI()
+local devMode = Spring.Utilities.IsDevMode()
+
 local advSettings = false
 local initialized = false
 local pauseGameWhenSingleplayer = true
@@ -280,9 +281,8 @@ local function showOption(option)
 	if not option.category
 		or option.category == types.basic
 		or (advSettings and option.category == types.advanced)
-		or (devMode and option.group == "dev")
+		or devMode
 		or Spring.Utilities.ShowDevUI() then
-
 		return true
 	end
 	return false
@@ -4213,6 +4213,17 @@ function init()
 
 		{ id = "antiranges", group = "ui", category = types.advanced, widget = "Anti Ranges", name = Spring.I18N('ui.settings.option.antiranges'), type = "bool", value = GetWidgetToggleValue("Anti Ranges"), description = Spring.I18N('ui.settings.option.antiranges_descr') },
 
+
+		{ id = "label_ui_developer", group = "ui", name = Spring.I18N('ui.settings.option.label_developer'), category = types.advanced },
+		{ id = "label_ui_developer_spacer", group = "ui", category = types.advanced },
+
+		{ id = "devmode", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.devmode'), type = "bool", value = Spring.Utilities.ShowDevUI(), description = Spring.I18N('ui.settings.option.devmode_descr'),
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("DevUI", value and 1 or 0)
+			  Spring.SendCommands("luaui reload")
+		  end,
+		},
+
 		-- GAME
 		{ id = "networksmoothing", restart = true, category = types.basic, group = "game", name = Spring.I18N('ui.settings.option.networksmoothing'), type = "bool", value = useNetworkSmoothing, description = Spring.I18N('ui.settings.option.networksmoothing_descr'),
 		  onload = function(i)
@@ -4529,12 +4540,6 @@ function init()
 		},
 
 		-- DEV
-		{ id = "devmode", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.devmode'), type = "bool", value = Spring.Utilities.ShowDevUI(), description = Spring.I18N('ui.settings.option.devmode_descr'),
-			onchange = function(i, value)
-				Spring.SetConfigInt("DevUI", value and 1 or 0)
-				Spring.SendCommands("luaui reload")
-			end,
-		},
 		{ id = "customwidgets", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.customwidgets'), type = "bool", value = widgetHandler.allowUserWidgets, description = Spring.I18N('ui.settings.option.customwidgets_descr'),
 		  onchange = function(i, value)
 			  widgetHandler.__allowUserWidgets = value
@@ -5575,6 +5580,13 @@ function init()
 			localWidgetCount = localWidgetCount + 1
 		end
 	end
+
+	if devMode then
+		options[getOptionByID('devmode')] = nil
+		options[getOptionByID('label_ui_developer')] = nil
+		options[getOptionByID('label_ui_developer_spacer')] = nil
+	end
+
 	if devMode or localWidgetCount == 0 then
 		options[getOptionByID('widgetselector')] = nil
 	end

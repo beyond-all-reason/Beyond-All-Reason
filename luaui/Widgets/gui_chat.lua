@@ -2351,6 +2351,7 @@ function widget:GetConfigData(data)
 		showHistoryWhenChatInput = showHistoryWhenChatInput,
 		showHistoryWhenCtrlShift = showHistoryWhenCtrlShift,
 		enableShortcutClick = enableShortcutClick,
+		soundErrors = soundErrors,
 		version = 1,
 	}
 end
