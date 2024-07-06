@@ -604,13 +604,13 @@ end
 --============================================================--
 
 --- Metatable for Vec2 objects
-local vec2 = {
+local Vec2 = {
 	__name = 'Vec2', -- Meta name for type checking
 
 	x = 0, -- X value
 	z = 0, -- Z value
 }
-vec2.__index = vec2
+Vec2.__index = Vec2
 
 ----------------------------------------------------------------
 
@@ -618,7 +618,7 @@ vec2.__index = vec2
 -- @number x The X value
 -- @number z The Z value
 -- @treturn table Instance derived from Vec2 metatable
-function vec2:new(x, z)
+function Vec2:new(x, z)
 	local object = {}
 
 	setmetatable(object, self)
@@ -635,7 +635,7 @@ end
 -- @string file The name of the file to be used for logging validity errors
 -- @string module The name of the module to be used for logging validity errors
 -- @treturn boolean False if any validity errors are found
-function vec2:validate(file, module)
+function Vec2:validate(file, module)
 	local valid = true
 
 	valid = valid and checkField(file, module, self.__name, 'x', self.x, 'number', true)
@@ -685,7 +685,7 @@ end
 -- @string file The name of the file to be used for logging validity errors
 -- @string module The name of the module to be used for logging validity errors
 -- @treturn boolean False if any validity errors are found
-function vec2:validate(file, module)
+function vec3:validate(file, module)
 	local valid = true
 
 	valid = valid and checkField(file, module, self.__name, 'x', self.x, 'number', true)
@@ -694,7 +694,48 @@ function vec2:validate(file, module)
 
 	return valid
 end
+--============================================================--
 
+-- Direction
+
+--============================================================--
+local Direction = {
+	__name = 'Direction', -- Meta name for type checking
+
+	north = 'n',
+	south = 's',
+	west = 'w',
+	east = 'e',
+}
+Direction.__index = Direction
+----------------------------------------------------------------
+
+function Direction:new(n, s, w, e)
+	local object = {}
+
+	setmetatable(object, self)
+
+	object.n = n or self.n
+	object.s = s or self.s
+	object.w = w or self.w
+	object.e = e or self.e
+
+	return object
+end
+
+----------------------------------------------------------------
+function Direction:validate(file, module)
+	local valid = true
+
+	valid = valid and checkField(file, module, self.__name, 'n', self.n, 'string', true)
+	valid = valid and checkField(file, module, self.__name, 's', self.s, 'string', true)
+	valid = valid and checkField(file, module, self.__name, 'w', self.w, 'string', true)
+	valid = valid and checkField(file, module, self.__name, 'e', self.e, 'string', true)
+
+	return valid
+
+end
+----------------------------------------------------------------
 --============================================================--
 
 return {
@@ -702,10 +743,8 @@ return {
 	Timer = timer,
 	Unit = unit,
 	UnitDef = unitDef,
-	Vec2 = vec2,
+	Vec2 = Vec2,
 	Vec3 = vec3,
+	Direction = Direction,
 }
-
---============================================================--
-
 --@end

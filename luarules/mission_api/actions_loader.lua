@@ -26,18 +26,35 @@ local function prevalidateActions()
 				Spring.Log('actions_loader.lua', LOG.ERROR, "[Mission API] Action missing required parameter. Action: " .. actionID .. ", Parameter: " .. parameter.name)
 			end
 
-			-- Custom Types
-			if value ~= nil and GG['MissionAPI'].Types[parameter.type] then
-				if value.__name ~= parameter.type then
-					local actualType = value.__name or type(value)
-					Spring.Log('actions_loader.lua', LOG.ERROR, "[Mission API] Unexpected parameter type, expected " .. parameter.type .. ", got " .. actualType .. ". Action: " .. actionID .. ", Parameter: " .. parameter.name)
-				elseif value.validate then 
-					value.validate('actions_loader.lua', 'Mission API') 
-				end
+-- Custom Types & validation logic for Vec2 and Direction
+if value ~= nil and GG['MissionAPI'].Types[parameter.type] then
+    local expectedType = GG['MissionAPI'].Types[parameter.type].__name
+
+    local valueType = type(value)
+
+    if valueType == 'table' then
+        if expectedType == 'Vec2' then
+            if value.x and value.z then
+                Spring.Log('actions_loader.lua', LOG.INFO, "[Mission API] Expected parameter type: " .. expectedType .. ", successfully detected Vec2.")
+            else
+                Spring.Log('actions_loader.lua', LOG.ERROR, "[Mission API] Vec2 object missing x and z properties. Action: " .. actionID .. ", Parameter: " .. parameter.name)
+            end
+		elseif expectedType == 'Direction' then
+			if value.north == 'n' or value.south == 's' or value.west == 'w' or value.east == 'e' then
+				Spring.Log('actions_loader.lua', LOG.INFO, "[Mission API] Expected parameter type: " .. expectedType .. ", successfully detected Direction.")
+			else
+				Spring.Log('actions_loader.lua', LOG.ERROR, "[Mission API] Direction object missing valid properties (n, s, w, e). Action: " .. actionID .. ", Parameter: " .. parameter.name)
+			end
+		else
+			Spring.Log('actions_loader.lua', LOG.ERROR, "[Mission API] Unexpected parameter type, expected " .. parameter.type .. ", got unknown type. Action: " .. actionID .. ", Parameter: " .. parameter.name)
+		end
+		else
+			Spring.Log('actions_loader.lua', LOG.ERROR, "[Mission API] Invalid value or type for parameter: " .. parameter.name .. ". Action: " .. actionID)
+		end
 
 			-- Lua Types
 			elseif value ~= nil and parameterType ~= parameter.type then
-				Spring.Log('actions_loader.lua', LOG.ERROR, "[Mission API] Unexpected parameter type, expected " .. parameter.type .. ", got " .. parameterType .. ". Action: " .. actionID .. ", Parameter: " .. parameter.name)
+				Spring.Log('actions_loader.lua', LOG.ERROR, "[Mission API] Unexpected parameter type3, expected " .. parameter.type .. ", got " .. parameterType .. ". Action: " .. actionID .. ", Parameter: " .. parameter.name)
 			end
 		end
 	end
