@@ -30,7 +30,9 @@ local mods = {
  all      = false, -- whether to select all units
  mobile   = false, -- whether to select only mobile units
 }
+local customFilterDef = ""
 local lastMods = mods
+local lastCustomFilterDef = customFilterDef
 local lastMouseSelection = {}
 local lastMouseSelectionCount = 0
 
@@ -63,6 +65,12 @@ local combatFilter = {}
 local builderFilter = {}
 local buildingFilter = {}
 local mobileFilter = {}
+local airFilter = {}
+local idMatchFilter = {}
+local customFilter = {}
+
+local nameLookup = {}
+
 for udid, udef in pairs(UnitDefs) do
 	if udef.modCategories['object'] or udef.customParams.objectify then
 		ignoreUnits[udid] = true
@@ -72,6 +80,7 @@ for udid, udef in pairs(UnitDefs) do
 	local builder = (udef.canReclaim and udef.reclaimSpeed > 0)  or  (udef.canResurrect and udef.resurrectSpeed > 0)  or  (udef.canRepair and udef.repairSpeed > 0) or (udef.buildOptions and udef.buildOptions[1])
 	local building = (isMobile == false)
 	local combat = (not builder) and isMobile and (#udef.weapons > 0)
+	local isAir = udef.canFly
 
 	if string.find(udef.name, 'armspid') then
 		builder = false
@@ -80,6 +89,10 @@ for udid, udef in pairs(UnitDefs) do
 	builderFilter[udid] = builder
 	buildingFilter[udid] = building
 	mobileFilter[udid] = isMobile
+
+	-- simple filters
+	airFilter[udid] = udef.canFly
+	nameLookup[udef.name] = udid
 end
 
 local dualScreen
@@ -106,8 +119,98 @@ local function GetUnitsInMinimapRectangle(x, y)
 	return spGetUnitsInRectangle(left, bottom, right, top)
 end
 
-local function setModifier(_, _, _, data)
+local function handleSetModifier(_, _, _, data)
 	mods[data[1]] = data[2]
+end
+
+local function invertCurry(invert, rule)
+   return function(uid)
+		local result = (rule(uid) or false) ~= invert
+		return result
+   end
+end
+
+local function handleSetCustomFilter(_, args)
+	local tokens = {}
+	local tokenIndex = 1
+
+	for token in args:gmatch("[^_]+") do
+		table.insert(tokens, token)
+	end
+
+	local function getNextToken()
+		local token = tokens[tokenIndex]
+		tokenIndex = tokenIndex + 1
+		return token
+	end
+
+	local rules = {}
+
+	while true do
+		local token = getNextToken()
+
+		local invert = false
+
+		if token == "Not" then
+			invert = true;
+			token = getNextToken()
+		end
+
+		if not token then
+			break
+		end
+
+		if token == "IdMatches" then
+			while tokenIndex <= #tokens do
+				local name = getNextToken()
+				local uid = nameLookup[name];
+				idMatchFilter[uid] = true
+			end
+
+			rules.idMatches = invertCurry(invert, function(uid) return idMatchFilter[uid] end)
+		elseif token == "Builder" then
+			rules.builderRule = invertCurry(invert, function(uid) return builderFilter[uid] end)
+			-- elseif token == "Buildoptions" then
+			-- 	return not unit.unitDef.buildOptions:empty()
+			-- elseif token == "Resurrect" then
+			-- 	return unit.unitDef.canResurrect
+			-- elseif token == "Stealth" then
+			-- 	return unit.unitDef.stealth
+			-- elseif token == "Cloak" then
+			-- 	return unit.unitDef.canCloak
+			-- elseif token == "Cloaked" then
+			-- 	return unit.isCloaked
+			-- elseif token == "Building" then
+			-- 	return unit.unitDef:IsBuildingUnit()
+			-- elseif token == "Transport" then
+			-- 	return unit.unitDef:IsTransportUnit()
+		elseif token == "Aircraft" then
+			rules.aircraftRule = invertCurry(invert, function(uid) return airFilter[uid] end)
+			-- elseif token == "Weapons" then
+			-- 	return not unit.weapons:empty()
+			-- elseif token == "Idle" then
+			-- 	return unit.commandAI.commandQue:empty()
+			-- elseif token == "Waiting" then
+			-- 	return not unit.commandAI.commandQue:empty() and unit.commandAI.commandQue.front().GetID() == CMD_WAIT
+			-- elseif token == "Guarding" then
+			-- 	return not unit.commandAI.commandQue:empty() and unit.commandAI.commandQue.front().GetID() == CMD_GUARD
+			-- elseif token == "InHotkeyGroup" then
+			-- 	return unit:GetGroup() ~= nil
+			-- elseif token == "Radar" then
+			-- 	return unit.radarRadius > 0 or unit.sonarRadius > 0
+			-- elseif token == "Jammer" then
+			-- 	return unit.jammerRadius > 0
+			-- elseif token == "ManualFireUnit" then
+			-- 	return unit.unitDef.canManualFire
+		end
+	end
+	customFilterDef = args
+	customFilter = rules
+end
+
+local function handleClearCustomFilter(_, _, _)
+	customFilter = {}
+	customFilterDef = ""
 end
 
 
@@ -213,11 +316,19 @@ function widget:Update()
 		end
 	end
 
-	if equalsMouseSelection and mods.idle == lastMods[1] and mods.same == lastMods[2] and mods.deselect == lastMods[3] and mods.all == lastMods[4] and mods.mobile == lastMods[5] then
+	if equalsMouseSelection
+		and mods.idle == lastMods[1]
+		and mods.same == lastMods[2]
+		and mods.deselect == lastMods[3]
+		and mods.all == lastMods[4]
+		and mods.mobile == lastMods[5]
+		and customFilterDef == lastCustomFilterDef
+	then
 		return
 	end
 
 	lastMods = { mods.idle, mods.same, mods.deselect, mods.all, mods.mobile }
+	lastCustomFilterDef = customFilterDef
 
 	-- Fill dictionary for set comparison
 	-- We increase slightly the perf cost of cache misses but at the same
@@ -230,6 +341,31 @@ function widget:Update()
 	end
 
 	mouseSelection = tmp
+
+	if next(customFilter) ~= nil then -- use custom filter if it's not empty
+		tmp = {}
+		for i = 1, #mouseSelection do
+			uid = mouseSelection[i]
+
+			local defid = spGetUnitDefID(uid)
+			local passesAllRules = true
+
+			for _ruleName, rule in pairs(customFilter) do
+				if not rule(defid) then
+					passesAllRules = false
+					break
+				end
+			end
+
+			if passesAllRules then
+				tmp[#tmp + 1] = uid
+			end
+		end
+
+		if #tmp ~= 0 then -- treat the filter as a preference
+			mouseSelection = tmp -- if no units match, just keep everything
+		end
+	end
 
 	if mods.idle then
 		tmp = {}
@@ -312,7 +448,7 @@ function widget:Update()
 		newSelection = referenceSelection
 	end
 
-	if mods.deselect then  -- deselect units inside the selection rectangle, if we already had units selected
+	if mods.deselect then -- deselect units inside the selection rectangle, if we already had units selected
 		local negative = {}
 		for i = 1, #mouseSelection do
 			uid = mouseSelection[i]
@@ -376,9 +512,12 @@ function widget:Initialize()
 	WG.SmartSelect_MousePress2 = mousePress
 
 	for modifierName, _ in pairs(mods) do
-		widgetHandler:AddAction("selectbox_" .. modifierName, setModifier, { modifierName,  true }, "p")
-		widgetHandler:AddAction("selectbox_" .. modifierName, setModifier, { modifierName, false }, "r")
+		widgetHandler:AddAction("selectbox_" .. modifierName, handleSetModifier, { modifierName, true }, "p")
+		widgetHandler:AddAction("selectbox_" .. modifierName, handleSetModifier, { modifierName, false }, "r")
 	end
+
+	widgetHandler:AddAction("selectbox", handleSetCustomFilter, nil, "p")
+	widgetHandler:AddAction("selectbox", handleClearCustomFilter, nil, "r")
 
 	WG['smartselect'] = {}
 	WG['smartselect'].getIncludeBuildings = function()
