@@ -46,16 +46,12 @@ end
 local isPotatoCpu = false
 local isPotatoGpu = false
 local gpuMem = (Platform.gpuMemorySize and Platform.gpuMemorySize or 1000) / 1000
---if Platform ~= nil and Platform.gpuVendor == 'Intel' then
---	isPotatoGpu = true
---end
 if not gpuMem then
 	gpuMem = 0
 end
 if gpuMem > 0 and gpuMem < 2500 then
 	isPotatoGpu = true
-end
-if not Platform.glHaveGL4 then
+elseif not Platform.glHaveGL4 then
 	isPotatoGpu = true
 end
 
@@ -64,6 +60,7 @@ local hideOtherLanguagesVoicepacks = true	-- maybe later allow people to pick ot
 local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
 
 local devMode = Spring.Utilities.IsDevMode()
+local devUI = Spring.Utilities.ShowDevUI()
 
 local advSettings = false
 local initialized = false
@@ -74,7 +71,6 @@ local cameraPanTransitionTime = 0.03
 
 local optionColor = '\255\255\255\255'
 local widgetOptionColor = '\255\160\160\160'
-local musicOptionColor = '\255\130\160\130'
 local devOptionColor = '\255\200\110\100'
 local devMainOptionColor = '\255\245\166\140'
 
@@ -281,8 +277,7 @@ local function showOption(option)
 	if not option.category
 		or option.category == types.basic
 		or (advSettings and option.category == types.advanced)
-		or devMode
-		or Spring.Utilities.ShowDevUI() then
+		or (devMode or devUI) then
 		return true
 	end
 	return false
@@ -564,7 +559,7 @@ function DrawWindow()
 	local color2 = '\255\125\125\125'
 	local color = '\255\255\255\255'
 	local title = ""
-	if devMode then
+	if devMode or devUI then
 		title = devOptionColor .. Spring.I18N('ui.settings.option.devmode')
 	elseif advSettings then
 		title = "" .. color2 .. Spring.I18N('ui.settings.basic') .. "  /  " .. color .. Spring.I18N('ui.settings.advanced')
@@ -593,7 +588,7 @@ function DrawWindow()
 		for id, group in pairs(optionGroups) do
 			if group.numOptions > 0 then
 				groupRect[id] = { xpos, titleRect[2], math.floor(xpos + (font2:GetTextWidth(group.name) * tabFontSize) + (33 * widgetScale)), titleRect[4] }
-				if devMode or group.id ~= 'dev' then
+				if devMode or devUI or group.id ~= 'dev' then
 					xpos = groupRect[id][3]
 					if currentGroupTab == nil or currentGroupTab ~= group.id then
 						RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], elementCorner, 1, 1, 0, 0, WG['guishader'] and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG['guishader'] and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
@@ -1053,7 +1048,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
 			return true
 		elseif groupRect ~= nil then
 			for id, group in pairs(optionGroups) do
-				if devMode or group.id ~= 'dev' then
+				if devMode or devUI or group.id ~= 'dev' then
 					if math_isInRect(mx, my, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
 						return true
 					end
@@ -1083,10 +1078,7 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 end
 
-local quitscreen = false
-local prevQuitscreen = false
-
-function widget:DrawScreen()
+local function checkPause()
 	-- pause/unpause when the options/quitscreen interface shows
 	local _, _, isClientPaused, _ = Spring.GetGameState()
 	if not isClientPaused then
@@ -1104,6 +1096,11 @@ function widget:DrawScreen()
 			pauseGameWhenSingleplayerExecuted = show
 		end
 	end
+end
+
+local quitscreen = false
+local prevQuitscreen = false
+local function checkQuitscreen()
 	quitscreen = (WG['topbar'] and WG['topbar'].showingQuit() or false)
 	if (isSinglePlayer or isReplay) and pauseGameWhenSingleplayer and prevQuitscreen ~= quitscreen then
 		if quitscreen and isClientPaused and not showToggledOff then
@@ -1115,6 +1112,12 @@ function widget:DrawScreen()
 		end
 	end
 	prevQuitscreen = quitscreen
+end
+
+function widget:DrawScreen()
+	-- doing in separate functions to prevent a > 60 upvalues error
+	checkPause()
+	checkQuitscreen()
 
 	-- doing it here so other widgets having higher layer number value are also loaded
 	if not initialized then
@@ -1152,7 +1155,7 @@ function widget:DrawScreen()
 			if groupRect ~= nil then
 				for id, group in pairs(optionGroups) do
 					if group.numOptions > 0 then
-						if devMode or group.id ~= 'dev' then
+						if devMode or devUI or group.id ~= 'dev' then
 							if math_isInRect(mx, my, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
 								Spring.SetMouseCursor('cursornormal')
 								break
@@ -1176,7 +1179,7 @@ function widget:DrawScreen()
 							guishaderedTabs = true
 							for id, group in pairs(optionGroups) do
 								if group.numOptions > 0 then
-									if devMode or group.id ~= 'dev' then
+									if devMode or devUI or group.id ~= 'dev' then
 										if groupRect[id] then
 											RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], elementCorner, 1, 1, 0, 0)
 										end
@@ -1194,7 +1197,7 @@ function widget:DrawScreen()
 
 			-- mouseover (highlight and tooltip)
 			local description = ''
-			if not devMode and titleRect ~= nil and math_isInRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
+			if not (devMode or devUI) and titleRect ~= nil and math_isInRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
 				local groupMargin = math.floor(bgpadding * 0.8)
 				-- gloss
 				glBlending(GL_SRC_ALPHA, GL_ONE)
@@ -1206,7 +1209,7 @@ function widget:DrawScreen()
 				if groupRect ~= nil then
 					for id, group in pairs(optionGroups) do
 						if group.numOptions > 0 then
-							if devMode or group.id ~= 'dev' then
+							if devMode or devUI or group.id ~= 'dev' then
 								if math_isInRect(mx, my, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
 									mouseoverGroupTab(id)
 								end
@@ -1248,7 +1251,7 @@ function widget:DrawScreen()
 					for i, o in pairs(optionHover) do
 						if options[i] and math_isInRect(mx, my, o[1], o[2], o[3], o[4]) and options[i].type and options[i].type ~= 'label' and options[i].type ~= 'text' then
 							-- display console command at the bottom
-							if (advSettings or devMode) and (options[i].onchange ~= nil or options[i].widget) then
+							if (advSettings or devMode or devUI) and (options[i].onchange ~= nil or options[i].widget) then
 								if not consoleCmdDlist or not lastConsoleCmdOption or lastConsoleCmdOption ~= options[i].id then
 									if consoleCmdDlist then
 										consoleCmdDlist = glDeleteList(consoleCmdDlist)
@@ -1592,7 +1595,7 @@ function mouseEvent(mx, my, button, release)
 		if not (inputText and inputText ~= '' and inputMode == '') and groupRect ~= nil then
 			for id, group in pairs(optionGroups) do
 				if group.numOptions > 0 then
-					if devMode or group.id ~= 'dev' then
+					if devMode or devUI or group.id ~= 'dev' then
 						if math_isInRect(mx, my, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
 							if not release then
 								currentGroupTab = group.id
@@ -1612,7 +1615,7 @@ function mouseEvent(mx, my, button, release)
 
 		if button == 1 then
 			if release then
-				if not devMode and titleClick then
+				if not (devMode or devUI) and titleClick then
 					advSettings = not advSettings
 					startColumn = 1
 				end
@@ -1967,7 +1970,7 @@ function init()
 			if v_px >= display.x and v_px < display.x + display.width and v_py >= display.y and v_py < display.y + display.height then
 				currentDisplay = index
 			end
-		elseif devMode then -- advSettings
+		elseif devMode or devUI then -- advSettings
 			displayNames[index] = display.name
 			hasMultiDisplayOption = true
 		end
@@ -4214,8 +4217,9 @@ function init()
 		{ id = "label_ui_developer", group = "ui", name = Spring.I18N('ui.settings.option.label_developer'), category = types.advanced },
 		{ id = "label_ui_developer_spacer", group = "ui", category = types.advanced },
 
-		{ id = "devmode", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.devmode'), type = "bool", value = Spring.Utilities.ShowDevUI(), description = Spring.I18N('ui.settings.option.devmode_descr'),
+		{ id = "devmode", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.devmode'), type = "bool", value = devUI, description = Spring.I18N('ui.settings.option.devmode_descr'),
 		  onchange = function(i, value)
+			  devUI = value
 			  Spring.SetConfigInt("DevUI", value and 1 or 0)
 			  Spring.SendCommands("luaui reload")
 		  end,
@@ -6203,16 +6207,6 @@ function widget:Initialize()
 	if widgetHandler:IsWidgetKnown("Fog Volumes Old GL4") then
 		widgetHandler:DisableWidget("Fog Volumes Old GL4")
 	end
-
-	-- enable previous default disabled widgets to their new default state
-	if newerVersion then
-		if version <= 1.4 then
-			if widgetHandler.orderList["Commblast Range GL4"] and widgetHandler.orderList["Commblast Range GL4"] < 0.5 then
-				widgetHandler:EnableWidget("Commblast Range GL4")
-			end
-		end
-	end
-
 	if widgetHandler.orderList["FlowUI"] and widgetHandler.orderList["FlowUI"] < 0.5 then
 		widgetHandler:EnableWidget("FlowUI")
 	end
