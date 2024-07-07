@@ -1416,53 +1416,60 @@ local squadSpawnOptionsTable = {
 	healerLand = {}, -- Healers/Medics
 	healerSea = {}, -- Healers/Medics
 	commanders = {
-		["armcom_scav"]      = { minAnger = 10, maxAnger = 40, maxAlive = 1 },
-		["armcomlvl2_scav"]  = { minAnger = 15, maxAnger = 50, maxAlive = 1 },
-		["armcomlvl3_scav"]  = { minAnger = 20, maxAnger = 60, maxAlive = 1 },
-		["armcomlvl4_scav"]  = { minAnger = 30, maxAnger = 70, maxAlive = 1 },
-		["armcomlvl5_scav"]  = { minAnger = 40, maxAnger = 80, maxAlive = 1 },
-		["armcomlvl6_scav"]  = { minAnger = 50, maxAnger = 90, maxAlive = 1 },
-		["armcomlvl7_scav"]  = { minAnger = 60, maxAnger = 100, maxAlive = 1 },
-		["armcomlvl8_scav"]  = { minAnger = 70, maxAnger = 110, maxAlive = 1 },
-		["armcomlvl9_scav"]  = { minAnger = 80, maxAnger = 120, maxAlive = 1 },
-		["armcomlvl10_scav"] = { minAnger = 90, maxAnger = 1000, maxAlive = 4 },
-		["corcom_scav"]      = { minAnger = 10, maxAnger = 40, maxAlive = 1 },
-		["corcomlvl2_scav"]  = { minAnger = 15, maxAnger = 50, maxAlive = 1 },
-		["corcomlvl3_scav"]  = { minAnger = 20, maxAnger = 60, maxAlive = 1 },
-		["corcomlvl4_scav"]  = { minAnger = 30, maxAnger = 70, maxAlive = 1 },
-		["corcomlvl5_scav"]  = { minAnger = 40, maxAnger = 80, maxAlive = 1 },
-		["corcomlvl6_scav"]  = { minAnger = 50, maxAnger = 90, maxAlive = 1 },
-		["corcomlvl7_scav"]  = { minAnger = 60, maxAnger = 100, maxAlive = 1 },
-		["corcomlvl8_scav"]  = { minAnger = 70, maxAnger = 110, maxAlive = 1 },
-		["corcomlvl9_scav"]  = { minAnger = 80, maxAnger = 120, maxAlive = 1 },
-		["corcomlvl10_scav"] = { minAnger = 90, maxAnger = 1000, maxAlive = 4 },
-		["legcom_scav"]      = { minAnger = 10, maxAnger = 40, maxAlive = 1 },
-		["legcomlvl2_scav"]  = { minAnger = 15, maxAnger = 50, maxAlive = 1 },
-		["legcomlvl3_scav"]  = { minAnger = 20, maxAnger = 60, maxAlive = 1 },
-		["legcomlvl4_scav"]  = { minAnger = 30, maxAnger = 70, maxAlive = 1 },
-		["legcomlvl5_scav"]  = { minAnger = 40, maxAnger = 80, maxAlive = 1 },
-		["legcomlvl6_scav"]  = { minAnger = 50, maxAnger = 90, maxAlive = 1 },
-		["legcomlvl7_scav"]  = { minAnger = 60, maxAnger = 100, maxAlive = 1 },
-		["legcomlvl8_scav"]  = { minAnger = 70, maxAnger = 110, maxAlive = 1 },
-		["legcomlvl9_scav"]  = { minAnger = 80, maxAnger = 120, maxAlive = 1 },
-		["legcomlvl10_scav"] = { minAnger = 90, maxAnger = 1000, maxAlive = 4 },
+		["armcom_scav"]        = { minAnger = 10, maxAnger = 40, maxAlive = 1 },
+		["armcomlvl2_scav"]    = { minAnger = 15, maxAnger = 50, maxAlive = 1 },
+		["armcomlvl3_scav"]    = { minAnger = 20, maxAnger = 60, maxAlive = 1 },
+		["armcomlvl4_scav"]    = { minAnger = 30, maxAnger = 70, maxAlive = 1 },
+		["armcomlvl5_scav"]    = { minAnger = 40, maxAnger = 80, maxAlive = 1 },
+		["armcomlvl6_scav"]    = { minAnger = 50, maxAnger = 90, maxAlive = 1 },
+		["armcomlvl7_scav"]    = { minAnger = 60, maxAnger = 100, maxAlive = 1 },
+		["armcomlvl8_scav"]    = { minAnger = 70, maxAnger = 110, maxAlive = 1 },
+		["armcomlvl9_scav"]    = { minAnger = 80, maxAnger = 120, maxAlive = 1 },
+		["armcomlvl10_scav"]   = { minAnger = 90, maxAnger = 1000, maxAlive = 4 },
+		["corcom_scav"]        = { minAnger = 10, maxAnger = 40, maxAlive = 1 },
+		["corcomlvl2_scav"]    = { minAnger = 15, maxAnger = 50, maxAlive = 1 },
+		["corcomlvl3_scav"]    = { minAnger = 20, maxAnger = 60, maxAlive = 1 },
+		["corcomlvl4_scav"]    = { minAnger = 30, maxAnger = 70, maxAlive = 1 },
+		["corcomlvl5_scav"]    = { minAnger = 40, maxAnger = 80, maxAlive = 1 },
+		["corcomlvl6_scav"]    = { minAnger = 50, maxAnger = 90, maxAlive = 1 },
+		["corcomlvl7_scav"]    = { minAnger = 60, maxAnger = 100, maxAlive = 1 },
+		["corcomlvl8_scav"]    = { minAnger = 70, maxAnger = 110, maxAlive = 1 },
+		["corcomlvl9_scav"]    = { minAnger = 80, maxAnger = 120, maxAlive = 1 },
+		["corcomlvl10_scav"]   = { minAnger = 90, maxAnger = 1000, maxAlive = 4 },
+		["legcom_scav"]        = { minAnger = 10, maxAnger = 40, maxAlive = 1 },
+		["legcomlvl2_scav"]    = { minAnger = 15, maxAnger = 50, maxAlive = 1 },
+		["legcomlvl3_scav"]    = { minAnger = 20, maxAnger = 60, maxAlive = 1 },
+		["legcomlvl4_scav"]    = { minAnger = 30, maxAnger = 70, maxAlive = 1 },
+		["legcomlvl5_scav"]    = { minAnger = 40, maxAnger = 80, maxAlive = 1 },
+		["legcomlvl6_scav"]    = { minAnger = 50, maxAnger = 90, maxAlive = 1 },
+		["legcomlvl7_scav"]    = { minAnger = 60, maxAnger = 100, maxAlive = 1 },
+		["legcomlvl8_scav"]    = { minAnger = 70, maxAnger = 110, maxAlive = 1 },
+		["legcomlvl9_scav"]    = { minAnger = 80, maxAnger = 120, maxAlive = 1 },
+		["legcomlvl10_scav"]   = { minAnger = 90, maxAnger = 1000, maxAlive = 4 },
 
-		["armdecom_scav"]    = { minAnger = 10, maxAnger = 40, maxAlive = 100 },
-		["armdecomlvl3_scav"]    = { minAnger = 20, maxAnger = 60, maxAlive = 100 },
-		["armdecomlvl6_scav"]    = { minAnger = 50, maxAnger = 90, maxAlive = 100 },
-		["armdecomlvl10_scav"]    = { minAnger = 80, maxAnger = 1000, maxAlive = 100 },
-		
-		["cordecom_scav"]    = { minAnger = 10, maxAnger = 40, maxAlive = 100 },
-		["cordecomlvl3_scav"]    = { minAnger = 20, maxAnger = 60, maxAlive = 100 },
-		["cordecomlvl6_scav"]    = { minAnger = 50, maxAnger = 90, maxAlive = 100 },
-		["cordecomlvl10_scav"]    = { minAnger = 80, maxAnger = 1000, maxAlive = 100 },
+		["armdecom_scav"]      = { minAnger = 10, maxAnger = 40, maxAlive = 100 },
+		["armdecomlvl3_scav"]  = { minAnger = 20, maxAnger = 60, maxAlive = 100 },
+		["armdecomlvl6_scav"]  = { minAnger = 50, maxAnger = 90, maxAlive = 100 },
+		["armdecomlvl10_scav"] = { minAnger = 80, maxAnger = 1000, maxAlive = 100 },
 
-		["legdecom_scav"]    = { minAnger = 10, maxAnger = 40, maxAlive = 100 },
-		["legdecomlvl3_scav"]    = { minAnger = 20, maxAnger = 60, maxAlive = 100 },
-		["legdecomlvl6_scav"]    = { minAnger = 50, maxAnger = 90, maxAlive = 100 },
-		["legdecomlvl10_scav"]    = { minAnger = 80, maxAnger = 1000, maxAlive = 100 },
+		["cordecom_scav"]      = { minAnger = 10, maxAnger = 40, maxAlive = 100 },
+		["cordecomlvl3_scav"]  = { minAnger = 20, maxAnger = 60, maxAlive = 100 },
+		["cordecomlvl6_scav"]  = { minAnger = 50, maxAnger = 90, maxAlive = 100 },
+		["cordecomlvl10_scav"] = { minAnger = 80, maxAnger = 1000, maxAlive = 100 },
+
+		["legdecom_scav"]      = { minAnger = 10, maxAnger = 40, maxAlive = 100 },
+		["legdecomlvl3_scav"]  = { minAnger = 20, maxAnger = 60, maxAlive = 100 },
+		["legdecomlvl6_scav"]  = { minAnger = 50, maxAnger = 90, maxAlive = 100 },
+		["legdecomlvl10_scav"] = { minAnger = 80, maxAnger = 1000, maxAlive = 100 },
+	},
+	frontbusters = {
+		{ name = "squadarmpwt4_scav",        minAnger = 40, maxAnger = 60,   squadSize = 3, maxAlive = 1 },
+		{ name = "squadcorakt4_scav",        minAnger = 40, maxAnger = 60,   squadSize = 3, maxAlive = 1 },
+		{ name = "squadarmsptkt4_scav",      minAnger = 60, maxAnger = 80,   squadSize = 3, maxAlive = 1 },
+		{ name = "squadcorkarganetht4_scav", minAnger = 70, maxAnger = 1000, squadSize = 3, maxAlive = 1 },
 	}
 }
+
 
 local scavMinions = {} -- Units spawning other units
 
@@ -1651,8 +1658,6 @@ addNewSquad({ type = "specialAir", minAnger = tierConfiguration[5].minAnger, uni
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "15 armfav_scav","15 corfav_scav","15 legscout_scav",}, weight = 8, maxAnger = tierConfiguration[6].maxAnger}) --Rover Whole Tier Length
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "6 cortorch_scav","6 legmrv_scav",}, weight = 3, maxAnger = tierConfiguration[6].maxAnger}) --T2 Veh Raid
 --Land
-addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "1 squadarmpwt4_scav",}, weight = 1, maxAnger = tierConfiguration[6].maxAnger})
-addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "1 squadcorakt4_scav",}, weight = 1, maxAnger = tierConfiguration[6].maxAnger})
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "12 armmar_scav",}, weight = 3, maxAnger = tierConfiguration[6].maxAnger}) --T3 Raid
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "6 armmeatball_scav","6 armassimilator_scav","2 armyork_scav","2 corsent_scav",}, weight = 4, maxAnger = tierConfiguration[6].maxAnger}) --T3 Assault/AA
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "6 corshiva_scav","2 armraz_scav","1 legpede_scav","1 armyork_scav","1 corsent_scav",}, weight = 4, maxAnger = tierConfiguration[6].maxAnger}) --T3 Assault/AA
@@ -1661,56 +1666,10 @@ addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, un
 addNewSquad({ type = "specialAir", minAnger = tierConfiguration[6].minAnger, units = { "40 armfig_scav","40 corveng_scav",}, weight = 4, maxAnger = 1000}) --T2 Fighters
 addNewSquad({ type = "specialAir", minAnger = tierConfiguration[6].minAnger, units = { "15 armblade_scav","15 armbrawl_scav","1 legfort_scav","1 corcrw_scav", "1 corcrwh_scav","15 corape_scav"}, weight = 2, maxAnger = 1000}) --T2 Gunships
 ------Tier 4 80%+
-addNewSquad({ type = "specialLand", minAnger = tierConfiguration[7].minAnger, units = { "1 squadarmpwt4_scav",}, weight = 3, maxAnger = tierConfiguration[7].maxAnger})
-addNewSquad({ type = "specialLand", minAnger = tierConfiguration[7].minAnger, units = { "1 squadcorakt4_scav",}, weight = 3, maxAnger = tierConfiguration[7].maxAnger})
-addNewSquad({ type = "specialLand", minAnger = tierConfiguration[7].minAnger, units = { "1 squadarmsptkt4_scav",}, weight = 2, maxAnger = tierConfiguration[7].maxAnger})
-addNewSquad({ type = "specialLand", minAnger = tierConfiguration[7].minAnger, units = { "1 squadcorkarganetht4_scav",}, weight = 1, maxAnger = tierConfiguration[7].maxAnger})
-
 
 addNewSquad({ type = "specialAir", minAnger = tierConfiguration[7].minAnger, units = { "80 armfig_scav","80 corveng_scav",}, weight = 5, maxAnger = 1000}) --T2 Fighters
 addNewSquad({ type = "specialAir", minAnger = tierConfiguration[7].minAnger, units = { "10 armfepocht4_scav",}, weight = 1, maxAnger = 1000}) --Armada Flying Flagships
 addNewSquad({ type = "specialAir", minAnger = tierConfiguration[7].minAnger, units = { "10 corfblackhyt4_scav",}, weight = 1, maxAnger = 1000}) --Cortex Flying Flagships
-
--- evocoms
---addNewSquad({ type = "specialLand", minAnger = 0, units = { "2 armcom_scav",}, weight = 1, maxAnger = 20})
---addNewSquad({ type = "specialLand", minAnger = 0, units = { "2 corcom_scav",}, weight = 1, maxAnger = 20})
---addNewSquad({ type = "specialLand", minAnger = 0, units = { "2 legcom_scav",}, weight = 1, maxAnger = 20})
---
---addNewSquad({ type = "specialLand", minAnger = 10, units = { "2 armcomlvl2_scav",}, weight = 1, maxAnger = 30})
---addNewSquad({ type = "specialLand", minAnger = 10, units = { "2 corcomlvl2_scav",}, weight = 1, maxAnger = 30})
---addNewSquad({ type = "specialLand", minAnger = 10, units = { "2 legcomlvl2_scav",}, weight = 1, maxAnger = 30})
---
---addNewSquad({ type = "specialLand", minAnger = 20, units = { "2 armcomlvl3_scav",}, weight = 1, maxAnger = 40})
---addNewSquad({ type = "specialLand", minAnger = 20, units = { "2 corcomlvl3_scav",}, weight = 1, maxAnger = 40})
---addNewSquad({ type = "specialLand", minAnger = 20, units = { "2 legcomlvl3_scav",}, weight = 1, maxAnger = 40})
---
---addNewSquad({ type = "specialLand", minAnger = 30, units = { "2 armcomlvl4_scav",}, weight = 1, maxAnger = 50})
---addNewSquad({ type = "specialLand", minAnger = 30, units = { "2 corcomlvl4_scav",}, weight = 1, maxAnger = 50})
---addNewSquad({ type = "specialLand", minAnger = 30, units = { "2 legcomlvl4_scav",}, weight = 1, maxAnger = 50})
---
---addNewSquad({ type = "specialLand", minAnger = 40, units = { "2 armcomlvl5_scav",}, weight = 1, maxAnger = 60})
---addNewSquad({ type = "specialLand", minAnger = 40, units = { "2 corcomlvl5_scav",}, weight = 1, maxAnger = 60})
---addNewSquad({ type = "specialLand", minAnger = 40, units = { "2 legcomlvl5_scav",}, weight = 1, maxAnger = 60})
---
---addNewSquad({ type = "specialLand", minAnger = 50, units = { "2 armcomlvl6_scav",}, weight = 1, maxAnger = 70})
---addNewSquad({ type = "specialLand", minAnger = 50, units = { "2 corcomlvl6_scav",}, weight = 1, maxAnger = 70})
---addNewSquad({ type = "specialLand", minAnger = 50, units = { "2 legcomlvl6_scav",}, weight = 1, maxAnger = 70})
---
---addNewSquad({ type = "specialLand", minAnger = 60, units = { "2 armcomlvl7_scav",}, weight = 1, maxAnger = 80})
---addNewSquad({ type = "specialLand", minAnger = 60, units = { "2 corcomlvl7_scav",}, weight = 1, maxAnger = 80})
---addNewSquad({ type = "specialLand", minAnger = 60, units = { "2 legcomlvl7_scav",}, weight = 1, maxAnger = 80})
---
---addNewSquad({ type = "specialLand", minAnger = 70, units = { "2 armcomlvl8_scav",}, weight = 1, maxAnger = 90})
---addNewSquad({ type = "specialLand", minAnger = 70, units = { "2 corcomlvl8_scav",}, weight = 1, maxAnger = 90})
---addNewSquad({ type = "specialLand", minAnger = 70, units = { "2 legcomlvl8_scav",}, weight = 1, maxAnger = 90})
---
---addNewSquad({ type = "specialLand", minAnger = 80, units = { "2 armcomlvl9_scav",}, weight = 1, maxAnger = 100})
---addNewSquad({ type = "specialLand", minAnger = 80, units = { "2 corcomlvl9_scav",}, weight = 1, maxAnger = 100})
---addNewSquad({ type = "specialLand", minAnger = 80, units = { "2 legcomlvl9_scav",}, weight = 1, maxAnger = 100})
---
---addNewSquad({ type = "specialLand", minAnger = 90, units = { "2 armcomlvl10_scav",}, weight = 1, maxAnger = 1000})
---addNewSquad({ type = "specialLand", minAnger = 90, units = { "2 corcomlvl10_scav",}, weight = 1, maxAnger = 1000})
---addNewSquad({ type = "specialLand", minAnger = 90, units = { "2 legcomlvl10_scav",}, weight = 1, maxAnger = 1000})
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Settings -- Adjust these
