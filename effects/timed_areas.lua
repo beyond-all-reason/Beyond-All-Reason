@@ -93,7 +93,33 @@ local function getRandomFrequency(mean, var, attempts, estimators)
 	estimators = math.min(math.max(estimators or 3, 1), 12) -- est=2 is also useful, triangular distribution
 	local meanRate = mean / attempts
 	local rangeRate = math.sqrt((var / attempts) * (12 / estimators))
-	return string.rep("r1 ", estimators) .. string.format([[%.1f x%.7f %.7f]], -estimators / 2, rangeRate, meanRate)
+	return string.rep("r1 ", estimators) .. string.format([[%.1f y0%.7fx0 %.7f]], -estimators / 2, rangeRate, meanRate)
+end
+
+-- These take a positive input and redistribute it radially within an area or volume set by a radius.
+-- Preserve any values previously yanked by setting `bufferStart` to the last index to keep + 1.
+-- These are intended to help with creating shells and such, for ex: `radius*([[30 r10]], 40)`.
+
+local function radiusCircular(input, radius, bufferStart)
+	input = tostring(input or "r1")
+	radius = radius or 1
+	if radius == 1 then
+		return string.format("%s p0.5", input) -- simple as
+	else
+		bufferStart = bufferStart or 0
+		return string.format("%s y%.0f %.7f x%.0f p0.5", input, bufferStart, radius, bufferStart)
+	end
+end
+
+local function radiusSpherical(input, radius, bufferStart)
+	radius = radius or 1
+	input = tostring(input or "r"..radius)
+	if radius == 1 then
+		return string.format("%s p0.3333333", input)
+	else
+		bufferStart = bufferStart or 0
+		return string.format("%s y%.0f %.7f x%.0f p0.3333333", input, bufferStart, radius, bufferStart)
+	end
 end
 
 --------------------------------------------------------------------------------------------------------------
