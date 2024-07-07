@@ -757,7 +757,7 @@ return {
 				emitrotspread       = 25,
 				emitvector          = [[0.28, 0.9, 0.28]],
 				gravity             = [[-0.02 r0.04, 0 r0.3, -0.02 r0.04]],
-				numparticles        = getUniformRandomFrequency(0.25, 1),
+				numparticles        = getUniformRandomFrequency(0.275, 1),
 				particlelife        = lifetime.long,
 				particlelifespread  = lifetime.medium,
 				particlesize        = 160,
@@ -946,7 +946,7 @@ return {
 		-- 	underwater = false,
 		-- 	water      = false,
 		-- 	properties = {
-		-- 		colormap     = [[0 0 1 0.1   0 0 0.5 0.001]],
+		-- 		colormap     = [[0.25 0 0 0.1   0.1 0.0 0 0.001]],
 		-- 		dir          = [[0, 1, 0]],
 		-- 		drawOrder    = layer.lowest,
 		-- 		frontoffset  = 0,
@@ -1024,7 +1024,7 @@ return {
 		-- 	underwater = false,
 		-- 	water      = false,
 		-- 	properties = {
-		-- 		colormap     = [[0 0 1 0.1   0 0 1 0.01]],
+		-- 		colormap     = [[0.25 0 0 0.1   0.1 0.0 0 0.001]],
 		-- 		dir          = [[0, 1, 0]],
 		-- 		drawOrder    = layer.lowest,
 		-- 		frontoffset  = 0,
@@ -1147,6 +1147,8 @@ return {
 	},
 
 	------ Specific units
+
+	-- Cluster-fire weapons that overlap their areas (legbar, legbart)
 	["fire-area-75-dur-300-cluster"] = {
 		usedefaultexplosions = false,
 		-- debugcircle = {
@@ -1157,7 +1159,7 @@ return {
 		-- 	underwater = false,
 		-- 	water      = false,
 		-- 	properties = {
-		-- 		colormap     = [[0 0 1 0.1   0 0 0.5 0.001]],
+		-- 		colormap     = [[0.25 0 0 0.1   0.1 0 0 0.001]],
 		-- 		dir          = [[0, 1, 0]],
 		-- 		drawOrder    = layer.lowest,
 		-- 		frontoffset  = 0,
