@@ -44,7 +44,7 @@ local maxTextInputChars = 127	-- tested 127 as being the true max
 local inputButton = true
 local allowMultiAutocomplete = true
 local allowMultiAutocompleteMax = 10
-local soundErrorsLimit = Spring.Utilities.IsDevMode() and 999 or 15		-- limit max amount of sound errors (sometimes when your device disconnects you will get to see a sound error every call)
+local soundErrorsLimit = Spring.Utilities.IsDevMode() and 999 or 10		-- limit max amount of sound errors (sometimes when your device disconnects you will get to see a sound error every call)
 
 local ui_scale = Spring.GetConfigFloat("ui_scale", 1)
 local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)

@@ -5571,10 +5571,6 @@ function init()
 		end
 	end
 
-	if not devMode then
-		options[getOptionByID('restart')] = nil
-	end
-
 	local localWidgetCount = 0
 	for name, data in pairs(widgetHandler.knownWidgets) do
 		if not data.fromZip then
@@ -5588,7 +5584,7 @@ function init()
 		options[getOptionByID('label_ui_developer_spacer')] = nil
 	end
 
-	if devMode or localWidgetCount == 0 then
+	if devMode or devUI or localWidgetCount == 0 then
 		options[getOptionByID('widgetselector')] = nil
 	end
 
