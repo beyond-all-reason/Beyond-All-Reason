@@ -65,7 +65,6 @@ local combatFilter = {}
 local builderFilter = {}
 local buildingFilter = {}
 local mobileFilter = {}
-local airFilter = {}
 local idMatchFilter = {}
 local customFilter = {}
 
@@ -80,7 +79,6 @@ for udid, udef in pairs(UnitDefs) do
 	local builder = (udef.canReclaim and udef.reclaimSpeed > 0)  or  (udef.canResurrect and udef.resurrectSpeed > 0)  or  (udef.canRepair and udef.repairSpeed > 0) or (udef.buildOptions and udef.buildOptions[1])
 	local building = (isMobile == false)
 	local combat = (not builder) and isMobile and (#udef.weapons > 0)
-	local isAir = udef.canFly
 
 	if string.find(udef.name, 'armspid') then
 		builder = false
@@ -91,7 +89,6 @@ for udid, udef in pairs(UnitDefs) do
 	mobileFilter[udid] = isMobile
 
 	-- simple filters
-	airFilter[udid] = udef.canFly
 	nameLookup[udef.name] = udid
 end
 
@@ -128,6 +125,22 @@ local function invertCurry(invert, rule)
 		local result = (rule(uid) or false) ~= invert
 		return result
    end
+end
+
+local function simpleRule(invert, property)
+    return invertCurry(invert, function(uid)
+        return UnitDefs[uid][property]
+    end)
+end
+
+local function notEmptyRule(invert, property)
+	return invertCurry(invert, function(uid)
+		local table = UnitDefs[uid][property]
+		if table and next(table) ~= nil then
+			return true
+		end
+		return false
+	end)
 end
 
 local function handleSetCustomFilter(_, args)
@@ -170,38 +183,45 @@ local function handleSetCustomFilter(_, args)
 			rules.idMatches = invertCurry(invert, function(uid) return idMatchFilter[uid] end)
 		elseif token == "Builder" then
 			rules.builderRule = invertCurry(invert, function(uid) return builderFilter[uid] end)
-			-- elseif token == "Buildoptions" then
-			-- 	return not unit.unitDef.buildOptions:empty()
-			-- elseif token == "Resurrect" then
-			-- 	return unit.unitDef.canResurrect
-			-- elseif token == "Stealth" then
-			-- 	return unit.unitDef.stealth
+		elseif token == "Buildoptions" then
+			rules.buildOptionsRule = notEmptyRule(invert, "buildOptions")
+		elseif token == "Resurrect" then
+			rules.resurrectRule = simpleRule(invert, "canResurrect")
+		elseif token == "Stealth" then
+			rules.stealthRule = simpleRule(invert, "stealth")
 			-- elseif token == "Cloak" then
 			-- 	return unit.unitDef.canCloak
 			-- elseif token == "Cloaked" then
 			-- 	return unit.isCloaked
-			-- elseif token == "Building" then
-			-- 	return unit.unitDef:IsBuildingUnit()
-			-- elseif token == "Transport" then
-			-- 	return unit.unitDef:IsTransportUnit()
+		-- elseif token == "Cloaked" then
+		-- 	rules.cloakedRule = invertCurry(invert, function(uid) return UnitDefs[uid].isCloacked end)
+		elseif token == "Building" then
+			rules.buildingRule = simpleRule(invert, "isBuilding")
+		elseif token == "Transport" then
+			rules.transportRule = simpleRule(invert, "isTransport")
 		elseif token == "Aircraft" then
-			rules.aircraftRule = invertCurry(invert, function(uid) return airFilter[uid] end)
-			-- elseif token == "Weapons" then
-			-- 	return not unit.weapons:empty()
-			-- elseif token == "Idle" then
-			-- 	return unit.commandAI.commandQue:empty()
-			-- elseif token == "Waiting" then
-			-- 	return not unit.commandAI.commandQue:empty() and unit.commandAI.commandQue.front().GetID() == CMD_WAIT
-			-- elseif token == "Guarding" then
-			-- 	return not unit.commandAI.commandQue:empty() and unit.commandAI.commandQue.front().GetID() == CMD_GUARD
-			-- elseif token == "InHotkeyGroup" then
-			-- 	return unit:GetGroup() ~= nil
-			-- elseif token == "Radar" then
-			-- 	return unit.radarRadius > 0 or unit.sonarRadius > 0
-			-- elseif token == "Jammer" then
-			-- 	return unit.jammerRadius > 0
-			-- elseif token == "ManualFireUnit" then
-			-- 	return unit.unitDef.canManualFire
+			rules.aircraftRule = simpleRule(invert, "canFly")
+		elseif token == "Weapons" then
+			rules.buildOptionsRule = notEmptyRule(invert, "weapons")
+		-- elseif token == "Idle" then
+		-- 	return unit.commandAI.commandQue:empty()
+		-- elseif token == "Waiting" then
+		-- 	return not unit.commandAI.commandQue:empty() and unit.commandAI.commandQue.front().GetID() == CMD_WAIT
+		-- elseif token == "Guarding" then
+		-- 	return not unit.commandAI.commandQue:empty() and unit.commandAI.commandQue.front().GetID() == CMD_GUARD
+		-- elseif token == "InHotkeyGroup" then
+		-- 	return unit:GetGroup() ~= nil
+		elseif token == "Radar" then
+			rules.radarRule = invertCurry(invert, function(uid)
+				local udef = UnitDefs[uid]
+				return udef.radarRadius > 0 or udef.sonarRadius > 0
+			end)
+		elseif token == "Jammer" then
+			rules.jammerRule = invertCurry(invert, function(uid)
+				return UnitDefs[uid].jammerRadius > 0
+			end)
+		elseif token == "ManualFireUnit" then
+			rules.manualFireRule = simpleRule(invert, "canManualFire")
 		end
 	end
 	customFilterDef = args
