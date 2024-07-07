@@ -154,7 +154,7 @@ return {
 				},
 				customparams = {
 					area_duration = 10,
-					area_ongoingCEG = "fire-area-75-dur-300",
+					area_ongoingCEG = "fire-area-75-dur-300-cluster",
 					area_damagedCEG = "burnflamexm",
 					area_damageType = "fire",
 				},
