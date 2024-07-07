@@ -995,7 +995,7 @@ return {
 			properties = {
 				delay              = [[0 r]]..300-lifetime.medlong,
 				explosiongenerator = [[custom:fire-ongoing-low]],
-				pos                = [[-30 r60, 0 r16, -30 r6s0]],
+				pos                = [[-30 r60, 0 r16, -30 r60]],
 			},
 		},
 		firearea = {
@@ -1009,7 +1009,7 @@ return {
 				-- Correcting for _everything_ adds up:
 				delay              = [[r]]..lifetime.fleeting..[[ i]]..((300-lifetime.long-lifetime.fleeting) / 10),
 				explosiongenerator = [[custom:fire-ongoing-area]],
-				pos                = [[-30 r60, 16 r16, -30 r6s0]],
+				pos                = [[-30 r60, 16 r16, -30 r60]],
 			},
 		},
 		-- firehigh is in the repeater, which also has its own firelow
@@ -1132,7 +1132,7 @@ return {
 		},
 		firearea = {
 			class      = [[CExpGenSpawner]],
-			count      = 20, --60
+			count      = 20,
 			air        = true,
 			ground     = true,
 			water      = true,
@@ -1206,7 +1206,7 @@ return {
 			properties = {
 				delay              = [[0 r]]..300-lifetime.medlong,
 				explosiongenerator = [[custom:fire-ongoing-low]],
-				pos                = [[-30 r60, 0 r16, -30 r6s0]],
+				pos                = [[-30 r60, 0 r16, -30 r60]],
 			},
 		},
 		firearea = {
@@ -1220,7 +1220,7 @@ return {
 				-- Correcting for _everything_ adds up:
 				delay              = [[r]]..lifetime.fleeting..[[ i]]..((300-lifetime.long-lifetime.fleeting) / 7),
 				explosiongenerator = [[custom:fire-ongoing-area]],
-				pos                = [[-30 r60, 16 r16, -30 r6s0]],
+				pos                = [[-30 r60, 16 r16, -30 r60]],
 			},
 		},
 		-- firehigh is in the repeater, which also has its own firelow
