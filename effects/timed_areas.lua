@@ -1218,7 +1218,7 @@ return {
 			underwater = true,
 			properties = {
 				-- Correcting for _everything_ adds up:
-				delay              = [[r]]..lifetime.fleeting..[[ i]]..((300-lifetime.long-lifetime.fleeting) / 7),
+				delay              = [[r]]..lifetime.fleeting..[[ i]]..((300-lifetime.long-lifetime.fleeting) / 5),
 				explosiongenerator = [[custom:fire-ongoing-area]],
 				pos                = [[-30 r60, 16 r16, -30 r60]],
 			},
