@@ -29,10 +29,10 @@ local mods = {
  deselect = false, -- whether to select units not present in current selection
  all      = false, -- whether to select all units
  mobile   = false, -- whether to select only mobile units
- air      = false, -- whether to select only air units
- notair   = false, -- whether to exclude air units in selection
 }
+local customFilterDef = ""
 local lastMods = mods
+local lastCustomFilterDef = customFilterDef
 local lastMouseSelection = {}
 local lastMouseSelectionCount = 0
 
@@ -69,6 +69,8 @@ local airFilter = {}
 local idMatchFilter = {}
 local customFilter = {}
 
+local nameLookup = {}
+
 for udid, udef in pairs(UnitDefs) do
 	if udef.modCategories['object'] or udef.customParams.objectify then
 		ignoreUnits[udid] = true
@@ -90,6 +92,7 @@ for udid, udef in pairs(UnitDefs) do
 
 	-- simple filters
 	airFilter[udid] = udef.canFly
+	nameLookup[udef.name] = udid
 end
 
 local dualScreen
@@ -120,9 +123,10 @@ local function handleSetModifier(_, _, _, data)
 	mods[data[1]] = data[2]
 end
 
-local function invertCurry(rule, invert)
+local function invertCurry(invert, rule)
    return function(uid)
-		return rule(uid) ^ invert
+		local result = (rule(uid) or false) ~= invert
+		return result
    end
 end
 
@@ -156,15 +160,14 @@ local function handleSetCustomFilter(_, args)
 			break
 		end
 
-		-- xor (^) treats nil as false, which simplifies the callbacks for some cases (e.g. idMatches)
 		if token == "IdMatches" then
 			while tokenIndex <= #tokens do
-				local uid = getNextToken()
+				local name = getNextToken()
+				local uid = nameLookup[name];
 				idMatchFilter[uid] = true
 			end
 
 			rules.idMatches = invertCurry(invert, function(uid) return idMatchFilter[uid] end)
-			break
 		elseif token == "Builder" then
 			rules.builderRule = invertCurry(invert, function(uid) return builderFilter[uid] end)
 			-- elseif token == "Buildoptions" then
@@ -201,12 +204,13 @@ local function handleSetCustomFilter(_, args)
 			-- 	return unit.unitDef.canManualFire
 		end
 	end
-
+	customFilterDef = args
 	customFilter = rules
 end
 
 local function handleClearCustomFilter(_, _, _)
 	customFilter = {}
+	customFilterDef = ""
 end
 
 
@@ -318,13 +322,13 @@ function widget:Update()
 		and mods.deselect == lastMods[3]
 		and mods.all == lastMods[4]
 		and mods.mobile == lastMods[5]
-		and mods.air == lastMods[6]
-		and mods.notair == lastMods[7]
+		and customFilterDef == lastCustomFilterDef
 	then
 		return
 	end
 
-	lastMods = { mods.idle, mods.same, mods.deselect, mods.all, mods.mobile, mods.air, mods.notair }
+	lastMods = { mods.idle, mods.same, mods.deselect, mods.all, mods.mobile }
+	lastCustomFilterDef = customFilterDef
 
 	-- Fill dictionary for set comparison
 	-- We increase slightly the perf cost of cache misses but at the same
@@ -337,6 +341,31 @@ function widget:Update()
 	end
 
 	mouseSelection = tmp
+
+	if next(customFilter) ~= nil then -- use custom filter if it's not empty
+		tmp = {}
+		for i = 1, #mouseSelection do
+			uid = mouseSelection[i]
+
+			local defid = spGetUnitDefID(uid)
+			local passesAllRules = true
+
+			for _ruleName, rule in pairs(customFilter) do
+				if not rule(defid) then
+					passesAllRules = false
+					break
+				end
+			end
+
+			if passesAllRules then
+				tmp[#tmp + 1] = uid
+			end
+		end
+
+		if #tmp ~= 0 then -- treat the filter as a preference
+			mouseSelection = tmp -- if no units match, just keep everything
+		end
+	end
 
 	if mods.idle then
 		tmp = {}
@@ -414,32 +443,6 @@ function widget:Update()
 			mouseSelection = tmp
 		end
 	end
-
-	if #customFilter ~= 0 then -- use custom filter if it's not empty
-		tmp = {}
-		for i = 1, #mouseSelection do
-			uid = mouseSelection[i]
-
-			local defid = spGetUnitDefID(uid)
-			local passesAllRules = true
-
-			for _ruleName, rule in pairs(customFilter) do
-				if not rule(defid) then
-					passesAllRules = false
-					break
-				end
-			end
-
-			if passesAllRules then
-				tmp[#tmp + 1] = uid
-			end
-		end
-
-		if #tmp ~= 0 then -- treat the filter as a preference
-			mouseSelection = tmp -- if no units match, just keep everything
-		end
-	end
-
 
 	if #newSelection < 1 then
 		newSelection = referenceSelection
