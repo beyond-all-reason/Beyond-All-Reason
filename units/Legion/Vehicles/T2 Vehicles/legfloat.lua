@@ -13,8 +13,6 @@ return {
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = "Floating Tank",
-		energymake = 1.5,
-		energyuse = 1.5,
 		explodeas = "mediumExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -45,7 +43,7 @@ return {
 		waterline = 7.5,
 		customparams = {
 			model_author = "EnderRobo",
-			normaltex = "unittextures/cor_normal.dds",
+			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "legvehicles/t2",
 			techlevel = 2,
 		},
