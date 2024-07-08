@@ -1198,17 +1198,19 @@ if gadgetHandler:IsSyncedCode() then
 						end
 					end
 					if mRandom() <= config.spawnChance and waveParameters.frontbusters.cooldown <= 0 then
-						local squad = squadSpawnOptions.frontbusters[math.random(1, #squadSpawnOptions.frontbusters)]
-						if squad and squad.surface and ((surface == "land" and squad.surface ~= "sea") or (surface == "sea" and squad.surface ~= "land")) then
-							if mRandom() <= config.spawnChance and (not waveParameters.frontbusters.units[squad.name]) and squad.minAnger <= techAnger and squad.maxAnger >= techAnger and Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames[squad.name].id) < squad.maxAlive and waveParameters.frontbusters.unitCount == 0 then
-								for i = 1, math.ceil(squad.squadSize*config.spawnChance*((SetCount(humanTeams)*config.scavPerPlayerMultiplier)+(1-config.scavPerPlayerMultiplier))) do
-									waveParameters.frontbusters.units[squad.name] = true
-									waveParameters.frontbusters.unitCount = waveParameters.frontbusters.unitCount + 1
-									table.insert(spawnQueue, { burrow = burrowID, unitName = squad.name, team = scavTeamID, squadID = 1, alwaysVisible = true })
-									cCount = cCount + 1
+						for attempt = 1,10 do
+							local squad = squadSpawnOptions.frontbusters[math.random(1, #squadSpawnOptions.frontbusters)]
+							if squad and squad.surface and ((surface == "land" and squad.surface ~= "sea") or (surface == "sea" and squad.surface ~= "land")) then
+								if mRandom() <= config.spawnChance and (not waveParameters.frontbusters.units[squad.name]) and squad.minAnger <= techAnger and squad.maxAnger >= techAnger and Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames[squad.name].id) < squad.maxAlive and waveParameters.frontbusters.unitCount == 0 then
+									for i = 1, math.ceil(squad.squadSize*config.spawnChance*((SetCount(humanTeams)*config.scavPerPlayerMultiplier)+(1-config.scavPerPlayerMultiplier))) do
+										waveParameters.frontbusters.units[squad.name] = true
+										waveParameters.frontbusters.unitCount = waveParameters.frontbusters.unitCount + 1
+										table.insert(spawnQueue, { burrow = burrowID, unitName = squad.name, team = scavTeamID, squadID = 1, alwaysVisible = true })
+										cCount = cCount + 1
+									end
+									waveParameters.frontbusters.cooldown = math.random(3,5)
+									break
 								end
-								waveParameters.frontbusters.cooldown = math.random(3,5)
-								break
 							end
 						end
 					end
