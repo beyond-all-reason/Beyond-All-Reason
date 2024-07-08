@@ -2567,16 +2567,6 @@ GUIUnitSoundEffects = {
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-gant-t3-sel",
 	},
-	leghp = {
-		BaseSoundSelectType = "arm-bld-factory",
-		--BaseSoundMovementType = "",
-		BaseSoundWeaponType = "arm-bld-factory-hover",
-	},
-	legfhp = {
-		BaseSoundSelectType = "arm-bld-factory",
-		--BaseSoundMovementType = "",
-		BaseSoundWeaponType = "arm-bld-factory-hover-water",
-	},
 
 
 	legsolar = {
@@ -2727,11 +2717,6 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "leg-veh-tiny-ok",
 		BaseSoundWeaponType = "fastemg-small",
 	},
-	legamphtank = {
-		BaseSoundSelectType = "arm-tnk-small-amph-sel",
-		BaseSoundMovementType = "arm-tnk-small-amph-ok",
-		BaseSoundWeaponType = "plasma-small",
-	},
 	
 	-- LEGION T2 VEHICLES
 	legacv = {
@@ -2869,35 +2854,8 @@ GUIUnitSoundEffects = {
         BaseSoundActivate   = "mohorun1",
         BaseSoundDeactivate = "mohooff1",
 	},
-	
-	-- LEGION HOVERCRAFT
 
-	legsh = {
-		BaseSoundSelectType = "arm-hov-small-sel",
-		BaseSoundMovementType = "arm-hov-small-ok",
-		--BaseSoundMovementVol = 0.6,
-		BaseSoundWeaponType = "laser-tiny",
-	},
-	legmh = {
-		BaseSoundSelectType = "arm-hov-small-sel",
-		BaseSoundMovementType = "arm-hov-small-ok",
-		BaseSoundWeaponType = "rocket-small",
-	},
-	legch = {
-		BaseSoundSelectType = "arm-hov-small-sel",
-		BaseSoundMovementType = "arm-hov-small-ok",
-		BaseSoundWeaponType = "conalt-small",
-	},
-	legah = {
-		BaseSoundSelectType = "arm-hov-small-sel",
-		BaseSoundMovementType = "arm-hov-small-ok",
-		BaseSoundWeaponType = "aarocket-small",
-	},
-	legner = {
-		BaseSoundSelectType = "arm-hov-small-sel",
-		BaseSoundMovementType = "arm-hov-small-ok",
-		BaseSoundWeaponType = "plasma-small",
-	},
+
 
 	--Various Random Units
 
