@@ -2347,8 +2347,10 @@ local function checkGuishaderBuilders()
 		end
 	elseif dlistGuishaderBuilders then
 		prevSelectedBuildersCount = 0
-		dlistGuishaderBuilders = WG["guishader"].DeleteDlist("buildmenubuilders")
-		dlistGuishaderBuildersNext = WG["guishader"].DeleteDlist("buildmenubuildersNext")
+		WG["guishader"].DeleteDlist("buildmenubuilders")
+		WG["guishader"].DeleteDlist("buildmenubuildersNext")
+		dlistGuishaderBuilders = nil
+		dlistGuishaderBuildersNext = nil
 	end
 end
 
