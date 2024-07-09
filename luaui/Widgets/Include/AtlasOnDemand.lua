@@ -495,21 +495,21 @@ local function MakeAtlasOnDemand(config)
 	-- @param id the identifier of the item, needed for clearing its uv coordinate cache
 	function AtlasOnDemand:RemoveFromAtlas(uvcoords, id)
 		-- since it kinda has to by dynamic, it would be nice if we could mark some space as free on this
-		local xmin = math.floor(uvcoords.x * self.xslots)
-		local xmax =  math.ceil(uvcoords.X * self.xslots)
-		local ymin = math.floor(uvcoords.y * self.xslots)
-		local ymax =  math.ceil(uvcoords.Y * self.xslots)
+		local xmin = math.floor(uvcoords.x * self.xslots)+1
+		local xmax =  math.ceil(uvcoords.X * self.xslots)+1
+		local ymin = math.floor(uvcoords.y * self.yslots)+1
+		local ymax =  math.ceil(uvcoords.Y * self.yslots)+1
 		for x = xmin, xmax -1 do 
-			self.firstemptyrow = math.min(self.firstemptyrow, x)
+			self.firstemptycolumn = math.min(self.firstemptycolumn, x)
 			for y = ymin, ymax -1 do 
-				self.fill[x][y] = nil 
+				self.fill[x][y] = false
 			end
 		end
 		if id then 
 			self.uvcoords[id] = nil
 		end
-		local drawblanktask = {id = self.blankimg, w = xmax-xmin * self.xresolution, h =  ymax - ymin * yresolution, 
-			x = xmin * self.xresolution, y = ymin * self.yresolution,
+		local drawblanktask = {id = self.blankimg, w = (xmax-xmin) * self.xresolution, h =  (ymax-ymin) * self.yresolution,
+			x = (xmin-1) * self.xresolution, y = (ymin-1) * self.yresolution,
 		}
 		self.renderImageTaskList[#self.renderImageTaskList+1] = drawblanktask
 		self.hastasks = true
