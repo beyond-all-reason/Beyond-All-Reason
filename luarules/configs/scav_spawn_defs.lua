@@ -174,6 +174,16 @@ local tierConfiguration = { -- Double everything for basic squads
 	[7] = {minAnger = 80, maxAnger = 1000, 	maxSquadSize = 2},
 }
 
+local fBusterConfig = { --configures the anger levels certain tiers of frontbusters appear
+	[1] = {minAnger = 1,  maxAnger = 20},
+	[2] = {minAnger = 21, maxAnger = 30},
+	[3] = {minAnger = 31, maxAnger = 40},
+	[4] = {minAnger = 41, maxAnger = 50},
+	[5] = {minAnger = 51, maxAnger = 60},
+	[6] = {minAnger = 61, maxAnger = 70},
+	[7] = {minAnger = 71, maxAnger = 80},
+}
+
 ----------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------
@@ -193,57 +203,57 @@ local LandUnitsList = {
 	Raid = {
 		[1] = {
 			--Armada
-			["armflea_scav"] = 1,
-			["armpw_scav"] = 1,
-			["armfav_scav"] = 1,
-			["armsh_scav"] = 1,
+			["armflea_scav"] = 4,
+			["armpw_scav"] = 3,
+			["armfav_scav"] = 3,
+			["armsh_scav"] = 3,
 			--Cortex
-			["corak_scav"] = 1,
-			["corfav_scav"] = 1,
-			["corsh_scav"] = 1,
+			["corak_scav"] = 3,
+			["corfav_scav"] = 4,
+			["corsh_scav"] = 2,
 			--Legion
-			["leggob_scav"] = 1,
-			["legsh_scav"] = 1,
-			["legscout_scav"] = 1,
+			["leggob_scav"] = 4,
+			["legsh_scav"] = 2,
+			["legscout_scav"] = 3,
 		},
 		[2] = {
 			--Armada
-			["armflea_scav"] = 1,
-			["armpw_scav"] = 1,
-			["armfav_scav"] = 1,
-			["armsh_scav"] = 1,
+			["armflea_scav"] = 3,
+			["armpw_scav"] = 4,
+			["armfav_scav"] = 3,
+			["armsh_scav"] = 3,
 			--Cortex
-			["corak_scav"] = 1,
-			["corfav_scav"] = 1,
-			["corsh_scav"] = 1,
+			["corak_scav"] = 4,
+			["corfav_scav"] = 3,
+			["corsh_scav"] = 3,
 			--Legion
-			["leggob_scav"] = 1,
-			["legsh_scav"] = 1,
-			["leghades_scav"] = 1,
+			["leggob_scav"] = 4,
+			["legsh_scav"] = 3,
+			["leghades_scav"] = 4,
 		},
 		[3] = {
 			--Armada
-			["armflash_scav"] = 1,
-			["armzapper_scav"] = 1,
+			["armflash_scav"] = 4,
+			["armzapper_scav"] = 4,
 			--Cortex
-			["corgator_scav"] = 1,
+			["corgator_scav"] = 3,
 			--Legion
-			["legamphtank_scav"] = 1,
+			["legamphtank_scav"] = 3,
 		},
 		[4] = {
 			--Armada
-			["armlatnk_scav"] = 1,
-			["armamph_scav"] = 1,
-			["armfast_scav"] = 1,
+			["armlatnk_scav"] = 4,
+			["armamph_scav"] = 3,
+			["armfast_scav"] = 4,
 			--Cortex
-			["cortorch_scav"] = 1,
-			["corsala_scav"] = 1,
-			["corpyro_scav"] = 1,
-			["corseal_scav"] = 1,
-			["coramph_scav"] = 1,
+			["cortorch_scav"] = 3,
+			["corsala_scav"] = 3,
+			["corpyro_scav"] = 4,
+			["corseal_scav"] = 3,
+			["coramph_scav"] = 3,
 			--Legion
-			["legmrv_scav"] = 1,
-			["legstr_scav"] = 1,
+			["legmrv_scav"] = 4,
+			["legstr_scav"] = 4,
 		},
 		[5] = {
 			--Armada
@@ -256,18 +266,18 @@ local LandUnitsList = {
 		},
 		[6] = {
 			--Armada
-			["armpwt4_scav"] = 1,
-			["armmar_scav"] = 1,
+			["armpwt4_scav"] = 3,
+			["armmar_scav"] = 4,
 			--Cortex
-			["corakt4_scav"] = 1,
+			["corakt4_scav"] = 3,
 			--Legion
 			--N/A
 		},
 		[7] = {
 			--Armada
-			["armraz_scav"] = 1,
+			["armraz_scav"] = 3,
 			--Cortex
-			["cordemon_scav"] = 1,
+			["cordemon_scav"] = 3,
 			--Legion
 			--N/A
 		},
@@ -280,90 +290,90 @@ local LandUnitsList = {
 		},
 		[2] = {
 			--Armada
-			["armham_scav"] = 1,
-			["armpincer_scav"] = 1,
+			["armham_scav"] = 4,
+			["armpincer_scav"] = 2,
 			--Cortex
-			["corthud_scav"] = 1,
-			["corgarp_scav"] = 1,
+			["corthud_scav"] = 3,
+			["corgarp_scav"] = 2,
 			--Legion
-			["legcen_scav"] = 1,
-			["leglob_scav"] = 1,
+			["legcen_scav"] = 3,
+			["leglob_scav"] = 3,
 		},
 		[3] = {
 			--Armada
-			["armwar_scav"] = 1,
-			["armstump_scav"] = 1,
-			["armjanus_scav"] = 1,
-			["armanac_scav"] = 1,
+			["armwar_scav"] = 3,
+			["armstump_scav"] = 4,
+			["armjanus_scav"] = 2,
+			["armanac_scav"] = 4,
 			--Cortex
-			["corraid_scav"] = 1,
-			["corlevlr_scav"] = 1,
-			["corsnap_scav"] = 1,
+			["corraid_scav"] = 4,
+			["corlevlr_scav"] = 4,
+			["corsnap_scav"] = 2,
 			--Legion
-			["leggat_scav"] = 1,
-			["legkark_scav"] = 1,
-			["legner_scav"] = 1,
+			["leggat_scav"] = 4,
+			["legkark_scav"] = 4,
+			["legner_scav"] = 4,
 		},
 		[4] = {
 			--Armada
-			["armzeus_scav"] = 1,
+			["armzeus_scav"] = 4,
 			--Cortex
-			["corcan_scav"] = 1,
-			["corhal_scav"] = 1,
+			["corcan_scav"] = 4,
+			["corhal_scav"] = 4,
 			--Legion
-			["legshot_scav"] = 1,
+			["legshot_scav"] = 4,
 
 		},
 		[5] = {
 			--Armada
-			["armsnipe_scav"] = 1,
-			["armvader_scav"] = 1,
-			["armsptk_scav"] = 1,
-			["armbull_scav"] = 1,
-			["armcroc_scav"] = 1,
+			["armsnipe_scav"] = 2,
+			["armvader_scav"] = 4,
+			["armsptk_scav"] = 2,
+			["armbull_scav"] = 4,
+			["armcroc_scav"] = 4,
 			--Cortex
-			["corparrow_scav"] = 1,
-			["corftiger_scav"] = 1,
-			["corgol_scav"] = 1,
-			["corroach_scav"] = 1,
-			["corsktl_scav"] = 1,
-			["cortermite_scav"] = 1,
-			["corsumo_scav"] = 1,
-			["correap_scav"] = 1,
-			["corgatreap_scav"] = 1,
+			["corparrow_scav"] = 2,
+			["corftiger_scav"] = 4,
+			["corgol_scav"] = 2,
+			["corroach_scav"] = 4,
+			["corsktl_scav"] = 2,
+			["cortermite_scav"] = 4,
+			["corsumo_scav"] = 2,
+			["correap_scav"] = 2,
+			["corgatreap_scav"] = 4,
 			--Legion
-			["legaheattank_scav"] = 1,
-			["leginc_scav"] = 1,
-			["legfloat_scav"] = 1,
+			["legaheattank_scav"] = 4,
+			["leginc_scav"] = 2,
+			["legfloat_scav"] = 4,
 		},
 		[6] = {
 			--Armada
-			["armassimilator_scav"] = 1,
-			["armmeatball_scav"] = 1,
-			["armlun_scav"] = 1,
+			["armassimilator_scav"] = 4,
+			["armmeatball_scav"] = 4,
+			["armlun_scav"] = 4,
 			--Cortex
-			["corshiva_scav"] = 1,
-			["corkarg_scav"] = 1,
-			["corthermite"] = 1,
-			["corsok_scav"] = 1,
+			["corshiva_scav"] = 4,
+			["corkarg_scav"] = 4,
+			["corthermite"] = 4,
+			["corsok_scav"] = 2,
 			--Legion
-			["legpede_scav"] = 1,
-			["legkeres_scav"] = 1,
+			["legpede_scav"] = 2,
+			["legkeres_scav"] = 4,
 		},
 		[7] = {
 			--Armada
-			["armthor_scav"] = 1,
-			["armbanth_scav"] = 1,
-			["armrattet4_scav"] = 1,
-			["armvadert4_scav"] = 1,
-			["armsptkt4_scav"] = 1,
+			["armthor_scav"] = 3,
+			["armbanth_scav"] = 4,
+			["armrattet4_scav"] = 2,
+			["armvadert4_scav"] = 2,
+			["armsptkt4_scav"] = 2,
 			--Cortex
-			["corjugg_scav"] = 1,
-			["corkorg_scav"] = 1,
-			["corkarganetht4_scav"] = 1,
-			["corgolt4_scav"] = 1,
+			["corjugg_scav"] = 2,
+			["corkorg_scav"] = 2,
+			["corkarganetht4_scav"] = 2,
+			["corgolt4_scav"] = 2,
 			--Legion
-			["leegmech_scav"] = 1,
+			["leegmech_scav"] = 2,
 		},
 	},
 	Support = {
@@ -374,76 +384,76 @@ local LandUnitsList = {
 		},
 		[2] = {
 			--Armada
-			["armrock_scav"] = 1,
-			["armjeth_scav"] = 1,
-			["armah_scav"] = 1,
+			["armrock_scav"] = 2,
+			["armjeth_scav"] = 2,
+			["armah_scav"] = 2,
 			--Cortex
-			["corstorm_scav"] = 1,
-			["corcrash_scav"] = 1,
-			["corah_scav"] = 1,
+			["corstorm_scav"] = 2,
+			["corcrash_scav"] = 2,
+			["corah_scav"] = 2,
 			--Legion
-			["legbal_scav"] = 1,
+			["legbal_scav"] = 2,
 		},
 		[3] = {
 			--Armada
-			["armart_scav"] = 1,
-			["armsam_scav"] = 1,
-			["armmh_scav"] = 1,
+			["armart_scav"] = 2,
+			["armsam_scav"] = 2,
+			["armmh_scav"] = 2,
 			--Cortex
-			["corwolv_scav"] = 1,
-			["cormist_scav"] = 1,
-			["cormh_scav"] = 1,
+			["corwolv_scav"] = 2,
+			["cormist_scav"] = 2,
+			["cormh_scav"] = 2,
 			--Legion
-			["leghelios_scav"] = 1,
-			["legbar_scav"] = 1,
-			["legrail_scav"] = 1,
-			["legmh_scav"] = 1,
-			["legah_scav"] = 1,
+			["leghelios_scav"] = 2,
+			["legbar_scav"] = 2,
+			["legrail_scav"] = 2,
+			["legmh_scav"] = 2,
+			["legah_scav"] = 2,
 		},
 		[4] = {
 			--Armada
-			["armfido_scav"] = 1,
-			["armaak_scav"] = 1,
-			["armmav_scav"] = 1,
-			["armyork_scav"] = 1,
-			["armmart_scav"] = 1,
+			["armfido_scav"] = 2,
+			["armaak_scav"] = 2,
+			["armmav_scav"] = 2,
+			["armyork_scav"] = 2,
+			["armmart_scav"] = 2,
 			--Cortex
-			["cormart_scav"] = 1,
-			["corsent_scav"] = 1,
-			["coraak_scav"] = 1,
-			["cormort_scav"] = 1,
+			["cormart_scav"] = 2,
+			["corsent_scav"] = 2,
+			["coraak_scav"] = 2,
+			["cormort_scav"] = 2,
 			--Legion
-			["legaskirmtank_scav"] = 1,
-			["legamcluster_scav"] = 1,
-			["legvcarry_scav"] = 1,
-			["legbart_scav"] = 1,
+			["legaskirmtank_scav"] = 2,
+			["legamcluster_scav"] = 2,
+			["legvcarry_scav"] = 2,
+			["legbart_scav"] = 2,
 
 		},
 		[5] = {
 			--Armada
-			["armfboy_scav"] = 1,
-			["armmanni_scav"] = 1,
-			["armmerl_scav"] = 1,
+			["armfboy_scav"] = 2,
+			["armmanni_scav"] = 2,
+			["armmerl_scav"] = 2,
 			--Cortex
-			["corban_scav"] = 1,
-			["corvroc_scav"] = 1,
-			["cortrem_scav"] = 1,
-			["corhrk_scav"] = 1,
-			["corsiegebreaker_scav"] = 1,
+			["corban_scav"] = 2,
+			["corvroc_scav"] = 2,
+			["cortrem_scav"] = 2,
+			["corhrk_scav"] = 2,
+			["corsiegebreaker_scav"] = 2,
 			--Legion
-			["legavroc_scav"] = 1,
-			["leginf_scav"] = 1,
-			["legmed_scav"] = 1,
+			["legavroc_scav"] = 2,
+			["leginf_scav"] = 2,
+			["legmed_scav"] = 2,
 
 		},
 		[6] = {
 			--Armada
-			["armvang_scav"] = 1,
-			["armdronecarryland_scav"] = 1,
-			["armscab_scav"] = 1,
+			["armvang_scav"] = 2,
+			["armdronecarryland_scav"] = 2,
+			["armscab_scav"] = 2,
 			--Cortex
-			["corcat_scav"] = 1,
-			["cormabm_scav"] = 1,
+			["corcat_scav"] = 2,
+			["cormabm_scav"] = 2,
 			--Legion
 		},
 		[7] = {
@@ -458,142 +468,142 @@ local LandUnitsList = {
 	Healer = {
 		[1] = {
 			--Armada
-			["armck_scav"] = 1,
-			["armrectr_scav"] = 20,
-			["armcv_scav"] = 1,
-			["armch_scav"] = 1,
+			["armck_scav"] = 2,
+			["armrectr_scav"] = 40,
+			["armcv_scav"] = 2,
+			["armch_scav"] = 2,
 			--Cortex
-			["corck_scav"] = 1,
-			["cornecro_scav"] = 20,
-			["corcv_scav"] = 1,
-			["corch_scav"] = 1,
+			["corck_scav"] = 2,
+			["cornecro_scav"] = 40,
+			["corcv_scav"] = 2,
+			["corch_scav"] = 2,
 			--Legion
-			["legcv_scav"] = 1,
-			["legck_scav"] = 1,
-			["legch_scav"] = 1,
-			["legotter_scav"] = 1,
+			["legcv_scav"] = 2,
+			["legck_scav"] = 2,
+			["legch_scav"] = 2,
+			["legotter_scav"] = 2,
 		},
 		[2] = {
 			--Armada
-			["armck_scav"] = 1,
-			["armrectr_scav"] = 20,
-			["armcv_scav"] = 1,
-			["armch_scav"] = 1,
+			["armck_scav"] = 2,
+			["armrectr_scav"] = 40,
+			["armcv_scav"] = 2,
+			["armch_scav"] = 2,
 			--Cortex
-			["corck_scav"] = 1,
-			["cornecro_scav"] = 20,
-			["corcv_scav"] = 1,
-			["corch_scav"] = 1,
+			["corck_scav"] = 2,
+			["cornecro_scav"] = 40,
+			["corcv_scav"] = 2,
+			["corch_scav"] = 2,
 			--Legion
-			["legcv_scav"] = 1,
-			["legck_scav"] = 1,
-			["legch_scav"] = 1,
-			["legotter_scav"] = 1,
+			["legcv_scav"] = 2,
+			["legck_scav"] = 2,
+			["legch_scav"] = 2,
+			["legotter_scav"] = 2,
 		},
 		[3] = {
 			--Armada
-			["armck_scav"] = 1,
-			["armrectr_scav"] = 20,
-			["armcv_scav"] = 1,
-			["armch_scav"] = 1,
+			["armck_scav"] = 2,
+			["armrectr_scav"] = 40,
+			["armcv_scav"] = 2,
+			["armch_scav"] = 2,
 			--Cortex
-			["corck_scav"] = 1,
-			["cornecro_scav"] = 20,
-			["corcv_scav"] = 1,
-			["corch_scav"] = 1,
+			["corck_scav"] = 2,
+			["cornecro_scav"] = 40,
+			["corcv_scav"] = 2,
+			["corch_scav"] = 2,
 			--Legion
-			["legcv_scav"] = 1,
-			["legck_scav"] = 1,
-			["legch_scav"] = 1,
-			["legotter_scav"] = 1,
+			["legcv_scav"] = 2,
+			["legck_scav"] = 2,
+			["legch_scav"] = 2,
+			["legotter_scav"] = 2,
 		},
 		[4] = {
 			--Armada
-			["armrectr_scav"] = 20,
-			["armack_scav"] = 1,
-			["armacv_scav"] = 1,
-			["armfark_scav"] = 1,
-			["armdecom_scav"] = 1,
-			["armconsul_scav"] = 1,
+			["armrectr_scav"] = 40,
+			["armack_scav"] = 2,
+			["armacv_scav"] = 2,
+			["armfark_scav"] = 2,
+			["armdecom_scav"] = 2,
+			["armconsul_scav"] = 2,
 			--Cortex
-			["cornecro_scav"] = 20,
-			["corack_scav"] = 1,
-			["coracv_scav"] = 1,
-			["corfast_scav"] = 1,
-			["cordecom_scav"] = 1,
-			["cormando_scav"] = 1,
-			["corforge_scav"] = 1,
+			["cornecro_scav"] = 40,
+			["corack_scav"] = 2,
+			["coracv_scav"] = 2,
+			["corfast_scav"] = 2,
+			["cordecom_scav"] = 2,
+			["cormando_scav"] = 2,
+			["corforge_scav"] = 2,
 			--Legion
-			["legacv_scav"] = 1,
-			["legack_scav"] = 1,
-			["legaceb_scav"] = 1,
-			["legdecom_scav"] = 1,
+			["legacv_scav"] = 2,
+			["legack_scav"] = 2,
+			["legaceb_scav"] = 2,
+			["legdecom_scav"] = 2,
 		},
 		[5] = {
 			--Armada
-			["armrectr_scav"] = 20,
-			["armack_scav"] = 1,
-			["armacv_scav"] = 1,
-			["armfark_scav"] = 1,
-			["armdecomlvl3_scav"] = 1,
-			["armconsul_scav"] = 1,
+			["armrectr_scav"] = 40,
+			["armack_scav"] = 2,
+			["armacv_scav"] = 2,
+			["armfark_scav"] = 2,
+			["armdecomlvl3_scav"] = 2,
+			["armconsul_scav"] = 2,
 			--Cortex
-			["cornecro_scav"] = 20,
-			["corack_scav"] = 1,
-			["coracv_scav"] = 1,
-			["corfast_scav"] = 1,
-			["cordecomlvl3_scav"] = 1,
-			["cormando_scav"] = 1,
-			["corforge_scav"] = 1,
+			["cornecro_scav"] = 40,
+			["corack_scav"] = 2,
+			["coracv_scav"] = 2,
+			["corfast_scav"] = 2,
+			["cordecomlvl3_scav"] = 2,
+			["cormando_scav"] = 2,
+			["corforge_scav"] = 2,
 			--Legion
-			["legacv_scav"] = 1,
-			["legack_scav"] = 1,
-			["legaceb_scav"] = 1,
-			["legdecomlvl3_scav"] = 1,
+			["legacv_scav"] = 2,
+			["legack_scav"] = 2,
+			["legaceb_scav"] = 2,
+			["legdecomlvl3_scav"] = 2,
 		},
 		[6] = {
 			--Armada
-			["armrectr_scav"] = 20,
-			["armack_scav"] = 1,
-			["armacv_scav"] = 1,
-			["armfark_scav"] = 1,
-			["armdecomlvl6_scav"] = 1,
-			["armconsul_scav"] = 1,
+			["armrectr_scav"] = 40,
+			["armack_scav"] = 2,
+			["armacv_scav"] = 2,
+			["armfark_scav"] = 2,
+			["armdecomlvl6_scav"] = 2,
+			["armconsul_scav"] = 2,
 			--Cortex
-			["cornecro_scav"] = 20,
-			["corack_scav"] = 1,
-			["coracv_scav"] = 1,
-			["corfast_scav"] = 1,
-			["cordecomlvl6_scav"] = 1,
-			["cormando_scav"] = 1,
-			["corforge_scav"] = 1,
+			["cornecro_scav"] = 40,
+			["corack_scav"] = 2,
+			["coracv_scav"] = 2,
+			["corfast_scav"] = 2,
+			["cordecomlvl6_scav"] = 2,
+			["cormando_scav"] = 2,
+			["corforge_scav"] = 2,
 			--Legion
-			["legacv_scav"] = 1,
-			["legack_scav"] = 1,
-			["legaceb_scav"] = 1,
-			["legdecomlvl6_scav"] = 1,
+			["legacv_scav"] = 2,
+			["legack_scav"] = 2,
+			["legaceb_scav"] = 2,
+			["legdecomlvl6_scav"] = 2,
 		},
 		[7] = {
 			--Armada
-			["armrectr_scav"] = 20,
-			["armack_scav"] = 1,
-			["armacv_scav"] = 1,
-			["armfark_scav"] = 1,
-			["armdecomlvl10_scav"] = 1,
-			["armconsul_scav"] = 1,
+			["armrectr_scav"] = 40,
+			["armack_scav"] = 2,
+			["armacv_scav"] = 2,
+			["armfark_scav"] = 2,
+			["armdecomlvl10_scav"] = 2,
+			["armconsul_scav"] = 2,
 			--Cortex
-			["cornecro_scav"] = 20,
-			["corack_scav"] = 1,
-			["coracv_scav"] = 1,
-			["corfast_scav"] = 1,
-			["cordecomlvl10_scav"] = 1,
-			["cormando_scav"] = 1,
-			["corforge_scav"] = 1,
+			["cornecro_scav"] = 40,
+			["corack_scav"] = 2,
+			["coracv_scav"] = 2,
+			["corfast_scav"] = 2,
+			["cordecomlvl10_scav"] = 2,
+			["cormando_scav"] = 2,
+			["corforge_scav"] = 2,
 			--Legion
-			["legacv_scav"] = 1,
-			["legack_scav"] = 1,
-			["legaceb_scav"] = 1,
-			["legdecomlvl10_scav"] = 1,
+			["legacv_scav"] = 2,
+			["legack_scav"] = 2,
+			["legaceb_scav"] = 2,
+			["legdecomlvl10_scav"] = 2,
 		},
 	},
 }
@@ -606,23 +616,23 @@ local SeaUnitsList = {
 	Raid = {
 		[1] = {
 			--Armada
-			["armdecade_scav"] = 1,
-			["armsh_scav"] = 1,
+			["armdecade_scav"] = 3,
+			["armsh_scav"] = 3,
 			--Cortex
-			["coresupp_scav"] = 1,
-			["corsh_scav"] = 1,
+			["coresupp_scav"] = 3,
+			["corsh_scav"] = 3,
 			--Legion
-			["legsh_scav"] = 1,
+			["legsh_scav"] = 3,
 		},
 		[2] = {
 			--Armada
-			["armdecade_scav"] = 1,
-			["armsh_scav"] = 1,
+			["armdecade_scav"] = 3,
+			["armsh_scav"] = 3,
 			--Cortex
-			["coresupp_scav"] = 1,
-			["corsh_scav"] = 1,
+			["coresupp_scav"] = 3,
+			["corsh_scav"] = 3,
 			--Legion
-			["legsh_scav"] = 1,
+			["legsh_scav"] = 3,
 		},
 		[3] = {
 			--Armada
@@ -631,15 +641,15 @@ local SeaUnitsList = {
 		},
 		[4] = {
 			--Armada
-			["armlship_scav"] = 1,
+			["armlship_scav"] = 3,
 			--Cortex
-			["corfship_scav"] = 1,
+			["corfship_scav"] = 3,
 		},
 		[5] = {
 			--Armada
-			["armsubk_scav"] = 1,
+			["armsubk_scav"] = 2,
 			--Cortex
-			["corshark_scav"] = 1,
+			["corshark_scav"] = 2,
 		},
 		[6] = {
 			--Armada
@@ -667,91 +677,91 @@ local SeaUnitsList = {
 		},
 		[3] = {
 			--Armada
-			["armpship_scav"] = 1,
-			["armroy_scav"] = 1,
-			["armanac_scav"] = 1,
+			["armpship_scav"] = 4,
+			["armroy_scav"] = 2,
+			["armanac_scav"] = 3,
 			--Cortex
-			["corpship_scav"] = 1,
-			["corroy_scav"] = 1,
-			["corsnap_scav"] = 1,
+			["corpship_scav"] = 4,
+			["corroy_scav"] = 2,
+			["corsnap_scav"] = 4,
 			--Legion
-			["legner_scav"] = 1,
+			["legner_scav"] = 3,
 		},
 		[4] = {
 			--Armada
-			["armcrus_scav"] = 1,
+			["armcrus_scav"] = 3,
 			--Cortex
-			["corcrus_scav"] = 1,
-			["corhal_scav"] = 1,
+			["corcrus_scav"] = 3,
+			["corhal_scav"] = 3,
 		},
 		[5] = {
 			--Armada
-			["armbats_scav"] = 1,
+			["armbats_scav"] = 3,
 			--Cortex
-			["corbats_scav"] = 1,
+			["corbats_scav"] = 3,
 		},
 		[6] = {
 			--Armada
-			["armpshipt3_scav"] = 1,
-			["armptt2_scav"] = 1,
+			["armpshipt3_scav"] = 2,
+			["armptt2_scav"] = 2,
 			--Cortex
-			["corblackhy_scav"] = 1,
+			["corblackhy_scav"] = 2,
 		},
 		[7] = {
 			--Armada
-			["armepoch_scav"] = 1,
-			["armserpt3_scav"] = 1,
+			["armepoch_scav"] = 2,
+			["armserpt3_scav"] = 2,
 			--Cortex
-			["coresuppt3_scav"] = 1,
+			["coresuppt3_scav"] = 2,
 		},
 	},
 	Support = {
 		[1] = {
 			--Armada
-			["armpt_scav"] = 1,
+			["armpt_scav"] = 2,
 			--Cortex
-			["corpt_scav"] = 1,
+			["corpt_scav"] = 2,
 		},
 		[2] = {
 			--Armada
-			["armpt_scav"] = 1,
+			["armpt_scav"] = 2,
 			--Cortex
-			["corpt_scav"] = 1,
+			["corpt_scav"] = 2,
 		},
 		[3] = {
 			--Armada
-			["armsub_scav"] = 1,
-			["armah_scav"] = 1,
-			["armmh_scav"] = 1,
+			["armsub_scav"] = 2,
+			["armah_scav"] = 2,
+			["armmh_scav"] = 2,
 			--Cortex
-			["corsub_scav"] = 1,
-			["corah_scav"] = 1,
-			["cormh_scav"] = 1,
+			["corsub_scav"] = 2,
+			["corah_scav"] = 2,
+			["cormh_scav"] = 2,
 			--Legion
-			["legah_scav"] = 1,
-			["legmh_scav"] = 1,
+			["legah_scav"] = 2,
+			["legmh_scav"] = 2,
 		},
 		[4] = {
 			--Armada
-			["armantiship_scav"] = 1,
-			["armdronecarry_scav"] = 1,
-			["armaas_scav"] = 1,
+			["armantiship_scav"] = 2,
+			["armdronecarry_scav"] = 2,
+			["armaas_scav"] = 2,
 			--Cortex
-			["cordronecarry_scav"] = 1,
-			["corantiship_scav"] = 1,
-			["corarch_scav"] = 1,
+			["cordronecarry_scav"] = 2,
+			["corantiship_scav"] = 2,
+			["corarch_scav"] = 2,
 		},
 		[5] = {
 			--Armada
-			["armserp_scav"] = 1,
-			["armmship_scav"] = 1,
-			["armsjam_scav"] = 1,
-			["armtrident_scav"] = 1,
+			["armserp_scav"] = 2,
+			["armmship_scav"] = 2,
+			["armsjam_scav"] = 2,
+			["armtrident_scav"] = 2,
 			--Cortex
-			["corssub_scav"] = 1,
-			["cormship_scav"] = 1,
-			["corsjam_scav"] = 1,
-			["corsentinel_scav"] = 1,
+			["corssub_scav"] = 2,
+			["cormship_scav"] = 2,
+			["corsjam_scav"] = 2,
+			["corsentinel_scav"] = 2,
 		},
 		[6] = {
 			--Armada
@@ -761,88 +771,88 @@ local SeaUnitsList = {
 		},
 		[7] = {
 			--Armada
-			["armdecadet3_scav"] = 1,
+			["armdecadet3_scav"] = 2,
 			--Cortex
-			["corslrpc_scav"] = 1,
+			["corslrpc_scav"] = 2,
 		},
 	},
 	Healer = {
 		[1] = {
 			--Armada
-			["armcs_scav"] = 1,
-			["armrecl_scav"] = 20,
-			["armch_scav"] = 1,
+			["armcs_scav"] = 2,
+			["armrecl_scav"] = 40,
+			["armch_scav"] = 2,
 			--Cortex
-			["corcs_scav"] = 1,
-			["correcl_scav"] = 20,
-			["corch_scav"] = 1,
+			["corcs_scav"] = 2,
+			["correcl_scav"] = 40,
+			["corch_scav"] = 2,
 			--Legion
-			["legch_scav"] = 1,
+			["legch_scav"] = 2,
 		},
 		[2] = {
 			--Armada
-			["armcs_scav"] = 1,
-			["armrecl_scav"] = 20,
-			["armch_scav"] = 1,
+			["armcs_scav"] = 2,
+			["armrecl_scav"] = 40,
+			["armch_scav"] = 2,
 			--Cortex
-			["corcs_scav"] = 1,
-			["correcl_scav"] = 20,
-			["corch_scav"] = 1,
+			["corcs_scav"] = 2,
+			["correcl_scav"] = 40,
+			["corch_scav"] = 2,
 			--Legion
-			["legch_scav"] = 1,
+			["legch_scav"] = 2,
 		},
 		[3] = {
 			--Armada
-			["armcs_scav"] = 1,
-			["armrecl_scav"] = 20,
-			["armch_scav"] = 1,
+			["armcs_scav"] = 2,
+			["armrecl_scav"] = 40,
+			["armch_scav"] = 2,
 			--Cortex
-			["corcs_scav"] = 1,
-			["correcl_scav"] = 20,
-			["corch_scav"] = 1,
+			["corcs_scav"] = 2,
+			["correcl_scav"] = 40,
+			["corch_scav"] = 2,
 			--Legion
-			["legch_scav"] = 1,
+			["legch_scav"] = 2,
 		},
 		[4] = {
 			--Armada
-			["armacsub_scav"] = 1,
-			["armrecl_scav"] = 20,
-			["armmls_scav"] = 1,
+			["armacsub_scav"] = 2,
+			["armrecl_scav"] = 40,
+			["armmls_scav"] = 2,
 			--Cortex
-			["coracsub_scav"] = 1,
-			["correcl_scav"] = 20,
-			["cormls_scav"] = 1,
+			["coracsub_scav"] = 2,
+			["correcl_scav"] = 40,
+			["cormls_scav"] = 2,
 		},
 		[5] = {
 			--Armada
-			["armacsub_scav"] = 1,
-			["armrecl_scav"] = 20,
-			["armmls_scav"] = 1,
+			["armacsub_scav"] = 2,
+			["armrecl_scav"] = 40,
+			["armmls_scav"] = 2,
 			--Cortex
-			["coracsub_scav"] = 1,
-			["correcl_scav"] = 20,
-			["cormls_scav"] = 1,
+			["coracsub_scav"] = 2,
+			["correcl_scav"] = 40,
+			["cormls_scav"] = 2,
 		},
 		[6] = {
 			--Armada
-			["armacsub_scav"] = 1,
-			["armrecl_scav"] = 20,
-			["armmls_scav"] = 1,
+			["armacsub_scav"] = 2,
+			["armrecl_scav"] = 40,
+			["armmls_scav"] = 2,
 			--Cortex
-			["coracsub_scav"] = 1,
-			["correcl_scav"] = 20,
-			["cormls_scav"] = 1,
+			["coracsub_scav"] = 2,
+			["correcl_scav"] = 40,
+			["cormls_scav"] = 2,
 
 		},
 		[7] = {
 			--Armada
-			["armacsub_scav"] = 1,
-			["armrecl_scav"] = 20,
-			["armmls_scav"] = 1,
+			["armacsub_scav"] = 2,
+			["armrecl_scav"] = 40,
+			["armmls_scav"] = 2,
 			--Cortex
-			["coracsub_scav"] = 1,
-			["correcl_scav"] = 20,
-			["cormls_scav"] = 1,
+			["coracsub_scav"] = 2,
+			["correcl_scav"] = 40,
+			["cormls_scav"] = 2,
 		},
 	},
 }
@@ -887,94 +897,97 @@ end
 local AirUnitsList = {
 	[1] = {
 		--Armada
-		["armpeep_scav"] = 1,
+		["armpeep_scav"] = 2,
 		--Cortex
-		["corfink_scav"] = 1,
+		["corfink_scav"] = 2,
 		--Legion
 
 	},
 	[2] = {
 		--Armada
-		["armpeep_scav"] = 1,
-		["armsehak_scav"] = 1,
+		["armpeep_scav"] = 2,
+		["armsehak_scav"] = 2,
 		--Cortex
-		["corfink_scav"] = 1,
-		["corbw_scav"] = 1,
+		["corfink_scav"] = 2,
+		["corbw_scav"] = 2,
 		--Legion
-		["legfig_scav"] = 1,
+		["legfig_scav"] = 2,
 
 	},
 	[3] = {
 		--Armada
-		["armfig_scav"] = 1,
-		["armkam_scav"] = 1,
-		["armthund_scav"] = 1,
-		["armsfig_scav"] = 1,
+		["armfig_scav"] = 2,
+		["armkam_scav"] = 2,
+		["armthund_scav"] = 2,
+		["armsfig_scav"] = 2,
 		--Cortex
-		["corveng_scav"] = 1,
-		["corshad_scav"] = 1,
-		["corsfig_scav"] = 1,
+		["corveng_scav"] = 2,
+		["corshad_scav"] = 2,
+		["corsfig_scav"] = 2,
 		--Legion
-		["legmos_scav"] = 1,
-		["legcib_scav"] = 1,
-		["legkam_scav"] = 1,
+		["legmos_scav"] = 2,
+		["legcib_scav"] = 2,
+		["legkam_scav"] = 2,
 
 	},
 	[4] = {
 		--Armada
-		["armawac_scav"] = 1,
-		["armsaber_scav"] = 1,
-		["armseap_scav"] = 1,
-		["armsb_scav"] = 1,
-		["armlance_scav"] = 1,
+		["armawac_scav"] = 2,
+		["armsaber_scav"] = 2,
+		["armseap_scav"] = 2,
+		["armsb_scav"] = 2,
+		["armlance_scav"] = 2,
 		--Cortex
-		["corawac_scav"] = 1,
-		["corcut_scav"] = 1,
-		["corsb_scav"] = 1,
-		["corseap_scav"] = 1,
-		["cortitan_scav"] = 1,
-		["corhunt_scav"] = 1,
+		["corawac_scav"] = 2,
+		["corcut_scav"] = 2,
+		["corsb_scav"] = 2,
+		["corseap_scav"] = 2,
+		["cortitan_scav"] = 2,
+		["corhunt_scav"] = 2,
 		--Legion
-		["legwhisper_scav"] = 1,
+		["legwhisper_scav"] = 2,
 	},
 	[5] = {
 		--Armada
-		["armhawk_scav"] = 1,
-		["armbrawl_scav"] = 1,
-		["armpnix_scav"] = 1,
-		["armstil_scav"] = 1,
-		["armblade_scav"] = 1,
-		["armliche_scav"] = 1,
+		["armhawk_scav"] = 3,
+		["armbrawl_scav"] = 3,
+		["armpnix_scav"] = 3,
+		["armstil_scav"] = 3,
+		["armblade_scav"] = 3,
+		["armliche_scav"] = 2,
 		--Cortex
-		["corvamp_scav"] = 1,
-		["corape_scav"] = 1,
-		["corhurc_scav"] = 1,
-		["corcrw_scav"] = 1,
-		["corcrwh_scav"] = 1,
+		["corvamp_scav"] = 3,
+		["corape_scav"] = 3,
+		["corhurc_scav"] = 3,
+		["corcrw_scav"] = 2,
+		["corcrwh_scav"] = 2,
 		--Legion
-		["legstronghold_scav"] = 1,
-		["legvenator_scav"] = 1,
-		["legionnaire_scav"] = 1,
-		["legnap_scav"] = 1,
-		["legmineb_scav"] = 1,
-		["legphoenix_scav"] = 1,
-		["legfort_scav"] = 1,
+		["legstronghold_scav"] = 2,
+		["legvenator_scav"] = 3,
+		["legionnaire_scav"] = 3,
+		["legnap_scav"] = 3,
+		["legmineb_scav"] = 3,
+		["legphoenix_scav"] = 3,
+		["legfort_scav"] = 2,
 	},
 	[6] = {
 		--Armada
 		
 		--Cortex
-		["cordronecarryair_scav"] = 3,
+		["cordronecarryair_scav"] = 2,
 		--Legion
 
 	},
 	[7] = {
 		--Armada
-		["armthundt4_scav"] = 3,
-		["armfepocht4_scav"] = 3,
-		["armlichet4_scav"] = 1,
+		["corcrw_scav"] = 3,
+		["corcrwh_scav"] = 3,
+		["armliche_scav"] = 4,
+		["legfort_scav"] = 3,
+		["armthundt4_scav"] = 2,
+		["armfepocht4_scav"] = 1,
 		--Cortex
-		["corfblackhyt4_scav"] = 3,
+		["corfblackhyt4_scav"] = 1,
 		["corcrwt4_scav"] = 2,
 		--Legion
 
@@ -1463,13 +1476,116 @@ local squadSpawnOptionsTable = {
 		["legdecomlvl10_scav"] = { minAnger = 80, maxAnger = 1000, maxAlive = 100 },
 	},
 	frontbusters = {
-		{ name = "squadarmpwt4_scav",        minAnger = 40, maxAnger = 60,   squadSize = 3, maxAlive = 1 },
-		{ name = "squadcorakt4_scav",        minAnger = 40, maxAnger = 60,   squadSize = 3, maxAlive = 1 },
-		{ name = "squadarmsptkt4_scav",      minAnger = 60, maxAnger = 80,   squadSize = 3, maxAlive = 1 },
-		{ name = "squadcorkarganetht4_scav", minAnger = 70, maxAnger = 1000, squadSize = 3, maxAlive = 1 },
+
+		----Tier 1 [1]----
+
+		--land
+		{ name = "armfboy_scav",        minAnger = fBusterConfig[1].minAnger, maxAnger = fBusterConfig[1].maxAnger, squadSize = 1, maxAlive = 1, surface = "land" },
+		{ name = "armmanni_scav",        minAnger = fBusterConfig[1].minAnger, maxAnger = fBusterConfig[1].maxAnger, squadSize = 1, maxAlive = 1, surface = "land" },
+		{ name = "corcan_scav",        minAnger = fBusterConfig[1].minAnger, maxAnger = fBusterConfig[1].maxAnger, squadSize = 3, maxAlive = 3, surface = "land" },
+		{ name = "corsiegebreaker_scav",        minAnger = fBusterConfig[1].minAnger, maxAnger = fBusterConfig[1].maxAnger, squadSize = 1, maxAlive = 1, surface = "land" },
+		{ name = "corgol_scav",        minAnger = fBusterConfig[1].minAnger, maxAnger = fBusterConfig[1].maxAnger, squadSize = 1, maxAlive = 1, surface = "land" },
+		--mixed
+		{ name = "armlun_scav",        minAnger = fBusterConfig[1].minAnger, maxAnger = fBusterConfig[1].maxAnger, squadSize = 1, maxAlive = 1, surface = "mixed" },
+		{ name = "armmar_scav",        minAnger = fBusterConfig[1].minAnger, maxAnger = fBusterConfig[1].maxAnger, squadSize = 1, maxAlive = 1, surface = "mixed" },
+		--sea
+		{ name = "armcrus_scav",        minAnger = fBusterConfig[1].minAnger, maxAnger = fBusterConfig[1].maxAnger, squadSize = 1, maxAlive = 1, surface = "sea" },
+		{ name = "corcrus_scav",        minAnger = fBusterConfig[1].minAnger, maxAnger = fBusterConfig[1].maxAnger, squadSize = 1, maxAlive = 1, surface = "sea" },
+
+		----Tier 1.5 [2]----
+		--land
+		{ name = "armassimilator_scav",        minAnger = fBusterConfig[2].minAnger, maxAnger = fBusterConfig[2].maxAnger, squadSize = 1, maxAlive = 1, surface = "land" },
+		{ name = "armdronecarryland_scav",        minAnger = fBusterConfig[2].minAnger, maxAnger = fBusterConfig[2].maxAnger, squadSize = 1, maxAlive = 1, surface = "land" },
+		{ name = "corsumo_scav",        minAnger = fBusterConfig[2].minAnger, maxAnger = fBusterConfig[2].maxAnger, squadSize = 1, maxAlive = 1, surface = "land" },
+		{ name = "corshiva_scav",        minAnger = fBusterConfig[2].minAnger, maxAnger = fBusterConfig[2].maxAnger, squadSize = 1, maxAlive = 1, surface = "land" },
+		{ name = "cortrem_scav",        minAnger = fBusterConfig[2].minAnger, maxAnger = fBusterConfig[2].maxAnger, squadSize = 1, maxAlive = 1, surface = "land" },
+		{ name = "leginf_scav",        minAnger = fBusterConfig[2].minAnger, maxAnger = fBusterConfig[2].maxAnger, squadSize = 1, maxAlive = 1, surface = "land" },
+		{ name = "leginc_scav",        minAnger = fBusterConfig[2].minAnger, maxAnger = fBusterConfig[2].maxAnger, squadSize = 1, maxAlive = 1, surface = "land" },
+		--mixed
+		{ name = "cordronecarryair_scav",        minAnger = fBusterConfig[2].minAnger, maxAnger = fBusterConfig[2].maxAnger, squadSize = 1, maxAlive = 1, surface = "mixed" },
+		--sea
+		{ name = "armdronecarry_scav",        minAnger = fBusterConfig[2].minAnger, maxAnger = fBusterConfig[2].maxAnger, squadSize = 1, maxAlive = 1, surface = "sea" },
+		{ name = "armtrident_scav",        minAnger = fBusterConfig[2].minAnger, maxAnger = fBusterConfig[2].maxAnger, squadSize = 1, maxAlive = 1, surface = "sea" },
+		{ name = "armmship_scav",        minAnger = fBusterConfig[2].minAnger, maxAnger = fBusterConfig[2].maxAnger, squadSize = 1, maxAlive = 1, surface = "sea" },
+		{ name = "corsentinel_scav",        minAnger = fBusterConfig[2].minAnger, maxAnger = fBusterConfig[2].maxAnger, squadSize = 1, maxAlive = 1, surface = "sea" },
+		{ name = "cordronecarry_scav",        minAnger = fBusterConfig[2].minAnger, maxAnger = fBusterConfig[2].maxAnger, squadSize = 1, maxAlive = 1, surface = "sea" },
+		{ name = "cormship_scav",        minAnger = fBusterConfig[2].minAnger, maxAnger = fBusterConfig[2].maxAnger, squadSize = 1, maxAlive = 1, surface = "sea" },
+
+		
+
+		----Tier 2, [3]----
+		--land
+		{ name = "armraz_scav",        minAnger = fBusterConfig[3].minAnger, maxAnger = fBusterConfig[3].maxAnger, squadSize = 1, maxAlive = 1, surface = "land" },
+		{ name = "armvang_scav",        minAnger = fBusterConfig[3].minAnger, maxAnger = fBusterConfig[3].maxAnger, squadSize = 1, maxAlive = 1, surface = "land" },
+		{ name = "armmeatball_scav",        minAnger = fBusterConfig[3].minAnger, maxAnger = fBusterConfig[3].maxAnger, squadSize = 1, maxAlive = 1, surface = "land" },
+		{ name = "corthermite_scav",        minAnger = fBusterConfig[3].minAnger, maxAnger = fBusterConfig[3].maxAnger, squadSize = 1, maxAlive = 1, surface = "land" },
+		{ name = "corcat_scav",        minAnger = fBusterConfig[3].minAnger, maxAnger = fBusterConfig[3].maxAnger, squadSize = 1, maxAlive = 1, surface = "land" },
+		{ name = "legkeres_scav",        minAnger = fBusterConfig[3].minAnger, maxAnger = fBusterConfig[3].maxAnger, squadSize = 1, maxAlive = 1, surface = "land" },
+		--mixed
+		{ name = "armliche_scav",        minAnger = fBusterConfig[3].minAnger, maxAnger = fBusterConfig[3].maxAnger, squadSize = 1, maxAlive = 1, surface = "mixed" },
+		--sea
+		{ name = "armbats_scav",        minAnger = fBusterConfig[3].minAnger, maxAnger = fBusterConfig[3].maxAnger, squadSize = 1, maxAlive = 1, surface = "sea" },
+		{ name = "corbats_scav",        minAnger = fBusterConfig[3].minAnger, maxAnger = fBusterConfig[3].maxAnger, squadSize = 1, maxAlive = 1, surface = "sea" },
+
+		----Tier 2.5 [4]----
+		{ name = "armpwt4_scav",        minAnger = fBusterConfig[4].minAnger, maxAnger = fBusterConfig[4].maxAnger, squadSize = 1, maxAlive = 1, surface = "land" },
+		{ name = "cordemon_scav",        minAnger = fBusterConfig[4].minAnger, maxAnger = fBusterConfig[4].maxAnger, squadSize = 1, maxAlive = 1, surface = "land" },
+		{ name = "corakt4_scav",        minAnger = fBusterConfig[4].minAnger, maxAnger = fBusterConfig[4].maxAnger, squadSize = 1, maxAlive = 1, surface = "land" },
+		{ name = "corkarg_scav",        minAnger = fBusterConfig[4].minAnger, maxAnger = fBusterConfig[4].maxAnger, squadSize = 1, maxAlive = 1, surface = "land" },
+		--mixed
+		{ name = "corcrw_scav",        minAnger = fBusterConfig[4].minAnger, maxAnger = fBusterConfig[4].maxAnger, squadSize = 1, maxAlive = 1, surface = "mixed" },
+		{ name = "corcrwh_scav",        minAnger = fBusterConfig[4].minAnger, maxAnger = fBusterConfig[4].maxAnger, squadSize = 1, maxAlive = 1, surface = "mixed" },
+		{ name = "legfort_scav",        minAnger = fBusterConfig[4].minAnger, maxAnger = fBusterConfig[4].maxAnger, squadSize = 1, maxAlive = 1, surface = "mixed" },
+		--sea
+		{ name = "armbats_scav",        minAnger = fBusterConfig[4].minAnger, maxAnger = fBusterConfig[4].maxAnger, squadSize = 2, maxAlive = 2, surface = "sea" },
+		{ name = "corbats_scav",        minAnger = fBusterConfig[4].minAnger, maxAnger = fBusterConfig[4].maxAnger, squadSize = 2, maxAlive = 2, surface = "sea" },
+
+		----Tier 3 [5]----
+		--land
+		{ name = "armthor_scav",        minAnger = fBusterConfig[5].minAnger, maxAnger = fBusterConfig[5].maxAnger, squadSize = 1, maxAlive = 1, surface = "land" },
+		{ name = "armsptkt4_scav",        minAnger = fBusterConfig[5].minAnger, maxAnger = fBusterConfig[5].maxAnger, squadSize = 1, maxAlive = 1, surface = "land" },
+		{ name = "corjugg_scav",        minAnger = fBusterConfig[5].minAnger, maxAnger = fBusterConfig[5].maxAnger, squadSize = 1, maxAlive = 1, surface = "land" },
+		{ name = "leegmech_scav",        minAnger = fBusterConfig[5].minAnger, maxAnger = fBusterConfig[5].maxAnger, squadSize = 1, maxAlive = 1, surface = "land" },
+		{ name = "legpede_scav",        minAnger = fBusterConfig[5].minAnger, maxAnger = fBusterConfig[5].maxAnger, squadSize = 1, maxAlive = 1, surface = "land" },
+		{ name = "squadarmpwt4_scav",        minAnger = fBusterConfig[5].minAnger, maxAnger = fBusterConfig[5].maxAnger, squadSize = 1, maxAlive = 1, surface = "land" },
+		{ name = "squadcorakt4_scav",        minAnger = fBusterConfig[5].minAnger, maxAnger = fBusterConfig[5].maxAnger, squadSize = 1, maxAlive = 1, surface = "land" },
+		--mixed
+		{ name = "corcrwt4_scav",        minAnger = fBusterConfig[5].minAnger, maxAnger = fBusterConfig[5].maxAnger, squadSize = 1, maxAlive = 1, surface = "mixed" },
+		{ name = "armbanth_scav",        minAnger = fBusterConfig[5].minAnger, maxAnger = fBusterConfig[5].maxAnger, squadSize = 1, maxAlive = 1, surface = "mixed" },
+		--sea
+		{ name = "armpshipt3",        minAnger = fBusterConfig[5].minAnger, maxAnger = fBusterConfig[5].maxAnger, squadSize = 1, maxAlive = 1, surface = "sea" },
+		{ name = "armdecadet3",        minAnger = fBusterConfig[5].minAnger, maxAnger = fBusterConfig[5].maxAnger, squadSize = 1, maxAlive = 1, surface = "sea" },
+		{ name = "corslrpc",        minAnger = fBusterConfig[5].minAnger, maxAnger = fBusterConfig[5].maxAnger, squadSize = 1, maxAlive = 1, surface = "sea" },
+		{ name = "armpshipt3",        minAnger = fBusterConfig[5].minAnger, maxAnger = fBusterConfig[5].maxAnger, squadSize = 1, maxAlive = 1, surface = "sea" },
+		
+
+		----Tier 3.5 [6]----
+		--land
+		{ name = "corkarganetht4_scav", minAnger = fBusterConfig[6].minAnger, maxAnger = fBusterConfig[6].maxAnger, squadSize = 1, maxAlive = 1, surface = "land" },
+		{ name = "squadarmsptkt4_scav", minAnger = fBusterConfig[6].minAnger, maxAnger = fBusterConfig[6].maxAnger, squadSize = 1, maxAlive = 1, surface = "land" },
+		--mixed
+		{ name = "armthundt4_scav", minAnger = fBusterConfig[6].minAnger, maxAnger = fBusterConfig[6].maxAnger, squadSize = 1, maxAlive = 1, surface = "mixed" },
+		{ name = "armrattet4_scav", minAnger = fBusterConfig[6].minAnger, maxAnger = fBusterConfig[6].maxAnger, squadSize = 1, maxAlive = 1, surface = "mixed" },
+		{ name = "armfepocht4_scav", minAnger = fBusterConfig[6].minAnger, maxAnger = fBusterConfig[6].maxAnger, squadSize = 1, maxAlive = 1, surface = "mixed" },
+		{ name = "corgolt4_scav", minAnger = fBusterConfig[6].minAnger, maxAnger = fBusterConfig[6].maxAnger, squadSize = 1, maxAlive = 1, surface = "mixed" },
+		{ name = "corfblackhyt4_scav", minAnger = fBusterConfig[6].minAnger, maxAnger = fBusterConfig[6].maxAnger, squadSize = 1, maxAlive = 1, surface = "mixed" },
+		{ name = "corkorg_scav", minAnger = fBusterConfig[6].minAnger, maxAnger = fBusterConfig[6].maxAnger, squadSize = 1, maxAlive = 1, surface = "mixed" },
+		--sea
+		{ name = "armdecadet3_scav",        minAnger = fBusterConfig[6].minAnger, maxAnger = fBusterConfig[6].maxAnger, squadSize = 1, maxAlive = 1, surface = "sea" },
+		{ name = "armepoch_scav",        minAnger = fBusterConfig[6].minAnger, maxAnger = fBusterConfig[6].maxAnger, squadSize = 1, maxAlive = 1, surface = "sea" },
+		{ name = "corslrpc_scav",        minAnger = fBusterConfig[6].minAnger, maxAnger = fBusterConfig[6].maxAnger, squadSize = 2, maxAlive = 2, surface = "sea" },
+
+		----Tier 4 [7]----
+		--land
+		{ name = "squadcorkarganetht4_scav", minAnger = fBusterConfig[7].minAnger, maxAnger = fBusterConfig[7].maxAnger, squadSize = 1, maxAlive = 1, surface = "land" },
+		--mixed
+		{ name = "armvadert4_scav", minAnger = fBusterConfig[7].minAnger, maxAnger = fBusterConfig[7].maxAnger, squadSize = 1, maxAlive = 1, surface = "mixed" },
+		{ name = "armlichet4_scav", minAnger = fBusterConfig[7].minAnger, maxAnger = fBusterConfig[7].maxAnger, squadSize = 1, maxAlive = 1, surface = "mixed" },
+		--sea
+		{ name = "armdecadet3_scav",        minAnger = fBusterConfig[7].minAnger, maxAnger = fBusterConfig[7].maxAnger, squadSize = 2, maxAlive = 2, surface = "sea" },
+		{ name = "armepoch_scav",        minAnger = fBusterConfig[7].minAnger, maxAnger = fBusterConfig[7].maxAnger, squadSize = 2, maxAlive = 2, surface = "sea" },
 	}
 }
-
 
 local scavMinions = {} -- Units spawning other units
 
