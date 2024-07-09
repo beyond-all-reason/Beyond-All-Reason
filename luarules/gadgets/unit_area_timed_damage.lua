@@ -101,12 +101,6 @@ loopDuration = loopFrameCount * (1 / gameSpeed) -- note: may be outside the clam
 local groupCount = loopFrameCount / frameResolution
 local groupDuration = frameResolution * (1 / gameSpeed)
 
--- Units like the Legion Incinerator and Bastion invert the standard expectation of this script:
--- They create short-duration areas (worse amortization) very quickly (every 30th of a second).
--- Generally, these are toggled off with `briefTimedAreas = false` to save on FPS.
-local shortDuration = 3 -- in seconds
-shortDuration = math.round(shortDuration / groupDuration) -- in frame groups
-
 -- Maintain a contiguous array of ongoing areas.
 local timedAreas = {}
 for ii = 1, groupCount do
