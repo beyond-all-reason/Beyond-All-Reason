@@ -80,7 +80,7 @@ return {
 				[1] = "custom:waterwake-small-hover",
 				[2] = "custom:bowsplash-small-hover",
 				[3] = "custom:hover-wake-large",
-				[4] = "custom:barrelshot-small",
+				[4] = "custom:laserhit-large-green",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
