@@ -495,6 +495,9 @@ local function MakeAtlasOnDemand(config)
 	-- @param id the identifier of the item, needed for clearing its uv coordinate cache
 	function AtlasOnDemand:RemoveFromAtlas(uvcoords, id)
 		-- since it kinda has to by dynamic, it would be nice if we could mark some space as free on this
+
+		-- the values are dual purpose: not just texture coords,
+		-- but also Lua table indices which is why the +1 to start from 1
 		local xmin = math.floor(uvcoords.x * self.xslots)+1
 		local xmax =  math.ceil(uvcoords.X * self.xslots)+1
 		local ymin = math.floor(uvcoords.y * self.yslots)+1
