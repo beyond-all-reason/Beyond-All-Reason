@@ -75,7 +75,7 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:barrelshot-small",
+				[1] = "custom:barrelshot-small-impulse",
 				[2] = "custom:waterwake-small-hover",
 				[3] = "custom:bowsplash-small-hover",
 				[4] = "custom:hover-wake-small",
