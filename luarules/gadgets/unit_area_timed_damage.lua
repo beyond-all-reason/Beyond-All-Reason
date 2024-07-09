@@ -400,8 +400,8 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackID, attackDefID
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projID, attackID, attackDefID, attackTeam)
-	local weaponParams = timedAreaParams[weaponDefID]
-	if weaponParams then
+	if timedAreaParams[weaponDefID] then
+		local weaponParams = timedAreaParams[weaponDefID]
 		local immunity = UnitDefs[unitDefID].customParams.area_immunities
 		if immunity then
 			local damageType = weaponParams.area_damagetype
@@ -416,8 +416,8 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 end
 
 function gadget:FeaturePreDamaged(featureID, featureDefID, featureTeam, damage, weaponDefID, projID, attackID, attackDefID, attackTeam)
-	local weaponParams = timedAreaParams[weaponDefID]
-	if weaponParams then
+	if timedAreaParams[weaponDefID] then
+		local weaponParams = timedAreaParams[weaponDefID]
 		damage = damage * loopDuration
 		if weaponParams.area_damagedceg then
 			local _,_,_, x,y,z = spGetFeaturePosition(featureID, true)
