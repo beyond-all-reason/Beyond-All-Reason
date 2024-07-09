@@ -21,14 +21,14 @@
 local gameSpeed  = 30
 
 -- From unit_area_timed_damage:
-local loopSpeed  = math.round(gameSpeed * 1 / 3)
+local loopSpeed  = math.round(gameSpeed * 1 / 3) -- note: keep in sync w/ unit_area_timed_damage -- todo
 local resolution = 2 -- bin size of frame groups
 
 --------------------------------------------------------------------------------------------------------------
 ------ Configuration
 
 -- From unitDefs with timed area weapons:
-local damageList = { "acid", "fire" }         -- plus "juno"?
+local damageList = { "acid", "fire" }
 local radiusList = { 37.5, 75, 150, 200, 250 }
 local framesList = { 1, 2, 3, 5, 10, 15, 20 } -- in seconds
 
@@ -58,7 +58,7 @@ local gfxPerSec = gameSpeed / loopSpeed
 
 -- Provides a string in the format [[<const> r<rand>]] which evaluates to the given
 -- per-second rate of an event over multiple attempts. Range size always == attempts.
-local function getUniformRandomFrequency(rate, attempts)
+local function randomUniform(rate, attempts)
 	attempts = attempts or gfxPerSec
 	if rate <= 0 then return [[0]] end
 	local baseRate = math.floor(rate / attempts)
@@ -72,7 +72,7 @@ end
 -- e.g. min=1, max=10, n=3 might give [[0.33 r4]], which has min=0, max=12, mean=5.5.
 -- If we assume a mean = (min + max) / 2 is ideal, then this solution is kinda okay.
 -- Otherwise, you need to use two explosion generators to produce a minimum + a range.
-local function getUniformRandomRange(min, max, attempts)
+local function randomUniformRange(min, max, attempts)
 	attempts = attempts or gfxPerSec
 	if min > max then min, max = max, min end
 	if max <= 0 then return [[0]] end
@@ -88,7 +88,7 @@ end
 -- Check your work:
 -- wolframalpha input: irwin hall distribution, n = 3, min = 0, max = 4
 -- wolframalpha input: probability that x>7, given that x~irwin hall distribution, n = 3, min = 0, max = 4
-local function getRandomFrequency(mean, var, attempts, estimators)
+local function randomNormal(mean, var, attempts, estimators)
 	attempts = attempts or gfxPerSec
 	estimators = math.min(math.max(estimators or 3, 1), 12) -- est=2 is also useful, triangular distribution
 	local meanRate = mean / attempts
@@ -113,7 +113,7 @@ end
 
 local function radiusSpherical(input, radius, bufferStart)
 	radius = radius or 1
-	input = tostring(input or "r"..radius)
+	input = tostring(input or "r" .. radius)
 	if radius == 1 then
 		return string.format("%s p0.3333333", input)
 	else
@@ -167,13 +167,6 @@ local layer = {
 
 --------------------------------------------------------------------------------------------------------------
 ------ Basic components
------- These are sub-components meant to be composed together into new CEGs.
------- Use them like so: ["new-ceg"] = { component_name = { <base_component_params> }, ... }
-
--- base_name   := <type>-<role>[-<description>][-<duration>]
--- role        := under | low | area | high
--- description := name | p<frequency> | n<particles>
--- duration    := f<frames> | t<seconds> | <lifetime>
 
 -- Roles give a consistent set of design choices for areas of effect:
 -- Under. A highlight that sits in the background and fills the entire area of effect.
@@ -181,372 +174,66 @@ local layer = {
 -- Area. An area-fill that can draw over units so should be relatively translucent and steady.
 -- High. An aura effect that is drawn very far back in the draw order. Translucent, broad, long-lived.
 
--- fire components: fire, smoke, charring, illumination, less shadow, heat haze
--- under: fireball underglow | low: animated fire | area: bursty fire and smoke | high: dark haze
-
--- acid components: liquid, bubbles, sputter, sizzling, heavy vapors
--- under: liquid pool swirl | low: sputtering bubbles | area: heavy vapors, acid spittle | high: yellow haze
-
--- local basicComponents = {
--- 	["fire-under"] = {
--- 		class = [[CBitmapMuzzleFlame]],
--- 		count = 1,
--- 		air = false,
--- 		ground = true,
--- 		underwater = false,
--- 		water = false,
--- 		properties = {
--- 			animParams = [[8,8,50 r70]],
--- 			colormap =
--- 			[[0.60 0.60 0.48 0.05   0.60 0.60 0.48 0.38   0.66 0.69 0.9 0.3   0.64 0.67 0.79 0.25   0.68 0.78 0.88 0.4   0.02 0.02 0.03 0.24   0.026 0.026 0.026 0.18   0.02 0.02 0.02 0.20   0.023 0.023 0.023 0.18   0 0 0 0.03   0 0 0 0.01]],
--- 			dir = [[0, 1, 0]],
--- 			drawOrder = layer.lower,
--- 			frontoffset = 0,
--- 			fronttexture = [[FireBall02-anim]],
--- 			length = 0,
--- 			pos = [[0, 0, 0]],
--- 			rotParams = [[-2 r4, -2 r4, -90 r100]],
--- 			sidetexture = [[none]],
--- 			size = function(damage, radius, frames) return getUniformRandomRange(radius * 0.9, radius * 0.2, 1) end,
--- 			sizegrowth = [[-0.4 r0.3]],
--- 			ttl = function(damage, radius, frames) return isstring(frames) and loopSpeed or frames end,
--- 		},
--- 	},
--- 	["fire-low"] = {
--- 		class      = [[CSimpleParticleSystem]],
--- 		air        = true,
--- 		count      = 1,
--- 		ground     = true,
--- 		properties = {
--- 			airdrag             = 0.88,
--- 			animParams          = [[8,8,120 r50]],
--- 			castShadow          = false,
--- 			colormap            =
--- 			[[0 0 0 0.01   0.95 0.95 1 0.4   0.65 0.65 0.68 0.2   0.1 0.1 0.1 0.18   0.08 0.07 0.06 0.12   0 0 0 0.01]],
--- 			directional         = false,
--- 			drawOrder           = layer.base,
--- 			emitrot             = 40,
--- 			emitrotspread       = 30,
--- 			emitvector          = [[0.2, -0.4, 0.2]],
--- 			gravity             = [[0, 0.01 r0.04, 0]],
--- 			numparticles        = getUniformRandomFrequency(0.20),
--- 			particlelife        = function(damage, radius, frames)
--- 				return isstring(frames) and loopSpeed or
--- 					lifetime.medium
--- 			end,
--- 			particlelifespread  = function(damage, radius, frames)
--- 				return (isstring(frames) and loopSpeed or lifetime.medium) *
--- 					0.9
--- 			end,
--- 			particlesize        = function(damage, radius, frames) return 2 + math.sqrt(radius) end, -- 11,
--- 			particlesizespread  = function(damage, radius, frames) return 3 * math.sqrt(radius) end, -- 35,
--- 			particlespeed       = 1,
--- 			particlespeedspread = 1.3,
--- 			pos                 = function(damage, radius, frames)
--- 				local scale = 1.15 * math.log(radius) - 1
--- 				return string.format(
--- 					"%.2f r%.2f, %.2f r%.2f, %.2f r%.2f",
--- 					-scale, 2 * scale, 0, 4 * scale, -scale, 2 * scale
--- 				)
--- 			end, -- [[-3 r8, 0 r15, -3 r8]],
--- 			rotParams           = [[-5 r10, -5 r10, -180 r360]],
--- 			sizegrowth          = [[1.2 r0.45]],
--- 			sizemod             = 0.98,
--- 			texture             = [[FireBall02-anim]],
--- 		},
--- 	},
--- 	["fire-high"] = {
--- 		class = [[CSimpleParticleSystem]],
--- 		air = true,
--- 		count = 1,
--- 		ground = true,
--- 		water = true,
--- 		underwater = true,
--- 		unit = false,
--- 		properties = {
--- 			airdrag = 0.6,
--- 			alwaysvisible = false,
--- 			castShadow = false,
--- 			colormap = [[0 0 0 0.01   0.01 0.01 0.01 0.08   0.01 0.01 0.01 0.02   0 0 0 0.001]],
--- 			directional = true,
--- 			drawOrder = -9999, -- da back
--- 			emitrot = 45,
--- 			emitrotspread = 30,
--- 			emitvector = [[0, 1, 0]],
--- 			gravity = [[0, 3, 0]],
--- 			numparticles = function(damage, radius, frames)
--- 				local freq
--- 				if frames == "looped" then
--- 					freq = 1 / loopSpeed / (lifetime.long / gameSpeed) * 2
--- 				elseif frames == "brief" then
--- 					freq = 1 / loopSpeed / (lifetime.long / gameSpeed) / gameSpeed
--- 				else
--- 					freq = 1
--- 				end
--- 				local attempts = isstring(frames) and gfxPerSec or 1
--- 				return getUniformRandomFrequency(freq, attempts)
--- 			end, -- 50%
--- 			particlelife = lifetime.long,
--- 			particlelifespread = lifetime.longer,
--- 			particlesize = function(damage, radius, frames) return radius + 65 end, -- 140,
--- 			particlesizespread = function(damage, radius, frames) return radius + 5 end, -- 80,
--- 			particlespeed = 20,
--- 			particlespeedspread = 4,
--- 			pos = function(damage, radius, frames)
--- 				local scale = radius + 25
--- 				return string.format(
--- 					"%.2f r%.2f, %.2f r%.2f, %.2f r%.2f",
--- 					-scale, 2 * scale, scale / 2, 1.5 * scale, -scale, 2 * scale
--- 				)
--- 			end, -- [[-100 r200, 50 r150, -100 r200]],
--- 			rotParams = [[-2 r4, -1 r2, -90 r180]],
--- 			sizegrowth = [[0.4 r0.4]],
--- 			sizemod = 1,
--- 			texture = [[fogdirty]],
--- 		},
--- 	},
--- }
-
 --------------------------------------------------------------------------------------------------------------
 ------ Basic explosion generators
 
--- for _, damage in ipairs(damageList) do
--- for _, radius in ipairs(radiusList) do
--- for _, frames in ipairs(framesList) do
--- 	local area = string.format("-area-%03.0f", math.floor(radius))
--- 	local time = string.format("-dur-%03.0f", math.floor(frames))
--- 	local name = string.format("%s%s%s", damage, area, time)
+RAD = defaultRadius
+TTL = defaultFrames
+SEC = gameSpeed
+REP = loopSpeed
 
--- 	ongoingCEG[name] = table.copy({
--- 		under = basicComponents[damage .. "-under"], -- A cohesive area under-light.
--- 		low   = basicComponents[damage .. "-low"], -- Animated low-volume particle effects.
--- 		area  = basicComponents[damage .. "-area"], -- Large volumetric particle effects.
--- 		high  = basicComponents[damage .. "-high"], -- A stacking large-area highlight.
--- 	})
-
--- 	for role, component in pairs(ongoingCEG[name]) do
--- 		for key, value in component do
--- 			if type(value) == "function" then
--- 				component[key] = value(damage, radius, frames)
--- 			elseif type(value) == "table" then
--- 				for k, v in value do
--- 					if type(v) == "function" then
--- 						value[k] = v(damage, radius, frames)
--- 					end
--- 				end
--- 			end
--- 		end
--- 		if not next(component) then ongoingCEG[name][role] = nil end
--- 	end
--- end
--- end
--- end
--- usingBasicCEG = {}
-
---------------------------------------------------------------------------------------------------------------
------- Composed explosion generators
------- CEGs are made of one or more components: cegname = { compname = compparams }
-
---------------------------------------------------------------------------------------------------------------
------- Spawners
------- The CExpGenSpawner class reuses composed CEGs to spawn them multiple times.
------- It can also add variable delays and offset positioning.
-
---------------------------------------------------------------------------------------------------------------
------- Explosion generators
------- This didn't end up quite so organized. Here's your CEGs.
-
-return {
-	------ Circles for inspecting stuff
-
-	-- ["debug-37-brief"] = {
-	-- 	usedefaultexplosions = false,
-	-- 	debugcircle = {
-	-- 		class      = [[CBitmapMuzzleFlame]],
-	-- 		count      = 1,
-	-- 		air        = false,
-	-- 		ground     = true,
-	-- 		underwater = false,
-	-- 		water      = false,
-	-- 		properties = {
-	-- 			colormap     = [[0 0 1 0.5   0 0 0.5 0.1   0 0 0 0]],
-	-- 			dir          = [[0, 1, 0]],
-	-- 			drawOrder    = layer.lower,
-	-- 			frontoffset  = 0,
-	-- 			fronttexture = [[blastwave]],
-	-- 			length       = 0,
-	-- 			pos          = [[0, 0, 0]],
-	-- 			rotParams    = [[0, 0, 0]],
-	-- 			sidetexture  = [[none]],
-	-- 			size         = 37.5,
-	-- 			sizegrowth   = [[0]],
-	-- 			ttl          = loopSpeed,
-	-- 		},
-	-- 	}
-	-- },
-	-- ["debug-150-300"] = {
-	-- 	usedefaultexplosions = false,
-	-- 	debugcircle = {
-	-- 		class      = [[CBitmapMuzzleFlame]],
-	-- 		count      = 1,
-	-- 		air        = false,
-	-- 		ground     = true,
-	-- 		underwater = false,
-	-- 		water      = false,
-	-- 		properties = {
-	-- 			colormap     = [[0 0 1 0.5   0 0 0.5 0.1   0 0 0 0]],
-	-- 			dir          = [[0, 1, 0]],
-	-- 			drawOrder    = layer.lower,
-	-- 			frontoffset  = 0,
-	-- 			fronttexture = [[blastwave]],
-	-- 			length       = 0,
-	-- 			pos          = [[0, 0, 0]],
-	-- 			rotParams    = [[0, 0, 0]],
-	-- 			sidetexture  = [[none]],
-	-- 			size         = 150,
-	-- 			sizegrowth   = [[0]],
-	-- 			ttl          = 300,
-	-- 		},
-	-- 	}
-	-- },
-
-	------ Brief areas
-	------ These have a shallow mechanical role. They're juiced-up "special fx", so name them like fx.
-
-	["fire-brief"] = {
+local definitions = {
+	["debug-circle-" .. TTL] = {
 		usedefaultexplosions = false,
-		flamelow = {
-			class      = [[CSimpleParticleSystem]],
+		debugcircle = {
+			class      = [[CBitmapMuzzleFlame]],
 			count      = 1,
-			air        = true,
+			air        = false,
 			ground     = true,
-			properties = {
-				airdrag             = 0.88,
-				animParams          = [[8,8,120 r50]],
-				castShadow          = false,
-				colormap            =
-				[[0 0 0 0.01   0.95 0.95 0.7 0.28  0.65 0.65 0.48 0.18   0.1 0.1 0.1 0.12   0.08 0.07 0.06 0.08   0 0 0 0.01]],
-				directional         = false,
-				drawOrder           = layer.base,
-				emitrot             = 40,
-				emitrotspread       = 30,
-				emitvector          = [[0.2, -0.4, 0.2]],
-				gravity             = [[0, 0.04, 0]],
-				numparticles        = getUniformRandomFrequency(1 / gameSpeed),
-				particlelife        = lifetime.medlong - lifetime.fleeting,
-				particlelifespread  = lifetime.medlong / 4,
-				particlesize        = 11,
-				particlesizespread  = 20,
-				particlespeed       = 1,
-				particlespeedspread = 1.3,
-				pos                 = [[-3 r8, 0 r15, -3 r8]],
-				rotParams           = [[-5 r10, -5 r10, -180 r360]],
-				sizegrowth          = [[1.2 r0.45]],
-				sizemod             = 0.98,
-				texture             = [[FireBall02-anim]],
-			},
-		},
-	},
-	["fire-brief-sparks"] = {
-		usedefaultexplosions = false,
-		flamelow = {
-			air        = true,
-			class      = [[CSimpleParticleSystem]],
-			count      = 1,
-			ground     = true,
-			properties = {
-				airdrag             = 0.88,
-				animParams          = [[8,8,120 r50]],
-				castShadow          = false,
-				colormap            =
-				[[0 0 0 0.01   0.95 0.95 0.7 0.28  0.65 0.65 0.48 0.18   0.1 0.1 0.1 0.12   0.08 0.07 0.06 0.08   0 0 0 0.01]],
-				directional         = false,
-				drawOrder           = layer.base,
-				emitrot             = 40,
-				emitrotspread       = 30,
-				emitvector          = [[0.2, -0.4, 0.2]],
-				gravity             = [[0, 0.04, 0]],
-				numparticles        = getUniformRandomFrequency(1 / gameSpeed),
-				particlelife        = lifetime.medlong - lifetime.fleeting,
-				particlelifespread  = lifetime.medlong / 4,
-				particlesize        = 11,
-				particlesizespread  = 20,
-				particlespeed       = 1,
-				particlespeedspread = 1.3,
-				pos                 = [[-3 r8, 0 r15, -3 r8]],
-				rotParams           = [[-5 r10, -5 r10, -180 r360]],
-				sizegrowth          = [[1.2 r0.45]],
-				sizemod             = 0.98,
-				texture             = [[FireBall02-anim]],
-			},
-		},
-		fxsparks = {
-			class      = [[CSimpleParticleSystem]],
-			count      = 1,
-			air        = true,
-			ground     = true,
-			water      = true,
-			underwater = true,
-			properties = {
-				airdrag             = 0.92,
-				colormap            = [[0 0 0 0.01   0 0 0 0.01  1 0.88 0.77 0.030   0.8 0.55 0.3 0.015   0 0 0 0]],
-				directional         = true,
-				drawOrder           = layer.high,
-				emitrot             = 35,
-				emitrotspread       = 22,
-				emitvector          = [[0, 1, 0]],
-				gravity             = [[-0.4 r0.8, -0.1 r0.3, -0.4 r0.8]],
-				numparticles        = getUniformRandomFrequency(2 / gameSpeed),
-				particlelife        = 11,
-				particlelifespread  = 11,
-				particlesize        = -24,
-				particlesizespread  = -8,
-				particlespeed       = 9,
-				particlespeedspread = 4,
-				pos                 = [[-7 r14, 10 r20, -7 r14]],
-				sizegrowth          = 0.04,
-				sizemod             = 0.91,
-				texture             = [[gunshotxl2]],
-				useairlos           = false,
-			},
-		},
-	},
-	------
-	["brief-heatray-scald"] = {
-		usedefaultexplosions = false,
-		flameground = {
-			class = [[CExpGenSpawner]],
-			count = math.round((10 / gameSpeed) / 0.23),
-			air = false,
-			ground = true,
 			underwater = false,
-			water = true,
+			water      = false,
 			properties = {
-				delay = [[0 r]] .. lifetime.fleeting,
-				explosiongenerator = [[fire-brief]],
-				pos = [[-37.5 r75, 0 r8, -37.5 r75]]
-			}
+				colormap     = [[0 0 1 0.5   0 0 0.5 0.1   0 0 0 0]],
+				dir          = [[0, 1, 0]],
+				drawOrder    = layer.lower,
+				frontoffset  = 0,
+				fronttexture = [[blastwave]],
+				length       = 0,
+				pos          = [[0, 0, 0]],
+				rotParams    = [[0, 0, 0]],
+				sidetexture  = [[none]],
+				size         = RAD,
+				sizegrowth   = [[0]],
+				ttl          = TTL,
+			},
 		}
 	},
-	["brief-heatray-weld"] = {
-		usedefaultexplosions = false,
-		flameground = {
-			class = [[CExpGenSpawner]],
-			count = 1,
-			air = false,
-			ground = true,
-			underwater = false,
-			water = true,
-			properties = {
-				delay = [[0 r]] .. lifetime.fleeting,
-				explosiongenerator = [[fire-brief-sparks]],
-				pos = [[-37.5 r75, 0 r8, -37.5 r75]]
-			}
-		},
-	},
 
-	------ Repeating areas
-	------ Timing is controlled by the loop, so names only need the radius.
+	["lowvision-circle-" .. TTL] = {
+		usedefaultexplosions = false,
+		accessibilitycircle = {
+			class      = [[CBitmapMuzzleFlame]],
+			count      = 1,
+			air        = false,
+			ground     = true,
+			underwater = false,
+			water      = false,
+			properties = {
+				colormap     = [[0.667 0 0 0.3   0.25 0 0 0.1   0.1 0 0 0.01]],
+				dir          = [[0, 1, 0]],
+				drawOrder    = layer.lower,
+				frontoffset  = 0,
+				fronttexture = [[blastwave]],
+				length       = 0,
+				pos          = [[0, 0, 0]],
+				rotParams    = [[0, 0, 0]],
+				sidetexture  = [[none]],
+				size         = RAD,
+				sizegrowth   = [[0]],
+				ttl          = TTL,
+			},
+		}
+	},
 
 	["fire-repeat-low"] = {
 		usedefaultexplosions = false,
@@ -566,14 +253,14 @@ return {
 				emitrotspread       = 30,
 				emitvector          = [[0.2, -0.4, 0.2]],
 				gravity             = [[0, 0.01 r0.04, 0]],
-				numparticles        = getUniformRandomFrequency(0.54),
-				particlelife        = 30,
-				particlelifespread  = 27,
+				numparticles        = randomUniform(0.54),
+				particlelife        = SEC,
+				particlelifespread  = SEC * 0.9,
 				particlesize        = 80,
 				particlesizespread  = 35,
 				particlespeed       = 1,
 				particlespeedspread = 1.3,
-				pos                 = [[-3 r8, 0 r15, -3 r8]],
+				pos                 = [[0, 0 r15, 0]],
 				rotParams           = [[-5 r10, -5 r10, -180 r360]],
 				sizegrowth          = [[2.2 r0.45]],
 				sizemod             = 0.98,
@@ -581,95 +268,43 @@ return {
 			},
 		},
 	},
+
 	["fire-repeat-high"] = {
 		usedefaultexplosions = false,
-		smokehaze = {
-			class = [[CSimpleParticleSystem]],
-			count = 1,
-			air = true,
-			ground = true,
-			water = true,
+		smokehaze            = {
+			class      = [[CSimpleParticleSystem]],
+			count      = 1,
+			air        = true,
+			ground     = true,
+			water      = true,
 			underwater = true,
-			unit = false,
+			unit       = false,
 			properties = {
-				airdrag = 0.4,
-				alwaysvisible = true, -- !
-				castShadow = false,
-				colormap = [[0 0 0 0.01   0.01 0.01 0.01 0.08   0.01 0.01 0.01 0.05   0 0 0 0.001]],
-				directional = true,
-				drawOrder = layer.lowest,
-				emitrot = 45,
-				emitrotspread = 30,
-				emitvector = [[0, 1, 0]],
-				gravity = [[0, 3, 0]],
-				numparticles = getUniformRandomFrequency(0.1),
-				particlelife = lifetime.long,
-				particlelifespread = lifetime.longer,
-				particlesize = 140,
-				particlesizespread = 80,
-				particlespeed = 20,
+				airdrag             = 0.4,
+				alwaysvisible       = true, -- !
+				castShadow          = false,
+				colormap            = [[0 0 0 0.01   0.02 0.02 0.02 0.08   0.01 0.01 0.01 0.05   0.001 0.001 0.001 0.001]],
+				directional         = true,
+				drawOrder           = layer.lowest, -- !
+				emitrot             = 45,
+				emitrotspread       = 30,
+				emitvector          = [[0, 1, 0]],
+				gravity             = [[0, 3, 0]],
+				numparticles        = randomUniform(0.1),
+				particlelife        = lifetime.long,
+				particlelifespread  = lifetime.longer,
+				particlesize        = 140,
+				particlesizespread  = 80,
+				particlespeed       = 20,
 				particlespeedspread = 4,
-				pos = [[-100 r200, 80 r120, -100 r200]],
-				rotParams = [[-2 r4, -1 r2, -90 r180]],
-				sizegrowth = [[0.8 r0.4]],
-				sizemod = 1,
-				texture = [[fogdirty]],
-				useairlos = true, -- !
+				pos                 = [[-50 r100, 80 r120, -50 r100]],
+				rotParams           = [[-2 r4, -1 r2, -90 r180]],
+				sizegrowth          = [[0.8 r0.4]],
+				sizemod             = 1,
+				texture             = [[fogdirty]],
 			},
 		}
 	},
-	------
-	["fire-repeat-37"] = {
-		usedefaultexplosions = false,
-		firehighgen = {
-			class = [[CExpGenSpawner]],
-			count = math.round(0.1 / 0.1),
-			air = false,
-			ground = true,
-			water = true,
-			underwater = false,
-			properties = {
-				delay = [[0 r]] .. lifetime.fleeting,
-				explosiongenerator = [[fire-repeat-high]],
-				pos = [[-30 r60, 0 r5, -30 r60]]
-			},
-		},
-	},
-	["fire-repeat-75"] = {
-		usedefaultexplosions = false,
-		firehighgen = {
-			class = [[CExpGenSpawner]],
-			count = math.round(0.137 / 0.1),
-			air = false,
-			ground = true,
-			water = true,
-			underwater = false,
-			properties = {
-				delay = [[0 r]] .. lifetime.fleeting,
-				explosiongenerator = [[custom:fire-repeat-high]],
-				pos = [[-60 r120, 0 r5, -60 r120]]
-			},
-		},
-	},
-	["fire-repeat-150"] = {
-		usedefaultexplosions = false,
-		firehighgen = {
-			class = [[CExpGenSpawner]],
-			count = math.round(0.2 / 0.1),
-			air = false,
-			ground = true,
-			water = true,
-			underwater = false,
-			properties = {
-				delay = [[0 r]] .. lifetime.fleeting,
-				explosiongenerator = [[custom:fire-repeat-high]],
-				pos = [[-120 r240, 80 r100, -120 r240]]
-			},
-		},
-	},
-
-	------ Ongoing areas
-	------ Names need both the area (radius) and duration (frames).
 
 	["fire-ongoing-low"] = {
 		usedefaultexplosions = false,
@@ -686,15 +321,14 @@ return {
 				colormap            =
 				[[0.32 0.22 0.18 0.65   0.75 0.6 0.51 0.65   0.72 0.55 0.39 0.75    0.67 0.5 0.34 0.55   0.60 0.5 0.29 0.5   0.50 0.37 0.39 0.5   0.48 0.31 0.36 0.4    0.11 0.11 0.12 0.32   0.016 0.011 0.07 0.2   0 0 0 0.01]],
 				directional         = false,
-				drawOrder           = layer.high,
+				drawOrder           = layer.base,
 				emitrot             = 90,
 				emitrotspread       = 5,
 				emitvector          = [[0.32, 0.7, 0.32]],
 				gravity             = [[-0.025 r0.05, 0.03 r0.11, -0.025 r0.05]],
-				numparticles        = getUniformRandomFrequency(0.36, 1),
-				-- long-term area effect with a small delay in the spawner:
+				numparticles        = randomUniform(0.36, 1),
 				particlelife        = lifetime.medlong - lifetime.fleeting,
-				particlelifespread  = lifetime.medshort,
+				particlelifespread  = lifetime.medshort - 2 * lifetime.fleeting,
 				particlesize        = 20,
 				particlesizespread  = 20,
 				particlespeed       = 3.20,
@@ -707,6 +341,7 @@ return {
 			},
 		},
 	},
+
 	["fire-ongoing-area"] = {
 		usedefaultexplosions = false,
 		firearea = {
@@ -719,21 +354,21 @@ return {
 				animParams          = [[8,8,90 r50]],
 				castShadow          = false,
 				colormap            =
-				[[0 0 0 0.01   0.7 0.5 0.4 0.4  0.65 0.55 0.48 0.2   0.3 0.2 0.1 0.12   0.2 0.15 0.18 0.15   0.1 0.1 0 0.05]],
+				[[0.1 0.1 0 0.01   0.6 0.4 0.3 0.4  0.65 0.55 0.48 0.2   0.3 0.2 0.1 0.12   0.2 0.15 0.18 0.15   0.1 0.1 0 0.05]],
 				directional         = false,
 				drawOrder           = layer.high,
 				emitrot             = 40,
 				emitrotspread       = 30,
 				emitvector          = [[0.2, -0.4, 0.2]],
-				gravity             = [[0, 0.03 r0.04, 0]],
-				numparticles        = getUniformRandomFrequency(0.20, 1),
+				gravity             = [[0, 0.08 r0.1, 0]],
+				numparticles        = randomUniform(0.20, 1),
 				particlelife        = lifetime.long,
 				particlelifespread  = lifetime.medlong,
 				particlesize        = 30,
 				particlesizespread  = 70,
 				particlespeed       = 1,
 				particlespeedspread = 1.3,
-				pos                 = [[-4 r8, 8 r56, -4 r8]],
+				pos                 = [[0, 8 r56, 0]],
 				rotParams           = [[-3 r6, -3 r6, -180 r360]],
 				sizegrowth          = [[1 r0.6]],
 				sizemod             = 0.98,
@@ -757,14 +392,14 @@ return {
 				emitrotspread       = 25,
 				emitvector          = [[0.28, 0.9, 0.28]],
 				gravity             = [[-0.02 r0.04, 0 r0.3, -0.02 r0.04]],
-				numparticles        = getUniformRandomFrequency(0.275, 1),
+				numparticles        = randomUniform(0.275, 1),
 				particlelife        = lifetime.long,
 				particlelifespread  = lifetime.medium,
-				particlesize        = 160,
-				particlesizespread  = 70,
+				particlesize        = 150,
+				particlesizespread  = 80,
 				particlespeed       = 0.10,
 				particlespeedspread = 0.16,
-				pos                 = [[0, -20 r20, 0]],
+				pos                 = [[0, 12 r32, 0]],
 				rotParams           = [[-5 r10, 0, -180 r360]],
 				sizegrowth          = [[1.6 r1.1]],
 				sizemod             = 0.98,
@@ -785,12 +420,12 @@ return {
 				colormap            =
 				[[0.01 0.01 0.01 0.01   0.02 0.02 0.01 0.2   0.1 0.1 0.1 0.48   0.11 0.10 0.09 0.65    0.075 0.07 0.07 0.3   0.01 0.01 0.01 0.01]],
 				directional         = false,
-				drawOrder           = 0,
+				drawOrder           = layer.base,
 				emitrot             = 90,
 				emitrotspread       = 70,
 				emitvector          = [[0.3, 1, 0.3]],
 				gravity             = [[-0.03 r0.06, 0.24 r0.4, -0.03 r0.06]],
-				numparticles        = getUniformRandomFrequency(0.2, 1),
+				numparticles        = randomUniform(0.2, 1),
 				particlelife        = lifetime.medlong * 2,
 				particlelifespread  = lifetime.medlong,
 				particlesize        = 30,
@@ -822,409 +457,338 @@ return {
 				emitrotspread       = 22,
 				emitvector          = [[0, 1, 0]],
 				gravity             = [[-0.4 r0.8, -0.1 r0.3, -0.4 r0.8]],
-				numparticles        = getUniformRandomFrequency(0.23, 1),
+				numparticles        = randomUniform(0.23, 1),
 				particlelife        = 11,
 				particlelifespread  = 11,
 				particlesize        = -24,
 				particlesizespread  = -8,
 				particlespeed       = 9,
 				particlespeedspread = 4,
-				pos                 = [[-7 r14, 17 r15, -7 r14]],
+				pos                 = [[-7 r12, 17 r20, -7 r14]],
 				sizegrowth          = 0.04,
 				sizemod             = 0.91,
 				texture             = [[gunshotxl2]],
 				useairlos           = false,
 			},
 		},
-	},
-	["fire-ongoing-area-small"] = {
-		usedefaultexplosions = false,
-		fireareasmall = {
-			class      = [[CSimpleParticleSystem]],
-			count      = 1,
-			air        = true,
-			ground     = true,
-			properties = {
-				airdrag             = 0.88,
-				animParams          = [[8,8,120 r50]],
-				colormap            =
-				[[0 0 0 0.01   0.95 0.95 0.4 0.3  0.65 0.65 0.48 0.2   0.1 0.1 0.1 0.18   0.08 0.07 0.06 0.12   0 0 0 0.01]],
-				directional         = false,
-				drawOrder           = layer.base,
-				emitrot             = 40,
-				emitrotspread       = 30,
-				emitvector          = [[0.2, -0.4, 0.2]],
-				gravity             = [[0, 0.01 r0.04, 0]],
-				numparticles        = getUniformRandomFrequency(0.23, 1),
-				particlelife        = lifetime.medium,
-				particlelifespread  = lifetime.medshort,
-				particlesize        = 20,
-				particlesizespread  = 35,
-				particlespeed       = 1,
-				particlespeedspread = 1.3,
-				pos                 = [[-3 r8, 0 r15, -3 r8]],
-				rotParams           = [[-5 r10, -5 r10, -180 r360]],
-				sizegrowth          = [[1.2 r0.45]],
-				sizemod             = 0.98,
-				texture             = [[FireBall02-anim]],
-			},
-		},
-		fxsmoke = {
-			class      = [[CSimpleParticleSystem]],
-			count      = 1,
-			air        = true,
-			ground     = true,
-			water      = true,
-			properties = {
-				airdrag             = 0.70,
-				alwaysvisible       = true,
-				animParams          = [[8,8,80 r80]],
-				castShadow          = true,
-				colormap            =
-				[[0.01 0.01 0.01 0.01   0.02 0.02 0.01 0.2   0.15 0.14 0.12 0.48   0.11 0.10 0.09 0.65    0.075 0.07 0.07 0.3   0.01 0.01 0.01 0.01]],
-				directional         = false,
-				drawOrder           = 0,
-				emitrot             = 90,
-				emitrotspread       = 70,
-				emitvector          = [[0.3, 1, 0.3]],
-				gravity             = [[-0.03 r0.06, 0.3 r0.3, -0.03 r0.06]],
-				numparticles        = getUniformRandomFrequency(0.1, 1),
-				particlelife        = lifetime.medlong * 2,
-				particlelifespread  = lifetime.medlong,
-				particlesize        = 10,
-				particlesizespread  = 20,
-				particlespeed       = 3,
-				particlespeedspread = 2,
-				pos                 = [[0.0, 24, 0.0]],
-				rotParams           = [[-15 r30, -2 r4, -180 r360]],
-				sizegrowth          = [[0.8 r0.55]],
-				sizemod             = 1,
-				texture             = [[smoke-ice-anim]],
-				useairlos           = true,
-			},
-		},
-		fxsparks = {
-			class      = [[CSimpleParticleSystem]],
-			count      = 1,
-			air        = true,
-			ground     = true,
-			water      = true,
-			underwater = true,
-			properties = {
-				airdrag             = 0.92,
-				castShadow          = false,
-				colormap            = [[0 0 0 0.01   0 0 0 0.01  1 0.88 0.71 0.030   0.8 0.55 0.3 0.015   0 0 0 0]],
-				directional         = true,
-				drawOrder           = layer.high,
-				emitrot             = 35,
-				emitrotspread       = 22,
-				emitvector          = [[0, 1, 0]],
-				gravity             = [[-0.4 r0.8, -0.1 r0.3, -0.4 r0.8]],
-				numparticles        = getUniformRandomFrequency(0.1, 1),
-				particlelife        = 11,
-				particlelifespread  = 11,
-				particlesize        = -24,
-				particlesizespread  = -8,
-				particlespeed       = 9,
-				particlespeedspread = 4,
-				pos                 = [[-7 r14, 17 r15, -7 r14]],
-				sizegrowth          = 0.04,
-				sizemod             = 0.91,
-				texture             = [[gunshotxl2]],
-				useairlos           = false,
-			},
-		},
-	},
-	------
-	["fire-area-75-dur-300"] = {
-		usedefaultexplosions = false,
-		-- debugcircle = {
-		-- 	class      = [[CBitmapMuzzleFlame]],
-		-- 	count      = 1,
-		-- 	air        = false,
-		-- 	ground     = true,
-		-- 	underwater = false,
-		-- 	water      = false,
-		-- 	properties = {
-		-- 		colormap     = [[0.25 0 0 0.1   0.1 0.0 0 0.001]],
-		-- 		dir          = [[0, 1, 0]],
-		-- 		drawOrder    = layer.lowest,
-		-- 		frontoffset  = 0,
-		-- 		fronttexture = [[blastwave]],
-		-- 		length       = 0,
-		-- 		pos          = [[0, 10, 0]],
-		-- 		rotParams    = [[0, 0, 0]],
-		-- 		sidetexture  = [[none]],
-		-- 		size         = 75,
-		-- 		sizegrowth   = [[0]],
-		-- 		ttl          = 300,
-		-- 	},
-		-- },
-		fireunder = {
-			class      = [[CBitmapMuzzleFlame]],
-			count      = 1,
-			air        = false,
-			ground     = true,
-			underwater = false,
-			water      = false,
-			properties = {
-				animParams   = [[8,8,60 r80]],
-				castShadow   = false,
-				colormap     =
-				[[0.60 0.50 0.38 0.07   0.7 0.57 0.38 0.36   0.74 0.72 0.5 0.28   0.7 0.72 0.4 0.25   0.68 0.78 0.68 0.34   0.68 0.78 0.68 0.3   0.68 0.78 0.68 0.12   0.023 0.02 0.023 0.26   0.023 0.02 0.023 0.18   0.023 0.018 0.023 0.1   0 0 0 0.05]],
-				dir          = [[0, 1, 0]],
-				drawOrder    = layer.lower,
-				frontoffset  = 0,
-				fronttexture = [[FireBall02-anim-fade]],
-				length       = 0,
-				pos          = [[0, r8, 0]],
-				rotParams    = [[-4 r8, -4 r8, -90 r180]],
-				sidetexture  = [[none]],
-				size         = getRandomFrequency(75, 10, 1, 2),
-				sizegrowth   = [[-0.4 r0.4]],
-				ttl          = 300 + 100,
-			},
-		},
-		firelow = {
-			class      = [[CExpGenSpawner]],
-			count      = 10,
-			air        = true,
-			ground     = true,
-			underwater = true,
-			water      = true,
-			properties = {
-				delay              = [[0 r]]..300-lifetime.medlong,
-				explosiongenerator = [[custom:fire-ongoing-low]],
-				pos                = [[-30 r60, 0 r16, -30 r60]],
-			},
-		},
-		firearea = {
-			class      = [[CExpGenSpawner]],
-			count      = 10,
-			air        = true,
-			ground     = true,
-			water      = true,
-			underwater = true,
-			properties = {
-				-- Correcting for _everything_ adds up:
-				delay              = [[r]]..lifetime.fleeting..[[ i]]..((300-lifetime.long-lifetime.fleeting) / 10),
-				explosiongenerator = [[custom:fire-ongoing-area]],
-				pos                = [[-30 r60, 16 r16, -30 r60]],
-			},
-		},
-		-- firehigh is in the repeater, which also has its own firelow
-	},
-	["fire-area-150-dur-300"] = {
-		usedefaultexplosions = false,
-		-- debugcircle = {
-		-- 	class      = [[CBitmapMuzzleFlame]],
-		-- 	count      = 1,
-		-- 	air        = false,
-		-- 	ground     = true,
-		-- 	underwater = false,
-		-- 	water      = false,
-		-- 	properties = {
-		-- 		colormap     = [[0.25 0 0 0.1   0.1 0.0 0 0.001]],
-		-- 		dir          = [[0, 1, 0]],
-		-- 		drawOrder    = layer.lowest,
-		-- 		frontoffset  = 0,
-		-- 		fronttexture = [[blastwave]],
-		-- 		length       = 0,
-		-- 		pos          = [[0, 10, 0]],
-		-- 		rotParams    = [[0, 0, 0]],
-		-- 		sidetexture  = [[none]],
-		-- 		size         = 150,
-		-- 		sizegrowth   = [[0]],
-		-- 		ttl          = 300,
-		-- 	},
-		-- },
-		fireunder = {
-			class      = [[CBitmapMuzzleFlame]],
-			count      = 1,
-			air        = false,
-			ground     = true,
-			underwater = false,
-			water      = false,
-			properties = {
-				animParams   = [[8,8,40 r100]],
-				colormap     =
-				[[0.60 0.50 0.38 0.07   0.7 0.57 0.38 0.36   0.74 0.72 0.5 0.28   0.7 0.72 0.4 0.25   0.68 0.78 0.68 0.34   0.68 0.78 0.68 0.3   0.68 0.78 0.68 0.12   0.023 0.02 0.023 0.26   0.023 0.02 0.023 0.18   0.023 0.018 0.023 0.1   0 0 0 0.05]],
-				dir          = [[0, 1, 0]],
-				drawOrder    = layer.lower,
-				frontoffset  = 0,
-				fronttexture = [[FireBall02-anim-fade]],
-				length       = 0,
-				pos          = [[0, r8, 0]],
-				rotParams    = [[-2 r4, -2 r4, -90 r180]],
-				sidetexture  = [[none]],
-				size         = getRandomFrequency(150, 20, 1, 2),
-				sizegrowth   = [[-0.4 r0.4]],
-				ttl          = 300 + 100,
-			},
-		},
-		firelow = {
-			class      = [[CExpGenSpawner]],
-			count      = 16,
-			air        = true,
-			ground     = true,
-			underwater = true,
-			water      = true,
-			properties = {
-				delay              = [[0 r]]..300-lifetime.medlong,
-				explosiongenerator = [[custom:fire-ongoing-low]],
-				pos                = [[-70 r140, 0 r10, -70 r140]],
-			},
-		},
-		firearea = {
-			class      = [[CExpGenSpawner]],
-			count      = 16,
-			air        = true,
-			ground     = true,
-			water      = true,
-			underwater = true,
-			properties = {
-				delay              = [[r]]..lifetime.fleeting..[[ i]]..((300-lifetime.long-lifetime.fleeting) / 16),
-				explosiongenerator = [[custom:fire-ongoing-area]],
-				pos                = [[-80 r160, 20 r32, -80 r160]],
-			},
-		},
-		-- firehigh is in the repeater, which also has its own firelow
-	},
-	["fire-area-150-dur-450"] = {
-		usedefaultexplosions = false,
-		fireunder = {
-			class      = [[CBitmapMuzzleFlame]],
-			count      = 1,
-			air        = false,
-			ground     = true,
-			underwater = false,
-			water      = false,
-			properties = {
-				animParams   = [[8,8,60 r80]],
-				castShadow   = false,
-				colormap     =
-				[[0.60 0.50 0.38 0.07   0.7 0.57 0.38 0.36   0.74 0.72 0.5 0.28   0.7 0.72 0.4 0.25   0.68 0.78 0.68 0.34   0.68 0.78 0.68 0.3   0.68 0.78 0.68 0.12   0.023 0.02 0.023 0.26   0.023 0.02 0.023 0.18   0.023 0.018 0.023 0.1   0 0 0 0.05]],
-				dir          = [[0, 1, 0]],
-				drawOrder    = layer.lower,
-				frontoffset  = 0,
-				fronttexture = [[FireBall02-anim-fade]],
-				length       = 0,
-				pos          = [[0, r8, 0]],
-				rotParams    = [[-4 r8, -4 r8, -90 r180]],
-				sidetexture  = [[none]],
-				size         = getRandomFrequency(150, 20, 1, 2),
-				sizegrowth   = [[-0.4 r0.4]],
-				ttl          = 450 + 100,
-			},
-		},
-		firelow = {
-			class      = [[CExpGenSpawner]],
-			count      = 20,
-			air        = true,
-			ground     = true,
-			underwater = true,
-			water      = true,
-			properties = {
-				delay              = [[0 r450]],
-				explosiongenerator = [[custom:fire-ongoing-low]],
-				pos                = [[-60 r120, 0 r20, -60 r120]],
-			},
-		},
-		firearea = {
-			class      = [[CExpGenSpawner]],
-			count      = 20,
-			air        = true,
-			ground     = true,
-			water      = true,
-			underwater = true,
-			properties = {
-				delay              = [[i]] .. (450 / 20),
-				explosiongenerator = [[custom:fire-ongoing-area]],
-				pos                = [[-100 r200, 32 r24, -100 r200]],
-			},
-		},
-		-- firehigh is in the repeater, which also has its own firelow
-	},
-
-	------ Specific units
-
-	-- Cluster-fire weapons that overlap their areas (legbar, legbart)
-	["fire-area-75-dur-300-cluster"] = {
-		usedefaultexplosions = false,
-		-- debugcircle = {
-		-- 	class      = [[CBitmapMuzzleFlame]],
-		-- 	count      = 1,
-		-- 	air        = false,
-		-- 	ground     = true,
-		-- 	underwater = false,
-		-- 	water      = false,
-		-- 	properties = {
-		-- 		colormap     = [[0.25 0 0 0.1   0.1 0 0 0.001]],
-		-- 		dir          = [[0, 1, 0]],
-		-- 		drawOrder    = layer.lowest,
-		-- 		frontoffset  = 0,
-		-- 		fronttexture = [[blastwave]],
-		-- 		length       = 0,
-		-- 		pos          = [[0, 10, 0]],
-		-- 		rotParams    = [[0, 0, 0]],
-		-- 		sidetexture  = [[none]],
-		-- 		size         = 75,
-		-- 		sizegrowth   = [[0]],
-		-- 		ttl          = 300,
-		-- 	},
-		-- },
-		fireunder = {
-			class      = [[CBitmapMuzzleFlame]],
-			count      = 1,
-			air        = false,
-			ground     = true,
-			underwater = false,
-			water      = false,
-			properties = {
-				animParams   = [[8,8,60 r80]],
-				castShadow   = false,
-				colormap     =
-				[[0.60 0.50 0.38 0.07   0.7 0.57 0.38 0.36   0.74 0.72 0.5 0.28   0.7 0.72 0.4 0.25   0.68 0.78 0.68 0.34   0.68 0.78 0.68 0.3   0.68 0.78 0.68 0.12   0.023 0.02 0.023 0.26   0.023 0.02 0.023 0.18   0.023 0.018 0.023 0.1   0 0 0 0.05]],
-				dir          = [[0, 1, 0]],
-				drawOrder    = layer.lower,
-				frontoffset  = 0,
-				fronttexture = [[FireBall02-anim-fade]],
-				length       = 0,
-				pos          = [[0, r8, 0]],
-				rotParams    = [[-4 r8, -4 r8, -90 r180]],
-				sidetexture  = [[none]],
-				size         = getRandomFrequency(75, 10, 1, 2),
-				sizegrowth   = [[-0.4 r0.4]],
-				ttl          = 300 + 100,
-			},
-		},
-		firelow = {
-			class      = [[CExpGenSpawner]],
-			count      = 5,
-			air        = true,
-			ground     = true,
-			underwater = true,
-			water      = true,
-			properties = {
-				delay              = [[0 r]]..300-lifetime.medlong,
-				explosiongenerator = [[custom:fire-ongoing-low]],
-				pos                = [[-30 r60, 0 r16, -30 r60]],
-			},
-		},
-		firearea = {
-			class      = [[CExpGenSpawner]],
-			count      = 5,
-			air        = true,
-			ground     = true,
-			water      = true,
-			underwater = true,
-			properties = {
-				-- Correcting for _everything_ adds up:
-				delay              = [[r]]..lifetime.fleeting..[[ i]]..((300-lifetime.long-lifetime.fleeting) / 5),
-				explosiongenerator = [[custom:fire-ongoing-area]],
-				pos                = [[-30 r60, 16 r16, -30 r60]],
-			},
-		},
-		-- firehigh is in the repeater, which also has its own firelow
 	},
 }
+
+--------------------------------------------------------------------------------------------------------------
+------ Timed area explosion generators
+
+for _, RAD in ipairs(radiusList) do
+	for _, TTL in ipairs(framesList) do
+		local countEffects = TTL / gameSpeed
+		definitions["fire-area-" .. math.floor(RAD) .. "-dur-" .. TTL] = {
+			usedefaultexplosions = false,
+			fireunder = {
+				class      = [[CBitmapMuzzleFlame]],
+				count      = 1,
+				air        = false,
+				ground     = true,
+				underwater = false,
+				water      = false,
+				properties = {
+					animParams   = [[8,8,60 r80]],
+					castShadow   = false,
+					colormap     =
+					[[0.60 0.50 0.38 0.07   0.7 0.57 0.38 0.36   0.74 0.72 0.5 0.28   0.7 0.72 0.4 0.25   0.68 0.78 0.68 0.34   0.68 0.78 0.68 0.3   0.68 0.78 0.68 0.12   0.023 0.02 0.023 0.26   0.023 0.02 0.023 0.18   0.023 0.018 0.023 0.1   0 0 0 0.05]],
+					dir          = [[0, 1, 0]],
+					drawOrder    = layer.lower,
+					frontoffset  = 0,
+					fronttexture = [[FireBall02-anim-fade]],
+					length       = 0,
+					pos          = [[0, r8, 0]],
+					rotParams    = [[-4 r8, -4 r8, -90 r180]],
+					sidetexture  = [[none]],
+					size         = randomNormal(RAD, RAD / 7.5, 1, 2),
+					sizegrowth   = [[-0.4 r0.4]],
+					ttl          = TTL * 1.3,
+				},
+			},
+			firelow = {
+				class      = [[CExpGenSpawner]],
+				count      = countEffects,
+				air        = true,
+				ground     = true,
+				underwater = true,
+				water      = true,
+				properties = {
+					delay              = [[0 r]] .. TTL - lifetime.medlong,
+					explosiongenerator = [[custom:fire-ongoing-low]],
+					pos                = string.format(
+						[[%.0f r%.0f, 0 r16, %.0f r%.0f]],
+						-0.4 * RAD, 0.8 * RAD,
+						-0.4 * RAD, 0.8 * RAD
+					),
+				},
+			},
+			firearea = {
+				class      = [[CExpGenSpawner]],
+				count      = countEffects,
+				air        = true,
+				ground     = true,
+				water      = true,
+				underwater = true,
+				properties = {
+					delay              = string.format(
+						[[r%.0f i%.0f]],
+						lifetime.fleeting,
+						(300 - lifetime.long - lifetime.fleeting / 2) / countEffects
+					),
+					explosiongenerator = [[custom:fire-ongoing-area]],
+					pos                = string.format(
+						[[%.0f r%.0f, 16 r16, %.0f r%.0f]],
+						-0.4 * RAD, 0.8 * RAD,
+						-0.4 * RAD, 0.8 * RAD
+					),
+				},
+			},
+		}
+	end
+end
+
+--------------------------------------------------------------------------------------------------------------
+------ Repeating area explosion generators
+
+local RATE = gameSpeed / loopSpeed
+local FREQ = 1 / RATE
+
+["fire-repeat-high"] = {
+	usedefaultexplosions = false,
+	smokehaze = {
+		class      = [[CSimpleParticleSystem]],
+		count      = 1,
+		air        = true,
+		ground     = true,
+		water      = true,
+		underwater = true,
+		unit       = false,
+		properties = {
+			airdrag             = 0.4,
+			alwaysvisible       = true, -- !
+			castShadow          = false,
+			colormap            = [[0 0 0 0.01   0.01 0.01 0.01 0.08   0.01 0.01 0.01 0.05   0 0 0 0.001]],
+			directional         = true,
+			drawOrder           = layer.lowest,
+			emitrot             = 45,
+			emitrotspread       = 30,
+			emitvector          = [[0, 1, 0]],
+			gravity             = [[0, 3, 0]],
+			numparticles        = randomUniform(0.1),
+			particlelife        = lifetime.long,
+			particlelifespread  = lifetime.longer,
+			particlesize        = 140,
+			particlesizespread  = 80,
+			particlespeed       = 20,
+			particlespeedspread = 4,
+			pos                 = [[-75 r150, 80 r120, -75 r150]],
+			rotParams           = [[-2 r4, -1 r2, -90 r180]],
+			sizegrowth          = [[0.8 r0.4]],
+			sizemod             = 1,
+			texture             = [[fogdirty]],
+		},
+	}
+},
+
+------
+
+for _, RAD in ipairs(radiusList) do
+	-- So that 1 smoke cloud is produced per second for radius = 75,
+	-- and increasing areas create more smoke but not _tons_ more:
+	local countEffects = math.round(FREQ * math.sqrt(math.round(RAD / 37.5) / 2) / 0.1)
+
+	-- Here, spawners are just used to add delays and influence numparticles.
+	definitions["fire-repeat-" .. math.floor(RAD)] = {
+		usedefaultexplosions = false,
+		firehighgen = {
+			class = [[CExpGenSpawner]],
+			count = countEffects,
+			air = false,
+			ground = true,
+			water = true,
+			underwater = false,
+			properties = {
+				delay              = [[0 r]] .. lifetime.fleeting,
+				explosiongenerator = [[fire-repeat-high]],
+				pos                = string.format(
+					[[%.0f r%.0f, 2 r6, %.0f r%.0f]],
+					-0.5 * RAD, RAD, -0.5 * RAD, RAD
+				),
+			},
+		}
+	}
+end
+
+--------------------------------------------------------------------------------------------------------------
+------ Brief (kinda-repeating) area explosion generators
+
+local RATE = gameSpeed
+local FREQ = 1 / RATE
+
+definitions["fire-brief"] = {
+	usedefaultexplosions = false,
+	flamelow = {
+		class      = [[CSimpleParticleSystem]],
+		count      = 1,
+		air        = true,
+		ground     = true,
+		properties = {
+			airdrag             = 0.88,
+			animParams          = [[8,8,120 r50]],
+			castShadow          = false,
+			colormap            =
+			[[0 0 0 0.01   0.95 0.95 0.7 0.28  0.65 0.65 0.48 0.18   0.1 0.1 0.1 0.12   0.08 0.07 0.06 0.08   0 0 0 0.01]],
+			directional         = false,
+			drawOrder           = layer.base,
+			emitrot             = 40,
+			emitrotspread       = 30,
+			emitvector          = [[0.2, -0.4, 0.2]],
+			gravity             = [[0, 0.04, 0]],
+			numparticles        = randomUniform(FREQ),
+			particlelife        = lifetime.medlong - lifetime.fleeting,
+			particlelifespread  = lifetime.medlong / 4,
+			particlesize        = 11,
+			particlesizespread  = 20,
+			particlespeed       = 1,
+			particlespeedspread = 1.3,
+			pos                 = [[0, 2 r14, 0]],
+			rotParams           = [[-5 r10, -5 r10, -180 r360]],
+			sizegrowth          = [[1.2 r0.45]],
+			sizemod             = 0.98,
+			texture             = [[FireBall02-anim]],
+		},
+	},
+}
+
+------
+
+definitions["brief-heatray-scald"] = {
+	usedefaultexplosions = false,
+	flameground = {
+		class      = [[CExpGenSpawner]],
+		count      = 6, -- or something
+		air        = false,
+		ground     = true,
+		underwater = false,
+		water      = true,
+		properties = {
+			delay = [[0 r]] .. lifetime.fleeting,
+			explosiongenerator = [[fire-brief]],
+			pos = [[-37.5 r75, 0, -37.5 r75]]
+		}
+	}
+}
+
+--------------------------------------------------------------------------------------------------------------
+------ Specific area explosion generators
+
+-- Cluster-fire weapons that overlap their areas can look too concentrated
+-- legbar, legbart
+if definitions["fire-area-75-dur-300"] then
+	definitions["fire-area-75-dur-300-cluster"] = table.copy(definitions["fire-area-75-dur-300"])
+	for key, value in pairs(definitions["fire-area-75-dur-300-cluster"]) do
+		if key ~= "usedefaultexplosions" and type(value) == "table" then
+			if value.count then value.count = math.round(value.count * 5/9) end
+		end
+	end
+end
+if definitions["fire-repeat-75"] then
+	definitions["fire-repeat-75-cluster"] = table.copy(definitions["fire-repeat-75"])
+	for key, value in pairs(definitions["fire-area-75-dur-300-cluster"]) do
+		if key ~= "usedefaultexplosions" and type(value) == "table" then
+			if value.count then value.count = math.round(value.count * 3/4) end
+		end
+	end
+end
+
+-- Heatray that hits a static target for a long duration, builds up fire/smoke, adds sparks
+-- legbastion
+local RATE = gameSpeed
+local FREQ = 1 / RATE
+definitions["fire-brief-sparks"] = {
+	usedefaultexplosions = false,
+	flamelow = {
+		class      = [[CSimpleParticleSystem]],
+		count      = 1,
+		air        = true,
+		ground     = true,
+		water      = true,
+		underwater = true,
+		unit       = true,
+		properties = {
+			airdrag             = 0.88,
+			animParams          = [[8,8,120 r50]],
+			castShadow          = false,
+			colormap            =
+			[[0 0 0 0.01   0.5 0.5 0.3 0.28  0.5 0.5 0.35 0.18   0.1 0.1 0.1 0.12   0.08 0.07 0.06 0.08   0 0 0 0.01]],
+			directional         = false,
+			drawOrder           = layer.base,
+			emitrot             = 40,
+			emitrotspread       = 30,
+			emitvector          = [[0.2, -0.4, 0.2]],
+			gravity             = [[0, 0.04, 0]],
+			numparticles        = randomUniform(FREQ),
+			particlelife        = lifetime.medlong - lifetime.fleeting,
+			particlelifespread  = lifetime.medlong / 4,
+			particlesize        = 11,
+			particlesizespread  = 20,
+			particlespeed       = 1,
+			particlespeedspread = 1.3,
+			pos                 = [[0, 2 r14, 0]],
+			rotParams           = [[-5 r10, -5 r10, -180 r360]],
+			sizegrowth          = [[1.2 r0.45]],
+			sizemod             = 0.98,
+			texture             = [[FireBall02-anim]],
+		},
+	},
+	fxsparks = {
+		class      = [[CSimpleParticleSystem]],
+		count      = 1,
+		air        = true,
+		ground     = true,
+		water      = true,
+		underwater = true,
+		properties = {
+			airdrag             = 0.92,
+			colormap            = [[0 0 0 0.01   0 0 0 0.01  1 0.88 0.77 0.030   0.8 0.55 0.3 0.015   0 0 0 0]],
+			directional         = true,
+			drawOrder           = layer.high,
+			emitrot             = 35,
+			emitrotspread       = 22,
+			emitvector          = [[0, 1, 0]],
+			gravity             = [[-0.4 r0.8, -0.1 r0.3, -0.4 r0.8]],
+			numparticles        = randomUniform(2 * FREQ),
+			particlelife        = 11,
+			particlelifespread  = 11,
+			particlesize        = -24,
+			particlesizespread  = -8,
+			particlespeed       = 9,
+			particlespeedspread = 4,
+			pos                 = [[-4 r8, 4 r24, -4 r8]],
+			sizegrowth          = 0.04,
+			sizemod             = 0.91,
+			texture             = [[gunshotxl2]],
+			useairlos           = false,
+		},
+	},
+}
+definitions["brief-heatray-weld"] = {
+	usedefaultexplosions = false,
+	flameground = {
+		class = [[CExpGenSpawner]],
+		count = 1,
+		air = false,
+		ground = true,
+		underwater = false,
+		water = true,
+		properties = {
+			delay = [[0 r]] .. lifetime.fleeting,
+			explosiongenerator = [[fire-brief-sparks]],
+			pos = [[-37.5 r75, 0, -37.5 r75]]
+		}
+	},
+}
+
+return definitions
