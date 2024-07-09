@@ -281,7 +281,7 @@ local function GetSurfaceDeflection(ex, ey, ez)
         x, y, z, _  = spGetGroundNormal(xx, zz, true)
     end
     distance = sqrt(max(1, distance))
-    x, y, z  = 1.7*x/distance, 1.7*y/distance, 1.7*z/distance
+    x, y, z  = 1.52*x/distance, 1.52*y/distance, 1.52*z/distance
 
     -- Deflection away from unit colliders.
     -- This is used to keep grenades-of-grenades from detonating on contact instead of spreading out.
