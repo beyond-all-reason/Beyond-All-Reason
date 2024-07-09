@@ -6,7 +6,7 @@ function gadget:GetInfo()
         version = '1.1',
         date    = '2024-06-07',
         license = 'GNU GPL, v2 or later',
-        layer   = 0,
+        layer   = 10, -- preemt :Explosion handlers like fx_watersplash.lua that return `true` (not pure fx)
         enabled = true
     }
 end
@@ -29,6 +29,7 @@ local customParamName = "cluster"                  -- in the weapondef, the para
 local maxSpawnNumber  = 24                         -- protect game performance against stupid ideas
 local minUnitBounces  = "armpw"                    -- smallest unit (name) that bounces projectiles at all
 local minBulkReflect  = 64000                      -- smallest unit bulk that causes reflection as if terrain
+local deepWaterDepth  = -40                        -- used for the surface deflection on water, lava, ...
 
 -- CustomParams setup ----------------------------------------------------------------------------------------
 
@@ -270,25 +271,45 @@ while number < #packedSpheres do
 end
 
 local function GetSurfaceDeflection(ex, ey, ez)
-    -- Deflection away from terrain.
-    local distance = ey - spGetGroundHeight(ex, ez)
-    local x,y,z, m = spGetGroundNormal(ex, ez, true)
-    if m > 1e-2 then
-        distance    = distance * cos(m)                 -- Actual distance given a flat plane with slope m.
-        m           = distance * sin(m) / sqrt(x*x+z*z) -- Shift to next ground intercept; normalize {x,z}.
-        local xx,zz = ex-x*m, ez-z*m
-        distance    = min(distance, ey - spGetGroundHeight(xx, zz))
-        x, y, z, _  = spGetGroundNormal(xx, zz, true)
+    ---- Deflection away from terrain.
+    local elevation = spGetGroundHeight(ex, ez)
+    local x, y, z, m, distance
+    -- Deep water doesn't care much about ground normals.
+    -- Lava might have a shallower "deep" elevation. Idk.
+    if elevation < deepWaterDepth then
+        distance = ey - deepWaterDepth / 3 -- compress distance to fixed value
+        x, y, z  = 0, 1, 0
+    else
+        distance = ey - elevation
+        x, y, z, m = spGetGroundNormal(ex, ez, true)
+        if m > 1e-2 then
+            distance = distance * cos(m)                       -- Actual distance given a flat plane with slope m.
+            m        = distance * sin(m) / sqrt(x * x + z * z) -- Shift to next ground intercept; normalize {x,z}.
+            local xm, zm = ex - x * m, ez - z * m
+            elevation = spGetGroundHeight(xm, zm) -- very likely a higher elevation than the previous
+            x, y, z,_ = spGetGroundNormal(xm, zm, true)
+
+            -- Shallow water produces a weaker terrain response,
+            -- but uses a shorter distance (more response overall).
+            if elevation <= 0 then
+                -- compress distance to middle value
+                elevation = max(spGetGroundHeight(xm, zm) / 2, deepWaterDepth / 3)
+                x, z = x * 0.9, z * 0.9
+                if y < 0.999999999 then y = 1 / sqrt(x*x + z*z) end
+            end
+
+            distance = min(distance, ey - elevation)
+        end
     end
     distance = sqrt(max(1, distance))
     x, y, z  = 1.52*x/distance, 1.52*y/distance, 1.52*z/distance
 
-    -- Deflection away from unit colliders.
+    ---- Deflection away from unit colliders.
     -- This is used to keep grenades-of-grenades from detonating on contact instead of spreading out.
     -- We have to check a radius ~ge the largest collider so we are, otherwise, way-too efficient.
     -- That mostly means not checking and not rotating the unit's collider around in world space.
     local colliders = spGetUnitsInSphere(ex, ey, ez, 80)
-    local bounce, udefid, ux, uy, uz, uw, radius
+    local udefid, bounce, ux, uy, uz, uw, radius
     for _, uid in ipairs(colliders) do
         udefid = spGetUnitDefID(uid)
         bounce = unitBulk[udefid]
@@ -296,22 +317,23 @@ local function GetSurfaceDeflection(ex, ey, ez)
             -- Assuming spherical collider in frictionless vacuum
             _,_,_,ux,uy,uz = spGetUnitPosition(uid, true)
             radius         = spGetUnitRadius(uid)
+            if uy + radius > 0 then
+                ux, uy, uz = ex-ux, ey-uy, ez-uz
+                distance   = ux*ux + uy*uy + uz*uz -- just going to reuse this var a lot
+                uw         = distance / radius
+                distance   = sqrt(distance)
 
-            ux, uy, uz = ex-ux, ey-uy, ez-uz
-            distance   = ux*ux + uy*uy + uz*uz -- just going to reuse this var a lot
-            uw         = distance / radius
-            distance   = sqrt(distance)
-
-            -- We allow wiggle room since our colliders are not spheres
-            if uw <= 1.24 * distance then
-                distance = max(1, distance / radius)
-                -- Even with a bunch of transcendentals, the perf isn't so bad.
-                local th_z = atan2(ux, uz)
-                local ph_y = atan2(uy, sqrt(ux*ux+uz*uz))
-                local cosy = cos(ph_y)
-                x = x + bounce / distance * sin(th_z) * cosy
-                y = y + bounce / distance * sin(ph_y)
-                z = z + bounce / distance * cos(th_z) * cosy
+                -- We allow wiggle room since our colliders are not spheres
+                if uw <= 1.24 * distance then
+                    distance = max(1, distance / radius)
+                    -- Even with a bunch of transcendentals, the perf isn't so bad.
+                    local th_z = atan2(ux, uz)
+                    local ph_y = atan2(uy, sqrt(ux*ux+uz*uz))
+                    local cosy = cos(ph_y)
+                    x = x + bounce / distance * sin(th_z) * cosy
+                    y = y + bounce / distance * sin(ph_y)
+                    z = z + bounce / distance * cos(th_z) * cosy
+                end
             end
         end
     end
