@@ -4,7 +4,7 @@
 piece  base, aimy1, aimy2, turret, dclauncher, aimx1, sleeve, barrel1, barrel2, flare1, flare2, flaredc,
        strutl, jetl, bladesl, strutr, jetr, bladesr, wake;
 
-static-var  isAiming, gun1, oldheading; 
+static-var  isAiming, gun1, oldheading, shotcount; 
 
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -84,12 +84,18 @@ StopMoving()
 	spin bladesl around y-axis speed 0 - <180>;
 }
 
+lua_UnitScriptLight(lightIndex, count)
+{
+	return 0;
+}
+
+
 Create()
 {
 	hide wake;
-	hide flare1;
-	hide flare2;
-	
+	//hide flare1;
+	//hide flare2;
+	shotcount = 1;
 	gun1 = 0;
 	oldheading = get HEADING;
 	isAiming = FALSE;
@@ -133,18 +139,22 @@ FireWeapon1()
 {	
 	if (gun1 == 0)
 	{	
-		emit-sfx 1024 + 3 from flare1;
+		//emit-sfx 1024 + 3 from flare1;
+		//corsokglow1
+		call-script lua_UnitScriptLight(1, shotcount);
 		move barrel1 to z-axis [-8] speed [1200];
 		sleep 150;
 		move barrel1 to z-axis [0] speed [2];
 	}
 	if (gun1 == 1)
 	{
-		emit-sfx 1024 + 3 from flare2;
+		//emit-sfx 1024 + 3 from flare2;
+		call-script lua_UnitScriptLight(2, shotcount);
 		move barrel2 to z-axis [-8] speed [1200];
 		sleep 150;
 		move barrel2 to z-axis [0] speed [2];
 	}
+	shotcount = shotcount + 1;
 	sleep 1000;
 	gun1 = !gun1;
 }

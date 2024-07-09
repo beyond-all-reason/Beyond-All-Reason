@@ -80,7 +80,6 @@ return {
 				[1] = "custom:waterwake-small-hover",
 				[2] = "custom:bowsplash-small-hover",
 				[3] = "custom:hover-wake-large",
-				[4] = "custom:laserhit-large-green",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
@@ -122,7 +121,7 @@ return {
 				duration = 0.05,
 				edgeeffectiveness = 0.85,
 				energypershot = 500,
-				explosiongenerator = "custom:laserhit-large-green",
+				explosiongenerator = "custom:laserhit-large-aqua",
 				impulseboost = 0,
 				impulsefactor = 0,
 				intensity=2.2,
