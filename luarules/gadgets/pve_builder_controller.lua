@@ -24,7 +24,7 @@ else
 end
 
 local scavengerAITeamID = 999
-local raptorsAITeamID = 999
+--local raptorsAITeamID = 999
 
 local teams = Spring.GetTeamList()
 for i = 1, #teams do
@@ -34,13 +34,13 @@ for i = 1, #teams do
 		break
 	end
 end
-for i = 1, #teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'RaptorsAI' then
-		raptorsAITeamID = i - 1
-		break
-	end
-end
+--for i = 1, #teams do
+--	local luaAI = Spring.GetTeamLuaAI(teams[i])
+--	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'RaptorsAI' then
+--		raptorsAITeamID = i - 1
+--		break
+--	end
+--end
 
 local builderDefs = {}
 for unitDefID, data in pairs(UnitDefs) do
@@ -50,14 +50,17 @@ for unitDefID, data in pairs(UnitDefs) do
             buildOptions = data.buildOptions,
             unitDefID = unitDefID,
             unitDefName = data.name,
+            isFactory = data.isFactory,
         }
+        Spring.Echo(data.name, data.isFactory)
 	end
 end
 
 local aliveBuilders = {}
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-    if builderDefs[unitDefID] and (unitTeam == scavengerAITeamID or unitTeam == raptorsAITeamID) then
+    --if builderDefs[unitDefID] and (unitTeam == scavengerAITeamID or unitTeam == raptorsAITeamID) then
+    if builderDefs[unitDefID] and (unitTeam == scavengerAITeamID) then
         aliveBuilders[unitID] = builderDefs[unitDefID]
     end
 end
@@ -68,25 +71,36 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
     end
 end
 
+local lastTurretFrame = 0
 function gadget:GameFrame(frame)
-    if frame%30 == 9 then
-        for unitID, data in pairs(aliveBuilders) do
-            if Spring.GetUnitNearestEnemy(unitID, data.range*5, true) and math.random(0,30) == 0 then
-                --Spring.Echo(data.unitDefName, "NearestEnemyInRange")
-                if (Spring.GetUnitCommands(unitID, -1)[1] and Spring.GetUnitCommands(unitID, -1)[1].id > 0 and Spring.GetUnitCommands(unitID, -1)[1].id ~= CMD.REPAIR) or not (Spring.GetUnitCommands(unitID, -1)[1]) then
-                    --Spring.Echo(data.unitDefName, "Isn't building anything")
-                    local turretOptions = {}
-                    for buildOptionIndex, buildOptionID in pairs(data.buildOptions) do
-                        --Spring.Echo("buildOptionID", buildOptionID, UnitDefs[buildOptionID].name)
-                        if buildOptionID and UnitDefs[buildOptionID].weapons and #UnitDefs[buildOptionID].weapons > 0 then
-                            turretOptions[#turretOptions+1] = buildOptionID
-                            --Spring.Echo(data.unitDefName, UnitDefs[buildOptionID].name, "Is a turret")
+    if frame > lastTurretFrame + 300 then
+        if frame%30 == 9 then
+            for unitID, data in pairs(aliveBuilders) do
+                if (Spring.GetUnitNearestEnemy(unitID, data.range*5, true) and math.random(0,30) == 0) or (data.isFactory) then
+                    --Spring.Echo(data.unitDefName, "NearestEnemyInRange")
+                    if (data.isFactory and #Spring.GetFullBuildQueue(unitID, 0) < 5) or ((not data.isFactory) and (Spring.GetUnitCommands(unitID, -1)[1] and Spring.GetUnitCommands(unitID, -1)[1].id > 0 and Spring.GetUnitCommands(unitID, -1)[1].id ~= CMD.REPAIR) or not (Spring.GetUnitCommands(unitID, -1)[1])) then
+                        --Spring.Echo(data.unitDefName, "Isn't building anything")
+                        local turretOptions = {}
+                        for buildOptionIndex, buildOptionID in pairs(data.buildOptions) do
+                            --Spring.Echo("buildOptionID", buildOptionID, UnitDefs[buildOptionID].name)
+                            if buildOptionID and ((UnitDefs[buildOptionID].weapons and #UnitDefs[buildOptionID].weapons > 0) or (math.random(1,10) == 1 and UnitDefs[buildOptionID].isFactory)) then
+                                turretOptions[#turretOptions+1] = buildOptionID
+                                --Spring.Echo(data.unitDefName, UnitDefs[buildOptionID].name, "Is a turret")
+                            end
                         end
-                    end
-                    if #turretOptions > 1 then
-                        local turret = turretOptions[math.random(1, #turretOptions)]
-                        local x,y,z = Spring.GetUnitPosition(unitID)
-                        Spring.GiveOrderToUnit(unitID, -turret, {x+math.random(-data.range, data.range), y, z+math.random(-data.range, data.range)}, {})
+                        if #turretOptions > 1 then
+                            local turret = turretOptions[math.random(1, #turretOptions)]
+                            local x,y,z = Spring.GetUnitPosition(unitID)
+                            Spring.GiveOrderToUnit(unitID, -turret, {x+math.random(-data.range, data.range), y, z+math.random(-data.range, data.range)}, {})
+                            if data.isFactory then
+                                for i = 1,math.random(1,5) do
+                                    Spring.GiveOrderToUnit(unitID, -turret, {x+math.random(-data.range, data.range), y, z+math.random(-data.range, data.range)}, {})
+                                end
+                            else
+                                lastTurretFrame = frame
+                                break
+                            end
+                        end
                     end
                 end
             end

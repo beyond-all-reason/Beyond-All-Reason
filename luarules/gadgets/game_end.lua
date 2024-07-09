@@ -59,7 +59,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-
 	local KillTeam = Spring.KillTeam
 	local GetTeamList = Spring.GetTeamList
 	local GetPlayerInfo = Spring.GetPlayerInfo
@@ -84,6 +83,8 @@ if gadgetHandler:IsSyncedCode() then
 	local gameoverWinners
 	local gameoverAnimFrame
 	local gameoverAnimUnits
+
+	local globalLosGranted = false
 
 	local allyTeamInfos = {}
 	--[[
@@ -131,7 +132,6 @@ if gadgetHandler:IsSyncedCode() then
 			allyTeamInfos[allyTeamID].dead = true
 		end
 	end
-
 
 	local function CheckPlayer(playerID)
 		local _, active, spectator, teamID, allyTeamID = GetPlayerInfo(playerID, false)
@@ -193,7 +193,6 @@ if gadgetHandler:IsSyncedCode() then
 		UpdateAllyTeamIsDead(allyTeamID)
 	end
 
-
 	local function CheckAllPlayers()
 		playerList = GetPlayerList()
 		for _, playerID in ipairs(playerList) do
@@ -201,11 +200,9 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-
 	function gadget:GameOver()
 		gadgetHandler:RemoveGadget(self)
 	end
-
 
 	function gadget:Initialize()
 		if Spring.GetModOptions().deathmode == 'neverend' then
@@ -274,7 +271,6 @@ if gadgetHandler:IsSyncedCode() then
 		CheckAllPlayers()
 	end
 
-
 	local function AreAllyTeamsDoubleAllied(firstAllyTeamID, secondAllyTeamID)
 		-- we need to check for both directions of alliance
 		for teamA in pairs(allyTeamInfos[firstAllyTeamID].teams) do
@@ -286,7 +282,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		return true
 	end
-
 
 	-- find the last remaining allyteam
 	local function CheckSingleAllyVictoryEnd()
@@ -303,7 +298,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		return candidateWinners
 	end
-
 
 	-- we have to cross check all the alliances
 	local function CheckSharedAllyVictoryEnd()
@@ -340,9 +334,18 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:GameFrame(gf)
 		if gameoverFrame then
+			if not globalLosGranted then
+				for _, allyTeamId in ipairs(gameoverWinners) do
+					Spring.SetGlobalLos(allyTeamId, true)
+				end
+
+				globalLosGranted = true
+			end
+
 			if gf == gameoverFrame then
 				GameOver(gameoverWinners)
 			end
+
 			if gf == gameoverAnimFrame then
 				for unitID, _ in pairs(gameoverAnimUnits) do
 					if Spring.ValidUnitID(unitID) then
@@ -411,7 +414,6 @@ if gadgetHandler:IsSyncedCode() then
 		CheckAllPlayers()
 	end
 
-
 	function gadget:UnitCreated(unitID, unitDefID, unitTeamID)
 		if not ignoredTeams[unitTeamID] then
 			local allyTeamID = teamToAllyTeam[unitTeamID]
@@ -425,8 +427,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 	gadget.UnitGiven = gadget.UnitCreated
-	gadget.UnitCaptured = gadget.UnitCreated
-
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeamID)
 		if not ignoredTeams[unitTeamID] then
@@ -449,7 +449,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 	gadget.UnitTaken = gadget.UnitDestroyed
-
 
 	function gadget:RecvLuaMsg(msg, playerID)
 
@@ -477,9 +476,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-
 else	-- Unsynced
-
 
 	local sec = 0
 	local cheated = false

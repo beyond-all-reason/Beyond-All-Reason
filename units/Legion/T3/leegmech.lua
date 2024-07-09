@@ -41,7 +41,7 @@ return {
 			unitgroup = 'weapon',
 			customrange = 400,
 			model_author = "Kremenchuk",
-			normaltex = "unittextures/legmech_normal.dds",
+			normaltex = "unittextures/leegmech_normal.dds",
 			paralyzemultiplier = 0.9,
 			subfolder = "leggantry",
 			techlevel = 3,

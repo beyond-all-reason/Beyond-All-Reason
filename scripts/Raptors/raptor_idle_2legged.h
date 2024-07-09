@@ -3,9 +3,9 @@
 //static-var IDLEAMPLITUDE, IDLESPEED;
 
 Idle() {// For N:\animations\Raptors\raptor_2legged_Idle_v1.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 3)) 
-	set-signal-mask SIG_WALK;
+	set-signal-mask SIGNAL_MOVE;
 	sleep 500;
-	if (!bMoving) { //Frame:10
+	if (!isMoving) { //Frame:10
 			move body to x-axis (((([-1.425531] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) speed (((([42.765920] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			turn body to y-axis ((<-2.451753> *IDLEAMPLITUDE)/100) speed ((<73.552602> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			turn lfoot to x-axis ((<-1.408065> *IDLEAMPLITUDE)/100) speed ((<223.445268> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
@@ -33,8 +33,8 @@ Idle() {// For N:\animations\Raptors\raptor_2legged_Idle_v1.blend Created by htt
 			turn rthigh to y-axis ((<0.393361> *IDLEAMPLITUDE)/100) speed ((<11.800832> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 		sleep ((33*IDLESPEED) -1);
 	}
-	while(!bMoving) {
-		if (!bMoving) { //Frame:20
+	while(!isMoving) {
+		if (!isMoving) { //Frame:20
 			move body to x-axis (((([-0.568341] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) speed (((([25.715677] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			move body to z-axis (((([-0.677028] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) speed (((([18.344586] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			move body to y-axis (((([0.195946] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) speed (((([5.878395] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
@@ -67,7 +67,7 @@ Idle() {// For N:\animations\Raptors\raptor_2legged_Idle_v1.blend Created by htt
 			turn tail to y-axis ((<-1.596847> *IDLEAMPLITUDE)/100) speed ((<47.905423> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 		sleep ((33*IDLESPEED) -1);
 		}
-		if (!bMoving) { //Frame:30
+		if (!isMoving) { //Frame:30
 			move body to x-axis (((([-0.680736] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) speed (((([3.371826] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			turn body to z-axis ((<1.460216> *IDLEAMPLITUDE)/100) speed ((<21.903238> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			turn head to x-axis ((<-2.489556> *IDLEAMPLITUDE)/100) speed ((<26.533156> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
@@ -86,7 +86,7 @@ Idle() {// For N:\animations\Raptors\raptor_2legged_Idle_v1.blend Created by htt
 			turn tail to y-axis ((<-3.193695> *IDLEAMPLITUDE)/100) speed ((<47.905423> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 		sleep ((33*IDLESPEED) -1);
 		}
-		if (!bMoving) { //Frame:40
+		if (!isMoving) { //Frame:40
 			move body to x-axis (((([0.152805] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) speed (((([25.006224] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			move body to z-axis (((([1.320841] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) speed (((([60.480444] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			move body to y-axis (((([0.587839] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) speed (((([11.243320] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
@@ -121,7 +121,7 @@ Idle() {// For N:\animations\Raptors\raptor_2legged_Idle_v1.blend Created by htt
 			turn tail to y-axis ((<-2.497657> *IDLEAMPLITUDE)/100) speed ((<20.881143> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 		sleep ((33*IDLESPEED) -1);
 		}
-		if (!bMoving) { //Frame:50
+		if (!isMoving) { //Frame:50
 			move body to x-axis (((([0.678917] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) speed (((([15.783359] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			move body to z-axis (((([2.019850] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) speed (((([20.970250] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			move body to y-axis (((([1.228185] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) speed (((([19.210358] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
@@ -150,11 +150,11 @@ Idle() {// For N:\animations\Raptors\raptor_2legged_Idle_v1.blend Created by htt
 			turn rthigh to x-axis ((<10.522774> *IDLEAMPLITUDE)/100) speed ((<104.713267> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			turn rthigh to z-axis ((<-5.281799> *IDLEAMPLITUDE)/100) speed ((<80.343035> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			turn rthigh to y-axis ((<0.645554> *IDLEAMPLITUDE)/100) speed ((<13.253399> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
-			turn tail to y-axis ((<0.000000> *IDLEAMPLITUDE)/100) speed ((<74.929702> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
+			turn tail to y-axis ((<0.0> *IDLEAMPLITUDE)/100) speed ((<74.929702> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 		sleep ((33*IDLESPEED) -1);
 		}
-		if (!bMoving) { //Frame:60
-			turn body to z-axis ((<3.020446> *IDLEAMPLITUDE)/100) speed ((<3.000447> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
+		if (!isMoving) { //Frame:60
+			turn body to z-axis ((<3.020446> *IDLEAMPLITUDE)/100) speed ((<3.0> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			turn head to z-axis ((<6.867158> *IDLEAMPLITUDE)/100) speed ((<24.410784> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			turn lshin to x-axis ((<-1.290280> *IDLEAMPLITUDE)/100) speed ((<3.153879> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			turn rknee to x-axis ((<-11.060145> *IDLEAMPLITUDE)/100) speed ((<4.466969> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
@@ -162,11 +162,11 @@ Idle() {// For N:\animations\Raptors\raptor_2legged_Idle_v1.blend Created by htt
 			turn tail to y-axis ((<4.108279> *IDLEAMPLITUDE)/100) speed ((<123.248356> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 		sleep ((33*IDLESPEED) -1);
 		}
-		if (!bMoving) { //Frame:70
+		if (!isMoving) { //Frame:70
 			move body to x-axis (((([0.823057] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) speed (((([4.931175] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			move body to z-axis (((([1.254589] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) speed (((([23.465928] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			move body to y-axis (((([0.837470] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) speed (((([11.766472] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
-			turn body to z-axis ((<3.120461> *IDLEAMPLITUDE)/100) speed ((<3.000440> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
+			turn body to z-axis ((<3.120461> *IDLEAMPLITUDE)/100) speed ((<3.0> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			turn body to y-axis ((<2.433704> *IDLEAMPLITUDE)/100) speed ((<8.852636> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			turn head to z-axis ((<5.945594> *IDLEAMPLITUDE)/100) speed ((<27.646924> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			turn lfoot to x-axis ((<-0.411168> *IDLEAMPLITUDE)/100) speed ((<24.408643> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
@@ -191,10 +191,10 @@ Idle() {// For N:\animations\Raptors\raptor_2legged_Idle_v1.blend Created by htt
 			turn tail to y-axis ((<6.414939> *IDLEAMPLITUDE)/100) speed ((<69.199810> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 		sleep ((33*IDLESPEED) -1);
 		}
-		if (!bMoving) { //Frame:80
+		if (!isMoving) { //Frame:80
 			move body to x-axis (((([1.316263] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) speed (((([14.796172] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			move body to z-axis (((([0.883710] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) speed (((([11.126384] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
-			turn body to z-axis ((<3.220476> *IDLEAMPLITUDE)/100) speed ((<3.000447> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
+			turn body to z-axis ((<3.220476> *IDLEAMPLITUDE)/100) speed ((<3.0> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			turn body to y-axis ((<2.711478> *IDLEAMPLITUDE)/100) speed ((<8.333245> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			turn head to x-axis ((<1.303856> *IDLEAMPLITUDE)/100) speed ((<38.348699> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			turn head to z-axis ((<3.569675> *IDLEAMPLITUDE)/100) speed ((<71.277585> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
@@ -223,8 +223,8 @@ Idle() {// For N:\animations\Raptors\raptor_2legged_Idle_v1.blend Created by htt
 			turn tail to y-axis ((<4.751806> *IDLEAMPLITUDE)/100) speed ((<49.893981> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 		sleep ((33*IDLESPEED) -1);
 		}
-		if (!bMoving) { //Frame:90
-			turn body to z-axis ((<3.320490> *IDLEAMPLITUDE)/100) speed ((<3.000440> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
+		if (!isMoving) { //Frame:90
+			turn body to z-axis ((<3.320490> *IDLEAMPLITUDE)/100) speed ((<3.0> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			turn head to z-axis ((<1.124215> *IDLEAMPLITUDE)/100) speed ((<73.363781> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			turn lshin to x-axis ((<4.161894> *IDLEAMPLITUDE)/100) speed ((<3.726466> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			turn rknee to x-axis ((<-7.869519> *IDLEAMPLITUDE)/100) speed ((<9.639122> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
@@ -233,15 +233,15 @@ Idle() {// For N:\animations\Raptors\raptor_2legged_Idle_v1.blend Created by htt
 			turn tail to y-axis ((<1.663132> *IDLEAMPLITUDE)/100) speed ((<92.660216> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 		sleep ((33*IDLESPEED) -1);
 		}
-		if (!bMoving) { //Frame:100
+		if (!isMoving) { //Frame:100
 			move body to x-axis (((([-1.425531] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) speed (((([81.714166] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			move body to z-axis (((([-0.065542] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) speed (((([28.294366] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
-			move body to y-axis (((([0.000000] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) speed (((([26.734618] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
-			turn body to x-axis ((<-0.000000> *IDLEAMPLITUDE)/100) speed ((<8.312128> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
-			turn body to z-axis ((<-0.000000> *IDLEAMPLITUDE)/100) speed ((<99.614715> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
+			move body to y-axis (((([0.0] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) speed (((([26.734618] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
+			turn body to x-axis ((<-0.0> *IDLEAMPLITUDE)/100) speed ((<8.312128> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
+			turn body to z-axis ((<-0.0> *IDLEAMPLITUDE)/100) speed ((<99.614715> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			turn body to y-axis ((<-2.451753> *IDLEAMPLITUDE)/100) speed ((<155.958813> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			turn head to x-axis ((<0.025566> *IDLEAMPLITUDE)/100) speed ((<39.882646> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
-			turn head to z-axis ((<-0.000000> *IDLEAMPLITUDE)/100) speed ((<33.726462> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
+			turn head to z-axis ((<-0.0> *IDLEAMPLITUDE)/100) speed ((<33.726462> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			turn lfoot to x-axis ((<-1.408065> *IDLEAMPLITUDE)/100) speed ((<12.284111> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			turn lfoot to z-axis ((<-2.643995> *IDLEAMPLITUDE)/100) speed ((<148.277181> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			turn lfoot to y-axis ((<1.901339> *IDLEAMPLITUDE)/100) speed ((<119.263325> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
@@ -265,10 +265,10 @@ Idle() {// For N:\animations\Raptors\raptor_2legged_Idle_v1.blend Created by htt
 			turn rthigh to x-axis ((<-9.355771> *IDLEAMPLITUDE)/100) speed ((<361.808315> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			turn rthigh to z-axis ((<5.267374> *IDLEAMPLITUDE)/100) speed ((<389.233352> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			turn rthigh to y-axis ((<0.393361> *IDLEAMPLITUDE)/100) speed ((<6.278157> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
-			turn tail to y-axis ((<0.000000> *IDLEAMPLITUDE)/100) speed ((<49.893968> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
+			turn tail to y-axis ((<0.0> *IDLEAMPLITUDE)/100) speed ((<49.893968> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 		sleep ((33*IDLESPEED) -1);
 		}
-		if (!bMoving) { //Frame:123
+		if (!isMoving) { //Frame:123
 			move body to x-axis (((([1.205029] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) speed (((([78.916790] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			move body to z-axis (((([1.010473] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) speed (((([32.280450] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			move body to y-axis (((([0.979732] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) speed (((([29.391972] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
@@ -301,7 +301,7 @@ Idle() {// For N:\animations\Raptors\raptor_2legged_Idle_v1.blend Created by htt
 			turn rthigh to y-axis ((<0.225220> *IDLEAMPLITUDE)/100) speed ((<5.044241> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 		sleep ((33*IDLESPEED) -1);
 		}
-		if (!bMoving) { //Frame:133
+		if (!isMoving) { //Frame:133
 			move body to x-axis (((([-1.088171] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) speed (((([68.795993] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			move body to z-axis (((([0.151469] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) speed (((([25.770117] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			move body to y-axis (((([0.306168] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) speed (((([20.206924] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
@@ -335,7 +335,7 @@ Idle() {// For N:\animations\Raptors\raptor_2legged_Idle_v1.blend Created by htt
 			turn rthigh to y-axis ((<-0.178440> *IDLEAMPLITUDE)/100) speed ((<12.109795> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 		sleep ((33*IDLESPEED) -1);
 		}
-		if (!bMoving) { //Frame:143
+		if (!isMoving) { //Frame:143
 			move body to x-axis (((([-1.263918] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) speed (((([5.272411] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			move body to z-axis (((([1.718241] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) speed (((([47.003156] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			move body to y-axis (((([2.081936] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) speed (((([53.273036] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
@@ -368,7 +368,7 @@ Idle() {// For N:\animations\Raptors\raptor_2legged_Idle_v1.blend Created by htt
 			turn rthigh to y-axis ((<-0.754851> *IDLEAMPLITUDE)/100) speed ((<17.292317> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 		sleep ((33*IDLESPEED) -1);
 		}
-		if (!bMoving) { //Frame:153
+		if (!isMoving) { //Frame:153
 			move body to y-axis (((([0.643779] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) speed (((([43.144727] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			turn body to x-axis ((<-3.971439> *IDLEAMPLITUDE)/100) speed ((<111.089168> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			turn body to z-axis ((<2.850252> *IDLEAMPLITUDE)/100) speed ((<5.798939> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
@@ -399,7 +399,7 @@ Idle() {// For N:\animations\Raptors\raptor_2legged_Idle_v1.blend Created by htt
 			turn rthigh to y-axis ((<-1.001838> *IDLEAMPLITUDE)/100) speed ((<7.409625> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 		sleep ((33*IDLESPEED) -1);
 		}
-		if (!bMoving) { //Frame:163
+		if (!isMoving) { //Frame:163
 			move body to x-axis (((([-1.088171] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) speed (((([7.673042] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			move body to z-axis (((([0.151469] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) speed (((([46.767805] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			move body to y-axis (((([0.306168] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) speed (((([10.128309] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
@@ -433,7 +433,7 @@ Idle() {// For N:\animations\Raptors\raptor_2legged_Idle_v1.blend Created by htt
 			turn rthigh to y-axis ((<-0.178440> *IDLEAMPLITUDE)/100) speed ((<24.701941> *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 		sleep ((33*IDLESPEED) -1);
 		}
-		if (!bMoving) { //Frame:173
+		if (!isMoving) { //Frame:173
 			move body to x-axis (((([1.205029] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) speed (((([68.795993] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			move body to z-axis (((([1.010473] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) speed (((([25.770117] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
 			move body to y-axis (((([0.979732] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) speed (((([20.206924] *IDLEMOVESCALE)/100) *IDLEAMPLITUDE)/100) / IDLESPEED; //delta=%.2f
@@ -469,41 +469,41 @@ Idle() {// For N:\animations\Raptors\raptor_2legged_Idle_v1.blend Created by htt
 		}
 	}
 }
-// Call this from MotionControl()!
+// Call this from StopMoving()!
 StopIdle() {
 	//IDLESPEED = 10; // tune restore speed here, higher values are slower restore speeds
-	move body to x-axis ([0.000000]*IDLEMOVESCALE)/100 speed (([81.714166]*IDLEMOVESCALE)/100) / IDLESPEED;
-	move body to y-axis ([0.000000]*IDLEMOVESCALE)/100 speed (([53.273036]*IDLEMOVESCALE)/100) / IDLESPEED;
-	move body to z-axis ([0.000000]*IDLEMOVESCALE)/100 speed (([60.480444]*IDLEMOVESCALE)/100) / IDLESPEED;
-	turn body to x-axis <0.000000> speed <120.570641> / IDLESPEED;
-	turn body to y-axis <0.000000> speed <155.958813> / IDLESPEED;
-	turn body to z-axis <0.000000> speed <121.883364> / IDLESPEED;
-	turn head to x-axis <0.000000> speed <75.453665> / IDLESPEED;
-	turn head to z-axis <0.000000> speed <73.363781> / IDLESPEED;
+	move body to x-axis ([0.0]*IDLEMOVESCALE)/100 speed (([81.714166]*IDLEMOVESCALE)/100) / IDLESPEED;
+	move body to y-axis ([0.0]*IDLEMOVESCALE)/100 speed (([53.273036]*IDLEMOVESCALE)/100) / IDLESPEED;
+	move body to z-axis ([0.0]*IDLEMOVESCALE)/100 speed (([60.480444]*IDLEMOVESCALE)/100) / IDLESPEED;
+	turn body to x-axis <0.0> speed <120.570641> / IDLESPEED;
+	turn body to y-axis <0.0> speed <155.958813> / IDLESPEED;
+	turn body to z-axis <0.0> speed <121.883364> / IDLESPEED;
+	turn head to x-axis <0.0> speed <75.453665> / IDLESPEED;
+	turn head to z-axis <0.0> speed <73.363781> / IDLESPEED;
 	turn lfoot to x-axis <6.040111> speed <320.704237> / IDLESPEED;
-	turn lfoot to y-axis <0.000000> speed <119.263325> / IDLESPEED;
-	turn lfoot to z-axis <0.000000> speed <148.277181> / IDLESPEED;
+	turn lfoot to y-axis <0.0> speed <119.263325> / IDLESPEED;
+	turn lfoot to z-axis <0.0> speed <148.277181> / IDLESPEED;
 	turn lknee to x-axis <-0.879296> speed <618.377857> / IDLESPEED;
-	turn lknee to y-axis <0.000000> speed <47.233147> / IDLESPEED;
-	turn lknee to z-axis <0.000000> speed <50.325484> / IDLESPEED;
+	turn lknee to y-axis <0.0> speed <47.233147> / IDLESPEED;
+	turn lknee to z-axis <0.0> speed <50.325484> / IDLESPEED;
 	turn lshin to x-axis <-7.958460> speed <491.652290> / IDLESPEED;
-	turn lshin to y-axis <0.000000> speed <13.901112> / IDLESPEED;
-	turn lshin to z-axis <0.000000> speed <79.053986> / IDLESPEED;
+	turn lshin to y-axis <0.0> speed <13.901112> / IDLESPEED;
+	turn lshin to z-axis <0.0> speed <79.053986> / IDLESPEED;
 	turn lthigh to x-axis <4.070670> speed <583.410448> / IDLESPEED;
-	turn lthigh to y-axis <0.000000> speed <16.083125> / IDLESPEED;
-	turn lthigh to z-axis <0.000000> speed <398.395594> / IDLESPEED;
+	turn lthigh to y-axis <0.0> speed <16.083125> / IDLESPEED;
+	turn lthigh to z-axis <0.0> speed <398.395594> / IDLESPEED;
 	turn rfoot to x-axis <1.637208> speed <298.199347> / IDLESPEED;
-	turn rfoot to y-axis <0.000000> speed <137.960769> / IDLESPEED;
-	turn rfoot to z-axis <0.000000> speed <136.145638> / IDLESPEED;
+	turn rfoot to y-axis <0.0> speed <137.960769> / IDLESPEED;
+	turn rfoot to z-axis <0.0> speed <136.145638> / IDLESPEED;
 	turn rknee to x-axis <1.676005> speed <816.333249> / IDLESPEED;
-	turn rknee to y-axis <0.000000> speed <38.142260> / IDLESPEED;
-	turn rknee to z-axis <0.000000> speed <46.740803> / IDLESPEED;
-	turn rshin to x-axis <0.000000> speed <450.029157> / IDLESPEED;
-	turn rshin to y-axis <0.000000> speed <10.665693> / IDLESPEED;
-	turn rshin to z-axis <0.000000> speed <76.260725> / IDLESPEED;
+	turn rknee to y-axis <0.0> speed <38.142260> / IDLESPEED;
+	turn rknee to z-axis <0.0> speed <46.740803> / IDLESPEED;
+	turn rshin to x-axis <0.0> speed <450.029157> / IDLESPEED;
+	turn rshin to y-axis <0.0> speed <10.665693> / IDLESPEED;
+	turn rshin to z-axis <0.0> speed <76.260725> / IDLESPEED;
 	turn rthigh to x-axis <-1.107364> speed <785.405629> / IDLESPEED;
-	turn rthigh to y-axis <0.000000> speed <24.701941> / IDLESPEED;
-	turn rthigh to z-axis <0.000000> speed <389.233352> / IDLESPEED;
-	turn tail to y-axis <0.000000> speed <123.248356> / IDLESPEED;
+	turn rthigh to y-axis <0.0> speed <24.701941> / IDLESPEED;
+	turn rthigh to z-axis <0.0> speed <389.233352> / IDLESPEED;
+	turn tail to y-axis <0.0> speed <123.248356> / IDLESPEED;
 }
 

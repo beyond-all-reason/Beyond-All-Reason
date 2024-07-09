@@ -112,6 +112,7 @@ local soundData = {
 		pitchmod = {
 			default = 0.17,
 			custom = {
+				['^heliosfire$'] = 0.03,
 				['^beamershot2$'] = 0.04,
 				['^lasfirerc$'] = 0.06,
 				['^heatray'] = 0,
@@ -164,6 +165,16 @@ local soundData = {
 		dopplerscale = 1.0,
 		maxconcurrent = 6,
 		rolloff = 1.1,
+	},
+
+	-- GLOBAL EVENTS not in use currently
+	['global-events'] = {
+		gain = 1.0 * 0.3,
+		pitchmod = 0.33,
+		gainmod  = 0.1 * 0.3,
+		dopplerscale = 1.0,
+		maxconcurrent = 8,
+		rolloff = 0.2,
 	},
 
 	-- BOMB SOUNDS / More maxconcurrent

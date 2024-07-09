@@ -191,6 +191,7 @@ local function MakeAtlasOnDemand(config)
 		firstemptycolumn = 1,
 		freeslots = config.sizex/config.xresolution * config.sizey/config.yresolution,
 		blankimg = 'icons/blank.png',
+		blackimg = 'luaui/images/black.bmp',
 		aliasing_grid_test_image = 'luaui/images/aliasing_test_grid_128.tga',
 		drawmode = config.drawmode or '', -- can be any mode like ':n:' for nearest neighbour
 		defaultfont = config.defaultfont,
@@ -200,7 +201,7 @@ local function MakeAtlasOnDemand(config)
 	}
 	
 	-- add an initial blanking command to the whole goddamned thing because AMD allocates garbage as texture memory
-	AtlasOnDemand.renderImageTaskList[1] = {id = AtlasOnDemand.blankimg, w = config.xresolution , h = config.yresolution, x = 0, y = 0 }
+	AtlasOnDemand.renderImageTaskList[1] = {id = AtlasOnDemand.blankimg, w = config.sizex , h = config.sizey, x = 0, y = 0 }--, srcmode = GL.ZERO, dstmode = GL.ZERO}
 	for x = 1, AtlasOnDemand.xslots do
 		AtlasOnDemand.fill[x] = {}
 		for y = 1, AtlasOnDemand.yslots do 
@@ -528,6 +529,7 @@ local function MakeAtlasOnDemand(config)
 		--gl.Rect( 0,0,0.5,0.1)
 		gl.Blending(GL.ONE, GL.ZERO) -- do full opaque
 		for i, task in ipairs(self.renderImageTaskList) do 
+			gl.Blending(task.srcmode or GL.ONE, task.dstmode or GL.ZERO)
 			local drawmodeTexName = self.drawmode..task.id
 			gl.Texture(0, drawmodeTexName)
 			local p = self.padx*0

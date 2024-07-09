@@ -4,7 +4,7 @@ function widget:GetInfo()
         desc = "List of players and spectators",
         author = "Marmoth. (spiced up by Floris)",
         date = "2008",
-        version = 40,
+        version = 41,
         license = "GNU GPL, v2 or later",
         layer = -4,
         enabled = true,
@@ -49,6 +49,7 @@ end
 	v38   (Floris): significant performance improvement, + fast updating resources
 	v39   (Floris): auto compress when large amount (33+) of players are participating (same is separately applied for spectator list)
 	v40   (Floris): draw a faint pencil/eraser when player is drawing/erasing
+	v41   (Floris): added APM info to cpu/ping tooltip
 ]]
 --------------------------------------------------------------------------------
 -- Config
@@ -224,9 +225,9 @@ local allyTeamMaxStorage = {}
 
 local tipTextTime = 0
 local Background, ShareSlider, BackgroundGuishader, tipText, drawTipText, tipY, myLastCameraState
-local specJoinedOnce, scheduledSpecFullView
-local prevClickedPlayer, clickedPlayerTime, clickedPlayerID
-local lockPlayerID, leftPosX, lastSliderSound, release
+--local specJoinedOnce, scheduledSpecFullView
+--local prevClickedPlayer, clickedPlayerTime, clickedPlayerID
+--local lockPlayerID, leftPosX, lastSliderSound, release
 local MainList, MainList2, MainList3, desiredLosmode, drawListOffset
 
 local deadPlayerHeightReduction = 8
@@ -241,6 +242,7 @@ local sliderdrag = LUAUI_DIRNAME .. 'Sounds/buildbar_rem.wav'
 
 local lastActivity = {}
 local lastFpsData = {}
+local lastApmData = {}
 local lastSystemData = {}
 local lastGpuMemData = {}
 
@@ -752,10 +754,15 @@ function GpuMemEvent(playerID, percentage)
 end
 
 function FpsEvent(playerID, fps)
-    lastFpsData[playerID] = fps
+	lastFpsData[playerID] = fps
+	WG.playerFPS = WG.playerFPS or {}
+	WG.playerFPS[playerID] = fps
+end
 
-    WG.playerFPS = WG.playerFPS or {}
-    WG.playerFPS[playerID] = fps
+function ApmEvent(teamID, fps)
+	lastApmData[teamID] = fps
+	WG.teamAPM = WG.teamAPM or {}
+	WG.teamAPM[teamID] = fps
 end
 
 function SystemEvent(playerID, system)
@@ -845,6 +852,7 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal('CameraBroadcastEvent', CameraBroadcastEvent)
 	widgetHandler:RegisterGlobal('ActivityEvent', ActivityEvent)
 	widgetHandler:RegisterGlobal('FpsEvent', FpsEvent)
+	widgetHandler:RegisterGlobal('ApmEvent', ApmEvent)
 	widgetHandler:RegisterGlobal('GpuMemEvent', GpuMemEvent)
 	widgetHandler:RegisterGlobal('SystemEvent', SystemEvent)
 	UpdateRecentBroadcasters()
@@ -1011,7 +1019,8 @@ function widget:Shutdown()
     WG['advplayerlist_api'] = nil
     widgetHandler:DeregisterGlobal('CameraBroadcastEvent')
     widgetHandler:DeregisterGlobal('ActivityEvent')
-    widgetHandler:DeregisterGlobal('FpsEvent')
+	widgetHandler:DeregisterGlobal('FpsEvent')
+	widgetHandler:DeregisterGlobal('ApmEvent')
     widgetHandler:DeregisterGlobal('GpuMemEvent')
     widgetHandler:DeregisterGlobal('SystemEvent')
     if ShareSlider then
@@ -1475,28 +1484,31 @@ function SortAllyTeams(vOffset)
         end
     end
 
-	-- "Enemies" label
-	vOffset = vOffset + 13
-	vOffset = vOffset + labelOffset - 3
-	drawListOffset[#drawListOffset + 1] = vOffset
-	drawList[#drawList + 1] = -3 -- "Enemies" label
+    if numberOfEnemies > 0 then
 
-	-- add the others
-	if enemyListShow then
-		local firstenemy = true
-		for allyTeamID = 0, allyTeamsCount - 1 do
-			if allyTeamID ~= myAllyTeamID and (not hideDeadAllyTeams or aliveAllyTeams[allyTeamID]) then
-				if firstenemy then
-					firstenemy = false
-				else
-					vOffset = vOffset + (separatorOffset*playerScale)
-					drawListOffset[#drawListOffset + 1] = vOffset
-					drawList[#drawList + 1] = -4 -- Enemy teams separator
-				end
-				vOffset = SortTeams(allyTeamID, vOffset) + 2 -- Add the teams from the allyTeam
-			end
-		end
-	end
+        -- "Enemies" label
+        vOffset = vOffset + 13
+        vOffset = vOffset + labelOffset - 3
+        drawListOffset[#drawListOffset + 1] = vOffset
+        drawList[#drawList + 1] = -3 -- "Enemies" label
+
+        -- add the others
+        if enemyListShow then
+            local firstenemy = true
+            for allyTeamID = 0, allyTeamsCount - 1 do
+                if allyTeamID ~= myAllyTeamID and (not hideDeadAllyTeams or aliveAllyTeams[allyTeamID]) then
+                    if firstenemy then
+                        firstenemy = false
+                    else
+                        vOffset = vOffset + (separatorOffset*playerScale)
+                        drawListOffset[#drawListOffset + 1] = vOffset
+                        drawList[#drawList + 1] = -4 -- Enemy teams separator
+                    end
+                    vOffset = SortTeams(allyTeamID, vOffset) + 2 -- Add the teams from the allyTeam
+                end
+            end
+        end
+    end
 
     return vOffset
 end
@@ -1916,18 +1928,20 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
 						DrawSeparator(drawListOffset[i])
 					end
                 elseif drawObject == -3 then
-                    enemyLabelOffset = drawListOffset[i]
-                    local enemyAmount = numberOfEnemies
-                    if numberOfEnemies == 0 or enemyListShow then
-                        enemyAmount = ""
-                    end
-                    DrawLabel(" "..Spring.I18N('ui.playersList.enemies', { amount = enemyAmount }), drawListOffset[i], true)
-                    DrawLabel(" "..Spring.I18N('ui.playersList.enemies', { amount = enemyAmount }), drawListOffset[i], true)
-                    if Spring.GetGameFrame() <= 0 then
-                        if enemyListShow then
-                            DrawLabelTip( Spring.I18N('ui.playersList.hideEnemies'), drawListOffset[i], 95)
-                        else
-                            DrawLabelTip(Spring.I18N('ui.playersList.showEnemies'), drawListOffset[i], 95)
+                    if numberOfEnemies > 0 then
+                        enemyLabelOffset = drawListOffset[i]
+                        local enemyAmount = numberOfEnemies
+                        if numberOfEnemies == 0 or enemyListShow then
+                            enemyAmount = ""
+                        end
+                        DrawLabel(" "..Spring.I18N('ui.playersList.enemies', { amount = enemyAmount }), drawListOffset[i], true)
+                        DrawLabel(" "..Spring.I18N('ui.playersList.enemies', { amount = enemyAmount }), drawListOffset[i], true)
+                        if Spring.GetGameFrame() <= 0 then
+                            if enemyListShow then
+                                DrawLabelTip( Spring.I18N('ui.playersList.hideEnemies'), drawListOffset[i], 95)
+                            else
+                                DrawLabelTip(Spring.I18N('ui.playersList.showEnemies'), drawListOffset[i], 95)
+                            end
                         end
                     end
                 elseif drawObject == -2 then
@@ -2189,7 +2203,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
             -- draws CPU usage and ping icons (except AI and ghost teams)
             DrawPingCpu(pingLvl, cpuLvl, posY, spec, 1, cpu, lastFpsData[playerID])
             if tipY then
-                PingCpuTip(mouseX, ping, cpu, lastFpsData[playerID], lastGpuMemData[playerID], lastSystemData[playerID], name, team, spec)
+                PingCpuTip(mouseX, ping, cpu, lastFpsData[playerID], lastGpuMemData[playerID], lastSystemData[playerID], name, team, spec, lastApmData[team])
             end
         end
     end
@@ -2918,7 +2932,7 @@ function IncomeTip(mouseX, energyIncome, metalIncome)
     end
 end
 
-function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, system, name, teamID, spec)
+function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, system, name, teamID, spec, apm)
     if mouseX >= widgetPosX + (m_cpuping.posX + (13*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_cpuping.posX + (23*playerScale)) * widgetScale then
         if pingLvl < 2000 then
             pingLvl = Spring.I18N('ui.playersList.milliseconds', { number = pingLvl })
@@ -2928,16 +2942,20 @@ function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, system, name, teamID, 
         tipText = Spring.I18N('ui.playersList.commandDelay', { labelColor = "\255\190\190\190", delayColor = "\255\255\255\255", delay = pingLvl })
         tipTextTime = os.clock()
     elseif mouseX >= widgetPosX + (m_cpuping.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_cpuping.posX + (11*playerScale)) * widgetScale then
-        tipText = Spring.I18N('ui.playersList.cpu', { cpuUsage = cpuLvl })
-        if fps ~= nil then
-            tipText = Spring.I18N('ui.playersList.framerate', { fps = fps }) .. "    " .. tipText
-        end
+		tipText = ''
+		if not spec and apm ~= nil then
+			tipText = tipText .. Spring.I18N('ui.playersList.apm', { apm = apm }) .."\n"
+		end
+		if fps ~= nil then
+			tipText =  tipText .. Spring.I18N('ui.playersList.framerate', { fps = fps })
+		end
+		tipText = tipText .. "    " .. Spring.I18N('ui.playersList.cpu', { cpuUsage = cpuLvl })
         if gpumem ~= nil then
             tipText = tipText .. "    " .. Spring.I18N('ui.playersList.gpuMemory', { gpuUsage = gpumem })
         end
         tipText = (spec and "\255\240\240\240" or colourNames(teamID)) .. name .. "\n" .. tipText
         if system ~= nil then
-            tipText = tipText .. "\n\255\240\240\240" .. system
+            tipText = tipText .. system
         end
         tipTextTime = os.clock()
     end

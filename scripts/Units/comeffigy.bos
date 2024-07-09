@@ -1,0 +1,24 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece torso, luparm, ruparm, pelvis,
+    rthigh, lthigh, lleg, l_foot, rleg, r_foot, aimx1, aimy1;
+
+static-var bMoving, bAiming, Busy, gun_3, gun_2, counter,
+      bIsBuilding, buildPitch, buildHeading, maxSpeed, currentSpeed, animSpeed, justMoved, shotcount;
+
+// for the AimPrimary script, to skip wait-for-turn if needed
+static-var last_primary_heading,last_primary_pitch;
+
+SweetSpot(piecenum)
+{
+	piecenum = torso;
+}
+
+Killed( severity, corpsetype )
+{
+	corpsetype = 1;
+	return(corpsetype);
+}

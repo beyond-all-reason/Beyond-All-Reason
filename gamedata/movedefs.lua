@@ -150,7 +150,7 @@ local moveDatas = {
 	-- },
 	-- flagships/aircraft carriers
 	--why are bb and flagships/carriers different merge both
-	-- armcarry armepoch corblackhy armcarry2 armbats corbats corcarry corcarry2 corsentinel armtrident
+	-- armcarry armdronecarry armepoch corblackhy armbats corbats corcarry cordronecarry corsentinel armtrident
 	BOAT8 = {
 		crushstrength = 252,
 		footprintx = 8,
@@ -683,7 +683,7 @@ local moveDatas = {
 	},
 
 
-	-- legdefcarryt1 armnanotc cornanotc cornanotcplat  raptor_worm_green raptor_turret_acid_t2_v1 raptor_turret_meteor_t4_v1
+	-- leghive armnanotc cornanotc cornanotcplat  raptor_worm_green raptor_turret_acid_t2_v1 raptor_turret_meteor_t4_v1
 	NANO = {
 		crushstrength = 0,
 		footprintx = 3,

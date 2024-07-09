@@ -5,6 +5,7 @@ local function scavUnitDef_Post(name, uDef)
 	uDef.category = uDef.category .. ' SCAVENGER'
 	uDef.customparams.isscavenger = true
 	uDef.capturable = false
+	uDef.decloakonfire = true
 
  	-- replaced uniticons
 	if uDef.buildpic then
@@ -84,19 +85,19 @@ local function scavUnitDef_Post(name, uDef)
 
 	
 	-- Remove wrecks of units you shouldn't be able to capture
-	if uDef.featuredefs and uDef.corpse and (uDef.buildoptions or (not uDef.canmove)) then
-		if uDef.corpse == "DEAD" and uDef.featuredefs.heap then
-			uDef.corpse = "HEAP"
-		elseif uDef.corpse then
-			uDef.corpse = nil
-		end
-	end
+	-- if uDef.featuredefs and uDef.corpse and (uDef.buildoptions or (not uDef.canmove)) then
+	-- 	if uDef.corpse == "DEAD" and uDef.featuredefs.heap then
+	-- 		uDef.corpse = "HEAP"
+	-- 	elseif uDef.corpse then
+	-- 		uDef.corpse = nil
+	-- 	end
+	-- end
 	
 	-- Set autoheal of scav units
 	if uDef.health then
-		if not string.find(name, "armscavengerbossv2") then
-			if not string.find(name, "scavengerdroppodbeacon") then
-				uDef.health = uDef.health * 1.5
+		if not string.find(name, "armscavengerbossv2") or string.find(name, "scavengerbossv4")then
+			if not string.find(name, "scavbeacon") then
+				uDef.health = uDef.health * 1.25
 				uDef.hidedamage = true
 			end
 			uDef.autoheal = math.ceil(math.sqrt(uDef.health * 0.1))
@@ -121,29 +122,58 @@ local function scavUnitDef_Post(name, uDef)
 	 			uDef.turnrate = uDef.turnrate * 1.5
 	 		end
 	 		if uDef.maxdec then
-	 			uDef.maxdec  = uDef.maxdec * 3
+	 			uDef.maxdec  = uDef.maxdec * 1.5
 	 		end
-	 		if uDef.builddistance then
-	 			uDef.builddistance = uDef.builddistance * 2
-	 		end
-			if uDef.workertime then
-				uDef.workertime = uDef.workertime * 4
-			end
 	 	end
+		if uDef.builddistance then
+			uDef.builddistance = uDef.builddistance * 1.25
+		end
+		if uDef.workertime then
+			uDef.workertime = uDef.workertime * 4
+		end
 	end
 
-	-- Remove commander customparams from _scav commanders
-	if uDef.customparams.evolution_target then
-		uDef.customparams.evolution_target = nil
-	end
-	if uDef.customparams.evolution_condition then
-		uDef.customparams.evolution_condition = nil
-	end
-	if uDef.customparams.evolution_timer then
-		uDef.customparams.evolution_timer = nil
+	-- Remove commander and evocom customparams from _scav commanders
+	uDef.customparams.evolution_condition = nil
+	uDef.customparams.respawn_condition = nil
+	if uDef.buildoptions then
+		for index, name in pairs(uDef.buildoptions) do
+			if string.find(name, "comeffigylvl") then
+				uDef.buildoptions[index] = nil
+			end
+		end
 	end
 	if uDef.customparams.iscommander then
 		uDef.customparams.iscommander = nil
+		uDef.customparams.isscavcommander = true
+	end
+
+	if name == "armcom_scav" or name == "corcom_scav" or name == "legcom_scav" or string.find(name, "armcomlvl") or string.find(name, "corcomlvl") or string.find(name, "legcomlvl") then
+		uDef.explodeas = "advmetalmaker"
+		uDef.selfdestructas = "advmetalmakerSelfd"
+	end
+
+	-- Economy Boost
+	if uDef.energystorage then
+		uDef.energystorage = uDef.energystorage*1.1
+	end
+	if uDef.energyupkeep and uDef.energyupkeep < 0 then
+		uDef.energyupkeep = uDef.energyupkeep*1.1
+	end
+	if uDef.energymake then
+		uDef.energymake = uDef.energymake*1.1
+	end
+	if uDef.metalstorage then
+		uDef.metalstorage = uDef.metalstorage*1.2
+	end
+	if (uDef.extractsmetal and uDef.extractsmetal > 0) then
+		uDef.extractsmetal = uDef.extractsmetal*1.2
+	end
+	if (uDef.customparams.metal_extractor and uDef.customparams.metal_extractor > 0) then
+		uDef.customparams.metal_extractor = uDef.customparams.metal_extractor*1.2
+	end
+	if uDef.customparams.energyconv_capacity then
+		uDef.customparams.energyconv_capacity = uDef.customparams.energyconv_capacity*1.2
 	end
 
 
@@ -199,6 +229,9 @@ local function scavUnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+6] = "corvac_scav" --corprinter
 
 		end
+	elseif name == "coraap_scav" then
+		local numBuildoptions = #uDef.buildoptions
+		uDef.buildoptions[numBuildoptions+1] = "corcrw_scav"
 	elseif name == "corgant_scav" or name == "leggant_scav" then
 		local numBuildoptions = #uDef.buildoptions
 		uDef.buildoptions[numBuildoptions + 1] = "corkarganetht4_scav"
@@ -260,16 +293,14 @@ local function scavUnitDef_Post(name, uDef)
 		uDef.buildoptions[numBuildoptions + 2] = "armdecadet3_scav"
 		uDef.buildoptions[numBuildoptions + 3] = "armpshipt3_scav"
 		uDef.buildoptions[numBuildoptions + 4] = "armserpt3_scav"
-		uDef.buildoptions[numBuildoptions + 5] = "armcarry2_scav"
-		uDef.buildoptions[numBuildoptions + 6] = "armtrident_scav"
-		uDef.buildoptions[numBuildoptions + 7] = "armdronecarry_scav"
+		uDef.buildoptions[numBuildoptions + 5] = "armtrident_scav"
+		uDef.buildoptions[numBuildoptions + 6] = "armdronecarry_scav"
 	elseif name == "corasy_scav" then
 		local numBuildoptions = #uDef.buildoptions
 		uDef.buildoptions[numBuildoptions + 1] = "corslrpc_scav"
 		uDef.buildoptions[numBuildoptions + 2] = "coresuppt3_scav"
-		uDef.buildoptions[numBuildoptions + 3] = "corcarry2_scav"
-		uDef.buildoptions[numBuildoptions + 4] = "corsentinel_scav"
-		uDef.buildoptions[numBuildoptions + 5] = "cordronecarry_scav"
+		uDef.buildoptions[numBuildoptions + 3] = "corsentinel_scav"
+		uDef.buildoptions[numBuildoptions + 4] = "cordronecarry_scav"
 	end
 
 	return uDef

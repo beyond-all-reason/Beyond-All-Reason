@@ -1,6 +1,7 @@
 if not Spring.GetModOptions().unit_market then
     return
 end
+-- This handles fair transfer of resource for unit if the modoption is enabled, otherwise it just self removes.
 
 function gadget:GetInfo()
     return {
@@ -13,8 +14,6 @@ function gadget:GetInfo()
         enabled = true
     }
 end
--- This handles fair transfer of resource for unit if the modoption is enabled, otherwise it just self removes.
-local unitMarket   = Spring.GetModOptions().unit_market
 
 VFS.Include("luarules/configs/customcmds.h.lua")
 
@@ -24,10 +23,9 @@ if gadgetHandler:IsSyncedCode() then
 -- At this time we support only one price - the full price - no tips - no discount - no markups - it should be fair.
 -- We allow to trade any (finished and unfinished both) units between players.
 -- AI however still only recognizes only finished units as gifts. AI will only sell finished units as well.
+-- AI will remember your gifts and give you discount in kind for your purchases. In practise, this means you can swap units with the AI for free, as long as you've given the AI more than you've taken from the AI.
 
 -- There is no GUI or any other fancy tricks here. This is just a backend. Other widget makers though should be able to use this no problem.
-
--- Update: AI will remember your gifts and give you discount in kind for your purchases. In practise, this means you can swap units with AI for free, as long as you've given the AI more than you bought from AI.
 
 local unitsForSale = {}
 local spGetPlayerInfo       = Spring.GetPlayerInfo
@@ -35,7 +33,7 @@ local spGetTeamInfo         = Spring.GetTeamInfo
 local spGetUnitDefID        = Spring.GetUnitDefID
 local spGetUnitTeam			= Spring.GetUnitTeam
 local ShareTeamResource     = Spring.ShareTeamResource
-local GetTeamResources      = Spring.GetTeamResources
+local spGetTeamResources    = Spring.GetTeamResources
 local TransferUnit          = Spring.TransferUnit
 local spAreTeamsAllied      = Spring.AreTeamsAllied
 local spSendLuaUIMsg        = Spring.SendLuaUIMsg
@@ -45,25 +43,73 @@ local spGetUnitHealth       = Spring.GetUnitHealth
 local spGetUnitRulesParam  	= Spring.GetUnitRulesParam
 local spSetUnitRulesParam   = Spring.SetUnitRulesParam
 local spIsCheatingEnabled   = Spring.IsCheatingEnabled
+local spEditUnitCmdDesc     = Spring.EditUnitCmdDesc
+local spFindUnitCmdDesc     = Spring.FindUnitCmdDesc
+local spInsertUnitCmdDesc   = Spring.InsertUnitCmdDesc
+local spGetUnitCmdDescs     = Spring.GetUnitCmdDescs
+local spGetTeamList         = Spring.GetTeamList
+local spSetUnitBuildSpeed   = Spring.SetUnitBuildSpeed
 local RPAccess = {allied = true}
 local AllyAIsalesEverything = true -- does this needs to be a modoption? This seems useful for coop.
 local AllyAItab = {} -- [teamAI_ID][teamID] -- array of teams that this AI team owes metal to
 local AllowPlayersSellUnfinished = true -- allows players to set unfinished units on sale
+local TeamIsSaving = {} -- whether team is saving metal to buy something
+
+local sellCmd = {
+    id = CMD_SELL_UNIT,
+    type = CMDTYPE.ICON_MODE,
+    tooltip = "",
+    name = 'Sell Unit',
+    cursor = 'sellunit',
+    action = 'sellunit',
+    params = { '0', 'Not For Sale', 'For Sale' }
+}
+
+local buildPower = {}
+local realBuildSpeed = {}
+local unitBuildSpeed = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+    if unitDef.buildSpeed > 0 then
+        unitBuildSpeed[unitDefID] = unitDef.buildSpeed
+    end
+end
+
+local function UnitSaleBroadcast(unitID, price, msgFromTeamID)
+    SendToUnsynced("UnitSale",  unitID, price, msgFromTeamID)
+end
+
+local function UnitSoldBroadcast(unitID, price, old_ownerTeamID, msgFromTeamID)
+    SendToUnsynced("UnitSold", unitID, price, old_ownerTeamID, msgFromTeamID)
+end
+
+local function setForSaleState(unitID, state)
+	local cmdDescID = spFindUnitCmdDesc(unitID, CMD_SELL_UNIT)
+	if cmdDescID then
+		sellCmd.params[1] = state
+		spEditUnitCmdDesc(unitID, cmdDescID, {params = sellCmd.params})
+	end
+end
+
+local function setNotForSale(unitID)
+    if spValidUnitID(unitID) then
+        setForSaleState(unitID, 0)
+    end
+    spSetUnitRulesParam(unitID, "unitPrice", 0, RPAccess)
+    UnitSaleBroadcast(unitID, 0, spGetUnitTeam(unitID))
+    unitsForSale[unitID] = nil
+end
 
 local function setUnitOnSale(unitID, price, toggle)
     if unitsForSale[unitID] == nil or unitsForSale[unitID] == 0 or toggle == false then
         unitsForSale[unitID] = price
         spSetUnitRulesParam(unitID, "unitPrice", price, RPAccess)
+        UnitSaleBroadcast(unitID, price, spGetUnitTeam(unitID))
+        setForSaleState(unitID, 1)
         return true
     else
-        unitsForSale[unitID] = nil
-        spSetUnitRulesParam(unitID, "unitPrice", 0, RPAccess) -- we cannot set price lower or equal to zero, zero is going to be "unit is NOT for sale"
+        setNotForSale(unitID)
         return false
     end
-end
-
-local function removeSale(unitID)
-    unitsForSale[unitID] = nil
 end
 
 local function getAIdiscount(newTeamID, oldTeamID, price)
@@ -80,15 +126,6 @@ local function getAIdiscount(newTeamID, oldTeamID, price)
     else
         return 0
     end
-end
-
-
-local function UnitSale(unitID, price, msgFromTeamID)
-    SendToUnsynced("UnitSale",  unitID, price, msgFromTeamID)
-end
-
-local function UnitSold(unitID, price, old_ownerTeamID, msgFromTeamID)
-    SendToUnsynced("UnitSold", unitID, price, old_ownerTeamID, msgFromTeamID)
 end
 
 local function offerUnitForSale(unitID, sale_price, msgFromTeamID)
@@ -110,7 +147,6 @@ local function offerUnitForSale(unitID, sale_price, msgFromTeamID)
     if not selling then
         price = 0
     end
-    UnitSale(unitID, price, msgFromTeamID)
 end
 
 local function tryToBuyUnit(unitID, msgFromTeamID)
@@ -124,7 +160,7 @@ local function tryToBuyUnit(unitID, msgFromTeamID)
     local _, _, _, isAiTeam = spGetTeamInfo(old_ownerTeamID)
     if not spAreTeamsAllied(old_ownerTeamID, msgFromTeamID) then return end
 
-    local current,storage = GetTeamResources(msgFromTeamID, "metal")
+    local current = select(1,spGetTeamResources(msgFromTeamID, "metal"))
     local price = unitsForSale[unitID]
 
     if isAiTeam then
@@ -139,13 +175,29 @@ local function tryToBuyUnit(unitID, msgFromTeamID)
     if msgFromTeamID ~= old_ownerTeamID and price > 0 then -- don't send resources to yourself
         ShareTeamResource(msgFromTeamID, old_ownerTeamID, "metal", price)
     end
-    spSetUnitRulesParam(unitID, "unitPrice", 0, RPAccess)
-    removeSale(unitID)
-    UnitSold(unitID, price, old_ownerTeamID, msgFromTeamID)
+    setNotForSale(unitID)
+    UnitSoldBroadcast(unitID, price, old_ownerTeamID, msgFromTeamID)
+end
+
+-- this takes control and makes all cons stop using metal, we remove all limits on a) shutdown b) storage getting full c) widget crash - should be safe enough
+local function SetTeamSavingMetal(teamID, status)
+    local old_status = TeamIsSaving[teamID]
+    if (old_status ~= status) then
+        if (status == true) then -- enable
+            for _, unitID in pairs(buildPower[teamID]) do
+                spSetUnitBuildSpeed(unitID, 0.01)
+            end
+        else -- disable
+            for _, unitID in pairs(buildPower[teamID]) do
+                spSetUnitBuildSpeed(unitID, realBuildSpeed[unitID])
+            end
+        end
+        TeamIsSaving[teamID] = status
+    end
 end
 
 function gadget:RecvLuaMsg(msg, playerID)
-    local _, _, mySpec, msgFromTeamID = spGetPlayerInfo(playerID)
+    local _, _, mySpec, msgFromTeamID = spGetPlayerInfo(playerID, false)
 
     if mySpec then return end
 
@@ -162,17 +214,39 @@ function gadget:RecvLuaMsg(msg, playerID)
     elseif words[1] == "unitTryToBuy" then
         local unitID = tonumber(words[2])
         tryToBuyUnit(unitID, msgFromTeamID)
+    elseif words[1] == "startSaving" then
+        SetTeamSavingMetal(msgFromTeamID, true)
+    elseif words[1] == "stopSaving" then
+        SetTeamSavingMetal(msgFromTeamID, false)
+    end
+end
+
+-- failsafe
+function gadget:GameFrame(frame)
+    if (frame % 45) == 1 then
+        for teamID, status in pairs(TeamIsSaving) do
+            if status then
+                local current, storage, _, _, _, shareSlider = spGetTeamResources(teamID, "metal")
+                if (current >= (storage * 0.9)) or (current >= (storage * shareSlider)) then
+                    SetTeamSavingMetal(teamID, false)
+                end
+            end
+        end
     end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
-    removeSale(unitID)
+    setNotForSale(unitID)
+    buildPower[teamID][unitID] = nil
 end
 
-function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
     if unitDefID then
-        spSetUnitRulesParam(unitID, "unitPrice", 0, RPAccess)
-        removeSale(unitID)
+		spInsertUnitCmdDesc(unitID, sellCmd)
+        setNotForSale(unitID)
+
+        realBuildSpeed[unitID] = unitBuildSpeed[unitDefID] or 0
+        buildPower[teamID][unitID] = unitID
     end
 end
 
@@ -199,13 +273,11 @@ function gadget:UnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
                 -- so need to figure out how to show you how much AI owes you metal for your donations
                 -- possible TODO, maybe forbid AI from selling you its metal extractors?
                 setUnitOnSale(unitID, price, false)
-                UnitSale(unitID, price, newTeamID)
                 return
             end
         end
     end
-    removeSale(unitID)
-    UnitSale(unitID, 0, newTeamID)
+    setNotForSale(unitID)
 end
 
 function gadget:UnitFinished(unitID, unitDefID, teamID, builderID)
@@ -220,18 +292,33 @@ function gadget:UnitFinished(unitID, unitDefID, teamID, builderID)
 
             local price = unitDef.metalCost
             setUnitOnSale(unitID, price, false)
-            UnitSale(unitID, price, teamID)
         end
     end
 end
 
+function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+	if (cmdID == CMD_SELL_UNIT) then
+        local unitDef = UnitDefs[unitDefID]
+        if unitDef then
+            local price = unitDef.metalCost
+            setUnitOnSale(unitID, price, true)
+        end
+	end
+	return true
+end
+
+local function isTeamSaving(teamID)
+    return TeamIsSaving[teamID]
+end
+
 function gadget:Initialize()
-    -- if market is disabled globally, exit
-    if not unitMarket or unitMarket ~= true then
-        gadgetHandler:RemoveGadget(self)
-    end
+    local teamList = spGetTeamList()
+	for _, teamID in ipairs(teamList) do
+        TeamIsSaving[teamID] = false
+        buildPower[teamID] = {}
+	end
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
-		gadget:UnitCreated(unitID, spGetUnitDefID(unitID))
+		gadget:UnitCreated(unitID, spGetUnitDefID(unitID), spGetUnitTeam(unitID))
 	end
     --
     if (AllyAIsalesEverything) then -- set all AI units for sale
@@ -245,12 +332,22 @@ function gadget:Initialize()
                     if unitDef and unitDef.metalCost >= 0 then
                         local price = unitDef.metalCost
                         setUnitOnSale(unitID, price, false)
-                        UnitSale(unitID, price, teamID)
                     end
                 end
             end
         end
     end
+    GG.isTeamSaving = isTeamSaving
+end
+
+function gadget:Shutdown()
+    local teamList = spGetTeamList()
+	for _, teamID in ipairs(teamList) do
+        if TeamIsSaving[teamID] then
+            SetTeamSavingMetal(teamID, false)
+        end
+    end
+    GG.isTeamSaving = nil
 end
 
 else -- unsynced
@@ -272,10 +369,6 @@ else -- unsynced
 	end
 
 	function gadget:Initialize()
-        -- if market is disabled globally, exit
-        if not unitMarket or unitMarket ~= true then
-            gadgetHandler:RemoveGadget(self)
-        end
 		gadgetHandler:AddSyncAction("UnitSale", handleSaleEvent)
 		gadgetHandler:AddSyncAction("UnitSold", handleSoldEvent)
 	end

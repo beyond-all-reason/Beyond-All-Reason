@@ -155,7 +155,7 @@ local spGetUnitWeaponState = Spring.GetUnitWeaponState
 local uDefs = UnitDefs
 local wDefs = WeaponDefs
 
-local font, chobbyInterface, showUnitID
+local font, showUnitID
 local RectRound, UiElement, UiUnit, bgpadding, elementCorner
 
 local maxWidth = 0
@@ -175,6 +175,12 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams.iscommander then
 		isCommander[unitDefID] = true
 	end
+end
+
+-- Reverse armor type table
+local armorTypes = {}
+for ii = 1, #Game.armorTypes do
+	armorTypes[Game.armorTypes[ii]] = ii
 end
 
 ------------------------------------------------------------------------------------
@@ -323,12 +329,6 @@ if useSelection then
 	function widget:SelectionChanged(sel)
 		selectedUnits = sel
 		selectedUnitsCount = Spring.GetSelectedUnitsCount()
-	end
-end
-
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1,18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
 	end
 end
 
@@ -575,29 +575,30 @@ local function drawStats(uDefID, uID)
 		local uWep = wDefs[wDefId]
 
 		-- Handle projectiles that spawn additional projectiles.
-		-- Many properties have nothing to do with the spawned projectile:
+		-- Many properties (might) have nothing to do with the spawned projectile:
 		local burst = uWep.salvoSize * uWep.projectiles
-		local defaultDamage = uWep.damages[0] > uWep.damages[14] and uWep.damages[0] or uWep.damages[14]
 		local range = uWep.range
 		local reload = uWep.reload
 		local accuracy = uWep.accuracy
 		local moveError = uWep.targetMoveError
+		local defaultDamage = uWep.damages[0]
+		if defaultDamage < uWep.damages[armorTypes.vtol] then
+			defaultDamage = uWep.damages[armorTypes.vtol]
+		end
 		if uWep.customParams then
-			if uWep.customParams.def and uWep.customParams.speceffect == "split" then
-				burst = burst * (uWep.customParams.number or 1)
-				uWep = WeaponDefNames[uWep.customParams.def] or uWep
-				defaultDamage = uWep.damages[0] > uWep.damages[14] and uWep.damages[0] or uWep.damages[14]
-			end
-			if uWep.customParams.cluster then
-				local munition = uWep.customParams.def    or uDef.name .. '_' .. 'cluster_munition'
-				local cmNumber = uWep.customParams.number or 5 -- note: keep in sync with cluster defaults
-				local cmDamage = WeaponDefNames[munition].damages[0]
-				defaultDamage = defaultDamage + cmDamage * cmNumber
-			end
 			if uWep.customParams.spark_basedamage then
 				local spDamage = uWep.customParams.spark_basedamage * uWep.customParams.spark_forkdamage
 				local spCount = uWep.customParams.spark_maxunits
 				defaultDamage = defaultDamage + spDamage * spCount
+			elseif uWep.customParams.speceffect == "split" then
+				burst = burst * (uWep.customParams.number or 1)
+				uWep = WeaponDefNames[uWep.customParams.def] or uWep
+				defaultDamage = uWep.damages[0]
+			elseif uWep.customParams.cluster then
+				local munition = uWep.customParams.def    or uDef.name .. '_' .. 'cluster_munition'
+				local cmNumber = uWep.customParams.number or 5 -- note: keep in sync with cluster defaults
+				local cmDamage = WeaponDefNames[munition].damages[0]
+				defaultDamage = defaultDamage + cmDamage * cmNumber
 			end
 		end
 
@@ -830,7 +831,6 @@ local function drawStats(uDefID, uID)
 end
 
 function widget:DrawScreen()
-	if chobbyInterface then return end
 	if WG['topbar'] and WG['topbar'].showingQuit() then
 		return
 	end
