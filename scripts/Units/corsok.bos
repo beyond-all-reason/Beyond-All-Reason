@@ -1,19 +1,40 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
-piece  rmis, lmis, rlauncher, llauncher, flare, turret, wake, support, cannon,
-       body, base;
+piece  base, aimy1, aimy2, turret, dclauncher, aimx1, sleeve, barrel1, barrel2, flare1, flare2, flaredc,
+       strutl, jetl, bladesl, strutr, jetr, bladesr, wake;
 
-static-var  Static_Var_1, bAiming;
+static-var  isAiming, gun1, oldheading, shotcount; 
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_AIM_2			4
-#define SIG_MOVE			8
-#define SIG_IDLE			16
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
+#define SIGNAL_MOVE 1
+#define SIGNAL_IDLE 8
 
+
+#define HOVER_BASE base
+#define HOVER_BANKSPEED <7>
+#define HOVER_ROCKBASE base
+#define HOVER_WOBBLE_PERIOD 80
+#define HOVER_WOBBLE_AMPLITUDE [0.7]
+#define HOVER_WAKEPIECE wake
+#define HOVER_WAKE_SFX_1 1024 + 0
+#define HOVER_WAKE_SFX_2 1024 + 1
+#define HOVER_IDLE_SFX 1024 + 2
+#include "../bar_hovercraft_common.h"
+
+
+
+#define CATT1_PIECE_Y aimy1
+#define CATT1_PIECE_X aimx1
+#define CATT1_MAX_VELOCITY <5>
+#define CATT1_ACCELERATION <0.6>
+#define CATT1_JERK <3>
+#define CATT1_PRECISION <5>
+#define CATT1_RESTORE_SPEED <1.0>
+#define CATT1_RESTORE_DELAY 1000
+#include "../constant_acceleration_turret_turning_1.h"
 
 
 #define BASEPIECE base
@@ -22,55 +43,63 @@ static-var  Static_Var_1, bAiming;
 #define UNITSIZE 10
 #define MAXTILT 200
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
-HoverIdle()
+swiveljets(heading, steery, currentSpeed)
 {
-	signal SIG_IDLE;
-	set-signal-mask SIG_IDLE;
-	while( TRUE )
+	while(TRUE)
 	{
-	    emit-sfx 1024 + 2 from wake;
-	    sleep 1800;
+		heading = get HEADING;
+		steery = (heading - oldheading)*5;
+		turn jetl to z-axis 0 - steery speed <120>;
+		turn jetr to z-axis 0 - steery speed <120>;
+		
+		currentSpeed = <10> *((get CURRENT_SPEED) * 100 / get MAX_SPEED);
+		if (currentSpeed < <100>) currentSpeed = <100>;
+		spin bladesr around y-axis speed currentSpeed;
+		spin bladesl around y-axis speed 0 - currentSpeed;
+		
+		sleep 66;
+		oldheading = heading;
 	}
 }
 
-StartMoving()
+StartMoving(reversing)
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
-	signal SIG_IDLE;
-	var waketime;
-	var bowtime;
-	while( TRUE )
-	{
-		emit-sfx 1024 + 0 from wake;
-		if (bowtime) emit-sfx 1024 + 1 from wake;
-		bowtime = !bowtime;
-		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
-		if( waketime < 30 ) waketime = 30;
-		sleep 15000 / waketime;
-	}
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	turn strutl to x-axis <60> speed <60>;
+	turn strutr to x-axis <60> speed <60>;
+    start-script swiveljets();
 }
 
 StopMoving()
 {
-	signal SIG_MOVE;
-	signal SIG_IDLE;
-	start-script HoverIdle();
-	return (0);
+	signal SIGNAL_MOVE;
+	
+	turn strutl to x-axis <0> speed <30>;
+	turn strutr to x-axis <0> speed <30>;
+	
+	spin bladesr around y-axis speed <180>;
+	spin bladesl around y-axis speed 0 - <180>;
 }
+
+lua_UnitScriptLight(lightIndex, count)
+{
+	return 0;
+}
+
 
 Create()
 {
 	hide wake;
-	hide flare;
-	hide rmis;
-	hide lmis;
-	cache body;
-	cache turret;
-	bAiming = FALSE;
-	return (0);
+	//hide flare1;
+	//hide flare2;
+	shotcount = 1;
+	gun1 = 0;
+	oldheading = get HEADING;
+	isAiming = FALSE;
+	start-script HoverCraftMotion();
 }
 
 static-var  Stunned;
@@ -79,12 +108,9 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.00000> speed <75.00000>;
-	turn support to x-axis <0.00000> speed <50.00000>;
-	cache support;
-	cache cannon;
-	cache turret;
-	bAiming = FALSE;
+	start-script CATT1_Restore();
+	
+	isAiming = FALSE;
 }
 SetStunned(State)
 {
@@ -95,96 +121,100 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	sleep 8000;
+	sleep 5000;
 	start-script ExecuteRestoreAfterDelay();
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = flare;
-	return (0);
+	pieceIndex = flare1 + gun1;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = turret;
-	return (0);
+	pieceIndex = aimx1;
 }
 
-FirePrimary()
+FireWeapon1()
 {	
-	emit-sfx 1024 + 0 from flare;
-	move cannon to z-axis [-10.00000] speed [1250.00000];
-	sleep 150;
-	move cannon to z-axis [0.00000] speed [7.50000];
-	return (0);
+	if (gun1 == 0)
+	{	
+		//emit-sfx 1024 + 3 from flare1;
+		//corsokglow1
+		call-script lua_UnitScriptLight(1, shotcount);
+		move barrel1 to z-axis [-8] speed [1200];
+		sleep 150;
+		move barrel1 to z-axis [0] speed [2];
+	}
+	if (gun1 == 1)
+	{
+		//emit-sfx 1024 + 3 from flare2;
+		call-script lua_UnitScriptLight(2, shotcount);
+		move barrel2 to z-axis [-8] speed [1200];
+		sleep 150;
+		move barrel2 to z-axis [0] speed [2];
+	}
+	shotcount = shotcount + 1;
+	sleep 1000;
+	gun1 = !gun1;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	bAiming = TRUE;
-	dont-cache turret;
-	dont-cache support;
-	dont-cache cannon;
-	turn turret to y-axis heading speed <120.00000>;
-	turn support to x-axis <0.00000> - pitch speed <80.00000>;
-	wait-for-turn turret around y-axis;
-	wait-for-turn support around x-axis;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	isAiming = TRUE;
+	
+	call-script CATT1_Aim(heading,pitch);
+	
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2(pieceIndex)
 {
-	piecenum = base;
-	return (0);
+	pieceIndex = flaredc;
 }
 
-AimFromSecondary(piecenum)
+AimFromWeapon2(pieceIndex)
 {
-	piecenum = base;
-	return (0);
+	pieceIndex = dclauncher;
 }
 
-FireSecondary()
+FireWeapon2()
 {	
-	return (0);
+	emit-sfx 1024 + 0 from flaredc;
 }
 
-AimSecondary(heading, pitch)
+AimWeapon2(heading, pitch)
 {
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = body;
-	return (0);
-}
+
 
 Killed(severity, corpsetype)
 {
-	hide flare;
-	hide rmis;
-	hide lmis;
-	if( Static_Var_1 >= 4 )
+	hide flare1;
+	hide flare2;
+
+	if( severity <= 25 )
 	{
-		if( severity <= 25 )
-		{
-			corpsetype = 1;
-			explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
-			return (corpsetype);
-		}
+		corpsetype = 1;
+		explode bladesl type FIRE | SMOKE | FALL | BITMAP4 | NOHEATCLOUD;
+		explode turret type FIRE | SMOKE | FALL | BITMAP4 | NOHEATCLOUD;
+		explode sleeve type FIRE | SMOKE | FALL | BITMAP4 | NOHEATCLOUD;
+		explode barrel1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode barrel2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode cannon type FALL | BITMAP1 | NOHEATCLOUD;
+		explode barrel1 type FALL | BITMAP1 | NOHEATCLOUD;
 		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type FIRE | SMOKE | FALL | BITMAP4 | NOHEATCLOUD;
 		return (corpsetype);
@@ -192,22 +222,18 @@ Killed(severity, corpsetype)
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode cannon type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+		explode barrel1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode body type FIRE | SMOKE | FALL | BITMAP4 | NOHEATCLOUD;
-		//explode support type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-		//explode rlauncher type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-		//explode llauncher type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		explode jetl type FIRE | SMOKE | FALL | BITMAP4 | NOHEATCLOUD;
 		explode turret type FIRE | SMOKE | FALL | BITMAP4 | NOHEATCLOUD;
 		return (corpsetype);
 	}
-	corpsetype = 3;
-	explode cannon type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-	explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
-	explode body type FIRE | SMOKE | FALL | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
-	explode support type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-	//explode rlauncher type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-	//explode llauncher type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-	explode turret type FIRE | SMOKE | FALL | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+		corpsetype = 3;
+		explode barrel1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode jetl type FIRE | SMOKE | FALL | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+		explode bladesl type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		explode turret type FIRE | SMOKE | FALL | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+		
 	return (corpsetype);
 }

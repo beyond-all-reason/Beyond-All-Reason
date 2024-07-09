@@ -20398,6 +20398,33 @@ local unitEventLightsNames = {
 			},
 		},
 
+
+		['corsok'] = {
+			[1] = {
+				lightType = 'point',
+				pieceName = 'flare1',
+				lightName = 'corsokglow1',
+				alwaysVisible = true,
+				lightConfig = { posx = 0, posy = 2, posz = 2, radius = 18,
+					color2r = 0.6, color2g = 0.07, color2b = 0, colortime = 400,
+					r = 1.1, g = 0.45, b = 0, a = 0.36,
+					modelfactor = 2, specular = 1, scattering = 0.5, lensflare = 0,
+					lifetime = 200, sustain = 15, animtype = 0},
+			},
+			[2] = {
+				lightType = 'point',
+				pieceName = 'flare2',
+				lightName = 'corsokglow2',
+				alwaysVisible = true,
+				lightConfig = { posx = 0, posy = 2, posz = 2, radius = 18,
+					color2r = 0.6, color2g = 0.07, color2b = 0, colortime = 400,
+					r = 1.1, g = 0.45, b = 0, a = 0.36,
+					modelfactor = 2, specular = 1, scattering = 0.5, lensflare = 0,
+					lifetime = 200, sustain = 15, animtype = 0},
+			},
+		},
+
+
 		['armraz'] = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = 'point',
