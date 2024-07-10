@@ -36,6 +36,7 @@ local function NearbyCapture(unitID, difficulty, range)
         if captureProgress+captureDamage < 0 then
             Spring.SetUnitHealth(unitID, {capture = 0})
             SendToUnsynced("unitCaptureFrame", unitID, 0)
+            GG.addUnitToCaptureDecay(unitID)
         elseif captureProgress+captureDamage >= 1 then
             local nearestAttacker = Spring.GetUnitNearestEnemy(unitID, range*2, false)
             if nearestAttacker then
@@ -43,10 +44,12 @@ local function NearbyCapture(unitID, difficulty, range)
                 Spring.TransferUnit(unitID, attackerTeamID, false)
                 Spring.SetUnitHealth(unitID, {capture = 0.75})
                 SendToUnsynced("unitCaptureFrame", unitID, 0.75)
+                GG.addUnitToCaptureDecay(unitID)
             end
         else
             Spring.SetUnitHealth(unitID, {capture = captureProgress + captureDamage})
             SendToUnsynced("unitCaptureFrame", unitID, captureProgress + captureDamage)
+            GG.addUnitToCaptureDecay(unitID)
         end
     end
 end

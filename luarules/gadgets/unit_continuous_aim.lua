@@ -56,7 +56,7 @@ local convertedUnitsNames = {
 	['armcrus'] = 5,
 
 	-- the following units get a faster reaimtime to counteract their turret acceleration
-  
+	['armthor'] = 4,
 	['armflash'] = 6,
 	['corgator'] = 6,
 	['armdecade'] = 6,
@@ -88,7 +88,7 @@ local convertedUnitsNames = {
 	['legfloat'] = 5,
 	['leggat'] = 5,
 	['leggob'] = 5,
-	['leginc'] = 10,
+	['leginc'] = 3,
 	['cordemon'] = 6,
 	['corcrwh'] = 7,
 	['leglob'] = 5,

@@ -163,6 +163,7 @@ return {
 				areaofeffect = 100,
 				avoidfeature = false,
 				burnblow = false,
+				canattackground = false,
 				cegtag = "railgun",
 				burst = 2,
 				burstrate = 0.2,

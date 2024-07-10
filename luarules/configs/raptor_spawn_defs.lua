@@ -14,19 +14,8 @@ local economyScale = 1 * Spring.GetModOptions().multiplier_resourceincome *
 (0.67+(Spring.GetModOptions().multiplier_metalextraction*0.33)) *
 (0.67+(Spring.GetModOptions().multiplier_energyconversion*0.33)) *
 (0.67+(Spring.GetModOptions().multiplier_energyproduction*0.33)) *
-math.max(1, (((((Spring.GetModOptions().startmetal - 1000) / 9000) + 1) + (((Spring.GetModOptions().startenergy - 1000) / 9000) + 1)) * 0.5))
-
-if Spring.GetModOptions().raptor_graceperiodmult ~= 1 then
-	economyScale = economyScale * (0.75 + (Spring.GetModOptions().raptor_graceperiodmult*0.25))
-end
-
-if Spring.GetModOptions().multiplier_shieldpower ~= 1 then
-	economyScale = economyScale * (0.75 + (Spring.GetModOptions().multiplier_shieldpower*0.25))
-end
-
-if Spring.GetModOptions().multiplier_buildpower ~= 1 then
-	economyScale = economyScale * (0.85 + (Spring.GetModOptions().multiplier_buildpower*0.15))
-end
+(((((Spring.GetModOptions().startmetal - 1000) / 9000) + 1)*0.1)+0.9) *
+(((((Spring.GetModOptions().startenergy - 1000) / 9000) + 1)*0.1)+0.9)
 
 economyScale = (economyScale*0.25)+0.75
 

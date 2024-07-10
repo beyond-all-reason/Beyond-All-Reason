@@ -1,6 +1,6 @@
 return {
 	leginc = {
-		maxacc = 0.0552,
+		maxacc = 0.0585,
 		maxdec = 0.43125,
 		energycost = 46000,
 		metalcost = 2300,
@@ -18,15 +18,15 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		mass = 5001,
-		health = 7800,
+		health = 9000,
 		maxslope = 15,
-		speed = 22.5,
+		speed = 24,
 		maxwaterdepth = 23,
 		movementclass = "HBOT4",
 		nochasecategory = "VTOL",
 		objectname = "Units/leginc.s3o",
 		pushresistant = true,
-		script = "Units/leginc.cob",
+		script = "Units/leginc_clean.cob",
 		seismicsignature = 0,
 		selfdestructas = "penetrator",
 		sightdistance = 650,
@@ -126,7 +126,7 @@ return {
 				predictboost = 0,
 				proximitypriority = -1,
 				range = 750,
-				reloadtime = 50,
+				reloadtime = .033,
 				rgbcolor = "1 0.55 0",
 				rgbcolor2 = "0.9 1.0 0.5",
 				soundhitdry = "flamhit1",
@@ -144,6 +144,10 @@ return {
 					default = 33,
 					vtol = 11,
 				},
+				customparams = {
+					--sweepfire=0.4,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
+				}
+
 			},
 		},
 		weapons = {

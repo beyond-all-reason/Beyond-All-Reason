@@ -272,7 +272,7 @@ local barTypeMap = { -- WHERE SHOULD WE STORE THE FUCKING COLORS?
 		maxcolor = {1.0, 1.0, 1.0, 1.0},
 		--bartype = 3,
 		bartype = bitShowGlyph + bitUseOverlay + bitPercentage,
-		hidethreshold = 0.99,
+		hidethreshold = 0.999,
 		uniformindex = 0, -- if its >20, then its health/maxhealth
 		uvoffset = 0.9375, -- the X offset of the icon for this bar
 	},

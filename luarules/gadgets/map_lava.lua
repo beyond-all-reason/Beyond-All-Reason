@@ -571,7 +571,7 @@ else  -- UNSYCNED
 
 		//Get the fragment depth
 		// note that WE CANT GO LOWER THAN THE ACTUAL LAVA LEVEL!
-		
+
 		vec2 screenUV = clamp(v_screenUV, 1.0/(viewGeometry.xy), 1.0 - 1.0/ (viewGeometry.xy));
 
 		// Sample the depth buffers, and choose whichever is closer to the screen
@@ -643,12 +643,12 @@ else  -- UNSYCNED
 				if lavaGrow > 0 and not lavaRisingNotificationPlayed then
 					lavaRisingNotificationPlayed = true
 					if Script.LuaUI("NotificationEvent") then
-						Script.LuaUI.NotificationEvent("SoundEvents LavaRising "..myPlayerID)
+						Script.LuaUI.NotificationEvent("LavaRising "..myPlayerID)
 					end
 				elseif lavaGrow < 0 and not lavaDroppingNotificationPlayed then
 					lavaDroppingNotificationPlayed = true
 					if Script.LuaUI("NotificationEvent") then
-						Script.LuaUI.NotificationEvent("SoundEvents LavaDropping "..myPlayerID)
+						Script.LuaUI.NotificationEvent("LavaDropping "..myPlayerID)
 					end
 				elseif lavaGrow == 0 and (lavaRisingNotificationPlayed or lavaDroppingNotificationPlayed) then
 					lavaRisingNotificationPlayed = false
