@@ -106,6 +106,11 @@ if gadgetHandler:IsSyncedCode() then
 		},
 		epicWave = {
 			cooldown = mRandom(20,75),
+		},
+		frontbusters = {
+			cooldown = mRandom(5,10),
+			units = {},
+			unitCount = 0,
 		}
 	}
 	local squadSpawnOptions = config.squadSpawnOptionsTable
@@ -127,6 +132,7 @@ if gadgetHandler:IsSyncedCode() then
 	local unitTargetPool = {}
 	local unitCowardCooldown = {}
 	local unitTeleportCooldown = {}
+	capturableUnits = {}
 	local squadCreationQueue = {
 		units = {},
 		role = false,
@@ -146,6 +152,7 @@ if gadgetHandler:IsSyncedCode() then
 		needsrefresh = true,
 	}
 	CommandersPopulation = 0
+	FrontbusterPopulation = 0
 	HumanTechLevel = 0
 
 	--------------------------------------------------------------------------------
@@ -975,6 +982,7 @@ if gadgetHandler:IsSyncedCode() then
 		waveParameters.largerWave.cooldown = waveParameters.largerWave.cooldown - 1
 		waveParameters.hugeWave.cooldown = waveParameters.hugeWave.cooldown - 1
 		waveParameters.epicWave.cooldown = waveParameters.epicWave.cooldown - 1
+		waveParameters.frontbusters.cooldown = waveParameters.frontbusters.cooldown - 1
 
 		waveParameters.waveSpecialPercentage = mRandom(5,50)
 		waveParameters.waveAirPercentage = mRandom(10,25)
@@ -982,8 +990,13 @@ if gadgetHandler:IsSyncedCode() then
 		waveParameters.waveSizeMultiplier = 1
 		waveParameters.waveTimeMultiplier = 1
 
+		waveParameters.frontbusters.units = {}
+		waveParameters.frontbusters.unitCount = 0
+
 		local waveCommanders = {}
 		local waveCommanderCount = 0
+
+
 
 		if waveParameters.baseCooldown <= 0 or math.max(1, techAnger) < config.tierConfiguration[2].minAnger then
 			-- special waves
@@ -1179,7 +1192,25 @@ if gadgetHandler:IsSyncedCode() then
 								waveCommanders[name] = true
 								waveCommanderCount = waveCommanderCount + 1
 								table.insert(spawnQueue, { burrow = burrowID, unitName = name, team = scavTeamID, squadID = 1 })
+								cCount = cCount + 1
 								break
+							end
+						end
+					end
+					if mRandom() <= config.spawnChance and waveParameters.frontbusters.cooldown <= 0 then
+						for attempt = 1,10 do
+							local squad = squadSpawnOptions.frontbusters[math.random(1, #squadSpawnOptions.frontbusters)]
+							if squad and squad.surface and ((surface == "land" and squad.surface ~= "sea") or (surface == "sea" and squad.surface ~= "land")) then
+								if mRandom() <= config.spawnChance and (not waveParameters.frontbusters.units[squad.name]) and squad.minAnger <= techAnger and squad.maxAnger >= techAnger and Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames[squad.name].id) < squad.maxAlive and waveParameters.frontbusters.unitCount == 0 then
+									for i = 1, math.ceil(squad.squadSize*config.spawnChance*((SetCount(humanTeams)*config.scavPerPlayerMultiplier)+(1-config.scavPerPlayerMultiplier))) do
+										waveParameters.frontbusters.units[squad.name] = true
+										waveParameters.frontbusters.unitCount = waveParameters.frontbusters.unitCount + 1
+										table.insert(spawnQueue, { burrow = burrowID, unitName = squad.name, team = scavTeamID, squadID = 1, alwaysVisible = true })
+										cCount = cCount + 1
+									end
+									waveParameters.frontbusters.cooldown = math.random(3,5)
+									break
+								end
 							end
 						end
 					end
@@ -1326,6 +1357,8 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			return
 		end
+		
+		capturableUnits[unitID] = true
 		if squadPotentialTarget[unitID] or squadPotentialHighValueTarget[unitID] then
 			squadPotentialTarget[unitID] = nil
 			squadPotentialHighValueTarget[unitID] = nil
@@ -1521,6 +1554,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			local unitID
+
 			local x,y,z
 			if UnitDefNames[defs.unitName] then
 				x, y, z = getScavSpawnLoc(defs.burrow, UnitDefNames[defs.unitName].id)
@@ -1570,6 +1604,9 @@ if gadgetHandler:IsSyncedCode() then
 					if squadCreationQueue.life < math.ceil(100*Spring.GetModOptions().scav_spawntimemult) then
 						squadCreationQueue.life = math.ceil(100*Spring.GetModOptions().scav_spawntimemult)
 					end
+				end
+				if defs.alwaysVisible then
+					Spring.SetUnitAlwaysVisible(unitID, true)
 				end
 
 				GiveOrderToUnit(unitID, CMD.IDLEMODE, { 0 }, { "shift" })
@@ -1675,7 +1712,7 @@ if gadgetHandler:IsSyncedCode() then
 				currentMaxWaveSize = math.ceil((minWaveSize + math.ceil((techAnger*0.01)*(maxWaveSize - minWaveSize)))*(config.bossFightWaveSizeScale*0.01))
 			end
 			techAnger = math.max(math.min((t - config.gracePeriod) / ((bossTime/(Spring.GetModOptions().scav_bosstimemult)) - config.gracePeriod) * 100, 999), 0)
-			techAnger = math.ceil(techAnger*config.economyScale)
+			techAnger = math.ceil(techAnger*((config.economyScale*0.5)+0.5))
 			if t < config.gracePeriod then
 				bossAnger = 0
 				minBurrows = 8*(t/config.gracePeriod)
@@ -1799,6 +1836,35 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
+
+		if n%7 == 2 then
+			if not captureRuns then captureRuns = 0 end
+			captureRuns = (captureRuns + 1)%4
+
+			for unitID, _ in pairs(capturableUnits) do
+				if unitID%4 == captureRuns then
+					local ux, uy, uz = Spring.GetUnitPosition(unitID)
+					local captureLevel = select(4, Spring.GetUnitHealth(unitID))
+					local captureProgress = 0.01667 * (24/math.ceil(math.sqrt(math.sqrt(UnitDefs[Spring.GetUnitDefID(unitID)].health)))) * math.max(0.1, (techAnger/100)) -- really wack formula that i really don't want to explain. All you need to know is that we take Behemoth 335000 health as the baseline of taking about 1 minute to capture at 100% tech anger.
+					if Spring.GetUnitTeam(unitID) ~= scavTeamID and GG.IsPosInRaptorScum(ux, uy, uz) then
+						if captureLevel+captureProgress >= 0.99 then
+							Spring.TransferUnit(unitID, scavTeamID, false)
+							Spring.SetUnitHealth(unitID, {capture = 0.50})
+							SendToUnsynced("unitCaptureFrame", unitID, 0.50)
+							Spring.SpawnCEG("scav-spawnexplo", ux, uy, uz, 0,0,0)
+							GG.addUnitToCaptureDecay(unitID)
+						else
+							Spring.SetUnitHealth(unitID, {capture = math.min(captureLevel+captureProgress, 1)})
+							SendToUnsynced("unitCaptureFrame", unitID, math.min(captureLevel+captureProgress, 1))
+							Spring.SpawnCEG("scav-spawnexplo", ux, uy, uz, 0,0,0)
+							GG.addUnitToCaptureDecay(unitID)
+						end
+					elseif Spring.GetUnitTeam(unitID) == scavTeamID and captureLevel > 0 then
+						GG.addUnitToCaptureDecay(unitID)
+					end
+				end
+			end
+		end
 		manageAllSquads()
 	end
 
@@ -1813,11 +1879,13 @@ if gadgetHandler:IsSyncedCode() then
 				end
 				unitSquadTable[unitID] = nil
 			end
+			capturableUnits[unitID] = true
 		end
 
 		if newTeam == scavTeamID then
 			squadPotentialTarget[unitID] = nil
 			squadPotentialHighValueTarget[unitID] = nil
+			capturableUnits[unitID] = nil
 			for squad in ipairs(unitTargetPool) do
 				if unitTargetPool[squad] == unitID then
 					refreshSquad(squad)
@@ -1839,7 +1907,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
-
 		if unitTeam == scavTeamID then
 			if string.find(UnitDefs[unitDefID].name, "scavbeacon") then
 				if mRandom() <= config.spawnChance then
@@ -1862,6 +1929,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		squadPotentialTarget[unitID] = nil
 		squadPotentialHighValueTarget[unitID] = nil
+		capturableUnits[unitID] = nil
 		for squad in ipairs(unitTargetPool) do
 			if unitTargetPool[squad] == unitID then
 				refreshSquad(squad)
@@ -1949,6 +2017,9 @@ if gadgetHandler:IsSyncedCode() then
 		if unitTeam ~= scavTeamID and unitTeam ~= gaiaTeamID then
 			local unitTech = tonumber(UnitDefs[unitDefID].customParams.techlevel)
 			HumanTechLevel = math.max(HumanTechLevel, unitTech)
+		end
+		if unitTeam ~= scavTeamID then
+			capturableUnits[unitID] = true
 		end
 	end
 

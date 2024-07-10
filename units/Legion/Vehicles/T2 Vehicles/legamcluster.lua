@@ -140,7 +140,6 @@ return {
 				weaponvelocity = 345,
 				customparams = {
 					cluster = true,
-					bouncing = true,
 					number = 4,
 				},
 				damage = {

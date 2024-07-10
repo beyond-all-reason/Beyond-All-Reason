@@ -38,6 +38,7 @@ return {
 		waterline = 0,
 		customparams = {
 			unitgroup = 'weaponsub',
+			customrange = 700,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corships",

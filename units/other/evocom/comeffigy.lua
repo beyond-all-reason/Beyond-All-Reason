@@ -72,6 +72,7 @@ for lvl, stats in pairs(lvlParams) do
 		movestate = 0,
 		nochasecategory = "ALL",
 		objectname = "Units/COMEFFIGY.s3o",
+		reclaimable = false,
 		releaseheld  = true,
 		script = "Units/COMEFFIGY.cob",
 		seismicsignature = 0,

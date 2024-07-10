@@ -1096,9 +1096,11 @@ local function buildUnitHandler(_, _, _, data)
 		if string.sub(keybind.command, 1, 10) == 'buildunit_' then
 			local uDefName = string.sub(keybind.command, 11)
 			local uDef = UnitDefNames[uDefName]
-			if comBuildOptions[unitName[startDefID]][uDef.id] and not units.unitRestricted[uDef.id] then
-				table.insert(buildCycle, uDef.id)
-			end
+	        if uDef then -- prevents crashing when trying to access unloaded units (legion)
+	            if comBuildOptions[unitName[startDefID]][uDef.id] and not units.unitRestricted[uDef.id] then
+	                table.insert(buildCycle, uDef.id)
+	            end
+        	end
 		end
 	end
 

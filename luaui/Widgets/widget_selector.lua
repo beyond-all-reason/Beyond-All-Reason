@@ -583,7 +583,7 @@ function widget:DrawScreen()
 	if WG['guishader'] == nil then
 		activeGuishader = false
 	end
-	if WG['guishader'] and not activeGuishader then
+	if WG['guishader'] then
 		activeGuishader = true
 		dlistGuishader = gl.CreateList(function()
 			RectRound(floor(minx - (bgPadding * sizeMultiplier)), floor(miny - (bgPadding * sizeMultiplier)), floor(maxx + (bgPadding * sizeMultiplier)), floor(maxy + (bgPadding * sizeMultiplier)), 6 * sizeMultiplier)

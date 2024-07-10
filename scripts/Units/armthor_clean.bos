@@ -6,7 +6,7 @@ flare1, flare2, flare3, flare4, flare5, flare7, spark_emit1, spark_emit2;
 
 static-var  moveSpeed, currentSpeed, animSpeed, restore_delay, currentBarrel, currentLauncher, missiles_stockpiled;
 
-static-var last_lempslv_heading,last_rempslv_heading,last_tesla_heading,last_tesla_pitch;
+static-var last_lempslv_heading,last_rempslv_heading;
 
 #define SIGNAL_MOVE 1
 #define SIGNAL_AIM1			2
@@ -40,6 +40,16 @@ UnitSpeed()
 #define TB_BANK_Z <0.05> // Do not define this if you dont want banking
 #include "../tilt_bank_mobileunit.h"
 
+
+static-var  Stunned;
+
+#define KT1_PIECE_Y turret 
+#define KT1_PIECE_X sleeve
+#define KT1_PRECISION <3>
+#define KT1_HAS_STUNNED
+//#define KT1_DEBUG
+#include "../kinematic_turret_1.h"
+
 Create()
 {
 	hide flare1;
@@ -58,9 +68,8 @@ Create()
 	//large negative values to let wait-for-turn happen on first target
 	last_lempslv_heading = -1000000;
 	last_rempslv_heading = -1000000;
-	last_tesla_heading = -1000000;
-	last_tesla_pitch = -1000000;
 	call-script TB_Init();
+	start-script KT1_Aim();
 }
 
 StartMoving(reversing)
@@ -82,21 +91,10 @@ SetMaxReloadTime(time)
 	restore_delay = time * 2;
 }
 
-static-var  Stunned;
 // Stun logic needs to be looked at, the restore is usually set to unstoppable mask 0,
 // which can cause problems if the unit gets a target while doing the restore animation
 // not relevant for unparalyzable thor, but might be needed for other units
 
-RestoreAfterDelay_tesla()
-{
-	set-signal-mask SIGNAL_AIM1; //ensures restore animation is killed if this weapon is aimed
-	sleep restore_delay;
-	//large negative values to let wait-for-turn happen on first target
-	last_tesla_heading = -1000000;
-	last_tesla_pitch = -1000000;
-	turn turret to y-axis <0.0> speed <45>;
-	turn sleeve to x-axis <0.0> speed <15.0>;
-}
 
 RestoreAfterDelay_EMP_missile()
 {
@@ -128,7 +126,6 @@ SetStunned(State)
     Stunned = State;
 	if (!Stunned)
 	{
-		start-script RestoreAfterDelay_tesla();
 		start-script RestoreAfterDelay_EMP_missile();
 		start-script RestoreAfterDelay_lEMP();
 		start-script RestoreAfterDelay_rEMP();
@@ -141,22 +138,16 @@ SetStunned(State)
 //===================================
 AimWeapon1(heading, pitch)
 {
-	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
-	turn turret to y-axis heading speed <45.0>;
-	turn sleeve to x-axis <0.0> - pitch speed <15.0>;
-	wait-for-turn turret around y-axis;
-	wait-for-turn sleeve around x-axis;
-	last_tesla_heading = heading;
-	last_tesla_pitch = pitch;
-	start-script RestoreAfterDelay_tesla();
-	return (1);
+	KT1_SET_TARGET(heading,pitch, restore_delay);
+	if (KT1_CAN_FIRE) return (1);
+	return (0);
+
 }
 
 Rock_Main_Cannon()
 {
-	turn base to z-axis <0> - (GET KSIN(last_tesla_heading)) speed <50.005495>;
-	turn base to x-axis <0> - (GET KCOS(last_tesla_heading)) speed <50.005495>;
+	turn base to z-axis <0> - (GET KSIN(KT1heading)) speed <50.005495>;
+	turn base to x-axis <0> - (GET KCOS(KT1heading)) speed <50.005495>;
 	wait-for-turn base around z-axis;
 	wait-for-turn base around x-axis;
 	turn base to z-axis <0.0> speed <20.0>;
@@ -216,7 +207,7 @@ FireWeapon1()
 
 AimFromWeapon1(pieceIndex)
 {
-	pieceIndex = sleeve;
+	pieceIndex = turret;
 }
 
 QueryWeapon1(pieceIndex)
