@@ -254,8 +254,8 @@ local function AddSomeSmoke()
 		{1024 * r(),1024 * r(),1024 * r(),32 * r() +32,},
 		{1 * r(),1 * r(),1 * r(), 0.1 * r() ,},
 		{particledata[1],particledata[2],particledata[3],particledata[4]},
-		{particledata[7],particledata[8], Spring.GetGameFrame(),0.25 * r() + 0.25 ,},
-		{r(), r(), r(),r() ,}
+		{particledata[7],particledata[8], Spring.GetGameFrame(),0.85 * r() + 0.25 ,},
+		{r(), r(), r(),particledata[9] ,}
 		
 		)
 end
