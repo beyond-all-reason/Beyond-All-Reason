@@ -19,6 +19,19 @@ local economyScale = 1 * Spring.GetModOptions().multiplier_resourceincome *
 
 economyScale = (economyScale*0.25)+0.75
 
+local teams = Spring.GetTeamList()
+local humanTeamCount = -1 -- starts at -1 to disregard gaia
+local scavTeamCount
+local scavTeamID
+for _, teamID in ipairs(teams) do
+	local teamLuaAI =  Spring.GetTeamLuaAI(teamID)
+	if not (teamLuaAI and string.find(teamLuaAI, "ScavengersAI")) then
+		humanTeamCount = humanTeamCount + 1
+	end
+end
+
+
+
 local difficultyParameters = {
 
 	[difficulties.veryeasy] = {
@@ -174,15 +187,29 @@ local tierConfiguration = { -- Double everything for basic squads
 	[7] = {minAnger = 80, maxAnger = 1000, 	maxSquadSize = 2},
 }
 
+local teamAngerEasementFB = 16
+teamAngerEasementFB = math.floor(teamAngerEasementFB / humanTeamCount)
+
+-- if humanTeamCount == 1 then
+-- 	teamAngerEasementFB = teamAngerEasementFB + 10
+-- end
+
+-- if humanTeamCount % 2 == 1 then
+-- 	teamAngerEasementFB = teamAngerEasementFB + 6
+-- end
+
 local fBusterConfig = { --configures the anger levels certain tiers of frontbusters appear
-	[1] = {minAnger = 1,  maxAnger = 20},
-	[2] = {minAnger = 21, maxAnger = 30},
-	[3] = {minAnger = 31, maxAnger = 40},
-	[4] = {minAnger = 41, maxAnger = 50},
-	[5] = {minAnger = 51, maxAnger = 60},
-	[6] = {minAnger = 61, maxAnger = 70},
-	[7] = {minAnger = 71, maxAnger = 80},
+	[1] = {minAnger = 1,  maxAnger = 20+teamAngerEasementFB},
+	[2] = {minAnger = 21 + teamAngerEasementFB, maxAnger = 30 + teamAngerEasementFB},
+	[3] = {minAnger = 31 + teamAngerEasementFB, maxAnger = 40 + teamAngerEasementFB},
+	[4] = {minAnger = 41 + teamAngerEasementFB, maxAnger = 50 + teamAngerEasementFB},
+	[5] = {minAnger = 51 + teamAngerEasementFB, maxAnger = 60 + teamAngerEasementFB},
+	[6] = {minAnger = 61 + teamAngerEasementFB, maxAnger = 70 + teamAngerEasementFB},
+	[7] = {minAnger = 71 + teamAngerEasementFB, maxAnger = 80 + teamAngerEasementFB},
 }
+-- for index, entry in pairs(fBusterConfig) do
+--     Spring.Echo("Entry " .. index .. ": minAnger = " .. entry.minAnger .. ", maxAnger = " .. entry.maxAnger)
+-- end
 
 ----------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------
