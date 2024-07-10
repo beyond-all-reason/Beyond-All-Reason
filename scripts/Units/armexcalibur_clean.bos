@@ -106,7 +106,7 @@ TimeToRestore(addTime){
     }
     // The restore section must be atomic :/
 
-	call-script deactivatescr();
+	call-script close();
 
 
     timeLeft = 0;
@@ -116,8 +116,10 @@ TimeToRestore(addTime){
 
 
 
-activatescr()
+open()
 {	
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
 	animating = 1;
 	//get PRINT (31);
 	//move antenna to y-axis <15> speed <22>;
@@ -162,9 +164,10 @@ activatescr()
 
 }
 
-deactivatescr()
+close()
 {
-
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
 	animating = 1;
 	//get PRINT (51);
 	activated = 0;//this might need to be at end of script?
@@ -259,7 +262,7 @@ lua_UnitScriptLight(lightIndex, count)
 
 #define SMOKEPIECE base
 #include "smokeunit_thread_nohit.h"
-
+/*
 Activate()
 {
 	signal SIGNAL_TURNON;
@@ -273,7 +276,7 @@ Deactivate()
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
 	start-script deactivatescr();//was 1
-}
+}//*/
 
 
 
@@ -304,7 +307,7 @@ AimPrimary(heading, pitch)
 
 	if( !activated ) {
 		//get PRINT(21);
-		call-script activatescr();
+		call-script open();
 	}
 	//get PRINT(111);
 	activated = 1;//requested open (might be fully open by now?)

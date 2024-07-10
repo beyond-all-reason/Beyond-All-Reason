@@ -30,7 +30,7 @@ return {
 		nochase = "ALL",
 		objectname = "Units/CORDESOLATOR.s3o",
 		radardistance = 50,
-		script = "Units/CORDESOLATOR.cob",
+		script = "Units/cordesolator_clean.cob",
 		seismicsignature = 0,
 		selfdestructas = "nukeBuildingSelfd",
 		sightdistance = 450,
