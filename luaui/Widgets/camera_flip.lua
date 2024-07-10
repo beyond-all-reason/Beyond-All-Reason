@@ -33,7 +33,7 @@ local function cameraFlipHandler()
 		Spring.SetConfigInt("CamSpringLockCardinalDirections", 0)
 	end
 
-	camState.ry = camState.ry + math.pi
+	camState.ry = camState.ry + math.pi + .01
 	Spring.SetCameraState(camState, 0)
 
 	if previousLock == 1 then
