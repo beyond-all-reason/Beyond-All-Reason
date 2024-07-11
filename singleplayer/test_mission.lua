@@ -1,6 +1,5 @@
 local triggerTypes = GG['MissionAPI'].TriggerTypes
 local actionTypes = GG['MissionAPI'].ActionTypes
-VFS.LoadFile('luarules/mission_api/types.lua')
 
 local triggers = {
 	testTime = {
@@ -14,7 +13,7 @@ local triggers = {
 		},
 		actions = { 'helloWorld' },
 	},
---[[
+
 	spawnHero = {
 		type = triggerTypes.TimeElapsed,
 		settings = {
@@ -47,13 +46,13 @@ local actions = {
 			message = "Hello World",
 		},
 	},
---[[
+
 	spawnHero = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			name = 'hero',
 			unitDefName = 'coraca',
-			position = {x=100,z=200},
+			position = { x = 100, z = 200 },
 			quantity = 2,
 			facing = 'n',
 		},
