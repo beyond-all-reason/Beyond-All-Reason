@@ -604,13 +604,13 @@ end
 --============================================================--
 
 --- Metatable for Vec2 objects
-local Vec2 = {
+local vec2 = {
 	__name = 'Vec2',
 
 	x = 0,
 	z = 0,
 }
-Vec2.__index = Vec2
+vec2.__index = vec2
 
 ----------------------------------------------------------------
 
@@ -618,9 +618,8 @@ Vec2.__index = Vec2
 -- @number x The X value
 -- @number z The Z value
 -- @treturn table Instance derived from Vec2 metatable
-function Vec2:new(x, z)
+function vec2:new(x, z)
 	local object = {}
-
 	setmetatable(object, self)
 
 	object.x = x or self.x
@@ -635,7 +634,7 @@ end
 -- @string file The name of the file to be used for logging validity errors
 -- @string module The name of the module to be used for logging validity errors
 -- @treturn boolean False if any validity errors are found
-function Vec2:validate(file, module)
+function vec2:validate(file, module)
 	local valid = true
 
 	valid = valid and checkField(file, module, self.__name, 'x', self.x, 'number', true)
@@ -697,30 +696,47 @@ end
 --============================================================--
 -- Direction
 --============================================================--
-local Direction = {
-    __name = 'Direction', -- Meta name for type checking
-    value = 0, -- Internal representation as an integer, initially set to 0
-    SOUTH = 0, -- Enum values representing the directions
-    EAST = 1,
-    NORTH = 2,
-    WEST = 3,
-}
-Direction.__index = Direction
+local direction = {
+	__name = 'Direction', -- Meta name for type checking
+	value = 0,
 
-function Direction:new(value)
-    local object = {}
-    setmetatable(object, self)
-    object.value = value or self.SOUTH -- Default to SOUTH if no value provided
-    return object
+	enumValues = {
+		[0] = 'SOUTH',
+		SOUTH = 0,
+		S = 0,
+		[1] = 'EAST',
+		EAST = 1,
+		E = 1,
+		[2] = 'NORTH',
+		NORTH = 2,
+		N = 2,
+		[3] = 'WEST',
+		WEST = 3,
+		W = 3,
+	}
+}
+direction.__index = direction
+
+function direction:new(value)
+	local object = {}
+	setmetatable(object, self)
+	
+	-- if type(value) == 'string' then
+	-- 	value = self.enumValues[value:upper()] or value
+	-- end
+	
+	object.value = value or self.value
+
+	return object
 end
 
-function Direction:validate(file, module)
-    -- Validate the value field only
-    if type(self.value) == 'number' then
-        return true
-    else
-        return false
-    end
+function direction:validate(file, module)
+	-- Validate the value field only
+	if type(self.value) == 'number' then
+		return true
+	else
+		return false
+	end
 end
 ----------------------------------------------------------------
 --============================================================--
@@ -730,8 +746,8 @@ return {
 	Timer = timer,
 	Unit = unit,
 	UnitDef = unitDef,
-	Vec2 = Vec2,
+	Vec2 = vec2,
 	Vec3 = vec3,
-	Direction = Direction,
+	Direction = direction,
 }
 --@end

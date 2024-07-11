@@ -1,6 +1,5 @@
 local triggerTypes = GG['MissionAPI'].TriggerTypes
 local actionTypes = GG['MissionAPI'].ActionTypes
-VFS.LoadFile('luarules/mission_api/types.lua')
 
 local triggers = {
 	testTime = {
@@ -53,7 +52,7 @@ local actions = {
 		parameters = {
 			name = 'hero',
 			unitDefName = 'coraca',
-			position = {x=100,z=200},
+			position = { x = 100, z = 200 },
 			quantity = 2,
 			facing = 'n',
 		},
