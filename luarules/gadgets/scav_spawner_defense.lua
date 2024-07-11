@@ -107,11 +107,11 @@ if gadgetHandler:IsSyncedCode() then
 		epicWave = {
 			cooldown = mRandom(20,75),
 		},
-		frontbusters = {
-			cooldown = mRandom(5,10),
-			units = {},
-			unitCount = 0,
-		}
+		--frontbusters = {
+		--	cooldown = mRandom(5,10),
+		--	units = {},
+		--	unitCount = 0,
+		--}
 	}
 	local squadSpawnOptions = config.squadSpawnOptionsTable
 	--local miniBossCooldown = 0
@@ -152,7 +152,7 @@ if gadgetHandler:IsSyncedCode() then
 		needsrefresh = true,
 	}
 	CommandersPopulation = 0
-	FrontbusterPopulation = 0
+	--FrontbusterPopulation = 0
 	HumanTechLevel = 0
 
 	--------------------------------------------------------------------------------
@@ -982,7 +982,7 @@ if gadgetHandler:IsSyncedCode() then
 		waveParameters.largerWave.cooldown = waveParameters.largerWave.cooldown - 1
 		waveParameters.hugeWave.cooldown = waveParameters.hugeWave.cooldown - 1
 		waveParameters.epicWave.cooldown = waveParameters.epicWave.cooldown - 1
-		waveParameters.frontbusters.cooldown = waveParameters.frontbusters.cooldown - 1
+		--waveParameters.frontbusters.cooldown = waveParameters.frontbusters.cooldown - 1
 
 		waveParameters.waveSpecialPercentage = mRandom(5,50)
 		waveParameters.waveAirPercentage = mRandom(10,25)
@@ -990,8 +990,8 @@ if gadgetHandler:IsSyncedCode() then
 		waveParameters.waveSizeMultiplier = 1
 		waveParameters.waveTimeMultiplier = 1
 
-		waveParameters.frontbusters.units = {}
-		waveParameters.frontbusters.unitCount = 0
+		--waveParameters.frontbusters.units = {}
+		--waveParameters.frontbusters.unitCount = 0
 
 		local waveCommanders = {}
 		local waveCommanderCount = 0
@@ -1197,23 +1197,23 @@ if gadgetHandler:IsSyncedCode() then
 							end
 						end
 					end
-					if mRandom() <= config.spawnChance and waveParameters.frontbusters.cooldown <= 0 then
-						for attempt = 1,10 do
-							local squad = squadSpawnOptions.frontbusters[math.random(1, #squadSpawnOptions.frontbusters)]
-							if squad and squad.surface and ((surface == "land" and squad.surface ~= "sea") or (surface == "sea" and squad.surface ~= "land")) then
-								if mRandom() <= config.spawnChance and (not waveParameters.frontbusters.units[squad.name]) and squad.minAnger <= techAnger and squad.maxAnger >= techAnger and Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames[squad.name].id) < squad.maxAlive and waveParameters.frontbusters.unitCount == 0 then
-									for i = 1, math.ceil(squad.squadSize*config.spawnChance*((SetCount(humanTeams)*config.scavPerPlayerMultiplier)+(1-config.scavPerPlayerMultiplier))) do
-										waveParameters.frontbusters.units[squad.name] = true
-										waveParameters.frontbusters.unitCount = waveParameters.frontbusters.unitCount + 1
-										table.insert(spawnQueue, { burrow = burrowID, unitName = squad.name, team = scavTeamID, squadID = 1, alwaysVisible = true })
-										cCount = cCount + 1
-									end
-									waveParameters.frontbusters.cooldown = math.random(3,5)
-									break
-								end
-							end
-						end
-					end
+					--if mRandom() <= config.spawnChance and waveParameters.frontbusters.cooldown <= 0 then
+					--	for attempt = 1,10 do
+					--		local squad = squadSpawnOptions.frontbusters[math.random(1, #squadSpawnOptions.frontbusters)]
+					--		if squad and squad.surface and ((surface == "land" and squad.surface ~= "sea") or (surface == "sea" and squad.surface ~= "land")) then
+					--			if mRandom() <= config.spawnChance and (not waveParameters.frontbusters.units[squad.name]) and squad.minAnger <= techAnger and squad.maxAnger >= techAnger and Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames[squad.name].id) < squad.maxAlive and waveParameters.frontbusters.unitCount == 0 then
+					--				for i = 1, math.ceil(squad.squadSize*config.spawnChance*((SetCount(humanTeams)*config.scavPerPlayerMultiplier)+(1-config.scavPerPlayerMultiplier))) do
+					--					waveParameters.frontbusters.units[squad.name] = true
+					--					waveParameters.frontbusters.unitCount = waveParameters.frontbusters.unitCount + 1
+					--					table.insert(spawnQueue, { burrow = burrowID, unitName = squad.name, team = scavTeamID, squadID = 1, alwaysVisible = true })
+					--					cCount = cCount + 1
+					--				end
+					--				waveParameters.frontbusters.cooldown = math.random(3,5)
+					--				break
+					--			end
+					--		end
+					--	end
+					--end
 				end
 			end
 		until (cCount > currentMaxWaveSize*waveParameters.waveSizeMultiplier or loopCounter >= 200*config.scavSpawnMultiplier)
