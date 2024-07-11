@@ -605,10 +605,10 @@ end
 
 --- Metatable for Vec2 objects
 local Vec2 = {
-	__name = 'Vec2', -- Meta name for type checking
+	__name = 'Vec2',
 
-	x = 0, -- X value
-	z = 0, -- Z value
+	x = 0,
+	z = 0,
 }
 Vec2.__index = Vec2
 
@@ -695,45 +695,32 @@ function vec3:validate(file, module)
 	return valid
 end
 --============================================================--
-
 -- Direction
-
 --============================================================--
 local Direction = {
-	__name = 'Direction', -- Meta name for type checking
-
-	north = 'n',
-	south = 's',
-	west = 'w',
-	east = 'e',
+    __name = 'Direction', -- Meta name for type checking
+    value = 0, -- Internal representation as an integer, initially set to 0
+    SOUTH = 0, -- Enum values representing the directions
+    EAST = 1,
+    NORTH = 2,
+    WEST = 3,
 }
 Direction.__index = Direction
-----------------------------------------------------------------
 
-function Direction:new(n, s, w, e)
-	local object = {}
-
-	setmetatable(object, self)
-
-	object.n = n or self.n
-	object.s = s or self.s
-	object.w = w or self.w
-	object.e = e or self.e
-
-	return object
+function Direction:new(value)
+    local object = {}
+    setmetatable(object, self)
+    object.value = value or self.SOUTH -- Default to SOUTH if no value provided
+    return object
 end
 
-----------------------------------------------------------------
 function Direction:validate(file, module)
-	local valid = true
-
-	valid = valid and checkField(file, module, self.__name, 'n', self.n, 'string', true)
-	valid = valid and checkField(file, module, self.__name, 's', self.s, 'string', true)
-	valid = valid and checkField(file, module, self.__name, 'w', self.w, 'string', true)
-	valid = valid and checkField(file, module, self.__name, 'e', self.e, 'string', true)
-
-	return valid
-
+    -- Validate the value field only
+    if type(self.value) == 'number' then
+        return true
+    else
+        return false
+    end
 end
 ----------------------------------------------------------------
 --============================================================--

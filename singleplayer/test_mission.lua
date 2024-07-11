@@ -55,7 +55,7 @@ local actions = {
 			unitDefName = 'coraca',
 			position = {x=100,z=200},
 			quantity = 2,
-			facing = "n",
+			facing = 'n',
 		},
 	},
 --[[
