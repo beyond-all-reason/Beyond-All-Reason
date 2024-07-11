@@ -69,7 +69,7 @@ return {
 			[3] = "legmstor",
 			[4] = "corestor",
 			[5] = "legmex",
-			[6] = "cormakr",
+			[6] = "legeconv",
 			[7] = "leglab",
 			[8] = "legvp",
 			[9] = "legap",

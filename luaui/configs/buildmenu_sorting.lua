@@ -439,6 +439,7 @@ local unitOrderTable = {
    --ECO ENERGY CONVERTERS
    ['armmakr']        = 100500,
    ['cormakr']        = 100550,
+   ['legeconv']       = 100550,
    ['armmmkr']        = 100600,
    ['cormmkr']        = 100650,
 
