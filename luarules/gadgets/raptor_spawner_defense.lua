@@ -339,12 +339,14 @@ if gadgetHandler:IsSyncedCode() then
 			nextDifficulty = config.difficultyParameters[difficultyCounter]
 			config.queenResistanceMult = nextDifficulty.queenResistanceMult
 			config.damageMod = nextDifficulty.damageMod
+			config.healthMod = nextDifficulty.healthMod
 		else
 			difficultyCounter = difficultyCounter - 1
 			nextDifficulty = config.difficultyParameters[difficultyCounter]
 			config.raptorSpawnMultiplier = config.raptorSpawnMultiplier+1
 			config.queenResistanceMult = config.queenResistanceMult+0.5
 			config.damageMod = config.damageMod+0.25
+			config.healthMod = config.healthMod+0.25
 		end
 		config.queenName = nextDifficulty.queenName
 		config.burrowSpawnRate = nextDifficulty.burrowSpawnRate
