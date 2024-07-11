@@ -22,41 +22,49 @@
 // This ensures that the CATT1_Aim() thread is not killed when the AimWeapon thread is killed.
 // Then we have to manually set the signal mask for CATT_Aim() to the desired value.
 
-
+// The piece that will aim left-right
 #ifndef CATT1_PIECE_Y
 	#define CATT1_PIECE_Y aimy
 #endif
 
+// The piece that will aim up-down
 #ifndef CATT1_PIECE_X
-	#define CATT1_PIECE_X aimx1
+	//#define CATT1_PIECE_X aimx1
 #endif
 
+// Specify how fast to move up-down
 #ifdef CATT1_PIECE_X
 	#ifndef CATT1_PITCH_SPEED 
 		#define CATT1_PITCH_SPEED <90>
 	#endif
 #endif
 
+// Max left-right turn speed (per frame)
 #ifndef CATT1_MAX_VELOCITY
 	#define CATT1_MAX_VELOCITY <3.0>
 #endif
 
+// Max turning acceleration (per frame)
 #ifndef CATT1_ACCELERATION
 	#define CATT1_ACCELERATION <0.15>
 #endif
 
+// Starting velocity on turning (per frame)
 #ifndef CATT1_JERK
 	#define CATT1_JERK <0.5>
 #endif
 
+// Desired angular correctness
 #ifndef CATT1_PRECISION
 	#define CATT1_PRECISION <1.2>
 #endif
 
+// Left-right restore speed, default 1/3rd
 #ifndef CATT1_RESTORE_SPEED
 	#define CATT1_RESTORE_SPEED CATT1_MAX_VELOCITY / 3
 #endif
 
+// Optional 
 #ifndef CATT1_RESTORE_DELAY
 	#define CATT1_RESTORE_DELAY 6000
 #endif

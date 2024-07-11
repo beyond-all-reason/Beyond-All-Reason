@@ -417,10 +417,6 @@ local function refreshUnitInfo()
 						if weaponDef.customParams then
 
 							if weaponDef.customParams.sweepfire then
-								Spring.Echo(weaponDef.minIntensity)
-								Spring.Echo(weaponDef.customParams.sweepfire)
-								Spring.Echo(unitDefInfo[unitDefID].maxdps)
-								Spring.Echo(unitDefInfo[unitDefID].mindps)
 								unitDefInfo[unitDefID].maxdps = (weaponDef.damages[0] * weaponDef.customParams.sweepfire) / math.max(weaponDef.minIntensity, 0.5)
 								unitDefInfo[unitDefID].mindps = weaponDef.damages[0] * weaponDef.customParams.sweepfire
 							else

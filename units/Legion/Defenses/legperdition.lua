@@ -136,6 +136,7 @@ return {
 				impulsefactor = 2,
 
 				flamegfxtime = 1,
+				interceptedByShieldType = 0,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				metalpershot = 500,
