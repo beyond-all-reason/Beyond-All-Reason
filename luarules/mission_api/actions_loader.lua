@@ -20,24 +20,19 @@ local function prevalidateActions()
 
 		for _, parameter in pairs(parameters[action.type]) do
 			local value = action.parameters[parameter.name]
-			local parameterType = type(value)
-
+			
 			if value == nil and parameter.required then
-				Spring.Log('actions_loader.lua', LOG.ERROR, "[Mission API] Action missing required parameter. Action: " .. actionID .. ", Parameter: " .. parameter.name)
+				Spring.Log('actions_loader.lua', LOG.ERROR, "[Mission API] Action missing required parameter. Action: " ..actionID .. ", Parameter: " .. parameter.name)
 			end
-
-			-- Custom Types
+			
 			if value ~= nil and GG['MissionAPI'].Types[parameter.type] then
-				if value.__name ~= parameter.type then
-					local actualType = value.__name or type(value)
-					Spring.Log('actions_loader.lua', LOG.ERROR, "[Mission API] Unexpected parameter type, expected " .. parameter.type .. ", got " .. actualType .. ". Action: " .. actionID .. ", Parameter: " .. parameter.name)
-				elseif value.validate then 
-					value.validate('actions_loader.lua', 'Mission API') 
+				local expectedType = parameter.type
+				local actualType = type(value)
+				
+				if value ~= nil and actualType ~= expectedType then
+					Spring.Log('actions_loader.lua', LOG.ERROR,"[Mission API] Unexpected parameter type, expected " ..parameter.type ..", got " .. actualType .. ". Action: " .. actionID .. ", Parameter: " .. parameter.name)
 				end
-
-			-- Lua Types
-			elseif value ~= nil and parameterType ~= parameter.type then
-				Spring.Log('actions_loader.lua', LOG.ERROR, "[Mission API] Unexpected parameter type, expected " .. parameter.type .. ", got " .. parameterType .. ". Action: " .. actionID .. ", Parameter: " .. parameter.name)
+				value:validate()
 			end
 		end
 	end

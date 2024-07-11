@@ -604,13 +604,13 @@ end
 --============================================================--
 
 --- Metatable for Vec2 objects
-local vec2 = {
-	__name = 'Vec2', -- Meta name for type checking
+local Vec2 = {
+	__name = 'Vec2',
 
-	x = 0, -- X value
-	z = 0, -- Z value
+	x = 0,
+	z = 0,
 }
-vec2.__index = vec2
+Vec2.__index = Vec2
 
 ----------------------------------------------------------------
 
@@ -618,7 +618,7 @@ vec2.__index = vec2
 -- @number x The X value
 -- @number z The Z value
 -- @treturn table Instance derived from Vec2 metatable
-function vec2:new(x, z)
+function Vec2:new(x, z)
 	local object = {}
 
 	setmetatable(object, self)
@@ -635,7 +635,7 @@ end
 -- @string file The name of the file to be used for logging validity errors
 -- @string module The name of the module to be used for logging validity errors
 -- @treturn boolean False if any validity errors are found
-function vec2:validate(file, module)
+function Vec2:validate(file, module)
 	local valid = true
 
 	valid = valid and checkField(file, module, self.__name, 'x', self.x, 'number', true)
@@ -685,7 +685,7 @@ end
 -- @string file The name of the file to be used for logging validity errors
 -- @string module The name of the module to be used for logging validity errors
 -- @treturn boolean False if any validity errors are found
-function vec2:validate(file, module)
+function vec3:validate(file, module)
 	local valid = true
 
 	valid = valid and checkField(file, module, self.__name, 'x', self.x, 'number', true)
@@ -694,7 +694,35 @@ function vec2:validate(file, module)
 
 	return valid
 end
+--============================================================--
+-- Direction
+--============================================================--
+local Direction = {
+    __name = 'Direction', -- Meta name for type checking
+    value = 0, -- Internal representation as an integer, initially set to 0
+    SOUTH = 0, -- Enum values representing the directions
+    EAST = 1,
+    NORTH = 2,
+    WEST = 3,
+}
+Direction.__index = Direction
 
+function Direction:new(value)
+    local object = {}
+    setmetatable(object, self)
+    object.value = value or self.SOUTH -- Default to SOUTH if no value provided
+    return object
+end
+
+function Direction:validate(file, module)
+    -- Validate the value field only
+    if type(self.value) == 'number' then
+        return true
+    else
+        return false
+    end
+end
+----------------------------------------------------------------
 --============================================================--
 
 return {
@@ -702,10 +730,8 @@ return {
 	Timer = timer,
 	Unit = unit,
 	UnitDef = unitDef,
-	Vec2 = vec2,
+	Vec2 = Vec2,
 	Vec3 = vec3,
+	Direction = Direction,
 }
-
---============================================================--
-
 --@end

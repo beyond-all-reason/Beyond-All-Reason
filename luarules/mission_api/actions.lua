@@ -37,23 +37,23 @@ end
 
 --============================================================--
 
-local function spawnUnits(name, unitDef, quantity, position, facing, construction)
+local function spawnUnits(name, unitDefName, quantity, position, facing, construction)
 	if quantity == 0 then return end
 
 	position.y = position.y or Spring.GetGroundHeight(position.x, position.z)
 
-	local unitID = -1
-	local unitDefName = unitDef.getName()
+	--local unitID = -1
+	--local unitDefName = unitDef.getName()
 
-	if not trackedUnits[name] then trackedUnits[name] = {} end
+	--if not trackedUnits[name] then trackedUnits[name] = {} end
 
 	for i = 1, quantity do
-		unitID = Spring.CreateUnit(unitDefName, position.x, position.y, position.z, facing, unitDef.team, construction)
+	local	unitID = Spring.CreateUnit(unitDefName, position.x, position.y, position.z, facing, 0, construction)
 
-		if unitID and name then
-			trackedUnits[name][#trackedUnits[name] + 1] = unitID
-			trackedUnits[unitID] = name
-		end
+		--if unitID and name then
+		--	trackedUnits[name][#trackedUnits[name] + 1] = unitID
+		--	trackedUnits[unitID] = name
+		--end
 	end
 end
 

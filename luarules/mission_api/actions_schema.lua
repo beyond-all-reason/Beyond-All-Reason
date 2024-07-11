@@ -102,9 +102,9 @@ local parameters = {
 			type = 'string',
 		},
 		[2] = {
-			name = 'unitDef',
+			name = 'unitDefName',
 			required = true,
-			type = 'UnitDef',
+			type = 'string',
 		},
 		[3] = {
 			name = 'quantity',
@@ -118,8 +118,8 @@ local parameters = {
 		},
 		[5] = {
 			name = 'facing',
-			required = false,
-			type = 'direction'
+			required = true,
+			type = 'Direction'
 		},
 		[6] = {
 			name = 'construction',
