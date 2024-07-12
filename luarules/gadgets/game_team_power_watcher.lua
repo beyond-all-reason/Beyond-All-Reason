@@ -3,10 +3,6 @@
 function gadget:GetInfo()
 	return {
 		name = "Team Power Watcher",
-		desc = "Tracks power of individual and total units per team. To be used for PvE dynamic difficulty and library functions to assertain aspects of game progression",
-		author = "SethDGamre",
-		date = "2024-07-12",
-		license = "None",
 		layer = 1,
 		enabled = true
 	}
@@ -145,7 +141,7 @@ if gadgetHandler:IsSyncedCode() then
 
 
 
-    function TPW_HighestTeamPower()
+    function HighestTeamPower()
         local power = 0
         local teamID = nil
     
@@ -163,14 +159,14 @@ if gadgetHandler:IsSyncedCode() then
 
 
 
-    function TPW_AverageTeamPower()
+    function AverageTeamPower()
         local totalPower = 0
         local teamCount = 0
     
-        for id, p in pairs(teamPowers) do
+        for id, power in pairs(teamPowers) do
             if id ~= neutralTeamNumber and id ~= scavTeam and id ~= raptorTeam then
                 --Spring.Echo("Average Power Team Factored", id)
-                totalPower = totalPower + p
+                totalPower = totalPower + power
                 teamCount = teamCount + 1
             end
         end
@@ -181,14 +177,14 @@ if gadgetHandler:IsSyncedCode() then
 
     
 
-    function TPW_AverageAlliedTeamPower(teamID)
+    function AverageAlliedTeamPower(teamID)
         local allyTeamNum = select(6, Spring.GetTeamInfo(teamID))
         local totalPower = 0
         local teamCount = 0
     
-        for id, p in pairs(teamPowers) do
+        for id, power in pairs(teamPowers) do
             if allyTeamNum == select(6, Spring.GetTeamInfo(id)) then
-                totalPower = totalPower + p
+                totalPower = totalPower + power
                 teamCount = teamCount + 1
             end
         end
@@ -197,14 +193,14 @@ if gadgetHandler:IsSyncedCode() then
         return averagePower
     end
 
-    function TPW_AverageHumanTeamPower(teamID)
+    function AverageHumanTeamPower(teamID)
         local allyTeamNum = select(6, Spring.GetTeamInfo(teamID))
         local totalPower = 0
         local teamCount = 0
     
-        for id, p in pairs(teamPowers) do
+        for id, power in pairs(teamPowers) do
             if humanTeams[id] then
-                totalPower = totalPower + p
+                totalPower = totalPower + power
                 teamCount = teamCount + 1
             end
         end
@@ -215,14 +211,14 @@ if gadgetHandler:IsSyncedCode() then
 
 
     
-    function TPW_AverageTechGuesstimate() --Excludes Neutral, Scavengers and Raptors. Guesses an equivalent average tech level based on power for all teams.
+    function AverageTechGuesstimate() --Excludes Neutral, Scavengers and Raptors. Guesses an equivalent average tech level based on power for all teams.
         local totalPower = 0
         local teamCount = 0
     
-        for id, p in pairs(teamPowers) do
+        for id, power in pairs(teamPowers) do
             if id ~= neutralTeamNumber and id ~= scavTeam and id ~= raptorTeam then
                 --Spring.Echo("Average Tech Guess Team Factored", id)
-                totalPower = totalPower + p
+                totalPower = totalPower + power
                 teamCount = teamCount + 1
             end
         end
@@ -243,14 +239,14 @@ if gadgetHandler:IsSyncedCode() then
 
 
 
-    function TPW_AverageHumanTechGuesstimate() --Excludes AI's, Neutral, Scavengers and Raptors. Guesses an equivalent average tech level based on power for all humans.
+    function AverageHumanTechGuesstimate() --Excludes AI's, Neutral, Scavengers and Raptors. Guesses an equivalent average tech level based on power for all humans.
         local totalPower = 0
         local teamCount = 0
     
-        for id, p in pairs(teamPowers) do
+        for id, power in pairs(teamPowers) do
             if humanTeams[id] then
                 Spring.Echo("Average HUMAN Tech Guess Team Factored", id)
-                totalPower = totalPower + p
+                totalPower = totalPower + power
                 teamCount = teamCount + 1
             end
         end
@@ -271,14 +267,14 @@ if gadgetHandler:IsSyncedCode() then
 
 
 
-    function TPW_AverageAlliedTechGuesstimate(teamID) --Excludes Neutral, Scavengers and Raptors. Guesses an equivalent average tech level based on power for all allied teams.
+    function AverageAlliedTechGuesstimate(teamID) --Excludes Neutral, Scavengers and Raptors. Guesses an equivalent average tech level based on power for all allied teams.
         local allyTeamNum = select(6, Spring.GetTeamInfo(teamID))
         local totalPower = 0
         local teamCount = 0
     
-        for id, p in pairs(teamPowers) do
+        for id, power in pairs(teamPowers) do
             if allyTeamNum == select(6, Spring.GetTeamInfo(id)) then
-                totalPower = totalPower + p
+                totalPower = totalPower + power
                 teamCount = teamCount + 1
             end
         end
@@ -299,7 +295,7 @@ if gadgetHandler:IsSyncedCode() then
 
 
 
-    function TPW_HighestPeakPower()
+    function HighestPeakPower()
         local highestPower = 0
         local highestTeamID = nil
     
@@ -315,13 +311,13 @@ if gadgetHandler:IsSyncedCode() then
 
 
 
-    function TPW_AveragePeakHumanPower()
+    function AveragePeakHumanPower()
         local totalPower = 0
         local teamCount = 0
     
-        for id, p in pairs(peakTeamPowers) do
+        for id, power in pairs(peakTeamPowers) do
             if humanTeams[id] then
-                totalPower = totalPower + p
+                totalPower = totalPower + power
                 teamCount = teamCount + 1
             end
         end
@@ -332,14 +328,14 @@ if gadgetHandler:IsSyncedCode() then
 
 
 
-    function TPW_AveragePeakAlliedPower(teamID)
+    function AveragePeakAlliedPower(teamID)
         local allyTeamNum = select(6, Spring.GetTeamInfo(teamID))
         local totalPower = 0
         local teamCount = 0
     
-        for id, p in pairs(teamPowers) do
+        for id, power in pairs(teamPowers) do
             if allyTeamNum == select(6, Spring.GetTeamInfo(id)) then
-                totalPower = totalPower + p
+                totalPower = totalPower + power
                 teamCount = teamCount + 1
             end
         end
@@ -347,4 +343,6 @@ if gadgetHandler:IsSyncedCode() then
         local averagePower = totalPower / teamCount
         return averagePower
     end
+
+    --do lowest power value calcs
 end
