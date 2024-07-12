@@ -74,7 +74,7 @@ return {
 			[7] = "corageo",
 			[8] = "legtide",
 			[9] = "coruwadves",
-			[10] = "coruwadvms",
+			[10] = "legamstor",
 			[11] = "coruwageo",
 			[12] = "coruwmme",
             [13] = "coruwmmm",

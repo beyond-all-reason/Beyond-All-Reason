@@ -130,7 +130,7 @@ local unitOrderTable = {
 	['legkam']         = 004357,
 	['armsb']          = 004360,
 	['corsb']          = 004365,
-	['legphoenix']     = 004366,
+	--['legphoenix']     = 004366,
 
 	['armpnix']        = 004370, --BOMBERS T2
 	['corhurc']        = 004380,
