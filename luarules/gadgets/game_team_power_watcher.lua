@@ -106,6 +106,8 @@ if gadgetHandler:IsSyncedCode() then
                 peakTeamPowers[unitTeam] = teamPowers[unitTeam]
             end
 
+
+            --Debug row, eventually to be replaced with %frame triggered calculation events
             --Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, teamPowers[unitTeam], "highest", highestTeamPower.teamID, highestTeamPower.power)
             --Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, teamPowers[unitTeam], "averageTeamPower", averageTeamPower)
             --Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, teamPowers[unitTeam], "averageAlliedTeamPower", averageAlliedTeamPower)
