@@ -1858,11 +1858,30 @@ if gadgetHandler:IsSyncedCode() then
 							Spring.SetUnitHealth(unitID, {health = maxHealth})
 							SendToUnsynced("unitCaptureFrame", unitID, 0.50)
 							Spring.SpawnCEG("scav-spawnexplo", ux, uy, uz, 0,0,0)
+							if math.random() <= 0.25 then
+								Spring.SpawnCEG("scavmistxl", ux, uy, uz, 0,0,0)
+							end
+							if math.random() <= 0.1 then
+								Spring.SpawnCEG("scavradiation", ux+math.random(-300, 300), uy, uz+math.random(-300, 300), 0,0,0)
+							end
+							if math.random() <= 0.1 then
+								Spring.SpawnCEG("scavradiation-lightning", ux+math.random(-300, 300), uy, uz+math.random(-300, 300), 0,0,0)
+							end
+							
 							GG.addUnitToCaptureDecay(unitID)
 						else
 							Spring.SetUnitHealth(unitID, {capture = math.min(captureLevel+captureProgress, 1)})
 							SendToUnsynced("unitCaptureFrame", unitID, math.min(captureLevel+captureProgress, 1))
 							Spring.SpawnCEG("scav-spawnexplo", ux, uy, uz, 0,0,0)
+							if math.random() <= 0.25 then
+								Spring.SpawnCEG("scavmistxl", ux, uy, uz, 0,0,0)
+							end
+							if math.random() <= 0.1 then
+								Spring.SpawnCEG("scavradiation", ux+math.random(-300, 300), uy, uz+math.random(-300, 300), 0,0,0)
+							end
+							if math.random() <= 0.1 then
+								Spring.SpawnCEG("scavradiation-lightning", ux+math.random(-300, 300), uy, uz+math.random(-300, 300), 0,0,0)
+							end
 							GG.addUnitToCaptureDecay(unitID)
 						end
 					elseif Spring.GetUnitTeam(unitID) == scavTeamID and captureLevel > 0 then
