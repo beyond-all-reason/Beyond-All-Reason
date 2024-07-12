@@ -1847,7 +1847,7 @@ if gadgetHandler:IsSyncedCode() then
 				if unitID%4 == captureRuns then
 					local ux, uy, uz = Spring.GetUnitPosition(unitID)
 					local captureLevel = select(4, Spring.GetUnitHealth(unitID))
-					local captureProgress = 0.01667 * (15/math.ceil(math.sqrt(math.sqrt(UnitDefs[Spring.GetUnitDefID(unitID)].health)))) * math.max(0.1, (techAnger/100)) -- really wack formula that i really don't want to explain. All you need to know is that we take Behemoth 335000 health as the baseline of taking about 1 minute to capture at 100% tech anger.
+					local captureProgress = 0.003 * (20/math.ceil(math.sqrt(math.sqrt(Spring.GetUnitHealth(unitID))))) * math.max(0.1, (techAnger/100)) -- really wack formula that i really don't want to explain.
 					if Spring.GetUnitTeam(unitID) ~= scavTeamID and GG.IsPosInRaptorScum(ux, uy, uz) then
 						if captureLevel+captureProgress >= 0.99 then
 							Spring.TransferUnit(unitID, scavTeamID, false)
