@@ -89,36 +89,36 @@ end
 
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-    if UnitDefs[unitDefID].power then
-        unitsWithPower[unitID] = {unitID = unitID, power = UnitDefs[unitDefID].power, team = unitTeam}
-        teamPowers[unitTeam] = (teamPowers[unitTeam] + UnitDefs[unitDefID].power) or UnitDefs[unitDefID].power
-        highestTeamPower = TPW_HighestTeamPower()
-        averageTeamPower = TPW_AverageTeamPower()
-        averageHumanTeamPower = TPW_AverageHumanTeamPower(unitTeam)
-        averageAlliedTeamPower = TPW_AverageAlliedTeamPower(unitTeam)
-        averageTechGuesstimate = TPW_AverageTechGuesstimate()
-        averageAlliedTechGuesstimate = TPW_AverageAlliedTechGuesstimate(unitTeam)
-        averageHumanTechGuesstimate = TPW_AverageHumanTechGuesstimate()
-        --not tested yet
-        highestPeakPower = TPW_HighestPeakPower()
-        averagePeakPower = TPW_AveragePeakHumanPower()
-        averagePeakAlliedPower = TPW_AveragePeakAlliedPower(unitTeam)
+    unitsWithPower[unitID] = {unitID = unitID, power = UnitDefs[unitDefID].power, team = unitTeam}
+    teamPowers[unitTeam] = (teamPowers[unitTeam] + UnitDefs[unitDefID].power) or UnitDefs[unitDefID].power
+    
+    --temporary
+    highestTeamPower = HighestTeamPower()
+    averageTeamPower = AverageTeamPower()
+    averageHumanTeamPower = AverageHumanTeamPower(unitTeam)
+    averageAlliedTeamPower = AverageAlliedTeamPower(unitTeam)
+    averageTechGuesstimate = AverageTechGuesstimate()
+    averageAlliedTechGuesstimate = AverageAlliedTechGuesstimate(unitTeam)
+    averageHumanTechGuesstimate = AverageHumanTechGuesstimate()
+    --not tested yet
+    highestPeakPower = HighestPeakPower()
+    averagePeakPower = AveragePeakHumanPower()
+    averagePeakAlliedPower = AveragePeakAlliedPower(unitTeam)
 
-        --update peak powers
-        if teamPowers[unitTeam] and peakTeamPowers[unitTeam] < teamPowers[unitTeam] then
-            peakTeamPowers[unitTeam] = teamPowers[unitTeam]
-        end
-
-
-        --Debug row, eventually to be replaced with %frame triggered calculation events
-        --Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, teamPowers[unitTeam], "highest", highestTeamPower.teamID, highestTeamPower.power)
-        --Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, teamPowers[unitTeam], "averageTeamPower", averageTeamPower)
-        --Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, teamPowers[unitTeam], "averageAlliedTeamPower", averageAlliedTeamPower)
-        --Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, teamPowers[unitTeam], "averageTechGuesstimate", averageTechGuesstimate)
-        --Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, teamPowers[unitTeam], "averageHumanTechGuesstimate", averageHumanTechGuesstimate)
-        --Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, teamPowers[unitTeam], "averageAlliedTechGuesstimate", averageAlliedTechGuesstimate)
-        --Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, teamPowers[unitTeam], "peakTeamPowers", peakTeamPowers[unitTeam])
+    --update peak powers
+    if teamPowers[unitTeam] and peakTeamPowers[unitTeam] < teamPowers[unitTeam] then
+        peakTeamPowers[unitTeam] = teamPowers[unitTeam]
     end
+
+
+    --Debug row, eventually to be replaced with %frame triggered calculation events
+    --Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, teamPowers[unitTeam], "highest", highestTeamPower.teamID, highestTeamPower.power)
+    --Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, teamPowers[unitTeam], "averageTeamPower", averageTeamPower)
+    --Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, teamPowers[unitTeam], "averageAlliedTeamPower", averageAlliedTeamPower)
+    --Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, teamPowers[unitTeam], "averageTechGuesstimate", averageTechGuesstimate)
+    --Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, teamPowers[unitTeam], "averageHumanTechGuesstimate", averageHumanTechGuesstimate)
+    --Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, teamPowers[unitTeam], "averageAlliedTechGuesstimate", averageAlliedTechGuesstimate)
+    --Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, teamPowers[unitTeam], "peakTeamPowers", peakTeamPowers[unitTeam])
 end
 
 
