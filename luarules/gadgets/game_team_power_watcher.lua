@@ -44,6 +44,9 @@ if gadgetHandler:IsSyncedCode() then
     local averageAlliedTechGuesstimate = 0
     local averageHumanTechGuesstimate = 0
     local peakTeamPowers = {}
+    local highestPeakPower = {}
+    local averagePeakPower = 0
+    local averagePeakAlliedPower = 0
 
     --AI team lists
     local scavTeam
@@ -295,7 +298,7 @@ if gadgetHandler:IsSyncedCode() then
     end
 
 
-    
+
     function TPW_HighestPeakPower()
         local highestPower = 0
         local highestTeamID = nil
