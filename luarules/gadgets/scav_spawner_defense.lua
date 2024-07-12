@@ -1846,12 +1846,16 @@ if gadgetHandler:IsSyncedCode() then
 			for unitID, _ in pairs(capturableUnits) do
 				if unitID%4 == captureRuns then
 					local ux, uy, uz = Spring.GetUnitPosition(unitID)
-					local captureLevel = select(4, Spring.GetUnitHealth(unitID))
-					local captureProgress = 0.003 * (20/math.ceil(math.sqrt(math.sqrt(Spring.GetUnitHealth(unitID))))) * math.max(0.1, (techAnger/100)) -- really wack formula that i really don't want to explain.
+					local health, maxHealth, _, captureLevel = Spring.GetUnitHealth(unitID)
+					local captureProgress = 0.016667 * (3/math.ceil(math.sqrt(math.sqrt(UnitDefs[Spring.GetUnitDefID(unitID)].health)))) * math.max(0.1, (techAnger/100)) -- really wack formula that i really don't want to explain.
+					if health < maxHealth then
+						captureProgress = captureProgress/math.max(0.000001, (health/maxHealth)^3)
+					end
 					if Spring.GetUnitTeam(unitID) ~= scavTeamID and GG.IsPosInRaptorScum(ux, uy, uz) then
 						if captureLevel+captureProgress >= 0.99 then
 							Spring.TransferUnit(unitID, scavTeamID, false)
 							Spring.SetUnitHealth(unitID, {capture = 0.50})
+							Spring.SetUnitHealth(unitID, {health = maxHealth})
 							SendToUnsynced("unitCaptureFrame", unitID, 0.50)
 							Spring.SpawnCEG("scav-spawnexplo", ux, uy, uz, 0,0,0)
 							GG.addUnitToCaptureDecay(unitID)
