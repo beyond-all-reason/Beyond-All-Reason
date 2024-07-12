@@ -3,6 +3,9 @@
 function gadget:GetInfo()
 	return {
 		name = "Team Power Watcher",
+        desc = "Tracks power of individual and total units per team. To be used for PvE dynamic difficulty and library functions to assertain aspects of game progression",
+		author = "SethDGamre",
+		date = "2024-07-12",
 		layer = 1,
 		enabled = true
 	}
@@ -343,5 +346,3 @@ function AveragePeakAlliedPower(teamID)
     local averagePower = totalPower / teamCount
     return averagePower
 end
-
---do lowest power value calcs
