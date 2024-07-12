@@ -100,6 +100,10 @@ if gadgetHandler:IsSyncedCode() then
             averageTechGuesstimate = TPW_AverageTechGuesstimate()
             averageAlliedTechGuesstimate = TPW_AverageAlliedTechGuesstimate(unitTeam)
             averageHumanTechGuesstimate = TPW_AverageHumanTechGuesstimate()
+            --not tested yet
+            highestPeakPower = TPW_HighestPeakPower()
+            averagePeakPower = TPW_AveragePeakHumanPower()
+            averagePeakAlliedPower = TPW_AveragePeakAlliedPower(unitTeam)
 
             --update peak powers
             if teamPowers[unitTeam] and peakTeamPowers[unitTeam] < teamPowers[unitTeam] then
@@ -113,7 +117,7 @@ if gadgetHandler:IsSyncedCode() then
             --Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, teamPowers[unitTeam], "averageAlliedTeamPower", averageAlliedTeamPower)
             --Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, teamPowers[unitTeam], "averageTechGuesstimate", averageTechGuesstimate)
             --Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, teamPowers[unitTeam], "averageHumanTechGuesstimate", averageHumanTechGuesstimate)
-            Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, teamPowers[unitTeam], "averageAlliedTechGuesstimate", averageAlliedTechGuesstimate)
+            --Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, teamPowers[unitTeam], "averageAlliedTechGuesstimate", averageAlliedTechGuesstimate)
             --Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, teamPowers[unitTeam], "peakTeamPowers", peakTeamPowers[unitTeam])
 		end
 	end
@@ -271,7 +275,6 @@ if gadgetHandler:IsSyncedCode() then
     
         for id, p in pairs(teamPowers) do
             if allyTeamNum == select(6, Spring.GetTeamInfo(id)) then
-                --Spring.Echo("Average Tech Guess Team Factored", id)
                 totalPower = totalPower + p
                 teamCount = teamCount + 1
             end
@@ -291,4 +294,54 @@ if gadgetHandler:IsSyncedCode() then
         return techLevel
     end
 
+
+    
+    function TPW_HighestPeakPower()
+        local highestPower = 0
+        local highestTeamID = nil
+    
+        for teamID, power in pairs(peakTeamPowers) do
+            if power > highestPower then
+                highestPower = power
+                highestTeamID = teamID
+            end
+        end
+    
+        return {teamID = highestTeamID, power = highestPower}
+    end
+
+
+
+    function TPW_AveragePeakHumanPower()
+        local totalPower = 0
+        local teamCount = 0
+    
+        for id, p in pairs(peakTeamPowers) do
+            if humanTeams[id] then
+                totalPower = totalPower + p
+                teamCount = teamCount + 1
+            end
+        end
+    
+        local averagePower = totalPower / teamCount
+        return averagePower
+    end
+
+
+
+    function TPW_AveragePeakAlliedPower(teamID)
+        local allyTeamNum = select(6, Spring.GetTeamInfo(teamID))
+        local totalPower = 0
+        local teamCount = 0
+    
+        for id, p in pairs(teamPowers) do
+            if allyTeamNum == select(6, Spring.GetTeamInfo(id)) then
+                totalPower = totalPower + p
+                teamCount = teamCount + 1
+            end
+        end
+    
+        local averagePower = totalPower / teamCount
+        return averagePower
+    end
 end
