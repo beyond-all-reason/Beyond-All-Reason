@@ -3,7 +3,7 @@
 function gadget:GetInfo()
 	return {
 		name = "Team Power Watcher",
-		desc = "Tracks power of individual and total units per team. To be used for PvE dynamic difficulty and library functions to assertain game progression",
+		desc = "Tracks power of individual and total units per team. To be used for PvE dynamic difficulty and library functions to assertain aspects of game progression",
 		author = "SethDGamre",
 		date = "2024-07-12",
 		license = "None",
@@ -35,10 +35,15 @@ if gadgetHandler:IsSyncedCode() then
 	local unitsWithPower = {}
 	local teamList = spGetTeamList()
 	local neutralTeamNumber
-	local teamPowerList = {}
+	local teamPowers = {}
 	local highestTeamPower = {}
     local averageTeamPower = 0
     local averageAlliedTeamPower = 0
+    local averageHumanTeamPower = 0
+    local averageTechGuesstimate = 0
+    local averageAlliedTechGuesstimate = 0
+    local averageHumanTechGuesstimate = 0
+    local peakTeamPowers = {}
 
     --AI team lists
     local scavTeam
@@ -47,7 +52,20 @@ if gadgetHandler:IsSyncedCode() then
     local humanTeams = {}
 
 
---get AI teams
+    --used for tech level guesstimate functions
+    local powerThresholds = {
+        {threshold = 9000, techLevel = 1},
+        {threshold = 45000, techLevel = 1.5},
+        {threshold = 90000, techLevel = 2},
+        {threshold = 230000, techLevel = 2.5},
+        {threshold = 350000, techLevel = 3},
+        {threshold = 475000, techLevel = 3.5},
+        {threshold = 600000, techLevel = 4},
+        {threshold = 725000, techLevel = 4.5}
+    }
+
+
+--decipher human vs ai vs neutral vs defense mode ai's 
     for _, teamID in ipairs(teamList) do
 		local teamLuaAI = Spring.GetTeamLuaAI(teamID)
 		if (teamLuaAI and string.find(teamLuaAI, "ScavengersAI")) then
@@ -63,50 +81,71 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
---assign all teams power of 0 to prevent nil errors
+--assign all teams power and peak power of 0 to prevent nil errors
     for _, teamNumber in ipairs(teamList) do
-        teamPowerList[teamNumber] = 0
+        teamPowers[teamNumber] = 0
+        peakTeamPowers[teamNumber] = 0
     end
+
 
 
 	function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		if UnitDefs[unitDefID].power then
             unitsWithPower[unitID] = {unitID = unitID, power = UnitDefs[unitDefID].power, team = unitTeam}
-            teamPowerList[unitTeam] = (teamPowerList[unitTeam] + UnitDefs[unitDefID].power) or UnitDefs[unitDefID].power
+            teamPowers[unitTeam] = (teamPowers[unitTeam] + UnitDefs[unitDefID].power) or UnitDefs[unitDefID].power
             highestTeamPower = TPW_HighestTeamPower()
             averageTeamPower = TPW_AverageTeamPower()
+            averageHumanTeamPower = TPW_AverageHumanTeamPower(unitTeam)
             averageAlliedTeamPower = TPW_AverageAlliedTeamPower(unitTeam)
+            averageTechGuesstimate = TPW_AverageTechGuesstimate()
+            averageAlliedTechGuesstimate = TPW_AverageAlliedTechGuesstimate(unitTeam)
+            averageHumanTechGuesstimate = TPW_AverageHumanTechGuesstimate()
 
-           -- Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, teamPowerList[unitTeam], "highest", highestTeamPower.teamID, highestTeamPower.power)
-           Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, teamPowerList[unitTeam], "averageTeamPower", averageTeamPower)
-           Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, teamPowerList[unitTeam], "averageAlliedTeamPower", averageAlliedTeamPower)
+            --update peak powers
+            if teamPowers[unitTeam] and peakTeamPowers[unitTeam] < teamPowers[unitTeam] then
+                peakTeamPowers[unitTeam] = teamPowers[unitTeam]
+            end
+
+            --Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, teamPowers[unitTeam], "highest", highestTeamPower.teamID, highestTeamPower.power)
+            --Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, teamPowers[unitTeam], "averageTeamPower", averageTeamPower)
+            --Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, teamPowers[unitTeam], "averageAlliedTeamPower", averageAlliedTeamPower)
+            --Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, teamPowers[unitTeam], "averageTechGuesstimate", averageTechGuesstimate)
+            --Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, teamPowers[unitTeam], "averageHumanTechGuesstimate", averageHumanTechGuesstimate)
+            Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, teamPowers[unitTeam], "averageAlliedTechGuesstimate", averageAlliedTechGuesstimate)
+            --Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, teamPowers[unitTeam], "peakTeamPowers", peakTeamPowers[unitTeam])
 		end
 	end
+
+
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
         if unitsWithPower[unitID] then
 			unitsWithPower[unitID] = nil
 		end
         if UnitDefs[unitDefID].power then
-            if teamPowerList[unitTeam] then
-                if teamPowerList[unitTeam] <= UnitDefs[unitDefID].power then
-                    teamPowerList[unitTeam] = 0
+            if teamPowers[unitTeam] then
+                if teamPowers[unitTeam] <= UnitDefs[unitDefID].power then
+                    teamPowers[unitTeam] = 0
                 else
-                    teamPowerList[unitTeam] = teamPowerList[unitTeam] - UnitDefs[unitDefID].power
+                    teamPowers[unitTeam] = teamPowers[unitTeam] - UnitDefs[unitDefID].power
                 end
             end
-            --Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, teamPowerList[unitTeam])
+            --Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, teamPowers[unitTeam])
         end
 	end
+
+
 
     function TPW_HighestTeamPower()
         local power = 0
         local teamID = nil
     
-        for t, p in pairs(teamPowerList) do
-            if p > power then
-                power = p
-                teamID = t
+        for t, p in pairs(teamPowers) do
+            if id ~= neutralTeamNumber and id ~= scavTeam and id ~= raptorTeam then
+                if p > power then
+                    power = p
+                    teamID = t
+                end
             end
         end
     
@@ -114,12 +153,14 @@ if gadgetHandler:IsSyncedCode() then
     end
 
 
+
     function TPW_AverageTeamPower()
         local totalPower = 0
         local teamCount = 0
     
-        for _, p in pairs(teamPowerList) do
-            if id ~= neutralTeamNumber then
+        for id, p in pairs(teamPowers) do
+            if id ~= neutralTeamNumber and id ~= scavTeam and id ~= raptorTeam then
+                --Spring.Echo("Average Power Team Factored", id)
                 totalPower = totalPower + p
                 teamCount = teamCount + 1
             end
@@ -129,13 +170,14 @@ if gadgetHandler:IsSyncedCode() then
         return averagePower
     end
 
+    
 
     function TPW_AverageAlliedTeamPower(teamID)
         local allyTeamNum = select(6, Spring.GetTeamInfo(teamID))
         local totalPower = 0
         local teamCount = 0
     
-        for id, p in pairs(teamPowerList) do
+        for id, p in pairs(teamPowers) do
             if allyTeamNum == select(6, Spring.GetTeamInfo(id)) then
                 totalPower = totalPower + p
                 teamCount = teamCount + 1
@@ -146,6 +188,105 @@ if gadgetHandler:IsSyncedCode() then
         return averagePower
     end
 
-    --function TPW_AverageTechGuesstimate()
-    --end
+    function TPW_AverageHumanTeamPower(teamID)
+        local allyTeamNum = select(6, Spring.GetTeamInfo(teamID))
+        local totalPower = 0
+        local teamCount = 0
+    
+        for id, p in pairs(teamPowers) do
+            if humanTeams[id] then
+                totalPower = totalPower + p
+                teamCount = teamCount + 1
+            end
+        end
+    
+        local averagePower = totalPower / teamCount
+        return averagePower
+    end
+
+
+    
+    function TPW_AverageTechGuesstimate() --Excludes Neutral, Scavengers and Raptors. Guesses an equivalent average tech level based on power for all teams.
+        local totalPower = 0
+        local teamCount = 0
+    
+        for id, p in pairs(teamPowers) do
+            if id ~= neutralTeamNumber and id ~= scavTeam and id ~= raptorTeam then
+                --Spring.Echo("Average Tech Guess Team Factored", id)
+                totalPower = totalPower + p
+                teamCount = teamCount + 1
+            end
+        end
+    
+        local averagePower = totalPower / teamCount
+    
+        local techLevel = 0.5
+        for _, threshold in ipairs(powerThresholds) do
+            if averagePower >= threshold.threshold then
+                techLevel = threshold.techLevel
+            else
+                break
+            end
+        end
+    
+        return techLevel
+    end
+
+
+
+    function TPW_AverageHumanTechGuesstimate() --Excludes AI's, Neutral, Scavengers and Raptors. Guesses an equivalent average tech level based on power for all humans.
+        local totalPower = 0
+        local teamCount = 0
+    
+        for id, p in pairs(teamPowers) do
+            if humanTeams[id] then
+                Spring.Echo("Average HUMAN Tech Guess Team Factored", id)
+                totalPower = totalPower + p
+                teamCount = teamCount + 1
+            end
+        end
+    
+        local averagePower = totalPower / teamCount
+    
+        local techLevel = 0.5
+        for _, threshold in ipairs(powerThresholds) do
+            if averagePower >= threshold.threshold then
+                techLevel = threshold.techLevel
+            else
+                break
+            end
+        end
+    
+        return techLevel
+    end
+
+
+
+    function TPW_AverageAlliedTechGuesstimate(teamID) --Excludes Neutral, Scavengers and Raptors. Guesses an equivalent average tech level based on power for all allied teams.
+        local allyTeamNum = select(6, Spring.GetTeamInfo(teamID))
+        local totalPower = 0
+        local teamCount = 0
+    
+        for id, p in pairs(teamPowers) do
+            if allyTeamNum == select(6, Spring.GetTeamInfo(id)) then
+                --Spring.Echo("Average Tech Guess Team Factored", id)
+                totalPower = totalPower + p
+                teamCount = teamCount + 1
+            end
+        end
+    
+        local averagePower = totalPower / teamCount
+    
+        local techLevel = 0.5
+        for _, threshold in ipairs(powerThresholds) do
+            if averagePower >= threshold.threshold then
+                techLevel = threshold.techLevel
+            else
+                break
+            end
+        end
+    
+        return techLevel
+    end
+
 end
