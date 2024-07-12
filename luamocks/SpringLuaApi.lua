@@ -1856,7 +1856,14 @@ assert(type(xmax) == "number","Argument xmax, is of invalid type - expected numb
 return  tableMock
  end
 
-function Spring.GetUnitsInBox ( )
+function Spring.GetUnitsInBox ( xmin, ymin, zmin, xmax, ymax, zmax, teamID)
+assert(type(xmin) == "number","Argument xmin, is of invalid type - expected number");
+assert(type(ymin) == "number","Argument ymin, is of invalid type - expected number");
+assert(type(zmin) == "number","Argument zmin, is of invalid type - expected number");
+assert(type(xmax) == "number","Argument xmax, is of invalid type - expected number");
+assert(type(ymax) == "number","Argument ymax, is of invalid type - expected number");
+assert(type(zmax) == "number","Argument zmax, is of invalid type - expected number");
+assert(type(teamID) == "number","Argument teamID is of invalid type - expected number");
 return  tableMock
  end
 
