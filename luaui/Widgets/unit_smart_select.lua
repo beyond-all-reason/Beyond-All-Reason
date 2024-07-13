@@ -1,4 +1,3 @@
-
 function widget:GetInfo()
 	return {
 		name = "SmartSelect",
@@ -10,6 +9,12 @@ function widget:GetInfo()
 		enabled = true
 	}
 end
+
+-- command definitions from https://github.com/beyond-all-reason/spring/blob/BAR105/rts/Sim/Units/CommandAI/Command.h
+local CMD_STOP = 0
+local CMD_WAIT = 5
+local CMD_PATROL = 15
+local CMD_GUARD = 25
 
 local minimapToWorld = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").minimapToWorld
 local skipSel
@@ -51,6 +56,7 @@ local spGetUnitTeam = Spring.GetUnitTeam
 local spIsAboveMiniMap = Spring.IsAboveMiniMap
 
 local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
 local spGetCommandQueue = Spring.GetCommandQueue
 local spGetUnitNoSelect = Spring.GetUnitNoSelect
 
@@ -120,27 +126,33 @@ local function handleSetModifier(_, _, _, data)
 	mods[data[1]] = data[2]
 end
 
-local function invertCurry(invert, rule)
-   return function(uid)
-		local result = (rule(uid) or false) ~= invert
+local function invertCurry(invert, rule, args)
+	return function(udef, udefid, uid)
+		local result = rule(udef, udefid, uid, args)
+		result = (result or false) ~= invert
 		return result
-   end
+	end
 end
 
-local function simpleRule(invert, property)
-    return invertCurry(invert, function(uid)
-        return UnitDefs[uid][property]
-    end)
+local function simpleUdefRule(invert, property)
+	return invertCurry(invert, function(udef)
+		return udef[property]
+	end)
 end
 
-local function notEmptyRule(invert, property)
-	return invertCurry(invert, function(uid)
-		local table = UnitDefs[uid][property]
+local function notEmptyUdefRule(invert, property)
+	return invertCurry(invert, function(udef)
+		local table = udef[property]
 		if table and next(table) ~= nil then
 			return true
 		end
 		return false
 	end)
+end
+
+local function isIdle(_udef, udefid, uid)
+	local canBeIdle = mobileFilter[udefid] or builderFilter[udefid]
+	return canBeIdle and spGetCommandQueue(uid, 0) == 0
 end
 
 local function handleSetCustomFilter(_, args)
@@ -180,48 +192,76 @@ local function handleSetCustomFilter(_, args)
 				idMatchFilter[uid] = true
 			end
 
-			rules.idMatches = invertCurry(invert, function(uid) return idMatchFilter[uid] end)
+			rules.idMatches = invertCurry(invert, function(_, udefid) return idMatchFilter[udefid] end)
 		elseif token == "Builder" then
-			rules.builderRule = invertCurry(invert, function(uid) return builderFilter[uid] end)
+			rules.builderRule = invertCurry(invert, function(_, udefid) return builderFilter[udefid] end)
 		elseif token == "Buildoptions" then
-			rules.buildOptionsRule = notEmptyRule(invert, "buildOptions")
+			rules.buildOptionsRule = notEmptyUdefRule(invert, "buildOptions")
 		elseif token == "Resurrect" then
-			rules.resurrectRule = simpleRule(invert, "canResurrect")
+			rules.resurrectRule = simpleUdefRule(invert, "canResurrect")
 		elseif token == "Stealth" then
-			rules.stealthRule = simpleRule(invert, "stealth")
-			-- elseif token == "Cloak" then
-			-- 	return unit.unitDef.canCloak
-			-- elseif token == "Cloaked" then
-			-- 	return unit.isCloaked
-		-- elseif token == "Cloaked" then
-		-- 	rules.cloakedRule = invertCurry(invert, function(uid) return UnitDefs[uid].isCloacked end)
+			rules.stealthRule = simpleUdefRule(invert, "stealth")
+		elseif token == "Cloak" then
+			rules.cloakRule = simpleUdefRule(invert, "canCloak")
+		elseif token == "Cloaked" then
+			rules.cloakedRule = invertCurry(invert, function(udef, _, uid)
+				return udef.canCloak and spGetUnitIsCloaked(uid)
+			end)
 		elseif token == "Building" then
-			rules.buildingRule = simpleRule(invert, "isBuilding")
+			rules.buildingRule = simpleUdefRule(invert, "isBuilding")
 		elseif token == "Transport" then
-			rules.transportRule = simpleRule(invert, "isTransport")
+			rules.transportRule = simpleUdefRule(invert, "isTransport")
 		elseif token == "Aircraft" then
-			rules.aircraftRule = simpleRule(invert, "canFly")
+			rules.aircraftRule = simpleUdefRule(invert, "canFly")
 		elseif token == "Weapons" then
-			rules.buildOptionsRule = notEmptyRule(invert, "weapons")
-		-- elseif token == "Idle" then
-		-- 	return unit.commandAI.commandQue:empty()
-		-- elseif token == "Waiting" then
-		-- 	return not unit.commandAI.commandQue:empty() and unit.commandAI.commandQue.front().GetID() == CMD_WAIT
-		-- elseif token == "Guarding" then
-		-- 	return not unit.commandAI.commandQue:empty() and unit.commandAI.commandQue.front().GetID() == CMD_GUARD
-		-- elseif token == "InHotkeyGroup" then
-		-- 	return unit:GetGroup() ~= nil
+			rules.weaponsRule = notEmptyUdefRule(invert, "weapons")
+		elseif token == "Idle" then
+			rules.idleRule = invertCurry(invert, isIdle)
+		elseif token == "Waiting" then
+			rules.waitingRule = invertCurry(invert, function(udef, udefid, uid)
+				return spGetCommandQueue(uid, 0) == CMD_WAIT;
+			end)
+		elseif token == "Guarding" then
+			rules.guardingRule = invertCurry(invert, function(udef, udefid, uid)
+				return spGetCommandQueue(uid, 0) == CMD_GUARD;
+			end)
+		elseif token == "Patrolling" then
+			rules.patrollingRule = invertCurry(invert, function(udef, udefid, uid)
+				for i = 0, 3, 1 do
+					local cmd = spGetCommandQueue(uid, i)
+					print("cmd: " .. cmd)
+					if cmd == CMD_PATROL then
+						return true
+					end
+				end
+				return false
+			end)
+		elseif token == "InHotkeyGroup" then
+			rules.inHotKeyGroup = invertCurry(invert, function(_, _, uid)
+		 		return Spring.GetUnitGroup(uid) ~= nil
+			end)
+		elseif token == "InGroup" then
+			local group = getNextToken()
+			if not token then
+				break
+			end
+
+			rules.inGroup = invertCurry(invert, function(_, _, uid, selectGroup)
+				local unitGroup = Spring.GetUnitGroup(uid)
+				print("unitGroup: " .. unitGroup)
+				print("selectGroup: " .. selectGroup)
+		 		return unitGroup == selectGroup
+			end, group)
 		elseif token == "Radar" then
-			rules.radarRule = invertCurry(invert, function(uid)
-				local udef = UnitDefs[uid]
+			rules.radarRule = invertCurry(invert, function(udef)
 				return udef.radarRadius > 0 or udef.sonarRadius > 0
 			end)
 		elseif token == "Jammer" then
-			rules.jammerRule = invertCurry(invert, function(uid)
-				return UnitDefs[uid].jammerRadius > 0
+			rules.jammerRule = invertCurry(invert, function(udef)
+				return udef.jammerRadius > 0
 			end)
 		elseif token == "ManualFireUnit" then
-			rules.manualFireRule = simpleRule(invert, "canManualFire")
+			rules.manualFireRule = simpleUdefRule(invert, "canManualFire")
 		end
 	end
 	customFilterDef = args
@@ -367,11 +407,13 @@ function widget:Update()
 		for i = 1, #mouseSelection do
 			uid = mouseSelection[i]
 
-			local defid = spGetUnitDefID(uid)
+			local udefid = spGetUnitDefID(uid)
+			local udef = UnitDefs[udefid]
 			local passesAllRules = true
+			-- checkUdef(udef, "canManualFire")
 
 			for _ruleName, rule in pairs(customFilter) do
-				if not rule(defid) then
+				if not rule(udef, udefid, uid) then
 					passesAllRules = false
 					break
 				end
@@ -392,7 +434,7 @@ function widget:Update()
 		for i = 1, #mouseSelection do
 			uid = mouseSelection[i]
 			udid = spGetUnitDefID(uid)
-			if (mobileFilter[udid] or builderFilter[udid]) and spGetCommandQueue(uid, 0) == 0 then
+			if isIdle(nil, udid, uid) then
 				tmp[#tmp + 1] = uid
 			end
 		end
