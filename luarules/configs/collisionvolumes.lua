@@ -191,6 +191,10 @@ pieceCollisionVolume['corsala'] = {
 	['0']={34,20,34,0,3.5,0,2,1},
 	['1']={13.5,6.2,17,0,1.875,1.5,2,1},
 }
+pieceCollisionVolume['cortermite'] = {
+	['3']={22,10,22,0,2,0,1,1},
+	['1']={48,25,48,0,0,0,1,1,0},
+}
 
 
 pieceCollisionVolume['correap'] = {
