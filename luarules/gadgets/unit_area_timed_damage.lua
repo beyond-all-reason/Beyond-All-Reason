@@ -278,7 +278,7 @@ local function startTimedArea(x, y, z, weaponParams, ownerID)
 		-- This is useless except possibly to trigger the callins for other effects.
 		else
 			local explosion = explosionCaches[weaponParams]
-			explosion.owner              = ownerID
+			explosion.owner = ownerID
 			spSpawnExplosion(x, y, z, 0, 0, 0, explosion)
 		end
 	end
@@ -432,7 +432,6 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		end
 		return damage * loopDuration, areaImpulseRate
 	end
-	return damage
 end
 
 function gadget:FeaturePreDamaged(featureID, featureDefID, featureTeam, damage, weaponDefID, projID, attackID, attackDefID, attackTeam)
@@ -445,7 +444,6 @@ function gadget:FeaturePreDamaged(featureID, featureDefID, featureTeam, damage, 
 		end
 		return damage, areaImpulseRate
 	end
-	return damage
 end
 
 function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projID, attackID, attackDefID, attackTeam)
