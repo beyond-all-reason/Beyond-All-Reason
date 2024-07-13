@@ -38,7 +38,7 @@ SetStunned (State)
 
 Create ()
 {
-	get PRINT(1232);
+	//get PRINT(1232);
 	//spin prop around z-axis speed <400>;
 	hide flare;
 	//move antenna to y-axis [-15] speed [240];
