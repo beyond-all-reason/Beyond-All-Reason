@@ -1,0 +1,180 @@
+
+#include "../recoil_common_includes.h"	
+#include "../factories_common.h"
+
+piece  flare1, flare2, flare3, flare4, pad, base, arml, nanol, armr, nanor, exhaust, forge, ventsmoke, cagelight1, cagelight1_emit, cagelight2, cagelight2_emit;
+
+static-var  spray;
+
+// Signal definitions
+#define SIGNAL_BUILD 2
+#define SIGNAL_TURNON 4
+
+
+Create()
+{
+	hide pad;
+	hide forge;
+	hide ventsmoke;
+	hide flare1;
+	hide flare2;
+	hide flare3;
+	hide flare4;
+	hide cagelight1_emit;
+	hide cagelight2_emit;
+	spray = 0;
+}
+
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+QueryNanoPiece(pieceIndex)
+{
+	spray = spray + 1;
+	if (spray >= 4) 
+	{
+		spray = 0;
+	}
+	pieceIndex = flare1 + spray;
+}
+
+Activate()
+{
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	FACTORY_OPEN_BUILD;
+	
+	move arml to y-axis [10] speed [10];
+	move armr to y-axis [10] speed [10];
+	move exhaust to z-axis [-8] speed [8];
+	show forge;
+}
+
+Deactivate()
+{
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	sleep 5000;
+	
+	turn arml to z-axis 0 speed <30>;
+	turn armr to z-axis 0 speed <30>;
+	turn nanol to y-axis 0 speed <30>;
+	turn nanor to y-axis 0 speed <30>;
+	wait-for-turn nanol around y-axis;
+	
+	move arml to y-axis [0] speed [10];
+	move armr to y-axis [0] speed [10];
+	move exhaust to z-axis [0] speed [8];
+	hide forge;
+	wait-for-move arml along y-axis;
+	
+	FACTORY_CLOSE_BUILD;
+}
+
+MoveCranes()
+{
+	while(TRUE)
+	{
+		turn nanol to y-axis rand(-4500, 4500) speed <45>;
+		turn arml to z-axis rand(-5000, 3000) speed <45>;
+		
+		sleep(400);
+		emit-sfx 257 from ventsmoke;
+		sleep(400);
+		emit-sfx 257 from ventsmoke;
+		
+		turn nanor to y-axis rand(-4500, 4500) speed <45>;
+		turn armr to z-axis rand(-3000, 5000) speed <45>;
+		
+		sleep(400);
+		emit-sfx 257 from ventsmoke;
+		sleep(400);
+		emit-sfx 257 from ventsmoke;
+	}
+}
+
+
+StartBuilding()
+{
+	show flare1;
+	show flare2;
+	show flare3;
+	show flare4;
+	
+	show cagelight1_emit;
+	show cagelight2_emit;
+	move cagelight1 to y-axis [2] speed [8];
+	move cagelight2 to y-axis [2] speed [8];
+	spin cagelight1_emit around y-axis speed <200> accelerate <1>;
+	spin cagelight2_emit around y-axis speed <200> accelerate <1>;
+	
+	signal SIGNAL_BUILD;
+	set-signal-mask SIGNAL_BUILD;
+	start-script MoveCranes();
+}
+
+StopBuilding()
+{
+	hide flare1;
+	hide flare2;
+	hide flare3;
+	hide flare4;
+	
+	hide cagelight1_emit;
+	hide cagelight2_emit;
+	move cagelight1 to y-axis [0] speed [8];
+	move cagelight2 to y-axis [0] speed [8];
+	stop-spin cagelight1_emit around y-axis decelerate <1>;
+	stop-spin cagelight2_emit around y-axis decelerate <1>;
+	
+	signal SIGNAL_BUILD;
+}
+
+QueryBuildInfo(pieceIndex)
+{
+	pieceIndex = pad;
+}
+
+
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode exhaust type BITMAPONLY | NOHEATCLOUD;
+		explode armr type BITMAPONLY | NOHEATCLOUD;
+		explode nanol type BITMAPONLY | NOHEATCLOUD;
+		explode nanor type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode exhaust type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode armr type FALL | NOHEATCLOUD;
+		explode nanol type FALL | NOHEATCLOUD;
+		explode nanor type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode exhaust type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode armr type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode nanol type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nanor type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode exhaust type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode armr type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode nanol type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode nanor type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}

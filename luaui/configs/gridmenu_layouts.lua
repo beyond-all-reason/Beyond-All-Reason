@@ -175,7 +175,7 @@ local labGrids = {
 
 	leghp = {
 		"legch", "", "legsh", "",
-		"legner", "legmh", "corhal", "",
+		"legner", "legmh", "legcar", "",
 		"", "", "legah",
 	},
 	
