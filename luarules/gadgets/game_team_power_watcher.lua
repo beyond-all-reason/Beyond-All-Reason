@@ -122,7 +122,7 @@ function GG.PowerLib.TeamPower(teamID)--returns the power of the input teamID as
 end
 
 
-function GG.PowerLib.TotalTeamPower() -- TotalTeamPower() returns the total power of all non scavenger/raptor teams as a number
+function GG.PowerLib.TotalTeamsPower() -- TotalTeamPower() returns the total power of all non scavenger/raptor teams as a number
     local totalPower = 0
 
     for teamID, power in pairs(GG.PowerLib.TeamPowers) do
