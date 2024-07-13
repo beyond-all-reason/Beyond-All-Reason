@@ -314,15 +314,12 @@ local function gadgetNotificationEvent(msg)
 		return
 	end
 
-	if string.find(msg, "SoundEvents", nil, true) then
-		msg = string.sub(msg, 13)
-		local forceplay = (string.sub(msg, string.len(msg) - 1) == ' y')
-		if not isSpec or (isSpec and playTrackedPlayerNotifs and lockPlayerID ~= nil) or forceplay then
-			local event = string.sub(msg, 1, string.find(msg, " ", nil, true) - 1)
-			local player = string.sub(msg, string.find(msg, " ", nil, true) + 1, string.len(msg))
-			if forceplay or (tonumber(player) and (tonumber(player) == Spring.GetMyPlayerID())) or (isSpec and tonumber(player) == lockPlayerID) then
-				queueNotification(event, forceplay)
-			end
+	local forceplay = (string.sub(msg, string.len(msg) - 1) == ' y')
+	if not isSpec or (isSpec and playTrackedPlayerNotifs and lockPlayerID ~= nil) or forceplay then
+		local event = string.sub(msg, 1, string.find(msg, " ", nil, true) - 1)
+		local player = string.sub(msg, string.find(msg, " ", nil, true) + 1, string.len(msg))
+		if forceplay or (tonumber(player) and (tonumber(player) == Spring.GetMyPlayerID())) or (isSpec and tonumber(player) == lockPlayerID) then
+			queueNotification(event, forceplay)
 		end
 	end
 end

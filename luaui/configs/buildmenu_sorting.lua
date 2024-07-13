@@ -130,7 +130,7 @@ local unitOrderTable = {
 	['legkam']         = 004357,
 	['armsb']          = 004360,
 	['corsb']          = 004365,
-	['legphoenix']     = 004366,
+	--['legphoenix']     = 004366,
 
 	['armpnix']        = 004370, --BOMBERS T2
 	['corhurc']        = 004380,
@@ -439,6 +439,7 @@ local unitOrderTable = {
    --ECO ENERGY CONVERTERS
    ['armmakr']        = 100500,
    ['cormakr']        = 100550,
+   ['legeconv']       = 100550,
    ['armmmkr']        = 100600,
    ['cormmkr']        = 100650,
 
