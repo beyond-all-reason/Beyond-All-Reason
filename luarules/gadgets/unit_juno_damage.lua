@@ -67,6 +67,9 @@ if gadgetHandler:IsSyncedCode() then
 		['raptor_land_kamikaze_emp_t2_v1'] = true,
 		['raptor_land_kamikaze_basic_t4_v1'] = true,
 		['raptor_land_kamikaze_emp_t4_v1'] = true,
+		['scavmist'] = true,
+		['scavmistxl'] = true,
+		['scavmistxxl'] = true,
 	}
 	-- convert unitname -> unitDefID
 	local tokillUnits = {}
@@ -86,6 +89,9 @@ if gadgetHandler:IsSyncedCode() then
 		['raptor_land_kamikaze_emp_t2_v1'] = true,
 		['raptor_land_kamikaze_basic_t4_v1'] = true,
 		['raptor_land_kamikaze_emp_t4_v1'] = true,
+		['scavmist'] = true,
+		['scavmistxl'] = true,
+		['scavmistxxl'] = true,
 	}
 	-- convert unitname -> unitDefID
 	local todenyUnits = {}
