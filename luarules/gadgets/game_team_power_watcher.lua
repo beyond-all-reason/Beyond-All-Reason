@@ -43,26 +43,17 @@ GG.PowerLib = {
     --teams
     ScavengerTeam = nil,
     RaptorTeam = nil,
+    NeutralTeam = nil,
     AITeams = {},
-    HumanTeams = {},
+    HumanTeams = {}
 }
 
 local spGetGameSeconds = Spring.GetGameSeconds
 
---local GG.PowerLib.UnitsWithPower = {}
 local teamList = Spring.GetTeamList()
-local neutralTeamNumber
---local GG.PowerLib.TeamPowers = {}
---local GG.PowerLib.PeakTeamPowers = {}
 
 local testPowerTable = {}
 local testPowerNumber = 0
-
---AI team lists
--- local GG.PowerLib.ScavengerTeam
--- local GG.PowerLib.RaptorTeam
--- local GG.PowerLib.AITeams = {}
--- local GG.PowerLib.HumanTeams = {}
 
 --decipher human vs ai vs neutral vs defense mode ai's 
 for _, teamID in ipairs(teamList) do
@@ -74,7 +65,7 @@ for _, teamID in ipairs(teamList) do
     elseif select (4, Spring.GetTeamInfo(teamID, false)) then
         GG.PowerLib.AITeams[teamID] = true
     elseif teamID == tonumber(teamList[#teamList]) then
-        neutralTeamNumber = teamID
+        GG.PowerLib.NeutralTeam = teamID
     else
         GG.PowerLib.HumanTeams[teamID] = true
     end
@@ -136,7 +127,7 @@ function GG.PowerLib.HighestTeamPower()--HighestTeamPower() returns the highest 
     local highestTeamID = nil
 
     for teamID, power in pairs(GG.PowerLib.TeamPowers) do
-        if teamID ~= neutralTeamNumber and teamID ~= GG.PowerLib.ScavengerTeam and teamID ~= GG.PowerLib.RaptorTeam then
+        if teamID ~= GG.PowerLib.NeutralTeam and teamID ~= GG.PowerLib.ScavengerTeam and teamID ~= GG.PowerLib.RaptorTeam then
             if power > highestPower then
                 highestPower = power
                 highestTeamID = teamID
@@ -153,7 +144,7 @@ function GG.PowerLib.AverageTeamPower()--AverageTeamPower() returns the average 
     local teamCount = 0
 
     for id, power in pairs(GG.PowerLib.TeamPowers) do
-        if id ~= neutralTeamNumber and id ~= GG.PowerLib.ScavengerTeam and id ~= GG.PowerLib.RaptorTeam then
+        if id ~= GG.PowerLib.NeutralTeam and id ~= GG.PowerLib.ScavengerTeam and id ~= GG.PowerLib.RaptorTeam then
             totalPower = totalPower + power
             teamCount = teamCount + 1
         end
@@ -169,7 +160,7 @@ function GG.PowerLib.LowestTeamPower()--LowestTeamPower() returns the lowest non
     local lowestTeamID = nil
 
     for teamID, power in pairs(GG.PowerLib.TeamPowers) do
-        if teamID ~= neutralTeamNumber and teamID ~= GG.PowerLib.ScavengerTeam and teamID ~= GG.PowerLib.RaptorTeam then
+        if teamID ~= GG.PowerLib.NeutralTeam and teamID ~= GG.PowerLib.ScavengerTeam and teamID ~= GG.PowerLib.RaptorTeam then
             if power < lowestPower then
                 lowestPower = power
                 lowestTeamID = teamID
@@ -320,7 +311,7 @@ function GG.PowerLib.AverageTechGuesstimate()--AverageTechGuesstimate() compares
     local teamCount = 0
 
     for id, power in pairs(GG.PowerLib.TeamPowers) do
-        if id ~= neutralTeamNumber and id ~= GG.PowerLib.ScavengerTeam and id ~= GG.PowerLib.RaptorTeam then
+        if id ~= GG.PowerLib.NeutralTeam and id ~= GG.PowerLib.ScavengerTeam and id ~= GG.PowerLib.RaptorTeam then
             totalPower = totalPower + power
             teamCount = teamCount + 1
         end
@@ -410,7 +401,7 @@ function GG.PowerLib.HighestPeakPower() --HighestPeakPower() returns the highest
     local highestTeamID = nil
 
     for id, power in pairs(GG.PowerLib.PeakTeamPowers) do
-        if id ~= neutralTeamNumber and id ~= GG.PowerLib.ScavengerTeam and id ~= GG.PowerLib.RaptorTeam then
+        if id ~= GG.PowerLib.NeutralTeam and id ~= GG.PowerLib.ScavengerTeam and id ~= GG.PowerLib.RaptorTeam then
             if power > highestPower then
                 highestPower = power
                 highestTeamID = id
