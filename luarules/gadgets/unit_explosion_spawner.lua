@@ -162,7 +162,6 @@ local function SpawnUnit(spawnData)
 					local maxHealth = select(2, spGetUnitHealth(unitID))
 					local paralyzeTime = maxHealth + ((maxHealth/30)*spawnDef.stun)
 					spSetUnitHealth(unitID, {paralyze = paralyzeTime })
-					Spring.Echo("Step 4, max health", maxHealth)
 				end
 			end
 			if not unitID then
