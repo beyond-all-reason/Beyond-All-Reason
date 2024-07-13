@@ -193,8 +193,8 @@ local function handleSetCustomFilter(_, args)
 		if token == "Aircraft" then
 			rules.aircraftRule = simpleUdefRule(invert, "canFly")
 		elseif token == "Builder" then
-			rules.builderRule = invertCurry(invert, function(udef)
-				return udef.builder and not udef.canresurrect
+			rules.builderRule = invertCurry(invert, function(udef, udefid)
+				return builderFilter[udefid] and not udef.canResurrect
 			end)
 		elseif token == "Buildoptions" then
 			rules.buildOptionsRule = notEmptyUdefRule(invert, "buildOptions")
@@ -251,18 +251,16 @@ local function handleSetCustomFilter(_, args)
 		-- hotkey rules
 		elseif token == "InHotkeyGroup" then
 			rules.inHotKeyGroup = invertCurry(invert, function(_, _, uid)
-		 		return Spring.GetUnitGroup(uid) ~= nil
+				return Spring.GetUnitGroup(uid) ~= nil
 			end)
 		elseif token == "InGroup" then
-			local group = getNextToken()
+			local group = tonumber(getNextToken())
 			if not group then
 				break
 			end
 
 			rules.inGroup = invertCurry(invert, function(_, _, uid, selectGroup)
 				local unitGroup = Spring.GetUnitGroup(uid)
-				print("unitGroup: " .. unitGroup)
-				print("selectGroup: " .. selectGroup)
 				return unitGroup == selectGroup
 			end, group)
 
@@ -313,9 +311,11 @@ local function handleSetCustomFilter(_, args)
 			print(minRange)
 
 			rules.weaponRangeRule = invertCurry(invert, function(udef, _, _, minRange)
-				-- could replace this for loop with a lookup table storing the max weapon range
-				-- most units don't have many weapons though
-				for _name, weapondef in pairs(udef.weapondefs) do
+				if udef.wDefs == nil then
+					return false
+				end
+
+				for _name, weapondef in pairs(udef.wDefs) do
 					if weapondef.range > minRange then
 						return true
 					end
@@ -332,6 +332,11 @@ local function handleSetCustomFilter(_, args)
 			print(category)
 
 			rules.categoryRule = invertCurry(invert, function(udef, _, _, category)
+				if udef.category == nil then
+					print(udef)
+					return false
+				end
+
 				return stringContains(udef.category, category)
 			end, category)
 		elseif token == "IdMatches" then
