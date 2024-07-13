@@ -19,7 +19,7 @@ return {
 		idletime = 1800,
 		leavetracks = true,
 		mass = 150,
-		health = 450,
+		health = 500,
 		maxslope = 14,
 		speed = 51.0,
 		maxwaterdepth = 12,

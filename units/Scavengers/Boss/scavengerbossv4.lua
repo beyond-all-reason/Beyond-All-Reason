@@ -7,8 +7,8 @@ end
 local baseValues = { --format: {value, multiplier}
 
 	--health related
-	autoHeal = { 10, 1.15 },
-	health = { 650000, 1.15 },
+	autoHeal = { 10 * playerCountScale, 1.15 },
+	health = { math.min(800000 * playerCountScale, 10000000), 1.15 },
 
 	--DPS related
 	botCannonProjectiles = { 3 * playerCountScale, 1.15 },
