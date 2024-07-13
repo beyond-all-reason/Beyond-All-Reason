@@ -156,8 +156,9 @@ if gadgetHandler:IsSyncedCode() then
 	HumanTechLevel = GG.PowerLib.AverageTechGuesstimate()
 
 	--dynamic difficulty stuff
-	local dynDifficulty0to1
-	local dynDifficultyClamped -- ranges from .85 to 1.05 based on dynDifficulty0to1
+	local dynDifficulty0to1 -- ranges from 0-1 based on if the scavengers last wave compared against all non-scav/raptor team powers. 1/5th = 0, 1/3rd = 1 with a linear progression between
+	local dynDifficultyClamped -- ranges from .85 to 1.05 based on dynDifficulty0to1 with a linear progression in between.
+	
 	local peakScavPower
 	local totalPlayerTeamPower
 
