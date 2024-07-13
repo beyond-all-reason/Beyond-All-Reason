@@ -38,7 +38,7 @@ static-var  gun_1;
 
 
 
-Create()
+Create ()
 {
 	spin prop around z-axis speed <400>;
 	hide wake;
@@ -52,17 +52,17 @@ Create()
 
 
 
-SetStunned(State)
+SetStunned (State)
 {
     Stunned = State;
 }
 
 
-StartMoving()
+StartMoving ()
 {
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
-	while( TRUE )
+	while ( TRUE )
 	{
 		emit-sfx 1024 + 0 from wake;
 		sleep 250;
@@ -72,25 +72,25 @@ StartMoving()
 	}
 }
 
-StopMoving()
+StopMoving ()
 {
 	signal SIGNAL_MOVE;
 }
 
-AimPrimary(heading, pitch)
+AimPrimary (heading, pitch)
 {
-	return(1);
+	return (1);
 }
 
-AimFromPrimary(piecenum)
+AimFromPrimary (piecenum)
 {
     piecenum=aimfrom;
 }
 
-FirePrimary()
+FirePrimary ()
 {
 	
-	if( gun_1 == 0)
+	if ( gun_1 == 0)
 	{
 		emit-sfx 1024 + 0 from flare1;
 		emit-sfx 1024 + 1 from flare1;
@@ -115,9 +115,9 @@ Shot1 () {
 	gun_1 = !gun_1;
 }
 
-QueryPrimary(piecenum)
+QueryPrimary (piecenum)
 {
-	if( gun_1 == 0)
+	if ( gun_1 == 0)
 	{
 		piecenum = flare1;
 	} else {
@@ -125,14 +125,14 @@ QueryPrimary(piecenum)
 	}
 }
 
-SweetSpot(piecenum)
+SweetSpot (piecenum)
 {
 	piecenum = base;
 }
 
-Killed(severity, corpsetype)
+Killed (severity, corpsetype)
 {
-	if( severity <= 25 )
+	if ( severity <= 25 )
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
@@ -141,7 +141,7 @@ Killed(severity, corpsetype)
 		explode wake type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
-	if( severity <= 50 )
+	if ( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
@@ -150,7 +150,7 @@ Killed(severity, corpsetype)
 		//explode wake type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
-	if( severity <= 99 )
+	if ( severity <= 99 )
 	{
 		corpsetype = 3 ;
 		explode base type FIRE | SMOKE | NOHEATCLOUD;

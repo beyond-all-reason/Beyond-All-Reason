@@ -30,13 +30,13 @@ static-var  activated, restore_delay, animating, shooting, shotcount, deployed, 
 
 
 
-SetStunned(State)
+SetStunned (State)
 {
     Stunned = State;
 }
 
 
-Create()
+Create ()
 {
 	//spin prop around z-axis speed <400>;
 	hide flare;
@@ -45,30 +45,30 @@ Create()
 	Stunned = 0;
 	activated = 0;
 	animating = 0;
-	//call-script InitState();
+	//call-script InitState ();
 	restore_delay = 3000;
 	timeLeft = restore_delay;//seems needed to avoid instant cancellation of first aiming anims
-	call-script TB_Init();
+	call-script TB_Init ();
 	
 	shooting = 0;
 	shotcount = 0;
-	while( get BUILD_PERCENT_LEFT )
+	while ( get BUILD_PERCENT_LEFT )
 	{
 		sleep 250;
 	}
 	//spin dish around y-axis speed <90>;
 }
 
-SetMaxReloadTime(reloadMS)
+SetMaxReloadTime (reloadMS)
 {
 	restore_delay = reloadMS * 2;
 }
 
 
-Propcontrol()
+Propcontrol ()
 {
 	var currentSpeed;
-	while(1)
+	while (1)
 	{
 		currentSpeed = (get CURRENT_SPEED)*1000/TB_maxSpeed;
 		spin prop around z-axis speed <1.0>*currentSpeed accelerate <10.0>;
@@ -76,15 +76,15 @@ Propcontrol()
 	}
 }
 
-StartMoving(reversing)
+StartMoving (reversing)
 {
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
 	START_TILTBANK;
-	start-script Propcontrol();
+	start-script Propcontrol ();
 }
 
-StopMoving()
+StopMoving ()
 {
 	signal SIGNAL_MOVE;
 	STOP_TILTBANK;
@@ -92,21 +92,21 @@ StopMoving()
 }
 
 
-TimeToRestore(addTime){
+TimeToRestore (addTime){
 	signal SIGNAL_RESTORE;
 	set-signal-mask SIGNAL_RESTORE;
     // This function may not be signal terminated
     // If it has to be, it _must_ be immediately restarted
     // PROBLEM: the time that is slept depends on number of aim calls.
-    while((timeLeft > 1) || Stunned){
-		//get PRINT(timeLeft, get GAME_FRAME);
+    while ( (timeLeft > 1) || Stunned){
+		//get PRINT (timeLeft, get GAME_FRAME);
         addTime = timeLeft;
         timeLeft = 1;
         sleep addTime;//can sometimes sleep 6000 but never wake up again?
     }
     // The restore section must be atomic :/
 
-	call-script close();
+	call-script close ();
 
 
     timeLeft = 0;
@@ -116,7 +116,7 @@ TimeToRestore(addTime){
 
 
 
-open()
+open ()
 {	
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
@@ -164,7 +164,7 @@ open()
 
 }
 
-close()
+close ()
 {
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
@@ -222,15 +222,15 @@ close()
 
 
 /*
-InitState()
+InitState ()
 {
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
 }
 
-RequestState(requestedstate, currentstate)
+RequestState (requestedstate, currentstate)
 {
-	if( statechg_StateChanging )
+	if ( statechg_StateChanging )
 	{
 		statechg_DesiredState = requestedstate;
 		return (0);
@@ -238,16 +238,16 @@ RequestState(requestedstate, currentstate)
 	statechg_StateChanging = TRUE;
 	currentstate = statechg_DesiredState;
 	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
+	while ( statechg_DesiredState != currentstate )
 	{
-		if( statechg_DesiredState == 0 )
+		if ( statechg_DesiredState == 0 )
 		{
-			call-script activatescr();
+			call-script activatescr ();
 			currentstate = 0;
 		}
-		if( statechg_DesiredState == 1 )
+		if ( statechg_DesiredState == 1 )
 		{
-			call-script deactivatescr();
+			call-script deactivatescr ();
 			currentstate = 1;
 		}
 	}
@@ -255,7 +255,7 @@ RequestState(requestedstate, currentstate)
 }
 //*/
 
-lua_UnitScriptLight(lightIndex, count)
+lua_UnitScriptLight (lightIndex, count)
 {
 	return 0;
 }
@@ -263,98 +263,98 @@ lua_UnitScriptLight(lightIndex, count)
 #define SMOKEPIECE base
 #include "smokeunit_thread_nohit.h"
 /*
-Activate()
+Activate ()
 {
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
-	start-script activatescr();//was 0
-	//start-script RequestState(0);//was 0
+	start-script activatescr ();//was 0
+	//start-script RequestState (0);//was 0
 }
 
-Deactivate()
+Deactivate ()
 {
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
-	start-script deactivatescr();//was 1
+	start-script deactivatescr ();//was 1
 }//*/
 
 
 
-AimPrimary(heading, pitch)
+AimPrimary (heading, pitch)
 {
-	//get PRINT(1);
+	//get PRINT (1);
 
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 	if (timeLeft == 0)
     {
-        start-script TimeToRestore();
+        start-script TimeToRestore ();
     }
     timeLeft = restore_delay;
 	
-	//get PRINT(11);
+	//get PRINT (11);
 	while (animating) {
-		//get PRINT(71);
+		//get PRINT (71);
 		sleep 150;
 	}
 	
    // if (shooting==1) {
-		//get PRINT(7111);
-		//start-script RestoreAfterDelay();
-		//return(0);
+		//get PRINT (7111);
+		//start-script RestoreAfterDelay ();
+		//return (0);
 	//}
 	
 
-	if( !activated ) {
-		//get PRINT(21);
-		call-script open();
+	if ( !activated ) {
+		//get PRINT (21);
+		call-script open ();
 	}
-	//get PRINT(111);
+	//get PRINT (111);
 	activated = 1;//requested open (might be fully open by now?)
 	//todo, remove maybe?
 	
     if (deployed==0) {
-		//get PRINT(711);
+		//get PRINT (711);
 		sleep 150;
 	}
 		//sleep 150;
-	//get PRINT(1111);
+	//get PRINT (1111);
 	//modpitch = pitch + 90;
 	turn turret to z-axis heading speed <50.000000>;
 	//turn sleeve to x-axis <0.000000> - modpitch speed <50.000000>;
 	turn sleeve to x-axis <-90.000000> - pitch speed <50.000000>;
 	wait-for-turn turret around z-axis;
 	wait-for-turn sleeve around x-axis;
-	//get PRINT(11111);
-	//start-script RestoreAfterDelay();
+	//get PRINT (11111);
+	//start-script RestoreAfterDelay ();
 	return (1);
 }
 
-FirePrimary()
+FirePrimary ()
 {
 
     shooting=1;
     shotcount = shotcount + 1;
     emit-sfx 1024 + 2 from flare;
-    call-script lua_UnitScriptLight(1, shotcount);
+    call-script lua_UnitScriptLight (1, shotcount);
 	sleep 1400;
 	shooting=0;
 }
 
-AimFromPrimary(piecenum)
+AimFromPrimary (piecenum)
 {
 	piecenum = aimfromy;
 }
 
-QueryPrimary(piecenum)
+QueryPrimary (piecenum)
 {
 	piecenum = flare;
 }
 
 
-Killed(severity, corpsetype)
+Killed (severity, corpsetype)
 {
-	if( severity <= 25 )
+	if ( severity <= 25 )
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
@@ -366,9 +366,9 @@ Killed(severity, corpsetype)
 		explode condar type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type BITMAPONLY | NOHEATCLOUD;
 		explode flare type BITMAPONLY | NOHEATCLOUD;
-		return(corpsetype);
+		return (corpsetype);
 	}
-	if( severity <= 50 )
+	if ( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
@@ -379,9 +379,9 @@ Killed(severity, corpsetype)
 		explode condar type FALL | NOHEATCLOUD;
 		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		return(corpsetype);
+		return (corpsetype);
 	}
-	if( severity <= 99 )
+	if ( severity <= 99 )
 	{
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
@@ -393,7 +393,7 @@ Killed(severity, corpsetype)
 		explode condar type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		return(corpsetype);
+		return (corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
