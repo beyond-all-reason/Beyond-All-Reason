@@ -43,7 +43,7 @@ end
 -- (3) Damage Immunities. Units can be made immune to area damage via their customParams.
 --
 --	area_immunities  -  <string> | nil  -  Space-delimited list of damage types to which the unit is immune.
---	                                       The base immunities are "acid", "napalm", and "all".
+--	                                       The base immunities are "acid", "fire", and "all".
 --
 ---------------------------------------------------------------------------------------------------------------
 
@@ -432,7 +432,8 @@ end
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projID, attackID, attackDefID, attackTeam)
 	if timedAreaParams[weaponDefID] then
 		local weaponParams = timedAreaParams[weaponDefID]
-		if damageImmunities[unitDefID] and damageImmunities[unitDefID][weaponParams.area_damagetype] then 
+		local immunities = damageImmunities[unitDefID]
+		if immunities and immunities[weaponParams.area_damagetype] or immunities["all"] then 
 			return 0, 0
 		end
 		return damage * loopDuration, areaImpulseRate
