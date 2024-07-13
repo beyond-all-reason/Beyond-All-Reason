@@ -39,7 +39,7 @@ end
 local legionLobberUnitsT1 = "leglob_scav leggob_scav leghades_scav leghelios_scav legsh_scav"
 local legionLobberUnitsT2 = "legcen_scav legkark_scav legbal_scav leggat_scav legrail_scav legbar_scav legmh_scav legner_scav"
 local legionLobberUnitsT3 = "legstr_scav leginfestor_scav legbart_scav legsrail_scav legmrv_scav legfloat_scav"
-local legionLobberUnitsT4 = "leginf_scav legheattank_scav legskirmtank_scav leginc_scav legmed_scav legvroc_scav"
+local legionLobberUnitsT4 = "leginf_scav legheattank_scav legaskirmtank_scav leginc_scav legmed_scav legvroc_scav"
 
 customDefs.armsilo = {
 	weapondefs = {
