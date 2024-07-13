@@ -3,7 +3,7 @@
 
 piece  rtube, ltube, flare1, flare2, base, tbrace, ring, wake, aimfrom, prop;
 
-static-var Stunned;
+static-var Stunned, restore_delay, timeLeft;
 
 // Signal definitions
 #define SIGNAL_AIM1				2
@@ -40,14 +40,55 @@ static-var  gun_1;
 
 Create ()
 {
-	spin prop around z-axis speed <400>;
+	//spin prop around z-axis speed <400>;
 	hide wake;
 	hide flare1;
 	hide flare2;
 	gun_1 = 0;//0
 	
+	restore_delay = 3000;
+	timeLeft = restore_delay;//seems needed to avoid instant cancellation of first aiming anims
+	call-script TB_Init ();
+
 	
+}
+
+Propcontrol ()
+{
+	var currentSpeed;
+	while (1)
+	{
+		currentSpeed = (get CURRENT_SPEED)*1000/TB_maxSpeed;
+		spin prop around z-axis speed <1.0>*currentSpeed accelerate <10.0>;
+		sleep 100;
+	}
+}
+
+
+
+
+StartMoving (reversing)
+{
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	START_TILTBANK;
+	start-script Propcontrol ();
+	while ( TRUE )
+	{
+		emit-sfx 1024 + 0 from wake;
+		sleep 250;
+		emit-sfx 1024 + 0 from wake;
+		emit-sfx 1024 + 1 from wake;
+		sleep 250;
+	}
 	
+}
+
+StopMoving ()
+{
+	signal SIGNAL_MOVE;
+	STOP_TILTBANK;
+	stop-spin prop around z-axis decelerate <10.0>;
 }
 
 
@@ -58,36 +99,18 @@ SetStunned (State)
 }
 
 
-StartMoving ()
-{
-	signal SIGNAL_MOVE;
-	set-signal-mask SIGNAL_MOVE;
-	while ( TRUE )
-	{
-		emit-sfx 1024 + 0 from wake;
-		sleep 250;
-		emit-sfx 1024 + 0 from wake;
-		emit-sfx 1024 + 1 from wake;
-		sleep 250;
-	}
-}
 
-StopMoving ()
-{
-	signal SIGNAL_MOVE;
-}
-
-AimPrimary (heading, pitch)
+AimWeapon1 (heading, pitch)
 {
 	return (1);
 }
 
-AimFromPrimary (piecenum)
+AimFromWeapon1 (piecenum)
 {
     piecenum=aimfrom;
 }
 
-FirePrimary ()
+FireWeapon1 ()
 {
 	
 	if ( gun_1 == 0)
@@ -115,7 +138,7 @@ Shot1 () {
 	gun_1 = !gun_1;
 }
 
-QueryPrimary (piecenum)
+QueryWeapon1 (piecenum)
 {
 	if ( gun_1 == 0)
 	{
@@ -125,10 +148,6 @@ QueryPrimary (piecenum)
 	}
 }
 
-SweetSpot (piecenum)
-{
-	piecenum = base;
-}
 
 Killed (severity, corpsetype)
 {

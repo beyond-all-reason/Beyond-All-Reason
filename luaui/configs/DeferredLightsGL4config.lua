@@ -4632,6 +4632,7 @@ local unitLights = {
 		nukelight = {
 			lightType = 'cone',
 			pieceName = 'firing1',
+			alliedOnly = true,
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 250,
 							dirx = 0, diry = 0, dirz = 1, theta = 0.07,
 							r = 1, g = 0.2, b = 0.2, a = 0.85,
@@ -4641,6 +4642,7 @@ local unitLights = {
 		nukelight2 = {
 			lightType = 'cone',
 			pieceName = 'firing2',
+			alliedOnly = true,
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 250,
 							dirx = 0, diry = 0, dirz = 1, theta = 0.07,
 							r = 1, g = 0.2, b = 0.2, a = 0.85,
@@ -5187,6 +5189,7 @@ local unitLights = {
 		nukelight = {
 			lightType = 'cone',
 			pieceName = 'firing1',
+			alliedOnly = true,
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 250,
 							dirx = 0, diry = 0, dirz = 1, theta = 0.07,
 							r = 1, g = 1, b = 0.2, a = 0.85,
@@ -5196,6 +5199,7 @@ local unitLights = {
 		nukelight2 = {
 			lightType = 'cone',
 			pieceName = 'firing2',
+			alliedOnly = true,
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 250,
 							dirx = 0, diry = 0, dirz = 1, theta = 0.07,
 							r = 1, g = 1, b = 0.2, a = 0.85,

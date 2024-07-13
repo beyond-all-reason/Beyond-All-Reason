@@ -4,12 +4,14 @@
 
 piece  base, flare, tube, doorr, doorl, wake, firing,firing1,firing2, prop1, prop2;
 
-static-var  restore_delay, shotcount, silo_state, timeLeft, Stunned;
+static-var  restore_delay, shotcount, silo_state, timeLeft, missiles_stockpiled, Stunned, is_firing;
 // 0 = closed
 // 1 = opening
 // 2 = opened
 // 3 = closing, fired missile
 // 4 = closing, no missile fired
+
+//I can't see a way around using state switches here? it has to know what it's doing / has just done
 
 #define BASEPIECE base
 #define HITSPEED <25.0>
@@ -34,7 +36,7 @@ static-var  restore_delay, shotcount, silo_state, timeLeft, Stunned;
 #define SIGNAL_RESTORE			16
 
 
-Create()
+Create ()
 {
 	spin prop1 around z-axis speed <400>;
 	spin prop2 around z-axis speed <400>;
@@ -44,6 +46,8 @@ Create()
 	hide firing1;
 	hide firing2;
 	shotcount = 0;
+	is_firing = 0;
+	missiles_stockpiled = 0;
 
 	restore_delay = 3000;
 	timeLeft = restore_delay;//seems needed to avoid instant cancellation of first aiming anims
@@ -55,19 +59,24 @@ Create()
 
 
 
-SetStunned(State)
+
+SetStunned (State)
 {
     Stunned = State;
 }
 
 
-lua_UnitScriptLight(lightIndex, count) 
+lua_UnitScriptLight (lightIndex, count) 
 {
 	return 0;
 }
 
 OpenSilo()
 {
+    start-script TimeToRestore ();
+    timeLeft = restore_delay;
+
+	is_firing = 1;
 	show firing;
 	show firing1;
 	show firing2;
@@ -99,6 +108,7 @@ OpenSilo()
 
 CloseSiloDoors()
 {
+	is_firing = 0;
 	turn firing1 to y-axis <0> speed <3>;
 	turn firing2 to y-axis <0> speed <3>;
 	stop-spin firing around z-axis decelerate 25;
@@ -107,9 +117,12 @@ CloseSiloDoors()
 
 	turn tube to x-axis <0> speed <15>;
 	wait-for-turn tube around x-axis;
-	hide firing;
-	hide firing1;
-	hide firing2;
+	
+	if (missiles_stockpiled==0) {
+		hide firing;
+		hide firing1;
+		hide firing2;
+	}
 
 	turn doorl to z-axis <0> speed <25>;
 	turn doorr to z-axis <0> speed <25>;
@@ -129,7 +142,7 @@ CloseSilo_Fired()
 
 
 
-TimeToRestore(addTime){
+TimeToRestore (addTime){
 	signal SIGNAL_RESTORE;
 	set-signal-mask SIGNAL_RESTORE;
     // This function may not be signal terminated
@@ -161,19 +174,19 @@ TimeToRestore(addTime){
 
 
 
-AimPrimary(heading, pitch)
+AimWeapon1 (heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1 ()
 {
 	return (1);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1 (piecenum)
 {
 	piecenum = firing;
 	return (0);
@@ -185,7 +198,7 @@ QueryPrimary(piecenum)
 
 
 
-AimSecondary(heading, pitch)
+AimWeapon2 (heading, pitch)
 {
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
@@ -197,7 +210,7 @@ AimSecondary(heading, pitch)
 	return (0);
 }
 
-FireSecondary()
+FireWeapon2 ()
 {
 	shotcount = shotcount + 1;
 	call-script lua_UnitScriptLight(1, shotcount);
@@ -206,26 +219,60 @@ FireSecondary()
 	return (0);
 }
 
-QuerySecondary(piecenum)
+QueryWeapon2 (piecenum)
 {
 	piecenum = flare;
 	return (0);
 }
 
-SweetSpot(piecenum)
+
+
+
+SetStockpile (num_stockpiled)
 {
-	piecenum = base;
-	return (0);
+	if (num_stockpiled == 0)
+	{
+		
+		if (NOT firing) {
+			hide firing;
+			hide firing1;
+			hide firing2;
+		}
+		
+		sleep 100;
+		missiles_stockpiled = 0;
+	}
+	if (num_stockpiled >= 1)
+	{
+		show firing;
+		show firing1;
+		show firing2;
+		sleep 100;
+		missiles_stockpiled = 1;
+	}
 }
 
 
 
+Propcontrol ()
+{
+	var currentSpeed;
+	while (1)
+	{
+		currentSpeed = (get CURRENT_SPEED)*1000/TB_maxSpeed;	
+		spin prop1 around z-axis speed <1.0>*currentSpeed accelerate <10.0>;
+		spin prop2 around z-axis speed <1.0>*currentSpeed accelerate <10.0>;
+		sleep 100;
+	}
+}
 
 
-StartMoving()
+
+StartMoving ()
 {
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
+	start-script Propcontrol ();
 	while( TRUE )
 	{
 		emit-sfx 1024 + 0 from wake;
@@ -236,27 +283,29 @@ StartMoving()
 	}
 }
 
-StopMoving()
+StopMoving ()
 {
 	signal SIGNAL_MOVE;
+	stop-spin prop1 around z-axis decelerate <10.0>;
+	stop-spin prop2 around z-axis decelerate <10.0>;
 }
 
 
-Killed(severity, corpsetype)
+Killed (severity, corpsetype)
 {
-	if( severity <= 25 )
+	if ( severity <= 25 )
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
-	if( severity <= 50 )
+	if ( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
-	if( severity <= 99 )
+	if ( severity <= 99 )
 	{
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
