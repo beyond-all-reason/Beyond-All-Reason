@@ -268,7 +268,7 @@ local function buildUnitDefs()
 	end
 
 	local function isBuildPower(unitDefID, unitDef)
-		return unitDef.buildSpeed and (unitDef.buildSpeed > 0)
+		return unitDef.buildSpeed and (unitDef.buildSpeed > 0) and unitDef.canAssist
 	end
 
 	local function isArmyUnit(unitDefID, unitDef)
