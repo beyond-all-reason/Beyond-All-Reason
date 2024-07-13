@@ -51,8 +51,8 @@ end
 ---- Configuration
 
 local areaImpulseRate   = 0.25                 -- Multiplies the impulse of area weapons. Tbh should be 0 or 1.
-local frameResolution   = 2                    -- The bin size, in frames, to loop over groups of areas.
-local loopDuration      = 1/3                  -- The time between area procs. Adjusts damage automagically.
+local frameResolution   = 1                    -- The bin size, in frames, to loop over groups of areas.
+local loopDuration      = 1/2                  -- The time between area procs. Adjusts damage automagically.
 
 local briefTimedAreas   = false                -- Whether or not short-lived areas are spawned. Can reduce FPS.
 local shieldSuppression = true                 -- Whether or not shields suppress timed areas. Can reduce FPS.
