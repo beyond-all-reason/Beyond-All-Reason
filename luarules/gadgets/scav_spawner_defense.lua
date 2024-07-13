@@ -153,7 +153,14 @@ if gadgetHandler:IsSyncedCode() then
 	}
 	CommandersPopulation = 0
 	--FrontbusterPopulation = 0
-	HumanTechLevel = 0
+	HumanTechLevel = GG.PowerLib.AverageTechGuesstimate()
+
+	--dynamic difficulty stuff
+	local dynDifficulty0to1
+	local dynDifficultyClamped -- ranges from .85 to 1.05 based on dynDifficulty0to1
+	local peakScavPower
+	local totalPlayerTeamPower
+
 
 	--------------------------------------------------------------------------------
 	-- Teams
@@ -968,11 +975,34 @@ if gadgetHandler:IsSyncedCode() then
 		return nil
 	end
 
+	local function calculateDifficultyMultiplier(peakScavPower, totalPlayerTeamPower)
+		-- Calculate the ratio
+		local ratio = peakScavPower / totalPlayerTeamPower
+		Spring.Echo("ratio", ratio)
+	
+		-- Convert the ratio to a value between 0 and 1 for ratios between 1/5 and 1/3
+		if ratio >= 1/3 then
+			dynDifficulty0to1 = 0
+		elseif ratio <= 1/5 then
+			dynDifficulty0to1 = 1
+		else
+			dynDifficulty0to1 = (1/3 - ratio) / (1/3 - 1/5) --because 1/5 seems to be where players are doing well against scavs, while 1/3rd means they're losing.
+		end
+	
+		-- Calculate dynDifficultyClamped based on dynDifficulty0to1
+		dynDifficultyClamped = 0.85 + (dynDifficulty0to1 * (1.05 - 0.85)) --change 1.05 and .85 in these parenthesis to change the clamping range for the multiplier.
+	end
+	
 	function Wave()
 
 		if gameOver then
 			return
 		end
+
+		peakScavPower = GG.PowerLib.TeamPeakPower(scavTeamID)
+		totalPlayerTeamPower = GG.PowerLib.TotalTeamsPower()
+		HumanTechLevel = GG.PowerLib.AverageTechGuesstimate()
+		calculateDifficultyMultiplier(peakScavPower, totalPlayerTeamPower)
 
 		squadManagerKillerLoop()
 
@@ -2039,10 +2069,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-		if unitTeam ~= scavTeamID and unitTeam ~= gaiaTeamID then
-			local unitTech = tonumber(UnitDefs[unitDefID].customParams.techlevel)
-			HumanTechLevel = math.max(HumanTechLevel, unitTech)
-		end
 		if unitTeam ~= scavTeamID then
 			capturableUnits[unitID] = true
 		end
