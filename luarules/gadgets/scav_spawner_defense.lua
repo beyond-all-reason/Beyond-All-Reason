@@ -979,7 +979,6 @@ if gadgetHandler:IsSyncedCode() then
 	local function calculateDifficultyMultiplier(peakScavPower, totalPlayerTeamPower)
 		-- Calculate the ratio
 		local ratio = peakScavPower / totalPlayerTeamPower
-		Spring.Echo("ratio", ratio)
 	
 		-- Convert the ratio to a value between 0 and 1 for ratios between 1/5 and 1/3
 		if ratio >= 1/3 then
