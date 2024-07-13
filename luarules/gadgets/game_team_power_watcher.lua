@@ -13,44 +13,37 @@ end
 
 if not gadgetHandler:IsSyncedCode() then return end
 
-local spGetGameFrame          = Spring.GetGameFrame
-local spSetUnitRulesParam     = Spring.SetUnitRulesParam
-local spGetUnitRulesParam = Spring.GetUnitRulesParam
-local spGetTeamResources = Spring.GetTeamResources --(teamID, "metal"|"energy") return nil | currentLevel
-local spGetUnitDefID        = Spring.GetUnitDefID
-
-local spGetTeamList			= Spring.GetTeamList
-local spGetUnitTeam 		= Spring.GetUnitTeam
+GG.TeamPower = {
+    TeamPower = TeamPower,
+    HighestTeamPower = HighestTeamPower,
+    AverageTeamPower = AverageTeamPower,
+    LowestTeamPower = LowestTeamPower,
+    HighestHumanTeamPower = HighestHumanTeamPower,
+    AverageHumanTeamPower = AverageHumanTeamPower,
+    LowestHumanTeamPower = LowestHumanTeamPower,
+    HighestAlliedTeamPower = HighestAlliedTeamPower,
+    AverageAlliedTeamPower = AverageAlliedTeamPower,
+    LowestAlliedTeamPower = LowestAlliedTeamPower,
+    AverageTechGuesstimate = AverageTechGuesstimate,
+    AverageHumanTechGuesstimate = AverageHumanTechGuesstimate,
+    AverageAlliedTechGuesstimate = AverageAlliedTechGuesstimate,
+    TeamPeakPower = TeamPeakPower,
+    HighestPeakPower = HighestPeakPower,
+    HighestAlliedPeakPower = HighestAlliedPeakPower,
+    AverageHumanPeakPower = AverageHumanPeakPower,
+    AverageAlliedPeakPower = AverageAlliedPeakPower
+}
 
 local spGetGameSeconds = Spring.GetGameSeconds
 
-local random = math.random
-local math_min = math.min
-local sin    = math.sin
-local cos    = math.cos
-
-local GAME_SPEED = Game.gameSpeed
-
 local unitsWithPower = {}
-local teamList = spGetTeamList()
+local teamList = Spring.GetTeamList()
 local neutralTeamNumber
 local teamPowers = {}
-local highestTeamPower = {}
-
-local averageTeamPower = 0
-local lowestTeamPower
-local lowestHumanTeamPower = {}
-local averageAlliedTeamPower = 0
-local averageHumanTeamPower = 0
-local averageTechGuesstimate = 0
-local averageAlliedTechGuesstimate = 0
-local averageHumanTechGuesstimate = 0
 local peakTeamPowers = {}
-local highestAlliedTeamPower = {}
-local highestPeakPower = {}
-local averagePeakPower = 0
-local averagePeakAlliedPower = 0
-local highestHumanTeamPower = {}
+
+local testPowerTable = {}
+local testPowerNumber = 0
 
 --AI team lists
 local scavTeam
@@ -101,23 +94,12 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
     teamPowers[unitTeam] = (teamPowers[unitTeam] + UnitDefs[unitDefID].power) or UnitDefs[unitDefID].power
     
     --temporary
-    highestTeamPower = HighestTeamPower()
-    averageTeamPower = AverageTeamPower()
+    testPowerTable = HighestAlliedPeakPower(unitTeam)
+    --Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, teamPowers[unitTeam], "test result", testPowerTable.teamID, testPowerTable.power)
 
+    testPowerNumber = AverageAlliedPeakPower(unitTeam)
+    Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, teamPowers[unitTeam], "test result", testPowerNumber)
 
-    averageHumanTeamPower = AverageHumanTeamPower()
-    averageAlliedTeamPower = AverageAlliedTeamPower(unitTeam)
-    averageTechGuesstimate = AverageTechGuesstimate()
-    averageAlliedTechGuesstimate = AverageAlliedTechGuesstimate(unitTeam)
-    averageHumanTechGuesstimate = AverageHumanTechGuesstimate()
-    --not tested yet
-    lowestTeamPower = LowestTeamPower()
-    lowestHumanTeamPower = LowestHumanTeamPower()
-    highestAlliedTeamPower = HighestAlliedTeamPower(unitTeam)
-    highestPeakPower = HighestPeakPower()
-    averagePeakPower = AverageHumanPeakPower()
-    averagePeakAlliedPower = AverageAlliedPeakPower(unitTeam)
-    highestHumanTeamPower = HighestHumanTeamPower()
 
     --update peak powers
     if teamPowers[unitTeam] and peakTeamPowers[unitTeam] < teamPowers[unitTeam] then
@@ -143,6 +125,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
     end
 end
 
+--t
 function TeamPower(teamID)
     for id, power in pairs(teamPowers) do
         if id == teamID then
@@ -152,7 +135,7 @@ function TeamPower(teamID)
     return 0
 end
 
-
+--t
 function HighestTeamPower()
     local highestPower = 0
     local highestTeamID = nil
@@ -169,14 +152,13 @@ function HighestTeamPower()
     return {teamID = highestTeamID, power = highestPower}
 end
 
-
+--t
 function AverageTeamPower()
     local totalPower = 0
     local teamCount = 0
 
     for id, power in pairs(teamPowers) do
         if id ~= neutralTeamNumber and id ~= scavTeam and id ~= raptorTeam then
-            --Spring.Echo("Average Power Team Factored", id)
             totalPower = totalPower + power
             teamCount = teamCount + 1
         end
@@ -186,7 +168,7 @@ function AverageTeamPower()
     return averagePower
 end
 
-
+--t
 function LowestTeamPower()
     local lowestPower = math.huge
     local lowestTeamID = nil
@@ -204,7 +186,7 @@ function LowestTeamPower()
 end
 
 
-
+--t
 function HighestHumanTeamPower()
     local highestPower = 0
     local highestTeamID = nil
@@ -221,7 +203,7 @@ function HighestHumanTeamPower()
     return {teamID = highestTeamID, power = highestPower}
 end
 
-
+--t
 function AverageHumanTeamPower()
     local totalPower = 0
     local teamCount = 0
@@ -237,7 +219,7 @@ function AverageHumanTeamPower()
     return averagePower
 end
 
-
+--t
 function LowestHumanTeamPower()
     local lowestPower = math.huge
     local lowestTeamID = nil
@@ -255,7 +237,7 @@ function LowestHumanTeamPower()
 end
 
 
-
+--t
 function HighestAlliedTeamPower(teamID)
     local allyTeamNum = select(6, Spring.GetTeamInfo(teamID))
     local highestPower = 0
@@ -273,7 +255,7 @@ function HighestAlliedTeamPower(teamID)
     return {teamID = highestTeamID, power = highestPower}
 end
 
-
+--t
 function AverageAlliedTeamPower(teamID)
     local allyTeamNum = select(6, Spring.GetTeamInfo(teamID))
     local totalPower = 0
@@ -290,7 +272,7 @@ function AverageAlliedTeamPower(teamID)
     return averagePower
 end
 
-
+--t
 function LowestAlliedTeamPower(teamID)
     local allyTeamNum = select(6, Spring.GetTeamInfo(teamID))
     local lowestPower = math.huge
@@ -309,8 +291,8 @@ function LowestAlliedTeamPower(teamID)
 end
 
 
-
-function AverageTechGuesstimate() --Excludes Neutral, Scavengers and Raptors. Guesses an equivalent average tech level based on power for all teams.
+--t
+function AverageTechGuesstimate()
     local totalPower = 0
     local teamCount = 0
 
@@ -336,8 +318,8 @@ function AverageTechGuesstimate() --Excludes Neutral, Scavengers and Raptors. Gu
     return techLevel
 end
 
-
-function AverageHumanTechGuesstimate() --Excludes AI's, Neutral, Scavengers and Raptors. Guesses an equivalent average tech level based on power for all humans.
+--t
+function AverageHumanTechGuesstimate()
     local totalPower = 0
     local teamCount = 0
 
@@ -363,8 +345,8 @@ function AverageHumanTechGuesstimate() --Excludes AI's, Neutral, Scavengers and 
     return techLevel
 end
 
-
-function AverageAlliedTechGuesstimate(teamID) --Excludes Neutral, Scavengers and Raptors. Guesses an equivalent average tech level based on power for all allied teams.
+--t
+function AverageAlliedTechGuesstimate(teamID)
     local allyTeamNum = select(6, Spring.GetTeamInfo(teamID))
     local totalPower = 0
     local teamCount = 0
@@ -390,6 +372,8 @@ function AverageAlliedTechGuesstimate(teamID) --Excludes Neutral, Scavengers and
     return techLevel
 end
 
+
+--t
 function TeamPeakPower(teamID)
     for id, power in pairs(peakTeamPowers) do
         if id == teamID then
@@ -399,6 +383,7 @@ function TeamPeakPower(teamID)
     return 0
 end
 
+--t
 function HighestPeakPower()
     local highestPower = 0
     local highestTeamID = nil
@@ -413,6 +398,7 @@ function HighestPeakPower()
     return {teamID = highestTeamID, power = highestPower}
 end
 
+--t
 function HighestAlliedPeakPower(teamID)
     local allyTeamNum = select(6, Spring.GetTeamInfo(teamID))
     local highestPower = 0
@@ -430,6 +416,7 @@ function HighestAlliedPeakPower(teamID)
     return {teamID = highestTeamID, power = highestPower}
 end
 
+--t
 function AverageHumanPeakPower()
     local totalPower = 0
     local teamCount = 0
@@ -445,12 +432,13 @@ function AverageHumanPeakPower()
     return averagePower
 end
 
+--t
 function AverageAlliedPeakPower(teamID)
     local allyTeamNum = select(6, Spring.GetTeamInfo(teamID))
     local totalPower = 0
     local teamCount = 0
 
-    for id, power in pairs(teamPowers) do
+    for id, power in pairs(peakTeamPowers) do
         if allyTeamNum == select(6, Spring.GetTeamInfo(id)) then
             totalPower = totalPower + power
             teamCount = teamCount + 1
