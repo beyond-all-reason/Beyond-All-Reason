@@ -194,7 +194,7 @@ for lvl, stats in pairs(lvlParams) do
 					spawns_surface = "LAND",
 					spawns_mode = "random",
                     spawns_ceg = "scav-spawnexplo",
-					spawns_stun = 3
+					spawns_stun = 2
 				},
 				damage = {
 					default = 0,
