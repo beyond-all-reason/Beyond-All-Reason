@@ -675,12 +675,21 @@ local function getWidgetHeightMax()
 end
 
 local function calculateWidgetDimensions()
+	-- calculate base for scaleMultiplier
 	scaleMultiplier = ui_scale * settings.widgetScale * viewScreenWidth / 3840
 
+	-- widget is not allowed to be too tall
 	widgetDimensions.height = math.min(
 		math.floor(defaults.metricDimensions.height * #metricsEnabled * scaleMultiplier),
 		getWidgetHeightMax())
 
+	-- every metric gets same amount of pixels
+	metricDimensions.height = math.floor(widgetDimensions.height / #metricsEnabled)
+
+	-- recalculate widget height based on metric height
+	widgetDimensions.height = metricDimensions.height * #metricsEnabled
+
+	-- scaleMultiplier has to be recalculated after potentially shrinking widget height
 	scaleMultiplier = widgetDimensions.height / (defaults.metricDimensions.height * #metricsEnabled)
 
 	widgetDimensions.width = math.floor(defaults.widgetDimensions.width * scaleMultiplier)
@@ -701,7 +710,6 @@ local function calculateWidgetDimensions()
 end
 
 local function calculateMetricDimensions()
-	metricDimensions.height = widgetDimensions.height / #metricsEnabled
 	metricDimensions.width = widgetDimensions.width
 end
 
