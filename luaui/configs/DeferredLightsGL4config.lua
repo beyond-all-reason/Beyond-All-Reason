@@ -2252,6 +2252,35 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
+	['legeconv'] = {
+		enabled1 = {
+			lightType = 'point',
+			pieceName = 'flare',
+			lightConfig = { posx = 0, posy = 13, posz = 0, radius = 35,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = 0.9, g = 0.9, b = 0.45, a = 0.2,
+							modelfactor = 0.4, specular = 0, scattering = 0.4, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		enabled2 = {
+			lightType = 'point',
+			pieceName = 'flare',
+			lightConfig = { posx = -14, posy = 6, posz = 0, radius = 32,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = 0.9, g = 0.9, b = 0.45, a = 0.1,
+							modelfactor = 0.4, specular = 0, scattering = 0.4, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		enabled3 = {
+			lightType = 'point',
+			pieceName = 'flare',
+			lightConfig = { posx = 14, posy = 6, posz = 0, radius = 32,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = 0.9, g = 0.9, b = 0.45, a = 0.1,
+							modelfactor = 0.4, specular = 0, scattering = 0.4, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
 	['legscout'] = {
 		bodylight = {
 			lightType = 'point',
@@ -20471,6 +20500,33 @@ local unitEventLightsNames = {
 					lifetime = 250, sustain = 15, animtype = 0},
 			},
 		},
+
+
+		['corsok'] = {
+			[1] = {
+				lightType = 'point',
+				pieceName = 'flare1',
+				lightName = 'corsokglow1',
+				alwaysVisible = true,
+				lightConfig = { posx = 0, posy = 2, posz = 2, radius = 18,
+					color2r = 0.6, color2g = 0.07, color2b = 0, colortime = 400,
+					r = 1.1, g = 0.45, b = 0, a = 0.36,
+					modelfactor = 2, specular = 1, scattering = 0.5, lensflare = 0,
+					lifetime = 200, sustain = 15, animtype = 0},
+			},
+			[2] = {
+				lightType = 'point',
+				pieceName = 'flare2',
+				lightName = 'corsokglow2',
+				alwaysVisible = true,
+				lightConfig = { posx = 0, posy = 2, posz = 2, radius = 18,
+					color2r = 0.6, color2g = 0.07, color2b = 0, colortime = 400,
+					r = 1.1, g = 0.45, b = 0, a = 0.36,
+					modelfactor = 2, specular = 1, scattering = 0.5, lensflare = 0,
+					lifetime = 200, sustain = 15, animtype = 0},
+			},
+		},
+
 
 		['armraz'] = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
