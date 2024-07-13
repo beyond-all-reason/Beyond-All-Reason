@@ -1851,12 +1851,13 @@ if gadgetHandler:IsSyncedCode() then
 					if health < maxHealth then
 						captureProgress = captureProgress/math.max(0.000001, (health/maxHealth)^3)
 					end
+					captureProgress = math.min(0.05, captureProgress)
 					if Spring.GetUnitTeam(unitID) ~= scavTeamID and GG.IsPosInRaptorScum(ux, uy, uz) then
 						if captureLevel+captureProgress >= 0.99 then
 							Spring.TransferUnit(unitID, scavTeamID, false)
-							Spring.SetUnitHealth(unitID, {capture = 0.50})
+							Spring.SetUnitHealth(unitID, {capture = 0.95})
 							Spring.SetUnitHealth(unitID, {health = maxHealth})
-							SendToUnsynced("unitCaptureFrame", unitID, 0.50)
+							SendToUnsynced("unitCaptureFrame", unitID, 0.95)
 							Spring.SpawnCEG("scav-spawnexplo", ux, uy, uz, 0,0,0)
 							if math.random() <= 0.25 then
 								Spring.SpawnCEG("scavmistxl", ux, uy, uz, 0,0,0)
