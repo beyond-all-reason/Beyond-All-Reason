@@ -2167,6 +2167,10 @@ local icontypes = {
 		bitmap = "icons/air_worker.png",
 		size = 1.25999999
 	},
+	legcar = {
+		bitmap = "icons/hover_t15_shotgun.png",
+		size = 1.35
+	},
 	legcen = {
 		bitmap = "icons/bot_t2_raid.png",
 		size = 1.04999995
