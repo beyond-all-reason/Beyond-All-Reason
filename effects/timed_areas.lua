@@ -555,7 +555,7 @@ end
 local RATE = gameSpeed / loopSpeed
 local FREQ = 1 / RATE
 
-["fire-repeat-high"] = {
+definitions["fire-repeat-high"] = {
 	usedefaultexplosions = false,
 	smokehaze = {
 		class      = [[CSimpleParticleSystem]],
@@ -590,7 +590,7 @@ local FREQ = 1 / RATE
 			texture             = [[fogdirty]],
 		},
 	}
-},
+}
 
 ------
 
