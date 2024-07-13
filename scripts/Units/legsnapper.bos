@@ -19,8 +19,8 @@ walkscr()
 {
 	while (isMoving){
 		if (isMoving){ 
-	spin left around z-axis speed <-300.000000>;
-	spin right around z-axis speed <300.000000>;
+	spin left around z-axis speed <-900.000000>;
+	spin right around z-axis speed <900.000000>;
 
 			turn base to y-axis <-13> speed <20>;
 			move base to x-axis [0] speed [10];
