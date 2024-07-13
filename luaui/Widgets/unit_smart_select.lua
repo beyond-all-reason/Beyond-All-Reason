@@ -149,6 +149,15 @@ local function notEmptyUdefRule(invert, property)
 	end)
 end
 
+local function checkCmd(uid, cmdId, indexTemp)
+	local index = indexTemp or 1
+	local cmd = spGetCommandQueue(uid, index)
+	if cmd and cmd[index] and cmd[index]["id"] == cmdId then
+		return true
+	end
+	return false
+end
+
 local function isIdle(_udef, udefid, uid)
 	local canBeIdle = mobileFilter[udefid] or builderFilter[udefid]
 	return canBeIdle and spGetCommandQueue(uid, 0) == 0
@@ -229,19 +238,17 @@ local function handleSetCustomFilter(_, args)
 		elseif token == "Idle" then
 			rules.idleRule = invertCurry(invert, isIdle)
 		elseif token == "Guarding" then
-			rules.guardingRule = invertCurry(invert, function(udef, udefid, uid)
-				return spGetCommandQueue(uid, 0) == CMD_GUARD;
+			rules.guardingRule = invertCurry(invert, function(_udef, _udefid, uid)
+				return checkCmd(uid, CMD_GUARD)
 			end)
 		elseif token == "Waiting" then
-			rules.waitingRule = invertCurry(invert, function(udef, udefid, uid)
-				return spGetCommandQueue(uid, 0) == CMD_WAIT;
+			rules.waitingRule = invertCurry(invert, function(_udef, _udefid, uid)
+				return checkCmd(uid, CMD_WAIT)
 			end)
 		elseif token == "Patrolling" then
-			rules.patrollingRule = invertCurry(invert, function(udef, udefid, uid)
-				for i = 0, 3, 1 do
-					local cmd = spGetCommandQueue(uid, i)
-					print("cmd: " .. cmd)
-					if cmd == CMD_PATROL then
+			rules.patrollingRule = invertCurry(invert, function(_udef, _udefid, uid)
+				for i = 1, 4, 1 do
+					if checkCmd(uid, CMD_PATROL, i) then
 						return true
 					end
 				end
@@ -270,7 +277,6 @@ local function handleSetCustomFilter(_, args)
 			if not minHealth then
 				break
 			end
-			print(minHealth)
 
 			rules.absoluteHealthRule = invertCurry(invert, function(_, _, uid, minHealth)
 				local health = Spring.GetUnitHealth(uid)
@@ -282,7 +288,6 @@ local function handleSetCustomFilter(_, args)
 				break
 			end
 			minHealthPercent = minHealthPercent / 100.0
-			print(minHealthPercent)
 
 			rules.relativeHealthRule = invertCurry(invert, function(udef, _, uid, minHealthPercent)
 				local minHealth = minHealthPercent * udef.health
@@ -308,7 +313,6 @@ local function handleSetCustomFilter(_, args)
 			if not minRange then
 				break
 			end
-			print(minRange)
 
 			rules.weaponRangeRule = invertCurry(invert, function(udef, _, _, minRange)
 				if udef.wDefs == nil then
@@ -324,27 +328,24 @@ local function handleSetCustomFilter(_, args)
 			end, minRange)
 
 			-- string comparision
-		elseif token == "Category" then
-			local category = getNextToken()
-			if not category then
-				break
-			end
-			print(category)
+			-- elseif token == "Category" then
+			-- 	local category = getNextToken()
+			-- 	if not category then
+			-- 		break
+			-- 	end
 
-			rules.categoryRule = invertCurry(invert, function(udef, _, _, category)
-				if udef.category == nil then
-					print(udef)
-					return false
-				end
+			-- 	rules.categoryRule = invertCurry(invert, function(udef, _, _, category)
+			-- 		if udef.category == nil then
+			-- 			return false
+			-- 		end
 
-				return stringContains(udef.category, category)
-			end, category)
+			-- 		return stringContains(udef.category, category)
+			-- 	end, category)
 		elseif token == "IdMatches" then
 			local name = getNextToken()
 			if not name then
 				break
 			end
-			print(name)
 
 			local udefid = nameLookup[name];
 			idMatchesSet[udefid] = true
@@ -373,7 +374,6 @@ local function handleSetCustomFilter(_, args)
 			if not name then
 				break
 			end
-			print(name)
 
 			rules.nameRule = invertCurry(invert, function(udef, _, _, name)
 				return stringContains(udef.name, name)
