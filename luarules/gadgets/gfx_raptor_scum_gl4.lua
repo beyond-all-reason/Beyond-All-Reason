@@ -99,10 +99,10 @@ if gadgetHandler:IsSyncedCode() then
 				raptor_turret_antinuke_t2_v1 = {radius = 512, growthrate = 0.2},
 				raptor_turret_meteor_t4_v1 = {radius = 1536, growthrate = 0.8},
 
-				scavbeacon_t1_scav = {radius = 800, growthrate = 0.4},
-				scavbeacon_t2_scav = {radius = 1200, growthrate = 0.6},
-				scavbeacon_t3_scav = {radius = 1600, growthrate = 0.8},
-				scavbeacon_t4_scav = {radius = 2000, growthrate = 1},
+				scavbeacon_t1_scav = {radius = 600, growthrate = 0.4},
+				scavbeacon_t2_scav = {radius = 1000, growthrate = 0.6},
+				scavbeacon_t3_scav = {radius = 1400, growthrate = 0.8},
+				scavbeacon_t4_scav = {radius = 1800, growthrate = 1},
 			}
 		for unitDefName, scumParams in pairs(scumGenerators) do 
 			if UnitDefNames[unitDefName] then
@@ -111,7 +111,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		for unitDefID, unitDef in pairs(UnitDefs) do
-			if unitDef.customParams.isscavenger and (not unitDef.canMove) and (not string.find(unitDef.name, "lootbox")) and not scumSpawnerIDs[unitDefID] and (not unitDef.customParams.objectify) then
+			if unitDef.customParams.isscavenger and (not unitDef.canMove) and (not string.find(unitDef.name, "lootbox")) and not scumSpawnerIDs[unitDefID] and (not unitDef.customParams.objectify) and (not unitDef.canCloak) then
 				local footprintX = unitDef.xsize*0.5 -- why the fuck is this footprint *2??????
 				local footprintZ = unitDef.zsize*0.5 -- why the fuck is this footprint *2??????
 				local footprintSquare = 2
