@@ -193,30 +193,35 @@ local function handleSetCustomFilter(_, args)
 			end
 
 			rules.idMatches = invertCurry(invert, function(_, udefid) return idMatchFilter[udefid] end)
+		-- simple rules
+		elseif token == "Aircraft" then
+			rules.aircraftRule = simpleUdefRule(invert, "canFly")
 		elseif token == "Builder" then
 			rules.builderRule = invertCurry(invert, function(_, udefid) return builderFilter[udefid] end)
 		elseif token == "Buildoptions" then
 			rules.buildOptionsRule = notEmptyUdefRule(invert, "buildOptions")
-		elseif token == "Resurrect" then
-			rules.resurrectRule = simpleUdefRule(invert, "canResurrect")
-		elseif token == "Stealth" then
-			rules.stealthRule = simpleUdefRule(invert, "stealth")
+		elseif token == "Building" then
+			rules.buildingRule = simpleUdefRule(invert, "isBuilding")
 		elseif token == "Cloak" then
 			rules.cloakRule = simpleUdefRule(invert, "canCloak")
 		elseif token == "Cloaked" then
 			rules.cloakedRule = invertCurry(invert, function(udef, _, uid)
 				return udef.canCloak and spGetUnitIsCloaked(uid)
 			end)
-		elseif token == "Building" then
-			rules.buildingRule = simpleUdefRule(invert, "isBuilding")
+		elseif token == "ManualFireUnit" then
+			rules.manualFireRule = simpleUdefRule(invert, "canManualFire")
+		elseif token == "Resurrect" then
+			rules.resurrectRule = simpleUdefRule(invert, "canResurrect")
+		elseif token == "Stealth" then
+			rules.stealthRule = simpleUdefRule(invert, "stealth")
 		elseif token == "Transport" then
 			rules.transportRule = simpleUdefRule(invert, "isTransport")
-		elseif token == "Aircraft" then
-			rules.aircraftRule = simpleUdefRule(invert, "canFly")
 		elseif token == "Weapons" then
 			rules.weaponsRule = notEmptyUdefRule(invert, "weapons")
 		elseif token == "Idle" then
 			rules.idleRule = invertCurry(invert, isIdle)
+
+		-- command queue rules
 		elseif token == "Waiting" then
 			rules.waitingRule = invertCurry(invert, function(udef, udefid, uid)
 				return spGetCommandQueue(uid, 0) == CMD_WAIT;
@@ -236,6 +241,8 @@ local function handleSetCustomFilter(_, args)
 				end
 				return false
 			end)
+
+		-- hotkey rules
 		elseif token == "InHotkeyGroup" then
 			rules.inHotKeyGroup = invertCurry(invert, function(_, _, uid)
 		 		return Spring.GetUnitGroup(uid) ~= nil
@@ -252,6 +259,8 @@ local function handleSetCustomFilter(_, args)
 				print("selectGroup: " .. selectGroup)
 		 		return unitGroup == selectGroup
 			end, group)
+
+		-- range rules
 		elseif token == "Radar" then
 			rules.radarRule = invertCurry(invert, function(udef)
 				return udef.radarRadius > 0 or udef.sonarRadius > 0
@@ -260,8 +269,6 @@ local function handleSetCustomFilter(_, args)
 			rules.jammerRule = invertCurry(invert, function(udef)
 				return udef.jammerRadius > 0
 			end)
-		elseif token == "ManualFireUnit" then
-			rules.manualFireRule = simpleUdefRule(invert, "canManualFire")
 		end
 	end
 	customFilterDef = args
