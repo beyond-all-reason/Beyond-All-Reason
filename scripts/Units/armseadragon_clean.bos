@@ -38,8 +38,8 @@ static-var  restore_delay, shotcount, silo_state, timeLeft, missiles_stockpiled,
 
 Create ()
 {
-	spin prop1 around z-axis speed <400>;
-	spin prop2 around z-axis speed <400>;
+	//spin prop1 around z-axis speed <400>;
+	//spin prop2 around z-axis speed <400>;
 
 	hide flare;
 	hide firing;

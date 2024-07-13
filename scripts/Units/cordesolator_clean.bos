@@ -5,19 +5,15 @@
 piece  base, flare, tube, rtube, ltube, wake, firing, firing1, firing2, prop, propr, propl;
 
 static-var  restore_delay, shotcount, lastfired, silo_state, timeLeft, Stunned, is_firing, missiles_stockpiled;
+
+
 // 0 = closed
 // 1 = opening
 // 2 = opened
 // 3 = closing, fired missile
 // 4 = closing, no missile fired
 
-// Signal definitions
-#define SIGNAL_AIM1				2
-#define SIGNAL_MOVE				4
-#define SIGNAL_RESTORE			8
-#define SIGNAL_TURNON			16
-
-
+//I can't see a way around using state switches here? it has to know what it's doing / has just done
 
 #define BASEPIECE base
 #define HITSPEED <25.0>
@@ -25,7 +21,7 @@ static-var  restore_delay, shotcount, lastfired, silo_state, timeLeft, Stunned, 
 #define UNITSIZE 5
 #define MAXTILT 200
 
-#include "../unit_hitbyweaponid_and_smoke.h"
+//#include "../unit_hitbyweaponid_and_smoke.h"
 
 #define TB_BASE base 
 #define TB_TURNRATE <30.0> 
@@ -38,33 +34,36 @@ static-var  restore_delay, shotcount, lastfired, silo_state, timeLeft, Stunned, 
 // Signal definitions
 #define SIGNAL_AIM1				2
 #define SIGNAL_MOVE				4
-#define SIGNAL_AIM2				8
-
+#define SIGNAL_AIM2			8
+#define SIGNAL_RESTORE			16
 
 
 Create ()
 {
+
 	hide flare;
 	hide firing;
 	hide firing1;
 	hide firing2;
-
 	shotcount = 0;
-	restore_delay = 15000;
 	is_firing = 0;
-	missiles_stockpiled = 0;	
-	
+	missiles_stockpiled = 0;
+
+	restore_delay = 3000;
 	timeLeft = restore_delay;//seems needed to avoid instant cancellation of first aiming anims
 	call-script TB_Init();
-	
+
 	silo_state = 0;
-	lastfired = 0;
 	return (0);
 }
 
 
 
 
+SetStunned (State)
+{
+    Stunned = State;
+}
 
 
 lua_UnitScriptLight (lightIndex, count) 
@@ -74,9 +73,6 @@ lua_UnitScriptLight (lightIndex, count)
 
 OpenSilo()
 {
-
-get PRINT(3333);
-get PRINT(6, silo_state);
     start-script TimeToRestore ();
     timeLeft = restore_delay;
 
@@ -93,8 +89,6 @@ get PRINT(6, silo_state);
 		// the sound effect
 		emit-sfx 4096 + 2 from flare;
 	}
-	get PRINT(33333);
-	get PRINT(6, silo_state);
 	if ( NOT (silo_state==3) )
 	{
 		// 8.5 seconds to open up (all timings wrong, ignore)
@@ -104,7 +98,6 @@ get PRINT(6, silo_state);
 		wait-for-turn tube around x-axis;
 
 		silo_state = 2;
-		get PRINT(4444);
 	}
 }
 
@@ -126,6 +119,7 @@ CloseSiloDoors()
 		hide firing2;
 	}
 
+
 	silo_state = 0;
 }
 
@@ -137,26 +131,25 @@ CloseSilo_Fired()
 }
 
 
+
+
 TimeToRestore (addTime){
-get PRINT(1234);
 	signal SIGNAL_RESTORE;
 	set-signal-mask SIGNAL_RESTORE;
     // This function may not be signal terminated
     // If it has to be, it _must_ be immediately restarted
     // PROBLEM: the time that is slept depends on number of aim calls.
-    while ((timeLeft > 1) || Stunned){
-		get PRINT(timeLeft, get GAME_FRAME);
+    while((timeLeft > 1) || Stunned){
+		//get PRINT(timeLeft, get GAME_FRAME);
         addTime = timeLeft;
         timeLeft = 1;
         sleep addTime;//can sometimes sleep 6000 but never wake up again?
     }
     // The restore section must be atomic :/
 
-	get PRINT(silo_state);
 	sleep restore_delay;
 	if ( NOT (silo_state==3) )
 	{
-	get PRINT(12345);
 		hide firing;
 		silo_state = 4;
 		start-script CloseSiloDoors();
@@ -165,6 +158,10 @@ get PRINT(1234);
 
     timeLeft = 0;
 }
+
+
+
+
 
 
 
@@ -182,29 +179,21 @@ FireWeapon1 ()
 
 QueryWeapon1 (piecenum)
 {
-	if (lastfired==0) {
-		piecenum = ltube;
-	} else {
-		piecenum = rtube;
-	}
+	piecenum = firing;
 	return (0);
 }
 
 
-//*
+
+
 
 
 
 AimWeapon2 (heading, pitch)
 {
-get PRINT(12);
-get PRINT(silo_state);
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
 	start-script OpenSilo();
-get PRINT(333);
-get PRINT(silo_state);
-return (1);
 	if (silo_state == 2)
 	{
 		return (1);
@@ -226,6 +215,7 @@ QueryWeapon2 (piecenum)
 	piecenum = flare;
 	return (0);
 }
+
 
 
 
@@ -269,11 +259,13 @@ Propcontrol ()
 }
 
 
-StartMoving() {
+
+StartMoving ()
+{
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
-	start-script Propcontrol ();	
-	while ( TRUE )
+	start-script Propcontrol ();
+	while( TRUE )
 	{
 		emit-sfx 1024 + 0 from wake;
 		sleep 250;
@@ -283,7 +275,8 @@ StartMoving() {
 	}
 }
 
-StopMoving () {
+StopMoving ()
+{
 	signal SIGNAL_MOVE;
 	stop-spin prop around z-axis decelerate <10.0>;
 	stop-spin propl around z-axis decelerate <10.0>;
@@ -297,19 +290,19 @@ Killed (severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		return (corpsetype);
+		return(corpsetype);
 	}
 	if ( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		return (corpsetype);
+		return(corpsetype);
 	}
 	if ( severity <= 99 )
 	{
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		return (corpsetype);
+		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
