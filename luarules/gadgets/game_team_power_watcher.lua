@@ -13,25 +13,59 @@ end
 
 if not gadgetHandler:IsSyncedCode() then return end
 
-GG.TeamPower = {
-    TeamPower = TeamPower,
-    HighestTeamPower = HighestTeamPower,
-    AverageTeamPower = AverageTeamPower,
-    LowestTeamPower = LowestTeamPower,
-    HighestHumanTeamPower = HighestHumanTeamPower,
-    AverageHumanTeamPower = AverageHumanTeamPower,
-    LowestHumanTeamPower = LowestHumanTeamPower,
-    HighestAlliedTeamPower = HighestAlliedTeamPower,
-    AverageAlliedTeamPower = AverageAlliedTeamPower,
-    LowestAlliedTeamPower = LowestAlliedTeamPower,
-    AverageTechGuesstimate = AverageTechGuesstimate,
-    AverageHumanTechGuesstimate = AverageHumanTechGuesstimate,
-    AverageAlliedTechGuesstimate = AverageAlliedTechGuesstimate,
-    TeamPeakPower = TeamPeakPower,
-    HighestPeakPower = HighestPeakPower,
-    HighestAlliedPeakPower = HighestAlliedPeakPower,
-    AverageHumanPeakPower = AverageHumanPeakPower,
-    AverageAlliedPeakPower = AverageAlliedPeakPower
+GG.PowerLib = {
+    TeamPower = TeamPower, -- TeamPower(teamID) returns the power of the input teamID as a number
+
+    HighestTeamPower = HighestTeamPower, --HighestTeamPower() returns the highest non scavenger/raptor team power as a table {teamID, power}
+
+    AverageTeamPower = AverageTeamPower, --AverageTeamPower() returns the average of all non scavenger/raptor teams as a number
+
+    LowestTeamPower = LowestTeamPower, --LowestTeamPower() returns the lowest non scavenger/raptor team power as a table {teamID, power}
+
+    HighestHumanTeamPower = HighestHumanTeamPower, --HighestHumanTeamPower() returns the highest non AI/scavenger/raptor team power as a table {teamID, power}
+
+    AverageHumanTeamPower = AverageHumanTeamPower, --AverageHumanTeamPower() returns the average of all non AI/scavenger/raptor teams as a number
+
+    LowestHumanTeamPower = LowestHumanTeamPower, --LowestTeamPower() returns the lowest non AI/scavenger/raptor team power as a table {teamID, power}
+
+    HighestAlliedTeamPower = HighestAlliedTeamPower, --HighestAlliedTeamPower(teamID) returns the highest team power of the allies belonging to input team. Returns as a table {teamID, power}
+
+    AverageAlliedTeamPower = AverageAlliedTeamPower, -- AverageAlliedTeamPower(teamID) returns the average of all allies of the input teamID. Returns a number.
+
+    LowestAlliedTeamPower = LowestAlliedTeamPower, --LowestAlliedTeamPower(teamID) returns the lowest of the teamID's allies power as a table {teamID, power}
+
+    TechGuesstimate = TechGuesstimate, --TechGuesstimate(teamPower) takes an input of a power value and compares it against powerThresholds table and returns an estimated tech level from 0.5-4.5
+
+    TeamTechGuesstimate = TeamTechGuesstimate, --TeamTechGuesstimate(teamID) takes an input teamID and compares its power against powerThresholds table and returns an estimated tech level from 0.5-4.5
+
+    AverageTechGuesstimate = AverageTechGuesstimate, --AverageTechGuesstimate() compares average powers of all non scavenger/raptor teams against powerThresholds table and returns an estimated tech level from 0.5-4.5
+
+    AverageHumanTechGuesstimate = AverageHumanTechGuesstimate, --AverageHumanTechGuesstimate() compares average powers of all non AI/scavenger/raptor teams against powerThresholds table and returns an estimated tech level from 0.5-4.5
+
+    AverageAlliedTechGuesstimate = AverageAlliedTechGuesstimate, --AverageTechGuesstimate(teamID) compares average powers of all allied teams of the input teamID against powerThresholds table and returns an estimated tech level from 0.5-4.5
+
+    TeamPeakPower = TeamPeakPower, --TeamPeakPower(teamID) returns the highest power achieved by the the input teamID as a number.
+
+    HighestPeakPower = HighestPeakPower, --HighestPeakPower() returns the highest power achieved by any non scavenger/raptor team as a table {teamID, power}
+
+    HighestAlliedPeakPower = HighestAlliedPeakPower, --HighestAlliedPeakPower(teamID) returns the highest power achieved by any non scavenger/raptor team on the same team as the input teamID as a table {teamID, power}
+
+    AverageHumanPeakPower = AverageHumanPeakPower, --AverageHumanPeakPower() returns the average of all the peak powers achieved by non AI/scavenger/raptor teams as a number
+
+    AverageAlliedPeakPower = AverageAlliedPeakPower --AverageAlliedPeakPower(teamID) returns the average of all the peak powers achieved by allied teams of the input teamID as a number.
+
+}
+
+--used for tech level guesstimate functions last updated 7/12/24
+local powerThresholds = {
+    {threshold = 9000, techLevel = 1},
+    {threshold = 45000, techLevel = 1.5},
+    {threshold = 90000, techLevel = 2},
+    {threshold = 230000, techLevel = 2.5},
+    {threshold = 350000, techLevel = 3},
+    {threshold = 475000, techLevel = 3.5},
+    {threshold = 600000, techLevel = 4},
+    {threshold = 725000, techLevel = 4.5}
 }
 
 local spGetGameSeconds = Spring.GetGameSeconds
@@ -50,20 +84,6 @@ local scavTeam
 local raptorTeam
 local AIteams = {}
 local humanTeams = {}
-
-
---used for tech level guesstimate functions last updated 7/12/24
-local powerThresholds = {
-    {threshold = 9000, techLevel = 1},
-    {threshold = 45000, techLevel = 1.5},
-    {threshold = 90000, techLevel = 2},
-    {threshold = 230000, techLevel = 2.5},
-    {threshold = 350000, techLevel = 3},
-    {threshold = 475000, techLevel = 3.5},
-    {threshold = 600000, techLevel = 4},
-    {threshold = 725000, techLevel = 4.5}
-}
-
 
 --decipher human vs ai vs neutral vs defense mode ai's 
 for _, teamID in ipairs(teamList) do
@@ -93,21 +113,19 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
     unitsWithPower[unitID] = {unitID = unitID, power = UnitDefs[unitDefID].power, team = unitTeam}
     teamPowers[unitTeam] = (teamPowers[unitTeam] + UnitDefs[unitDefID].power) or UnitDefs[unitDefID].power
     
-    --temporary
-    testPowerTable = HighestAlliedPeakPower(unitTeam)
+    --debug
+
+    --testPowerTable = HighestAlliedPeakPower(unitTeam)
     --Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, teamPowers[unitTeam], "test result", testPowerTable.teamID, testPowerTable.power)
 
-    testPowerNumber = AverageAlliedPeakPower(unitTeam)
-    Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, teamPowers[unitTeam], "test result", testPowerNumber)
-
+    --testPowerNumber = TechGuesstimate(teamPowers[unitTeam])
+    --Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, teamPowers[unitTeam], "test result", testPowerNumber)
 
     --update peak powers
     if teamPowers[unitTeam] and peakTeamPowers[unitTeam] < teamPowers[unitTeam] then
         peakTeamPowers[unitTeam] = teamPowers[unitTeam]
     end
 end
-
-
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
     if unitsWithPower[unitID] then
@@ -121,11 +139,9 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
                 teamPowers[unitTeam] = teamPowers[unitTeam] - UnitDefs[unitDefID].power
             end
         end
-        --Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, teamPowers[unitTeam])
     end
 end
 
---t
 function TeamPower(teamID)
     for id, power in pairs(teamPowers) do
         if id == teamID then
@@ -135,7 +151,7 @@ function TeamPower(teamID)
     return 0
 end
 
---t
+
 function HighestTeamPower()
     local highestPower = 0
     local highestTeamID = nil
@@ -152,7 +168,7 @@ function HighestTeamPower()
     return {teamID = highestTeamID, power = highestPower}
 end
 
---t
+
 function AverageTeamPower()
     local totalPower = 0
     local teamCount = 0
@@ -168,7 +184,7 @@ function AverageTeamPower()
     return averagePower
 end
 
---t
+
 function LowestTeamPower()
     local lowestPower = math.huge
     local lowestTeamID = nil
@@ -186,7 +202,7 @@ function LowestTeamPower()
 end
 
 
---t
+
 function HighestHumanTeamPower()
     local highestPower = 0
     local highestTeamID = nil
@@ -203,7 +219,7 @@ function HighestHumanTeamPower()
     return {teamID = highestTeamID, power = highestPower}
 end
 
---t
+
 function AverageHumanTeamPower()
     local totalPower = 0
     local teamCount = 0
@@ -219,7 +235,7 @@ function AverageHumanTeamPower()
     return averagePower
 end
 
---t
+
 function LowestHumanTeamPower()
     local lowestPower = math.huge
     local lowestTeamID = nil
@@ -237,7 +253,7 @@ function LowestHumanTeamPower()
 end
 
 
---t
+
 function HighestAlliedTeamPower(teamID)
     local allyTeamNum = select(6, Spring.GetTeamInfo(teamID))
     local highestPower = 0
@@ -255,7 +271,7 @@ function HighestAlliedTeamPower(teamID)
     return {teamID = highestTeamID, power = highestPower}
 end
 
---t
+
 function AverageAlliedTeamPower(teamID)
     local allyTeamNum = select(6, Spring.GetTeamInfo(teamID))
     local totalPower = 0
@@ -272,7 +288,7 @@ function AverageAlliedTeamPower(teamID)
     return averagePower
 end
 
---t
+
 function LowestAlliedTeamPower(teamID)
     local allyTeamNum = select(6, Spring.GetTeamInfo(teamID))
     local lowestPower = math.huge
@@ -291,14 +307,41 @@ function LowestAlliedTeamPower(teamID)
 end
 
 
---t
+
+function TechGuesstimate(power)
+    local techLevel = 0.5
+    for _, threshold in ipairs(powerThresholds) do
+        if power >= threshold.threshold then
+            techLevel = threshold.techLevel
+        else
+            break
+        end
+    end
+
+    return techLevel
+end
+
+function TeamTechGuesstimate(teamID)
+    local totalPower = teamPowers[teamID]
+    local techLevel = 0.5
+    for _, threshold in ipairs(powerThresholds) do
+        if totalPower >= threshold.threshold then
+            techLevel = threshold.techLevel
+        else
+            break
+        end
+    end
+
+    return techLevel
+end
+
+
 function AverageTechGuesstimate()
     local totalPower = 0
     local teamCount = 0
 
     for id, power in pairs(teamPowers) do
         if id ~= neutralTeamNumber and id ~= scavTeam and id ~= raptorTeam then
-            --Spring.Echo("Average Tech Guess Team Factored", id)
             totalPower = totalPower + power
             teamCount = teamCount + 1
         end
@@ -318,14 +361,13 @@ function AverageTechGuesstimate()
     return techLevel
 end
 
---t
+
 function AverageHumanTechGuesstimate()
     local totalPower = 0
     local teamCount = 0
 
     for id, power in pairs(teamPowers) do
         if humanTeams[id] then
-            Spring.Echo("Average HUMAN Tech Guess Team Factored", id)
             totalPower = totalPower + power
             teamCount = teamCount + 1
         end
@@ -345,7 +387,7 @@ function AverageHumanTechGuesstimate()
     return techLevel
 end
 
---t
+
 function AverageAlliedTechGuesstimate(teamID)
     local allyTeamNum = select(6, Spring.GetTeamInfo(teamID))
     local totalPower = 0
@@ -373,7 +415,7 @@ function AverageAlliedTechGuesstimate(teamID)
 end
 
 
---t
+
 function TeamPeakPower(teamID)
     for id, power in pairs(peakTeamPowers) do
         if id == teamID then
@@ -383,22 +425,24 @@ function TeamPeakPower(teamID)
     return 0
 end
 
---t
+
 function HighestPeakPower()
     local highestPower = 0
     local highestTeamID = nil
 
     for id, power in pairs(peakTeamPowers) do
-        if power > highestPower then
-            highestPower = power
-            highestTeamID = id
+        if id ~= neutralTeamNumber and id ~= scavTeam and id ~= raptorTeam then
+            if power > highestPower then
+                highestPower = power
+                highestTeamID = id
+            end
         end
     end
 
     return {teamID = highestTeamID, power = highestPower}
 end
 
---t
+
 function HighestAlliedPeakPower(teamID)
     local allyTeamNum = select(6, Spring.GetTeamInfo(teamID))
     local highestPower = 0
@@ -416,7 +460,7 @@ function HighestAlliedPeakPower(teamID)
     return {teamID = highestTeamID, power = highestPower}
 end
 
---t
+
 function AverageHumanPeakPower()
     local totalPower = 0
     local teamCount = 0
@@ -432,7 +476,7 @@ function AverageHumanPeakPower()
     return averagePower
 end
 
---t
+
 function AverageAlliedPeakPower(teamID)
     local allyTeamNum = select(6, Spring.GetTeamInfo(teamID))
     local totalPower = 0
