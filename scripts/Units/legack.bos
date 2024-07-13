@@ -277,10 +277,10 @@ UnitSpeed(){
 	while(TRUE){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
-		animSpeed = (maxSpeed * 3) / animSpeed; 
+		animSpeed = (maxSpeed * 4) / animSpeed; 
 		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
-		if (animSpeed<3) animSpeed=3;
-		if (animspeed>10) animSpeed = 10;
+		if (animSpeed<4) animSpeed=4;
+		if (animspeed>13) animSpeed = 13;
 		sleep 131;
 	}
 }
