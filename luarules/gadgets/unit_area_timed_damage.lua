@@ -169,21 +169,43 @@ do
 end
 
 -- Timed explosions use the values below, unless noted otherwise:
-local explosionCache = {
-	weaponDef          = 0, -- params.area_weapondefid
-	owner              = 0, -- 0 for destroy triggers, unitID otherwise
-	projectileID       = 0,
-	damages            = {}, -- params.area_damages
-	hitUnit            = 1,
-	hitFeature         = 1,
-	craterAreaOfEffect = 0,
-	damageAreaOfEffect = 0, -- params.area_radius * 2
-	edgeEffectiveness  = 1,
-	explosionSpeed     = 10000,
-	impactOnly         = false,
-	ignoreOwner        = false,
-	damageGround       = false,
-}
+
+local explosionCaches = {}
+do
+	local explosionCache = {
+		weaponDef          = 0, -- params.area_weapondefid
+		owner              = 0, -- -1 for destroy triggers, unitID otherwise
+		projectileID       = 0,
+		damages            = {}, -- params.area_damages
+		hitUnit            = 1,
+		hitFeature         = 1,
+		craterAreaOfEffect = 0,
+		damageAreaOfEffect = 0, -- params.area_radius * 2
+		edgeEffectiveness  = 1,
+		explosionSpeed     = 10000,
+		impactOnly         = false,
+		ignoreOwner        = false,
+		damageGround       = false,
+	}
+
+	for weaponDefID, params in pairs(weaponTriggerParams) do
+		local cache = table.copy(explosionCache)
+		cache.weaponDef          = params.area_weapondefid
+		cache.damages            = params.area_damages
+		cache.damageAreaOfEffect = params.area_radius * 2
+
+		explosionCaches[params] = cache
+	end
+
+	for unitDefID, params in pairs(destroyTriggerParams) do
+		local cache = table.copy(explosionCache)
+		cache.weaponDef          = params.area_weapondefid
+		cache.damages            = params.area_damages
+		cache.damageAreaOfEffect = params.area_radius * 2
+
+		explosionCaches[params] = cache
+	end
+end
 
 if shieldSuppression then
 	for unitDefID, unitDef in ipairs(UnitDefs) do
@@ -202,7 +224,7 @@ local delayQueue = {}
 
 -- And a table of units with shields.
 local shieldUnits = {}
-local shieldFrame = math.clamp(math.round(frameResolution / 2), 1, math.round(gameSpeed / 2))
+local shieldFrame = shieldSuppression and math.clamp(math.round(frameResolution / 2), 1, math.round(gameSpeed / 2))
 
 ---------------------------------------------------------------------------------------------------------------
 ---- Functions
@@ -215,7 +237,6 @@ local function startTimedArea(x, y, z, weaponParams, ownerID)
 	-- Create an area on surface -- immediately.
 	if y <= elevation + radius then
 		local group = timedAreas[frame]
-		-- { endTime, weaponParams, owner, x, y, z }
 		group[#group+1] = {
 			duration + time,
 			weaponParams,
@@ -233,14 +254,14 @@ local function startTimedArea(x, y, z, weaponParams, ownerID)
 				dx, dy, dz -- todo: make this do anything
 			)
 		end
-	-- If the timed area is not a brief area, it can be spawned after it "falls" to the ground.
-	-- The next check considers two different limits on the fall time:
-	-- (1) The max latency players associate a cause (impact) to an effect (area on ground); ~1 sec.
-	-- (2) The max time that the falling area effect might remain cohesive; just a heuristic formula.
+
+	-- Create an area on surface -- eventually.
 	elseif shortDuration < duration then
-		-- Create an area on surface -- eventually.
 		local timeToLand = sqrt((y - elevation - radius) * 2 / gravity)
-		if timeToLand < 1 and timeToLand <= 0.25 + (duration - shortDuration) * groupDuration * 0.1 then
+		-- This check considers two different limits on the fall time:
+		-- (1) The max latency players associate a cause (impact) to an effect (area on ground); ~1 sec.
+		-- (2) The max time that the falling area effect might remain cohesive; just a heuristic formula.
+		if timeToLand < 1 and timeToLand <= 0.25 + (duration - shortDuration) * 0.1 then
 			local frameStart = spGetGameFrame() + ceil(timeToLand / gameSpeed) -- at least +1 frame
 			if not delayQueue[frameStart] then
 				delayQueue[frameStart] = { x, elevation, z, weaponParams, ownerID }
@@ -253,21 +274,18 @@ local function startTimedArea(x, y, z, weaponParams, ownerID)
 				queue[sizeq + 4] = weaponParams
 				queue[sizeq + 5] = ownerID
 			end
+
 		-- Spawn a single explosion in-place with no recurring area.
 		-- This is useless except possibly to trigger the callins for other effects.
 		else
-			local params = explosionCache
-			params.weaponDef          = weaponParams.area_weapondefid
-			params.damages            = weaponParams.area_damages
-			params.damageAreaOfEffect = weaponParams.area_radius * 2 -- radius => diameter
-			params.owner              = ownerID
-			spSpawnExplosion(x, y, z, 0, 0, 0, params)
+			local explosion = explosionCaches[weaponParams]
+			explosion.owner              = ownerID
+			spSpawnExplosion(x, y, z, 0, 0, 0, explosion)
 		end
 	end
 end
 
 local function updateTimedAreas()
-	local params = explosionCache
 	local group = timedAreas[frame]
 	local sizeg = #group
 
@@ -275,11 +293,9 @@ local function updateTimedAreas()
 	while index <= sizeg do
 		local timedArea = group[index]
 		if time <= timedArea[1] then
-			params.weaponDef          = timedArea[2].area_weapondefid
-			params.damages            = timedArea[2].area_damages
-			params.damageAreaOfEffect = timedArea[2].area_radius * 2 -- radius => diameter
-			params.owner              = timedArea[3]
-			spSpawnExplosion(timedArea[4], timedArea[5], timedArea[6], 0, 0, 0, params)
+			local explosion = explosionCaches[timedArea[2]]
+			explosion.owner = timedArea[3]
+			spSpawnExplosion(timedArea[4], timedArea[5], timedArea[6], 0, 0, 0, explosion)
 		elseif index == sizeg then
 			group[index] = nil
 		else
@@ -327,6 +343,11 @@ end
 ---- Gadget call-ins
 
 function gadget:Initialize()
+	if not next(weaponTriggerParams) and not next(destroyTriggerParams) then
+		Spring.Log(gadget:GetInfo().name, LOG.INFO, "No timed area defs found. Removing gadget.")
+		gadgetHandler:RemoveGadget(self)
+	end
+
 	for weaponDefID, _ in pairs(weaponTriggerParams) do
 		Script.SetWatchExplosion(weaponDefID, true)
 	end
@@ -369,7 +390,7 @@ function gadget:GameFrame(gameFrame)
 		updateTimedAreas()
 	end
 
-	if shieldSuppression and ticks == shieldFrame then
+	if ticks == shieldFrame then
 		cancelDelayedAreas(gameFrame + frameResolution - 1)
 	end
 
@@ -387,14 +408,14 @@ end
 
 function gadget:Explosion(weaponDefID, px, py, pz, attackID, projID)
 	if weaponTriggerParams[weaponDefID] then
-		startTimedArea(px, py, pz, weaponTriggerParams[weaponDefID], attackID or 0)
+		startTimedArea(px, py, pz, weaponTriggerParams[weaponDefID], (attackID or -1))
 	end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackID, attackDefID, attackTeam)
 	if destroyTriggerParams[unitDefID] then
 		local ux, uy, uz = spGetUnitPosition(unitID)
-		startTimedArea(ux, uy, uz, destroyTriggerParams[unitDefID], 0)
+		startTimedArea(ux, uy, uz, destroyTriggerParams[unitDefID], -1)
 	end
 	shieldUnits[unitID] = nil
 end
@@ -509,6 +530,7 @@ do
 		end
 		----
 		if misconfigured then
+			explosionCaches[paramsTable[defID]] = nil
 			paramsTable[defID] = nil
 		end
 	end
