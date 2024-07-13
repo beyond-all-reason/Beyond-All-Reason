@@ -52,7 +52,7 @@ return {
 			"corestor",
 			"legmex",
 			"legmext15",
-			"cormakr",
+			"legeconv",
 			"legavp",
 			"leglab",
 			"legvp",

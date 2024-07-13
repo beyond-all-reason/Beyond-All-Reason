@@ -2433,17 +2433,52 @@ GUIUnitSoundEffects = {
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "fastemg-medium",
 	},
-
 	legtl = {
 		BaseSoundSelectType = "arm-bld-defense-action-water-t1",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "torpedo-small",
 	},
-
 	legptl = {
 		BaseSoundSelectType = "arm-bld-defense-action-water-t1",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "torpedo-small",
+	},
+	legrhapsis = {
+		BaseSoundSelectType = "arm-bld-defense-action-t1",
+		BaseSoundWeaponType = "aarocket-medium",
+	},
+	leglupara = {
+		BaseSoundSelectType = "arm-bld-defense-action-t1",
+		BaseSoundWeaponType = "aarocket-medium-flak",
+	},
+	legrad = {
+		BaseSoundSelectType = "arm-bld-select-small",
+		BaseSoundWeaponType = "arm-bld-radar",
+        BaseSoundActivate   = "cmd-on",
+        BaseSoundDeactivate = "cmd-off",
+	},
+	legjam = {
+		BaseSoundSelectType = "arm-bld-select-small",
+		BaseSoundWeaponType = "jammer",
+	},
+	legcluster = {
+		BaseSoundSelectType = "arm-bld-defense-action-t1",
+		BaseSoundWeaponType = "arty-medium",
+	},
+	legdtr = {
+		BaseSoundSelectType = "arm-bld-defense-action-t1",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "plasma-small",
+	},
+	leglht = {
+		BaseSoundSelectType = "arm-bld-defense-action-t1",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "heatray",
+	},
+	legmstor = {
+		BaseSoundSelectType = "arm-bld-metal",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-storage-metal",
 	},
 
 
@@ -2476,6 +2511,20 @@ GUIUnitSoundEffects = {
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "aarocket-medium-flak",
 	},
+	leglrpc = {
+		BaseSoundSelectType = "arm-bld-defense-action-t3",
+		BaseSoundWeaponType = "lrpc",
+	},
+	legacluster = {
+		BaseSoundSelectType = "arm-bld-defense-action-t2",
+		BaseSoundWeaponType = "arty-large",
+	},
+	legamstor = {
+		BaseSoundSelectType = "arm-bld-metal-t2",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-storage-metal",
+	},
+
 
 	-- LEGION FACTORIES
 	leglab = {
@@ -2517,6 +2566,16 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-bld-factory-t3",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-gant-t3-sel",
+	},
+	leghp = {
+		BaseSoundSelectType = "arm-bld-factory",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-factory-hover",
+	},
+	legfhp = {
+		BaseSoundSelectType = "arm-bld-factory",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-factory-hover-water",
 	},
 
 
@@ -2624,8 +2683,8 @@ GUIUnitSoundEffects = {
 
 	-- LEGION T1 VEHICLES
 	legcv = {
-		BaseSoundSelectType = "cor-tnk-small-sel",
-		BaseSoundMovementType = "cor-tnk-small-ok",
+		BaseSoundSelectType = "leg-veh-small-sel",
+		BaseSoundMovementType = "leg-veh-small-ok",
 		BaseSoundWeaponType = "conalt-small",
 	},
 	legotter = {
@@ -2644,8 +2703,8 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "plasma-small",
 	},
 	legbar = {
-		BaseSoundSelectType = "cor-tnk-small-sel",
-		BaseSoundMovementType = "cor-tnk-small-ok",
+		BaseSoundSelectType = "leg-veh-small-sel",
+		BaseSoundMovementType = "leg-veh-small-ok",
 		BaseSoundWeaponType = "flame-alt",
 	},
 	legrail = {
@@ -2654,15 +2713,26 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "lance-weapon-type",
 	},
 	leggat = {
-		BaseSoundSelectType = "cor-tnk-small-sel",
-		BaseSoundMovementType = "cor-tnk-small-ok",
+		BaseSoundSelectType = "leg-veh-small-sel",
+		BaseSoundMovementType = "leg-veh-small-ok",
 		BaseSoundWeaponType = "fastemg-medium",
 	},
 	legmlv = {
-		BaseSoundSelectType = "cor-veh-tiny-sel",
-		BaseSoundMovementType = "cor-veh-tiny-ok",
+		BaseSoundSelectType = "leg-veh-tiny-sel",
+		BaseSoundMovementType = "leg-veh-tiny-ok",
 		BaseSoundWeaponType = "mine-small",
 	},
+	legscout = {
+		BaseSoundSelectType = "leg-veh-tiny-sel",
+		BaseSoundMovementType = "leg-veh-tiny-ok",
+		BaseSoundWeaponType = "fastemg-small",
+	},
+	legamphtank = {
+		BaseSoundSelectType = "arm-tnk-small-amph-sel",
+		BaseSoundMovementType = "arm-tnk-small-amph-ok",
+		BaseSoundWeaponType = "plasma-small",
+	},
+	
 	-- LEGION T2 VEHICLES
 	legacv = {
 		BaseSoundSelectType = "cor-tnk-small-sel",
@@ -2679,11 +2749,6 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-tnk-huge-ok",
 		BaseSoundWeaponType = "flame-alt",
 	},
-	legsco = {
-		BaseSoundSelectType = "cor-tnk-huge-sel",
-		BaseSoundMovementType = "cor-tnk-huge-ok",
-		BaseSoundWeaponType = "plasma-large",
-	},
 	legmrv = {
 		BaseSoundSelectType = "cor-tnk-medium-sel",
 		BaseSoundMovementType = "cor-tnk-medium-ok",
@@ -2697,9 +2762,33 @@ GUIUnitSoundEffects = {
 	legmed = {
 		BaseSoundSelectType = "cor-tnk-large-sel",
 		BaseSoundMovementType = "cor-tnk-large-ok",
+		BaseSoundWeaponType = "rocketalt-large",
+	},
+	legavroc = {
+		BaseSoundSelectType = "cor-tnk-medium-sel",
+		BaseSoundMovementType = "cor-tnk-medium-ok",
+		BaseSoundWeaponType = "rocketalt-large",
+	},
+	legaheattank = {
+		BaseSoundSelectType = "cor-tnk-large-sel",
+		BaseSoundMovementType = "cor-tnk-large-ok",
+		BaseSoundWeaponType = "heatray",
+	},
+	legamcluster = {
+		BaseSoundSelectType = "cor-tnk-medium-sel",
+		BaseSoundMovementType = "cor-tnk-medium-ok",
 		BaseSoundWeaponType = "arty-large",
 	},
+	legaskirmtank = {
+		BaseSoundSelectType = "cor-tnk-medium-sel",
+		BaseSoundMovementType = "cor-tnk-medium-ok",
+		BaseSoundWeaponType = "plasma-medium-alt",
+	},
+	
+	
 	-- LEGION T3 VEHICLES
+
+
 
 	-- LEGION AIRCRAFT
 	legca = {
@@ -2771,6 +2860,51 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-air-bomber-sel",
 		BaseSoundMovementType = "arm-air-bomber-ok",
 		BaseSoundWeaponType = "air-bomb-large",
+	},
+	legsilo = {
+		BaseSoundSelectType = "arm-bld-defense-action-t3",
+		BaseSoundWeaponType = "nuke",
+	},
+	legmoho = {
+		BaseSoundSelectType = "arm-bld-select-large",
+		BaseSoundWeaponType = "arm-bld-metal-t2",
+        BaseSoundActivate   = "mohorun1",
+        BaseSoundDeactivate = "mohooff1",
+	},
+	
+	
+	-- LEGION HOVERCRAFT
+
+	legsh = {
+		BaseSoundSelectType = "arm-hov-small-sel",
+		BaseSoundMovementType = "arm-hov-small-ok",
+		--BaseSoundMovementVol = 0.6,
+		BaseSoundWeaponType = "laser-tiny",
+	},
+	legmh = {
+		BaseSoundSelectType = "arm-hov-small-sel",
+		BaseSoundMovementType = "arm-hov-small-ok",
+		BaseSoundWeaponType = "rocket-small",
+	},
+	legch = {
+		BaseSoundSelectType = "arm-hov-small-sel",
+		BaseSoundMovementType = "arm-hov-small-ok",
+		BaseSoundWeaponType = "conalt-small",
+	},
+	legah = {
+		BaseSoundSelectType = "arm-hov-small-sel",
+		BaseSoundMovementType = "arm-hov-small-ok",
+		BaseSoundWeaponType = "aarocket-small",
+	},
+	legner = {
+		BaseSoundSelectType = "arm-hov-small-sel",
+		BaseSoundMovementType = "arm-hov-small-ok",
+		BaseSoundWeaponType = "plasma-small",
+	},
+	legcar = {
+		BaseSoundSelectType = "arm-hov-large-sel",
+		BaseSoundMovementType = "arm-hov-large-ok",
+		BaseSoundWeaponType = "fastemg-medium",
 	},
 
 

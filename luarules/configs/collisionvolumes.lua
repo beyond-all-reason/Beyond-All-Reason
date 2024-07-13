@@ -154,6 +154,10 @@ pieceCollisionVolume['legsrail'] = {
 	['0']={55,20,55,0,-2,0,1,1},
 	['19']={15,15,60,0,5,12,1,2},
 }
+pieceCollisionVolume['armrad'] = {
+	['1']={22,58,22,0,0,0,1,1},
+	['3']={60,13,13,11,0,0,1,0},
+}
 pieceCollisionVolume['armamb'] = {
 	['3']={22,22,22,0,0,-10,1,1},
 	['0']={60,30,15,0,0,0,1,1,0},
@@ -191,6 +195,8 @@ pieceCollisionVolume['cortermite'] = {
 	['3']={22,10,22,0,2,0,1,1},
 	['1']={48,25,48,0,0,0,1,1,0},
 }
+
+
 pieceCollisionVolume['correap'] = {
 	['0']={36,20,46,0,3.5,0,2,1},
 	['1']={24,14,24,0,1.875,1.5,2,1},
@@ -294,6 +300,16 @@ pieceCollisionVolume['armlatnk'] = {
 pieceCollisionVolume['armmanni'] = {
 	['0']={48,34,38,0,10,0,2,1},
 	['1']={24,52,24,0,0,0,2,1},
+}
+
+pieceCollisionVolume['legfloat'] = {
+	['0']={40,18,50,0,-1.5,0,2,1},
+	['8']={18,9,30,0,1,-5,2,1},
+}
+
+pieceCollisionVolume['legcar'] = {
+	['0']={34,16,46,0,-2.5,1,2,1},
+	['4']={14,12,20,0,-2,-6,2,1},
 }
 
 --{60,80,60,  -- Volume X scale, Volume Y scale, Volume Z scale,
