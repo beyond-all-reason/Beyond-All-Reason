@@ -112,11 +112,10 @@ local ticks = 1 -- int within [1, frameResolution]
 local frame = 1 -- int within [1, groupCount]
 local time  = 1 -- int cumulative group frames
 
--- Some values to adjust based on the loop duration:
 -- Some weapons, eg BeamLasers, create many timed areas (too many) very quickly (too quick).
--- Generally, these are toggled off with `briefTimedAreas = false` to save on FPS.
 local shortDuration = 3 -- in seconds
 shortDuration = math.round(shortDuration / groupDuration) -- in frame groups
+
 -- Assuming area impulse is enabled (>0) at all, scale it by the loop duration.
 areaImpulseRate = areaImpulseRate * math.min(2, math.sqrt(1 / loopDuration))
 
