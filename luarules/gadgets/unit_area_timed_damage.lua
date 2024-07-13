@@ -42,8 +42,8 @@ end
 --
 -- (3) Damage Immunities. Units can be made immune to area damage via their customParams.
 --
---	area_immunities  -  <area_type[]> | nil  -  The list of damage types to which the unit is immune.
---	                                            The base immunities are "acid", "napalm", and "all".
+--	area_immunities  -  <string> | nil  -  Space-delimited list of damage types to which the unit is immune.
+--	                                       The base immunities are "acid", "napalm", and "all".
 --
 ---------------------------------------------------------------------------------------------------------------
 
@@ -124,6 +124,7 @@ areaImpulseRate = areaImpulseRate * math.min(2, math.sqrt(1 / loopDuration))
 local weaponTriggerParams = {}
 local destroyTriggerParams = {}
 local timedAreaParams = {}
+local damageImmunities = {}
 local shieldUnitParams = {}
 
 do
@@ -163,6 +164,15 @@ do
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		if tonumber(unitDef.customParams.area_duration) then
 			addTimedAreaDef(destroyTriggerParams, unitDefID, unitDef)
+		end
+
+		if unitDef.customParams.area_immunities then
+			damageImmunities[unitDefID] = {}
+			for word in unitDef.customParams.area_immunities:gmatch("[%w_]+") do
+				damageImmunities[unitDefID][string.lower(word)] = true
+			end
+			Spring.Echo(info..'Added a unit immune to something.')
+			Spring.Debug.TableEcho(damageImmunities)
 		end
 	end
 end
@@ -422,13 +432,8 @@ end
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projID, attackID, attackDefID, attackTeam)
 	if timedAreaParams[weaponDefID] then
 		local weaponParams = timedAreaParams[weaponDefID]
-		local immunity = UnitDefs[unitDefID].customParams.area_immunities
-		if immunity then
-			local damageType = weaponParams.area_damagetype
-			if damageType == "any" then return 0, 0 end
-			for _, immunityTo in ipairs(string.split(immunity, " ")) do -- todo: unitdef preprocessing step, instead of this
-				if immunityTo == damageType or immunityTo == "all" then return 0, 0 end
-			end
+		if damageImmunities[unitDefID] and damageImmunities[unitDefID][weaponParams.area_damagetype] then 
+			return 0, 0
 		end
 		return damage * loopDuration, areaImpulseRate
 	end
