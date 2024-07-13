@@ -71,7 +71,6 @@ local combatFilter = {}
 local builderFilter = {}
 local buildingFilter = {}
 local mobileFilter = {}
-local idMatchFilter = {}
 local customFilter = {}
 
 local nameLookup = {}
@@ -155,6 +154,10 @@ local function isIdle(_udef, udefid, uid)
 	return canBeIdle and spGetCommandQueue(uid, 0) == 0
 end
 
+local function stringContains(mainString, searchString)
+	return mainString:find(searchString, 1, true) ~= nil
+end
+
 local function handleSetCustomFilter(_, args)
 	local tokens = {}
 	local tokenIndex = 1
@@ -170,10 +173,11 @@ local function handleSetCustomFilter(_, args)
 	end
 
 	local rules = {}
+	local invertIdMatches = nil
+	local idMatchesSet = {}
 
 	while true do
 		local token = getNextToken()
-
 		local invert = false
 
 		if token == "Not" then
@@ -185,19 +189,13 @@ local function handleSetCustomFilter(_, args)
 			break
 		end
 
-		if token == "IdMatches" then
-			while tokenIndex <= #tokens do
-				local name = getNextToken()
-				local uid = nameLookup[name];
-				idMatchFilter[uid] = true
-			end
-
-			rules.idMatches = invertCurry(invert, function(_, udefid) return idMatchFilter[udefid] end)
 		-- simple rules
-		elseif token == "Aircraft" then
+		if token == "Aircraft" then
 			rules.aircraftRule = simpleUdefRule(invert, "canFly")
 		elseif token == "Builder" then
-			rules.builderRule = invertCurry(invert, function(_, udefid) return builderFilter[udefid] end)
+			rules.builderRule = invertCurry(invert, function(udef)
+				return udef.builder and not udef.canresurrect
+			end)
 		elseif token == "Buildoptions" then
 			rules.buildOptionsRule = notEmptyUdefRule(invert, "buildOptions")
 		elseif token == "Building" then
@@ -208,8 +206,16 @@ local function handleSetCustomFilter(_, args)
 			rules.cloakedRule = invertCurry(invert, function(udef, _, uid)
 				return udef.canCloak and spGetUnitIsCloaked(uid)
 			end)
+		elseif token == "Jammer" then
+			rules.jammerRule = invertCurry(invert, function(udef)
+				return udef.jammerRadius > 0
+			end)
 		elseif token == "ManualFireUnit" then
 			rules.manualFireRule = simpleUdefRule(invert, "canManualFire")
+		elseif token == "Radar" then
+			rules.radarRule = invertCurry(invert, function(udef)
+				return udef.radarRadius > 0 or udef.sonarRadius > 0
+			end)
 		elseif token == "Resurrect" then
 			rules.resurrectRule = simpleUdefRule(invert, "canResurrect")
 		elseif token == "Stealth" then
@@ -218,17 +224,17 @@ local function handleSetCustomFilter(_, args)
 			rules.transportRule = simpleUdefRule(invert, "isTransport")
 		elseif token == "Weapons" then
 			rules.weaponsRule = notEmptyUdefRule(invert, "weapons")
+
+			-- command queue rules
 		elseif token == "Idle" then
 			rules.idleRule = invertCurry(invert, isIdle)
-
-		-- command queue rules
-		elseif token == "Waiting" then
-			rules.waitingRule = invertCurry(invert, function(udef, udefid, uid)
-				return spGetCommandQueue(uid, 0) == CMD_WAIT;
-			end)
 		elseif token == "Guarding" then
 			rules.guardingRule = invertCurry(invert, function(udef, udefid, uid)
 				return spGetCommandQueue(uid, 0) == CMD_GUARD;
+			end)
+		elseif token == "Waiting" then
+			rules.waitingRule = invertCurry(invert, function(udef, udefid, uid)
+				return spGetCommandQueue(uid, 0) == CMD_WAIT;
 			end)
 		elseif token == "Patrolling" then
 			rules.patrollingRule = invertCurry(invert, function(udef, udefid, uid)
@@ -249,7 +255,7 @@ local function handleSetCustomFilter(_, args)
 			end)
 		elseif token == "InGroup" then
 			local group = getNextToken()
-			if not token then
+			if not group then
 				break
 			end
 
@@ -257,18 +263,116 @@ local function handleSetCustomFilter(_, args)
 				local unitGroup = Spring.GetUnitGroup(uid)
 				print("unitGroup: " .. unitGroup)
 				print("selectGroup: " .. selectGroup)
-		 		return unitGroup == selectGroup
+				return unitGroup == selectGroup
 			end, group)
 
-		-- range rules
-		elseif token == "Radar" then
-			rules.radarRule = invertCurry(invert, function(udef)
-				return udef.radarRadius > 0 or udef.sonarRadius > 0
-			end)
-		elseif token == "Jammer" then
-			rules.jammerRule = invertCurry(invert, function(udef)
-				return udef.jammerRadius > 0
-			end)
+			-- number comparison
+		elseif token == "AbsoluteHealth" then
+			local minHealth = tonumber(getNextToken())
+			if not minHealth then
+				break
+			end
+			print(minHealth)
+
+			rules.absoluteHealthRule = invertCurry(invert, function(_, _, uid, minHealth)
+				local health = Spring.GetUnitHealth(uid)
+				return health > minHealth
+			end, minHealth)
+		elseif token == "RelativeHealth" then
+			local minHealthPercent = tonumber(getNextToken())
+			if not minHealthPercent then
+				break
+			end
+			minHealthPercent = minHealthPercent / 100.0
+			print(minHealthPercent)
+
+			rules.relativeHealthRule = invertCurry(invert, function(udef, _, uid, minHealthPercent)
+				local minHealth = minHealthPercent * udef.health
+				local health = Spring.GetUnitHealth(uid)
+				return health > minHealth
+			end, minHealthPercent)
+			-- elseif token == "RulesParamEquals" then
+			-- 	local param = getNextToken()
+			-- 	local value = getNextToken()
+
+			-- 	if not value or not param then
+			-- 		break
+			-- 	end
+
+			-- 	local ruleName = param .. "Rule"
+			-- 	rules[ruleName] = invertCurry(invert, function(udef, _, uid, args)
+			-- 		local param = args.param
+			-- 		local value = args.value
+			-- 		-- implementation here?
+			-- 	end, {param = param, value = value})
+		elseif token == "WeaponRange" then
+			local minRange = tonumber(getNextToken())
+			if not minRange then
+				break
+			end
+			print(minRange)
+
+			rules.weaponRangeRule = invertCurry(invert, function(udef, _, _, minRange)
+				-- could replace this for loop with a lookup table storing the max weapon range
+				-- most units don't have many weapons though
+				for _name, weapondef in pairs(udef.weapondefs) do
+					if weapondef.range > minRange then
+						return true
+					end
+				end
+				return false
+			end, minRange)
+
+			-- string comparision
+		elseif token == "Category" then
+			local category = getNextToken()
+			if not category then
+				break
+			end
+			print(category)
+
+			rules.categoryRule = invertCurry(invert, function(udef, _, _, category)
+				return stringContains(udef.category, category)
+			end, category)
+		elseif token == "IdMatches" then
+			local name = getNextToken()
+			if not name then
+				break
+			end
+			print(name)
+
+			local udefid = nameLookup[name];
+			idMatchesSet[udefid] = true
+
+			-- requires special invert logic
+			-- treats `invert = false` as priority
+			-- we don't want to handle pointless edge cases like IdMatches_armcom_Not_IdMatches_armcom
+			-- on the other hand IdMatches_armcom_Not_IdMatches_armflea is basically the same as IdMatches_armcom
+			local skip = false
+			if invertIdMatches == nil or invertIdMatches == invert then
+				invertIdMatches = invert
+			elseif invertIdMatches == true then
+				idMatchesSet = {}
+				invertIdMatches = false
+			elseif invertIdMatches == false then
+				skip = true
+			end
+
+			if not skip then
+				rules.idMatches = invertCurry(invertIdMatches, function(_, udefid, _, idMatchesSet)
+					return idMatchesSet[udefid] or false
+				end, idMatchesSet)
+			end
+		elseif token == "NameContain" then
+			local name = getNextToken()
+			if not name then
+				break
+			end
+			print(name)
+
+			rules.nameRule = invertCurry(invert, function(udef, _, _, name)
+				return stringContains(udef.name, name)
+			end, name)
 		end
 	end
 	customFilterDef = args
