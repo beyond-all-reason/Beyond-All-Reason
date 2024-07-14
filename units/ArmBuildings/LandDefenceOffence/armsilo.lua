@@ -1,5 +1,7 @@
 return {
 	armsilo = {
+		maxacc = 0,
+		maxdec = 0,
 		buildangle = 8192,
 		energycost = 90000,
 		metalcost = 8100,
@@ -16,64 +18,15 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		health = 5900,
+		maxslope = 10,
+		maxwaterdepth = 0,
 		objectname = "Units/ARMSILO.s3o",
 		radardistance = 50,
 		script = "Units/ARMSILO.cob",
 		seismicsignature = 0,
 		selfdestructas = "nukeBuildingSelfd",
 		sightdistance = 455,
-		
-		
-		acceleration = 0.03,
-		--activatewhenbuilt = true,
-		brakerate = 0.05,
-		
-		maxvelocity = 1.6,
-		minwaterdepth = 20,
-		maxwaterdepth = 9999,
-		movementclass = "UBOAT4",
-		canmove = true,
-
-		maxacc = 0.04428,
-		maxdec = 0.04428,
-		energycost = 9000,
-		metalcost = 700,
-
-		canmove = true,
-		category = "UNDERWATER ALL NOTLAND MOBILE NOWEAPON NOTAIR NOTHOVER",
-		collisionvolumeoffsets = "0 0 -1",
-		collisionvolumescales = "31 30 63",
-		collisionvolumetype = "CylZ",
-		corpse = "DEAD",
-		energymake = 30,
-		energystorage = 150,
-		energyupkeep = 30,
-		explodeas = "smallExplosionGeneric-uw",
-		footprintx = 4,
-		footprintz = 4,
-		idleautoheal = 5,
-		idletime = 1800,
-		health = 1110,
-		speed = 72.0,
-		minwaterdepth = 20,
-		movementclass = "UBOAT4",
-		radardistance = 50,
-		seismicsignature = 0,
-		selfdestructas = "smallExplosionGenericSelfd-uw",
-		sightdistance = 156,
-		terraformspeed = 1500,
-		turninplace = true,
-		turninplaceanglelimit = 90,
-		turnrate = 405,
-		waterline = 80,
-		workertime = 300,
-		
-		
-		fireState = 1,
-		noAutoFire = false,
-
-		
-		
+		yardmap = "ooooooooooooooooooooooooooooooooooooooooooooooooo",
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/armsilo_aoplane.dds",
