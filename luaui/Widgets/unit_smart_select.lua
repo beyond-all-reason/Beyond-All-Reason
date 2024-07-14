@@ -35,9 +35,9 @@ local mods = {
  all      = false, -- whether to select all units
  mobile   = false, -- whether to select only mobile units
 }
-local customFilterDef = ""
+local customRulesFilterDef = ""
 local lastMods = mods
-local lastCustomFilterDef = customFilterDef
+local lastCustomRulesFilterDef = customRulesFilterDef
 local lastMouseSelection = {}
 local lastMouseSelectionCount = 0
 
@@ -71,7 +71,8 @@ local combatFilter = {}
 local builderFilter = {}
 local buildingFilter = {}
 local mobileFilter = {}
-local customFilter = {}
+local customRulesFilter = {}
+local customRulesLookup = {}
 
 local nameLookup = {}
 
@@ -167,11 +168,11 @@ local function stringContains(mainString, searchString)
 	return mainString:find(searchString, 1, true) ~= nil
 end
 
-local function handleSetCustomFilter(_, args)
+local function parseRules(ruleDef)
 	local tokens = {}
 	local tokenIndex = 1
 
-	for token in args:gmatch("[^_]+") do
+	for token in ruleDef:gmatch("[^_]+") do
 		table.insert(tokens, token)
 	end
 
@@ -380,13 +381,26 @@ local function handleSetCustomFilter(_, args)
 			end, name)
 		end
 	end
-	customFilterDef = args
-	customFilter = rules
+
+	return rules
 end
 
-local function handleClearCustomFilter(_, _, _)
-	customFilter = {}
-	customFilterDef = ""
+
+local function handleSetCustomRulesFilter(_, ruleDef)
+	local rules = customRulesLookup[ruleDef]
+
+	if rules == nil then
+		rules = parseRules(ruleDef)
+		customRulesLookup[ruleDef] = rules
+	end
+
+	customRulesFilter = rules
+	customRulesFilterDef = ruleDef
+end
+
+local function handleClearCustomRulesFilter(_, _, _)
+	customRulesFilter = {}
+	customRulesFilterDef = ""
 end
 
 
@@ -498,13 +512,13 @@ function widget:Update()
 		and mods.deselect == lastMods[3]
 		and mods.all == lastMods[4]
 		and mods.mobile == lastMods[5]
-		and customFilterDef == lastCustomFilterDef
+		and customRulesFilterDef == lastCustomRulesFilterDef
 	then
 		return
 	end
 
 	lastMods = { mods.idle, mods.same, mods.deselect, mods.all, mods.mobile }
-	lastCustomFilterDef = customFilterDef
+	lastCustomRulesFilterDef = customRulesFilterDef
 
 	-- Fill dictionary for set comparison
 	-- We increase slightly the perf cost of cache misses but at the same
@@ -518,7 +532,7 @@ function widget:Update()
 
 	mouseSelection = tmp
 
-	if next(customFilter) ~= nil then -- use custom filter if it's not empty
+	if next(customRulesFilter) ~= nil then -- use custom filter if it's not empty
 		tmp = {}
 		for i = 1, #mouseSelection do
 			uid = mouseSelection[i]
@@ -528,7 +542,7 @@ function widget:Update()
 			local passesAllRules = true
 			-- checkUdef(udef, "canManualFire")
 
-			for _ruleName, rule in pairs(customFilter) do
+			for _ruleName, rule in pairs(customRulesFilter) do
 				if not rule(udef, udefid, uid) then
 					passesAllRules = false
 					break
@@ -694,8 +708,8 @@ function widget:Initialize()
 		widgetHandler:AddAction("selectbox_" .. modifierName, handleSetModifier, { modifierName, false }, "r")
 	end
 
-	widgetHandler:AddAction("selectbox", handleSetCustomFilter, nil, "p")
-	widgetHandler:AddAction("selectbox", handleClearCustomFilter, nil, "r")
+	widgetHandler:AddAction("selectbox", handleSetCustomRulesFilter, nil, "p")
+	widgetHandler:AddAction("selectbox", handleClearCustomRulesFilter, nil, "r")
 
 	WG['smartselect'] = {}
 	WG['smartselect'].getIncludeBuildings = function()
