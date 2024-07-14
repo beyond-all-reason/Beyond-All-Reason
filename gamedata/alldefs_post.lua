@@ -511,7 +511,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 3] = "coronager"
 			uDef.buildoptions[numBuildoptions + 4] = "cordesolator"
 			uDef.buildoptions[numBuildoptions + 5] = "corsentinel"
-			uDef.buildoptions[numBuildoptions + 5] = "cordronecarry"
+			uDef.buildoptions[numBuildoptions + 6] = "cordronecarry"
 		end
 	end
 
