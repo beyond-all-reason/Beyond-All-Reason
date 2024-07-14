@@ -31,16 +31,10 @@ GG.PowerLib = {
         {threshold = 725000, techLevel = 4.5}
     },
 
-
-    --stores the values of powers for teams
     PeakTeamPowers = {},
     TeamPowers = {},
-
-    --stores the power of each living unit as a table {unitID, power, unitTeam}
     UnitsWithPower = {},
 
-    
-    --teams
     ScavengerTeam = nil,
     RaptorTeam = nil,
     NeutralTeam = nil,
