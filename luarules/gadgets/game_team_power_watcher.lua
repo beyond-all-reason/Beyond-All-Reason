@@ -81,7 +81,6 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
     --testPowerNumber = TechGuesstimate(GG.PowerLib.TeamPowers[unitTeam])
     --Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, GG.PowerLib.TeamPowers[unitTeam], "test result", testPowerNumber)
 
-    --update peak powers
     if GG.PowerLib.TeamPowers[unitTeam] and GG.PowerLib.PeakTeamPowers[unitTeam] < GG.PowerLib.TeamPowers[unitTeam] then
         GG.PowerLib.PeakTeamPowers[unitTeam] = GG.PowerLib.TeamPowers[unitTeam]
     end
