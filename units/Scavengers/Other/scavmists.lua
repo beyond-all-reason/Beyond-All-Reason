@@ -194,6 +194,7 @@ for lvl, stats in pairs(lvlParams) do
 					spawns_surface = "LAND",
 					spawns_mode = "random",
                     spawns_ceg = "scav-spawnexplo",
+					spawns_stun = 1
 				},
 				damage = {
 					default = 0,
@@ -239,6 +240,7 @@ for lvl, stats in pairs(lvlParams) do
 					spawns_mode = "random",
 					spawns_expire = 60,
                     spawns_ceg = "scav-spawnexplo",
+					spawns_stun = 1
 				},
 				damage = {
 					default = 0,
@@ -284,6 +286,7 @@ for lvl, stats in pairs(lvlParams) do
 					spawns_surface = "SEA",
 					spawns_mode = "random",
                     spawns_ceg = "scav-spawnexplo",
+					spawns_stun = 1
 				},
 				damage = {
 					default = 0,

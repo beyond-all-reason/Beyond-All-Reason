@@ -124,7 +124,7 @@ return {
 				name = "Heavy g2g Sustained Heat Ray",
 				noselfdamage = true,
 				predictboost = 0,
-				proximitypriority = -1,
+				--proximitypriority = -1,
 				range = 750,
 				reloadtime = .033,
 				rgbcolor = "1 0.55 0",
