@@ -90,6 +90,16 @@ function gadget:GameFrame(frame)
                     end
                 end
             end
+
+            for i = 1,5 do
+                randomx = math.random(0, mapx)
+                randomz = math.random(0, mapz)
+                randomy = Spring.GetGroundHeight(randomx, randomz)
+
+                if GG.IsPosInRaptorScum(randomx, randomy, randomz) then
+                    Spring.SpawnCEG("scavmistxl",randomx,randomy+100,randomz,0,0,0)
+                end
+            end
         end
     end
 

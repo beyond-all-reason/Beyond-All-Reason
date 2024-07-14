@@ -1851,22 +1851,17 @@ if gadgetHandler:IsSyncedCode() then
 					if health < maxHealth then
 						captureProgress = captureProgress/math.max(0.000001, (health/maxHealth)^3)
 					end
+					captureProgress = math.min(0.05, captureProgress)
 					if Spring.GetUnitTeam(unitID) ~= scavTeamID and GG.IsPosInRaptorScum(ux, uy, uz) then
 						if captureLevel+captureProgress >= 0.99 then
 							Spring.TransferUnit(unitID, scavTeamID, false)
-							Spring.SetUnitHealth(unitID, {capture = 0.50})
+							Spring.SetUnitHealth(unitID, {capture = 0.95})
 							Spring.SetUnitHealth(unitID, {health = maxHealth})
-							SendToUnsynced("unitCaptureFrame", unitID, 0.50)
+							SendToUnsynced("unitCaptureFrame", unitID, 0.95)
 							Spring.SpawnCEG("scav-spawnexplo", ux, uy, uz, 0,0,0)
-							if math.random() <= 0.25 then
-								Spring.SpawnCEG("scavmistxl", ux, uy, uz, 0,0,0)
-							end
-							if math.random() <= 0.1 then
-								Spring.SpawnCEG("scavradiation", ux+math.random(-300, 300), uy, uz+math.random(-300, 300), 0,0,0)
-							end
-							if math.random() <= 0.1 then
-								Spring.SpawnCEG("scavradiation-lightning", ux+math.random(-300, 300), uy, uz+math.random(-300, 300), 0,0,0)
-							end
+							Spring.SpawnCEG("scavmistxl", ux, uy+100, uz, 0,0,0)
+							Spring.SpawnCEG("scavradiation", ux, uy+100, uz, 0,0,0)
+							Spring.SpawnCEG("scavradiation-lightning", ux, uy+100, uz, 0,0,0)
 							
 							GG.addUnitToCaptureDecay(unitID)
 						else
@@ -1874,13 +1869,13 @@ if gadgetHandler:IsSyncedCode() then
 							SendToUnsynced("unitCaptureFrame", unitID, math.min(captureLevel+captureProgress, 1))
 							Spring.SpawnCEG("scav-spawnexplo", ux, uy, uz, 0,0,0)
 							if math.random() <= 0.25 then
-								Spring.SpawnCEG("scavmistxl", ux, uy, uz, 0,0,0)
+								Spring.SpawnCEG("scavmistxl", ux, uy+100, uz, 0,0,0)
 							end
 							if math.random() <= 0.1 then
-								Spring.SpawnCEG("scavradiation", ux+math.random(-300, 300), uy, uz+math.random(-300, 300), 0,0,0)
+								Spring.SpawnCEG("scavradiation", ux, uy+100, uz, 0,0,0)
 							end
 							if math.random() <= 0.1 then
-								Spring.SpawnCEG("scavradiation-lightning", ux+math.random(-300, 300), uy, uz+math.random(-300, 300), 0,0,0)
+								Spring.SpawnCEG("scavradiation-lightning", ux, uy+100, uz, 0,0,0)
 							end
 							GG.addUnitToCaptureDecay(unitID)
 						end

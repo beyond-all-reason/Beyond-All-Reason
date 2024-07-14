@@ -245,6 +245,7 @@ else
 					if tostring(player) then
 						if not unitInView then
 							if Spring.GetUnitRulesParam(unitID, "unit_evolved") then
+
 							elseif not attackerTeam and select(6, Spring.GetTeamInfo(unitTeam, false)) == myAllyTeamID and (not commanderLastDamaged[unitID] or commanderLastDamaged[unitID]+150 < Spring.GetGameFrame()) then
 								BroadcastEvent("NotificationEvent", "FriendlyCommanderSelfD", tostring(player))
 							else
