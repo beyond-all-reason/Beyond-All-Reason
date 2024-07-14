@@ -13,8 +13,6 @@ end
 
 if not gadgetHandler:IsSyncedCode() then return end
 
-
---use VFS.Include("luarules/gadgets/game_team_power_watcher.lua") assuming filepath is still correct to gain access to the data within this gadget and use its functions
 GG.PowerLib = {
     PowerThresholds = {
         {techLevel = 1, threshold = 9000},
