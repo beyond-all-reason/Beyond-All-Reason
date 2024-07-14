@@ -154,7 +154,11 @@ local function SpawnUnit(spawnData)
 					local unitName = strSplit(spawnDef.name)
 					spawnUnitName = unitName[1]
 				end
-				unitID = spCreateUnit(spawnUnitName, spawnData.x, spawnData.y, spawnData.z, 0, spawnData.teamID)
+				if UnitDefNames[spawnUnitName] then
+					unitID = spCreateUnit(spawnUnitName, spawnData.x, spawnData.y, spawnData.z, 0, spawnData.teamID)
+				else
+					Spring.Echo('INVALID UNIT NAME IN UNIT EXPLOSION SPAWNER', spawnUnitName)
+				end
 			end
 			if not unitID then
 				-- unit limit hit or invalid spawn surface
