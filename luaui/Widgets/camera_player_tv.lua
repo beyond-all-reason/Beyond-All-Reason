@@ -69,7 +69,7 @@ for i = 1, #teamList do
 	end
 end
 
-local font, font2, lockPlayerID, prevLockPlayerID, toggleButton, toggleButton2, toggleButton3, backgroundGuishader, scheduledSpecFullView, desiredLosmode
+local font, font2, lockPlayerID, prevLockPlayerID, toggleButton, toggleButton2, toggleButton3, backgroundGuishader, showBackgroundGuishader, scheduledSpecFullView, desiredLosmode
 local RectRound, elementCorner, bgpadding
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
@@ -288,6 +288,7 @@ local function createList()
 			end
 		end)
 		WG['guishader'].InsertDlist(backgroundGuishader, 'playertv', true)
+		showBackgroundGuishader = true
 	end
 end
 
@@ -489,6 +490,9 @@ function widget:DrawScreen()
 		if WG['guishader'] then
 			WG['guishader'].RemoveDlist('playertv')
 		end
+	elseif backgroundGuishader and not showBackgroundGuishader then
+		WG['guishader'].InsertDlist(backgroundGuishader, 'playertv', true)
+		showBackgroundGuishader =  true
 	end
 
 	if gameFrame > 0 or lockPlayerID then
@@ -746,6 +750,7 @@ function widget:ViewResize()
 		if WG['guishader'] and backgroundGuishader then
 			WG['guishader'].DeleteDlist('playertv')
 			backgroundGuishader = nil
+			showBackgroundGuishader = nil
 		end
 		for i = 1, #drawlist do
 			drawlist[i] = gl.DeleteList(drawlist[i])

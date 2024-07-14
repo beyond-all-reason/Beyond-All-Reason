@@ -21,6 +21,7 @@ end
 -- spawns_mode = if you have multiple entries, use one of these strings: "random" "random_locked" or "sequential"
 -- spawns_expire = how long before your unit is destroyed in seconds
 -- spawns_ceg = use to spawn an arbitrary ceg in addition to the explosion effect used in the weapondefs. uses Spring.SpawnCEG()
+-- spawns_stun = a number, use it to define how long a unit will be stunned for after landing.
 
 
 local spCreateFeature         = Spring.CreateFeature
@@ -34,6 +35,8 @@ local spGiveOrderToUnit       = Spring.GiveOrderToUnit
 local spSetFeatureDirection   = Spring.SetFeatureDirection
 local spSetUnitRulesParam     = Spring.SetUnitRulesParam
 local spSpawnCEG 			  = Spring.SpawnCEG
+local spGetUnitHealth 		  = Spring.GetUnitHealth
+local spSetUnitHealth		  = Spring.SetUnitHealth
 
 local mapsizeX 				  = Game.mapSizeX
 local mapsizeZ 				  = Game.mapSizeZ
@@ -75,6 +78,7 @@ for weaponDefID = 1, #WeaponDefs do
 			surface = wdcp.spawns_surface,
 			mode = wdcp.spawns_mode,
 			ceg = wdcp.spawns_ceg,
+			stun = wdcp.spawns_stun,
 		}
 		if wdcp.spawn_blocked_by_shield then
 			shieldCollide[weaponDefID] = WeaponDefs[weaponDefID].damages[Game.armorTypes.shield]
@@ -153,6 +157,11 @@ local function SpawnUnit(spawnData)
 				unitID = spCreateUnit(spawnUnitName, spawnData.x, spawnData.y, spawnData.z, 0, spawnData.teamID)
 				if spawnDef.ceg then
 					spSpawnCEG(spawnDef.ceg, spawnData.x, spawnData.y, spawnData.z, 0,0,0)
+				end
+				if spawnDef.stun then
+					local maxHealth = select(2, spGetUnitHealth(unitID))
+					local paralyzeTime = maxHealth + ((maxHealth/30)*spawnDef.stun)
+					spSetUnitHealth(unitID, {paralyze = paralyzeTime })
 				end
 			end
 			if not unitID then
