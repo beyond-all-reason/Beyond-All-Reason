@@ -123,7 +123,7 @@ function GG.PowerLib.TeamPower(teamID)
 end
 
 -- TotalTeamPower() returns the total power of all non scavenger/raptor teams as a number
-function GG.PowerLib.TotalTeamsPower() 
+function GG.PowerLib.TotalPlayerTeamsPower() 
     local totalPower = 0
 
     for teamID, power in pairs(GG.PowerLib.TeamPowers) do
@@ -136,7 +136,7 @@ function GG.PowerLib.TotalTeamsPower()
 end
 
 --HighestTeamPower() returns the highest non scavenger/raptor team power as a table {teamID, power}
-function GG.PowerLib.HighestTeamPower()
+function GG.PowerLib.HighestPlayerTeamPower()
     local highestPower = 0
     local highestTeamID = nil
 
@@ -153,7 +153,7 @@ function GG.PowerLib.HighestTeamPower()
 end
 
 --AverageTeamPower() returns the average of all non scavenger/raptor teams as a number
-function GG.PowerLib.AverageTeamPower()
+function GG.PowerLib.AveragePlayerTeamPower()
     local totalPower = 0
     local teamCount = 0
 
@@ -169,7 +169,7 @@ function GG.PowerLib.AverageTeamPower()
 end
 
 --LowestTeamPower() returns the lowest non scavenger/raptor team power as a table {teamID, power}
-function GG.PowerLib.LowestTeamPower()
+function GG.PowerLib.LowestPlayerTeamPower()
     local lowestPower = math.huge
     local lowestTeamID = nil
 
@@ -321,7 +321,7 @@ function GG.PowerLib.TeamTechGuesstimate(teamID)
 end
 
 --AverageTechGuesstimate() compares average powers of all non scavenger/raptor teams against GG.PowerLib.PowerThresholds table and returns an estimated tech level from 0.5-4.5
-function GG.PowerLib.AverageTechGuesstimate()
+function GG.PowerLib.AveragePlayerTechGuesstimate()
     local totalPower = 0
     local teamCount = 0
 
@@ -411,7 +411,7 @@ function GG.PowerLib.TeamPeakPower(teamID)
 end
 
 -- TotalPeakPower() returns the total peak power achieved by all non scavenger/raptor teams as a number
-function GG.PowerLib.TotalPeakPower()
+function GG.PowerLib.TotalPlayerPeakPower()
     local totalPeakPower = 0
 
     for id, power in pairs(GG.PowerLib.PeakTeamPowers) do
@@ -424,7 +424,7 @@ function GG.PowerLib.TotalPeakPower()
 end
 
 --HighestPeakPower() returns the highest power achieved by any non scavenger/raptor team as a table {teamID, power}
-function GG.PowerLib.HighestPeakPower() 
+function GG.PowerLib.HighestPlayerPeakPower() 
     local highestPower = 0
     local highestTeamID = nil
 

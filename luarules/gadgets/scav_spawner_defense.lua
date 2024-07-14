@@ -153,7 +153,7 @@ if gadgetHandler:IsSyncedCode() then
 	}
 	CommandersPopulation = 0
 	--FrontbusterPopulation = 0
-	HumanTechLevel = GG.PowerLib.AverageTechGuesstimate()
+	HumanTechLevel = GG.PowerLib.AveragePlayerTechGuesstimate()
 
 	--dynamic difficulty stuff
 	local dynDifficulty0to1 -- ranges from 0-1 based on if the scavengers last wave compared against all non-scav/raptor team powers. 1/5th = 0, 1/3rd = 1 with a linear progression between
@@ -1000,8 +1000,8 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		peakScavPower = GG.PowerLib.TeamPeakPower(scavTeamID)
-		totalPlayerTeamPower = GG.PowerLib.TotalTeamsPower()
-		HumanTechLevel = GG.PowerLib.AverageTechGuesstimate()
+		totalPlayerTeamPower = GG.PowerLib.TotalPlayerTeamsPower()
+		HumanTechLevel = GG.PowerLib.AveragePlayerTechGuesstimate()
 		calculateDifficultyMultiplier(peakScavPower, totalPlayerTeamPower)
 
 		squadManagerKillerLoop()
