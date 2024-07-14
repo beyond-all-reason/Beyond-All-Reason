@@ -41,6 +41,9 @@ local lastCustomRulesFilterDef = customRulesFilterDef
 local lastMouseSelection = {}
 local lastMouseSelectionCount = 0
 
+local defaultdamagetag = Game.armorTypes['default']
+local vtoldamagetag = Game.armorTypes['vtol']
+
 local spGetMouseState = Spring.GetMouseState
 local spGetModKeyState = Spring.GetModKeyState
 local spGetSelectionBox = Spring.GetSelectionBox
@@ -309,6 +312,19 @@ local function parseRules(ruleDef)
 			-- 		local value = args.value
 			-- 		-- implementation here?
 			-- 	end, {param = param, value = value})
+		elseif token == "AntiAir" then
+			rules.antiAirRule = invertCurry(invert, function(udef)
+				if udef.wDefs == nil or udef.canFly then
+					return false
+				end
+
+				for _name, weapondef in pairs(udef.wDefs) do
+					if (weapondef.damages[vtoldamagetag] > weapondef.damages[defaultdamagetag]) then
+						return true
+					end
+				end
+				return false
+			end)
 		elseif token == "WeaponRange" then
 			local minRange = tonumber(getNextToken())
 			if not minRange then
