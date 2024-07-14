@@ -43,7 +43,6 @@ local teamList = Spring.GetTeamList()
 local testPowerTable = {}
 local testPowerNumber = 0
 
---decipher human vs ai vs neutral vs defense mode ai's 
 for _, teamID in ipairs(teamList) do
     local teamLuaAI = Spring.GetTeamLuaAI(teamID)
     if (teamLuaAI and string.find(teamLuaAI, "ScavengersAI")) then
@@ -59,7 +58,7 @@ for _, teamID in ipairs(teamList) do
     end
 end
 
---assign all teams power and peak power of 0 to prevent nil errors
+--assign team powers/peak powers to 0 to prevent nil
 for _, teamNumber in ipairs(teamList) do
     GG.PowerLib.TeamPowers[teamNumber] = 0
     GG.PowerLib.PeakTeamPowers[teamNumber] = 0
@@ -70,14 +69,6 @@ end
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
     GG.PowerLib.UnitsWithPower[unitID] = {unitID = unitID, power = UnitDefs[unitDefID].power, team = unitTeam}
     GG.PowerLib.TeamPowers[unitTeam] = (GG.PowerLib.TeamPowers[unitTeam] + UnitDefs[unitDefID].power) or UnitDefs[unitDefID].power
-    
-    --debug
-
-    --testPowerTable = HighestAlliedPeakPower(unitTeam)
-    --Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, GG.PowerLib.TeamPowers[unitTeam], "test result", testPowerTable.teamID, testPowerTable.power)
-
-    --testPowerNumber = TechGuesstimate(GG.PowerLib.TeamPowers[unitTeam])
-    --Spring.Echo(UnitDefs[unitDefID].name, unitTeam, UnitDefs[unitDefID].power, GG.PowerLib.TeamPowers[unitTeam], "test result", testPowerNumber)
 
     if GG.PowerLib.TeamPowers[unitTeam] and GG.PowerLib.PeakTeamPowers[unitTeam] < GG.PowerLib.TeamPowers[unitTeam] then
         GG.PowerLib.PeakTeamPowers[unitTeam] = GG.PowerLib.TeamPowers[unitTeam]
@@ -95,6 +86,26 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
             else
                 GG.PowerLib.TeamPowers[unitTeam] = GG.PowerLib.TeamPowers[unitTeam] - UnitDefs[unitDefID].power
             end
+        end
+    end
+end
+
+--handles capture events
+function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
+    if GG.PowerLib.UnitsWithPower[unitID] then
+        local oldTeam = GG.PowerLib.UnitsWithPower[unitID].team
+
+        GG.PowerLib.UnitsWithPower[unitID] = {unitID = unitID, power = UnitDefs[unitDefID].power, team = unitTeam}
+        GG.PowerLib.TeamPowers[unitTeam] = (GG.PowerLib.TeamPowers[unitTeam] + UnitDefs[unitDefID].power) or UnitDefs[unitDefID].power
+
+        if GG.PowerLib.TeamPowers[oldTeam] <= UnitDefs[unitDefID].power then
+            GG.PowerLib.TeamPowers[oldTeam] = 0
+        else
+            GG.PowerLib.TeamPowers[oldTeam] = GG.PowerLib.TeamPowers[unitTeam] - UnitDefs[unitDefID].power
+        end
+
+        if GG.PowerLib.TeamPowers[unitTeam] and GG.PowerLib.PeakTeamPowers[unitTeam] < GG.PowerLib.TeamPowers[unitTeam] then
+            GG.PowerLib.PeakTeamPowers[unitTeam] = GG.PowerLib.TeamPowers[unitTeam]
         end
     end
 end
