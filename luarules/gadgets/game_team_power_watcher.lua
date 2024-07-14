@@ -6,7 +6,7 @@ function gadget:GetInfo()
         desc = "Tracks power of individual and total units per team. To be used for PvE dynamic difficulty and library functions to assertain aspects of game progression",
 		author = "SethDGamre",
 		date = "2024-07-12",
-		layer = 1,
+		layer = -1,
 		enabled = true
 	}
 end
