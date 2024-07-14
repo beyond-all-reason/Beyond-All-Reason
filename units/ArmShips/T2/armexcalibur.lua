@@ -165,7 +165,7 @@ return {
 			[1] = {
 				badtargetcategory = "UNDERWATER",
 				def = "EXATA",
-				onlytargetcategory = "SURFACE NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 		},
 	},
