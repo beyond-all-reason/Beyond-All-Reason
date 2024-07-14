@@ -112,7 +112,8 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
     end
 end
 
-function GG.PowerLib.TeamPower(teamID)--returns the power of the input teamID as a number
+--returns the power of the input teamID as a number
+function GG.PowerLib.TeamPower(teamID)
     for id, power in pairs(GG.PowerLib.TeamPowers) do
         if id == teamID then
             return power
@@ -121,8 +122,8 @@ function GG.PowerLib.TeamPower(teamID)--returns the power of the input teamID as
     return 0
 end
 
-
-function GG.PowerLib.TotalTeamsPower() -- TotalTeamPower() returns the total power of all non scavenger/raptor teams as a number
+-- TotalTeamPower() returns the total power of all non scavenger/raptor teams as a number
+function GG.PowerLib.TotalTeamsPower() 
     local totalPower = 0
 
     for teamID, power in pairs(GG.PowerLib.TeamPowers) do
@@ -134,8 +135,8 @@ function GG.PowerLib.TotalTeamsPower() -- TotalTeamPower() returns the total pow
     return totalPower
 end
 
-
-function GG.PowerLib.HighestTeamPower()--HighestTeamPower() returns the highest non scavenger/raptor team power as a table {teamID, power}
+--HighestTeamPower() returns the highest non scavenger/raptor team power as a table {teamID, power}
+function GG.PowerLib.HighestTeamPower()
     local highestPower = 0
     local highestTeamID = nil
 
@@ -151,8 +152,8 @@ function GG.PowerLib.HighestTeamPower()--HighestTeamPower() returns the highest 
     return {teamID = highestTeamID, power = highestPower}
 end
 
-
-function GG.PowerLib.AverageTeamPower()--AverageTeamPower() returns the average of all non scavenger/raptor teams as a number
+--AverageTeamPower() returns the average of all non scavenger/raptor teams as a number
+function GG.PowerLib.AverageTeamPower()
     local totalPower = 0
     local teamCount = 0
 
@@ -167,8 +168,8 @@ function GG.PowerLib.AverageTeamPower()--AverageTeamPower() returns the average 
     return averagePower
 end
 
-
-function GG.PowerLib.LowestTeamPower()--LowestTeamPower() returns the lowest non scavenger/raptor team power as a table {teamID, power}
+--LowestTeamPower() returns the lowest non scavenger/raptor team power as a table {teamID, power}
+function GG.PowerLib.LowestTeamPower()
     local lowestPower = math.huge
     local lowestTeamID = nil
 
@@ -185,8 +186,8 @@ function GG.PowerLib.LowestTeamPower()--LowestTeamPower() returns the lowest non
 end
 
 
-
-function GG.PowerLib.HighestHumanTeamPower()--HighestHumanTeamPower() returns the highest non AI/scavenger/raptor team power as a table {teamID, power}
+--HighestHumanTeamPower() returns the highest non AI/scavenger/raptor team power as a table {teamID, power}
+function GG.PowerLib.HighestHumanTeamPower()
     local highestPower = 0
     local highestTeamID = nil
 
@@ -202,8 +203,8 @@ function GG.PowerLib.HighestHumanTeamPower()--HighestHumanTeamPower() returns th
     return {teamID = highestTeamID, power = highestPower}
 end
 
-
-function GG.PowerLib.AverageHumanTeamPower()--AverageHumanTeamPower() returns the average of all non AI/scavenger/raptor teams as a number
+--AverageHumanTeamPower() returns the average of all non AI/scavenger/raptor teams as a number
+function GG.PowerLib.AverageHumanTeamPower()
     local totalPower = 0
     local teamCount = 0
 
@@ -218,8 +219,8 @@ function GG.PowerLib.AverageHumanTeamPower()--AverageHumanTeamPower() returns th
     return averagePower
 end
 
-
-function GG.PowerLib.LowestHumanTeamPower()--LowestTeamPower() returns the lowest non AI/scavenger/raptor team power as a table {teamID, power}
+--LowestTeamPower() returns the lowest non AI/scavenger/raptor team power as a table {teamID, power}
+function GG.PowerLib.LowestHumanTeamPower()
     local lowestPower = math.huge
     local lowestTeamID = nil
 
@@ -236,8 +237,8 @@ function GG.PowerLib.LowestHumanTeamPower()--LowestTeamPower() returns the lowes
 end
 
 
-
-function GG.PowerLib.HighestAlliedTeamPower(teamID)--HighestAlliedTeamPower(teamID) returns the highest team power of the allies belonging to input team. Returns as a table {teamID, power}
+--HighestAlliedTeamPower(teamID) returns the highest team power of the allies belonging to input team. Returns as a table {teamID, power}
+function GG.PowerLib.HighestAlliedTeamPower(teamID)
     local allyTeamNum = select(6, Spring.GetTeamInfo(teamID))
     local highestPower = 0
     local highestTeamID = nil
@@ -254,8 +255,8 @@ function GG.PowerLib.HighestAlliedTeamPower(teamID)--HighestAlliedTeamPower(team
     return {teamID = highestTeamID, power = highestPower}
 end
 
-
-function GG.PowerLib.AverageAlliedTeamPower(teamID) -- AverageAlliedTeamPower(teamID) returns the average of all allies of the input teamID. Returns a number.
+-- AverageAlliedTeamPower(teamID) returns the average of all allies of the input teamID. Returns a number.
+function GG.PowerLib.AverageAlliedTeamPower(teamID) 
     local allyTeamNum = select(6, Spring.GetTeamInfo(teamID))
     local totalPower = 0
     local teamCount = 0
@@ -271,8 +272,8 @@ function GG.PowerLib.AverageAlliedTeamPower(teamID) -- AverageAlliedTeamPower(te
     return averagePower
 end
 
-
-function GG.PowerLib.LowestAlliedTeamPower(teamID)--LowestAlliedTeamPower(teamID) returns the lowest of the teamID's allies power as a table {teamID, power}
+--LowestAlliedTeamPower(teamID) returns the lowest of the teamID's allies power as a table {teamID, power}
+function GG.PowerLib.LowestAlliedTeamPower(teamID)
     local allyTeamNum = select(6, Spring.GetTeamInfo(teamID))
     local lowestPower = math.huge
     local lowestTeamID = nil
@@ -290,8 +291,8 @@ function GG.PowerLib.LowestAlliedTeamPower(teamID)--LowestAlliedTeamPower(teamID
 end
 
 
-
-function GG.PowerLib.TechGuesstimate(power)--TechGuesstimate(teamPower) takes an input of a power value and compares it against GG.PowerLib.PowerThresholds table and returns an estimated tech level from 0.5-4.5
+--TechGuesstimate(teamPower) takes an input of a power value and compares it against GG.PowerLib.PowerThresholds table and returns an estimated tech level from 0.5-4.5
+function GG.PowerLib.TechGuesstimate(power)
     local techLevel = 0.5
     for _, threshold in ipairs(GG.PowerLib.PowerThresholds) do
         if power >= threshold.threshold then
@@ -304,7 +305,8 @@ function GG.PowerLib.TechGuesstimate(power)--TechGuesstimate(teamPower) takes an
     return techLevel
 end
 
-function GG.PowerLib.TeamTechGuesstimate(teamID)--TeamTechGuesstimate(teamID) takes an input teamID and compares its power against GG.PowerLib.PowerThresholds table and returns an estimated tech level from 0.5-4.5
+--TeamTechGuesstimate(teamID) takes an input teamID and compares its power against GG.PowerLib.PowerThresholds table and returns an estimated tech level from 0.5-4.5
+function GG.PowerLib.TeamTechGuesstimate(teamID)
     local totalPower = GG.PowerLib.TeamPowers[teamID]
     local techLevel = 0.5
     for _, threshold in ipairs(GG.PowerLib.PowerThresholds) do
@@ -318,8 +320,8 @@ function GG.PowerLib.TeamTechGuesstimate(teamID)--TeamTechGuesstimate(teamID) ta
     return techLevel
 end
 
-
-function GG.PowerLib.AverageTechGuesstimate()--AverageTechGuesstimate() compares average powers of all non scavenger/raptor teams against GG.PowerLib.PowerThresholds table and returns an estimated tech level from 0.5-4.5
+--AverageTechGuesstimate() compares average powers of all non scavenger/raptor teams against GG.PowerLib.PowerThresholds table and returns an estimated tech level from 0.5-4.5
+function GG.PowerLib.AverageTechGuesstimate()
     local totalPower = 0
     local teamCount = 0
 
@@ -344,8 +346,8 @@ function GG.PowerLib.AverageTechGuesstimate()--AverageTechGuesstimate() compares
     return techLevel
 end
 
-
-function GG.PowerLib.AverageHumanTechGuesstimate()--AverageHumanTechGuesstimate() compares average powers of all non AI/scavenger/raptor teams against GG.PowerLib.PowerThresholds table and returns an estimated tech level from 0.5-4.5
+--AverageHumanTechGuesstimate() compares average powers of all non AI/scavenger/raptor teams against GG.PowerLib.PowerThresholds table and returns an estimated tech level from 0.5-4.5
+function GG.PowerLib.AverageHumanTechGuesstimate()
     local totalPower = 0
     local teamCount = 0
 
@@ -370,8 +372,8 @@ function GG.PowerLib.AverageHumanTechGuesstimate()--AverageHumanTechGuesstimate(
     return techLevel
 end
 
-
-function GG.PowerLib.AverageAlliedTechGuesstimate(teamID)--AverageAlliedTechGuesstimate(teamID) compares average powers of all allied teams of the input teamID against GG.PowerLib.PowerThresholds table and returns an estimated tech level from 0.5-4.5
+--AverageAlliedTechGuesstimate(teamID) compares average powers of all allied teams of the input teamID against GG.PowerLib.PowerThresholds table and returns an estimated tech level from 0.5-4.5
+function GG.PowerLib.AverageAlliedTechGuesstimate(teamID)
     local allyTeamNum = select(6, Spring.GetTeamInfo(teamID))
     local totalPower = 0
     local teamCount = 0
@@ -398,8 +400,8 @@ function GG.PowerLib.AverageAlliedTechGuesstimate(teamID)--AverageAlliedTechGues
 end
 
 
-
-function GG.PowerLib.TeamPeakPower(teamID)--TeamPeakPower(teamID) returns the highest power achieved by the the input teamID as a number.
+--TeamPeakPower(teamID) returns the highest power achieved by the the input teamID as a number.
+function GG.PowerLib.TeamPeakPower(teamID)
     for id, power in pairs(GG.PowerLib.PeakTeamPowers) do
         if id == teamID then
             return power
@@ -408,8 +410,8 @@ function GG.PowerLib.TeamPeakPower(teamID)--TeamPeakPower(teamID) returns the hi
     return 0
 end
 
-
-function GG.PowerLib.TotalPeakPower() -- TotalPeakPower() returns the total peak power achieved by all non scavenger/raptor teams as a number
+-- TotalPeakPower() returns the total peak power achieved by all non scavenger/raptor teams as a number
+function GG.PowerLib.TotalPeakPower()
     local totalPeakPower = 0
 
     for id, power in pairs(GG.PowerLib.PeakTeamPowers) do
@@ -421,8 +423,8 @@ function GG.PowerLib.TotalPeakPower() -- TotalPeakPower() returns the total peak
     return totalPeakPower
 end
 
-
-function GG.PowerLib.HighestPeakPower() --HighestPeakPower() returns the highest power achieved by any non scavenger/raptor team as a table {teamID, power}
+--HighestPeakPower() returns the highest power achieved by any non scavenger/raptor team as a table {teamID, power}
+function GG.PowerLib.HighestPeakPower() 
     local highestPower = 0
     local highestTeamID = nil
 
@@ -438,8 +440,8 @@ function GG.PowerLib.HighestPeakPower() --HighestPeakPower() returns the highest
     return {teamID = highestTeamID, power = highestPower}
 end
 
-
-function GG.PowerLib.HighestAlliedPeakPower(teamID) --HighestAlliedPeakPower(teamID) returns the highest power achieved by any non scavenger/raptor team on the same team as the input teamID as a table {teamID, power}
+--HighestAlliedPeakPower(teamID) returns the highest power achieved by any non scavenger/raptor team on the same team as the input teamID as a table {teamID, power}
+function GG.PowerLib.HighestAlliedPeakPower(teamID) 
     local allyTeamNum = select(6, Spring.GetTeamInfo(teamID))
     local highestPower = 0
     local highestTeamID = nil
@@ -456,8 +458,8 @@ function GG.PowerLib.HighestAlliedPeakPower(teamID) --HighestAlliedPeakPower(tea
     return {teamID = highestTeamID, power = highestPower}
 end
 
-
-function GG.PowerLib.AverageHumanPeakPower()--AverageHumanPeakPower() returns the average of all the peak powers achieved by non AI/scavenger/raptor teams as a number
+--AverageHumanPeakPower() returns the average of all the peak powers achieved by non AI/scavenger/raptor teams as a number
+function GG.PowerLib.AverageHumanPeakPower()
     local totalPower = 0
     local teamCount = 0
 
@@ -472,8 +474,8 @@ function GG.PowerLib.AverageHumanPeakPower()--AverageHumanPeakPower() returns th
     return averagePower
 end
 
-
-function GG.PowerLib.AverageAlliedPeakPower(teamID)  --AverageAlliedPeakPower(teamID) returns the average of all the peak powers achieved by allied teams of the input teamID as a number.
+--AverageAlliedPeakPower(teamID) returns the average of all the peak powers achieved by allied teams of the input teamID as a number.
+function GG.PowerLib.AverageAlliedPeakPower(teamID)  
     local allyTeamNum = select(6, Spring.GetTeamInfo(teamID))
     local totalPower = 0
     local teamCount = 0
