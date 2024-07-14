@@ -6,6 +6,12 @@ local function scavUnitDef_Post(name, uDef)
 	uDef.customparams.isscavenger = true
 	uDef.capturable = false
 	uDef.decloakonfire = true
+	if uDef.decoyfor and not string.find(uDef.decoyfor, "_scav") then
+		uDef.decoyfor = uDef.decoyfor .. "_scav"
+	end
+	if uDef.icontype and not string.find(uDef.icontype, "_scav") then
+		uDef.icontype = uDef.icontype .. "_scav"
+	end
 
  	-- replaced uniticons
 	if uDef.buildpic then

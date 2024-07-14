@@ -118,38 +118,6 @@ customDefs.corjuno = {
 	},
 }
 
-customDefs.armdecom = {
-	decoyfor = "armcom_scav",
-}
-
-customDefs.cordecom = {
-	decoyfor = "corcom_scav",
-}
-
-customDefs.armclaw = {
-	decoyfor = "armdrag_scav",
-}
-
-customDefs.cormaw = {
-	decoyfor = "cordrag_scav",
-}
-
-customDefs.armdf = {
-	decoyfor = "armfus_scav",
-}
-
-customDefs.corscavdtf = {
-	decoyfor = "corscavdrag_scav",
-}
-
-customDefs.corscavdtm = {
-	decoyfor = "corscavdrag_scav",
-}
-
-customDefs.corscavdtl = {
-	decoyfor = "corscavdrag_scav",
-}
-
 customDefs.legcomlvl3 = {
 	weapondefs = {
 		botcannon = {
