@@ -118,39 +118,24 @@ customDefs.corjuno = {
 	},
 }
 
-customDefs.armdecom = {
-	decoyfor = "armcom_scav",
-}
-
-customDefs.cordecom = {
-	decoyfor = "corcom_scav",
-}
-
-customDefs.armclaw = {
-	decoyfor = "armdrag_scav",
-}
-
-customDefs.cormaw = {
-	decoyfor = "cordrag_scav",
-}
-
-customDefs.armdf = {
-	decoyfor = "armfus_scav",
-}
-
-customDefs.corscavdtf = {
-	decoyfor = "corscavdrag_scav",
-}
-
-customDefs.corscavdtm = {
-	decoyfor = "corscavdrag_scav",
-}
-
-customDefs.corscavdtl = {
-	decoyfor = "corscavdrag_scav",
-}
-
 customDefs.legcomlvl3 = {
+	weapondefs = {
+		botcannon = {
+			energypershot = 5000,
+			projectiles = 6,
+			range = 600,
+			model = "Units/CORMINE2.s3o",
+			customparams = {
+				spawns_name = legionLobberUnitsT1,
+				spawns_mode = "random_locked",
+				spawns_expire = 999999,
+				spawns_surface = "LAND", -- Available: "LAND SEA"
+			}
+		}
+	}
+}
+
+customDefs.legdecomlvl3 = {
 	weapondefs = {
 		botcannon = {
 			energypershot = 5000,
@@ -202,6 +187,23 @@ customDefs.legcomlvl5 = {
 }
 
 customDefs.legcomlvl6 = {
+	weapondefs = {
+		botcannon = {
+			energypershot = 6000,
+			projectiles = 6,
+			range = 700,
+			model = "Units/CORMINE2.s3o",
+			customparams = {
+				spawns_name = legionLobberUnitsT2,
+				spawns_mode = "random_locked",
+				spawns_expire = 999999,
+				spawns_surface = "LAND", -- Available: "LAND SEA"
+			}
+		}
+	}
+}
+
+customDefs.legdecomlvl6 = {
 	weapondefs = {
 		botcannon = {
 			energypershot = 6000,
@@ -270,6 +272,23 @@ customDefs.legcomlvl9 = {
 }
 
 customDefs.legcomlvl10 = {
+	weapondefs = {
+		botcannon = {
+			energypershot = 10000,
+			projectiles = 4,
+			range = 900,
+			model = "Units/CORMINE2.s3o",
+			customparams = {
+				spawns_name = legionLobberUnitsT4,
+				spawns_mode = "random_locked",
+				spawns_expire = 999999,
+				spawns_surface = "LAND", -- Available: "LAND SEA"
+			}
+		}
+	}
+}
+
+customDefs.legdecomlvl10 = {
 	weapondefs = {
 		botcannon = {
 			energypershot = 10000,
