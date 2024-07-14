@@ -158,15 +158,16 @@ local function SpawnUnit(spawnData)
 				if spawnDef.ceg then
 					spSpawnCEG(spawnDef.ceg, spawnData.x, spawnData.y, spawnData.z, 0,0,0)
 				end
-				if spawnDef.stun then
-					local maxHealth = select(2, spGetUnitHealth(unitID))
-					local paralyzeTime = maxHealth + ((maxHealth/30)*spawnDef.stun)
-					spSetUnitHealth(unitID, {paralyze = paralyzeTime })
-				end
 			end
 			if not unitID then
 				-- unit limit hit or invalid spawn surface
 				return
+			end
+
+			if spawnDef.stun then
+				local maxHealth = select(2, spGetUnitHealth(unitID))
+				local paralyzeTime = maxHealth + ((maxHealth/30)*spawnDef.stun)
+				spSetUnitHealth(unitID, {paralyze = paralyzeTime })
 			end
 
 			local ownerID = spawnData.ownerID
