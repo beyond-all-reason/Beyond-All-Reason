@@ -30,6 +30,7 @@ end
 -- area_weaponName = {
 --     areaofeffect        -  Needs to match the size of its CEGs.
 --     explosiongenerator  -  Needs to match both the area of effect and loop duration.
+--     weapontype          -  Non-explosive types won't cause water splashes, etc; try "Flame".
 --     impulse*            -  Modified by this script. Set to your target impulse per-hit.
 --     damage              -  Modified by this script. Set to the damage dealt per-second.
 --     crater*             -  Set by this script. Timed areas cannot damage terrain.
