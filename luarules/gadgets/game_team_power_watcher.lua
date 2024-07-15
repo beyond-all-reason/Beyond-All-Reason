@@ -67,8 +67,6 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
     unitsWithPower[unitID] = {unitID = unitID, power = UnitDefs[unitDefID].power, team = unitTeam}
     teamPowers[unitTeam] = (teamPowers[unitTeam] + UnitDefs[unitDefID].power) or UnitDefs[unitDefID].power
 
-
-    
     if teamPowers[unitTeam] and peakTeamPowers[unitTeam] < teamPowers[unitTeam] then
         peakTeamPowers[unitTeam] = teamPowers[unitTeam]
     end

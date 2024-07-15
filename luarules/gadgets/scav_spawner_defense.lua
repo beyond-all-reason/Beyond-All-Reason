@@ -153,8 +153,7 @@ if gadgetHandler:IsSyncedCode() then
 	}
 	CommandersPopulation = 0
 	--FrontbusterPopulation = 0
-	HumanTechLevel = GG.PowerLib.AveragePlayerTechGuesstimate()
-	Spring.Echo("scav gadget HumanTechLevel",HumanTechLevel)
+	HumanTechLevel = 0
 
 	--dynamic difficulty stuff
 	local dynDifficulty0to1 -- ranges from 0-1 based on if the scavengers last wave compared against all non-scav/raptor team powers. 1/5th = 0, 1/3rd = 1 with a linear progression between
@@ -2065,6 +2064,10 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:UnitFinished(unitID, unitDefID, unitTeam)
+		if unitTeam ~= scavTeamID and unitTeam ~= gaiaTeamID then
+			local unitTech = tonumber(UnitDefs[unitDefID].customParams.techlevel)
+			HumanTechLevel = math.max(HumanTechLevel, unitTech)
+		end
 		if unitTeam ~= scavTeamID then
 			capturableUnits[unitID] = true
 		end
