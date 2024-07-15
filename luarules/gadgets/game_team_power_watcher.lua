@@ -67,6 +67,8 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
     unitsWithPower[unitID] = {unitID = unitID, power = UnitDefs[unitDefID].power, team = unitTeam}
     teamPowers[unitTeam] = (teamPowers[unitTeam] + UnitDefs[unitDefID].power) or UnitDefs[unitDefID].power
 
+
+    
     if teamPowers[unitTeam] and peakTeamPowers[unitTeam] < teamPowers[unitTeam] then
         peakTeamPowers[unitTeam] = teamPowers[unitTeam]
     end
@@ -489,36 +491,36 @@ Spring.Debug.TableEcho(teamList)
 function gadget:Initialize()
     GG.PowerLib = {}
     Spring.Debug.TableEcho(teamList)
-    GG.PowerLib[TeamList] = teamList
-    GG.PowerLib[ScavengerTeam] = scavengerTeam
-    GG.PowerLib[RaptorTeam] = raptorTeam
-    GG.PowerLib[AiTeams] = aiTeams
-    GG.PowerLib[NeutralTeam] = neutralTeam
-    GG.PowerLib[HumanTeams] = humanTeams
-    GG.PowerLib[TeamPowers] = teamPowers
-    GG.PowerLib[PeakTeamPowers] = peakTeamPowers
-    GG.PowerLib[UnitsWithPower] = unitsWithPower
-    GG.PowerLib[PowerThresholds] = powerThresholds
-    GG.PowerLib[TeamPower] = teamPower
-    GG.PowerLib[TotalPlayerTeamsPower] = totalPlayerTeamsPower
-    GG.PowerLib[HighestPlayerTeamPower] = highestPlayerTeamPower
-    GG.PowerLib[AveragePlayerTeamPower] = averagePlayerTeamPower
-    GG.PowerLib[LowestPlayerTeamPower] = lowestPlayerTeamPower
-    GG.PowerLib[HighestHumanTeamPower] = highestHumanTeamPower
-    GG.PowerLib[AverageHumanTeamPower] = averageHumanTeamPower
-    GG.PowerLib[LowestHumanTeamPower] = lowestHumanTeamPower
-    GG.PowerLib[HighestAlliedTeamPower] = highestAlliedTeamPower
-    GG.PowerLib[AverageAlliedTeamPower] = averageAlliedTeamPower
-    GG.PowerLib[LowestAlliedTeamPower] = lowestAlliedTeamPower
-    GG.PowerLib[TechGuesstimate] = techGuesstimate
-    GG.PowerLib[TeamTechGuesstimate] = teamTechGuesstimate
-    GG.PowerLib[AveragePlayerTechGuesstimate] = averagePlayerTechGuesstimate
-    GG.PowerLib[AverageHumanTechGuesstimate] = averageHumanTechGuesstimate
-    GG.PowerLib[AverageAlliedTechGuesstimate] = averageAlliedTechGuesstimate
-    GG.PowerLib[TeamPeakPower] = teamPeakPower
-    GG.PowerLib[TotalPlayerPeakPower] = totalPlayerPeakPower
-    GG.PowerLib[HighestPlayerPeakPower] = highestPlayerPeakPower
-    GG.PowerLib[HighestAlliedPeakPower] = highestAlliedPeakPower
-    GG.PowerLib[AverageHumanPeakPower] = averageHumanPeakPower
-    GG.PowerLib[AverageAlliedPeakPower] = averageAlliedPeakPower
+    GG.PowerLib["TeamList"] = teamList
+    GG.PowerLib["ScavengerTeam"] = scavengerTeam
+    GG.PowerLib["RaptorTeam"] = raptorTeam
+    GG.PowerLib["AiTeams"] = aiTeams
+    GG.PowerLib["NeutralTeam"] = neutralTeam
+    GG.PowerLib["HumanTeams"] = humanTeams
+    GG.PowerLib["TeamPowers"] = teamPowers
+    GG.PowerLib["PeakTeamPowers"] = peakTeamPowers
+    GG.PowerLib["UnitsWithPower"] = unitsWithPower
+    GG.PowerLib["PowerThresholds"] = powerThresholds
+    GG.PowerLib["TeamPower"] = teamPower
+    GG.PowerLib["TotalPlayerTeamsPower"] = totalPlayerTeamsPower
+    GG.PowerLib["HighestPlayerTeamPower"] = highestPlayerTeamPower
+    GG.PowerLib["AveragePlayerTeamPower"] = averagePlayerTeamPower
+    GG.PowerLib["LowestPlayerTeamPower"] = lowestPlayerTeamPower
+    GG.PowerLib["HighestHumanTeamPower"] = highestHumanTeamPower
+    GG.PowerLib["AverageHumanTeamPower"] = averageHumanTeamPower
+    GG.PowerLib["LowestHumanTeamPower"] = lowestHumanTeamPower
+    GG.PowerLib["HighestAlliedTeamPower"] = highestAlliedTeamPower
+    GG.PowerLib["AverageAlliedTeamPower"] = averageAlliedTeamPower
+    GG.PowerLib["LowestAlliedTeamPower"] = lowestAlliedTeamPower
+    GG.PowerLib["TechGuesstimate"] = techGuesstimate
+    GG.PowerLib["TeamTechGuesstimate"] = teamTechGuesstimate
+    GG.PowerLib["AveragePlayerTechGuesstimate"] = averagePlayerTechGuesstimate
+    GG.PowerLib["AverageHumanTechGuesstimate"] = averageHumanTechGuesstimate
+    GG.PowerLib["AverageAlliedTechGuesstimate"] = averageAlliedTechGuesstimate
+    GG.PowerLib["TeamPeakPower"] = teamPeakPower
+    GG.PowerLib["TotalPlayerPeakPower"] = totalPlayerPeakPower
+    GG.PowerLib["HighestPlayerPeakPower"] = highestPlayerPeakPower
+    GG.PowerLib["HighestAlliedPeakPower"] = highestAlliedPeakPower
+    GG.PowerLib["AverageHumanPeakPower"] = averageHumanPeakPower
+    GG.PowerLib["AverageAlliedPeakPower"] = averageAlliedPeakPower
 end
