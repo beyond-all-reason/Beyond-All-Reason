@@ -187,7 +187,7 @@ local function averageHumanTeamPower()
         end
     end
 
-    local averagePower = totalPower / teamCount
+    local averagePower = teamCount > 0 and totalPower / teamCount or 0
     return averagePower
 end
 
