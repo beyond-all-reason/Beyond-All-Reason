@@ -2655,10 +2655,11 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-bot-at-ok",
 		BaseSoundWeaponType = "heatray",
 	},
-
-
-
-
+	legaceb = {
+		BaseSoundSelectType = "cor-bot-at-sel",
+		BaseSoundMovementType = "cor-bot-at-ok",
+		BaseSoundWeaponType = "con-assist",
+	},
 	leginc = {
 		BaseSoundSelectType = "cor-bot-huge-sel",
 		BaseSoundMovementType = "cor-bot-huge-ok",
