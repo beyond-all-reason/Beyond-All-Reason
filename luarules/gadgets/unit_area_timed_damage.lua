@@ -46,12 +46,12 @@ local frameResolution   = 1                    -- The bin size, in frames, to lo
 local loopDuration      = 1/2                  -- The time between area procs. Adjusts damage automagically.
 
 local areaFlankDamage   = true                 -- When set to `false`, damage is adjusted to offset flanking.
-local areaImpulseRate   = 0.25                 -- Multiplies the impulse of area weapons. Tbh should be 0 or 1.
+local areaImpulseRate   = 1                    -- Multiplies the impulse of area weapons. Generally 0 or 1.
 
-local briefTimedAreas   = false                -- Whether or not short-lived areas are spawned. Can reduce FPS.
-local shieldSuppression = true                 -- Whether or not shields suppress timed areas. Can reduce FPS.
-local suppressionCharge = 100                  -- Minimum total capacity for a shield to suppress timed areas.
-local suppressionRadius = 100                  -- Minimum shield radius for a shield to suppress timed areas.
+local enableImmunities  = true                 -- Whether or not units can ignore area damage completely.
+local enableBriefAreas  = false                -- Whether or not short-lived areas are spawned. Can reduce FPS.
+local reduceDamagedCEGs = true                 -- Reduce number of particles drawn by not displaying some CEGs.
+local shieldsDenyAreas  = true                 -- Whether or not shields cancel delayed areas. Can reduce FPS.
 
 local defaultWeaponName = "area_timed_damage"  -- Fallback when area_weaponName is not specified in the def.
 
@@ -89,11 +89,11 @@ loopDuration = loopFrameCount * (1 / gameSpeed)
 local groupCount = loopFrameCount / frameResolution
 local groupDuration = frameResolution * (1 / gameSpeed)
 
-local ticks = 1 -- int within [1, frameResolution]
-local frame = 1 -- int within [1, groupCount]
+local ticks = 1 -- int in [1, frameResolution]
+local frame = 1 -- int in [1, groupCount]
 local time  = 1 -- int cumulative group frames
 
-local shieldFrame = shieldSuppression and math.clamp(math.round(frameResolution / 2), 1, math.round(gameSpeed / 2))
+local shieldFrame = shieldsDenyAreas and math.clamp(math.round(frameResolution / 2), 1, math.round(gameSpeed / 2))
 local shortDuration = math.round(3 / groupDuration) -- seconds -> frame groups
 
 areaImpulseRate = areaImpulseRate * math.min(2, math.sqrt(1 / loopDuration))
@@ -104,79 +104,88 @@ local weaponTriggerParams = {}
 local destroyTriggerParams = {}
 local timedAreaParams = {}
 
+for defs, triggerParams in pairs({ [WeaponDefs] = weaponTriggerParams, [UnitDefs] = destroyTriggerParams }) do
+	for defID, def in pairs(defs) do
+		if tonumber(def.customParams.area_duration) then
+			local areaWeaponName = def.customParams.area_weaponname or def.name.."_"..defaultWeaponName
+			local areaWeaponDef = WeaponDefNames[areaWeaponName]
+			if not areaWeaponDef then
+				Spring.Log(gadget:GetInfo().name, LOG.WARNING, 'Did not find area weapon for ' .. def.name)
+				return
+			end
+
+			local areaDuration = math.round(tonumber(def.customParams.area_duration or 0) / groupDuration)
+			if not enableBriefAreas and areaDuration <= shortDuration then
+				Spring.Log(gadget:GetInfo().name, LOG.INFO, 'Disabling brief-area effect on weapon ' .. def.name)
+				return
+			end
+
+			local fullDamages = areaWeaponDef.damages
+			local loopDamages = {}
+			for ii = 0, #Game.armorTypes do
+				if fullDamages[ii] and fullDamages[ii] > 0 then
+					if not areaFlankDamage then
+						-- A legbar-corcan test showed flanking adds ~1/6th excess damage on average.
+						loopDamages[ii] = max(1, math.round(fullDamages[ii] * loopDuration / (1 + 1/6)))
+					else
+						loopDamages[ii] = max(1, math.round(fullDamages[ii] * loopDuration))
+					end
+				else
+					loopDamages[ii] = 0
+				end
+			end
+			loopDamages.damageAreaOfEffect = areaWeaponDef.damageAreaOfEffect
+			loopDamages.edgeEffectiveness  = 1
+			loopDamages.explosionSpeed     = 10000 * gameSpeed
+			if fullDamages.impulseBoost and fullDamages.impulseBoost > 0 then
+				loopDamages.impulseBoost = fullDamages.impulseBoost
+			end
+			if fullDamages.impulseFactor and fullDamages.impulseFactor > 0 then
+				loopDamages.impulseFactor = fullDamages.impulseFactor * areaImpulseRate
+			end
+			if areaWeaponDef.paralyzer then
+				loopDamages.paralyzeDamageTime = areaDamages.paralyzeDamageTime
+			end
+
+			-- Add two entries, one for the area trigger and one for the area weapon.
+			triggerParams[defID] = {
+				area_duration    = areaDuration,
+				area_weapondefid = areaWeaponDef.id,
+				area_weaponname  = areaWeaponDef.name,
+				area_damages     = loopDamages,
+				area_radius      = areaWeaponDef.damageAreaOfEffect / 2, -- diameter => radius
+				area_damagetype  = string.lower(def.customParams.area_damagetype),
+				area_ongoingceg  = def.customParams.area_ongoingceg,
+				area_damagedceg  = def.customParams.area_damagedceg,
+			}
+			timedAreaParams[areaWeaponDef.id] = triggerParams[defID]
+		end
+	end
+end
+
+-- Cache the table params for SpawnExplosion.
+
+local explosionCaches = {}
+
+for _, triggerParams in ipairs({weaponTriggerParams, destroyTriggerParams}) do
+	for entityID, params in pairs(triggerParams) do
+		explosionCaches[params] = {
+			weaponDef    = params.area_weapondefid,
+			damages      = params.area_damages,
+			damageGround = false,
+			owner        = -1,
+		}
+	end
+end
+
+-- Build tables when enabled in the config.
+
 local damageImmunities = {}
 local ignoredFeatureDefs = {}
 local shieldUnitParams = {}
 
-do
-	local function addTimedAreaDef(paramsTable, defID, def)
-		local areaWeaponName = def.customParams.area_weaponname or def.name.."_"..defaultWeaponName
-		local areaWeaponDef = WeaponDefNames[areaWeaponName]
-
-		if not areaWeaponDef then
-			Spring.Log(gadget:GetInfo().name, LOG.WARNING, 'Did not find area weapon for ' .. def.name)
-			return
-		end
-
-		local areaDuration = math.round(tonumber(def.customParams.area_duration or 0) / groupDuration)
-		if not briefTimedAreas and areaDuration <= shortDuration then
-			Spring.Log(gadget:GetInfo().name, LOG.INFO, 'Disabling brief-area effect on weapon ' .. def.name)
-			return
-		end
-
-		local fullDamages = areaWeaponDef.damages
-		local loopDamages = {}
-		for ii = 0, #Game.armorTypes do
-			if fullDamages[ii] and fullDamages[ii] > 0 then
-				if not areaFlankDamage then
-					-- A legbar-corcan test showed flanking adds ~1/6th excess damage on average.
-					loopDamages[ii] = max(1, math.round(fullDamages[ii] * loopDuration / (1 + 1/6)))
-				else
-					loopDamages[ii] = max(1, math.round(fullDamages[ii] * loopDuration))
-				end
-			end
-		end
-		if fullDamages.impulseBoost and fullDamages.impulseBoost > 0 then
-			loopDamages.impulseBoost = fullDamages.impulseBoost * areaImpulseRate
-		end
-		if fullDamages.impulseFactor and fullDamages.impulseFactor > 0 then
-			loopDamages.impulseFactor = fullDamages.impulseFactor * areaImpulseRate
-		end
-		loopDamages.damageAreaOfEffect = areaWeaponDef.damageAreaOfEffect
-		loopDamages.explosionSpeed     = 10000 * gameSpeed
-		loopDamages.edgeEffectiveness  = 1
-
-		-- todo: Determine if necessary:
-		-- loopDamages.craterAreaOfEffect = 1,
-		-- if areaWeaponDef.paralyzer then
-		-- 	loopDamages.paralyzeDamageTime = areaDamages.paralyzeDamageTime
-		-- end
-
-		-- Add two new entries, one for the area trigger and one for the area weapon.
-		paramsTable[defID] = {
-			area_duration    = areaDuration,
-			area_weapondefid = areaWeaponDef.id,
-			area_weaponname  = areaWeaponDef.name,
-			area_damages     = loopDamages,
-			area_radius      = areaWeaponDef.damageAreaOfEffect / 2, -- diameter => radius
-			area_damagetype  = string.lower(def.customParams.area_damagetype or "any"),
-			area_ongoingceg  = def.customParams.area_ongoingceg and tostring(def.customParams.area_ongoingceg) or nil,
-			area_damagedceg  = def.customParams.area_damagedceg and tostring(def.customParams.area_damagedceg) or nil,
-		}
-		timedAreaParams[areaWeaponDef.id] = paramsTable[defID]
-	end
-
-	for weaponDefID, weaponDef in pairs(WeaponDefs) do
-		if tonumber(weaponDef.customParams.area_duration) then
-			addTimedAreaDef(weaponTriggerParams, weaponDefID, weaponDef)
-		end
-	end
-
+if enableImmunities then
 	for unitDefID, unitDef in pairs(UnitDefs) do
-		if tonumber(unitDef.customParams.area_duration) then
-			addTimedAreaDef(destroyTriggerParams, unitDefID, unitDef)
-		end
-
 		if unitDef.customParams.area_immunities then
 			damageImmunities[unitDefID] = {}
 			for word in unitDef.customParams.area_immunities:gmatch("[%w_]+") do
@@ -186,13 +195,17 @@ do
 	end
 end
 
-for featureDefID, featureDef in ipairs(FeatureDefs) do
-	if featureDef.customParams and featureDef.customParams.fromunit then
-		ignoredFeatureDefs[featureDefID] = true
+if reduceDamagedCEGs then
+	for featureDefID, featureDef in ipairs(FeatureDefs) do
+		if featureDef.customParams and featureDef.customParams.fromunit then
+			ignoredFeatureDefs[featureDefID] = true
+		end
 	end
 end
 
-if shieldSuppression then
+if shieldsDenyAreas then
+	local suppressionCharge = 100
+	local suppressionRadius = 100
 	for unitDefID, unitDef in ipairs(UnitDefs) do
 		if unitDef.customParams.shield_radius then
 			local charge = tonumber(unitDef.customParams.shield_power)  or 0
@@ -209,26 +222,6 @@ end
 local timedAreas = {}
 local delayQueue = {}
 local shieldUnits = {}
-
-for ii = 1, groupCount do
-	timedAreas[ii] = {}
-end
-
--- Cache the table params for SpawnExplosion.
-
-local explosionCaches = {}
-do
-	for _, triggerParams in ipairs({weaponTriggerParams, destroyTriggerParams}) do
-		for entityID, params in pairs(triggerParams) do
-			explosionCaches[params] = {
-				weaponDef    = params.area_weapondefid,
-				damages      = params.area_damages,
-				damageGround = false,
-				owner        = -1,
-			}
-		end
-	end
-end
 
 ---------------------------------------------------------------------------------------------------------------
 ---- Functions
@@ -282,7 +275,6 @@ local function startTimedArea(x, y, z, weaponParams, ownerID)
 			end
 
 		-- Spawn a single explosion in mid-air with no recurring area.
-		-- Mostly useless except to trigger callins for other effects.
 		else
 			local explosion = explosionCaches[weaponParams]
 			explosion.owner = ownerID ~= -1 and ownerID or nil
@@ -315,8 +307,6 @@ local function updateTimedAreas()
 end
 
 local function cancelDelayedAreas(maxGameFrame)
-	-- We probably have more shields than delayed areas, which are short-lived and circumstantial.
-	-- And anyway, we don't want to repeat all this work updating our info on them:
 	local enabled, capacity, sx, sy, sz, dx, dy, dz, radiusTest
 	for shieldUnitID, radiusSq in pairs(shieldUnits) do
 		enabled, capacity = spGetUnitShieldState(shieldUnitID)
@@ -334,7 +324,6 @@ local function cancelDelayedAreas(maxGameFrame)
 							dz = delayedAreas[ii+2] - sz
 							radiusTest = delayedAreas[ii+3].area_radius + radiusSq
 							if dx*dx + dz*dz < radiusTest and dy*dy < radiusTest then
-								-- Fairly uncommon to reach this point in testing.
 								delayedAreas[ii] = false
 							end
 						end
@@ -358,19 +347,19 @@ function gadget:Initialize()
 		Script.SetWatchExplosion(weaponDefID, true)
 	end
 
-	-- Start/restart timekeeping.
-
 	time  = 1 + (math.floor(Spring.GetGameFrame() / frameResolution))
 	frame = 1 + (math.floor(Spring.GetGameFrame() / frameResolution) % groupCount)
 	ticks = 1 + (Spring.GetGameFrame() % frameResolution)
+
+	timedAreas = {}
+	delayQueue = {}
+	shieldUnits = {}
 
 	for ii = 1, groupCount do
 		timedAreas[ii] = {}
 	end
 
-	-- Build/rebuild info tables.
-
-	if shieldSuppression then
+	if shieldsDenyAreas then
 		for _, unitID in pairs(Spring.GetAllUnits()) do
 			local unitDefID = Spring.GetUnitDefID(unitID)
 			if unitDefID and shieldUnitParams[unitDefID] then
@@ -447,13 +436,17 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
 	end
 end
 
-if shieldSuppression then
+if shieldsDenyAreas then
 	function gadget:UnitFinished(unitID, unitDefID, teamID)
 		if shieldUnitParams[unitDefID] then
 			shieldUnits[unitID] = shieldUnitParams[unitDefID]
 		end
 	end
 end
+
+
+
+
 
 ---------------------------------------------------------------------------------------------------------------
 ---- Tests

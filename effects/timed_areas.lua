@@ -661,9 +661,6 @@ if definitions["fire-repeat-75"] then
 	end
 end
 
--- Spring.Echo('legbart ceg defs')
--- Spring.Debug.TableEcho(definitions["fire-repeat-75-cluster"])
-
 -- Heatray that hits a static target for a long duration, builds up fire/smoke, adds sparks
 -- legbastion
 local RATE = gameSpeed
