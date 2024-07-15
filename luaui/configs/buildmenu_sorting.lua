@@ -391,7 +391,12 @@ local unitOrderTable = {
 	['armsubk']        = 009920,
 	['corshark']       = 009930,
 	['armserp']        = 009940,
-	['corssub']        = 009950,
+	['corssub']        = 009941,
+	['coronager']      = 009950,
+	['armexcalibur']   = 009951,
+	['cordesolator']   = 009952,
+	['armseadragon']   = 009953,
+
 
 	['armserpt3']      = 009960,
 	['armptt2']        = 009962,

@@ -1004,6 +1004,11 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "arm-sub-medium-ok",
 		BaseSoundWeaponType = "torpedo-medium",
 	},
+	armexcalibur = {
+		BaseSoundSelectType = "arm-sub-medium-sel",
+		BaseSoundMovementType = "arm-sub-medium-ok",
+		BaseSoundWeaponType = "laser-large",
+	},
 	armaas = {
 		BaseSoundSelectType = "arm-shp-medium-sel",
 		BaseSoundMovementType = "arm-shp-medium-ok",
@@ -1023,6 +1028,11 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-sub-medium-sel",
 		BaseSoundMovementType = "arm-sub-medium-ok",
 		BaseSoundWeaponType = "torpedo-medium",
+	},
+	armseadragon = {
+		BaseSoundSelectType = "arm-bld-defense-action-t3",
+		BaseSoundMovementType = "arm-sub-medium-ok",
+		BaseSoundWeaponType = "nuke",
 	},
 	armmship = {
 		BaseSoundSelectType = "arm-shp-large-sel",
@@ -2180,6 +2190,11 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-sub-medium-ok",
 		BaseSoundWeaponType = "torpedo-medium",
 	},
+	cordesolator = {
+		BaseSoundSelectType = "cor-sub-medium-sel",
+		BaseSoundMovementType = "cor-sub-medium-ok",
+		BaseSoundWeaponType = "rocketalt-large",
+	},
 	corarch = {
 		BaseSoundSelectType = "cor-shp-medium-sel",
 		BaseSoundMovementType = "cor-shp-medium-ok",
@@ -2199,6 +2214,11 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "cor-sub-medium-sel",
 		BaseSoundMovementType = "cor-sub-medium-ok",
 		BaseSoundWeaponType = "torpedo-medium",
+	},
+	cordesolator = {
+		BaseSoundSelectType = "cor-sub-medium-sel",
+		BaseSoundMovementType = "cor-sub-medium-ok",
+		BaseSoundWeaponType = "nuke",
 	},
 	cormship = {
 		BaseSoundSelectType = "cor-shp-large-sel",
