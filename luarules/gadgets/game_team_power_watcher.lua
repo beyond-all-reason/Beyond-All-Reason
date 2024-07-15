@@ -87,7 +87,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
     end
 end
 
---handles capture events
+--handles capture events on units already added to unitsWithPower by UnitFinished
 function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
     if unitsWithPower[unitID] then
         local oldTeam = unitsWithPower[unitID].team
