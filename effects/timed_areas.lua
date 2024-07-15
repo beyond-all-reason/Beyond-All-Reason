@@ -33,7 +33,7 @@ local radiusList = { 37.5, 75, 150, 200, 250 }
 local framesList = { 1, 2, 3, 5, 10, 15, 20 } -- in seconds
 
 -- Higher -> more sparse CEGs for cluster weapons.
-local clusterReduce = 4
+local clusterReduce = 1.25
 
 --------------------------------------------------------------------------------------------------------------
 ------ Functions
@@ -67,7 +67,7 @@ local function randomUniform(rate, attempts)
 	if rate <= 0 then return [[0]] end
 	local baseRate = math.floor(rate / attempts)
 	local randRate = rate / attempts - baseRate
-	return string.format("%.7f r1", baseRate + randRate)
+	return string.format("%f r1", baseRate + randRate)
 end
 
 -- Provides a string in the format [[<const> r<rand>]] that produces events pinned to
@@ -83,7 +83,7 @@ local function randomUniformRange(min, max, attempts)
 	local minRate = min / attempts
 	local maxRate = max / attempts
 	local epsilon = 1e-7
-	return string.format("%.7f r%.7f", minRate, 1 + maxRate - minRate - epsilon)
+	return string.format("%f r%f", minRate, 1 + maxRate - minRate - epsilon)
 end
 
 -- Provides a CEG operator expression that generates normally distributed events
@@ -97,7 +97,7 @@ local function randomNormal(mean, var, attempts, estimators)
 	estimators = math.min(math.max(estimators or 3, 1), 12) -- est=2 is also useful, triangular distribution
 	local meanRate = mean / attempts
 	local rangeRate = math.sqrt((var / attempts) * (12 / estimators))
-	return string.rep("r1 ", estimators) .. string.format([[%.1f y0%.7fx0 %.7f]], -estimators / 2, rangeRate, meanRate)
+	return string.rep("r1 ", estimators) .. string.format([[%.1f y0 %f x0 %f]], -estimators / 2, rangeRate, meanRate)
 end
 
 -- These take a positive input and redistribute it radially within an area or volume set by a radius.
@@ -111,7 +111,7 @@ local function radiusCircular(input, radius, bufferStart)
 		return string.format("%s p0.5", input) -- simple as
 	else
 		bufferStart = bufferStart or 0
-		return string.format("%s y%.0f %.7f x%.0f p0.5", input, bufferStart, radius, bufferStart)
+		return string.format("%s y%.0f %f x%.0f p0.5", input, bufferStart, radius, bufferStart)
 	end
 end
 
@@ -122,7 +122,7 @@ local function radiusSpherical(input, radius, bufferStart)
 		return string.format("%s p0.3333333", input)
 	else
 		bufferStart = bufferStart or 0
-		return string.format("%s y%.0f %.7f x%.0f p0.3333333", input, bufferStart, radius, bufferStart)
+		return string.format("%s y%.0f %f x%.0f p0.3333333", input, bufferStart, radius, bufferStart)
 	end
 end
 
@@ -362,7 +362,7 @@ local definitions = {
 				emitrotspread       = 70,
 				emitvector          = [[0.3, 1, 0.3]],
 				gravity             = [[-0.03 r0.06, 0.24 r0.4, -0.03 r0.06]],
-				numparticles        = randomUniform(0.55 / clusterReduce, 1),
+				numparticles        = randomUniform(0.6 / clusterReduce, 1),
 				particlelife        = lifetime.long,
 				particlelifespread  = lifetime.medshort,
 				particlesize        = 70,
@@ -416,7 +416,7 @@ local definitions = {
 
 for _, RAD in ipairs(radiusList) do
 	for _, TTL in ipairs(framesList) do
-		local countEffects = (TTL / gameSpeed) * clusterReduce
+		local countEffects = math.round((TTL / gameSpeed) * clusterReduce)
 		definitions["fire-area-" .. math.floor(RAD) .. "-dur-" .. TTL] = {
 			usedefaultexplosions = false,
 			fireunder_areaindicator = {
@@ -537,7 +537,7 @@ local FREQ = 1 / RATE
 for _, RAD in ipairs(radiusList) do
 	-- So that 1 smoke cloud is produced per second for radius = 75,
 	-- and increasing areas create more smoke but not _tons_ more:
-	local countEffects = math.round(FREQ * math.sqrt(math.round(RAD / 37.5) / 2)) * clusterReduce
+	local countEffects = math.round(FREQ * math.sqrt(math.round(RAD / 37.5) / 2) * clusterReduce)
 
 	definitions["fire-repeat-" .. math.floor(RAD)] = {
 		usedefaultexplosions = false,
@@ -570,7 +570,7 @@ for _, RAD in ipairs(radiusList) do
 				particlespeedspread = 4,
 				rotParams           = [[-2 r4, -1 r2, -180 r360]],
 				sizegrowth          = [[1 r4]],
-				sizemod             = 1,
+				sizemod             = 0.98,
 				texture             = [[fogdirty]],
 				useairlos           = true,
 				pos                 = (string.format(
@@ -609,7 +609,7 @@ for _, RAD in ipairs(radiusList) do
 				particlespeedspread = 4,
 				rotParams           = [[-2 r4, -1 r2, -180 r360]],
 				sizegrowth          = [[1 r4]],
-				sizemod             = 1,
+				sizemod             = 0.98,
 				texture             = [[fogdirty]],
 				useairlos           = true,
 				pos                 = (string.format(
