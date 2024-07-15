@@ -795,7 +795,4 @@ definitions["brief-heatray-weld"] = {
 	},
 }
 
-Spring.Echo('[timed_area] cegs:')
-Spring.Debug.TableEcho(definitions)
-
 return definitions
