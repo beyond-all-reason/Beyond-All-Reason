@@ -66,9 +66,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
-    if unitsWithPower[unitID] then
         unitsWithPower[unitID] = nil
-    end
     if UnitDefs[unitDefID].power then
         if teamPowers[unitTeam] then
             if teamPowers[unitTeam] <= UnitDefs[unitDefID].power then
