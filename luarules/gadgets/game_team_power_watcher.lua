@@ -3,7 +3,7 @@
 function gadget:GetInfo()
 	return {
 		name = "Team Power Watcher",
-        desc = "Tracks power of individual and total units per team. To be used for PvE dynamic difficulty and library functions to assertain aspects of game progression",
+        desc = "Tracks power of individual and total units per team, useful for PvE dynamic difficulty",
 		author = "SethDGamre",
 		date = "2024-07-12",
 		layer = -1,
