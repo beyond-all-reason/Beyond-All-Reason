@@ -123,12 +123,40 @@ do
 			return
 		end
 
+		local fullDamages = areaWeaponDef.damages
+		local loopDamages = {}
+		for ii = 0, #Game.armorTypes do
+			if fullDamages[ii] and fullDamages[ii] > 0 then
+				if not areaFlankDamage then
+					-- A legbar-corcan test showed flanking adds ~1/6th excess damage on average.
+					loopDamages[ii] = max(1, math.round(fullDamages[ii] * loopDuration / (1 + 1/6)))
+				else
+					loopDamages[ii] = max(1, math.round(fullDamages[ii] * loopDuration))
+				end
+			end
+		end
+		if fullDamages.impulseBoost and fullDamages.impulseBoost > 0 then
+			loopDamages.impulseBoost = fullDamages.impulseBoost * areaImpulseRate
+		end
+		if fullDamages.impulseFactor and fullDamages.impulseFactor > 0 then
+			loopDamages.impulseFactor = fullDamages.impulseFactor * areaImpulseRate
+		end
+		loopDamages.damageAreaOfEffect = areaWeaponDef.damageAreaOfEffect
+		loopDamages.explosionSpeed     = 10000 * gameSpeed
+		loopDamages.edgeEffectiveness  = 1
+
+		-- todo: Determine if necessary:
+		-- loopDamages.craterAreaOfEffect = 1,
+		-- if areaWeaponDef.paralyzer then
+		-- 	loopDamages.paralyzeDamageTime = areaDamages.paralyzeDamageTime
+		-- end
+
 		-- Add two new entries, one for the area trigger and one for the area weapon.
 		paramsTable[defID] = {
 			area_duration    = areaDuration,
 			area_weapondefid = areaWeaponDef.id,
 			area_weaponname  = areaWeaponDef.name,
-			area_damages     = areaWeaponDef.damages,
+			area_damages     = loopDamages,
 			area_radius      = areaWeaponDef.damageAreaOfEffect / 2, -- diameter => radius
 			area_damagetype  = string.lower(def.customParams.area_damagetype or "any"),
 			area_ongoingceg  = def.customParams.area_ongoingceg and tostring(def.customParams.area_ongoingceg) or nil,
@@ -157,42 +185,9 @@ do
 	end
 end
 
--- Timed explosions use the values below, unless noted otherwise:
-
-local explosionCaches = {}
-do
-	local explosionCache = {
-		weaponDef          = 0, -- params.area_weapondefid
-		owner              = 0, -- -1 for destroy triggers, unitID otherwise
-		projectileID       = 0,
-		damages            = {}, -- params.area_damages
-		hitUnit            = 1,
-		hitFeature         = 1,
-		craterAreaOfEffect = 0,
-		damageAreaOfEffect = 0, -- params.area_radius * 2
-		edgeEffectiveness  = 1,
-		explosionSpeed     = 10000,
-		impactOnly         = false,
-		ignoreOwner        = false,
-		damageGround       = false,
-	}
-
-	for weaponDefID, params in pairs(weaponTriggerParams) do
-		local cache = table.copy(explosionCache)
-		cache.weaponDef          = params.area_weapondefid
-		cache.damages            = params.area_damages
-		cache.damageAreaOfEffect = params.area_radius * 2
-
-		explosionCaches[params] = cache
-	end
-
-	for unitDefID, params in pairs(destroyTriggerParams) do
-		local cache = table.copy(explosionCache)
-		cache.weaponDef          = params.area_weapondefid
-		cache.damages            = params.area_damages
-		cache.damageAreaOfEffect = params.area_radius * 2
-
-		explosionCaches[params] = cache
+for featureDefID, featureDef in ipairs(FeatureDefs) do
+	if featureDef.customParams and featureDef.customParams.fromunit then
+		ignoredFeatureDefs[featureDefID] = true
 	end
 end
 
@@ -213,7 +208,26 @@ local delayQueue = {}
 
 -- And a table of units with shields.
 local shieldUnits = {}
-local shieldFrame = shieldSuppression and math.clamp(math.round(frameResolution / 2), 1, math.round(gameSpeed / 2))
+
+for ii = 1, groupCount do
+	timedAreas[ii] = {}
+end
+
+-- Cache the table params for SpawnExplosion.
+
+local explosionCaches = {}
+do
+	for _, triggerParams in ipairs({weaponTriggerParams, destroyTriggerParams}) do
+		for entityID, params in pairs(triggerParams) do
+			explosionCaches[params] = {
+				weaponDef    = params.area_weapondefid,
+				damages      = params.area_damages,
+				damageGround = false,
+				owner        = -1,
+			}
+		end
+	end
+end
 
 ---------------------------------------------------------------------------------------------------------------
 ---- Functions
@@ -416,7 +430,6 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		if immunities and immunities[weaponParams.area_damagetype] or immunities["all"] then 
 			return 0, 0
 		end
-		return damage * loopDuration, areaImpulseRate
 	end
 end
 
@@ -428,7 +441,6 @@ function gadget:FeaturePreDamaged(featureID, featureDefID, featureTeam, damage, 
 			local _,_,_, x,y,z = spGetFeaturePosition(featureID, true)
 			spSpawnCEG(weaponParams.area_damagedceg, x, y + 12, z, 0, 0, 0, 0, damage)
 		end
-		return damage, areaImpulseRate
 	end
 end
 
