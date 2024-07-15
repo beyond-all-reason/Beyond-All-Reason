@@ -326,6 +326,11 @@ local function AssignLightsToAllWeapons()
 			r, g, b = 0.96, 0.3, 1
 			t.color2r, t.color2g, t.color2b = 0.96, 0.3, 1
 		end
+		if tonumber(weaponDef.customParams.area_duration) then
+			radius = radius / 6
+			life = life * 2
+			r, g, b = 0.3, 0.24, 0.1
+		end
 		local repeatingAreaWeapon = string.find(weaponDef.name, '_timed_')
 		if repeatingAreaWeapon then
 			explosionLight = false
@@ -670,10 +675,10 @@ GetLightClass("Explosion", nil, "Large", {r = 3, g = 2.5, b = 2.0, a = 0.25,
 
 --legbart
 explosionLightsNames["legbart_clusternapalm"] =
-GetLightClass("Explosion", "Fire", "SmallMedium", {r = 0.54, g = 0.45, b = 0.12, a = 0.29,
-										 color2r = 1.2, color2g = 0.5, color2b = 0.2, colortime = 0.03,
-										 sustain = 40, lifetime = 150,
-										 modelfactor = 0.3, specular = 0.8, scattering = 1.5, lensflare = 0})
+GetLightClass("Explosion", "Fire", "Small", {r = 0.4, g = 0.3, b = 0.12, a = 0.2,
+										 color2r = 1.2, color2g = 0.5, color2b = 0.2, colortime = 0.12,
+										 sustain = 18, lifetime = 150,
+										 modelfactor = -0.3, specular = -0.4, scattering = 1.5, lensflare = 0})
 
 --legbar
 explosionLightsNames["legbar_clusternapalm"] =
@@ -686,7 +691,7 @@ GetLightClass("Explosion", "Fire", "Small", {r = 0.52, g = 0.46, b = 0.18, a = 0
 explosionLightsNames["legnap_napalmbombs"] =
 GetLightClass("Explosion", "Fire", "Small", {r = 0.54, g = 0.45, b = 0.12, a = 0.28,
 										 color2r = 1.2, color2g = 0.5, color2b = 0.2, colortime = 0.12,
-										 sustain = 30, lifetime = 125,
+										 sustain = 24, lifetime = 210,
 										 modelfactor = -0.3, specular = -0.3, scattering = 0.15, lensflare = 0})
 --legperdition
 explosionLightsNames["legperdition_napalmmissile"] =
