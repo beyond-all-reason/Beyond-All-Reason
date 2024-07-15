@@ -32,6 +32,9 @@ local damageList = { "acid", "fire" }
 local radiusList = { 37.5, 75, 150, 200, 250 }
 local framesList = { 1, 2, 3, 5, 10, 15, 20 } -- in seconds
 
+-- Higher -> more sparse CEGs for cluster weapons.
+local clusterReduce = 4
+
 --------------------------------------------------------------------------------------------------------------
 ------ Functions
 
@@ -182,7 +185,6 @@ local RAD = defaultRadius
 local TTL = defaultFrames
 local SEC = gameSpeed
 local REP = loopSpeed
-local CLUSTER = 7
 
 local definitions = {
 	["debug-circle-" .. TTL] = {
@@ -259,7 +261,7 @@ local definitions = {
 				emitrotspread       = 10,
 				emitvector          = [[0.32, 0.7, 0.32]],
 				gravity             = [[-0.025 r0.05, 0.03 r0.11, -0.025 r0.05]],
-				numparticles        = randomUniform(0.9 / CLUSTER, 1),
+				numparticles        = randomUniform(0.9 / clusterReduce, 1),
 				particlelife        = lifetime.medlong,
 				particlelifespread  = lifetime.medshort,
 				particlesize        = 18,
@@ -295,7 +297,7 @@ local definitions = {
 				emitrotspread       = 30,
 				emitvector          = [[0.2, -0.4, 0.2]],
 				gravity             = [[0, 0.08 r0.1, 0]],
-				numparticles        = randomUniform(0.7 / CLUSTER, 1),
+				numparticles        = randomUniform(0.7 / clusterReduce, 1),
 				particlelife        = lifetime.long,
 				particlelifespread  = lifetime.medlong,
 				particlesize        = 30,
@@ -327,7 +329,7 @@ local definitions = {
 				emitrotspread       = 25,
 				emitvector          = [[0.28, 0.9, 0.28]],
 				gravity             = [[-0.02 r0.04, 0 r0.3, -0.02 r0.04]],
-				numparticles        = randomUniform(1 / CLUSTER, 1),
+				numparticles        = randomUniform(1 / clusterReduce, 1),
 				particlelife        = lifetime.long,
 				particlelifespread  = lifetime.medium,
 				particlesize        = 150,
@@ -346,7 +348,7 @@ local definitions = {
 			count      = 1,
 			air        = true,
 			ground     = true,
-			water      = true,
+			water      = false,
 			properties = {
 				airdrag             = 0.8,
 				alwaysvisible       = true,
@@ -360,7 +362,7 @@ local definitions = {
 				emitrotspread       = 70,
 				emitvector          = [[0.3, 1, 0.3]],
 				gravity             = [[-0.03 r0.06, 0.24 r0.4, -0.03 r0.06]],
-				numparticles        = randomUniform(0.55 / CLUSTER, 1),
+				numparticles        = randomUniform(0.55 / clusterReduce, 1),
 				particlelife        = lifetime.long,
 				particlelifespread  = lifetime.medshort,
 				particlesize        = 70,
@@ -380,7 +382,7 @@ local definitions = {
 			count      = 1,
 			air        = true,
 			ground     = true,
-			water      = true,
+			water      = false,
 			underwater = true,
 			properties = {
 				airdrag             = 0.92,
@@ -392,7 +394,7 @@ local definitions = {
 				emitrotspread       = 22,
 				emitvector          = [[0, 1, 0]],
 				gravity             = [[-0.4 r0.8, -0.1 r0.3, -0.4 r0.8]],
-				numparticles        = randomUniform(0.92 / CLUSTER, 1),
+				numparticles        = randomUniform(0.92 / clusterReduce, 1),
 				particlelife        = 11,
 				particlelifespread  = 11,
 				particlesize        = -24,
@@ -414,7 +416,7 @@ local definitions = {
 
 for _, RAD in ipairs(radiusList) do
 	for _, TTL in ipairs(framesList) do
-		local countEffects = CLUSTER * TTL / gameSpeed -- Has to be N times as large as its cluster variant.
+		local countEffects = (TTL / gameSpeed) * clusterReduce
 		definitions["fire-area-" .. math.floor(RAD) .. "-dur-" .. TTL] = {
 			usedefaultexplosions = false,
 			fireunder_areaindicator = {
@@ -428,7 +430,7 @@ for _, RAD in ipairs(radiusList) do
 					animParams   = [[8,8,60 r80]],
 					castShadow   = false,
 					colormap     =
-					[[0.60 0.50 0.38 0.12   0.7 0.57 0.38 0.36   0.74 0.72 0.5 0.28   0.6 0.62 0.3 0.24   0.58 0.63 0.57 0.34   0.58 0.68 0.68 0.3   0.48 0.58 0.48 0.12   0.023 0.02 0.023 0.36   0.023 0.02 0.023 0.18   0.023 0.018 0.023 0.1   0 0 0 0.05]],
+					[[0.3 0.20 0.16 0.12   0.7 0.57 0.38 0.36   0.74 0.72 0.5 0.28   0.6 0.62 0.3 0.24   0.58 0.63 0.57 0.34   0.58 0.68 0.68 0.3   0.48 0.58 0.48 0.12   0.023 0.02 0.023 0.36   0.023 0.02 0.023 0.18   0.023 0.018 0.023 0.1   0 0 0 0.05]],
 					dir          = [[0, 1, 0]],
 					drawOrder    = layer.lower,
 					frontoffset  = 0,
@@ -442,18 +444,60 @@ for _, RAD in ipairs(radiusList) do
 					ttl          = TTL * 1.3,
 				},
 			},
+			fireunder_areaindicator_water = {
+				class      = [[CBitmapMuzzleFlame]],
+				count      = 1,
+				air        = false,
+				ground     = false,
+				underwater = true,
+				water      = true,
+				properties = {
+					animParams   = [[8,8,60 r80]],
+					castShadow   = false,
+					colormap     =
+					[[0.60 0.60 0.56 0.12   0.72 0.7 0.65 0.36   0.7 0.7 0.71 0.32   0.66 0.64 0.66 0.24   0.58 0.63 0.67 0.34   0.3 0.3 0.3 0.3   0.4 0.4 0.4 0.12   0.2 0.2 0.2 0.5   0.033 0.033 0.033 0.18   0.015 0.01 0.015 0.1   0.001 0.001 0.001 0.05]],
+					dir          = [[0, 1, 0]],
+					drawOrder    = layer.lower,
+					frontoffset  = 0,
+					fronttexture = [[FireBall02-anim-fade]],
+					length       = 0,
+					pos          = [[0, r3, 0]],
+					rotParams    = [[-4 r8, -4 r8, -90 r180]],
+					sidetexture  = [[none]],
+					size         = randomNormal(RAD - 10, (RAD - 10) / 7.5, 1, 2),
+					sizegrowth   = [[-0.4 r0.4]],
+					ttl          = TTL * 1.3,
+				},
+			},
 			firelow = {
 				class      = [[CExpGenSpawner]],
 				count      = countEffects,
 				air        = true,
 				ground     = true,
-				underwater = true,
-				water      = true,
+				underwater = false,
+				water      = false,
 				properties = {
 					explosiongenerator = [[custom:fire-ongoing-low]],
 					delay              = [[0 r]] .. TTL - lifetime.medlong,
 					pos                = (string.format(
 						[[%.0f r%.0f, 0 r18, %.0f r%.0f]],
+						-0.4 * RAD, 0.8 * RAD,
+						-0.4 * RAD, 0.8 * RAD
+					)),
+				},
+			},
+			firelow_water = {
+				class      = [[CExpGenSpawner]],
+				count      = countEffects,
+				air        = true,
+				ground     = true,
+				underwater = false,
+				water      = false,
+				properties = {
+					explosiongenerator = [[custom:fire-ongoing-low]],
+					delay              = [[0 r]] .. TTL - lifetime.medlong,
+					pos                = (string.format(
+						[[%.0f r%.0f, 50 r24, %.0f r%.0f]],
 						-0.4 * RAD, 0.8 * RAD,
 						-0.4 * RAD, 0.8 * RAD
 					)),
@@ -490,50 +534,10 @@ end
 local RATE = gameSpeed / loopSpeed
 local FREQ = 1 / RATE
 
--- definitions["fire-repeat-high"] = {
--- 	usedefaultexplosions = false,
--- 	smokehaze = {
--- 		class      = [[CSimpleParticleSystem]],
--- 		count      = 1,
--- 		air        = true,
--- 		ground     = true,
--- 		water      = true,
--- 		underwater = true,
--- 		unit       = true,
--- 		feature    = true,
--- 		properties = {
--- 			airdrag             = 0.4,
--- 			alwaysvisible       = false,
--- 			castShadow          = false,
--- 			colormap            = [[0.1 0.1 0.1 1   0.1 0.1 0.1 1   0.1 0.1 0.1 1   0.1 0.1 0.1 1]],
--- 			directional         = false,
--- 			drawOrder           = layer.lowest,
--- 			emitrot             = 45,
--- 			emitrotspread       = 30,
--- 			emitvector          = [[0, 1, 0]],
--- 			gravity             = [[0, 3, 0]],
--- 			numparticles        = randomUniform(0.3, 1),
--- 			particlelife        = lifetime.long,
--- 			particlelifespread  = lifetime.longer,
--- 			particlesize        = 140,
--- 			particlesizespread  = 80,
--- 			particlespeed       = 20,
--- 			particlespeedspread = 4,
--- 			pos                 = [[-30 r60, 200, -30 r60]],
--- 			rotParams           = [[-2 r4, -1 r2, -180 r360]],
--- 			sizegrowth          = [[1 r0.4]],
--- 			sizemod             = 1,
--- 			texture             = [[fogdirty]],
--- 		},
--- 	},
--- }
-
-------
-
 for _, RAD in ipairs(radiusList) do
 	-- So that 1 smoke cloud is produced per second for radius = 75,
 	-- and increasing areas create more smoke but not _tons_ more:
-	local countEffects = math.round(FREQ * math.sqrt(math.round(RAD / 37.5) / 2)) * CLUSTER
+	local countEffects = math.round(FREQ * math.sqrt(math.round(RAD / 37.5) / 2)) * clusterReduce
 
 	definitions["fire-repeat-" .. math.floor(RAD)] = {
 		usedefaultexplosions = false,
@@ -542,8 +546,8 @@ for _, RAD in ipairs(radiusList) do
 			count      = countEffects,
 			air        = true,
 			ground     = true,
-			water      = true,
-			underwater = true,
+			water      = false,
+			underwater = false,
 			unit       = true,
 			feature    = true,
 			properties = {
@@ -557,7 +561,7 @@ for _, RAD in ipairs(radiusList) do
 				emitrotspread       = 30,
 				emitvector          = [[0, 1, 0]],
 				gravity             = [[0, 3, 0]],
-				numparticles        = randomUniform((1/3) / CLUSTER, 1),
+				numparticles        = randomUniform((1/3) / clusterReduce, 1),
 				particlelife        = lifetime.long,
 				particlelifespread  = lifetime.long,
 				particlesize        = 200,
@@ -568,8 +572,48 @@ for _, RAD in ipairs(radiusList) do
 				sizegrowth          = [[1 r4]],
 				sizemod             = 1,
 				texture             = [[fogdirty]],
+				useairlos           = true,
 				pos                 = (string.format(
 					[[%.0f r%.0f, 64 r32, %.0f r%.0f]],
+					-0.8 * RAD, 1.6 * RAD,
+					-0.8 * RAD, 1.6 * RAD
+				)),
+			},
+		},
+		steamhaze = {
+			class      = [[CSimpleParticleSystem]],
+			count      = countEffects,
+			air        = false,
+			ground     = false,
+			water      = true,
+			underwater = true,
+			unit       = false,
+			feature    = false,
+			properties = {
+				airdrag             = 0.2,
+				alwaysvisible       = false,
+				castShadow          = false,
+				colormap            = [[0.06 0.04 0.04 0.001   0.058 0.05 0.055 0.02   0.027 0.027 0.036 0.005   0.03 0.026 0.03 0.001]],
+				directional         = false,
+				drawOrder           = layer.lower,
+				emitrot             = 45,
+				emitrotspread       = 30,
+				emitvector          = [[0, 1, 0]],
+				gravity             = [[0, 0.2, 0]],
+				numparticles        = randomUniform((1/4) / clusterReduce, 1),
+				particlelife        = lifetime.long,
+				particlelifespread  = lifetime.long,
+				particlesize        = 120,
+				particlesizespread  = 60,
+				particlespeed       = 10,
+				particlespeedspread = 4,
+				rotParams           = [[-2 r4, -1 r2, -180 r360]],
+				sizegrowth          = [[1 r4]],
+				sizemod             = 1,
+				texture             = [[fogdirty]],
+				useairlos           = true,
+				pos                 = (string.format(
+					[[%.0f r%.0f, 60 r40, %.0f r%.0f]],
 					-0.8 * RAD, 1.6 * RAD,
 					-0.8 * RAD, 1.6 * RAD
 				)),
@@ -647,16 +691,18 @@ if definitions["fire-area-75-dur-300"] then
 	definitions["fire-area-75-dur-300-cluster"] = table.copy(definitions["fire-area-75-dur-300"])
 	for key, value in pairs(definitions["fire-area-75-dur-300-cluster"]) do
 		if key ~= "usedefaultexplosions" and type(value) == "table" then
-			if value.count then value.count = math.max(1, math.round(value.count / CLUSTER)) end
+			if value.count then value.count = 1 end
 		end
+		definitions["fire-area-75-dur-300-cluster"].fireunder_areaindicator.properties.colormap =
+			[[0.2 0.17 0.12 0.12   0.3 0.37 0.24 0.36   0.4 0.37 0.38 0.28   0.3 0.32 0.3 0.24   0.28 0.2 0.3 0.34   0.24 0.16 0.27 0.3   0.18 0.12 0.14 0.12   0.023 0.02 0.023 0.36   0.023 0.02 0.023 0.18   0.023 0.018 0.023 0.1   0 0 0 0.05]]
 	end
 end
 if definitions["fire-repeat-75"] then
 	definitions["fire-repeat-75-cluster"] = table.copy(definitions["fire-repeat-75"])
 	for key, value in pairs(definitions["fire-repeat-75-cluster"]) do
 		if key ~= "usedefaultexplosions" and type(value) == "table" then
-			value.count = math.max(1, math.round(value.count / CLUSTER))
-			value.colormap = [[0 0 0 0.001   0.01 0.01 0.01 0.01   0.005 0.004 0.001 0.003   0 0 0 0.0001]]
+			if value.count then value.count = 1 end
+			-- value.colormap = [[0 0 0 0.001   0.01 0.01 0.01 0.01   0.005 0.004 0.001 0.003   0 0 0 0.0001]]
 		end
 	end
 end
@@ -749,5 +795,7 @@ definitions["brief-heatray-weld"] = {
 	},
 }
 
+Spring.Echo('[timed_area] cegs:')
+Spring.Debug.TableEcho(definitions)
 
 return definitions
