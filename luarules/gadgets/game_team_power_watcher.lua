@@ -485,7 +485,7 @@ local function averageAlliedPeakPower(teamID)
     local averagePower = totalPower / teamCount
     return averagePower
 end
-Initialize()
+function gadget:Initialize()
     GG.PowerLib = {}
     GG.PowerLib[TeamList] = teamList
     GG.PowerLib[ScavengerTeam] = scavengerTeam
