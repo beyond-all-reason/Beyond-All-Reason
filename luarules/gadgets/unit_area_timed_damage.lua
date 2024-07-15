@@ -17,34 +17,26 @@ end
 
 ---------------------------------------------------------------------------------------------------------------
 ---- Unit setup guide
---
--- (1) CustomParams. Add these properties to the unit (for ondeath) and/or weapon (for onhit).
---
---	area_duration    -  <number>        -  Required. The duration of the effect in seconds.
---	area_ongoingCEG  -  <string> | nil  -  Name of the CEG that appears continuously for the duration.
---	area_damagedCEG  -  <string> | nil  -  Name of the CEG that appears on anything damaged by the effect.
---	area_damageType  -  <string> | nil  -  The 'type' of the damage, which can be resisted. Be uncreative.
---	area_weaponName  -  <string> | nil  -  The full unit name + weapon name of the dummy area weapon.
---
--- (2) WeaponDefs. Add a new weapondef with its name set to the one specified in the area_weaponName.
---
---	Only a few properties of this weaponDef are used – those that modify explosions:
---    areaofeffect        -  Important.
---    explosiongenerator  -  Important.
---    impulse*            -  Important. Set to 0 in most cases.
---    weapontype          -  Important. Set to "Cannon" (or leave blank?) in most cases.
---    damage              -  Important.
---
---	Any other properties that control projectile behaviors are ignored, in addition to:
---    crater*             -  No effect.
---    edgeeffectiveness   -  No effect. Set to 1.
---    explosionspeed      -  No effect. Set to 10000.
---
--- (3) Damage Immunities. Units can be made immune to area damage via their customParams.
---
---	area_immunities  -  <string> | nil  -  Space-delimited list of damage types to which the unit is immune.
---	                                       The base immunities are "acid", "fire", and "all".
---
+-- 
+-- customparams = {
+--     area_duration    :=  <number>                    -  Required. The duration of the effect in seconds.
+--     area_weaponName  :=  <string> | <default_name>   -  Required. The unit+weapon name of the area weapon.
+--     area_ongoingCEG  :=  <string> | nil              -  Name of a CEG that lasts for the entire duration.
+--     area_damagedCEG  :=  <string> | nil              -  Name of a CEG that spawns on damaged targets.
+--     area_damageType  :=  <string> | nil [WDef only]  -  The name of the weapon's general damage type.
+--     area_immunities  :=  <string> | nil [UDef only]  -  Space-separated list of resisted damage types.
+-- }
+-- 
+-- area_weaponName = {
+--     areaofeffect        -  Needs to match the size of its CEGs.
+--     explosiongenerator  -  Needs to match both the area of effect and loop duration.
+--     impulse*            -  Modified by this script. Set to your target impulse per-hit.
+--     damage              -  Modified by this script. Set to the damage dealt per-second.
+--     crater*             -  Set by this script. Timed areas cannot damage terrain.
+--     edgeeffectiveness   -  Set by this script. Damage is evenly distributed in each area.
+--     explosionspeed      -  Set by this script. Damage is instantaneous in each area.
+-- }
+-- 
 ---------------------------------------------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------------------------------------
