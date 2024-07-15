@@ -81,10 +81,6 @@ local spSpawnExplosion     = Spring.SpawnExplosion
 local gameSpeed            = Game.gameSpeed
 local gravity              = Game.gravity
 
-local info = '[unit_area_timed_damage] [info] '
-local warn = '[unit_area_timed_damage] [warn] '
-local test = '[unit_area_timed_damage] [test] '
-
 ---------------------------------------------------------------------------------------------------------------
 ---- Initialization
 
@@ -93,31 +89,23 @@ local test = '[unit_area_timed_damage] [test] '
 frameResolution = math.clamp(math.round(frameResolution), 1, gameSpeed)
 loopDuration    = math.clamp(loopDuration, 0.2, 1)
 
--- The discrete loop length can differ from the target update time, which we adjust against.
--- e.g. for a 1s period at 30fps with res=29, we end up looping a single group over 0.9667s.
 local loopFrameCount = frameResolution * math.round(gameSpeed * loopDuration / frameResolution)
-loopDuration = loopFrameCount * (1 / gameSpeed) -- note: may be outside the clamp range.
+loopDuration = loopFrameCount * (1 / gameSpeed)
 
 local groupCount = loopFrameCount / frameResolution
 local groupDuration = frameResolution * (1 / gameSpeed)
 
--- Maintain a contiguous array of ongoing areas.
 local timedAreas = {}
 for ii = 1, groupCount do
 	timedAreas[ii] = {}
 end
 
--- Timekeeping uses cycling counts.
 local ticks = 1 -- int within [1, frameResolution]
 local frame = 1 -- int within [1, groupCount]
 local time  = 1 -- int cumulative group frames
 
--- Some weapons, eg BeamLasers, create many timed areas (too many) very quickly (too quick).
-local shortDuration = 3 -- in seconds
-shortDuration = math.round(shortDuration / groupDuration) -- in frame groups
-
--- Assuming area impulse is enabled (>0) at all, scale it by the loop duration.
 areaImpulseRate = areaImpulseRate * math.min(2, math.sqrt(1 / loopDuration))
+local shortDuration = math.round(3 / groupDuration) -- seconds -> frame groups
 
 -- Pull all the area params into tables.
 
@@ -133,12 +121,19 @@ do
 		local areaWeaponDef = WeaponDefNames[areaWeaponName]
 
 		if not areaWeaponDef then
-			Spring.Echo(warn..'Did not find area weapon for ' .. def.name)
+			Spring.Log(gadget:GetInfo().name, LOG.WARNING, 'Did not find area weapon for ' .. def.name)
+			return
+		end
+
+		local areaDuration = math.round(tonumber(def.customParams.area_duration or 0) / groupDuration)
+		if not briefTimedAreas and areaDuration <= shortDuration then
+			Spring.Log(gadget:GetInfo().name, LOG.INFO, 'Disabling brief-area effect on weapon ' .. def.name)
+			return
 		end
 
 		-- Add two new entries, one for the area trigger and one for the area weapon.
 		paramsTable[defID] = {
-			area_duration    = math.round(tonumber(def.customParams.area_duration or 0) / groupDuration),
+			area_duration    = areaDuration,
 			area_weapondefid = areaWeaponDef.id,
 			area_weaponname  = areaWeaponDef.name,
 			area_damages     = areaWeaponDef.damages,
@@ -148,16 +143,11 @@ do
 			area_damagedceg  = def.customParams.area_damagedceg and tostring(def.customParams.area_damagedceg) or nil,
 		}
 		timedAreaParams[areaWeaponDef.id] = paramsTable[defID]
-		return true
 	end
 
 	for weaponDefID, weaponDef in pairs(WeaponDefs) do
 		if tonumber(weaponDef.customParams.area_duration) then
-			if addTimedAreaDef(weaponTriggerParams, weaponDefID, weaponDef)
-				and not briefTimedAreas
-				and weaponTriggerParams[weaponDefID].area_duration <= shortDuration then
-				weaponTriggerParams[weaponDefID] = nil
-			end
+			addTimedAreaDef(weaponTriggerParams, weaponDefID, weaponDef)
 		end
 	end
 
@@ -171,8 +161,6 @@ do
 			for word in unitDef.customParams.area_immunities:gmatch("[%w_]+") do
 				damageImmunities[unitDefID][string.lower(word)] = true
 			end
-			Spring.Echo(info..'Added a unit immune to something.')
-			Spring.Debug.TableEcho(damageImmunities)
 		end
 	end
 end
@@ -253,14 +241,14 @@ local function startTimedArea(x, y, z, weaponParams, ownerID)
 			x, elevation, z,
 		}
 
-		-- Ideally, area timed weapons are represented by a continuous vfx.
-		-- But another option is to use an explosiongenerator on the area weapon.
+		-- Most timed areas are represented by a long-duration CEG.
+		-- The others use an explosiongenerator on the area weapon.
 		if weaponParams.area_ongoingceg then
 			local dx, dy, dz = Spring.GetGroundNormal(x, z)
 			spSpawnCEG(
 				weaponParams.area_ongoingceg,
 				x, elevation, z,
-				dx, dy, dz -- todo: make this do anything
+				dx, dy, dz
 			)
 		end
 
@@ -284,8 +272,8 @@ local function startTimedArea(x, y, z, weaponParams, ownerID)
 				queue[sizeq + 5] = ownerID
 			end
 
-		-- Spawn a single explosion in-place with no recurring area.
-		-- This is useless except possibly to trigger the callins for other effects.
+		-- Spawn a single explosion in mid-air with no recurring area.
+		-- Mostly useless except to trigger callins for other effects.
 		else
 			local explosion = explosionCaches[weaponParams]
 			explosion.owner = ownerID
@@ -476,10 +464,10 @@ end
 do
 	local messages = {}
 	local function testmsg(text, name)
-		table.insert(messages, test..text..' : '..name)
+		table.insert(messages, 'test: '..text..' : '..name)
 	end
 	local function warnmsg(text, name)
-		table.insert(messages, warn..text..' : '..name)
+		table.insert(messages, 'warn: '..text..' : '..name)
 	end
 
 	local function TestStuff(paramsTable, defID, params)
@@ -509,7 +497,7 @@ do
 			testmsg('High-damage area weapon without ongoingCEG', areaDef.name)
 		end
 
-		-- Check for bad/missing/??? damage types and immunities.
+		-- Check for bad/missing damage types and immunities.
 		local damageTypes = { 'acid', 'fire' }
 		local immunities  = { 'acid', 'fire', 'raptor', 'friendly', 'all' } -- idk
 		if isWeaponDef and not paramsTable[defID].area_damagetype then
@@ -521,7 +509,7 @@ do
 		local areaWeaponName = def.customParams.area_weaponname or def.name.."_"..defaultWeaponName
 		local areaWeaponDef = WeaponDefNames[areaWeaponName]
 
-		---- Remove misconfigured area triggers and weapons.
+		-- Remove misconfigured area triggers and weapons.
 		local misconfigured = false
 		if tonumber(def.customParams.area_duration * groupDuration) <= 1 / gameSpeed then
 			warnmsg('Invalid area_duration', def.name)
@@ -531,7 +519,7 @@ do
 			warnmsg('Removed self-respawning area weapon', def.name)
 			misconfigured = true
 		end
-		----
+
 		if misconfigured then
 			explosionCaches[paramsTable[defID]] = nil
 			paramsTable[defID] = nil
@@ -547,7 +535,9 @@ do
 	local warnMessages = #messages - testMessages
 
 	if #messages > 0 then
-		Spring.Echo('unit_area_timed_damage test results: '..testMessages..' tests and '..warnMessages..' issues.')
-		Spring.Echo('\n' .. table.concat(messages, '\n'))
+		Spring.Log(gadget:GetInfo().name, LOG.INFO,
+			'unit_area_timed_damage test results: '..testMessages..' tests and '..warnMessages..' issues.')
+		Spring.Log(gadget:GetInfo().name, LOG.INFO,
+			'\n' .. table.concat(messages, '\n'))
 	end
 end
