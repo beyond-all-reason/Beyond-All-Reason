@@ -485,8 +485,10 @@ local function averageAlliedPeakPower(teamID)
     local averagePower = totalPower / teamCount
     return averagePower
 end
+Spring.Debug.TableEcho(teamList)
 function gadget:Initialize()
     GG.PowerLib = {}
+    Spring.Debug.TableEcho(teamList)
     GG.PowerLib[TeamList] = teamList
     GG.PowerLib[ScavengerTeam] = scavengerTeam
     GG.PowerLib[RaptorTeam] = raptorTeam
