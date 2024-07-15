@@ -42,9 +42,11 @@ end
 ---------------------------------------------------------------------------------------------------------------
 ---- Configuration
 
-local areaImpulseRate   = 0.25                 -- Multiplies the impulse of area weapons. Tbh should be 0 or 1.
 local frameResolution   = 1                    -- The bin size, in frames, to loop over groups of areas.
 local loopDuration      = 1/2                  -- The time between area procs. Adjusts damage automagically.
+
+local areaFlankDamage   = true                 -- When set to `false`, damage is adjusted to offset flanking.
+local areaImpulseRate   = 0.25                 -- Multiplies the impulse of area weapons. Tbh should be 0 or 1.
 
 local briefTimedAreas   = false                -- Whether or not short-lived areas are spawned. Can reduce FPS.
 local shieldSuppression = true                 -- Whether or not shields suppress timed areas. Can reduce FPS.
@@ -87,24 +89,23 @@ loopDuration = loopFrameCount * (1 / gameSpeed)
 local groupCount = loopFrameCount / frameResolution
 local groupDuration = frameResolution * (1 / gameSpeed)
 
-local timedAreas = {}
-for ii = 1, groupCount do
-	timedAreas[ii] = {}
-end
-
 local ticks = 1 -- int within [1, frameResolution]
 local frame = 1 -- int within [1, groupCount]
 local time  = 1 -- int cumulative group frames
 
-areaImpulseRate = areaImpulseRate * math.min(2, math.sqrt(1 / loopDuration))
+local shieldFrame = shieldSuppression and math.clamp(math.round(frameResolution / 2), 1, math.round(gameSpeed / 2))
 local shortDuration = math.round(3 / groupDuration) -- seconds -> frame groups
 
--- Pull all the area params into tables.
+areaImpulseRate = areaImpulseRate * math.min(2, math.sqrt(1 / loopDuration))
+
+-- Pull all the defs into info tables.
 
 local weaponTriggerParams = {}
 local destroyTriggerParams = {}
 local timedAreaParams = {}
+
 local damageImmunities = {}
+local ignoredFeatureDefs = {}
 local shieldUnitParams = {}
 
 do
@@ -203,10 +204,10 @@ if shieldSuppression then
 	end
 end
 
--- We also keep a queue of delayed areas.
-local delayQueue = {}
+-- Keep track of ongoing areas, delayed areas, and shield-carrying units.
 
--- And a table of units with shields.
+local timedAreas = {}
+local delayQueue = {}
 local shieldUnits = {}
 
 for ii = 1, groupCount do
@@ -233,6 +234,8 @@ end
 ---- Functions
 
 local function startTimedArea(x, y, z, weaponParams, ownerID)
+	ownerID = ownerID or -1
+
 	local duration = weaponParams.area_duration
 	local radius = weaponParams.area_radius
 	local elevation = max(0, spGetGroundHeight(x, z))
@@ -282,7 +285,7 @@ local function startTimedArea(x, y, z, weaponParams, ownerID)
 		-- Mostly useless except to trigger callins for other effects.
 		else
 			local explosion = explosionCaches[weaponParams]
-			explosion.owner = ownerID
+			explosion.owner = ownerID ~= -1 and ownerID or nil
 			spSpawnExplosion(x, y, z, 0, 0, 0, explosion)
 		end
 	end
@@ -297,7 +300,7 @@ local function updateTimedAreas()
 		local timedArea = group[index]
 		if time <= timedArea[1] then
 			local explosion = explosionCaches[timedArea[2]]
-			explosion.owner = timedArea[3]
+			explosion.owner = timedArea[3] ~= -1 and timedArea[3] or nil 
 			spSpawnExplosion(timedArea[4], timedArea[5], timedArea[6], 0, 0, 0, explosion)
 		elseif index == sizeg then
 			group[index] = nil
@@ -377,14 +380,7 @@ function gadget:Initialize()
 	end
 end
 
-function gadget:Shutdown()
-	timedAreas = {}
-	delayQueue = {}
-	shieldUnits = {}
-end
-
 function gadget:GameFrame(gameFrame)
-	-- Skip some frames between demanding work.
 	ticks = ticks + 1
 	if ticks > frameResolution then
 		ticks = 1
@@ -397,7 +393,6 @@ function gadget:GameFrame(gameFrame)
 		cancelDelayedAreas(gameFrame + frameResolution - 1)
 	end
 
-	-- Start any areas delayed until this frame.
 	if delayQueue[gameFrame] then
 		local queue = delayQueue[gameFrame]
 		for ii = 1, #queue, 5 do
@@ -425,9 +420,8 @@ end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projID, attackID, attackDefID, attackTeam)
 	if timedAreaParams[weaponDefID] then
-		local weaponParams = timedAreaParams[weaponDefID]
 		local immunities = damageImmunities[unitDefID]
-		if immunities and immunities[weaponParams.area_damagetype] or immunities["all"] then 
+		if immunities and (immunities[timedAreaParams[weaponDefID].area_damagetype] or immunities.all) then
 			return 0, 0
 		end
 	end
@@ -435,11 +429,10 @@ end
 
 function gadget:FeaturePreDamaged(featureID, featureDefID, featureTeam, damage, weaponDefID, projID, attackID, attackDefID, attackTeam)
 	if timedAreaParams[weaponDefID] then
-		local weaponParams = timedAreaParams[weaponDefID]
-		damage = damage * loopDuration
-		if weaponParams.area_damagedceg then
+		local damagedCEG = timedAreaParams[weaponDefID].area_damagedceg
+		if not ignoredFeatureDefs[featureDefID] and damagedCEG then
 			local _,_,_, x,y,z = spGetFeaturePosition(featureID, true)
-			spSpawnCEG(weaponParams.area_damagedceg, x, y + 12, z, 0, 0, 0, 0, damage)
+			spSpawnCEG(damagedCEG, x, y + 18, z, 0, 0, 0, 0, damage)
 		end
 	end
 end
