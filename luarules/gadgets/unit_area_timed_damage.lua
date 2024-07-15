@@ -104,9 +104,9 @@ local weaponTriggerParams = {}
 local destroyTriggerParams = {}
 local timedAreaParams = {}
 
-for defs, triggerParams in pairs({ [WeaponDefs] = weaponTriggerParams, [UnitDefs] = destroyTriggerParams }) do
-	for defID, def in pairs(defs) do
-		if tonumber(def.customParams.area_duration) then
+do
+	local function registerAreaTrigger(triggerParams, defID, def)
+		if def and tonumber(def.customParams.area_duration) then
 			local areaWeaponName = def.customParams.area_weaponname or def.name.."_"..defaultWeaponName
 			local areaWeaponDef = WeaponDefNames[areaWeaponName]
 			if not areaWeaponDef then
@@ -160,6 +160,13 @@ for defs, triggerParams in pairs({ [WeaponDefs] = weaponTriggerParams, [UnitDefs
 			}
 			timedAreaParams[areaWeaponDef.id] = triggerParams[defID]
 		end
+	end
+
+	for weaponDefID, weaponDef in ipairs(WeaponDefs) do
+		registerAreaTrigger(weaponTriggerParams, weaponDefID, weaponDef)
+	end
+	for unitDefID, unitDef in ipairs(UnitDefs) do
+		registerAreaTrigger(destroyTriggerParams, unitDefID, weaponDef)
 	end
 end
 
@@ -246,12 +253,7 @@ local function startTimedArea(x, y, z, weaponParams, ownerID)
 		-- Most timed areas are represented by a long-duration CEG.
 		-- The others use an explosiongenerator on the area weapon.
 		if weaponParams.area_ongoingceg then
-			local dx, dy, dz = Spring.GetGroundNormal(x, z)
-			spSpawnCEG(
-				weaponParams.area_ongoingceg,
-				x, elevation, z,
-				dx, dy, dz
-			)
+			spSpawnCEG(weaponParams.area_ongoingceg, x, elevation, z)
 		end
 
 	-- Create an area on surface -- eventually.
@@ -421,7 +423,7 @@ function gadget:FeaturePreDamaged(featureID, featureDefID, featureTeam, damage, 
 		local damagedCEG = timedAreaParams[weaponDefID].area_damagedceg
 		if not ignoredFeatureDefs[featureDefID] and damagedCEG then
 			local _,_,_, x,y,z = spGetFeaturePosition(featureID, true)
-			spSpawnCEG(damagedCEG, x, y + 18, z, 0, 0, 0, 0, damage)
+			spSpawnCEG(damagedCEG, x, y + 18, z)
 		end
 	end
 end
@@ -431,7 +433,7 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
 		local damagedCEG = timedAreaParams[weaponDefID].area_damagedceg
 		if damagedCEG then
 			local _,_,_, x,y,z = spGetUnitPosition(unitID, true)
-			spSpawnCEG(damagedCEG, x, y + 18, z, 0, 0, 0, 0, damage)
+			spSpawnCEG(damagedCEG, x, y + 18, z)
 		end
 	end
 end
