@@ -123,6 +123,7 @@ return {
 			napalmbombs_area_timed_damage = {
 				areaofeffect = 150 * 2,
 				explosiongenerator = "custom:fire-repeat-150",
+				weapontype = "Flame",
 				damage = {
 					default = 30,
 					subs    = 30 / 10,

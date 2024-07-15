@@ -113,7 +113,8 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
-				explosiongenerator = "custom:burnfire",
+				-- explosiongenerator = "custom:burnfire",
+				explosiongenerator = "custom:genericshellexplosion-small",
 				flamegfxtime = 1,
 				gravityaffected = "true",
 				impulseboost = 0.123,
@@ -147,6 +148,7 @@ return {
 			clusternapalm_area_timed_damage = {
 				areaofeffect = 75 * 2,
 				explosiongenerator = "custom:fire-repeat-75-cluster",
+				weapontype = "Flame",
 				damage = {
 					default = 30,
 					subs    = 30 / 10,

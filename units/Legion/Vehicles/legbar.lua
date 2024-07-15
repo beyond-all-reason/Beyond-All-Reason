@@ -162,6 +162,7 @@ return {
 			clusternapalm_area_timed_damage = {
 				areaofeffect = 75 * 2,
 				explosiongenerator = "custom:fire-repeat-75-cluster",
+				weapontype = "Flame",
 				damage = {
 					default = 30,
 					subs    = 30 / 10,

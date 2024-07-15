@@ -363,6 +363,7 @@ return {
 			napalmmissile_area_timed_damage = {
 				areaofeffect = 100 * 2,
 				explosiongenerator = "custom:fire-repeat-75", -- wrong size; area is unique
+				weapontype = "Flame",
 				damage = {
 					default = 75,
 					subs    = 75 / 10,
