@@ -1,7 +1,7 @@
 return {
 	armseadragon = {
 		maxacc = 0.03,
-		--activatewhenbuilt = true,
+		activatewhenbuilt = true,
 		maxdec = 0.05,
 		buildangle = 8192,
 		energycost = 75000,
