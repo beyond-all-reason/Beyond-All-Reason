@@ -792,8 +792,12 @@ local SeaUnitsList = {
 		},
 		[6] = {
 			--Armada
+			["armexcalibur_scav"] = 1,
+			["armseadeagon_scav"] = 1,
 
 			--Cortex
+			["coronager_scav"] = 1,
+			["cordesolator_scav"] = 1,
 
 		},
 		[7] = {
