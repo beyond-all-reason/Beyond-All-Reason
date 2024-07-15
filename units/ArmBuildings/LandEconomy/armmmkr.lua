@@ -32,7 +32,7 @@ return {
 			buildinggrounddecalsizex = 6,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'metal',
-			energyconv_capacity = 600,
+			energyconv_capacity = 650,
 			energyconv_efficiency = 1/58,
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",
