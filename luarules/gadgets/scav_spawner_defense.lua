@@ -1001,7 +1001,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		peakScavPower = GG.PowerLib.TeamPeakPower(scavTeamID)
 		totalPlayerTeamPower = GG.PowerLib.TotalPlayerTeamsPower()
-		HumanTechLevel = GG.PowerLib.AveragePlayerTechGuesstimate()
+		--HumanTechLevel = GG.PowerLib.AveragePlayerTechGuesstimate()
 		calculateDifficultyMultiplier(peakScavPower, totalPlayerTeamPower)
 
 		squadManagerKillerLoop()
