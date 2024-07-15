@@ -2001,7 +2001,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
-		if string.find(UnitDefs[unitDefID].name, "scavbeacon") and not gameOver then
+		if burrows[unitID] and not gameOver then
 
 			burrows[unitID] = nil
 			if attackerID and Spring.GetUnitTeam(attackerID) ~= scavTeamID then

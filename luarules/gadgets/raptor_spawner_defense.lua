@@ -2001,7 +2001,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
-		if unitDefID == config.burrowDef and not gameOver then
+		if burrows[unitID] and not gameOver then
 			local kills = GetGameRulesParam(config.burrowName .. "Kills") or 0
 			SetGameRulesParam(config.burrowName .. "Kills", kills + 1)
 
