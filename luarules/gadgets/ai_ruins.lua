@@ -28,7 +28,7 @@ local GaiaAllyTeamID = select(6, Spring.GetTeamInfo(GaiaTeamID))
 local ruinDensity = Spring.GetModOptions().ruins_density
 local ruinDensityMultiplier = 1
 if ruinDensity == "veryrare" then
-	ruinDensityMultiplier = 0.1
+	ruinDensityMultiplier = 0.25
 elseif ruinDensity == "rare" then
 	ruinDensityMultiplier = 0.5
 elseif ruinDensity == "normal" then
@@ -36,7 +36,7 @@ elseif ruinDensity == "normal" then
 elseif ruinDensity == "dense" then
 	ruinDensityMultiplier = 2
 elseif ruinDensity == "verydense" then
-	ruinDensityMultiplier = 10
+	ruinDensityMultiplier = 4
 end
 
 math_random = math.random	-- not a local cause the includes below use it
