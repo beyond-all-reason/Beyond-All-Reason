@@ -20,13 +20,13 @@ static-var  activated, restore_delay, animating, shooting, shotcount, deployed, 
 
 ///#include "../unit_hitbyweaponid_and_smoke.h"
 
-#define TB_BASE base 
-#define TB_TURNRATE <30.0> 
-#define TB_TILT_X <-0.32>
-#define TB_BANK_Z <0.5> // Do not define this if you dont want banking
-#define TB_WAKE_PIECE base
-#define TB_WAKE_FOAM 1024 + 1
-#include "../tilt_bank_submarine.h"
+//#define TB_BASE base 
+//#define TB_TURNRATE <30.0> 
+//#define TB_TILT_X <-0.32>
+//#define TB_BANK_Z <0.5> // Do not define this if you dont want banking -- false, undefined throws error
+//#define TB_WAKE_PIECE base
+//#define TB_WAKE_FOAM 1024 + 1
+//#include "../tilt_bank_submarine.h"
 
 
 
@@ -49,7 +49,7 @@ Create ()
 	//call-script InitState ();
 	restore_delay = 3000;
 	timeLeft = restore_delay;//seems needed to avoid instant cancellation of first aiming anims
-	call-script TB_Init ();
+	//call-script TB_Init ();
 	
 	shooting = 0;
 	shotcount = 0;
@@ -71,7 +71,7 @@ Propcontrol ()
 	var currentSpeed;
 	while (1)
 	{
-		currentSpeed = (get CURRENT_SPEED)*1000/TB_maxSpeed;
+		currentSpeed = (get CURRENT_SPEED)*1000/60;//TB_maxSpeed;
 		spin prop around z-axis speed <1.0>*currentSpeed accelerate <10.0>;
 		sleep 100;
 	}
@@ -81,7 +81,7 @@ StartMoving (reversing)
 {
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
-	START_TILTBANK;
+	//START_TILTBANK;
 	start-script Propcontrol ();
 	while ( TRUE )
 	{
@@ -96,7 +96,7 @@ StartMoving (reversing)
 StopMoving ()
 {
 	signal SIGNAL_MOVE;
-	STOP_TILTBANK;
+	//STOP_TILTBANK;
 	stop-spin prop around z-axis decelerate <10.0>;
 }
 
