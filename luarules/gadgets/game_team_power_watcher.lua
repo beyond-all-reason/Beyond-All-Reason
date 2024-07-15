@@ -92,12 +92,7 @@ end
 
 --Returns the power of the input teamID as a number.
 local function teamPower(teamID)
-    for id, power in pairs(teamPowers) do
-        if id == teamID then
-            return power
-        end
-    end
-    return 0
+   return teamPowers[teamID]
 end
 
 --Returns the total power of all non scavenger/raptor teams as a number.
