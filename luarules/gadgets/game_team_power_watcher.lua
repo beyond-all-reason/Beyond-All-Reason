@@ -67,15 +67,7 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
         unitsWithPower[unitID] = nil
-    if UnitDefs[unitDefID].power then
-        if teamPowers[unitTeam] then
-            if teamPowers[unitTeam] <= UnitDefs[unitDefID].power then
-                teamPowers[unitTeam] = 0
-            else
-                teamPowers[unitTeam] = teamPowers[unitTeam] - UnitDefs[unitDefID].power
-            end
-        end
-    end
+            teamPowers[unitTeam] = math.max(teamPowers[unitTeam] - UnitDefs[unitDefID].power, 0)
 end
 
 --handles capture events on units already added to unitsWithPower by UnitFinished
