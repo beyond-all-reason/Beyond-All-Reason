@@ -139,7 +139,7 @@ local function averagePlayerTeamPower()
         end
     end
 
-    local averagePower = totalPower / teamCount
+    local averagePower = teamCount > 0 and totalPower / teamCount or 0
     return averagePower
 end
 
@@ -241,7 +241,7 @@ local function averageAlliedTeamPower(teamID)
         end
     end
 
-    local averagePower = totalPower / teamCount
+    local averagePower = teamCount > 0 and totalPower / teamCount or 0
     return averagePower
 end
 
@@ -304,7 +304,7 @@ local function averagePlayerTechGuesstimate()
         end
     end
 
-    local averagePower = totalPower / teamCount
+    local averagePower = teamCount > 0 and totalPower / teamCount or 0
 
     local techLevel = 0
     for _, threshold in ipairs(powerThresholds) do
@@ -330,7 +330,7 @@ local function averageHumanTechGuesstimate()
         end
     end
 
-    local averagePower = totalPower / teamCount
+    local averagePower = teamCount > 0 and totalPower / teamCount or 0
 
     local techLevel = 0
     for _, threshold in ipairs(powerThresholds) do
@@ -357,7 +357,7 @@ local function averageAlliedTechGuesstimate(teamID)
         end
     end
 
-    local averagePower = totalPower / teamCount
+    local averagePower = teamCount > 0 and totalPower / teamCount or 0
 
     local techLevel = 0
     for _, threshold in ipairs(powerThresholds) do
@@ -441,7 +441,7 @@ local function averageHumanPeakPower()
         end
     end
 
-    local averagePower = totalPower / teamCount
+    local averagePower = teamCount > 0 and totalPower / teamCount or 0
     return averagePower
 end
 
@@ -458,7 +458,7 @@ local function averageAlliedPeakPower(teamID)
         end
     end
 
-    local averagePower = totalPower / teamCount
+    local averagePower = teamCount > 0 and totalPower / teamCount or 0
     return averagePower
 end
 
