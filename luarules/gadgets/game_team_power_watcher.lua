@@ -471,7 +471,6 @@ function gadget:Initialize()
     GG.PowerLib["HumanTeams"] = humanTeams
     GG.PowerLib["TeamPowers"] = teamPowers
     GG.PowerLib["PeakTeamPowers"] = peakTeamPowers
-    GG.PowerLib["UnitsWithPower"] = unitsWithPower
     GG.PowerLib["PowerThresholds"] = powerThresholds
     GG.PowerLib["TeamPower"] = teamPower
     GG.PowerLib["TotalPlayerTeamsPower"] = totalPlayerTeamsPower
