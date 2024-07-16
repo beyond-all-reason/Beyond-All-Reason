@@ -1867,17 +1867,17 @@ local unitGrids = {
 		{
 			{ "legdtr", "legstr", "legacluster", },               -- dragon's jaw, strider, t2 cluster arty
 			{ "legflak", "legrhapsis", "corcrash", "leggob", },    -- Ravager Flak, Rhapsis, T1 aa bot, Goblin
-			{ "cordl", "legfloat", "legsrail", },               -- coastal torp launcher, triton, arquebus
+			{ "cordl", "legfloat", },               				-- coastal torp launcher, triton
 		},
 		{
 			{ "corarad", "coreyes", "legforti", "corshroud", },        -- adv radar, camera, wall, adv jammer
 			{ },                                                      --
-			{ "cormine2", },                                          -- med mine
+			{ },                                          			  -- med mine
 		},
 		{
 			{ "leglab", "legck", },                                   -- bot lab, bot con
 			{ "cornanotc", "legch", },                                -- nano, hover con (for now)
-			{ "leginfestor", },                                       -- infester
+			{ },                                      				  --
 		}
 	},
 
