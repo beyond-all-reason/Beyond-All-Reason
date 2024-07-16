@@ -133,7 +133,7 @@ local function averagePlayerTeamPower()
     local teamCount = 0
 
     for id, power in pairs(teamPowers) do
-        if id ~= neutralTeam and id ~= scavengerTeam and id ~= raptorTeam then
+        if isNotRaptorsScavengersNeutral(id) then
             totalPower = totalPower + power
             teamCount = teamCount + 1
         end
@@ -298,7 +298,7 @@ local function averagePlayerTechGuesstimate()
     local teamCount = 0
 
     for id, power in pairs(teamPowers) do
-        if id ~= neutralTeam and id ~= scavengerTeam and id ~= raptorTeam then
+        if isNotRaptorsScavengersNeutral(id) then
             totalPower = totalPower + power
             teamCount = teamCount + 1
         end
@@ -386,7 +386,7 @@ local function totalPlayerPeakPower()
     local totalPeakPower = 0
 
     for id, power in pairs(peakTeamPowers) do
-        if id ~= neutralTeam and id ~= scavengerTeam and id ~= raptorTeam then
+        if isNotRaptorsScavengersNeutral(id) then
             totalPeakPower = totalPeakPower + power
         end
     end
@@ -400,7 +400,7 @@ local function highestPlayerPeakPower()
     local highestTeamID = nil
 
     for id, power in pairs(peakTeamPowers) do
-        if id ~= neutralTeam and id ~= scavengerTeam and id ~= raptorTeam then
+        if isNotRaptorsScavengersNeutral(id) then
             if power > highestPower then
                 highestPower = power
                 highestTeamID = id
