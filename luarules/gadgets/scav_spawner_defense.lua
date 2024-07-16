@@ -158,10 +158,8 @@ if gadgetHandler:IsSyncedCode() then
 	--dynamic difficulty stuff
 	local dynamicDifficulty
 	local dynamicDifficultyClamped
-	
 	local peakScavPower
 	local totalPlayerTeamPower
-
 
 	--------------------------------------------------------------------------------
 	-- Teams
