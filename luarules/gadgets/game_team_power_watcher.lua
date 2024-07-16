@@ -73,8 +73,8 @@ function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
     if unitsWithPower[unitID] then
         local oldTeam = unitsWithPower[unitID].team
 
-        unitsWithPower[unitID] = {unitID = unitID, power = UnitDefs[unitDefID].power, team = unitTeam}
-        teamPowers[unitTeam] = (teamPowers[unitTeam] + UnitDefs[unitDefID].power) or UnitDefs[unitDefID].power
+        unitsWithPower[unitID] = { power = UnitDefs[unitDefID].power, team = unitTeam}
+        teamPowers[unitTeam] = teamPowers[unitTeam] + UnitDefs[unitDefID].power
 
         if teamPowers[oldTeam] <= UnitDefs[unitDefID].power then
             teamPowers[oldTeam] = 0
