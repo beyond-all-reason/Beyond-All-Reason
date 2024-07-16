@@ -160,9 +160,8 @@ if gadgetHandler:IsSyncedCode() then
 	local dynamicDifficultyClamped
 	local peakScavPower
 	local totalPlayerTeamPower
-	
+
 	--config calculateDifficultyMultiplier
-	local ratio = peakScavPower / totalPlayerTeamPower
 	local lowerScavPowerRatio = 1/5
 	local upperScavPowerRatio = 1/3
 	local minDynamicDifficulty = 0.85
@@ -982,6 +981,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function calculateDifficultyMultiplier(peakScavPower, totalPlayerTeamPower)
+		local ratio = peakScavPower / totalPlayerTeamPower
 		if peakScavPower == 0 or peakScavPower == nil or totalPlayerTeamPower == 0  or totalPlayerTeamPower == nil then
 			return
 		end
