@@ -464,7 +464,6 @@ end
 
 function gadget:Initialize()
     GG.PowerLib = {}
-    GG.PowerLib["TeamList"] = teamList
     GG.PowerLib["ScavengerTeam"] = scavengerTeam
     GG.PowerLib["RaptorTeam"] = raptorTeam
     GG.PowerLib["AiTeams"] = aiTeams
