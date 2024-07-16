@@ -138,7 +138,9 @@ local function averagePlayerTeamPower()
             teamCount = teamCount + 1
         end
     end
-
+    if totalPower == 0 then 
+        return 1
+    end
     local averagePower = totalPower / teamCount
     return averagePower
 end
@@ -188,7 +190,9 @@ local function averageHumanTeamPower()
             teamCount = teamCount + 1
         end
     end
-
+    if totalPower == 0 then 
+        return 1
+    end
     local averagePower = teamCount > 0 and totalPower / teamCount or 0
     return averagePower
 end
@@ -240,7 +244,9 @@ local function averageAlliedTeamPower(teamID)
             teamCount = teamCount + 1
         end
     end
-
+    if totalPower == 0 then 
+        return 1
+    end
     local averagePower = totalPower / teamCount
     return averagePower
 end
@@ -303,7 +309,9 @@ local function averagePlayerTechGuesstimate()
             teamCount = teamCount + 1
         end
     end
-
+    if totalPower == 0 then 
+        totalPower = 1
+    end
     local averagePower = totalPower / teamCount
 
     local techLevel = 0
@@ -329,7 +337,9 @@ local function averageHumanTechGuesstimate()
             teamCount = teamCount + 1
         end
     end
-
+    if totalPower == 0 then 
+        totalPower = 1
+    end
     local averagePower = totalPower / teamCount
 
     local techLevel = 0
@@ -356,7 +366,9 @@ local function averageAlliedTechGuesstimate(teamID)
             teamCount = teamCount + 1
         end
     end
-
+    if totalPower == 0 then 
+        totalPower = 1
+    end
     local averagePower = totalPower / teamCount
 
     local techLevel = 0
@@ -440,7 +452,9 @@ local function averageHumanPeakPower()
             teamCount = teamCount + 1
         end
     end
-
+    if totalPower == 0 then 
+        return 1
+    end
     local averagePower = totalPower / teamCount
     return averagePower
 end
@@ -457,7 +471,9 @@ local function averageAlliedPeakPower(teamID)
             teamCount = teamCount + 1
         end
     end
-
+    if totalPower == 0 then 
+        return 1
+    end
     local averagePower = totalPower / teamCount
     return averagePower
 end
