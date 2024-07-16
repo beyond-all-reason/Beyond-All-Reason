@@ -263,7 +263,7 @@ local function lowestAlliedTeamPower(teamID)
     return {teamID = lowestTeamID, power = lowestPower}
 end
 
--- Takes an input of a power value and compares it against powerThresholds table and returns an estimated tech level from 0.5-4.5.
+-- Take an input of a power value and return an estimated tech level number.
 local function techGuesstimate(power)
     local techLevel = 0
     for _, threshold in ipairs(powerThresholds) do
@@ -277,7 +277,7 @@ local function techGuesstimate(power)
     return techLevel
 end
 
--- Takes an input teamID and compares its power against powerThresholds table and returns an estimated tech level from 0.5-4.5.
+-- Takes an input teamID return an estimated tech level number.
 local function teamTechGuesstimate(teamID)
     local totalPower = teamPowers[teamID]
     local techLevel = 0
@@ -292,7 +292,7 @@ local function teamTechGuesstimate(teamID)
     return techLevel
 end
 
--- Compares average powers of all non scavenger/raptor teams against powerThresholds table and returns an estimated tech level from 0.5-4.5.
+-- Calculate all average powers of all non scavenger/raptor teams and return an estimated tech level number.
 local function averagePlayerTechGuesstimate()
     local totalPower = 0
     local teamCount = 0
@@ -318,7 +318,7 @@ local function averagePlayerTechGuesstimate()
     return techLevel
 end
 
--- Compares average powers of all non AI/scavenger/raptor teams against powerThresholds table and returns an estimated tech level from 0.5-4.5.
+-- Compares average powers of all non AI/scavenger/raptor teams return an estimated tech level number.
 local function averageHumanTechGuesstimate()
     local totalPower = 0
     local teamCount = 0
@@ -344,7 +344,7 @@ local function averageHumanTechGuesstimate()
     return techLevel
 end
 
--- Compares average powers of all allied teams of the input teamID against powerThresholds table and returns an estimated tech level from 0.5-4.5
+-- Compare average powers of all allied teams of the input teamID and return an estimated tech level number.
 local function averageAlliedTechGuesstimate(teamID)
     local allyTeamNum = select(6, Spring.GetTeamInfo(teamID))
     local totalPower = 0
