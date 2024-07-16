@@ -88,7 +88,7 @@ function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
     end
 end
 
-local function isNotRaptorsScavengersNeutral(teamID)
+local function isPlayerTeam(teamID)
     return teamID ~= neutralTeam and teamID ~= scavengerTeam and teamID ~= raptorTeam
 end
 
@@ -102,7 +102,7 @@ local function totalPlayerTeamsPower()
     local totalPower = 0
 
     for teamID, power in pairs(teamPowers) do
-        if isNotRaptorsScavengersNeutral(teamID) then
+        if isPlayerTeam(teamID) then
             totalPower = totalPower + power
         end
     end
@@ -116,7 +116,7 @@ local function highestPlayerTeamPower()
     local highestTeamID = nil
 
     for teamID, power in pairs(teamPowers) do
-        if isNotRaptorsScavengersNeutral(teamID) then
+        if isPlayerTeam(teamID) then
             if power > highestPower then
                 highestPower = power
                 highestTeamID = teamID
@@ -133,7 +133,7 @@ local function averagePlayerTeamPower()
     local teamCount = 0
 
     for id, power in pairs(teamPowers) do
-        if isNotRaptorsScavengersNeutral(id) then
+        if isPlayerTeam(id) then
             totalPower = totalPower + power
             teamCount = teamCount + 1
         end
@@ -149,7 +149,7 @@ local function lowestPlayerTeamPower()
     local lowestTeamID = nil
 
     for teamID, power in pairs(teamPowers) do
-        if isNotRaptorsScavengersNeutral(teamID) then
+        if isPlayerTeam(teamID) then
             if power < lowestPower then
                 lowestPower = power
                 lowestTeamID = teamID
@@ -298,7 +298,7 @@ local function averagePlayerTechGuesstimate()
     local teamCount = 0
 
     for id, power in pairs(teamPowers) do
-        if isNotRaptorsScavengersNeutral(id) then
+        if isPlayerTeam(id) then
             totalPower = totalPower + power
             teamCount = teamCount + 1
         end
@@ -386,7 +386,7 @@ local function totalPlayerPeakPower()
     local totalPeakPower = 0
 
     for id, power in pairs(peakTeamPowers) do
-        if isNotRaptorsScavengersNeutral(id) then
+        if isPlayerTeam(id) then
             totalPeakPower = totalPeakPower + power
         end
     end
@@ -400,7 +400,7 @@ local function highestPlayerPeakPower()
     local highestTeamID = nil
 
     for id, power in pairs(peakTeamPowers) do
-        if isNotRaptorsScavengersNeutral(id) then
+        if isPlayerTeam(id) then
             if power > highestPower then
                 highestPower = power
                 highestTeamID = id
