@@ -23,6 +23,7 @@ local teamPowers = {}
 local peakTeamPowers = {}
 local unitsWithPower = {}
 local powerThresholds = {
+    {techLevel = 0, threshold = 0},
     {techLevel = 1, threshold = 9000},
     {techLevel = 1.5, threshold = 45000},
     {techLevel = 2, threshold = 90000},
@@ -34,7 +35,6 @@ local powerThresholds = {
 }
 
 for _, teamID in ipairs(teamList) do
-    Spring.Echo("teamID", teamID)
     local teamLuaAI = Spring.GetTeamLuaAI(teamID)
     if (teamLuaAI and string.find(teamLuaAI, "ScavengersAI")) then
         scavengerTeam = teamID
@@ -54,8 +54,6 @@ for _, teamNumber in ipairs(teamList) do
     teamPowers[teamNumber] = 0
     peakTeamPowers[teamNumber] = 0
 end
-
-
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
     unitsWithPower[unitID] = { power = UnitDefs[unitDefID].power, team = unitTeam}
@@ -459,8 +457,6 @@ local function averageAlliedPeakPower(teamID)
     local averagePower = totalPower / teamCount
     return averagePower
 end
-
-
 
 function gadget:Initialize()
     GG.PowerLib = {}
