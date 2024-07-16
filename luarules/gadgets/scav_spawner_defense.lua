@@ -160,6 +160,13 @@ if gadgetHandler:IsSyncedCode() then
 	local dynamicDifficultyClamped
 	local peakScavPower
 	local totalPlayerTeamPower
+	
+	--config calculateDifficultyMultiplier
+	local ratio = peakScavPower / totalPlayerTeamPower
+	local lowerScavPowerRatio = 1/5
+	local upperScavPowerRatio = 1/3
+	local minDynamicDifficulty = 0.85
+	local maxDynamicDifficulty = 1.05
 
 	--------------------------------------------------------------------------------
 	-- Teams
@@ -978,24 +985,15 @@ if gadgetHandler:IsSyncedCode() then
 		if peakScavPower == 0 or peakScavPower == nil or totalPlayerTeamPower == 0  or totalPlayerTeamPower == nil then
 			return
 		end
-		-- Calculate the ratio
-		local ratio = peakScavPower / totalPlayerTeamPower
-		local lowerScavPowerRatio = 1/5
-		local upperScavPowerRatio = 1/3
-		local minDynamicDifficulty = 0.85
-		local maxDynamicDifficulty = 1.05
-	
-		-- Convert the ratio to a value between 0 and 1 for ratios between 1/5 and 1/3
-		if ratio >= 1/3 then
+		if ratio >= upperScavPowerRatio then
 			dynamicDifficulty = 0
-		elseif ratio <= 1/5 then
+		elseif ratio <= lowerScavPowerRatio then
 			dynamicDifficulty = 1
 		else
-			dynamicDifficulty = (upperScavPowerRatio - ratio) / (upperScavPowerRatio - lowerScavPowerRatio) --because 1/5 seems to be where players are doing well against scavs, while 1/3rd means they're losing.
+			dynamicDifficulty = (upperScavPowerRatio - ratio) / (upperScavPowerRatio - lowerScavPowerRatio) 
 		end
 	
-		-- Calculate dynDifficultyClamped based on dynDifficulty0to1
-		dynamicDifficultyClamped = minDynamicDifficulty + (dynamicDifficulty * (maxDynamicDifficulty - minDynamicDifficulty)) --change 1.05 and .85 in these parenthesis to change the clamping range for the multiplier.
+		dynamicDifficultyClamped = minDynamicDifficulty + (dynamicDifficulty * (maxDynamicDifficulty - minDynamicDifficulty))
 	end
 	
 	function Wave()
