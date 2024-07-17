@@ -155,6 +155,18 @@ if gadgetHandler:IsSyncedCode() then
 	--FrontbusterPopulation = 0
 	HumanTechLevel = 0
 
+	--dynamic difficulty stuff
+	local dynamicDifficulty
+	local dynamicDifficultyClamped
+	local peakScavPower
+	local totalPlayerTeamPower
+
+	--config calculateDifficultyMultiplier
+	local lowerScavPowerRatio = 1/5
+	local upperScavPowerRatio = 1/3
+	local minDynamicDifficulty = 0.85
+	local maxDynamicDifficulty = 1.05
+
 	--------------------------------------------------------------------------------
 	-- Teams
 	--------------------------------------------------------------------------------
@@ -968,11 +980,31 @@ if gadgetHandler:IsSyncedCode() then
 		return nil
 	end
 
+	local function calculateDifficultyMultiplier(peakScavPower, totalPlayerTeamPower)
+		local ratio = peakScavPower / totalPlayerTeamPower
+		if peakScavPower == 0 or peakScavPower == nil or totalPlayerTeamPower == 0  or totalPlayerTeamPower == nil then
+			return
+		end
+		if ratio >= upperScavPowerRatio then
+			dynamicDifficulty = 0
+		elseif ratio <= lowerScavPowerRatio then
+			dynamicDifficulty = 1
+		else
+			dynamicDifficulty = (upperScavPowerRatio - ratio) / (upperScavPowerRatio - lowerScavPowerRatio) 
+		end
+	
+		dynamicDifficultyClamped = minDynamicDifficulty + (dynamicDifficulty * (maxDynamicDifficulty - minDynamicDifficulty))
+	end
+	
 	function Wave()
 
 		if gameOver then
 			return
 		end
+
+		peakScavPower = GG.PowerLib.TeamPeakPower(scavTeamID)
+		totalPlayerTeamPower = GG.PowerLib.TotalPlayerTeamsPower()
+		calculateDifficultyMultiplier(peakScavPower, totalPlayerTeamPower)
 
 		squadManagerKillerLoop()
 
