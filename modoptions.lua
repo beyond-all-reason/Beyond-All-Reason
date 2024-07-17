@@ -35,7 +35,7 @@ local options = {
     },
 
     {
-        key     = "restrictiondescription1",
+        key     = "sub_header",
         name    = "Options for changing base game settings.",
         desc    = "",
         section = "options_main",
@@ -44,7 +44,7 @@ local options = {
     },
 
     {
-        key     = "restrictiondescription2",
+        key     = "sub_header",
         name    = "----------------------------------------------------------------------------------------------------------------------------------------",
         desc    = "",
         section = "options_main",
@@ -81,7 +81,7 @@ local options = {
     },
 
     {
-        key     = "restrictiondescription3",
+        key     = "sub_header",
         name    = "----------------------------------------------------------------------------------------------------------------------------------------",
         desc    = "",
         section = "options_main",
@@ -90,7 +90,7 @@ local options = {
     },
 
     {
-        key     = "restrictiondescription3",
+        key     = "sub_header",
         name    = "-- Gameplay Settings",
         desc    = "",
         section = "options_main",
@@ -103,9 +103,9 @@ local options = {
         name   	= "Max Units Per Player",
         desc   	= "Keep in mind there is an absolute limit of units, 32000, divided between each team. If you set this value higher than possible it will force itself down to the maximum it can be.",
         type   	= "number",
-        def    	= 32000,
+        def    	= 2000,
         min    	= 500,
-        max    	= 32000,
+        max    	= 2000,
         step   	= 1,  -- quantization is aligned to the def value, (step <= 0) means that there is no quantization
         section	= "options_main",
     },
@@ -220,7 +220,7 @@ local options = {
     },
 
     {
-        key     = "restrictiondescription4",
+        key     = "sub_header",
         name    = "----------------------------------------------------------------------------------------------------------------------------------------",
         desc    = "",
         section = "options_main",
@@ -229,7 +229,7 @@ local options = {
     },
 
     {
-        key     = "restrictiondescription5",
+        key     = "sub_header",
         name    = "-- Unit Restrictions",
         desc    = "",
         section = "options_main",
@@ -419,7 +419,7 @@ local options = {
     },
 
     {
-        key     = "raptordescription1",
+        key     = "sub_header",
         name    = "Raptors Gamemode Options.",
         desc    = "",
         section = "raptor_defense_options",
@@ -428,7 +428,7 @@ local options = {
     },
 
     {
-        key     = "raptordescription2",
+        key     = "sub_header",
         name    = "----------------------------------------------------------------------------------------------------------------------------------------",
         desc    = "",
         section = "raptor_defense_options",
@@ -454,7 +454,7 @@ local options = {
     },
 
     {
-        key     = "raptordescription3",
+        key     = "sub_header",
         name    = "----------------------------------------------------------------------------------------------------------------------------------------",
         desc    = "",
         section = "raptor_defense_options",
@@ -486,7 +486,7 @@ local options = {
     },
 
     {
-        key     = "raptordescription4",
+        key     = "sub_header",
         name    = "----------------------------------------------------------------------------------------------------------------------------------------",
         desc    = "",
         section = "raptor_defense_options",
@@ -495,7 +495,7 @@ local options = {
     },
 
     {
-        key     = "raptordescription5",
+        key     = "sub_header",
         name    = "-- Advanced Options, Change at your own risk.",
         desc    = "",
         section = "raptor_defense_options",
@@ -578,7 +578,7 @@ local options = {
     },
 
     {
-        key     = "scavdescription1",
+        key     = "sub_header",
         name    = "Scavengers Gamemode Options.",
         desc    = "",
         section = "scav_defense_options",
@@ -587,7 +587,7 @@ local options = {
     },
 
     {
-        key     = "scavdescription2",
+        key     = "sub_header",
         name    = "----------------------------------------------------------------------------------------------------------------------------------------",
         desc    = "",
         section = "scav_defense_options",
@@ -613,7 +613,7 @@ local options = {
     },
 
     {
-        key     = "scavdescription3",
+        key     = "sub_header",
         name    = "----------------------------------------------------------------------------------------------------------------------------------------",
         desc    = "",
         section = "scav_defense_options",
@@ -645,7 +645,7 @@ local options = {
     },
 
     {
-        key     = "scavdescription4",
+        key     = "sub_header",
         name    = "----------------------------------------------------------------------------------------------------------------------------------------",
         desc    = "",
         section = "scav_defense_options",
@@ -654,7 +654,7 @@ local options = {
     },
 
     {
-        key     = "scavdescription5",
+        key     = "sub_header",
         name    = "-- Advanced Options, Change at your own risk.",
         desc    = "",
         section = "scav_defense_options",
@@ -714,7 +714,7 @@ local options = {
 
     
     {
-        key     = "extrasdescription1",
+        key     = "sub_header",
         name    = "Extra options for shaking up the gameplay or balancing. Not intended for ranked games.",
         desc    = "",
         section = "options_extra",
@@ -723,7 +723,7 @@ local options = {
     },
 
     {
-        key     = "extrasdescription2",
+        key     = "sub_header",
         name    = "----------------------------------------------------------------------------------------------------------------------------------------",
         desc    = "",
         section = "options_extra",
@@ -772,7 +772,7 @@ local options = {
     },
 
     {
-        key     = "extrasdescription3",
+        key     = "sub_header",
         name    = "----------------------------------------------------------------------------------------------------------------------------------------",
         desc    = "",
         section = "options_extra",
@@ -802,7 +802,7 @@ local options = {
     },
 
     {
-        key     = "extrasdescription4",
+        key     = "sub_header",
         name    = "----------------------------------------------------------------------------------------------------------------------------------------",
         desc    = "",
         section = "options_extra",
@@ -857,7 +857,7 @@ local options = {
     },
 
     {
-        key     = "extrasdescription5",
+        key     = "sub_header",
         name    = "----------------------------------------------------------------------------------------------------------------------------------------",
         desc    = "",
         section = "options_extra",
@@ -893,7 +893,7 @@ local options = {
     },
 
     {
-        key     = "extrasdescription6",
+        key     = "sub_header",
         name    = "----------------------------------------------------------------------------------------------------------------------------------------",
         desc    = "",
         section = "options_extra",
@@ -961,7 +961,7 @@ local options = {
     },
 
     {
-        key     = "extrasdescription7",
+        key     = "sub_header",
         name    = "----------------------------------------------------------------------------------------------------------------------------------------",
         desc    = "",
         section = "options_extra",
@@ -984,7 +984,7 @@ local options = {
     },
  
     {
-        key     = "extrasdescription8",
+        key     = "sub_header",
         name    = "----------------------------------------------------------------------------------------------------------------------------------------",
         desc    = "",
         section = "options_extra",
@@ -1038,7 +1038,7 @@ local options = {
     },
 
     {
-        key     = "extrasdescription9",
+        key     = "sub_header",
         name    = "----------------------------------------------------------------------------------------------------------------------------------------",
         desc    = "",
         section = "options_extra",
@@ -1098,7 +1098,7 @@ local options = {
     },
 
     {
-        key     = "experimentaldescription1",
+        key     = "sub_header",
         name    = "Options for testing various new and unfinished features. Not intended for ranked games.",
         desc    = "",
         section = "options_experimental",
@@ -1107,7 +1107,7 @@ local options = {
     },
 
     {
-        key     = "experimentaldescription2",
+        key     = "sub_header",
         name    = "When any of these options are changed, there is no guarantee they will work properly, especially when combined.",
         desc    = "",
         section = "options_experimental",
@@ -1116,7 +1116,7 @@ local options = {
     },
 
     {
-        key     = "experimentaldescription3",
+        key     = "sub_header",
         name    = "----------------------------------------------------------------------------------------------------------------------------------------",
         desc    = "",
         section = "options_experimental",
@@ -1397,7 +1397,7 @@ local options = {
     },
 
     {
-        key     = "cheatsdescription1",
+        key     = "sub_header",
         name    = "Warning: changing these options will alter the intended game experience and may have bad results. Proceed at your own risk!",
         desc    = "",
         section = "options_cheats",
@@ -1406,7 +1406,7 @@ local options = {
     },
 
     {
-        key     = "cheatsdescription2",
+        key     = "sub_header",
         name    = "When any of these options are changed, there is no guarantee they will work properly, especially when combined.",
         desc    = "",
         section = "options_cheats",
@@ -1415,7 +1415,7 @@ local options = {
     },
 
     {
-        key     = "cheatsdescription3",
+        key     = "sub_header",
         name    = "----------------------------------------------------------------------------------------------------------------------------------------",
         desc    = "",
         section = "options_cheats",
@@ -1424,7 +1424,7 @@ local options = {
     },
 
     {
-        key     = "cheatsdescription4",
+        key     = "sub_header",
         name    = "-- Resources",
         desc    = "",
         section = "options_cheats",
@@ -1529,7 +1529,7 @@ local options = {
     },
 
     {
-        key     = "cheatsdescription6",
+        key     = "sub_header",
         name    = "----------------------------------------------------------------------------------------------------------------------------------------",
         desc    = "",
         section = "options_cheats",
