@@ -134,7 +134,7 @@ local function base64Decode(data)
 			'%s%s%s',
 			string.char(lor(lsh(chars[1], 2), rsh(chars[2], 4))),
 			(chars[3] ~= nil) and string.char(lor(lsh(chars[2], 4), rsh(chars[3], 2))) or "",
-			(chars[4] ~= nil) and string.char(lor(lsh(chars[3], 6) % 192, (chars[4]))) or ""
+			(chars[4] ~= nil) and string.char(lor(lsh(chars[3], 6), (chars[4]))) or ""
 		)
 	end
 	result = table.concat(result)
