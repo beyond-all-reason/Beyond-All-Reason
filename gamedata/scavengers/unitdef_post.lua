@@ -301,12 +301,16 @@ local function scavUnitDef_Post(name, uDef)
 		uDef.buildoptions[numBuildoptions + 4] = "armserpt3_scav"
 		uDef.buildoptions[numBuildoptions + 5] = "armtrident_scav"
 		uDef.buildoptions[numBuildoptions + 6] = "armdronecarry_scav"
+		uDef.buildoptions[numBuildoptions + 7] = "armexcalibur_scav"
+		uDef.buildoptions[numBuildoptions + 8] = "armseadragon_scav"
 	elseif name == "corasy_scav" then
 		local numBuildoptions = #uDef.buildoptions
 		uDef.buildoptions[numBuildoptions + 1] = "corslrpc_scav"
 		uDef.buildoptions[numBuildoptions + 2] = "coresuppt3_scav"
 		uDef.buildoptions[numBuildoptions + 3] = "corsentinel_scav"
 		uDef.buildoptions[numBuildoptions + 4] = "cordronecarry_scav"
+		uDef.buildoptions[numBuildoptions + 5] = "coronager_scav"
+		uDef.buildoptions[numBuildoptions + 6] = "cordesolator_scav"
 	end
 
 	return uDef

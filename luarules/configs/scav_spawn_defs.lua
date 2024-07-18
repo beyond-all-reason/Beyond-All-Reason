@@ -792,8 +792,12 @@ local SeaUnitsList = {
 		},
 		[6] = {
 			--Armada
+			["armexcalibur_scav"] = 1,
+			["armseadeagon_scav"] = 1,
 
 			--Cortex
+			["coronager_scav"] = 1,
+			["cordesolator_scav"] = 1,
 
 		},
 		[7] = {
@@ -1216,9 +1220,9 @@ local Turrets = {
 	},
 	[6] = {
 		-- nukes
-		["corsilo_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},
-		["armsilo_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},
-		["legsilo_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},
+		["corsilo_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 1, maxExisting = 3},
+		["armsilo_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 1, maxExisting = 3},
+		["legsilo_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 1, maxExisting = 3},
 		-- misc t3 turrets
 		["armminivulc_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},
 		["corminibuzz_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},

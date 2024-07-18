@@ -31,6 +31,9 @@ if gadgetHandler:IsSyncedCode() then
 		['armsilo'] = 10,
 		['corsilo'] = 10,
 		['legsilo'] = 10,
+		['cordesolator'] = 10,
+		['armseadragon'] = 10,
+
 
 		['armamd'] = 20,
 		['corfmd'] = 20,
