@@ -105,7 +105,7 @@ local options = {
         type   	= "number",
         def    	= 2000,
         min    	= 500,
-        max    	= 2000,
+        max    	= 32000,
         step   	= 1,  -- quantization is aligned to the def value, (step <= 0) means that there is no quantization
         section	= "options_main",
     },
