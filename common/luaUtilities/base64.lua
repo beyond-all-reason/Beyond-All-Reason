@@ -40,13 +40,10 @@ local function base64Encode(data)
 		for byte = 1, 3 do
 			bytes[byte] = string.byte(string.sub(data, (spos + byte), (spos + byte))) or 0
 		end
-		result[#result + 1] = string.format(
-			'%s%s%s%s',
-			base64chars[rsh(bytes[1], 2)],
-			base64chars[lor(lsh((bytes[1] % 4), 4), rsh(bytes[2], 4))] or "=",
-			((#data - spos) > 1) and base64chars[lor(lsh(bytes[2] % 16, 2), rsh(bytes[3], 6))] or "=",
-			((#data - spos) > 2) and base64chars[(bytes[3] % 64)] or "="
-		)
+		result[#result + 1] = base64chars[rsh(bytes[1], 2)] ..
+			(base64chars[lor(lsh((bytes[1] % 4), 4), rsh(bytes[2], 4))] or "=") ..
+			(((#data - spos) > 1) and base64chars[lor(lsh(bytes[2] % 16, 2), rsh(bytes[3], 6))] or "=") ..
+			(((#data - spos) > 2) and base64chars[(bytes[3] % 64)] or "=")
 	end
 	result = table.concat(result)
 	return result
@@ -130,12 +127,9 @@ local function base64Decode(data)
 		for char = 1, 4 do
 			chars[char] = base64bytes[(string.sub(data, (dpos + char), (dpos + char)) or "=")]
 		end
-		result[#result + 1] = string.format(
-			'%s%s%s',
-			string.char(lor(lsh(chars[1], 2), rsh(chars[2], 4))),
-			(chars[3] ~= nil) and string.char(lor(lsh(chars[2], 4), rsh(chars[3], 2))) or "",
-			(chars[4] ~= nil) and string.char(lor(lsh(chars[3], 6), (chars[4]))) or ""
-		)
+		result[#result + 1] = string.char(lor(lsh(chars[1], 2), rsh(chars[2], 4))) ..
+			((chars[3] ~= nil) and string.char(lor(lsh(chars[2], 4), rsh(chars[3], 2))) or "") ..
+			((chars[4] ~= nil) and string.char(lor(lsh(chars[3], 6), (chars[4]))) or "")
 	end
 	result = table.concat(result)
 	return result
