@@ -165,8 +165,8 @@ if gadgetHandler:IsSyncedCode() then
 	--config calculateDifficultyMultiplier
 	local lowerScavPowerRatio = 1/6
 	local upperScavPowerRatio = 1/2
-	local minDynamicDifficulty = 0.5
-	local maxDynamicDifficulty = 2
+	local minDynamicDifficulty = 0.85
+	local maxDynamicDifficulty = 1.05
 
 	--------------------------------------------------------------------------------
 	-- Teams
@@ -1038,10 +1038,10 @@ if gadgetHandler:IsSyncedCode() then
 
 		if waveParameters.baseCooldown <= 0 or math.max(1, techAnger) < config.tierConfiguration[2].minAnger then
 			-- special waves
-			if math.max(1, waveParameters.waveTechAnger) < config.tierConfiguration[2].minAnger then
+			if math.max(1, techAnger) < config.tierConfiguration[2].minAnger then
 
-				waveParameters.waveSizeMultiplier = math.min(waveParameters.waveSizeMultiplier, math.max(1, waveParameters.waveTechAnger)*0.1)
-				waveParameters.waveTimeMultiplier = math.min(waveParameters.waveTimeMultiplier, math.max(1, waveParameters.waveTechAnger)*0.1)
+				waveParameters.waveSizeMultiplier = math.min(waveParameters.waveSizeMultiplier, math.max(1, techAnger)*0.1)
+				waveParameters.waveTimeMultiplier = math.min(waveParameters.waveTimeMultiplier, math.max(1, techAnger)*0.1)
 
 				waveParameters.waveAirPercentage = 20
 				waveParameters.waveSpecialPercentage = 0
@@ -1122,9 +1122,6 @@ if gadgetHandler:IsSyncedCode() then
 
 		waveParameters.waveTechAnger = techAnger*dynamicDifficultyClamped
 		waveParameters.waveSizeMultiplier = waveParameters.waveSizeMultiplier*dynamicDifficultyClamped
-		waveParameters.waveTimeMultiplier = waveParameters.waveTimeMultiplier/dynamicDifficultyClamped
-		waveParameters.waveAirPercentage = waveParameters.waveAirPercentage*dynamicDifficultyClamped
-		waveParameters.waveSpecialPercentage = waveParameters.waveSpecialPercentage*dynamicDifficultyClamped
 
 		repeat
 			loopCounter = loopCounter + 1
