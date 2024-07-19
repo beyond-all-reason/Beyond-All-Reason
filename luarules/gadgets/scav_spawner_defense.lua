@@ -86,6 +86,7 @@ if gadgetHandler:IsSyncedCode() then
 		waveTimeMultiplier = 1,
 		waveAirPercentage = 20,
 		waveSpecialPercentage = 33,
+		waveTechAnger = 0,
 		airWave = {
 			cooldown = mRandom(5,15),
 		},
@@ -162,10 +163,10 @@ if gadgetHandler:IsSyncedCode() then
 	local totalPlayerTeamPower
 
 	--config calculateDifficultyMultiplier
-	local lowerScavPowerRatio = 1/5
-	local upperScavPowerRatio = 1/3
-	local minDynamicDifficulty = 0.85
-	local maxDynamicDifficulty = 1.05
+	local lowerScavPowerRatio = 1/6
+	local upperScavPowerRatio = 1/2
+	local minDynamicDifficulty = 0.5
+	local maxDynamicDifficulty = 2
 
 	--------------------------------------------------------------------------------
 	-- Teams
@@ -325,6 +326,7 @@ if gadgetHandler:IsSyncedCode() then
 		config.gracePeriod = t-1
 		bossAnger = 0  -- reenable scav spawning
 		techAnger = 0
+		waveParameters.waveTechAnger = 0
 		playerAggression = 0
 		bossAngerAggressionLevel = 0
 		pastFirstBoss = true
@@ -694,8 +696,8 @@ if gadgetHandler:IsSyncedCode() then
 						potentialSquad = squadSpawnOptions.specialSea[mRandom(1, #squadSpawnOptions.specialSea)]
 					end
 					if potentialSquad then
-						if (potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger)
-						or (specialRandom <= 1 and math.max(10, potentialSquad.minAnger-30) <= techAnger and math.max(40, potentialSquad.maxAnger-30) >= techAnger) then -- Super Squad
+						if (potentialSquad.minAnger <= waveParameters.waveTechAnger and potentialSquad.maxAnger >= waveParameters.waveTechAnger)
+						or (specialRandom <= 1 and math.max(10, potentialSquad.minAnger-30) <= waveParameters.waveTechAnger and math.max(40, potentialSquad.maxAnger-30) >= waveParameters.waveTechAnger) then -- Super Squad
 							squad = potentialSquad
 							break
 						end
@@ -707,8 +709,8 @@ if gadgetHandler:IsSyncedCode() then
 						potentialSquad = squadSpawnOptions.basicSea[mRandom(1, #squadSpawnOptions.basicSea)]
 					end
 					if potentialSquad then
-						if (potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger)
-						or (specialRandom <= 1 and math.max(10, potentialSquad.minAnger-30) <= techAnger and math.max(40, potentialSquad.maxAnger-30) >= techAnger) then -- Super Squad
+						if (potentialSquad.minAnger <= waveParameters.waveTechAnger and potentialSquad.maxAnger >= waveParameters.waveTechAnger)
+						or (specialRandom <= 1 and math.max(10, potentialSquad.minAnger-30) <= waveParameters.waveTechAnger and math.max(40, potentialSquad.maxAnger-30) >= waveParameters.waveTechAnger) then -- Super Squad
 							squad = potentialSquad
 							break
 						end
@@ -1006,6 +1008,8 @@ if gadgetHandler:IsSyncedCode() then
 		totalPlayerTeamPower = GG.PowerLib.TotalPlayerTeamsPower()
 		calculateDifficultyMultiplier(peakScavPower, totalPlayerTeamPower)
 
+		--Spring.Echo("dynamicDifficultyClamped", dynamicDifficultyClamped)
+
 		squadManagerKillerLoop()
 
 		waveParameters.baseCooldown = waveParameters.baseCooldown - 1
@@ -1034,21 +1038,21 @@ if gadgetHandler:IsSyncedCode() then
 
 		if waveParameters.baseCooldown <= 0 or math.max(1, techAnger) < config.tierConfiguration[2].minAnger then
 			-- special waves
-			if math.max(1, techAnger) < config.tierConfiguration[2].minAnger then
+			if math.max(1, waveParameters.waveTechAnger) < config.tierConfiguration[2].minAnger then
 
-				waveParameters.waveSizeMultiplier = math.min(waveParameters.waveSizeMultiplier, math.max(1, techAnger)*0.1)
-				waveParameters.waveTimeMultiplier = math.min(waveParameters.waveTimeMultiplier, math.max(1, techAnger)*0.1)
+				waveParameters.waveSizeMultiplier = math.min(waveParameters.waveSizeMultiplier, math.max(1, waveParameters.waveTechAnger)*0.1)
+				waveParameters.waveTimeMultiplier = math.min(waveParameters.waveTimeMultiplier, math.max(1, waveParameters.waveTechAnger)*0.1)
 
-				waveParameters.waveAirPercentage = 40
+				waveParameters.waveAirPercentage = 20
 				waveParameters.waveSpecialPercentage = 0
 
-			elseif techAnger > config.airStartAnger and waveParameters.airWave.cooldown <= 0 and mRandom() <= config.spawnChance then
+			elseif waveParameters.waveTechAnger > config.airStartAnger and waveParameters.airWave.cooldown <= 0 and mRandom() <= config.spawnChance then
 
 				waveParameters.baseCooldown = mRandom(0,2)
 				waveParameters.airWave.cooldown = mRandom(0,10)
 
 				waveParameters.waveSpecialPercentage = 0
-				waveParameters.waveAirPercentage = 100
+				waveParameters.waveAirPercentage = 50
 				waveParameters.waveSizeMultiplier = 2
 				waveParameters.waveTimeMultiplier = 0.5
 
@@ -1084,7 +1088,7 @@ if gadgetHandler:IsSyncedCode() then
 				waveParameters.waveSizeMultiplier = 1.5
 				waveParameters.waveTimeMultiplier = 1.25
 
-				waveParameters.waveAirPercentage = mRandom(5,40)
+				waveParameters.waveAirPercentage = mRandom(5,20)
 				waveParameters.waveSpecialPercentage = mRandom(5,40)
 
 			elseif waveParameters.hugeWave.cooldown <= 0 and mRandom() <= config.spawnChance then
@@ -1095,7 +1099,7 @@ if gadgetHandler:IsSyncedCode() then
 				waveParameters.waveSizeMultiplier = 3
 				waveParameters.waveTimeMultiplier = 1.5
 
-				waveParameters.waveAirPercentage = mRandom(5,25)
+				waveParameters.waveAirPercentage = mRandom(5,15)
 				waveParameters.waveSpecialPercentage = mRandom(5,25)
 
 			elseif waveParameters.epicWave.cooldown <= 0 and mRandom() <= config.spawnChance then
@@ -1116,6 +1120,12 @@ if gadgetHandler:IsSyncedCode() then
 		local loopCounter = 0
 		local squadCounter = 0
 
+		waveParameters.waveTechAnger = techAnger*dynamicDifficultyClamped
+		waveParameters.waveSizeMultiplier = waveParameters.waveSizeMultiplier*dynamicDifficultyClamped
+		waveParameters.waveTimeMultiplier = waveParameters.waveTimeMultiplier/dynamicDifficultyClamped
+		waveParameters.waveAirPercentage = waveParameters.waveAirPercentage*dynamicDifficultyClamped
+		waveParameters.waveSpecialPercentage = waveParameters.waveSpecialPercentage*dynamicDifficultyClamped
+
 		repeat
 			loopCounter = loopCounter + 1
 			for burrowID in pairs(burrows) do
@@ -1126,7 +1136,7 @@ if gadgetHandler:IsSyncedCode() then
 					local squad
 					local burrowX, burrowY, burrowZ = Spring.GetUnitPosition(burrowID)
 					local surface = positionCheckLibrary.LandOrSeaCheck(burrowX, burrowY, burrowZ, config.burrowSize)
-					if techAnger > config.airStartAnger and airRandom <= waveParameters.waveAirPercentage then
+					if waveParameters.waveTechAnger > config.airStartAnger and airRandom <= waveParameters.waveAirPercentage then
 						for _ = 1,1000 do
 							local potentialSquad
 							if specialRandom <= waveParameters.waveSpecialPercentage then
@@ -1135,8 +1145,8 @@ if gadgetHandler:IsSyncedCode() then
 								potentialSquad = squadSpawnOptions.basicAir[mRandom(1, #squadSpawnOptions.basicAir)]
 							end
 							if potentialSquad then
-								if (potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger)
-								or (specialRandom <= 1 and math.max(10, potentialSquad.minAnger-30) <= techAnger and math.max(40, potentialSquad.maxAnger-30) >= techAnger) then -- Super Squad
+								if (potentialSquad.minAnger <= waveParameters.waveTechAnger and potentialSquad.maxAnger >= waveParameters.waveTechAnger)
+								or (specialRandom <= 1 and math.max(10, potentialSquad.minAnger-30) <= waveParameters.waveTechAnger and math.max(40, potentialSquad.maxAnger-30) >= waveParameters.waveTechAnger) then -- Super Squad
 									squad = potentialSquad
 									break
 								end
@@ -1152,8 +1162,8 @@ if gadgetHandler:IsSyncedCode() then
 									potentialSquad = squadSpawnOptions.specialSea[mRandom(1, #squadSpawnOptions.specialSea)]
 								end
 								if potentialSquad then
-									if (potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger)
-									or (specialRandom <= 1 and math.max(10, potentialSquad.minAnger-30) <= techAnger and math.max(40, potentialSquad.maxAnger-30) >= techAnger) then -- Super Squad
+									if (potentialSquad.minAnger <= waveParameters.waveTechAnger and potentialSquad.maxAnger >= waveParameters.waveTechAnger)
+									or (specialRandom <= 1 and math.max(10, potentialSquad.minAnger-30) <= waveParameters.waveTechAnger and math.max(40, potentialSquad.maxAnger-30) >= waveParameters.waveTechAnger) then -- Super Squad
 										squad = potentialSquad
 										break
 									end
@@ -1165,8 +1175,8 @@ if gadgetHandler:IsSyncedCode() then
 									potentialSquad = squadSpawnOptions.basicSea[mRandom(1, #squadSpawnOptions.basicSea)]
 								end
 								if potentialSquad then
-									if (potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger)
-									or (specialRandom <= 1 and math.max(10, potentialSquad.minAnger-30) <= techAnger and math.max(40, potentialSquad.maxAnger-30) >= techAnger) then -- Super Squad
+									if (potentialSquad.minAnger <= waveParameters.waveTechAnger and potentialSquad.maxAnger >= waveParameters.waveTechAnger)
+									or (specialRandom <= 1 and math.max(10, potentialSquad.minAnger-30) <= waveParameters.waveTechAnger and math.max(40, potentialSquad.maxAnger-30) >= waveParameters.waveTechAnger) then -- Super Squad
 										squad = potentialSquad
 										break
 									end
@@ -1199,7 +1209,7 @@ if gadgetHandler:IsSyncedCode() then
 								potentialSquad = squadSpawnOptions.healerSea[mRandom(1, #squadSpawnOptions.healerSea)]
 							end
 							if potentialSquad then
-								if (potentialSquad.minAnger <= techAnger and potentialSquad.maxAnger >= techAnger) then -- Super Squad
+								if (potentialSquad.minAnger <= waveParameters.waveTechAnger and potentialSquad.maxAnger >= waveParameters.waveTechAnger) then -- Super Squad
 									squad = potentialSquad
 									break
 								end
@@ -1222,7 +1232,7 @@ if gadgetHandler:IsSyncedCode() then
 					end
 					if mRandom() <= config.spawnChance then
 						for name, data in pairs(squadSpawnOptions.commanders) do
-							if mRandom() <= config.spawnChance and (not waveCommanders[name]) and data.minAnger <= techAnger and data.maxAnger >= techAnger and Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames[name].id) < data.maxAlive and CommandersPopulation+waveCommanderCount < SetCount(humanTeams)*(techAnger*0.01) then
+							if mRandom() <= config.spawnChance and (not waveCommanders[name]) and data.minAnger <= waveParameters.waveTechAnger and data.maxAnger >= waveParameters.waveTechAnger and Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames[name].id) < data.maxAlive and CommandersPopulation+waveCommanderCount < SetCount(humanTeams)*(waveParameters.waveTechAnger*0.005) then
 								waveCommanders[name] = true
 								waveCommanderCount = waveCommanderCount + 1
 								table.insert(spawnQueue, { burrow = burrowID, unitName = name, team = scavTeamID, squadID = 1 })
@@ -1235,7 +1245,7 @@ if gadgetHandler:IsSyncedCode() then
 					--	for attempt = 1,10 do
 					--		local squad = squadSpawnOptions.frontbusters[math.random(1, #squadSpawnOptions.frontbusters)]
 					--		if squad and squad.surface and ((surface == "land" and squad.surface ~= "sea") or (surface == "sea" and squad.surface ~= "land")) then
-					--			if mRandom() <= config.spawnChance and (not waveParameters.frontbusters.units[squad.name]) and squad.minAnger <= techAnger and squad.maxAnger >= techAnger and Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames[squad.name].id) < squad.maxAlive and waveParameters.frontbusters.unitCount == 0 then
+					--			if mRandom() <= config.spawnChance and (not waveParameters.frontbusters.units[squad.name]) and squad.minAnger <= waveParameters.waveTechAnger and squad.maxAnger >= waveParameters.waveTechAnger and Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames[squad.name].id) < squad.maxAlive and waveParameters.frontbusters.unitCount == 0 then
 					--				for i = 1, math.ceil(squad.squadSize*config.spawnChance*((SetCount(humanTeams)*config.scavPerPlayerMultiplier)+(1-config.scavPerPlayerMultiplier))) do
 					--					waveParameters.frontbusters.units[squad.name] = true
 					--					waveParameters.frontbusters.unitCount = waveParameters.frontbusters.unitCount + 1
@@ -1321,14 +1331,14 @@ if gadgetHandler:IsSyncedCode() then
 			--Spring.Echo(uName)
 			--Spring.Debug.TableEcho(uSettings)
 			if not uSettings.maxBossAnger then uSettings.maxBossAnger = uSettings.minBossAnger + 100 end
-			if uSettings.minBossAnger <= techAnger and uSettings.maxBossAnger >= techAnger then
+			if uSettings.minBossAnger <= waveParameters.waveTechAnger and uSettings.maxBossAnger >= waveParameters.waveTechAnger then
 				local numOfTurrets = (uSettings.spawnedPerWave*(1-config.scavPerPlayerMultiplier))+(uSettings.spawnedPerWave*config.scavPerPlayerMultiplier)*SetCount(humanTeams)
 				local maxExisting = (uSettings.maxExisting*(1-config.scavPerPlayerMultiplier))+(uSettings.maxExisting*config.scavPerPlayerMultiplier)*SetCount(humanTeams)
 				local maxAllowedToSpawn
-				if techAnger <= 100 then  -- i don't know how this works but it does. scales maximum amount of turrets allowed to spawn with techAnger.
-					maxAllowedToSpawn = math.ceil(maxExisting*((techAnger-uSettings.minBossAnger)/(math.min(100-uSettings.minBossAnger, uSettings.maxBossAnger-uSettings.minBossAnger))))
+				if waveParameters.waveTechAnger <= 100 then  -- i don't know how this works but it does. scales maximum amount of turrets allowed to spawn with techAnger.
+					maxAllowedToSpawn = math.ceil(maxExisting*((waveParameters.waveTechAnger-uSettings.minBossAnger)/(math.min(100-uSettings.minBossAnger, uSettings.maxBossAnger-uSettings.minBossAnger))))
 				else
-					maxAllowedToSpawn = math.ceil(maxExisting*(techAnger*0.01))
+					maxAllowedToSpawn = math.ceil(maxExisting*(waveParameters.waveTechAnger*0.01))
 				end
 				--Spring.Echo(uName,"MaxExisting",maxExisting,"MaxAllowed",maxAllowedToSpawn)
 				for i = 1, math.ceil(numOfTurrets) do
