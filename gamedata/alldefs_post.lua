@@ -861,6 +861,13 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
+	--Slow Comtrans
+	if modOptions.slow_comtrans == true then
+		if uDef.customparams and uDef.customparams.iscommander then
+			uDef.customparams.transportspeedmult = 0.3
+		end
+	end
+
 	--Air rework
 	if modOptions.air_rework == true then
 		local airReworkUnits = VFS.Include("unitbasedefs/air_rework_defs.lua")

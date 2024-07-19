@@ -181,7 +181,35 @@ local options = {
         }
     },
 
-    
+
+	{
+		key 	= "no_comtrans",
+		name 	= "T1 transports cant load commanders",
+		desc 	= "Commanders will be too heavy for tech 1 transports to carry. (Tech 2 transports can still carry)",
+		type 	= "bool",
+		section = "restrictions",
+		def 	= false,
+	},
+
+	{
+		key 	= "slow_comtrans",
+		name 	= "Slower Transported Commanders",
+		desc 	= "Transports carrying commanders are significantly slower, limiting offensive use and reactive mobility",
+		type 	= "bool",
+		section = "restrictions",
+		def 	= false,
+	},
+
+    {
+        key    	= "allowuserwidgets",
+        name   	= "Allow custom widgets",
+        desc   	= "Allow custom user widgets or disallow them",
+        type   	= "bool",
+        def    	= true,
+        section	= "restrictions",
+    },
+
+
     {
         key     = "teamffa_start_boxes_shuffle",
         name    = "Shuffle TeamFFA Start Boxes",
