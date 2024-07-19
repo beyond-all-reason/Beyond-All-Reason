@@ -7,7 +7,7 @@ function widget:GetInfo()
         license = "GNU GPL, v2 or later",
         version = 5,
         layer = 0,
-        enabled = false
+        enabled = true
     }
 end
 
@@ -17,7 +17,7 @@ local useTeamColor = true
 
 local CYLINDER_SECTIONS = 16
 local CYLINDER_RADIUS = 5
-local CYLINDER_HEIGHT = 1000
+local CYLINDER_HEIGHT = 500
 
 local DEFAULT_OPACITY = 0.5
 local DEFAULT_COLOR = { 0.9, 0.5, 1, DEFAULT_OPACITY }
@@ -27,10 +27,7 @@ local prevMapDrawMode, prevSpectatingFullView
 
 local SpringGetAllFeatures = Spring.GetAllFeatures
 local SpringGetFeatureResurrect = Spring.GetFeatureResurrect
-local SpringGetFeatureResources = Spring.GetFeatureResources
-local SpringGetFeaturePosition = Spring.GetFeaturePosition
 local SpringGetFeatureTeam = Spring.GetFeatureTeam
-local SpringGetTeamColor = Spring.GetTeamColor
 local SpringGetSpectatingState = Spring.GetSpectatingState
 local SpringGetMapDrawMode = Spring.GetMapDrawMode
 
@@ -104,7 +101,7 @@ local fsSrc = [[
             clamp(
                 vertex_color.a
                 * (1 - sqrt(local_y)) // more opacity near the ground
-                * clamp(cameraDistance / 4500, 0.2, 1.2), // more opacity from far away
+                * clamp(cameraDistance / 4500, 0.25, 1.1), // more opacity from far away
                 0.0,
                 1.0
             )
@@ -185,16 +182,16 @@ local function shouldHighlight(unitName)
 end
 
 local function addHighlight(featureID, noUpload)
-    local m, dm, e, de, rl, rt = SpringGetFeatureResources(featureID)
+    local m, dm, e, de, rl, rt = Spring.GetFeatureResources(featureID)
     if m > 0 then
-        local x, y, z = SpringGetFeaturePosition(featureID)
-
+        local x, y, z = Spring.GetFeaturePosition(featureID)
+		y = Spring.GetGroundHeight(x,z) - 50 --account for deformable terrain
         local color = DEFAULT_COLOR
         if useTeamColor then
             local featureTeamID = SpringGetFeatureTeam(featureID)
 
             if featureTeamID ~= nil then
-                local r, g, b = SpringGetTeamColor(featureTeamID)
+                local r, g, b = Spring.GetTeamColor(featureTeamID)
                 color = { r, g, b, DEFAULT_OPACITY }
             end
         end
