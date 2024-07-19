@@ -94,6 +94,15 @@ local options = {
 		def 	= false,
 	},
 
+	{
+		key 	= "slow_comtrans",
+		name 	= "Slower Transported Commanders",
+		desc 	= "Transports carrying commanders are significantly slower, limiting offensive use and reactive mobility",
+		type 	= "bool",
+		section = "restrictions",
+		def 	= false,
+	},
+
     {
         key    	= "allowuserwidgets",
         name   	= "Allow custom widgets",
