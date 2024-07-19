@@ -4032,6 +4032,16 @@ function init()
 			end,
 		},
 
+		{ id = "highlightcomwrecks", group = "ui", category = types.advanced, widget = "Highlight Commander Wrecks", name = Spring.I18N('ui.settings.option.highlightcomwrecks'), type = "bool", value = GetWidgetToggleValue("Highlight Commander Wrecks"), description = Spring.I18N('ui.settings.option.highlightcomwrecks_descr') },
+		{ id = "highlightcomwrecks_teamcolor", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.highlightcomwrecks_teamcolor'), type = "bool", value = true, description = Spring.I18N('ui.settings.option.highlightcomwrecks_teamcolor_descr'),
+		  onload = function(i)
+			  loadWidgetData("Highlight Commander Wrecks", "highlightcomwrecks_teamcolor", { 'useTeamColor' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Highlight Commander Wrecks', 'highlightcomwrecks', 'setUseTeamColor', { 'useTeamColor' }, value)
+		  end,
+		},
+
 		{ id = "buildinggrid", group = "ui", category = types.basic, widget = "Building Grid GL4", name = Spring.I18N('ui.settings.option.buildinggrid'), type = "bool", value = GetWidgetToggleValue("Building Grid GL4"), description = Spring.I18N('ui.settings.option.buildinggrid_descr') },
 		{ id = "buildinggridopacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.buildinggridopacity'), type = "slider", min = 0.3, max = 1, step = 0.05, value = (WG['buildinggrid'] ~= nil and WG['buildinggrid'].getOpacity ~= nil and WG['buildinggrid'].getOpacity()) or 1, description = '',
 		  onload = function(i)
