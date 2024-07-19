@@ -1,4 +1,11 @@
-﻿# June 2024
+﻿# July 2024
+• [Salamander] Energy cost increased 4775->7000 to make the unit more difficult to rush early on and put its cost more in line with other amphibs (energy being 20x metal cost).  Range reduced from 360->340 to make it slightly more difficult to kite T1 units and commanders.  
+• [Whistler + Lasher] Ground range increased by 25 (525/550->550/575 range)
+• [Centurion] Unit script improved so the unit should keep firing while turning
+• [T2 Cruisers] Reloadtime of depthcharges reduced by 10%
+• [T2 Lightning/Flamethrower Ships] Cost reduced 25%, health reduced 20%, speed increased 6%, dps reduced 20%.  Flamethrower ship model size scaled down by 10%
+
+# June 2024
 • [Rocketeer + Aggravator] Speed and acceleration reduced by 5%
 • [Whistler + Lasher] Changes from proposed units rework modoption moved to base game. {Whistler and Lasher weapon switches from ground and anti-air modes.  Anti-air has 700 range and tracking missiles, while ground has 525/550 range and no tracking.  Ground speeds increased by 10 (45->55, 42->52), ground dps increased by 40% (17->25)}
 • [T1 Air Transports] E costs increased by 70%, buildtime increased by 20%.  This change is to increase the time it takes to rush transports and share them to the team.

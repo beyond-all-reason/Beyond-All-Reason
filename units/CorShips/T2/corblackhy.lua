@@ -251,8 +251,8 @@ return {
 				startvelocity = 1,
 				texture1 = "null",
 				texture2 = "smoketrailaa3",
-				firetolerance = 7280,
-				tolerance = 3640,
+				firetolerance = 10920,
+				tolerance = 10920,
 				tracks = true,
 				turnrate = 68000,
 				turret = true,
@@ -269,7 +269,7 @@ return {
 			[1] = {
 				def = "HEAVYPLASMA",
 				onlytargetcategory = "SURFACE",
-				burstControlWhenOutOfArc = 2,
+				burstControlWhenOutOfArc = 1,
 			},
 			[2] = {
 				def = "HEAVYLASER",

@@ -388,11 +388,15 @@ Stop()
 	spin tankdecor around y-axis speed <-30> accelerate <10>;
 	
 	hide cagelight_emit;
+	hide flare1;
+	hide flare2;
 }
 
 Create()
 {
 	hide cagelight_emit;
+	hide flare1;
+	hide flare2;
 	turn decortilt to x-axis <45> now;
 	turn tankdecor to x-axis <-45> now;
 	spin tankdecor around y-axis speed <-30>;
@@ -422,6 +426,8 @@ StartBuilding(heading, pitch)
 	wait-for-turn aimy1 around y-axis;
 
 	set INBUILDSTANCE to 1;
+	show flare1;
+	show flare2;
 	move cagelight to y-axis [2.5] speed [7];
 	move nano to z-axis [4] speed [8];
 	show cagelight_emit;
@@ -444,6 +450,9 @@ StopBuilding()
 	readyToBuild = FALSE;
 	
 	set INBUILDSTANCE to 0;
+	
+	hide flare1;
+	hide flare2;
 	
 	turn aimy1 to y-axis <0.0> speed <90>;
 	turn aimx1 to x-axis <0.0> speed <45>;
