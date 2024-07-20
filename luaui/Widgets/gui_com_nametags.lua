@@ -144,7 +144,6 @@ local function GetCommAttributes(unitID, unitDefID)
 	local playerRank
 	local name = ''
 	local luaAI = Spring.GetTeamLuaAI(team)
-	Spring.Echo("IsDecoy:", UnitDefs[unitDefID].customParams.decoyfor)
 	if luaAI and luaAI ~= "" and string.find(luaAI, 'Scavengers')  then
 		--name = "Scav Commander" -- todo: i18n this thing
 		if UnitDefs[unitDefID].customParams.decoyfor then
