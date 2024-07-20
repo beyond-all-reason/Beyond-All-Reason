@@ -231,7 +231,7 @@ for udefID, def in ipairs(UnitDefs) do
 			isAircraft[udefID] = true
 		end
 		if def.customParams.techlevel then
-			if def.customParams.techlevel == '2' and not def.customParams.iscommander then
+			if def.customParams.techlevel == '2' and not (def.customParams.iscommander or def.customParams.isscavcommander) then
 				isT2[udefID] = true
 			end
 			if def.customParams.techlevel == '3' and not def.isBuilding then
@@ -241,7 +241,7 @@ for udefID, def in ipairs(UnitDefs) do
 		if def.modCategories.mine then
 			isMine[udefID] = true
 		end
-		if def.customParams.iscommander then
+		if def.customParams.iscommander or def.customParams.isscavcommander then
 			isCommander[udefID] = true
 		end
 		if def.isBuilder and def.canAssist then
