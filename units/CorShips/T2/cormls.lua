@@ -9,7 +9,7 @@ return {
 		buildpic = "CORMLS.DDS",
 		buildtime = 4800,
 		canmove = true,
-		category = "ALL NOWEAPON MOBILE SHIP NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "ALL NOWEAPON SHIP NOTSUB MOBILE NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "-2 -3 0",
 		collisionvolumescales = "24 24 42",
 		collisionvolumetype = "CylZ",
@@ -56,7 +56,7 @@ return {
 			[17] = "corfdrag",
 		},
 		customparams = {
-			minesweeper = 300,
+			minesweeper = 600,
 			unitgroup = 'buildert2',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
@@ -128,47 +128,5 @@ return {
 				[1] = "shcorsel",
 			},
 		},
-
-
-
-		weapondefs = {
-			minesweep = {
-				areaofeffect = 700,
-				avoidfeature = false,
-				collidefriendly = false,
-				craterareaofeffect = 700,
-				craterboost = 0,
-				cratermult = 0,
-				edgeeffectiveness = 0.4,
-				explosiongenerator = "custom:MINESWEEP",
-				intensity = 0,
-				metalpershot = 0,
-				name = "Mine-sweeping tectonic impulse",
-				noselfdamage = true,
-				range = 400,
-				reloadtime = 3,
-				rgbcolor = "0 0 0",
-				thickness = 0,
-				tolerance = 100,
-				turret = true,
-				waterweapon = true,
-				weapontimer = 0.1,
-				weapontype = "Cannon",
-				weaponvelocity = 3650,
-
-				damage = {
-					default = 0,
-					mines = 1000,
-				},
-			},
-		},
-		weapons = {
-			[1] = {
-				def = "minesweep",
-				onlytargetcategory = "MINE",
-			},
-		},
-
-
 	},
 }

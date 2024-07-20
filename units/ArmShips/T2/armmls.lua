@@ -9,7 +9,7 @@ return {
 		buildpic = "ARMMLS.DDS",
 		buildtime = 4720,
 		canmove = true,
-		category = "ALL NOTSUB MOBILE SHIP NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "ALL NOTSUB SHIP NOWEAPON MOBILE NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -7 2",
 		collisionvolumescales = "25 25 66",
 		collisionvolumetype = "CylZ",
@@ -57,7 +57,7 @@ return {
 			[18] = "armfdrag",
 		},
 		customparams = {
-			minesweeper = 300,
+			minesweeper = 600,
 			unitgroup = 'buildert2',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
@@ -129,44 +129,5 @@ return {
 				[1] = "sharmsel",
 			},
 		},
-
-		weapondefs = {
-			minesweep = {
-				areaofeffect = 700,
-				avoidfeature = false,
-				collidefriendly = false,
-				craterareaofeffect = 700,
-				craterboost = 0,
-				cratermult = 0,
-				edgeeffectiveness = 0.4,
-				explosiongenerator = "custom:MINESWEEP",
-				intensity = 0,
-				metalpershot = 0,
-				name = "Mine-sweeping tectonic impulse",
-				noselfdamage = true,
-				range = 400,
-				reloadtime = 3,
-				rgbcolor = "0 0 0",
-				thickness = 0,
-				tolerance = 100,
-				turret = true,
-				waterweapon = true,
-				weapontimer = 0.1,
-				weapontype = "Cannon",
-				weaponvelocity = 3650,
-
-				damage = {
-					default = 0,
-					mines = 1000,
-				},
-			},
-		},
-		weapons = {
-			[1] = {
-				def = "minesweep",
-				onlytargetcategory = "MINE",
-			},
-		},
-		
 	},
 }

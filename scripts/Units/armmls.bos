@@ -3,12 +3,9 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
+piece  ground, base, door1, door2, NanoTurret, Nanoemit;
 
-piece ground, base, door1, door2, NanoTurret, Nanoemit;
-//piece  base, base, door1, door2, nanosleeve, lnano, nanosleeve;
-//piece ground, base, tracks, turret, shoulder, leg, lankle, rankle, lwheel, rwheel,  nanosleeve, lnano, rnano, lflare, rflare;
-
-static-var  gun_2, targetheading, statechg_DesiredState, statechg_StateChanging, oldHead, notBuilding;
+static-var  Static_Var_2, statechg_DesiredState, statechg_StateChanging, oldHead, notBuilding;
 
 // Signal definitions
 #define SIG_MOVE			4
@@ -19,7 +16,7 @@ SetDirection(heading)
 	var spd;
 	spd = (get ABS(oldHead) - get ABS(heading)) / 2;
 	turn ground to y-axis heading speed spd;
-	turn ground to y-axis 0-heading speed spd;
+	turn base to y-axis 0-heading speed spd;
 	oldHead = heading;
 }
 
@@ -56,12 +53,12 @@ waveSplash()
 {
 	while( TRUE )
 	{
-		turn ground to x-axis <-3.0> speed <3.0>;
-		move ground to y-axis [0.23] speed [0.23];
-		wait-for-turn ground around x-axis;
-		turn ground to x-axis <0.0> speed <3.0>;
-		move ground to y-axis [0.0] speed [0.23];
-		wait-for-turn ground around x-axis;
+		turn base to x-axis <-3.0> speed <3.0>;
+		move base to y-axis [0.23] speed [0.23];
+		wait-for-turn base around x-axis;
+		turn base to x-axis <0.0> speed <3.0>;
+		move base to y-axis [0.0] speed [0.23];
+		wait-for-turn base around x-axis;
 	}
 }
 
@@ -83,8 +80,8 @@ StartMoving()
 StopMoving()
 {
 	signal SIG_MOVE;
-	turn ground to x-axis <0.0> speed <3.0>;
-	move ground to y-axis [0.0] speed [0.23];
+	turn base to x-axis <0.0> speed <3.0>;
+	move base to y-axis [0.0] speed [0.23];
 }
 
 
@@ -101,109 +98,6 @@ Stop()
 	set INBUILDSTANCE to 0;
 	sleep 200;	
 }
-
-
-AimPrimary(heading, pitch)
-{
-	while( !gun_2 )
-	{
-		sleep 250;
-	}
-	return (1);
-}
-
-FirePrimary()
-{
-	gun_2 = ground;
-	sleep 3000;
-	gun_2 = NanoTurret;
-}
-
-QueryPrimary(piecenum)
-{
-	piecenum = NanoTurret;
-
-}
-
-AimFromPrimary(piecenum)
-{
-	piecenum = ground;
-}
-/*
-AimSecondary(heading, pitch)
-{
-	while( !gun_2 )
-	{
-		sleep 250;
-	}
-	return (1);
-}
-
-FireSecondary()
-{
-	gun_2 = ground;
-	sleep 3000;
-	gun_2 = NanoTurret;
-}
-
-QuerySecondary(piecenum)
-{
-	piecenum = ground;
-}
-
-AimFromSecondary(piecenum)
-{
-	piecenum = ground;
-}
-
-//*/
-
-
-/*
-
-AimPrimary(heading, pitch)
-{
-	get PRINT(1);
-	return (1);
-}
-
-FirePrimary()
-{
-	get PRINT(11);
-	return (1);
-
-}
-
-QueryPrimary(piecenum)
-{
-	get PRINT(111);
-	piecenum = ground;
-}
-
-AimFromPrimary(piecenum)
-{
-	piecenum = ground;
-}
-*/
-
-//needed?
-DetonateMines()
-{
-	while( TRUE )
-	{
-		sleep 500;
-		emit-sfx 4096 from ground;
-	}
-}
-
-
-
-
-
-
-
-
-
 
 
 RequestState(requestedstate, currentstate)
@@ -237,11 +131,9 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-	
-	gun_2 = NanoTurret;//needed?
-	//hide lnano;
-	//hide ground;
-	targetheading = 0;
+	hide Nanoemit;
+	hide ground;
+	Static_Var_2 = 0;
 	notBuilding = 1;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
@@ -275,12 +167,14 @@ deactivatescr()
 	move nanoturret to y-axis [0] speed [24];
 	sleep 333;
 	
+	
 	move door1 to x-axis [0] speed [9];
 	move door2 to x-axis [0] speed [9];
 	sleep 333;
 	
 	move door1 to y-axis [0] speed [3];
 	move door2 to y-axis [0] speed [3];
+	sleep 333;
 }
 
 
@@ -300,11 +194,11 @@ Deactivate()
 StartBuilding(head,pitch)
 {
 	show Nanoemit;
-	oldHead = head;
+	Static_Var_2 = head;
 	start-script RequestState(0);
 	while( notBuilding ) sleep 100;
 	signal SIG_BUILD;
-	turn NanoTurret to y-axis <180>+oldHead speed <160.000000>;
+	turn NanoTurret to y-axis <180>+Static_Var_2 speed <160.000000>;
 	wait-for-turn NanoTurret around y-axis;
 	set INBUILDSTANCE to 1;
 	
@@ -330,7 +224,7 @@ QueryNanoPiece(piecenum)
 
 TargetHeading(Func_Var_1)
 {
-	targetheading = 0 - Func_Var_1;
+	Static_Var_2 = 0 - Func_Var_1;
 }
 
 
@@ -345,9 +239,10 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode ground type BITMAPONLY | NOHEATCLOUD;
-		explode ground type BITMAPONLY | NOHEATCLOUD;
+		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode door1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode NanoTurret type BITMAPONLY | NOHEATCLOUD;
+		//explode nanoturret type BITMAPONLY | NOHEATCLOUD;
+		//explode nanoemit type BITMAPONLY | NOHEATCLOUD;
 		explode door2 type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
@@ -355,9 +250,10 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 2 ;
 		explode ground type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode ground type BITMAPONLY | NOHEATCLOUD;
+		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode door1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode NanoTurret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode nanoturret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode nanoemit type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode door2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
@@ -365,17 +261,19 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 3 ;
 		explode ground type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode ground type BITMAPONLY | NOHEATCLOUD;
+		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode door1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode NanoTurret type SMOKE | FALL | NOHEATCLOUD;
+		explode nanoturret type SMOKE | FALL | NOHEATCLOUD;
+		//explode nanoemit type SMOKE | FALL | NOHEATCLOUD;
 		explode door2 type SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode ground type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode ground type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode base type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode door1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode NanoTurret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nanoturret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode nanoemit type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode door2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }
