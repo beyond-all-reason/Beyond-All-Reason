@@ -300,7 +300,7 @@ function widget:Initialize()
     end
     highlightUnitNames = {}
     for _, unitDef in pairs(UnitDefs) do
-        if unitDef.customParams.iscommander then
+        if unitDef.customParams.iscommander or unitDef.customParams.isscavcommander then
             highlightUnitNames[unitDef.name] = true
         end
     end

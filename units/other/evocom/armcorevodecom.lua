@@ -9,6 +9,8 @@ unitsTable['armdecomlvl3'].customparams.iscommander = nil
 unitsTable['armdecomlvl3'].customparams.effigy = nil
 unitsTable['armdecomlvl3'].customparams.i18nfromunit = "armcomlvl3"
 unitsTable['armdecomlvl3'].decoyfor = "armcomlvl3"
+unitsTable['armdecomlvl3'].customparams.decoyfor = "armcomlvl3"
+unitsTable['armdecomlvl3'].customparams.isdecoycommander = true
 unitsTable['armdecomlvl3'].health = math.ceil(unitsTable['armdecomlvl3'].health*0.5)
 unitsTable['armdecomlvl3'].weapondefs.disintegrator.damage.default = 40
 
@@ -21,6 +23,8 @@ unitsTable['armdecomlvl6'].customparams.iscommander = nil
 unitsTable['armdecomlvl6'].customparams.effigy = nil
 unitsTable['armdecomlvl6'].customparams.i18nfromunit = "armcomlvl6"
 unitsTable['armdecomlvl6'].decoyfor = "armcomlvl6"
+unitsTable['armdecomlvl6'].customparams.decoyfor = "armcomlvl6"
+unitsTable['armdecomlvl6'].customparams.isdecoycommander = true
 unitsTable['armdecomlvl6'].health = math.ceil(unitsTable['armdecomlvl6'].health*0.5)
 unitsTable['armdecomlvl6'].weapondefs.disintegrator.damage.default = 40
 
@@ -33,6 +37,8 @@ unitsTable['armdecomlvl10'].customparams.iscommander = nil
 unitsTable['armdecomlvl10'].customparams.effigy = nil
 unitsTable['armdecomlvl10'].customparams.i18nfromunit = "armcomlvl10"
 unitsTable['armdecomlvl10'].decoyfor = "armcomlvl10"
+unitsTable['armdecomlvl10'].customparams.decoyfor = "armcomlvl10"
+unitsTable['armdecomlvl10'].customparams.isdecoycommander = true
 unitsTable['armdecomlvl10'].health = math.ceil(unitsTable['armdecomlvl10'].health*0.5)
 unitsTable['armdecomlvl10'].weapondefs.disintegrator.damage.default = 40
 
@@ -45,6 +51,8 @@ unitsTable['cordecomlvl3'].customparams.iscommander = nil
 unitsTable['cordecomlvl3'].customparams.effigy = nil
 unitsTable['cordecomlvl3'].customparams.i18nfromunit = "corcomlvl3"
 unitsTable['cordecomlvl3'].decoyfor = "corcomlvl3"
+unitsTable['cordecomlvl3'].customparams.decoyfor = "corcomlvl3"
+unitsTable['cordecomlvl3'].customparams.isdecoycommander = true
 unitsTable['cordecomlvl3'].health = math.ceil(unitsTable['cordecomlvl3'].health*0.5)
 unitsTable['cordecomlvl3'].weapondefs.disintegrator.damage.default = 40
 
@@ -57,6 +65,8 @@ unitsTable['cordecomlvl6'].customparams.iscommander = nil
 unitsTable['cordecomlvl6'].customparams.effigy = nil
 unitsTable['cordecomlvl6'].customparams.i18nfromunit = "corcomlvl6"
 unitsTable['cordecomlvl6'].decoyfor = "corcomlvl6"
+unitsTable['cordecomlvl6'].customparams.decoyfor = "corcomlvl6"
+unitsTable['cordecomlvl6'].customparams.isdecoycommander = true
 unitsTable['cordecomlvl6'].health = math.ceil(unitsTable['cordecomlvl6'].health*0.5)
 unitsTable['cordecomlvl6'].weapondefs.disintegrator.damage.default = 40
 
@@ -69,6 +79,8 @@ unitsTable['cordecomlvl10'].customparams.iscommander = nil
 unitsTable['cordecomlvl10'].customparams.effigy = nil
 unitsTable['cordecomlvl10'].customparams.i18nfromunit = "corcomlvl10"
 unitsTable['cordecomlvl10'].decoyfor = "corcomlvl10"
+unitsTable['cordecomlvl10'].customparams.decoyfor = "corcomlvl10"
+unitsTable['cordecomlvl10'].customparams.isdecoycommander = true
 unitsTable['cordecomlvl10'].health = math.ceil(unitsTable['cordecomlvl10'].health*0.5)
 unitsTable['cordecomlvl10'].weapondefs.disintegrator.damage.default = 40
 

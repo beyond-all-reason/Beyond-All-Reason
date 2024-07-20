@@ -136,7 +136,7 @@ else
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		-- not critter/raptor/object
 		if not string.find(unitDef.name, 'critter') and not string.find(unitDef.name, 'raptor') and (not unitDef.modCategories or not unitDef.modCategories.object) then
-			if unitDef.customParams.iscommander and not string.find(unitDef.name,'_scav') then
+			if unitDef.customParams.iscommander or unitDef.customParams.isscavcommander then
 				isCommander[unitDefID] = true
 			end
 			if string.find(unitDef.name,'corint') or string.find(unitDef.name,'armbrtha') or string.find(unitDef.name,'corbuzz') or string.find(unitDef.name,'armvulc') or string.find(unitDef.name,'legstarfall') then

@@ -149,9 +149,15 @@ local function scavUnitDef_Post(name, uDef)
 			end
 		end
 	end
+	
 	if uDef.customparams.iscommander then
 		uDef.customparams.iscommander = nil
 		uDef.customparams.isscavcommander = true
+	end
+
+	if uDef.customparams.isdecoycommander then
+		uDef.customparams.isdecoycommander = nil
+		uDef.customparams.isscavdecoycommander = true
 	end
 
 	if name == "armcom_scav" or name == "corcom_scav" or name == "legcom_scav" or string.find(name, "armcomlvl") or string.find(name, "corcomlvl") or string.find(name, "legcomlvl") then
