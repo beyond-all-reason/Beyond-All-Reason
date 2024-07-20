@@ -8,10 +8,10 @@
 		},
 		"dead": "%{name} Wreckage",
 		"heap": "%{name} Debris",
-		"decoycommander": "Decoy",
+		"decoyCommanderNameTag": "Decoy",
 		"scavenger": "Scavenger %{name}",
-		"scavcommandernametag": "Scav Commander",
-		"scavdecoycommandernametag": "Scav Decoy",
+		"scavCommanderNameTag": "Scav Commander",
+		"scavDecoyCommanderNameTag": "Scav Decoy",
 		"names": {
 			"armaak": "Archangel",
 			"armaap": "Advanced Aircraft Plant",

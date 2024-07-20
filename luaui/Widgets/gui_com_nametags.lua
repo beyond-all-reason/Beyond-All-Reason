@@ -147,20 +147,20 @@ local function GetCommAttributes(unitID, unitDefID)
 	if luaAI and luaAI ~= "" and string.find(luaAI, 'Scavengers')  then
 		--name = "Scav Commander" -- todo: i18n this thing
 		if UnitDefs[unitDefID].customParams.decoyfor then
-			name = Spring.I18N('units.scavdecoycommandernametag', {})
+			name = Spring.I18N('units.scavDecoyCommanderNameTag')
 		else
-			name = Spring.I18N('units.scavcommandernametag', {})
+			name = Spring.I18N('units.scavCommanderNameTag')
 		end
 	elseif Spring.GetGameRulesParam('ainame_' .. team) then
 		if UnitDefs[unitDefID].customParams.decoyfor then
-			name = Spring.I18N('units.decoycommander', {})
+			name = Spring.I18N('units.decoyCommanderNameTag')
 		else
 			name = Spring.I18N('ui.playersList.aiName', { name = Spring.GetGameRulesParam('ainame_' .. team) })
 		end
 		
 	else
 		if UnitDefs[unitDefID].customParams.decoyfor then
-			name = Spring.I18N('units.decoycommander', {})
+			name = Spring.I18N('units.decoyCommanderNameTag')
 		else
 			local players = GetPlayerList(team)
 			name = (#players > 0) and GetPlayerInfo(players[1], false) or '------'
