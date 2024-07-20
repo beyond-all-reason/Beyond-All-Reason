@@ -155,7 +155,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
-				energypershot = 125,
+				energypershot = 80,
 				explosiongenerator = "custom:laserhit-medium-green",
 				firestarter = 90,
 				impactonly = 1,
@@ -251,7 +251,8 @@ return {
 				startvelocity = 1,
 				texture1 = "null",
 				texture2 = "smoketrailaa3",
-				tolerance = 9950,
+				firetolerance = 10920,
+				tolerance = 10920,
 				tracks = true,
 				turnrate = 68000,
 				turret = true,
@@ -268,6 +269,7 @@ return {
 			[1] = {
 				def = "HEAVYPLASMA",
 				onlytargetcategory = "SURFACE",
+				burstControlWhenOutOfArc = 1,
 			},
 			[2] = {
 				def = "HEAVYLASER",

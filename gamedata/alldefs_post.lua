@@ -224,6 +224,7 @@ function UnitDef_Post(name, uDef)
 				armscab = true,
 				corfmd = true,
 				corsilo = true,
+				legsilo =  true,
 				cormabm = true,
 				armamd_scav = true,
 				armsilo_scav = true,
@@ -237,45 +238,67 @@ function UnitDef_Post(name, uDef)
 			end
 		end
 
+		--normal commander respawning
+		if modOptions.comrespawn == "all" or (modOptions.comrespawn == "evocom" and modOptions.evocom)then
+			if name == "armcom" or name == "corcom" or name == "legcom" then
+				uDef.customparams.effigy = "comeffigylvl1"
+				uDef.customparams.effigy_offset = 1
+				uDef.customparams.respawn_condition = "health"
+				uDef.customparams.minimum_respawn_stun = 5
+				uDef.customparams.distance_stun_multiplier = 1
+				local numBuildoptions = #uDef.buildoptions
+				uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl1"
+			end
+		end
+		
+
 		if modOptions.evocom then	
-			if uDef.customparams.isevocom or uDef.customparams.iscommander then
+			if uDef.customparams.evocomlvl or name == "armcom" or name == "corcom" or name == "legcom" then
+				local comLevel = uDef.customparams.evocomlvl
+				if modOptions.comrespawn == "all" or modOptions.comrespawn == "evocom" then--add effigy respawning, if enabled
+					uDef.customparams.respawn_condition = "health"
+					
+					local numBuildoptions = #uDef.buildoptions
+					if comLevel == 2 then
+						uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl1"
+					elseif comLevel == 3 or comLevel == 4 then
+						uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl2"
+					elseif comLevel == 5 or comLevel == 6 then
+						uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl3"
+					elseif comLevel == 7 or comLevel == 8 then
+						uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl4"
+					elseif comLevel == 9 or comLevel == 10 then
+						uDef.buildoptions[numBuildoptions + 1] = "comeffigylvl5"
+					end
+				end
 				uDef.customparams.combatradius = 0
 				uDef.customparams.evolution_health_transfer = "percentage"
+				
 				if uDef.power then
-					uDef.power = uDef.power/modOptions.evocomxpmultiplier 
+					uDef.power = uDef.power/modOptions.evocomxpmultiplier
 				else
 					uDef.power = ((uDef.metalcost+(uDef.energycost/60))/modOptions.evocomxpmultiplier)
 				end
-				uDef.customparams.evolution_timer = modOptions.evocomleveluprate*60
+				
+				if modOptions.evocomlevelupmethod == "dynamic" then
+					uDef.customparams.evolution_condition = "power"
+					uDef.customparams.evolution_power_multiplier = 1			-- Scales the power calculated based on your own combined power. 
+					uDef.customparams.evolution_power_threshold = uDef.customparams.evolution_power_threshold or 10000 --sets threshold for level 1 commanders
+				elseif modOptions.evocomlevelupmethod == "timed" then
+					uDef.customparams.evolution_timer = modOptions.evocomleveluprate*60
+					uDef.customparams.evolution_condition = "timer"
+				end
+
 				if  name == "armcom" then
-				uDef.customparams.evolution_announcement = "Armada commanders have upgraded to level 2"
-				uDef.customparams.evolution_announcement_size = 18.5
 				uDef.customparams.evolution_target = "armcomlvl2"
-				uDef.customparams.evolution_condition = "timer"
 				elseif name == "corcom" then
-				uDef.customparams.evolution_announcement = "Cortex commanders have upgraded to level 2"
-				uDef.customparams.evolution_announcement_size = 18.5
 				uDef.customparams.evolution_target = "corcomlvl2"
-				uDef.customparams.evolution_condition = "timer"
-				elseif name == "legcomlvl2" then
-					uDef.energymake = 50
-					uDef.metalmake = 3
-				elseif name == "legcomlvl3" then
-				uDef.customparams.evolution_announcement = "Legion commanders have upgraded to level 4"
-				uDef.energymake = 75
-				uDef.metalmake = 5
-				elseif name == "legcomlvl4" then
-				uDef.customparams.evolution_announcement = "Legion commanders have upgraded to level 5"
-				uDef.customparams.evolution_announcement_size = 18.5
-				uDef.customparams.evolution_target = "legcomlvl5"
-				uDef.customparams.evolution_condition = "timer"
-				uDef.customparams.workertimeboost = 5
-				uDef.customparams.wtboostunittype = "MOBILE"
-				uDef.energymake = 125
-				uDef.metalmake = 9
-				uDef.customparams.inheritxpratemultiplier = 0.5
-        		uDef.customparams.childreninheritxp = "DRONE BOTCANNON"
-        		uDef.customparams.parentsinheritxp = "MOBILEBUILT DRONE BOTCANNON"
+				elseif name == "legcom" then
+				uDef.customparams.evolution_target = "legcomlvl2"
+				end
+
+				if comLevel and modOptions.evocomlevelcap <= comLevel then
+					uDef.customparams.evolution_condition = nil
 				end
 			end
 		end
@@ -284,6 +307,7 @@ function UnitDef_Post(name, uDef)
 			local TacNukes = {
 				armemp = true,
 				cortron = true,
+				legperdition = true,
 				armemp_scav = true,
 				cortron_scav = true,
 			}
@@ -299,6 +323,7 @@ function UnitDef_Post(name, uDef)
 				armvulc = true,
 				corint = true,
 				corbuzz = true,
+				leglrpc = true,
 				legstarfall = true,
 				armbotrail_scav = true,
 				armbrtha_scav = true,
@@ -412,6 +437,9 @@ function UnitDef_Post(name, uDef)
 				uDef.buildoptions[numBuildoptions+6] = "corvac" --corprinter
 
 			end
+		elseif name == "coraap" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "corcrw"
 		elseif name == "corgant" or name == "leggant" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "corkarganetht4"
@@ -472,12 +500,18 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 2] = "armdecadet3"
 			uDef.buildoptions[numBuildoptions + 3] = "armpshipt3"
 			uDef.buildoptions[numBuildoptions + 4] = "armserpt3"
-			uDef.buildoptions[numBuildoptions + 5] = "armtrident"
+			uDef.buildoptions[numBuildoptions + 5] = "armexcalibur"
+			uDef.buildoptions[numBuildoptions + 6] = "armseadragon"
+			uDef.buildoptions[numBuildoptions + 7] = "armtrident"
+			uDef.buildoptions[numBuildoptions + 8] = "armdronecarry"
 		elseif name == "corasy" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "corslrpc"
 			uDef.buildoptions[numBuildoptions + 2] = "coresuppt3"
-			uDef.buildoptions[numBuildoptions + 3] = "corsentinel"
+			uDef.buildoptions[numBuildoptions + 3] = "coronager"
+			uDef.buildoptions[numBuildoptions + 4] = "cordesolator"
+			uDef.buildoptions[numBuildoptions + 5] = "corsentinel"
+			uDef.buildoptions[numBuildoptions + 6] = "cordronecarry"
 		end
 	end
 
@@ -611,7 +645,7 @@ function UnitDef_Post(name, uDef)
 	end
 
 	-- Wreck and heap standardization
-	if not uDef.customparams.iscommander then
+	if not uDef.customparams.iscommander and not uDef.customparams.iseffigy then
 		if uDef.featuredefs and uDef.health then
 			-- wrecks
 			if uDef.featuredefs.dead then
@@ -820,6 +854,19 @@ function UnitDef_Post(name, uDef)
 
 	end
 
+	--No Comtrans
+	if modOptions.no_comtrans == true then
+		if uDef.customparams and uDef.customparams.iscommander then
+			uDef.mass = 5001
+		end
+	end
+
+	--Slow Comtrans
+	if modOptions.slow_comtrans == true then
+		if uDef.customparams and uDef.customparams.iscommander then
+			uDef.customparams.transportspeedmult = 0.3
+		end
+	end
 
 	--Air rework
 	if modOptions.air_rework == true then
@@ -834,20 +881,43 @@ function UnitDef_Post(name, uDef)
 	end
 
 	if modOptions.proposed_unit_reworks == true then
-		if name == "armvp" then
-			for ix, UnitName in pairs(uDef.buildoptions) do
-				if UnitName == "armsam" then
-					uDef.buildoptions[ix] = "armsam2"
-				end
-			end
+		if name == "corbw" then
+			uDef.weapondefs.bladewing_lyzer.damage.default = 600
+			uDef.weapons[1].onlytargetcategory = "SURFACE"
 		end
-		if name == "corvp" then
-			for ix, UnitName in pairs(uDef.buildoptions) do
-				if UnitName == "cormist" then
-					uDef.buildoptions[ix] = "cormist2"
-				end
-			end
+		if name == "armdfly" then
+			uDef.weapondefs.armdfly_paralyzer.damage.default = 10500
+			uDef.weapondefs.armdfly_paralyzer.paralyzetime = 6
+			uDef.weapondefs.armdfly_paralyzer.beamtime = 0.2
+			uDef.weapons[1].onlytargetcategory = "SURFACE"
 		end
+		if name == "armspid" then
+			uDef.weapons[1].onlytargetcategory = "SURFACE"
+		end
+		if name == "corgator" then
+			uDef.weapondefs.gator_laserx.damage.vtol = 14
+		end
+		if name == "corak" then
+			uDef.weapondefs.gator_laser.damage.vtol = 7
+		end
+		if name == "armpw" then
+			uDef.weapondefs.emg.damage.vtol = 3
+		end
+		if name == "armsh" then
+			uDef.weapondefs.armsh_weapon.damage.vtol = 7
+		end
+		if name == "corsh" then
+			uDef.weapondefs.armsh_weapon.damage.vtol = 7
+		end
+		if uDef.customparams.paralyzemultiplier then
+			if uDef.customparams.paralyzemultiplier < 0.03 then
+				uDef.customparams.paralyzemultiplier = 0
+			elseif uDef.customparams.paralyzemultiplier < 0.5 then
+				uDef.customparams.paralyzemultiplier = 0.2
+			else
+				uDef.customparams.paralyzemultiplier = 1
+			end
+		end	
 	end
 
 	--Lategame Rebalance
@@ -1006,24 +1076,6 @@ function UnitDef_Post(name, uDef)
 
 	-- Multipliers Modoptions
 
-	-- Health
-	if uDef.health then
-		local x = modOptions.multiplier_maxdamage
-		if x ~= 1 then
-			if uDef.health * x > 15000000 then
-				uDef.health = 15000000
-			else
-				uDef.health = uDef.health * x
-			end
-			if uDef.autoheal then
-				uDef.autoheal = uDef.autoheal * x
-			end
-			if uDef.idleautoheal then
-				uDef.idleautoheal = uDef.idleautoheal * x
-			end
-		end
-	end
-
 	-- Max Speed
 	if uDef.speed then
 		local x = modOptions.multiplier_maxvelocity
@@ -1063,26 +1115,6 @@ function UnitDef_Post(name, uDef)
 
 		-- increase terraformspeed to be able to restore ground faster
 		uDef.terraformspeed = uDef.workertime * 30
-	end
-
-	-- Unit Cost
-	if uDef.metalcost then
-		local x = modOptions.multiplier_metalcost
-		if x ~= 1 then
-			uDef.metalcost = math.min(uDef.metalcost * x, 16000000)
-		end
-	end
-	if uDef.energycost then
-		local x = modOptions.multiplier_energycost
-		if x ~= 1 then
-			uDef.energycost = math.min(uDef.energycost * x, 16000000)
-		end
-	end
-	if uDef.buildtime then
-		local x = modOptions.multiplier_buildtimecost
-		if x ~= 1 then
-			uDef.buildtime = math.min(uDef.buildtime * x, 16000000)
-		end
 	end
 
 	--energystorage
@@ -1182,6 +1214,23 @@ function UnitDef_Post(name, uDef)
 	end
 	uDef.customparams.vertdisp = 1.0 * vertexDisplacement
 	uDef.customparams.healthlookmod = 0
+	
+	-- Animation Cleanup
+	if modOptions.animationcleanup  then 
+		if uDef.script then 
+			local oldscript = uDef.script:lower()
+			if oldscript:find(".cob", nil, true) then 
+				local newscript = string.sub(oldscript, 1, -5) .. "_clean.cob"
+				if VFS.FileExists('scripts/'..newscript) then 
+					Spring.Echo("Using new script for", name, oldscript, '->', newscript)
+					uDef.script = newscript
+				else
+					Spring.Echo("Unable to find new script for", name, oldscript, '->', newscript, "using old one")
+				end
+			end
+		end
+	end
+	
 end
 
 local function ProcessSoundDefaults(wd)
@@ -1274,7 +1323,7 @@ function WeaponDef_Post(name, wDef)
 
 		--Air rework
 		if modOptions.air_rework == true then
-			if wDef.weapontype == "BeamLaser" or wDef.weapontype == "LaserCannon" then
+			if wDef.weapontype == "BeamLaser" then
 				wDef.damage.vtol = wDef.damage.default * 0.25
 			end
 			if wDef.range == 300 and wDef.reloadtime == 0.4 then

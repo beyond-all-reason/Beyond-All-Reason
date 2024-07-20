@@ -40,7 +40,7 @@ return {
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'energy',
 			model_author = "Hornet",
-			normaltex = "unittextures/cor_normal.dds",
+			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
 			removewait = true,
 			solar = true,

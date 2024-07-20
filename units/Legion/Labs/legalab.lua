@@ -35,7 +35,7 @@ return {
 		yardmap = "ooooooo ooooooo ooooooo occccco occccco occccco",
 		buildoptions = {
 			[1] = "legack",
-			[2] = "corfast",
+			[2] = "legaceb",
 			[3] = "legstr",
 			[4] = "coramph",
 			[5] = "legshot",
@@ -45,12 +45,13 @@ return {
 			[9] = "leginfestor",
 			[10] = "corhrk",
 			[11] = "coraak",
-			[12] = "corroach",
+			[12] = "legsnapper",
 			[13] = "corsktl",
 			[14] = "corvoyr",
 			[15] = "corspy",
 			[16] = "corspec",
 			[17] = "cormando",
+			[18] = "legdecom",
 		},
 		customparams = {
 			usebuildinggrounddecal = true,

@@ -1,0 +1,91 @@
+
+#include "../recoil_common_includes.h"
+
+piece  base, wingr, wingl, dish, thrust;
+
+Create()
+{
+	hide thrust;
+}
+
+#define BASEPIECE base
+#define HITSPEED <100.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 1
+#define MAXTILT 100
+
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+Activate()
+{
+	show thrust;
+	turn wingl to x-axis <36> now;
+	turn wingl to y-axis <15> now;
+	turn wingl to z-axis <-45> now;
+	turn wingr to x-axis <36> now;
+	turn wingr to y-axis <-15> now;
+	turn wingr to z-axis <45> now;
+	
+	turn wingl to x-axis <0> speed <36>;
+	turn wingl to y-axis <0> speed <15>;
+	turn wingl to z-axis <0> speed <45>;
+	turn wingr to x-axis <0> speed <36>;
+	turn wingr to y-axis <0> speed <15>;
+	turn wingr to z-axis <0> speed <45>;
+	spin dish around y-axis speed <90.021978>;
+}
+
+Deactivate()
+{
+	hide thrust;
+	turn wingl to x-axis <36> speed <36>;
+	turn wingl to y-axis <15> speed <15>;
+	turn wingl to z-axis <-45> speed <45>;
+	turn wingr to x-axis <36> speed <36>;
+	turn wingr to y-axis <-15> speed <15>;
+	turn wingr to z-axis <45> speed <45>;
+	stop-spin dish around y-axis;
+}
+
+
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode wingl type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode wingr type BITMAPONLY | NOHEATCLOUD;
+		explode dish type BITMAPONLY | NOHEATCLOUD;
+		explode thrust type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode wingl type BITMAPONLY | NOHEATCLOUD;
+		explode wingr type FALL | NOHEATCLOUD;
+		explode dish type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode thrust type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode wingl type BITMAPONLY | NOHEATCLOUD;
+		explode wingr type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode dish type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode thrust type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode wingl type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode wingr type BITMAPONLY | NOHEATCLOUD;
+		explode dish type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode thrust type BITMAPONLY | NOHEATCLOUD;
+	return corpsetype;
+}

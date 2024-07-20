@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, turret, gun, sleeve, lgun, lgatling, rgun, rgatling, flare, lflare, rflare, smoke1, smoke2;
+piece  base, turret, gun, sleeve, lgun, lgatling, rgun, rgatling, flare, lflare, rflare;
 
 static-var  restore_delay, last_gun_heading;
 

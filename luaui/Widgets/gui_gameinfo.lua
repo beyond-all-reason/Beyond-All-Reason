@@ -84,9 +84,9 @@ local function stringifyDefTable(t, path, pathAddition)
 	end
 	for k, v in pairs(t) do
 		if type(v) == "table" then
-			text = text .. '\n' .. valuegreycolor .. depthSpacing .. tostring(k) .. ' = \{'
+			text = text .. '\n' .. valuegreycolor .. depthSpacing .. tostring(k) .. ' = {'
 			text = text .. stringifyDefTable(v, path, k)
-			text = text .. '\n' .. valuegreycolor .. depthSpacing .. '\}'
+			text = text .. '\n' .. valuegreycolor .. depthSpacing .. '}'
 		else
 			text = text .. '\n' .. valuegreycolor .. depthSpacing .. tostring(k) .. ' = ' .. tostring(v)
 		end
@@ -109,9 +109,9 @@ for key, value in pairs(modoptions) do
 					local text = ''
 					for name, ud in pairs(tweaks) do
 						if UnitDefNames[name] then
-							text = text .. '\n' .. valuecolor.. name..valuegreycolor..' = \{'
+							text = text .. '\n' .. valuecolor.. name..valuegreycolor..' = {'
 							text = text..stringifyDefTable(ud, {}, name)
-							text = text .. '\n' .. '\}'
+							text = text .. '\n' .. '}'
 						end
 					end
 					changedModoptions[key] = text

@@ -43,8 +43,11 @@ for unitDefName, tier in pairs({lootboxbronze_scav = 1, lootboxsilver_scav  = 1,
 end
 
 local spawnerList = {}
-if UnitDefNames["scavengerdroppodbeacon_scav"] then 
-	spawnerList[UnitDefNames["scavengerdroppodbeacon_scav"].id] = true
+if UnitDefNames["scavbeacon_t1_scav"] then 
+	spawnerList[UnitDefNames["scavbeacon_t1_scav"].id] = true
+    spawnerList[UnitDefNames["scavbeacon_t2_scav"].id] = true
+    spawnerList[UnitDefNames["scavbeacon_t3_scav"].id] = true
+    spawnerList[UnitDefNames["scavbeacon_t4_scav"].id] = true
 end
 
 local teams = Spring.GetTeamList()
@@ -111,7 +114,7 @@ function gadget:GameFrame(frame)
                                         if math.random(0,SetCount(aliveSpawners)) == 0 and not handledLootboxesList[lootboxID] then
                                             targetLootboxID = lootboxID
                                             local spawnerPosX, spawnerPosY, spawnerPosZ = Spring.GetUnitPosition(spawnerID)
-                                            for j = 1,aliveLootboxesCount*5 do
+                                            for j = 1,5 do
                                                 if math.random() <= config.spawnChance then
                                                     local transportID = Spring.CreateUnit(transportDefID, spawnerPosX+math.random(-1024, 1024), spawnerPosY+100, spawnerPosZ+math.random(-1024, 1024), math.random(0,3), scavTeamID)
                                                     if transportID then

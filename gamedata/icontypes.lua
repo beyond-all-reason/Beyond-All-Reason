@@ -299,6 +299,10 @@ local icontypes = {
 		bitmap = "icons/energystorage.png",
 		size = 1.10249984
 	},
+	armexcalibur = {
+		bitmap = "icons/sub_t2_coastal.png",
+		size = 2.2
+	},
 	armeyes = {
 		bitmap = "icons/eye.png",
 		size = 0.89249998
@@ -663,6 +667,14 @@ local icontypes = {
 		bitmap = "icons/armpwt4.png",
 		size = 2.30999994
 	},
+	squadarmpw = {
+		bitmap = "icons/bot_t1_raid_0.7.png",
+		size = 0.73499995
+	},
+	squadarmpwt4 = {
+		bitmap = "icons/armpwt4.png",
+		size = 2.30999994
+	},
 	armrad = {
 		bitmap = "icons/radar_t1.png",
 		size = 0.94499993
@@ -707,10 +719,6 @@ local icontypes = {
 		bitmap = "icons/vehicle_t1_missile.png",
 		size = 1.04999995
 	},
-	armsam2 = {
-		bitmap = "icons/vehicle_t1_missile.png",
-		size = 1.04999995
-	},
 	armsb = {
 		bitmap = "icons/air_bomber_sea.png",
 		size = 1.41750002
@@ -743,9 +751,37 @@ local icontypes = {
 		bitmap = "icons/armcomboss.png",
 		size = 4.19999981
 	},
+	scavengerbossv4_easy = {
+		bitmap = "icons/armcomboss.png",
+		size = 4.19999981
+	},
+	scavengerbossv4_epic = {
+		bitmap = "icons/armcomboss.png",
+		size = 4.19999981
+	},
+	scavengerbossv4_hard = {
+		bitmap = "icons/armcomboss.png",
+		size = 4.19999981
+	},
+	scavengerbossv4_normal = {
+		bitmap = "icons/armcomboss.png",
+		size = 4.19999981
+	},
+	scavengerbossv4_veryeasy = {
+		bitmap = "icons/armcomboss.png",
+		size = 4.19999981
+	},
+	scavengerbossv4_veryhard = {
+		bitmap = "icons/armcomboss.png",
+		size = 4.19999981
+	},
 	armsd = {
 		bitmap = "icons/seismic.png",
 		size = 1.46999991
+	},
+	armseadragon = {
+		bitmap = "icons/sub_t3_nuke.png",
+		size = 2.8
 	},
 	armseap = {
 		bitmap = "icons/air_torp_sea.png",
@@ -820,6 +856,14 @@ local icontypes = {
 		size = 1.65199995
 	},
 	armsptkt4 = {
+		bitmap = "icons/armsptkt4.png",
+		size = 2.30999994
+	},
+	squadarmsptk = {
+		bitmap = "icons/armsptk_1.44.png",
+		size = 1.65199995
+	},
+	squadarmsptkt4 = {
 		bitmap = "icons/armsptkt4.png",
 		size = 2.30999994
 	},
@@ -935,6 +979,10 @@ local icontypes = {
 		bitmap = "icons/armvader_0.9.png",
 		size = 0.94499993
 	},
+	babyarmvader = {
+		bitmap = "icons/armvader_0.9.png",
+		size = 0.94499993
+	},
 	armvadert4 = {
 		bitmap = "icons/armvadert4.png",
 		size = 2.625
@@ -1040,6 +1088,14 @@ local icontypes = {
 		size = 0.73499995
 	},
 	corakt4 = {
+		bitmap = "icons/corakt4.png",
+		size = 1.7
+	},
+	squadcorak = {
+		bitmap = "icons/bot_t1_raid_0.7.png",
+		size = 0.73499995
+	},
+	squadcorakt4 = {
 		bitmap = "icons/corakt4.png",
 		size = 1.7
 	},
@@ -1214,6 +1270,10 @@ local icontypes = {
 	cordemon = {
 		bitmap = "icons/cordemon.png",
 		size = 2.625
+	},
+	cordesolator = {
+		bitmap = "icons/sub_t3_nuke.png",
+		size = 2.8
 	},
 	cordl = {
 		bitmap = "icons/defence_1_naval.png",
@@ -1471,6 +1531,14 @@ local icontypes = {
 		bitmap = "icons/corkarganetht4.png",
 		size = 3.14999986
 	},
+	squadcorkarg = {
+		bitmap = "icons/corkarg_2.05.png",
+		size = 2.424999
+	},
+	squadcorkarganetht4 = {
+		bitmap = "icons/corkarganetht4.png",
+		size = 3.14999986
+	},
 	corkorg = {
 		bitmap = "icons/mech.png",
 		size = 3.46499968
@@ -1547,10 +1615,6 @@ local icontypes = {
 		bitmap = "icons/vehicle_t1_missile.png",
 		size = 1.04999995
 	},
-	cormist2 = {
-		bitmap = "icons/vehicle_t1_missile.png",
-		size = 1.04999995
-	},
 	cormls = {
 		bitmap = "icons/shipengineer.png",
 		size = 1.57499993
@@ -1606,6 +1670,10 @@ local icontypes = {
 	cornecro = {
 		bitmap = "icons/bot_t1_rez.png",
 		size = 0.74000001
+	},
+	coronager = {
+		bitmap = "icons/sub_t2_coastal.png",
+		size = 2.2
 	},
 	corparrow = {
 		bitmap = "icons/corparrow.png",
@@ -2023,9 +2091,21 @@ local icontypes = {
 		bitmap = "icons/air_t2_worker.png",
 		size = 1.62749982
 	},
+	legaceb = {
+		bitmap = "icons/corfast_1.3.png",
+		size = 1.16999996
+	},
 	legack = {
 		bitmap = "icons/bot_t2_worker.png",
 		size = 1.39649999
+	},
+	legacluster = {
+		bitmap = "icons/def_t2_arty.png",
+		size = 1.57499993
+	},
+	legamcluster = {
+		bitmap = "icons/vehicle_arty_t2.png",
+		size = 1.36499989
 	},
 	legacv = {
 		bitmap = "icons/vehicle_t2_worker.png",
@@ -2046,6 +2126,22 @@ local icontypes = {
 	legap = {
 		bitmap = "icons/factory_air.png",
 		size = 1.52250004
+	},
+	legamsub = {
+		bitmap = "icons/factory_amph.png",
+		size = 1.52250004
+	},
+	legaskirmtank = {
+		bitmap = "icons/vehicle_t2_tank_triplasma.png",
+		size = 1.36999991
+	},
+	legavroc = {
+		bitmap = "icons/vehicle_t2_vroc.png",
+		size = 1.62749982
+	},
+	legaheattank = {
+		bitmap = "icons/vehicle_t2_tank_heavylaser.png",
+		size = 1.73749986
 	},
 	legassistdrone = {
 		bitmap = "icons/air_assistdrone.png",
@@ -2086,6 +2182,10 @@ local icontypes = {
 	legca = {
 		bitmap = "icons/air_worker.png",
 		size = 1.25999999
+	},
+	legcar = {
+		bitmap = "icons/hover_t15_shotgun.png",
+		size = 1.35
 	},
 	legcen = {
 		bitmap = "icons/bot_t2_raid.png",
@@ -2143,9 +2243,21 @@ local icontypes = {
 		bitmap = "icons/legcom_off.png",
 		size = 2.20000005
 	},
+	legcs = {
+		bitmap = "icons/ship_worker.png",
+		size = 1.39649999
+	},
+	legeconv = {
+		bitmap = "icons/metalmaker_t1.png",
+		size = 0.78749996
+	},
 	legcv = {
 		bitmap = "icons/vehicle_worker.png",
 		size = 0.99749994
+	},
+	legdecom = {
+		bitmap = "icons/legcom.png",
+		size = 1.60000002
 	},
 	legdrag = {
 		bitmap = "icons/wall_0.4.png",
@@ -2167,8 +2279,8 @@ local icontypes = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
 	},
-	legdefcarryt1 = {
-		bitmap = "icons/legdefcarryt1.png",
+	leghive = {
+		bitmap = "icons/defence_t15_dronecarry.png",
 		size = 1.65999997
 	},
 	legdrone = {
@@ -2207,6 +2319,10 @@ local icontypes = {
 		bitmap = "icons/bot_t1_raid_0.7.png",
 		size = 0.60000002
 	},
+	babyleggob = {
+		bitmap = "icons/bot_t1_raid_0.7.png",
+		size = 0.60000002
+	},
 	leghades = {
 		bitmap = "icons/vehicle_t1_raid.png",
 		size = 0.75
@@ -2214,6 +2330,18 @@ local icontypes = {
 	leghelios = {
 		bitmap = "icons/vehicle_t1_tank.png",
 		size = 0.94999999
+	},
+	leghastatus = {
+		bitmap = "icons/ship_pship.png",
+		size = 1.25999999
+	},
+	leghastatusalt = {
+		bitmap = "icons/ship_pship.png",
+		size = 1.25999999
+	},
+	legamphtank = {
+		bitmap = "icons/amphib_tank.png",
+		size = 1.35000002
 	},
 	leghp = {
 		bitmap = "icons/factory_hover.png",
@@ -2267,9 +2395,21 @@ local icontypes = {
 		bitmap = "icons/bot_plasma_t1.png",
 		size = 0.80000001
 	},
+	babyleglob = {
+		bitmap = "icons/bot_plasma_t1.png",
+		size = 0.80000001
+	},
 	leglupara = {
 		bitmap = "icons/aa_flak_t15.png",
 		size = 1.3
+	},
+	leglraa = {
+		bitmap = "icons/aa_longrange_railgun_t2.png",
+		size = 1.88999987,
+	},
+	leglrpc = {
+		bitmap = "icons/leglrpc.png",
+		size = 2.41499972
 	},
 	legmed = {
 		bitmap = "icons/corban_1.6.png",
@@ -2283,9 +2423,17 @@ local icontypes = {
 		bitmap = "icons/mex_t1.png",
 		size = 1
 	},
-	legmext2 = {
+	legmstor = {
+		bitmap = "icons/metalstorage.png",
+		size = 1.10249984
+	},
+	legmoho = {
 		bitmap = "icons/mex_t2.png",
 		size = 1.20749986
+	},
+	legamstor = {
+		bitmap = "icons/metalstorage_t2.png",
+		size = 1.3125
 	},
 	legmg = {
 		bitmap = "icons/defence_2_mg.png",
@@ -2319,6 +2467,10 @@ local icontypes = {
 		bitmap = "icons/hover_gun.png",
 		size = 1
 	},
+	legoptio = {
+		bitmap = "icons/ship_t2_aa_flak.png",
+		size = 1.36499989
+	},
 	legotter = {
 		bitmap = "icons/amphib_worker.png",
 		size = 1.36499989
@@ -2334,6 +2486,10 @@ local icontypes = {
 	legphoenix = {
 		bitmap = "icons/air_t2_bomber.png",
 		size = 1.74299991
+	},
+	legpontus = {
+		bitmap = "icons/ship.png",
+		size = 1.14999998
 	},
 	legrad = {
 		bitmap = "icons/radar_t1.png",
@@ -2355,13 +2511,29 @@ local icontypes = {
 		bitmap = "icons/vehicle_t2_sco.png",
 		size = 1.64999998
 	},
+	legscout = {
+		bitmap = "icons/vehicle.png",
+		size = 0.57749999
+	},
 	legsh = {
 		bitmap = "icons/hover_raid.png",
 		size = 1
 	},
+	legsilo = {
+		bitmap = "icons/nuke.png",
+		size = 2.51999998
+	},
 	legshot = {
 		bitmap = "icons/kbot_t2_shotgun.png",
 		size = 1.60000002
+	},
+	babylegshot = {
+		bitmap = "icons/kbot_t2_shotgun.png",
+		size = 1.60000002
+	},
+	legsnapper = {
+		bitmap = "icons/corroach_0.9.png",
+		size = 0.94499993
 	},
 	legsolar = {
 		bitmap = "icons/energy1_1.0.png",
@@ -2383,10 +2555,43 @@ local icontypes = {
 		bitmap = "icons/air_trans.png",
 		size = 1.83749986
 	},
+	legjim = {
+		bitmap = "icons/factory_ship.png",
+		size = 1.52250004
+	},
+	legtide = {
+		bitmap = "icons/energy1_1.0.png",
+		size = 1.04999995
+	},
+	legtl = {
+		bitmap = "icons/defence_1_naval.png",
+		size = 1.10249984
+	},	
+	legfmkr = {
+		bitmap = "icons/metalmaker_t1.png",
+		size = 0.78749996
+	},
+	legtriarius = {
+		bitmap = "icons/ship_destroyer.png",
+		size = 1.51199996
+	},
+	legtriariusalt = {
+		bitmap = "icons/ship_destroyer.png",
+		size = 1.51199996
+	},
+	legstingray = {
+		bitmap = "icons/sub.png",
+		size = 1.29999995
+	},
 	legvcarry = {
-		bitmap = "icons/vehicle_t2_carry.png",
+		bitmap = "icons/vehicle_t2_dronecarryland.png",
 		size = 1.64999998
 	},
+	legvelite = {
+		bitmap = "icons/ship_raid.png",
+		size = 1.15499997
+	},
+
 	legvenator = {
 		bitmap = "icons/air_t2.png",
 		size = 1.02899992
@@ -2406,6 +2611,10 @@ local icontypes = {
 	legwint2 = {
 		bitmap = "icons/wind.png",
 		size = 1.67999995
+	},
+	legmlv = {
+		bitmap = "icons/cormlv_1.0.png",
+		size = 1.04999995
 	},
 	lootboxbronze = {
 		bitmap = "icons/lootbox.png",
@@ -3047,9 +3256,21 @@ local icontypes = {
 		bitmap = "icons/mine.png",
 		size = 0.55649996
 	},
-	scavengerdroppodbeacon = {
+	scavbeacon_t1 = {
+		bitmap = "icons/beacon.png",
+		size = 1.25
+	},
+	scavbeacon_t2 = {
+		bitmap = "icons/beacon.png",
+		size = 1.5
+	},
+	scavbeacon_t3 = {
 		bitmap = "icons/beacon.png",
 		size = 1.74299991
+	},
+	scavbeacon_t4 = {
+		bitmap = "icons/beacon.png",
+		size = 2
 	},
 	scavengerdroppodfriendly = {
 		bitmap = "icons/mine.png",
@@ -3143,7 +3364,7 @@ for name, params in pairs(icontypes) do
 	newIcontypes[name] = params
 	newIcontypes[name..'_scav'] = { size = params.size or 1 }
 	if params.bitmap then
-		newIcontypes[name..'_scav'].bitmap = params.bitmap:gsub('\/', '\/inverted\/')
+		newIcontypes[name..'_scav'].bitmap = params.bitmap:gsub('/', '/inverted/')
 	end
 end
 

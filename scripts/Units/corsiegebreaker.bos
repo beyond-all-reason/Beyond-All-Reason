@@ -6,7 +6,7 @@
 //piece  base, turret, barrel, sleeve, flare ,smoke1, smoke2, smoke3;
 piece  base, chamber_flare_fixed, chamber_flare, barrel_glow, barrel_glow_overcharge, flare, gun, chamber, r1, r2, r3, l1, l2, l3, hood, smoke1, aimfromy;
 
-static-var  fireMode, bMoving, moveSpeed, currentSpeed, animSpeed, terrain,  restore_delay, activated, restore_delay, statechg_DesiredState, statechg_StateChanging, shooting, pshotcount, sshotcount, weapon1_default_range, weapon2_default_range, reloading, xoffset, yoffset;
+static-var  fireMode, bMoving, moveSpeed, currentSpeed, animSpeed, terrain,  restore_delay, activated, statechg_DesiredState, statechg_StateChanging, shooting, pshotcount, sshotcount, weapon1_default_range, weapon2_default_range, reloading, xoffset, yoffset;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -69,7 +69,7 @@ Create()
 	
 	
 	activated = 1;
-	fireMode = 1;
+	fireMode = 0;
 	call-script InitState();
 	shooting = 0;
 	pshotcount = 0;	

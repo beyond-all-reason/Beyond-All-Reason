@@ -52,10 +52,12 @@ if gadgetHandler:IsSyncedCode() then
 		['armmine1'] = true,
 		['armmine2'] = true,
 		['armmine3'] = true,
+		['armfmine3'] = true,	
 		['cormine1'] = true,
 		['cormine2'] = true,
 		['cormine3'] = true,		
 		['cormine4'] = true,		
+		['corfmine3'] = true,		
 
 		['corfav'] = true,
 		['armfav'] = true,
@@ -65,6 +67,9 @@ if gadgetHandler:IsSyncedCode() then
 		['raptor_land_kamikaze_emp_t2_v1'] = true,
 		['raptor_land_kamikaze_basic_t4_v1'] = true,
 		['raptor_land_kamikaze_emp_t4_v1'] = true,
+		['scavmist'] = true,
+		['scavmistxl'] = true,
+		['scavmistxxl'] = true,
 	}
 	-- convert unitname -> unitDefID
 	local tokillUnits = {}
@@ -79,11 +84,15 @@ if gadgetHandler:IsSyncedCode() then
 		['corfav'] = true,
 		['armfav'] = true,
 		['armflea'] = true,
+		['legscout'] = true,
 		['raptor_land_swarmer_brood_t2_v1'] = true,
 		['raptor_land_kamikaze_basic_t2_v1'] = true,
 		['raptor_land_kamikaze_emp_t2_v1'] = true,
 		['raptor_land_kamikaze_basic_t4_v1'] = true,
 		['raptor_land_kamikaze_emp_t4_v1'] = true,
+		['scavmist'] = true,
+		['scavmistxl'] = true,
+		['scavmistxxl'] = true,
 	}
 	-- convert unitname -> unitDefID
 	local todenyUnits = {}

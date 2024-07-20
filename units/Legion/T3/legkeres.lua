@@ -39,7 +39,8 @@ return {
 		turninplacespeedlimit = 1.7,
 		turnrate = 220,
 		customparams = {
-			normaltex = "unittextures/cor_normal.dds",
+			unitgroup = "weapon",
+			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.5,
 			model_author = "EnderRobo",
 			techlevel = 3,

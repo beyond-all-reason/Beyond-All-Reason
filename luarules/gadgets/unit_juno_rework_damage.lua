@@ -33,6 +33,7 @@ local tokillUnitsNames = {
 		['corfav'] = true,
 		['armfav'] = true,
 		['armflea'] = true,
+		['legscout'] = true,
 		['raptor_land_swarmer_brood_t2_v1'] = true,
 		['raptor_land_kamikaze_basic_t2_v1'] = true,
 		['raptor_land_kamikaze_emp_t2_v1'] = true,
@@ -41,7 +42,7 @@ local tokillUnitsNames = {
 }
 
 --emp these
-local toStunUnitsNames = {
+local toStunUnitsNames = {--this could maybe use customparams later, at least in part to detect mines
 		['armarad'] = true,
 		['armaser'] = true,
 		['armason'] = true,
@@ -75,6 +76,9 @@ local toStunUnitsNames = {
 		['cormine1'] = true,
 		['cormine2'] = true,
 		['cormine3'] = true,
+		['armfmine3'] = true,		
+		['corfmine3'] = true,
+
 }
 
 

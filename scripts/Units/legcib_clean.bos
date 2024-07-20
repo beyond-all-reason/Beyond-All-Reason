@@ -1,0 +1,138 @@
+
+#include "../recoil_common_includes.h"
+
+#include "../opencloseanim.h"
+
+piece chassis, firepoint, launcher, rThrust, lThrust, 
+rWingPivot, rWingA, rWingB, rWingC,
+lWingPivot, lWingA, lWingB, lWingC;
+
+Open(){
+	show lThrust;
+	show rThrust;
+
+	turn rWingPivot to z-axis <-25> speed [1];
+	turn lWingPivot to z-axis <25> speed [1];
+	
+	move rWingC to x-axis [0] speed [7];
+	move rWingB to x-axis [0] speed [7];
+	move lWingC to x-axis [0] speed [7];
+	move lWingB to x-axis [0] speed [7];
+	wait-for-move rWingB along x-axis;
+
+	move rWingC to y-axis [0] speed [7];
+	move rWingB to y-axis [0] speed [7];
+	move lWingC to y-axis [0] speed [7];
+	move lWingB to y-axis [0] speed [7];
+	wait-for-move rWingB along y-axis;
+
+	move rWingC to z-axis [0] speed [7];
+	move rWingB to z-axis [0] speed [7];
+	move lWingC to z-axis [0] speed [7];
+	move lWingB to z-axis [0] speed [7];
+	wait-for-move rWingB along z-axis;
+}
+
+Close(){
+	hide lThrust;
+	hide rThrust;
+
+	turn rWingPivot to z-axis <0> speed [1];
+	turn lWingPivot to z-axis <0> speed [1];
+
+	move rWingC to z-axis [-3.7] speed [10];
+	move rWingB to z-axis [-3.7] speed [10];
+	move lWingC to z-axis [-3.7] speed [10];
+	move lWingB to z-axis [-3.7] speed [10];
+	wait-for-move rWingB along z-axis;
+
+	move rWingC to y-axis [-1.4] speed [10];
+	move rWingB to y-axis [-1.4] speed [10];
+	move lWingC to y-axis [-1.4] speed [10];
+	move lWingB to y-axis [-1.4] speed [10];
+	wait-for-move rWingB along y-axis;
+
+	move rWingC to x-axis [-7.1] speed [10];
+	move rWingB to x-axis [-7.1] speed [10];
+	move lWingC to x-axis [7.1] speed [10];
+	move lWingB to x-axis [7.1] speed [10];
+}
+
+Create()
+{
+	hide rThrust;
+	hide lThrust;
+	hide firepoint;
+	start-script OpenCloseAnim(0);
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script OpenCloseAnim(1);
+}
+
+Activate()
+{
+	show lThrust;
+	show rThrust;	
+	start-script OpenCloseAnim(1);
+}
+
+Deactivate()
+{
+	hide lThrust;
+	hide rThrust;
+	start-script OpenCloseAnim(0);
+}
+
+RestoreAfterDelay()
+{
+	sleep 500;
+	turn launcher to x-axis <-10> speed <10>;
+}
+
+AimPrimary(heading, pitch)
+{
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	turn launcher to x-axis <10> speed <50>;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FirePrimary()
+{
+	emit-sfx 1024 + 0 from firepoint;
+}
+
+
+QueryWeapon1(pieceIndex)
+{
+	pieceIndex = firepoint;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode chassis type BITMAPONLY | NOHEATCLOUD;
+		explode firepoint type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode chassis type BITMAPONLY | NOHEATCLOUD;
+		explode firepoint type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode chassis type BITMAPONLY | NOHEATCLOUD;
+		explode firepoint type SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode chassis type BITMAPONLY | NOHEATCLOUD;
+		explode firepoint type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}

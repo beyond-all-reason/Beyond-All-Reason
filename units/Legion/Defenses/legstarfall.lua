@@ -108,7 +108,6 @@ return {
 				avoidground = false,
 				burst = 61,
 				burstrate = 0.01,
-
 				sprayangle = 500,
 				highTrajectory = 1,
 
@@ -118,6 +117,9 @@ return {
 				cratermult = 0.1,
 				edgeeffectiveness = 0.95,
 				energypershot = 360000,
+
+				fireTolerance = 364,
+				tolerance = 364,
 
 				explosiongenerator = "custom:starfire-explosion",
 				gravityaffected = "true",
@@ -148,6 +150,10 @@ return {
 				badtargetcategory = "MOBILE",
 				def = "starfire",
 				onlytargetcategory = "SURFACE",
+				--engine bug?
+				burstControlWhenOutOfArc = 1,
+				maindir = "0 0 1",
+               --maxangledif = 10,
 			},
 		},
 	},

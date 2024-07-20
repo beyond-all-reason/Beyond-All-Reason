@@ -392,7 +392,7 @@ function widget:AddConsoleLine(lines, priority)
 
 	if not WG['rejoin'] or not WG['rejoin'].showingRejoining() then
 
-		lines = lines:match('^\[f=[0-9]+\] (.*)$') or lines
+		lines = lines:match('^%[f=[0-9]+%] (.*)$') or lines
 		for line in lines:gmatch("[^\n]+") do
 
 			-- system message
@@ -444,8 +444,7 @@ function widget:AddConsoleLine(lines, priority)
 					local isTeamResignVote = teamResignTarget ~= nil
 
 					local isResignVote = isIndividualResignVote or isTeamResignVote
-					local isResignVoteMyTeam = (isIndividualResignVote and isTeamPlayer(individualResignTarget))
-						or (isTeamResignVote and isTeamPlayer(teamResignTarget))
+					local isResignVoteMyTeam = mySpec or (isIndividualResignVote and isTeamPlayer(individualResignTarget)) or (isTeamResignVote and isTeamPlayer(teamResignTarget))
 
 					-- colorize playername
 					if isResignVote or isResignVoteMyTeam then

@@ -111,9 +111,6 @@ return {
 				accuracy = 75,
 				areaofeffect = 120,
 				avoidfeature = false,
-				-- burst = 3,
-				-- burstrate = 0.2,
-				-- sprayangle = 200,
 				cegtag = "starfire_arty",
 				craterboost = 0,
 				cratermult = 0,
@@ -122,7 +119,7 @@ return {
 				gravityaffected = "true",
 				impulseboost = 0.123,
 				impulsefactor = 0.5,
-				name = "Long-range g2g plasma cannon",
+				name = "Long-Range g2g Cluster Plasma Cannon",
 				noselfdamage = true,
 				range = 1000,
 				reloadtime = 4.0,
@@ -135,7 +132,6 @@ return {
 				weaponvelocity = 450,
 				customparams = {
 					cluster = true,
-					bouncing = true,
 					number = 3,
 				},
 				damage = {
@@ -156,7 +152,7 @@ return {
 				gravityaffected = "true",
 				impulseboost = 0.123,
 				impulsefactor = 0.5,
-				name = "Plasma burst",
+				name = "Cluster Munitions",
 				noselfdamage = true,
 				range = 180,
 				rgbcolor = "0.7 0.7 1.0 1.0 1.0 1.0 1.0 1.0",
@@ -186,7 +182,7 @@ return {
 				hightrajectory = 1,
 				impulseboost = 0.123,
 				impulsefactor = 0.5,
-				name = "Long-range g2g plasma cannon",
+				name = "High-Trajectory Long-Range g2g Cluster Plasma Cannon",
 				noselfdamage = true,
 				range = 1000,
 				reloadtime = 9.4,
@@ -199,7 +195,6 @@ return {
 				weaponvelocity = 450,
 				customparams = {
 					cluster = true,
-					bouncing = true,
 					number = 6,
 				},
 				damage = {

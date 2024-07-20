@@ -12,6 +12,6 @@ cmdArray = {
 	dreadshot = {
 		name		= "Normal/Overcharge",
 		action		= "customOnOff.dreadshot",
-		params		= { '1', "customOnOff.overcharge", "customOnOff.dreadshot" }
+		params		= { '0', "customOnOff.overcharge", "customOnOff.dreadshot" }
 	},
 }
