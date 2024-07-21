@@ -32,7 +32,7 @@ return {
 		yardmap = "oooooooooooooooooooo",
 		customparams = {
 			unitgroup = 'metal',
-			energyconv_capacity = 650,
+			energyconv_capacity = 600,
 			energyconv_efficiency = 1/58,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",

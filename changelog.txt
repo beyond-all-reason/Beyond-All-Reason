@@ -1,4 +1,5 @@
 ﻿# June 2024
+• [Minelayers] Minelayers now live up to the 'minesweeper' role properly, being able to detect enemy mines within 450 radius, and slowly clear them, with a moderate ranged weapon.
 • [Naval Economy Buildings] Stats made equal to land versions. Specifically, T1 and T2 Energy Convertors, Energy and Metal Storages, and the T2 mex have been harmonised for both Core and Arm.
 • [Rocketeer + Aggravator] Speed and acceleration reduced by 5%
 • [Whistler + Lasher] Changes from proposed units rework modoption moved to base game. {Whistler and Lasher weapon switches from ground and anti-air modes.  Anti-air has 700 range and tracking missiles, while ground has 525/550 range and no tracking.  Ground speeds increased by 10 (45->55, 42->52), ground dps increased by 40% (17->25)}
