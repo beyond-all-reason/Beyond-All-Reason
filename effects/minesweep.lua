@@ -7,7 +7,7 @@ return {
 			circlegrowth = 2,
 			circlealpha = 0.05,
 			ttl = 8,
-			color = {0.2, 0.9, 0.2},
+			color = {0.1, 0.52, 0.05},
 		},
 	},
 }
