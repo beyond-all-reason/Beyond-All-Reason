@@ -130,7 +130,7 @@ return {
 			evolution_target = "legcomlvl5",
 			evolution_condition = "timer",
 			evolution_timer = 99999,
-			evolution_power_threshold = 90000,
+			evolution_power_threshold = 105000,
 			evolution_power_multiplier = 1,
 			combatradius = 0,
 			inheritxpratemultiplier = 0.25,

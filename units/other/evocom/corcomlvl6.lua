@@ -124,7 +124,7 @@ return {
 			evolution_target = "corcomlvl7",
 			evolution_condition = "timer",
 			evolution_timer = 99999,
-			evolution_power_threshold = 350000,
+			evolution_power_threshold = 390000,
 			evolution_power_multiplier = 1,
 			combatradius = 0,
 			effigy = "comeffigylvl3",
