@@ -1420,7 +1420,7 @@ local options = {
     {
         key     = "mapmetadata_startpos",
         name    = "Map Metadata: StartPos",
-        desc    = "StatPos configuration. Format is: base64url(zlib(json))",
+        desc    = "StartPos configuration. Format is: base64url(zlib(json))",
         hidden  = true,
         section = "mapmetadata",
         type    = "string",
