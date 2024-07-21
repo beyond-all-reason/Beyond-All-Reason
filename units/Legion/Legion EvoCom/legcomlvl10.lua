@@ -117,6 +117,7 @@ return {
 			[52] = "corasp",
 			[53] = "cornanotc",
 			[54] = "cornanotcplat",
+			[55] = "corgate",
 		},
 		customparams = {
 			unitgroup = 'builder',
