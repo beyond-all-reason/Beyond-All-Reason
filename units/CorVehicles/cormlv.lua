@@ -10,7 +10,7 @@ return {
 		buildpic = "CORMLV.DDS",
 		buildtime = 3640,
 		canassist = false,
-		canguard = false,
+		--canguard = false,
 		canmove = true,
 		canreclaim = false,
 		--canrepair = false,
