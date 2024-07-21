@@ -140,7 +140,7 @@ return {
 				noselfdamage = true,
 				range = 220,
 				reloadtime = 3,
-				--rgbcolor = "0 0 0",
+				rgbcolor = "0.2 0.6 0.2",
 				tolerance = 3000,
 				fireTolerance = 3000,
 				turret = true,

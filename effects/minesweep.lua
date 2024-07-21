@@ -1,6 +1,6 @@
 return {
 	["MINESWEEP"] = {
-		usedefaultexplosions = true;
+		usedefaultexplosions = false;
 		["GROUNDFLASH"] = {
 			flashsize = 50,
 			flashalpha = 0.4,
