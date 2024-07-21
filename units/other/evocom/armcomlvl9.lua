@@ -110,6 +110,7 @@ return {
 			"armfhp",
 			"armasp",
 			"armdecom",
+			"armshockwave",
 		},
 		customparams = {
 			unitgroup = 'builder',
