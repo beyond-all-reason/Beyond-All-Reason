@@ -39,8 +39,8 @@ local lvlParams = {
         waterspawns = "armlship armbats armserp armcrus corshark corbats corfship corssub corcrus corhal corhal armpship corpship armanac corsnap legner armpship corpship armanac corsnap legner armpship corpship armanac corsnap legner",
         unitspawnrange = 275, 
         turretspawnrange = 375, 
-        landunitburst = 15, --remember, around 50% actually ends up spawning on average due to burnblow+sprayangle interaction
-        landturretburst = 6, --same here
+        landunitburst = 10, --remember, around 50% actually ends up spawning on average due to burnblow+sprayangle interaction
+        landturretburst = 4, --same here
         waterburst = 10, --remember, around 50% actually ends up spawning on average due to burnblow+sprayangle interaction
 	},
 	["xxl"] = {
@@ -61,8 +61,8 @@ local lvlParams = {
         waterspawns = "armlun armlun armlship armlship armlship armbats armserp armcrus armcrus corshark corbats corfship corfship corfship corfship corssub corcrus corcrus corsok corsok ",
         unitspawnrange = 300, 
         turretspawnrange = 400, 
-        landunitburst = 20, --remember, around 50% actually ends up spawning on average due to burnblow+sprayangle interaction
-        landturretburst = 8, --same here
+        landunitburst = 10, --remember, around 50% actually ends up spawning on average due to burnblow+sprayangle interaction
+        landturretburst = 4, --same here
         waterburst = 12, --remember, around 50% actually ends up spawning on average due to burnblow+sprayangle interaction
 
 	},

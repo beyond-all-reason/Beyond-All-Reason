@@ -10,7 +10,7 @@ return {
 		buildtime = 140000,
 		canmove = true,
 		canManualFire = true,
-		category = "ALL MOBILE NOTLAND WEAPON SUB NOTSHIP NOTAIR NOTHOVER EMPABLE",
+		category = "ALL MOBILE NOTLAND WEAPON SUB NOTSHIP NOTAIR NOTHOVER EMPABLE UNDERWATER",
 		collisionvolumeoffsets = "0 -3 -5",
 		collisionvolumescales = "32 29 110",
 		collisionvolumetype = "box",

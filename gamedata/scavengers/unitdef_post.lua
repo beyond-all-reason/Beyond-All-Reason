@@ -141,7 +141,9 @@ local function scavUnitDef_Post(name, uDef)
 
 	-- Remove commander and evocom customparams from _scav commanders
 	uDef.customparams.evolution_condition = nil
+	uDef.customparams.evolution_target = nil
 	uDef.customparams.respawn_condition = nil
+	uDef.customparams.effigy = nil
 	if uDef.buildoptions then
 		for index, name in pairs(uDef.buildoptions) do
 			if string.find(name, "comeffigylvl") then
@@ -149,9 +151,15 @@ local function scavUnitDef_Post(name, uDef)
 			end
 		end
 	end
+	
 	if uDef.customparams.iscommander then
 		uDef.customparams.iscommander = nil
 		uDef.customparams.isscavcommander = true
+	end
+
+	if uDef.customparams.isdecoycommander then
+		uDef.customparams.isdecoycommander = nil
+		uDef.customparams.isscavdecoycommander = true
 	end
 
 	if name == "armcom_scav" or name == "corcom_scav" or name == "legcom_scav" or string.find(name, "armcomlvl") or string.find(name, "corcomlvl") or string.find(name, "legcomlvl") then

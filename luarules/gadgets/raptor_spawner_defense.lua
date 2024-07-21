@@ -1433,99 +1433,97 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
-		if not raptorteamhasplayers then
-			if config.raptorBehaviours.SKIRMISH[attackerDefID] and (unitTeam ~= raptorTeamID) and attackerID and (mRandom() < config.raptorBehaviours.SKIRMISH[attackerDefID].chance) and unitTeam ~= attackerTeam then
-				local ux, uy, uz = GetUnitPosition(unitID)
-				local x, y, z = GetUnitPosition(attackerID)
-				if x and ux then
-					local angle = math.atan2(ux - x, uz - z)
-					local distance = mRandom(math.ceil(config.raptorBehaviours.SKIRMISH[attackerDefID].distance*0.75), math.floor(config.raptorBehaviours.SKIRMISH[attackerDefID].distance*1.25))
-					if config.raptorBehaviours.SKIRMISH[attackerDefID].teleport and (unitTeleportCooldown[attackerID] or 1) < Spring.GetGameFrame() and positionCheckLibrary.FlatAreaCheck(x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance), 64, 30, false) and positionCheckLibrary.MapEdgeCheck(x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance), 64) then
-						Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
-						Spring.SetUnitPosition(attackerID, x - (math.sin(angle) * distance), z - (math.cos(angle) * distance))
-						Spring.GiveOrderToUnit(attackerID, CMD.STOP, 0, 0)
-						Spring.SpawnCEG("scav-spawnexplo", x - (math.sin(angle) * distance), y ,z - (math.cos(angle) * distance), 0,0,0)
-						unitTeleportCooldown[attackerID] = Spring.GetGameFrame() + config.raptorBehaviours.SKIRMISH[attackerDefID].teleportcooldown*30
-					else
-						Spring.GiveOrderToUnit(attackerID, CMD.MOVE, { x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance)}, {})
-					end
-					unitCowardCooldown[attackerID] = Spring.GetGameFrame() + 900
+		if config.raptorBehaviours.SKIRMISH[attackerDefID] and (unitTeam ~= raptorTeamID) and attackerID and (mRandom() < config.raptorBehaviours.SKIRMISH[attackerDefID].chance) and unitTeam ~= attackerTeam then
+			local ux, uy, uz = GetUnitPosition(unitID)
+			local x, y, z = GetUnitPosition(attackerID)
+			if x and ux then
+				local angle = math.atan2(ux - x, uz - z)
+				local distance = mRandom(math.ceil(config.raptorBehaviours.SKIRMISH[attackerDefID].distance*0.75), math.floor(config.raptorBehaviours.SKIRMISH[attackerDefID].distance*1.25))
+				if config.raptorBehaviours.SKIRMISH[attackerDefID].teleport and (unitTeleportCooldown[attackerID] or 1) < Spring.GetGameFrame() and positionCheckLibrary.FlatAreaCheck(x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance), 64, 30, false) and positionCheckLibrary.MapEdgeCheck(x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance), 64) then
+					Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
+					Spring.SetUnitPosition(attackerID, x - (math.sin(angle) * distance), z - (math.cos(angle) * distance))
+					Spring.GiveOrderToUnit(attackerID, CMD.STOP, 0, 0)
+					Spring.SpawnCEG("scav-spawnexplo", x - (math.sin(angle) * distance), y ,z - (math.cos(angle) * distance), 0,0,0)
+					unitTeleportCooldown[attackerID] = Spring.GetGameFrame() + config.raptorBehaviours.SKIRMISH[attackerDefID].teleportcooldown*30
+				else
+					Spring.GiveOrderToUnit(attackerID, CMD.MOVE, { x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance)}, {})
 				end
-			elseif config.raptorBehaviours.COWARD[unitDefID] and (unitTeam == raptorTeamID) and attackerID and (mRandom() < config.raptorBehaviours.COWARD[unitDefID].chance) and unitTeam ~= attackerTeam then
-				local curH, maxH = GetUnitHealth(unitID)
-				if curH and maxH and curH < (maxH * 0.8) then
-					local ax, ay, az = GetUnitPosition(attackerID)
-					local x, y, z = GetUnitPosition(unitID)
-					if x and ax then
-						local angle = math.atan2(ax - x, az - z)
-						local distance = mRandom(math.ceil(config.raptorBehaviours.COWARD[unitDefID].distance*0.75), math.floor(config.raptorBehaviours.COWARD[unitDefID].distance*1.25))
-						if config.raptorBehaviours.COWARD[unitDefID].teleport and (unitTeleportCooldown[unitID] or 1) < Spring.GetGameFrame() and positionCheckLibrary.FlatAreaCheck(x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance), 64, 30, false) and positionCheckLibrary.MapEdgeCheck(x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance), 64) then
-							Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
-							Spring.SetUnitPosition(unitID, x - (math.sin(angle) * distance), z - (math.cos(angle) * distance))
-							Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
-							Spring.SpawnCEG("scav-spawnexplo", x - (math.sin(angle) * distance), y ,z - (math.cos(angle) * distance), 0,0,0)
-							unitTeleportCooldown[unitID] = Spring.GetGameFrame() + config.raptorBehaviours.COWARD[unitDefID].teleportcooldown*30
-						else
-							Spring.GiveOrderToUnit(unitID, CMD.MOVE, { x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance)}, {})
-						end
-						unitCowardCooldown[unitID] = Spring.GetGameFrame() + 900
-					end
-				end
-			elseif config.raptorBehaviours.BERSERK[unitDefID] and (unitTeam == raptorTeamID) and attackerID and (mRandom() < config.raptorBehaviours.BERSERK[unitDefID].chance) and unitTeam ~= attackerTeam then
+				unitCowardCooldown[attackerID] = Spring.GetGameFrame() + 900
+			end
+		elseif config.raptorBehaviours.COWARD[unitDefID] and (unitTeam == raptorTeamID) and attackerID and (mRandom() < config.raptorBehaviours.COWARD[unitDefID].chance) and unitTeam ~= attackerTeam then
+			local curH, maxH = GetUnitHealth(unitID)
+			if curH and maxH and curH < (maxH * 0.8) then
 				local ax, ay, az = GetUnitPosition(attackerID)
 				local x, y, z = GetUnitPosition(unitID)
-				local separation = Spring.GetUnitSeparation(unitID, attackerID)
-				if ax and separation < (config.raptorBehaviours.BERSERK[unitDefID].distance or 10000) then
-					if config.raptorBehaviours.BERSERK[unitDefID].teleport and (unitTeleportCooldown[unitID] or 1) < Spring.GetGameFrame() and positionCheckLibrary.FlatAreaCheck(ax, ay, az, 128, 30, false) and positionCheckLibrary.MapEdgeCheck(ax, ay, az, 128) then
+				if x and ax then
+					local angle = math.atan2(ax - x, az - z)
+					local distance = mRandom(math.ceil(config.raptorBehaviours.COWARD[unitDefID].distance*0.75), math.floor(config.raptorBehaviours.COWARD[unitDefID].distance*1.25))
+					if config.raptorBehaviours.COWARD[unitDefID].teleport and (unitTeleportCooldown[unitID] or 1) < Spring.GetGameFrame() and positionCheckLibrary.FlatAreaCheck(x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance), 64, 30, false) and positionCheckLibrary.MapEdgeCheck(x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance), 64) then
 						Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
-						ax = ax + mRandom(-64,64)
-						az = az + mRandom(-64,64)
-						Spring.SetUnitPosition(unitID, ax, ay, az)
+						Spring.SetUnitPosition(unitID, x - (math.sin(angle) * distance), z - (math.cos(angle) * distance))
 						Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
-						Spring.SpawnCEG("scav-spawnexplo", ax, ay, az, 0,0,0)
-						unitTeleportCooldown[unitID] = Spring.GetGameFrame() + config.raptorBehaviours.BERSERK[unitDefID].teleportcooldown*30
+						Spring.SpawnCEG("scav-spawnexplo", x - (math.sin(angle) * distance), y ,z - (math.cos(angle) * distance), 0,0,0)
+						unitTeleportCooldown[unitID] = Spring.GetGameFrame() + config.raptorBehaviours.COWARD[unitDefID].teleportcooldown*30
 					else
-						Spring.GiveOrderToUnit(unitID, CMD.MOVE, { ax+mRandom(-64,64), ay, az+mRandom(-64,64)}, {})
+						Spring.GiveOrderToUnit(unitID, CMD.MOVE, { x - (math.sin(angle) * distance), y, z - (math.cos(angle) * distance)}, {})
 					end
 					unitCowardCooldown[unitID] = Spring.GetGameFrame() + 900
 				end
-			elseif config.raptorBehaviours.BERSERK[attackerDefID] and (unitTeam ~= raptorTeamID) and attackerID and (mRandom() < config.raptorBehaviours.BERSERK[attackerDefID].chance) and unitTeam ~= attackerTeam then
-				local ax, ay, az = GetUnitPosition(unitID)
-				local x, y, z = GetUnitPosition(attackerID)
-				local separation = Spring.GetUnitSeparation(unitID, attackerID)
-				if ax and separation < (config.raptorBehaviours.BERSERK[attackerDefID].distance or 10000) then
-					if config.raptorBehaviours.BERSERK[attackerDefID].teleport and (unitTeleportCooldown[attackerID] or 1) < Spring.GetGameFrame() and positionCheckLibrary.FlatAreaCheck(ax, ay, az, 128, 30, false) and positionCheckLibrary.MapEdgeCheck(ax, ay, az, 128) then
-						Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
-						ax = ax + mRandom(-64,64)
-						az = az + mRandom(-64,64)
-						Spring.SetUnitPosition(attackerID, ax, ay, az)
-						Spring.GiveOrderToUnit(attackerID, CMD.STOP, 0, 0)
-						Spring.SpawnCEG("scav-spawnexplo", ax, ay, az, 0,0,0)
-						unitTeleportCooldown[attackerID] = Spring.GetGameFrame() + config.raptorBehaviours.BERSERK[attackerDefID].teleportcooldown*30
-					else
-						Spring.GiveOrderToUnit(attackerID, CMD.MOVE, { ax+mRandom(-64,64), ay, az+mRandom(-64,64)}, {})
-					end
-					unitCowardCooldown[attackerID] = Spring.GetGameFrame() + 900
+			end
+		elseif config.raptorBehaviours.BERSERK[unitDefID] and (unitTeam == raptorTeamID) and attackerID and (mRandom() < config.raptorBehaviours.BERSERK[unitDefID].chance) and unitTeam ~= attackerTeam then
+			local ax, ay, az = GetUnitPosition(attackerID)
+			local x, y, z = GetUnitPosition(unitID)
+			local separation = Spring.GetUnitSeparation(unitID, attackerID)
+			if ax and separation < (config.raptorBehaviours.BERSERK[unitDefID].distance or 10000) then
+				if config.raptorBehaviours.BERSERK[unitDefID].teleport and (unitTeleportCooldown[unitID] or 1) < Spring.GetGameFrame() and positionCheckLibrary.FlatAreaCheck(ax, ay, az, 128, 30, false) and positionCheckLibrary.MapEdgeCheck(ax, ay, az, 128) then
+					Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
+					ax = ax + mRandom(-64,64)
+					az = az + mRandom(-64,64)
+					Spring.SetUnitPosition(unitID, ax, ay, az)
+					Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
+					Spring.SpawnCEG("scav-spawnexplo", ax, ay, az, 0,0,0)
+					unitTeleportCooldown[unitID] = Spring.GetGameFrame() + config.raptorBehaviours.BERSERK[unitDefID].teleportcooldown*30
+				else
+					Spring.GiveOrderToUnit(unitID, CMD.MOVE, { ax+mRandom(-64,64), ay, az+mRandom(-64,64)}, {})
+				end
+				unitCowardCooldown[unitID] = Spring.GetGameFrame() + 900
+			end
+		elseif config.raptorBehaviours.BERSERK[attackerDefID] and (unitTeam ~= raptorTeamID) and attackerID and (mRandom() < config.raptorBehaviours.BERSERK[attackerDefID].chance) and unitTeam ~= attackerTeam then
+			local ax, ay, az = GetUnitPosition(unitID)
+			local x, y, z = GetUnitPosition(attackerID)
+			local separation = Spring.GetUnitSeparation(unitID, attackerID)
+			if ax and separation < (config.raptorBehaviours.BERSERK[attackerDefID].distance or 10000) then
+				if config.raptorBehaviours.BERSERK[attackerDefID].teleport and (unitTeleportCooldown[attackerID] or 1) < Spring.GetGameFrame() and positionCheckLibrary.FlatAreaCheck(ax, ay, az, 128, 30, false) and positionCheckLibrary.MapEdgeCheck(ax, ay, az, 128) then
+					Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
+					ax = ax + mRandom(-64,64)
+					az = az + mRandom(-64,64)
+					Spring.SetUnitPosition(attackerID, ax, ay, az)
+					Spring.GiveOrderToUnit(attackerID, CMD.STOP, 0, 0)
+					Spring.SpawnCEG("scav-spawnexplo", ax, ay, az, 0,0,0)
+					unitTeleportCooldown[attackerID] = Spring.GetGameFrame() + config.raptorBehaviours.BERSERK[attackerDefID].teleportcooldown*30
+				else
+					Spring.GiveOrderToUnit(attackerID, CMD.MOVE, { ax+mRandom(-64,64), ay, az+mRandom(-64,64)}, {})
+				end
+				unitCowardCooldown[attackerID] = Spring.GetGameFrame() + 900
+			end
+		end
+		if queenID and unitID == queenID then
+			local curH, maxH = GetUnitHealth(unitID)
+			if curH and maxH then
+				curH = math.max(curH, maxH*0.05)
+				local spawnChance = math.max(0, math.ceil(curH/maxH*10000))
+				if mRandom(0,spawnChance) == 1 then
+					SpawnMinions(queenID, Spring.GetUnitDefID(queenID))
+					SpawnMinions(queenID, Spring.GetUnitDefID(queenID))
 				end
 			end
-			if queenID and unitID == queenID then
-				local curH, maxH = GetUnitHealth(unitID)
-				if curH and maxH then
-					curH = math.max(curH, maxH*0.05)
-					local spawnChance = math.max(0, math.ceil(curH/maxH*10000))
-					if mRandom(0,spawnChance) == 1 then
-						SpawnMinions(queenID, Spring.GetUnitDefID(queenID))
-						SpawnMinions(queenID, Spring.GetUnitDefID(queenID))
-					end
-				end
+		end
+		if unitTeam == raptorTeamID or attackerTeam == raptorTeamID then
+			if (unitID and unitSquadTable[unitID] and squadsTable[unitSquadTable[unitID]] and squadsTable[unitSquadTable[unitID]].squadLife and squadsTable[unitSquadTable[unitID]].squadLife < 10) then
+				squadsTable[unitSquadTable[unitID]].squadLife = 10
 			end
-			if unitTeam == raptorTeamID or attackerTeam == raptorTeamID then
-				if (unitID and unitSquadTable[unitID] and squadsTable[unitSquadTable[unitID]] and squadsTable[unitSquadTable[unitID]].squadLife and squadsTable[unitSquadTable[unitID]].squadLife < 10) then
-					squadsTable[unitSquadTable[unitID]].squadLife = 10
-				end
-				if (attackerID and unitSquadTable[attackerID] and squadsTable[unitSquadTable[attackerID]] and squadsTable[unitSquadTable[attackerID]].squadLife and squadsTable[unitSquadTable[attackerID]].squadLife < 10) then
-					squadsTable[unitSquadTable[attackerID]].squadLife = 10
-				end
+			if (attackerID and unitSquadTable[attackerID] and squadsTable[unitSquadTable[attackerID]] and squadsTable[unitSquadTable[attackerID]].squadLife and squadsTable[unitSquadTable[attackerID]].squadLife < 10) then
+				squadsTable[unitSquadTable[attackerID]].squadLife = 10
 			end
 		end
 	end
@@ -1871,17 +1869,15 @@ if gadgetHandler:IsSyncedCode() then
 			spawnCreepStructuresWave()
 		end
 		local squadID = ((n % (#squadsTable*2))+1)/2 --*2 and /2 for lowering the rate of commands
-		if not raptorteamhasplayers then
-			if squadID and squadsTable[squadID] and squadsTable[squadID].squadRegroupEnabled then
-				local targetx, targety, targetz = squadsTable[squadID].target.x, squadsTable[squadID].target.y, squadsTable[squadID].target.z
-				if targetx then
-					squadCommanderGiveOrders(squadID, targetx, targety, targetz)
-				else
-					refreshSquad(squadID)
-				end
+		if squadID and squadsTable[squadID] and squadsTable[squadID].squadRegroupEnabled then
+			local targetx, targety, targetz = squadsTable[squadID].target.x, squadsTable[squadID].target.y, squadsTable[squadID].target.z
+			if targetx then
+				squadCommanderGiveOrders(squadID, targetx, targety, targetz)
+			else
+				refreshSquad(squadID)
 			end
 		end
-		if n%7 == 3 and not raptorteamhasplayers then
+		if n%7 == 3 then
 			local raptors = GetTeamUnits(raptorTeamID)
 			for i = 1,#raptors do
 				if mRandom(1,math.ceil((33*math.max(1, Spring.GetTeamUnitDefCount(raptorTeamID, Spring.GetUnitDefID(raptors[i])))))) == 1 and mRandom() < config.spawnChance then

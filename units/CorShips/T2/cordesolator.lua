@@ -9,7 +9,7 @@ return {
 		buildpic = "cordesolator.DDS",
 		buildtime = 140000,
 		canmove = true,
-		category = "ALL MOBILE NOTLAND WEAPON SUB NOTSHIP NOTAIR NOTHOVER EMPABLE",
+		category = "ALL MOBILE NOTLAND WEAPON SUB NOTSHIP NOTAIR NOTHOVER EMPABLE UNDERWATER",
 		collisionvolumeoffsets = "0 1 4",
 		collisionvolumescales = "20 45 100",
 		collisionvolumetype = "box",
