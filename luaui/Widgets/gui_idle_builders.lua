@@ -145,7 +145,7 @@ local function drawIcon(unitDefID, rect, lightness, zoom, texSize, highlightOpac
 	end
 end
 
-local function updateList()
+local function updateList(force)
 	local prevIdleList = idleList
 	idleList = {}
 	local queue
@@ -181,30 +181,32 @@ local function updateList()
 	end
 
 	-- compare with previous idle list
-	local changes = false
-	for unitDefID, units in pairs(prevIdleList) do
-		if not idleList[unitDefID] or #idleList[unitDefID] ~= #units then
-			changes = true
-			break
-		end
-	end
-	if not changes then
-		for unitDefID, units in pairs(idleList) do
-			if not prevIdleList[unitDefID] or #prevIdleList[unitDefID] ~= #units then
+	if not force then
+		local changes = false
+		for unitDefID, units in pairs(prevIdleList) do
+			if not idleList[unitDefID] or #idleList[unitDefID] ~= #units then
 				changes = true
 				break
 			end
 		end
-	end
-	if hovered ~= prevHovered then
-		changes = true
-	end
-	prevHovered = hovered
-	if not changes then
-		if not hovered then
-			return
-		elseif hoveredGroup == prevHoveredGroup then
-			return
+		if not changes then
+			for unitDefID, units in pairs(idleList) do
+				if not prevIdleList[unitDefID] or #prevIdleList[unitDefID] ~= #units then
+					changes = true
+					break
+				end
+			end
+		end
+		if hovered ~= prevHovered then
+			changes = true
+		end
+		prevHovered = hovered
+		if not changes then
+			if not hovered then
+				return
+			elseif hoveredGroup == prevHoveredGroup then
+				return
+			end
 		end
 	end
 
@@ -378,7 +380,7 @@ local function checkUnitGroupsPos(isViewresize)
 			if not isViewresize then
 				widget:ViewResize()
 			end
-			updateList()
+			updateList(true)
 		end
 	else
 		if buildmenuBottomPosition and not buildmenuAlwaysShow and WG['buildmenu'] and WG['info'] then
@@ -500,7 +502,7 @@ function widget:Initialize()
 		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
 	end
 
-	updateList()
+	updateList(true)
 end
 
 function widget:Shutdown()
