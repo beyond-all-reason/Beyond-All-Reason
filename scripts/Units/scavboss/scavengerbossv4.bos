@@ -15,7 +15,7 @@ static-var isAiming, isBuilding, isAimingEaterBeam, eaterBeamIncrement, buildHea
 			leftArm, rightArm,animSpeed, torsoaim, gun_1, wpn1_lasthead, wpn4_lasthead, wpn5_lasthead, torsoPriority, currentHealth,
 			
 			//general logic variables
-			cycle, farSenseWaitThreshold, damageAggro,
+			cycle, farSenseWaitThreshold, eaterBeamAggro,
 			
 			//for turbofire weapons
 			turboMisAimReady, lastTurboWeapon10Shot, disableTurbo10ShotChange, disableTurbo11BarrelChange, turboOffTime, turboOnTime, turboWeaponChangeIncriment,
@@ -514,9 +514,9 @@ UnitTimer()
 		spin vortex2 around z-axis speed <900>;
 		spin vortex3 around z-axis speed <450>;
 		}
-		if (damageAggro > 8000000){ //if damaged enough, enable eater beam and enter vulnerable state
+		if (eaterBeamAggro > 8000000){ //if damaged enough, enable eater beam and enter vulnerable state
 		enableEaterBeam = 1;
-		damageAggro = 0;
+		eaterBeamAggro = 0;
 		set ARMORED to 0;
 		eaterBeamDisableCycle = cycle+40;
 		}
@@ -540,7 +540,7 @@ UnitTimer()
 		cycle = cycle+1;
 		currentHealth = (get HEALTH);
 		oldEaterBeamIncrement = eaterBeamIncrement;
-		damageAggro = damageAggro+rand(20000, 80000);
+		eaterBeamAggro = eaterBeamAggro+rand(100000, 150000);
 		turboOffTime = 10+currentHealth/5; //this defines the portion of the turboWeaponChangeIncriment timer that turbo weapons are off.
 		
 		
@@ -640,11 +640,11 @@ UnitTimer()
 	}
 }
 
-HitByWeaponId(anglex, anglez, weaponid, dmg)	// angle[x|z] is always [-500;500],
-{
-	damageAggro = dmg + damageAggro;
-	return (100); //the return value is a percentage of the damage. 100 = 100%
-}
+//HitByWeaponId(anglex, anglez, weaponid, dmg)	// angle[x|z] is always [-500;500],
+//{
+//	eaterBeamAggro = dmg + eaterBeamAggro;
+//	return (100); //the return value is a percentage of the damage. 100 = 100%
+//}
 
 //vars to declare: 
 
@@ -708,7 +708,7 @@ Create(){
 	groundNearSensed = 0;
 	VTOLsensed = 0;
 	highestSensorValue = 0;
-	damageAggro = 0;
+	eaterBeamAggro = 0;
 	specialIncrementThreshold = 30;
 	eaterBeamDisableCycle = 0;
 	turboWeaponChangeIncriment = 0;
