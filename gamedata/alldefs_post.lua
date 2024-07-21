@@ -652,7 +652,11 @@ function UnitDef_Post(name, uDef)
 				uDef.featuredefs.dead.damage = uDef.health
 				if uDef.metalcost and uDef.energycost then
 					if name and not string.find(name, "_scav") then
-						uDef.featuredefs.dead.metal = math.floor(uDef.metalcost * 0.6)
+						if uDef.featuredefs.dead.category == "heaps" then
+							uDef.featuredefs.dead.metal = math.floor(uDef.metalcost * 0.25)
+						else
+							uDef.featuredefs.dead.metal = math.floor(uDef.metalcost * 0.6)
+						end
 					end
 				end
 			end
