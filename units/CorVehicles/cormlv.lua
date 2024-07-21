@@ -33,7 +33,6 @@ return {
 		speed = 69.0,
 		maxwaterdepth = 0,
 		movementclass = "TANK2",
-		nochasecategory = "ALL",
 		objectname = "Units/CORMLV.s3o",
 		radardistancejam = 64,
 		script = "Units/cormlv_clean.cob",
@@ -144,7 +143,7 @@ return {
 				--rgbcolor = "0 0 0",
 				tolerance = 3000,
 				fireTolerance = 3000,
-				turret = false,
+				turret = true,
 				weapontimer = 0.1,
 				weapontype = "Cannon",
 				weaponvelocity = 275,
@@ -156,8 +155,6 @@ return {
 		weapons = {
 			[1] = {
 				def = "MINESWEEP",
-				maindir = "0 0 1",
-				maxAngleDif = 90,
 				onlytargetcategory = "MINE",
 			},
 		},

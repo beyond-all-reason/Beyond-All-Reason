@@ -34,6 +34,7 @@ local revealedMines = {}
 for i = 1, #teamList do
     teamIDs[teamList[i]] = teamList[i]
 	revealedMines[teamList[i]] = {}
+	minesweepers[teamList[i]] = {}
 end
 --Spring.Debug.TableEcho(teamIDs)
 --Spring.Echo('hornet revealedMines')
@@ -72,16 +73,17 @@ function gadget:Initialize()
 	end
 end
 
+
 function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
 	--Spring.Echo('hornet poi 79 minesweeperIDs[unitDefID], unitDefID, unitID', minesweeperIDs[unitDefID], unitDefID, unitID)
 	if minesweeperIDs[unitDefID] then
-		minesweepers[unitID] = unitDefID
+		minesweepers[unitTeam][unitID] = unitDefID
 	end
 end
 
-function gadget:UnitDestroyed(unitID)
-	if minesweepers[unitID] then
-		minesweepers[unitID] = nil
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
+	if minesweepers[unitTeam][unitID] then
+		minesweepers[unitTeam][unitID] = nil
 	end
 end
 
@@ -89,23 +91,27 @@ function gadget:GameFrame(f)
 	local minesToReveal = {}
 	--generate list of active teams. this is list of mines that team can see
 
-	for team in pairs(teamIDs) do
-		minesToReveal[team] = {}
-	end
 
-	if f % 50 == 1 then
-		--Spring.Echo('hornet minesweepers')
-		--Spring.Debug.TableEcho(minesweepers)
-    	--find all minesweepers
-		if table.count(minesweepers)>0 then
-			--Spring.Echo('hornet in minesweepers>0')
-			for miner, minerdef in pairs(minesweepers) do
+	for teamouter in pairs(teamIDs) do
+
+		--if this team's update cycle
+		if (f % 37 + (teamouter*2)) == 1 then
+			for teamprime in pairs(teamIDs) do
+				minesToReveal[teamprime] = {}
+			end
+			
+			--minesToReveal[teamouter] = {}
+
+			--Spring.Echo('hornet minesweepers')
+			--Spring.Debug.TableEcho(minesweepers)
+			--find all minesweepers
+			for miner, minerdef in next, (minesweepers[teamouter] or {}) do
 
 				--Spring.Echo('hornet miner', miner)
 				--Spring.Echo('hornet minerdef', minerdef)
 
 				
-				local minerTeam = Spring.GetUnitTeam(miner)--this sometimes seems to be 0, should it be? is 0 gaia or 'team 1' ? try with built minelayers rather than spawned? try to give units to team 2 and see if they;re blue or gaia?
+				local minerTeam = Spring.GetUnitTeam(miner)
 				local x, y, z = Spring.GetUnitPosition(miner)
 				local nearUnits = Spring.GetUnitsInCylinder(x, z, minesweeperRanges[minerdef])
 
@@ -129,15 +135,16 @@ function gadget:GameFrame(f)
 
 				end
 			end
-		end
 
-		for team in pairs(teamIDs) do
 
-			--Spring.Echo('hornet minesToReveal (team)' , team)
-			--Spring.Debug.TableEcho(minesToReveal)
-			if table.count(minesToReveal[team]) > 0 then
-				--Spring.Echo('hornet poi2 minesToReveal loop starting, team: ' , team)
-				for mineToReveal in pairs(minesToReveal[team]) do
+		
+
+			for team in pairs(teamIDs) do
+
+				--Spring.Echo('hornet minesToReveal (team)' , team)
+				--Spring.Debug.TableEcho(minesToReveal)
+				for mineToReveal in next, (minesToReveal[team] or {}) do
+					--Spring.Echo('hornet poi2 minesToReveal loop starting, team: ' , team)
 					--Spring.Echo('mineToReveal loop,', mineToReveal)
 					if revealedMines[team][mineToReveal] == nil then
 						--show 
@@ -148,37 +155,39 @@ function gadget:GameFrame(f)
 
 					end
 				end
-			end
-				
+					
 
-			--Spring.Echo('hornet revealedMines (team)' , team)
-			--Spring.Debug.TableEcho(revealedMines)
-			if table.count(revealedMines[team]) > 0 then
+				--Spring.Echo('hornet revealedMines (team)' , team)
+				--Spring.Debug.TableEcho(revealedMines)
+				if next(revealedMines[team]) ~= nil then
 
-				--Spring.Echo('hornet minesToReveal (team)' , team)
-				--Spring.Debug.TableEcho(minesToReveal)
-	
-				--if any mines -are- uncloaked that no longer should be, recloak
-				if table.count(minesToReveal[team]) > 0 then
+					--Spring.Echo('hornet minesToReveal (team)' , team)
+					--Spring.Debug.TableEcho(minesToReveal)
 
-					for revealedMine in pairs(revealedMines[team]) do
-						if minesToReveal[team][revealedMine] == nil then
-							--reset this team mask
+					--if any mines -are- uncloaked that no longer should be, recloak
+					--if table.count(minesToReveal[team]) > 0 then
+					if next(minesToReveal[team]) ~= nil then
+
+						for revealedMine in pairs(revealedMines[team]) do
+							if minesToReveal[team][revealedMine] == nil then
+								--reset this team mask
+								Spring.SetUnitLosMask(revealedMine, team, 0)
+								revealedMines[team][revealedMine] = nil
+							end
+						end
+					else
+						--if empty and previously decloaked not empty, reset all mines
+						for revealedMine in pairs(revealedMines[team]) do
 							Spring.SetUnitLosMask(revealedMine, team, 0)
 							revealedMines[team][revealedMine] = nil
 						end
 					end
-				else
-					--if empty and previously decloaked not empty, reset all mines
-					for revealedMine in pairs(revealedMines[team]) do
-						Spring.SetUnitLosMask(revealedMine, team, 0)
-						revealedMines[team][revealedMine] = nil
-					end
+
 				end
 
 			end
 
-		end
+		end--end frame check
 
 	end
 

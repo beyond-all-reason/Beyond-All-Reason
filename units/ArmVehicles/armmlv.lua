@@ -33,7 +33,6 @@ return {
 		speed = 75.0,
 		maxwaterdepth = 0,
 		movementclass = "TANK2",
-		nochasecategory = "ALL",
 		objectname = "Units/ARMMLV.s3o",
 		radardistancejam = 64,
 		script = "Units/armmlv_clean.cob",
