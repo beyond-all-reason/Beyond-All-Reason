@@ -655,8 +655,7 @@ end
 function uploadAllElements(iT)
 	-- upload all USED elements
 	if iT.usedElements == 0 then return end
-	--Spring.Echo("uploadAllElements", iT.usedElements)
-	--Spring.Debug.TableEcho(iT.indextoUnitID)
+
 	iT.instanceVBO:Upload(iT.instanceData,nil,0, 1, iT.usedElements * iT.instanceStep)
 	iT.dirty = false
 	if iT.indextoUnitID then

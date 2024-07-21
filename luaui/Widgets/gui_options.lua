@@ -4580,7 +4580,7 @@ function init()
 		{ id = "echocamerastate", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.echocamerastate'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.echocamerastate_descr'),
 		  onchange = function(i, value)
 			  options[getOptionByID('echocamerastate')].value = false
-			  Spring.Debug.TableEcho(Spring.GetCameraState())
+			  Spring.Echo(Spring.GetCameraState())
 		  end,
 		},
 
