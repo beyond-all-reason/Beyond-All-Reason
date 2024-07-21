@@ -132,7 +132,7 @@ local difficultyParameters = {
 	},
 	[difficulties.epic] = {
 		gracePeriod             = 60,
-		bossTime                = 45 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
+		bossTime                = 40 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
 		scavSpawnRate           = 120 / Spring.GetModOptions().scav_spawntimemult / economyScale,
 		burrowSpawnRate         = 90 / Spring.GetModOptions().scav_spawntimemult / economyScale,
 		turretSpawnRate         = 260 / Spring.GetModOptions().scav_spawntimemult / economyScale,
