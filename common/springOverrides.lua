@@ -44,6 +44,7 @@ end
 
 if Spring.Echo then
 	local echo = Spring.Echo
+	local printOptions = { pretty = true }
 
 	local function multiEcho(...)
 		local args = table.pack(...)
@@ -57,14 +58,10 @@ if Spring.Echo then
 			end
 		end
 
-		if #tableIndexes > 0 and #tableIndexes ~= args.n then
-			Spring.Log("", LOG.WARNING, "Spring.Echo called with mixed table and non-table parameters. Echoing table parameters separately.")
-		end
-
 		echo(unpack(args, 1, args.n))
 
 		for _, index in ipairs(tableIndexes) do
-			Spring.Debug.TableEcho(args[index])
+			echo(table.toString(args[index], printOptions))
 		end
 	end
 
