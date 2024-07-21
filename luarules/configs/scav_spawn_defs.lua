@@ -75,7 +75,7 @@ local difficultyParameters = {
 	},
 	[difficulties.normal] = {
 		gracePeriod             = 90,
-		bossTime                = 55 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
+		bossTime                = 45 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
 		scavSpawnRate           = 180 / Spring.GetModOptions().scav_spawntimemult / economyScale,
 		burrowSpawnRate         = 180 / Spring.GetModOptions().scav_spawntimemult / economyScale,
 		turretSpawnRate         = 380 / Spring.GetModOptions().scav_spawntimemult / economyScale,
@@ -94,7 +94,7 @@ local difficultyParameters = {
 	},
 	[difficulties.hard] = {
 		gracePeriod             = 80,
-		bossTime                = 50 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
+		bossTime                = 45 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
 		scavSpawnRate           = 160 / Spring.GetModOptions().scav_spawntimemult / economyScale,
 		burrowSpawnRate         = 150 / Spring.GetModOptions().scav_spawntimemult / economyScale,
 		turretSpawnRate         = 340 / Spring.GetModOptions().scav_spawntimemult / economyScale,
@@ -132,7 +132,7 @@ local difficultyParameters = {
 	},
 	[difficulties.epic] = {
 		gracePeriod             = 60,
-		bossTime                = 40 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
+		bossTime                = 45 * Spring.GetModOptions().scav_bosstimemult * 60, -- time at which the boss appears, seconds
 		scavSpawnRate           = 120 / Spring.GetModOptions().scav_spawntimemult / economyScale,
 		burrowSpawnRate         = 90 / Spring.GetModOptions().scav_spawntimemult / economyScale,
 		turretSpawnRate         = 260 / Spring.GetModOptions().scav_spawntimemult / economyScale,
@@ -144,7 +144,7 @@ local difficultyParameters = {
 		healthMod               = 1.5,
 		maxBurrows              = 1000,
 		minScavs                = 20 * economyScale,
-		maxScavs                = 50 * economyScale,
+		maxScavs                = 45 * economyScale,
 		scavPerPlayerMultiplier = 0.25,
 		bossName                = 'scavengerbossv4_epic_scav',
 		bossResistanceMult      = 3.5 * economyScale,
