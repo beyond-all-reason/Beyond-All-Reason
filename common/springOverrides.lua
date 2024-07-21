@@ -41,3 +41,32 @@ if Spring.GetModOptions then
 		return table.copy(modOptions)
 	end
 end
+
+if Spring.Echo then
+	local echo = Spring.Echo
+
+	local function multiEcho(...)
+		local args = table.pack(...)
+		local tableIndexes = {}
+
+		for index = 1, args.n do
+			local value = args[index]
+
+			if type(value) == 'table' then
+				table.insert(tableIndexes, index)
+			end
+		end
+
+		if #tableIndexes > 0 and #tableIndexes ~= args.n then
+			Spring.Log("", LOG.WARNING, "Spring.Echo called with mixed table and non-table parameters. Echoing table parameters separately.")
+		end
+
+		echo(unpack(args, 1, args.n))
+
+		for _, index in ipairs(tableIndexes) do
+			Spring.Debug.TableEcho(args[index])
+		end
+	end
+
+	Spring.Echo = multiEcho
+end
