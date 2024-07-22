@@ -52,7 +52,7 @@ function gadget:GameFrame(frame)
             if GG.IsPosInRaptorScum(randomx, randomy, randomz) then
                 Spring.SpawnCEG("scavradiation-lightning",randomx,randomy+100,randomz,0,0,0)
 
-                if math.random(0, 100) == 0 then
+                if math.random(0, 10) == 0 then
                     if Spring.GetGameRulesParam("scavTechAnger") > 10 and Spring.GetGameRulesParam("scavTechAnger") < 50 and Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames["scavmist_scav"].id) < maxMists then
                         local mist = Spring.CreateUnit("scavmist_scav", randomx, randomy, randomz, math.random(0,3), scavTeamID)
                         if mist then
@@ -64,7 +64,7 @@ function gadget:GameFrame(frame)
                             Spring.GiveOrderToUnit(mist, CMD.PATROL, {randomx+math.random(-256,256), randomy, randomz+math.random(-256,256)}, {"shift"})
                         end
                     end
-                elseif math.random(0, 100) == 0 then
+                elseif math.random(0, 10) == 0 then
                     if Spring.GetGameRulesParam("scavTechAnger") > 40 and Spring.GetGameRulesParam("scavTechAnger") < 90 and Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames["scavmistxl_scav"].id) < maxMists then
                         local mist = Spring.CreateUnit("scavmistxl_scav", randomx, randomy, randomz, math.random(0,3), scavTeamID)
                         if mist then
@@ -76,7 +76,7 @@ function gadget:GameFrame(frame)
                             Spring.GiveOrderToUnit(mist, CMD.PATROL, {randomx+math.random(-256,256), randomy, randomz+math.random(-256,256)}, {"shift"})
                         end
                     end
-                elseif math.random(0, 100) == 0 then
+                elseif math.random(0, 10) == 0 then
                     if Spring.GetGameRulesParam("scavTechAnger") > 80 and Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames["scavmistxxl_scav"].id) < maxMists then
                         local mist = Spring.CreateUnit("scavmistxxl_scav", randomx, randomy, randomz, math.random(0,3), scavTeamID)
                         if mist then
