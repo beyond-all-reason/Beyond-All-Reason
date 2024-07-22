@@ -1584,7 +1584,6 @@ function widget:SunChanged() -- Note that map_nightmode.lua gadget has to change
 		nightFactor[3] = WG['NightFactor'].blue * altitudefactor
 		nightFactor[4] = WG['NightFactor'].shadow
 	end
-	--Spring.Debug.TableEcho(WG['NightFactor'])
 end
 
 -- ahahahah you cant stop me:

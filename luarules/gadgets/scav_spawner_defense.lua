@@ -1327,8 +1327,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	function spawnCreepStructuresWave()
 		for uName, uSettings in pairs(config.scavTurrets) do
-			--Spring.Echo(uName)
-			--Spring.Debug.TableEcho(uSettings)
 			if not uSettings.maxBossAnger then uSettings.maxBossAnger = uSettings.minBossAnger + 100 end
 			if uSettings.minBossAnger <= waveParameters.waveTechAnger and uSettings.maxBossAnger >= waveParameters.waveTechAnger then
 				local numOfTurrets = (uSettings.spawnedPerWave*(1-config.scavPerPlayerMultiplier))+(uSettings.spawnedPerWave*config.scavPerPlayerMultiplier)*SetCount(humanTeams)
