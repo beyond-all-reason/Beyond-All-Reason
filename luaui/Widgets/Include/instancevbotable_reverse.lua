@@ -82,6 +82,7 @@ function makeInstanceVBOTable(layout, maxElements, myName)
 	end
 
 	function instanceTable:compact()
+		-- TODO FIXME FOR REVERSE PASS
 		self.destroyedElements = 0
 		-- so this is for the edge case, where we have silently removed elements from instanceIDtoIndex
 		-- where we have holes everywhere, so we have to 'compact' the table,

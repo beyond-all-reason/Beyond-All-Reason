@@ -188,6 +188,44 @@ local function AddInstance( instanceID, startpos_scale, motionvector, atlasuv, n
 		false) -- noupload, dont use unless you know what you want to batch push/pop
 end
 
+local function GetPixelAtMousePos()
+	-- get it one above the cursors hot point
+	local mx, my, lmb = Spring.GetMouseState()
+	
+	local pixels 
+	if lmb then  
+		pixels = gl.ReadPixels(mx, my +1, 2,2)
+	else
+		local r,g,b,a = gl.ReadPixels(mx, my+1,1,1)
+		pixels = {{{r,g,b,a}}}
+	end
+	if pixels then
+		pixels["mx"] = mx
+		pixels["my"] = my
+		pixels["lmb"] = lmb
+	else
+		Spring.Echo(mx,my, pixels)
+	end
+	
+	return pixels
+end
+
+
+
+local function DrawPixelAtMousePos(pixels, count)
+	for x, lr in ipairs({'','r'}) do -- left, right
+		for y, tb in ipairs({'b', 't'}) do -- top, bottom
+			if pixels[x] and pixels[x][y] then
+				local p = pixels[x][y]
+				local text = string.format('[%.03f %.03f %.03f %.03f]', p[1],p[2],p[3],p[4])
+				local opts = string.format('%s%s',lr,tb)
+				gl.Text(text, pixels['mx'], pixels['my'],12,opts)
+			end
+		end
+	end		
+end
+local pxstore
+
 function widget:DrawWorld()
 	if autoupdate then
 		particleSmokeShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or particleSmokeShader
@@ -208,6 +246,11 @@ function widget:DrawWorld()
 	end
 	particleSmokeShader:Deactivate()
 	glTexture(0, false)
+	pxstore = GetPixelAtMousePos()
+end
+
+function widget:DrawScreen()
+	DrawPixelAtMousePos(pxstore)
 end
 
 local function RemoveElement( instanceID) 
