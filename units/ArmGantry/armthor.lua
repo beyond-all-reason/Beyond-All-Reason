@@ -12,6 +12,7 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "58 34 58",
 		collisionvolumetype = "Box",
+		usepiececollisionvolumes = 1,
 		corpse = "DEAD",
 		explodeas = "explosiont3xl",
 		footprintx = 5,
