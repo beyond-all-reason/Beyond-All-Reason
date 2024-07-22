@@ -58,7 +58,13 @@ if Spring.Echo then
 			end
 		end
 
-		echo(unpack(args, 1, args.n))
+		-- When Spring.Echo is called with a single table parameter, engine will echo "TABLE: {value}",
+		-- where {value} is whatever value happens to be the first value in the table
+		if #tableIndexes == 1 and args.n == 1 then
+			echo("<table>")
+		else
+				echo(unpack(args, 1, args.n))
+		end
 
 		for _, index in ipairs(tableIndexes) do
 			echo(table.toString(args[index], printOptions))
