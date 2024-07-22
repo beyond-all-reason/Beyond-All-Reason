@@ -16,6 +16,7 @@ else
 	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Scav Defense Spawner Deactivated!")
 	return false
 end
+Spring.SetLogSectionFilterLevel("Dynamic Difficulty", LOG.INFO)
 
 local config = VFS.Include('LuaRules/Configs/scav_spawn_defs.lua')
 
@@ -876,6 +877,8 @@ if gadgetHandler:IsSyncedCode() then
 						local burrowID = CreateUnit(name, spawnPosX, spawnPosY, spawnPosZ, mRandom(0,3), scavTeamID)
 						if burrowID then
 							SetupBurrow(burrowID, spawnPosX, spawnPosY, spawnPosZ)
+							Spring.SpawnCEG("commander-spawn", spawnPosX, spawnPosY, spawnPosZ, 0, 0, 0)
+							Spring.PlaySoundFile("commanderspawn-mono", 1.0, spawnPosX, spawnPosY, spawnPosZ, 0, 0, 0, "sfx")
 							break
 						end
 					end
@@ -1007,9 +1010,7 @@ if gadgetHandler:IsSyncedCode() then
 		peakScavPower = GG.PowerLib.TeamPeakPower(scavTeamID)
 		totalPlayerTeamPower = GG.PowerLib.TotalPlayerTeamsPower()
 		calculateDifficultyMultiplier(peakScavPower, totalPlayerTeamPower)
-
-		--Spring.Echo("dynamicDifficultyClamped", dynamicDifficultyClamped)
-
+		Spring.Log("Dynamic Difficulty", LOG.INFO, 'Scavengers dynamicDifficultyClamped:  ' .. tostring(dynamicDifficultyClamped))
 		squadManagerKillerLoop()
 
 		waveParameters.baseCooldown = waveParameters.baseCooldown - 1
