@@ -241,7 +241,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				weaponvelocity = 920,
 				damage = {
 					default = stats.minigunDamage,
-					vtol = stats.minigunDamage/3,
+					vtol = stats.minigunDamage/2,
 				},
 			},
 			torpedo = {
@@ -654,7 +654,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				weaponvelocity = 920,
 				damage = {
 					default = stats.minigunDamage*4,
-					vtol = (stats.minigunDamage*4)/3,
+					vtol = (stats.minigunDamage*4)/2,
 					subs = stats.minigunDamage,
 				},
 			},
@@ -904,7 +904,7 @@ for difficulty, stats in pairs(difficultyParams) do
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL",
+				--badtargetcategory = "VTOL",
 				def = "machinegun",
 				onlytargetcategory = "NOTSUB",
 				burstControlWhenOutOfArc = 1,
@@ -949,7 +949,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				onlytargetcategory = "NOTSHIP",
 			},
 			[10] = {
-				badtargetcategory = "SURFACE",
+				--badtargetcategory = "SURFACE",
 				def = "turbo_machinegun",
 				onlytargetcategory = "NOTSUB",
 				burstControlWhenOutOfArc = 3,
