@@ -509,20 +509,9 @@ if gadgetHandler:IsSyncedCode() then
                     local x = startUnitList[i].x
                     local y = startUnitList[i].y
                     local z = startUnitList[i].z
-                    --Spring.SpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
-                    --Spring.SpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
-					--com_spawn_blast
-
-					local comblast = {
-						weaponDef = WeaponDefNames['com_spawn_blast'].id,
-						craterAreaOfEffect = 1,
-						damageAreaOfEffect = 400,
-						edgeEffectiveness = 1,
-						explosionSpeed = 100,
-						damageGround = 0,
-					}
-
-					Spring.SpawnExplosion (x, y, z, 0, 0, 0, comblast ) 
+                    Spring.SpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
+					GG.ComSpawnDefoliate(x, y, z)
+					
                 end
             end
             if n == 90 then
@@ -564,5 +553,6 @@ else -- UNSYNCED
 
 	function gadget:Shutdown()
 		gadgetHandler:RemoveSyncAction("PositionTooClose")
+
 	end
 end
