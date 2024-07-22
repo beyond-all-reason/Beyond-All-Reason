@@ -1160,11 +1160,11 @@ local Turrets = {
 		["armwint2_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},
 		["corwint2_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},
 		["legwint2_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},
-		["armfus_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 5},
-		["armckfus_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 5},
-		["corfus_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 5},
-		["armuwfus_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.1, maxExisting = 5},
-		["coruwfus_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.1, maxExisting = 5},
+		["armfus_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 5},
+		["armckfus_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 5},
+		["corfus_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 5},
+		["armuwfus_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 1, maxExisting = 5},
+		["coruwfus_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 1, maxExisting = 5},
 		["armuwadvms_scav"] = {type = "normal", surface = "mixed", spawnedPerWave = 0.1, maxExisting = 1},
 		["coruwadvms_scav"] = {type = "normal", surface = "mixed", spawnedPerWave = 0.1, maxExisting = 1},
 		["legamstor_scav"] = {type = "normal", surface = "mixed", spawnedPerWave = 0.1, maxExisting = 1},
@@ -1203,20 +1203,20 @@ local Turrets = {
 		["cordoom_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 2},
 		["legbastion_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 2},
 		--LRPC
-		["armbrtha_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.1, maxExisting = 7},
-		["corint_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.1, maxExisting = 7},
-		["leglrpc_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.1, maxExisting = 7},
+		["armbrtha_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.25, maxExisting = 7},
+		["corint_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.25, maxExisting = 7},
+		["leglrpc_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.25, maxExisting = 7},
 		--antinukes
-		["armamd_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 0.1, maxExisting = 10},
-		["corfmd_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 0.1, maxExisting = 10},
+		["armamd_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 1, maxExisting = 5},
+		["corfmd_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 1, maxExisting = 5},
 		--Tactical Weapons
 		["cortron_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 2},
 		["armemp_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 2},
 		["legperdition_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 2},
 		--T2 AA
-		["armmercury_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.1, maxExisting = 2},
-		["corscreamer_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.1, maxExisting = 2},
-		["leglraa_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.1, maxExisting = 2},
+		["armmercury_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 1, maxExisting = 2},
+		["corscreamer_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 1, maxExisting = 2},
+		["leglraa_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 1, maxExisting = 2},
 	},
 	[6] = {
 		-- nukes
@@ -1229,8 +1229,8 @@ local Turrets = {
 		["legministarfall_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},
 		["armbotrail_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},
 		--Eco
-		["armafus_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 5},
-		["corafus_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 5},
+		["armafus_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 5},
+		["corafus_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 5},
 		--Factories
 		["armshltx_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},
 		["corgant_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},
