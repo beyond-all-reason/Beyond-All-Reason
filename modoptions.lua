@@ -1404,7 +1404,7 @@ local options = {
     {
         key     = "mapmetadata",
         name    = "MapMetadata",
-        desc    = "mapmetadata tab that should be hidden by chobby",
+        desc    = "mapmetadata tab that should be hidden by chobby, which would have ideally been achieved by just not listing it and the following options here in the first place, but then SPADS refuses to set the modoption",
         hidden  = true,
         type    = "section",
     },
