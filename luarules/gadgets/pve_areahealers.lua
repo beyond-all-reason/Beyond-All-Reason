@@ -91,8 +91,8 @@ local unitBuildtime = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams.isscavenger and unitDef.canRepair and unitDef.repairSpeed and unitDef.buildDistance then
 		healersTable[unitDefID] = {
-			healingpower = unitDef.repairSpeed*0.1,
-			healingrange = unitDef.buildDistance*2,
+			healingpower = unitDef.repairSpeed*0.4,
+			healingrange = unitDef.buildDistance*1.5,
 			canbehealed = true,
 		}
 	end

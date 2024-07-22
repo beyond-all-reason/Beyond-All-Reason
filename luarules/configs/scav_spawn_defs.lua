@@ -47,8 +47,8 @@ local difficultyParameters = {
 		damageMod               = 0.5,
 		healthMod               = 0.5,
 		maxBurrows              = 1000,
-		minScavs                = 10 * economyScale,
-		maxScavs                = 10 * economyScale,
+		minScavs                = 15 * economyScale,
+		maxScavs                = 45 * economyScale,
 		scavPerPlayerMultiplier = 0.25,
 		bossName                = 'scavengerbossv4_veryeasy_scav',
 		bossResistanceMult      = 1 * economyScale,
@@ -67,8 +67,8 @@ local difficultyParameters = {
 		damageMod               = 0.75,
 		healthMod               = 0.75,
 		maxBurrows              = 1000,
-		minScavs                = 10 * economyScale,
-		maxScavs                = 20 * economyScale,
+		minScavs                = 15 * economyScale,
+		maxScavs                = 45 * economyScale,
 		scavPerPlayerMultiplier = 0.25,
 		bossName                = 'scavengerbossv4_easy_scav',
 		bossResistanceMult      = 1.5 * economyScale,
@@ -86,8 +86,8 @@ local difficultyParameters = {
 		damageMod               = 1,
 		healthMod               = 1,
 		maxBurrows              = 1000,
-		minScavs                = 10 * economyScale,
-		maxScavs                = 30 * economyScale,
+		minScavs                = 15 * economyScale,
+		maxScavs                = 45 * economyScale,
 		scavPerPlayerMultiplier = 0.25,
 		bossName                = 'scavengerbossv4_normal_scav',
 		bossResistanceMult      = 2 * economyScale,
@@ -105,8 +105,8 @@ local difficultyParameters = {
 		damageMod               = 1,
 		healthMod               = 1,
 		maxBurrows              = 1000,
-		minScavs                = 10 * economyScale,
-		maxScavs                = 40 * economyScale,
+		minScavs                = 20 * economyScale,
+		maxScavs                = 60 * economyScale,
 		scavPerPlayerMultiplier = 0.25,
 		bossName                = 'scavengerbossv4_hard_scav',
 		bossResistanceMult      = 2.5 * economyScale,
@@ -124,8 +124,8 @@ local difficultyParameters = {
 		damageMod               = 1,
 		healthMod               = 1,
 		maxBurrows              = 1000,
-		minScavs                = 10 * economyScale,
-		maxScavs                = 50 * economyScale,
+		minScavs                = 25 * economyScale,
+		maxScavs                = 75 * economyScale,
 		scavPerPlayerMultiplier = 0.25,
 		bossName                = 'scavengerbossv4_veryhard_scav',
 		bossResistanceMult      = 3 * economyScale,
@@ -140,11 +140,11 @@ local difficultyParameters = {
 		angerBonus              = 0.35,
 		maxXP                   = 0.6 * economyScale,
 		spawnChance             = 0.6,
-		damageMod               = 1,
-		healthMod               = 1,
+		damageMod               = 2,
+		healthMod               = 1.5,
 		maxBurrows              = 1000,
-		minScavs                = 10 * economyScale,
-		maxScavs                = 60 * economyScale,
+		minScavs                = 30 * economyScale,
+		maxScavs                = 90 * economyScale,
 		scavPerPlayerMultiplier = 0.25,
 		bossName                = 'scavengerbossv4_epic_scav',
 		bossResistanceMult      = 3.5 * economyScale,
@@ -1160,11 +1160,11 @@ local Turrets = {
 		["armwint2_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},
 		["corwint2_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},
 		["legwint2_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},
-		["armfus_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 5},
-		["armckfus_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 5},
-		["corfus_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 5},
-		["armuwfus_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.1, maxExisting = 5},
-		["coruwfus_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.1, maxExisting = 5},
+		["armfus_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 5},
+		["armckfus_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 5},
+		["corfus_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 5},
+		["armuwfus_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 1, maxExisting = 5},
+		["coruwfus_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 1, maxExisting = 5},
 		["armuwadvms_scav"] = {type = "normal", surface = "mixed", spawnedPerWave = 0.1, maxExisting = 1},
 		["coruwadvms_scav"] = {type = "normal", surface = "mixed", spawnedPerWave = 0.1, maxExisting = 1},
 		["legamstor_scav"] = {type = "normal", surface = "mixed", spawnedPerWave = 0.1, maxExisting = 1},
@@ -1203,20 +1203,20 @@ local Turrets = {
 		["cordoom_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 2},
 		["legbastion_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 2},
 		--LRPC
-		["armbrtha_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.1, maxExisting = 7},
-		["corint_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.1, maxExisting = 7},
-		["leglrpc_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.1, maxExisting = 7},
+		["armbrtha_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.25, maxExisting = 7},
+		["corint_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.25, maxExisting = 7},
+		["leglrpc_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.25, maxExisting = 7},
 		--antinukes
-		["armamd_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 0.1, maxExisting = 10},
-		["corfmd_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 0.1, maxExisting = 10},
+		["armamd_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 1, maxExisting = 5},
+		["corfmd_scav"] = {type = "nuke", surface = "land", spawnedPerWave = 1, maxExisting = 5},
 		--Tactical Weapons
 		["cortron_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 2},
 		["armemp_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 2},
 		["legperdition_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 2},
 		--T2 AA
-		["armmercury_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.1, maxExisting = 2},
-		["corscreamer_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.1, maxExisting = 2},
-		["leglraa_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 0.1, maxExisting = 2},
+		["armmercury_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 1, maxExisting = 2},
+		["corscreamer_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 1, maxExisting = 2},
+		["leglraa_scav"] = {type = "antiair", surface = "land", spawnedPerWave = 1, maxExisting = 2},
 	},
 	[6] = {
 		-- nukes
@@ -1229,8 +1229,8 @@ local Turrets = {
 		["legministarfall_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},
 		["armbotrail_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},
 		--Eco
-		["armafus_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 5},
-		["corafus_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 5},
+		["armafus_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 5},
+		["corafus_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 5},
 		--Factories
 		["armshltx_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},
 		["corgant_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},
@@ -1790,7 +1790,6 @@ addNewSquad({ type = "specialAir", minAnger = tierConfiguration[3].minAnger, uni
 addNewSquad({ type = "specialAir", minAnger = tierConfiguration[3].minAnger, units = { "12 armthund_scav","12 corshad_scav","5 legcib_scav",}, weight = 4, maxAnger = 1000}) --Bombers
 ------Tier 2 25-60%
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[4].minAnger, units = { "10 armfav_scav","10 corfav_scav","25 armzapper_scav",}, weight = 6, maxAnger = tierConfiguration[4].maxAnger}) --Rover and EMP Rover/Whole Tier Length
-addNewSquad({ type = "specialLand", minAnger = tierConfiguration[4].minAnger, units = { "50 armflea_scav",}, weight = 4, maxAnger = tierConfiguration[4].maxAnger}) --Tick Spam
 --Land
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[4].minAnger, units = { "6 armlatnk_scav","6 cortorch_scav","6 legmrv_scav",}, weight = 4, maxAnger = tierConfiguration[4].maxAnger}) --T2 Veh Raid
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[4].minAnger, units = { "6 armbull_scav","6 correap_scav","1 corgol_scav","5 legaheattank_scav","2 armyork_scav","2 corsent_scav",}, weight = 4, maxAnger = tierConfiguration[4].maxAnger}) --T2 Veh Assault/AA
@@ -1805,7 +1804,6 @@ addNewSquad({ type = "specialAir", minAnger = tierConfiguration[5].minAnger, uni
 --Dilluters
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "15 armfav_scav","15 corfav_scav","15 legscout_scav",}, weight = 8, maxAnger = tierConfiguration[6].maxAnger}) --Rover Whole Tier Length
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "6 cortorch_scav","6 legmrv_scav",}, weight = 3, maxAnger = tierConfiguration[6].maxAnger}) --T2 Veh Raid
-addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "100 armflea_scav",}, weight = 4, maxAnger = tierConfiguration[6].maxAnger}) --Tick Spam
 --Land
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "12 armmar_scav",}, weight = 3, maxAnger = tierConfiguration[6].maxAnger}) --T3 Raid
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "6 armmeatball_scav","6 armassimilator_scav","2 armyork_scav","2 corsent_scav",}, weight = 4, maxAnger = tierConfiguration[6].maxAnger}) --T3 Assault/AA

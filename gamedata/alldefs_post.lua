@@ -651,18 +651,14 @@ function UnitDef_Post(name, uDef)
 			if uDef.featuredefs.dead then
 				uDef.featuredefs.dead.damage = uDef.health
 				if uDef.metalcost and uDef.energycost then
-					if name and not string.find(name, "_scav") then
-						uDef.featuredefs.dead.metal = math.floor(uDef.metalcost * 0.6)
-					end
+					uDef.featuredefs.dead.metal = math.floor(uDef.metalcost * 0.6)
 				end
 			end
 			-- heaps
 			if uDef.featuredefs.heap then
 				uDef.featuredefs.heap.damage = uDef.health
 				if uDef.metalcost and uDef.energycost then
-					if name and not string.find(name, "_scav") then
-						uDef.featuredefs.heap.metal = math.floor(uDef.metalcost * 0.25)
-					end
+					uDef.featuredefs.heap.metal = math.floor(uDef.metalcost * 0.25)
 				end
 			end
 		end

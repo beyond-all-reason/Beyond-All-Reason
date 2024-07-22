@@ -1,11 +1,11 @@
 -- -- UnitDef postprocessing specific to Scavenger units only
 
 local function scavUnitDef_Post(name, uDef)
-
 	uDef.category = uDef.category .. ' SCAVENGER'
 	uDef.customparams.isscavenger = true
 	uDef.capturable = false
 	uDef.decloakonfire = true
+	uDef.hidedamage = true
 	if uDef.decoyfor and not string.find(uDef.decoyfor, "_scav") then
 		uDef.decoyfor = uDef.decoyfor .. "_scav"
 	end
@@ -13,18 +13,18 @@ local function scavUnitDef_Post(name, uDef)
 		uDef.icontype = uDef.icontype .. "_scav"
 	end
 
- 	-- replaced uniticons
+	-- replaced uniticons
 	if uDef.buildpic then
 		--Spring.Echo("FILEEXISTS", VFS.FileExists("unitpics/scavengers/"..uDef.buildpic))
 		--local nonScavName = string.sub(uDef.unitname, 1, string.len(uDef.unitname)-5)
 		if (not string.find(uDef.buildpic, "scavengers"))
-		and (not string.find(uDef.buildpic, "raptor"))
-		and (not string.find(uDef.buildpic, "critters"))
-		and (not string.find(uDef.buildpic, "lootboxes"))
-		and (not string.find(uDef.buildpic, "other"))
-		and (not string.find(uDef.buildpic, "alternative"))
-		and (VFS.FileExists("unitpics/scavengers/"..uDef.buildpic)) then
-			uDef.buildpic = "scavengers/"..uDef.buildpic
+			and (not string.find(uDef.buildpic, "raptor"))
+			and (not string.find(uDef.buildpic, "critters"))
+			and (not string.find(uDef.buildpic, "lootboxes"))
+			and (not string.find(uDef.buildpic, "other"))
+			and (not string.find(uDef.buildpic, "alternative"))
+			and (VFS.FileExists("unitpics/scavengers/" .. uDef.buildpic)) then
+			uDef.buildpic = "scavengers/" .. uDef.buildpic
 		end
 	end
 
@@ -34,24 +34,24 @@ local function scavUnitDef_Post(name, uDef)
 	-- make barrelshot purple
 	if uDef.customparams.firingceg then
 		if string.find(uDef.customparams.firingceg, 'barrelshot') then
-			uDef.customparams.firingceg = uDef.customparams.firingceg..'-purple'
+			uDef.customparams.firingceg = uDef.customparams.firingceg .. '-purple'
 		end
 	end
 
 	if uDef.sfxtypes then
 		-- make barrelshot purple
 		if uDef.sfxtypes.explosiongenerators then
-			for k,v in pairs(uDef.sfxtypes.explosiongenerators) do
+			for k, v in pairs(uDef.sfxtypes.explosiongenerators) do
 				if string.find(v, 'barrelshot') then
-					uDef.sfxtypes.explosiongenerators[k] = v..'-purple'
+					uDef.sfxtypes.explosiongenerators[k] = v .. '-purple'
 				end
 			end
 		end
 		-- make deathcegs purple
 		if uDef.sfxtypes.pieceexplosiongenerators then
-			for k,v in pairs(uDef.sfxtypes.pieceexplosiongenerators) do
+			for k, v in pairs(uDef.sfxtypes.pieceexplosiongenerators) do
 				if string.find(v, 'deathceg') then
-					uDef.sfxtypes.pieceexplosiongenerators[k] = v..'-purple'
+					uDef.sfxtypes.pieceexplosiongenerators[k] = v .. '-purple'
 				end
 			end
 		end
@@ -65,31 +65,31 @@ local function scavUnitDef_Post(name, uDef)
 			string.find(string.lower(uDef.explodeas), 'bantha') or
 			string.find(string.lower(uDef.explodeas), 'lootbox')
 		then
-			uDef.explodeas = uDef.explodeas..'-purple'
+			uDef.explodeas = uDef.explodeas .. '-purple'
 		end
 	end
 
 	if uDef.selfdestructas then
 		if string.find(string.lower(uDef.selfdestructas), 'explosiongeneric') or
 			string.find(string.lower(uDef.selfdestructas), 'buildingexplosiongeneric') or
-		 	string.find(string.lower(uDef.selfdestructas), 'explosiont3') or
+			string.find(string.lower(uDef.selfdestructas), 'explosiont3') or
 			string.find(string.lower(uDef.selfdestructas), 'bantha') or
 			string.find(string.lower(uDef.selfdestructas), 'lootbox')
 		then
-			uDef.selfdestructas = uDef.selfdestructas..'-purple'
+			uDef.selfdestructas = uDef.selfdestructas .. '-purple'
 		end
 	end
 
 	-- replace buildlists with _scav units
 	if uDef.buildoptions then
-        for k, v in pairs(uDef.buildoptions) do
-            if UnitDefs[v..'_scav'] then
-                uDef.buildoptions[k] = v..'_scav'
-            end
-        end
-    end
+		for k, v in pairs(uDef.buildoptions) do
+			if UnitDefs[v .. '_scav'] then
+				uDef.buildoptions[k] = v .. '_scav'
+			end
+		end
+	end
 
-	
+
 	-- Remove wrecks of units you shouldn't be able to capture
 	-- if uDef.featuredefs and uDef.corpse and (uDef.buildoptions or (not uDef.canmove)) then
 	-- 	if uDef.corpse == "DEAD" and uDef.featuredefs.heap then
@@ -98,22 +98,15 @@ local function scavUnitDef_Post(name, uDef)
 	-- 		uDef.corpse = nil
 	-- 	end
 	-- end
-	
+
 	-- Set autoheal of scav units
 	if uDef.health then
-		if not string.find(name, "armscavengerbossv2") or string.find(name, "scavengerbossv4")then
+		if not string.find(name, "armscavengerbossv2") or string.find(name, "scavengerbossv4") then
 			if not string.find(name, "scavbeacon") then
 				uDef.health = uDef.health * 1.25
-				uDef.hidedamage = true
-				if uDef.metalcost then
-					uDef.metalcost = uDef.metalcost * 1.25
-				end
-				if uDef.energycost then
-					uDef.energycost = uDef.energycost * 1.25
-				end
-				if uDef.buildtime then
-					uDef.buildtime = uDef.buildtime * 1.25
-				end
+				if uDef.metalcost then uDef.metalcost = uDef.metalcost * 1.1 end
+				if uDef.energycost then uDef.energycost = uDef.energycost * 1.1 end
+				if uDef.buildtime then uDef.buildtime = uDef.buildtime * 1.1 end
 			end
 			uDef.autoheal = math.ceil(math.sqrt(uDef.health * 0.1))
 			uDef.idleautoheal = math.ceil(math.sqrt(uDef.health * 0.1))
@@ -130,30 +123,27 @@ local function scavUnitDef_Post(name, uDef)
 
 	-- Buff _scav builders
 	if uDef.builder then
-	 	if uDef.canmove == true then
-	 		uDef.cancapture = true
+		if uDef.canmove == true then
+			uDef.cancapture = true
 			uDef.canresurrect = true
-	 		if uDef.turnrate then
-	 			uDef.turnrate = uDef.turnrate * 1.5
-	 		end
-	 		if uDef.maxdec then
-	 			uDef.maxdec  = uDef.maxdec * 1.5
-	 		end
-	 	end
+			if uDef.turnrate then
+				uDef.turnrate = uDef.turnrate * 1.5
+			end
+			if uDef.maxdec then
+				uDef.maxdec = uDef.maxdec * 1.5
+			end
+		end
 		if uDef.builddistance then
 			uDef.builddistance = uDef.builddistance * 1.25
 		end
-		if uDef.workertime then
-			uDef.workertime = uDef.workertime * 4
-			if uDef.metalcost then
-				uDef.metalcost = uDef.metalcost * 2
-			end
-			if uDef.energycost then
-				uDef.energycost = uDef.energycost * 2
-			end
-			if uDef.buildtime then
-				uDef.buildtime = uDef.buildtime * 2
-			end
+		if uDef.workerspeed then
+			uDef.resurrectspeed = uDef.workerspeed * 4
+			uDef.capturespeed = uDef.workerspeed * 4
+			uDef.reclaimspeed = uDef.workerspeed * 2
+
+			if uDef.metalcost then uDef.metalcost = uDef.metalcost * 1.5 end
+			if uDef.energycost then uDef.energycost = uDef.energycost * 1.5 end
+			if uDef.buildtime then uDef.buildtime = uDef.buildtime * 1.5 end
 		end
 	end
 
@@ -169,7 +159,7 @@ local function scavUnitDef_Post(name, uDef)
 			end
 		end
 	end
-	
+
 	if uDef.customparams.iscommander then
 		uDef.customparams.iscommander = nil
 		uDef.customparams.isscavcommander = true
@@ -185,46 +175,27 @@ local function scavUnitDef_Post(name, uDef)
 		uDef.selfdestructas = "advmetalmakerSelfd"
 	end
 
-	--uDef.metalcost = uDef.metalcost * 1.25
-	--uDef.energycost = uDef.energycost * 1.25
-	--uDef.buildtime = uDef.buildtime * 1.25
-
 	-- Economy Boost
 	if uDef.energystorage then
-		uDef.energystorage = uDef.energystorage*1.1
-		if uDef.energycost then
-			uDef.energycost = uDef.energycost * 1.1
-		end
+		uDef.energystorage = uDef.energystorage * 1.1
 	end
 	if uDef.energyupkeep and uDef.energyupkeep < 0 then
-		uDef.energyupkeep = uDef.energyupkeep*1.1
+		uDef.energyupkeep = uDef.energyupkeep * 1.1
 	end
 	if uDef.energymake then
 		uDef.energymake = uDef.energymake * 1.1
-		if uDef.energycost then
-			uDef.energycost = uDef.energycost * 1.1
-		end
 	end
 	if uDef.metalstorage then
 		uDef.metalstorage = uDef.metalstorage * 1.2
-		if uDef.metalcost then
-			uDef.metalcost = uDef.metalcost * 1.2
-		end
 	end
 	if (uDef.extractsmetal and uDef.extractsmetal > 0) then
-		uDef.extractsmetal = uDef.extractsmetal*1.2
+		uDef.extractsmetal = uDef.extractsmetal * 1.2
 	end
 	if (uDef.customparams.metal_extractor and uDef.customparams.metal_extractor > 0) then
-		uDef.customparams.metal_extractor = uDef.customparams.metal_extractor*1.2
-	end
-	if (uDef.extractsmetal and uDef.extractsmetal > 0) or (uDef.customparams.metal_extractor and uDef.customparams.metal_extractor > 0) and uDef.metalcost then
-		uDef.metalcost = uDef.metalcost * 1.2
+		uDef.customparams.metal_extractor = uDef.customparams.metal_extractor * 1.2
 	end
 	if uDef.customparams.energyconv_capacity then
-		uDef.customparams.energyconv_capacity = uDef.customparams.energyconv_capacity*1.2
-		if uDef.energycost then
-			uDef.energycost = uDef.energycost * 1.2
-		end
+		uDef.customparams.energyconv_capacity = uDef.customparams.energyconv_capacity * 1.2
 	end
 	if uDef.windgenerator then
 		uDef.windgenerator = uDef.windgenerator*1.1
@@ -235,9 +206,26 @@ local function scavUnitDef_Post(name, uDef)
 		end
 	end
 
-	if uDef.energycost then uDef.energycost = math.ceil(uDef.energycost) end
 	if uDef.metalcost then uDef.metalcost = math.ceil(uDef.metalcost) end
+	if uDef.energycost then uDef.energycost = math.ceil(uDef.energycost) end
 	if uDef.buildtime then uDef.buildtime = math.ceil(uDef.buildtime) end
+
+	if uDef.featuredefs and uDef.health then
+		-- wrecks
+		if uDef.featuredefs.dead then
+			uDef.featuredefs.dead.damage = uDef.health
+			if uDef.metalcost and uDef.energycost then
+				uDef.featuredefs.dead.metal = math.floor(uDef.metalcost * 0.6)
+			end
+		end
+		-- heaps
+		if uDef.featuredefs.heap then
+			uDef.featuredefs.heap.damage = uDef.health
+			if uDef.metalcost and uDef.energycost then
+				uDef.featuredefs.heap.metal = math.floor(uDef.metalcost * 0.25)
+			end
+		end
+	end
 
 	-- Extra Units for Scavs
 	if name == "armshltx_scav" then
@@ -281,18 +269,17 @@ local function scavUnitDef_Post(name, uDef)
 		end
 
 		local numBuildoptions = #uDef.buildoptions
-		uDef.buildoptions[numBuildoptions+1] = "corgatreap_scav"
-		uDef.buildoptions[numBuildoptions+2] = "corforge_scav"
-		uDef.buildoptions[numBuildoptions+3] = "corftiger_scav"
-		uDef.buildoptions[numBuildoptions+4] = "cortorch_scav"
-		uDef.buildoptions[numBuildoptions+5] = "corsiegebreaker_scav"
-		if (printerpresent==false) then -- assuming sala and vac stay paired, this is tidiest solution
-			uDef.buildoptions[numBuildoptions+6] = "corvac_scav" --corprinter
-
+		uDef.buildoptions[numBuildoptions + 1] = "corgatreap_scav"
+		uDef.buildoptions[numBuildoptions + 2] = "corforge_scav"
+		uDef.buildoptions[numBuildoptions + 3] = "corftiger_scav"
+		uDef.buildoptions[numBuildoptions + 4] = "cortorch_scav"
+		uDef.buildoptions[numBuildoptions + 5] = "corsiegebreaker_scav"
+		if (printerpresent == false) then               -- assuming sala and vac stay paired, this is tidiest solution
+			uDef.buildoptions[numBuildoptions + 6] = "corvac_scav" --corprinter
 		end
 	elseif name == "coraap_scav" then
 		local numBuildoptions = #uDef.buildoptions
-		uDef.buildoptions[numBuildoptions+1] = "corcrw_scav"
+		uDef.buildoptions[numBuildoptions + 1] = "corcrw_scav"
 	elseif name == "corgant_scav" or name == "leggant_scav" then
 		local numBuildoptions = #uDef.buildoptions
 		uDef.buildoptions[numBuildoptions + 1] = "corkarganetht4_scav"
