@@ -120,18 +120,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function ComSpawnDefoliate(spawnx,spawny,spawnz)
 		
-		---Spring.Echo('Hornet poi ComSpawnDefoliate')
-		--Spring.Echo('xyz', spawnx, spawny, spawnz)
-		
-	
 
-
-		local blasted_trees = Spring.GetFeaturesInCylinder ( spawnx, spawnz, 100)
-		--Spring.Debug.TableEcho(blasted_trees)
-
-
-		--look up featureDefID from tree ID
-
+		local blasted_trees = Spring.GetFeaturesInCylinder ( spawnx, spawnz, 125)
 
 		for i, tree in pairs(blasted_trees) do
 			--Spring.Echo('tree', tree)
@@ -160,15 +150,8 @@ if gadgetHandler:IsSyncedCode() then
 						end
 						dissapearSpeed = 0.15 + Spring.GetFeatureHeight(tree) / math_random(3700, 4700)
 					end
-					--local destroyFrame = GetGameFrame() + (falltime * (treeMass[featureDefID] / dmg)) + 150 + (dissapearSpeed*4000)
+		
 					local destroyFrame = GetGameFrame() + falltime + 150 + (dissapearSpeed * 4000)
-
-				ppx, ppy, ppz = spawnx, spawny, spawnz--Spring.GetUnitPosition(attackerID)
-				--local vpx, vpy, vpz = Spring.GetUnitVelocity(attackerID)
-				--ppx = ppx - 2 * vpx
-				--ppy = ppy - 2 * vpy
-				--ppz = ppz - 2 * vpz
-				--todo: directionality. nfi how to calc up?
 
 				local dmg = treeMass[featureDefID] * 2
 				local name = treeName[featureDefID]
@@ -180,7 +163,7 @@ if gadgetHandler:IsSyncedCode() then
 					posx = fx, posy = fy, posz = fz,
 					fDefID = featureDefID,
 					dirx = dx, diry = dy, dirz = dz,
-					px = ppx, py = ppy, pz = ppz,
+					px = spawnx, py = spawny, pz = spawnz,
 					strength = math.max(1, treeMass[featureDefID] / dmg),
 					fire = false,
 					size = size,
@@ -290,8 +273,6 @@ if gadgetHandler:IsSyncedCode() then
 					elseif attackerID and weaponDefID < 0 then
 						ppx, ppy, ppz = Spring.GetUnitPosition(attackerID)
 						local vpx, vpy, vpz = Spring.GetUnitVelocity(attackerID)
-						Spring.Echo('ppx, ppy, ppz ', ppx, ppy, ppz )
-						Spring.Echo(vpx, vpy, vpz)
 						ppx = ppx - 2 * vpx
 						ppy = ppy - 2 * vpy
 						ppz = ppz - 2 * vpz
@@ -323,7 +304,7 @@ if gadgetHandler:IsSyncedCode() then
 						destroyFrame = destroyFrame
 					}
 					--Spring.Echo('Hornet poi treesdying')
-					--Spring.Debug.TableEcho(featureID)
+					--Spring.Debug.TableEcho(treesdying[featureID])
 				end
 			end
 		end
@@ -421,7 +402,8 @@ if gadgetHandler:IsSyncedCode() then
 
 							-- NOTE: this can create twitchy tree movement
               -- Note 2: disabling this because I saw no reset issue, but this does fix gimbal induced twitch.
-							--SetFeatureDirection(featureID, dx, dy, dz)		-- gets reset so we re-apply
+			  -- note 3 (Hornet): enabling this because 'some trees' absolutely do need it. Eg, Tangerine is fine, but Isthmus trees are not. Might be map feature setting issue in some way?
+							SetFeatureDirection(featureID, dx, dy, dz)		-- gets reset so we re-apply
 						end
 					end
 				end
