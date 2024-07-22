@@ -504,11 +504,25 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:GameFrame(n)
 		if not scenarioSpawnsUnits then
             if n == 60 then
+
                 for i = 1, #startUnitList do
                     local x = startUnitList[i].x
                     local y = startUnitList[i].y
                     local z = startUnitList[i].z
-                    Spring.SpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
+                    --Spring.SpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
+                    --Spring.SpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
+					--com_spawn_blast
+
+					local comblast = {
+						weaponDef = WeaponDefNames['com_spawn_blast'].id,
+						craterAreaOfEffect = 1,
+						damageAreaOfEffect = 400,
+						edgeEffectiveness = 1,
+						explosionSpeed = 100,
+						damageGround = 0,
+					}
+
+					Spring.SpawnExplosion (x, y, z, 0, 0, 0, comblast ) 
                 end
             end
             if n == 90 then
