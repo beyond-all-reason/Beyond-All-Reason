@@ -1412,20 +1412,20 @@ scavBehaviours = {
 		[UnitDefNames["corcomlvl10_scav"].id] = true,
 		[UnitDefNames["legcomlvl10_scav"].id] = true,
 
-		--[UnitDefNames["armdecom_scav"].id] = true,
-		--[UnitDefNames["armdecomlvl3_scav"].id] = true,
-		--[UnitDefNames["armdecomlvl6_scav"].id] = true,
-		--[UnitDefNames["armdecomlvl10_scav"].id] = true,
+		[UnitDefNames["armdecom_scav"].id] = true,
+		[UnitDefNames["armdecomlvl3_scav"].id] = true,
+		[UnitDefNames["armdecomlvl6_scav"].id] = true,
+		[UnitDefNames["armdecomlvl10_scav"].id] = true,
 
-		--[UnitDefNames["cordecom_scav"].id] = true,
-		--[UnitDefNames["cordecomlvl3_scav"].id] = true,
-		--[UnitDefNames["cordecomlvl6_scav"].id] = true,
-		--[UnitDefNames["cordecomlvl10_scav"].id] = true,
+		[UnitDefNames["cordecom_scav"].id] = true,
+		[UnitDefNames["cordecomlvl3_scav"].id] = true,
+		[UnitDefNames["cordecomlvl6_scav"].id] = true,
+		[UnitDefNames["cordecomlvl10_scav"].id] = true,
 
-		--[UnitDefNames["legdecom_scav"].id] = true,
-		--[UnitDefNames["legdecomlvl3_scav"].id] = true,
-		--[UnitDefNames["legdecomlvl6_scav"].id] = true,
-		--[UnitDefNames["legdecomlvl10_scav"].id] = true,
+		[UnitDefNames["legdecom_scav"].id] = true,
+		[UnitDefNames["legdecomlvl3_scav"].id] = true,
+		[UnitDefNames["legdecomlvl6_scav"].id] = true,
+		[UnitDefNames["legdecomlvl10_scav"].id] = true,
 
 
 	},
@@ -1491,20 +1491,20 @@ local squadSpawnOptionsTable = {
 		["legcomlvl9_scav"]    = { minAnger = 80, maxAnger = 120, maxAlive = 1 },
 		["legcomlvl10_scav"]   = { minAnger = 90, maxAnger = 1000, maxAlive = 4 },
 
-		["armdecom_scav"]      = { minAnger = 10, maxAnger = 40, maxAlive = 100 },
-		["armdecomlvl3_scav"]  = { minAnger = 20, maxAnger = 60, maxAlive = 100 },
-		["armdecomlvl6_scav"]  = { minAnger = 50, maxAnger = 90, maxAlive = 100 },
-		["armdecomlvl10_scav"] = { minAnger = 80, maxAnger = 1000, maxAlive = 100 },
+		--["armdecom_scav"]      = { minAnger = 10, maxAnger = 40, maxAlive = 100 },
+		--["armdecomlvl3_scav"]  = { minAnger = 20, maxAnger = 60, maxAlive = 100 },
+		--["armdecomlvl6_scav"]  = { minAnger = 50, maxAnger = 90, maxAlive = 100 },
+		--["armdecomlvl10_scav"] = { minAnger = 80, maxAnger = 1000, maxAlive = 100 },
 
-		["cordecom_scav"]      = { minAnger = 10, maxAnger = 40, maxAlive = 100 },
-		["cordecomlvl3_scav"]  = { minAnger = 20, maxAnger = 60, maxAlive = 100 },
-		["cordecomlvl6_scav"]  = { minAnger = 50, maxAnger = 90, maxAlive = 100 },
-		["cordecomlvl10_scav"] = { minAnger = 80, maxAnger = 1000, maxAlive = 100 },
+		--["cordecom_scav"]      = { minAnger = 10, maxAnger = 40, maxAlive = 100 },
+		--["cordecomlvl3_scav"]  = { minAnger = 20, maxAnger = 60, maxAlive = 100 },
+		--["cordecomlvl6_scav"]  = { minAnger = 50, maxAnger = 90, maxAlive = 100 },
+		--["cordecomlvl10_scav"] = { minAnger = 80, maxAnger = 1000, maxAlive = 100 },
 
-		["legdecom_scav"]      = { minAnger = 10, maxAnger = 40, maxAlive = 100 },
-		["legdecomlvl3_scav"]  = { minAnger = 20, maxAnger = 60, maxAlive = 100 },
-		["legdecomlvl6_scav"]  = { minAnger = 50, maxAnger = 90, maxAlive = 100 },
-		["legdecomlvl10_scav"] = { minAnger = 80, maxAnger = 1000, maxAlive = 100 },
+		--["legdecom_scav"]      = { minAnger = 10, maxAnger = 40, maxAlive = 100 },
+		--["legdecomlvl3_scav"]  = { minAnger = 20, maxAnger = 60, maxAlive = 100 },
+		--["legdecomlvl6_scav"]  = { minAnger = 50, maxAnger = 90, maxAlive = 100 },
+		--["legdecomlvl10_scav"] = { minAnger = 80, maxAnger = 1000, maxAlive = 100 },
 	},
 	--frontbusters = {
 --
@@ -1790,6 +1790,7 @@ addNewSquad({ type = "specialAir", minAnger = tierConfiguration[3].minAnger, uni
 addNewSquad({ type = "specialAir", minAnger = tierConfiguration[3].minAnger, units = { "12 armthund_scav","12 corshad_scav","5 legcib_scav",}, weight = 4, maxAnger = 1000}) --Bombers
 ------Tier 2 25-60%
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[4].minAnger, units = { "10 armfav_scav","10 corfav_scav","25 armzapper_scav",}, weight = 6, maxAnger = tierConfiguration[4].maxAnger}) --Rover and EMP Rover/Whole Tier Length
+addNewSquad({ type = "specialLand", minAnger = tierConfiguration[4].minAnger, units = { "50 armflea_scav",}, weight = 4, maxAnger = tierConfiguration[4].maxAnger}) --Tick Spam
 --Land
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[4].minAnger, units = { "6 armlatnk_scav","6 cortorch_scav","6 legmrv_scav",}, weight = 4, maxAnger = tierConfiguration[4].maxAnger}) --T2 Veh Raid
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[4].minAnger, units = { "6 armbull_scav","6 correap_scav","1 corgol_scav","5 legaheattank_scav","2 armyork_scav","2 corsent_scav",}, weight = 4, maxAnger = tierConfiguration[4].maxAnger}) --T2 Veh Assault/AA
@@ -1804,6 +1805,7 @@ addNewSquad({ type = "specialAir", minAnger = tierConfiguration[5].minAnger, uni
 --Dilluters
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "15 armfav_scav","15 corfav_scav","15 legscout_scav",}, weight = 8, maxAnger = tierConfiguration[6].maxAnger}) --Rover Whole Tier Length
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "6 cortorch_scav","6 legmrv_scav",}, weight = 3, maxAnger = tierConfiguration[6].maxAnger}) --T2 Veh Raid
+addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "100 armflea_scav",}, weight = 4, maxAnger = tierConfiguration[6].maxAnger}) --Tick Spam
 --Land
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "12 armmar_scav",}, weight = 3, maxAnger = tierConfiguration[6].maxAnger}) --T3 Raid
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "6 armmeatball_scav","6 armassimilator_scav","2 armyork_scav","2 corsent_scav",}, weight = 4, maxAnger = tierConfiguration[6].maxAnger}) --T3 Assault/AA
