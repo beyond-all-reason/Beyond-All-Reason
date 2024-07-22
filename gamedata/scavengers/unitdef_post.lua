@@ -146,10 +146,10 @@ local function scavUnitDef_Post(name, uDef)
 		if uDef.workertime then
 			uDef.workertime = uDef.workertime * 4
 			if uDef.metalcost then
-				uDef.metalcost = uDef.metalcost * 4
+				uDef.metalcost = uDef.metalcost * 2
 			end
 			if uDef.energycost then
-				uDef.energycost = uDef.energycost * 4
+				uDef.energycost = uDef.energycost * 2
 			end
 			if uDef.buildtime then
 				uDef.buildtime = uDef.buildtime * 2
