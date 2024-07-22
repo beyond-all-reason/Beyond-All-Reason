@@ -17,7 +17,7 @@ local economyScale = 1 * Spring.GetModOptions().multiplier_resourceincome *
 (((((Spring.GetModOptions().startmetal - 1000) / 9000) + 1)*0.1)+0.9) *
 (((((Spring.GetModOptions().startenergy - 1000) / 9000) + 1)*0.1)+0.9)
 
-economyScale = (economyScale*0.33)+0.67
+economyScale = math.min(5, (economyScale*0.33)+0.67)
 
 local teams = Spring.GetTeamList()
 local humanTeamCount = -1 -- starts at -1 to disregard gaia
@@ -44,11 +44,11 @@ local difficultyParameters = {
 		angerBonus              = 0.1,
 		maxXP                   = 0.1 * economyScale,
 		spawnChance             = 0.1,
-		damageMod               = 0.5 * economyScale,
-		healthMod               = 0.5 * economyScale,
+		damageMod               = 0.5,
+		healthMod               = 0.5,
 		maxBurrows              = 1000,
-		minScavs                = 5 * economyScale,
-		maxScavs                = 25 * economyScale,
+		minScavs                = 10 * economyScale,
+		maxScavs                = 15 * economyScale,
 		scavPerPlayerMultiplier = 0.25,
 		bossName                = 'scavengerbossv4_veryeasy_scav',
 		bossResistanceMult      = 1 * economyScale,
@@ -68,7 +68,7 @@ local difficultyParameters = {
 		healthMod               = 0.75,
 		maxBurrows              = 1000,
 		minScavs                = 10 * economyScale,
-		maxScavs                = 30 * economyScale,
+		maxScavs                = 20 * economyScale,
 		scavPerPlayerMultiplier = 0.25,
 		bossName                = 'scavengerbossv4_easy_scav',
 		bossResistanceMult      = 1.5 * economyScale,
@@ -86,8 +86,8 @@ local difficultyParameters = {
 		damageMod               = 1,
 		healthMod               = 1,
 		maxBurrows              = 1000,
-		minScavs                = 15 * economyScale,
-		maxScavs                = 35 * economyScale,
+		minScavs                = 10 * economyScale,
+		maxScavs                = 40 * economyScale,
 		scavPerPlayerMultiplier = 0.25,
 		bossName                = 'scavengerbossv4_normal_scav',
 		bossResistanceMult      = 2 * economyScale,
@@ -102,11 +102,11 @@ local difficultyParameters = {
 		angerBonus              = 0.25,
 		maxXP                   = 0.4 * economyScale,
 		spawnChance             = 0.4,
-		damageMod               = 1.25,
-		healthMod               = 1.1,
+		damageMod               = 1,
+		healthMod               = 1,
 		maxBurrows              = 1000,
-		minScavs                = 20 * economyScale,
-		maxScavs                = 40 * economyScale,
+		minScavs                = 10 * economyScale,
+		maxScavs                = 60 * economyScale,
 		scavPerPlayerMultiplier = 0.25,
 		bossName                = 'scavengerbossv4_hard_scav',
 		bossResistanceMult      = 2.5 * economyScale,
@@ -121,11 +121,11 @@ local difficultyParameters = {
 		angerBonus              = 0.30,
 		maxXP                   = 0.5 * economyScale,
 		spawnChance             = 0.5,
-		damageMod               = 1.5,
-		healthMod               = 1.25,
+		damageMod               = 1,
+		healthMod               = 1,
 		maxBurrows              = 1000,
-		minScavs                = 25 * economyScale,
-		maxScavs                = 45 * economyScale,
+		minScavs                = 10 * economyScale,
+		maxScavs                = 80 * economyScale,
 		scavPerPlayerMultiplier = 0.25,
 		bossName                = 'scavengerbossv4_veryhard_scav',
 		bossResistanceMult      = 3 * economyScale,
@@ -140,11 +140,11 @@ local difficultyParameters = {
 		angerBonus              = 0.35,
 		maxXP                   = 0.6 * economyScale,
 		spawnChance             = 0.6,
-		damageMod               = 2,
-		healthMod               = 1.5,
+		damageMod               = 1,
+		healthMod               = 1,
 		maxBurrows              = 1000,
-		minScavs                = 30 * economyScale,
-		maxScavs                = 50 * economyScale,
+		minScavs                = 10 * economyScale,
+		maxScavs                = 100 * economyScale,
 		scavPerPlayerMultiplier = 0.25,
 		bossName                = 'scavengerbossv4_epic_scav',
 		bossResistanceMult      = 3.5 * economyScale,
@@ -1491,20 +1491,20 @@ local squadSpawnOptionsTable = {
 		["legcomlvl9_scav"]    = { minAnger = 80, maxAnger = 120, maxAlive = 1 },
 		["legcomlvl10_scav"]   = { minAnger = 90, maxAnger = 1000, maxAlive = 4 },
 
-		["armdecom_scav"]      = { minAnger = 10, maxAnger = 40, maxAlive = 100 },
-		["armdecomlvl3_scav"]  = { minAnger = 20, maxAnger = 60, maxAlive = 100 },
-		["armdecomlvl6_scav"]  = { minAnger = 50, maxAnger = 90, maxAlive = 100 },
-		["armdecomlvl10_scav"] = { minAnger = 80, maxAnger = 1000, maxAlive = 100 },
+		--["armdecom_scav"]      = { minAnger = 10, maxAnger = 40, maxAlive = 100 },
+		--["armdecomlvl3_scav"]  = { minAnger = 20, maxAnger = 60, maxAlive = 100 },
+		--["armdecomlvl6_scav"]  = { minAnger = 50, maxAnger = 90, maxAlive = 100 },
+		--["armdecomlvl10_scav"] = { minAnger = 80, maxAnger = 1000, maxAlive = 100 },
 
-		["cordecom_scav"]      = { minAnger = 10, maxAnger = 40, maxAlive = 100 },
-		["cordecomlvl3_scav"]  = { minAnger = 20, maxAnger = 60, maxAlive = 100 },
-		["cordecomlvl6_scav"]  = { minAnger = 50, maxAnger = 90, maxAlive = 100 },
-		["cordecomlvl10_scav"] = { minAnger = 80, maxAnger = 1000, maxAlive = 100 },
+		--["cordecom_scav"]      = { minAnger = 10, maxAnger = 40, maxAlive = 100 },
+		--["cordecomlvl3_scav"]  = { minAnger = 20, maxAnger = 60, maxAlive = 100 },
+		--["cordecomlvl6_scav"]  = { minAnger = 50, maxAnger = 90, maxAlive = 100 },
+		--["cordecomlvl10_scav"] = { minAnger = 80, maxAnger = 1000, maxAlive = 100 },
 
-		["legdecom_scav"]      = { minAnger = 10, maxAnger = 40, maxAlive = 100 },
-		["legdecomlvl3_scav"]  = { minAnger = 20, maxAnger = 60, maxAlive = 100 },
-		["legdecomlvl6_scav"]  = { minAnger = 50, maxAnger = 90, maxAlive = 100 },
-		["legdecomlvl10_scav"] = { minAnger = 80, maxAnger = 1000, maxAlive = 100 },
+		--["legdecom_scav"]      = { minAnger = 10, maxAnger = 40, maxAlive = 100 },
+		--["legdecomlvl3_scav"]  = { minAnger = 20, maxAnger = 60, maxAlive = 100 },
+		--["legdecomlvl6_scav"]  = { minAnger = 50, maxAnger = 90, maxAlive = 100 },
+		--["legdecomlvl10_scav"] = { minAnger = 80, maxAnger = 1000, maxAlive = 100 },
 	},
 	--frontbusters = {
 --
@@ -1790,6 +1790,7 @@ addNewSquad({ type = "specialAir", minAnger = tierConfiguration[3].minAnger, uni
 addNewSquad({ type = "specialAir", minAnger = tierConfiguration[3].minAnger, units = { "12 armthund_scav","12 corshad_scav","5 legcib_scav",}, weight = 4, maxAnger = 1000}) --Bombers
 ------Tier 2 25-60%
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[4].minAnger, units = { "10 armfav_scav","10 corfav_scav","25 armzapper_scav",}, weight = 6, maxAnger = tierConfiguration[4].maxAnger}) --Rover and EMP Rover/Whole Tier Length
+addNewSquad({ type = "specialLand", minAnger = tierConfiguration[4].minAnger, units = { "50 armflea_scav",}, weight = 4, maxAnger = tierConfiguration[4].maxAnger}) --Tick Spam
 --Land
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[4].minAnger, units = { "6 armlatnk_scav","6 cortorch_scav","6 legmrv_scav",}, weight = 4, maxAnger = tierConfiguration[4].maxAnger}) --T2 Veh Raid
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[4].minAnger, units = { "6 armbull_scav","6 correap_scav","1 corgol_scav","5 legaheattank_scav","2 armyork_scav","2 corsent_scav",}, weight = 4, maxAnger = tierConfiguration[4].maxAnger}) --T2 Veh Assault/AA
@@ -1804,6 +1805,7 @@ addNewSquad({ type = "specialAir", minAnger = tierConfiguration[5].minAnger, uni
 --Dilluters
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "15 armfav_scav","15 corfav_scav","15 legscout_scav",}, weight = 8, maxAnger = tierConfiguration[6].maxAnger}) --Rover Whole Tier Length
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "6 cortorch_scav","6 legmrv_scav",}, weight = 3, maxAnger = tierConfiguration[6].maxAnger}) --T2 Veh Raid
+addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "100 armflea_scav",}, weight = 4, maxAnger = tierConfiguration[6].maxAnger}) --Tick Spam
 --Land
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "12 armmar_scav",}, weight = 3, maxAnger = tierConfiguration[6].maxAnger}) --T3 Raid
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "6 armmeatball_scav","6 armassimilator_scav","2 armyork_scav","2 corsent_scav",}, weight = 4, maxAnger = tierConfiguration[6].maxAnger}) --T3 Assault/AA
