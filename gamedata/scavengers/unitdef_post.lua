@@ -105,6 +105,15 @@ local function scavUnitDef_Post(name, uDef)
 			if not string.find(name, "scavbeacon") then
 				uDef.health = uDef.health * 1.25
 				uDef.hidedamage = true
+				if uDef.metalcost then
+					uDef.metalcost = uDef.metalcost * 1.25
+				end
+				if uDef.energycost then
+					uDef.energycost = uDef.energycost * 1.25
+				end
+				if uDef.buildtime then
+					uDef.buildtime = uDef.buildtime * 1.25
+				end
 			end
 			uDef.autoheal = math.ceil(math.sqrt(uDef.health * 0.1))
 			uDef.idleautoheal = math.ceil(math.sqrt(uDef.health * 0.1))
@@ -136,6 +145,15 @@ local function scavUnitDef_Post(name, uDef)
 		end
 		if uDef.workertime then
 			uDef.workertime = uDef.workertime * 4
+			if uDef.metalcost then
+				uDef.metalcost = uDef.metalcost * 4
+			end
+			if uDef.energycost then
+				uDef.energycost = uDef.energycost * 4
+			end
+			if uDef.buildtime then
+				uDef.buildtime = uDef.buildtime * 2
+			end
 		end
 	end
 
@@ -167,18 +185,31 @@ local function scavUnitDef_Post(name, uDef)
 		uDef.selfdestructas = "advmetalmakerSelfd"
 	end
 
+	--uDef.metalcost = uDef.metalcost * 1.25
+	--uDef.energycost = uDef.energycost * 1.25
+	--uDef.buildtime = uDef.buildtime * 1.25
+
 	-- Economy Boost
 	if uDef.energystorage then
 		uDef.energystorage = uDef.energystorage*1.1
+		if uDef.energycost then
+			uDef.energycost = uDef.energycost * 1.1
+		end
 	end
 	if uDef.energyupkeep and uDef.energyupkeep < 0 then
 		uDef.energyupkeep = uDef.energyupkeep*1.1
 	end
 	if uDef.energymake then
-		uDef.energymake = uDef.energymake*1.1
+		uDef.energymake = uDef.energymake * 1.1
+		if uDef.energycost then
+			uDef.energycost = uDef.energycost * 1.1
+		end
 	end
 	if uDef.metalstorage then
-		uDef.metalstorage = uDef.metalstorage*1.2
+		uDef.metalstorage = uDef.metalstorage * 1.2
+		if uDef.metalcost then
+			uDef.metalcost = uDef.metalcost * 1.2
+		end
 	end
 	if (uDef.extractsmetal and uDef.extractsmetal > 0) then
 		uDef.extractsmetal = uDef.extractsmetal*1.2
@@ -186,11 +217,27 @@ local function scavUnitDef_Post(name, uDef)
 	if (uDef.customparams.metal_extractor and uDef.customparams.metal_extractor > 0) then
 		uDef.customparams.metal_extractor = uDef.customparams.metal_extractor*1.2
 	end
+	if (uDef.extractsmetal and uDef.extractsmetal > 0) or (uDef.customparams.metal_extractor and uDef.customparams.metal_extractor > 0) and uDef.metalcost then
+		uDef.metalcost = uDef.metalcost * 1.2
+	end
 	if uDef.customparams.energyconv_capacity then
 		uDef.customparams.energyconv_capacity = uDef.customparams.energyconv_capacity*1.2
+		if uDef.energycost then
+			uDef.energycost = uDef.energycost * 1.2
+		end
+	end
+	if uDef.windgenerator then
+		uDef.windgenerator = uDef.windgenerator*1.1
+		if uDef.customparams.energymultiplier then
+			uDef.customparams.energymultiplier = uDef.customparams.energymultiplier * 1.1
+		else
+			uDef.customparams.energymultiplier = 1.1
+		end
 	end
 
-
+	if uDef.energycost then uDef.energycost = math.ceil(uDef.energycost) end
+	if uDef.metalcost then uDef.metalcost = math.ceil(uDef.metalcost) end
+	if uDef.buildtime then uDef.buildtime = math.ceil(uDef.buildtime) end
 
 	-- Extra Units for Scavs
 	if name == "armshltx_scav" then
