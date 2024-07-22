@@ -63,7 +63,7 @@ if Spring.Echo then
 		if #tableIndexes == 1 and args.n == 1 then
 			echo("<table>")
 		else
-				echo(unpack(args, 1, args.n))
+			echo(unpack(args, 1, args.n))
 		end
 
 		for _, index in ipairs(tableIndexes) do
