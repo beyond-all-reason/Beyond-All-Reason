@@ -1393,6 +1393,41 @@ local options = {
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    -- Map Metadata options
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    --
+    -- The modoptions below are intended to be set automatically by lobby/spads based on the selected
+    -- map name. They are used for a dynamic map configuration where the configruation values are not
+    -- tied to either game version or reside inside of the map file, allowing for independent distribution
+    -- from the maps metadata source of truth: https://github.com/beyond-all-reason/maps-metadata
+    {
+        key     = "mapmetadata",
+        name    = "MapMetadata",
+        desc    = "mapmetadata tab that should be hidden by chobby, which would have ideally been achieved by just not listing it and the following options here in the first place, but then SPADS refuses to set the modoption",
+        hidden  = true,
+        type    = "section",
+    },
+    {
+        key     = "sub_header",
+        name    = "Hidden map metadata options that are supposed to be set automatically by lobby/spads based on the map name.",
+        desc    = "",
+        section = "mapmetadata",
+        type    = "subheader",
+        hidden  = true,
+        def     = true,
+    },
+    {
+        key     = "mapmetadata_startpos",
+        name    = "Map Metadata: StartPos",
+        desc    = "StartPos configuration. Format is: base64url(zlib(json))",
+        hidden  = true,
+        section = "mapmetadata",
+        type    = "string",
+        def     = "",
+    },
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     -- Cheats
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
