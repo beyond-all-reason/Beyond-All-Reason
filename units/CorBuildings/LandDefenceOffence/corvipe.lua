@@ -130,7 +130,6 @@ return {
 				soundhitwet = "splshbig",
 				soundstart = "SabotFire",
 				startvelocity = 570,
-				targetmoveerror = 0.2,
 				smokeperiod = 5,
 				castshadow = true,
 				texture1 = "null",

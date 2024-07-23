@@ -129,7 +129,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "lasrfast",
 				soundtrigger = 1,
-				targetmoveerror = 0.3,
 				thickness = 1.25,
 				turret = true,
 				weapontype = "BeamLaser",

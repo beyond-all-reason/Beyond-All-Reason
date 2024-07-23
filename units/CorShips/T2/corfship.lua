@@ -139,7 +139,6 @@ return {
 				soundstart = "Flamhvy1",
 				soundtrigger = false,
 				sprayangle = 200,
-				targetmoveerror = 0.001,
 				texture1 = "flame_alt2",
 				tolerance = 2500,
 				turret = true,

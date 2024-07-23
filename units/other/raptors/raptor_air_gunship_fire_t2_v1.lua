@@ -121,7 +121,6 @@ return {
 				soundtrigger = false,
 				sprayangle = 100,
 				targetborder = 0.75,
-				targetmoveerror = 0.001,
 				tolerance = 2500,
 				turret = true,
 				weapontimer = 1,

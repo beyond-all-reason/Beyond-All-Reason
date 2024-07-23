@@ -139,7 +139,6 @@ return {
 				soundhit = "xplomed2",
 				soundhitwet = "splshbig",
 				soundstart = "cannhvy1",
-				targetmoveerror = 0.2,
 				tolerance = 8000,
 				turret = true,
 				weapontype = "Cannon",

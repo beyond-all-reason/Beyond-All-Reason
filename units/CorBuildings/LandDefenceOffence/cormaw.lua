@@ -150,7 +150,6 @@ return {
 				soundstartvolume = 5.3,
 				soundtrigger = false,
 				sprayangle = 100,
-				targetmoveerror = 0.001,
 				texture1 = "flame",
 				tolerance = 2500,
 				turret = true,

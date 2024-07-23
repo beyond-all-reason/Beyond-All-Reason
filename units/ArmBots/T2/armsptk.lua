@@ -133,7 +133,6 @@ return {
 				soundstart = "rocksalvo",
 				soundtrigger = true,
 				startvelocity = 80,
-				targetmoveerror = 0.2,
 				texture1 = "null",
 				texture2 = "smoketrailbar",
 				trajectoryheight = 0.5,

@@ -150,7 +150,6 @@ return {
 			-- 	soundtrigger = 1,
 			-- 	--sweepFire = true,
 			-- 	targetborder = 0.3,
-			-- 	targetmoveerror = 0.1,
 			-- 	thickness = 4.8,
 			-- 	tolerance = 60000,
 			-- 	turret = true,
