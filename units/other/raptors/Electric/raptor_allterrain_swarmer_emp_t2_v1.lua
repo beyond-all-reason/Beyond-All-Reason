@@ -104,7 +104,6 @@ return {
 				soundstart = "alien_electric",
 				soundstartvolume = 42,
 				soundtrigger = true,
-				targetmoveerror = 0.15,
 				thickness = 0.5,
 				turret = true,
 				weapontype = "LightningCannon",

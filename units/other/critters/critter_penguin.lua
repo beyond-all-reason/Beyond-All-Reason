@@ -88,7 +88,6 @@ return {
 --				soundstart = "pensquawk1",
 --				soundtrigger = 1,
 --				targetborder = 0.75,
---				targetmoveerror = 0.1,
 --				thickness = 0.6,
 --				tolerance = 6000,
 --				turret = false,
