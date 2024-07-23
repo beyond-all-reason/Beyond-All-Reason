@@ -1179,6 +1179,15 @@ local options = {
         section = "options_experimental",
         def  	= false,
     },
+	
+    {
+        key   	= "accuratelasers",
+        name   	= "Accurate Lasers",
+        desc   	= "Removes inaccuracy vs moving units from all laser weapons as a proposed solution to overpowered scoutspam",
+        type   	= "bool",
+        section = "options_experimental",
+        def  	= false,
+    },
 
     {
         key    	= "experimentallegionfaction",
