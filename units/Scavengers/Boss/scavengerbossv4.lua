@@ -561,7 +561,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				wobble = 5000,
 				damage = {
 					default = stats.missileDamage/6,
-					vtol = stats.missileDamage,
+					vtol = stats.missileDamage*2,
 				},
 			},
 			turbo_napalm = {
