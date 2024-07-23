@@ -126,13 +126,14 @@ function gadget:GameFrame(frame)
                 surroundingUnitID = surroundingUnits[i]
                 if not aliveHealers[surroundingUnitID] or (aliveHealers[surroundingUnitID].canbehealed and unitID ~= surroundingUnitID) then
                     if raptorScavTeamID or spAreTeamsAllied(statsTable.teamID, unitTeams[surroundingUnitID]) then
-                        local oldHP, maxHP = spGetUnitHealth(surroundingUnitID)
+                        local oldHP, maxHP, _, _, oldBuild= spGetUnitHealth(surroundingUnitID)
                         if oldHP < maxHP then
                             local x2, y2, z2 = spGetUnitPosition(surroundingUnitID)
 							if not spGetUnitNearestEnemy(surroundingUnitID, math.ceil(statsTable.healingrange)) then
                                 local healedUnitBuildTime = unitBuildtime[Spring.GetUnitDefID(surroundingUnitID)]
                                 local healValue = (maxHP/healedUnitBuildTime)*statsTable.healingpower
-                                Spring.SetUnitHealth(surroundingUnitID, oldHP+healValue)
+                                local buildValue = (statsTable.healingpower/healedUnitBuildTime)*2
+                                Spring.SetUnitHealth(surroundingUnitID, {health = oldHP+healValue, build = oldBuild+buildValue})
                                 Spring.SpawnCEG("heal", x2, y2+10, z2, 0,1,0)
                             end
                         end
