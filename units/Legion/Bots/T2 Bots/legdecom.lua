@@ -62,10 +62,10 @@ return {
 			[3] = "cormine3",
 			[4] = "legsolar",
 			[5] = "legwin",
-			[6] = "cormstor",
+			[6] = "legmstor",
 			[7] = "corestor",
 			[8] = "legmex",
-			[9] = "cormakr",
+			[9] = "legeconv",
 			[10] = "legrad",
 			[11] = "leglht",
 			[12] = "legrl",
@@ -82,6 +82,7 @@ return {
 			paralyzemultiplier = 0.025,
 			subfolder = "corbots/t2",
 			techlevel = 2,
+			isdecoycommander = true,
 		},
 		sfxtypes = {
 			explosiongenerators = {

@@ -128,7 +128,7 @@ return {
 				model = "legbomb.s3o",
 				name = "Long-Range g2g Heavy Cluster Plasma Cannon",
 				noselfdamage = true,
-				range = 4300,
+				range = 4800,
 				reloadtime = 18,
 				soundhit = "lrpcexplo",
 				soundhitwet = "splshbig",
@@ -140,7 +140,6 @@ return {
 				weaponvelocity = 1100,
 				customparams = {
 					cluster = true,
-					bouncing = false,
 					number = 4,
 				},
 				damage = {

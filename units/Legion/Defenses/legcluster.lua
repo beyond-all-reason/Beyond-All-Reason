@@ -111,9 +111,6 @@ return {
 				accuracy = 75,
 				areaofeffect = 120,
 				avoidfeature = false,
-				-- burst = 3,
-				-- burstrate = 0.2,
-				-- sprayangle = 200,
 				cegtag = "starfire_arty",
 				craterboost = 0,
 				cratermult = 0,
@@ -135,7 +132,6 @@ return {
 				weaponvelocity = 450,
 				customparams = {
 					cluster = true,
-					bouncing = true,
 					number = 3,
 				},
 				damage = {
@@ -156,7 +152,7 @@ return {
 				gravityaffected = "true",
 				impulseboost = 0.123,
 				impulsefactor = 0.5,
-				name = "Plasma burst",
+				name = "Cluster Munitions",
 				noselfdamage = true,
 				range = 180,
 				rgbcolor = "0.7 0.7 1.0 1.0 1.0 1.0 1.0 1.0",
@@ -199,7 +195,6 @@ return {
 				weaponvelocity = 450,
 				customparams = {
 					cluster = true,
-					bouncing = true,
 					number = 6,
 				},
 				damage = {

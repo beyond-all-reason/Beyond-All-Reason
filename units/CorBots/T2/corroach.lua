@@ -83,7 +83,7 @@ return {
 				gravityaffected = "true",
 				impulseboost = 0,
 				impulsefactor = 0,
-				name = "Mine Detonator",
+				name = "Self-destruction",
 				range = 1,
 				reloadtime = 0.1,
 				soundhitwet = "splshbig",

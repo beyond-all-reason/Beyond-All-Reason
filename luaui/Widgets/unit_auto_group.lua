@@ -54,26 +54,15 @@ for i = 0, 9 do
 end
 local unit2group = presets[currPreset] -- list of unit types to group
 
-local groupableBuildingTypes = { 'tacnuke', 'empmissile', 'napalmmissile', 'seismic' }
-local groupableBuildings = {}
-for _, v in ipairs(groupableBuildingTypes) do
-	if UnitDefNames[v] then
-		groupableBuildings[UnitDefNames[v].id] = true
-	end
-end
 
 local mobileBuilders = {}
 local builtInPlace = {}
 
-local unitShowGroup = {}
 local unitHealth = {}
 for udefID, def in ipairs(UnitDefs) do
 	if not def.isFactory then
 		if def.buildOptions and #def.buildOptions > 0 then
 			mobileBuilders[udefID] = true
-		end
-		if (groupableBuildings[udefID] or not def.isBuilding) then
-			unitShowGroup[udefID] = true
 		end
 	end
 	unitHealth[udefID] = def.health
@@ -140,15 +129,13 @@ local function ChangeUnitTypeAutogroupHandler(_, _, args, data)
 	for i = 1, #units do
 		local unitID = units[i]
 		local udid = GetUnitDefID(unitID)
-		if unitShowGroup[udid] then
-			selUnitDefIDs[udid] = true
-			unit2group[udid] = gr
-			exec = true
-			if gr == nil then
-				SetUnitGroup(unitID, -1)
-			else
-				SetUnitGroup(unitID, gr)
-			end
+		selUnitDefIDs[udid] = true
+		unit2group[udid] = gr
+		exec = true
+		if gr == nil then
+			SetUnitGroup(unitID, -1)
+		else
+			SetUnitGroup(unitID, gr)
 		end
 	end
 	presets[currPreset] = unit2group
@@ -294,7 +281,7 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 		finiGroup[unitID] = 1
 	end
 
-	if builtInFrame or immediate or groupableBuildings[unitDefID] or (builtInPlace[unitID] and #Spring.GetCommandQueue(unitID, 1) == 0) then
+	if builtInFrame or immediate or (builtInPlace[unitID] and #Spring.GetCommandQueue(unitID, 1) == 0) then
 		local gr = unit2group[unitDefID]
 		if gr ~= nil and GetUnitGroup(unitID) == nil then
 			SetUnitGroup(unitID, gr)

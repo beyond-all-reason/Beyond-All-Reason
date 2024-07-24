@@ -272,7 +272,7 @@ local barTypeMap = { -- WHERE SHOULD WE STORE THE FUCKING COLORS?
 		maxcolor = {1.0, 1.0, 1.0, 1.0},
 		--bartype = 3,
 		bartype = bitShowGlyph + bitUseOverlay + bitPercentage,
-		hidethreshold = 0.99,
+		hidethreshold = 0.999,
 		uniformindex = 0, -- if its >20, then its health/maxhealth
 		uvoffset = 0.9375, -- the X offset of the icon for this bar
 	},
@@ -763,15 +763,12 @@ local function addBarToFeature(featureID,  barname)
 	if barname == 'featurereclaim' then targetVBO = featureReclaimVBO end
 	if barname == 'featureresurrect' then targetVBO = featureResurrectVBO end
 
-	--Spring.Echo("addBarToFeature", featureID,  barname, featureDefHeights[featureDefID])
 	if targetVBO.instanceIDtoIndex[featureID] then return end -- already exists, bail
 	if featureBars[featureID] == nil then
-		--Spring.Echo("this feature did not exist yet?", FeatureDefs[Spring.GetFeatureDefID(featureID)].name, Spring.GetFeaturePosition(featureID))
 		featureBars[featureID] = 0
 	end
 	featureBars[featureID] = featureBars[featureID] + 1
 
-	--Spring.Debug.TableEcho(bt)
 	pushElementInstance(
 		targetVBO, -- push into this Instance VBO Table
 			{featureDefHeights[featureDefID] + additionalheightaboveunit,  -- height

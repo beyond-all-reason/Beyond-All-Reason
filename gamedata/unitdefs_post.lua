@@ -1,4 +1,5 @@
 -- see alldefs.lua for documentation
+VFS.Include("gamedata/unitdefrenames.lua")
 VFS.Include("gamedata/alldefs_post.lua")
 VFS.Include("gamedata/post_save_to_customparams.lua")
 local system = VFS.Include("gamedata/system.lua")

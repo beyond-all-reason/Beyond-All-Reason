@@ -1,7 +1,7 @@
 return {
 	corsiegebreaker = {
 		acceleration = 0.0206,
-		activatewhenbuilt = true,
+		activatewhenbuilt = false,
 		brakerate = 0.05321,
 		buildcostenergy = 15000,
 		buildcostmetal = 1100,

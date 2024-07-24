@@ -39,6 +39,7 @@ local nextTrackingPlayerChange = os.clock() - 200
 
 local tsOrderedPlayers = {}
 
+local teamList = Spring.GetTeamList()
 local isSpec, fullview = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
 local myTeamPlayerID = select(2, Spring.GetTeamInfo(myTeamID))
@@ -55,24 +56,20 @@ local math_isInRect = math.isInRect
 
 local playersList = Spring.GetPlayerList()
 local spGetTeamColor = Spring.GetTeamColor
+local spGetPlayerInfo = Spring.GetPlayerInfo
 
 local aiTeams = {}
 local teamColorKeys = {}
-local teams = Spring.GetTeamList()
-for i = 1, #teams do
-	local r, g, b, a = spGetTeamColor(teams[i])
-	teamColorKeys[teams[i]] = r..'_'..g..'_'..b
-
-	local _, _, _, isAiTeam = Spring.GetTeamInfo(teams[i], false)
+for i = 1, #teamList do
+	local r, g, b, a = spGetTeamColor(teamList[i])
+	teamColorKeys[teamList[i]] = r..'_'..g..'_'..b
+	local _, _, _, isAiTeam = Spring.GetTeamInfo(teamList[i], false)
 	if isAiTeam then
-		aiTeams[teams[i]] = true
+		aiTeams[teamList[i]] = true
 	end
 end
-teams = nil
 
-local spGetPlayerInfo= Spring.GetPlayerInfo
-
-local font, font2, lockPlayerID, prevLockPlayerID, toggleButton, toggleButton2, toggleButton3, backgroundGuishader, scheduledSpecFullView, desiredLosmode
+local font, font2, lockPlayerID, prevLockPlayerID, toggleButton, toggleButton2, toggleButton3, backgroundGuishader, showBackgroundGuishader, scheduledSpecFullView, desiredLosmode
 local RectRound, elementCorner, bgpadding
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
@@ -291,6 +288,7 @@ local function createList()
 			end
 		end)
 		WG['guishader'].InsertDlist(backgroundGuishader, 'playertv', true)
+		showBackgroundGuishader = true
 	end
 end
 
@@ -397,12 +395,11 @@ function widget:Update(dt)
 	if sec > 1 then
 
 		-- check if team colors have changed
-		local teams = Spring.GetTeamList()
 		local detectedChanges = false
-		for i = 1, #teams do
-			local r, g, b, a = spGetTeamColor(teams[i])
-			if teamColorKeys[teams[i]] ~= r..'_'..g..'_'..b then
-				teamColorKeys[teams[i]] = r..'_'..g..'_'..b
+		for i = 1, #teamList do
+			local r, g, b, a = spGetTeamColor(teamList[i])
+			if teamColorKeys[teamList[i]] ~= r..'_'..g..'_'..b then
+				teamColorKeys[teamList[i]] = r..'_'..g..'_'..b
 				detectedChanges = true
 			end
 		end
@@ -444,7 +441,6 @@ function widget:Update(dt)
 			end
 		end
 	end
-
 	if not toggled2 and Spring.GetMapDrawMode() == 'los' then
 		toggled2 = true
 		if WG['advplayerlist_api'] and WG['advplayerlist_api'].SetLosMode then
@@ -494,6 +490,9 @@ function widget:DrawScreen()
 		if WG['guishader'] then
 			WG['guishader'].RemoveDlist('playertv')
 		end
+	elseif backgroundGuishader and not showBackgroundGuishader then
+		WG['guishader'].InsertDlist(backgroundGuishader, 'playertv', true)
+		showBackgroundGuishader =  true
 	end
 
 	if gameFrame > 0 or lockPlayerID then
@@ -751,6 +750,7 @@ function widget:ViewResize()
 		if WG['guishader'] and backgroundGuishader then
 			WG['guishader'].DeleteDlist('playertv')
 			backgroundGuishader = nil
+			showBackgroundGuishader = nil
 		end
 		for i = 1, #drawlist do
 			drawlist[i] = gl.DeleteList(drawlist[i])

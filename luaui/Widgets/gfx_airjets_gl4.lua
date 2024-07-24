@@ -847,26 +847,21 @@ local function Activate(unitID, unitDefID, who, when)
 	local unitEffects = effectDefs[unitDefID]
 	for i = 1, #unitEffects do
 		local effectDef = unitEffects[i]
-		--Spring.Utilities.TableEcho(effectDef)
 		local color = effectDef.color
 		local emitVector = effectDef.emitVector
 		local effectdata = {
 			effectDef.width*0.4,effectDef.length, when,
 			emitVector[1],emitVector[2],emitVector[3],
 			color[1],color[2],color[3],
-			--math.floor(math.random() * 5) ,
 			effectDef.piecenum - 1,
 			0,0,0,0, -- this is needed to keep the lua copy of the vbo the correct size
 
 		}
-		--Spring.Echo("Adding", tostring(unitID).."_"..tostring(effectDef.piecenum))
 		pushElementInstance(jetInstanceVBO,effectdata,tostring(unitID).."_"..tostring(effectDef.piecenum), true, nil, unitID)
 	end
 end
 
 local function Deactivate(unitID, unitDefID, who)
-	--Spring.Echo(Spring.GetGameFrame(),who, "Deactivate(unitID, unitDefID)",unitID, unitDefID)
-
 	activePlanes[unitID] = nil
 
 	inactivePlanes[unitID] = unitDefID

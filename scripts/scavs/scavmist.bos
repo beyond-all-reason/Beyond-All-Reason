@@ -9,7 +9,9 @@
 // #define WALK_PERIOD 100
 
 
-piece	flare;
+piece	flare, offsetturret, offsetflare, highflare;
+
+static-var aimPriority;
 
 // static-var fire_count, firing, open, maxreloadtime, restore_delay, wpn1_lasthead, animSpeed, maxSpeed, animFramesPerKeyframe, bMoving;
 
@@ -40,8 +42,19 @@ Emitsmoke()
 Create()
 {
 	hide flare;
+	hide offsetturret;
+	hide offsetflare;
+	hide highflare;
 	dont-shade flare;
 	dont-cache flare;
+	dont-shade offsetturret;
+	dont-cache offsetturret;
+	dont-shade offsetflare;
+	dont-cache offsetflare;
+	dont-shade highflare;
+	dont-cache highflare;
+	aimPriority = 0;
+	
 	set ARMORED to 0;
 	//emit-sfx 1024 + 0 from flare;
 	sleep 500;
@@ -49,19 +62,73 @@ Create()
 	start-script Emitsmoke();
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
-	piecenum=flare;
+	piecenum = highflare;
 }
 
-AimPrimary()
+//AimFromWeapon1(piecenum)
+//{
+//piecenum = highflare;
+//}
+
+AimWeapon1(heading, pitch)
 {
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	emit-sfx 1024 + 0 from flare;
+	sleep 100;
+	return(1);
+}
+
+QueryWeapon2(piecenum)
+{
+	piecenum=offsetflare;
+}
+
+AimFromWeapon2(piecenum)
+{
+piecenum = offsetturret;
+}
+
+
+AimWeapon2(heading, pitch)
+{
+	turn offsetturret to y-axis heading speed <300.071429>;
+	wait-for-turn offsetturret around y-axis;
+	return (1);
+}
+
+FireWeapon2()
+{
+	emit-sfx 1024 + 0 from flare;
+	sleep 100;
+	return(1);
+}
+
+QueryWeapon3(piecenum)
+{
+	piecenum=offsetflare;
+}
+
+AimFromWeapon3(piecenum)
+{
+piecenum = offsetturret;
+}
+
+
+AimWeapon3(heading, pitch)
+{
+	return (1);
+}
+
+FireWeapon3()
+{
+	emit-sfx 1024 + 0 from flare;
+	sleep 100;
 	return(1);
 }
 

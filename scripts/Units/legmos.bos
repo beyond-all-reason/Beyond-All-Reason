@@ -193,7 +193,7 @@ Create()
 Activate()
 {
 	show thrust;
-	spin blades around z-axis speed <720> accelerate <5>;
+	spin blades around z-axis speed <240> accelerate <5>;
 	start-script RequestState(0);
 }
 

@@ -174,7 +174,7 @@ return {
 				name = "Light g2g missile launcher",
 				noselfdamage = true,
 				predictboost = 1,
-				range = 550,
+				range = 575,
 				reloadtime = 2.5,
 				smoketrail = true,
 				smokePeriod = 8,

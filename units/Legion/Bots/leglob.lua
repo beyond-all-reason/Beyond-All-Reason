@@ -19,7 +19,7 @@ return {
 		idletime = 1800,
 		leavetracks = true,
 		mass = 150,
-		health = 450,
+		health = 500,
 		maxslope = 14,
 		speed = 51.0,
 		maxwaterdepth = 12,
@@ -37,8 +37,8 @@ return {
 		upright = true,
 		customparams = {
 			unitgroup = 'weapon',
-			model_author = "Mr Bob, Flaka, Zecrus",
-			normaltex = "unittextures/cor_normal.dds",
+			model_author = "Tharsis",
+			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "corbots",
 		},
 		featuredefs = {
@@ -118,7 +118,7 @@ return {
 				name = "PlasmaCannon",
 				noselfdamage = true,
 				predictboost = 0.6,
-				range = 380,
+				range = 400,
 				reloadtime = 2.5,
 				size = 1.8,
 				soundhit = "xplomed3",
@@ -126,7 +126,7 @@ return {
 				soundstart = "cannon1",
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 200,
+				weaponvelocity = 220,
 				damage = {
 					default = 75,
 					vtol = 21,
