@@ -4,7 +4,7 @@
 
 --Skeleton pieces
 --local head, torso, luparm, biggun, ruparm, rloarm, lflare, nano, laserflare, pelvis, rthigh, lthigh, lleg, rleg, rfoot, rfootstep, lfoot, lfootstep, dish, barrel, aimy1, bigguncyl,hatpoint, crown, medalsilver, medalbronze, medalgold, cagelight, cagelight_emit = piece("head", "torso", "luparm", "biggun", "ruparm","rloarm","lflare", "nano", "laserflare", "pelvis", "rthigh", "lthigh" ,"lleg", "rleg", "rfoot", "rfootstep", "lfoot", "lfootstep", "dish", "barrel", "aimy1","bigguncyl","hatpoint", "crown", "medalsilver", "medalbronze", "medalgold", "cagelight", "cagelight_emit")
-local head, torso, luparm, biggun, ruparm, rloarm, lflare, nano, laserflare, pelvis, rthigh, lthigh, lleg, rleg, rfoot, rfootstep, lfoot, lfootstep, dish, barrel, aimy1, bigguncyl,hatpoint, crown, medalsilver, medalbronze, medalgold, armhexl, armhexl2, armhexl_emit, armhexl2_emit = piece("head", "torso", "luparm", "biggun", "ruparm","rloarm","lflare", "nano", "laserflare", "pelvis", "rthigh", "lthigh" ,"lleg", "rleg", "rfoot", "rfootstep", "lfoot", "lfootstep", "dish", "barrel", "aimy1","bigguncyl","hatpoint", "crown", "medalsilver", "medalbronze", "medalgold", "armhexl", "armhexl2", "armhexl_emit", "armhexl2_emit")
+local head, torso, luparm, biggun, ruparm, rloarm, lflare, nano, laserflare, pelvis, rthigh, lthigh, lleg, rleg, rfoot, rfootstep, lfoot, lfootstep, dish, barrel, aimy1, bigguncyl,hatpoint, armhexl, armhexl2, armhexl_emit, armhexl2_emit = piece("head", "torso", "luparm", "biggun", "ruparm","rloarm","lflare", "nano", "laserflare", "pelvis", "rthigh", "lthigh" ,"lleg", "rleg", "rfoot", "rfootstep", "lfoot", "lfootstep", "dish", "barrel", "aimy1","bigguncyl","hatpoint", "armhexl", "armhexl2", "armhexl_emit", "armhexl2_emit")
 
 local weapons = {
 	[1] = "dronepointer",
@@ -926,15 +926,6 @@ function script.Create()
 	--Turn(nano, 1,math.rad(90)) -- WHY?
 	--Turn(laserflare, 1,math.rad(90)) -- WHY?
 
-	Hide(crown)
-	Hide(medalgold)
-	Hide(medalsilver)
-	Hide(medalbronze)
-	Move(crown, y_axis, 100, 9999)
-	Move(medalgold, y_axis, 100, 9999)
-	Move(medalsilver, y_axis, 100, 9999)
-	Move(medalbronze, y_axis, 100, 9999)
-
 	Hide(nano)
 	Hide(armhexl_emit)
 	Hide(armhexl2_emit)
@@ -953,19 +944,6 @@ function script.Create()
 	StartThread(UnitSpeed)
 	StartThread(StopWalking)
 	StartThread(TimerCheck)
-end
-
-function ShowCrown()
-	Show(crown)
-end
-function ShowMedalGold()
-	Show(medalgold)
-end
-function ShowMedalSilver()
-	Show(medalsilver)
-end
-function ShowMedalBronze()
-	Show(medalbronze)
 end
 
 function script.StartMoving()
