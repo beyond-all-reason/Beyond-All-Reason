@@ -5,6 +5,9 @@ them in `init.lua` (because they're not free to run, so we don't want them to
 run for end users.)
 ]]
 
+-- Lua 5.1 backwards compatibility
+table.pack = table.pack or function(...) return { n = select("#", ...), ... } end
+
 if not table.copy then
 	function table.copy(tbl)
 		local copy = {}
@@ -74,9 +77,21 @@ if not table.toString then
 	end
 
 	local function keyCmp(a, b)
-		a = tableToString(a)
-		b = tableToString(b)
-		return a < b
+		local ta = type(a)
+		local tb = type(b)
+
+		-- numbers always sort before other keys
+		-- compare pairs of numbers directly
+		-- for everything else, convert to string first
+		if ta == "number" and tb == "number" then
+			return a < b
+		elseif ta == "number" and tb ~= "number" then
+			return true
+		elseif tb == "number" and ta ~= "number" then
+			return false
+		else
+			return tableToString(a) < tableToString(b)
+		end
 	end
 
 	tableToString = function(tbl, options, _seen, _depth)
@@ -108,7 +123,7 @@ if not table.toString then
 		local indent = (options and options.indent) or DEFAULT_INDENT_STEP
 
 		local str = "{"
-		if options and options.pretty then
+		if #keys > 0 and options and options.pretty then
 			str = str .. "\n"
 		end
 		for i, key in ipairs(keys) do
@@ -133,9 +148,10 @@ if not table.toString then
 		if #keys > 0 then
 			-- remove the last comma (normal) or newline (pretty)
 			str = str:sub(1, #str - 1)
-		end
-		if options and options.pretty then
-			str = str .. "\n" .. stringRep(" ", _depth * indent)
+
+			if options and options.pretty then
+				str = str .. "\n" .. stringRep(" ", _depth * indent)
+			end
 		end
 		str = str .. "}"
 

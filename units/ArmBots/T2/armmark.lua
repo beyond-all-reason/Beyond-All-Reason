@@ -24,6 +24,7 @@ return {
 		speed = 40.5,
 		maxwaterdepth = 0,
 		movementclass = "BOT3",
+		movestate = 0,
 		objectname = "Units/ARMMARK.s3o",
 		onoffable = false,
 		radardistance = 2200,

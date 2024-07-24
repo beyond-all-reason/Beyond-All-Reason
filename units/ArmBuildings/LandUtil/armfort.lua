@@ -35,6 +35,7 @@ return {
 		sightdistance = 1,
 		yardmap = "ffff",
 		customparams = {
+			unitgroup = "util",
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/armfort_aoplane.dds",
 			buildinggrounddecalsizey = 4,

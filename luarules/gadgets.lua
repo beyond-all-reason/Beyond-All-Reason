@@ -1956,7 +1956,9 @@ end
 function gadgetHandler:Update(deltaTime)
 	tracy.ZoneBeginN("G:Update")
 	for _, g in ipairs(self.UpdateList) do
+		tracy.ZoneBeginN("G:Update:" .. g.ghInfo.name)
 		g:Update(deltaTime)
+		tracy.ZoneEnd()
 	end
 	tracy.ZoneEnd()
 	return
@@ -2004,7 +2006,9 @@ end
 function gadgetHandler:DrawWorldPreUnit()
 	tracy.ZoneBeginN("G:DrawWorldPreUnit")
 	for _, g in ipairs(self.DrawWorldPreUnitList) do
+		tracy.ZoneBeginN("G:DrawWorldPreUnit:" .. g.ghInfo.name)
 		g:DrawWorldPreUnit()
+		tracy.ZoneEnd()
 	end
 	tracy.ZoneEnd()
 	return

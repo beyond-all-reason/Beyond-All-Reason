@@ -3,8 +3,8 @@ return {
 		maxacc = 0,
 		maxdec = 0,
 		buildangle = 29096,
-		energycost = 600000,
-		metalcost = 52500,
+		energycost = 660000,
+		metalcost = 58000,
 		buildpic = "legstarfall.DDS",
 		buildtime = 1400000,
 		canrepeat = false,
@@ -20,7 +20,7 @@ return {
 		footprintz = 8,
 		idleautoheal = 5,
 		idletime = 1800,
-		health = 33500,
+		health = 26000,
 		maxslope = 13,
 		maxwaterdepth = 0,
 		objectname = "Units/legstarfall.s3o",
@@ -108,7 +108,6 @@ return {
 				avoidground = false,
 				burst = 61,
 				burstrate = 0.01,
-
 				sprayangle = 500,
 				highTrajectory = 1,
 
@@ -118,6 +117,9 @@ return {
 				cratermult = 0.1,
 				edgeeffectiveness = 0.95,
 				energypershot = 360000,
+
+				fireTolerance = 364,
+				tolerance = 364,
 
 				explosiongenerator = "custom:starfire-explosion",
 				gravityaffected = "true",
@@ -148,6 +150,10 @@ return {
 				badtargetcategory = "MOBILE",
 				def = "starfire",
 				onlytargetcategory = "SURFACE",
+				--engine bug?
+				burstControlWhenOutOfArc = 1,
+				maindir = "0 0 1",
+               --maxangledif = 10,
 			},
 		},
 	},

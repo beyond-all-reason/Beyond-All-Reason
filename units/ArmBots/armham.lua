@@ -23,6 +23,7 @@ return {
 		speed = 46.2,
 		maxwaterdepth = 12,
 		movementclass = "BOT4",
+		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMHAM.s3o",
 		script = "Units/ARMHAM.cob",

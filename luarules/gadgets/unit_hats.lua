@@ -81,8 +81,8 @@ local kings = {
 }
 local goldMedals = {	-- Nation Wars winners
 	["Nezah"] = true,
-	["[waa]Delfea]"] = true,
-	["[waa]Eural]"] = true,
+	["[waa]Delfea"] = true,
+	["[waa]Eural"] = true,
 	["Kuchy"] = true,
 	["Darkclone"] = true,
 	["[200IQ]DrSmashy"] = true,

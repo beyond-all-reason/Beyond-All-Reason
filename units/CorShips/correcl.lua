@@ -1,5 +1,6 @@
 return {
 	correcl = {
+		activatewhenbuilt = true,
 		maxacc = 0.05333,
 		autoheal = 2,
 		maxdec = 0.05333,

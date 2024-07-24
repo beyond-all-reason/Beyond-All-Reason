@@ -236,9 +236,7 @@ vec3 rgb2hsv(vec3 c){
 	local waterAbsorbColorR, waterAbsorbColorG, waterAbsorbColorB = gl.GetWaterRendering("absorb")
 	local waterMinColorR, waterMinColorG, waterMinColorB = gl.GetWaterRendering("minColor")
 	local waterBaseColorR, waterBaseColorG, waterBaseColorB = gl.GetWaterRendering("baseColor")
-	
-	--Spring.Echo(waterAbsorbColorR, waterAbsorbColorG, waterAbsorbColorB)
-	--Spring.Debug.TableEcho(waterAbsorbColor)
+
 	local waterUniforms = 
 [[ 
 #define WATERABSORBCOLOR vec3(%f,%f,%f)
@@ -567,6 +565,22 @@ function LuaShader:Compile(suppresswarnings)
 		--Spring.Echo(uniName, uniforms[uniName].location, uniforms[uniName].type, uniforms[uniName].size)
 		--Spring.Echo(uniName, uniforms[uniName].location)
 	end
+	
+	-- Note that the function call overhead to the LuaShader:SetUniformFloat is about 500ns
+	-- With this, a direct gl.Uniform call, this goes down to 100ns
+	self.uniformLocations = {}
+	for _, uniformGeneric in ipairs({self.shaderParams.uniformFloat or {}, self.shaderParams.uniformInt or {} }) do 
+		for uniName, defaultvalue in pairs(uniformGeneric) do 
+			local location = glGetUniformLocation(shaderObj, uniName) 
+			if location then 
+				self.uniformLocations[uniName] = location 
+			else
+				Spring.Echo(string.format("Notice from shader %s: Could not find location of uniform name: %s", "dunno", uniName ))
+			end
+			
+		end
+	end
+
 	return true
 end
 

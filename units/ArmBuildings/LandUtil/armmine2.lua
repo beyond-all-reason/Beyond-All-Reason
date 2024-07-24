@@ -39,6 +39,7 @@ return {
 		stealth = true,
 		yardmap = "y",
 		customparams = {
+			mine = true,
 			unitgroup = 'explo',
 			detonaterange = "64",
 			model_author = "Beherith",

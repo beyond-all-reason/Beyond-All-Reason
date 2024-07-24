@@ -40,6 +40,8 @@ return {
 		customparams = {
 			model_author = "Hornet",
 			nohealthbars = true,
+			objectify = true,
+			paralyzemultiplier = 0,
 			subfolder = "other",
 			decoration = 1,
 		},

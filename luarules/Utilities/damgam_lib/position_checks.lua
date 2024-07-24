@@ -116,7 +116,7 @@ local function LandOrSeaCheck(posx, posy, posz, posradius) -- returns string, "l
 	local testpos8 = Spring.GetGroundHeight(posx, (posz - posradius) )
 
     local minimumheight = math.min(testpos1, testpos2, testpos3, testpos4, testpos5, testpos6, testpos7, testpos8)
-    local maximumheight = math.min(testpos1, testpos2, testpos3, testpos4, testpos5, testpos6, testpos7, testpos8)
+    local maximumheight = math.max(testpos1, testpos2, testpos3, testpos4, testpos5, testpos6, testpos7, testpos8)
 
     if (deathwater > 0 and minimumheight <= 0) or (lavaLevel and (minimumheight <= lavaLevel)) then
         return "death"

@@ -572,15 +572,17 @@ else  -- UNSYCNED
 		//Get the fragment depth
 		// note that WE CANT GO LOWER THAN THE ACTUAL LAVA LEVEL!
 
+		vec2 screenUV = clamp(v_screenUV, 1.0/(viewGeometry.xy), 1.0 - 1.0/ (viewGeometry.xy));
+
 		// Sample the depth buffers, and choose whichever is closer to the screen
-		float mapdepth = texture(mapDepths, v_screenUV).x;
-		float modeldepth = texture(modelDepths, v_screenUV).x;
+		float mapdepth = texture(mapDepths, screenUV).x;
+		float modeldepth = texture(modelDepths, screenUV).x;
 		mapdepth = min(mapdepth, modeldepth);
 
 		// the W weight factor here is incorrect, as it comes from the depth buffers, and not the fragments own depth.
 
 		// Convert to normalized device coordinates, and calculate inverse view projection
-		vec4 mapWorldPos =  vec4(  vec3(v_screenUV.xy * 2.0 - 1.0, mapdepth),  1.0);
+		vec4 mapWorldPos =  vec4(  vec3(screenUV.xy * 2.0 - 1.0, mapdepth),  1.0);
 		mapWorldPos = cameraViewProjInv * mapWorldPos;
 		mapWorldPos.xyz = mapWorldPos.xyz/ mapWorldPos.w; // YAAAY this works!
 		float trueFragmentHeight = mapWorldPos.y;
@@ -640,13 +642,13 @@ else  -- UNSYCNED
 			if lavaGrow then
 				if lavaGrow > 0 and not lavaRisingNotificationPlayed then
 					lavaRisingNotificationPlayed = true
-					if Script.LuaUI("EventBroadcast") then
-						Script.LuaUI.EventBroadcast("SoundEvents LavaRising "..myPlayerID)
+					if Script.LuaUI("NotificationEvent") then
+						Script.LuaUI.NotificationEvent("LavaRising "..myPlayerID)
 					end
 				elseif lavaGrow < 0 and not lavaDroppingNotificationPlayed then
 					lavaDroppingNotificationPlayed = true
-					if Script.LuaUI("EventBroadcast") then
-						Script.LuaUI.EventBroadcast("SoundEvents LavaDropping "..myPlayerID)
+					if Script.LuaUI("NotificationEvent") then
+						Script.LuaUI.NotificationEvent("LavaDropping "..myPlayerID)
 					end
 				elseif lavaGrow == 0 and (lavaRisingNotificationPlayed or lavaDroppingNotificationPlayed) then
 					lavaRisingNotificationPlayed = false

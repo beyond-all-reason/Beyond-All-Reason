@@ -22,6 +22,7 @@ return {
 		maxslope = 15,
 		speed = 53.49,
 		movementclass = "ABOT2",
+		movestate = 0,
 		nochasecategory = "NOTAIR",
 		objectname = "Units/CORCRASH.s3o",
 		script = "Units/CORCRASH.cob",

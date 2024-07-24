@@ -26,6 +26,7 @@ return {
 		speed = 33.0,
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
+		movestate = 0,
 		nochasecategory = "MOBILE",
 		objectname = "Units/ARMJAM.s3o",
 		onoffable = true,

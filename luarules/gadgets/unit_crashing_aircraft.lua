@@ -31,6 +31,7 @@ if gadgetHandler:IsSyncedCode() then
 	local isAircon = {}
 	local crashable  = {}
 	local alwaysCrash = {}
+	local unitWeapons = {}
 	for udid,UnitDef in pairs(UnitDefs) do
 		if UnitDef.canFly == true and UnitDef.transportSize == 0 and string.sub(UnitDef.name, 1, 7) ~= "critter" then
 			crashable[UnitDef.id] = true
@@ -40,6 +41,9 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		if string.find(UnitDef.name, 'corcrw') or string.find(UnitDef.name, 'armliche') then
 			alwaysCrash[UnitDef.id] = true
+		end
+		if #UnitDef.weapons > 0 then
+			unitWeapons[udid] = UnitDef.weapons
 		end
 	end
 	--local nonCrashable = {'armpeep', 'corfink', 'corbw', 'armfig', 'armsfig', 'armhawk', 'corveng', 'corsfig', 'corvamp'}
@@ -89,14 +93,16 @@ if gadgetHandler:IsSyncedCode() then
 			SetUnitStealth(unitID, true)
 			SetUnitAlwaysVisible(unitID, false)
 			SetUnitNeutral(unitID, true)
-			for weaponID, weapon in pairs(UnitDefs[unitDefID].weapons) do
-				SetUnitWeaponState(unitID, weaponID, "reloadState", 0)
-				SetUnitWeaponState(unitID, weaponID, "reloadTime", 9999)
-				SetUnitWeaponState(unitID, weaponID, "range", 0)
-				SetUnitWeaponState(unitID, weaponID, "burst", 0)
-				SetUnitWeaponState(unitID, weaponID, "aimReady", 0)
-				SetUnitWeaponState(unitID, weaponID, "salvoLeft", 0)
-				SetUnitWeaponState(unitID, weaponID, "nextSalvo", 9999)
+			if unitWeapons[unitDefID] then
+				for weaponID, _ in pairs(unitWeapons[unitDefID]) do
+					SetUnitWeaponState(unitID, weaponID, "reloadState", 0)
+					SetUnitWeaponState(unitID, weaponID, "reloadTime", 9999)
+					SetUnitWeaponState(unitID, weaponID, "range", 0)
+					SetUnitWeaponState(unitID, weaponID, "burst", 0)
+					SetUnitWeaponState(unitID, weaponID, "aimReady", 0)
+					SetUnitWeaponState(unitID, weaponID, "salvoLeft", 0)
+					SetUnitWeaponState(unitID, weaponID, "nextSalvo", 9999)
+				end
 			end
 			-- remove sensors
 			SetUnitSensorRadius(unitID, "los", 0)
@@ -143,24 +149,10 @@ else	-- UNSYNCED
 
 	local IsUnitInView = Spring.IsUnitInView
 
-	local function crashingAircraft(_,unitID,unitDefID,unitTeam)
-		local _, fullView = Spring.GetSpectatingState()
-		local myTeamID = Spring.GetMyTeamID()
-		if fullView or CallAsTeam(myTeamID, IsUnitInView, unitID) then
-			if Script.LuaUI("GadgetCrashingAircraft") then
-				Script.LuaUI.GadgetCrashingAircraft(unitID, unitDefID, unitTeam)
-			end
-			if Script.LuaUI("GadgetCrashingAircraft1") then
-				Script.LuaUI.GadgetCrashingAircraft1(unitID, unitDefID, unitTeam)
-			end
-			if Script.LuaUI("GadgetCrashingAircraft2") then
-				Script.LuaUI.GadgetCrashingAircraft2(unitID, unitDefID, unitTeam)
-			end
-			if Script.LuaUI("GadgetCrashingAircraft3") then
-				Script.LuaUI.GadgetCrashingAircraft3(unitID, unitDefID, unitTeam)
-			end
-			if Script.LuaUI("GadgetCrashingAircraft4") then
-				Script.LuaUI.GadgetCrashingAircraft4(unitID, unitDefID, unitTeam)
+	local function crashingAircraft(_, unitID, unitDefID, unitTeam)
+		if select(2, Spring.GetSpectatingState()) or CallAsTeam(Spring.GetMyTeamID(), IsUnitInView, unitID) then
+			if Script.LuaUI("CrashingAircraft") then
+				Script.LuaUI.CrashingAircraft(unitID, unitDefID, unitTeam)
 			end
 		end
 	end

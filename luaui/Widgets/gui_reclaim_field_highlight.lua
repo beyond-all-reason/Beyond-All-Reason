@@ -127,8 +127,6 @@ local function DistSq(p1, p2)
 	return (p1.x - p2.x)^2 + (p1.z - p2.z)^2
 end
 
-local TableEcho = Spring.Utilities.TableEcho
-
 local Optics = {}
 function Optics.new(incPoints, incNeighborMatrix, incMinPoints)
 	local object = setmetatable({}, {
@@ -220,9 +218,7 @@ function Optics.new(incPoints, incNeighborMatrix, incMinPoints)
 				self:_Setup()
 
 				local unprocessed = self.unprocessed
-				--TableEcho(unprocessed, "unprocessed")
 				while next(unprocessed) do
-					--TableEcho({item=next(unprocessed)}, "next(unprocessed)")
 					local point = next(unprocessed)
 
 					-- mark p as processed
@@ -230,8 +226,6 @@ function Optics.new(incPoints, incNeighborMatrix, incMinPoints)
 
 					-- find p's neighbors
 					local neighbors = self:_Neighbors(point.fID)
-					--TableEcho({point=point, neighbors=neighbors}, "self:_Neighbors(point)")
-					--TableEcho({point=point, neighborsNum=#neighbors}, "self:_Neighbors(point)")
 
 					-- if p has a core_distance, i.e has min_cluster_size - 1 neighbors
 					if self:_CoreDistance(point, neighbors) then
@@ -242,14 +236,12 @@ function Optics.new(incPoints, incNeighborMatrix, incMinPoints)
 						while seedsPQ:peek() do
 							-- seeds.sort(key=lambda n: n.rd)
 							local n = seedsPQ:pop()[2] --because we don't need priority
-							--TableEcho({n=n}, "seedsPQ:pop()")
 
 							-- mark n as processed
 							self:_Processed(n)
 
 							-- find n's neighbors
 							local nNeighbors = self:_Neighbors(n.fID)
-							--TableEcho({n=n, nNeighbors=nNeighbors}, "seedsPQ:peek()")
 
 							-- if p has a core_distance...
 							if self:_CoreDistance(n, nNeighbors) then
@@ -263,7 +255,6 @@ function Optics.new(incPoints, incNeighborMatrix, incMinPoints)
 				-- when all points have been processed
 				-- return the ordered list
 				--Spring.Echo("#ordered", #self.ordered)
-				--TableEcho({ordered = self.ordered}, "ordered")
 				return self.ordered
 			end,
 
@@ -287,27 +278,21 @@ function Optics.new(incPoints, incNeighborMatrix, incMinPoints)
 					end
 				end
 				separators[#separators + 1] = #ordered + 1
-				--TableEcho(separators,"separators")
 
 				for j = 1, #separators - 1 do
 					local sepStart = separators[j]
 					local sepEnd = separators[j + 1]
 					--print(sepEnd, sepStart, sepEnd - sepStart, self.minPoints)
 					if sepEnd - sepStart >= self.minPoints then
-						--Spring.Echo("sepEnd - sepStart >= self.minPoints")
-						--self.ordered[start:end]
 						local clPoints = {}
 						for si = sepStart, sepEnd - 1 do
 							clPoints[#clPoints + 1] = ordered[si].fID
 						end
-					--	TableEcho({clPoints=clPoints}, "clPoints")
 
 						clusters[#clusters + 1] = {}
 						clusters[#clusters].members = clPoints
-						--Spring.Echo("#clPoints", #clPoints)
 					end
 				end
-				--TableEcho({ordered=ordered}, "clusters")
 				return clusters
 			end,
 		}

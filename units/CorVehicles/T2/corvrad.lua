@@ -25,6 +25,7 @@ return {
 		speed = 48.0,
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
+		movestate = 0,
 		objectname = "Units/CORVRAD.s3o",
 		onoffable = false,
 		radardistance = 2200,

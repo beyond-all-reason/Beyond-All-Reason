@@ -13,6 +13,7 @@ return {
 		cancapture = true,
 		candgun = true,
 		canmove = true,
+		capturable = false,
 		capturespeed = 900,
 		category = "ALL WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		cloakcost = 30,
@@ -81,6 +82,7 @@ return {
 			paralyzemultiplier = 0.025,
 			subfolder = "corbots/t2",
 			techlevel = 2,
+			isdecoycommander = true,
 		},
 		sfxtypes = {
 			explosiongenerators = {

@@ -23,7 +23,7 @@ local isCommander = {}
 local isDecoyCommander = {}
 local commanderNames = {}
 for unitDefID, unitDef in ipairs(UnitDefs) do
-	if unitDef.customParams.iscommander then
+	if unitDef.customParams.iscommander or unitDef.customParams.isscavcommander then
 		isCommander[unitDefID] = true
 		commanderNames[unitDef.name] = true
 	end

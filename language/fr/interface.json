@@ -682,7 +682,7 @@
 			"reconnected": "Mode sans propriétaire : équipe %{team} reconnectée"
 		},
 		"unitTotals": {
-			"totals": "%{titleColor} Unités %{textColor}%{units}/%{maxUnits}%{titleColor}Total %{textColor}%{totalUnits}"
+			"totals": "%{titleColor}Unités  %{textColor}%{units} / %{maxUnits}     %{titleColor}Total  %{textColor}%{totalUnits}"
 		},
 		"resolutionswitcher": {
 			"multidisplay": "Multi-affichage",
@@ -1038,9 +1038,6 @@
 				"sndvolmusic": "musique",
 				"loadscreen_music": "commence à l'écran de chargement",
 				"loadscreen_music_descr": "Musique lors de l'affichage de l'écran de chargement",
-				"scav_messages": "Notifications écrites des charognards",
-				"scav_voicenotifs": "Notifications vocales des charognards",
-				"scav_voicenotifs_descr": "Activer/désactiver la voix de l'annonceur Charognard",
 				"notifications_set": "Voix",
 				"notifications_tutorial": "Mode tutoriel",
 				"notifications_tutorial_descr": "Affiche des messages d'aide sur comment jouer\nNe répète pas les conseils déjà prodigués\nRéactiver ce paramètre réinitialisera le tutoriel",
@@ -1495,6 +1492,7 @@
 				"green": "vert",
 				"blue": "bleu",
 				"language": "Langage",
+				"language_english_unit_names": "Afficher noms d'unités en anglais",
 				"reclaimfieldhighlight": "Surbrillance des épaves",
 				"reclaimfieldhighlight_descr": "Permet d'automatiquement mettre en valeur les concentrations d'épaves recyclables.",
 				"reclaimfieldhighlight_always": "Toujours actif",

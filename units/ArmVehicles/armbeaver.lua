@@ -11,7 +11,7 @@ return {
 		canmove = true,
 		category = "ALL TANK PHIB NOTSUB  NOWEAPON NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "34 22 41",
+		collisionvolumescales = "34 26 41",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		energymake = 8,

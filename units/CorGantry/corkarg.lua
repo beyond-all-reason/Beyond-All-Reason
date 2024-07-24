@@ -188,6 +188,7 @@ return {
 			super_missile = {
 				areaofeffect = 64,
 				avoidfeature = false,
+				burnblow = true,
 				cegtag = "missiletrailsmall-simple",
 				craterareaofeffect = 0,
 				craterboost = 0,
