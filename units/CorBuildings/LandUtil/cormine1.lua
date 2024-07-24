@@ -37,7 +37,6 @@ return {
 		selfdestructcountdown = 0,
 		sightdistance = 83.2,
 		stealth = true,
-		yardmap = "y",
 		customparams = {
 			mine = true,
 			unitgroup = 'explo',
