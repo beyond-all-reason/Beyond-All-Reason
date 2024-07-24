@@ -1290,7 +1290,13 @@ function WeaponDef_Post(name, wDef)
 				wDef.mygravity = 0.1667 --150/900
 			end
 		end
-
+		
+		-- Accurate Lasers		
+		if modOptions.accuratelasers then
+			if wDef.weapontype and wDef.weapontype == 'BeamLaser' then
+				wDef.targetmoveerror = nil
+			end
+		end
 
 		----EMP rework
 
