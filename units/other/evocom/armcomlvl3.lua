@@ -220,6 +220,47 @@ return {
 			},
 		},
 		weapondefs = {
+			backlauncher = {
+				areaofeffect = 70,
+				avoidfeature = false,
+				cegtag = "missiletrailmedium-starburst",
+				craterareaofeffect = 70,
+				craterboost = 0,
+				cratermult = 0,
+				edgeeffectiveness = 0.61,
+				explosiongenerator = "custom:genericshellexplosion-large-bomb",
+				firestarter = 100,
+				flighttime = 7.4,
+				impulseboost = 0.123,
+				impulsefactor = 0.123,
+				metalpershot = 0,
+				model = "corkbmissl1.s3o",
+				name = "HeavyRockets",
+				noselfdamage = true,
+				range = 1210,
+				reloadtime = 8,
+				smoketrail = true,
+				smokePeriod = 8,
+				smoketime = 30,
+				smokesize = 12.0,
+				smokecolor = 0.7,
+				smokeTrailCastShadow = true,
+				--castshadow = true, --projectile
+				soundhit = "xplomed4",
+				soundhitwet = "splssml",
+				soundstart = "Rockhvy1",
+				texture1 = "null",
+				texture2 = "smoketrailbar",
+				texture3 = "null",
+				turnrate = 15000,
+				weaponacceleration = 100,
+				weapontimer = 3,
+				weapontype = "StarburstLauncher",
+				weaponvelocity = 800,
+				damage = {
+					default = 800,
+				},
+			},
 			longgun = {
 				areaofeffect = 60,
 				avoidfeature = false,
@@ -469,6 +510,11 @@ return {
 			},
 		},
 		weapons = {
+			[1] = {
+				badtargetcategory = "MOBILE",
+				def = "backlauncher",
+				onlytargetcategory = "SURFACE",
+			},
 			[2] = {
 				badtargetcategory = "VTOL",
 				def = "ARMCOMSEALASER",
@@ -480,7 +526,7 @@ return {
 			},
             [4] = {
 				def = "LONGGUN",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "EMPABLE",
 			},
 			[5] = {
 				def = "SHORTGUN",

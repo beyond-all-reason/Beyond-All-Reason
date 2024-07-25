@@ -216,6 +216,47 @@ return {
 			},
 		},
 		weapondefs = {
+			backlauncher = {
+				areaofeffect = 70,
+				avoidfeature = false,
+				cegtag = "missiletrailmedium-starburst",
+				craterareaofeffect = 70,
+				craterboost = 0,
+				cratermult = 0,
+				edgeeffectiveness = 0.61,
+				explosiongenerator = "custom:genericshellexplosion-large-bomb",
+				firestarter = 100,
+				flighttime = 7.4,
+				impulseboost = 0.123,
+				impulsefactor = 0.123,
+				metalpershot = 0,
+				model = "corkbmissl1.s3o",
+				name = "HeavyRockets",
+				noselfdamage = true,
+				range = 1210,
+				reloadtime = 8,
+				smoketrail = true,
+				smokePeriod = 8,
+				smoketime = 30,
+				smokesize = 12.0,
+				smokecolor = 0.7,
+				smokeTrailCastShadow = true,
+				--castshadow = true, --projectile
+				soundhit = "xplomed4",
+				soundhitwet = "splssml",
+				soundstart = "Rockhvy1",
+				texture1 = "null",
+				texture2 = "smoketrailbar",
+				texture3 = "null",
+				turnrate = 15000,
+				weaponacceleration = 100,
+				weapontimer = 3,
+				weapontype = "StarburstLauncher",
+				weaponvelocity = 800,
+				damage = {
+					default = 800,
+				},
+			},
 			longgun = {
 				areaofeffect = 8,
 				avoidfeature = false,
@@ -423,60 +464,6 @@ return {
 						default = 133,
 					},
 			},
-			rollingbombdrones = {
-				allowNonBlockingAim  = true,
-				areaofeffect = 4,
-				avoidfeature = false,
-				avoidfriendly = false,
-				avoidground = false,
-				collidefriendly = false,
-				collidefeature = false,
-				collideground = false,
-				craterareaofeffect = 0,
-				craterboost = 0,
-				cratermult = 0,
-				edgeeffectiveness = 0.15,
-				explosiongenerator = "custom:genericshellexplosion-large-lightning-thor",
-				gravityaffected = "true",
-				hightrajectory = 1,
-				impulseboost = 0.123,
-				impulsefactor = 0.123,
-				name = "DronePointer",
-				noselfdamage = true,
-				range = 450,
-				reloadtime = 5,
-				size = 0,
-				soundhit = "",
-				soundhitwet = "",
-				soundstart = "",
-				turret = true,
-				weapontype = "Cannon",
-				weaponvelocity = 1000,
-				damage = {
-					default = 0,
-				},
-				customparams = {
-					carried_unit = "babyarmvader",  --Name of the unit spawned by this carrier unit.
-					engagementrange = 450,
-					spawns_surface = "LAND",    -- "LAND" or "SEA". The SEA option has not been tested currently.
-					spawnrate = 15, 			--Spawnrate roughly in seconds.
-					maxunits = 5,				--Will spawn units until this amount has been reached.
-					energycost = 3000,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					metalcost = 0,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					controlradius = 550,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
-					decayrate = 1,
-					carrierdeaththroe = "control",
-					dockingarmor = 0,
-					dockinghealrate = 16,
-					docktohealthreshold = 0,
-					holdfireradius = 450,		--defines the radius for drones to wander when "hold fire" firestate issued
-					dockingHelperSpeed = 100,
-					dockingpiecestart = 14,		--First model piece to be used for docking.
-					dockingpieceinterval = 0,	--Number of pieces to skip when docking the next unit.
-					dockingpieceend = 14,		--Last model piece used for docking. Will loop back to first when exceeded.
-					dockingradius = 1,			--The range at which the units snap to the carrier unit when docking.
-				}
-			},
 			empflashbang = {
 				areaofeffect = 50,
 				avoidfeature = false,
@@ -523,7 +510,9 @@ return {
 		weapons = {
 
 			[1] = {
-				def = "ROLLINGBOMBDRONES",
+				badtargetcategory = "MOBILE",
+				def = "backlauncher",
+				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
 				badtargetcategory = "VTOL",
