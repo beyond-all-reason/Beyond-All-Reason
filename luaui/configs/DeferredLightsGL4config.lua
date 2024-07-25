@@ -8876,7 +8876,7 @@ local unitLights = {
 		radarblip = {
 			lightType = 'point',
 			pieceName = 'dish',
-			lightConfig = { posx = 0, posy = 0, posz = 7, radius = 7,
+			lightConfig = { posx = 0, posy = 0, posz = 8, radius = 7,
 				color2r = 0, color2g = 0, color2b = 0, colortime = 0,
 				r = 0, g = 1, b = 0, a = 0.33,
 				modelfactor = 0.1, specular = 0.5, scattering = 1, lensflare = 0,
