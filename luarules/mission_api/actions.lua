@@ -48,7 +48,7 @@ local function spawnUnits(name, unitDefName, quantity, position, facing, constru
 	--if not trackedUnits[name] then trackedUnits[name] = {} end
 
 	for i = 1, quantity do
-	local	unitID = Spring.CreateUnit(unitDefName, position.x, position.y, position.z, facing, 0, construction)
+	local	unitID = Spring.CreateUnit(unitDefName, position.x, position.y, position.z, facing.value, 0, construction)
 
 		--if unitID and name then
 		--	trackedUnits[name][#trackedUnits[name] + 1] = unitID

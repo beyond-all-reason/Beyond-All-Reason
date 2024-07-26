@@ -23,7 +23,6 @@ local function instantiateCustomTypes()
 			end
 		end
 	end
-	
 end
 
 local function prevalidateActions()
@@ -43,7 +42,7 @@ local function prevalidateActions()
 				local expectedType = parameter.type
 				local actualType = type(value)
 
-				if value ~= nil and actualType ~= expectedType then
+				if actualType ~= expectedType then
 					Spring.Log('actions_loader.lua', LOG.ERROR,"[Mission API] Unexpected parameter type, expected " ..parameter.type ..", got " .. actualType .. ". Action: " .. actionID .. ", Parameter: " .. parameter.name)
 				end
 				value:validate()

@@ -84,7 +84,7 @@ end
 --============================================================--
 
 --- Metatable for Proximity Monitor objects
-local proximityMonitor = { 
+local proximityMonitor = {
 	__name = 'Proximity Monitor', -- Meta name used for type checking
 
 	position = {0, 0}, -- {x, z} position of the proximity monitor
@@ -379,7 +379,7 @@ function unit:validate(file, module)
 		Spring.Log(file, LOG.ERROR, string.format("[%s] Unit has unhandled type '%i'", module, self.type))
 		return false
 	end
-	
+
 	return true
 end
 
@@ -413,7 +413,7 @@ end
 -- Unit.TYPE.ID will just return the ID. Does not check if the ID is valid
 -- Unit.TYPE.DEF_ID or Unit.TYPE.DEF_NAME returns all existing units of the given type and with the given teamID
 -- @treturn table {[1] = unitID, ...}
-function unit:getUnits() 
+function unit:getUnits()
 	if self.type == self.TYPE.NAME then
 		return trackedUnits[self.ID]
 	elseif self.type == self.TYPE.ID then
@@ -562,9 +562,9 @@ end
 --- Convenience function for getting the UnitDefID
 -- @treturn number The ID converted to a UnitDefID
 function unitDef:getID()
-	if self.type == self.TYPE.ID then 
+	if self.type == self.TYPE.ID then
 		return self.ID
-	elseif self.type == self.TYPE.NAME then 
+	elseif self.type == self.TYPE.NAME then
 		return UnitDefNames[self.ID]
 	end
 end
@@ -618,12 +618,16 @@ vec2.__index = vec2
 -- @number x The X value
 -- @number z The Z value
 -- @treturn table Instance derived from Vec2 metatable
-function vec2:new(x, z)
-	local object = {}
-	setmetatable(object, self)
+function vec2.new(x, z)
+	local object = setmetatable({}, vec2)
 
-	object.x = x or self.x
-	object.z = z or self.z
+	if type(x) == 'table' then
+		z = x.z
+		x = x.x
+	end
+
+	object.x = x or object.x
+	object.z = z or object.z
 
 	return object
 end
@@ -701,38 +705,36 @@ local direction = {
 	value = 0,
 
 	enumValues = {
-		[0] = 'SOUTH',
-		SOUTH = 0,
-		S = 0,
-		[1] = 'EAST',
-		EAST = 1,
-		E = 1,
-		[2] = 'NORTH',
-		NORTH = 2,
-		N = 2,
-		[3] = 'WEST',
-		WEST = 3,
-		W = 3,
+		[0] = 'south',
+		south = 0,
+		s = 0,
+		[1] = 'east',
+		east = 1,
+		e = 1,
+		[2] = 'north',
+		north = 2,
+		n = 2,
+		[3] = 'west',
+		west = 3,
+		w = 3,
 	}
 }
 direction.__index = direction
 
-function direction:new(value)
-	local object = {}
-	setmetatable(object, self)
-	
+function direction.new(value)
+	local object = setmetatable({}, direction)
+
 	if type(value) == 'string' then
-		value = self.enumValues[value:upper()] or value
+		value = object.enumValues[value:lower()] or value
 	end
-	
-	object.value = value or self.value
+
+	object.value = value or object.value
 
 	return object
 end
 
 function direction:validate(file, module)
-	-- Validate the value field only
-	if type(self.value) == 'number' then
+	if type(self.value) == 'number' and self.enumValues[self.value] ~= nil then
 		return true
 	else
 		return false
