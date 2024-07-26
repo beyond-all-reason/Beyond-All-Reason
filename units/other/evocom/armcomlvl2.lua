@@ -106,6 +106,8 @@ return {
 			paralyzemultiplier = 0.025,
 			subfolder = "",
 			combatradius = 0,
+			workertimeboost = 2,
+			wtboostunittype = "TURRET",
 			evolution_health_transfer = "percentage",
 			evolution_target = "armcomlvl3",
 			evolution_condition = "timer",

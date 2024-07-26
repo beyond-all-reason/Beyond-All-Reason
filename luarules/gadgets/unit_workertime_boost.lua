@@ -27,20 +27,23 @@ local builderWatch = {}
 for id, def in pairs(UnitDefs) do
 	if def.buildSpeed then
 		if def.customParams.workertimeboost and def.customParams.wtboostunittype then
-			builderWatchDefs[id] = {buildspeed = def.buildSpeed, boost = def.customParams.workertimeboost*def.buildSpeed, trigger = def.customParams.wtboostunittype}
+			builderWatchDefs[id] = {buildspeed = def.buildSpeed, boost = def.customParams.workertimeboost*def.buildSpeed, trigger = def.customParams.wtboostunittype, timestamp = 0}
 		end
 	end
+	boostableUnits[id] = {}
 	if def.speed and def.speed ~= 0 then
-		boostableUnits[id] = "MOBILE"
+		table.insert(boostableUnits[id], "MOBILE")
 	end
-	if def.speed == 0 and def.weapons and def.weapons[1] then
-		boostableUnits[id] = "TURRET"
+	if def.speed == 0 and def.weapons[1] then
+		table.insert(boostableUnits[id], "TURRET")
 	end
-	if def.speed == 0 and not def.weapons then
-		boostableUnits[id] = "PASSIVE"
+	if def.speed == 0 and not def.weapons[1] and def.buildSpeed < 1 then
+		table.insert(boostableUnits[id], "PASSIVE")
+		Spring.Echo("Passive: ", def.name)
 	end
-	if def.buildSpeed then
-		boostableUnits[id] = "BUILDER"
+	if def.buildSpeed and def.buildSpeed > 0 then
+		table.insert(boostableUnits[id], "BUILDER")
+		Spring.Echo("Builder: ", def.name)
 	end
 end
 
@@ -59,18 +62,28 @@ function gadget:UnitDestroyed(unitID)
 end
 
 function gadget:GameFrame(frame)
-	if frame % 19 == 0 then
+	if frame % 16 == 0 then
 		for id, data in pairs(builderWatch) do
-			local project = spGetUnitIsBuilding(id) or nil
-			if project then
-				local projectTypeString = boostableUnits[spGetUnitDefID(project)]
-				if projectTypeString and string.find(data.trigger, projectTypeString) then
-					Spring.SetUnitBuildSpeed(id, data.boost)
-					Spring.Echo("YEAH, BABY")
+			if data.timestamp < frame then
+				local project = spGetUnitIsBuilding(id) or nil
+				if project then
+					local projectStrings = boostableUnits[spGetUnitDefID(project)] or {" "}
+					local enableBoost = false
+					for _, string in pairs(projectStrings) do
+						if projectStrings and string.find(data.trigger, string) then
+							enableBoost = true
+							break
+						end
+					end
+					if enableBoost == true then
+						Spring.SetUnitBuildSpeed(id, data.boost)
+					else
+						Spring.SetUnitBuildSpeed(id, data.buildspeed)
+						data.timestamp = frame+60
+					end
+				else
+					Spring.SetUnitBuildSpeed(id, data.buildspeed)
 				end
-			else
-				Spring.SetUnitBuildSpeed(id, data.buildspeed)
-				Spring.Echo("LAME, BABY")
 			end
 		end
 	end

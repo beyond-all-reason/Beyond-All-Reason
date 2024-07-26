@@ -131,6 +131,8 @@ return {
 			evolution_power_threshold = 53000,
 			evolution_power_multiplier = 1,
 			combatradius = 0,
+			workertimeboost = 2,
+			wtboostunittype = "TURRET",
 			inheritxpratemultiplier = 0.25,
 			childreninheritxp = "TURRET",
 			parentsinheritxp = "TURRET",

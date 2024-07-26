@@ -130,7 +130,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "",
-			workertimeboost = 6,
+			workertimeboost = 5,
 			wtboostunittype = "MOBILE",
 			evolution_health_transfer = "percentage",
 			evolution_target = "legcomlvl9",
