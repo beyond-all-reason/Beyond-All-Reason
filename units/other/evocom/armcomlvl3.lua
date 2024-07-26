@@ -131,7 +131,6 @@ return {
 			evolution_power_threshold = 53000,
 			evolution_power_multiplier = 1,
 			combatradius = 0,
-			stockpileLimit = 30,
 			effigy = "comeffigylvl2",
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,
@@ -258,7 +257,7 @@ return {
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 800,
 				damage = {
-					default = 800,
+					default = 550,
 				},
 			},
 			longgun = {
@@ -454,8 +453,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "beamershot2",
 				sprayangle = 4000,
-				stockpile = true,
-				stockpiletime = 0.33,
 				tolerance = 5000,
 				turret = true,
 				weapontype = "BeamLaser",
