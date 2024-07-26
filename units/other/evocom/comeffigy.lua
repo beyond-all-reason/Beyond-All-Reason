@@ -66,7 +66,7 @@ for lvl, stats in pairs(lvlParams) do
 		health = stats.health,
 		maxslope = 20,
 		speed = 0,
-		maxwaterdepth = 35,
+		maxwaterdepth = 255,
 		movementclass = "COMMANDERBOT",
 		movestate = 0,
 		nochasecategory = "ALL",
