@@ -320,7 +320,6 @@ return {
 			},
 			longgun = {
 				areaofeffect = 60,
-				avoidfeature = false,
 				beamtime = 0.1,
 				collidefriendly = false,
 				corethickness = 0.23,
