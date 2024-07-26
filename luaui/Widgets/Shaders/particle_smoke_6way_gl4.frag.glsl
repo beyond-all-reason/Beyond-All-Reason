@@ -57,16 +57,19 @@ vec3 Temperature(float temperatureInKelvins)
 void main(void)
 {
 	fragColor.rgba = vec4(1.0);
-	// sample the textures:
+	// sample and blend the textures over time:
 	vec4 texpluscolor  = mix(texture(atlasTexPlus, v_uvs.st), texture(atlasTexPlus, v_uvs.pq), v_params.x); // X+ is right
 	vec4 texminuscolor = mix(texture(atlasTexMinus, v_uvs.st), texture(atlasTexMinus, v_uvs.pq), v_params.x);
 
 	// We need to swizzle and invert some channels due to the way our sprites are packed:
 	// texpluscolor.b points away from the viewer!
-    texpluscolor.b *= -1.0;
-    texminuscolor.b *= -1.0;
-
-
+	// See: https://unity.com/blog/engine-platform/realistic-smoke-with-6-way-lighting-in-vfx-graph
+	// lightmap texture format
+	// As Z faces us
+	vec3 plusdir  = (vec3(texpluscolor.x, texpluscolor.y, texminuscolor.z));
+	vec3 minusdir = -1 * (vec3(texminuscolor.x, texminuscolor.y, texpluscolor.z));
+	float density = texpluscolor.a;
+	float temperature = texminuscolor.a;
 
 	//v_worldNormal.xyz POINTS TOWARDS THE CAMERA!!!!!!!
 
@@ -79,33 +82,71 @@ void main(void)
 	fragColor.rgb = vec3(0.5); 
 	
 	// Calculate lighting dirs
-	vec3 plusdir = normalize(texpluscolor.rgb);
-	vec3 minusdir = normalize(texminuscolor.rgb);
-	vec3 fragmentNormal = normalize(v_worldNormal.xyz);
-	vec3 cameraDir = normalize(v_worldPos.xyz);
-	vec3 upDir = vec3(0,1,0);
-	vec3 rightDir = normalize(cross(upDir, cameraDir));
-	upDir = normalize(cross(cameraDir, rightDir));
-	
+	vec3 fragmentNormal = normalize(v_worldNormal.xyz); // world-space fragment normal
 
-	vec3 sundir = sunDir.xyz;
-
-	mat3 rotationMatrix = mat3(fragmentNormal, upDir, cross(upDir, fragmentNormal));
-	plusdir = normalize(rotationMatrix * plusdir);
-
-	// light from the RIGHT:
-	//fragColor.rgb = plusdir.xxx; return;
-	minusdir = normalize(rotationMatrix * minusdir);
+	vec3 sundir = normalize(sunDir.xyz);
 	
-	// debug left-right normal, that seems easy:
-	fragColor.rgb *= clamp((dot(plusdir, sundir) * 1.0), 0, 1);
-	//fragColor.a = 1.0;
-	// Calculate absorbtion:
-	//fragColor.rgb = vec3(dot(fragmentNormal, sunDir.xyz));
+	// Figure out our rotations, our up vector is the camera's up vector:
+	vec3 upDir = vec3(cameraViewInv[1].xyz);
+
+	// Using the right-handed coordinate system, the tangent points to the right
+	vec3 rightTangent = normalize(cross(upDir,fragmentNormal)); //points to the right
+
+	// The use right handed coord for finding the new Up bitangent
+	vec3 upBitangent = normalize(cross(fragmentNormal, rightTangent)); //points up
 	
-	// Apply emissiveness
-	float myTemperature = 4000 *  texminuscolor.a;
-	//fragColor.rgb += v_emissivecolor.a * Temperature(myTemperature);
+	// The two crosses above ensure an orthogonal basis
+	mat3 TBN = mat3(rightTangent, upBitangent, fragmentNormal);
+
 	
 	//fragColor.rgba = texpluscolor.rgba;
+	if (density<0.001) {
+		//fragColor.rgba = vec4(normalize(fragmentNormal) * 0.5 + 0.5, 1.0); // DEBUGGER
+		fragColor.rgba = vec4(0.0);
+	}else{
+		
+		fragColor.rgba = vec4((TBN * plusdir) * 0.5 + 0.5, 1.0); // DEBUGGER
+		//fragColor.rgba = vec4(texpluscolor.rgb , 1.0); // DEBUGGER
+		// uplight
+		vec3 testnorm = normalize(texpluscolor.rgb * 2.0 - 1.0);
+		fragColor.rgb = vec3((TBN * testnorm)  * 0.5 + 0.5);
+		float uplight =  clamp(dot(TBN * plusdir, sundir),0,1);
+		float downlight = clamp(dot(TBN * minusdir, sundir), 0,1);
+		fragColor.rgb = vec3((uplight + downlight) * 0.5);
+		fragColor.a = density;
+
+
+		// Try fixed angles
+		//plusdir = normalize(vec3(0,1,0)); // 1,0,0 points right, 0,1,0 points up, 0,0,1 points toward the camera
+		vec3 newdir = TBN*plusdir;
+		fragColor.rgb = vec3(newdir) * 0.5 + 0.5;
+
+		vec3 plusdir_rotated = TBN * plusdir;
+		vec3 minusdir_rotated = TBN * minusdir;
+
+		vec3 pluslight = vec3(0.0);
+		pluslight.x = clamp(dot(plusdir_rotated, sundir), 0, 1);
+		
+		vec3 minuslight = vec3(0.0);
+		minuslight.x = clamp(dot(minusdir_rotated, sundir), 0, 1);
+
+		fragColor.rgb = vec3(pluslight.xxx+minuslight.xxx) * v_emissivecolor.rgb;
+
+		float absorbFactor = (pluslight.x+minuslight.x)*0.5;//  * (1.0 - density);
+
+
+
+		vec3 absorbColor = mix(v_emissivecolor.rgb, vec3(1.0),smoothstep(0.0, 1.0, absorbFactor));
+		absorbColor = mix(vec3(0.0),absorbColor.rgb, smoothstep(0.0, 0.5, absorbFactor));
+
+
+		fragColor.rgb = absorbColor;
+		fragColor.a = density;
+
+	}
+	//fragColor.rgb = vec3(cameraViewInv[1].xyz * 0.5 + 0.5);
+
+	// Apply emissiveness
+	float myTemperature = 4000 *  texminuscolor.a;
+	fragColor.rgb += v_emissivecolor.a * Temperature(myTemperature);
 }

@@ -24,6 +24,8 @@ end
 
 
 -- localized speedup stuff ---------------------------------
+local testing = false
+
 local glTexture = gl.Texture
 
 local atlas_alphaplusxyz = "LuaUI/Images/particles_GL4/particlesgl4_plus.dds"
@@ -31,6 +33,16 @@ local atlas_emissiveminusxyz = "LuaUI/Images/particles_GL4/particlesgl4_minus.dd
 
 local particlesmokeatlasinfo = VFS.Include("LuaUI/Images/particles_GL4/particlesgl4_tiles.lua")
 particlesmokeatlasinfo.flip(particlesmokeatlasinfo)
+
+if testing then
+	atlas_alphaplusxyz = "LuaUI/Images/particles_GL4/test_cube_normal.dds"
+	atlas_emissiveminusxyz = "LuaUI/Images/particles_GL4/test_cube_normal.dds"
+
+	particlesmokeatlasinfo = VFS.Include("LuaUI/Images/particles_GL4/particlesgl4_tiles_test.lua")
+particlesmokeatlasinfo.flip(particlesmokeatlasinfo)
+
+end
+
 
 ------------- SHADERS ----------------------------------------------
 local luaShaderDir = "LuaUI/Widgets/Include/"
@@ -188,7 +200,7 @@ local function AddInstance( instanceID, startpos_scale, motionvector, atlasuv, n
 		false) -- noupload, dont use unless you know what you want to batch push/pop
 end
 
-local function GetPixelAtMousePos()
+local function GetPixelAtMousePos(drawvector)
 	-- get it one above the cursors hot point
 	local mx, my, lmb = Spring.GetMouseState()
 	
@@ -207,19 +219,40 @@ local function GetPixelAtMousePos()
 		Spring.Echo(mx,my, pixels)
 	end
 	
+	local x,y,z = pixels[1][1][1], pixels[1][1][2], pixels[1][1][3]
+	x,y,z = x * 2.0 - 1.0, y * 2.0 - 1.0, z * 2.0 - 1.0
+	if math.abs(math.diag(x,y,z) - 1.0 ) < 0.1 then -- almost a normal vector
+		-- We need to draw the normal vector space then.
+		pixels['normal'] = true
+	end
 	return pixels
 end
 
 
 
-local function DrawPixelAtMousePos(pixels, count)
-	for x, lr in ipairs({'','r'}) do -- left, right
-		for y, tb in ipairs({'b', 't'}) do -- top, bottom
+local function DrawPixelAtMousePos(pixels, fraction)
+	for x, lr in ipairs({'','r'}) do -- left, right (1,2)
+		for y, tb in ipairs({'t', 'b'}) do -- top, bottom, 1,2
 			if pixels[x] and pixels[x][y] then
 				local p = pixels[x][y]
-				local text = string.format('[%.03f %.03f %.03f %.03f]', p[1],p[2],p[3],p[4])
-				local opts = string.format('%s%s',lr,tb)
-				gl.Text(text, pixels['mx'], pixels['my'],12,opts)
+				local text 
+				fraction = math.abs(math.diag(p[1]*2-1, p[2]*2-1, p[3]*2-1))
+				if math.abs(fraction - 1.0) < 0.01 then 
+					p[1], p[2], p[3] = p[1]*2-1, p[2]*2-1, p[3]*2-1
+				else
+					fraction = false
+				end
+				
+				if fraction then 
+					-- numbers are argb
+					text = string.format('(\255\255\50\50%.02f \255\50\255\50%.02f \255\50\50\255%.02f \255\255\255\255%.02f [%.03f])', p[1],p[2],p[3],p[4], fraction)
+				else
+					text = string.format('[\255\255\50\50%03d \255\50\255\50%03d \255\50\50\255%03d \255\255\255\255%03d]', p[1] * 255,p[2]* 255,p[3]* 255,p[4]* 255)
+				end
+				
+				local opts = string.format('%s%so',lr,tb)
+				gl.Text(text, pixels['mx'] - (x*32) + 48 , pixels['my'] - y *32 + 48,16,opts)
+				--Spring.Echo(Spring.GetDrawFrame(), pixels['mx'], pixels['my'],text)
 			end
 		end
 	end		
@@ -249,7 +282,7 @@ function widget:DrawWorld()
 	pxstore = GetPixelAtMousePos()
 end
 
-function widget:DrawScreen()
+function widget:DrawScreenPost()
 	DrawPixelAtMousePos(pxstore)
 end
 
@@ -291,7 +324,7 @@ local function AddSomeSmoke()
 	local particledata = particlesmokeatlasinfo[particles[math.random(1, #particles)]]
 	
 	
-	
+	--Spring.Echo("Added some smoke", idx)
 	AddInstance(
 		idx,
 		{1024 * r(),1024 * r(),1024 * r(),32 * r() +32,},
@@ -326,6 +359,8 @@ function widget:Initialize()
 		end
 	end
 end
+
+
 function widget:GameFrame(n) 
 	AddSomeSmoke()
 	if n%900 ==0  then

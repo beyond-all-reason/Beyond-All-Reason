@@ -99,14 +99,15 @@ void main()
 	mat3 billBoardMatrix = mat3(cameraViewInv[0].xyz,cameraViewInv[2].xyz, cameraViewInv[1].xyz); // swizzle cause we use xz
 	vertexPos.xyz = billBoardMatrix * vertexPos.xyz;
 	
+	// Transform it to world coords:
+	vertexPos.xyz += startpos_scale.xyz + motionvector.xyz * aliveTime;
+	v_worldPos = vertexPos;
+
+	
 	// Calculate the normal of the billboard, which always points at the camera:
 	vec3 camPos = cameraViewInv[3].xyz ;
 	vertexNormal = normalize(camPos - vertexPos.xyz);
 	v_worldNormal.xyz = vertexNormal;
-	
-	// Transform it to world coords:
-	vertexPos.xyz += startpos_scale.xyz + motionvector.xyz * aliveTime;
-	v_worldPos = vertexPos;
 	
 	// Project it:
 	gl_Position = cameraViewProj * vertexPos;
@@ -122,5 +123,7 @@ void main()
 	
 	// Pass through various params.
 	v_emissivecolor = emissivecolor;
-	v_params.x = smoothstep(0,1,fract(animTime));
+	
+	// Interpolate between the two frames, but dont use smoothstep as that will result in a very choppy animation
+	v_params.x = fract(animTime);
 }
