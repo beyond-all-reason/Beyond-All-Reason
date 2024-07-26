@@ -15,8 +15,8 @@ if not gadgetHandler:IsSyncedCode() then return false end
 
 --**********unit customparams to add to unitdef***********
 -- inheritxpratemultiplier = 1, 	-- defined in unitdef customparams of the parent unit. It's a number by which XP gained by children is multiplied and passed to the parent after power difference calculations
--- childreninheritxp = "MOBILEBUILT DRONE BOTCANNON", --  determines what kinds of units linked to parent inherit XP
--- parentsinheritxp = "MOBILEBUILT DRONE BOTCANNON", -- determines what kinds of units linked to the parent will give the parent XP
+-- childreninheritxp = "TURRET MOBILEBUILT DRONE BOTCANNON", --  determines what kinds of units linked to parent inherit XP
+-- parentsinheritxp = "TURRET MOBILEBUILT DRONE BOTCANNON", -- determines what kinds of units linked to the parent will give the parent XP
 
 local spGetUnitExperience = Spring.GetUnitExperience
 local spSetUnitExperience = Spring.SetUnitExperience
@@ -28,6 +28,7 @@ local childrenInheritXP = {} -- stores the string that represents the types of u
 local parentsInheritXP = {} -- stores the string that represents the types of units the parent will gain xp from
 local childrenWithParents = {} --stores the parent/child relationships format. Each entry stores key of unitID with an array of {unitID, builderID, xpInheritance}
 local mobileUnits = {}
+local turretUnits = {}
 local unitPowerDefs = {}
 
 for id, def in pairs(UnitDefs) do
@@ -44,6 +45,9 @@ for id, def in pairs(UnitDefs) do
 	end
 	if def.speed and def.speed ~= 0 then
 		mobileUnits[id] = true
+	end
+	if def.speed == 0 and def.weapons and def.weapons[1] then
+		turretUnits[id] = true
 	end
 	if def.power then
 	unitPowerDefs[id] = def.power
@@ -65,14 +69,23 @@ end
 local initializeList = {}
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if  builderID and mobileUnits[spGetUnitDefID(unitID)] and string.find(parentsInheritXP[spGetUnitDefID(builderID)], "MOBILEBUILT") then -- only mobile combat units will pass xp
-			childrenWithParents[unitID] = {
-				unitid=unitID,
-				parentunitid=builderID,
-				parentxpmultiplier=calculatePowerDiffXP(unitID, builderID),
-				childinheritsXP = childrenInheritXP[spGetUnitDefID(unitID)],
-				childtype = "MOBILEBUILT",
-			}
+		childrenWithParents[unitID] = {
+			unitid=unitID,
+			parentunitid=builderID,
+			parentxpmultiplier=calculatePowerDiffXP(unitID, builderID),
+			childinheritsXP = childrenInheritXP[spGetUnitDefID(unitID)],
+			childtype = "MOBILEBUILT",
+		}
 	end
+	if  builderID and turretUnits[spGetUnitDefID(unitID)] and string.find(parentsInheritXP[spGetUnitDefID(builderID)], "TURRET") then -- only immobile combat units will pass xp
+		childrenWithParents[unitID] = {
+			unitid=unitID,
+			parentunitid=builderID,
+			parentxpmultiplier=calculatePowerDiffXP(unitID, builderID),
+			childinheritsXP = childrenInheritXP[spGetUnitDefID(unitID)],
+			childtype = "TURRET",
+		}
+end
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
@@ -118,7 +131,7 @@ function gadget:GameFrame(frame)
 			end
 			if parentID ~= nil and childrenInheritXP[parentDefID] and childrenWithParents[unitID] then --if the parent has the unitdef, set childxp to parent xp.
 				local parentTypes = childrenInheritXP[parentDefID]
-				if string.find(parentTypes, childrenWithParents[unitID].childtype) then -- if child is correcty type, set xp
+				if string.find(parentTypes, childrenWithParents[unitID].childtype) then -- if child is correct type, set xp
 					local parentXP = spGetUnitExperience(parentID)
 					spSetUnitExperience(unitID, parentXP)
 					oldChildXPValues[unitID] = parentXP	--add parent xp to the oldxp value to exclude it from inheritance

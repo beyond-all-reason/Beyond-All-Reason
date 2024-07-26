@@ -132,7 +132,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 				respawnMetaList[unitID].effigyID = nil
 			end
-			local stunDuration = maxHealth + (100*respawnMetaList[unitID].minimum_respawn_stun) + (diag((x-ex), (z-ez))*respawnMetaList[unitID].distance_stun_multiplier)
+			local stunDuration = maxHealth + ((maxHealth/30)*respawnMetaList[unitID].minimum_respawn_stun) + (((maxHealth/30)*diag((x-ex), (z-ez))*respawnMetaList[unitID].distance_stun_multiplier)/250)--250 is an arbitrary number that seems to produce desired results.
 			spSetUnitHealth(unitID, {health = 1, capture = 0, paralyze = stunDuration, build = 0})
 			spGiveOrderToUnit(unitID, CMD.STOP, {}, 0)
 		end
