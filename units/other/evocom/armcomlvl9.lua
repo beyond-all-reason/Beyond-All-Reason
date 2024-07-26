@@ -490,7 +490,7 @@ return {
 				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 8.8,
-				name = "Long Range EMP laser",
+				name = "EMP Damage-Mitigating Flashbang",
 				noselfdamage = true,
 				paralyzer = true,
 				paralyzetime = 8,
