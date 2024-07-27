@@ -67,3 +67,5 @@ RmlUi.SetMouseCursorAlias("nesw-resize", 'uiresized2')
 RmlUi.SetMouseCursorAlias("nwse-resize", 'uiresized1')
 RmlUi.SetMouseCursorAlias("ns-resize", 'uiresizev')
 RmlUi.SetMouseCursorAlias("ew-resize", 'uiresizeh')
+
+RmlUi.CreateContext("shared")

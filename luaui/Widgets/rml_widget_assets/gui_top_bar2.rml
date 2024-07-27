@@ -22,7 +22,7 @@
 			input.range slidertrack {
 				margin: auto;
 				height: 40%;
-				/* decorator: gradient(horizontal #5c5c5c #c0c0c0); */
+				/* decorator: horizontal-gradient(#5c5c5c #c0c0c0); */
 				background-color: #A9A9A8;
 				border-radius: 4px;
 				/* image-color: #ecc; */
@@ -147,7 +147,7 @@
 			}
 
 			.energytrack.range sliderbar {
-				decorator: gradient(vertical #b4b4b4 #9b9b9b);
+				decorator: vertical-gradient(#b4b4b4 #9b9b9b);
 				/* decorator: ninepatch(range-track, range-track-inner, 1.0); */
 			}
 
