@@ -407,8 +407,6 @@ local function SpawnUnit(spawnData)
 					local carrierz
 					dockPointx,dockPointy, dockPointz = Spring.GetUnitPiecePosition(ownerID, dockingpiece)--Spring.GetUnitPieceInfo (ownerID, dockingpieceindex)
 					carrierx,carriery, carrierz = Spring.GetUnitPosition(ownerID)
-					--Spring.Echo(dockingpieceindex)
-					--Spring.Debug.TableEcho(Spring.GetUnitPiecePosition(ownerID, dockingpiece))
 					mcSetPosition(subUnitID, carrierx+dockPointx, carriery+dockPointy, carrierz+dockPointz)
 				end
 				mcDisable(subUnitID)
@@ -855,7 +853,7 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 			targetx, targety, targetz = cmdParam_1, cmdParam_2, cmdParam_3
 			fightOrder = true
 		end
-		if targetx then
+		if targetx and carrierx then
 			-- droneSendDistance = GetDistance(carrierx, targetx, carrierz, targetz)
 			droneSendDistance = diag((carrierx-targetx), (carrierz-targetz))
 		end
@@ -868,7 +866,7 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 		carrierx, carriery, carrierz = spGetUnitPosition(carrierID)
 		targetx, targety, targetz = cmdParam_1, cmdParam_2, cmdParam_3
 		target = {cmdParam_1, cmdParam_2, cmdParam_3}
-		if targetx then
+		if targetx and carrierx then
 			-- droneSendDistance = GetDistance(carrierx, targetx, carrierz, targetz)
 			droneSendDistance = diag((carrierx-targetx), (carrierz-targetz))
 		end
@@ -891,7 +889,7 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 				target = target_id
 				targetx, targety, targetz = spGetUnitPosition(target_id)
 			end
-			if targetx then
+			if targetx and carrierx then
 				-- droneSendDistance = GetDistance(carrierx, targetx, carrierz, targetz)
 				droneSendDistance = diag((carrierx-targetx), (carrierz-targetz))
 			end
@@ -907,7 +905,7 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 	local magnitude
 	local targetvectorx, targetvectorz
 	local perpendicularvectorx, perpendicularvectorz
-	if targetx then
+	if targetx and carrierx then
 		magnitude = diag((carrierx-targetx), (carrierz-targetz))
 		targetvectorx, targetvectorz = targetx-carrierx, targetz-carrierz
 		targetvectorx, targetvectorz = carrierMetaData.attackFormationOffset*targetvectorx/100, carrierMetaData.attackFormationOffset*targetvectorz/100

@@ -5,6 +5,9 @@ them in `init.lua` (because they're not free to run, so we don't want them to
 run for end users.)
 ]]
 
+-- Lua 5.1 backwards compatibility
+table.pack = table.pack or function(...) return { n = select("#", ...), ... } end
+
 if not table.copy then
 	function table.copy(tbl)
 		local copy = {}

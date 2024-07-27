@@ -1587,6 +1587,10 @@
 				"reclaimfieldhighlight_resbot": "Resurrector selected",
 				"reclaimfieldhighlight_order": "Reclaim order active",
 				"reclaimfieldhighlight_disabled": "Disabled",
+				"highlightcomwrecks": "Highlight Commander Wreckages",
+				"highlightcomwrecks_descr": "Highlights commander wreckages with a vertical beam",
+				"highlightcomwrecks_teamcolor": "use teamcolors",
+				"highlightcomwrecks_teamcolor_descr": "Use the player's color for the beam, instead of the default color (resurrect color)",
 				"buildinggrid": "Building Grid",
 				"buildinggrid_descr": "Shows a grid on the ground to assist building placement",
 				"buildinggridopacity": "opacity"

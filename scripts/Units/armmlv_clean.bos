@@ -47,7 +47,6 @@ Steering(heading, steer, currentSpeed)
 
 
 
-
 Create()
 {
 	hide rflare;
@@ -55,15 +54,6 @@ Create()
 	gun_2 = nanosleeve;
 	oldheading = get HEADING;
 	call-script TB_Init();
-}
-
-DetonateMines()
-{
-	while( TRUE )
-	{
-		sleep 500;
-		emit-sfx 4096 from base;
-	}
 }
 
 StartBuilding(heading, pitch)
@@ -135,7 +125,7 @@ StopMoving()
 
 QueryNanoPiece(pieceIndex)
 {
-	pieceIndex = nanosleeve;
+	pieceIndex = lnano;
 }
 
 
@@ -151,23 +141,23 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
-	gun_2 = base;
-	sleep 3000;
-	gun_2 = nanosleeve;
+	gun_2 = turret;
+	//sleep 3000;
+	//gun_2 = nanosleeve;
 }
 
 QueryWeapon1(pieceIndex)
 {
-	pieceIndex = turret;
-	pieceIndex = lnano;
+	//pieceIndex = turret;
+	//pieceIndex = lnano;
 	pieceIndex = rnano;
 }
 
 AimFromWeapon1(pieceIndex)
 {
-	pieceIndex = base;
+	pieceIndex = turret;
 }
-
+/*
 AimWeapon2(heading, pitch)
 {
 	while( !gun_2 )
@@ -181,19 +171,19 @@ FireWeapon2()
 {
 	gun_2 = base;
 	sleep 3000;
-	gun_2 = nanosleeve;
+	gun_2 = leftnano;
 }
 
 QueryWeapon2(pieceIndex)
 {
-	pieceIndex = base;
+	pieceIndex = rightnano;
 }
 
 AimFromWeapon2(pieceIndex)
 {
-	pieceIndex = base;
+	pieceIndex = rightnano;
 }
-
+*/
 Killed(severity, corpsetype)
 {
 	if( severity <= 25 )

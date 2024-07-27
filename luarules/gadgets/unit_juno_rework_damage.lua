@@ -33,6 +33,7 @@ local tokillUnitsNames = {
 		['corfav'] = true,
 		['armfav'] = true,
 		['armflea'] = true,
+		['legscout'] = true,
 		['raptor_land_swarmer_brood_t2_v1'] = true,
 		['raptor_land_kamikaze_basic_t2_v1'] = true,
 		['raptor_land_kamikaze_emp_t2_v1'] = true,

@@ -104,6 +104,7 @@ return {
 			[38] = "corfhp",
 			[39] = "corasp",
 			[40] = "coruwageo",
+			[41] = "corgate",
 		},
 		customparams = {
 			unitgroup = 'builder',
@@ -401,7 +402,7 @@ return {
 						intercepttype = 11111,
 						power = 30000,
 						powerregen = 500,
-						powerregenenergy = 50,
+						powerregenenergy = 100,
 						radius = 100,
 						repulser = false,
 						smart = true,

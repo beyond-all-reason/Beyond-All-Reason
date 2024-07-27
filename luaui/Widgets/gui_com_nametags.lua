@@ -116,7 +116,7 @@ local GaiaTeam = Spring.GetGaiaTeamID()
 
 local comHeight = {}
 for unitDefID, defs in pairs(UnitDefs) do
-	if defs.customParams.iscommander then
+	if defs.customParams.iscommander or defs.customParams.isdecoycommander or defs.customParams.isscavcommander or defs.customParams.isscavdecoycommander then
 		comHeight[unitDefID] = defs.height
 	end
 end
@@ -145,22 +145,36 @@ local function GetCommAttributes(unitID, unitDefID)
 	local name = ''
 	local luaAI = Spring.GetTeamLuaAI(team)
 	if luaAI and luaAI ~= "" and string.find(luaAI, 'Scavengers')  then
-
-	elseif Spring.GetGameRulesParam('ainame_' .. team) then
-		name = Spring.I18N('ui.playersList.aiName', { name = Spring.GetGameRulesParam('ainame_' .. team) })
-	else
-		local players = GetPlayerList(team)
-		name = (#players > 0) and GetPlayerInfo(players[1], false) or '------'
-		if players[1] then
-			playerRank = select(9, GetPlayerInfo(players[1], false))
+		--name = "Scav Commander" -- todo: i18n this thing
+		if UnitDefs[unitDefID].customParams.decoyfor then
+			name = Spring.I18N('units.scavDecoyCommanderNameTag')
+		else
+			name = Spring.I18N('units.scavCommanderNameTag')
 		end
+	elseif Spring.GetGameRulesParam('ainame_' .. team) then
+		if UnitDefs[unitDefID].customParams.decoyfor then
+			name = Spring.I18N('units.decoyCommanderNameTag')
+		else
+			name = Spring.I18N('ui.playersList.aiName', { name = Spring.GetGameRulesParam('ainame_' .. team) })
+		end
+		
+	else
+		if UnitDefs[unitDefID].customParams.decoyfor then
+			name = Spring.I18N('units.decoyCommanderNameTag')
+		else
+			local players = GetPlayerList(team)
+			name = (#players > 0) and GetPlayerInfo(players[1], false) or '------'
+			if players[1] then
+				playerRank = select(9, GetPlayerInfo(players[1], false))
+			end
 
-		for _, pID in ipairs(players) do
-			local pname, active, isspec = GetPlayerInfo(pID, false)
-			playerRank = select(9, GetPlayerInfo(pID, false))
-			if active and not isspec then
-				name = pname
-				break
+			for _, pID in ipairs(players) do
+				local pname, active, isspec = GetPlayerInfo(pID, false)
+				playerRank = select(9, GetPlayerInfo(pID, false))
+				if active and not isspec then
+					name = pname
+					break
+				end
 			end
 		end
 	end

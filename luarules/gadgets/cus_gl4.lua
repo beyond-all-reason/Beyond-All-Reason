@@ -1373,9 +1373,6 @@ local function RemoveObjectFromBin(objectID, objectDefID, texKey, shader, flag, 
 					unitDrawBinsFlagShaderTexKey.objectsArray[objectIndex] = objectIDatEnd -- Bring the last objectID here
 					unitDrawBinsFlagShaderTexKey.numobjects = numobjects -1
 				end
-			else
-				--Spring.Echo("Failed to find texKey for", objectID, objectDefID, texKey, shader, flag, uniformBinID)
-				--	Spring.Debug.TableEcho(textures)
 			end
 		else
 			if debugmode then Spring.Echo("Failed to find uniformBinID for", objectID, objectDefID, texKey, shader, flag, uniformBinID) end
@@ -1476,8 +1473,6 @@ local function RemoveObject(objectID, reason) -- we get pos/neg objectID here
 		-- processedFeatures[-1 * objectID] = nil
 		Spring.SetFeatureEngineDrawMask(-1 * objectID, 255)
 	end
-
-	--Spring.Debug.TableEcho(unitDrawBins)
 end
 
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
@@ -1719,33 +1714,6 @@ local function initGL4()
 	initiated = true
 end
 
-local function tableEcho(data, name, indent, tableChecked)
-	name = name or "TableEcho"
-	indent = indent or ""
-	if not tableChecked and type(data) ~= "table" then
-		Spring.Echo(indent .. name, data)
-		return
-	end
-	if type (name) == "table" then
-		name = '<table>'
-	end
-	Spring.Echo(indent .. name .. " = {")
-	local newIndent = indent .. "    "
-	for name, v in pairs(data) do
-		local ty = type(v)
-		if ty == "table" then
-			tableEcho(v, name, newIndent, true)
-		elseif ty == "boolean" then
-			Spring.Echo(newIndent .. name .. " = " .. (v and "true" or "false"))
-		elseif ty == "string" or ty == "number" then
-			Spring.Echo(newIndent .. name .. " = " .. v)
-		else
-			Spring.Echo(newIndent .. name .. " = ", v)
-		end
-	end
-	Spring.Echo(indent .. "},")
-end
-
 local manualReload = false -- Indicates wether the first round of getting units should grab all instead of delta
 
 local function ReloadCUSGL4(optName, line, words, playerID)
@@ -1964,7 +1932,7 @@ function gadget:Initialize()
 end
 
 function gadget:Shutdown()
-	if debugmode then tableEcho(unitDrawBins, 'unitDrawBins') end
+	if debugmode then Spring.Echo(unitDrawBins, 'unitDrawBins') end
 
 	for unitID, _ in pairs(overriddenUnits) do
 		RemoveObject(unitID, "shutdown")

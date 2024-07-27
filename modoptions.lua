@@ -181,7 +181,7 @@ local options = {
         }
     },
 
-    
+
     {
         key     = "teamffa_start_boxes_shuffle",
         name    = "Shuffle TeamFFA Start Boxes",
@@ -239,8 +239,17 @@ local options = {
 
     {
 		key 	= "no_comtrans",
-		name 	= "Tech 1 Transport Aircraft Can't Carry Commanders",
+		name 	= "T1 transports cant load commanders",
 		desc 	= "Commanders will be too heavy for tech 1 transports to carry. (Tech 2 transports can still carry)",
+		type 	= "bool",
+		section = "options_main",
+		def 	= false,
+	},
+
+	{
+		key 	= "slow_comtrans",
+		name 	= "Slower Transported Commanders",
+		desc 	= "Transports carrying commanders are significantly slower, limiting offensive use and reactive mobility",
 		type 	= "bool",
 		section = "options_main",
 		def 	= false,
@@ -1170,6 +1179,15 @@ local options = {
         section = "options_experimental",
         def  	= false,
     },
+	
+    {
+        key   	= "accuratelasers",
+        name   	= "Accurate Lasers",
+        desc   	= "Removes inaccuracy vs moving units from all laser weapons as a proposed solution to overpowered scoutspam",
+        type   	= "bool",
+        section = "options_experimental",
+        def  	= false,
+    },
 
     {
         key    	= "experimentallegionfaction",
@@ -1382,6 +1400,41 @@ local options = {
         def     =  false,
     },
 
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    -- Map Metadata options
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    --
+    -- The modoptions below are intended to be set automatically by lobby/spads based on the selected
+    -- map name. They are used for a dynamic map configuration where the configruation values are not
+    -- tied to either game version or reside inside of the map file, allowing for independent distribution
+    -- from the maps metadata source of truth: https://github.com/beyond-all-reason/maps-metadata
+    {
+        key     = "mapmetadata",
+        name    = "MapMetadata",
+        desc    = "mapmetadata tab that should be hidden by chobby, which would have ideally been achieved by just not listing it and the following options here in the first place, but then SPADS refuses to set the modoption",
+        hidden  = true,
+        type    = "section",
+    },
+    {
+        key     = "sub_header",
+        name    = "Hidden map metadata options that are supposed to be set automatically by lobby/spads based on the map name.",
+        desc    = "",
+        section = "mapmetadata",
+        type    = "subheader",
+        hidden  = true,
+        def     = true,
+    },
+    {
+        key     = "mapmetadata_startpos",
+        name    = "Map Metadata: StartPos",
+        desc    = "StartPos configuration. Format is: base64url(zlib(json))",
+        hidden  = true,
+        section = "mapmetadata",
+        type    = "string",
+        def     = "",
+    },
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     -- Cheats

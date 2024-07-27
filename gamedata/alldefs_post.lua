@@ -651,18 +651,14 @@ function UnitDef_Post(name, uDef)
 			if uDef.featuredefs.dead then
 				uDef.featuredefs.dead.damage = uDef.health
 				if uDef.metalcost and uDef.energycost then
-					if name and not string.find(name, "_scav") then
-						uDef.featuredefs.dead.metal = math.floor(uDef.metalcost * 0.6)
-					end
+					uDef.featuredefs.dead.metal = math.floor(uDef.metalcost * 0.6)
 				end
 			end
 			-- heaps
 			if uDef.featuredefs.heap then
 				uDef.featuredefs.heap.damage = uDef.health
 				if uDef.metalcost and uDef.energycost then
-					if name and not string.find(name, "_scav") then
-						uDef.featuredefs.heap.metal = math.floor(uDef.metalcost * 0.25)
-					end
+					uDef.featuredefs.heap.metal = math.floor(uDef.metalcost * 0.25)
 				end
 			end
 		end
@@ -858,6 +854,13 @@ function UnitDef_Post(name, uDef)
 	if modOptions.no_comtrans == true then
 		if uDef.customparams and uDef.customparams.iscommander then
 			uDef.mass = 5001
+		end
+	end
+
+	--Slow Comtrans
+	if modOptions.slow_comtrans == true then
+		if uDef.customparams and uDef.customparams.iscommander then
+			uDef.customparams.transportspeedmult = 0.3
 		end
 	end
 
@@ -1287,7 +1290,13 @@ function WeaponDef_Post(name, wDef)
 				wDef.mygravity = 0.1667 --150/900
 			end
 		end
-
+		
+		-- Accurate Lasers		
+		if modOptions.accuratelasers then
+			if wDef.weapontype and wDef.weapontype == 'BeamLaser' then
+				wDef.targetmoveerror = nil
+			end
+		end
 
 		----EMP rework
 
