@@ -87,6 +87,7 @@ tabset > tabs {
 tabset > tabs > tab {
     display: inline-block;
     margin-top: 0.5em;
+    cursor: pointer;
 }
 
 tabset > tabs > tab:selected {
