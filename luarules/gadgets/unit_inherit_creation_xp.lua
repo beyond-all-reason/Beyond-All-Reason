@@ -159,6 +159,15 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 
+	local evoID = Spring.GetUnitRulesParam(unitID, "unit_evolved")
+	if evoID then
+		for id, data in pairs(childrenWithParents) do
+			if data.parentunitid == unitID then
+				data.parentunitid = evoID
+				data.parentxpmultiplier = calculatePowerDiffXP(id, evoID)
+			end
+		end
+	end
 	childrenWithParents[unitID] = nil --removes units from lists when destroyed
 	initializeList[unitID] = nil
 end
