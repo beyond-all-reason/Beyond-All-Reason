@@ -16,7 +16,7 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 	return 0;
 }
 
-static-var  isMoving, spray, wpn1_lasthead, turretdeployed, isAimingArm, backShotFired;
+static-var  isMoving, spray, wpn1_lasthead, turretdeployed, isAimingArm;
 // Generated for N:\animations\cormando_anim_walk.blend
 // Using https://github.com/Beherith/Skeletor_S3O 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
@@ -347,18 +347,20 @@ StopMoving(){
 #define MAXTILT 100
 #include "../unit_hitbyweaponid_and_smoke.h"
 
-Lights()
+CloakChecker()
 {
 	while (TRUE){
-		emit-sfx 1024 + 1 from head;
+		if (turretdeployed > 0){
+			set WANT_CLOAK to 0;
+		}
 		sleep 1000;
-		get PRINT(turretdeployed);
 	}
 }
 
 Create()
 {
 	hide rnano;
+	hide lnano;
 	hide aimx1;
 	hide flare;
 	hide aimy1;
@@ -366,10 +368,10 @@ Create()
 	turn flare to x-axis <90> now;
 	animSpeed = 5;
 	spray = 0;
-	start-script Lights();
+	//start-script Lights();
 	turretdeployed = 0;
 	isAimingArm = 0;
-	backShotFired = 1;
+	start-script CloakChecker();
 }
 
 StartBuilding(torsoing, pitch)
@@ -410,8 +412,9 @@ RestorePosture()
 	turn ruparm to x-axis <-3.657314> speed <153.975932>;
 	turn ruparm to y-axis <-3.864772> speed <118.035038>;
 	turn ruparm to z-axis <13.726872> speed <63.174977>;
+	turn aimy1 to y-axis <0> speed <100.0>;
 	isAimingArm = 0;
-	turretdeployed = 0;
+	hide lnano;
 }
 
 RetractBackTurret()
@@ -430,30 +433,27 @@ RestoreBackTurretAfterDelay()
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	sleep 500;
-	backShotFired = 1;
-	sleep 5000;
+	sleep 1500;
 	start-script RetractBackTurret();
+	start-script RestoreAfterDelay();
 }
 
 RestoreAfterDelay()
 {
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
-	if (turretdeployed != 1){
-	sleep 1500;
+	sleep 3000;
 	start-script RestorePosture();
-	}
 }
 
 
 DeployBackTurret()
 {
-	signal SIGNAL_AIM1;
+	turretdeployed = 2;
 	move turret to y-axis [9.5] speed [0.95];
 	sleep 10000;
 	turretdeployed = 1;
-	start-script RestoreBackTurretAfterDelay();
+	start-script RestoreAfterDelay();
 }
 
 
@@ -471,11 +471,15 @@ QueryWeapon1(pieceIndex)
 
 AimWeapon1(heading, pitch)
 {
-	signal SIGNAL_AIM2;
-	if (turretdeployed == 1 AND backShotFired == 1){
-	return (0);
+	var reloading;
+	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(1));
+	if( reloading )
+	{
+		return(0);
 	}
+	signal SIGNAL_AIM2;
 	isAimingArm = 1;
+	show lnano;
 	turn luparm to x-axis <-45> speed <187.500000>;
 	turn larm to x-axis <-45> speed <187.500000>;
 	turn aimy1 to y-axis heading speed <240.0>;
@@ -487,7 +491,7 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
-	backShotFired = 1;
+	isAimingArm = 2;
 	sleep 100;
 	return (0);
 }
@@ -512,26 +516,21 @@ AimWeapon2(heading, pitch)
 	}
 	if (turretdeployed == 0){
 		call-script DeployBackTurret();
-		return(0);
 	}
-	if (backShotFired == 0){
-		return(0);
+	if (isAimingArm == 1){
+		return (0);
 	}
 	turn sleeve to x-axis <270.0>-pitch speed <50.0>;
-	turn aimy1 to y-axis heading speed <95.0>;
+	turn aimy1 to y-axis heading speed <240.0>;
 	wait-for-turn sleeve around x-axis;
-	wait-for-turn turret around y-axis;
+	wait-for-turn aimy1 around y-axis;
 	
-	backShotFired = 0;
-	get PRINT(turretdeployed, 69, backShotFired);
-	isAimingArm = 1;
 	start-script RestoreBackTurretAfterDelay();
 	return (1);
 }
 
 FireWeapon2()
 {
-	backShotFired = 1;
 	emit-sfx 1024 + 0 from flare;
     move barrel to y-axis [-0.5] speed [3.750000];
 	sleep 50;

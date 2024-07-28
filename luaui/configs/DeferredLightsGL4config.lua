@@ -9773,6 +9773,15 @@ local unitLights = {
 							modelfactor = 0.4, specular = 0.5, scattering = 1, lensflare = 5,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
+		lnanoflareglow = {
+			lightType = 'point',
+			pieceName = 'lnano',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 15,
+							color2r = 1, color2g = 1, color2b = 0.3, colortime = 60,
+							r = 0.7, g = 0.7, b = 1, a = 0.7,
+							modelfactor = 0.4, specular = 0.5, scattering = 1, lensflare = 10,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
 	},
 	['corparrow'] = {
 		eyes1 = {
