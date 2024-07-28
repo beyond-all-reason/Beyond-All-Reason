@@ -218,8 +218,6 @@ for unitname, effect in pairs(UnitEffects) do
 				attr[6] = 0 -- precision
 				attr[7] = (opts.isShield and 1) or 0  -- isShield
 				attr[8] = 1 -- technique
-				--Spring.Echo(unitname)
-				--Spring.Debug.TableEcho(opts)
 				
 				attr[ 9], attr[10], attr[11], attr[12] = unpack((opts.colormap1 and opts.colormap1[1]) or {-1,-1,-1,-1})
 				attr[13], attr[14], attr[15], attr[16] = unpack((opts.colormap2 and opts.colormap2[1]) or {-1,-1,-1,-1})

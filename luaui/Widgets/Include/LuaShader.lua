@@ -236,9 +236,7 @@ vec3 rgb2hsv(vec3 c){
 	local waterAbsorbColorR, waterAbsorbColorG, waterAbsorbColorB = gl.GetWaterRendering("absorb")
 	local waterMinColorR, waterMinColorG, waterMinColorB = gl.GetWaterRendering("minColor")
 	local waterBaseColorR, waterBaseColorG, waterBaseColorB = gl.GetWaterRendering("baseColor")
-	
-	--Spring.Echo(waterAbsorbColorR, waterAbsorbColorG, waterAbsorbColorB)
-	--Spring.Debug.TableEcho(waterAbsorbColor)
+
 	local waterUniforms = 
 [[ 
 #define WATERABSORBCOLOR vec3(%f,%f,%f)

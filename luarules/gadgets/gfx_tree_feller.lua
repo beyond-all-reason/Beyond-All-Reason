@@ -126,6 +126,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function ComSpawnDefoliate(spawnx,spawny,spawnz)
 		
+
 		local blasted_trees = Spring.GetFeaturesInCylinder ( spawnx, spawnz, 125)
 
 		for i, tree in pairs(blasted_trees) do
@@ -136,11 +137,11 @@ if gadgetHandler:IsSyncedCode() then
 				return 0
 			end
 
+
 			local fx, fy, fz = GetFeaturePosition(tree)
 			local dx, dy, dz = GetFeatureDirection(tree)
 			if true and fx ~= nil then
 
-			
 				local ppx, ppy, ppz
 
 

@@ -402,7 +402,7 @@ return {
 						intercepttype = 11111,
 						power = 30000,
 						powerregen = 500,
-						powerregenenergy = 50,
+						powerregenenergy = 100,
 						radius = 100,
 						repulser = false,
 						smart = true,

@@ -407,8 +407,6 @@ local function SpawnUnit(spawnData)
 					local carrierz
 					dockPointx,dockPointy, dockPointz = Spring.GetUnitPiecePosition(ownerID, dockingpiece)--Spring.GetUnitPieceInfo (ownerID, dockingpieceindex)
 					carrierx,carriery, carrierz = Spring.GetUnitPosition(ownerID)
-					--Spring.Echo(dockingpieceindex)
-					--Spring.Debug.TableEcho(Spring.GetUnitPiecePosition(ownerID, dockingpiece))
 					mcSetPosition(subUnitID, carrierx+dockPointx, carriery+dockPointy, carrierz+dockPointz)
 				end
 				mcDisable(subUnitID)

@@ -877,8 +877,9 @@ if gadgetHandler:IsSyncedCode() then
 						local burrowID = CreateUnit(name, spawnPosX, spawnPosY, spawnPosZ, mRandom(0,3), scavTeamID)
 						if burrowID then
 							SetupBurrow(burrowID, spawnPosX, spawnPosY, spawnPosZ)
-							Spring.SpawnCEG("commander-spawn", spawnPosX, spawnPosY, spawnPosZ, 0, 0, 0)
+							Spring.SpawnCEG("commander-spawn-alwaysvisible", spawnPosX, spawnPosY, spawnPosZ, 0, 0, 0)
 							Spring.PlaySoundFile("commanderspawn-mono", 1.0, spawnPosX, spawnPosY, spawnPosZ, 0, 0, 0, "sfx")
+							GG.ComSpawnDefoliate(spawnPosX, spawnPosY, spawnPosZ)
 							break
 						end
 					end
@@ -1326,8 +1327,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	function spawnCreepStructuresWave()
 		for uName, uSettings in pairs(config.scavTurrets) do
-			--Spring.Echo(uName)
-			--Spring.Debug.TableEcho(uSettings)
 			if not uSettings.maxBossAnger then uSettings.maxBossAnger = uSettings.minBossAnger + 100 end
 			if uSettings.minBossAnger <= waveParameters.waveTechAnger and uSettings.maxBossAnger >= waveParameters.waveTechAnger then
 				local numOfTurrets = (uSettings.spawnedPerWave*(1-config.scavPerPlayerMultiplier))+(uSettings.spawnedPerWave*config.scavPerPlayerMultiplier)*SetCount(humanTeams)
@@ -1436,7 +1435,7 @@ if gadgetHandler:IsSyncedCode() then
 					bossResistance[attackerDefID].damage = (damage * 4 * config.bossResistanceMult)
 					bossResistance[attackerDefID].notify = 0
 				end
-				local resistPercent = math.min((bossResistance[attackerDefID].damage) / bossMaxHP, 0.80)
+				local resistPercent = math.min((bossResistance[attackerDefID].damage) / bossMaxHP, 0.98)
 				if resistPercent > 0.5 then
 					if bossResistance[attackerDefID].notify == 0 then
 						scavEvent("bossResistance", attackerDefID)
