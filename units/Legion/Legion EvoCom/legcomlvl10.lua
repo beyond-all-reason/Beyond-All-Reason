@@ -47,7 +47,6 @@ return {
 		objectname = "Units/LEGCOMLVL4.s3o",
 		pushresistant = true,
 		radardistance = 1200,
-		radardistancejam = 500,
 		radaremitheight = 54,
 		reclaimable = false,
 		reclaimspeed = 5388,
