@@ -114,10 +114,14 @@ if gadgetHandler:IsSyncedCode() then
 			local ex,ey,ez = spGetUnitPosition(respawnMetaList[unitID].effigyID)
 			Spring.SetUnitPosition(unitID, ex, ez, true)
 			Spring.SpawnCEG("commander-spawn", ex, ey, ez, 0, 0, 0)
+			Spring.PlaySoundFile("commanderspawn-mono", 1.0, ex, ey, ez, 0, 0, 0, "sfx")
+			GG.ComSpawnDefoliate(ex, ey, ez)
 
 			if respawnMetaList[unitID].respawn_pad == "false" then
 				Spring.SetUnitPosition(respawnMetaList[unitID].effigyID, x, z, true)
 				Spring.SpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
+				Spring.PlaySoundFile("commanderspawn-mono", 1.0, x, y, z, 0, 0, 0, "sfx")
+				GG.ComSpawnDefoliate(x, y, z)
 			end
 
 			if respawnMetaList[unitID].destructive_respawn then
@@ -332,7 +336,7 @@ else
 			announcementEnabled = true
 			announcementStart = spGetGameSeconds()
 		end
-		Spring.PlaySoundFile("commanderspawn", 0.6, 'ui')
+		--Spring.PlaySoundFile("commanderspawn", 0.6, 'ui')
 	end
 
 	function gadget:DrawScreen()

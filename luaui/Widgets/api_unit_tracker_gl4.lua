@@ -611,7 +611,7 @@ function widget:TextCommand(command)
 					elseif #data == 0 then
 						Spring.Echo("nil")
 					else
-						Spring.Debug.TableEcho(data)
+						Spring.Echo(data)
 					end
 				else
 					Spring.Echo(data)
@@ -636,7 +636,7 @@ function widget:TextCommand(command)
 					elseif #data == 0 then
 						Spring.Echo("nil")
 					else
-						Spring.Debug.TableEcho(data)
+						Spring.Echo(data)
 					end
 				else
 					Spring.Echo(data)

@@ -41,3 +41,35 @@ if Spring.GetModOptions then
 		return table.copy(modOptions)
 	end
 end
+
+if Spring.Echo then
+	local echo = Spring.Echo
+	local printOptions = { pretty = true }
+
+	local function multiEcho(...)
+		local args = table.pack(...)
+		local tableIndexes = {}
+
+		for index = 1, args.n do
+			local value = args[index]
+
+			if type(value) == 'table' then
+				table.insert(tableIndexes, index)
+			end
+		end
+
+		-- When Spring.Echo is called with a single table parameter, engine will echo "TABLE: {value}",
+		-- where {value} is whatever value happens to be the first value in the table
+		if #tableIndexes == 1 and args.n == 1 then
+			echo("<table>")
+		else
+			echo(unpack(args, 1, args.n))
+		end
+
+		for _, index in ipairs(tableIndexes) do
+			echo(table.toString(args[index], printOptions))
+		end
+	end
+
+	Spring.Echo = multiEcho
+end

@@ -500,12 +500,18 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 2] = "armdecadet3"
 			uDef.buildoptions[numBuildoptions + 3] = "armpshipt3"
 			uDef.buildoptions[numBuildoptions + 4] = "armserpt3"
-			uDef.buildoptions[numBuildoptions + 5] = "armtrident"
+			uDef.buildoptions[numBuildoptions + 5] = "armexcalibur"
+			uDef.buildoptions[numBuildoptions + 6] = "armseadragon"
+			uDef.buildoptions[numBuildoptions + 7] = "armtrident"
+			uDef.buildoptions[numBuildoptions + 8] = "armdronecarry"
 		elseif name == "corasy" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "corslrpc"
 			uDef.buildoptions[numBuildoptions + 2] = "coresuppt3"
-			uDef.buildoptions[numBuildoptions + 3] = "corsentinel"
+			uDef.buildoptions[numBuildoptions + 3] = "coronager"
+			uDef.buildoptions[numBuildoptions + 4] = "cordesolator"
+			uDef.buildoptions[numBuildoptions + 5] = "corsentinel"
+			uDef.buildoptions[numBuildoptions + 6] = "cordronecarry"
 		end
 	end
 
@@ -645,18 +651,14 @@ function UnitDef_Post(name, uDef)
 			if uDef.featuredefs.dead then
 				uDef.featuredefs.dead.damage = uDef.health
 				if uDef.metalcost and uDef.energycost then
-					if name and not string.find(name, "_scav") then
-						uDef.featuredefs.dead.metal = math.floor(uDef.metalcost * 0.6)
-					end
+					uDef.featuredefs.dead.metal = math.floor(uDef.metalcost * 0.6)
 				end
 			end
 			-- heaps
 			if uDef.featuredefs.heap then
 				uDef.featuredefs.heap.damage = uDef.health
 				if uDef.metalcost and uDef.energycost then
-					if name and not string.find(name, "_scav") then
-						uDef.featuredefs.heap.metal = math.floor(uDef.metalcost * 0.25)
-					end
+					uDef.featuredefs.heap.metal = math.floor(uDef.metalcost * 0.25)
 				end
 			end
 		end
@@ -852,6 +854,13 @@ function UnitDef_Post(name, uDef)
 	if modOptions.no_comtrans == true then
 		if uDef.customparams and uDef.customparams.iscommander then
 			uDef.mass = 5001
+		end
+	end
+
+	--Slow Comtrans
+	if modOptions.slow_comtrans == true then
+		if uDef.customparams and uDef.customparams.iscommander then
+			uDef.customparams.transportspeedmult = 0.3
 		end
 	end
 
@@ -1281,7 +1290,13 @@ function WeaponDef_Post(name, wDef)
 				wDef.mygravity = 0.1667 --150/900
 			end
 		end
-
+		
+		-- Accurate Lasers		
+		if modOptions.accuratelasers then
+			if wDef.weapontype and wDef.weapontype == 'BeamLaser' then
+				wDef.targetmoveerror = nil
+			end
+		end
 
 		----EMP rework
 

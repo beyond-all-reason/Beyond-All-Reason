@@ -119,6 +119,8 @@ bind sc_z buildunit_armamex
 bind Shift+sc_z buildunit_armamex
 bind sc_z buildunit_cormex
 bind Shift+sc_z buildunit_cormex
+bind sc_z buildunit_legmex
+bind Shift+sc_z buildunit_legmex
 bind sc_z buildunit_corexp
 bind Shift+sc_z buildunit_corexp
 bind sc_z buildunit_armmoho

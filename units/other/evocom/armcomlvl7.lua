@@ -110,6 +110,7 @@ return {
 			"armfhp",
 			"armasp",
 			"armdecom",
+			"armshockwave",
 		},
 		customparams = {
 			unitgroup = 'builder',
@@ -127,7 +128,7 @@ return {
 			evolution_target = "armcomlvl8",
 			evolution_condition = "timer",
 			evolution_timer = 99999,
-			evolution_power_threshold = 475000,
+			evolution_power_threshold = 520000,
 			evolution_power_multiplier = 1,
 			combatradius = 0,
 			stockpileLimit = 30,

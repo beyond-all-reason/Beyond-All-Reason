@@ -130,7 +130,7 @@ local unitOrderTable = {
 	['legkam']         = 004357,
 	['armsb']          = 004360,
 	['corsb']          = 004365,
-	['legphoenix']     = 004366,
+	--['legphoenix']     = 004366,
 
 	['armpnix']        = 004370, --BOMBERS T2
 	['corhurc']        = 004380,
@@ -391,7 +391,12 @@ local unitOrderTable = {
 	['armsubk']        = 009920,
 	['corshark']       = 009930,
 	['armserp']        = 009940,
-	['corssub']        = 009950,
+	['corssub']        = 009941,
+	['coronager']      = 009950,
+	['armexcalibur']   = 009951,
+	['cordesolator']   = 009952,
+	['armseadragon']   = 009953,
+
 
 	['armserpt3']      = 009960,
 	['armptt2']        = 009962,
@@ -439,6 +444,7 @@ local unitOrderTable = {
    --ECO ENERGY CONVERTERS
    ['armmakr']        = 100500,
    ['cormakr']        = 100550,
+   ['legeconv']       = 100550,
    ['armmmkr']        = 100600,
    ['cormmkr']        = 100650,
 

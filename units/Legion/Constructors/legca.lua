@@ -46,7 +46,7 @@ return {
 			"corestor",
 			"legmex",
 			"legmext15",
-			"cormakr",
+			"legeconv",
 			"corasp",
 			"corfasp",
 			"legaap",

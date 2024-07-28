@@ -136,7 +136,7 @@ else
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		-- not critter/raptor/object
 		if not string.find(unitDef.name, 'critter') and not string.find(unitDef.name, 'raptor') and (not unitDef.modCategories or not unitDef.modCategories.object) then
-			if unitDef.customParams.iscommander and not string.find(unitDef.name,'_scav') then
+			if unitDef.customParams.iscommander or unitDef.customParams.isscavcommander then
 				isCommander[unitDefID] = true
 			end
 			if string.find(unitDef.name,'corint') or string.find(unitDef.name,'armbrtha') or string.find(unitDef.name,'corbuzz') or string.find(unitDef.name,'armvulc') or string.find(unitDef.name,'legstarfall') then
@@ -183,7 +183,7 @@ else
 
 	function BroadcastEvent(_,event, player)
 		if Script.LuaUI("NotificationEvent") and tonumber(player) and ((tonumber(player) == Spring.GetMyPlayerID()) or isSpec) then
-			Script.LuaUI.NotificationEvent("SoundEvents "..event.." "..player)
+			Script.LuaUI.NotificationEvent(event.." "..player)
 		end
 	end
 
@@ -245,6 +245,7 @@ else
 					if tostring(player) then
 						if not unitInView then
 							if Spring.GetUnitRulesParam(unitID, "unit_evolved") then
+
 							elseif not attackerTeam and select(6, Spring.GetTeamInfo(unitTeam, false)) == myAllyTeamID and (not commanderLastDamaged[unitID] or commanderLastDamaged[unitID]+150 < Spring.GetGameFrame()) then
 								BroadcastEvent("NotificationEvent", "FriendlyCommanderSelfD", tostring(player))
 							else

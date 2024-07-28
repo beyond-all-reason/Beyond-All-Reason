@@ -215,12 +215,6 @@ function ShieldSphereColorParticle:EndDraw()
 					local hitTable = GG.GetShieldHitPositions(unitID)
 
 					if hitTable then
-						
-						if #hitTable > 0 then
-							--Spring.Debug.TableEcho(hitTable, "hitTable")
-							--Spring.Echo("#hitTable", #hitTable)
-						end
-
 						local hitPointCount = math.min(#hitTable, MAX_POINTS)
 						--Spring.Echo("hitPointCount", hitPointCount)
 						glUniformInt(uniformLocations["impactInfo.count"], hitPointCount)
@@ -228,7 +222,6 @@ function ShieldSphereColorParticle:EndDraw()
 							local hx, hy, hz, aoe = hitTable[i].x, hitTable[i].y, hitTable[i].z, hitTable[i].aoe
 							glUniform(uniformLocations[impactInfoStringTable[i-1]], hx, hy, hz, aoe)
 						end
-
 					end
 				end
 

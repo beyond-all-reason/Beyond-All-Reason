@@ -22,6 +22,7 @@ local unitdefConfigNames = {
 	['corsktl'] = false,
 	['armgremlin'] = true,
 	['armamex'] = true,
+	['armshockwave'] = true,
 	['armckfus'] = true,
 	['armspy'] = true,
 	['corspy'] = true,

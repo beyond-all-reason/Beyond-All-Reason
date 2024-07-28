@@ -1004,6 +1004,11 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "arm-sub-medium-ok",
 		BaseSoundWeaponType = "torpedo-medium",
 	},
+	armexcalibur = {
+		BaseSoundSelectType = "arm-sub-medium-sel",
+		BaseSoundMovementType = "arm-sub-medium-ok",
+		BaseSoundWeaponType = "laser-large",
+	},
 	armaas = {
 		BaseSoundSelectType = "arm-shp-medium-sel",
 		BaseSoundMovementType = "arm-shp-medium-ok",
@@ -1023,6 +1028,11 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-sub-medium-sel",
 		BaseSoundMovementType = "arm-sub-medium-ok",
 		BaseSoundWeaponType = "torpedo-medium",
+	},
+	armseadragon = {
+		BaseSoundSelectType = "arm-bld-defense-action-t3",
+		BaseSoundMovementType = "arm-sub-medium-ok",
+		BaseSoundWeaponType = "nuke",
 	},
 	armmship = {
 		BaseSoundSelectType = "arm-shp-large-sel",
@@ -2180,6 +2190,11 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-sub-medium-ok",
 		BaseSoundWeaponType = "torpedo-medium",
 	},
+	cordesolator = {
+		BaseSoundSelectType = "cor-sub-medium-sel",
+		BaseSoundMovementType = "cor-sub-medium-ok",
+		BaseSoundWeaponType = "rocketalt-large",
+	},
 	corarch = {
 		BaseSoundSelectType = "cor-shp-medium-sel",
 		BaseSoundMovementType = "cor-shp-medium-ok",
@@ -2199,6 +2214,11 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "cor-sub-medium-sel",
 		BaseSoundMovementType = "cor-sub-medium-ok",
 		BaseSoundWeaponType = "torpedo-medium",
+	},
+	cordesolator = {
+		BaseSoundSelectType = "cor-sub-medium-sel",
+		BaseSoundMovementType = "cor-sub-medium-ok",
+		BaseSoundWeaponType = "nuke",
 	},
 	cormship = {
 		BaseSoundSelectType = "cor-shp-large-sel",
@@ -2567,6 +2587,16 @@ GUIUnitSoundEffects = {
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-gant-t3-sel",
 	},
+	leghp = {
+		BaseSoundSelectType = "arm-bld-factory",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-factory-hover",
+	},
+	legfhp = {
+		BaseSoundSelectType = "arm-bld-factory",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-factory-hover-water",
+	},
 
 
 	legsolar = {
@@ -2625,10 +2655,11 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-bot-at-ok",
 		BaseSoundWeaponType = "heatray",
 	},
-
-
-
-
+	legaceb = {
+		BaseSoundSelectType = "cor-bot-at-sel",
+		BaseSoundMovementType = "cor-bot-at-ok",
+		BaseSoundWeaponType = "con-assist",
+	},
 	leginc = {
 		BaseSoundSelectType = "cor-bot-huge-sel",
 		BaseSoundMovementType = "cor-bot-huge-ok",
@@ -2717,6 +2748,11 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "leg-veh-tiny-ok",
 		BaseSoundWeaponType = "fastemg-small",
 	},
+	legamphtank = {
+		BaseSoundSelectType = "arm-tnk-small-amph-sel",
+		BaseSoundMovementType = "arm-tnk-small-amph-ok",
+		BaseSoundWeaponType = "plasma-small",
+	},
 	
 	-- LEGION T2 VEHICLES
 	legacv = {
@@ -2772,6 +2808,8 @@ GUIUnitSoundEffects = {
 	
 	
 	-- LEGION T3 VEHICLES
+
+
 
 	-- LEGION AIRCRAFT
 	legca = {
@@ -2853,6 +2891,41 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "arm-bld-metal-t2",
         BaseSoundActivate   = "mohorun1",
         BaseSoundDeactivate = "mohooff1",
+	},
+	
+	
+	-- LEGION HOVERCRAFT
+
+	legsh = {
+		BaseSoundSelectType = "arm-hov-small-sel",
+		BaseSoundMovementType = "arm-hov-small-ok",
+		--BaseSoundMovementVol = 0.6,
+		BaseSoundWeaponType = "laser-tiny",
+	},
+	legmh = {
+		BaseSoundSelectType = "arm-hov-small-sel",
+		BaseSoundMovementType = "arm-hov-small-ok",
+		BaseSoundWeaponType = "rocket-small",
+	},
+	legch = {
+		BaseSoundSelectType = "arm-hov-small-sel",
+		BaseSoundMovementType = "arm-hov-small-ok",
+		BaseSoundWeaponType = "conalt-small",
+	},
+	legah = {
+		BaseSoundSelectType = "arm-hov-small-sel",
+		BaseSoundMovementType = "arm-hov-small-ok",
+		BaseSoundWeaponType = "aarocket-small",
+	},
+	legner = {
+		BaseSoundSelectType = "arm-hov-small-sel",
+		BaseSoundMovementType = "arm-hov-small-ok",
+		BaseSoundWeaponType = "plasma-small",
+	},
+	legcar = {
+		BaseSoundSelectType = "arm-hov-large-sel",
+		BaseSoundMovementType = "arm-hov-large-ok",
+		BaseSoundWeaponType = "fastemg-medium",
 	},
 
 

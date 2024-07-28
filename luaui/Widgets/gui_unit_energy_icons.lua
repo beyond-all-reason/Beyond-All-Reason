@@ -236,10 +236,6 @@ function widget:DrawWorld()
 	if chobbyInterface then return end
 	if Spring.IsGUIHidden() then return end
 
-	--if lastGameFrame % 90 == 0 then
-	--	Spring.Echo("energyicons",energyIconVBO.usedElements)
-	--	Spring.Debug.TableEcho(energyIconVBO.indextoUnitID)
-	--end
 	if energyIconVBO.usedElements > 0 then
 		local disticon = Spring.GetConfigInt("UnitIconDistance", 200) * 27.5 -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		gl.DepthTest(true)

@@ -299,6 +299,10 @@ local icontypes = {
 		bitmap = "icons/energystorage.png",
 		size = 1.10249984
 	},
+	armexcalibur = {
+		bitmap = "icons/sub_t2_coastal.png",
+		size = 2.2
+	},
 	armeyes = {
 		bitmap = "icons/eye.png",
 		size = 0.89249998
@@ -774,6 +778,10 @@ local icontypes = {
 	armsd = {
 		bitmap = "icons/seismic.png",
 		size = 1.46999991
+	},
+	armseadragon = {
+		bitmap = "icons/sub_t3_nuke.png",
+		size = 2.8
 	},
 	armseap = {
 		bitmap = "icons/air_torp_sea.png",
@@ -1263,6 +1271,10 @@ local icontypes = {
 		bitmap = "icons/cordemon.png",
 		size = 2.625
 	},
+	cordesolator = {
+		bitmap = "icons/sub_t3_nuke.png",
+		size = 2.8
+	},
 	cordl = {
 		bitmap = "icons/defence_1_naval.png",
 		size = 1.10249984
@@ -1658,6 +1670,10 @@ local icontypes = {
 	cornecro = {
 		bitmap = "icons/bot_t1_rez.png",
 		size = 0.74000001
+	},
+	coronager = {
+		bitmap = "icons/sub_t2_coastal.png",
+		size = 2.2
 	},
 	corparrow = {
 		bitmap = "icons/corparrow.png",
@@ -2167,6 +2183,10 @@ local icontypes = {
 		bitmap = "icons/air_worker.png",
 		size = 1.25999999
 	},
+	legcar = {
+		bitmap = "icons/hover_t15_shotgun.png",
+		size = 1.35
+	},
 	legcen = {
 		bitmap = "icons/bot_t2_raid.png",
 		size = 1.04999995
@@ -2227,7 +2247,10 @@ local icontypes = {
 		bitmap = "icons/ship_worker.png",
 		size = 1.39649999
 	},
-
+	legeconv = {
+		bitmap = "icons/metalmaker_t1.png",
+		size = 0.78749996
+	},
 	legcv = {
 		bitmap = "icons/vehicle_worker.png",
 		size = 0.99749994

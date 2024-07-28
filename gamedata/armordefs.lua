@@ -623,6 +623,10 @@ local armorDefs = {
         "coracsub",
 		"armrecl",
 		"correcl",
+		"coronager",
+		"cordesolator",
+		"armexcalibur",
+		"armseadragon",
 	},
 
 	raptor =
