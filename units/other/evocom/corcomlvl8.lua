@@ -35,7 +35,7 @@ return {
 		idleautoheal = 133,
 		idletime = 1800,
 		sightemitheight = 40,
-		mass = 99999,
+		mass = 4900,
 		health = 16000,
 		maxslope = 20,
 		speed = 43.5,
