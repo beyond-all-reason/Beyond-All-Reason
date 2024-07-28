@@ -877,7 +877,7 @@ if gadgetHandler:IsSyncedCode() then
 						local burrowID = CreateUnit(name, spawnPosX, spawnPosY, spawnPosZ, mRandom(0,3), scavTeamID)
 						if burrowID then
 							SetupBurrow(burrowID, spawnPosX, spawnPosY, spawnPosZ)
-							Spring.SpawnCEG("commander-spawn", spawnPosX, spawnPosY, spawnPosZ, 0, 0, 0)
+							Spring.SpawnCEG("commander-spawn-alwaysvisible", spawnPosX, spawnPosY, spawnPosZ, 0, 0, 0)
 							Spring.PlaySoundFile("commanderspawn-mono", 1.0, spawnPosX, spawnPosY, spawnPosZ, 0, 0, 0, "sfx")
 							GG.ComSpawnDefoliate(spawnPosX, spawnPosY, spawnPosZ)
 							break
