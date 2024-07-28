@@ -354,12 +354,12 @@ return {
 				weaponvelocity = 1500,
 				customparams = {
 					spark_ceg = "custom:laserhit-emp",
-					spark_forkdamage = "0.025",
+					spark_forkdamage = "0.0125",
 					spark_maxunits = "8",
 					spark_range = "150",
 				},
 				damage = {
-					default = 30000,
+					default = 60000,
 				},
 			},
 			armcomsealaser = {
