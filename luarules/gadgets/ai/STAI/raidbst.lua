@@ -135,7 +135,6 @@ function RaidBST:Advance(pos, perpendicularAttackAngle, reverseAttackAngle)
 -- 		if RAM11-RAM > 0 then Spring.Echo('member advance11',RAM11-RAM) end
 	else
 		self:EchoDebug('adv drit')
--- 		Spring.Debug.TableEcho(self.target)
 		self.target = self.ai.tool:RandomAway2( pos, self.formationDist, nil, perpendicularAttackAngle,self.target)
 -- 			RAM12 = gcinfo()
 -- 	if RAM12-RAM > 0 then Spring.Echo('member advance12',RAM12-RAM) end

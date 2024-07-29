@@ -113,6 +113,7 @@ function gadget:GameFrame(f)
 				
 				local minerTeam = Spring.GetUnitTeam(miner)
 				local x, y, z = Spring.GetUnitPosition(miner)
+
 				if x ~= nil and z ~= nil and true==false then--bypass 'impossible' bug causing logspam 'sometimes'
 					
 
@@ -141,6 +142,7 @@ function gadget:GameFrame(f)
 				else
 					minesweepers[teamouter][miner] = nil
 					--unset , errant entry somehow
+
 				end
 			end
 

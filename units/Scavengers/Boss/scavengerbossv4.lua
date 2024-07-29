@@ -241,7 +241,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				weaponvelocity = 920,
 				damage = {
 					default = stats.minigunDamage,
-					vtol = stats.minigunDamage/3,
+					vtol = stats.minigunDamage/2,
 				},
 			},
 			torpedo = {
@@ -420,7 +420,7 @@ for difficulty, stats in pairs(difficultyParams) do
 			eaterbeam = {
 				areaofeffect = 300,
 				avoidfeature = false,
-				beamtime = 1,
+				beamtime = 1.2,
 				--burst = 2,
 				--burstrate = 0.33,
 				camerashake = 2000,
@@ -442,7 +442,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				noselfdamage = true,
 				--proximitypriority = -0.2,
 				range = 600,
-				reloadtime = 0.33,
+				reloadtime = 0.30,
 				rgbcolor = "0.5 0.2 0.8",
 				rgbcolor2 = "0.6 0.4 0.8",
 				scrollspeed = -5,
@@ -512,7 +512,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				},
 			},
 			turbo_missilelauncher = {
-				areaofeffect = 250,
+				areaofeffect = 350,
 				avoidfeature = false,
 				burnblow = true,
 				burst = 6,
@@ -544,7 +544,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				soundhit = "corban_b",
 				soundhitwet = "splsmed",
 				soundstart = "corban_a",
-				sprayangle = 4000,
+				sprayangle = 6000,
 				startvelocity = 600,
 				texture1 = "null",
 				texture2 = "railguntrail",
@@ -561,7 +561,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				wobble = 5000,
 				damage = {
 					default = stats.missileDamage/6,
-					vtol = stats.missileDamage,
+					vtol = stats.missileDamage*2,
 				},
 			},
 			turbo_napalm = {
@@ -654,7 +654,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				weaponvelocity = 920,
 				damage = {
 					default = stats.minigunDamage*4,
-					vtol = (stats.minigunDamage*4)/3,
+					vtol = (stats.minigunDamage*4)/2,
 					subs = stats.minigunDamage,
 				},
 			},
@@ -904,7 +904,7 @@ for difficulty, stats in pairs(difficultyParams) do
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL",
+				--badtargetcategory = "VTOL",
 				def = "machinegun",
 				onlytargetcategory = "NOTSUB",
 				burstControlWhenOutOfArc = 1,
@@ -949,7 +949,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				onlytargetcategory = "NOTSHIP",
 			},
 			[10] = {
-				badtargetcategory = "SURFACE",
+				--badtargetcategory = "SURFACE",
 				def = "turbo_machinegun",
 				onlytargetcategory = "NOTSUB",
 				burstControlWhenOutOfArc = 3,

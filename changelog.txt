@@ -1,4 +1,6 @@
-﻿# July 2024
+# July 2024
+• [Minelayers] Minelayers now live up to the 'minesweeper' role properly, being able to detect enemy mines within 450 radius, and slowly clear them, with a moderate ranged weapon.
+• [Naval Economy Buildings] Stats made equal to land versions. Specifically, T1 and T2 Energy Convertors, Energy and Metal Storages, and the T2 mex have been harmonised for both Core and Arm.
 • [Salamander] Energy cost increased 4775->7000 to make the unit more difficult to rush early on and put its cost more in line with other amphibs (energy being 20x metal cost).  Range reduced from 360->340 to make it slightly more difficult to kite T1 units and commanders.  
 • [Whistler + Lasher] Ground range increased by 25 (525/550->550/575 range)
 • [Centurion] Unit script improved so the unit should keep firing while turning

@@ -59,6 +59,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbots/t2",
 			techlevel = 2,
+			paratrooper = true,
 		},
 		sfxtypes = {
 			explosiongenerators = {
