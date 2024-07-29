@@ -16,6 +16,10 @@ local base64 = VFS.Include("common/luaUtilities/base64.lua")
 -- ======
 
 local config = {
+	-- saved
+	hasRunBefore = false,
+
+	-- local
 	circleRadius = 300,
 	circleThickness = 6,
 
@@ -575,7 +579,7 @@ local function drawTooltip()
 end
 
 local function drawTutorial()
-	if not WG["notifications"] or not WG["notifications"].getTutorial() then
+	if config.hasRunBefore and (not WG["notifications"] or not WG["notifications"].getTutorial()) then
 		return
 	end
 
@@ -607,6 +611,18 @@ function widget:ViewResize()
 		10
 	)
 	vsx, vsy = Spring.GetViewGeometry()
+end
+
+function widget:GetConfigData()
+	return {
+		hasRunBefore = true
+	}
+end
+
+function widget:SetConfigData(data)
+	if data and data.hasRunBefore then
+		config.hasRunBefore = data.hasRunBefore
+	end
 end
 
 function widget:Initialize()
