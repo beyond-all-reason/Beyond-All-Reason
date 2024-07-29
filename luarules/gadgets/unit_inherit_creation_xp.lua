@@ -46,7 +46,7 @@ for id, def in pairs(UnitDefs) do
 	if def.speed and def.speed ~= 0 then
 		mobileUnits[id] = true
 	end
-	if def.speed == 0 and def.weapons and def.weapons[1] then
+	if def.speed == 0 and def.weapons and def.weapons[1] and not string.find(def.name, "corgate") and not string.find(def.name, "armgate") and not string.find(def.name, "leggate") then
 		turretUnits[id] = true
 	end
 	if def.power then

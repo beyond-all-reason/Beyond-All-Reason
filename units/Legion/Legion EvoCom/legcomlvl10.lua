@@ -34,7 +34,7 @@ return {
 		icontype = "legcomlvl4",
 		idletime = 1800,
 		sightemitheight = 40,
-		mass = 99999,
+		mass = 4900,
 		health = 22000,
 		maxslope = 20,
 		speed = 49.5,

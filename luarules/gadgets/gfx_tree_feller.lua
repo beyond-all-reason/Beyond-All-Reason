@@ -101,7 +101,13 @@ if gadgetHandler:IsSyncedCode() then
 	local treeMass = {}
 	local treeScaleY = {}
 	local treeName = {}
+	local geothermals = {}
 	for featureDefID, featureDef in pairs(FeatureDefs) do
+
+		if featureDef.geoThermal then
+			geothermals[featureDefID] = featureDefID
+		end
+
 		if featureDef.name:find('treetype') == nil then
 			treeName[featureDefID] = featureDef.name
 			treeMass[featureDefID] = math.max(1, featureDef.mass)
@@ -124,14 +130,17 @@ if gadgetHandler:IsSyncedCode() then
 		local blasted_trees = Spring.GetFeaturesInCylinder ( spawnx, spawnz, 125)
 
 		for i, tree in pairs(blasted_trees) do
-			--Spring.Echo('tree', tree)
+
+			local featureDefID = Spring.GetFeatureDefID(tree)
+
+			if geothermals[featureDefID] then
+				return 0
+			end
+
 
 			local fx, fy, fz = GetFeaturePosition(tree)
 			local dx, dy, dz = GetFeatureDirection(tree)
 			if true and fx ~= nil then
-
-				local featureDefID = Spring.GetFeatureDefID(tree)
-
 
 				local ppx, ppy, ppz
 
@@ -327,7 +336,8 @@ if gadgetHandler:IsSyncedCode() then
 
 				-- FALLING
 				if featureinfo.frame + thisfeaturefalltime > gf then
-					local factor = math.max(1, (gf - featureinfo.frame) / thisfeaturefallspeed)
+					--Spring.Echo('hornet poi: falling')
+					local factor = math.max(1, ((gf - featureinfo.frame) / thisfeaturefallspeed))
 					local fx, fy, fz = GetFeaturePosition(featureID)
 					local px, py, pz = featureinfo.px, featureinfo.py, featureinfo.pz
 					if fy ~= nil then
@@ -367,6 +377,7 @@ if gadgetHandler:IsSyncedCode() then
 
 				-- FALLEN
 				elseif featureinfo.frame + thisfeaturefalltime <= gf then
+					--Spring.Echo('hornet poi: fallen')
 					local fx, fy, fz = GetFeaturePosition(featureID)
 					if fy ~= nil then
 						if featureinfo.fire then
