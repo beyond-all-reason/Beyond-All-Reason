@@ -198,6 +198,21 @@ local requireRestartDefaults = {}
 local gameOver = false
 local presets = {}
 
+local reclaimFieldHighlightOptions = {
+	Spring.I18N('ui.settings.option.reclaimfieldhighlight_always'),
+	Spring.I18N('ui.settings.option.reclaimfieldhighlight_resource'),
+	Spring.I18N('ui.settings.option.reclaimfieldhighlight_reclaimer'),
+	Spring.I18N('ui.settings.option.reclaimfieldhighlight_resbot'),
+	Spring.I18N('ui.settings.option.reclaimfieldhighlight_order'),
+	Spring.I18N('ui.settings.option.reclaimfieldhighlight_disabled')
+}
+
+local spectatorHUDConfigOptions = {
+	Spring.I18N('ui.settings.option.spectator_hud_config_basic'),
+	Spring.I18N('ui.settings.option.spectator_hud_config_advanced'),
+	Spring.I18N('ui.settings.option.spectator_hud_config_expert'),
+}
+
 local startScript = VFS.LoadFile("_script.txt")
 if not startScript then
 	local modoptions = ''
@@ -4223,6 +4238,27 @@ function init()
 
 		{ id = "antiranges", group = "ui", category = types.advanced, widget = "Anti Ranges", name = Spring.I18N('ui.settings.option.antiranges'), type = "bool", value = GetWidgetToggleValue("Anti Ranges"), description = Spring.I18N('ui.settings.option.antiranges_descr') },
 
+		{ id = "label_ui_spectator", group = "ui", name = Spring.I18N('ui.settings.option.label_spectator'), category = types.basic },
+		{ id = "label_ui_spectator_spacer", group = "ui", category = types.basic },
+
+		{ id = "spectator_hud", group = "ui", category = types.basic, widget = "Spectator HUD", name = Spring.I18N('ui.settings.option.spectator_hud'), type = "bool", value = GetWidgetToggleValue("Spectator HUD"), description = Spring.I18N('ui.settings.option.spectator_hud_descr') },
+		{ id = "spectator_hud_size", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.spectator_hud_size'), type = "slider", min = 0.1, max = 2, step = 0.1, value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getWidgetSize ~= nil and WG['spectator_hud'].getWidgetSize()) or 0.8, description = '',
+		  onload = function(i)
+			  loadWidgetData("Spectator HUD", "spectator_hud_size", { 'widgetScale' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Spectator HUD', 'spectator_hud', 'setWidgetSize', { 'widgetScale' }, value)
+		  end,
+		},
+
+		{ id = "spectator_hud_config", group = "ui", category = types.advanced, widget = "Spectator HUD", name = Spring.I18N('ui.settings.option.spectator_hud_config'), type = "select", options = spectatorHUDConfigOptions, value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getConfig ~= nil and WG['spectator_hud'].getConfig()) or 1, description = Spring.I18N('ui.settings.option.spectator_hud_config_descr'),
+			onload = function(i)
+				loadWidgetData("Spectator HUD", "spectator_hud_config", { 'config' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Spectator HUD', 'spectator_hud', 'setConfig', { 'config' }, value)
+			end,
+		},
 
 		{ id = "label_ui_developer", group = "ui", name = Spring.I18N('ui.settings.option.label_developer'), category = types.advanced },
 		{ id = "label_ui_developer_spacer", group = "ui", category = types.advanced },

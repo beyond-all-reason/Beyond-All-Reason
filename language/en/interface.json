@@ -894,6 +894,32 @@
 			"estorage": "E storage",
 			"mstorage": "M storage"
 		},
+		"spectator_hud": {
+			"metalIncome_title": "Metal Income",
+			"metalIncome_tooltip": "Metal income per second",
+			"energyConversionMetalIncome_title": "Metal Conversion",
+			"energyConversionMetalIncome_tooltip": "Metal income from energy conversion" ,
+			"energyIncome_title": "Energy Income",
+			"energyIncome_tooltip": "Energy income per second",
+			"buildPower_title": "Build Power",
+			"buildPower_tooltip": "Build power at disposal",
+			"metalProduced_title": "Metal Produced",
+			"metalProduced_tooltip": "Total metal produced" ,
+			"energyProduced_title": "Energy Produced",
+			"energyProduced_tooltip": "Total energy produced" ,
+			"metalExcess_title": "Metal Excess",
+			"metalExcess_tooltip": "Total metal excess",
+			"energyExcess_title": "Energy Excess",
+			"energyExcess_tooltip": "Total energy excess",
+			"armyValue_title": "Army Value",
+			"armyValue_tooltip": "Army value in metal,\nincl. commander",
+			"defenseValue_title": "Defense Value",
+			"defenseValue_tooltip": "Defense value in metal",
+			"economyValue_title": "Economy Value",
+			"economyValue_tooltip": "Economy value in metal",
+			"damageDealt_title": "Damage Dealt",
+			"damageDealt_tooltip": "Damage dealt"
+		},
 		"settings": {
 			"basic": "Basic",
 			"advanced": "Advanced",
@@ -937,6 +963,7 @@
 				"label_effects": "Effects",
 				"label_visuals": "Visuals",
 				"label_ranges": "Ranges",
+				"label_spectator": "Spectator",
 				"label_environment": "Environment",
 				"label_behavior": "Behavior",
 				"label_automation": "Automation",
@@ -1593,7 +1620,15 @@
 				"highlightcomwrecks_teamcolor_descr": "Use the player's color for the beam, instead of the default color (resurrect color)",
 				"buildinggrid": "Building Grid",
 				"buildinggrid_descr": "Shows a grid on the ground to assist building placement",
-				"buildinggridopacity": "opacity"
+				"buildinggridopacity": "opacity",
+				"spectator_hud": "Spectator HUD",
+				"spectator_hud_descr": "Enable/Disable Spectator HUD",
+				"spectator_hud_size": "Spectator HUD size on screen",
+				"spectator_hud_config": "HUD mode",
+				"spectator_hud_config_descr": "Select Spectator HUD mode",
+				"spectator_hud_config_basic": "Basic",
+				"spectator_hud_config_advanced": "Advanced",
+				"spectator_hud_config_expert": "Expert"
 			}
 		}
 	}
