@@ -137,7 +137,7 @@ layout (location = 3) in vec4 color;
 
 out DataVS {
 	vec4 color;
-} output;
+} outputVars;
 
 uniform sampler2D heightmapTex;
 
@@ -153,7 +153,7 @@ void main() {
 
 	gl_Position = cameraViewProj * vec4(result_pos, 1.0);
 
-	output.color = color;
+	outputVars.color = color;
 }
 ]]
 
@@ -164,13 +164,13 @@ local fsSrc = [[
 
 in DataVS {
 	vec4 color;
-} input;
+} inputVars;
 
 out vec4 color;
 
 #line 35000
 void main() {
-	color = input.color;
+	color = inputVars.color;
 }
 ]]
 
@@ -731,7 +731,11 @@ function widget:Initialize()
 		return
 	end
 
-	initGL4()
+	if not initGL4() then
+		-- shader compile failed
+		widgetHandler:RemoveWidget()
+		return
+	end
 
 	WG["api_blueprint"] = {
 		setActiveBlueprint = setActiveBlueprint,
