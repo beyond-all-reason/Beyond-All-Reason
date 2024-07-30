@@ -113,11 +113,9 @@ local startboxVS = [[
   }
   void main() {
     worldPos = wpos.xyz;
-    // gl_Position = cameraViewProj * vec4(circleWorldPos.xyz, 1.0);
-	// gl_Position = cameraViewProj * vec4(wpos.x, heightAtWorldPos(wpos.xy)+10, wpos.y, 1.0);
 	gl_Position = cameraViewProj * vec4(wpos.xyz, 1.0);
   }
-	]]
+]]
 local startboxFS = [[
 #version 330
   #extension GL_ARB_uniform_buffer_object : require
@@ -147,16 +145,14 @@ local startboxFS = [[
 	float minX = min(abs(rect_x - worldPos.x), abs(rect_width - worldPos.x));
 	float minY = min(abs(rect_y - worldPos.z), abs(rect_height - worldPos.z));
 	float minDist = min(minX, minY);
-	float range = 400-sin(elatime)*100;
-	float scaler = 1-clamp(minDist,0,range)/range;
-	//scaler = scaler + sin((30*elatime-worldPos.z/10)/40);
+	float range = 400.0 - sin(elatime) * 100.0;
+	float scaler = 1.0 - clamp(minDist, 0.0, range) / range;
+	//scaler = scaler + sin((30.0 * elatime - worldPos.z / 10.0) / 40.0);
 
 	//fragColor = vec4(0.0,(smoothstep(0,1,sin(-2.0*elatime+worldPos.z/100))+2)*minDist,0.0,0.2);
-	fragColor = vec4(0.0,.7,0.0,0.4);
-	fragColor = vec4(color.xyz,color.w*scaler+.07);
-	//fragColor = vec4(0,1,0,.3*pass);
+	fragColor = vec4(color.xyz, color.w * scaler + .07);
   }
-	]]
+]]
 local startposShader
 local startposVS = [[
   #version 420
@@ -168,7 +164,6 @@ local startposVS = [[
 
 
   uniform sampler2D heightmapTex;
-  //uniform sampler2D hexTex;
   out DataVS {
     vec3 objPos;
 	vec3 worldPos;
@@ -177,16 +172,16 @@ local startposVS = [[
   //__ENGINEUNIFORMBUFFERDEFS__
   #line 11000
   float heightAtWorldPos(vec2 w){
-    vec2 uvhm =   vec2(clamp(w.x,8.0,mapSize.x-8.0),clamp(w.y,8.0, mapSize.y-8.0))/ mapSize.xy;
+    vec2 uvhm = vec2(clamp(w.x,8.0,mapSize.x-8.0),clamp(w.y,8.0, mapSize.y-8.0))/ mapSize.xy;
     return textureLod(heightmapTex, uvhm, 0.0).x;
   }
   void main() {
 	objPos = pos.xyz;
     worldPos = wpos;
 	color = teamcolor;
-	gl_Position = cameraViewProj * (vec4(wpos.xyz*2, 1.0) + vec4(pos.xyz,1.0));
+	gl_Position = cameraViewProj * (vec4(wpos.xyz * 2.0, 1.0) + vec4(pos.xyz, 1.0));
   }
-	]]
+]]
 local startposFS = [[
 #version 330
   #extension GL_ARB_uniform_buffer_object : require
@@ -200,7 +195,7 @@ local startposFS = [[
   //__DEFINES__
   in DataVS {
     vec3 objPos;
-    vec3 worldPos;
+	vec3 worldPos;
     vec4 color;
   };
   out vec4 fragColor;
@@ -209,14 +204,14 @@ local startposFS = [[
     return textureLod(heightmapTex, uvhm, 0.0).x;
   }
   void main() {
-	float range = 400-sin(elatime)*100;
-	float height01 = 1-objPos.y/height;
-	float heightfade = height01*height01;//*height01;
-	float scaler = heightfade+heightfade*((sin(elatime+objPos.y/100))+.3)*.5;
+	float range = 400.0 - sin(elatime) * 100.0;
+	float height01 = 1.0 - objPos.y / height;
+	float heightfade = height01 * height01;// * height01;
+	float scaler = heightfade + heightfade * ((sin(elatime + objPos.y / 100.0)) + 0.3) * 0.5;
 	float cutzero = sign(objPos.y);
-	fragColor = vec4(color.xyz, scaler*cutzero);
+	fragColor = vec4(color.xyz, scaler * cutzero);
   }
-	]]
+]]
 
 local function goodbye(reason)
 	Spring.Echo("DefenseRange GL4 widget exiting with reason: " .. reason)
@@ -527,7 +522,7 @@ function widget:DrawWorld()
 
 	local teamlist = Spring.GetTeamList()
 	local startboxInstanceData = {}
-	local spcount= 0
+	local spcount = 0
 	for _, teamID in ipairs(teamlist) do
 		local playerID = select(2, Spring.GetTeamInfo(teamID, false))
 		local _, _, spec = Spring.GetPlayerInfo(playerID, false)
