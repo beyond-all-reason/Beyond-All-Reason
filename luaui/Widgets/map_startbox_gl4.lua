@@ -213,6 +213,21 @@ local startposFS = [[
   }
 ]]
 
+local function shutdownVAOs()
+	if startposShader then
+		startposShader:Delete()
+	end
+	if startboxShader then
+		startboxShader:Delete()
+	end
+	for i =1, #startboxVAOs do
+		startboxVAOs[i].vao:Delete()
+	end
+	if startposData.vao then
+		startposData.vao:Delete()
+	end
+end
+
 local function goodbye(reason)
 	Spring.Echo("DefenseRange GL4 widget exiting with reason: " .. reason)
 	widgetHandler:RemoveWidget()
@@ -457,6 +472,7 @@ function widget:Shutdown()
 	removeLists()
 	gl.DeleteFont(font)
 	gl.DeleteFont(shadowFont)
+	shutdownVAOs()
 	widgetHandler:DeregisterGlobal('GadgetCoopStartPoint')
 end
 
