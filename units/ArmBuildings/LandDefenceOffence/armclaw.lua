@@ -138,7 +138,7 @@ return {
 				intensity = 24,
 				name = "Close-quarters g2g lightning turret",
 				noselfdamage = true,
-				range = 430,
+				range = 420,
 				reloadtime = 1.13333,
 				rgbcolor = "0.5 0.5 1",
 				soundhit = "lashit",
