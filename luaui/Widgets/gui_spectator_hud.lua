@@ -5,7 +5,7 @@ function widget:GetInfo()
 		author = "CMDR*Zod",
 		date = "2024",
 		license = "GNU GPL v3 (or later)",
-		layer = 1,
+		layer = 2,
 		handler = true,
 		enabled = false
 	}
