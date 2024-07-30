@@ -124,6 +124,7 @@ return {
 				beamttl = 1,
 				burst = 10,
 				burstrate = 0.03333,
+				canattackground = false,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,

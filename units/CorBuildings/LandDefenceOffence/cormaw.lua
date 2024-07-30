@@ -121,6 +121,7 @@ return {
 				areaofeffect = 64,
 				avoidfeature = false,
 				burst = 16,
+				burnblow = true,
 				burstrate = 0.05,
 				cegtag = "burnflame-anim",
 				colormap = "1 0.95 0.82 0.03   0.65 0.4 0.35 0.030   0.44 0.25 0.20 0.028   0.033 0.018 0.012 0.03   0.0 0.0 0.0 0.01",
@@ -154,7 +155,6 @@ return {
 				texture1 = "flame",
 				tolerance = 2500,
 				turret = true,
-				weapontimer = 1,
 				weapontype = "Flame",
 				weaponvelocity = 300,
 				damage = {
