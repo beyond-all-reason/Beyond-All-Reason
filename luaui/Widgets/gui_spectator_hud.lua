@@ -995,28 +995,6 @@ local function updateStats()
 	regenerateTextTextures = true
 end
 
-local function drawMetricKnobText(left, bottom, right, top, text)
-	-- note: call this function within a font:Begin() - font:End() block
-
-	local knobTextAreaWidth = right - left - 2 * knobDimensions.outline
-	local fontSizeSmaller = knobDimensions.fontSize
-	local textWidth = font:GetTextWidth(text)
-	while textWidth * fontSizeSmaller > knobTextAreaWidth do
-		fontSizeSmaller = fontSizeSmaller - 1
-	end
-
-	--font:Begin()
-	--	  font:SetTextColor(textColorWhite)
-		font:Print(
-			text,
-			mathfloor((right + left) / 2),
-			mathfloor((top + bottom) / 2),
-			fontSizeSmaller,
-			'cvO'
-		)
-	--font:End()
-end
-
 local colorKnobMiddleGrey = { 0.5, 0.5, 0.5, 1 }
 local function drawMetricBar(left, bottom, right, top, indexLeft, indexRight, metricIndex, mouseOver)
 	local valueLeft = teamStats[metricIndex].aggregates[indexLeft]
