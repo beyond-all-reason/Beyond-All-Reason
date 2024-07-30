@@ -164,7 +164,7 @@ local defaults = {
 	},
 
 	metricDimensions = {
-		height = 70,
+		height = 80,
 		-- width is same as widget width
 	},
 
@@ -175,7 +175,7 @@ local defaults = {
 	},
 
 	knobDimensions = {
-		fontSize = 32,
+		fontSize = 44,
 
 		cornerSize = 8,
 		outline = 4,
