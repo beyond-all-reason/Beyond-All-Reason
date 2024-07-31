@@ -164,7 +164,7 @@ local defaults = {
 	},
 
 	metricDimensions = {
-		height = 70,
+		height = 80,
 		-- width is same as widget width
 	},
 
@@ -175,7 +175,7 @@ local defaults = {
 	},
 
 	knobDimensions = {
-		fontSize = 32,
+		fontSize = 44,
 
 		cornerSize = 8,
 		outline = 4,
@@ -993,28 +993,6 @@ local function updateStats()
 	end
 
 	regenerateTextTextures = true
-end
-
-local function drawMetricKnobText(left, bottom, right, top, text)
-	-- note: call this function within a font:Begin() - font:End() block
-
-	local knobTextAreaWidth = right - left - 2 * knobDimensions.outline
-	local fontSizeSmaller = knobDimensions.fontSize
-	local textWidth = font:GetTextWidth(text)
-	while textWidth * fontSizeSmaller > knobTextAreaWidth do
-		fontSizeSmaller = fontSizeSmaller - 1
-	end
-
-	--font:Begin()
-	--	  font:SetTextColor(textColorWhite)
-		font:Print(
-			text,
-			mathfloor((right + left) / 2),
-			mathfloor((top + bottom) / 2),
-			fontSizeSmaller,
-			'cvO'
-		)
-	--font:End()
 end
 
 local colorKnobMiddleGrey = { 0.5, 0.5, 0.5, 1 }
