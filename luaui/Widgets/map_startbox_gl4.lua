@@ -220,7 +220,7 @@ local function shutdownVAOs()
 	if startboxShader then
 		startboxShader:Delete()
 	end
-	for i =1, #startboxVAOs do
+	for i = 1, #startboxVAOs do
 		startboxVAOs[i].vao:Delete()
 	end
 	if startposData.vao then
@@ -404,7 +404,7 @@ function widget:Initialize()
 		xp = math.min(msx, xp)
 		if xn and (xn ~= 0 or zn ~= 0 or xp ~= msx or zp ~= msz) then
 			local someVAO = gl.GetVAO() --get empty VAO
-			local boxVBO, numVertices = makeBoxVBO(xn, minY, zn, xp, maxY, zp)
+			local boxVBO, numVertices = makeBoxVBO(xn - 1, minY - 1, zn - 1, xp + 1, maxY + 1, zp + 1)
 
 			someVAO:AttachVertexBuffer(boxVBO)
 			local indxVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
