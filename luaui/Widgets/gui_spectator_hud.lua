@@ -1825,6 +1825,8 @@ local function initGL4()
 end
 
 local function init()
+	font = WG['fonts'].getFont()
+
 	viewScreenWidth, viewScreenHeight = Spring.GetViewGeometry()
 
 	buildMetricsEnabled()
@@ -1928,8 +1930,6 @@ function widget:Initialize()
 	end
 
 	checkAndUpdateHaveFullView()
-
-	font = WG['fonts'].getFont()
 
 	init()
 end
