@@ -5,7 +5,7 @@ function widget:GetInfo()
 		author = "CMDR*Zod",
 		date = "2024",
 		license = "GNU GPL v3 (or later)",
-		layer = 1,
+		layer = 2, -- after eco stats widget which is on layer 1; see Initialize()
 		handler = true,
 		enabled = false
 	}
