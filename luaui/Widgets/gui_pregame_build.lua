@@ -643,6 +643,6 @@ function widget:SetConfigData(data)
 		and data.gameID
 		and data.gameID == (Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID"))
 	then
-		--buildQueue = data.buildQueue
+		buildQueue = data.buildQueue
 	end
 end
