@@ -240,6 +240,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	elseif unitDef.isBuilder and not unitDef.canMove and not unitDef.isFactory then
 		-- nanos
 		blueprintBuildableUnitDefs[unitDefID] = true
+	elseif unitDef.customParams.mine then
+		-- mines
+		blueprintBuildableUnitDefs[unitDefID] = true
 	end
 end
 
