@@ -3,61 +3,50 @@ function gadget:GetInfo()
 		name = "Shield Behaviour",
 		desc = "Overrides default shield engine behavior. Defines downtime.",
 		author = "SethDGamre",
-		layer = 0,
+		layer = 1,
 		enabled = true
 	}
 end
 
-if not gadgetHandler:IsSyncedCode() then
-	return
-end
---customParams shieldDowntime = def [number in seconds] or 5 seconds
---customParams shieldDowntimeThreshold = def [number] or 1% shield_power
+local modOptions = Spring.GetModOptions()
+if modOptions.shieldsrework == false then return false end
+if not gadgetHandler:IsSyncedCode() then return end
 
+----Optional unit customParams----
+--customParams shieldDowntime = <number in seconds> with a default fallback value if not defined.
+--customParams shieldDowntimeThreshold = <number> with a default fallback value if not defined.
 
-local spSetProjectilePosition = Spring.SetProjectilePosition
-local spSetProjectileVelocity = Spring.SetProjectileVelocity
-local spGetProjectilePosition = Spring.GetProjectilePosition
-local spGetProjectileDefID = Spring.GetProjectileDefID
 local spGetUnitShieldState = Spring.GetUnitShieldState
-local spGetProjectileVelocity = Spring.GetProjectileVelocity
+local spSetUnitHealth = Spring.SetUnitHealth
+local spGetUnitHealth = Spring.GetUnitHealth
+local spGetProjectileDefID = Spring.GetProjectileDefID
 local spSetUnitShieldState = Spring.SetUnitShieldState
-local spGetGroundHeight = Spring.GetGroundHeight
-local spDeleteProjectile = Spring.DeleteProjectile
-local spGetProjectileOwnerID = Spring.GetProjectileOwnerID
-local spSpawnExplosion = Spring.SpawnExplosion
-local spGetUnitPosition = Spring.GetUnitPosition
-local spSpawnCEG = Spring.SpawnCEG
-local spGetGameSeconds = Spring.GetGameSeconds
+local spSetProjectileDamages = Spring.SetProjectileDamages
+local spGetUnitWeaponDamages = Spring.GetUnitWeaponDamages
+local spSetProjectileCollision = Spring.SetProjectileCollision
 
 local shieldUnitDefs = {}
+local shieldUnitsData = {}
+
 
 for id, data in pairs(UnitDefs) do
 	if data.customParams.shield_radius then
         shieldUnitDefs[id] = data
         shieldUnitDefs[id]["defDowntime"] = tonumber(data.customParams.shield_downtime) or 5
-        shieldUnitDefs[id]["defDowntimeThreshold"] = tonumber(data.customParams.shield_downtime_threshold) or math.ceil(data.customParams.shield_power/100)
 	end
 end
 
-local shieldUnitsData = {}
-
 function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
-    Spring.Echo("Unit Added!", UnitDefs[unitDefID].name)
     if  shieldUnitsData[unitID] then
         shieldUnitsData[unitID].team = unitTeam
-        Spring.Echo("Team Changed!", UnitDefs[unitDefID].name, shieldUnitsData[unitID].team)
     elseif shieldUnitDefs[unitDefID] then
-        Spring.Echo("Shield Unit Added!", UnitDefs[unitDefID].name)
         shieldUnitsData[unitID] = {
             team = unitTeam,
             unitDefID = unitDefID,
             location = {0, 0, 0},
             shieldEnabled = select(1,spGetUnitShieldState(unitID)),
+            shieldWeaponNumber = 0,
             downtime = shieldUnitDefs[unitDefID].defDowntime,
-            downtimeThreshold = shieldUnitDefs[unitDefID].defDowntimeThreshold,
-            downtimeExpiration = 0,
-            downtimeTriggered = false,
         }
     end
 end
@@ -66,45 +55,45 @@ function gadget:UnitDestroyed(unitID)
     shieldUnitsData[unitID] = nil
 end
 
--- function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
--- end
-
--- function gadget:ProjectileDestroyed(proID)
--- end
-local secondsCount = 0
-function gadget:GameFrame(frame)
-    if frame % 30 == 0 then
-        secondsCount = spGetGameSeconds()
-        for unitID, data in pairs(shieldUnitsData) do
-            if data.downtimeTriggered == true and secondsCount < data.downtimeExpiration then
-                spSetUnitShieldState(unitID, -1, false)
-                Spring.Echo("Suspend Shield")
-            elseif data.downtimeTriggered == true then
-                spSetUnitShieldState(unitID, -1, data.shieldEnabled)
-                data.downtimeTriggered = false
-                Spring.Echo("Reactivate Shield")
-            end
-        end
-    end
+local overwriteDamagesTable = {}
+for i = 1, 40 do
+    overwriteDamagesTable[i] = 0
 end
 
--- function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
--- 	return damage
--- end
-
 function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitID, bounceProjectile, beamEmitterWeaponNum, beamEmitterUnitID, startX, startY, startZ, hitX, hitY, hitZ)
-    Spring.Echo("Shield Damaged!")
     if shieldUnitsData[shieldUnitID] then
-
 		local shieldEnabledState, shieldPower = spGetUnitShieldState(shieldUnitID)
+        local proDefID
+        local damage
 
-        Spring.Echo("ShieldPreDamaged Data", shieldUnitsData[shieldUnitID].downtimeTriggered, shieldUnitsData[shieldUnitID].downtimeThreshold)
-        if shieldUnitsData[shieldUnitID].downtimeTriggered == false and shieldPower < shieldUnitsData[shieldUnitID].downtimeThreshold then
-            shieldUnitsData[shieldUnitID].shieldEnabled = select(1,spGetUnitShieldState(shieldUnitID))
-            shieldUnitsData[shieldUnitID].downtimeExpiration = secondsCount+shieldUnitsData[shieldUnitID].downtime
-            shieldUnitsData[shieldUnitID].downtimeTriggered = true
-            Spring.Echo("downtime triggered!", shieldUnitsData[shieldUnitID].shieldEnabled, shieldUnitsData[shieldUnitID].downtimeExpiration, shieldUnitsData[shieldUnitID].downtimeTriggered)
+        if -1 < proID then
+            proDefID = spGetProjectileDefID(proID)
+            if WeaponDefs[proDefID].type == "DGun" then
+                damage = 0 --Because damage is handled more precisely in unit_dgun_behavior.lua
+            end
+            damage = WeaponDefs[proDefID].damages[11]
         end
+        
+        if beamEmitterUnitID then
+            damage = spGetUnitWeaponDamages(beamEmitterUnitID, beamEmitterWeaponNum, "11")
+            spSetProjectileDamages(beamEmitterUnitID, beamEmitterWeaponNum, overwriteDamagesTable)
+        end
+
+        if damage and shieldPower < damage then
+            shieldPower = 0
+            spSetUnitShieldState(shieldUnitID, shieldWeaponNum, shieldEnabledState, shieldPower)
+        end
+ 
+        if  shieldPower < 1 then
+            local maxHealth = select(2, spGetUnitHealth(shieldUnitID))
+            local paralyzeTime = maxHealth + ((maxHealth/30)*shieldUnitsData[shieldUnitID].downtime)
+            spSetUnitHealth(shieldUnitID, {paralyze = paralyzeTime })
+            if beamEmitterUnitID then
+            --space left blank to insert future code related to stopping beamlasers
+            elseif proID then
+                spSetProjectileCollision(proID)
+            end
+        end
+        return true
     end
-    return false
 end

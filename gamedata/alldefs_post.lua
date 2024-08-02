@@ -1344,6 +1344,7 @@ function WeaponDef_Post(name, wDef)
 		end]]
 
 		---- SHIELD CHANGES
+		---	
 		local shieldModOption = modOptions.experimentalshields
 
 		if shieldModOption == "absorbplasma" then
@@ -1360,6 +1361,15 @@ function WeaponDef_Post(name, wDef)
 		elseif shieldModOption == "bounceeverything" then
 			if wDef.shield then
 				wDef.shield.repulser = true
+			end
+			if (not wDef.interceptedbyshieldtype) or wDef.interceptedbyshieldtype ~= 1 then
+				wDef.interceptedbyshieldtype = 1
+			end
+		end
+
+		if modOptions.shieldsrework == true then
+			if wDef.shield and wDef.shield.repulser and wDef.shield.repulser ~= false then
+				wDef.shield.repulser = false
 			end
 			if (not wDef.interceptedbyshieldtype) or wDef.interceptedbyshieldtype ~= 1 then
 				wDef.interceptedbyshieldtype = 1

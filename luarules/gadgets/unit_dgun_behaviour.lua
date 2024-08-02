@@ -165,13 +165,13 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldEmitterWeaponNum, shie
 		local shieldEnabledState, shieldPower = spGetUnitShieldState(shieldCarrierUnitID)
 		local damage = WeaponDefs[proDefID].damages[11] or WeaponDefs[proDefID].damages[2]
 		
-        if lastShieldFrameCheck[shieldCarrierUnitID] ~= frameCounter then
+        if hitX > 0 and lastShieldFrameCheck[shieldCarrierUnitID] ~= frameCounter then
             shieldPower = math.max(shieldPower - damage, 0)
             spSetUnitShieldState(shieldCarrierUnitID, shieldEmitterWeaponNum, shieldEnabledState, shieldPower)
             lastShieldFrameCheck[shieldCarrierUnitID] = frameCounter
         end
 		local originX, originY, originZ = unpack(dgunOrigins[proID])
-		if shieldPower > 100 then
+		if hitX > 0 and shieldPower > 100 then
 
 			local dirX = hitX - originX
 			local dirZ = hitZ - originZ
