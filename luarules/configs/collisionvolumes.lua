@@ -85,7 +85,7 @@ dynamicPieceCollisionVolume['cormaw'] = {
         ['offsets']={0,27,0},
     },
     off={
-        ['0']={32,22,32,0,5,0,1,1,1},
+        ['0']={32,22,32,0,10,0,1,1,1},
         ['offsets']={0,0,0},
     }
 }
@@ -95,7 +95,7 @@ dynamicPieceCollisionVolume['armclaw'] = {
         ['offsets']={0,30,0},
     },
     off={
-        ['0']={32,22,32,0,5,0,1,1,1},
+        ['0']={32,22,32,0,10,0,1,1,1},
         ['offsets']={0,0,0},
     }
 }
@@ -105,7 +105,7 @@ dynamicPieceCollisionVolume['legdtr'] = {
         ['offsets']={0,45,0},
     },
     off={
-        ['0']={32,22,32,0,5,0,1,1,1},
+        ['0']={32,22,32,0,11,0,1,1,1},
         ['offsets']={0,0,0},
     }
 }
