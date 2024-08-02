@@ -8,10 +8,11 @@
 piece base, lTrack, rTrack, turretBase, turret, barrelPivot, barrelSleeve, barrel, flare, cannisterPivot, cannister;
 
 
-static-var  statechg_DesiredState, statechg_StateChanging, restore_delay;
+static-var  open, restore_delay;
 
 // Signal definitions
 #define SIG_AIM				2
+#define SIG_DEPLOY			4
 
 
 #define BASEPIECE base
@@ -22,68 +23,32 @@ static-var  statechg_DesiredState, statechg_StateChanging, restore_delay;
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
-//state functions
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script deploy();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script undeploy();
-			currentstate = 1;		
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
-//activation and deactivation
-
 deploy(){
-	move turret to y-axis [0] speed [20];
-	move turretBase to y-axis [0] speed [8.6];
+	signal SIG_DEPLOY;
+	set-signal-mask SIG_DEPLOY;
+	open = 1;
+	move turret to y-axis [0] speed [17];
+	move turretBase to y-axis [0] speed [7];
 	wait-for-move turret along y-axis;
-	move barrelPivot to z-axis [0] speed [10];
-	move barrelSleeve to z-axis [0] speed [20];
-	turn barrelSleeve to z-axis <30> speed <60>;
-	move barrel to z-axis [0] speed [60];
-	wait-for-move barrel along z-axis;
-	
+	move barrelPivot to z-axis [0] speed [5];
+	move barrelSleeve to z-axis [0] speed [10];
+	turn barrelSleeve to z-axis <30> speed <20>;
+	move barrel to z-axis [0] speed [20];
 }
 
 undeploy(){
-	//turn barrelSleeve to 
-	turn turret to y-axis <0> speed <75>;
+	signal SIG_DEPLOY;
+	set-signal-mask SIG_DEPLOY;
+	open = 0;
 	turn barrelPivot to x-axis <0.000000> speed <64>;
-	turn barrelSleeve to z-axis <0> speed <30>;
-
-
 	move barrel to z-axis [-6] speed [10];
 	wait-for-move barrel along z-axis;
 	move barrelSleeve to z-axis [-2] speed [3.333];
 	wait-for-move barrelSleeve along z-axis;
 	move barrelPivot to z-axis [-1] speed [1.667];
-	wait-for-move barrelPivot along z-axis;
 	wait-for-turn turret around y-axis;
-
+	wait-for-turn barrelPivot around x-axis;
+	turn barrelSleeve to z-axis <0> speed <30>;
 	move turret to y-axis [-4] speed [10];
 	move turretBase to y-axis [-3] speed [4.3];
 }
@@ -103,18 +68,14 @@ Create()
 {
 	hide flare;
 	turn cannisterPivot to z-axis <25> now;
-	/**move barrelPivot to z-axis [-1] now;
-	move barrelSleeve to z-axis [-2] now;
-	move barrel to z-axis [-6] now;
-	move turret to y-axis [-7] now;**/
-
+	turn barrelSleeve to z-axis <30> now;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 400;
 	}
 
 	restore_delay = 3000;
-	start-script RestoreAfterDelay();
+	start-script ExecuteRestoreAfterDelay();
 
 }
 
@@ -129,8 +90,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	start-script RequestState(1);
-	call-script undeploy();
+	turn turret to y-axis <0> speed <75>;
+	start-script undeploy();
 }
 SetStunned(State)
 {
@@ -149,8 +110,10 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	start-script RequestState(0);
-	//call-script deploy();
+	if (open == 0)
+	{
+		start-script deploy();
+	}
 	turn turret to y-axis heading speed <75.000000>;
 	turn barrelPivot to x-axis <0.000000> - pitch speed <64.000000>;
 	wait-for-turn turret around y-axis;
