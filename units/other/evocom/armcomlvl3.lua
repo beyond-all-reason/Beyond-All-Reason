@@ -131,9 +131,9 @@ return {
 			evolution_power_threshold = 53000,
 			evolution_power_multiplier = 1,
 			combatradius = 0,
-			workertimeboost = 2,
+			workertimeboost = 3.5,
 			wtboostunittype = "TURRET",
-			inheritxpratemultiplier = 0.25,
+			inheritxpratemultiplier = 0.5,
 			childreninheritxp = "TURRET",
 			parentsinheritxp = "TURRET",
 			effigy = "comeffigylvl2",
@@ -301,12 +301,12 @@ return {
 				weaponvelocity = 1500,
 				customparams = {
 					spark_ceg = "custom:laserhit-emp",
-					spark_forkdamage = "0.025",
+					spark_forkdamage = "0.0125",
 					spark_maxunits = "6",
 					spark_range = "100",
 				},
 				damage = {
-					default = 8000,
+					default = 16000,
 				},
 			},
 			armcomsealaser = {
