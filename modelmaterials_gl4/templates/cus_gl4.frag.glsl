@@ -1142,8 +1142,8 @@ void main(void){
 		// We really need to know the full height of the model here :/
 		float buildProgress = userDefined2.w;
 		if (buildProgress > -0.5){
-			buildProgress = fract(timeInfo.x / 300.0);
-			float h = clamp(modelVertexPosOrig.w/1.0,0,1);
+			//buildProgress = fract(timeInfo.x / 300.0);
+			float h = clamp(modelVertexPosOrig.w/1.0,0,1) + 0.1* myPerlin.r;
 			//outColor.rgb *=step(h, buildProgress);
 			if (h < buildProgress){
 				//outColor.rgb *= 0.0;
@@ -1168,7 +1168,7 @@ void main(void){
 			}
 			if (h > steps.z){
 				float delta = smoothstep(steps.w, steps.z, h);
-				outColor = mix(outColor, teamCol.rgb,  step(delta,myPerlin.g));
+				outColor = mix(outColor, teamCol.rgb,  myPerlin.g);
 			}
 			if (h > steps.x){
 				outColor =  teamCol.rgb;
