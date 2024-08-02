@@ -185,7 +185,7 @@ pieceCollisionVolume['legpede'] = {
 --}
 pieceCollisionVolume['legsrail'] = {
 	['0']={55,20,55,0,-2,0,1,1},
-	['3']={15,15,60,0,5,12,1,2},
+	['7']={15,15,60,0,5,12,1,2},
 }
 pieceCollisionVolume['armrad'] = {
 	['1']={22,58,22,0,0,0,1,1},
