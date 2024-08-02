@@ -30,6 +30,7 @@ return {
 		radardistancejam = 8,
 		script = "Units/CORMAW.cob",
 		seismicsignature = 0,
+		usepiececollisionvolumes = 1,
 		selfdestructas = "flamethrowerSelfd",
 		sightdistance = 422,
 		stealth = true,

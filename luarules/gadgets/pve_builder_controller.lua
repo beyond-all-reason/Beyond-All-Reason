@@ -83,7 +83,7 @@ function gadget:GameFrame(frame)
                         local turretOptions = {}
                         for buildOptionIndex, buildOptionID in pairs(data.buildOptions) do
                             --Spring.Echo("buildOptionID", buildOptionID, UnitDefs[buildOptionID].name)
-                            if buildOptionID and ((UnitDefs[buildOptionID].weapons and #UnitDefs[buildOptionID].weapons > 0) or (math.random(1,10) == 1 and UnitDefs[buildOptionID].isFactory)) then
+                            if buildOptionID and ((not UnitDefs[buildOptionID].canAssist) or (math.random(1,10) == 1 and UnitDefs[buildOptionID].isFactory)) then
                                 turretOptions[#turretOptions+1] = buildOptionID
                                 --Spring.Echo(data.unitDefName, UnitDefs[buildOptionID].name, "Is a turret")
                             end
