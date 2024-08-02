@@ -54,6 +54,7 @@ local convertedUnitsNames = {
 	['corkorg'] = 1,
 	['armvang'] = 3,
 	['armcrus'] = 5,
+	['corsala'] = 6,
 
 	-- the following units get a faster reaimtime to counteract their turret acceleration
 	['armthor'] = 4,
