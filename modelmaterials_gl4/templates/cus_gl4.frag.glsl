@@ -1151,6 +1151,9 @@ void main(void){
 			else{
 				//outColor.rgb += 1.0;
 			}
+	
+			
+
 
 			vec4 steps = vec4(buildProgress);
 			steps = pow(steps, vec4(0.35,0.7, 1.5, 3.0));
@@ -1171,8 +1174,12 @@ void main(void){
 				float delta = smoothstep(steps.w, steps.z, h);
 				outColor = mix(outColor, teamCol.rgb,  myPerlin.g);
 			}
-			if (h > steps.x){
+			if (h > steps.x){ // The top level where its just teamcolor
+				// TODO: Actually shade the model (using teamcolor as albedo!)
 				outColor =  teamCol.rgb;
+				float gridSize = clamp((1.0 - buildProgress) * 10 + 2, 2, 12);
+				vec3 grid = step(0.5, clamp(1.0 - 10* fract((modelVertexPosOrig.xyz) / gridSize), 0.0, 1.0));
+				outColor.rgb += dot(grid, vec3(1.0));
 			}
 			outColor.rgb += buildeff;
 
