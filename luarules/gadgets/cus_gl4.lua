@@ -724,8 +724,8 @@ local function CompileLuaShader(shader, definitions, plugIns, addName)
 	local compilationResult = luaShader:Initialize()
 	if compilationResult ~= true then
 		Spring.Echo("Custom Unit Shaders. " .. addName .. " shader compilation failed")
-		dumpShaderCodeToInfolog(shader.definitions, shader.vertex, "vs" .. addName)
-		dumpShaderCodeToInfolog(shader.definitions, shader.fragment, "fs" .. addName)
+		--dumpShaderCodeToInfolog(shader.definitions, shader.vertex, "vs" .. addName)
+		--dumpShaderCodeToInfolog(shader.definitions, shader.fragment, "fs" .. addName)
 		gadgetHandler:RemoveGadget()
 		return nil
 	end
@@ -1477,7 +1477,10 @@ end
 
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
+local spGetUnitHealth = Spring.GetUnitHealth
+local spGetUnitHeight = Spring.GetUnitHeight
 
+local uniformcache = {}
 local function ProcessUnits(units, drawFlags, reason)
 	--processedCounter = (processedCounter + 1) % (2 ^ 16
 	for i = 1, #units do
@@ -1502,13 +1505,20 @@ local function ProcessUnits(units, drawFlags, reason)
 
 		if (drawFlag == 0) or (drawFlag >= 32) then
 			RemoveObject(unitID, reason)
-		elseif isBuilding or spGetUnitIsCloaked(unitID) then
+		elseif spGetUnitIsCloaked(unitID) then
 			--under construction
 			--using processedUnits here actually good, as it will dynamically handle unitfinished and cloak on-off
 		else
 
 			--Spring.Echo("ProcessUnit", unitID, drawFlag)
 			if overriddenUnits[unitID] == nil then --object was not seen
+				local health, maxHealth, paralyzeDamage, capture, build = spGetUnitHealth(unitID)
+				if health then 
+					uniformcache[1] = ((build < 1) and build) or -1
+					gl.SetUnitBufferUniforms(unitID, uniformcache, 0) -- buildprogress (0.x)
+					uniformcache[1] = spGetUnitHeight(unitID)
+					gl.SetUnitBufferUniforms(unitID, uniformcache, 11) -- height is 11 (2.w)
+				end
 				AddObject(unitID, drawFlag, reason)
 			else --if overriddenUnits[unitID] ~= drawFlag then --flags have changed
 				UpdateObject(unitID, drawFlag, reason)
@@ -1714,7 +1724,7 @@ local function initGL4()
 	initiated = true
 end
 
-local manualReload = false -- Indicates wether the first round of getting units should grab all instead of delta
+local manualReload = true -- Indicates wether the first round of getting units should grab all instead of delta
 
 local function ReloadCUSGL4(optName, line, words, playerID)
 	if initiated and (not words) then return end
@@ -2021,6 +2031,13 @@ function gadget:RenderUnitDestroyed(unitID, unitDefID)
 end
 
 function gadget:UnitFinished(unitID)
+	gl.SetUnitBufferUniforms(unitID, {-1}, 0) -- set build progress to built
+	UpdateUnit(unitID,Spring.GetUnitDrawFlag(unitID))
+end
+
+
+function gadget:UnitCreated(unitID)
+	gl.SetUnitBufferUniforms(unitID, {Spring.GetUnitHeight(unitID)}, 11) -- set unit height
 	UpdateUnit(unitID,Spring.GetUnitDrawFlag(unitID))
 end
 

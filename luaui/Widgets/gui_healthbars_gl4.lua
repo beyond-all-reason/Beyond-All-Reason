@@ -692,6 +692,8 @@ local function addBarsForUnit(unitID, unitDefID, unitTeam, unitAllyTeam, reason)
 			unitBeingBuiltWatch[unitID] = build
 			uniformcache[1] = build
 			gl.SetUnitBufferUniforms(unitID, uniformcache, 0)
+			--uniformcache[1] = Spring.GetUnitHeight(unitID)
+			--gl.SetUnitBufferUniforms(unitID, uniformcache, 11)
 		else
 			uniformcache[1] = -1.0 -- mean that the unit has been built, we init it to -1 always
 			gl.SetUnitBufferUniforms(unitID, uniformcache, 0)
