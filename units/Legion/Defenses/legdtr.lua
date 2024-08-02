@@ -30,7 +30,6 @@ return {
 		radardistancejam = 8,
 		script = "Units/LEGDTR.cob",
 		seismicsignature = 0,
-		usepiececollisionvolumes = 1,
 		selfdestructas = "tinyBuildingExplosionGenericSelfd",
 		sightdistance = 440,
 		stealth = true,
