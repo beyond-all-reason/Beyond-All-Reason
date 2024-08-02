@@ -35,8 +35,8 @@ return {
 		upright = true,
 		customparams = {
 			unitgroup = 'weapon',
-			model_author = "Mr Bob",
-			normaltex = "unittextures/cor_normal.dds",
+			model_author = "Tharsis",
+			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "corbots",
 		},
 		featuredefs = {
@@ -115,7 +115,7 @@ return {
 				impulsefactor = 0.123,
 				intensity = 1.5,
 				metalpershot = 0,
-				model = "cormissile3.s3o",
+				model = "leglargerocket.s3o",
 				name = "Rockets",
 				noselfdamage = true,
 				range = 460,
