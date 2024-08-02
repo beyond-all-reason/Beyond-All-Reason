@@ -76,41 +76,8 @@ local unitCollisionVolume = {}			--dynamic collision volume definitions
 local pieceCollisionVolume = {}			--per piece collision volume definitions
 local dynamicPieceCollisionVolume = {}	--dynamic per piece collision volume definitions
 
--- number of times this table had to be touched since 2022 ~44
+-- number of times this table had to be touched since 2022 ~22
 -- increase this number eachtime this table gets touched
-
-dynamicPieceCollisionVolume['cormaw'] = {
-    on={
-        ['0']={32,70,32,0,5,0,1,1,1},
-        ['offsets']={0,27,0},
-    },
-    off={
-        ['0']={32,22,32,0,10,0,1,1,1},
-        ['offsets']={0,0,0},
-    }
-}
-dynamicPieceCollisionVolume['armclaw'] = {
-    on={
-        ['0']={32,85,32,0,5,0,1,1,1},
-        ['offsets']={0,30,0},
-    },
-    off={
-        ['0']={32,22,32,0,10,0,1,1,1},
-        ['offsets']={0,0,0},
-    }
-}
-dynamicPieceCollisionVolume['legdtr'] = {
-    on={
-        ['0']={32,90,32,0,5,0,1,1,1},
-        ['offsets']={0,45,0},
-    },
-    off={
-        ['0']={32,22,32,0,11,0,1,1,1},
-        ['offsets']={0,0,0},
-    }
-}
-
-
 
 unitCollisionVolume['armanni'] = {
 	on={54,81,54,0,-2,0,2,1,0},
