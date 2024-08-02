@@ -1,7 +1,7 @@
 function gadget:GetInfo()
 	return {
 		name = "D-Gun Behaviour",
-		desc = "D-Gun projectiles hug ground, volumetric damage, deterministic damage against Commanders",
+		desc = "D-Gun projectiles hug ground, volumetric damage, deterministic damage against Commanders, override interactions with shields",
 		author = "Anarchid, Sprung",
 		layer = 0,
 		enabled = true
@@ -12,22 +12,29 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
+local spSetProjectilePosition = Spring.SetProjectilePosition
+local spSetProjectileVelocity = Spring.SetProjectileVelocity
+local spGetProjectilePosition = Spring.GetProjectilePosition
 local spGetProjectileDefID = Spring.GetProjectileDefID
 local spGetUnitShieldState = Spring.GetUnitShieldState
-local spGetUnitDefID = Spring.GetUnitDefID
+local spGetProjectileVelocity = Spring.GetProjectileVelocity
 local spSetUnitShieldState = Spring.SetUnitShieldState
-local diag = math.diag
+local spGetGroundHeight = Spring.GetGroundHeight
+local spDeleteProjectile = Spring.DeleteProjectile
+local spGetProjectileOwnerID = Spring.GetProjectileOwnerID
+local spSpawnExplosion = Spring.SpawnExplosion
+local spGetUnitPosition = Spring.GetUnitPosition
+local spSpawnCEG = Spring.SpawnCEG
 
 
 local dgunWeaponsTTL = {}
 local dgunWeapons = {}
 local dgunTimeouts = {}
+local dgunOrigins = {}
 for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 	if weaponDef.type == 'DGun' then
-		Spring.Echo(weaponDef)
 		Script.SetWatchProjectile(weaponDefID, true)
 		dgunWeapons[weaponDefID] = weaponDef
-		--Spring.Echo("TTL added", weaponDef.name, weaponDef.range,weaponDef.projectilespeed)
 		dgunWeaponsTTL[weaponDefID] = weaponDef.range/weaponDef.projectilespeed
 	end
 end
@@ -53,9 +60,9 @@ local flyingDGuns = {}
 local groundedDGuns = {}
 
 local function addVolumetricDamage(projectileID)
-	local weaponDefID = Spring.GetProjectileDefID(projectileID)
-	local ownerID = Spring.GetProjectileOwnerID(projectileID)
-	local x,y,z = Spring.GetProjectilePosition(projectileID)
+	local weaponDefID = spGetProjectileDefID(projectileID)
+	local ownerID = spGetProjectileOwnerID(projectileID)
+	local x,y,z =spGetProjectilePosition(projectileID)
 	local explosionParame ={
 		weaponDef = weaponDefID,
 		owner = ownerID,
@@ -71,14 +78,16 @@ local function addVolumetricDamage(projectileID)
 		ignoreOwner = dgunWeapons[weaponDefID].noSelfDamage,
 		damageGround = true,
 	}
-	Spring.SpawnExplosion(x, y ,z, 0, 0, 0, explosionParame)
+	spSpawnExplosion(x, y ,z, 0, 0, 0, explosionParame)
 end
 
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
 	if dgunWeapons[weaponDefID] then
 		flyingDGuns[proID] = true
-		dgunTimeouts[proID] = (frameCounter+dgunWeaponsTTL[weaponDefID])--*Game.gameSpeed
-		--Spring.Echo("projectile created", dgunTimeouts[proID], dgunWeaponsTTL[weaponDefID])
+		dgunTimeouts[proID] = (frameCounter+dgunWeaponsTTL[weaponDefID])
+		
+		local posX, posY, posZ = spGetProjectilePosition(proID)
+    	dgunOrigins[proID] = {posX, posY, posZ}
 	end
 end
 
@@ -94,16 +103,16 @@ function gadget:GameFrame(frame)
 		-- so we need to add the AoE damage manually for flying projectiles
 		addVolumetricDamage(proID)
 
-		local x, y, z = Spring.GetProjectilePosition(proID)
-		local h = Spring.GetGroundHeight(x, z)
+		local x, y, z = spGetProjectilePosition(proID)
+		local h = spGetGroundHeight(x, z)
 
 		if y < h + 1 or y < 0 then -- assume ground or water collision
 			-- normalize horizontal velocity
-			local dx, _, dz, speed = Spring.GetProjectileVelocity(proID)
+			local dx, _, dz, speed = spGetProjectileVelocity(proID)
 			local norm = speed / math.sqrt(dx^2 + dz^2)
 			local ndx = dx * norm
 			local ndz = dz * norm
-			Spring.SetProjectileVelocity(proID, ndx, 0, ndz)
+			spSetProjectileVelocity(proID, ndx, 0, ndz)
 
 			groundedDGuns[proID] = true
 			flyingDGuns[proID] = nil
@@ -111,10 +120,10 @@ function gadget:GameFrame(frame)
 	end
 
 	for proID in pairs(groundedDGuns) do
-		local x, y, z = Spring.GetProjectilePosition(proID)
+		local x, y, z = spGetProjectilePosition(proID)
 		-- place projectile slightly under ground to ensure fiery trail
 		local verticalOffset = 1
-		Spring.SetProjectilePosition(proID, x, math.max(Spring.GetGroundHeight(x, z), 0) - verticalOffset, z)
+		spSetProjectilePosition(proID, x, math.max(spGetGroundHeight(x, z), 0) - verticalOffset, z)
 
 		-- NB: no removal; do this every frame so that it doesn't fly off a cliff or something
 	end
@@ -125,59 +134,56 @@ function gadget:GameFrame(frame)
         frameCounter = frameCounter + 1
         for proID, timeout in pairs(dgunTimeouts) do
             if frameCounter > timeout then
-                Spring.DeleteProjectile(proID)
+                spDeleteProjectile(proID)
                 flyingDGuns[proID] = nil
                 groundedDGuns[proID] = nil
                 dgunTimeouts[proID] = nil
-                --Spring.Echo("ProID")
             end
         end
     end
-
-	if frame%15 == 0 then
-		--Spring.Echo(frameCounter)
-	end
 end
 
+function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
+	if dgunWeapons[weaponDefID] and isCommander[attackerDefID] and (isCommander[unitDefID] or isDecoyCommander[unitDefID]) then
+		if isDecoyCommander[unitDefID] then
+			return dgunWeapons[weaponDefID].damages[0]
+		else
+			spDeleteProjectile(projectileID)
+			local x, y, z = spGetUnitPosition(unitID)
+			spSpawnCEG("dgun-deflect", x, y, z, 0, 0, 0, 0, 0)
+			local armorClass = UnitDefs[unitDefID].armorType
+			return dgunWeapons[weaponDefID].damages[armorClass]
+		end
+	end
+	return damage
+end
 
 local lastShieldFrameCheck = {}
 function gadget:ShieldPreDamaged(proID, proOwnerID, shieldEmitterWeaponNum, shieldCarrierUnitID, bounceProjectile, beamEmitterWeaponNum, beamEmitterUnitID, startX, startY, startZ, hitX, hitY, hitZ)
     if proID and dgunTimeouts[proID] then
-        --Spring.Echo("Start", startX, startY, startZ, "Hit", hitX, hitY, hitZ)
-		local proDefID = Spring.GetProjectileDefID(proID)
-		local shieldEnabledState, shieldPower = Spring.GetUnitShieldState(shieldCarrierUnitID)
-		Spring.Echo("shield enabled", shieldEnabledState, "shield Power", shieldPower)
+		local proDefID = spGetProjectileDefID(proID)
+		local shieldEnabledState, shieldPower = spGetUnitShieldState(shieldCarrierUnitID)
 		local damage = WeaponDefs[proDefID].damages[11] or WeaponDefs[proDefID].damages[2]
 		
-		lastShieldFrameCheck[shieldCarrierUnitID] = lastShieldFrameCheck[shieldCarrierUnitID] or frameCounter -- deal the damage
-		if lastShieldFrameCheck[shieldCarrierUnitID] == frameCounter then
-		shieldPower = math.max(shieldPower - damage, 0)
-		Spring.SetUnitShieldState(shieldCarrierUnitID, shieldEmitterWeaponNum, shieldEnabledState, shieldPower)
-		Spring.Echo("damage", damage, "new shield power", shieldPower)
-		else
-			lastShieldFrameCheck[shieldCarrierUnitID] = frameCounter
-		end
+        if lastShieldFrameCheck[shieldCarrierUnitID] ~= frameCounter then
+            shieldPower = math.max(shieldPower - damage, 0)
+            spSetUnitShieldState(shieldCarrierUnitID, shieldEmitterWeaponNum, shieldEnabledState, shieldPower)
+            lastShieldFrameCheck[shieldCarrierUnitID] = frameCounter
+        end
+		local originX, originY, originZ = unpack(dgunOrigins[proID])
+		if shieldPower > 100 then
 
-		if shieldPower > damage then
-			-- Calculate the direction vector
-			local dirX = hitX - startX
-			local dirZ = hitZ - startZ
-
-			-- Normalize the direction vector
+			local dirX = hitX - originX
+			local dirZ = hitZ - originZ
 			local length = math.sqrt(dirX * dirX + dirZ * dirZ)
 			dirX = dirX / length
-			--dirY = dirY / length
 			dirZ = dirZ / length
-
-			-- Move the projectile back
-			local newX = hitX - (WeaponDefs[proDefID].projectilespeed*6) * dirX
-			--local newY = hitY - 10 * dirY
-			local newZ = hitZ - (WeaponDefs[proDefID].projectilespeed*6) * dirZ
+			local newX = hitX - (WeaponDefs[proDefID].projectilespeed*4) * dirX
+			local newZ = hitZ - (WeaponDefs[proDefID].projectilespeed*4) * dirZ
 
 			local verticalOffset = 1
-			Spring.SetProjectilePosition(proID, newX, math.max(Spring.GetGroundHeight(newX, newZ), 0) - verticalOffset, newZ)
+			spSetProjectilePosition(proID, newX, math.max(spGetGroundHeight(newX, newZ), 0) - verticalOffset, newZ)
 		end
-
 		return false
 	end
 end
