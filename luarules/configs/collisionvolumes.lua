@@ -76,8 +76,17 @@ local unitCollisionVolume = {}			--dynamic collision volume definitions
 local pieceCollisionVolume = {}			--per piece collision volume definitions
 local dynamicPieceCollisionVolume = {}	--dynamic per piece collision volume definitions
 
--- number of times this table had to be touched since 2022 ~22
+-- number of times this table had to be touched since 2022 ~44
 -- increase this number eachtime this table gets touched
+
+unitCollisionVolume['cormaw'] = {
+	on={32,65,32,0,0,-3,1,1,1},
+	off={32,22,32,0,0,-3,1,1,1},
+}
+unitCollisionVolume['armclaw'] = {
+	on={32,80,32,0,0,0,1,1,1},
+	off={32,22,32,0,0,0,1,1,1},
+}
 
 unitCollisionVolume['armanni'] = {
 	on={54,81,54,0,-2,0,2,1,0},
