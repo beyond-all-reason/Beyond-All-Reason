@@ -81,7 +81,7 @@ local dynamicPieceCollisionVolume = {}	--dynamic per piece collision volume defi
 
 dynamicPieceCollisionVolume['cormaw'] = {
     on={
-        ['0']={32,80,32,0,5,0,1,1,1},
+        ['0']={32,70,32,0,5,0,1,1,1},
         ['offsets']={0,27,0},
     },
     off={
@@ -91,8 +91,8 @@ dynamicPieceCollisionVolume['cormaw'] = {
 }
 dynamicPieceCollisionVolume['armclaw'] = {
     on={
-        ['0']={32,80,32,0,5,0,1,1,1},
-        ['offsets']={0,27,0},
+        ['0']={32,85,32,0,5,0,1,1,1},
+        ['offsets']={0,30,0},
     },
     off={
         ['0']={32,22,32,0,5,0,1,1,1},
@@ -101,8 +101,8 @@ dynamicPieceCollisionVolume['armclaw'] = {
 }
 dynamicPieceCollisionVolume['legdtr'] = {
     on={
-        ['0']={32,80,32,0,5,0,1,1,1},
-        ['offsets']={0,27,0},
+        ['0']={32,90,32,0,5,0,1,1,1},
+        ['offsets']={0,45,0},
     },
     off={
         ['0']={32,22,32,0,5,0,1,1,1},
