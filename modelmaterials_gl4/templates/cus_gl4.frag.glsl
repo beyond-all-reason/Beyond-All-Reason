@@ -1154,6 +1154,7 @@ void main(void){
 
 			vec4 steps = vec4(buildProgress);
 			steps = pow(steps, vec4(0.35,0.7, 1.5, 3.0));
+			steps = mix(steps, vec4(buildProgress), 0.25);
 			vec4 dists = clamp(1.0 - 100 * abs(steps - vec4(h)), 0,1);
 			float buildeff = dot(dists, vec4(1.0));
 			//outColor.rgb += buildeff;
