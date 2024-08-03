@@ -1374,8 +1374,7 @@ function WeaponDef_Post(name, wDef)
 				wDef.interceptedbyshieldtype = 1
 			end
 		end
-
-		if modOptions.evocom == true and wDef.type == "dgun" then
+		if modOptions.evocom == true and wDef.weapontype == "DGun" then
 			wDef.interceptedbyshieldtype = 1
 		end
 
