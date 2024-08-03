@@ -1343,8 +1343,7 @@ function WeaponDef_Post(name, wDef)
 			wDef = skyshiftUnits.skyshiftWeaponTweaks(name, wDef)
 		end]]
 
-		---- SHIELD CHANGES
-		---	
+		---- SHIELD CHANGES---	
 		local shieldModOption = modOptions.experimentalshields
 
 		if shieldModOption == "absorbplasma" then
@@ -1374,6 +1373,10 @@ function WeaponDef_Post(name, wDef)
 			if (not wDef.interceptedbyshieldtype) or wDef.interceptedbyshieldtype ~= 1 then
 				wDef.interceptedbyshieldtype = 1
 			end
+		end
+
+		if modOptions.evocom == true and wDef.type == "dgun" then
+			wDef.interceptedbyshieldtype = 1
 		end
 
 		if modOptions.multiplier_shieldpower then
