@@ -1,7 +1,7 @@
 
 #include "../recoil_common_includes.h"
 
-piece  base, rotor;
+piece  base, rotor, top, pad;
 
 static-var  resourceRate, Stunned;
 
