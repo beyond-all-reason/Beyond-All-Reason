@@ -46,6 +46,12 @@ Spring.SetUnitPieceCollisionVolumeData ( number unitID, number pieceIndex, boole
 		....               -- All undefined pieces will be treated as disabled for collision detection
 	}
 	dynamicPieceCollisionVolume["cor_viper"] = {	--same as with pieceCollisionVolume only uses "on" and "off" tables
+	
+	Warning 
+	Ensure that buildings/units do not have a unitdeff hitbox defined
+	It will break certain units being able to damage the relevant building/unit
+	this is possibly a bug but not sure
+
 		on = {
 			["0"]={true,51,12,53,0,4,0,2,0},
 			["5"]={true,25,66,25,0,-14,0,1,1},
@@ -76,8 +82,41 @@ local unitCollisionVolume = {}			--dynamic collision volume definitions
 local pieceCollisionVolume = {}			--per piece collision volume definitions
 local dynamicPieceCollisionVolume = {}	--dynamic per piece collision volume definitions
 
--- number of times this table had to be touched since 2022 ~22
+-- number of times this table had to be touched since 2022 ~45
 -- increase this number eachtime this table gets touched
+
+dynamicPieceCollisionVolume['cormaw'] = {
+    on={
+        ['0']={32,70,32,0,5,0,1,1,1},
+        ['offsets']={0,27,0},
+    },
+    off={
+        ['0']={32,22,32,0,10,0,1,1,1},
+        ['offsets']={0,0,0},
+    }
+}
+dynamicPieceCollisionVolume['armclaw'] = {
+    on={
+        ['0']={32,85,32,0,5,0,1,1,1},
+        ['offsets']={0,30,0},
+    },
+    off={
+        ['0']={32,22,32,0,10,0,1,1,1},
+        ['offsets']={0,0,0},
+    }
+}
+dynamicPieceCollisionVolume['legdtr'] = {
+    on={
+        ['0']={32,90,32,0,5,0,1,1,1},
+        ['offsets']={0,45,0},
+    },
+    off={
+        ['0']={32,22,32,0,11,0,1,1,1},
+        ['offsets']={0,0,0},
+    }
+}
+
+
 
 unitCollisionVolume['armanni'] = {
 	on={54,81,54,0,-2,0,2,1,0},

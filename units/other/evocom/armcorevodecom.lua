@@ -55,6 +55,7 @@ unitsTable['cordecomlvl3'].customparams.decoyfor = "corcomlvl3"
 unitsTable['cordecomlvl3'].customparams.isdecoycommander = true
 unitsTable['cordecomlvl3'].health = math.ceil(unitsTable['cordecomlvl3'].health*0.5)
 unitsTable['cordecomlvl3'].weapondefs.disintegrator.damage.default = 40
+unitsTable['cordecomlvl3'].weapondefs.repulsor.shield.power = unitsTable['cordecomlvl3'].weapondefs.repulsor.shield.power*0.25
 
 unitsTable['cordecomlvl6'] = VFS.Include('units/other/evocom/corcomlvl6.lua').corcomlvl6 --if this filepath is changed, the unit will no longer work!
 unitsTable['cordecomlvl6'].selfdestructas = "decoycommander"
@@ -69,6 +70,7 @@ unitsTable['cordecomlvl6'].customparams.decoyfor = "corcomlvl6"
 unitsTable['cordecomlvl6'].customparams.isdecoycommander = true
 unitsTable['cordecomlvl6'].health = math.ceil(unitsTable['cordecomlvl6'].health*0.5)
 unitsTable['cordecomlvl6'].weapondefs.disintegrator.damage.default = 40
+unitsTable['cordecomlvl6'].weapondefs.repulsor.shield.power = unitsTable['cordecomlvl6'].weapondefs.repulsor.shield.power*0.25
 
 unitsTable['cordecomlvl10'] = VFS.Include('units/other/evocom/corcomlvl10.lua').corcomlvl10 --if this filepath is changed, the unit will no longer work!
 unitsTable['cordecomlvl10'].selfdestructas = "decoycommander"
@@ -83,5 +85,6 @@ unitsTable['cordecomlvl10'].customparams.decoyfor = "corcomlvl10"
 unitsTable['cordecomlvl10'].customparams.isdecoycommander = true
 unitsTable['cordecomlvl10'].health = math.ceil(unitsTable['cordecomlvl10'].health*0.5)
 unitsTable['cordecomlvl10'].weapondefs.disintegrator.damage.default = 40
+unitsTable['cordecomlvl10'].weapondefs.repulsor.shield.power = unitsTable['cordecomlvl10'].weapondefs.repulsor.shield.power*0.25
 
 return unitsTable
