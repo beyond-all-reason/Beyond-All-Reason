@@ -13,8 +13,7 @@ if modOptions.shieldsrework == false then return false end
 if not gadgetHandler:IsSyncedCode() then return end
 
 ----Optional unit customParams----
---customParams shieldDowntime = <number in seconds> with a default fallback value if not defined.
---customParams shieldDowntimeThreshold = <number> with a default fallback value if not defined.
+--customParams shieldDowntime = <number in seconds>
 
 local spGetUnitShieldState = Spring.GetUnitShieldState
 local spSetUnitHealth = Spring.SetUnitHealth
@@ -32,7 +31,7 @@ local shieldUnitsData = {}
 for id, data in pairs(UnitDefs) do
 	if data.customParams.shield_radius then
         shieldUnitDefs[id] = data
-        shieldUnitDefs[id]["defDowntime"] = tonumber(data.customParams.shield_downtime) or 5
+        shieldUnitDefs[id]["defDowntime"] = tonumber(data.customParams.shield_downtime)
 	end
 end
 
@@ -66,15 +65,12 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitI
         local proDefID
         local damage
 
-        if -1 < proID then
+        if 0 < hitX and -1 < proID then
             proDefID = spGetProjectileDefID(proID)
-            if WeaponDefs[proDefID].type == "DGun" then
-                damage = 0 --Because damage is handled more precisely in unit_dgun_behavior.lua
-            end
             damage = WeaponDefs[proDefID].damages[11]
         end
         
-        if beamEmitterUnitID then
+        if 0 < hitX and beamEmitterUnitID  then
             damage = spGetUnitWeaponDamages(beamEmitterUnitID, beamEmitterWeaponNum, "11")
             spSetProjectileDamages(beamEmitterUnitID, beamEmitterWeaponNum, overwriteDamagesTable)
         end
@@ -84,16 +80,16 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitI
             spSetUnitShieldState(shieldUnitID, shieldWeaponNum, shieldEnabledState, shieldPower)
         end
  
-        if  shieldPower < 1 then
+        if  shieldUnitsData[shieldUnitID].downtime and shieldPower < 1 then
             local maxHealth = select(2, spGetUnitHealth(shieldUnitID))
             local paralyzeTime = maxHealth + ((maxHealth/30)*shieldUnitsData[shieldUnitID].downtime)
             spSetUnitHealth(shieldUnitID, {paralyze = paralyzeTime })
             if beamEmitterUnitID then
             --space left blank to insert future code related to stopping beamlasers
-            elseif proID then
+            elseif proID and shieldUnitsData[shieldUnitID].downtime then
                 spSetProjectileCollision(proID)
             end
         end
-        return true
+        return false
     end
 end
