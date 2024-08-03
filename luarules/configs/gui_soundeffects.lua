@@ -2898,6 +2898,12 @@ GUIUnitSoundEffects = {
         BaseSoundActivate   = "mohorun1",
         BaseSoundDeactivate = "mohooff1",
 	},
+	legmohobp = {
+		BaseSoundSelectType = "arm-bld-select-large",
+		BaseSoundWeaponType = "conalt-small",
+        BaseSoundActivate   = "mohorun1",
+        BaseSoundDeactivate = "mohooff1",
+	},
 	
 	
 	-- LEGION HOVERCRAFT
