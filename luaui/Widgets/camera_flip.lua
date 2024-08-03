@@ -27,23 +27,19 @@ local function cameraFlipHandler()
 
 	-- camera is spring cam
 	-- CardinalLock messes up rotation
-	local previousLock = Spring.GetConfigInt("CamSpringLockCardinalDirections")
-
-	if previousLock == 0 then
-		Spring.SetConfigInt("CamSpringLockCardinalDirections", 1)
+	local cardinalLock = Spring.GetConfigInt("CamSpringLockCardinalDirections")
+	local lockCorrection = 0
+	if cardinalLock == 1 then
+		lockCorrection = 1/3
 	end
 
 	if camState.ry > 0 then
-		camState.ry = camState.ry - math.pi - 1 / 3
+		camState.ry = camState.ry - math.pi - lockCorrection
 	else
-		camState.ry = camState.ry + math.pi + 1 / 3
+		camState.ry = camState.ry + math.pi + lockCorrection
 	end
 
 	Spring.SetCameraState(camState, 0)
-
-	if previousLock == 0 then
-		Spring.SetConfigInt("CamSpringLockCardinalDirections", previousLock)
-	end
 
 	return true
 end
