@@ -63,6 +63,10 @@ function gadget:UnitDestroyed(unitID)
     shieldUnitsData[unitID] = nil
 end
 
+function gadget:GameFrame(frame)
+--need to prevent extra extra damage from happening to shields from multiple collisions handed down from weapons with staying power
+	end
+
 function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitID, bounceProjectile, beamEmitterWeaponNum, beamEmitterUnitID, startX, startY, startZ, hitX, hitY, hitZ)
     if shieldUnitsData[shieldUnitID] then
 		local shieldEnabledState, shieldPower = spGetUnitShieldState(shieldUnitID)
