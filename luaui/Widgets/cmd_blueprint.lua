@@ -1045,19 +1045,15 @@ end
 ---@param serializedBlueprint SerializedBlueprint
 ---@return Blueprint
 local function deserializeBlueprint(serializedBlueprint)
-	local result = table.merge(
-		serializedBlueprint,
-		{
-			units = table.map(serializedBlueprint.units, function(serializedBlueprintUnit)
-				return {
-					blueprintUnitID = nextBlueprintUnitID(),
-					unitDefID = UnitDefNames[serializedBlueprintUnit.unitName].id,
-					position = serializedBlueprintUnit.position,
-					facing = serializedBlueprintUnit.facing
-				}
-			end)
+	local result = table.copy(serializedBlueprint)
+	result.units = table.map(serializedBlueprint.units, function(serializedBlueprintUnit)
+		return {
+			blueprintUnitID = nextBlueprintUnitID(),
+			unitDefID = UnitDefNames[serializedBlueprintUnit.unitName].id,
+			position = serializedBlueprintUnit.position,
+			facing = serializedBlueprintUnit.facing
 		}
-	)
+	end)
 
 	postProcessBlueprint(result)
 
