@@ -82,7 +82,7 @@ return {
 			[18] = "coruwes",
 			--[19] = "armuwmex",
 			[20] = "corfmkr",
-			[21] = "corsy",
+			[21] = "legcorsy",
 			[22] = "corfdrag",
 			[23] = "cortl",
 			[24] = "corfrt",

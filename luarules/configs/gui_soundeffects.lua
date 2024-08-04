@@ -1692,6 +1692,11 @@ GUIUnitSoundEffects = {
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType   = "arm-bld-factory-water",
 	},
+	legcorsy = {
+		BaseSoundSelectType   = "arm-bld-factory",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType   = "arm-bld-factory-water",
+	},
 
 	corasy = {
 		BaseSoundSelectType   = "arm-bld-factory-t2",

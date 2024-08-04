@@ -560,6 +560,8 @@
 			"corsub": "Orque",
 			"corsumo": "Mammouth",
 			"corsy": "Chantier naval",
+			"legcorsy": "Chantier naval",
+
 			"cortarg": "Désignateur",
 			"cortermite": "Termite",
 			"corthermite": "Termite",
@@ -1284,6 +1286,7 @@
 			"corsub": "Sous-marin",
 			"corsumo": "Robot d'assaut lourdement blindé",
 			"corsy": "Produit des navires de Tech 1",
+			"legcorsy": "Produit des navires de Tech 1",
 			"cortarg": "Ciblage radar amélioré, leur nombre augmente la précision des radars",
 			"cortermite": "Araignée d'assaut tout-terrain lourde",
 			"corthermite": "Araignée pyrotechnique tout-terrain super-lourde",

@@ -225,7 +225,7 @@ local isFactoryAirSea = { [UnitDefNames['armplat'].id] = true, [UnitDefNames['co
 local isFactoryVeh = { [UnitDefNames['armvp'].id] = true, [UnitDefNames['corvp'].id] = true }
 local isFactoryBot = { [UnitDefNames['armlab'].id] = true, [UnitDefNames['corlab'].id] = true }
 local isFactoryHover = { [UnitDefNames['armhp'].id] = true, [UnitDefNames['corhp'].id] = true }
-local isFactoryShip = { [UnitDefNames['armsy'].id] = true, [UnitDefNames['corsy'].id] = true }
+local isFactoryShip = { [UnitDefNames['armsy'].id] = true, [UnitDefNames['corsy'].id] = true,  [UnitDefNames['legcorsy'].id] = true }
 local numFactoryAir = 0
 local numFactoryAirSea = 0
 local numFactoryVeh = 0

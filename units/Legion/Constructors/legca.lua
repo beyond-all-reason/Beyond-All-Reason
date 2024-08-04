@@ -68,7 +68,7 @@ return {
 			"cordl",
 			"legjam",
 			"corjuno",
-			"corsy",
+			"legcorsy",
 			"legdefcarryt1",
 		},
 		customparams = {

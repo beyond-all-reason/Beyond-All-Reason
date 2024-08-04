@@ -1881,6 +1881,12 @@ function widget:MousePress(x, y, button)
 	if WG["topbar"] and WG["topbar"].showingQuit() then
 		return
 	end
+	-- These following 3 lines are all that is required to disable mouse clicks
+	-- This file WILL go out of date, so if you want to keep this behavior you will need to periodically
+	-- download a new version of gridmenu and insert these lines
+	if buildmenuShows and backgroundRect:contains(x, y) then    --!
+		return true                                             --!
+	end                                                         --!
 
 	if buildmenuShows and (backgroundRect:contains(x, y) or buildersRect:contains(x, y) or nextBuilderRect:contains(x, y)) then
 		if activeBuilder or (isPregame and startDefID) then

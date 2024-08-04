@@ -229,6 +229,7 @@ local armorDefs = {
 		"corsolar",
 		"corstorm",
 		"corsy",
+		"legcorsy",
 		"cortarg",
 		"cortermite",
 		"corthovr",

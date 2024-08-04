@@ -30,6 +30,45 @@ local exampleLight = {
 	},
 }
 
+local corsyLight = {
+	nanolight1 = {
+		lightType = 'point',
+		pieceName = 'nano1',
+		lightConfig = { posx = 0, posy = 0, posz = 1, radius = 15,
+		                color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+		                r = -1, g = 1, b = 1, a = 0.3,
+		                modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10,
+		                lifetime = 0, sustain = 0, animtype = 0},
+	},
+	nanolight2 = {
+		lightType = 'point',
+		pieceName = 'nano2',
+		lightConfig = { posx = 0, posy = 0, posz = 1, radius = 15,
+		                color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+		                r = -1, g = 1, b = 1, a = 0.3,
+		                modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10,
+		                lifetime = 0, sustain = 0, animtype = 0},
+	},
+	nanolight3 = {
+		lightType = 'point',
+		pieceName = 'nano3',
+		lightConfig = { posx = 0, posy = 0, posz = 1, radius = 15,
+		                color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+		                r = -1, g = 1, b = 1, a = 0.3,
+		                modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10,
+		                lifetime = 0, sustain = 0, animtype = 0},
+	},
+	nanolight4 = {
+		lightType = 'point',
+		pieceName = 'nano4',
+		lightConfig = { posx = 0, posy = 0, posz = 1, radius = 15,
+		                color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+		                r = -1, g = 1, b = 1, a = 0.3,
+		                modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10,
+		                lifetime = 0, sustain = 0, animtype = 0},
+	},
+}
+
 -- multiple lights per unitdef/piece are possible, as the lights are keyed by lightname
 
 local unitLights = {
@@ -3219,44 +3258,8 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	['corsy'] = {
-		nanolight1 = {
-			lightType = 'point',
-			pieceName = 'nano1',
-			lightConfig = { posx = 0, posy = 0, posz = 1, radius = 15,
-							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
-							r = -1, g = 1, b = 1, a = 0.3,
-							modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10,
-							lifetime = 0, sustain = 0, animtype = 0},
-		},
-		nanolight2 = {
-			lightType = 'point',
-			pieceName = 'nano2',
-			lightConfig = { posx = 0, posy = 0, posz = 1, radius = 15,
-							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
-							r = -1, g = 1, b = 1, a = 0.3,
-							modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10,
-							lifetime = 0, sustain = 0, animtype = 0},
-		},
-		nanolight3 = {
-			lightType = 'point',
-			pieceName = 'nano3',
-			lightConfig = { posx = 0, posy = 0, posz = 1, radius = 15,
-							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
-							r = -1, g = 1, b = 1, a = 0.3,
-							modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10,
-							lifetime = 0, sustain = 0, animtype = 0},
-		},
-		nanolight4 = {
-			lightType = 'point',
-			pieceName = 'nano4',
-			lightConfig = { posx = 0, posy = 0, posz = 1, radius = 15,
-							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
-							r = -1, g = 1, b = 1, a = 0.3,
-							modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10,
-							lifetime = 0, sustain = 0, animtype = 0},
-		},
-	},
+	['corsy'] = corsyLight,
+	['legcorsy'] = corsyLight,
 	['armasp'] = {
 		nanolight1 = {
 			lightType = 'point',

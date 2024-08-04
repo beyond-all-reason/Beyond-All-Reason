@@ -1819,6 +1819,10 @@ local icontypes = {
 		bitmap = "icons/factory_ship.png",
 		size = 1.52250004
 	},
+	legcorsy = {
+		bitmap = "icons/factory_ship.png",
+		size = 1.52250004
+	},
 	cortarg = {
 		bitmap = "icons/targetting.png",
 		size = 1.36499989
