@@ -23,9 +23,11 @@ local spSetUnitShieldState = Spring.SetUnitShieldState
 local spSetProjectileDamages = Spring.SetProjectileDamages
 local spGetUnitWeaponDamages = Spring.GetUnitWeaponDamages
 local spSetProjectileCollision = Spring.SetProjectileCollision
+local spGetUnitDefID = Spring.GetUnitDefID
 
 local shieldUnitDefs = {}
 local shieldUnitsData = {}
+local originalShieldDamages = {}
 
 
 for id, data in pairs(UnitDefs) do
@@ -33,6 +35,13 @@ for id, data in pairs(UnitDefs) do
         shieldUnitDefs[id] = data
         shieldUnitDefs[id]["defDowntime"] = tonumber(data.customParams.shield_downtime)
 	end
+    if data.weapons then
+        Spring.Echo("Weapons:", data.weapon)
+    end
+end
+
+for weaponDefID, weaponDef in ipairs(WeaponDefs) do
+	originalShieldDamages[weaponDefID] = weaponDef.customParams.shield_damage
 end
 
 function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
@@ -54,29 +63,25 @@ function gadget:UnitDestroyed(unitID)
     shieldUnitsData[unitID] = nil
 end
 
-local overwriteDamagesTable = {}
-for i = 1, 40 do
-    overwriteDamagesTable[i] = 0
-end
-
 function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitID, bounceProjectile, beamEmitterWeaponNum, beamEmitterUnitID, startX, startY, startZ, hitX, hitY, hitZ)
     if shieldUnitsData[shieldUnitID] then
 		local shieldEnabledState, shieldPower = spGetUnitShieldState(shieldUnitID)
         local proDefID
+        local beamEmitterUnitDefID
         local damage
 
         if 0 < hitX and -1 < proID then
             proDefID = spGetProjectileDefID(proID)
-            damage = WeaponDefs[proDefID].damages[11]
-        end
-        
-        if 0 < hitX and beamEmitterUnitID  then
-            damage = spGetUnitWeaponDamages(beamEmitterUnitID, beamEmitterWeaponNum, "11")
-            spSetProjectileDamages(beamEmitterUnitID, beamEmitterWeaponNum, overwriteDamagesTable)
+            damage = originalShieldDamages[proDefID]
+        elseif 0 < hitX and beamEmitterUnitID  then
+            beamEmitterUnitDefID = spGetUnitDefID(beamEmitterUnitID)
+            damage = originalShieldDamages[UnitDefs[beamEmitterUnitDefID].weapons[beamEmitterWeaponNum].weaponDef]
+            Spring.Echo("originalShieldDamages", originalShieldDamages[UnitDefs[beamEmitterUnitDefID].weapons[beamEmitterWeaponNum].weaponDef])
         end
 
-        if damage and shieldPower < damage then
-            shieldPower = 0
+        Spring.Echo("Damage received!",damage)
+        if damage then
+            shieldPower = math.max(shieldPower - damage, 0)
             spSetUnitShieldState(shieldUnitID, shieldWeaponNum, shieldEnabledState, shieldPower)
         end
  
@@ -84,11 +89,6 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitI
             local maxHealth = select(2, spGetUnitHealth(shieldUnitID))
             local paralyzeTime = maxHealth + ((maxHealth/30)*shieldUnitsData[shieldUnitID].downtime)
             spSetUnitHealth(shieldUnitID, {paralyze = paralyzeTime })
-            if beamEmitterUnitID then
-            --space left blank to insert future code related to stopping beamlasers
-            elseif proID and shieldUnitsData[shieldUnitID].downtime then
-                spSetProjectileCollision(proID)
-            end
         end
         return false
     end

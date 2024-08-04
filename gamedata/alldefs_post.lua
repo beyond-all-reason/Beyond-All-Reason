@@ -1373,6 +1373,11 @@ function WeaponDef_Post(name, wDef)
 			if (not wDef.interceptedbyshieldtype) or wDef.interceptedbyshieldtype ~= 1 then
 				wDef.interceptedbyshieldtype = 1
 			end
+			if wDef.damage ~= nil and wDef.damage.default ~= nil then
+				wDef.customparams = wDef.customparams or {}
+				wDef.customparams.shield_damage = wDef.damage.shields or wDef.damage.default --we store the original shield damage values as a customParam for unit_shield_behavior.lua to reference
+				wDef.damage.shields = 0 --we make the damage 0 so projectiles always collide with shields. Without this, if damage > shield charge then it passes through block-style shields. unit_shield_behavior.lua handles damage.
+			end
 		end
 		if modOptions.evocom == true and wDef.weapontype == "DGun" then
 			wDef.interceptedbyshieldtype = 1
