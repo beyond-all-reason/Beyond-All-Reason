@@ -5887,7 +5887,7 @@ function init()
 
 	-- add sound notification sets
 	if getOptionByID('notifications_set') then
-		local voiceset = Spring.GetConfigString("voiceset", 'allison')
+		local voiceset = Spring.GetConfigString("voiceset", 'en/allison')
 		local currentVoiceSetOption
 		local sets = {}
 		local languageDirs = VFS.SubDirs('sounds/voice', '*')
