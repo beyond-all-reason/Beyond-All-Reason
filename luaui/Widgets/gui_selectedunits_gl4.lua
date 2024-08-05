@@ -59,7 +59,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		}
 	end
 end
-
+local unitBufferUniformCache = {0}
 local function AddPrimitiveAtUnit(unitID)
 	if Spring.ValidUnitID(unitID) ~= true or Spring.GetUnitIsDead(unitID) == true then return end
 	local gf = Spring.GetGameFrame()
@@ -94,7 +94,8 @@ local function AddPrimitiveAtUnit(unitID)
 		width = radius
 		length = radius
 	end
-
+	unitBufferUniformCache[1] = 1
+	gl.SetUnitBufferUniforms(unitID, unitBufferUniformCache, 6)
 	--Spring.Echo(unitID,radius,radius, Spring.GetUnitTeam(unitID), numvertices, 1, gf)
 	pushElementInstance(
 		selectionVBO, -- push into this Instance VBO Table
@@ -161,6 +162,9 @@ end
 
 local function RemovePrimitive(unitID)
 	if selectionVBO.instanceIDtoIndex[unitID] then
+		
+		unitBufferUniformCache[1] = 0
+		gl.SetUnitBufferUniforms(unitID, unitBufferUniformCache, 6)
 		popElementInstance(selectionVBO, unitID)
 	end
 end

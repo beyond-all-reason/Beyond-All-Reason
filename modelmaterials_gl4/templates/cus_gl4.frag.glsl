@@ -861,8 +861,8 @@ void main(void){
 		texColor1.rgb = YCBCR2RGB * yCbCr;
 	}
 	#endif
-	vec4 teeeeemcolor = teamCol;
-	vec3 albedoColor = SRGBtoLINEAR(mix(texColor1.rgb, teeeeemcolor.rgb, texColor1.a));
+	vec4 teamColor = teamCol;
+	vec3 albedoColor = SRGBtoLINEAR(mix(texColor1.rgb, teamColor.rgb, texColor1.a));
 
 	if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXRAPTORS)) {
 		float texHeight = normalTexVal.a;
@@ -1190,6 +1190,40 @@ void main(void){
 
 		}
 	#endif
+
+	// SELECTION EFFECTS!
+	#if 1
+		// unit buffer uniforms 1.z (#6)
+		//0 means unit is un selected
+		//1 means unit is selected
+		//+0.5 means ally also selected unit
+		//2 means its mouseovered
+		float selectedness = teamCol.a;
+		selectedness = 0.0;
+		if (selectedness > 0.25){
+			float allyselected = step(abs(fract(selectedness) - 0.5), 0.25);
+			outColor.rgb = mix(outColor.rgb, vec3(0.0, 1.0, 0.0), selectedness);
+
+			float worldposfactor = fract(worldVertexPos.y * (1.0/30.0) + (timeInfo.x + timeInfo.w)  * (2.0/30.0));
+
+			vec4 v_parameters = vec4(0.5, 0.5, 0.5, 0.5);
+			vec4 highLightColor = vec4(0.0,0.25,1.0,1.0); // Base highlight amount
+			highLightColor.a = mix(highLightColor.a, worldposfactor * highLightColor.a, v_parameters.w); // mix in animation into plain highight
+
+			float opac = dot(normalize(worldNormal), normalize(worldCameraDir));
+			opac = 1.0 - abs(opac);
+			opac = pow(opac, v_parameters.z) * v_parameters.y;
+			highLightColor.a +=   mix(opac, opac * worldposfactor, v_parameters.w) ; // edge highlighing mixed according to animation
+
+			highLightColor.rgb += opac * 1.3; // brighten all, a bit more
+			outColor.rgb += highLightColor.rgb;
+
+			// debug all 3 components:
+			//fragColor.rgba = vec4(v_hcolor.a, opac * v_parameters.y, worldposfactor * v_parameters.w , 1.0);
+
+
+		}
+	#endif 
 
 	#if (RENDERING_MODE == 0)
 		// Forward Rendering Mode

@@ -473,6 +473,9 @@ void main(void)
 	uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
 	teamCol = teamColor[teamIndex];
 
+	// Pack selectedness into teamCol.a
+	teamCol.a = UNITUNIFORMS.userDefined[1].z;
+
 	#if (RENDERING_MODE != 2) //non-shadow pass
 
 		%%VERTEX_UV_TRANSFORM%%
