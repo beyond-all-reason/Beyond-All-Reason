@@ -35,7 +35,7 @@ static-var weapon1_active_accuracy, weapon1_default_accuracy;
 static-var weapon1_active_range, weapon1_default_range, weapon2_default_range;
 Create()
 {
-get PRINT(11);
+
 	hide flare6;
 	hide flare3;
 	hide flare4;
@@ -99,7 +99,7 @@ RestoreAfterDelay()
 
 AimWeapon1(heading, pitch)
 {
-get PRINT(111);
+
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 
