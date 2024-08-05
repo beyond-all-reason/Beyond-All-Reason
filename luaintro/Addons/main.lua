@@ -64,7 +64,7 @@ local ram = string.match(Platform.hwConfig, '([0-9]*MB RAM)')
 if ram ~= nil then
 	ram = string.gsub(ram, "MB RAM", "")
 end
-if tonumber(ram) and tonumber(ram) < 11000 then
+if tonumber(ram) and tonumber(ram) > 1000 and tonumber(ram) < 11000 then
 	hasLowRam = true
 end
 
@@ -600,7 +600,7 @@ function addon.DrawLoadScreen()
 	gl.Translate(vsx/2, (posY*vsy)+(height*0.68), 0)
 	font:SetTextColor(0.88,0.88,0.88,1)
 	font:SetOutlineColor(0,0,0,0.85)
-	font:Print(ram..'   '..lastLoadMessage, 0, 0, barTextSize, "oac")
+	font:Print(lastLoadMessage, 0, 0, barTextSize, "oac")
 	gl.PopMatrix()
 
 
