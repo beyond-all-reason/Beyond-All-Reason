@@ -91,6 +91,7 @@ return {
 				impulsefactor = 0.123,
 				name = "RiotCannon",
 				noselfdamage = true,
+				predictboost = 0.3,
 				range = 430,
 				reloadtime = 1.3,
 				rgbcolor = "0.8 0.8 0.1",
@@ -101,7 +102,7 @@ return {
 				soundtrigger = true,
 				turret = false,
 				weapontype = "Cannon",
-				weaponvelocity = 500,
+				weaponvelocity = 600,
 				damage = {
 					default = 47,
 					vtol = 9,
