@@ -45,7 +45,7 @@ local canBuild = {} --builders[teamID][builderID], contains all builders
 local realBuildSpeed = {} --build speed of builderID, as in UnitDefs (contains all builders)
 local currentBuildSpeed = {} --build speed of builderID for current interval, not accounting for buildOwners special speed (contains only passive builders)
 
-local costID = {} -- costID[unitID] (contains all units)
+local costID = {} -- costID[unitID] (contains all non-finished units)
 
 local ruleName = "builderPriority"
 
@@ -87,9 +87,9 @@ local updateFrame = {}
 
 local teamList
 local deadTeamList = {}
-local canPassive = {} -- canPassive[unitDefID] = nil / true
-local cost = {} -- cost[unitDefID] = {metal=value,energy=value}
 local unitBuildSpeed = {}
+local canPassive = {} -- canPassive[unitDefID] = nil / true
+local cost = {} -- cost[unitDefID] = { metal, energy, buildTime }
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	-- All builders can have their build speeds changed via lua
