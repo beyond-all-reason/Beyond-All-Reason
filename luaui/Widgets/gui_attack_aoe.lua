@@ -232,7 +232,6 @@ local function SetupUnitDef(unitDefID, unitDef)
 						if not weaponInfo[unitDefID] then
 							weaponInfo[unitDefID] = { type = "sector"}
 						end
-						Spring.Echo('tremor sector here hornet poi')
 						weaponInfo[unitDefID].type = "sector"
 						weaponInfo[unitDefID].sector_angle_active = tonumber(weaponDef.customParams.spread_angle)
 						weaponInfo[unitDefID].sector_shortfall_active = tonumber(weaponDef.customParams.max_range_reduction)
