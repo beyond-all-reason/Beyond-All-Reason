@@ -92,6 +92,7 @@ return {
 				model = "cormissile2fast.s3o",
 				name = "Heavy a2g shrapnel rockets",
 				noselfdamage = true,
+				predictboost = 0.2,
 				range = 410,
 				reloadtime = 1.1,
 				smoketrail = true,
