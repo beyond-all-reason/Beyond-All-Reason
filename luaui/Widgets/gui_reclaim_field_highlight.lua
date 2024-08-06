@@ -412,7 +412,7 @@ local minFeatureMetal = 9 -- Tick
 local E2M = 1 / 70 -- Converter ratio
 local minDim = 100
 
-local checkFrequency = 30
+local checkFrequency = 3 * Game.gameSpeed
 
 local drawEnabled = true
 local actionActive = false
@@ -876,8 +876,7 @@ function widget:Update(dt)
 end
 
 function widget:GameFrame(frame)
-	local frameMod = frame % checkFrequency
-	if not drawEnabled or frameMod ~= 0 then
+	if not drawEnabled or frame % checkFrequency ~= 0 then
 		return
 	end
 
