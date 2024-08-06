@@ -34,6 +34,13 @@ VFS.Include('common/wav.lua')
 local language = Spring.GetConfigString('language', 'en')
 
 local voiceSet = Spring.GetConfigString('voiceset', defaultVoiceSet)
+
+-- fix old config
+if not string.find(voiceSet, '/', nil, true)	then
+	Spring.SetConfigString("voiceset", defaultVoiceSet)
+	voiceSet = defaultVoiceSet
+end
+
 if string.sub(voiceSet, 1, 2) ~= language then
 	local languageDirs = VFS.SubDirs('sounds/voice', '*')
 	for k, f in ipairs(languageDirs) do
@@ -46,6 +53,7 @@ if string.sub(voiceSet, 1, 2) ~= language then
 		end
 	end
 end
+
 
 local LastPlay = {}
 local notification = {}
