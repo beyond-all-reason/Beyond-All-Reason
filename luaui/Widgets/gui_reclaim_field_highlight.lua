@@ -627,26 +627,20 @@ local function lineCheck(points)
 	local totalArea = 0
 	local pt1 = points[1]
 	-- local x1, z1, x2, z2, pt2, pt3 -- heron, exterior
-	local x, z, x2, z2, x3, z3 -- triangle determinant
+	local x, z = pt1.x, pt1.z
+	local x2, z2, x3, z3 -- triangle determinant
 
 	for i = 2, #points - 1 do
+		-- Triangular determinant form for polygon area (I think, blame efrec ig)
+		-- Can be extended by parts to program this sum faster, if needed
 		pt2 = pt3 or points[i]
 		pt3 = points[i + 1]
-		
+
 		x1 = x2 or pt2.x - pt1.x
 		z1 = z2 or pt2.z - pt1.z
 		x2 = pt3.x - pt1.x
 		z2 = pt3.z - pt1.z
 
-		-- -- Heron formula to get triangle area
-		-- local a = sqrt((pt2.x - pt1.x)^2 + (pt2.z - pt1.z)^2)
-		-- local b = sqrt((pt3.x - pt2.x)^2 + (pt3.z - pt2.z)^2)
-		-- local c = sqrt((pt3.x - pt1.x)^2 + (pt3.z - pt1.z)^2)
-		-- local p = (a + b + c)/2 -- Half perimeter
-		-- local triangleArea = sqrt(p * (p - a) * (p - b) * (p - c))
-
-		-- Triangular determinant form for polygon area (I think, blame efrec ig)
-		-- Can be extended by parts to program this sum faster, if needed
 		totalArea = totalArea + 0.5 * x * (z1 - z2) + x1 * (z2 - z) + x2 * (z - z1)
 	end
 
