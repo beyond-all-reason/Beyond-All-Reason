@@ -49,6 +49,7 @@ local reclaimEdgeColor = {1, 1, 1, 0.18}
 --------------------------------------------------------------------------------
 -- Priority Queue
 
+local abs = math.abs
 local min = math.min
 local max = math.max
 local mathHuge = math.huge
@@ -625,23 +626,22 @@ end
 
 local function lineCheck(points)
 	local totalArea = 0
+
 	local pt1 = points[1]
-	-- local x1, z1, x2, z2, pt2, pt3 -- heron, exterior
-	local x, z = pt1.x, pt1.z
-	local x2, z2, x3, z3 -- triangle determinant
+	local x1, z1 = pt1.x, pt1.z
+	local x2, z2
+	local x3, z3 = points[2].x, points[2].z
 
 	for i = 2, #points - 1 do
 		-- Triangular determinant form for polygon area (I think, blame efrec ig)
 		-- Can be extended by parts to program this sum faster, if needed
-		pt2 = pt3 or points[i]
-		pt3 = points[i + 1]
+		x2 = x3
+		z2 = z3
+		x3 = points[i + 1].x
+		z3 = points[i + 1].z
 
-		x1 = x2 or pt2.x - pt1.x
-		z1 = z2 or pt2.z - pt1.z
-		x2 = pt3.x - pt1.x
-		z2 = pt3.z - pt1.z
-
-		totalArea = totalArea + 0.5 * x * (z1 - z2) + x1 * (z2 - z) + x2 * (z - z1)
+		-- Using shoelace formula:
+		totalArea = totalArea + 0.5 * abs(x1 * (z2 - z3) + x2 * (z3 - z1) + x3 * (z1 - z2))
 	end
 
 	return totalArea >= 3000
