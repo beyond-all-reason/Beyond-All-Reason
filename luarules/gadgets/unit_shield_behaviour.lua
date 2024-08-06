@@ -32,6 +32,12 @@ local originalShieldDamages = {}
 
 for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 	originalShieldDamages[weaponDefID] = tonumber(weaponDef.customParams.shield_damage)
+    if weaponDef.customParams.beamtime_damage_reduction_multiplier then
+        local base = tonumber(weaponDef.customParams.shield_damage)
+        local multiplier = tonumber(weaponDef.customParams.beamtime_damage_reduction_multiplier)
+        local damage = math.max(base * multiplier)
+        originalShieldDamages[weaponDefID] = damage
+    end
 end
 
 for id, data in pairs(UnitDefs) do
@@ -39,9 +45,6 @@ for id, data in pairs(UnitDefs) do
         shieldUnitDefs[id] = data
         shieldUnitDefs[id]["defDowntime"] = tonumber(data.customParams.shield_downtime)
 	end
-    if data.weapons then
-        Spring.Echo("Weapons:", data.weapon)
-    end
 end
 
 function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
@@ -67,8 +70,6 @@ function gadget:UnitDestroyed(unitID)
 end
 
 local hurtMeQueue = {}
-
-local debugCounter = 0
 function gadget:GameFrame(frame)
     -- Process the hurtMeQueue
     local seconds = spGetGameSeconds()
@@ -76,33 +77,29 @@ function gadget:GameFrame(frame)
         for attackNumber, data in pairs(idData) do
             if data and data.damage then
                 shieldUnitsData[data.shieldUnitID].shieldDamage = shieldUnitsData[data.shieldUnitID].shieldDamage+data.damage
-                debugCounter = debugCounter + 1
-                Spring.Echo("weaponDamage", data.damage, debugCounter)
             end
         end
         hurtMeQueue[id] = nil
     end
     
-    if frame % 10 == 0 then
+    if frame % 3 == 0 then
         for id, data in pairs(shieldUnitsData) do
             local shieldEnabled, shieldPower = spGetUnitShieldState(id)
-            Spring.Echo("shieldPower", shieldPower)
             data.shieldEnabled = shieldEnabled
             data.shieldPower = shieldPower
             if data.shieldDamage > 0 then
-                Spring.Echo("Shield Damaged", data.shieldEnabled, data.shieldPower, data.shieldDamage)
                 data.shieldPower = math.max(data.shieldPower - data.shieldDamage, 0)
-                Spring.Echo("post calc shieldpower", data.shieldPower)
-                spSetUnitShieldState(id, data.shieldWeaponNumber, data.shieldEnabled, data.shieldPower)
+                local newPower = tonumber(data.shieldPower)
+                local shieldEnabled = tonumber(data.shieldEnabled)
+                spSetUnitShieldState(id, data.shieldWeaponNumber, true, newPower)
                 data.shieldDamage = 0
                 shieldEnabled, shieldPower = spGetUnitShieldState(id)
-                Spring.Echo("post overwrite shieldpower", shieldPower)
-            end
-            if data.downtime and data.downtimeReset <= seconds and data.shieldPower <= 0 then
-                local maxHealth = select(2, spGetUnitHealth(id))
-                local paralyzeTime = maxHealth + ((maxHealth / 30) * shieldUnitsData[id].downtime)
-                spSetUnitHealth(id, {paralyze = paralyzeTime})
-                data.downtimeTriggered = seconds+data.downtime+1
+                if data.downtime and data.downtimeReset < seconds and data.shieldPower <= 0 then
+                    local maxHealth = select(2, spGetUnitHealth(id))
+                    local paralyzeTime = maxHealth + ((maxHealth / 30) * shieldUnitsData[id].downtime)
+                    spSetUnitHealth(id, {paralyze = paralyzeTime})
+                    data.downtimeReset = seconds+data.downtime+1
+                end
             end
         end
     end
@@ -131,7 +128,7 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitI
                 shieldUnitID = shieldUnitID,
             }
         end
-        return true
+        return false
     end
 end
 
