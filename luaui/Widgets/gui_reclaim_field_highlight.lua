@@ -33,7 +33,7 @@ local showOption = 3
 ]]
 
 --If true energy reclaim will be converted into metal (1 / 70) and added to the reclaim field value
-local includeEnergy = false
+-- local includeEnergy = false
 
 --Metal value font
 local numberColor = {1, 1, 1, 0.75}
@@ -519,9 +519,9 @@ end
 
 local function UpdateFeatures()
 	for fID, fInfo in pairs(knownFeatures) do
-		local metal, _, energy = spGetFeatureResources(fID)
-
-		if includeEnergy then metal = metal + energy * E2M end
+		-- local metal, _, energy = spGetFeatureResources(fID)
+		-- if includeEnergy then metal = metal + energy * E2M end
+		local metal = spGetFeatureResources(fID)
 		if metal >= minFeatureMetal then
 			-- -- @efrec testing whether this is still needed
 			-- local fx, _, fz = spGetFeaturePosition(fID)
@@ -538,13 +538,15 @@ local function UpdateFeatures()
 				if fInfo.clID then
 					local thisCluster = featureClusters[fInfo.clID]
 					thisCluster.metal = thisCluster.metal - fInfo.metal
-					if metal >= minFeatureMetal then
+					-- Okay but we've already established that it's >= min
+					-- if metal >= minFeatureMetal then
 						thisCluster.metal = thisCluster.metal + metal
 						fInfo.metal = metal
-					else
-						UpdateFeatureNeighborsMatrix(fID, false, true)
-						knownFeatures[fID] = nil
-					end
+					-- So this would never execute
+					-- else
+					-- 	UpdateFeatureNeighborsMatrix(fID, false, true)
+					-- 	knownFeatures[fID] = nil
+					-- end
 				end
 			end
 		else
