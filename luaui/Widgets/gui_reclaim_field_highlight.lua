@@ -33,7 +33,7 @@ local showOption = 3
 ]]
 
 --If true energy reclaim will be converted into metal (1 / 70) and added to the reclaim field value
--- local includeEnergy = false
+local includeEnergy = false
 
 --Metal value font
 local numberColor = {1, 1, 1, 0.75}
@@ -519,13 +519,34 @@ end
 
 local function UpdateFeatures()
 	for fID, fInfo in pairs(knownFeatures) do
-		-- local metal, _, energy = spGetFeatureResources(fID)
-		-- if includeEnergy then metal = metal + energy * E2M end
-		local metal = spGetFeatureResources(fID)
-		if metal >= minFeatureMetal and metal ~= fInfo.metal and fInfo.clID then
-			local thisCluster = featureClusters[fInfo.clID]
-			thisCluster.metal = thisCluster.metal - fInfo.metal + metal
-			fInfo.metal = metal
+		local metal, _, energy = spGetFeatureResources(fID)
+
+		if includeEnergy then metal = metal + energy * E2M end
+		if metal >= minFeatureMetal then
+			-- -- @efrec testing whether this is still needed
+			-- local fx, _, fz = spGetFeaturePosition(fID)
+			-- local fy = spGetGroundHeight(fx, fz)
+			-- if fInfo.x ~= fx or fInfo.y ~= fy or fInfo.z ~= fz then
+			-- 	fInfo.x = fx
+			-- 	fInfo.y = fy
+			-- 	fInfo.z = fz
+			-- 	fInfo.drawAlt = ((fy > 0 and fy) or 0) --+ fInfo.height
+			-- 	UpdateFeatureNeighborsMatrix(fID, true, true)
+			-- end
+
+			if fInfo.metal ~= metal then
+				if fInfo.clID then
+					local thisCluster = featureClusters[fInfo.clID]
+					thisCluster.metal = thisCluster.metal - fInfo.metal
+					if metal >= minFeatureMetal then
+						thisCluster.metal = thisCluster.metal + metal
+						fInfo.metal = metal
+					else
+						UpdateFeatureNeighborsMatrix(fID, false, true)
+						knownFeatures[fID] = nil
+					end
+				end
+			end
 		else
 			knownFeatures[fID] = nil
 			clusterizingNeeded = true
@@ -535,6 +556,7 @@ local function UpdateFeatures()
 	for fID, fInfo in pairs(knownFeatures) do
 		if fInfo.isGaia and spValidFeatureID(fID) == false then
 			UpdateFeatureNeighborsMatrix(fID, false, true)
+			fInfo = nil
 			knownFeatures[fID] = nil
 		else
 			fInfo.clID = nil
@@ -561,20 +583,22 @@ local function ClusterizeFeatures()
 	featureClusters = opticsObject:Clusterize(minDistance)
 
 	for i = 1, #featureClusters do
-		local thisCluster = featureClusters[i]		
-		local members = thisCluster.members
-		local xmin, xmax, zmin, zmax = -mathHuge, mathHuge, -mathHuge, mathHuge
+		local thisCluster = featureClusters[i]
+
+		thisCluster.xmin = mathHuge
+		thisCluster.xmax = -mathHuge
+		thisCluster.zmin = mathHuge
+		thisCluster.zmax = -mathHuge
+
 		local metal = 0
-		for j = 1, #members do
-			local fID = members[j]
+		for j = 1, #thisCluster.members do
+			local fID = thisCluster.members[j]
 			local fInfo = knownFeatures[fID]
 
-			local x = fInfo.x
-			local z = fInfo.z
-			xmin = min(xmin, x)
-			xmax = max(xmax, x)
-			zmin = min(zmin, z)
-			zmax = max(zmax, z)
+			thisCluster.xmin = min(thisCluster.xmin, fInfo.x)
+			thisCluster.xmax = max(thisCluster.xmax, fInfo.x)
+			thisCluster.zmin = min(thisCluster.zmin, fInfo.z)
+			thisCluster.zmax = max(thisCluster.zmax, fInfo.z)
 
 			metal = metal + fInfo.metal
 			fInfo.clID = i
@@ -582,10 +606,6 @@ local function ClusterizeFeatures()
 		end
 
 		thisCluster.metal = metal
-		thisCluster.xmin = xmin
-		thisCluster.xmax = xmax
-		thisCluster.zmin = zmin
-		thisCluster.zmax = zmax
 	end
 
 	for fID in pairs(unclusteredPoints) do
