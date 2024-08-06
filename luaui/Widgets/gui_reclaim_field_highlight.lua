@@ -319,40 +319,43 @@ end
 -- https://en.wikibooks.org/wiki/Algorithm_Implementation/Geometry/Convex_hull/Monotone_chain
 -- Direct port from Javascript version
 
-local function MonotoneChain(points)
-	local numPoints = #points
-	if numPoints < 3 then return end
-
-	table.sort(points,
-		function(a, b)
-			return a.x == b.x and a.z > b.z or a.x > b.x
-		end
-	)
-
-	local lower = {}
-	for i = 1, numPoints do
-		while (#lower >= 2 and cross(lower[#lower - 1], lower[#lower], points[i]) <= 0) do
-			table.remove(lower, #lower)
-		end
-
-		table.insert(lower, points[i])
+local MonotoneChain
+do
+	local function sortMonotonic(a, b)
+		return (a.x > b.x) or (a.x == b.x and a.z > b.z)
 	end
 
-	local upper = {}
-	for i = numPoints, 1, -1 do
-		while (#upper >= 2 and cross(upper[#upper - 1], upper[#upper], points[i]) <= 0) do
-			table.remove(upper, #upper)
+	MonotoneChain = function (points)
+		local numPoints = #points
+		if numPoints < 3 then return end
+	
+		table.sort(points, sortMonotonic)
+
+		local lower = {}
+		for i = 1, numPoints do
+			while (#lower >= 2 and cross(lower[#lower - 1], lower[#lower], points[i]) <= 0) do
+				table.remove(lower, #lower)
+			end
+	
+			table.insert(lower, points[i])
 		end
-
-		table.insert(upper, points[i])
+	
+		local upper = {}
+		for i = numPoints, 1, -1 do
+			while (#upper >= 2 and cross(upper[#upper - 1], upper[#upper], points[i]) <= 0) do
+				table.remove(upper, #upper)
+			end
+	
+			table.insert(upper, points[i])
+		end
+	
+		table.remove(upper, #upper)
+		table.remove(lower, #lower)
+		for _, point in ipairs(lower) do
+			table.insert(upper, point)
+		end
+		return upper
 	end
-
-	table.remove(upper, #upper)
-	table.remove(lower, #lower)
-	for _, point in ipairs(lower) do
-		table.insert(upper, point)
-	end
-	return upper
 end
 
 
@@ -486,14 +489,23 @@ local featureNeighborsMatrix = {}
 local featureClusters = {}
 local featureConvexHulls = {}
 
-local function UpdateFeatureNeighborsMatrix(fID, added, posChanged, removed)
+---To update a feature's entire neighborhood, flag it as both added and removed.
+local function UpdateFeatureNeighborsMatrix(fID, added, removed)
 	local fInfo = knownFeatures[fID]
 
+	if removed then
+		for fID2 in pairs(featureNeighborsMatrix[fID]) do
+			featureNeighborsMatrix[fID2][fID] = nil
+			featureNeighborsMatrix[fID][fID2] = nil
+		end
+	end
+
 	if added then
+		local fx, fz = fInfo.x, fInfo.z
 		featureNeighborsMatrix[fID] = {}
 		for fID2, fInfo2 in pairs(knownFeatures) do
 			if fID2 ~= fID then --don't include self into featureNeighborsMatrix[][]
-				local sqDist = (fInfo.x - fInfo2.x)^2 + (fInfo.z - fInfo2.z)^2
+				local sqDist = (fx - fInfo2.x)^2 + (fz - fInfo2.z)^2
 				if sqDist <= minSqDistance then
 					featureNeighborsMatrix[fID][fID2] = true
 					featureNeighborsMatrix[fID2][fID] = true
@@ -501,77 +513,34 @@ local function UpdateFeatureNeighborsMatrix(fID, added, posChanged, removed)
 			end
 		end
 	end
-
-	if removed then
-		for fID2, _ in pairs(featureNeighborsMatrix[fID]) do
-			featureNeighborsMatrix[fID2][fID] = nil
-			featureNeighborsMatrix[fID][fID2] = nil
-		end
-	end
-
-	if posChanged then
-		UpdateFeatureNeighborsMatrix(fID, false, false, true) --remove
-		UpdateFeatureNeighborsMatrix(fID, true, false, false) --add again
-	end
-end
-
-local function ProcessFeature(featureID)
-	local metal, _, energy = spGetFeatureResources(featureID)
-
-	if includeEnergy then metal = metal + energy * E2M end
-
-	if (not knownFeatures[featureID]) and (metal >= minFeatureMetal) then
-		local f = {}
-
-		local fx, _, fz = spGetFeaturePosition(featureID)
-		local fy = spGetGroundHeight(fx, fz)
-		f.x = fx
-		f.y = fy
-		f.z = fz
-
-		f.isGaia = (spGetFeatureTeam(featureID) == gaiaTeamId)
-		f.height = spGetFeatureHeight(featureID)
-		f.drawAlt = ((fy > 0 and fy) or 0) --+ f.height
-
-		f.metal = metal
-
-		knownFeatures[featureID] = f
-
-		UpdateFeatureNeighborsMatrix(featureID, true, false, false)
-		clusterizingNeeded = true
-	end
 end
 
 local function UpdateFeatures()
-	clusterMetalUpdated = false
 	for fID, fInfo in pairs(knownFeatures) do
 		local metal, _, energy = spGetFeatureResources(fID)
 
 		if includeEnergy then metal = metal + energy * E2M end
 		if metal >= minFeatureMetal then
-			local fx, _, fz = spGetFeaturePosition(fID)
-			local fy = spGetGroundHeight(fx, fz)
+			-- -- @efrec testing whether this is still needed
+			-- local fx, _, fz = spGetFeaturePosition(fID)
+			-- local fy = spGetGroundHeight(fx, fz)
+			-- if fInfo.x ~= fx or fInfo.y ~= fy or fInfo.z ~= fz then
+			-- 	fInfo.x = fx
+			-- 	fInfo.y = fy
+			-- 	fInfo.z = fz
+			-- 	fInfo.drawAlt = ((fy > 0 and fy) or 0) --+ fInfo.height
+			-- 	UpdateFeatureNeighborsMatrix(fID, true, true)
+			-- end
 
-			if knownFeatures[fID].x ~= fx or knownFeatures[fID].y ~= fy or knownFeatures[fID].z ~= fz then
-				knownFeatures[fID].x = fx
-				knownFeatures[fID].y = fy
-				knownFeatures[fID].z = fz
-
-				knownFeatures[fID].drawAlt = ((fy > 0 and fy) or 0) --+ knownFeatures[fID].height
-
-				UpdateFeatureNeighborsMatrix(fID, false, true, false)
-			end
-
-			if knownFeatures[fID].metal ~= metal then
-				if knownFeatures[fID].clID then
-					local thisCluster = featureClusters[knownFeatures[fID].clID]
-					thisCluster.metal = thisCluster.metal - knownFeatures[fID].metal
+			if fInfo.metal ~= metal then
+				if fInfo.clID then
+					local thisCluster = featureClusters[fInfo.clID]
+					thisCluster.metal = thisCluster.metal - fInfo.metal
 					if metal >= minFeatureMetal then
 						thisCluster.metal = thisCluster.metal + metal
-						knownFeatures[fID].metal = metal
-						clusterMetalUpdated = true
+						fInfo.metal = metal
 					else
-						UpdateFeatureNeighborsMatrix(fID, false, false, true)
+						UpdateFeatureNeighborsMatrix(fID, false, true)
 						knownFeatures[fID] = nil
 					end
 				end
@@ -584,13 +553,11 @@ local function UpdateFeatures()
 
 	for fID, fInfo in pairs(knownFeatures) do
 		if fInfo.isGaia and spValidFeatureID(fID) == false then
-			UpdateFeatureNeighborsMatrix(fID, false, false, true)
+			UpdateFeatureNeighborsMatrix(fID, false, true)
 			fInfo = nil
 			knownFeatures[fID] = nil
-		end
-
-		if fInfo then
-			knownFeatures[fID].clID = nil
+		else
+			fInfo.clID = nil
 		end
 	end
 end
@@ -632,18 +599,18 @@ local function ClusterizeFeatures()
 			thisCluster.zmax = max(thisCluster.zmax, fInfo.z)
 
 			metal = metal + fInfo.metal
-			knownFeatures[fID].clID = i
+			fInfo.clID = i
 			unclusteredPoints[fID] = nil
 		end
 
 		thisCluster.metal = metal
 	end
 
-	for fID, _ in pairs(unclusteredPoints) do
+	for fID in pairs(unclusteredPoints) do
 		local fInfo = knownFeatures[fID]
 		local thisCluster = {}
 
-		thisCluster.members = {fID}
+		thisCluster.members = { fID }
 		thisCluster.metal = fInfo.metal
 
 		thisCluster.xmin = fInfo.x
@@ -652,29 +619,38 @@ local function ClusterizeFeatures()
 		thisCluster.zmax = fInfo.z
 
 		featureClusters[#featureClusters + 1] = thisCluster
-		knownFeatures[fID].clID = #featureClusters
+		fInfo.clID = #featureClusters
 	end
-
 end
 
 local function lineCheck(points)
-	if points[1] == nil then return true end
 	local totalArea = 0
 	local pt1 = points[1]
-	for i = 2, #points - 1 do
-		local pt2 = points[i]
-		local pt3 = points[i + 1]
-		-- Heron formula to get triangle area
-		local a = sqrt((pt2.x - pt1.x)^2 + (pt2.z - pt1.z)^2)
-		local b = sqrt((pt3.x - pt2.x)^2 + (pt3.z - pt2.z)^2)
-		local c = sqrt((pt3.x - pt1.x)^2 + (pt3.z - pt1.z)^2)
-		local p = (a + b + c)/2 -- Half perimeter
+	-- local x1, z1, x2, z2, pt2, pt3 -- heron, exterior
+	local x, z, x2, z2, x3, z3 -- triangle determinant
 
-		local triangleArea = sqrt(p * (p - a) * (p - b) * (p - c))
-		totalArea = totalArea + triangleArea
+	for i = 2, #points - 1 do
+		pt2 = pt3 or points[i]
+		pt3 = points[i + 1]
+		
+		x1 = x2 or pt2.x - pt1.x
+		z1 = z2 or pt2.z - pt1.z
+		x2 = pt3.x - pt1.x
+		z2 = pt3.z - pt1.z
+
+		-- -- Heron formula to get triangle area
+		-- local a = sqrt((pt2.x - pt1.x)^2 + (pt2.z - pt1.z)^2)
+		-- local b = sqrt((pt3.x - pt2.x)^2 + (pt3.z - pt2.z)^2)
+		-- local c = sqrt((pt3.x - pt1.x)^2 + (pt3.z - pt1.z)^2)
+		-- local p = (a + b + c)/2 -- Half perimeter
+		-- local triangleArea = sqrt(p * (p - a) * (p - b) * (p - c))
+
+		-- Triangular determinant form for polygon area (I think, blame efrec ig)
+		-- Can be extended by parts to program this sum faster, if needed
+		totalArea = totalArea + 0.5 * x * (z1 - z2) + x1 * (z2 - z) + x2 * (z - z1)
 	end
-	if totalArea < 3000 then return false end
-	return true
+
+	return totalArea >= 3000
 end
 
 local function ClustersToConvexHull()
@@ -782,12 +758,30 @@ function widget:Initialize()
 	end
 
 	for _, fID in ipairs(spGetAllFeatures()) do
-		ProcessFeature(fID)
+		widget:FeatureCreated(fID)
 	end
 end
 
 function widget:FeatureCreated(featureID, allyTeamID)
-	ProcessFeature(featureID)
+	local metal, _, energy = spGetFeatureResources(featureID)
+
+	if includeEnergy then metal = metal + energy * E2M end
+
+	if (not knownFeatures[featureID]) and (metal >= minFeatureMetal) then
+		local fx, fy, fz = spGetFeaturePosition(featureID)
+		knownFeatures[featureID] = {
+			x = fx,
+			y = fy, -- spGetGroundHeight(fx, fz) -- befrwmrn
+			z = fz,
+			metal = metal,
+			drawAlt = ((fy > 0 and fy) or 0),
+			height = spGetFeatureHeight(featureID),
+			isGaia = (spGetFeatureTeam(featureID) == gaiaTeamId),
+		}
+
+		UpdateFeatureNeighborsMatrix(featureID, true, false)
+		clusterizingNeeded = true
+	end
 end
 
 function widget:FeatureDestroyed(featureID, allyTeamID)
