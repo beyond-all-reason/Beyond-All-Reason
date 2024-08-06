@@ -413,7 +413,7 @@ local minFeatureMetal = 9 -- Tick
 local E2M = 1 / 70 -- Converter ratio
 local minDim = 100
 
-local checkFrequency = 3 * Game.gameSpeed
+local checkFrequency = 2 * Game.gameSpeed
 
 local drawEnabled = true
 local actionActive = false
