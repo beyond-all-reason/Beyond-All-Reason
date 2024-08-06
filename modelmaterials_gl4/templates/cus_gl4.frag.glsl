@@ -1142,6 +1142,7 @@ void main(void){
 		// We really need to know the full height of the model here :/
 		float buildProgress = userDefined2.w;
 		if (buildProgress > -0.5){
+			myPerlin= myPerlin * 0.33;
 			//buildProgress = fract(timeInfo.x / 300.0);
 			float h = clamp(modelVertexPosOrig.w/1.0,0,1) + 0.1* myPerlin.r;
 			//outColor.rgb *=step(h, buildProgress);
@@ -1162,30 +1163,34 @@ void main(void){
 			float buildeff = dot(dists, vec4(1.0));
 			//outColor.rgb += buildeff;
 
+			float gridSize = clamp((1.0 - buildProgress) * 10 + 2, 2, 12);
+			vec3 grid = step(0.5, clamp(1.0 - 10* fract((modelVertexPosOrig.xyz) / gridSize), 0.0, 1.0));
 			if (h > steps.x){ // no emission
 				outColor -= emissiveness * albedoColor;
 				albedoColor = vec3(0.0);
+				float delta = smoothstep(steps.w, steps.z, h);
+				outColor = mix(outColor, teamCol.rgb,  myPerlin.g);
 			}
 			if (h > steps.y){ // no specilar
 				outColor -= specular;
 				outSpecularColor = vec3(0.0);
-			}
-			if (h > steps.z){
-				float delta = smoothstep(steps.w, steps.z, h);
-				outColor = mix(outColor, teamCol.rgb,  myPerlin.g);
-			}
-			if (h > steps.x){ // The top level where its just teamcolor
-				// TODO: Actually shade the model (using teamcolor as albedo!)
 				outColor =  teamCol.rgb;
-				float gridSize = clamp((1.0 - buildProgress) * 10 + 2, 2, 12);
-				vec3 grid = step(0.5, clamp(1.0 - 10* fract((modelVertexPosOrig.xyz) / gridSize), 0.0, 1.0));
 				outColor.rgb += dot(grid, vec3(1.0));
 			}
+			if (h > steps.z){
+			}
+			if (h > steps.w){ // The top level where its just teamcolor
+				// TODO: Actually shade the model (using teamcolor as albedo!)
+				outColor =  teamCol.rgb;
+				outColor.rgb += dot(grid, vec3(1.0));
+			}
+			
+			outColor = mix(outColor, vec3(1.0),  dot(grid, vec3(1,0,1)));
 			outColor.rgb += buildeff;
 
 	
 			//Highlight Edges of triangle:
-			outColor.rgb += 1.0 - smoothstep(0.0, 0.1, abs(NdotLu));
+			//outColor.rgb += 1.0 - smoothstep(0.0, 0.1, abs(NdotLu));
 
 
 		}
