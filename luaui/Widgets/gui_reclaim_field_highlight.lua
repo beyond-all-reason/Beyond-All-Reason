@@ -604,36 +604,24 @@ local function ClusterizeFeatures()
 	end
 end
 
-local function lineCheck(points)
-	local totalArea = 0
-
-	local pt1 = points[1]
-	local x1, z1 = pt1.x, pt1.z
-	local x2, z2
-	local x3, z3 = points[2].x, points[2].z
-
-	for i = 2, #points - 1 do
-		-- Triangular determinant form for polygon area
-		-- Can be extended by parts to program this sum faster, if needed
-		x2 = x3
-		z2 = z3
-		x3 = points[i + 1].x
-		z3 = points[i + 1].z
-
-		-- Using shoelace formula:
-		totalArea = totalArea + 0.5 * abs(x1 * (z2 - z3) + x2 * (z3 - z1) + x3 * (z1 - z2))
+local function pointArea(points)
+	-- Determinant area, point form
+	local n = #points
+	local totalArea = totalArea + points[1].x * (points[n].z - points[2].z)
+	for i = 2, n-1 do
+		totalArea = totalArea + points[i].x * (points[i-1].z - points[i+1].z)
 	end
-
-	return totalArea >= 3000
+	return abs(totalArea + points[n].x * (points[1].z - points[n-1].z)) * 0.5
 end
 
 local function ClustersToConvexHull()
 	featureConvexHulls = {}
 	for fc = 1, #featureClusters do
 		local clusterPoints = {}
+		local members = featureClusters[fc].members
 
-		for fcm = 1, #featureClusters[fc].members do
-			local fID = featureClusters[fc].members[fcm]
+		for fcm = 1, #members do
+			local fID = members[fcm]
 			clusterPoints[#clusterPoints + 1] = {
 				x = knownFeatures[fID].x,
 				y = knownFeatures[fID].drawAlt,
@@ -646,7 +634,7 @@ local function ClustersToConvexHull()
 		-- http://mindthenerd.blogspot.ru/2012/05/fastest-convex-hull-algorithm-ever.html
 
 		local convexHull
-		if #clusterPoints >= 3 and lineCheck(clusterPoints) then
+		if #clusterPoints >= 3 and pointArea(clusterPoints) >= 3000 then
 			--spEcho("#clusterPoints >= 3")
 			--convexHull = ConvexHull.JarvisMarch(clusterPoints)
 			convexHull = MonotoneChain(clusterPoints) --twice faster
@@ -689,22 +677,7 @@ local function ClustersToConvexHull()
 			cy = max(cy, convexHullPoint.y)
 		end
 
-		local totalArea = 0
-		local pt1 = convexHull[1]
-		local x1, z1 = pt1.x, pt1.z
-		local x2, z2
-		local x3, z3 = convexHull[2].x, convexHull[2].z
-		for i = 2, #convexHull - 1 do
-			-- Triangular determinant form for polygon area
-			x2 = x3
-			z2 = z3
-			x3 = points[i + 1].x
-			z3 = points[i + 1].z
-			-- Using shoelace formula:
-			totalArea = totalArea + 0.5 * abs(x1 * (z2 - z3) + x2 * (z3 - z1) + x3 * (z1 - z2))
-		end
-
-		convexHull.area = totalArea
+		convexHull.area = pointArea(convexHull)
 		convexHull.center = {x = cx/#convexHull, z = cz/#convexHull, y = cy + 1}
 
 		featureConvexHulls[fc] = convexHull
