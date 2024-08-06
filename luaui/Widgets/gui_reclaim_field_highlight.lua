@@ -335,7 +335,7 @@ do
 		local lower = {}
 		for i = 1, numPoints do
 			while (#lower >= 2 and cross(lower[#lower - 1], lower[#lower], points[i]) <= 0) do
-				table.remove(lower, #lower)
+				table.remove(lower)
 			end
 	
 			table.insert(lower, points[i])
@@ -344,14 +344,14 @@ do
 		local upper = {}
 		for i = numPoints, 1, -1 do
 			while (#upper >= 2 and cross(upper[#upper - 1], upper[#upper], points[i]) <= 0) do
-				table.remove(upper, #upper)
+				table.remove(upper)
 			end
 	
 			table.insert(upper, points[i])
 		end
 	
-		table.remove(upper, #upper)
-		table.remove(lower, #lower)
+		table.remove(upper)
+		table.remove(lower)
 		for _, point in ipairs(lower) do
 			table.insert(upper, point)
 		end
