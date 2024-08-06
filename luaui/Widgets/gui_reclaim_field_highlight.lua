@@ -633,7 +633,7 @@ local function lineCheck(points)
 	local x3, z3 = points[2].x, points[2].z
 
 	for i = 2, #points - 1 do
-		-- Triangular determinant form for polygon area (I think, blame efrec ig)
+		-- Triangular determinant form for polygon area
 		-- Can be extended by parts to program this sum faster, if needed
 		x2 = x3
 		z2 = z3
