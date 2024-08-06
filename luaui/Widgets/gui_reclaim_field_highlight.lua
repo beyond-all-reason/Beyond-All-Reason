@@ -404,6 +404,7 @@ local spGetCameraVectors = Spring.GetCameraVectors
 local screenx, screeny
 local gaiaTeamId = spGetGaiaTeamID()
 local clusterizingNeeded = false -- Used to check if clusterizing neds to be run, set by FeatureCreated/Removed
+local redrawingNeeded = false
 
 local minDistance = 300
 local minSqDistance = minDistance^2
@@ -712,7 +713,7 @@ end
 function widget:FeatureCreated(featureID, allyTeamID)
 	-- local metal, _, energy = spGetFeatureResources(fID)
 	-- if includeEnergy then metal = metal + energy * E2M end
-	local metal = spGetFeatureResources(fID)
+	local metal = spGetFeatureResources(featureID)
 	if (not knownFeatures[featureID]) and (metal >= minFeatureMetal) then
 		local fx, fy, fz = spGetFeaturePosition(featureID)
 		knownFeatures[featureID] = {
@@ -832,38 +833,45 @@ function widget:GameFrame(frame)
 		return
 	end
 
+	if redrawingNeeded then
+		if drawFeatureConvexHullSolidList then
+			glDeleteList(drawFeatureConvexHullSolidList)
+			drawFeatureConvexHullSolidList = nil
+		end
+	
+		if drawFeatureConvexHullEdgeList then
+			glDeleteList(drawFeatureConvexHullEdgeList)
+			drawFeatureConvexHullEdgeList = nil
+		end
+	
+		if drawFeatureConvexHullSolidList == nil then
+			drawFeatureConvexHullSolidList = glCreateList(DrawFeatureConvexHullSolid)
+			drawFeatureConvexHullEdgeList = glCreateList(DrawFeatureConvexHullEdge)
+		end
+	
+		local camUpVectorCurrent = spGetCameraVectors().up
+		if textParametersChanged or drawFeatureClusterTextList == nil or camUpVectorCurrent ~= camUpVector then
+			camUpVector = camUpVectorCurrent
+			if drawFeatureClusterTextList then
+				glDeleteList(drawFeatureClusterTextList)
+				drawFeatureClusterTextList = nil
+			end
+			drawFeatureClusterTextList = glCreateList(DrawFeatureClusterText)
+			textParametersChanged = false
+		end
+
+		redrawingNeeded = false
+	end
+
 	UpdateFeatures()
 
 	if clusterizingNeeded then
 		ClusterizeFeatures()
 		ClustersToConvexHull()
 		clusterizingNeeded = false
-	end
-
-	if drawFeatureConvexHullSolidList then
-		glDeleteList(drawFeatureConvexHullSolidList)
-		drawFeatureConvexHullSolidList = nil
-	end
-
-	if drawFeatureConvexHullEdgeList then
-		glDeleteList(drawFeatureConvexHullEdgeList)
-		drawFeatureConvexHullEdgeList = nil
-	end
-
-	if drawFeatureConvexHullSolidList == nil then
-		drawFeatureConvexHullSolidList = glCreateList(DrawFeatureConvexHullSolid)
-		drawFeatureConvexHullEdgeList = glCreateList(DrawFeatureConvexHullEdge)
-	end
-
-	local camUpVectorCurrent = spGetCameraVectors().up
-	if textParametersChanged or drawFeatureClusterTextList == nil or camUpVectorCurrent ~= camUpVector then
-		camUpVector = camUpVectorCurrent
-		if drawFeatureClusterTextList then
-			glDeleteList(drawFeatureClusterTextList)
-			drawFeatureClusterTextList = nil
-		end
-		drawFeatureClusterTextList = glCreateList(DrawFeatureClusterText)
-		textParametersChanged = false
+		-- Clustering is expensive enough for a single frame; push draw calls to the next frame.
+		-- Stacking individually-negligible improvements does help, eventually.
+		redrawingNeeded = true
 	end
 end
 
