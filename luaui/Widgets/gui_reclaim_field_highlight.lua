@@ -711,17 +711,17 @@ local function ClustersToConvexHull()
 
 		local totalArea = 0
 		local pt1 = convexHull[1]
+		local x1, z1 = pt1.x, pt1.z
+		local x2, z2
+		local x3, z3 = convexHull[2].x, convexHull[2].z
 		for i = 2, #convexHull - 1 do
-			local pt2 = convexHull[i]
-			local pt3 = convexHull[i + 1]
-			--Heron formula to get triangle area
-			local a = sqrt((pt2.x - pt1.x)^2 + (pt2.z - pt1.z)^2)
-			local b = sqrt((pt3.x - pt2.x)^2 + (pt3.z - pt2.z)^2)
-			local c = sqrt((pt3.x - pt1.x)^2 + (pt3.z - pt1.z)^2)
-			local p = (a + b + c)/2 --half perimeter
-
-			local triangleArea = sqrt(p * (p - a) * (p - b) * (p - c))
-			totalArea = totalArea + triangleArea
+			-- Triangular determinant form for polygon area
+			x2 = x3
+			z2 = z3
+			x3 = points[i + 1].x
+			z3 = points[i + 1].z
+			-- Using shoelace formula:
+			totalArea = totalArea + 0.5 * abs(x1 * (z2 - z3) + x2 * (z3 - z1) + x3 * (z1 - z2))
 		end
 
 		convexHull.area = totalArea
