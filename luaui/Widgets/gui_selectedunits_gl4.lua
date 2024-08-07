@@ -173,6 +173,27 @@ function widget:SelectionChanged(sel)
 	updateSelection = true
 end
 
+
+local lastMouseOverUnitID = nil
+local lastMouseOverFeatureID = nil
+
+local function ClearLastMouseOver()
+	if lastMouseOverUnitID then
+		if Spring.ValidUnitID(lastMouseOverUnitID) then
+			gl.SetUnitBufferUniforms(lastMouseOverUnitID, {selUnits[lastMouseOverUnitID] and 1 or 0}, 6)
+		end
+		lastMouseOverUnitID = nil
+	end
+	if lastMouseOverFeatureID then
+		if Spring.ValidFeatureID(lastMouseOverFeatureID) then 
+			gl.SetFeatureBufferUniforms(lastMouseOverFeatureID, {0}, 6)
+		end
+		lastMouseOverFeatureID = nil
+	end
+end
+
+
+
 function widget:Update(dt)
 	if updateSelection then
 		selectedUnits = Spring.GetSelectedUnits()
@@ -193,6 +214,39 @@ function widget:Update(dt)
 			end
 		end
 		selUnits = newSelUnits
+	end
+
+	-- We move the check for mouseovered units here,
+	-- as this widget is the ground truth for our unitbufferuniform[2].z (#6)
+	-- 0 means unit is un selected
+	-- +1 means unit is selected
+	-- +0.5 means ally also selected unit
+	-- +2 means its mouseovered
+
+	local mx, my, p1, mmb, _, mouseOffScreen, cameraPanMode  = Spring.GetMouseState()
+	if mouseOffScreen or cameraPanMode or mmb or p1 then
+		ClearLastMouseOver()
+	else
+		local result, data = Spring.TraceScreenRay(mx, my)
+		--Spring.Echo(result, (type(data) == 'table') or data, lastMouseOverUnitID, lastMouseOverFeatureID)
+		if result == 'unit' and not Spring.IsGUIHidden() then
+			local unitID = data
+			if lastMouseOverUnitID ~= unitID then
+				ClearLastMouseOver()
+				local newUniform = (selUnits[unitID] and 1 or 0 ) + 2
+				gl.SetUnitBufferUniforms(unitID, {newUniform}, 6)
+				lastMouseOverUnitID = unitID
+			end
+		elseif result == 'feature' and not Spring.IsGUIHidden() then
+			local featureID = data
+			if lastMouseOverFeatureID ~= featureID then
+				ClearLastMouseOver()
+				gl.SetFeatureBufferUniforms(featureID, {2}, 6)
+				lastMouseOverFeatureID = featureID
+			end
+		else
+			ClearLastMouseOver()
+		end
 	end
 end
 
