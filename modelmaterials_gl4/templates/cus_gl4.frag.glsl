@@ -785,7 +785,7 @@ void main(void){
 	vec4 myPerlin = vec4(0.0);
 	if (BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXTURING) || BITMASK_FIELD(bitOptions, OPTION_HEALTH_TEXRAPTORS)) {
 		seedVec = modelVertexPosOrig.xyz * 0.6;
-		seedVec.y += 1024.0 * hash11(float(unitID));
+		seedVec.y += 1024.0 * hash11(float(unitID)) + dot(seedVec.xz, vec2(0.1,0.1));
 		myPerlin = textureLod(noisetex3dcube, fract(seedVec.xyz*0.1), 0.0) * 2.0 - 1.0;
 		
 		healthMix = SNORM2NORM(myPerlin.x) * (2.0 - baseVertexDisplacement);
@@ -1142,52 +1142,69 @@ void main(void){
 		// We really need to know the full height of the model here :/
 		float buildProgress = userDefined2.w;
 		if (buildProgress > -0.5){
-			myPerlin= myPerlin * 0.33;
-			//buildProgress = fract(timeInfo.x / 300.0);
-			float h = clamp(modelVertexPosOrig.w/1.0,0,1) + 0.1* myPerlin.r;
-			//outColor.rgb *=step(h, buildProgress);
-			if (h < buildProgress){
-				//outColor.rgb *= 0.0;
-			}
-			else{
-				//outColor.rgb += 1.0;
-			}
-	
+			// myPerlin contains 4 channels of noise with decreasing frequency from r to a
+			myPerlin= myPerlin;
 			
+			// Height is the relative height of the fragment in the model compared to the full height
+			float height = clamp(modelVertexPosOrig.w/1.0,0,1);
 
 
-			vec4 steps = vec4(buildProgress);
-			steps = pow(steps, vec4(0.35,0.7, 1.5, 3.0));
-			steps = mix(steps, vec4(buildProgress), 0.25);
-			vec4 dists = clamp(1.0 - 100 * abs(steps - vec4(h)), 0,1);
-			float buildeff = dot(dists, vec4(1.0));
-			//outColor.rgb += buildeff;
+			// progressLevels are a vec4 of values that progressively increase from 0 to 1,
+			// with a power curve, each next faster than the other, meaning .x is the bottom level, .w is the top level
+			vec4 progressLevels = vec4(buildProgress);
+			progressLevels = pow(progressLevels, vec4(3.0, 1.5, 0.7, 0.35));
+			progressLevels = mix(progressLevels, vec4(buildProgress), 0.25);
+			vec4 dists = clamp(1.0 - 100 * abs(progressLevels - vec4(height)), 0,1);
 
+			// levelFactor is 1 when the height of a fragment is within 1% of a progressLevel, 0 otherwise.
+			float levelFactor = dot(dists, vec4(1.0));
+	
+			// BuildGrid is defined as the distance from the 8 elmo world grid that the model is built on.
+			// Meaning it is 0 on the grid, and 4 in the middle
+			vec3 buildGrid = 1.0 - abs(fract((worldVertexPos.xyz / 8.0)) - 0.5) * 2.0;
+
+			// buildGridFactor is the minimum of all distances from the grid:
+			buildGrid = smoothstep(vec3(0.0), vec3(0.05), buildGrid);
+			float buildGridFactor = 1.0 - clamp( buildGrid.x * buildGrid.y * buildGrid.z, 0.0, 1.0);
+			
+			// A dynamic grid which starts at 12 elmos size, then shrinks to 2 elmos size at 100% buildProgress
 			float gridSize = clamp((1.0 - buildProgress) * 10 + 2, 2, 12);
 			vec3 grid = step(0.5, clamp(1.0 - 10* fract((modelVertexPosOrig.xyz) / gridSize), 0.0, 1.0));
-			if (h > steps.x){ // no emission
+
+			// Helper sinusoidal patterns:
+			float sintime = 0.5 + 0.5 * sin(simFrame * 0.1); // pulses every 3 seconds
+			float sinprogress = 0.5 + 0.5 * sin(buildProgress * 0.01 * 3.1415); // pulses every percent of buildProgress
+			//outColor.rgb += buildeff;
+
+			// The entire model will always get the 8 elmo buildgrid:
+			//outColor.rgb = mix(outColor.rgb, vec3(1.0, 0.0, 1.0), buildGridFactor);
+			outColor.rgb = vec3(buildGridFactor);  
+		
+			/*
+			
+			if (height > progressLevels.x){ 
 				outColor -= emissiveness * albedoColor;
 				albedoColor = vec3(0.0);
-				float delta = smoothstep(steps.w, steps.z, h);
+				float delta = smoothstep(progressLevels.w, progressLevels.z, height);
 				outColor = mix(outColor, teamCol.rgb,  myPerlin.g);
 			}
-			if (h > steps.y){ // no specilar
+			if (h > progressLevels.y){ // no specular
 				outColor -= specular;
 				outSpecularColor = vec3(0.0);
 				outColor =  teamCol.rgb;
 				outColor.rgb += dot(grid, vec3(1.0));
 			}
-			if (h > steps.z){
+			if (h > progressLevels.z){
 			}
-			if (h > steps.w){ // The top level where its just teamcolor
+			if (h > progressLevels.w){ // The top level where its just teamcolor
 				// TODO: Actually shade the model (using teamcolor as albedo!)
 				outColor =  teamCol.rgb;
 				outColor.rgb += dot(grid, vec3(1.0));
 			}
 			
 			outColor = mix(outColor, vec3(1.0),  dot(grid, vec3(1,0,1)));
-			outColor.rgb += buildeff;
-
+			outColor.rgb += levelFactor;
+			*/
 	
 			//Highlight Edges of triangle:
 			//outColor.rgb += 1.0 - smoothstep(0.0, 0.1, abs(NdotLu));
@@ -1199,34 +1216,36 @@ void main(void){
 	// SELECTION EFFECTS!
 	#if 1
 		// unit buffer uniforms 1.z (#6)
-		//0 means unit is un selected
-		//1 means unit is selected
-		//+0.5 means ally also selected unit
-		//2 means its mouseovered
+		// 0 means unit is un selected
+		// 1 means unit is selected
+		// +0.5 means ally also selected unit
+		// +2 means its mouseovered
+		// Sho
 		float selectedness = teamCol.a;
-		selectedness = 0.0;
+		
+		//selectedness = 0.0;
 		if (selectedness > 0.25){
+			float inselection = (selectedness == 1.0 || selectedness == 3.0) ? 1.0 : 0.0;
+			float mouseovered = (selectedness > 1.5 ) ? 1.0 : 0.0;
 			float allyselected = step(abs(fract(selectedness) - 0.5), 0.25);
-			outColor.rgb = mix(outColor.rgb, vec3(0.0, 1.0, 0.0), selectedness);
+			
+			float mouseOverAnimation = fract(worldVertexPos.y * (1.0/30.0) + (simFrame)  * (2.0/30.0));
 
-			float worldposfactor = fract(worldVertexPos.y * (1.0/30.0) + (timeInfo.x + timeInfo.w)  * (2.0/30.0));
-
-			vec4 v_parameters = vec4(0.5, 0.5, 0.5, 0.5);
-			vec4 highLightColor = vec4(0.0,0.25,1.0,1.0); // Base highlight amount
-			highLightColor.a = mix(highLightColor.a, worldposfactor * highLightColor.a, v_parameters.w); // mix in animation into plain highight
-
-			float opac = dot(normalize(worldNormal), normalize(worldCameraDir));
-			opac = 1.0 - abs(opac);
-			opac = pow(opac, v_parameters.z) * v_parameters.y;
-			highLightColor.a +=   mix(opac, opac * worldposfactor, v_parameters.w) ; // edge highlighing mixed according to animation
-
-			highLightColor.rgb += opac * 1.3; // brighten all, a bit more
-			outColor.rgb += highLightColor.rgb;
-
-			// debug all 3 components:
-			//fragColor.rgba = vec4(v_hcolor.a, opac * v_parameters.y, worldposfactor * v_parameters.w , 1.0);
+			// Base highlight amount, rgb contains the color of the highlight
+			// Alpha contains the strength of the highlight
+			vec4 selectionHighlight = vec4(0);
+			selectionHighlight.rgb = clamp(teamCol.rgb, 0.55, 1.0);
 
 
+			float dotcamera = dot(worldNormal, V);
+
+			float highLightOpacity = clamp(1.0 - dotcamera, 0, 1);
+			highLightOpacity = highLightOpacity * highLightOpacity;
+
+			vec4 mouseOverHighlight = selectionHighlight;
+
+			outColor.rgb += mouseovered * mouseOverAnimation * mouseOverHighlight.rgb * 0.5;
+			outColor.rgb += inselection * highLightOpacity * selectionHighlight.rgb;
 		}
 	#endif 
 
