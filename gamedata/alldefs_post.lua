@@ -1378,7 +1378,7 @@ function WeaponDef_Post(name, wDef)
 				wDef.customparams.shield_damage = wDef.damage.shields or wDef.damage.default --we store the original shield damage values as a customParam for unit_shield_behavior.lua to reference
 				wDef.damage.shields = 0 --we make the damage 0 so projectiles always collide with shields. Without this, if damage > shield charge then it passes through block-style shields. unit_shield_behavior.lua handles damage.
 				if wDef.beamtime and wDef.beamtime > 0.0333334 then
-				wDef.customparams.beamtime_damage_reduction_multiplier = (1/(wDef.beamtime*30)) --this splits up the damage of hitscan weapons over the duration of beamtime, as each frame counts as a hit in ShieldPreDamaged() callin
+				wDef.customparams.beamtime_damage_reduction_multiplier = (1/math.floor((wDef.beamtime*30))) --this splits up the damage of hitscan weapons over the duration of beamtime, as each frame counts as a hit in ShieldPreDamaged() callin. Math.floor is used to sheer off the extra digits of the number of frames that the hits occur.
 				end
 			end
 		end
