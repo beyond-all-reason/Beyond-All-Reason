@@ -31,12 +31,12 @@ local shieldUnitsData = {}
 local originalShieldDamages = {}
 
 for weaponDefID, weaponDef in ipairs(WeaponDefs) do
-	originalShieldDamages[weaponDefID] = tonumber(weaponDef.customParams.shield_damage)
     if weaponDef.customParams.beamtime_damage_reduction_multiplier then
-        local base = tonumber(weaponDef.customParams.shield_damage)
-        local multiplier = tonumber(weaponDef.customParams.beamtime_damage_reduction_multiplier)
+        local base = weaponDef.customParams.shield_damage
+        local multiplier = weaponDef.customParams.beamtime_damage_reduction_multiplier
         local damage = math.max(base * multiplier)
-        originalShieldDamages[weaponDefID] = damage
+        originalShieldDamages[weaponDefID] = math.floor(damage)
+    else originalShieldDamages[weaponDefID] = tonumber(weaponDef.customParams.shield_damage)
     end
 end
 
@@ -69,65 +69,47 @@ function gadget:UnitDestroyed(unitID)
     shieldUnitsData[unitID] = nil
 end
 
-local hurtMeQueue = {}
+
+local seconds
 function gadget:GameFrame(frame)
-    -- Process the hurtMeQueue
-    local seconds = spGetGameSeconds()
-    for id, idData in pairs(hurtMeQueue) do
-        for attackNumber, data in pairs(idData) do
-            if data and data.damage then
-                shieldUnitsData[data.shieldUnitID].shieldDamage = shieldUnitsData[data.shieldUnitID].shieldDamage+data.damage
-            end
-        end
-        hurtMeQueue[id] = nil
-    end
-    
-    if frame % 3 == 0 then
-        for id, data in pairs(shieldUnitsData) do
-            local shieldEnabled, shieldPower = spGetUnitShieldState(id)
-            data.shieldEnabled = shieldEnabled
-            data.shieldPower = shieldPower
-            if data.shieldDamage > 0 then
-                data.shieldPower = math.max(data.shieldPower - data.shieldDamage, 0)
-                local newPower = tonumber(data.shieldPower)
-                local shieldEnabled = tonumber(data.shieldEnabled)
-                spSetUnitShieldState(id, data.shieldWeaponNumber, true, newPower)
-                data.shieldDamage = 0
-                shieldEnabled, shieldPower = spGetUnitShieldState(id)
-                if data.downtime and data.downtimeReset < seconds and data.shieldPower <= 0 then
-                    local maxHealth = select(2, spGetUnitHealth(id))
-                    local paralyzeTime = maxHealth + ((maxHealth / 30) * shieldUnitsData[id].downtime)
-                    spSetUnitHealth(id, {paralyze = paralyzeTime})
-                    data.downtimeReset = seconds+data.downtime+1
-                end
-            end
-        end
-    end
+seconds = spGetGameSeconds()
+end
+
+local function triggerDowntime(unitID, weaponNum)
+    local shieldData = shieldUnitsData[unitID]
+    local maxHealth = select(2, spGetUnitHealth(unitID))
+    local paralyzeTime = maxHealth + ((maxHealth / 30) * shieldData.downtime)
+    spSetUnitHealth(unitID, {paralyze = paralyzeTime})
+    shieldData.downtimeReset = seconds+shieldData.downtime+1
 end
 
 function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitID, bounceProjectile, beamEmitterWeaponNum, beamEmitterUnitID, startX, startY, startZ, hitX, hitY, hitZ)
+    local shieldData = shieldUnitsData[shieldUnitID]
+    local shieldEnabled, shieldPower = spGetUnitShieldState(shieldUnitID)
+
     if shieldUnitsData[shieldUnitID] then
         shieldUnitsData[shieldUnitID].shieldWeaponNumber = shieldWeaponNum
         local damage = 0
-        if 0 < hitX and -1 < proID then
+        if -1 < proID then
             local proDefID = spGetProjectileDefID(proID)
             damage = originalShieldDamages[proDefID]
-            hurtMeQueue[proOwnerID] = hurtMeQueue[proOwnerID] or {}
-            hurtMeQueue[proOwnerID][proID] = {
-                damage = damage,
-                shieldUnitID = shieldUnitID,
-            }
-            spSetProjectileCollision(proID)
-
+            shieldPower = math.max(shieldPower - damage, 0)
+            spSetUnitShieldState(shieldUnitID, shieldWeaponNum, shieldPower)
+            --spSetProjectileCollision(proID)
+            if shieldData.downtime and shieldData.downtimeReset < seconds and shieldPower <= 0 then
+                triggerDowntime(shieldUnitID, shieldWeaponNum)
+            end
         elseif beamEmitterUnitID then
             local beamEmitterUnitDefID = spGetUnitDefID(beamEmitterUnitID)
+
             damage = originalShieldDamages[UnitDefs[beamEmitterUnitDefID].weapons[beamEmitterWeaponNum].weaponDef]
-            hurtMeQueue[beamEmitterUnitID] = hurtMeQueue[beamEmitterUnitID] or {}
-            hurtMeQueue[beamEmitterUnitID][beamEmitterWeaponNum] = {
-                damage = damage,
-                shieldUnitID = shieldUnitID,
-            }
+            shieldPower = math.max(shieldPower - damage, 0)
+            spSetUnitShieldState(shieldUnitID, shieldWeaponNum, shieldPower)
+            if shieldData.downtime and shieldData.downtimeReset < seconds and shieldPower <= 0 then
+                triggerDowntime(shieldUnitID, shieldWeaponNum)
+            end
         end
+        Spring.Echo(damage, startX, startY, startZ)
         return false
     end
 end
