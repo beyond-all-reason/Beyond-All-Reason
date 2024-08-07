@@ -216,6 +216,11 @@ end
 -- We can use the SUniformsBuffer vec4 uni[instData.y].userDefined[5] to pass data persistent unit-info
 -- floats 0-5 are already in use by HealthBars
 
+
+local manualReload = false -- Indicates wether the first round of getting units should grab all instead of delta
+
+-- Set autoReload.enabled = true to enable on-the-fly editing of shaders.
+local autoReload = {enabled = false, vssrc = "", fssrc = "", lastUpdate = Spring.GetTimer(), updateRate = 0.5}
 local debugmode = false
 local perfdebug = false
 
@@ -680,7 +685,7 @@ local function dumpShaderCodeToInfolog(defs, src, filename) -- no IO in unsynced
 	Spring.Echo(src)
 end
 
-local function CompileLuaShader(shader, definitions, plugIns, addName)
+local function CompileLuaShader(shader, definitions, plugIns, addName, recompilation)
 	--Spring.Echo(" CompileLuaShader",shader, definitions, plugIns, addName)
 	if definitions == nil or definitions == {} then
 		Spring.Echo(addName, "nul definitions", definitions)
@@ -726,20 +731,28 @@ local function CompileLuaShader(shader, definitions, plugIns, addName)
 		Spring.Echo("Custom Unit Shaders. " .. addName .. " shader compilation failed")
 		--dumpShaderCodeToInfolog(shader.definitions, shader.vertex, "vs" .. addName)
 		--dumpShaderCodeToInfolog(shader.definitions, shader.fragment, "fs" .. addName)
-		gadgetHandler:RemoveGadget()
+		if not recompilation then 
+			gadgetHandler:RemoveGadget()
+		end
 		return nil
 	end
 
 	return (compilationResult and luaShader) or nil
 end
 
-local function compileMaterialShader(template, name)
+local function compileMaterialShader(template, name, recompilation)
 	--Spring.Echo("Compiling", template, name)
-	local forwardShader = CompileLuaShader(template.shader, template.shaderDefinitions, template.shaderPlugins, name .."_forward" )
-	local shadowShader = CompileLuaShader(template.shadow, template.shadowDefinitions, template.shaderPlugins, name .."_shadow" )
-	local deferredShader = CompileLuaShader(template.deferred, template.deferredDefinitions, template.shaderPlugins, name .."_deferred" )
-	local reflectionShader = CompileLuaShader(template.reflection, template.reflectionDefinitions, template.shaderPlugins, name .."_reflection" )
-
+	local forwardShader = CompileLuaShader(template.shader, template.shaderDefinitions, template.shaderPlugins, name .."_forward" , recompilation)
+	local shadowShader = CompileLuaShader(template.shadow, template.shadowDefinitions, template.shaderPlugins, name .."_shadow" , recompilation)
+	local deferredShader = CompileLuaShader(template.deferred, template.deferredDefinitions, template.shaderPlugins, name .."_deferred" , recompilation)
+	local reflectionShader = CompileLuaShader(template.reflection, template.reflectionDefinitions, template.shaderPlugins, name .."_reflection" , recompilation)
+	if recompilation then
+		if (not forwardShader) or (not shadowShader) or (not deferredShader) or (not reflectionShader) then 
+			-- This is a recompilation attempt that failed, so we are not going to replace the shader objects themselves
+			return nil
+		end
+	end
+	
 	for k = 1, #drawBinKeys do
 		local flag = drawBinKeys[k]
 		shaders[flag][name] = forwardShader
@@ -747,6 +760,7 @@ local function compileMaterialShader(template, name)
 	shaders[0 ][name] = deferredShader
 	shaders[5 ][name] = reflectionShader
 	shaders[16][name] = shadowShader
+	return true
 end
 
 -- Order of textures in shader:
@@ -1665,6 +1679,18 @@ local function ExecuteDrawPass(drawPass)
 	return batches, units, shaderswaps
 end
 
+local function RecompileShaders(recompilation)
+	initMaterials()
+
+	Spring.Echo("[CUS GL4] Compiling Shaders")
+	-- Initialize shaders types like so::
+	-- shaders[0]['unit_deferred'] = LuaShaderObject
+	compileMaterialShader(unitsNormalMapTemplate, "unit", recompilation)
+	compileMaterialShader(unitsSkinningTemplate, "unitskinning", recompilation)
+	compileMaterialShader(featuresNormalMapTemplate, "feature", recompilation)
+	compileMaterialShader(treesNormalMapTemplate, "tree",recompilation)
+end
+
 
 local function initGL4()
 	if initiated then return end
@@ -1691,16 +1717,9 @@ local function initGL4()
 		[16   ] = {},	-- shadow
 	}
 	Spring.Echo("[CUS GL4] Initializing materials")
-	initMaterials()
 
-	Spring.Echo("[CUS GL4] Compiling Shaders")
-	-- Initialize shaders types like so::
-	-- shaders[0]['unit_deferred'] = LuaShaderObject
-	compileMaterialShader(unitsNormalMapTemplate, "unit")
-	compileMaterialShader(unitsSkinningTemplate, "unitskinning")
-	compileMaterialShader(featuresNormalMapTemplate, "feature")
-	compileMaterialShader(treesNormalMapTemplate, "tree")
-
+	RecompileShaders()
+	
 	modelsVertexVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
 	modelsIndexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
 
@@ -1724,7 +1743,6 @@ local function initGL4()
 	initiated = true
 end
 
-local manualReload = true -- Indicates wether the first round of getting units should grab all instead of delta
 
 local function ReloadCUSGL4(optName, line, words, playerID)
 	if initiated and (not words) then return end
@@ -2082,6 +2100,22 @@ function gadget:DrawWorldPreUnit()
 		local t0 = Spring.GetTimerMicros()
 		
 		local units, drawFlagsUnits, features, drawFlagsFeatures
+		
+		if autoReload.enabled then
+			if Spring.DiffTimers(Spring.GetTimer(), autoReload.lastUpdate) > autoReload.updateRate then 
+				-- Check for fs and vs src identity
+				autoReload.lastUpdate = Spring.GetTimer()
+				
+				local defaulttemplate = VFS.Include("modelmaterials_gl4/templates/defaultMaterialTemplate.lua")
+				if (defaulttemplate.shader.vertex ~= defaultMaterialTemplate.shader.vertex) or 
+					(defaulttemplate.shader.fragment ~= defaultMaterialTemplate.shader.fragment) then
+					-- recompile on change:
+					Spring.Echo("Changes to CUS shaders detected, recompiling...")
+					RecompileShaders(true)
+				end
+			end
+		end
+		
 		
 		if manualReload then 
 			manualReload = false
