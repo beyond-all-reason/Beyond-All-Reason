@@ -1212,6 +1212,8 @@ void main(void){
 			if (height > progressLevels.w){
 				float flatlight = clamp(dot(worldNormal, L), 0.0, 1.0);
 				outColor.rgb = pulseTeamColor.rgb * flatlight;
+				// Disable the normals pumped into deferred pipeline too:
+				N = worldNormal;
 			}
 
 			
