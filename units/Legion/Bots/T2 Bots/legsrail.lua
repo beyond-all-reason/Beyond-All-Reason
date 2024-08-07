@@ -118,6 +118,7 @@ return {
 				explosiongenerator = "custom:plasmahit-sparkonly",
 				fallOffRate = 0.2,
 				firestarter = 0,
+				impactonly = true,
 				impulseboost = 0.4,
 				impulsefactor = 1,
 				intensity = 0.8,
@@ -140,6 +141,9 @@ return {
 				damage = {
 					commanders = 375,
 					default = 750,
+				},
+				customparams = {
+					overpen = true
 				},
 			},
 		},
