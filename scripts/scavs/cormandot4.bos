@@ -400,6 +400,7 @@ StopBuilding()
 	turn ruparm to x-axis <0> speed <187.500000>;
 	turn rarm to x-axis <-4.664588> speed <187.500000>;
 	turn aimy1 to y-axis <0.0> speed <160.0>;
+	start-script RestoreAfterDelay();
 }
 
 RestorePosture()

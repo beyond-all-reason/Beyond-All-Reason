@@ -1880,17 +1880,27 @@ if gadgetHandler:IsSyncedCode() then
 						else
 							local pos = getRandomEnemyPos()
 							Spring.GiveOrderToUnit(scavs[i], CMD.STOP, {}, {})
-							if math.random() < 0.75 then
+							if Spring.GetUnitDefID(scavs[i]) and config.scavBehaviours.HEALER[Spring.GetUnitDefID(scavs[i])] then
+								if math.random() < 0.75 then
+									Spring.GiveOrderToUnit(scavs[i], CMD.RESURRECT, {pos.x+mRandom(-256, 256), pos.y, pos.z+mRandom(-256, 256), 20000} , {"shift"})
+								end
+								if math.random() < 0.75 then
+									Spring.GiveOrderToUnit(scavs[i], CMD.CAPTURE, {pos.x+mRandom(-256, 256), pos.y, pos.z+mRandom(-256, 256), 20000} , {"shift"})
+								end
+								if math.random() < 0.75 then
+									Spring.GiveOrderToUnit(scavs[i], CMD.REPAIR, {pos.x+mRandom(-256, 256), pos.y, pos.z+mRandom(-256, 256), 20000} , {"shift"})
+								end
 								Spring.GiveOrderToUnit(scavs[i], CMD.RESURRECT, {pos.x+mRandom(-256, 256), pos.y, pos.z+mRandom(-256, 256), 20000} , {"shift"})
 							end
-							if math.random() < 0.75 then
-								Spring.GiveOrderToUnit(scavs[i], CMD.CAPTURE, {pos.x+mRandom(-256, 256), pos.y, pos.z+mRandom(-256, 256), 20000} , {"shift"})
+							if mRandom() <= 0.5 and Spring.GetUnitDefID(scavs[i]) and (
+								config.scavBehaviours.SKIRMISH[Spring.GetUnitDefID(scavs[i])] or
+								config.scavBehaviours.COWARD[Spring.GetUnitDefID(scavs[i])] or
+								config.scavBehaviours.HEALER[Spring.GetUnitDefID(scavs[i])] or
+								config.scavBehaviours.ARTILLERY[Spring.GetUnitDefID(scavs[i])]) then
+									Spring.GiveOrderToUnit(scavs[i], CMD.FIGHT, {pos.x+mRandom(-256, 256), pos.y, pos.z+mRandom(-256, 256)} , {"shift", "meta"})
+							else
+								Spring.GiveOrderToUnit(scavs[i], CMD.MOVE, {pos.x+mRandom(-256, 256), pos.y, pos.z+mRandom(-256, 256)} , {"shift"})
 							end
-							if math.random() < 0.75 then
-								Spring.GiveOrderToUnit(scavs[i], CMD.REPAIR, {pos.x+mRandom(-256, 256), pos.y, pos.z+mRandom(-256, 256), 20000} , {"shift"})
-							end
-							Spring.GiveOrderToUnit(scavs[i], CMD.RESURRECT, {pos.x+mRandom(-256, 256), pos.y, pos.z+mRandom(-256, 256), 20000} , {"shift"})
-							Spring.GiveOrderToUnit(scavs[i], CMD.FIGHT, {pos.x+mRandom(-256, 256), pos.y, pos.z+mRandom(-256, 256)} , {"shift"})
 						end
 					end
 				end
