@@ -217,10 +217,12 @@ end
 -- floats 0-5 are already in use by HealthBars
 
 
-local manualReload = false -- Indicates wether the first round of getting units should grab all instead of delta
 
 -- Set autoReload.enabled = true to enable on-the-fly editing of shaders.
 local autoReload = {enabled = false, vssrc = "", fssrc = "", lastUpdate = Spring.GetTimer(), updateRate = 0.5}
+
+-- Indicates wether the first round of getting units should grab all instead of delta
+local manualReload = autoReload.enabled or false
 local debugmode = false
 local perfdebug = false
 
