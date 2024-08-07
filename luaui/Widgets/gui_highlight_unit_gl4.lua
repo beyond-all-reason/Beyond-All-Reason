@@ -6,7 +6,7 @@ function widget:GetInfo()
 		date = "January 2022",
 		license = "GNU GPL, v2 or later",
 		layer = -10000,
-		enabled = true
+		enabled = true,  -- This widget is now deprecated in favor of the CUS GL4 version, all functionality is moved to gui_selectedunits_gl4.lua
 	}
 end
 

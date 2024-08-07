@@ -6,7 +6,7 @@ function widget:GetInfo()
 		date = "Apr 24, 2009",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true, -- This widget is now deprecated in favor of the CUS GL4 version, all functionality is moved to gui_selectedunits_gl4.lua
 	}
 end
 
@@ -45,6 +45,7 @@ local function SetupCommandColors(state)
 	end
 	os.remove('cmdcolors.tmp')
 end
+
 
 local function addUnitShape(unitID)
 	if Spring.ValidUnitID(unitID) == false or Spring.GetUnitIsDead(unitID) == true then

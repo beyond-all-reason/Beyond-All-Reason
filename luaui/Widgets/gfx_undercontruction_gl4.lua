@@ -6,7 +6,7 @@ function widget:GetInfo()
 		date = "May 2018",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true, -- This widget is now deprecated in favor of the CUS GL4 version, all functionality is moved to cusgl4/healthbarsgl4
 	}
 end
 
