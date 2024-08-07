@@ -113,7 +113,7 @@ uniform int bitOptions;
 uniform float brightnessFactor = 1.5;
 //int bitOptions = 1 +  2 + 8 + 16 + 128 + 256;
 
-float simFrame = (timeInfo.x + timeInfo.w);
+float simFrame = (timeInfo.z * 30.0);
 
 float textureLODBias =  -0.5; //-0.5 * sin (simFrame * 0.1) - 0.5;
 
