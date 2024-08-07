@@ -376,6 +376,12 @@ local overrideDrawFlagsCombined = {
 }
 
 local overriddenUnits = {} -- these remain positive, as they are traversed separately
+
+-- For managing under construction units:
+local buildProgresses = {} -- keys unitID, value buildprogress, updated each frame for units being built
+local uniformcache = {}
+local spGetUnitHealth = Spring.GetUnitHealth
+local spGetUnitHeight = Spring.GetUnitHeight
 -- local processedUnits = {}
 
 local overriddenFeatures = {} -- this remains positive
@@ -1332,6 +1338,15 @@ local function AddObject(objectID, drawFlag, reason)
 	if objectID >= 0 then
 		Spring.SetUnitEngineDrawMask(objectID, 255 - overrideDrawFlag) -- ~overrideDrawFlag & 255
 		overriddenUnits[objectID] = drawFlag
+		local health, maxHealth, paralyzeDamage, capture, build = spGetUnitHealth(objectID)
+		if health then 
+			uniformcache[1] = ((build < 1) and build) or -1
+			gl.SetUnitBufferUniforms(objectID, uniformcache, 0) -- buildprogress (0.x)
+			if build < 1 then buildProgresses[objectID] = build end
+			
+			--uniformcache[1] = spGetUnitHeight(objectID)
+			--gl.SetUnitBufferUniforms(objectID, uniformcache, 11) -- height is 11 (2.w)
+		end
 	else
 		if Spring.ValidFeatureID(-1 * objectID) == false then Spring.Echo("Invalid feature for drawmask", objectID, objectDefID) end
 		Spring.SetFeatureEngineDrawMask(-1 * objectID, 255 - overrideDrawFlag) -- ~overrideDrawFlag & 255
@@ -1482,6 +1497,7 @@ local function RemoveObject(objectID, reason) -- we get pos/neg objectID here
 	objectIDtoDefID[objectID] = nil
 	if objectID >= 0 then
 		overriddenUnits[objectID] = nil
+		buildProgresses[objectID] = nil
 		-- processedUnits[objectID] = nil
 		Spring.SetUnitEngineDrawMask(objectID, 255)
 	else
@@ -1493,10 +1509,7 @@ end
 
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
-local spGetUnitHealth = Spring.GetUnitHealth
-local spGetUnitHeight = Spring.GetUnitHeight
 
-local uniformcache = {}
 local function ProcessUnits(units, drawFlags, reason)
 	--processedCounter = (processedCounter + 1) % (2 ^ 16
 	for i = 1, #units do
@@ -1528,13 +1541,6 @@ local function ProcessUnits(units, drawFlags, reason)
 
 			--Spring.Echo("ProcessUnit", unitID, drawFlag)
 			if overriddenUnits[unitID] == nil then --object was not seen
-				local health, maxHealth, paralyzeDamage, capture, build = spGetUnitHealth(unitID)
-				if health then 
-					uniformcache[1] = ((build < 1) and build) or -1
-					gl.SetUnitBufferUniforms(unitID, uniformcache, 0) -- buildprogress (0.x)
-					uniformcache[1] = spGetUnitHeight(unitID)
-					gl.SetUnitBufferUniforms(unitID, uniformcache, 11) -- height is 11 (2.w)
-				end
 				AddObject(unitID, drawFlag, reason)
 			else --if overriddenUnits[unitID] ~= drawFlag then --flags have changed
 				UpdateObject(unitID, drawFlag, reason)
@@ -1772,6 +1778,18 @@ function gadget:GameFrame(n)
 		itsXmas = true
 		initiated = false
 		ReloadCUSGL4(nil,nil,nil, Spring.GetMyPlayerID())
+	end
+	for unitID, buildProgress in pairs(buildProgresses) do 
+		local health, maxHealth, paralyzeDamage, capture, build = spGetUnitHealth(unitID)
+		if health and build ~= buildProgress then  
+			uniformcache[1] = ((build < 1) and build) or -1
+			gl.SetUnitBufferUniforms(unitID, uniformcache, 0) -- buildprogress (0.x)
+			if build < 1 then 
+				buildProgresses[unitID] = build 
+			else
+				buildProgresses[unitID] = nil
+			end
+		end	
 	end
 end
 
@@ -2052,6 +2070,7 @@ end
 
 function gadget:UnitFinished(unitID)
 	gl.SetUnitBufferUniforms(unitID, {-1}, 0) -- set build progress to built
+	buildProgresses[unitID] = nil
 	UpdateUnit(unitID,Spring.GetUnitDrawFlag(unitID))
 end
 
