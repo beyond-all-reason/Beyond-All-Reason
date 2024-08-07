@@ -1149,23 +1149,31 @@ void main(void){
 			float height = clamp(modelVertexPosOrig.w/1.0,0,1);
 
 
+			
 			// progressLevels are a vec4 of values that progressively increase from 0 to 1,
 			// with a power curve, each next faster than the other, meaning .x is the bottom level, .w is the top level
 			vec4 progressLevels = vec4(buildProgress);
 			progressLevels = pow(progressLevels, vec4(3.0, 1.5, 0.7, 0.35));
-			progressLevels = mix(progressLevels, vec4(buildProgress), 0.25);
-			vec4 dists = clamp(1.0 - 100 * abs(progressLevels - vec4(height)), 0,1);
+			progressLevels = mix(progressLevels, vec4(myPerlin.g), 0.05);
+			vec4 levelLines = clamp(1.0 - 100 * abs(progressLevels - vec4(height)), 0,1);
 
 			// levelFactor is 1 when the height of a fragment is within 1% of a progressLevel, 0 otherwise.
-			float levelFactor = dot(dists, vec4(1.0));
+			float levelFactor = dot(levelLines, vec4(1.0));
 	
 			// BuildGrid is defined as the distance from the 8 elmo world grid that the model is built on.
 			// Meaning it is 0 on the grid, and 4 in the middle
-			vec3 buildGrid = 1.0 - abs(fract((worldVertexPos.xyz / 8.0)) - 0.5) * 2.0;
+			//vec3 buildGrid = 1.0 - abs(fract((worldVertexPos.xyz / 8.0)) - 0.5) * 2.0;
 
 			// buildGridFactor is the minimum of all distances from the grid:
-			buildGrid = smoothstep(vec3(0.0), vec3(0.05), buildGrid);
-			float buildGridFactor = 1.0 - clamp( buildGrid.x * buildGrid.y * buildGrid.z, 0.0, 1.0);
+			//buildGrid = smoothstep(vec3(0.0), vec3(0.05), buildGrid);
+			//float buildGridFactor = 1.0 - clamp( buildGrid.x * buildGrid.y * buildGrid.z, 0.0, 1.0);
+
+			// Compute anti-aliased world-space grid lines
+			vec3 fragSize = fwidth(worldVertexPos.xyz);
+			float fragSizeFactor = 1.0/  dot(vec3(1.0),fragSize);
+			vec3 buildGrid = abs(fract(worldVertexPos.xyz/8.0 - 0.5) - 0.5) * (8)/fragSize;
+			float line = 1.0 - min(min(buildGrid.x, buildGrid.y), buildGrid.z);
+			line = clamp(line * smoothstep(-0.5, 1.0, fragSizeFactor),0.0,1.0);
 			
 			// A dynamic grid which starts at 12 elmos size, then shrinks to 2 elmos size at 100% buildProgress
 			float gridSize = clamp((1.0 - buildProgress) * 10 + 2, 2, 12);
@@ -1175,40 +1183,43 @@ void main(void){
 			float sintime = 0.5 + 0.5 * sin(simFrame * 0.1); // pulses every 3 seconds
 			float sinprogress = 0.5 + 0.5 * sin(buildProgress * 0.01 * 3.1415); // pulses every percent of buildProgress
 			//outColor.rgb += buildeff;
-
+			
 			// The entire model will always get the 8 elmo buildgrid:
 			//outColor.rgb = mix(outColor.rgb, vec3(1.0, 0.0, 1.0), buildGridFactor);
-			outColor.rgb = vec3(buildGridFactor);  
-		
-			/*
-			
-			if (height > progressLevels.x){ 
-				outColor -= emissiveness * albedoColor;
-				albedoColor = vec3(0.0);
-				float delta = smoothstep(progressLevels.w, progressLevels.z, height);
-				outColor = mix(outColor, teamCol.rgb,  myPerlin.g);
-			}
-			if (h > progressLevels.y){ // no specular
-				outColor -= specular;
-				outSpecularColor = vec3(0.0);
-				outColor =  teamCol.rgb;
-				outColor.rgb += dot(grid, vec3(1.0));
-			}
-			if (h > progressLevels.z){
-			}
-			if (h > progressLevels.w){ // The top level where its just teamcolor
-				// TODO: Actually shade the model (using teamcolor as albedo!)
-				outColor =  teamCol.rgb;
-				outColor.rgb += dot(grid, vec3(1.0));
-			}
-			
-			outColor = mix(outColor, vec3(1.0),  dot(grid, vec3(1,0,1)));
-			outColor.rgb += levelFactor;
-			*/
-	
-			//Highlight Edges of triangle:
-			//outColor.rgb += 1.0 - smoothstep(0.0, 0.1, abs(NdotLu));
+			//outColor.rgb = vec3(buildGridFactor);  
+			vec3 pulseTeamColor = mix(teamCol.rgb, teamCol.rgb * 1.5, sintime);
 
+			// Second to bottom level, ensure that we dont emit light
+			if (height > progressLevels.x){
+				float unemissive = 1.0 - smoothstep(progressLevels.x, progressLevels.y, height);
+				outSpecularColor.rgb *= unemissive;
+				outColor -= emissiveness * albedoColor * (1.0-  unemissive);
+				emissiveness = emissiveness * unemissive;
+				//outColor.rgb = vec3(unemissive);
+			}
+
+			// Middle level, use texture normals
+			if (height > progressLevels.y){
+				outColor.rgb = mix(outColor.rgb, pulseTeamColor.rgb,  smoothstep(progressLevels.y, progressLevels.z, height));
+			}
+
+			// Second to top level, use texture normals
+			if (height > progressLevels.z){
+				outColor.rgb = pulseTeamColor.rgb * clamp(NdotL, 0.0, 1.0);
+			}
+
+			// very top, just teamColor with flat light, some pulsating, 
+			if (height > progressLevels.w){
+				float flatlight = clamp(dot(worldNormal, L), 0.0, 1.0);
+				outColor.rgb = pulseTeamColor.rgb * flatlight;
+			}
+
+			
+			// Always display a grid when building, but fade it out on the last 5% of buildProgress
+			outColor.rgb = mix(outColor.rgb, pulseTeamColor , line * smoothstep(0.0, 0.05, 1.0 - buildProgress));
+
+			// Always show level lines
+			outColor.rgb += vec3(levelFactor);
 
 		}
 	#endif
