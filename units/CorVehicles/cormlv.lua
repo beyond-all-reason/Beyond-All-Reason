@@ -13,7 +13,7 @@ return {
 		--canguard = false,
 		canmove = true,
 		canreclaim = false,
-		--canrepair = false,
+		canrepair = true,
 		canrestore = false,
 		category = "ALL TANK WEAPON MOBILE NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",

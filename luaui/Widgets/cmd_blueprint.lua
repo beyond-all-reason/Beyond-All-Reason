@@ -197,7 +197,7 @@ local CMD_BLUEPRINT_CREATE_DESCRIPTION = {
 	action = "blueprint_create",
 }
 
-local BLUEPRINT_FILE_PATH = "LuaUI/config/blueprints.json"
+local BLUEPRINT_FILE_PATH = "LuaUI/Config/blueprints.json"
 
 ---@type Blueprint[]
 local blueprints = {}

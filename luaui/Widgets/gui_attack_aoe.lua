@@ -233,14 +233,9 @@ local function SetupUnitDef(unitDefID, unitDef)
 							weaponInfo[unitDefID] = { type = "sector"}
 						end
 						weaponInfo[unitDefID].type = "sector"
-						if ii == 2 then -- hard assumption the second weapon is the active ON weapon
-							weaponInfo[unitDefID].ONOFF = true
-							weaponInfo[unitDefID].sector_angle_active = tonumber(weaponDef.customParams.spread_angle)
-							weaponInfo[unitDefID].sector_shortfall_active = tonumber(weaponDef.customParams.max_range_reduction)
-						else
-							weaponInfo[unitDefID].sector_angle = tonumber(weaponDef.customParams.spread_angle)
-							weaponInfo[unitDefID].sector_shortfall = tonumber(weaponDef.customParams.max_range_reduction)
-						end
+						weaponInfo[unitDefID].sector_angle_active = tonumber(weaponDef.customParams.spread_angle)
+						weaponInfo[unitDefID].sector_shortfall_active = tonumber(weaponDef.customParams.max_range_reduction)
+	
 					end
 				end
 			end
@@ -828,16 +823,10 @@ function widget:DrawWorld()
 
 	-- tremor customdef weapon
 	if (weaponType == "sector") then
-		local angle = info.sector_angle
-		local shortfall = info.sector_shortfall
-		-- case to catch ON/OFF weapons
-		if info.ONOFF == true then
-			local unitStates = Spring.GetUnitStates(aimingUnitID)
-			if unitStates.active == true then
-				angle = info.sector_angle_active
-				shortfall = info.sector_shortfall_active
-			end
-		end
+
+		local angle = info.sector_angle_active
+		local shortfall = info.sector_shortfall_active
+
 		DrawSectorScatter(angle, shortfall, fx, fy, fz, tx, ty, tz)
 		return
 	end

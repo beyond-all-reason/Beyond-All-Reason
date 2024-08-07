@@ -8,16 +8,20 @@ local SIG_BUILD = 8;
 
 include("include/util.lua");
 
+local litelab = UnitDefs[unitDefID].customParams.litelab ~= nil
+
 function open()
 	UnitScript.Signal(SIG_OPENCLOSE);
 	UnitScript.SetSignalMask(SIG_OPENCLOSE);
 	--Activate
 	--UnitScript.Move(side1, z_axis, 0);
-	UnitScript.Move(side1, z_axis, 24, 24);
-	Sleep(908);
-	UnitScript.Move(side2, z_axis, 10, 2.777771);
-	Sleep(828);
-	--Open yard
+	if not litelab then
+		UnitScript.Move(side1, z_axis, 24, 24);
+		Sleep(908);
+		UnitScript.Move(side2, z_axis, 10, 2.777771);
+		Sleep(828);
+		--Open yard
+	end
 	open_yard();
 	--Get into buildstance
 	UnitScript.SetUnitValue(COB.INBUILDSTANCE, 1);
@@ -31,13 +35,19 @@ function close()
 	--Close yard
 	close_yard();
 	--Deactivate
-	UnitScript.Move(side1, z_axis, 0, 24);
-	Sleep(908);
-	UnitScript.Move(side2, z_axis, 0, 2.777771);
-	Sleep(828);
+	if not litelab then
+		UnitScript.Move(side1, z_axis, 0, 24);
+		Sleep(908);
+		UnitScript.Move(side2, z_axis, 0, 2.777771);
+		Sleep(828);
+	end
 end
 
 function script.Create()
+	if litelab then
+		UnitScript.Move(side1, z_axis, 24, 1000);
+		UnitScript.Move(side2, z_axis, 10, 1000);
+	end
 	Hide(nano1);
 	Hide(nano2);
 	Hide(nano3);

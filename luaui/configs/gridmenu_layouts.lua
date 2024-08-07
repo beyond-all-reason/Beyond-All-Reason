@@ -2001,6 +2001,49 @@ local unitGrids = {
 	},
 }
 
+if Spring.Utilities.Gametype.IsScavengers() or Spring.GetModOptions().forceallunits then
+	local scavLabGrids = {}
+	local scavUnitGrids = {}
+	for unitName, content in pairs(labGrids) do
+		local scavContent = {}
+		if #content > 0 then
+			for i = 1,#content do
+				if content[i] and content[i] ~= "" then
+					scavContent[i] = content[i] .. "_scav"
+				end
+			end
+		end
+		scavLabGrids[unitName .. "_scav"] = scavContent
+	end
+
+	for unitName, content in pairs(unitGrids) do
+		local scavContent = {}
+		if content and #content > 0 then
+			for i = 1,#content do
+				if content[i] and #content[i] > 0 then
+					scavContent[i] = {}
+					for j = 1,#content[i] do
+						if content[i][j] and #content[i][j] > 0 then
+							scavContent[i][j] = {}
+							for k = 1,#content[i][j] do
+								if content[i][j][k] then
+									scavContent[i][j][k] = {}
+									if #content[i][j][k] > 0 then
+										scavContent[i][j][k] = content[i][j][k] .. "_scav"
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+		scavUnitGrids[unitName .. "_scav"] = scavContent
+	end
+	table.mergeInPlace(labGrids, scavLabGrids)
+	table.mergeInPlace(unitGrids, scavUnitGrids)
+end
+
 return {
 	LabGrids = labGrids,
 	UnitGrids = unitGrids,
