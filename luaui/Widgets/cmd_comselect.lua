@@ -59,7 +59,7 @@ local function handleSelectComm(_, _, args)
 	local units = {}
 	local teamUnits = Spring.GetTeamUnitsByDefs(myTeamID, commanderDefIDsList)
 	for _, unitID in ipairs(teamUnits) do
-		if not selectedUnits[unitID] then
+		if not selectedUnits[unitID] or #teamUnits == 1 then
 			table.insert(units, unitID)
 		end
 	end
