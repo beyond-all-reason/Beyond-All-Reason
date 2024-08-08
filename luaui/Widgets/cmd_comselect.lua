@@ -68,9 +68,9 @@ local function handleSelectComm(_, _, args)
 
 	-- if all comms are already selected, any of them becomes fair game
 	if unitCount == 0 then
-			units = teamUnits
-			unitCount = #units
-		end
+		units = teamUnits
+		unitCount = #units
+	end
 
 	-- If no comms to select, nothing to do
 	if unitCount < 1 then
