@@ -877,10 +877,6 @@ function widget:DrawScreen()
 		checkStartPointChosen()
 	end
 
-	if WG['guishader'] then
-		WG['guishader'].RemoveRect('pregameui_draft')
-	end
-
 	-- display autoready timer
 	if Spring.GetGameRulesParam("all_players_joined") == 1 and not gameStarting and auto_ready and not auto_ready_disable then
 		local colorString = auto_ready_timer % 0.75 <= 0.375 and "\255\233\233\233" or "\255\255\255\255"
