@@ -335,8 +335,9 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 				shadersourcecache.shaderName
 			)
 			local shaderCompiled = reinitshader:Initialize()
-			
-			Spring.Echo(shadersourcecache.shaderName, " recompiled in ", Spring.DiffTimers(Spring.GetTimer(), compilestarttime, true), "ms at", Spring.GetGameFrame(), "success", shaderCompiled or false)
+			if not shadersourcecache.silent then 
+				Spring.Echo(shadersourcecache.shaderName, " recompiled in ", Spring.DiffTimers(Spring.GetTimer(), compilestarttime, true), "ms at", Spring.GetGameFrame(), "success", shaderCompiled or false)
+			end
 			if shaderCompiled then 
 				reinitshader.ignoreUnkUniform = true
 				return reinitshader
