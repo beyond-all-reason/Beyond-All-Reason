@@ -1154,6 +1154,7 @@ void main(void){
 			// with a power curve, each next faster than the other, meaning .x is the bottom level, .w is the top level
 			vec4 progressLevels = vec4(buildProgress);
 			progressLevels = pow(progressLevels, vec4(3.0, 1.5, 0.7, 0.35));
+			// Add perlin and ensure that perlin doesnt cause inaccuracy at the top of the model:
 			progressLevels = mix(progressLevels, vec4(myPerlin.g), 0.05 * smoothstep(0.00, 0.05, 1.0 - buildProgress));
 			
 			vec4 levelLines = clamp(1.0 - 100 * abs(progressLevels - vec4(height)), 0,1);
