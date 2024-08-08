@@ -887,6 +887,7 @@ function widget:DrawScreen()
 	end
 
 	-- DraftOrder mod start
+	local showingTeamplacementUI = false
 	if draftModeLoaded then
 		-- "Victory" condition was at y: 0.155 (now at 0.68) -- gui_game_type_info.lua
 		-- "Pick a startspot within..." is probably at ~0.08 -- I have no idea how map_startbox.lua decids where to draw it, so if this mod is enabled, that widget won't draw it, instead we do it here
@@ -894,6 +895,7 @@ function widget:DrawScreen()
 			if draftMode ~= "fair" and myTeamPlayersOrder and (moreThanOneAlly or devUItestMode) then
 				if (TeamPlacementUIshown) then
 					glCallList(TeamPlacementUI)
+					showingTeamplacementUI = true
 				end
 			end
 			if draftMode == "fair" or myAllyTeamJoined then
@@ -925,6 +927,12 @@ function widget:DrawScreen()
 			end
 		end
 	end
+	if not showingTeamplacementUI then
+		if WG['guishader'] then
+			WG['guishader'].RemoveRect('pregameui_draft')
+		end
+	end
+
 	if not mySpec and draftMode ~= "disabled" then
 		if not myAllyTeamJoined then
 			local text = DMWarnColor .. Spring.I18N('ui.draftOrderMod.waitingForTeamToLoad')
