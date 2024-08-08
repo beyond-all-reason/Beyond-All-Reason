@@ -1205,20 +1205,23 @@ void main(void){
 
 			// Second to top level, use texture normals
 			if (height > progressLevels.z){
-				outColor.rgb = pulseTeamColor.rgb * clamp(NdotL, 0.0, 1.0);
+				outColor.rgb = pulseTeamColor.rgb * clamp(NdotL, 0.3, 1.0);
 			}
 
 			// very top, just teamColor with flat light, some pulsating, 
 			if (height > progressLevels.w){
-				float flatlight = clamp(dot(worldNormal, L), 0.0, 1.0);
+				float heightProgress = smoothstep(progressLevels.w, 1.0, height) ;
+				float flatlight = 0.3 + 0.7 * smoothstep(0.0, 1.0, clamp(dot(worldNormal, L) * 0.5 + 0.5, heightProgress * 0.2, 1.0));
 				outColor.rgb = pulseTeamColor.rgb * flatlight;
 				// Disable the normals pumped into deferred pipeline too:
 				N = worldNormal;
+				//outColor.rgb = vec3(heightProgress);
 			}
 
 			
 			// Always display a grid when building, but fade it out on the last 5% of buildProgress
-			outColor.rgb = mix(outColor.rgb, pulseTeamColor , line * smoothstep(0.0, 0.05, 1.0 - buildProgress));
+			float last5percent = smoothstep(0.0, 0.05, 1.0 - buildProgress);
+			outColor.rgb = mix(outColor.rgb, pulseTeamColor , line * last5percent);
 
 			// Always show level lines
 			outColor.rgb += vec3(levelFactor);
