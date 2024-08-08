@@ -381,7 +381,6 @@ local overriddenUnits = {} -- these remain positive, as they are traversed separ
 local buildProgresses = {} -- keys unitID, value buildprogress, updated each frame for units being built
 local uniformcache = {}
 local spGetUnitHealth = Spring.GetUnitHealth
-local spGetUnitHeight = Spring.GetUnitHeight
 -- local processedUnits = {}
 
 local overriddenFeatures = {} -- this remains positive
@@ -2074,9 +2073,16 @@ function gadget:UnitFinished(unitID)
 	UpdateUnit(unitID,Spring.GetUnitDrawFlag(unitID))
 end
 
-
-function gadget:UnitCreated(unitID)
-	gl.SetUnitBufferUniforms(unitID, {Spring.GetUnitHeight(unitID)}, 11) -- set unit height
+local unitDefModelMaxY = {}
+function gadget:UnitCreated(unitID, unitDefID)
+	if not unitDefModelMaxY[unitDefID] then 
+		--local unitHeight = Spring.GetUnitHeight(unitID)
+		--local maxY = UnitDefs[unitDefID].model.maxy
+		--Spring.Echo(UnitDefs[unitDefID].name, unitHeight, maxY)
+		unitDefModelMaxY[unitDefID] = UnitDefs[unitDefID].model.maxy or 10
+	end
+	
+	gl.SetUnitBufferUniforms(unitID, {unitDefModelMaxY[unitDefID]}, 11) -- set unit height
 	UpdateUnit(unitID,Spring.GetUnitDrawFlag(unitID))
 end
 
