@@ -1154,7 +1154,8 @@ void main(void){
 			// with a power curve, each next faster than the other, meaning .x is the bottom level, .w is the top level
 			vec4 progressLevels = vec4(buildProgress);
 			progressLevels = pow(progressLevels, vec4(3.0, 1.5, 0.7, 0.35));
-			progressLevels = mix(progressLevels, vec4(myPerlin.g), 0.05);
+			progressLevels = mix(progressLevels, vec4(myPerlin.g), 0.05 * smoothstep(0.00, 0.05, 1.0 - buildProgress));
+			
 			vec4 levelLines = clamp(1.0 - 100 * abs(progressLevels - vec4(height)), 0,1);
 
 			// levelFactor is 1 when the height of a fragment is within 1% of a progressLevel, 0 otherwise.
@@ -1216,6 +1217,10 @@ void main(void){
 				// Disable the normals pumped into deferred pipeline too:
 				N = worldNormal;
 				//outColor.rgb = vec3(heightProgress);
+				#if (RENDERING_MODE == 0)
+					// only modulate alpha on the forward pass
+					texColor2.a *=  max(0.1, max(clamp(line,buildProgress,1), (1.0 - heightProgress)));
+				#endif
 			}
 
 			
@@ -1225,7 +1230,7 @@ void main(void){
 
 			// Always show level lines
 			outColor.rgb += vec3(levelFactor);
-
+	
 		}
 	#endif
 

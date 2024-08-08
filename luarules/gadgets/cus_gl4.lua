@@ -1622,6 +1622,10 @@ local function ExecuteDrawPass(drawPass)
 	local shaderswaps = 0
 	local unbindtextures = false
 	gl.Culling(GL.BACK)
+	if (drawPass == 1) then --forward opaque pass
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) -- 
+	end
+	
 	--for shaderName, data in pairs(unitDrawBins[drawPass]) do
 	for _, shaderName in ipairs(shaderOrder) do
 		if unitDrawBins[drawPass][shaderName] then
@@ -1679,7 +1683,10 @@ local function ExecuteDrawPass(drawPass)
 			gl.Texture(i, false)
 		end
 	end
-
+	if drawPass == 1 then
+		gl.Blending(GL.ONE, GL.ZERO) -- do full opaque
+	end
+	
 	--drawpassstats[drawPass].batches = batches
 	--drawpassstats[drawPass].units = units
 	--drawpassstats[drawPass].shaders = shaderswaps
@@ -2246,6 +2253,8 @@ function gadget:SunChanged() -- Note that map_nightmode.lua gadget has to change
 	end
 end
 
+-- Returns 0 for deferred pass
+-- bit 1 is the opaque forward pass
 local function drawPassBitsToNumber(opaquePass, deferredPass, drawReflection, drawRefraction)
 	local drawPass = 0
 	if deferredPass then return drawPass end
