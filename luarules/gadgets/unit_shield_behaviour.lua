@@ -16,16 +16,15 @@ if not gadgetHandler:IsSyncedCode() then return end
 --customParams shield_downtime = <number in seconds>
 --customParams shield_penetration = "AOE" "PROJECTILE" or undefined means default shield behavior.
 
+----Controls----
+local overMaxPenetration = true -- if true, when damage > maximum shield capacity, its damage leaks through. If false, damage is always blocked regardless of how small or large shield capacity is relative to damage.
+
 local spGetUnitShieldState = Spring.GetUnitShieldState
-local spSetUnitHealth = Spring.SetUnitHealth
-local spGetUnitHealth = Spring.GetUnitHealth
 local spGetProjectileDefID = Spring.GetProjectileDefID
 local spSetUnitShieldState = Spring.SetUnitShieldState
-local spSetProjectileDamages = Spring.SetProjectileDamages
-local spGetUnitWeaponDamages = Spring.GetUnitWeaponDamages
-local spSetProjectileCollision = Spring.SetProjectileCollision
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetGameSeconds = Spring.GetGameSeconds
+local spSetUnitShieldRechargeDelay = Spring.SetUnitShieldRechargeDelay
 
 local shieldUnitDefs = {}
 local shieldUnitsData = {}
@@ -85,7 +84,7 @@ seconds = spGetGameSeconds()
     if frame % 10 == 0 then
         for shieldUnitID, shieldData in pairs (shieldUnitsData) do
             if shieldData.downtimeReset and shieldData.downtimeReset ~= 0 and shieldData.downtimeReset <= seconds then
-                Spring.SetUnitShieldRechargeDelay(shieldUnitID, shieldData.shieldWeaponNumber, 0)
+                spSetUnitShieldRechargeDelay(shieldUnitID, shieldData.shieldWeaponNumber, 0)
                 shieldData.downtimeReset = 0
                 shieldData.shieldEnabled = true
             end
@@ -95,7 +94,7 @@ end
 
 local function triggerDowntime(unitID, weaponNum)
     local shieldData = shieldUnitsData[unitID]
-    Spring.SetUnitShieldRechargeDelay(unitID, weaponNum, 10000)
+    spSetUnitShieldRechargeDelay(unitID, weaponNum, 10000)
     spSetUnitShieldState(unitID, weaponNum, false)
     shieldData.downtimeReset = seconds+shieldData.downtime
     shieldData.shieldEnabled = false
@@ -112,7 +111,6 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitI
         if -1 < proID then
             local proDefID = spGetProjectileDefID(proID)
             if projectilePenetrationOverrides[proDefID] and projectilePenetrationOverrides[proDefID] == 2 then
-                Spring.Echo("Nuke let Through")
                 return true
             end
             damage = originalShieldDamages[proDefID]
