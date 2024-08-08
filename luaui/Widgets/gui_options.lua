@@ -5977,9 +5977,11 @@ function init()
 		[UnitDefNames["corsktl"].id] = false,
 		[UnitDefNames["armgremlin"].id] = true,
 		[UnitDefNames["armamex"].id] = true,
+		[UnitDefNames["armshockwave"].id] = true,
 		[UnitDefNames["armckfus"].id] = true,
 		[UnitDefNames["armspy"].id] = true,
 		[UnitDefNames["corspy"].id] = true,
+		[UnitDefNames["corphantom"].id] = true,
 	}
 	local unitdefConfig = {}
 	if WG['autocloak'] ~= nil then

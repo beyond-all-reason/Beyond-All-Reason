@@ -282,9 +282,6 @@
 				"highTrajectory": "High Trajectory",
 				"trajectory_tooltip": "Switch artillery firing angle between low and high trajectory",
 				"gauss_tooltip": "Switches between Gauss Cannon and Heavy Plasma Cannon",
-				"dreadshot": "Normal fire",
-				"overcharge": "Overcharge",
-				"dreadshot_tooltip": "Switches between normal fire and overcharged mode"
 			}
 		},
 		"idleBuilders": {
