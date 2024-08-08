@@ -561,8 +561,20 @@ end
 local energyText = Spring.I18N('ui.topbar.resources.energy'):lower()
 local metalText = Spring.I18N('ui.topbar.resources.metal'):lower()
 
+local function filterBadword(text)
+	badWords = {"retard"}
+
+	for _, badword in ipairs(badWords) do
+		text = string.gsub(text, badword, "****")
+	end
+	
+	return text
+end
+
 local function addChat(gameFrame, lineType, name, text, isLive)
 	if not text or text == '' then return end
+
+	text = filterBadword(text)
 
 	-- determine text typing start time
 	local startTime = clock()
