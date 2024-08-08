@@ -149,6 +149,7 @@ return {
 				weaponvelocity = 1600,
 				customparams = {
 					place_target_on_ground = "true",
+					shield_penetration = "PROJECTILE"
 				},
 				damage = {
 					commanders = 2500,
