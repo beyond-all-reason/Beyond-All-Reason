@@ -59,12 +59,18 @@ local function handleSelectComm(_, _, args)
 	local units = {}
 	local teamUnits = Spring.GetTeamUnitsByDefs(myTeamID, commanderDefIDsList)
 	for _, unitID in ipairs(teamUnits) do
-		if not selectedUnits[unitID] or #teamUnits == 1 then
+		if not selectedUnits[unitID] then
 			table.insert(units, unitID)
 		end
 	end
 
 	local unitCount = #units
+
+	-- if all comms are already selected, any of them becomes fair game
+	if unitCount == 0 then
+			units = teamUnits
+			unitCount = #units
+		end
 
 	-- If no comms to select, nothing to do
 	if unitCount < 1 then
