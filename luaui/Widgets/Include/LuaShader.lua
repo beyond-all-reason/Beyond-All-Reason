@@ -312,14 +312,17 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 			if vsSrcNew then 
 				vsSrcNew = vsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 				vsSrcNew = vsSrcNew:gsub("//__DEFINES__", shaderDefines)
+				shadersourcecache.vsSrcComplete = vsSrcNew
 			end
 			if fsSrcNew then 
 				fsSrcNew = fsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 				fsSrcNew = fsSrcNew:gsub("//__DEFINES__", shaderDefines)
+				shadersourcecache.fsSrcComplete = fsSrcNew
 			end
 			if gsSrcNew then 
 				gsSrcNew = gsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 				gsSrcNew = gsSrcNew:gsub("//__DEFINES__", shaderDefines)
+				shadersourcecache.gsSrcComplete = gsSrcNew
 			end
 			local reinitshader =  LuaShader(
 				{
