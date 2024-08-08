@@ -154,15 +154,15 @@ const ShadowQuality shadowQualityPresets[SHADOW_QUALITY_PRESETS] = ShadowQuality
 /***********************************************************************/
 // Varyings
 in Data {
-	vec4 modelVertexPosOrig;
-	vec4 worldVertexPos;
+	vec4 modelVertexPosOrig; // .w contains model maxY
+	vec4 worldVertexPos; //.w contains cloakTime
 	// TBN matrix components
 	vec3 worldTangent;
 	vec3 worldBitangent;
 	vec3 worldNormal;
 
 	vec2 uvCoords;
-	flat vec4 teamCol;
+	flat vec4 teamCol; //.a contains selectedness
 	// main light vector(s)
 	vec3 worldCameraDir;
 
@@ -1271,6 +1271,28 @@ void main(void){
 		}
 	#endif 
 
+	// CLOAK EFFECTS
+	#if ENABLE_OPTION_HEALTH_TEXTURING 
+		float cloakTime = worldVertexPos.w;
+		if (abs(cloakTime) > 0.5){
+			float cloakedness = 0.0;
+			if (cloakTime > 0){
+				cloakedness = clamp((timeInfo.x - cloakTime) / 15.0, 0.0, 1.0);
+				//outColor.g = 1.0;
+			}
+			if (cloakTime < 0){
+				cloakedness = 1.0 - clamp((timeInfo.x + cloakTime) / 15.0, 0.0, 1.0);
+				//outColor.r = 1.0;
+			}
+			float sintime =	fract(simFrame * 0.02); // pulses every 3 seconds
+			myPerlin.g = myPerlin.g * 0.5 + 0.5;
+			texColor2.a = 1.0 - clamp(cloakedness, 0.0, 0.7);
+			float perlinline1 = clamp(1.0 - 20* abs(myPerlin.g - fract(simFrame * 0.01)), 0.0, 1.0);
+			float perlinline2 = clamp(1.0 - 20* abs(myPerlin.g - fract(simFrame * 0.01 +0.5)), 0.0, 1.0);
+			outColor.rgb += cloakedness*perlinline1 + cloakedness*perlinline2;
+		} 
+	#endif
+
 	#if (RENDERING_MODE == 0)
 		// Forward Rendering Mode
 		fragData[0] = vec4(outColor, texColor2.a);
@@ -1315,6 +1337,8 @@ void main(void){
 
 void main(void)
 {
+// TODO: if we really wanna have the construction effect here, then it would be prudent to also calc construction shadows here.
+// Note that this is decidedly not free :/ 
 #ifdef HASALPHASHADOWS
 	vec4 texColor2 = texture(texture2, uvCoords, 0); // note that we bind tex2 to pos0 here!
 	if (texColor2.a < 0.5 ) discard;

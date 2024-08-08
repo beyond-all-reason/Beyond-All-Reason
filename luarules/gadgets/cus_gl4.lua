@@ -1514,7 +1514,7 @@ local function ProcessUnits(units, drawFlags, reason)
 	for i = 1, #units do
 		local unitID = units[i]
 		local drawFlag = drawFlags[i]
-		if debugmode then Spring.Echo("ProcessUnit", unitID, drawFlag) end
+		if debugmode then Spring.Echo("ProcessUnits", unitID, drawFlag, reason) end
 		local isBuilding = spGetUnitIsBeingBuilt(unitID)
 
 		if drawFlag % 4 > 1 then -- check if its at least in opaque or alpha pass
@@ -1530,10 +1530,14 @@ local function ProcessUnits(units, drawFlags, reason)
 			end
 			unitsInViewport[unitID] = nil
 		end
-
+		if drawFlag >=34 and drawFlag <= 52 then -- alpha
+			-- this unit is cloaked, pretty much, so only draw it in forward and deferred passes
+			drawFlag = 1
+		end
 		if (drawFlag == 0) or (drawFlag >= 32) then
 			RemoveObject(unitID, reason)
-		elseif spGetUnitIsCloaked(unitID) then
+		--elseif spGetUnitIsCloaked(unitID) then
+		--	if Spring.IsUnitInLos(
 			--under construction
 			--using processedUnits here actually good, as it will dynamically handle unitfinished and cloak on-off
 		else
@@ -2109,12 +2113,19 @@ function gadget:UnitGiven(unitID)
 	end
 end
 
+local unitBufferUniformCache = {0}
 function gadget:UnitCloaked(unitID)
-	UpdateUnit(unitID,0)
+	unitBufferUniformCache[1] = Spring.GetGameFrame()
+	gl.SetUnitBufferUniforms(unitID, unitBufferUniformCache, 12)
+	UpdateUnit(unitID,Spring.GetUnitDrawFlag(unitID))
+	--Spring.Echo("UnitCloaked", unitID, Spring.GetUnitDrawFlag(unitID))
 end
 
-function gadget:UnitDeCloaked(unitID)
+function gadget:UnitDecloaked(unitID)
 	UpdateUnit(unitID,Spring.GetUnitDrawFlag(unitID))
+	unitBufferUniformCache[1] = -1 * Spring.GetGameFrame()
+	gl.SetUnitBufferUniforms(unitID, unitBufferUniformCache, 12)
+	--Spring.Echo("UnitDecloaked", unitID, Spring.GetUnitDrawFlag(unitID))
 end
 
 function gadget:FeatureDestroyed(featureID)

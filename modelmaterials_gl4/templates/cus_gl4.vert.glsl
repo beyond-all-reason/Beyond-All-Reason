@@ -128,15 +128,15 @@ uniform vec4 clipPlane2 = vec4(0.0, 0.0, 0.0, 1.0); //water clip plane
 out Data {
 	// this amount of varyings is already more than we can handle safely
 	//vec4 modelVertexPos;
-	vec4 modelVertexPosOrig;
-	vec4 worldVertexPos;
+	vec4 modelVertexPosOrig; // .w contains model maxY
+	vec4 worldVertexPos; //.w contains cloakTime
 	// TBN matrix components
 	vec3 worldTangent;
 	vec3 worldBitangent;
 	vec3 worldNormal;
 
 	vec2 uvCoords;
-	flat vec4 teamCol;
+	flat vec4 teamCol; // .a contains selectedness
 
 	// main light vector(s)
 	vec3 worldCameraDir;
@@ -613,7 +613,8 @@ void main(void)
 			gl_ClipDistance[0] = dot(worldPos, vec4(0.0, -1.0, 0.0, -1.0));
 		}
 		%%VERTEX_POST_TRANSFORM%%
-
+	
+	worldVertexPos.w = UNITUNIFORMS.userDefined[3].x; // cloakTime
 	#elif (RENDERING_MODE == 2) //shadow pass
 
 		vec4 lightVertexPos = shadowView * worldPos;
