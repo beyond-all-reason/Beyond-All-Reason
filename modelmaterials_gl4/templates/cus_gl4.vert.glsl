@@ -417,7 +417,8 @@ void main(void)
 	#if ENABLE_OPTION_HEALTH_TEXTURING
 		float buildProgress = UNITUNIFORMS.userDefined[0].x;
 		if (buildProgress > -0.5){
-			healthFraction = healthFraction / max(0.001,buildProgress);
+			// healthFraction, cannot, in theory be more than buildProgress
+			healthFraction = clamp(healthFraction / max(0.00000001,buildProgress), 0.0, 1.0);
 		}
 	#endif
 
