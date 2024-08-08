@@ -121,6 +121,7 @@ local armorDefs = {
 		"armfatf",
 		"armfav",
 		"armfdrag",
+		"armfgate",
 		"armfhlt",
 		"armfhp",
 		"armfido",
@@ -129,6 +130,7 @@ local armorDefs = {
 		"armfmkr",
 		--"armfort",
 		"armfrt",
+		"armgate",
 		"armgeo",
 		"armgmm",
 		"armgremlin",
@@ -208,6 +210,7 @@ local armorDefs = {
 		"corfatf",
 		"corfav",
 		"corfdrag",
+		"corfgate",
 		"corfhlt",
 		"corfhp",
 		"corfmkr",
@@ -216,6 +219,7 @@ local armorDefs = {
 		--"corfort",
 		"corfrt",
 		"corftiger",
+		"corgate",
 		"corgator",
 		"corgeo",
 		"corhlt",
@@ -562,10 +566,7 @@ local armorDefs = {
 		"critter_gull",
 	},
 	shields = {
-		"armgate",
-		"corgate",
-		--"armfgate", Not currently used
-		--"corfgate", Not currently used
+		--left intentionally blank. To be used in shield weapondefs only!
 	},
 	lboats = {
 		"corpt",
