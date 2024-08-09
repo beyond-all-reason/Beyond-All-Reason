@@ -1343,7 +1343,7 @@ function WeaponDef_Post(name, wDef)
 			wDef = skyshiftUnits.skyshiftWeaponTweaks(name, wDef)
 		end]]
 
-		---- SHIELD CHANGES---	
+		---- SHIELD CHANGES
 		local shieldModOption = modOptions.experimentalshields
 
 		if shieldModOption == "absorbplasma" then
