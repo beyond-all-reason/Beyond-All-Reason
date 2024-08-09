@@ -127,7 +127,7 @@ function gadget:GameFrame(frame)
 
 		-- NB: no removal; do this every frame so that it doesn't fly off a cliff or something
 	end
-
+	--without defining a time to live (ttl) for the dgun, it will live forever until it reaches maximum range. This means it would deal infinite damage to shields until it depleted them.
 	if next(dgunTimeouts) == nil then
 		frameCounter = 0
     else
