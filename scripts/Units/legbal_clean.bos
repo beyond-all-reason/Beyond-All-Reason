@@ -1,7 +1,7 @@
 
 #include "../recoil_common_includes.h"
 
-piece  	pelvis, aimy1, torso, armor, aimx1, barrel, flare,
+piece  	pelvis, aimy1, torso, armor, aimx1, barrel, flare, backblast,
 		lthigh, lknee, lleg, lfoot, rthigh, rknee, rleg, rfoot;
 
 static-var  notMoving, moveSpeed, currentSpeed, animSpeed, wpn1_lasthead;
@@ -293,7 +293,7 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
-	emit-sfx UNIT_SFX0 from barrel;
+	emit-sfx UNIT_SFX0 from backblast;
 	turn torso to y-axis <8> now;
 	turn barrel to x-axis <-5> now;
 	turn barrel to x-axis <0> speed <5>;
