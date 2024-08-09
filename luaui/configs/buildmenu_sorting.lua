@@ -77,6 +77,7 @@ local unitOrderTable = {
 
 	['armspy']         = 003900, --SPIES
 	['corspy']         = 004000,
+	['corphantom']     = 004010,
 
 	-- AIR SCOUTS LAND UNARMED
 	['armpeep']        = 004030, --AIR

@@ -16,6 +16,9 @@ local texture = "luaui/images/solid.png"
 local opacity = 0.19
 local teamcolorOpacity = 0.6
 
+local selectionHighlight = true
+local mouseoverHighlight = true
+
 ---- GL4 Backend Stuff----
 local selectionVBO = nil
 local selectShader = nil
@@ -59,7 +62,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		}
 	end
 end
-
+local unitBufferUniformCache = {0}
 local function AddPrimitiveAtUnit(unitID)
 	if Spring.ValidUnitID(unitID) ~= true or Spring.GetUnitIsDead(unitID) == true then return end
 	local gf = Spring.GetGameFrame()
@@ -94,7 +97,10 @@ local function AddPrimitiveAtUnit(unitID)
 		width = radius
 		length = radius
 	end
-
+	if selectionHighlight then 
+		unitBufferUniformCache[1] = 1
+		gl.SetUnitBufferUniforms(unitID, unitBufferUniformCache, 6)
+	end
 	--Spring.Echo(unitID,radius,radius, Spring.GetUnitTeam(unitID), numvertices, 1, gf)
 	pushElementInstance(
 		selectionVBO, -- push into this Instance VBO Table
@@ -161,6 +167,10 @@ end
 
 local function RemovePrimitive(unitID)
 	if selectionVBO.instanceIDtoIndex[unitID] then
+		if selectionHighlight then 
+			unitBufferUniformCache[1] = 0
+			gl.SetUnitBufferUniforms(unitID, unitBufferUniformCache, 6)
+		end
 		popElementInstance(selectionVBO, unitID)
 	end
 end
@@ -168,6 +178,27 @@ end
 function widget:SelectionChanged(sel)
 	updateSelection = true
 end
+
+
+local lastMouseOverUnitID = nil
+local lastMouseOverFeatureID = nil
+
+local function ClearLastMouseOver()
+	if lastMouseOverUnitID then
+		if Spring.ValidUnitID(lastMouseOverUnitID) then
+			gl.SetUnitBufferUniforms(lastMouseOverUnitID, {selUnits[lastMouseOverUnitID] and 1 or 0}, 6)
+		end
+		lastMouseOverUnitID = nil
+	end
+	if lastMouseOverFeatureID then
+		if Spring.ValidFeatureID(lastMouseOverFeatureID) then 
+			gl.SetFeatureBufferUniforms(lastMouseOverFeatureID, {0}, 6)
+		end
+		lastMouseOverFeatureID = nil
+	end
+end
+
+
 
 function widget:Update(dt)
 	if updateSelection then
@@ -189,6 +220,40 @@ function widget:Update(dt)
 			end
 		end
 		selUnits = newSelUnits
+	end
+
+	-- We move the check for mouseovered units here,
+	-- as this widget is the ground truth for our unitbufferuniform[2].z (#6)
+	-- 0 means unit is un selected
+	-- +1 means unit is selected
+	-- +0.5 means ally also selected unit
+	-- +2 means its mouseovered
+	if mouseoverHighlight then 
+		local mx, my, p1, mmb, _, mouseOffScreen, cameraPanMode  = Spring.GetMouseState()
+		if mouseOffScreen or cameraPanMode or mmb or p1 then
+			ClearLastMouseOver()
+		else
+			local result, data = Spring.TraceScreenRay(mx, my)
+			--Spring.Echo(result, (type(data) == 'table') or data, lastMouseOverUnitID, lastMouseOverFeatureID)
+			if result == 'unit' and not Spring.IsGUIHidden() then
+				local unitID = data
+				if lastMouseOverUnitID ~= unitID then
+					ClearLastMouseOver()
+					local newUniform = (selUnits[unitID] and 1 or 0 ) + 2
+					gl.SetUnitBufferUniforms(unitID, {newUniform}, 6)
+					lastMouseOverUnitID = unitID
+				end
+			elseif result == 'feature' and not Spring.IsGUIHidden() then
+				local featureID = data
+				if lastMouseOverFeatureID ~= featureID then
+					ClearLastMouseOver()
+					gl.SetFeatureBufferUniforms(featureID, {2}, 6)
+					lastMouseOverFeatureID = featureID
+				end
+			else
+				ClearLastMouseOver()
+			end
+		end
 	end
 end
 
@@ -221,6 +286,7 @@ local function init()
 	shaderConfig.HEIGHTOFFSET = 4
 	shaderConfig.POST_SHADING = "fragColor.rgba = vec4(mix(g_color.rgb * texcolor.rgb + addRadius, vec3(1.0), "..(1-teamcolorOpacity)..") , texcolor.a * TRANSPARENCY + addRadius);"
 	selectionVBO, selectShader = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnits")
+	ClearLastMouseOver()
 	if selectionVBO == nil then 
 		widgetHandler:RemoveWidget()
 		return false
@@ -249,6 +315,23 @@ function widget:Initialize()
 		teamcolorOpacity = value
 		init()
 	end
+
+	WG.selectedunits.setSelectionHighlight = function(value)
+		selectionHighlight = value
+		init()
+	end
+	WG.selectedunits.getSelectionHighlight = function()
+		return selectionHighlight
+	end
+		
+	WG.selectedunits.setMouseoverHighlight = function(value)
+		mouseoverHighlight = value
+		init()
+	end
+	WG.selectedunits.getSelectionHighlight = function()
+		return mouseoverHighlight
+	end
+
 	Spring.LoadCmdColorsConfig('unitBox  0 1 0 0')
 end
 
@@ -262,11 +345,15 @@ end
 function widget:GetConfigData(data)
 	return {
 		opacity = opacity,
-		teamcolorOpacity = teamcolorOpacity
+		teamcolorOpacity = teamcolorOpacity,
+		selectionHighlight = selectionHighlight,
+		mouseoverHighlight = mouseoverHighlight,
 	}
 end
 
 function widget:SetConfigData(data)
 	opacity = data.opacity or opacity
 	teamcolorOpacity = data.teamcolorOpacity or teamcolorOpacity
+	selectionHighlight = data.selectionHighlight or selectionHighlight
+	mouseoverHighlight = data.mouseoverHighlight or mouseoverHighlight
 end

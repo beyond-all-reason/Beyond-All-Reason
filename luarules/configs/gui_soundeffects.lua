@@ -2116,6 +2116,11 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-tnk-large-ok",
 		BaseSoundWeaponType = "con-assist",
 	},
+	corphantom = {
+		BaseSoundSelectType = "cor-tnk-medium-amph-sel",
+		BaseSoundMovementType = "cor-tnk-medium-amph-ok",
+		BaseSoundWeaponType = "cloak",
+	},	
 	-- FUN MODE - made possible by Teifion and Basic
 	-- corfav = {
 	-- BaseSoundSelectType   = "cor-veh-tiny-sel",

@@ -3787,7 +3787,16 @@ function init()
 		  end,
 		},
 
-		{ id = "highlightselunits", group = "ui", category = types.basic, widget = "Highlight Selected Units GL4", name = Spring.I18N('ui.settings.option.highlightselunits'), type = "bool", value = GetWidgetToggleValue("Highlight Selected Units GL4"), description = Spring.I18N('ui.settings.option.highlightselunits_descr') },
+		--{ id = "highlightselunits", group = "ui", category = types.basic, widget = "Highlight Selected Units GL4", name = Spring.I18N('ui.settings.option.highlightselunits'), type = "bool", value = GetWidgetToggleValue("Highlight Selected Units GL4"), description = Spring.I18N('ui.settings.option.highlightselunits_descr') },
+		
+		{ id = "highlightselunits", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.highlightselunits'),  type = "bool", value = true, description = Spring.I18N('ui.settings.option.selectedunits_teamcoloropacity_descr'),
+		  onload = function(i)
+			  loadWidgetData("Selected Units GL4", "highlightselunits", { 'selectionHighlight' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Selected Units GL4', 'selectedunits', 'setSelectionHighlight', { 'selectionHighlight' }, value)
+		  end,
+		},
 		--{ id = "highlightselunits_opacity", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.highlightselunits_opacity'), min = 0.02, max = 0.12, step = 0.01, type = "slider", value = 0.05, description = Spring.I18N('ui.settings.option.highlightselunits_opacity_descr'),
 		--  onload = function(i)
 		--	  loadWidgetData("Highlight Selected Units GL4", "highlightselunits_opacity", { 'highlightAlpha' })
@@ -3805,7 +3814,16 @@ function init()
 		--  end,
 		--},
 
-		{ id = "highlightunit", group = "ui", category = types.advanced, widget = "Highlight Unit GL4", name = Spring.I18N('ui.settings.option.highlightunit'), type = "bool", value = GetWidgetToggleValue("Highlight Unit GL4"), description = Spring.I18N('ui.settings.option.highlightunit_descr') },
+		-- { id = "highlightunit", group = "ui", category = types.advanced, widget = "Highlight Unit GL4", name = Spring.I18N('ui.settings.option.highlightunit'), type = "bool", value = GetWidgetToggleValue("Highlight Unit GL4"), description = Spring.I18N('ui.settings.option.highlightunit_descr') },
+		
+				{ id = "highlightunit", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.highlightunit'),  type = "bool", value = true, description = Spring.I18N('ui.settings.option.highlightunit_descr'),
+		  onload = function(i)
+			  loadWidgetData("Selected Units GL4", "highlightunit", { 'mouseoverHighlight' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Selected Units GL4', 'selectedunits', 'setMouseoverHighlight', { 'mouseoverHighlight' }, value)
+		  end,
+		},
 
 		{ id = "cursorlight", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.cursorlight'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.cursorlight_descr'),
 		  onload = function(i)
@@ -5887,7 +5905,7 @@ function init()
 
 	-- add sound notification sets
 	if getOptionByID('notifications_set') then
-		local voiceset = Spring.GetConfigString("voiceset", 'allison')
+		local voiceset = Spring.GetConfigString("voiceset", 'en/allison')
 		local currentVoiceSetOption
 		local sets = {}
 		local languageDirs = VFS.SubDirs('sounds/voice', '*')
@@ -5977,9 +5995,11 @@ function init()
 		[UnitDefNames["corsktl"].id] = false,
 		[UnitDefNames["armgremlin"].id] = true,
 		[UnitDefNames["armamex"].id] = true,
+		[UnitDefNames["armshockwave"].id] = true,
 		[UnitDefNames["armckfus"].id] = true,
 		[UnitDefNames["armspy"].id] = true,
 		[UnitDefNames["corspy"].id] = true,
+		[UnitDefNames["corphantom"].id] = true,
 	}
 	local unitdefConfig = {}
 	if WG['autocloak'] ~= nil then
