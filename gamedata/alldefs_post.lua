@@ -442,7 +442,7 @@ function UnitDef_Post(name, uDef)
 			end
 		elseif name == "coralab" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "cordeye"
+			uDef.buildoptions[numBuildoptions+1] = "cordeadeye"
 		elseif name == "coraap" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corcrw"
