@@ -25,6 +25,7 @@ local spSetUnitShieldState = Spring.SetUnitShieldState
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetGameSeconds = Spring.GetGameSeconds
 local spSetUnitShieldRechargeDelay = Spring.SetUnitShieldRechargeDelay
+local spDeleteProjectile =  Spring.DeleteProjectile
 
 local shieldUnitDefs = {}
 local shieldUnitsData = {}
@@ -116,6 +117,7 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitI
             damage = originalShieldDamages[proDefID]
             shieldPower = math.max(shieldPower - damage, 0)
             spSetUnitShieldState(shieldUnitID, shieldWeaponNum, shieldPower)
+            spDeleteProjectile (proID)
         elseif beamEmitterUnitID then
             local beamEmitterUnitDefID = spGetUnitDefID(beamEmitterUnitID)
             if projectilePenetrationOverrides[UnitDefs[beamEmitterUnitDefID].weapons[beamEmitterWeaponNum].weaponDef] and projectilePenetrationOverrides[UnitDefs[beamEmitterUnitDefID].weapons[beamEmitterWeaponNum].weaponDef] == 2 then
