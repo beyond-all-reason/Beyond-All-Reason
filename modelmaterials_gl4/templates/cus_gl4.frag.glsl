@@ -1231,6 +1231,9 @@ void main(void){
 
 			// Always show level lines
 			outColor.rgb += vec3(levelFactor);
+
+			// Add bloom for the levels:
+			outSpecularColor+= vec3(levelFactor);
 	
 		}
 	#endif
