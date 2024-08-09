@@ -1543,7 +1543,7 @@ local function ProcessUnits(units, drawFlags, reason)
 		else
 			--Spring.Echo("ProcessUnit", unitID, drawFlag)
 			if overriddenUnits[unitID] == nil then --object was not seen
-				if (not spGetUnitIsCloaked(unitID)) and Spring.ValidUnitID(unitID) then
+				if Spring.ValidUnitID(unitID) and (not spGetUnitIsCloaked(unitID)) then
 					uniformcache[1] = 0
 					gl.SetUnitBufferUniforms(unitID, uniformcache, 12) -- cloak
 				end
