@@ -9783,7 +9783,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	'corphantom'] = {
+	['corphantom'] = {
 		eyes1 = {
 			lightType = 'point',
 			pieceName = 'body',
@@ -21291,7 +21291,7 @@ local unitEventLightsNames = {
 		default = {
 			default = {
 				lightType = 'cone',
-				pieceName = 'base',
+				--pieceName = 'base',
 				aboveUnit = 100,
 				lightConfig = { posx = 0, posy = 32, posz = 0, radius = 160,
 					dirx = 0, diry = -0.99, dirz = 0.02, theta = 0.4,
