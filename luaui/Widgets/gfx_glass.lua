@@ -239,6 +239,10 @@ end
 if next(glasstriggerfeaturedefsids) == nil then return end
 
 function widget:Initialize()
+	if Spring.Utilities.Gametype.IsSinglePlayer ~= true then
+		widgetHandler:RemoveWidget()
+		return 
+	end
 	if gl.CreateShader == nil then
 		Spring.Echo("glass: createshader not supported, removing")
 		widgetHandler:RemoveWidget()
