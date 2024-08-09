@@ -1148,14 +1148,17 @@ void main(void){
 			// Height is the relative height of the fragment in the model compared to the full height
 			float height = clamp(modelVertexPosOrig.w/1.0,0,1);
 
-
+			// Helper sinusoidal patterns:
+			float sintime = 0.5 + 0.5 * sin(simFrame * 0.1); // pulses every 3 seconds
+			float sinprogress = 0.5 + 0.5 * sin(buildProgress * 0.01 * 3.1415); // pulses every percent of buildProgress
+			//outColor.rgb += buildeff;
 			
 			// progressLevels are a vec4 of values that progressively increase from 0 to 1,
 			// with a power curve, each next faster than the other, meaning .x is the bottom level, .w is the top level
 			vec4 progressLevels = vec4(buildProgress);
 			progressLevels = pow(progressLevels, vec4(3.0, 1.5, 0.7, 0.35));
 			// Add perlin and ensure that perlin doesnt cause inaccuracy at the top of the model:
-			progressLevels = mix(progressLevels, vec4(myPerlin.g), 0.05 * smoothstep(0.00, 0.05, 1.0 - buildProgress));
+			progressLevels = mix(progressLevels, vec4(myPerlin.g + myPerlin.b*sin(simFrame * 0.042342)), 0.05 * smoothstep(0.00, 0.05, 1.0 - buildProgress));
 			
 			vec4 levelLines = clamp(1.0 - 100 * abs(progressLevels - vec4(height)), 0,1);
 
@@ -1181,10 +1184,7 @@ void main(void){
 			float gridSize = clamp((1.0 - buildProgress) * 10 + 2, 2, 12);
 			vec3 grid = step(0.5, clamp(1.0 - 10* fract((modelVertexPosOrig.xyz) / gridSize), 0.0, 1.0));
 
-			// Helper sinusoidal patterns:
-			float sintime = 0.5 + 0.5 * sin(simFrame * 0.1); // pulses every 3 seconds
-			float sinprogress = 0.5 + 0.5 * sin(buildProgress * 0.01 * 3.1415); // pulses every percent of buildProgress
-			//outColor.rgb += buildeff;
+
 			
 			// The entire model will always get the 8 elmo buildgrid:
 			//outColor.rgb = mix(outColor.rgb, vec3(1.0, 0.0, 1.0), buildGridFactor);
@@ -1220,7 +1220,7 @@ void main(void){
 				//outColor.rgb = vec3(heightProgress);
 				#if (RENDERING_MODE == 0)
 					// only modulate alpha on the forward pass
-					texColor2.a *=  max(0.1, max(clamp(line,buildProgress,1), (1.0 - heightProgress)));
+					texColor2.a *= max(0.2, max(clamp(line,buildProgress,1), (1.0 - heightProgress)));
 				#endif
 			}
 
