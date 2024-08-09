@@ -4,7 +4,7 @@ function widget:GetInfo()
 		desc      = "A fun approach to minimizing the cost of some fun shaders",
 		author    = "Beherith",
 		date      = "2022.03.05",
-		license   = "Lua: GNU GPL, v2 or later, GLSL code: (c) Beherith, mysterme@gmail.com ",
+		license   = "GNU GPL, v2 or later",
 		layer     = 50,
 		enabled   = true
 	}
