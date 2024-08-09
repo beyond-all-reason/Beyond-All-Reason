@@ -1541,7 +1541,10 @@ local function ProcessUnits(units, drawFlags, reason)
 			--under construction
 			--using processedUnits here actually good, as it will dynamically handle unitfinished and cloak on-off
 		else
-
+			if not spGetUnitIsCloaked(unitID) then
+				uniformcache[1] = 0
+				gl.SetUnitBufferUniforms(unitID, uniformcache, 12) -- cloak
+			end
 			--Spring.Echo("ProcessUnit", unitID, drawFlag)
 			if overriddenUnits[unitID] == nil then --object was not seen
 				AddObject(unitID, drawFlag, reason)
