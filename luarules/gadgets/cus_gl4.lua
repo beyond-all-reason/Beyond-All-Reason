@@ -2095,8 +2095,12 @@ function gadget:UnitCreated(unitID, unitDefID)
 		--Spring.Echo(UnitDefs[unitDefID].name, unitHeight, maxY)
 		unitDefModelMaxY[unitDefID] = UnitDefs[unitDefID].model.maxy or 10
 	end
+	uniformcache[1] = unitDefModelMaxY[unitDefID]
+	gl.SetUnitBufferUniforms(unitID, uniformcache, 11) -- set unit height
+	uniformcache[1] = 0 
+	gl.SetUnitBufferUniforms(unitID, uniformcache, 12) -- clear cloak effect
+	gl.SetUnitBufferUniforms(unitID, uniformcache, 6) -- clear selectedness effect
 	
-	gl.SetUnitBufferUniforms(unitID, {unitDefModelMaxY[unitDefID]}, 11) -- set unit height
 	UpdateUnit(unitID,Spring.GetUnitDrawFlag(unitID))
 end
 
