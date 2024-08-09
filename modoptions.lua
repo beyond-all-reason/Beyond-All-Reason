@@ -1290,9 +1290,9 @@ local options = {
     {
         key   	= "releasecandidates",
         name   	= "Release Candidate Units",
-        desc   	= "Adds additional units to the game which are being considered for mainline integration and are balanced, or in end tuning stages.  Currently adds Printer, Shockwave (Arm T2 EMP Mex), and Drone Carriers for armada and cortex",
+        desc   	= "Adds additional units to the game which are being considered for mainline integration and are balanced, or in end tuning stages.  Currently adds Printer, Siegebreaker, Phantom (Core T2 veh), Shockwave (Arm T2 EMP Mex), and Drone Carriers for armada and cortex",
         type   	= "bool",
-        hidden 	= true,
+        hidden 	= false,
         section = "options_experimental",
         def  	= false,
     },
