@@ -31,6 +31,7 @@ local shieldUnitDefs = {}
 local shieldUnitsData = {}
 local originalShieldDamages = {}
 local projectilePenetrationOverrides = {}
+local dgunWeapons = {}
 
 for weaponDefID, weaponDef in ipairs(WeaponDefs) do
     if weaponDef.customParams.beamtime_damage_reduction_multiplier then
@@ -47,6 +48,9 @@ for weaponDefID, weaponDef in ipairs(WeaponDefs) do
             projectilePenetrationOverrides[weaponDefID] = 2
         end
     end
+    if weaponDef.type == 'DGun' then
+		dgunWeapons[weaponDefID] = weaponDef
+	end
 end
 
 for id, data in pairs(UnitDefs) do
@@ -117,7 +121,9 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitI
             damage = originalShieldDamages[proDefID]
             shieldPower = math.max(shieldPower - damage, 0)
             spSetUnitShieldState(shieldUnitID, shieldWeaponNum, shieldPower)
-            spDeleteProjectile (proID)
+            if not dgunWeapons[proDefID] then
+                spDeleteProjectile(proID)
+            end
         elseif beamEmitterUnitID then
             local beamEmitterUnitDefID = spGetUnitDefID(beamEmitterUnitID)
             if projectilePenetrationOverrides[UnitDefs[beamEmitterUnitDefID].weapons[beamEmitterWeaponNum].weaponDef] and projectilePenetrationOverrides[UnitDefs[beamEmitterUnitDefID].weapons[beamEmitterWeaponNum].weaponDef] == 2 then
