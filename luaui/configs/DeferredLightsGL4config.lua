@@ -9783,7 +9783,7 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-	'corphantom'] = {
+	['corphantom'] = {
 		eyes1 = {
 			lightType = 'point',
 			pieceName = 'body',
