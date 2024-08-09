@@ -171,7 +171,7 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldEmitterWeaponNum, shie
             lastShieldFrameCheck[shieldCarrierUnitID] = frameCounter
         end
 		local originX, originY, originZ = unpack(dgunOrigins[proID])
-		if hitX > 0 and shieldPower > 100 then
+		if shieldPower > 100 then
 
 			local dirX = hitX - originX
 			local dirZ = hitZ - originZ
