@@ -13,11 +13,7 @@ if modOptions.shieldsrework == false then return false end
 if not gadgetHandler:IsSyncedCode() then return end
 
 ----Optional unit customParams----
---customParams shield_downtime = <number in seconds>
---customParams shield_penetration = "AOE" "PROJECTILE" or undefined means default shield behavior.
-
-----Controls----
-local overMaxPenetration = true -- if true, when damage > maximum shield capacity, its damage leaks through. If false, damage is always blocked regardless of how small or large shield capacity is relative to damage.
+--customParams shield_downtime = <number in seconds>, if not set defaults to 5 seconds
 
 local spGetUnitShieldState = Spring.GetUnitShieldState
 local spGetProjectileDefID = Spring.GetProjectileDefID
@@ -41,13 +37,6 @@ for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 		originalShieldDamages[weaponDefID] = math.floor(damage)
 	else originalShieldDamages[weaponDefID] = tonumber(weaponDef.customParams.shield_damage)
 	end
-	if weaponDef.customParams.shield_penetration then
-		if weaponDef.customParams.shield_penetration == "AOE" then
-			projectilePenetrationOverrides[weaponDefID] = 1
-		elseif weaponDef.customParams.shield_penetration == "PROJECTILE" then
-			projectilePenetrationOverrides[weaponDefID] = 2
-		end
-	end
 	if weaponDef.type == 'DGun' then
 		dgunWeapons[weaponDefID] = weaponDef
 	end
@@ -56,7 +45,7 @@ end
 for id, data in pairs(UnitDefs) do
 	if data.customParams.shield_radius then
 		shieldUnitDefs[id] = data
-		shieldUnitDefs[id]["defDowntime"] = tonumber(data.customParams.shield_downtime)
+		shieldUnitDefs[id]["defDowntime"] = tonumber(data.customParams.shield_downtime) or 5
 	end
 end
 
@@ -121,7 +110,7 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitI
 
 		if -1 < proID then
 			local proDefID = spGetProjectileDefID(proID)
-			if projectilePenetrationOverrides[proDefID] and projectilePenetrationOverrides[proDefID] == 2 then
+			if projectilePenetrationOverrides[proDefID] then
 				return true
 			end
 			damage = originalShieldDamages[proDefID] or 0
@@ -132,7 +121,7 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitI
 			end
 		elseif beamEmitterUnitID then
 			local beamEmitterUnitDefID = spGetUnitDefID(beamEmitterUnitID)
-			if projectilePenetrationOverrides[UnitDefs[beamEmitterUnitDefID].weapons[beamEmitterWeaponNum].weaponDef] and projectilePenetrationOverrides[UnitDefs[beamEmitterUnitDefID].weapons[beamEmitterWeaponNum].weaponDef] == 2 then
+			if projectilePenetrationOverrides[UnitDefs[beamEmitterUnitDefID].weapons[beamEmitterWeaponNum].weaponDef] then
 				return true
 			end
 			
