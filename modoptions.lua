@@ -1134,6 +1134,17 @@ local options = {
     },
 
     {
+        key    	= "experimentallegionfaction",
+        name   	= "Legion Faction",
+        desc   	= "3rd experimental faction",
+        type   	= "bool",
+        section = "options_experimental",
+        def  	= false,
+    },
+
+    -- Hidden Tests
+
+    {
         key    	= "experimentalnoaircollisions",
         name   	= "Aircraft Collisions Override",
         desc   	= "Aircraft Collisions Override",
@@ -1160,6 +1171,7 @@ local options = {
         key    	= "experimentalstandardgravity",
         name   	= "Gravity Override",
         desc   	= "Override map gravity for weapons",
+        hidden 	= true,
         type   	= "list",
         section = "options_experimental",
         def  	= "mapgravity",
@@ -1170,77 +1182,15 @@ local options = {
             { key = "high", 		name = "High Gravity", 		desc = "150 gravity" },
         }
     },
-
-    {
-        key   	= "releasecandidates",
-        name   	= "Release Candidate Units",
-        desc   	= "Adds additional units to the game which are being considered for mainline integration and are balanced, or in end tuning stages.  Currently adds Printer, Shockwave (Arm T2 EMP Mex), and Drone Carriers for armada and cortex",
-        type   	= "bool",
-        section = "options_experimental",
-        def  	= false,
-    },
-	
+    
     {
         key   	= "accuratelasers",
         name   	= "Accurate Lasers",
         desc   	= "Removes inaccuracy vs moving units from all laser weapons as a proposed solution to overpowered scoutspam",
         type   	= "bool",
+        hidden 	= true,
         section = "options_experimental",
-        def  	= false,
-    },
-
-    {
-        key    	= "experimentallegionfaction",
-        name   	= "Legion Faction",
-        desc   	= "3rd experimental faction",
-        type   	= "bool",
-        section = "options_experimental",
-        def  	= false,
-    },
-
-    {
-        key 	= "emprework",
-        name 	= "EMP Rework",
-        desc 	= "EMP is changed to slow units movement and firerate, before eventually stunning.",
-        type 	= "bool",
-        section = "options_experimental",
-        def 	= false,
-    },
-
-    {
-        key 	= "junorework",
-        name 	= "Juno Rework",
-        desc 	= "Juno stuns certain units (such as radars and jammers) rather than magically deleting them",
-        type 	= "bool",
-        section = "options_experimental",
-        def 	= false,
-    },
-
-    {
-        key 	= "air_rework",
-        name 	= "Air Rework",
-        desc 	= "Prototype version with more maneuverable, slower air units and more differentiation between them.",
-        type 	= "bool",
-        section = "options_experimental",
-        def 	= false,
-    },
-
-    {
-        key 	= "proposed_unit_reworks",
-        name 	= "Proposed Unit Reworks",
-        desc 	= "Modoption used to test and balance unit reworks that are being considered for the base game.  Shuriken emp damage is reduced and Abductor emp damage and stuntime are reduced, but accuracy is increased.  EMP resist for units is standardized, and units that had low emp resists now take full emp damage.",
-        type 	= "bool",
-        section = "options_experimental",
-        def 	= false,
-    },
-
-    {
-        key 	= "energy_share_rework",
-        name 	= "Energy Share Rework",
-        desc 	= "Additional energy overflow/underflow mechanics. 10% of the energy income is re-distributed to prevent E-stalling.",
-        type 	= "bool",
-        section = "options_experimental",
-        def 	= false,
+        def  	= true,
     },
 
     {
@@ -1254,10 +1204,21 @@ local options = {
     },
 
     {
+        key 	= "air_rework",
+        name 	= "Air Rework",
+        desc 	= "Prototype version with more maneuverable, slower air units and more differentiation between them.",
+        hidden 	= true,
+        type 	= "bool",
+        section = "options_experimental",
+        def 	= false,
+    },
+
+    {
         key		= "unified_maxslope",
         name	= "Standardized Land Unit Maxslope",
         desc	= "All land units have minimum maxslope of 36",
         type	= "bool",
+        hidden 	= true,
         def		= false,
         section	= "options_experimental",
     },
@@ -1267,6 +1228,7 @@ local options = {
         name   	= "No Rush Time",
         desc   	= "(Range: 0 - 30). Minutes",
         type   	= "number",
+        hidden 	= true,
         section	= "options_experimental",
         def    	= 0,
         min    	= 0,
@@ -1295,13 +1257,55 @@ local options = {
     },
 
     {
-		key		= "forceallunits",
-		name	= "Force Load All Units (For modders/devs)",
-		desc	= "Load all UnitDefs even if ais or options for them aren't enabled",
-		section = "options_experimental",
-		type	= "bool",
-		def		= false,
-	},
+        key 	= "emprework",
+        name 	= "EMP Rework",
+        desc 	= "EMP is changed to slow units movement and firerate, before eventually stunning.",
+        type 	= "bool",
+        hidden 	= true,
+        section = "options_experimental",
+        
+        def 	= false,
+    },
+
+    {
+        key 	= "junorework",
+        name 	= "Juno Rework",
+        desc 	= "Juno stuns certain units (such as radars and jammers) rather than magically deleting them",
+        type 	= "bool",
+        hidden 	= true,
+        section = "options_experimental",
+        def 	= false,
+    },
+
+    {
+        key 	= "energy_share_rework",
+        name 	= "Energy Share Rework",
+        desc 	= "Additional energy overflow/underflow mechanics. 10% of the energy income is re-distributed to prevent E-stalling.",
+        type 	= "bool",
+        hidden 	= true,
+        section = "options_experimental",
+        def 	= false,
+    },
+
+    {
+        key   	= "releasecandidates",
+        name   	= "Release Candidate Units",
+        desc   	= "Adds additional units to the game which are being considered for mainline integration and are balanced, or in end tuning stages.  Currently adds Printer, Shockwave (Arm T2 EMP Mex), and Drone Carriers for armada and cortex",
+        type   	= "bool",
+        hidden 	= true,
+        section = "options_experimental",
+        def  	= false,
+    },
+
+    {
+        key 	= "proposed_unit_reworks",
+        name 	= "Proposed Unit Reworks",
+        desc 	= "Modoption used to test and balance unit reworks that are being considered for the base game.  Shuriken emp damage is reduced and Abductor emp damage and stuntime are reduced, but accuracy is increased.  EMP resist for units is standardized, and units that had low emp resists now take full emp damage.",
+        type 	= "bool",
+        hidden 	= true,
+        section = "options_experimental",
+        def 	= false,
+    },
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1741,6 +1745,15 @@ local options = {
         type    = "string",
         def     = "",
     },
+
+    {
+		key		= "forceallunits",
+		name	= "Force Load All Units (For modders/devs)",
+		desc	= "Load all UnitDefs even if ais or options for them aren't enabled",
+		section = "options_cheats",
+		type	= "bool",
+		def		= false,
+	},
 
 }
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
