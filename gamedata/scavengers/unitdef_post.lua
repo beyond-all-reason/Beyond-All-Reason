@@ -279,7 +279,7 @@ local function scavUnitDef_Post(name, uDef)
 		end
 	elseif name == "coralab_scav" then
 		local numBuildoptions = #uDef.buildoptions
-		uDef.buildoptions[numBuildoptions + 1] = "cordeye_scav"
+		uDef.buildoptions[numBuildoptions + 1] = "cordeadeye_scav"
 	elseif name == "coraap_scav" then
 		local numBuildoptions = #uDef.buildoptions
 		uDef.buildoptions[numBuildoptions + 1] = "corcrw_scav"
