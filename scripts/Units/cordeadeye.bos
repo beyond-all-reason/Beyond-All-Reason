@@ -15,7 +15,7 @@ static-var  bMoving, bAiming, animSpeed, maxSpeed, animFramesPerKeyframe, gun_1,
 #define SIG_AIM_2		8
 
 
-Walk() {// For OOO:\Users\nothingtoseehereLOL\BAR screenshots\3d objects blender\cordeye animtion bones working test 1 names fixed.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2)) 
+Walk() {// For OOO:\Users\nothingtoseehereLOL\BAR screenshots\3d objects blender\cordeadeye animtion bones working test 1 names fixed.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2)) 
 	set-signal-mask SIG_WALK;
 	if (bMoving) { //Frame:7
 			move body to y-axis [-3.000000] speed [90.000000] / animSpeed; //Failed to find previous position for bonebodyaxislocation1
