@@ -235,7 +235,7 @@
 			"sellunit_tooltip": "Toggle currently selected units for sale, allies will be able to buy them",
 			"For Sale": "For Sale",
 			"Not For Sale": "Not For Sale",
-			
+
 			"Fire at will": "Fire at will",
 			"Hold fire": "Hold fire",
 			"Return fire": "Return fire",
@@ -1626,7 +1626,58 @@
 				"spectator_hud_config_descr": "Select Spectator HUD mode",
 				"spectator_hud_config_basic": "Basic",
 				"spectator_hud_config_advanced": "Advanced",
-				"spectator_hud_config_expert": "Expert"
+				"spectator_hud_config_expert": "Expert",
+				"startpositionsuggestions": "Start Position Suggestions",
+				"startpositionsuggestions_descr": "Show expert recommended starting locations on the map"
+			}
+		},
+		"startPositionSuggestions": {
+			"tutorial": "Start positions and roles indicated within the circles are recommendations from expert players. If you're new to the game, or new to this map, these are solid options, but they aren't requirements. \n\nIf you'd like to disable this, check the Settings window for \"Start Position Suggestions\".",
+			"roles": {
+				"front": {
+					"title": "Frontline",
+					"description": "Build ground units early and bring your commander forward to secure a strong central position, taking metal spots along the way."
+				},
+				"tech": {
+					"title": "Tech",
+					"description": "Focus on early economy to support building a Tier 2 factory, in order to distribute Tier 2 constructors to the team, and attack with high tier units."
+				},
+				"air": {
+					"title": "Air",
+					"description": "Scout enemy players, distribute transports to allies, fight for air dominance, bomb enemy bases, and help defend against raids."
+				},
+				"sea": {
+					"title": "Sea",
+					"description": "Build navy units early and secure a strong position on the map. Later on, consider building amphibious or air units to invade enemies on land."
+				},
+				"air/front": {
+					"title": "Air/Front",
+					"description": "Scout enemy players, distribute transports to allies, fight for air dominance, bomb enemy bases, and help defend against raids.\n\nand/or\n\nBuild ground units early and bring your commander forward to secure a strong central position, taking metal spots along the way."
+				},
+				"air/sea": {
+					"title": "Air/Sea",
+					"description": "Scout enemy players, distribute transports to allies, fight for air dominance, bomb enemy bases, and help defend against raids.\n\nand/or\n\nBuild navy units early and secure a strong position on the map. Later on, consider building amphibious or air units to invade enemies on land."
+				},
+				"air/tech": {
+					"title": "Air/Tech",
+					"description": "Scout enemy players, distribute transports to allies, fight for air dominance, bomb enemy bases, and help defend against raids.\n\nand/or\n\nFocus on early economy to support building a Tier 2 factory, in order to distribute Tier 2 constructors to the team, and attack with high tier units."
+				},
+				"front/sea": {
+					"title": "Front/Sea",
+					"description": "Build ground units early and bring your commander forward to secure a strong central position, taking metal spots along the way.\n\nand/or\n\nBuild navy units early and secure a strong position on the map. Later on, consider building amphibious or air units to invade enemies on land."
+				},
+				"front/tech": {
+					"title": "Front/Tech",
+					"description": "Build ground units early and bring your commander forward to secure a strong central position, taking metal spots along the way.\n\nand/or\n\nFocus on early economy to support building a Tier 2 factory, in order to distribute Tier 2 constructors to the team, and attack with high tier units."
+				},
+				"sea/tech": {
+					"title": "Sea/Tech",
+					"description": "Build navy units early and secure a strong position on the map. Later on, consider building amphibious or air units to invade enemies on land.\n\nand/or\n\nFocus on early economy to support building a Tier 2 factory, in order to distribute Tier 2 constructors to the team, and attack with high tier units."
+				},
+				"baseCenter": {
+					"title": "Base Center",
+					"description": "Move your commander here shortly after spawning. Build your first factory in this area."
+				}
 			}
 		}
 	}
