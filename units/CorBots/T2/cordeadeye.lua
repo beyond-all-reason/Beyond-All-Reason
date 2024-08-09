@@ -1,10 +1,10 @@
 return {
-	cordeye = {
+	cordeadeye = {
 		maxacc = 0.138,
 		maxdec = 0.6486,
 		energycost = 20000,
 		metalcost = 900,
-		buildpic = "CORDEYE.DDS",
+		buildpic = "cordeadeye.DDS",
 		buildtime = 11700,
 		canmove = true,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -23,8 +23,8 @@ return {
 		maxwaterdepth = 21,
 		movementclass = "HBOT4",
 		nochasecategory = "VTOL",
-		objectname = "Units/CORDEYE.s3o",
-		script = "Units/CORDEYE.COB",
+		objectname = "Units/cordeadeye.s3o",
+		script = "Units/cordeadeye.COB",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 500,
@@ -56,7 +56,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 339,
-				object = "Units/cordeye_dead.s3o",
+				object = "Units/cordeadeye_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
