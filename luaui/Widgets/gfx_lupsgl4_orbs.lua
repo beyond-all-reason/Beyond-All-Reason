@@ -319,7 +319,7 @@ void main()
 	float radius = 0.99 * posrad.w;
 	float startFrame = margin_teamID_shield_technique.x;
 	//float lifeScale = clamp(((timeInfo.x + timeInfo.w) - startFrame) / 100.0, 0.001, 1.0);
-	float lifeScale = 1.0 - exp(-0.05 * ((timeInfo.x + timeInfo.w) - startFrame));
+	float lifeScale = 1.0 - exp(-0.10 * ((timeInfo.x + timeInfo.w) - startFrame));
 	radius *= lifeScale;
 	radius += (sin(timeInfo.z)) - 1.0;
 	
