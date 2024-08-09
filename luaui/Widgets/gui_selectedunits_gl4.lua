@@ -169,7 +169,9 @@ local function RemovePrimitive(unitID)
 	if selectionVBO.instanceIDtoIndex[unitID] then
 		if selectionHighlight then 
 			unitBufferUniformCache[1] = 0
-			gl.SetUnitBufferUniforms(unitID, unitBufferUniformCache, 6)
+			if Spring.ValidUnitID(unitID) then 
+				gl.SetUnitBufferUniforms(unitID, unitBufferUniformCache, 6)
+			end
 		end
 		popElementInstance(selectionVBO, unitID)
 	end
