@@ -1556,7 +1556,7 @@ local icontypes = {
 		size = 0.83999997
 	},
 	cormabm = {
-		bitmap = "icons/antinukemobile.png",
+		bitmap = "icons/antinukevehicle.png",
 		size = 1.46999991
 	},
 	cormadsam = {
