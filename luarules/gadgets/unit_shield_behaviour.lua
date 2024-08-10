@@ -16,12 +16,13 @@ if not gadgetHandler:IsSyncedCode() then return end
 --customParams shield_downtime = <number in seconds>, if not set defaults to 5 seconds
 
 local spGetUnitShieldState = Spring.GetUnitShieldState
-local spGetProjectileDefID = Spring.GetProjectileDefID
 local spSetUnitShieldState = Spring.SetUnitShieldState
-local spGetUnitDefID = Spring.GetUnitDefID
 local spGetGameSeconds = Spring.GetGameSeconds
 local spSetUnitShieldRechargeDelay = Spring.SetUnitShieldRechargeDelay
 local spDeleteProjectile =  Spring.DeleteProjectile
+local spGetUnitHealth = Spring.GetUnitHealth
+local spSetUnitHealth = Spring.SetUnitHealth
+local spGetProjectileDefID = Spring.GetProjectileDefID
 
 local shieldUnitDefs = {}
 local shieldUnitsData = {}
@@ -29,6 +30,7 @@ local originalShieldDamages = {}
 local flameWeapons = {}
 local unitDefIDCache = {}
 local projectileDefIDCache = {}
+local gameSeconds
 
 
 for weaponDefID, weaponDef in ipairs(WeaponDefs) do
@@ -48,6 +50,9 @@ for id, data in pairs(UnitDefs) do
 	if data.customParams.shield_radius then
 		shieldUnitDefs[id] = data
 		shieldUnitDefs[id]["defDowntime"] = tonumber(data.customParams.shield_downtime) or 5
+		if data.speed == 0 then
+			shieldUnitDefs[id]["isStatic"] = true
+		end
 	end
 end
 
@@ -56,6 +61,7 @@ function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
 		shieldUnitsData[unitID].team = unitTeam
 	elseif shieldUnitDefs[unitDefID] then
 		shieldUnitsData[unitID] = {
+			isStatic = shieldUnitDefs[unitDefID].isStatic or false,
 			team = unitTeam,
 			unitDefID = unitDefID,
 			location = {0, 0, 0},
@@ -83,64 +89,80 @@ function gadget:ProjectileDestroyed(proID)
 	projectileDefIDCache[proID] = nil
 end
 
-local seconds
-function gadget:GameFrame(frame)
-seconds = spGetGameSeconds()
-	if frame % 10 == 0 then
-		for shieldUnitID, shieldData in pairs (shieldUnitsData) do
-			if shieldData.downtimeReset and shieldData.downtimeReset ~= 0 and shieldData.downtimeReset <= seconds then
-				spSetUnitShieldRechargeDelay(shieldUnitID, shieldData.shieldWeaponNumber, 0)
-				shieldData.downtimeReset = 0
-				shieldData.shieldEnabled = true
-			end
-		end
+local function triggerDowntime(unitID, weaponNum)
+	local shieldData = shieldUnitsData[unitID]
+	if shieldData.isStatic then
+		local maxHealth = select(2, spGetUnitHealth(unitID))
+		local paralyzeTime = maxHealth + ((maxHealth/30)*shieldData.downtime)
+		spSetUnitHealth(unitID, {paralyze = paralyzeTime })
+	else
+		spSetUnitShieldRechargeDelay(unitID, weaponNum, shieldData.downtime)
+		spSetUnitShieldState(unitID, weaponNum, false)
+		shieldData.downtimeReset = gameSeconds+shieldData.downtime
+		shieldData.shieldEnabled = false
 	end
 end
 
-local function triggerDowntime(unitID, weaponNum)
-	local shieldData = shieldUnitsData[unitID]
-	spSetUnitShieldRechargeDelay(unitID, weaponNum, 10000)
-	spSetUnitShieldState(unitID, weaponNum, false)
-	shieldData.downtimeReset = seconds+shieldData.downtime
-	shieldData.shieldEnabled = false
+local shieldCheckFlags = {}
+function gadget:GameFrame(frame)
+    gameSeconds = spGetGameSeconds()
+
+    if frame % 10 == 0 then
+        for shieldUnitID, shieldData in pairs(shieldUnitsData) do
+            if shieldData and shieldData.downtimeReset and shieldData.downtimeReset ~= 0 and shieldData.downtimeReset <= gameSeconds then
+                spSetUnitShieldRechargeDelay(shieldUnitID, shieldData.shieldWeaponNumber, 0)
+                shieldData.downtimeReset = 0
+                shieldData.shieldEnabled = true
+            end
+        end
+    end
+
+	for shieldUnitID in pairs(shieldCheckFlags) do
+		local shieldData = shieldUnitsData[shieldUnitID]
+		if shieldData then
+			if shieldData.shieldDamage > 0 and shieldData.shieldWeaponNumber > -1 then
+				local enabledState, shieldPower = spGetUnitShieldState(shieldUnitID)
+				shieldPower = shieldPower - shieldData.shieldDamage
+				if shieldPower < 0 then
+					shieldPower = 0
+				end
+				spSetUnitShieldState(shieldUnitID, shieldData.shieldWeaponNumber, shieldPower)
+				shieldData.shieldDamage = 0
+				if shieldData.downtimeReset < gameSeconds and shieldPower <= 0 then
+					triggerDowntime(shieldUnitID, shieldData.shieldWeaponNumber)
+				end
+			else
+				shieldData.shieldDamage = 0
+			end
+			shieldCheckFlags[shieldUnitID] = nil
+		end
+	end
 end
 
 function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitID, bounceProjectile, beamEmitterWeaponNum, beamEmitterUnitID, startX, startY, startZ, hitX, hitY, hitZ)
     local shieldData = shieldUnitsData[shieldUnitID]
     
-	if not shieldData or not shieldData.shieldEnabled then
+    if not shieldData or not shieldData.shieldEnabled then
         return true
     end
-
-    local enabledState, shieldPower = spGetUnitShieldState(shieldUnitID)
     shieldData.shieldWeaponNumber = shieldWeaponNum
-    local damage = 0
-
     if proID > -1 then
         local proDefID = projectileDefIDCache[proID]
-        damage = originalShieldDamages[proDefID] or 0
-        shieldPower = shieldPower - damage
-		if shieldPower < 0 then
-			shieldPower = 0
-		end
-        spSetUnitShieldState(shieldUnitID, shieldWeaponNum, shieldPower)
+        if not proDefID then
+            proDefID = spGetProjectileDefID(proID) -- because flame projectiles for some reason don't live long enough to reference from the cache table
+        end
+        shieldData.shieldDamage = (shieldData.shieldDamage + originalShieldDamages[proDefID])
         if flameWeapons[proDefID] then
             spDeleteProjectile(proID)
         end
     elseif beamEmitterUnitID then
         local beamEmitterUnitDefID = unitDefIDCache[beamEmitterUnitID]
+        if not beamEmitterUnitDefID then
+            return false
+        end
         local weaponDef = UnitDefs[beamEmitterUnitDefID].weapons[beamEmitterWeaponNum].weaponDef
-        damage = originalShieldDamages[weaponDef] or 0
-		shieldPower = shieldPower - damage
-		if shieldPower < 0 then
-			shieldPower = 0
-		end
-        spSetUnitShieldState(shieldUnitID, shieldWeaponNum, shieldPower)
+        shieldData.shieldDamage = (shieldData.shieldDamage + originalShieldDamages[weaponDef])
     end
-
-    if shieldData.downtimeReset < seconds and shieldPower <= 0 then
-        triggerDowntime(shieldUnitID, shieldWeaponNum)
-    end
-
-    return false
+	shieldCheckFlags[shieldUnitID] = true
+	return false
 end
