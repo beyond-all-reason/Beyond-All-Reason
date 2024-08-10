@@ -27,6 +27,9 @@ local shieldUnitDefs = {}
 local shieldUnitsData = {}
 local originalShieldDamages = {}
 local flameWeapons = {}
+local unitDefIDCache = {}
+local projectileDefIDCache = {}
+
 
 for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 	if weaponDef.customParams.beamtime_damage_reduction_multiplier then
@@ -64,12 +67,21 @@ function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
 			downtimeReset = 0
 		}
 	end
+	unitDefIDCache[unitID] = unitDefID
 end
 
 function gadget:UnitDestroyed(unitID)
 	shieldUnitsData[unitID] = nil
+	unitDefIDCache[unitID] = nil
 end
 
+function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
+	projectileDefIDCache[proID] = weaponDefID
+end
+
+function gadget:ProjectileDestroyed(proID)
+	projectileDefIDCache[proID] = nil
+end
 
 local seconds
 function gadget:GameFrame(frame)
@@ -93,7 +105,7 @@ local function triggerDowntime(unitID, weaponNum)
 	shieldData.shieldEnabled = false
 end
 
-function gadget:ShieldPreDamaged(proID, _, shieldWeaponNum, shieldUnitID, _, beamEmitterWeaponNum, beamEmitterUnitID)
+function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitID, bounceProjectile, beamEmitterWeaponNum, beamEmitterUnitID, startX, startY, startZ, hitX, hitY, hitZ)
     local shieldData = shieldUnitsData[shieldUnitID]
     
 	if not shieldData or not shieldData.shieldEnabled then
@@ -105,7 +117,7 @@ function gadget:ShieldPreDamaged(proID, _, shieldWeaponNum, shieldUnitID, _, bea
     local damage = 0
 
     if proID > -1 then
-        local proDefID = spGetProjectileDefID(proID)
+        local proDefID = projectileDefIDCache[proID]
         damage = originalShieldDamages[proDefID] or 0
         shieldPower = shieldPower - damage
 		if shieldPower < 0 then
@@ -116,7 +128,7 @@ function gadget:ShieldPreDamaged(proID, _, shieldWeaponNum, shieldUnitID, _, bea
             spDeleteProjectile(proID)
         end
     elseif beamEmitterUnitID then
-        local beamEmitterUnitDefID = spGetUnitDefID(beamEmitterUnitID)
+        local beamEmitterUnitDefID = unitDefIDCache[beamEmitterUnitID]
         local weaponDef = UnitDefs[beamEmitterUnitDefID].weapons[beamEmitterWeaponNum].weaponDef
         damage = originalShieldDamages[weaponDef] or 0
 		shieldPower = shieldPower - damage
