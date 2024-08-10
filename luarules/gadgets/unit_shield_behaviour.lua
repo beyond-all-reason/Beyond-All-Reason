@@ -61,19 +61,17 @@ function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
 		shieldUnitsData[unitID].team = unitTeam
 	elseif shieldUnitDefs[unitDefID] then
 		shieldUnitsData[unitID] = {
-			isStatic = shieldUnitDefs[unitDefID].isStatic or false,
-			team = unitTeam,
-			unitDefID = unitDefID,
-			location = {0, 0, 0},
-			shieldEnabled = true,
-			shieldPower = 0,
-			shieldDamage = 0,
-			shieldWeaponNumber = -1,
-			downtime = shieldUnitDefs[unitDefID].defDowntime,
+			isStatic = shieldUnitDefs[unitDefID].isStatic or false, --used to prefer paralyze disable method for shields that don't move.
+			team = unitTeam, --for future AOE damage mitigation
+			location = {0, 0, 0}, --for future AOE damage mitigation
+			shieldEnabled = true, --virtualized enabled/disabled state until engine equivalent is changed
+			shieldDamage = 0, --this stores the value of damages populated in ShieldPreDamaged(), then applied in GameFrame() all at once.
+			shieldWeaponNumber = -1, --this is replaced with the real shieldWeaponNumber as soon as the shield is damaged.
+			downtime = shieldUnitDefs[unitDefID].defDowntime, --defined in unitdef.customparams with a default fallback value.
 			downtimeReset = 0
 		}
 	end
-	unitDefIDCache[unitID] = unitDefID
+	unitDefIDCache[unitID] = unitDefID --increases performance by reducing unitDefID lookups
 end
 
 function gadget:UnitDestroyed(unitID)
@@ -81,7 +79,7 @@ function gadget:UnitDestroyed(unitID)
 	unitDefIDCache[unitID] = nil
 end
 
-function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
+function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID) --increases performance by reducing projectileDefID lookups
 	projectileDefIDCache[proID] = weaponDefID
 end
 
@@ -91,12 +89,12 @@ end
 
 local function triggerDowntime(unitID, weaponNum)
 	local shieldData = shieldUnitsData[unitID]
-	if shieldData.isStatic then
+	if shieldData.isStatic then --the paralyze method is DRASTICALLY more performant. Since all static shields don't have weapons or move, this is used with no noticable gameplay effects.
 		local maxHealth = select(2, spGetUnitHealth(unitID))
 		local paralyzeTime = maxHealth + ((maxHealth/30)*shieldData.downtime)
 		spSetUnitHealth(unitID, {paralyze = paralyzeTime })
 	else
-		spSetUnitShieldRechargeDelay(unitID, weaponNum, shieldData.downtime)
+		spSetUnitShieldRechargeDelay(unitID, weaponNum, shieldData.downtime) --this method is used for mobile units with shields such as evocom cortex commander. This is far less efficient, but for smaller unit counts is OK.
 		spSetUnitShieldState(unitID, weaponNum, false)
 		shieldData.downtimeReset = gameSeconds+shieldData.downtime
 		shieldData.shieldEnabled = false
@@ -117,7 +115,7 @@ function gadget:GameFrame(frame)
         end
     end
 
-	for shieldUnitID in pairs(shieldCheckFlags) do
+	for shieldUnitID in pairs(shieldCheckFlags) do --we use this flag-forloop gameframe method for updating shield damages because of the huge performance impact of shieldPreDamaged trigger events.
 		local shieldData = shieldUnitsData[shieldUnitID]
 		if shieldData then
 			if shieldData.shieldDamage > 0 and shieldData.shieldWeaponNumber > -1 then
@@ -146,14 +144,14 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitI
         return true
     end
     shieldData.shieldWeaponNumber = shieldWeaponNum
-    if proID > -1 then
+    if proID > -1 then -- proID isn't nil if hitscan weapons are used, it's actually -1.
         local proDefID = projectileDefIDCache[proID]
         if not proDefID then
             proDefID = spGetProjectileDefID(proID) -- because flame projectiles for some reason don't live long enough to reference from the cache table
         end
         shieldData.shieldDamage = (shieldData.shieldDamage + originalShieldDamages[proDefID])
         if flameWeapons[proDefID] then
-            spDeleteProjectile(proID)
+            spDeleteProjectile(proID) --flames aren't destroyed when they hit shields. This fixes that.
         end
     elseif beamEmitterUnitID then
         local beamEmitterUnitDefID = unitDefIDCache[beamEmitterUnitID]
