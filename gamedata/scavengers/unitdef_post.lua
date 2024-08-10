@@ -277,6 +277,9 @@ local function scavUnitDef_Post(name, uDef)
 		if (printerpresent == false) then               -- assuming sala and vac stay paired, this is tidiest solution
 			uDef.buildoptions[numBuildoptions + 6] = "corvac_scav" --corprinter
 		end
+	elseif name == "coralab_scav" then
+		local numBuildoptions = #uDef.buildoptions
+		uDef.buildoptions[numBuildoptions + 1] = "cordeadeye_scav"
 	elseif name == "coraap_scav" then
 		local numBuildoptions = #uDef.buildoptions
 		uDef.buildoptions[numBuildoptions + 1] = "corcrw_scav"

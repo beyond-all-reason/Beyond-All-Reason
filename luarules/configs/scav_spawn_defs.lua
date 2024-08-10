@@ -360,6 +360,7 @@ local LandUnitsList = {
 			["armcroc_scav"] = 4,
 			--Cortex
 			["corparrow_scav"] = 2,
+			["cordeadeye_scav"] = 2,
 			["corftiger_scav"] = 4,
 			["corgol_scav"] = 2,
 			["corroach_scav"] = 4,

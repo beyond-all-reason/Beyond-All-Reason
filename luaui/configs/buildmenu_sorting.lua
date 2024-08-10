@@ -247,6 +247,7 @@ local unitOrderTable = {
 	['corcan']         = 006710,
 	['legshot']        = 006715,
 	['armsnipe']       = 006720,
+	['cordeadeye']     = 006725,
 	['corsumo']        = 006730,
 	['corgol']         = 006740,
 	['leginc']         = 006750,
