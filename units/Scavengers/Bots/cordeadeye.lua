@@ -24,7 +24,7 @@ return {
 		movementclass = "HBOT4",
 		nochasecategory = "VTOL",
 		objectname = "Units/cordeadeye.s3o",
-		script = "Units/cordeadeye.COB",
+		script = "scavs/cordeadeye.COB",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 500,
