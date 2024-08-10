@@ -26,8 +26,7 @@ local spDeleteProjectile =  Spring.DeleteProjectile
 local shieldUnitDefs = {}
 local shieldUnitsData = {}
 local originalShieldDamages = {}
-local projectilePenetrationOverrides = {}
-local dgunWeapons = {}
+local flameWeapons = {}
 
 for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 	if weaponDef.customParams.beamtime_damage_reduction_multiplier then
@@ -37,8 +36,8 @@ for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 		originalShieldDamages[weaponDefID] = math.floor(damage)
 	else originalShieldDamages[weaponDefID] = tonumber(weaponDef.customParams.shield_damage)
 	end
-	if weaponDef.type == 'DGun' then
-		dgunWeapons[weaponDefID] = weaponDef
+	if weaponDef.type == 'Flame' then
+		flameWeapons[weaponDefID] = weaponDef
 	end
 end
 
@@ -94,46 +93,42 @@ local function triggerDowntime(unitID, weaponNum)
 	shieldData.shieldEnabled = false
 end
 
-function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitID, bounceProjectile, beamEmitterWeaponNum, beamEmitterUnitID, startX, startY, startZ, hitX, hitY, hitZ)
-	local shieldData = shieldUnitsData[shieldUnitID]
-	
-	if not shieldData then
-		return false
-	end
-	local _, shieldPower = spGetUnitShieldState(shieldUnitID)
+function gadget:ShieldPreDamaged(proID, _, shieldWeaponNum, shieldUnitID, _, beamEmitterWeaponNum, beamEmitterUnitID)
+    local shieldData = shieldUnitsData[shieldUnitID]
+    
+	if not shieldData or not shieldData.shieldEnabled then
+        return true
+    end
 
-	if shieldData.shieldEnabled == false then
-		return true
-	elseif shieldUnitsData[shieldUnitID] then
-		shieldUnitsData[shieldUnitID].shieldWeaponNumber = shieldWeaponNum
-		local damage
+    local enabledState, shieldPower = spGetUnitShieldState(shieldUnitID)
+    shieldData.shieldWeaponNumber = shieldWeaponNum
+    local damage = 0
 
-		if -1 < proID then
-			local proDefID = spGetProjectileDefID(proID)
-			if projectilePenetrationOverrides[proDefID] then
-				return true
-			end
-			damage = originalShieldDamages[proDefID] or 0
-			shieldPower = math.max(shieldPower - damage, 0)
-			spSetUnitShieldState(shieldUnitID, shieldWeaponNum, shieldPower)
-			if not dgunWeapons[proDefID] then
-				spDeleteProjectile(proID)
-			end
-		elseif beamEmitterUnitID then
-			local beamEmitterUnitDefID = spGetUnitDefID(beamEmitterUnitID)
-			if projectilePenetrationOverrides[UnitDefs[beamEmitterUnitDefID].weapons[beamEmitterWeaponNum].weaponDef] then
-				return true
-			end
-			
-			damage = originalShieldDamages[UnitDefs[beamEmitterUnitDefID].weapons[beamEmitterWeaponNum].weaponDef] or 0
-			shieldPower = math.max(shieldPower - damage, 0)
-			spSetUnitShieldState(shieldUnitID, shieldWeaponNum, shieldPower)
+    if proID > -1 then
+        local proDefID = spGetProjectileDefID(proID)
+        damage = originalShieldDamages[proDefID] or 0
+        shieldPower = shieldPower - damage
+		if shieldPower < 0 then
+			shieldPower = 0
 		end
-
-		if shieldData.downtime and shieldData.downtimeReset < seconds and shieldPower <= 0 then
-			triggerDowntime(shieldUnitID, shieldWeaponNum)
+        spSetUnitShieldState(shieldUnitID, shieldWeaponNum, shieldPower)
+        if flameWeapons[proDefID] then
+            spDeleteProjectile(proID)
+        end
+    elseif beamEmitterUnitID then
+        local beamEmitterUnitDefID = spGetUnitDefID(beamEmitterUnitID)
+        local weaponDef = UnitDefs[beamEmitterUnitDefID].weapons[beamEmitterWeaponNum].weaponDef
+        damage = originalShieldDamages[weaponDef] or 0
+		shieldPower = shieldPower - damage
+		if shieldPower < 0 then
+			shieldPower = 0
 		end
+        spSetUnitShieldState(shieldUnitID, shieldWeaponNum, shieldPower)
+    end
 
-		return false
-	end
+    if shieldData.downtimeReset < seconds and shieldPower <= 0 then
+        triggerDowntime(shieldUnitID, shieldWeaponNum)
+    end
+
+    return false
 end

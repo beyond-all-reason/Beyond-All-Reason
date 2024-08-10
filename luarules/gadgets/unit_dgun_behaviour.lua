@@ -160,7 +160,7 @@ end
 
 local lastShieldFrameCheck = {}
 function gadget:ShieldPreDamaged(proID, proOwnerID, shieldEmitterWeaponNum, shieldCarrierUnitID, bounceProjectile, beamEmitterWeaponNum, beamEmitterUnitID, startX, startY, startZ, hitX, hitY, hitZ)
-    if proID and dgunTimeouts[proID] then
+    if proID > -1 and dgunTimeouts[proID] then
 		local proDefID = spGetProjectileDefID(proID)
 		local shieldEnabledState, shieldPower = spGetUnitShieldState(shieldCarrierUnitID)
 		local damage = WeaponDefs[proDefID].damages[11] or WeaponDefs[proDefID].damages[2]
