@@ -1222,7 +1222,7 @@ function UnitDef_Post(name, uDef)
 	if modOptions.animationcleanup  then 
 		if uDef.script then 
 			local oldscript = uDef.script:lower()
-			if oldscript:find(".cob", nil, true) then 
+			if oldscript:find(".cob", nil, true) and (not oldscript:find("_clean.", nil, true)) then 
 				local newscript = string.sub(oldscript, 1, -5) .. "_clean.cob"
 				if VFS.FileExists('scripts/'..newscript) then 
 					Spring.Echo("Using new script for", name, oldscript, '->', newscript)
