@@ -314,14 +314,9 @@ void main()
 		
 	vec4 vertexWorldPos = vec4(1);
 	vec3 flippedPos = vec3(1,-1,1) * position.xzy;
-	
+
 	
 	float radius = 0.99 * posrad.w;
-	float startFrame = margin_teamID_shield_technique.x;
-	//float lifeScale = clamp(((timeInfo.x + timeInfo.w) - startFrame) / 100.0, 0.001, 1.0);
-	float lifeScale = 1.0 - exp(-0.10 * ((timeInfo.x + timeInfo.w) - startFrame));
-	radius *= lifeScale;
-	radius += (sin(timeInfo.z)) - 1.0;
 	
 	vertexWorldPos.xyz = rotY * ( flippedPos * (radius) + posrad.xyz + vec3(0,0,0) ) + modelWorldPos;
 	if (reflectionPass < 0.5){
@@ -341,7 +336,7 @@ void main()
 	//vec3 vertex = vec3(gl_ModelViewMatrix * gl_Vertex);
 	color1_vs.rgb = camToWorldPos.xyz;
 	float angle = dot(normal,camToWorldPos); //*inversesqrt( dot(normal,normal)*dot(position,position) ); //dot(norm(n),norm(v))
-	opac_vs = pow( abs( angle ) , 1.0);
+	opac_vs = pow( abs( angle ) , margin_teamID_shield_technique.x);
 	//opac_vs = 1.0;
 	//color1_vs.rgb = vec3(angle);
 	
@@ -693,13 +688,8 @@ end
 --------------------------------------------------------------------------------
 -- Widget Interface
 --------------------------------------------------------------------------------
--- Note that we rely on VisibleUnitRemoved triggering right before VisibleUnitAdded on UnitFinished 
-local shieldFinishFrames = {} -- unitID to gameframe
-
-
 local lastDrawFrame = -1
 function widget:DrawWorldPreParticles() 
-	if next(shieldFinishFrames) then shieldFinishFrames = {} end
 	-- NOTE: This is called TWICE per draw frame, once before water and once after, even if no water is present. 
 	-- If water is present on the map, then it gets called again between the two for the refraction pass
 	-- Solution is to draw it only on the first call, and draw reflections from widget:DrawWorldReflection
@@ -729,9 +719,7 @@ function widget:Initialize()
 	end
 end
 
-
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam, noupload)
-	--Spring.Echo("widget:VisibleUnitAdded",unitID, unitDefID, unitTeam, noupload,shieldFinishFrames[unitID])
 	if unitDefID and orbUnitDefs[unitDefID] then 
 
 		unitTeam = unitTeam or spGetUnitTeam(unitID)
@@ -740,10 +728,8 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam, noupload)
 		if buildProgress < 1 then return end
 
 		local instanceCache = orbUnitDefs[unitDefID]
-		instanceCache[5] = shieldFinishFrames[unitID] or 0
 		instanceCache[6] = unitTeam
 		--instanceCache[7] = Spring.GetGameFrame()
-		shieldFinishFrames[unitID] = nil
 		
 		--Spring.Echo("Added lups orb")
 		pushElementInstance(orbVBO,
@@ -767,7 +753,6 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 end
 
 function widget:VisibleUnitRemoved(unitID)
-	shieldFinishFrames[unitID] = Spring.GetGameFrame()
 	if orbVBO.instanceIDtoIndex[unitID] then
 		popElementInstance(orbVBO, unitID)
 	end
