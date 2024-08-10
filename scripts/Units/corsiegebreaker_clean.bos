@@ -2,7 +2,7 @@
 
 piece  base, chamber_flare_fixed, chamber_flare, barrel_glow, barrel_glow_overcharge, flare, gun, chamber, r1, r2, r3, l1, l2, l3, hood, smoke1, aimfromy;
 
-static-var  bMoving, moveSpeed, currentSpeed, animSpeed, terrain,  restore_delay, shooting, pshotcount, sshotcount, weapon1_default_range, reloading, xoffset, yoffset, timeLeft;
+static-var  bMoving, moveSpeed, currentSpeed, animSpeed, terrain,  restore_delay, shooting, pshotcount, sshotcount, weapon1_default_range, reloading, xoffset, yoffset, timeLeft, isfiring, gameframe, lastfired, firetime;
 
 
 #define TURNRATE 200
@@ -13,6 +13,7 @@ static-var  bMoving, moveSpeed, currentSpeed, animSpeed, terrain,  restore_delay
 #define SIGNAL_AIM1 256
 #define SIGNAL_MOVE 1
 #define SIGNAL_RESTORE 128
+#define SIGNAL_LIGHT 64
 
 
 
@@ -27,7 +28,7 @@ static-var  bMoving, moveSpeed, currentSpeed, animSpeed, terrain,  restore_delay
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 7
 #define MAXTILT 100
-#define RECOIL_POWER 0
+//#define RECOIL_POWER 0
 #include "../unit_hitbyweaponid_and_smoke.h"
 
 //#define TB_BASE base 
@@ -51,24 +52,18 @@ UnitSpeed()
 
 
 
-RockUnit(anglex, anglez)
-{
-	turn base to x-axis anglex speed <50.000000>;
-	turn base to z-axis <0> - anglez speed <50.000000>;
-	wait-for-turn base around z-axis;
-	wait-for-turn base around x-axis;
-	turn base to z-axis <0.000000> speed <20.000000>;
-	turn base to x-axis <0.000000> speed <20.000000>;
-}
 
 Create()
 {
-	
 	
 	turn gun to x-axis <0.000000> speed <45.000000>;
 	turn gun to y-axis <0.000000> speed <45.000000>;
 	
 	
+
+	firetime = 54;
+	isfiring = 0;
+	lastfired = get(GAME_FRAME)-200;
 
 	shooting = 0;
 	pshotcount = 0;	
@@ -117,6 +112,8 @@ Create()
 	animSpeed = 100;
 	restore_delay = 3000;
 	
+	call-script SweepFire();
+	
 }
 
 
@@ -163,12 +160,33 @@ TimeToRestore(addTime){
 	turn gun to x-axis <0.000000> speed <45.000000>;
 	turn gun to y-axis <0.000000> speed <45.000000>;
 	
+	isfiring = 0;
     timeLeft = 0;
 	shooting = 0;
 	
 
 }
 
+
+
+SweepFire()
+{
+	signal SIGNAL_LIGHT;
+	set-signal-mask SIGNAL_LIGHT;
+	while (TRUE)
+	{
+		gameframe = get(GAME_FRAME);
+		if (isfiring == 1 AND lastfired+firetime>gameframe)
+		{
+			
+			emit-sfx 2049 from flare;
+			
+			
+		}
+
+		sleep 20;
+	}
+}
 
 
 
@@ -227,7 +245,7 @@ AimWeapon1(heading, pitch)
 	set HEADING to (get HEADING) + heading;//*/
 	wait-for-turn gun around x-axis;
 
-
+	isfiring = 1;
 	return 1;
 }
 
@@ -237,7 +255,8 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
-
+	gameframe = get(GAME_FRAME);
+	lastfired = gameframe;
 	
     shooting=1;
     sshotcount = sshotcount + 1;

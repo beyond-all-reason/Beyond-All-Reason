@@ -1556,7 +1556,7 @@ local icontypes = {
 		size = 0.83999997
 	},
 	cormabm = {
-		bitmap = "icons/antinukemobile.png",
+		bitmap = "icons/antinukevehicle.png",
 		size = 1.46999991
 	},
 	cormadsam = {
@@ -1679,6 +1679,10 @@ local icontypes = {
 		bitmap = "icons/corparrow.png",
 		size = 1.62749982
 	},
+	corphantom = {
+		bitmap = "icons/spy.png",
+		size = 1.20749986
+	},	
 	corplat = {
 		bitmap = "icons/factory_air_sea.png",
 		size = 1.52250004

@@ -9783,6 +9783,18 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
+	['corphantom'] = {
+		eyes1 = {
+			lightType = 'point',
+			pieceName = 'body',
+			lightConfig = { posx = 0, posy = 19, posz = 4, radius = 20,
+							color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0,
+							r = 1, g = 0.2, b = 0.2, a = 0.12,
+							modelfactor = 0.4, specular = 0, scattering = 1, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
+	
 	['corparrow'] = {
 		eyes1 = {
 			lightType = 'point',
@@ -21279,7 +21291,7 @@ local unitEventLightsNames = {
 		default = {
 			default = {
 				lightType = 'cone',
-				pieceName = 'base',
+				--pieceName = 'base',
 				aboveUnit = 100,
 				lightConfig = { posx = 0, posy = 32, posz = 0, radius = 160,
 					dirx = 0, diry = -0.99, dirz = 0.02, theta = 0.4,

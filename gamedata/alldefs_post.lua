@@ -366,6 +366,8 @@ function UnitDef_Post(name, uDef)
 		if name == "coravp" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "corvac" --corprinter
+			uDef.buildoptions[numBuildoptions + 2] = "corphantom"
+			uDef.buildoptions[numBuildoptions + 3] = "corsiegebreaker"
 		end
 		if name == "legavp" then
 			local numBuildoptions = #uDef.buildoptions
@@ -433,8 +435,9 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+3] = "corftiger"
 			uDef.buildoptions[numBuildoptions+4] = "cortorch"
 			uDef.buildoptions[numBuildoptions+5] = "corsiegebreaker"
+			uDef.buildoptions[numBuildoptions+6] = "corphantom"
 			if (printerpresent==false) then -- assuming sala and vac stay paired, this is tidiest solution
-				uDef.buildoptions[numBuildoptions+6] = "corvac" --corprinter
+				uDef.buildoptions[numBuildoptions+7] = "corvac" --corprinter
 
 			end
 		elseif name == "coraap" then

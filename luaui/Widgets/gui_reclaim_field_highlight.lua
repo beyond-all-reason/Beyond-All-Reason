@@ -33,7 +33,7 @@ local showOption = 3
 ]]
 
 --If true energy reclaim will be converted into metal (1 / 70) and added to the reclaim field value
-local includeEnergy = false
+-- local includeEnergy = false
 
 --Metal value font
 local numberColor = {1, 1, 1, 0.75}
@@ -49,6 +49,7 @@ local reclaimEdgeColor = {1, 1, 1, 0.18}
 --------------------------------------------------------------------------------
 -- Priority Queue
 
+local abs = math.abs
 local min = math.min
 local max = math.max
 local mathHuge = math.huge
@@ -319,40 +320,43 @@ end
 -- https://en.wikibooks.org/wiki/Algorithm_Implementation/Geometry/Convex_hull/Monotone_chain
 -- Direct port from Javascript version
 
-local function MonotoneChain(points)
-	local numPoints = #points
-	if numPoints < 3 then return end
-
-	table.sort(points,
-		function(a, b)
-			return a.x == b.x and a.z > b.z or a.x > b.x
-		end
-	)
-
-	local lower = {}
-	for i = 1, numPoints do
-		while (#lower >= 2 and cross(lower[#lower - 1], lower[#lower], points[i]) <= 0) do
-			table.remove(lower, #lower)
-		end
-
-		table.insert(lower, points[i])
+local MonotoneChain
+do
+	local function sortMonotonic(a, b)
+		return (a.x > b.x) or (a.x == b.x and a.z > b.z)
 	end
 
-	local upper = {}
-	for i = numPoints, 1, -1 do
-		while (#upper >= 2 and cross(upper[#upper - 1], upper[#upper], points[i]) <= 0) do
-			table.remove(upper, #upper)
+	MonotoneChain = function (points)
+		local numPoints = #points
+		if numPoints < 3 then return end
+	
+		table.sort(points, sortMonotonic)
+
+		local lower = {}
+		for i = 1, numPoints do
+			while (#lower >= 2 and cross(lower[#lower - 1], lower[#lower], points[i]) <= 0) do
+				table.remove(lower)
+			end
+	
+			table.insert(lower, points[i])
 		end
-
-		table.insert(upper, points[i])
+	
+		local upper = {}
+		for i = numPoints, 1, -1 do
+			while (#upper >= 2 and cross(upper[#upper - 1], upper[#upper], points[i]) <= 0) do
+				table.remove(upper)
+			end
+	
+			table.insert(upper, points[i])
+		end
+	
+		table.remove(upper)
+		table.remove(lower)
+		for _, point in ipairs(lower) do
+			table.insert(upper, point)
+		end
+		return upper
 	end
-
-	table.remove(upper, #upper)
-	table.remove(lower, #lower)
-	for _, point in ipairs(lower) do
-		table.insert(upper, point)
-	end
-	return upper
 end
 
 
@@ -400,6 +404,7 @@ local spGetCameraVectors = Spring.GetCameraVectors
 local screenx, screeny
 local gaiaTeamId = spGetGaiaTeamID()
 local clusterizingNeeded = false -- Used to check if clusterizing neds to be run, set by FeatureCreated/Removed
+local redrawingNeeded = false
 
 local minDistance = 300
 local minSqDistance = minDistance^2
@@ -408,7 +413,7 @@ local minFeatureMetal = 9 -- Tick
 local E2M = 1 / 70 -- Converter ratio
 local minDim = 100
 
-local checkFrequency = 30
+local checkFrequency = 2 * Game.gameSpeed
 
 local drawEnabled = true
 local actionActive = false
@@ -486,14 +491,23 @@ local featureNeighborsMatrix = {}
 local featureClusters = {}
 local featureConvexHulls = {}
 
-local function UpdateFeatureNeighborsMatrix(fID, added, posChanged, removed)
+---To update a feature's entire neighborhood, flag it as both added and removed.
+local function UpdateFeatureNeighborsMatrix(fID, added, removed)
 	local fInfo = knownFeatures[fID]
 
+	if removed then
+		for fID2 in pairs(featureNeighborsMatrix[fID]) do
+			featureNeighborsMatrix[fID2][fID] = nil
+			featureNeighborsMatrix[fID][fID2] = nil
+		end
+	end
+
 	if added then
+		local fx, fz = fInfo.x, fInfo.z
 		featureNeighborsMatrix[fID] = {}
 		for fID2, fInfo2 in pairs(knownFeatures) do
 			if fID2 ~= fID then --don't include self into featureNeighborsMatrix[][]
-				local sqDist = (fInfo.x - fInfo2.x)^2 + (fInfo.z - fInfo2.z)^2
+				local sqDist = (fx - fInfo2.x)^2 + (fz - fInfo2.z)^2
 				if sqDist <= minSqDistance then
 					featureNeighborsMatrix[fID][fID2] = true
 					featureNeighborsMatrix[fID2][fID] = true
@@ -501,79 +515,38 @@ local function UpdateFeatureNeighborsMatrix(fID, added, posChanged, removed)
 			end
 		end
 	end
-
-	if removed then
-		for fID2, _ in pairs(featureNeighborsMatrix[fID]) do
-			featureNeighborsMatrix[fID2][fID] = nil
-			featureNeighborsMatrix[fID][fID2] = nil
-		end
-	end
-
-	if posChanged then
-		UpdateFeatureNeighborsMatrix(fID, false, false, true) --remove
-		UpdateFeatureNeighborsMatrix(fID, true, false, false) --add again
-	end
-end
-
-local function ProcessFeature(featureID)
-	local metal, _, energy = spGetFeatureResources(featureID)
-
-	if includeEnergy then metal = metal + energy * E2M end
-
-	if (not knownFeatures[featureID]) and (metal >= minFeatureMetal) then
-		local f = {}
-
-		local fx, _, fz = spGetFeaturePosition(featureID)
-		local fy = spGetGroundHeight(fx, fz)
-		f.x = fx
-		f.y = fy
-		f.z = fz
-
-		f.isGaia = (spGetFeatureTeam(featureID) == gaiaTeamId)
-		f.height = spGetFeatureHeight(featureID)
-		f.drawAlt = ((fy > 0 and fy) or 0) --+ f.height
-
-		f.metal = metal
-
-		knownFeatures[featureID] = f
-
-		UpdateFeatureNeighborsMatrix(featureID, true, false, false)
-		clusterizingNeeded = true
-	end
 end
 
 local function UpdateFeatures()
-	clusterMetalUpdated = false
 	for fID, fInfo in pairs(knownFeatures) do
-		local metal, _, energy = spGetFeatureResources(fID)
-
-		if includeEnergy then metal = metal + energy * E2M end
+		-- local metal, _, energy = spGetFeatureResources(fID)
+		-- if includeEnergy then metal = metal + energy * E2M end
+		local metal = spGetFeatureResources(fID)
 		if metal >= minFeatureMetal then
-			local fx, _, fz = spGetFeaturePosition(fID)
-			local fy = spGetGroundHeight(fx, fz)
+			-- -- @efrec testing whether this is still needed
+			-- local fx, _, fz = spGetFeaturePosition(fID)
+			-- local fy = spGetGroundHeight(fx, fz)
+			-- if fInfo.x ~= fx or fInfo.y ~= fy or fInfo.z ~= fz then
+			-- 	fInfo.x = fx
+			-- 	fInfo.y = fy
+			-- 	fInfo.z = fz
+			-- 	fInfo.drawAlt = ((fy > 0 and fy) or 0) --+ fInfo.height
+			-- 	UpdateFeatureNeighborsMatrix(fID, true, true)
+			-- end
 
-			if knownFeatures[fID].x ~= fx or knownFeatures[fID].y ~= fy or knownFeatures[fID].z ~= fz then
-				knownFeatures[fID].x = fx
-				knownFeatures[fID].y = fy
-				knownFeatures[fID].z = fz
-
-				knownFeatures[fID].drawAlt = ((fy > 0 and fy) or 0) --+ knownFeatures[fID].height
-
-				UpdateFeatureNeighborsMatrix(fID, false, true, false)
-			end
-
-			if knownFeatures[fID].metal ~= metal then
-				if knownFeatures[fID].clID then
-					local thisCluster = featureClusters[knownFeatures[fID].clID]
-					thisCluster.metal = thisCluster.metal - knownFeatures[fID].metal
-					if metal >= minFeatureMetal then
+			if fInfo.metal ~= metal then
+				if fInfo.clID then
+					local thisCluster = featureClusters[fInfo.clID]
+					thisCluster.metal = thisCluster.metal - fInfo.metal
+					-- Okay but we've already established that it's >= min
+					-- if metal >= minFeatureMetal then
 						thisCluster.metal = thisCluster.metal + metal
-						knownFeatures[fID].metal = metal
-						clusterMetalUpdated = true
-					else
-						UpdateFeatureNeighborsMatrix(fID, false, false, true)
-						knownFeatures[fID] = nil
-					end
+						fInfo.metal = metal
+					-- So this would never execute
+					-- else
+					-- 	UpdateFeatureNeighborsMatrix(fID, false, true)
+					-- 	knownFeatures[fID] = nil
+					-- end
 				end
 			end
 		else
@@ -584,13 +557,11 @@ local function UpdateFeatures()
 
 	for fID, fInfo in pairs(knownFeatures) do
 		if fInfo.isGaia and spValidFeatureID(fID) == false then
-			UpdateFeatureNeighborsMatrix(fID, false, false, true)
+			UpdateFeatureNeighborsMatrix(fID, false, true)
 			fInfo = nil
 			knownFeatures[fID] = nil
-		end
-
-		if fInfo then
-			knownFeatures[fID].clID = nil
+		else
+			fInfo.clID = nil
 		end
 	end
 end
@@ -614,36 +585,38 @@ local function ClusterizeFeatures()
 	featureClusters = opticsObject:Clusterize(minDistance)
 
 	for i = 1, #featureClusters do
-		local thisCluster = featureClusters[i]
-
-		thisCluster.xmin = mathHuge
-		thisCluster.xmax = -mathHuge
-		thisCluster.zmin = mathHuge
-		thisCluster.zmax = -mathHuge
-
+		local thisCluster = featureClusters[i]		
+		local members = thisCluster.members
+		local xmin, xmax, zmin, zmax = -mathHuge, mathHuge, -mathHuge, mathHuge
 		local metal = 0
-		for j = 1, #thisCluster.members do
-			local fID = thisCluster.members[j]
+		for j = 1, #members do
+			local fID = members[j]
 			local fInfo = knownFeatures[fID]
 
-			thisCluster.xmin = min(thisCluster.xmin, fInfo.x)
-			thisCluster.xmax = max(thisCluster.xmax, fInfo.x)
-			thisCluster.zmin = min(thisCluster.zmin, fInfo.z)
-			thisCluster.zmax = max(thisCluster.zmax, fInfo.z)
+			local x = fInfo.x
+			local z = fInfo.z
+			xmin = min(xmin, x)
+			xmax = max(xmax, x)
+			zmin = min(zmin, z)
+			zmax = max(zmax, z)
 
 			metal = metal + fInfo.metal
-			knownFeatures[fID].clID = i
+			fInfo.clID = i
 			unclusteredPoints[fID] = nil
 		end
 
 		thisCluster.metal = metal
+		thisCluster.xmin = xmin
+		thisCluster.xmax = xmax
+		thisCluster.zmin = zmin
+		thisCluster.zmax = zmax
 	end
 
-	for fID, _ in pairs(unclusteredPoints) do
+	for fID in pairs(unclusteredPoints) do
 		local fInfo = knownFeatures[fID]
 		local thisCluster = {}
 
-		thisCluster.members = {fID}
+		thisCluster.members = { fID }
 		thisCluster.metal = fInfo.metal
 
 		thisCluster.xmin = fInfo.x
@@ -652,38 +625,28 @@ local function ClusterizeFeatures()
 		thisCluster.zmax = fInfo.z
 
 		featureClusters[#featureClusters + 1] = thisCluster
-		knownFeatures[fID].clID = #featureClusters
+		fInfo.clID = #featureClusters
 	end
-
 end
 
-local function lineCheck(points)
-	if points[1] == nil then return true end
-	local totalArea = 0
-	local pt1 = points[1]
-	for i = 2, #points - 1 do
-		local pt2 = points[i]
-		local pt3 = points[i + 1]
-		-- Heron formula to get triangle area
-		local a = sqrt((pt2.x - pt1.x)^2 + (pt2.z - pt1.z)^2)
-		local b = sqrt((pt3.x - pt2.x)^2 + (pt3.z - pt2.z)^2)
-		local c = sqrt((pt3.x - pt1.x)^2 + (pt3.z - pt1.z)^2)
-		local p = (a + b + c)/2 -- Half perimeter
-
-		local triangleArea = sqrt(p * (p - a) * (p - b) * (p - c))
-		totalArea = totalArea + triangleArea
+local function pointArea(points)
+	-- Determinant area, point form
+	local n = #points
+	local totalArea = points[1].x * (points[n].z - points[2].z)
+	for i = 2, n-1 do
+		totalArea = totalArea + points[i].x * (points[i-1].z - points[i+1].z)
 	end
-	if totalArea < 3000 then return false end
-	return true
+	return abs(totalArea + points[n].x * (points[1].z - points[n-1].z)) * 0.5
 end
 
 local function ClustersToConvexHull()
 	featureConvexHulls = {}
 	for fc = 1, #featureClusters do
 		local clusterPoints = {}
+		local members = featureClusters[fc].members
 
-		for fcm = 1, #featureClusters[fc].members do
-			local fID = featureClusters[fc].members[fcm]
+		for fcm = 1, #members do
+			local fID = members[fcm]
 			clusterPoints[#clusterPoints + 1] = {
 				x = knownFeatures[fID].x,
 				y = knownFeatures[fID].drawAlt,
@@ -696,7 +659,7 @@ local function ClustersToConvexHull()
 		-- http://mindthenerd.blogspot.ru/2012/05/fastest-convex-hull-algorithm-ever.html
 
 		local convexHull
-		if #clusterPoints >= 3 and lineCheck(clusterPoints) then
+		if #clusterPoints >= 3 and pointArea(clusterPoints) >= 3000 then
 			--spEcho("#clusterPoints >= 3")
 			--convexHull = ConvexHull.JarvisMarch(clusterPoints)
 			convexHull = MonotoneChain(clusterPoints) --twice faster
@@ -739,22 +702,7 @@ local function ClustersToConvexHull()
 			cy = max(cy, convexHullPoint.y)
 		end
 
-		local totalArea = 0
-		local pt1 = convexHull[1]
-		for i = 2, #convexHull - 1 do
-			local pt2 = convexHull[i]
-			local pt3 = convexHull[i + 1]
-			--Heron formula to get triangle area
-			local a = sqrt((pt2.x - pt1.x)^2 + (pt2.z - pt1.z)^2)
-			local b = sqrt((pt3.x - pt2.x)^2 + (pt3.z - pt2.z)^2)
-			local c = sqrt((pt3.x - pt1.x)^2 + (pt3.z - pt1.z)^2)
-			local p = (a + b + c)/2 --half perimeter
-
-			local triangleArea = sqrt(p * (p - a) * (p - b) * (p - c))
-			totalArea = totalArea + triangleArea
-		end
-
-		convexHull.area = totalArea
+		convexHull.area = pointArea(convexHull)
 		convexHull.center = {x = cx/#convexHull, z = cz/#convexHull, y = cy + 1}
 
 		featureConvexHulls[fc] = convexHull
@@ -782,12 +730,29 @@ function widget:Initialize()
 	end
 
 	for _, fID in ipairs(spGetAllFeatures()) do
-		ProcessFeature(fID)
+		widget:FeatureCreated(fID)
 	end
 end
 
 function widget:FeatureCreated(featureID, allyTeamID)
-	ProcessFeature(featureID)
+	-- local metal, _, energy = spGetFeatureResources(fID)
+	-- if includeEnergy then metal = metal + energy * E2M end
+	local metal = spGetFeatureResources(featureID)
+	if (not knownFeatures[featureID]) and (metal >= minFeatureMetal) then
+		local fx, fy, fz = spGetFeaturePosition(featureID)
+		knownFeatures[featureID] = {
+			x = fx,
+			y = fy, -- spGetGroundHeight(fx, fz) -- befrwmrn
+			z = fz,
+			metal = metal,
+			drawAlt = ((fy > 0 and fy) or 0),
+			height = spGetFeatureHeight(featureID),
+			isGaia = (spGetFeatureTeam(featureID) == gaiaTeamId),
+		}
+
+		UpdateFeatureNeighborsMatrix(featureID, true, false)
+		clusterizingNeeded = true
+	end
 end
 
 function widget:FeatureDestroyed(featureID, allyTeamID)
@@ -888,9 +853,38 @@ function widget:Update(dt)
 end
 
 function widget:GameFrame(frame)
-	local frameMod = frame % checkFrequency
-	if not drawEnabled or frameMod ~= 0 then
+	if not drawEnabled or frame % checkFrequency ~= 0 then
 		return
+	end
+
+	if redrawingNeeded then
+		if drawFeatureConvexHullSolidList then
+			glDeleteList(drawFeatureConvexHullSolidList)
+			drawFeatureConvexHullSolidList = nil
+		end
+	
+		if drawFeatureConvexHullEdgeList then
+			glDeleteList(drawFeatureConvexHullEdgeList)
+			drawFeatureConvexHullEdgeList = nil
+		end
+	
+		if drawFeatureConvexHullSolidList == nil then
+			drawFeatureConvexHullSolidList = glCreateList(DrawFeatureConvexHullSolid)
+			drawFeatureConvexHullEdgeList = glCreateList(DrawFeatureConvexHullEdge)
+		end
+	
+		local camUpVectorCurrent = spGetCameraVectors().up
+		if textParametersChanged or drawFeatureClusterTextList == nil or camUpVectorCurrent ~= camUpVector then
+			camUpVector = camUpVectorCurrent
+			if drawFeatureClusterTextList then
+				glDeleteList(drawFeatureClusterTextList)
+				drawFeatureClusterTextList = nil
+			end
+			drawFeatureClusterTextList = glCreateList(DrawFeatureClusterText)
+			textParametersChanged = false
+		end
+
+		redrawingNeeded = false
 	end
 
 	UpdateFeatures()
@@ -899,32 +893,9 @@ function widget:GameFrame(frame)
 		ClusterizeFeatures()
 		ClustersToConvexHull()
 		clusterizingNeeded = false
-	end
-
-	if drawFeatureConvexHullSolidList then
-		glDeleteList(drawFeatureConvexHullSolidList)
-		drawFeatureConvexHullSolidList = nil
-	end
-
-	if drawFeatureConvexHullEdgeList then
-		glDeleteList(drawFeatureConvexHullEdgeList)
-		drawFeatureConvexHullEdgeList = nil
-	end
-
-	if drawFeatureConvexHullSolidList == nil then
-		drawFeatureConvexHullSolidList = glCreateList(DrawFeatureConvexHullSolid)
-		drawFeatureConvexHullEdgeList = glCreateList(DrawFeatureConvexHullEdge)
-	end
-
-	local camUpVectorCurrent = spGetCameraVectors().up
-	if textParametersChanged or drawFeatureClusterTextList == nil or camUpVectorCurrent ~= camUpVector then
-		camUpVector = camUpVectorCurrent
-		if drawFeatureClusterTextList then
-			glDeleteList(drawFeatureClusterTextList)
-			drawFeatureClusterTextList = nil
-		end
-		drawFeatureClusterTextList = glCreateList(DrawFeatureClusterText)
-		textParametersChanged = false
+		-- Clustering is expensive enough for a single frame; push draw calls to the next frame.
+		-- Stacking individually-negligible improvements does help, eventually.
+		redrawingNeeded = true
 	end
 end
 
