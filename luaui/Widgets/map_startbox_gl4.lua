@@ -150,7 +150,7 @@ local startboxFS = [[
 	//scaler = scaler + sin((30.0 * elatime - worldPos.z / 10.0) / 40.0);
 
 	//fragColor = vec4(0.0,(smoothstep(0,1,sin(-2.0*elatime+worldPos.z/100))+2)*minDist,0.0,0.2);
-	fragColor = vec4(color.xyz, color.w * scaler + .07);
+	fragColor = vec4(color.xyz, color.w * scaler + .2);
   }
 ]]
 local startposShader
