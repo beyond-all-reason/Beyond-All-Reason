@@ -39,7 +39,8 @@ local gameSeconds = 0
 
 for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 	local areaOfEffect = weaponDef.damageAreaOfEffect
-	if areaOfEffect > 11 and not weaponDef.customParams.shield_aoe_penetration then -- 11 because the the benchmark cortex sumo has a AOE of 12
+	local interceptedByShieldType = weaponDef.interceptedByShieldType
+	if areaOfEffect > 11 and not weaponDef.customParams.shield_aoe_penetration and weaponDef.interceptedByShieldType == 1 then -- 11 because the the benchmark cortex sumo has a AOE of 12
 		AOEWeaponDefIDs[weaponDefID] = true
 	end
 	if weaponDef.customParams.beamtime_damage_reduction_multiplier then
