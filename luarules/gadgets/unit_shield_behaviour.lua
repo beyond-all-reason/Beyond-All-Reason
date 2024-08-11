@@ -37,6 +37,18 @@ local AOEWeaponDefIDs = {}
 local projectileShieldHitCache = {}
 local gameSeconds = 0
 
+local allyTeams = Spring.GetAllyTeamList()
+local allTeams = {}
+for i, allyID in ipairs(allyTeams) do
+    local teamList = Spring.GetTeamList(allyID)
+    if teamList then
+        allyTeams[i] = teamList
+        for _, teamID in pairs(teamList) do
+            allTeams[teamID] = allyID
+        end
+    end
+end
+
 for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 	local areaOfEffect = weaponDef.damageAreaOfEffect
 	local interceptedByShieldType = weaponDef.interceptedByShieldType
@@ -137,7 +149,7 @@ local function setCoveredUnits(shieldUnitID)
 end
 
 local function shieldNegatesDamageCheck(unitID, unitTeam, attackerID, attackerTeam)
-	if unitTeam ~= attackerTeam and shieldedUnits[unitID] and next(shieldedUnits[unitID]) then --if same team, collision doesn't happen so no point in checking. If unit ID doesn't have any shields protecting it, skip it.
+	if shieldedUnits[unitID] and allTeams[unitTeam] ~= allTeams[attackerTeam] and next(shieldedUnits[unitID]) then --if same team, collision doesn't happen so no point in checking. If unit ID doesn't have any shields protecting it, skip it.
 		if not shieldedUnits[attackerID] or (not next(shieldedUnits[attackerID]) and next(shieldedUnits[unitID])) then
 			return true
 		end
@@ -155,8 +167,8 @@ end
 local shieldUnitsTotalCount = 0
 local shieldUnitIndex = {}
 local shieldCheckFlags = {}
-local lastShieldCheckChunkNumber = 1 -- Initialize this to your desired starting index
-local shieldCheckChunkSize = 10      -- Define the chunk size
+local lastShieldCheckChunkNumber = 1
+local shieldCheckChunkSize = 10
 local shieldCheckEndIndex = 1
 function gadget:GameFrame(frame)
 	gameSeconds = spGetGameSeconds()
