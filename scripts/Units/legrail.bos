@@ -7,7 +7,7 @@
 
 piece  base, tracks, armor, aimy1, turret, aimx1, sleeve, barrel, flare;
 
-static-var  restore_delay, bAiming, wpn1_lasthead;
+static-var  restore_delay, bAiming, wpn1_lasthead, shotcount;
 
 #define TB_BASE base 
 #define TB_TURNRATE <15.0> 
@@ -37,9 +37,9 @@ RockUnit(anglex, anglez)
 
 Create()
 {
-	hide flare;
 	restore_delay = 3000;
 	bAiming = 0;
+	shotcount = 0;
 	call-script TB_Init();
 	SLEEP_UNTIL_UNITFINISHED;
 }
@@ -109,10 +109,33 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
+	++shotcount;
  	emit-sfx 1024 + 0 from flare;
+	call-script lua_UnitScriptLight(1, shotcount);
+	
  	move barrel to z-axis [-6] now;
- 	wait-for-move barrel along z-axis;
- 	move barrel to z-axis [0] speed [3];	
+	turn sleeve to x-axis <-10> now;
+	
+	turn sleeve to x-axis <0> speed <30.0>;
+ 	move barrel to z-axis [0] speed [2.5];
+}
+
+FireSecondary()
+{
+	++shotcount;
+ 	emit-sfx 1024 + 0 from flare;
+	call-script lua_UnitScriptLight(2, shotcount);
+	
+ 	move barrel to z-axis [-6] now;
+	turn sleeve to x-axis <-10> now;
+	
+	turn sleeve to x-axis <0> speed <30.0>;
+ 	move barrel to z-axis [0] speed [2.5];
+}
+
+lua_UnitScriptLight(lightIndex, count)
+{
+	return 0;
 }
 
 AimFromPrimary(piecenum)
