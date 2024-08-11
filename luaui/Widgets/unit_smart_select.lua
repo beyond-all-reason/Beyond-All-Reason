@@ -11,7 +11,7 @@ function widget:GetInfo()
 end
 
 local minimapToWorld = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").minimapToWorld
-local getRules = VFS.Include("luaui/Widgets/Include/select_api.lua").getRules
+local getFilterRules = VFS.Include("luaui/Widgets/Include/select_api.lua").getFilterRules
 local skipSel
 local inSelection = false
 local inMiniMapSel = false
@@ -116,7 +116,7 @@ end
 
 
 local function handleSetCustomRulesFilter(_, ruleDef)
-	customRulesFilter = getRules(ruleDef)
+	customRulesFilter = getFilterRules(ruleDef)
 	customRulesFilterDef = ruleDef
 end
 

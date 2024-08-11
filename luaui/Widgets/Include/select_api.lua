@@ -15,10 +15,12 @@ local customRulesLookup = {}
 
 
 local function isMobile(udef)
-	return (udef.canMove and udef.speed > 0.000001)  or  (includeNanosAsMobile and (udef.name == "armnanotc" or udef.name == "cornanotc"))
+	return (udef.canMove and udef.speed > 0.000001) or
+		(includeNanosAsMobile and (udef.name == "armnanotc" or udef.name == "cornanotc"))
 end
 local function isBuilder(udef)
-	return (udef.canReclaim and udef.reclaimSpeed > 0)  or  (udef.canResurrect and udef.resurrectSpeed > 0)  or  (udef.canRepair and udef.repairSpeed > 0) or (udef.buildOptions and udef.buildOptions[1])
+	return (udef.canReclaim and udef.reclaimSpeed > 0) or (udef.canResurrect and udef.resurrectSpeed > 0) or
+		(udef.canRepair and udef.repairSpeed > 0) or (udef.buildOptions and udef.buildOptions[1])
 end
 
 local nameLookup = {}
@@ -26,7 +28,6 @@ local nameLookup = {}
 for udid, udef in pairs(UnitDefs) do
 	nameLookup[udef.name] = udid
 end
-
 
 local function invertCurry(invert, rule, args)
 	return function(udef, udefid, uid)
@@ -70,7 +71,7 @@ local function stringContains(mainString, searchString)
 	return mainString:find(searchString, 1, true) ~= nil
 end
 
-local function parseRules(ruleDef)
+local function parseFilterRules(ruleDef)
 	local tokens = {}
 	local tokenIndex = 1
 
@@ -158,7 +159,7 @@ local function parseRules(ruleDef)
 				return false
 			end)
 
-		-- hotkey rules
+			-- hotkey rules
 		elseif token == "InHotkeyGroup" then
 			rules.inHotKeyGroup = invertCurry(invert, function(_, _, uid)
 				return Spring.GetUnitGroup(uid) ~= nil
@@ -300,15 +301,15 @@ local function parseRules(ruleDef)
 	return rules
 end
 
-local function getRules(ruleDef)
+local function getFilterRules(ruleDef)
 	local rules = customRulesLookup[ruleDef]
 
 	if rules == nil then
-		rules = parseRules(ruleDef)
+		rules = parseFilterRules(ruleDef)
 		customRulesLookup[ruleDef] = rules
 	end
 
 	return rules
 end
 
-return {parseRules = parseRules, getRules = getRules}
+return { parseFilterRules = parseFilterRules, getFilterRules = getFilterRules }
