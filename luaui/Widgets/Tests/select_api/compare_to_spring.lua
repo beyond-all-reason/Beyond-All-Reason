@@ -1,6 +1,7 @@
+-- run test using BAR command (in chat): `/runtests select_api`
 local spGetUnitDefID = Spring.GetUnitDefID
-local spGetSelectedUnits = Spring.GetSelectedUnits
 local parseFilterRules = VFS.Include("luaui/Widgets/Include/select_api.lua").parseFilterRules
+local unitPassesFilterRules = VFS.Include("luaui/Widgets/Include/select_api.lua").unitPassesFilterRules
 local nameLookup = {}
 
 function skip()
@@ -15,25 +16,6 @@ function cleanup()
 	Test.clearMap()
 
 	Spring.SendCommands("setspeed " .. 1)
-end
-
-local function unitPassesRules(uid, apiRules)
-	local udefid = spGetUnitDefID(uid)
-
-	if not udefid then
-		return nil
-	end
-
-	local udef = UnitDefs[udefid]
-	local passesAllRules = true
-
-	for _ruleName, rule in pairs(apiRules) do
-		if not rule(udef, udefid, uid) then
-			return false
-		end
-	end
-
-	return true
 end
 
 local function compareUnitSets(springUnitSet, apiUnitSet)
@@ -218,7 +200,7 @@ function test()
 		-- api
 		local apiRules = parseFilterRules(rules)
 		for _, uid in ipairs(uids) do
-			local passes = unitPassesRules(uid, apiRules)
+			local passes = unitPassesFilterRules(uid, apiRules)
 
 			if passes == nil then
 				springUnitSet[uid] = nil

@@ -12,6 +12,8 @@ end
 
 local minimapToWorld = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").minimapToWorld
 local getFilterRules = VFS.Include("luaui/Widgets/Include/select_api.lua").getFilterRules
+local unitPassesFilterRules = VFS.Include("luaui/Widgets/Include/select_api.lua").unitPassesFilterRules
+
 local skipSel
 local inSelection = false
 local inMiniMapSel = false
@@ -259,19 +261,7 @@ function widget:Update()
 		for i = 1, #mouseSelection do
 			uid = mouseSelection[i]
 
-			local udefid = spGetUnitDefID(uid)
-			local udef = UnitDefs[udefid]
-			local passesAllRules = true
-			-- checkUdef(udef, "canManualFire")
-
-			for _ruleName, rule in pairs(customRulesFilter) do
-				if not rule(udef, udefid, uid) then
-					passesAllRules = false
-					break
-				end
-			end
-
-			if passesAllRules then
+			if unitPassesFilterRules(uid, customRulesFilter) then
 				tmp[#tmp + 1] = uid
 			end
 		end

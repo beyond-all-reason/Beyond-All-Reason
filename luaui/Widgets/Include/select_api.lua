@@ -9,6 +9,7 @@ local vtoldamagetag = Game.armorTypes['vtol']
 
 local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
 local spGetCommandQueue = Spring.GetCommandQueue
+local spGetUnitDefID = Spring.GetUnitDefID
 
 local includeNanosAsMobile = true -- TODO
 local customRulesLookup = {}
@@ -311,4 +312,26 @@ local function getFilterRules(ruleDef)
 	return rules
 end
 
-return { parseFilterRules = parseFilterRules, getFilterRules = getFilterRules }
+local function unitPassesFilterRules(uid, apiRules)
+	local udefid = spGetUnitDefID(uid)
+
+	if not udefid then
+		return nil
+	end
+
+	local udef = UnitDefs[udefid]
+
+	for _ruleName, rule in pairs(apiRules) do
+		if not rule(udef, udefid, uid) then
+			return false
+		end
+	end
+
+	return true
+end
+
+return {
+	parseFilterRules = parseFilterRules,
+	getFilterRules = getFilterRules,
+	unitPassesFilterRules = unitPassesFilterRules
+}
