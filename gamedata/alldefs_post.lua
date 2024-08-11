@@ -440,6 +440,9 @@ function UnitDef_Post(name, uDef)
 				uDef.buildoptions[numBuildoptions+7] = "corvac" --corprinter
 
 			end
+		elseif name == "coralab" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "cordeadeye"
 		elseif name == "coraap" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corcrw"
@@ -449,6 +452,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 2] = "corgolt4"
 			uDef.buildoptions[numBuildoptions + 3] = "corakt4"
 			uDef.buildoptions[numBuildoptions + 4] = "corthermite"
+			uDef.buildoptions[numBuildoptions + 5] = "cormandot4"
 		elseif name == "armca" or name == "armck" or name == "armcv" then
 			--local numBuildoptions = #uDef.buildoptions
 		elseif name == "corca" or name == "corck" or name == "corcv" then
@@ -1218,7 +1222,7 @@ function UnitDef_Post(name, uDef)
 	if modOptions.animationcleanup  then 
 		if uDef.script then 
 			local oldscript = uDef.script:lower()
-			if oldscript:find(".cob", nil, true) then 
+			if oldscript:find(".cob", nil, true) and (not oldscript:find("_clean.", nil, true)) then 
 				local newscript = string.sub(oldscript, 1, -5) .. "_clean.cob"
 				if VFS.FileExists('scripts/'..newscript) then 
 					Spring.Echo("Using new script for", name, oldscript, '->', newscript)

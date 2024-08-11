@@ -11,8 +11,6 @@ function widget:GetInfo()
   }
 end
 
--- Notes: this API can be considered mildly deprecated, as CUS GL4 now handles the major consumers of this API.
-
 local luaShaderDir = "LuaUI/Widgets/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevboidtable.lua")
