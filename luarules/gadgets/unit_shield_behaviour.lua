@@ -14,6 +14,7 @@ if not gadgetHandler:IsSyncedCode() then return end
 
 ----Optional unit customParams----
 --customParams shield_downtime = <number in seconds>, if not set defaults to 5 seconds
+--customParams shield_aoe_penetration = bool, if true then the AOE will hurt units within the shield radius.
 
 local spGetUnitShieldState = Spring.GetUnitShieldState
 local spSetUnitShieldState = Spring.SetUnitShieldState
@@ -38,7 +39,7 @@ local gameSeconds = 0
 
 for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 	local areaOfEffect = weaponDef.damageAreaOfEffect
-	if areaOfEffect > 30 then
+	if areaOfEffect > 30 and not weaponDef.customParams.shield_aoe_penetration then
 		AOEWeaponDefIDs[weaponDefID] = true
 	end
 	if weaponDef.customParams.beamtime_damage_reduction_multiplier then
