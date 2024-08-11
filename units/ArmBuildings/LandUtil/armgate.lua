@@ -46,7 +46,7 @@ return {
 			shield_color_mult = 0.8,
 			shield_power = 3250,
 			shield_radius = 550,
-			shield_downtime = 5,
+			shield_downtime = 8,
 			subfolder = "armbuildings/landutil",
 			techlevel = 2,
 		},

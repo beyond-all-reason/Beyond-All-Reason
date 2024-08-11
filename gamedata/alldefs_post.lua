@@ -1378,6 +1378,9 @@ function WeaponDef_Post(name, wDef)
 			if wDef.shield and wDef.shield.repulser and wDef.shield.repulser ~= false then
 				wDef.shield.repulser = false
 			end
+			if wDef.shield then
+				wDef.shield.exterior = true --this makes it so projectiles fired within the shield don't trigger collision events
+			end
 			if (not wDef.interceptedbyshieldtype) or wDef.interceptedbyshieldtype ~= 1 then
 				for _, exemption in ipairs(shieldCollisionExemptions) do
 					if string.find(name, exemption)then
