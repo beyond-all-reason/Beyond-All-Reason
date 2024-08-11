@@ -21,6 +21,9 @@ local spGetGameSeconds = Spring.GetGameSeconds
 local spSetUnitShieldRechargeDelay = Spring.SetUnitShieldRechargeDelay
 local spDeleteProjectile = Spring.DeleteProjectile
 local spGetProjectileDefID = Spring.GetProjectileDefID
+local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitsInSphere = Spring.GetUnitsInSphere
+local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
 
 local shieldUnitDefs = {}
 local shieldUnitsData = {}
@@ -117,8 +120,8 @@ local function setCoveredUnits(shieldUnitID)
 		return
 	else
 		removeCoveredUnits(shieldUnitID)
-		local x, y, z = Spring.GetUnitPosition(shieldUnitID, true)
-		local unitsTable = Spring.GetUnitsInSphere(x, y, z, (shieldData.radius - 10))
+		local x, y, z = spGetUnitPosition(shieldUnitID, true)
+		local unitsTable = spGetUnitsInSphere(x, y, z, (shieldData.radius - 10))
 		for _, unitID in ipairs(unitsTable) do
 			if shieldedUnits[unitID] then
 				shieldedUnits[unitID][shieldUnitID] = true
@@ -185,13 +188,13 @@ function gadget:GameFrame(frame)
 				shieldData.shieldEnabled = true
 				spSetUnitShieldRechargeDelay(shieldUnitID, shieldData.shieldWeaponNumber, 0)
 				    --this section is to allow slower moving projectiles already inside the shield when it comes back online to damage units within the radius.
-					local x, y, z = Spring.GetUnitPosition(shieldUnitID)
+					local x, y, z = spGetUnitPosition(shieldUnitID)
 					local radius = shieldData.radius-25
 					local xmin = x - radius
 					local xmax = x + radius
 					local zmin = z - radius
 					local zmax = z + radius
-					local projectiles = Spring.GetProjectilesInRectangle(xmin, zmin, xmax, zmax)
+					local projectiles = spGetProjectilesInRectangle(xmin, zmin, xmax, zmax)
 					for _, projectileID in ipairs(projectiles) do
 						projectileShieldHitCache[projectileID] = true
 					end
@@ -222,10 +225,8 @@ function gadget:GameFrame(frame)
 				else
 					removeCoveredUnits(shieldUnitID)
 				end
-				shieldData.shieldCoverageChecked = true
-			else
-				shieldData.shieldCoverageChecked = false
 			end
+			shieldData.shieldCoverageChecked = false
 		end
 	end
 
