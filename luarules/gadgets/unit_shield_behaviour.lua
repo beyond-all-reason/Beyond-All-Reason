@@ -39,7 +39,7 @@ local gameSeconds = 0
 
 for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 	local areaOfEffect = weaponDef.damageAreaOfEffect
-	if areaOfEffect > 30 and not weaponDef.customParams.shield_aoe_penetration then
+	if areaOfEffect > 11 and not weaponDef.customParams.shield_aoe_penetration then -- 11 because the the benchmark cortex sumo has a AOE of 12
 		AOEWeaponDefIDs[weaponDefID] = true
 	end
 	if weaponDef.customParams.beamtime_damage_reduction_multiplier then
@@ -78,7 +78,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 			shieldWeaponNumber = -1,                                       --this is replaced with the real shieldWeaponNumber as soon as the shield is damaged.
 			downtime = shieldUnitDefs[unitDefID].customParams.shield_downtime or 8, --defined in unitdef.customparams with a default fallback value.
 			downtimeReset = 0,
-			shieldCoverageChecked = false,
+			shieldCoverageChecked = false,									--this is to prevent expensive unit coverage checks aren't performed more than once per cycle.
 			radius = shieldUnitDefs[unitDefID].customParams.shield_radius
 		}
 	end
@@ -136,7 +136,7 @@ local function setCoveredUnits(shieldUnitID)
 end
 
 local function shieldNegatesDamageCheck(unitID, unitTeam, attackerID, attackerTeam)
-	if unitTeam ~= attackerTeam and shieldedUnits[unitID] and next(shieldedUnits[unitID]) then
+	if unitTeam ~= attackerTeam and shieldedUnits[unitID] and next(shieldedUnits[unitID]) then --if same team, collision doesn't happen so no point in checking. If unit ID doesn't have any shields protecting it, skip it.
 		if not shieldedUnits[attackerID] or (not next(shieldedUnits[attackerID]) and next(shieldedUnits[unitID])) then
 			return true
 		end
@@ -144,7 +144,7 @@ local function shieldNegatesDamageCheck(unitID, unitTeam, attackerID, attackerTe
 			if shieldedUnits[attackerID][subKey] then
 				break
 			else
-				return true
+				return true --the units have to share all of the same shield spaces. As soon as a mismatch is found, that means they don't occupy the same shield space and the shot should be blocked.
 			end
 		end
 	end
