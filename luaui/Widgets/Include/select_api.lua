@@ -63,8 +63,7 @@ local function checkCmd(uid, cmdId, indexTemp)
 end
 
 local function isIdle(udef, _udefid, uid)
-	local canBeIdle = isMobile(udef) or isBuilder(udef)
-	return canBeIdle and spGetCommandQueue(uid, 0) == 0
+	return spGetCommandQueue(uid, 0) == 0
 end
 
 local function stringContains(mainString, searchString)
@@ -107,7 +106,7 @@ local function parseFilterRules(ruleDef)
 			rules.aircraftRule = simpleUdefRule(invert, "canFly")
 		elseif token == "Builder" then
 			rules.builderRule = invertCurry(invert, function(udef)
-				return isBuilder(udef) and not udef.canResurrect
+				return isBuilder(udef)
 			end)
 		elseif token == "Buildoptions" then
 			rules.buildOptionsRule = notEmptyUdefRule(invert, "buildOptions")

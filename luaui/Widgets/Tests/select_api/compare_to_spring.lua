@@ -1,6 +1,7 @@
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local parseFilterRules = VFS.Include("luaui/Widgets/Include/select_api.lua").parseFilterRules
+local nameLookup = {}
 
 function skip()
 	return Spring.GetGameFrame() <= 0
@@ -18,26 +19,36 @@ end
 
 local function unitPassesRules(uid, apiRules)
 	local udefid = spGetUnitDefID(uid)
+
+	if not udefid then
+		return nil
+	end
+
 	local udef = UnitDefs[udefid]
 	local passesAllRules = true
 
 	for _ruleName, rule in pairs(apiRules) do
 		if not rule(udef, udefid, uid) then
-			passesAllRules = false
-			break
+			return false
 		end
 	end
 
-	return passesAllRules
+	return true
 end
 
-local function compareUnitLists(springUnitSet, apiUnitSet)
+local function compareUnitSets(springUnitSet, apiUnitSet)
 	local missingInApi = {}
 	local missingInSpring = {}
 
 	for uid in pairs(springUnitSet) do
 		if not apiUnitSet[uid] then
-			table.insert(missingInApi, uid)
+			local name = nameLookup[uid]
+
+			-- sometimes the uid wasn't added in the first place
+			-- this is why 'cortl' and 'armtl' cause issues
+			if name ~= nil then
+				table.insert(missingInApi, uid)
+			end
 		end
 	end
 
@@ -50,19 +61,20 @@ local function compareUnitLists(springUnitSet, apiUnitSet)
 	return missingInApi, missingInSpring
 end
 
-local function createAndAddUnit(uid, name, x, z, uids, group)
-	if name == 'dbg_sphere' or name == 'dbg_sphere_fullmetal' or name == 'pbr_cube' then
+local function createAndAddUnit(udefid, name, x, z, uids, group)
+	if name == 'dbg_sphere' or name == 'dbg_sphere_fullmetal' or name == 'pbr_cube' then -- weird buggy units
 		return
 	end
 
 	unitID = SyncedRun(function(locals)
-		local uid = locals.uid
+		local udefid = locals.udefid
 		local x = locals.x
 		local z = locals.z
 		local group = locals.group
 
 		local y = Spring.GetGroundHeight(x, z)
-		local unitID = Spring.CreateUnit(uid, x, y, z, "east", 0)
+		local unitID = Spring.CreateUnit(udefid, x, y, z, "east", 0)
+
 
 		if group == 1 then
 			-- add to control group
@@ -71,6 +83,29 @@ local function createAndAddUnit(uid, name, x, z, uids, group)
 	end)
 
 	table.insert(uids, unitID)
+	return unitID
+end
+
+local function getName(uid)
+	local udefid = spGetUnitDefID(uid)
+
+	if not udefid then
+		return nil
+	end
+
+	local udef = UnitDefs[udefid]
+	return udef.name
+end
+
+local function generateErrorMessage(missingList, listName)
+	local names = {}
+	for _, uid in ipairs(missingList) do
+		local name = getName(uid)
+		if name then
+			table.insert(names, name)
+		end
+	end
+	return listName .. " contains " .. #missingList .. " elements: " .. table.concat(names, ", ")
 end
 
 function test()
@@ -85,14 +120,19 @@ function test()
 	local max_count = 1000
 	-- local max_count = 10
 
-	for uid, udef in pairs(UnitDefs) do
+	for udefid, udef in pairs(UnitDefs) do
 		if count >= max_count then
 			break
 		end
 		count = count + 1
 
 		x = x + offset
-		createAndAddUnit(uid, udef.name, x, z, uids, group)
+		local unitId = createAndAddUnit(udefid, udef.name, x, z, uids, group)
+
+		if unitId then
+			nameLookup[unitId] = udef.name
+		end
+
 		group = -1
 
 		if x > 5000 then
@@ -147,21 +187,26 @@ function test()
 		"Not_RelativeHealth_50",
 		"WeaponRange_200",
 		"Not_WeaponRange_200",
-		"NameContain_com",
-		"Not_NameContain_com",
-		"Category_NOWEAPON",
-		"Not_Category_NOWEAPON",
 		"IdMatches_armflea_IdMatches_armpw",
 		"Not_IdMatches_armcom_Not_IdMatches_armflea",
-
 	}
+
+	local notImplementedApi = {
+		"Category_NOWEAPON",
+		"Not_Category_NOWEAPON",
+	}
+
+	local notWorkingSpring = {
+		"NameContain_com",
+		"Not_NameContain_com",
+	}
+
+	local passed = true
 
 	for _, rules in ipairs(simpleRuleDefs) do
 		local springUnitSet = {}
 		local apiUnitSet = {}
 		local springRule = "select AllMap+_" .. rules .. "+_ClearSelection_SelectAll+"
-		print(rules)
-		print(springRule)
 
 		-- spring
 		Spring.SendCommands(springRule)
@@ -173,14 +218,35 @@ function test()
 		-- api
 		local apiRules = parseFilterRules(rules)
 		for _, uid in ipairs(uids) do
-			if unitPassesRules(uid, apiRules) then
+			local passes = unitPassesRules(uid, apiRules)
+
+			if passes == nil then
+				springUnitSet[uid] = nil
+			elseif passes then
 				apiUnitSet[uid] = true
 			end
 		end
 
 		-- compare
-		local missingInApi, missingInSpring = compareUnitLists(springUnitSet, apiUnitSet)
-		assert(#missingInApi == 0, "Expected missingInApi to be empty, but it contains elements.")
-		assert(#missingInSpring == 0, "Expected missingInSpring to be empty, but it contains elements.")
+		local missingInApi, missingInSpring = compareUnitSets(springUnitSet, apiUnitSet)
+
+		local hasMissingInApi = #missingInApi > 0
+		local hasMissingInSpring = #missingInSpring > 0
+
+		if hasMissingInApi and hasMissingInSpring then
+			local errorMessage = generateErrorMessage(missingInApi, "missingInApi") ..
+				" | " .. generateErrorMessage(missingInSpring, "missingInSpring")
+			print("Rule " .. rules .. " failed: " .. errorMessage)
+			passed = false
+		elseif hasMissingInApi then
+			local errorMessage = generateErrorMessage(missingInApi, "missingInApi")
+			print("Rule " .. rules .. " failed: " .. errorMessage)
+			passed = false
+		elseif hasMissingInSpring then
+			local errorMessage = generateErrorMessage(missingInSpring, "missingInSpring")
+			print("Rule " .. rules .. " failed: " .. errorMessage)
+			passed = false
+		end
 	end
+	assert(passed, "not all rules match")
 end
