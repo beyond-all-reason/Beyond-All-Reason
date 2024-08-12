@@ -127,6 +127,18 @@ local options = {
     },
 
     {
+        key    	= "norushtimer",
+        name   	= "No Rush Time",
+        desc   	= "Set timer in which players cannot get out of their startbox, so you have time to prepare before fighting.",
+        type   	= "number",
+        section	= "options_main",
+        def    	= 0,
+        min    	= 0,
+        max    	= 30,
+        step   	= 1,
+    },
+
+    {
         key     = "draft_mode",
         name    = "Draft Spawn Order Mode",
         desc    = "Random/Captain/Skill/Fair based startPosType modes. Default: Random.",
@@ -1221,19 +1233,6 @@ local options = {
         hidden 	= true,
         def		= false,
         section	= "options_experimental",
-    },
-
-    {
-        key    	= "norushtimer",
-        name   	= "No Rush Time",
-        desc   	= "(Range: 0 - 30). Minutes",
-        type   	= "number",
-        hidden 	= true,
-        section	= "options_experimental",
-        def    	= 0,
-        min    	= 0,
-        max    	= 30,
-        step   	= 1,
     },
 
     {
