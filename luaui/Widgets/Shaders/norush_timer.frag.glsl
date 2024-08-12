@@ -46,20 +46,23 @@ void main(void)
 		return;
 	}
 
-	float closestbox = 10000.05;
+	float closestbox = 1e6;
 	float furthestbox = 0;
+	vec3 mycolor = vec3(1);
 	for (int i = 0; i < NUM_BOXES; i++) {
 		float dist = distanceToBox(mapWorldPos.xz, startBoxes[i]);
-		closestbox = min(closestbox, dist);
+		if (closestbox > dist){
+			closestbox = dist;
+			mycolor = teamColor[i].rgb;
+		}
 		furthestbox = max(furthestbox, dist);
 	}
 	// Note that now we have the distance to the closest box in closestbox
 	// and the distance to the most distant box in furthestbox
 
-
 	// First we color based on their distance
-	fragColor.rgba = vec4(fract(vec3(closestbox / 64.0) ), 0.5);
-
+	fragColor.rgba = vec4(mycolor * sin(closestbox / (16.0/3.14)) , 0.5);
+	fragColor.a = 1.0  - clamp(closestbox/256, 0, 1);
 	// But if we are within a box, then we set the alpha to 0
 	if (closestbox < 0.5) {
 		fragColor.a = 0.0;
