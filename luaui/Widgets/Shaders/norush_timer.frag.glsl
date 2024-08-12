@@ -41,7 +41,7 @@ void main(void)
 	}
 
 	// We are out of the map, discard:
-	if (mapWorldPos.x < 0 || mapWorldPos.x > mapSize.x || mapWorldPos.z < 0 || mapWorldPos.z > mapSize.z){
+	if ((mapWorldPos.x < 0) || (mapWorldPos.x > mapSize.x) || (mapWorldPos.z < 0) || (mapWorldPos.z > mapSize.y)){
 		fragColor.rgba = vec4(0);
 		return;
 	}
@@ -62,7 +62,7 @@ void main(void)
 
 	// First we color based on their distance
 	fragColor.rgba = vec4(mycolor * sin(closestbox / (16.0/3.14)) , 0.5);
-	fragColor.a = 1.0  - clamp(closestbox/256, 0, 1);
+	fragColor.a = 1.0  - clamp(1.0 - exp(-closestbox/1000.0), 0, 1);
 	// But if we are within a box, then we set the alpha to 0
 	if (closestbox < 0.5) {
 		fragColor.a = 0.0;
