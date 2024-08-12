@@ -115,16 +115,26 @@ dynamicPieceCollisionVolume['legdtr'] = {
         ['offsets']={0,0,0},
     }
 }
-
-
+dynamicPieceCollisionVolume['armannit3'] = {
+    on={
+        ['1']={96,140,96,0,5,0,2,1,0},
+    },
+    off={
+        ['0']={96,80,96,0,10,0,2,1,0},
+    }
+}
+dynamicPieceCollisionVolume['cordoomt3'] = {
+    on={
+        ['1']={112,180,112,0,5,0,1,1,0},
+    },
+    off={
+        ['0']={96,80,96,0,10,0,2,1,0},
+    }
+}
 
 unitCollisionVolume['armanni'] = {
 	on={54,81,54,0,-2,0,2,1,0},
 	off={54,56,54,0,-15,0,2,1,0},
-}
-unitCollisionVolume['armannit3'] = {
-	on={81,121,81,0,-3,0,3,1,0},
-	off={81,84,81,0,-22,0,3,1,0},
 }
 unitCollisionVolume['armlab'] = {
 	on={95,28,95,0,2,0,2,1,0},
@@ -150,10 +160,7 @@ unitCollisionVolume['cordoom'] = {
 	on={63,112,63,0,0,0,1,1,1},
 	off={45,87,45,0,-12,0,2,1,0},
 }
-unitCollisionVolume['cordoomt3'] = {
-	on={95,168,95,0,18,0,2,1,1},
-	off={68,131,68,0,0,0,3,1,0},
-}
+
 unitCollisionVolume['corplat'] = {
 	on={112,60,112,0,28,0,1,1,1},
 	off={112,35,112,0,0,0,1,1,1},
