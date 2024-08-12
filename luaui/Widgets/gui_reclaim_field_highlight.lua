@@ -413,11 +413,10 @@ local minFeatureMetal = 9 -- Tick
 local E2M = 1 / 70 -- Converter ratio
 local minDim = 100
 
-local checkFrequency = 2 * Game.gameSpeed
+local checkFrequency = 1 * Game.gameSpeed
 
 local drawEnabled = true
 local actionActive = false
-local textParametersChanged = false
 local knownFeatures = {}
 
 local reclaimerSelected = false
@@ -630,13 +629,19 @@ local function ClusterizeFeatures()
 end
 
 local function pointArea(points)
-	-- Determinant area, point form
-	local n = #points
-	local totalArea = points[1].x * (points[n].z - points[2].z)
-	for i = 2, n-1 do
-		totalArea = totalArea + points[i].x * (points[i-1].z - points[i+1].z)
+	local totalArea = 0
+	-- Determinant area, triangle form
+	local x1, z1 = points[1].x, points[1].z
+	local x2, z2
+	local x3, z3 = points[2].x, points[2].z
+	for i = 2, #points - 1 do
+		x2 = x3
+		z2 = z3
+		x3 = points[i + 1].x
+		z3 = points[i + 1].z
+		totalArea = totalArea + 0.5 * abs(x1 * (z2 - z3) + x2 * (z3 - z1) + x3 * (z1 - z2))
 	end
-	return abs(totalArea + points[n].x * (points[1].z - points[n-1].z)) * 0.5
+	return totalArea
 end
 
 local function ClustersToConvexHull()
@@ -659,7 +664,8 @@ local function ClustersToConvexHull()
 		-- http://mindthenerd.blogspot.ru/2012/05/fastest-convex-hull-algorithm-ever.html
 
 		local convexHull
-		if #clusterPoints >= 3 and pointArea(clusterPoints) >= 3000 then
+		local hullArea = (#clusterPoints >= 3 and pointArea(clusterPoints)) or nil
+		if hullArea ~= nil and hullArea >= 3000 then
 			--spEcho("#clusterPoints >= 3")
 			--convexHull = ConvexHull.JarvisMarch(clusterPoints)
 			convexHull = MonotoneChain(clusterPoints) --twice faster
@@ -692,6 +698,7 @@ local function ClustersToConvexHull()
 				{x = xmax, y = height, z = zmax},
 				{x = xmin, y = height, z = zmax},
 			}
+			hullArea = minDim * minDim
 		end
 
 		local cx, cz, cy = 0, 0, 0
@@ -702,7 +709,7 @@ local function ClustersToConvexHull()
 			cy = max(cy, convexHullPoint.y)
 		end
 
-		convexHull.area = pointArea(convexHull)
+		convexHull.area = hullArea
 		convexHull.center = {x = cx/#convexHull, z = cz/#convexHull, y = cy + 1}
 
 		featureConvexHulls[fc] = convexHull
@@ -823,8 +830,8 @@ local function DrawFeatureClusterText()
 		local fontSize = fontSizeMin * fontScaling
 		local area = featureConvexHulls[i].area
 		fontSize = sqrt(area) * fontSize / minDim
-		fontSize = max(fontSize, fontSizeMin)
 		fontSize = min(fontSize, fontSizeMax)
+		fontSize = max(fontSize, fontSizeMin)
 
 		local metalText = string.formatSI(featureClusters[i].metal)
 
@@ -857,33 +864,27 @@ function widget:GameFrame(frame)
 		return
 	end
 
+	local camUpVectorCurrent = spGetCameraVectors().up
+	if drawFeatureClusterTextList == nil or camUpVectorCurrent ~= camUpVector then
+		camUpVector = camUpVectorCurrent
+		if drawFeatureClusterTextList ~= nil then
+			glDeleteList(drawFeatureClusterTextList)
+			drawFeatureClusterTextList = nil
+		end
+		drawFeatureClusterTextList = glCreateList(DrawFeatureClusterText)
+	end
+
 	if redrawingNeeded then
-		if drawFeatureConvexHullSolidList then
+		if drawFeatureConvexHullSolidList ~= nil then
 			glDeleteList(drawFeatureConvexHullSolidList)
 			drawFeatureConvexHullSolidList = nil
 		end
-	
-		if drawFeatureConvexHullEdgeList then
+		if drawFeatureConvexHullEdgeList ~= nil then
 			glDeleteList(drawFeatureConvexHullEdgeList)
 			drawFeatureConvexHullEdgeList = nil
 		end
-	
-		if drawFeatureConvexHullSolidList == nil then
-			drawFeatureConvexHullSolidList = glCreateList(DrawFeatureConvexHullSolid)
-			drawFeatureConvexHullEdgeList = glCreateList(DrawFeatureConvexHullEdge)
-		end
-	
-		local camUpVectorCurrent = spGetCameraVectors().up
-		if textParametersChanged or drawFeatureClusterTextList == nil or camUpVectorCurrent ~= camUpVector then
-			camUpVector = camUpVectorCurrent
-			if drawFeatureClusterTextList then
-				glDeleteList(drawFeatureClusterTextList)
-				drawFeatureClusterTextList = nil
-			end
-			drawFeatureClusterTextList = glCreateList(DrawFeatureClusterText)
-			textParametersChanged = false
-		end
-
+		drawFeatureConvexHullSolidList = glCreateList(DrawFeatureConvexHullSolid) -- number, list id
+		drawFeatureConvexHullEdgeList = glCreateList(DrawFeatureConvexHullEdge)
 		redrawingNeeded = false
 	end
 
@@ -893,8 +894,6 @@ function widget:GameFrame(frame)
 		ClusterizeFeatures()
 		ClustersToConvexHull()
 		clusterizingNeeded = false
-		-- Clustering is expensive enough for a single frame; push draw calls to the next frame.
-		-- Stacking individually-negligible improvements does help, eventually.
 		redrawingNeeded = true
 	end
 end
