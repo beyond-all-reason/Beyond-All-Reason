@@ -40,6 +40,12 @@ void main(void)
 		return;
 	}
 
+	// We are out of the map, discard:
+	if (mapWorldPos.x < 0 || mapWorldPos.x > mapSize.x || mapWorldPos.z < 0 || mapWorldPos.z > mapSize.z){
+		fragColor.rgba = vec4(0);
+		return;
+	}
+
 	float closestbox = 10000.05;
 	float furthestbox = 0;
 	for (int i = 0; i < NUM_BOXES; i++) {
