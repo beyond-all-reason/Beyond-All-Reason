@@ -10,10 +10,36 @@ function widget:GetInfo()
 	}
 end
 
+-- Spring.Echo(Spring.GetTeamInfo(Spring.GetMyTeamID()))
+
+local scavengerAITeamID = 999
+local raptorsAITeamID = 999
+local scavengerAIAllyTeamID = 999
+local raptorsAIAllyTeamID = 999
+local teams = Spring.GetTeamList()
+for i = 1, #teams do
+	local luaAI = Spring.GetTeamLuaAI(teams[i])
+	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
+		scavengerAITeamID = i - 1
+		scavengerAIAllyTeamID = select(6, Spring.GetTeamInfo(scavengerAITeamID))
+		break
+	end
+end
+for i = 1, #teams do
+	local luaAI = Spring.GetTeamLuaAI(teams[i])
+	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'RaptorsAI' then
+		raptorsAITeamID = i - 1
+		raptorsAIAllyTeamID = select(6, Spring.GetTeamInfo(raptorsAITeamID))
+		break
+	end
+end
+
 ---- Config stuff ------------------
 local autoReload = true -- refresh shader code every second (disable in production!)
 
 local StartBoxes = {} -- list of xXyY 
+local noRushTime = Spring.GetModOptions().norushtimer*60*30
+if noRushTime == 0 then return end
 
 local luaShaderDir = "LuaUI/Widgets/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
@@ -26,6 +52,7 @@ local shaderSourceCache = {
 		fssrcpath = "LuaUI/Widgets/Shaders/norush_timer.frag.glsl",
 		uniformInt = {
 			mapDepths = 0,
+			noRushTimer = Spring.GetModOptions().norushtimer*60*30,
 		},
 		uniformFloat = {
 		},
@@ -54,6 +81,7 @@ function widget:RecvLuaMsg(msg, playerID)
 end
 
 function widget:DrawWorldPreUnit()
+	if Spring.GetGameFrame() > noRushTime+150 then return end
 	if autoReload then
 		norushTimerShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or norushTimerShader
 	end
@@ -69,6 +97,7 @@ function widget:DrawWorldPreUnit()
 		--Spring.Echo("startBoxes["..i.."]", startBox[1],startBox[2],startBox[3],startBox[4])
 		norushTimerShader:SetUniform("startBoxes["..( i-1) .."]", startBox[1],startBox[2],startBox[3],startBox[4])
 	end
+	norushTimerShader:SetUniform("noRushTimer", noRushTime)
 	fullScreenRectVAO:DrawArrays(GL.TRIANGLES)
 	norushTimerShader:Deactivate()
 	glTexture(0, false)
@@ -86,7 +115,7 @@ function widget:Initialize()
 		gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID() , false))
 	end
 	for i, teamID in ipairs(Spring.GetAllyTeamList()) do
-		if teamID ~= gaiaAllyTeamID then
+		if teamID ~= gaiaAllyTeamID and teamID ~= scavengerAIAllyTeamID and teamID ~= raptorsAIAllyTeamID then
 			local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(teamID)
 			--Spring.Echo("Allyteam",teamID,"startbox",xn, zn, xp, zp)	
 			StartBoxes[#StartBoxes+1] = {xn, zn, xp, zp}
@@ -94,7 +123,7 @@ function widget:Initialize()
 	end
 	
 	-- MANUAL OVERRIDE FOR DEBUGGING:
-	StartBoxes = { {100, 200, 2000, 3000} , {2200, 3300, 5000, 4000}}
+	-- StartBoxes = { {100, 200, 2000, 3000} , {2200, 3300, 5000, 4000}}
 
 	shaderSourceCache.shaderConfig.NUM_BOXES = #StartBoxes
 

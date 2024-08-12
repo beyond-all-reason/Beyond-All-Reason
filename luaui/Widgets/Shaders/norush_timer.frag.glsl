@@ -10,6 +10,8 @@
 #line 20000
 
 uniform vec4 startBoxes[NUM_BOXES]; // all in xyXY format
+uniform int noRushTimer;
+float noRushFramesLeft;
 
 in DataVS {
 	vec4 v_position;
@@ -61,8 +63,15 @@ void main(void)
 	// and the distance to the most distant box in furthestbox
 
 	// First we color based on their distance
-	fragColor.rgba = vec4(mycolor * sin(closestbox / (16.0/3.14)) , 0.5);
-	fragColor.a = 1.0  - clamp(1.0 - exp(-closestbox/1000.0), 0, 1);
+	noRushFramesLeft = (clamp((3.5*30*60 - timeInfo.x+30), 0, 300)/300);
+	fragColor.rgba = vec4(mycolor * sin(closestbox*3 / (40/3.14)), 0.5);
+	//fragColor.rgba = vec4(mycolor*0.5, 0.5);
+	if (timeInfo.x < 150) {
+		fragColor.a = (timeInfo.x/150) - clamp(1 - exp(-closestbox/400.0) * sin(closestbox*3 / (40/3.14)), 0, 1);
+	}
+	if (timeInfo.x >= 150) {
+		fragColor.a = noRushFramesLeft - clamp(1 - exp(-closestbox/400.0) * sin(closestbox*3 / (40/3.14)), 0, 1);
+	}
 	// But if we are within a box, then we set the alpha to 0
 	if (closestbox < 0.5) {
 		fragColor.a = 0.0;
