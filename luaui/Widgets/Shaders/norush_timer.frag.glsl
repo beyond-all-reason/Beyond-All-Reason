@@ -63,7 +63,7 @@ void main(void)
 	// and the distance to the most distant box in furthestbox
 
 	// First we color based on their distance
-	noRushFramesLeft = (clamp((3.5*30*60 - timeInfo.x+30), 0, 300)/300);
+	noRushFramesLeft = (clamp((noRushTimer - timeInfo.x+30), 0, 300)/300);
 	fragColor.rgba = vec4(mycolor * sin(closestbox*3 / (40/3.14)), 0.5);
 	//fragColor.rgba = vec4(mycolor*0.5, 0.5);
 	if (timeInfo.x < 150) {
