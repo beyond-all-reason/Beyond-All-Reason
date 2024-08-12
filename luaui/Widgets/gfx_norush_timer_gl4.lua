@@ -35,7 +35,7 @@ for i = 1, #teams do
 end
 
 ---- Config stuff ------------------
-local autoReload = true -- refresh shader code every second (disable in production!)
+local autoReload = false -- refresh shader code every second (disable in production!)
 
 local StartBoxes = {} -- list of xXyY 
 local noRushTime = Spring.GetModOptions().norushtimer*60*30
