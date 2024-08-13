@@ -1297,7 +1297,7 @@ void main(void){
 			float perlinline1 = clamp(1.0 - 20* abs(myPerlin.g - fract(simFrame * 0.005)), 0.0, 1.0);
 			float perlinline2 = clamp(1.0 - 20* abs(myPerlin.g - fract(simFrame * 0.005 +0.5)), 0.0, 1.0);
 			float cloaknoise = cloakedness*perlinline1 + cloakedness*perlinline2;
-			outColor.rgb += cloaknoise * 0.8;
+			outColor.rgb += cloaknoise * 0.85;
 
 			#if 1
 			float dotcamera = dot(worldNormal, V);
