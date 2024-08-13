@@ -92,7 +92,7 @@ function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
 		dgunTimeouts[proID] = (frameCounter+dgunWeaponsTTL[weaponDefID])
 		
 		local posX, posY, posZ = spGetProjectilePosition(proID)
-    	dgunOrigins[proID] = {posX, posY, posZ}
+		dgunOrigins[proID] = {posX, posY, posZ}
 	end
 end
 
@@ -136,18 +136,18 @@ function gadget:GameFrame(frame)
 	-- Without defining a time to live (TTL) for the DGun, it will live forever until it reaches maximum range. This means it would deal infinite damage to shields until it depleted them.
 	if next(dgunTimeouts) == nil then
 		frameCounter = 0
-    else
-        frameCounter = frameCounter + 1
+	else
+		frameCounter = frameCounter + 1
 
 		for proID, timeout in pairs(dgunTimeouts) do
-            if frameCounter > timeout then
-                spDeleteProjectile(proID)
-                flyingDGuns[proID] = nil
-                groundedDGuns[proID] = nil
-                dgunTimeouts[proID] = nil
-            end
-        end
-    end
+			if frameCounter > timeout then
+				spDeleteProjectile(proID)
+				flyingDGuns[proID] = nil
+				groundedDGuns[proID] = nil
+				dgunTimeouts[proID] = nil
+			end
+		end
+	end
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
@@ -169,16 +169,16 @@ end
 local lastShieldFrameCheck = {}
 
 function gadget:ShieldPreDamaged(proID, proOwnerID, shieldEmitterWeaponNum, shieldCarrierUnitID, bounceProjectile, beamEmitterWeaponNum, beamEmitterUnitID, startX, startY, startZ, hitX, hitY, hitZ)
-    if proID > -1 and dgunTimeouts[proID] then
+	if proID > -1 and dgunTimeouts[proID] then
 		local proDefID = spGetProjectileDefID(proID)
 		local shieldEnabledState, shieldPower = spGetUnitShieldState(shieldCarrierUnitID)
 		local damage = WeaponDefs[proDefID].damages[11] or WeaponDefs[proDefID].damages[2]
 
-        if modOptions.shieldsrework == false and hitX > 0 and lastShieldFrameCheck[shieldCarrierUnitID] ~= frameCounter then
-            shieldPower = math.max(shieldPower - damage, 0)
-            spSetUnitShieldState(shieldCarrierUnitID, shieldEmitterWeaponNum, shieldEnabledState, shieldPower)
-            lastShieldFrameCheck[shieldCarrierUnitID] = frameCounter
-        end
+		if modOptions.shieldsrework == false and hitX > 0 and lastShieldFrameCheck[shieldCarrierUnitID] ~= frameCounter then
+			shieldPower = math.max(shieldPower - damage, 0)
+			spSetUnitShieldState(shieldCarrierUnitID, shieldEmitterWeaponNum, shieldEnabledState, shieldPower)
+			lastShieldFrameCheck[shieldCarrierUnitID] = frameCounter
+		end
 
 		local originX, originY, originZ = unpack(dgunOrigins[proID])
 

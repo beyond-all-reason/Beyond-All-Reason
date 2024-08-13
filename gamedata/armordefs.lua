@@ -567,7 +567,7 @@ local armorDefs = {
 		"critter_gull",
 	},
 	shields = {
-		--left intentionally blank. To be used in shield weapondefs only!
+		-- Intentionally left blank. To be used in shield weapondefs only!
 	},
 	lboats = {
 		"corpt",
