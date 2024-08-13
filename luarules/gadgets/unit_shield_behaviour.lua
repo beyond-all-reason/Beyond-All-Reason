@@ -24,6 +24,7 @@ local spGetProjectileDefID = Spring.GetProjectileDefID
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitsInSphere = Spring.GetUnitsInSphere
 local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
+local spGetUnitIsStunned = Spring.GetUnitIsStunned
 
 local shieldUnitDefs = {}
 local shieldUnitsData = {}
@@ -219,7 +220,14 @@ function gadget:GameFrame(frame)
 
 	end
 	for shieldUnitID, shieldData in pairs(shieldUnitsData) do
+		if frame % Game.gameSpeed == 0 then
+			if select(2, spGetUnitIsStunned(shieldUnitID)) and shieldData.downtimeReset ~= 0 then
+				shieldData.downtimeReset = shieldData.downtimeReset + 1
+			end
+		end
+
 		if frame % 10 == 0 then
+
 			if shieldData.shieldEnabled == false and shieldData.downtimeReset ~= 0 and shieldData.downtimeReset <= gameSeconds then
 				shieldData.downtimeReset = 0
 				shieldData.shieldEnabled = true
