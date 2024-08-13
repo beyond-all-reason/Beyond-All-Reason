@@ -288,7 +288,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 	end
 
 	if shieldNegatesDamageCheck(unitID, unitTeam, attackerID, attackerTeam) then
-		return 0
+		return 0, 0
 	else
 		return damage
 	end
