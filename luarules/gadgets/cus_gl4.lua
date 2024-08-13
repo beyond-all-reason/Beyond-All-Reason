@@ -227,7 +227,7 @@ local debugmode = false
 local perfdebug = false
 
 -- These 4 things are for the UnitViewportAPI
-local unitsInViewport = {} -- unitID:UnitDefIF
+local unitsInViewport = {} -- unitID:drawFlag
 local numUnitsInViewport = 0
 local featuresInViewport = {} --featureID:featureDefID
 local numFeaturesInViewport = 0
@@ -1514,19 +1514,24 @@ local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
 
 local function ProcessUnits(units, drawFlags, reason)
-	--processedCounter = (processedCounter + 1) % (2 ^ 16
 	for i = 1, #units do
 		local unitID = units[i]
 		local drawFlag = drawFlags[i]
 		if debugmode then Spring.Echo("ProcessUnits", unitID, drawFlag, reason) end
 		local isBuilding = spGetUnitIsBeingBuilt(unitID)
 
+
+		if math_bit_and(drawFlag, 34) > 0 then -- has alpha (2) or alphashadow(32) flag 
+			-- cloaked units get mapped to pure forward + deferred, no refl/refr either
+			drawFlag = 1
+		end
+		
 		if drawFlag % 4 > 1 then -- check if its at least in opaque or alpha pass
 			if unitsInViewport[unitID] == nil then
 				-- CALL the UnitViewportAPI
 				numUnitsInViewport = numUnitsInViewport + 1
 			end
-			unitsInViewport[unitID] = true
+			unitsInViewport[unitID] = drawFlag
 		else
 			if unitsInViewport[unitID] then
 				-- CALL the UnitViewportAPI
@@ -1534,18 +1539,10 @@ local function ProcessUnits(units, drawFlags, reason)
 			end
 			unitsInViewport[unitID] = nil
 		end
-		if math_bit_and(drawFlag, 34) > 0 then -- has alpha (2) or alphashadow(32) flag 
-			-- cloaked units get mapped to pure forward + deferred, no refl/refr either
-			drawFlag = 1
-		end
+		
 		if (drawFlag == 0) or (drawFlag >= 128) then
 			RemoveObject(unitID, reason)
-		--elseif spGetUnitIsCloaked(unitID) then
-		--	if Spring.IsUnitInLos(
-			--under construction
-			--using processedUnits here actually good, as it will dynamically handle unitfinished and cloak on-off
 		else
-			--Spring.Echo("ProcessUnit", unitID, drawFlag)
 			if cusUnitIDtoDrawFlag[unitID] == nil then --object was not seen
 				if Spring.ValidUnitID(unitID) and (not spGetUnitIsCloaked(unitID)) then
 					uniformCache[1] = 0
@@ -1555,20 +1552,13 @@ local function ProcessUnits(units, drawFlags, reason)
 			elseif cusUnitIDtoDrawFlag[unitID] ~= drawFlag then --flags have changed
 				UpdateObject(unitID, drawFlag, reason)
 			end
-			-- processedUnits[unitID] = processedCounter
 		end
 	end
 
-	-- for unitID, _ in pairs(cusUnitIDtoDrawFlag) do
-	-- 	if processedUnits[unitID] ~= processedCounter then --object was not updated thus was removed
-	-- 		RemoveObject(unitID)
-	-- 	end
-	-- end
 end
 
 
 local function ProcessFeatures(features, drawFlags, reason)
-	-- processedCounter = (processedCounter + 1) % (2 ^ 16)
 
 	for i = 1, #features do
 		local featureID = features[i]
@@ -1603,16 +1593,9 @@ local function ProcessFeatures(features, drawFlags, reason)
 			else --if cusFeatureIDtoDrawFlag[featureID] ~= drawFlag then --flags have changed
 				UpdateObject(-1 * featureID, drawFlag, reason)
 			end
-			-- processedFeatures[featureID] = processedCounter
 		end
-		-- processedFeatures[featureID] = processedCounter
 	end
 
-	-- for featureID, _ in pairs(cusFeatureIDtoDrawFlag) do
-	-- 	if processedFeatures[featureID] ~= processedCounter then --object was not updated thus was removed
-	-- 		RemoveObject(-1 * featureID)
-	-- 	end
-	-- end
 end
 
 local shaderactivations = 0
@@ -2083,6 +2066,7 @@ local numdestroyedFeatures = 0
 --On next Update:
 -- 3. next gadget:DrawWorldPreUnit is called 
 -- 4. ProcessUnits(destroyedUnitIDs)
+	-- 4.1 can either AddUnit, UpdateUnit or RemoveUnit
 -- 5. Regular draw flag changes are processed
 
 
