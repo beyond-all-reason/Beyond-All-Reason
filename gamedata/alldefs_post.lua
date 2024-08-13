@@ -1375,7 +1375,7 @@ function WeaponDef_Post(name, wDef)
 
 		if modOptions.shieldsrework == true then
 			local shieldCollisionExemptions = { --add the name of the weapons (or just the name of the unit followed by _ ) to this table to exempt from shield collision. 
-				'corsilo_', 'armsilo_', 'cormship_', 'armmship_', 'armthor_empmissile', 'armemp_', 'cortron_', 'corjuno_', 'armjuno_'
+				'corsilo_', 'armsilo_', 'armthor_empmissile', 'armemp_', 'cortron_', 'corjuno_', 'armjuno_'
 			}
 
 			-- For balance, paralyzers need to do reduced damage to shields, as their raw raw damage is outsized
