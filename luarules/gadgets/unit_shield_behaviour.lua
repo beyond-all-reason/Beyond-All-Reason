@@ -12,8 +12,8 @@ if not Spring.GetModOptions().shieldsrework then return false end
 if not gadgetHandler:IsSyncedCode() then return end
 
 ---- Optional unit customParams ----
---customParams shield_downtime = <number in seconds>, if not set defaults to 5 seconds
---customParams shield_aoe_penetration = bool, if true then the AOE will hurt units within the shield radius.
+-- shield_downtime = <number in seconds>, if not set defaults to 5 seconds
+-- shield_aoe_penetration = bool, if true then AOE damage will hurt units within the shield radius
 
 local spGetUnitShieldState = Spring.GetUnitShieldState
 local spSetUnitShieldState = Spring.SetUnitShieldState
@@ -41,15 +41,15 @@ local allyTeams = Spring.GetAllyTeamList()
 local allTeams = {}
 
 for i, allyID in ipairs(allyTeams) do
-    local teamList = Spring.GetTeamList(allyID)
+	local teamList = Spring.GetTeamList(allyID)
 
 	if teamList then
-        allyTeams[i] = teamList
+		allyTeams[i] = teamList
 
 		for _, teamID in pairs(teamList) do
-            allTeams[teamID] = allyID
-        end
-    end
+			allTeams[teamID] = allyID
+		end
+	end
 end
 
 for weaponDefID, weaponDef in ipairs(WeaponDefs) do
