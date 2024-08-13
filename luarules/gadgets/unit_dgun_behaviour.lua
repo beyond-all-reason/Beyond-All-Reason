@@ -31,6 +31,7 @@ local dgunWeaponsTTL = {}
 local dgunWeapons = {}
 local dgunTimeouts = {}
 local dgunOrigins = {}
+
 for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 	if weaponDef.type == 'DGun' then
 		Script.SetWatchProjectile(weaponDefID, true)
@@ -43,17 +44,20 @@ local isCommander = {}
 local isDecoyCommander = {}
 local commanderNames = {}
 local frameCounter = 0
+
 for unitDefID, unitDef in ipairs(UnitDefs) do
 	if unitDef.customParams.iscommander or unitDef.customParams.isscavcommander then
 		isCommander[unitDefID] = true
 		commanderNames[unitDef.name] = true
 	end
 end
+
 for unitDefID, unitDef in ipairs(UnitDefs) do
 	if unitDef.customParams.decoyfor and commanderNames[unitDef.customParams.decoyfor] then
 		isDecoyCommander[unitDefID] = true
 	end
 end
+
 commanderNames = nil
 
 local flyingDGuns = {}
@@ -78,6 +82,7 @@ local function addVolumetricDamage(projectileID)
 		ignoreOwner = dgunWeapons[weaponDefID].noSelfDamage,
 		damageGround = true,
 	}
+
 	spSpawnExplosion(x, y ,z, 0, 0, 0, explosionParame)
 end
 
@@ -127,12 +132,14 @@ function gadget:GameFrame(frame)
 
 		-- NB: no removal; do this every frame so that it doesn't fly off a cliff or something
 	end
-	--without defining a time to live (ttl) for the dgun, it will live forever until it reaches maximum range. This means it would deal infinite damage to shields until it depleted them.
+
+	-- Without defining a time to live (TTL) for the DGun, it will live forever until it reaches maximum range. This means it would deal infinite damage to shields until it depleted them.
 	if next(dgunTimeouts) == nil then
 		frameCounter = 0
     else
         frameCounter = frameCounter + 1
-        for proID, timeout in pairs(dgunTimeouts) do
+
+		for proID, timeout in pairs(dgunTimeouts) do
             if frameCounter > timeout then
                 spDeleteProjectile(proID)
                 flyingDGuns[proID] = nil
@@ -155,24 +162,27 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 			return dgunWeapons[weaponDefID].damages[armorClass]
 		end
 	end
+
 	return damage
 end
 
 local lastShieldFrameCheck = {}
+
 function gadget:ShieldPreDamaged(proID, proOwnerID, shieldEmitterWeaponNum, shieldCarrierUnitID, bounceProjectile, beamEmitterWeaponNum, beamEmitterUnitID, startX, startY, startZ, hitX, hitY, hitZ)
     if proID > -1 and dgunTimeouts[proID] then
 		local proDefID = spGetProjectileDefID(proID)
 		local shieldEnabledState, shieldPower = spGetUnitShieldState(shieldCarrierUnitID)
 		local damage = WeaponDefs[proDefID].damages[11] or WeaponDefs[proDefID].damages[2]
-		
+
         if modOptions.shieldsrework == false and hitX > 0 and lastShieldFrameCheck[shieldCarrierUnitID] ~= frameCounter then
             shieldPower = math.max(shieldPower - damage, 0)
             spSetUnitShieldState(shieldCarrierUnitID, shieldEmitterWeaponNum, shieldEnabledState, shieldPower)
             lastShieldFrameCheck[shieldCarrierUnitID] = frameCounter
         end
-		local originX, originY, originZ = unpack(dgunOrigins[proID])
-		if shieldPower > 100 then
 
+		local originX, originY, originZ = unpack(dgunOrigins[proID])
+
+		if shieldPower > 100 then
 			local dirX = hitX - originX
 			local dirZ = hitZ - originZ
 			local length = math.sqrt(dirX * dirX + dirZ * dirZ)
@@ -184,6 +194,7 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldEmitterWeaponNum, shie
 			local verticalOffset = 1
 			spSetProjectilePosition(proID, newX, math.max(spGetGroundHeight(newX, newZ), 0) - verticalOffset, newZ)
 		end
+
 		return false
 	end
 end
