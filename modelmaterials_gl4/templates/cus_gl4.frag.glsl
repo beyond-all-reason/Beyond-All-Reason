@@ -1150,6 +1150,7 @@ void main(void){
 
 			// Helper sinusoidal patterns:
 			float sintime = 0.5 + 0.5 * sin(simFrame * 0.1); // pulses every 3 seconds
+			float sintimefast = 0.5 + 0.5 * sin(simFrame * 0.15); // pulses faster
 			float sinprogress = 0.5 + 0.5 * sin(buildProgress * 0.01 * 3.1415); // pulses every percent of buildProgress
 			//outColor.rgb += buildeff;
 			
@@ -1188,8 +1189,8 @@ void main(void){
 			
 			// The entire model will always get the 8 elmo buildgrid:
 			//outColor.rgb = mix(outColor.rgb, vec3(1.0, 0.0, 1.0), buildGridFactor);
-			//outColor.rgb = vec3(buildGridFactor);  
-			vec3 pulseTeamColor = mix(teamCol.rgb, teamCol.rgb * 1.5, sintime);
+			//outColor.rgb = vec3(buildGridFactor); 
+			vec3 pulseTeamColor = mix(teamCol.rgb, teamCol.rgb * 1.78, sintimefast );
 
 			// Second to bottom level, ensure that we dont emit light
 			if (height > progressLevels.x){
@@ -1220,7 +1221,7 @@ void main(void){
 				//outColor.rgb = vec3(heightProgress);
 				#if (RENDERING_MODE == 0)
 					// only modulate alpha on the forward pass
-					texColor2.a *= max(0.2, max(clamp(line,buildProgress,1), (1.0 - heightProgress)));
+					texColor2.a *= max(0.4, max(clamp(line,buildProgress,1), (1.0 - heightProgress)));
 				#endif
 			}
 
@@ -1254,12 +1255,12 @@ void main(void){
 			float mouseovered = (selectedness > 1.5 ) ? 1.0 : 0.0;
 			float allyselected = step(abs(fract(selectedness) - 0.5), 0.25);
 			
-			float mouseOverAnimation = fract(worldVertexPos.y * (1.0/30.0) + (simFrame)  * (2.0/30.0));
+			float mouseOverAnimation = fract(worldVertexPos.y * (1.0/30.0) + (simFrame)  * (2.0/40.0));
 
 			// Base highlight amount, rgb contains the color of the highlight
 			// Alpha contains the strength of the highlight
 			vec4 selectionHighlight = vec4(0);
-			selectionHighlight.rgb = clamp(teamCol.rgb, 0.55, 1.0);
+			selectionHighlight.rgb = clamp(teamCol.rgb, 0.65, 1.0);
 
 
 			float dotcamera = dot(worldNormal, V);
