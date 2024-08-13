@@ -1235,6 +1235,9 @@ void main(void){
 
 			// Add bloom for the levels:
 			outSpecularColor+= vec3(levelFactor);
+
+			// Add bloom for the grid lines:
+			outSpecularColor+= pulseTeamColor * line * sintimefast * 2.0 ;
 	
 		}
 	#endif
