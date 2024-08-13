@@ -1528,7 +1528,11 @@ scavBehaviours = {
 		[UnitDefNames["scavmist_scav"].id]			= true,
 		[UnitDefNames["scavmistxl_scav"].id]		= true,
 		[UnitDefNames["scavmistxxl_scav"].id]		= true,
+	},
+	ALWAYSMOVE = { -- Always use Move command, no matter what category this unit is in
 		[UnitDefNames["cormandot4_scav"].id]		= true,
+	},
+	ALWAYSFIGHT = { -- Always use Fight command, no matter what category this unit is in
 	},
 	ALLOWFRIENDLYFIRE = {
 		--[UnitDefNames["raptor_allterrain_arty_basic_t2_v1"].id] = true,
