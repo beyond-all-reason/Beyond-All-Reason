@@ -1293,11 +1293,11 @@ void main(void){
 			}
 			float sintime =	fract(simFrame * 0.02); // pulses every 3 seconds
 			myPerlin.g = myPerlin.g * 0.5 + 0.5;
-			texColor2.a = 1.0 - clamp(cloakedness*0.49, 0.0, 0.49);
+			texColor2.a = 1.0 - clamp(cloakedness*0.54, 0.0, 0.54);
 			float perlinline1 = clamp(1.0 - 20* abs(myPerlin.g - fract(simFrame * 0.005)), 0.0, 1.0);
 			float perlinline2 = clamp(1.0 - 20* abs(myPerlin.g - fract(simFrame * 0.005 +0.5)), 0.0, 1.0);
 			float cloaknoise = cloakedness*perlinline1 + cloakedness*perlinline2;
-			outColor.rgb += cloaknoise * 0.7;
+			outColor.rgb += cloaknoise * 0.8;
 
 			#if 1
 			float dotcamera = dot(worldNormal, V);
