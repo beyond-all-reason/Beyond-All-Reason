@@ -272,7 +272,7 @@ local function makeGrassPatchVBO(grassPatchSize) -- grassPatchSize = 1|4, see th
 		grassPatchVBOsize, -- 3 verts, just a triangle for now
 		VBOLayout -- 17 floats per vertex
 	)
-	Spring.Echo("VBODATA #", grassPatchSize, #VBOData)
+	--Spring.Echo("VBODATA #", grassPatchSize, #VBOData)
 
 	grassPatchVBO:Upload(VBOData)
 end
@@ -724,6 +724,7 @@ local function makeShaderVAO()
 			nightFactor = {1,1,1,1},
 		  },
 		shaderConfig = grassConfig.grassShaderParams,
+		silent = true,
 	}
   
   grassShader = LuaShader.CheckShaderUpdates(shaderSourceCache)
