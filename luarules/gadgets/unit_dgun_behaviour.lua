@@ -36,7 +36,7 @@ for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 	if weaponDef.type == 'DGun' then
 		Script.SetWatchProjectile(weaponDefID, true)
 		dgunWeapons[weaponDefID] = weaponDef
-		dgunWeaponsTTL[weaponDefID] = weaponDef.range/weaponDef.projectilespeed
+		dgunWeaponsTTL[weaponDefID] = weaponDef.range / weaponDef.projectilespeed
 	end
 end
 
@@ -89,8 +89,8 @@ end
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
 	if dgunWeapons[weaponDefID] then
 		flyingDGuns[proID] = true
-		dgunTimeouts[proID] = (frameCounter+dgunWeaponsTTL[weaponDefID])
-		
+		dgunTimeouts[proID] = (frameCounter + dgunWeaponsTTL[weaponDefID])
+
 		local posX, posY, posZ = spGetProjectilePosition(proID)
 		dgunOrigins[proID] = {posX, posY, posZ}
 	end
@@ -188,8 +188,8 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldEmitterWeaponNum, shie
 			local length = math.sqrt(dirX * dirX + dirZ * dirZ)
 			dirX = dirX / length
 			dirZ = dirZ / length
-			local newX = hitX - (WeaponDefs[proDefID].projectilespeed*4) * dirX
-			local newZ = hitZ - (WeaponDefs[proDefID].projectilespeed*4) * dirZ
+			local newX = hitX - (WeaponDefs[proDefID].projectilespeed * 4) * dirX
+			local newZ = hitZ - (WeaponDefs[proDefID].projectilespeed * 4) * dirZ
 
 			local verticalOffset = 1
 			spSetProjectilePosition(proID, newX, math.max(spGetGroundHeight(newX, newZ), 0) - verticalOffset, newZ)
