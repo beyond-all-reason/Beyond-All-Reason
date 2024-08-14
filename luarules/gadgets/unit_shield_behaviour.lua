@@ -314,12 +314,7 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitI
 
 	-- proID isn't nil if hitscan weapons are used, it's actually -1.
 	if proID > -1 then
-		weaponDefID = projectileDefIDCache[proID]
-
-		if not weaponDefID then
-			-- Because flame projectiles for some reason don't live long enough to reference from the cache table
-			weaponDefID = spGetProjectileDefID(proID)
-		end
+		weaponDefID = projectileDefIDCache[proID] or spGetProjectileDefID(proID)
 
 		shieldData.shieldDamage = (shieldData.shieldDamage + originalShieldDamages[weaponDefID])
 
