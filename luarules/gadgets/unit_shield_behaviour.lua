@@ -316,7 +316,7 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitI
 	if proID > -1 then
 		weaponDefID = projectileDefIDCache[proID] or spGetProjectileDefID(proID)
 
-		shieldData.shieldDamage = (shieldData.shieldDamage + originalShieldDamages[weaponDefID])
+		shieldData.shieldDamage = shieldData.shieldDamage + originalShieldDamages[weaponDefID]
 
 		if flameWeapons[weaponDefID] then
 			-- Flames aren't destroyed when they hit shields, so need to delete manually
