@@ -335,8 +335,8 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitI
 
 	shieldCheckFlags[shieldUnitID] = true
 
-	if shieldData.shieldEnabled == true then
-		if shieldData.shieldCoverageChecked == false and AOEWeaponDefIDs[weaponDefID] then
+	if shieldData.shieldEnabled then
+		if not shieldData.shieldCoverageChecked and AOEWeaponDefIDs[weaponDefID] then
 			setCoveredUnits(shieldUnitID)
 		end
 	else
