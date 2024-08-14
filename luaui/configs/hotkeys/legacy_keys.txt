@@ -275,7 +275,6 @@ bind Alt+sc_` remove_from_autogroup // Auto Group
 // blueprint
 bind           Alt+sc_b  blueprint_place
 bind           Alt+sc_c  blueprint_create
-bind     Alt+Shift+sc_c  blueprint_create_selectionorder
 bind           Alt+sc_d  blueprint_delete
 bind           Alt+sc_[  blueprint_prev
 bind           Alt+sc_]  blueprint_next
