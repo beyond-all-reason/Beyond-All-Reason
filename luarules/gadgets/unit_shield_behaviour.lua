@@ -169,7 +169,7 @@ local function shieldNegatesDamageCheck(unitID, unitTeam, attackerID, attackerTe
 			return true
 		end
 
-		for subKey in pairs(shieldedUnits[unitID]) do
+		for shieldUnitID, _ in pairs(shieldedUnits[unitID]) do
 			if shieldedUnits[attackerID][subKey] then
 				break
 			else
