@@ -404,7 +404,7 @@ return {
 				mygravity = 4.8,
 				name = "Long range bot cannon",
 				noselfdamage = true,
-				projectiles = 3,
+				projectiles = 4,
 				range = 700,
 				reloadtime = 0.9,
 				sprayangle = 2800,
@@ -423,7 +423,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 2000,
 				customparams = {
-					spawns_name = "babylegshot babyleggob babyleglob babyleglob babyleglob babyleglob babyleglob babyleglob babyleglob babyleglob babyleglob babyleglob babyleglob babyleglob babyleglob babyleglob babyleglob babyleglob babyleglob babyleglob",
+					spawns_name = "babyleggob babyleggob babyleggob babyleggob babyleggob babyleggob babyleggob babyleggob babyleggob babyleggob babyleggob babyleggob babyleggob babyleggob babyleggob babyleglob babyleglob babyleglob babyleglob babyleglob",
 					spawns_expire = 25,
 					spawns_surface = "LAND", -- Available: "LAND SEA"
 					spawns_mode = "random",
