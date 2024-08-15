@@ -50,7 +50,7 @@ return {
 		radaremitheight = 40,
 		reclaimable = false,
    		releaseheld  = true,
-		script = "Units/ARMCOM.cob",
+		script = "Units/ARMCOM_lus.lua",
 		seismicsignature = 0,
 		selfdestructas = "commanderexplosion",
 		selfdestructcountdown = 5,
@@ -117,6 +117,7 @@ return {
 			effigy = "comeffigylvl1",
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,
+			fall_damage_multiplier = 5,--this ensures commander dies when it hits the ground so effigies can trigger respawn.
 		},
 		featuredefs = {
 			dead = {
