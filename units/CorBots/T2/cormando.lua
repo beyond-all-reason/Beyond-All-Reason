@@ -60,6 +60,7 @@ return {
 			subfolder = "corbots/t2",
 			techlevel = 2,
 			paratrooper = true,
+			fall_damage_multiplier = 0
 		},
 		sfxtypes = {
 			explosiongenerators = {
