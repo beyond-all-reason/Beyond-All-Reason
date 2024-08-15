@@ -19,10 +19,10 @@ out vec4 fragColor;
 void main() {
 	fragColor.rgb = vec3(0,0,0);
 	//fragColor.rgb = vec3(0,1,0);
-	if (abs(blendedcolor.w - blendedcolor.z) > 10.0){
+	if (abs(blendedcolor.w - blendedcolor.z) > worldPos.w){
 		fragColor.rgb = vec3(1,0,0);
 	}
-	fragColor.b = abs(blendedcolor.w - blendedcolor.z) * 0.1;
+	//fragColor.b = abs(blendedcolor.w - blendedcolor.z) * 0.1;
 	//fragColor.b = blendedcolor.z * 0.001;
 	//if (abs)
 	fragColor.a = 0.5;

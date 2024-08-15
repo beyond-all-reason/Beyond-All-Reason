@@ -158,13 +158,14 @@ local buildabiltyPreviewShader = nil
 local autoreload = true
 
 local gridVAO = nil
-local gridSize = 128
+local gridSize = 16
 
 local buildables = {} -- table of unitDefID -> {footprintx, footprintz, maxanglediff, waterline}
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.isBuilding and unitDef.isImmobile then
-		buildables[unitDefID] = { unitDef.xsize, unitDef.zsize, unitDef.maxanglediff or 10, unitDef.waterline }
+		--buildables[unitDefID] = { unitDef.xsize, unitDef.zsize, unitDef.maxanglediff or 10, unitDef.waterline }
+		buildables[unitDefID] = { unitDef.xsize, unitDef.zsize, unitDef.maxHeightDif, unitDef.waterline, unitDef.maxSlope }
 	end
 end
 
@@ -222,7 +223,11 @@ function widget:DrawWorldPreUnit()
 	local cmdID = select(2, spGetActiveCommand())
 	if cmdID == nil or cmdID >= 0 then  return end
 	cmdID = -cmdID
-
+	
+	local a,b,c,d,e,f,g,h = spGetActiveCommand()
+	--Spring.Echo(a,b,c,d,e,f,g,h )
+	--Spring.Echo(Spring.GetActiveCmdDesc(1) )
+	--Spring.Echo(Spring.GetBuildFacing())
 
 	if not buildables[cmdID] then
 		return
@@ -235,21 +240,25 @@ function widget:DrawWorldPreUnit()
 	end
 
 	local builddata = buildables[cmdID]
-	local footprintx, footprintz, maxanglediff, waterline = builddata[1], builddata[2], builddata[3], builddata[4]
+	local xsize,zsize, maxHeightDif, waterline, maxSlope =builddata[1], builddata[2], builddata[3], builddata[4], builddata[5]
 
-	Spring.Echo("DRAWING, ", cmdID, footprintx, footprintz, maxanglediff, waterline)
+	if Spring.GetBuildFacing() % 2 == 1 then
+		xsize, zsize = zsize, xsize
+	end
+
+	Spring.Echo("DRAWING, ", cmdID, xsize,zsize, maxHeightDif, waterline, maxSlope)
 	gl.DepthTest(false)
 	gl.Culling(GL.BACK)
 	gl.Texture(0, "$heightmap")
 	buildabiltyPreviewShader:Activate()
 	buildabiltyPreviewShader:SetUniform("unitcenter_range",
-		math.floor((mousepos[1] + 8) / (SHADERRESOLUTION * 2)) * (SHADERRESOLUTION * 2),
+		math.floor((mousepos[1] + 8) / (SHADERRESOLUTION )) * (SHADERRESOLUTION ),
 		mousepos[2],
-		math.floor((mousepos[3] + 8) / (SHADERRESOLUTION * 2)) * (SHADERRESOLUTION * 2),
+		math.floor((mousepos[3] + 8) / (SHADERRESOLUTION )) * (SHADERRESOLUTION ),
 		0
 	)
 
-	buildabiltyPreviewShader:SetUniform("builddata",footprintx, footprintz, maxanglediff, waterline	)
+	buildabiltyPreviewShader:SetUniform("builddata",xsize, zsize, maxHeightDif, waterline	)
 	 
 	buildabiltyPreviewShader:SetUniform("resolution", gridSize)
 

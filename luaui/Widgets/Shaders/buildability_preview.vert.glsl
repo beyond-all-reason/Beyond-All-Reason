@@ -69,7 +69,7 @@ void main() {
 	if (avgHeight < 0.01) {
 		avgHeight = -1* waterline;
 	}
-
+	worldPos.w = maxHeightDif;
 	worldPos = vec4(pointWorldPos);
 	blendedcolor = vec4(minHeight,maxHeight,avgHeight,pointWorldPos.y);
 
