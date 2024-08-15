@@ -185,7 +185,7 @@ end
 local shieldUnitsTotalCount = 0
 local shieldUnitIndex = {}
 local shieldCheckFlags = {}
-local lastShieldCheckChunkNumber = 1
+local lastShieldCheckedIndex = 1
 local shieldCheckChunkSize = 10
 local shieldCheckEndIndex = 1
 
