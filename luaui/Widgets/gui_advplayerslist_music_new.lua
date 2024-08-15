@@ -53,6 +53,7 @@ local warlowTracks = {}
 local gameoverTracks = {}
 local bossFightTracks = {}
 local boomboxTracks = {}
+local boomboxCounter = 0
 
 local menuTracks = {}
 local loadingTracks = {}
@@ -755,6 +756,15 @@ function widget:Update(dt)
 	local _,_,paused = Spring.GetGameSpeed()
 
 	playedTime, totalTime = Spring.GetSoundStreamTime()
+
+	if boomboxCounter > 0 and playedTime > 5 then
+		boomboxCounter = 0
+	end
+
+	if currentTrackListString == "boombox" and playedTime > 60 then -- They didn't skip it, they don't hate it, we can play it in menu on next launch.
+		Spring.SetConfigInt("boomboxcaptured", 1)
+	end
+
 	if not playingInit then
 		playingInit = true
 		if playedTime ~= prevPlayedTime then
@@ -864,6 +874,7 @@ function PlayNewTrack(paused)
 	end
 	Spring.StopSoundStream()
 	fadeOutSkipTrack = false
+	boomboxCounter = boomboxCounter + 1
 	silenceTimer = math.random(minSilenceTime,maxSilenceTime)
 
 	if (not gameOver) and Spring.GetGameFrame() > 1 then
@@ -883,6 +894,9 @@ function PlayNewTrack(paused)
 	elseif bossHasSpawned then
 		currentTrackList = bossFightTracks
 		currentTrackListString = "bossFight"
+	elseif boomboxCounter >= 4 and #boomboxTracks > 0 then
+		currentTrackList = boomboxTracks
+		currentTrackListString = "boombox"
 	elseif warMeter >= warHighLevel then
 		currentTrackList = warhighTracks
 		currentTrackListString = "warHigh"
@@ -901,7 +915,7 @@ function PlayNewTrack(paused)
 	if #currentTrackList > 0 then
 		if currentTrackListString == "peace" then
 			currentTrack = currentTrackList[peaceTracksPlayCounter]
-			if peaceTracksPlayCounter <= #peaceTracks then
+			if peaceTracksPlayCounter < #peaceTracks then
 				peaceTracksPlayCounter = peaceTracksPlayCounter + 1
 			else
 				peaceTracksPlayCounter = 1
@@ -909,7 +923,7 @@ function PlayNewTrack(paused)
 		end
 		if currentTrackListString == "warHigh" then
 			currentTrack = currentTrackList[warhighTracksPlayCounter]
-			if warhighTracksPlayCounter <= #warhighTracks then
+			if warhighTracksPlayCounter < #warhighTracks then
 				warhighTracksPlayCounter = warhighTracksPlayCounter + 1
 			else
 				warhighTracksPlayCounter = 1
@@ -917,7 +931,7 @@ function PlayNewTrack(paused)
 		end
 		if currentTrackListString == "warLow" then
 			currentTrack = currentTrackList[warlowTracksPlayCounter]
-			if warlowTracksPlayCounter <= #warlowTracks then
+			if warlowTracksPlayCounter < #warlowTracks then
 				warlowTracksPlayCounter = warlowTracksPlayCounter + 1
 			else
 				warlowTracksPlayCounter = 1
@@ -925,7 +939,7 @@ function PlayNewTrack(paused)
 		end
 		if currentTrackListString == "bossFight" then
 			currentTrack = currentTrackList[bossFightTracksPlayCounter]
-			if bossFightTracksPlayCounter <= #bossFightTracks then
+			if bossFightTracksPlayCounter < #bossFightTracks then
 				bossFightTracksPlayCounter = bossFightTracksPlayCounter + 1
 			else
 				bossFightTracksPlayCounter = 1
@@ -933,6 +947,15 @@ function PlayNewTrack(paused)
 		end
 		if currentTrackListString == "gameOver" then
 			currentTrack = currentTrackList[gameoverTracksPlayCounter]
+		end
+		if currentTrackListString == "boombox" then
+			currentTrack = currentTrackList[boomboxTracksPlayCounter]
+			if boomboxTracksPlayCounter < #boomboxTracks then
+				boomboxTracksPlayCounter = boomboxTracksPlayCounter + 1
+			else
+				boomboxTracksPlayCounter = 1
+			end
+			boomboxCounter = 0
 		end
 	elseif #currentTrackList == 0 then
 		return
@@ -942,7 +965,7 @@ function PlayNewTrack(paused)
 		Spring.PlaySoundStream(currentTrack, 1)
 		playing = true
 		interruptionTime = math.random(interruptionMinimumTime, interruptionMaximumTime)
-		if fadeDirection then
+		if fadeDirection and currentTrackListString ~= "boombox" then
 			setMusicVolume(fadeLevel)
 		else
 			setMusicVolume(100)
@@ -1095,25 +1118,5 @@ function widget:UnitFinished()
 end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
-	if unitTeam == Spring.GetMyTeamID() and UnitDefs[unitDefID].name == "boombox" and (not appliedSpectatorThresholds) then
-		currentTrack = boomboxTracks[boomboxTracksPlayCounter]
-		boomboxTracksPlayCounter = boomboxTracksPlayCounter + 1
-		if not boomboxTracks[boomboxTracksPlayCounter] then
-			boomboxTracksPlayCounter = 1
-		end
-		if Spring.GetConfigInt("snd_volmusic", defaultMusicVolume) < 10 then
-			Spring.SetConfigInt("snd_volmusic", defaultMusicVolume)
-		end
-		Spring.StopSoundStream()
-		Spring.PlaySoundStream(currentTrack, 1)
-		playing = true
-		Spring.SetConfigInt('music', (playing and 1 or 0))
-		local playedTime, totalTime = Spring.GetSoundStreamTime()
-		interruptionTime = totalTime + 2
-		fadeDirection = 1
-		fadeOutSkipTrack = false
-		setMusicVolume(100)
-		createList()
-		Spring.SetConfigInt("boomboxcaptured", 1)
-	end
+
 end

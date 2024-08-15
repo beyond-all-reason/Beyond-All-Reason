@@ -67,6 +67,7 @@ for lvl, stats in pairs(lvlParams) do
 		maxslope = 20,
 		speed = 0,
 		maxwaterdepth = 255,
+		mincloakdistance = 50,
 		movementclass = "COMMANDERBOT",
 		movestate = 0,
 		nochasecategory = "ALL",

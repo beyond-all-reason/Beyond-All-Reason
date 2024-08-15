@@ -138,7 +138,6 @@ local unitsOfInterestNames = {
 	armbanth = 'TitanDetected',
 	armepoch = 'FlagshipDetected',
 	corblackhy = 'FlagshipDetected',
-	cormando = 'CommandoDetected',
 	armthovr = 'TransportDetected',
 	corthovr = 'TransportDetected',
 	corintr = 'TransportDetected',

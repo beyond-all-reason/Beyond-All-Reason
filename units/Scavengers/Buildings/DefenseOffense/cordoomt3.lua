@@ -27,6 +27,7 @@ return {
 		maxwaterdepth = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/scavbuildings/CORDOOMT3.s3o",
+		usePieceCollisionVolumes = 1,
 		onoffable = true,
 		radardistance = 1200,
 		radaremitheight = 80,
