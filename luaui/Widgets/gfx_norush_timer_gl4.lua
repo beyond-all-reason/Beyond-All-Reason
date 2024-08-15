@@ -87,10 +87,22 @@ function widget:DrawWorldPreUnit()
 	end
 
 	if chobbyInterface or spIsGUIHidden() then return end
+
+	local advUnitShading, advMapShading = Spring.HaveAdvShading()
+
+	if advMapShading then 
+		gl.Texture(0, "$map_gbuffer_zvaltex")
+	else
+		if WG['screencopymanager'] and WG['screencopymanager'].GetDepthCopy() then
+			gl.Texture(0, WG['screencopymanager'].GetDepthCopy())
+		else
+			return
+		end
+	end
+	
 	glCulling(GL.FRONT)
 	glDepthTest(false)
 	gl.DepthMask(false)
-	gl.Texture(0, "$map_gbuffer_zvaltex")
 
 	norushTimerShader:Activate()
 	for i, startBox in ipairs(StartBoxes) do
