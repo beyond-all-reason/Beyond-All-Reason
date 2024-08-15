@@ -192,7 +192,7 @@ local shieldCheckEndIndex = 1
 function gadget:GameFrame(frame)
 	gameSeconds = spGetGameSeconds()
 
-	for shieldUnitID in pairs(shieldCheckFlags) do
+	for shieldUnitID, _ in pairs(shieldCheckFlags) do
 		local shieldData = shieldUnitsData[shieldUnitID]
 
 		if shieldData then
@@ -228,7 +228,7 @@ function gadget:GameFrame(frame)
 
 		if frame % 10 == 0 then
 
-			if shieldData.shieldEnabled == false and shieldData.downtimeReset ~= 0 and shieldData.downtimeReset <= gameSeconds then
+			if not shieldData.shieldEnabled and shieldData.downtimeReset ~= 0 and shieldData.downtimeReset <= gameSeconds then
 				shieldData.downtimeReset = 0
 				shieldData.shieldEnabled = true
 				spSetUnitShieldRechargeDelay(shieldUnitID, shieldData.shieldWeaponNumber, 0)
@@ -271,8 +271,8 @@ function gadget:GameFrame(frame)
 		local shieldData = shieldUnitsData[shieldUnitID]
 
 		if shieldData then
-			if shieldData.shieldCoverageChecked == false then
-				if shieldData.shieldEnabled == true then
+			if not shieldData.shieldCoverageChecked then
+				if shieldData.shieldEnabled then
 					setCoveredUnits(shieldUnitID)
 				else
 					removeCoveredUnits(shieldUnitID)
