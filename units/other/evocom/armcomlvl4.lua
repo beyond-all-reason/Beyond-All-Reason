@@ -457,7 +457,7 @@ return {
 					name = "Scatter Beamer",
 					noselfdamage = true,
 					projectiles = 16,
-					range = 300,
+					range = 350,
 					reloadtime = 0.1,
 					rgbcolor = "0 0 1",
 					soundhitdry = "",

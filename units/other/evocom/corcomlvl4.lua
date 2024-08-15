@@ -235,7 +235,7 @@ return {
 				laserflaresize = 5.5,
 				name = "HighEnergyLaser",
 				noselfdamage = true,
-				range = 435,
+				range = 350,
 				reloadtime = 0.33,
 				rgbcolor = "0.027 0.40 0.027",
 				rgbcolor2 = "0.9 1 0.9",

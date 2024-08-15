@@ -450,7 +450,7 @@ return {
 				intensity = 24,
 				name = "Short-Range Lightening Discharge",
 				noselfdamage = true,
-				range = 300,
+				range = 425,
 				reloadtime = 0.1,
 				rgbcolor = "0.5 0.5 1",
 				soundhit = "",

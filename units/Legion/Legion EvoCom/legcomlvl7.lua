@@ -243,7 +243,7 @@ return {
 				impulsefactor = 1.8,
 				name = "Rapid-Fire Grenade Launcher",
 				noselfdamage = true,
-				range = 550,
+				range = 425,
 				reloadtime = 0.35,
 				soundhit = "xplomed2",
 				soundhitwet = "splssml",
