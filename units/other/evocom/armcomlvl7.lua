@@ -39,7 +39,7 @@ return {
 		mass = 4900,
 		health = 10500,
 		maxslope = 20,
-		speed = 60,
+		speed = 37.5,
 		maxwaterdepth = 35,
 		metalmake = 27,
 		metalstorage = 500,
@@ -132,8 +132,8 @@ return {
 			evolution_power_multiplier = 1,
 			combatradius = 0,
 			inheritxpratemultiplier = 0.5,
-			childreninheritxp = "TURRET",
-			parentsinheritxp = "TURRET",
+			childreninheritxp = "TURRET MOBILEBUILT",
+			parentsinheritxp = "TURRET MOBILEBUILT",
 			workertimeboost = 3.5,
 			wtboostunittype = "TURRET MOBILE",
 			effigy = "comeffigylvl4",
@@ -521,7 +521,7 @@ return {
 					spark_range = "75",
 					},
 					damage = {
-						default = 53,
+						default = 57,
 					},
 			},
 			empflashbang = {

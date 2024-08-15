@@ -245,6 +245,7 @@ return {
 				impulseboost = 0.4,
 				impulsefactor = 1.5,
 				intensity = 0.8,
+				minintensity = 1,
 				name = "Rapid-fire a2g machine guns",
 				noselfdamage = true,
 				ownerExpAccWeight = 4.0,

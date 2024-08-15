@@ -229,11 +229,12 @@ return {
 				impulseboost = 0.4,
 				impulsefactor = 1.5,
 				intensity = 0.8,
+				minintensity = 1,
 				name = "Rapid-fire a2g machine guns",
 				noselfdamage = true,
 				ownerExpAccWeight = 4.0,
 				proximitypriority = 3,
-				range = 400,
+				range = 300,
 				reloadtime = 0.4,
 				rgbcolor = "1 0.95 0.4",
 				soundhit = "bimpact3",
@@ -247,9 +248,7 @@ return {
 				weapontype = "LaserCannon",
 				weaponvelocity = 921,
 				damage = {
-					commanders = 16,
 					default = 33,
-					vtol = 33,
 				},
 			},
 			torpedo = {

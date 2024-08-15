@@ -239,7 +239,7 @@ return {
 				gravityaffected = "true",
 				impulseboost = 0.5,
 				impulsefactor = 1.8,
-				name = "PlasmaCannon",
+				name = "Rapid-Fire Grenade Launcher",
 				noselfdamage = true,
 				range = 550,
 				reloadtime = 0.3,

@@ -39,7 +39,7 @@ return {
 		mass = 4900,
 		health = 13200,
 		maxslope = 20,
-		speed = 60,
+		speed = 37.5,
 		maxwaterdepth = 35,
 		metalmake = 50,
 		metalstorage = 500,
@@ -120,8 +120,8 @@ return {
 			effigy_offset = 1,
 			evocomlvl = 10,
 			inheritxpratemultiplier = 0.5,
-			childreninheritxp = "TURRET",
-			parentsinheritxp = "TURRET",
+			childreninheritxp = "TURRET MOBILEBUILT",
+			parentsinheritxp = "TURRET MOBILEBUILT",
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
@@ -513,7 +513,7 @@ return {
 					spark_range = "100",
 					},
 					damage = {
-						default = 133,
+						default = 118,
 					},
 			},
 			empflashbang = {
