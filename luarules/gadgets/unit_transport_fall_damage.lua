@@ -14,7 +14,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
---fall damage multiplier defaults to 0.02
+--use customparams.fall_damage_multiplier = <number> to overwrite default damage multiplier as defined below.
 
 local fallDamageMultipliers = {}
 local masses = {}
