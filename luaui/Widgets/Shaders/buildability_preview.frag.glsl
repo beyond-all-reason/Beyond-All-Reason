@@ -17,6 +17,13 @@ in DataVS {
 out vec4 fragColor;
 
 void main() {
-	fragColor.rgb = fract(blendedcolor.rgb * 0.05);
-	fragColor.a = 1.0;
-}
+	fragColor.rgb = vec3(0,0,0);
+	//fragColor.rgb = vec3(0,1,0);
+	if (abs(blendedcolor.w - blendedcolor.z) > 10.0){
+		fragColor.rgb = vec3(1,0,0);
+	}
+	fragColor.b = abs(blendedcolor.w - blendedcolor.z) * 0.1;
+	//fragColor.b = blendedcolor.z * 0.001;
+	//if (abs)
+	fragColor.a = 0.5;
+} 

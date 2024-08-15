@@ -31,29 +31,47 @@ void main() {
 
 	vec4 pointWorldPos = vec4(1.0);
 
-	pointWorldPos.xz = (unitcenter_range.xz +  (xyworld_xyfract.xy * 2.0 - 1.0) * GRIDSIZE * 8); // transform it out in XZ
+	pointWorldPos.xz = (unitcenter_range.xz +  (xyworld_xyfract.xy ) * GRIDSIZE * 8); // transform it out in XZ
 	pointWorldPos.y = heightAtWorldPos(pointWorldPos.xz); // get the world height at that point
 
-	int xsize = int(builddata.x);
-	int zsize = int(builddata.y);
+	int xsize = int(builddata.x) /2;
+	int zsize = int(builddata.y)/2;
+	float maxHeightDif = builddata.z;
+	float waterline = builddata.w;
+
 
 	float minHeight = 1000000.0;
 	float maxHeight = -1000000.0;
 	float avgHeight = 0.0;
+	float sumBorderSquareHeight = 0.0;
+	float numBorderSquares = 0.001;
 
 	for (int x = (-1 * xsize); x <= xsize; x++) {
 		for (int z = (-1 * zsize); z <= zsize; z++) {
 			vec2 currPos = pointWorldPos.xz + vec2(x,z) * 16;
 			float currHeight = heightAtWorldPos(currPos);
-			minHeight = min(minHeight, currHeight);
-			maxHeight = max(maxHeight, currHeight);
+
+			if (x == (-1*xsize) || x == xsize || z == (-1*zsize) || z == zsize) {
+				sumBorderSquareHeight += currHeight;
+				numBorderSquares += 1.0;
+			}
+			// restrict the range of {min}
+			minHeight = max(minHeight, currHeight - maxHeightDif);
+			maxHeight = min(maxHeight, currHeight + maxHeightDif);
 			avgHeight += currHeight;
 		}
 	}
-	avgHeight /= float((xsize*2+1)*(zsize*2+1));
+	avgHeight = sumBorderSquareHeight / numBorderSquares;
+
+
+	//avgHeight = clamp(avgHeight, minHeight + 0.01, maxHeight - 0.01);
+
+	if (avgHeight < 0.01) {
+		avgHeight = -1* waterline;
+	}
 
 	worldPos = vec4(pointWorldPos);
-	blendedcolor = vec4(minHeight,maxHeight,avgHeight,1.0);
+	blendedcolor = vec4(minHeight,maxHeight,avgHeight,pointWorldPos.y);
 
 	pointWorldPos.y += 0.1;
 	worldPos = pointWorldPos;

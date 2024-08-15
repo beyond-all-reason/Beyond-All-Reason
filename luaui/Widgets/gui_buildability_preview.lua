@@ -92,6 +92,48 @@ float CGameHelper::GetBuildHeight(const float3& pos, const UnitDef* unitdef, boo
 	return avgHgt;
 }
 
+
+And then:
+where pos.y = GetBuildHeight(pos,unitDef,synced)
+
+
+CGameHelper::BuildSquareStatus CGameHelper::TestBuildSquare(
+	const float3& pos,
+	const int2& xrange,
+	const int2& zrange,
+	const BuildInfo& buildInfo,
+	const MoveDef* moveDef,
+	CFeature*& feature,
+	int allyteam,
+	bool synced
+) {
+	RECOIL_DETAILED_TRACY_ZONE;
+	assert(pos.IsInBounds());
+
+	const int sqx = unsigned(pos.x) / SQUARE_SIZE;
+	const int sqz = unsigned(pos.z) / SQUARE_SIZE;
+
+	const float groundHeight = CGround::GetApproximateHeightUnsafe(sqx, sqz, synced);
+	const UnitDef* unitDef = buildInfo.def;
+
+	if (!CheckTerrainConstraints(unitDef, moveDef, pos.y, groundHeight, CGround::GetSlope(pos.x, pos.z, synced)))
+
+
+Finally:
+
+
+bool CGameHelper::CheckTerrainConstraints(
+	const UnitDef* unitDef,
+	const MoveDef* moveDef,
+	float wantedHeight, //pos.y
+	float groundHeight, // CGround::GetApproximateHeightUnsafe(sqx, sqz, synced);
+	float groundSlope,
+	float* clampedHeight
+
+	if (unitDef->IsImmobileUnit())
+		slopeCheck |= (std::abs(wantedHeight - groundHeight) <= unitDef->maxHeightDif);
+
+
 ]]--
 
 local SHADERRESOLUTION = 16 -- THIS SHOULD MATCH RADARMIPLEVEL!
