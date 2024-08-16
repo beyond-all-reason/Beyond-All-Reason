@@ -950,7 +950,7 @@ local options = {
         desc   	= "(Range 2 - 10) Changes the Evolving Commanders maximum level",
         type   	= "number",
         section	= "options_extra",
-        def    	= 10,
+        def    	= 6,
         min    	= 2,
         max    	= 10,
         step   	= 1,
@@ -992,7 +992,7 @@ local options = {
 
     {
         key 	= "comrespawn",
-        name 	= "Commander Respawning Enabled",
+        name 	= "Commander Respawning",
         desc   	= "Commanders can build one Effigy. The first one is free and given for you at the start. When the commander dies, the Effigy is sacrificed in its place.",
         type 	= "list",
         def 	= "evocom",

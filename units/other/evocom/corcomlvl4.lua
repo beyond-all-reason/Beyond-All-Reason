@@ -251,8 +251,8 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 700,
 				damage = {
-					default = 400,
-					subs = 200,
+					default = 550,
+					subs = 275,
 				},
 			},
 			corcomsealaser = {
@@ -438,9 +438,9 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 310,
 				damage = {
-					default = 385,
-					subs = 150,
-					vtol = 30,
+					default = 450,
+					subs = 225,
+					vtol = 45,
 				},
 			},
 		},

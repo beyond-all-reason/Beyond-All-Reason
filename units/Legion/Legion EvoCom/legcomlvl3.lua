@@ -234,7 +234,6 @@ return {
 				name = "Rapid-fire a2g machine guns",
 				noselfdamage = true,
 				ownerExpAccWeight = 4.0,
-				proximitypriority = 3,
 				range = 350,
 				reloadtime = 0.4,
 				rgbcolor = "1 0.95 0.4",
@@ -249,7 +248,7 @@ return {
 				weapontype = "LaserCannon",
 				weaponvelocity = 921,
 				damage = {
-					default = 33,
+					default = 45,
 				},
 			},
 			torpedo = {
