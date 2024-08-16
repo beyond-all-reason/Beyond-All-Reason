@@ -238,7 +238,7 @@ return {
 				name = "Anti-swarm AoE flamethrower",
 				noselfdamage = true,
 				proximitypriority = 3,
-				range = 435,
+				range = 400,
 				reloadtime = 0.80,
 				rgbcolor = "1 0.94 0.88",
 				rgbcolor2 = "0.9 0.84 0.8",

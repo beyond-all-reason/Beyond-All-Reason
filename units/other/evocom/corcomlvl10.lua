@@ -240,7 +240,7 @@ return {
 				noexplode = false,
 				noselfdamage = true,
 				predictboost = 1,
-				range = 500,
+				range = 475,
 				reloadtime = 0.39996,
 				rgbcolor = "1 0.94 0.88",
 				rgbcolor2 = "0.9 0.84 0.8",

@@ -230,11 +230,12 @@ return {
 				impulseboost = 0.4,
 				impulsefactor = 1.5,
 				intensity = 0.8,
+				minintensity = 1,
 				name = "Rapid-fire a2g machine guns",
 				noselfdamage = true,
 				ownerExpAccWeight = 4.0,
 				proximitypriority = 3,
-				range = 400,
+				range = 350,
 				reloadtime = 0.4,
 				rgbcolor = "1 0.95 0.4",
 				soundhit = "bimpact3",
@@ -248,9 +249,7 @@ return {
 				weapontype = "LaserCannon",
 				weaponvelocity = 921,
 				damage = {
-					commanders = 16,
 					default = 33,
-					vtol = 33,
 				},
 			},
 			torpedo = {
@@ -406,7 +405,7 @@ return {
 				mygravity = 4.8,
 				name = "Long range bot cannon",
 				noselfdamage = true,
-				projectiles = 3,
+				projectiles = 4,
 				range = 700,
 				reloadtime = 0.9,
 				sprayangle = 2800,
@@ -425,7 +424,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 2000,
 				customparams = {
-					spawns_name = "babylegshot babyleggob babyleglob babyleglob babyleglob babyleglob babyleglob babyleglob babyleglob babyleglob babyleglob babyleglob babyleglob babyleglob babyleglob babyleglob babyleglob babyleglob babyleglob babyleglob",
+					spawns_name = "babyleggob babyleggob babyleggob babyleggob babyleggob babyleggob babyleggob babyleggob babyleggob babyleggob babyleggob babyleggob babyleggob babyleggob babyleggob babyleglob babyleglob babyleglob babyleglob babyleglob",
 					spawns_expire = 25,
 					spawns_surface = "LAND", -- Available: "LAND SEA"
 					spawns_mode = "random",
