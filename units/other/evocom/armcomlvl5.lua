@@ -140,6 +140,7 @@ return {
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,
 			fall_damage_multiplier = 5,--this ensures commander dies when it hits the ground so effigies can trigger respawn.
+			stockpilelimit = 4,
 		},
 		featuredefs = {
 			dead = {
@@ -226,7 +227,7 @@ return {
 		},
 		weapondefs = {
 			backlauncher = {
-				areaofeffect = 70,
+				areaofeffect = 79,
 				avoidfeature = false,
 				cegtag = "missiletrailmedium-starburst",
 				craterareaofeffect = 70,
@@ -238,12 +239,11 @@ return {
 				flighttime = 7.4,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				metalpershot = 0,
 				model = "corkbmissl1.s3o",
 				name = "HeavyRockets",
 				noselfdamage = true,
-				range = 1300,
-				reloadtime = 8,
+				range = 620,
+				reloadtime = 2.5,
 				smoketrail = true,
 				smokePeriod = 8,
 				smoketime = 30,
@@ -254,16 +254,18 @@ return {
 				soundhit = "xplomed4",
 				soundhitwet = "splssml",
 				soundstart = "Rockhvy1",
+				stockpile = true,
+				stockpiletime = 10,
 				texture1 = "null",
 				texture2 = "smoketrailbar",
 				texture3 = "null",
 				turnrate = 15000,
-				weaponacceleration = 100,
-				weapontimer = 3,
+				weaponacceleration = 250,
+				weapontimer = 1.24,
 				weapontype = "StarburstLauncher",
-				weaponvelocity = 800,
+				weaponvelocity = 1000,
 				damage = {
-					default = 1350,
+					default = 1200,
 				},
 			},
 			longgun = {
