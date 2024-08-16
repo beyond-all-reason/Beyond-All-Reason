@@ -353,12 +353,6 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
-				customparams = {
-					spark_ceg = "custom:laserhit-emp",
-					spark_forkdamage = "0.0125",
-					spark_maxunits = "10",
-					spark_range = "175",
-				},
 				damage = {
 					default = 60000,
 				},
