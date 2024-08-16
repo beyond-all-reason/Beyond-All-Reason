@@ -300,7 +300,12 @@ function UnitDef_Post(name, uDef)
 				end
 
 				if comLevel and modOptions.evocomlevelcap <= comLevel then
+					uDef.customparams.evolution_health_transfer = nil
+					uDef.customparams.evolution_target = nil
 					uDef.customparams.evolution_condition = nil
+					uDef.customparams.evolution_timer = nil
+					uDef.customparams.evolution_power_threshold = nil
+					uDef.customparams.evolution_power_multiplier = nil
 				end
 			end
 		end
