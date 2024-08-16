@@ -117,7 +117,7 @@ return {
 			paralyzemultiplier = 0.025,
 			subfolder = "",
 			shield_color_mult = 0.8,
-			shield_power = 5000,
+			shield_power = 5500,
 			shield_radius = 100,
 			evolution_health_transfer = "percentage",
 			evolution_target = "corcomlvl5",
@@ -129,6 +129,7 @@ return {
 			effigy = "comeffigylvl2",
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,
+			fall_damage_multiplier = 5,--this ensures commander dies when it hits the ground so effigies can trigger respawn.
 		},
 		featuredefs = {
 			dead = {
@@ -217,7 +218,7 @@ return {
 		weapondefs = {
 			corcomlaser = {
 				allowNonBlockingAim = true,
-				areaofeffect = 12,
+				areaofeffect = 16,
 				avoidfeature = false,
 				beamtime = 0.16,
 				collidefeature = false,
@@ -227,7 +228,6 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
-				energypershot = 0,
 				explosiongenerator = "custom:laserhit-medium-green",
 				firestarter = 90,
 				impactonly = 1,
@@ -236,7 +236,7 @@ return {
 				laserflaresize = 5.5,
 				name = "HighEnergyLaser",
 				noselfdamage = true,
-				range = 435,
+				range = 350,
 				reloadtime = 0.33,
 				rgbcolor = "0.027 0.40 0.027",
 				rgbcolor2 = "0.9 1 0.9",
@@ -256,7 +256,7 @@ return {
 				},
 			},
 			corcomsealaser = {
-				areaofeffect = 12,
+				areaofeffect = 16,
 				avoidfeature = false,
 				beamtime = 0.16,
 				beamttl = 2.4,
@@ -394,13 +394,13 @@ return {
 					armortype = "shields",
 					force = 2.5,
 					intercepttype = 11111,
-					power = 5000,
-					powerregen = 150,
-					powerregenenergy = 30,
+					power = 5500,
+					powerregen = 125,
+					powerregenenergy = 25,
 					radius = 100,
 					repulser = false,
 					smart = true,
-					startingpower = 5000,
+					startingpower = 5500,
 					visiblerepulse = false,
 					badcolor = {
 						[1] = 1,

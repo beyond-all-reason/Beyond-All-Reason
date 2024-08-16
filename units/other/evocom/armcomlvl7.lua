@@ -39,7 +39,7 @@ return {
 		mass = 4900,
 		health = 10500,
 		maxslope = 20,
-		speed = 60,
+		speed = 37.5,
 		maxwaterdepth = 35,
 		metalmake = 27,
 		metalstorage = 500,
@@ -132,13 +132,14 @@ return {
 			evolution_power_multiplier = 1,
 			combatradius = 0,
 			inheritxpratemultiplier = 0.5,
-			childreninheritxp = "TURRET",
-			parentsinheritxp = "TURRET",
+			childreninheritxp = "TURRET MOBILEBUILT",
+			parentsinheritxp = "TURRET MOBILEBUILT",
 			workertimeboost = 3.5,
 			wtboostunittype = "TURRET MOBILE",
 			effigy = "comeffigylvl4",
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,
+			fall_damage_multiplier = 5,--this ensures commander dies when it hits the ground so effigies can trigger respawn.
 		},
 		featuredefs = {
 			dead = {
@@ -502,7 +503,7 @@ return {
 				intensity = 24,
 				name = "Short-Range Lightening Discharge",
 				noselfdamage = true,
-				range = 300,
+				range = 425,
 				reloadtime = 0.1,
 				rgbcolor = "0.5 0.5 1",
 				soundhit = "",
@@ -521,7 +522,7 @@ return {
 					spark_range = "75",
 					},
 					damage = {
-						default = 53,
+						default = 57,
 					},
 			},
 			empflashbang = {

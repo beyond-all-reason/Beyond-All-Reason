@@ -130,6 +130,7 @@ return {
 			effigy = "comeffigylvl3",
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,
+			fall_damage_multiplier = 5,--this ensures commander dies when it hits the ground so effigies can trigger respawn.
 		},
 		featuredefs = {
 			dead = {
@@ -237,7 +238,7 @@ return {
 				name = "Anti-swarm AoE flamethrower",
 				noselfdamage = true,
 				proximitypriority = 3,
-				range = 435,
+				range = 400,
 				reloadtime = 0.95,
 				rgbcolor = "1 0.94 0.88",
 				rgbcolor2 = "0.9 0.84 0.8",

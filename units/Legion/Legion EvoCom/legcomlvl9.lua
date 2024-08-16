@@ -145,6 +145,7 @@ return {
 			effigy = "comeffigylvl5",
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,
+			fall_damage_multiplier = 5,--this ensures commander dies when it hits the ground so effigies can trigger respawn.
 		},
 		featuredefs = {
 			dead = {
@@ -245,9 +246,9 @@ return {
 				gravityaffected = "true",
 				impulseboost = 0.5,
 				impulsefactor = 1.8,
-				name = "PlasmaCannon",
+				name = "Rapid-Fire Grenade Launcher",
 				noselfdamage = true,
-				range = 550,
+				range = 500,
 				reloadtime = 0.4,
 				soundhit = "xplomed2",
 				soundhitwet = "splssml",

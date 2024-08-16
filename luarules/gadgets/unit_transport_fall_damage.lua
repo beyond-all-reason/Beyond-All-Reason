@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		date = "2023.06.22",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = false
+		enabled = true
 	}
 end
 
@@ -14,14 +14,19 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local commandoUnitDefID = UnitDefNames["cormando"].id
+--use customparams.fall_damage_multiplier = <number> to overwrite default damage multiplier as defined below.
+
+local fallDamageMultipliers = {}
 local masses = {}
 local droppedunits = {}
 local heightThreshold = 32 -- if unit is at least 32 elmos up consider it falling
-local damageMult = 0.02 -- damage is 2% of mass * height
+local defaultDamageMult = 0.02 -- damage is 2% of mass * height if not defined in customParam.fall_damage_multiplier
 
 for unitDefID, unitDef in ipairs(UnitDefs) do
 	masses[unitDefID] = unitDef.mass
+	if unitDef.customParams.fall_damage_multiplier then
+		fallDamageMultipliers[unitDefID] = unitDef.customParams.fall_damage_multiplier
+	end
 end
 
 local function GetUnitHeightAboveGroundAndWater(unitID) -- returns nil for invalid units
@@ -37,10 +42,9 @@ local function GetUnitHeightAboveGroundAndWater(unitID) -- returns nil for inval
 end
 
 function gadget:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
-	if unitDefID == commandoUnitDefID then return end
-	
 	local unitHeight = GetUnitHeightAboveGroundAndWater(unitID)
-	if unitHeight and unitHeight > heightThreshold then 
+	if unitHeight and unitHeight > heightThreshold then
+		local damageMult = fallDamageMultipliers[unitDefID] or defaultDamageMult
 		droppedunits[unitID] = unitHeight * masses[unitDefID] * damageMult
 	end
 end
@@ -51,7 +55,7 @@ function gadget:GameFrame()
 			local unitHeight = GetUnitHeightAboveGroundAndWater(unitID)
 			if unitHeight then 
 				if unitHeight < heightThreshold then 
-					Spring.AddUnitDamage(unitID, falldamage)
+					Spring.AddUnitDamage(unitID, falldamage, 0, Spring.GetGaiaTeamID(), 1)
 					droppedunits[unitID] = nil
 				end
 			else -- dead

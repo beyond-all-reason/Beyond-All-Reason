@@ -7,7 +7,7 @@ return {
 		maxdec = 1.125,
 		energycost = 50000,
 		metalcost = 5000,
-		builddistance = 190,
+		builddistance = 350,
 		builder = true,
 		buildpic = "LEGCOM.DDS",
 		buildtime = 187500,
@@ -139,6 +139,7 @@ return {
 			effigy = "comeffigylvl2",
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,
+			fall_damage_multiplier = 5,--this ensures commander dies when it hits the ground so effigies can trigger respawn.
 		},
 		featuredefs = {
 			dead = {
@@ -233,11 +234,12 @@ return {
 				impulseboost = 0.4,
 				impulsefactor = 1.5,
 				intensity = 0.8,
+				minintensity = 1,
 				name = "Rapid-fire a2g machine guns",
 				noselfdamage = true,
 				ownerExpAccWeight = 4.0,
 				proximitypriority = 3,
-				range = 550,
+				range = 350,
 				reloadtime = 0.4,
 				rgbcolor = "1 0.95 0.4",
 				soundhit = "bimpact3",
@@ -251,9 +253,7 @@ return {
 				weapontype = "LaserCannon",
 				weaponvelocity = 999,
 				damage = {
-					commanders = 22,
 					default = 44,
-					vtol = 44,
 				},
 			},
 			torpedo = {

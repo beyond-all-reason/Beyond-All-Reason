@@ -41,7 +41,7 @@ for lvl, stats in pairs(lvlParams) do
 		metalcost = stats.metalcost,
 		builddistance = 145,
 		buildpic = "COMEFFIGY.DDS",
-		buildtime = 1500,
+		buildtime = 6000,
 		cancloak = true,
 		canmove = false,
 		canselfdestruct = false,

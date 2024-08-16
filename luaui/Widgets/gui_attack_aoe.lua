@@ -750,7 +750,9 @@ local function DrawDGun(aoe, fx, fy, fz, tx, ty, tz, range, requiredEnergy, unit
 		dx = fx + offset_x
 		dz = fz + offset_z
 	end
+	gl.DepthTest(false)
 	DrawNoExplode(aoe, dx, fy, dz, tx, ty, tz, range + (aoe * 0.7), requiredEnergy)
+	gl.DepthTest(true)
 	glColor(1, 0, 0, 0.75)
 	glLineWidth(1.5)
 	glDrawGroundCircle(fx, fy, fz, range + (aoe * 0.7), circleDivs)
