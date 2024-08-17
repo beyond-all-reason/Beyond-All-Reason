@@ -8,7 +8,7 @@
 --  name:     the displayed name
 --  desc:     the description (could be used as a tooltip)
 --  hint:     greyed out text that appears in input field when empty
---  type:     the option type ('list','string','number','bool')
+--  type:     the option type ('list','string','number','bool',`subheader`,`seperator`)
 --  def:      the default value
 --  min:      minimum value for number options
 --  max:      maximum value for number options
@@ -17,7 +17,16 @@
 --  items:    array of item strings for list options
 --  section:  so lobbies can order options in categories/panels
 --  scope:    'all', 'player', 'team', 'allyteam'      <<< not supported yet >>>
---
+--  collumn:  moves the option 1 row up if value is greater than the preivous row's one, default: 1
+--         |  negative value forces new row, absolute value is used
+--         |  zero moves to the left, 1 is default, 2 is half way to the right
+--         |  recommened values: for 2 columns: 1 and 2, for 3 columns 1, 1.66, and 2.33
+--  
+--  lock:     if type is bool: hides the table of keys when set to TRUE     <<< can not hide seperators >>>
+--      |     if type is list: add under each item what it should SHOW when set to
+--  unlock:   if type is bool: hides the table of keys when set to FALSE    <<< can not hide seperators >>>
+--        |   if type is list: add under each item what it should HIDE when set to
+--  bitmask:  int (1|2|4|8...etc), for when multiple options can hide an item
 
 local options = {
 
@@ -45,11 +54,8 @@ local options = {
 
     {
         key     = "sub_header",
-        name    = "----------------------------------------------------------------------------------------------------------------------------------------",
-        desc    = "",
         section = "options_main",
-        type    = "subheader",
-        def     =  true,
+        type    = "seperator",
     },
 
     {
@@ -82,11 +88,8 @@ local options = {
 
     {
         key     = "sub_header",
-        name    = "----------------------------------------------------------------------------------------------------------------------------------------",
-        desc    = "",
         section = "options_main",
-        type    = "subheader",
-        def     =  true,
+        type    = "seperator",
     },
 
     {
@@ -233,11 +236,8 @@ local options = {
 
     {
         key     = "sub_header",
-        name    = "----------------------------------------------------------------------------------------------------------------------------------------",
-        desc    = "",
         section = "options_main",
-        type    = "subheader",
-        def     =  true,
+        type    = "seperator",
     },
 
     {
@@ -274,6 +274,7 @@ local options = {
         type   	= "bool",
         section	= "options_main",
         def    	= false,
+        column = 1,
     },
 
     {
@@ -283,6 +284,7 @@ local options = {
         type   	= "bool",
         section	= "options_main",
         def    	= false,
+        column  = 1.66,
     },
 
     {
@@ -292,6 +294,7 @@ local options = {
         type   	= "bool",
         section	= "options_main",
         def    	= false,
+        column = 1,
     },
 
     {
@@ -301,6 +304,7 @@ local options = {
         type   	= "bool",
         section	= "options_main",
         def    	= false,
+        column = 1,
     },
 
     {
@@ -310,6 +314,7 @@ local options = {
         type   	= "bool",
         section	= "options_main",
         def    	= false,
+        column = 1.66,
     },
 
     {
@@ -319,33 +324,37 @@ local options = {
         type   	= "bool",
         section	= "options_main",
         def    	= false,
+        column = 1,
     },
 
     {
         key    	= "unit_restrictions_notacnukes",
-        name   	= "Disable Tactical Nukes and EMPs",
-        desc   	= "Disable Tactical Nukes and EMPs",
+        name   	= "Disable Tactical Missles/EMPs",
+        desc   	= "Disables Cortex Tactical Missile Launcher and Armada EMP Missile Launcher",
         type   	= "bool",
         section	= "options_main",
         def    	= false,
+        column = 1.66,
     },
 
     {
         key    	= "unit_restrictions_nolrpc",
-        name   	= "Disable Long Range Artilery (LRPC) structures",
-        desc   	= "Disable Long Range Artilery (LRPC) structures",
+        name   	= "Disable Long Range Artilery (LRPC)",
+        desc   	= "Disable Long Range Plasma Artilery (LRPC) structures",
         type   	= "bool",
         section	= "options_main",
         def    	= false,
+        column = 1,
     },
 
     {
         key    	= "unit_restrictions_noendgamelrpc",
-        name   	= "Disable Endgame Long Range Artilery (LRPC) structures (AKA lolcannons)",
-        desc   	= "Disable Endgame Long Range Artilery (LRPC) structures (AKA lolcannons)",
+        name   	= "Disable Endgame Artilery (LRPC)",
+        desc   	= "Disable Endgame Long Range Plasma Artilery (LRPC) structures \"Ragnarok\"/\"Calamity\" (AKA lolcannons)",
         type   	= "bool",
         section	= "options_main",
         def    	= false,
+        column = 1.66,
     },
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -450,11 +459,8 @@ local options = {
 
     {
         key     = "sub_header",
-        name    = "----------------------------------------------------------------------------------------------------------------------------------------",
-        desc    = "",
         section = "raptor_defense_options",
-        type    = "subheader",
-        def     =  true,
+        type    = "seperator",
     },
 
     {
@@ -476,11 +482,8 @@ local options = {
 
     {
         key     = "sub_header",
-        name    = "----------------------------------------------------------------------------------------------------------------------------------------",
-        desc    = "",
         section = "raptor_defense_options",
-        type    = "subheader",
-        def     =  true,
+        type    = "seperator",
     },
 
     {
@@ -508,11 +511,8 @@ local options = {
 
     {
         key     = "sub_header",
-        name    = "----------------------------------------------------------------------------------------------------------------------------------------",
-        desc    = "",
         section = "raptor_defense_options",
-        type    = "subheader",
-        def     =  true,
+        type    = "seperator",
     },
 
     {
@@ -609,11 +609,8 @@ local options = {
 
     {
         key     = "sub_header",
-        name    = "----------------------------------------------------------------------------------------------------------------------------------------",
-        desc    = "",
         section = "scav_defense_options",
-        type    = "subheader",
-        def     =  true,
+        type    = "seperator",
     },
 
     {
@@ -635,11 +632,8 @@ local options = {
 
     {
         key     = "sub_header",
-        name    = "----------------------------------------------------------------------------------------------------------------------------------------",
-        desc    = "",
         section = "scav_defense_options",
-        type    = "subheader",
-        def     =  true,
+        type    = "seperator",
     },
 
     {
@@ -667,11 +661,8 @@ local options = {
 
     {
         key     = "sub_header",
-        name    = "----------------------------------------------------------------------------------------------------------------------------------------",
-        desc    = "",
         section = "scav_defense_options",
-        type    = "subheader",
-        def     =  true,
+        type    = "seperator",
     },
 
     {
@@ -745,11 +736,8 @@ local options = {
 
     {
         key     = "sub_header",
-        name    = "----------------------------------------------------------------------------------------------------------------------------------------",
-        desc    = "",
         section = "options_extra",
-        type    = "subheader",
-        def     =  true,
+        type    = "seperator",
     },
 
     --{
@@ -794,16 +782,31 @@ local options = {
 
     {
         key     = "sub_header",
-        name    = "----------------------------------------------------------------------------------------------------------------------------------------",
-        desc    = "",
         section = "options_extra",
-        type    = "subheader",
-        def     =  true,
+        type    = "seperator",
+    },
+
+    {
+        key 	= "map_waterlevel_label_water",
+        name 	= "Water Level",
+        desc 	= "Doesn't work if Map Deformation is disabled! <0 = Decrease water level, >0 = Increase water level",
+        type 	= "subheader",
+        section = "options_extra",
+        column  = 1,
+    },
+
+    {
+        key 	= "map_waterlevel_label_lava",
+        name 	= "Lava Level",
+        desc 	= "Doesn't work if Map Deformation is disabled! <0 = Decrease water level, >0 = Increase water level",
+        type 	= "subheader",
+        section = "options_extra",
+        column  = 1.0191,
     },
 
     {
         key 	= "map_waterlevel",
-        name 	= "Water Level",
+        name 	= "",
         desc 	= "Doesn't work if Map Deformation is disabled! <0 = Decrease water level, >0 = Increase water level",
         type 	= "number",
         def 	= 0,
@@ -811,6 +814,7 @@ local options = {
         max 	= 10000,
         step 	= 1,
         section = "options_extra",
+        column  = -1, -- gets pushed over the labels due to label hiding
     },
 
     {
@@ -820,15 +824,14 @@ local options = {
         type   	= "bool",
         def    	= false,
         section	= "options_extra",
+        lock    = {"map_waterlevel_label_water"},
+        unlock  = {"map_waterlevel_label_lava"},
     },
 
     {
         key     = "sub_header",
-        name    = "----------------------------------------------------------------------------------------------------------------------------------------",
-        desc    = "",
         section = "options_extra",
-        type    = "subheader",
-        def     =  true,
+        type    = "seperator",
     },
 
     {
@@ -839,9 +842,9 @@ local options = {
         def 	= "scav_only",
         section = "options_extra",
         items 	= {
-            { key = "enabled", 		name = "Enabled" },
-            { key = "scav_only", 	name = "Enabled for Scavengers only" },
-            { key = "disabled", 	name = "Disabled" },
+            { key = "enabled", 		name = "Enabled", unlock = {"ruins_density","ruins_only_t1",}},
+            { key = "scav_only", 	name = "Enabled for Scavengers only", unlock = {"ruins_density","ruins_only_t1",}},
+            { key = "disabled", 	name = "Disabled", lock = {"ruins_density","ruins_only_t1",}},
         }
     },
 
@@ -879,11 +882,8 @@ local options = {
 
     {
         key     = "sub_header",
-        name    = "----------------------------------------------------------------------------------------------------------------------------------------",
-        desc    = "",
         section = "options_extra",
-        type    = "subheader",
-        def     =  true,
+        type    = "seperator",
     },
 
     {
@@ -894,9 +894,9 @@ local options = {
         def 	= "scav_only",
         section = "options_extra",
         items 	= {
-            { key = "enabled", 		name = "Enabled" },
-            { key = "scav_only", 	name = "Enabled for Scavengers only" },
-            { key = "disabled", 	name = "Disabled" },
+            { key = "enabled", 		name = "Enabled", unlock = {"lootboxes_density"}},
+            { key = "scav_only", 	name = "Enabled for Scavengers only", unlock = {"lootboxes_density"}},
+            { key = "disabled", 	name = "Disabled", lock = {"lootboxes_density"}},
         }
     },
 
@@ -915,11 +915,8 @@ local options = {
 
     {
         key     = "sub_header",
-        name    = "----------------------------------------------------------------------------------------------------------------------------------------",
-        desc    = "",
         section = "options_extra",
-        type    = "subheader",
-        def     =  true,
+        type    = "seperator",
     },
 
     {
@@ -929,24 +926,39 @@ local options = {
         type 	= "bool",
         def 	= false,
         section = "options_extra",
+        bitmask = 1,
+        unlock  = {"evocomlevelupmethod","evocomlevelcap","evocomxpmultiplier","evocomleveluprate","evocomxpmultiplier_post"},
+        lock    = {"buffer_fix"},
     },
 
     {
         key 	= "evocomlevelupmethod",
-        name 	= "Evolving Commanders: Leveling Method",
+        name 	= "                    Leveling Method",
         desc   	= "Dynamic: Commanders evolve to keep up with the highest power player. Timed: Static Evolution Rate",
         type 	= "list",
         def 	= "dynamic",
         section = "options_extra",
+        bitmask = 2,
         items 	= {
-            { key = "dynamic", 	name = "Dynamic" },
-            { key = "timed", name = "Timed" },
+            { key = "dynamic", 	name = "Dynamic", lock = {"evocomleveluprate"} },
+            { key = "timed", name = "Timed", unlock = {"evocomleveluprate"} },
         }
+    },
+    {
+        key    	= "evocomleveluprate",
+        name   	= "                    Evolution Timer.",
+        desc   	= "(Range 0.1 - 20 Minutes) Rate at which commanders will evolve if Timed method is selected.",
+        type   	= "number",
+        section	= "options_extra",
+        def    	= 5,
+        min    	= 0.1,
+        max    	= 20,
+        step   	= 0.1,
     },
 
     {
         key    	= "evocomlevelcap",
-        name   	= "Evolving Commanders: Max Level",
+        name   	= "                    Max Level",
         desc   	= "(Range 2 - 10) Changes the Evolving Commanders maximum level",
         type   	= "number",
         section	= "options_extra",
@@ -958,7 +970,7 @@ local options = {
 
     {
         key    	= "evocomxpmultiplier",
-        name   	= "Evolving Commanders: Commander XP Multiplier - Does not affect leveling!",
+        name   	= "                    Commander XP Multiplier",
         desc   	= "(Range 0.1 - 10) Changes the rate at which Evolving Commanders gain Experience.",
         type   	= "number",
         section	= "options_extra",
@@ -966,28 +978,30 @@ local options = {
         min    	= 0.1,
         max    	= 10,
         step   	= 0.1,
+        column  = 1,
     },
 
+    {
+        key    	= "evocomxpmultiplier_post",
+        name   	= "Does not affect leveling!",
+        desc   	= "(Range 0.1 - 10) Changes the rate at which Evolving Commanders gain Experience.",
+        type   	= "subheader",
+        section	= "options_extra",
+        font    = 1,
+        column  = 2,
+    },
 
     {
-        key    	= "evocomleveluprate",
-        name   	= "Evolving Commanders - Timed Only - Evolution Timer.",
-        desc   	= "(Range 0.1 - 20 Minutes) Rate at which commanders will evolve if Timed method is selected.",
-        type   	= "number",
-        section	= "options_extra",
-        def    	= 5,
-        min    	= 0.1,
-        max    	= 20,
-        step   	= 0.1,
+        key     = "buffer_fix", -- inversely toggled to compensate for 2 items in a row
+        section = "options_extra",
+        type    = "subheader",
+        name    = "",
     },
 
     {
         key     = "sub_header",
-        name    = "----------------------------------------------------------------------------------------------------------------------------------------",
-        desc    = "",
         section = "options_extra",
-        type    = "subheader",
-        def     =  true,
+        type    = "seperator",
     },
 
     {
@@ -1003,14 +1017,11 @@ local options = {
             { key = "disabled", name = "Disabled" },
         }
     },
- 
+
     {
         key     = "sub_header",
-        name    = "----------------------------------------------------------------------------------------------------------------------------------------",
-        desc    = "",
         section = "options_extra",
-        type    = "subheader",
-        def     =  true,
+        type    = "seperator",
     },
 
     {
@@ -1020,8 +1031,8 @@ local options = {
         def 	= "disabled",
         section = "options_extra",
         items 	= {
-            { key = "enabled", 	name = "Enabled" },
-            { key = "disabled", name = "Disabled" },
+            { key = "enabled", 	name = "Enabled", unlock = {"assistdronesbuildpowermultiplier","assistdronescount","assistdronesair",} },
+            { key = "disabled", name = "Disabled", lock = {"assistdronesbuildpowermultiplier","assistdronescount","assistdronesair",} },
         }
     },
 
@@ -1060,11 +1071,8 @@ local options = {
 
     {
         key     = "sub_header",
-        name    = "----------------------------------------------------------------------------------------------------------------------------------------",
-        desc    = "",
         section = "options_extra",
-        type    = "subheader",
-        def     =  true,
+        type    = "seperator",
     },
 
     {
@@ -1074,8 +1082,8 @@ local options = {
         def 	= "disabled",
         section = "options_extra",
         items 	= {
-            { key = "enabled", 	name = "Enabled" },
-            { key = "disabled", name = "Disabled" },
+            { key = "enabled", 	name = "Enabled", unlock = {"commanderbuildersrange","commanderbuildersbuildpower",} },
+            { key = "disabled", name = "Disabled", lock = {"commanderbuildersrange","commanderbuildersbuildpower",} },
         }
     },
 
@@ -1138,11 +1146,8 @@ local options = {
 
     {
         key     = "sub_header",
-        name    = "----------------------------------------------------------------------------------------------------------------------------------------",
-        desc    = "",
         section = "options_experimental",
-        type    = "subheader",
-        def     =  true,
+        type    = "seperator",
     },
 
     {
@@ -1194,7 +1199,7 @@ local options = {
             { key = "high", 		name = "High Gravity", 		desc = "150 gravity" },
         }
     },
-    
+
     {
         key   	= "accuratelasers",
         name   	= "Accurate Lasers",
@@ -1262,7 +1267,6 @@ local options = {
         type 	= "bool",
         hidden 	= true,
         section = "options_experimental",
-        
         def 	= false,
     },
 
@@ -1472,11 +1476,8 @@ local options = {
 
     {
         key     = "sub_header",
-        name    = "----------------------------------------------------------------------------------------------------------------------------------------",
-        desc    = "",
         section = "options_cheats",
-        type    = "subheader",
-        def     =  true,
+        type    = "seperator",
     },
 
     {
@@ -1586,11 +1587,8 @@ local options = {
 
     {
         key     = "sub_header",
-        name    = "----------------------------------------------------------------------------------------------------------------------------------------",
-        desc    = "",
         section = "options_cheats",
-        type    = "subheader",
-        def     =  true,
+        type    = "seperator",
     },
 
     {
@@ -1747,11 +1745,22 @@ local options = {
 
     {
 		key		= "forceallunits",
-		name	= "Force Load All Units (For modders/devs)",
+		name	= "Force Load All Units",
 		desc	= "Load all UnitDefs even if ais or options for them aren't enabled",
 		section = "options_cheats",
 		type	= "bool",
 		def		= false,
+		column  = 1,
+	},
+
+	{
+		key		= "sub_header",
+		name	= "(For modders/devs)",
+		desc	= "Load all UnitDefs even if ais or options for them aren't enabled",
+		section = "options_cheats",
+		type	= "subheader",
+		column	= 1.575,
+		font	= 1,
 	},
 
 }
