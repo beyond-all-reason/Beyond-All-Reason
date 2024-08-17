@@ -16,10 +16,10 @@ local customRulesLookup = {}
 
 
 local function isBuilder(udef)
-	return  (udef.canReclaim and udef.reclaimSpeed > 0) or -- reclaim
-			(udef.canResurrect and udef.resurrectSpeed > 0) or -- resurrect
-		(udef.canRepair and udef.repairSpeed > 0) or -- repair
-		(udef.buildOptions and udef.buildOptions[1]) or -- build options
+	return (udef.canReclaim and udef.reclaimSpeed > 0) or                         -- reclaim
+		(udef.canResurrect and udef.resurrectSpeed > 0) or                        -- resurrect
+		(udef.canRepair and udef.repairSpeed > 0) or                              -- repair
+		(udef.buildOptions and udef.buildOptions[1]) or                           -- build options
 		(udef.canStockpile and udef.modCategories.ship and udef.modCategories.noweapon) -- is carrier ship
 end
 
@@ -244,19 +244,17 @@ local function parseFilterRules(ruleDef)
 			end, minRange)
 
 			-- string comparision
-			-- elseif token == "Category" then
-			-- 	local category = getNextToken()
-			-- 	if not category then
-			-- 		break
-			-- 	end
+		elseif token == "Category" then
+			local category = getNextToken()
+			if not category then
+				break
+			end
 
-			-- 	rules.categoryRule = invertCurry(invert, function(udef, _, _, category)
-			-- 		if udef.category == nil then
-			-- 			return false
-			-- 		end
+			category = string.lower(category)
 
-			-- 		return stringContains(udef.category, category)
-			-- 	end, category)
+			rules.categoryRule = invertCurry(invert, function(udef, _, _, category)
+				return udef.modCategories[category]
+			end, category)
 		elseif token == "IdMatches" then
 			local name = getNextToken()
 			if not name then

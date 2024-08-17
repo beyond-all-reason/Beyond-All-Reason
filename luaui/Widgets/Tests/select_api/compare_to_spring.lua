@@ -181,8 +181,6 @@ function test()
 	}
 
 	local notImplementedApi = {
-		"Category_NOWEAPON",
-		"Not_Category_NOWEAPON",
 	}
 
 	local notImplementedSpring = {
@@ -193,6 +191,10 @@ function test()
 	local notWorkingSpring = {
 		"NameContain_com",
 		"Not_NameContain_com",
+		"Category_noweapon",
+		"Not_Category_noweapon",
+		"Category_NOWEAPON",
+		"Not_Category_NOWEAPON",
 	}
 
 	local passed = true
