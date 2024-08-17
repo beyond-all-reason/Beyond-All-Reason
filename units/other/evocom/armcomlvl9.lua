@@ -112,6 +112,8 @@ return {
 			"armdecom",
 			"armshockwave",
 			"armgate",
+			"armlwall",
+			"armannit3",
 		},
 		customparams = {
 			unitgroup = 'builder',
