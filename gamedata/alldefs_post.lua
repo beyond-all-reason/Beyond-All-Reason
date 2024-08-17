@@ -291,6 +291,7 @@ function UnitDef_Post(name, uDef)
 
 				if  name == "armcom" then
 				uDef.customparams.evolution_target = "armcomlvl2"
+				uDef.customparams.inheritxpratemultiplier = 0.5
 				uDef.customparams.childreninheritxp = "TURRET MOBILEBUILT"
 				uDef.customparams.parentsinheritxp = "TURRET MOBILEBUILT"
 				elseif name == "corcom" then
