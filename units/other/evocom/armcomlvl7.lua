@@ -111,6 +111,7 @@ return {
 			"armasp",
 			"armdecom",
 			"armshockwave",
+			"armlwall",
 		},
 		customparams = {
 			unitgroup = 'builder',
