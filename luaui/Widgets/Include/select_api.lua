@@ -174,6 +174,12 @@ local function parseFilterRules(ruleDef)
 				return unitGroup == selectGroup
 			end, group)
 
+		elseif token == "InPrevSel" then
+			rules.inPrevSel = invertCurry(invert, function(udef, _, uid)
+				local isSelected = Spring.IsUnitSelected(uid)
+				return isSelected
+			end)
+
 			-- number comparison
 		elseif token == "AbsoluteHealth" then
 			local minHealth = tonumber(getNextToken())

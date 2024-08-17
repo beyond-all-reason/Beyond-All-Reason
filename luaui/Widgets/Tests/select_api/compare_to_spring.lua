@@ -164,6 +164,8 @@ function test()
 		"Not_InGroup_1",
 		"InHotkeyGroup",
 		"Not_InHotkeyGroup",
+		"InPrevSel",
+		"Not_InPrevSel",
 		"Jammer",
 		"Not_Jammer",
 		"ManualFireUnit",
@@ -187,8 +189,6 @@ function test()
 	}
 
 	local notImplementedApi = {
-		"InPrevSel",
-		"NotInPrevSel",
 		"RulesParamEquals_<string>_<integer>"
 	}
 
@@ -213,13 +213,6 @@ function test()
 		local apiUnitSet = {}
 		local springRule = "select AllMap+_" .. rules .. "+_ClearSelection_SelectAll+"
 
-		-- spring
-		Spring.SendCommands(springRule)
-		local springUnits = Spring.GetSelectedUnits()
-		for _, uid in ipairs(springUnits) do
-			springUnitSet[uid] = true
-		end
-
 		-- api
 		local apiRules = parseFilterRules(rules)
 		local passingUnitCount = 0
@@ -239,6 +232,13 @@ function test()
 			end
 		end
 
+		-- spring
+		Spring.SendCommands(springRule)
+		local springUnits = Spring.GetSelectedUnits()
+		for _, uid in ipairs(springUnits) do
+			springUnitSet[uid] = true
+		end
+
 		-- compare
 		local missingInApi, missingInSpring = compareUnitSets(springUnitSet, apiUnitSet)
 
@@ -250,15 +250,15 @@ function test()
 		if hasMissingInApi and hasMissingInSpring then
 			local errorMessage = generateErrorMessage(missingInApi, "missingInApi") ..
 				" | " .. generateErrorMessage(missingInSpring, "missingInSpring")
-			print("Rule " .. rules .. " failed: " .. errorMessage)
+			print("\nRule " .. rules .. " failed: " .. errorMessage)
 			passed = false
 		elseif hasMissingInApi then
 			local errorMessage = generateErrorMessage(missingInApi, "missingInApi")
-			print("Rule " .. rules .. " failed: " .. errorMessage)
+			print("\nRule " .. rules .. " failed: " .. errorMessage)
 			passed = false
 		elseif hasMissingInSpring then
 			local errorMessage = generateErrorMessage(missingInSpring, "missingInSpring")
-			print("Rule " .. rules .. " failed: " .. errorMessage)
+			print("\nRule " .. rules .. " failed: " .. errorMessage)
 			passed = false
 		end
 	end
