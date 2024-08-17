@@ -111,6 +111,7 @@ return {
 			"armasp",
 			"armdecom",
 			"armshockwave",
+			"armlwall",
 		},
 		customparams = {
 			unitgroup = 'builder',
@@ -140,7 +141,6 @@ return {
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,
 			fall_damage_multiplier = 5,--this ensures commander dies when it hits the ground so effigies can trigger respawn.
-			stockpilelimit = 4,
 		},
 		featuredefs = {
 			dead = {

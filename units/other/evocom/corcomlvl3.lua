@@ -358,6 +358,7 @@ return {
 				laserflaresize = 20,
 				name = "Eye laser",
 				noselfdamage = true,
+				proximitypriority = 3,
 				range = 435,
 				reloadtime = 0.46667,
 				rgbcolor = "1 0 0",
@@ -373,8 +374,7 @@ return {
 				weaponvelocity = 2250,
 				damage = {
 					default = 75,
-					subs = 5,
-					vtol = 5,
+					subs = 18,
 				},
 			},
 			repulsor = {

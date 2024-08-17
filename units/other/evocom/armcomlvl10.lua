@@ -112,6 +112,8 @@ return {
 			"armdecom",
 			"armshockwave",
 			"armgate",
+			"armlwall",
+			"armannit3",
 		},
 		customparams = {
 			unitgroup = 'builder',
@@ -132,7 +134,6 @@ return {
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,
 			fall_damage_multiplier = 5,--this ensures commander dies when it hits the ground so effigies can trigger respawn.
-			stockpilelimit = 5,
 		},
 		featuredefs = {
 			dead = {
@@ -234,7 +235,7 @@ return {
 				model = "corkbmissl1.s3o",
 				name = "HeavyRockets",
 				noselfdamage = true,
-				range = 950,
+				range = 870,
 				reloadtime = 2,
 				smoketrail = true,
 				smokePeriod = 8,

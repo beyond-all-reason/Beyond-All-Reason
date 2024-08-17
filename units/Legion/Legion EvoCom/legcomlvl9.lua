@@ -369,7 +369,7 @@ return {
 				ownerExpAccWeight = 4.0,
 				proximitypriority = 3,
 				range = 870,
-				reloadtime = 3.1,
+				reloadtime = 2.2,
 				rgbcolor = "0.74 0.64 0.94",
 				soundhit = "mavgun3",
 				soundhitwet = "splshbig",
@@ -381,7 +381,7 @@ return {
 				weapontype = "LaserCannon",
 				weaponvelocity = 3000,
 				damage = {
-					default = 500,
+					default = 250,
 				},
 			},
 			botcannon = {

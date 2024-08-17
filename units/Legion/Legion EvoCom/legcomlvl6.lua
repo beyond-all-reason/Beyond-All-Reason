@@ -322,7 +322,7 @@ return {
 				ownerExpAccWeight = 4.0,
 				proximitypriority = 3,
 				range = 730,
-				reloadtime = 4,
+				reloadtime = 2.7,
 				rgbcolor = "0.74 0.64 0.94",
 				soundhit = "mavgun3",
 				soundhitwet = "splshbig",
@@ -334,7 +334,7 @@ return {
 				weapontype = "LaserCannon",
 				weaponvelocity = 3000,
 				damage = {
-					default = 500,
+					default = 250,
 				},
 			},
 			disintegrator = {
@@ -404,7 +404,7 @@ return {
 				name = "Long range bot cannon",
 				noselfdamage = true,
 				projectiles = 7,
-				range = 700,
+				range = 600,
 				reloadtime = 0.9,
 				sprayangle = 2800,
 				stockpile = true,
