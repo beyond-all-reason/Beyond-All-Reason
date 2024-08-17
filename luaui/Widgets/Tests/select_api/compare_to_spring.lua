@@ -48,7 +48,7 @@ local function createAndAddUnit(udefid, name, x, z, uids, group)
 		return
 	end
 
-	unitID = SyncedRun(function(locals)
+	local unitID = SyncedRun(function(locals)
 		local udefid = locals.udefid
 		local x = locals.x
 		local z = locals.z
@@ -59,7 +59,7 @@ local function createAndAddUnit(udefid, name, x, z, uids, group)
 
 
 		if group == 1 then
-			-- add to control group
+			Spring.SetUnitGroup(unitID, 1)
 		end
 		return unitID
 	end)
@@ -124,14 +124,22 @@ local function createUnits()
 		end
 	end
 
+	print(count .. " total unit count")
+
 	return uids
 end
 
-
+-- 2024/08/17
+-- 543 total units are created
+-- for each rule, the sum of {{rule}} and Not_{{rule}} always equals 537.
+-- this means 6 units are being created but then not included in the tests
+-- could be 'dbg_sphere' 'dbg_sphere_fullmetal' 'pbr_cube'
 function test()
 	local uids = createUnits()
 
 	local simpleRuleDefs = {
+		"AbsoluteHealth_100",
+		"Not_AbsoluteHealth_100",
 		"Aircraft",
 		"Not_Aircraft",
 		"Builder",
@@ -148,10 +156,10 @@ function test()
 		"Not_Guarding",
 		"Patrolling",
 		"Not_Patrolling",
+		"IdMatches_armflea_IdMatches_armpw",
+		"Not_IdMatches_armcom_Not_IdMatches_armflea",
 		"Idle",
 		"Not_Idle",
-		"Waiting",
-		"Not_Waiting",
 		"InGroup_1",
 		"Not_InGroup_1",
 		"InHotkeyGroup",
@@ -164,23 +172,24 @@ function test()
 		"Not_Radar",
 		"Resurrect",
 		"Not_Resurrect",
+		"RelativeHealth_50",
+		"Not_RelativeHealth_50",
 		"Stealth",
 		"Not_Stealth",
 		"Transport",
 		"Not_Transport",
-		"Weapons",
-		"Not_Weapons",
-		"AbsoluteHealth_100",
-		"Not_AbsoluteHealth_100",
-		"RelativeHealth_50",
-		"Not_RelativeHealth_50",
+		"Waiting",
+		"Not_Waiting",
 		"WeaponRange_200",
 		"Not_WeaponRange_200",
-		"IdMatches_armflea_IdMatches_armpw",
-		"Not_IdMatches_armcom_Not_IdMatches_armflea",
+		"Weapons",
+		"Not_Weapons",
 	}
 
 	local notImplementedApi = {
+		"InPrevSel",
+		"NotInPrevSel",
+		"RulesParamEquals_<string>_<integer>"
 	}
 
 	local notImplementedSpring = {
@@ -213,6 +222,7 @@ function test()
 
 		-- api
 		local apiRules = parseFilterRules(rules)
+		local passingUnitCount = 0
 		for _, uid in ipairs(uids) do
 			local passes = unitPassesFilterRules(uid, apiRules)
 
@@ -225,6 +235,7 @@ function test()
 				springUnitSet[uid] = nil
 			elseif passes then
 				apiUnitSet[uid] = true
+				passingUnitCount = passingUnitCount + 1
 			end
 		end
 
@@ -233,6 +244,8 @@ function test()
 
 		local hasMissingInApi = #missingInApi > 0
 		local hasMissingInSpring = #missingInSpring > 0
+
+		print(rules .. " has " .. passingUnitCount .. " units")
 
 		if hasMissingInApi and hasMissingInSpring then
 			local errorMessage = generateErrorMessage(missingInApi, "missingInApi") ..
