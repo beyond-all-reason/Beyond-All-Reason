@@ -235,7 +235,7 @@ return {
 				model = "corkbmissl1.s3o",
 				name = "HeavyRockets",
 				noselfdamage = true,
-				range = 950,
+				range = 870,
 				reloadtime = 2,
 				smoketrail = true,
 				smokePeriod = 8,

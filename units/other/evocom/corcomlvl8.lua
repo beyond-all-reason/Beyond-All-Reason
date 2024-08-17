@@ -372,6 +372,7 @@ return {
 					laserflaresize = 6,
 					name = "EyeLaser",
 					noselfdamage = true,
+					proximitypriority = 3,
 					range = 800,
 					reloadtime = 0.033,
 					rgbcolor = "1 0.2 0.2",
@@ -383,12 +384,12 @@ return {
 					soundstartvolume = 11,
 					soundtrigger = 1,
 					targetmoveerror = 0.1,
-					thickness = 5,
+					thickness = 4.5,
 					turret = true,
 					weapontype = "BeamLaser",
 					weaponvelocity = 900,
 					damage = {
-						default = 40,
+						default = 42,
 					},
 				},
 				repulsor = {

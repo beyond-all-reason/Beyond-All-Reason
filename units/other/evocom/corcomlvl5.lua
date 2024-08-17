@@ -218,7 +218,7 @@ return {
 		},
 		weapondefs = {
 			corcomlaser = {
-				areaofeffect = 64,
+				areaofeffect = 80,
 				avoidfeature = false,
 				burst = 16,
 				burstrate = 0.05,
@@ -237,12 +237,11 @@ return {
 				intensity = 0.68,
 				name = "Anti-swarm AoE flamethrower",
 				noselfdamage = true,
-				proximitypriority = 3,
 				range = 400,
 				reloadtime = 1.1,
 				rgbcolor = "1 0.94 0.88",
 				rgbcolor2 = "0.9 0.84 0.8",
-				sizegrowth = 0.75,
+				sizegrowth = 0.5,
 				soundhitdry = "flamhit1",
 				soundhitwet = "sizzle",
 				soundstart = "Flamhvy1",
@@ -256,7 +255,7 @@ return {
 				turret = true,
 				weapontimer = 1,
 				weapontype = "Flame",
-				weaponvelocity = 300,
+				weaponvelocity = 500,
 				damage = {
 					default = 90,
 					subs = 25,
@@ -345,7 +344,7 @@ return {
 				},
 			},
 			corcomeyelaser = {
-				areaofeffect = 12,
+				areaofeffect = 16,
 				avoidfeature = false,
 				beamtime = 0.20,
 				corethickness = 0.175,
@@ -362,6 +361,7 @@ return {
 				laserflaresize = 20,
 				name = "Eye laser",
 				noselfdamage = true,
+				proximitypriority = 3,
 				range = 620,
 				reloadtime = 0.19,
 				rgbcolor = "1 0 0",
@@ -376,9 +376,8 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 2250,
 				damage = {
-					default = 94,
-					subs = 5,
-					vtol = 5,
+					default = 120,
+					subs = 30,
 				},
 			},
 			repulsor = {
@@ -469,6 +468,7 @@ return {
 				onlytargetcategory = "NOTSUB",
 			},
             [5] = {
+				badtargetcategory = "commander",
 				def = "CORCOMEYELASER",
 				onlytargetcategory = "NOTSUB",
 				fastautoretargeting = true,
