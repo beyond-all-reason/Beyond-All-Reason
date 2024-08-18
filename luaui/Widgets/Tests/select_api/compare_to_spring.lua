@@ -1,7 +1,7 @@
 -- run test using BAR command (in chat): `/runtests select_api`
 local spGetUnitDefID = Spring.GetUnitDefID
-local parseFilterRules = VFS.Include("luaui/Widgets/Include/select_api.lua").parseFilterRules
-local unitPassesFilterRules = VFS.Include("luaui/Widgets/Include/select_api.lua").unitPassesFilterRules
+local parseFilter = VFS.Include("luaui/Widgets/Include/select_api.lua").parseFilter
+local unitPassesFilter = VFS.Include("luaui/Widgets/Include/select_api.lua").unitPassesFilter
 local nameLookup = {}
 
 function skip()
@@ -91,7 +91,7 @@ local function generateErrorMessage(missingList, listName)
 end
 
 local function createUnits()
-	-- setup rules and units
+	-- setup filters and units
 	local offset = 200
 	local x = offset
 	local z = offset
@@ -131,13 +131,13 @@ end
 
 -- 2024/08/17
 -- 543 total units are created
--- for each rule, the sum of {{rule}} and Not_{{rule}} always equals 537.
+-- for each filter, the sum of {{filter}} and Not_{{filter}} always equals 537.
 -- this means 6 units are being created but then not included in the tests
 -- could be 'dbg_sphere' 'dbg_sphere_fullmetal' 'pbr_cube'
 function test()
 	local uids = createUnits()
 
-	local simpleRuleDefs = {
+	local simpleFilterDefs = {
 		"AbsoluteHealth_100",
 		"Not_AbsoluteHealth_100",
 		"Aircraft",
@@ -208,18 +208,19 @@ function test()
 
 	local passed = true
 
-	for _, rules in ipairs(simpleRuleDefs) do
+	for _, filter in ipairs(simpleFilterDefs) do
 		local springUnitSet = {}
 		local apiUnitSet = {}
-		local springRule = "select AllMap+_" .. rules .. "+_ClearSelection_SelectAll+"
+		local command = "AllMap+_" .. filter .. "+_ClearSelection_SelectAll+"
+		local springCommand = "select " .. command
 
-		-- api
-		local apiRules = parseFilterRules(rules)
+		-- api filter
+		local apiFilter = parseFilter(filter)
 		local passingUnitCount = 0
 		for _, uid in ipairs(uids) do
-			local passes = unitPassesFilterRules(uid, apiRules)
+			local passes = unitPassesFilter(uid, apiFilter)
 
-			local ignoreWeirdOutlier = rules == "Not_Builder" and (
+			local ignoreWeirdOutlier = filter == "Not_Builder" and (
 				nameLookup[uid] == "cormlv" or
 				nameLookup[uid] == "armmlv"
 			)
@@ -233,7 +234,7 @@ function test()
 		end
 
 		-- spring
-		Spring.SendCommands(springRule)
+		Spring.SendCommands(springCommand)
 		local springUnits = Spring.GetSelectedUnits()
 		for _, uid in ipairs(springUnits) do
 			springUnitSet[uid] = true
@@ -245,22 +246,22 @@ function test()
 		local hasMissingInApi = #missingInApi > 0
 		local hasMissingInSpring = #missingInSpring > 0
 
-		print(rules .. " has " .. passingUnitCount .. " units")
+		print(filter .. " has " .. passingUnitCount .. " units")
 
 		if hasMissingInApi and hasMissingInSpring then
 			local errorMessage = generateErrorMessage(missingInApi, "missingInApi") ..
 				" | " .. generateErrorMessage(missingInSpring, "missingInSpring")
-			print("\nRule " .. rules .. " failed: " .. errorMessage)
+			print("\nFilter " .. filter .. " failed: " .. errorMessage)
 			passed = false
 		elseif hasMissingInApi then
 			local errorMessage = generateErrorMessage(missingInApi, "missingInApi")
-			print("\nRule " .. rules .. " failed: " .. errorMessage)
+			print("\nFilter " .. filter .. " failed: " .. errorMessage)
 			passed = false
 		elseif hasMissingInSpring then
 			local errorMessage = generateErrorMessage(missingInSpring, "missingInSpring")
-			print("\nRule " .. rules .. " failed: " .. errorMessage)
+			print("\nFilter " .. filter .. " failed: " .. errorMessage)
 			passed = false
 		end
 	end
-	assert(passed, "not all rules match")
+	assert(passed, "not all filters match")
 end

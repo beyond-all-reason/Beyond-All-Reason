@@ -11,8 +11,10 @@ function widget:GetInfo()
 end
 
 local minimapToWorld = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").minimapToWorld
-local getFilterRules = VFS.Include("luaui/Widgets/Include/select_api.lua").getFilterRules
-local unitPassesFilterRules = VFS.Include("luaui/Widgets/Include/select_api.lua").unitPassesFilterRules
+--- @class SelectApi
+--- @field getFilter fun(ruleDef: string): table
+--- @field unitPassesFilter fun(uid, filter): boolean
+local selectApi = VFS.Include("luaui/Widgets/Include/select_api.lua")
 
 local skipSel
 local inSelection = false
@@ -32,9 +34,9 @@ local mods = {
  all      = false, -- whether to select all units
  mobile   = false, -- whether to select only mobile units
 }
-local customRulesFilterDef = ""
+local customFilterDef = ""
 local lastMods = mods
-local lastCustomRulesFilterDef = customRulesFilterDef
+local lastCustomFilterDef = customFilterDef
 local lastMouseSelection = {}
 local lastMouseSelectionCount = 0
 
@@ -42,6 +44,7 @@ local spGetMouseState = Spring.GetMouseState
 local spGetModKeyState = Spring.GetModKeyState
 local spGetSelectionBox = Spring.GetSelectionBox
 
+local spGetCommandQueue = Spring.GetCommandQueue
 local spIsGodModeEnabled = Spring.IsGodModeEnabled
 
 local spGetUnitsInScreenRectangle = Spring.GetUnitsInScreenRectangle
@@ -66,7 +69,7 @@ local combatFilter = {}
 local builderFilter = {}
 local buildingFilter = {}
 local mobileFilter = {}
-local customRulesFilter = {}
+local customFilter = {}
 
 for udid, udef in pairs(UnitDefs) do
 	if udef.modCategories['object'] or udef.customParams.objectify then
@@ -117,14 +120,14 @@ end
 
 
 
-local function handleSetCustomRulesFilter(_, ruleDef)
-	customRulesFilter = getFilterRules(ruleDef)
-	customRulesFilterDef = ruleDef
+local function handleSetCustomFilter(_, ruleDef)
+	customFilter = selectApi.getFilter(ruleDef)
+	customFilterDef = ruleDef
 end
 
-local function handleClearCustomRulesFilter(_, _, _)
-	customRulesFilter = {}
-	customRulesFilterDef = ""
+local function handleClearCustomFilter(_, _, _)
+	customFilter = {}
+	customFilterDef = ""
 end
 
 
@@ -236,13 +239,13 @@ function widget:Update()
 		and mods.deselect == lastMods[3]
 		and mods.all == lastMods[4]
 		and mods.mobile == lastMods[5]
-		and customRulesFilterDef == lastCustomRulesFilterDef
+		and customFilterDef == lastCustomFilterDef
 	then
 		return
 	end
 
 	lastMods = { mods.idle, mods.same, mods.deselect, mods.all, mods.mobile }
-	lastCustomRulesFilterDef = customRulesFilterDef
+	lastCustomFilterDef = customFilterDef
 
 	-- Fill dictionary for set comparison
 	-- We increase slightly the perf cost of cache misses but at the same
@@ -256,12 +259,12 @@ function widget:Update()
 
 	mouseSelection = tmp
 
-	if next(customRulesFilter) ~= nil then -- use custom filter if it's not empty
+	if next(customFilter) ~= nil then -- use custom filter if it's not empty
 		tmp = {}
 		for i = 1, #mouseSelection do
 			uid = mouseSelection[i]
 
-			if unitPassesFilterRules(uid, customRulesFilter) then
+			if selectApi.unitPassesFilter(uid, customFilter) then
 				tmp[#tmp + 1] = uid
 			end
 		end
@@ -276,7 +279,7 @@ function widget:Update()
 		for i = 1, #mouseSelection do
 			uid = mouseSelection[i]
 			udid = spGetUnitDefID(uid)
-			if isIdle(nil, udid, uid) then
+			if spGetCommandQueue(uid, 0) == 0 then
 				tmp[#tmp + 1] = uid
 			end
 		end
@@ -420,8 +423,8 @@ function widget:Initialize()
 		widgetHandler:AddAction("selectbox_" .. modifierName, handleSetModifier, { modifierName, false }, "r")
 	end
 
-	widgetHandler:AddAction("selectbox", handleSetCustomRulesFilter, nil, "p")
-	widgetHandler:AddAction("selectbox", handleClearCustomRulesFilter, nil, "r")
+	widgetHandler:AddAction("selectbox", handleSetCustomFilter, nil, "p")
+	widgetHandler:AddAction("selectbox", handleClearCustomFilter, nil, "r")
 
 	WG['smartselect'] = {}
 	WG['smartselect'].getIncludeBuildings = function()

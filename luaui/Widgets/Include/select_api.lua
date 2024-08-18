@@ -12,7 +12,7 @@ local spGetCommandQueue = Spring.GetCommandQueue
 local spGetUnitDefID = Spring.GetUnitDefID
 
 local includeNanosAsMobile = true -- TODO
-local customRulesLookup = {}
+local customFilterLookup = {}
 
 
 local function isBuilder(udef)
@@ -29,21 +29,21 @@ for udid, udef in pairs(UnitDefs) do
 	nameLookup[udef.name] = udid
 end
 
-local function invertCurry(invert, rule, args)
+local function invertCurry(invert, filter, args)
 	return function(udef, udefid, uid)
-		local result = rule(udef, udefid, uid, args)
+		local result = filter(udef, udefid, uid, args)
 		result = (result or false) ~= invert
 		return result
 	end
 end
 
-local function simpleUdefRule(invert, property)
+local function simpleUdefFilter(invert, property)
 	return invertCurry(invert, function(udef)
 		return udef[property]
 	end)
 end
 
-local function notEmptyUdefRule(invert, property)
+local function notEmptyUdefFilter(invert, property)
 	return invertCurry(invert, function(udef)
 		local table = udef[property]
 		if table and next(table) ~= nil then
@@ -70,11 +70,11 @@ local function stringContains(mainString, searchString)
 	return mainString:find(searchString, 1, true) ~= nil
 end
 
-local function parseFilterRules(ruleDef)
+local function parseFilter(filterDef)
 	local tokens = {}
 	local tokenIndex = 1
 
-	for token in ruleDef:gmatch("[^_]+") do
+	for token in filterDef:gmatch("[^_]+") do
 		table.insert(tokens, token)
 	end
 
@@ -84,7 +84,7 @@ local function parseFilterRules(ruleDef)
 		return token
 	end
 
-	local rules = {}
+	local filters = {}
 	local invertIdMatches = nil
 	local idMatchesSet = {}
 
@@ -101,55 +101,55 @@ local function parseFilterRules(ruleDef)
 			break
 		end
 
-		-- simple rules
+		-- simple filters
 		if token == "Aircraft" then
-			rules.aircraftRule = simpleUdefRule(invert, "canFly")
+			filters.aircraft = simpleUdefFilter(invert, "canFly")
 		elseif token == "Builder" then
-			rules.builderRule = invertCurry(invert, function(udef)
+			filters.builder = invertCurry(invert, function(udef)
 				return isBuilder(udef)
 			end)
 		elseif token == "Buildoptions" then
-			rules.buildOptionsRule = notEmptyUdefRule(invert, "buildOptions")
+			filters.buildOptions = notEmptyUdefFilter(invert, "buildOptions")
 		elseif token == "Building" then
-			rules.buildingRule = simpleUdefRule(invert, "isBuilding")
+			filters.building = simpleUdefFilter(invert, "isBuilding")
 		elseif token == "Cloak" then
-			rules.cloakRule = simpleUdefRule(invert, "canCloak")
+			filters.cloak = simpleUdefFilter(invert, "canCloak")
 		elseif token == "Cloaked" then
-			rules.cloakedRule = invertCurry(invert, function(udef, _, uid)
+			filters.cloaked = invertCurry(invert, function(udef, _, uid)
 				return udef.canCloak and spGetUnitIsCloaked(uid)
 			end)
 		elseif token == "Jammer" then
-			rules.jammerRule = invertCurry(invert, function(udef)
+			filters.jammer = invertCurry(invert, function(udef)
 				return udef.jammerRadius > 0
 			end)
 		elseif token == "ManualFireUnit" then
-			rules.manualFireRule = simpleUdefRule(invert, "canManualFire")
+			filters.manualFire = simpleUdefFilter(invert, "canManualFire")
 		elseif token == "Radar" then
-			rules.radarRule = invertCurry(invert, function(udef)
+			filters.radar = invertCurry(invert, function(udef)
 				return udef.radarRadius > 0 or udef.sonarRadius > 0
 			end)
 		elseif token == "Resurrect" then
-			rules.resurrectRule = simpleUdefRule(invert, "canResurrect")
+			filters.resurrect = simpleUdefFilter(invert, "canResurrect")
 		elseif token == "Stealth" then
-			rules.stealthRule = simpleUdefRule(invert, "stealth")
+			filters.stealth = simpleUdefFilter(invert, "stealth")
 		elseif token == "Transport" then
-			rules.transportRule = simpleUdefRule(invert, "isTransport")
+			filters.transport = simpleUdefFilter(invert, "isTransport")
 		elseif token == "Weapons" then
-			rules.weaponsRule = notEmptyUdefRule(invert, "weapons")
+			filters.weapons = notEmptyUdefFilter(invert, "weapons")
 
-			-- command queue rules
+			-- command queue filters
 		elseif token == "Idle" then
-			rules.idleRule = invertCurry(invert, isIdle)
+			filters.idle = invertCurry(invert, isIdle)
 		elseif token == "Guarding" then
-			rules.guardingRule = invertCurry(invert, function(_udef, _udefid, uid)
+			filters.guarding = invertCurry(invert, function(_udef, _udefid, uid)
 				return checkCmd(uid, CMD_GUARD)
 			end)
 		elseif token == "Waiting" then
-			rules.waitingRule = invertCurry(invert, function(_udef, _udefid, uid)
+			filters.waiting = invertCurry(invert, function(_udef, _udefid, uid)
 				return checkCmd(uid, CMD_WAIT)
 			end)
 		elseif token == "Patrolling" then
-			rules.patrollingRule = invertCurry(invert, function(_udef, _udefid, uid)
+			filters.patrolling = invertCurry(invert, function(_udef, _udefid, uid)
 				for i = 1, 4, 1 do
 					if checkCmd(uid, CMD_PATROL, i) then
 						return true
@@ -158,9 +158,9 @@ local function parseFilterRules(ruleDef)
 				return false
 			end)
 
-			-- hotkey rules
+			-- hotkey filters
 		elseif token == "InHotkeyGroup" then
-			rules.inHotKeyGroup = invertCurry(invert, function(_, _, uid)
+			filters.inHotKeyGroup = invertCurry(invert, function(_, _, uid)
 				return Spring.GetUnitGroup(uid) ~= nil
 			end)
 		elseif token == "InGroup" then
@@ -169,13 +169,12 @@ local function parseFilterRules(ruleDef)
 				break
 			end
 
-			rules.inGroup = invertCurry(invert, function(_, _, uid, selectGroup)
+			filters.inGroup = invertCurry(invert, function(_, _, uid, selectGroup)
 				local unitGroup = Spring.GetUnitGroup(uid)
 				return unitGroup == selectGroup
 			end, group)
-
 		elseif token == "InPrevSel" then
-			rules.inPrevSel = invertCurry(invert, function(udef, _, uid)
+			filters.inPrevSel = invertCurry(invert, function(udef, _, uid)
 				local isSelected = Spring.IsUnitSelected(uid)
 				return isSelected
 			end)
@@ -187,7 +186,7 @@ local function parseFilterRules(ruleDef)
 				break
 			end
 
-			rules.absoluteHealthRule = invertCurry(invert, function(_, _, uid, minHealth)
+			filters.absoluteHealth = invertCurry(invert, function(_, _, uid, minHealth)
 				local health = Spring.GetUnitHealth(uid)
 				return health > minHealth
 			end, minHealth)
@@ -198,7 +197,7 @@ local function parseFilterRules(ruleDef)
 			end
 			minHealthPercent = minHealthPercent / 100.0
 
-			rules.relativeHealthRule = invertCurry(invert, function(udef, _, uid, minHealthPercent)
+			filters.relativeHealth = invertCurry(invert, function(udef, _, uid, minHealthPercent)
 				local minHealth = minHealthPercent * udef.health
 				local health = Spring.GetUnitHealth(uid)
 				return health > minHealth
@@ -211,14 +210,14 @@ local function parseFilterRules(ruleDef)
 			-- 		break
 			-- 	end
 
-			-- 	local ruleName = param .. "Rule"
-			-- 	rules[ruleName] = invertCurry(invert, function(udef, _, uid, args)
+			-- 	local filterName = param .. "Rule"
+			-- 	filters[filterName] = invertCurry(invert, function(udef, _, uid, args)
 			-- 		local param = args.param
 			-- 		local value = args.value
 			-- 		-- implementation here?
 			-- 	end, {param = param, value = value})
 		elseif token == "AntiAir" then
-			rules.antiAirRule = invertCurry(invert, function(udef)
+			filters.antiAir = invertCurry(invert, function(udef)
 				if udef.wDefs == nil or udef.canFly then
 					return false
 				end
@@ -236,7 +235,7 @@ local function parseFilterRules(ruleDef)
 				break
 			end
 
-			rules.weaponRangeRule = invertCurry(invert, function(udef, _, _, minRange)
+			filters.weaponRange = invertCurry(invert, function(udef, _, _, minRange)
 				if udef.wDefs == nil then
 					return false
 				end
@@ -258,7 +257,7 @@ local function parseFilterRules(ruleDef)
 
 			category = string.lower(category)
 
-			rules.categoryRule = invertCurry(invert, function(udef, _, _, category)
+			filters.category = invertCurry(invert, function(udef, _, _, category)
 				return udef.modCategories[category]
 			end, category)
 		elseif token == "IdMatches" then
@@ -285,7 +284,7 @@ local function parseFilterRules(ruleDef)
 			end
 
 			if not skip then
-				rules.idMatches = invertCurry(invertIdMatches, function(_, udefid, _, idMatchesSet)
+				filters.idMatches = invertCurry(invertIdMatches, function(_, udefid, _, idMatchesSet)
 					return idMatchesSet[udefid] or false
 				end, idMatchesSet)
 			end
@@ -295,27 +294,27 @@ local function parseFilterRules(ruleDef)
 				break
 			end
 
-			rules.nameRule = invertCurry(invert, function(udef, _, _, name)
+			filters.name = invertCurry(invert, function(udef, _, _, name)
 				return stringContains(udef.name, name)
 			end, name)
 		end
 	end
 
-	return rules
+	return filters
 end
 
-local function getFilterRules(ruleDef)
-	local rules = customRulesLookup[ruleDef]
+local function getFilter(filterDef)
+	local filters = customFilterLookup[filterDef]
 
-	if rules == nil then
-		rules = parseFilterRules(ruleDef)
-		customRulesLookup[ruleDef] = rules
+	if filters == nil then
+		filters = parseFilter(filterDef)
+		customFilterLookup[filterDef] = filters
 	end
 
-	return rules
+	return filters
 end
 
-local function unitPassesFilterRules(uid, apiRules)
+local function unitPassesFilter(uid, filterFns)
 	local udefid = spGetUnitDefID(uid)
 
 	if not udefid then
@@ -324,8 +323,8 @@ local function unitPassesFilterRules(uid, apiRules)
 
 	local udef = UnitDefs[udefid]
 
-	for _ruleName, rule in pairs(apiRules) do
-		if not rule(udef, udefid, uid) then
+	for _filterName, filterFn in pairs(filterFns) do
+		if not filterFn(udef, udefid, uid) then
 			return false
 		end
 	end
@@ -334,7 +333,7 @@ local function unitPassesFilterRules(uid, apiRules)
 end
 
 return {
-	parseFilterRules = parseFilterRules,
-	getFilterRules = getFilterRules,
-	unitPassesFilterRules = unitPassesFilterRules
+	parseFilter = parseFilter,
+	getFilter = getFilter,
+	unitPassesFilter = unitPassesFilter
 }
