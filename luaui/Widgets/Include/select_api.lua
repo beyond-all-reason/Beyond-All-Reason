@@ -367,7 +367,7 @@ function getCountUnits(uids, countUntil)
 	local count = 0
 	local units = {}
 
-	for _, uid in ipairs(uids) do
+	for _, uid in pairs(uids) do
 		count = count + 1
 		table.insert(units, uid)
 
@@ -413,10 +413,12 @@ local function parseConclusion(conclusionDef)
 	end
 end
 
+local myTeamId = Spring.GetMyTeamID()
 local function parseSource(sourceDef)
 	if sourceDef == "AllMap" then
 		return function()
-			return Spring.GetAllUnits()
+			print(myTeamId)
+			return Spring.GetTeamUnits(myTeamId)
 		end
 	elseif sourceDef == "Visible" then
 		return function()

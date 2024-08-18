@@ -35,17 +35,11 @@ local function compareUnitSets(springUnitSet, apiUnitSet, filter)
 
 	for uid in pairs(springUnitSet) do
 		if not apiUnitSet[uid] then
-			local name = nameLookup[uid]
-
-			if name == nil then
-				name = getName(uid)
-				print(uid, name)
-			end
+			local name = getName(uid)
 
 			-- sometimes the uid wasn't added in the first place
 			-- this is why 'cortl' and 'armtl' cause issues
 			if name == nil then
-				print(uid)
 				table.insert(missingInApi, uid)
 			end
 		end
@@ -53,12 +47,7 @@ local function compareUnitSets(springUnitSet, apiUnitSet, filter)
 
 	for uid in pairs(apiUnitSet) do
 		if not springUnitSet[uid] then
-			local name = nameLookup[uid]
-
-			if name == nil then
-				name = getName(uid)
-				print(uid, name)
-			end
+			local name = getName(uid)
 
 			local isWeirdOutlier = filter == "Not_Builder" and (
 				name == "cormlv" or
@@ -101,10 +90,10 @@ end
 
 local function generateErrorMessage(missingList, listName)
 	local names = {}
-	for _, uid in ipairs(missingList) do
-		local name = nameLookup[uid]
+	for _, uid in pairs(missingList) do
+		local name = getName(uid)
 		if name then
-			table.insert(names, name)
+			table.insert(names, name .. " | " .. uid)
 		end
 	end
 	return listName .. " contains " .. #missingList .. " elements: " .. table.concat(names, ", ")
@@ -119,8 +108,8 @@ local function createUnits()
 	local group = 1
 
 	local count = 0
-	-- local max_count = 1000
-	local max_count = 100
+	local max_count = 1000
+	-- local max_count = 100
 	-- local max_count = 10
 
 	for udefid, udef in pairs(UnitDefs) do
@@ -229,7 +218,7 @@ function test()
 
 	local passed = true
 
-	for _, filter in ipairs(simpleFilterDefs) do
+	for _, filter in pairs(simpleFilterDefs) do
 		local command = "AllMap+_" .. filter .. "+_ClearSelection_SelectAll+"
 		local springCommand = "select " .. command
 
@@ -237,7 +226,7 @@ function test()
 			local passingUnitCount = 0
 			local passSet = {}
 
-			for _, uid in ipairs(uids) do
+			for _, uid in pairs(uids) do
 				local passes = apiPassFn(uid, filterFn)
 
 				if passes then
@@ -258,7 +247,7 @@ function test()
 		local apiCommand = selectApi.getCommand(command)
 		local apiCommandUnitSet = {}
 
-		for _, uid in ipairs(apiCommand()) do
+		for _, uid in pairs(apiCommand()) do
 			apiCommandUnitSet[uid] = true
 		end
 
@@ -266,7 +255,7 @@ function test()
 		local springUnitSet = {}
 		Spring.SendCommands(springCommand)
 		local springUnits = Spring.GetSelectedUnits()
-		for _, uid in ipairs(springUnits) do
+		for _, uid in pairs(springUnits) do
 			springUnitSet[uid] = true
 		end
 
