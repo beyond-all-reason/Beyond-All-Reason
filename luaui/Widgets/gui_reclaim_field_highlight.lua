@@ -220,14 +220,18 @@ do
 		-- Also www-cgrl.cs.mcgill.ca/~godfried/publications/fast.convex.hull.algorithm.pdf
 		local prunedPoints = {}
 
-		local feature = points[1]
-		local x, z = feature.x, feature.z
+		-- Seeding a center point should give a more stable evaluation order over different sorts.
+		local feature1 = points[1]
+		local feature2 = points[floor(#points * 0.5)]
+		local feature3 = points[#points]
+		local x, z = (feature1.x + feature2.x + feature3.x) / 3,
+		             (feature1.z + feature2.z + feature3.z) / 3
 
 		-- (1) Create a 45deg-aligned quadrilateral by expanding to cover each point, one by one.
-		local ax, az, a_xzs_max = x, z, x - z -- Choose A to maximize x - z.
-		local bx, bz, b_xza_max = x, z, x + z -- Choose B to maximize x + z.
-		local cx, cz, c_xzs_min = x, z, x - z -- Choose C to minimize x - z.
-		local dx, dz, d_xza_min = x, z, x + z -- Choose D to minimize x + z.
+		local ax,  az,  a_xzs_max = x,  z,  x - z -- Choose A to maximize x - z.
+		local bx,  bz,  b_xza_max = x,  z,  x + z -- Choose B to maximize x + z.
+		local cx,  cz,  c_xzs_min = x,  z,  x - z -- Choose C to minimize x - z.
+		local dx,  dz,  d_xza_min = x,  z,  x + z -- Choose D to minimize x + z.
 
 		-- (2) Find the 90deg-aligned rectangle inscribed in that quadrilateral.
 		-- This isn't a maximal-area rectangle; it's the fastest to construct.
@@ -236,19 +240,18 @@ do
 
 		-- The algorithm performs a double-pass, starting on the full set.
 		-- The first pass gradually expands the quadrilateral while pruning points.
-		for ii = 2, #points do
+		for ii = 1, #points do
 			local feature = points[ii]
 			local x, z = feature.x, feature.z
 			-- (3) Add points to the result set that fall outside the inscribed rectangle.
-			if x < rxmin or x > rxmax or z < rzmin or z > rzmax then
+			if x <= rxmin or x >= rxmax or z <= rzmin or z >= rzmax then
 				prunedPoints[#prunedPoints+1] = feature
-				-- Spring.MarkerAddPoint(x, 0, z)
 				-- (4) Update A, B, C, D and the rectangle inscribed by them.
-				-- A point could satisfy up to two of these conditionals;
-				-- the greatest increase probably should be taken. Maybe later.
 				local xzs = x - z
 				local xza = x + z
-				if     xzs >= a_xzs_max then -- update A
+
+				-- One extremal point can cause multiple updates:
+				if xzs >= a_xzs_max then
 					a_xzs_max = xzs
 					ax, az = x, z
 					if x > rxmax then
@@ -257,7 +260,8 @@ do
 					if z < rzmin then
 						rzmin = max(z, dz)
 					end
-				elseif xza >= b_xza_max then -- update B
+				end
+				if xza >= b_xza_max then
 					b_xza_max = xza
 					bx, bz = x, z
 					if x > rxmax then
@@ -266,7 +270,8 @@ do
 					if z > rzmax then
 						rzmax = min(z, cz)
 					end
-				elseif xzs <= c_xzs_min then -- update C
+				end
+				if xzs <= c_xzs_min then
 					c_xzs_min = xzs
 					cx, cz = x, z
 					if x < rxmin then
@@ -275,7 +280,8 @@ do
 					if z > rzmax then
 						rzmax = min(z, bz)
 					end
-				elseif xza <= d_xza_min then -- update D
+				end
+				if xza <= d_xza_min then
 					d_xza_min = xza
 					dx, dz = x, z
 					if x < rxmin then
@@ -922,7 +928,7 @@ function widget:DrawWorld()
 
 	glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
-	if drawFeatureClusterTextList then
+	if drawFeatureClusterTextList ~= nil then
 		glCallList(drawFeatureClusterTextList)
 	end
 
@@ -937,12 +943,12 @@ function widget:DrawWorldPreUnit()
 	glDepthTest(false)
 
 	glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-	if drawFeatureConvexHullSolidList then
+	if drawFeatureConvexHullSolidList ~= nil then
 		glColor(reclaimColor)
 		glCallList(drawFeatureConvexHullSolidList)
 	end
 
-	if drawFeatureConvexHullEdgeList then
+	if drawFeatureConvexHullEdgeList ~= nil then
 		glLineWidth(6.0 / cameraScale)
 		glColor(reclaimEdgeColor)
 		glCallList(drawFeatureConvexHullEdgeList)
