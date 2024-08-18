@@ -278,23 +278,121 @@ do
 		return totalArea
 	end
 
-	GetConvexHull = function (cluster, clusterID, candidatePoints)
-		-- Not a wasteful copy since we need to remove elements from the table.
-		-- That will be added as part of the pruning step, which is -- TODO
-		local clusterPoints = table.copy(candidatePoints)
+	GetConvexHull = function (cluster, clusterID, members)
+		-- Pre-process the input points.
+		local candidatePoints
 
-		-- TODO perform pruning as described in the article below, if convex hull algo will start to choke out
-		-- http://mindthenerd.blogspot.ru/2012/05/fastest-convex-hull-algorithm-ever.html
+		if #members < 3 then
+			candidatePoints = members -- We just make a bounding box around the points.
+		else
+			-- We may need to remove points from the set, so make a copy.
+			candidatePoints = {}
+			for ii = 1, #members do
+				candidatePoints[ii] = members[ii]
+			end
 
+			-- TODO perform pruning as described in the article below, if convex hull algo will start to choke out
+			-- http://mindthenerd.blogspot.ru/2012/05/fastest-convex-hull-algorithm-ever.html
+
+			if #candidatePoints > 30 then
+				-- With uniformly random data, this should prune down to around 20% the original set.
+				-- Pruning is O(n) and monotone chain is about O(nlogn) so this is likely worthwhile.
+				-- Credit to mindthenerd.blogspot.ru/2012/05/fastest-convex-hull-algorithm-ever.html
+				-- Also www-cgrl.cs.mcgill.ca/~godfried/publications/fast.convex.hull.algorithm.pdf
+				local hullPoints = {}
+
+				local feature = candidatePoints[1]
+				local x, z = feature.x, feature.z
+	
+				-- (1) Create a 45deg-aligned quadrilateral by expanding to cover each point, one by one.
+				local ax, az, a_xzs_max = x, z, x - z -- Choose A to maximize x - z.
+				local bx, bz, b_xza_max = x, z, x + z -- Choose B to maximize x + z.
+				local cx, cz, c_xzs_min = x, z, x - z -- Choose C to minimize x - z.
+				local dx, dz, d_xza_min = x, z, x + z -- Choose D to minimize x + z.
+	
+				-- (2) Find the 90deg-aligned rectangle inscribed in that quadrilateral.
+				-- This isn't a maximal-area rectangle; it's the fastest to construct.
+				local rxmin, rxmax = x, x -- R_x_min = max(cx, dx); R_x_max = min(ax, bx).
+				local rzmin, rzmax = z, z -- R_z_min = max(az, dz); R_z_max = min(bz, cz).
+	
+				-- The algorithm performs a double-pass, starting on the full set.
+				-- The first pass gradually expands the quadrilateral while pruning points.
+				for ii = 2, #candidatePoints do
+					local feature = candidatePoints[ii]
+					local x, z = feature.x, feature.z
+					-- (3) Add points to the result set that fall outside the inscribed rectangle.
+					if x < rxmin or x > rxmax or z < rzmin or z > rzmax then
+						hullPoints[#hullPoints+1] = feature
+						-- Spring.MarkerAddPoint(x, 0, z)
+						-- (4) Update A, B, C, D and the rectangle inscribed by them.
+						-- A point could satisfy up to two of these conditionals;
+						-- the greatest increase probably should be taken. Maybe later.
+						local xzs = x - z
+						local xza = x + z
+						if     xzs >= a_xzs_max then -- update A
+							a_xzs_max = xzs
+							ax, az = x, z
+							if x > rxmax then
+								rxmax = min(x, bx)
+							end
+							if z < rzmin then
+								rzmin = max(z, dz)
+							end
+						elseif xza >= b_xza_max then -- update B
+							b_xza_max = xza
+							bx, bz = x, z
+							if x > rxmax then
+								rxmax = min(x, ax)
+							end
+							if z > rzmax then
+								rzmax = min(z, cz)
+							end
+						elseif xzs <= c_xzs_min then -- update C
+							c_xzs_min = xzs
+							cx, cz = x, z
+							if x < rxmin then
+								rxmin = max(x, dx)
+							end
+							if z > rzmax then
+								rzmax = min(z, bz)
+							end
+						elseif xza <= d_xza_min then -- update D
+							d_xza_min = xza
+							dx, dz = x, z
+							if x < rxmin then
+								rxmin = max(x, cx)
+							end
+							if z < rzmin then
+								rzmin = max(z, az)
+							end
+						end
+					end
+				end
+	
+				-- (5) Remove all points that fall within the final rectangle.
+				for jj = #hullPoints - 1, 1, -1 do
+					local feature = hullPoints[jj]
+					local x, z = feature.x, feature.z
+					if (x > rxmin and x < rxmax) and (z > rzmin and z < rzmax) then
+						remove(hullPoints, jj)
+					end
+				end
+
+				-- Replace the unprocessed candidates set with the pruned set.
+				candidatePoints = hullPoints
+			end
+		end
+
+		-- Create the convex hull around the set of candidates.
 		local convexHull
 
-		local hullArea = (#clusterPoints >= 3 and pointArea(clusterPoints)) or 0
+		local hullArea = (#candidatePoints >= 3 and pointArea(candidatePoints)) or 0
 		if hullArea >= 3000 then
-			convexHull = MonotoneChain(clusterPoints)
+			convexHull = MonotoneChain(candidatePoints)
 		else
 			local xmin, xmax, zmin, zmax = mathHuge, -mathHuge, mathHuge, -mathHuge
-			for j = 1, #clusterPoints do
-				local feature = clusterPoints[j]
+			for j = 1, #candidatePoints do
+				local feature = candidatePoints[j]
 				local x = feature.x
 				local z = feature.z
 				xmin = min(xmin, x)
@@ -319,9 +417,9 @@ do
 
 			hullArea = dx * dz
 
-			local ymax = clusterPoints[1].y
-			if #clusterPoints == 2 then
-				ymax = max(ymax, clusterPoints[2].y)
+			local ymax = candidatePoints[1].y
+			if #candidatePoints == 2 then
+				ymax = max(ymax, candidatePoints[2].y)
 			end
 
 			convexHull = {
@@ -372,7 +470,7 @@ do
 
 	---Distance from a point to its nearest neighbor.
 	local function Reachability(point, neighbors)
-		if point.rd ~= nil and point.rd < epsilonSq then
+		if point.rd ~= nil then
 			return point.rd
 		end
 		-- This function was changed from its generic implementation because
@@ -755,7 +853,7 @@ function widget:FeatureCreated(featureID, allyTeamID)
 		knownFeatures[featureID] = {
 			fid   = featureID,
 			metal = metal,
-			rd    = reachDistSq,
+			rd    = (reachDistSq < epsilonSq and reachDistSq) or nil,
 			x     = x,
 			y     = max(0, y), -- spGetGroundHeight(x, z) seems unneeded
 			z     = z,
@@ -767,14 +865,11 @@ end
 
 function widget:FeatureDestroyed(featureID, allyTeamID)
 	if knownFeatures[featureID] ~= nil then
-		knownFeatures[featureID] = nil
-		-- The memory leak from not nilling fNM[fid2][fid1] is nbd.
-		-- But we need to maintain `rd` from Created/Destroyed. So:
 		local neighbors = featureNeighborsMatrix[featureID]
-		featureNeighborsMatrix[featureID] = nil
 		for fid, distSq in pairs(neighbors) do
 			-- Update the reachability of neighbors linked through this point.
-			if knownFeatures[fid].rd == distSq then
+			local neighbor = knownFeatures[fid]
+			if neighbor ~= nil and neighbor.rd == distSq then
 				local nextNeighbors = featureNeighborsMatrix[fid]
 				nextNeighbors[featureID] = nil
 				local reachDistSq = mathHuge
@@ -783,11 +878,13 @@ function widget:FeatureDestroyed(featureID, allyTeamID)
 						reachDistSq = distSq2
 					end
 				end
-				knownFeatures[fid].rd = (reachDistSq < epsilonSq and reachDistSq) or nil
+				neighbor.rd = (reachDistSq <= epsilonSq and reachDistSq) or nil
 			else
 				featureNeighborsMatrix[fid][featureID] = nil
 			end
 		end
+		featureNeighborsMatrix[featureID] = nil
+		knownFeatures[featureID] = nil
 		clusterizingNeeded = true
 	end
 end
