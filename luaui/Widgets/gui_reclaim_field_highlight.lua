@@ -516,7 +516,7 @@ do
 			local point = knownFeatures[fid]
 			local members = { point }
 			local cluster = { members = members }
-			featureClusters[#featureClusters+1] = cluster
+			featureClusters[clusterID] = cluster
 			clusterID = clusterID + 1
 
 			-- Process visited points, like so.
