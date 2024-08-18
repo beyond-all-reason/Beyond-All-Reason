@@ -237,7 +237,7 @@ function test()
 		end
 
 		-- api filter
-		local apiFilter = selectApi.parseFilter(filter)
+		local apiFilter = selectApi.getFilter(filter)
 		local apiFilterUnitSet = applyApiFn(selectApi.unitPassesFilter, apiFilter)
 
 		-- api command
@@ -276,7 +276,7 @@ function test()
 		end
 
 		compare(apiFilterUnitSet, "Filter")
-		-- compare(apiCommandUnitSet, "Filter")
+		-- compare(apiCommandUnitSet, "Command")
 	end
 	assert(passed, "read errors above")
 end

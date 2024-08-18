@@ -13,6 +13,7 @@ local spGetUnitDefID = Spring.GetUnitDefID
 
 local includeNanosAsMobile = true -- TODO
 local customFilterLookup = {}
+local customCommandLookup = {}
 
 
 local function isBuilder(udef)
@@ -70,6 +71,7 @@ local function stringContains(mainString, searchString)
 	return mainString:find(searchString, 1, true) ~= nil
 end
 
+-- filter
 local function parseFilter(filterDef)
 	local tokens = {}
 	local tokenIndex = 1
@@ -332,8 +334,106 @@ local function unitPassesFilter(uid, filterFns)
 	return true
 end
 
+
+-- command
+local function startsWith(str, prefix)
+	return str:match("^" .. prefix) ~= nil
+end
+
+local function curryDistance(input, fn)
+	local numStr = input:match("_([^_]+)")
+	local distance = tonumber(numStr)
+
+	return function()
+		return fn(distance)
+	end
+end
+
+local function getMouseWorldPos()
+	local mouseX, mouseY = Spring.GetMouseState()
+	local desc, args = Spring.TraceScreenRay(mouseX, mouseY, true)
+
+	if nil == desc then return end -- off map
+	if nil == args then return end
+
+	local x = args[1]
+	local y = args[2]
+	local z = args[3]
+
+	return x, y, z
+end
+
+local function parseSource(sourceDef)
+	if sourceDef == "AllMap" then
+		return function()
+			return Spring.GetAllUnits()
+		end
+	elseif sourceDef == "Visible" then
+		return function()
+			return Spring.GetVisibleUnits()
+		end
+	elseif sourceDef == "PrevSelection" then
+		return function()
+			return Spring.GetSelectedUnits()
+		end
+	elseif startsWith(sourceDef, "FromMouse_") then
+		return curryDistance(sourceDef, function(distance)
+			local x, y, z = getMouseWorldPos()
+			if z and y and z then
+				return Spring.GetUnitsInSphere(x, y, z, distance)
+			else
+				return {}
+			end
+		end)
+	elseif startsWith(sourceDef, "FromMouseC_") then
+		return curryDistance(sourceDef, function(distance)
+			local x, y, z = getMouseWorldPos()
+			if x and z then
+				return Spring.GetUnitsInCylinder(x, z, distance)
+			else
+				return {}
+			end
+		end)
+	end
+end
+
+local function commandFormatError(commandDef)
+	error("select command string " .. commandDef .. " does not match the expected format")
+end
+
+local function parseCommand(commandDef)
+	local sourceDef, filterDef, conclusionDef = commandDef:match("([^+_]+)%+_([^+_]+)%+_([^+_]+)")
+
+	if not sourceDef or not filterDef or not conclusionDef then
+		commandFormatError(commandDef)
+		return
+	end
+
+	local source = parseSource(sourceDef)
+	local filter = getFilter(filterDef)
+	local conclusion = parseConclusion(conclusionDef)
+
+	return function()
+		local uids = source()
+		uids = filter(uids)
+		uids = conclusion(uids)
+		return uids
+	end
+end
+
+local function getCommand(commandDef)
+	local command = customCommandLookup[commandDef]
+
+	if command == nil then
+		command = parseCommand(commandDef)
+		customCommandLookup[commandDef] = command
+	end
+
+	return command
+end
+
 return {
-	parseFilter = parseFilter,
 	getFilter = getFilter,
-	unitPassesFilter = unitPassesFilter
+	unitPassesFilter = unitPassesFilter,
+	getCommand = getCommand,
 }
