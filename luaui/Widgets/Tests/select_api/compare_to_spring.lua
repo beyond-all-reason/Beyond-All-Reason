@@ -25,9 +25,8 @@ local function getName(uid)
 	end
 
 	local udef = UnitDefs[udefid]
-	return udef.name
+	return udef.name, udefid
 end
-
 
 local function compareUnitSets(springUnitSet, apiUnitSet, filter)
 	local missingInApi = {}
@@ -49,10 +48,15 @@ local function compareUnitSets(springUnitSet, apiUnitSet, filter)
 		if not springUnitSet[uid] then
 			local name = getName(uid)
 
-			local isWeirdOutlier = filter == "Not_Builder" and (
-				name == "cormlv" or
-				name == "armmlv"
-			)
+			-- these have weird behaviour for the "Not_Builder" filter
+			-- they behave as expected for the "Builder" filter
+			local isWeirdOutlier = (filter == "Not_Builder" and (
+					name == "cormlv" or
+					name == "armmlv"
+				))
+				-- api command selects these, but spring select doesn't
+				-- I think they spawn? don't seem to exist during build script
+				or name == "armdrone" or name == "corvacct"
 
 			if not isWeirdOutlier then
 				table.insert(missingInSpring, uid)
@@ -91,9 +95,9 @@ end
 local function generateErrorMessage(missingList, listName)
 	local names = {}
 	for _, uid in pairs(missingList) do
-		local name = getName(uid)
+		local name, udefid = getName(uid)
 		if name then
-			table.insert(names, name .. " | " .. uid)
+			table.insert(names, name .. "|" .. udefid)
 		end
 	end
 	return listName .. " contains " .. #missingList .. " elements: " .. table.concat(names, ", ")

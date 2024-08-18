@@ -413,16 +413,16 @@ local function parseConclusion(conclusionDef)
 	end
 end
 
-local myTeamId = Spring.GetMyTeamID()
 local function parseSource(sourceDef)
 	if sourceDef == "AllMap" then
 		return function()
-			print(myTeamId)
+			local myTeamId = Spring.GetMyTeamID()
 			return Spring.GetTeamUnits(myTeamId)
 		end
 	elseif sourceDef == "Visible" then
 		return function()
-			return Spring.GetVisibleUnits()
+			local myTeamId = Spring.GetMyTeamID()
+			return Spring.GetVisibleUnits(myTeamId)
 		end
 	elseif sourceDef == "PrevSelection" then
 		return function()
