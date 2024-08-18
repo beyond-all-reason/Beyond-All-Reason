@@ -456,7 +456,7 @@ return {
 			[5] = {
 				badtargetcategory = "VTOL GROUNDSCOUT SHIP",
 				def = "BOTCANNON",
-				onlytargetcategory = "SURFACE",
+				onlytargetcategory = "NOTSHIP",
 			},
 		},
 	},
