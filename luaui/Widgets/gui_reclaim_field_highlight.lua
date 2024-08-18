@@ -79,6 +79,7 @@ local glVertex = gl.Vertex
 local spGetCameraPosition = Spring.GetCameraPosition
 local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGetFeatureResources = Spring.GetFeatureResources
+local spGetGroundHeight = Spring.GetGroundHeight
 local spIsGUIHidden = Spring.IsGUIHidden
 local spTraceScreenRay = Spring.TraceScreenRay
 local spGetActiveCommand = Spring.GetActiveCommand
@@ -315,7 +316,7 @@ do
 
 		local function cross(p, q, r)
 			return (q.z - p.z) * (r.x - q.x) -
-				(q.x - p.x) * (r.z - q.z)
+			       (q.x - p.x) * (r.z - q.z)
 		end
 
 		MonotoneChain = function (points)
@@ -376,19 +377,19 @@ do
 			dz = dz + minTextAreaLength
 		end
 
-		hullArea = dx * dz
-
 		local ymax = points[1].y
 		if #points == 2 then
 			ymax = max(ymax, points[2].y)
 		end
 
 		local convexHull = {
-			{x = xmin, y = ymax, z = zmin},
-			{x = xmax, y = ymax, z = zmin},
-			{x = xmax, y = ymax, z = zmax},
-			{x = xmin, y = ymax, z = zmax},
+			{ x = xmin, y = ymax, z = zmin },
+			{ x = xmax, y = ymax, z = zmin },
+			{ x = xmax, y = ymax, z = zmax },
+			{ x = xmin, y = ymax, z = zmax },
 		}
+
+		local hullArea = dx * dz
 
 		return convexHull, hullArea
 	end
@@ -410,21 +411,12 @@ do
 	end
 
 	GetConvexHull = function (cluster, clusterID, members)
-		-- Pre-process the input points.
 		local candidatePoints
-
-		if #members < 3 then
-			-- We just make a bounding box around the points.
+		if #members < 30 then
 			candidatePoints = members
-		elseif #members > 30 then
+		else
 			-- Use a fast method to prune unnecessary points.
 			candidatePoints = ConvexSetConditioning(members)
-		else
-			-- We may need to remove points from the set, so make a copy.
-			candidatePoints = {}
-			for ii = 1, #members do
-				candidatePoints[ii] = members[ii]
-			end
 		end
 
 		-- Create the convex hull around the set of candidates.
@@ -438,16 +430,19 @@ do
 			convexHull, hullArea = BoundingBox(candidatePoints)
 		end
 
-		local cx, cz, cy = 0, 0, 0
+		local cx, cy, cz = 0, 0, 0
 		for i = 1, #convexHull do
 			local convexHullPoint = convexHull[i]
 			cx = cx + convexHullPoint.x
-			cz = cz + convexHullPoint.z
 			cy = max(cy, convexHullPoint.y)
+			cz = cz + convexHullPoint.z
 		end
+		cx = cx / #convexHull
+		cz = cz / #convexHull
+		cy = max(cy, spGetGroundHeight(cx, cz))
 
 		convexHull.area = hullArea
-		convexHull.center = { x = cx/#convexHull, z = cz/#convexHull, y = cy + 1 }
+		convexHull.center = { x = cx, y = cy + 2, z = cz }
 
 		featureConvexHulls[clusterID] = convexHull
 	end
@@ -486,7 +481,7 @@ do
 		-- Note also that we have to guarantee the epsilon neighbors matrix.
 		local reachDistSq = mathHuge
 		for fid, distSq in pairs(neighbors) do
-			if unprocessed[fid] == nil and distSq < reachDistSq then -- ? not sure about unproc here
+			if unprocessed[fid] == nil and distSq < reachDistSq then
 				reachDistSq = distSq
 			end
 		end
@@ -561,8 +556,8 @@ do
 			fid = next(unprocessed)
 		end
 
+		-- Post-process each cluster.
 		for ii = 1, clusterID do
-			-- Post-process each cluster.
 			local cluster = featureClusters[ii]
 			GetClusterStats(cluster, cluster.members)
 			GetConvexHull(cluster, ii, cluster.members)
@@ -863,7 +858,7 @@ function widget:FeatureCreated(featureID, allyTeamID)
 			metal = metal,
 			rd    = (reachDistSq < epsilonSq and reachDistSq) or nil,
 			x     = x,
-			y     = max(0, y), -- spGetGroundHeight(x, z) seems unneeded
+			y     = max(0, y), -- Ground height is checked later.
 			z     = z,
 		}
 
