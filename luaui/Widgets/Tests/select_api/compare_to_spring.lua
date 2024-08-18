@@ -1,7 +1,6 @@
 -- run test using BAR command (in chat): `/runtests select_api`
 local spGetUnitDefID = Spring.GetUnitDefID
-local parseFilter = VFS.Include("luaui/Widgets/Include/select_api.lua").parseFilter
-local unitPassesFilter = VFS.Include("luaui/Widgets/Include/select_api.lua").unitPassesFilter
+local selectApi = VFS.Include("luaui/Widgets/Include/select_api.lua")
 local nameLookup = {}
 
 function skip()
@@ -18,7 +17,7 @@ function cleanup()
 	Spring.SendCommands("setspeed " .. 1)
 end
 
-local function compareUnitSets(springUnitSet, apiUnitSet)
+local function compareUnitSets(springUnitSet, apiUnitSet, filter)
 	local missingInApi = {}
 	local missingInSpring = {}
 
@@ -36,7 +35,15 @@ local function compareUnitSets(springUnitSet, apiUnitSet)
 
 	for uid in pairs(apiUnitSet) do
 		if not springUnitSet[uid] then
-			table.insert(missingInSpring, uid)
+			local name = nameLookup[uid]
+			local isWeirdOutlier = filter == "Not_Builder" and (
+				name == "cormlv" or
+				name == "armmlv"
+			)
+
+			if not isWeirdOutlier then
+				table.insert(missingInSpring, uid)
+			end
 		end
 	end
 
@@ -209,31 +216,36 @@ function test()
 	local passed = true
 
 	for _, filter in ipairs(simpleFilterDefs) do
-		local springUnitSet = {}
-		local apiUnitSet = {}
 		local command = "AllMap+_" .. filter .. "+_ClearSelection_SelectAll+"
 		local springCommand = "select " .. command
 
-		-- api filter
-		local apiFilter = parseFilter(filter)
-		local passingUnitCount = 0
-		for _, uid in ipairs(uids) do
-			local passes = unitPassesFilter(uid, apiFilter)
+		local function applyApiFn(apiPassFn, filterFn)
+			local passingUnitCount = 0
+			local passSet = {}
 
-			local ignoreWeirdOutlier = filter == "Not_Builder" and (
-				nameLookup[uid] == "cormlv" or
-				nameLookup[uid] == "armmlv"
-			)
+			for _, uid in ipairs(uids) do
+				local passes = apiPassFn(uid, filterFn)
 
-			if passes == nil or ignoreWeirdOutlier then
-				springUnitSet[uid] = nil
-			elseif passes then
-				apiUnitSet[uid] = true
-				passingUnitCount = passingUnitCount + 1
+				if passes then
+					passSet[uid] = true
+					passingUnitCount = passingUnitCount + 1
+				end
 			end
+
+			-- print(filter .. " has " .. passingUnitCount .. " units")
+			return passSet
 		end
 
+		-- api filter
+		local apiFilter = selectApi.parseFilter(filter)
+		local apiFilterUnitSet = applyApiFn(selectApi.unitPassesFilter, apiFilter)
+
+		-- api command
+		-- local apiCommand = selectApi.parseCommand(command)
+		-- local apiCommandUnitSet = processUnits(selectApi.unitPassesCommand, apiCommand)
+
 		-- spring
+		local springUnitSet = {}
 		Spring.SendCommands(springCommand)
 		local springUnits = Spring.GetSelectedUnits()
 		for _, uid in ipairs(springUnits) do
@@ -241,27 +253,30 @@ function test()
 		end
 
 		-- compare
-		local missingInApi, missingInSpring = compareUnitSets(springUnitSet, apiUnitSet)
+		local function compare(apiUnitSet, type)
+			local missingInApi, missingInSpring = compareUnitSets(springUnitSet, apiUnitSet, filter)
+			local hasMissingInApi = #missingInApi > 0
+			local hasMissingInSpring = #missingInSpring > 0
+			local prefix = "\n" .. type .. " " .. filter .. " failed: "
 
-		local hasMissingInApi = #missingInApi > 0
-		local hasMissingInSpring = #missingInSpring > 0
-
-		print(filter .. " has " .. passingUnitCount .. " units")
-
-		if hasMissingInApi and hasMissingInSpring then
-			local errorMessage = generateErrorMessage(missingInApi, "missingInApi") ..
-				" | " .. generateErrorMessage(missingInSpring, "missingInSpring")
-			print("\nFilter " .. filter .. " failed: " .. errorMessage)
-			passed = false
-		elseif hasMissingInApi then
-			local errorMessage = generateErrorMessage(missingInApi, "missingInApi")
-			print("\nFilter " .. filter .. " failed: " .. errorMessage)
-			passed = false
-		elseif hasMissingInSpring then
-			local errorMessage = generateErrorMessage(missingInSpring, "missingInSpring")
-			print("\nFilter " .. filter .. " failed: " .. errorMessage)
-			passed = false
+			if hasMissingInApi and hasMissingInSpring then
+				local errorMessage = generateErrorMessage(missingInApi, "missingInApi") ..
+					" | " .. generateErrorMessage(missingInSpring, "missingInSpring")
+				print(prefix .. errorMessage)
+				passed = false
+			elseif hasMissingInApi then
+				local errorMessage = generateErrorMessage(missingInApi, "missingInApi")
+				print(prefix .. errorMessage)
+				passed = false
+			elseif hasMissingInSpring then
+				local errorMessage = generateErrorMessage(missingInSpring, "missingInSpring")
+				print(prefix .. errorMessage)
+				passed = false
+			end
 		end
+
+		compare(apiFilterUnitSet, "Filter")
+		-- compare(apiCommandUnitSet, "Filter")
 	end
-	assert(passed, "not all filters match")
+	assert(passed, "read errors above")
 end
