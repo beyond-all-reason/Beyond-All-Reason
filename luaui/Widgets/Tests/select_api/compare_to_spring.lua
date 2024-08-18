@@ -17,6 +17,18 @@ function cleanup()
 	Spring.SendCommands("setspeed " .. 1)
 end
 
+local function getName(uid)
+	local udefid = spGetUnitDefID(uid)
+
+	if not udefid then
+		return nil
+	end
+
+	local udef = UnitDefs[udefid]
+	return udef.name
+end
+
+
 local function compareUnitSets(springUnitSet, apiUnitSet, filter)
 	local missingInApi = {}
 	local missingInSpring = {}
@@ -25,9 +37,15 @@ local function compareUnitSets(springUnitSet, apiUnitSet, filter)
 		if not apiUnitSet[uid] then
 			local name = nameLookup[uid]
 
+			if name == nil then
+				name = getName(uid)
+				print(uid, name)
+			end
+
 			-- sometimes the uid wasn't added in the first place
 			-- this is why 'cortl' and 'armtl' cause issues
-			if name ~= nil then
+			if name == nil then
+				print(uid)
 				table.insert(missingInApi, uid)
 			end
 		end
@@ -36,6 +54,12 @@ local function compareUnitSets(springUnitSet, apiUnitSet, filter)
 	for uid in pairs(apiUnitSet) do
 		if not springUnitSet[uid] then
 			local name = nameLookup[uid]
+
+			if name == nil then
+				name = getName(uid)
+				print(uid, name)
+			end
+
 			local isWeirdOutlier = filter == "Not_Builder" and (
 				name == "cormlv" or
 				name == "armmlv"
@@ -75,21 +99,10 @@ local function createAndAddUnit(udefid, name, x, z, uids, group)
 	return unitID
 end
 
-local function getName(uid)
-	local udefid = spGetUnitDefID(uid)
-
-	if not udefid then
-		return nil
-	end
-
-	local udef = UnitDefs[udefid]
-	return udef.name
-end
-
 local function generateErrorMessage(missingList, listName)
 	local names = {}
 	for _, uid in ipairs(missingList) do
-		local name = getName(uid)
+		local name = nameLookup[uid]
 		if name then
 			table.insert(names, name)
 		end
@@ -106,7 +119,8 @@ local function createUnits()
 	local group = 1
 
 	local count = 0
-	local max_count = 1000
+	-- local max_count = 1000
+	local max_count = 100
 	-- local max_count = 10
 
 	for udefid, udef in pairs(UnitDefs) do
@@ -241,8 +255,12 @@ function test()
 		local apiFilterUnitSet = applyApiFn(selectApi.unitPassesFilter, apiFilter)
 
 		-- api command
-		-- local apiCommand = selectApi.parseCommand(command)
-		-- local apiCommandUnitSet = processUnits(selectApi.unitPassesCommand, apiCommand)
+		local apiCommand = selectApi.getCommand(command)
+		local apiCommandUnitSet = {}
+
+		for _, uid in ipairs(apiCommand()) do
+			apiCommandUnitSet[uid] = true
+		end
 
 		-- spring
 		local springUnitSet = {}
@@ -276,7 +294,7 @@ function test()
 		end
 
 		compare(apiFilterUnitSet, "Filter")
-		-- compare(apiCommandUnitSet, "Command")
+		compare(apiCommandUnitSet, "Command")
 	end
 	assert(passed, "read errors above")
 end
