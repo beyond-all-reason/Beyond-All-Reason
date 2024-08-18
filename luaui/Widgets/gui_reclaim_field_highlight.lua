@@ -212,6 +212,94 @@ end
 
 local GetConvexHull
 do
+	local function ConvexSetConditioning(points)
+		-- With uniformly random data, this should prune down to 10% to 20% the original set.
+		-- Pruning is O(n) and monotone chain is about O(nlogn) so this is likely worthwhile.
+		-- Credit to mindthenerd.blogspot.ru/2012/05/fastest-convex-hull-algorithm-ever.html
+		-- Also www-cgrl.cs.mcgill.ca/~godfried/publications/fast.convex.hull.algorithm.pdf
+		local prunedPoints = {}
+
+		local feature = points[1]
+		local x, z = feature.x, feature.z
+
+		-- (1) Create a 45deg-aligned quadrilateral by expanding to cover each point, one by one.
+		local ax, az, a_xzs_max = x, z, x - z -- Choose A to maximize x - z.
+		local bx, bz, b_xza_max = x, z, x + z -- Choose B to maximize x + z.
+		local cx, cz, c_xzs_min = x, z, x - z -- Choose C to minimize x - z.
+		local dx, dz, d_xza_min = x, z, x + z -- Choose D to minimize x + z.
+
+		-- (2) Find the 90deg-aligned rectangle inscribed in that quadrilateral.
+		-- This isn't a maximal-area rectangle; it's the fastest to construct.
+		local rxmin, rxmax = x, x -- R_x_min = max(cx, dx); R_x_max = min(ax, bx).
+		local rzmin, rzmax = z, z -- R_z_min = max(az, dz); R_z_max = min(bz, cz).
+
+		-- The algorithm performs a double-pass, starting on the full set.
+		-- The first pass gradually expands the quadrilateral while pruning points.
+		for ii = 2, #points do
+			local feature = points[ii]
+			local x, z = feature.x, feature.z
+			-- (3) Add points to the result set that fall outside the inscribed rectangle.
+			if x < rxmin or x > rxmax or z < rzmin or z > rzmax then
+				prunedPoints[#prunedPoints+1] = feature
+				-- Spring.MarkerAddPoint(x, 0, z)
+				-- (4) Update A, B, C, D and the rectangle inscribed by them.
+				-- A point could satisfy up to two of these conditionals;
+				-- the greatest increase probably should be taken. Maybe later.
+				local xzs = x - z
+				local xza = x + z
+				if     xzs >= a_xzs_max then -- update A
+					a_xzs_max = xzs
+					ax, az = x, z
+					if x > rxmax then
+						rxmax = min(x, bx)
+					end
+					if z < rzmin then
+						rzmin = max(z, dz)
+					end
+				elseif xza >= b_xza_max then -- update B
+					b_xza_max = xza
+					bx, bz = x, z
+					if x > rxmax then
+						rxmax = min(x, ax)
+					end
+					if z > rzmax then
+						rzmax = min(z, cz)
+					end
+				elseif xzs <= c_xzs_min then -- update C
+					c_xzs_min = xzs
+					cx, cz = x, z
+					if x < rxmin then
+						rxmin = max(x, dx)
+					end
+					if z > rzmax then
+						rzmax = min(z, bz)
+					end
+				elseif xza <= d_xza_min then -- update D
+					d_xza_min = xza
+					dx, dz = x, z
+					if x < rxmin then
+						rxmin = max(x, cx)
+					end
+					if z < rzmin then
+						rzmin = max(z, az)
+					end
+				end
+			end
+		end
+
+		-- (5) Remove all points that fall within the final rectangle.
+		for jj = #prunedPoints - 1, 1, -1 do
+			local feature = prunedPoints[jj]
+			local x, z = feature.x, feature.z
+			if (x > rxmin and x < rxmax) and (z > rzmin and z < rzmax) then
+				remove(prunedPoints, jj)
+			end
+		end
+
+		-- Replace the unprocessed candidates set with the pruned set.
+		return prunedPoints
+	end
+
 	--- MONOTONE CHAIN
 	-- https://gist.githubusercontent.com/sixFingers/ee5c1dce72206edc5a42b3246a52ce2e/raw/b2d51e5236668e5408d24b982eec9c339dc94065/Lua%2520Convex%2520Hull
 
@@ -262,6 +350,49 @@ do
 		end
 	end
 
+	local function BoundingBox(points)
+		local xmin, xmax, zmin, zmax = mathHuge, -mathHuge, mathHuge, -mathHuge
+		for j = 1, #points do
+			local feature = points[j]
+			local x = feature.x
+			local z = feature.z
+			xmin = min(xmin, x)
+			xmax = max(xmax, x)
+			zmin = min(zmin, z)
+			zmax = max(zmax, z)
+		end
+
+		local dx, dz = xmax - xmin, zmax - zmin
+
+		if dx < minTextAreaLength then
+			xmin = xmin - (minTextAreaLength - dx) / 2
+			xmax = xmax + (minTextAreaLength - dx) / 2
+			dx = dx + minTextAreaLength
+		end
+
+		if dz < minTextAreaLength then
+			zmin = zmin - (minTextAreaLength - dz) / 2
+			zmax = zmax + (minTextAreaLength - dz) / 2
+			dz = dz + minTextAreaLength
+		end
+
+		hullArea = dx * dz
+
+		local ymax = points[1].y
+		if #points == 2 then
+			ymax = max(ymax, points[2].y)
+		end
+
+		local convexHull = {
+			{x = xmin, y = ymax, z = zmin},
+			{x = xmax, y = ymax, z = zmin},
+			{x = xmax, y = ymax, z = zmax},
+			{x = xmin, y = ymax, z = zmax},
+		}
+
+		return convexHull, hullArea
+	end
+
 	local function pointArea(points)
 		local totalArea = 0
 		-- Determinant area, triangle form
@@ -283,100 +414,16 @@ do
 		local candidatePoints
 
 		if #members < 3 then
-			candidatePoints = members -- We just make a bounding box around the points.
+			-- We just make a bounding box around the points.
+			candidatePoints = members
+		elseif #members > 30 then
+			-- Use a fast method to prune unnecessary points.
+			candidatePoints = ConvexSetConditioning(members)
 		else
 			-- We may need to remove points from the set, so make a copy.
 			candidatePoints = {}
 			for ii = 1, #members do
 				candidatePoints[ii] = members[ii]
-			end
-
-			if #candidatePoints > 30 then
-				-- With uniformly random data, this should prune down to around 20% the original set.
-				-- Pruning is O(n) and monotone chain is about O(nlogn) so this is likely worthwhile.
-				-- Credit to mindthenerd.blogspot.ru/2012/05/fastest-convex-hull-algorithm-ever.html
-				-- Also www-cgrl.cs.mcgill.ca/~godfried/publications/fast.convex.hull.algorithm.pdf
-				local hullPoints = {}
-
-				local feature = candidatePoints[1]
-				local x, z = feature.x, feature.z
-	
-				-- (1) Create a 45deg-aligned quadrilateral by expanding to cover each point, one by one.
-				local ax, az, a_xzs_max = x, z, x - z -- Choose A to maximize x - z.
-				local bx, bz, b_xza_max = x, z, x + z -- Choose B to maximize x + z.
-				local cx, cz, c_xzs_min = x, z, x - z -- Choose C to minimize x - z.
-				local dx, dz, d_xza_min = x, z, x + z -- Choose D to minimize x + z.
-	
-				-- (2) Find the 90deg-aligned rectangle inscribed in that quadrilateral.
-				-- This isn't a maximal-area rectangle; it's the fastest to construct.
-				local rxmin, rxmax = x, x -- R_x_min = max(cx, dx); R_x_max = min(ax, bx).
-				local rzmin, rzmax = z, z -- R_z_min = max(az, dz); R_z_max = min(bz, cz).
-	
-				-- The algorithm performs a double-pass, starting on the full set.
-				-- The first pass gradually expands the quadrilateral while pruning points.
-				for ii = 2, #candidatePoints do
-					local feature = candidatePoints[ii]
-					local x, z = feature.x, feature.z
-					-- (3) Add points to the result set that fall outside the inscribed rectangle.
-					if x < rxmin or x > rxmax or z < rzmin or z > rzmax then
-						hullPoints[#hullPoints+1] = feature
-						-- Spring.MarkerAddPoint(x, 0, z)
-						-- (4) Update A, B, C, D and the rectangle inscribed by them.
-						-- A point could satisfy up to two of these conditionals;
-						-- the greatest increase probably should be taken. Maybe later.
-						local xzs = x - z
-						local xza = x + z
-						if     xzs >= a_xzs_max then -- update A
-							a_xzs_max = xzs
-							ax, az = x, z
-							if x > rxmax then
-								rxmax = min(x, bx)
-							end
-							if z < rzmin then
-								rzmin = max(z, dz)
-							end
-						elseif xza >= b_xza_max then -- update B
-							b_xza_max = xza
-							bx, bz = x, z
-							if x > rxmax then
-								rxmax = min(x, ax)
-							end
-							if z > rzmax then
-								rzmax = min(z, cz)
-							end
-						elseif xzs <= c_xzs_min then -- update C
-							c_xzs_min = xzs
-							cx, cz = x, z
-							if x < rxmin then
-								rxmin = max(x, dx)
-							end
-							if z > rzmax then
-								rzmax = min(z, bz)
-							end
-						elseif xza <= d_xza_min then -- update D
-							d_xza_min = xza
-							dx, dz = x, z
-							if x < rxmin then
-								rxmin = max(x, cx)
-							end
-							if z < rzmin then
-								rzmin = max(z, az)
-							end
-						end
-					end
-				end
-	
-				-- (5) Remove all points that fall within the final rectangle.
-				for jj = #hullPoints - 1, 1, -1 do
-					local feature = hullPoints[jj]
-					local x, z = feature.x, feature.z
-					if (x > rxmin and x < rxmax) and (z > rzmin and z < rzmax) then
-						remove(hullPoints, jj)
-					end
-				end
-
-				-- Replace the unprocessed candidates set with the pruned set.
-				candidatePoints = hullPoints
 			end
 		end
 
@@ -384,47 +431,11 @@ do
 		local convexHull
 
 		local hullArea = (#candidatePoints >= 3 and pointArea(candidatePoints)) or 0
+
 		if hullArea >= 3000 then
 			convexHull = MonotoneChain(candidatePoints)
 		else
-			local xmin, xmax, zmin, zmax = mathHuge, -mathHuge, mathHuge, -mathHuge
-			for j = 1, #candidatePoints do
-				local feature = candidatePoints[j]
-				local x = feature.x
-				local z = feature.z
-				xmin = min(xmin, x)
-				xmax = max(xmax, x)
-				zmin = min(zmin, z)
-				zmax = max(zmax, z)
-			end
-
-			local dx, dz = xmax - xmin, zmax - zmin
-
-			if dx < minTextAreaLength then
-				xmin = xmin - (minTextAreaLength - dx) / 2
-				xmax = xmax + (minTextAreaLength - dx) / 2
-				dx = dx + minTextAreaLength
-			end
-
-			if dz < minTextAreaLength then
-				zmin = zmin - (minTextAreaLength - dz) / 2
-				zmax = zmax + (minTextAreaLength - dz) / 2
-				dz = dz + minTextAreaLength
-			end
-
-			hullArea = dx * dz
-
-			local ymax = candidatePoints[1].y
-			if #candidatePoints == 2 then
-				ymax = max(ymax, candidatePoints[2].y)
-			end
-
-			convexHull = {
-				{x = xmin, y = ymax, z = zmin},
-				{x = xmax, y = ymax, z = zmin},
-				{x = xmax, y = ymax, z = zmax},
-				{x = xmin, y = ymax, z = zmax},
-			}
+			convexHull, hullArea = BoundingBox(candidatePoints)
 		end
 
 		local cx, cz, cy = 0, 0, 0
