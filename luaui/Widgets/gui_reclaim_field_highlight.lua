@@ -2,8 +2,8 @@ function widget:GetInfo()
 	return {
 		name      = "Reclaim Field Highlight",
 		desc      = "Highlights clusters of reclaimable material",
-		author    = "ivand, refactored by esainane, edited for BAR by Lexon",
-		date      = "2022",
+		author    = "ivand, refactored by esainane, edited for BAR by Lexon and efrec",
+		date      = "2024",
 		license   = "public",
 		layer     = 1000,
 		enabled   = true
@@ -290,9 +290,6 @@ do
 			for ii = 1, #members do
 				candidatePoints[ii] = members[ii]
 			end
-
-			-- TODO perform pruning as described in the article below, if convex hull algo will start to choke out
-			-- http://mindthenerd.blogspot.ru/2012/05/fastest-convex-hull-algorithm-ever.html
 
 			if #candidatePoints > 30 then
 				-- With uniformly random data, this should prune down to around 20% the original set.
