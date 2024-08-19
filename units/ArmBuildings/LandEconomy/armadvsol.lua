@@ -4,7 +4,7 @@ return {
 		activatewhenbuilt = true,
 		maxdec = 0,
 		buildangle = 4096,
-		energycost = 4500,
+		energycost = 5000,
 		metalcost = 370,
 		buildpic = "ARMADVSOL.DDS",
 		buildtime = 7950,

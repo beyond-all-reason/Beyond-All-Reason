@@ -4,7 +4,7 @@ return {
 		activatewhenbuilt = true,
 		maxdec = 0,
 		energycost = 175,
-		metalcost = 40,
+		metalcost = 37,
 		buildpic = "ARMWIN.DDS",
 		buildtime = 1600,
 		canrepeat = false,
