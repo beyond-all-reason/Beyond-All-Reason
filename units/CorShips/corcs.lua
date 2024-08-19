@@ -36,7 +36,7 @@ return {
 		turninplaceanglelimit = 90,
 		turnrate = 391.5,
 		waterline = 0,
-		workertime = 125,
+		workertime = 130,
 		buildoptions = {
 			"cormex",
 			"corvp",
