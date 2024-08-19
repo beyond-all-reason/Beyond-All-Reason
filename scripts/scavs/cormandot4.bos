@@ -420,7 +420,7 @@ RestorePosture()
 
 RetractBackTurret()
 {
-	turretdeployed = 2;
+	turretdeployed = 0;
 	turn turret to y-axis <0.0> speed <180>;
 	wait-for-turn turret around y-axis;
 	turn sleeve to x-axis <0.0> speed <180>;

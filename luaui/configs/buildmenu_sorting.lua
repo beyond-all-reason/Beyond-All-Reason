@@ -77,6 +77,7 @@ local unitOrderTable = {
 
 	['armspy']         = 003900, --SPIES
 	['corspy']         = 004000,
+	['corphantom']     = 004010,
 
 	-- AIR SCOUTS LAND UNARMED
 	['armpeep']        = 004030, --AIR
@@ -246,6 +247,7 @@ local unitOrderTable = {
 	['corcan']         = 006710,
 	['legshot']        = 006715,
 	['armsnipe']       = 006720,
+	['cordeadeye']     = 006725,
 	['corsumo']        = 006730,
 	['corgol']         = 006740,
 	['leginc']         = 006750,

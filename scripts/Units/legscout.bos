@@ -3,9 +3,6 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-//piece  base, turret, barrel, flare, sleeve;
-
-//piece base, lTrack, rTrack, turretBase, turret, barrelPivot, barrelSleeve, barrel, flare, cannisterPivot, cannister;
 piece body, mount, gun, ammo, barrel, lTyre, rTyre, flare;
 
 static-var  statechg_DesiredState, statechg_StateChanging, restore_delay, moveSpeed, wheelSpeed, oldHeading;
@@ -23,64 +20,9 @@ static-var  statechg_DesiredState, statechg_StateChanging, restore_delay, moveSp
 
 #include "unit_hitbyweaponid_and_smoke.h"
 
-//state functions
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script deploy();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script undeploy();
-			currentstate = 1;		
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
-//activation and deactivation
-
-deploy(){
-	move barrel to z-axis [0] speed [4];
-}
-
-undeploy(){
-	move barrel to z-axis [-2] speed [2];
-}
-
-//rock the unit
-/**RockUnit(anglex, anglez)
-{
-	turn base to x-axis anglex speed <50.000000>;
-	turn base to z-axis <0> - anglez speed <50.000000>;
-	wait-for-turn base around z-axis;
-	wait-for-turn base around x-axis;
-	turn base to z-axis <0.000000> speed <20.000000>;
-	turn base to x-axis <0.000000> speed <20.000000>;
-}**/
-
 Create()
 {
 	hide flare;
-	move barrel to z-axis [-2] now;
 
 	while( get BUILD_PERCENT_LEFT )
 	{
@@ -135,8 +77,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	start-script RequestState(1);
-	call-script undeploy();
+	turn mount to y-axis <0> speed <150.000000>;
+	turn gun to x-axis <0> speed <150.000000>;
 }
 SetStunned(State)
 {
@@ -151,12 +93,10 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	start-script RequestState(0);
-	//call-script deploy();
 	turn mount to y-axis heading speed <300.000000>;
 	turn gun to x-axis <0.000000> - pitch speed <300.000000>;
 	wait-for-turn mount around y-axis;
@@ -165,21 +105,24 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
-	emit-sfx 1024 + 0 from flare;
-/* 	move barrel to z-axis [-2.700000] speed [1000.000000];
-	sleep 50;
-	move barrel to z-axis [0.000000] speed [6.000000]; */
+	move barrel to z-axis [-2.00000] speed [500.000000];
+	sleep 400;
+	move barrel to z-axis [0.000000] speed [3.000000];
 }
 
+Shot1() 
+{
+	emit-sfx 1024 + 0 from flare;
+}
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = flare;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = barrel;
 }

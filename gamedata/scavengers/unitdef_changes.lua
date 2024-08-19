@@ -785,6 +785,13 @@ customDefs.legdecomlvl10 = {
 -- }
 
 -- numBuildoptions = #UnitDefs.corasy.buildoptions
+-- customDefs.coralab = {
+-- 	buildoptions = {
+-- 		[numBuildoptions+1] = "cordeadeye",
+-- 	},
+-- }
+
+-- numBuildoptions = #UnitDefs.corasy.buildoptions
 -- customDefs.corasy = {
 -- 	buildoptions = {
 -- 		[numBuildoptions+1] = "corslrpc",

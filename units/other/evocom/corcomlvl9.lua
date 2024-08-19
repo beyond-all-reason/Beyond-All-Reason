@@ -132,6 +132,7 @@ return {
 			effigy = "comeffigylvl5",
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,
+			fall_damage_multiplier = 5,--this ensures commander dies when it hits the ground so effigies can trigger respawn.
 		},
 		featuredefs = {
 			dead = {
@@ -246,7 +247,7 @@ return {
 				noexplode = false,
 				noselfdamage = true,
 				predictboost = 1,
-				range = 500,
+				range = 475,
 				reloadtime = 0.39996,
 				rgbcolor = "1 0.94 0.88",
 				rgbcolor2 = "0.9 0.84 0.8",
@@ -370,6 +371,7 @@ return {
 					laserflaresize = 8,
 					name = "EyeLaser",
 					noselfdamage = true,
+					proximitypriority = 3,
 					range = 870,
 					reloadtime = 0.033,
 					rgbcolor = "1 0.8 0",
@@ -381,12 +383,12 @@ return {
 					soundstartvolume = 11,
 					soundtrigger = 1,
 					targetmoveerror = 0.1,
-					thickness = 6,
+					thickness = 4.5,
 					turret = true,
 					weapontype = "BeamLaser",
 					weaponvelocity = 1500,
 					damage = {
-						default = 57,
+						default = 58,
 					},
 				},
 				repulsor = {

@@ -32,6 +32,7 @@ return {
 		health = 9600,
 		maxslope = 20,
 		speed = 60.0,
+		mincloakdistance = 50,
 		movementclass = "ABOT2",
 		nochasecategory = "VTOL",
 		objectname = "scavs/cormandot4.s3o",
@@ -46,7 +47,7 @@ return {
 		turninplacespeedlimit = 1.65,
 		turnrate = 1168.40002,
 		upright = true,
-		workertime = 1000,
+		workertime = 600,
 		buildoptions = {
 			[2] = "corape",
 			[3] = "cormine3",
@@ -61,6 +62,8 @@ return {
 			subfolder = "corbots/t2",
 			techlevel = 2,
             paratrooper = true,
+			fall_damage_multiplier = 0,
+			nopvebuilder = true,
 		},
 		sfxtypes = {
 			explosiongenerators = {
@@ -163,7 +166,7 @@ return {
 				paralyzer = true,
 				paralyzetime = 7,
                 projectiles = 10,
-				range = 258,
+				range = 250,
 				reloadtime = 2.2,
 				rgbcolor = "0.7 0.7 1",
                 sprayangle = 8000,

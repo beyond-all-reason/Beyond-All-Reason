@@ -2116,6 +2116,11 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-tnk-large-ok",
 		BaseSoundWeaponType = "con-assist",
 	},
+	corphantom = {
+		BaseSoundSelectType = "cor-tnk-medium-amph-sel",
+		BaseSoundMovementType = "cor-tnk-medium-amph-ok",
+		BaseSoundWeaponType = "cloak",
+	},	
 	-- FUN MODE - made possible by Teifion and Basic
 	-- corfav = {
 	-- BaseSoundSelectType   = "cor-veh-tiny-sel",
@@ -2678,13 +2683,19 @@ GUIUnitSoundEffects = {
 	legsrail = {
 		BaseSoundSelectType = "cor-bot-t3-at-sel",
 		BaseSoundMovementType = "cor-bot-t3-at-ok",
-		BaseSoundWeaponType = "lrpc",
+		BaseSoundWeaponType = "sniper",
 	},
 	legshot = {
 		BaseSoundSelectType = "cor-bot-large-sel",
 		BaseSoundMovementType = "cor-bot-large-ok",
 		BaseSoundWeaponType = "plasma-large",
 	},
+	legsnapper = {
+		BaseSoundSelectType = "cor-bot-tiny-sel",
+		BaseSoundMovementType = "cor-bot-tiny-ok",
+		BaseSoundWeaponType = "bomb",
+	},
+	
 	-- LEGION T3 BOTS
 	legpede = {
 		BaseSoundSelectType = "cor-bot-t3-at-sel",
@@ -2889,6 +2900,12 @@ GUIUnitSoundEffects = {
 	legmoho = {
 		BaseSoundSelectType = "arm-bld-select-large",
 		BaseSoundWeaponType = "arm-bld-metal-t2",
+        BaseSoundActivate   = "mohorun1",
+        BaseSoundDeactivate = "mohooff1",
+	},
+	legmohobp = {
+		BaseSoundSelectType = "arm-bld-select-large",
+		BaseSoundWeaponType = "conalt-small",
         BaseSoundActivate   = "mohorun1",
         BaseSoundDeactivate = "mohooff1",
 	},
