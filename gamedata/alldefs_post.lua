@@ -1316,7 +1316,6 @@ function WeaponDef_Post(name, wDef)
 		----EMP rework
 
 		if modOptions.emprework then
-
 			if name == 'empblast' then
 				wDef.areaofeffect = 350
 				wDef.edgeeffectiveness = 0.6
@@ -1334,8 +1333,6 @@ function WeaponDef_Post(name, wDef)
 				wDef.paralyzetime = 12
 				wDef.damage.default = 35000
 			end
-
-
 		end
 
 		--Air rework
