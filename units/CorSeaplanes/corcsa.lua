@@ -35,7 +35,7 @@ return {
 		terraformspeed = 300,
 		turninplaceanglelimit = 360,
 		turnrate = 240,
-		workertime = 80,
+		workertime = 85,
 		buildoptions = {
 			[1] = "corsolar",
 			[2] = "coradvsol",
@@ -83,6 +83,8 @@ return {
 			[44] = "coruwgeo",
 			[45] = "corasp",
 			[46] = "corfasp",
+			[47] = "corasy",
+			[48] = "coraap",
 		},
 		customparams = {
 			unitgroup = 'builder',

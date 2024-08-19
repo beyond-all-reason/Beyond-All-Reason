@@ -35,7 +35,7 @@ return {
 		terraformspeed = 300,
 		turninplaceanglelimit = 360,
 		turnrate = 240,
-		workertime = 75,
+		workertime = 80,
 		buildoptions = {
 			[1] = "armsolar",
 			[2] = "armadvsol",
@@ -83,6 +83,8 @@ return {
 			[44] = "armuwgeo",
 			[45] = "armasp",
 			[46] = "armfasp",
+			[47] = "armasy",
+			[48] = "armaap",
 		},
 		customparams = {
 			unitgroup = 'builder',
