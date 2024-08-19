@@ -46,6 +46,7 @@ return {
 			[10] = "cormist",
 		},
 		customparams = {
+			litelab = true,
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/corvp_aoplane.dds",
 			buildinggrounddecalsizey = 9,

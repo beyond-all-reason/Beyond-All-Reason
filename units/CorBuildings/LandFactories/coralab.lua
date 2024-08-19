@@ -52,6 +52,7 @@ return {
 			[17] = "cormando",
 		},
 		customparams = {
+			litelab = true,
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/coralab_aoplane.dds",
 			buildinggrounddecalsizey = 9,

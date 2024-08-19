@@ -26,7 +26,7 @@ return {
 		maxwaterdepth = 0,
 		metalstorage = 200,
 		objectname = "Units/CORAVP.s3o",
-		script = "Units/CORAVP.cob",
+		script = "Units/coravp_lite_clean.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 286,

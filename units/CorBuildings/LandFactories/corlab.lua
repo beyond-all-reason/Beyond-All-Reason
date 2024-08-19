@@ -41,6 +41,7 @@ return {
 			[6] = "corcrash",
 		},
 		customparams = {
+			litelab = true,
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/corlab_aoplane.dds",
 			buildinggrounddecalsizey = 8,
