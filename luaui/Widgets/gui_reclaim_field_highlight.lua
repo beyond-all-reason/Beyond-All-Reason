@@ -44,7 +44,7 @@ local reclaimColor = {0, 0, 0, 0.16}
 local reclaimEdgeColor = {1, 1, 1, 0.18}
 
 --Update rate, in seconds
-local checkFrequency = 1/3
+local checkFrequency = 1/2
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -474,7 +474,7 @@ do
 			reachDistSq = (reachDistSq ~= nil and reachDistSq <= epsilonSq and reachDistSq) or nil
 			feature.rd = reachDistSq
 		end
-		convexHullTable = {}
+		featureConvexHulls = {}
 	end
 
 	---Distance from a point to its nearest neighbor.
@@ -699,9 +699,10 @@ end
 
 local drawFeatureClusterTextList
 local function DrawFeatureClusterText()
-	for clusterID = 1, #featureClusters do
+	for clusterID = 1, #featureConvexHulls do
 		glPushMatrix()
 
+		local area = featureConvexHulls[clusterID].area
 		local center = featureConvexHulls[clusterID].center
 
 		glTranslate(center.x, center.y, center.z)
@@ -714,7 +715,6 @@ local function DrawFeatureClusterText()
 		end
 
 		local fontSize = fontSizeMin * fontScaling
-		local area = featureConvexHulls[clusterID].area
 		fontSize = sqrt(area) * fontSize / minTextAreaLength
 		fontSize = min(fontSize, fontSizeMax)
 		fontSize = max(fontSize, fontSizeMin)
