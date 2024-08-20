@@ -24,7 +24,7 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		energymake = 2000,
-		energystorage = 100,
+		energystorage = 10000,
 		explodeas = "commanderExplosion",
 		footprintx = 2,
 		footprintz = 2,
@@ -460,13 +460,13 @@ return {
 				},
 				customparams = {
 					attackformationspread = 50,
-					carried_unit = "legdrone",  --Name of the unit spawned by this carrier unit.
-					engagementrange = 1000,
+					carried_unit = "legheavydrone",  --Name of the unit spawned by this carrier unit.
+					engagementrange = 2400,
 					spawns_surface = "LAND",    -- "LAND" or "SEA". The SEA option has not been tested currently.
 					spawnrate = 1, 			--Spawnrate roughly in seconds.
 					maxunits = 2,				--Will spawn units until this amount has been reached.
-					energycost = 50,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					metalcost = 0,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					energycost = 1000,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					metalcost = 90,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					controlradius = 1100,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
 					decayrate = 4,
 					carrierdeaththroe = "death",

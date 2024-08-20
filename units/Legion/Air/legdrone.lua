@@ -5,7 +5,7 @@ return {
 		maxdec = 0.55,
 		energycost = 500,
 		metalcost = 15,
-		buildpic = "CORBW.DDS",
+		buildpic = "legdrone.DDS",
 		buildtime = 1000,
 		canfly = true,
 		canmove = true,
