@@ -20559,6 +20559,20 @@ local unitEventLightsNames = {
 			},
 		},
 
+		['legheavydrone'] = {
+			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
+				lightType = 'point',
+				pieceName = 'flare',
+				lightName = 'hvydronheatToroidGlow',
+				alwaysVisible = true,
+				lightConfig = { posx = 0, posy = 7, posz = 1, radius = 12,
+					color2r = 1, color2g = 0.92, color2b = 0.66, colortime = 160,
+					r = 0.88, g = 0.83, b = 0.2, a = 0.09,
+					modelfactor = 1.5, specular = 2, scattering = 2, lensflare = 0,
+					lifetime = 80, sustain = 5},
+			},
+		},
+
 		['leghelios'] = {
 			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
 				lightType = 'point',
