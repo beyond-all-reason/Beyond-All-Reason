@@ -74,6 +74,9 @@ return {
 			},
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:barrelshot-small-impulse",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
 				[2] = "deathceg3",
@@ -120,16 +123,16 @@ return {
 				range = 320,
 				reloadtime = 3,
 				rgbcolor = "1 0.75 0.25",
-				size = 2,
-				soundhit = "xplomed2xs",
-				soundhitwet = "splsmed",
+				rgbcolor = "1 0.95 0.4",
+				soundhit = "bimpact3",
+				soundhitwet = "splshbig",
 				soundstart = "kroggie2xs",
 				soundstartvolume = 12,
 				sprayangle = 1500,
+				thickness = 0.6,
 				turret = true,
-				weapontimer = 1,
-				weapontype = "Cannon",
-				weaponvelocity = 600,
+				weapontype = "LaserCannon",
+				weaponvelocity = 960,
 				damage = {
 					default = 125,
 				},
