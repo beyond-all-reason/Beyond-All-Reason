@@ -1,4 +1,5 @@
 # August 2024
+• Cortex labs no longer slowly animate before making their first unit, improving response times. Improved Cortex constructor BP by 5%, to help account for increased costs, and worse speed & handling.
 • [Dragon Claw/Maw] Collision volume and aim position will now change when the units open up, so it can be targeted when behind a wall
 
 # July 2024
