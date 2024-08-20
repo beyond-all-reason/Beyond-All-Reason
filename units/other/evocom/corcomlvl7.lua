@@ -130,6 +130,7 @@ return {
 			effigy = "comeffigylvl4",
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,
+			fall_damage_multiplier = 5,--this ensures commander dies when it hits the ground so effigies can trigger respawn.
 		},
 		featuredefs = {
 			dead = {
@@ -217,7 +218,7 @@ return {
 		},
 		weapondefs = {
 			corcomlaser = {
-				areaofeffect = 64,
+				areaofeffect = 80,
 				avoidfeature = false,
 				burst = 16,
 				burstrate = 0.05,
@@ -236,8 +237,7 @@ return {
 				intensity = 0.68,
 				name = "Anti-swarm AoE flamethrower",
 				noselfdamage = true,
-				proximitypriority = 3,
-				range = 435,
+				range = 400,
 				reloadtime = 0.80,
 				rgbcolor = "1 0.94 0.88",
 				rgbcolor2 = "0.9 0.84 0.8",
@@ -255,7 +255,7 @@ return {
 				turret = true,
 				weapontimer = 1,
 				weapontype = "Flame",
-				weaponvelocity = 300,
+				weaponvelocity = 500,
 				damage = {
 					default = 90,
 					subs = 25,
@@ -365,6 +365,7 @@ return {
 				laserflaresize = 6,
 				name = "EyeLaser",
 				noselfdamage = true,
+				proximitypriority = 3,
 				range = 730,
 				reloadtime = 0.033,
 				rgbcolor = "1 0.2 0.2",
@@ -381,7 +382,7 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
 				damage = {
-					default = 29,
+					default = 34,
 				},
 			},
 			repulsor = {

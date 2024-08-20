@@ -145,6 +145,7 @@ return {
 			effigy = "comeffigylvl5",
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,
+			fall_damage_multiplier = 5,--this ensures commander dies when it hits the ground so effigies can trigger respawn.
 		},
 		featuredefs = {
 			dead = {
@@ -245,9 +246,9 @@ return {
 				gravityaffected = "true",
 				impulseboost = 0.5,
 				impulsefactor = 1.8,
-				name = "PlasmaCannon",
+				name = "Rapid-Fire Grenade Launcher",
 				noselfdamage = true,
-				range = 550,
+				range = 500,
 				reloadtime = 0.4,
 				soundhit = "xplomed2",
 				soundhitwet = "splssml",
@@ -258,7 +259,7 @@ return {
 				weaponvelocity = 600,
 				damage = {
 					default = 500,
-					vtol = 300,
+					vtol = 250,
 				},
 			},
 			torpedo = {
@@ -356,19 +357,19 @@ return {
 				cratermult = 0,
 				duration = 0.12,
 				edgeeffectiveness = 0.85,
-				energypershot = 400,
 				explosiongenerator = "custom:plasmahit-sparkonly",
 				fallOffRate = 0.2,
 				firestarter = 0,
 				impulseboost = 0.4,
 				impulsefactor = 1,
 				intensity = 0.8,
+				minintensity = 1,
 				name = "Railgun",
 				noselfdamage = true,
 				ownerExpAccWeight = 4.0,
 				proximitypriority = 3,
-				range = 1000,
-				reloadtime = 2.25,
+				range = 870,
+				reloadtime = 2.2,
 				rgbcolor = "0.74 0.64 0.94",
 				soundhit = "mavgun3",
 				soundhitwet = "splshbig",
@@ -380,8 +381,7 @@ return {
 				weapontype = "LaserCannon",
 				weaponvelocity = 3000,
 				damage = {
-					commanders = 250,
-					default = 500,
+					default = 250,
 				},
 			},
 			botcannon = {
