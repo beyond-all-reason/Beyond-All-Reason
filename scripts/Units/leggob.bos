@@ -1,9 +1,9 @@
 
 #include "../recoil_common_includes.h"
 
-piece  torso, flare1, flare2, sleeve, pelvis, rleg, rfoot, lleg, lfoot, lthigh, rthigh, aimx1, aimy1, lbarrel, rbarrel;
+piece  torso, flare, sleeve, pelvis, rleg, rfoot, lleg, lfoot, lthigh, rthigh, aimx1, aimy1, lbarrel;
 
-static-var  isMoving, isAiming, sleeve_1, wpnheading, animSpeed, maxSpeed, animFramesPerKeyframe, StompXZ, StompHeading;
+static-var  isMoving, isAiming, wpnheading, animSpeed, maxSpeed, animFramesPerKeyframe, StompXZ, StompHeading;
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
@@ -193,32 +193,23 @@ RockUnit(anglex, anglez)
 Create()
 {
 	animSpeed = 5;
-	hide flare1;
-	hide flare2;
+	hide flare;
 	hide aimx1;
 	hide aimy1;
 	isMoving = FALSE;
 	isAiming = 0;
 	wpnheading = 0;
 	animSpeed = 4;
-	sleeve_1 = 0;
 }
 
 AimFromWeapon1(pieceIndex)
 {
-	pieceIndex = sleeve;
+	pieceIndex = aimx1;
 }
 
 QueryWeapon1(pieceIndex)
 {
-	if( sleeve_1 <= 1 )
-	{
-		pieceIndex = flare2;
-	}
-	if( sleeve_1 >= 2 )
-	{
-		pieceIndex = flare1;
-	}
+	pieceIndex = flare;
 }
 
 static-var  Stunned;
@@ -282,24 +273,10 @@ Shot1(zero)
 	signal SIGNAL_SHOOT1;
 	set-signal-mask SIGNAL_SHOOT1;
 	
-	if (sleeve_1 <= 1)
-	{
-		emit-sfx 1024 + 0 from flare2;
-		move rbarrel to z-axis [-5.0] now;
-		move rbarrel to z-axis [0.0] speed [15.0];
-	}
-	else if (sleeve_1 >= 2)
-	{
-		emit-sfx 1024 + 0 from flare1;
-		move lbarrel to z-axis [-5.0] now;
-		move lbarrel to z-axis [0.0] speed [15.0];
-	}
-	sleep 32;
-	++sleeve_1;
-	if(sleeve_1>3)
-	{
-		sleeve_1=0;
-	}
+	emit-sfx 1024 + 0 from flare;
+	move lbarrel to z-axis [-5.0] now;
+	move lbarrel to z-axis [0.0] speed [15.0];
+	
 	return(1);
 }
 
@@ -333,7 +310,7 @@ DeathAnim() {// For N:\animations\corthud_anim_death.blend Created by https://gi
 			move pelvis to y-axis [-6.851900] speed [24.929253] ; //delta=-4.15 
 			turn pelvis to x-axis <48.586663> speed <30.908484> ; //delta=-5.15 
 			turn rfoot to x-axis <3.556655> speed <62.645738> ; //delta=-10.44 
-			explode rbarrel type FALL|SMOKE|FIRE|NOHEATCLOUD;
+			explode lbarrel type FALL|SMOKE|FIRE|NOHEATCLOUD;
 			turn rleg to x-axis <11.227784> speed <21.431141> ; //delta=-3.57 
 			turn rthigh to x-axis <27.273505> speed <118.797882> ; //delta=-19.80 
 		sleep 164;
@@ -342,7 +319,7 @@ DeathAnim() {// For N:\animations\corthud_anim_death.blend Created by https://gi
 			turn sleeve to x-axis <-62.399836> speed <48.934672> ; //delta=8.16 
 			turn lfoot to z-axis <-6.209884> speed <0.704138> ; //delta=0.12 
 			explode lbarrel type FALL|SMOKE|FIRE|NOHEATCLOUD;
-			hide flare1;
+			hide flare;
 			turn lleg to x-axis <-1.742445> speed <80.930980> ; //delta=13.49 
 			turn lthigh to x-axis <11.550897> speed <92.374911> ; //delta=15.40 
 			move pelvis to z-axis [-6.514709] speed [16.182152] ; //delta=2.70 
@@ -358,8 +335,7 @@ DeathAnim() {// For N:\animations\corthud_anim_death.blend Created by https://gi
 
 Killed(severity, corpsetype)
 {
-	hide flare2;
-	hide flare1;
+	hide flare;
 	if( severity <= 25 )
 	{
 		call-script DeathAnim();
