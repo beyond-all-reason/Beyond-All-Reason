@@ -1655,7 +1655,15 @@ local icontypes = {
 		bitmap = "icons/nanot1.png",
 		size = 0.96599996
 	},
+	legnanotc = {
+		bitmap = "icons/nanot1.png",
+		size = 0.96599996
+	},
 	cornanotcplat = {
+		bitmap = "icons/nanot1.png",
+		size = 0.96599996
+	},
+	legnanotcplat = {
 		bitmap = "icons/nanot1.png",
 		size = 0.96599996
 	},

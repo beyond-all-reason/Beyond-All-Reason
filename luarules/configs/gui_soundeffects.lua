@@ -2360,7 +2360,8 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "cor-com-sel",
 		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4", },
 		BaseSoundWeaponType = "fastemg-small",
-	},	legcom = {
+	},	
+	legcom = {
 		BaseSoundSelectType = "cor-com-sel",
 		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4", },
 		BaseSoundWeaponType = "fastemg-small",
@@ -2439,6 +2440,17 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "arm-bld-wall-t2",
 	},
 
+	legnanotc = {
+		BaseSoundSelectType = "arm-bld-select-small",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "conalt-small",
+	},
+	
+	legnanotcplat = {
+		BaseSoundSelectType = "arm-bld-select-small-water",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "conalt-small",
+	},
 
 	legwin = {
 		BaseSoundSelectType = "arm-bld-nrghum",
