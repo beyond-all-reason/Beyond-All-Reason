@@ -25,7 +25,7 @@ return {
 		corpse = "DEAD",
 		damagemodifier = 0.1,
 		energymake = 200,
-		energystorage = 500,
+		energystorage = 2500,
 		explodeas = "commanderexplosion",
 		footprintx = 2,
 		footprintz = 2,
