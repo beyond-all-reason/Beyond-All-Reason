@@ -114,8 +114,8 @@ return {
             [50] = "legkeres",
 			[51] = "legpede",
 			[52] = "corasp",
-			[53] = "cornanotc",
-			[54] = "cornanotcplat",
+			[53] = "legnanotc",
+			[54] = "legnanotcplat",
 			[55] = "corgate",
 		},
 		customparams = {

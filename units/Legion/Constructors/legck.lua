@@ -53,7 +53,7 @@ return {
 			"legvp",
 			"legap",
 			"leghp",
-			"cornanotc",
+			"legnanotc",
 			"coreyes",
 			"legrad",
 			"legdrag",

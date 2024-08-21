@@ -842,7 +842,7 @@ local unitGrids = {
 		},
 		{
 			{ "leglab", "legvp", "legap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
-			{ "cornanotc", "leginfestor", "cornanotcplat",}, -- nano, infestor, floating nano
+			{ "legnanotc", "leginfestor", "legnanotcplat",}, -- nano, infestor, floating nano
 			{ "leghp", "legfhp", },                          -- hover lab, floating hover lab
 		}
 	},
@@ -864,7 +864,7 @@ local unitGrids = {
 		},
 		{
 			{ "leglab", "legvp", "legap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
-			{ "cornanotc", "leginfestor", "cornanotcplat",}, -- nano, infestor, floating nano
+			{ "legnanotc", "leginfestor", "legnanotcplat",}, -- nano, infestor, floating nano
 			{ "leghp", "legfhp", },                          -- hover lab, floating hover lab
 		}
 	},
@@ -886,7 +886,7 @@ local unitGrids = {
 		},
 		{
 			{ "leglab", "legvp", "legap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
-			{ "cornanotc", "leginfestor", "cornanotcplat",}, -- nano, infestor, floating nano
+			{ "legnanotc", "leginfestor", "legnanotcplat",}, -- nano, infestor, floating nano
 			{ "leghp", "legfhp", },                          -- hover lab, floating hover lab
 		}
 	},
@@ -908,7 +908,7 @@ local unitGrids = {
 		},
 		{
 			{ "leglab", "legvp", "legap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
-			{ "cornanotc", "leginfestor", "cornanotcplat",}, -- nano, infestor, floating nano
+			{ "legnanotc", "leginfestor", "legnanotcplat",}, -- nano, infestor, floating nano
 			{ "leghp", "legfhp", },                          -- hover lab, floating hover lab
 		}
 	},
@@ -930,7 +930,7 @@ local unitGrids = {
 		},
 		{
 			{ "leglab", "legvp", "legap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
-			{ "cornanotc", "leginfestor", "cornanotcplat",}, -- nano, infestor, floating nano
+			{ "legnanotc", "leginfestor", "legnanotcplat",}, -- nano, infestor, floating nano
 			{ "leghp", "legfhp", },                          -- hover lab, floating hover lab
 		}
 	},
@@ -952,7 +952,7 @@ local unitGrids = {
 		},
 		{
 			{ "leglab", "legvp", "legap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
-			{ "cornanotc", "leginfestor", "cornanotcplat",}, -- nano, infestor, floating nano
+			{ "legnanotc", "leginfestor", "legnanotcplat",}, -- nano, infestor, floating nano
 			{ "leghp", "legfhp", },                          -- hover lab, floating hover lab
 		}
 	},
@@ -974,7 +974,7 @@ local unitGrids = {
 		},
 		{
 			{ "leglab", "legvp", "legap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
-			{ "cornanotc", "leginfestor", "cornanotcplat",}, -- nano, infestor, floating nano
+			{ "legnanotc", "leginfestor", "legnanotcplat",}, -- nano, infestor, floating nano
 			{ "leghp", "legfhp", },                          -- hover lab, floating hover lab
 		}
 	},
@@ -996,7 +996,7 @@ local unitGrids = {
 		},
 		{
 			{ "leglab", "legvp", "legap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
-			{ "cornanotc", "leginfestor", "cornanotcplat",}, -- nano, infestor, floating nano
+			{ "legnanotc", "leginfestor", "legnanotcplat",}, -- nano, infestor, floating nano
 			{ "leghp", "legfhp", },                          -- hover lab, floating hover lab
 		}
 	},
@@ -1064,7 +1064,7 @@ local unitGrids = {
 		},
 		{
 			{ "leglab", "legvp", "legap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "cornanotc", "legalab", },                      -- nano, T2 lab
+			{ "legnanotc", "legalab", },                      -- nano, T2 lab
 			{ "leghp", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
@@ -1133,7 +1133,7 @@ local unitGrids = {
 		},
 		{
 			{ "leglab", "legvp", "legap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "cornanotc", "coralab", },                      -- nano, T2 lab
+			{ "legnanotc", "coralab", },                      -- nano, T2 lab
 			{ "leghp", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
@@ -1201,7 +1201,7 @@ local unitGrids = {
 		},
 		{
 			{ "leglab", "legvp", "legap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "cornanotc", "legaap", },                      -- nano, T2 lab
+			{ "legnanotc", "legaap", },                      -- nano, T2 lab
 			{ "leghp", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
@@ -1315,7 +1315,7 @@ local unitGrids = {
 		},
 		{
 			{ "leglab", "legvp", "legap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "cornanotc", "legavp", "cornanotcplat", "corasy", },      -- nano, T2 veh lab, floating nano
+			{ "legnanotc", "legavp", "legnanotcplat", "corasy", },      -- nano, T2 veh lab, floating nano
 			{ "leghp", "legfhp", "legamsub", "corplat", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
@@ -1432,7 +1432,7 @@ local unitGrids = {
 		},
 		{
 			{ "leglab", "legvp", "legap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "cornanotc", "legavp", "cornanotcplat", },      -- nano, T2 veh lab, floating nano
+			{ "legnanotc", "legavp", "legnanotcplat", },      -- nano, T2 veh lab, floating nano
 			{ "leghp", "legfhp", "legamsub", "corplat", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
@@ -1876,7 +1876,7 @@ local unitGrids = {
 		},
 		{
 			{ "leglab", "legck", },                                   -- bot lab, bot con
-			{ "cornanotc", "legch", },                                -- nano, hover con (for now)
+			{ "legnanotc", "legch", },                                -- nano, hover con (for now)
 			{ },                                      				  --
 		}
 	},

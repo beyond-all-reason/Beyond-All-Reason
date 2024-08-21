@@ -144,6 +144,7 @@ return {
 					default = 40,
 					vtol = 13,
 				},
+			},
 		},
 		weapons = {
 			[1] = {
