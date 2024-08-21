@@ -95,10 +95,10 @@ local redrawingNeeded = false
 
 local epsilon = 300
 local epsilonSq = epsilon^2
-local minFeatureMetal = 9 -- armflea reclaim value
+local minFeatureMetal = 9 -- armflea reclaim value, probably
 if UnitDefNames.armflea then
-	local tragic = FeatureDefNames[UnitDefNames.armflea.corpse]
-	minFeatureMetal = max(minFeatureMetal, tragic.metal or 0)
+	local small = FeatureDefNames[UnitDefNames.armflea.corpse]
+	minFeatureMetal = small and small.metal or minFeatureMetal
 end
 local minTextAreaLength = 100
 checkFrequency = math.round(checkFrequency * Game.gameSpeed)
