@@ -240,7 +240,6 @@ return {
 				firestarter = 100,
 				firesubmersed = false,
 				gravityaffected = true,
-				groundbounce = true,
 				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 4,

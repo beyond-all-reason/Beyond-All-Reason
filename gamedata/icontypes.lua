@@ -2291,6 +2291,10 @@ local icontypes = {
 		bitmap = "icons/air_hover.png",
 		size = 0.5
 	},
+	legheavydrone = {
+		bitmap = "icons/heavyheatraydrone.png",
+		size = 0.75
+	},
 	legfhp = {
 		bitmap = "icons/factory_hover.png",
 		size = 1.52250004

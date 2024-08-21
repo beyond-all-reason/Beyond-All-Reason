@@ -97,6 +97,7 @@ local convertedUnitsNames = {
 	['legmos'] = 5,
 	['leghades'] = 5,
 	['leghelios'] = 5,
+	['legheavydrone'] = 5,
 	['legkeres'] = 5,
 	['legrail'] = 5,
 	['legbar'] = 5,
