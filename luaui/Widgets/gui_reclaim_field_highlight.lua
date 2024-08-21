@@ -30,13 +30,10 @@ local showOption = 3
 	6 - disabled
 ]]
 
---If true energy reclaim will be converted into metal (1 / 70) and added to the reclaim field value
--- local includeEnergy = false
-
 --Metal value font
 local numberColor = {1, 1, 1, 0.75}
-local fontSizeMin = 30
-local fontSizeMax = 200
+local fontSizeMin = 32
+local fontSizeMax = 160
 local fontScaling = 0.45
 
 --Field color
@@ -135,8 +132,6 @@ local opticsObject
 
 local PriorityQueue = {}
 do
-	-- local function less(a, b) return a[1] < b[1] end
-
 	local function push(self, pair)
 		insert(self, pair)
 		local n = #self
@@ -202,56 +197,75 @@ end
 -- Cluster post-processing
 -- Convex hull outlines and text areas
 
-local function GetClusterStats(cluster, members)
-	local metal = 0
-	for j = 1, #members do
-		local feature = members[j]
-		metal = metal + feature.metal
-	end
-	cluster.metal = metal
-end
-
-local GetConvexHull
+local processCluster
 do
-	local function ConvexSetConditioning(points)
-		-- With uniformly random data, this should prune down to 10% to 20% the original set.
-		-- Pruning is O(n) and monotone chain is about O(nlogn) so this is likely worthwhile.
-		-- Credit to mindthenerd.blogspot.ru/2012/05/fastest-convex-hull-algorithm-ever.html
-		-- Also www-cgrl.cs.mcgill.ca/~godfried/publications/fast.convex.hull.algorithm.pdf
-		local prunedPoints = {}
+	local function getReclaimTotal(cluster, points)
+		local metal = 0
+		for j = 1, #points do
+			metal = metal + points[j].metal
+		end
+		cluster.metal = metal
+	end
 
-		-- Seeding a center point should give a more stable evaluation order over different sorts.
-		local feature1 = points[1]
-		local feature2 = points[floor(#points * 0.5)]
-		local feature3 = points[#points]
-		local x, z = (feature1.x + feature2.x + feature3.x) / 3,
-		             (feature1.z + feature2.z + feature3.z) / 3
+	local function getClusterDimensions(cluster, points)
+		local xmin, xmax, zmin, zmax = mathHuge, -mathHuge, mathHuge, -mathHuge
+		local cx, cz = 0, 0
+		for j = 1, #points do
+			local x, z = points[j].x, points[j].z
+			xmin = min(xmin, x)
+			xmax = max(xmax, x)
+			zmin = min(zmin, z)
+			zmax = max(zmax, z)
+			cx, cz = cx + x, cz + z
+		end
+		cluster.xmin = xmin
+		cluster.xmax = xmax
+		cluster.zmin = zmin
+		cluster.zmax = zmax
 
-		-- (1) Create a 45deg-aligned quadrilateral by expanding to cover each point, one by one.
-		local ax,  az,  a_xzs_max = x,  z,  x - z -- Choose A to maximize x - z.
-		local bx,  bz,  b_xza_max = x,  z,  x + z -- Choose B to maximize x + z.
-		local cx,  cz,  c_xzs_min = x,  z,  x - z -- Choose C to minimize x - z.
-		local dx,  dz,  d_xza_min = x,  z,  x + z -- Choose D to minimize x + z.
+		-- The average of vertices is a very unstable estimate of the centroid.
+		-- The bounds change slowly, so we can use them to stabilize our guess:
+		cx, cz = cx / #points, cz / #points
+		cx, cz = (xmin + 1.5 * cx + xmax) / 3.5, (zmin + 1.5 * cz + zmax) / 3.5
+		cluster.center = { x = cx, y = max(0, spGetGroundHeight(cx, cz)) + 2, z = cz }
+	end
 
-		-- (2) Find the 90deg-aligned rectangle inscribed in that quadrilateral.
-		-- This isn't a maximal-area rectangle; it's the fastest to construct.
-		local rxmin, rxmax = x, x -- R_x_min = max(cx, dx); R_x_max = min(ax, bx).
-		local rzmin, rzmax = z, z -- R_z_min = max(az, dz); R_z_max = min(bz, cz).
+	---Filter a set of points to give a much smaller set of candidates for constructing
+	---the convex hull of the entire set. This can save time on building the hull.
+	---Credit: mindthenerd.blogspot.ru/2012/05/fastest-convex-hull-algorithm-ever.html
+	---Also: www-cgrl.cs.mcgill.ca/~godfried/publications/fast.convex.hull.algorithm.pdf
+	local function convexSetConditioning(points)
+		local remaining = {}
 
-		-- The algorithm performs a double-pass, starting on the full set.
-		-- The first pass gradually expands the quadrilateral while pruning points.
+		-- The first point in each cluster is its seed point. By itself, this is effectively
+		-- a random point, but we know its furthest neighbors are later on in the sequence.
+		local middle = floor(#points * 0.5)
+		local x, z = points[1].x, points[1].z
+		x, z = x + points[middle].x, z + points[middle].z 
+		x, z = x + points[#points].x, z + points[floor(#points * 0.5)].z
+		x, z = x / 3, z / 3
+
+		-- (1) Cover all points by expanding a quadrilateral to follow these rules:
+		local ax,  az,  a_xzs_max  =  x,  z,  x - z  -- Choose point A to maximize x - z.
+		local bx,  bz,  b_xza_max  =  x,  z,  x + z  -- Choose point B to maximize x + z.
+		local cx,  cz,  c_xzs_min  =  x,  z,  x - z  -- Choose point C to minimize x - z.
+		local dx,  dz,  d_xza_min  =  x,  z,  x + z  -- Choose point D to minimize x + z.
+
+		-- (2) Find the XZ-aligned rectangle inscribed in that quadrilateral:
+		local rxmin, rxmax = x, x  -- Rx_min = max(Cx, Dx); Rx_max = min(Ax, Bx).
+		local rzmin, rzmax = z, z  -- Rz_min = max(Az, Dz); Rz_max = min(Bz, Cz).
+
+		-- (3) The algorithm performs two passes, with the first covering the full set.
 		for ii = 1, #points do
-			local feature = points[ii]
-			local x, z = feature.x, feature.z
-			-- (3) Add points to the result set that fall outside the inscribed rectangle.
+			local x, z = point.x, point.z
 			if x <= rxmin or x >= rxmax or z <= rzmin or z >= rzmax then
-				prunedPoints[#prunedPoints+1] = feature
-				-- (4) Update A, B, C, D and the rectangle inscribed by them.
+				-- Keep points that fall outside the inscribed rectangle.
+				remaining[#remaining+1] = point
+
+				-- Update points A, B, C, D and the inner rectangle bounds.
 				local xzs = x - z
 				local xza = x + z
-
-				-- One extremal point can cause multiple updates:
-				if xzs >= a_xzs_max then
+				if xzs > a_xzs_max then
 					a_xzs_max = xzs
 					ax, az = x, z
 					if x > rxmax then
@@ -261,7 +275,7 @@ do
 						rzmin = max(z, dz)
 					end
 				end
-				if xza >= b_xza_max then
+				if xza > b_xza_max then
 					b_xza_max = xza
 					bx, bz = x, z
 					if x > rxmax then
@@ -271,7 +285,7 @@ do
 						rzmax = min(z, cz)
 					end
 				end
-				if xzs <= c_xzs_min then
+				if xzs < c_xzs_min then
 					c_xzs_min = xzs
 					cx, cz = x, z
 					if x < rxmin then
@@ -281,7 +295,7 @@ do
 						rzmax = min(z, bz)
 					end
 				end
-				if xza <= d_xza_min then
+				if xza < d_xza_min then
 					d_xza_min = xza
 					dx, dz = x, z
 					if x < rxmin then
@@ -294,17 +308,15 @@ do
 			end
 		end
 
-		-- (5) Remove all points that fall within the final rectangle.
-		for jj = #prunedPoints - 1, 1, -1 do
-			local feature = prunedPoints[jj]
-			local x, z = feature.x, feature.z
-			if (x > rxmin and x < rxmax) and (z > rzmin and z < rzmax) then
-				remove(prunedPoints, jj)
+		-- (4) The second pass removes remaining points that are inside the inner rectangle.
+		for jj = #remaining - 1, 1, -1 do
+			local x, z = remaining[jj].x, remaining[jj].z
+			if x > rxmin and x < rxmax and z > rzmin and z < rzmax then
+				remove(remaining, jj)
 			end
 		end
 
-		-- Replace the unprocessed candidates set with the pruned set.
-		return prunedPoints
+		return remaining
 	end
 
 	--- MONOTONE CHAIN
@@ -357,18 +369,8 @@ do
 		end
 	end
 
-	local function BoundingBox(points)
-		local xmin, xmax, zmin, zmax = mathHuge, -mathHuge, mathHuge, -mathHuge
-		for j = 1, #points do
-			local feature = points[j]
-			local x = feature.x
-			local z = feature.z
-			xmin = min(xmin, x)
-			xmax = max(xmax, x)
-			zmin = min(zmin, z)
-			zmax = max(zmax, z)
-		end
-
+	local function BoundingBox(cluster, points)
+		local xmin, xmax, zmin, zmax = cluster.xmin, cluster.xmax, cluster.zmin, cluster.zmax
 		local dx, dz = xmax - xmin, zmax - zmin
 
 		if dx < minTextAreaLength then
@@ -400,7 +402,8 @@ do
 		return convexHull, hullArea
 	end
 
-	local function pointArea(points)
+	local function polygonArea(points)
+		if #points < 3 then return 0 end
 		local totalArea = 0
 		-- Determinant area, triangle form
 		local x1, z1 = points[1].x, points[1].z
@@ -416,39 +419,21 @@ do
 		return totalArea
 	end
 
-	GetConvexHull = function (cluster, clusterID, members)
-		local candidatePoints
-		if #members < 30 then
-			candidatePoints = members
-		else
-			-- Use a fast method to prune unnecessary points.
-			candidatePoints = ConvexSetConditioning(members)
-		end
+	processCluster = function (cluster, clusterID, points)		
+		getReclaimTotal(cluster, points)
 
-		-- Create the convex hull around the set of candidates.
 		local convexHull
 
-		local hullArea = (#candidatePoints >= 3 and pointArea(candidatePoints)) or 0
-
+		local hullPoints = #points < 60 and points or convexSetConditioning(points)
+		local hullArea = polygonArea(hullPoints)
 		if hullArea >= 3000 then
-			convexHull = MonotoneChain(candidatePoints)
+			convexHull = MonotoneChain(hullPoints)
+			getClusterDimensions(cluster, convexHull)
 		else
-			convexHull, hullArea = BoundingBox(candidatePoints)
+			getClusterDimensions(cluster, hullPoints)
+			convexHull, hullArea = BoundingBox(cluster, hullPoints)
 		end
-
-		local cx, cy, cz = 0, 0, 0
-		for i = 1, #convexHull do
-			local convexHullPoint = convexHull[i]
-			cx = cx + convexHullPoint.x
-			cy = max(cy, convexHullPoint.y)
-			cz = cz + convexHullPoint.z
-		end
-		cx = cx / #convexHull
-		cz = cz / #convexHull
-		cy = max(cy, spGetGroundHeight(cx, cz))
-
-		convexHull.area = hullArea
-		convexHull.center = { x = cx, y = cy + 2, z = cz }
+		cluster.area = hullArea
 
 		featureConvexHulls[clusterID] = convexHull
 	end
@@ -456,9 +441,7 @@ end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
--- OPTICS clustering
--- Note @efrec I'm ngl to you this wasn't OPTICS before and very much is not now.
--- This should have been a total rewrite to reduce confusion over shared details.
+-- Clustering method
 
 local Optics = {}
 do
@@ -466,15 +449,12 @@ do
 
 	---Get ready for a clustering run
 	local function Setup()
-		-- Fully reset cluster processing.
+		featureClusters = {}
+		featureConvexHulls = {}
 		unprocessed = {}
 		for fid, feature in pairs(knownFeatures) do
 			unprocessed[fid] = true
-			local reachDistSq = feature.rd
-			reachDistSq = (reachDistSq ~= nil and reachDistSq <= epsilonSq and reachDistSq) or nil
-			feature.rd = reachDistSq
 		end
-		featureConvexHulls = {}
 	end
 
 	---Distance from a point to its nearest neighbor.
@@ -498,34 +478,29 @@ do
 		end
 	end
 
-	---Update seeds if a smaller reachability distance is found.
+	---Update the priority queue to contain the list of neighbors.
 	local function Update(neighbors, point, seedsPQ)
-		-- We maintain the epsilon neighborhoods during callins, now.
-		-- local M_point = featureNeighborsMatrix[point.fid]
 		for fid, distSq in pairs(neighbors) do
-			-- Bugged: Something is causing points to re-process.
 			if unprocessed[fid] == true then
-				unprocessed[fid] = nil -- Bugged: So I'm doing this.
+				unprocessed[fid] = nil
 				local np = knownFeatures[fid]
 				seedsPQ:push({ np.rd, np })
 			end
 		end
 	end
 
-	---Run the OPTICS sequencing step (now identical to a single-link chain algo).
+	---Runs a both simplified and augmented OPTICS sequencing step.
 	---This is combined with the previous Clusterize fn step to produce clusters.
 	---It also leaves no point un-clusterized; solo points form their own cluster.
 	---This has allowed all processing to occur in one place and in a single pass.
 	local function Run()
 		Setup()
 
-		featureClusters = {}
-		local clusterID = 0
-
-		local fid = next(unprocessed)
-		while fid ~= nil do
+		local clusterID = #featureClusters
+		local featureID = next(unprocessed)
+		while featureID ~= nil do
 			-- Start a new cluster.
-			local point = knownFeatures[fid]
+			local point = knownFeatures[featureID]
 			local members = { point }
 			local cluster = { members = members }
 			clusterID = clusterID + 1
@@ -533,10 +508,10 @@ do
 
 			-- Process visited points, like so.
 			point.cid = clusterID
-			unprocessed[fid] = nil
+			unprocessed[featureID] = nil
 
 			-- Process immediate neighbors.
-			local neighbors = featureNeighborsMatrix[fid]
+			local neighbors = featureNeighborsMatrix[featureID]
 			if neighbors ~= nil and Reachability(point, neighbors) ~= nil then
 				local seedsPQ = PriorityQueue.new()
 				Update(neighbors, point, seedsPQ)
@@ -547,9 +522,7 @@ do
 				while neighbor ~= nil do
 					local point = neighbor[2] -- [1] = priority, [2] = point
 					members[#members+1] = point
-
 					point.cid = clusterID
-					unprocessed[point.fid] = nil
 
 					local nextNeighbors = featureNeighborsMatrix[point.fid]
 					if nextNeighbors ~= nil and Reachability(point, nextNeighbors) ~= nil then
@@ -559,14 +532,13 @@ do
 				end
 			end
 
-			fid = next(unprocessed)
+			featureID = next(unprocessed)
 		end
 
 		-- Post-process each cluster.
-		for ii = 1, clusterID do
-			local cluster = featureClusters[ii]
-			GetClusterStats(cluster, cluster.members)
-			GetConvexHull(cluster, ii, cluster.members)
+		for cid = 1, clusterID do
+			local cluster = featureClusters[cid]
+			processCluster(cluster, cid, cluster.members)
 		end
 	end
 
@@ -582,6 +554,31 @@ end
 --------------------------------------------------------------------------------
 -- Feature Tracking
 
+local function RemoveFeature(featureID)
+	local neighbors = featureNeighborsMatrix[featureID]
+	if neighbors ~= nil then
+		for nid, distSq in pairs(neighbors) do
+			-- Update the reachability of neighbors linked through this point.
+			local neighbor = knownFeatures[nid]
+			if neighbor ~= nil and neighbor.rd == distSq then
+				local nextNeighbors = featureNeighborsMatrix[nid]
+				nextNeighbors[featureID] = nil
+				local reachDistSq = mathHuge
+				for fid2, distSq2 in pairs(nextNeighbors) do
+					if distSq2 < reachDistSq then
+						reachDistSq = distSq2
+					end
+				end
+				neighbor.rd = (reachDistSq <= epsilonSq and reachDistSq) or nil
+			else
+				featureNeighborsMatrix[nid][featureID] = nil
+			end
+		end
+		featureNeighborsMatrix[featureID] = nil
+	end
+	knownFeatures[featureID] = nil
+end
+
 local function UpdateFeatureReclaim()
 	for fid, fInfo in pairs(knownFeatures) do
 		local metal = spGetFeatureResources(fid)
@@ -593,8 +590,9 @@ local function UpdateFeatureReclaim()
 				end
 				fInfo.metal = metal
 			end
+			redrawingNeeded = true
 		else
-			knownFeatures[fid] = nil
+			RemoveFeature(fid)
 			clusterizingNeeded = true
 		end
 	end
@@ -699,11 +697,11 @@ end
 
 local drawFeatureClusterTextList
 local function DrawFeatureClusterText()
-	for clusterID = 1, #featureConvexHulls do
+	for clusterID = 1, #featureClusters do
 		glPushMatrix()
 
-		local area = featureConvexHulls[clusterID].area
-		local center = featureConvexHulls[clusterID].center
+		local area = featureClusters[clusterID].area
+		local center = featureClusters[clusterID].center
 
 		glTranslate(center.x, center.y, center.z)
 		glRotate(-90, 1, 0, 0)
@@ -804,10 +802,16 @@ function widget:GameFrame(frame)
 		return
 	end
 
-	UpdateFeatureReclaim()
-
 	if clusterizingNeeded == true then
+		for fid, fInfo in pairs(knownFeatures) do
+			local metal = spGetFeatureResources(fid)
+			if metal < minFeatureMetal then
+				RemoveFeature(fid)
+			end
+		end
 		ClusterizeFeatures()
+	else
+		UpdateFeatureReclaim()
 	end
 
 	if redrawingNeeded == true then
@@ -874,26 +878,7 @@ end
 
 function widget:FeatureDestroyed(featureID, allyTeamID)
 	if knownFeatures[featureID] ~= nil then
-		local neighbors = featureNeighborsMatrix[featureID]
-		for fid, distSq in pairs(neighbors) do
-			-- Update the reachability of neighbors linked through this point.
-			local neighbor = knownFeatures[fid]
-			if neighbor ~= nil and neighbor.rd == distSq then
-				local nextNeighbors = featureNeighborsMatrix[fid]
-				nextNeighbors[featureID] = nil
-				local reachDistSq = mathHuge
-				for fid2, distSq2 in pairs(nextNeighbors) do
-					if distSq2 < reachDistSq then
-						reachDistSq = distSq2
-					end
-				end
-				neighbor.rd = (reachDistSq <= epsilonSq and reachDistSq) or nil
-			else
-				featureNeighborsMatrix[fid][featureID] = nil
-			end
-		end
-		featureNeighborsMatrix[featureID] = nil
-		knownFeatures[featureID] = nil
+		RemoveFeature(featureID)
 		clusterizingNeeded = true
 	end
 end
