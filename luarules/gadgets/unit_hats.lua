@@ -75,11 +75,11 @@ local vikings = {
 	["MightySheep"] = true,
 	["Lostdeadman"] = true,
 	["Narnuk"] = true,
-	["Chisato"] = true,
+	["Yanami"] = true,
 	["Hellshound"] = true,
 }
 local kings = {
-	["Chisato"] = true,
+	["Yanami"] = true,
 }
 local goldMedals = {	-- Nation Wars winners
 	["Nezah"] = true,
