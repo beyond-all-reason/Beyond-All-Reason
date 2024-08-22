@@ -242,7 +242,7 @@ do
 		local middle = floor(#points * 0.5)
 		local x, z = points[1].x, points[1].z
 		x, z = x + points[middle].x, z + points[middle].z 
-		x, z = x + points[#points].x, z + points[floor(#points * 0.5)].z
+		x, z = x + points[#points].x, z + points[#points].z
 		x, z = x / 3, z / 3
 
 		-- (1) Cover all points by expanding a quadrilateral to follow these rules:
