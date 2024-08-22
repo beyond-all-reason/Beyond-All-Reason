@@ -1410,7 +1410,7 @@ function WeaponDef_Post(name, wDef)
 				-- Applying damage is instead handled in unit_shield_behavior.lua
 				wDef.damage.shields = 0
 
-				if wDef.beamtime and wDef.beamtime > 0.0333334 then --0.0333334 is the minimum beamtime required to register a single frame hit on ShieldPreDamaged() callin
+				if wDef.beamtime and wDef.beamtime > 1 / Game.gameSpeed then
 					 -- This splits up the damage of hitscan weapons over the duration of beamtime, as each frame counts as a hit in ShieldPreDamaged() callin
 					 -- Math.floor is used to sheer off the extra digits of the number of frames that the hits occur
 					wDef.customparams.beamtime_damage_reduction_multiplier = 1 / math.floor(wDef.beamtime * Game.gameSpeed)
