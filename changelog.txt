@@ -1,5 +1,7 @@
 # August 2024
 • Cortex labs no longer slowly animate before making their first unit, improving response times. Improved Cortex constructor BP by 5%, to help account for increased costs, and worse speed & handling.
+• T1 Aircons can now build Seaplane Labs, Amphib cons can make T2 Shipyards, as can Seaplane cons, along with Advanced Air Plants.
+• Tremor firemodes unified to remove the toggle, and effective DPS in target area increased. Wasp bugfixed, and now has mild tracking on rockets, so will miss shots less often.
 • [Dragon Claw/Maw] Collision volume and aim position will now change when the units open up, so it can be targeted when behind a wall
 
 # July 2024
