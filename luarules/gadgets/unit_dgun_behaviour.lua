@@ -172,7 +172,7 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldEmitterWeaponNum, shie
 	if proID > -1 and dgunTimeouts[proID] then
 		local proDefID = spGetProjectileDefID(proID)
 		local shieldEnabledState, shieldPower = spGetUnitShieldState(shieldCarrierUnitID)
-		local damage = WeaponDefs[proDefID].damages[11] or WeaponDefs[proDefID].damages[2]
+		local damage = WeaponDefs[proDefID].damages[Game.armorTypes.shields] or WeaponDefs[proDefID].damages[Game.armorTypes.default]
 
 		if modOptions.shieldsrework == false and hitX > 0 and lastShieldFrameCheck[shieldCarrierUnitID] ~= frameCounter then
 			shieldPower = math.max(shieldPower - damage, 0)
