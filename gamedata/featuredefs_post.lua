@@ -46,6 +46,10 @@ local function processUnitDef(unitDefName, unitDef)
 		local corpseFeatureDef = FeatureDefs[fullName]
 		if (corpseFeatureDef) then
 			unitDef.corpse = fullName
+
+			if unitDef.customparams.iscommander then
+				corpseFeatureDef.autoreclaimable = false -- prevent area reclaim accidents
+			end
 		end
 	end
 end
