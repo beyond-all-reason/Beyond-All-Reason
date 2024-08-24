@@ -241,7 +241,7 @@ do
 		-- a random point, but we know its furthest neighbors are later on in the sequence.
 		local middle = floor(#points * 0.5)
 		local x, z = points[1].x, points[1].z
-		x, z = x + points[middle].x, z + points[middle].z 
+		x, z = x + points[middle].x, z + points[middle].z
 		x, z = x + points[#points].x, z + points[#points].z
 		x, z = x / 3, z / 3
 
@@ -257,6 +257,7 @@ do
 
 		-- (3) The algorithm performs two passes, with the first covering the full set.
 		for ii = 1, #points do
+			local point = points[ii]
 			local x, z = point.x, point.z
 			if x <= rxmin or x >= rxmax or z <= rzmin or z >= rzmax then
 				-- Keep points that fall outside the inscribed rectangle.
@@ -419,7 +420,7 @@ do
 		return totalArea
 	end
 
-	processCluster = function (cluster, clusterID, points)		
+	processCluster = function (cluster, clusterID, points)
 		getReclaimTotal(cluster, points)
 
 		local convexHull
