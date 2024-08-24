@@ -1,3 +1,9 @@
+--- @class SelectApi
+--- @field getFilter fun(ruleDef: string): table
+--- @field unitPassesFilter fun(uid: any, filter: any): boolean
+--- @field getCommand fun(cmd: string): any
+local SelectApi = {}
+
 -- command definitions from https://github.com/beyond-all-reason/spring/blob/BAR105/rts/Sim/Units/CommandAI/Command.h
 local CMD_STOP = 0
 local CMD_WAIT = 5
@@ -10,11 +16,19 @@ local vtoldamagetag = Game.armorTypes['vtol']
 local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
 local spGetCommandQueue = Spring.GetCommandQueue
 local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitGroup = Spring.GetUnitGroup
+local spGetUnitHealth = Spring.GetUnitHealth
+local spGetMouseState = Spring.GetMouseState
+local spTraceScreenRay = Spring.TraceScreenRay
+local spIsUnitSelected = Spring.IsUnitSelected
+local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
+local spGetUnitPosition = Spring.GetUnitPosition
 
 local includeNanosAsMobile = true -- TODO
 local customFilterLookup = {}
 local customCommandLookup = {}
 
+local prevCommandDef = nil
 
 local function isBuilder(udef)
 	return (udef.canReclaim and udef.reclaimSpeed > 0) or                         -- reclaim
@@ -163,7 +177,7 @@ local function parseFilter(filterDef)
 			-- hotkey filters
 		elseif token == "InHotkeyGroup" then
 			filters.inHotKeyGroup = invertCurry(invert, function(_, _, uid)
-				return Spring.GetUnitGroup(uid) ~= nil
+				return spGetUnitGroup(uid) ~= nil
 			end)
 		elseif token == "InGroup" then
 			local group = tonumber(getNextToken())
@@ -172,12 +186,12 @@ local function parseFilter(filterDef)
 			end
 
 			filters.inGroup = invertCurry(invert, function(_, _, uid, selectGroup)
-				local unitGroup = Spring.GetUnitGroup(uid)
+				local unitGroup = spGetUnitGroup(uid)
 				return unitGroup == selectGroup
 			end, group)
 		elseif token == "InPrevSel" then
 			filters.inPrevSel = invertCurry(invert, function(udef, _, uid)
-				local isSelected = Spring.IsUnitSelected(uid)
+				local isSelected = spIsUnitSelected(uid)
 				return isSelected
 			end)
 
@@ -189,7 +203,7 @@ local function parseFilter(filterDef)
 			end
 
 			filters.absoluteHealth = invertCurry(invert, function(_, _, uid, minHealth)
-				local health = Spring.GetUnitHealth(uid)
+				local health = spGetUnitHealth(uid)
 				return health > minHealth
 			end, minHealth)
 		elseif token == "RelativeHealth" then
@@ -201,7 +215,7 @@ local function parseFilter(filterDef)
 
 			filters.relativeHealth = invertCurry(invert, function(udef, _, uid, minHealthPercent)
 				local minHealth = minHealthPercent * udef.health
-				local health = Spring.GetUnitHealth(uid)
+				local health = spGetUnitHealth(uid)
 				return health > minHealth
 			end, minHealthPercent)
 			-- elseif token == "RulesParamEquals" then
@@ -305,7 +319,14 @@ local function parseFilter(filterDef)
 	return filters
 end
 
-local function getFilter(filterDef)
+--- Parses the filter definition and returns a function that determines if a unit passes the
+--- filter.
+---
+--- The parsing will only occure the first time this function is called, after that it is stored in
+--- a lookup table.
+--- @param filterDef string The filter definition string.
+--- @return function the function to call to execute the filter
+function SelectApi.getFilter(filterDef)
 	local filters = customFilterLookup[filterDef]
 
 	if filters == nil then
@@ -316,7 +337,13 @@ local function getFilter(filterDef)
 	return filters
 end
 
-local function unitPassesFilter(uid, filterFns)
+--- Applies the filter function to the unit represented by the unit ID to determine if the unit
+--- passes the filter.
+---
+--- @param uid integer The unit ID
+--- @param filterFns table List of filter functions
+--- @return boolean? passes Whether the unit passes the filter, nil if the unit doesn't exist
+function SelectApi.unitPassesFilter(uid, filterFns)
 	local udefid = spGetUnitDefID(uid)
 
 	if not udefid then
@@ -350,8 +377,8 @@ local function curryNumber(input, fn)
 end
 
 local function getMouseWorldPos()
-	local mouseX, mouseY = Spring.GetMouseState()
-	local desc, args = Spring.TraceScreenRay(mouseX, mouseY, true)
+	local mouseX, mouseY = spGetMouseState()
+	local desc, args = spTraceScreenRay(mouseX, mouseY, true)
 
 	if nil == desc then return end -- off map
 	if nil == args then return end
@@ -363,7 +390,7 @@ local function getMouseWorldPos()
 	return x, y, z
 end
 
-function getCountUnits(uids, countUntil)
+local function getCountUnits(uids, countUntil)
 	local count = 0
 	local units = {}
 
@@ -462,26 +489,33 @@ local function parseCommand(commandDef)
 	end
 
 	local source = parseSource(sourceDef)
-	local filter = getFilter(filterDef)
-	local conclusion = parseConclusion(conclusionDef)
+	local filter = SelectApi.getFilter(filterDef)
+	local conclusion = parseConclusion(conclusionDef, commandDef)
 
 	return function()
 		local uids = source()
 
 		local tmp = {}
 		for _, uid in pairs(uids) do
-			if unitPassesFilter(uid, filter) then
+			if SelectApi.unitPassesFilter(uid, filter) then
 				tmp[#tmp + 1] = uid
 			end
 		end
 
 		uids = conclusion(tmp)
+		prevCommandDef = commandDef
 
 		return uids
 	end
 end
 
-local function getCommand(commandDef)
+--- Parses the command definition and returns a function that will execute the command.
+---
+--- The parsing will only occur the first time this function is called, after that it is stored in
+--- a lookup table.
+--- @param commandDef string The command definition string.
+--- @return function the function to call to execute the command
+function SelectApi.getCommand(commandDef)
 	local command = customCommandLookup[commandDef]
 
 	if command == nil then
@@ -492,8 +526,9 @@ local function getCommand(commandDef)
 	return command
 end
 
-return {
-	getFilter = getFilter,
-	unitPassesFilter = unitPassesFilter,
-	getCommand = getCommand,
-}
+--- Resets memory of the previous command.
+function SelectApi.clearMemory()
+	prevCommandDef = nil
+end
+
+return SelectApi

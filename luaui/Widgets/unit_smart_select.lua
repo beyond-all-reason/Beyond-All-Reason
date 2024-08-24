@@ -11,9 +11,6 @@ function widget:GetInfo()
 end
 
 local minimapToWorld = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").minimapToWorld
---- @class SelectApi
---- @field getFilter fun(ruleDef: string): table
---- @field unitPassesFilter fun(uid, filter): boolean
 local selectApi = VFS.Include("luaui/Widgets/Include/select_api.lua")
 
 local skipSel
