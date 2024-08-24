@@ -361,19 +361,9 @@ function SelectApi.unitPassesFilter(uid, filterFns)
 	return true
 end
 
-
 -- command
 local function startsWith(str, prefix)
 	return str:match("^" .. prefix) ~= nil
-end
-
-local function curryNumber(input, fn)
-	local numStr = input:match("_([^_]+)")
-	local distance = tonumber(numStr)
-
-	return function(args)
-		return fn(distance, args)
-	end
 end
 
 local function getMouseWorldPos()
@@ -406,36 +396,109 @@ local function getCountUnits(uids, countUntil)
 	return units
 end
 
-local function parseConclusion(conclusionDef)
-	-- TODO implementat clearSelection
-	local clearSelection = false
+local function handleIncludeSelected(includeSelected, uids)
+	if includeSelected then
+		local selected = spGetSelectedUnitsSorted()
+
+		for k, v in pairs(selected) do
+			uids[k] = v
+		end
+	end
+
+	return uids
+end
+
+local function parseNumber(input, fn)
+	local numStr = input:match("_([^_]+)")
+	local distance = tonumber(numStr)
+
+	if not distance then
+		error("Invalid input: expected a number after the underscore.")
+	end
+
+	return function(args)
+		return fn(distance, args)
+	end
+end
+
+
+local pressCounter = 0
+local function countPresses(commandDef)
+	if prevCommandDef == commandDef then
+		pressCounter = pressCounter + 1
+	else
+		pressCounter = 1
+	end
+
+	return pressCounter
+end
+
+local function parseConclusion(conclusionDef, commandDef)
+	local includeSelected = true
 	local prefix = conclusionDef:sub(1, 15)
 
 	if prefix == "ClearSelection_" then
-		clearSelection = true
+		includeSelected = false
 		conclusionDef = conclusionDef:sub(16)
 	end
 
 	if conclusionDef == "SelectAll" then
 		return function(uids)
-			return uids
+			countPresses()
+			return handleIncludeSelected(includeSelected, uids)
 		end
 	elseif conclusionDef == "SelectOne" then
 		return function(uids)
-			-- TODO needs to change selection when pressed multiple times
-			return { uids[1] }
+			local pressCount = countPresses(commandDef)
+			local uid = uids[pressCount]
+			local oneUid = { uid }
+
+			-- center on unit
+			local ux, uy, uz = spGetUnitPosition(uid)
+			Spring.SetCameraTarget(ux, uy, uz, 1)
+
+			return handleIncludeSelected(includeSelected, oneUid)
 		end
 	elseif conclusionDef == "SelectClosestToCursor" then
-		-- TODO need relevant logic here
+		return function(uids)
+			countPresses()
+
+			local x, y, z = getMouseWorldPos()
+			local closest_uid = nil
+			local closest_distance = nil
+
+			for _, uid in pairs(uids) do
+				local ux, uy, uz = spGetUnitPosition(uid)
+				local dx = x - ux
+				local dy = y - uy
+				local dz = z - uz
+
+				local distance = dx * dx + dy * dy + dz * dz
+
+				if not closest_distance or distance < closest_distance then
+					closest_uid = uid
+					closest_distance = distance
+				end
+			end
+
+			local oneUid = { closest_uid }
+			return handleIncludeSelected(includeSelected, oneUid)
+		end
 	elseif startsWith(conclusionDef, "SelectNum_") then
-		return curryNumber(conclusionDef, function(countUntil, uids)
-			-- TODO needs to increase selection by countUntil each time pressed
-			return getCountUnits(uids, countUntil)
+		return parseNumber(conclusionDef, function(countUntil, uids)
+			local pressCount = countPresses(commandDef)
+			uids = getCountUnits(uids, countUntil * pressCount)
+			uids = handleIncludeSelected(includeSelected, uids)
+			return uids
 		end)
 	elseif startsWith(conclusionDef, "SelectPart_") then
-		return curryNumber(conclusionDef, function(percent, uids)
+		return parseNumber(conclusionDef, function(percent, uids)
+			countPresses()
+
 			local countUntil = #uids * percent / 100
-			return getCountUnits(uids, countUntil)
+			uids = getCountUnits(uids, countUntil)
+			uids = handleIncludeSelected(includeSelected, uids)
+			return uids
 		end)
 	end
 end
@@ -456,7 +519,7 @@ local function parseSource(sourceDef)
 			return Spring.GetSelectedUnits()
 		end
 	elseif startsWith(sourceDef, "FromMouse_") then
-		return curryNumber(sourceDef, function(distance)
+		return parseNumber(sourceDef, function(distance)
 			local x, y, z = getMouseWorldPos()
 			if z and y and z then
 				return Spring.GetUnitsInSphere(x, y, z, distance)
@@ -465,7 +528,7 @@ local function parseSource(sourceDef)
 			end
 		end)
 	elseif startsWith(sourceDef, "FromMouseC_") then
-		return curryNumber(sourceDef, function(distance)
+		return parseNumber(sourceDef, function(distance)
 			local x, y, z = getMouseWorldPos()
 			if x and z then
 				return Spring.GetUnitsInCylinder(x, z, distance)
