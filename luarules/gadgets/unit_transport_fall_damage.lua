@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		date = "2023.06.22",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = false
 	}
 end
 
@@ -31,9 +31,9 @@ end
 
 local function GetUnitHeightAboveGroundAndWater(unitID) -- returns nil for invalid units
 	if (Spring.GetUnitIsDead(unitID) ~= false) or (Spring.ValidUnitID(unitID) ~= true) then return nil end
-	
+
 	local px, py, pz = Spring.GetUnitBasePosition(unitID)
-	if px and py and pz  then 	
+	if px and py and pz  then
 		local gh = math.max(0, Spring.GetGroundHeight( px, pz ))
 		return py - gh
 	else
@@ -50,11 +50,11 @@ function gadget:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transport
 end
 
 function gadget:GameFrame()
-	if next(droppedunits) then 
-		for unitID, falldamage in pairs(droppedunits) do 
+	if next(droppedunits) then
+		for unitID, falldamage in pairs(droppedunits) do
 			local unitHeight = GetUnitHeightAboveGroundAndWater(unitID)
-			if unitHeight then 
-				if unitHeight < heightThreshold then 
+			if unitHeight then
+				if unitHeight < heightThreshold then
 					Spring.AddUnitDamage(unitID, falldamage, 0, Spring.GetGaiaTeamID(), 1)
 					droppedunits[unitID] = nil
 				end

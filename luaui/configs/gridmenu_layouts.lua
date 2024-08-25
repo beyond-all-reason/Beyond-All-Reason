@@ -250,21 +250,20 @@ local unitGrids = {
 	legassistdrone = {
 		{
 			{ "legmex", "legsolar", "legwin", },                -- mex, solar, wind
-<<<<<<< Updated upstream
 			{ "cormakr", "", "coruwms", "legtide"},             -- T1.5 mex, uw m storage, tidal
 			{ "corestor", "cormstor", "coruwes", "legfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
-=======
 			{ "legeconv", "", "coruwms", "legtide"},             -- T1.5 mex, uw m storage, tidal
 			{ "legestor", "legmstor", "coruwes", "legfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
->>>>>>> Stashed changes
+			{ "legeconv", "", "coruwms", "legtide"},             -- T1.5 mex, uw m storage, tidal
+			{ "corestor", "legmstor", "coruwes", "legfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
 		},
 		{
-			{ "corllt", "cortl", },                          -- LLT, offshore torp launcher
-			{ "corrl", "corfrt", },                          -- basic AA, floating AA
+			{ "leglht", "cortl", },                          -- LLT, offshore torp launcher
+			{ "legrl", "corfrt", },                          -- basic AA, floating AA
 			{ "cordl", },                                    -- coastal torp launcher
 		},
 		{
-			{ "corrad", "coreyes", "cordrag", },             -- radar, perimeter camera, dragon's teeth
+			{ "legrad", "coreyes", "legdrag", },             -- radar, perimeter camera, dragon's teeth
 			{ "corfrad", "corfdrag", },                      -- floating radar, shark's teeth
 			{ },                                             -- empty
 		},
