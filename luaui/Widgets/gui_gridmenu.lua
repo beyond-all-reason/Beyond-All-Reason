@@ -2442,21 +2442,21 @@ function widget:UnitCommand(unitID, _, _, cmdID, _, cmdParams)
 end
 
 -- update queue number
--- UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, userOrders)
-function widget:UnitFromFactory(_, unitDefID, _, factoryID)
+-- UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, options, cmdTag)
+function widget:UnitCmdDone(unitID, _, _, cmdID, _, options)
 	-- if factory is not current active builder return
-	if factoryID ~= activeBuilderID then
+	if unitID ~= activeBuilderID then
 		return
 	end
 
-	-- If factory is in repeat, queue does not change
-	local factoryRepeat = select(4, Spring.GetUnitStates(factoryID, false, true))
+	-- If factory is in repeat, queue does not change, except if it is alt-queued
+	local factoryRepeat = select(4, Spring.GetUnitStates(unitID, false, true))
 
-	if factoryRepeat then
+	if factoryRepeat and not options.alt then
 		return
 	end
 
-	updateQueueNr(unitDefID, -1)
+	updateQueueNr(-cmdID, -1)
 end
 
 -- PERF: Fix convoluted setActiveBuilder and multiple calls to getselectedsorted

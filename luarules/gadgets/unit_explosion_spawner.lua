@@ -67,6 +67,7 @@ local expireCount = 0
 local spawnList = {} -- [index] = {.spawnDef, .teamID, .x, .y, .z, .ownerID}, subtables reused
 local spawnCount = 0
 local spawnNames = {}
+local minWaterDepth = -12 --calibrated off of the armpw's (minimum found) maxwaterdepth value
 
 for weaponDefID = 1, #WeaponDefs do
 	local wdcp = WeaponDefs[weaponDefID].customParams
@@ -111,7 +112,7 @@ local function SpawnUnit(spawnData)
 			if spawnData.x > 0 and spawnData.x < mapsizeX and spawnData.z > 0 and spawnData.z < mapsizeZ then
 				local y = Spring.GetGroundHeight(spawnData.x, spawnData.z)
 				if spawnData.y < math.max(y+32, 32) then
-					if string.find(spawnDef.surface, "LAND") and y > 0 then
+					if string.find(spawnDef.surface, "LAND") and y > minWaterDepth then
 						validSurface = true
 					elseif string.find(spawnDef.surface, "SEA") and y <= 0 then
 						validSurface = true

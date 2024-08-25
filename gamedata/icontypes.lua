@@ -1556,7 +1556,7 @@ local icontypes = {
 		size = 0.83999997
 	},
 	cormabm = {
-		bitmap = "icons/antinukemobile.png",
+		bitmap = "icons/antinukevehicle.png",
 		size = 1.46999991
 	},
 	cormadsam = {
@@ -1655,7 +1655,15 @@ local icontypes = {
 		bitmap = "icons/nanot1.png",
 		size = 0.96599996
 	},
+	legnanotc = {
+		bitmap = "icons/nanot1.png",
+		size = 0.96599996
+	},
 	cornanotcplat = {
+		bitmap = "icons/nanot1.png",
+		size = 0.96599996
+	},
+	legnanotcplat = {
 		bitmap = "icons/nanot1.png",
 		size = 0.96599996
 	},
@@ -1679,6 +1687,10 @@ local icontypes = {
 		bitmap = "icons/corparrow.png",
 		size = 1.62749982
 	},
+	corphantom = {
+		bitmap = "icons/spy.png",
+		size = 1.20749986
+	},	
 	corplat = {
 		bitmap = "icons/factory_air_sea.png",
 		size = 1.52250004
@@ -2286,6 +2298,10 @@ local icontypes = {
 	legdrone = {
 		bitmap = "icons/air_hover.png",
 		size = 0.5
+	},
+	legheavydrone = {
+		bitmap = "icons/heavyheatraydrone.png",
+		size = 0.75
 	},
 	legfhp = {
 		bitmap = "icons/factory_hover.png",
@@ -3343,10 +3359,6 @@ local icontypes = {
 	xmasball2_6 = {
 		bitmap = "icons/blank.png",
 		size = 1.04999995
-	},
-	boombox = {
-		bitmap = "icons/blank.png",
-		size = 1.0
 	},
 
 	blank = {

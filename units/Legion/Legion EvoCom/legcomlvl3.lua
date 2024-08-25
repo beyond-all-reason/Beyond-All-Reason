@@ -25,7 +25,7 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		energymake = 75,
-		energystorage = 500,
+		energystorage = 1500,
 		explodeas = "commanderExplosion",
 		footprintx = 2,
 		footprintz = 2,
@@ -108,8 +108,8 @@ return {
 			[42] = "corsy",
 			[43] = "leghp",
 			[44] = "legfhp",
-			[45] = "cornanotc",
-			[46] = "cornanotcplat",
+			[45] = "legnanotc",
+			[46] = "legnanotcplat",
 		},
 		customparams = {
 			unitgroup = 'builder',
@@ -135,6 +135,7 @@ return {
 			effigy = "comeffigylvl2",
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,
+			fall_damage_multiplier = 5,--this ensures commander dies when it hits the ground so effigies can trigger respawn.
 		},
 		featuredefs = {
 			dead = {
@@ -229,11 +230,11 @@ return {
 				impulseboost = 0.4,
 				impulsefactor = 1.5,
 				intensity = 0.8,
+				minintensity = 1,
 				name = "Rapid-fire a2g machine guns",
 				noselfdamage = true,
 				ownerExpAccWeight = 4.0,
-				proximitypriority = 3,
-				range = 400,
+				range = 350,
 				reloadtime = 0.4,
 				rgbcolor = "1 0.95 0.4",
 				soundhit = "bimpact3",
@@ -247,9 +248,7 @@ return {
 				weapontype = "LaserCannon",
 				weaponvelocity = 921,
 				damage = {
-					commanders = 16,
-					default = 33,
-					vtol = 33,
+					default = 45,
 				},
 			},
 			torpedo = {
@@ -406,11 +405,11 @@ return {
 				name = "Long range bot cannon",
 				noselfdamage = true,
 				projectiles = 3,
-				range = 700,
+				range = 400,
 				reloadtime = 0.9,
 				sprayangle = 2800,
 				stockpile = true,
-				stockpiletime = 10,
+				stockpiletime = 13,
 				soundhit = "xplonuk1xs",
 				soundhitwet = "splshbig",
 				soundstart = "lrpcshot3",
@@ -424,7 +423,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 2000,
 				customparams = {
-					spawns_name = "babylegshot babyleggob babyleglob babyleglob babyleglob babyleglob babyleglob babyleglob babyleglob babyleglob babyleglob babyleglob babyleglob babyleglob babyleglob babyleglob babyleglob babyleglob babyleglob babyleglob",
+					spawns_name = "babyleggob babyleggob babyleggob babyleggob babyleggob babyleggob babyleggob babyleggob babyleggob babyleggob babyleggob babyleggob babyleggob babyleggob babyleggob babyleglob babyleglob babyleglob babyleglob babyleglob",
 					spawns_expire = 25,
 					spawns_surface = "LAND", -- Available: "LAND SEA"
 					spawns_mode = "random",
@@ -449,7 +448,6 @@ return {
 				explosiongenerator = "custom:expldgun",
 				firestarter = 100,
 				firesubmersed = false,
-				groundbounce = true,
 				impulseboost = 0,
 				impulsefactor = 0,
 				name = "Disintegrator",
@@ -498,7 +496,7 @@ return {
 			[5] = {
 				badtargetcategory = "VTOL GROUNDSCOUT SHIP",
 				def = "BOTCANNON",
-				onlytargetcategory = "SURFACE",
+				onlytargetcategory = "NOTSHIP",
 			},
 		},
 	},

@@ -9,10 +9,13 @@ local SIG_CRANE2=16;
 
 include("include/util.lua");
 
+local litelab = UnitDefs[unitDefID].customParams.litelab ~= nil
+
 function open()
 	UnitScript.Signal(SIG_OPENCLOSE);
 	UnitScript.SetSignalMask(SIG_OPENCLOSE);
 	--Activate
+	if not litelab then
 	Move(door1, x_axis, -17, 10);
 	Move(door2, x_axis, 17, 10);
 	UnitScript.WaitForMove(door1, x_axis);
@@ -20,6 +23,7 @@ function open()
 	Move(crane2,x_axis,21,42);
 	UnitScript.WaitForMove(crane1, x_axis);
 	Sleep(1000);
+	end
 	--Open yard
 	open_yard();
 	--Get into buildstance
@@ -34,6 +38,7 @@ function close()
 	--Close yard
 	close_yard();
 	--Deactivate
+	if not litelab then
 	Move(crane1,x_axis,2,20);
 	Move(crane2,x_axis,2,20);
 	UnitScript.WaitForMove(crane1, x_axis);
@@ -41,9 +46,17 @@ function close()
 	Move(door2, x_axis, 0, 17);
 	UnitScript.WaitForMove(door1, x_axis);
 	Sleep(500)
+	end
 end
 
 function script.Create()
+	if litelab then
+		Hide(door1);
+		Hide(door2);
+		UnitScript.WaitForMove(door1, x_axis);
+		Move(crane1,x_axis,21,1000);
+		Move(crane2,x_axis,21,1000);
+	end
 	Hide(nano2);
 	Hide(nano1);
 	spray = 0;

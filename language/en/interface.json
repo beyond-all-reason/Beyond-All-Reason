@@ -273,18 +273,15 @@
 			"hound_weapon_plasma": "Heavy Plasma",
 			"hound_weapon_gauss": "Gauss Cannon",
 			"hound_weapon_toggle_tooltip": "Sets weapon to a slow plasma projectile with a large aoe, or a fast projectile gauss weapon",
-
+			"blueprint_place": "Place Blueprint",
+			"blueprint_place_tooltip": "Place a saved blueprint",
+			"blueprint_create": "Save Blueprint",
+			"blueprint_create_tooltip": "Save the selected units into a new blueprint, in the order they were selected",
 			"customOnOff": {
 				"lowTrajectory": "Low Trajectory",
 				"highTrajectory": "High Trajectory",
 				"trajectory_tooltip": "Switch artillery firing angle between low and high trajectory",
-				"siegeMode": "Spread Fire",
-				"suppressiveFire": "Focused Fire",
-				"siege_tooltip": "Switches between Focused Fire and longer ranged Spread Fire",
 				"gauss_tooltip": "Switches between Gauss Cannon and Heavy Plasma Cannon",
-				"dreadshot": "Normal fire",
-				"overcharge": "Overcharge",
-				"dreadshot_tooltip": "Switches between normal fire and overcharged mode"
 			}
 		},
 		"idleBuilders": {
@@ -650,7 +647,8 @@
 			}
 		},
 		"loadScreen": {
-			"intelGpuWarning": "%{textColor}You are using the integrated %{warnColor}Intel graphics%{textColor} card.     It's currently %{warnColor}unsupported, the game won't fully work properly."
+			"intelGpuWarning": "%{textColor}You are using the integrated %{warnColor}Intel graphics%{textColor} card.     It's currently %{warnColor}unsupported, the game won't fully work properly.",
+			"lowRamWarning": "%{textColor}Your system has below the recommended %{warnColor}12GB memory %{textColor}.     Try running with lower settings if you encounter out-of-memory crashes"
 		},
 		"initialSpawn": {
 			"ready": "Ready",

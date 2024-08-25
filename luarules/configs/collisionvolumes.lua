@@ -46,6 +46,12 @@ Spring.SetUnitPieceCollisionVolumeData ( number unitID, number pieceIndex, boole
 		....               -- All undefined pieces will be treated as disabled for collision detection
 	}
 	dynamicPieceCollisionVolume["cor_viper"] = {	--same as with pieceCollisionVolume only uses "on" and "off" tables
+	
+	Warning 
+	Ensure that buildings/units do not have a unitdeff hitbox defined
+	It will break certain units being able to damage the relevant building/unit
+	this is possibly a bug but not sure
+
 		on = {
 			["0"]={true,51,12,53,0,4,0,2,0},
 			["5"]={true,25,66,25,0,-14,0,1,1},
@@ -76,16 +82,59 @@ local unitCollisionVolume = {}			--dynamic collision volume definitions
 local pieceCollisionVolume = {}			--per piece collision volume definitions
 local dynamicPieceCollisionVolume = {}	--dynamic per piece collision volume definitions
 
--- number of times this table had to be touched since 2022 ~22
+-- number of times this table had to be touched since 2022 ~45
 -- increase this number eachtime this table gets touched
+
+dynamicPieceCollisionVolume['cormaw'] = {
+    on={
+        ['0']={32,70,32,0,5,0,1,1,1},
+        ['offsets']={0,27,0},
+    },
+    off={
+        ['0']={32,22,32,0,10,0,1,1,1},
+        ['offsets']={0,0,0},
+    }
+}
+dynamicPieceCollisionVolume['armclaw'] = {
+    on={
+        ['0']={32,85,32,0,5,0,1,1,1},
+        ['offsets']={0,30,0},
+    },
+    off={
+        ['0']={32,22,32,0,10,0,1,1,1},
+        ['offsets']={0,0,0},
+    }
+}
+dynamicPieceCollisionVolume['legdtr'] = {
+    on={
+        ['0']={32,90,32,0,5,0,1,1,1},
+        ['offsets']={0,45,0},
+    },
+    off={
+        ['0']={32,22,32,0,11,0,1,1,1},
+        ['offsets']={0,0,0},
+    }
+}
+dynamicPieceCollisionVolume['armannit3'] = {
+    on={
+        ['1']={96,140,96,0,5,0,2,1,0},
+    },
+    off={
+        ['0']={96,80,96,0,10,0,2,1,0},
+    }
+}
+dynamicPieceCollisionVolume['cordoomt3'] = {
+    on={
+        ['1']={112,180,112,0,5,0,1,1,0},
+    },
+    off={
+        ['0']={96,80,96,0,10,0,2,1,0},
+    }
+}
 
 unitCollisionVolume['armanni'] = {
 	on={54,81,54,0,-2,0,2,1,0},
 	off={54,56,54,0,-15,0,2,1,0},
-}
-unitCollisionVolume['armannit3'] = {
-	on={81,121,81,0,-3,0,3,1,0},
-	off={81,84,81,0,-22,0,3,1,0},
 }
 unitCollisionVolume['armlab'] = {
 	on={95,28,95,0,2,0,2,1,0},
@@ -111,10 +160,7 @@ unitCollisionVolume['cordoom'] = {
 	on={63,112,63,0,0,0,1,1,1},
 	off={45,87,45,0,-12,0,2,1,0},
 }
-unitCollisionVolume['cordoomt3'] = {
-	on={95,168,95,0,18,0,2,1,1},
-	off={68,131,68,0,0,0,3,1,0},
-}
+
 unitCollisionVolume['corplat'] = {
 	on={112,60,112,0,28,0,1,1,1},
 	off={112,35,112,0,0,0,1,1,1},
@@ -151,8 +197,8 @@ pieceCollisionVolume['legpede'] = {
 --	['2']={10,10,30,0,2,12,1,2},
 --}
 pieceCollisionVolume['legsrail'] = {
-	['0']={55,20,55,0,-2,0,1,1},
-	['19']={15,15,60,0,5,12,1,2},
+	['0']={55,24,55,0,12,0,1,1},
+	['7']={12,12,60,0,3,9,1,2},
 }
 pieceCollisionVolume['armrad'] = {
 	['1']={22,58,22,0,0,0,1,1},
@@ -282,8 +328,8 @@ pieceCollisionVolume['corban'] = {
 	['3']={24,16,24,0,0,0,2,1},
 }
 pieceCollisionVolume['cormart'] = {
-	['0']={26,28,34,0,0,0,2,1},
-	['1']={12,25,12,0,-5,0,2,1},
+	['0']={30,28,34,0,0,0,2,1},
+	['5']={12,25,12,0,2,0,2,1},
 }
 pieceCollisionVolume['armmart'] = {
 	['0']={44,24,50,0,0,0,2,1},

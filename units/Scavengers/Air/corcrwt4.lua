@@ -97,7 +97,6 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.01,
 				explosiongenerator = "custom:burnthermite",
-				groundbounce = true,
 				bounceSlip = 1.0,
 				firestarter = 100,
 				firesubmersed = false,

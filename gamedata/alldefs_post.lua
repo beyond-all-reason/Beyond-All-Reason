@@ -291,6 +291,9 @@ function UnitDef_Post(name, uDef)
 
 				if  name == "armcom" then
 				uDef.customparams.evolution_target = "armcomlvl2"
+				uDef.customparams.inheritxpratemultiplier = 0.5
+				uDef.customparams.childreninheritxp = "TURRET MOBILEBUILT"
+				uDef.customparams.parentsinheritxp = "TURRET MOBILEBUILT"
 				elseif name == "corcom" then
 				uDef.customparams.evolution_target = "corcomlvl2"
 				elseif name == "legcom" then
@@ -298,7 +301,12 @@ function UnitDef_Post(name, uDef)
 				end
 
 				if comLevel and modOptions.evocomlevelcap <= comLevel then
+					uDef.customparams.evolution_health_transfer = nil
+					uDef.customparams.evolution_target = nil
 					uDef.customparams.evolution_condition = nil
+					uDef.customparams.evolution_timer = nil
+					uDef.customparams.evolution_power_threshold = nil
+					uDef.customparams.evolution_power_multiplier = nil
 				end
 			end
 		end
@@ -366,6 +374,8 @@ function UnitDef_Post(name, uDef)
 		if name == "coravp" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "corvac" --corprinter
+			uDef.buildoptions[numBuildoptions + 2] = "corphantom"
+			uDef.buildoptions[numBuildoptions + 3] = "corsiegebreaker"
 		end
 		if name == "legavp" then
 			local numBuildoptions = #uDef.buildoptions
@@ -433,10 +443,14 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+3] = "corftiger"
 			uDef.buildoptions[numBuildoptions+4] = "cortorch"
 			uDef.buildoptions[numBuildoptions+5] = "corsiegebreaker"
+			uDef.buildoptions[numBuildoptions+6] = "corphantom"
 			if (printerpresent==false) then -- assuming sala and vac stay paired, this is tidiest solution
-				uDef.buildoptions[numBuildoptions+6] = "corvac" --corprinter
+				uDef.buildoptions[numBuildoptions+7] = "corvac" --corprinter
 
 			end
+		elseif name == "coralab" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "cordeadeye"
 		elseif name == "coraap" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corcrw"
@@ -446,6 +460,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 2] = "corgolt4"
 			uDef.buildoptions[numBuildoptions + 3] = "corakt4"
 			uDef.buildoptions[numBuildoptions + 4] = "corthermite"
+			uDef.buildoptions[numBuildoptions + 5] = "cormandot4"
 		elseif name == "armca" or name == "armck" or name == "armcv" then
 			--local numBuildoptions = #uDef.buildoptions
 		elseif name == "corca" or name == "corck" or name == "corcv" then
@@ -1215,7 +1230,7 @@ function UnitDef_Post(name, uDef)
 	if modOptions.animationcleanup  then 
 		if uDef.script then 
 			local oldscript = uDef.script:lower()
-			if oldscript:find(".cob", nil, true) then 
+			if oldscript:find(".cob", nil, true) and (not oldscript:find("_clean.", nil, true)) then 
 				local newscript = string.sub(oldscript, 1, -5) .. "_clean.cob"
 				if VFS.FileExists('scripts/'..newscript) then 
 					Spring.Echo("Using new script for", name, oldscript, '->', newscript)
@@ -1301,7 +1316,6 @@ function WeaponDef_Post(name, wDef)
 		----EMP rework
 
 		if modOptions.emprework then
-
 			if name == 'empblast' then
 				wDef.areaofeffect = 350
 				wDef.edgeeffectiveness = 0.6
@@ -1319,8 +1333,6 @@ function WeaponDef_Post(name, wDef)
 				wDef.paralyzetime = 12
 				wDef.damage.default = 35000
 			end
-
-
 		end
 
 		--Air rework

@@ -1,3 +1,6 @@
+# August 2024
+• [Dragon Claw/Maw] Collision volume and aim position will now change when the units open up, so it can be targeted when behind a wall
+
 # July 2024
 • [Minelayers] Minelayers now live up to the 'minesweeper' role properly, being able to detect enemy mines within 450 radius, and slowly clear them, with a moderate ranged weapon.
 • [Naval Economy Buildings] Stats made equal to land versions. Specifically, T1 and T2 Energy Convertors, Energy and Metal Storages, and the T2 mex have been harmonised for both Core and Arm.

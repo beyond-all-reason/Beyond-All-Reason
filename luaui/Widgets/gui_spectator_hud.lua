@@ -5,7 +5,7 @@ function widget:GetInfo()
 		author = "CMDR*Zod",
 		date = "2024",
 		license = "GNU GPL v3 (or later)",
-		layer = 1,
+		layer = 2, -- after eco stats widget which is on layer 1; see Initialize()
 		handler = true,
 		enabled = false
 	}
@@ -164,7 +164,7 @@ local defaults = {
 	},
 
 	metricDimensions = {
-		height = 70,
+		height = 80,
 		-- width is same as widget width
 	},
 
@@ -175,7 +175,7 @@ local defaults = {
 	},
 
 	knobDimensions = {
-		fontSize = 32,
+		fontSize = 44,
 
 		cornerSize = 8,
 		outline = 4,
@@ -995,28 +995,6 @@ local function updateStats()
 	regenerateTextTextures = true
 end
 
-local function drawMetricKnobText(left, bottom, right, top, text)
-	-- note: call this function within a font:Begin() - font:End() block
-
-	local knobTextAreaWidth = right - left - 2 * knobDimensions.outline
-	local fontSizeSmaller = knobDimensions.fontSize
-	local textWidth = font:GetTextWidth(text)
-	while textWidth * fontSizeSmaller > knobTextAreaWidth do
-		fontSizeSmaller = fontSizeSmaller - 1
-	end
-
-	--font:Begin()
-	--	  font:SetTextColor(textColorWhite)
-		font:Print(
-			text,
-			mathfloor((right + left) / 2),
-			mathfloor((top + bottom) / 2),
-			fontSizeSmaller,
-			'cvO'
-		)
-	--font:End()
-end
-
 local colorKnobMiddleGrey = { 0.5, 0.5, 0.5, 1 }
 local function drawMetricBar(left, bottom, right, top, indexLeft, indexRight, metricIndex, mouseOver)
 	local valueLeft = teamStats[metricIndex].aggregates[indexLeft]
@@ -1825,6 +1803,8 @@ local function initGL4()
 end
 
 local function init()
+	font = WG['fonts'].getFont()
+
 	viewScreenWidth, viewScreenHeight = Spring.GetViewGeometry()
 
 	buildMetricsEnabled()
@@ -1928,8 +1908,6 @@ function widget:Initialize()
 	end
 
 	checkAndUpdateHaveFullView()
-
-	font = WG['fonts'].getFont()
 
 	init()
 end
