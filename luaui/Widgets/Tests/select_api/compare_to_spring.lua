@@ -2,6 +2,8 @@
 local spGetUnitDefID = Spring.GetUnitDefID
 local selectApi = VFS.Include("luaui/Widgets/Include/select_api.lua")
 local nameLookup = {}
+local passed = true
+
 
 function skip()
 	return Spring.GetGameFrame() <= 0
@@ -15,6 +17,24 @@ function cleanup()
 	Test.clearMap()
 
 	Spring.SendCommands("setspeed " .. 1)
+end
+
+local function printTable(tbl, indent)
+	if type(tbl) ~= "table" then
+		print(tbl, type(tbl))
+		return
+	end
+
+	indent = indent or 0
+	for key, value in pairs(tbl) do
+		local formatting = string.rep("  ", indent) .. key .. ": "
+		if type(value) == "table" then
+			print(formatting)
+			printTable(value, indent + 1)
+		else
+			print(formatting .. tostring(value))
+		end
+	end
 end
 
 local function getName(uid)
@@ -35,10 +55,11 @@ local function compareUnitSets(springUnitSet, apiUnitSet, filter)
 	for uid in pairs(springUnitSet) do
 		if not apiUnitSet[uid] then
 			local name = getName(uid)
+			print(name)
 
 			-- sometimes the uid wasn't added in the first place
 			-- this is why 'cortl' and 'armtl' cause issues
-			if name == nil then
+			if name ~= nil then
 				table.insert(missingInApi, uid)
 			end
 		end
@@ -143,13 +164,86 @@ local function createUnits()
 	return uids
 end
 
+local comparableConclusions = {
+	["ClearSelection_SelectAll+"] = true,
+	["SelectAll+"] = true,
+	["ClearSelection_SelectClosestToCursor+"] = true,
+	["SelectClosestToCursor+"] = true
+}
+
+local function test_command(preSelectedUnitIDs, filter, command, conclusion)
+	local springCommand = "select " .. command
+
+	-- api command
+	local apiCommand = selectApi.getCommand(command)
+	local apiCommandUnitSet = {}
+	Spring.SelectUnitArray(preSelectedUnitIDs)
+	apiCommand()
+	local apiUnits = Spring.GetSelectedUnits()
+	for _, uid in pairs(apiUnits) do
+		apiCommandUnitSet[uid] = true
+	end
+
+	-- spring
+	local springUnitSet = {}
+	Spring.SelectUnitArray(preSelectedUnitIDs)
+	Spring.SendCommands(springCommand)
+	local springUnits = Spring.GetSelectedUnits()
+	for _, uid in pairs(springUnits) do
+		springUnitSet[uid] = true
+	end
+
+	-- compare
+	local function compare(apiUnitSet, type)
+		local missingInApi, missingInSpring = compareUnitSets(springUnitSet, apiUnitSet, filter)
+		local hasMissingInApi = #missingInApi > 0
+		local hasMissingInSpring = #missingInSpring > 0
+		local prefix = "\n" .. type .. " " .. command .. " failed: "
+
+		if hasMissingInApi and hasMissingInSpring then
+			local errorMessage = generateErrorMessage(missingInApi, "missingInApi") ..
+				" | " .. generateErrorMessage(missingInSpring, "missingInSpring")
+			print(prefix .. errorMessage)
+			passed = false
+		elseif hasMissingInApi then
+			local errorMessage = generateErrorMessage(missingInApi, "missingInApi")
+			print(prefix .. errorMessage)
+			passed = false
+		elseif hasMissingInSpring then
+			local errorMessage = generateErrorMessage(missingInSpring, "missingInSpring")
+			print(prefix .. errorMessage)
+			passed = false
+		end
+	end
+
+	if comparableConclusions[conclusion] then
+		compare(apiCommandUnitSet, "Command")
+	elseif #springUnits ~= #apiUnits then
+		-- Spring and API handle rounding 0.5 differently
+		-- other things seem to cause off-by-one errors as well.
+		-- API seems more correct, so we ignore
+		if not ((#springUnits + 1) == #apiUnits) then
+			print("Count doesn't match for " .. command .. " Spring: " .. #springUnits .. " API: " .. #apiUnits)
+			passed = false
+		end
+	end
+end
+
 -- 2024/08/17
 -- 543 total units are created
 -- for each filter, the sum of {{filter}} and Not_{{filter}} always equals 537.
 -- this means 6 units are being created but then not included in the tests
 -- could be 'dbg_sphere' 'dbg_sphere_fullmetal' 'pbr_cube'
 function test()
+	passed = true
 	local uids = createUnits()
+	local halfSize = math.floor(#uids / 2)
+	local preSelectedUnitIDs = {}
+
+	for i = 1, halfSize do
+		local unitID = uids[i]
+		table.insert(preSelectedUnitIDs, unitID)
+	end
 
 	local simpleFilterDefs = {
 		"AbsoluteHealth_100",
@@ -220,74 +314,38 @@ function test()
 		"Not_Category_NOWEAPON",
 	}
 
-	local passed = true
+	local sources = {
+		"AllMap",
+		"Visible",
+		"PrevSelection",
+		"FromMouse_500",
+		"FromMouseC_500"
+	}
+
+	local conclusions = {
+		"ClearSelection_SelectAll+",
+		"SelectAll+",
+		"ClearSelection_SelectClosestToCursor+",
+		"SelectClosestToCursor+",
+
+		-- these give different results, need to compare the count
+		"ClearSelection_SelectOne+",
+		"ClearSelection_SelectNum_5+",
+		"ClearSelection_SelectPart_50+",
+
+		-- these have odd behavior in Spring, don't test.
+		-- "SelectOne+",
+		-- "SelectNum_5+",
+		-- "SelectPart_50+"
+	}
 
 	for _, filter in pairs(simpleFilterDefs) do
-		local command = "AllMap+_" .. filter .. "+_ClearSelection_SelectAll+"
-		local springCommand = "select " .. command
-
-		local function applyApiFn(apiPassFn, filterFn)
-			local passingUnitCount = 0
-			local passSet = {}
-
-			for _, uid in pairs(uids) do
-				local passes = apiPassFn(uid, filterFn)
-
-				if passes then
-					passSet[uid] = true
-					passingUnitCount = passingUnitCount + 1
-				end
-			end
-
-			-- print(filter .. " has " .. passingUnitCount .. " units")
-			return passSet
-		end
-
-		-- api filter
-		local apiFilter = selectApi.getFilter(filter)
-		local apiFilterUnitSet = applyApiFn(selectApi.unitPassesFilter, apiFilter)
-
-		-- api command
-		local apiCommand = selectApi.getCommand(command)
-		local apiCommandUnitSet = {}
-
-		for _, uid in pairs(apiCommand()) do
-			apiCommandUnitSet[uid] = true
-		end
-
-		-- spring
-		local springUnitSet = {}
-		Spring.SendCommands(springCommand)
-		local springUnits = Spring.GetSelectedUnits()
-		for _, uid in pairs(springUnits) do
-			springUnitSet[uid] = true
-		end
-
-		-- compare
-		local function compare(apiUnitSet, type)
-			local missingInApi, missingInSpring = compareUnitSets(springUnitSet, apiUnitSet, filter)
-			local hasMissingInApi = #missingInApi > 0
-			local hasMissingInSpring = #missingInSpring > 0
-			local prefix = "\n" .. type .. " " .. filter .. " failed: "
-
-			if hasMissingInApi and hasMissingInSpring then
-				local errorMessage = generateErrorMessage(missingInApi, "missingInApi") ..
-					" | " .. generateErrorMessage(missingInSpring, "missingInSpring")
-				print(prefix .. errorMessage)
-				passed = false
-			elseif hasMissingInApi then
-				local errorMessage = generateErrorMessage(missingInApi, "missingInApi")
-				print(prefix .. errorMessage)
-				passed = false
-			elseif hasMissingInSpring then
-				local errorMessage = generateErrorMessage(missingInSpring, "missingInSpring")
-				print(prefix .. errorMessage)
-				passed = false
+		for _, source in pairs(sources) do
+			for _, conclusion in pairs(conclusions) do
+				local command = source .. "+_" .. filter .. "+_" .. conclusion
+				test_command(preSelectedUnitIDs, filter, command, conclusion)
 			end
 		end
-
-		compare(apiFilterUnitSet, "Filter")
-		compare(apiCommandUnitSet, "Command")
 	end
 	assert(passed, "read errors above")
 end

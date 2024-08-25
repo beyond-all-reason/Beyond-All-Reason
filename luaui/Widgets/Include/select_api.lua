@@ -21,7 +21,7 @@ local spGetUnitHealth = Spring.GetUnitHealth
 local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
 local spIsUnitSelected = Spring.IsUnitSelected
-local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
+local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetUnitPosition = Spring.GetUnitPosition
 
 local includeNanosAsMobile = true -- TODO
@@ -380,33 +380,42 @@ local function getMouseWorldPos()
 	return x, y, z
 end
 
-local function getCountUnits(uids, countUntil)
+local function getCountUnits(uids, countUntil, appendSelected)
+	local alreadySelectedSet = {}
+
+	if appendSelected then
+		alreadySelectedSet = getAlreadySelectedSet()
+	end
+
+	-- add countUntil units that aren't in alreadySelectedSet
 	local count = 0
 	local units = {}
 
 	for _, uid in pairs(uids) do
-		count = count + 1
-		table.insert(units, uid)
-
-		if count >= countUntil then
-			break
+		if not alreadySelectedSet[uid] then
+			if count >= countUntil then
+				break
+			end
+			count = count + 1
+			table.insert(units, uid)
 		end
 	end
-
 	return units
 end
 
-local function handleIncludeSelected(includeSelected, uids)
-	if includeSelected then
-		local selected = spGetSelectedUnitsSorted()
 
-		for k, v in pairs(selected) do
-			uids[k] = v
-		end
+function getAlreadySelectedSet()
+	local alreadySelectedUnits = Spring.GetSelectedUnits()
+	local alreadySelectedSet = {}
+
+	for _, unit in ipairs(alreadySelectedUnits) do
+		alreadySelectedSet[unit] = true
 	end
 
-	return uids
+	return alreadySelectedSet
 end
+
+
 
 local function parseNumber(input, fn)
 	local numStr = input:match("_([^_]+)")
@@ -434,36 +443,57 @@ local function countPresses(commandDef)
 end
 
 local function parseConclusion(conclusionDef, commandDef)
-	local includeSelected = true
+	local appendSelected = true
 	local prefix = conclusionDef:sub(1, 15)
 
 	if prefix == "ClearSelection_" then
-		includeSelected = false
+		appendSelected = false
 		conclusionDef = conclusionDef:sub(16)
 	end
 
 	if conclusionDef == "SelectAll" then
 		return function(uids)
 			countPresses()
-			return handleIncludeSelected(includeSelected, uids)
+			Spring.SelectUnitArray(uids, appendSelected)
 		end
 	elseif conclusionDef == "SelectOne" then
 		return function(uids)
 			local pressCount = countPresses(commandDef)
-			local uid = uids[pressCount]
-			local oneUid = { uid }
+
+			if #uids == 0 then
+				Spring.SelectUnitArray({}, appendSelected)
+				return
+			end
+
+			uids = getCountUnits(uids, 1, appendSelected)
+			local uid = uids[1]
+
+			if not uid then
+				Spring.SelectUnitArray({}, appendSelected)
+				return
+			end
 
 			-- center on unit
 			local ux, uy, uz = spGetUnitPosition(uid)
 			Spring.SetCameraTarget(ux, uy, uz, 1)
-
-			return handleIncludeSelected(includeSelected, oneUid)
+			Spring.SelectUnitArray(uids, appendSelected)
 		end
 	elseif conclusionDef == "SelectClosestToCursor" then
 		return function(uids)
 			countPresses()
 
+			if #uids == 0 then
+				Spring.SelectUnitArray({}, appendSelected)
+				return
+			end
+
 			local x, y, z = getMouseWorldPos()
+
+			if not x or not y or not z then
+				Spring.SelectUnitArray({}, appendSelected)
+				return
+			end
+
 			local closest_uid = nil
 			local closest_distance = nil
 
@@ -482,23 +512,21 @@ local function parseConclusion(conclusionDef, commandDef)
 			end
 
 			local oneUid = { closest_uid }
-			return handleIncludeSelected(includeSelected, oneUid)
+			Spring.SelectUnitArray(oneUid, appendSelected)
 		end
 	elseif startsWith(conclusionDef, "SelectNum_") then
 		return parseNumber(conclusionDef, function(countUntil, uids)
 			local pressCount = countPresses(commandDef)
-			uids = getCountUnits(uids, countUntil * pressCount)
-			uids = handleIncludeSelected(includeSelected, uids)
-			return uids
+			uids = getCountUnits(uids, countUntil, appendSelected)
+			Spring.SelectUnitArray(uids, appendSelected)
 		end)
-	elseif startsWith(conclusionDef, "SelectPart_") then
+	elseif startsWith(conclusionDef, "SelectPart_50+") then
 		return parseNumber(conclusionDef, function(percent, uids)
 			countPresses()
 
-			local countUntil = #uids * percent / 100
-			uids = getCountUnits(uids, countUntil)
-			uids = handleIncludeSelected(includeSelected, uids)
-			return uids
+			local countUntil = math.floor(#uids * percent / 100)
+			uids = getCountUnits(uids, countUntil, appendSelected)
+			Spring.SelectUnitArray(uids, appendSelected)
 		end)
 	end
 end
