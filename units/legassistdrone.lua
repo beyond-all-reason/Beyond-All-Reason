@@ -40,8 +40,13 @@ return {
 			"legadvsol",
 			"legwin",
 			"corgeo",
+<<<<<<< Updated upstream
 			"cormstor",
 			"corestor",
+=======
+			"legmstor",
+			"legestor",
+>>>>>>> Stashed changes
 			"legmex",
 			"legmext15",
 			"cormakr",

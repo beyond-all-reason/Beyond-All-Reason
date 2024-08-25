@@ -477,6 +477,7 @@ local unitOrderTable = {
    ['armuwgeo']       = 101201,
    ['corgeo']         = 101250,
    --['coruwgeo']       = 101251,
+   ['leggeo']         = 101275,
    ['armgmm']         = 101300,
    ['corageo']        = 101350,
    ['coruwageo']      = 101351,
@@ -494,6 +495,7 @@ local unitOrderTable = {
    --ECO NRG STORAGE
    ['armestor']       = 101800,
    ['corestor']       = 101850,
+   ['legestor']       = 101875,
    ['armuwadves']     = 101900,
    ['coruwadves']     = 101950,
 

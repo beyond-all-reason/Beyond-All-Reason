@@ -67,7 +67,7 @@ return {
 			[1] = "legsolar",
 			[2] = "legwin",
 			[3] = "legmstor",
-			[4] = "corestor",
+			[4] = "legestor",
 			[5] = "legmex",
 			[6] = "legeconv",
 			[7] = "leglab",

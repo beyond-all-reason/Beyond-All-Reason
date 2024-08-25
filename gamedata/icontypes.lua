@@ -1459,6 +1459,10 @@ local icontypes = {
 		bitmap = "icons/energy6_1.3.png",
 		size = 1.36499989
 	},
+	leggeo = {
+		bitmap = "icons/energy6_1.3.png",
+		size = 1.36499989
+	},
 	corgol = {
 		bitmap = "icons/vehicle_t2_plasma_aoe.png",
 		size = 1.83749986
@@ -2446,6 +2450,14 @@ local icontypes = {
 	legmoho = {
 		bitmap = "icons/mex_t2.png",
 		size = 1.20749986
+	},
+	legmohobp = {
+		bitmap = "icons/mex_t2.png",
+		size = 1.20749986
+	},
+	legmohobpct = {
+		bitmap = "icons/blank.png",
+		size = 1.0
 	},
 	legamstor = {
 		bitmap = "icons/metalstorage_t2.png",

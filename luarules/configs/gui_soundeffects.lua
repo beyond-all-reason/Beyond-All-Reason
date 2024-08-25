@@ -2547,6 +2547,26 @@ GUIUnitSoundEffects = {
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-storage-metal",
 	},
+<<<<<<< Updated upstream
+=======
+	legestor = {
+		BaseSoundSelectType = "arm-bld-nrghum",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-storage",
+	},
+	legeconv = {
+		BaseSoundSelectType = "arm-bld-metal",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-metalmaker",
+        BaseSoundActivate = "arm-bld-mm-activate",
+        BaseSoundDeactivate = "arm-bld-mm-deactivate",
+	},
+	leggeo = {
+		BaseSoundSelectType = "arm-bld-select-medium",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-geo",
+	},
+>>>>>>> Stashed changes
 
 
 	-- LEGION T2 BUILDINGS
