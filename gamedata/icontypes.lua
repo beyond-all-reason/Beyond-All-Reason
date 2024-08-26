@@ -1263,6 +1263,10 @@ local icontypes = {
 		bitmap = "icons/vehicle_worker.png",
 		size = 0.99749994
 	},
+	cordeadeye = {
+		bitmap = "icons/armsnipe_1.3.png",
+		size = 1.36499989
+	},
 	cordecom = {
 		bitmap = "icons/corcom.png",
 		size = 1.83749986
