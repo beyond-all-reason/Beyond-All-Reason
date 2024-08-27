@@ -10,13 +10,9 @@ function widget:GetInfo()
 	}
 end
 
--- command definitions from https://github.com/beyond-all-reason/spring/blob/BAR105/rts/Sim/Units/CommandAI/Command.h
-local CMD_STOP = 0
-local CMD_WAIT = 5
-local CMD_PATROL = 15
-local CMD_GUARD = 25
-
 local minimapToWorld = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").minimapToWorld
+local selectApi = VFS.Include("luaui/Widgets/Include/select_api.lua")
+
 local skipSel
 local inSelection = false
 local inMiniMapSel = false
@@ -35,19 +31,17 @@ local mods = {
  all      = false, -- whether to select all units
  mobile   = false, -- whether to select only mobile units
 }
-local customRulesFilterDef = ""
+local customFilterDef = ""
 local lastMods = mods
-local lastCustomRulesFilterDef = customRulesFilterDef
+local lastCustomFilterDef = customFilterDef
 local lastMouseSelection = {}
 local lastMouseSelectionCount = 0
-
-local defaultdamagetag = Game.armorTypes['default']
-local vtoldamagetag = Game.armorTypes['vtol']
 
 local spGetMouseState = Spring.GetMouseState
 local spGetModKeyState = Spring.GetModKeyState
 local spGetSelectionBox = Spring.GetSelectionBox
 
+local spGetCommandQueue = Spring.GetCommandQueue
 local spIsGodModeEnabled = Spring.IsGodModeEnabled
 
 local spGetUnitsInScreenRectangle = Spring.GetUnitsInScreenRectangle
@@ -59,8 +53,6 @@ local spGetUnitTeam = Spring.GetUnitTeam
 local spIsAboveMiniMap = Spring.IsAboveMiniMap
 
 local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
-local spGetCommandQueue = Spring.GetCommandQueue
 local spGetUnitNoSelect = Spring.GetUnitNoSelect
 
 local GaiaTeamID = Spring.GetGaiaTeamID()
@@ -74,10 +66,7 @@ local combatFilter = {}
 local builderFilter = {}
 local buildingFilter = {}
 local mobileFilter = {}
-local customRulesFilter = {}
-local customRulesLookup = {}
-
-local nameLookup = {}
+local customFilter = {}
 
 for udid, udef in pairs(UnitDefs) do
 	if udef.modCategories['object'] or udef.customParams.objectify then
@@ -96,9 +85,6 @@ for udid, udef in pairs(UnitDefs) do
 	builderFilter[udid] = builder
 	buildingFilter[udid] = building
 	mobileFilter[udid] = isMobile
-
-	-- simple filters
-	nameLookup[udef.name] = udid
 end
 
 local dualScreen
@@ -129,294 +115,16 @@ local function handleSetModifier(_, _, _, data)
 	mods[data[1]] = data[2]
 end
 
-local function invertCurry(invert, rule, args)
-	return function(udef, udefid, uid)
-		local result = rule(udef, udefid, uid, args)
-		result = (result or false) ~= invert
-		return result
-	end
+
+
+local function handleSetCustomFilter(_, ruleDef)
+	customFilter = selectApi.getFilter(ruleDef)
+	customFilterDef = ruleDef
 end
 
-local function simpleUdefRule(invert, property)
-	return invertCurry(invert, function(udef)
-		return udef[property]
-	end)
-end
-
-local function notEmptyUdefRule(invert, property)
-	return invertCurry(invert, function(udef)
-		local table = udef[property]
-		if table and next(table) ~= nil then
-			return true
-		end
-		return false
-	end)
-end
-
-local function checkCmd(uid, cmdId, indexTemp)
-	local index = indexTemp or 1
-	local cmd = spGetCommandQueue(uid, index)
-	if cmd and cmd[index] and cmd[index]["id"] == cmdId then
-		return true
-	end
-	return false
-end
-
-local function isIdle(_udef, udefid, uid)
-	local canBeIdle = mobileFilter[udefid] or builderFilter[udefid]
-	return canBeIdle and spGetCommandQueue(uid, 0) == 0
-end
-
-local function stringContains(mainString, searchString)
-	return mainString:find(searchString, 1, true) ~= nil
-end
-
-local function parseRules(ruleDef)
-	local tokens = {}
-	local tokenIndex = 1
-
-	for token in ruleDef:gmatch("[^_]+") do
-		table.insert(tokens, token)
-	end
-
-	local function getNextToken()
-		local token = tokens[tokenIndex]
-		tokenIndex = tokenIndex + 1
-		return token
-	end
-
-	local rules = {}
-	local invertIdMatches = nil
-	local idMatchesSet = {}
-
-	while true do
-		local token = getNextToken()
-		local invert = false
-
-		if token == "Not" then
-			invert = true;
-			token = getNextToken()
-		end
-
-		if not token then
-			break
-		end
-
-		-- simple rules
-		if token == "Aircraft" then
-			rules.aircraftRule = simpleUdefRule(invert, "canFly")
-		elseif token == "Builder" then
-			rules.builderRule = invertCurry(invert, function(udef, udefid)
-				return builderFilter[udefid] and not udef.canResurrect
-			end)
-		elseif token == "Buildoptions" then
-			rules.buildOptionsRule = notEmptyUdefRule(invert, "buildOptions")
-		elseif token == "Building" then
-			rules.buildingRule = simpleUdefRule(invert, "isBuilding")
-		elseif token == "Cloak" then
-			rules.cloakRule = simpleUdefRule(invert, "canCloak")
-		elseif token == "Cloaked" then
-			rules.cloakedRule = invertCurry(invert, function(udef, _, uid)
-				return udef.canCloak and spGetUnitIsCloaked(uid)
-			end)
-		elseif token == "Jammer" then
-			rules.jammerRule = invertCurry(invert, function(udef)
-				return udef.jammerRadius > 0
-			end)
-		elseif token == "ManualFireUnit" then
-			rules.manualFireRule = simpleUdefRule(invert, "canManualFire")
-		elseif token == "Radar" then
-			rules.radarRule = invertCurry(invert, function(udef)
-				return udef.radarRadius > 0 or udef.sonarRadius > 0
-			end)
-		elseif token == "Resurrect" then
-			rules.resurrectRule = simpleUdefRule(invert, "canResurrect")
-		elseif token == "Stealth" then
-			rules.stealthRule = simpleUdefRule(invert, "stealth")
-		elseif token == "Transport" then
-			rules.transportRule = simpleUdefRule(invert, "isTransport")
-		elseif token == "Weapons" then
-			rules.weaponsRule = notEmptyUdefRule(invert, "weapons")
-
-			-- command queue rules
-		elseif token == "Idle" then
-			rules.idleRule = invertCurry(invert, isIdle)
-		elseif token == "Guarding" then
-			rules.guardingRule = invertCurry(invert, function(_udef, _udefid, uid)
-				return checkCmd(uid, CMD_GUARD)
-			end)
-		elseif token == "Waiting" then
-			rules.waitingRule = invertCurry(invert, function(_udef, _udefid, uid)
-				return checkCmd(uid, CMD_WAIT)
-			end)
-		elseif token == "Patrolling" then
-			rules.patrollingRule = invertCurry(invert, function(_udef, _udefid, uid)
-				for i = 1, 4, 1 do
-					if checkCmd(uid, CMD_PATROL, i) then
-						return true
-					end
-				end
-				return false
-			end)
-
-		-- hotkey rules
-		elseif token == "InHotkeyGroup" then
-			rules.inHotKeyGroup = invertCurry(invert, function(_, _, uid)
-				return Spring.GetUnitGroup(uid) ~= nil
-			end)
-		elseif token == "InGroup" then
-			local group = tonumber(getNextToken())
-			if not group then
-				break
-			end
-
-			rules.inGroup = invertCurry(invert, function(_, _, uid, selectGroup)
-				local unitGroup = Spring.GetUnitGroup(uid)
-				return unitGroup == selectGroup
-			end, group)
-
-			-- number comparison
-		elseif token == "AbsoluteHealth" then
-			local minHealth = tonumber(getNextToken())
-			if not minHealth then
-				break
-			end
-
-			rules.absoluteHealthRule = invertCurry(invert, function(_, _, uid, minHealth)
-				local health = Spring.GetUnitHealth(uid)
-				return health > minHealth
-			end, minHealth)
-		elseif token == "RelativeHealth" then
-			local minHealthPercent = tonumber(getNextToken())
-			if not minHealthPercent then
-				break
-			end
-			minHealthPercent = minHealthPercent / 100.0
-
-			rules.relativeHealthRule = invertCurry(invert, function(udef, _, uid, minHealthPercent)
-				local minHealth = minHealthPercent * udef.health
-				local health = Spring.GetUnitHealth(uid)
-				return health > minHealth
-			end, minHealthPercent)
-			-- elseif token == "RulesParamEquals" then
-			-- 	local param = getNextToken()
-			-- 	local value = getNextToken()
-
-			-- 	if not value or not param then
-			-- 		break
-			-- 	end
-
-			-- 	local ruleName = param .. "Rule"
-			-- 	rules[ruleName] = invertCurry(invert, function(udef, _, uid, args)
-			-- 		local param = args.param
-			-- 		local value = args.value
-			-- 		-- implementation here?
-			-- 	end, {param = param, value = value})
-		elseif token == "AntiAir" then
-			rules.antiAirRule = invertCurry(invert, function(udef)
-				if udef.wDefs == nil or udef.canFly then
-					return false
-				end
-
-				for _name, weapondef in pairs(udef.wDefs) do
-					if (weapondef.damages[vtoldamagetag] > weapondef.damages[defaultdamagetag]) then
-						return true
-					end
-				end
-				return false
-			end)
-		elseif token == "WeaponRange" then
-			local minRange = tonumber(getNextToken())
-			if not minRange then
-				break
-			end
-
-			rules.weaponRangeRule = invertCurry(invert, function(udef, _, _, minRange)
-				if udef.wDefs == nil then
-					return false
-				end
-
-				for _name, weapondef in pairs(udef.wDefs) do
-					if weapondef.range > minRange then
-						return true
-					end
-				end
-				return false
-			end, minRange)
-
-			-- string comparision
-			-- elseif token == "Category" then
-			-- 	local category = getNextToken()
-			-- 	if not category then
-			-- 		break
-			-- 	end
-
-			-- 	rules.categoryRule = invertCurry(invert, function(udef, _, _, category)
-			-- 		if udef.category == nil then
-			-- 			return false
-			-- 		end
-
-			-- 		return stringContains(udef.category, category)
-			-- 	end, category)
-		elseif token == "IdMatches" then
-			local name = getNextToken()
-			if not name then
-				break
-			end
-
-			local udefid = nameLookup[name];
-			idMatchesSet[udefid] = true
-
-			-- requires special invert logic
-			-- treats `invert = false` as priority
-			-- we don't want to handle pointless edge cases like IdMatches_armcom_Not_IdMatches_armcom
-			-- on the other hand IdMatches_armcom_Not_IdMatches_armflea is basically the same as IdMatches_armcom
-			local skip = false
-			if invertIdMatches == nil or invertIdMatches == invert then
-				invertIdMatches = invert
-			elseif invertIdMatches == true then
-				idMatchesSet = {}
-				invertIdMatches = false
-			elseif invertIdMatches == false then
-				skip = true
-			end
-
-			if not skip then
-				rules.idMatches = invertCurry(invertIdMatches, function(_, udefid, _, idMatchesSet)
-					return idMatchesSet[udefid] or false
-				end, idMatchesSet)
-			end
-		elseif token == "NameContain" then
-			local name = getNextToken()
-			if not name then
-				break
-			end
-
-			rules.nameRule = invertCurry(invert, function(udef, _, _, name)
-				return stringContains(udef.name, name)
-			end, name)
-		end
-	end
-
-	return rules
-end
-
-
-local function handleSetCustomRulesFilter(_, ruleDef)
-	local rules = customRulesLookup[ruleDef]
-
-	if rules == nil then
-		rules = parseRules(ruleDef)
-		customRulesLookup[ruleDef] = rules
-	end
-
-	customRulesFilter = rules
-	customRulesFilterDef = ruleDef
-end
-
-local function handleClearCustomRulesFilter(_, _, _)
-	customRulesFilter = {}
-	customRulesFilterDef = ""
+local function handleClearCustomFilter(_, _, _)
+	customFilter = {}
+	customFilterDef = ""
 end
 
 
@@ -528,13 +236,13 @@ function widget:Update()
 		and mods.deselect == lastMods[3]
 		and mods.all == lastMods[4]
 		and mods.mobile == lastMods[5]
-		and customRulesFilterDef == lastCustomRulesFilterDef
+		and customFilterDef == lastCustomFilterDef
 	then
 		return
 	end
 
 	lastMods = { mods.idle, mods.same, mods.deselect, mods.all, mods.mobile }
-	lastCustomRulesFilterDef = customRulesFilterDef
+	lastCustomFilterDef = customFilterDef
 
 	-- Fill dictionary for set comparison
 	-- We increase slightly the perf cost of cache misses but at the same
@@ -548,24 +256,12 @@ function widget:Update()
 
 	mouseSelection = tmp
 
-	if next(customRulesFilter) ~= nil then -- use custom filter if it's not empty
+	if next(customFilter) ~= nil then -- use custom filter if it's not empty
 		tmp = {}
 		for i = 1, #mouseSelection do
 			uid = mouseSelection[i]
 
-			local udefid = spGetUnitDefID(uid)
-			local udef = UnitDefs[udefid]
-			local passesAllRules = true
-			-- checkUdef(udef, "canManualFire")
-
-			for _ruleName, rule in pairs(customRulesFilter) do
-				if not rule(udef, udefid, uid) then
-					passesAllRules = false
-					break
-				end
-			end
-
-			if passesAllRules then
+			if selectApi.unitPassesFilter(uid, customFilter) then
 				tmp[#tmp + 1] = uid
 			end
 		end
@@ -580,7 +276,7 @@ function widget:Update()
 		for i = 1, #mouseSelection do
 			uid = mouseSelection[i]
 			udid = spGetUnitDefID(uid)
-			if isIdle(nil, udid, uid) then
+			if spGetCommandQueue(uid, 0) == 0 then
 				tmp[#tmp + 1] = uid
 			end
 		end
@@ -724,8 +420,8 @@ function widget:Initialize()
 		widgetHandler:AddAction("selectbox_" .. modifierName, handleSetModifier, { modifierName, false }, "r")
 	end
 
-	widgetHandler:AddAction("selectbox", handleSetCustomRulesFilter, nil, "p")
-	widgetHandler:AddAction("selectbox", handleClearCustomRulesFilter, nil, "r")
+	widgetHandler:AddAction("selectbox", handleSetCustomFilter, nil, "p")
+	widgetHandler:AddAction("selectbox", handleClearCustomFilter, nil, "r")
 
 	WG['smartselect'] = {}
 	WG['smartselect'].getIncludeBuildings = function()
