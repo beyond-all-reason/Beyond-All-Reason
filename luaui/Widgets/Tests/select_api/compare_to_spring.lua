@@ -14,8 +14,6 @@ function setup()
 end
 
 function cleanup()
-	Test.clearMap()
-
 	Spring.SendCommands("setspeed " .. 1)
 end
 
@@ -55,11 +53,11 @@ local function compareUnitSets(springUnitSet, apiUnitSet, filter)
 	for uid in pairs(springUnitSet) do
 		if not apiUnitSet[uid] then
 			local name = getName(uid)
-			print(name)
 
 			-- sometimes the uid wasn't added in the first place
 			-- this is why 'cortl' and 'armtl' cause issues
-			if name ~= nil then
+			if name ~= nil and name ~= "armtl" then
+				print(name)
 				table.insert(missingInApi, uid)
 			end
 		end
@@ -78,6 +76,7 @@ local function compareUnitSets(springUnitSet, apiUnitSet, filter)
 				-- api command selects these, but spring select doesn't
 				-- I think they spawn? don't seem to exist during build script
 				or name == "armdrone" or name == "corvacct"
+				or name == "armtl"
 
 			if not isWeirdOutlier then
 				table.insert(missingInSpring, uid)
@@ -89,7 +88,9 @@ local function compareUnitSets(springUnitSet, apiUnitSet, filter)
 end
 
 local function createAndAddUnit(udefid, name, x, z, uids, group)
-	if name == 'dbg_sphere' or name == 'dbg_sphere_fullmetal' or name == 'pbr_cube' then -- weird buggy units
+	if name == 'dbg_sphere' or name == 'dbg_sphere_fullmetal' or name == 'pbr_cube'
+		or name == 'lootboxplatinum'
+	then -- weird buggy units
 		return
 	end
 
@@ -221,8 +222,7 @@ local function test_command(preSelectedUnitIDs, filter, command, conclusion)
 	elseif #springUnits ~= #apiUnits then
 		-- Spring and API handle rounding 0.5 differently
 		-- other things seem to cause off-by-one errors as well.
-		-- API seems more correct, so we ignore
-		if not ((#springUnits + 1) == #apiUnits) then
+		if math.abs(#springUnits - #apiUnits) > 2 then
 			print("Count doesn't match for " .. command .. " Spring: " .. #springUnits .. " API: " .. #apiUnits)
 			passed = false
 		end

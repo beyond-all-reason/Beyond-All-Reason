@@ -28,8 +28,6 @@ local includeNanosAsMobile = true -- TODO
 local customFilterLookup = {}
 local customCommandLookup = {}
 
-local prevCommandDef = nil
-
 local function isBuilder(udef)
 	return (udef.canReclaim and udef.reclaimSpeed > 0) or                         -- reclaim
 		(udef.canResurrect and udef.resurrectSpeed > 0) or                        -- resurrect
@@ -283,26 +281,29 @@ local function parseFilter(filterDef)
 			end
 
 			local udefid = nameLookup[name];
-			idMatchesSet[udefid] = true
 
-			-- requires special invert logic
-			-- treats `invert = false` as priority
-			-- we don't want to handle pointless edge cases like IdMatches_armcom_Not_IdMatches_armcom
-			-- on the other hand IdMatches_armcom_Not_IdMatches_armflea is basically the same as IdMatches_armcom
-			local skip = false
-			if invertIdMatches == nil or invertIdMatches == invert then
-				invertIdMatches = invert
-			elseif invertIdMatches == true then
-				idMatchesSet = {}
-				invertIdMatches = false
-			elseif invertIdMatches == false then
-				skip = true
-			end
+			if udefid then
+				idMatchesSet[udefid] = true
 
-			if not skip then
-				filters.idMatches = invertCurry(invertIdMatches, function(_, udefid, _, idMatchesSet)
-					return idMatchesSet[udefid] or false
-				end, idMatchesSet)
+				-- requires special invert logic
+				-- treats `invert = false` as priority
+				-- we don't want to handle pointless edge cases like IdMatches_armcom_Not_IdMatches_armcom
+				-- on the other hand IdMatches_armcom_Not_IdMatches_armflea is basically the same as IdMatches_armcom
+				local skip = false
+				if invertIdMatches == nil or invertIdMatches == invert then
+					invertIdMatches = invert
+				elseif invertIdMatches == true then
+					idMatchesSet = {}
+					invertIdMatches = false
+				elseif invertIdMatches == false then
+					skip = true
+				end
+
+				if not skip then
+					filters.idMatches = invertCurry(invertIdMatches, function(_, udefid, _, idMatchesSet)
+						return idMatchesSet[udefid] or false
+					end, idMatchesSet)
+				end
 			end
 		elseif token == "NameContain" then
 			local name = getNextToken()
@@ -380,7 +381,12 @@ local function getMouseWorldPos()
 	return x, y, z
 end
 
+local countUnitsIndex = 1
 local function getCountUnits(uids, countUntil, appendSelected)
+	if #uids == 0 then
+		return {}
+	end
+
 	local alreadySelectedSet = {}
 
 	if appendSelected then
@@ -388,18 +394,35 @@ local function getCountUnits(uids, countUntil, appendSelected)
 	end
 
 	-- add countUntil units that aren't in alreadySelectedSet
-	local count = 0
+	local selectedCount = 0
 	local units = {}
 
-	for _, uid in pairs(uids) do
+	if countUnitsIndex > #uids then
+		countUnitsIndex = 1
+	end
+
+	local countUnitsIndexStart = countUnitsIndex
+	while true do
+		local uid = uids[countUnitsIndex]
+
 		if not alreadySelectedSet[uid] then
-			if count >= countUntil then
-				break
-			end
-			count = count + 1
+			selectedCount = selectedCount + 1
 			table.insert(units, uid)
 		end
+
+		-- circular array index
+		countUnitsIndex = countUnitsIndex + 1
+
+		if countUnitsIndex > #uids then
+			countUnitsIndex = 1
+		end
+
+		-- break after full cycle or countUntil reached
+		if countUnitsIndex == countUnitsIndexStart or selectedCount >= countUntil then
+			break;
+		end
 	end
+
 	return units
 end
 
@@ -415,8 +438,6 @@ function getAlreadySelectedSet()
 	return alreadySelectedSet
 end
 
-
-
 local function parseNumber(input, fn)
 	local numStr = input:match("_([^_]+)")
 	local distance = tonumber(numStr)
@@ -431,17 +452,6 @@ local function parseNumber(input, fn)
 end
 
 
-local pressCounter = 0
-local function countPresses(commandDef)
-	if prevCommandDef == commandDef then
-		pressCounter = pressCounter + 1
-	else
-		pressCounter = 1
-	end
-
-	return pressCounter
-end
-
 local function parseConclusion(conclusionDef, commandDef)
 	local appendSelected = true
 	local prefix = conclusionDef:sub(1, 15)
@@ -453,13 +463,10 @@ local function parseConclusion(conclusionDef, commandDef)
 
 	if conclusionDef == "SelectAll" then
 		return function(uids)
-			countPresses()
 			Spring.SelectUnitArray(uids, appendSelected)
 		end
 	elseif conclusionDef == "SelectOne" then
 		return function(uids)
-			local pressCount = countPresses(commandDef)
-
 			if #uids == 0 then
 				Spring.SelectUnitArray({}, appendSelected)
 				return
@@ -480,8 +487,6 @@ local function parseConclusion(conclusionDef, commandDef)
 		end
 	elseif conclusionDef == "SelectClosestToCursor" then
 		return function(uids)
-			countPresses()
-
 			if #uids == 0 then
 				Spring.SelectUnitArray({}, appendSelected)
 				return
@@ -516,14 +521,11 @@ local function parseConclusion(conclusionDef, commandDef)
 		end
 	elseif startsWith(conclusionDef, "SelectNum_") then
 		return parseNumber(conclusionDef, function(countUntil, uids)
-			local pressCount = countPresses(commandDef)
 			uids = getCountUnits(uids, countUntil, appendSelected)
 			Spring.SelectUnitArray(uids, appendSelected)
 		end)
 	elseif startsWith(conclusionDef, "SelectPart_50+") then
 		return parseNumber(conclusionDef, function(percent, uids)
-			countPresses()
-
 			local countUntil = math.floor(#uids * percent / 100)
 			uids = getCountUnits(uids, countUntil, appendSelected)
 			Spring.SelectUnitArray(uids, appendSelected)
@@ -615,11 +617,6 @@ function SelectApi.getCommand(commandDef)
 	end
 
 	return command
-end
-
---- Resets memory of the previous command.
-function SelectApi.clearMemory()
-	prevCommandDef = nil
 end
 
 return SelectApi

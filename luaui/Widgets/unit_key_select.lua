@@ -27,7 +27,3 @@ end
 function widget:Shutdown()
 	WG['keyselect'] = nil
 end
-
-function widget:SelectionChanged(_sel)
-	selectApi.clearMemory()
-end
