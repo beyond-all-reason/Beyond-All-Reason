@@ -176,19 +176,21 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldEmitterWeaponNum, shie
 			lastShieldFrameCheck[shieldCarrierUnitID] = gameframe
 		end
 
-		
-		if shieldPower > 100 then
-			local originX, originY, originZ = unpack(dgunOrigins[proID])
-			local dirX = hitX - originX
-			local dirZ = hitZ - originZ
-			local length = math.sqrt(dirX * dirX + dirZ * dirZ)
-			dirX = dirX / length
-			dirZ = dirZ / length
-			local newX = hitX - (WeaponDefs[proDefID].projectilespeed * 4) * dirX
-			local newZ = hitZ - (WeaponDefs[proDefID].projectilespeed * 4) * dirZ
+		-- Engine does not provide a way for shields to stop DGun projectiles, they will impact once and carry on through,
+		-- need to manually move them back a bit so the next touchdown hits the shield
+		if shieldPower > 0 then
+			-- Extra offset required to avoid edgecase where projectile penetrates, value chosen empirically
+			local offsetFactor = 1.1
+			local dx, dy, dz, speed = spGetProjectileVelocity(proID)
+			local magnitude = math.sqrt(dx^2 + dy^2 + dz^2)
+			local normalX, normalY, normalZ = dx / magnitude, dy / magnitude, dz / magnitude
 
-			local verticalOffset = 1
-			spSetProjectilePosition(proID, newX, math.max(spGetGroundHeight(newX, newZ), 0) - verticalOffset, newZ)
+			local x, y, z = spGetProjectilePosition(proID)
+			local newX = x - speed * normalX * offsetFactor
+			local newY = y - speed * normalY * offsetFactor
+			local newZ = z - speed * normalZ * offsetFactor
+
+			spSetProjectilePosition(proID, newX, newY, newZ)
 		end
 
 		return false
