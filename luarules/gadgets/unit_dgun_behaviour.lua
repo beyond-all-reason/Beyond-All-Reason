@@ -25,6 +25,7 @@ local spGetProjectileOwnerID = Spring.GetProjectileOwnerID
 local spSpawnExplosion = Spring.SpawnExplosion
 local spGetUnitPosition = Spring.GetUnitPosition
 local spSpawnCEG = Spring.SpawnCEG
+local spGetGameFrame = Spring.GetGameFrame
 
 local modOptions = Spring.GetModOptions()
 local dgunWeaponsTTL = {}
@@ -43,7 +44,6 @@ end
 local isCommander = {}
 local isDecoyCommander = {}
 local commanderNames = {}
-local frameCounter = 0
 
 for unitDefID, unitDef in ipairs(UnitDefs) do
 	if unitDef.customParams.iscommander or unitDef.customParams.isscavcommander then
@@ -89,7 +89,7 @@ end
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
 	if dgunWeapons[weaponDefID] then
 		flyingDGuns[proID] = true
-		dgunTimeouts[proID] = (frameCounter + dgunWeaponsTTL[weaponDefID])
+		dgunTimeouts[proID] = (spGetGameFrame() + dgunWeaponsTTL[weaponDefID])
 
 		local posX, posY, posZ = spGetProjectilePosition(proID)
 		dgunOrigins[proID] = {posX, posY, posZ}
@@ -134,18 +134,12 @@ function gadget:GameFrame(frame)
 	end
 
 	-- Without defining a time to live (TTL) for the DGun, it will live forever until it reaches maximum range. This means it would deal infinite damage to shields until it depleted them.
-	if next(dgunTimeouts) == nil then
-		frameCounter = 0
-	else
-		frameCounter = frameCounter + 1
-
-		for proID, timeout in pairs(dgunTimeouts) do
-			if frameCounter > timeout then
-				spDeleteProjectile(proID)
-				flyingDGuns[proID] = nil
-				groundedDGuns[proID] = nil
-				dgunTimeouts[proID] = nil
-			end
+	for proID, timeout in pairs(dgunTimeouts) do
+		if frame > timeout then
+			spDeleteProjectile(proID)
+			flyingDGuns[proID] = nil
+			groundedDGuns[proID] = nil
+			dgunTimeouts[proID] = nil
 		end
 	end
 end
@@ -174,10 +168,12 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldEmitterWeaponNum, shie
 		local shieldEnabledState, shieldPower = spGetUnitShieldState(shieldCarrierUnitID)
 		local damage = WeaponDefs[proDefID].damages[Game.armorTypes.shields] or WeaponDefs[proDefID].damages[Game.armorTypes.default]
 
-		if modOptions.shieldsrework == false and hitX > 0 and lastShieldFrameCheck[shieldCarrierUnitID] ~= frameCounter then
+		local gameframe = spGetGameFrame()
+
+		if not modOptions.shieldsrework and hitX > 0 and lastShieldFrameCheck[shieldCarrierUnitID] ~= gameframe then
 			shieldPower = math.max(shieldPower - damage, 0)
 			spSetUnitShieldState(shieldCarrierUnitID, shieldEmitterWeaponNum, shieldEnabledState, shieldPower)
-			lastShieldFrameCheck[shieldCarrierUnitID] = frameCounter
+			lastShieldFrameCheck[shieldCarrierUnitID] = gameframe
 		end
 
 		
