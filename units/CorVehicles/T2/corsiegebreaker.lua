@@ -146,7 +146,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
-				energypershot = 1400,
+				energypershot = 1500,
 				explosiongenerator = "custom:laserhit-large-blue",
 				firestarter = 70,
 				fireTolerance = 1000,
@@ -159,7 +159,7 @@ return {
 				noselfdamage = true,
 				predictboost = 1,
 				range = 910,
-				reloadtime = 10,
+				reloadtime = 8,
 				rgbcolor = "0 1 0.8",
 				rgbcolor2 = "0.3 1 0.9",
 				soundhitdry = "",
@@ -172,12 +172,12 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 1250,
 				damage = {
-					commanders = 25,
-					default = 76,
+					commanders = 1500,
+					default = 4000,--76
 				},
-				customparams = {
-					sweepfire=3.25,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
-				}
+				--customparams = {
+					--sweepfire=3.25,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
+				--}
 			},
 
 
@@ -242,16 +242,16 @@ return {
 				burstControlWhenOutOfArc = 2,
 				weaponAimAdjustPriority = 125,
 			},
-			[2] = {--not used directly, silent version for animation reasons
-				badtargetcategory = "VTOL GROUNDSCOUT",
-				def = "dreadshot",
-				maindir = "0 0 1",
-				maxangledif = 50,
-				onlytargetcategory = "SURFACE",
-				fastautoretargeting = true,
-				burstControlWhenOutOfArc = 2,
-				weaponAimAdjustPriority = 125,
-			},
+			--[2] = {--not used directly, silent version for animation reasons
+				--badtargetcategory = "VTOL GROUNDSCOUT",
+				--def = "dreadshot",
+				--maindir = "0 0 1",
+				--maxangledif = 50,
+				--onlytargetcategory = "SURFACE",
+				--fastautoretargeting = true,
+				--burstControlWhenOutOfArc = 2,
+				--weaponAimAdjustPriority = 125,
+			--},
 		},
 	},
 }
