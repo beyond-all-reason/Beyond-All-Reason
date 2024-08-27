@@ -63,10 +63,9 @@ for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 	if weaponDef.customParams.beamtime_damage_reduction_multiplier then
 		local base = weaponDef.customParams.shield_damage
 		local multiplier = weaponDef.customParams.beamtime_damage_reduction_multiplier
-		local damage = math.max(base * multiplier)
-		originalShieldDamages[weaponDefID] = math.floor(damage)
+		originalShieldDamages[weaponDefID] = math.ceil(base * multiplier)
 	else
-		originalShieldDamages[weaponDefID] = tonumber(weaponDef.customParams.shield_damage)
+		originalShieldDamages[weaponDefID] = weaponDef.customParams.shield_damage
 	end
 
 	if weaponDef.type == 'Flame' then
@@ -89,9 +88,6 @@ end
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	if shieldUnitDefs[unitDefID] then
 		shieldUnitsData[unitID] = {
-			isStatic = shieldUnitDefs[unitDefID].isStatic or false,        -- Used to prefer paralyze disable method for shields that don't move
-			team = unitTeam,                                               -- For future AOE damage mitigation
-			location = { 0, 0, 0 },                                        -- For future AOE damage mitigation
 			shieldEnabled = true,                                          -- Virtualized enabled/disabled state until engine equivalent is changed
 			shieldDamage = 0,                                              -- This stores the value of damages populated in ShieldPreDamaged(), then applied in GameFrame() all at once
 			shieldWeaponNumber = -1,                                       -- This is replaced with the real shieldWeaponNumber as soon as the shield is damaged
@@ -170,7 +166,7 @@ local function shieldNegatesDamageCheck(unitID, unitTeam, attackerID, attackerTe
 		end
 
 		for shieldUnitID, _ in pairs(shieldedUnits[unitID]) do
-			if shieldedUnits[attackerID][subKey] then
+			if shieldedUnits[attackerID][shieldUnitID] then
 				break
 			else
 				--The units have to share all of the same shield spaces. As soon as a mismatch is found, that means they don't occupy the same shield space and the shot should be blocked.
@@ -259,14 +255,14 @@ function gadget:GameFrame(frame)
 
 		shieldCheckChunkSize = math.max(math.ceil(shieldUnitsTotalCount / 10), 1)
 
-		if lastShieldCheckChunkNumber > #shieldUnitIndex then
-			lastShieldCheckChunkNumber = 1
+		if lastShieldCheckedIndex > #shieldUnitIndex then
+			lastShieldCheckedIndex = 1
 		end
 
-		shieldCheckEndIndex = math.min(lastShieldCheckChunkNumber + shieldCheckChunkSize - 1, #shieldUnitIndex)
+		shieldCheckEndIndex = math.min(lastShieldCheckedIndex + shieldCheckChunkSize - 1, #shieldUnitIndex)
 	end
 
-	for i = lastShieldCheckChunkNumber, shieldCheckEndIndex do
+	for i = lastShieldCheckedIndex, shieldCheckEndIndex do
 		local shieldUnitID = shieldUnitIndex[i]
 		local shieldData = shieldUnitsData[shieldUnitID]
 
@@ -283,10 +279,10 @@ function gadget:GameFrame(frame)
 		end
 	end
 
-	lastShieldCheckChunkNumber = shieldCheckEndIndex + 1
+	lastShieldCheckedIndex = shieldCheckEndIndex + 1
 
-	if lastShieldCheckChunkNumber > #shieldUnitIndex then
-		lastShieldCheckChunkNumber = 1
+	if lastShieldCheckedIndex > #shieldUnitIndex then
+		lastShieldCheckedIndex = 1
 	end
 end
 

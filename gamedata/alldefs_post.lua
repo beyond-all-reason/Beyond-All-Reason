@@ -1386,14 +1386,12 @@ function WeaponDef_Post(name, wDef)
 				wDef.shield.exterior = true
 			end
 
-			if (not wDef.interceptedbyshieldtype) or wDef.interceptedbyshieldtype ~= 1 then
-				for _, exemption in ipairs(shieldCollisionExemptions) do
-					if string.find(name, exemption)then
-						wDef.interceptedbyshieldtype = 4
-						break
-					else
-						wDef.interceptedbyshieldtype = 1
-					end
+			wDef.interceptedbyshieldtype = 1
+
+			for _, exemption in ipairs(shieldCollisionExemptions) do
+				if string.find(name, exemption)then
+					wDef.interceptedbyshieldtype = 2
+					break
 				end
 			end
 
