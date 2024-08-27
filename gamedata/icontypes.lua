@@ -1655,7 +1655,15 @@ local icontypes = {
 		bitmap = "icons/nanot1.png",
 		size = 0.96599996
 	},
+	legnanotc = {
+		bitmap = "icons/nanot1.png",
+		size = 0.96599996
+	},
 	cornanotcplat = {
+		bitmap = "icons/nanot1.png",
+		size = 0.96599996
+	},
+	legnanotcplat = {
 		bitmap = "icons/nanot1.png",
 		size = 0.96599996
 	},
@@ -2290,6 +2298,10 @@ local icontypes = {
 	legdrone = {
 		bitmap = "icons/air_hover.png",
 		size = 0.5
+	},
+	legheavydrone = {
+		bitmap = "icons/heavyheatraydrone.png",
+		size = 0.75
 	},
 	legfhp = {
 		bitmap = "icons/factory_hover.png",

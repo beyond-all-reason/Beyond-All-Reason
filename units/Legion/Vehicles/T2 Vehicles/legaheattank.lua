@@ -122,7 +122,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
-				energypershot = 500,
+				energypershot = 300,
 				explosiongenerator = "custom:laserhit-medium",
 				firestarter = 30,
 				firetolerance = 1820,

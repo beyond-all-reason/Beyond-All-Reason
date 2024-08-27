@@ -155,7 +155,6 @@ return {
 				explosiongenerator = "custom:burnblackbig",
 				firestarter = 100,
 				firesubmersed = false,
-				groundbounce = true,
 				gravityaffected = true,
 				impulseboost = 0,
 				impulsefactor = 0,

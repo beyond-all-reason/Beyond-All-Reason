@@ -24,7 +24,7 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		energymake = 25,
-		energystorage = 500,
+		energystorage = 1000,
 		explodeas = "commanderExplosion",
 		footprintx = 2,
 		footprintz = 2,
@@ -214,7 +214,6 @@ return {
 				name = "Rapid-fire a2g machine guns",
 				noselfdamage = true,
 				ownerExpAccWeight = 4.0,
-				proximitypriority = 3,
 				range = 300,
 				reloadtime = 0.4,
 				rgbcolor = "1 0.95 0.4",
@@ -229,7 +228,7 @@ return {
 				weapontype = "LaserCannon",
 				weaponvelocity = 950,
 				damage = {
-					default = 22,
+					default = 25,
 				},
 			},
 			torpedo = {
@@ -375,7 +374,6 @@ return {
 				explosiongenerator = "custom:expldgun",
 				firestarter = 100,
 				firesubmersed = false,
-				groundbounce = true,
 				impulseboost = 0,
 				impulsefactor = 0,
 				name = "Disintegrator",
