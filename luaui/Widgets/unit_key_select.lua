@@ -20,7 +20,7 @@ end
 
 ---@diagnostic disable-next-line: duplicate-set-field
 function widget:Initialize()
-	widgetHandler:AddAction("keyselect", handleSetCommand, nil, "p")
+	widgetHandler:AddAction("select", handleSetCommand, nil, "p")
 end
 
 ---@diagnostic disable-next-line: duplicate-set-field

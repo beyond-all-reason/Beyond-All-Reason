@@ -595,10 +595,7 @@ local function parseCommand(commandDef)
 			end
 		end
 
-		uids = conclusion(tmp)
-		prevCommandDef = commandDef
-
-		return uids
+		conclusion(tmp)
 	end
 end
 
