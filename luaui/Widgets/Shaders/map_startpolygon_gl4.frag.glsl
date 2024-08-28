@@ -14,6 +14,7 @@ uniform int myAllyTeamID = -1;
 uniform int flipMiniMap = 0;
 uniform vec4 startBoxes[NUM_BOXES]; // all in xyXY format
 uniform int noRushTimer;
+uniform vec4 pingData; // x,y,z = ping pos, w = ping time
 float noRushFramesLeft;
 
 
@@ -196,10 +197,16 @@ void main(void)
 			return;
 		}
 	}
-
+	// Status Indicators
 	float closestbox = 1e6;
 	float furthestbox = 0;
 	float smoothDistance = max(mapSize.x, mapSize.y);
+
+	int numEnemyBoxes = 0;
+	int inAllyBox = 0;
+	int inScavBox = 0;
+	int inRaptorBox = 0;
+	bool isPassable = false;
 	vec3 mycolor = vec3(0,0,0);
 	#if 0
 	for (int i = 0; i < NUM_BOXES; i++) {
@@ -220,6 +227,9 @@ void main(void)
 		for (int i = 0; i < NUM_POLYGONS; i = i + 1){
 			while (int(polyVerts[endpoint].x) == teamID){
 				endpoint = endpoint + 1;
+				if (endpoint == NUM_POINTS){
+					break;
+				}
 			}
 
 			float sd = sdPolygon2(mapWorldPos.xz, startpoint, endpoint - startpoint);
@@ -230,8 +240,17 @@ void main(void)
 			if (sd < 0){
 				if (teamID == myAllyTeamID + 0){
 					mycolor.g = 1.0;
+					inAllyBox = 1;
 				}else{
+					numEnemyBoxes = numEnemyBoxes + 1;
 					mycolor.r = 1.0;
+				}
+
+				if (teamID == SCAV_ALLYTEAM_ID){
+					inScavBox = 1;
+				}
+				if (teamID == RAPTOR_ALLYTEAM_ID){
+					inRaptorBox = 1;
 				}
 			}else{
 				smoothDistance = smin(smoothDistance, sd, 50.0);
@@ -259,25 +278,44 @@ void main(void)
 	vec3 mapnormal = textureLod(mapNormals, uvhm, 0.0).raa; // seems to be in the [-1, 1] range!, raaa is its true return
 	mapnormal.g = sqrt( 1.0 - dot( mapnormal.rb, mapnormal.rb)); // reconstruct Y from it
 
+	if (mapnormal.y < MAX_STEEPNESS){
+		isPassable = true;
+	}
+
+	// Generate a build grid (matching the usual 64+32 elmo subgrid)
+	vec2 fragSize = fwidth(mapWorldPos.xz);
+	float fragSizeFactor = 1.0/  dot(vec2(1.0),fragSize);
+
+	vec2 buildGrid16 = abs(fract(mapWorldPos.xz/16.0 - 0.5) - 0.5) * (4)/fragSize;
+	float grid16 = 0.25* clamp(1.0 - min(buildGrid16.x, buildGrid16.y), 0.0, 1.0);
+
+	vec2 buildGrid32 = abs(fract(mapWorldPos.xz/32.0 - 0.5) - 0.5) * (8)/fragSize;
+	float grid32 = 0.5*clamp(1.0 - min(buildGrid32.x, buildGrid32.y), 0.0, 1.0);
+
+	vec2 buildGrid64 = abs(fract(mapWorldPos.xz/64.0 - 0.5) - 0.5) * (64)/fragSize;
+	float grid64 = clamp(1.0 - min(buildGrid64.x, buildGrid64.y), 0.0, 1.0);
+
+	float gridmerge = fragSizeFactor * dot(vec3(grid16, grid32, grid64), vec3(0.5, 0.75, 1.0));
+	//fragColor.rgba = vec4(vec3(gridmerge), 0.2); return;
 
 	if (closestbox < 0.5) {
 		fragColor.a = 0.25; 
 		fragColor.rgb = mycolor;
 		//float anim =  Cellular3D(0.01* vec3(mapWorldPos.xz, dot (mapWorldPos.xz, vec2(1.0)) * 0.1 + timeInfo.y * 50));
-		float anim =  Cellular3D((1.0/96.0)* vec3(mapWorldPos.xz,closestbox * 0.1 + timeInfo.y * 50));
+		float anim =  Cellular3D((1.0/128.0)* vec3(mapWorldPos.xz, closestbox * 0.2 - timeInfo.y * 50));
 
 		float expboxedge = 0.5 * expSustainedImpulse(-1* closestbox, 32.0, (1/32.0));
-		fragColor.a = expboxedge * anim;
+		fragColor.a = expboxedge * anim *(gridmerge + 0.5);
 		//fragColor.a = clamp(expboxedge , 0.4 * anim, 0.5);
 		if (mapnormal.y < MAX_STEEPNESS){
 			fragColor.a = 0.5;
-			fragColor.g = step(fract((mapWorldPos.x + mapWorldPos.z) / 16), 0.5);
+			fragColor.g = smoothstep(0.48, 0.52, fract((mapWorldPos.x + mapWorldPos.z) / 16));
 		}
 		//fragColor.a = sin( closestbox * 0.02 + timeInfo.y * 0.1);
 		//fragColor.a *= Cellular3D(0.01* vec3(mapWorldPos.xz, timeInfo.y));
 	}else{
 		
-		fragColor.a = sin(smoothDistance * 0.2) * 0.5;
+		fragColor.a = clamp(sin(smoothDistance * 0.2) * 0.025, 0.0,1.0);
 
 		fragColor.rgb = vec3(0.0);
 	}
