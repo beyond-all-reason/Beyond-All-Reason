@@ -43,7 +43,7 @@ return {
 			"corfus",
 			"corafus",
 			"leggant",
-			"corageo",
+			"legageo",
 			"corbhmth",
 			"legmoho",
 			"cormexp",

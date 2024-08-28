@@ -1079,6 +1079,10 @@ local icontypes = {
 		bitmap = "icons/hazardous.png",
 		size = 1.88999987
 	},
+	legageo = {
+		bitmap = "icons/hazardous.png",
+		size = 1.88999987
+	},
 	corah = {
 		bitmap = "icons/hover_aa.png",
 		size = 1.15499997
