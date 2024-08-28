@@ -745,7 +745,7 @@ local function DoDrawSSAO()
 	gl.DepthTest(true) --"BK OpenGL state resets", already commented out
 end
 
-function widget:DrawWorld()
+function widget:DrawWorldPreParticles()
 	if shaderConfig.ENABLE == 0 then return end
 	DoDrawSSAO(false)
 
