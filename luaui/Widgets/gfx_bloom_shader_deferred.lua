@@ -187,11 +187,11 @@ local function MakeBloomShaders()
 			}
 		]],
 		--while this vertex shader seems to do nothing, it actually does the very important world space to screen space mapping for gl.TexRect!
-		vertex = 
+		vertex =
 			"#version 150 compatibility\n" .. definesString ..[[
 			void main(void)	{
 				gl_TexCoord[0] = vec4(gl_Vertex.zwzw);
-				#if DOWNSCALE >= 2 
+				#if DOWNSCALE >= 2
 					gl_TexCoord[0].xy = vec2(gl_TexCoord[0].xy * vec2(DOWNSCALE * HSX, DOWNSCALE * HSY ) /  vec2(VSX, VSY));
 				#endif
 				gl_Position    = vec4(gl_Vertex.xy, 0, 1);	}
@@ -231,36 +231,36 @@ local function MakeBloomShaders()
 				quadVector = quadVector * odd_start_mirror;
 				return sign(quadVector);
 			}
-			
-			vec3 quadGatherSum3D(vec3 input, vec2 quadVector){
-				vec3 inputadjx = input - dFdx(input) * quadVector.x;
-				vec3 inputadjy = input - dFdy(input) * quadVector.y;
+
+			vec3 quadGatherSum3D(vec3 inputval, vec2 quadVector){
+				vec3 inputadjx = inputval - dFdx(inputval) * quadVector.x;
+				vec3 inputadjy = inputval - dFdy(inputval) * quadVector.y;
 				vec3 inputdiag = inputadjx - dFdy(inputadjx) * quadVector.y;
-				return (input + inputadjx + inputadjy + inputdiag) * 0.25;
+				return (inputval + inputadjx + inputadjy + inputdiag) * 0.25;
 				//return vec4(
-				//	dot( vec4(input.x, inputadjx.x, inputadjy.x, inputdiag.x), vec4(1.0)),
-				//	dot( vec4(input.y, inputadjx.y, inputadjy.y, inputdiag.y), vec4(1.0)),
-				//	dot( vec4(input.z, inputadjx.z, inputadjy.z, inputdiag.z), vec4(1.0)),
-				//	dot( vec4(input.w, inputadjx.w, inputadjy.w, inputdiag.w), vec4(1.0))
+				//	dot( vec4(inputval.x, inputadjx.x, inputadjy.x, inputdiag.x), vec4(1.0)),
+				//	dot( vec4(inputval.y, inputadjx.y, inputadjy.y, inputdiag.y), vec4(1.0)),
+				//	dot( vec4(inputval.z, inputadjx.z, inputadjy.z, inputdiag.z), vec4(1.0)),
+				//	dot( vec4(inputval.w, inputadjx.w, inputadjy.w, inputdiag.w), vec4(1.0))
 				//	);
 			}
 
 			#define WF 0.56
 			vec4 selfWeights = vec4(WF*WF, WF*(1.0-WF), WF*(1.0-WF), (1.0-WF)*(1.0-WF)); // F*F, F*(1.0-F), F*(1.0-F), (1-F)*(1-F)
-			vec3 quadGatherSum3DWeighted(vec3 input, vec2 quadVector){
-				vec3 inputadjx = input - dFdx(input) * quadVector.x;
-				vec3 inputadjy = input - dFdy(input) * quadVector.y;
+			vec3 quadGatherSum3DWeighted(vec3 inputval, vec2 quadVector){
+				vec3 inputadjx = inputval - dFdx(inputval) * quadVector.x;
+				vec3 inputadjy = inputval - dFdy(inputval) * quadVector.y;
 				vec3 inputdiag = inputadjx - dFdy(inputadjx) * quadVector.y;
 				return vec3(
-					dot( vec4(input.x, inputadjx.x, inputadjy.x, inputdiag.x), vec4(selfWeights)),
-					dot( vec4(input.y, inputadjx.y, inputadjy.y, inputdiag.y), vec4(selfWeights)),
-					dot( vec4(input.z, inputadjx.z, inputadjy.z, inputdiag.z), vec4(selfWeights))
+					dot( vec4(inputval.x, inputadjx.x, inputadjy.x, inputdiag.x), vec4(selfWeights)),
+					dot( vec4(inputval.y, inputadjx.y, inputadjy.y, inputdiag.y), vec4(selfWeights)),
+					dot( vec4(inputval.z, inputadjx.z, inputadjy.z, inputdiag.z), vec4(selfWeights))
 					);
 			}
 
 			void main(void) {
 				vec2 texCoors = vec2(gl_TexCoord[0]); // These are ideal texel perfect
-				
+
 				//gl_FragColor = vec4(texture2D(texture0,texCoors).rgb, 1.0);return;
 				vec2 subpixel = vec2(IHSX, IHSY) * 0.5;
 				vec2 offset = vec2(IHSX, 0.0);
@@ -270,8 +270,8 @@ local function MakeBloomShaders()
 					}
 				vec3 newblur;
 				const float lod = 0.0;
-				
-				#if DOWNSCALE >= 2 
+
+				#if DOWNSCALE >= 2
 					// old decent method, truly 14 pixel wide kernel in 7 samples
 					newblur   = 6  * texture2D(texture0, texCoors + offset *  6.0 + subpixel, lod).rgb;
 					newblur  += 10 * texture2D(texture0, texCoors + offset *  4.0 + subpixel, lod).rgb;
@@ -286,15 +286,15 @@ local function MakeBloomShaders()
 					// new awesome method, 32 pixel wide kernel in 5 samples
 					vec2 quadVector = quadGetQuadVector(gl_FragCoord.xy);
 					//https://docs.google.com/spreadsheets/d/15nBdQMMwKzpbxot-BLrCQ_ZraPClJiRKD1pTvH6QGH0/edit?usp=sharing
-					
-					float SelfWeight = 0.202;				
+
+					float SelfWeight = 0.202;
 					vec4 WeightsNearer =  vec4(0.190,0.139,0.080,0.035);
 					vec4 WeightsFurther = vec4(0.168,0.109,0.055,0.022);
-										
-					float SelfOffset = 0.496;				
+
+					float SelfOffset = 0.496;
 					vec4 OffsetsNearer =  vec4(2.488,6.473,10.457,14.442	);
 					vec4 OffsetsFurther = vec4(4.480,8.465,12.449,16.434	);
-					
+
 
 					vec4 offsets = vec4(2,6,10,12);
 					//vec4 offsets = vec4(1,3,5,7);
@@ -311,46 +311,46 @@ local function MakeBloomShaders()
 					vec3 quadSideSample = vec3(0);
 					// center the UV coords between texel centers:
 					vec2 sideSampleOffset;
-					
+
 					subpixel = vec2(0.0);
-					if (horizontal > 0.5 ){ 
+					if (horizontal > 0.5 ){
 						// this means vertical pass
 						// on vertical pass, move X coord towards center
 
 						if (quadVector.x > 0) {
 							weights = WeightsNearer;
-							offsets = OffsetsNearer; 
+							offsets = OffsetsNearer;
 						}else{
 							weights = WeightsFurther;
-							offsets = OffsetsFurther; 
+							offsets = OffsetsFurther;
 						}
 						sideSampleOffset = vec2( 0.5 * quadVector.x, SelfOffset * quadVector.y ) * offset;
 						offsets *= -1 * quadVector.y;
-						
+
 					}else{
 						// bail for now
 						//gl_FragColor = vec4(baseSample/baseweight, 1.0); return;
 						if (quadVector.y > 0) {
 							weights = WeightsNearer;
-							offsets = OffsetsNearer; 
+							offsets = OffsetsNearer;
 						}else{
 							weights = WeightsFurther;
-							offsets = OffsetsFurther; 
+							offsets = OffsetsFurther;
 						}
 						sideSampleOffset = vec2( SelfOffset * quadVector.x, 0.5 * quadVector.y ) * offset;
 						offsets *= -1 * quadVector.x;
 					}
 
 					quadSideSample = SelfWeight * texture2D(texture0, quadCenterUV + sideSampleOffset + subpixel).rgb;
-					
+
 					blurSample += weights.x * texture2D(texture0, quadCenterUV + offset * offsets.x + subpixel).rgb;
 					blurSample += weights.y * texture2D(texture0, quadCenterUV + offset * offsets.y + subpixel).rgb;
 					blurSample += weights.z * texture2D(texture0, quadCenterUV + offset * offsets.z + subpixel).rgb;
 					blurSample += weights.w * texture2D(texture0, quadCenterUV + offset * offsets.w + subpixel).rgb;
-					
+
 					vec3 myfriends =  quadGatherSum3D(blurSample , quadVector) ;
 					myfriends =  myfriends + quadGatherSum3DWeighted(quadSideSample, quadVector);
-					
+
 					gl_FragColor = vec4(myfriends * fragBlurAmplifier * 1.8 , 1.0);
 				#endif
 				/*
@@ -403,7 +403,7 @@ local function MakeBloomShaders()
 				float time0 = sin(time*0.003);
 				// mega debugging:
 				//if (dot(vec2(1.0), abs(gl_FragCoord.xy - (vec2(HSX,HSY) - 150))) < 40){ gl_FragColor = vec4(1); return;}
-				
+
 				// Center texture coordinates correctly
 				vec2 texCoors = vec2(gl_TexCoord[0].xy * vec2(VSX, VSY) / vec2(DOWNSCALE * HSX, DOWNSCALE * HSY ));
 				#if DOWNSCALE <= 2
@@ -414,8 +414,8 @@ local function MakeBloomShaders()
 						gl_FragColor = 	vec4(0.0, 0.0, 0.0, 1.0);
 						return;
 					}
-					
-		
+
+
 					float mapDepth = texture2D(mapDepthTex, texCoors).r;
 					float unoccludedModel = float(modelDepth < mapDepth); // this is 1 for a model fragment
 
@@ -435,8 +435,8 @@ local function MakeBloomShaders()
 						gl_FragColor = 	vec4(0.0, 0.0, 0.0, 1.0);
 						return;
 					}
-					
-		
+
+
 					float mapDepth = texture2D(mapDepthTex, texCoors).r;
 					float unoccludedModel = float((modelDepth1 + modelDepth2) * 0.5 < mapDepth); // this is 1 for a model fragment
 
@@ -451,7 +451,7 @@ local function MakeBloomShaders()
 
 				#endif
 
-				
+
 				//Handle transparency in color.a
 				color.rgb = color.rgb * color.a;
 
