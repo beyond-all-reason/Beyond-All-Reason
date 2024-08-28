@@ -12,8 +12,16 @@ if not Spring.GetModOptions().shieldsrework then return false end
 if not gadgetHandler:IsSyncedCode() then return end
 
 ---- Optional unit customParams ----
--- shield_downtime = <number in seconds>, if not set defaults to 5 seconds
+-- shield_downtime = <number in seconds>, if not set defaults to defaultDowntime
 -- shield_aoe_penetration = bool, if true then AOE damage will hurt units within the shield radius
+
+local defaultDowntime = 1
+
+-- To save on performance, do not perform AoE damage mitigation checks below this threshold, value chosen empirically to negate laser AoE from a Sumo
+local aoeIgnoreThreshold = 11
+
+-- Units half-in/half-out of a shield should not be protected, so need a buffer of non-coverage near the edge, value chosen empirically through testing to avoid having to look up collision volumes
+local radiusExclusionBuffer = 10
 
 local spGetUnitShieldState = Spring.GetUnitShieldState
 local spSetUnitShieldState = Spring.SetUnitShieldState
@@ -56,7 +64,7 @@ for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 	local areaOfEffect = weaponDef.damageAreaOfEffect
 	local interceptedByShieldType = weaponDef.interceptedByShieldType
 
-	if areaOfEffect > 11 and not weaponDef.customParams.shield_aoe_penetration and weaponDef.interceptedByShieldType == 1 then -- 11 because the the benchmark cortex sumo has a AOE of 12
+	if areaOfEffect > aoeIgnoreThreshold and not weaponDef.customParams.shield_aoe_penetration and weaponDef.interceptedByShieldType == 1 then -- 11 because the the benchmark cortex sumo has a AOE of 12
 		AOEWeaponDefIDs[weaponDefID] = true
 	end
 
@@ -88,12 +96,12 @@ end
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	if shieldUnitDefs[unitDefID] then
 		shieldUnitsData[unitID] = {
-			shieldEnabled = true,                                          -- Virtualized enabled/disabled state until engine equivalent is changed
-			shieldDamage = 0,                                              -- This stores the value of damages populated in ShieldPreDamaged(), then applied in GameFrame() all at once
-			shieldWeaponNumber = -1,                                       -- This is replaced with the real shieldWeaponNumber as soon as the shield is damaged
-			downtime = shieldUnitDefs[unitDefID].customParams.shield_downtime or 8, -- Defined in unitdef.customparams with a default fallback value
+			shieldEnabled = true,			-- Virtualized enabled/disabled state until engine equivalent is changed
+			shieldDamage = 0,				-- This stores the value of damages populated in ShieldPreDamaged(), then applied in GameFrame() all at once
+			shieldWeaponNumber = -1,		-- This is replaced with the real shieldWeaponNumber as soon as the shield is damaged
+			downtime = shieldUnitDefs[unitDefID].customParams.shield_downtime or defaultDowntime, -- Defined in unitdef.customparams with a default fallback value
 			downtimeReset = 0,
-			shieldCoverageChecked = false,									-- Used to prevent expensive unit coverage checks being performed more than once per cycle
+			shieldCoverageChecked = false,	-- Used to prevent expensive unit coverage checks being performed more than once per cycle
 			radius = shieldUnitDefs[unitDefID].customParams.shield_radius
 		}
 	end
@@ -117,11 +125,14 @@ function gadget:ProjectileDestroyed(proID)
 	projectileShieldHitCache[proID] = nil
 end
 
+
 local function triggerDowntime(unitID, weaponNum)
 	local shieldData = shieldUnitsData[unitID]
 
-	-- This method is used for mobile units with shields such as evocom cortex commander. This is far less efficient, but for smaller unit counts is OK.
-	spSetUnitShieldRechargeDelay(unitID, weaponNum, 120)
+	-- Dummy disable recharge delay, as engine does not support downtime
+	-- Arbitrary large value used to ensure shield does not reactivate before we want it to,
+	-- but using math.huge causes shield to instantly reactivate
+	spSetUnitShieldRechargeDelay(unitID, weaponNum, 3600)
 
 	spSetUnitShieldState(unitID, weaponNum, false)
 	shieldData.downtimeReset = gameSeconds + shieldData.downtime
@@ -144,15 +155,11 @@ local function setCoveredUnits(shieldUnitID)
 	else
 		removeCoveredUnits(shieldUnitID)
 		local x, y, z = spGetUnitPosition(shieldUnitID, true)
-		local unitsTable = spGetUnitsInSphere(x, y, z, (shieldData.radius - 10))
+		local unitsTable = spGetUnitsInSphere(x, y, z, (shieldData.radius - radiusExclusionBuffer))
 
 		for _, unitID in ipairs(unitsTable) do
-			if shieldedUnits[unitID] then
-				shieldedUnits[unitID][shieldUnitID] = true
-			else
-				shieldedUnits[unitID] = {}
-				shieldedUnits[unitID][shieldUnitID] = true
-			end
+			shieldedUnits[unitID] = shieldedUnits[unitID] or {}
+			shieldedUnits[unitID][shieldUnitID] = true
 		end
 
 		shieldData.shieldCoverageChecked = true
@@ -231,7 +238,9 @@ function gadget:GameFrame(frame)
 
 				-- This section is to allow slower moving projectiles already inside the shield when it comes back online to damage units within the radius.
 				local x, y, z = spGetUnitPosition(shieldUnitID)
-				local radius = shieldData.radius-25
+				-- Engine has GetProjectilesInRectangle, but not GetProjectilesInCircle, so we have to square the circle
+				-- TODO: Change to GetProjectilesInCircle once it is added
+				local radius = shieldData.radius * math.sqrt(math.pi) / 2
 				local xmin = x - radius
 				local xmax = x + radius
 				local zmin = z - radius
