@@ -9,6 +9,7 @@
 
 #line 20000
 
+uniform int isMiniMap;
 uniform vec4 startBoxes[NUM_BOXES]; // all in xyXY format
 uniform int noRushTimer;
 float noRushFramesLeft;

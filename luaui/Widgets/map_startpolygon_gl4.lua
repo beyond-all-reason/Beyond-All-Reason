@@ -17,6 +17,14 @@ end
 
 -- Spring.Echo(Spring.GetTeamInfo(Spring.GetMyTeamID()))
 
+-- TODO:
+-- [ ] Handle overlapping of boxes and myteamID
+-- [ ] Handle Minimap drawing too
+-- [ ] Pass in my team too
+-- [ ] Handle Scavengers in scavenger color
+-- [ ] Handle Raptors in raptor color
+
+
 local scavengerAITeamID = 999
 local raptorsAITeamID = 999
 local scavengerAIAllyTeamID = 999
@@ -57,6 +65,7 @@ local shaderSourceCache = {
 		uniformInt = {
 			mapDepths = 0,
 			myTeamID = -1,
+			isMiniMap = 0,
 		},
 		uniformFloat = {
 		},
