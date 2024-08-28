@@ -64,7 +64,7 @@ for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 	local areaOfEffect = weaponDef.damageAreaOfEffect
 	local interceptedByShieldType = weaponDef.interceptedByShieldType
 
-	if areaOfEffect > aoeIgnoreThreshold and not weaponDef.customParams.shield_aoe_penetration and weaponDef.interceptedByShieldType == 1 then -- 11 because the the benchmark cortex sumo has a AOE of 12
+	if areaOfEffect > aoeIgnoreThreshold and not weaponDef.customParams.shield_aoe_penetration then
 		AOEWeaponDefIDs[weaponDefID] = true
 	end
 
