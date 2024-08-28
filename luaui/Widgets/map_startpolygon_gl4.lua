@@ -18,12 +18,15 @@ end
 -- Spring.Echo(Spring.GetTeamInfo(Spring.GetMyTeamID()))
 
 -- TODO:
--- [ ] Handle overlapping of boxes and myteamID
--- [ ] Handle Minimap drawing too
+-- [ ] Handle overlapping of boxes and myAllyTeamID
+-- [X] Handle Minimap drawing too 
+	-- [X] handle flipped minimaps 
 -- [ ] Pass in my team too
 -- [ ] Handle Scavengers in scavenger color
 -- [ ] Handle Raptors in raptor color
 
+
+local getMiniMapFlipped = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").getMiniMapFlipped
 
 local scavengerAITeamID = 999
 local raptorsAITeamID = 999
@@ -64,8 +67,10 @@ local shaderSourceCache = {
 		fssrcpath = "LuaUI/Widgets/Shaders/map_startpolygon_gl4.frag.glsl",
 		uniformInt = {
 			mapDepths = 0,
-			myTeamID = -1,
+			myAllyTeamID = -1,
 			isMiniMap = 0,
+			flipMiniMap = 0,
+			mapNormals = 1,
 		},
 		uniformFloat = {
 		},
@@ -75,6 +80,7 @@ local shaderSourceCache = {
 			NUM_BOXES = NUM_POLYGONS,
 			MINY = minY - 10,
 			MAXY = maxY + 100,
+			MAX_STEEPNESS = 0.7071, -- 45 degrees yay?
 		},
 	}
 
@@ -96,13 +102,7 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 end
 
-function widget:DrawWorldPreUnit()
-	if autoReload then
-		startPolygonShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or startPolygonShader
-	end
-
-	if chobbyInterface or spIsGUIHidden() then return end
-
+local function DrawStartPolygons(inminimap)	
 	local advUnitShading, advMapShading = Spring.HaveAdvShading()
 
 	if advMapShading then 
@@ -113,6 +113,8 @@ function widget:DrawWorldPreUnit()
 		else return	end
 	end
 	
+	gl.Texture(1, "$normals")
+
 	startPolygonBuffer:BindBufferRange(4)
 
 	glCulling(GL.FRONT)
@@ -125,12 +127,30 @@ function widget:DrawWorldPreUnit()
 		startPolygonShader:SetUniform("StartPolygons["..( i-1) .."]", startBox[1],startBox[2],startBox[3],startBox[4])
 	end
 	startPolygonShader:SetUniform("noRushTimer", noRushTime)
-	startPolygonShader:SetUniform("myTeamID", Spring.GetMyAllyTeamID() or -1) 
+	startPolygonShader:SetUniformInt("isMiniMap", inminimap and 1 or 0)
+	startPolygonShader:SetUniformInt("flipMiniMap", getMiniMapFlipped() and 1 or 0)
+	startPolygonShader:SetUniformInt("myAllyTeamID", Spring.GetMyAllyTeamID() or -1) 
+	Spring.Echo("myAllyTeamID", Spring.GetMyAllyTeamID())
 	fullScreenRectVAO:DrawArrays(GL.TRIANGLES)
 	startPolygonShader:Deactivate()
 	glTexture(0, false)
 	glCulling(false)
 	glDepthTest(false)
+end
+
+function widget:DrawInMiniMap(sx, sz)
+	DrawStartPolygons(true)
+end
+
+function widget:DrawWorldPreUnit()
+	if autoReload then
+		startPolygonShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or startPolygonShader
+	end
+
+	--if chobbyInterface or spIsGUIHidden() then return end
+	
+	DrawStartPolygons(false)
+
 end
 
 function widget:GameFrame(n)
@@ -146,12 +166,12 @@ function widget:Initialize()
 	for i, teamID in ipairs(Spring.GetAllyTeamList()) do
 		if teamID ~= gaiaAllyTeamID and teamID ~= scavengerAIAllyTeamID and teamID ~= raptorsAIAllyTeamID then
 			local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(teamID)
-			--Spring.Echo("Allyteam",teamID,"startbox",xn, zn, xp, zp)	
+			Spring.Echo("Allyteam",teamID,"startbox",xn, zn, xp, zp)	
 			StartPolygons[teamID] = {{xn, zn}, {xp, zn}, {xp, zp}, {xn, zp}}
 		end
 	end
 	
-	if autoReload then
+	if autoReload and false then
 		-- MANUAL OVERRIDE FOR DEBUGGING
 		-- lets add a bunch of silly StartPolygons:
 		StartPolygons = {}
@@ -161,8 +181,8 @@ function widget:Initialize()
 			local polygon = {{x0, y0}}
 
 			for j = 2, math.ceil(math.random() * 10) do 
-				local x1 = math.random(0, Game.mapSizeX / 20)
-				local y1 = math.random(0, Game.mapSizeZ / 20)
+				local x1 = math.random(0, Game.mapSizeX / 5)
+				local y1 = math.random(0, Game.mapSizeZ / 5)
 				polygon[#polygon+1] = {x0+x1, y0+y1}
 			end
 			StartPolygons[#StartPolygons+1] = polygon
@@ -178,6 +198,8 @@ function widget:Initialize()
 	for teamID, polygon in pairs(StartPolygons) do
 		numPolygons = numPolygons + 1
 		local numPoints = #polygon
+		local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(teamID)
+		Spring.Echo("teamID", teamID, "at " ,xn, zn, xp, zp)
 		for vertexID, vertex in ipairs(polygon) do
 			local x, z = vertex[1], vertex[2]
 			bufferdata[#bufferdata+1] = teamID
