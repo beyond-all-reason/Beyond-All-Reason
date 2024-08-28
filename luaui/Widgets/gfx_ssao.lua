@@ -745,7 +745,16 @@ local function DoDrawSSAO()
 	gl.DepthTest(true) --"BK OpenGL state resets", already commented out
 end
 
-function widget:DrawWorldPreParticles()
+local drawFrame = -1
+--function widget:DrawWorldPreParticles()
+-- NOTE THAT DrawWorldPreParticles is called multiple times per frame, and also has a bug where only the buttom half of the screen gets SSAO
+function widget:DrawWorld()
+	local df = Spring.GetDrawFrame()
+	if df == drawFrame then 
+		return 
+	else
+		drawFrame = df
+	end
 	if shaderConfig.ENABLE == 0 then return end
 	DoDrawSSAO(false)
 
