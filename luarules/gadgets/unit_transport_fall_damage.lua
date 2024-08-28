@@ -15,21 +15,17 @@ if not gadgetHandler:IsSyncedCode() then
 end
 --this gadget is enabled as a bandaid fix for commander effigies. Units cannot be moved when released from transports using Spring.SetUnitPosition until it lands, meaning effigy transposition cannot occur until commander lands. This gadget is pending approval from the GDT for mainline use.
 
---use customparams.fall_damage_multiplier = <number> to overwrite default damage multiplier as defined below.
-local heightThreshold = 32 -- if unit is at least 32 elmos up consider it falling
+--use customparams.fall_damage = <number> to define 
 local landedThreshold = 0 -- once the unit's height is equal or below ground height, take damage.
-local defaultDamageMult = 0.03 -- damage is 3% of mass * dropHeight if not defined in customParam.fall_damage_multiplier
+local defaultDamageMult = 0.03 -- damage to be applied per frame of freefall
 local velocityThreshold = 3.5 -- this is the velocity required for an explosion to trigger fall damage watch
 
-local fallDamageMultipliers = {}
-local masses = {}
+local dropDamages = {}
 local fallingUnits = {}
+local transportedUnits = {}
 
 for unitDefID, unitDef in ipairs(UnitDefs) do
-	masses[unitDefID] = unitDef.mass
-	if unitDef.customParams.fall_damage_multiplier then
-		fallDamageMultipliers[unitDefID] = unitDef.customParams.fall_damage_multiplier
-	end
+	dropDamages[unitDefID] = unitDef.customParams.fall_damage or math.ceil(unitDef.health*defaultDamageMult)
 end
 
 local function GetUnitHeightAboveGroundAndWater(unitID) -- returns nil for invalid units
@@ -44,61 +40,48 @@ local function GetUnitHeightAboveGroundAndWater(unitID) -- returns nil for inval
 	end
 end
 
-local function CalculateDropDamage(unitDefID, dropHeight)
-	local damageMult = fallDamageMultipliers[unitDefID] or defaultDamageMult
-	local dropDamage = dropHeight * masses[unitDefID] * damageMult
-	return dropDamage
+function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
+	transportedUnits[unitID] = true
 end
 
-
-
 function gadget:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
-	local unitHeight = GetUnitHeightAboveGroundAndWater(unitID)
-	if unitHeight < heightThreshold then 
-		return -- if dropped too low, ignore
-	else
-		fallingUnits[unitID] = {unitdefid = unitDefID, peakdropheight = 0, transportid = transportID}
-	end
+		fallingUnits[unitID] = {unitdefid = unitDefID, dropdamage = dropDamages[unitDefID], totaldamage = 0, peakheight = 0, transportid = transportID}
+		transportedUnits[unitID] = nil
 end
 
 function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 	local velX, velY, velZ, velLength = Spring.GetUnitVelocity(unitID)
 	Spring.Echo("velocity stuff", velX, velY, velZ, velLength)
-	if velLength > velocityThreshold and not fallingUnits[unitID] then
-		fallingUnits[unitID] = {unitdefid = unitDefID, peakdropheight = 0}
+	if velLength > velocityThreshold and not fallingUnits[unitID] and not transportedUnits[unitID] then
+		fallingUnits[unitID] = {unitdefid = unitDefID, dropdamage = dropDamages[unitDefID], totaldamage = 0, peakheight = 0}
 	end
 end
 
 function gadget:GameFrame()
 	if next(fallingUnits) then
 		for unitID, data in pairs(fallingUnits) do
-			if data.transportID then
+			if data.transportid then
 			local deadTransport = Spring.GetUnitIsDead(data.transportid)
 				if deadTransport then
-					data.transportID = nil --if transport is dead, remove its ID from the falling unit
+					data.transportid = nil --if transport is dead, remove its ID from the falling unit
 				end
 			end
-			if not data.transportID then --if no transport unloading unit, it should take fall damage
-				local dropHeight = GetUnitHeightAboveGroundAndWater(unitID)
-				if dropHeight then
-					if data.peakdropheight and dropHeight < data.peakdropheight then -- going down!
-						Spring.Echo("going down!", data.peakdropheight, dropHeight)
-						if data.peakdropheight >= heightThreshold then
-							if dropHeight <= landedThreshold then
-								local dropDamage = CalculateDropDamage(data.unitdefid, data.peakdropheight)
-								Spring.AddUnitDamage(unitID, dropDamage, 0, Spring.GetGaiaTeamID(), 1)
-								fallingUnits[unitID] = nil
-							end
-						else --peakdropheight isn't high enough, remove
-							fallingUnits[unitID] = nil
-						end
-					else --going up!
-						data.peakdropheight = dropHeight
-						Spring.Echo("going up!", data.peakdropheight)
+			local unitHeight = GetUnitHeightAboveGroundAndWater(unitID)
+			if unitHeight then
+				if data.peakheight > unitHeight then
+					if unitHeight <= landedThreshold then --landed
+						Spring.AddUnitDamage(unitID, data.totaldamage, 0, Spring.GetGaiaTeamID(), 1)
+						fallingUnits[unitID] = nil
+						Spring.Echo("Ouch!", data.totaldamage)
+					elseif not data.transportid then
+						data.totaldamage = data.totaldamage + data.dropdamage
+						Spring.Echo("cumulative Damage", data.totaldamage)
 					end
-				else -- dead
-					fallingUnits[unitID] = nil
+				else
+					data.peakheight = unitHeight
 				end
+			else -- dead
+				fallingUnits[unitID] = nil
 			end
 		end
 	end
