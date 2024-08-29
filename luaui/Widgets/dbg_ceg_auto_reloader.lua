@@ -277,8 +277,9 @@ local function isExplosionGenerator(value)
 	end
 end
 
+-- fuck me 'nil' and 'none' and 'null' are valid texture names?
 local function isValidTexture(value)
-	if type(value) == 'string' and projectileTexures[value] or value == 'none' then
+	if type(value) == 'string' and projectileTexures[value] or value == 'none' or value == 'nil' or value == 'null' then
 		return true
 	end
 end
