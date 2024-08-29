@@ -279,6 +279,7 @@ local function isFloat4(value)
 	return parseCEGExpression(value, 4)
 end
 
+-- TODO FIXME:
 local function isExplosionGenerator(value)
 	if type(value) == 'string' then
 		return true
@@ -291,6 +292,9 @@ local function isValidTexture(value)
 		or value == 'none' or value == 'nil' or value == 'null' then
 		return true
 	else
+		if (type(value) == 'string') and (projectileTexures[value..'-anim'] or projectileTexures[string.lower(value)..'-anim']) then
+			return true
+		end
 		return false, "Texture does not exist in resources.lua"
 	end
 
@@ -742,6 +746,14 @@ local cegDefTemplate = {
 		default = 0.0,
 		note = 'How long the smoke particle takes to fade in.',
 		validator = isFloat,
+	},
+
+	-- New:
+	animParams = {
+		type = 'float[3]',
+		default = {0.0, 0.0, 0.0},
+		note = 'X*Y, time',
+		validator = isFloat3,
 	},
 }
 local lowerKeys = {}
