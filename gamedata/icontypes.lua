@@ -2376,8 +2376,8 @@ local icontypes = {
 		size = 1.9425
 	},
 	leginfestor = {
-		bitmap = "icons/cortermite_1.5.png",
-		size = 1.57499993
+		bitmap = "icons/leginfestor.png",
+		size = 1.6
 	},
 	legionnaire = {
 		bitmap = "icons/air_t2.png",
