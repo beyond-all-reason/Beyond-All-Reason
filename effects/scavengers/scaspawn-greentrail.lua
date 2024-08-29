@@ -196,7 +196,7 @@ return {
       properties = {
         alpha              = 0.6,
         alphadecay         = 0.08,
-        color              = [[0.00 1.00 0.00]],
+        color              = [[0.00, 1.00, 0.00]],
         dir                = [[-10 r20,-10 r20,-10 r20]],
         length             = 2,
         width              = 9,
