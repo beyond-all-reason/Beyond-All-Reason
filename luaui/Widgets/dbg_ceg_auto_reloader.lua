@@ -263,7 +263,7 @@ local function isInteger(value)
 			return false, "Number is not an integer:"..tostring(value)
 		end
 	else
-		return false, "Value is not a number:"..tostring(value)
+		return false, "Value "..tostring(value).. " is not a number."
 	end
 end
 
@@ -280,8 +280,19 @@ local function isFloat4(value)
 end
 
 -- TODO FIXME:
+local generatorNames = {}
 local function isExplosionGenerator(value)
 	if type(value) == 'string' then
+		if true then return true end -- FIXME !!!!! names are only valid after parsing all of them
+		if generatorNames[value] then
+			return true
+		else
+			if (string.sub(value,1,7) == 'custom:') and generatorNames[string.sub(value,8)] then
+				return true
+			else
+				return false, "Explosion generator "..tostring(value) .. " does not exist."
+			end
+		end
 		return true
 	end
 end
@@ -912,6 +923,7 @@ local function LoadAllCegs()
 				end
 				for genName, generator in pairs(ceg) do
 					if type(generator) == 'table' then
+						generatorNames[genName] = true
 						for k, v in pairs(generator) do
 							if k == 'properties' then 
 								for k2, v2 in pairs(v) do 
@@ -956,7 +968,6 @@ local function LoadAllCegs()
 				Spring.Echo(k2, v2)
 			end
 		end
-
 	end
 end
 
@@ -994,11 +1005,11 @@ end
 local function LoadResources()
 	local resources = VFS.Include("gamedata/resources.lua")
 	for k,v in pairs(resources.graphics.projectiletextures) do
-		Spring.Echo("projectileTexures", k,v)
+		--Spring.Echo("projectileTexures", k,v)
 		projectileTexures[k] = v
 	end
 	for k,v in pairs(resources.graphics.groundfx) do
-		Spring.Echo("groundfx", k,v)
+		--Spring.Echo("groundfx", k,v)
 		projectileTexures[k] = v
 	end
 end
@@ -1007,16 +1018,7 @@ end
 function widget:Initialize()
 	LoadResources()
 	LoadAllCegs()
-	if true then return end
-	Spring.Echo(parseCEGExpression("1.2 d+0.8 r2.99, 1"))
-	local widgets = widgetHandler.widgets
-	for _, widget in pairs(widgets) do
-		local whInfo = widget.whInfo
-		widgetFilesNames[whInfo.name] = whInfo.filename
-		if not widgetContents[whInfo.name] then
-			widgetContents[whInfo.name] = VFS.LoadFile(whInfo.filename)
-		end
-	end
+
 end
 
 local function CheckForChanges(widgetName, fileName)
@@ -1043,17 +1045,10 @@ function widget:Update()
 	
 	local prevMouseOffscreen = mouseOffscreen
 	mouseOffscreen = select(6, Spring.GetMouseState())
-	if not mouseOffscreen and not prevMouseOffscreen then
-		return
-	end
-
-	if mouseOffscreen and not prevMouseOffscreen then
-		widget:Initialize()
-	end
 	
-	for widgetName, fileName in pairs(widgetFilesNames) do
-		CheckForChanges(widgetName, fileName)
-	end
+	--for widgetName, fileName in pairs(widgetFilesNames) do
+	--	CheckForChanges(widgetName, fileName)
+	--end
 	
 end
 
@@ -1061,10 +1056,10 @@ end
 
 
 function widget:TextCommand(command)
-	Spring.Echo("Echo",command)
+	--Spring.Echo("Echo",command)
 	
-	Spring.Echo(string.Levenshtein(string.rep("asdfasdfasdfasdf", 100), string.rep("asdfasdfasdfasda", 100))) -- 5 seconds
-	Spring.Echo(string.FindClosest("apple", {"pear", "popple","bear","ple"}))
+	--Spring.Echo(string.Levenshtein(string.rep("asdfasdfasdfasdf", 100), string.rep("asdfasdfasdfasda", 100))) -- 5 seconds
+	--Spring.Echo(string.FindClosest("apple", {"pear", "popple","bear","ple"}))
 	-- /luaui widgetreload CustomFormations2
 	local _, _, widgetName = string.find(command, "widgetreload (.+)")
 	--Spring.Echo(widgetName)
