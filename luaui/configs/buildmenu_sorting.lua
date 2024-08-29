@@ -500,6 +500,7 @@ local unitOrderTable = {
    --NANOS
    ['armnanotc']      = 102000,
    ['cornanotc']      = 102050,
+   ['legnanotc']      = 102075,
 
    --FACTORIES
    ['armlab']         = 102100,
@@ -697,6 +698,7 @@ local unitOrderTable = {
    --WATER CONSTRUCTION
    ['armnanotcplat']  = 210000,
    ['cornanotcplat']  = 210500,
+   ['legnanotcplat']  = 210550,
 
    ['armsy']          = 211100,
    ['corsy']          = 211200,

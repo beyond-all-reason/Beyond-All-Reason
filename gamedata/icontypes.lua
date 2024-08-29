@@ -1655,7 +1655,15 @@ local icontypes = {
 		bitmap = "icons/nanot1.png",
 		size = 0.96599996
 	},
+	legnanotc = {
+		bitmap = "icons/nanot1.png",
+		size = 0.96599996
+	},
 	cornanotcplat = {
+		bitmap = "icons/nanot1.png",
+		size = 0.96599996
+	},
+	legnanotcplat = {
 		bitmap = "icons/nanot1.png",
 		size = 0.96599996
 	},
@@ -2291,6 +2299,10 @@ local icontypes = {
 		bitmap = "icons/air_hover.png",
 		size = 0.5
 	},
+	legheavydrone = {
+		bitmap = "icons/heavyheatraydrone.png",
+		size = 0.75
+	},
 	legfhp = {
 		bitmap = "icons/factory_hover.png",
 		size = 1.52250004
@@ -2364,8 +2376,8 @@ local icontypes = {
 		size = 1.9425
 	},
 	leginfestor = {
-		bitmap = "icons/cortermite_1.5.png",
-		size = 1.57499993
+		bitmap = "icons/leginfestor.png",
+		size = 1.6
 	},
 	legionnaire = {
 		bitmap = "icons/air_t2.png",
