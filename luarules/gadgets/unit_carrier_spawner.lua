@@ -197,7 +197,8 @@ for weaponDefID = 1, #WeaponDefs do
 			dronebombingruns = wdcp.dronebombingruns,
 			dronebombingoffset = wdcp.dronebombingoffset,
 			dronebomberinterval = wdcp.dronebomberinterval,
-			dronebomberminengagementrange = wdcp.dronebomberminengagementrange
+			dronebomberminengagementrange = wdcp.dronebomberminengagementrange,
+			manualDrones = wdcp.manualdrones
 		}
 		
 		if wdcp.spawn_blocked_by_shield then
@@ -317,7 +318,9 @@ local function UnDockUnit(unitID, subUnitID)
 		Spring.SetUnitCOBValue(subUnitID, COB.ACTIVATION, 1)
 		spUnitDetach(subUnitID)
 		mcDisable(subUnitID)
-		SetUnitNoSelect(subUnitID, true)
+		if not carrierMetaList[unitID].manualDrones then
+			SetUnitNoSelect(subUnitID, true)
+		end
 		carrierMetaList[unitID].subUnitsList[subUnitID].docked = false
 		carrierMetaList[unitID].activeDocking = false
 		carrierMetaList[unitID].subUnitsList[subUnitID].activeDocking = false
@@ -448,7 +451,10 @@ local function SpawnUnit(spawnData)
 					spGiveOrderToUnit(subUnitID, CMD.STOP, {}, 0)
 					mcDisable(subUnitID)
 					spSetUnitVelocity(subUnitID, 0, 0, 0)
-					SetUnitNoSelect(subUnitID, true)
+					if not carrierMetaList[ownerID].manualDrones then
+						SetUnitNoSelect(subUnitID, true)
+					end
+					
 					carrierMetaList[ownerID].subUnitsList[subUnitID].docked = true
 					carrierMetaList[ownerID].subUnitsList[subUnitID].activeDocking = false
 					if carrierMetaList[ownerID].dockArmor then
@@ -459,7 +465,9 @@ local function SpawnUnit(spawnData)
 					spGiveOrderToUnit(subUnitID, CMD.MOVE, {spawnData.x, spawnData.y, spawnData.z}, 0)
 				end
 
-				SetUnitNoSelect(subUnitID, true)
+				if not carrierMetaList[ownerID].manualDrones then
+					SetUnitNoSelect(subUnitID, true)
+				end
 
 			end
 			end
@@ -623,6 +631,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 					dronebomberinterval = tonumber(spawnDef.dronebomberinterval) or 2,
 					dronebombertimer = 0,
 					dronebomberminengagementrange = tonumber(spawnDef.dronebomberminengagementrange) or 200,
+					manualDrones = tonumber(spawnDef.manualDrones),
 					ignorenextcommand = false
 				}
 				for dronetypeIndex, _ in pairs(carrierData.dronenames) do
@@ -1356,7 +1365,9 @@ local function DockUnits(dockingqueue, queuestart, queueend)
 								spGiveOrderToUnit(subUnitID, CMD.STOP, {}, 0)
 								Spring.MoveCtrl.Disable(subUnitID)
 								spSetUnitVelocity(subUnitID, 0, 0, 0)
-								SetUnitNoSelect(subUnitID, true)
+								if not carrierMetaList[unitID].manualDrones then
+									SetUnitNoSelect(subUnitID, true)
+								end
 								carrierMetaList[unitID].subUnitsList[subUnitID].docked = true
 								carrierMetaList[unitID].subUnitsList[subUnitID].activeDocking = false
 								carrierMetaList[unitID].subUnitsList[subUnitID].bomberStage = 0
