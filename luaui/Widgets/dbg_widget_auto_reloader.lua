@@ -5,7 +5,7 @@ end
 function widget:GetInfo()
 	return {
 		name = "Widget Auto Reloader",
-		desc = "Auto reloads all widgets that have changed when game is out of focus (and once on return focus)",
+		desc = "Reloads all widgets that have changed after the mouse returned to the game window",
 		author = "Beherith, Floris",
 		date = "2024.03.12",
 		license = "GNU GPL v2",
