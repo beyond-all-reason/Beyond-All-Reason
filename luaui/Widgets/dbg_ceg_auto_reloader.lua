@@ -896,83 +896,66 @@ local function AreNumbers(t)
 end
 
 local cegFileContents = {} -- maps filename to raw file contents
-local cegFileDefs = {} -- maps filename to parsed ceg definitions
+local cegDefFiles = {} -- maps ceg definitions to filenames
+local cegDefs = {} -- maps ceg name to its full def
 
 local masterCegDef = {}
+
+local spamCeg = nil
+
+local function tableEquals(a,b)
+	if type(a) ~= type(b) then
+		return false
+	end
+	if type(a) == 'table' then
+		for k, v in pairs(a) do
+			if not tableEquals(v, b[k]) then
+				return false
+			end
+		end
+		for k, v in pairs(b) do
+			if not tableEquals(v, a[k]) then
+				return false
+			end
+		end
+		return true
+	else
+		return a == b
+	end
+end
 local function LoadAllCegs()
-	local allcegs = {}
 	for i, dir in pairs({'effects', 'effects/lootboxes', 'effects/raptors', 'effects/scavengers'}) do
-		local cegs = VFS.DirList(dir, "*.lua")
-		for _, cegfile in pairs(cegs) do
+		local cegfiles = VFS.DirList(dir, "*.lua")
+		for _, cegfile in pairs(cegfiles) do
 			--Spring.Echo(cegfile)
 			local fileString = VFS.LoadFile(cegfile)
 			cegFileContents[cegfile] = fileString
 
 			local cegs = VFS.Include(cegfile)
-			for name, ceg in pairs(cegs) do
-				allcegs[name] = ceg
-				if true or (name == 'meteortrail') then 
-					
-					--Spring.Echo(name)
-					local res, err = validateCEG(ceg, name)
-					if res then
-						--Spring.Echo("Valid", name, err)
-					else
-						Spring.Echo(err)
-					end
+			for cegDefname, cegTable in pairs(cegs) do
+
+				
+				--Spring.Echo(name)
+				local res, err = validateCEG(cegTable, cegDefname)
+				if not res then
+					Spring.Echo(err)
+				else
 				end
-				for genName, generator in pairs(ceg) do
+				cegDefs[cegDefname]=  cegTable
+				for genName, generator in pairs(cegTable) do
 					if type(generator) == 'table' then
 						generatorNames[genName] = true
-						for k, v in pairs(generator) do
-							if k == 'properties' then 
-								for k2, v2 in pairs(v) do 
-									if masterCegDef[k2] == nil then masterCegDef[k2] = {} end 
-									if masterCegDef[k2][v2] == nil then 
-										masterCegDef[k2][v2] = 1 
-									else
-										masterCegDef[k2][v2] = masterCegDef[k2][v2] + 1
-									end
-								end
-
-							else
-								if masterCegDef[k] == nil then masterCegDef[k] = {} end 
-								if masterCegDef[k][v] == nil then 
-									masterCegDef[k][v] = 1 
-								else
-									masterCegDef[k][v] = masterCegDef[k][v] + 1
-								end
-							end
-						end
 					end
 				end
 			end
 		end
 	end
-	if true then return end
-	for k, v in pairs(masterCegDef) do
-		--Spring.Echo(k)
-		if AreIntegers(v) then
-			Spring.Echo("Integers", k)
-		elseif  AreBooleans(v) then
-			Spring.Echo("Booleans", k)
-		elseif  AreNumbers(v) then
-			Spring.Echo("Numbers", k)
-		elseif AreStrings(v) then
-			Spring.Echo("Strings", k)
-		elseif AreColorMaps(v) then
-			Spring.Echo("ColorMaps", k)
-		else
-			Spring.Echo("Unknown", k)
-			for k2, v2 in pairs(v) do
-				Spring.Echo(k2, v2)
-			end
-		end
-	end
+
 end
 
 local function ScanChanges()
 	local needsReload = {}
+	local allok = true
 	for filename, fileContent in pairs(cegFileContents) do
 		local newContents = VFS.LoadFile(filename)
 		if newContents ~= fileContent then 
@@ -986,16 +969,35 @@ local function ScanChanges()
 				
 				-- VALIDATE newdefs:
 				for cegDefname, cegTable in pairs(newDefs) do
-					
+					local res, err = validateCEG(cegTable, cegDefname)
+					if not res then
+						Spring.Echo(filename.. ':' .. err)
+						allok = false
+					else
+						if tableEquals(cegDefs[cegDefname], cegTable) then
+							--Spring.Echo("No changes to: " .. cegDefname)
+						else
+							spamCeg = cegDefname
+							Spring.Echo("Changes in: " .. cegDefname)
+							needsReload[cegDefname] = cegDefFiles[cegDefname]
+							cegDefs[cegDefname] = cegTable
+						end
+					end
+
 				end
 
 
 				-- COMPARE TABLES
 				for cegDefname, cegTable in pairs(newDefs) do
-					
+					cegDefFiles[cegDefname] = filename
 				end
-				cegFileDefs[filename] = newDefs
 			end
+		end
+	end
+	if allok then 
+		for cegDefname, cegDefFile in pairs(needsReload) do
+			Spring.Echo("Reloading: " .. cegDefname)
+			Spring.SendCommands("reloadcegs")
 		end
 	end
 end
@@ -1018,7 +1020,6 @@ end
 function widget:Initialize()
 	LoadResources()
 	LoadAllCegs()
-
 end
 
 local function CheckForChanges(widgetName, fileName)
@@ -1046,36 +1047,10 @@ function widget:Update()
 	local prevMouseOffscreen = mouseOffscreen
 	mouseOffscreen = select(6, Spring.GetMouseState())
 	
-	--for widgetName, fileName in pairs(widgetFilesNames) do
-	--	CheckForChanges(widgetName, fileName)
-	--end
-	
-end
+	ScanChanges()
 
-
-
-
-function widget:TextCommand(command)
-	--Spring.Echo("Echo",command)
-	
-	--Spring.Echo(string.Levenshtein(string.rep("asdfasdfasdfasdf", 100), string.rep("asdfasdfasdfasda", 100))) -- 5 seconds
-	--Spring.Echo(string.FindClosest("apple", {"pear", "popple","bear","ple"}))
-	-- /luaui widgetreload CustomFormations2
-	local _, _, widgetName = string.find(command, "widgetreload (.+)")
-	--Spring.Echo(widgetName)
-	--[[
-	if widgetName then
-		if widgetFilesNames[widgetName] == nil then
-			Spring.Echo("Widget not found: " .. widgetName)
-			return
-		end
-		if watchList[widgetName] then
-			watchList[widgetName] = nil
-			Spring.Echo("Stopped watching widget: " .. widgetName)
-		else
-			watchList[widgetName] = true
-			Spring.Echo("Started watching widget: " .. widgetName)
-		end
+	if spamCeg then
+		Spring.SendCommands("luarules spawnceg " .. spamCeg .. " 0") 
 	end
-	]]--
+	
 end

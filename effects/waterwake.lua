@@ -426,7 +426,7 @@ return {
         pos                = [[-15 r30, 0, -15 r30]],
         sizegrowth         = 0.1,
         sizemod            = 0.98,
-        texture            = [[explosionwaveblast]],
+        texture            = [[waterfoam]], -- was [[explosionwaveblast]],
         useairlos          = false,
       },
     },
