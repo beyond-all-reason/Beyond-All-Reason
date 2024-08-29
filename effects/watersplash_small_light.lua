@@ -10,7 +10,7 @@ return {
       underwater         = true,
       water              = true,
       properties = {
-        airdrag            = true,
+        airdrag            = 1,
         colormap           = [[0 0 0 0  0.8 0.8 1 .1     0.9 .9 0.95 .8  	0 0 0 0.01]],
         directional        = true,
         emitrot            = 30,
