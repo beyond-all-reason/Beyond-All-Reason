@@ -24,7 +24,7 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		energymake = 850,
-		energystorage = 500,
+		energystorage = 6500,
 		explodeas = "commanderExplosion",
 		footprintx = 2,
 		footprintz = 2,
@@ -113,8 +113,8 @@ return {
             [49] = "cormabm",
             [50] = "legkeres",
 			[51] = "corasp",
-			[52] = "cornanotc",
-			[53] = "cornanotcplat",
+			[52] = "legnanotc",
+			[53] = "legnanotcplat",
 			[54] = "corgate",
 		},
 		customparams = {
@@ -246,7 +246,7 @@ return {
 				name = "Rapid-Fire Grenade Launcher",
 				noselfdamage = true,
 				range = 500,
-				reloadtime = 0.30,
+				reloadtime = 0.25,
 				soundhit = "xplomed2",
 				soundhitwet = "splssml",
 				soundstart = "cannon3",
@@ -254,8 +254,8 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 600,
 				damage = {
-					default = 500,
-					vtol = 300,
+					default = 475,
+					vtol = 235,
 				},
 			},
 			torpedo = {
@@ -313,7 +313,6 @@ return {
 				explosiongenerator = "custom:expldgun",
 				firestarter = 100,
 				firesubmersed = false,
-				groundbounce = true,
 				impulseboost = 0,
 				impulsefactor = 0,
 				name = "Disintegrator",
@@ -343,8 +342,8 @@ return {
 				areaofeffect = 16,
 				avoidfeature = false,
 				burnblow = false,
-                burst = 3,
-				burstrate = 0.15,
+                burst = 4,
+				burstrate = 0.12,
 				cegtag = "railgun",
 				collidefriendly = false,
 				craterareaofeffect = 0,
@@ -352,19 +351,19 @@ return {
 				cratermult = 0,
 				duration = 0.12,
 				edgeeffectiveness = 0.85,
-				energypershot = 400,
 				explosiongenerator = "custom:plasmahit-sparkonly",
 				fallOffRate = 0.2,
 				firestarter = 0,
 				impulseboost = 0.4,
 				impulsefactor = 1,
 				intensity = 0.8,
+				minintensity = 1,
 				name = "Railgun",
 				noselfdamage = true,
 				ownerExpAccWeight = 4.0,
 				proximitypriority = 3,
-				range = 1000,
-				reloadtime = 2.25,
+				range = 800,
+				reloadtime = 2.4,
 				rgbcolor = "0.74 0.64 0.94",
 				soundhit = "mavgun3",
 				soundhitwet = "splshbig",
@@ -376,8 +375,7 @@ return {
 				weapontype = "LaserCannon",
 				weaponvelocity = 3000,
 				damage = {
-					commanders = 250,
-					default = 500,
+					default = 250,
 				},
 			},
 			botcannon = {
@@ -462,13 +460,13 @@ return {
 				},
 				customparams = {
 					attackformationspread = 50,
-					carried_unit = "legdrone",  --Name of the unit spawned by this carrier unit.
-					engagementrange = 1000,
+					carried_unit = "legheavydrone",  --Name of the unit spawned by this carrier unit.
+					engagementrange = 1200,
 					spawns_surface = "LAND",    -- "LAND" or "SEA". The SEA option has not been tested currently.
 					spawnrate = 3, 			--Spawnrate roughly in seconds.
 					maxunits = 2,				--Will spawn units until this amount has been reached.
-					energycost = 50,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					metalcost = 0,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					energycost = 1000,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					metalcost = 90,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					controlradius = 1100,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
 					decayrate = 4,
 					carrierdeaththroe = "death",
@@ -507,7 +505,7 @@ return {
 			[5] = {
 				badtargetcategory = "VTOL GROUNDSCOUT SHIP",
 				def = "BOTCANNON",
-				onlytargetcategory = "SURFACE",
+				onlytargetcategory = "NOTSHIP",
 			},
 			[6] = {
 				badtargetcategory = "VTOL",

@@ -56,7 +56,7 @@ return {
 			"coruwes",
 			"legsy",
 			"corasy",
-			"cornanotcplat",
+			"legnanotcplat",
 			"corfhp",
 			"legamsub",
 			"corplat",

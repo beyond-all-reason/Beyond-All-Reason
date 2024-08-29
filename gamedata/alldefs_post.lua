@@ -291,6 +291,9 @@ function UnitDef_Post(name, uDef)
 
 				if  name == "armcom" then
 				uDef.customparams.evolution_target = "armcomlvl2"
+				uDef.customparams.inheritxpratemultiplier = 0.5
+				uDef.customparams.childreninheritxp = "TURRET MOBILEBUILT"
+				uDef.customparams.parentsinheritxp = "TURRET MOBILEBUILT"
 				elseif name == "corcom" then
 				uDef.customparams.evolution_target = "corcomlvl2"
 				elseif name == "legcom" then
@@ -298,7 +301,12 @@ function UnitDef_Post(name, uDef)
 				end
 
 				if comLevel and modOptions.evocomlevelcap <= comLevel then
+					uDef.customparams.evolution_health_transfer = nil
+					uDef.customparams.evolution_target = nil
 					uDef.customparams.evolution_condition = nil
+					uDef.customparams.evolution_timer = nil
+					uDef.customparams.evolution_power_threshold = nil
+					uDef.customparams.evolution_power_multiplier = nil
 				end
 			end
 		end
@@ -1308,7 +1316,6 @@ function WeaponDef_Post(name, wDef)
 		----EMP rework
 
 		if modOptions.emprework then
-
 			if name == 'empblast' then
 				wDef.areaofeffect = 350
 				wDef.edgeeffectiveness = 0.6
@@ -1326,8 +1333,6 @@ function WeaponDef_Post(name, wDef)
 				wDef.paralyzetime = 12
 				wDef.damage.default = 35000
 			end
-
-
 		end
 
 		--Air rework

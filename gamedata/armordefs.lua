@@ -513,6 +513,7 @@ local armorDefs = {
 		"armdroneold",
 		"cordroneold",
 		"legdrone",
+		"legheavydrone",
 		"raptor_air_bomber_basic_t1_v1",
 		"raptor_air_bomber_basic_t2_v1",
 		"raptor_air_bomber_basic_t2_v2",

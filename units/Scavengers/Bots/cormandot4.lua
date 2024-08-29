@@ -117,7 +117,6 @@ return {
                 explosionscar = false,
 				firestarter = 100,
 				firesubmersed = false,
-				groundbounce = true,
 				impulseboost = 0,
 				impulsefactor = 0,
 				name = "Disintegrator",

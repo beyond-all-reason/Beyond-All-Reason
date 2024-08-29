@@ -70,14 +70,16 @@ local unitDefCanWearHats = {
  end
 
 local vikings = {
-	["Blodir"] = true,
+	["[HELO]Austin"] = true,
 	["[teh]Teddy"] = true,
 	["MightySheep"] = true,
 	["Lostdeadman"] = true,
 	["Narnuk"] = true,
+	["Yanami"] = true,
+	["Hellshound"] = true,
 }
 local kings = {
-	["Chisato"] = true,
+	["Yanami"] = true,
 }
 local goldMedals = {	-- Nation Wars winners
 	["Nezah"] = true,

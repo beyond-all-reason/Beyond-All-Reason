@@ -42,7 +42,7 @@ return {
 			[1] = "legsolar",
 			[2] = "legmex",
 			[3] = "leglab",
-			[4] = "cornanotc",
+			[4] = "legnanotc",
 			[5] = "coreyes",
 			[6] = "corshroud",
 			[7] = "legforti",

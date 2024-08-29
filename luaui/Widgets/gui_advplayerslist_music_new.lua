@@ -18,7 +18,6 @@ Spring.CreateDir("music/custom/war")
 Spring.CreateDir("music/custom/bossfight")
 Spring.CreateDir("music/custom/gameover")
 Spring.CreateDir("music/custom/menu")
-Spring.CreateDir("music/custom/boombox")
 
 ----------------------------------------------------------------------
 -- CONFIG
@@ -83,7 +82,7 @@ local function ReloadMusicPlaylists()
 	local bossFightTracksNew   		= VFS.DirList(musicDirNew..'/bossfight', allowedExtensions)
 	local menuTracksNew 			= VFS.DirList(musicDirNew..'/menu', allowedExtensions)
 	local loadingTracksNew   		= VFS.DirList(musicDirNew..'/loading', allowedExtensions)
-	local boomboxTracksNew				= VFS.DirList(musicDirNew..'/boombox', allowedExtensions)
+	local boomboxTracksNew			= VFS.DirList(musicDirNew..'/boombox', allowedExtensions)
 
 	-- Custom Soundtrack List
 	local musicDirCustom 		= 'music/custom'
@@ -95,7 +94,6 @@ local function ReloadMusicPlaylists()
 	local bossFightTracksCustom 	= VFS.DirList(musicDirCustom..'/bossfight', allowedExtensions)
 	local menuTracksCustom 			= VFS.DirList(musicDirCustom..'/menu', allowedExtensions)
 	local loadingTracksCustom  		= VFS.DirList(musicDirCustom..'/loading', allowedExtensions)
-	local boomboxTracksCustom		= VFS.DirList(musicDirCustom..'/boombox', allowedExtensions)
 	-----------------------------------SETTINGS---------------------------------------
 
 	interruptionEnabled 			= Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1
@@ -138,7 +136,6 @@ local function ReloadMusicPlaylists()
 		table.append(bossFightTracks, bossFightTracksCustom)
 		table.append(menuTracks, menuTracksCustom)
 		table.append(loadingTracks, loadingTracksCustom)
-		table.append(boomboxTracks, boomboxTracksCustom)
 	end
 
 	if #bossFightTracks == 0 then
