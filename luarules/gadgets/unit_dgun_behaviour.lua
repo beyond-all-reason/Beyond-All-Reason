@@ -31,7 +31,6 @@ local modOptions = Spring.GetModOptions()
 local dgunWeaponsTTL = {}
 local dgunWeapons = {}
 local dgunTimeouts = {}
-local dgunOrigins = {}
 
 for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 	if weaponDef.type == 'DGun' then
@@ -90,9 +89,6 @@ function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
 	if dgunWeapons[weaponDefID] then
 		flyingDGuns[proID] = true
 		dgunTimeouts[proID] = (spGetGameFrame() + dgunWeaponsTTL[weaponDefID])
-
-		local posX, posY, posZ = spGetProjectilePosition(proID)
-		dgunOrigins[proID] = {posX, posY, posZ}
 	end
 end
 

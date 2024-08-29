@@ -47,10 +47,7 @@ local projectileShieldHitCache = {}
 local gameSeconds = 0
 
 for weaponDefID, weaponDef in ipairs(WeaponDefs) do
-	local areaOfEffect = weaponDef.damageAreaOfEffect
-	local interceptedByShieldType = weaponDef.interceptedByShieldType
-
-	if areaOfEffect > aoeIgnoreThreshold and not weaponDef.customParams.shield_aoe_penetration then
+	if weaponDef.damageAreaOfEffect > aoeIgnoreThreshold and not weaponDef.customParams.shield_aoe_penetration then
 		AOEWeaponDefIDs[weaponDefID] = true
 	end
 
@@ -139,7 +136,6 @@ function gadget:ProjectileDestroyed(proID)
 	projectileDefIDCache[proID] = nil
 	projectileShieldHitCache[proID] = nil
 end
-
 
 local function triggerDowntime(unitID, weaponNum)
 	local shieldData = shieldUnitsData[unitID]
