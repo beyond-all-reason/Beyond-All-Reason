@@ -235,7 +235,7 @@
 			"sellunit_tooltip": "Toggle currently selected units for sale, allies will be able to buy them",
 			"For Sale": "For Sale",
 			"Not For Sale": "Not For Sale",
-			
+
 			"Fire at will": "Fire at will",
 			"Hold fire": "Hold fire",
 			"Return fire": "Return fire",
@@ -273,18 +273,15 @@
 			"hound_weapon_plasma": "Heavy Plasma",
 			"hound_weapon_gauss": "Gauss Cannon",
 			"hound_weapon_toggle_tooltip": "Sets weapon to a slow plasma projectile with a large aoe, or a fast projectile gauss weapon",
-
+			"blueprint_place": "Place Blueprint",
+			"blueprint_place_tooltip": "Place a saved blueprint",
+			"blueprint_create": "Save Blueprint",
+			"blueprint_create_tooltip": "Save the selected units into a new blueprint, in the order they were selected",
 			"customOnOff": {
 				"lowTrajectory": "Low Trajectory",
 				"highTrajectory": "High Trajectory",
 				"trajectory_tooltip": "Switch artillery firing angle between low and high trajectory",
-				"siegeMode": "Spread Fire",
-				"suppressiveFire": "Focused Fire",
-				"siege_tooltip": "Switches between Focused Fire and longer ranged Spread Fire",
 				"gauss_tooltip": "Switches between Gauss Cannon and Heavy Plasma Cannon",
-				"dreadshot": "Normal fire",
-				"overcharge": "Overcharge",
-				"dreadshot_tooltip": "Switches between normal fire and overcharged mode"
 			}
 		},
 		"idleBuilders": {
@@ -650,7 +647,8 @@
 			}
 		},
 		"loadScreen": {
-			"intelGpuWarning": "%{textColor}You are using the integrated %{warnColor}Intel graphics%{textColor} card.     It's currently %{warnColor}unsupported, the game won't fully work properly."
+			"intelGpuWarning": "%{textColor}You are using the integrated %{warnColor}Intel graphics%{textColor} card.     It's currently %{warnColor}unsupported, the game won't fully work properly.",
+			"lowRamWarning": "%{textColor}Your system has below the recommended %{warnColor}12GB memory %{textColor}.     Try running with lower settings if you encounter out-of-memory crashes"
 		},
 		"initialSpawn": {
 			"ready": "Ready",
@@ -894,6 +892,32 @@
 			"estorage": "E storage",
 			"mstorage": "M storage"
 		},
+		"spectator_hud": {
+			"metalIncome_title": "Metal Income",
+			"metalIncome_tooltip": "Metal income per second",
+			"energyConversionMetalIncome_title": "Metal Conversion",
+			"energyConversionMetalIncome_tooltip": "Metal income from energy conversion" ,
+			"energyIncome_title": "Energy Income",
+			"energyIncome_tooltip": "Energy income per second",
+			"buildPower_title": "Build Power",
+			"buildPower_tooltip": "Build power at disposal",
+			"metalProduced_title": "Metal Produced",
+			"metalProduced_tooltip": "Total metal produced" ,
+			"energyProduced_title": "Energy Produced",
+			"energyProduced_tooltip": "Total energy produced" ,
+			"metalExcess_title": "Metal Excess",
+			"metalExcess_tooltip": "Total metal excess",
+			"energyExcess_title": "Energy Excess",
+			"energyExcess_tooltip": "Total energy excess",
+			"armyValue_title": "Army Value",
+			"armyValue_tooltip": "Army value in metal,\nincl. commander",
+			"defenseValue_title": "Defense Value",
+			"defenseValue_tooltip": "Defense value in metal",
+			"economyValue_title": "Economy Value",
+			"economyValue_tooltip": "Economy value in metal",
+			"damageDealt_title": "Damage Dealt",
+			"damageDealt_tooltip": "Damage dealt"
+		},
 		"settings": {
 			"basic": "Basic",
 			"advanced": "Advanced",
@@ -912,18 +936,32 @@
 			},
 			"filter": "filter",
 			"option": {
-				"preset_lowest": "Lowest",
-				"preset_low": "Low",
-				"preset_medium": "Medium",
-				"preset_high": "High",
-				"preset_ultra": "Ultra",
-				"preset_custom": "Custom",
+				"select_enabled": "enabled",
+				"select_disabled": "disabled",
+				"select_on": "on",
+				"select_off": "off",
+				"select_lowest": "lowest",
+				"select_low": "low",
+				"select_medium": "medium",
+				"select_high": "high",
+				"select_ultra": "ultra",
+				"select_custom": "custom",
+				"select_adaptive": "adaptive",
+				"select_firstperson": "first person",
+				"select_overhead": "overhead",
+				"select_springcam": "spring",
+				"select_rotoverhead": "rotatable overhead",
+				"select_constant": "constant",
+				"select_terrain": "terrain",
+				"select_smooth": "smooth",
+				"select_free": "free",
 				"label_screen": "Screen",
 				"label_interface": "Interface",
 				"label_lighting": "Lighting",
 				"label_effects": "Effects",
 				"label_visuals": "Visuals",
 				"label_ranges": "Ranges",
+				"label_spectator": "Spectator",
 				"label_environment": "Environment",
 				"label_behavior": "Behavior",
 				"label_automation": "Automation",
@@ -945,6 +983,7 @@
 				"label_widgets": "Widgets",
 				"label_options": "Options",
 				"label_teamcolors": "Teamcolors",
+				"label_developer": "Developer",
 				"author": "Author",
 				"preset": "Graphics Quality",
 				"display": "Display",
@@ -1099,9 +1138,6 @@
 				"sndvolmusic": "music",
 				"loadscreen_music": "starts at loadscreen",
 				"loadscreen_music_descr": "Music when displaying the startup load screen",
-				"scav_messages": "Scavenger written notifications",
-				"scav_voicenotifs": "Scavenger voice notifications",
-				"scav_voicenotifs_descr": "Toggle the scavenger announcer voice",
 				"notifications_set": "Voice",
 				"notifications_tutorial": "Tutorial mode",
 				"notifications_tutorial_descr": "Additional messages that guide you how to play\n\nIt remembers what has been played already\n(Re)enabling this will reset this",
@@ -1156,9 +1192,6 @@
 				"camoverviewrestore_descr": "After overview camera is toggled off: restore previous camera position and not zoom to cursor position",
 				"springcamheightmode": "camera height",
 				"springcamheightmode_descr": "Height adjustment behavior for when moving spring camera moves over uneven terrain",
-				"constant": "constant",
-				"terrain": "terrain",
-				"smooth": "smooth",
 				"minimumcameraheight": "minimum camera height",
 				"lockcamera": "Tracking cam",
 				"lockcamera_transitiontime": "smoothing",
@@ -1400,6 +1433,8 @@
 				"showbuilderqueue_descr": "Shows ghosted buildings about to be built on the map",
 				"unitenergyicons": "Unit insufficient energy icons",
 				"unitenergyicons_descr": "Shows a red power bolt above units that cant fire their most e consuming weapon\nwhen you haven't enough energy available.",
+				"unitidlebuildericons": "Unit idle builder icons",
+				"unitidlebuildericons_descr": "Shows a sleep icon above builder units that are idle.",
 				"nametags_rank": "Commander name tag rank icon",
 				"nametags_rank_descr": "Display the player rank icon left of the commander player name.\n(only shown in multiplayer)",
 				"nametags_icon": "Commander name on icon",
@@ -1568,6 +1603,7 @@
 				"green": "green",
 				"blue": "blue",
 				"language": "Language",
+				"language_english_unit_names": "Display unit names in English",
 				"reclaimfieldhighlight": "Reclaim Field Highlight",
 				"reclaimfieldhighlight_descr": "Highlights clusters of reclaimable metal",
 				"reclaimfieldhighlight_always": "Always enabled",
@@ -1576,9 +1612,72 @@
 				"reclaimfieldhighlight_resbot": "Resurrector selected",
 				"reclaimfieldhighlight_order": "Reclaim order active",
 				"reclaimfieldhighlight_disabled": "Disabled",
+				"highlightcomwrecks": "Highlight Commander Wreckages",
+				"highlightcomwrecks_descr": "Highlights commander wreckages with a vertical beam",
+				"highlightcomwrecks_teamcolor": "use teamcolors",
+				"highlightcomwrecks_teamcolor_descr": "Use the player's color for the beam, instead of the default color (resurrect color)",
 				"buildinggrid": "Building Grid",
 				"buildinggrid_descr": "Shows a grid on the ground to assist building placement",
-				"buildinggridopacity": "opacity"
+				"buildinggridopacity": "opacity",
+				"spectator_hud": "Spectator HUD",
+				"spectator_hud_descr": "Enable/Disable Spectator HUD",
+				"spectator_hud_size": "Spectator HUD size on screen",
+				"spectator_hud_config": "HUD mode",
+				"spectator_hud_config_descr": "Select Spectator HUD mode",
+				"spectator_hud_config_basic": "Basic",
+				"spectator_hud_config_advanced": "Advanced",
+				"spectator_hud_config_expert": "Expert",
+				"startpositionsuggestions": "Start Position Suggestions",
+				"startpositionsuggestions_descr": "Show expert recommended starting locations on the map"
+			}
+		},
+		"startPositionSuggestions": {
+			"tutorial": "Start positions and roles indicated within the circles are recommendations from expert players. If you're new to the game, or new to this map, these are solid options, but they aren't requirements. \n\nIf you'd like to disable this, check the Settings window for \"Start Position Suggestions\".",
+			"roles": {
+				"front": {
+					"title": "Frontline",
+					"description": "Build ground units early and bring your commander forward to secure a strong central position, taking metal spots along the way."
+				},
+				"tech": {
+					"title": "Tech",
+					"description": "Focus on early economy to support building a Tier 2 factory, in order to distribute Tier 2 constructors to the team, and attack with high tier units."
+				},
+				"air": {
+					"title": "Air",
+					"description": "Scout enemy players, distribute transports to allies, fight for air dominance, bomb enemy bases, and help defend against raids."
+				},
+				"sea": {
+					"title": "Sea",
+					"description": "Build navy units early and secure a strong position on the map. Later on, consider building amphibious or air units to invade enemies on land."
+				},
+				"air/front": {
+					"title": "Air/Front",
+					"description": "Scout enemy players, distribute transports to allies, fight for air dominance, bomb enemy bases, and help defend against raids.\n\nand/or\n\nBuild ground units early and bring your commander forward to secure a strong central position, taking metal spots along the way."
+				},
+				"air/sea": {
+					"title": "Air/Sea",
+					"description": "Scout enemy players, distribute transports to allies, fight for air dominance, bomb enemy bases, and help defend against raids.\n\nand/or\n\nBuild navy units early and secure a strong position on the map. Later on, consider building amphibious or air units to invade enemies on land."
+				},
+				"air/tech": {
+					"title": "Air/Tech",
+					"description": "Scout enemy players, distribute transports to allies, fight for air dominance, bomb enemy bases, and help defend against raids.\n\nand/or\n\nFocus on early economy to support building a Tier 2 factory, in order to distribute Tier 2 constructors to the team, and attack with high tier units."
+				},
+				"front/sea": {
+					"title": "Front/Sea",
+					"description": "Build ground units early and bring your commander forward to secure a strong central position, taking metal spots along the way.\n\nand/or\n\nBuild navy units early and secure a strong position on the map. Later on, consider building amphibious or air units to invade enemies on land."
+				},
+				"front/tech": {
+					"title": "Front/Tech",
+					"description": "Build ground units early and bring your commander forward to secure a strong central position, taking metal spots along the way.\n\nand/or\n\nFocus on early economy to support building a Tier 2 factory, in order to distribute Tier 2 constructors to the team, and attack with high tier units."
+				},
+				"sea/tech": {
+					"title": "Sea/Tech",
+					"description": "Build navy units early and secure a strong position on the map. Later on, consider building amphibious or air units to invade enemies on land.\n\nand/or\n\nFocus on early economy to support building a Tier 2 factory, in order to distribute Tier 2 constructors to the team, and attack with high tier units."
+				},
+				"baseCenter": {
+					"title": "Base Center",
+					"description": "Move your commander here shortly after spawning. Build your first factory in this area."
+				}
 			}
 		}
 	}

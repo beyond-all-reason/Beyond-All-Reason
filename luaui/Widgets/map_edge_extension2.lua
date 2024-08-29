@@ -542,32 +542,19 @@ function widget:DrawWorldPreUnit()
 	gl.DepthTest(false)
 	gl.DepthMask(false)
 	gl.Culling(GL.BACK)
-
-	--Spring.Echo(gl.GetQuery(q))
 end
 
 local lastSunChanged = -1
 function widget:SunChanged() -- Note that map_nightmode.lua gadget has to change sun twice in a single draw frame to update all
 	local df = Spring.GetDrawFrame()
-	--Spring.Echo("widget:SunChanged", df)
+
 	if df == lastSunChanged then return end
 	lastSunChanged = df
 	-- Do the math:
 	if WG['NightFactor'] then
 		nightFactor = (WG['NightFactor'].red + WG['NightFactor'].green + WG['NightFactor'].blue) * 0.33
-		--Spring.Echo("Map edge extension NightFactor", nightFactor)
-		--UpdateShader()
 	end
-	--Spring.Debug.TableEcho(WG['NightFactor'])
 end
-
--- I see no value in this call
---[[
-function widget:DrawWorldRefraction()
-	--DrawWorldFunc()
-end
-]]--
-
 
 function widget:GetConfigData(data)
 	return {

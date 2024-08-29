@@ -504,11 +504,14 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:GameFrame(n)
 		if not scenarioSpawnsUnits then
             if n == 60 then
+
                 for i = 1, #startUnitList do
                     local x = startUnitList[i].x
                     local y = startUnitList[i].y
                     local z = startUnitList[i].z
                     Spring.SpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
+					GG.ComSpawnDefoliate(x, y, z)
+					
                 end
             end
             if n == 90 then
@@ -550,5 +553,6 @@ else -- UNSYNCED
 
 	function gadget:Shutdown()
 		gadgetHandler:RemoveSyncAction("PositionTooClose")
+
 	end
 end

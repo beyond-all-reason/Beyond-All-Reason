@@ -94,7 +94,6 @@ AimWeapon3()
 FireWeapon1()
 {
 	emit-sfx 1024 from base;
-	emit-sfx 2048 + 2 from firepoint; //Weapon3 creates a dragon's eye once weapon1 fires
 	sleep 1000;
 }
 
@@ -147,6 +146,10 @@ SweetSpot(piecenum)
 
 Killed(severity, corpsetype)
 {
+	if( severity >= 500 )
+	{
+		emit-sfx 2048 + 2 from thrust; //Triggers kamikaze weapon after unit kills itself
+	}
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;

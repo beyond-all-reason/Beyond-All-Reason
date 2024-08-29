@@ -148,7 +148,7 @@ return {
 				reloadtime = 1.3,
 				rgbcolor = "0.8 0.8 1",
 				soundhitdry = "EMGPULS1",
-				soundhitwet = "splsslrg",
+				soundhitwet = "sizzle",
 				soundstart = "hackshot",
 				soundtrigger = 1,
 				targetmoveerror = 0.1,

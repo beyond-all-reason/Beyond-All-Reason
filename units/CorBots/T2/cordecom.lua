@@ -82,6 +82,7 @@ return {
 			paralyzemultiplier = 0.025,
 			subfolder = "corbots/t2",
 			techlevel = 2,
+			isdecoycommander = true,
 		},
 		sfxtypes = {
 			explosiongenerators = {
@@ -215,7 +216,6 @@ return {
 				explosiongenerator = "custom:expldgun",
 				firestarter = 100,
 				firesubmersed = false,
-				groundbounce = true,
 				impulseboost = 0,
 				impulsefactor = 0,
 				name = "Disintegrator",

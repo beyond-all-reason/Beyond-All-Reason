@@ -28,8 +28,7 @@ return {
 		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORTREM.s3o",
-		onoffable = true,
-		script = "Units/CORTREM.cob",
+		script = "Units/cortrem_clean.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeExplosionGenericSelfd",
 		sightdistance = 351,
@@ -113,43 +112,6 @@ return {
 			},
 		},
 		weapondefs = {
-			tremor_focus_fire = {
-
-				accuracy = 0, --accuracy controlled by the customparams sector_fire
-				areaofeffect = 200,
-				avoidfeature = false,
-				cegtag = "arty-medium",
-				craterboost = 0,
-				cratermult = 0,
-				edgeeffectiveness = 0.9,
-				explosiongenerator = "custom:genericshellexplosion-medium",
-				gravityaffected = "true",
-				impulsefactor = 1.8,
-				name = "RapidArtillery",
-				noselfdamage = true,
-				proximitypriority = -3,
-				range = 1275,
-				mygravity = 0.1333,
-				reloadtime = 0.5,
-				soundhit = "xplomed4",
-				soundhitwet = "splslrg",
-				soundstart = "cannhvy2",
-				turret = true,
-				weapontype = "Cannon",
-				weaponvelocity = 420,
-				customparams = {
-					speceffect = "sector_fire",
-					when = "always",
-					max_range_reduction = "0.25",
-					spread_angle = "15",
-				},
-				damage = {
-					default = 150,
-					subs = 75,
-					vtol = 19,
-				},
-
-			},
 			tremor_spread_fire = {
 				accuracy = 0, --accuracy controlled by the customparams sector_fire
 				areaofeffect = 200,
@@ -166,7 +128,7 @@ return {
 				proximitypriority = -3,
 				range = 1470,
 				mygravity = 0.1333,
-				reloadtime = 0.5,
+				reloadtime = 0.4,
 				soundhit = "xplomed4",
 				soundhitwet = "splslrg",
 				soundstart = "cannhvy2",
@@ -176,8 +138,8 @@ return {
 				customparams = {
 					speceffect = "sector_fire",
 					when = "always",
-					max_range_reduction = "0.35",
-					spread_angle = "24",
+					max_range_reduction = "0.28",
+					spread_angle = "20",
 				},
 				damage = {
 					default = 150,
@@ -189,13 +151,6 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL",
-				def = "TREMOR_FOCUS_FIRE",
-				maindir = "0 0 1",
-				maxangledif = 270,
-				onlytargetcategory = "SURFACE",
-			},
-			[2] = {
 				badtargetcategory = "VTOL",
 				def = "TREMOR_SPREAD_FIRE",
 				maindir = "0 0 1",

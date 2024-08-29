@@ -102,7 +102,7 @@ elseif lootboxesDensity == "normal" then
 	lootboxDensityMultiplier = 1
 end
 
-local SpawnChance = math.ceil(15/lootboxDensityMultiplier)
+local SpawnChance = math.ceil((150/lootboxDensityMultiplier)/(#teams-1))
 
 if scavengersAIEnabled then
 	spGaiaTeam = scavengerAITeamID
@@ -125,11 +125,11 @@ local nearbyCaptureLibrary = VFS.Include("luarules/utilities/damgam_lib/nearby_c
 -- callins
 
 local function SpawnLootbox(posx, posy, posz)
-	if math.random() < math.min(0.8, aliveLootboxesCountT3*0.05) then
+	if math.random() < math.min(0.8, (aliveLootboxesCountT3*0.4)/(#teams-1)) then
 		lootboxToSpawn = lootboxesListT4[math_random(1,#lootboxesListT4)]
-	elseif math.random() < math.min(0.8, aliveLootboxesCountT2*0.05) then
+	elseif math.random() < math.min(0.8, (aliveLootboxesCountT2*0.4)/(#teams-1)) then
 		lootboxToSpawn = lootboxesListT3[math_random(1,#lootboxesListT3)]
-	elseif math.random() < math.min(0.8, aliveLootboxesCountT1*0.05) then
+	elseif math.random() < math.min(0.8, (aliveLootboxesCountT1*0.4)/(#teams-1)) then
 		lootboxToSpawn = lootboxesListT2[math_random(1,#lootboxesListT2)]
 	else
 		lootboxToSpawn = lootboxesListT1[math_random(1,#lootboxesListT1)]
@@ -141,9 +141,11 @@ local function SpawnLootbox(posx, posy, posz)
 		spCreateUnit("lootdroppod_gold", posx, posy, posz, math_random(0,3), spGaiaTeam)
 	end
 	if spawnedUnit then
-
 		Spring.SetUnitNeutral(spawnedUnit, true)
 		Spring.SetUnitAlwaysVisible(spawnedUnit, true)
+		Spring.SpawnCEG("commander-spawn-alwaysvisible", posx, posy, posz, 0, 0, 0)
+		Spring.PlaySoundFile("commanderspawn-mono", 1.0, posx, posy, posz, 0, 0, 0, "sfx")
+		GG.ComSpawnDefoliate(posx, posy, posz)
 	end
 end
 

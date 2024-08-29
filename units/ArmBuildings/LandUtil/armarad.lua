@@ -1,5 +1,6 @@
 return {
 	armarad = {
+		
 		maxacc = 0,
 		activatewhenbuilt = true,
 		maxdec = 0,
@@ -11,6 +12,9 @@ return {
 		canattack = false,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		collisionvolumeoffsets = "0 0 0",
+		collisionvolumescales = "32 80 32",
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		explodeas = "smallBuildingexplosiongeneric",
 		footprintx = 2,
@@ -29,7 +33,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "smallBuildingExplosionGenericSelfd",
 		sightdistance = 820,
-		usepiececollisionvolumes = 1,
+		usepiececollisionvolumes = 0,
 		yardmap = "oooo",
 		customparams = {
 			usebuildinggrounddecal = true,

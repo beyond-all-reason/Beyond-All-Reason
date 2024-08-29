@@ -209,7 +209,7 @@ local overflowingEnergy = false
 
 local isCommander = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.customParams.iscommander then
+	if unitDef.customParams.iscommander or unitDef.customParams.isscavcommander then
 		isCommander[unitDefID] = true
 	end
 end

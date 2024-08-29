@@ -19,8 +19,8 @@ return {
 		collisionvolumetype = "CylY",
 		energystorage = 60000,
 		metalstorage = 6000,
-		energymake = 200,
-		metalmake = 2,
+		energymake = 400,
+		metalmake = 4,
 		explodeas = "advmetalmaker",
 		floater = false,
 		footprintx = 0,
@@ -50,6 +50,7 @@ return {
 		customparams = {
 			subfolder = "scavengers",
 			normaltex = "unittextures/cor_normal.dds",
+			paratrooper = true,
 		},
 		featuredefs = {},
 		sfxtypes = {

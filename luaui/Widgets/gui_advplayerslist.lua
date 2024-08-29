@@ -76,10 +76,6 @@ local font, font2
 
 local AdvPlayersListAtlas
 
-if not SkillUncertainties then
-    SkillUncertainties = VFS.Include("luaui/configs/SkillUncertainties.lua") or {}
-end
-
 --------------------------------------------------------------------------------
 -- SPEED UPS
 --------------------------------------------------------------------------------
@@ -1146,21 +1142,13 @@ function GetSkill(playerID)
                 priv = "\255" .. string.char(200) .. string.char(200) .. string.char(200) .. "*"
             end
 
-            --show sigma
+            -- show sigma
             local tsRed, tsGreen, tsBlue = 195, 195, 195
-            if osSigma and next(SkillUncertainties) then
-                osSigma = tonumber(osSigma)
-
-                -- 0.00 is absolute certain , 8.33 is initial uncertaintiy at registration time (written at 2024/01/11)
-                if osSigma < SkillUncertainties[0].limit then
-                    tsRed, tsGreen, tsBlue = unpack(SkillUncertainties[0].color)
-                elseif osSigma < SkillUncertainties[1].limit then
-                    tsRed, tsGreen, tsBlue = unpack(SkillUncertainties[1].color)
-                elseif osSigma < SkillUncertainties[2].limit  then
-                    tsRed, tsGreen, tsBlue = unpack(SkillUncertainties[2].color)
-                else
-                    tsRed, tsGreen, tsBlue = unpack(SkillUncertainties[3].color)
-                end
+            if osSigma then
+                local color = math.max(0.5, math.min(1,(1-((tonumber(osSigma-2) * 0.4)-1))))
+                color = math.max(0.7, color * color)
+                local color2 = math.max(0.35, color * color)
+                tsRed, tsGreen, tsBlue = math.floor(222 * color), math.floor(222 * color2), math.floor(222 * color2)
             end
             osSkill = priv .. "\255" .. string.char(tsRed) .. string.char(tsGreen) .. string.char(tsBlue) .. osSkill
         end

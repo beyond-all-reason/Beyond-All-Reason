@@ -44,9 +44,10 @@ local maxTextInputChars = 127	-- tested 127 as being the true max
 local inputButton = true
 local allowMultiAutocomplete = true
 local allowMultiAutocompleteMax = 10
+local soundErrorsLimit = Spring.Utilities.IsDevMode() and 999 or 10		-- limit max amount of sound errors (sometimes when your device disconnects you will get to see a sound error every call)
 
-local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
-local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.7) or 0.6)
+local ui_scale = Spring.GetConfigFloat("ui_scale", 1)
+local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
 local widgetScale = (((vsx*0.3 + (vsy*2.33)) / 2000) * 0.55) * (0.95+(ui_scale-1)/1.5)
 
 local maxLinesScroll = maxLinesScrollFull
@@ -86,8 +87,6 @@ local prevOrgLines
 local playSound = true
 local sndChatFile  = 'beep4'
 local sndChatFileVolume = 0.55
-local sndMapmarkFile = 'sounds/ui/mappoint2.wav'
-local sndMapmarkFileVolume = 0.5
 
 local colorOther = {1,1,1} -- normal chat color
 local colorAlly = {0,1,0}
@@ -160,6 +159,8 @@ local spGetTeamColor = Spring.GetTeamColor
 local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
 local spPlaySoundFile = Spring.PlaySoundFile
 local spGetGameFrame = Spring.GetGameFrame
+
+local soundErrors = {}
 
 local autocompleteCommands = {
 	-- engine
@@ -975,6 +976,12 @@ local function processAddConsoleLine(gameFrame, line, addOrgLine, doConsoleLine)
 			bypassThisMessage = true
 		elseif sfind(line,"HandleLobbyOverlay", nil, true) then
 			bypassThisMessage = true
+		elseif sfind(line,"could not load sound", nil, true) then
+			if soundErrors[line] or #soundErrors > soundErrorsLimit then
+				bypassThisMessage = true
+			else
+				soundErrors[line] = true
+			end
 
 			-- filter chobby (debug) messages
 		elseif sfind(line,"Chobby]", nil, true) then
@@ -2088,7 +2095,6 @@ end
 function widget:MapDrawCmd(playerID, cmdType, x, y, z, a, b, c)
 	if cmdType == 'point' then
 		lastMapmarkCoords = {x,y,z}
-		spPlaySoundFile( sndMapmarkFile, sndMapmarkFileVolume, nil, "ui" )
 	end
 end
 
@@ -2267,12 +2273,6 @@ function widget:Initialize()
 	WG['chat'].setChatVolume = function(value)
 		sndChatFileVolume = value
 	end
-	WG['chat'].getMapmarkVolume = function()
-		return sndMapmarkFileVolume
-	end
-	WG['chat'].setMapmarkVolume = function(value)
-		sndMapmarkFileVolume = value
-	end
 	WG['chat'].getBackgroundOpacity = function()
 		return backgroundOpacity
 	end
@@ -2344,7 +2344,6 @@ function widget:GetConfigData(data)
 		fontsizeMult = fontsizeMult,
 		chatBackgroundOpacity = backgroundOpacity,
 		sndChatFileVolume = sndChatFileVolume,
-		sndMapmarkFileVolume = sndMapmarkFileVolume,
 		shutdownTime = os.clock(),
 		handleTextInput = handleTextInput,
 		inputButton = inputButton,
@@ -2352,6 +2351,7 @@ function widget:GetConfigData(data)
 		showHistoryWhenChatInput = showHistoryWhenChatInput,
 		showHistoryWhenCtrlShift = showHistoryWhenCtrlShift,
 		enableShortcutClick = enableShortcutClick,
+		soundErrors = soundErrors,
 		version = 1,
 	}
 end
@@ -2360,6 +2360,9 @@ function widget:SetConfigData(data)
 	if data.orgLines ~= nil then
 		if Spring.GetGameFrame() > 0 or (data.gameID and data.gameID == (Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID"))) then
 			orgLines = data.orgLines
+			if data.soundErrors then
+				soundErrors = data.soundErrors
+			end
 		elseif data.gameID then
 			prevGameID = data.gameID
 			prevOrgLines = data.orgLines
@@ -2377,9 +2380,6 @@ function widget:SetConfigData(data)
 	end
 	if data.enableShortcutClick ~= nil then
 		enableShortcutClick = data.enableShortcutClick
-	end
-	if data.sndMapmarkFileVolume ~= nil then
-		sndMapmarkFileVolume = data.sndMapmarkFileVolume
 	end
 	if data.chatBackgroundOpacity ~= nil then
 		backgroundOpacity = data.chatBackgroundOpacity

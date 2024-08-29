@@ -236,9 +236,7 @@ vec3 rgb2hsv(vec3 c){
 	local waterAbsorbColorR, waterAbsorbColorG, waterAbsorbColorB = gl.GetWaterRendering("absorb")
 	local waterMinColorR, waterMinColorG, waterMinColorB = gl.GetWaterRendering("minColor")
 	local waterBaseColorR, waterBaseColorG, waterBaseColorB = gl.GetWaterRendering("baseColor")
-	
-	--Spring.Echo(waterAbsorbColorR, waterAbsorbColorG, waterAbsorbColorB)
-	--Spring.Debug.TableEcho(waterAbsorbColor)
+
 	local waterUniforms = 
 [[ 
 #define WATERABSORBCOLOR vec3(%f,%f,%f)
@@ -314,14 +312,17 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 			if vsSrcNew then 
 				vsSrcNew = vsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 				vsSrcNew = vsSrcNew:gsub("//__DEFINES__", shaderDefines)
+				shadersourcecache.vsSrcComplete = vsSrcNew
 			end
 			if fsSrcNew then 
 				fsSrcNew = fsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 				fsSrcNew = fsSrcNew:gsub("//__DEFINES__", shaderDefines)
+				shadersourcecache.fsSrcComplete = fsSrcNew
 			end
 			if gsSrcNew then 
 				gsSrcNew = gsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 				gsSrcNew = gsSrcNew:gsub("//__DEFINES__", shaderDefines)
+				shadersourcecache.gsSrcComplete = gsSrcNew
 			end
 			local reinitshader =  LuaShader(
 				{
@@ -334,8 +335,9 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 				shadersourcecache.shaderName
 			)
 			local shaderCompiled = reinitshader:Initialize()
-			
-			Spring.Echo(shadersourcecache.shaderName, " recompiled in ", Spring.DiffTimers(Spring.GetTimer(), compilestarttime, true), "ms at", Spring.GetGameFrame(), "success", shaderCompiled or false)
+			if not shadersourcecache.silent then 
+				Spring.Echo(shadersourcecache.shaderName, " recompiled in ", Spring.DiffTimers(Spring.GetTimer(), compilestarttime, true), "ms at", Spring.GetGameFrame(), "success", shaderCompiled or false)
+			end
 			if shaderCompiled then 
 				reinitshader.ignoreUnkUniform = true
 				return reinitshader
@@ -567,6 +569,22 @@ function LuaShader:Compile(suppresswarnings)
 		--Spring.Echo(uniName, uniforms[uniName].location, uniforms[uniName].type, uniforms[uniName].size)
 		--Spring.Echo(uniName, uniforms[uniName].location)
 	end
+	
+	-- Note that the function call overhead to the LuaShader:SetUniformFloat is about 500ns
+	-- With this, a direct gl.Uniform call, this goes down to 100ns
+	self.uniformLocations = {}
+	for _, uniformGeneric in ipairs({self.shaderParams.uniformFloat or {}, self.shaderParams.uniformInt or {} }) do 
+		for uniName, defaultvalue in pairs(uniformGeneric) do 
+			local location = glGetUniformLocation(shaderObj, uniName) 
+			if location then 
+				self.uniformLocations[uniName] = location 
+			else
+				Spring.Echo(string.format("Notice from shader %s: Could not find location of uniform name: %s", "dunno", uniName ))
+			end
+			
+		end
+	end
+
 	return true
 end
 

@@ -148,7 +148,7 @@ local UnitEffects = {
 		--{class='ShieldJitter',options={life=math.huge, pos={0,42,0}, size=20, precision=2, repeatEffect=true}},
 	},
 	["armgate"] = {
-		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 23.5, -5 }, size = 15, precision = 22, repeatEffect = true } },
+		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 20, -5 }, size = 15, precision = 22, repeatEffect = true } },
 		{ class = 'ShieldSphere', options = armgateShieldSphere },
 		--{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,23.5,-5}, size=555, precision=0, strength=0.001, repeatEffect=true}},
 	},
@@ -218,8 +218,6 @@ for unitname, effect in pairs(UnitEffects) do
 				attr[6] = 0 -- precision
 				attr[7] = (opts.isShield and 1) or 0  -- isShield
 				attr[8] = 1 -- technique
-				--Spring.Echo(unitname)
-				--Spring.Debug.TableEcho(opts)
 				
 				attr[ 9], attr[10], attr[11], attr[12] = unpack((opts.colormap1 and opts.colormap1[1]) or {-1,-1,-1,-1})
 				attr[13], attr[14], attr[15], attr[16] = unpack((opts.colormap2 and opts.colormap2[1]) or {-1,-1,-1,-1})
@@ -297,6 +295,8 @@ layout(std140, binding=1) readonly buffer UniformsBuffer {
 };
 
 
+uniform float reflectionPass = 0.0;
+
 #line 10468
 void main()
 {
@@ -310,17 +310,25 @@ void main()
 	unitID_vs = 0.1 + float(uni[instData.y].composite >> 16 ) / 256000.0;
 	
 	float modelRot = uni[instData.y].drawPos.w;
-	mat3 rotY = rotation3dY(0);
+	mat3 rotY = rotation3dY(modelRot);
 		
 	vec4 vertexWorldPos = vec4(1);
 	vec3 flippedPos = vec3(1,-1,1) * position.xzy;
-
+	
 	
 	float radius = 0.99 * posrad.w;
+	float startFrame = margin_teamID_shield_technique.x;
+	//float lifeScale = clamp(((timeInfo.x + timeInfo.w) - startFrame) / 100.0, 0.001, 1.0);
+	float lifeScale = 1.0 - exp(-0.10 * ((timeInfo.x + timeInfo.w) - startFrame));
+	radius *= lifeScale;
+	radius += (sin(timeInfo.z)) - 1.0;
 	
 	vertexWorldPos.xyz = rotY * ( flippedPos * (radius) + posrad.xyz + vec3(0,0,0) ) + modelWorldPos;
-	
-	gl_Position = cameraViewProj * vertexWorldPos;
+	if (reflectionPass < 0.5){
+		gl_Position = cameraViewProj * vertexWorldPos;
+	}else{
+		gl_Position = reflectionViewProj * vertexWorldPos;
+	}
 
 	
 
@@ -333,7 +341,7 @@ void main()
 	//vec3 vertex = vec3(gl_ModelViewMatrix * gl_Vertex);
 	color1_vs.rgb = camToWorldPos.xyz;
 	float angle = dot(normal,camToWorldPos); //*inversesqrt( dot(normal,normal)*dot(position,position) ); //dot(norm(n),norm(v))
-	opac_vs = pow( abs( angle ) , margin_teamID_shield_technique.x);
+	opac_vs = pow( abs( angle ) , 1.0);
 	//opac_vs = 1.0;
 	//color1_vs.rgb = vec3(angle);
 	
@@ -383,7 +391,7 @@ uniform sampler2D mask;
 
 //__ENGINEUNIFORMBUFFERDEFS__
 
-uniform int reflectionPass = 0;
+uniform float reflectionPass = 0.0;
 
 #define DISTORTION 0.01
 in DataVS {
@@ -642,6 +650,7 @@ local function initGL4()
         mask = 1,
         },
 	uniformFloat = {
+		reflectionPass = 0.0,
       },
     },
     "orbShader GL4"
@@ -669,14 +678,14 @@ end
 --------------------------------------------------------------------------------
 -- Draw Iteration
 --------------------------------------------------------------------------------
-local function DrawOrbs(isReflection)
+local function DrawOrbs(reflectionPass)
 	if orbVBO.usedElements > 0 then
 		gl.DepthTest(true)
 		gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove both state changes
 		--gl.Culling(GL.FRONT)
 		gl.Culling(false)
 		orbShader:Activate()
-		--orbShader:SetUniformInt("reflectionPass", ((isReflection == true) and 1) or 0)
+		orbShader:SetUniform("reflectionPass", (reflectionPass and 1 ) or 0 )
 		drawInstanceVBO(orbVBO)
 		orbShader:Deactivate()
 	end
@@ -684,9 +693,25 @@ end
 --------------------------------------------------------------------------------
 -- Widget Interface
 --------------------------------------------------------------------------------
+-- Note that we rely on VisibleUnitRemoved triggering right before VisibleUnitAdded on UnitFinished 
+local shieldFinishFrames = {} -- unitID to gameframe
 
-function widget:DrawWorldPreParticles()
-	DrawOrbs(false)
+
+local lastDrawFrame = -1
+function widget:DrawWorldPreParticles() 
+	if next(shieldFinishFrames) then shieldFinishFrames = {} end
+	-- NOTE: This is called TWICE per draw frame, once before water and once after, even if no water is present. 
+	-- If water is present on the map, then it gets called again between the two for the refraction pass
+	-- Solution is to draw it only on the first call, and draw reflections from widget:DrawWorldReflection
+	local thisDrawFrame = Spring.GetDrawFrame()
+	if lastDrawFrame ~= thisDrawFrame then 
+		lastDrawFrame = thisDrawFrame
+		DrawOrbs(false) 
+	end
+end
+
+function widget:DrawWorldReflection()
+	DrawOrbs(true)
 end
 
 function widget:Initialize()
@@ -704,7 +729,9 @@ function widget:Initialize()
 	end
 end
 
+
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam, noupload)
+	--Spring.Echo("widget:VisibleUnitAdded",unitID, unitDefID, unitTeam, noupload,shieldFinishFrames[unitID])
 	if unitDefID and orbUnitDefs[unitDefID] then 
 
 		unitTeam = unitTeam or spGetUnitTeam(unitID)
@@ -713,8 +740,10 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam, noupload)
 		if buildProgress < 1 then return end
 
 		local instanceCache = orbUnitDefs[unitDefID]
+		instanceCache[5] = shieldFinishFrames[unitID] or 0
 		instanceCache[6] = unitTeam
 		--instanceCache[7] = Spring.GetGameFrame()
+		shieldFinishFrames[unitID] = nil
 		
 		--Spring.Echo("Added lups orb")
 		pushElementInstance(orbVBO,
@@ -738,6 +767,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 end
 
 function widget:VisibleUnitRemoved(unitID)
+	shieldFinishFrames[unitID] = Spring.GetGameFrame()
 	if orbVBO.instanceIDtoIndex[unitID] then
 		popElementInstance(orbVBO, unitID)
 	end

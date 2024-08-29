@@ -106,7 +106,7 @@ bind sc_` drawinmap
 
 bind Ctrl+sc_a select AllMap++_ClearSelection_SelectAll+
 bind Ctrl+sc_b select AllMap+_Builder_Idle+_ClearSelection_SelectOne+
-bind Ctrl+sc_c selectcomm
+bind Ctrl+sc_c selectcomm focus
 bind Ctrl+sc_v select AllMap+_Not_Builder_Not_Commander_InPrevSel_Not_InHotkeyGroup+_SelectAll+
 bind Ctrl+sc_w select AllMap+_Not_Aircraft_Weapons+_ClearSelection_SelectAll+
 bind Ctrl+sc_x select AllMap+_InPrevSel_Not_InHotkeyGroup+_SelectAll+
@@ -119,12 +119,16 @@ bind sc_z buildunit_armamex
 bind Shift+sc_z buildunit_armamex
 bind sc_z buildunit_cormex
 bind Shift+sc_z buildunit_cormex
+bind sc_z buildunit_legmex
+bind Shift+sc_z buildunit_legmex
 bind sc_z buildunit_corexp
 bind Shift+sc_z buildunit_corexp
 bind sc_z buildunit_armmoho
 bind Shift+sc_z buildunit_armmoho
 bind sc_z buildunit_cormoho
 bind Shift+sc_z buildunit_cormoho
+bind sc_z buildunit_legmoho
+bind Shift+sc_z buildunit_legmoho
 bind sc_z buildunit_cormexp
 bind Shift+sc_z buildunit_cormexp
 bind sc_z buildunit_coruwmex
@@ -267,3 +271,10 @@ bind sc_y settargetnoground
 bind Ctrl+sc_` group unset
 
 bind Alt+sc_` remove_from_autogroup // Auto Group
+
+// blueprint
+bind           Alt+sc_b  blueprint_place
+bind           Alt+sc_c  blueprint_create
+bind           Alt+sc_d  blueprint_delete
+bind           Alt+sc_[  blueprint_prev
+bind           Alt+sc_]  blueprint_next

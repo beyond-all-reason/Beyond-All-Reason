@@ -1,0 +1,157 @@
+
+#include "../recoil_common_includes.h"
+
+
+
+piece  base, left, right;
+
+static-var  isMoving;
+
+movelegs(){
+	if (isMoving){
+		
+		sleep 30;
+	}
+
+}
+
+walkscr()
+{
+	while (isMoving){
+		if (isMoving){ 
+	spin left around z-axis speed <-900.000000>;
+	spin right around z-axis speed <900.000000>;
+
+			turn base to y-axis <-13> speed <20>;
+			move base to x-axis [0] speed [10];
+			sleep 150;
+			}
+		
+		if (isMoving){ 
+			turn base to y-axis <0> speed <20>;
+			move base to x-axis [3] speed [10];
+			sleep 150;
+			}
+		if (isMoving){ 
+			turn base to y-axis <12> speed <20>;
+			move base to x-axis [0] speed [10];
+			sleep 150;
+		}
+		if (isMoving){ 
+			turn base to y-axis <0> speed <20>;
+			move base to x-axis [-3] speed [10];
+			sleep 150;
+		}
+		
+	}
+	
+	return (0);
+}
+
+
+Movement(myMoving)
+{
+	while( TRUE )
+	{
+		myMoving = isMoving;
+		if( myMoving )
+		{
+			call-script walkscr();
+		}
+		if( !myMoving )
+		{
+			sleep 100;
+		}
+	}
+}
+
+Create()
+{
+	isMoving = FALSE;
+	start-script Movement();
+}
+
+
+#define BASEPIECE base
+//#include "../unit_hitbyweaponid_and_smoke.h"
+//errors, and cleanup version can't be used here yet
+
+StartMoving(reversing)
+{
+	isMoving = TRUE;
+}
+
+StopMoving()
+{
+	stop-spin left around z-axis;
+	stop-spin right around z-axis;
+	isMoving = FALSE;
+}
+
+AimWeapon1()
+{
+	return (TRUE);
+}
+
+AimWeapon2()
+{
+	return (TRUE);
+}
+
+FireWeapon1()
+{
+	emit-sfx 4096 + 1 from base; //Weapon2 detonates the crawling bomb once weapon1 fires
+}
+
+QueryWeapon1(pieceIndex)
+{
+	pieceIndex = base;
+}
+
+AimFromWeapon1(pieceIndex)
+{
+	pieceIndex = base;
+}
+
+QueryWeapon2(pieceIndex)
+{
+	pieceIndex = base;
+}
+
+AimFromWeapon2(pieceIndex)
+{
+	pieceIndex = base;
+}
+
+FireWeapon2()
+{
+}
+
+
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
+
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+
+	return corpsetype;
+}

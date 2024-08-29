@@ -15,7 +15,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local rangeLimit = 2100
+local rangeLimit = 1800
 local rangeLimitGaia = 20000
 
 local gaiaTeamID = Spring.GetGaiaTeamID()
@@ -24,6 +24,7 @@ local mapZ = Game.mapSizeZ
 local allMobileUnits = {}
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitTeam = Spring.GetUnitTeam
+local CMD_STOP = CMD.STOP
 
 local isMobileUnit = {}
 for unitDefID, udef in pairs(UnitDefs) do
@@ -72,4 +73,14 @@ function gadget:GameFrame(f)
 			end
 		end
 	end
+end
+
+function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, fromSynced, fromLua)
+	if cmdID == CMD_STOP and isMobileUnit[unitDefID] then
+		local x,_,z = Spring.GetUnitPosition(unitID)
+		if z < 0 or x < 0 or z > mapZ or x > mapX then
+			return false
+		end
+	end
+	return true
 end
