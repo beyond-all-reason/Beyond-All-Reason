@@ -844,7 +844,10 @@
 			"xmasball2_5": "Xmas ball",
 			"xmasball2_6": "Xmas ball",
 			"legnanotc": "Construction Turret",
-			"legnanotcplat": "Naval Construction Turret"
+			"legnanotcplat": "Naval Construction Turret",
+			"legnanotct2": "T2 Construction Turret",
+			"legnanotct2plat": "T2 Naval Construction Turret",
+			"legnanotcbase": "Base Builder"
 		},
 		"descriptions": {
 			"armaak": "Advanced Amphibious Anti-Air Bot",
@@ -1011,9 +1014,9 @@
 			"armmship": "Missile Cruiser",
 			"armmstor": "Increases Metal Storage (3000)",
 			"armnanotc": "Assist & Repair in large radius",
-			"armnanotcplat": "Repairs and builds in large radius",
+			"armnanotcplat": "Assist & Repair in large radius",
 			"armnanotct2": "Assist & Repair in larger radius",
-			"armnanotc2plat": "Repairs and builds in larger radius",
+			"armnanotc2plat": "Assist & Repair in larger radius",
 			"armobli": "High powered Tachyon Accelerator",
 			"armpb": "Pop-up Gauss Cannon",
 			"armpeep": "Scout",
@@ -1097,7 +1100,7 @@
 			"armwint2": "Produces Energy. Depends on wind strength.",
 			"armyork": "Anti-Air Flak Vehicle",
 			"armzeus": "Assault Bot",
-			"armrespawn": "Assist & Repair in large radius.",
+			"armrespawn": "Assist & Repair in massive radius.",
 			"raptor_land_kamikaze_basic_t2_v1": "Walking bomb",
 			"raptor_land_kamikaze_basic_t4_v1": "Walking bomb",
 			"raptor_air_kamikaze_basic_t2_v1": "Flying bomb",
@@ -1373,9 +1376,9 @@
 			"cormstor": "Increases Metal Storage (3000)",
 			"cormuskrat": "Amphibious Construction Vehicle",
 			"cornanotc": "Assist & Repair in large radius",
-			"cornanotcplat": "Repairs and builds in large radius",
+			"cornanotcplat": "Assist & Repair in large radius",
 			"cornanotct2": "Assist & Repair in larger radius",
-			"cornanotc2plat": "Repairs and builds in larger radius",
+			"cornanotc2plat": "Assist & Repair in larger radius",
 			"cornecro": "Stealthy Rez / Reclaim / Repair Bot",
 			"coronager": "Coastal Assault Submarine",
 			"corparrow": "Very Heavy Amphibious Tank",
@@ -1465,7 +1468,7 @@
 			"corwin": "Produces Energy. Depends on wind strength.",
 			"corwint2": "Produces Energy. Depends on wind strength.",
 			"corwolv": "Light Mobile Artillery",
-			"correspawn": "Assist & Repair in large radius.",
+			"correspawn": "Assist & Repair in massive radius.",
 			"critter_ant": "Chaos!",
 			"critter_crab": "Pinch pinch!",
 			"critter_duck": "Quack Quack!",
@@ -1683,7 +1686,10 @@
 			"xmasball2_5": "Xmas ball",
 			"xmasball2_6": "Xmas ball",
 			"legnanotc": "Assist & Repair in large radius",
-			"legnanotcplat": "Builds and Repairs in large radius"
+			"legnanotcplat": "Assist & Repair in large radius",
+			"legnanotct2": "Assist & Repair in larger radius",
+			"legnanotct2plat": "Assist & Repair in larger radius",
+			"legnanotcbase": "Assist & Repair in massive radius"
 		}
 	}
 }

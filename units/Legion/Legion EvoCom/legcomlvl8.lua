@@ -65,7 +65,7 @@ return {
 		upright = true,
 		workertime = 1207,
 		buildoptions = {
-			[1] = "cormoho",
+			[1] = "legmoho",
 			[2] = "corfus",
 			[3] = "legwin",
 			[5] = "cormmkr",
