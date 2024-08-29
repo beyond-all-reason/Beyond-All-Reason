@@ -256,7 +256,15 @@ local function isInteger(value)
 	-- seems like cegops are allowed here too!
 	local res, err = isFloat(value)
 	if res then return true end
-	return type(value) == 'number' and value % 1 == 0
+	if type(value) == 'number' then
+		if value % 1 == 0 then 
+			return true
+		else
+			return false, "Number is not an integer:"..tostring(value)
+		end
+	else
+		return false, "Value is not a number:"..tostring(value)
+	end
 end
 
 
@@ -279,9 +287,13 @@ end
 
 -- fuck me 'nil' and 'none' and 'null' are valid texture names?
 local function isValidTexture(value)
-	if type(value) == 'string' and projectileTexures[value] or value == 'none' or value == 'nil' or value == 'null' then
+	if (type(value) == 'string' and (projectileTexures[value] or projectileTexures[string.lower(value)] )) 
+		or value == 'none' or value == 'nil' or value == 'null' then
 		return true
+	else
+		return false, "Texture does not exist in resources.lua"
 	end
+
 end
 
 
@@ -295,7 +307,7 @@ local function isColorMapValid(colormap)
 		table.insert(colorMapParts, color)
 	end
 	if #colorMapParts % 4 ~= 0 then
-		return false, 'Colormap must have a multiple of 4 floats:'..tostring(colorMap)
+		return false, 'Colormap must have a multiple of 4 floats but has:'..tostring(colorMapParts)
 	end
 	for i = 1, #colorMapParts, 4 do
 		local r = tonumber(colorMapParts[i])
@@ -306,7 +318,7 @@ local function isColorMapValid(colormap)
 			return false, 'Colormap must have 4 floats:'..tostring(colorMap)
 		end
 		if r < 0 or r > 1 or g < 0 or g > 1 or b < 0 or b > 1 or a < 0 or a > 1 then
-			return false, 'Colormap values must be between 0 and 1:'..tostring(colorMap)
+			return false, 'Colormap values must be between 0 and 1:'..tostring(colormap)
 		end
 	end
 	return true
@@ -740,12 +752,21 @@ for k,v in pairs(lowerKeys) do
 	cegDefTemplate[k] = cegDefTemplate[v]
 end	
 
-local function validateCEG(cegTable)
+local function validateCEG(cegTable, cegName)
 	for spawnername, spawnerTable in pairs(cegTable) do
 		if type(spawnerTable) == 'table' and spawnerTable['class'] then
 			local class = spawnerTable['class']
 			if not spawnerDefs[class] then
-				return false, "Invalid class:"..class
+				
+				local msg = string.format(
+					'Error: CEG {%s = {%s = {%s = "%s" ,...}}} : %s',
+					tostring(cegName),
+					tostring(spawnername),
+					'class',
+					class,
+					"class does not exist"
+				)
+				return false, msg
 			else
 				for k, v in pairs(spawnerTable) do
 					--Spring.Echo('cegDefTemplate',k)
@@ -753,9 +774,19 @@ local function validateCEG(cegTable)
 						if cegDefTemplate[k].validator then
 							local res, err = cegDefTemplate[k].validator(v)
 							if not res then 
-								Spring.Echo("VAL", err)
+								--Spring.Echo("VAL", err)
+
+								local msg = string.format(
+									'Error: CEG {%s = {%s = {%s = %s ,...}}} : %s',
+									tostring(cegName),
+									tostring(spawnername),
+									tostring(k),
+									((type(v) == 'string') and '"' or '')  .. tostring(v) .. ((type(v) == 'string') and '"' or '') ,
+									tostring(err)
+								)
 								
-								return false, "Invalid value for:"..k..":"..tostring(err)
+								return false, msg
+						
 							else
 								--Spring.Echo("Valid, type:",cegDefTemplate[k].type,  k, v)
 							end
@@ -766,9 +797,19 @@ local function validateCEG(cegTable)
 								if cegDefTemplate[k2].validator then
 									local res, err = cegDefTemplate[k2].validator(v2)
 									if not res then 
-										Spring.Echo("VAL", err)
-										
-										return false, "Invalid value for:"..k2..":"..tostring(err)..':'..tostring(v2)
+										--Spring.Echo("VAL", err)
+
+
+										local msg = string.format(
+											'Error: CEG {%s = {%s = {properties = {%s = "%s"  ...}}}} is invalid: %s',
+											tostring(cegName),
+											tostring(spawnername),
+											tostring(k2),
+											((type(v2) == 'string') and '"' or '')  ..tostring(v2) .. ((type(2) == 'string') and '"' or '')  ,
+											tostring(err)
+										)
+												
+										return false, msg
 									else
 										--Spring.Echo("Valid, type:",cegDefTemplate[k2].type,  k2, v2)
 									end
@@ -840,19 +881,22 @@ local function LoadAllCegs()
 	for i, dir in pairs({'effects', 'effects/lootboxes', 'effects/raptors', 'effects/scavengers'}) do
 		local cegs = VFS.DirList(dir, "*.lua")
 		for _, cegfile in pairs(cegs) do
-			Spring.Echo(cegfile)
+			--Spring.Echo(cegfile)
 			local fileString = VFS.LoadFile(cegfile)
 			cegFileContents[cegfile] = fileString
 
 			local cegs = VFS.Include(cegfile)
 			for name, ceg in pairs(cegs) do
-				Spring.Echo(name)
 				allcegs[name] = ceg
-				local res, err = validateCEG(ceg)
-				if res then
-					--Spring.Echo("Valid", name, err)
-				else
-					Spring.Echo("Invalid", name, err)
+				if true or (name == 'meteortrail') then 
+					
+					--Spring.Echo(name)
+					local res, err = validateCEG(ceg, name)
+					if res then
+						--Spring.Echo("Valid", name, err)
+					else
+						Spring.Echo(err)
+					end
 				end
 				for genName, generator in pairs(ceg) do
 					if type(generator) == 'table' then
