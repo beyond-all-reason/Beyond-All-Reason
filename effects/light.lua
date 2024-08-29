@@ -2,7 +2,7 @@ return {
 	["WhiteLight"] = {
 		useAirLos = false,
 		usedefaultexplosions = false,
-		["heatcloud"] = {
+		["CHeatCloudProjectile"] = {
 			air = true,
 			water = true,
 			ground = true,
@@ -27,7 +27,7 @@ return {
 	["IntelLight"] = {
 		useAirLos = false,
 		usedefaultexplosions = false,
-		["heatcloud"] = {
+		["CHeatCloudProjectile"] = {
 			air = true,
 			water = true,
 			ground = true,
@@ -52,7 +52,7 @@ return {
 	["YellowLight"] = {
 		useAirLos = false,
 		usedefaultexplosions = false,
-		["heatcloud"] = {
+		["CHeatCloudProjectile"] = {
 			air = true,
 			water = true,
 			ground = true,
@@ -77,7 +77,7 @@ return {
 	["PurpleLight"] = {
 		useAirLos = false,
 		usedefaultexplosions = false,
-		["heatcloud"] = {
+		["CHeatCloudProjectile"] = {
 			air = true,
 			water = true,
 			ground = true,
@@ -103,7 +103,7 @@ return {
 	["GantWhiteLight"] = {
 		useAirLos = false,
 		usedefaultexplosions = false,
-		["heatcloud"] = {
+		["CHeatCloudProjectile"] = {
 			air = true,
 			water = true,
 			ground = true,
@@ -127,7 +127,7 @@ return {
 		["LootboxLightGold"] = {
 		useAirLos = false,
 		usedefaultexplosions = false,
-		["heatcloud"] = {
+		["CHeatCloudProjectile"] = {
 			air = true,
 			water = true,
 			ground = true,
