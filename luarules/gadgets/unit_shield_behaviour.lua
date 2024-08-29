@@ -33,6 +33,7 @@ local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitsInSphere = Spring.GetUnitsInSphere
 local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
 local spGetUnitIsStunned = Spring.GetUnitIsStunned
+local spAreTeamsAllied = Spring.AreTeamsAllied
 
 local shieldUnitDefs = {}
 local shieldUnitsData = {}
@@ -44,21 +45,6 @@ local shieldedUnits = {}
 local AOEWeaponDefIDs = {}
 local projectileShieldHitCache = {}
 local gameSeconds = 0
-
-local allyTeams = Spring.GetAllyTeamList()
-local allTeams = {}
-
-for i, allyID in ipairs(allyTeams) do
-	local teamList = Spring.GetTeamList(allyID)
-
-	if teamList then
-		allyTeams[i] = teamList
-
-		for _, teamID in pairs(teamList) do
-			allTeams[teamID] = allyID
-		end
-	end
-end
 
 for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 	local areaOfEffect = weaponDef.damageAreaOfEffect
@@ -169,7 +155,8 @@ local function triggerDowntime(unitID, weaponNum)
 end
 
 local function shieldNegatesDamageCheck(unitID, unitTeam, attackerID, attackerTeam)
-	if shieldedUnits[unitID] and allTeams[unitTeam] ~= allTeams[attackerTeam] and next(shieldedUnits[unitID]) then
+	-- It is possible for attackerID to be nil, e.g. damage from death explosion
+	if shieldedUnits[unitID] and next(shieldedUnits[unitID]) and attackerID and not spAreTeamsAllied(unitTeam, attackerTeam) then
 		if not shieldedUnits[attackerID] or (not next(shieldedUnits[attackerID]) and next(shieldedUnits[unitID])) then
 			return true
 		end
