@@ -54,15 +54,11 @@ function widget:Update()
 
 	local prevMouseOffscreen = mouseOffscreen
 	mouseOffscreen = select(6, Spring.GetMouseState())
-	if not mouseOffscreen and not prevMouseOffscreen then
-		return
-	end
 
-	if mouseOffscreen and not prevMouseOffscreen then
+	if not mouseOffscreen and prevMouseOffscreen then
 		widget:Initialize()
-	end
-
-	for widgetName, fileName in pairs(widgetFilesNames) do
-		CheckForChanges(widgetName, fileName)
+		for widgetName, fileName in pairs(widgetFilesNames) do
+			CheckForChanges(widgetName, fileName)
+		end
 	end
 end
