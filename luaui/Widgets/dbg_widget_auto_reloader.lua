@@ -1,3 +1,7 @@
+if not Spring.Utilities.IsDevMode() then -- and not Spring.Utilities.ShowDevUI() then
+	return
+end
+
 function widget:GetInfo()
 	return {
 		name = "Widget Auto Reloader",
@@ -47,7 +51,7 @@ function widget:Update()
 		return
 	end
 	lastUpdate = Spring.GetTimer()
-	
+
 	local prevMouseOffscreen = mouseOffscreen
 	mouseOffscreen = select(6, Spring.GetMouseState())
 	if not mouseOffscreen and not prevMouseOffscreen then
@@ -57,9 +61,8 @@ function widget:Update()
 	if mouseOffscreen and not prevMouseOffscreen then
 		widget:Initialize()
 	end
-	
+
 	for widgetName, fileName in pairs(widgetFilesNames) do
 		CheckForChanges(widgetName, fileName)
 	end
-	
 end
