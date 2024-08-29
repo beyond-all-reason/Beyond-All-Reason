@@ -87,6 +87,33 @@ for id, data in pairs(UnitDefs) do
 	end
 end
 
+local function removeCoveredUnits(shieldUnitID)
+	for unitID, shieldList in pairs(shieldedUnits) do
+		if shieldList[shieldUnitID] then
+			shieldList[shieldUnitID] = nil
+		end
+	end
+end
+
+local function setCoveredUnits(shieldUnitID)
+	local shieldData = shieldUnitsData[shieldUnitID]
+
+	if not shieldData then
+		return
+	else
+		removeCoveredUnits(shieldUnitID)
+		local x, y, z = spGetUnitPosition(shieldUnitID, true)
+		local unitsTable = spGetUnitsInSphere(x, y, z, (shieldData.radius - radiusExclusionBuffer))
+
+		for _, unitID in ipairs(unitsTable) do
+			shieldedUnits[unitID] = shieldedUnits[unitID] or {}
+			shieldedUnits[unitID][shieldUnitID] = true
+		end
+
+		shieldData.shieldCoverageChecked = true
+	end
+end
+
 function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
 	if shieldUnitsData[unitID] then
 		shieldUnitsData[unitID].team = unitTeam
@@ -105,6 +132,8 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 			radius = shieldUnitDefs[unitDefID].customParams.shield_radius
 		}
 	end
+
+	setCoveredUnits(unitID)
 
 	-- Increases performance by reducing global unitDefID lookups
 	unitDefIDCache[unitID] = unitDefID
@@ -137,33 +166,6 @@ local function triggerDowntime(unitID, weaponNum)
 	spSetUnitShieldState(unitID, weaponNum, false)
 	shieldData.downtimeReset = gameSeconds + shieldData.downtime
 	shieldData.shieldEnabled = false
-end
-
-local function removeCoveredUnits(shieldUnitID)
-	for unitID, shieldList in pairs(shieldedUnits) do
-		if shieldList[shieldUnitID] then
-			shieldList[shieldUnitID] = nil
-		end
-	end
-end
-
-local function setCoveredUnits(shieldUnitID)
-	local shieldData = shieldUnitsData[shieldUnitID]
-
-	if not shieldData then
-		return
-	else
-		removeCoveredUnits(shieldUnitID)
-		local x, y, z = spGetUnitPosition(shieldUnitID, true)
-		local unitsTable = spGetUnitsInSphere(x, y, z, (shieldData.radius - radiusExclusionBuffer))
-
-		for _, unitID in ipairs(unitsTable) do
-			shieldedUnits[unitID] = shieldedUnits[unitID] or {}
-			shieldedUnits[unitID][shieldUnitID] = true
-		end
-
-		shieldData.shieldCoverageChecked = true
-	end
 end
 
 local function shieldNegatesDamageCheck(unitID, unitTeam, attackerID, attackerTeam)
@@ -230,7 +232,6 @@ function gadget:GameFrame(frame)
 		end
 
 		if frame % 10 == 0 then
-
 			if not shieldData.shieldEnabled and shieldData.downtimeReset ~= 0 and shieldData.downtimeReset <= gameSeconds then
 				shieldData.downtimeReset = 0
 				shieldData.shieldEnabled = true
