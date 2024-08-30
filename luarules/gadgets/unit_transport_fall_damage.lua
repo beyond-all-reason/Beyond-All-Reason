@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		date = "2023.06.22",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = false
 	}
 end
 
@@ -17,8 +17,8 @@ end
 
 --use customparams.fall_damage_multiplier = <number> to overwrite defaultDamageMult
 local defaultDamageMult = 1.0 -- A multiplier representing the percentage of health lost from the velocity of a freefall. Also applies proportionally to velocities from explosion impulse.
-local velocityStopThresholdMultiplier = 0.2 -- once the unit's velocity is equal to or below peakvelocity*velocityStopDivisor, take damage.
-local velocityStopCountThreshold = 5 --number of frames below threshold before damage is applied
+local velocityStopThresholdMultiplier = 0.4 -- once the unit's velocity is equal to or below peakvelocity*velocityStopDivisor, take damage.
+local velocityStopCountThreshold = 3 --number of frames below threshold before damage is applied
 local velocityThreshold = 3.5 -- this is the velocity required for an explosion to trigger fall damage watch
 
 
@@ -79,7 +79,7 @@ function gadget:GameFrame()
 							data.velocity = currentVelocity
 						end
 						data.stopcount = data.stopcount+1
-						if data.stopcount > 3 then
+						if data.stopcount > velocityStopCountThreshold then
 							if not data.transportid and data.vely ~= 0 and data.velocity ~= 0 then -- if no transport, damage
 								local yProportion = data.vely / data.velocity
 								yProportion = -yProportion
