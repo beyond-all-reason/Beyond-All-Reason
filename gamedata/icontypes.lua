@@ -2137,7 +2137,7 @@ local icontypes = {
 	},
 	legaceb = {
 		bitmap = "icons/legceb.png",
-		size = 1.16999996
+		size = 1.25
 	},
 	legack = {
 		bitmap = "icons/bot_t2_worker.png",
