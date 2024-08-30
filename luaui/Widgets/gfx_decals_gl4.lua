@@ -1077,6 +1077,17 @@ for weaponDefID=1, #WeaponDefs do
 			glowadd = 1.8
 			bwfactor = 0.1
 
+		elseif string.find(weaponDef.name, 'starfire') then
+			textures = { "t_groundcrack_16_a.tga", "t_groundcrack_17_a.tga", "t_groundcrack_10_a.tga" }
+			alphadecay = 0.003
+			radius = radius * 1.2 --* (math.random() * 20 + 0.2)
+			radiusVariation = 0.6
+			heatstart = 9000
+			heatdecay = 2.5
+			glowsustain = 0
+			glowadd = 2.5
+			bwfactor = 0.3
+
 		elseif string.find(weaponDef.name, 'footstep') then
 			--textures = { "f_corkorg_a.tga" }
 			textures = { "t_groundcrack_10_a.tga" }
