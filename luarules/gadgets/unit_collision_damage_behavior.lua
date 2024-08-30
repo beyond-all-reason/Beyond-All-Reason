@@ -33,8 +33,8 @@ end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 	if weaponDefID == objectCollisionDefID then
-		local _, _, _, velLength = spGetUnitVelocity(unitID)
-		if velLength > objectCollisionVelocityThreshold then
+		local _, velY, _, velLength = spGetUnitVelocity(unitID)
+		if velLength > objectCollisionVelocityThreshold and -velY > (velLength/3) then --prevents mostly horizontal object collisions from taking damage, allows damage if dropped from above
 			damage = damage*fallDamageMultipliers[unitDefID]
 			return damage
 		else
