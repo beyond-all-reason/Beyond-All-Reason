@@ -32,7 +32,6 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-	Spring.Echo(weaponDefID, damage)
 	if weaponDefID == objectCollisionDefID then
 		local _, _, _, velLength = spGetUnitVelocity(unitID)
 		if velLength > objectCollisionVelocityThreshold then
