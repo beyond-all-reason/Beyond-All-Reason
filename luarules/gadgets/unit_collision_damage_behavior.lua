@@ -20,8 +20,8 @@ local fallDamageMagnificationFactor = 64 --the multiplier by which default engin
 
 local spGetUnitVelocity = Spring.GetUnitVelocity
 
-local groundCollisionDefID = -2
-local objectCollisionDefID = -3
+local groundCollisionDefID = Game.envDamageTypes.GroundCollision
+local objectCollisionDefID = Game.envDamageTypes.ObjectCollision
 local objectCollisionVelocityThreshold = 3.3
 local fallDamageMultipliers = {}
 
