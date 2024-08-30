@@ -281,7 +281,7 @@
 				"lowTrajectory": "Low Trajectory",
 				"highTrajectory": "High Trajectory",
 				"trajectory_tooltip": "Switch artillery firing angle between low and high trajectory",
-				"gauss_tooltip": "Switches between Gauss Cannon and Heavy Plasma Cannon",
+				"gauss_tooltip": "Switches between Gauss Cannon and Heavy Plasma Cannon"
 			}
 		},
 		"idleBuilders": {
