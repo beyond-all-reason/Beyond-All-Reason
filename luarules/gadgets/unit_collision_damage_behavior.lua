@@ -16,7 +16,7 @@ end
 --this gadget 
 
 --use customparams.fall_damage_multiplier = <number> a multiplier that's applied to defaultDamageMultiplier.
-local fallDamageMagnificationFactor = 64 --the multiplier by which default engine ground collision damage is multiplied. 
+local fallDamageMagnificationFactor = 100 --the multiplier by which default engine ground collision damage is multiplied. 
 
 local spGetUnitVelocity = Spring.GetUnitVelocity
 
