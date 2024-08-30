@@ -82,6 +82,11 @@ function UnitDef_Post(name, uDef)
 		uDef.icontype = name
 	end
 
+	--define the minimum velocity(speed) required for all units to suffer fall/collision damage.
+	if uDef.health then
+		uDef.minCollisionSpeed = 2.5
+	end
+
 	-- inidivual unit hat processing
 	do
 		if modOptions.unithats then
