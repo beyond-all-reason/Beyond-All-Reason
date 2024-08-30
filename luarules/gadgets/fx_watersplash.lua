@@ -30,6 +30,7 @@ local COR_SEAADVBOMB = WeaponDefNames['corsb_cor_seaadvbomb'].id --corsb gets a 
 local ARM_JUNO = WeaponDefNames['armjuno_juno_pulse'].id --juno can explode on water
 local COR_JUNO = WeaponDefNames['corjuno_juno_pulse'].id --juno can explode on water
 local COR_TRON = WeaponDefNames['cortron_cortron_weapon'].id
+local LEG_PHOENIX = WeaponDefNames['legphoenix_legphtarg'].id --targetting weapon aircraftbomb
 -- maybe need addition of scav version or better solution
 
 local splashCEG1 = "splash-tiny"
@@ -70,7 +71,7 @@ end
 function gadget:Explosion(weaponID, px, py, pz, ownerID)
 	if Spring.GetGroundHeight(px,pz) < 0 then
 		local aoe = weaponAoe[weaponID] / 2
-		if not nonexplosiveWeapons[weaponType[weaponID]]  and abs(py) <= aoe and (not GetGroundBlocked(px, pz)) and weaponID ~= COR_SEAADVBOMB and weaponID ~= ARM_JUNO and weaponID ~= COR_JUNO then
+		if not nonexplosiveWeapons[weaponType[weaponID]]  and abs(py) <= aoe and (not GetGroundBlocked(px, pz)) and weaponID ~= COR_SEAADVBOMB and weaponID ~= ARM_JUNO and weaponID ~= COR_JUNO and weaponID ~= LEG_PHOENIX then
 			if aoe >= 6 and aoe < 12 then
 				Spring.SpawnCEG(splashCEG1, px, 0, pz)
 			elseif  aoe >= 12 and aoe < 24 then
