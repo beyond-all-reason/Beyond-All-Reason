@@ -47,14 +47,12 @@ end
 
 function gadget:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
 	local velX, velY, velZ, velLength = Spring.GetUnitVelocity(unitID)
-	Spring.Echo("velocity stuff", velX, velY, velZ, velLength)
 		fallingUnits[unitID] = {unitdefid = unitDefID, damagemultiplier = dropDamages[unitDefID], peakvelocity = 0, stopcount = 0, transportid = transportID}
 		transportedUnits[unitID] = nil
 end
 
 function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 	local velX, velY, velZ, velLength = Spring.GetUnitVelocity(unitID)
-	Spring.Echo("velocity stuff", velX, velY, velZ, velLength)
 	if velLength > velocityThreshold and not fallingUnits[unitID] and not transportedUnits[unitID] then
 		fallingUnits[unitID] = {unitdefid = unitDefID, damagemultiplier = dropDamages[unitDefID], peakvelocity = 0, stopcount = 0}
 	end
@@ -70,7 +68,6 @@ function gadget:GameFrame()
 				end
 			end
 			local velX, velY, velZ, currentVelocity = CheckValidUnitVelocity(unitID)
-			Spring.Echo("velocity stuff", velX, velY, velZ, currentVelocity)
 			if currentVelocity then
 				if data.peakvelocity > currentVelocity then -- velocity slowing
 					if currentVelocity <= (data.peakvelocity * velocityStopThresholdMultiplier) then -- landed
@@ -83,8 +80,6 @@ function gadget:GameFrame()
 							if not data.transportid and data.vely ~= 0 and data.velocity ~= 0 then -- if no transport, damage
 								local yProportion = data.vely / data.velocity
 								yProportion = -yProportion
-								local damage = data.damagemultiplier * data.peakvelocity --* yProportion
-								Spring.Echo("damage", damage, "peakvelocity", data.peakvelocity, "vely", data.vely)
 								Spring.AddUnitDamage(unitID, damage, 0, Spring.GetGaiaTeamID(), 1)
 							end
 							fallingUnits[unitID] = nil -- remove after landing
