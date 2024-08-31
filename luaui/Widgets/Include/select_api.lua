@@ -314,6 +314,8 @@ local function parseFilter(filterDef)
 			filters.name = invertCurry(invert, function(udef, _, _, name)
 				return stringContains(udef.name, name)
 			end, name)
+		else
+			error(token .. " is not a valid filter")
 		end
 	end
 
@@ -530,6 +532,8 @@ local function parseConclusion(conclusionDef, commandDef)
 			uids = getCountUnits(uids, countUntil, appendSelected)
 			Spring.SelectUnitArray(uids, appendSelected)
 		end)
+	else
+		error(conclusionDef .. " is not a valid conclusion")
 	end
 end
 
@@ -566,6 +570,8 @@ local function parseSource(sourceDef)
 				return {}
 			end
 		end)
+	else
+		error(sourceDef .. " is not a valid source")
 	end
 end
 
