@@ -99,7 +99,8 @@ if UnitDefNames.armflea then
 	local small = FeatureDefNames[UnitDefNames.armflea.corpse]
 	minFeatureMetal = small and small.metal or minFeatureMetal
 end
-local minTextAreaLength = 100
+local minTextAreaLength = epsilon / 2
+local maxTextAreaLength = 4 * minTextAreaLength * fontSizeMax / fontSizeMin
 checkFrequency = math.round(checkFrequency * Game.gameSpeed)
 
 local drawEnabled = false
@@ -225,7 +226,7 @@ do
 		-- The average of vertices is a very unstable estimate of the centroid.
 		-- The bounds change slowly, so we can use them to stabilize our guess:
 		cx, cz = cx / #points, cz / #points
-		cx, cz = (xmin + 1.5 * cx + xmax) / 3.5, (zmin + 1.5 * cz + zmax) / 3.5
+		cx, cz = (xmin + 3 * cx + xmax) / 5, (zmin + 3 * cz + zmax) / 5
 		cluster.center = { x = cx, y = max(0, spGetGroundHeight(cx, cz)) + 2, z = cz }
 	end
 
@@ -399,18 +400,10 @@ do
 	local function polygonArea(points)
 		if #points < 3 then return 0 end
 		local totalArea = 0
-		-- Determinant area, triangle form
-		local x1, z1 = points[1].x, points[1].z
-		local x2, z2
-		local x3, z3 = points[2].x, points[2].z
-		for i = 2, #points - 1 do
-			x2 = x3
-			z2 = z3
-			x3 = points[i + 1].x
-			z3 = points[i + 1].z
-			totalArea = totalArea + 0.5 * abs(x1 * (z2 - z3) + x2 * (z3 - z1) + x3 * (z1 - z2))
+		for ii = 1, #points - 1 do
+			totalArea = totalArea + points[ii].x * points[ii+1].z - points[ii].z * points[ii+1].x
 		end
-		return totalArea
+		return 0.5 * abs(totalArea + points[#points].x * points[1].z - points[#points].z * points[1].x)
 	end
 
 	processCluster = function (cluster, clusterID, points)
@@ -697,14 +690,15 @@ local function DrawFeatureClusterText()
 		for clusterID = 1, #featureClusters do
 			glPushMatrix()
 
-			local center = featureClusters[clusterID].center	
+			local center = featureClusters[clusterID].center
 			glTranslate(center.x, center.y, center.z)
 			glRotate(-90, 1, 0, 0)
 			glRotate(cameraFacing, 0, 0, 1)
 
 			local metalText = string.formatSI(featureClusters[clusterID].metal)
 			local fontSize = fontSizeMin + (fontSizeMax - fontSizeMin) *
-				min(1, sqrt(featureClusters[clusterID].area / minTextAreaLength / minTextAreaLength) - 1)
+				max(0, min(1,
+					sqrt(featureClusters[clusterID].area / maxTextAreaLength / maxTextAreaLength) - 1))
 			glColor(numberColor)
 			glText(metalText, 0, 0, fontSize, "cv") --cvo for outline
 
