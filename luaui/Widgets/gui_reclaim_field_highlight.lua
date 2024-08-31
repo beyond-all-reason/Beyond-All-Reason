@@ -32,9 +32,8 @@ local showOption = 3
 
 --Metal value font
 local numberColor = {1, 1, 1, 0.75}
-local fontSizeMin = 32
+local fontSizeMin = 40
 local fontSizeMax = 160
-local fontScaling = 0.45
 
 --Field color
 local reclaimColor = {0, 0, 0, 0.16}
@@ -561,7 +560,7 @@ local function RemoveFeature(featureID)
 		for nid, distSq in pairs(neighbors) do
 			-- Update the reachability of neighbors linked through this point.
 			local neighbor = knownFeatures[nid]
-			if neighbor ~= nil and neighbor.rd == distSq then
+			if neighbor.rd == distSq then
 				local nextNeighbors = featureNeighborsMatrix[nid]
 				nextNeighbors[featureID] = nil
 				local reachDistSq = mathHuge
@@ -698,33 +697,25 @@ end
 
 local drawFeatureClusterTextList
 local function DrawFeatureClusterText()
-	for clusterID = 1, #featureClusters do
-		glPushMatrix()
+	if camUpVector[1] ~= nil and camUpVector[3] ~= nil then
+		local cameraFacing = math.atan2(-camUpVector[1], -camUpVector[3]) * (180 / math.pi)
 
-		local area = featureClusters[clusterID].area
-		local center = featureClusters[clusterID].center
+		for clusterID = 1, #featureClusters do
+			glPushMatrix()
 
-		glTranslate(center.x, center.y, center.z)
-		glRotate(-90, 1, 0, 0)
+			local center = featureClusters[clusterID].center	
+			glTranslate(center.x, center.y, center.z)
+			glRotate(-90, 1, 0, 0)
+			glRotate(cameraFacing, 0, 0, 1)
 
-		-- Rotate text based on camera rotation
-		if camUpVector[1] ~= nil and camUpVector[3] ~= nil then
-			local rotationAngle = math.atan2(-camUpVector[1], -camUpVector[3]) * (180 / math.pi)
-			glRotate(rotationAngle, 0, 0, 1)
+			local metalText = string.formatSI(featureClusters[clusterID].metal)
+			local fontSize = fontSizeMin + (fontSizeMax - fontSizeMin) *
+				min(1, sqrt(featureClusters[clusterID].area / minTextAreaLength / minTextAreaLength) - 1)
+			glColor(numberColor)
+			glText(metalText, 0, 0, fontSize, "cv") --cvo for outline
+
+			glPopMatrix()
 		end
-
-		local fontSize = fontSizeMin * fontScaling
-		fontSize = sqrt(area) * fontSize / minTextAreaLength
-		fontSize = min(fontSize, fontSizeMax)
-		fontSize = max(fontSize, fontSizeMin)
-
-		local metalText = string.formatSI(featureClusters[clusterID].metal)
-
-		glColor(numberColor)
-
-		glText(metalText, 0, 0, fontSize, "cv") --cvo for outline
-
-		glPopMatrix()
 	end
 end
 
@@ -816,6 +807,7 @@ function widget:GameFrame(frame)
 	end
 
 	if redrawingNeeded == true then
+		drawFeatureClusterTextList = nil
 		if drawFeatureConvexHullSolidList ~= nil then
 			glDeleteList(drawFeatureConvexHullSolidList)
 			drawFeatureConvexHullSolidList = nil
@@ -831,7 +823,9 @@ function widget:GameFrame(frame)
 
 	-- Text is always redrawn to rotate it facing the camera.
 	local camUpVectorCurrent = spGetCameraVectors().up
-	if drawFeatureClusterTextList == nil or camUpVectorCurrent ~= camUpVector then
+	if drawFeatureClusterTextList == nil or
+		camUpVectorCurrent[1] ~= camUpVector[1] or camUpVectorCurrent[2] ~= camUpVector[2]
+	then
 		camUpVector = camUpVectorCurrent
 		if drawFeatureClusterTextList ~= nil then
 			glDeleteList(drawFeatureClusterTextList)
