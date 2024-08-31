@@ -33,7 +33,7 @@ local showOption = 3
 --Metal value font
 local numberColor = {1, 1, 1, 0.75}
 local fontSizeMin = 30
-local fontSizeMax = 140
+local fontSizeMax = 180
 
 --Field color
 local reclaimColor = {0, 0, 0, 0.16}
@@ -103,7 +103,7 @@ checkFrequency = math.round(checkFrequency * Game.gameSpeed)
 
 local minTextAreaLength = (epsilon / 2 + fontSizeMin) / 2
 local areaTextMin = 3000
-local areaTextRange = (minTextAreaLength * (fontSizeMax / fontSizeMin)) ^ 2 - areaTextMin
+local areaTextRange = (minTextAreaLength * (fontSizeMax / fontSizeMin) ^ 1.08) ^ 2 - areaTextMin
 
 local drawEnabled = false
 local actionActive = false
@@ -434,7 +434,7 @@ do
 		featureConvexHulls[clusterID] = convexHull
 
 		cluster.area = hullArea
-		local areaSize = max(0, min(1, (hullArea - areaTextMin) / areaTextRange))
+		local areaSize = max(0, min(1, (hullArea - 2 * areaTextMin) / areaTextRange))
 		cluster.font = fontSizeMin + (fontSizeMax - fontSizeMin) * areaSize
 	end
 end
