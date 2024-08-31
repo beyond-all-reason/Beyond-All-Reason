@@ -1167,19 +1167,6 @@ local options = {
     },
 
     {
-        key    	= "experimentalxpgain",
-        name   	= "XP Gain Multiplier",
-        desc   	= "XP Gain Multiplier",
-        hidden 	= true,
-        type   	= "number",
-        section = "options_experimental",
-        def    	= 1,
-        min    	= 0.1,
-        max    	= 10,
-        step   	= 0.1,
-    },
-
-    {
         key    	= "experimentalstandardgravity",
         name   	= "Gravity Override",
         desc   	= "Override map gravity for weapons",
