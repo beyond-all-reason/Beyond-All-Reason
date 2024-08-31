@@ -32,8 +32,8 @@ local showOption = 3
 
 --Metal value font
 local numberColor = {1, 1, 1, 0.75}
-local fontSizeMin = 40
-local fontSizeMax = 160
+local fontSizeMin = 30
+local fontSizeMax = 140
 
 --Field color
 local reclaimColor = {0, 0, 0, 0.16}
@@ -99,9 +99,11 @@ if UnitDefNames.armflea then
 	local small = FeatureDefNames[UnitDefNames.armflea.corpse]
 	minFeatureMetal = small and small.metal or minFeatureMetal
 end
-local minTextAreaLength = epsilon / 2
-local maxTextAreaLength = 4 * minTextAreaLength * fontSizeMax / fontSizeMin
 checkFrequency = math.round(checkFrequency * Game.gameSpeed)
+
+local minTextAreaLength = (epsilon / 2 + fontSizeMin) / 2
+local areaTextMin = 3000
+local areaTextRange = (minTextAreaLength * (fontSizeMax / fontSizeMin)) ^ 2 - areaTextMin
 
 local drawEnabled = false
 local actionActive = false
@@ -696,9 +698,8 @@ local function DrawFeatureClusterText()
 			glRotate(cameraFacing, 0, 0, 1)
 
 			local metalText = string.formatSI(featureClusters[clusterID].metal)
-			local fontSize = fontSizeMin + (fontSizeMax - fontSizeMin) *
-				max(0, min(1,
-					sqrt(featureClusters[clusterID].area / maxTextAreaLength / maxTextAreaLength) - 1))
+			local areaSize = (max(0, featureClusters[clusterID].area - areaTextMin) / areaTextRange)
+			local fontSize = fontSizeMin + (fontSizeMax - fontSizeMin) * min(1, areaSize)
 			glColor(numberColor)
 			glText(metalText, 0, 0, fontSize, "cv") --cvo for outline
 
