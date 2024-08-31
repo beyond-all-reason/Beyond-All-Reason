@@ -1157,16 +1157,6 @@ local options = {
     -- Hidden Tests
 
     {
-        key    	= "experimentalnoaircollisions",
-        name   	= "Aircraft Collisions Override",
-        desc   	= "Aircraft Collisions Override",
-        hidden 	= true,
-        type   	= "bool",
-        section = "options_experimental",
-        def  	= false,
-    },
-
-    {
         key    	= "experimentalstandardgravity",
         name   	= "Gravity Override",
         desc   	= "Override map gravity for weapons",
