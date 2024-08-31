@@ -807,7 +807,10 @@ function widget:GameFrame(frame)
 	end
 
 	if redrawingNeeded == true then
-		drawFeatureClusterTextList = nil
+		if drawFeatureClusterTextList ~= nil then
+			glDeleteList(drawFeatureClusterTextList)
+			drawFeatureClusterTextList = nil
+		end
 		if drawFeatureConvexHullSolidList ~= nil then
 			glDeleteList(drawFeatureConvexHullSolidList)
 			drawFeatureConvexHullSolidList = nil
