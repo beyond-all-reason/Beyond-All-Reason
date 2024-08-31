@@ -229,20 +229,18 @@ do
 		cluster.center = { x = cx, y = max(0, spGetGroundHeight(cx, cz)) + 2, z = cz }
 	end
 
+	local function sortMonotonic(a, b)
+		return (a.x > b.x) or (a.x == b.x and a.z > b.z)
+	end
+
 	---Filter a set of points to give a much smaller set of candidates for constructing
 	---the convex hull of the entire set. This can save time on building the hull.
 	---Credit: mindthenerd.blogspot.ru/2012/05/fastest-convex-hull-algorithm-ever.html
 	---Also: www-cgrl.cs.mcgill.ca/~godfried/publications/fast.convex.hull.algorithm.pdf
 	local function convexSetConditioning(points)
-		local remaining = {}
-
-		-- The first point in each cluster is its seed point. By itself, this is effectively
-		-- a random point, but we know its furthest neighbors are later on in the sequence.
-		local middle = floor(#points * 0.5)
+		table.sort(points, sortMonotonic)
+		local remaining = { points[1] }
 		local x, z = points[1].x, points[1].z
-		x, z = x + points[middle].x, z + points[middle].z
-		x, z = x + points[#points].x, z + points[#points].z
-		x, z = x / 3, z / 3
 
 		-- (1) Cover all points by expanding a quadrilateral to follow these rules:
 		local ax,  az,  a_xzs_max  =  x,  z,  x - z  -- Choose point A to maximize x - z.
@@ -255,7 +253,7 @@ do
 		local rzmin, rzmax = z, z  -- Rz_min = max(Az, Dz); Rz_max = min(Bz, Cz).
 
 		-- (3) The algorithm performs two passes, with the first covering the full set.
-		for ii = 1, #points do
+		for ii = 2, #points do
 			local point = points[ii]
 			local x, z = point.x, point.z
 			if x <= rxmin or x >= rxmax or z <= rzmin or z >= rzmax then
@@ -268,41 +266,41 @@ do
 				if xzs > a_xzs_max then
 					a_xzs_max = xzs
 					ax, az = x, z
-					if x > rxmax then
-						rxmax = min(x, bx)
+					if x > rxmax and x < bx then
+						rxmax = x
 					end
-					if z < rzmin then
-						rzmin = max(z, dz)
+					if z < rzmin and z > dz then
+						rzmin = z
 					end
 				end
 				if xza > b_xza_max then
 					b_xza_max = xza
 					bx, bz = x, z
-					if x > rxmax then
-						rxmax = min(x, ax)
+					if x > rxmax and x < ax then
+						rxmax = x
 					end
-					if z > rzmax then
-						rzmax = min(z, cz)
+					if z > rzmax and z < cz then
+						rzmax = z
 					end
 				end
 				if xzs < c_xzs_min then
 					c_xzs_min = xzs
 					cx, cz = x, z
-					if x < rxmin then
-						rxmin = max(x, dx)
+					if x < rxmin and x > dx then
+						rxmin = x
 					end
-					if z > rzmax then
-						rzmax = min(z, bz)
+					if z > rzmax and z < bz then
+						rzmax = z
 					end
 				end
 				if xza < d_xza_min then
 					d_xza_min = xza
 					dx, dz = x, z
-					if x < rxmin then
-						rxmin = max(x, cx)
+					if x < rxmin and x > cx then
+						rxmin = x
 					end
-					if z < rzmin then
-						rzmin = max(z, az)
+					if z < rzmin and z > az then
+						rzmin = z
 					end
 				end
 			end
@@ -328,10 +326,6 @@ do
 
 	local MonotoneChain
 	do
-		local function sortMonotonic(a, b)
-			return (a.x > b.x) or (a.x == b.x and a.z > b.z)
-		end
-
 		local function cross(p, q, r)
 			return (q.z - p.z) * (r.x - q.x) -
 			       (q.x - p.x) * (r.z - q.z)
