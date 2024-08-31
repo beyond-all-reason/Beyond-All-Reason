@@ -103,7 +103,7 @@ checkFrequency = math.round(checkFrequency * Game.gameSpeed)
 
 local minTextAreaLength = (epsilon / 2 + fontSizeMin) / 2
 local areaTextMin = 3000
-local areaTextRange = (minTextAreaLength * (fontSizeMax / fontSizeMin) ^ 1.08) ^ 2 - areaTextMin
+local areaTextRange = (1.75 * minTextAreaLength * (fontSizeMax / fontSizeMin)) ^ 2 - areaTextMin
 
 local drawEnabled = false
 local actionActive = false
@@ -225,7 +225,7 @@ do
 		-- The average of vertices is a very unstable estimate of the centroid.
 		-- The bounds change slowly, so we can use them to stabilize our guess:
 		cx, cz = cx / #points, cz / #points
-		cx, cz = (xmin + 3 * cx + xmax) / 5, (zmin + 3 * cz + zmax) / 5
+		cx, cz = (xmin + 2 * cx + xmax) / 4, (zmin + 2 * cz + zmax) / 4
 		cluster.center = { x = cx, y = max(0, spGetGroundHeight(cx, cz)) + 2, z = cz }
 
 		-- I keep shuffling this around to different places. Just do it here:
