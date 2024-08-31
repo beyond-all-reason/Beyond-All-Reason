@@ -82,9 +82,11 @@ function UnitDef_Post(name, uDef)
 		uDef.icontype = name
 	end
 
-	--define the minimum velocity(speed) required for all units to suffer fall/collision damage.
+	--global physics behavior changes
 	if uDef.health then
-		uDef.minCollisionSpeed = 2.5
+		uDef.minCollisionSpeed = 2.5 -- define the minimum velocity(speed) required for all units to suffer fall/collision damage.
+		uDef.groundFrictionCoefficient = 0.05 --default 0.01 -- used to reduce a unit’s speed when skidding (moving in a direction other than heading)
+		uDef.rollingResistanceCoefficient = 0.07 --default 0.05 -- used to reduce a unit’s speed when exceeding their normal max speed at their current heading.
 	end
 
 	-- inidivual unit hat processing
