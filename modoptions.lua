@@ -1277,16 +1277,6 @@ local options = {
     },
 
     {
-        key 	= "energy_share_rework",
-        name 	= "Energy Share Rework",
-        desc 	= "Additional energy overflow/underflow mechanics. 10% of the energy income is re-distributed to prevent E-stalling.",
-        type 	= "bool",
-        hidden 	= true,
-        section = "options_experimental",
-        def 	= false,
-    },
-
-    {
         key   	= "releasecandidates",
         name   	= "Release Candidate Units",
         desc   	= "Adds additional units to the game which are being considered for mainline integration and are balanced, or in end tuning stages.  Currently adds Printer, Siegebreaker, Phantom (Core T2 veh), Shockwave (Arm T2 EMP Mex), and Drone Carriers for armada and cortex",
