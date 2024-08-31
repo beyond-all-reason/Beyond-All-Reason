@@ -220,16 +220,31 @@ do
 			zmax = max(zmax, z)
 			cx, cz = cx + x, cz + z
 		end
-		cluster.xmin = xmin
-		cluster.xmax = xmax
-		cluster.zmin = zmin
-		cluster.zmax = zmax
 
 		-- The average of vertices is a very unstable estimate of the centroid.
 		-- The bounds change slowly, so we can use them to stabilize our guess:
 		cx, cz = cx / #points, cz / #points
 		cx, cz = (xmin + 3 * cx + xmax) / 5, (zmin + 3 * cz + zmax) / 5
 		cluster.center = { x = cx, y = max(0, spGetGroundHeight(cx, cz)) + 2, z = cz }
+
+		-- I keep shuffling this around to different places. Just do it here:
+		local dx, dz = xmax - xmin, zmax - zmin
+		if dx < minTextAreaLength then
+			xmin = xmin - (minTextAreaLength - dx) / 2
+			xmax = xmax + (minTextAreaLength - dx) / 2
+			dx = dx + minTextAreaLength
+		end
+		if dz < minTextAreaLength then
+			zmin = zmin - (minTextAreaLength - dz) / 2
+			zmax = zmax + (minTextAreaLength - dz) / 2
+			dz = dz + minTextAreaLength
+		end
+		cluster.xmin = xmin
+		cluster.xmax = xmax
+		cluster.zmin = zmin
+		cluster.zmax = zmax
+		cluster.dx = dx
+		cluster.dz = dz
 	end
 
 	local function sortMonotonic(a, b)
@@ -367,34 +382,19 @@ do
 	end
 
 	local function BoundingBox(cluster, points)
-		local xmin, xmax, zmin, zmax = cluster.xmin, cluster.xmax, cluster.zmin, cluster.zmax
-		local dx, dz = xmax - xmin, zmax - zmin
-
-		if dx < minTextAreaLength then
-			xmin = xmin - (minTextAreaLength - dx) / 2
-			xmax = xmax + (minTextAreaLength - dx) / 2
-			dx = dx + minTextAreaLength
-		end
-
-		if dz < minTextAreaLength then
-			zmin = zmin - (minTextAreaLength - dz) / 2
-			zmax = zmax + (minTextAreaLength - dz) / 2
-			dz = dz + minTextAreaLength
-		end
-
 		local ymax = points[1].y
 		if #points == 2 then
 			ymax = max(ymax, points[2].y)
 		end
 
 		local convexHull = {
-			{ x = xmin, y = ymax, z = zmin },
-			{ x = xmax, y = ymax, z = zmin },
-			{ x = xmax, y = ymax, z = zmax },
-			{ x = xmin, y = ymax, z = zmax },
+			{ x = cluster.xmin, y = ymax, z = cluster.zmin },
+			{ x = cluster.xmax, y = ymax, z = cluster.zmin },
+			{ x = cluster.xmax, y = ymax, z = cluster.zmax },
+			{ x = cluster.xmin, y = ymax, z = cluster.zmax },
 		}
 
-		local hullArea = dx * dz
+		local hullArea = cluster.dx * cluster.dz
 
 		return convexHull, hullArea
 	end
@@ -411,20 +411,27 @@ do
 	processCluster = function (cluster, clusterID, points)
 		getReclaimTotal(cluster, points)
 
-		local convexHull
-
-		local hullPoints = #points < 60 and points or convexSetConditioning(points)
-		local hullArea = polygonArea(hullPoints)
-		if hullArea >= 3000 then
-			convexHull = MonotoneChain(hullPoints)
+		local convexHull, hullArea
+		if #points >= 3 then
+			if #points >= 60 then
+				convexHull = MonotoneChain(convexSetConditioning(points))
+			else
+				convexHull = MonotoneChain(points)
+			end
+			hullArea = polygonArea(convexHull)
 			getClusterDimensions(cluster, convexHull)
 		else
-			getClusterDimensions(cluster, hullPoints)
-			convexHull, hullArea = BoundingBox(cluster, hullPoints)
+			hullArea = 0
+			getClusterDimensions(cluster, points)
 		end
-		cluster.area = hullArea
+
+		-- Replace lines and sets of one or two with a bounding box.
+		if hullArea < areaTextMin then
+			convexHull, hullArea = BoundingBox(cluster, points)
+		end
 
 		featureConvexHulls[clusterID] = convexHull
+		cluster.area = hullArea
 	end
 end
 
