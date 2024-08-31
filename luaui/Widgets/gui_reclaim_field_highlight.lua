@@ -207,6 +207,7 @@ do
 			metal = metal + points[j].metal
 		end
 		cluster.metal = metal
+		cluster.text = string.formatSI(metal)
 	end
 
 	local function getClusterDimensions(cluster, points)
@@ -431,7 +432,10 @@ do
 		end
 
 		featureConvexHulls[clusterID] = convexHull
+
 		cluster.area = hullArea
+		local areaSize = max(0, min(1, (hullArea - areaTextMin) / areaTextRange))
+		cluster.font = fontSizeMin + (fontSizeMax - fontSizeMin) * areaSize
 	end
 end
 
@@ -592,6 +596,10 @@ local function UpdateFeatureReclaim()
 			clusterizingNeeded = true
 		end
 	end
+
+	for ii = 1, #featureClusters do
+		featureClusters[ii].text = string.formatSI(featureClusters[ii].metal)
+	end
 end
 
 local function ClusterizeFeatures()
@@ -695,20 +703,17 @@ local drawFeatureClusterTextList
 local function DrawFeatureClusterText()
 	if camUpVector[1] ~= nil and camUpVector[3] ~= nil then
 		local cameraFacing = math.atan2(-camUpVector[1], -camUpVector[3]) * (180 / math.pi)
-
 		for clusterID = 1, #featureClusters do
+			local center = featureClusters[clusterID].center
+			
 			glPushMatrix()
 
-			local center = featureClusters[clusterID].center
 			glTranslate(center.x, center.y, center.z)
 			glRotate(-90, 1, 0, 0)
 			glRotate(cameraFacing, 0, 0, 1)
 
-			local metalText = string.formatSI(featureClusters[clusterID].metal)
-			local areaSize = (max(0, featureClusters[clusterID].area - areaTextMin) / areaTextRange)
-			local fontSize = fontSizeMin + (fontSizeMax - fontSizeMin) * min(1, areaSize)
 			glColor(numberColor)
-			glText(metalText, 0, 0, fontSize, "cv") --cvo for outline
+			glText(featureClusters[clusterID].text, 0, 0, featureClusters[clusterID].font, "cv") --cvo for outline
 
 			glPopMatrix()
 		end
