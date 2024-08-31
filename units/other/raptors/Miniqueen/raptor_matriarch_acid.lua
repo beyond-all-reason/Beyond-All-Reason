@@ -109,6 +109,16 @@ return {
 				turret = true,
 				weapontimer = 0.2,
 				weaponvelocity = 520,
+				customparams = {
+					timed_area_weapon = {
+						ceg = "acid-area-75",
+						damageCeg = "acid-damage-gen",
+						time = 10,
+						damage = 40,
+						range = 75,
+						resistance = "_RAPTORACID_",
+					},
+				},
 				damage = {
 					default = 1,
 					shields = 800,
@@ -178,6 +188,16 @@ return {
 				turret = true,
 				weapontimer = 0.2,
 				weaponvelocity = 520,
+				customparams = {
+					timed_area_weapon = {
+						ceg = "acid-area-75",
+						damageCeg = "acid-damage-gen",
+						time = 10,
+						damage = 40,
+						range = 75,
+						resistance = "_RAPTORACID_",
+					},
+				},
 				damage = {
 					default = 1,
 					shields = 800,

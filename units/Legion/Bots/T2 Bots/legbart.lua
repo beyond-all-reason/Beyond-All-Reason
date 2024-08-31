@@ -132,6 +132,16 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 300,
+				customparams = {
+					timed_area_weapon = {
+						ceg = "fire-area-75",
+						damageCeg = "burnflamexl",
+						time = 10,
+						damage = 30,
+						range = 75,
+						resistance = "test",
+					},
+				},
 				damage = {
 					default = 30,
 					subs = 10,

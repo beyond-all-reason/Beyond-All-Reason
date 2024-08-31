@@ -109,6 +109,16 @@ return {
 				soundhitwet = "splslrg",
 				soundstart = "bombrelxl",
 				weapontype = "AircraftBomb",
+				customparams = {
+					timed_area_weapon = {
+						ceg = "fire-area-150",
+						damageCeg = "burnflamexl",
+						time = 15,
+						damage = 30,
+						range = 150,
+						resistance = "test",
+					},
+				},
 				damage = {
 					default = 50,
 					subs = 20,

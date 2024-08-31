@@ -58,6 +58,14 @@ return {
 			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_s_normals.png",
+			timed_area_deathexplosion = {
+				ceg = "acid-area-150",
+				damageCeg = "acid-damage-gen",
+				time = 10,
+				damage = 100,
+				range = 150,
+				resistance = "_RAPTORACID_",
+			},
 		},
 		sfxtypes = {
 			explosiongenerators = {
@@ -109,6 +117,16 @@ return {
 				weapontype = "Cannon",
 				weapontimer = 0.2,
 				weaponvelocity = 520,
+				customparams = {
+					timed_area_weapon = {
+						ceg = "acid-area-150",
+						damageCeg = "acid-damage-gen",
+						time = 10,
+						damage = 200,
+						range = 150,
+						resistance = "_RAPTORACID_",
+					},
+				},
 				damage = {
 					default = 1,
 					shields = 320,

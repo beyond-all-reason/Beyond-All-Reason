@@ -175,6 +175,16 @@ return {
 				weapontimer = 5,
 				weapontype = "Cannon",
 				--weaponvelocity = 650,
+				customparams = {
+					timed_area_weapon = {
+						ceg = "fire-area-150",
+						damageCeg = "burnflamexl",
+						time = 15,
+						damage = 175,
+						range = 150,
+						resistance = "test",
+					},
+				},
 				damage = {
 					commanders = 700,
 					default = 2000,--plus 150*15 within 150 area

@@ -106,6 +106,16 @@ return {
 				weapontype = "Cannon",
 				weapontimer = 0.2,
 				weaponvelocity = 800,
+				customparams = {
+					timed_area_weapon = {
+						ceg = "acid-area-150",
+						damageCeg = "acid-damage-gen",
+						time = 10,
+						damage = 200,
+						range = 150,
+						resistance = "_RAPTORACID_",
+					},
+				},
 				damage = {
 					default = 1,
 					shields = 320,
