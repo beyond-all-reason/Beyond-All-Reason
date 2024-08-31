@@ -781,8 +781,8 @@ function widget:Update(dt)
 		local cx, cy, cz = spGetCameraPosition()
 		local desc, w = spTraceScreenRay(screenx / 2, screeny / 2, true)
 		if desc ~= nil then
-			local cameraDist = min( 8000, sqrt( (cx-w[1])^2 + (cy-w[2])^2 + (cz-w[3])^2 ) )
-			cameraScale = sqrt((cameraDist / 600)) --number is an "optimal" view distance
+			local cameraDist = min(64000000, (cx-w[1])^2 + (cy-w[2])^2 + (cz-w[3])^2)
+			cameraScale = sqrt(sqrt(cameraDist) / 600) --number is an "optimal" view distance
 		else
 			cameraScale = 1.0
 		end
