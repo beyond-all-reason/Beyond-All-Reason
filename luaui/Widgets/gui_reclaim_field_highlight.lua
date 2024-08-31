@@ -807,10 +807,6 @@ function widget:GameFrame(frame)
 	end
 
 	if redrawingNeeded == true then
-		if drawFeatureClusterTextList ~= nil then
-			glDeleteList(drawFeatureClusterTextList)
-			drawFeatureClusterTextList = nil
-		end
 		if drawFeatureConvexHullSolidList ~= nil then
 			glDeleteList(drawFeatureConvexHullSolidList)
 			drawFeatureConvexHullSolidList = nil
@@ -825,17 +821,12 @@ function widget:GameFrame(frame)
 	end
 
 	-- Text is always redrawn to rotate it facing the camera.
-	local camUpVectorCurrent = spGetCameraVectors().up
-	if drawFeatureClusterTextList == nil or
-		camUpVectorCurrent[1] ~= camUpVector[1] or camUpVectorCurrent[2] ~= camUpVector[2]
-	then
-		camUpVector = camUpVectorCurrent
-		if drawFeatureClusterTextList ~= nil then
-			glDeleteList(drawFeatureClusterTextList)
-			drawFeatureClusterTextList = nil
-		end
-		drawFeatureClusterTextList = glCreateList(DrawFeatureClusterText)
+	camUpVector = spGetCameraVectors().up
+	if drawFeatureClusterTextList ~= nil then
+		glDeleteList(drawFeatureClusterTextList)
+		drawFeatureClusterTextList = nil
 	end
+	drawFeatureClusterTextList = glCreateList(DrawFeatureClusterText)
 end
 
 function widget:FeatureCreated(featureID, allyTeamID)
