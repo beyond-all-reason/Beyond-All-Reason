@@ -39,11 +39,9 @@ for id, def in pairs(UnitDefs) do
 	end
 	if def.speed == 0 and not def.weapons[1] and def.buildSpeed < 1 then
 		table.insert(boostableUnits[id], "PASSIVE")
-		Spring.Echo("Passive: ", def.name)
 	end
 	if def.buildSpeed and def.buildSpeed > 0 then
 		table.insert(boostableUnits[id], "BUILDER")
-		Spring.Echo("Builder: ", def.name)
 	end
 end
 
