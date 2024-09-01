@@ -27,7 +27,9 @@ local isFactory = {} -- isFactory[uDefID] = true / nil
 
 local gameStarted
 
-local stallIds = {UnitDefNames['armcom'].id, UnitDefNames['corcom'].id, UnitDefNames['legcom'].id}
+
+local stallIds = {UnitDefNames['armcom'].id, UnitDefNames['corcom'].id, UnitDefNames['legcom'] and UnitDefNames['legcom'].id}
+
 
 ----------------------------------------------------------------
 -- Speedups
@@ -95,7 +97,7 @@ function widget:Update(dt)
 				stallUnitSelected = true
 			end
 		end
-		
+
 		if (stallUnitSelected) then
 			watchTime = watchForTime
 		end

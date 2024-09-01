@@ -1157,29 +1157,6 @@ local options = {
     -- Hidden Tests
 
     {
-        key    	= "experimentalnoaircollisions",
-        name   	= "Aircraft Collisions Override",
-        desc   	= "Aircraft Collisions Override",
-        hidden 	= true,
-        type   	= "bool",
-        section = "options_experimental",
-        def  	= false,
-    },
-
-    {
-        key    	= "experimentalxpgain",
-        name   	= "XP Gain Multiplier",
-        desc   	= "XP Gain Multiplier",
-        hidden 	= true,
-        type   	= "number",
-        section = "options_experimental",
-        def    	= 1,
-        min    	= 0.1,
-        max    	= 10,
-        step   	= 0.1,
-    },
-
-    {
         key    	= "experimentalstandardgravity",
         name   	= "Gravity Override",
         desc   	= "Override map gravity for weapons",
@@ -1224,17 +1201,7 @@ local options = {
         section = "options_experimental",
         def 	= false,
     },
-
-    {
-        key		= "unified_maxslope",
-        name	= "Standardized Land Unit Maxslope",
-        desc	= "All land units have minimum maxslope of 36",
-        type	= "bool",
-        hidden 	= true,
-        def		= false,
-        section	= "options_experimental",
-    },
-
+    
     {
         key    	= "faction_limiter",
         name   	= "Team Faction Limiter",
@@ -1270,16 +1237,6 @@ local options = {
         key 	= "junorework",
         name 	= "Juno Rework",
         desc 	= "Juno stuns certain units (such as radars and jammers) rather than magically deleting them",
-        type 	= "bool",
-        hidden 	= true,
-        section = "options_experimental",
-        def 	= false,
-    },
-
-    {
-        key 	= "energy_share_rework",
-        name 	= "Energy Share Rework",
-        desc 	= "Additional energy overflow/underflow mechanics. 10% of the energy income is re-distributed to prevent E-stalling.",
         type 	= "bool",
         hidden 	= true,
         section = "options_experimental",

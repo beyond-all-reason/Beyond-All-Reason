@@ -833,12 +833,6 @@ local moveDatas = {
 local defs = {}
 
 for moveName, moveData in pairs(moveDatas) do
-	if Spring.GetModOptions().unified_maxslope then
-		if moveData.maxslope then
-			moveData.maxslope = math.max(moveData.maxslope, 36)
-		end
-	end
-
 	moveData.heatmapping = true
 	moveData.name = moveName
 	moveData.allowRawMovement = true
