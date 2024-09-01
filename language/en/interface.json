@@ -1626,15 +1626,15 @@
 			}
 		},
 		"startPositionSuggestions": {
-			"tutorial": "Start positions and roles indicated within the circles are recommendations from expert players. If you're new to the game, or new to this map, these are solid options, but they aren't requirements. \n\nIf you'd like to disable this, check the Settings window for \"Start Position Suggestions\".",
+			"tutorial": "Recommended start positions and roles are indicated within the circles.\n\nTo disable this, check the Settings window for \"Start Position Suggestions\".",
 			"roles": {
 				"front": {
 					"title": "Frontline",
-					"description": "Build ground units early and bring your commander forward to secure a strong central position, taking metal spots along the way."
+					"description": "Build ground units and bring your Commander forward to secure a strong central position, taking metal spots along the way."
 				},
 				"tech": {
 					"title": "Tech",
-					"description": "Focus on early economy to support building a Tier 2 factory, in order to distribute Tier 2 constructors to the team, and attack with high tier units."
+					"description": "Focus on economy to support building a Tier 2 factory, then distribute Tier 2 constructors to the team, and attack with high tier units."
 				},
 				"air": {
 					"title": "Air",
@@ -1642,7 +1642,7 @@
 				},
 				"sea": {
 					"title": "Sea",
-					"description": "Build navy units early and secure a strong position on the map. Later on, consider building amphibious or air units to invade enemies on land."
+					"description": "Build navy units and secure a strong position on the map. Later, build amphibious or air units to invade enemies on land."
 				},
 				"air/front": {
 					"title": "Air/Front",
@@ -1670,7 +1670,7 @@
 				},
 				"baseCenter": {
 					"title": "Base Center",
-					"description": "Move your commander here shortly after spawning. Build your first factory in this area."
+					"description": "Move your Commander here shortly after spawning. Build your first factory in this area."
 				}
 			}
 		}
