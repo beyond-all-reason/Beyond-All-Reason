@@ -840,11 +840,11 @@ local definitions = {
   ["acid-area"] = {
     usedefaultexplosions = false,
     acid_groundpuddle = {
-      air                = true,
       class              = [[CBitmapMuzzleFlame]],
       count              = 1,
+      air                = true,
       ground             = true,
-      underwater         = 1,
+      underwater         = true,
       water              = true,
       properties = {
         --colormap           = [[0.05 0.09 0.02 0.10   0.25 0.36 0.06 0.12   0.25 0.36 0.06 0.12   0.25 0.36 0.06 0.12   0.25 0.36 0.06 0.12   0.25 0.36 0.06 0.12   0.25 0.36 0.06 0.12    0.22 0.34 0.055 0.10   0.22 0.34 0.055 0.10   0.18 0.32 0.045 0.10    0.15 0.18 0.04 0.10    0.10 0.16 0.03 0.10    0.10 0.16 0.03 0.10     0.10 0.16 0.03 0.10    0 0 0 0.01]],
@@ -856,24 +856,23 @@ local definitions = {
         sidetexture        = [[none]],
         size               = [[230 r60]],
         sizegrowth         = 0.1,
-        ttl                = 110,
+        ttl                = 30,
         pos                = [[0, 15, 0]],
         rotParams          = [[0 r0, 0, -180 r360]],
         alwaysvisible      = true,
       },
     },
     acidrandomsmoke = {
-            air                = true,
             class              = [[CExpGenSpawner]],
-            count              = 10,
+            count              = 1,
+            air                = true,
             ground             = true,
             water              = true,
             underwater         = true,
             properties = {
-                delay              = [[i30]],
+                delay              = [[0]],
                 explosiongenerator = [[custom:acid-area-smoke]],
                 pos                = [[-128 r256, 0 r20, -128 r256]],
-                --alwaysvisible      = true,
             },
         },
   },
@@ -2345,17 +2344,14 @@ local definitions = {
 
 definitions['acid-area-192'] = table.copy(definitions['acid-area'])
 definitions['acid-area-192'].acid_groundpuddle.properties.size = [[185 r50]]
-definitions['acid-area-192'].acidrandomsmoke.count = 4
 definitions['acid-area-192'].acidrandomsmoke.properties.pos = [[-96 r192, 0 r20, -96 r192]]
 
 definitions['acid-area-150'] = table.copy(definitions['acid-area'])
 definitions['acid-area-150'].acid_groundpuddle.properties.size = [[145 r40]]
-definitions['acid-area-150'].acidrandomsmoke.count = 3
 definitions['acid-area-150'].acidrandomsmoke.properties.pos = [[-75 r150, 0 r20, -75 r150]]
 
 definitions['acid-area-75'] = table.copy(definitions['acid-area'])
 definitions['acid-area-75'].acid_groundpuddle.properties.size = [[72 r32]]
-definitions['acid-area-75'].acidrandomsmoke.count = 2
 definitions['acid-area-75'].acidrandomsmoke.properties.pos = [[-37 r75, 0 r20, -38 r75]]
 
 return definitions
