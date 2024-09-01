@@ -99,10 +99,10 @@ if gadgetHandler:IsSyncedCode() then
 				raptor_turret_antinuke_t2_v1 = {radius = 512, growthrate = 0.2},
 				raptor_turret_meteor_t4_v1 = {radius = 1536, growthrate = 0.8},
 
-				scavbeacon_t1_scav = {radius = 600, growthrate = 0.4},
-				scavbeacon_t2_scav = {radius = 1000, growthrate = 0.6},
-				scavbeacon_t3_scav = {radius = 1400, growthrate = 0.8},
-				scavbeacon_t4_scav = {radius = 1800, growthrate = 1},
+				scavbeacon_t1_scav = {radius = 704, growthrate = 0.47},
+				scavbeacon_t2_scav = {radius = 800, growthrate = 0.53},
+				scavbeacon_t3_scav = {radius = 904, growthrate = 0.6},
+				scavbeacon_t4_scav = {radius = 1024, growthrate = 0.68},
 			}
 		for unitDefName, scumParams in pairs(scumGenerators) do 
 			if UnitDefNames[unitDefName] then
@@ -110,15 +110,13 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
+		local scumSpawnerExclusions = {lootdroppod_gold_scav = true, lootdroppod_printer_scav = true, meteor_scav = true, mission_command_tower_scav = true,
+		nuketest_scav = true, nuketestcor_scav = true, nuketestorg_scav = true, scavempspawner_scav = true, scavengerdroppod_scav = true, scavengerdroppodfriendly_scav = true,
+		scavtacnukespawner_scav = true}
 		for unitDefID, unitDef in pairs(UnitDefs) do
-			if unitDef.customParams.isscavenger and (not unitDef.canMove) and (not string.find(unitDef.name, "lootbox")) and not scumSpawnerIDs[unitDefID] and (not unitDef.customParams.objectify) and (not unitDef.canCloak) then
-				local footprintX = unitDef.xsize*0.5 -- why the fuck is this footprint *2??????
-				local footprintZ = unitDef.zsize*0.5 -- why the fuck is this footprint *2??????
-				local footprintSquare = 2
-				if footprintX and footprintZ then
-					footprintSquare = (footprintX+footprintZ)*0.5
-				end
-				scumSpawnerIDs[unitDefID] = {radius = footprintSquare*300, growthrate = 0.05*footprintSquare}
+			if unitDef.customParams.isscavenger and (not unitDef.canMove) and (not string.find(unitDef.name, "lootbox")) and not scumSpawnerIDs[unitDefID] and (not unitDef.customParams.objectify) and (not unitDef.canCloak) and not scumSpawnerExclusions[unitDef.name]then
+				scumSpawnerIDs[unitDefID] = {radius = 600, growthrate = 4}
+				Spring.Echo(unitDef.name, "radius", scumSpawnerIDs[unitDefID].radius)
 			end
 		end
 

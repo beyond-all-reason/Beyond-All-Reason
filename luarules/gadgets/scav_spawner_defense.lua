@@ -1948,7 +1948,7 @@ if gadgetHandler:IsSyncedCode() then
 								Spring.SetUnitHealth(unitID, {health = maxHealth})
 								SendToUnsynced("unitCaptureFrame", unitID, 0.95)
 								Spring.SpawnCEG("scav-spawnexplo", ux, uy, uz, 0,0,0)
-								Spring.SpawnCEG("scavmistxl", ux, uy+100, uz, 0,0,0)
+								--Spring.SpawnCEG("scavmistxl", ux, uy+100, uz, 0,0,0)
 								Spring.SpawnCEG("scavradiation", ux, uy+100, uz, 0,0,0)
 								Spring.SpawnCEG("scavradiation-lightning", ux, uy+100, uz, 0,0,0)
 
