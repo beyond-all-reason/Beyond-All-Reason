@@ -1201,17 +1201,7 @@ local options = {
         section = "options_experimental",
         def 	= false,
     },
-
-    {
-        key		= "unified_maxslope",
-        name	= "Standardized Land Unit Maxslope",
-        desc	= "All land units have minimum maxslope of 36",
-        type	= "bool",
-        hidden 	= true,
-        def		= false,
-        section	= "options_experimental",
-    },
-
+    
     {
         key    	= "faction_limiter",
         name   	= "Team Faction Limiter",
