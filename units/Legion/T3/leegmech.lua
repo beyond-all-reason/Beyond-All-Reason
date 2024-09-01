@@ -152,14 +152,12 @@ return {
 				weaponvelocity = 600,
 				wobble = 10000,
 				customparams = {
-					timed_area_weapon = {
-						ceg = "fire-area-75",
-						damageCeg = "burnflamexl",
-						time = 10,
-						damage = 30,
-						range = 75,
-						resistance = "test",
-					},
+					timed_area_ceg = "fire-area-75",
+					timed_area_damageCeg = "burnflamexl",
+					timed_area_time = 10,
+					timed_area_damage = 30,
+					timed_area_range = 75,
+					timed_area_resistance = "test",
 				},
 				damage = {
 					default = 30,

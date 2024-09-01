@@ -601,14 +601,12 @@ for difficulty, stats in pairs(difficultyParams) do
 				weapontype = "Cannon",
 				weaponvelocity = 450,
 				customparams = {
-					timed_area_weapon = {
-						ceg = "fire-area-75",
-						damageCeg = "burnflamexl",
-						time = 12,
-						damage = 20,
-						range = 150,
-						resistance = "test",
-					},
+					timed_area_ceg = "fire-area-75",
+					timed_area_damageCeg = "burnflamexl",
+					timed_area_time = 12,
+					timed_area_damage = 20,
+					timed_area_range = 150,
+					timed_area_resistance = "test",
 				},
 				damage = {
 					default = stats.shotgunDamage/3,

@@ -57,14 +57,12 @@ return {
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_s_normals.png",
 			paralyzemultiplier = 0,
-			timed_area_deathexplosion = {
-				ceg = "acid-area-75",
-				damageCeg = "acid-damage-gen",
-				time = 10,
-				damage = 40,
-				range = 75,
-				resistance = "_RAPTORACID_",
-			},
+			timed_area_ceg = "acid-area-75",
+			timed_area_damageCeg = "acid-damage-gen",
+			timed_area_time = 10,
+			timed_area_damage = 40,
+			timed_area_range = 75,
+			timed_area_resistance = "_RAPTORACID_",
 		},
 		sfxtypes = {
 			explosiongenerators = {
@@ -115,14 +113,12 @@ return {
 				weapontimer = 0.2,
 				weaponvelocity = 520,
 				customparams = {
-					timed_area_weapon = {
-						ceg = "acid-area-75",
-						damageCeg = "acid-damage-gen",
-						time = 10,
-						damage = 40,
-						range = 75,
-						resistance = "_RAPTORACID_",
-					},
+					timed_area_ceg = "acid-area-75",
+					timed_area_damageCeg = "acid-damage-gen",
+					timed_area_time = 10,
+					timed_area_damage = 40,
+					timed_area_range = 75,
+					timed_area_resistance = "_RAPTORACID_",
 				},
 				damage = {
 					default = 1, --damage done in unit_area_timed_damage.lua
