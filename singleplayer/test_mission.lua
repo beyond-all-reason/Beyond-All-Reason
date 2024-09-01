@@ -37,6 +37,17 @@ local triggers = {
 		},
 		actions = { 'despawnHero' },
 	},]]--
+
+	gameEnd = {
+		type = triggerTypes.TimeElapsed,
+		settings = {
+			repeating = false,
+		},
+		parameters = {
+			gameFrame = 210,
+		},
+		actions = { 'gameEnd' },
+	},
 }
 
 local actions = {
@@ -64,6 +75,10 @@ local actions = {
 			name = 'hero',
 		},
 	},--]]
+
+	gameEnd = {
+		type = actionTypes.Defeat,
+	},
 }
 
 return {

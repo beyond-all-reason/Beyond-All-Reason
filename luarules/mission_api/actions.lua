@@ -1,5 +1,6 @@
 --============================================================--
 
+local unpack = unpack or table.unpack -- lua 5.2 compat
 local trackedUnits = GG['MissionAPI'].TrackedUnits
 local triggers = GG['MissionAPI'].Triggers
 local actionsDefs = VFS.Include('luarules/mission_api/types.lua')
@@ -48,7 +49,7 @@ local function spawnUnits(name, unitDefName, quantity, position, facing, constru
 	--if not trackedUnits[name] then trackedUnits[name] = {} end
 
 	for i = 1, quantity do
-	local	unitID = Spring.CreateUnit(unitDefName, position.x, position.y, position.z, facing.value, 0, construction)
+		local unitID = Spring.CreateUnit(unitDefName, position.x, position.y, position.z, facing.value, 0, construction)
 
 		--if unitID and name then
 		--	trackedUnits[name][#trackedUnits[name] + 1] = unitID
@@ -99,6 +100,43 @@ end
 
 --============================================================--
 
+-- Win Condition
+
+--============================================================--
+
+local function getAllyTeamsHavingPlayers()
+	local allyTeamsHavingPlayers = {}
+	for _, playerID in pairs(Spring.GetPlayerList()) do
+		local _, _, spec, _, allyTeamID = Spring.GetPlayerInfo(playerID, false)
+		if not spec and not allyTeamsHavingPlayers[allyTeamID] then
+			allyTeamsHavingPlayers[allyTeamID] = allyTeamID
+		end
+	end
+	return allyTeamsHavingPlayers
+end
+
+----------------------------------------------------------------
+
+local function victory()
+	Spring.GameOver({ unpack(getAllyTeamsHavingPlayers()) })
+end
+
+----------------------------------------------------------------
+
+local function defeat()
+	local allyTeamsHavingPlayers = getAllyTeamsHavingPlayers()
+	local allAllyTeamIDs = Spring.GetAllyTeamList()
+	local allyTeamsWithoutPlayers = {}
+	for _, allyTeamID in pairs(allAllyTeamIDs) do
+		if not allyTeamsHavingPlayers[allyTeamID] then
+			allyTeamsWithoutPlayers[allyTeamID] = allyTeamID
+		end
+	end
+	Spring.GameOver({ unpack(allyTeamsWithoutPlayers) })
+end
+
+--============================================================--
+
 -- Custom
 
 --============================================================--
@@ -133,6 +171,8 @@ return {
 	SendMessage = sendMessage,
 
 	-- Win Condition
+	Victory = victory,
+	Defeat = defeat,
 
 	-- Custom
 	Custom = custom,
