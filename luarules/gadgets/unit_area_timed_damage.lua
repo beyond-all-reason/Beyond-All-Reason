@@ -80,7 +80,6 @@ function gadget:Explosion(weaponDefID, px, py, pz, AttackerID, ProjectileID)
                 damage = explosion.damage,
                 range = explosion.range,
                 ceg = explosion.ceg,
-                cegSpawned = false,
                 damageCeg = explosion.damageCeg,
                 resistance = explosion.resistance,
                 owner = AttackerID,
@@ -104,7 +103,6 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
                 damage = explosion.damage,
                 range = explosion.range,
                 ceg = explosion.ceg,
-                cegSpawned = false,
                 damageCeg = explosion.damageCeg,
                 resistance = explosion.resistance,
                 owner = unitID,
@@ -123,15 +121,11 @@ function gadget:GameFrame(frame)
                 local y = explosionStats.y
                 local z = explosionStats.z
                 local damage = explosionStats.damage*0.733
-                local range = explosionStats.range
                 local resistance = explosionStats.resistance
 
-                if explosionStats.cegSpawned == false then
-                    Spring.SpawnCEG(explosionStats.ceg, x, y + 8, z, 0, 0, 0)
-                    explosionStats.cegSpawned = true
-                end
+                Spring.SpawnCEG(explosionStats.ceg, x, y + 8, z, 0, 0, 0)
 
-                local unitsInRange = Spring.GetUnitsInSphere(x, y, z, range)
+                local unitsInRange = Spring.GetUnitsInSphere(x, y, z, explosionStats.range)
                 for j = 1,#unitsInRange do
                     local unitID = unitsInRange[j]
                     local unitDef = UnitDefs[Spring.GetUnitDefID(unitID)]
@@ -142,7 +136,7 @@ function gadget:GameFrame(frame)
                     end
                 end
 
-                local featuresInRange = Spring.GetFeaturesInSphere(x, y, z, range)
+                local featuresInRange = Spring.GetFeaturesInSphere(x, y, z, explosionStats.range)
                 for j = 1,#featuresInRange do
                     local featureID = featuresInRange[j]
                     local health = Spring.GetFeatureHealth(featureID)
