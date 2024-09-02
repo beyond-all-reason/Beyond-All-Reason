@@ -1036,7 +1036,9 @@ function widget:Update()
 	local prevMouseOffscreen = mouseOffscreen
 	mouseOffscreen = select(6, Spring.GetMouseState())
 
-	ScanChanges()
+	--if not mouseOffscreen and prevMouseOffscreen then
+		ScanChanges()
+	--end
 
 	if spamCeg then
 		Spring.SendCommands("luarules spawnceg " .. spamCeg .. " 0")
