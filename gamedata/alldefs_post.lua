@@ -280,24 +280,28 @@ function UnitDef_Post(name, uDef)
 					uDef.power = ((uDef.metalcost+(uDef.energycost/60))/modOptions.evocomxpmultiplier)
 				end
 				
+				if  name == "armcom" then
+					uDef.customparams.evolution_target = "armcomlvl2"
+					uDef.customparams.inheritxpratemultiplier = 0.5
+					uDef.customparams.childreninheritxp = "TURRET MOBILEBUILT"
+					uDef.customparams.parentsinheritxp = "TURRET MOBILEBUILT"
+					uDef.customparams.evocomlvl = 1
+					elseif name == "corcom" then
+					uDef.customparams.evolution_target = "corcomlvl2"
+					uDef.customparams.evocomlvl = 1
+					elseif name == "legcom" then
+					uDef.customparams.evolution_target = "legcomlvl2"
+					uDef.customparams.evocomlvl = 1
+					end
+
 				if modOptions.evocomlevelupmethod == "dynamic" then
 					uDef.customparams.evolution_condition = "power"
 					uDef.customparams.evolution_power_multiplier = 1			-- Scales the power calculated based on your own combined power. 
-					uDef.customparams.evolution_power_threshold = uDef.customparams.evolution_power_threshold or 10000 --sets threshold for level 1 commanders
+					local evolutionPowerThreshold = uDef.customparams.evolution_power_threshold or 10000 --sets threshold for level 1 commanders
+					uDef.customparams.evolution_power_threshold = evolutionPowerThreshold*modOptions.evocomlevelupmultiplier
 				elseif modOptions.evocomlevelupmethod == "timed" then
-					uDef.customparams.evolution_timer = modOptions.evocomleveluprate*60
-					uDef.customparams.evolution_condition = "timer"
-				end
-
-				if  name == "armcom" then
-				uDef.customparams.evolution_target = "armcomlvl2"
-				uDef.customparams.inheritxpratemultiplier = 0.5
-				uDef.customparams.childreninheritxp = "TURRET MOBILEBUILT"
-				uDef.customparams.parentsinheritxp = "TURRET MOBILEBUILT"
-				elseif name == "corcom" then
-				uDef.customparams.evolution_target = "corcomlvl2"
-				elseif name == "legcom" then
-				uDef.customparams.evolution_target = "legcomlvl2"
+					uDef.customparams.evolution_timer = modOptions.evocomleveluptime*60*uDef.customparams.evocomlvl
+					uDef.customparams.evolution_condition = "timer_global"
 				end
 
 				if comLevel and modOptions.evocomlevelcap <= comLevel then
