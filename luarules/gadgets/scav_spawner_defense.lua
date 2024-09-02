@@ -1960,12 +1960,6 @@ if gadgetHandler:IsSyncedCode() then
 								if math.random() <= 0.1 then
 									Spring.SpawnCEG("scavmist", ux, uy+100, uz, 0,0,0)
 								end
-								if math.random() <= 0.1 then
-									--Spring.SpawnCEG("scavradiation", ux, uy+100, uz, 0,0,0)
-								end
-								if math.random() <= 0.1 then
-									--Spring.SpawnCEG("scavradiation-lightning", ux, uy+100, uz, 0,0,0)
-								end
 								GG.addUnitToCaptureDecay(unitID)
 							end
 						elseif Spring.GetUnitTeam(unitID) == scavTeamID and captureLevel > 0 then
