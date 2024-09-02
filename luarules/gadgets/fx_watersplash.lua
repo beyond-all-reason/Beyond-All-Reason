@@ -30,7 +30,7 @@ local COR_SEAADVBOMB = WeaponDefNames['corsb_cor_seaadvbomb'].id --corsb gets a 
 local ARM_JUNO = WeaponDefNames['armjuno_juno_pulse'].id --juno can explode on water
 local COR_JUNO = WeaponDefNames['corjuno_juno_pulse'].id --juno can explode on water
 local COR_TRON = WeaponDefNames['cortron_cortron_weapon'].id
-local LEG_PHOENIX = WeaponDefNames['legphoenix_legphtarg'].id --targetting weapon aircraftbomb
+local LEG_PHOENIX = WeaponDefNames['legphoenix_legphtarg'] and WeaponDefNames['legphoenix_legphtarg'].id --targetting weapon aircraftbomb
 -- maybe need addition of scav version or better solution
 
 local splashCEG1 = "splash-tiny"
@@ -90,7 +90,7 @@ function gadget:Explosion(weaponID, px, py, pz, ownerID)
 			elseif aoe >= 400 and aoe < 600 then
 				Spring.SpawnCEG(splashCEG7, px, 0, pz)
 			elseif aoe >= 600 then
-				Spring.SpawnCEG(splashCEG8, px, 0, pz)				
+				Spring.SpawnCEG(splashCEG8, px, 0, pz)
 			end
 			return true
 		else
@@ -103,7 +103,7 @@ end
 
 function gadget:Initialize()
 	local minHeight, maxHeight = Spring.GetGroundExtremes()
-	if minHeight < 100 then 
+	if minHeight < 100 then
 		for _,wDef in pairs(WeaponDefs) do
 			if wDef.damageAreaOfEffect ~= nil and wDef.damageAreaOfEffect >8 and (not nonexplosiveWeapons[wDef.type]) then
 				Script.SetWatchExplosion(wDef.id, true)
