@@ -1,19 +1,310 @@
+local versionString = "version 0.3.01, modified 2024-09-01"
 function widget:GetInfo()
 	return {
-		name = "Top Bar",
-		desc = "Shows Resources, wind speed, commander counter, and various options.",
-		author = "Floris",
+		name = "Top Bar with Buildpower 0.3.02",
+		desc = "Shows resources, buildpower, wind speed, commander counter, and various options.",
+		author = "Floris, Robert82 and McDoodle ",
 		date = "Feb, 2017",
-		license = "GNU GPL, v2 or later",
-		layer = -999999,
-		enabled = true,
+		license = "GNU GPL, v2 or later", 
+		layer = -99980,
+		enabled = true, --enabled by default
 		handler = true, --can use widgetHandler:x()
 	}
 end
 
+
+
+-------------------------------CONFIG------------------------------------------
+-------------------------------------------------------------------------------
+
+
+-- for bp bar only
+local config = {
+	proMode = false,
+	drawBPBar = true,
+	autoHideButtons = false,
+	debugTooltip = false,
+
+	-- Buildpower bar: behavior tweaks to consider making permanent _or_ options
+	guardingIdleBuilderCountsAsIdle = true, -- should builders guarding idle builders be considered idle themselves?
+
+	-- Show markers on the buildpower bar that indicate how much buildpower our metal and energy income could support.
+	drawBPIndicators = true,
+	drawBPWindRangeIndicators = false,
+
+	barScale = 1,
+	barWidth = 1,
+}
+
+-- used to identify when config values have changed
+local prevConfig = {}
+
+local OPTION_SPECS = {
+	{
+		configVariable = "drawBPBar",
+		name = "buildpower bar",
+		description = "Draw the buildpower bar (requires reload)",
+		type = "bool",
+	},
+	{
+		configVariable = "proMode",
+		name = "pro mode",
+		description = "Show advanced buildpower statistics and debug info (requires reload)",
+		type = "bool",
+	},
+	{
+		configVariable = "drawBPIndicators",
+		name = "eco support indicators",
+		description = "Estimate how much buildpower is supported by your metal and energy income",
+		type = "bool",
+	},
+	{
+		configVariable = "drawBPWindRangeIndicators",
+		name = "wind range indicators",
+		description = "Show how energy-supported buildpower might vary with wind speed",
+		type = "bool",
+	},
+	{
+		configVariable = "autoHideButtons",
+		name = "auto hide buttons",
+		description = "",
+		type = "bool",
+	},
+	{
+		configVariable = "debugTooltip",
+		name = "debug data",
+		description = "Show debug data in tooltip when hovering over the buildpower bar",
+		type = "bool",
+	},
+	{
+		configVariable = "barScale",
+		name = "top bar height",
+		description = "height of the top bar (requires reload)",
+		type = "slider",
+		min = 0.5,
+		max = 2,
+		step = 0.01,
+		value = 1,
+	},
+	{
+		configVariable = "barWidth",
+		name = "top bar width",
+		description = "width of the top bar (requires reload)",
+		type = "slider",
+		min = 1,
+		max = 3,
+		step = 0.01,
+		value = 1,
+	},
+}
+
+local function getOptionId(optionSpec)
+	return "top_bar_bp_" .. optionSpec.configVariable
+end
+
+local function getWidgetName()
+	return widget:GetInfo().name
+end
+
+local function getOptionValue(optionSpec)
+	if optionSpec.type == "slider" then
+		return config[optionSpec.configVariable]
+	elseif optionSpec.type == "bool" then
+		return config[optionSpec.configVariable]
+	elseif optionSpec.type == "select" then
+	-- we have text, we need index
+		for i, v in ipairs(optionSpec.options) do
+			if config[optionSpec.configVariable] == v then
+				return i
+			end
+		end
+	end
+end
+  
+local function setOptionValue(optionSpec, value)
+	if optionSpec.type == "slider" then
+		config[optionSpec.configVariable] = value
+	elseif optionSpec.type == "bool" then
+		config[optionSpec.configVariable] = value
+	elseif optionSpec.type == "select" then
+	-- we have index, we need text
+		config[optionSpec.configVariable] = optionSpec.options[value]
+	end
+end
+  
+local function createOnChange(optionSpec)
+	return function(i, value, force)
+	  setOptionValue(optionSpec, value)
+	end
+end
+
+local function addOptionFromSpec(optionSpec)
+	local option = table.copy(optionSpec)
+	option.configVariable = nil
+	option.enabled = nil
+	option.id = getOptionId(optionSpec)
+	option.widgetname = getWidgetName()
+	option.value = getOptionValue(optionSpec)
+	option.onchange = createOnChange(optionSpec)
+	WG['options'].addOption(option)
+end
+
+function widget:GetConfigData()
+	return config
+end
+
+function nullSafeString(s)
+	if s == nil then
+		return "<nil>"
+	end
+	return tostring(s)
+end
+
+function configHasChanged()
+	local anyChange = false
+	for k, v in pairs(config) do
+		--Spring.Echo("comparing " .. nullSafeString(k) .. " = " .. nullSafeString(v) .. " to " .. nullSafeString(prevConfig[k]))
+		if prevConfig[k] ~= nil and prevConfig[k] ~= v then
+			--Spring.Echo(nullSafeString(k) .. " has changed from " .. nullSafeString(prevConfig[k]) .. " to " .. nullSafeString(v))
+			anyChange = true
+		end
+		prevConfig[k] = v
+	end
+	return anyChange
+end
+
+function widget:SetConfigData(data)
+	if data ~= nil then
+		for k, v in pairs(data) do
+			if config[k] ~= nil then
+				config[k] = v
+			end
+		end
+	end
+end
+
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+
+
+
+-- Use circular queues so we don't have to repeatedly shift the tables' contents.
+function initWeightedAverage(maxN)
+	return {
+		maxn = maxN,-- max number of elements
+		i = 1, -- next index to write to
+		curn = 0, -- current number of elements
+		sum_vw = 0, -- sum(sample*weight)
+		sum_w = 0, -- sum(weight)
+		v = {}, -- samples
+		w = {}, -- weights
+	}
+end
+
+function addValueAndGetWeightedAverage(t, newValue, newWeight)
+	if newValue ~= nil then
+		if t.i <= t.curn then
+			-- remove the old sample and weight
+			t.sum_vw = t.sum_vw - (t.v[t.i] * t.w[t.i])
+			t.sum_w = t.sum_w - t.w[t.i]
+		end
+
+		-- add the new sample and weight
+		t.v[t.i] = newValue
+		t.w[t.i] = newWeight
+		t.sum_vw = t.sum_vw + newValue * newWeight
+		t.sum_w = t.sum_w + newWeight
+
+		-- update the table's size
+		if t.curn < t.maxn then
+			t.curn = t.curn + 1
+		end
+
+		-- move i ahead
+		t.i = t.i + 1
+		if t.i > t.maxn then
+			t.i = 1
+		end
+	end
+
+	if math.abs(t.sum_w) < 0.01 then
+		return nil
+	end
+
+	return t.sum_vw / t.sum_w
+end
+
+
+-- stores the date that is used for the res calc and BP bar
+local BP = {0, 0, 0, 0, 0}
+
+-- is used for visualisation purposed in old top bar design  ql
+--BP[1] = BP['empty1']
+--BP[2] ^= BP['totalMetalCostOfBuilders']
+--BP[3] ^= avgTotalReservedBP
+--BP[4] ^= BP['totalAvailableBP']																						--BeHe
+--BP[5] ^= BP['avgTotalUsedBP']																							--BeHe
+
+
+-- Used to store recent positions of the M/E-supported sliders on the BP bar so they can be moved more smoothly.
+BP['energyIncome'] = 0 -- wird zumindest für wind verwendet ql
+BP['metalExpense'] = 0 -- wird zumindest für wind verwendet ql
+BP['energyExpense'] = 0 -- wird zumindest für wind verwendet ql
+
+-- Lists of recent datapoints, used for smoothing. The first element is the number of datapoints to keep, the second is the datapoints themselves.
+BP['history_usedBP'] = initWeightedAverage(30) -- used to calculate the average used BP
+BP['history_reservedBP'] = initWeightedAverage(30) -- used to calculate the average reserved BP
+BP['history_nonBuilderMetalExpense'] = initWeightedAverage(30) -- average metal expense from non-builders
+BP['history_nonBuilderEnergyExpense'] = initWeightedAverage(30) -- average energy expense from non-builders
+BP['history_mSliderPosition'] = initWeightedAverage(30) -- average metal expense from non-builders
+
+-- How much of our buildpower can be supported by our energy income, expressed as a ratio from 0 to 1?
+BP['history_eSliderPosition'] = initWeightedAverage(30)
+BP['history_eSliderPosition_minWind'] = initWeightedAverage(30) -- if wind is at its minimum?
+BP['history_eSliderPosition_maxWind'] = initWeightedAverage(30) -- if wind is at its maximum?
+BP['history_eIncomeNoWind'] = initWeightedAverage(30) -- how much energy income is from non-wind sources?
+
+BP['reservedBP_instant'] = 0 -- it's basically cacheDataBase[3]  only for reading purposes ql							-- BeHe
+BP['usedBP_instant'] = 0 -- it's basically cacheDataBase[5] only for reading purposes ql								-- BeHe
+
+
+
+------------------------ performance saving  --------------------------------
+--go through the orders of units to calculate reserved BP
+
+local cacheDataBase = {0, 0, 0.1, 0, 0, 1, 1} -- gives the data to the next calc frame
+cacheDataBase['usedBPMetalExpense'] = 0  																				-- BeHe
+cacheDataBase['usedBPEnergyExpense'] = 0 																				-- BeHe
+cacheDataBase['usedBPExceptStalled'] = 0 																				-- BeHe
+cacheDataBase['usedBPIfNoStall'] = 0 																					-- BeHe
+
+
+local unitsPerFrame = 100 --limit processed units per frame to improve performance
+local trackedNum = 0
+local nowChecking = 0
+local trackPosBase = 0 -- will start the next checks from here
+
+
+
+---------------------------  tracking  --------------------------
+
+
+local trackedBuilders = {} -- stores units of the player and their BP
+
+-- Keep track of wind generators
+local trackedWinds = {}
+local numWindGenerators = 0
+
+local unitCostData = {} --data of all units regarding the building costs, M/BP and E/BP
+local stalling = {}
+stalling['lowPrioEnergy'] = 0 -- totalStallingM = 0
+stalling['lowPrioMetal'] = 0 --totalStallingE = 0
+
+----------------------------------------- build power/ res calc entries end here  ------------------------------------------------
+
 local allowSavegame = true--Spring.Utilities.ShowDevUI()
 
-local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
+local ui_scale = config.barScale * tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
@@ -29,14 +320,11 @@ local escapeKeyPressesQuit = false
 
 local relXpos = 0.3
 local borderPadding = 5
-local bladeSpeedMultiplier = 0.2
 
 local wholeTeamWastingMetalCount = 0
 
-
 local noiseBackgroundTexture = ":g:LuaUI/Images/rgbnoise.png"
 local showButtons = true
-local autoHideButtons = false
 
 local playSounds = true
 local leftclick = 'LuaUI/Sounds/tock.wav'
@@ -51,8 +339,12 @@ if UnitDefs[Spring.GetTeamRulesParam(Spring.GetMyTeamID(), 'startUnit')] then
 	comTexture = ':n:Icons/'..UnitDefs[Spring.GetTeamRulesParam(Spring.GetMyTeamID(), 'startUnit')].name..'.png'
 end
 
+-- Local variables for function names improve performance. See page 17 of https://www.lua.org/gems/sample.pdf ("Lua Performance Tips", by Roberto Ierusalimschy)
+local math_ceil = math.ceil
 local math_floor = math.floor
+local math_round = math.round
 local math_min = math.min
+local math_max = math.max
 local math_isInRect = math.isInRect
 
 local widgetScale = (0.80 + (vsx * vsy / 6000000))
@@ -80,11 +372,20 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
+local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
+local spGetUnitDefID = Spring.GetUnitDefID
 local spGetSpectatingState = Spring.GetSpectatingState
 local spGetTeamResources = Spring.GetTeamResources
 local spGetMyTeamID = Spring.GetMyTeamID
 local spGetMouseState = Spring.GetMouseState
 local spGetWind = Spring.GetWind
+--local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
+--local spGetUnitCmdDescs = Spring.GetUnitCmdDescs
+--local spValidUnitID = Spring.ValidUnitID
+--local spGetUnitCurrentBuildPower = Spring.GetUnitCurrentBuildPower
+local spGetUnitResources = Spring.GetUnitResources
+--local spGetUnitCommands = Spring.GetUnitCommands
+--local spGetFactoryCommands = Spring.GetFactoryCommands
 
 local isMetalmap = false
 
@@ -99,9 +400,11 @@ local myPlayerID = Spring.GetMyPlayerID()
 local myAllyTeamList = Spring.GetTeamList(myAllyTeamID)
 local numTeamsInAllyTeam = #myAllyTeamList
 
+
+
 local supressOverflowNotifs = false
 for _, teamID in ipairs(myAllyTeamList) do
-	if select(4,Spring.GetTeamInfo(teamID,false)) then	-- is AI?
+	if select(4, Spring.GetTeamInfo(teamID, false)) then    -- is AI?
 		local luaAI = Spring.GetTeamLuaAI(teamID)
 		if luaAI and luaAI ~= "" then
 			if string.find(luaAI, 'Scavengers') or string.find(luaAI, 'Raptors') then
@@ -117,21 +420,21 @@ local sformat = string.format
 local minWind = Game.windMin
 local maxWind = Game.windMax
 -- precomputed average wind values, from wind random monte carlo simulation, given minWind and maxWind
-local avgWind = {[0]={[1]="0.8",[2]="1.5",[3]="2.2",[4]="3.0",[5]="3.7",[6]="4.5",[7]="5.2",[8]="6.0",[9]="6.7",[10]="7.5",[11]="8.2",[12]="9.0",[13]="9.7",[14]="10.4",[15]="11.2",[16]="11.9",[17]="12.7",[18]="13.4",[19]="14.2",[20]="14.9",[21]="15.7",[22]="16.4",[23]="17.2",[24]="17.9",[25]="18.6",[26]="19.2",[27]="19.6",[28]="20.0",[29]="20.4",[30]="20.7",},[1]={[2]="1.6",[3]="2.3",[4]="3.0",[5]="3.8",[6]="4.5",[7]="5.2",[8]="6.0",[9]="6.7",[10]="7.5",[11]="8.2",[12]="9.0",[13]="9.7",[14]="10.4",[15]="11.2",[16]="11.9",[17]="12.7",[18]="13.4",[19]="14.2",[20]="14.9",[21]="15.7",[22]="16.4",[23]="17.2",[24]="17.9",[25]="18.6",[26]="19.2",[27]="19.6",[28]="20.0",[29]="20.4",[30]="20.7",},[2]={[3]="2.6",[4]="3.2",[5]="3.9",[6]="4.6",[7]="5.3",[8]="6.0",[9]="6.8",[10]="7.5",[11]="8.2",[12]="9.0",[13]="9.7",[14]="10.5",[15]="11.2",[16]="12.0",[17]="12.7",[18]="13.4",[19]="14.2",[20]="14.9",[21]="15.7",[22]="16.4",[23]="17.2",[24]="17.9",[25]="18.6",[26]="19.2",[27]="19.6",[28]="20.0",[29]="20.4",[30]="20.7",},[3]={[4]="3.6",[5]="4.2",[6]="4.8",[7]="5.5",[8]="6.2",[9]="6.9",[10]="7.6",[11]="8.3",[12]="9.0",[13]="9.8",[14]="10.5",[15]="11.2",[16]="12.0",[17]="12.7",[18]="13.5",[19]="14.2",[20]="15.0",[21]="15.7",[22]="16.4",[23]="17.2",[24]="17.9",[25]="18.7",[26]="19.2",[27]="19.7",[28]="20.0",[29]="20.4",[30]="20.7",},[4]={[5]="4.6",[6]="5.2",[7]="5.8",[8]="6.4",[9]="7.1",[10]="7.8",[11]="8.5",[12]="9.2",[13]="9.9",[14]="10.6",[15]="11.3",[16]="12.1",[17]="12.8",[18]="13.5",[19]="14.3",[20]="15.0",[21]="15.7",[22]="16.5",[23]="17.2",[24]="18.0",[25]="18.7",[26]="19.2",[27]="19.7",[28]="20.1",[29]="20.4",[30]="20.7",},[5]={[6]="5.5",[7]="6.1",[8]="6.8",[9]="7.4",[10]="8.0",[11]="8.7",[12]="9.4",[13]="10.1",[14]="10.8",[15]="11.5",[16]="12.2",[17]="12.9",[18]="13.6",[19]="14.4",[20]="15.1",[21]="15.8",[22]="16.5",[23]="17.3",[24]="18.0",[25]="18.8",[26]="19.3",[27]="19.7",[28]="20.1",[29]="20.4",[30]="20.7",},[6]={[7]="6.5",[8]="7.1",[9]="7.7",[10]="8.4",[11]="9.0",[12]="9.7",[13]="10.3",[14]="11.0",[15]="11.7",[16]="12.4",[17]="13.1",[18]="13.8",[19]="14.5",[20]="15.2",[21]="15.9",[22]="16.7",[23]="17.4",[24]="18.1",[25]="18.8",[26]="19.4",[27]="19.8",[28]="20.2",[29]="20.5",[30]="20.8",},[7]={[8]="7.5",[9]="8.1",[10]="8.7",[11]="9.3",[12]="10.0",[13]="10.6",[14]="11.3",[15]="11.9",[16]="12.6",[17]="13.3",[18]="14.0",[19]="14.7",[20]="15.4",[21]="16.1",[22]="16.8",[23]="17.5",[24]="18.2",[25]="19.0",[26]="19.5",[27]="19.9",[28]="20.3",[29]="20.6",[30]="20.9",},[8]={[9]="8.5",[10]="9.1",[11]="9.7",[12]="10.3",[13]="11.0",[14]="11.6",[15]="12.2",[16]="12.9",[17]="13.6",[18]="14.2",[19]="14.9",[20]="15.6",[21]="16.3",[22]="17.0",[23]="17.7",[24]="18.4",[25]="19.1",[26]="19.6",[27]="20.0",[28]="20.4",[29]="20.7",[30]="21.0",},[9]={[10]="9.5",[11]="10.1",[12]="10.7",[13]="11.3",[14]="11.9",[15]="12.6",[16]="13.2",[17]="13.8",[18]="14.5",[19]="15.2",[20]="15.8",[21]="16.5",[22]="17.2",[23]="17.9",[24]="18.6",[25]="19.3",[26]="19.8",[27]="20.2",[28]="20.5",[29]="20.8",[30]="21.1",},[10]={[11]="10.5",[12]="11.1",[13]="11.7",[14]="12.3",[15]="12.9",[16]="13.5",[17]="14.2",[18]="14.8",[19]="15.4",[20]="16.1",[21]="16.8",[22]="17.4",[23]="18.1",[24]="18.8",[25]="19.5",[26]="20.0",[27]="20.4",[28]="20.7",[29]="21.0",[30]="21.2",},[11]={[12]="11.5",[13]="12.1",[14]="12.7",[15]="13.3",[16]="13.9",[17]="14.5",[18]="15.1",[19]="15.8",[20]="16.4",[21]="17.1",[22]="17.7",[23]="18.4",[24]="19.1",[25]="19.7",[26]="20.2",[27]="20.6",[28]="20.9",[29]="21.2",[30]="21.4",},[12]={[13]="12.5",[14]="13.1",[15]="13.6",[16]="14.2",[17]="14.9",[18]="15.5",[19]="16.1",[20]="16.7",[21]="17.4",[22]="18.0",[23]="18.7",[24]="19.3",[25]="20.0",[26]="20.4",[27]="20.8",[28]="21.1",[29]="21.4",[30]="21.6",},[13]={[14]="13.5",[15]="14.1",[16]="14.6",[17]="15.2",[18]="15.8",[19]="16.5",[20]="17.1",[21]="17.7",[22]="18.4",[23]="19.0",[24]="19.6",[25]="20.3",[26]="20.7",[27]="21.1",[28]="21.4",[29]="21.6",[30]="21.8",},[14]={[15]="14.5",[16]="15.0",[17]="15.6",[18]="16.2",[19]="16.8",[20]="17.4",[21]="18.1",[22]="18.7",[23]="19.3",[24]="20.0",[25]="20.6",[26]="21.0",[27]="21.3",[28]="21.6",[29]="21.8",[30]="22.0",},[15]={[16]="15.5",[17]="16.0",[18]="16.6",[19]="17.2",[20]="17.8",[21]="18.4",[22]="19.0",[23]="19.6",[24]="20.3",[25]="20.9",[26]="21.3",[27]="21.6",[28]="21.9",[29]="22.1",[30]="22.3",},[16]={[17]="16.5",[18]="17.0",[19]="17.6",[20]="18.2",[21]="18.8",[22]="19.4",[23]="20.0",[24]="20.6",[25]="21.3",[26]="21.7",[27]="21.9",[28]="22.2",[29]="22.4",[30]="22.5",},[17]={[18]="17.5",[19]="18.0",[20]="18.6",[21]="19.2",[22]="19.8",[23]="20.4",[24]="21.0",[25]="21.6",[26]="22.0",[27]="22.3",[28]="22.5",[29]="22.7",[30]="22.8",},[18]={[19]="18.5",[20]="19.0",[21]="19.6",[22]="20.2",[23]="20.8",[24]="21.4",[25]="22.0",[26]="22.4",[27]="22.6",[28]="22.8",[29]="23.0",[30]="23.1",},[19]={[20]="19.5",[21]="20.0",[22]="20.6",[23]="21.2",[24]="21.8",[25]="22.4",[26]="22.7",[27]="22.9",[28]="23.1",[29]="23.2",[30]="23.4",},[20]={[21]="20.4",[22]="21.0",[23]="21.6",[24]="22.2",[25]="22.8",[26]="23.1",[27]="23.3",[28]="23.4",[29]="23.6",[30]="23.7",},[21]={[22]="21.4",[23]="22.0",[24]="22.6",[25]="23.2",[26]="23.5",[27]="23.6",[28]="23.8",[29]="23.9",[30]="24.0",},[22]={[23]="22.4",[24]="23.0",[25]="23.6",[26]="23.8",[27]="24.0",[28]="24.1",[29]="24.2",[30]="24.2",},[23]={[24]="23.4",[25]="24.0",[26]="24.2",[27]="24.4",[28]="24.4",[29]="24.5",[30]="24.5",},[24]={[25]="24.4",[26]="24.6",[27]="24.7",[28]="24.7",[29]="24.8",[30]="24.8",},}
+local avgWind = {[0] = {[1] = "0.8", [2] = "1.5", [3] = "2.2", [4] = "3.0", [5] = "3.7", [6] = "4.5", [7] = "5.2", [8] = "6.0", [9] = "6.7", [10] = "7.5", [11] = "8.2", [12] = "9.0", [13] = "9.7", [14] = "10.4", [15] = "11.2", [16] = "11.9", [17] = "12.7", [18] = "13.4", [19] = "14.2", [20] = "14.9", [21] = "15.7", [22] = "16.4", [23] = "17.2", [24] = "17.9", [25] = "18.6", [26] = "19.2", [27] = "19.6", [28] = "20.0", [29] = "20.4", [30] = "20.7", }, [1] = {[2] = "1.6", [3] = "2.3", [4] = "3.0", [5] = "3.8", [6] = "4.5", [7] = "5.2", [8] = "6.0", [9] = "6.7", [10] = "7.5", [11] = "8.2", [12] = "9.0", [13] = "9.7", [14] = "10.4", [15] = "11.2", [16] = "11.9", [17] = "12.7", [18] = "13.4", [19] = "14.2", [20] = "14.9", [21] = "15.7", [22] = "16.4", [23] = "17.2", [24] = "17.9", [25] = "18.6", [26] = "19.2", [27] = "19.6", [28] = "20.0", [29] = "20.4", [30] = "20.7", }, [2] = {[3] = "2.6", [4] = "3.2", [5] = "3.9", [6] = "4.6", [7] = "5.3", [8] = "6.0", [9] = "6.8", [10] = "7.5", [11] = "8.2", [12] = "9.0", [13] = "9.7", [14] = "10.5", [15] = "11.2", [16] = "12.0", [17] = "12.7", [18] = "13.4", [19] = "14.2", [20] = "14.9", [21] = "15.7", [22] = "16.4", [23] = "17.2", [24] = "17.9", [25] = "18.6", [26] = "19.2", [27] = "19.6", [28] = "20.0", [29] = "20.4", [30] = "20.7", }, [3] = {[4] = "3.6", [5] = "4.2", [6] = "4.8", [7] = "5.5", [8] = "6.2", [9] = "6.9", [10] = "7.6", [11] = "8.3", [12] = "9.0", [13] = "9.8", [14] = "10.5", [15] = "11.2", [16] = "12.0", [17] = "12.7", [18] = "13.5", [19] = "14.2", [20] = "15.0", [21] = "15.7", [22] = "16.4", [23] = "17.2", [24] = "17.9", [25] = "18.7", [26] = "19.2", [27] = "19.7", [28] = "20.0", [29] = "20.4", [30] = "20.7", }, [4] = {[5] = "4.6", [6] = "5.2", [7] = "5.8", [8] = "6.4", [9] = "7.1", [10] = "7.8", [11] = "8.5", [12] = "9.2", [13] = "9.9", [14] = "10.6", [15] = "11.3", [16] = "12.1", [17] = "12.8", [18] = "13.5", [19] = "14.3", [20] = "15.0", [21] = "15.7", [22] = "16.5", [23] = "17.2", [24] = "18.0", [25] = "18.7", [26] = "19.2", [27] = "19.7", [28] = "20.1", [29] = "20.4", [30] = "20.7", }, [5] = {[6] = "5.5", [7] = "6.1", [8] = "6.8", [9] = "7.4", [10] = "8.0", [11] = "8.7", [12] = "9.4", [13] = "10.1", [14] = "10.8", [15] = "11.5", [16] = "12.2", [17] = "12.9", [18] = "13.6", [19] = "14.4", [20] = "15.1", [21] = "15.8", [22] = "16.5", [23] = "17.3", [24] = "18.0", [25] = "18.8", [26] = "19.3", [27] = "19.7", [28] = "20.1", [29] = "20.4", [30] = "20.7", }, [6] = {[7] = "6.5", [8] = "7.1", [9] = "7.7", [10] = "8.4", [11] = "9.0", [12] = "9.7", [13] = "10.3", [14] = "11.0", [15] = "11.7", [16] = "12.4", [17] = "13.1", [18] = "13.8", [19] = "14.5", [20] = "15.2", [21] = "15.9", [22] = "16.7", [23] = "17.4", [24] = "18.1", [25] = "18.8", [26] = "19.4", [27] = "19.8", [28] = "20.2", [29] = "20.5", [30] = "20.8", }, [7] = {[8] = "7.5", [9] = "8.1", [10] = "8.7", [11] = "9.3", [12] = "10.0", [13] = "10.6", [14] = "11.3", [15] = "11.9", [16] = "12.6", [17] = "13.3", [18] = "14.0", [19] = "14.7", [20] = "15.4", [21] = "16.1", [22] = "16.8", [23] = "17.5", [24] = "18.2", [25] = "19.0", [26] = "19.5", [27] = "19.9", [28] = "20.3", [29] = "20.6", [30] = "20.9", }, [8] = {[9] = "8.5", [10] = "9.1", [11] = "9.7", [12] = "10.3", [13] = "11.0", [14] = "11.6", [15] = "12.2", [16] = "12.9", [17] = "13.6", [18] = "14.2", [19] = "14.9", [20] = "15.6", [21] = "16.3", [22] = "17.0", [23] = "17.7", [24] = "18.4", [25] = "19.1", [26] = "19.6", [27] = "20.0", [28] = "20.4", [29] = "20.7", [30] = "21.0", }, [9] = {[10] = "9.5", [11] = "10.1", [12] = "10.7", [13] = "11.3", [14] = "11.9", [15] = "12.6", [16] = "13.2", [17] = "13.8", [18] = "14.5", [19] = "15.2", [20] = "15.8", [21] = "16.5", [22] = "17.2", [23] = "17.9", [24] = "18.6", [25] = "19.3", [26] = "19.8", [27] = "20.2", [28] = "20.5", [29] = "20.8", [30] = "21.1", }, [10] = {[11] = "10.5", [12] = "11.1", [13] = "11.7", [14] = "12.3", [15] = "12.9", [16] = "13.5", [17] = "14.2", [18] = "14.8", [19] = "15.4", [20] = "16.1", [21] = "16.8", [22] = "17.4", [23] = "18.1", [24] = "18.8", [25] = "19.5", [26] = "20.0", [27] = "20.4", [28] = "20.7", [29] = "21.0", [30] = "21.2", }, [11] = {[12] = "11.5", [13] = "12.1", [14] = "12.7", [15] = "13.3", [16] = "13.9", [17] = "14.5", [18] = "15.1", [19] = "15.8", [20] = "16.4", [21] = "17.1", [22] = "17.7", [23] = "18.4", [24] = "19.1", [25] = "19.7", [26] = "20.2", [27] = "20.6", [28] = "20.9", [29] = "21.2", [30] = "21.4", }, [12] = {[13] = "12.5", [14] = "13.1", [15] = "13.6", [16] = "14.2", [17] = "14.9", [18] = "15.5", [19] = "16.1", [20] = "16.7", [21] = "17.4", [22] = "18.0", [23] = "18.7", [24] = "19.3", [25] = "20.0", [26] = "20.4", [27] = "20.8", [28] = "21.1", [29] = "21.4", [30] = "21.6", }, [13] = {[14] = "13.5", [15] = "14.1", [16] = "14.6", [17] = "15.2", [18] = "15.8", [19] = "16.5", [20] = "17.1", [21] = "17.7", [22] = "18.4", [23] = "19.0", [24] = "19.6", [25] = "20.3", [26] = "20.7", [27] = "21.1", [28] = "21.4", [29] = "21.6", [30] = "21.8", }, [14] = {[15] = "14.5", [16] = "15.0", [17] = "15.6", [18] = "16.2", [19] = "16.8", [20] = "17.4", [21] = "18.1", [22] = "18.7", [23] = "19.3", [24] = "20.0", [25] = "20.6", [26] = "21.0", [27] = "21.3", [28] = "21.6", [29] = "21.8", [30] = "22.0", }, [15] = {[16] = "15.5", [17] = "16.0", [18] = "16.6", [19] = "17.2", [20] = "17.8", [21] = "18.4", [22] = "19.0", [23] = "19.6", [24] = "20.3", [25] = "20.9", [26] = "21.3", [27] = "21.6", [28] = "21.9", [29] = "22.1", [30] = "22.3", }, [16] = {[17] = "16.5", [18] = "17.0", [19] = "17.6", [20] = "18.2", [21] = "18.8", [22] = "19.4", [23] = "20.0", [24] = "20.6", [25] = "21.3", [26] = "21.7", [27] = "21.9", [28] = "22.2", [29] = "22.4", [30] = "22.5", }, [17] = {[18] = "17.5", [19] = "18.0", [20] = "18.6", [21] = "19.2", [22] = "19.8", [23] = "20.4", [24] = "21.0", [25] = "21.6", [26] = "22.0", [27] = "22.3", [28] = "22.5", [29] = "22.7", [30] = "22.8", }, [18] = {[19] = "18.5", [20] = "19.0", [21] = "19.6", [22] = "20.2", [23] = "20.8", [24] = "21.4", [25] = "22.0", [26] = "22.4", [27] = "22.6", [28] = "22.8", [29] = "23.0", [30] = "23.1", }, [19] = {[20] = "19.5", [21] = "20.0", [22] = "20.6", [23] = "21.2", [24] = "21.8", [25] = "22.4", [26] = "22.7", [27] = "22.9", [28] = "23.1", [29] = "23.2", [30] = "23.4", }, [20] = {[21] = "20.4", [22] = "21.0", [23] = "21.6", [24] = "22.2", [25] = "22.8", [26] = "23.1", [27] = "23.3", [28] = "23.4", [29] = "23.6", [30] = "23.7", }, [21] = {[22] = "21.4", [23] = "22.0", [24] = "22.6", [25] = "23.2", [26] = "23.5", [27] = "23.6", [28] = "23.8", [29] = "23.9", [30] = "24.0", }, [22] = {[23] = "22.4", [24] = "23.0", [25] = "23.6", [26] = "23.8", [27] = "24.0", [28] = "24.1", [29] = "24.2", [30] = "24.2", }, [23] = {[24] = "23.4", [25] = "24.0", [26] = "24.2", [27] = "24.4", [28] = "24.4", [29] = "24.5", [30] = "24.5", }, [24] = {[25] = "24.4", [26] = "24.6", [27] = "24.7", [28] = "24.7", [29] = "24.8", [30] = "24.8", }, }
 -- precomputed percentage of time wind is less than 6, from wind random monte carlo simulation, given minWind and maxWind
-local riskWind = {[0]={[1]="100",[2]="100",[3]="100",[4]="100",[5]="100",[6]="100",[7]="56",[8]="42",[9]="33",[10]="27",[11]="22",[12]="18.5",[13]="15.8",[14]="13.6",[15]="11.8",[16]="10.4",[17]="9.2",[18]="8.2",[19]="7.4",[20]="6.7",[21]="6.0",[22]="5.5",[23]="5.0",[24]="4.6",[25]="4.3",[26]="4.0",[27]="3.7",[28]="3.4",[29]="3.2",[30]="3.0",},[1]={[2]="100",[3]="100",[4]="100",[5]="100",[6]="100",[7]="56",[8]="42",[9]="33",[10]="27",[11]="22",[12]="18.5",[13]="15.7",[14]="13.6",[15]="11.8",[16]="10.4",[17]="9.2",[18]="8.2",[19]="7.4",[20]="6.7",[21]="6.0",[22]="5.5",[23]="5.0",[24]="4.6",[25]="4.3",[26]="4.0",[27]="3.7",[28]="3.4",[29]="3.2",[30]="3.0",},[2]={[3]="100",[4]="100",[5]="100",[6]="100",[7]="55",[8]="42",[9]="33",[10]="27",[11]="22",[12]="18.4",[13]="15.6",[14]="13.5",[15]="11.8",[16]="10.4",[17]="9.2",[18]="8.2",[19]="7.4",[20]="6.6",[21]="6.0",[22]="5.5",[23]="5.0",[24]="4.6",[25]="4.3",[26]="3.9",[27]="3.6",[28]="3.4",[29]="3.1",[30]="2.9",},[3]={[4]="100",[5]="100",[6]="100",[7]="53",[8]="40",[9]="32",[10]="25",[11]="21",[12]="17.8",[13]="15.2",[14]="13.2",[15]="11.5",[16]="10.2",[17]="9.1",[18]="8.1",[19]="7.3",[20]="6.6",[21]="6.0",[22]="5.4",[23]="5.0",[24]="4.6",[25]="4.2",[26]="3.9",[27]="3.6",[28]="3.4",[29]="3.1",[30]="2.9",},[4]={[5]="100",[6]="100",[7]="49",[8]="36",[9]="29",[10]="23",[11]="19.4",[12]="16.4",[13]="14.0",[14]="12.2",[15]="10.8",[16]="9.6",[17]="8.6",[18]="7.7",[19]="7.0",[20]="6.3",[21]="5.8",[22]="5.3",[23]="4.8",[24]="4.4",[25]="4.1",[26]="3.8",[27]="3.5",[28]="3.3",[29]="3.0",[30]="2.8",},[5]={[6]="100",[7]="41",[8]="30",[9]="24",[10]="19.5",[11]="16.2",[12]="13.9",[13]="11.9",[14]="10.4",[15]="9.3",[16]="8.3",[17]="7.5",[18]="6.8",[19]="6.2",[20]="5.7",[21]="5.2",[22]="4.8",[23]="4.4",[24]="4.1",[25]="3.8",[26]="3.5",[27]="3.2",[28]="3.0",[29]="2.8",[30]="2.6",},[6]={[7]="16.0",[8]="12.4",[9]="10.5",[10]="9.0",[11]="8.0",[12]="7.3",[13]="6.6",[14]="6.0",[15]="5.5",[16]="5.1",[17]="4.7",[18]="4.4",[19]="4.2",[20]="3.9",[21]="3.6",[22]="3.4",[23]="3.2",[24]="3.0",[25]="2.8",[26]="2.7",[27]="2.5",[28]="2.4",[29]="2.2",[30]="2.1",},}
+local riskWind = {[0] = {[1] = "100", [2] = "100", [3] = "100", [4] = "100", [5] = "100", [6] = "100", [7] = "56", [8] = "42", [9] = "33", [10] = "27", [11] = "22", [12] = "18.5", [13] = "15.8", [14] = "13.6", [15] = "11.8", [16] = "10.4", [17] = "9.2", [18] = "8.2", [19] = "7.4", [20] = "6.7", [21] = "6.0", [22] = "5.5", [23] = "5.0", [24] = "4.6", [25] = "4.3", [26] = "4.0", [27] = "3.7", [28] = "3.4", [29] = "3.2", [30] = "3.0", }, [1] = {[2] = "100", [3] = "100", [4] = "100", [5] = "100", [6] = "100", [7] = "56", [8] = "42", [9] = "33", [10] = "27", [11] = "22", [12] = "18.5", [13] = "15.7", [14] = "13.6", [15] = "11.8", [16] = "10.4", [17] = "9.2", [18] = "8.2", [19] = "7.4", [20] = "6.7", [21] = "6.0", [22] = "5.5", [23] = "5.0", [24] = "4.6", [25] = "4.3", [26] = "4.0", [27] = "3.7", [28] = "3.4", [29] = "3.2", [30] = "3.0", }, [2] = {[3] = "100", [4] = "100", [5] = "100", [6] = "100", [7] = "55", [8] = "42", [9] = "33", [10] = "27", [11] = "22", [12] = "18.4", [13] = "15.6", [14] = "13.5", [15] = "11.8", [16] = "10.4", [17] = "9.2", [18] = "8.2", [19] = "7.4", [20] = "6.6", [21] = "6.0", [22] = "5.5", [23] = "5.0", [24] = "4.6", [25] = "4.3", [26] = "3.9", [27] = "3.6", [28] = "3.4", [29] = "3.1", [30] = "2.9", }, [3] = {[4] = "100", [5] = "100", [6] = "100", [7] = "53", [8] = "40", [9] = "32", [10] = "25", [11] = "21", [12] = "17.8", [13] = "15.2", [14] = "13.2", [15] = "11.5", [16] = "10.2", [17] = "9.1", [18] = "8.1", [19] = "7.3", [20] = "6.6", [21] = "6.0", [22] = "5.4", [23] = "5.0", [24] = "4.6", [25] = "4.2", [26] = "3.9", [27] = "3.6", [28] = "3.4", [29] = "3.1", [30] = "2.9", }, [4] = {[5] = "100", [6] = "100", [7] = "49", [8] = "36", [9] = "29", [10] = "23", [11] = "19.4", [12] = "16.4", [13] = "14.0", [14] = "12.2", [15] = "10.8", [16] = "9.6", [17] = "8.6", [18] = "7.7", [19] = "7.0", [20] = "6.3", [21] = "5.8", [22] = "5.3", [23] = "4.8", [24] = "4.4", [25] = "4.1", [26] = "3.8", [27] = "3.5", [28] = "3.3", [29] = "3.0", [30] = "2.8", }, [5] = {[6] = "100", [7] = "41", [8] = "30", [9] = "24", [10] = "19.5", [11] = "16.2", [12] = "13.9", [13] = "11.9", [14] = "10.4", [15] = "9.3", [16] = "8.3", [17] = "7.5", [18] = "6.8", [19] = "6.2", [20] = "5.7", [21] = "5.2", [22] = "4.8", [23] = "4.4", [24] = "4.1", [25] = "3.8", [26] = "3.5", [27] = "3.2", [28] = "3.0", [29] = "2.8", [30] = "2.6", }, [6] = {[7] = "16.0", [8] = "12.4", [9] = "10.5", [10] = "9.0", [11] = "8.0", [12] = "7.3", [13] = "6.6", [14] = "6.0", [15] = "5.5", [16] = "5.1", [17] = "4.7", [18] = "4.4", [19] = "4.2", [20] = "3.9", [21] = "3.6", [22] = "3.4", [23] = "3.2", [24] = "3.0", [25] = "2.8", [26] = "2.7", [27] = "2.5", [28] = "2.4", [29] = "2.2", [30] = "2.1", }, }
 -- pull average wind from precomputed table, if it exists
 local avgWindValue = avgWind[minWind]
 if avgWindValue ~= nil then
-	avgWindValue=avgWindValue[maxWind]
+	avgWindValue = avgWindValue[maxWind]
 end
 if avgWindValue == nil then
-	avgWindValue="~" .. tostring(math.max(minWind,maxWind*.75)) --fallback approximation
+	avgWindValue = "~" .. tostring(math_max(minWind, maxWind * .75)) --fallback approximation
 end
 -- pull wind risk from precomputed table, if it exists
 local riskWindValue = riskWind[minWind]
 if riskWindValue ~= nil then
-	riskWindValue=riskWindValue[maxWind]
+	riskWindValue = riskWindValue[maxWind]
 end
 if riskWindValue == nil then
 	if minWind+maxWind >= 0.5 then
@@ -146,21 +449,21 @@ local windRotation = 0
 
 local lastFrame = -1
 local topbarArea = {}
-local resbarArea = { metal = {}, energy = {} }
-local resbarDrawinfo = { metal = {}, energy = {} }
-local shareIndicatorArea = { metal = {}, energy = {} }
-local dlistResbar = { metal = {}, energy = {} }
+local resbarArea = { metal = {}, energy = {}, BP = {} }
+local resbarDrawinfo = { metal = {}, energy = {}, BP = {} }
+local shareIndicatorArea = { metal = {}, energy = {}, BP = {} }
+local dlistResbar = { metal = {}, energy = {}, BP = {} }
 local windArea = {}
 local tidalarea = {}
 local comsArea = {}
 local buttonsArea = {}
 local dlistWindText = {}
-local dlistResValuesBar = { metal = {}, energy = {} }
-local dlistResValues = { metal = {}, energy = {} }
-local currentResValue = { metal = 1000, energy = 1000 }
-local currentStorageValue = { metal = -1, energy = -1 }
+local dlistResValuesBar = { metal = {}, energy = {}, BP = {} }
+local dlistResValues = { metal = {}, energy = {}, BP = {} }
+local currentResValue = { metal = 1000, energy = 1000, BP = 0 }-- total BP
+local currentStorageValue = { metal = -1, energy = -1, BP = 0.1 } -- usage of BP
 
-local r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') } }
+local r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy'), }}
 
 local showOverflowTooltip = {}
 
@@ -202,10 +505,12 @@ local allyteamOverflowingMetal = false
 local allyteamOverflowingEnergy = false
 local overflowingMetal = false
 local overflowingEnergy = false
+local playerStallingMetal = false
+local playerStallingEnergy = false
 
 local isCommander = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.customParams.iscommander or unitDef.customParams.isscavcommander then
+	if unitDef.customParams.iscommander then
 		isCommander[unitDefID] = true
 	end
 end
@@ -227,11 +532,63 @@ local function RectQuad(px, py, sx, sy, offset)
 	gl.TexCoord(offset, offset)
 	gl.Vertex(px, sy, 0)
 end
+
+local function ChamferedRectQuad(px, py, sx, sy, chamferSize)
+		gl.BeginEnd(GL.QUADS, function()
+		gl.Vertex(px + chamferSize, py)	-- Bottom chamfers
+		gl.Vertex(sx - chamferSize, py)
+		gl.Vertex(sx, py + chamferSize)
+		gl.Vertex(px, py + chamferSize)
+
+		gl.Vertex(px, py + chamferSize) --square
+		gl.Vertex(sx, py + chamferSize)
+		gl.Vertex(sx, sy)
+		gl.Vertex(px, sy)
+	end)
+end
+
+local function DrawPartialRing(cx, cy, r, startAngle, endAngle, segments, thickness, color)
+	gl.Color(color[1], color[2], color[3], color[4]) --RGB opac
+	local function drawCircleCap(radius, thickness, angle, flip)
+		local capRadius = thickness / 2
+		local capCenterX = cx + (radius + capRadius) * math.cos(angle)
+		local capCenterY = cy + (radius + capRadius) * math.sin(angle)
+		local angleStep = math.pi / segments
+		gl.BeginEnd(GL.TRIANGLE_FAN, function()
+			gl.Vertex(capCenterX, capCenterY) -- mid point cap
+			for i = 0, segments do
+				local a = angle + math.pi / 2 + (i * angleStep) * (flip and -1 or 1) - (math.pi / 2)
+				local x = capCenterX + capRadius * math.cos(a)
+				local y = capCenterY + capRadius * math.sin(a)
+				gl.Vertex(x, y)
+			end
+		end)
+	end
+	local function drawRingBody() -- draw ring
+		local angleStep = (endAngle - startAngle) / segments
+		gl.BeginEnd(GL.QUAD_STRIP, function()
+			for i = 0, segments do
+				local angle = startAngle + i * angleStep
+				local x1 = cx + r * math.cos(angle)
+				local y1 = cy + r * math.sin(angle)
+				local x2 = cx + (r + thickness) * math.cos(angle)
+				local y2 = cy + (r + thickness) * math.sin(angle)
+				gl.Vertex(x1, y1)
+				gl.Vertex(x2, y2)
+			end
+		end)
+	end
+	drawRingBody() -- main body
+	drawCircleCap(r, thickness, startAngle, false)  -- start cap	
+	drawCircleCap(r, thickness, endAngle, true)    -- mirrowed end cap
+end
+
+
 local function DrawRect(px, py, sx, sy, zoom)
 	gl.BeginEnd(GL.QUADS, RectQuad, px, py, sx, sy, zoom)
 end
 
-function widget:ViewResize()
+function widget:ViewResize() --gets called one time at function widget:Initialize()
 	vsx, vsy = gl.GetViewSizes()
 	widgetScale = (vsy / height) * 0.0425
 	widgetScale = widgetScale * ui_scale
@@ -279,6 +636,7 @@ local function short(n, f)
 	end
 end
 
+
 local function updateButtons()
 
 	local fontsize = (height * widgetScale) / 3
@@ -292,7 +650,7 @@ local function updateButtons()
 		buttonsArea['buttons'] = {}
 
 		local margin = bgpadding
-		local textPadding = math_floor(fontsize*0.8)
+		local textPadding = math_floor(fontsize * 0.8)
 		local sidePadding = textPadding
 		local offset = sidePadding
 		local lastbutton
@@ -353,7 +711,7 @@ local function updateButtons()
 	end
 	if showButtons then
 		dlistButtonsGuishader = glCreateList(function()
-			RectRound(buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4], 5.5 * widgetScale, 0,0,1,1)
+			RectRound(buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4], 5.5 * widgetScale, 0, 0, 1, 1)
 		end)
 		if WG['guishader'] then
 			WG['guishader'].InsertDlist(dlistButtonsGuishader, 'topbar_buttons')
@@ -385,7 +743,7 @@ local function updateComs(forceText)
 		glDeleteList(dlistComsGuishader)
 	end
 	dlistComsGuishader = glCreateList(function()
-		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0,0,1,1)
+		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0, 0, 1, 1)
 	end)
 
 	if dlistComs1 ~= nil then
@@ -432,7 +790,7 @@ end
 local function updateWind()
 	local area = windArea
 
-	local bladesSize = height*0.53 * widgetScale
+	local bladesSize = height * 0.53 * widgetScale
 
 	-- add background blur
 	if dlistWindGuishader ~= nil then
@@ -442,7 +800,7 @@ local function updateWind()
 		glDeleteList(dlistWindGuishader)
 	end
 	dlistWindGuishader = glCreateList(function()
-		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0,0,1,1)
+		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0, 0, 1, 1)
 	end)
 
 	if dlistWind1 ~= nil then
@@ -484,8 +842,8 @@ local function updateWind()
 		else
 			font2:Begin()
 			--font2:Print("\255\200\200\200no wind", windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.05) - (fontsize / 5), fontsize, 'oc') -- Wind speed text
-			font2:Print("\255\200\200\200" .. Spring.I18N('ui.topbar.wind.nowind1'), windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 1.5) - (fontsize / 5), fontsize*1.06, 'oc') -- Wind speed text
-			font2:Print("\255\200\200\200" .. Spring.I18N('ui.topbar.wind.nowind2'), windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.8) - (fontsize / 5), fontsize*1.06, 'oc') -- Wind speed text
+			font2:Print("\255\200\200\200" .. Spring.I18N('ui.topbar.wind.nowind1'), windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 1.5) - (fontsize / 5), fontsize * 1.06, 'oc') -- Wind speed text
+			font2:Print("\255\200\200\200" .. Spring.I18N('ui.topbar.wind.nowind2'), windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.8) - (fontsize / 5), fontsize * 1.06, 'oc') -- Wind speed text
 			font2:End()
 		end
 	end)
@@ -495,7 +853,7 @@ local function updateWind()
 	end
 end
 
--- return true if tidal speed is *relevant*, enough water in the world (>= 10%)
+-- return true if tidal speed is * relevant * , enough water in the world (>= 10%)
 local function checkTidalRelevant()
 	local mapMinHeight = 0
 	-- account for invertmap to the best of our abiltiy
@@ -504,13 +862,13 @@ local function checkTidalRelevant()
 			-- assume that they want water if keyword "wet" is involved, too violitile between initilization and subsequent post terraform checks
 			return true
 		--else
-		--	mapMinHeight = 0
+		--  mapMinHeight = 0
 		end
 	else
 		mapMinHeight = select(3,Spring.GetGroundExtremes())
 	end
 	mapMinHeight = mapMinHeight - (Spring.GetModOptions().map_waterlevel or 0)
-	return mapMinHeight <= -20	-- armtide/cortide can be built from 20 waterdepth (hardcoded here cause am too lazy to auto cycle trhough unitdefs and read it from there)
+	return mapMinHeight <= -20  -- armtide/cortide can be built from 20 waterdepth (hardcoded here cause am too lazy to auto cycle trhough unitdefs and read it from there)
 end
 
 local function updateTidal()
@@ -524,7 +882,7 @@ local function updateTidal()
 		glDeleteList(dlistTidalGuishader)
 	end
 	dlistTidalGuishader = glCreateList(function()
-		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0,0,1,1)
+		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0, 0, 1, 1)
 	end)
 
 	if tidaldlist1 ~= nil then
@@ -533,8 +891,8 @@ local function updateTidal()
 	if tidaldlist2 ~= nil then
 		glDeleteList(tidaldlist2)
 	end
-	local wavesSize = height*0.53 * widgetScale
-	tidalWaveAnimationHeight = height*0.1 * widgetScale
+	local wavesSize = height * 0.53 * widgetScale
+	tidalWaveAnimationHeight = height * 0.1 * widgetScale
 	tidaldlist1 = glCreateList(function()
 		UiElement(area[1], area[2], area[3], area[4], 0, 0, 1, 1)
 		if WG['guishader'] then
@@ -542,7 +900,7 @@ local function updateTidal()
 		end
 		-- waves icon
 		glPushMatrix()
-                -- translate will be done between this and tidaldlist2
+				-- translate will be done between this and tidaldlist2
 	end)
 	tidaldlist2 = glCreateList(function()
 		glColor(1, 1, 1, 0.2)
@@ -562,21 +920,19 @@ local function updateTidal()
 	end
 end
 
-
 local function updateResbarText(res)
-
 	if dlistResbar[res][4] ~= nil then
 		glDeleteList(dlistResbar[res][4])
 	end
 	dlistResbar[res][4] = glCreateList(function()
-		RectRound(resbarArea[res][1] + bgpadding, resbarArea[res][2] + bgpadding, resbarArea[res][3] - bgpadding, resbarArea[res][4], bgpadding * 1.25, 0,0,1,1)
-		RectRound(resbarArea[res][1], resbarArea[res][2], resbarArea[res][3], resbarArea[res][4], 5.5 * widgetScale, 0,0,1,1)
+		RectRound(resbarArea[res][1] + bgpadding, resbarArea[res][2] + bgpadding, resbarArea[res][3] - bgpadding, resbarArea[res][4], bgpadding * 1.25, 0, 0, 1, 1)
+		RectRound(resbarArea[res][1], resbarArea[res][2], resbarArea[res][3], resbarArea[res][4], 5.5 * widgetScale, 0, 0, 1, 1)
 	end)
 	if dlistResbar[res][5] ~= nil then
 		glDeleteList(dlistResbar[res][5])
 	end
 	dlistResbar[res][5] = glCreateList(function()
-		RectRound(resbarArea[res][1], resbarArea[res][2], resbarArea[res][3], resbarArea[res][4], 5.5 * widgetScale, 0,0,1,1)
+		RectRound(resbarArea[res][1], resbarArea[res][2], resbarArea[res][3], resbarArea[res][4], 5.5 * widgetScale, 0, 0, 1, 1)
 	end)
 
 	-- storage changed!
@@ -597,10 +953,18 @@ local function updateResbarText(res)
 			font2:Begin()
 			if res == 'metal' then
 				font2:SetTextColor(0.55, 0.55, 0.55, 1)
-			else
+			elseif res == 'energy' then
 				font2:SetTextColor(0.57, 0.57, 0.45, 1)
+			elseif res == 'BP' and config.drawBPBar then
+				font2:SetTextColor(0.45, 0.6, 0.45, 1)
 			end
-			font2:Print(short(r[res][2]), resbarDrawinfo[res].textStorage[2], resbarDrawinfo[res].textStorage[3], resbarDrawinfo[res].textStorage[4], resbarDrawinfo[res].textStorage[5])
+			-- -- Text: Storage
+			if res ~= 'BP' then
+				font2:Print(short(r[res][2]), resbarDrawinfo[res].textStorage[2], resbarDrawinfo[res].textStorage[3], resbarDrawinfo[res].textStorage[4], resbarDrawinfo[res].textStorage[5])
+			end
+			if res == 'BP' and config.proMode and config.drawBPBar then -- total buildpower
+				font2:Print(short(r[res][4]), resbarDrawinfo[res].textStorage[2], resbarDrawinfo[res].textStorage[3], resbarDrawinfo[res].textStorage[4], resbarDrawinfo[res].textStorage[5])
+			end
 			font2:End()
 		end)
 	end
@@ -608,116 +972,231 @@ local function updateResbarText(res)
 	if dlistResbar[res][3] ~= nil then
 		glDeleteList(dlistResbar[res][3])
 	end
-	dlistResbar[res][3] = glCreateList(function()
-		font2:Begin()
-		-- Text: pull
-		font2:Print("\255\240\125\125" .. "-" .. short(r[res][3]), resbarDrawinfo[res].textPull[2], resbarDrawinfo[res].textPull[3], resbarDrawinfo[res].textPull[4], resbarDrawinfo[res].textPull[5])
-		-- Text: expense
-		local textcolor = "\255\240\180\145"
-		if r[res][3] == r[res][5] then
-			textcolor = "\255\200\140\130"
-		end
-		font2:Print(textcolor .. "-" .. short(r[res][5]), resbarDrawinfo[res].textExpense[2], resbarDrawinfo[res].textExpense[3], resbarDrawinfo[res].textExpense[4], resbarDrawinfo[res].textExpense[5])
-		-- income
-		font2:Print("\255\120\235\120" .. "+" .. short(r[res][4]), resbarDrawinfo[res].textIncome[2], resbarDrawinfo[res].textIncome[3], resbarDrawinfo[res].textIncome[4], resbarDrawinfo[res].textIncome[5])
-		font2:End()
 
-		if not spec and gameFrame > 90 then
+	-- Add stalling M/E for any low-priority builders
+	if res == 'metal' then
+		r[res][3] = r[res][3] + stalling['lowPrioMetal'] 
+	elseif res == 'energy' then
+		r[res][3] = r[res][3] + stalling['lowPrioEnergy']
+	end
 
-			-- display overflow notification
-			if (res == 'metal' and (allyteamOverflowingMetal or overflowingMetal)) or (res == 'energy' and (allyteamOverflowingEnergy or overflowingEnergy)) then
-				if showOverflowTooltip[res] == nil then
-					showOverflowTooltip[res] = os.clock() + 1.1
-				end
-				if showOverflowTooltip[res] < os.clock() then
-					local bgpadding2 = 2.2 * widgetScale
-					local text = ''
-					if res == 'metal' then
-						text = (allyteamOverflowingMetal and '   ' .. Spring.I18N('ui.topbar.resources.wastingMetal') .. '   ' or '   ' .. Spring.I18N('ui.topbar.resources.overflowing') .. '   ')
-						if not supressOverflowNotifs and  WG['notifications'] and not isMetalmap and (not WG.sharedMetalFrame or WG.sharedMetalFrame+60 < gameFrame) then
-							if allyteamOverflowingMetal then
-								if numTeamsInAllyTeam > 1 then
-									if wholeTeamWastingMetalCount < 5 then
-										wholeTeamWastingMetalCount = wholeTeamWastingMetalCount + 1
-										WG['notifications'].addEvent('WholeTeamWastingMetal')
-									end
-								else
-									--WG['notifications'].addEvent('YouAreWastingMetal')
-								end
-							elseif r[res][6] > 0.75 then	-- supress if you are deliberately overflowing by adjustingthe share slider down
-								WG['notifications'].addEvent('YouAreOverflowingMetal')
-							end
-						end
-					else
-						text = (allyteamOverflowingEnergy and '   ' .. Spring.I18N('ui.topbar.resources.wastingEnergy') .. '   '  or '   ' .. Spring.I18N('ui.topbar.resources.overflowing') .. '   ')
-						if not supressOverflowNotifs and WG['notifications'] and (not WG.sharedEnergyFrame or WG.sharedEnergyFrame+60 < gameFrame) then
-							if allyteamOverflowingEnergy then
-								if numTeamsInAllyTeam > 3 then
-									--WG['notifications'].addEvent('WholeTeamWastingEnergy')
-								else
-									--WG['notifications'].addEvent('YouAreWastingEnergy')
-								end
-							elseif r[res][6] > 0.75 then	-- supress if you are deliberately overflowing by adjustingthe share slider down
-								--WG['notifications'].addEvent('YouAreOverflowingEnergy')	-- this annoys the fuck out of em and makes them build energystoages too much
-							end
-						end
-					end
-					local fontSize = (orgHeight * (1 + (ui_scale - 1) / 1.33) / 4) * widgetScale
-					local textWidth = font2:GetTextWidth(text) * fontSize
-
-					-- background
-					local color1, color2
-					if res == 'metal' then
-						if allyteamOverflowingMetal then
-							color1 = { 0.35, 0.1, 0.1, 1 }
-							color2 = { 0.25, 0.05, 0.05, 1 }
-						else
-							color1 = { 0.35, 0.35, 0.35, 1 }
-							color2 = { 0.25, 0.25, 0.25, 1 }
-						end
-					else
-						if allyteamOverflowingEnergy then
-							color1 = { 0.35, 0.1, 0.1, 1 }
-							color2 = { 0.25, 0.05, 0.05, 1 }
-						else
-							color1 = { 0.35, 0.25, 0, 1 }
-							color2 = { 0.25, 0.16, 0, 1 }
-						end
-					end
-					RectRound(resbarArea[res][3] - textWidth, resbarArea[res][4] - 15.5 * widgetScale, resbarArea[res][3], resbarArea[res][4], 3.7 * widgetScale, 0, 0, 1, 1, color1, color2)
-					if res == 'metal' then
-						if allyteamOverflowingMetal then
-							color1 = { 1, 0.3, 0.3, 0.25 }
-							color2 = { 1, 0.3, 0.3, 0.44 }
-						else
-							color1 = { 1, 1, 1, 0.25 }
-							color2 = { 1, 1, 1, 0.44 }
-						end
-					else
-						if allyteamOverflowingEnergy then
-							color1 = { 1, 0.3, 0.3, 0.25 }
-							color2 = { 1, 0.3, 0.3, 0.44 }
-						else
-							color1 = { 1, 0.88, 0, 0.25 }
-							color2 = { 1, 0.88, 0, 0.44 }
-						end
-					end
-					RectRound(resbarArea[res][3] - textWidth + bgpadding2, resbarArea[res][4] - 15.5 * widgetScale + bgpadding2, resbarArea[res][3] - bgpadding2, resbarArea[res][4], 2.8 * widgetScale, 0, 0, 1, 1, color1, color2)
-
-					font2:Begin()
-					font2:SetTextColor(1, 0.88, 0.88, 1)
-					font2:SetOutlineColor(0.2, 0, 0, 0.6)
-					font2:Print(text, resbarArea[res][3], resbarArea[res][4] - 9.3 * widgetScale, fontSize, 'or')
-					font2:End()
-				end
-			else
-				showOverflowTooltip[res] = nil
+	if res ~= 'BP' or config.drawBPBar then
+		dlistResbar[res][3] = glCreateList(function() 
+			font2:Begin()
+			-- Text: pull
+			if res ~= 'BP' then
+				font2:Print("\255\240\125\125" .. "-" .. short(r[res][3]), resbarDrawinfo[res].textPull[2], resbarDrawinfo[res].textPull[3], resbarDrawinfo[res].textPull[4], resbarDrawinfo[res].textPull[5])
+			elseif res == 'BP' and config.proMode then			-- used buildpower
+				font2:Print("\255\0\255\0"  .. short(r[res][5]), resbarDrawinfo[res].textPull[2], resbarDrawinfo[res].textPull[3], resbarDrawinfo[res].textPull[4], resbarDrawinfo[res].textPull[5])
 			end
-		end
-	end)
+			-- Text: expense
+			local textcolor = "\255\240\180\145"
+			if r[res][3] == r[res][5] then
+				textcolor = "\255\200\140\130"
+			end
+			if res ~= 'BP' then
+				font2:Print(textcolor .. "-" .. short(r[res][5]), resbarDrawinfo[res].textExpense[2], resbarDrawinfo[res].textExpense[3], resbarDrawinfo[res].textExpense[4], resbarDrawinfo[res].textExpense[5])
+			elseif res == 'BP' and config.proMode then			-- reserved buildpower (including used)
+				font2:Print("\255\50\155\0" .. short(r[res][3]), resbarDrawinfo[res].textExpense[2], resbarDrawinfo[res].textExpense[3], resbarDrawinfo[res].textExpense[4], resbarDrawinfo[res].textExpense[5])
+			end
+			-- Text: income
+			if res ~= 'BP' then
+				font2:Print("\255\120\235\120" .. "+" .. short(r[res][4]), resbarDrawinfo[res].textIncome[2], resbarDrawinfo[res].textIncome[3], resbarDrawinfo[res].textIncome[4], resbarDrawinfo[res].textIncome[5])
+			end
+			font2:End()
+
+			local startingFrame = 90
+			if debugMode then
+				startingFrame = 1
+			end
+			if not spec and gameFrame > startingFrame then
+
+				local notifyMetalStall = playerStallingMetal
+				local notifyEnergyStall = playerStallingEnergy
+
+				-- Only warn about buildpower surplus in pro mode.
+				local notifyBPSurplus = false
+				local notifyBPDeficit = false
+				local reservedBP = BP[3]
+				local totalBP = BP[4]
+				local notifyBPIdle = reservedBP / totalBP <= 0.5 and (totalBP - reservedBP) > 300
+				if BP['buildpowerSurplus'] ~= nil then
+					local indicatorPosM = BP['mSliderPosition']
+					local indicatorPosE = BP['eSliderPosition']
+
+					-- Buildpower surplus is calculated based on current metal/energy income and _predicted_ metal/
+					-- energy expenses if all builders were actively building. If this is negative, we have a buildpower
+					-- deficit, since income exceeds what all builders could possibly support.
+					notifyBPDeficit = BP['buildpowerSurplus'] < 0
+
+					-- A surplus isn't necessarily a problem, as builders don't spend 100% of their time building (if
+					-- they're driving from one location to another, for instance). And in the early-game your commander
+					-- alone will likely cause a buildpower surplus. For now, let's only warn about a surplus that
+					-- exceeds a fixed number _and_ a fixed ratio of eco-supported BP.
+
+					-- Later, we might want to focus just on the amount of BP that's actively building yet stalled, to
+					-- ignore any BP that's on guard/repair/reclaim duty. (But even a stalled-only surplus warning might
+					-- be redundant given the existing "Need metal"/"Need energy" overflow tooltips.)
+
+					-- Try to ignore early-game states where we may only have the commander and a single factory on the map.
+					notifyBPSurplus = BP['buildpowerSurplus'] > 400
+						-- Only warn about a surplus if less than 40% of our BP can be supported by our income.
+						and ((indicatorPosM ~= nil and indicatorPosM < 0.4) or (indicatorPosE ~= nil and indicatorPosE < 0.4))
+				end
+
+				-- If we're not in pro mode, be more selective with which alerts we show users.
+				if config.proMode == false then
+
+					-- These two messages aren't very useful, since you can just look at the metal and energy bars.
+					-- Only show these alerts in pro mode.
+					notifyMetalStall = false
+					notifyEnergyStall = false
+
+					-- Try to only show the most important alert at a time.
+					if notifyBPDeficit then
+						notifyBPIdle = false
+						notifyBPSurplus = false -- shouldn't happen at the same time as a deficit, but leaving it just in case
+					elseif notifyBPIdle then
+						notifyBPSurplus = false
+					end
+				end
+
+				if (res == 'metal' and (allyteamOverflowingMetal or overflowingMetal))
+						or (res == 'energy' and (allyteamOverflowingEnergy or overflowingEnergy))
+						or (res == 'BP' and config.drawBPBar and (notifyMetalStall or notifyEnergyStall or notifyBPSurplus or notifyBPDeficit or notifyBPIdle)) then
+					if showOverflowTooltip[res] == nil then
+						showOverflowTooltip[res] = os.clock() + 1.1
+					end
+					if showOverflowTooltip[res] < os.clock() then
+						local bgpadding2 = 2.2 * widgetScale
+						local text = ''
+						if res == 'metal' then
+							text = (allyteamOverflowingMetal and '   ' .. Spring.I18N('ui.topbar.resources.wastingMetal') .. '   ' or '   ' .. Spring.I18N('ui.topbar.resources.overflowing') .. '   ')
+							if not supressOverflowNotifs and  WG['notifications'] and not isMetalmap and (not WG.sharedMetalFrame or WG.sharedMetalFrame+60 < gameFrame) then
+								if allyteamOverflowingMetal then
+									if numTeamsInAllyTeam > 1 then
+										if wholeTeamWastingMetalCount < 5 then
+											wholeTeamWastingMetalCount = wholeTeamWastingMetalCount + 1
+											WG['notifications'].addEvent('WholeTeamWastingMetal')
+										end
+									else
+										--WG['notifications'].addEvent('YouAreWastingMetal')
+									end
+								elseif r[res][6] > 0.75 then    -- supress if you are deliberately overflowing by adjustingthe share slider down
+									WG['notifications'].addEvent('YouAreOverflowingMetal')
+								end
+							end
+						elseif res == 'energy' then
+							text = (allyteamOverflowingEnergy and '   ' .. Spring.I18N('ui.topbar.resources.wastingEnergy') .. '   '  or '   ' .. Spring.I18N('ui.topbar.resources.overflowing') .. '   ')
+							if not supressOverflowNotifs and WG['notifications'] and (not WG.sharedEnergyFrame or WG.sharedEnergyFrame+60 < gameFrame) then
+								if allyteamOverflowingEnergy then
+									if numTeamsInAllyTeam > 3 then
+										--WG['notifications'].addEvent('WholeTeamWastingEnergy')
+									else
+										--WG['notifications'].addEvent('YouAreWastingEnergy')
+									end
+								elseif r[res][6] > 0.75 then    -- supress if you are deliberately overflowing by adjusting the share slider down
+									--WG['notifications'].addEvent('YouAreOverflowingEnergy')   -- this annoys the fuck out of em and makes them build energystoages too much
+								end
+							end
+						end
+						local fontSize = (orgHeight * (1 + (ui_scale - 1) / 1.33) / 4) * widgetScale
+						local textWidth = font2:GetTextWidth(text) * fontSize
+
+						-- background
+						local color1, color2
+						if res == 'metal' or res == 'energy' then
+							if res == 'metal' then
+								if allyteamOverflowingMetal then
+									color1 = { 0.35, 0.1, 0.1, 1 }
+									color2 = { 0.25, 0.05, 0.05, 1 }
+								else
+									color1 = { 0.35, 0.35, 0.35, 1 }
+									color2 = { 0.25, 0.25, 0.25, 1 }
+								end
+							else
+								if allyteamOverflowingEnergy then
+									color1 = { 0.35, 0.1, 0.1, 1 }
+									color2 = { 0.25, 0.05, 0.05, 1 }
+								else
+									color1 = { 0.35, 0.25, 0, 1 }
+									color2 = { 0.25, 0.16, 0, 1 }
+								end
+							end
+							RectRound(resbarArea[res][3] - textWidth, resbarArea[res][2] - 15.5 * widgetScale, resbarArea[res][3], resbarArea[res][2], 3.7 * widgetScale, 0, 0, 1, 1, color1, color2)
+							if res == 'metal' then
+								if allyteamOverflowingMetal then
+									color1 = { 1, 0.3, 0.3, 0.25 }
+									color2 = { 1, 0.3, 0.3, 0.44 }
+								else
+									color1 = { 1, 1, 1, 0.25 }
+									color2 = { 1, 1, 1, 0.44 }
+								end
+							else
+								if allyteamOverflowingEnergy then
+									color1 = { 1, 0.3, 0.3, 0.25 }
+									color2 = { 1, 0.3, 0.3, 0.44 }
+								else
+									color1 = { 1, 0.88, 0, 0.25 }
+									color2 = { 1, 0.88, 0, 0.44 }
+								end
+							end
+							RectRound(resbarArea[res][3] - textWidth + bgpadding2, resbarArea[res][2] - 15.5 * widgetScale + bgpadding2, resbarArea[res][3] - bgpadding2, resbarArea[res][2], 2.8 * widgetScale, 0, 0, 1, 1, color1, color2)
+						end
+
+						font2:Begin()
+						font2:SetTextColor(1, 0.88, 0.88, 1)
+						font2:SetOutlineColor(0.2, 0, 0, 0.6)
+						if res ~= 'BP' then
+							font2:Print(text, resbarArea[res][3], resbarArea[res][2] - 9.3 * widgetScale, fontSize, 'or')
+						elseif config.drawBPBar then
+							local offset = 0
+
+							local warning_lowlight = { 0.35, 0.1, 0.1, 1 }
+							local warning_highlight = { 0.25, 0.05, 0.05, 1 }
+							local info_lowlight = { 0.20, 0.20, 0.20, 1 }
+							local info_highlight = { 0.12, 0.12, 0.12, 1 }
+							if notifyMetalStall then
+								offset = showBuildpowerAlert(resbarArea[res], 'Need metal', fontSize, warning_lowlight, warning_highlight, offset, bgpadding2)
+							end
+
+							if notifyEnergyStall then
+								offset = showBuildpowerAlert(resbarArea[res], 'Need energy', fontSize, warning_lowlight, warning_highlight, offset, bgpadding2)
+							end
+
+							if notifyBPSurplus then
+								offset = showBuildpowerAlert(resbarArea[res], 'Too much buildpower', fontSize, info_lowlight, info_highlight, offset, bgpadding2)
+							end
+
+							if notifyBPDeficit then
+								offset = showBuildpowerAlert(resbarArea[res], 'Need buildpower', fontSize, info_lowlight, info_highlight, offset, bgpadding2)
+							end
+
+							if notifyBPIdle then
+								offset = showBuildpowerAlert(resbarArea[res], 'Idle buildpower', fontSize, info_lowlight, info_highlight, offset, bgpadding2)
+							end
+						end
+
+						font2:End()
+					end
+				else
+					showOverflowTooltip[res] = nil
+				end
+			end
+		end)
+	end
 end
 
-local function updateResbar(res)
+function showBuildpowerAlert(resourceArea, text, fontSize, lowlightColor, highlightColor, offset, padding)
+	text = '   ' .. text .. '   '
+	local textWidth = font2:GetTextWidth(text) * fontSize
+	-- The gradient has the lowlight color at the bottom and the highlight color at the top.
+	RectRound(resourceArea[3] - (offset + textWidth) + padding, resourceArea[2] - 15.5 * widgetScale + padding, resourceArea[3] - offset - padding, resourceArea[2], 2.8 * widgetScale, 0, 0, 1, 1, lowlightColor, highlightColor)
+	font2:Print(text, resourceArea[3] - offset, resourceArea[2] - 9.3 * widgetScale , fontSize, 'or')
+	return offset + textWidth
+end
+
+local function updateResbar(res)  --decides where and what is drawn
 	local area = resbarArea[res]
 
 	if dlistResbar[res][1] ~= nil then
@@ -727,25 +1206,28 @@ local function updateResbar(res)
 	local barHeight = math_floor((height * widgetScale / 7) + 0.5)
 	local barHeightPadding = math_floor(((height / 4.4) * widgetScale) + 0.5) --((height/2) * widgetScale) - (barHeight/2)
 	--local barLeftPadding = 2 * widgetScale
-	local barLeftPadding = math_floor(53 * widgetScale)
+	local barLeftPadding = math_floor(47 * widgetScale) --xxx 53*
 	local barRightPadding = math_floor(14.5 * widgetScale)
+	local barHorizontalPadding_BP = barRightPadding
 	local barArea = { area[1] + math_floor((height * widgetScale) + barLeftPadding), area[2] + barHeightPadding, area[3] - barRightPadding, area[2] + barHeight + barHeightPadding }
 	local sliderHeightAdd = math_floor(barHeight / 1.55)
 	local shareSliderWidth = barHeight + sliderHeightAdd + sliderHeightAdd
 	local barWidth = barArea[3] - barArea[1]
 	local glowSize = barHeight * 7
-	local edgeWidth = math.max(1, math_floor(vsy / 1100))
+	local edgeWidth = math_max(1, math_floor(vsy / 1100))
 
 	if not showQuitscreen and resbarHover ~= nil and resbarHover == res then
 		sliderHeightAdd = barHeight / 0.75
 		shareSliderWidth = barHeight + sliderHeightAdd + sliderHeightAdd
 	end
-	shareSliderWidth = math.ceil(shareSliderWidth)
+	shareSliderWidth = math_ceil(shareSliderWidth)
 
 	if res == 'metal' then
 		resbarDrawinfo[res].barColor = { 1, 1, 1, 1 }
-	else
+	elseif res == 'energy' then
 		resbarDrawinfo[res].barColor = { 1, 1, 0, 1 }
+	elseif res == 'BP'  and config.drawBPBar == true then
+		resbarDrawinfo[res].barColor = { 0, 1, 0, 1 }
 	end
 	resbarDrawinfo[res].barArea = barArea
 
@@ -754,11 +1236,31 @@ local function updateResbar(res)
 	resbarDrawinfo[res].barGlowLeftTexRect = { resbarDrawinfo[res].barTexRect[1] - (glowSize * 2.5), resbarDrawinfo[res].barTexRect[2] - glowSize, resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[4] + glowSize }
 	resbarDrawinfo[res].barGlowRightTexRect = { resbarDrawinfo[res].barTexRect[3] + (glowSize * 2.5), resbarDrawinfo[res].barTexRect[2] - glowSize, resbarDrawinfo[res].barTexRect[3], resbarDrawinfo[res].barTexRect[4] + glowSize }
 
+	local storageColor = "\255\150\150\100"
+	local pullColor = "\255\210\100\100"
+	local expenseColor = "\255\210\100\100"
+	local incomeColor = "\255\100\210\100"
+
+	if res == 'BP' and config.drawBPBar == true then
+		resbarDrawinfo[res].barArea = { area[1] + barHorizontalPadding_BP, barArea[2], area[3] - barHorizontalPadding_BP, barArea[4] }
+		storageColor = "\100\125\125\100"
+		pullColor = "\100\255\0\100"
+		expenseColor = "\100\150\0\100"
+		incomeColor = "\100\100\100\100"
+	end
+
+	resbarDrawinfo[res].textStorage = { storageColor .. short(r[res][2]), barArea[3], barArea[2] + barHeight * 2.1, (height / 3.2) * widgetScale, 'ord' }
+	resbarDrawinfo[res].textPull = { pullColor .. short(r[res][3]), barArea[1] - (10 * widgetScale), barArea[2] + barHeight * 2.15, (height / 3) * widgetScale, 'ord' }
+	resbarDrawinfo[res].textExpense = { expenseColor .. short(r[res][5]), barArea[1] + (10 * widgetScale), barArea[2] + barHeight * 2.15, (height / 3) * widgetScale, 'old' }   
+	resbarDrawinfo[res].textIncome = { incomeColor .. short(r[res][4]), barArea[1] - (10 * widgetScale), barArea[2] - (barHeight * 0.55), (height / 3) * widgetScale, 'ord' }
 	resbarDrawinfo[res].textCurrent = { short(r[res][1]), barArea[1] + barWidth / 2, barArea[2] + barHeight * 1.8, (height / 2.5) * widgetScale, 'ocd' }
-	resbarDrawinfo[res].textStorage = { "\255\150\150\150" .. short(r[res][2]), barArea[3], barArea[2] + barHeight * 2.1, (height / 3.2) * widgetScale, 'ord' }
-	resbarDrawinfo[res].textPull = { "\255\210\100\100" .. short(r[res][3]), barArea[1] - (10 * widgetScale), barArea[2] + barHeight * 2.15, (height / 3) * widgetScale, 'ord' }
-	resbarDrawinfo[res].textExpense = { "\255\210\100\100" .. short(r[res][5]), barArea[1] + (10 * widgetScale), barArea[2] + barHeight * 2.15, (height / 3) * widgetScale, 'old' }
-	resbarDrawinfo[res].textIncome = { "\255\100\210\100" .. short(r[res][4]), barArea[1] - (10 * widgetScale), barArea[2] - (barHeight * 0.55), (height / 3) * widgetScale, 'ord' }
+	if res == 'BP' then
+		barArea = resbarDrawinfo[res].barArea
+		barWidth = barArea[3] - barArea[1]
+		if not config.proMode then
+			resbarDrawinfo[res].textCurrent = { short(r[res][2]), barArea[3], barArea[2] + barHeight * 1.8, (height / 2.5) * widgetScale, 'ord' } -- right-aligned
+		end
+	end
 
 	-- add background blur
 	if dlistResbar[res][0] ~= nil then
@@ -768,7 +1270,7 @@ local function updateResbar(res)
 		glDeleteList(dlistResbar[res][0])
 	end
 	dlistResbar[res][0] = glCreateList(function()
-		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0,0,1,1)
+		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0, 0, 1, 1)
 	end)
 
 	dlistResbar[res][1] = glCreateList(function()
@@ -780,28 +1282,51 @@ local function updateResbar(res)
 
 		-- Icon
 		glColor(1, 1, 1, 1)
-		local iconPadding = math_floor((area[4] - area[2]) / 7)
+		local iconPadding = math_floor((area[4] - area[2]) / 9) --xxx /7
+		local barHorizontalPadding_BP = math_floor(14.5 * widgetScale)
 		local iconSize = math_floor(area[4] - area[2] - iconPadding - iconPadding)
+		if res == 'BP' then
+			iconSize = height / 3
+		end
 		local bgpaddingHalf = math_floor((bgpadding * 0.5) + 0.5)
 		local texSize = math_floor(iconSize * 2)
 		if res == 'metal' then
-			glTexture(":lr" .. texSize .. "," .. texSize .. ":LuaUI/Images/metal.png")
-		else
-			glTexture(":lr" .. texSize .. "," .. texSize .. ":LuaUI/Images/energy.png")
+			glTexture(":lr" ..texSize ..", " ..texSize ..":LuaUI/Images/metal.png")
+		elseif res == 'energy' then
+
+			glTexture(":lr" ..texSize ..", " ..texSize ..":LuaUI/Images/energy.png") 
+		elseif config.drawBPBar == true then
+			glColor(1, 0.9, 0.2, 1)
+			glTexture(":lr" ..texSize ..", " ..texSize ..":LuaUI/images/stripes.png") --for bp bar only
 		end
-		glTexRect(area[1] + bgpaddingHalf + iconPadding, area[2] + bgpaddingHalf + iconPadding, area[1] + bgpaddingHalf + iconPadding + iconSize, area[4] + bgpaddingHalf - iconPadding)
+
+		if res == 'BP' then
+			TexturedRectRound(area[1] + barHorizontalPadding_BP, area[4] - bgpaddingHalf - iconPadding - iconSize, area[1] + barHorizontalPadding_BP + iconSize, area[4] - bgpaddingHalf - iconPadding,
+				iconSize * 0.2, -- corner radius
+				1, 1, 1, 1, -- corners
+				iconSize * 1, 0)
+		else
+			glTexRect(area[1] + bgpaddingHalf + iconPadding, area[2] + bgpaddingHalf + iconPadding, area[1] + bgpaddingHalf + iconPadding + iconSize, area[4] + bgpaddingHalf - iconPadding)
+		end
 		glTexture(false)
 
 		-- Bar background
 		local addedSize = math_floor(((barArea[4] - barArea[2]) * 0.15) + 0.5)
-		--RectRound(barArea[1] - edgeWidth, barArea[2] - edgeWidth, barArea[3] + edgeWidth, barArea[4] + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, { 1,1,1, 0.03 }, { 1,1,1, 0.03 })
 		local borderSize = 1
-		RectRound(barArea[1] - edgeWidth + borderSize, barArea[2] - edgeWidth + borderSize, barArea[3] + edgeWidth - borderSize, barArea[4] + edgeWidth - borderSize, barHeight * 0.2, 1, 1, 1, 1, { 0,0,0, 0.12 }, { 0,0,0, 0.15 })
+		local fullBarColorLow = { 0, 0, 0, 0.12 } -- bottom (lowlight)
+		local fullBarColorHigh = { 0, 0, 0, 0.15 } -- top (highlight)
+		if res == 'BP' then
+			-- red background, since unused BP is a problem
+			fullBarColorLow = { 1, 0, 0, 0.22 } -- bottom (lowlight)
+			fullBarColorHigh = { 1, 0, 0, 0.25 } -- top (highlight)
+		end
+		RectRound(barArea[1] - edgeWidth + borderSize, barArea[2] - edgeWidth + borderSize, barArea[3] + edgeWidth - borderSize, barArea[4] + edgeWidth - borderSize, barHeight * 0.2, 1, 1, 1, 1, fullBarColorLow, fullBarColorHigh)
 
 		gl.Texture(noiseBackgroundTexture)
-		gl.Color(1,1,1, 0.16)
-		TexturedRectRound(barArea[1] - edgeWidth, barArea[2] - edgeWidth, barArea[3] + edgeWidth, barArea[4] + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, barWidth*0.33, 0)
+		gl.Color(1, 1, 1, 0.16)
+		TexturedRectRound(barArea[1] - edgeWidth, barArea[2] - edgeWidth, barArea[3] + edgeWidth, barArea[4] + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, barWidth * 0.33, 0)
 		gl.Texture(false)
+
 		glBlending(GL_SRC_ALPHA, GL_ONE)
 		RectRound(barArea[1] - addedSize - edgeWidth, barArea[2] - addedSize - edgeWidth, barArea[3] + addedSize + edgeWidth, barArea[4] + addedSize + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, { 0, 0, 0, 0.1 }, { 0, 0, 0, 0.1 })
 		RectRound(barArea[1] - addedSize, barArea[2] - addedSize, barArea[3] + addedSize, barArea[4] + addedSize, barHeight * 0.33, 1, 1, 1, 1, { 0.15, 0.15, 0.15, 0.2 }, { 0.8, 0.8, 0.8, 0.16 })
@@ -830,171 +1355,457 @@ local function updateResbar(res)
 				cornerSize = 1.33 * widgetScale
 			end
 			UiSliderKnob(math_floor(conversionIndicatorArea[1]+((conversionIndicatorArea[3]-conversionIndicatorArea[1])/2)), math_floor(conversionIndicatorArea[2]+((conversionIndicatorArea[4]-conversionIndicatorArea[2])/2)), math_floor((conversionIndicatorArea[3]-conversionIndicatorArea[1])/2), { 0.95, 0.95, 0.7, 1 })
-
 		end
+		--show usefulBPFactor
+		local ignore = false
+		if ignore ~= true then
+			for i = 1, 1 do
+				if res == 'BP' and config.drawBPIndicators then
+					local texWidth = 1.0 * shareSliderWidth
+					local texHeight = math_floor( shareSliderWidth / 2 ) - 1
+					local indicatorPosM = BP['mSliderPosition']
+					local indicatorPosE = BP['eSliderPosition']
+					local indicatorAreaMultiplyerM = 1
+					local indicatorAreaMultiplyerE = 1
 
+					if playerStallingMetal == true then
+						indicatorAreaMultiplyerM = 1.4
+					end
+					if playerStallingEnergy == true then
+						indicatorAreaMultiplyerE = 1.4
+					end
+
+					local indicatorH = barHeight -- how tall are the metal-supported-BP and energy-supported-BP indicators?
+					local barIntrusion = barHeight * 0.4 -- how much of the BP bar can be obscured (vertically) by one of these indicators?
+					local indicatorW = indicatorH * 1.2 -- 1.0 would bring the indicator to a perfect point, sort of like a home plate in baseball, but 1.2 gives a little extra softness and visual weight
+					local cornerSize = indicatorH / 2
+					local metalIndicatorHalfWidth = indicatorW * indicatorAreaMultiplyerM / 2
+					local energyIndicatorHalfWidth = indicatorW * indicatorAreaMultiplyerE / 2
+
+					-- Indicator for buildpower that current METAL income can support. This is shown along the BOTTOM edge of the BP bar.
+					if indicatorPosM ~= nil then
+						RectRound(
+							barArea[1] + (indicatorPosM * barWidth) - metalIndicatorHalfWidth, -- left
+							barArea[2] + (barIntrusion - indicatorH * indicatorAreaMultiplyerM), -- bottom of the bar, plus an intrusion upward, minus the indicator's height
+							barArea[1] + (indicatorPosM * barWidth) + metalIndicatorHalfWidth, -- right
+							barArea[2] + barIntrusion, -- bottom of the bar, plus an intrusion upward
+							cornerSize * indicatorAreaMultiplyerM,
+							1, 1, 0, 0, -- round TopLeft, TopRight, but not BottomRight, BottomLeft (so it looks like it's pointing upward)
+							{ 0.6, 0.6, 0.6, 1 }, -- lowlight color (RGBA)
+							{ 1,   1,   1,   1 }) -- highlight color (RGBA)
+					end
+
+					if indicatorPosE ~= nil then
+						-- Indicator for the range of buildpower that energy COULD support if the wind changes.
+						if config.drawBPWindRangeIndicators and numWindGenerators > 0 and BP['eSliderPosition_minWind'] ~= nil and BP['eSliderPosition_maxWind'] ~= nil then
+							-- Draw a thin rectangle showing the possible positions of the E-supported BP slider based on min and max wind conditions.
+							RectRound(
+								barArea[1] + (BP['eSliderPosition_minWind'] * barWidth) - energyIndicatorHalfWidth, -- left
+								barArea[4] + barIntrusion, -- top of the bar, plus an intrusion upward
+								barArea[1] + (BP['eSliderPosition_maxWind'] * barWidth) + energyIndicatorHalfWidth, -- right
+								barArea[4] - barIntrusion + indicatorH, -- to the top of the E indicator assuming no multiplier
+								(indicatorH * 1 - 2 * barIntrusion) / 2, -- corner size
+								0, 0, 0, 0, -- don't round any corners
+								{ 0.8, 0.8, 0.0, 1 }, -- lowlight color (RGBA)
+								{ 0.4, 0.4, 0.0, 1 }) -- highlight color (RGBA)
+						end
+
+						-- Indicator for buildpower that current ENERGY income can support. This is shown along the TOP edge of the BP bar.
+						RectRound(
+							barArea[1] + (indicatorPosE * barWidth) - energyIndicatorHalfWidth, -- left
+							barArea[4] - barIntrusion, -- top of the bar, minus an intrusion downward
+							barArea[1] + (indicatorPosE * barWidth) + energyIndicatorHalfWidth, -- right
+							barArea[4] - barIntrusion + indicatorH * indicatorAreaMultiplyerE, -- top of the bar, minus an intrusion downward, plus the indicator's height
+							cornerSize * indicatorAreaMultiplyerE,
+							0, 0, 1, 1, -- don't round TopLeft, TopRight but round BottomRight, BottomLeft (so it looks like it's pointing downward)
+							{0.8, 0.8, 0.0, 1}, -- lowlight color (RGBA)
+							{ 1, 1, 0.2, 1 }) -- highlight color (RGBA)
+					end
+
+					--Log("sliders end" ..i)
+				end
+			end
+		end
 		-- Share slider
 		if not isSingle then
-			if res == 'energy' then
-				eneryOverflowLevel = r[res][6]
-			else
-				metalOverflowLevel = r[res][6]
+			if res ~= 'BP' then
+				if res == 'energy' then
+					eneryOverflowLevel = r[res][6]
+				else
+					metalOverflowLevel = r[res][6]
+				end
+				local value = r[res][6]
+				if draggingShareIndicator and draggingShareIndicatorValue[res] ~= nil then
+					value = draggingShareIndicatorValue[res]
+				else
+					draggingShareIndicatorValue[res] = value
+				end
+				shareIndicatorArea[res] = { math_floor(barArea[1] + (value * barWidth) - (shareSliderWidth / 2)), math_floor(barArea[2] - sliderHeightAdd), math_floor(barArea[1] + (value * barWidth) + (shareSliderWidth / 2)), math_floor(barArea[4] + sliderHeightAdd) }
+				local cornerSize
+				if not showQuitscreen and resbarHover ~= nil and resbarHover == res then
+					cornerSize = 2 * widgetScale
+				else
+					cornerSize = 1.33 * widgetScale
+				end
+				UiSliderKnob(math_floor(shareIndicatorArea[res][1]+((shareIndicatorArea[res][3]-shareIndicatorArea[res][1])/2)), math_floor(shareIndicatorArea[res][2]+((shareIndicatorArea[res][4]-shareIndicatorArea[res][2])/2)), math_floor((shareIndicatorArea[res][3]-shareIndicatorArea[res][1])/2), { 0.85, 0, 0, 1 })
 			end
-			local value = r[res][6]
-			if draggingShareIndicator and draggingShareIndicatorValue[res] ~= nil then
-				value = draggingShareIndicatorValue[res]
-			else
-				draggingShareIndicatorValue[res] = value
-			end
-			shareIndicatorArea[res] = { math_floor(barArea[1] + (value * barWidth) - (shareSliderWidth / 2)), math_floor(barArea[2] - sliderHeightAdd), math_floor(barArea[1] + (value * barWidth) + (shareSliderWidth / 2)), math_floor(barArea[4] + sliderHeightAdd) }
-			local cornerSize
-			if not showQuitscreen and resbarHover ~= nil and resbarHover == res then
-				cornerSize = 2 * widgetScale
-			else
-				cornerSize = 1.33 * widgetScale
-			end
-			UiSliderKnob(math_floor(shareIndicatorArea[res][1]+((shareIndicatorArea[res][3]-shareIndicatorArea[res][1])/2)), math_floor(shareIndicatorArea[res][2]+((shareIndicatorArea[res][4]-shareIndicatorArea[res][2])/2)), math_floor((shareIndicatorArea[res][3]-shareIndicatorArea[res][1])/2), { 0.85, 0, 0, 1 })
 		end
 	end)
-
 	local resourceTranslations = {
-		metal = Spring.I18N('ui.topbar.resources.metal'),
-		energy =  Spring.I18N('ui.topbar.resources.energy')
+		metal = Spring.I18N('ui.topbar.resources.metal'), 
+		energy = Spring.I18N('ui.topbar.resources.energy')
 	}
 
 	local resourceName = resourceTranslations[res]
 
 	-- add tooltips
-	if WG['tooltip'] ~= nil and conversionIndicatorArea then
-		if res == 'energy' then
+	if WG['tooltip'] ~= nil and conversionIndicatorArea then  -- tool tips 
+		if res == 'energy' then -- tool tips for share sliders
 			WG['tooltip'].AddTooltip(res .. '_share_slider', { resbarDrawinfo[res].barArea[1], shareIndicatorArea[res][2], conversionIndicatorArea[1], shareIndicatorArea[res][4] }, Spring.I18N('ui.topbar.resources.shareEnergyTooltip'), nil, Spring.I18N('ui.topbar.resources.shareEnergyTooltipTitle'))
 			WG['tooltip'].AddTooltip(res .. '_share_slider2', { conversionIndicatorArea[3], shareIndicatorArea[res][2], resbarDrawinfo[res].barArea[3], shareIndicatorArea[res][4] }, Spring.I18N('ui.topbar.resources.shareEnergyTooltip'), nil, Spring.I18N('ui.topbar.resources.shareEnergyTooltipTitle'))
 			WG['tooltip'].AddTooltip(res .. '_metalmaker_slider', conversionIndicatorArea, Spring.I18N('ui.topbar.resources.conversionTooltip'), nil, Spring.I18N('ui.topbar.resources.conversionTooltipTitle'))
 		else
 			WG['tooltip'].AddTooltip(res .. '_share_slider', { resbarDrawinfo[res].barArea[1], shareIndicatorArea[res][2], resbarDrawinfo[res].barArea[3], shareIndicatorArea[res][4] }, Spring.I18N('ui.topbar.resources.shareMetalTooltip'), nil, Spring.I18N('ui.topbar.resources.shareMetalTooltipTitle'))
 		end
+		if res == 'BP' and config.drawBPBar == true then -- for bp bar only
+			-- TODO: ensure these are consistent with text/highlight colors elsewhere in BAR.
+			local textColor = '\255\215\215\215'
+			local highlightColor = '\255\255\255\255'
+			local avgTotalReservedBP = math_round(BP[3])
+			local totalAvailableBP = BP[4]
+			local avgTotalUsedBP = math_round(BP[5])
 
-		WG['tooltip'].AddTooltip(res .. '_pull', { resbarDrawinfo[res].textPull[2] - (resbarDrawinfo[res].textPull[4] * 2.5), resbarDrawinfo[res].textPull[3], resbarDrawinfo[res].textPull[2] + (resbarDrawinfo[res].textPull[4] * 0.5), resbarDrawinfo[res].textPull[3] + resbarDrawinfo[res].textPull[4] }, Spring.I18N('ui.topbar.resources.pullTooltip', { resource = resourceName }))
-		WG['tooltip'].AddTooltip(res .. '_income', { resbarDrawinfo[res].textIncome[2] - (resbarDrawinfo[res].textIncome[4] * 2.5), resbarDrawinfo[res].textIncome[3], resbarDrawinfo[res].textIncome[2] + (resbarDrawinfo[res].textIncome[4] * 0.5), resbarDrawinfo[res].textIncome[3] + resbarDrawinfo[res].textIncome[4] }, Spring.I18N('ui.topbar.resources.incomeTooltip', { resource = resourceName }))
-		WG['tooltip'].AddTooltip(res .. '_expense', { resbarDrawinfo[res].textExpense[2] - (4 * widgetScale), resbarDrawinfo[res].textExpense[3], resbarDrawinfo[res].textExpense[2] + (30 * widgetScale), resbarDrawinfo[res].textExpense[3] + resbarDrawinfo[res].textExpense[4] }, Spring.I18N('ui.topbar.resources.expenseTooltip', { resource = resourceName }))
-		WG['tooltip'].AddTooltip(res .. '_storage', { resbarDrawinfo[res].textStorage[2] - (resbarDrawinfo[res].textStorage[4] * 2.75), resbarDrawinfo[res].textStorage[3], resbarDrawinfo[res].textStorage[2], resbarDrawinfo[res].textStorage[3] + resbarDrawinfo[res].textStorage[4] }, Spring.I18N('ui.topbar.resources.storageTooltip', { resource = resourceName }))
+			-- Berechnung der Prozentsätze
+			local percentAssigned = math.floor((avgTotalReservedBP / totalAvailableBP * 100) + 0.5)
+			local percentActive = math.floor((avgTotalUsedBP / totalAvailableBP * 100) + 0.5)
+			local percentIdle = math.floor(((totalAvailableBP - avgTotalReservedBP) / totalAvailableBP * 100) + 0.5)
+
+			-- Formatieren der Prozentzahlen mit führenden Leerzeichen für Ausrichtung
+			local formattedAssigned = string.format("%3d", percentAssigned) .. "%"
+			local formattedActive = string.format("%3d", percentActive) .. "%"
+			local formattedIdle = string.format("%3d", percentIdle) .. "%"
+
+			-- Erstellen des Tooltip-Textes
+			local bpTooltipText = textColor .. "Your total buildpower (BP) is " .. highlightColor .. totalAvailableBP .. textColor .. ", of which:\n"
+				.. highlightColor .. formattedAssigned .. textColor .. " is assigned to tasks or moving to jobs (dark green bar).\n"
+				.. highlightColor .. formattedActive .. textColor .. " is currently active and being used (green bar). This is the number shown.\n"
+				.. highlightColor .. formattedIdle .. textColor .. " is idle with no BP tasks (red part)."
+		
+			if config.drawBPIndicators and BP['mSliderPosition'] ~= nil and BP['eSliderPosition'] ~= nil then
+				bpTooltipText = bpTooltipText .. "\n\n"
+					.. textColor .. "The grey and yellow indicators show you that, if all BP were fully engaged:\n"
+					.. "Metal income would support " .. highlightColor .. math_ceil(BP['mSliderPosition'] * 100) .. textColor .. "% of BP.\n"
+					.. "Energy income would support " .. highlightColor .. math_ceil(BP['eSliderPosition'] * 100) .. textColor .. "% of BP."
+			end
+
+			if config.debugTooltip then
+				local eIncomeNoWind = BP['energyIncomeNoWind']
+				if eIncomeNoWind == nil then
+					eIncomeNoWind = 0
+				end
+
+				local nBuilders = 0
+				local nBuiltBuilders = 0
+				for k, v in pairs(trackedBuilders) do
+					currentUnitBP = v[1]
+					unitIsBuilt = v[2]
+					nBuilders = nBuilders + 1
+					if unitIsBuilt then
+						nBuiltBuilders = nBuiltBuilders + 1
+					end
+				end
+				local function float_to_s(n)
+					if n == nil then
+						return "nil"
+					end
+					return sformat("%.3f", n)
+				end
+				bpTooltipText = bpTooltipText
+			 		.."\n\nDEBUG:"
+					.. float_to_s(avgTotalUsedBP) .. " BP used (smoothed), " .. float_to_s(BP['usedBP_instant']) .. " BP non-stalled ".. float_to_s(BP['usedBPIfNoStall']) .. " if no stall \n"
+					.. tostring(nBuilders) .. " tracked builders\n"
+					.. tostring(nBuiltBuilders) .. " built builders\n"
+					.. tostring(BP[4]) .. " total BP \n"
+					.. float_to_s(r['metal'][5]) .." M, " .. float_to_s(r['energy'][5]) .." E spent by all units\n"
+					.. float_to_s(BP['usedBPMetalExpense']) .." M spent by builders, \n"
+					.. float_to_s(BP['usedBPEnergyExpense']) .. " E spent by builders, \n"
+					.. float_to_s(BP['nonBPMetalExpense']) .. " M spent by non-builders, \n"
+					.. float_to_s(BP['nonBPEnergyExpense']) .. " E spent by non-builders, \n"
+					.. float_to_s(r['metal'][5]) .. " / " .. float_to_s(r['energy'][5]) .. " metal/energy expense, \n"
+					.. float_to_s(BP['metalExpensePerBP']) .. " / " .. float_to_s(BP['energyExpensePerBP']) .. " M/E expense per BP, \n"
+					.. float_to_s(r['energy'][4]) .." E income\n"
+					.. float_to_s(numWindGenerators) .." wind generators\n"
+					.. "\nprojections:\n"
+					.. float_to_s(eIncomeNoWind) .." E income without wind\n"
+					.. float_to_s(BP['metalExpenseIfAllBPUsed']) .. " M spent if all BP is used, \n"
+					.. float_to_s(BP['energyExpenseIfAllBPUsed']) .. " E spent if all BP is used, \n"
+					.. float_to_s(BP['metalSupportedBP']) .. " BP supported by M income, \n"
+					.. float_to_s(BP['energySupportedBP']) .. " BP supported by E income,\n\n" .. versionString
+			end
+
+			-- One tooltip for the entire BP area, which isn't that big.
+			WG['tooltip'].AddTooltip(res .. '_all', {
+					resbarDrawinfo[res].barArea[1],--resbarArea[res][1],
+					resbarDrawinfo[res].barArea[2],--resbarArea[res][2],
+					resbarDrawinfo[res].barArea[3],--resbarArea[res][3],
+					resbarDrawinfo[res].barArea[4],--resbarArea[res][4],
+				},
+				bpTooltipText, nil, bpTooltipTitle)
+
+			local bpSurplus = BP['buildpowerSurplus']
+
+			local currentTooltipText = ""
+			if config.proMode then
+				if bpSurplus ~= nil then
+					if bpSurplus == 0 then
+						currentTooltipText = textColor .. "You have just enough buildpower to keep up with your income"
+					elseif bpSurplus > 0 then
+						currentTooltipText = textColor .. "You have " .. highlightColor .. bpSurplus .. textColor .. " buildpower more than you need " .. textColor .. "to keep up with your income"
+					else
+						currentTooltipText = textColor .. "You need " .. highlightColor .. -bpSurplus .. textColor .. " more buildpower " .. textColor .. "to keep up with your income"
+					end
+				end
+			elseif BP[4] > 0 then
+				currentTooltipText = textColor .. "You are using " .. highlightColor .. math_min(100, math_round(BP[5] * 100 / BP[4])) .. textColor .. "% of your buildpower."
+			end
+			if currentTooltipText ~= "" then
+				WG['tooltip'].AddTooltip(res .. '_Current', {
+					resbarDrawinfo[res].textCurrent[2] - (resbarDrawinfo[res].textCurrent[4] * 2.5),
+					resbarDrawinfo[res].textCurrent[3],
+					resbarDrawinfo[res].textCurrent[2] + (resbarDrawinfo[res].textCurrent[4] * 0.5),
+					resbarDrawinfo[res].textCurrent[3] + resbarDrawinfo[res].textCurrent[4]
+				}, currentTooltipText)
+			else
+				WG['tooltip'].RemoveTooltip(res .. '_Current')
+			end
+
+		elseif res ~= 'BP' then
+			WG['tooltip'].AddTooltip(res .. '_pull', { resbarDrawinfo[res].textPull[2] - (resbarDrawinfo[res].textPull[4] * 2.5), resbarDrawinfo[res].textPull[3], resbarDrawinfo[res].textPull[2] + (resbarDrawinfo[res].textPull[4] * 0.5), resbarDrawinfo[res].textPull[3] + resbarDrawinfo[res].textPull[4] }, Spring.I18N('ui.topbar.resources.pullTooltip', { resource = resourceName }))  
+			WG['tooltip'].AddTooltip(res .. '_income', { resbarDrawinfo[res].textIncome[2] - (resbarDrawinfo[res].textIncome[4] * 2.5), resbarDrawinfo[res].textIncome[3], resbarDrawinfo[res].textIncome[2] + (resbarDrawinfo[res].textIncome[4] * 0.5), resbarDrawinfo[res].textIncome[3] + resbarDrawinfo[res].textIncome[4] }, Spring.I18N('ui.topbar.resources.incomeTooltip', { resource = resourceName })) 
+			WG['tooltip'].AddTooltip(res .. '_expense', { resbarDrawinfo[res].textExpense[2] - (4 * widgetScale), resbarDrawinfo[res].textExpense[3], resbarDrawinfo[res].textExpense[2] + (30 * widgetScale), resbarDrawinfo[res].textExpense[3] + resbarDrawinfo[res].textExpense[4] }, Spring.I18N('ui.topbar.resources.expenseTooltip', { resource = resourceName })) 
+			WG['tooltip'].AddTooltip(res .. '_storage', { resbarDrawinfo[res].textStorage[2] - (resbarDrawinfo[res].textStorage[4] * 2.75), resbarDrawinfo[res].textStorage[3], resbarDrawinfo[res].textStorage[2], resbarDrawinfo[res].textStorage[3] + resbarDrawinfo[res].textStorage[4] }, Spring.I18N('ui.topbar.resources.storageTooltip', { resource = resourceName })) 
+		end
 	end
 end
 
-local function drawResbarValues(res, updateText)
 
-	local cappedCurRes = r[res][1]    -- limit so when production dies the value wont be much larger than what you can store
-	if r[res][1] > r[res][2] * 1.07 then
-		cappedCurRes = r[res][2] * 1.07
-	end
+local function drawResbarValues(res, updateText) --drawing the bar itself and value of stored res
+	--Log("drawResbarValues")
+	if res ~= 'BP' or config.drawBPBar then
+		local cappedCurRes = r[res][1]    -- limit so when production dies the value wont be much larger than what you can store
+	
+		if r[res][1] > r[res][2] * 1.07 then
+			cappedCurRes = r[res][2] * 1.07
+		end
 
-	local barHeight = resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]
-	local barWidth = resbarDrawinfo[res].barArea[3] - resbarDrawinfo[res].barArea[1]
-	local valueWidth = math_floor(((cappedCurRes / r[res][2]) * barWidth))
-	if valueWidth < math.ceil(barHeight * 0.2) then
-		valueWidth = math.ceil(barHeight * 0.2)
-	end
+		local barHeight = resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]
+		local barWidth = resbarDrawinfo[res].barArea[3] - resbarDrawinfo[res].barArea[1]
+		local valueWidth 
+		local additionalWidth = 0  
+		if res == 'BP' and config.drawBPBar == true then -- for bp bar only
+			local totalBP = math_max(1, r[res][4])
+			local reservedBP = math_min(totalBP, r[res][3])
+			local usedBP = math_min(totalBP, r[res][5])
 
-	if not dlistResValuesBar[res][valueWidth] then
-		dlistResValuesBar[res][valueWidth] = glCreateList(function()
-			local glowSize = (resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]) * 7
-			local color1, color2, glowAlpha
-			if res == 'metal' then
-				color1 = { 0.51, 0.51, 0.5, 1 }
-				color2 = { 0.95, 0.95, 0.95, 1 }
-				glowAlpha = 0.025 + (0.05 * math_min(1, cappedCurRes / r[res][2] * 40))
-			else
-				color1 = { 0.5, 0.45, 0, 1 }
-				color2 = { 0.8, 0.75, 0, 1 }
-				glowAlpha = 0.035 + (0.07 * math_min(1, cappedCurRes / r[res][2] * 40))
+			valueWidth = math_floor(((usedBP / totalBP) * barWidth))
+			if valueWidth > barWidth then
+				valueWidth = barWidth
 			end
-			RectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 1, 1, 1, 1, color1, color2)
+			-- Show reserved BP as a proportion of total BP
+			additionalWidth = math_floor((reservedBP / totalBP) * barWidth) - valueWidth
+			if additionalWidth < math_ceil(barHeight * 0.2) or math_ceil(barHeight * 0.2) > barWidth then
+				additionalWidth = 0
+			end
+		else 
+			valueWidth = math_floor(((cappedCurRes / r[res][2]) * barWidth)) -- this is needed even if no bp bar
+		end
+		if valueWidth < math_ceil(barHeight * 0.2) or r[res][2] == 0 then
+			valueWidth = math_ceil(barHeight * 0.2)
+		end
+		local uniqueKey = valueWidth * 10000 + additionalWidth -- for bp bar only
+		if not dlistResValuesBar[res][uniqueKey] then
+			dlistResValuesBar[res][uniqueKey] = glCreateList(function()
+				local glowSize = (resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]) * 7
+				local color1, color2, glowAlpha
+				if res == 'metal' then
+					color1 = { 0.51, 0.51, 0.5, 1 }
+					color2 = { 0.95, 0.95, 0.95, 1 }
+					glowAlpha = 0.025 + (0.05 * math_min(1, cappedCurRes / r[res][2] * 40))
+				elseif res == 'energy' then
+					color1 = { 0.5, 0.45, 0, 1 }
+					color2 = { 0.8, 0.75, 0, 1 }
+					glowAlpha = 0.035 + (0.07 * math_min(1, cappedCurRes / r[res][2] * 40))
+				elseif config.drawBPBar then -- for bp bar only
+					color1 = { 0.2, 0.65, 0, 1 }
+					color2 = { 0.5, 0.75, 0, 1 }
+					glowAlpha = 0.035 + (0.06 * math_min(1, cappedCurRes / r[res][2] * 40))
+				end
+				RectRound(resbarDrawinfo[res].barArea[1], resbarDrawinfo[res].barArea[2], resbarDrawinfo[res].barArea[1] + valueWidth, resbarDrawinfo[res].barArea[4], barHeight * 0.2, 1, 1, 1, 1, color1, color2)
 
-			local borderSize = 1
-			RectRound(resbarDrawinfo[res].barTexRect[1]+borderSize, resbarDrawinfo[res].barTexRect[2]+borderSize, resbarDrawinfo[res].barTexRect[1] + valueWidth-borderSize, resbarDrawinfo[res].barTexRect[4]-borderSize, barHeight * 0.2, 1, 1, 1, 1, { 0,0,0, 0.1 }, { 0,0,0, 0.17 })
+				local borderSize = 1
+				RectRound(resbarDrawinfo[res].barArea[1]+borderSize, resbarDrawinfo[res].barArea[2]+borderSize, resbarDrawinfo[res].barArea[1] + valueWidth-borderSize, resbarDrawinfo[res].barArea[4]-borderSize, barHeight * 0.2, 1, 1, 1, 1, { 0, 0, 0, 0.1 }, { 0, 0, 0, 0.17 })
 
-			-- Bar value glow
+				-- Bar value glow
+				glBlending(GL_SRC_ALPHA, GL_ONE)
+				glColor(resbarDrawinfo[res].barColor[1], resbarDrawinfo[res].barColor[2], resbarDrawinfo[res].barColor[3], glowAlpha)
+				glTexture(barGlowCenterTexture)
+				DrawRect(resbarDrawinfo[res].barGlowMiddleTexRect[1], resbarDrawinfo[res].barGlowMiddleTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth, resbarDrawinfo[res].barGlowMiddleTexRect[4], 0.008)
+				glTexture(barGlowEdgeTexture)
+				DrawRect(resbarDrawinfo[res].barGlowLeftTexRect[1], resbarDrawinfo[res].barGlowLeftTexRect[2], resbarDrawinfo[res].barGlowLeftTexRect[3], resbarDrawinfo[res].barGlowLeftTexRect[4], 0.008)
+				DrawRect((resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth) + (glowSize * 3), resbarDrawinfo[res].barGlowRightTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth, resbarDrawinfo[res].barGlowRightTexRect[4], 0.008)
+				glTexture(false)
+
+				if res == 'BP' and config.drawBPBar then -- for bp bar only
+					local color1Secondary = { 0.1, 0.55, 0, 0.5 } 
+					local color2Secondary = { 0.3, 0.65, 0, 0.5 }
+					RectRound(resbarDrawinfo[res].barArea[1], resbarDrawinfo[res].barArea[2], resbarDrawinfo[res].barArea[1] + valueWidth + additionalWidth, resbarDrawinfo[res].barArea[4], barHeight * 0.2, 1, 1, 1, 1, color1Secondary, color2Secondary)
+				end
+
+				if res == 'metal' then
+					-- noise
+					gl.Texture(noiseBackgroundTexture)
+					gl.Color(1, 1, 1, 0.37)
+					TexturedRectRound(resbarDrawinfo[res].barArea[1], resbarDrawinfo[res].barArea[2], resbarDrawinfo[res].barArea[1] + valueWidth, resbarDrawinfo[res].barArea[4], barHeight * 0.2, 1, 1, 1, 1, barWidth * 0.33, 0)
+					gl.Texture(false)
+				end
+
+				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+			end)
+
+		end
+		glCallList(dlistResValuesBar[res][uniqueKey]) --uniqueKey for bp bar only
+
+		if res == 'energy' or (res == 'BP' and config.drawBPBar) then --  or... is for bp bar only
+			-- energy flow effect
+			gl.Color(1, 1, 1, 0.33)
 			glBlending(GL_SRC_ALPHA, GL_ONE)
-			glColor(resbarDrawinfo[res].barColor[1], resbarDrawinfo[res].barColor[2], resbarDrawinfo[res].barColor[3], glowAlpha)
-			glTexture(barGlowCenterTexture)
-			DrawRect(resbarDrawinfo[res].barGlowMiddleTexRect[1], resbarDrawinfo[res].barGlowMiddleTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth, resbarDrawinfo[res].barGlowMiddleTexRect[4], 0.008)
-			glTexture(barGlowEdgeTexture)
-			DrawRect(resbarDrawinfo[res].barGlowLeftTexRect[1], resbarDrawinfo[res].barGlowLeftTexRect[2], resbarDrawinfo[res].barGlowLeftTexRect[3], resbarDrawinfo[res].barGlowLeftTexRect[4], 0.008)
-			DrawRect((resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth) + (glowSize * 3), resbarDrawinfo[res].barGlowRightTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth, resbarDrawinfo[res].barGlowRightTexRect[4], 0.008)
+			glTexture("LuaUI/Images/paralyzed.png")
+			TexturedRectRound(resbarDrawinfo[res].barArea[1], resbarDrawinfo[res].barArea[2], resbarDrawinfo[res].barArea[1] + valueWidth, resbarDrawinfo[res].barArea[4], barHeight * 0.2, 0, 0, 1, 1, barWidth/0.5, -os.clock()/80)
+			TexturedRectRound(resbarDrawinfo[res].barArea[1], resbarDrawinfo[res].barArea[2], resbarDrawinfo[res].barArea[1] + valueWidth, resbarDrawinfo[res].barArea[4], barHeight * 0.2, 0, 0, 1, 1, barWidth/0.33, os.clock()/70)
+			TexturedRectRound(resbarDrawinfo[res].barArea[1], resbarDrawinfo[res].barArea[2], resbarDrawinfo[res].barArea[1] + valueWidth, resbarDrawinfo[res].barArea[4], barHeight * 0.2, 0, 0, 1, 1, barWidth/0.45, -os.clock()/55)
 			glTexture(false)
 
-			if res == 'metal' then
-				-- noise
-				gl.Texture(noiseBackgroundTexture)
-				gl.Color(1,1,1, 0.37)
-				TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 1, 1, 1, 1, barWidth*0.33, 0)
-				gl.Texture(false)
-			end
-
+			-- colorize a bit more (with added size)
+			local addedSize = math_floor(((resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]) * 0.15) + 0.5)
+			gl.Color(1, 1, 0, 0.14)
+			RectRound(resbarDrawinfo[res].barArea[1]-addedSize, resbarDrawinfo[res].barArea[2]-addedSize, resbarDrawinfo[res].barArea[1] + valueWidth + addedSize, resbarDrawinfo[res].barArea[4] + addedSize, barHeight * 0.33)
 			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-		end)
+		end
+		if updateText then
+			currentResValue[res] = short(cappedCurRes)
+			if not dlistResValues[res][currentResValue[res]] then
 
-	end
-	glCallList(dlistResValuesBar[res][valueWidth])
+				local bpCurrentColor = { 0.7,  0.7,  0.7,  1.0 }
+				local bpCurrentText = nil
+				local suffix = ""
 
-	if res == 'energy' then
-		-- energy flow effect
-		gl.Color(1,1,1, 0.33)
-		glBlending(GL_SRC_ALPHA, GL_ONE)
-		glTexture("LuaUI/Images/paralyzed.png")
-		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 0, 0, 1, 1, barWidth/0.5, -os.clock()/80)
-		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 0, 0, 1, 1, barWidth/0.33, os.clock()/70)
-		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 0, 0, 1, 1, barWidth/0.45, -os.clock()/55)
-		glTexture(false)
-
-		-- colorize a bit more (with added size)
-		local addedSize = math_floor(((resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]) * 0.15) + 0.5)
-		gl.Color(1,1,0, 0.14)
-		RectRound(resbarDrawinfo[res].barTexRect[1]-addedSize, resbarDrawinfo[res].barTexRect[2]-addedSize, resbarDrawinfo[res].barTexRect[1] + valueWidth + addedSize, resbarDrawinfo[res].barTexRect[4] + addedSize, barHeight * 0.33)
-		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-	end
-
-	if updateText then
-		currentResValue[res] = short(cappedCurRes)
-		if not dlistResValues[res][currentResValue[res]] then
-			dlistResValues[res][currentResValue[res]] = glCreateList(function()
-				-- Text: current
-				font2:Begin()
-				if res == 'metal' then
-					font2:SetTextColor(0.95, 0.95, 0.95, 1)
-				else
-					font2:SetTextColor(1, 1, 0.74, 1)
+				if res == 'BP' and config.drawBPBar == true then
+					currentResValue[res] = ""
+					-- Should we show surplus BP, or percent-reserved?
+					if (not config.proMode) then
+						if BP[4] > 0 then
+							currentResValue[res] = math_min(100, math_round(BP[5] * 100 / BP[4]))
+							if     currentResValue[res] < 40 then bpCurrentColor = { 0.82, 0.39, 0.39, 1.0 } --Red
+							elseif currentResValue[res] < 60 then bpCurrentColor = { 1.0,  0.39, 0.39, 1.0 } --Orange
+							elseif currentResValue[res] < 80 then bpCurrentColor = { 1.0,  1.0,  0.39, 1.0 } --Yellow
+							else                                  bpCurrentColor = { 0.47, 0.92, 0.47, 1.0 } --Green
+							end
+							suffix = "%"
+						end
+					elseif BP['buildpowerSurplus'] then
+						currentResValue[res] = BP['buildpowerSurplus']
+						if     currentResValue[res] < -400 then bpCurrentColor = { 0.82, 0.39, 0.39, 1.0 } --Red
+						elseif currentResValue[res] < -300 then bpCurrentColor = { 1.0,  0.39, 0.39, 1.0 } --Orange
+						elseif currentResValue[res] < -100 then bpCurrentColor = { 1.0,  1.0,  0.39, 1.0 } --Yellow
+						elseif currentResValue[res] <    0 then bpCurrentColor = { 0.84, 0.90, 0.39, 1.0 } --Light Yellow
+						else                                    bpCurrentColor = { 0.7,  0.7,  0.7,  1.0 } --Grey: no judgment as to how _much_ surplus someone has, as long as it's non-negative
+						end
+					end
 				end
-				font2:SetOutlineColor(0, 0, 0, 1)
-				font2:Print(currentResValue[res], resbarDrawinfo[res].textCurrent[2], resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[4], resbarDrawinfo[res].textCurrent[5])
-				font2:End()
-			end)
+				dlistResValues[res][currentResValue[res]] = glCreateList(function()
+					-- Text: current
+					font2:Begin()
+					if res == 'metal' then
+						font2:SetTextColor(0.95, 0.95, 0.95, 1)
+					elseif  res == 'energy' then
+						font2:SetTextColor(1, 1, 0.74, 1)
+					elseif config.drawBPBar then  -- for bp bar only
+						font2:SetTextColor(bpCurrentColor[1], bpCurrentColor[2], bpCurrentColor[3], bpCurrentColor[4])
+					end
+					-- Text: current
+					font2:SetOutlineColor(0, 0, 0, 1)
+					font2:Print(currentResValue[res] .. suffix, resbarDrawinfo[res].textCurrent[2], resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[4], resbarDrawinfo[res].textCurrent[5])
+					font2:End()
+				end)
+			end
+		end
+		if res ~= 'BP' or config.drawBPBar == true then
+			if dlistResValues[res][currentResValue[res]] then
+				glCallList(dlistResValues[res][currentResValue[res]])
+			end
 		end
 	end
-	if dlistResValues[res][currentResValue[res]] then
-		glCallList(dlistResValues[res][currentResValue[res]])
-	end
+	--Log("drawResbarValues  end")
 end
 
 function init()
-
 	r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') } }
-
+	if config.drawBPBar then
+		r['BP'] = BP
+	end
+	ui_scale = config.barScale * tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
+	height = orgHeight * (1 + (ui_scale - 1) / 1.7)
 	topbarArea = { math_floor(xPos + (borderPadding * widgetScale)), math_floor(vsy - (height * widgetScale)), vsx, vsy }
 
 	local filledWidth = 0
 	local totalWidth = topbarArea[3] - topbarArea[1]
+	local width = math_floor(totalWidth / 4.4) * config.barWidth
+	local bpWidth = 0 -- width of buildpower bar
+	local buttonWidth = math_floor(totalWidth / 4) -- buttons
+
+	local maxTopBarWidth = totalWidth - buttonWidth
+	local smallSections = 1 -- wind
+	if displayTidalSpeed and checkTidalRelevant() then
+		smallSections = smallSections + 1
+	end
+	if displayComCounter then
+		smallSections = smallSections + 1
+	end
+	-- need room for wind/tidal/coms
+	local smallSectionsWidth = math_floor((height * 1.18) * widgetScale + widgetSpaceMargin) * smallSections
+	local maxTopBarWidth = totalWidth - buttonWidth * 1.5 - smallSectionsWidth - widgetSpaceMargin
+
+	-- How much space should be used by metal, energy, and buildpower bars combined?
+	local mebCombinedWidth = math_min(width * 2, maxTopBarWidth)
+	if config.drawBPBar then
+		mebCombinedWidth = math_min(width * 2 - widgetSpaceMargin, maxTopBarWidth) -- need an extra widgetSpaceMargin since we have an extra element
+		-- 'width' is used for both metal and energy sections. We're stealing some of this space for buildpower.
+		if config.proMode then
+			bpWidth = math_floor(mebCombinedWidth / 3)
+		else
+			bpWidth = math_floor(mebCombinedWidth / 6)
+		end
+	end
+	-- Split the remaining width equally between metal and energy
+	width = math_floor((mebCombinedWidth - bpWidth) / 2)
 
 	-- metal
-	local width = math_floor(totalWidth / 4.4)
 	resbarArea['metal'] = { topbarArea[1] + filledWidth, topbarArea[2], topbarArea[1] + filledWidth + width, topbarArea[4] }
 	filledWidth = filledWidth + width + widgetSpaceMargin
 	updateResbar('metal')
 
+	-- buildpower
+	if config.drawBPBar then -- change order here
+		resbarArea['BP'] = { topbarArea[1] + filledWidth, topbarArea[2], topbarArea[1] + filledWidth + bpWidth, topbarArea[4] }
+		filledWidth = filledWidth + bpWidth + widgetSpaceMargin
+		updateResbar('BP')
+	end
+	
 	--energy
 	resbarArea['energy'] = { topbarArea[1] + filledWidth, topbarArea[2], topbarArea[1] + filledWidth + width, topbarArea[4] }
 	filledWidth = filledWidth + width + widgetSpaceMargin
 	updateResbar('energy')
+
 
 	-- wind
 	width = math_floor((height * 1.18) * widgetScale)
@@ -1011,7 +1822,7 @@ function init()
 			tidalarea = { topbarArea[1] + filledWidth, topbarArea[2], topbarArea[1] + filledWidth + width, topbarArea[4] }
 			filledWidth = filledWidth + width + widgetSpaceMargin
 			updateTidal()
-       	end
+		end
 	end
 
 	-- coms
@@ -1022,8 +1833,7 @@ function init()
 	end
 
 	-- buttons
-	width = math_floor(totalWidth / 4)
-	buttonsArea = { topbarArea[3] - width, topbarArea[2], topbarArea[3], topbarArea[4] }
+	buttonsArea = { topbarArea[3] - buttonWidth, topbarArea[2], topbarArea[3], topbarArea[4] }
 	updateButtons()
 
 	if WG['topbar'] then
@@ -1031,12 +1841,15 @@ function init()
 			return { topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], widgetScale}
 		end
 		WG['topbar'].GetFreeArea = function()
-			return { topbarArea[1] + filledWidth, topbarArea[2], topbarArea[3] - width - widgetSpaceMargin, topbarArea[4], widgetScale}
+			return { topbarArea[1] + filledWidth, topbarArea[2], topbarArea[3] - buttonWidth - widgetSpaceMargin, topbarArea[4], widgetScale}
 		end
 	end
 
 	updateResbarText('metal')
 	updateResbarText('energy')
+	if config.drawBPBar == true then
+		updateResbarText('BP')
+	end
 end
 
 local function checkSelfStatus()
@@ -1055,7 +1868,7 @@ local function countComs(forceUpdate)
 	local prevEnemyComs = enemyComs
 	allyComs = 0
 	for _, teamID in ipairs(myAllyTeamList) do
-		for unitDefID,_ in pairs(isCommander) do
+		for unitDefID, _ in pairs(isCommander) do
 			allyComs = allyComs + Spring.GetTeamUnitDefCount(teamID, unitDefID)
 		end
 	end
@@ -1087,18 +1900,340 @@ function widget:GameStart()
 	init()
 end
 
+local function unitIterator(tbl)
+	return coroutine.wrap(function()
+		for unitID, unitData in pairs(tbl) do
+			coroutine.yield(unitID, unitData)  -- Liefert das nächste Paar (unitID, unitData) und pausiert die Ausführung
+		end
+	end)
+end
+
+local unitIter = unitIterator(trackedBuilders)
+local unitIterator
+
 function widget:GameFrame(n)
+	--LogFrame("n " .. n)
 	spec = spGetSpectatingState()
 
+	local bladeSpeedMultiplier = 0.2
 	windRotation = windRotation + (currentWind * bladeSpeedMultiplier)
 	gameFrame = n
+
+	-- calculations for the exact metal and energy draw value
+	--LogFrame("cache - entering GameFrame")
+	--local builderUpdateInterval = Spring.GetTeamRulesParam(myTeamID, "builderUpdateInterval")  --
+	if builderUpdateInterval == nil  then
+		builderUpdateInterval = 1
+	end
+	local gameFrameFreq = builderUpdateInterval --- reduced the update speed to the build prio speed to save performance, any feelable drawbacks?
+	local unp = unpack or table.unpack
+	--LogFrame("gameFrame: " .. gameFrame .. ", gameFrameFreq: " .. gameFrameFreq .. ", nowChecking: " .. nowChecking .. ", trackPosBase: " .. trackPosBase .. ", trackedNum: " .. trackedNum)
+
+	-- If we're supposed to draw the buildpower bar, do some calculations.
+	-- Skip frames between calculations _unless_ we have too many builders to do them all in one frame, in which case nowChecking will be positive when the previous frame didn't finish.
+	if config.drawBPBar and ((gameFrame % gameFrameFreq == 0) or nowChecking > 0) then
+		gameStarted = true -- TODO: is this needed?
+		--LogFrame("Processing BPBar calculations")
+
+		-- Log initial cache values
+		local cacheTotalReservedBP = 0
+		local cacheTotallyUsedBP = 0
+
+		local usedBPMetalExpense = 0
+		local usedBPEnergyExpense = 0
+		local buildingBP = 0 -- how much BP is actively building, regardless of how stalled it is?
+		local nonStalledBuildingBP = 0 -- how much BP is actively building and not stalled?
+
+		local unitDefsBeingBuilt = {}
+		local builderStates = {}
+		local unitsReservedBP = {}
+
+		--LogFrame("Starting trackedBuilders loop")
+
+		-- Initialisieren des unitIterator, falls dies der erste Frame ist oder die Coroutine beendet ist
+		if not unitIterator or coroutine.status(unitIterator) == "dead" then
+			unitIterator = coroutine.create(function()
+				for unitID, unitData in pairs(trackedBuilders) do
+					coroutine.yield(unitID, unitData)
+				end
+			end)
+		end
+
+		-- Verwenden des Iterators, um Einheiten für diesen Frame zu verarbeiten
+		for i = 1, unitsPerFrame do
+			local success, unitID, unitData = coroutine.resume(unitIterator)
+			if not success or not unitID then
+				break -- Keine weiteren Einheiten mehr zum Verarbeiten oder Fehler
+			end
+
+			--LogFrame("Processing unitID: " .. tostring(unitID) .. ", nowChecking: " .. nowChecking .. ", trackPosBase: " .. trackPosBase)
+			local currentUnitBP, unitIsBuilt, unitDefID, unitTeamID = unp(unitData)
+			--LogFrame("Unit is built, performing additional checks")
+			local unitExists, foundActivity, builtUnitDefID, mayBeBuilding, guardedUnitID = findBPCommand(unitID, unitDefID, {CMD.REPAIR, CMD.RECLAIM, CMD.CAPTURE, CMD.GUARD})
+			--LogFrame("Unit exists: " .. tostring(unitExists) .. ", foundActivity: " .. tostring(foundActivity) .. ", builtUnitDefID: " .. tostring(builtUnitDefID) .. ", mayBeBuilding: " .. tostring(mayBeBuilding) .. ", guardedUnitID: " .. tostring(guardedUnitID))
+
+			if not unitExists then
+				--LogFrame("Unit no longer exists, untracking unitID: " .. unitID)
+				
+				UntrackUnit(unitID)
+			elseif not unitIsBuilt then
+				break
+
+			elseif not foundActivity then
+				--LogFrame("Unit not found doing any activity, marking as idle")
+				
+				builderStates[unitID] = { false, builtUnitDefID, guardedUnitID, currentUnitBP }
+			else
+				--LogFrame("Unit is active, processing buildpower calculations")
+				
+				-- Assume all of this unit's buildpower is reserved.
+				unitsReservedBP[unitID] = currentUnitBP
+				--LogFrame("unitID  " ..tostring(unitID))
+				--LogFrame("unitsReservedBP[unitID]  " ..tostring(unitsReservedBP[unitID]))
+				-- This unit might be building, but we don't know what. See if it's building something.
+				if mayBeBuilding and not builtUnitDefID then
+					local builtUnitID = spGetUnitIsBuilding(unitID)
+					if builtUnitID ~= nil then
+						builtUnitDefID = unitDefsBeingBuilt[builtUnitID]
+						if builtUnitDefID == nil then
+							builtUnitDefID = spGetUnitDefID(builtUnitID)
+							unitDefsBeingBuilt[builtUnitID] = builtUnitDefID
+						end
+					end
+				end
+
+				builderStates[unitID] = { true, builtUnitDefID, guardedUnitID, currentUnitBP }
+
+				-- TODO: if we're guarding a constructor who's idle, should we be considered idle, too?
+				-- (We might be repairing the constructor even if we're not helping them build.
+				-- Maybe consider us idle if the unit we're guarding is idle _and_ full-health.)
+
+				if builtUnitDefID then  -- ROBERT what is needed for BP?
+
+					local _, currentlyUsedM, _, currentlyUsedE = spGetUnitResources(unitID)
+					usedBPMetalExpense = usedBPMetalExpense + currentlyUsedM
+					usedBPEnergyExpense = usedBPEnergyExpense + currentlyUsedE -- A builder may be cloaked, but not while it's building
+
+					--currentlyUsedBP = (Spring.GetUnitCurrentBuildPower(unitID) or 0) * currentUnitBP
+					currentlyUsedBP = currentlyUsedM / unitCostData[builtUnitDefID].MperBP -- everything costs at least 1 metal
+					buildingBP = buildingBP + currentUnitBP
+
+					local currentlyWantedM = unitCostData[builtUnitDefID].MperBP * currentUnitBP
+					local currentlyWantedE = unitCostData[builtUnitDefID].EperBP * currentUnitBP
+
+					-- Low-priority units don't have their pulled M/E reported correctly.
+
+					local nonStalledRateM = 1
+					local nonStalledRateE = 1
+					if currentlyWantedM > 0 then
+						nonStalledRateM = currentlyUsedM / currentlyWantedM
+					end
+					if currentlyWantedE > 0 then
+						nonStalledRateE = currentlyUsedE / currentlyWantedE
+					end
+					nonStalledBuildingBP = nonStalledBuildingBP + currentUnitBP * math_min(nonStalledRateM, nonStalledRateE)  -- ROBERT BP at the right place
+
+					if currentlyUsedBP and currentlyUsedBP >= 0 then
+						cacheTotallyUsedBP = cacheTotallyUsedBP + currentlyUsedBP
+					end
+				end
+			end
+			nowChecking = nowChecking + 1
+			--LogFrame("Incremented nowChecking: " .. nowChecking)
+			----LogFrame("nowChecking new one" ..nowChecking)
+		end
+		--LogFrame("Finished trackedBuilders loop")
+		for unitID, unitReservedBP in pairs(unitsReservedBP) do
+			cacheTotalReservedBP = cacheTotalReservedBP + unitReservedBP
+		end
+		cacheDataBase[3] = cacheDataBase[3] + cacheTotalReservedBP
+		cacheDataBase[5] = cacheDataBase[5] + cacheTotallyUsedBP
+		-- TODO: consider averaging income and expense across all frames for which we calculated builder data.
+		local metal, metalStorage, metalPull, metalIncome, metalExpense, metalShare, metalSent = spGetTeamResources(myTeamID, "metal")
+		local energy, energyStorage, energyPull, energyIncome, energyExpense, energyShare, energySent = spGetTeamResources(myTeamID, "energy")
+
+		-- How much metal and energy are builders pulling? (This number will drop when they become resource-stalled, perhaps due to being low-priority.)
+		cacheDataBase['usedBPMetalExpense'] = cacheDataBase['usedBPMetalExpense'] + usedBPMetalExpense
+		cacheDataBase['usedBPEnergyExpense'] = cacheDataBase['usedBPEnergyExpense'] + usedBPEnergyExpense
+		cacheDataBase['usedBPExceptStalled'] = cacheDataBase['usedBPExceptStalled'] + nonStalledBuildingBP
+		cacheDataBase['usedBPIfNoStall'] = cacheDataBase['usedBPIfNoStall'] + buildingBP
+
+		if config.drawBPWindRangeIndicators then
+			local realWindStrength = 0
+			for unitID in pairs(trackedWinds) do
+				local metalMake, metalUse, energyMake, energyUse = spGetUnitResources(unitID)
+				if energyMake ~= nil then
+					realWindStrength = energyMake
+					break
+				end
+			end
+			cacheDataBase['realWindStrength'] = realWindStrength
+		end
+
+		trackPosBase = trackPosBase + unitsPerFrame
+		--LogFrame("trackPosBase-----------------" ..trackPosBase)
+	end
+
+	-- If enough frames have passed that we've calculated BP data for all builders, we can present this datapoint to the user.
+	if trackPosBase >= trackedNum then
+		trackPosBase = 0
+		if config.drawBPBar then --this section will smooth the values so that factories that finish units won't have too much of an impact
+			BP['reservedBP_instant'] = cacheDataBase[3]
+			BP['usedBP_instant'] = cacheDataBase[5]
+			local _, _, _, metalIncome, metalExpense, _, _ = spGetTeamResources(myTeamID, "metal")
+			BP['metalExpense'] = metalExpense
+			local _, _, _, energyIncome, energyExpense, _, _ = spGetTeamResources(myTeamID, "energy")
+			BP['energyIncome'] = energyIncome
+			BP['energyExpense'] = energyExpense
+			BP['realWindStrength_instant'] = cacheDataBase['realWindStrength']
+			BP['usedBPMetalExpense'] = cacheDataBase['usedBPMetalExpense']
+			BP['usedBPEnergyExpense'] = cacheDataBase['usedBPEnergyExpense']
+			BP['usedBPExceptStalled'] = cacheDataBase['usedBPExceptStalled']
+			BP['usedBPIfNoStall'] = cacheDataBase['usedBPIfNoStall']
+
+			BP[3] = math_floor(addValueAndGetWeightedAverage(BP['history_reservedBP'], BP['reservedBP_instant'], 1) + 0.5)
+			BP[5] = math_floor(addValueAndGetWeightedAverage(BP['history_usedBP'], BP['usedBP_instant'], 1) + 0.5)
+
+			if config.drawBPWindRangeIndicators then
+				BP['realWindStrength_instant'] = cacheDataBase['realWindStrength']
+				BP['energyIncomeNoWind'] = addValueAndGetWeightedAverage(BP['history_eIncomeNoWind'], BP['energyIncome'] - numWindGenerators * BP['realWindStrength_instant'], 1)
+			end
+
+			-- Assume our eco supports full BP until we calculate otherwise.
+			-- This assumption only matters if we have no active builders _or_ our builders are
+			-- spending metal OR energy but not both (e.g., building basic solar collectors).
+			local bpRatioSupportedByMIncome = 1 -- what proportion of our total BP can be supported by our metal income?
+			local bpRatioSupportedByEIncome = 1 -- what proportion of our total BP can be supported by our energy income?
+
+			BP['buildpowerSurplus'] = nil
+
+			-- What if all builders were active and pulled metal and energy in the same proportions as current builders?
+			-- (We can only calculate this if at least one builder is building.)
+			if BP['usedBP_instant'] >= 1 then
+
+				local totalBP = BP[4]
+
+				local m_per_bp = 0
+				if BP['metalExpensePerBP'] ~= nil then
+					m_per_bp = BP['metalExpensePerBP']
+				end
+				local e_per_bp = 0
+				if BP['energyExpensePerBP'] ~= nil then
+					e_per_bp = BP['energyExpensePerBP']
+				end
+				-- How much metal and energy are we spending _not_ due to builders?
+				local metalExpenseMinusBuilders_instant  = BP['metalExpense'] - BP['usedBP_instant'] * m_per_bp
+				local energyExpenseMinusBuilders_instant = BP['energyExpense'] - BP['usedBP_instant'] * e_per_bp
+
+				-- TODO: How to handle metal-makers? They're a non-builder energy expense that will be turned off before we actually E-stall.
+				-- We should consider a range of metal-supported BP just like we do for wind energy.
+
+				local metalExpenseMinusBuilders = addValueAndGetWeightedAverage(BP['history_nonBuilderMetalExpense'], metalExpenseMinusBuilders_instant, 1)
+				local energyExpenseMinusBuilders = addValueAndGetWeightedAverage(BP['history_nonBuilderEnergyExpense'], energyExpenseMinusBuilders_instant, 1)
+				BP['nonBPMetalExpense'] = metalExpenseMinusBuilders
+				BP['nonBPEnergyExpense'] = energyExpenseMinusBuilders
+
+				BP['metalExpensePerBP'] = BP['usedBPMetalExpense'] / BP['usedBP_instant']
+				BP['energyExpensePerBP'] = BP['usedBPEnergyExpense'] / BP['usedBP_instant']
+				BP['metalExpenseIfAllBPUsed'] = metalExpenseMinusBuilders + BP['metalExpensePerBP'] * totalBP
+				BP['energyExpenseIfAllBPUsed'] = energyExpenseMinusBuilders + BP['energyExpensePerBP'] * totalBP
+
+				BP['metalSupportedBP'] = nil
+				BP['energySupportedBP'] = nil
+				local minSupportedBP = 0
+
+				if BP['metalExpensePerBP'] > 0 then
+					BP['metalSupportedBP'] = metalIncome / BP['metalExpenseIfAllBPUsed'] * totalBP
+					minSupportedBP = BP['metalSupportedBP']
+					bpRatioSupportedByMIncome = math_max(0, math_min(BP['metalSupportedBP'] / totalBP, 1))
+					--Spring.Echo("bpRatioSupportedByMIncome" ..bpRatioSupportedByMIncome)
+				end
+
+				if BP['energyExpensePerBP'] > 0 then
+					BP['energySupportedBP'] = BP['energyIncome'] / BP['energyExpenseIfAllBPUsed'] * totalBP --ql
+					minSupportedBP = BP['energySupportedBP']
+					bpRatioSupportedByEIncome = math_max(0, math_min(BP['energySupportedBP'] / totalBP, 1))
+
+
+					if config.drawBPWindRangeIndicators then
+						eSupportedBP_minWind = (BP['energyIncomeNoWind'] - energyExpenseMinusBuilders) / BP['energyExpensePerBP']
+						local bpRatioSupportedByEIncome_minWind = math_max(0, math_min(eSupportedBP_minWind / totalBP, 1))
+
+						maxEPerWindGenerator = math_min(25, Game.windMax)
+						eSupportedBP_maxWind = (BP['energyIncomeNoWind'] + numWindGenerators * maxEPerWindGenerator - energyExpenseMinusBuilders) / BP['energyExpensePerBP']
+						local bpRatioSupportedByEIncome_maxWind = math_max(0, math_min(eSupportedBP_maxWind / totalBP, 1))
+
+						BP['eSliderPosition_minWind'] = addValueAndGetWeightedAverage(BP['history_eSliderPosition_minWind'], bpRatioSupportedByEIncome_minWind, BP['usedBP_instant'])
+						BP['eSliderPosition_maxWind'] = addValueAndGetWeightedAverage(BP['history_eSliderPosition_maxWind'], bpRatioSupportedByEIncome_maxWind, BP['usedBP_instant'])
+					end
+				end
+
+				if BP['metalSupportedBP'] ~= nil or BP['energySupportedBP'] ~= nil then
+					if BP['metalSupportedBP'] ~= nil and BP['energySupportedBP'] ~= nil then
+						minSupportedBP = math_min(BP['metalSupportedBP'], BP['energySupportedBP'])
+					end
+
+					-- How much buildpower do we have, beyond what's necessary to keep up with our economy?
+					BP['buildpowerSurplus'] = totalBP - minSupportedBP
+					-- round up to the nearest 10 BP
+					BP['buildpowerSurplus'] = math_ceil(BP['buildpowerSurplus'] / 10) * 10
+				end
+			end
+
+			-- Weighted average of slider positions. If weight (BP['usedBP_instant']) is 0 the table won't be altered at all.
+			BP['mSliderPosition'] = addValueAndGetWeightedAverage(BP['history_mSliderPosition'], bpRatioSupportedByMIncome, BP['usedBP_instant'])
+			BP['eSliderPosition'] = addValueAndGetWeightedAverage(BP['history_eSliderPosition'], bpRatioSupportedByEIncome, BP['usedBP_instant'])
+
+			updateResbar('BP')
+			cacheDataBase[3] = 0
+			cacheDataBase[5] = 0
+			cacheDataBase['realWindStrength'] = 0
+			cacheDataBase['usedBPMetalExpense'] = 0
+			cacheDataBase['usedBPEnergyExpense'] = 0
+			cacheDataBase['usedBPExceptStalled'] = 0
+			cacheDataBase['usedBPIfNoStall'] = 0
+
+		end
+		cacheDataBase[6] = 0
+		cacheDataBase[7] = 0
+		nowChecking = 0
+	end
+	stalling['lowPrioEnergy'] = Spring.GetTeamRulesParam(myTeamID, "lowPrioNeededEnergy") + Spring.GetTeamRulesParam(myTeamID, "lowPrioExpenseEnergy")
+	stalling['lowPrioMetal'] = Spring.GetTeamRulesParam(myTeamID, "lowPrioNeededMetal") + Spring.GetTeamRulesParam(myTeamID, "lowPrioExpenseMetal")
+
+	--LogFrame("Finished GameFrame processing")
+	--LogFrame("GameFrame(n)")
+end
+
+
+function median(t)
+	if not t or #t < 1 then
+		return 0
+	end
+
+	local tSorted = {}
+	for _, v in pairs(t) do
+		table.insert(tSorted, v)
+	end
+  
+	table.sort(tSorted)
+
+	midpoint = math_floor(#tSorted / 2)
+	if math.fmod(#tSorted, 2) == 0 then
+		return (tSorted[midpoint] + tSorted[midpoint + 1]) / 2
+	else
+		return tSorted[midpoint + 1] -- Lua is 1-indexed!
+	end
 end
 
 local function updateAllyTeamOverflowing()
+	--Log("updateAllyTeamOverflowing()")
 	allyteamOverflowingMetal = false
 	allyteamOverflowingEnergy = false
 	overflowingMetal = false
 	overflowingEnergy = false
+	playerStallingMetal = false
+	playerStallingEnergy = false
 	local totalEnergy = 0
 	local totalEnergyStorage = 0
 	local totalMetal = 0
@@ -1106,10 +2241,10 @@ local function updateAllyTeamOverflowing()
 	local energyPercentile, metalPercentile
 	local teams = Spring.GetTeamList(myAllyTeamID)
 	for i, teamID in pairs(teams) do
-		local energy, energyStorage, _, _, _, energyShare, energySent = spGetTeamResources(teamID, "energy")
+		local energy, energyStorage, energyPull, energyIncome, energyExpense, energyShare, energySent = spGetTeamResources(teamID, "energy")
 		totalEnergy = totalEnergy + energy
 		totalEnergyStorage = totalEnergyStorage + energyStorage
-		local metal, metalStorage, _, _, _, metalShare, metalSent = spGetTeamResources(teamID, "metal")
+		local metal, metalStorage, metalPull, metalIncome, metalExpense, metalShare, metalSent = spGetTeamResources(teamID, "metal")
 		totalMetal = totalMetal + metal
 		totalMetalStorage = totalMetalStorage + metalStorage
 		if teamID == myTeamID then
@@ -1127,8 +2262,16 @@ local function updateAllyTeamOverflowing()
 					overflowingMetal = 1
 				end
 			end
+
+			if res ~= 'BP' or config.drawBPBar == true then
+				local metalIndicatorPos = BP['mSliderPosition']
+				local energyIndicatorPos = BP['eSliderPosition']
+				playerStallingMetal = (metalIndicatorPos ~= nil and metalIndicatorPos < 0.8 and metal < 2 * metalPull)
+				playerStallingEnergy = (energyIndicatorPos ~= nil and energyIndicatorPos < 0.8 and energy < 2 * energyPull)
+			end
 		end
 	end
+
 	energyPercentile = totalEnergy / totalEnergyStorage
 	metalPercentile = totalMetal / totalMetalStorage
 	if energyPercentile > 0.975 then
@@ -1143,6 +2286,7 @@ local function updateAllyTeamOverflowing()
 			allyteamOverflowingMetal = 1
 		end
 	end
+	--Log("end")
 end
 
 local sec = 0
@@ -1150,12 +2294,14 @@ local sec2 = 0
 local secComCount = 0
 local blinkDirection = true
 local blinkProgress = 0
-function widget:Update(dt)
 
+function widget:Update(dt)
 	local prevMyTeamID = myTeamID
 	if spec and spGetMyTeamID() ~= prevMyTeamID then
 		-- check if the team that we are spectating changed
 		checkSelfStatus()
+		init()
+	elseif configHasChanged() then
 		init()
 	end
 
@@ -1189,10 +2335,22 @@ function widget:Update(dt)
 	end
 
 	sec = sec + dt
-	if sec > 0.033 then
+	if sec > 0.1 then
+		--Log("sec > 0.1")
 		sec = 0
-		r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') } }
+		r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') }, BP = BP }
 		if not spec and not showQuitscreen then
+			if config.drawBPBar == true then
+				if math_isInRect(mx, my, resbarArea['BP'][1], resbarArea['BP'][2], resbarArea['BP'][3], resbarArea['BP'][4]) then -- for bp bar only
+					if resbarHover == nil then
+						resbarHover = 'BP'
+						updateResbar('BP')
+					end
+				elseif resbarHover ~= nil and resbarHover == 'BP' then -- for bp bar only
+					resbarHover = nil
+					updateResbar('BP')
+				end
+			end
 			if math_isInRect(mx, my, resbarArea['energy'][1], resbarArea['energy'][2], resbarArea['energy'][3], resbarArea['energy'][4]) then
 				if resbarHover == nil then
 					resbarHover = 'energy'
@@ -1217,6 +2375,9 @@ function widget:Update(dt)
 			draggingConversionIndicatorValue = nil
 			updateResbar('metal')
 			updateResbar('energy')
+			if config.drawBPBar == true then
+				updateResbar('BP') 
+			end
 		else
 
 			-- make sure conversion/overflow sliders are adjusted
@@ -1229,18 +2390,25 @@ function widget:Update(dt)
 				end
 			end
 		end
+		--Log("sec > 0.1 end")
 	end
-
+	
 	sec2 = sec2 + dt
 	if sec2 >= 1 then
+		--Log("sec2 >= 1")
 		sec2 = 0
 		updateResbarText('metal')
 		updateResbarText('energy')
+		if config.drawBPBar == true then
+			updateResbarText('BP') 
+		end
 		updateAllyTeamOverflowing()
+		--Log("sec2 >= 1 end")
 	end
 
 	-- wind
 	if gameFrame ~= lastFrame then
+		--Log("wind")
 		currentWind = sformat('%.1f', select(4, spGetWind()))
 	end
 
@@ -1248,6 +2416,7 @@ function widget:Update(dt)
 	if displayComCounter then
 		secComCount = secComCount + dt
 		if secComCount > 0.5 then
+			--Log("secComCount > 0.5")
 			secComCount = 0
 			countComs()
 		end
@@ -1289,7 +2458,8 @@ function widget:drawTidal()
 	end
 end
 
-local function drawResBars()
+local function drawResBars() --hadles the blinking
+	--Log("drawResBars()")
 	glPushMatrix()
 
 	local updateText = os.clock() - updateTextClock > 0.1
@@ -1354,11 +2524,70 @@ local function drawResBars()
 		glCallList(dlistResbar[res][3])
 		glCallList(dlistResbar[res][2])
 	end
+	if config.drawBPBar == true then
+		res = 'BP' -- for bp bar only
+		if dlistResbar[res][1] and dlistResbar[res][2] and dlistResbar[res][3] then
+			glCallList(dlistResbar[res][1])
 
+			if not spec and gameFrame > 90 then
+				if playerStallingMetal or playerStallingEnergy then
+					glCallList(dlistResbar[res][4])
+				end
+			end
+			drawResbarValues(res, updateText)
+			glCallList(dlistResbar[res][6])
+			glCallList(dlistResbar[res][3])
+			glCallList(dlistResbar[res][2])
+		end
+	end
 	glPopMatrix()
+	--Log("drawResBars() end")
 end
 
 function widget:DrawScreen()
+		-- Rumble
+		if BP[3] and BP[4] and BP[5] then  --ql
+			local startDeg = -108 -- Example in degrees (-0.3 * 360)
+			local startAngle = math.rad(startDeg) -- Convert degrees to radians
+		
+			local maxDeg = 230
+	
+			local endDegMax = startDeg - (1 * maxDeg)
+			local endAngleMax = math.rad(endDegMax)
+			
+			local progress1 = BP[3]/BP[4]
+			local endDeg = startDeg - (progress1 * maxDeg)
+			local endAngle = math.rad(endDeg)
+			
+			local progress2 = BP[5]/BP[4]
+			local endDeg2 = startDeg - (progress2 * maxDeg) 
+			local endAngle2 = math.rad(endDeg2)
+	
+	
+		
+			local segments = 50
+			local thickness = 10
+	
+			local color = {0.3, 0.3, 0, 1} 
+			DrawPartialRing(300, 300, 50, startAngle, endAngleMax, segments, thickness, color)  -- Rumble use this to actually draw it -- Background
+			local color = {0.04, 0.6, 0.7, 1} 
+			DrawPartialRing(300, 300, 50, startAngle, endAngle, segments, thickness, color)  -- Rumble use this to actually draw it -- second biggest
+	
+			local color = {0.125, 1, 1, 1} 
+			DrawPartialRing(300, 300, 50, startAngle, endAngle2, segments, thickness, color)  -- Rumble use this to actually draw it -- smallest
+			-- Rumble
+			local px, py = 500, 500 -- Bottom-left corner --left --bottom
+			local sx, sy = 700, 600 -- Top-right corner --right -- top
+			local chamferSize = 20  -- Size of the chamfer
+	
+		
+		--gl.BeginEnd(GL.QUADS, function()	-- Rumble use this to actually draw it
+	
+		--	ChamferedRectQuad(px, py, sx, sy, chamferSize)
+		--end)
+		end
+	
+
 
 	drawResBars()
 
@@ -1391,7 +2620,7 @@ function widget:DrawScreen()
 		end
 	end
 
-    self:drawTidal()
+	self:drawTidal()
 
 	glPushMatrix()
 	if displayComCounter and dlistComs1 then
@@ -1404,12 +2633,12 @@ function widget:DrawScreen()
 		glCallList(dlistComs2)
 	end
 
-	if autoHideButtons then
+	if config.autoHideButtons then
 		if buttonsArea[1] and math_isInRect(mx, my, buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4]) then
 			if not showButtons then
 				showButtons = true
 				dlistButtonsGuishader = glCreateList(function()
-					RectRound(buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4], 5.5 * widgetScale, 0,0,1,1)
+					RectRound(buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4], 5.5 * widgetScale, 0, 0, 1, 1)
 				end)
 				if WG['guishader'] then
 					WG['guishader'].InsertDlist(dlistButtonsGuishader, 'topbar_buttons')
@@ -1433,7 +2662,7 @@ function widget:DrawScreen()
 		if WG['changelog'] and WG['changelog'].haschanges() then
 			local button = 'changelog'
 			local paddingsize = 1
-			RectRound(buttonsArea['buttons'][button][1]+paddingsize, buttonsArea['buttons'][button][2]+paddingsize, buttonsArea['buttons'][button][3]-paddingsize, buttonsArea['buttons'][button][4]-paddingsize, 3.5 * widgetScale, 0, 0, 0, button == firstButton and 1 or 0, { 1,1,1, 0.1*blinkProgress })
+			RectRound(buttonsArea['buttons'][button][1]+paddingsize, buttonsArea['buttons'][button][2]+paddingsize, buttonsArea['buttons'][button][3]-paddingsize, buttonsArea['buttons'][button][4]-paddingsize, 3.5 * widgetScale, 0, 0, 0, button == firstButton and 1 or 0, { 1, 1, 1, 0.1 * blinkProgress })
 		end
 
 		-- hovered?
@@ -1441,7 +2670,7 @@ function widget:DrawScreen()
 			for button, pos in pairs(buttonsArea['buttons']) do
 				if math_isInRect(mx, my, pos[1], pos[2], pos[3], pos[4]) then
 					local paddingsize = 1
-					RectRound(buttonsArea['buttons'][button][1]+paddingsize, buttonsArea['buttons'][button][2]+paddingsize, buttonsArea['buttons'][button][3]-paddingsize, buttonsArea['buttons'][button][4]-paddingsize, 3.5 * widgetScale, 0, 0, 0, button == firstButton and 1 or 0, { 0,0,0, 0.06 })
+					RectRound(buttonsArea['buttons'][button][1]+paddingsize, buttonsArea['buttons'][button][2]+paddingsize, buttonsArea['buttons'][button][3]-paddingsize, buttonsArea['buttons'][button][4]-paddingsize, 3.5 * widgetScale, 0, 0, 0, button == firstButton and 1 or 0, { 0, 0, 0, 0.06 })
 					glBlending(GL_SRC_ALPHA, GL_ONE)
 					RectRound(buttonsArea['buttons'][button][1], buttonsArea['buttons'][button][2], buttonsArea['buttons'][button][3], buttonsArea['buttons'][button][4], 3.5 * widgetScale, 0, 0, 0, button == firstButton and 1 or 0, { 1, 1, 1, mb and 0.13 or 0.03 }, { 0.44, 0.44, 0.44, mb and 0.4 or 0.2 })
 					local mult = 1
@@ -1501,7 +2730,7 @@ function widget:DrawScreen()
 				local padding = math_floor(w / 90)
 				local textTopPadding = padding + padding + padding + padding + padding + fontSize
 				local txtWidth = font:GetTextWidth(text) * fontSize
-				w = math.max(w, txtWidth + textTopPadding + textTopPadding)
+				w = math_max(w, txtWidth + textTopPadding + textTopPadding)
 
 				local x = math_floor((vsx / 2) - (w / 2))
 				local y = math_floor((vsy / 1.8) - (h / 2))
@@ -1510,32 +2739,32 @@ function widget:DrawScreen()
 				local buttonHeight = math_floor(h * 0.30)
 
 				quitscreenArea = {
-					x,
-					y,
-					x + w,
+					x, 
+					y, 
+					x + w, 
 					y + h
 				}
 				quitscreenStayArea = {
-					x + buttonMargin + 0 * (buttonWidth + buttonMargin),
-					y + buttonMargin,
-					x + buttonMargin + 0 * (buttonWidth + buttonMargin) + buttonWidth,
+					x + buttonMargin + 0 * (buttonWidth + buttonMargin), 
+					y + buttonMargin, 
+					x + buttonMargin + 0 * (buttonWidth + buttonMargin) + buttonWidth, 
 					y + buttonMargin + buttonHeight
 				}
 				quitscreenResignArea = {
-					x + buttonMargin + 1 * (buttonWidth + buttonMargin),
-					y + buttonMargin,
-					x + buttonMargin + 1 * (buttonWidth + buttonMargin) + buttonWidth,
+					x + buttonMargin + 1 * (buttonWidth + buttonMargin), 
+					y + buttonMargin, 
+					x + buttonMargin + 1 * (buttonWidth + buttonMargin) + buttonWidth, 
 					y + buttonMargin + buttonHeight
 				}
 				quitscreenQuitArea = {
-					x + buttonMargin + 2 * (buttonWidth + buttonMargin),
-					y + buttonMargin,
-					x + buttonMargin + 2 * (buttonWidth + buttonMargin) + buttonWidth,
+					x + buttonMargin + 2 * (buttonWidth + buttonMargin), 
+					y + buttonMargin, 
+					x + buttonMargin + 2 * (buttonWidth + buttonMargin) + buttonWidth, 
 					y + buttonMargin + buttonHeight
 				}
 
 				-- window
-				UiElement(quitscreenArea[1], quitscreenArea[2], quitscreenArea[3], quitscreenArea[4], 1,1,1,1, 1,1,1,1, nil, {1, 1, 1, 0.6 + (0.34 * fadeProgress)}, {0.45, 0.45, 0.4, 0.025 + (0.025 * fadeProgress)})
+				UiElement(quitscreenArea[1], quitscreenArea[2], quitscreenArea[3], quitscreenArea[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, {1, 1, 1, 0.6 + (0.34 * fadeProgress)}, {0.45, 0.45, 0.4, 0.025 + (0.025 * fadeProgress)})
 
 				local color1, color2
 
@@ -1559,7 +2788,7 @@ function widget:DrawScreen()
 						color1 = { 0, 0.25, 0, 0.35 + (0.5 * fadeProgress) }
 						color2 = { 0, 0.5, 0, 0.35 + (0.5 * fadeProgress) }
 					end
-					UiButton(quitscreenStayArea[1], quitscreenStayArea[2], quitscreenStayArea[3], quitscreenStayArea[4], 1,1,1,1, 1,1,1,1, nil, color1, color2, padding * 0.5)
+					UiButton(quitscreenStayArea[1], quitscreenStayArea[2], quitscreenStayArea[3], quitscreenStayArea[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, color1, color2, padding * 0.5)
 					font2:Print(Spring.I18N('ui.topbar.quit.stay'), quitscreenStayArea[1] + ((quitscreenStayArea[3] - quitscreenStayArea[1]) / 2), quitscreenStayArea[2] + ((quitscreenStayArea[4] - quitscreenStayArea[2]) / 2) - (fontSize / 3), fontSize, "con")
 				end
 
@@ -1572,7 +2801,7 @@ function widget:DrawScreen()
 						color1 = { 0.18, 0.18, 0.18, 0.4 + (0.5 * fadeProgress) }
 						color2 = { 0.33, 0.33, 0.33, 0.4 + (0.5 * fadeProgress) }
 					end
-					UiButton(quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[4], 1,1,1,1, 1,1,1,1, nil, color1, color2, padding * 0.5)
+					UiButton(quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, color1, color2, padding * 0.5)
 					font2:Print(Spring.I18N('ui.topbar.quit.resign'), quitscreenResignArea[1] + ((quitscreenResignArea[3] - quitscreenResignArea[1]) / 2), quitscreenResignArea[2] + ((quitscreenResignArea[4] - quitscreenResignArea[2]) / 2) - (fontSize / 3), fontSize, "con")
 				end
 
@@ -1585,7 +2814,7 @@ function widget:DrawScreen()
 						color1 = { 0.25, 0, 0, 0.35 + (0.5 * fadeProgress) }
 						color2 = { 0.5, 0, 0, 0.35 + (0.5 * fadeProgress) }
 					end
-					UiButton(quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4], 1,1,1,1, 1,1,1,1, nil, color1, color2, padding * 0.5)
+					UiButton(quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, color1, color2, padding * 0.5)
 					font2:Print(Spring.I18N('ui.topbar.quit.quit'), quitscreenQuitArea[1] + ((quitscreenQuitArea[3] - quitscreenQuitArea[1]) / 2), quitscreenQuitArea[2] + ((quitscreenQuitArea[4] - quitscreenQuitArea[2]) / 2) - (fontSize / 3), fontSize, "con")
 				end
 
@@ -1723,11 +2952,11 @@ local function applyButtonAction(button)
 		if isSinglePlayer and allowSavegame and WG['savegame'] ~= nil then
 			--local gameframe = Spring.GetGameFrame()
 			--local minutes = math.floor((gameframe / 30 / 60))
-			--local seconds = math.floor((gameframe - ((minutes*60)*30)) / 30)
+			--local seconds = math.floor((gameframe - ((minutes * 60) * 30)) / 30)
 			--if seconds == 0 then
-			--	seconds = '00'
+			--  seconds = '00'
 			--elseif seconds < 10 then
-			--	seconds = '0'..seconds
+			--  seconds = '0'..seconds
 			--end
 			local time = os.date("%Y%m%d_%H%M%S")
 			Spring.SendCommands("savegame "..time)
@@ -1780,7 +3009,7 @@ function widget:GameOver()
 end
 
 function widget:MouseWheel(up, value)
-	--up = true/false , value = -1/1
+	--up = true/false, value = -1/1
 	if showQuitscreen ~= nil and quitscreenArea ~= nil then
 		return true
 	end
@@ -1905,6 +3134,7 @@ function widget:PlayerChanged()
 	spec = spGetSpectatingState()
 	checkSelfStatus()
 	numTeamsInAllyTeam = #Spring.GetTeamList(myAllyTeamID)
+	InitAllUnits()
 	if displayComCounter then
 		countComs(true)
 	end
@@ -1920,8 +3150,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 	if not isCommander[unitDefID] then
 		return
 	end
-	--record com created
-	if select(6, Spring.GetTeamInfo(unitTeam, false)) == myAllyTeamID then
+	if select(6, Spring.GetTeamInfo(unitTeam, false)) == myAllyTeamID then	--record com created
 		allyComs = allyComs + 1
 	elseif spec then
 		enemyComs = enemyComs + 1
@@ -1929,7 +3158,22 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 	comcountChanged = true
 end
 
+function widget:UnitTaken(unitID, unitDefID, unitTeam)
+	UntrackUnit(unitID, unitDefID, unitTeam)
+end
+
+function widget:UnitGiven(unitID, unitDefID, unitTeam)
+	TrackUnit(unitID, unitDefID, unitTeam)
+end
+
+function widget:UnitFinished(unitID, unitDefID, unitTeam)
+	TrackUnit(unitID, unitDefID, unitTeam)
+end
+
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+	
+	UntrackUnit(unitID, unitDefID, unitTeam)
+
 	if not isCommander[unitDefID] then
 		return
 	end
@@ -1943,13 +3187,32 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 end
 
 function widget:LanguageChanged()
-	widget:ViewResize()
+	updateButtons()
 end
 
 function widget:Initialize()
+	if widgetHandler:IsWidgetKnown("Top Bar") then
+		widgetHandler:DisableWidget("Top Bar")
+	end
+	
+	for _, optionSpec in ipairs(OPTION_SPECS) do
+		addOptionFromSpec(optionSpec)
+	end
+
 	gameFrame = Spring.GetGameFrame()
 	Spring.SendCommands("resbar 0")
-
+	InitAditionalValues()
+	for unitDefID, unitDef in pairs(UnitDefs) do -- fill unitCostData this is needed for exact calculations
+		local energy = unitDef.energyCost
+		unitCostData[unitDefID] = {
+			buildTime = unitDef.buildTime, 
+			energy = unitDef.energyCost, 
+			metal = unitDef.metalCost, 
+			EperBP = unitDef.energyCost/unitDef.buildTime, 
+			MperBP = unitDef.metalCost/unitDef.buildTime
+		}
+		local unitName = UnitDefs[unitDefID].name
+	end
 	-- determine if we want to show comcounter
 	local allteams = Spring.GetTeamList()
 	local teamN = table.maxn(allteams) - 1               --remove gaia
@@ -1965,20 +3228,15 @@ function widget:Initialize()
 		hideWindows()
 	end
 	WG['topbar'].setAutoHideButtons = function(value)
-		autoHideButtons = value
+		config.autoHideButtons = value
 		showButtons = not value
 		updateButtons()
 	end
 	WG['topbar'].getAutoHideButtons = function()
-		return autoHideButtons
+		return config.autoHideButtons
 	end
 	WG['topbar'].getShowButtons = function()
 		return showButtons
-	end
-
-	WG['topbar'].updateTopBarEnergy = function(value)
-		draggingConversionIndicatorValue = value
-		updateResbar('energy')
 	end
 
 	widget:ViewResize()
@@ -1987,7 +3245,7 @@ function widget:Initialize()
 		widget:GameStart()
 	end
 
-	if WG['resource_spot_finder'] and WG['resource_spot_finder'].metalSpotsList and #WG['resource_spot_finder'].metalSpotsList > 0 and #WG['resource_spot_finder'].metalSpotsList <= 2 then	-- probably speedmetal kind of map
+	if WG['resource_spot_finder'] and WG['resource_spot_finder'].metalSpotsList and #WG['resource_spot_finder'].metalSpotsList > 0 and #WG['resource_spot_finder'].metalSpotsList <= 2 then -- probably speedmetal kind of map
 		isMetalmap = true
 	end
 end
@@ -2016,6 +3274,11 @@ function shutdown()
 		end
 		for n, _ in pairs(dlistResbar['energy']) do
 			dlistResbar['energy'][n] = glDeleteList(dlistResbar['energy'][n])
+		end
+		if config.drawBPBar == true then
+			for n, _ in pairs(dlistResbar['BP']) do
+				dlistResbar['BP'][n] = glDeleteList(dlistResbar['BP'][n])
+			end
 		end
 		for res, _ in pairs(dlistResValues) do
 			for n, _ in pairs(dlistResValues[res]) do
@@ -2054,22 +3317,125 @@ function shutdown()
 		WG['tooltip'].RemoveTooltip(res .. '_storage')
 		WG['tooltip'].RemoveTooltip(res .. '_current')
 	end
+	
+	if WG['options'] ~= nil then
+		for _, option in ipairs(OPTION_SPECS) do
+			WG['options'].removeOption(getOptionId(option))
+		end
+	end
 end
 
 function widget:Shutdown()
 	--Spring.SendCommands("resbar 1")
+	if widgetHandler:IsWidgetKnown("Top Bar") then
+		widgetHandler:EnableWidget("Top Bar")
+	end
 	shutdown()
 	WG['topbar'] = nil
 end
 
-function widget:GetConfigData()
-	return {
-		autoHideButtons = autoHideButtons
-	}
+function findBPCommand(unitID, unitDefID, cmdList) -- for bp bar only most likely
+	-- TODO: can we get rid of cmdlist? Moving should count as non-idle for at least commanders, and perhaps other units too.
+	local unitExists = false
+	local active = false
+	local builtUnitDefID = nil
+	local mayBeBuilding = false -- will remain false even if builtUnitDefID is non-nil
+	local guardedUnitID = nil -- returned in case we want to check for cycles of idle builders
+
+	local commands = nil
+	-- We only need one command to figure out if the unit is active.
+	-- TODO: Try GetUnitCurrentCommand
+	if UnitDefs[unitDefID].isFactory then
+		commands = Spring.GetFactoryCommands(unitID, 1)
+	else
+		commands = Spring.GetUnitCommands(unitID, -1)
+	end
+
+	if commands then
+		unitExists = true
+		for i = 1, #commands do
+			for _, relevantCMD in ipairs(cmdList) do
+				if commands[i].id == relevantCMD or commands[i].id < 0 then
+					active = true
+					if commands[i].id < 0 and not builtUnitDefID then
+						-- We're building something. A negative ID is the unitdef ID of what's being built.
+						builtUnitDefID = -commands[i].id
+						--Spring.Echo("unit " .. unitID .. " is building unitdef " .. builtUnitDefID)
+					elseif commands[i].id == CMD.GUARD then
+						mayBeBuilding = true -- building can be caused by a guard command
+						guardedUnitID = commands[i].params[1]
+					elseif commands[i].id == CMD.REPAIR then
+						mayBeBuilding = true -- building can be caused by a repair command
+					end
+				end
+			end
+		end
+	end
+
+	return unitExists, active, builtUnitDefID, mayBeBuilding, guardedUnitID
 end
 
-function widget:SetConfigData(data)
-	if data.autoHideButtons ~= nil then
-		autoHideButtons = data.autoHideButtons
+function pid(Kp, Ki, Kd, dt, prevIntegral, prevError, setPoint, measuredValue)
+	if dt <= 0 then
+		return measuredValue, prevIntegral, prevError
+	end
+	-- setpoint: instantaneous observed value
+	-- measuredValue: position of displayed indicator
+	local error = setPoint - measuredValue
+	local proportional = error;
+	local integral = prevIntegral + error * dt
+	local derivative = (error - prevError) / dt
+	local output = Kp * proportional + Ki * integral + Kd * derivative
+	return output, integral, error
+end
+
+function TrackUnit(unitID, unitDefID, unitTeam) --needed for exact calculations
+	if (myTeamID == unitTeam) then
+		local unitDef = UnitDefs[unitDefID]
+		local _, _, _, _, build = Spring.GetUnitHealth(unitID) --is it finished?
+		local isBuilt = build >= 1
+		if isBuilt and unitDef then
+			if unitDef.buildSpeed and unitDef.buildSpeed > 0 and unitDef.canAssist or UnitDefs[unitDefID].isFactory then
+				trackedNum = trackedNum + 1
+				if not trackedBuilders[unitID] then				-- We may have already tracked this unit when it started being built. No need to add its BP again.
+					BP[4] = BP[4] + unitDef.buildSpeed -- BP[4] ^= totalAvailableBP
+				end
+				trackedBuilders[unitID] = { unitDef.buildSpeed, isBuilt, unitDefID, unitTeam }
+			elseif unitDef.name == "armwin" or unitDef.name == "corwin" then -- wind generator
+				trackedWinds[unitID] = 1
+				numWindGenerators = numWindGenerators + 1
+			end
+		end
+	end
+end
+
+function UntrackUnit(unitID, unitDefID, unitTeam) -- needed for exact calculations
+	local unitDef = UnitDefs[unitDefID]
+	if (myTeamID == unitTeam) and unitDef then
+		if trackedBuilders[unitID] then
+			if unitDef.buildSpeed and unitDef.buildSpeed > 0 and unitDef.canAssist or UnitDefs[unitDefID].isFactory then
+			trackedNum = trackedNum - 1
+				BP[4] = BP[4] - trackedBuilders[unitID][1] -- BP[4] ^= totalAvailableBP
+			end
+		end
+		if trackedBuilders[unitID] then
+			 trackedBuilders[unitID] = nil
+		end
+		if trackedWinds[unitID] then
+			trackedWinds[unitID] = nil
+			numWindGenerators = numWindGenerators - 1
+		end
+	end
+end
+
+function InitAditionalValues()
+	BP[4] = 0
+	trackedNum = 0
+	trackedBuilders = {}
+	trackedWinds = {}
+	numWindGenerators = 0
+
+	for _, unitID in pairs(Spring.GetTeamUnits(myTeamID)) do  -- needed for exact calculations
+		TrackUnit(unitID, Spring.GetUnitDefID(unitID), myTeamID)
 	end
 end
