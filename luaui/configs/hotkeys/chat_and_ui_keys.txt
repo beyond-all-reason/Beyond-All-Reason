@@ -23,6 +23,8 @@ bind          Any+space  selectloop         // activate select shape | Loop Sele
 bind           Any+ctrl  selectloop_invert  // select units not present in current selection modifier | Loop Select Widget
 bind          Any+shift  selectloop_add     // add to selection modifier | Loop Select Widget
 
+bind          Any+space  buildsplit         // activate build split mode (distribute orders between selected builders) | Build Split Widget
+
 // commandinsert keys
 bind          Any+space  commandinsert prepend_between // prepend command into the queue between 2 commands close to cursor
 // bind          Any+space  commandinsert prepend_queue // prepend command into a separate prepend queue until key released
