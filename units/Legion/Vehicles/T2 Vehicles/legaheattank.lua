@@ -113,7 +113,7 @@ return {
 		},
 		weapondefs = {
 			heat_ray = {
-				areaofeffect = 24,
+				areaofeffect = 64,
 				avoidfeature = false,
 				avoidfriendly = true,
 				beamtime = 0.033,
@@ -123,7 +123,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
 				energypershot = 300,
-				explosiongenerator = "custom:laserhit-medium",
+				explosiongenerator = "custom:heatray-large",
 				firestarter = 30,
 				firetolerance = 1820,
 				impulseboost = 0,
