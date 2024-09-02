@@ -1,3 +1,7 @@
+if not Spring.Utilities.IsDevMode() then -- and not Spring.Utilities.ShowDevUI() then
+	return
+end
+
 function widget:GetInfo()
 	return {
 		name = "CEG Auto Reloader",
@@ -122,9 +126,9 @@ end
 
 local function isSpawner(value)
 	if spawnerDefs[value] then
-		return spawnerDefs[value] 
+		return spawnerDefs[value]
 	else
-		return false, "Not a spawner class:" ..tostring(value) 
+		return false, "Not a spawner class:" ..tostring(value)
 	end
 end
 
@@ -139,7 +143,7 @@ local function parseCEGExpression(inputCegString, numFloats, countIndex, damage)
 	local buffer = {}
 
 	local results = {}
-    
+
 	-- Use gmatch to find all elements separated by commas
 	local numExpressions = 0
 	for expression in string.gmatch(inputCegString, '([^,]+)') do
@@ -155,11 +159,11 @@ local function parseCEGExpression(inputCegString, numFloats, countIndex, damage)
 
 		while i <= #expression do
 			local char = expression:sub(i,i)
-			
+
 			if char == ' ' then
 				i = i + 1
 			elseif char == 'i' or char == 'r' or char == 'd' or char == 'm' or
-				char == 'k' or char == 's' or char == 'y' or char == 'x' or 
+				char == 'k' or char == 's' or char == 'y' or char == 'x' or
 				char == 'a' or char == 'p' or char == 'q' or char == '+' then
 				currentOp = char
 				i = i + 1
@@ -180,7 +184,7 @@ local function parseCEGExpression(inputCegString, numFloats, countIndex, damage)
 				if not operand then
 					return nil, "Invalid number format:"..tostring(operandStr)
 				end
-				
+
 				if currentOp == 'i' then
 					result = result + (operand * countIndex)
 				elseif currentOp == 'r' then
@@ -219,7 +223,7 @@ local function parseCEGExpression(inputCegString, numFloats, countIndex, damage)
 				else
 					result = result + operand
 				end
-				
+
 				currentOp = '+'
 			else
 				return nil, "Invalid character found:"..char
@@ -257,7 +261,7 @@ local function isInteger(value)
 	local res, err = isFloat(value)
 	if res then return true end
 	if type(value) == 'number' then
-		if value % 1 == 0 then 
+		if value % 1 == 0 then
 			return true
 		else
 			return false, "Number is not an integer:"..tostring(value)
@@ -269,7 +273,7 @@ end
 
 
 local function isFloat3(value)
-	if value == 'dir' then 
+	if value == 'dir' then
 		return true
 	end
 	return parseCEGExpression(value, 3)
@@ -299,7 +303,7 @@ end
 
 -- fuck me 'nil' and 'none' and 'null' are valid texture names?
 local function isValidTexture(value)
-	if (type(value) == 'string' and (projectileTexures[value] or projectileTexures[string.lower(value)] )) 
+	if (type(value) == 'string' and (projectileTexures[value] or projectileTexures[string.lower(value)] ))
 		or value == 'none' or value == 'nil' or value == 'null' then
 		return true
 	else
@@ -347,7 +351,7 @@ local cegDefTemplate = {
 		note = 'The class of the CEG. This determines the graphical effect that is created. The available classes are:',
 		validator = isSpawner,
 	},
-	
+
 
 	-- Explosion Level Tags
 	useDefaultExplosions = {
@@ -773,14 +777,14 @@ for k,v in pairs(cegDefTemplate) do
 end
 for k,v in pairs(lowerKeys) do
 	cegDefTemplate[k] = cegDefTemplate[v]
-end	
+end
 
 local function validateCEG(cegTable, cegName)
 	for spawnername, spawnerTable in pairs(cegTable) do
 		if type(spawnerTable) == 'table' and spawnerTable['class'] then
 			local class = spawnerTable['class']
 			if not spawnerDefs[class] then
-				
+
 				local msg = string.format(
 					'Error: CEG {%s = {%s = {%s = "%s" ,...}}} : %s',
 					tostring(cegName),
@@ -796,7 +800,7 @@ local function validateCEG(cegTable, cegName)
 					if cegDefTemplate[k] then
 						if cegDefTemplate[k].validator then
 							local res, err = cegDefTemplate[k].validator(v)
-							if not res then 
+							if not res then
 								--Spring.Echo("VAL", err)
 
 								local msg = string.format(
@@ -807,9 +811,9 @@ local function validateCEG(cegTable, cegName)
 									((type(v) == 'string') and '"' or '')  .. tostring(v) .. ((type(v) == 'string') and '"' or '') ,
 									tostring(err)
 								)
-								
+
 								return false, msg
-						
+
 							else
 								--Spring.Echo("Valid, type:",cegDefTemplate[k].type,  k, v)
 							end
@@ -819,7 +823,7 @@ local function validateCEG(cegTable, cegName)
 							if cegDefTemplate[k2] then
 								if cegDefTemplate[k2].validator then
 									local res, err = cegDefTemplate[k2].validator(v2)
-									if not res then 
+									if not res then
 										--Spring.Echo("VAL", err)
 
 
@@ -831,7 +835,7 @@ local function validateCEG(cegTable, cegName)
 											((type(v2) == 'string') and '"' or '')  ..tostring(v2) .. ((type(2) == 'string') and '"' or '')  ,
 											tostring(err)
 										)
-												
+
 										return false, msg
 									else
 										--Spring.Echo("Valid, type:",cegDefTemplate[k2].type,  k2, v2)
@@ -934,7 +938,7 @@ local function LoadAllCegs()
 			local cegs = VFS.Include(cegfile)
 			for cegDefname, cegTable in pairs(cegs) do
 
-				
+
 				--Spring.Echo(name)
 				local res, err = validateCEG(cegTable, cegDefname)
 				if not res then
@@ -958,7 +962,7 @@ local function ScanChanges()
 	local allok = true
 	for filename, fileContent in pairs(cegFileContents) do
 		local newContents = VFS.LoadFile(filename)
-		if newContents ~= fileContent then 
+		if newContents ~= fileContent then
 			-- attempt to loadstring it:
 			cegFileContents[filename] = newContents
 			local chunk, err = loadstring(newContents, filename)
@@ -966,7 +970,7 @@ local function ScanChanges()
 				Spring.Echo("Failed to load: " .. filename .. '  (' .. err .. ')')
 			else
 				local newDefs = VFS.Include(filename)
-				
+
 				-- VALIDATE newdefs:
 				for cegDefname, cegTable in pairs(newDefs) do
 					local res, err = validateCEG(cegTable, cegDefname)
@@ -994,7 +998,7 @@ local function ScanChanges()
 			end
 		end
 	end
-	if allok then 
+	if allok then
 		for cegDefname, cegDefFile in pairs(needsReload) do
 			Spring.Echo("Reloading: " .. cegDefname)
 			Spring.SendCommands("reloadcegs")
@@ -1022,35 +1026,20 @@ function widget:Initialize()
 	LoadAllCegs()
 end
 
-local function CheckForChanges(widgetName, fileName)
-	local newContents = VFS.LoadFile(fileName)
-	if newContents ~= widgetContents[widgetName] then
-		widgetContents[widgetName] = newContents
-		local chunk, err = loadstring(newContents, fileName)
-		if not mouseOffscreen and chunk == nil then
-			Spring.Echo('Failed to load: ' .. fileName .. '  (' .. err .. ')')
-			return nil
-		end
-		widgetHandler:DisableWidget(widgetName)
-		--Spring.Echo("Reloading widget: " .. widgetName)
-		widgetHandler:EnableWidget(widgetName)
-	end
-end
-
 local lastUpdate = Spring.GetTimer()
 function widget:Update()
 	if Spring.DiffTimers(Spring.GetTimer() , lastUpdate) < 1 then
 		return
 	end
 	lastUpdate = Spring.GetTimer()
-	
+
 	local prevMouseOffscreen = mouseOffscreen
 	mouseOffscreen = select(6, Spring.GetMouseState())
-	
+
 	ScanChanges()
 
 	if spamCeg then
-		Spring.SendCommands("luarules spawnceg " .. spamCeg .. " 0") 
+		Spring.SendCommands("luarules spawnceg " .. spamCeg .. " 0")
 	end
-	
+
 end
