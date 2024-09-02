@@ -114,7 +114,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
 				energypershot = 17,
-				explosiongenerator = "custom:genericshellexplosion-medium-beam",
+				explosiongenerator = "custom:heatray-large",
 				firestarter = 90,
 				firetolerance = 300,
 				impulseboost = 0,
