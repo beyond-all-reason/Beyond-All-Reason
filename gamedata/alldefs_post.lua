@@ -297,10 +297,10 @@ function UnitDef_Post(name, uDef)
 				if modOptions.evocomlevelupmethod == "dynamic" then
 					uDef.customparams.evolution_condition = "power"
 					uDef.customparams.evolution_power_multiplier = 1			-- Scales the power calculated based on your own combined power. 
-					uDef.customparams.evolution_power_threshold = uDef.customparams.evolution_power_threshold or 10000 --sets threshold for level 1 commanders
+					local evolutionPowerThreshold = uDef.customparams.evolution_power_threshold or 10000 --sets threshold for level 1 commanders
+					uDef.customparams.evolution_power_threshold = evolutionPowerThreshold*modOptions.evocomlevelupmultiplier
 				elseif modOptions.evocomlevelupmethod == "timed" then
-					uDef.customparams.evolution_timer = modOptions.evocomleveluprate*60*uDef.customparams.evocomlvl
-					Spring.Echo("evolution_timer", uDef.customparams.evolution_timer)
+					uDef.customparams.evolution_timer = modOptions.evocomleveluptime*60*uDef.customparams.evocomlvl
 					uDef.customparams.evolution_condition = "timer_global"
 				end
 

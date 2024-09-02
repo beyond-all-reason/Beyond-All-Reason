@@ -968,9 +968,20 @@ local options = {
         step   	= 0.1,
     },
 
+    {
+        key    	= "evocomlevelupmultiplier",
+        name   	= "Evolving Commanders - Dynamic Only - Evolution Rate Multiplier.",
+        desc   	= "(Range 0.1x - 3x Multiplier) Adjusts the thresholds at which Dynamic evolutions occur",
+        type   	= "number",
+        section	= "options_extra",
+        def    	= 1,
+        min    	= 0.1,
+        max    	= 3,
+        step   	= 0.1,
+    },
 
     {
-        key    	= "evocomleveluprate",
+        key    	= "evocomleveluptime",
         name   	= "Evolving Commanders - Timed Only - Evolution Timer.",
         desc   	= "(Range 0.1 - 20 Minutes) Rate at which commanders will evolve if Timed method is selected.",
         type   	= "number",
