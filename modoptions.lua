@@ -491,8 +491,8 @@ local options = {
         def		= "initialbox",
         section	= "raptor_defense_options",
         items	= {
-            { key = "avoid", 		name = "Avoid Players", 	desc = "Hives avoid player units" },
-            { key = "initialbox", 	name = "Initial Start Box", desc = "First wave spawns in raptor start box, following hives avoid players" },
+            { key = "avoid", 		name = "Spawn Anywhere", 	desc = "Hives avoid player units" },
+            { key = "initialbox", 	name = "Growing Spawn Box", desc = "Hives spawn in limited area that increases over time" },
             { key = "alwaysbox", 	name = "Always Start Box", 	desc = "Hives always spawn in raptor start box" },
         }
     },
@@ -647,12 +647,12 @@ local options = {
         name	= "Spawn Beacons Placement",
         desc	= "Control where spawners appear",
         type	= "list",
-        def		= "avoid",
+        def		= "initialbox",
         section	= "scav_defense_options",
         items	= {
-            { key = "avoid", 		name = "Avoid Players", 	desc="Beacons avoid player units" },
-            { key = "initialbox",	name = "Initial Start Box", desc="First wave spawns in scav start box, following beacons avoid players" },
-            { key = "alwaysbox", 	name =  "Always Start Box", desc="Beacons always spawn in scav start box" },
+            { key = "avoid", 		name = "Spawn Anywhere", 	desc="Beacons avoid player units" },
+            { key = "initialbox",	name = "Growing Spawn Box", desc="Beacons spawn in limited area that increases over time" },
+            --{ key = "alwaysbox", 	name =  "Always Start Box", desc="Beacons always spawn in scav start box" },
         }
     },
 
