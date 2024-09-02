@@ -903,8 +903,6 @@ local cegFileContents = {} -- maps filename to raw file contents
 local cegDefFiles = {} -- maps ceg definitions to filenames
 local cegDefs = {} -- maps ceg name to its full def
 
-local masterCegDef = {}
-
 local spamCeg = nil
 
 local function tableEquals(a,b)
@@ -927,6 +925,7 @@ local function tableEquals(a,b)
 		return a == b
 	end
 end
+
 local function LoadAllCegs()
 	for i, dir in pairs({'effects', 'effects/lootboxes', 'effects/raptors', 'effects/scavengers'}) do
 		local cegfiles = VFS.DirList(dir, "*.lua")
@@ -1006,8 +1005,6 @@ local function ScanChanges()
 	end
 end
 
----------------------------------------------
----
 local function LoadResources()
 	local resources = VFS.Include("gamedata/resources.lua")
 	for k,v in pairs(resources.graphics.projectiletextures) do
@@ -1043,5 +1040,4 @@ function widget:Update()
 	if spamCeg then
 		Spring.SendCommands("luarules spawnceg " .. spamCeg .. " 0")
 	end
-
 end
