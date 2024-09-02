@@ -1,4 +1,4 @@
-local versionString = "version 0.3.01, modified 2024-09-01"
+local versionString = "version 0.3.02, modified 2024-09-01"
 function widget:GetInfo()
 	return {
 		name = "Top Bar with Buildpower 0.3.02",
@@ -532,57 +532,6 @@ local function RectQuad(px, py, sx, sy, offset)
 	gl.TexCoord(offset, offset)
 	gl.Vertex(px, sy, 0)
 end
-
-local function ChamferedRectQuad(px, py, sx, sy, chamferSize)
-		gl.BeginEnd(GL.QUADS, function()
-		gl.Vertex(px + chamferSize, py)	-- Bottom chamfers
-		gl.Vertex(sx - chamferSize, py)
-		gl.Vertex(sx, py + chamferSize)
-		gl.Vertex(px, py + chamferSize)
-
-		gl.Vertex(px, py + chamferSize) --square
-		gl.Vertex(sx, py + chamferSize)
-		gl.Vertex(sx, sy)
-		gl.Vertex(px, sy)
-	end)
-end
-
-local function DrawPartialRing(cx, cy, r, startAngle, endAngle, segments, thickness, color)
-	gl.Color(color[1], color[2], color[3], color[4]) --RGB opac
-	local function drawCircleCap(radius, thickness, angle, flip)
-		local capRadius = thickness / 2
-		local capCenterX = cx + (radius + capRadius) * math.cos(angle)
-		local capCenterY = cy + (radius + capRadius) * math.sin(angle)
-		local angleStep = math.pi / segments
-		gl.BeginEnd(GL.TRIANGLE_FAN, function()
-			gl.Vertex(capCenterX, capCenterY) -- mid point cap
-			for i = 0, segments do
-				local a = angle + math.pi / 2 + (i * angleStep) * (flip and -1 or 1) - (math.pi / 2)
-				local x = capCenterX + capRadius * math.cos(a)
-				local y = capCenterY + capRadius * math.sin(a)
-				gl.Vertex(x, y)
-			end
-		end)
-	end
-	local function drawRingBody() -- draw ring
-		local angleStep = (endAngle - startAngle) / segments
-		gl.BeginEnd(GL.QUAD_STRIP, function()
-			for i = 0, segments do
-				local angle = startAngle + i * angleStep
-				local x1 = cx + r * math.cos(angle)
-				local y1 = cy + r * math.sin(angle)
-				local x2 = cx + (r + thickness) * math.cos(angle)
-				local y2 = cy + (r + thickness) * math.sin(angle)
-				gl.Vertex(x1, y1)
-				gl.Vertex(x2, y2)
-			end
-		end)
-	end
-	drawRingBody() -- main body
-	drawCircleCap(r, thickness, startAngle, false)  -- start cap	
-	drawCircleCap(r, thickness, endAngle, true)    -- mirrowed end cap
-end
-
 
 local function DrawRect(px, py, sx, sy, zoom)
 	gl.BeginEnd(GL.QUADS, RectQuad, px, py, sx, sy, zoom)
@@ -2545,48 +2494,6 @@ local function drawResBars() --hadles the blinking
 end
 
 function widget:DrawScreen()
-		-- Rumble
-		if BP[3] and BP[4] and BP[5] then  --ql
-			local startDeg = -108 -- Example in degrees (-0.3 * 360)
-			local startAngle = math.rad(startDeg) -- Convert degrees to radians
-		
-			local maxDeg = 230
-	
-			local endDegMax = startDeg - (1 * maxDeg)
-			local endAngleMax = math.rad(endDegMax)
-			
-			local progress1 = BP[3]/BP[4]
-			local endDeg = startDeg - (progress1 * maxDeg)
-			local endAngle = math.rad(endDeg)
-			
-			local progress2 = BP[5]/BP[4]
-			local endDeg2 = startDeg - (progress2 * maxDeg) 
-			local endAngle2 = math.rad(endDeg2)
-	
-	
-		
-			local segments = 50
-			local thickness = 10
-	
-			local color = {0.3, 0.3, 0, 1} 
-			DrawPartialRing(300, 300, 50, startAngle, endAngleMax, segments, thickness, color)  -- Rumble use this to actually draw it -- Background
-			local color = {0.04, 0.6, 0.7, 1} 
-			DrawPartialRing(300, 300, 50, startAngle, endAngle, segments, thickness, color)  -- Rumble use this to actually draw it -- second biggest
-	
-			local color = {0.125, 1, 1, 1} 
-			DrawPartialRing(300, 300, 50, startAngle, endAngle2, segments, thickness, color)  -- Rumble use this to actually draw it -- smallest
-			-- Rumble
-			local px, py = 500, 500 -- Bottom-left corner --left --bottom
-			local sx, sy = 700, 600 -- Top-right corner --right -- top
-			local chamferSize = 20  -- Size of the chamfer
-	
-		
-		--gl.BeginEnd(GL.QUADS, function()	-- Rumble use this to actually draw it
-	
-		--	ChamferedRectQuad(px, py, sx, sy, chamferSize)
-		--end)
-		end
-	
 
 
 	drawResBars()
