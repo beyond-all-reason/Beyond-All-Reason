@@ -126,7 +126,6 @@ if not gadgetHandler:IsSyncedCode() then
 			for i= 1, countx2, 2 do 
 				uniformCache[1] = vararg[i+1]
 				gl.SetUnitBufferUniforms(vararg[i], uniformCache, 1)
-				--Spring.Echo(vararg[i], vararg[i+1])
 			end
 			
 		end
@@ -385,7 +384,6 @@ local function UpdatePassiveBuilders(teamID, interval)
 		lastUpdatedFrame = currentFrame
 		cicleNumber = 1
 	end
-	--Spring.Echo("cicleNumber: " ..tostring(cicleNumber))
 	-- calculate how much expense each passive con would require, and how much total expense the non-passive cons require
 
 
@@ -423,7 +421,6 @@ local function UpdatePassiveBuilders(teamID, interval)
 	if canBuild[teamID] then
 		local canBuildTeam = canBuild[teamID]
 		for builderID in pairs(canBuildTeam) do
-			--Spring.Echo('builderID', builderID)
 			local builtUnit = spGetUnitIsBuilding(builderID)
 			local expenseMetal = builtUnit and costIDOverride[builtUnit] or nil -- sets expenseMetal to the metal cost of the built unit
 			local maxbuildspeed = maxBuildSpeed[builderID]
@@ -446,13 +443,8 @@ local function UpdatePassiveBuilders(teamID, interval)
 				expenseMetal = (expenseMetal <=1) and 0 or expenseMetal * rate  -- now we know how much the constructor actually wants to spend
 				totalNeedMetal = totalNeedMetal + expenseMetal --careful is this just the help value? should I add it in the if expenseEnergy == 0 constraint? aswell?
 				-- solar costs 0 energy, don't stall because of that (is this really needed? 0 stays 0)
-				--Spring.Echo ("Energy cost of this project: " ..expenseEnergy)
 				expenseEnergy = (expenseEnergy <=1) and 0 or expenseEnergy * rate
-				--Spring.Echo ("energy needed by con: " ..expenseEnergy)
 				totalNeedEnergy = totalNeedEnergy + expenseEnergy
-				--Spring.Echo ("totalNeedEnergy")
-				--Spring.Echo (totalNeedEnergy)  -----xxx
-
 
 
 				if isPassive then 
@@ -462,15 +454,12 @@ local function UpdatePassiveBuilders(teamID, interval)
 					lowPrioNeededEnergy = lowPrioNeededEnergy + expenseEnergy
 					lowPrioNeededMetal  = lowPrioNeededMetal  + expenseMetal
 					buildTargets[builtUnit] = builderID 
-					--Spring.Echo ("Passive")
 					
 					if expenseMetal == 0 then
 						midPrioSolarMaker[builderID] = expenseEnergy 
-						--Spring.Echo ("Metal maker is being built")
 					end
 					if expenseEnergy == 0 then 
 						midPrioSolarMaker[builderID] = -1 * expenseMetal
-						--Spring.Echo ("Solar is being built") 
 					end
 					lowPrioBuildPowerWanted = lowPrioBuildPowerWanted + maxbuildspeed
 					
@@ -486,80 +475,37 @@ local function UpdatePassiveBuilders(teamID, interval)
 		end
 	end
 	local intervalpersimspeed = interval/simSpeed
-	--Spring.Echo("interval per simSpeed: " .. tostring(intervalpersimspeed))
 	if tracy then tracy.ZoneEnd() end 
 
 	-- calculate how much expense passive cons will be allowed, this can be negative
 	local passiveEnergyLeft, passiveMetalLeft
 
 	for _,resName in pairs(resTable) do
-		--Spring.Echo ("Checking: "  ..tostring (resName))
 		local currentLevel, storage, pull, income, expense, share, sent, received = spGetTeamResources(teamID, resName)
 		storage = storage * share -- consider capacity only up to the share slider
-		--Spring.Echo("Resource: " .. resName .. ", Current Level: " .. tostring(currentLevel) ..", storage "  .. tostring(storage).. ", Income: " .. tostring(income) .. ", Expense: " .. tostring(expense) ..", pull: " .. tostring(pull)  ..", highPrioNeededEnergy: " ..tostring(highPrioNeededEnergy))
 		local reservedExpense = (resName == 'energy' and highPrioNeededEnergy or highPrioNeededMetal) -- we don't want to touch this part of expense
 		if resName == 'energy' then
 			passiveEnergyLeft = currentLevel - max(income * stallMarginInc, storage * stallMarginSto) - 1 + (income - reservedExpense + received - sent) * intervalpersimspeed --amount of res available to assign to passive builders (in next interval); leave a tiny bit left over to avoid engines own "stall mode"
-			--Spring.Echo("Formula: passiveEnergyLeft = currentLevel - max(income * stallMarginInc, storage * stallMarginSto) - 1 + (income - reservedExpense + received - sent) * intervalpersimspeed")
 			local test = max(income * stallMarginInc, storage * stallMarginSto)
-			--Spring.Echo(" max(income * stallMarginInc, storage * stallMarginSto) "  ..test)
-			--Spring.Echo("Numbers: passiveEnergyLeft = " .. tostring(currentLevel) .. " - max(" .. tostring(income) .. " * " .. tostring(stallMarginInc) .. ", " .. tostring(storage) .. " * " .. tostring(stallMarginSto) .. ") - 1 + (" .. tostring(income) .. " - " .. tostring(reservedExpense) .. " + " .. tostring(received) .. " - " .. tostring(sent) .. ")" ..tostring(intervalpersimspeed))
-			--Spring.Echo("Passive Energy Left: " .. tostring(passiveEnergyLeft))
 			local actualPassiveEnergyLeft = currentLevel + ( 0 - max(income * stallMarginInc, storage * stallMarginSto) + (income - reservedExpense + received)) * intervalpersimspeed
-			--Spring.Echo("actualPassiveEnergyLeft: " .. tostring(actualPassiveEnergyLeft))
 			--passiveEnergyLeft = actualPassiveEnergyLeft
 		else
 			passiveMetalLeft =  currentLevel - max(income * stallMarginInc, storage * stallMarginSto) - 1 + (income - reservedExpense + received - sent) -- * intervalpersimspeed is not needed --amount of res available to assign to passive builders (in next interval); leave a tiny bit left over to avoid engines own "stall mode"
-			--Spring.Echo("Formula: passiveMetalLeft = currentLevel - max(income * stallMarginInc, storage * stallMarginSto) - 1 + (income - reservedExpense + received - sent)")
-			--Spring.Echo("Numbers: passiveMetalLeft = " .. tostring(currentLevel) .. " - max(" .. tostring(income) .. " * " .. tostring(stallMarginInc) .. ", " .. tostring(storage) .. " * " .. tostring(stallMarginSto) .. ") - 1 + (" .. tostring(income) .. " - " .. tostring(reservedExpense) .. " + " .. tostring(received) .. " - " .. tostring(sent) .. ")")
-			--Spring.Echo("Passive Metal Left: " .. tostring(passiveMetalLeft))
 		end
 	end
 
 	local passiveMetalStart = passiveMetalLeft
 	local passiveEnergyStart = passiveEnergyLeft
-
-	--Spring.Echo("Starting Passive Metal: " .. tostring(passiveMetalStart) .. ", Starting Passive Energy: " .. tostring(passiveEnergyStart))
-
-
-
-	---								local currentlyUsedBP = (Spring.GetUnitCurrentBuildPower(builderID) or 0) * maxBuildSpeed[builderID]
-	---								Spring.Echo('Spring.GetUnitCurrentBuildPower(builderID)', Spring.GetUnitCurrentBuildPower(builderID))
-
 	local havePassiveResourcesLeft = (passiveEnergyLeft > 0) and (passiveMetalLeft > 0 )
 	if havePassiveResourcesLeft then 
-		--Spring.Echo("Sufficient passive resources left.")
-		--local currentlyUsedBP = (Spring.GetUnitCurrentBuildPower(builderID) or 0) * highPrioBuildPowerWanted
-		--Spring.Echo('currentlyUsedBP', currentlyUsedBP)
-		--Spring.Echo('highPrioBuildPowerWanted', highPrioBuildPowerWanted)
 		highPrioBuildPowerAssigned = highPrioBuildPowerWanted
 	else
-		--Spring.Echo("Insufficient passive resources. Calculating high priority build power used.")
 		highPrioNeededMetal = math.max(highPrioNeededMetal, 1)
-		-- Sicherstellen, dass die benötigte Hochprioritäts-Energie mindestens 1 ist
 		highPrioNeededEnergy = math.max(highPrioNeededEnergy, 1)
-		--Spring.Echo("Ensuring minimum high priority needed energy is 1, Actual High Priority Needed Energy: " .. tostring(highPrioNeededEnergy))
-
-		-- Berechnen des Hochprioritäts-Metallverbrauchsverhältnisses
 		local highPrioMetalSpend = (highPrioNeededMetal + math.min(0, passiveMetalLeft)) / highPrioNeededMetal
-		--Spring.Echo("Calculated High Priority Metal Spend Ratio: " .. tostring(highPrioMetalSpend) .. ", High Priority Needed Metal: " .. tostring(highPrioNeededMetal) .. ", Passive Metal Left: " .. tostring(passiveMetalLeft))
-
-		-- Berechnen des Hochprioritäts-Energieverbrauchsverhältnisses
 		local highPrioEnergySpend = (highPrioNeededEnergy + math.min(0, passiveEnergyLeft)) / highPrioNeededEnergy
-		--Spring.Echo("Calculated High Priority Energy Spend Ratio: " .. tostring(highPrioEnergySpend) .. ", High Priority Needed Energy: " .. tostring(highPrioNeededEnergy) .. ", Passive Energy Left: " .. tostring(passiveEnergyLeft))
-
-		-- Berechnen des Hochprioritäts-Metallverbrauchsverhältnisses 1
 		local highPrioMetalSpend1 = (highPrioNeededMetal + passiveMetalLeft) / highPrioNeededMetal
-		--Spring.Echo("Calculated High Priority Metal Spend Ratio 1: " .. tostring(highPrioMetalSpend1) .. ", High Priority Needed Metal: " .. tostring(highPrioNeededMetal) .. ", Passive Metal Left: " .. tostring(passiveMetalLeft))
-
-		-- Ausgabe der verwendeten Hochprioritäts-Baukraft
-		--Spring.Echo("High Priority Build Power Used: " .. tostring(highPrioBuildPowerAssigned))
-
-		-- Berechnung und Ausgabe der tatsächlich verwendeten Hochprioritäts-Baukraft
 		highPrioBuildPowerAssigned = highPrioBuildPowerWanted * math.min(highPrioMetalSpend, highPrioEnergySpend)
-		--Spring.Echo("High Priority Build Power Used: " .. tostring(highPrioBuildPowerAssigned) .. ", High Priority Build Power Wanted: " .. tostring(highPrioBuildPowerWanted) .. ", Min(High Priority Metal Spend, High Priority Energy Spend): " .. tostring(math.min(highPrioMetalSpend, highPrioEnergySpend)))
-
-
 	end
 
 	
@@ -645,10 +591,7 @@ local function UpdatePassiveBuilders(teamID, interval)
 						end
 						MaybeSetWantedBuildSpeed(builderID, wantedBuildSpeed)
 						lowPrioBuildPowerAssigned = lowPrioBuildPowerAssigned + wantedBuildSpeed
-						--Spring.Echo('lowPrioExpenseMetal ', lowPrioExpenseMetal)
-						--Spring.Echo('+ passiveExpense ', passiveExpense[builderID])
 						lowPrioExpenseMetal = lowPrioExpenseMetal + passiveExpense[builderID]
-						--Spring.Echo('=  ', lowPrioExpenseMetal)
 						lowPrioExpenseEnergy = lowPrioExpenseEnergy + passiveExpense[builderID + energyOffset]
 					end
 				end
@@ -739,7 +682,6 @@ local function GetUpdateInterval(teamID)
 		end
 	end
 	if maxInterval > 6 then maxInterval = 6 end
-	--Spring.Echo("interval: "..maxInterval)
 	Spring.SetTeamRulesParam(teamID, "builderUpdateInterval", maxInterval)
 	return maxInterval
 end
@@ -754,7 +696,6 @@ end
 
 function gadget:GameFrame(n)
 	currentFrame = n
-	--Spring.Echo ("Current Frame:" .. tostring(currentFrame))
 	-- During the previous UpdatePassiveBuilders, we set build target owners to buildPowerMinimum so that the nanoframes dont die
 	-- Now we can set their buildpower to what we wanted instead of buildPowerMinimum we had for 1 frame.
 	for builtUnit, builderID in pairs(buildTargets) do
@@ -770,7 +711,6 @@ function gadget:GameFrame(n)
 		local teamID = teamList[i]
 		if not deadTeamList[teamID] then -- isnt dead
 			if n == updateFrame[teamID] then
-				--Spring.Echo("updating Team: " ..tostring (teamID))
 				local interval = GetUpdateInterval(teamID)
 				UpdatePassiveBuilders(teamID, interval)
 				updateFrame[teamID] = n + interval
