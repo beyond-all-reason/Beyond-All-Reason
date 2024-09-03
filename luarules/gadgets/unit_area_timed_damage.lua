@@ -15,7 +15,7 @@ if not gadgetHandler:IsSyncedCode() then
     return
 end
 
------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 local TimedDamageWeapons = {}
 local TimedDamageDyingUnits = {}
@@ -32,12 +32,12 @@ for weaponDefID, weaponDef in ipairs(WeaponDefs) do
     if weaponDef.customParams and weaponDef.customParams.timed_area_ceg then
         local params = weaponDef.customParams
         TimedDamageWeapons[weaponDefID] = {
-            ceg        = params.timed_area_ceg,
-            damageCeg  = params.timed_area_damageceg, -- lowercase
-            resistance = params.timed_area_resistance   ,
-            damage     = tonumber(params.timed_area_damage),
-            range      = tonumber(params.timed_area_range),
-            time       = tonumber(params.timed_area_time),
+            ceg        = params.area_onhit_ceg,
+            damageCeg  = params.area_onhit_damageceg, -- lowercase
+            resistance = params.area_onhit_resistance   ,
+            damage     = tonumber(params.area_onhit_damage),
+            range      = tonumber(params.area_onhit_range),
+            time       = tonumber(params.area_onhit_time),
         }
     end
 end
@@ -46,24 +46,28 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
     if unitDef.customParams.timed_area_ceg then
         local params = unitDef.customParams
         TimedDamageDyingUnits[unitDefID] = {
-            ceg        = params.timed_area_ceg,
-            damageCeg  = params.timed_area_damageceg, -- lowercase
-            resistance = params.timed_area_resistance,
-            damage     = tonumber(params.timed_area_damage),
-            range      = tonumber(params.timed_area_range),
-            time       = tonumber(params.timed_area_time),
+            ceg        = params.area_ondeath_ceg,
+            damageCeg  = params.area_ondeath_damageceg, -- lowercase
+            resistance = params.area_ondeath_resistance,
+            damage     = tonumber(params.area_ondeath_damage),
+            range      = tonumber(params.area_ondeath_range),
+            time       = tonumber(params.area_ondeath_time),
             weapon     = WeaponDefNames[UnitDefs[unitDefID].deathExplosion].id or -1,
         }
     end
 end
 
------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 local aliveExplosions = {}
 
 function gadget:Initialize()
     for weaponID in pairs(TimedDamageWeapons) do
         Script.SetWatchExplosion(weaponID, true)
+    end
+
+    if not next(TimedDamageWeapons) and not next(TimedDamageDyingUnits) then
+        gadgetHandler:RemoveGadget(self)
     end
 end
 
@@ -129,7 +133,11 @@ function gadget:GameFrame(frame)
                 for j = 1,#unitsInRange do
                     local unitID = unitsInRange[j]
                     local unitDef = UnitDefs[Spring.GetUnitDefID(unitID)]
-                    if (not unitDef.canFly) and not (unitDef.customParams.areadamageresistance and string.find(unitDef.customParams.areadamageresistance, resistance)) then
+                    if not (
+                        unitDef.canFly or
+                        (unitDef.customParams.areadamageresistance ~= nil and
+                            string.find(unitDef.customParams.areadamageresistance, resistance, nil, true))
+                    ) then
                         Spring.AddUnitDamage(unitID, damage, 0, explosionStats.owner, explosionStats.weapon)
                         local ux, uy, uz = Spring.GetUnitPosition(unitID)
                         Spring.SpawnCEG(explosionStats.damageCeg, ux, uy + 8, uz, 0, 0, 0)
