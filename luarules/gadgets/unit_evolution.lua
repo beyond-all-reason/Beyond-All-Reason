@@ -98,7 +98,7 @@ if gadgetHandler:IsSyncedCode() then
 		-- evolution_announcement_size = 18.5, 		-- Size of the onscreen announcement
 
 		--	-- Has a default value, as indicated, if not chosen:
-		-- evolution_condition = "timer",    		-- condition type for the evolution. "timer", "health", or "power"
+		-- evolution_condition = "timer",    		-- condition type for the evolution. "timer", "timer_global", "health", or "power"
 		-- evolution_timer = 600, 					-- set the timer used for the timer condition. Given in secons from when the unit was created.
 		-- evolution_health_threshold = 0,			-- threshold for triggering the "health" evolution condition.
 		-- evolution_power_threshold = 600,			-- threshold for triggering the "power" evolution condition.
@@ -338,6 +338,18 @@ if gadgetHandler:IsSyncedCode() then
 			for unitID, _ in pairs(evolutionMetaList) do
 				local currentTime =  spGetGameSeconds()
 				if evolutionMetaList[unitID].evolution_condition == "timer" and (currentTime-evolutionMetaList[unitID].timeCreated) >= evolutionMetaList[unitID].evolution_timer then
+					local enemyNearby = spGetUnitNearestEnemy(unitID, evolutionMetaList[unitID].combatRadius)
+					local inCombat = false
+					if enemyNearby then
+						inCombat = true
+						evolutionMetaList[unitID].combatTimer = spGetGameSeconds()
+					end
+
+					if not inCombat and (currentTime-evolutionMetaList[unitID].combatTimer) >= 5 then
+						Evolve(unitID, evolutionMetaList[unitID].evolution_target)
+					end
+				end
+				if evolutionMetaList[unitID].evolution_condition == "timer_global" and currentTime >= evolutionMetaList[unitID].evolution_timer then
 					local enemyNearby = spGetUnitNearestEnemy(unitID, evolutionMetaList[unitID].combatRadius)
 					local inCombat = false
 					if enemyNearby then
