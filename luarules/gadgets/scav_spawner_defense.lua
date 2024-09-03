@@ -1571,10 +1571,9 @@ if gadgetHandler:IsSyncedCode() then
 				if ux and burrow and distance and distance < 2500 then
 					waveParameters.lastBackupSquadSpawnFrame = Spring.GetGameFrame()
 					--Spring.Echo("Spawning Backup Squad - Unit Damaged", Spring.GetGameFrame())
-					local burrowID = getNearestScavBeacon(ux, uy, uz)
-					burrows[burrowID].lastBackupSpawn = Spring.GetGameFrame() + math.random(-300,1800)
+					burrows[burrow].lastBackupSpawn = Spring.GetGameFrame() + math.random(-300,1800)
 					for i = 1, SetCount(humanTeams) do
-						SpawnRandomOffWaveSquad(burrowID, true)
+						SpawnRandomOffWaveSquad(burrow, true)
 					end
 				end
 			end
@@ -2099,10 +2098,9 @@ if gadgetHandler:IsSyncedCode() then
 									--Spring.Echo("Nearest Beacon Distance", distance)
 									if ux and burrow and distance and distance < 5000 then
 										--Spring.Echo("Spawning Backup Squad - Unit Cloud Capture", Spring.GetGameFrame())
-										local burrowID = getNearestScavBeacon(ux, uy, uz)
-										burrows[burrowID].lastBackupSpawn = Spring.GetGameFrame() + math.random(-300,1800)
+										burrows[burrow].lastBackupSpawn = Spring.GetGameFrame() + math.random(-300,1800)
 										for i = 1, SetCount(humanTeams) do
-											SpawnRandomOffWaveSquad(burrowID, true)
+											SpawnRandomOffWaveSquad(burrow, true)
 										end
 									end
 								end
