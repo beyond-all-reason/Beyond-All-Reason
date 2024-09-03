@@ -107,12 +107,12 @@ return {
 				weapontimer = 0.2,
 				weaponvelocity = 800,
 				customparams = {
-					timed_area_ceg = "acid-area-150",
-					timed_area_damageCeg = "acid-damage-gen",
-					timed_area_time = 10,
-					timed_area_damage = 200,
-					timed_area_range = 150,
-					timed_area_resistance = "_RAPTORACID_",
+					area_onhit_ceg = "acid-area-150",
+					area_onhit_damageCeg = "acid-damage-gen",
+					area_onhit_time = 10,
+					area_onhit_damage = 200,
+					area_onhit_range = 150,
+					area_onhit_resistance = "_RAPTORACID_",
 				},
 				damage = {
 					default = 1,

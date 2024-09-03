@@ -116,12 +116,12 @@ return {
 				sprayangle = 20000,
 				weapontype = "AircraftBomb",
 				customparams = {
-					timed_area_ceg = "acid-area-150",
-					timed_area_damageCeg = "acid-damage-gen",
-					timed_area_time = 10,
-					timed_area_damage = 100,
-					timed_area_range = 150,
-					timed_area_resistance = "_RAPTORACID_",
+					area_onhit_ceg = "acid-area-150",
+					area_onhit_damageCeg = "acid-damage-gen",
+					area_onhit_time = 10,
+					area_onhit_damage = 100,
+					area_onhit_range = 150,
+					area_onhit_resistance = "_RAPTORACID_",
 				},
 				damage = {
 					default = 1,

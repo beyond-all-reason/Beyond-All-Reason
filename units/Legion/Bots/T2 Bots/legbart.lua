@@ -133,12 +133,12 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 300,
 				customparams = {
-					timed_area_ceg = "fire-area-75",
-					timed_area_damageCeg = "burnflamexl",
-					timed_area_time = 10,
-					timed_area_damage = 30,
-					timed_area_range = 75,
-					timed_area_resistance = "test",
+					area_onhit_ceg = "fire-area-75",
+					area_onhit_damageCeg = "burnflamexl",
+					area_onhit_time = 10,
+					area_onhit_damage = 30,
+					area_onhit_range = 75,
+					area_onhit_resistance = "test",
 				},
 				damage = {
 					default = 30,
