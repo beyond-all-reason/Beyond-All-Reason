@@ -195,7 +195,7 @@ local settings = {
 	statsUpdateFrequency = 2,		 -- every 2nd frame
 
 	widgetScale = 0.8,
-	widgetConfig = 3,
+	widgetConfig = constants.configLevel.basic,
 }
 
 local metricKeys = {
