@@ -129,7 +129,7 @@ return {
 				noselfdamage = true,
 				range = 6100,
 				reloadtime = 15,
-				rgbcolor = "0.7 0.7 1.0 1.0 1.0 1.0 1.0 1.0",
+				rgbcolor = "0.7 0.7 1.0",
 				soundhit = "rflrpcexplo",
 				soundhitwet = "splshbig",
 				soundstart = "lrpcshot",

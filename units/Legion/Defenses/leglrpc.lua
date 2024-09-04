@@ -163,7 +163,7 @@ return {
 				noselfdamage = true,
 				maxvelocity = 720,
 				range = 400,
-				rgbcolor = "0.7 0.7 1.0 1.0 1.0 1.0 1.0 1.0",
+				rgbcolor = "0.7 0.7 1.0",
 				soundhit = "xplomed2",
 				soundhitwet = "splsmed",
 				soundstart = "cannhvy5",

@@ -132,7 +132,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.45,
 				energypershot = 17,
-				explosiongenerator = "custom:genericshellexplosion-medium-beam",
+				explosiongenerator = "custom:heatray-huge",
 				firestarter = 90,
 				firetolerance = 300,
 				impulseboost = 0,
@@ -190,6 +190,7 @@ return {
 				},
 				customparams = {
 					bogus = 1,
+					nodecal = 1,
 				},
 			},
 			legphsound = {
@@ -208,6 +209,7 @@ return {
 				},
 				customparams = {
 					bogus = 1,
+					nodecal = 1,
 				},
 			},
 		},
