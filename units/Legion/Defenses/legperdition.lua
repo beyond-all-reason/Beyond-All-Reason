@@ -177,7 +177,7 @@ return {
 				--weaponvelocity = 650,
 				customparams = {
 					area_onhit_ceg = "fire-area-150",
-					area_onhit_damageCeg = "burnflamexl",
+					area_onhit_damageCeg = "burnflamexl-gen",
 					area_onhit_time = 15,
 					area_onhit_damage = 175,
 					area_onhit_range = 150,
@@ -187,7 +187,7 @@ return {
 					commanders = 700,
 					default = 2000,--plus 150*15 within 150 area
 				},
-			},			
+			},
 			
 		},
 		weapons = {

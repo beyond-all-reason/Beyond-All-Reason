@@ -870,7 +870,7 @@ local definitions = {
             water              = true,
             underwater         = true,
             properties = {
-                delay              = [[0]],
+                delay              = [[r12]],
                 explosiongenerator = [[custom:acid-area-smoke]],
                 pos                = [[-128 r256, 0 r20, -128 r256]],
             },

@@ -111,7 +111,7 @@ return {
 				weapontype = "AircraftBomb",
 				customparams = {
 					area_onhit_ceg = "fire-area-150",
-					area_onhit_damageCeg = "burnflamexl",
+					area_onhit_damageCeg = "burnflamexl-gen",
 					area_onhit_time = 15,
 					area_onhit_damage = 30,
 					area_onhit_range = 150,

@@ -602,7 +602,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				weaponvelocity = 450,
 				customparams = {
 					area_onhit_ceg = "fire-area-75",
-					area_onhit_damageCeg = "burnflamexl",
+					area_onhit_damageCeg = "burnflamexl-gen",
 					area_onhit_time = 12,
 					area_onhit_damage = 20,
 					area_onhit_range = 150,

@@ -141,7 +141,7 @@ return {
 				weaponvelocity = 300,
 				customparams = {
 					area_onhit_ceg = "fire-area-75",
-					area_onhit_damageCeg = "burnflamexl",
+					area_onhit_damageCeg = "burnflamexl-gen",
 					area_onhit_time = 10,
 					area_onhit_damage = 30,
 					area_onhit_range = 75,
