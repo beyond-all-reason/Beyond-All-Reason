@@ -127,7 +127,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
-				explosiongenerator = "custom:genericshellexplosion-small",
+				explosiongenerator = "custom:fire-explosion-small",
 				flamegfxtime = 1,
 				gravityaffected = "true",
 				impulseboost = 0.123,
