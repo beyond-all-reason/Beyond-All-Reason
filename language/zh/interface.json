@@ -299,18 +299,18 @@
             },
             "buildOrders":{
               "selectTile":"弹出建筑菜单",
-              "factoriesKey":"v",
-              "metal":"循环指定 金属矿采集 建筑",
+              "buildKey":"v",
+              "economy":"循环指定 金属矿采集 建筑",
               "title":"建筑者指令",
               "rotate":"改变建筑朝向",
-              "intel":"循环指定 雷达/防御/其它 建筑",
+              "utility":"循环指定 雷达/防御/其它 建筑",
               "rotateKey":"[ and ], or o",
-              "energyKey":"x",
-              "metalKey":"z",
+              "combatKey":"x",
+              "economyKey":"z",
               "selectTileKey":"左键",
-              "energy":"循环指定 电力生产 建筑",
-              "intelKey":"c",
-              "factories":"循环指定生产工厂"
+              "combat":"循环指定 电力生产 建筑",
+              "utilityKey":"c",
+              "build":"循环指定生产工厂"
             },
             "console":{
               "pause":"暂停",
