@@ -1049,7 +1049,7 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 				end
 			end
 
-			if carrierMetaList[carrierID] then 
+			if carrierMetaList[carrierID] then
 				if carrierMetaList[carrierID].subUnitsList[subUnitID] and carrierMetaList[carrierID].subUnitsList[subUnitID].dronetype == "turret" then
 					spGiveOrderToUnit(subUnitID, CMD.FIRE_STATE, carrierStates.firestate, 0)
 				elseif carrierMetaList[carrierID].subUnitsList[subUnitID] and droneDistance then
@@ -1073,6 +1073,8 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 							spGiveOrderToUnit(subUnitID, CMD.MOVE, {carrierx + rx*idleRadius, carriery, carrierz + rz*idleRadius}, 0)
 							spGiveOrderToUnit(subUnitID, CMD.GUARD, carrierID, CMD.OPT_SHIFT)
 						end
+					elseif carrierMetaData.manualDrones then
+						return
 					elseif droneSendDistance and droneSendDistance < carrierMetaData.radius or carrierMetaData.subUnitsList[subUnitID].dronetype == "bomber" then
 						-- attacking
 						if target then
@@ -1253,7 +1255,7 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 		end
 	end
 	if orderUpdate then
-		lastOrderUpdate = frame
+		carrierMetaData.lastOrderUpdate = frame
 	end
 end
 
