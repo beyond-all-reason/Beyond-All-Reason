@@ -152,7 +152,7 @@ return {
 				weaponvelocity = 600,
 				wobble = 10000,
 				customparams = {
-					area_onhit_ceg = "fire-area-75",
+					area_onhit_ceg = "fire-area-75-repeat",
 					area_onhit_damageCeg = "burnflamexl-gen",
 					area_onhit_time = 10,
 					area_onhit_damage = 30,
