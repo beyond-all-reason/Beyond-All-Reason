@@ -110,7 +110,7 @@ return {
 				weapontimer = 0.2,
 				weaponvelocity = 520,
 				customparams = {
-					area_onhit_ceg = "acid-area-75",
+					area_onhit_ceg = "acid-area-75-repeat",
 					area_onhit_damageCeg = "acid-damage-gen",
 					area_onhit_time = 10,
 					area_onhit_damage = 40,
@@ -187,7 +187,7 @@ return {
 				weapontimer = 0.2,
 				weaponvelocity = 520,
 				customparams = {
-					area_onhit_ceg = "acid-area-75",
+					area_onhit_ceg = "acid-area-75-repeat",
 					area_onhit_damageCeg = "acid-damage-gen",
 					area_onhit_time = 10,
 					area_onhit_damage = 40,

@@ -116,7 +116,7 @@ return {
 				sprayangle = 20000,
 				weapontype = "AircraftBomb",
 				customparams = {
-					area_onhit_ceg = "acid-area-150",
+					area_onhit_ceg = "acid-area-150-repeat",
 					area_onhit_damageCeg = "acid-damage-gen",
 					area_onhit_time = 10,
 					area_onhit_damage = 100,

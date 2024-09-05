@@ -57,7 +57,7 @@ return {
 			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_s_normals.png",
-			area_ondeath_ceg = "acid-area-75",
+			area_ondeath_ceg = "acid-area-75-repeat",
 			area_ondeath_damageCeg = "acid-damage-gen",
 			area_ondeath_time = 10,
 			area_ondeath_damage = 40,
@@ -113,7 +113,7 @@ return {
 				weapontimer = 0.2,
 				weaponvelocity = 520,
 				customparams = {
-					area_onhit_ceg = "acid-area-75",
+					area_onhit_ceg = "acid-area-75-repeat",
 					area_onhit_damageCeg = "acid-damage-gen",
 					area_onhit_time = 10,
 					area_onhit_damage = 40,
