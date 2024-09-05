@@ -99,10 +99,10 @@ if gadgetHandler:IsSyncedCode() then
 				raptor_turret_antinuke_t2_v1 = {radius = 512, growthrate = 0.2},
 				raptor_turret_meteor_t4_v1 = {radius = 1536, growthrate = 0.8},
 
-				scavbeacon_t1_scav = {radius = 600, growthrate = 0.4},
-				scavbeacon_t2_scav = {radius = 1000, growthrate = 0.6},
-				scavbeacon_t3_scav = {radius = 1400, growthrate = 0.8},
-				scavbeacon_t4_scav = {radius = 1800, growthrate = 1},
+				scavbeacon_t1_scav = {radius = 740, growthrate = 0.74},
+				scavbeacon_t2_scav = {radius = 880, growthrate = 0.88},
+				scavbeacon_t3_scav = {radius = 1000, growthrate = 1},
+				scavbeacon_t4_scav = {radius = 1360, growthrate = 1.36},
 			}
 		for unitDefName, scumParams in pairs(scumGenerators) do 
 			if UnitDefNames[unitDefName] then
@@ -110,19 +110,17 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
+		local scumSpawnerExclusions = {lootdroppod_gold_scav = true, lootdroppod_printer_scav = true, meteor_scav = true, mission_command_tower_scav = true,
+		nuketest_scav = true, nuketestcor_scav = true, nuketestorg_scav = true, scavempspawner_scav = true, scavengerdroppod_scav = true, scavengerdroppodfriendly_scav = true,
+		scavtacnukespawner_scav = true}
 		for unitDefID, unitDef in pairs(UnitDefs) do
-			if unitDef.customParams.isscavenger and (not unitDef.canMove) and (not string.find(unitDef.name, "lootbox")) and not scumSpawnerIDs[unitDefID] and (not unitDef.customParams.objectify) and (not unitDef.canCloak) then
-				local footprintX = unitDef.xsize*0.5 -- why the fuck is this footprint *2??????
-				local footprintZ = unitDef.zsize*0.5 -- why the fuck is this footprint *2??????
-				local footprintSquare = 2
-				if footprintX and footprintZ then
-					footprintSquare = (footprintX+footprintZ)*0.5
-				end
-				scumSpawnerIDs[unitDefID] = {radius = footprintSquare*300, growthrate = 0.05*footprintSquare}
+			if unitDef.customParams.isscavenger and (not unitDef.canMove) and (not string.find(unitDef.name, "lootbox")) and not scumSpawnerIDs[unitDefID] and (not unitDef.customParams.objectify) and (not unitDef.canCloak) and not scumSpawnerExclusions[unitDef.name]then
+				scumSpawnerIDs[unitDefID] = {radius = 600, growthrate = 1.2}
+				Spring.Echo(unitDef.name, "radius", scumSpawnerIDs[unitDefID].radius)
 			end
 		end
 
-		for x= 0, math.ceil(mapSizeX/1024) do
+		for x = 0, math.ceil(mapSizeX/1024) do
 			for z = 0, math.ceil(mapSizeZ/1024) do
 				scumBins[x*1024+z] = {}
 			end
@@ -206,26 +204,26 @@ if gadgetHandler:IsSyncedCode() then
 			--Spring.Echo("Tried to update a scumID",scumID,"that no longer exists because it probably shrank to death, remove = ", removeScum)
 			return nil
 		end
-
+	
 		local posx = scumTable.posx
 		local posz = scumTable.posz
 		local radius = scumTable.radius
-
+	
 		if removeScum then
 			scumTable = nil
 			scums[scumID] = nil
 		end
-
-		local binID = GetMapSquareKey(posx, posz)
-		if binID then scumBins[binID][scumID] = scumTable end
-		binID = GetMapSquareKey(posx + radius, posz + radius)
-		if binID then scumBins[binID][scumID] = scumTable end
-		binID = GetMapSquareKey(posx - radius, posz + radius)
-		if binID then scumBins[binID][scumID] = scumTable end
-		binID = GetMapSquareKey(posx + radius, posz - radius)
-		if binID then scumBins[binID][scumID] = scumTable end
-		binID = GetMapSquareKey(posx - radius, posz - radius)
-		if binID then scumBins[binID][scumID] = scumTable end
+	
+		local step = radius / 3
+		for dx = -radius, radius, step do
+			for dz = -radius, radius, step do
+				local binID = GetMapSquareKey(posx + dx, posz + dz)
+				if binID then
+					scumBins[binID][scumID] = scumTable
+					--Spring.Echo("scum added to bin! scumID:", scumID, "binID:", binID)
+				end
+			end
+		end
 	end
 
 	local function AddOrUpdateScum(posx, posy, posz, radius, growthrate, scumID)
