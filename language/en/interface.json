@@ -361,7 +361,7 @@
 			},
 			"orders": {
 				"title": "Selecting orders",
-				"defaultKey": "(none)",
+				"defaultKey": "Right Mouse",
 				"default": "Default order (usually move)",
 				"move": "Move",
 				"attack": "Attack",
