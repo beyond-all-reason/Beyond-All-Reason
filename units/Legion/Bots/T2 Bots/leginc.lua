@@ -38,7 +38,6 @@ return {
 			unitgroup = 'weapon',
 			model_author = "Protar, Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			paralyzemultiplier = 1,
 			subfolder = "corbots/t2",
 			techlevel = 2,
 		},
