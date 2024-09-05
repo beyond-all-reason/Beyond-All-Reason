@@ -678,6 +678,13 @@ GetLightClass("Explosion", "Fire", "Small", {r = 0.32, g = 0.24, b = 0.1, a = 0.
 										 sustain = 120, lifetime = 180,
 										 modelfactor = -0.3, specular = -0.3, scattering = 0.3, lensflare = 0})
 
+--leginf
+explosionLightsNames["leginf_rapidnapalm"] =
+GetLightClass("Explosion", "Fire", "Small", {r = 0.32, g = 0.24, b = 0.1, a = 0.001,
+										 color2r = 0.8, color2g = 0.4, color2b = 0.1, colortime = 180,
+										 sustain = 30, lifetime = 180,
+										 modelfactor = -0.3, specular = -0.3, scattering = 0.3, lensflare = 0})
+
 --legnap
 explosionLightsNames["legnap_napalmbombs"] =
 GetLightClass("Explosion", "Fire", "Small", {r = 0.32, g = 0.24, b = 0.1, a = 0.1,
