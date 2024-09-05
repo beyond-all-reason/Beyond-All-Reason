@@ -72,7 +72,7 @@ function gadget:Initialize()
     for weaponDefID, params in pairs(timedDamageWeapons) do
         -- While areas of effect are tweak-able, CEGs are not.
         -- Try to keep timed areas and their visuals in sync with one another:
-        if not string.find(params.ceg, math.floor(params.range), nil, true) then
+        if not string.find(params.ceg, '-'..math.floor(params.range)..'-', nil, false) then
             local diffMin = math.huge
             local range, cegName
             for ii = 1, #areaCegSizes do
