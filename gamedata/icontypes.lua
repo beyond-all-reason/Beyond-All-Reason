@@ -1690,7 +1690,7 @@ local icontypes = {
 	corphantom = {
 		bitmap = "icons/spy.png",
 		size = 1.20749986
-	},	
+	},
 	corplat = {
 		bitmap = "icons/factory_air_sea.png",
 		size = 1.52250004
@@ -2090,6 +2090,10 @@ local icontypes = {
 	freefusion = {
 		bitmap = "icons/fusion.png",
 		size = 1.46999991
+	},
+	legbunk = {
+		bitmap = "icons/legpilum.png",
+		size = 1.83749986
 	},
 	leegmech = {
 		bitmap = "icons/bantha.png",
@@ -2582,7 +2586,7 @@ local icontypes = {
 	legtl = {
 		bitmap = "icons/defence_1_naval.png",
 		size = 1.10249984
-	},	
+	},
 	legfmkr = {
 		bitmap = "icons/metalmaker_t1.png",
 		size = 0.78749996
