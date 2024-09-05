@@ -36,7 +36,6 @@ function gadget:Initialize()
     timedDamageWeapons = {}
     unitDamageImmunity = {}
 
-    local areaDamageTypes = {}
     for weaponDefID, weaponDef in ipairs(WeaponDefs) do
         if weaponDef.customParams and weaponDef.customParams.area_onhit_ceg then
             local custom = weaponDef.customParams
@@ -48,14 +47,10 @@ function gadget:Initialize()
                 range      = tonumber(custom.area_onhit_range),
                 time       = tonumber(custom.area_onhit_time),
             }
-            if params.resistance then
-                areaDamageTypes[params.resistance] = true
-            else
-                params.resistance = "none"
-            end
             timedDamageWeapons[weaponDefID] = params
         end
     end
+
     for unitDefID, unitDef in ipairs(UnitDefs) do
         if unitDef.customParams.area_ondeath_ceg then
             local custom = unitDef.customParams
@@ -67,13 +62,38 @@ function gadget:Initialize()
                 range      = tonumber(custom.area_ondeath_range),
                 time       = tonumber(custom.area_ondeath_time),
             }
-            if params.resistance ~= nil then
-                areaDamageTypes[params.resistance] = true
-            else
-                params.resistance = "none"
-            end
             timedDamageWeapons[WeaponDefNames[unitDef.deathExplosion].id] = params
             timedDamageWeapons[WeaponDefNames[unitDef.selfDExplosion].id] = params
+        end
+    end
+
+    local areaCegSizes = { 37.5, 46, 54, 62.5, 75, 87.5, 100, 125, 150, 175, 200, 225, 250, 275, 300 }
+    local areaDamageTypes = {}
+    for weaponDefID, params in pairs(timedDamageWeapons) do
+        -- While areas of effect are tweak-able, CEGs are not.
+        -- Try to keep timed areas and their visuals in sync with one another:
+        if not string.find(params.ceg, math.floor(params.range), nil, true) then
+            local diffMin = math.huge
+            local range, cegName
+            for ii = 1, #areaCegSizes do
+                range = areaCegSizes[index]
+                local diff = math.abs(range / areaCegSizes[ii] - areaCegSizes[ii] / range)
+                if diff < diffMin then
+                    cegName = string.gsub(cegName, params.range, range, 1)
+                    local success, cegID = Spring.SpawnCEG(cegName, 0, -9e9, 0)
+                    if cegID ~= nil then
+                        diffMin = diff
+                        params.range = range
+                        params.ceg = cegName
+                    end
+                end
+            end
+        end
+
+        if params.resistance ~= nil and params.resistance ~= "none" then
+            areaDamageTypes[params.resistance] = true
+        else
+            params.resistance = "none"
         end
     end
 
