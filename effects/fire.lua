@@ -4,11 +4,13 @@ local definitions = {
   ["fire-explosion-small"] = {
     usedefaultexplosions = false,
     flame = {
-      class  = [[CSimpleParticleSystem]],
-		  count  = 1,
-		  air    = true,
-		  ground = true,
-      unit   = true,
+      class      = [[CSimpleParticleSystem]],
+		  count      = 1,
+		  air        = true,
+		  ground     = true,
+		  underwater = true,
+		  water      = true,
+      unit       = true,
 		  properties = {
 			  airdrag            = 0.93,
 			  colormap           = [[1.0 0.9 0.7 1  0.8 0.55 0.33 0.85   0.65 0.65 0.2 0.25   0.022 0.022 0.022 0.3   0 0 0 0.01]],
@@ -41,8 +43,8 @@ local definitions = {
       count              = 1,
       air                = true,
       ground             = true,
-      water              = false,
       underwater         = false,
+      water              = false,
       properties = {
         colormap           = [[1 0.7 0.3 0.32   0 0 0 0.01]],
         size               = 25,
@@ -57,8 +59,8 @@ local definitions = {
       count              = 1,
       air                = true,
       ground             = true,
-      water              = false,
       underwater         = false,
+      water              = false,
       properties = {
         colormap           = [[1 0.7 0.3 0.11   0 0 0 0.01]],
         size               = 50,
@@ -122,9 +124,9 @@ local definitions = {
     },
 
     explosionfire = {
-      air                = true,
       class              = [[CSimpleParticleSystem]],
       count              = 1,
+      air                = true,
       ground             = true,
       water              = true,
       underwater         = false,
@@ -454,7 +456,7 @@ local definitions = {
 
     watersparks = {
       class              = [[CSimpleParticleSystem]],
-      count              = 0,
+      count              = 1,
       air                = false,
       ground             = false,
       underwater         = true,
@@ -1554,7 +1556,7 @@ local areaCegSizes = { 37.5, 46, 54, 62.5, 75, 87.5, 100, 125, 150, 175, 200, 22
 for ii = 1, #areaCegSizes do
   local size = areaCegSizes[ii]
   local name = 'fire-area-' .. math.floor(size) .. '-repeat'
-  local count = math.max(1, math.round(size / 64))
+  local count = math.max(1, math.round(size / 60))
   local pos = string.format([[%f r%f, r%f, %f r%f]], -size / 4, size / 2, 20, -size / 4, size / 2)
   local delay = count == 1 and "r6" or cegop_normaldist(3+count/2, 9, 2) -- https://ideone.com/65EG7z
 
@@ -1571,8 +1573,18 @@ definitions['fire-area-repeat'] = nil
 
 -- definitions["fire-explosion-medium"] = table.copy(definitions["fire-explosion-small"])
 -- definitions["fire-explosion-medium"].explosionfire.properties.particlesize = 64
--- definitions["fire-explosion-large"] = table.copy(definitions["fire-explosion-small"])
--- definitions["fire-explosion-large"].explosionfire.properties.particlesize = 96
--- definitions["fire-explosion-large"].explosionfire.count = 2
+
+definitions["fire-explosion-large"] = table.copy(definitions["fire-explosion-small"])
+definitions["fire-explosion-large"].explosionfire.count = 2
+definitions["fire-explosion-large"].explosionfire.properties.particlesize = 120
+definitions["fire-explosion-large"].groundflash_large.properties.size = 150
+definitions["fire-explosion-large"].centerflare.properties.size = 64
+definitions["fire-explosion-large"].explosion.properties.size = 64
+definitions["fire-explosion-large"].outersmoke.properties.particlesize = 120
+definitions["fire-explosion-large"].outerflash.properties.size = 64
+definitions["fire-explosion-large"].shard1.count = 2
+definitions["fire-explosion-large"].shard2.count = 2
+definitions["fire-explosion-large"].shard3.count = 2
+definitions["fire-explosion-large"].sparks.count = 3
 
 return definitions

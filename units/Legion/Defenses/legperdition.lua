@@ -129,7 +129,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.75,
-				explosiongenerator = "custom:burnfirecom-xl",
+				explosiongenerator = "custom:fire-explosion-large",
 				gravityaffected = true,
 				hightrajectory = 1,
 				impulseboost = 0.123,
