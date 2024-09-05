@@ -340,9 +340,9 @@
               "removeAutoGroupKey":"alt + `",
               "group":"选择编队中所有单位 (编号)",
               "buildersKey":"ctrl + b",
-              "sameType":"选择所有同种单位",
+              "sameTypeAll":"选择所有同种单位",
               "title":"编队选择",
-              "sameTypeKey":"ctrl + z",
+              "sameTypeAllKey":"ctrl + z",
               "createGroupKey":"ctrl + (编号)",
               "builders":"选择所有工程单位",
               "groupKey":"(编号)",
@@ -351,7 +351,9 @@
               "createAutoGroup":"向自动编队中增加兵种 (编号=1,2,..)",
               "createGroup":"向编队中增加单位 (编号=1,2,..)",
               "allKey":"ctrl + a",
-              "all":"选择所有单位"
+              "all":"选择所有单位",
+              "sameTypeOnscreenKey": "TranslateMe",
+              "sameTypeOnscreen": "TranslateMe",
             },
             "issueBuildOrders":{
               "gridKey":"shift + alt + (建造指令)",

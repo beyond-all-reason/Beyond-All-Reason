@@ -403,8 +403,10 @@
 				"removeAutoGroup": "Supprimer du groupe automatique",
 				"groupKey": "(1,2,3...)",
 				"group": "Sélectionner les unités du groupe",
-				"sameTypeKey": "CTRL + Z",
-				"sameType": "Sélectionne toute unité du même type"
+				"sameTypeAllKey": "CTRL + Z",
+				"sameTypeAll": "Sélectionne toute unité du même type",
+				"sameTypeOnscreenKey": "TranslateMe",
+				"sameTypeOnscreen": "TranslateMe"
 			},
 			"drawing": {
 				"title": "Dessin",

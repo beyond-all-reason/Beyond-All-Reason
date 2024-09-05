@@ -389,23 +389,23 @@
 			},
 			"queues": {
 				"title": "Queueing orders",
-				"append": "Add order to end of order queue",
+				"append": "Add order to end of queue",
 				"appendKey": "shift + (some order)",
 				"prependKey": "space + (some order)",
-				"prepend": "Add order to start of order queue"
+				"prepend": "Add order to start of queue"
 			},
 			"buildOrders": {
 				"title": "Selecting build orders",
 				"selectTileKey": "(mouse)",
 				"selectTile": "Select from units build-menu",
 				"economyKey": "z",
-				"economy": "Category: Economy",
+				"economy": "Economy",
 				"combatKey": "x",
-				"combat": "Category: Combat",
+				"combat": "Combat",
 				"utilityKey": "c",
-				"utility": "Category: Utility",
+				"utility": "Utility",
 				"buildKey": "v",
-				"build": "Category: Build",
+				"build": "Build",
 				"rotateKey": "[ and ]",
 				"rotate": "Change facing of buildings"
 			},
@@ -419,9 +419,9 @@
 				"line": "Build in a line",
 				"gridKey": "shift + alt + (build order)",
 				"grid": "Build in a square",
-				"spacingUpKey": "alt+z",
+				"spacingUpKey": "alt + z",
 				"spacingUp": "Increase build spacing",
-				"spacingDownKey": "alt+x",
+				"spacingDownKey": "alt + x",
 				"spacingDown": "Decrease build spacing"
 			},
 			"massSelect": {
@@ -438,8 +438,10 @@
 				"removeAutoGroup": "Remove unit type from autogroup",
 				"groupKey": "(num)",
 				"group": "Select all units assigned to group (num)",
-				"sameTypeKey": "q",
-				"sameType": "Select all units of same type as selected"
+				"sameTypeAllKey": "ctrl + w",
+				"sameTypeAll": "Select all units of same types as selected",
+				"sameTypeOnscreenKey": "q",
+				"sameTypeOnscreen": "Select visible units of same types as selected"
 			},
 			"drawing": {
 				"title": "Drawing",

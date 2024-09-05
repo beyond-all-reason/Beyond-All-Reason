@@ -394,8 +394,10 @@
 				"removeAutoGroup": "Einheitstyp aus Autogruppe entfernen",
 				"groupKey": "(Nummer)",
 				"group": "Alle der Gruppe (Nummer) zugewiesenen Einheiten auswählen",
-				"sameTypeKey": "STRG + Y",
-				"sameType": "Alle Einheiten des selben Typs wie die Ausgewählte auswählen"
+				"sameTypeAllKey": "STRG + Y",
+				"sameTypeAll": "Alle Einheiten des selben Typs wie die Ausgewählte auswählen",
+				"sameTypeOnscreenKey": "TranslateMe",
+				"sameTypeOnscreen": "TranslateMe"
 			},
 			"drawing": {
 				"title": "Zeichnen",
