@@ -396,7 +396,7 @@
 			},
 			"buildOrders": {
 				"title": "Selecting build orders",
-				"selectTileKey": "(mouse)",
+				"selectTileKey": "left mouse",
 				"selectTile": "Select from units build-menu",
 				"economyKey": "z",
 				"economy": "Economy",
