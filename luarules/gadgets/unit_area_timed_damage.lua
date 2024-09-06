@@ -70,23 +70,42 @@ function gadget:Initialize()
     local areaCegSizes = { 37.5, 46, 54, 62.5, 75, 87.5, 100, 125, 150, 175, 200, 225, 250, 275, 300 }
     local areaDamageTypes = {}
     for weaponDefID, params in pairs(timedDamageWeapons) do
+        -- Example how to tweak areas:
+        -- for udid, udef in pairs(UnitDefs) do
+        --     for name, wdef in pairs(udef.weapondefs or {}) do
+        --         if wdef.customparams and wdef.customparams.area_onhit_ceg then
+        --             wdef.customparams.area_onhit_time = 4
+        --             wdef.customparams.area_onhit_range = 200
+        --             wdef.projectiles = 1
+        --             Spring.Echo('[unit_area_timed_damage] tweaked weapon '..wdef.name..' => '..table.toString(wdef.customparams))
+        --         end
+        --     end
+        -- end
         -- While areas of effect are tweak-able, CEGs are not.
         -- Try to keep timed areas and their visuals in sync with one another:
-        if not string.find(params.ceg, '-'..math.floor(params.range)..'-', nil, false) then
-            local diffMin = math.huge
-            local range, cegName
+        if not string.find(params.ceg, '-'..math.floor(params.range)..'-', nil, true) then
+            local cegName = params.ceg
+            local rangeNew = math.huge
+            local diffBest = math.huge
             for ii = 1, #areaCegSizes do
-                range = areaCegSizes[index]
-                local diff = math.abs(range / areaCegSizes[ii] - areaCegSizes[ii] / range)
-                if diff < diffMin then
-                    cegName = string.gsub(cegName, params.range, range, 1)
-                    local success, cegID = Spring.SpawnCEG(cegName, 0, -9e9, 0)
+                local diff = math.abs(params.range / areaCegSizes[ii] - areaCegSizes[ii] / params.range)
+                if diff < diffBest then
+                    local success, cegID = Spring.SpawnCEG(string.gsub(cegName, '\d+', rangeNew, 1), 0, -9e9, 0)
                     if cegID ~= nil then
-                        diffMin = diff
-                        params.range = range
-                        params.ceg = cegName
+                        diffBest = diff
+                        rangeNew = areaCegSizes[ii]
+                    else
+                        Spring.Log(gadget:GetInfo().name, LOG.WARNING, 'Did not find CEG: ' .. string.gsub(cegName, params.range, rangeNew, 1))
                     end
                 end
+            end
+            if rangeNew < math.huge then
+                params.ceg = string.gsub(cegName, params.range, rangeNew, 1)
+                params.range = rangeNew
+                Spring.Log(gadget:GetInfo().name, LOG.INFO, 'Set '..WeaponDefs[weaponDefID].name..' to range, ceg = '..params.range, params.ceg)
+            else
+                timedDamageWeapons[weaponDefID] = nil
+                Spring.Log(gadget:GetInfo().name, LOG.INFO, 'Removed '..WeaponDefs[weaponDefID].name)
             end
         end
 
