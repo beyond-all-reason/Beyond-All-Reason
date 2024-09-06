@@ -102,7 +102,7 @@ function gadget:Initialize()
             if rangeNew < math.huge then
                 params.ceg = string.gsub(cegName, params.range, rangeNew, 1)
                 params.range = rangeNew
-                Spring.Log(gadget:GetInfo().name, LOG.INFO, 'Set '..WeaponDefs[weaponDefID].name..' to range, ceg = '..params.range, params.ceg)
+                Spring.Log(gadget:GetInfo().name, LOG.INFO, 'Set '..WeaponDefs[weaponDefID].name..' to range, ceg = '..params.range..', '..params.ceg)
             else
                 timedDamageWeapons[weaponDefID] = nil
                 Spring.Log(gadget:GetInfo().name, LOG.INFO, 'Removed '..WeaponDefs[weaponDefID].name)
