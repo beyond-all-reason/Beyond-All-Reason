@@ -3,7 +3,7 @@ function widget:GetInfo()
 		name = "Blueprint",
 		desc = "Saves and queues groups of unit blueprints",
 		license = "GNU GPL, v2 or later",
-		layer = 0,
+		layer = 1,
 		enabled = true,
 		handler = true,
 	}
