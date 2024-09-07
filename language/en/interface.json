@@ -298,8 +298,8 @@
 		},
 		"keybinds": {
 			"title": "Keybinds",
-			"disclaimer": "These keybinds are set by default. If you remove/replace hotkey widgets, or use your own uikeys, they might stop working!",
-			"howtochangekeybinds":"To change them: in Settings/Control tab, set Keybindings to Custom to create the BAR/data/uikeys.txt file.\nEdit this file and type /keyreload in chat to reload them.",
+			"disclaimer": "These keybinds are set by default. If you switch to a keybind preset other than Grid, keys in the 3rd column will be inaccurate!",
+			"howtochangekeybinds":"To change them: in Settings/Control tab, set Keybindings to Custom to create the BAR/data/uikeys.txt file.\nEdit this file and type /keyreload in chat to reload them. You can find help for keybinds in #keybinding-support on Discord.",
 			"chat": {
 				"title": "Chat",
 				"send": "Send chat message",
@@ -313,7 +313,6 @@
 			"menus": {
 				"title": "Menus",
 				"settings": "Settings",
-				"share": "Share units / resources"
 			},
 			"camera": {
 				"title": "Camera movement",
@@ -363,7 +362,6 @@
 				"title": "Selecting orders",
 				"defaultKey": "Right Mouse",
 				"default": "Default order (usually move)",
-				"move": "Move",
 				"attack": "Attack",
 				"stop": "Stop (clears order queue)",
 				"repair": "Repair",
@@ -372,7 +370,7 @@
 				"patrol": "Patrol",
 				"fight": "Fight",
 				"setTarget": "Set priority target",
-				"cancelTarget": "Cancel priority target",
+				"cancelTarget": "Cancel all targets",
 				"wait": "Wait (pause current command)",
 				"cloak": "Cloak",
 				"dGun": "Manual fire (dgun)",
@@ -392,20 +390,19 @@
 				"append": "Add order to end of queue",
 				"appendKey": "shift + (some order)",
 				"prependKey": "space + (some order)",
-				"prepend": "Add order to start of queue"
+				"prepend": "Add order to start of queue",
+				"commandSkipCurrent": "Cancel current order",
+				"commandCancelLast": "Cancel last order"
 			},
 			"buildOrders": {
 				"title": "Selecting build orders",
 				"selectTileKey": "left mouse",
 				"selectTile": "Select from units build-menu",
-				"economyKey": "z",
-				"economy": "Economy",
-				"combatKey": "x",
-				"combat": "Combat",
-				"utilityKey": "c",
-				"utility": "Utility",
-				"buildKey": "v",
-				"build": "Build",
+				"categorySelectorKey": "z to v",
+				"categorySelector": "Select building category, then..",
+				"buildingSelectorKey": "q to v",
+				"buildingSelector": "Select specific building for placement",
+				"switchPage": "Switch page",
 				"rotateKey": "[ and ]",
 				"rotate": "Change facing of buildings"
 			},
@@ -439,9 +436,9 @@
 				"groupKey": "(num)",
 				"group": "Select all units assigned to group (num)",
 				"sameTypeAllKey": "ctrl + w",
-				"sameTypeAll": "Select all units of same types as selected",
-				"sameTypeOnscreenKey": "q",
-				"sameTypeOnscreen": "Select visible units of same types as selected"
+				"sameTypeAll": "Select all units of same type as selected",
+				"sameTypeVisibleKey": "q",
+				"sameTypeVisible": "Select visible units of same type as selected"
 			},
 			"drawing": {
 				"title": "Drawing",
@@ -455,7 +452,7 @@
 			"console": {
 				"title": "Console commands",
 				"eraseKey": "/clearmapmarks",
-				"erase": "Erase all drawings and markes",
+				"erase": "Erase all drawings and markers",
 				"pauseKey": "/pause",
 				"pause": "Pause"
 			}

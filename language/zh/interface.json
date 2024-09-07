@@ -230,7 +230,9 @@
               "prepend":"把指令加到队列开头",
               "title":"队列指令",
               "prependKey":"space + (指令)",
-              "append":"shift + (指令)"
+              "append":"shift + (指令)",
+              "commandSkipCurrent": "Cancel current order",
+              "commandCancelLast": "Cancel last order"
             },
             "orders":{
               "dGun":"手动发射 (D型枪)",
@@ -239,8 +241,6 @@
               "selfDestructKey":"ctrl + d",
               "dGunKey":"d",
               "repair":"维修",
-              "move":"移动",
-              "moveKey":"m",
               "attack":"a",
               "cancelTarget":"k",
               "patrolKey":"f",
@@ -299,18 +299,15 @@
             },
             "buildOrders":{
               "selectTile":"弹出建筑菜单",
-              "buildKey":"v",
-              "economy":"循环指定 金属矿采集 建筑",
+              "categorySelector":"循环指定 金属矿采集 建筑",
               "title":"建筑者指令",
               "rotate":"改变建筑朝向",
-              "utility":"循环指定 雷达/防御/其它 建筑",
+              "switchPage":"循环指定 雷达/防御/其它 建筑",
               "rotateKey":"[ and ], or o",
-              "combatKey":"x",
-              "economyKey":"z",
+              "buildingSelectorKey":"x",
+              "categorySelectorKey":"z",
               "selectTileKey":"左键",
-              "combat":"循环指定 电力生产 建筑",
-              "utilityKey":"c",
-              "build":"循环指定生产工厂"
+              "buildingSelector":"循环指定 电力生产 建筑",
             },
             "console":{
               "pause":"暂停",
@@ -322,12 +319,7 @@
             "title":"快捷键",
             "menus":{
               "settings":"设置",
-              "settingsKey":"F10",
-              "share":"共享 单位 / 资源",
-              "shareKey":"h",
               "title":"菜单",
-              "widgets":"插件列表",
-              "widgetsKey":"F11"
             },
             "issueContextOrders":{
               "formationOrder":"给单位(组)发出编队指令",
@@ -352,8 +344,8 @@
               "createGroup":"向编队中增加单位 (编号=1,2,..)",
               "allKey":"ctrl + a",
               "all":"选择所有单位",
-              "sameTypeOnscreenKey": "TranslateMe",
-              "sameTypeOnscreen": "TranslateMe",
+              "sameTypeVisibleKey": "TranslateMe",
+              "sameTypeVisible": "TranslateMe",
             },
             "issueBuildOrders":{
               "gridKey":"shift + alt + (建造指令)",

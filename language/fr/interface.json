@@ -276,9 +276,6 @@
 			"menus": {
 				"title": "Menus",
 				"settings": "Paramètres",
-				"widgetsKey": "F11",
-				"widgets": "Liste des Widget",
-				"share": "Partager des unités / ressources"
 			},
 			"camera": {
 				"title": "Mouvements de caméra",
@@ -328,7 +325,6 @@
 				"title": "Raccourcis d'ordres",
 				"defaultKey": "(rien)",
 				"default": "ordre par défaut (généralement déplacer)",
-				"move": "Avancer",
 				"attack": "Attaquer",
 				"stop": "Stop (efface la file d'attente des commandes)",
 				"repair": "Réparer",
@@ -357,20 +353,19 @@
 				"append": "Ajoute un ordre à la fin de la file",
 				"appendKey": "SHIFT + (Ordre)",
 				"prependKey": "Espace + (ordre)",
-				"prepend": "Ajoute un ordre au début de la file"
+				"prepend": "Ajoute un ordre au début de la file",
+				"commandSkipCurrent": "Cancel current order",
+				"commandCancelLast": "Cancel last order"
 			},
 			"buildOrders": {
 				"title": "Parcourir les entités",
 				"selectTileKey": "(souris)",
 				"selectTile": "Sélectionner depuis menu de construction",
-				"economyKey": "z",
-				"economy": "Parcourir extracteurs de métal",
-				"combatKey": "x",
-				"combat": "Parcourir générateurs d'énergie",
-				"utilityKey": "c",
-				"utility": "Parcourir radars/défenses/...",
-				"buildKey": "v",
-				"build": "Parcourir les usines",
+				"categorySelectorKey": "TranslateMe",
+				"categorySelector": "TranslateMe",
+				"buildingSelectorKey": "TranslateMe",
+				"buildingSelector": "TranslateMe",
+				"switchPage": "TranslateMe",
 				"rotateKey": "^ et $",
 				"rotate": "Changer le sens du bâtiment"
 			},
@@ -405,8 +400,8 @@
 				"group": "Sélectionner les unités du groupe",
 				"sameTypeAllKey": "CTRL + Z",
 				"sameTypeAll": "Sélectionne toute unité du même type",
-				"sameTypeOnscreenKey": "TranslateMe",
-				"sameTypeOnscreen": "TranslateMe"
+				"sameTypeVisibleKey": "TranslateMe",
+				"sameTypeVisible": "TranslateMe"
 			},
 			"drawing": {
 				"title": "Dessin",
