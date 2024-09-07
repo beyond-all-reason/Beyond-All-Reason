@@ -271,6 +271,9 @@
 			"blueprint_place_tooltip": "Place a saved blueprint",
 			"blueprint_create": "Save Blueprint",
 			"blueprint_create_tooltip": "Save the selected units into a new blueprint, in the order they were selected",
+			"factoryqueuemode_normal": "Set Queue",
+			"factoryqueuemode_quota": "Set Quotas",
+			"factoryqueuemode_tooltip": "Set the factory queue or the factory quotas",
 			"customOnOff": {
 				"lowTrajectory": "Low Trajectory",
 				"highTrajectory": "High Trajectory",
