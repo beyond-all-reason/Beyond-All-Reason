@@ -105,6 +105,7 @@ function gadget:AllowCommand(unitID, unitDefID, _, cmdID)
 	spGiveOrderToUnit(unitID, CMD_WAIT, EMPTY, 0) -- Removes wait if there is a wait but doesn't readd it.
 	spGiveOrderToUnit(unitID, CMD_WAIT, EMPTY, 0) -- If a factory is waiting, it will not clear the current build command, even if the cmd is removed.
 	-- See: http://zero-k.info/Forum/Post/237176#237176 for details.
+	return true
 end
 
 --------------------------------------------------------------------------------
