@@ -565,7 +565,11 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
 		local quotaFontSize = cellInnerSize * 0.29
 		local textWidth = font2:GetTextWidth(quotaText .. "  ") * quotaFontSize
 		local pad = math_floor(cellInnerSize * 0.03)
-		
+		if textWidth > 0.75 * cellInnerSize then
+			local newFontSize = quotaFontSize * 0.75 * cellInnerSize / textWidth
+			textWidth = font2:GetTextWidth(quotaText .. "  ") * newFontSize
+			quotaFontSize = newFontSize
+		end
 		local pad2 = 0
 		RectRound(cellRects[cellRectID][3] - cellPadding - iconPadding - textWidth - pad2, cellRects[cellRectID][2] + cellPadding + iconPadding, cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][2] + cellPadding + iconPadding + math_floor(cellInnerSize * 0.365) + pad2, cornerSize * 3.3, 1, 0, 0, 0, { 0.15, 0.15, 0.15, 0.95 }, { 0.25, 0.25, 0.25, 0.95 })
 		RectRound(cellRects[cellRectID][3] - cellPadding - iconPadding - textWidth - pad2, cellRects[cellRectID][2] + cellPadding + iconPadding, cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][2] + cellPadding + iconPadding + math_floor(cellInnerSize * 0.15) + pad2, 0, 0, 0, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.05 })
