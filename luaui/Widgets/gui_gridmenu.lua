@@ -31,6 +31,8 @@ local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
 local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
+local spGetUnitCmdDescs = Spring.GetUnitCmdDescs
+local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
 
 local math_floor = math.floor
 local math_ceil = math.ceil
@@ -42,6 +44,7 @@ local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 local GL_ONE_MINUS_SRC_COLOR = GL.ONE_MINUS_SRC_COLOR
 
+VFS.Include('luarules/configs/customcmds.h.lua')
 -------------------------------------------------------------------------------
 --- STATIC VALUES
 -------------------------------------------------------------------------------
@@ -517,6 +520,30 @@ local function cmdParamsToFactoryQueueChange(cmdParams)
 	end
 
 	return count
+end
+
+local function updateQuotaNr(unitDefID, count)
+	local cellId = uDefCellIds[unitDefID]
+	if not cellId then
+		return
+	end
+	local cellRect = cellRects[cellId]
+	if WG.Quotas then
+		for _, builderID in ipairs(Spring.GetSelectedUnitsSorted()[activeBuilder]) do
+			local quotas = WG.Quotas.getQuotas()
+			quotas[builderID] = quotas[builderID] or {}
+			quotas[builderID][unitDefID] = quotas[builderID][unitDefID] or 0
+			quotas[builderID][unitDefID] = math.max(quotas[builderID][unitDefID] + (count or 0), 0)
+			WG.Quotas.update(quotas)
+			cellRect.opts.quotanr = quotas[builderID][unitDefID]
+		end
+		if count > 0 then
+			Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
+		else
+			Spring.PlaySoundFile(CONFIG.sound_queue_rem, 0.75, "ui")
+		end
+	end
+	redraw = true
 end
 
 local function updateQueueNr(unitDefID, count)
@@ -1036,6 +1063,10 @@ local function gridmenuCategoryHandler(_, _, args)
 	return true
 end
 
+local function isOnQuotaBuildMode(unitID)
+	return spGetUnitCmdDescs(unitID)[spFindUnitCmdDesc(unitID, CMD_QUOTA_BUILD_TOGGLE)].params[1]+0 == 1
+end
+
 local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 	if builderIsFactory and useLabBuildMode and not labBuildModeActive then
 		return
@@ -1060,30 +1091,43 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 
 	if builderIsFactory then
-		if args[3] and args[3] == "builder" then
-			return false
-		end
+		if isOnQuotaBuildMode(activeBuilderID) and WG.Quotas then
+			local change = 1
+			if shift then
+				change = 5
+			end
 
-		local opts
-
-		if ctrl then
-			opts = { "right" }
-			Spring.PlaySoundFile(CONFIG.sound_queue_rem, 0.75, "ui")
+			if ctrl then
+				change = -change
+			end
+			updateQuotaNr(uDefID,change)
+			return true
 		else
-			opts = { "left" }
-			Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
-		end
+			if args[3] and args[3] == "builder" then
+				return false
+			end
 
-		if alt then
-			table.insert(opts, "alt")
-		end
-		if shift then
-			table.insert(opts, "shift")
-		end
+			local opts
 
-		queueUnit(uDefID, opts)
+			if ctrl then
+				opts = { "right" }
+				Spring.PlaySoundFile(CONFIG.sound_queue_rem, 0.75, "ui")
+			else
+				opts = { "left" }
+				Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
+			end
 
-		return true
+			if alt then
+				table.insert(opts, "alt")
+			end
+			if shift then
+				table.insert(opts, "shift")
+			end
+
+			queueUnit(uDefID, opts)
+
+			return true
+		end
 	elseif isPregame and currentCategory then
 		if alt or ctrl or meta then
 			return
@@ -1706,6 +1750,10 @@ local function drawCell(rect)
 	local uid = rect.opts.uDefID
 	local disabled = rect.opts.disabled
 	local queuenr = rect.opts.queuenr
+	local quotanr
+	if WG.Quotas and WG.Quotas.getQuotas()[activeBuilderID] and WG.Quotas.getQuotas()[activeBuilderID][uid] then
+		quotanr = WG.Quotas.getQuotas()[activeBuilderID][uid]
+	end
 
 	local cellColor
 	local usedZoom = defaultCellZoom
@@ -1856,6 +1904,39 @@ local function drawCell(rect)
 			"\255\190\255\190" .. queuenr,
 			rect.x + cellPadding + textPad,
 			rect.y + cellPadding + math_floor(cellInnerSize * 0.735),
+			queueFontSize,
+			"o"
+		)
+	end
+
+	if quotanr and quotanr ~= 0 then
+		local quotaText = WG.Quotas.getUnitAmount(activeBuilderID, uid) .. "/" .. quotanr
+		local queueFontSize = cellInnerSize * 0.29
+		local textPad = math_floor(cellInnerSize * 0.1)
+		local textWidth = font2:GetTextWidth(quotaText) * queueFontSize
+		if textWidth > 0.75 * cellInnerSize then
+			local newFontSize = queueFontSize * 0.75 * cellInnerSize / textWidth
+			textPad = textPad * newFontSize/queueFontSize
+			textWidth = font2:GetTextWidth(quotaText) * newFontSize
+			queueFontSize = newFontSize
+		end
+		RectRound(
+			rect.x,
+			rect.y + cellPadding + iconPadding,
+			rect.x + textWidth + (textPad * 2), -- double pad, for a pad at the start and end
+			rect.y + cellPadding + iconPadding + math_floor(cellInnerSize * 0.365),
+			cornerSize * 3.3,
+			0,
+			1,
+			0,
+			0,
+			{ 0.15, 0.15, 0.15, 0.95 },
+			{ 0.25, 0.25, 0.25, 0.95 }
+		)
+		font2:Print(
+			"\255\255\130\190" .. quotaText,
+			rect.x + cellPadding + textPad,
+			rect.y + cellPadding + (math_floor(cellInnerSize * 0.365) - font2:GetTextHeight(quotanr)*queueFontSize)/2,
 			queueFontSize,
 			"o"
 		)
@@ -2291,11 +2372,36 @@ function widget:MousePress(x, y, button)
 							if isPregame then
 								setPregameBlueprint(unitDefID)
 							elseif spGetCmdDescIndex(-unitDefID) then
-								pickBlueprint(unitDefID)
+								local alt, ctrl, meta, shift = Spring.GetModKeyState()
+								
+								if not (WG.Quotas and isOnQuotaBuildMode(activeBuilderID) and builderIsFactory) then
+									pickBlueprint(unitDefID)
+								else
+									local amount = 1
+									if ctrl then
+										amount = amount * 20
+									end
+									if shift then
+										amount = amount * 5
+									end
+									updateQuotaNr(unitDefID, amount)
+								end
 							end
 						elseif builderIsFactory and spGetCmdDescIndex(-unitDefID) then
 							Spring.PlaySoundFile(CONFIG.sound_queue_rem, 0.75, "ui")
-							setActiveCommand(spGetCmdDescIndex(-unitDefID), 3, false, true)
+							local alt, ctrl, meta, shift = Spring.GetModKeyState()
+							if not (WG.Quotas and isOnQuotaBuildMode(activeBuilderID)) then
+								setActiveCommand(spGetCmdDescIndex(-unitDefID), 3, false, true)
+							else
+								local amount = -1
+								if ctrl then
+									amount = amount * 20
+								end
+								if shift then
+									amount = amount * 5
+								end
+								updateQuotaNr(unitDefID, amount)
+							end
 						end
 
 						return true
@@ -2426,6 +2532,13 @@ end
 function widget:UnitCommand(unitID, _, _, cmdID, _, cmdParams)
 	-- if theres no factory as active builder, cmd is not build return or cmd
 	-- is not to build a unit: nothing to do
+	if cmdID == CMD_STOP_PRODUCTION then
+		if WG.Quotas then
+			local quotas = WG.Quotas.getQuotas()
+			quotas[unitID] = nil
+			redraw = true
+		end
+	end
 	if not builderIsFactory or cmdID >= 0 or activeBuilderID ~= unitID then
 		return
 	end
