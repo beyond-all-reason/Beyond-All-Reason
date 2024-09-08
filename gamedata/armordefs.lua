@@ -197,6 +197,7 @@ local armorDefs = {
 		"corasp",
 		"corfasp",
 		"corbhmth",
+		"legrampart",
 		"corbuzz",
 		"corcan",
 		"corch",

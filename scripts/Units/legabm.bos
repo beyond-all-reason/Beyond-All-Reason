@@ -1,28 +1,27 @@
 
 #include "../recoil_common_includes.h"
 
-piece  	base, aimpoint, turret, turretarm, aimx, sleeve, barrel, flare, 
-		panelf, 	panell, 	panelr, 
-		armleft, 	bodyleft, 	railleft, 
-		armright, 	bodyright, 	railright, 
-		armtop, 	bodytop, 	railtop;
+piece  	base, flare, panelf, panell, panelr, flare, lpanelpivot, rpanelpivot, vent1, vent2, vent3;
 		
 static-var  restore_delay;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
+#define SIGNAL_SMOKE 512
 
 Create()
 {
 	hide flare;
-	hide aimpoint;
-	turn panell to y-axis <30> now;
-	turn panelr to y-axis <-30> now;
-	turn armleft to y-axis <-30> now;
-	turn armright to y-axis <30> now;
+	hide vent1;
+	hide vent2;
+	hide vent3;
 	
-	restore_delay = 3000;
+	turn panell to y-axis <-30> now;
+	turn lpanelpivot to y-axis <30> now;
+	turn panelr to y-axis <30> now;
+	turn rpanelpivot to y-axis <-30> now;
 	
+	restore_delay = 12000;
 	
 	// Reset model
 	start-script Deactivate();
@@ -34,119 +33,77 @@ Create()
 
 Activate()
 {
-	move turret to y-axis [10] speed [10];
-	
-	move panell to x-axis [-8.66] speed [17.32];
-	move panell to z-axis [-5] speed [10];
-	move panelr to x-axis [8.66] speed [17.32];
-	move panelr to z-axis [-5] speed [10];
+	move lpanelpivot to x-axis [-8.66] speed [17.32];
+	move lpanelpivot to z-axis [-5] speed [10];
+	move rpanelpivot to x-axis [8.66] speed [17.32];
+	move rpanelpivot to z-axis [-5] speed [10];
 	move panelf to z-axis [10] speed [20];
 	
-	wait-for-move panelf along z-axis;
-	
 	turn panelf to x-axis <60> speed <180>;
-	turn panell to z-axis <60> speed <180>;
-	turn panelr to z-axis <-60> speed <180>;
+	turn lpanelpivot to z-axis <60> speed <180>;
+	turn rpanelpivot to z-axis <-60> speed <180>;
 	
 	move panelf to y-axis [-15] speed [5];
-	move panell to y-axis [-15] speed [5];
-	move panelr to y-axis [-15] speed [5];
-	
-	turn turretarm to x-axis <-90> speed <90>;
-	turn sleeve to x-axis <180> speed <180>;
-	move barrel to y-axis [10] speed [10];
-	
-	wait-for-turn sleeve around x-axis;
-	
-	turn armtop to x-axis <115> speed <180>;
-	turn bodytop to x-axis <-115> speed <180>;
-	turn armleft to z-axis <-115> speed <180>;
-	turn bodyleft to z-axis <115> speed <180>;
-	turn armright to z-axis <115> speed <180>;
-	turn bodyright to z-axis <-115> speed <180>;
-	
-	move railtop to y-axis [15] speed [30];
-	move railleft to y-axis [15] speed [30];
-	move railright to y-axis [15] speed [30];
-	
-	wait-for-move railtop along y-axis;
+	move lpanelpivot to y-axis [-15] speed [5];
+	move rpanelpivot to y-axis [-15] speed [5];
 	
 	start-script RestoreAfterDelay();
 }
 
 Deactivate()
 {
-	turn turret to y-axis <0> speed <30.0>;
-	turn aimx to x-axis <0> speed <90.0>;
-	turn sleeve to x-axis <0> speed <90.0>;
-	turn turretarm to x-axis <0> speed <45.0>;
-	
-	sleep 2000;
-	
-	move railtop to y-axis [0] speed [10];
-	move railleft to y-axis [0] speed [10];
-	move railright to y-axis [0] speed [10];
-	move barrel to y-axis [0] speed [5];
-	
-	wait-for-turn turret around y-axis;
-	
-	turn armtop to x-axis <0> speed <60>;
-	turn bodytop to x-axis <5> speed <60>;
-	turn armleft to z-axis <0> speed <60>;
-	turn bodyleft to z-axis <-5> speed <60>;
-	turn armright to z-axis <0> speed <60>;
-	turn bodyright to z-axis <5> speed <60>;
-	
-	move turret to y-axis [0] speed [10];
-	
 	move panelf to y-axis [0] speed [8];
-	move panell to y-axis [0] speed [8];
-	move panelr to y-axis [0] speed [8];
+	move lpanelpivot to y-axis [0] speed [8];
+	move rpanelpivot to y-axis [0] speed [8];
 	
 	wait-for-move panelf along y-axis;
 	
-	move panell to x-axis [0] speed [8.66];
-	move panell to z-axis [0] speed [5];
-	move panelr to x-axis [0] speed [8.66];
-	move panelr to z-axis [0] speed [5];
+	move lpanelpivot to x-axis [0] speed [8.66];
+	move lpanelpivot to z-axis [0] speed [5];
+	move rpanelpivot to x-axis [0] speed [8.66];
+	move rpanelpivot to z-axis [0] speed [5];
 	move panelf to z-axis [0] speed [10];
 	
 	turn panelf to x-axis <0> speed <120>;
-	turn panell to z-axis <0> speed <120>;
-	turn panelr to z-axis <0> speed <120>;
+	turn lpanelpivot to z-axis <0> speed <120>;
+	turn rpanelpivot to z-axis <0> speed <120>;
 }
 
 AimWeapon1(heading, pitch)
-{
+{	
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-
 	call-script Activate();
-	
-	turn turret to y-axis heading speed <90.0>;
-	turn aimx to x-axis 0 - pitch speed <45.0>;
-
 	return (1);
 }
 
 FireWeapon1()
-{
+{	
+	set-signal-mask SIGNAL_SMOKE;
 	
-	turn armtop to x-axis <90> now;
-	turn bodytop to x-axis <-90> now;
-	turn armleft to z-axis <-90> now;
-	turn bodyleft to z-axis <90> now;
-	turn armright to z-axis <90> now;
-	turn bodyright to z-axis <-90> now;
-	
-	sleep 50;
-	
-	turn armtop to x-axis <115> speed <50>;
-	turn bodytop to x-axis <-115> speed <50>;
-	turn armleft to z-axis <-115> speed <50>;
-	turn bodyleft to z-axis <115> speed <50>;
-	turn armright to z-axis <115> speed <50>;
-	turn bodyright to z-axis <-115> speed <50>;
+	emit-sfx 257 from vent1;
+	emit-sfx 257 from vent2;
+	emit-sfx 257 from vent3;
+	sleep(166);
+	emit-sfx 257 from vent1;
+	emit-sfx 257 from vent2;
+	emit-sfx 257 from vent3;
+	sleep(166);
+	emit-sfx 257 from vent1;
+	emit-sfx 257 from vent2;
+	emit-sfx 257 from vent3;
+	sleep(166);
+	emit-sfx 257 from vent1;
+	emit-sfx 257 from vent2;
+	emit-sfx 257 from vent3;
+	sleep(166);
+	emit-sfx 257 from vent1;
+	emit-sfx 257 from vent2;
+	emit-sfx 257 from vent3;
+	sleep(166);
+	emit-sfx 257 from vent1;
+	emit-sfx 257 from vent2;
+	emit-sfx 257 from vent3;
 }
 
 ExecuteRestoreAfterDelay()
@@ -176,37 +133,29 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode turretarm type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode sleeve type BITMAPONLY | NOHEATCLOUD;
-		explode barrel type BITMAPONLY | NOHEATCLOUD;
-		explode railleft type BITMAPONLY | NOHEATCLOUD;
+		explode panelf type BITMAPONLY | NOHEATCLOUD;
+		explode panell type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode turretarm type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode sleeve type FALL | NOHEATCLOUD;
-		explode barrel type FALL | NOHEATCLOUD;
-		explode railleft type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode panelf type FALL | NOHEATCLOUD;
+		explode panell type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode turretarm type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode sleeve type SMOKE | FALL | NOHEATCLOUD;
-		explode barrel type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode railleft type SMOKE | FALL | NOHEATCLOUD;
+		explode panelf type SMOKE | FALL | NOHEATCLOUD;
+		explode panell type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode turretarm type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode sleeve type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode barrel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode railleft type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode panelf type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode panell type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

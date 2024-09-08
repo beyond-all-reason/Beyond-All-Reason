@@ -79,6 +79,7 @@ if gadgetHandler:IsSyncedCode() then
 		['legcomlvl10'] = 5,
 
 		['legstarfall'] = 1,
+		['legrampart'] = 20,
 	}
 	-- convert unitname -> unitDefID + add scavengers
 	local isStockpilingUnit = {}

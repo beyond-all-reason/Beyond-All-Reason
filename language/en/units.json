@@ -847,7 +847,9 @@
 			"legnanotcplat": "Naval Construction Turret",
 			"legnanotct2": "T2 Construction Turret",
 			"legnanotct2plat": "T2 Naval Construction Turret",
-			"legnanotcbase": "Base Builder"
+			"legnanotcbase": "Base Builder",
+			"legrampart": "Rampart",
+			"legabm": "Aegis"
 		},
 		"descriptions": {
 			"armaak": "Advanced Amphibious Anti-Air Bot",
@@ -1689,7 +1691,9 @@
 			"legnanotcplat": "Assist & Repair in large radius",
 			"legnanotct2": "Assist & Repair in larger radius",
 			"legnanotct2plat": "Assist & Repair in larger radius",
-			"legnanotcbase": "Assist & Repair in massive radius"
+			"legnanotcbase": "Assist & Repair in massive radius",
+			"legrampart": "Geothermal Antinuke, Jammer, Radar and Drone Platform",
+			"legabm": "Anti-Nuke System"
 		}
 	}
 }

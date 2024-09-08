@@ -485,6 +485,7 @@ local unitOrderTable = {
    ['armageo']        = 101400,
    ['armuwageo']      = 101401,
    ['corbhmth']       = 101450,
+   ['legrampart']       = 101475,
 
    --ECO NRG FUSIONS
    ['armfus']         = 101525,
@@ -501,9 +502,12 @@ local unitOrderTable = {
    ['coruwadves']     = 101950,
 
    --NANOS
-   ['armnanotc']      = 102000,
-   ['cornanotc']      = 102050,
-   ['legnanotc']      = 102075,
+   ['armnanotc']      = 102010,
+   ['cornanotc']      = 102020,
+   ['legnanotc']      = 102030,
+   ['armnanotct2']      = 102010,
+   ['cornanotct2']      = 102020,
+   ['legnanotct2']      = 102030,
 
    --FACTORIES
    ['armlab']         = 102100,

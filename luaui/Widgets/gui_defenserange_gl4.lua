@@ -254,6 +254,7 @@ local function initUnitList()
 
 		-- LEGION
 		['legabm'] = { weapons = { 3 } }, --antinuke
+		['legrampart'] = { weapons = { 3 } }, --rampart
 
 		-- SCAVENGERS
 		['scavbeacon_t1_scav'] = { weapons = { 1 } },

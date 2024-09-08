@@ -1083,6 +1083,10 @@ local icontypes = {
 		bitmap = "icons/hazardous.png",
 		size = 1.88999987
 	},
+	legrampart = {
+		bitmap = "icons/legion_rampart.png",
+		size = 1.88999987
+	},
 	corah = {
 		bitmap = "icons/hover_aa.png",
 		size = 1.15499997
@@ -1396,6 +1400,10 @@ local icontypes = {
 		size = 1.5
 	},
 	corfmd = {
+		bitmap = "icons/antinuke.png",
+		size = 1.67999995
+	},
+	legabm = {
 		bitmap = "icons/antinuke.png",
 		size = 1.67999995
 	},
@@ -2321,11 +2329,11 @@ local icontypes = {
 	},
 	legdrone = {
 		bitmap = "icons/air_hover.png",
-		size = 0.5
+		size = 0.66
 	},
 	legheavydrone = {
 		bitmap = "icons/heavyheatraydrone.png",
-		size = 0.75
+		size = 0.9
 	},
 	legfhp = {
 		bitmap = "icons/factory_hover.png",
