@@ -1629,7 +1629,7 @@
 			"tutorial": "Recommended start positions and roles are indicated within the circles.\n\nTo disable this, check the Settings window for \"Start Position Suggestions\".",
 			"roles": {
 				"front": {
-					"title": "Frontline",
+					"title": "Front",
 					"description": "Build ground units and bring your Commander forward to secure a strong central position, taking metal spots along the way."
 				},
 				"tech": {
@@ -1644,34 +1644,14 @@
 					"title": "Sea",
 					"description": "Build navy units and secure a strong position on the map. Later, build amphibious or air units to invade enemies on land."
 				},
-				"air/front": {
-					"title": "Air/Front",
-					"description": "Scout enemy players, distribute transports to allies, fight for air dominance, bomb enemy bases, and help defend against raids.\n\nand/or\n\nBuild ground units early and bring your commander forward to secure a strong central position, taking metal spots along the way."
-				},
-				"air/sea": {
-					"title": "Air/Sea",
-					"description": "Scout enemy players, distribute transports to allies, fight for air dominance, bomb enemy bases, and help defend against raids.\n\nand/or\n\nBuild navy units early and secure a strong position on the map. Later on, consider building amphibious or air units to invade enemies on land."
-				},
-				"air/tech": {
-					"title": "Air/Tech",
-					"description": "Scout enemy players, distribute transports to allies, fight for air dominance, bomb enemy bases, and help defend against raids.\n\nand/or\n\nFocus on early economy to support building a Tier 2 factory, in order to distribute Tier 2 constructors to the team, and attack with high tier units."
-				},
-				"front/sea": {
-					"title": "Front/Sea",
-					"description": "Build ground units early and bring your commander forward to secure a strong central position, taking metal spots along the way.\n\nand/or\n\nBuild navy units early and secure a strong position on the map. Later on, consider building amphibious or air units to invade enemies on land."
-				},
-				"front/tech": {
-					"title": "Front/Tech",
-					"description": "Build ground units early and bring your commander forward to secure a strong central position, taking metal spots along the way.\n\nand/or\n\nFocus on early economy to support building a Tier 2 factory, in order to distribute Tier 2 constructors to the team, and attack with high tier units."
-				},
-				"sea/tech": {
-					"title": "Sea/Tech",
-					"description": "Build navy units early and secure a strong position on the map. Later on, consider building amphibious or air units to invade enemies on land.\n\nand/or\n\nFocus on early economy to support building a Tier 2 factory, in order to distribute Tier 2 constructors to the team, and attack with high tier units."
-				},
 				"baseCenter": {
 					"title": "Base Center",
 					"description": "Move your Commander here shortly after spawning. Build your first factory in this area."
 				}
+			},
+			"multiRole": {
+				"title": "%{role1}/%{role2}",
+				"description": "%{role1}\n\nand/or\n\n%{role2}"
 			}
 		}
 	}
