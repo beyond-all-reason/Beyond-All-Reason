@@ -30,6 +30,7 @@ local fallDamageMultipliers = {}
 local unitsMaxImpulse = {}
 local weaponDefIDImpulses = {}
 local overImpulseCooldowns = {}
+local transportingUnits = {}
 
 local currentModulusFrame = 0
 
@@ -52,6 +53,15 @@ local function calculateImpulseData(unitDefID, damage, weaponDefID)
 	return impulse, impulseMultiplier
 end
 
+local function isUnitBeingTransported(unitID)
+	for transportID, transportedID in pairs(transportingUnits) do
+		if transportingUnits[transportID][unitID] then
+			return true
+		end
+	end
+	return false
+end
+
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 	if weaponDefID > 0 then --this section handles limiting maximum impulse
 		local impulseMultiplier = 1
@@ -69,10 +79,10 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 			return damage, 0
 		end
 	else
-		if weaponDefID == groundCollisionDefID then --handles ground collision events
+		if weaponDefID == groundCollisionDefID and not isUnitBeingTransported(unitID) then --handles ground collision events
 			damage = damage*fallDamageMultipliers[unitDefID]
 			return damage, 0
-		elseif weaponDefID == objectCollisionDefID then --handles object collision events
+		elseif weaponDefID == objectCollisionDefID and not isUnitBeingTransported(unitID) then --handles object collision events
 			local _, velY, _, velLength = spGetUnitVelocity(unitID)
 			if velLength > objectCollisionVelocityThreshold and -velY > (velLength/3) then --prevents mostly horizontal object collisions from taking damage, allows damage if dropped from above
 				damage = damage*fallDamageMultipliers[unitDefID]
@@ -82,6 +92,15 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 			end
 		end
 	end
+end
+
+function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
+	transportingUnits[transportID] = transportingUnits[transportID] or {}
+	transportingUnits[transportID][unitID] = true
+end
+
+function gadget:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
+	transportingUnits[transportID][unitID] = nil
 end
 
 function gadget:GameFrame(frame)
