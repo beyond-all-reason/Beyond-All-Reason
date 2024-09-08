@@ -641,8 +641,8 @@ local function drawStats(uDefID, uID)
 			if uWep.damages.paralyzeDamageTime > 0 then
 				infoText = format("%s, %ds "..texts.paralyze, infoText, uWep.damages.paralyzeDamageTime)
 			end
-			if uWep.damages.impulseBoost > 0 then
-				infoText = format("%s, %d "..texts.impulse, infoText, uWep.damages.impulseBoost*100)
+			if uWep.damages.impulseFactor > 0.123 then
+				infoText = format("%s, %d "..texts.impulse, infoText, uWep.damages.impulseFactor*100)
 			end
 			if uWep.damages.craterBoost > 0 then
 				infoText = format("%s, %d "..texts.crater, infoText, uWep.damages.craterBoost*100)
