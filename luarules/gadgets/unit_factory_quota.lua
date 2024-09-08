@@ -51,7 +51,7 @@ function gadget:UnitCreated(unitID, unitDefID, _)
 end
 
 function gadget:Initialize()
-	for _, unitID in ipairs(Spring.GetAllUnits()) do
+	for _, unitID in ipairs(Spring.GetAllUnits()) do -- handle /luarules reload
 		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
 	end
 end
