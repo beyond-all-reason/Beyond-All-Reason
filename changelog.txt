@@ -4,7 +4,7 @@
 • [Lazarus + Graverobber] Metal cost increased 110->130, E cost unchanged, buildtime increased 2400->2800
 • [Mace] Health increased 900->1000
 • [Thug] Health increased 1000->1100, buildtime increased from 1970->2100 so it doesn't get repaired too quickly
-• [Tremor] Reloadtime reverted to 0.5s
+• [Tremor] Reloadtime reverted to 0.5s, impulse reduced 30%
 • [Vanguard] Range increased 1325->1450, health reduced 10000->8500.  Tremor and Vanguard's higher ranges now let them outrange long range defences (Rattlesnake, Persecutor, Pulsar)
 
 # August 2024
