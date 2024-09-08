@@ -551,17 +551,17 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
 	end
 
 	
-	local quotanr, builderID
-	for _, factID in ipairs(spGetSelectedUnits()) do
-		if WG.Quotas and WG.Quotas.getQuotas()[factID] and WG.Quotas.getQuotas()[factID][uDefID] then
-			quotanr = WG.Quotas.getQuotas()[factID][uDefID]
-			builderID = factID
+	local quotaNumber, builderID
+	for _, factoryID in ipairs(spGetSelectedUnits()) do
+		if WG.Quotas and WG.Quotas.getQuotas()[factoryID] and WG.Quotas.getQuotas()[factoryID][uDefID] then
+			quotaNumber = WG.Quotas.getQuotas()[factoryID][uDefID]
+			builderID = factoryID
 			break
 		end
 	end
 
-	if quotanr and quotanr ~= 0 then
-		local quotaText = WG.Quotas.getUnitAmount(builderID, uDefID) .. "/" .. quotanr
+	if quotaNumber and quotaNumber ~= 0 then
+		local quotaText = WG.Quotas.getUnitAmount(builderID, uDefID) .. "/" .. quotaNumber
 		local quotaFontSize = cellInnerSize * 0.29
 		local textWidth = font2:GetTextWidth(quotaText .. "  ") * quotaFontSize
 		local pad = math_floor(cellInnerSize * 0.03)
@@ -577,7 +577,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
 		font2:Print(
 			"\255\255\130\190" .. quotaText,
 			cellRects[cellRectID][1] + cellPadding + math_floor(cellInnerSize * 0.96) - pad2,
-			cellRects[cellRectID][2] + cellPadding + (math_floor(cellInnerSize * 0.365) - font2:GetTextHeight(quotanr)*quotaFontSize)/2,
+			cellRects[cellRectID][2] + cellPadding + (math_floor(cellInnerSize * 0.365) - font2:GetTextHeight(quotaNumber)*quotaFontSize)/2,
 			quotaFontSize,
 			"ro"
 		)
@@ -1025,9 +1025,9 @@ local function setPreGamestartDefID(uDefID)
 	end
 end
 
-local function isOnQuotaBuildMode(factID, targetDefID)
-	if factID then
-		return Spring.GetUnitCmdDescs(factID)[Spring.FindUnitCmdDesc(factID, CMD_QUOTA_BUILD_TOGGLE)].params[1]+0 == 1
+local function isOnQuotaBuildMode(factoryID, targetDefID)
+	if factoryID then
+		return Spring.GetUnitCmdDescs(factoryID)[Spring.FindUnitCmdDesc(factoryID, CMD_QUOTA_BUILD_TOGGLE)].params[1]+0 == 1
 	end
 	for _, unitID in ipairs(spGetSelectedUnits()) do
 		local uDefID = spGetUnitDefID(unitID)
@@ -1038,9 +1038,9 @@ local function isOnQuotaBuildMode(factID, targetDefID)
 	return false
 end
 
-local function updateQuotaNr(unitDefID, count)
+local function updateQuotaNumber(unitDefID, count)
 	if WG.Quotas then
-		local somethingDone = false
+		local quotaChanged = false
 		for _, builderID in ipairs(Spring.GetSelectedUnits()) do
 			local uDefID = spGetUnitDefID(builderID)
 			if units.isFactory[uDefID] and table.contains(unitBuildOptions[uDefID], unitDefID) then
@@ -1050,23 +1050,23 @@ local function updateQuotaNr(unitDefID, count)
 				local prev = quotas[builderID][unitDefID]
 				quotas[builderID][unitDefID] = math.max(quotas[builderID][unitDefID] + (count or 0), 0)
 				WG.Quotas.update(quotas)
-				somethingDone = somethingDone or prev ~= quotas[builderID][unitDefID]
+				quotaChanged = quotaChanged or prev ~= quotas[builderID][unitDefID]
 			end
 		end
 		doUpdate = true
-		return somethingDone
+		return quotaChanged
 	end
 end
 
-local function changeQuotas(uDefID, change)
+local function changeQuotas(uDefID, quantity)
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 	if ctrl then
-		change = change * 20
+		quantity = quantity * 20
 	end
 	if shift then
-		change = change * 5
+		quantity = quantity * 5
 	end
-	return updateQuotaNr(uDefID, change)
+	return updateQuotaNumber(uDefID, quantity)
 end
 
 function widget:MousePress(x, y, button)
