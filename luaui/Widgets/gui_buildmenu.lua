@@ -1031,14 +1031,11 @@ local function setPreGamestartDefID(uDefID)
 	end
 end
 
-local function isOnQuotaBuildMode(factoryID, targetDefID)
-	if factoryID then
-		return Spring.GetUnitCmdDescs(factoryID)[Spring.FindUnitCmdDesc(factoryID, CMD_QUOTA_BUILD_TOGGLE)].params[1]+0 == 1
-	end
+local function isOnQuotaBuildMode(targetDefID)
 	for _, unitID in ipairs(spGetSelectedUnits()) do
 		local uDefID = spGetUnitDefID(unitID)
 		if units.isFactory[uDefID] and table.contains(unitBuildOptions[uDefID], targetDefID) then
-			return Spring.GetUnitCmdDescs(unitID)[Spring.FindUnitCmdDesc(unitID, CMD_QUOTA_BUILD_TOGGLE)].params[1]+0 == 1
+			return WG.Quotas.getToggleState(unitID)
 		end
 	end
 	return false
@@ -1104,7 +1101,7 @@ function widget:MousePress(x, y, button)
 				for cellRectID, cellRect in pairs(cellRects) do
 					if cmds[cellRectID].id and unitTranslatedHumanName[-cmds[cellRectID].id] and math_isInRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) and not (units.unitRestricted[-cmds[cellRectID].id]) then
 						local uDefID = cmds[cellRectID].id  --WARNING: THIS IS -unitDefID, not unitDefID
-						local setQuotas = isOnQuotaBuildMode(nil, -uDefID)
+						local setQuotas = isOnQuotaBuildMode(-uDefID)
 						if button ~= 3 then
 							if playSounds then
 								Spring.PlaySoundFile(sound_queue_add, 0.75, 'ui')

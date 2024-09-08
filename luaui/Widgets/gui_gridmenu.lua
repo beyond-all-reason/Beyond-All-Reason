@@ -31,8 +31,6 @@ local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
 local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spGetUnitCmdDescs = Spring.GetUnitCmdDescs
-local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
 
 local math_floor = math.floor
 local math_ceil = math.ceil
@@ -1074,10 +1072,6 @@ local function gridmenuCategoryHandler(_, _, args)
 	return true
 end
 
-local function isOnQuotaBuildMode(unitID)
-	return spGetUnitCmdDescs(unitID)[spFindUnitCmdDesc(unitID, CMD_QUOTA_BUILD_TOGGLE)].params[1]+0 == 1
-end
-
 local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 	if builderIsFactory and useLabBuildMode and not labBuildModeActive then
 		return
@@ -1102,7 +1096,7 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 
 	if builderIsFactory then
-		if isOnQuotaBuildMode(activeBuilderID) and WG.Quotas then
+		if WG.Quotas.getToggleState(activeBuilderID) and WG.Quotas then
 			local quantity = 1
 			if shift then
 				quantity = modKeyMultiplier.keyPress.shift
@@ -2379,7 +2373,7 @@ function widget:MousePress(x, y, button)
 					then
 						local alt, ctrl, meta, shift = Spring.GetModKeyState()
 						if button ~= 3 then
-							if WG.Quotas and isOnQuotaBuildMode(activeBuilderID) and builderIsFactory then
+							if WG.Quotas and WG.Quotas.getToggleState(activeBuilderID) and builderIsFactory then
 								local amount = 1
 								if ctrl then
 									amount = amount * modKeyMultiplier.click.ctrl
@@ -2398,7 +2392,7 @@ function widget:MousePress(x, y, button)
 								pickBlueprint(unitDefID)
 							end
 						elseif builderIsFactory and spGetCmdDescIndex(-unitDefID) then
-							if not (WG.Quotas and isOnQuotaBuildMode(activeBuilderID)) then
+							if not (WG.Quotas and WG.Quotas.getToggleState(activeBuilderID)) then
 								Spring.PlaySoundFile(CONFIG.sound_queue_rem, 0.75, "ui")
 								setActiveCommand(spGetCmdDescIndex(-unitDefID), 3, false, true)
 							else
