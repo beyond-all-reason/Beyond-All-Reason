@@ -1,7 +1,7 @@
 return {
 	corstorm = {
-		maxacc = 0.118,
-		maxdec = 0.6162,
+		maxacc = 0.1242,
+		maxdec = 0.6486,
 		energycost = 1150,
 		metalcost = 110,
 		buildpic = "CORSTORM.DDS",
@@ -19,7 +19,7 @@ return {
 		idletime = 1800,
 		health = 740,
 		maxslope = 14,
-		speed = 45.3,
+		speed = 47.7,
 		maxwaterdepth = 21,
 		movementclass = "BOT3",
 		movestate = 0,
@@ -120,7 +120,7 @@ return {
 				name = "Rockets",
 				noselfdamage = true,
 				range = 475,
-				reloadtime = 4,
+				reloadtime = 3.8,
 				smoketrail = true,
 				smokePeriod = 11,
 				smoketime = 28,
@@ -140,7 +140,7 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 190,
 				damage = {
-					default = 173,
+					default = 157,
 				},
 			},
 		},
