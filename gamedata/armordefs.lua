@@ -460,6 +460,8 @@ local armorDefs = {
 		"cornanotc",
 		"armnanotcplat",
 		"cornanotcplat",
+		"legnanotc",
+		"legnanotcplat",
 	},
 	vtol = {
 		"raptors3",
