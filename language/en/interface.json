@@ -299,7 +299,7 @@
 		"keybinds": {
 			"title": "Keybinds",
 			"disclaimer": "These keybinds are set by default. If you switch to a keybind preset other than Grid, keys in the 3rd column will be inaccurate!",
-			"howtochangekeybinds":"To change them: in Settings/Control tab, set Keybindings to Custom to create the BAR/data/uikeys.txt file.\nEdit this file and type /keyreload in chat to reload them. You can find help for keybinds in #keybinding-support on Discord.",
+			"howtochangekeybinds":"To change them: in Settings/Control tab, set Keybindings to Custom to create the BAR/data/uikeys.txt file.\nEdit this file and type /keyreload in chat to reload them. You can find help for keybinding in #keybinding-support on Discord.",
 			"chat": {
 				"title": "Chat",
 				"send": "Send chat message",
