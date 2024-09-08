@@ -453,6 +453,26 @@ local drawAllStartLocationsCircles = glListCache(function()
 	end
 end)
 
+local function getCaptions(role)
+	local title, description
+	local roles = role:split("/")
+
+	if #roles == 1 then
+		title = Spring.I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".title")
+		description = Spring.I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".description")
+	elseif #roles > 1 then
+		local title1 = Spring.I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".title")
+		local title2 = Spring.I18N("ui.startPositionSuggestions.roles." .. roles[2] .. ".title")
+		title = Spring.I18N("ui.startPositionSuggestions.multiRole.title", { role1 = title1, role2 = title2})
+
+		local description1 = Spring.I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".description")
+		local description2 = Spring.I18N("ui.startPositionSuggestions.roles." .. roles[2] .. ".description")
+		description = Spring.I18N("ui.startPositionSuggestions.multiRole.description", { role1 = description1, role2 = description2})
+	end
+
+	return { title = title, description = description }
+end
+
 local function drawAllStartLocationsText()
 	if startPositions == nil then
 		return
@@ -483,7 +503,7 @@ local function drawAllStartLocationsText()
 			if showRole then
 				font:SetTextColor(config.roleTextColor)
 				font:Print(
-					Spring.I18N("ui.startPositionSuggestions.roles." .. position.role .. ".title"),
+					getCaptions(position.role).title,
 					0,
 					0,
 					config.roleTextSize,
@@ -569,12 +589,12 @@ local function drawTooltip()
 	WG["tooltip"].ShowTooltip(
 		"startPositionTooltip",
 		wrapText(
-			Spring.I18N("ui.startPositionSuggestions.roles." .. tooltipKey .. ".description"),
+			getCaptions(tooltipKey).description,
 			config.tooltipMaxWidthChars
 		),
 		x + xOffset,
 		y + yOffset,
-		Spring.I18N("ui.startPositionSuggestions.roles." .. tooltipKey .. ".title")
+		getCaptions(tooltipKey).title
 	)
 end
 
