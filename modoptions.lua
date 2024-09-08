@@ -1165,24 +1165,7 @@ local options = {
         def  	= false,
     },
 
-    -- Hidden Tests
-
-    {
-        key    	= "experimentalstandardgravity",
-        name   	= "Gravity Override",
-        desc   	= "Override map gravity for weapons",
-        hidden 	= true,
-        type   	= "list",
-        section = "options_experimental",
-        def  	= "mapgravity",
-        items 	= {
-            { key = "mapgravity", 	name = "Map Gravity", 		desc = "Uses map defined gravity" },
-            { key = "low", 			name = "Low Gravity", 		desc = "80 gravity" },
-            { key = "standard", 	name = "Standard Gravity", 	desc = "120 gravity" },
-            { key = "high", 		name = "High Gravity", 		desc = "150 gravity" },
-        }
-    },
-    
+    -- Hidden Tests 
     {
         key   	= "accuratelasers",
         name   	= "Accurate Lasers",

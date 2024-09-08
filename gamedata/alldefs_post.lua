@@ -1289,21 +1289,8 @@ function WeaponDef_Post(name, wDef)
 	if not SaveDefsToCustomParams then
 		-------------- EXPERIMENTAL MODOPTIONS
 		-- Standard Gravity
-		local gravityModOption = modOptions.experimentalstandardgravity
-
-		--Spring.Echo(wDef.name,wDef.mygravity)
-		if gravityModOption == "low" then
-			if wDef.mygravity == nil then
-				wDef.mygravity = 0.0889 --80/900
-			end
-		elseif gravityModOption == "standard" then
-			if wDef.mygravity == nil then
-				wDef.mygravity = 0.1333 --120/900
-			end
-		elseif gravityModOption == "high" then
-			if wDef.mygravity == nil then
-				wDef.mygravity = 0.1667 --150/900
-			end
+		if wDef.gravityaffected == "true" and wDef.mygravity == nil then
+			wDef.mygravity = 0.1445
 		end
 		
 		-- Accurate Lasers		
