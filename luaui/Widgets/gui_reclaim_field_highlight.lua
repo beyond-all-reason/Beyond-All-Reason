@@ -32,9 +32,8 @@ local showOption = 3
 
 --Metal value font
 local numberColor = {1, 1, 1, 0.75}
-local fontSizeMin = 32
-local fontSizeMax = 160
-local fontScaling = 0.45
+local fontSizeMin = 30
+local fontSizeMax = 180
 
 --Field color
 local reclaimColor = {0, 0, 0, 0.16}
@@ -100,8 +99,11 @@ if UnitDefNames.armflea then
 	local small = FeatureDefNames[UnitDefNames.armflea.corpse]
 	minFeatureMetal = small and small.metal or minFeatureMetal
 end
-local minTextAreaLength = 100
 checkFrequency = math.round(checkFrequency * Game.gameSpeed)
+
+local minTextAreaLength = (epsilon / 2 + fontSizeMin) / 2
+local areaTextMin = 3000
+local areaTextRange = (1.75 * minTextAreaLength * (fontSizeMax / fontSizeMin)) ^ 2 - areaTextMin
 
 local drawEnabled = false
 local actionActive = false
@@ -205,6 +207,7 @@ do
 			metal = metal + points[j].metal
 		end
 		cluster.metal = metal
+		cluster.text = string.formatSI(metal)
 	end
 
 	local function getClusterDimensions(cluster, points)
@@ -218,16 +221,35 @@ do
 			zmax = max(zmax, z)
 			cx, cz = cx + x, cz + z
 		end
-		cluster.xmin = xmin
-		cluster.xmax = xmax
-		cluster.zmin = zmin
-		cluster.zmax = zmax
 
 		-- The average of vertices is a very unstable estimate of the centroid.
 		-- The bounds change slowly, so we can use them to stabilize our guess:
 		cx, cz = cx / #points, cz / #points
-		cx, cz = (xmin + 1.5 * cx + xmax) / 3.5, (zmin + 1.5 * cz + zmax) / 3.5
+		cx, cz = (xmin + 2 * cx + xmax) / 4, (zmin + 2 * cz + zmax) / 4
 		cluster.center = { x = cx, y = max(0, spGetGroundHeight(cx, cz)) + 2, z = cz }
+
+		-- I keep shuffling this around to different places. Just do it here:
+		local dx, dz = xmax - xmin, zmax - zmin
+		if dx < minTextAreaLength then
+			xmin = xmin - (minTextAreaLength - dx) / 2
+			xmax = xmax + (minTextAreaLength - dx) / 2
+			dx = dx + minTextAreaLength
+		end
+		if dz < minTextAreaLength then
+			zmin = zmin - (minTextAreaLength - dz) / 2
+			zmax = zmax + (minTextAreaLength - dz) / 2
+			dz = dz + minTextAreaLength
+		end
+		cluster.xmin = xmin
+		cluster.xmax = xmax
+		cluster.zmin = zmin
+		cluster.zmax = zmax
+		cluster.dx = dx
+		cluster.dz = dz
+	end
+
+	local function sortMonotonic(a, b)
+		return (a.x > b.x) or (a.x == b.x and a.z > b.z)
 	end
 
 	---Filter a set of points to give a much smaller set of candidates for constructing
@@ -235,15 +257,9 @@ do
 	---Credit: mindthenerd.blogspot.ru/2012/05/fastest-convex-hull-algorithm-ever.html
 	---Also: www-cgrl.cs.mcgill.ca/~godfried/publications/fast.convex.hull.algorithm.pdf
 	local function convexSetConditioning(points)
-		local remaining = {}
-
-		-- The first point in each cluster is its seed point. By itself, this is effectively
-		-- a random point, but we know its furthest neighbors are later on in the sequence.
-		local middle = floor(#points * 0.5)
+		table.sort(points, sortMonotonic)
+		local remaining = { points[1] }
 		local x, z = points[1].x, points[1].z
-		x, z = x + points[middle].x, z + points[middle].z
-		x, z = x + points[#points].x, z + points[#points].z
-		x, z = x / 3, z / 3
 
 		-- (1) Cover all points by expanding a quadrilateral to follow these rules:
 		local ax,  az,  a_xzs_max  =  x,  z,  x - z  -- Choose point A to maximize x - z.
@@ -256,7 +272,7 @@ do
 		local rzmin, rzmax = z, z  -- Rz_min = max(Az, Dz); Rz_max = min(Bz, Cz).
 
 		-- (3) The algorithm performs two passes, with the first covering the full set.
-		for ii = 1, #points do
+		for ii = 2, #points do
 			local point = points[ii]
 			local x, z = point.x, point.z
 			if x <= rxmin or x >= rxmax or z <= rzmin or z >= rzmax then
@@ -269,41 +285,41 @@ do
 				if xzs > a_xzs_max then
 					a_xzs_max = xzs
 					ax, az = x, z
-					if x > rxmax then
-						rxmax = min(x, bx)
+					if x > rxmax and x < bx then
+						rxmax = x
 					end
-					if z < rzmin then
-						rzmin = max(z, dz)
+					if z < rzmin and z > dz then
+						rzmin = z
 					end
 				end
 				if xza > b_xza_max then
 					b_xza_max = xza
 					bx, bz = x, z
-					if x > rxmax then
-						rxmax = min(x, ax)
+					if x > rxmax and x < ax then
+						rxmax = x
 					end
-					if z > rzmax then
-						rzmax = min(z, cz)
+					if z > rzmax and z < cz then
+						rzmax = z
 					end
 				end
 				if xzs < c_xzs_min then
 					c_xzs_min = xzs
 					cx, cz = x, z
-					if x < rxmin then
-						rxmin = max(x, dx)
+					if x < rxmin and x > dx then
+						rxmin = x
 					end
-					if z > rzmax then
-						rzmax = min(z, bz)
+					if z > rzmax and z < bz then
+						rzmax = z
 					end
 				end
 				if xza < d_xza_min then
 					d_xza_min = xza
 					dx, dz = x, z
-					if x < rxmin then
-						rxmin = max(x, cx)
+					if x < rxmin and x > cx then
+						rxmin = x
 					end
-					if z < rzmin then
-						rzmin = max(z, az)
+					if z < rzmin and z > az then
+						rzmin = z
 					end
 				end
 			end
@@ -329,10 +345,6 @@ do
 
 	local MonotoneChain
 	do
-		local function sortMonotonic(a, b)
-			return (a.x > b.x) or (a.x == b.x and a.z > b.z)
-		end
-
 		local function cross(p, q, r)
 			return (q.z - p.z) * (r.x - q.x) -
 			       (q.x - p.x) * (r.z - q.z)
@@ -371,34 +383,19 @@ do
 	end
 
 	local function BoundingBox(cluster, points)
-		local xmin, xmax, zmin, zmax = cluster.xmin, cluster.xmax, cluster.zmin, cluster.zmax
-		local dx, dz = xmax - xmin, zmax - zmin
-
-		if dx < minTextAreaLength then
-			xmin = xmin - (minTextAreaLength - dx) / 2
-			xmax = xmax + (minTextAreaLength - dx) / 2
-			dx = dx + minTextAreaLength
-		end
-
-		if dz < minTextAreaLength then
-			zmin = zmin - (minTextAreaLength - dz) / 2
-			zmax = zmax + (minTextAreaLength - dz) / 2
-			dz = dz + minTextAreaLength
-		end
-
 		local ymax = points[1].y
 		if #points == 2 then
 			ymax = max(ymax, points[2].y)
 		end
 
 		local convexHull = {
-			{ x = xmin, y = ymax, z = zmin },
-			{ x = xmax, y = ymax, z = zmin },
-			{ x = xmax, y = ymax, z = zmax },
-			{ x = xmin, y = ymax, z = zmax },
+			{ x = cluster.xmin, y = ymax, z = cluster.zmin },
+			{ x = cluster.xmax, y = ymax, z = cluster.zmin },
+			{ x = cluster.xmax, y = ymax, z = cluster.zmax },
+			{ x = cluster.xmin, y = ymax, z = cluster.zmax },
 		}
 
-		local hullArea = dx * dz
+		local hullArea = cluster.dx * cluster.dz
 
 		return convexHull, hullArea
 	end
@@ -406,37 +403,39 @@ do
 	local function polygonArea(points)
 		if #points < 3 then return 0 end
 		local totalArea = 0
-		-- Determinant area, triangle form
-		local x1, z1 = points[1].x, points[1].z
-		local x2, z2
-		local x3, z3 = points[2].x, points[2].z
-		for i = 2, #points - 1 do
-			x2 = x3
-			z2 = z3
-			x3 = points[i + 1].x
-			z3 = points[i + 1].z
-			totalArea = totalArea + 0.5 * abs(x1 * (z2 - z3) + x2 * (z3 - z1) + x3 * (z1 - z2))
+		for ii = 1, #points - 1 do
+			totalArea = totalArea + points[ii].x * points[ii+1].z - points[ii].z * points[ii+1].x
 		end
-		return totalArea
+		return 0.5 * abs(totalArea + points[#points].x * points[1].z - points[#points].z * points[1].x)
 	end
 
 	processCluster = function (cluster, clusterID, points)
 		getReclaimTotal(cluster, points)
 
-		local convexHull
-
-		local hullPoints = #points < 60 and points or convexSetConditioning(points)
-		local hullArea = polygonArea(hullPoints)
-		if hullArea >= 3000 then
-			convexHull = MonotoneChain(hullPoints)
+		local convexHull, hullArea
+		if #points >= 3 then
+			if #points >= 60 then
+				convexHull = MonotoneChain(convexSetConditioning(points))
+			else
+				convexHull = MonotoneChain(points)
+			end
+			hullArea = polygonArea(convexHull)
 			getClusterDimensions(cluster, convexHull)
 		else
-			getClusterDimensions(cluster, hullPoints)
-			convexHull, hullArea = BoundingBox(cluster, hullPoints)
+			hullArea = 0
+			getClusterDimensions(cluster, points)
 		end
-		cluster.area = hullArea
+
+		-- Replace lines and sets of one or two with a bounding box.
+		if hullArea < areaTextMin then
+			convexHull, hullArea = BoundingBox(cluster, points)
+		end
 
 		featureConvexHulls[clusterID] = convexHull
+
+		cluster.area = hullArea
+		local areaSize = max(0, min(1, (hullArea - 2 * areaTextMin) / areaTextRange))
+		cluster.font = fontSizeMin + (fontSizeMax - fontSizeMin) * areaSize
 	end
 end
 
@@ -561,7 +560,7 @@ local function RemoveFeature(featureID)
 		for nid, distSq in pairs(neighbors) do
 			-- Update the reachability of neighbors linked through this point.
 			local neighbor = knownFeatures[nid]
-			if neighbor ~= nil and neighbor.rd == distSq then
+			if neighbor.rd == distSq then
 				local nextNeighbors = featureNeighborsMatrix[nid]
 				nextNeighbors[featureID] = nil
 				local reachDistSq = mathHuge
@@ -596,6 +595,10 @@ local function UpdateFeatureReclaim()
 			RemoveFeature(fid)
 			clusterizingNeeded = true
 		end
+	end
+
+	for ii = 1, #featureClusters do
+		featureClusters[ii].text = string.formatSI(featureClusters[ii].metal)
 	end
 end
 
@@ -698,33 +701,22 @@ end
 
 local drawFeatureClusterTextList
 local function DrawFeatureClusterText()
-	for clusterID = 1, #featureClusters do
-		glPushMatrix()
+	if camUpVector[1] ~= nil and camUpVector[3] ~= nil then
+		local cameraFacing = math.atan2(-camUpVector[1], -camUpVector[3]) * (180 / math.pi)
+		for clusterID = 1, #featureClusters do
+			local center = featureClusters[clusterID].center
+			
+			glPushMatrix()
 
-		local area = featureClusters[clusterID].area
-		local center = featureClusters[clusterID].center
+			glTranslate(center.x, center.y, center.z)
+			glRotate(-90, 1, 0, 0)
+			glRotate(cameraFacing, 0, 0, 1)
 
-		glTranslate(center.x, center.y, center.z)
-		glRotate(-90, 1, 0, 0)
+			glColor(numberColor)
+			glText(featureClusters[clusterID].text, 0, 0, featureClusters[clusterID].font, "cv") --cvo for outline
 
-		-- Rotate text based on camera rotation
-		if camUpVector[1] ~= nil and camUpVector[3] ~= nil then
-			local rotationAngle = math.atan2(-camUpVector[1], -camUpVector[3]) * (180 / math.pi)
-			glRotate(rotationAngle, 0, 0, 1)
+			glPopMatrix()
 		end
-
-		local fontSize = fontSizeMin * fontScaling
-		fontSize = sqrt(area) * fontSize / minTextAreaLength
-		fontSize = min(fontSize, fontSizeMax)
-		fontSize = max(fontSize, fontSizeMin)
-
-		local metalText = string.formatSI(featureClusters[clusterID].metal)
-
-		glColor(numberColor)
-
-		glText(metalText, 0, 0, fontSize, "cv") --cvo for outline
-
-		glPopMatrix()
 	end
 end
 
@@ -790,8 +782,8 @@ function widget:Update(dt)
 		local cx, cy, cz = spGetCameraPosition()
 		local desc, w = spTraceScreenRay(screenx / 2, screeny / 2, true)
 		if desc ~= nil then
-			local cameraDist = min( 8000, sqrt( (cx-w[1])^2 + (cy-w[2])^2 + (cz-w[3])^2 ) )
-			cameraScale = sqrt((cameraDist / 600)) --number is an "optimal" view distance
+			local cameraDist = min(64000000, (cx-w[1])^2 + (cy-w[2])^2 + (cz-w[3])^2)
+			cameraScale = sqrt(sqrt(cameraDist) / 600) --number is an "optimal" view distance
 		else
 			cameraScale = 1.0
 		end
@@ -830,15 +822,12 @@ function widget:GameFrame(frame)
 	end
 
 	-- Text is always redrawn to rotate it facing the camera.
-	local camUpVectorCurrent = spGetCameraVectors().up
-	if drawFeatureClusterTextList == nil or camUpVectorCurrent ~= camUpVector then
-		camUpVector = camUpVectorCurrent
-		if drawFeatureClusterTextList ~= nil then
-			glDeleteList(drawFeatureClusterTextList)
-			drawFeatureClusterTextList = nil
-		end
-		drawFeatureClusterTextList = glCreateList(DrawFeatureClusterText)
+	camUpVector = spGetCameraVectors().up
+	if drawFeatureClusterTextList ~= nil then
+		glDeleteList(drawFeatureClusterTextList)
+		drawFeatureClusterTextList = nil
 	end
+	drawFeatureClusterTextList = glCreateList(DrawFeatureClusterText)
 end
 
 function widget:FeatureCreated(featureID, allyTeamID)
