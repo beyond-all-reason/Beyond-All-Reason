@@ -201,6 +201,12 @@ local groups = {
 	antinuke = folder..'antinuke.png',
 }
 
+local modKeyMultiplier = {
+	ctrl = 20,
+	shift = 5,
+	right = -1
+}
+
 local disableWind = ((Game.windMin + Game.windMax) / 2) < 5
 local voidWater = false
 local success, mapinfo = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua confs
@@ -1061,10 +1067,10 @@ end
 local function changeQuotas(uDefID, quantity)
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 	if ctrl then
-		quantity = quantity * 20
+		quantity = quantity * modKeyMultiplier.ctrl
 	end
 	if shift then
-		quantity = quantity * 5
+		quantity = quantity * modKeyMultiplier.shift
 	end
 	return updateQuotaNumber(uDefID, quantity)
 end
@@ -1123,7 +1129,7 @@ function widget:MousePress(x, y, button)
 								Spring.PlaySoundFile(sound_queue_rem, 0.75, 'ui')
 							end
 							if setQuotas then
-								if changeQuotas(-uDefID, -1) and playSounds then
+								if changeQuotas(-uDefID, modKeyMultiplier.right) and playSounds then
 									Spring.PlaySoundFile(sound_queue_rem, 0.75, 'ui')
 								end
 							else
