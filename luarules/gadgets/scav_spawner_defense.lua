@@ -1929,7 +1929,7 @@ if gadgetHandler:IsSyncedCode() then
 			techAnger = math.ceil(techAnger*((config.economyScale*0.5)+0.5))
 			if t < config.gracePeriod then
 				bossAnger = 0
-				minBurrows = 2*SetCount(humanTeams)
+				minBurrows = math.max(4, 2*SetCount(humanTeams))
 			else
 				if not bossID then
 					bossAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (bossTime - config.gracePeriod) * 100) + bossAngerAggressionLevel, 100), 0)
