@@ -75,19 +75,19 @@ Deactivate()
 
 openAbm()
 {
-	move anpanell to x-axis [-8.66] speed [17.32];
-	move anpanell to z-axis [-5] speed [10];
-	move anpanelr to x-axis [8.66] speed [17.32];
-	move anpanelr to z-axis [-5] speed [10];
-	move anpanelf to z-axis [10] speed [20];
+	move anpanell to x-axis [-8.66]/2 speed [17.32];
+	move anpanell to z-axis [-5]/2 speed [10];
+	move anpanelr to x-axis [8.66]/2 speed [17.32];
+	move anpanelr to z-axis [-5]/2 speed [10];
+	move anpanelf to z-axis [10]/2 speed [20];
 	
 	turn anpanelf to x-axis <60> speed <180>;
 	turn anpanell to z-axis <60> speed <180>;
 	turn anpanelr to z-axis <-60> speed <180>;
 	
-	move anpanelf to y-axis [-15] speed [5];
-	move anpanell to y-axis [-15] speed [5];
-	move anpanelr to y-axis [-15] speed [5];
+	move anpanelf to y-axis [-5] speed [5];
+	move anpanell to y-axis [-5] speed [5];
+	move anpanelr to y-axis [-5] speed [5];
 	
 	start-script RestoreAfterDelay();
 }
