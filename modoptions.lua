@@ -1167,6 +1167,15 @@ local options = {
 
     -- Hidden Tests 
     {
+        key    	= "shieldsrework",
+        name   	= "Shields Rework",
+        desc   	= "Shields block all projectiles. Overkill damage is blocked once before reaching 0% charge. Shields are disabled for a few seconds upon reaching 0%.",
+        type   	= "bool",
+        section = "options_experimental",
+        def  	= false,
+    },
+    
+    {
         key   	= "accuratelasers",
         name   	= "Accurate Lasers",
         desc   	= "Removes inaccuracy vs moving units from all laser weapons as a proposed solution to overpowered scoutspam",

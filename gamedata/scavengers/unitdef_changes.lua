@@ -305,6 +305,22 @@ customDefs.legdecomlvl10 = {
 	}
 }
 
+customDefs.armrectr = {
+	workertime = 800,
+}
+
+customDefs.cornecro = {
+	workertime = 800,
+}
+
+customDefs.armrecl = {
+	workertime = 600,
+}
+
+customDefs.correcl = {
+	workertime = 600,
+}
+
 -- local scavConstructorsList = {
 -- 	-- rezzers
 -- 	"armrectr",

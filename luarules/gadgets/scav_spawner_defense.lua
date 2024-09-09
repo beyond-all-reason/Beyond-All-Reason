@@ -1564,16 +1564,18 @@ if gadgetHandler:IsSyncedCode() then
 		if unitTeam == scavTeamID then
 			damage = damage / config.healthMod
 
-			if math.random(0,600) == 0 and math.random() <= config.spawnChance and attackerTeam ~= gaiaTeamID and waveParameters.lastBackupSquadSpawnFrame+300 < Spring.GetGameFrame() and attackerID then
+			if math.random(0,600) == 0 and math.random() <= config.spawnChance and attackerTeam ~= gaiaTeamID and waveParameters.lastBackupSquadSpawnFrame+300 < Spring.GetGameFrame() and attackerID and UnitDefs[unitDefID].canMove then
 				local ux, uy, uz = Spring.GetUnitPosition(attackerID)
 				local burrow, distance = getNearestScavBeacon(ux, uy, uz)
 				--Spring.Echo("Nearest Beacon Distance", distance)
 				if ux and burrow and distance and distance < 2500 then
 					waveParameters.lastBackupSquadSpawnFrame = Spring.GetGameFrame()
 					--Spring.Echo("Spawning Backup Squad - Unit Damaged", Spring.GetGameFrame())
-					burrows[burrow].lastBackupSpawn = Spring.GetGameFrame() + math.random(-300,1800)
 					for i = 1, SetCount(humanTeams) do
-						SpawnRandomOffWaveSquad(burrow, true)
+						if mRandom() <= config.spawnChance then
+							SpawnRandomOffWaveSquad(burrow, true)
+							burrows[burrow].lastBackupSpawn = Spring.GetGameFrame() + math.random(-300,1800)
+						end
 					end
 				end
 			end
@@ -1840,6 +1842,7 @@ if gadgetHandler:IsSyncedCode() then
 				spawnQueue = {}
 				scavEvent("boss") -- notify unsynced about boss spawn
 				_, bossMaxHP = GetUnitHealth(bossID)
+				Spring.SetUnitHealth(bossID, bossMaxHP*(bossAnger*0.01))
 				SetUnitExperience(bossID, 0)
 				timeOfLastWave = t
 				burrows[bossID] = {
@@ -1926,17 +1929,14 @@ if gadgetHandler:IsSyncedCode() then
 			techAnger = math.ceil(techAnger*((config.economyScale*0.5)+0.5))
 			if t < config.gracePeriod then
 				bossAnger = 0
-				minBurrows = 8*(t/config.gracePeriod)
+				minBurrows = math.max(4, 2*SetCount(humanTeams))
 			else
 				if not bossID then
 					bossAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (bossTime - config.gracePeriod) * 100) + bossAngerAggressionLevel, 100), 0)
-					minBurrows = 8
-					if burrowCount <= 2 then
-						playerAggression = playerAggression + 1
-					end
+					minBurrows = 1
 				else
 					bossAnger = 100
-					minBurrows = 8
+					minBurrows = 4
 				end
 				bossAngerAggressionLevel = bossAngerAggressionLevel + ((playerAggression*0.01)/(config.bossTime/3600)) + playerAggressionEcoValue
 				SetGameRulesParam("ScavBossAngerGain_Aggression", (playerAggression*0.01)/(config.bossTime/3600))
@@ -1945,7 +1945,7 @@ if gadgetHandler:IsSyncedCode() then
 			SetGameRulesParam("scavBossAnger", bossAnger)
 			SetGameRulesParam("scavTechAnger", techAnger)
 
-			if bossAnger >= 100 then
+			if bossAnger >= 100 or (burrowCount <= 1 and t > config.gracePeriod) then
 				-- check if the boss should be alive
 				updateSpawnBoss()
 				updateBossLife()
@@ -2096,11 +2096,13 @@ if gadgetHandler:IsSyncedCode() then
 								if math.random(0,60) == 0 and math.random() <= config.spawnChance and Spring.GetUnitTeam(unitID) ~= gaiaTeamID and waveParameters.lastBackupSquadSpawnFrame+300 < Spring.GetGameFrame() then
 									local burrow, distance = getNearestScavBeacon(ux, uy, uz)
 									--Spring.Echo("Nearest Beacon Distance", distance)
-									if ux and burrow and distance and distance < 5000 then
+									if ux and burrow and distance and distance < 2500 then
 										--Spring.Echo("Spawning Backup Squad - Unit Cloud Capture", Spring.GetGameFrame())
-										burrows[burrow].lastBackupSpawn = Spring.GetGameFrame() + math.random(-300,1800)
 										for i = 1, SetCount(humanTeams) do
-											SpawnRandomOffWaveSquad(burrow, true)
+											if mRandom() <= config.spawnChance then
+												SpawnRandomOffWaveSquad(burrow, true)
+												burrows[burrow].lastBackupSpawn = Spring.GetGameFrame() + math.random(-300,1800)
+											end
 										end
 									end
 								end
