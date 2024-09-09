@@ -16,7 +16,7 @@ end
 --this gadget is enabled as a bandaid fix for commander effigies. Units cannot be moved when released from transports using Spring.SetUnitPosition until it lands, meaning effigy transposition cannot occur until commander lands. This gadget is pending approval from the GDT for mainline use.
 
 --use customparams.fall_damage_multiplier = <number> to overwrite defaultDamageMult
-local defaultDamageMult = 1.0 -- A multiplier representing the percentage of health lost from the velocity of a freefall. Also applies proportionally to velocities from explosion impulse.
+local defaultDamageMultiplier = 1.0 -- A multiplier representing the percentage of health lost from the velocity of a freefall. Also applies proportionally to velocities from explosion impulse.
 local velocityStopThresholdMultiplier = 0.4 -- once the unit's velocity is equal to or below peakvelocity*velocityStopDivisor, take damage.
 local velocityStopCountThreshold = 3 --number of frames below threshold before damage is applied
 local velocityThreshold = 3.5 -- this is the velocity required for an explosion to trigger fall damage watch
