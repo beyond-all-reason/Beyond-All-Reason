@@ -1564,16 +1564,18 @@ if gadgetHandler:IsSyncedCode() then
 		if unitTeam == scavTeamID then
 			damage = damage / config.healthMod
 
-			if math.random(0,600) == 0 and math.random() <= config.spawnChance and attackerTeam ~= gaiaTeamID and waveParameters.lastBackupSquadSpawnFrame+300 < Spring.GetGameFrame() and attackerID then
+			if math.random(0,600) == 0 and math.random() <= config.spawnChance and attackerTeam ~= gaiaTeamID and waveParameters.lastBackupSquadSpawnFrame+300 < Spring.GetGameFrame() and attackerID and UnitDefs[unitDefID].canMove then
 				local ux, uy, uz = Spring.GetUnitPosition(attackerID)
 				local burrow, distance = getNearestScavBeacon(ux, uy, uz)
 				--Spring.Echo("Nearest Beacon Distance", distance)
 				if ux and burrow and distance and distance < 2500 then
 					waveParameters.lastBackupSquadSpawnFrame = Spring.GetGameFrame()
 					--Spring.Echo("Spawning Backup Squad - Unit Damaged", Spring.GetGameFrame())
-					burrows[burrow].lastBackupSpawn = Spring.GetGameFrame() + math.random(-300,1800)
 					for i = 1, SetCount(humanTeams) do
-						SpawnRandomOffWaveSquad(burrow, true)
+						if mRandom() <= config.spawnChance then
+							SpawnRandomOffWaveSquad(burrow, true)
+							burrows[burrow].lastBackupSpawn = Spring.GetGameFrame() + math.random(-300,1800)
+						end
 					end
 				end
 			end
@@ -2096,11 +2098,13 @@ if gadgetHandler:IsSyncedCode() then
 								if math.random(0,60) == 0 and math.random() <= config.spawnChance and Spring.GetUnitTeam(unitID) ~= gaiaTeamID and waveParameters.lastBackupSquadSpawnFrame+300 < Spring.GetGameFrame() then
 									local burrow, distance = getNearestScavBeacon(ux, uy, uz)
 									--Spring.Echo("Nearest Beacon Distance", distance)
-									if ux and burrow and distance and distance < 5000 then
+									if ux and burrow and distance and distance < 2500 then
 										--Spring.Echo("Spawning Backup Squad - Unit Cloud Capture", Spring.GetGameFrame())
-										burrows[burrow].lastBackupSpawn = Spring.GetGameFrame() + math.random(-300,1800)
 										for i = 1, SetCount(humanTeams) do
-											SpawnRandomOffWaveSquad(burrow, true)
+											if mRandom() <= config.spawnChance then
+												SpawnRandomOffWaveSquad(burrow, true)
+												burrows[burrow].lastBackupSpawn = Spring.GetGameFrame() + math.random(-300,1800)
+											end
 										end
 									end
 								end
