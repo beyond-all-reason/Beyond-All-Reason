@@ -71,7 +71,7 @@ return {
 			[4] = "corfus",
 			[5] = "cormmkr",
 			[6] = "legsolar",
-			[7] = "corageo",
+			[7] = "leggeo",
 			[8] = "legtide",
 			[9] = "coruwadves",
 			[10] = "legamstor",

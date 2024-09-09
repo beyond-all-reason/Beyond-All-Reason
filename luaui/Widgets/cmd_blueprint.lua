@@ -1024,40 +1024,36 @@ end
 -- saving/loading
 -- ==============
 
----@param bp Blueprint
+---@param blueprint Blueprint
 ---@return SerializedBlueprint
-local function serializeBlueprint(bp)
+local function serializeBlueprint(blueprint)
 	return {
-		name = bp.name,
-		spacing = bp.spacing,
-		facing = bp.facing,
-		ordered = bp.ordered,
-		units = table.map(bp.units, function(bpu)
+		name = blueprint.name,
+		spacing = blueprint.spacing,
+		facing = blueprint.facing,
+		ordered = blueprint.ordered,
+		units = table.map(blueprint.units, function(blueprintUnit)
 			return {
-				unitName = UnitDefs[bpu.unitDefID].name,
-				position = bpu.position,
-				facing = bpu.facing
+				unitName = UnitDefs[blueprintUnit.unitDefID].name,
+				position = blueprintUnit.position,
+				facing = blueprintUnit.facing
 			}
 		end),
 	}
 end
 
----@param sbp SerializedBlueprint
+---@param serializedBlueprint SerializedBlueprint
 ---@return Blueprint
-local function deserializeBlueprint(sbp)
-	local result = table.merge(
-		sbp,
-		{
-			units = table.map(sbp.units, function(sbpu)
-				return {
-					blueprintUnitID = nextBlueprintUnitID(),
-					unitDefID = UnitDefNames[sbpu.unitName].id,
-					position = sbpu.position,
-					facing = sbpu.facing
-				}
-			end)
+local function deserializeBlueprint(serializedBlueprint)
+	local result = table.copy(serializedBlueprint)
+	result.units = table.map(serializedBlueprint.units, function(serializedBlueprintUnit)
+		return {
+			blueprintUnitID = nextBlueprintUnitID(),
+			unitDefID = UnitDefNames[serializedBlueprintUnit.unitName].id,
+			position = serializedBlueprintUnit.position,
+			facing = serializedBlueprintUnit.facing
 		}
-	)
+	end)
 
 	postProcessBlueprint(result)
 

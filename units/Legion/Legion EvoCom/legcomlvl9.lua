@@ -70,7 +70,7 @@ return {
 			[3] = "legwin",
 			[5] = "cormmkr",
 			[6] = "legadvsol",
-			[7] = "corageo",
+			[7] = "leggeo",
 			[8] = "legtide",
 			[9] = "coruwadves",
 			[10] = "legamstor",
