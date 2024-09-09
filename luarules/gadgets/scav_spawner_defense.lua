@@ -1936,7 +1936,7 @@ if gadgetHandler:IsSyncedCode() then
 					minBurrows = 1
 				else
 					bossAnger = 100
-					minBurrows = 2
+					minBurrows = 4
 				end
 				bossAngerAggressionLevel = bossAngerAggressionLevel + ((playerAggression*0.01)/(config.bossTime/3600)) + playerAggressionEcoValue
 				SetGameRulesParam("ScavBossAngerGain_Aggression", (playerAggression*0.01)/(config.bossTime/3600))
