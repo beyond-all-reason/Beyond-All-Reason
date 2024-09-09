@@ -118,24 +118,22 @@ local DEFAULT_DOCK_CHECK_FREQUENCY = 15		-- Checks the docking queue. Increasing
 -- These values can be tuned in the unitdef file. Add the section below to a weaponDef list in the unitdef file.
 --customparams = {
 	--	-- Required:
-	-- carried_unit = "unitname"     Name of the unit spawned by this carrier unit.
+	-- carried_unit = "unitname"     Name of the unit spawned by this carrier unit. For multiple different drones: "unitname1 unitname2 unitname3..."
 
 
 	--	-- Optional:
 	-- controlradius = 200,			The spawned units are recalled when exceeding this range. Radius = 0 to disable control range limit.
 	-- engagementrange = 100, 		The spawned units will adopt any active combat commands within this range. Best paired with a weapon of equal range.
 	-- spawns_surface = "LAND",     "LAND" or "SEA". If not enabled, any surface will be accepted.
-	-- buildcostenergy = 0,			Custom spawn cost. If not set, it will inherit the cost from the carried_unit unitDef.
-	-- buildcostmetal = 0,			Custom spawn cost. If not set, it will inherit the cost from the carried_unit unitDef.
+	-- buildcostenergy = 0,			Custom spawn cost. If not set, it will inherit the cost from the carried_unit unitDef. "0 0 0..."
+	-- buildcostmetal = 0,			Custom spawn cost. If not set, it will inherit the cost from the carried_unit unitDef. "0 0 0..."
 	-- enabledocking = true,		If enabled, docking behavior is used.
-	-- dockingarmor = 0.4, 			Multiplier for damage taken while docked. Does not work against napalm.
+	-- dockingarmor = 0.4, 			Multiplier for damage taken while docked. Does not work against napalm (this might be fixed now?).
 
 	--	-- Has a default value, as indicated, if not chosen:
-	-- spawnrate = 1, 				Spawnrate roughly in seconds.
-	-- maxunits = 1,				Will spawn units until this amount has been reached.
-	-- dockingpiecestart = 1,		First model piece to be used for docking.
-	-- dockingpieceinterval = 0,	Number of pieces to skip when docking the next unit.
-	-- dockingpieceend = 1,			Last model piece used for docking. Will loop back to first when exceeded.
+	-- spawnrate = 1, 				Spawnrate roughly in seconds. Different spawn rates for multiple drones is not yet implemented.
+	-- maxunits = 3,				Will spawn units until this amount has been reached. "3 3 2..."
+	-- dockingpieces = "1 2 3",		Model pieces to be used for docking. "1 2 3,5 7 8,11 12..."
 	-- dockingradius = 100,			The range at which the units are helped onto the carrier unit when docking.
 	-- dockingHelperSpeed = 10,		The speed used when helping the unit onto the carrier. Set this to 0 to disable the helper and just snap to the carrier unit when within the docking range.
 	-- dockinghealrate = 0,			Healing per second while docked.
@@ -147,11 +145,20 @@ local DEFAULT_DOCK_CHECK_FREQUENCY = 15		-- Checks the docking queue. Increasing
 	-- carrierdeaththroe = "death",	Behaviour for the drones when the carrier dies. "death": destroy the drones. "control": gain manual control of the drones. "capture": same as "control", but if an enemy is within control range, they get control of the drones instead.
 	-- holdfireradius = 0,			Defines the wandering distance of drones from the carrier when "holdfire" command is issued. If it isn't defined, 0 default will dock drones on holdfire by default.
 	-- droneminimumidleradius = 0,	Defines the wandering distance of drones from the carrier when it otherwise would have docked the drones, but docking is not enabled.
+	
+	
+	
+	-- -- Experimental. Please ping Xehrath in the BAR discord if you encounter any issues while using any of these options, or would like some changes to any of them. These are all subject to change or removal depending on interest, and are not considered finished features.
+	-- dronetype = "default" 		Experimental types: nano, bomber, fighter, turret
+	-- dockingsections = strSplit(dockingpieces, ","),
 	-- dronebombingruns = 2,		Defines the number of bombing runs a bomber drone initiates before returning to the carrier..
+	-- dronebombingoffset,			Used to make bomber drones go off to the side before heading directly towards the target. Multiple bomber drones will alternate which side to move to. Given as a percentage of the distance to the target. 
+	-- dronebomberinterval,			Used to stagger the launch of multiple bomber drones. 
+	-- dronebomberminengagementrange = 200, Bomber drones will not launch to attack targets within this radius. 
+	-- manualdrones					Allows manual control of drones within the control radius
 	
 	
 	
-	-- -- Experimental. Please @Xehrath in the BAR discord if you encounter any issues while using any of these options, or would like some changes to any of them. These are all subject to change or removal depending on interest, and are not considered finished features.
 	-- },
 
 
@@ -1426,7 +1433,6 @@ function gadget:GameFrame(f)
 		for unitID, _ in pairs(carrierMetaList) do
 			local isDoneBuilding = not Spring.GetUnitIsBeingBuilt(unitID)
 			if carrierMetaList[unitID].spawnRateFrames == 0 then
-				-- elseif ((f % carrierMetaList[unitID].spawnRateFrames) == 0 and carrierMetaList[unitID].activeSpawning == 1 and buildProgress == 1) then
 			elseif ((carrierMetaList[unitID].spawnRateFrames + carrierMetaList[unitID].lastSpawn) < f and carrierMetaList[unitID].activeSpawning == 1 and isDoneBuilding) then
 				local spawnData = carrierMetaList[unitID].subInitialSpawnData
 				local x, y, z = spGetUnitPosition(unitID)
