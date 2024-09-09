@@ -491,8 +491,8 @@ local options = {
         def		= "initialbox",
         section	= "raptor_defense_options",
         items	= {
-            { key = "avoid", 		name = "Avoid Players", 	desc = "Hives avoid player units" },
-            { key = "initialbox", 	name = "Initial Start Box", desc = "First wave spawns in raptor start box, following hives avoid players" },
+            { key = "avoid", 		name = "Spawn Anywhere", 	desc = "Hives avoid player units" },
+            { key = "initialbox", 	name = "Growing Spawn Box", desc = "Hives spawn in limited area that increases over time" },
             { key = "alwaysbox", 	name = "Always Start Box", 	desc = "Hives always spawn in raptor start box" },
         }
     },
@@ -647,12 +647,12 @@ local options = {
         name	= "Spawn Beacons Placement",
         desc	= "Control where spawners appear",
         type	= "list",
-        def		= "avoid",
+        def		= "initialbox",
         section	= "scav_defense_options",
         items	= {
-            { key = "avoid", 		name = "Avoid Players", 	desc="Beacons avoid player units" },
-            { key = "initialbox",	name = "Initial Start Box", desc="First wave spawns in scav start box, following beacons avoid players" },
-            { key = "alwaysbox", 	name =  "Always Start Box", desc="Beacons always spawn in scav start box" },
+            { key = "avoid", 		name = "Spawn Anywhere", 	desc="Beacons avoid player units" },
+            { key = "initialbox",	name = "Growing Spawn Box", desc="Beacons spawn in limited area that increases over time" },
+            --{ key = "alwaysbox", 	name =  "Always Start Box", desc="Beacons always spawn in scav start box" },
         }
     },
 
@@ -968,9 +968,20 @@ local options = {
         step   	= 0.1,
     },
 
+    {
+        key    	= "evocomlevelupmultiplier",
+        name   	= "Evolving Commanders - Dynamic Only - Evolution Rate Multiplier.",
+        desc   	= "(Range 0.1x - 3x Multiplier) Adjusts the thresholds at which Dynamic evolutions occur",
+        type   	= "number",
+        section	= "options_extra",
+        def    	= 1,
+        min    	= 0.1,
+        max    	= 3,
+        step   	= 0.1,
+    },
 
     {
-        key    	= "evocomleveluprate",
+        key    	= "evocomleveluptime",
         name   	= "Evolving Commanders - Timed Only - Evolution Timer.",
         desc   	= "(Range 0.1 - 20 Minutes) Rate at which commanders will evolve if Timed method is selected.",
         type   	= "number",
@@ -1154,47 +1165,7 @@ local options = {
         def  	= false,
     },
 
-    -- Hidden Tests
-
-    {
-        key    	= "experimentalnoaircollisions",
-        name   	= "Aircraft Collisions Override",
-        desc   	= "Aircraft Collisions Override",
-        hidden 	= true,
-        type   	= "bool",
-        section = "options_experimental",
-        def  	= false,
-    },
-
-    {
-        key    	= "experimentalxpgain",
-        name   	= "XP Gain Multiplier",
-        desc   	= "XP Gain Multiplier",
-        hidden 	= true,
-        type   	= "number",
-        section = "options_experimental",
-        def    	= 1,
-        min    	= 0.1,
-        max    	= 10,
-        step   	= 0.1,
-    },
-
-    {
-        key    	= "experimentalstandardgravity",
-        name   	= "Gravity Override",
-        desc   	= "Override map gravity for weapons",
-        hidden 	= true,
-        type   	= "list",
-        section = "options_experimental",
-        def  	= "mapgravity",
-        items 	= {
-            { key = "mapgravity", 	name = "Map Gravity", 		desc = "Uses map defined gravity" },
-            { key = "low", 			name = "Low Gravity", 		desc = "80 gravity" },
-            { key = "standard", 	name = "Standard Gravity", 	desc = "120 gravity" },
-            { key = "high", 		name = "High Gravity", 		desc = "150 gravity" },
-        }
-    },
-    
+    -- Hidden Tests 
     {
         key   	= "accuratelasers",
         name   	= "Accurate Lasers",
@@ -1224,17 +1195,7 @@ local options = {
         section = "options_experimental",
         def 	= false,
     },
-
-    {
-        key		= "unified_maxslope",
-        name	= "Standardized Land Unit Maxslope",
-        desc	= "All land units have minimum maxslope of 36",
-        type	= "bool",
-        hidden 	= true,
-        def		= false,
-        section	= "options_experimental",
-    },
-
+    
     {
         key    	= "faction_limiter",
         name   	= "Team Faction Limiter",
@@ -1270,16 +1231,6 @@ local options = {
         key 	= "junorework",
         name 	= "Juno Rework",
         desc 	= "Juno stuns certain units (such as radars and jammers) rather than magically deleting them",
-        type 	= "bool",
-        hidden 	= true,
-        section = "options_experimental",
-        def 	= false,
-    },
-
-    {
-        key 	= "energy_share_rework",
-        name 	= "Energy Share Rework",
-        desc 	= "Additional energy overflow/underflow mechanics. 10% of the energy income is re-distributed to prevent E-stalling.",
         type 	= "bool",
         hidden 	= true,
         section = "options_experimental",

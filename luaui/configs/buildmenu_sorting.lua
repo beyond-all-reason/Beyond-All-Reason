@@ -477,12 +477,15 @@ local unitOrderTable = {
    ['armuwgeo']       = 101201,
    ['corgeo']         = 101250,
    --['coruwgeo']       = 101251,
+   ['leggeo']         = 101275,
    ['armgmm']         = 101300,
+   ['legageo']        = 101325,
    ['corageo']        = 101350,
    ['coruwageo']      = 101351,
    ['armageo']        = 101400,
    ['armuwageo']      = 101401,
    ['corbhmth']       = 101450,
+   ['legrampart']       = 101475,
 
    --ECO NRG FUSIONS
    ['armfus']         = 101525,
@@ -494,13 +497,17 @@ local unitOrderTable = {
    --ECO NRG STORAGE
    ['armestor']       = 101800,
    ['corestor']       = 101850,
+   ['legestor']       = 101875,
    ['armuwadves']     = 101900,
    ['coruwadves']     = 101950,
 
    --NANOS
-   ['armnanotc']      = 102000,
-   ['cornanotc']      = 102050,
-   ['legnanotc']      = 102075,
+   ['armnanotc']      = 102010,
+   ['cornanotc']      = 102020,
+   ['legnanotc']      = 102030,
+   ['armnanotct2']      = 102010,
+   ['cornanotct2']      = 102020,
+   ['legnanotct2']      = 102030,
 
    --FACTORIES
    ['armlab']         = 102100,
@@ -656,6 +663,7 @@ local unitOrderTable = {
    ['cortron']        = 165500,
    ['legperdition']   = 165600,
    ['armamd']         = 166000,
+   ['legabm']         = 166250,
    ['corfmd']         = 166500,
    ['armsilo']        = 180000,
    ['corsilo']        = 180500,

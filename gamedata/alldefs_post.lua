@@ -288,24 +288,28 @@ function UnitDef_Post(name, uDef)
 					uDef.power = ((uDef.metalcost+(uDef.energycost/60))/modOptions.evocomxpmultiplier)
 				end
 				
+				if  name == "armcom" then
+					uDef.customparams.evolution_target = "armcomlvl2"
+					uDef.customparams.inheritxpratemultiplier = 0.5
+					uDef.customparams.childreninheritxp = "TURRET MOBILEBUILT"
+					uDef.customparams.parentsinheritxp = "TURRET MOBILEBUILT"
+					uDef.customparams.evocomlvl = 1
+					elseif name == "corcom" then
+					uDef.customparams.evolution_target = "corcomlvl2"
+					uDef.customparams.evocomlvl = 1
+					elseif name == "legcom" then
+					uDef.customparams.evolution_target = "legcomlvl2"
+					uDef.customparams.evocomlvl = 1
+					end
+
 				if modOptions.evocomlevelupmethod == "dynamic" then
 					uDef.customparams.evolution_condition = "power"
 					uDef.customparams.evolution_power_multiplier = 1			-- Scales the power calculated based on your own combined power. 
-					uDef.customparams.evolution_power_threshold = uDef.customparams.evolution_power_threshold or 10000 --sets threshold for level 1 commanders
+					local evolutionPowerThreshold = uDef.customparams.evolution_power_threshold or 10000 --sets threshold for level 1 commanders
+					uDef.customparams.evolution_power_threshold = evolutionPowerThreshold*modOptions.evocomlevelupmultiplier
 				elseif modOptions.evocomlevelupmethod == "timed" then
-					uDef.customparams.evolution_timer = modOptions.evocomleveluprate*60
-					uDef.customparams.evolution_condition = "timer"
-				end
-
-				if  name == "armcom" then
-				uDef.customparams.evolution_target = "armcomlvl2"
-				uDef.customparams.inheritxpratemultiplier = 0.5
-				uDef.customparams.childreninheritxp = "TURRET MOBILEBUILT"
-				uDef.customparams.parentsinheritxp = "TURRET MOBILEBUILT"
-				elseif name == "corcom" then
-				uDef.customparams.evolution_target = "corcomlvl2"
-				elseif name == "legcom" then
-				uDef.customparams.evolution_target = "legcomlvl2"
+					uDef.customparams.evolution_timer = modOptions.evocomleveluptime*60*uDef.customparams.evocomlvl
+					uDef.customparams.evolution_condition = "timer_global"
 				end
 
 				if comLevel and modOptions.evocomlevelcap <= comLevel then
@@ -516,7 +520,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 3] = "legwint2"
 			uDef.buildoptions[numBuildoptions + 4] = "corhllllt"
 			uDef.buildoptions[numBuildoptions + 5] = "cordoomt3"
-			uDef.buildoptions[numBuildoptions + 6] = "cornanotct2"
+			uDef.buildoptions[numBuildoptions + 6] = "legnanotct2"
 		elseif name == "armasy" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "armptt2"
@@ -711,11 +715,7 @@ function UnitDef_Post(name, uDef)
 		uDef.crashdrag = 0.01    -- default 0.005
 		if not (string.find(name, "fepoch") or string.find(name, "fblackhy") or string.find(name, "corcrw") or string.find(name, "legfort")) then
 			--(string.find(name, "liche") or string.find(name, "crw") or string.find(name, "fepoch") or string.find(name, "fblackhy")) then
-			if not modOptions.experimentalnoaircollisions then
-				uDef.collide = false
-			else
-				uDef.collide = true
-			end
+			uDef.collide = false
 		end
 	end
 
@@ -1297,21 +1297,8 @@ function WeaponDef_Post(name, wDef)
 	if not SaveDefsToCustomParams then
 		-------------- EXPERIMENTAL MODOPTIONS
 		-- Standard Gravity
-		local gravityModOption = modOptions.experimentalstandardgravity
-
-		--Spring.Echo(wDef.name,wDef.mygravity)
-		if gravityModOption == "low" then
-			if wDef.mygravity == nil then
-				wDef.mygravity = 0.0889 --80/900
-			end
-		elseif gravityModOption == "standard" then
-			if wDef.mygravity == nil then
-				wDef.mygravity = 0.1333 --120/900
-			end
-		elseif gravityModOption == "high" then
-			if wDef.mygravity == nil then
-				wDef.mygravity = 0.1667 --150/900
-			end
+		if wDef.gravityaffected == "true" and wDef.mygravity == nil then
+			wDef.mygravity = 0.1445
 		end
 		
 		-- Accurate Lasers		

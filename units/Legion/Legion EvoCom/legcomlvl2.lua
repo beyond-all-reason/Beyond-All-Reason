@@ -66,7 +66,7 @@ return {
 			"legsolar",
 			"legwin",
 			"legmstor",
-			"corestor",
+			"legestor",
 			"legmex",
 			"legeconv",
 			"leglab",

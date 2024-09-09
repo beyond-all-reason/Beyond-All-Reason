@@ -1,7 +1,6 @@
 VFS.Include('init.lua')
 
 -- See: https://springrts.com/wiki/Modrules.lua
-local xpmultiplier = Spring.GetModOptions().experimentalxpgain
 local useQTPFS = Script.IsEngineMinVersion(105, 0, 2020)
 
 XPValues = {
@@ -119,7 +118,7 @@ local modrules = {
 	},
 
 	experience = {
-		experienceMult = XPValues.experienceMult * xpmultiplier, -- Controls the amount of experience gained by units engaging in combat. The formulae used are: xp for damage = 0.1 * experienceMult * damage / target_HP * target_power / attacker_power.  xp for kill = 0.1 * experienceMult * target_power / attacker_power. Where power can be set by the UnitDef tag.
+		experienceMult = XPValues.experienceMult, -- Controls the amount of experience gained by units engaging in combat. The formulae used are: xp for damage = 0.1 * experienceMult * damage / target_HP * target_power / attacker_power.  xp for kill = 0.1 * experienceMult * target_power / attacker_power. Where power can be set by the UnitDef tag.
 		powerScale = XPValues.powerScale,	-- Controls how gaining experience changes the relative power of the unit. The formula used is Power multiplier = powerScale * (1 + xp / (xp + 1)).
 		healthScale = XPValues.healthScale,	-- Controls how gaining experience increases the maxDamage (total hitpoints) of the unit. The formula used is Health multiplier = healthScale * (1 + xp / (xp + 1)).
 		reloadScale = XPValues.reloadScale,	-- Controls how gaining experience decreases the reloadTime of the unit's weapons. The formula used is Rate of fire multiplier = reloadScale * (1 + xp / (xp + 1)).

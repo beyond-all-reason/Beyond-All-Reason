@@ -230,10 +230,17 @@ local effectDefs = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 17, length = 44, piece = "thrustfla", emitVector = { 0, 1, 0 }, light = 0.6 },
 	},
 	["legfort"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 15, length = 50, piece = "thrustrra", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 15, length = 50, piece = "thrustrla", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 13, length = 44, piece = "thrustfra", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 13, length = 44, piece = "thrustfla", emitVector = { 0, 1, 0 }, light = 0.6 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "thrust1", emitVector = { 0, 1, 0 }, light = 0.6 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "thrust2", emitVector = { 0, 1, 0 }, light = 0.6 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "thrust3", emitVector = { 0, 1, 0 }, light = 0.6 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "thrust4", emitVector = { 0, 1, 0 }, light = 0.6 },
+	
+		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "thrust5", emitVector = { 1, 1, 0 }, light = 0.6 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "thrust6", emitVector = { 1, 1, 0 }, light = 0.6 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "thrust7", emitVector = { 1, 1, 0 }, light = 0.6 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "thrust8", emitVector = { 1, 1, 0 }, light = 0.6 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 6, length = 32, piece = "thrust9", emitVector = { 1, 1, 0 }, light = 0.6 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 6, length = 32, piece = "thrust10", emitVector = { 1, 1, 0 }, light = 0.6 },
 	},
 	["corcut"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 3.7, length = 15, piece = "thrusta", light = 1 },

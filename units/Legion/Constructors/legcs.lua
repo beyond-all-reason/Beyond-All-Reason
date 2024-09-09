@@ -49,7 +49,7 @@ return {
 			"cormaw",
 			"corpun",
 			"legtide",
-			"corgeo",
+			"leggeo",
 			"coruwgeo",
 			"legfmkr",
 			"coruwms",
