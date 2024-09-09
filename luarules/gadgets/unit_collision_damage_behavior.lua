@@ -13,9 +13,7 @@ end
 if not gadgetHandler:IsSyncedCode() then return end
 
 --use customparams.fall_damage_multiplier = <number> a multiplier that's applied to defaultDamageMultiplier.
-local fallDamageMagnificationFactor = 100 --the multiplier by which default engine ground collision damage is multiplied. 
-
-
+local fallDamageMagnificationFactor = 14 --the multiplier by which default engine ground collision damage is multiplied. change this value to reduce the amount of fall/collision damage taken for all units.
 
 local groundCollisionDefID = Game.envDamageTypes.GroundCollision
 local objectCollisionDefID = Game.envDamageTypes.ObjectCollision
@@ -24,6 +22,7 @@ local maxImpulseThreshold = 0.08 --incease this to make units move less from imp
 local cooldownsFrameThreshold = Game.gameSpeed --this is how long in frames before a unit's maximum impulse limit resets.
 
 local spGetUnitVelocity = Spring.GetUnitVelocity
+local spGetUnitHealth = Spring.GetUnitHealth
 local mathmin = math.min
 
 local fallDamageMultipliers = {}
@@ -31,6 +30,7 @@ local unitsMaxImpulse = {}
 local weaponDefIDImpulses = {}
 local overImpulseCooldowns = {}
 local transportingUnits = {}
+local unitMasses = {}
 
 local currentModulusFrame = 0
 
@@ -38,6 +38,7 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 	local fallDamageMultiplier = unitDef.customParams.fall_damage_multiplier or 1.0
 	fallDamageMultipliers[unitDefID] = fallDamageMultiplier*fallDamageMagnificationFactor
 	unitsMaxImpulse[unitDefID] = unitDef.mass/maxImpulseThreshold
+	unitMasses[unitDefID] = unitDef.mass
 end
 
 for weaponDefID, wDef in ipairs(WeaponDefs) do
@@ -62,6 +63,16 @@ local function isUnitBeingTransported(unitID)
 	return false
 end
 
+local function calculateMassToHealthRatioMultiplier(unitID, unitDefID)
+	local health, maxHealth = spGetUnitHealth(unitID)
+	if maxHealth then
+		local massToMaxHealthMultiplier = (maxHealth / unitMasses[unitDefID]) * fallDamageMultipliers[unitDefID]
+		return massToMaxHealthMultiplier
+	else
+		return fallDamageMultipliers[unitDefID]
+	end
+end
+
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 	if weaponDefID > 0 then --this section handles limiting maximum impulse
 		local impulseMultiplier = 1
@@ -80,12 +91,12 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		end
 	else
 		if weaponDefID == groundCollisionDefID and not isUnitBeingTransported(unitID) then --handles ground collision events
-			damage = damage*fallDamageMultipliers[unitDefID]
+			damage = damage * calculateMassToHealthRatioMultiplier(unitID, unitDefID)
 			return damage, 0
 		elseif weaponDefID == objectCollisionDefID and not isUnitBeingTransported(unitID) then --handles object collision events
 			local _, velY, _, velLength = spGetUnitVelocity(unitID)
 			if velLength > objectCollisionVelocityThreshold and -velY > (velLength/3) then --prevents mostly horizontal object collisions from taking damage, allows damage if dropped from above
-				damage = damage*fallDamageMultipliers[unitDefID]
+				damage = damage * calculateMassToHealthRatioMultiplier(unitID, unitDefID)
 				return damage, 0
 			else
 				return 0, 0
@@ -101,6 +112,10 @@ end
 
 function gadget:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
 	transportingUnits[transportID][unitID] = nil
+end
+
+function gadget:UnitDestroyed(unitID)
+	transportingUnits[unitID] = nil
 end
 
 function gadget:GameFrame(frame)
