@@ -1842,6 +1842,7 @@ if gadgetHandler:IsSyncedCode() then
 				spawnQueue = {}
 				scavEvent("boss") -- notify unsynced about boss spawn
 				_, bossMaxHP = GetUnitHealth(bossID)
+				Spring.SetUnitHealth(bossID, bossMaxHP*(bossAnger*0.01))
 				SetUnitExperience(bossID, 0)
 				timeOfLastWave = t
 				burrows[bossID] = {
@@ -1928,17 +1929,14 @@ if gadgetHandler:IsSyncedCode() then
 			techAnger = math.ceil(techAnger*((config.economyScale*0.5)+0.5))
 			if t < config.gracePeriod then
 				bossAnger = 0
-				minBurrows = 8*(t/config.gracePeriod)
+				minBurrows = math.max(4, 2*SetCount(humanTeams))
 			else
 				if not bossID then
 					bossAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (bossTime - config.gracePeriod) * 100) + bossAngerAggressionLevel, 100), 0)
-					minBurrows = 8
-					if burrowCount <= 2 then
-						playerAggression = playerAggression + 1
-					end
+					minBurrows = 1
 				else
 					bossAnger = 100
-					minBurrows = 8
+					minBurrows = 4
 				end
 				bossAngerAggressionLevel = bossAngerAggressionLevel + ((playerAggression*0.01)/(config.bossTime/3600)) + playerAggressionEcoValue
 				SetGameRulesParam("ScavBossAngerGain_Aggression", (playerAggression*0.01)/(config.bossTime/3600))
@@ -1947,7 +1945,7 @@ if gadgetHandler:IsSyncedCode() then
 			SetGameRulesParam("scavBossAnger", bossAnger)
 			SetGameRulesParam("scavTechAnger", techAnger)
 
-			if bossAnger >= 100 then
+			if bossAnger >= 100 or (burrowCount <= 1 and t > config.gracePeriod) then
 				-- check if the boss should be alive
 				updateSpawnBoss()
 				updateBossLife()
