@@ -213,10 +213,10 @@ local tierConfiguration = { -- Double maxSquadSize for special squads
 ----------------------------------------------------------------------------------------------
 
 local BurrowUnitsList = {
-	['scavbeacon_t1_scav'] = {minAnger = tierConfiguration[1].minAnger, maxAnger = tierConfiguration[3].maxAnger},
-	['scavbeacon_t2_scav'] = {minAnger = tierConfiguration[3].minAnger, maxAnger = tierConfiguration[5].maxAnger},
-	['scavbeacon_t3_scav'] = {minAnger = tierConfiguration[5].minAnger, maxAnger = tierConfiguration[7].maxAnger},
-	['scavbeacon_t4_scav'] = {minAnger = tierConfiguration[7].minAnger, maxAnger = tierConfiguration[7].maxAnger},
+	['scavbeacon_t1_scav'] = {minAnger = tierConfiguration[1].minAnger, maxAnger = tierConfiguration[2].maxAnger},
+	['scavbeacon_t2_scav'] = {minAnger = tierConfiguration[2].minAnger, maxAnger = tierConfiguration[3].maxAnger},
+	['scavbeacon_t3_scav'] = {minAnger = tierConfiguration[3].minAnger, maxAnger = tierConfiguration[5].maxAnger},
+	['scavbeacon_t4_scav'] = {minAnger = tierConfiguration[4].minAnger, maxAnger = tierConfiguration[7].maxAnger},
 }
 
 ----------------------------------------------------------------------------------------------
