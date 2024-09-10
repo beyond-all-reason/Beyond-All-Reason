@@ -165,10 +165,10 @@ local DEFAULT_DOCK_CHECK_FREQUENCY = 15		-- Checks the docking queue. Increasing
 
 	-- Notes:
 	--todo:
-	-- multiple unit types
-	-- test all command states
-	-- rearming stockpiles mechanic similarly to the healing behaviour
-	-- add firewhiledocked as an option.
+	-- multiple different drones on one carrier. Partially implemented, but the current implementation is merely a proof of concept. End goal is to have each drone type tied to separate weapons for targeting.
+    -- Performance updates
+    -- clarity updates. Removing clutter, removing deprecated code bits, restructuring, adding comments
+
 	--Known bugs:
 		-- Land carriers struggling with the attack formations
 		-- Drones occationally stuck hovering near the carrier instead of following the active command
