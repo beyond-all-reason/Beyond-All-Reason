@@ -1052,7 +1052,6 @@ local function updateQuotaNumber(unitDefID, count)
 				quotas[builderID][unitDefID] = quotas[builderID][unitDefID] or 0
 				local prev = quotas[builderID][unitDefID]
 				quotas[builderID][unitDefID] = math.max(quotas[builderID][unitDefID] + (count or 0), 0)
-				WG.Quotas.update(quotas)
 				quotaChanged = quotaChanged or prev ~= quotas[builderID][unitDefID]
 			end
 		end
