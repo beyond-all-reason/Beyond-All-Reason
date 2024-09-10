@@ -18,7 +18,7 @@ local fallDamageMagnificationFactor = 14 --the multiplier by which default engin
 local groundCollisionDefID = Game.envDamageTypes.GroundCollision
 local objectCollisionDefID = Game.envDamageTypes.ObjectCollision
 local objectCollisionVelocityThreshold = 3.3 --this defines how fast a unit has to be moving in order to take object collision damage
-local maxImpulseProportion = 0.08 --incease this to make units move less from impulse. This defines the max impulse damage a unit can take relative to its mass.
+local maxImpulseProportion = 0.08 --incease this to make units move less from impulse. This defines the max impulse damage allowed a unit can take relative to its mass.
 local cooldownsFrameThreshold = Game.gameSpeed --this is how long in frames before a unit's maximum impulse limit resets.
 
 local spGetUnitVelocity = Spring.GetUnitVelocity
