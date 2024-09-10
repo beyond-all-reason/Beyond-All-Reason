@@ -78,16 +78,11 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		local impulseMultiplier = 1
 		local impulse = 0
 		impulse, impulseMultiplier = calculateImpulseData(unitDefID, damage, weaponDefID)
-
 		if overImpulseCooldowns[unitID] and overImpulseCooldowns[unitID].highestimpulse < impulse then
 			impulseMultiplier = impulseMultiplier - overImpulseCooldowns[unitID].impulsemultiplier
 		end
-
 		overImpulseCooldowns[unitID] = {expireframe = currentModulusFrame + cooldownsFrameThreshold, highestimpulse = impulse, impulsemultiplier = impulseMultiplier}
-
 		return damage, impulseMultiplier
-			return damage, 0
-		end
 	else
 		if weaponDefID == groundCollisionDefID and not isUnitBeingTransported(unitID) then --handles ground collision events
 			damage = damage * calculateMassToHealthRatioMultiplier(unitID, unitDefID)
