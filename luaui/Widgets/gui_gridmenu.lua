@@ -36,11 +36,18 @@ local math_floor = math.floor
 local math_ceil = math.ceil
 local math_max = math.max
 local math_min = math.min
+local math_bit_and = math.bit_and
 
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 local GL_ONE_MINUS_SRC_COLOR = GL.ONE_MINUS_SRC_COLOR
+
+local CMD_INSERT = CMD.INSERT
+local CMD_OPT_ALT = CMD.OPT_ALT
+local CMD_OPT_CTRL = CMD.OPT_CTRL
+local CMD_OPT_SHIFT = CMD.OPT_SHIFT
+local CMD_OPT_RIGHT = CMD.OPT_RIGHT
 
 VFS.Include('luarules/configs/customcmds.h.lua')
 -------------------------------------------------------------------------------
@@ -516,17 +523,29 @@ local function updateHoverState()
 	end
 end
 
--- Retrieve from buildunit_ cmdParams on factories the number of de/enqueued units
--- Reference should be FactoryCAI GetCountMultiplierFromOptions in engine
-local function cmdParamsToFactoryQueueChange(cmdParams)
-	local count = cmdParams.right and -1 or 1
+local function getCodedOptState(cmdOptsCoded, cmdOpt)
+	return math_bit_and(cmdOptsCoded, cmdOpt) == cmdOpt
+end
 
-	if cmdParams.shift then
-		count = count * 5
+-- Retrieve from buildunit_ cmdOpts on factories the number of de/enqueued units
+-- Reference should be FactoryCAI GetCountMultiplierFromOptions in engine
+local function cmdOptsToFactoryQueueChange(cmdOpts)
+	local optTable = {}
+	if type(cmdOpts) == "number" then
+		optTable.ctrl = getCodedOptState(cmdOpts, CMD_OPT_CTRL)
+		optTable.shift = getCodedOptState(cmdOpts, CMD_OPT_SHIFT)
+		optTable.right = getCodedOptState(cmdOpts, CMD_OPT_RIGHT)
+	else
+		optTable = cmdOpts
+	end
+	local count = optTable.right and modKeyMultiplier.click.right or 1
+
+	if optTable.shift then
+		count = count * modKeyMultiplier.click.shift
 	end
 
-	if cmdParams.ctrl then
-		count = count * 20
+	if optTable.ctrl then
+		count = count * modKeyMultiplier.click.ctrl
 	end
 
 	return count
@@ -1096,7 +1115,7 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 
 	if builderIsFactory then
-		if WG.Quotas.getToggleState(activeBuilderID) and WG.Quotas then
+		if WG.Quotas and WG.Quotas.getToggleState(activeBuilderID)  then
 			local quantity = 1
 			if shift then
 				quantity = modKeyMultiplier.keyPress.shift
@@ -2531,8 +2550,8 @@ function widget:CommandNotify(cmdID, _, cmdOpts)
 	end
 end
 
--- widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdTag, cmdParams, cmdOpts)
-function widget:UnitCommand(unitID, _, _, cmdID, _, cmdParams)
+-- widget:UnitCommand(unitID, unitDefID, unitTeam, cmdParams, cmdOpts, cmdID, cmdTag)
+function widget:UnitCommand(unitID, _, _, cmdID, cmdParams, cmdOpts)
 	-- if theres no factory as active builder, cmd is not build return or cmd
 	-- is not to build a unit: nothing to do
 	if cmdID == CMD_STOP_PRODUCTION then
@@ -2542,12 +2561,18 @@ function widget:UnitCommand(unitID, _, _, cmdID, _, cmdParams)
 			redraw = true
 		end
 	end
+	if cmdID == CMD_INSERT then
+		if cmdParams[2] then
+			cmdID = cmdParams[2]
+			cmdOpts = cmdParams[3]
+		end
+	end
+
 	if not builderIsFactory or cmdID >= 0 or activeBuilderID ~= unitID then
 		return
 	end
 
-	local queueCount = cmdParamsToFactoryQueueChange(cmdParams)
-
+	local queueCount = cmdOptsToFactoryQueueChange(cmdOpts)
 	updateQueueNr(-cmdID, queueCount)
 
 	-- the command queue of the factory hasn't updated yet
@@ -2555,6 +2580,15 @@ function widget:UnitCommand(unitID, _, _, cmdID, _, cmdParams)
 	-- 500ms is our heuristic for a really bad scenario
 	-- doUpdateClock = os.clock() + 0.5
 	-- Actually lets comment this and see if we really need it
+end
+
+function widget:UnitCreated(_, unitDefID, _, builderID) -- to handle insert commands with quotas
+	if builderID == activeBuilderID and WG.Quotas then
+		local quotas = WG.Quotas.getQuotas()
+		if quotas[builderID] and quotas[builderID][unitDefID] then
+			redraw = true
+		end
+	end
 end
 
 -- update queue number

@@ -2,11 +2,11 @@
 function widget:GetInfo()
     return {
       name = "Factory Quotas",
-      desc = "Creates quotas of units that should be fulfilled(for example 5 Sheldons, 5 Sumos), will be queued before factory queue.",
+      desc = "Creates quotas of units that should be maintained(for example 5 Sheldons, 5 Sumos), that will be queued before factory queue.",
       author = "hihoman23",
       date = "2024",
       license = "GNU GPL, v2 or later",
-      layer = -1,
+      layer = 0,
       enabled = true,
       handler = true
     }
@@ -43,9 +43,13 @@ local myTeam = Spring.GetMyTeamID()
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spGetFactoryCommands = Spring.GetFactoryCommands
 local spGetUnitDefID = Spring.GetUnitDefID
-local spGetRealBuildQueue = Spring.GetRealBuildQueue
 local spGetUnitCmdDescs = Spring.GetUnitCmdDescs
 local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
+
+local CMD_INSERT = CMD.INSERT
+local CMD_OPT_ALT = CMD.OPT_ALT
+local CMD_OPT_CTRL = CMD.OPT_CTRL
+local CMD_OPT_INTERNAL = CMD.OPT_INTERNAL
 -----
 
 --------- quota logic -------------
@@ -89,67 +93,18 @@ local function isFactoryUsable(factoryID)
     return commandQueue and( #commandQueue == 0 or not (commandQueue[1].options.alt or (commandQueue[2] and commandQueue[2].options.alt)))
 end
 
-local function orderDequeue(unitID, buildDefID, count)
-	while count > 0 do
-		count = count - 100
-
-		spGiveOrderToUnit(unitID, -buildDefID, {}, { "right", "ctrl", "shift" })
-	end
-end
-
-local function clearFactoryQueue(factoryID)
-    
-	local queue = spGetRealBuildQueue(factoryID)
-
-	if queue ~= nil then
-		for _, buildPair in ipairs(queue) do
-			local buildUnitDefID, count = next(buildPair, nil)
-
-			orderDequeue(factoryID, buildUnitDefID, count)
-		end
-	end
-end
-
-local function prependToFactoryQueue(...)
-    local factoryID, cmdID, params, opts = ...
-    local commandQueue = spGetFactoryCommands(factoryID, -1)
-    local altCmds = {}
-    local others = {}
-    for _, cmd in ipairs(commandQueue) do
-        if cmd.options.alt then
-            altCmds[#altCmds+1] = cmd
-        else
-            others[#others+1] = cmd
-        end
-    end
-
-    clearFactoryQueue(factoryID)
-
-    for i = #altCmds, 1, -1 do -- do alt queue backwards
-        local cmd = altCmds[i]
-        spGiveOrderToUnit(factoryID, cmd.id, cmd.params, cmd.options)
-    end
-    spGiveOrderToUnit(...)
-    for _, cmd in ipairs(others) do
-        spGiveOrderToUnit(factoryID, cmd.id, cmd.params, cmd.options)
-    end
-end
-
-local function appendToFactoryQueue(...)
-    local factoryID, cmdID, params, opts = ...
+local function appendToFactoryQueue(factoryID, unitDefID)
     local currentCmd, targetID = Spring.GetUnitWorkerTask(factoryID)
-    local insertNormally = true
-    if targetID and Spring.GetUnitStates(factoryID)["repeat"] then
+    local insertPosition = 1
+    if targetID then
         local _, _, _, _, buildProgress = Spring.GetUnitHealth(targetID)
         if buildProgress < maxBuildProg and metalcosts[-currentCmd] and (buildProgress * metalcosts[-currentCmd]) < maxMetal then -- 7.5 % is the most that it is willing to cancel, and maximally 500 metal
-            insertNormally = false
+            insertPosition = 0
         end
-    end
-    if insertNormally then
-        spGiveOrderToUnit(...)
     else
-        prependToFactoryQueue(...)
+        insertPosition = 0 -- put in front of factory queue
     end
+    spGiveOrderToUnit(factoryID, CMD_INSERT, {insertPosition, -unitDefID, CMD_OPT_ALT + CMD_OPT_INTERNAL}, CMD_OPT_ALT + CMD_OPT_CTRL)
 end
 
 local function fillQuotas()
@@ -163,7 +118,7 @@ local function fillQuotas()
             if table.count(quota)>0 then
                 local quotaNum, unitDefID = getMostNeedQuota(quota, factoryID)
                 if quotaNum > getNumberOfUnits(factoryID, unitDefID) then
-                    appendToFactoryQueue(factoryID, -unitDefID, {}, {"alt"})
+                    appendToFactoryQueue(factoryID, unitDefID)
                 end
             end
         end
@@ -171,7 +126,7 @@ local function fillQuotas()
 end
 
 function widget:GameFrame(n)
-    if n % 4 == 0 then -- improve perfomance
+    if n % 15 == 0 then -- improve perfomance
         fillQuotas()
     end
 end
@@ -200,9 +155,15 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 end
 
 local function removeUnit(unitID, unitDefID, unitTeam)
-    if unitTeam == myTeam and unitToFactoryID[unitID] then --check if it was built by the same player
-        builtUnits[unitToFactoryID[unitID]][unitDefID][unitID] = nil
-        unitToFactoryID[unitID] = nil
+    if unitTeam == myTeam then --check if it was built by the same player
+        local factoryID = unitToFactoryID[unitID]
+        if factoryID and builtUnits[factoryID] then
+            builtUnits[factoryID][unitDefID][unitID] = nil
+            unitToFactoryID[unitID] = nil
+        elseif builtUnits[unitID] then
+            builtUnits[unitID] = nil
+            quotas[unitID] = nil
+        end
     end
 end
 
@@ -215,7 +176,6 @@ function widget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
         removeUnit(unitID, unitDefID, myTeam)
     end
 end
-
 
 function widget:PlayerChanged(playerID)
     if Spring.GetSpectatingState() then
@@ -230,9 +190,6 @@ function widget:Initialize()
     WG.Quotas = {}
     WG.Quotas.getQuotas = function()
         return quotas
-    end
-    WG.Quotas.update = function(newQuotas)
-        quotas = newQuotas
     end
     WG.Quotas.getUnitAmount = function(factoryID, unitDefID)
         return getNumberOfUnits(factoryID, unitDefID)
