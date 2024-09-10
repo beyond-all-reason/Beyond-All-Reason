@@ -32,7 +32,7 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 	dropDamages[unitDefID] = math.ceil(unitDef.health*baseDamageMultiplier * damageReductionMultiplier)
 end
 
-local function CheckValidUnitVelocity(unitID) -- returns nil for invalid units
+local function checkValidUnitVelocity(unitID) -- returns nil for invalid units
 	if (Spring.GetUnitIsDead(unitID) ~= false) or (Spring.ValidUnitID(unitID) ~= true) then return nil end
 
 		local velX, velY, velZ, velLength = Spring.GetUnitVelocity(unitID)
@@ -68,7 +68,7 @@ function gadget:GameFrame()
 				data.transportid = nil -- if transport is dead, remove its ID from the falling unit
 			end
 		end
-		local velX, velY, velZ, currentVelocity = CheckValidUnitVelocity(unitID)
+		local velX, velY, velZ, currentVelocity = checkValidUnitVelocity(unitID)
 		if currentVelocity then
 			if data.peakvelocity > currentVelocity then -- velocity slowing
 				if currentVelocity <= (data.peakvelocity * velocityStopThresholdMultiplier) then -- landed
