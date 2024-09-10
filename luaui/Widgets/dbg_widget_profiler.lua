@@ -477,11 +477,14 @@ function widget:DrawScreen()
 
 			local tLoad = timeLoadAverages[wname]
 			local sLoad = spaceLoadAverages[wname]
-			sortedList[n] = { plainname = wname, fullname = wname .. ' \255\200\200\200(' .. cmaxname_t .. ',' .. cmaxname_space .. ')', tLoad = tLoad, sLoad = sLoad, tTime = t / deltaTime }
+			if tLoad > 0.05 or sLoad > 5 then -- Only show heavy gadgets
+				sortedList[n] = { plainname = wname, fullname = wname .. ' \255\200\200\200(' .. cmaxname_t .. ',' .. cmaxname_space .. ')', tLoad = tLoad, sLoad = sLoad, tTime = t / deltaTime }
+				n = n + 1
+			end
 			allOverTime = allOverTime + tLoad
 			allOverSpace = allOverSpace + sLoad
 
-			n = n + 1
+			
 		end
 
 		table.sort(sortedList, SortFunc)
