@@ -223,7 +223,7 @@ local metricKeys = {
 local metricsAvailable = {
 	{ key="metalIncome", configLevel=constants.configLevel.basic, text="M/s" },
 	{ key="reclaimMetalIncome", configLevel=constants.configLevel.unavailable, text="MR" },
-	{ key="energyConversionMetalIncome", configLevel=constants.configLevel.expert, text="EC" },
+	{ key="energyConversionMetalIncome", configLevel=constants.configLevel.unavailable, text="EC" },
 	{ key="energyIncome", configLevel=constants.configLevel.basic, text="E/s" },
 	{ key="reclaimEnergyIncome", configLevel=constants.configLevel.unavailable, text="ER" },
 	{ key="buildPower", configLevel=constants.configLevel.expert, text="BP" },
