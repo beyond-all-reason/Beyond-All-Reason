@@ -23,7 +23,8 @@ local cooldownsFrameThreshold = Game.gameSpeed --this is how long in frames befo
 
 local spGetUnitVelocity = Spring.GetUnitVelocity
 local spGetUnitHealth = Spring.GetUnitHealth
-local mathmin = math.min
+local mathMin = math.min
+local mathMax = math.max
 
 local fallDamageMultipliers = {}
 local unitsMaxImpulse = {}
@@ -52,7 +53,7 @@ local function impulseData(unitDefID, damage, weaponDefID)
 	local impulseFactor = weaponDefIDImpulses[weaponDefID].impulsefactor or 1
 	local impulse = (damage + impulseBoost) * impulseFactor
 	local maxImpulse = unitsMaxImpulse[unitDefID]
-	local impulseMultiplier = mathmin(maxImpulse/impulse, 1)
+	local impulseMultiplier = mathMin(maxImpulse/impulse, 1)
 	return impulse, impulseMultiplier
 end
 
@@ -70,6 +71,8 @@ local function velocityDamageDirection(unitID)
 	local velX, velY, velZ, velLength = spGetUnitVelocity(unitID)
 	if velLength > objectCollisionVelocityThreshold and -velY > (velLength/3) then --prevents mostly horizontal object collisions from taking damage, allows damage if dropped from above
 		return true
+	else
+		return false
 	end
 end
 
@@ -79,7 +82,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		local impulse = 0
 		impulse, impulseMultiplier = impulseData(unitDefID, damage, weaponDefID)
 		if overImpulseCooldowns[unitID] and overImpulseCooldowns[unitID].highestImpulse < impulse then
-			impulseMultiplier = impulseMultiplier - overImpulseCooldowns[unitID].impulseMultiplier
+			impulseMultiplier = mathMax(impulseMultiplier - overImpulseCooldowns[unitID].impulseMultiplier, 0)
 		end
 		overImpulseCooldowns[unitID] = {expireFrame = currentModulusFrame + cooldownsFrameThreshold, highestImpulse = impulse, impulseMultiplier = impulseMultiplier}
 		return damage, impulseMultiplier
