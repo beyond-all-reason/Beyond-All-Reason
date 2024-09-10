@@ -18,7 +18,7 @@ local fallDamageMagnificationFactor = 14 --the multiplier by which default engin
 local groundCollisionDefID = Game.envDamageTypes.GroundCollision
 local objectCollisionDefID = Game.envDamageTypes.ObjectCollision
 local objectCollisionVelocityThreshold = 3.3 --this defines how fast a unit has to be moving in order to take object collision damage
-local maxImpulseThreshold = 0.08 --incease this to make units move less from impulse. This defines the max impulse damage a unit can take expressed in a percentage multiplier
+local maxImpulseProportion = 0.08 --incease this to make units move less from impulse. This defines the max impulse damage a unit can take relative to its mass.
 local cooldownsFrameThreshold = Game.gameSpeed --this is how long in frames before a unit's maximum impulse limit resets.
 
 local spGetUnitVelocity = Spring.GetUnitVelocity
@@ -37,7 +37,7 @@ local currentModulusFrame = 0
 for unitDefID, unitDef in ipairs(UnitDefs) do
 	local fallDamageMultiplier = unitDef.customParams.fall_damage_multiplier or 1.0
 	fallDamageMultipliers[unitDefID] = fallDamageMultiplier * fallDamageMagnificationFactor
-	unitsMaxImpulse[unitDefID] = unitDef.mass / maxImpulseThreshold
+	unitsMaxImpulse[unitDefID] = unitDef.mass / maxImpulseProportion
 	unitMasses[unitDefID] = unitDef.mass
 end
 
@@ -48,7 +48,9 @@ for weaponDefID, wDef in ipairs(WeaponDefs) do
 end
 
 local function impulseData(unitDefID, damage, weaponDefID)
-	local impulse = (damage + weaponDefIDImpulses[weaponDefID].impulseboost) * weaponDefIDImpulses[weaponDefID].impulsefactor
+	local impulseBoost = weaponDefIDImpulses[weaponDefID].impulseboost or 0
+	local impulseFactor = weaponDefIDImpulses[weaponDefID].impulsefactor or 1
+	local impulse = (damage + impulseBoost) * impulseFactor
 	local maxImpulse = unitsMaxImpulse[unitDefID]
 	local impulseMultiplier = mathmin(maxImpulse/impulse, 1)
 	return impulse, impulseMultiplier
@@ -76,10 +78,10 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		local impulseMultiplier = 1
 		local impulse = 0
 		impulse, impulseMultiplier = impulseData(unitDefID, damage, weaponDefID)
-		if overImpulseCooldowns[unitID] and overImpulseCooldowns[unitID].highestimpulse < impulse then
-			impulseMultiplier = impulseMultiplier - overImpulseCooldowns[unitID].impulsemultiplier
+		if overImpulseCooldowns[unitID] and overImpulseCooldowns[unitID].highestImpulse < impulse then
+			impulseMultiplier = impulseMultiplier - overImpulseCooldowns[unitID].impulseMultiplier
 		end
-		overImpulseCooldowns[unitID] = {expireframe = currentModulusFrame + cooldownsFrameThreshold, highestimpulse = impulse, impulsemultiplier = impulseMultiplier}
+		overImpulseCooldowns[unitID] = {expireFrame = currentModulusFrame + cooldownsFrameThreshold, highestImpulse = impulse, impulseMultiplier = impulseMultiplier}
 		return damage, impulseMultiplier
 	else
 		if weaponDefID == groundCollisionDefID and not transportedUnits[unitID] then
@@ -111,7 +113,7 @@ end
 function gadget:GameFrame(frame)
 	if frame % 5 == 3 then
 		for unitID, data in pairs (overImpulseCooldowns) do
-			if data.expireframe < frame  then --this is done to prevent a unit from being impulsed multiple times in a compounding fashion in a performant way.
+			if data.expireFrame < frame  then --this is done to prevent a unit from being impulsed multiple times in a compounding fashion in a performant way.
 				overImpulseCooldowns[unitID] = nil
 			end
 		end
