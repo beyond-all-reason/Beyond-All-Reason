@@ -645,6 +645,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 					dronebombertimer = 0,
 					dronebomberminengagementrange = tonumber(spawnDef.dronebomberminengagementrange) or 200,
 					manualDrones = tonumber(spawnDef.manualDrones),
+					weaponNr = i,
 					ignorenextcommand = false
 				}
 				for dronetypeIndex, _ in pairs(carrierData.dronenames) do
@@ -753,9 +754,13 @@ function gadget:UnitDestroyed(unitID)
 	if carrierUnitID then
 		if carrierMetaList[carrierUnitID].subUnitsList[unitID] then
 			local dronetypeIndex = carrierMetaList[carrierUnitID].subUnitsList[unitID].dronetypeIndex
-			carrierMetaList[carrierUnitID].availableSections[dronetypeIndex].availablePieces[carrierMetaList[carrierUnitID].subUnitsList[unitID].dockingPieceIndex].dockingPieceAvailable = true
+			if dronetypeIndex then
+				if carrierMetaList[carrierUnitID].subUnitsList[unitID].dockingPieceIndex then
+					carrierMetaList[carrierUnitID].availableSections[dronetypeIndex].availablePieces[carrierMetaList[carrierUnitID].subUnitsList[unitID].dockingPieceIndex].dockingPieceAvailable = true
+				end
+				carrierMetaList[carrierUnitID].subUnitCount[dronetypeIndex] = carrierMetaList[carrierUnitID].subUnitCount[dronetypeIndex] - 1
+			end
 			carrierMetaList[carrierUnitID].subUnitsList[unitID] = nil
-			carrierMetaList[carrierUnitID].subUnitCount[dronetypeIndex] = carrierMetaList[carrierUnitID].subUnitCount[dronetypeIndex] - 1
 			totalDroneCount = totalDroneCount - 1
 		end
 	end
@@ -960,18 +965,24 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 		end
 	end
 
-
+	local weapontargettype,_,weapontarget = Spring.GetUnitWeaponTarget(carrierID,carrierMetaData.weaponNr)
 	--Handles an attack order given to the carrier.
-	if not recallDrones and cmdID == CMD.ATTACK then
+	if not recallDrones and cmdID == CMD.ATTACK or weapontarget then
 
 		carrierx, carriery, carrierz = spGetUnitPosition(carrierID)
-		if cmdParam_1 and not cmdParam_2 then
-			target = cmdParam_1
-			targetx, targety, targetz = spGetUnitPosition(cmdParam_1)
-		else
-			target = {cmdParam_1, cmdParam_2, cmdParam_3}
-			targetx, targety, targetz = cmdParam_1, cmdParam_2, cmdParam_3
-			fightOrder = true
+		
+		if cmdID == CMD.ATTACK then
+			if cmdParam_1 and not cmdParam_2 then
+				target = cmdParam_1
+				targetx, targety, targetz = spGetUnitPosition(cmdParam_1)
+			else
+				target = {cmdParam_1, cmdParam_2, cmdParam_3}
+				targetx, targety, targetz = cmdParam_1, cmdParam_2, cmdParam_3
+				fightOrder = true
+			end
+		elseif weapontargettype == 1 then
+			target = weapontarget
+			targetx, targety, targetz = spGetUnitPosition(weapontarget)
 		end
 		if targetx and carrierx then
 			-- droneSendDistance = GetDistance(carrierx, targetx, carrierz, targetz)
@@ -1061,7 +1072,6 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 					DockUnitQueue(carrierID, subUnitID)
 				end
 			end
-
 			if carrierMetaList[carrierID] then
 				if carrierMetaList[carrierID].subUnitsList[subUnitID] and carrierMetaList[carrierID].subUnitsList[subUnitID].dronetype == "turret" then
 					spGiveOrderToUnit(subUnitID, CMD.FIRE_STATE, carrierStates.firestate, 0)
