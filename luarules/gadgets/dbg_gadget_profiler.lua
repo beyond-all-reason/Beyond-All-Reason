@@ -515,12 +515,14 @@ else
 			local tTime = t / deltaTime
 
 			local tColourString, sColourString = GetRedColourStrings(tTime, sLoad, gname, redStr, deltaTime)
-
-			sorted[n] = { plainname = gname, fullname = gname .. ' \255\200\200\200(' .. cmaxname_t .. ',' .. cmaxname_space .. ')', tLoad = tLoad, sLoad = sLoad, tTime = tTime, tColourString = tColourString, sColourString = sColourString }
+			if tLoad > 0.05 or sLoad > 5 then -- Only show heavy gadgets
+				sorted[n] = { plainname = gname, fullname = gname .. ' \255\200\200\200(' .. cmaxname_t .. ',' .. cmaxname_space .. ')', tLoad = tLoad, sLoad = sLoad, tTime = tTime, tColourString = tColourString, sColourString = sColourString }
+				n = n + 1
+			end
 			allOverTime = allOverTime + tLoad
 			allOverSpace = allOverSpace + sLoad
 
-			n = n + 1
+			
 		end
 
 		table.sort(sorted, SortFunc)
