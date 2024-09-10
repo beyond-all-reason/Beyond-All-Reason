@@ -77,16 +77,15 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 	if weaponDefID > 0 then --this section handles limiting maximum impulse
 		local impulseMultiplier = 1
 		local impulse = 0
-		if not overImpulseCooldowns[unitID] then
-			impulse, impulseMultiplier = calculateImpulseData(unitDefID, damage, weaponDefID)
-			overImpulseCooldowns[unitID] = {expireframe = currentModulusFrame + cooldownsFrameThreshold, highestimpulse = impulse, impulsemultiplier = impulseMultiplier}
-			return damage, impulseMultiplier
-		elseif overImpulseCooldowns[unitID] and overImpulseCooldowns[unitID].highestimpulse < impulse then
-			impulse, impulseMultiplier = calculateImpulseData(unitDefID, damage, weaponDefID)
+		impulse, impulseMultiplier = calculateImpulseData(unitDefID, damage, weaponDefID)
+
+		if overImpulseCooldowns[unitID] and overImpulseCooldowns[unitID].highestimpulse < impulse then
 			impulseMultiplier = impulseMultiplier - overImpulseCooldowns[unitID].impulsemultiplier
-			overImpulseCooldowns[unitID] = {expireframe = currentModulusFrame + cooldownsFrameThreshold, highestimpulse = impulse, impulsemultiplier = impulseMultiplier}
-			return damage, impulseMultiplier
-		else
+		end
+
+		overImpulseCooldowns[unitID] = {expireframe = currentModulusFrame + cooldownsFrameThreshold, highestimpulse = impulse, impulsemultiplier = impulseMultiplier}
+
+		return damage, impulseMultiplier
 			return damage, 0
 		end
 	else
