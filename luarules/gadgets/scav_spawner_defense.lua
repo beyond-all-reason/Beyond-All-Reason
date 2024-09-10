@@ -1936,7 +1936,11 @@ if gadgetHandler:IsSyncedCode() then
 					minBurrows = 1
 				else
 					bossAnger = 100
-					minBurrows = 4
+					if Spring.GetModOptions().scav_endless then
+						minBurrows = 4
+					else
+						minBurrows = 1
+					end
 				end
 				bossAngerAggressionLevel = bossAngerAggressionLevel + ((playerAggression*0.01)/(config.bossTime/3600)) + playerAggressionEcoValue
 				SetGameRulesParam("ScavBossAngerGain_Aggression", (playerAggression*0.01)/(config.bossTime/3600))
