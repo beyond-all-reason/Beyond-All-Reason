@@ -1,4 +1,14 @@
+# September 2024
+• [All units] Gravity standardized for all projectiles to 130, so weapons will behave the same way across all maps.  
+• [Rocketeer + Aggravator] Reverted the last 2 balance changes: damage per shot 173->157, reloadtime 4->3.8s, speed/acceleration 5% higher
+• [Lazarus + Graverobber] Metal cost increased 110->130, E cost unchanged, buildtime increased 2400->2800
+• [Mace] Health increased 900->1000
+• [Thug] Health increased 1000->1100, buildtime increased from 1970->2100 so it doesn't get repaired too quickly
+• [Tremor] Reloadtime reverted to 0.5s, impulse reduced 30%
+• [Vanguard] Range increased 1325->1450, health reduced 10000->8500.  Tremor and Vanguard's higher ranges now let them outrange long range defences (Rattlesnake, Persecutor, Pulsar)
+
 # August 2024
+• [Tremor] firemodes unified to remove the toggle, and effective DPS in target area increased. Wasp bugfixed, and now has mild tracking on rockets, so will miss shots less often.
 • [Dragon Claw/Maw] Collision volume and aim position will now change when the units open up, so it can be targeted when behind a wall
 
 # July 2024
