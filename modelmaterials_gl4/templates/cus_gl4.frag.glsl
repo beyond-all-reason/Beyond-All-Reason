@@ -93,8 +93,18 @@ uniform int materialIndex;
 // PBR uniforms
 uniform sampler2D brdfLUT;			//9
 uniform sampler3D noisetex3dcube;			//10
-uniform sampler2D envLUT;			//11
+uniform sampler2D heightmapTex;			//11
 
+/*
+vec2 heightmapUVatWorldPos(vec2 worldpos){
+	vec2 inverseMapSize = vec2(1.0) / mapSize.xy;
+	// Some texel magic to make the heightmap tex perfectly align:
+	vec2 heightmaptexel = vec2(8.0, 8.0);
+	worldpos +=  vec2(-8.0, -8.0) * (worldpos * inverseMapSize) + vec2(4.0, 4.0) ;
+	vec2 uvhm = clamp(worldpos, heightmaptexel, mapSize.xy - heightmaptexel);
+	uvhm = uvhm	* inverseMapSize;
+	return uvhm;
+}*/
 
 
 
@@ -636,7 +646,7 @@ void TextureEnvBlured(in vec3 N, in vec3 Rv, out vec3 iblDiffuse, out vec3 iblSp
 	#else //unrolled version
 		#define SH_FILL(x, y) \
 		{ \
-			vec3 lutsample = texelFetch(envLUT, ivec2(x, y), 0).rgb; \
+			vec3 lutsample = texelFetch(texture1, ivec2(x, y), 0).rgb; \
 			shR[x][y] = lutsample.r; \
 			shG[x][y] = lutsample.g; \
 			shB[x][y] = lutsample.b; \
@@ -1310,6 +1320,16 @@ void main(void){
 			outSpecularColor.rgb+= vec3(clamp(cloaknoise * 0.75,0.0,1.0));
 			#endif
 		} 
+	#endif
+
+	//TERRAIN BLEND SAMPLE HEIGHTMAP
+	#if 1
+		vec3 fragWorldPos = worldVertexPos.xyz;
+		vec2 uvhm = heightmapUVatWorldPos(fragWorldPos.xz);
+		float mapheight = textureLod(heightmapTex, uvhm, 0.0).x;
+		float heightdiff = clamp((fragWorldPos.y - mapheight) * 0.25, 0.0, 1.0);
+		texColor2.a *= heightdiff;
+		//outColor.rgb = vec3(fract((fragWorldPos.yyy + mapheight )* 0.1));
 	#endif
 
 	#if (RENDERING_MODE == 0)

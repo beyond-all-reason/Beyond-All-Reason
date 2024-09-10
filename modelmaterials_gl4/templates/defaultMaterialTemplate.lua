@@ -22,7 +22,7 @@ local shaderTemplate = {
 		losMapTex    = 8,
 		brdfLUT      = 9,
 		noisetex3dcube = 10,
-		envLUT = 11,
+		heightmapTex = 11,
 		-- envLUT       = 10, -- uncomment this if we want environment mapping back USE_ENVIRONMENT_DIFFUSE || USE_ENVIRONMENT_SPECULAR
 	},
 	uniformFloat = {

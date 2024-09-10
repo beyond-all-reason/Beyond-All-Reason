@@ -219,7 +219,7 @@ end
 
 
 -- Set autoReload.enabled = true to enable on-the-fly editing of shaders.
-local autoReload = {enabled = false, vssrc = "", fssrc = "", lastUpdate = Spring.GetTimer(), updateRate = 0.5}
+local autoReload = {enabled = true, vssrc = "", fssrc = "", lastUpdate = Spring.GetTimer(), updateRate = 0.5}
 
 -- Indicates wether the first round of getting units should grab all instead of delta
 local manualReload = autoReload.enabled or false
@@ -955,7 +955,7 @@ local function initBinsAndTextures()
 				[8] = "$info",
 				[9] = brdfLUT,
 				[10] = noisetex3dcube,
-				--[10] = envLUT,
+				[11] = '$heightmap',
 			}
 
 			objectDefToUniformBin[-1 * featureDefID] = 'feature'
@@ -1014,7 +1014,7 @@ local function initBinsAndTextures()
 				[8] = "$info:los",
 				[9] = GG.GetBrdfTexture(), --brdfLUT,
 				[10] = noisetex3dcube,
-				--[10] = envLUT,
+				[11] = '$heightmap',
 			}
 
 			local wreckTex1 =
@@ -1056,7 +1056,7 @@ local function initBinsAndTextures()
 				--Spring.Echo("Raptorwreck", textureTable[5])
 			elseif wreckTex1 and wreckTex2 then -- just a true unit:
 				textureTable[3] = wreckTex1
-				textureTable[4] = wreckTex2
+				textureTable[4] = wreckTex2 
 				textureTable[5] = wreckNormalTex
 			end
 			
@@ -1677,7 +1677,7 @@ local function ExecuteDrawPass(drawPass)
 	end
 	
 	if unbindtextures then 
-		for i=0,10 do
+		for i=0,11 do
 			gl.Texture(i, false)
 		end
 	end
