@@ -29,7 +29,7 @@ local fallDamageMultipliers = {}
 local unitsMaxImpulse = {}
 local weaponDefIDImpulses = {}
 local overImpulseCooldowns = {}
-local transportingUnits = {}
+local transportedUnits = {}
 local unitMasses = {}
 
 local currentModulusFrame = 0
@@ -47,23 +47,14 @@ for weaponDefID, wDef in ipairs(WeaponDefs) do
 	end
 end
 
-local function calculateImpulseData(unitDefID, damage, weaponDefID)
+local function impulseData(unitDefID, damage, weaponDefID)
 	local impulse = (damage + weaponDefIDImpulses[weaponDefID].impulseboost) * weaponDefIDImpulses[weaponDefID].impulsefactor
 	local maxImpulse = unitsMaxImpulse[unitDefID]
 	local impulseMultiplier = mathmin(maxImpulse/impulse, 1)
 	return impulse, impulseMultiplier
 end
 
-local function isUnitBeingTransported(unitID)
-	for transportID, transportedID in pairs(transportingUnits) do
-		if transportingUnits[transportID][unitID] then
-			return true
-		end
-	end
-	return false
-end
-
-local function calculateMassToHealthRatioMultiplier(unitID, unitDefID)
+local function massToHealthRatioMultiplier(unitID, unitDefID)
 	local health, maxHealth = spGetUnitHealth(unitID)
 	if maxHealth then
 		local massToMaxHealthMultiplier = (maxHealth / unitMasses[unitDefID]) * fallDamageMultipliers[unitDefID]
@@ -73,24 +64,30 @@ local function calculateMassToHealthRatioMultiplier(unitID, unitDefID)
 	end
 end
 
+local function velocityDamageDirection(unitID)
+	local velX, velY, velZ, velLength = spGetUnitVelocity(unitID)
+	if velLength > objectCollisionVelocityThreshold and -velY > (velLength/3) then --prevents mostly horizontal object collisions from taking damage, allows damage if dropped from above
+		return true
+	end
+end
+
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 	if weaponDefID > 0 then --this section handles limiting maximum impulse
 		local impulseMultiplier = 1
 		local impulse = 0
-		impulse, impulseMultiplier = calculateImpulseData(unitDefID, damage, weaponDefID)
+		impulse, impulseMultiplier = impulseData(unitDefID, damage, weaponDefID)
 		if overImpulseCooldowns[unitID] and overImpulseCooldowns[unitID].highestimpulse < impulse then
 			impulseMultiplier = impulseMultiplier - overImpulseCooldowns[unitID].impulsemultiplier
 		end
 		overImpulseCooldowns[unitID] = {expireframe = currentModulusFrame + cooldownsFrameThreshold, highestimpulse = impulse, impulsemultiplier = impulseMultiplier}
 		return damage, impulseMultiplier
 	else
-		if weaponDefID == groundCollisionDefID and not isUnitBeingTransported(unitID) then
-			damage = damage * calculateMassToHealthRatioMultiplier(unitID, unitDefID)
+		if weaponDefID == groundCollisionDefID and not transportedUnits[unitID] then
+			damage = damage * massToHealthRatioMultiplier(unitID, unitDefID)
 			return damage, 0
-		elseif weaponDefID == objectCollisionDefID and not isUnitBeingTransported(unitID) then
-			local _, velY, _, velLength = spGetUnitVelocity(unitID)
-			if velLength > objectCollisionVelocityThreshold and -velY > (velLength/3) then --prevents mostly horizontal object collisions from taking damage, allows damage if dropped from above
-				damage = damage * calculateMassToHealthRatioMultiplier(unitID, unitDefID)
+		elseif weaponDefID == objectCollisionDefID and not transportedUnits[unitID] then
+			if velocityDamageDirection(unitID) then
+				damage = damage * massToHealthRatioMultiplier(unitID, unitDefID)
 				return damage, 0
 			else
 				return 0, 0
@@ -100,16 +97,15 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 end
 
 function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
-	transportingUnits[transportID] = transportingUnits[transportID] or {}
-	transportingUnits[transportID][unitID] = true
+	transportedUnits[unitID] = true
 end
 
 function gadget:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
-	transportingUnits[transportID][unitID] = nil
+	transportedUnits[unitID] = nil
 end
 
 function gadget:UnitDestroyed(unitID)
-	transportingUnits[unitID] = nil
+	transportedUnits[unitID] = nil
 end
 
 function gadget:GameFrame(frame)
