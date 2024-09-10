@@ -36,8 +36,8 @@ local currentModulusFrame = 0
 
 for unitDefID, unitDef in ipairs(UnitDefs) do
 	local fallDamageMultiplier = unitDef.customParams.fall_damage_multiplier or 1.0
-	fallDamageMultipliers[unitDefID] = fallDamageMultiplier*fallDamageMagnificationFactor
-	unitsMaxImpulse[unitDefID] = unitDef.mass/maxImpulseThreshold
+	fallDamageMultipliers[unitDefID] = fallDamageMultiplier * fallDamageMagnificationFactor
+	unitsMaxImpulse[unitDefID] = unitDef.mass / maxImpulseThreshold
 	unitMasses[unitDefID] = unitDef.mass
 end
 
