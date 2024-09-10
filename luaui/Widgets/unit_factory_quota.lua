@@ -194,7 +194,7 @@ function widget:Initialize()
     WG.Quotas.getUnitAmount = function(factoryID, unitDefID)
         return getNumberOfUnits(factoryID, unitDefID)
     end
-    WG.Quotas.getToggleState = function(unitID)
+    WG.Quotas.isOnQuotaMode = function(unitID)
         return isOnQuotaBuildMode(unitID)
     end
 end
