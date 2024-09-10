@@ -1115,7 +1115,7 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 
 	if builderIsFactory then
-		if WG.Quotas and WG.Quotas.getToggleState(activeBuilderID)  then
+		if WG.Quotas and WG.Quotas.isOnQuotaMode(activeBuilderID)  then
 			local quantity = 1
 			if shift then
 				quantity = modKeyMultiplier.keyPress.shift
@@ -2392,7 +2392,7 @@ function widget:MousePress(x, y, button)
 					then
 						local alt, ctrl, meta, shift = Spring.GetModKeyState()
 						if button ~= 3 then
-							if WG.Quotas and WG.Quotas.getToggleState(activeBuilderID) and builderIsFactory then
+							if WG.Quotas and WG.Quotas.isOnQuotaMode(activeBuilderID) and builderIsFactory then
 								local amount = 1
 								if ctrl then
 									amount = amount * modKeyMultiplier.click.ctrl
@@ -2411,7 +2411,7 @@ function widget:MousePress(x, y, button)
 								pickBlueprint(unitDefID)
 							end
 						elseif builderIsFactory and spGetCmdDescIndex(-unitDefID) then
-							if not (WG.Quotas and WG.Quotas.getToggleState(activeBuilderID)) then
+							if not (WG.Quotas and WG.Quotas.isOnQuotaMode(activeBuilderID)) then
 								Spring.PlaySoundFile(CONFIG.sound_queue_rem, 0.75, "ui")
 								setActiveCommand(spGetCmdDescIndex(-unitDefID), 3, false, true)
 							else
