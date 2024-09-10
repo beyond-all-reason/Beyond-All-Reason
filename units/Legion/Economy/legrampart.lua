@@ -173,7 +173,7 @@ return {
 					docktohealthreshold = 33,
 					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					dockingHelperSpeed = 5,
-					dockingsections = "10 11 12",
+					dockingpieces = "10 11 12",
 					dockingradius = 80,			--The range at which the units snap to the carrier unit when docking.
 				}
 			},
