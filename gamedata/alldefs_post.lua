@@ -231,6 +231,7 @@ function UnitDef_Post(name, uDef)
 				armscab_scav = true,
 				corfmd_scav = true,
 				corsilo_scav = true,
+				legsilo_scav =  true,
 				cormabm_scav = true,
 			}
 			if Nukes[name] then
