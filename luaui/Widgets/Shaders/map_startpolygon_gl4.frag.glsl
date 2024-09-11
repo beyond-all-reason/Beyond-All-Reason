@@ -346,6 +346,11 @@ void main(void)
 		//float anim =  Cellular3D(0.01* vec3(mapWorldPos.xz, dot (mapWorldPos.xz, vec2(1.0)) * 0.1 + timeInfo.y * 50));
 		float cellNoise =  Cellular3D((1.0/128.0)* vec3(mapWorldPos.xz, closestbox * 0.2 - timeInfo.y * 50));
 
+		// absclamplify the cellnoise:
+		cellNoise += smoothstep( 0.0, 1.0, (1.0 - abs(cellNoise -0.5 ) * 10.0)) * 0.25;
+		// zero the cellnoise where you shouldnt be building:
+		cellNoise *= smoothstep(0.95, 1.0, mapnormal.y);
+
 		// float expboxedge = 0.5 * expSustainedImpulse(-1* closestbox, 32.0, (1/32.0));
 		cellNoise = 0.25 + 0.5 * cellNoise;
 
