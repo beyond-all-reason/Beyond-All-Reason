@@ -339,7 +339,10 @@ void main(void)
 		// get edge factor in this case:
 		// but make it anti aliased
 		float edgeFactor = 1.0 - clamp((anyBoxEdgeDistance / 16.0) + clamp (1.0 - anyBoxEdgeDistance * 0.5,0,1), 0.0, 1.0);
+		if (isMiniMap > 0.5){
+			edgeFactor = 1.0 - clamp((anyBoxEdgeDistance / 96.0), 0.0, 1.0);
 
+		}
 
 		fragColor.a = 0.25; 
 		fragColor.rgb = mycolor;
