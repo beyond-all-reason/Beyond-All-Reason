@@ -39,7 +39,7 @@ return {
 			model_author = "Johanthan Crimson",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "leggantry",
-			maxrange = "40",
+			maxrange = "5",
 			techlevel = 3,
 			weapon1turretx = 200,
 			weapon1turrety = 200,

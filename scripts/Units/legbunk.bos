@@ -35,7 +35,8 @@ SweetSpot(piecenum)
 
 HitByWeaponId(anglex, anglez, weaponid, dmg)	// angle[x|z] is always [-500;500], damage is multiplied by 100
 {
-	get PRINT(anglex,anglez,dmg/10);
+	get PRINT(anglex);
+	//get PRINT(anglex,anglez,dmg/10);
 
 	tdamage = dmg + tdamage;
 	//if ((tdamage > shieldLimit) AND (shieldup == 1))
@@ -87,7 +88,7 @@ AimPrimary(heading, pitch)
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	isAiming = TRUE;
-	turn aimy1 to y-axis heading speed <200.000000>;
+	turn aimy1 to y-axis heading/4 speed <200.000000>;
 	turn aimx1 to x-axis <0.000000> - pitch speed <90.000000>;
 	//wait-for-turn aimy1 around y-axis;
 	start-script RestoreAfterDelay();
