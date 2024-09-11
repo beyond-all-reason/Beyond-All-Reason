@@ -201,6 +201,7 @@ void main(void)
 	float closestbox = 1e6;
 	float furthestbox = 0;
 	float smoothDistance = max(mapSize.x, mapSize.y);
+	float anyBoxEdgeDistance = 1e6;
 
 	int numEnemyBoxes = 0;
 	int inAllyBox = 0;
@@ -232,14 +233,15 @@ void main(void)
 				}
 			}
 
-			float sd = sdPolygon2(mapWorldPos.xz, startpoint, endpoint - startpoint);
+			float signedDistance = sdPolygon2(mapWorldPos.xz, startpoint, endpoint - startpoint);
 
-			closestbox = min(closestbox, sd);
+			closestbox = min(closestbox, signedDistance);
 
 			// Check if this is _our_ box
-			if (sd < 0){
+			if (signedDistance < 0){
+				anyBoxEdgeDistance = min(anyBoxEdgeDistance, -signedDistance);
 				if (teamID == myAllyTeamID + 0){
-					mycolor.g = 1.0;
+					mycolor.g = 0.7;
 					inAllyBox = 1;
 				}else{
 					numEnemyBoxes = numEnemyBoxes + 1;
@@ -253,7 +255,7 @@ void main(void)
 					inRaptorBox = 1;
 				}
 			}else{
-				smoothDistance = smin(smoothDistance, sd, 50.0);
+				smoothDistance = smin(smoothDistance, signedDistance, 50.0);
 
 			}
 			// Advance pointer
@@ -286,38 +288,60 @@ void main(void)
 	vec2 fragSize = fwidth(mapWorldPos.xz);
 	float fragSizeFactor = 1.0/  dot(vec2(1.0),fragSize);
 
-	vec2 buildGrid16 = abs(fract(mapWorldPos.xz/16.0 - 0.5) - 0.5) * (4)/fragSize;
+	fragSize *= 1.5;
+
+	vec2 buildGrid16 = abs(fract(mapWorldPos.xz/16.0 - 0.5) - 0.5) * (16)/fragSize;
 	float grid16 = 0.25* clamp(1.0 - min(buildGrid16.x, buildGrid16.y), 0.0, 1.0);
 
-	vec2 buildGrid32 = abs(fract(mapWorldPos.xz/32.0 - 0.5) - 0.5) * (8)/fragSize;
+	vec2 buildGrid32 = abs(fract(mapWorldPos.xz/32.0 - 0.5) - 0.5) * (32)/fragSize;
 	float grid32 = 0.5*clamp(1.0 - min(buildGrid32.x, buildGrid32.y), 0.0, 1.0);
 
 	vec2 buildGrid64 = abs(fract(mapWorldPos.xz/64.0 - 0.5) - 0.5) * (64)/fragSize;
 	float grid64 = clamp(1.0 - min(buildGrid64.x, buildGrid64.y), 0.0, 1.0);
 
-	float gridmerge = fragSizeFactor * dot(vec3(grid16, grid32, grid64), vec3(0.5, 0.75, 1.0));
+	float gridmerge = fragSizeFactor * dot(vec3(grid16, grid32, grid64), vec3(1.0, 1.0, 1.0));
 	//fragColor.rgba = vec4(vec3(gridmerge), 0.2); return;
 
-	if (closestbox < 0.5) {
+	if (closestbox < 0.0) {
+		// we are in at least 1 box
+
+		// get edge factor in this case:
+
+		float edgeFactor = 1.0 - clamp(anyBoxEdgeDistance / 16.0, 0.0, 1.0);
+
+
+		// we are in our own box
+		if (inAllyBox == 1){ 
+
+
+		}
 		fragColor.a = 0.25; 
 		fragColor.rgb = mycolor;
 		//float anim =  Cellular3D(0.01* vec3(mapWorldPos.xz, dot (mapWorldPos.xz, vec2(1.0)) * 0.1 + timeInfo.y * 50));
-		float anim =  Cellular3D((1.0/128.0)* vec3(mapWorldPos.xz, closestbox * 0.2 - timeInfo.y * 50));
+		float cellNoise =  Cellular3D((1.0/128.0)* vec3(mapWorldPos.xz, closestbox * 0.2 - timeInfo.y * 50));
 
-		float expboxedge = 0.5 * expSustainedImpulse(-1* closestbox, 32.0, (1/32.0));
-		fragColor.a = expboxedge * anim *(gridmerge + 0.5);
+		// float expboxedge = 0.5 * expSustainedImpulse(-1* closestbox, 32.0, (1/32.0));
+		cellNoise = 0.25 + 0.5 * cellNoise;
+
+		fragColor.a = cellNoise *(gridmerge + 0.5);
 		//fragColor.a = clamp(expboxedge , 0.4 * anim, 0.5);
-		if (mapnormal.y < MAX_STEEPNESS){
-			fragColor.a = 0.5;
-			fragColor.g = smoothstep(0.48, 0.52, fract((mapWorldPos.x + mapWorldPos.z) / 16));
+		if (1 == 1){
+
+			float diagonalstriping = smoothstep(0.48, 0.52, abs(fract((mapWorldPos.x + mapWorldPos.z) / 16) -0.5)*2) ;
+			vec4 impassableColor = vec4(mycolor.rgb * diagonalstriping, 0.5);
+
+			//fragColor.a = 0.5;
+			//fragColor.g = smoothstep(0.48, 0.52, fract((mapWorldPos.x + mapWorldPos.z) / 16));
+			float impassablewidth = 0.05;
+			fragColor = mix(fragColor, impassableColor, 
+			smoothstep(-1 * impassablewidth,impassablewidth, MAX_STEEPNESS - mapnormal.y) * 0.5);
 		}
 		//fragColor.a = sin( closestbox * 0.02 + timeInfo.y * 0.1);
 		//fragColor.a *= Cellular3D(0.01* vec3(mapWorldPos.xz, timeInfo.y));
+		fragColor.rgba += edgeFactor * 0.5;
 	}else{
-		
-		fragColor.a = clamp(sin(smoothDistance * 0.2) * 0.025, 0.0,1.0);
-
-		fragColor.rgb = vec3(0.0);
+		//fragColor.a = clamp(sin(smoothDistance * 0.2) * 0.05, 0.0,1.0);
+		fragColor.rgba = vec4(0.0);
 	}
 	//fragColor.rgba = vec4(mapnormal * 0.5 + 0.5, 1.0);
 }
