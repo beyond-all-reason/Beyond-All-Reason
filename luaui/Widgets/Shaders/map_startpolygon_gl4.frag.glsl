@@ -263,6 +263,37 @@ void main(void)
 			teamID = int(polyVerts[startpoint].x);
 		}
 	#endif
+
+	// calculate myColor
+
+	if (inAllyBox == 1){ // my box
+		if (numEnemyBoxes > 0){ // has enemy boxes
+			mycolor = vec3(0.7, 0.7, 0.0);
+		}else{ // solo my box
+			mycolor = vec3(0.0, 0.7, 0.0);
+		}
+	}else{ // not my box
+		if (numEnemyBoxes <= 1){ // solo enemy box
+			mycolor = vec3(1.0, 0.0, 0.0);
+			if (inRaptorBox == 1){
+				mycolor = vec3(1.0, 0.3, 0.0);
+			}
+			if (inScavBox == 1){
+				mycolor = vec3(0.6, 0.0, 1.0);
+			}
+
+		}else{ // shared enemy box
+			mycolor = vec3(1.0, 0.2, 0.0);
+			if (inRaptorBox == 1){
+				mycolor = vec3(1.0, 0.4, 0.0);
+			}
+			if (inScavBox == 1){
+				mycolor = vec3(1.0, 0.3, 1.0);
+			}
+		}
+	}
+
+
 	// Note that now we have the distance to the closest box in closestbox
 	// and the distance to the most distant box in furthestbox
 

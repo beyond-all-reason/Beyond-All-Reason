@@ -168,7 +168,8 @@ function widget:Initialize()
 		gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID() , false))
 	end
 	for i, teamID in ipairs(Spring.GetAllyTeamList()) do
-		if teamID ~= gaiaAllyTeamID and teamID ~= scavengerAIAllyTeamID and teamID ~= raptorsAIAllyTeamID then
+		if teamID ~= gaiaAllyTeamID then 
+			--and teamID ~= scavengerAIAllyTeamID and teamID ~= raptorsAIAllyTeamID then
 			local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(teamID)
 			Spring.Echo("Allyteam",teamID,"startbox",xn, zn, xp, zp)	
 			StartPolygons[teamID] = {{xn, zn}, {xp, zn}, {xp, zp}, {xn, zp}}
