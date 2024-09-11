@@ -25,6 +25,9 @@ end
 -- [ ] Handle Scavengers in scavenger color
 -- [ ] Handle Raptors in raptor color
 
+local scavengerStartBoxTexture = "LuaUI/Images/scav-tileable_v001-alpha.tga"
+
+local raptorStartBoxTexture = "LuaUI/Images/rapt-tileable_v001_small_alpha.tga"
 
 local getMiniMapFlipped = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").getMiniMapFlipped
 
@@ -71,6 +74,8 @@ local shaderSourceCache = {
 			isMiniMap = 0,
 			flipMiniMap = 0,
 			mapNormals = 1,
+			scavTexture = 2,
+			raptorTexture = 3,
 		},
 		uniformFloat = {
 			pingData = {0,0,0,-10000}, -- x,y,z, time
@@ -118,6 +123,8 @@ local function DrawStartPolygons(inminimap)
 	end
 	
 	gl.Texture(1, "$normals")
+	gl.Texture(2, scavengerStartBoxTexture)
+	gl.Texture(3, raptorStartBoxTexture)
 
 	startPolygonBuffer:BindBufferRange(4)
 

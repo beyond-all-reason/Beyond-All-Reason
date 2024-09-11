@@ -30,6 +30,8 @@ in DataVS {
 
 uniform sampler2D mapDepths;
 uniform sampler2D mapNormals;
+uniform sampler2D scavTexture;
+uniform sampler2D raptorTexture;
 
 out vec4 fragColor;
 
@@ -264,11 +266,11 @@ void main(void)
 		}
 	#endif
 
-	// calculate myColor
+	// Define the colors for the individual cases: 
 
 	if (inAllyBox == 1){ // my box
 		if (numEnemyBoxes > 0){ // has enemy boxes
-			mycolor = vec3(0.7, 0.7, 0.0);
+			mycolor = vec3(0.5, 0.7, 0.0);
 		}else{ // solo my box
 			mycolor = vec3(0.0, 0.7, 0.0);
 		}
@@ -324,13 +326,13 @@ void main(void)
 	vec2 buildGrid16 = abs(fract(mapWorldPos.xz/16.0 - 0.5) - 0.5) * (16)/fragSize;
 	float grid16 = 0.25* clamp(1.0 - min(buildGrid16.x, buildGrid16.y), 0.0, 1.0);
 
-	vec2 buildGrid32 = abs(fract(mapWorldPos.xz/32.0 - 0.5) - 0.5) * (32)/fragSize;
+	vec2 buildGrid32 = abs(fract(mapWorldPos.xz/64.0 - 0.5) - 0.5) * (32)/fragSize;
 	float grid32 = 0.5*clamp(1.0 - min(buildGrid32.x, buildGrid32.y), 0.0, 1.0);
 
-	vec2 buildGrid64 = abs(fract(mapWorldPos.xz/64.0 - 0.5) - 0.5) * (64)/fragSize;
+	vec2 buildGrid64 = abs(fract(mapWorldPos.xz/256.0 - 0.5) - 0.5) * (256)/fragSize;
 	float grid64 = clamp(1.0 - min(buildGrid64.x, buildGrid64.y), 0.0, 1.0);
 
-	float gridmerge = fragSizeFactor * dot(vec3(grid16, grid32, grid64), vec3(1.0, 1.0, 1.0));
+	float gridmerge = fragSizeFactor * dot(vec3(grid16, grid32, grid64), vec3(0.5, 0.75, 1.0));
 	//fragColor.rgba = vec4(vec3(gridmerge), 0.2); return;
 
 	if (closestbox < 0.0) {
@@ -343,7 +345,7 @@ void main(void)
 		fragColor.a = 0.25; 
 		fragColor.rgb = mycolor;
 		//float anim =  Cellular3D(0.01* vec3(mapWorldPos.xz, dot (mapWorldPos.xz, vec2(1.0)) * 0.1 + timeInfo.y * 50));
-		float cellNoise =  Cellular3D((1.0/128.0)* vec3(mapWorldPos.xz, closestbox * 0.2 - timeInfo.y * 50));
+		float cellNoise =  Cellular3D((1.0/256.0)* vec3(mapWorldPos.xz, closestbox * 0.2 - timeInfo.y * 50));
 
 		// absclamplify the cellnoise:
 		cellNoise += smoothstep( 0.0, 1.0, (1.0 - abs(cellNoise -0.5 ) * 10.0)) * 0.25;
@@ -351,7 +353,7 @@ void main(void)
 		cellNoise *= smoothstep(0.95, 1.0, mapnormal.y);
 
 		// float expboxedge = 0.5 * expSustainedImpulse(-1* closestbox, 32.0, (1/32.0));
-		cellNoise = 0.25 + 0.5 * cellNoise;
+		cellNoise = 0.15 + 0.65 * cellNoise;
 
 		fragColor.a = cellNoise *(gridmerge + 0.5);
 		//fragColor.a = clamp(expboxedge , 0.4 * anim, 0.5);		
@@ -360,6 +362,9 @@ void main(void)
 
 			// disable noise on minimap
 			fragColor.a = 0.2;
+			
+			fragColor.rgba += edgeFactor * 0.5;
+			return;
 		}
 
 		if (1 == 1){
@@ -373,6 +378,26 @@ void main(void)
 			fragColor = mix(fragColor, impassableColor, 
 			smoothstep(-1 * impassablewidth,impassablewidth, MAX_STEEPNESS - mapnormal.y) * 0.5);
 		}
+
+		if (inScavBox == 1 && inAllyBox == 0){
+			vec4 scavTex = texture(scavTexture, mapWorldPos.xz / 512.0);
+			//float whiteness = dot(vec3(1.0/3.0), scavTex.rgb);
+			//float scavalpha = 1.0 - whiteness;
+			//fragColor.rgba = vec4(vec3(1.0, 0.0, 1.0), scavalpha);
+			fragColor.rgba = scavTex;
+			fragColor.a += cellNoise;
+		}
+
+		
+		if (inRaptorBox == 1 && inAllyBox == 0){
+			vec4 raptorTex = texture(raptorTexture, mapWorldPos.xz / 512.0);
+			//float whiteness = dot(vec3(1.0/3.0), raptorTex.rgb);
+			//float raptoralpha = 1.0 - whiteness;
+			//fragColor.rgba = vec4(vec3(1.0, 0.3, 0.0), raptoralpha);
+			fragColor.rgba = raptorTex;
+			fragColor.a += cellNoise;
+		}
+
 		//fragColor.a = sin( closestbox * 0.02 + timeInfo.y * 0.1);
 		//fragColor.a *= Cellular3D(0.01* vec3(mapWorldPos.xz, timeInfo.y));
 		fragColor.rgba += edgeFactor * 0.5;
