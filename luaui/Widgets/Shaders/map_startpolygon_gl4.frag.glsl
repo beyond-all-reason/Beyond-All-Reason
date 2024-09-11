@@ -337,15 +337,10 @@ void main(void)
 		// we are in at least 1 box
 
 		// get edge factor in this case:
-
-		float edgeFactor = 1.0 - clamp(anyBoxEdgeDistance / 16.0, 0.0, 1.0);
-
-
-		// we are in our own box
-		if (inAllyBox == 1){ 
+		// but make it anti aliased
+		float edgeFactor = 1.0 - clamp((anyBoxEdgeDistance / 16.0) + clamp (1.0 - anyBoxEdgeDistance * 0.5,0,1), 0.0, 1.0);
 
 
-		}
 		fragColor.a = 0.25; 
 		fragColor.rgb = mycolor;
 		//float anim =  Cellular3D(0.01* vec3(mapWorldPos.xz, dot (mapWorldPos.xz, vec2(1.0)) * 0.1 + timeInfo.y * 50));
@@ -357,8 +352,8 @@ void main(void)
 		fragColor.a = cellNoise *(gridmerge + 0.5);
 		//fragColor.a = clamp(expboxedge , 0.4 * anim, 0.5);
 		if (1 == 1){
-
-			float diagonalstriping = smoothstep(0.48, 0.52, abs(fract((mapWorldPos.x + mapWorldPos.z) / 16) -0.5)*2) ;
+			float smoothwidth = 0.05 / fragSizeFactor;
+			float diagonalstriping = smoothstep(0.5-smoothwidth, 0.5+smoothwidth, abs(fract((mapWorldPos.x + mapWorldPos.z) / 16) -0.5)*2) ;
 			vec4 impassableColor = vec4(mycolor.rgb * diagonalstriping, 0.5);
 
 			//fragColor.a = 0.5;
