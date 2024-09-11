@@ -2295,8 +2295,7 @@ end
 --- INPUT HANDLING
 -------------------------------------------------------------------------------
 
--- function widget:KeyPress(key, modifier, isRepeat)
-function widget:KeyPress(key)
+function widget:KeyPress(key, modifier, isRepeat)
 	if key == KEYSYMS.ESCAPE then
 		if currentCategory then
 			clearCategory()
@@ -2550,8 +2549,7 @@ function widget:CommandNotify(cmdID, _, cmdOpts)
 	end
 end
 
--- widget:UnitCommand(unitID, unitDefID, unitTeam, cmdParams, cmdOpts, cmdID, cmdTag)
-function widget:UnitCommand(unitID, _, _, cmdID, cmdParams, cmdOpts)
+function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
 	-- if theres no factory as active builder, cmd is not build return or cmd
 	-- is not to build a unit: nothing to do
 	if cmdID == CMD_STOP_PRODUCTION then
@@ -2592,8 +2590,7 @@ function widget:UnitCreated(_, unitDefID, _, builderID) -- to handle insert comm
 end
 
 -- update queue number
--- UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, options, cmdTag)
-function widget:UnitCmdDone(unitID, _, _, cmdID, _, options)
+function widget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, options, cmdTag)
 	-- if factory is not current active builder return
 	if unitID ~= activeBuilderID then
 		return
