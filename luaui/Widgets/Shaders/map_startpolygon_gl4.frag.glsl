@@ -339,10 +339,6 @@ void main(void)
 		// get edge factor in this case:
 		// but make it anti aliased
 		float edgeFactor = 1.0 - clamp((anyBoxEdgeDistance / 16.0) + clamp (1.0 - anyBoxEdgeDistance * 0.5,0,1), 0.0, 1.0);
-		if (isMiniMap > 0.5){
-			edgeFactor = 1.0 - clamp((anyBoxEdgeDistance / 96.0), 0.0, 1.0);
-
-		}
 
 		fragColor.a = 0.25; 
 		fragColor.rgb = mycolor;
@@ -358,7 +354,14 @@ void main(void)
 		cellNoise = 0.25 + 0.5 * cellNoise;
 
 		fragColor.a = cellNoise *(gridmerge + 0.5);
-		//fragColor.a = clamp(expboxedge , 0.4 * anim, 0.5);
+		//fragColor.a = clamp(expboxedge , 0.4 * anim, 0.5);		
+		if (isMiniMap > 0.5){
+			edgeFactor = 1.0 - clamp((1.0*anyBoxEdgeDistance * fragSizeFactor), 0.0, 1.0);
+
+			// disable noise on minimap
+			fragColor.a = 0.2;
+		}
+
 		if (1 == 1){
 			float smoothwidth = 0.05 / fragSizeFactor;
 			float diagonalstriping = smoothstep(0.5-smoothwidth, 0.5+smoothwidth, abs(fract((mapWorldPos.x + mapWorldPos.z) / 16) -0.5)*2) ;
