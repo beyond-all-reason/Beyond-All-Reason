@@ -1,13 +1,16 @@
 WARNING: SCAVENGERS ARE ACTIVE IN THIS REGION
+Prepare to repel relentless waves of mechs repurposed by the Scavenger nanomachine virus.
+The invasion occurs through Teleport Beacons, bringing increasingly powerful forces until repelled or all is consumed. Clouds of nanites spread Scavenger corruption, reconstituting and reprogramming all. Infested buildings create more nanomachines. Corrupted units seem able to sustain greater damage than normal. Rapid Scavenger expansion is powered by Resource Generators, dropped randomly or salvaged from destroyed Teleport Beacons. A titanic-sized mech designated Boss will be deployed to crush all threats to the Scavengers scrap harvest.  
 
-[GUIDE TO BE DONE]
-
-YOUR GOAL:
-Attempt to survive and build up a strong base and army to fight the Scavenger forces. Defeat their Boss to win.
- 
-WHY DID THEY APPEAR?
-No one knows for sure where they came from or what made them alive and hungry for destruction. It might have been some alien technology, a random short circuit of a processing unit or a deliberate action of mother nature to end the destructive war between Armada and Cortex. One thing is certain – some unknown event has influenced the AI algorithm and created these anomalies.
-
-
-
-
+TIPS:
+-Adjust the difficulty preset in Lobby Advanced Settings if the gamemode is too hard or too easy.
+-Resurrect dead Scavenger units to fight for you. Construction-capable units grant access to Scavenger designs.
+-Capture Ruins with your Commander or decoy commanders. Scavenger constructors can also capture them.
+-Resource Generators convert to the side with more nearby units. Transport them to secure locations before the Scavengers do.
+-The Cloud slowly converts units to the Scavenger side. Destroy the buildings producing the Cloud to stop this.
+-Scavengers use artillery and hit-and-run tactics. Pursue them to neutralize pesky threats.
+-Maintain anti-air and anti-nuke defenses. Scavengers don’t give warnings.
+-Scavenger units are durable but expensive. Advanced designs have high costs justified by their firepower.
+-The Boss’s adaptive armor gains resistance to repeated weapon types. Use a diverse army.
+-The Boss's turbo weapons are selected based on nearby units. The Boss hates ground scouts and aircraft.
+-When the Boss’s face lights up, its Eater Beam is active and it takes double damage. Feeding the Boss triggers a devastating Special attack.
