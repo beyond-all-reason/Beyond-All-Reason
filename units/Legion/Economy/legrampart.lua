@@ -36,7 +36,7 @@ return {
         selfdestructas = "advenergystorageSelfd",
         sightdistance = 1000,
 		turnrate = 1,
-		yardmap = "h cbygbsyybc bsbssbbssb ysbsbssbby ybsssbsssg sbsbsssbsb bsbsssbsbs gsssbsssby ybbssbsbsy bssbbssbsb cbyysbgybc",
+		yardmap = "h cbyybsygbc bsbssbbssb gsbsbssbby ybsssbsssy sbsbsssbsb bsbsssbsbs ysssbsssby ybbssbsbsg bssbbssbsb cbgysbyybc",
 		upright = true,
         customparams = {
             usebuildinggrounddecal = true,
