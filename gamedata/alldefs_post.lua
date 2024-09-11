@@ -224,15 +224,17 @@ function UnitDef_Post(name, uDef)
 				armscab = true,
 				corfmd = true,
 				corsilo = true,
-				legsilo =  true,
 				cormabm = true,
+				legsilo =  true,
+				legabm = true,
 				armamd_scav = true,
 				armsilo_scav = true,
 				armscab_scav = true,
 				corfmd_scav = true,
 				corsilo_scav = true,
-				legsilo_scav =  true,
 				cormabm_scav = true,
+				legsilo_scav =  true,
+				legabm_scav = true,
 			}
 			if Nukes[name] then
 				uDef.maxthisunit = 0
