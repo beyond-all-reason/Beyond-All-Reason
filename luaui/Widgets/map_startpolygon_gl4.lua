@@ -25,9 +25,9 @@ end
 -- [ ] Handle Scavengers in scavenger color
 -- [ ] Handle Raptors in raptor color
 
-local scavengerStartBoxTexture = "LuaUI/Images/scav-tileable_v001-alpha.tga"
+local scavengerStartBoxTexture = "LuaUI/Images/scav-tileable_v002_small.tga"
 
-local raptorStartBoxTexture = "LuaUI/Images/rapt-tileable_v001_small_alpha.tga"
+local raptorStartBoxTexture = "LuaUI/Images/rapt-tileable_v002_small.tga"
 
 local getMiniMapFlipped = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").getMiniMapFlipped
 
