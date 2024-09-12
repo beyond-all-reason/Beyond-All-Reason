@@ -907,6 +907,8 @@
 			"armyValue_tooltip": "Army value in metal,\nincl. commander",
 			"defenseValue_title": "Defense Value",
 			"defenseValue_tooltip": "Defense value in metal",
+			"utilityValue_title": "Utility Value",
+			"utilityValue_tooltip": "Utility value in metal",
 			"economyValue_title": "Economy Value",
 			"economyValue_tooltip": "Economy value in metal",
 			"damageDealt_title": "Damage Dealt",
@@ -1624,6 +1626,7 @@
 				"spectator_hud_config_basic": "Basic",
 				"spectator_hud_config_advanced": "Advanced",
 				"spectator_hud_config_expert": "Expert",
+				"spectator_hud_config_custom": "Custom",
 				"startpositionsuggestions": "Start Position Suggestions",
 				"startpositionsuggestions_descr": "Show expert recommended starting locations on the map"
 			}
