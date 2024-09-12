@@ -302,8 +302,8 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitI
 	-- proID isn't nil if hitscan weapons are used, it's actually -1.
 	if proID > -1 then
 		weaponDefID = projectileDefIDCache[proID] or spGetProjectileDefID(proID)
-
-		shieldData.shieldDamage = shieldData.shieldDamage + originalShieldDamages[weaponDefID]
+		local newShieldDamage = originalShieldDamages[weaponDefID] or 0 -- 0 to prevent rare bug where originalShieldDamages[weaponDefID] returns nil
+		shieldData.shieldDamage = shieldData.shieldDamage + newShieldDamage
 
 		if flameWeapons[weaponDefID] then
 			-- Flames aren't destroyed when they hit shields, so need to delete manually

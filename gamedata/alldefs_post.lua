@@ -1392,7 +1392,7 @@ function WeaponDef_Post(name, wDef)
 
 			if wDef.damage ~= nil and wDef.damage.default ~= nil then
 				wDef.customparams = wDef.customparams or {}
-				-- Due to the engone not handling overkill damage, we have to store the original shield damage values as a customParam for unit_shield_behavior.lua to reference
+				-- Due to the engine not handling overkill damage, we have to store the original shield damage values as a customParam for unit_shield_behavior.lua to reference
 				wDef.customparams.shield_damage = wDef.damage.shields or wDef.damage.default
 
 				if wDef.paralyzer then
