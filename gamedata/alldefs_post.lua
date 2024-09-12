@@ -690,19 +690,104 @@ function UnitDef_Post(name, uDef)
 		uDef.maxslope = math.floor((uDef.maxslope * 1.5) + 0.5)
 	end
 
-	-- make sure all paralyzable units have the correct EMPABLE category applied (or removed)
-	if uDef.category then
-		local empable = string.find(uDef.category, "EMPABLE")
-		if uDef.customparams and uDef.customparams.paralyzemultiplier then
-			if tonumber(uDef.customparams.paralyzemultiplier) == 0 then
-				if empable then
-					uDef.category = string.sub(uDef.category, 1, empable) .. string.sub(uDef.category, empable + 7)
+	----------------------------------------------------------------------
+	-- CATEGORY ASSIGNER
+	----------------------------------------------------------------------
+
+	local function manualCategory(unitDef, categoryString) return string.find(unitDef.category, categoryString) end
+	local function append(unitDef, appendString) do unitDef.category = unitDef.category..appendString end end
+	
+	-- unitDef.movementclass lists
+	local hoverList = {
+		HOVER2 = true,
+		HOVER3 = true,
+		HHOVER4 = true,
+		HOVER5 = true
+	}
+	
+	local shipList = {
+		BOAT3 = true,
+		BOAT4 = true,
+		BOAT5 = true,
+		BOAT8 = true,
+		EPICSHIP = true
+	}
+	
+	local subList = {
+		UBOAT4 = true,
+		EPICSUBMARINE = true
+	}
+	
+	local amphibList = {
+		VBOT5 = true,
+		COMMANDERBOT = true,
+		SCAVCOMMANDERBOT = true,
+		ATANK3 = true,
+		ABOT2 = true,
+		HABOT4 = true,
+		ABOTBOMB2 = true,
+		EPICBOT = true,
+		EPICALLTERRAIN = true
+	}
+
+	local commanderList = {
+		COMMANDERBOT = true,
+		SCAVCOMMANDERBOT = true
+	}
+	
+	local categories = {}
+
+	-- Manual categories: OBJECT T4AIR LIGHTAIRSCOUT GROUNDSCOUT RAPTOR
+	-- Deprecated caregories: BOT TANK PHIB NOTLAND SPACE
+	
+	categories["ALL"] = function() return true end
+	categories["MOBILE"] = function(unitDef) return unitDef.speed and unitDef.speed > 0 end
+	categories["NOTMOBILE"] = function(unitDef) return not categories.MOBILE(unitDef) end
+	categories["WEAPON"] = function(unitDef) return unitDef.weapondefs ~= nil end
+	categories["NOWEAPON"] = function(unitDef) return not categories.WEAPON(unitDef) end
+	categories["VTOL"] = function(unitDef) return unitDef.canfly == true end
+	categories["NOTAIR"] = function(unitDef) return not categories.VTOL(unitDef) end
+	categories["HOVER"] = function(unitDef) return hoverList[unitDef.movementclass] and (unitDef.maxwaterdepth == nil or unitDef.maxwaterdepth < 1) end -- convertible tank/boats have maxwaterdepth
+	categories["NOTHOVER"] = function(unitDef) return not categories.HOVER(unitDef) end
+	categories["SHIP"] = function(unitDef) return shipList[unitDef.movementclass] or (hoverList[unitDef.movementclass] and unitDef.maxwaterdepth and unitDef.maxwaterdepth >=1) end
+	categories["NOTSHIP"] = function(unitDef) return not categories.SHIP(unitDef) end
+	categories["NOTSUB"] = function(unitDef) return not subList[unitDef.movementclass] end
+	categories["CANBEUW"] = function(unitDef) return amphibList[unitDef.movementclass] end
+	categories["UNDERWATER"] = function(unitDef) return (unitDef.minwaterdepth and unitDef.waterline == nil) or (unitDef.minwaterdepth and unitDef.waterline > unitDef.minwaterdepth) end
+	categories["SURFACE"] = function(unitDef) return not categories.UNDERWATER(unitDef) and not categories.VTOL(unitDef) end
+	categories["MINE"] = function(unitDef) return unitDef.weapondefs and unitDef.weapondefs.minerange end
+	categories["COMMANDER"] = function(unitDef) return commanderList[unitDef.movementclass] end
+	categories["EMPABLE"] = function(unitDef) return categories.SURFACE(unitDef) and unitDef.customparams and unitDef.customparams.paralyzemultiplier ~= 0 end
+	
+	
+	for name, unitDef in pairs(UnitDefs) do
+		if string.find(unitDef.category, "OBJECT") then -- objects should not be targetable and therefore are not assigned any other category
+		else
+	
+			-- temrorary code, pending unitdef cleanup
+			local isT4AIR
+			local isLIGHTAIRSCOUT
+			local isGROUNDSCOUT
+			local isRAPTOR
+			if manualCategory(unitDef, "T4AIR") then isT4AIR = true end
+			if manualCategory(unitDef, "LIGHTAIRSCOUT") then isLIGHTAIRSCOUT = true end
+			if manualCategory(unitDef, "GROUNDSCOUT") then isGROUNDSCOUT = true end
+			if manualCategory(unitDef, "RAPTOR") then isRAPTOR = true end
+			unitDef.category = ""
+			if isT4AIR == true then append(unitDef, " T4AIR") end
+			if isLIGHTAIRSCOUT == true then append(unitDef, " LIGHTAIRSCOUT") end
+			if isGROUNDSCOUT == true then append(unitDef, " GROUNDSCOUT") end
+			if isRAPTOR == true then append(unitDef, " isRAPTOR") end
+			if name == "armmex" or name == "cormex" or name == "legmex" or name == "legmext15" then append(unitDef, " CANBEUW") end
+			-- end of temporary code
+	
+			for categoryName, condition in pairs(categories) do
+				if unitDef.exemptcategory == nil or not string.find(unitDef.exemptcategory, categoryName) then
+					if condition(unitDef) then
+						append(unitDef, " " .. categoryName)
+					end
 				end
-			elseif not empable then
-				uDef.category = uDef.category .. ' EMPABLE'
 			end
-		elseif not empable then
-			uDef.category = uDef.category .. ' EMPABLE'
 		end
 	end
 
