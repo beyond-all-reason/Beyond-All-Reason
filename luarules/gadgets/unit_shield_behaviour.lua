@@ -17,11 +17,14 @@ if not gadgetHandler:IsSyncedCode() then return end
 
 local defaultDowntime = 1
 
--- To save on performance, do not perform AoE damage mitigation checks below this threshold, value chosen empirically to negate laser AoE from a Sumo
+-- To save on performance, do not perform AoE damage mitigation checks below this threshold, value chosen empirically to negate laser AoE from a Mammoth
 local aoeIgnoreThreshold = 11
 
 -- Units half-in/half-out of a shield should not be protected, so need a buffer of non-coverage near the edge, value chosen empirically through testing to avoid having to look up collision volumes
 local radiusExclusionBuffer = 10
+
+-- If a unit doesn't have a defined shield damage or default damage, fallbackShieldDamage will be used as a fallback.
+local fallbackShieldDamage = 0
 
 local spGetUnitShieldState = Spring.GetUnitShieldState
 local spSetUnitShieldState = Spring.SetUnitShieldState
@@ -52,11 +55,11 @@ for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 	end
 
 	if weaponDef.customParams.beamtime_damage_reduction_multiplier then
-		local base = weaponDef.customParams.shield_damage
+		local base = weaponDef.customParams.shield_damage or fallbackShieldDamage
 		local multiplier = weaponDef.customParams.beamtime_damage_reduction_multiplier
 		originalShieldDamages[weaponDefID] = math.ceil(base * multiplier)
 	else
-		originalShieldDamages[weaponDefID] = weaponDef.customParams.shield_damage
+		originalShieldDamages[weaponDefID] = weaponDef.customParams.shield_damage or fallbackShieldDamage
 	end
 
 	if weaponDef.type == 'Flame' then
@@ -302,7 +305,7 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitI
 	-- proID isn't nil if hitscan weapons are used, it's actually -1.
 	if proID > -1 then
 		weaponDefID = projectileDefIDCache[proID] or spGetProjectileDefID(proID)
-		local newShieldDamage = originalShieldDamages[weaponDefID] or 0 -- 0 to prevent rare bug where originalShieldDamages[weaponDefID] returns nil
+		local newShieldDamage = originalShieldDamages[weaponDefID] or fallbackShieldDamage
 		shieldData.shieldDamage = shieldData.shieldDamage + newShieldDamage
 
 		if flameWeapons[weaponDefID] then

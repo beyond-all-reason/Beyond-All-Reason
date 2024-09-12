@@ -1376,6 +1376,9 @@ function WeaponDef_Post(name, wDef)
 			-- For balance, paralyzers need to do reduced damage to shields, as their raw raw damage is outsized
 			local paralyzerShieldDamageMultiplier = 0.25
 
+			-- VTOL's may or may not do full damage to shields if not defined in weapondefs
+			local vtolMultiplier = 0
+
 			if wDef.shield then
 				wDef.shield.repulser = false
 				wDef.shield.exterior = true
@@ -1390,10 +1393,20 @@ function WeaponDef_Post(name, wDef)
 				end
 			end
 
-			if wDef.damage ~= nil and wDef.damage.default ~= nil then
-				wDef.customparams = wDef.customparams or {}
+			if wDef.damage ~= nil then
 				-- Due to the engine not handling overkill damage, we have to store the original shield damage values as a customParam for unit_shield_behavior.lua to reference
-				wDef.customparams.shield_damage = wDef.damage.shields or wDef.damage.default
+				wDef.customparams = wDef.customparams or {}
+				if wDef.damage.shields then
+					wDef.customparams.shield_damage = wDef.damage.shields
+				elseif wDef.damage.default then
+					wDef.customparams.shield_damage = wDef.damage.default
+				elseif wDef.damage.vtol then
+					wDef.customparams.shield_damage = wDef.damage.vtol * vtolMultiplier
+				else
+					wDef.customparams.shield_damage = 0
+				end
+				wDef.customparams = wDef.customparams or {}
+				
 
 				if wDef.paralyzer then
 					wDef.customparams.shield_damage = wDef.customparams.shield_damage * paralyzerShieldDamageMultiplier
