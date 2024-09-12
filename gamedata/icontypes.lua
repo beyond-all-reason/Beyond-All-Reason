@@ -1722,7 +1722,7 @@ local icontypes = {
 	corphantom = {
 		bitmap = "icons/spy.png",
 		size = 1.20749986
-	},	
+	},
 	corplat = {
 		bitmap = "icons/factory_air_sea.png",
 		size = 1.52250004
@@ -2136,8 +2136,8 @@ local icontypes = {
 		size = 1.62749982
 	},
 	legaceb = {
-		bitmap = "icons/corfast_1.3.png",
-		size = 1.16999996
+		bitmap = "icons/legceb.png",
+		size = 1.25
 	},
 	legack = {
 		bitmap = "icons/bot_t2_worker.png",
@@ -2204,7 +2204,7 @@ local icontypes = {
 		size = 1.9425
 	},
 	legbal = {
-		bitmap = "icons/bot_rocket.png",
+		bitmap = "icons/bot_t15_rocket.png",
 		size = 1.20000005
 	},
 	legbar = {
@@ -2232,7 +2232,7 @@ local icontypes = {
 		size = 1.35
 	},
 	legcen = {
-		bitmap = "icons/bot_t2_raid.png",
+		bitmap = "icons/bot_t15_raid.png",
 		size = 1.04999995
 	},
 	legch = {
@@ -2622,7 +2622,7 @@ local icontypes = {
 	legtl = {
 		bitmap = "icons/defence_1_naval.png",
 		size = 1.10249984
-	},	
+	},
 	legfmkr = {
 		bitmap = "icons/metalmaker_t1.png",
 		size = 0.78749996

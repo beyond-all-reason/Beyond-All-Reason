@@ -3,7 +3,7 @@ function widget:GetInfo()
 		name = "Blueprint",
 		desc = "Saves and queues groups of unit blueprints",
 		license = "GNU GPL, v2 or later",
-		layer = 0,
+		layer = 1, -- after gridmenu(0), to let factories use alt+xyz hotkeys
 		enabled = true,
 		handler = true,
 	}
@@ -239,6 +239,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		blueprintBuildableUnitDefs[unitDefID] = true
 	elseif unitDef.isBuilder and not unitDef.canMove and not unitDef.isFactory then
 		-- nanos
+		blueprintBuildableUnitDefs[unitDefID] = true
+	elseif unitDef.customParams.mine then
+		-- mines
 		blueprintBuildableUnitDefs[unitDefID] = true
 	end
 end
