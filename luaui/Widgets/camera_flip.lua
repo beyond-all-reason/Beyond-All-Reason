@@ -30,6 +30,7 @@ local function cameraFlipHandler()
 	local cardinalLock = Spring.GetConfigInt("CamSpringLockCardinalDirections")
 	local lockCorrection = 0
 	if cardinalLock == 1 then
+		-- This value must be larger than the cardinal lock width of 0.2
 		lockCorrection = 1/3
 	end
 
