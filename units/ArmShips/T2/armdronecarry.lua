@@ -160,9 +160,7 @@ return {
 					docktohealthreshold = 65,
 					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					dockingHelperSpeed = 5,
-					dockingpiecestart = 11,		--First model piece to be used for docking.
-					dockingpieceinterval = 1,	--Number of pieces to skip when docking the next unit.
-					dockingpieceend = 27,		--Last model piece used for docking. Will loop back to first when exceeded.
+					dockingpieces = "11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27",
 					dockingradius = 300,			--The range at which the units snap to the carrier unit when docking.
 				}
 			},
