@@ -80,12 +80,11 @@ end
 
 local function setCoveredUnits(shieldUnitID)
 	local shieldData = shieldUnitsData[shieldUnitID]
-
-	if not shieldData then
+	removeCoveredUnits(shieldUnitID)
+	local x, y, z = spGetUnitPosition(shieldUnitID, true)
+	if not shieldData or not x then
 		return
 	else
-		removeCoveredUnits(shieldUnitID)
-		local x, y, z = spGetUnitPosition(shieldUnitID, true)
 		local unitsTable = spGetUnitsInSphere(x, y, z, (shieldData.radius - radiusExclusionBuffer))
 
 		for _, unitID in ipairs(unitsTable) do
@@ -114,9 +113,8 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 			shieldCoverageChecked = false,	-- Used to prevent expensive unit coverage checks being performed more than once per cycle
 			radius = shieldUnitDefs[unitDefID].customParams.shield_radius
 		}
-	end
-
 	setCoveredUnits(unitID)
+	end
 
 	-- Increases performance by reducing global unitDefID lookups
 	unitDefIDCache[unitID] = unitDefID
