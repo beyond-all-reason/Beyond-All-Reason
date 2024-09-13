@@ -36,7 +36,7 @@ return {
         selfdestructas = "advenergystorageSelfd",
         sightdistance = 1000,
 		turnrate = 1,
-		yardmap = "h cbygbsyybc bsbssbbssb ysbsbssbby ybsssbsssg sbsbsssbsb bsbsssbsbs gsssbsssby ybbssbsbsy bssbbssbsb cbyysbgybc",
+		yardmap = "h cbyybsygbc bsbssbbssb gsbsbssbby ybsssbsssy sbsbsssbsb bsbsssbsbs ysssbsssby ybbssbsbsg bssbbssbsb cbgysbyybc",
 		upright = true,
         customparams = {
             usebuildinggrounddecal = true,
@@ -173,9 +173,7 @@ return {
 					docktohealthreshold = 33,
 					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					dockingHelperSpeed = 5,
-					dockingpiecestart = 10,		--First model piece to be used for docking.
-					dockingpieceinterval = 1,	--Number of pieces to skip when docking the next unit.
-					dockingpieceend = 12,		--Last model piece used for docking. Will loop back to first when exceeded.
+					dockingpieces = "10 11 12",
 					dockingradius = 80,			--The range at which the units snap to the carrier unit when docking.
 				}
 			},

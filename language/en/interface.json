@@ -907,6 +907,8 @@
 			"armyValue_tooltip": "Army value in metal,\nincl. commander",
 			"defenseValue_title": "Defense Value",
 			"defenseValue_tooltip": "Defense value in metal",
+			"utilityValue_title": "Utility Value",
+			"utilityValue_tooltip": "Utility value in metal",
 			"economyValue_title": "Economy Value",
 			"economyValue_tooltip": "Economy value in metal",
 			"damageDealt_title": "Damage Dealt",
@@ -1557,6 +1559,9 @@
 				"customwidgets": "Allow custom widgets",
 				"customwidgets_descr": "enable loading of custom widgets (placed inside spring/luaui/widgets)",
 				"profiler": "Widget profiler",
+				"profiler_min_time": "Minimum Time",
+				"profiler_min_memory": "Minimum Memory",
+				"profiler_sort_by_load": "Sort By Load",
 				"framegrapher": "Frame grapher",
 				"autocheat": "Auto enable cheats for $VERSION",
 				"autocheat_descr": "does: /cheat, /globallos, /godmode",
@@ -1621,6 +1626,7 @@
 				"spectator_hud_config_basic": "Basic",
 				"spectator_hud_config_advanced": "Advanced",
 				"spectator_hud_config_expert": "Expert",
+				"spectator_hud_config_custom": "Custom",
 				"startpositionsuggestions": "Start Position Suggestions",
 				"startpositionsuggestions_descr": "Show expert recommended starting locations on the map"
 			}
