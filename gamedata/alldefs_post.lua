@@ -1476,8 +1476,6 @@ function WeaponDef_Post(name, wDef)
 				else
 					wDef.customparams.shield_damage = 0
 				end
-				wDef.customparams = wDef.customparams or {}
-				
 
 				if wDef.paralyzer then
 					wDef.customparams.shield_damage = wDef.customparams.shield_damage * paralyzerShieldDamageMultiplier
