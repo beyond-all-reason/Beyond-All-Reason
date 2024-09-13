@@ -121,6 +121,7 @@ local armorDefs = {
 		"armfatf",
 		"armfav",
 		"armfdrag",
+		"armfgate",
 		"armfhlt",
 		"armfhp",
 		"armfido",
@@ -129,6 +130,7 @@ local armorDefs = {
 		"armfmkr",
 		--"armfort",
 		"armfrt",
+		"armgate",
 		"armgeo",
 		"armgmm",
 		"armgremlin",
@@ -185,6 +187,7 @@ local armorDefs = {
 		"armamsub",
 		"corjuno",
 		"corageo",
+		"legageo",
 		"armconsul",
 		"coraak",
 		"corack",
@@ -196,6 +199,7 @@ local armorDefs = {
 		"corasp",
 		"corfasp",
 		"corbhmth",
+		"legrampart",
 		"corbuzz",
 		"corcan",
 		"corch",
@@ -208,6 +212,7 @@ local armorDefs = {
 		"corfatf",
 		"corfav",
 		"corfdrag",
+		"corfgate",
 		"corfhlt",
 		"corfhp",
 		"corfmkr",
@@ -216,6 +221,7 @@ local armorDefs = {
 		--"corfort",
 		"corfrt",
 		"corftiger",
+		"corgate",
 		"corgator",
 		"corgeo",
 		"corhlt",
@@ -459,6 +465,8 @@ local armorDefs = {
 		"cornanotc",
 		"armnanotcplat",
 		"cornanotcplat",
+		"legnanotc",
+		"legnanotcplat",
 	},
 	vtol = {
 		"raptors3",
@@ -564,10 +572,7 @@ local armorDefs = {
 		"critter_gull",
 	},
 	shields = {
-		"armgate",
-		"corgate",
-		--"armfgate", Not currently used
-		--"corfgate", Not currently used
+		-- Intentionally left blank. To be used in shield weapondefs only!
 	},
 	lboats = {
 		"corpt",

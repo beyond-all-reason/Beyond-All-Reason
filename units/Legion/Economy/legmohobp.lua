@@ -7,8 +7,9 @@ return {
 		energycost = 8100,
 		metalcost = 640,
 		buildingmask = 0,
-		buildpic = "legmohobp.DDS",
+		buildpic = "LEGMOHOBP.DDS",
 		buildtime = 14100,
+		builder = true,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -1 0",
@@ -32,6 +33,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 273,
+		workertime = 1,
 		yardmap = "h cbbbbbbc bssssssb bsssossb bsobbssb bssbbosb bssosssb bssssssb cbbbbbbc",
 		customparams = {
 			usebuildinggrounddecal = true,
