@@ -271,11 +271,8 @@ function gadget:GameFrame(frame)
 
 		if lastShieldCheckedIndex > #shieldUnitIndex then
 			lastShieldCheckedIndex = 1
-			--Spring.Echo(gameSeconds)
 		end
 		shieldCheckEndIndex = math.min(lastShieldCheckedIndex + shieldCheckChunkSize - 1, #shieldUnitIndex)
-		--Spring.Echo("count", shieldUnitsTotalCount, "lastIndex", lastShieldCheckedIndex, "endIndex", shieldCheckEndIndex, "chunk", shieldCheckChunkSize )
-
 	end
 end
 
