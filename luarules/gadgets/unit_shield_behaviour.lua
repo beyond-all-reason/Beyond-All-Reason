@@ -17,11 +17,14 @@ if not gadgetHandler:IsSyncedCode() then return end
 
 local defaultDowntime = 1
 
--- To save on performance, do not perform AoE damage mitigation checks below this threshold, value chosen empirically to negate laser AoE from a Sumo
+-- To save on performance, do not perform AoE damage mitigation checks below this threshold, value chosen empirically to negate laser AoE from a Mammoth
 local aoeIgnoreThreshold = 11
 
 -- Units half-in/half-out of a shield should not be protected, so need a buffer of non-coverage near the edge, value chosen empirically through testing to avoid having to look up collision volumes
 local radiusExclusionBuffer = 10
+
+-- If a unit doesn't have a defined shield damage or default damage, fallbackShieldDamage will be used as a fallback.
+local fallbackShieldDamage = 0
 
 local spGetUnitShieldState = Spring.GetUnitShieldState
 local spSetUnitShieldState = Spring.SetUnitShieldState
@@ -52,11 +55,11 @@ for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 	end
 
 	if weaponDef.customParams.beamtime_damage_reduction_multiplier then
-		local base = weaponDef.customParams.shield_damage
+		local base = weaponDef.customParams.shield_damage or fallbackShieldDamage
 		local multiplier = weaponDef.customParams.beamtime_damage_reduction_multiplier
 		originalShieldDamages[weaponDefID] = math.ceil(base * multiplier)
 	else
-		originalShieldDamages[weaponDefID] = weaponDef.customParams.shield_damage
+		originalShieldDamages[weaponDefID] = weaponDef.customParams.shield_damage or fallbackShieldDamage
 	end
 
 	if weaponDef.type == 'Flame' then
@@ -80,12 +83,11 @@ end
 
 local function setCoveredUnits(shieldUnitID)
 	local shieldData = shieldUnitsData[shieldUnitID]
-
-	if not shieldData then
+	removeCoveredUnits(shieldUnitID)
+	local x, y, z = spGetUnitPosition(shieldUnitID, true)
+	if not shieldData or not x then
 		return
 	else
-		removeCoveredUnits(shieldUnitID)
-		local x, y, z = spGetUnitPosition(shieldUnitID, true)
 		local unitsTable = spGetUnitsInSphere(x, y, z, (shieldData.radius - radiusExclusionBuffer))
 
 		for _, unitID in ipairs(unitsTable) do
@@ -114,9 +116,8 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 			shieldCoverageChecked = false,	-- Used to prevent expensive unit coverage checks being performed more than once per cycle
 			radius = shieldUnitDefs[unitDefID].customParams.shield_radius
 		}
-	end
-
 	setCoveredUnits(unitID)
+	end
 
 	-- Increases performance by reducing global unitDefID lookups
 	unitDefIDCache[unitID] = unitDefID
@@ -246,36 +247,35 @@ function gadget:GameFrame(frame)
 			shieldUnitIndex[shieldUnitsTotalCount] = shieldUnitID
 		end
 
-		shieldCheckChunkSize = math.max(math.ceil(shieldUnitsTotalCount / 10), 1)
+		shieldCheckChunkSize = math.max(math.ceil(shieldUnitsTotalCount / 4), 1)
+	end
+	if frame % 11 == 7 then
+		for i = lastShieldCheckedIndex, shieldCheckEndIndex do
+			local shieldUnitID = shieldUnitIndex[i]
+			local shieldData = shieldUnitsData[shieldUnitID]
+
+			if shieldData then
+				if not shieldData.shieldCoverageChecked then
+					if shieldData.shieldEnabled then
+						setCoveredUnits(shieldUnitID)
+					else
+						removeCoveredUnits(shieldUnitID)
+					end
+				end
+
+				shieldData.shieldCoverageChecked = false
+			end
+		end
+
+		lastShieldCheckedIndex = shieldCheckEndIndex + 1
 
 		if lastShieldCheckedIndex > #shieldUnitIndex then
 			lastShieldCheckedIndex = 1
+			--Spring.Echo(gameSeconds)
 		end
-
 		shieldCheckEndIndex = math.min(lastShieldCheckedIndex + shieldCheckChunkSize - 1, #shieldUnitIndex)
-	end
+		--Spring.Echo("count", shieldUnitsTotalCount, "lastIndex", lastShieldCheckedIndex, "endIndex", shieldCheckEndIndex, "chunk", shieldCheckChunkSize )
 
-	for i = lastShieldCheckedIndex, shieldCheckEndIndex do
-		local shieldUnitID = shieldUnitIndex[i]
-		local shieldData = shieldUnitsData[shieldUnitID]
-
-		if shieldData then
-			if not shieldData.shieldCoverageChecked then
-				if shieldData.shieldEnabled then
-					setCoveredUnits(shieldUnitID)
-				else
-					removeCoveredUnits(shieldUnitID)
-				end
-			end
-
-			shieldData.shieldCoverageChecked = false
-		end
-	end
-
-	lastShieldCheckedIndex = shieldCheckEndIndex + 1
-
-	if lastShieldCheckedIndex > #shieldUnitIndex then
-		lastShieldCheckedIndex = 1
 	end
 end
 
@@ -304,8 +304,8 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitI
 	-- proID isn't nil if hitscan weapons are used, it's actually -1.
 	if proID > -1 then
 		weaponDefID = projectileDefIDCache[proID] or spGetProjectileDefID(proID)
-
-		shieldData.shieldDamage = shieldData.shieldDamage + originalShieldDamages[weaponDefID]
+		local newShieldDamage = originalShieldDamages[weaponDefID] or fallbackShieldDamage
+		shieldData.shieldDamage = shieldData.shieldDamage + newShieldDamage
 
 		if flameWeapons[weaponDefID] then
 			-- Flames aren't destroyed when they hit shields, so need to delete manually

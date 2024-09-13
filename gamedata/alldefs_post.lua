@@ -1454,31 +1454,30 @@ function WeaponDef_Post(name, wDef)
 		end
 
 		if modOptions.shieldsrework == true then
-			local shieldCollisionExemptions = { --add the name of the weapons (or just the name of the unit followed by _ ) to this table to exempt from shield collision. 
-				'corsilo_', 'armsilo_', 'armthor_empmissile', 'armemp_', 'cortron_', 'corjuno_', 'armjuno_'
-			}
-
 			-- For balance, paralyzers need to do reduced damage to shields, as their raw raw damage is outsized
 			local paralyzerShieldDamageMultiplier = 0.25
 
-			if wDef.shield then
-				wDef.shield.repulser = false
-				wDef.shield.exterior = true
-			end
+			-- VTOL's may or may not do full damage to shields if not defined in weapondefs
+			local vtolShieldDamageMultiplier = 0
 
-			wDef.interceptedbyshieldtype = 1
+			local shieldCollisionExemptions = { --add the name of the weapons (or just the name of the unit followed by _ ) to this table to exempt from shield collision. 
+			'corsilo_', 'armsilo_', 'armthor_empmissile', 'armemp_', 'cortron_', 'corjuno_', 'armjuno_'
+		}
 
-			for _, exemption in ipairs(shieldCollisionExemptions) do
-				if string.find(name, exemption)then
-					wDef.interceptedbyshieldtype = 2
-					break
-				end
-			end
-
-			if wDef.damage ~= nil and wDef.damage.default ~= nil then
+			if wDef.damage ~= nil then
+				-- Due to the engine not handling overkill damage, we have to store the original shield damage values as a customParam for unit_shield_behavior.lua to reference
 				wDef.customparams = wDef.customparams or {}
-				-- Due to the engone not handling overkill damage, we have to store the original shield damage values as a customParam for unit_shield_behavior.lua to reference
-				wDef.customparams.shield_damage = wDef.damage.shields or wDef.damage.default
+				if wDef.damage.shields then
+					wDef.customparams.shield_damage = wDef.damage.shields
+				elseif wDef.damage.default then
+					wDef.customparams.shield_damage = wDef.damage.default
+				elseif wDef.damage.vtol then
+					wDef.customparams.shield_damage = wDef.damage.vtol * vtolShieldDamageMultiplier
+				else
+					wDef.customparams.shield_damage = 0
+				end
+				wDef.customparams = wDef.customparams or {}
+				
 
 				if wDef.paralyzer then
 					wDef.customparams.shield_damage = wDef.customparams.shield_damage * paralyzerShieldDamageMultiplier
@@ -1492,6 +1491,21 @@ function WeaponDef_Post(name, wDef)
 					 -- This splits up the damage of hitscan weapons over the duration of beamtime, as each frame counts as a hit in ShieldPreDamaged() callin
 					 -- Math.floor is used to sheer off the extra digits of the number of frames that the hits occur
 					wDef.customparams.beamtime_damage_reduction_multiplier = 1 / math.floor(wDef.beamtime * Game.gameSpeed)
+				end
+			end
+
+			if wDef.shield then
+				wDef.shield.repulser = false
+				wDef.shield.exterior = true
+			end
+
+			wDef.interceptedbyshieldtype = 1
+
+			for _, exemption in ipairs(shieldCollisionExemptions) do
+				if string.find(name, exemption)then
+					wDef.interceptedbyshieldtype = 2
+					wDef.customparams.shield_aoe_penetration = true
+					break
 				end
 			end
 		end
