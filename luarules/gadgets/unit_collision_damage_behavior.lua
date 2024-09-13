@@ -18,7 +18,7 @@ local fallDamageMagnificationFactor = 14 --the multiplier by which default engin
 local groundCollisionDefID = Game.envDamageTypes.GroundCollision
 local objectCollisionDefID = Game.envDamageTypes.ObjectCollision
 local objectCollisionVelocityThreshold = 3.3 --this defines how fast a unit has to be moving in order to take object collision damage
-local maxImpulseProportion = 0.05 --incease this to make units move less from impulse. This defines the max impulse damage allowed a unit can take relative to its mass.
+local maxImpulseProportion = 0.04 --incease this to make units move less from impulse. This defines the max impulse damage allowed a unit can take relative to its mass.
 
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitVelocity = Spring.GetUnitVelocity
@@ -74,7 +74,7 @@ local function impulseData(unitDefID, damage, weaponDefID)
 	local impulseFactor = weaponDefIDImpulses[weaponDefID].impulsefactor or 1
 	local impulse = (damage + impulseBoost) * impulseFactor
 	local maxImpulse = unitsMaxImpulse[unitDefID]
-	local impulseMultiplier = mathCeil(mathMin(maxImpulse/impulse, 1) * 1000000) / 1000000
+	local impulseMultiplier = mathCeil(mathMin(maxImpulse/impulse, 1) * 1000000) / 1000000 --we round to prevent the loss of impulse due to sheered tiny, tiny values being returned in UnitPreDamaged
 	return impulseMultiplier
 end
 
@@ -142,12 +142,12 @@ function gadget:GameFrame(frame)
 				velZ = (velocityCap / velocityLength) * velZ
 			end
 			if velocityLength > objectCollisionVelocityThreshold then
-				local decelerateHorizontal = 0.8
+				local decelerateHorizontal = 0.95
 				local decelerateVertical = 0.33
 				if velY < 0 then
 					decelerateVertical = 1
 				end
-				spSetUnitVelocity(unitID, velX * decelerateHorizontal, velY * decelerateVertical, velZ * decelerateHorizontal)
+				spSetUnitVelocity(unitID, (velX * decelerateHorizontal), (velY * decelerateVertical), (velZ * decelerateHorizontal))
 				expirationFrame = frame + velocityWatchDuration
 			elseif expirationFrame < frame then
 				unitInertiaCheckFlags[unitID] = nil
