@@ -18,22 +18,24 @@ local fallDamageMagnificationFactor = 14 --the multiplier by which default engin
 local groundCollisionDefID = Game.envDamageTypes.GroundCollision
 local objectCollisionDefID = Game.envDamageTypes.ObjectCollision
 local objectCollisionVelocityThreshold = 3.3 --this defines how fast a unit has to be moving in order to take object collision damage
-local maxImpulseProportion = 0.08 --incease this to make units move less from impulse. This defines the max impulse damage allowed a unit can take relative to its mass.
-local cooldownsFrameThreshold = Game.gameSpeed --this is how long in frames before a unit's maximum impulse limit resets.
+local maxImpulseProportion = 0.05 --incease this to make units move less from impulse. This defines the max impulse damage allowed a unit can take relative to its mass.
 
-local spGetUnitVelocity = Spring.GetUnitVelocity
 local spGetUnitHealth = Spring.GetUnitHealth
+local spGetUnitVelocity = Spring.GetUnitVelocity
+local spSetUnitVelocity = Spring.SetUnitVelocity
 local mathMin = math.min
 local mathMax = math.max
+local mathCeil = math.ceil
 
 local fallDamageMultipliers = {}
 local unitsMaxImpulse = {}
 local weaponDefIDImpulses = {}
-local overImpulseCooldowns = {}
 local transportedUnits = {}
 local unitMasses = {}
-
-local currentModulusFrame = 0
+local weaponDefIgnored = {}
+local unitInertiaCheckFlags = {} -- track inertia via velocity (units have constant mass)
+local gameFrame = 0
+local velocityWatchDuration = 3
 
 for unitDefID, unitDef in ipairs(UnitDefs) do
 	local fallDamageMultiplier = unitDef.customParams.fall_damage_multiplier or 1.0
@@ -42,9 +44,28 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 	unitMasses[unitDefID] = unitDef.mass
 end
 
+for name, weaponDefID in pairs(Game.envDamageTypes or {}) do
+	weaponDefIgnored[weaponDefID] = true
+end
+
 for weaponDefID, wDef in ipairs(WeaponDefs) do
 	if wDef.damages and wDef.damages.impulseBoost and wDef.damages.impulseFactor then
 		weaponDefIDImpulses[weaponDefID] = {impulseboost = wDef.damages.impulseBoost, impulsefactor = wDef.damages.impulseFactor}
+	end
+
+	
+	local function maxDamage(damages)
+		local damage = damages[0]
+		for i = 1, #damages do
+			damage = mathMax(damages[i], damage)
+		end
+		return damage
+	end
+	
+	--generate list of exempted weapons to improve performance
+	if wDef.damages and wDef.damages.impulseFactor == 0 or
+		(wDef.damages.impulseFactor < 0.15 and wDef.damages.impulseBoost < maxDamage(wDef.damages) * 0.2) then
+		weaponDefIgnored[weaponDefID] = true
 	end
 end
 
@@ -53,8 +74,8 @@ local function impulseData(unitDefID, damage, weaponDefID)
 	local impulseFactor = weaponDefIDImpulses[weaponDefID].impulsefactor or 1
 	local impulse = (damage + impulseBoost) * impulseFactor
 	local maxImpulse = unitsMaxImpulse[unitDefID]
-	local impulseMultiplier = mathMin(maxImpulse/impulse, 1)
-	return impulse, impulseMultiplier
+	local impulseMultiplier = mathCeil(mathMin(maxImpulse/impulse, 1) * 1000000) / 1000000
+	return impulseMultiplier
 end
 
 local function massToHealthRatioMultiplier(unitID, unitDefID)
@@ -69,7 +90,7 @@ end
 
 local function velocityDamageDirection(unitID)
 	local velX, velY, velZ, velLength = spGetUnitVelocity(unitID)
-	if velLength > objectCollisionVelocityThreshold and -velY > (velLength/3) then --prevents mostly horizontal object collisions from taking damage, allows damage if dropped from above
+	if velLength > objectCollisionVelocityThreshold and -velY > (velLength/2) then --prevents mostly horizontal object collisions from taking damage, allows damage if dropped from above
 		return true
 	else
 		return false
@@ -77,14 +98,10 @@ local function velocityDamageDirection(unitID)
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-	if weaponDefID > 0 then --this section handles limiting maximum impulse
+	if not weaponDefIgnored[weaponDefID] and weaponDefID > 0 then --this section handles limiting maximum impulse
 		local impulseMultiplier = 1
-		local impulse = 0
-		impulse, impulseMultiplier = impulseData(unitDefID, damage, weaponDefID)
-		if overImpulseCooldowns[unitID] and overImpulseCooldowns[unitID].highestImpulse < impulse then
-			impulseMultiplier = mathMax(impulseMultiplier - overImpulseCooldowns[unitID].impulseMultiplier, 0)
-		end
-		overImpulseCooldowns[unitID] = {expireFrame = currentModulusFrame + cooldownsFrameThreshold, highestImpulse = impulse, impulseMultiplier = impulseMultiplier}
+		impulseMultiplier = impulseData(unitDefID, damage, weaponDefID)
+		unitInertiaCheckFlags[unitID] = gameFrame + velocityWatchDuration
 		return damage, impulseMultiplier
 	else
 		if weaponDefID == groundCollisionDefID and not transportedUnits[unitID] then
@@ -111,15 +128,31 @@ end
 
 function gadget:UnitDestroyed(unitID)
 	transportedUnits[unitID] = nil
+	unitInertiaCheckFlags[unitID] = nil
 end
 
 function gadget:GameFrame(frame)
-	if frame % 5 == 3 then
-		for unitID, data in pairs (overImpulseCooldowns) do
-			if data.expireFrame < frame  then --this is done to prevent a unit from being impulsed multiple times in a compounding fashion in a performant way.
-				overImpulseCooldowns[unitID] = nil
+	for unitID, expirationFrame in pairs(unitInertiaCheckFlags) do
+		if not transportedUnits[unitID] then
+			local velocityCap = 3
+			local velX, velY, velZ, velocityLength = spGetUnitVelocity(unitID)
+			if velocityLength > velocityCap then
+				velX = (velocityCap / velocityLength) * velX
+				velY = (velocityCap / velocityLength) * velY
+				velZ = (velocityCap / velocityLength) * velZ
+			end
+			if velocityLength > objectCollisionVelocityThreshold then
+				local decelerateHorizontal = 0.8
+				local decelerateVertical = 0.33
+				if velY < 0 then
+					decelerateVertical = 1
+				end
+				spSetUnitVelocity(unitID, velX * decelerateHorizontal, velY * decelerateVertical, velZ * decelerateHorizontal)
+				expirationFrame = frame + velocityWatchDuration
+			elseif expirationFrame < frame then
+				unitInertiaCheckFlags[unitID] = nil
 			end
 		end
-		currentModulusFrame = frame
 	end
+	gameFrame = frame
 end
