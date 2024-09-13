@@ -247,36 +247,35 @@ function gadget:GameFrame(frame)
 			shieldUnitIndex[shieldUnitsTotalCount] = shieldUnitID
 		end
 
-		shieldCheckChunkSize = math.max(math.ceil(shieldUnitsTotalCount / 10), 1)
+		shieldCheckChunkSize = math.max(math.ceil(shieldUnitsTotalCount / 4), 1)
+	end
+	if frame % 11 == 7 then
+		for i = lastShieldCheckedIndex, shieldCheckEndIndex do
+			local shieldUnitID = shieldUnitIndex[i]
+			local shieldData = shieldUnitsData[shieldUnitID]
+
+			if shieldData then
+				if not shieldData.shieldCoverageChecked then
+					if shieldData.shieldEnabled then
+						setCoveredUnits(shieldUnitID)
+					else
+						removeCoveredUnits(shieldUnitID)
+					end
+				end
+
+				shieldData.shieldCoverageChecked = false
+			end
+		end
+
+		lastShieldCheckedIndex = shieldCheckEndIndex + 1
 
 		if lastShieldCheckedIndex > #shieldUnitIndex then
 			lastShieldCheckedIndex = 1
+			--Spring.Echo(gameSeconds)
 		end
-
 		shieldCheckEndIndex = math.min(lastShieldCheckedIndex + shieldCheckChunkSize - 1, #shieldUnitIndex)
-	end
+		--Spring.Echo("count", shieldUnitsTotalCount, "lastIndex", lastShieldCheckedIndex, "endIndex", shieldCheckEndIndex, "chunk", shieldCheckChunkSize )
 
-	for i = lastShieldCheckedIndex, shieldCheckEndIndex do
-		local shieldUnitID = shieldUnitIndex[i]
-		local shieldData = shieldUnitsData[shieldUnitID]
-
-		if shieldData then
-			if not shieldData.shieldCoverageChecked then
-				if shieldData.shieldEnabled then
-					setCoveredUnits(shieldUnitID)
-				else
-					removeCoveredUnits(shieldUnitID)
-				end
-			end
-
-			shieldData.shieldCoverageChecked = false
-		end
-	end
-
-	lastShieldCheckedIndex = shieldCheckEndIndex + 1
-
-	if lastShieldCheckedIndex > #shieldUnitIndex then
-		lastShieldCheckedIndex = 1
 	end
 end
 
