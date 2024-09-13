@@ -69,7 +69,7 @@ for weaponDefID, wDef in ipairs(WeaponDefs) do
 	end
 end
 
-local function impulseData(unitDefID, damage, weaponDefID)
+local function impulseData(unitDefID, weaponDefID, damage)
 	local impulseBoost = weaponDefIDImpulses[weaponDefID].impulseboost or 0
 	local impulseFactor = weaponDefIDImpulses[weaponDefID].impulsefactor or 1
 	local impulse = (damage + impulseBoost) * impulseFactor
@@ -100,7 +100,7 @@ end
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 	if not weaponDefIgnored[weaponDefID] and weaponDefID > 0 then --this section handles limiting maximum impulse
 		local impulseMultiplier = 1
-		impulseMultiplier = impulseData(unitDefID, damage, weaponDefID)
+		impulseMultiplier = impulseData(unitDefID, weaponDefID, damage)
 		unitInertiaCheckFlags[unitID] = gameFrame + velocityWatchDuration
 		return damage, impulseMultiplier
 	else
