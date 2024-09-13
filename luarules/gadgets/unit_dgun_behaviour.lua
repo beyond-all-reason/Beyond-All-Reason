@@ -166,10 +166,17 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldEmitterWeaponNum, shie
 
 		local gameframe = spGetGameFrame()
 
-		if not modOptions.shieldsrework and hitX > 0 and lastShieldFrameCheck[shieldCarrierUnitID] ~= gameframe then
-			shieldPower = math.max(shieldPower - damage, 0)
-			spSetUnitShieldState(shieldCarrierUnitID, shieldEmitterWeaponNum, shieldEnabledState, shieldPower)
-			lastShieldFrameCheck[shieldCarrierUnitID] = gameframe
+		if not modOptions.shieldsrework then
+			local damageCooldownFrames = 10
+			if shieldPower < damage then return false end
+
+			lastShieldFrameCheck[shieldCarrierUnitID] = lastShieldFrameCheck[shieldCarrierUnitID] or gameframe
+
+			if hitX > 0 and lastShieldFrameCheck[shieldCarrierUnitID] <= gameframe then
+				shieldPower = math.max(shieldPower - damage, 0)
+				spSetUnitShieldState(shieldCarrierUnitID, shieldEmitterWeaponNum, shieldEnabledState, shieldPower)
+				lastShieldFrameCheck[shieldCarrierUnitID] = gameframe + damageCooldownFrames
+			end
 		end
 
 		-- Engine does not provide a way for shields to stop DGun projectiles, they will impact once and carry on through,
