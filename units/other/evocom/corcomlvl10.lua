@@ -399,7 +399,7 @@ return {
 						alpha = 0.17,
 						armortype = "shields",
 						force = 2.5,
-						intercepttype = 11111,
+						intercepttype = 8191,
 						power = 30000,
 						powerregen = 500,
 						powerregenenergy = 100,

@@ -19,7 +19,7 @@ return {
 		cloakcost = 30,
 		cloakcostmoving = 180,
 		collisionvolumeoffsets = "0 3 0",
-		collisionvolumescales = "28 52 28",
+		collisionvolumescales = "48 60 48",
 		collisionvolumetype = "CylY",
 		decoyfor = "armcom",
 		energymake = 15,
