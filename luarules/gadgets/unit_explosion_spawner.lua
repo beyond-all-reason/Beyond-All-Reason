@@ -88,6 +88,16 @@ for weaponDefID = 1, #WeaponDefs do
 	end
 end
 
+local scavengerAITeamID = 999
+local teams = Spring.GetTeamList()
+for i = 1, #teams do
+	local luaAI = Spring.GetTeamLuaAI(teams[i])
+	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
+		scavengerAITeamID = i - 1
+		break
+	end
+end
+
 function gadget:Explosion_GetWantedWeaponDef()
 	return wantedList
 end
@@ -200,7 +210,11 @@ local function SpawnUnit(spawnData)
 				expireCount = expireCount + 1
 				expireByID[unitID] = expireCount
 				expireID[expireCount] = unitID
-				expireList[expireCount] = spGetGameFrame() + spawnDef.expire
+				if Spring.GetUnitTeam(unitID) ~= scavengerAITeamID then
+					expireList[expireCount] = spGetGameFrame() + spawnDef.expire
+				else
+					expireList[expireCount] = spGetGameFrame() + 99999
+				end
 			end
 
 			-- force a slowupdate to make the unit act immediately
@@ -210,6 +224,20 @@ local function SpawnUnit(spawnData)
 
 		end
 	end
+end
+
+function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
+	-- Catch units that are expirable right before they die, so they don't create wreck on death.
+	if expireByID[unitID] then
+		if Spring.GetUnitHealth(unitID) and damage and damage > Spring.GetUnitHealth(unitID) then
+			if attackerID then
+				Spring.DestroyUnit(unitID, true, false, attackerID)
+			else
+				Spring.DestroyUnit(unitID, true)
+			end
+		end
+	end
+
 end
 
 function gadget:Initialize()
