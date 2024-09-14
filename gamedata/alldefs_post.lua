@@ -1384,11 +1384,6 @@ function WeaponDef_Post(name, wDef)
 
 	if not SaveDefsToCustomParams then
 
-		if wDef.damage then
-			wDef.impulsefactor = 10
-			wDef.impulseboost = 0
-		end
-
 		-------------- EXPERIMENTAL MODOPTIONS
 		-- Standard Gravity
 		if wDef.gravityaffected == "true" and wDef.mygravity == nil then
