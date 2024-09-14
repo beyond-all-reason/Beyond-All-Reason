@@ -90,11 +90,8 @@ end
 
 local function velocityDamageDirection(unitID)
 	local velX, velY, velZ, velLength = spGetUnitVelocity(unitID)
-	if velLength > objectCollisionVelocityThreshold and -velY > (velLength/2) then --prevents mostly horizontal object collisions from taking damage, allows damage if dropped from above
-		return true
-	else
-		return false
-	end
+		-- y-velocity check prevents mostly horizontal object collisions from taking damage, allows damage if dropped from above
+		return velLength > objectCollisionVelocityThreshold and -velY > (velLength/2)
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
