@@ -41,6 +41,7 @@ return {
 		terraformspeed = 3000,
 		turnrate = 1,
 		upright = true,
+		waterline = 0,
 		workertime = 600,
 		customparams = {
 			usebuildinggrounddecal = true,
