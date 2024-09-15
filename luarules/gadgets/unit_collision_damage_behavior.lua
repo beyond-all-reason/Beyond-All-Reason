@@ -17,9 +17,9 @@ local fallDamageMagnificationFactor = 14 --the multiplier by which default engin
 
 local groundCollisionDefID = Game.envDamageTypes.GroundCollision
 local objectCollisionDefID = Game.envDamageTypes.ObjectCollision
-local objectCollisionVelocityThreshold = 3.3 --this defines how fast a unit has to be moving in order to take object collision damage
-local maxImpulseProportion = 0.04 --incease this to make units move less from impulse. This defines the max impulse damage allowed a unit can take relative to its mass.
-local velocityCap = 3 --measured in elmos per frame. Any unit hit with an explosion that achieves a velocity greater than this will be slowed until stopped.
+local objectCollisionVelocityThreshold = 9.1 --this defines how fast a unit has to be moving in order to take object collision damage
+local maxImpulseMultiplier = 6 -- Decrease this value to make units move less from impulse. This defines the maximum impulse allowed, which is (maxImpulseMultiplier * mass) of each unit.
+local velocityCap = 7 --measured in elmos per frame. Any unit hit with an explosion that achieves a velocity greater than this will be slowed until stopped.
 
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitVelocity = Spring.GetUnitVelocity
@@ -34,14 +34,14 @@ local weaponDefIDImpulses = {}
 local transportedUnits = {}
 local unitMasses = {}
 local weaponDefIgnored = {}
-local unitInertiaCheckFlags = {} -- track inertia via velocity (units have constant mass)
+local unitInertiaCheckFlags = {}
 local gameFrame = 0
-local velocityWatchDuration = 3
+local velocityWatchDuration = 6
 
 for unitDefID, unitDef in ipairs(UnitDefs) do
 	local fallDamageMultiplier = unitDef.customParams.fall_damage_multiplier or 1.0
 	fallDamageMultipliers[unitDefID] = fallDamageMultiplier * fallDamageMagnificationFactor
-	unitsMaxImpulse[unitDefID] = unitDef.mass / maxImpulseProportion
+	unitsMaxImpulse[unitDefID] = unitDef.mass * maxImpulseMultiplier
 	unitMasses[unitDefID] = unitDef.mass
 end
 
@@ -77,7 +77,7 @@ local function getImpulseMultiplier(unitDefID, weaponDefID, damage)
 	local impulseFactor = weaponDefIDImpulses[weaponDefID].impulsefactor or 1
 	local impulse = (damage + impulseBoost) * impulseFactor
 	local maxImpulse = unitsMaxImpulse[unitDefID]
-	local impulseMultiplier = mathMin(maxImpulse/impulse, 1)  --we round to prevent the loss of impulse due to sheered tiny, tiny values being returned in UnitPreDamaged
+	local impulseMultiplier = mathMin(maxImpulse/impulse, 1)
 	return impulseMultiplier
 end
 
@@ -94,7 +94,7 @@ end
 local function velocityDamageDirection(unitID)
 	local velX, velY, velZ, velLength = spGetUnitVelocity(unitID)
 		-- y-velocity check prevents mostly horizontal object collisions from taking damage, allows damage if dropped from above
-		return velLength > objectCollisionVelocityThreshold and -velY > (velLength/2)
+		return velLength > objectCollisionVelocityThreshold and -velY > (velLength/1.75)
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
@@ -142,11 +142,13 @@ function gadget:GameFrame(frame)
 			end
 			if velocityLength > objectCollisionVelocityThreshold then
 				local decelerateHorizontal = 0.95
-				local decelerateVertical = 0.33
+				local decelerateVertical
 				if velY < 0 then
-					decelerateVertical = 1
+					decelerateVertical = 0
+				else
+					decelerateVertical = 0.8
 				end
-				spSetUnitVelocity(unitID, velX * decelerateHorizontal, velY * decelerateVertical, velZ * decelerateHorizontal)
+				spSetUnitVelocity(unitID, velX * decelerateHorizontal, velY - decelerateVertical * velY, velZ * decelerateHorizontal)
 				expirationFrame = frame + velocityWatchDuration
 			elseif expirationFrame < frame then
 				unitInertiaCheckFlags[unitID] = nil
