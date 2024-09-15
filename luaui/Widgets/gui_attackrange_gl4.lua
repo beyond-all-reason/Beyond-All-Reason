@@ -167,7 +167,7 @@ local function initializeUnitDefRing(unitDefID)
 		local range = weaponDef.range
 		local dps = 0
 		local weaponType = unitDefRings[unitDefID]['weapons'][weaponNum]
-    
+
 		if weaponType ~= nil and weaponType > 0 then
 			local damage = 0
 			if weaponType == 3 then --AA
@@ -188,46 +188,46 @@ local function initializeUnitDefRing(unitDefID)
 			end
 			--Spring.Echo("weaponNum: ".. weaponNum ..", name: " .. tableToString(weaponDef.name))
 			local groupselectionfadescale = colorConfig[weaponTypeMap[weaponType]].groupselectionfadescale
-			
+
 			--local udwp = UnitDefs[unitDefID].weapons
-			local maxangledif = (weapons[weaponNum].maxAngleDif or -1) 
+			local maxangledif = (weapons[weaponNum].maxAngleDif or -1)
 			-- weapons[weaponNum].maxAngleDif is :
 			-- 0 for 180
 			-- -1 for 360
-			-- 0.707 for 90 
-			
+			-- 0.707 for 90
+
 			-- Because I cant be assed to calculate the full 3d cone-ground intersection slice within the vertex shader:
 			-- We are only going to display angles for weapons that actually point forward, e.g. mainDirXYZ of 0 0 1
 			-- we need to output two numbers here, and pack it into one float
 			-- The integer part will be the offset around the circle, from forward dir, in degrees, +-180
-			-- the fractional part will be the max left-right attack angle around the ground plane. 
+			-- the fractional part will be the max left-right attack angle around the ground plane.
 			-- maindir = "0 0 1" is forward
 			-- exactly zero means no angle limits!
 			-- maindir "0 1 0" is designed for shooting at feet prevention!
-			
+
 			local maxangledif = 0
-			if weapons[weaponNum].maxAngleDif > -1 then 
+			if weapons[weaponNum].maxAngleDif > -1 then
 				local offsetdegrees = 0
 				local difffract = 0
-				
+
 				local weaponParams = weapons[weaponNum]
 				local mdx = weaponParams.mainDirX
 				local mdy = weaponParams.mainDirY
 				local mdz = weaponParams.mainDirZ
 				local angledif = math.acos(weapons[weaponNum].maxAngleDif) / math.pi
 				local angledeg = angledif * 180
-				
+
 				-- Normalize maindir
 				local length = math.diag(mdx,mdy,mdz)
 				mdx = mdx/length
 				mdy = mdy/length
 				mdz = mdz/length
-				
+
 				offsetdegrees = math.atan2(mdx,mdz) * 180 / math.pi
 				difffract = angledif --(1.0 - angledif ) * (0.5) -- So 0.001 is tiny aim angle, 0.9999 is full aim angle
-				
-				maxangledif = math.floor(offsetdegrees) 
-				
+
+				maxangledif = math.floor(offsetdegrees)
+
 				if math.abs(mdy) > 0.01 and math.abs(mdy) < 0.99 then -- its off the Y plane
 					local modifier = math.sqrt ( 1.0 - mdy*mdy)
 					difffract  = difffract * modifier
@@ -235,20 +235,20 @@ local function initializeUnitDefRing(unitDefID)
 				elseif  math.abs(mdy) < 0.99 then
 					maxangledif = maxangledif  + difffract
 				else
-					
+
 				end
-				
-				
-				
+
+
+
 				--Spring.Echo(string.format("%s has params offsetdegrees = %.2f MAD = %.3f (%.1f deg), diffract = %.3f md(xyz) = (%.3f,%.3f,%.3f)", weaponDef.name, offsetdegrees, weapons[weaponNum].maxAngleDif, angledif*180,  difffract, mdx,mdy,mdz))
-				
-					
+
+
 				--Spring.Echo("weapons[weaponNum].maxAngleDif",weapons[weaponNum].maxAngleDif, maxangledif)
 				--for k,v in pairs(weapons[weaponNum]) do Spring.Echo(k,v)end
 			end
-			
+
 			--if weapons[weaponNum].maxAngleDif then	Spring.Echo(weapons[weaponNum].maxAngleDif,'for',weaponDef.name ) end
-			
+
 			local ringParams = { range, color[1], color[2], color[3], color[4],
 				fadeparams[1], fadeparams[2], fadeparams[3], fadeparams[4],
 				weaponDef.projectilespeed or 1,
@@ -662,6 +662,13 @@ local function toggleCursorRange(_, _, args)
 	Spring.Echo("Cursor unit range set to: " .. (cursor_unit_range and "ON" or "OFF"))
 end
 
+function widget:PlayerChanged(playerID)
+    myAllyTeamID = Spring.GetLocalAllyTeamID()
+    myTeamID = Spring.GetLocalTeamID()
+
+	InitializeBuilders()
+end
+
 function widget:Initialize()
 	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
 		widgetHandler:RemoveWidget(self)
@@ -683,7 +690,6 @@ function widget:Initialize()
 
 	myAllyTeam = Spring.GetMyAllyTeamID()
 	myTeamID = Spring.GetMyTeamID()
-	local allyteamlist = Spring.GetAllyTeamList()
 
 	updateSelection = true
 	local _, _, _, shift = GetModKeyState()
@@ -1053,7 +1059,7 @@ end
 function widget:VisibleUnitRemoved(unitID, unitDefID, unitTeam)
 	unitDefID = unitDefID or spGetUnitDefID(unitID)
 	unitTeam = unitTeam or Spring.GetUnitTeam(unitID)
-	RemoveSelectedUnit(unitID, false)	
+	RemoveSelectedUnit(unitID, false)
 	builders[unitID] = nil
 end
 
