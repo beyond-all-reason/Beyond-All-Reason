@@ -125,16 +125,17 @@ function gadget:GameFrame(frame)
                     --Spring.Echo("resurrectable", data.resurrectable)
                     if data.lastResurrectionCheck == select(3, Spring.GetFeatureHealth(featureID)) then
                         local random = math.random()
-                        Spring.SetFeatureResurrect(featureID, data.ressurectable, data.facing, data.lastResurrectionCheck+(0.05*random))
+                        Spring.SetFeatureResurrect(featureID, data.ressurectable, data.facing, data.lastResurrectionCheck+(0.05*random*data.age))
                         Spring.SpawnCEG("scav-spawnexplo", posx, posy, posz, 0,0,0)
                         --Spring.Echo("resurrecting", data.lastResurrectionCheck)
-                        SendToUnsynced("featureReclaimFrame", featureID, data.lastResurrectionCheck+(0.05*random))
+                        SendToUnsynced("featureReclaimFrame", featureID, data.lastResurrectionCheck+(0.05*random*data.age))
                     end
                     if aliveWrecks[featureID].lastResurrectionCheck >= 1 then
                         Spring.CreateUnit(data.resurrectable, posx, posy, posz, data.facing, scavTeamID)
                         Spring.DestroyFeature(featureID)
                     end
                     aliveWrecks[featureID].lastResurrectionCheck = select(3, Spring.GetFeatureHealth(featureID))
+                    aliveWrecks[featureID].age = aliveWrecks[featureID].age+0.0166
                 else
                     local featureHealth, featureMaxHealth = Spring.GetFeatureHealth(featureID)
                     Spring.SpawnCEG("scaspawn-trail", posx, posy, posz, 0,0,0)
@@ -165,7 +166,7 @@ function gadget:UnitDestroyed(unitID, unitDefID)
 end
 
 function gadget:FeatureCreated(featureID, featureAllyTeamID)
-    aliveWrecks[featureID] = {resurrectable = Spring.GetFeatureResurrect(featureID), facing = select(2, Spring.GetFeatureResurrect(featureID)), lastResurrectionCheck = 0}
+    aliveWrecks[featureID] = {age = 0, resurrectable = Spring.GetFeatureResurrect(featureID), facing = select(2, Spring.GetFeatureResurrect(featureID)), lastResurrectionCheck = 0}
 end
 
 function gadget:FeatureDestroyed(featureID, featureAllyTeamID)
