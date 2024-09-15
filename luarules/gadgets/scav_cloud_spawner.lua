@@ -29,6 +29,7 @@ local mapz = Game.mapSizeZ
 local cloudMult = math.ceil((math.ceil(((mapx+mapz)*0.5)/512)^2)/18)
 local maxMists = (#teams-2)*(cloudMult*0.25)
 local aliveMists = {}
+local aliveWrecks = {}
 local mistDefIDs = {
     [UnitDefNames["scavmist_scav"].id] = true,
     [UnitDefNames["scavmistxl_scav"].id] = true,
@@ -114,6 +115,37 @@ function gadget:GameFrame(frame)
         end
     end
 
+    for featureID, data in pairs(aliveWrecks) do
+        if featureID%30 == frame%30 then
+            Spring.Echo("featureID", featureID, frame)
+            local posx, posy, posz = Spring.GetFeaturePosition(featureID)
+            if GG.IsPosInRaptorScum(posx, posy, posz) then
+                Spring.Echo("isInScum", GG.IsPosInRaptorScum(posx, posy, posz))
+                if data.resurrectable and data.resurrectable ~= "" then
+                    Spring.Echo("resurrectable", data.resurrectable)
+                    if data.lastResurrectionCheck == select(3, Spring.GetFeatureHealth(featureID)) then
+                        local random = math.random()
+                        Spring.SetFeatureResurrect(featureID, data.ressurectable, data.facing, data.lastResurrectionCheck+(0.05*random))
+                        Spring.Echo("resurrecting", data.lastResurrectionCheck)
+                        SendToUnsynced("featureReclaimFrame", featureID, data.lastResurrectionCheck+(0.05*random))
+                    end
+                    if aliveWrecks[featureID].lastResurrectionCheck >= 1 then
+                        Spring.CreateUnit(data.resurrectable, posx, posy, posz, data.facing, scavTeamID)
+                        Spring.DestroyFeature(featureID)
+                    end
+                    aliveWrecks[featureID].lastResurrectionCheck = select(3, Spring.GetFeatureHealth(featureID))
+                else
+                    local featureHealth, featureMaxHealth = Spring.GetFeatureHealth(featureID)
+                    Spring.SetFeatureHealth(featureID, featureHealth-(featureMaxHealth*0.05*math.random()))
+                    Spring.Echo("killing", featureHealth)
+                    if featureHealth <= 0 then
+                        Spring.DestroyFeature(featureID)
+                    end
+                end
+            end
+        end
+    end
+
 end
 
 function gadget:UnitCreated(unitID, unitDefID)
@@ -126,4 +158,12 @@ function gadget:UnitDestroyed(unitID, unitDefID)
     if mistDefIDs[unitDefID] then
         aliveMists[unitID] = nil
     end
+end
+
+function gadget:FeatureCreated(featureID, featureAllyTeamID)
+    aliveWrecks[featureID] = {resurrectable = Spring.GetFeatureResurrect(featureID), facing = select(2, Spring.GetFeatureResurrect(featureID)), lastResurrectionCheck = 0}
+end
+
+function gadget:FeatureDestroyed(featureID, featureAllyTeamID)
+    aliveWrecks[featureID] = nil
 end
