@@ -511,7 +511,7 @@ return {
     },
     centerflare = {
       air                = true,
-      class              = [[heatcloud]],
+      class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
       water              = true,
@@ -661,7 +661,7 @@ return {
     },
     centerflare = {
       air                = true,
-      class              = [[heatcloud]],
+      class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
       water              = true,
