@@ -13,7 +13,7 @@ end
 if not gadgetHandler:IsSyncedCode() then return end
 
 --use customparams.fall_damage_multiplier = <number> a multiplier that's applied to defaultDamageMultiplier.
-local fallDamageMagnificationFactor = 14 --the multiplier by which default engine ground collision damage is multiplied. change this value to reduce the amount of fall/collision damage taken for all units.
+local fallDamageMagnificationFactor = 14 --the multiplier by which default engine ground/object collision damage is multiplied. change this value to reduce the amount of fall/collision damage taken for all units.
 
 local groundCollisionDefID = Game.envDamageTypes.GroundCollision
 local objectCollisionDefID = Game.envDamageTypes.ObjectCollision
