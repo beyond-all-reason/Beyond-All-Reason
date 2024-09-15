@@ -263,7 +263,7 @@ local unitGrids = {
 			{ "cordl", },                                    -- coastal torp launcher
 		},
 		{
-			{ "legrad", "coreyes", "legdrag", },             -- radar, perimeter camera, dragon's teeth
+			{ "legrad", "legeyes", "legdrag", },             -- radar, perimeter camera, dragon's teeth
 			{ "corfrad", "corfdrag", },                      -- floating radar, shark's teeth
 			{ },                                             -- empty
 		},
@@ -796,7 +796,7 @@ local unitGrids = {
 			{ "cordl", },                                    -- coastal torp launcher
 		},
 		{
-			{ "legrad", "coreyes", "legdrag", },             -- radar, perimeter camera, dragon's teeth
+			{ "legrad", "legeyes", "legdrag", },             -- radar, perimeter camera, dragon's teeth
 			{ "corfrad", "corfdrag", },                      -- floating radar, shark's teeth
 			{ },                                             -- empty
 		},
@@ -818,7 +818,7 @@ local unitGrids = {
 			{ "cordl", },                                    -- coastal torp launcher
 		},
 		{
-			{ "legrad", "coreyes", "legdrag", },             -- radar, perimeter camera, dragon's teeth
+			{ "legrad", "legeyes", "legdrag", },             -- radar, perimeter camera, dragon's teeth
 			{ "corfrad", "corfdrag", },                      -- floating radar, shark's teeth
 			{ },                                            -- empty
 		},
@@ -1062,7 +1062,7 @@ local unitGrids = {
 			{ "cordl", "legcluster", },                           -- coastal torp launcher, punisher
 		},
 		{
-			{ "legrad", "coreyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "legrad", "legeyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
 			{ "", "", "corasp", "corfasp" },                  -- air repair pad, floating air repair pad
 			{ "corjuno", },                                   -- juno
 		},
@@ -1131,7 +1131,7 @@ local unitGrids = {
 			{ "cordl", "legcluster", },                           -- coastal torp launcher, punisher
 		},
 		{
-			{ "legrad", "coreyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "legrad", "legeyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
 			{ "", "", "corasp", "corfasp" },                  -- air repair pad, floating air repair pad
 			{ "corjuno", },                                   -- juno
 		},
@@ -1199,7 +1199,7 @@ local unitGrids = {
 			{ "cordl", "legcluster", },                           -- coastal torp launcher, punisher
 		},
 		{
-			{ "legrad", "coreyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "legrad", "legeyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
 			{ "", "", "corasp", "corfasp" },                  -- air repair pad, floating air repair pad
 			{ "corjuno", },                                   -- juno
 		},
@@ -1313,7 +1313,7 @@ local unitGrids = {
 			{ "cordl", "legcluster", "corptl", "corfhlt", },       -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
 		},
 		{
-			{ "legrad", "coreyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "legrad", "legeyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
 			{ "corfrad", "corfdrag", },                       -- floating radar, shark's teeth
 			{ "corjuno", },                                   -- juno
 		},
@@ -1430,7 +1430,7 @@ local unitGrids = {
 			{ "cordl", "legcluster", "corptl", "corfhlt", },       -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
 		},
 		{
-			{ "legrad", "coreyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
+			{ "legrad", "legeyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
 			{ "corfrad", "corfdrag", },                       -- floating radar, shark's teeth
 			{ "corjuno", },                                   -- juno
 		},

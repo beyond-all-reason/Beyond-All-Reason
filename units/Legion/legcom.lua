@@ -73,7 +73,7 @@ return {
 			[7] = "leglab",
 			[8] = "legvp",
 			[9] = "legap",
-			[10] = "coreyes",
+			[10] = "legeyes",
 			[11] = "legrad",
 			[12] = "legdrag",
 			[13] = "leglht",

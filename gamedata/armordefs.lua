@@ -444,6 +444,7 @@ local armorDefs = {
 		"leghp",
 		"legfhp",
 		"legch",
+		"legeyes",
 	},
 
 	space = {

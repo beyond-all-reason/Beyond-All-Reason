@@ -95,7 +95,7 @@ return {
 			[28] = "corjuno",
 			[29] = "cordl",
 			[30] = "corenaa",
-			[31] = "coreyes",
+			[31] = "legeyes",
 			[32] = "corvoyr",
 			[33] = "corspec",
 			[34] = "legdrag",
