@@ -14,19 +14,19 @@ if not gadgetHandler:IsSyncedCode() then return end
 
 --use customparams.fall_damage_multiplier = <number> a multiplier that's applied to defaultDamageMultiplier.
 local fallDamageMagnificationFactor = 14 --the multiplier by which default engine ground/object collision damage is multiplied. change this value to reduce the amount of fall/collision damage taken for all units.
-
-local groundCollisionDefID = Game.envDamageTypes.GroundCollision
-local objectCollisionDefID = Game.envDamageTypes.ObjectCollision
 local objectCollisionVelocityThreshold = 9.1 --this defines how fast a unit has to be moving in order to take object collision damage
 local maxImpulseMultiplier = 6 -- Decrease this value to make units move less from impulse. This defines the maximum impulse allowed, which is (maxImpulseMultiplier * mass) of each unit.
 local velocityCap = 7 --measured in elmos per frame. Any unit hit with an explosion that achieves a velocity greater than this will be slowed until stopped.
+local minImpulseFactor = 0.15 --any weapondef impulseFactor below this is ignored to save performance
+local minImpulseToDamageRatio = 0.2--any impulse to damage ratio below this is ignored to save performance
 
+local groundCollisionDefID = Game.envDamageTypes.GroundCollision
+local objectCollisionDefID = Game.envDamageTypes.ObjectCollision
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitVelocity = Spring.GetUnitVelocity
 local spSetUnitVelocity = Spring.SetUnitVelocity
 local mathMin = math.min
 local mathMax = math.max
-local mathCeil = math.ceil
 
 local fallDamageMultipliers = {}
 local unitsMaxImpulse = {}
@@ -64,8 +64,6 @@ for weaponDefID, wDef in ipairs(WeaponDefs) do
 	end
 	
 	--generate list of exempted weapons to improve performance
-	local minImpulseFactor = 0.15
-	local minImpulseToDamageRatio = 0.2
 	if wDef.damages and wDef.damages.impulseFactor == 0 or
 		(wDef.damages.impulseFactor < minImpulseFactor and wDef.damages.impulseBoost < maxDamage(wDef.damages) * minImpulseToDamageRatio) then
 		weaponDefIgnored[weaponDefID] = true
@@ -97,7 +95,7 @@ local function velocityDamageDirection(unitID)
 		return velLength > objectCollisionVelocityThreshold and -velY > (velLength/1.75)
 end
 
-function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
+function gadget:UnitPreDamaged(unitID, unitDefID, _, damage, _, weaponDefID)
 	if not weaponDefIgnored[weaponDefID] and weaponDefID > 0 then --this section handles limiting maximum impulse
 		local impulseMultiplier = 1
 		impulseMultiplier = getImpulseMultiplier(unitDefID, weaponDefID, damage)
@@ -118,11 +116,11 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 	end
 end
 
-function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
+function gadget:UnitLoaded(unitID)
 	transportedUnits[unitID] = true
 end
 
-function gadget:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
+function gadget:UnitUnloaded(unitID)
 	transportedUnits[unitID] = nil
 end
 
