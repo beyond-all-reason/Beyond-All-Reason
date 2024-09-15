@@ -69,7 +69,7 @@ for weaponDefID, wDef in ipairs(WeaponDefs) do
 	end
 end
 
-local function impulseData(unitDefID, weaponDefID, damage)
+local function getImpulseMultiplier(unitDefID, weaponDefID, damage)
 	local impulseBoost = weaponDefIDImpulses[weaponDefID].impulseboost or 0
 	local impulseFactor = weaponDefIDImpulses[weaponDefID].impulsefactor or 1
 	local impulse = (damage + impulseBoost) * impulseFactor
