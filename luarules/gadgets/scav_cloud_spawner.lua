@@ -135,7 +135,7 @@ function gadget:GameFrame(frame)
                         Spring.DestroyFeature(featureID)
                     end
                     aliveWrecks[featureID].lastResurrectionCheck = select(3, Spring.GetFeatureHealth(featureID))
-                    data.age = data.age+0.0166
+                    aliveWrecks[featureID].age = aliveWrecks[featureID].age+0.0166
                 else
                     local featureHealth, featureMaxHealth = Spring.GetFeatureHealth(featureID)
                     Spring.SpawnCEG("scaspawn-trail", posx, posy, posz, 0,0,0)
