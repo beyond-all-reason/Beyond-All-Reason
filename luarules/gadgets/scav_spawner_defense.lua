@@ -2094,6 +2094,7 @@ if gadgetHandler:IsSyncedCode() then
 								Spring.SetUnitHealth(unitID, {capture = math.min(captureLevel+captureProgress, 1)})
 								SendToUnsynced("unitCaptureFrame", unitID, math.min(captureLevel+captureProgress, 1))
 								Spring.SpawnCEG("scaspawn-trail", ux, uy, uz, 0,0,0)
+								Spring.SpawnCEG("scav-spawnexplo", ux, uy, uz, 0,0,0)
 								if math.random() <= 0.1 then
 									Spring.SpawnCEG("scavmist", ux, uy+100, uz, 0,0,0)
 								end
