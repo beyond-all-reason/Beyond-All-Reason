@@ -126,6 +126,7 @@ function gadget:GameFrame(frame)
                     if data.lastResurrectionCheck == select(3, Spring.GetFeatureHealth(featureID)) then
                         local random = math.random()
                         Spring.SetFeatureResurrect(featureID, data.ressurectable, data.facing, data.lastResurrectionCheck+(0.05*random))
+                        Spring.SpawnCEG("scav-spawnexplo", posx, posy, posz, 0,0,0)
                         --Spring.Echo("resurrecting", data.lastResurrectionCheck)
                         SendToUnsynced("featureReclaimFrame", featureID, data.lastResurrectionCheck+(0.05*random))
                     end
@@ -136,7 +137,10 @@ function gadget:GameFrame(frame)
                     aliveWrecks[featureID].lastResurrectionCheck = select(3, Spring.GetFeatureHealth(featureID))
                 else
                     local featureHealth, featureMaxHealth = Spring.GetFeatureHealth(featureID)
-                    Spring.SetFeatureHealth(featureID, featureHealth-(featureMaxHealth*0.05*math.random()))
+                    Spring.SpawnCEG("scaspawn-trail", posx, posy, posz, 0,0,0)
+                    local random = math.random()
+                    Spring.SetFeatureHealth(featureID, featureHealth-(featureMaxHealth*0.05*random))
+                    SendToUnsynced("featureReclaimFrame", featureID, featureHealth-(featureMaxHealth*0.05*random))
                     --Spring.Echo("killing", featureHealth)
                     if featureHealth <= 0 then
                         Spring.DestroyFeature(featureID)
