@@ -36,6 +36,15 @@
 		"condition": [30, 600]  // [<Minimum income>, <maximum seconds to build>]
 	},
 
+	"wall": {
+		"armada": ["armdrag", "armfdrag"],  // or armmine1
+		"cortex": ["cordrag", "corfdrag"]  // or cormine1
+	},
+	"choke": {
+		"armada": ["coreyes"],
+		"cortex": ["coreyes"]
+	},
+
 	// Fallback defence
 	"default": {
 		"armada": "armllt",
@@ -66,7 +75,8 @@
 			// <offset>:
 			//     1) [x, z] in South facing, elmos
 			//     2) {<direction>: <delta>} - left, right, front, back
-			// <condition>: air:<bool>, energy:<bool>, wind:<float>, sensor:<float>, chance:0.0~1.0
+			// <condition>: air:<bool>, energy:<bool>, wind:<float>, m_inc>:<float>, m_inc<:<float>,
+			//              sensor:<float>, chance:0.0~1.0
 			// <priority>: low, normal, high, now
 
 			// Build pylon in direction of nearby mex cluster

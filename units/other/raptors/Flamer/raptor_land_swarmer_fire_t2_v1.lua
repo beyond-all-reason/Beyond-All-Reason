@@ -56,11 +56,9 @@ return {
 			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_s_normals.png",
-			--treeshader = "no",
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				--[1] = "custom:blank", --left over from morph of arty raptor
 				[1] = "custom:blood_spray",
 				[2] = "custom:blood_explode",
 				[3] = "custom:dirt",
@@ -113,7 +111,6 @@ return {
 				explosiongenerator = "custom:burnthermite",
 				firestarter = 100,
 				flamegfxtime = 1,
-				groundbounce = true,
 				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 0.65,

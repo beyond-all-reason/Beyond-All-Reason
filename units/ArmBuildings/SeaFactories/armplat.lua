@@ -1,7 +1,6 @@
 return {
 	armplat = {
 		maxacc = 0,
-		--activatewhenbuilt = true,
 		maxdec = 0,
 		energycost = 5000,
 		metalcost = 1450,
@@ -41,6 +40,7 @@ return {
 		},
 		customparams = {
 			unitgroup = 'builder',
+			airfactory = true,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbuildings/seafactories",
@@ -53,16 +53,12 @@ return {
 				collisionvolumescales = "108.669647217 46.9999847412 117.478393555",
 				collisionvolumetype = "Box",
 				damage = 1092,
-				energy = 0,
 				footprintx = 7,
 				footprintz = 7,
 				height = 20,
-				hitdensity = 100,
 				metal = 975,
 				object = "Units/armplat_dead.s3o",
 				reclaimable = true,
-				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 		},
 		sfxtypes = {

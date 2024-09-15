@@ -102,10 +102,6 @@ local function clearbuilderCommands(unitID)
 	end
 end
 
---local function getFootprintPos(value)	-- not entirely acurate, unsure why
---	local precision = 16		-- (footprint 1 = 16 map distance)
---	return (math.floor(value/precision)*precision)+(precision/2)
---end
 
 local function checkBuilder(unitID)
 	local queueDepth = spGetCommandQueue(unitID, 0)
@@ -114,16 +110,12 @@ local function checkBuilder(unitID)
 		for i=1, #queue do
 			local cmd = queue[i]
 			if cmd.id < 0 then
-				--if cmd.params[1] then
-				--	cmd.params[1] = getFootprintPos(cmd.params[1])
-				--	cmd.params[3] = getFootprintPos(cmd.params[3])
-				--end
 				local myCmd = {
 					id = -cmd.id,
 					teamid = spGetUnitTeam(unitID),
 					params = cmd.params
 				}
-				local id = myCmd.teamid..'_'..math.abs(cmd.id)..'_'..floor(cmd.params[1])..'_'..floor(cmd.params[3])
+				local id = math.abs(cmd.id)..'_'..floor(cmd.params[1])..'_'..floor(cmd.params[3])
 				if createdUnit[id] == nil then
 					if command[id] == nil then
 						command[id] = {id = myCmd, builders = 0}
@@ -233,15 +225,17 @@ end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	local x,_,z = spGetUnitPosition(unitID)
-	local id = unitTeam..'_'..unitDefID..'_'..floor(x)..'_'..floor(z)
+	if x then
+		local id = unitDefID..'_'..floor(x)..'_'..floor(z)
 
-	if unitshapes[id] then
-		removeUnitShape(id)
+		if unitshapes[id] then
+			removeUnitShape(id)
+		end
+		command[id] = nil
+		-- we need to store all newly created units cause unitcreated can be earlier than our delayed processing of widget:UnitCommand (when a newly queued cmd is first and within builder range)
+		createdUnit[id] = unitID
+		createdUnitID[unitID] = id
 	end
-	command[id] = nil
-	-- we need to store all newly created units cause unitcreated can be earlier than our delayed processing of widget:UnitCommand (when a newly queued cmd is first and within builder range)
-	createdUnit[id] = unitID
-	createdUnitID[unitID] = id
 end
 
 local function clearCommandUnit(unitID)

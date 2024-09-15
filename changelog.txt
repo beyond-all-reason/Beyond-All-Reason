@@ -1,4 +1,58 @@
-﻿# January 2024
+# September 2024
+• [All units] Gravity standardized for all projectiles to 130, so weapons will behave the same way across all maps.  
+• [Rocketeer + Aggravator] Reverted the last 2 balance changes: damage per shot 173->157, reloadtime 4->3.8s, speed/acceleration 5% higher
+• [Lazarus + Graverobber] Metal cost increased 110->130, E cost unchanged, buildtime increased 2400->2800
+• [Mace] Health increased 900->1000
+• [Thug] Health increased 1000->1100, buildtime increased from 1970->2100 so it doesn't get repaired too quickly
+• [Tremor] Reloadtime reverted to 0.5s, impulse reduced 30%
+• [Vanguard] Range increased 1325->1450, health reduced 10000->8500.  Tremor and Vanguard's higher ranges now let them outrange long range defences (Rattlesnake, Persecutor, Pulsar)
+
+# August 2024
+• [Tremor] firemodes unified to remove the toggle, and effective DPS in target area increased. Wasp bugfixed, and now has mild tracking on rockets, so will miss shots less often.
+• [Dragon Claw/Maw] Collision volume and aim position will now change when the units open up, so it can be targeted when behind a wall
+
+# July 2024
+• [Minelayers] Minelayers now live up to the 'minesweeper' role properly, being able to detect enemy mines within 450 radius, and slowly clear them, with a moderate ranged weapon.
+• [Naval Economy Buildings] Stats made equal to land versions. Specifically, T1 and T2 Energy Convertors, Energy and Metal Storages, and the T2 mex have been harmonised for both Core and Arm.
+• [Salamander] Energy cost increased 4775->7000 to make the unit more difficult to rush early on and put its cost more in line with other amphibs (energy being 20x metal cost).  Range reduced from 360->340 to make it slightly more difficult to kite T1 units and commanders.  
+• [Whistler + Lasher] Ground range increased by 25 (525/550->550/575 range)
+• [Centurion] Unit script improved so the unit should keep firing while turning
+• [T2 Cruisers] Reloadtime of depthcharges reduced by 10%
+• [T2 Lightning/Flamethrower Ships] Cost reduced 25%, health reduced 20%, speed increased 6%, dps reduced 20%.  Flamethrower ship model size scaled down by 10%
+
+# June 2024
+• [Rocketeer + Aggravator] Speed and acceleration reduced by 5%
+• [Whistler + Lasher] Changes from proposed units rework modoption moved to base game. {Whistler and Lasher weapon switches from ground and anti-air modes.  Anti-air has 700 range and tracking missiles, while ground has 525/550 range and no tracking.  Ground speeds increased by 10 (45->55, 42->52), ground dps increased by 40% (17->25)}
+• [T1 Air Transports] E costs increased by 70%, buildtime increased by 20%.  This change is to increase the time it takes to rush transports and share them to the team.
+• [Herring] unit now switches between ground missiles and longer range tracking aa missiles (750 range).  No change to ground missile stats.  Unit now takes 50% damage from emp instead of 30%.
+• [Dragon Claw/Maw] Damage taken while closed increased from 25%->33%.  Dragon Claw range reduced 440->430
+
+# March 2024
+• [Proposed Units Rework Modoption] Rework to Whistler and Lasher added to modoption, which has the units switch between longer range tracking aa missiles and non-tracking ground missiles.  Mauser, Quaker, Stiletto changes removed from modoption.  
+• [Mauser + Quaker] Rework from proposed_unit_reworks modoption moved to main game with a few additional changes.  This rework aims to give these units a more mobile and aggressive role, which reduces the role overlap with the heavier T2 veh artillery options.  Their ranges are reduced by 120, speed increased by 20%, acceleration increased 50%, health increased 20%, and accuracy is improved.  
+• [Stiletto] Rework from proposed_unit_reworks modoption moved to main game.  This rework aims to give the stiletto a more specialized role for disabling specific targets while being less efficient as a defensive option against groups.  The unit's metal and energy costs are doubled, buildpower cost increased 50%, health increased by 30%, paralyze time increased from 10s->20s, bomb count reduced from 5->3, aoe reduced from 240->200, emp damage per bomb increased 4000->6000
+• [Banshee] Reloadtime reduced by 10% (DPS 34->38)
+• [Dragon Claw] DPS reduced by 14% (185->159)
+• [Razorback] Laser damage vs air reduced from 75% to 50%
+• [Demon] Health reduced from 20000->18000
+• [Crocodile and Cayman (T1 hovertanks)] Crocodile cost reduced 290m2600E->270m2400E, Cayman cost reduced 320m3300E->300m3100E
+• [Salamander] EMP resist reduced from 95%->90%
+• [Epoch and Black Hydra] Projectiles for main cannons increased in size, damage, and aoe, with a reduced fire rate  
+
+# February 2024
+• [Grunt] Speed reduced from 84->81
+• [Pawn] Speed increased from 84->87
+• [Demon] Buildtime cost increased from 90000->120000
+• [Thug/Mace] movement footprint increased to prevent them blocking each other's turrets when attacking
+• [New Units] Demon (T3 cortex flamethrower mech), Salamander (T2 cortex amphibious tank, replacing Alligator) moved from release candidate modoption into the base game.  Dragon rework (new model, flamethrower, light aa) moved to the base game.  Flamethrower ship and Lightning ship moved from expandedT2sea modoption into the base game
+• [Dragon] Fire rate of anti-air weapon reduced by half
+• [Demon] DPS reduced from 2000->1600, unit no longer has amphibious
+• [Lightning ship and Flamethrower ship] Light aa added so they can protect themselves from light air while raiding
+
+# January 2024
+• [Turtle] Added a weak anti-air turret so that an amphibious turtle attack is more difficult to counter
+• [T1 subs] Eel (arm sub) speed increased 63->66, Orca (cor sub) speed reduced 60->57
+• [T1 frigates] Ellysaw (arm frigate) cost reduced 390m2600E->380m2550E, Riptide (cor frigate) cost increased 410m2700E->420m2800E
 • [Mauser] Cost increased from 270m4100E -> 320m4900E
 • [Quaker] Cost increased from 360m4000E -> 400m4400E
 • [Supporter] Line of sight increased 500 -> 600

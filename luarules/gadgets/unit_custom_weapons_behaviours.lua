@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		date      = "Sept 19th 2017",
 		license   = "GNU GPL, v2 or later",
 		layer     = 0,
-		enabled   = true  --  loaded by default?
+		enabled   = true
 	}
 end
 
@@ -150,7 +150,6 @@ if gadgetHandler:IsSyncedCode() then
 			-- stop missile retargeting when it runs out of fuel
 			return true
 		end
-
 		local targetTypeInt, targetID = SpGetProjectileTarget(proID)
 		-- if the missile is heading towards a unit
 		if targetTypeInt == string.byte('u') then
@@ -207,6 +206,30 @@ if gadgetHandler:IsSyncedCode() then
             return false
         end
     end
+	
+	
+	--a Hornet special, mangle different two things into working as one (they're otherwise mutually exclusive)
+	checkingFunctions.torpwaterpenretarget = {}
+    checkingFunctions.torpwaterpenretarget["ypos<0"] = function (proID)
+	
+		checkingFunctions.retarget["always"](proID)--subcontract that part
+	
+        local _,py,_ = Spring.GetProjectilePosition(proID)
+        if py <= 0 then
+			--and delegate that too
+			applyingFunctions.torpwaterpen(proID)
+        else
+            return false
+        end
+    end
+	
+	--fake function
+	applyingFunctions.torpwaterpenretarget = function (proID)
+		return false
+
+	end
+
+	
 
 	applyingFunctions.split = function (proID)
 		local px, py, pz = Spring.GetProjectilePosition(proID)
@@ -232,8 +255,43 @@ if gadgetHandler:IsSyncedCode() then
 
 	applyingFunctions.torpwaterpen = function (proID)
 		local vx, vy, vz = Spring.GetProjectileVelocity(proID)
-        Spring.SetProjectileVelocity(proID,vx,0,vz)
+		--if target is close under the shooter, however, this resetting makes the torp always miss, unless it has amazing tracking
+		--needs special case handling (and there's no point having it visually on top of water for an UW target anyway)
+		
+		local bypass = false
+		local targetType, targetID = Spring.GetProjectileTarget(proID)
+		
+		if (targetType ~= nil) and (targetID ~= nil) and (targetType ~= 103) then--ground attack borks it; skip
+			local unitPosX, unitPosY, unitPosZ = Spring.GetUnitPosition(targetID)
+			if (unitPosY ~= nil) and unitPosY<-10 then
+				bypass = true
+				Spring.SetProjectileVelocity(proID,vx/1.3,vy/6,vz/1.3)--apply brake without fully halting, otherwise it will overshoot very close targets before tracking can reorient it
+			end
+		end
+		
+		if not bypass then
+			Spring.SetProjectileVelocity(proID,vx,0,vz)
+		end
     end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	applyingFunctions.cannonwaterpen = function (proID)
 		local px, py, pz = Spring.GetProjectilePosition(proID)

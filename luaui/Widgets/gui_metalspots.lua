@@ -14,7 +14,7 @@ end
 -- Add text billboard vertices at end (exploit vertex index)
 -- Add a vertex type field to indicate outer circle, inner circle, billboard
 -- Add UV coordinates field to instances
--- Add options to control the display of all of these. 
+-- Add options to control the display of all of these.
 -- Add income multiplier gating for individual players (well thats a doozy!)
 -- GL4 stuff
 -- Notes:
@@ -29,16 +29,13 @@ end
 -- Add a cyan circle to visible spots anyway
 -- Fix height changing on noox
 -- totally nuke the fucking F4 view, its terrible!
--- move font init into initialize instead of load 
+-- move font init into initialize instead of load
 -- untie from os.clock thats stupid too
 
 if Spring.GetModOptions().unit_restrictions_noextractorDefs then
 	return
 end
 
-if Spring.GetModOptions().scoremode_chess and Spring.GetModOptions().scoremode ~= 'disabled' then
-	return
-end
 
 local showValue			= false
 local metalViewOnly		= false
@@ -65,7 +62,7 @@ local spGetMapDrawMode  = Spring.GetMapDrawMode
 local spIsUnitAllied  = Spring.IsUnitAllied
 
 local mySpots = {} -- {spotKey  = {x = spot.x, y= spGetGroundHeight(spot.x, spot.z), z = spot.z, value = value, scale = scale, occupied = occupied, t = currentClock, ally = false, enemy = false, instanceID = "1024_1023"}}
-				
+
 local valueList = {}
 local previousOsClock = os.clock()
 local checkspots = true
@@ -120,7 +117,7 @@ local shaderSourceCache = {
 		  },
 		shaderConfig = shaderConfig,
 	}
-	
+
 local MetalSpotTextAtlas
 local AtlasTextureID
 local MakeAtlasOnDemand = VFS.Include("LuaUI/Widgets/include/AtlasOnDemand.lua")
@@ -178,12 +175,12 @@ local function makeSpotVBO()
 			end
 		end
 	end
-	
+
 	-- Add the 32 tris for the inner circle of color:
 	-- TODO: FIX THIS
 	--[[
-	for i = 1, 32 do 
-		local d1 = (i/32) * math.pi * 2.0		
+	for i = 1, 32 do
+		local d1 = (i/32) * math.pi * 2.0
 		local d2 = ((i+1)/32) * math.pi * 2.0
 
 		arrayAppend(VBOData, {math.sin(d1)*centersize, math.cos(d1)*centersize, 1, 1})
@@ -191,9 +188,9 @@ local function makeSpotVBO()
 		arrayAppend(VBOData, {0, 0, 0, 1})
 	end
 	]]--
-	
+
 	-- Add the 2 tris for the billboard:
-	do 
+	do
 		arrayAppend(VBOData, {billboardsize, 0, 1, 2})
 		arrayAppend(VBOData, {billboardsize, billboardsize, 1, 2})
 		arrayAppend(VBOData, {-billboardsize, 0, 1, 2})
@@ -241,17 +238,17 @@ local function IsSpotOccupied(spot)
 		if extractorDefs[spGetUnitDefID(units[j])] then
 			-- Actually check if we the ones are extracting from this spot?
 			occupied = true
-			if spIsUnitAllied(units[j]) then 
+			if spIsUnitAllied(units[j]) then
 				ally = true
 			else
-				enemy = true 
+				enemy = true
 			end
 			break
 		end
 	end
 	local changed = (occupied ~= prevOccupied)
-	
-	if occupied ~= prevOccupied then 
+
+	if occupied ~= prevOccupied then
 		spot.t = os.clock()
 		spot.occupied = occupied
 	end
@@ -301,9 +298,9 @@ end
 
 local function InitializeAtlas(mSpots)
 	local multipliers = {[1] = true} -- all unique multipliers
-	for i,teamID in ipairs(Spring.GetTeamList()) do 
+	for i,teamID in ipairs(Spring.GetTeamList()) do
 		local incomeMultiplier = select(7, Spring.GetTeamInfo(teamID, false))
-		if multipliers[incomeMultiplier] == nil then 
+		if multipliers[incomeMultiplier] == nil then
 			multipliers[incomeMultiplier] = teamID
 		end
 		--Spring.Echo("incomeMultiplier", teamID, incomeMultiplier)
@@ -312,7 +309,7 @@ local function InitializeAtlas(mSpots)
 	local uniquevalues = {}
 	local numvalues = 0
 	local numMultipliers = 0
-	for multiplier, _ in pairs(multipliers) do 
+	for multiplier, _ in pairs(multipliers) do
 		numMultipliers = numMultipliers + 1
 		for i = 1, #mSpots do
 			local spot = mSpots[i]
@@ -320,7 +317,7 @@ local function InitializeAtlas(mSpots)
 			if tonumber(value) > 0.001 and tonumber(value) < maxValue then
 				local scale = CalcSpotScale(spot)
 				if scale < maxScale then
-					if uniquevalues[value] == nil then 
+					if uniquevalues[value] == nil then
 						uniquevalues[value] = value
 						numvalues = numvalues + 1
 					end
@@ -328,27 +325,27 @@ local function InitializeAtlas(mSpots)
 			end
 		end
 	end
-	
+
 	-- Whats the size of one of these? I would say width 128, height 64
 	local textheight = 96
 	textheight = math.ceil(fontfileSize*fontfileScale +  fontfileOutlineSize*fontfileScale * 0.5)
-	--Spring.Echo(textheight) 
+	--Spring.Echo(textheight)
 	local textwidth  = 2 * textheight
 	-- attempt to make a square-ish, power of two-ish atlas:
-	local cellcount = math.ceil(math.sqrt(numvalues))
+	local cellcount = math.max(1, math.ceil(math.sqrt(numvalues)))
 	MetalSpotTextAtlas = MakeAtlasOnDemand({sizex = textwidth * cellcount, sizey =  textheight*cellcount, xresolution = textwidth, yresolution = textheight, name = "MetalSpotAtlas", defaultfont = {font = font, options = 'o'}})
 	AtlasTextureID = MetalSpotTextAtlas.textureID
-	
-	for uniqueValue, value in pairs(uniquevalues) do 
+
+	for uniqueValue, value in pairs(uniquevalues) do
 		local uvcoords = MetalSpotTextAtlas:AddText(value)
 		valueToUVs[uniqueValue] = uvcoords
 	end
-	
+
 end
 
 local function InitializeSpots(mSpots)
 	local spotsCount = 0
-	for i=1, #mSpots do 
+	for i=1, #mSpots do
 		local spot = mSpots[i]
 		local value = valueToText(spot.worth * incomeMultiplier)
 
@@ -359,18 +356,18 @@ local function InitializeSpots(mSpots)
 				local instanceID = spotKey(spot.x, spot.z)
 
 				local mySpot = {x = spot.x, y= spGetGroundHeight(spot.x, spot.z), z = spot.z, value = value, scale = scale, occupied = false, t = 0, ally = false, enemy = false, instanceID = instanceID, worth = spot.worth}
-				
+
 				spotsCount = spotsCount + 1
 				mySpots[spotsCount] = mySpot
-				
+
 				local ally, enemy, changed = IsSpotOccupied(mySpot)
 				local occupied = ally or enemy
-				
+
 				local uvcoords = valueToUVs[value]
 				local gh = Spring.GetGroundHeight(spot.x, spot.z)
 				pushElementInstance(spotInstanceVBO, -- vbo
 						{spot.x, gh, spot.z, scale,
-						(occupied and 0) or 1, -1000,uvcoords.w,uvcoords.h, 
+						(occupied and 0) or 1, -1000,uvcoords.w,uvcoords.h,
 						uvcoords.x,uvcoords.X,uvcoords.y,uvcoords.Y}, -- instanceData
 					instanceID, -- instanceID
 					true, -- updateExisting
@@ -383,7 +380,7 @@ local function InitializeSpots(mSpots)
 end
 
 local function UpdateSpotValues() -- This will only get called on playerchanged
-	for k, spot in ipairs(mySpots) do 
+	for k, spot in ipairs(mySpots) do
 		--local spot = mSpots[i]
 		local valueNumber = spot.worth * incomeMultiplier / 1000
 		local value = valueToText(spot.worth * incomeMultiplier)
@@ -393,10 +390,10 @@ local function UpdateSpotValues() -- This will only get called on playerchanged
 			local ally, enemy, changed = IsSpotOccupied(spot)
 			local occupied = ally or enemy
 			local uvcoords = valueToUVs[spot.value]
-			
+
 			pushElementInstance(spotInstanceVBO, -- vbo
 					{spot.x, spot.y, spot.z, spot.scale,
-					(occupied and 0) or 1, -1000,uvcoords.w,uvcoords.h, 
+					(occupied and 0) or 1, -1000,uvcoords.w,uvcoords.h,
 					uvcoords.x,uvcoords.X,uvcoords.y,uvcoords.Y}, -- instanceData
 				spot.instanceID, -- instanceID
 				true, -- updateExisting
@@ -415,6 +412,10 @@ function widget:Initialize()
 	end
 	if not WG['resource_spot_finder'].metalSpotsList then
 		Spring.Echo("<metalspots> This widget requires the 'Metalspot Finder' widget to run.")
+		widgetHandler:RemoveWidget()
+	end
+	if WG['resource_spot_finder'].isMetalMap then
+		-- no need for this widget on metal maps
 		widgetHandler:RemoveWidget()
 	end
 
@@ -437,15 +438,15 @@ function widget:Initialize()
 	WG.metalspots.getMetalViewOnly = function()
 		return metalViewOnly
 	end
-	
+
 	if not initGL4() then return end
 
 	local currentClock = os.clock()
 	local mSpots = WG['resource_spot_finder'].metalSpotsList
-	if not mSpots then return end 
+	if not mSpots then return end
 	InitializeAtlas(mSpots)
 	InitializeSpots(mSpots)
-	
+
 	if #mSpots <= 1 then
 		goodbye("not enough spots detected")
 	end
@@ -454,7 +455,7 @@ end
 function widget:DrawGenesis()
 	MetalSpotTextAtlas:RenderTasks()
 	-- cause the atlas is done once per initialize only
-	widget.widgetHandler.RemoveCallIn(widget.widget,"DrawGenesis") 
+	widget.widgetHandler.RemoveCallIn(widget.widget,"DrawGenesis")
 end
 --[[
 function widget:DrawScreen()
@@ -464,7 +465,7 @@ end
 
 
 function widget:Shutdown()
-	MetalSpotTextAtlas:Delete()
+	if MetalSpotTextAtlas then MetalSpotTextAtlas:Delete() end
 	WG.metalspots = nil
 	mySpots = {}
 	valueList = {}

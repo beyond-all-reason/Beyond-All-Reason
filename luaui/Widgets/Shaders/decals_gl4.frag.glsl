@@ -124,7 +124,7 @@ void main(void)
 	#endif
 
 	
-	vec2 uvhm = heighmapUVatWorldPos(g_position.xz);
+	vec2 uvhm = heightmapUVatWorldPos(g_position.xz);
 	vec4 minimapcolor = textureLod(miniMapTex, uvhm, 0.0);
 	vec3 mapnormal = textureLod(mapNormalsTex, uvhm, 0.0).raa; // seems to be in the [-1, 1] range!, raaa is its true return
 	mapnormal.g = sqrt( 1.0 - dot( mapnormal.rb, mapnormal.rb)); // reconstruct Y	from it

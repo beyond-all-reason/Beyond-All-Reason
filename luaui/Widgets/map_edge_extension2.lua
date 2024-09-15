@@ -38,6 +38,7 @@ local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 local gridTex = "LuaUI/Images/vr_grid_large.dds"
 local realTex = "$grass"
 local colorTex = (mapBorderStyle == 'texture' and realTex) or gridTex
+local normalTex = '$ssmf_normals'
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -140,7 +141,8 @@ out DataGS {
 bool MyEmitTestVertex(vec2 xzVec, bool testme) {
 	vec4 worldPos = gl_in[0].gl_Position + vec4(xzVec.x, 0.0, xzVec.y, 0.0);
 	uv = worldPos.xz / mapSize.xy;
-	vec2 UVHM =  heighmapUVatWorldPos(worldPos.xz);
+	uv = uv - dataIn[0].vMirrorParams.xy; // So negative UVs mean flipping
+	vec2 UVHM =  heightmapUVatWorldPos(worldPos.xz);
 	worldPos.y = textureLod(heightTex, UVHM, 0.0).x;
 
 	const vec2 edgeTightening = vec2(0.5); // to tighten edges a little better
@@ -219,6 +221,7 @@ local fsSrc = [[
 //__ENGINEUNIFORMBUFFERDEFS__
 
 uniform sampler2D colorTex;
+uniform sampler2D mapNormalTex;
 
 uniform vec4 shaderParams;
 #define brightness shaderParams.y
@@ -244,6 +247,7 @@ const mat3 YCBCR2RGB = mat3(
 void main() {
 
 	fragColor = texture(colorTex, uv);
+	
 	#if 1
 		vec3 yCbCr = RGB2YCBCR * fragColor.rgb;
 		yCbCr.x = clamp(yCbCr.x * brightness, 0.0, 1.0);
@@ -251,7 +255,13 @@ void main() {
 	#else
 		fragColor.rgb *= brightness;
 	#endif
+	
+	vec3 mapNormal = normalize(texture(mapNormalTex,uv).rgb * 2.0 - 1.0);
+	if (uv.x < 0) mapNormal.x *= -1.0; // because negative UVs mean flipping
+	if (uv.y < 0) mapNormal.y *= -1.0;
+	fragColor.rgb = fragColor.rgb * (dot(mapNormal, sunDir.xzy) * 0.5 + 1.0);
 
+	
 	fragColor.rgb = mix(fogColor.rgb, fragColor.rgb, alphaFog.y);
 	fragColor.a = alphaFog.x;
 	//fragColor.a *= 0.5;
@@ -337,6 +347,7 @@ function widget:Initialize()
 			colorTex = 0,
 			heightTex = 1,
 			mapDepthTex = 2,
+			mapNormalTex = 3,
 		},
 		uniformFloat = {
 			shaderParams = {gridSize, brightness, (curvature and 1.0) or 0.0, (fogEffect and 1.0) or 0.0},
@@ -516,6 +527,7 @@ function widget:DrawWorldPreUnit()
 
 	gl.Texture(0, colorTex)
 	gl.Texture(1, "$heightmap")
+	gl.Texture(3, "$ssmf_normals")
 	mapExtensionShader:Activate()
 	mapExtensionShader:SetUniform("shaderParams", gridSize, brightness * nightFactor, (curvature and 1.0) or 0.0, (fogEffect and 1.0) or 0.0)
 	--gl.RunQuery(q, function()
@@ -524,37 +536,25 @@ function widget:DrawWorldPreUnit()
 	mapExtensionShader:Deactivate()
 	gl.Texture(0, false)
 	gl.Texture(1, false)
+	gl.Texture(3, false)
 
 	gl.DepthTest(GL.ALWAYS)
 	gl.DepthTest(false)
 	gl.DepthMask(false)
 	gl.Culling(GL.BACK)
-
-	--Spring.Echo(gl.GetQuery(q))
 end
 
 local lastSunChanged = -1
 function widget:SunChanged() -- Note that map_nightmode.lua gadget has to change sun twice in a single draw frame to update all
 	local df = Spring.GetDrawFrame()
-	--Spring.Echo("widget:SunChanged", df)
+
 	if df == lastSunChanged then return end
 	lastSunChanged = df
 	-- Do the math:
 	if WG['NightFactor'] then
 		nightFactor = (WG['NightFactor'].red + WG['NightFactor'].green + WG['NightFactor'].blue) * 0.33
-		--Spring.Echo("Map edge extension NightFactor", nightFactor)
-		--UpdateShader()
 	end
-	--Spring.Debug.TableEcho(WG['NightFactor'])
 end
-
--- I see no value in this call
---[[
-function widget:DrawWorldRefraction()
-	--DrawWorldFunc()
-end
-]]--
-
 
 function widget:GetConfigData(data)
 	return {

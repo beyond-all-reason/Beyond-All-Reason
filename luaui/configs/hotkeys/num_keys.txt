@@ -19,16 +19,38 @@ bind Alt+7 add_to_autogroup 7
 bind Alt+8 add_to_autogroup 8
 bind Alt+9 add_to_autogroup 9
 
-bind 0 group 0
-bind 1 group 1
-bind 2 group 2
-bind 3 group 3
-bind 4 group 4
-bind 5 group 5
-bind 6 group 6
-bind 7 group 7
-bind 8 group 8
-bind 9 group 9
+bind Shift+Alt+0 load_autogroup_preset 0
+bind Shift+Alt+1 load_autogroup_preset 1
+bind Shift+Alt+2 load_autogroup_preset 2
+bind Shift+Alt+3 load_autogroup_preset 3
+bind Shift+Alt+4 load_autogroup_preset 4
+bind Shift+Alt+5 load_autogroup_preset 5
+bind Shift+Alt+6 load_autogroup_preset 6
+bind Shift+Alt+7 load_autogroup_preset 7
+bind Shift+Alt+8 load_autogroup_preset 8
+bind Shift+Alt+9 load_autogroup_preset 9
+
+bind 0,0 group focus 0
+bind 1,1 group focus 1
+bind 2,2 group focus 2
+bind 3,3 group focus 3
+bind 4,4 group focus 4
+bind 5,5 group focus 5
+bind 6,6 group focus 6
+bind 7,7 group focus 7
+bind 8,8 group focus 8
+bind 9,9 group focus 9
+
+bind 0 group select 0
+bind 1 group select 1
+bind 2 group select 2
+bind 3 group select 3
+bind 4 group select 4
+bind 5 group select 5
+bind 6 group select 6
+bind 7 group select 7
+bind 8 group select 8
+bind 9 group select 9
 
 bind Ctrl+0 group set 0
 bind Ctrl+1 group set 1

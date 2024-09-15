@@ -378,6 +378,35 @@ elseif string.find(mapName, "azar") then
 		addTideRhym (-1, 0.25, 5*6000) -- needs to be -1 than pre-game lava level
 	end
 
+elseif string.find(mapName, "stronghold") then
+	lavaMap = true
+	lavaGrow = 0
+	nolavaburstcegs = true
+	lavaLevel = 5
+	lavaDiffuseEmitTex = "LuaUI/images/lava/lava7_diffuseemit.dds"
+	lavaNormalHeightTex = "LuaUI/images/lava/lava7_normalheight.dds"
+	lavaColorCorrection = "vec3(0.2, 0.65, 0.03)"
+	--lavaCoastColor = "vec3(0.6, 0.7, 0.03)"
+	lavaCoastLightBoost = 0.6
+	lavaCoastWidth = 60.0 -- how wide the coast of the lava should be
+	lavaFogColor = "vec3(1.60, 0.8, 0.3)"
+	--lavaCoastWidth = 30.0
+	lavaParallaxDepth = 8.0 -- set to >0 to enable, how deep the parallax effect is
+	lavaParallaxOffset = 0.2 -- center of the parallax plane, from 0.0 (up) to 1.0 (down)
+	lavaSwirlFreq = 0.008
+	lavaSwirlAmp = 0.017
+	lavaUVscale = 2.2
+	lavaSpecularExp = 12.0
+	lavaTideamplitude = 3
+	lavaTideperiod = 40
+	lavaFogFactor = 0.13
+	lavaFogHeight = 36
+	lavaFogAbove = 0.1
+	lavaFogDistortion = 2.0
+	if isLavaGadget and isLavaGadget == "synced" then
+		addTideRhym (4, 0.05, 5*6000)
+	end
+
 elseif Game.waterDamage > 0 and (not voidWaterMap) then -- Waterdamagemaps - keep at the very bottom
 	--lavaMap = true
 	--lavaGrow = 0

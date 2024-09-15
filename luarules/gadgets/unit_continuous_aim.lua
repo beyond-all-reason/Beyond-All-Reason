@@ -15,129 +15,150 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 
-local convertedUnits = {
+local convertedUnitsNames = {
 	-- value is reaimtime in frames, engine default is 15
-	--[UnitDefNames.armart.id] = true,
-	[UnitDefNames.armfav.id] = 3,
-	--[UnitDefNames.armflash.id] = true,
-	--[UnitDefNames.armjanus.id] = true,
-	--[UnitDefNames.armpincer.id] = true,
-	--[UnitDefNames.armsam.id] = true,
-	--[UnitDefNames.armstump.id] = true,
-	[UnitDefNames.armbeamer.id] = 3,
-	[UnitDefNames.armpw.id] = 2,
-	[UnitDefNames.armpwt4.id] = 2,
-	[UnitDefNames.armflea.id] = 2,
-	[UnitDefNames.armrock.id] = 2,
-	[UnitDefNames.armham.id] = 2,
-	[UnitDefNames.armwar.id] = 2,
-	[UnitDefNames.armjeth.id] = 2,
-	[UnitDefNames.corfav.id] = 3,
-	--[UnitDefNames.corgarp.id] = true,
-	--[UnitDefNames.corgator.id] = true,
-	--[UnitDefNames.corlevlr.id] = true,
-	--[UnitDefNames.cormist.id] = true,
-	--[UnitDefNames.corraid.id] = true,
-	--[UnitDefNames.corwolv.id] = true,
-	[UnitDefNames.corak.id] = 2,
-	[UnitDefNames.corthud.id] = 2,
-	[UnitDefNames.corstorm.id] = 2,
-	[UnitDefNames.corcrash.id] = 5,
-	[UnitDefNames.legkark.id] = 2,
-	[UnitDefNames.armsnipe.id] = 2,
-	[UnitDefNames.armfido.id] = 3,
-	[UnitDefNames.armfboy.id] = 2,
-	[UnitDefNames.armfast.id] = 2,
-	[UnitDefNames.armamph.id] = 3,
-	[UnitDefNames.armmav.id] = 2,
-	[UnitDefNames.armspid.id] = 3,
-	[UnitDefNames.armsptk.id] = 5,
-	[UnitDefNames.armzeus.id] = 3,
-	[UnitDefNames.coramph.id] = 3,
-	[UnitDefNames.corcan.id] = 2,
-	[UnitDefNames.corhrk.id] = 5,
-	[UnitDefNames.cormando.id] = 2,
-	[UnitDefNames.cormort.id] = 2,
-	[UnitDefNames.corpyro.id] = 2,
-	--[UnitDefNames.corsumo.id] = true,
-	[UnitDefNames.cortermite.id] = 2,
-	[UnitDefNames.armraz.id] = 2,
-	[UnitDefNames.armmar.id] = 3,
-	[UnitDefNames.armbanth.id] = 1,
-	[UnitDefNames.corkorg.id] = 1,
-	--[UnitDefNames.corkarg.id] = true,
-	--[UnitDefNames.corjugg.id] = true,
-	[UnitDefNames.armvang.id] = 3,
+	['armfav'] = 3,
+	['armbeamer'] = 3,
+	['armpw'] = 2,
+	['armpwt4'] = 2,
+	['armflea'] = 2,
+	['armrock'] = 2,
+	['armham'] = 2,
+	['armwar'] = 2,
+	['armjeth'] = 2,
+	['corfav'] = 3,
+	['corak'] = 2,
+	['corthud'] = 2,
+	['corstorm'] = 2,
+	['corcrash'] = 5,
+	['legkark'] = 2,
+	['armsnipe'] = 2,
+	['armfido'] = 3,
+	['armfboy'] = 2,
+	['armfast'] = 2,
+	['armamph'] = 3,
+	['armmav'] = 2,
+	['armspid'] = 3,
+	['armsptk'] = 5,
+	['armzeus'] = 3,
+	['coramph'] = 3,
+	['corcan'] = 2,
+	['corhrk'] = 5,
+	['cormando'] = 2,
+	['cormort'] = 2,
+	['corpyro'] = 2,
+	['cortermite'] = 2,
+	['armraz'] = 2,
+	['armmar'] = 3,
+	['armbanth'] = 1,
+	['corkorg'] = 1,
+	['armvang'] = 3,
+	['armcrus'] = 5,
+	['corsala'] = 6,
+	['corsiegebreaker'] = 5,
 
 	-- the following units get a faster reaimtime to counteract their turret acceleration
-	[UnitDefNames.armflash.id] = 6,
-	[UnitDefNames.corgator.id] = 6,
-	[UnitDefNames.armdecade.id] = 6,
-	[UnitDefNames.coresupp.id] = 6,
-	[UnitDefNames.corhlt.id] = 5,
-	[UnitDefNames.corfhlt.id] = 5,
-	[UnitDefNames.cordoom.id] = 5,
-	[UnitDefNames.corshiva.id] = 5,
-	[UnitDefNames.corcat.id] = 5,
-	[UnitDefNames.corkarg.id] = 5,
-	[UnitDefNames.corbhmth.id] = 5,
-	[UnitDefNames.armguard.id] = 5,
-	[UnitDefNames.armamb.id] = 5,
-	[UnitDefNames.corpun.id] = 5,
-	[UnitDefNames.cortoast.id] = 5,
-	[UnitDefNames.corbats.id] = 5,
-	[UnitDefNames.corblackhy.id] = 5,
-	[UnitDefNames.corscreamer.id] = 5,
-	[UnitDefNames.corcom.id] = 5,
-	[UnitDefNames.armcom.id] = 5,
-	[UnitDefNames.cordecom.id] = 5,
-	[UnitDefNames.armdecom.id] = 5,
-	[UnitDefNames.legbal.id] = 5,
-	[UnitDefNames.legbastion.id] = 5,
-	[UnitDefNames.legcen.id] = 2,
-	[UnitDefNames.legfloat.id] = 5,
-	[UnitDefNames.leggat.id] = 5,
-	[UnitDefNames.leggob.id] = 5,
-	[UnitDefNames.leginc.id] = 10,
-	[UnitDefNames.cordemont4.id] = 6,
-	[UnitDefNames.corcrwh.id] = 7,
-	[UnitDefNames.leglob.id] = 5,
-	[UnitDefNames.legmos.id] = 5,
-	[UnitDefNames.leghades.id] = 5,
-	[UnitDefNames.leghelios.id] = 5,
-	[UnitDefNames.legkeres.id] = 5,
-	[UnitDefNames.legrail.id] = 5,
-	[UnitDefNames.legbar.id] = 5,
-	[UnitDefNames.legcomoff.id] = 5,
-	[UnitDefNames.legcomt2off.id] = 5,
-	[UnitDefNames.legcomt2com.id] = 5,
-	[UnitDefNames.legstr.id] = 5,
-	[UnitDefNames.legbart.id] = 5,
-	[UnitDefNames.legmrv.id] = 5,
-	[UnitDefNames.legsco.id] = 5,
-	[UnitDefNames.legcom.id] = 5,
-	[UnitDefNames.legcomlvl2.id] = 5,
-	[UnitDefNames.legcomlvl3.id] = 5,
-	[UnitDefNames.legcomlvl4.id] = 5,
-	[UnitDefNames.leegmech.id] = 5,
-	[UnitDefNames.legionnaire.id] = 5,
-	[UnitDefNames.legvenator.id] = 5,
+	['armthor'] = 4,
+	['armflash'] = 6,
+	['corgator'] = 6,
+	['armdecade'] = 6,
+	['coresupp'] = 6,
+	['corhlt'] = 5,
+	['corfhlt'] = 5,
+	['cordoom'] = 5,
+	['corshiva'] = 5,
+	['corcat'] = 5,
+	['corkarg'] = 5,
+	['corbhmth'] = 5,
+	['armguard'] = 5,
+	['armamb'] = 5,
+	['corpun'] = 5,
+	['cortoast'] = 5,
+	['corbats'] = 5,
+	['corblackhy'] = 5,
+	['corscreamer'] = 5,
+	['corcom'] = 5,
+	['armcom'] = 5,
+	['cordecom'] = 5,
+	['armdecom'] = 5,
+	['legdecom'] = 5,
+
+	['legah'] = 5,
+	['legbal'] = 5,
+	['legbastion'] = 5,
+	['legcen'] = 2,
+	['legfloat'] = 5,
+	['leggat'] = 5,
+	['leggob'] = 5,
+	['leginc'] = 3,
+	['cordemon'] = 6,
+	['corcrwh'] = 7,
+	['leglob'] = 5,
+	['legmos'] = 5,
+	['leghades'] = 5,
+	['leghelios'] = 5,
+	['legheavydrone'] = 5,
+	['legkeres'] = 5,
+	['legrail'] = 5,
+	['legbar'] = 5,
+	['legcomoff'] = 5,
+	['legcomt2off'] = 5,
+	['legcomt2com'] = 5,
+	['legstr'] = 5,
+	['legbart'] = 5,
+	['legmrv'] = 5,
+	['legsco'] = 5,
+	['legcom'] = 5,
+	['legcomlvl2'] = 5,
+	['legcomlvl3'] = 5,
+	['legcomlvl4'] = 5,
+	['leegmech'] = 5,
+	['legionnaire'] = 5,
+	['legvenator'] = 5,
+    ['legmed'] = 5,
+	['legaheattank'] = 5,
 }
+--add entries for scavboss
+local scavengerBossV4Table = {'scavengerbossv4_veryeasy', 'scavengerbossv4_easy', 'scavengerbossv4_normal', 'scavengerbossv4_hard', 'scavengerbossv4_veryhard', 'scavengerbossv4_epic',
+ 'scavengerbossv4_veryeasy_scav', 'scavengerbossv4_easy_scav', 'scavengerbossv4_normal_scav', 'scavengerbossv4_hard_scav', 'scavengerbossv4_veryhard_scav', 'scavengerbossv4_epic_scav'}
+for _, name in pairs(scavengerBossV4Table) do
+	convertedUnitsNames[name] = 4
+end
+--if Spring.GetModOptions().emprework then
+	--convertedUnitsNames['armdfly'] = 50
+--end
+-- convert unitname -> unitDefID
+local convertedUnits = {}
+for name, params in pairs(convertedUnitsNames) do
+	if UnitDefNames[name] then
+		convertedUnits[UnitDefNames[name].id] = params
+	end
+end
+convertedUnitsNames = nil
 
 
-local spamUnitsTeams = { --{unitDefID = {teamID = totalcreated,...}}
-	[UnitDefNames.armpw.id] = {},
-	[UnitDefNames.armflea.id]  = {},
-	[UnitDefNames.armfav.id]  = {},
-	[UnitDefNames.corak.id]  = {},
-	[UnitDefNames.corfav.id]  = {},
+local spamUnitsTeamsNames = { --{unitDefID = {teamID = totalcreated,...}}
+	['armpw'] = {},
+	['armflea'] = {},
+	['armfav'] = {},
+	['corak'] = {},
+	['corfav'] = {},
 }
+-- convert unitname -> unitDefID
+local spamUnitsTeams = {}
+for name, params in pairs(spamUnitsTeamsNames) do
+	if UnitDefNames[name] then
+		spamUnitsTeams[UnitDefNames[name].id] = params
+	end
+end
+spamUnitsTeamsNames = nil
+
 
 local spamUnitsTeamsReaimTimes = {} --{unitDefID = {teamID = currentReAimTime,...}}
 
 
 -- for every spamThreshold'th spammable unit type built by this team, increase reaimtime by 1 for that team
-local spamThreshold = 100 
+local spamThreshold = 100
 local maxReAimTime = 15
 
 -- add for scavengers copies
@@ -149,27 +170,27 @@ for id, v in pairs(convertedUnitsCopy) do
 end
 
 local spamUnitsTeamsCopy = table.copy(spamUnitsTeams)
-for id,v in pairs(spamUnitsTeamsCopy) do 
+for id,v in pairs(spamUnitsTeamsCopy) do
 	if UnitDefNames[UnitDefs[id].name..'_scav'] then
 		spamUnitsTeams[UnitDefNames[UnitDefs[id].name..'_scav'].id] = {}
 	end
 end
 
-for unitDefID, _ in pairs(spamUnitsTeams) do 
+for unitDefID, _ in pairs(spamUnitsTeams) do
 	spamUnitsTeamsReaimTimes[unitDefID] = {}
 end
 
 local unitWeapons = {}
-for unitDefID, _ in pairs(convertedUnits) do 
-	local unitDef = UnitDefs[unitDefID] 
-	if unitDef then 
+for unitDefID, _ in pairs(convertedUnits) do
+	local unitDef = UnitDefs[unitDefID]
+	if unitDef then
 		local weapons = unitDef.weapons
 		if #weapons > 0 then
 			unitWeapons[unitDefID] = {}
 			for id, _ in pairs(weapons) do
 				unitWeapons[unitDefID][id] = true	-- no need to store weapondefid
 			end
-		else 
+		else
 			-- units with no weapons shouldnt even be here
 			convertedUnits[unitDefID] = nil
 		end
@@ -179,9 +200,9 @@ end
 function gadget:UnitCreated(unitID, unitDefID, teamID)
 	if convertedUnits[unitDefID] then
 		local currentReaimTime = convertedUnits[unitDefID]
-		
-		if spamUnitsTeams[unitDefID] then 
-			if not spamUnitsTeams[unitDefID][teamID] then 
+
+		if spamUnitsTeams[unitDefID] then
+			if not spamUnitsTeams[unitDefID][teamID] then
 				-- initialize for this team at base defaults
 				spamUnitsTeams[unitDefID][teamID] = 1
 				spamUnitsTeamsReaimTimes[unitDefID][teamID] = convertedUnits[unitDefID]
@@ -189,13 +210,13 @@ function gadget:UnitCreated(unitID, unitDefID, teamID)
 				local spamCount = spamUnitsTeams[unitDefID][teamID] + 1
 				spamUnitsTeams[unitDefID][teamID] = spamCount
 				currentReaimTime = spamUnitsTeamsReaimTimes[unitDefID][teamID]
-				if spamCount % spamThreshold == 0 and currentReaimTime < maxReAimTime then 
+				if spamCount % spamThreshold == 0 and currentReaimTime < maxReAimTime then
 					spamUnitsTeamsReaimTimes[unitDefID][teamID] = currentReaimTime + 1
 					--Spring.Echo("Unit type", unitDefID,'has been built', spamCount, 'times by team', teamID,'increasing reaimtime to ', currentReaimTime + 1)
 				end
 			end
 		end
-		if currentReaimTime < 15 then 
+		if currentReaimTime < 15 then
 			for id, _ in pairs(unitWeapons[unitDefID]) do
 				-- NOTE: this will prevent unit from firing if it does not IMMEDIATELY return from AimWeapon (no sleeps, not wait for turns!)
 				-- So you have to manually check in script if it is at the desired heading

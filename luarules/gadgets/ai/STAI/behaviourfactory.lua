@@ -47,6 +47,9 @@ function BehaviourFactory:defaultBehaviours(unit)
 	if army.techs[un] then
 		table.insert(b,BuildersBST)
 	end
+	if army.engineers[un] then
+		table.insert(b,EngineerBST)
+	end
 	if army.rezs[un] then
 		--self:EchoDebug()
 		if math.random() > 0.5 then
@@ -55,13 +58,13 @@ function BehaviourFactory:defaultBehaviours(unit)
 			table.insert(b, AttackerBST)
 		end
 	end
-	if army.engineers[un] then
-		if math.random() > 0.5 then
-			table.insert(b, ReclaimBST)
-		else
-			table.insert(b, AttackerBST)
-		end
-	end
+-- 	if army.engineers[un] then
+-- 		if math.random() > 0.5 then
+-- 			table.insert(b, ReclaimBST)
+-- 		else
+-- 			table.insert(b, AttackerBST)
+-- 		end
+-- 	end
 	if army.wartechs[un] then
 		--self:EchoDebug()
 		table.insert(b,BuildersBST)

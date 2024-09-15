@@ -8,7 +8,8 @@
 	// Speed factor: 8x8 ~ 0%, 24x24 ~ 40%
 	"speed": [0, 40],
 	"map": [8, 24],
-	"no_air": 1
+	"no_air": 1,
+	"min_land": 40.0
 },
 
 // Utility param: warning on unit's total probability not equal to 100%

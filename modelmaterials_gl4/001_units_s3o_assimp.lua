@@ -150,12 +150,12 @@ end
 local spGetUnitVelocity = Spring.GetUnitVelocity
 local spGetUnitDirection = Spring.GetUnitDirection
 local floor = math.floor
-local threadSpeeds = {} --cache
-local threadsArray = {[1] = 0.0}
+local treadSpeeds = {} --cache
+local treadsArray = {[1] = 0.0}
 
 local function SendTracksOffset(unitID, hasStd, hasDef, hasShad)
-	if not threadSpeeds[unitID] then
-		threadSpeeds[unitID] = 0.0
+	if not treadSpeeds[unitID] then
+		treadSpeeds[unitID] = 0.0
 	end
 
 	local usx, usy, usz, speed = spGetUnitVelocity(unitID)
@@ -170,19 +170,19 @@ local function SendTracksOffset(unitID, hasStd, hasDef, hasShad)
 		speed = -speed
 	end
 
-	if threadSpeeds[unitID] ~= speed then
-		threadSpeeds[unitID] = speed
-		threadsArray[1] = speed
+	if treadSpeeds[unitID] ~= speed then
+		treadSpeeds[unitID] = speed
+		treadsArray[1] = speed
 		if hasStd then
-			mySetMaterialUniform[false](unitID, "opaque", 3, "floatOptions[3]", GL_FLOAT, threadsArray)
+			mySetMaterialUniform[false](unitID, "opaque", 3, "floatOptions[3]", GL_FLOAT, treadsArray)
 		end
 		if hasDef then
-			mySetMaterialUniform[true ](unitID, "opaque", 3, "floatOptions[3]", GL_FLOAT, threadsArray)
+			mySetMaterialUniform[true ](unitID, "opaque", 3, "floatOptions[3]", GL_FLOAT, treadsArray)
 		end
 		--[[
 		-- tank tracks usually don't contribute much to shadows look
 		if hasShad then
-			mySetMaterialUniform[false](unitID, "shadow", 3, "floatOptions[3]", GL_FLOAT, threadsArray)
+			mySetMaterialUniform[false](unitID, "shadow", 3, "floatOptions[3]", GL_FLOAT, treadsArray)
 		end
 		]]--
 	end
@@ -230,10 +230,10 @@ local materials = {
 			[5] = "%NORMALTEX2",
 		},
 		shaderOptions = {
-			threads_arm = true,
+			treads_arm = true,
 		},
 		deferredOptions = {
-			threads_arm = true,
+			treads_arm = true,
 			materialIndex = 1,
 		},
 		UnitCreated = function (unitID, unitDefID, mat) UnitCreated(armTanks, unitID, unitDefID, mat) end,
@@ -250,10 +250,10 @@ local materials = {
 			[5] = "%NORMALTEX2",
 		},
 		shaderOptions = {
-			threads_core = true,
+			treads_core = true,
 		},
 		deferredOptions = {
-			threads_core = true,
+			treads_core = true,
 			materialIndex = 2,
 		},
 		UnitCreated = function (unitID, unitDefID, mat) UnitCreated(corTanks, unitID, unitDefID, mat) end,

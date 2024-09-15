@@ -215,6 +215,10 @@ local function drawTooltip(name, x, y)
 	local maxWidth = tooltips[name].maxWidth
 	local maxHeight = tooltips[name].maxHeight
 
+	if maxWidth == nil or maxHeight == nil then
+		return
+	end
+
 	-- adjust position when needed
 	local posX = math_floor(x + paddingW)
 	local posY = math_floor(y - paddingH)

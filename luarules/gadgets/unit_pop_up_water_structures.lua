@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		date      = "26 May 2013",
 		license   = "GNU GPL, v2 or later",
 		layer     = 0,
-		enabled   = true  --  loaded by default?
+		enabled   = true
 	}
 end
 
@@ -15,12 +15,23 @@ end
 
 if (gadgetHandler:IsSyncedCode()) then
 
-local POP_UP_UNIT = {
-	[UnitDefNames["armptl"].id] = { unit = UnitDefNames["armtl"].id, waterLine = -10 },
-	[UnitDefNames["corptl"].id] = { unit = UnitDefNames["cortl"].id, waterLine = -10 },
-	[UnitDefNames["armptl_scav"].id] = { unit = UnitDefNames["armtl_scav"].id, waterLine = -10 },
-	[UnitDefNames["corptl_scav"].id] = { unit = UnitDefNames["cortl_scav"].id, waterLine = -10 },
+
+local POP_UP_UNITDEFS = {
+	armptl = { unit = "armtl", waterLine = -10 },
+	corptl = { unit = "cortl", waterLine = -10 },
+	armptl_scav = { unit = "armtl_scav", waterLine = -10 },
+	corptl_scav = { unit = "cortl_scav", waterLine = -10 },
 }
+
+local POP_UP_UNIT = {}
+for unitDefName, popupunit in pairs(POP_UP_UNITDEFS) do 
+	if UnitDefNames[unitDefName] and UnitDefNames[popupunit.unit] then 
+		popupunit.unit = UnitDefNames[popupunit.unit].id
+		POP_UP_UNIT[UnitDefNames[unitDefName].id] = popupunit
+	end
+end
+POP_UP_UNITDEFS = nil
+
 local PTL_COLLISION = WeaponDefNames.ptl_collision.id;
 
 local popUps = {}

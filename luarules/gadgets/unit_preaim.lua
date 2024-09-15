@@ -32,28 +32,31 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
-local exludedUnits = {    -- exclude auto target range boost for popup units
-	[UnitDefNames.armclaw.id] = true,
-	[UnitDefNames.armpb.id] = true,
-	[UnitDefNames.armamb.id] = true,
-	[UnitDefNames.cormaw.id] = true,
-	[UnitDefNames.corvipe.id] = true,
-	[UnitDefNames.corpun.id] = true,
-	[UnitDefNames.corexp.id] = true,
-
-	[UnitDefNames.corllt.id] = true,
-	[UnitDefNames.corhllt.id] = true,
-	[UnitDefNames.armllt.id] = true,
-	[UnitDefNames.leginc.id] = true,
+local exludedUnitsNames = {    -- exclude auto target range boost for popup units
+	['armclaw'] = true,
+	['armpb'] = true,
+	['armamb'] = true,
+	['cormaw'] = true,
+	['corvipe'] = true,
+	['corpun'] = true,
+	['corexp'] = true,
+	['corllt'] = true,
+	['corhllt'] = true,
+	['armllt'] = true,
+	['leginc'] = true,
 }
-local scavengerPopups = {}
-for k, v in pairs(exludedUnits) do
-	scavengerPopups[k .. '_scav'] = v
+-- convert unitname -> unitDefID + add scavengers
+local exludedUnits = {}
+for name, params in pairs(exludedUnitsNames) do
+	if UnitDefNames[name] then
+		exludedUnits[UnitDefNames[name].id] = params
+		if UnitDefNames[name..'_scav'] then
+			exludedUnits[UnitDefNames[name..'_scav'].id] = params
+		end
+	end
 end
-for k, v in pairs(scavengerPopups) do
-	exludedUnits[k] = v
-end
-scavengerPopups = nil
+exludedUnitsNames = nil
+
 for k, v in pairs(exludedUnits) do
 	isPreaimUnit[k] = nil
 end

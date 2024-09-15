@@ -291,9 +291,7 @@ Go()
 	Static_Var_2 = 1;
 	if( !Static_Var_3 )
 	{
-		turn lturret to z-axis <0.000000> now;
 		turn lturret to z-axis <-45> speed <360>;
-		turn rturret to z-axis <0.000000> now;
 		turn rturret to z-axis <45> speed <360>;
 		sleep 250;
 		Static_Var_3 = 1;
@@ -378,6 +376,9 @@ ExecuteRestoreAfterDelay()
     }
 	set-signal-mask 0;
 	turn aimy1 to y-axis <0.000000> speed <90.000000>;
+	turn aimx1 to x-axis <0> speed <50.000000>;
+	turn rturret to z-axis <0> speed <120>;
+	turn lturret to z-axis <0> speed <120>;
 	wpn2_lasthead = 1000000;
 }
 SetStunned(State)
@@ -412,7 +413,10 @@ AimSecondary(heading, pitch)
 	{
 		return(0);
 	}
+	
 	turn aimy1 to y-axis heading speed <275.000000>;
+	turn aimx1 to x-axis 0 - pitch speed <275.000000>;
+	
 	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 5000) AND ((get ABS(wpn2_lasthead - heading)) < 60536)))
 	{
 		wpn2_lasthead = 1000000;

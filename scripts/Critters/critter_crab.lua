@@ -1,4 +1,5 @@
---just copy from duck
+local flare = piece "flare"
+
 
 function walk()
 end
@@ -10,6 +11,26 @@ function script.StartMoving()
 end
 	
 function script.StopMoving()
+end
+
+
+
+function script.AimFromWeapon1()
+	return flare
+end
+
+function script.QueryWeapon1()
+	return flare
+end
+function script.AimWeapon1(heading, pitch)
+	return true
+end
+
+function script.FireWeapon1()
+	return true
+end
+
+function script.Shot1()
 end
 
 

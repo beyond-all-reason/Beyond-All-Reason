@@ -24,7 +24,9 @@ local config = {
 	lineColor = { 0.70, 1.0, 0.70 }, -- color of the lines
 }
 
-local showGrid = true
+local waterLevel = Spring.GetWaterPlaneLevel and Spring.GetWaterPlaneLevel() or 0
+
+local cmdShowForUnitDefID
 local isPregame = Spring.GetGameFrame() == 0 and not isSpec
 
 local gridVBO = nil -- the vertex buffer object, an array of vec2 coords
@@ -60,13 +62,19 @@ out vec4 v_worldPos;
 out vec4 v_color; // this is unused, but you can pass some stuff to fragment shader from here
 
 uniform sampler2D heightmapTex; // the heightmap texture
+uniform float waterLevel;
+uniform int waterSurfaceMode;
 
 #line 11000
 void main(){
 	v_worldPos.xz = position.xy;
 	float alpha = position.z; // sneaking in an alpha value on the position input
-	vec2 uvhm = heighmapUVatWorldPos(v_worldPos.xz); // this function gets the UV coords of the heightmap texture at a world position
-	v_worldPos.y  = textureLod(heightmapTex, uvhm, 0.0).x;
+	vec2 uvhm = heightmapUVatWorldPos(v_worldPos.xz); // this function gets the UV coords of the heightmap texture at a world position
+	v_worldPos.y = textureLod(heightmapTex, uvhm, 0.0).x;
+	if (waterSurfaceMode > 0) {
+		v_worldPos.y = max(waterLevel, v_worldPos.y);
+	}
+
 	v_color = vec4(LINECOLOR, alpha);
 	gl_Position = cameraViewProj * vec4(v_worldPos.xyz, 1.0);  // project it into camera
 }
@@ -84,23 +92,28 @@ in vec4 v_color;
 
 out vec4 fragColor; // the output color
 
+uniform vec3 mousePos;
+
 void main(void) {
 	float maxDist = MAXVIEWDIST;
 	vec3 camPos = cameraViewInv[3].xyz;
-    float dist = distance(v_worldPos.xyz, mouseWorldPos.xyz);
+    float dist = distance(v_worldPos.xyz, mousePos.xyz);
 	// Specifiy the color of the output line
 	float fadeDist = GRIDRADIUS * 16.0;
     float alpha = smoothstep(0.0, 1.0, ((fadeDist / (dist / RADIUSFALLOFF))) - RADIUSFALLOFF);
-    float camDist = distance(camPos, mouseWorldPos.xyz);
+    float camDist = distance(camPos, mousePos.xyz);
     float distAlpha = smoothstep(0.0, 1.0, 1.0 - (maxDist / camDist));
 	fragColor.rgba = vec4(v_color.rgb, (alpha - (distAlpha * 1.75)) * (v_color.a));
 }
 ]]
 
 local function goodbye(reason)
-    Spring.Echo("DrawPrimitiveAtUnits GL4 widget exiting with reason: " .. reason)
+    Spring.Echo("Building Grid GL4 widget exiting with reason: " .. reason)
     widgetHandler:RemoveWidget()
 end
+
+local mousePosUniform
+local waterSurfaceModeUniform
 
 function initShader()
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs() -- all the camera and other lovely stuff
@@ -110,20 +123,32 @@ function initShader()
 		vertex = vsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig)),
 		fragment = fsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig)),
 		uniformInt = {
-			heightmapTex = 0 -- the index of the texture uniform sampler2D
+			heightmapTex = 0, -- the index of the texture uniform sampler2D
+			waterSurfaceMode = 0,
 		},
-		uniformFloat = {}
+		uniformFloat = {
+			waterLevel = waterLevel,
+			mousePos = {0.0, 0.0, 0.0},
+		}
 	}, "gridShader")
 	local shaderCompiled = gridShader:Initialize()
 	if not shaderCompiled then
 		goodbye("Failed to compile gridshader GL4 ")
+		return
 	end
+
+	mousePosUniform = gl.GetUniformLocation(gridShader.shaderObj, "mousePos")
+	waterSurfaceModeUniform = gl.GetUniformLocation(gridShader.shaderObj, "waterSurfaceMode")
 end
 
+---map of reason to unitDefID
+---@type table<string, number>
 local forceShow = {}
-local function getForceShow()
+
+local function getForceShowUnitDefID()
 	-- show grid as long as any source wants us to show it (logical OR)
-    return next(forceShow, nil) ~= nil
+	local reason = next(forceShow, nil)
+	return reason and forceShow[reason] or nil
 end
 
 function widget:Initialize()
@@ -135,9 +160,9 @@ function widget:Initialize()
         opacity = value
         -- widget needs reloading wholly
     end
-    WG['buildinggrid'].setForceShow = function(reason, enabled)
+    WG['buildinggrid'].setForceShow = function(reason, enabled, unitDefID)
         if enabled then
-            forceShow[reason] = true
+            forceShow[reason] = unitDefID
         else
             forceShow[reason] = nil
         end
@@ -148,7 +173,6 @@ function widget:Initialize()
 	if gridVBO then return end
 
     local VBOData = {} -- the lua array that will be uploaded to the GPU
-	Spring.Echo("map size is", Game.mapSizeX, Game.mapSizeZ)
     for row = 0, Game.mapSizeX, spacing do
         for col = 0, Game.mapSizeZ, spacing do
             if row ~= Game.mapSizeX then -- skip last
@@ -192,17 +216,32 @@ end
 function widget:Update()
 	local _, cmdID = Spring.GetActiveCommand()
 
-	showGrid = (cmdID and cmdID < 0) or getForceShow()
+	cmdShowForUnitDefID = cmdID ~= nil and cmdID < 0 and -cmdID or nil
 end
 
 function widget:DrawWorldPreUnit()
-	if not showGrid then return end
+	local showUnitDefID = getForceShowUnitDefID() or cmdShowForUnitDefID
+	if not showUnitDefID then
+		return
+	end
+
+	local waterSurfaceMode = not UnitDefs[showUnitDefID].modCategories.underwater
+
+	local mx, my, _ = Spring.GetMouseState()
+	local _, mousePos = Spring.TraceScreenRay(mx, my, true, false, false, not waterSurfaceMode)
+
+	if not mousePos then
+		return
+	end
+
 	gl.LineWidth(1.75)
     gl.Culling(GL.BACK) -- not needed really, only for triangles
     gl.DepthTest(GL.ALWAYS) -- so that it wont be drawn behind terrain
     gl.DepthMask(false) -- so that we dont write the depth of the drawn pixels
     gl.Texture(0, "$heightmap") -- bind engine heightmap texture to sampler 0
     gridShader:Activate()
+	gl.UniformInt(waterSurfaceModeUniform, waterSurfaceMode and 1 or 0)
+	gl.Uniform(mousePosUniform, unpack(mousePos, 1, 3))
     gridVAO:DrawArrays(GL.LINES) -- draw the lines
     gridShader:Deactivate()
     gl.Texture(0, false)

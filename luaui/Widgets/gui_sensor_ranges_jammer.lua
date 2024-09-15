@@ -61,7 +61,7 @@ out DataVS {
 #line 11000
 
 float heightAtWorldPos(vec2 w){
-	vec2 uvhm = heighmapUVatWorldPos(w);
+	vec2 uvhm = heightmapUVatWorldPos(w);
 	return textureLod(heightmapTex, uvhm, 0.0).x;
 }
 
@@ -338,7 +338,7 @@ function widget:GameFrame(n)
 	end
 end
 
-function widget:DrawWorldPreUnit()
+function widget:DrawWorld()
 	if chobbyInterface then
 		return
 	end
@@ -380,6 +380,7 @@ function widget:DrawWorldPreUnit()
 	glColor(rangeColor[1], rangeColor[2], rangeColor[3], rangeColor[4])
 	glLineWidth(rangeLineWidth * lineScale * 1.0)
 	--Spring.Echo("glLineWidth",rangeLineWidth * lineScale * 1.0)
+	glDepthTest(true)
 	circleInstanceVBO.VAO:DrawArrays(GL_LINE_LOOP, circleInstanceVBO.numVertices, 0, circleInstanceVBO.usedElements, 0)
 
 	glStencilMask(255) -- enable all bits for future drawing
@@ -388,7 +389,6 @@ function widget:DrawWorldPreUnit()
 	circleShader:Deactivate()
 	gl.Texture(0, false)
 	glStencilTest(false)
-	glDepthTest(true)
 	glColor(1.0, 1.0, 1.0, 1.0) --reset like a nice boi
 	glLineWidth(1.0)
 	gl.Clear(GL.STENCIL_BUFFER_BIT)

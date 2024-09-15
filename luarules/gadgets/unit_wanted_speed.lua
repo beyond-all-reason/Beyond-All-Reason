@@ -1,10 +1,7 @@
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-if not gadgetHandler:IsSyncedCode() then
+
+if not Spring.GetModOptions().emprework then
 	return
 end
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 function gadget:GetInfo()
 	return {
@@ -14,13 +11,14 @@ function gadget:GetInfo()
 		date      = "11 November 2018",
 		license   = "GNU GPL, v2 or later",
 		layer     = -1000000, -- Before every state toggle gadget.
-		enabled   = Spring.GetModOptions().emprework==true -- not CMD.SET_WANTED_MAX_SPEED  --  loaded by default?
+		enabled   = true,
 	}
 end
 
--------------------------------------------------------------------------------------
--------------------------------------------------------------------------------------
 
+if not gadgetHandler:IsSyncedCode() then
+	return
+end
 
 
 --I have no idea what this is trying to do or why
@@ -68,28 +66,28 @@ do
 		moveTypeByDefID[i] = getMovetype(UnitDefs[i])
 	end
 
-			
+
 	--local getMovetype = Spring.Utilities.getMovetype
 	--for i = 1, #UnitDefs do
 		--moveTypeByDefID[i] = getMovetype(UnitDefs[i])
 		--moveData = spGetUnitMoveTypeData(i)
-		
-		
+
+
 		--Spring.Echo("hornet movedef name" .. UnitDefs[i].moveDef.name)
 		--Spring.Echo("hornet movedef name")
-		
-		
+
+
 		--Spring.Echo('hornetdebug UnitDefs[i]')
 		--Spring.Echo(UnitDefs[i])
 		--for k,v in pairs(UnitDefs[i]) do
 		--  Spring.Echo(k,v)
-		--end		
-		
-		
+		--end
+
+
 		--moveType = 0
 		--moveType = SU.getMovetypeByID(UnitDefs[i])
-		
-		
+
+
 		--if UnitDefs[i].moveDef.name == "ground" then moveType = 2 end
 		--moveTypeByDefID[i] = moveType
 	--end
@@ -116,21 +114,21 @@ local function SetUnitWantedSpeed(unitID, unitDefID, wantedSpeed, forceUpdate)
 			moveType = moveType,
 		}
 	end
-	
+
 	if units[unitID].unhandled then
 		return
 	end
-	
+
 	if Spring.MoveCtrl.GetTag(unitID) then
 		units[unitID].lastWantedSpeed = wantedSpeed
 		return
 	end
-	
+
 	if (not forceUpdate) and (units[unitID].lastWantedSpeed == wantedSpeed) then
 		return
 	end
 	units[unitID].lastWantedSpeed = wantedSpeed
-	
+
 	--Spring.Utilities.UnitEcho(unitID, wantedSpeed or "f")
 	if units[unitID].moveType == 1 then
 		Spring.MoveCtrl.SetGunshipMoveTypeData(unitID, "maxWantedSpeed", (wantedSpeed or 2000))
@@ -150,11 +148,11 @@ local function MaintainWantedSpeed(unitID)
 	if not (units[unitID] and units[unitID].lastWantedSpeed) then
 		return
 	end
-	
+
 	if Spring.MoveCtrl.GetTag(unitID) then
 		return
 	end
-	
+
 	if units[unitID].moveType == 1 then
 		Spring.MoveCtrl.SetGunshipMoveTypeData(unitID, "maxWantedSpeed", units[unitID].lastWantedSpeed)
 	elseif units[unitID].moveType == 2 then

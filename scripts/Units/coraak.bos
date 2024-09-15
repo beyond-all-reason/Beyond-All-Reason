@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  pelvis, lfleg, rfleg, lbleg, rbleg, lbfoot, lffoot, rbfoot, rffoot, torso, flakgun, flareflak, flare1, flare2, flare3, flare4, aimy1;
+piece  pelvis, lfleg, rfleg, lbleg, rbleg, lbfoot, lffoot, rbfoot, rffoot, torso, flakgun, flareflak, flare1, flare2, flare3, flare4, aimy1, aimx1, aimx2;
 
 static-var  bMoving, Static_Var_2;
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
@@ -249,8 +249,12 @@ Create()
 	hide flare2;
 	hide flare1;
 	hide aimy1;
+	hide aimx1;
 	animSpeed = 5;
 	bMoving = FALSE;
+	
+	turn aimx1 to x-axis <-15> speed <50>;
+	turn aimx2 to x-axis <-5> speed <50>;
 }
 
 #define SMOKEPIECE pelvis
@@ -266,7 +270,10 @@ RestoreAfterDelay()
 {
 	sleep 5000;
 	set-signal-mask 0;
-	turn torso to y-axis <0.000000> speed <90.000000>;
+	turn aimy1 to y-axis <0.000000> speed <90.000000>;
+	
+	turn aimx1 to x-axis <-15> speed <50>;
+	turn aimx2 to x-axis <-5> speed <50>;
 }
 
 QueryWeapon1(piecenum)
@@ -293,8 +300,10 @@ AimWeapon2(heading, pitch)
 {
 	signal 2;
 	set-signal-mask 2;
-	turn torso to y-axis heading speed <225.000000>;
-	wait-for-turn torso around y-axis;
+	turn aimy1 to y-axis heading speed <225.000000>;
+	turn aimx1 to x-axis 0 - pitch speed <225.000000>;
+	turn aimx2 to x-axis 0 - pitch speed <225.000000>;
+	wait-for-turn aimy1 around y-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -317,8 +326,10 @@ AimWeapon3(heading, pitch)
 {
 	signal 4;
 	set-signal-mask 4;
-	turn torso to y-axis heading speed <225.000000>;
-	wait-for-turn torso around y-axis;
+	turn aimy1 to y-axis heading speed <225.000000>;
+	turn aimx1 to x-axis 0 - pitch speed <225.000000>;
+	turn aimx2 to x-axis 0 - pitch speed <225.000000>;
+	wait-for-turn aimy1 around y-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -341,8 +352,10 @@ AimWeapon4(heading, pitch)
 {
 	signal 8;
 	set-signal-mask 8;
-	turn torso to y-axis heading speed <225.000000>;
-	wait-for-turn torso around y-axis;
+	turn aimy1 to y-axis heading speed <225.000000>;
+	turn aimx1 to x-axis 0 - pitch speed <225.000000>;
+	turn aimx2 to x-axis 0 - pitch speed <225.000000>;
+	wait-for-turn aimy1 around y-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -365,8 +378,10 @@ AimWeapon5(heading, pitch)
 {
 	signal 16;
 	set-signal-mask 16;
-	turn torso to y-axis heading speed <225.000000>;
-	wait-for-turn torso around y-axis;
+	turn aimy1 to y-axis heading speed <225.000000>;
+	turn aimx1 to x-axis 0 - pitch speed <225.000000>;
+	turn aimx2 to x-axis 0 - pitch speed <225.000000>;
+	wait-for-turn aimy1 around y-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }

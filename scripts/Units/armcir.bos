@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  flare1, flare6, flare5, flare4, flare3, flare2, base, turret, spindle;
+piece  flare1, flare6, flare5, flare4, flare3, flare2, base, turret, ring, spindle, aimy1, aimx1;
 
 static-var  gun_1, last_fire, firstaim;
 
@@ -22,7 +22,9 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
     firstaim = 1;
-	spin turret around y-axis speed <22.0>;
+	spin aimy1 around y-axis speed <22.0>;
+	turn aimx1 to x-axis <-15> speed <22.0>;
+	turn spindle to z-axis <0> speed <60>;
 }
 SetStunned(State)
 {
@@ -58,14 +60,18 @@ AimPrimary(heading, pitch)
 {
     signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	turn turret to y-axis heading speed <250>;
-	wait-for-turn turret around y-axis;
+	stop-spin aimy1 around y-axis;
+	turn aimy1 to y-axis heading speed <250>;
+	turn aimx1 to x-axis 0 - pitch speed <250>;
+	wait-for-turn aimy1 around y-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
 FirePrimary()
 {
+	spin spindle around z-axis speed <-240>;
+	
 	if( gun_1 == 0 )
 	{
 		wait-for-turn spindle around z-axis;
@@ -107,7 +113,7 @@ QueryPrimary(piecenum)
 
 AimFromPrimary(piecenum)
 {
-	piecenum = turret;
+	piecenum = spindle;
 }
 
 SweetSpot(piecenum)

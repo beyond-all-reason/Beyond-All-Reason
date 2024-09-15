@@ -34,11 +34,8 @@ function GuessOne(teamID, allyID, xmin, zmin, xmax, zmax, startPointTable)
 	-- guess based on metal spots within startbox --
 
 	-- check if mex list generation worked and retrieve if so
-	if not GG.metalSpots then
-		return -1,-1
-	end
-	local metalSpots = GG.metalSpots
-	if metalSpots == false then
+	local metalSpots = GG["resource_spot_finder"] and GG["resource_spot_finder"].metalSpotsList or nil
+	if not metalSpots or #metalSpots == 0 then
 		return -1,-1
 	end
 

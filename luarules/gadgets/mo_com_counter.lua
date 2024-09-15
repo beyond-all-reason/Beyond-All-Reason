@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		date      = "08/03/2014",
 		license   = "GNU GPL, v2 or later, Horses",
 		layer     = 0,
-		enabled   = true  --  loaded by default?
+		enabled   = true
 	}
 end
 
@@ -18,14 +18,11 @@ if not (gadgetHandler:IsSyncedCode()) then --synced only
 end
 
 local teamComs = {} -- format is enemyComs[teamID] = total # of coms in enemy teams
-local armcomDefID = UnitDefNames.armcom.id
-local corcomDefID = UnitDefNames.corcom.id
-local legcomDefID = UnitDefNames.legcom.id
 local countChanged  = true
 
 local isCommander = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.customParams.iscommander then
+	if unitDef.customParams.iscommander or unitDef.customParams.isscavcommander then
 		isCommander[unitDefID] = true
 	end
 end
@@ -59,7 +56,10 @@ local function ReCheck()
 	-- occasionally, recheck just to make sure...
 	local teamList = Spring.GetTeamList()
 	for _,teamID in pairs(teamList) do
-		local newCount = Spring.GetTeamUnitDefCount(teamID, armcomDefID) + Spring.GetTeamUnitDefCount(teamID, corcomDefID) + Spring.GetTeamUnitDefCount(teamID, legcomDefID)
+		local newCount = 0
+		for unitDefID,_ in pairs(isCommander) do
+			newCount = newCount + Spring.GetTeamUnitDefCount(teamID, unitDefID)
+		end
 		if newCount ~= teamComs[teamID] then
 			countChanged = true
 			teamComs[teamID] = newCount

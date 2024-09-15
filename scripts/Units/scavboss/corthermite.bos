@@ -12,7 +12,8 @@ static-var  moving, Static_Var_2, restore_delay, gun_1,moveSpeed, currentSpeed,W
 #define SIG_AIM2				128
 
 #define SIG_MOVE 8
-#define SIG_SIG_CHILL 16
+#define SIG_PUFF 16
+#define SIG_CHILL 32
 
 
 #define FRONT_RIGHT_UP\
@@ -249,7 +250,7 @@ Create()
 	hide aimy1;
 	rand = 0;
 	moving = FALSE;
-	firing = FALSE;
+	//firing = FALSE;
 	isreset = TRUE;
 	rollingchill = FALSE;
 	chillshots = 0;
@@ -277,8 +278,8 @@ lua_UnitScriptLight(lightIndex, count)
 
 
 chilltime(current) {
-		signal SIG_CHILL;
-		set-signal-mask SIG_CHILL;
+		//signal SIG_CHILL;
+		//set-signal-mask SIG_CHILL;
 
 		if (moving==FALSE AND isreset) {
 			
@@ -333,6 +334,7 @@ ExecuteRestoreAfterDelay()
 	isreset = TRUE;
 	turn head to y-axis <0.000000> speed <55.000000>;
 	turn head to x-axis <0.000000> speed <55.000000>;
+	turn turretr to y-axis <0.000000> speed <55.000000>;
 	turn turretr to x-axis <0.000000> speed <55.000000>;
 	wait-for-turn head around y-axis;
 	wpn1_lasthead = 1000000;

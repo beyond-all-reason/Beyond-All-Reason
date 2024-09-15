@@ -1,6 +1,7 @@
 return {
 	armrecl = {
 		maxacc = 0.05262,
+		activatewhenbuilt = true,
 		autoheal = 2,
 		maxdec = 0.05262,
 		energycost = 3000,
@@ -21,7 +22,7 @@ return {
 		footprintz = 3,
 		idleautoheal = 3,
 		idletime = 300,
-		health = 420, --1250, --500,
+		health = 420,
 		speed = 66.0,
 		minwaterdepth = 15,
 		movementclass = "UBOAT4",
@@ -31,7 +32,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "smallexplosiongenericSelfd-uw",
 		sightdistance = 300,
-		sonardistance = 50,
+		sonardistance = 150,
 		terraformspeed = 2250,
 		turninplace = true,
 		turninplaceanglelimit = 90,

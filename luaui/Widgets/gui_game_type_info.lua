@@ -20,7 +20,7 @@ function widget:GetInfo()
 		date = "Jul 6, 2008",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true  --  loaded by default?
+		enabled = true
 	}
 end
 
@@ -36,6 +36,8 @@ local spGetGameSeconds = Spring.GetGameSeconds
 local messages = {}
 
 local font
+
+local draftMode = Spring.GetModOptions().draft_mode
 
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
@@ -66,10 +68,6 @@ function widget:Initialize()
 
 	messages[1] = {}
 
-	if Spring.GetModOptions().unba then
-		messages[2] = {}
-	end
-
 	if Spring.GetModOptions().deathmode == "own_com" then
 		messages[3] = {}
 	end
@@ -86,39 +84,8 @@ function widget:LanguageChanged()
 		messages[1].str = "\255\255\255\255" .. Spring.I18N('ui.gametypeInfo.victoryCondition') .. ": " .. Spring.I18N('ui.gametypeInfo.killAllCommanders')
 	end
 
-	if Spring.GetModOptions().unba then
-		messages[2].str = "\255\255\222\111" .. Spring.I18N('ui.gametypeInfo.unbalancedCommanders')
-	end
-
 	if Spring.GetModOptions().deathmode == "own_com" then
 		messages[3].str = "\255\255\150\150" .. Spring.I18N('ui.gametypeInfo.owncomends')
-	end
-end
-
-local blink = false
-local function blink( on )
-	if on and not blink then
-		blink = true
-		messages[2].str = "\255\255\222\111" .. Spring.I18N('ui.gametypeInfo.unbalancedCommanders')
-	elseif blink and not on then
-		blink = false
-		messages[2].str = "\255\255\150\050" .. Spring.I18N('ui.gametypeInfo.unbalancedCommanders')
-	end
-end
-
-local sec = 0
-function widget:Update(dt)
-	if messages[2] == nil then return end
-
-	sec = sec + dt
-	if sec > 1 then
-		sec = sec - 1
-	end
-	
-	if sec > 0.5 then
-		blink(true)
-	else
-		blink(false)
 	end
 end
 
@@ -130,8 +97,10 @@ function widget:DrawScreen()
 		return
 	end
 
+	local y = 0.19
+	if (Game.startPosType == 2) and (draftMode ~= nil and draftMode ~= "disabled") then y = 0.68 end
 	glPushMatrix()
-	glTranslate((vsx * 0.5), (vsy * 0.19), 0) --has to be below where newbie info appears!
+	glTranslate((vsx * 0.5), (vsy * y), 0) --has to be below where newbie info appears!
 	glScale(1.5, 1.5, 1)
 	font:Begin()
 

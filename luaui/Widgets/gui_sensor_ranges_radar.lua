@@ -342,7 +342,7 @@ function widget:GameFrame(n)
 	end
 end
 
-function widget:DrawWorldPreUnit()
+function widget:DrawWorld()
     if chobbyInterface then return end
     if spec and fullview then return end
     if Spring.IsGUIHidden() or (WG['topbar'] and WG['topbar'].showingQuit()) then return end
@@ -374,6 +374,8 @@ function widget:DrawWorldPreUnit()
 	glColor(rangeColor[1], rangeColor[2], rangeColor[3], rangeColor[4])
 	glLineWidth(rangeLineWidth * lineScale * 1.0)
 	--Spring.Echo("glLineWidth",rangeLineWidth * lineScale * 1.0)
+	
+	glDepthTest(true)
 	circleInstanceVBO.VAO:DrawArrays(GL_LINE_LOOP, circleInstanceVBO.numVertices, 0, circleInstanceVBO.usedElements, 0)
 
 	glStencilMask(255) -- enable all bits for future drawing

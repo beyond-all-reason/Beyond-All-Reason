@@ -231,8 +231,8 @@ FirePrimary()
 		move barrel2 to z-axis [-2.250000] now;
 		emit-sfx 1024 + 0 from flare2;
 		sleep 32;
-		move barrel2 to y-axis [0.000000] speed [5.000000];
-		move barrel2 to z-axis [0.000000] speed [5.000000];
+		move barrel2 to y-axis [0.000000] speed [4.125];
+		move barrel2 to z-axis [0.000000] speed [2.475];
 	}
 	if( gun_1 == 2 )
 	{
@@ -240,8 +240,8 @@ FirePrimary()
 		move barrel3 to z-axis [2.250000] now;
 		emit-sfx 1024 + 0 from flare3;
 		sleep 32;
-		move barrel3 to y-axis [0.000000] speed [5.000000];
-		move barrel3 to z-axis [0.000000] speed [5.000000];
+		move barrel3 to y-axis [0.000000] speed [4.125];
+		move barrel3 to z-axis [0.000000] speed [2.475];
 	}
 	if( gun_1 == 3 )
 	{
@@ -256,8 +256,8 @@ FirePrimary()
 		move barrel5 to z-axis [2.250000] now;
 		emit-sfx 1024 + 0 from flare5;
 		sleep 32;
-		move barrel5 to y-axis [0.000000] speed [5.000000];
-		move barrel5 to z-axis [0.000000] speed [5.000000];
+		move barrel5 to y-axis [0.000000] speed [4.125];
+		move barrel5 to z-axis [0.000000] speed [2.475];
 	}
 	if( gun_1 == 5 )
 	{
@@ -265,8 +265,8 @@ FirePrimary()
 		move barrel6 to z-axis [-2.250000] now;
 		emit-sfx 1024 + 0 from flare6;
 		sleep 32;
-		move barrel6 to y-axis [0.000000] speed [5.000000];
-		move barrel6 to z-axis [0.000000] speed [5.000000];
+		move barrel6 to y-axis [0.000000] speed [4.125];
+		move barrel6 to z-axis [0.000000] speed [2.475];
 	}
 	++gun_1;
 	if( gun_1 == 6 )
@@ -295,8 +295,8 @@ FireSecondary()
 		move barrel2 to z-axis [-2.250000] now;
 		emit-sfx 1024 + 0 from flare2;
 		sleep 32;
-		move barrel2 to y-axis [0.000000] speed [5.000000];
-		move barrel2 to z-axis [0.000000] speed [5.000000];
+		move barrel2 to y-axis [0.000000] speed [4.125];
+		move barrel2 to z-axis [0.000000] speed [2.475];
 	}
 	if( gun_1 == 2 )
 	{
@@ -304,8 +304,8 @@ FireSecondary()
 		move barrel3 to z-axis [2.250000] now;
 		emit-sfx 1024 + 0 from flare3;
 		sleep 32;
-		move barrel3 to y-axis [0.000000] speed [5.000000];
-		move barrel3 to z-axis [0.000000] speed [5.000000];
+		move barrel3 to y-axis [0.000000] speed [4.125];
+		move barrel3 to z-axis [0.000000] speed [2.475];
 	}
 	if( gun_1 == 3 )
 	{
@@ -320,8 +320,8 @@ FireSecondary()
 		move barrel5 to z-axis [2.250000] now;
 		emit-sfx 1024 + 0 from flare5;
 		sleep 32;
-		move barrel5 to y-axis [0.000000] speed [5.000000];
-		move barrel5 to z-axis [0.000000] speed [5.000000];
+		move barrel5 to y-axis [0.000000] speed [4.125];
+		move barrel5 to z-axis [0.000000] speed [2.475];
 	}
 	if( gun_1 == 5 )
 	{
@@ -329,8 +329,8 @@ FireSecondary()
 		move barrel6 to z-axis [-2.250000] now;
 		emit-sfx 1024 + 0 from flare6;
 		sleep 32;
-		move barrel6 to y-axis [0.000000] speed [5.000000];
-		move barrel6 to z-axis [0.000000] speed [5.000000];
+		move barrel6 to y-axis [0.000000] speed [4.125];
+		move barrel6 to z-axis [0.000000] speed [2.475];
 	}
 	++gun_1;
 	if( gun_1 == 6 )

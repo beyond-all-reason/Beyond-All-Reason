@@ -30,7 +30,6 @@ local resources = {
 			trail             = 'default/trail.tga',
 			wake              = 'default/wake.tga',
 			wakegrey          = 'projectiletextures/wakegrey.tga',
-			explowaveblastxl  = 'projectiletextures/explowaveblastxl.png',
 			flashside3        = 'projectiletextures/flashside3.tga',
 			flare             = 'default/flare.tga',
 			flare2            = 'default/flare2.tga',
@@ -53,12 +52,9 @@ local resources = {
 			muzzlefront       = 'default/muzzlefront.tga',
 			largebeam         = 'default/largelaserfalloff.tga',
 			gunshotxl         = 'default/gunshotxl.tga',
-			lightningarc	  = 'atmos/lightningarc.tga',
 
 			radarfx1          = 'ui/radarping1.png',
 			radarfx2          = 'ui/radarping2.png',
-			radarfx1old       = 'ui/radar1xx.tga',
-			radarfx2old       = 'ui/radar2.tga',
 
 			lavachunk		  = 'atmos/lavachunk.tga',
 			lavasplats		  = 'atmos/lavasplats.tga',
@@ -105,9 +101,8 @@ local resources = {
 	  }
    }
 
-VFS.Include('gamedata/VFSUtils.lua')
 local function AutoAdd(subDir, map, filter)
-	local dirList = RecursiveFileSearch("bitmaps/" .. subDir)
+	local dirList = VFS.DirList("bitmaps/" .. subDir, nil, nil, true)
 	for _, fullPath in ipairs(dirList) do
 		local path, key, ext = fullPath:match("bitmaps/(.*/(.*)%.(.*))")
 		if not fullPath:match("/%.svn") then

@@ -10,7 +10,6 @@ function gadget:GetInfo()
 	}
 end
 
---include("LuaRules/Configs/customcmds.h.lua")
 
 local CMD_UNIT_SET_TARGET_NO_GROUND = 34922
 local CMD_UNIT_SET_TARGET = 34923
@@ -87,7 +86,7 @@ if gadgetHandler:IsSyncedCode() then
 			validUnits[unitDefID] = true
 		end
 		local weapons = unitDef.weapons
-		--Spring.Debug.TableEcho(weapons)
+
 		if #weapons > 0 then
 			-- filter this down to only the params that actually get used, weapons is an array full of stuff!
 			unitWeapons[unitDefID] = weapons
@@ -99,7 +98,9 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	-- fastpass for units that don't have an attack command for other reasons
-	validUnits[UnitDefNames.legpede.id]=true
+	if UnitDefNames.legpede then
+		validUnits[UnitDefNames.legpede.id] = true
+	end
 
 	local unitTargets = {} -- data holds all unitID data
 	local pausedTargets = {}
@@ -541,7 +542,7 @@ if gadgetHandler:IsSyncedCode() then
 		addUnitTargets(unitID, Spring.GetUnitDefID(unitID), pausedTargets[unitID].targets, true)
 		pausedTargets[unitID] = nil
 	end
-	
+
 	local emptyCmdOptions = {}
 	function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdTag, cmdParams, cmdOptions)
 		if type(cmdOptions) ~= 'table' then
@@ -602,21 +603,23 @@ if gadgetHandler:IsSyncedCode() then
 		-- a set target command, howrever a quick test with 300 fidos only increased by 1%
 		-- sim here
 
-		for unitID, unitData in pairs(unitTargets) do
-			local targetIndex
-			for index, targetData in ipairs(unitData.targets) do
-				if not checkTarget(unitID, targetData.target) then
-					removeTarget(unitID, index)
-				else
-					if setTarget(unitID, targetData) then
-						targetIndex = index
-						break
+		if n % 5 == 4 then
+			for unitID, unitData in pairs(unitTargets) do
+				local targetIndex
+				for index, targetData in ipairs(unitData.targets) do
+					if not checkTarget(unitID, targetData.target) then
+						removeTarget(unitID, index)
+					else
+						if setTarget(unitID, targetData) then
+							targetIndex = index
+							break
+						end
 					end
 				end
-			end
-			if unitData.currentIndex ~= targetIndex then
-				unitData.currentIndex = targetIndex
-				SendToUnsynced("targetIndex", unitID, targetIndex)
+				if unitData.currentIndex ~= targetIndex then
+					unitData.currentIndex = targetIndex
+					SendToUnsynced("targetIndex", unitID, targetIndex)
+				end
 			end
 		end
 
@@ -629,7 +632,6 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-
 	end
 
 

@@ -6,7 +6,7 @@ function widget:GetInfo()
 		date = "Feb, 2017",
 		license = "GNU GPL, v2 or later",
 		layer = -999999,
-		enabled = true, --enabled by default
+		enabled = true,
 		handler = true, --can use widgetHandler:x()
 	}
 end
@@ -32,6 +32,7 @@ local borderPadding = 5
 local bladeSpeedMultiplier = 0.2
 
 local wholeTeamWastingMetalCount = 0
+
 
 local noiseBackgroundTexture = ":g:LuaUI/Images/rgbnoise.png"
 local showButtons = true
@@ -204,7 +205,7 @@ local overflowingEnergy = false
 
 local isCommander = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.customParams.iscommander then
+	if unitDef.customParams.iscommander or unitDef.customParams.isscavcommander then
 		isCommander[unitDefID] = true
 	end
 end
@@ -801,7 +802,6 @@ local function updateResbar(res)
 		gl.Color(1,1,1, 0.16)
 		TexturedRectRound(barArea[1] - edgeWidth, barArea[2] - edgeWidth, barArea[3] + edgeWidth, barArea[4] + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, barWidth*0.33, 0)
 		gl.Texture(false)
-
 		glBlending(GL_SRC_ALPHA, GL_ONE)
 		RectRound(barArea[1] - addedSize - edgeWidth, barArea[2] - addedSize - edgeWidth, barArea[3] + addedSize + edgeWidth, barArea[4] + addedSize + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, { 0, 0, 0, 0.1 }, { 0, 0, 0, 0.1 })
 		RectRound(barArea[1] - addedSize, barArea[2] - addedSize, barArea[3] + addedSize, barArea[4] + addedSize, barHeight * 0.33, 1, 1, 1, 1, { 0.15, 0.15, 0.15, 0.2 }, { 0.8, 0.8, 0.8, 0.16 })
@@ -1426,7 +1426,7 @@ function widget:DrawScreen()
 		end
 	end
 
-	if showButtons and dlistButtons1 then
+	if showButtons and dlistButtons1 and buttonsArea['buttons'] then
 		glCallList(dlistButtons1)
 
 		-- changelog changes highlight
@@ -1943,7 +1943,7 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 end
 
 function widget:LanguageChanged()
-	updateButtons()
+	widget:ViewResize()
 end
 
 function widget:Initialize()
@@ -1974,6 +1974,11 @@ function widget:Initialize()
 	end
 	WG['topbar'].getShowButtons = function()
 		return showButtons
+	end
+
+	WG['topbar'].updateTopBarEnergy = function(value)
+		draggingConversionIndicatorValue = value
+		updateResbar('energy')
 	end
 
 	widget:ViewResize()

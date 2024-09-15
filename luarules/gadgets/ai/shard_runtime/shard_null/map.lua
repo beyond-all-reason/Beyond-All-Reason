@@ -27,7 +27,7 @@ function map:CanBuildHere(unittype,position) -- returns boolean
 end
 
 function map:GetMapFeatures()
-	
+
 	return {}
 end
 
@@ -59,16 +59,6 @@ end
 function map:GetGeoSpots() -- returns a table of spot positions
 	--
 	return {}
-end
-
-function map:GetControlPoints()
-	-- not sure this can be implemented in the Spring C++ AI interface
-	return {}
-end
-
-function map:AreControlPoints()
-	-- not sure this can be implemented in the Spring C++ AI interface
-	return false
 end
 
 function map:MapDimensions() -- returns a Position holding the dimensions of the map

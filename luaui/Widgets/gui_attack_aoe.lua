@@ -6,7 +6,7 @@ function widget:GetInfo()
 		date = "26 September 2008",
 		license = "GNU LGPL, v2.1 or later",
 		layer = 1,
-		enabled = true  --  loaded by default?
+		enabled = true
 	}
 end
 
@@ -233,14 +233,9 @@ local function SetupUnitDef(unitDefID, unitDef)
 							weaponInfo[unitDefID] = { type = "sector"}
 						end
 						weaponInfo[unitDefID].type = "sector"
-						if ii == 2 then -- hard assumption the second weapon is the active ON weapon
-							weaponInfo[unitDefID].ONOFF = true
-							weaponInfo[unitDefID].sector_angle_active = tonumber(weaponDef.customParams.spread_angle)
-							weaponInfo[unitDefID].sector_shortfall_active = tonumber(weaponDef.customParams.max_range_reduction)
-						else
-							weaponInfo[unitDefID].sector_angle = tonumber(weaponDef.customParams.spread_angle)
-							weaponInfo[unitDefID].sector_shortfall = tonumber(weaponDef.customParams.max_range_reduction)
-						end
+						weaponInfo[unitDefID].sector_angle_active = tonumber(weaponDef.customParams.spread_angle)
+						weaponInfo[unitDefID].sector_shortfall_active = tonumber(weaponDef.customParams.max_range_reduction)
+	
 					end
 				end
 			end
@@ -389,7 +384,7 @@ end
 --------------------------------------------------------------------------------
 
 local function DrawAoE(tx, ty, tz, aoe, ee, alphaMult, offset, requiredEnergy)
-	glLineWidth(aoeLineWidthMult * aoe / mouseDistance)
+	glLineWidth(math.max(aoeLineWidthMult * aoe / mouseDistance, 0.5))
 
 	for i = 1, numAoECircles do
 		local proportion = i / (numAoECircles + 1)
@@ -755,7 +750,9 @@ local function DrawDGun(aoe, fx, fy, fz, tx, ty, tz, range, requiredEnergy, unit
 		dx = fx + offset_x
 		dz = fz + offset_z
 	end
+	gl.DepthTest(false)
 	DrawNoExplode(aoe, dx, fy, dz, tx, ty, tz, range + (aoe * 0.7), requiredEnergy)
+	gl.DepthTest(true)
 	glColor(1, 0, 0, 0.75)
 	glLineWidth(1.5)
 	glDrawGroundCircle(fx, fy, fz, range + (aoe * 0.7), circleDivs)
@@ -828,16 +825,10 @@ function widget:DrawWorld()
 
 	-- tremor customdef weapon
 	if (weaponType == "sector") then
-		local angle = info.sector_angle
-		local shortfall = info.sector_shortfall
-		-- case to catch ON/OFF weapons
-		if info.ONOFF == true then
-			local unitStates = Spring.GetUnitStates(aimingUnitID)
-			if unitStates.active == true then
-				angle = info.sector_angle_active
-				shortfall = info.sector_shortfall_active
-			end
-		end
+
+		local angle = info.sector_angle_active
+		local shortfall = info.sector_shortfall_active
+
 		DrawSectorScatter(angle, shortfall, fx, fy, fz, tx, ty, tz)
 		return
 	end

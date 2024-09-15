@@ -234,7 +234,6 @@ local sec = 0
 function widget:Update(dt)
 	sec = sec + dt
 	if sec > 0.5 then
-		doUpdate = true
 		sec = 0
 		checkGuishader()
 
@@ -269,6 +268,7 @@ function widget:DrawScreen()
 	end
 	if doUpdate then
 		dlistFactionpicker = gl.DeleteList(dlistFactionpicker)
+		doUpdate = nil
 	end
 	if not dlistFactionpicker then
 		dlistFactionpicker = gl.CreateList(function()
@@ -296,7 +296,6 @@ function widget:DrawScreen()
 	end
 	font2:End()
 
-	doUpdate = nil
 end
 
 function widget:MousePress(x, y, button)

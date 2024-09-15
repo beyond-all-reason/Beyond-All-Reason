@@ -39,7 +39,7 @@ void main()
 	v_centerpos = worldPos;
 	
 	// texture sampling here is no longer really required, but might be needed in the future if heightmap under decal changes significantly...
-	//v_centerpos.y = textureLod(heightmapTex, heighmapUVatWorldPos(v_centerpos.xz), 0.0).x; 
+	//v_centerpos.y = textureLod(heightmapTex, heightmapUVatWorldPos(v_centerpos.xz), 0.0).x;
 	
 	// Pass all params to Geo shader
 	v_centerpos.w = 1.0;

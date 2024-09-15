@@ -34,6 +34,7 @@ return {
 		sightdistance = 1,
 		yardmap = "ffff",
 		customparams = {
+			unitgroup = "util",
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/armdrag_aoplane.dds",
 			buildinggrounddecalsizey = 4,
@@ -60,13 +61,11 @@ return {
 				footprintx = 2,
 				footprintz = 2,
 				height = 20,
-				hitdensity = 100,
 				metal = 2,
 				object = "Units/arm1X1B.s3o",
 				reclaimable = true,
 				resurrectable = 0,
 				shadtrans = 1,
-				world = "greenworld",
 			},
 		},
 		sfxtypes = {

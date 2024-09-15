@@ -1,3 +1,7 @@
+if not (Spring.Utilities.Gametype.IsScavengers() and not Spring.Utilities.Gametype.IsRaptors()) then
+	return false
+end
+
 function widget:GetInfo()
 	return {
 		name = "Scav Stats Panel",
@@ -6,7 +10,7 @@ function widget:GetInfo()
 		date = "May 04, 2008",
 		license = "GNU GPL, v2 or later",
 		layer = -9,
-		enabled = true  --  loaded by default?
+		enabled = true
 	}
 end
 
@@ -195,8 +199,20 @@ local function getResistancesMessage()
 	messages[1] = textColor .. Spring.I18N('ui.scavs.resistanceUnits')
 	for i = 1,#resistancesTable do
 		local attackerName = UnitDefs[resistancesTable[i]].name
-		messages[i+1] = textColor .. Spring.I18N('units.names.' .. attackerName)
-		currentlyResistantToNames[#currentlyResistantToNames+1] = Spring.I18N('units.names.' .. attackerName)
+		if string.sub(attackerName, -5,-1) == "_scav" then
+			local attackerNameNonScav = string.sub(attackerName, 1, -6)
+			if UnitDefNames[attackerNameNonScav].customParams.i18nfromunit then
+				attackerNameNonScav = UnitDefNames[attackerNameNonScav].customParams.i18nfromunit
+			end
+			messages[i+1] = textColor .. "Scav " .. Spring.I18N('units.names.' .. attackerNameNonScav)
+			currentlyResistantToNames[#currentlyResistantToNames+1] = "Scav " .. Spring.I18N('units.names.' .. attackerNameNonScav)
+		else
+			if UnitDefNames[attackerName].customParams.i18nfromunit then
+				attackerName = UnitDefNames[attackerName].customParams.i18nfromunit
+			end
+			messages[i+1] = textColor .. Spring.I18N('units.names.' .. attackerName)
+			currentlyResistantToNames[#currentlyResistantToNames+1] = Spring.I18N('units.names.' .. attackerName)
+		end
 	end
 	resistancesTable = {}
 

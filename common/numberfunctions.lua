@@ -16,62 +16,6 @@ if not math.cross_product then
 	end
 end
 
-local abs = math.abs
-local strFormat = string.format
-
-if not ToSI then
-	function ToSI(num, displaySign)
-		if type(num) ~= 'number' then
-			num = tonumber(num)
-		end
-		if num == 0 then
-			return "0"
-		else
-			local absNum = abs(num)
-			if absNum < 0.001 then
-				return displaySign and strFormat("%+.1fu", 1000000 * num) or strFormat("%.1fu", 1000000 * num)
-			elseif absNum < 1 then
-				return displaySign and strFormat("%+.1f", num) or strFormat("%.1f", num)
-			elseif absNum < 1000 then
-				return displaySign and strFormat("%+.0f", num) or strFormat("%.0f", num)
-			elseif absNum < 1000000 then
-				return displaySign and strFormat("%+.1fk", 0.001 * num) or strFormat("%.1fk", 0.001 * num)
-			else
-				return displaySign and strFormat("%+.1fM", 0.000001 * num) or strFormat("%.1fM", 0.000001 * num)
-			end
-		end
-	end
-end
-
-if not ToSIPrec then
-	function ToSIPrec(num)
-		-- more precise
-		if type(num) ~= 'number' then
-			num = tonumber(num)
-		end
-
-		if num == 0 then
-			return "0"
-		else
-			local absNum = abs(num)
-			if absNum < 0.001 then
-				return strFormat("%.2fu", 1000000 * num)
-			elseif absNum < 1 then
-				return strFormat("%.2f", num)
-			elseif absNum < 10 then
-				return strFormat("%.2f", num)
-
-			elseif absNum < 1000 then
-				return strFormat("%.0f", num)
-			elseif absNum < 1000000 then
-				return strFormat("%.1fk", 0.001 * num)
-			else
-				return strFormat("%.1fM", 0.000001 * num)
-			end
-		end
-	end
-end
-
 if not math.triangulate then
 	-- accepts an array of polygons (where a polygon is an array of {x, z} vertices), and returns an array of counterclockwise triangles
 	function math.triangulate(polies)
@@ -211,5 +155,59 @@ if not math.HSLtoRGB then
 		end
 
 		return cr, cg, cb
+	end
+
+
+	if not math.distance2dSquared then
+		function math.distance2dSquared(x1, z1, x2, z2)
+			local x = x1 - x2
+			local z = z1 - z2
+			return x * x + z * z
+		end
+	end
+
+	if not math.distance2d then
+		function math.distance2d(x1, z1, x2, z2)
+			return math.diag(x1 - x2, z1 - z2)
+		end
+	end
+
+	if not math.distance3dSquared then
+		function math.distance3dSquared(x1, y1, z1, x2, y2, z2)
+			local x = x1 - x2
+			local y = y1 - y2
+			local z = z1 - z2
+			return x * x + y * y + z * z
+		end
+	end
+
+	if not math.distance3d then
+		function math.distance3d(x1, y1, z1, x2, y2, z2)
+			return math.diag(x1 - x2, y1 - y2, z1 - z2)
+		end
+	end
+
+	if not math.getClosestPosition then
+		---Gets the closest position out of a list to given coordinates. 2d.
+		---@param x table
+		---@param z table
+		---@param positions table must have fields .x and .z
+		function math.getClosestPosition(x, z, positions)
+			if not positions or #positions <= 0 then
+				return
+			end
+			local bestPos
+			local bestDist = math.huge
+			for i = 1, #positions do
+				local pos = positions[i]
+				local dx, dz = x - pos.x, z - pos.z
+				local dist = dx * dx + dz * dz
+				if dist < bestDist then
+					bestPos = pos
+					bestDist = dist
+				end
+			end
+			return bestPos
+		end
 	end
 end

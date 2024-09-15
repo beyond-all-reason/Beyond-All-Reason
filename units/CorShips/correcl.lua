@@ -1,5 +1,6 @@
 return {
 	correcl = {
+		activatewhenbuilt = true,
 		maxacc = 0.05333,
 		autoheal = 2,
 		maxdec = 0.05333,
@@ -21,7 +22,7 @@ return {
 		footprintz = 3,
 		idleautoheal = 3,
 		idletime = 300,
-		health = 420, --1170 --465,
+		health = 420,
 		speed = 66.9,
 		minwaterdepth = 15,
 		movementclass = "UBOAT4",
@@ -31,12 +32,12 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "smallexplosiongenericSelfd-uw",
 		sightdistance = 300,
-		sonardistance = 50,
+		sonardistance = 150,
 		terraformspeed = 2250,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 525,
-		waterline = 80, --22,
+		waterline = 80,
 		workertime = 150,
 		customparams = {
 			unitgroup = 'builder',

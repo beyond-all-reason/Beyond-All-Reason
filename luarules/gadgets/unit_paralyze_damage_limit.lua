@@ -47,8 +47,8 @@ for udid, ud in pairs(UnitDefs) do
 
 	
 	if modOptions.emprework==true then
-		unitOhms[udid] = ud.customParams.paralyzemultiplier or 1
-		--Spring.Echo('ohm', ud.customParams.paralyzemultiplier)
+		unitOhms[udid] = ud.customParams.paralyzemultiplier == nil and 1 or tonumber(ud.customParams.paralyzemultiplier)--it arrives as a string because WHY NOT
+		
 		if tonumber(ud.customParams.paralyzemultiplier) or 0 > 0 then
 		--Spring.Echo('ohm', ud.name, ud.customParams.paralyzemultiplier)
 		end
@@ -65,20 +65,12 @@ end
 
 local spGetUnitHealth = Spring.GetUnitHealth
 
-
---Spring.Echo('hornet debug emp loaded')
---Spring.Debug.TableEcho(unitOhms)
 function gadget:UnitPreDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, projID, aID, aDefID, aTeam)
 
 
     if paralyzer then
---Spring.Debug.TableEcho(isBuilding)
---Spring.Echo('hornet debug here2')
         -- restrict the max paralysis time of mobile units
         if aDefID and uDefID and weaponID and not isBuilding[uDefID] and not excluded[uDefID] then
-		--Spring.Echo('hornet debug emp')
-			
-			
 			local hp, maxHP, currentEmp = spGetUnitHealth(uID)
 			local effectiveHP = Game.paralyzeOnMaxHealth and maxHP or hp
 			local paralyzeDeclineRate = Game.paralyzeDeclineRate
@@ -97,9 +89,20 @@ function gadget:UnitPreDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, 
 					--ohm = ohm * 1.4 -- with 1.4, an EMP resistance of say 1.2 gains EMP only slightly faster but has nearly double max charge capacity relative to lesser units
 				--end
 				thismaxtime = weaponParalyzeDamageTime[weaponID] * ((ohm == 1 and 0.85) or ohm)
+
+
+				if ohm>0 then
+					bufferdamage = hp / 200
+					--rootdamage = (damage / 50) * hp^0.5
+					--Spring.Echo('h damage rootdamage',hp,damage, rootdamage)
+					damage = damage + bufferdamage --overcome relative effects drain (eg stunned unit with 90000 hp loses 900 emp damage a tick, whereas unit with 900 hp loses 9 a tick. impossible to balance low damage emp weapons to overcome this without making them OP vs low HP units)
+				end
+				
 			else	
 				thismaxtime = weaponParalyzeDamageTime[weaponID]
 			end
+			
+
 			
 			--Spring.Echo('raw stuntime, ohm, using mult value, thismaxtime (pre-minumum)', weaponParalyzeDamageTime[weaponID], ohm, ((ohm == 1 and 0.5) or ohm), thismaxtime)
 			--thismaxtime = math.max(1, thismaxtime)--prevent microstuns (compounds oddly with shuri unfortunately)
@@ -114,10 +117,7 @@ function gadget:UnitPreDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, 
 			newdamage = math.max(0, math.min(damage, maxEmpDamage - currentEmp))
 			--Spring.Echo('h mh ph wpt old new',hp,maxHP, currentEmp, thismaxtime, damage, newdamage)
 
-			--Spring.Echo(Game.paralyzeDeclineRate)
-			--Spring.Echo(Game.paralyzeOnMaxHealth)
 			damage = newdamage
-			--Spring.Debug.TableEcho(Game)
 			--damage = mh +6 
 			--Spring.Echo('new',h,mh, ph, max_para_damage, max_para_time, damage)
 				

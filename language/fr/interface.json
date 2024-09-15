@@ -228,17 +228,17 @@
 			"Low traj": "Haute Traj.",
 			"High traj": "Haute Traj.",
 			"trajectory_tooltip": "Définit la trajectoire des tirs en mode artillerie (tir parabolique ou tir direct)",
+			"hound_weapon_plasma": "Plasma lourd",
+			"hound_weapon_gauss": "Canon gauss",
+			"hound_weapon_toggle_tooltip": "Bascule entre Canon Gauss et Plasma lourd",
 
 			"customOnOff": {
 				"lowTrajectory": "Tir direct",
 				"highTrajectory": "Tir parabolique",
 				"trajectory_tooltip": "Définit l'angle de tir de l'artillerie",
-				"gaussCannon": "Canon gauss",
-				"heavyPlasma": "Plasma lourd",
 				"siegeMode": "Tir dispersé",
 				"suppressiveFire": "Tir focalisé",
 				"siege_tooltip": "Alterne entre un tir focalisé et un tir dispersé plus longue portée.",
-				"gauss_tooltip": "Bascule entre Canon Gauss et Plasma lourd"
 			}
 		},
 		"idleBuilders": {
@@ -476,7 +476,6 @@
 			"killAllUnits": "Annihilez toutes les unités ennemies",
 			"killAllCommanders": "Annihilez tous les commandants ennemis",
 			"commandersSurviveDgun": "Les commandants survivent aux D-Guns et à l'explosion des autres commandants",
-			"unbalancedCommanders": "Les commandants déséquilibrés sont activés : \nles commandants montent de niveau et gagnent des améliorations",
 			"victoryCondition": "Conditions de victoire",
 			"owncomends": "Perdre son commandant = perdre le contrôle de ses unités / abandonner"
 		},
@@ -503,7 +502,7 @@
 			"endVote": "Fin du vote",
 			"cancel": "ESC",
 			"votecancelled": "Vote Annulé",
-			"votepassed": "Vote Passé",
+			"votepassed": "Vote Réussi",
 			"votefailed": "Échec du vote"
 		},
 		"gameInfo": {
@@ -518,26 +517,26 @@
 			"waterDamage": "Dégâts d'eau",
 			"raptorOptions": "Options des Raptor",
 			"modOptions": "Options des mods",
-			"reclaimableMetal": "Métal récupérable",
-			"reclaimableEnergy": "L'énergie récupérable"
+			"reclaimableMetal": "Métal recyclable",
+			"reclaimableEnergy": "Énergie recyclable"
 		},
 		"cmdlimiter": {
 			"forceresignwarning": "Vous avez mis en file d'attente un trop grand nombre de bâtiments en trop peu de temps, continuer risquerait de vous voir éjecté.",
 			"forceresign": "Vous avez mis en file d'attente un trop grand nombre de bâtiments en trop peu de temps, vous avez été éjecté."
 		},
 		"raptors": {
-			"firstWave1": "Les Vespides sont arrivés !",
+			"firstWave1": "Les Raptors sont arrivés !",
 			"firstWave2": "Préparez-vous à vous défendre !",
-			"airWave1": "Vespides volants en approche !",
-			"airWave2": "%{unitCount} Vespides !",
+			"airWave1": "Raptors volants en approche !",
+			"airWave2": "%{unitCount} Raptors !",
 			"queenIsAngry1": "Le cocon royal a éclot, la Reine de la nuée Vespide est arrivée !",
 			"queenIsAngry2": "Préparez-vous à l'affrontement final !",
 			"queenResistant": "La Reine a développé une résistance aux attaques de %{unit} !",
 			"resistanceUnits": "La Reine est devenue résistante à :",
 			"wave1": "Vague %{waveNumber}",
-			"wave2": "%{unitCount} Vespides !",
-			"raptorCount": "Vespides : %{count}",
-			"raptorKillCount": "Vespides abattus : %{count}",
+			"wave2": "%{unitCount} Raptors !",
+			"raptorCount": "Raptors : %{count}",
+			"raptorKillCount": "Raptors abattus : %{count}",
 			"raptorPlayerAgression": "Niveau d'agressivité : %{count}",
 			"queenAngerWithGain": "Éclosion de la Reine : %{anger}%% (+%{gain}%%/s) ",
 			"queenAngerWithTech": "Éclosion de la Reine : %{anger}%% (Évolution : %{techAnger}%%)",
@@ -651,6 +650,7 @@
 			"cantMove":"%{unit} : Impossible d'atteindre la destination !"
 		},
 		"unitShare": {
+			"shared": "%{units} partagé à %{name}",
 			"received": "Vous avez reçu %{count} nouvelle(s) unité(s)*",
 			"unit": "*%{unit}"
 		},
@@ -682,7 +682,7 @@
 			"reconnected": "Mode sans propriétaire : équipe %{team} reconnectée"
 		},
 		"unitTotals": {
-			"totals": "%{titleColor} Unités %{textColor}%{units}/%{maxUnits}%{titleColor}Total %{textColor}%{totalUnits}"
+			"totals": "%{titleColor}Unités  %{textColor}%{units} / %{maxUnits}     %{titleColor}Total  %{textColor}%{totalUnits}"
 		},
 		"resolutionswitcher": {
 			"multidisplay": "Multi-affichage",
@@ -872,6 +872,7 @@
 				"label_playlist": "Playlist",
 				"label_messages": "Messages",
 				"label_cursor": "Curseur",
+				"label_commands": "Ordres",
 				"label_hotkeys": "Raccourcis clavier",
 				"label_camera": "Caméra",
 				"label_cloak": "Camouflage",
@@ -1000,8 +1001,8 @@
 				"snowautoreduce_descr": "Réduit automatiquement la quantité de neige quand les IPS moyens baissent\n\n(Réactiver cette option prendra du temps pour réajuster aux IPS moyens)",
 				"snowamount": "quantité",
 				"snowamount_descr": "désactiver l'option \"réduction automatique\" pour voir la quantité maximale de neige autorisé",
-				"resurrectionhalos": "Auréoles des unités réanimées",
-				"resurrectionhalos_descr": "Adjoint une auréole aux unités réanimées",
+				"resurrectionhalos": "Auréoles des unités réassemblées",
+				"resurrectionhalos_descr": "Adjoint une auréole aux unités réassemblées",
 				"xmas": "Boules de Noël",
 				"xmas_descr": "désactiver rendra les boules de Noël invisibles (les autres décorations restent)",
 				"tombstones": "Pierres tombales",
@@ -1026,6 +1027,7 @@
 				"sndvolgeneral": "général",
 				"sndvolbattle": "bataille",
 				"sndvolui": "interface",
+				"sndvolambient": "ambiant",
 				"sndvolunitreply": "réponse d'unité",
 				"sndunitsound": "Réponse des unités",
 				"sndunitsound_desc": "Réponse des unités",
@@ -1036,9 +1038,6 @@
 				"sndvolmusic": "musique",
 				"loadscreen_music": "commence à l'écran de chargement",
 				"loadscreen_music_descr": "Musique lors de l'affichage de l'écran de chargement",
-				"scav_messages": "Notifications écrites des charognards",
-				"scav_voicenotifs": "Notifications vocales des charognards",
-				"scav_voicenotifs_descr": "Activer/désactiver la voix de l'annonceur Charognard",
 				"notifications_set": "Voix",
 				"notifications_tutorial": "Mode tutoriel",
 				"notifications_tutorial_descr": "Affiche des messages d'aide sur comment jouer\nNe répète pas les conseils déjà prodigués\nRéactiver ce paramètre réinitialisera le tutoriel",
@@ -1155,6 +1154,10 @@
 				"minimapcanflip_descr": "Inverse l'orientation de la minicarte lorsque la caméra du joueur est orienté à l'opposé",
 				"gridmenu": "Menu en grille",
 				"gridmenu_descr": "Dispose le menu de construction en mode grille.\nConçu pour une utilisation plus simple des touches de raccourcis.",
+				"gridmenu_alwaysreturn": "Grille retourne toujours aux catégories",
+				"gridmenu_alwaysreturn_descr": "Lorsque vous donnez des ordres; retour à la page des catégories après les avoir émis",
+				"gridmenu_autoselectfirst": "Grille sélectionne structures",
+				"gridmenu_autoselectfirst_descr": "Lors de la sélection d'une catégorie, active automatiquement la première option de cette catégorie.",
 				"keylayout": "Configuration du clavier",
 				"keylayout_descr": "Régler la disposition du clavier",
 				"keybindings": "Raccourcis prédéfinis",
@@ -1384,6 +1387,8 @@
 				"lockcamera_hideenemies_descr": "Lorsque vous suivez la caméra d'un joueur, affiche ce que le joueur voit",
 				"lockcamera_los": "Afficher LoS du joueur sélectionné",
 				"lockcamera_los_descr": "Lorsque vous suivez la caméra et la ligne de vue d'un joueur, afficher \négalement son brouillard de guerre",
+				"drag_multicommand_shift": "Répéter l'ordre via glissement",
+				"drag_multicommand_shift_descr": "En maintenant SHIFT + clic-droit enfoncé et en faisant glisser la souris alors qu'une seule unité est sélectionnée, permet de répéter les ordres donnés.",
 				"playertv_countdown": "Compte à rebours TV",
 				"playertv_countdown_descr": "Durée du compte à rebours avant de changer de joueur",
 				"displayselectedname": "Afficher nom du joueur sélectionné",
@@ -1487,8 +1492,15 @@
 				"green": "vert",
 				"blue": "bleu",
 				"language": "Langage",
+				"language_english_unit_names": "Afficher noms d'unités en anglais",
 				"reclaimfieldhighlight": "Surbrillance des épaves",
 				"reclaimfieldhighlight_descr": "Permet d'automatiquement mettre en valeur les concentrations d'épaves recyclables.",
+				"reclaimfieldhighlight_always": "Toujours actif",
+				"reclaimfieldhighlight_resource": "Affichage ressources seulement",
+				"reclaimfieldhighlight_reclaimer": "Recycleur sélectionné",
+				"reclaimfieldhighlight_resbot": "Réassembleur sélectionné",
+				"reclaimfieldhighlight_order": "Ordre de recyclage actif",
+				"reclaimfieldhighlight_disabled": "Désactivé",
 				"buildinggrid": "Grille de constr.",
 				"buildinggrid_descr": "Affiche une grille de construction au sol afin de faciliter le placement des bâtiments.",
 				"buildinggridopacity": "opacité"

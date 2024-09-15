@@ -17,10 +17,7 @@ local shared = {} -- shared amongst the lua weapondef enviroments
 local preProcFile  = 'gamedata/weapondefs_pre.lua'
 local postProcFile = 'gamedata/weapondefs_post.lua'
 
-local TDF = TDFparser or VFS.Include('gamedata/parse_tdf.lua')
-
 local system = VFS.Include('gamedata/system.lua')
-VFS.Include('gamedata/VFSUtils.lua')
 
 local section = 'weapondefs.lua'
 
@@ -41,30 +38,10 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --
---  Load the TDF weapondef files
---
-
-local tdfFiles = RecursiveFileSearch('weapons/', '*.tdf') 
-
-for _, filename in ipairs(tdfFiles) do
-	local wds, err = TDF.Parse(filename)
-	if (wds == nil) then
-		Spring.Log(section, 'Error parsing ' .. filename .. ': ' .. err)
-	else
-		for name, wd in pairs(wds) do
-			weaponDefs[name] = wd
-		end
-	end
-end
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
---
 --  Load the raw LUA format weapondef files
---  (these will override the TDF versions)
 --
 
-local luaFiles = RecursiveFileSearch('weapons/', '*.lua')
+local luaFiles = VFS.DirList('weapons/', '*.lua', nil, true)
 
 for _, filename in ipairs(luaFiles) do
 	local wdEnv = {}

@@ -51,13 +51,13 @@ return {
 		unitname = "lootboxbronze",
 		upright = true,
 		usebuildinggrounddecal = false,
-		--waterline = 0,
 		yardmap = "oo oo",
 		reclaimable = false,
 		customparams = {
 			unitgroup = 'energy',
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "other/lootboxes",
+			paratrooper = true,
 		},
 		sfxtypes = {
 			explosiongenerators = {

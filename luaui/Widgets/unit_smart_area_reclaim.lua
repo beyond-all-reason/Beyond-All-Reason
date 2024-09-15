@@ -24,15 +24,14 @@ function widget:GetInfo()
 end
 
 local maxOrdersCheck = 100 -- max amount of orders to check for duplicate orders on units
+local maxReclaimOrders = 1000 -- max amount of orders to issue at once
 
 local maxUnits = Game.maxUnits
 local GetSelectedUnits = Spring.GetSelectedUnits
 local GetUnitDefID = Spring.GetUnitDefID
 local GetUnitCommands = Spring.GetUnitCommands
 local GetUnitPosition = Spring.GetUnitPosition
-local GetFeaturesInRectangle = Spring.GetFeaturesInRectangle
 local GetFeaturePosition = Spring.GetFeaturePosition
-local GetFeatureRadius = Spring.GetFeatureRadius
 local GetFeatureResources = Spring.GetFeatureResources
 local GiveOrderToUnit = Spring.GiveOrderToUnit
 
@@ -50,6 +49,9 @@ local sqrt = math.sqrt
 local atan2 = math.atan2
 
 local gameStarted
+
+local mapSize = math.max(Game.mapSizeX, Game.mapSizeZ)
+local reclaimOrders = {}
 
 local unitCanReclaim = {}
 local unitCanMove = {}
@@ -69,20 +71,24 @@ local function maybeRemoveSelf()
     end
 end
 
+
 function widget:GameStart()
     gameStarted = true
     maybeRemoveSelf()
 end
 
+
 function widget:PlayerChanged()
     maybeRemoveSelf()
 end
+
 
 function widget:Initialize()
     if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
         maybeRemoveSelf()
     end
 end
+
 
 local function tsp(rList, tList, dx, dz)
 	dx = dx or 0
@@ -114,6 +120,7 @@ local function tsp(rList, tList, dx, dz)
 	rList[closestIndex] = 0
 	return tsp(rList, tList, closestItem[1], closestItem[2])
 end
+
 
 local function stationary(rList)
 	local sList = {}
@@ -171,25 +178,25 @@ local function issue(rList, shift)
 	end
 end
 
-local reclaimOrders = {}
 
 -- we use the previous unit loop iterating on cmds to store reclaim orders
 -- and return cmds for its original usage
 local function storeReclaimOrders(uid)
-		local cmds = GetUnitCommands(uid, maxOrdersCheck)
+	local cmds = GetUnitCommands(uid, maxOrdersCheck)
 
-		reclaimOrders[uid] = {}
-		local reclaimOrdersCount = 0
+	reclaimOrders[uid] = {}
+	local reclaimOrdersCount = 0
 
-		for _, order in pairs(cmds) do
-			if order["id"] == RECLAIM then
-				reclaimOrdersCount = reclaimOrdersCount + 1
-				reclaimOrders[uid][reclaimOrdersCount] = order["params"][1]
-			end
+	for _, order in pairs(cmds) do
+		if order["id"] == RECLAIM then
+			reclaimOrdersCount = reclaimOrdersCount + 1
+			reclaimOrders[uid][reclaimOrdersCount] = order["params"][1]
 		end
+	end
 
-		return cmds
+	return cmds
 end
+
 
 local function checkNoDuplicateOrder(uid, fid)
 	local orderParam = fid+maxUnits
@@ -203,8 +210,25 @@ local function checkNoDuplicateOrder(uid, fid)
 	return true
 end
 
+
 function widget:CommandNotify(id, params, options)
+	-- early exit if criteria does not match
 	if id ~= RECLAIM then return false end
+	if not params[4] then return false end
+
+	local x, y, z, r = params[1], params[2], params[3], params[4]
+
+	if r > mapSize / 4 then
+		Spring.Log(widget.GetInfo().name, LOG.WARNING, "Smart reclaim area is too large, limiting size")
+		r = math.floor(mapSize / 4)
+	end
+
+	local mx, my = WorldToScreenCoords(x, y, z)
+	local type, originFeatureId = TraceScreenRay(mx, my)
+
+	if type ~= "feature" then return false end
+
+	local commandHeight = Spring.GetGroundHeight(x, z)
 
 	local mobiles, stationaries = {}, {}
 	local mobileb, stationaryb = false, false
@@ -245,104 +269,87 @@ function widget:CommandNotify(id, params, options)
 	end
 
 	if #rUnits > 0 then
-		local len = #params
 		local retw, rmtw, retg, rmtg = {}, {}, {}, {}
-		local retwCount, rmtwCount, retgCount, rmtgCount = 0, 0, 0, 0
 
-		if len == 4 then
-			local x, y, z, r = params[1], params[2], params[3], params[4]
-			local xmin, xmax, zmin, zmax = (x-r), (x+r), (z-r), (z+r)
-			--local rx, rz = (xmax - xmin), (zmax - zmin)
-
-			local features = Spring.GetFeaturesInCylinder(x, z, r)
-
-			local mx, my = WorldToScreenCoords(x, y, z)
-			local wy = Spring.GetGroundHeight(x, z)
-			local ct, oid = TraceScreenRay(mx, my)
-
-			if ct == "feature" then
-				local cu = oid
-
-				for i=1, #features, 1 do
-					local featureID = features[i]
-					local _, uy, _ = GetFeaturePosition(featureID)
-					local mr, _, er = GetFeatureResources(featureID)
-					if uy < 0 then
-						if mr > 0 then
-							rmtwCount = rmtwCount + 1
-							rmtw[rmtwCount] = featureID
-						elseif er > 0 then
-							retwCount = retwCount + 1
-							retw[retwCount] = featureID
-						end
-					elseif uy > 0 then
-						if mr > 0 then
-							rmtgCount = rmtgCount + 1
-							rmtg[rmtgCount] = featureID
-						elseif er > 0 then
-							retgCount = retgCount + 1
-							retg[retgCount] = featureID
-						end
-					end
+		-- Sort features by above water, below water, metal value, energy value
+		local features = Spring.GetFeaturesInCylinder(x, z, r)
+		for i=1, #features, 1 do
+			local featureID = features[i]
+			local _, featY, _ = GetFeaturePosition(featureID)
+			local featM, _, featE = GetFeatureResources(featureID)
+			if featY < 0 then
+				if featM > 0 then
+					rmtw[#rmtw + 1] = featureID
+				elseif featE > 0 then
+					retw[#retw + 1] = featureID
 				end
-
-				local mr, _, er = GetFeatureResources(cu)
-				-- if (mr > 0)and(er > 0) then return end
-
-				local mList, sList = {}, {}
-				local mListCount, sListCount = 0, 0
-				local source = {}
-
-				if rmtgCount > 0 and mr > 0 and wy > 0 then
-					source = rmtg
-				elseif retgCount > 0 and er > 0 and wy > 0 then
-					source = retg
-				elseif rmtwCount > 0 and mr > 0 and wy < 0 then
-					source = rmtw
-				elseif retwCount > 0 and er > 0 and wy < 0 then
-					source = retw
+			elseif featY > 0 then
+				if featM > 0 then
+					rmtg[#rmtg + 1] = featureID
+				elseif featE > 0 then
+					retg[#retg + 1] = featureID
 				end
-
-				for i=1,#source do
-					local fid = source[i]
-					if fid ~= nil then
-						local fx, _, fz = GetFeaturePosition(fid)
-						for ui=1,#rUnits do
-							local unit = rUnits[ui]
-							local uid, ux, uz = unit.uid, unit.ux, unit.uz
-							local dx, dz = ux-fx, uz-fz
-							--local dist = dx + dz
-							local item = {dx, dz, uid, fid}
-							if mobiles[uid] ~= nil then
-								if not options.shift or checkNoDuplicateOrder(uid, fid) then
-									mListCount = mListCount + 1
-									mList[mListCount] = item
-								end
-							elseif stationaries[uid] ~= nil then
-								if sqrt((dx*dx)+(dz*dz)) <= stationaries[uid] and (not options.shift or checkNoDuplicateOrder(uid, fid)) then
-									sListCount = sListCount + 1
-									sList[sListCount] = item
-								end
-							end
-						end
-					end
-				end
-
-				local issued = false
-				if mobileb then
-					mList = tsp(mList)
-					issue(mList, options.shift)
-					issued = true
-				end
-
-				if stationaryb then
-					sList = stationary(sList)
-					issue(sList, options.shift)
-					issued = true
-				end
-
-				return issued
 			end
 		end
+
+		local featM, _, featE = GetFeatureResources(originFeatureId)
+
+		local mList, sList = {}, {}
+		local mListCount, sListCount = 0, 0
+		local filteredFeatures = {}
+
+		-- pick most relevant reclaim type, starting with above ground metal, then energy, then uw
+		if #rmtg > 0 and featM > 0 and commandHeight > 0 then
+			filteredFeatures = rmtg
+		elseif #retg > 0 and featE > 0 and commandHeight > 0 then
+			filteredFeatures = retg
+		elseif #rmtw > 0 and featM > 0 and commandHeight < 0 then
+			filteredFeatures = rmtw
+		elseif #retw > 0 and featE > 0 and commandHeight < 0 then
+			filteredFeatures = retw
+		end
+
+		for i=1,#filteredFeatures do
+			local fid = filteredFeatures[i]
+			if fid ~= nil then
+				local fx, _, fz = GetFeaturePosition(fid)
+				for ui=1,#rUnits do
+					local unit = rUnits[ui]
+					local uid, ux, uz = unit.uid, unit.ux, unit.uz
+					local dx, dz = ux-fx, uz-fz
+					local item = {dx, dz, uid, fid}
+					if mobiles[uid] ~= nil then
+						if not options.shift or checkNoDuplicateOrder(uid, fid) then
+							mListCount = mListCount + 1
+							mList[mListCount] = item
+						end
+					elseif stationaries[uid] ~= nil then
+						if sqrt((dx*dx)+(dz*dz)) <= stationaries[uid] and (not options.shift or checkNoDuplicateOrder(uid, fid)) then
+							sListCount = sListCount + 1
+							sList[sListCount] = item
+						end
+					end
+				end
+				if mListCount > maxReclaimOrders then
+					Spring.Log(widget:GetInfo().name, LOG.WARNING, "Command count exceeded, feature selection may be incomplete")
+					break
+				end
+			end
+		end
+
+		local issued = false
+		if mobileb then
+			mList = tsp(mList)
+			issue(mList, options.shift)
+			issued = true
+		end
+
+		if stationaryb then
+			sList = stationary(sList)
+			issue(sList, options.shift)
+			issued = true
+		end
+
+		return issued
 	end
 end

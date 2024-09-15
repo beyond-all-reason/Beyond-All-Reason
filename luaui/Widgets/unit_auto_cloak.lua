@@ -6,26 +6,36 @@ function widget:GetInfo()
 		date      = "2022.12.29",
 		license   = "GNU GPL, v2 or later",
 		layer     = -99999,
-		enabled   = true  -- loaded by default
+		enabled   = true
 	}
 end
 
 -- defaults
-local unitdefConfig = {
-	[UnitDefNames["armjamt"].id] = true,
-	[UnitDefNames["armdecom"].id] = false,
-	[UnitDefNames["cordecom"].id] = false,
-	[UnitDefNames["armferret"].id] = false,
-	[UnitDefNames["armamb"].id] = false,
-	[UnitDefNames["armpb"].id] = false,
-	[UnitDefNames["armsnipe"].id] = false,
-	[UnitDefNames["corsktl"].id] = false,
-	[UnitDefNames["armgremlin"].id] = false,
-	[UnitDefNames["armamex"].id] = true,
-	[UnitDefNames["armckfus"].id] = true,
-	[UnitDefNames["armspy"].id] = true,
-	[UnitDefNames["corspy"].id] = true,
+local unitdefConfigNames = {
+	['armjamt'] = true,
+	['armdecom'] = false,
+	['cordecom'] = false,
+	['armferret'] = false,
+	['armamb'] = false,
+	['armpb'] = false,
+	['armsnipe'] = false,
+	['corsktl'] = false,
+	['armgremlin'] = true,
+	['armamex'] = true,
+	['armshockwave'] = true,
+	['armckfus'] = true,
+	['armspy'] = true,
+	['corspy'] = true,
+	['corphantom'] = true,
 }
+-- convert unitname -> unitDefID
+local unitdefConfig = {}
+for unitName, params in pairs(unitdefConfigNames) do
+	if UnitDefNames[unitName] then
+		unitdefConfig[UnitDefNames[unitName].id] = params
+	end
+end
+unitdefConfigNames = nil
 
 local CMD_CLOAK = 37382
 local cloak = CMD_CLOAK --just simplified Var
@@ -77,7 +87,8 @@ function widget:Initialize()
 	WG['autocloak'].getUnitdefConfig = function()
 		return unitdefConfig
 	end
-	WG['autocloak'].setUnitdefConfig = function(type, value)
+	WG['autocloak'].setUnitdefConfig = function(data)
+		local type, value = data[1], data[2]
 		unitdefConfig[type] = value
 	end
 
@@ -118,16 +129,25 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:GetConfigData()
+	local unitdefConfigNames = {}
+	for uDefID, params in pairs(unitdefConfig) do
+		if UnitDefs[uDefID] then
+			unitdefConfigNames[UnitDefs[uDefID].name] = params
+		end
+	end
 	return {
-		unitdefConfig = unitdefConfig,
+		unitdefConfig = unitdefConfigNames,
 	}
 end
 
 function widget:SetConfigData(cfg)
 	if cfg.unitdefConfig ~= nil then
-		for unitDefID, value in pairs(cfg.unitdefConfig) do
-			if unitdefConfig[unitDefID] ~= nil then
-				unitdefConfig[unitDefID] = value
+		for unitName, value in pairs(cfg.unitdefConfig) do
+			if UnitDefNames[unitName] then
+				local unitDefID = UnitDefNames[unitName].id
+				if unitdefConfig[unitDefID] ~= nil then
+					unitdefConfig[unitDefID] = value
+				end
 			end
 		end
 	end

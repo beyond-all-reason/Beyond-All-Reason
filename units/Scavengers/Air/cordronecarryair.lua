@@ -48,9 +48,12 @@ return {
 		upright = true,
 		customparams = {
 			model_author = "Odin",
-			normaltex = "unittextures/Cor_normal.dds",
+			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "scavengers/air",
 			techlevel = 3,
+			inheritxpratemultiplier = 1,
+			childreninheritxp = "DRONE",
+			parentsinheritxp = "DRONE",
 		},
 		featuredefs = {
 			dead = {
@@ -60,33 +63,25 @@ return {
 				collisionvolumescales = "61.8225860596 60.9250030518 154.450805664",
 				collisionvolumetype = "Box",
 				damage = 9168,
-				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 6,
 				footprintz = 6,
 				height = 4,
-				hitdensity = 100,
 				metal = 700,
 				object = "Units/cordronecarry_dead.s3o",
 				reclaimable = true,
-				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 			heap = {
 				blocking = false,
 				category = "heaps",
 				damage = 4032,
-				energy = 0,
 				footprintx = 2,
 				footprintz = 2,
 				height = 4,
-				hitdensity = 100,
 				metal = 350,
 				object = "Units/arm6X6C.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-				seqnamereclamate = "TREE1RECLAMATE",
-				world = "All Worlds",
 			},
 		},
 		sfxtypes = {
@@ -168,9 +163,7 @@ return {
 					docktohealthreshold = 50,
 					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					dockingHelperSpeed = 5,
-					dockingpiecestart = 9,		--First model piece to be used for docking.
-					dockingpieceinterval = 1,	--Number of pieces to skip when docking the next unit.
-					dockingpieceend = 19,		--Last model piece used for docking. Will loop back to first when exceeded.
+					dockingpieces = "9 10 11 12 13 14 15 16 17 18 19",
 					dockingradius = 300,			--The range at which the units snap to the carrier unit when docking.
 				}
 			},

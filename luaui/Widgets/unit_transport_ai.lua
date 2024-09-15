@@ -1,4 +1,3 @@
--- $Id: unit_transport_ai.lua 4460 2009-04-20 20:36:16Z licho $
 include("keysym.h.lua")
 
 function widget:GetInfo()

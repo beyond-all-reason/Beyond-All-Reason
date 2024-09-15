@@ -19,7 +19,7 @@ function widget:GetInfo()
     date      = "Mar 20, 2007",
     license   = "GNU GPL, v2 or later",
     layer     = 0,
-    enabled   = false  --  loaded by default?
+    enabled   = false
   }
 end
 
@@ -56,7 +56,7 @@ function widget:Initialize()
     end
 end
 
-function widget:UnitFinished(unitID, unitDefID, unitTeam)
+function widget:UnitCreated(unitID, unitDefID, unitTeam)
     if isFactory[unitDefID] then
         Spring.GiveOrderToUnit(unitID, CMD.REPEAT, { 1 }, 0)
     end

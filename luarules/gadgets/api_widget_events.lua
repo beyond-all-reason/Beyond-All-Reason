@@ -1,35 +1,34 @@
 if gadgetHandler:IsSyncedCode() then return end
 
-function gadget:GetInfo() return {
-	name      = "Widget Events",
-	desc      = "Tells widgets about events they can know about",
-	author    = "Sprung, Klon, Beherith",
-	date      = "2015-05-27",
-	license   = "PD",
-	layer     = 0,
-	enabled   = true,
-} end
+function gadget:GetInfo()
+	return {
+		name      = "Widget Events",
+		desc      = "Tells widgets about events they can know about",
+		author    = "Sprung, Klon, Beherith",
+		date      = "2015-05-27",
+		license   = "PD",
+		layer     = 0,
+		enabled   = true,
+	}
+end
 
 local spAreTeamsAllied     	= Spring.AreTeamsAllied
 local spGetMyAllyTeamID    	= Spring.GetMyAllyTeamID
-local spGetMyTeamID        	= Spring.GetMyTeamID
 local spGetSpectatingState 	= Spring.GetSpectatingState
 local spGetUnitLosState    	= Spring.GetUnitLosState
 
-local myAllyTeamID
-local myTeamID
-local spec, specFullView 
+local myAllyTeamID, myTeamID, spec, specFullView
 
 function gadget:Initialize()
-  myTeamID = Spring.GetMyTeamID()
-  myAllyTeamID = Spring.GetMyAllyTeamID()
-  spec, specFullView = spGetSpectatingState()
+	myTeamID = Spring.GetMyTeamID()
+	myAllyTeamID = Spring.GetMyAllyTeamID()
+	spec, specFullView = spGetSpectatingState()
 end
 
 function gadget:PlayerChanged()
-  myTeamID = Spring.GetMyTeamID()
-  myAllyTeamID = Spring.GetMyAllyTeamID()
-  spec, specFullView = spGetSpectatingState()
+	myTeamID = Spring.GetMyTeamID()
+	myAllyTeamID = Spring.GetMyAllyTeamID()
+	spec, specFullView = spGetSpectatingState()
 end
 
 
@@ -70,9 +69,9 @@ function gadget:UnitTaken(unitID, unitDefID, oldTeamID, newTeamID)
 	local unitwasandisenemy = not (spAreTeamsAllied(oldTeamID, myTeamID) or spAreTeamsAllied(newTeamID, myTeamID))
 	local unitinmyradarorlos = (spGetUnitLosState(unitID, myAllyTeamID, true) % 4 > 0)
 	-- Spring.Echo("gadget:UnitGiven",unitID, unitDefID, oldTeamID, newTeamID, unitwasandisenemy, unitinmyradarorlos)
-	if unitwasandisenemy and unitinmyradarorlos then 
+	if unitwasandisenemy and unitinmyradarorlos then
 		scriptUnitTaken(unitID, unitDefID, oldTeamID, newTeamID)
-	end 
+	end
 end
 
 local scriptUnitGiven		= Script.LuaUI.UnitGiven
@@ -81,27 +80,27 @@ function gadget:UnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
 	local unitwasandisenemy = not (spAreTeamsAllied(oldTeamID, myTeamID) or spAreTeamsAllied(newTeamID, myTeamID))
 	local unitinmyradarorlos = (spGetUnitLosState(unitID, myAllyTeamID, true) % 4 > 0)
 	-- Spring.Echo("gadget:UnitGiven",unitID, unitDefID, newTeamID, oldTeamID, unitwasandisenemy, unitinmyradarorlos)
-	if unitwasandisenemy and unitinmyradarorlos then 
+	if unitwasandisenemy and unitinmyradarorlos then
 		scriptUnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
-	end 
+	end
 end
 
 local scriptUnitFinished		= Script.LuaUI.UnitFinished
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	if spec and specFullView then return end
 	-- Important: Enemy units finished within LOS do not get the respective widget:UnitFinished calls!
-	-- Also important: units that are created and finished in the same gameframe (like /give, or created fully built) are not in los yet, so this wont trigger! 
+	-- Also important: units that are created and finished in the same gameframe (like /give, or created fully built) are not in los yet, so this wont trigger!
 	local unitisenemy = not spAreTeamsAllied(unitTeam, myTeamID)
 	local isinlos = spGetUnitLosState(unitID, myAllyTeamID, true) % 2
 	--Spring.Echo("gadget:UnitFinished",unitID, unitDefID, unitTeam, unitisenemy, isinlos)
-	if unitisenemy and (isinlos == 1) then 
+	if unitisenemy and (isinlos == 1) then
 		scriptUnitFinished(unitID, unitDefID, unitTeam)
-	end 
+	end
 end
 
 local scriptFeatureCreated = Script.LuaUI.FeatureCreated
 function gadget:FeatureCreated(featureID, allyTeam) -- assume that features are always in LOS
-	local isAllyUnit = (allyTeam == myAllyTeamID) 
+	local isAllyUnit = (allyTeam == myAllyTeamID)
 	--Spring.Echo("Gadget:FeatureCreated", featureID, FeatureDefs[Spring.GetFeatureDefID(featureID)].name, Script.LuaUI('FeatureCreated') , "isAllyUnit", isAllyUnit, "spec", spec, "specFullView", specFullView)
 	-- we need to check if any widget uses the callin, otherwise it is not bound and will produce error spam
 	if not isAllyUnit and (not (spec and specFullView)) and Script.LuaUI('FeatureCreated') then
@@ -111,12 +110,12 @@ function gadget:FeatureCreated(featureID, allyTeam) -- assume that features are 
 end
 
 local scriptFeatureDestroyed = Script.LuaUI.FeatureDestroyed
-function gadget:FeatureDestroyed(featureID, allyTeam) 
+function gadget:FeatureDestroyed(featureID, allyTeam)
 	-- assume that features are always in LOS
 	-- feauture allyTeam is equal to my allyteam when its a gaia feature, that is wierd
 	-- am i always allied with gaia?
-	local isAllyUnit = (allyTeam == myAllyTeamID) 
-	--Spring.Echo("Gadget:FeatureDestroyed", featureID, FeatureDefs[Spring.GetFeatureDefID(featureID)].name, Script.LuaUI('FeatureDestroyed') , "isAllyUnit", isAllyUnit, "spec", spec, "specFullView", specFullView, allyTeam, spGetMyTeamID())
+	local isAllyUnit = (allyTeam == myAllyTeamID)
+	--Spring.Echo("Gadget:FeatureDestroyed", featureID, FeatureDefs[Spring.GetFeatureDefID(featureID)].name, Script.LuaUI('FeatureDestroyed') , "isAllyUnit", isAllyUnit, "spec", spec, "specFullView", specFullView, allyTeam, Spring.GetMyTeamID())
 	-- we need to check if any widget uses the callin, otherwise it is not bound and will produce error spam
 	if not isAllyUnit and (not (spec and specFullView)) and Script.LuaUI('FeatureDestroyed')  then
 		--Spring.Echo("gadget:FeatureDestroyed",featureID, allyTeam)

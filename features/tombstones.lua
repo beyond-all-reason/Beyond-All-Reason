@@ -21,6 +21,6 @@ local tombstones = {
 	corstone = table.copy(object),
 }
 tombstones.corstone.object = "corstone.s3o"
-tombstones.corstone.customparams.normaltex = "unittextures/Cor_normal.dds"
+tombstones.corstone.customparams.normaltex = "unittextures/cor_normal.dds"
 
 return tombstones

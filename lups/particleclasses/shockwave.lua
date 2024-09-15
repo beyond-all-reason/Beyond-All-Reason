@@ -1,4 +1,3 @@
--- $Id: ShockWave.lua 3171 2008-11-06 09:06:29Z det $
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
 
@@ -82,9 +81,9 @@ function ShockWave.Initialize()
 	  #version 150 compatibility
       uniform float radius;
 
-      varying vec2  center;
-      varying float life;
-      varying vec2  texCoord;
+      out vec2  center;
+      out float life;
+      out vec2  texCoord;
 
       void main()
       {
@@ -101,9 +100,9 @@ function ShockWave.Initialize()
 	  #version 150 compatibility
       uniform vec2  screenInverse;
 
-      varying vec2  center;
-      varying float life;
-      varying vec2  texCoord;
+      in vec2  center;
+      in float life;
+      in vec2  texCoord;
 
       float p1 = gl_ProjectionMatrix[2][2];
       float p2 = gl_ProjectionMatrix[2][3];
@@ -132,7 +131,7 @@ function ShockWave.Initialize()
             float distortion = exp( -0.5*( pow(-dist*8.0+4.0,2.0) ) )*0.15;
             vec2 noiseVec    = (d/dist)*screenInverse*distortion*life;
             gl_FragColor.xyw = vec3(noiseVec,gl_FragCoord.z);
-
+			//gl_FragColor.rgb = vec3 ( 10000.3,10000.9,gl_FragCoord.z); // for debugging
             //float distortion = pow(dist, 1.0/4.0)-dist;
             //float distortion = smoothstep(1.0,0.0,dist)*0.25;
             //float distortion = tanh(dist*3.0)-dist;

@@ -186,82 +186,97 @@ local function initializeUnitDefRing(unitDefID)
 end
 
 local function initUnitList()
-	unitDefRings = {
+	local unitDefRingsNames = {
 		-- ARMADA
-		[UnitDefNames['armclaw'].id]  = { weapons = { 1 } },
-		[UnitDefNames['armllt'].id]  = { weapons = { 1 } },
-		[UnitDefNames['armbeamer'].id]  = { weapons = { 1 } },
-		[UnitDefNames['armhlt'].id]  = { weapons = { 1 } },
-		[UnitDefNames['armguard'].id]  = { weapons = { 4} },
-		[UnitDefNames['armrl'].id]  = { weapons = { 2 } }, --light aa
-		[UnitDefNames['armferret'].id]  = { weapons = { 2 } },
-		[UnitDefNames['armcir'].id]  = { weapons = { 2 } }, --chainsaw
-		[UnitDefNames['armdl'].id]  = { weapons = { 1 } }, --depthcharge
-		[UnitDefNames['armjuno'].id]  = { weapons = { 1 } },
-		[UnitDefNames['armtl'].id]  = { weapons = { 1 } }, --torp launcher
-		[UnitDefNames['armfhlt'].id]  = { weapons = { 1 } },  --floating hlt
-		[UnitDefNames['armfrt'].id]  = { weapons = { 2 } },  --floating rocket laucher
-		[UnitDefNames['armfflak'].id]  = { weapons = { 2 } },  --floating flak AA
-		[UnitDefNames['armatl'].id]  = { weapons = { 1 } },  --adv torpedo launcher
+		['armclaw'] = { weapons = { 1 } },
+		['armllt'] = { weapons = { 1 } },
+		['armbeamer'] = { weapons = { 1 } },
+		['armhlt'] = { weapons = { 1 } },
+		['armguard'] = { weapons = { 4} },
+		['armrl'] = { weapons = { 2 } }, --light aa
+		['armferret'] = { weapons = { 2 } },
+		['armcir'] = { weapons = { 2 } }, --chainsaw
+		['armdl'] = { weapons = { 1 } }, --depthcharge
+		['armjuno'] = { weapons = { 1 } },
+		['armtl'] = { weapons = { 1 } }, --torp launcher
+		['armfhlt'] = { weapons = { 1 } },  --floating hlt
+		['armfrt'] = { weapons = { 2 } },  --floating rocket laucher
+		['armfflak'] = { weapons = { 2 } },  --floating flak AA
+		['armatl'] = { weapons = { 1 } },  --adv torpedo launcher
 
-		[UnitDefNames['armamb'].id]  = { weapons = { 4 } }, --ambusher
-		[UnitDefNames['armpb'].id]  = { weapons = { 4 } }, --pitbull
-		[UnitDefNames['armanni'].id]  = { weapons = { 1 } },
-		[UnitDefNames['armflak'].id]  = { weapons = { 2 } },
-		[UnitDefNames['armmercury'].id]  = { weapons = { 2 } },
-		[UnitDefNames['armemp'].id]  = { weapons = { 1 } },
-		[UnitDefNames['armamd'].id]  = { weapons = { 3 } }, --antinuke
+		['armamb'] = { weapons = { 4 } }, --ambusher
+		['armpb'] = { weapons = { 4 } }, --pitbull
+		['armanni'] = { weapons = { 1 } },
+		['armflak'] = { weapons = { 2 } },
+		['armmercury'] = { weapons = { 2 } },
+		['armemp'] = { weapons = { 1 } },
+		['armamd'] = { weapons = { 3 } }, --antinuke
 
-		[UnitDefNames['armbrtha'].id]  = { weapons = { 4 } },
-		[UnitDefNames['armvulc'].id]  = { weapons = { 4 } },
+		['armbrtha'] = { weapons = { 4 } },
+		['armvulc'] = { weapons = { 4 } },
 
 		-- CORTEX
-		[UnitDefNames['cormaw'].id]  = { weapons = { 1 } },
-		[UnitDefNames['corexp'].id]  = { weapons = { 1} },
-		[UnitDefNames['cormexp'].id]  = { weapons = { 1,1 } },
-		[UnitDefNames['corllt'].id]  = { weapons = { 1 } },
-		[UnitDefNames['corhllt'].id]  = { weapons = { 1 } },
-		[UnitDefNames['corhlt'].id]  = { weapons = { 1 } },
-		[UnitDefNames['corpun'].id]  = { weapons = { 4} },
-		[UnitDefNames['corrl'].id]  = { weapons = { 2 } },
-		[UnitDefNames['cormadsam'].id]  = { weapons = { 2 } },
-		[UnitDefNames['corerad'].id]  = { weapons = { 2 } },
-		[UnitDefNames['cordl'].id]  = { weapons = { 1 } },
-		[UnitDefNames['corjuno'].id]  = { weapons = { 1 } },
+		['cormaw'] = { weapons = { 1 } },
+		['corexp'] = { weapons = { 1} },
+		['cormexp'] = { weapons = { 1,1 } },
+		['corllt'] = { weapons = { 1 } },
+		['corhllt'] = { weapons = { 1 } },
+		['corhlt'] = { weapons = { 1 } },
+		['corpun'] = { weapons = { 4} },
+		['corrl'] = { weapons = { 2 } },
+		['cormadsam'] = { weapons = { 2 } },
+		['corerad'] = { weapons = { 2 } },
+		['cordl'] = { weapons = { 1 } },
+		['corjuno'] = { weapons = { 1 } },
 
-		[UnitDefNames['corfhlt'].id]  = { weapons = { 1 } },  --floating hlt
-		[UnitDefNames['cortl'].id]  = { weapons = { 1 } }, --torp launcher
-		[UnitDefNames['coratl'].id]  = { weapons = { 1 } }, --T2 torp launcher
-		[UnitDefNames['corfrt'].id]  = { weapons = { 2 } }, --floating rocket laucher
-		[UnitDefNames['corenaa'].id]  = { weapons = { 2 } }, --floating flak AA
+		['corfhlt'] = { weapons = { 1 } },  --floating hlt
+		['cortl'] = { weapons = { 1 } }, --torp launcher
+		['coratl'] = { weapons = { 1 } }, --T2 torp launcher
+		['corfrt'] = { weapons = { 2 } }, --floating rocket laucher
+		['corenaa'] = { weapons = { 2 } }, --floating flak AA
 
-		[UnitDefNames['cortoast'].id]  = { weapons = { 4 } },
-		[UnitDefNames['corvipe'].id]  = { weapons = { 1 } },
-		[UnitDefNames['cordoom'].id]  = { weapons = { 1, 1, 1} },
-		[UnitDefNames['corflak'].id]  = { weapons = { 2 } },
-		[UnitDefNames['corscreamer'].id]  = { weapons = { 2 } },
-		[UnitDefNames['cortron'].id]  = { weapons = { 1 } },
-		[UnitDefNames['corfmd'].id]  = { weapons = { 3 } },
-		[UnitDefNames['corint'].id]  = { weapons = { 4 } },
-		[UnitDefNames['corbuzz'].id]  = { weapons = { 4 } },
+		['cortoast'] = { weapons = { 4 } },
+		['corvipe'] = { weapons = { 1 } },
+		['cordoom'] = { weapons = { 1, 1, 1} },
+		['corflak'] = { weapons = { 2 } },
+		['corscreamer'] = { weapons = { 2 } },
+		['cortron'] = { weapons = { 1 } },
+		['corfmd'] = { weapons = { 3 } },
+		['corint'] = { weapons = { 4 } },
+		['corbuzz'] = { weapons = { 4 } },
 
-		[UnitDefNames['armscab'].id] =  { weapons = { 3 } },
-		[UnitDefNames['armcarry'].id] =  { weapons = { 3 } },
-		[UnitDefNames['cormabm'].id] =  { weapons = { 3 } },
-		[UnitDefNames['corcarry'].id] =  { weapons = { 3 } },
-		[UnitDefNames['armantiship'].id] =  { weapons = { 3 } },
-		[UnitDefNames['corantiship'].id] =  { weapons = { 3 } },
+		['armscab'] = { weapons = { 3 } },
+		['armcarry'] = { weapons = { 3 } },
+		['cormabm'] = { weapons = { 3 } },
+		['corcarry'] = { weapons = { 3 } },
+		['armantiship'] = { weapons = { 3 } },
+		['corantiship'] = { weapons = { 3 } },
+
+		-- LEGION
+		['legabm'] = { weapons = { 3 } }, --antinuke
+		['legrampart'] = { weapons = { 3 } }, --rampart
 
 		-- SCAVENGERS
-		[UnitDefNames['scavengerdroppodbeacon_scav'].id]  = { weapons = { 1 } },
+		['scavbeacon_t1_scav'] = { weapons = { 1 } },
+		['scavbeacon_t2_scav'] = { weapons = { 1 } },
+		['scavbeacon_t3_scav'] = { weapons = { 1 } },
+		['scavbeacon_t4_scav'] = { weapons = { 1 } },
 
-		[UnitDefNames['armannit3'].id]  = { weapons = { 1 } },
-		[UnitDefNames['armminivulc'].id]  = { weapons = { 1 } },
+		['armannit3'] = { weapons = { 1 } },
+		['armminivulc'] = { weapons = { 1 } },
 
-		[UnitDefNames['cordoomt3'].id]  = { weapons = { 1 } },
-		[UnitDefNames['corhllllt'].id]  = { weapons = { 1 } },
-		[UnitDefNames['corminibuzz'].id]  = { weapons = { 1 } }
+		['cordoomt3'] = { weapons = { 1 } },
+		['corhllllt'] = { weapons = { 1 } },
+		['corminibuzz'] = { weapons = { 1 } }
 	}
+	-- convert unitname -> unitDefID
+	unitDefRings = {}
+	for unitName, ranges in pairs(unitDefRingsNames) do
+		if UnitDefNames[unitName] then
+			unitDefRings[UnitDefNames[unitName].id] = ranges
+		end
+	end
+	unitDefRingsNames = nil
 
 	for unitDefID, _ in pairs(unitDefRings) do
 		initializeUnitDefRing(unitDefID)
@@ -284,7 +299,9 @@ local function initUnitList()
 		scavlist[k] = true
 	end
 	for k,v in pairs(scavlist) do
-		mobileAntiUnitDefs[UnitDefNames[unitName[k] .. '_scav'].id] = mobileAntiUnitDefs[k]
+		if UnitDefNames[unitName[k] .. '_scav'] then
+			mobileAntiUnitDefs[UnitDefNames[unitName[k] .. '_scav'].id] = mobileAntiUnitDefs[k]
+		end
 	end
 
 	-- Initialize featureDefIDtoUnitDefID
@@ -451,7 +468,7 @@ out DataVS {
 #line 11000
 
 float heightAtWorldPos(vec2 w){
-	vec2 uvhm =  heighmapUVatWorldPos(w);
+	vec2 uvhm =  heightmapUVatWorldPos(w);
 	return textureLod(heightmapTex, uvhm, 0.0).x;
 }
 

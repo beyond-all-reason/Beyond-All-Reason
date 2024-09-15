@@ -730,16 +730,24 @@
 			// Attributes - optional states
             // units with a role inside attribute gets counted by the owning ai as such
 			// "melee" - always move close to target, disregard attack range
-			// "no_jump" - disable jump on retreat
 			// "boost" - boost speed on retreat
+			// "no_jump" - disable jump on retreat
 			// "no_strafe" - disable gunship's strafe
-			// "stockpile" - load weapon before any task (NOT IMPLEMENTED), auto-assigned
+			// "stockpile" - load weapon before any task, auto-assigned
 			// "siege" - mostly use fight command instead of move -  moves into range of the first enemy in its path, then fires while standing still until that enemy is destroyed. rocko with fight command is able to kill a group of llt and staying outside of range
 			// "support" - joins attack group (skirmish, assault, riot) and follow leader of that group with fight-move or guard command if melee attribute added. for factories "support" means to build factory in base radius and not on front
 			// "ret_hold" - hold fire on retreat
 			// "ret_fight" - fight on retreat | units dont retreat to repair with that attribute => bugged
 			// "solo" - unit with "solo attribute" cannot work together on a task with other units with the same attribute
-			// "attribute": ["boost", "no_strafe"],
+			// "dg_cost" - DGun by metal cost instead of by threat
+			// "jump" - enable jump on regular move
+			// "onoff" - auto-assigned when "on" tag is present
+			// "vampire" - reclaim enemy units without threat check
+			// "rare" - build unit from T1 factory even when T2+ factory is available
+			// "rearm" - use CMD_FIND_PAD when weapon is not ready
+			// "no_dgun" - do not use DGun
+			// "anti_stat" - only static targets
+			//"attribute": ["boost", "no_strafe"],
 
 		// Fire state (open by default)
 			// "hold" - hold fire

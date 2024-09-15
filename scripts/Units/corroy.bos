@@ -177,17 +177,17 @@ FireWeapon1()
 	start-script RockZ(-9,aimDir);
 	if( Static_Var_1 == 0 )
 	{
+	    emit-sfx 1024 + 0 from flarea1;
 		move barrel1 to z-axis [-7.500000] speed [100.000000];
 		wait-for-move barrel1 along z-axis;
 		move barrel1 to z-axis [0.000000] speed [7.500000];
-	    emit-sfx 1024 + 0 from flarea1;
 	}
 	if( Static_Var_1 == 1 )
 	{
+	    emit-sfx 1024 + 0 from flarea2;
 		move barrel2 to z-axis [-7.500000] speed [100.000000];
 		wait-for-move barrel2 along z-axis;
 		move barrel2 to z-axis [0.000000] speed [7.500000];
-	    emit-sfx 1024 + 0 from flarea2;
 	}
 	Static_Var_1 = !Static_Var_1;
 	return (0);

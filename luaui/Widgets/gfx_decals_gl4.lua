@@ -99,16 +99,16 @@ for k,v in pairs(atlas) do
 end
 for k,_ in pairs(upperkeys) do
 	atlas[string.lower(k)] = atlas[k]
-	atlas[k] = nil 
+	atlas[k] = nil
 end
 upperkeys = nil
 -- re-pad the atlas a little bit to avoid mip bleed:
 --function(t,p) for k,v in pairs(t) do if type(v) == "table" then p = p or 0.5; local px,py = p/t.width, p/t.height; v[1], v[2], v[3], v[4] = v[1] + px, v[2]-px, v[3] + py, v[4] - py end end end ,
 
 -- FIXME: Actually fix the unused scars having full white alpha (all emissive) in normal texture!
-for k,v in pairs(atlas) do 
+for k,v in pairs(atlas) do
 	if type(v) =='table' then -- do 8/512 padding
-		local px = (8/512) * v[5]/ atlas.width		
+		local px = (8/512) * v[5]/ atlas.width
 		local py = (8/512) * v[6]/ atlas.height
 		v[1], v[2], v[3], v[4] = v[1] + px, v[2]-px, v[3] + py, v[4] - py
 	end
@@ -137,7 +137,7 @@ local function addDirToAtlas(atlas, path, key, filelist)
 	if filelist == nil then filelist = {} end
 	local imgExts = {bmp = true,tga = true,jpg = true,png = true,dds = true, tif = true}
 	local files = {}
-	for i, filename in ipairs(VFS.DirList(path)) do 
+	for i, filename in ipairs(VFS.DirList(path)) do
 		files[i] = string.lower(filename)
 	end
 	table.sort(files)
@@ -293,7 +293,7 @@ end
 
 local function initGL4( DPATname)
 	hasBadCulling = ((Platform.gpuVendor == "AMD" and Platform.osFamily == "Linux") == true)
-	if hasBadCulling then Spring.Echo("Decals GL4 detected AMD + Linux platform, attempting to fix culling") end 
+	if hasBadCulling then Spring.Echo("Decals GL4 detected AMD + Linux platform, attempting to fix culling") end
 	decalShader = LuaShader.CheckShaderUpdates(shaderSourceCache)
 	decalLargeShader = LuaShader.CheckShaderUpdates(shaderLargeSourceCache)
 
@@ -562,7 +562,7 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 	elseif math.min(width,length) > largesizethreshold then
 		targetVBO = decalLargeVBO
 	end
-	
+
 	dCT[1],  dCT[2],  dCT[3],  dCT[4]  = length, width, rotation, maxalpha   -- lengthwidthrotation maxalpha
 	dCT[5],  dCT[6],  dCT[7],  dCT[8]  = p,q,s,t -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
 	dCT[9],  dCT[10], dCT[11], dCT[12] = alphastart, alphadecay, heatstart, heatdecay -- alphastart_alphadecay_heatstart_heatdecay
@@ -593,22 +593,22 @@ local skipdraw = false
 local firstRun = true
 
 local function DrawDecals()
-	if firstRun then 
+	if firstRun then
 		glTexture(0, "luaui/images/decals_gl4/decalsgl4_atlas_diffuse.dds")
 		glTexture(0, false)
 		glTexture(0, "luaui/images/decals_gl4/decalsgl4_atlas_normal.dds")
 		glTexture(0, false)
 	end
-	
+
 	if skipdraw then return end
-	local alt, ctrl = Spring.GetModKeyState()
-	if alt and (isSinglePlayer) and (Spring.GetConfigInt('DevUI', 0) == 1) then return end
+	--local alt, ctrl = Spring.GetModKeyState()
+	--if alt and (isSinglePlayer) and (Spring.GetConfigInt('DevUI', 0) == 1) then return end
 	if decalVBO.usedElements > 0 or decalLargeVBO.usedElements > 0 or decalExtraLargeVBO.usedElements > 0 then
 
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) -- the default mode
 		local disticon = 27 * Spring.GetConfigInt("UnitIconDist", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		--Spring.Echo(decalVBO.usedElements,decalLargeVBO.usedElements)
-		if hasBadCulling then 
+		if hasBadCulling then
 			glCulling(false)
 		else
 			glCulling(GL.BACK)
@@ -666,7 +666,7 @@ function widget:TextCommand(command)
 			decalExtraLargeVBO.usedElements,
 			tricount))
 		return true
-	end	
+	end
 	if string.find(command, "decalsgl4skipdraw", nil, true) then
 		skipdraw = not skipdraw
 		Spring.Echo("Decals GL4 skipdraw set to", skipdraw)
@@ -713,10 +713,10 @@ function widget:GameFrame(n)
 
 	if n % 67 == 0 then -- About every 2 seconds
 		local totalDecalCount = decalVBO.usedElements + decalLargeVBO.usedElements +  decalExtraLargeVBO.usedElements
-		
+
 		-- Perform a compacting step if about half of our decals should be removed
 		if totalDecalCount == 0 or (numDecalsToRemove/totalDecalCount < 0.5) then return end
-		
+
 		numDecalsToRemove = 0
 		local removed = 0
 		removed = removed + compactInstanceVBO(decalVBO, decalRemoveList)
@@ -730,15 +730,15 @@ function widget:GameFrame(n)
 		if decalVBO.dirty then 	uploadAllElements(	decalVBO) end
 		if decalLargeVBO.dirty then 	uploadAllElements(	decalLargeVBO) end
 		if decalExtraLargeVBO.dirty then 	uploadAllElements(	decalExtraLargeVBO) end
-		
+
 	end
 end
 
 local function randtablechoice (t)
 	local i = 0
 	for k,v in pairs(t) do
-		if type(v) == "table" then 
-			i = i+1 
+		if type(v) == "table" then
+			i = i+1
 		end
 	end
 	local randi = math.floor(math.random()*i)
@@ -750,20 +750,16 @@ local function randtablechoice (t)
 	return next(t)
 end
 
-function widget:Explosion(weaponDefID, px, py, pz, AttackerID, ProjectileID) -- This callin is not registered!
-	---Spring.Echo("widget:Explosion",weaponDefID, px, py, pz, AttackerID, ProjectileID)
-end
-
--- Solars, nanos, wind, advsolars, metal makers, 
+-- Solars, nanos, wind, advsolars, metal makers,
 local buildingExplosionPositionVariation = {
 	nanoboom = 1,
-	nanoselfd = 1, 
+	nanoselfd = 1,
 	--smallBuildingExplosionGeneric = 1, --armadvsol
 	--smallBuildingExplosionGenericSelfd = 1, -- armadvsol
-	metalmaker = 1, 
-	metalmakerSelfd = 1, 
-	advmetalmaker = 1, 
-	advmetalmakerSelfd = 1, 
+	metalmaker = 1,
+	metalmakerSelfd = 1,
+	advmetalmaker = 1,
+	advmetalmakerSelfd = 1,
 	windboom = 1,
 	--mediumBuildingexplosiongeneric = 1, -- coradvsol
 	--mediumBuildingExplosionGenericSelfd = 1, --coradvsol
@@ -799,7 +795,7 @@ for weaponDefID=1, #WeaponDefs do
 		local glowadd
 		local fadeintime
 		local positionVariation = 0
-		
+
 
 		local textures = { "t_groundcrack_17_a.tga", "t_groundcrack_21_a.tga", "t_groundcrack_10_a.tga" }
 		if weaponDef.paralyzer then
@@ -963,13 +959,13 @@ for weaponDefID=1, #WeaponDefs do
 			bwfactor = 0.17
 
 		elseif string.find(weaponDef.name, 'vipersabot') then -- viper has very tiny AoE
-			radius = (radius * 4) 
+			radius = (radius * 4)
 
 		elseif string.find(weaponDef.name, 'armmav_weapon') then -- armmav has very tiny AoE
-			radius = (radius * 6) 
+			radius = (radius * 6)
 
 		elseif string.find(weaponDef.name, 'corkorg_fire') then -- Juggernaut has lots of decals on shotgun
-			alphadecay = 0.004 
+			alphadecay = 0.004
 
 		elseif string.find(weaponDef.name, 'exp_heavyrocket') then -- Catapult has lower AoE but big explo
 			textures = { "t_groundcrack_17_a.tga", "t_groundcrack_21_a.tga", "t_groundcrack_10_a.tga", "t_groundcrack_09_a.tga" }
@@ -1081,6 +1077,29 @@ for weaponDefID=1, #WeaponDefs do
 			glowadd = 1.8
 			bwfactor = 0.1
 
+		elseif string.find(weaponDef.name, 'pineappleofdoom') or string.find(weaponDef.name, 'heatraylarge') or string.find(weaponDef.name, 'skybeam') or string.find(weaponDef.name, 'heat_ray') then --legbastion leginc legphoenix legaheattank
+			textures = { "t_groundcrack_16_a.tga", "t_groundcrack_17_a.tga", "t_groundcrack_05_a.tga" }
+			--textures = { "t_groundcrack_16_a.tga", "t_groundcrack_17_a.tga", "t_groundcrack_10_a.tga" }
+			alphadecay = 0.004
+			radius = radius * 0.8 
+			--radiusVariation = 0.3
+			heatstart = 8000
+			heatdecay = 3.95
+			glowsustain = 20
+			glowadd = 2.8
+			bwfactor = 0.1
+
+		elseif string.find(weaponDef.name, 'starfire') then
+			textures = { "t_groundcrack_16_a.tga", "t_groundcrack_09_a.tga", "t_groundcrack_10_a.tga" }
+			alphadecay = 0.003
+			radius = radius * 1.2 --* (math.random() * 20 + 0.2)
+			radiusVariation = 0.6
+			heatstart = 9000
+			heatdecay = 2.5
+			glowsustain = 0
+			glowadd = 2.5
+			bwfactor = 0.3
+
 		elseif string.find(weaponDef.name, 'footstep') then
 			--textures = { "f_corkorg_a.tga" }
 			textures = { "t_groundcrack_10_a.tga" }
@@ -1095,10 +1114,10 @@ for weaponDefID=1, #WeaponDefs do
 			bwfactor = 0.4
 
 		end
-		if buildingExplosionPositionVariation[weaponDef.name] then 
+		if buildingExplosionPositionVariation[weaponDef.name] then
 			positionVariation = buildingExplosionPositionVariation[weaponDef.name]
 		end
-		
+
 		weaponConfig[weaponDefID] = {
 			textures,
 			radius,
@@ -1115,12 +1134,11 @@ for weaponDefID=1, #WeaponDefs do
 			fadeintime, -- 13
 			positionVariation, --14
 		}
-		
+
 	end
 end
 
-local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
-	--Spring.Echo("GadgetWeaponExplosionDecal",px, py, pz, weaponID, ownerID, weaponDef.damageAreaOfEffect, weaponDef.name)
+function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 	local random = math.random
 	local params = weaponConfig[weaponID]
 	if not params then
@@ -1148,10 +1166,10 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 	local glowsustain = params[9] or (random() * 20) -- how many frames to elapse before glow starts to recede
 	local glowadd = params[10] or (random() * 2) -- how much additional, non-transparency controlled heat glow should the decal get
 	local fadeintime = params[13]
-	
+
 	if params[14] > 0 then --positionVariation
-		px = px + (random() - 0.5 ) * radius * 0.2 
-		pz = pz + (random() - 0.5 ) * radius * 0.2 
+		px = px + (random() - 0.5 ) * radius * 0.2
+		pz = pz + (random() - 0.5 ) * radius * 0.2
 	end
 
 
@@ -1174,652 +1192,660 @@ local function GadgetWeaponExplosionDecal(px, py, pz, weaponID, ownerID)
 	)
 end
 
-local UnitScriptDecals = {
-	[UnitDefNames['corkorg'].id] = {
+local UnitScriptDecalsNames = {
+	['corkorg'] = {
 		[1] = {
 			texture = footprintsPath..'f_corkorg_a.png',
-			offsetx = 2, --offset from what the UnitScriptDecal returns 
-			offsetz = -25, -- 
+			offsetx = 2, --offset from what the UnitScriptDecal returns
+			offsetz = -25, --
 			offsetrot = 0, -- in radians
 			width = 64,
 			height = 32,
 			heatstart = 0,
 			heatdecay = 0,
-			alphastart = 1.0, 
-			alphadecay = 0.0002, 
-			maxalpha = 1.0, 
-			bwfactor = 0.0, 
-			glowsustain = 0.0, 
-			glowadd = 0.0, 
-			fadeintime = 5, 
+			alphastart = 1.0,
+			alphadecay = 0.0002,
+			maxalpha = 1.0,
+			bwfactor = 0.0,
+			glowsustain = 0.0,
+			glowadd = 0.0,
+			fadeintime = 5,
 			}
 		},
 
-	[UnitDefNames['armfboy'].id] = {
+	['armfboy'] = {
 		[1] = { -- LFOOT
 			texture = footprintsPath..'f_armfboy_a.png',
-			offsetx = -1, --offset from what the UnitScriptDecal returns 
-			offsetz = 0, -- 
+			offsetx = -1, --offset from what the UnitScriptDecal returns
+			offsetz = 0, --
 			offsetrot = 0, -- in radians
 			width = 60,
 			height = 30,
 			heatstart = 0,
 			heatdecay = 0,
-			alphastart = 0.7, 
-			alphadecay = 0.0008, 
-			maxalpha = 1.0, 
-			bwfactor = 0.0, 
-			glowsustain = 0.0, 
-			glowadd = 0.0, 
-			fadeintime = 5, 
+			alphastart = 0.7,
+			alphadecay = 0.0008,
+			maxalpha = 1.0,
+			bwfactor = 0.0,
+			glowsustain = 0.0,
+			glowadd = 0.0,
+			fadeintime = 5,
 			},
 		[2] = { -- RFOOT
 			texture = footprintsPath..'f_armfboy_a.png',
-			offsetx = 1, --offset from what the UnitScriptDecal returns 
-			offsetz = 0, -- 
+			offsetx = 1, --offset from what the UnitScriptDecal returns
+			offsetz = 0, --
 			offsetrot = 0, -- in radians
 			width = 60,
 			height = 30,
 			heatstart = 0,
 			heatdecay = 0,
-			alphastart = 0.8, 
-			alphadecay = 0.0008, 
-			maxalpha = 1.0, 
-			bwfactor = 0.0, 
-			glowsustain = 0.0, 
-			glowadd = 0.0, 
-			fadeintime = 5, 
+			alphastart = 0.8,
+			alphadecay = 0.0008,
+			maxalpha = 1.0,
+			bwfactor = 0.0,
+			glowsustain = 0.0,
+			glowadd = 0.0,
+			fadeintime = 5,
 			}
 		},
-	[UnitDefNames['armwar'].id] = { 
+	['armwar'] = {
 		[1] = { -- LFOOT
 			texture = footprintsPath..'f_armwar_a.png',
-			offsetx = 0, --offset from what the UnitScriptDecal returns 
-			offsetz = 0, -- 
+			offsetx = 0, --offset from what the UnitScriptDecal returns
+			offsetz = 0, --
 			offsetrot = 0.2, -- in radians
 			width = 18,
 			height = 18,
 			heatstart = 0,
 			heatdecay = 0,
-			alphastart = 0.7, 
-			alphadecay = 0.0022, 
-			maxalpha = 1.0, 
-			bwfactor = 0.1, 
-			glowsustain = 0.0, 
-			glowadd = 0.0, 
-			fadeintime = 5, 
+			alphastart = 0.7,
+			alphadecay = 0.0022,
+			maxalpha = 1.0,
+			bwfactor = 0.1,
+			glowsustain = 0.0,
+			glowadd = 0.0,
+			fadeintime = 5,
 			},
 		[2] = { -- RFOOT
 			texture = footprintsPath..'f_armwar_a.png',
-			offsetx = 0, --offset from what the UnitScriptDecal returns 
-			offsetz = 0, -- 
+			offsetx = 0, --offset from what the UnitScriptDecal returns
+			offsetz = 0, --
 			offsetrot = -0.2, -- in radians
 			width = 18,
 			height = 18,
 			heatstart = 0,
 			heatdecay = 0,
-			alphastart = 0.7, 
-			alphadecay = 0.0022, 
-			maxalpha = 1.0, 
-			bwfactor = 0.1, 
-			glowsustain = 0.0, 
-			glowadd = 0.0, 
-			fadeintime = 5, 
+			alphastart = 0.7,
+			alphadecay = 0.0022,
+			maxalpha = 1.0,
+			bwfactor = 0.1,
+			glowsustain = 0.0,
+			glowadd = 0.0,
+			fadeintime = 5,
 			},
 		},
-		
-	[UnitDefNames['armck'].id] = { 
+
+	['armck'] = {
 		[1] = { -- LFOOT
 			texture = footprintsPath..'f_armck_a.png',
-			offsetx = 0, --offset from what the UnitScriptDecal returns 
-			offsetz = 7, -- 
+			offsetx = 0, --offset from what the UnitScriptDecal returns
+			offsetz = 7, --
 			offsetrot = 0.0, -- in radians
 			width = 20,
 			height = 20,
 			heatstart = 0,
 			heatdecay = 0,
-			alphastart = 0.7, 
-			alphadecay = 0.0022, 
-			maxalpha = 1.0, 
-			bwfactor = 0.1, 
-			glowsustain = 0.0, 
-			glowadd = 0.0, 
-			fadeintime = 5, 
+			alphastart = 0.7,
+			alphadecay = 0.0022,
+			maxalpha = 1.0,
+			bwfactor = 0.1,
+			glowsustain = 0.0,
+			glowadd = 0.0,
+			fadeintime = 5,
 			},
-		},	
-		
-	[UnitDefNames['armrock'].id] = { 
+		},
+
+	['armrock'] = {
 		[1] = { -- LFOOT
 			texture = footprintsPath..'f_armrock_a.png',
-			offsetx = 0, --offset from what the UnitScriptDecal returns 
-			offsetz = -3, -- 
+			offsetx = 0, --offset from what the UnitScriptDecal returns
+			offsetz = -3, --
 			offsetrot = 0.0, -- in radians
 			width = 20,
 			height = 20,
 			heatstart = 0,
 			heatdecay = 0,
-			alphastart = 0.7, 
-			alphadecay = 0.0022, 
-			maxalpha = 1.0, 
-			bwfactor = 0.1, 
-			glowsustain = 0.0, 
-			glowadd = 0.0, 
-			fadeintime = 5, 
+			alphastart = 0.7,
+			alphadecay = 0.0022,
+			maxalpha = 1.0,
+			bwfactor = 0.1,
+			glowsustain = 0.0,
+			glowadd = 0.0,
+			fadeintime = 5,
 			},
 		},
-	[UnitDefNames['armham'].id] = { 
+	['armham'] = {
 		[1] = { -- LFOOT
 			texture = footprintsPath..'f_armham_a.png',
-			offsetx = 0, --offset from what the UnitScriptDecal returns 
-			offsetz = -1, -- 
+			offsetx = 0, --offset from what the UnitScriptDecal returns
+			offsetz = -1, --
 			offsetrot = 0.0, -- in radians
 			width = 20,
 			height = 20,
 			heatstart = 0,
 			heatdecay = 0,
-			alphastart = 0.7, 
-			alphadecay = 0.0022, 
-			maxalpha = 1.0, 
-			bwfactor = 0.1, 
-			glowsustain = 0.0, 
-			glowadd = 0.0, 
-			fadeintime = 5, 
+			alphastart = 0.7,
+			alphadecay = 0.0022,
+			maxalpha = 1.0,
+			bwfactor = 0.1,
+			glowsustain = 0.0,
+			glowadd = 0.0,
+			fadeintime = 5,
 			},
 		},
-		
-	[UnitDefNames['armack'].id] = { 
+
+	['armack'] = {
 		[1] = { -- LFOOT
 			texture = footprintsPath..'f_armack_a.png',
-			offsetx = 0, --offset from what the UnitScriptDecal returns 
-			offsetz = 1, -- 
+			offsetx = 0, --offset from what the UnitScriptDecal returns
+			offsetz = 1, --
 			offsetrot = 0.0, -- in radians
 			width = 28,
 			height = 28,
 			heatstart = 0,
 			heatdecay = 0,
-			alphastart = 0.5, 
-			alphadecay = 0.0022, 
-			maxalpha = 1.0, 
-			bwfactor = 0.1, 
-			glowsustain = 0.0, 
-			glowadd = 0.0, 
-			fadeintime = 5, 
+			alphastart = 0.5,
+			alphadecay = 0.0022,
+			maxalpha = 1.0,
+			bwfactor = 0.1,
+			glowsustain = 0.0,
+			glowadd = 0.0,
+			fadeintime = 5,
 			},
-		},	
-		
-	[UnitDefNames['armzeus'].id] = { 
+		},
+
+	['armzeus'] = {
 		[1] = { -- LFOOT
 			texture = footprintsPath..'f_armzeus_a.png',
-			offsetx = 0, --offset from what the UnitScriptDecal returns 
-			offsetz = 0, -- 
+			offsetx = 0, --offset from what the UnitScriptDecal returns
+			offsetz = 0, --
 			offsetrot = 0.0, -- in radians
 			width = 12,
 			height = 12,
 			heatstart = 0,
 			heatdecay = 0,
-			alphastart = 0.6, 
-			alphadecay = 0.0022, 
-			maxalpha = 1.0, 
-			bwfactor = 0.1, 
-			glowsustain = 0.0, 
-			glowadd = 0.0, 
-			fadeintime = 5, 
+			alphastart = 0.6,
+			alphadecay = 0.0022,
+			maxalpha = 1.0,
+			bwfactor = 0.1,
+			glowsustain = 0.0,
+			glowadd = 0.0,
+			fadeintime = 5,
 			},
-		},	
-		
-	[UnitDefNames['armmav'].id] = { 
+		},
+
+	['armmav'] = {
 		[1] = { -- LFOOT
 			texture = footprintsPath..'f_armmav_a.png',
-			offsetx = 0, --offset from what the UnitScriptDecal returns 
-			offsetz = 0, -- 
+			offsetx = 0, --offset from what the UnitScriptDecal returns
+			offsetz = 0, --
 			offsetrot = 0.0, -- in radians
 			width = 20,
 			height = 20,
 			heatstart = 0,
 			heatdecay = 0,
-			alphastart = 0.6, 
-			alphadecay = 0.0022, 
-			maxalpha = 1.0, 
-			bwfactor = 0.1, 
-			glowsustain = 0.0, 
-			glowadd = 0.0, 
-			fadeintime = 5, 
+			alphastart = 0.6,
+			alphadecay = 0.0022,
+			maxalpha = 1.0,
+			bwfactor = 0.1,
+			glowsustain = 0.0,
+			glowadd = 0.0,
+			fadeintime = 5,
 			},
-		},	
-		
-	[UnitDefNames['armmar'].id] = { 
+		},
+
+	['armmar'] = {
 		[1] = { -- LFOOT
 			texture = footprintsPath..'f_armmar_a.png',
-			offsetx = 0, --offset from what the UnitScriptDecal returns 
-			offsetz = 0, -- 
+			offsetx = 0, --offset from what the UnitScriptDecal returns
+			offsetz = 0, --
 			offsetrot = 0.0, -- in radians
 			width = 40,
 			height = 20,
 			heatstart = 0,
 			heatdecay = 0,
-			alphastart = 1.0, 
-			alphadecay = 0.0022, 
-			maxalpha = 1.0, 
-			bwfactor = 0.1, 
-			glowsustain = 0.0, 
-			glowadd = 0.0, 
-			fadeintime = 5, 
+			alphastart = 1.0,
+			alphadecay = 0.0022,
+			maxalpha = 1.0,
+			bwfactor = 0.1,
+			glowsustain = 0.0,
+			glowadd = 0.0,
+			fadeintime = 5,
 			},
-		},	
-		
-	[UnitDefNames['armraz'].id] = { 
+		},
+
+	['armraz'] = {
 		[1] = { -- LFOOT
 			texture = footprintsPath..'f_armraz_a.png',
-			offsetx = 0, --offset from what the UnitScriptDecal returns 
-			offsetz = 0, -- 
+			offsetx = 0, --offset from what the UnitScriptDecal returns
+			offsetz = 0, --
 			offsetrot = 0.0, -- in radians
 			width = 54,
 			height = 26,
 			heatstart = 0,
 			heatdecay = 0,
-			alphastart = 0.9, 
-			alphadecay = 0.0022, 
-			maxalpha = 1.0, 
-			bwfactor = 0.1, 
-			glowsustain = 0.0, 
-			glowadd = 0.0, 
-			fadeintime = 5, 
+			alphastart = 0.9,
+			alphadecay = 0.0022,
+			maxalpha = 1.0,
+			bwfactor = 0.1,
+			glowsustain = 0.0,
+			glowadd = 0.0,
+			fadeintime = 5,
 			},
-		},	
-		
-	[UnitDefNames['armvang'].id] = { 
+		},
+
+	['armvang'] = {
 		[1] = { -- FOOT
 			texture = footprintsPath..'f_armvang_a.png',
-			offsetx = 0, --offset from what the UnitScriptDecal returns 
-			offsetz = 0, -- 
+			offsetx = 0, --offset from what the UnitScriptDecal returns
+			offsetz = 0, --
 			offsetrot = 0.8, -- in radians
 			width = 24,
 			height = 24,
 			heatstart = 0,
 			heatdecay = 0,
-			alphastart = 1.4, 
-			alphadecay = 0.0016, 
-			maxalpha = 1.2, 
-			bwfactor = 0.1, 
-			glowsustain = 0.0, 
-			glowadd = 0.0, 
-			fadeintime = 5, 
+			alphastart = 1.4,
+			alphadecay = 0.0016,
+			maxalpha = 1.2,
+			bwfactor = 0.1,
+			glowsustain = 0.0,
+			glowadd = 0.0,
+			fadeintime = 5,
 			},
-		
+
 		[2] = { -- ankle
 			texture = footprintsPath..'f_armvang_a.png',
-			offsetx = 0, --offset from what the UnitScriptDecal returns 
-			offsetz = 0, -- 
+			offsetx = 0, --offset from what the UnitScriptDecal returns
+			offsetz = 0, --
 			offsetrot = 3.14, -- in radians
 			width = 24,
 			height = 24,
 			heatstart = 0,
 			heatdecay = 0,
-			alphastart = 1.2, 
-			alphadecay = 0.0022, 
-			maxalpha = 1.2, 
-			bwfactor = 0.1, 
-			glowsustain = 0.0, 
-			glowadd = 0.0, 
-			fadeintime = 5, 
+			alphastart = 1.2,
+			alphadecay = 0.0022,
+			maxalpha = 1.2,
+			bwfactor = 0.1,
+			glowsustain = 0.0,
+			glowadd = 0.0,
+			fadeintime = 5,
 			},
-		},	
-		
-	[UnitDefNames['armbanth'].id] = { 
+		},
+
+	['armbanth'] = {
 		[1] = {
 			texture = footprintsPath..'f_armbanth_a.png',
-			offsetx = 0, --offset from what the UnitScriptDecal returns 
-			offsetz = -7, -- 
+			offsetx = 0, --offset from what the UnitScriptDecal returns
+			offsetz = -7, --
 			offsetrot = 0, -- in radians
 			width = 48,
 			height = 24,
 			heatstart = 1000,
 			heatdecay = 0.0005,
-			alphastart = 0.8, 
-			alphadecay = 0.0009, 
-			maxalpha = 1.0, 
-			bwfactor = 0.3, 
-			glowsustain = 10, 
-			glowadd = 0.0, 
-			fadeintime = 5, 
+			alphastart = 0.8,
+			alphadecay = 0.0009,
+			maxalpha = 1.0,
+			bwfactor = 0.3,
+			glowsustain = 10,
+			glowadd = 0.0,
+			fadeintime = 5,
 			}
 		},
-		
-	[UnitDefNames['corck'].id] = { 
+
+	['corck'] = {
 		[1] = { -- LFOOT
 			texture = footprintsPath..'f_corck_a.png',
-			offsetx = 0, --offset from what the UnitScriptDecal returns 
-			offsetz = 0, -- 
+			offsetx = 0, --offset from what the UnitScriptDecal returns
+			offsetz = 0, --
 			offsetrot = 0.0, -- in radians
 			width = 20,
 			height = 20,
 			heatstart = 0,
 			heatdecay = 0,
-			alphastart = 0.5, 
-			alphadecay = 0.0022, 
-			maxalpha = 1.0, 
-			bwfactor = 0.1, 
-			glowsustain = 0.0, 
-			glowadd = 0.0, 
-			fadeintime = 5, 
+			alphastart = 0.5,
+			alphadecay = 0.0022,
+			maxalpha = 1.0,
+			bwfactor = 0.1,
+			glowsustain = 0.0,
+			glowadd = 0.0,
+			fadeintime = 5,
 			},
-		},	
-		
-	[UnitDefNames['corstorm'].id] = { 
+		},
+
+	['corstorm'] = {
 		[1] = { -- LFOOT
 			texture = footprintsPath..'f_corstorm_a.png',
-			offsetx = 0, --offset from what the UnitScriptDecal returns 
-			offsetz = 0, -- 
+			offsetx = 0, --offset from what the UnitScriptDecal returns
+			offsetz = 0, --
 			offsetrot = 0.0, -- in radians
 			width = 26,
 			height = 13,
 			heatstart = 0,
 			heatdecay = 0,
-			alphastart = 0.6, 
-			alphadecay = 0.0022, 
-			maxalpha = 1.0, 
-			bwfactor = 0.1, 
-			glowsustain = 0.0, 
-			glowadd = 0.0, 
-			fadeintime = 5, 
+			alphastart = 0.6,
+			alphadecay = 0.0022,
+			maxalpha = 1.0,
+			bwfactor = 0.1,
+			glowsustain = 0.0,
+			glowadd = 0.0,
+			fadeintime = 5,
 			},
-		},	
-	
-	[UnitDefNames['corthud'].id] = { 
+		},
+
+	['corthud'] = {
 		[1] = {
 			texture = footprintsPath..'f_corthud_a.png',
-			offsetx = 0, --offset from what the UnitScriptDecal returns 
-			offsetz = -2, -- 
+			offsetx = 0, --offset from what the UnitScriptDecal returns
+			offsetz = -2, --
 			offsetrot = 0, -- in radians
 			width = 19,
 			height = 19,
 			heatstart = 0,
 			heatdecay = 0,
-			alphastart = 0.7, 
-			alphadecay = 0.0022, 
-			maxalpha = 1.0, 
-			bwfactor = 0.1, 
-			glowsustain = 0.0, 
-			glowadd = 0.0, 
-			fadeintime = 5, 
+			alphastart = 0.7,
+			alphadecay = 0.0022,
+			maxalpha = 1.0,
+			bwfactor = 0.1,
+			glowsustain = 0.0,
+			glowadd = 0.0,
+			fadeintime = 5,
 			}
 		},
-		
-	[UnitDefNames['corack'].id] = { 
+
+	['corack'] = {
 		[1] = {
 			texture = footprintsPath..'f_corthud_a.png',
-			offsetx = 0, --offset from what the UnitScriptDecal returns 
-			offsetz = -2, -- 
+			offsetx = 0, --offset from what the UnitScriptDecal returns
+			offsetz = -2, --
 			offsetrot = 0, -- in radians
 			width = 19,
 			height = 19,
 			heatstart = 0,
 			heatdecay = 0,
-			alphastart = 0.7, 
-			alphadecay = 0.0022, 
-			maxalpha = 1.0, 
-			bwfactor = 0.1, 
-			glowsustain = 0.0, 
-			glowadd = 0.0, 
-			fadeintime = 5, 
+			alphastart = 0.7,
+			alphadecay = 0.0022,
+			maxalpha = 1.0,
+			bwfactor = 0.1,
+			glowsustain = 0.0,
+			glowadd = 0.0,
+			fadeintime = 5,
 			}
 		},
-		
-			
-	[UnitDefNames['cormando'].id] = { 
+
+
+	['cormando'] = {
 		[1] = { --lfoot
 			texture = footprintsPath..'f_cormando_a.png',
-			offsetx = 0, --offset from what the UnitScriptDecal returns 
-			offsetz = 0, -- 
+			offsetx = 0, --offset from what the UnitScriptDecal returns
+			offsetz = 0, --
 			offsetrot = 0.15, -- in radians
 			width = 19,
 			height = 19,
 			heatstart = 0,
 			heatdecay = 0,
-			alphastart = 0.7, 
-			alphadecay = 0.0022, 
-			maxalpha = 1.0, 
-			bwfactor = 0.1, 
-			glowsustain = 0.0, 
-			glowadd = 0.0, 
-			fadeintime = 5, 
+			alphastart = 0.7,
+			alphadecay = 0.0022,
+			maxalpha = 1.0,
+			bwfactor = 0.1,
+			glowsustain = 0.0,
+			glowadd = 0.0,
+			fadeintime = 5,
 			},
 		[2] = { --rfoot
 			texture = footprintsPath..'f_cormando_a.png',
-			offsetx = 0, --offset from what the UnitScriptDecal returns 
-			offsetz = 0, -- 
+			offsetx = 0, --offset from what the UnitScriptDecal returns
+			offsetz = 0, --
 			offsetrot = -0.15, -- in radians
 			width = 19,
 			height = 19,
 			heatstart = 0,
 			heatdecay = 0,
-			alphastart = 0.7, 
-			alphadecay = 0.0022, 
-			maxalpha = 1.0, 
-			bwfactor = 0.1, 
-			glowsustain = 0.0, 
-			glowadd = 0.0, 
-			fadeintime = 5, 
+			alphastart = 0.7,
+			alphadecay = 0.0022,
+			maxalpha = 1.0,
+			bwfactor = 0.1,
+			glowsustain = 0.0,
+			glowadd = 0.0,
+			fadeintime = 5,
 			}
 		},
-	
-	
-	[UnitDefNames['corpyro'].id] = { 
+
+
+	['corpyro'] = {
 		[1] = { -- LFOOT
 			texture = footprintsPath..'f_corpyro_a.png',
-			offsetx = 0, --offset from what the UnitScriptDecal returns 
-			offsetz = 0, -- 
+			offsetx = 0, --offset from what the UnitScriptDecal returns
+			offsetz = 0, --
 			offsetrot = 0.0, -- in radians
 			width = 22,
 			height = 11,
 			heatstart = 0,
 			heatdecay = 0,
-			alphastart = 0.7, 
-			alphadecay = 0.0022, 
-			maxalpha = 1.0, 
-			bwfactor = 0.1, 
-			glowsustain = 0.0, 
-			glowadd = 0.0, 
-			fadeintime = 2, 
+			alphastart = 0.7,
+			alphadecay = 0.0022,
+			maxalpha = 1.0,
+			bwfactor = 0.1,
+			glowsustain = 0.0,
+			glowadd = 0.0,
+			fadeintime = 2,
 			},
-		},	
-	[UnitDefNames['corhrk'].id] = { 
+		},
+	['corhrk'] = {
 		[1] = { -- LFOOT
 			texture = footprintsPath..'f_corhrk_a.png',
-			offsetx = 0, --offset from what the UnitScriptDecal returns 
-			offsetz = 0, -- 
+			offsetx = 0, --offset from what the UnitScriptDecal returns
+			offsetz = 0, --
 			offsetrot = 0.0, -- in radians
 			width = 34,
 			height = 17,
 			heatstart = 0,
 			heatdecay = 0,
-			alphastart = 0.7, 
-			alphadecay = 0.0022, 
-			maxalpha = 1.0, 
-			bwfactor = 0.1, 
-			glowsustain = 0.0, 
-			glowadd = 0.0, 
-			fadeintime = 2, 
+			alphastart = 0.7,
+			alphadecay = 0.0022,
+			maxalpha = 1.0,
+			bwfactor = 0.1,
+			glowsustain = 0.0,
+			glowadd = 0.0,
+			fadeintime = 2,
 			},
-		},	
-	[UnitDefNames['corcan'].id] = { 
+		},
+	['corcan'] = {
 		[1] = { -- LFOOT
 			texture = footprintsPath..'f_corcan_a.png',
-			offsetx = 0, --offset from what the UnitScriptDecal returns 
-			offsetz = 0, -- 
+			offsetx = 0, --offset from what the UnitScriptDecal returns
+			offsetz = 0, --
 			offsetrot = 3.14, -- in radians
 			width = 24,
 			height = 11,
 			heatstart = 0,
 			heatdecay = 0,
-			alphastart = 0.9, 
-			alphadecay = 0.0022, 
-			maxalpha = 1.0, 
-			bwfactor = 0.1, 
-			glowsustain = 0.0, 
-			glowadd = 0.0, 
-			fadeintime = 2, 
+			alphastart = 0.9,
+			alphadecay = 0.0022,
+			maxalpha = 1.0,
+			bwfactor = 0.1,
+			glowsustain = 0.0,
+			glowadd = 0.0,
+			fadeintime = 2,
 			},
 		[2] = { -- RFOOT
 			texture = footprintsPath..'f_corcan_a.png',
-			offsetx = 0, --offset from what the UnitScriptDecal returns 
-			offsetz = 0, -- 
+			offsetx = 0, --offset from what the UnitScriptDecal returns
+			offsetz = 0, --
 			offsetrot = 0.0, -- in radians
 			width = 24,
 			height = 12,
 			heatstart = 0,
 			heatdecay = 0,
-			alphastart = 0.9, 
-			alphadecay = 0.0022, 
-			maxalpha = 1.0, 
-			bwfactor = 0.1, 
-			glowsustain = 0.0, 
-			glowadd = 0.0, 
-			fadeintime = 2, 
+			alphastart = 0.9,
+			alphadecay = 0.0022,
+			maxalpha = 1.0,
+			bwfactor = 0.1,
+			glowsustain = 0.0,
+			glowadd = 0.0,
+			fadeintime = 2,
 			},
 		},
-		
-	[UnitDefNames['corsumo'].id] = { 
+
+	['corsumo'] = {
 		[1] = { -- LFOOT
 			texture = footprintsPath..'f_corsumo_a.png',
-			offsetx = 0, --offset from what the UnitScriptDecal returns 
-			offsetz = 0, -- 
+			offsetx = 0, --offset from what the UnitScriptDecal returns
+			offsetz = 0, --
 			offsetrot = 0.0, -- in radians
 			width = 30,
 			height = 30,
 			heatstart = 0,
 			heatdecay = 0,
-			alphastart = 0.85, 
-			alphadecay = 0.0010, 
-			maxalpha = 1.0, 
-			bwfactor = 0.1, 
-			glowsustain = 0.0, 
-			glowadd = 0.0, 
-			fadeintime = 5, 
+			alphastart = 0.85,
+			alphadecay = 0.0010,
+			maxalpha = 1.0,
+			bwfactor = 0.1,
+			glowsustain = 0.0,
+			glowadd = 0.0,
+			fadeintime = 5,
 			},
-		},	
-	[UnitDefNames['coramph'].id] = { 
+		},
+	['coramph'] = {
 		[1] = { -- LFOOT
 			texture = footprintsPath..'f_coramph_a.png',
-			offsetx = 0, --offset from what the UnitScriptDecal returns 
-			offsetz = 3, -- 
+			offsetx = 0, --offset from what the UnitScriptDecal returns
+			offsetz = 3, --
 			offsetrot = 0.0, -- in radians
 			width = 28,
 			height = 14,
 			heatstart = 0,
 			heatdecay = 0,
-			alphastart = 0.6, 
-			alphadecay = 0.0022, 
-			maxalpha = 1.0, 
-			bwfactor = 0.1, 
-			glowsustain = 0.0, 
-			glowadd = 0.0, 
-			fadeintime = 2, 
+			alphastart = 0.6,
+			alphadecay = 0.0022,
+			maxalpha = 1.0,
+			bwfactor = 0.1,
+			glowsustain = 0.0,
+			glowadd = 0.0,
+			fadeintime = 2,
 			},
-		},	
-	[UnitDefNames['corcat'].id] = { 
+		},
+	['corcat'] = {
 		[1] = { -- LFOOT
 			texture = footprintsPath..'f_corcat_a.png',
-			offsetx = 0, --offset from what the UnitScriptDecal returns 
-			offsetz = 3, -- 
+			offsetx = 0, --offset from what the UnitScriptDecal returns
+			offsetz = 3, --
 			offsetrot = 0.0, -- in radians
 			width = 36,
 			height = 36,
 			heatstart = 0,
 			heatdecay = 0,
-			alphastart = 0.7, 
-			alphadecay = 0.0022, 
-			maxalpha = 1.0, 
-			bwfactor = 0.1, 
-			glowsustain = 0.0, 
-			glowadd = 0.0, 
-			fadeintime = 2, 
+			alphastart = 0.7,
+			alphadecay = 0.0022,
+			maxalpha = 1.0,
+			bwfactor = 0.1,
+			glowsustain = 0.0,
+			glowadd = 0.0,
+			fadeintime = 2,
 			},
-		},	
-	[UnitDefNames['corshiva'].id] = { 
+		},
+	['corshiva'] = {
 		[1] = { -- LFOOT
 			texture = footprintsPath..'f_corshiva_a.png',
-			offsetx = 0, --offset from what the UnitScriptDecal returns 
-			offsetz = 0, -- 
+			offsetx = 0, --offset from what the UnitScriptDecal returns
+			offsetz = 0, --
 			offsetrot = 0.0, -- in radians
 			width = 30,
 			height = 30,
 			heatstart = 0,
 			heatdecay = 0,
-			alphastart = 0.7, 
-			alphadecay = 0.0022, 
-			maxalpha = 1.0, 
-			bwfactor = 0.1, 
-			glowsustain = 0.0, 
-			glowadd = 0.0, 
-			fadeintime = 2, 
+			alphastart = 0.7,
+			alphadecay = 0.0022,
+			maxalpha = 1.0,
+			bwfactor = 0.1,
+			glowsustain = 0.0,
+			glowadd = 0.0,
+			fadeintime = 2,
 			},
-		},	
-	[UnitDefNames['corjugg'].id] = { 
+		},
+	['corjugg'] = {
 		[1] = { -- LFOOT
 			texture = footprintsPath..'f_corjugg_a.png',
-			offsetx = -1, --offset from what the UnitScriptDecal returns 
-			offsetz = -3, -- 
+			offsetx = -1, --offset from what the UnitScriptDecal returns
+			offsetz = -3, --
 			offsetrot = 0.0, -- in radians
 			width = 64,
 			height = 34,
 			heatstart = 0,
 			heatdecay = 0,
-			alphastart = 0.8, 
-			alphadecay = 0.0003, 
-			maxalpha = 1.0, 
-			bwfactor = 0.1, 
-			glowsustain = 0.0, 
-			glowadd = 0.0, 
-			fadeintime = 5, 
+			alphastart = 0.8,
+			alphadecay = 0.0003,
+			maxalpha = 1.0,
+			bwfactor = 0.1,
+			glowsustain = 0.0,
+			glowadd = 0.0,
+			fadeintime = 5,
 			},
 		},
-		
-	[UnitDefNames['raptor_land_swarmer_basic_t1_v1'].id] = { 
+
+	['raptor_land_swarmer_basic_t1_v1'] = {
 		[1] = { -- LFOOT
 			texture = footprintsPath..'f_raptor_a.tga',
-			offsetx = 0, --offset from what the UnitScriptDecal returns 
-			offsetz = 0, -- 
+			offsetx = 0, --offset from what the UnitScriptDecal returns
+			offsetz = 0, --
 			offsetrot = 0.0, -- in radians
 			width = 26,
 			height = 26,
 			heatstart = 0,
 			heatdecay = 0,
-			alphastart = 1, 
-			alphadecay = 0.0032, 
-			maxalpha = 1.0, 
-			bwfactor = 0.3, 
-			glowsustain = 0.0, 
-			glowadd = 0.0, 
-			fadeintime = 5, 
+			alphastart = 1,
+			alphadecay = 0.0032,
+			maxalpha = 1.0,
+			bwfactor = 0.3,
+			glowsustain = 0.0,
+			glowadd = 0.0,
+			fadeintime = 5,
 			},
 		[2] = { -- RFOOT
 			texture = footprintsPath..'f_raptor_a.tga',
-			offsetx = 0, --offset from what the UnitScriptDecal returns 
-			offsetz = 0, -- 
+			offsetx = 0, --offset from what the UnitScriptDecal returns
+			offsetz = 0, --
 			offsetrot = 0.0, -- in radians
 			width = 26,
 			height = 26,
 			flipvertical = true,
 			heatstart = 0,
 			heatdecay = 0,
-			alphastart = 1, 
-			alphadecay = 0.0032, 
-			maxalpha = 1.0, 
-			bwfactor = 0.3, 
-			glowsustain = 0.0, 
-			glowadd = 0.0, 
-			fadeintime = 5, 
+			alphastart = 1,
+			alphadecay = 0.0032,
+			maxalpha = 1.0,
+			bwfactor = 0.3,
+			glowsustain = 0.0,
+			glowadd = 0.0,
+			fadeintime = 5,
 			},
-		},	
+		},
 
 }
+-- convert unitname -> unitDefID
+local UnitScriptDecals = {}
+for unitName, decals in pairs(UnitScriptDecalsNames) do
+	if UnitDefNames[unitName] then
+		UnitScriptDecals[UnitDefNames[unitName].id] = decals
+	end
+end
+UnitScriptDecalsNames = nil
 
 
 --[[
 Shit needed in the cob script:
 
-lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
+lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 {
 	return 0;
 }
@@ -1829,13 +1855,13 @@ call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lfoot) & 0xffff0000) / 0x000100
 local function UnitScriptDecal(unitID, unitDefID, whichDecal, posx, posz, heading)
 	--Spring.Echo("Widgetside UnitScriptDecal", unitID, unitDefID, whichDecal, posx,posz, heading)
 	if Spring.ValidUnitID(unitID) and Spring.GetUnitIsDead(unitID) == false and UnitScriptDecals[unitDefID] and UnitScriptDecals[unitDefID][whichDecal] then
-		local decalTable =  UnitScriptDecals[unitDefID][whichDecal] 
-		
+		local decalTable =  UnitScriptDecals[unitDefID][whichDecal]
+
 		-- So order of transformations is, get heading, rotate that into world space , heading 0 is +Z direction
 		-- Then place at worldpos
-		-- Then place at offset (rotated) 
+		-- Then place at offset (rotated)
 		-- Then apply additional offset rotation
-		
+
 		local rotationradians = (0.75 + heading / 65536) * 2 * math.pi
 		local sinrot = math.sin(-rotationradians)
 		local cosrot = math.cos(-rotationradians)
@@ -1843,11 +1869,11 @@ local function UnitScriptDecal(unitID, unitDefID, whichDecal, posx, posz, headin
 		local offsetz = decalTable.offsetx
 		--local worldposx = posx + cosrot * decalTable.offsetx - sinrot * decalTable.offsetz
 		local worldposx = posx + cosrot * offsetx - sinrot * offsetz
-		
+
 		local worldposz = posz + sinrot * offsetx + cosrot * offsetz
 		if false then -- old reliable method
 			AddDecal(
-				decalTable.texture, 
+				decalTable.texture,
 				worldposx, --posx
 				worldposz, --posx
 				decalTable.offsetrot + rotationradians, --rotation
@@ -1865,14 +1891,14 @@ local function UnitScriptDecal(unitID, unitDefID, whichDecal, posx, posz, headin
 			)
 		else -- new fast but unmaintainable method
 			local decalCache = decalTable.cacheTable
-			
+
 			decalCache[3] = decalTable.offsetrot + rotationradians
 			decalCache[13] = worldposx
 			decalCache[14] = Spring.GetGroundHeight(posx, posz)
 			decalCache[15] = worldposz
-			
+
 			decalCache[10] = decalTable.alphadecay / lifeTimeMult
-			
+
 			local spawnframe = Spring.GetGameFrame()
 			decalCache[16] = spawnframe
 
@@ -1899,6 +1925,10 @@ local function UnitScriptDecal(unitID, unitDefID, whichDecal, posx, posz, headin
 end
 
 function widget:Initialize()
+	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
+		widgetHandler:RemoveWidget()
+		return
+	end
 	local t0 = Spring.GetTimer()
 	--if makeAtlases() == false then
 	--	goodbye("Failed to init texture atlas for DecalsGL4")
@@ -1944,14 +1974,13 @@ function widget:Initialize()
 
 	widgetHandler:RegisterGlobal('AddDecalGL4', WG['decalsgl4'].AddDecalGL4)
 	widgetHandler:RegisterGlobal('RemoveDecalGL4', WG['decalsgl4'].RemoveDecalGL4)
-	widgetHandler:RegisterGlobal('GadgetWeaponExplosionDecal', GadgetWeaponExplosionDecal)
 	widgetHandler:RegisterGlobal('UnitScriptDecal', UnitScriptDecal)
 	--Spring.Echo(string.format("Decals GL4 loaded %d textures in %.3fs",numFiles, Spring.DiffTimers(Spring.GetTimer(), t0)))
 	--Spring.Echo("Trying to access _G[NightModeParams]", _G["NightModeParams"])
-	
+
 	--pre-optimize UnitScriptDecals:
-	for unitDefID, UnitScriptDecalSet in pairs(UnitScriptDecals) do 
-		for i, decalTable in ipairs(UnitScriptDecalSet) do 
+	for unitDefID, UnitScriptDecalSet in pairs(UnitScriptDecals) do
+		for i, decalTable in ipairs(UnitScriptDecalSet) do
 			local p,q,s,t = 0,1,0,1
 
 			if atlas[decalTable.texture] == nil then
@@ -1962,35 +1991,35 @@ function widget:Initialize()
 				if decalTable.fliphorizontal then
 					p, q = q, p
 				end
-				if decalTable.flipvertical then 
+				if decalTable.flipvertical then
 					s, t = t, s
 				end
 			end
-			
+
 			decalTable.cacheTable = {
 				decalTable.width, decalTable.height, 0,	decalTable.maxalpha,
-				p,q,s,t, 
+				p,q,s,t,
 				decalTable.alphastart or 1,
-				(decalTable.alphadecay) or 0 / lifeTimeMult, 
-				decalTable.heatstart or 0, 
+				(decalTable.alphadecay) or 0 / lifeTimeMult,
+				decalTable.heatstart or 0,
 				decalTable.heatdecay or 1,
 				0,0,0,0,
-				decalTable.bwfactor or 1, 
-				decalTable.glowsustain or 1, 
-				decalTable.glowadd or 1, 
+				decalTable.bwfactor or 1,
+				decalTable.glowsustain or 1,
+				decalTable.glowadd or 1,
 				decalTable.fadeintime or shaderConfig.FADEINTIME or 1
 			}
 		end
 	end
 
-	
+
 end
 
 --[[
 function widget:DrawScreen()
 	gl.Blending(GL.ONE, GL.ZERO) -- the default mode
 	local vsx, vsy = Spring.GetViewGeometry()
-	if (Spring.GetGameFrame() %60) > 30 then 
+	if (Spring.GetGameFrame() %60) > 30 then
 		gl.Texture(0, atlasNormals)
 	else
 		gl.Texture(0, atlasColorAlpha	)
@@ -2024,7 +2053,6 @@ function widget:ShutDown()
 	WG['decalsgl4'] = nil
 	widgetHandler:DeregisterGlobal('AddDecalGL4')
 	widgetHandler:DeregisterGlobal('RemoveDecalGL4')
-	widgetHandler:DeregisterGlobal('GadgetWeaponExplosionDecal')
 	widgetHandler:DeregisterGlobal('UnitScriptDecal')
 end
 

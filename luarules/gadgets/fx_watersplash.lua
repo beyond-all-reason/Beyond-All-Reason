@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date      = "April,2012",
 		license   = "GNU GPL, v2 or later",
 		layer     = 0,
-		enabled   = true,  --  loaded by default?
+		enabled   = true,
 	}
 end
 
@@ -30,6 +30,7 @@ local COR_SEAADVBOMB = WeaponDefNames['corsb_cor_seaadvbomb'].id --corsb gets a 
 local ARM_JUNO = WeaponDefNames['armjuno_juno_pulse'].id --juno can explode on water
 local COR_JUNO = WeaponDefNames['corjuno_juno_pulse'].id --juno can explode on water
 local COR_TRON = WeaponDefNames['cortron_cortron_weapon'].id
+local LEG_PHOENIX = WeaponDefNames['legphoenix_legphtarg'] and WeaponDefNames['legphoenix_legphtarg'].id --targetting weapon aircraftbomb
 -- maybe need addition of scav version or better solution
 
 local splashCEG1 = "splash-tiny"
@@ -70,7 +71,7 @@ end
 function gadget:Explosion(weaponID, px, py, pz, ownerID)
 	if Spring.GetGroundHeight(px,pz) < 0 then
 		local aoe = weaponAoe[weaponID] / 2
-		if not nonexplosiveWeapons[weaponType[weaponID]]  and abs(py) <= aoe and (not GetGroundBlocked(px, pz)) and weaponID ~= COR_SEAADVBOMB and weaponID ~= ARM_JUNO and weaponID ~= COR_JUNO then
+		if not nonexplosiveWeapons[weaponType[weaponID]]  and abs(py) <= aoe and (not GetGroundBlocked(px, pz)) and weaponID ~= COR_SEAADVBOMB and weaponID ~= ARM_JUNO and weaponID ~= COR_JUNO and weaponID ~= LEG_PHOENIX then
 			if aoe >= 6 and aoe < 12 then
 				Spring.SpawnCEG(splashCEG1, px, 0, pz)
 			elseif  aoe >= 12 and aoe < 24 then
@@ -89,7 +90,7 @@ function gadget:Explosion(weaponID, px, py, pz, ownerID)
 			elseif aoe >= 400 and aoe < 600 then
 				Spring.SpawnCEG(splashCEG7, px, 0, pz)
 			elseif aoe >= 600 then
-				Spring.SpawnCEG(splashCEG8, px, 0, pz)				
+				Spring.SpawnCEG(splashCEG8, px, 0, pz)
 			end
 			return true
 		else
@@ -101,9 +102,14 @@ function gadget:Explosion(weaponID, px, py, pz, ownerID)
 end
 
 function gadget:Initialize()
-	for _,wDef in pairs(WeaponDefs) do
-		if wDef.damageAreaOfEffect ~= nil and wDef.damageAreaOfEffect >8 and (not nonexplosiveWeapons[wDef.type]) then
-			Script.SetWatchExplosion(wDef.id, true)
+	local minHeight, maxHeight = Spring.GetGroundExtremes()
+	if minHeight < 100 then
+		for _,wDef in pairs(WeaponDefs) do
+			if wDef.damageAreaOfEffect ~= nil and wDef.damageAreaOfEffect >8 and (not nonexplosiveWeapons[wDef.type]) then
+				Script.SetWatchExplosion(wDef.id, true)
+			end
 		end
+	else
+		gadgetHandler:RemoveGadget(self)
 	end
 end

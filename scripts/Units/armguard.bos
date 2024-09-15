@@ -137,7 +137,7 @@ AimFromSecondary(piecenum)
 
 fireCommon()
 {
-	if( nextBarrel == 0 )
+if( nextBarrel == 0 )
 	{
 	    emit-sfx 1024 + 0 from flare1;
 		move barrel1 to z-axis [-6.250000] now;

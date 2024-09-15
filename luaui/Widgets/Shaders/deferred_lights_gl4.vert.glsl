@@ -9,8 +9,8 @@
 layout (location = 0) in vec4 position; // xyz and etc garbage
 //layout locations 1 and 2 contain primitive specific garbage and should not be used
 
-layout (location = 3) in vec4 worldposrad; 
-layout (location = 4) in vec4 worldposrad2; 
+layout (location = 3) in vec4 worldposrad;  // Centerpos
+layout (location = 4) in vec4 worldposrad2; // velocity for points, beam end for beams, dir and theta for cones
 layout (location = 5) in vec4 lightcolor; 
 layout (location = 6) in vec4 modelfactor_specular_scattering_lensflare; // 
 layout (location = 7) in vec4 otherparams; // spawnframe, lifetime, sustain, animtype
@@ -111,9 +111,6 @@ void main()
 	v_worldPosRad = worldposrad ;
 	v_worldPosRad.w = lightRadius;
 	
-	// TODO ANIMATE
-	//v_worldPosRad.xyz += 1 * sin(5*time * vec3(0.01, 0.011, 0.012) + v_worldPosRad.xyz ); 
-	
 	
 	mat4 placeInWorldMatrix = mat4(1.0); // this is unity for non-unitID tied stuff
 	
@@ -169,20 +166,20 @@ void main()
 		// the -1 is for inverting it so we always see the back faces (great for occlusion testing!) (this should be exploited later on!
 		
 		// this is centered around the target positional offset, and scaled locally
-		vec3 lightVolumePos = lightCenterPosition + -1 * position.xyz * lightRadius * 1.1; 
+		vec3 lightVertexPosition = lightCenterPosition + -1 * position.xyz * lightRadius * 1.1; 
 		
 		// tranform the vertices to world-space
-		lightVolumePos = (placeInWorldMatrix * vec4(lightVolumePos, 1.0)).xyz; 
+		lightVertexPosition = (placeInWorldMatrix * vec4(lightVertexPosition, 1.0)).xyz; 
 		
 		// tranform the center to world-space
 		lightCenterPosition = (placeInWorldMatrix * vec4(lightCenterPosition, 1.0)).xyz; 
 		
 		
-		float colortime = worldposrad2.a; // Matches colortime in lightConf for point lights
+		float colortime = color2.a; // Matches colortime in lightConf for point lights
 		if  (attachedtounitID > 0.5) {
 			// for point lights, if the colortime is anything sane (>0), then modulate the light with it.
 			if (colortime >0.5){
-				v_lightcolor.rgb = mix( worldposrad2.rgb, v_lightcolor.rgb, cos((elapsedframes * 6.2831853) / colortime ) * 0.5 + 0.5); }
+				v_lightcolor.rgb = mix( color2.rgb, v_lightcolor.rgb, cos((elapsedframes * 6.2831853) / colortime ) * 0.5 + 0.5); }
 				
 		}else{
 			if (colortime >0.0){
@@ -194,14 +191,22 @@ void main()
 				else {
 					colormod =  cos(elapsedframes * 6.2831853 * colortime ) * 0.5 + 0.5;
 				}
-				v_lightcolor.rgb = mix(v_lightcolor.rgb, worldposrad2.rgb, colormod); 
+				v_lightcolor.rgb = mix(v_lightcolor.rgb, color2.rgb, colormod); 
+			}
+			if (worldposrad2.w < 1.0) {
+				lightCenterPosition += timeInfo.w * worldposrad2.xyz;
+				lightVertexPosition += timeInfo.w * worldposrad2.xyz;
+			}else{
+				// Note: worldposrad2.w is an excellent place to add orbit-style world-placement light animations
+				//vec3 lightWorldMovement = sin(time * 0.017453292 * worldposrad2.xyz) * worldposrad2.w;
+				//lightCenterPosition += lightWorldMovement;
 			}
 		}
 		
 
 		v_worldPosRad.xyz = lightCenterPosition;
 		v_depths_center_map_model_min = depthAtWorldPos(vec4(lightCenterPosition,1.0)); // 
-		v_position = vec4( lightVolumePos, 1.0);
+		v_position = vec4( lightVertexPosition, 1.0);
 	}
 	#line 12000
 	else if (pointbeamcone < 1.5){ // beam
@@ -271,6 +276,12 @@ void main()
 				newfw, 
 				newright 
 			);
+			
+		// if the cone is not attached to the unit, exploit that direction allows us to smoothen anim
+		if (attachedtounitID < 0.5){
+			lightCenterPosition += worldposrad2.xyz * timeInfo.w;
+		}
+		
 		// rotate the cone, and place it into local space
 		worldPos.xyz = rotmat * worldPos.xyz + lightCenterPosition;
 
@@ -290,7 +301,7 @@ void main()
 	#line 13000
 	// Get the heightmap and the normal map at the center position of the light in v_worldPosRad.xyz
 	
-	vec2 uvhm = heighmapUVatWorldPos(v_worldPosRad.xz);
+	vec2 uvhm = heightmapUVatWorldPos(v_worldPosRad.xz);
 	v_lightcenter_gradient_height.w = textureLod(heightmapTex, uvhm, 0.0).x;
 	
 	vec4 mapnormals = textureLod(mapnormalsTex, uvhm, 0.0);

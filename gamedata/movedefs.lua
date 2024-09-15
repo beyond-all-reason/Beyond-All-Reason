@@ -76,7 +76,7 @@ local moveDatas = {
 	-- 	maxwaterslope = 80,
 	-- },
 	-- amphibious tanks
-	-- corgarp armbeaver armmar corparrow armprow corseal corsala cormuskrat armcroc armpincer corintr legassistdrone_land corassistdrone armassistdrone
+	-- corgarp armbeaver armmar corparrow armprow corseal corsala cormuskrat armcroc armpincer corintr legassistdrone_land corassistdrone armassistdrone legotter corphantom
 	ATANK3 = {
 		crushstrength = 30,
 		depthmod = 0,
@@ -150,7 +150,7 @@ local moveDatas = {
 	-- },
 	-- flagships/aircraft carriers
 	--why are bb and flagships/carriers different merge both
-	-- armcarry armepoch corblackhy armcarry2 armbats corbats corcarry corcarry2
+	-- armcarry armdronecarry armepoch corblackhy armbats corbats corcarry cordronecarry corsentinel armtrident
 	BOAT8 = {
 		crushstrength = 252,
 		footprintx = 8,
@@ -364,7 +364,7 @@ local moveDatas = {
 	-- 		maxValue = 0.7,
 	-- 	}
 	-- },
-	-- corgol leginf corban cortrem armmanni armmerl legkeres
+	-- corgol leginf corban cortrem armmanni armmerl legkeres legmed corsiegebreaker
 	HTANK4 = {
 		crushstrength = 252,
 		footprintx = 4,
@@ -421,7 +421,7 @@ local moveDatas = {
 	-- 	}
 	-- },
 	-- i dont see any diff between bot2 and bot3 that is truely meaningful merge
-	--armmark corspec corck corvoyr armzues corcan armham armck corack legck corstorm legbart corthud legbal legack armsnipe
+	--armmark corspec corck corvoyr armzues corcan armck corack legck corstorm legbart legbal legack armsnipe
 	--corpyro armack armrock armmav cormort armaser armwar legcen legshot
 	--
 	--cornecro leggob legkark armpw armfark armrectr corak corfast corspy leglob armspy armfast
@@ -437,11 +437,25 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	-- corhrk armfido leggstr
+	--  armfido leggstr
 	BOT4 = {
 		crushstrength = 25,
 		footprintx = 3,
 		footprintz = 3,
+		maxslope = 36,
+		maxwaterdepth = 22,
+		depthModParams = {
+			minHeight = 4,
+			linearCoeff = 0.03,
+			maxValue = 0.7,
+		}
+	},
+	-- this movedeff dies when seperation distance is a current feature in bar
+	-- corhrk
+	BOT5 = {
+		crushstrength = 25,
+		footprintx = 4,
+		footprintz = 4,
 		maxslope = 36,
 		maxwaterdepth = 22,
 		depthModParams = {
@@ -463,7 +477,7 @@ local moveDatas = {
 	-- 		maxValue = 0.7,
 	-- 	}
 	-- },
-	-- armraz legpede corcat leginc armfboy corsumo legmech
+	-- armraz legpede corcat leginc armfboy corsumo legmech cordemon
 	HBOT4 = {
 		crushstrength = 252,
 		footprintx = 4,
@@ -669,7 +683,7 @@ local moveDatas = {
 	},
 
 
-	-- legdefcarryt1 armnanotc cornanotc cornanotcplat  raptor_worm_green raptor_turret_acid_t2_v1 raptor_turret_meteor_t4_v1
+	-- leghive armnanotc cornanotc cornanotcplat  raptor_worm_green raptor_turret_acid_t2_v1 raptor_turret_meteor_t4_v1
 	NANO = {
 		crushstrength = 0,
 		footprintx = 3,
@@ -744,7 +758,7 @@ local moveDatas = {
 		maxwaterslope = 255,
 		speedModClass = 2,
 	},
-	-- armpwt4 corakt4 armmeatball armassimilator armlunchbox cordemont4
+	-- armpwt4 corakt4 armmeatball armassimilator armlunchbox
 	EPICBOT = {
 		crushstrength = 9999,
 		depthmod = 0,
@@ -819,12 +833,6 @@ local moveDatas = {
 local defs = {}
 
 for moveName, moveData in pairs(moveDatas) do
-	if Spring.GetModOptions().unified_maxslope then
-		if moveData.maxslope then
-			moveData.maxslope = math.max(moveData.maxslope, 36)
-		end
-	end
-
 	moveData.heatmapping = true
 	moveData.name = moveName
 	moveData.allowRawMovement = true

@@ -62,6 +62,25 @@
 				"tooManyConverters2Tooltip": "Stop building energy converters and increase your energy production."
 			}
 		},
+		"unitMarket": {
+			"sellingUnit": "%{name} is selling %{unitName} for %{price} metal.",
+			"unitSold": "%{name} bought %{unitName} from %{oldName} with %{price} metal.",
+			"notEnoughMetal": "Not enough metal!",
+			"offeringThisUnitForSale": "You are offering this unit for sale, allies can buy it with a Double-Click! Price %{price}m.",
+			"youCanBuyThisTooltip": "You can buy this unit with a Double-Click! Price %{price}m.",
+			"youCantBuyThisTooltip": "This unit is for sale, it costs %{price}m, you do not enough metal.",
+			"youCanAffordIt": "This unit costs %{price} metal. You have enough.",
+			"youCantAffordIt": "This unit costs %{price} metal. Can't afford it yet.\nBut if you click it - your metal expenses will be paused automatically in order to buy the unit.",
+			"t2conShop": "Buy T2cons here!",
+			"shopTitle": "Unit Market",
+			"shopInfo": "You'll find t2cons listed here for sale.",
+			"youAreSellingText": "You've put t2con for sale, others can buy it now!",
+			"failedToFindNewOffers": "Out-of-stock! Waiting for new offers! %{sec}s.",
+			"autoClosing": "Auto closing this window in %{sec}s.",
+			"purchasing": "Purchasing %{name} (%{price}m)",
+			"buy": "buy",
+			"abort": "abort"
+		},
 		"playersList": {
 			"spectators": "Spectators %{amount}",
 			"enemies": "Enemies %{amount}",
@@ -86,6 +105,7 @@
 			"resincome": "Resource income",
 			"commandDelay": "%{labelColor}Total command delay: %{delayColor}%{delay}",
 			"cpu": "CPU: %{cpuUsage}%%",
+			"apm": "APM: %{apm} (actions per minute)",
 			"framerate": "FPS: %{fps}",
 			"gpuMemory": "GPU Memory: %{gpuUsage}%%",
 			"pointClickTooltip": "Click to go to the last point set by the player",
@@ -135,11 +155,21 @@
 			"tooltipctrl": "CTRL-click to continuously clear"
 		},
 		"buildMenu": {
+			"category_econ": "Economy",
+			"category_combat": "Combat",
+			"category_utility": "Utility",
+			"category_production": "Build",
+			"category_econ_descr": "Show economy structures",
+			"category_combat_descr": "Show combat and defensive structures",
+			"category_utility_descr": "Show utility structures",
+			"category_production_descr": "Show production structures",
+			"buildmode_descr": "Enable unit production hotkeys",
 			"homePage": "Go back to main view",
 			"nextPage": "Next page",
 			"previousPage": "Previous page",
 			"disabled": "%{textColor}%{unit} %{warnColor}(disabled)",
-			"nextBuilder": "Next Builder"
+			"nextBuilder": "Next Builder",
+			"areamex_tooltip": "Tip: Select this extractor twice to use area mex command"
 		},
 		"orderMenu": {
 			"hotkeyTooltip": "%{highlightColor}%{hotkey}%{textColor} - %{tooltip}",
@@ -163,6 +193,8 @@
 			"resurrect_tooltip": "Revive wrecks to become units again (click-drag for area)",
 			"guard": "Guard",
 			"guard_tooltip": "Guard another unit against enemy units attacking it",
+			"factoryguard": "Factory Guard",
+			"factoryguard_tooltip": "Builders produced by this factory will automatically guard it",
 			"wait": "Wait",
 			"wait_tooltip": "Pause a unit/factory on processing command/build queues",
 			"repair": "Repair",
@@ -193,7 +225,11 @@
 			"morph_tooltip": "Upgrade to next Tech-level (second click to cancel)",
 			"Spawning Disabled": "Spawning disabled",
 			"Spawning Enabled": "Spawning enabled",
-			
+			"sellunit": "Sell Unit",
+			"sellunit_tooltip": "Toggle currently selected units for sale, allies will be able to buy them",
+			"For Sale": "For Sale",
+			"Not For Sale": "Not For Sale",
+
 			"Fire at will": "Fire at will",
 			"Hold fire": "Hold fire",
 			"Return fire": "Return fire",
@@ -228,16 +264,17 @@
 			"Low traj": "High Traj",
 			"High traj": "High Traj",
 			"trajectory_tooltip": "Sets fire mode in artillery state (firing upwards instead of forwards)",
-
+			"hound_weapon_plasma": "Heavy Plasma",
+			"hound_weapon_gauss": "Gauss Cannon",
+			"hound_weapon_toggle_tooltip": "Sets weapon to a slow plasma projectile with a large aoe, or a fast projectile gauss weapon",
+			"blueprint_place": "Place Blueprint",
+			"blueprint_place_tooltip": "Place a saved blueprint",
+			"blueprint_create": "Save Blueprint",
+			"blueprint_create_tooltip": "Save the selected units into a new blueprint, in the order they were selected",
 			"customOnOff": {
 				"lowTrajectory": "Low Trajectory",
 				"highTrajectory": "High Trajectory",
 				"trajectory_tooltip": "Switch artillery firing angle between low and high trajectory",
-				"gaussCannon": "Gauss Cannon",
-				"heavyPlasma": "Heavy Plasma",
-				"siegeMode": "Spread Fire",
-				"suppressiveFire": "Focused Fire",
-				"siege_tooltip": "Switches between Focused Fire and longer ranged Spread Fire",
 				"gauss_tooltip": "Switches between Gauss Cannon and Heavy Plasma Cannon"
 			}
 		},
@@ -276,8 +313,6 @@
 			"menus": {
 				"title": "Menus",
 				"settings": "Settings",
-				"widgetsKey": "f11",
-				"widgets": "Widget list",
 				"share": "Share units / resources"
 			},
 			"camera": {
@@ -444,6 +479,8 @@
 			"unitsProduced": "Produced",
 			"unitsKilled": "Killed",
 			"unitsDied": "Lost",
+			"actionsPerMinute1": "Actions",
+			"actionsPerMinute2": "Per Minute",
 			"aggression": "Aggression",
 			"aggressionLevel": "Level",
 			"metal": "Metal",
@@ -459,7 +496,8 @@
 			"metalExtraction": "Metal extraction: %{amount}"
 		},
 		"buildEstimate": {
-			"time": "ETA"
+			"time": "ETA",
+			"cancelled": "Decaying"
 		},
 		"statusBars": {
 			"building": "Building",
@@ -476,7 +514,6 @@
 			"killAllUnits": "Kill all enemy units",
 			"killAllCommanders": "Kill all enemy Commanders",
 			"commandersSurviveDgun": "Commanders survive D-Guns and commander explosions",
-			"unbalancedCommanders": "Unbalanced Commanders is enabled: Commander levels up and gains upgrades",
 			"victoryCondition": "Victory condition",
 			"owncomends": "Losing your commander = losing control of your units / resigning"
 		},
@@ -604,7 +641,8 @@
 			}
 		},
 		"loadScreen": {
-			"intelGpuWarning": "%{textColor}You are using the integrated %{warnColor}Intel graphics%{textColor} card.     It's currently %{warnColor}unsupported, the game won't fully work properly."
+			"intelGpuWarning": "%{textColor}You are using the integrated %{warnColor}Intel graphics%{textColor} card.     It's currently %{warnColor}unsupported, the game won't fully work properly.",
+			"lowRamWarning": "%{textColor}Your system has below the recommended %{warnColor}12GB memory %{textColor}.     Try running with lower settings if you encounter out-of-memory crashes"
 		},
 		"initialSpawn": {
 			"ready": "Ready",
@@ -615,6 +653,19 @@
 			"startCountdown": "Game starting in %{time}...",
 			"choosePoint": "Please choose a start point!",
 			"tooClose": "You cannot place your start position too close to another player"
+		},
+		"draftOrderMod": {
+			"teamPlacement": "Team Placement",
+			"placeYourCom": "Place your commmander",
+			"waitingFor": "Waiting for %{name}",
+			"waitingForTurn": "Waiting for turn",
+			"waitingForPlayers": "Waiting for players",
+			"waitingForTeamToLoad": "Waiting for team to load",
+			"nextIsPlayer": "Next is %{name}",
+			"modeRandom": "Random draft order start position mode activated. Players await their turn to place",
+			"modeCaptain": "Captain draft order start position mode activated. Players await their turn to place",
+			"modeSkill": "Skill-based draft order start position mode activated. Players await their turn to place",
+			"modeFair": "Fair start position mode activated. Please wait until players joins the game before placing"
 		},
 		"substitutePlayers": {
 			"offer": "Offer to play",
@@ -644,7 +695,8 @@
 		},
 		"autogroups": {
 			"unitAdded": "Added %{unit} to autogroup #%{groupNumber}.",
-			"unitRemoved": "Removed %{unit} from autogroups."
+			"unitRemoved": "Removed %{unit} from autogroups.",
+			"presetSelected": "Selected autogroup preset #%{presetNum}."
 		},
 		"moveAttackNotify": {
 			"underAttack": "%{unit} is being attacked!",
@@ -834,6 +886,34 @@
 			"estorage": "E storage",
 			"mstorage": "M storage"
 		},
+		"spectator_hud": {
+			"metalIncome_title": "Metal Income",
+			"metalIncome_tooltip": "Metal income per second",
+			"energyConversionMetalIncome_title": "Metal Conversion",
+			"energyConversionMetalIncome_tooltip": "Metal income from energy conversion" ,
+			"energyIncome_title": "Energy Income",
+			"energyIncome_tooltip": "Energy income per second",
+			"buildPower_title": "Build Power",
+			"buildPower_tooltip": "Build power at disposal",
+			"metalProduced_title": "Metal Produced",
+			"metalProduced_tooltip": "Total metal produced" ,
+			"energyProduced_title": "Energy Produced",
+			"energyProduced_tooltip": "Total energy produced" ,
+			"metalExcess_title": "Metal Excess",
+			"metalExcess_tooltip": "Total metal excess",
+			"energyExcess_title": "Energy Excess",
+			"energyExcess_tooltip": "Total energy excess",
+			"armyValue_title": "Army Value",
+			"armyValue_tooltip": "Army value in metal,\nincl. commander",
+			"defenseValue_title": "Defense Value",
+			"defenseValue_tooltip": "Defense value in metal",
+			"utilityValue_title": "Utility Value",
+			"utilityValue_tooltip": "Utility value in metal",
+			"economyValue_title": "Economy Value",
+			"economyValue_tooltip": "Economy value in metal",
+			"damageDealt_title": "Damage Dealt",
+			"damageDealt_tooltip": "Damage dealt"
+		},
 		"settings": {
 			"basic": "Basic",
 			"advanced": "Advanced",
@@ -852,18 +932,32 @@
 			},
 			"filter": "filter",
 			"option": {
-				"preset_lowest": "Lowest",
-				"preset_low": "Low",
-				"preset_medium": "Medium",
-				"preset_high": "High",
-				"preset_ultra": "Ultra",
-				"preset_custom": "Custom",
+				"select_enabled": "enabled",
+				"select_disabled": "disabled",
+				"select_on": "on",
+				"select_off": "off",
+				"select_lowest": "lowest",
+				"select_low": "low",
+				"select_medium": "medium",
+				"select_high": "high",
+				"select_ultra": "ultra",
+				"select_custom": "custom",
+				"select_adaptive": "adaptive",
+				"select_firstperson": "first person",
+				"select_overhead": "overhead",
+				"select_springcam": "spring",
+				"select_rotoverhead": "rotatable overhead",
+				"select_constant": "constant",
+				"select_terrain": "terrain",
+				"select_smooth": "smooth",
+				"select_free": "free",
 				"label_screen": "Screen",
 				"label_interface": "Interface",
 				"label_lighting": "Lighting",
 				"label_effects": "Effects",
 				"label_visuals": "Visuals",
 				"label_ranges": "Ranges",
+				"label_spectator": "Spectator",
 				"label_environment": "Environment",
 				"label_behavior": "Behavior",
 				"label_automation": "Automation",
@@ -873,6 +967,7 @@
 				"label_playlist": "Playlist",
 				"label_messages": "Messages",
 				"label_cursor": "Cursor",
+				"label_commands": "Commands",
 				"label_hotkeys": "Hotkeys",
 				"label_camera": "Camera",
 				"label_cloak": "Cloak Units",
@@ -884,6 +979,7 @@
 				"label_widgets": "Widgets",
 				"label_options": "Options",
 				"label_teamcolors": "Teamcolors",
+				"label_developer": "Developer",
 				"author": "Author",
 				"preset": "Graphics Quality",
 				"display": "Display",
@@ -1027,6 +1123,7 @@
 				"sndvolgeneral": "general",
 				"sndvolbattle": "battle",
 				"sndvolui": "interface",
+				"sndvolambient": "ambient",
 				"sndvolunitreply": "unit reply",
 				"sndunitsound": "Unit Response Sounds",
 				"sndunitsound_desc": "Unit Response Sounds",
@@ -1037,9 +1134,6 @@
 				"sndvolmusic": "music",
 				"loadscreen_music": "starts at loadscreen",
 				"loadscreen_music_descr": "Music when displaying the startup load screen",
-				"scav_messages": "Scavenger written notifications",
-				"scav_voicenotifs": "Scavenger voice notifications",
-				"scav_voicenotifs_descr": "Toggle the scavenger announcer voice",
 				"notifications_set": "Voice",
 				"notifications_tutorial": "Tutorial mode",
 				"notifications_tutorial_descr": "Additional messages that guide you how to play\n\nIt remembers what has been played already\n(Re)enabling this will reset this",
@@ -1094,9 +1188,6 @@
 				"camoverviewrestore_descr": "After overview camera is toggled off: restore previous camera position and not zoom to cursor position",
 				"springcamheightmode": "camera height",
 				"springcamheightmode_descr": "Height adjustment behavior for when moving spring camera moves over uneven terrain",
-				"constant": "constant",
-				"terrain": "terrain",
-				"smooth": "smooth",
 				"minimumcameraheight": "minimum camera height",
 				"lockcamera": "Tracking cam",
 				"lockcamera_transitiontime": "smoothing",
@@ -1160,6 +1251,8 @@
 				"gridmenu_alwaysreturn_descr": "While queueing commands, return to categories page after issuing",
 				"gridmenu_autoselectfirst": "Grid category selects structure",
 				"gridmenu_autoselectfirst_descr": "When selecting a category, automatically activate the first option within that category",
+				"gridmenu_labbuildmode": "Factory build mode hotkeys",
+				"gridmenu_labbuildmode_descr": "To use lab building hotkeys, build mode needs to be activated first",
 				"keylayout": "Keyboard Layout",
 				"keylayout_descr": "Set the keyboard layout",
 				"keybindings": "Keybind Preset",
@@ -1206,6 +1299,8 @@
 				"advplayerlist_side_descr": "show side/faction icon",
 				"advplayerlist_skill": "OpenSkill value",
 				"advplayerlist_skill_descr": "show the player openskill number (used for balancing algorithm)",
+				"advplayerlist_resources": "resource bars",
+				"advplayerlist_resources_descr": "displays the energy/metal resource bar values\n(if you have team members)",
 				"advplayerlist_income": "income values",
 				"advplayerlist_income_descr": "displays the energy/metal income values\n(if you have team members)",
 				"advplayerlist_cpuping": "cpu/ping number",
@@ -1259,6 +1354,12 @@
 				"buildbar_descr": "Displays a column of factories at the right side of the screen\nhover and click units to quickly add to the factory queue",
 				"converterusage": "Energy Converter usage",
 				"converterusage_descr": "Displays the current energy->metal converter usage at the top of the screen",
+				"seeprices": "Show unit prices",
+				"seeprices_descr": "Show unit prices when they are being offered for sale",
+				"showaisaleoffers": "Show AI sale offers",
+				"showaisaleoffers_descr": "Show AI unit sale icons",
+				"buywithoutholdignalt": "Buy without holding ALT",
+				"buywithoutholdignalt_descr": "Buy units or send requests with a double-click without having to hold ALT",
 				"teamplatter": "Unit team platters",
 				"teamplatter_descr": "Shows a team color platter above all visible units",
 				"teamplatter_opacity": "opacity",
@@ -1328,6 +1429,8 @@
 				"showbuilderqueue_descr": "Shows ghosted buildings about to be built on the map",
 				"unitenergyicons": "Unit insufficient energy icons",
 				"unitenergyicons_descr": "Shows a red power bolt above units that cant fire their most e consuming weapon\nwhen you haven't enough energy available.",
+				"unitidlebuildericons": "Unit idle builder icons",
+				"unitidlebuildericons_descr": "Shows a sleep icon above builder units that are idle.",
 				"nametags_rank": "Commander name tag rank icon",
 				"nametags_rank_descr": "Display the player rank icon left of the commander player name.\n(only shown in multiplayer)",
 				"nametags_icon": "Commander name on icon",
@@ -1367,6 +1470,8 @@
 				"attackrange_shiftonly_descr": "Show ranges only when shift is pressed",
 				"attackrange_cursorunitrange": "cursor hover range",
 				"attackrange_cursorunitrange_descr": "Show ranges when hovering over a unit",
+				"attackrange_numrangesmult": "Max units multiplier",
+				"attackrange_numrangesmult_descr": "Multiplier to the limit of max amount of units it will make attack ranges active for.",
 				"defrange": "Defense ranges",
 				"defrange_descr": "Displays range of defenses (enemy and ally)",
 				"defrange_allyair": "Ally Air",
@@ -1389,6 +1494,8 @@
 				"lockcamera_hideenemies_descr": "When viewing a players camera, this will display what the tracked player sees",
 				"lockcamera_los": "show tracked player LoS",
 				"lockcamera_los_descr": "When viewing a players camera and los, shows shaded los ranges too",
+				"drag_multicommand_shift": "Repeat command when dragging",
+				"drag_multicommand_shift_descr": "When dragging right-click with a single unit selected, issue repeat commands while holding shift",
 				"playertv_countdown": "Player TV countdown",
 				"playertv_countdown_descr": "Countdown time before it switches player",
 				"displayselectedname": "Display selected playername",
@@ -1426,7 +1533,7 @@
 				"autogroup_persist_descr": "Autogroups persist in new games.\nIf this is enabled, units which were added to an autogroup in previous games\n will be added to the same group in this game.",
 				"factory": "Factory",
 				"factoryguard": "guard (builders)",
-				"factoryguard_descr": "Newly created builders will assist their source factory",
+				"factoryguard_descr": "Sets factory guard to on by default, builders will automatically guard the factory that produced them",
 				"factoryholdpos": "hold position",
 				"factoryholdpos_descr": "Sets factories and units they produce, to hold position automatically (not aircraft)",
 				"factoryrepeat": "auto-repeat",
@@ -1452,6 +1559,9 @@
 				"customwidgets": "Allow custom widgets",
 				"customwidgets_descr": "enable loading of custom widgets (placed inside spring/luaui/widgets)",
 				"profiler": "Widget profiler",
+				"profiler_min_time": "Minimum Time",
+				"profiler_min_memory": "Minimum Memory",
+				"profiler_sort_by_load": "Sort By Load",
 				"framegrapher": "Frame grapher",
 				"autocheat": "Auto enable cheats for $VERSION",
 				"autocheat_descr": "does: /cheat, /globallos, /godmode",
@@ -1492,6 +1602,7 @@
 				"green": "green",
 				"blue": "blue",
 				"language": "Language",
+				"language_english_unit_names": "Display unit names in English",
 				"reclaimfieldhighlight": "Reclaim Field Highlight",
 				"reclaimfieldhighlight_descr": "Highlights clusters of reclaimable metal",
 				"reclaimfieldhighlight_always": "Always enabled",
@@ -1500,9 +1611,53 @@
 				"reclaimfieldhighlight_resbot": "Resurrector selected",
 				"reclaimfieldhighlight_order": "Reclaim order active",
 				"reclaimfieldhighlight_disabled": "Disabled",
+				"highlightcomwrecks": "Highlight Commander Wreckages",
+				"highlightcomwrecks_descr": "Highlights commander wreckages with a vertical beam",
+				"highlightcomwrecks_teamcolor": "use teamcolors",
+				"highlightcomwrecks_teamcolor_descr": "Use the player's color for the beam, instead of the default color (resurrect color)",
 				"buildinggrid": "Building Grid",
 				"buildinggrid_descr": "Shows a grid on the ground to assist building placement",
-				"buildinggridopacity": "opacity"
+				"buildinggridopacity": "opacity",
+				"spectator_hud": "Spectator HUD",
+				"spectator_hud_descr": "Enable/Disable Spectator HUD",
+				"spectator_hud_size": "Spectator HUD size on screen",
+				"spectator_hud_config": "HUD mode",
+				"spectator_hud_config_descr": "Select Spectator HUD mode",
+				"spectator_hud_config_basic": "Basic",
+				"spectator_hud_config_advanced": "Advanced",
+				"spectator_hud_config_expert": "Expert",
+				"spectator_hud_config_custom": "Custom",
+				"startpositionsuggestions": "Start Position Suggestions",
+				"startpositionsuggestions_descr": "Show expert recommended starting locations on the map"
+			}
+		},
+		"startPositionSuggestions": {
+			"tutorial": "Recommended start positions and roles are indicated within the circles.\n\nTo disable this, check the Settings window for \"Start Position Suggestions\".",
+			"roles": {
+				"front": {
+					"title": "Front",
+					"description": "Build ground units and bring your Commander forward to secure a strong central position, taking metal spots along the way."
+				},
+				"tech": {
+					"title": "Tech",
+					"description": "Focus on economy to support building a Tier 2 factory, then distribute Tier 2 constructors to the team, and attack with high tier units."
+				},
+				"air": {
+					"title": "Air",
+					"description": "Scout enemy players, distribute transports to allies, fight for air dominance, bomb enemy bases, and help defend against raids."
+				},
+				"sea": {
+					"title": "Sea",
+					"description": "Build navy units and secure a strong position on the map. Later, build amphibious or air units to invade enemies on land."
+				},
+				"baseCenter": {
+					"title": "Base Center",
+					"description": "Move your Commander here shortly after spawning. Build your first factory in this area."
+				}
+			},
+			"multiRole": {
+				"title": "%{role1}/%{role2}",
+				"description": "%{role1}\n\nand/or\n\n%{role2}"
 			}
 		}
 	}

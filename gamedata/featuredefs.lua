@@ -17,10 +17,7 @@ local shared = {} -- shared amongst the lua featuredef enviroments
 local preProcFile  = 'gamedata/featuredefs_pre.lua'
 local postProcFile = 'gamedata/featuredefs_post.lua'
 
-local TDF = TDFparser or VFS.Include('gamedata/parse_tdf.lua')
-
 local system = VFS.Include('gamedata/system.lua')
-VFS.Include('gamedata/VFSUtils.lua')
 local section='featuredefs.lua'
 
 --------------------------------------------------------------------------------
@@ -37,33 +34,14 @@ if (VFS.FileExists(preProcFile)) then
 	Shared = nil
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
---
---  Load the TDF featuredef files
---
-
-local tdfFiles = RecursiveFileSearch('features/', '*.tdf') 
-
-for _, filename in ipairs(tdfFiles) do
-	local fds, err = TDF.Parse(filename)
-	if (fds == nil) then
-		Spring.Log(section, LOG.ERROR, 'Error parsing ' .. filename .. ': ' .. err)
-	else
-		for name, fd in pairs(fds) do
-			featureDefs[name] = fd
-		end
-	end
-end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --
 --  Load the raw LUA format featuredef files
---  (these will override the TDF versions)
 --
 
-local luaFiles = RecursiveFileSearch('features/', '*.lua')
+local luaFiles = VFS.DirList('features/', '*.lua', nil, true)
 
 for _, filename in ipairs(luaFiles) do
 	local fdEnv = {}

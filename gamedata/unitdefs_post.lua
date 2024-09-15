@@ -1,7 +1,22 @@
 -- see alldefs.lua for documentation
+VFS.Include("gamedata/unitdefrenames.lua")
 VFS.Include("gamedata/alldefs_post.lua")
 VFS.Include("gamedata/post_save_to_customparams.lua")
 local system = VFS.Include("gamedata/system.lua")
+
+local scavengersEnabled = false
+if Spring.GetTeamList then
+	local teamList = Spring.GetTeamList()
+	for _, teamID in ipairs(teamList) do
+		local luaAI = Spring.GetTeamLuaAI(teamID)
+		if luaAI and luaAI:find("Scavengers") then
+			scavengersEnabled = true
+		end
+	end
+end
+if Spring.GetModOptions().ruins == "enabled" or Spring.GetModOptions().forceallunits == true then
+	scavengersEnabled = true
+end
 
 local regularUnitDefs = {}
 local scavengerUnitDefs = {}
@@ -69,14 +84,6 @@ local function tableMergeSpecial(t1, t2)
 	return newTable
 end
 
--- Unbalanced (upgradeable) Commanders modoption
-if Spring.GetModOptions().unba then
-	VFS.Include("unbaconfigs/unbacom_post.lua")
-	VFS.Include("unbaconfigs/stats.lua")
-	VFS.Include("unbaconfigs/buildoptions.lua")
-	UnbaCom_Post("armcom")
-	UnbaCom_Post("corcom")
-end
 
 local function getDimensions(scale)
 	if not scale then
@@ -299,9 +306,12 @@ if SaveDefsToCustomParams then
 	bakeUnitDefs()
 end
 
+
 preProcessTweakOptions()
 preProcessUnitDefs()
-createScavengerUnitDefs()
+if scavengersEnabled then
+	createScavengerUnitDefs()
+end
 postProcessAllUnitDefs()
 postProcessRegularUnitDefs()
 postProcessScavengerUnitDefs()

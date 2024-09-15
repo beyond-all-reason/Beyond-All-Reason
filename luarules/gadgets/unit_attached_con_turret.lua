@@ -29,6 +29,7 @@ local SpGetFeaturesInCylinder = Spring.GetFeaturesInCylinder
 local SpGetFeatureDefID = Spring.GetFeatureDefID
 local SpGetFeatureResurrect = Spring.GetFeatureResurrect
 local SpGetUnitHealth = Spring.GetUnitHealth
+local SpGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local SpGetUnitDefDimensions = Spring.GetUnitDefDimensions
 local SpGetFeatureRadius = Spring.GetFeatureRadius
 local SpGetUnitRadius = Spring.GetUnitRadius
@@ -175,8 +176,7 @@ local function auto_repair_routine(unitID,unitDefID)
 		local near_defid = SpGetUnitDefID(near_unit)
 		if SpGetUnitAllyTeam(near_unit) == SpGetUnitAllyTeam(unitID) then
 			if ( (SpGetUnitSeparation(near_unit,unitID,true) - SpGetUnitRadius(near_unit)) < radius) then
-				local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = SpGetUnitHealth(near_unit)
-				if buildProgress < 1 then
+				if SpGetUnitIsBeingBuilt(near_unit) then
 					SpGiveOrderToUnit(unitID,CMD_REPAIR,{near_unit}, {})
 					return
 				end
@@ -211,6 +211,20 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		-- makes the attached con turret as non-interacting as possible
 		Spring.SetUnitBlocking(nano_id, false, false, false)
 		Spring.SetUnitNoSelect(nano_id,true)
+		attached_builders[nano_id] = unitID
+		attached_builder_def[nano_id] = SpGetUnitDefID(nano_id)
+	end
+	if unitDef.name == "legmohobp" then
+		local xx,yy,zz = SpGetUnitPosition(unitID)
+		nano_id = Spring.CreateUnit("legmohobpct",xx,yy,zz,0,Spring.GetUnitTeam(unitID) )
+		if not nano_id then
+			-- unit limit hit or invalid spawn surface
+			return
+		end
+		Spring.UnitAttach(unitID,nano_id,3)
+		-- makes the attached con turret as non-interacting as possible 
+		Spring.SetUnitBlocking(nano_id, false, false, false)
+        Spring.SetUnitNoSelect(nano_id,false)
 		attached_builders[nano_id] = unitID
 		attached_builder_def[nano_id] = SpGetUnitDefID(nano_id)
 	end

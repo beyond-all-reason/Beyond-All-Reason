@@ -63,6 +63,10 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		cmdidtoradarsize[-1 * unitDefID] = "small"
 		radaremitheight[-1 * unitDefID] = 72
 	end
+	if unitDef.name == 'legrad' then
+		cmdidtoradarsize[-1 * unitDefID] = "small"
+		radaremitheight[-1 * unitDefID] = 72
+	end
 	if unitDef.name == 'corfrad' then
 		cmdidtoradarsize[-1 * unitDefID] = "small"
 		radaremitheight[-1 * unitDefID] = 72
@@ -90,7 +94,7 @@ local shaderSourceCache = {
 			},
 		uniformFloat = {
 			radarcenter_range = { 2000, 100, 2000, 2000 },
-			resolution = { 32 },
+			resolution = { 64 },
 		  },
 		shaderConfig = shaderConfig,
 	}
@@ -196,7 +200,7 @@ function widget:DrawWorld()
 
 	radarTruthShader:Deactivate()
 	gl.Texture(0, false)
-
+	gl.Culling(false)
 	gl.DepthTest(true)
 end
 

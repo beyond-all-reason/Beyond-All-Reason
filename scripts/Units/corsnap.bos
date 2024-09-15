@@ -124,7 +124,7 @@ Create()
 	hide wake;
 	hide flare;
 	hide flare;
-	spin fan around y-axis speed <150> accelerate <30>;
+	spin fan around y-axis speed <-300> accelerate <30>;
 	restore_delay = 3000;
 	while( get BUILD_PERCENT_LEFT )
 	{

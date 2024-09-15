@@ -6,6 +6,21 @@
 
 namespace Factory {
 
+enum Attr {
+	T1 = 0x0001, T2 = 0x0002, T3 = 0x0004, T4 = 0x0008
+}
+
+class SUserData {
+	SUserData(int a) {
+		attr = a;
+	}
+	SUserData() {}
+	int attr = 0;
+}
+
+// Example of userData per UnitDef
+array<SUserData> userData(ai.GetDefCount() + 1);
+
 string armlab  ("armlab");
 string armalab ("armalab");
 string armvp   ("armvp");
@@ -13,6 +28,7 @@ string armavp  ("armavp");
 string armsy   ("armsy");
 string armasy  ("armasy");
 string armap   ("armap");
+string armaap  ("armaap");
 string armshltx("armshltx");
 string corlab  ("corlab");
 string coralab ("coralab");
@@ -21,6 +37,7 @@ string coravp  ("coravp");
 string corsy   ("corsy");
 string corasy  ("corasy");
 string corap   ("corap");
+string coraap  ("coraap");
 string corgant ("corgant");
 
 float switchLimit = MakeSwitchLimit();
@@ -44,6 +61,14 @@ void AiUnitAdded(CCircuitUnit@ unit, Unit::UseAs usage)
 		return;
 
 	const CCircuitDef@ facDef = unit.circuitDef;
+	if (userData[facDef.id].attr & Attr::T3 != 0) {
+		// if (ai.teamId != ai.GetLeadTeamId()) then this change affects only target selection,
+		// while threatmap still counts "ignored" here units.
+		array<string> spam = {"armpw", "corak", "armflea", "armfav", "corfav"};
+		for (uint i = 0; i < spam.length(); ++i)
+			ai.GetCircuitDef(spam[i]).SetIgnore(true);
+	}
+
 	const array<Opener::SO>@ opener = Opener::GetOpener(facDef);
 	if (opener is null)
 		return;
@@ -54,17 +79,17 @@ void AiUnitAdded(CCircuitUnit@ unit, Unit::UseAs usage)
 		if ((buildDef is null) || !buildDef.IsAvailable(ai.frame))
 			continue;
 
-		Task::Priority priotiry;
+		Task::Priority priority;
 		Task::RecruitType recruit;
 		if (opener[i].role == Unit::Role::BUILDER.type) {
-			priotiry = Task::Priority::NORMAL;
+			priority = Task::Priority::NORMAL;
 			recruit  = Task::RecruitType::BUILDPOWER;
 		} else {
-			priotiry = Task::Priority::HIGH;
+			priority = Task::Priority::HIGH;
 			recruit  = Task::RecruitType::FIREPOWER;
 		}
 		for (uint j = 0, jcount = opener[i].count; j < jcount; ++j)
-			aiFactoryMgr.EnqueueTask(priotiry, buildDef, pos, recruit, 64.f);
+			aiFactoryMgr.Enqueue(TaskS::Recruit(recruit, priority, buildDef, pos, 64.f));
 	}
 }
 

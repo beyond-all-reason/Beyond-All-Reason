@@ -50,7 +50,7 @@ local currentTypewriterLine = 0
 local scrolling = false
 local lineMaxWidth = 0
 
-local font, chobbyInterface, hovering, startFadeTime, buildmenuBottomPosition
+local font, hovering, startFadeTime, buildmenuBottomPosition
 
 local RectRound, elementCorner
 
@@ -248,14 +248,7 @@ local function processLine(i)
 	end
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1,18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
-	end
-end
-
 function widget:DrawScreen()
-	if chobbyInterface then return end
 	if not messageLines[1] then return end
 
 	if allowInteraction then

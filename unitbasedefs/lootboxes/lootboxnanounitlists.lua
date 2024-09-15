@@ -230,7 +230,7 @@ return {
 		"armfepocht4",
 		"corfblackhyt4",
 		"corcrwt4",
-		"cordemont4",
+		"cordemon",
 		"corkarganetht4",
 		"corgolt4",
 		"corakt4",

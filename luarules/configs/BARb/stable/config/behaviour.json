@@ -17,13 +17,14 @@
 		"all": 0.5,  // threat map 64-elmos slack multiplier for all units
 		"static": 0.5,  // additional 64-elmo-cells for static units
 		"speed": [0.75, 4.0]  // [<64elmo_cells_speed_mod>, <max_64elmo_cells>]
-	}
+	},
+	"num_batch": 5  // quantity of mobile units in build-batch
 },
 
 // If unit's health drops below specified percent it will retreat
 "retreat": {
-	"builder": [0.89, 1.0],  // [<default>, <UnitDef modifier>] for all builders
-	"fighter": [0.55, 1.0],  // [<default>, <UnitDef modifier>] for all not-builder units
+	"builder": [0.8, 0.89, 1.0],  // [<min default>, <max default>, <UnitDef modifier>] for all builders
+	"fighter": [0.5, 0.55, 1.0],  // [<min default>, <max default>, <UnitDef modifier>] for all not-builder units
 	"shield": [0.25, 0.55]  // [<empty>, <full>] shield power
 },
 
@@ -70,6 +71,8 @@
 		// true = on
 		// false = off
 //		"slow_target": false,
+		// Initial on/off state on UnitFinished
+//		"on": true,
 
 		// Overrides reloadTime in seconds
 //		"reload": 1.0,
@@ -90,6 +93,7 @@
 
 		// Minimum hp percent before retreat
 //		"retreat": 0.8,
+//		"retreat": [0.5, 0.9],  // random between min and max value
 
 		// Ally threat multiplier
 //		"power": 1.0,
@@ -147,6 +151,7 @@
 	"armguard": {
 		"role": ["static"],
 		"attribute": ["artillery"],
+		"on": false,
 		"threat": 0.3
 	},
 	"armclaw": {
@@ -180,7 +185,8 @@
 	},
 	"armamb": {
 		"role": ["static"],
-		"attribute": ["artillery"]
+		"attribute": ["artillery"],
+		"on": false
 	},
 	"armanni": {
 		"role": ["static"],
@@ -204,6 +210,7 @@
 	"corpun": {
 		"role": ["static"],
 		"attribute": ["artillery"],
+		"on": false,
 		"threat": 0.3
 	},
 	"corrl": {
@@ -233,7 +240,8 @@
 	},
 	"cortoast": {
 		"role": ["static"],
-		"attribute": ["artillery"]
+		"attribute": ["artillery"],
+		"on": false
 	},
 	"cordoom": {
 		"role": ["static"],
@@ -251,6 +259,7 @@
 		"role": ["static"],
 		"attribute": ["support"],
 		"limit": 1,
+		"midposoffset": [0, 0, -4],
 		"build_speed": 10.0
 	},
 	"armavp": {
@@ -371,7 +380,8 @@
 	},
 	"armpw": {
 		"role": ["raider"],
-		"attribute": ["scout"]
+		"attribute": ["scout"],
+		"retreat": 0.1
 	},
 	"armrectr": {
 		"role": ["raider"],
@@ -576,6 +586,10 @@
 		"attribute": ["siege"],
 		"retreat": 0.6
 	},
+	"armasp": {
+		"role": ["static"],
+		"limit": 1
+	},
 
 	// adv aircraft - armaap
 	"armaca": {
@@ -704,7 +718,8 @@
 	},
 	"corak": {
 		"role": ["raider"],
-		"attribute": ["scout"]
+		"attribute": ["scout"],
+		"retreat": 0.1
 	},
 	"cornecro": {
 		"role": ["raider"],
@@ -984,6 +999,10 @@
 		"attribute": ["siege"],
 		"retreat": 0.3
 	},
+	"corasp": {
+		"role": ["static"],
+		"limit": 1
+	},
 
 	// adv aircraft - coraap
 	"coraca": {
@@ -1042,6 +1061,38 @@
 		"ignore": true
 	},
 	"corfort_scav": {
+		"role": ["static"],
+		"ignore": true
+	},
+	"corscavdrag": {
+		"role": ["static"],
+		"ignore": true
+	},
+	"corscavdrag_scav": {
+		"role": ["static"],
+		"ignore": true
+	},
+	"corscavfort": {
+		"role": ["static"],
+		"ignore": true
+	},
+	"corscavfort_scav": {
+		"role": ["static"],
+		"ignore": true
+	},
+	"armfdrag": {
+		"role": ["static"],
+		"ignore": true
+	},
+	"armfdrag_scav": {
+		"role": ["static"],
+		"ignore": true
+	},
+	"corfdrag": {
+		"role": ["static"],
+		"ignore": true
+	},
+	"corfdrag_scav": {
 		"role": ["static"],
 		"ignore": true
 	},

@@ -8,14 +8,14 @@ UnitSpeed(){
 	var unitxz;
 	while(TRUE){
 		
-		//get PRINT ((GET UNIT_Y)/65000, bMoving, 2, 3);
-		if (bMoving == TRUE){
+		//get PRINT ((GET UNIT_Y)/65000, isMoving, 2, 3);
+		if (isMoving == TRUE){
 			unitxz = (get UNIT_XZ);
 			groundheight = 0;
 			if (unitxz > 0 ){
 				groundheight = (get GROUND_WATER_HEIGHT(unitxz));
 			}
-			groundheight = groundheight /[1.0000];
+			groundheight = groundheight /[1.0];
 			
 			//groundheight = (get GROUND_WATER_HEIGHT (get UNIT_XZ))/65536;
 			//get PRINT (groundheight, get IN_WATER, get GAME_FRAME);
@@ -26,7 +26,7 @@ UnitSpeed(){
 					start-script UnitSpeed();
 					start-script Walk();
 					isSwimming = FALSE;
-					signal SIG_WALK;
+					signal SIGNAL_MOVE;
 				}
 				
 			}else{
@@ -35,7 +35,7 @@ UnitSpeed(){
 					start-script Swim();
 					start-script UnitSpeed();
 					isSwimming = TRUE;
-					signal SIG_WALK;
+					signal SIGNAL_MOVE;
 				}
 			}
 		}
@@ -50,18 +50,18 @@ UnitSpeed(){
 }
 
 
-StartMoving(){
-	signal SIG_WALK;
-	set-signal-mask SIG_WALK;
-	bMoving=TRUE;
+StartMoving(reversing){
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	isMoving=TRUE;
 	start-script UnitSpeed();
 	if (isSwimming == TRUE) start-script Swim();
 	else start-script Walk();
 }
 
 StopMoving(){
-	signal SIG_WALK;
-	bMoving=FALSE;
+	signal SIGNAL_MOVE;
+	isMoving=FALSE;
 	if (!isDying){
 		if (isSwimming == TRUE ) call-script StopSwimming();
 		else call-script StopWalking();
@@ -95,10 +95,7 @@ Create()
 }
 
 
-SweetSpot(piecenum)
-{
-	piecenum=body;	
-}	
+	
 
 	
 RestoreAfterDelay()

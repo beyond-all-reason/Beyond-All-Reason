@@ -10,12 +10,11 @@ function widget:GetInfo()
    }
 end
 
-local myvisibleUnits = {} -- table of unitID : unitDefID
-
 local resurrectionHalosVBO = nil
 local resurrectionHalosShader = nil
 local luaShaderDir = "LuaUI/Widgets/Include/"
 local texture = 'LuaUI/Images/halo.dds'
+local chobbyInterface
 
 local OPTIONS = {
 	haloSize				= 0.8,
@@ -60,7 +59,6 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	if unitConf[unitDefID] == nil or Spring.GetUnitRulesParam(unitID, "resurrected") == nil then return end
 
 	local gf = Spring.GetGameFrame()
-	myvisibleUnits[unitID] = unitDefID
 	pushElementInstance(
 		resurrectionHalosVBO, -- push into this Instance VBO Table
 		{
@@ -89,7 +87,6 @@ function widget:VisibleUnitRemoved(unitID)
 	--Spring.Echo("widget:VisibleUnitRemoved",unitID)
 	if resurrectionHalosVBO.instanceIDtoIndex[unitID] then
 		popElementInstance(resurrectionHalosVBO, unitID)
-		myvisibleUnits[unitID] = nil
 	end
 end
 

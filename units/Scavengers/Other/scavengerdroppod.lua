@@ -77,8 +77,8 @@ return {
 				smokecolor = 0.9,
 				smokeTrailCastShadow = true,
 				castshadow = true, --projectile
-				soundstart = "voice/allison/scavengers/scavspawn",
-				soundhit = "voice/allison/scavengers/scavdropspawn",
+				soundstart = "scavspawn",
+				soundhit = "scavdropspawn",
 				startvelocity = 1,
 				targetborder = 0.75,
 				texture1 = "null",

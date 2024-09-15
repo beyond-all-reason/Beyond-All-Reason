@@ -55,6 +55,7 @@ local unitShader, unitShapeShader
 local unitShaderConfig = {
 	STATICMODEL = 0.0, -- do not touch!
 	TRANSPARENCY = 0.5, -- transparency of the stuff drawn
+	SKINSUPPORT = Script.IsEngineMinVersion(105, 0, 1653) and 1 or 0,
 }
 
 local unitShapeShaderConfig = {
@@ -154,7 +155,9 @@ void main() {
 
 	vec3 modelBaseToCamera = cameraViewInv[3].xyz - (pieceMatrix[3].xyz + worldposrot.xyz);
 	if ( dot (modelBaseToCamera, modelBaseToCamera) >  (iconDistance * iconDistance)) {
-		myTeamColor.a = 0.0; // do something if we are far out?
+		if (isDynamic == 1u) { // Only hide dynamic units when zoomed out
+			myTeamColor.a = 0.0; // do something if we are far out?
+		}
 	}
 
 	v_parameters = parameters;
@@ -212,103 +215,137 @@ local VBOTables = {}
 local corUnitDefIDs = {}
 local armUnitDefIDs = {}
 
+local unitDefIDtoTex1 = {} -- Keys unit def IDs to whichever tex1 is used
+local tex1ToVBO = {['arm_color.dds'] = true, ['cor_color.dds'] = true, ['leg_color.dds'] = true, ['legmech_color.dds'] = true} -- Keys texture1 to which VBO is used, small intermediate table, not really used
+local unitDeftoUnitShapeVBOTable = {} --  The important one, which keys the unitDefID to the actual vbo table to be used
+local uniqueIDtoUnitShapeVBOTable = {}
+
+local owners = {} -- maps uniqueIDs to their optional owners
 
 local uniqueID = 0
 
-local function DrawUnitGL4(unitID, unitDefID, px, py, pz, rotationY, alpha, teamID, teamcoloroverride, highlight)
-	-- Documentation for DrawUnitGL4:
-	--	unitID: the actual unitID that you want to draw
-	--	unitDefID: which unitDef is it (leave nil for autocomplete)
-	-- px, py, py: Apply an offset to the position of the unit, usually all 0
-	-- rotationY: Angle in radians on how much to rotate the unit around Y, usually 0
-	-- alpha: the transparency level of the unit
-	-- teamID: which teams teamcolor should this unit get, leave nil if you want to keep the original teamID
-	-- teamcoloroverride: much we should mix the teamcolor into the model color [0-1]
-	-- highlight: how much we should add a highlighting animation to the unit (blends white with [0-1])
-	-- returns: a unique handler ID number that you should store and call StopDrawUnitGL4(uniqueID) with to stop drawing it
-	-- note that widgets are responsible for stopping the drawing of every unit that they submit!
+local instanceCache = {}
+for i= 1, 14 do instanceCache[i] = 0 end
+
+
+---DrawUnitGL4(unitID, unitDefID, px, py, pz, rotationY, alpha, teamID, teamcoloroverride, highlight, updateID, ownerID)
+---Draw a copy of an actual unit, with all of its animations too. That unit must be in view. For things like highlighting under construction stuff. 
+---note that widgets are responsible for stopping the drawing of every unit that they submit! They may use RemoveMyDraws(ownerID). Note that prompt removal when widget:VisibleUnitRemoved(unitID) is essential here!
+---@param unitID number the actual unitID that you want to draw
+---@param unitDefID number which unitDef do you want to draw
+---@param px number optional where in the world to do you want to draw it
+---@param py number optional where in the world to do you want to draw it
+---@param pz number optional where in the world to do you want to draw it
+---@param rotationY number optional Angle in radians on how much to rotate the unit around Y, 0 means it faces south, (+Z), pi/2 points west (-X) -pi/2 points east
+---@param alpha number optional the transparency level of the unit
+---@param teamID number optional which teams teamcolor should this unit get, leave nil if you want to keep the original teamID
+---@param teamcoloroverride number optional much we should mix the teamcolor into the model color [0-1]
+---@param highlight number optional how much we should add a highlighting animation to the unit (blends white with [0-1])
+---@param updateID number optional specify the previous uniqueID if you want to update it
+---@param ownerID any optional unique identifier so that widgets can batch remove all of their own stuff
+---@return uniqueID number a unique handler ID number that you should store and call StopDrawUnitGL4(uniqueID) with to stop drawing it
+local function DrawUnitGL4(unitID, unitDefID, px, py, pz, rotationY, alpha, teamID, teamcoloroverride, highlight, updateID, ownerID)
 
 	unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
 
-	uniqueID = uniqueID + 1
-
+	px = px or 0 
+	py = py or 0
+	pz = pz or 0
+	rotationY = rotationY or 0 
+	alpha = alpha or 1
 	teamID = teamID or 256
 	--teamID = Spring.GetUnitTeam(unitID)
 	highlight = highlight or 0
 	teamcoloroverride = teamcoloroverride or 0
+
+	if not updateID then 
+		uniqueID = uniqueID + 1
+		updateID = uniqueID
+	end
+	
+	if ownerID then owners[updateID] = ownerID end
+	
 	local DrawUnitVBOTable
 	--Spring.Echo("DrawUnitGL4", objecttype, UnitDefs[unitDefID].name, unitID, "to uniqueID", uniqueID,"elemID", elementID)
 	if corUnitDefIDs[unitDefID] then DrawUnitVBOTable = corDrawUnitVBOTable
 	elseif armUnitDefIDs[unitDefID] then DrawUnitVBOTable = armDrawUnitVBOTable
 	else
-		Spring.Echo("The given unitDefID", unitDefID, "is neither arm nor cor, only those two are supported at the moment")
+		Spring.Echo("DrawUnitGL4 : The given unitDefID", unitDefID, UnitDefs[unitDefID].name, "is neither arm nor cor, only those two are supported at the moment")
 		Spring.Debug.TraceFullEcho(nil,nil,nil,"DrawUnitGL4")
 		return nil
 	end
-
-	local elementID = pushElementInstance(DrawUnitVBOTable, {
-			px, py, pz, rotationY,
-			alpha, 0, teamcoloroverride,highlight ,
-			teamID, 0,
-			0,0,0,0
-		},
-		uniqueID,
+	
+	instanceCache[1], instanceCache[2], instanceCache[3], instanceCache[4] = px, py, pz, rotationY
+	instanceCache[5], instanceCache[6], instanceCache[7], instanceCache[8] = alpha, 0, teamcoloroverride, highlight
+	instanceCache[9] = teamID
+	
+	local elementID = pushElementInstance(
+		DrawUnitVBOTable,
+		instanceCache,
+		updateID,
 		true,
 		nil,
 		unitID,
 		"unitID")
-	return uniqueID
+	return updateID
 end
 
-
-local function DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, alpha, teamID, teamcoloroverride, highlight)
-	-- Documentation for DrawUnitShapeGL4:
-	--	unitDefID: which unitDef do you want to draw
-	-- px, py, py: where in the world to do you want to draw it
-	-- rotationY: Angle in radians on how much to rotate the unit around Y,
-		-- 0 means it faces south, (+Z),
-		-- pi/2 points west (-X)
-		-- -pi/2 points east
-	-- alpha: the transparency level of the unit
-	-- teamID: which teams teamcolor should this unit get, leave nil if you want to keep the original teamID
-	-- teamcoloroverride: much we should mix the teamcolor into the model color [0-1]
-	-- highlight: how much we should add a highlighting animation to the unit (blends white with [0-1])
-	-- returns: a unique handler ID number that you should store and call StopDrawUnitGL4(uniqueID) with to stop drawing it
-	-- note that widgets are responsible for stopping the drawing of every unit that they submit!
-	uniqueID = uniqueID + 1
-
+---DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, alpha, teamID, teamcoloroverride, highlight, updateID, ownerID)
+---Draw a static unit shape model anywhere. Like for ghosted buildings 
+---note that widgets are responsible for stopping the drawing of every unit that they submit! They may use RemoveMyDraws(ownerID) 
+---@param unitDefID number which unitDef do you want to draw
+---@param px number where in the world to do you want to draw it
+---@param py number where in the world to do you want to draw it
+---@param pz number where in the world to do you want to draw it
+---@param rotationY number Angle in radians on how much to rotate the unit around Y, 0 means it faces south, (+Z), pi/2 points west (-X) -pi/2 points east
+---@param alpha number optional the transparency level of the unit
+---@param teamID number optional which teams teamcolor should this unit get, leave nil if you want to keep the original teamID
+---@param teamcoloroverride number optional much we should mix the teamcolor into the model color [0-1]
+---@param highlight number optional how much we should add a highlighting animation to the unit (blends white with [0-1])
+---@param updateID number optional specify the previous uniqueID if you want to update it
+---@param ownerID any optional unique identifier so that widgets can batch remove all of their own stuff
+---@return uniqueID number a unique handler ID number that you should store and call StopDrawUnitGL4(uniqueID) with to stop drawing it
+local function DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, alpha, teamID, teamcoloroverride, highlight, updateID, ownerID)
+	alpha = alpha or 0.5
 	teamcoloroverride = teamcoloroverride or 0
 	teamID = teamID or 256
 	highlight = highlight or 0
+	
+	if not updateID then 
+		uniqueID = uniqueID + 1
+		updateID = uniqueID
+	end
+	
+	if ownerID then owners[updateID] = ownerID end
 
-	--py = py - (UnitDefs[unitDefID].model.midy or 0) -- cause our midpos is somehow offset?
-	--py = py - (UnitDefs[unitDefID].model.midy or 0) -- cause our midpos is somehow offset?
-	local DrawUnitShapeVBOTable
-	--Spring.Echo("DrawUnitShapeGL4", "unitDefID", unitDefID, UnitDefs[unitDefID].name, "to unitDefID", uniqueID,"elemID", elementID)
-	if corUnitDefIDs[unitDefID] then DrawUnitShapeVBOTable = corDrawUnitShapeVBOTable
-	elseif armUnitDefIDs[unitDefID] then DrawUnitShapeVBOTable = armDrawUnitShapeVBOTable
-	else
-		Spring.Echo("The given unitDefID", unitDefID, "is neither arm nor cor, only those two are supported at the moment")
+	local DrawUnitShapeVBOTable = unitDeftoUnitShapeVBOTable[unitDefID]
+	
+	if not DrawUnitShapeVBOTable then 
+		Spring.Echo("DrawUnitShapeGL4: The given unitDefID", unitDefID,  UnitDefs[unitDefID].name, "is missing a target DrawUnitShapeVBOTable")
 		Spring.Debug.TraceFullEcho(nil,nil,nil,"DrawUnitGL4")
 		return nil
 	end
-
-
-
-	local elementID = pushElementInstance(DrawUnitShapeVBOTable, {
-			px, py, pz, rotationY,
-			alpha, 1, teamcoloroverride, highlight,
-			teamID, 0,
-			0,0,0,0
-		},
-		uniqueID,
+	uniqueIDtoUnitShapeVBOTable[uniqueID] = DrawUnitShapeVBOTable
+	--Spring.Echo("DrawUnitShapeGL4", "unitDefID", unitDefID, UnitDefs[unitDefID].name, "to unitDefID", uniqueID,"elemID", elementID)
+	
+	instanceCache[1], instanceCache[2], instanceCache[3], instanceCache[4] = px, py, pz, rotationY
+	instanceCache[5], instanceCache[6], instanceCache[7], instanceCache[8] = alpha, 1, teamcoloroverride, highlight
+	instanceCache[9] = teamID
+	
+	local elementID = pushElementInstance(
+		DrawUnitShapeVBOTable,
+		instanceCache,
+		updateID,
 		true,
 		nil,
 		unitDefID,
 		"unitDefID")
-	return uniqueID
+	return updateID
 end
 
+---StopDrawUnitGL4(uniqueID)
+---@param uniqueID number the unique id of whatever you want to stop drawing
+---@return the ownerID the uniqueID was associated to
 local function StopDrawUnitGL4(uniqueID)
 	if corDrawUnitVBOTable.instanceIDtoIndex[uniqueID] then
 		popElementInstance(corDrawUnitVBOTable, uniqueID)
@@ -317,36 +354,81 @@ local function StopDrawUnitGL4(uniqueID)
 	else
 		Spring.Echo("Unable to remove what you wanted in StopDrawUnitGL4", uniqueID)
 	end
+	local owner = owners[uniqueID]
+	owners[uniqueID] = nil
 	--Spring.Echo("Popped element", uniqueID)
+	return owner
 end
 
+---StopDrawUnitGL4(uniqueID)
+---@param uniqueID number the unique id of whatever you want to stop drawing
+---@return the ownerID the uniqueID was associated to
 local function StopDrawUnitShapeGL4(uniqueID)
-	if corDrawUnitShapeVBOTable.instanceIDtoIndex[uniqueID] then
-		popElementInstance(corDrawUnitShapeVBOTable, uniqueID)
-	elseif armDrawUnitShapeVBOTable.instanceIDtoIndex[uniqueID] then
-		popElementInstance(armDrawUnitShapeVBOTable, uniqueID)
+	
+	if uniqueIDtoUnitShapeVBOTable[uniqueID] then 
+		local DrawUnitShapeVBOTable = uniqueIDtoUnitShapeVBOTable[uniqueID]
+		if DrawUnitShapeVBOTable.instanceIDtoIndex[uniqueID] then
+			popElementInstance(DrawUnitShapeVBOTable, uniqueID) 
+		else
+			Spring.Echo("DrawUnitShapeGL4: the given uniqueID", uniqueID," is not present in the DrawUnitShapeVBOTable", DrawUnitShapeVBOTable.vboname, "that we expected it to be in" )
+		end
+		
 	else
-		Spring.Echo("Unable to remove what you wanted in StopDrawUnitShapeGL4", uniqueID)
+	
+		Spring.Echo("DrawUnitShapeGL4: the given uniqueID", uniqueID," is not present in the uniqueIDtoUnitShapeVBOTable, it might already have been removed?")	
 	end
+	
+	uniqueIDtoUnitShapeVBOTable[uniqueID] = nil
+	
+	local owner = owners[uniqueID]
+	owners[uniqueID] = nil
 	--Spring.Echo("Popped element", uniqueID)
+	return owner
 end
 
-local unitIDtoUniqueID = {}
-local unitDefIDtoUniqueID = {}
+---StopDrawAll(ownerID) removes all units and unitshapes registered for this owner ID
+---@param ownerID any identifier for which to remove all things being drawn. All get removed if ownerID is nil
+---@return ownedCount number how many items were removed
+local function StopDrawAll(ownerID)
+	local ownedCount = 0
+	for uniqueID, owner in pairs(owners) do 
+		if owner == ownerID or ownerID == nil then 
+			for _,VBOTable in ipairs(VBOTables) do -- attach everything together
+				if VBOTable.instanceIDtoIndex[uniqueID] then 
+					popElementInstance(VBOTable, uniqueID)
+					break
+				end
+			end
+			if uniqueIDtoUnitShapeVBOTable[uniqueID] then 
+				local DrawUnitShapeVBOTable = uniqueIDtoUnitShapeVBOTable[uniqueID]
+				if DrawUnitShapeVBOTable.instanceIDtoIndex[uniqueID] then
+					popElementInstance(DrawUnitShapeVBOTable, uniqueID) 
+				else
+					Spring.Echo("DrawUnitShapeGL4 StopDrawAll: the given uniqueID", uniqueID," is not present in the DrawUnitShapeVBOTable", DrawUnitShapeVBOTable.vboname, "that we expected it to be in" )
+				end
+			end 
+			
+			owners[uniqueID] = nil
+			ownedCount = ownedCount + 1
+			
+		end
+		
+	end
+	return ownedCount
+end
 
 local TESTMODE = false
 
-function widget:UnitCreated(unitID, unitDefID)
-	if TESTMODE then
+if TESTMODE then 
+	local unitIDtoUniqueID = {}
+	local unitDefIDtoUniqueID = {}
+	function widget:UnitCreated(unitID, unitDefID)
 		unitIDtoUniqueID[unitID] =  DrawUnitGL4(unitID, unitDefID,  0, 0, 0, math.random()*2, 0.6)
-
 		local px, py, pz = Spring.GetUnitPosition(unitID)
 		unitDefIDtoUniqueID[unitID] = DrawUnitShapeGL4(Spring.GetUnitDefID(unitID), px+20, py + 50, pz+20, 0, 0.6)
 	end
-end
 
-function widget:UnitDestroyed(unitID)
-	if TESTMODE then
+	function widget:UnitDestroyed(unitID)
 		StopDrawUnitGL4(unitIDtoUniqueID[unitID])
 		unitIDtoUniqueID[unitID] = nil
 
@@ -361,6 +443,10 @@ function widget:Initialize()
 		return
 	end
 	for unitDefID, unitDef in pairs(UnitDefs) do
+		if unitDef.model and unitDef.model.textures and unitDef.model.textures.tex1 then 
+			unitDefIDtoTex1[unitDefID] = unitDef.model.textures.tex1:lower()
+		end
+		
 		if unitDef.model and unitDef.model.textures and unitDef.model.textures.tex1:lower() == "arm_color.dds" then
 			armUnitDefIDs[unitDefID] = true
 		elseif unitDef.model and unitDef.model.textures and unitDef.model.textures.tex1:lower() == "cor_color.dds" then
@@ -368,10 +454,12 @@ function widget:Initialize()
 		end
 	end
 
-	local vertVBO = gl.GetVBO(GL.ARRAY_BUFFER, false) -- GL.ARRAY_BUFFER, false
-	local indxVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false) -- GL.ARRAY_BUFFER, false
-	vertVBO:ModelsVBO()
-	indxVBO:ModelsVBO()
+	
+
+	local vertexVBO = gl.GetVBO(GL.ARRAY_BUFFER, false) -- GL.ARRAY_BUFFER, false
+	local indexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false) -- GL.ARRAY_BUFFER, false
+	vertexVBO:ModelsVBO()
+	indexVBO:ModelsVBO()
 
 	local VBOLayout = {
 			{id = 6, name = "worldposrot", size = 4},
@@ -384,15 +472,39 @@ function widget:Initialize()
 	local unitIDAttributeIndex = 9
 	corDrawUnitVBOTable         = makeInstanceVBOTable(VBOLayout, maxElements, "corDrawUnitVBOTable", unitIDAttributeIndex, "unitID")
 	armDrawUnitVBOTable         = makeInstanceVBOTable(VBOLayout, maxElements, "armDrawUnitVBOTable", unitIDAttributeIndex, "unitID")
-	corDrawUnitShapeVBOTable    = makeInstanceVBOTable(VBOLayout, maxElements, "corDrawUnitShapeVBOTable", unitIDAttributeIndex, "unitDefID")
-	armDrawUnitShapeVBOTable    = makeInstanceVBOTable(VBOLayout, maxElements, "armDrawUnitShapeVBOTable", unitIDAttributeIndex, "unitDefID")
-	VBOTables = {corDrawUnitVBOTable, corDrawUnitShapeVBOTable, armDrawUnitVBOTable, armDrawUnitShapeVBOTable}
+
+	VBOTables = {corDrawUnitVBOTable, armDrawUnitVBOTable}
 
 	for i,VBOTable in ipairs(VBOTables) do -- attach everything together
-		VBOTable.VAO = makeVAOandAttach(vertVBO, VBOTable.instanceVBO, indxVBO)
-		VBOTable.indexVBO = indxVBO
-		VBOTable.vertexVBO = vertVBO
+		VBOTable.VAO = makeVAOandAttach(vertexVBO, VBOTable.instanceVBO, indexVBO)
+		VBOTable.indexVBO = indexVBO
+		VBOTable.vertexVBO = vertexVBO
 	end
+		
+	-- This section is for automatically creating all vbos for all posible tex combos.
+	-- However it is disabled here, as there are only 4 true tex combos, as defined above in tex1ToVBOx
+	--for unitDefID, tex1 in pairs(unitDefIDtoTex1) do 
+	--	if not tex1ToVBO[tex1] then Spring.Echo("DrawUnitShape unique tex1 is",tex1) end
+	--	tex1ToVBO[tex1] = true 
+	--end 
+	
+	for tex1, _ in pairs(tex1ToVBO) do 
+		local vboname = 'DrawUnitShapeVBOTable:' .. tex1
+		local vboTable = makeInstanceVBOTable(VBOLayout, maxElements, vboname, unitIDAttributeIndex, "unitDefID")
+		vboTable.VAO = makeVAOandAttach(vertexVBO, vboTable.instanceVBO, indexVBO)
+		vboTable.indexVBO = indexVBO
+		vboTable.vertexVBO = vertexVBO
+		tex1ToVBO[tex1] = vboTable
+	end
+	
+	for unitDefID, tex1 in pairs(unitDefIDtoTex1) do 
+		if tex1ToVBO[tex1] then 
+			unitDeftoUnitShapeVBOTable[unitDefID] = tex1ToVBO[tex1]
+			-- This is very important, we need to remember an example unitDefID here
+			-- to use to retrive the corresponding texture bucket
+			unitDeftoUnitShapeVBOTable[unitDefID].UnitShapeTexturesUnitDefID = unitDefID
+		end
+	end 
 
 	local unitIDs = Spring.GetAllUnits()
 	local featuresIDs = Spring.GetAllFeatures()
@@ -444,6 +556,7 @@ function widget:Initialize()
 	WG['DrawUnitShapeGL4'] = DrawUnitShapeGL4
 	WG['StopDrawUnitGL4'] = StopDrawUnitGL4
 	WG['StopDrawUnitShapeGL4'] = StopDrawUnitShapeGL4
+	WG['StopDrawAll'] = StopDrawAll
 	WG['armDrawUnitShapeVBOTable'] = armDrawUnitShapeVBOTable
 	WG['corDrawUnitShapeVBOTable'] = corDrawUnitShapeVBOTable
 	widgetHandler:RegisterGlobal('DrawUnitGL4', DrawUnitGL4)
@@ -452,6 +565,7 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal('StopDrawUnitShapeGL4', StopDrawUnitShapeGL4)
 	widgetHandler:RegisterGlobal('armDrawUnitShapeVBOTable', armDrawUnitShapeVBOTable)
 	widgetHandler:RegisterGlobal('corDrawUnitShapeVBOTable', corDrawUnitShapeVBOTable)
+	widgetHandler:RegisterGlobal('StopDrawAll', StopDrawAll)
 end
 
 
@@ -464,6 +578,16 @@ function widget:Shutdown()
 			VBOTable.VAO:Delete()
 		end
 	end
+	
+	for tex1,VBOTable in ipairs(tex1ToVBO) do
+		if VBOTable.VAO then
+			if Spring.Utilities.IsDevMode() then
+				dumpAndCompareInstanceData(VBOTable)
+			end
+			VBOTable.VAO:Delete()
+		end
+	end
+	
 	if unitShader then unitShader:Finalize() end
 	if unitShapeShader then unitShapeShader:Finalize() end
 
@@ -471,6 +595,7 @@ function widget:Shutdown()
 	WG['DrawUnitShapeGL4'] = nil
 	WG['StopDrawUnitGL4'] = nil
 	WG['StopDrawUnitShapeGL4'] = nil
+	WG['StopDrawAll'] = nil
 	WG['armDrawUnitShapeVBOTable'] = nil
 	WG['corDrawUnitShapeVBOTable'] = nil
 	widgetHandler:DeregisterGlobal('DrawUnitGL4')
@@ -478,27 +603,32 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('StopDrawUnitGL4')
 	widgetHandler:DeregisterGlobal('StopDrawUnitShapeGL4')
 	widgetHandler:DeregisterGlobal('armDrawUnitShapeVBOTable')
-	widgetHandler:DeregisterGlobal('armDrawUnitShapeVBOTable')
+	widgetHandler:DeregisterGlobal('corDrawUnitShapeVBOTable')
+	widgetHandler:DeregisterGlobal('StopDrawAll')
 end
 
+
 function widget:DrawWorldPreUnit() -- this is for UnitDef
-	if armDrawUnitShapeVBOTable.usedElements > 0 or corDrawUnitShapeVBOTable.usedElements > 0 then
-		gl.Culling(GL.BACK)
-		gl.DepthMask(true)
-		gl.DepthTest(GL.LEQUAL)
-		--gl.PolygonOffset ( 0.5,0.5 )
-		unitShapeShader:Activate()
-		unitShapeShader:SetUniform("iconDistance",27 * Spring.GetConfigInt("UnitIconDist", 200))
-		if (corDrawUnitShapeVBOTable.usedElements > 0 ) then
-			gl.UnitShapeTextures(corcomUnitDefID, true)
-			corDrawUnitShapeVBOTable.VAO:Submit()
+	local active = false
+	
+	for tex1, unitShapeVBOTable in pairs(tex1ToVBO) do 
+		if unitShapeVBOTable.usedElements > 0 then 
+			
+			if not active then 
+				gl.Culling(GL.BACK)
+				gl.DepthMask(true)
+				gl.DepthTest(GL.LEQUAL)
+				--gl.PolygonOffset ( 0.5,0.5 )
+				unitShapeShader:Activate()
+				unitShapeShader:SetUniform("iconDistance",27 * Spring.GetConfigInt("UnitIconDist", 200))
+				active = true
+			end
+			
+			gl.UnitShapeTextures(unitShapeVBOTable.UnitShapeTexturesUnitDefID, true)
+			unitShapeVBOTable.VAO:Submit()
 		end
-
-		if (armDrawUnitShapeVBOTable.usedElements > 0 ) then
-			gl.UnitShapeTextures(armcomUnitDefID, true)
-			armDrawUnitShapeVBOTable.VAO:Submit()
-		end
-
+	end
+	if active then 
 		unitShapeShader:Deactivate()
 		gl.UnitShapeTextures(udefID, false)
 		--gl.PolygonOffset( false )

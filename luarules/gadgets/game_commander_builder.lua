@@ -4,7 +4,13 @@ if Spring.GetModOptions().commanderbuildersenabled == "enabled" or (Spring.GetMo
 	spawnpadSpawnEnabled = true
 end
 
-local UDN = UnitDefNames
+if not UnitDefNames.armrespawn then
+	spawnpadSpawnEnabled = false
+end
+
+if not spawnpadSpawnEnabled then
+	return
+end
 
 function gadget:GetInfo()
     return {
@@ -18,6 +24,8 @@ function gadget:GetInfo()
     }
 end
 
+local UDN = UnitDefNames
+
 if not gadgetHandler:IsSyncedCode() then
 	return false
 end
@@ -27,8 +35,10 @@ local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position
 local spawnpads = {
     [UDN.armcom.id] = "armrespawn",
     [UDN.corcom.id] = "correspawn",
-	[UDN.legcom.id] = "correspawn",
 }
+if Spring.GetModOptions().experimentallegionfaction then
+	spawnpads[UDN.legcom.id] = "legnanotcbase"
+end
 
 function SpawnAssistTurret(unitID, unitDefID, unitTeam)
 	local posx, posy, posz = Spring.GetUnitPosition(unitID)
@@ -62,7 +72,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
     end
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam) 
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
     if commandersList[unitID] then
         commandersList[unitID] = nil
     end

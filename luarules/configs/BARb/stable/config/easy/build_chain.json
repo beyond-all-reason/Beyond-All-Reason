@@ -87,11 +87,8 @@
 				]
 			]
 		},
-	"armsolar": {
-		"hub": [				[  
-					{"unit": "armllt", "category": "convert", "offset":[10, 0]}
-				]
-			]
+		"armsolar": {
+			"hub": [[{"unit": "armllt", "category": "convert", "offset":[10, 0]}]]
 		},
 		"armfus": {
 			"hub": [
@@ -198,11 +195,11 @@
 	"mex": {
 		"armmex": {
 //			"terra": true,
-			"energy": [500, true], //AI will force-build 1 solar near every mex till it reaches 200 energy income
+			"energy": [500, true], //AI will force-build 1 solar near every mex till it reaches 500 energy income
 			"porc": true
 		},
 		"cormex": {
-		"energy": [500, true],
+			"energy": [500, true],
 			"porc": true
 		}
 	},
@@ -219,7 +216,7 @@
 				[{"unit": "corllt", "category": "defence", "offset": {"front": 100}, "priority": "now"}],
 				[{"unit": "corrl", "category": "defence", "offset": {"back": 10}, "priority": "high"}],
 				[{"unit": "corhlt", "category": "defence", "offset": {"front": 100}, "priority": "high"}]
-		]
+			]
 		}
 
 	},

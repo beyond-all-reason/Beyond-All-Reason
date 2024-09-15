@@ -32,6 +32,8 @@ local math_isInRect = math.isInRect
 local playSounds = true
 local buttonclick = 'LuaUI/Sounds/buildbar_waypoint.wav'
 
+local lineHeight = fontSize
+
 local isFFA = Spring.Utilities.Gametype.IsFFA()
 
 local header = {
@@ -42,11 +44,12 @@ local header = {
 	"unitsKilled",
 	"unitsDied",
 	"damageEfficiency",
-	"aggressionLevel",
 	"metalProduced",
 	"metalExcess",
 	"energyProduced",
 	"energyExcess",
+	"aggressionLevel",
+	"actionsPerMinute",
 }
 
 local headerRemap = {}	-- filled in initialize
@@ -72,7 +75,7 @@ local guiData = {
 }
 guiData.mainPanel.relSizes.x.length = (guiData.mainPanel.relSizes.x.max - guiData.mainPanel.relSizes.x.min) * 0.92
 
-local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.7) or 0.6)
+local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
 
 local glColor	= gl.Color
 local glCreateList = gl.CreateList
@@ -89,16 +92,12 @@ local GetMouseState			= Spring.GetMouseState
 local GetGameFrame			= Spring.GetGameFrame
 local min					= math.min
 local max					= math.max
-local ceil					= math.ceil
 local floor					= math.floor
-local abs					= math.abs
 local huge					= math.huge
 local sort					= table.sort
 local log10					= math.log10
 local round					= math.round
 local char					= string.char
-local format				= string.format
-local SIsuffixes = {"p","n","u","m","","k","M","G","T"}
 local borderRemap = {left={"x","min",-1},right={"x","max",1},top={"y","max",1},bottom={"y","min",-1}}
 
 local RectRound, UiElement, elementCorner
@@ -110,41 +109,8 @@ local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spr
 
 local isSpec = Spring.GetSpectatingState()
 
-function roundNumber(num,useFirstDecimal)
-	return useFirstDecimal and format("%0.1f",round(num,1)) or round(num)
-end
 
-function convertSIPrefix(value,thresholdmodifier,noSmallValues,useFirstDecimal)
-	if value == 0 or not value then
-		return value
-	end
-	local halfScale = ceil(#SIsuffixes/2)
-	if useFirstDecimal then
-		useFirstDecimal = useFirstDecimal + halfScale
-	end
-	useFirstDecimal = useFirstDecimal or #SIsuffixes+1
-	local sign = value > 0
-	value = abs(value)
-	thresholdmodifier = thresholdmodifier or 1
-	local startIndex = 1
-	if noSmallValues then
-		startIndex = halfScale
-	end
-	local baseVal = 10^(-12)
-	local retVal = ""
-	for i=startIndex, #SIsuffixes do
-		local tenPower = baseVal*10^(3*(i-1))
-		local compareVal = baseVal*10^(3*i) * thresholdmodifier
-		if value < compareVal then
-			retVal = roundNumber(value/tenPower,i>=useFirstDecimal) .. SIsuffixes[i]
-			break
-		end
-	end
-	if not sign then
-		retVal = "-" .. retVal
-	end
-	return retVal
-end
+local playerScale = math.max(0.3, math.min(1, 25 / #Spring.GetTeamList()))
 
 function aboveRectangle(mousePos,boxData)
 	local included = true
@@ -263,6 +229,7 @@ local function refreshHeaders()
 		unitsDied = {Spring.I18N('ui.teamStats.units'), Spring.I18N('ui.teamStats.unitsDied')},
 		unitsKilled = {Spring.I18N('ui.teamStats.units'), Spring.I18N('ui.teamStats.unitsKilled')},
 		aggressionLevel = {Spring.I18N('ui.teamStats.aggression'), Spring.I18N('ui.teamStats.aggressionLevel')},
+		actionsPerMinute = {Spring.I18N('ui.teamStats.actionsPerMinute1'), Spring.I18N('ui.teamStats.actionsPerMinute2')},
 	}
 end
 
@@ -348,6 +315,7 @@ function widget:GameFrame(n,forceupdate)
 		local allyVec = {}
 		local allyTotal = {}
 		local teamInsertCount = 1
+		local teamAPM = WG.teamAPM or {}
 		for _,teamID in ipairs(GetTeamList(allyTeamID)) do
 			if teamID ~= GetGaiaTeamID() then
 				local range = GetTeamStatsHistory(teamID)
@@ -359,6 +327,7 @@ function widget:GameFrame(n,forceupdate)
 					history.resourcesExcess = history.metalExcess + history.energyExcess/60
 					history.resourcesSent = history.metalSent + history.energySent/60
 					history.resourcesReceived = history.metalReceived + history.energyReceived/60
+					history.actionsPerMinute = teamAPM[teamID] or 0
 					for varName,value in pairs(history) do
 						allyTotal[varName] = (allyTotal[varName] or 0 ) + value
 					end
@@ -446,7 +415,7 @@ function widget:GameFrame(n,forceupdate)
 	end
 	totalNumLines = totalNumLines + 1
 	sort(teamData,compareAllyTeams)
-	guiData.mainPanel.absSizes.y.min = guiData.mainPanel.absSizes.y.max - totalNumLines*fontSize
+	guiData.mainPanel.absSizes.y.min = guiData.mainPanel.absSizes.y.max - totalNumLines*lineHeight
 	prevNumLines = totalNumLines
 	glDeleteList(textDisplayList)
 	textDisplayList = glCreateList(ReGenerateTextDisplayList)
@@ -512,7 +481,7 @@ end
 function getLineAndColumn(x,y)
 	local relativex = x - guiData.mainPanel.absSizes.x.min - columnSize/2
 	local relativey = guiData.mainPanel.absSizes.y.max - y
-	local line = floor(relativey/fontSize) +1
+	local line = floor(relativey/lineHeight) +1
 	local column = floor(relativex/columnSize) +1
 	return line,column
 end
@@ -522,6 +491,9 @@ function updateFontSize()
 	columnSize = guiData.mainPanel.absSizes.x.length / numColums
 	local fakeColumnSize = guiData.mainPanel.absSizes.x.length / (numColums-1)
 	fontSize = 11*widgetScale + floor(fakeColumnSize/maxColumnTextSize)
+	fontSize = fontSize * playerScale
+	lineHeight = fontSize
+	fontSize = fontSize + math.min(fontSize * 0.5, (fontSize * ((1-playerScale)*0.7)))
 end
 
 function widget:MouseMove(mx,my,dx,dy)
@@ -618,9 +590,9 @@ function ReGenerateBackgroundDisplayList()
 			if math.floor(boxSizes.x.min) >= guiData.mainPanel.absSizes.y.min then
 				bottomCorner = 1
 			end
-			RectRound(math.floor(boxSizes.x.min), math.floor(boxSizes.y.max -lineCount*fontSize), math.floor(boxSizes.x.max), math.floor(boxSizes.y.max -(lineCount-1)*fontSize), bgpadding, 0,0,bottomCorner,bottomCorner, {colour[1],colour[2],colour[3],colour[4]*ui_opacity}, {colour[1],colour[2],colour[3],colour[4]*3*ui_opacity})
+			RectRound(math.floor(boxSizes.x.min), math.floor(boxSizes.y.max -lineCount*lineHeight), math.floor(boxSizes.x.max), math.floor(boxSizes.y.max -(lineCount-1)*lineHeight), bgpadding, 0,0,bottomCorner,bottomCorner, {colour[1],colour[2],colour[3],colour[4]*ui_opacity}, {colour[1],colour[2],colour[3],colour[4]*3*ui_opacity})
 		elseif lineCount == 1 then
-			--RectRound(boxSizes.x.min, boxSizes.y.max -(lineCount+1)*fontSize, boxSizes.x.max, boxSizes.y.max -(lineCount-1)*fontSize, 3*widgetScale)
+			--RectRound(boxSizes.x.min, boxSizes.y.max -(lineCount+1)*lineHeight, boxSizes.x.max, boxSizes.y.max -(lineCount-1)*lineHeight, 3*widgetScale)
 		end
 	end
 	if selectedLine and selectedLine < 3 and selectedColumn and selectedColumn > 0 and selectedColumn <= numColums then
@@ -629,7 +601,7 @@ function ReGenerateBackgroundDisplayList()
 		else
 			glColor(sortHighLightColourDesc[1], sortHighLightColourDesc[2], sortHighLightColourDesc[3], sortHighLightColourDesc[4]*ui_opacity)
 		end
-		RectRound(math.floor(boxSizes.x.min +(selectedColumn)*columnSize-columnSize/2), math.floor(boxSizes.y.max -2*fontSize), math.floor(boxSizes.x.min +(selectedColumn+1)*columnSize-columnSize/2), math.floor(boxSizes.y.max), bgpadding, 0,0,1,1)
+		RectRound(math.floor(boxSizes.x.min +(selectedColumn)*columnSize-columnSize/2), math.floor(boxSizes.y.max -2*lineHeight), math.floor(boxSizes.x.min +(selectedColumn+1)*columnSize-columnSize/2), math.floor(boxSizes.y.max), bgpadding, 0,0,1,1)
 	end
 	for selectedIndex, headerName in ipairs(header) do
 		if sortVar == headerName then
@@ -638,7 +610,7 @@ function ReGenerateBackgroundDisplayList()
 			else
 				glColor(activeSortColourDesc[1], activeSortColourDesc[2], activeSortColourDesc[3], activeSortColourDesc[4]*ui_opacity)
 			end
-			RectRound(math.floor(boxSizes.x.min +(selectedIndex)*columnSize-columnSize/2), math.floor(boxSizes.y.max -2*fontSize), math.floor(boxSizes.x.min +(selectedIndex+1)*columnSize-columnSize/2), math.floor(boxSizes.y.max), bgpadding, 0,0,1,1)
+			RectRound(math.floor(boxSizes.x.min +(selectedIndex)*columnSize-columnSize/2), math.floor(boxSizes.y.max -2*lineHeight), math.floor(boxSizes.x.min +(selectedIndex+1)*columnSize-columnSize/2), math.floor(boxSizes.y.max), bgpadding, 0,0,1,1)
 			break
 		end
 	end
@@ -655,11 +627,11 @@ function ReGenerateTextDisplayList()
 	font:SetOutlineColor(0, 0, 0, 1)
 		--print the header
 		local colCount = 0
-		local heightCorrection = fontSize*((1-fontSizePercentage)/2)
+		local heightCorrection = lineHeight*((1-fontSizePercentage)/2)
 
 		for _, headerName in ipairs(header) do
-			font:Print(headerRemap[headerName][1], baseXSize + columnSize*colCount, baseYSize+heightCorrection-lineCount*fontSize, (fontSize*fontSizePercentage), "dco")
-			font:Print(headerRemap[headerName][2], baseXSize + columnSize*colCount, baseYSize+heightCorrection-(lineCount+1)*fontSize, (fontSize*fontSizePercentage), "dco")
+			font:Print(headerRemap[headerName][1], baseXSize + columnSize*colCount, baseYSize+heightCorrection-lineCount*lineHeight, (fontSize*fontSizePercentage), "dco")
+			font:Print(headerRemap[headerName][2], baseXSize + columnSize*colCount, baseYSize+heightCorrection-(lineCount+1)*lineHeight, (fontSize*fontSizePercentage), "dco")
 			colCount = colCount + 1
 		end
 		lineCount = lineCount + 3
@@ -672,11 +644,13 @@ function ReGenerateTextDisplayList()
 					if value == huge or value == -huge then
 						value = "-"
 					elseif tonumber(value) then
+						local v = tonumber(value)
 						if varName:sub(1,5) ~= "units" and varName ~= "aggressionLevel" then
-							value = convertSIPrefix(tonumber(value),1,true,1)
-						else
-							value = convertSIPrefix(tonumber(value))
+							if v and math.abs(v) < 1 then
+								v = 0
+							end
 						end
+						value = string.formatSI(v)
 					end
 					if varName == "damageEfficiency" or varName == "killEfficiency" then
 						value = value .. "%"
@@ -689,10 +663,10 @@ function ReGenerateTextDisplayList()
 					end
 					if i == 1 then
 						font2:Begin()
-						font2:Print(color..value, baseXSize + columnSize*colCount, baseYSize+(heightCorrection*1.66)-lineCount*fontSize, (fontSize*fontSizePercentage), "dco")
+						font2:Print(color..value, baseXSize + columnSize*colCount, baseYSize+(heightCorrection*1.66)-lineCount*lineHeight, (fontSize*fontSizePercentage), "dco")
 						font2:End()
 					else
-						font:Print(color..value, baseXSize + columnSize*colCount, baseYSize+heightCorrection-lineCount*fontSize, (fontSize*fontSizePercentage), "dco")
+						font:Print(color..value, baseXSize + columnSize*colCount, baseYSize+heightCorrection-lineCount*lineHeight, (fontSize*fontSizePercentage), "dco")
 					end
 					colCount = colCount + 1
 				end

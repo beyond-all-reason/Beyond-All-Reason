@@ -5,7 +5,7 @@
 
 piece  torso, head, flare, lleg, barrel, rleg, lfoot, rfoot,turret, aimx1,aimy1;
 
-static-var  restore_delay,bMoving, wpn1_lasthead;
+static-var  restore_delay,bMoving, wpn1_lasthead, stashed_max_speed;
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
@@ -221,7 +221,7 @@ StopWalking() {
 	turn turret to y-axis <0.000000> speed <86.999991>;
 }
 UnitSpeed(){
- maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
+ maxSpeed = stashed_max_speed;
  animFramesPerKeyframe = 4; //we need to calc the frames per keyframe value, from the known animtime
  maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
  while(TRUE){
@@ -259,6 +259,7 @@ StopMoving(){
 
 Create()
 {
+	stashed_max_speed = get MAX_SPEED; // fix roadrunner bug with emp rework
 	hide flare;
 	hide aimx1;
 	hide aimy1;

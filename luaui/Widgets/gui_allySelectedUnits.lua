@@ -80,6 +80,15 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
+local instanceCache = {
+			0,0,0,0,  -- lengthwidthcornerheight
+			0, -- teamID
+			useHexagons and 6 or 64, -- how many trianges should we make
+			0, 0, 0, 0, -- the gameFrame (for animations), and any other parameters one might want to add
+			0, 1, 0, 1, -- These are our default UV atlas tranformations
+			0, 0, 0, 0 -- these are just padding zeros, that will get filled in
+	}
+
 local function AddPrimitiveAtUnit(unitID)
 	local unitDefID = Spring.GetUnitDefID(unitID)
 	if unitDefID == nil then return end -- these cant be selected
@@ -102,17 +111,13 @@ local function AddPrimitiveAtUnit(unitID)
 		width = radius
 		length = radius
 	end
-
+	instanceCache[1], instanceCache[2], instanceCache[3], instanceCache[4] = length, width, cornersize, additionalheight
+	instanceCache[5] = spGetUnitTeam(unitID)
+	instanceCache[7] = Spring.GetGameFrame()
+	
 	pushElementInstance(
 		selectionVBO, -- push into this Instance VBO Table
-		{
-			length, width, cornersize, additionalheight,  -- lengthwidthcornerheight
-			spGetUnitTeam(unitID), -- teamID
-			numVertices, -- how many trianges should we make
-			Spring.GetGameFrame(), 0, 0, 0, -- the gameFrame (for animations), and any other parameters one might want to add
-			0, 1, 0, 1, -- These are our default UV atlas tranformations
-			0, 0, 0, 0 -- these are just padding zeros, that will get filled in
-		},
+		instanceCache,
 		unitID, -- this is the key inside the VBO TAble,
 		true, -- update existing element
 		nil, -- noupload, dont use unless you
@@ -169,7 +174,7 @@ local function selectedUnitsClear(playerID)
 		local teamID = select(4, spGetPlayerInfo(playerID))
 		for unitID, drawn in pairs(selectedUnits) do
 			if spGetUnitTeam(unitID) == teamID then
-				widget:UnitDestroyed(unitID)
+				widget:VisibleUnitRemoved(unitID)
 			end
 		end
 	end
@@ -201,7 +206,7 @@ local function selectedUnitsRemove(playerID,unitID)
 		return
 	end
 	if not playerIsSpec[playerID] or (lockPlayerID ~= nil and playerID == lockPlayerID) then
-		widget:UnitDestroyed(unitID)
+		widget:VisibleUnitRemoved(unitID)
 	end
 	if lockPlayerID and playerID == lockPlayerID and selectPlayerUnits then
 		selectPlayerSelectedUnits(lockPlayerID)
@@ -212,7 +217,7 @@ function widget:PlayerRemoved(playerID, reason)
 	local teamID = select(4, spGetPlayerInfo(playerID))
 	for unitID, drawn in pairs(selectedUnits) do
 		if spGetUnitTeam(unitID) == teamID then
-			widget:UnitDestroyed(unitID)
+			widget:VisibleUnitRemoved(unitID)
 		end
 	end
 end
@@ -255,30 +260,14 @@ function widget:PlayerChanged(playerID)
 	end
 end
 
-function widget:UnitDestroyed(unitID)
-	removeUnit(unitID)
-	selectedUnits[unitID] = nil
-	unitAllyteam[unitID] = nil
-end
-
-function widget:UnitGiven(unitID)
-	removeUnit(unitID)
-	selectedUnits[unitID] = nil
-	unitAllyteam[unitID] = nil
-end
-
-function widget:UnitTaken(unitID)
-	removeUnit(unitID)
-	selectedUnits[unitID] = nil
-	unitAllyteam[unitID] = nil
-end
-
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	addUnit(unitID)
 end
 
 function widget:VisibleUnitRemoved(unitID)
 	removeUnit(unitID)
+	selectedUnits[unitID] = nil
+	unitAllyteam[unitID] = nil
 end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)

@@ -16,7 +16,6 @@ local Base	=	{
 	reclaimable			= true,
 	autoreclaimable		= true,
 	upright 			= false,
-	world				= "All Worlds",
 	customparams = { -- this will be customParams (note capital P) ingame
 		author = "Beherith",
 		category = "crystals",
@@ -36,7 +35,7 @@ local colormetal = {
 	_lime = 5,
 	_obsidian = 5,
 	_quartz = 5,
-	_orange = 0 ,
+	_orange = 5 ,
 	_red = 5 ,
 	_teal = 5,
 	_team = 5
@@ -44,12 +43,12 @@ local colormetal = {
 local colorenergy = {
 	[""] = 100,
 	_violet = 100,
-	_blue = 1000,
+	_blue = 100,
 	_green = 100,
 	_lime = 100,
 	_obsidian = 100,
 	_quartz = 100,
-	_orange = 200 ,
+	_orange = 100 ,
 	_red = 100 ,
 	_teal = 100,
 	_team = 100,
@@ -62,7 +61,7 @@ for color, _ in pairs(colormetal) do
 		--local name = 'pilha_crystal' .. i
 		local def = {}
 		for k, v in pairs(Base) do
-			if k == 'customparams' then 
+			if k == 'customparams' then
 				def[k] = {}
 				for k2, v2 in pairs(v) do def[k][k2] = v2 end
 			else

@@ -232,6 +232,9 @@ function widget:MousePress(mx, my, mb)
 	--   4. our mouse cursor is within "grabbing" radius of (at least)
 	--      one waypoint of at least one of the units we have selected
 	local _, actCmdID, _, _      = spGetActiveCommand()
+	if actCmdID and actCmdID < 0 then
+		return false
+	end
 	local alt, ctrl, meta, shift = spGetModKeyState()
 	local numWayPts              = 0
 	if not shift then return false end

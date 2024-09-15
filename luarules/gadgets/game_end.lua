@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		date = "June, 2013",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true  --  loaded by default?
+		enabled = true
 	}
 end
 
@@ -35,7 +35,7 @@ if gadgetHandler:IsSyncedCode() then
 	local teamList = Spring.GetTeamList()
 	for i = 1, #teamList do
 		local luaAI = Spring.GetTeamLuaAI(teamList[i])
-		if (luaAI and (luaAI:find("Raptors") or luaAI:find("Scavengers") or luaAI:find("ScavReduxAI"))) or Spring.GetModOptions().scoremode ~= "disabled" then
+		if (luaAI and (luaAI:find("Raptors") or luaAI:find("Scavengers") or luaAI:find("ScavReduxAI"))) then
 			ignoredTeams[teamList[i]] = true
 
 			-- ignore all other teams in this allyteam as well
@@ -58,7 +58,6 @@ if gadgetHandler:IsSyncedCode() then
 			unitDecoration[udefID] = true
 		end
 	end
-
 
 	local KillTeam = Spring.KillTeam
 	local GetTeamList = Spring.GetTeamList
@@ -84,6 +83,8 @@ if gadgetHandler:IsSyncedCode() then
 	local gameoverWinners
 	local gameoverAnimFrame
 	local gameoverAnimUnits
+
+	local globalLosGranted = false
 
 	local allyTeamInfos = {}
 	--[[
@@ -131,7 +132,6 @@ if gadgetHandler:IsSyncedCode() then
 			allyTeamInfos[allyTeamID].dead = true
 		end
 	end
-
 
 	local function CheckPlayer(playerID)
 		local _, active, spectator, teamID, allyTeamID = GetPlayerInfo(playerID, false)
@@ -193,7 +193,6 @@ if gadgetHandler:IsSyncedCode() then
 		UpdateAllyTeamIsDead(allyTeamID)
 	end
 
-
 	local function CheckAllPlayers()
 		playerList = GetPlayerList()
 		for _, playerID in ipairs(playerList) do
@@ -201,11 +200,9 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-
 	function gadget:GameOver()
 		gadgetHandler:RemoveGadget(self)
 	end
-
 
 	function gadget:Initialize()
 		if Spring.GetModOptions().deathmode == 'neverend' then
@@ -274,7 +271,6 @@ if gadgetHandler:IsSyncedCode() then
 		CheckAllPlayers()
 	end
 
-
 	local function AreAllyTeamsDoubleAllied(firstAllyTeamID, secondAllyTeamID)
 		-- we need to check for both directions of alliance
 		for teamA in pairs(allyTeamInfos[firstAllyTeamID].teams) do
@@ -286,7 +282,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		return true
 	end
-
 
 	-- find the last remaining allyteam
 	local function CheckSingleAllyVictoryEnd()
@@ -303,7 +298,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		return candidateWinners
 	end
-
 
 	-- we have to cross check all the alliances
 	local function CheckSharedAllyVictoryEnd()
@@ -340,9 +334,18 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:GameFrame(gf)
 		if gameoverFrame then
+			if not globalLosGranted then
+				for _, allyTeamId in ipairs(gameoverWinners) do
+					Spring.SetGlobalLos(allyTeamId, true)
+				end
+
+				globalLosGranted = true
+			end
+
 			if gf == gameoverFrame then
 				GameOver(gameoverWinners)
 			end
+
 			if gf == gameoverAnimFrame then
 				for unitID, _ in pairs(gameoverAnimUnits) do
 					if Spring.ValidUnitID(unitID) then
@@ -400,14 +403,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function gadget:PlayerRemoved(playerID, reason)
-		CheckAllPlayers()
-	end
-
-	function gadget:PlayerChanged(playerID) -- not all events that we want to test call gadget:PlayerChanged (e.g. allying)
-		CheckAllPlayers()
-	end
-
 	function gadget:TeamChanged(teamID)
 		CheckAllPlayers()
 	end
@@ -418,7 +413,6 @@ if gadgetHandler:IsSyncedCode() then
 		UpdateAllyTeamIsDead(allyTeamID)
 		CheckAllPlayers()
 	end
-
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeamID)
 		if not ignoredTeams[unitTeamID] then
@@ -433,33 +427,28 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 	gadget.UnitGiven = gadget.UnitCreated
-	gadget.UnitCaptured = gadget.UnitCreated
-
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeamID)
 		if not ignoredTeams[unitTeamID] then
-			if Spring.GetModOptions().scoremode == "disabled" or Spring.GetModOptions().scoremode_chess == false then
-				local allyTeamID = teamToAllyTeam[unitTeamID]
-				local allyTeamInfo = allyTeamInfos[allyTeamID]
-				local teamUnitCount = allyTeamInfo.teams[unitTeamID].unitCount - 1
-				local allyTeamUnitCount = allyTeamInfo.unitCount - 1
-				allyTeamInfo.teams[unitTeamID].unitCount = teamUnitCount
-				allyTeamInfo.unitCount = allyTeamUnitCount
-				if unitDecoration[unitDefID] then
-					allyTeamInfo.unitDecorationCount = allyTeamInfo.unitDecorationCount - 1
-				end
-				allyTeamInfos[allyTeamID] = allyTeamInfo
-				if allyTeamUnitCount <= allyTeamInfo.unitDecorationCount then
-					for teamID in pairs(allyTeamInfo.teams) do
-						KillTeam(teamID)
-						killTeamQueue[teamID] = nil
-					end
+			local allyTeamID = teamToAllyTeam[unitTeamID]
+			local allyTeamInfo = allyTeamInfos[allyTeamID]
+			local teamUnitCount = allyTeamInfo.teams[unitTeamID].unitCount - 1
+			local allyTeamUnitCount = allyTeamInfo.unitCount - 1
+			allyTeamInfo.teams[unitTeamID].unitCount = teamUnitCount
+			allyTeamInfo.unitCount = allyTeamUnitCount
+			if unitDecoration[unitDefID] then
+				allyTeamInfo.unitDecorationCount = allyTeamInfo.unitDecorationCount - 1
+			end
+			allyTeamInfos[allyTeamID] = allyTeamInfo
+			if allyTeamUnitCount <= allyTeamInfo.unitDecorationCount then
+				for teamID in pairs(allyTeamInfo.teams) do
+					KillTeam(teamID)
+					killTeamQueue[teamID] = nil
 				end
 			end
 		end
 	end
 	gadget.UnitTaken = gadget.UnitDestroyed
-
 
 	function gadget:RecvLuaMsg(msg, playerID)
 
@@ -487,9 +476,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-
 else	-- Unsynced
-
 
 	local sec = 0
 	local cheated = false

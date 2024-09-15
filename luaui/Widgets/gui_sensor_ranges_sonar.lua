@@ -369,10 +369,8 @@ function widget:DrawWorld()
 	glDepthTest(false)
 
 	gl.Texture(0, "$heightmap")
-	circleShader:Activate()
-	circleShader:SetUniform("circleopacity", opacity)
 
-		glColorMask(false, false, false, false) -- disable color drawing
+	glColorMask(false, false, false, false) -- disable color drawing
 	glStencilTest(true)
 	glDepthTest(false)
 
@@ -395,6 +393,9 @@ function widget:DrawWorld()
 	glColor(rangeColor[1], rangeColor[2], rangeColor[3], rangeColor[4])
 	glLineWidth(rangeLineWidth * lineScale * 1.0)
 	--Spring.Echo("glLineWidth",rangeLineWidth * lineScale * 1.0)
+	
+	--gl.DepthMask(false)
+	glDepthTest(true)
 	circleInstanceVBO.VAO:DrawArrays(GL_LINE_LOOP, circleInstanceVBO.numVertices, 0, circleInstanceVBO.usedElements, 0)
 
 	glStencilMask(255) -- enable all bits for future drawing

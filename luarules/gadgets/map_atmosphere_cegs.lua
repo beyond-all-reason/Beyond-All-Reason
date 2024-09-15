@@ -1,9 +1,7 @@
 
-
---if VFS.FileExists("luarules/configs/Atmosphereconfigs/" .. Game.mapName .. ".lua") then
---elseif enableGenericConfig ~= "disabled" then
---end
-
+if not Spring.GetModOptions().map_atmosphere then
+	return
+end
 
 function gadget:GetInfo()
 	return {
@@ -13,11 +11,15 @@ function gadget:GetInfo()
 		date = "2020",
 		license = "GNU GPL, v2 or later",
 		layer = -100,
-		enabled = Spring.GetModOptions().map_atmosphere,
+		enabled = true,
 	}
 end
 
 local enableGenericConfig = Spring.GetModOptions().mapatmospherics or "enabled"
+
+--if VFS.FileExists("luarules/configs/Atmosphereconfigs/" .. Game.mapName .. ".lua") then
+--elseif enableGenericConfig ~= "disabled" then
+--end
 
 local currentMapname = Game.mapName:lower()
 local mapList = VFS.DirList("luarules/configs/Atmosphereconfigs/", "*.lua")
@@ -40,7 +42,7 @@ end
 
 
 if not gadgetHandler:IsSyncedCode() then
-	
+
 	--[[
 			Spring.SetSunLighting({ groundAmbientColor = { transitionred * gar, transitiongreen * gag, transitionblue * gab } })
 		Spring.SetSunLighting({ unitAmbientColor = { transitionred * uar, transitiongreen * uag, transitionblue * uab } })
@@ -56,19 +58,19 @@ if not gadgetHandler:IsSyncedCode() then
 
 		Spring.SetSunLighting({ groundShadowDensity = transition * shadowdensity, modelShadowDensity = transition * shadowdensity })
 	]]--
-	
-	
+
+
 	local function GetLightingAndAtmosphere()  -- returns a table of the common parameters
 		local res =  {
 			lighting = {
 				groundAmbientColor =  {gl.GetSun("ambient")},
 				groundDiffuseColor =  {gl.GetSun("diffuse")},
 				groundSpecularColor =  {gl.GetSun("specular")},
-				
+
 				unitAmbientColor =  {gl.GetSun("ambient","unit")},
 				unitDiffuseColor =  {gl.GetSun("diffuse","unit")},
 				unitSpecularColor =  {gl.GetSun("specular","unit")},
-				
+
 				groundShadowDensity = gl.GetSun("shadowDensity"),
 				modelShadowDensity = gl.GetSun("shadowDensity","unit"),
 			},
@@ -83,17 +85,16 @@ if not gadgetHandler:IsSyncedCode() then
 			},
 			sunDir = {gl.GetSun("pos")},
 		}
-		--Spring.Echo("GetLightingAndAtmosphere")
-		--Spring.Debug.TableEcho(res)
+
 		return res
 	end
-	
+
 	local function SetLightingAndAtmosphere(lightandatmos)
 		if lightandatmos.atmosphere then Spring.SetAtmosphere(lightandatmos.atmosphere) end
 		if lightandatmos.lighting then Spring.SetSunLighting(lightandatmos.lighting) end
 		if lightandatmos.sunDir then Spring.SetSunDirection(lightandatmos.sunDir[1], lightandatmos.sunDir[2], lightandatmos.sunDir[3] ) end
 	end
-	
+
 	local atmosphere_lighting = {"atmosphere","lighting"}
 	local atan2 = math.atan2
 	local diag = math.diag
@@ -103,62 +104,62 @@ if not gadgetHandler:IsSyncedCode() then
 	-- Mix everything specified in A into B, if not specified in B, then replace with A
 	local function MixLightingAndAtmosphere(a, b, mixfactor, target)
 		if target == nil then target = b end
-		for _,k in ipairs(atmosphere_lighting) do 
+		for _,k in ipairs(atmosphere_lighting) do
 			if a[k] and b[k] then
 				local aa = a[k]
-				local bb = b[k] 
+				local bb = b[k]
 				for ka, va in pairs(aa) do
-					if bb[ka] == nil then target[ka] = aa[ka] 
+					if bb[ka] == nil then target[ka] = aa[ka]
 					else
-						if type(va) == 'table' then 
-							for i=1,#va do 
+						if type(va) == 'table' then
+							for i=1,#va do
 								--Spring.Echo(k, ka, i, aa[ka][i],bb[ka][i], mixfactor )
-								target[k][ka][i] = mix(aa[ka][i], bb[ka][i], mixfactor) 
+								target[k][ka][i] = mix(aa[ka][i], bb[ka][i], mixfactor)
 							end
 						else
-							target[k][ka] = mix(aa[ka], bb[ka], mixfactor) 
+							target[k][ka] = mix(aa[ka], bb[ka], mixfactor)
 						end
 					end
 				end
 			end
 		end
-		if a['sunDir'] and b['sunDir'] then 
-			local asun = a['sunDir'] 
-			local bsun = b['sunDir'] 
+		if a['sunDir'] and b['sunDir'] then
+			local asun = a['sunDir']
+			local bsun = b['sunDir']
 			local alength = 1.0 / diag(asun[1], asun[2], asun[3])
 			local blength = 1.0 / diag(bsun[1], bsun[2], bsun[3])
-			
+
 			local aworldrot = atan2(asun[1]*alength, asun[3]*alength) --https://en.wikipedia.org/wiki/Atan2
-			local bworldrot = atan2(bsun[1]*blength, bsun[3]*blength) 
-			
+			local bworldrot = atan2(bsun[1]*blength, bsun[3]*blength)
+
 			--Spring.Echo(("Arot = %.2f, Brot = %.2f"):format(aworldrot, bworldrot))
-			
+
 			-- if close to 180 degrees, then rotate clockwise
 			if (aworldrot - bworldrot) > math.pi - 0.1 then
 				bworldrot = bworldrot + 2 * math.pi
 			end
-			
+
 			if (bworldrot - aworldrot) > math.pi - 0.1 then
 				bworldrot = bworldrot - 2 * math.pi
 			end
-			
+
 			local aheight =   atan2(asun[2]*alength, diag(asun[1]*alength, asun[3]*alength))
 			local bheight =   atan2(bsun[2]*blength, diag(bsun[1]*blength, bsun[3]*blength))
-			
+
 			local targetrot = mix(aworldrot, bworldrot, mixfactor)
 			local targetheight = mix(aheight, bheight, mixfactor)
-			
-			if target['sunDir'] == nil then target['sunDir'] = {0,1,0} end 
+
+			if target['sunDir'] == nil then target['sunDir'] = {0,1,0} end
 			target['sunDir'][1] = sin(targetrot) * cos(targetheight)
-			target['sunDir'][2] = sin(targetheight) 
+			target['sunDir'][2] = sin(targetheight)
 			target['sunDir'][3] = cos(targetrot) * cos(targetheight)
 			--Spring.Echo("sunDir", mixfactor, "targetrot",targetrot, "targetheight", targetheight, aworldrot ,  bworldrot)
-			
+
 		end
 	end
-	
+
 	local initial_atmosphere_lighting = GetLightingAndAtmosphere()
-	
+
 	local initlight
 	local endlight
 	local mixedlight
@@ -170,50 +171,47 @@ if not gadgetHandler:IsSyncedCode() then
 			initlight = GetLightingAndAtmosphere()
 			endlight = GetLightingAndAtmosphere()
 			mixedlight = GetLightingAndAtmosphere()
-			endlight.sunDir[1] = -1 * endlight.sunDir[1] 
-			--endlight.sunDir[2] = 0.3 * endlight.sunDir[2] 
+			endlight.sunDir[1] = -1 * endlight.sunDir[1]
+			--endlight.sunDir[2] = 0.3 * endlight.sunDir[2]
 			endlight.sunDir[3] = -1 * endlight.sunDir[3]
 			local nightfactor = {0.3, 0.3, 0.45, 1.0}
 			for _,k in ipairs(atmosphere_lighting) do
 				for k2, v2 in pairs(endlight[k]) do
-					if string.find(k2, "Color", nil, true) then 
-						for i =1, #v2 do 
+					if string.find(k2, "Color", nil, true) then
+						for i =1, #v2 do
 							endlight[k][k2][i] = endlight[k][k2][i] * nightfactor[i]
 						end
 					end
 				end
 			end
-			--Spring.Echo("endlight =")
-			--Spring.Debug.TableEcho(endlight)
 		end
 		local dt = 300
 		local tstart = 60
-		
-		if n > tstart then 
+
+		if n > tstart then
 			local tfloor = math.floor((n-tstart)/dt)
 			local mixfac = ((n-tstart) % dt) / dt
 			--mixfac = math.smoothstep(0,1,mixfac);
 			--Spring.Echo(n,mixfac)
-			if tfloor % 2 ==0 then 
+			if tfloor % 2 ==0 then
 				MixLightingAndAtmosphere(initlight, endlight, mixfac, mixedlight)
 			else
 				MixLightingAndAtmosphere(endlight, initlight, mixfac, mixedlight)
 			end
 			SetLightingAndAtmosphere(mixedlight)
-			--Spring.Debug.TableEcho(mixedlight)
 		end
-		
+
 	end
-	
+
 	local gar, gag, gab = gl.GetSun("ambient")
 	local uar, uag, uab = gl.GetSun("ambient", "unit")
 	local gdr, gdg, gdb = gl.GetSun("diffuse")
 	local udr, udg, udb = gl.GetSun("diffuse", "unit")
 	local gsr, gsg, gsb = gl.GetSun("specular")
 	local usr, usg, usb = gl.GetSun("specular", "unit")
-	
+
 	local sundirx, sundiry, sundirz = gl.GetSun("pos")
-	
+
 	local skycr, skycg, skycb = gl.GetAtmosphere("skyColor")
 	local suncr, suncg, suncb = gl.GetAtmosphere("sunColor")
 	local clocr, clocg, clocb = gl.GetAtmosphere("cloudColor")
@@ -288,10 +286,10 @@ if not gadgetHandler:IsSyncedCode() then
 		if transitionred > 1 then
 			transitionred = 1
 		end
-		if sundir then -- try to calculate an 'orbit', while attempting to 
+		if sundir then -- try to calculate an 'orbit', while attempting to
 			local origworldrot = math.atan2(sundirx, sundirz)
 			local origheight = math.atan2(sundirx, sundiry)
-			
+
 		end
 
 		Spring.SetSunLighting({ groundAmbientColor = { transitionred * gar, transitiongreen * gag, transitionblue * gab } })

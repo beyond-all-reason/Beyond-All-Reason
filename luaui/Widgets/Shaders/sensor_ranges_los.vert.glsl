@@ -52,7 +52,7 @@ out DataVS {
 #line 11000
 
 float heightAtWorldPos(vec2 w){
-	vec2 uvhm =   heighmapUVatWorldPos(w);
+	vec2 uvhm =   heightmapUVatWorldPos(w);
 	return textureLod(heightmapTex, uvhm, 0.0).x;
 }
 

@@ -190,7 +190,6 @@ local createNanoUnitDef = function(tier)
 		terraformspeed = 1000 * parameters.sizeMultiplier,
 		turnrate = 1,
 		upright = true,
-		usebuildinggrounddecal = true,
 		workertime = 100 * parameters.sizeMultiplier,
 		reclaimable = false,
 		--yardmap = "oooo",
@@ -234,6 +233,7 @@ local createNanoUnitDef = function(tier)
 			subfolder = "armbuildings/landutil",
 			i18nfromunit = parameters.i18nFromUnit,
 			unitgroup = 'builder',
+			paratrooper = true,
 		},
 	}
 end

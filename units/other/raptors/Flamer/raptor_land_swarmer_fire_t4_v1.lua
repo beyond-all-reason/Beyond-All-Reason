@@ -56,7 +56,6 @@ return {
 			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_m_normals.png",
-			--treeshader = "no",
 		},
 		sfxtypes = {
 			explosiongenerators = {
@@ -113,7 +112,6 @@ return {
 				explosiongenerator = "custom:burnthermite",
 				firestarter = 100,
 				flamegfxtime = 1,
-				groundbounce = true,
 				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 0.65,

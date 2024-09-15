@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, turret, sleeve, barrel1, barrel2, flare1, flare2, aimpoint;
+piece  base, turret, sleeve, barrel1, barrel2, flare1, flare2, aimpoint, hat, aimy1, aimx1;
 
 static-var  Static_Var_1, Static_Var_2, restore_delay, Static_Var_4, statechg_DesiredState,
             statechg_StateChanging;
@@ -14,8 +14,8 @@ static-var  Static_Var_1, Static_Var_2, restore_delay, Static_Var_4, statechg_De
 
 Activatescr()
 {
-	move turret to y-axis [0] speed [40];
-	wait-for-move turret along y-axis;
+	move aimy1 to y-axis [0] speed [40];
+	wait-for-move aimy1 along y-axis;
 	move barrel2 to z-axis [0] speed [28];
 	move barrel1 to z-axis [0] speed [28];
 	sleep 200;
@@ -23,10 +23,14 @@ Activatescr()
 
 Deactivatescr()
 {
-	move turret to y-axis [-7] speed [40];
-	wait-for-move turret along y-axis;
-	move barrel2 to z-axis [-7] speed [28];
 	move barrel1 to z-axis [-7] speed [28];
+	move barrel2 to z-axis [-7] speed [28];
+	wait-for-move barrel2 along z-axis;
+	
+	move aimy1 to y-axis [-7] speed [40];
+	turn aimy1 to y-axis <0> speed <120>;
+	turn aimx1 to x-axis <0> speed <120>;
+	turn hat to x-axis <0> speed <60>;
 	sleep 200;
 }
 
@@ -134,7 +138,9 @@ AimPrimary(heading, pitch)
 	{
 		sleep 250;
 	}
-	turn sleeve to y-axis heading speed <900.000000>;
+	turn aimy1 to y-axis heading speed <200.000000>;
+	turn aimx1 to x-axis 0 - pitch speed <200.000000>;
+	turn hat to x-axis 0 - pitch / 2 speed <100.000000>;
 	wait-for-turn turret around y-axis;
 	start-script RestoreAfterDelay();
 	return (1);

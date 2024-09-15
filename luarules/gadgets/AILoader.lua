@@ -65,79 +65,66 @@ local spGetGaiaTeamID = Spring.GetGaiaTeamID()
 --SYNCED CODE
 if gadgetHandler:IsSyncedCode() then
 	function gadget:Initialize()
-		GG.AiHelpers.Start()
+		--GG.AiHelpers.Start()
 	end
-function gadget:RecvLuaMsg(msg, playerID)
 
-		if string.sub(msg,1,17) == 'StGiveOrderToSync' then
-			local id = string.split(msg,"*")
-			local cmd = string.split(msg,'_')
-			local pos = string.split(msg,':')
-			local opts = string.split(msg,';')
-			local timeout = string.split(msg,'#')
-			local unit = string.split(msg,'!')
-			if #id ~= 3 or #cmd ~= 3 or #pos ~= 3 or #opts ~= 3 or #timeout ~= 3 or #unit ~= 3 then
-				spEcho('format incomplete',unit,#id,#cmd,#pos,#opts,#timeout,#unit)
-				spEcho('recvluamsg',msg)
-				spEcho('splitting length',unit,#id,#cmd,#pos,#opts,#timeout,#unit)
-				spEcho('GiveOrderToUnit : ')
-				spEcho('unit',unit,type(unit))
-				spEcho('id',id,type(id))
-				spEcho('cmd',cmd,type(cmd))
-				spEcho('pos',pos,type(pos))
-				spEcho('opts',opts,type(opts))
-				spEcho('timeout',timeout,type(timeout))
-				Spring.Debug.TableEcho(pos)
+
+
+
+
+
+
+
+
+	function gadget:RecvLuaMsg(msg, playerID)
+		--msg = 'StGiveOrderToSync'..';'..id..';'..cmd..';'..pos..';'..opts..';'..timeout..';'..uname..';'.'StEndGOTS'
+		if string.sub(msg,1,17) ~= 'StGiveOrderToSync' then
+			return
+		end
+		local datas = string.split(msg,';')
+
+		if datas[1] ~= 'StGiveOrderToSync' or datas[7] ~= 'StEndGOTS' then
+			Spring.Echo('ST RECEIVEDGOTS INCOMPLETE GOTS ',#datas,msg)
+			return
+		end
+
+		if #datas ~= 7 then
+			Spring.Echo('ST RECEIVEDGOTS INCOMPLETE GOTS ',#datas,msg)
+			return
+		end
+
+		local id = datas[2]
+		local cmd = datas[3]
+		local pos = datas[4]
+		local opts = datas[5]
+		--local timeout = datas[6]
+		local unit = datas[6]
+
+		pos = string.split(pos,',')
+		if not pos or not pos[1] or pos[1] == '' then
+			Spring.Echo(pos)
+			spEcho('warn! invalid POS argument in STAI gotu luarules message')
+			return
+		end
+		if opts ~= 0 then
+			opts = string.split(opts,',')
+			if not opts or not opts[1] or opts[1] == '' then
+				Spring.Echo(opts)
+				spEcho('warn! invalid OPTS argument in STAI gotu luarules message')
 				return
-			end
-			id = id[2]
-			cmd = cmd[2]
-			pos = pos[2]
-			opts = opts[2]
-			timeout = timeout[2]
-			unit = unit[2]
-			if not Spring.ValidUnitID ( id )  then
-				Spring.Echo('ST RECEIVEDGOTS ID INVALID','name',unit,'id',id,'cmd',cmd)
-				return
-			end
-			if string.split(pos,',') then
-				pos = string.split(pos,',')
-				if not pos[1] or pos[1] == '' then
-					Spring.Debug.TableEcho(pos)
-					spEcho('warn! invalid pos argument in STAI gotu luarules message')
-					return
-				end
-			end
-			if string.split(opts,',') then
-				opts = string.split(opts,',')
-				if not opts[1] or opts[1] == '' then
-					Spring.Debug.TableEcho(pos)
-					spEcho('warn! invalid opts argument in STAI gotu luarules message')
-					return
-				end
-			end
-			if type(timeout) ~= 'table' then--maybe this is not required
-				timeout = {timeout}
-			end
-			if dbg then
-				spEcho('recvluamsg',msg)
-				spEcho('splitting length',unit,#id,#cmd,#pos,#opts,#timeout,#unit)
-				spEcho('GiveOrderToUnit : ')
-				spEcho('unit',unit,type(unit))
-				spEcho('id',id,type(id))
-				spEcho('cmd',cmd,type(cmd))
-				spEcho('pos',pos,type(pos))
-				spEcho('opts',opts,type(opts))
-				spEcho('timeout',timeout,type(timeout))
-				Spring.Debug.TableEcho(pos)
-			end
-			local order = Spring.GiveOrderToUnit(id,cmd,pos,opts,timeout)
-			if order ~= true then
-				spEcho('order error in STAI unsync to sync give order to unit',msg)
-				spEcho('order', order,id,cmd,pos,opts,timeout)
 			end
 		end
+-- 		Spring.Echo('GOTS ORDER ISSUES',id,cmd,pos,opts)
+		local order = Spring.GiveOrderToUnit(id,cmd,pos,opts)
+		if order ~= true then
+			spEcho('order error in STAI unsync to sync give order to unit',msg)
+			spEcho('order', order,id,cmd,pos,opts)
+-- 		else
+-- 			spEcho('STAI give order to unit OK')
+		end
 	end
+
+
 else
 
 	-- UNSYNCED CODE
@@ -165,7 +152,7 @@ else
 				self:UnitFinished(uId, Spring.GetUnitDefID(uId), Spring.GetUnitTeam(uId))
 			end
 		end
-
+		collectgarbage('collect')
 	end
 
 	function gadget:SetupAI(id)
@@ -213,12 +200,12 @@ else
 		thisAI.neutralUnitIds = thisAI.neutralUnitIds or {}
 		return thisAI
 	end
-	
+
 	local basememlimit = 200000
 	local pershardmemlimit = 50000
 	local garbagelimit = basememlimit -- in kilobytes, will adjust upwards as needed
 	local numShards = 0
-	
+
 	function gadget:GameStart()
 		-- Initialise AIs
 		for _, thisAI in ipairs(Shard.AIs) do
@@ -235,22 +222,23 @@ else
 
 	function gadget:GameFrame(n)
 		-- for each AI...
+
 		for i, thisAI in ipairs(Shard.AIs) do
 			--local RAM = gcinfo()
 			-- update sets of unit ids : own, friendlies, enemies
 			--1 run AI game frame update handlers
 			thisAI:Prepare()
 			thisAI:Update()
-			
-			if i == 1 and n % 121 == 0 then 
+
+			if i == 1 and n % 121 == 0 then
 				local ramuse = gcinfo()
-				--Spring.Echo("RAMUSE",i,n, RAMUSE)
-				if ramuse > garbagelimit then 
+				Spring.Echo("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%RAMUSE",i,n, ramuse)
+				if ramuse > garbagelimit then
 					collectgarbage("collect")
 					collectgarbage("collect")
 					local notgarbagemem = gcinfo()
 					local newgarbagelimit = math.min(1000000, notgarbagemem + basememlimit + pershardmemlimit * numShards) -- peak 1 GB
-					Spring.Echo(string.format("%d STAIs using %d MB RAM > %d MB limit, performing garbage collection and adjusting limit to %d MB", 
+					Spring.Echo(string.format("%d STAIs using %d MB RAM > %d MB limit, performing garbage collection and adjusting limit to %d MB",
 						numShards, math.floor(ramuse/1000), math.floor(garbagelimit/1000), math.floor(newgarbagelimit/1000) ) )
 					garbagelimit = newgarbagelimit
 				end
@@ -367,6 +355,7 @@ else
 	end
 
 	function gadget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
+-- 		local RAM = gcinfo()
 		local unit = Shard:shardify_unit(unitID)
 		if unit then
 			for _, thisAI in ipairs(Shard.AIs) do
@@ -374,8 +363,10 @@ else
 				thisAI:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
 			end
 		end
+-- 		Spring.Echo('uelram',gcinfo()-RAM)
 	end
 	function gadget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
+-- 	local RAM = gcinfo()
 		local unit = Shard:shardify_unit(unitID)
 		if unit then
 			for _, thisAI in ipairs(Shard.AIs) do
@@ -383,8 +374,10 @@ else
 				thisAI:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
 			end
 		end
+-- 		Spring.Echo('ullram',gcinfo()-RAM)
 	end
 	function gadget:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
+-- 	local RAM = gcinfo()
 		local unit = Shard:shardify_unit(unitID)
 		if unit then
 			for _, thisAI in ipairs(Shard.AIs) do
@@ -392,8 +385,10 @@ else
 				thisAI:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
 			end
 		end
+-- 		Spring.Echo('uerram',gcinfo()-RAM)
 	end
 	function gadget:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
+-- 		local RAM = gcinfo()
 		local unit = Shard:shardify_unit(unitID)
 		if unit then
 			for _, thisAI in ipairs(Shard.AIs) do
@@ -401,6 +396,7 @@ else
 				thisAI:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
 			end
 		end
+-- 		Spring.Echo('ulrram',gcinfo()-RAM)
 	end
 
 -- 	function gadget:UnitMoved(a,b,c,d)

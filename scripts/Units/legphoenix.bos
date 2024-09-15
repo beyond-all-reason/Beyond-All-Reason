@@ -3,8 +3,17 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, lthrust, mthrust, rthrust, ring1, ring2, ring3, ringlight, fireline, lineflare;
+piece  base, triparent, x, z, lthrust, mthrust, rthrust, ring1, ring2, ring3, ringlight, fireline, lineflare;
 static-var maxSpeed, currentSpeed, shotcount, timer, isfiring;
+
+
+
+//fakeupright
+#define FAKE_UPRIGHT_REFERENCE		1
+#define FAKE_UPRIGHT_TARGET_triparent	2
+#define FAKE_UPRIGHT_TARGET_CHILD	3	//piece to make upright
+#define FAKE_UPRIGHT_X				4
+#define FAKE_UPRIGHT_Z				5
 
 
 
@@ -19,6 +28,34 @@ static-var maxSpeed, currentSpeed, shotcount, timer, isfiring;
 #define SIG_STRAFE 2
 
 
+
+
+
+
+
+
+
+
+//todo: can empties be used for z and x?
+
+//move linefire into child obj / unify to reduce piece bloat
+
+
+FakeUprightInit() {
+	move x to z-axis [1] now;
+	move z to x-axis [-1] now;
+	turn lineflare to x-axis <-90> now;
+}
+
+FakeUprightTurn() {
+	var angle_x, angle_z, dy_x, dy_z;
+	dy_x = GET PIECE_Y(x) - GET PIECE_Y(base);
+	dy_z = GET PIECE_Y(z) - GET PIECE_Y(base);
+	angle_x = GET ATAN(dy_x, GET POW(65536 - GET POW(dy_x, 131072), 32768));
+	angle_z = GET ATAN(dy_z, GET POW(65536 - GET POW(dy_z, 131072), 32768));
+	turn triparent to x-axis angle_x now;
+	turn triparent to z-axis angle_z now;
+}
 
 DoBarrelRoll() {
 	turn base to z-axis <240.054945> speed <120.027473>;
@@ -36,7 +73,8 @@ lua_UnitScriptLight(lightIndex, count)
 
 Create()
 {
-	turn fireline to x-axis <55> speed <50>;
+	call-script FakeUprightInit();
+	turn fireline to x-axis <50> speed <50>;
 	turn fireline to y-axis <0> speed <50>;
 	shotcount = 0;
 	timer = 0;
@@ -84,11 +122,17 @@ StrafeFire() {
 	shotcount = shotcount + 1;
 	call-script lua_UnitScriptLight(1, shotcount);
 
+
+	call-script FakeUprightTurn();
+
 	while (isfiring == 1) {
 		timer = timer + 1;
 		if (timer<65) {
-			//get PRINT(timer);
+			
+			//this might need a modulus type limiter for only running every X frames?
 			emit-sfx 2048+1 from fireline;
+			call-script FakeUprightTurn();
+			//get PRINT(timer);
 			sleep 1;
 		} else {
 			spin ring1 around x-axis speed <90> accelerate <200>;

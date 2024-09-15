@@ -501,6 +501,23 @@ local unitDeaths = {
 			unitexplosion = 1,
 		}
 	},
+	nukeSub = {
+		weaponType = "Cannon",
+		AreaOfEffect = 780,
+		cameraShake = 780,
+		impulseboost = impulseboost,
+		impulsefactor = impulsefactor,
+		soundhit = "xplonuk3",
+		soundstart = "largegun",
+		explosiongenerator = "custom:afusexpl",
+		damage = {
+			commanders = 1800,
+			default = 4000,
+		},
+		customparams = {
+			unitexplosion = 1,
+		}
+	},
 
 	penetrator = {
 		weaponType = "Cannon",
@@ -529,6 +546,23 @@ local unitDeaths = {
 		explosiongenerator = "custom:genericbuildingexplosion-huge",
 		damage = {
 			default = 1420,
+		},
+		customparams = {
+			unitexplosion = 1,
+		}
+	},
+
+	deadeyeSelfd = {
+		weaponType = "Cannon",
+		areaofeffect = 520,
+		camerashake = 520,
+		impulseboost = impulseboost,
+		impulsefactor = impulsefactor,
+		soundhit = "xplolrg2",
+		soundstart = "largegun",
+		explosiongenerator = "custom:genericbuildingexplosion-huge",
+		damage = {
+			default = 540,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -1283,6 +1317,38 @@ local unitDeaths = {
 		soundhit = "xplolrg4",
 		soundstart = "largegun",
 		explosiongenerator = "custom:genericbuildingexplosion-gigantic",
+		damage = {
+			default = 3100,
+		},
+		customparams = {
+			unitexplosion = 1,
+		}
+	},
+	['hugeBuildingExplosionGeneric-uw'] = {
+		weaponType = "Cannon",
+		AreaOfEffect = 420,
+		cameraShake = 420,
+		impulseboost = impulseboost,
+		impulsefactor = impulsefactor,
+		soundhit = "xplolrg4",
+		soundstart = "largegun",
+		explosiongenerator = "custom:genericbuildingexplosion-gigantic-uw",
+		damage = {
+			default = 1330,
+		},
+		customparams = {
+			unitexplosion = 1,
+		}
+	},
+	['hugeBuildingExplosionGenericSelfd-uw'] = {
+		weaponType = "Cannon",
+		AreaOfEffect = 580,
+		cameraShake = 580,
+		impulseboost = impulseboost,
+		impulsefactor = impulsefactor,
+		soundhit = "xplolrg4",
+		soundstart = "largegun",
+		explosiongenerator = "custom:genericbuildingexplosion-gigantic-uw",
 		damage = {
 			default = 3100,
 		},
@@ -2084,7 +2150,7 @@ local unitDeaths = {
 		}
 	},
 
-	mistexplosm = {    -- for scavmist
+	mistexplo = {    -- for scavmist
 		areaofeffect = 200,
 		craterboost = 0,
 		cratermult = 0,
@@ -2095,18 +2161,18 @@ local unitDeaths = {
 		impulsefactor = 0,
 		name = "ScavMistExplo",
 		paralyzer = 1,
-		paralyzetime = 5,
+		paralyzetime = 20,
 		soundhit = "xploelc1",
 		soundstart = "bombrel",
 		damage = {
-			default = 1670,
+			default = 3000,
 		},
 		customparams = {
 			unitexplosion = 1,
 		}
 	},
 
-	mistexplo = {    -- for scavmist
+	mistexploxl = {    -- for scavmist
 		areaofeffect = 350,
 		craterboost = 0,
 		cratermult = 0,
@@ -2117,18 +2183,18 @@ local unitDeaths = {
 		impulsefactor = 0,
 		name = "ScavMistExplo",
 		paralyzer = 1,
-		paralyzetime = 10,
+		paralyzetime = 20,
 		soundhit = "xploelc1",
 		soundstart = "bombrel",
 		damage = {
-			default = 2800,
+			default = 6000,
 		},
 		customparams = {
 			unitexplosion = 1,
 		}
 	},
 
-	mistexploxl = {    -- for scavmist
+	mistexploxxl = {    -- for scavmist
 		areaofeffect = 400,
 		craterboost = 0,
 		cratermult = 0,
@@ -2139,11 +2205,11 @@ local unitDeaths = {
 		impulsefactor = 0,
 		name = "ScavMistExplo",
 		paralyzer = 1,
-		paralyzetime = 12,
+		paralyzetime = 20,
 		soundhit = "xploelc1",
 		soundstart = "bombrel",
 		damage = {
-			default = 3900,
+			default = 20000,
 		},
 		customparams = {
 			unitexplosion = 1,

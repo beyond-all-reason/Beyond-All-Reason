@@ -13,7 +13,7 @@ function gadget:GetInfo()
 		date = "",
 		license = "GNU GPL, v2 or later, Horses",
 		layer = -1999999999,
-		enabled = true  --  loaded by default?
+		enabled = true
 	}
 end
 
@@ -43,6 +43,7 @@ end
 
 
 if gadgetHandler:IsSyncedCode() then
+
 	function checkStartPlayers()
 		for _, playerID in ipairs(Spring.GetPlayerList()) do
 			-- update player infos
@@ -52,12 +53,11 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 	end
+
 	function gadget:GameStart()
 		checkStartPlayers()
 	end
-	function gadget:PlayerChanged(playerID)
-		checkStartPlayers()
-	end
+
 	function LoadMissiles()
 		if not Spring.IsCheatingEnabled() then
 			return
@@ -92,7 +92,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	local team1unitDefName = "armbull"
 	local team2unitDefName = "armbull"
-
 
 
 	local seededrand = {}
@@ -436,7 +435,7 @@ if gadgetHandler:IsSyncedCode() then
 								end
 							end
 							offset = offset or 0
-							
+
 							commandProc[k] = sampleMode(modePtr) + offset
 						else
 							commandProc[k] = command[j]
@@ -449,7 +448,7 @@ if gadgetHandler:IsSyncedCode() then
 				func(commandProc)
 			end
 		end
-		
+
 		-- finishing touches
 		do
 			-- Edge patchwork, something is not right with map edges, i don't know if its the above functions that fail, or if it is during map making
@@ -500,7 +499,7 @@ if gadgetHandler:IsSyncedCode() then
 				-- we only need to find 1 command to pass over, cancel actual debug commands
 				return
 			end
-			
+
 
 			debugcommands = {}
 			local commands = string.split(Spring.GetModOptions().debugcommands, '|')
@@ -959,7 +958,7 @@ else	-- UNSYNCED
 			local mapcx = Game.mapSizeX/2
 			local mapcz = Game.mapSizeZ/2
 			local mapcy = Spring.GetGroundHeight(mapcx,mapcz)
-			--Spring.Debug.TableEcho(camState)
+
 			camState["px"] = mapcx
 			camState["py"] = mapcy
 			camState["pz"] = mapcz
@@ -1155,8 +1154,7 @@ else	-- UNSYNCED
 				stats.display = tostring(vsx) ..'x' .. tostring(vsy)
 
 				Spring.Echo("Benchmark Results")
-				Spring.Debug.TableEcho(stats)
-
+				Spring.Echo(stats)
 
 				if Spring.GetMenuName then
 					local message = Json.encode(stats)
@@ -1173,7 +1171,7 @@ else	-- UNSYNCED
 			if Spring.GetModOptions().scenariooptions then
 				--Spring.Echo("Scenario: Spawning on frame", Spring.GetGameFrame())
 				local scenariooptions = string.base64Decode(Spring.GetModOptions().scenariooptions)
-				Spring.Debug.TableEcho(scenariooptions)
+				Spring.Echo(scenariooptions)
 				scenariooptions = Json.decode(scenariooptions)
 				if scenariooptions and scenariooptions.benchmarkcommand then
 					--This is where the magic happens!

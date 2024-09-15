@@ -1,3 +1,7 @@
+if not (Spring.Utilities.Gametype.IsRaptors() and not Spring.Utilities.Gametype.IsScavengers()) then
+	return false
+end
+
 function widget:GetInfo()
 	return {
 		name = "Raptor Stats Panel",
@@ -6,7 +10,7 @@ function widget:GetInfo()
 		date = "May 04, 2008",
 		license = "GNU GPL, v2 or later",
 		layer = -9,
-		enabled = true  --  loaded by default?
+		enabled = true
 	}
 end
 
@@ -238,6 +242,9 @@ local function getResistancesMessage()
 	messages[1] = textColor .. Spring.I18N('ui.raptors.resistanceUnits')
 	for i = 1,#resistancesTable do
 		local attackerName = UnitDefs[resistancesTable[i]].name
+		if UnitDefNames[attackerName].customParams.i18nfromunit then
+			attackerName = UnitDefNames[attackerName].customParams.i18nfromunit
+		end
 		messages[i+1] = textColor .. Spring.I18N('units.names.' .. attackerName)
 		currentlyResistantToNames[#currentlyResistantToNames+1] = Spring.I18N('units.names.' .. attackerName)
 	end

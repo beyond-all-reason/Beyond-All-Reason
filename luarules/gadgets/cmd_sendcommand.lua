@@ -34,9 +34,6 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:GameStart()
 		checkStartPlayers()
 	end
-	function gadget:PlayerChanged(playerID)
-		checkStartPlayers()
-	end
 
 	function gadget:RecvLuaMsg(msg, playerID)
 		if string.sub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER then

@@ -10,25 +10,35 @@
 -- Read the documentation for the 5-6 user facing functions:
 --		function MakeAtlasOnDemand(config)
 --		function AtlasOnDemand:AddImage(image, xsize, ysize)
+--		function AtlasOnDemand:PlaceImage(image, x, y, xsize, ysize)
 --		function AtlasOnDemand:AddText(text, params)
 --		function AtlasOnDemand:RemoveFromAtlas(uvcoords, id)
 --		function AtlasOnDemand:RenderTasks()
 --		function AtlasOnDemand:Delete() 
 --		function AtlasOnDemand:DrawToScreen(aliastest,noalpha)
 
--- Example usage:
--- :Initialize()
---		local myAtlas = MakeAtlasOnDemand({sizex = 1024, sizey =  512, xresolution = 96, yresolution = 24, name = "AtlasOnDemand Tester", defaultfont = {font = fontObj}})
+--[[
 
---    local myimguvcoords = myAtlas:AddImage("luaui/images/myimg.png", xsize, ysize)
---    local mytextuvcoords = myAtlas:AddText("text", | {textparams optional}) -- will draw with defaultFont as passed during creation
+-- Example usage:
+local myAtlas
+local function widget:Initialize()
+		myAtlas = MakeAtlasOnDemand({sizex = 1024, sizey =  512, xresolution = 96, yresolution = 24, name = "AtlasOnDemand Tester", defaultfont = {font = fontObj}})
+		myAtlas:PlaceImage("mybackground.png", 0, 0, myAtlas.xsize, myAtlas.ysize) -- draw a background
+    local myimguvcoords = myAtlas:AddImage("luaui/images/myimg.png", xsize, ysize) -- allocate space for this image
+    local mytextuvcoords = myAtlas:AddText("text", | {textparams optional}) -- will draw with defaultFont as passed during creation
+end
+
+
+local function widget:Draw()
+		myAtlas:RenderTasks() -- must be called when you want to finish drawing onto the atlas. 
 		
--- :Draw()
---		myAtlas:RenderTasks()
---		gl.TexRect(posx, posy, posx + myimguvcoords[5], posy + myimguvcoords[6], myimguvcoords[1], myimguvcoords[3], myimguvcoords[2], myimguvcoords[4])
---
--- :Remove()
---		myAtlas:Delete()
+		gl.TexRect(posx, posy, posx + myimguvcoords[5], posy + myimguvcoords[6], myimguvcoords[1], myimguvcoords[3], myimguvcoords[2], myimguvcoords[4])
+end
+
+local function widget:Shutdown()
+		myAtlas:Delete()
+end
+]]--
 ----------------------------------------------------
 
 
@@ -181,6 +191,7 @@ local function MakeAtlasOnDemand(config)
 		firstemptycolumn = 1,
 		freeslots = config.sizex/config.xresolution * config.sizey/config.yresolution,
 		blankimg = 'icons/blank.png',
+		blackimg = 'luaui/images/black.bmp',
 		aliasing_grid_test_image = 'luaui/images/aliasing_test_grid_128.tga',
 		drawmode = config.drawmode or '', -- can be any mode like ':n:' for nearest neighbour
 		defaultfont = config.defaultfont,
@@ -190,7 +201,7 @@ local function MakeAtlasOnDemand(config)
 	}
 	
 	-- add an initial blanking command to the whole goddamned thing because AMD allocates garbage as texture memory
-	AtlasOnDemand.renderImageTaskList[1] = {id = AtlasOnDemand.blankimg, w = config.xresolution , h = config.yresolution, x = 0, y = 0 }
+	AtlasOnDemand.renderImageTaskList[1] = {id = AtlasOnDemand.blankimg, w = config.sizex , h = config.sizey, x = 0, y = 0 }--, srcmode = GL.ZERO, dstmode = GL.ZERO}
 	for x = 1, AtlasOnDemand.xslots do
 		AtlasOnDemand.fill[x] = {}
 		for y = 1, AtlasOnDemand.yslots do 
@@ -324,7 +335,10 @@ local function MakeAtlasOnDemand(config)
 	-- @param ysize width of the image, optional, but will override if specified
 	-- @return an array of UV coordinates in xXyYwh format
 	function AtlasOnDemand:AddImage(image, xsize, ysize)
-		if self.uvcoords[image] then 
+		if gl.RenderToTexture == nil then
+			return {x = 0,X = 1,y = 0,Y = 1,w = 1,h = 1, id = image}
+		end
+		if self.uvcoords[image] then
 			Spring.Echo(string.format("AtlasOnDemand %s Warning: image %s is already added to this atlas", self.name, tostring(image)))
 			return self.uvcoords[image]
 		end
@@ -346,6 +360,24 @@ local function MakeAtlasOnDemand(config)
 		return uvcoords
 	end
 	
+	---Places an image onto the atlas at a specific position.
+	-- @param image is a valid VFS path to the image
+	-- @param x the desired left coordinate of the image on the atlas	
+	-- @param y the desired bottom coordinate of the image on the atlas
+	-- @param xsize desired width of the image in pixels
+	-- @param ysize desired height of the image
+	-- @return number of queued draw tasks
+	function AtlasOnDemand:PlaceImage(image, x, y, xsize, ysize)
+		local texInfo = gl.TextureInfo(image)
+		if texInfo then 
+			local task =  {id = image, w = xsize , h = ysize, x = x, y = y }
+			self.renderImageTaskList[#self.renderImageTaskList + 1 ] = task
+			self.hastasks = true
+			return #self.renderImageTaskList 
+		else
+			Spring.Echo(string.format("AtlasOnDemand %s Warning:   unable to read gl.TextureInfo(%s)",self.name, tostring(image)))
+		end
+	end	
 	-- This should return a width, height and UV set for pixel-perfect rendering
 	-- This does not support redundancy checking yet! That is up to the user, as there are too many params to check.
 	
@@ -358,6 +390,9 @@ local function MakeAtlasOnDemand(config)
 	-- @param params optional table of at least { font = fontObject (or specify the default font!)}
 	-- @return an array of {x,X,y,Y,w,h,descender}
 	function AtlasOnDemand:AddText(text, params)
+		if gl.RenderToTexture == nil then
+			return {x = 0,X = 1,y = 0,Y = 1,w = 1,h = 1, id = text}
+		end
 		local textparams
 		if not params then -- render with default fot
 			if self.uvcoords[text] then
@@ -494,6 +529,7 @@ local function MakeAtlasOnDemand(config)
 		--gl.Rect( 0,0,0.5,0.1)
 		gl.Blending(GL.ONE, GL.ZERO) -- do full opaque
 		for i, task in ipairs(self.renderImageTaskList) do 
+			gl.Blending(task.srcmode or GL.ONE, task.dstmode or GL.ZERO)
 			local drawmodeTexName = self.drawmode..task.id
 			gl.Texture(0, drawmodeTexName)
 			local p = self.padx*0
@@ -628,12 +664,16 @@ local function MakeAtlasOnDemand(config)
 	function AtlasOnDemand:RenderTasks()
 		if self.hastasks then 
 			if next(self.renderImageTaskList) then 
-				gl.RenderToTexture(self.textureID, self.RenderImageTasks, self)
+				if gl.RenderToTexture ~= nil then
+					gl.RenderToTexture(self.textureID, self.RenderImageTasks, self)
+				end
 				-- work backwards through the buffer of tasks:
 				self.renderImageTaskList = {}
 			end
 			if next(self.renderTextTaskList) then 
-				gl.RenderToTexture(self.textureID, self.RenderTextTasks, self)
+				if gl.RenderToTexture ~= nil then
+					gl.RenderToTexture(self.textureID, self.RenderTextTasks, self)
+				end
 				self.renderTextTaskList = {}
 			end
 			self.hastasks = false

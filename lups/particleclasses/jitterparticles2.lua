@@ -1,4 +1,3 @@
--- $Id: JitterParticles2.lua 3171 2008-11-06 09:06:29Z det $
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
 
@@ -170,7 +169,7 @@ local time
 
 function JitterParticles2.BeginDrawDistortion()
   glUseShader(billShader)
-  time = Spring.GetGameFrame()*0.01
+  time = (Spring.GetGameFrame() + Spring.GetFrameTimeOffset()) / (Game.gameSpeed * 10)
 end
 
 function JitterParticles2.EndDrawDistortion()
@@ -186,7 +185,7 @@ function JitterParticles2:DrawDistortion()
     lastTexture=self.texture
   end
 
-  glMultiTexCoord(5, self.frame/200, time*self.animSpeed)
+  glMultiTexCoord(5, (self.frame + Spring.GetFrameTimeOffset())/200, time*self.animSpeed)
   glCallList(self.dlist)
 end
 

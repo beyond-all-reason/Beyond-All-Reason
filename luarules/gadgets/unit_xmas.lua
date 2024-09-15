@@ -1,3 +1,7 @@
+if not Spring.GetModOptions().xmas then
+	return
+end
+
 function gadget:GetInfo()
 	return {
 		name		= "Xmas effects",
@@ -6,10 +10,11 @@ function gadget:GetInfo()
 		date		= "October 2017",
 		license     = "GNU GPL, v2 or later",
 		layer		= 0,
-		enabled		= Spring.GetModOptions().xmas,
+		enabled		= true,
 	}
 end
 
+_G.itsXmas = true
 
 local decorationUdefIDs = {}
 local decorationUdefIDlist = {}
@@ -40,8 +45,6 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 -------------------------------------------------------------------------------
-
-_G.itsXmas = true
 
 local maxDecorations = 350
 local candycaneAmount = math.ceil((Game.mapSizeX*Game.mapSizeZ)/1800000)
@@ -308,8 +311,8 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 	elseif attackerID ~= nil then --and (not _G.destroyingTeam or not _G.destroyingTeam[select(6,Spring.GetTeamInfo(teamID,false))]) then	-- is not reclaimed and not lastcom death chain ripple explosion
 		if enableUnitDecorations and hasDecoration[unitDefID] ~= nil and (decorationCount < maxDecorations or hasDecoration[unitDefID][5]) then
 
-			local _,_,_,_,buildProgress=Spring.GetUnitHealth(unitID)
-			if buildProgress and buildProgress == 1 then	-- exclude incompleted nanoframes
+			local inProgress = Spring.GetUnitIsBeingBuilt(unitID)
+			if not inProgress then	-- exclude incompleted nanoframes
 				local x,y,z = Spring.GetUnitPosition(unitID)
 				createDecorations[#createDecorations+1] = {x,y,z, teamID, unitDefID }
 				--Spring.Echo(hasDecoration[unitDefID][1])

@@ -2,5 +2,7 @@
 /.git
 /.svn
 .vscode/
+.idea/
+*.iml
 .project
 *.code-workspace

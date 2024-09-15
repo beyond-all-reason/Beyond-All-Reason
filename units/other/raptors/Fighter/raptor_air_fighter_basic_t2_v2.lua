@@ -95,7 +95,6 @@ return {
 				areaofeffect = 256,
 				avoidfriendly = false,
 				burnblow = true,
-				--cegtag = "sporetrail-large",
 				collidefriendly = false,
 				craterboost = 0,
 				cratermult = 0,

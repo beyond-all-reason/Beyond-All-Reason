@@ -11,12 +11,12 @@ function widget:GetInfo()
 end
 
 local myshader = nil
-myshaderDebgDrawLoc = nil
-myshaderTexture0Loc = nil
+local myshaderDebgDrawLoc = nil
+local myshaderTexture0Loc = nil
 local dbgDraw = 0
 local depthCopyTex = nil
 
-deferredbuffers = ({
+local deferredbuffers = ({
 	"$map_gbuffer_normtex",
 	"$map_gbuffer_difftex",
 	"$map_gbuffer_spectex",
@@ -48,7 +48,7 @@ deferredbuffer_info= ({
 	["depthcopy"]	= "A copy of the current depth buffer. ",
 })
 
-currentbuffer = 13 -- starts with model_gbuffer_normtex
+local currentbuffer = 13 -- starts with model_gbuffer_normtex
 
 local function RemoveMe(msg)
 	Spring.Echo(msg)
@@ -60,26 +60,105 @@ local function MakeShader()
 		if myshader ~= nil then gl.DeleteShader(myshader or 0) end
 	end
 
+	local uniformInts = {}
+	for i, texname in ipairs(deferredbuffers) do 
+		uniformInts[string.gsub(texname, "%$", "")] = i-1
+	end
+	
 	myshader = gl.CreateShader({
 		fragment = [[
 			uniform sampler2D texture0;
+			uniform sampler2D map_gbuffer_normtex;
+			uniform sampler2D map_gbuffer_difftex;
+			uniform sampler2D map_gbuffer_spectex;
+			uniform sampler2D map_gbuffer_emittex;
+			uniform sampler2D map_gbuffer_misctex;
+			uniform sampler2D map_gbuffer_zvaltex;
+			uniform sampler2D model_gbuffer_normtex;
+			uniform sampler2D model_gbuffer_difftex;
+			uniform sampler2D model_gbuffer_spectex;
+			uniform sampler2D model_gbuffer_emittex;
+			uniform sampler2D model_gbuffer_misctex;
+			uniform sampler2D model_gbuffer_zvaltex;
+			uniform sampler2D depthcopy;
 			uniform int debugDraw;
+		
+			#define lind(value) (fract(0.2* (1.0/(1.0 - value))))
+			
+			
 			void main(void) {
-				vec4 a = texture2D(texture0, gl_TexCoord[0].st);
-				if (debugDraw == 0) {
-					gl_FragColor = a;
-				} else {
-					if (debugDraw==1){
-						a.r= a.a;
-						a.a = 1.0;
-						gl_FragColor = a;
-						gl_FragColor = vec4(fract(a.rbg), 1.0);
+				vec2 uvs = gl_TexCoord[0].st;
+				//vec4 a = texture2D(texture0, gl_TexCoord[0].st);
+				vec4 o = vec4(0.0);
+				if (uvs.x > 0.875){ 
+					// fourth column normals, diffuse
+					if (uvs.y > 0.75){
+						o = texture2D(map_gbuffer_normtex, uvs);
+						o.a = 1.0;
+					}else if (uvs.y > 0.5){
+						o = texture2D(model_gbuffer_normtex, uvs);
+						o.a = 1.0;
+					}else if (uvs.y > 0.25){
+						o = texture2D(map_gbuffer_difftex, uvs);
+						o.a = 1.0;
 					}else{
-						a.rgb = fract(100*(pow(a.rgb, vec3(8.0))));
-						a.a = 1.0;
-						gl_FragColor = a;
+						o = texture2D(model_gbuffer_difftex, uvs);
+						o.a = 1.0;
 					}
+				}else if (uvs.x > 0.75){
+					// third column spec, emit
+					if (uvs.y > 0.75){
+						o = texture2D(map_gbuffer_spectex, uvs);
+						o.a = 1.0;
+					}else if (uvs.y > 0.5){
+						o = texture2D(map_gbuffer_emittex, uvs);
+						o.a = 1.0;
+					}else if (uvs.y > 0.25){
+						o = texture2D(model_gbuffer_spectex, uvs);
+						o.a = 1.0;
+					}else{
+						o = texture2D(model_gbuffer_emittex, uvs);
+						o.a = 1.0;
+					}
+				
+				}else if (uvs.x > 0.625){
+					// second column depthcopy, misc
+					if (uvs.y > 0.75){
+						o = texture2D(depthcopy, uvs).rrrr;
+						o.a = 1.0;
+					}else if (uvs.y > 0.5){
+						o = texture2D(depthcopy, uvs).rrrr;
+						o = lind(o);
+						o.a = 1.0;
+					}else if (uvs.y > 0.25){
+						o = texture2D(map_gbuffer_misctex, uvs);
+						o.a = 1.0;
+					}else{
+						o = texture2D(model_gbuffer_misctex, uvs);
+						o.a = 1.0;
+					}
+				
+				}else{
+					// first column map depth, model depth
+					if (uvs.y > 0.75){
+						o = texture2D(map_gbuffer_zvaltex, uvs).rrrr;
+						o.a = 1.0;
+					}else if (uvs.y > 0.5){
+						o = texture2D(model_gbuffer_zvaltex, uvs).rrrr;
+						o.a = 1.0;
+					}else if (uvs.y > 0.25){
+						o = texture2D(map_gbuffer_zvaltex, uvs).rrrr;
+						o = lind(o);
+						o.a = 1.0;
+					}else{
+						o = texture2D(model_gbuffer_zvaltex, uvs).rrrr;
+						o = lind(o);
+						o.a = 1.0;
+					}
+				
 				}
+			
+				gl_FragColor = o;
 			}
 		]],
 		--while this vertex shader seems to do nothing, it actually does the very important world space to screen space mapping for gl.TexRect!
@@ -91,7 +170,7 @@ local function MakeShader()
 				gl_Position	= gl_Vertex;
 			}
 		]],
-		uniformInt = { texture0 = 0, debugDraw = 0}
+		uniformInt = uniformInts,
 	})
 
 	if (myshader == nil) then
@@ -99,7 +178,7 @@ local function MakeShader()
 	end
 
 	myshaderDebgDrawLoc = gl.GetUniformLocation(myshader, "debugDraw")
-	myshaderTexture0Loc = gl.GetUniformLocation(myshader, "texture0")
+	--myshaderTexture0Loc = gl.GetUniformLocation(myshader, "texture0")
 
 end
 
@@ -125,63 +204,37 @@ function widget:Initialize()
 		mag_filter = GL.NEAREST,
 	})
 	if depthCopyTex == nil then Spring.Echo("Failed to allocate the depth texture", vsx,vsy) end 
-	AddChatActions()
 	MakeShader()
 end
 
 function widget:Shutdown()
 	RemoveChatActions()
 	if (gl.DeleteShader) then
-		if brightShader ~= nil then gl.DeleteShader(myshader or 0) end
+		if myshader ~= nil then gl.DeleteShader(myshader or 0) end
 	end
 end
 
 function widget:DrawWorld()
-	if deferredbuffers[currentbuffer] == 'depthcopy' then
-		local vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
-		gl.CopyToTexture(depthCopyTex, 0, 0, vpx, vpy, vsx, vsy) -- the original screen image
-	end
-	gl.Blending(GL.ONE, GL.ZERO)
-	gl.UseShader(myshader)
-	gl.UniformInt(myshaderTexture0Loc, 0)
+	local vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
 	
-	if deferredbuffers[currentbuffer] == 'depthcopy' then
-		gl.Texture(0, depthCopyTex)
-		gl.UniformInt(myshaderDebgDrawLoc, 2)
-	else
-		gl.Texture(0, deferredbuffers[currentbuffer])
-	gl.UniformInt(myshaderDebgDrawLoc, dbgDraw)
+	gl.CopyToTexture(depthCopyTex, 0, 0, vpx, vpy, vsx, vsy) -- the original screen image
+
+end
+
+function widget:DrawScreenPost()
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) -- https://www.andersriggelsen.dk/glblendfunc.php
+	gl.UseShader(myshader)
+	for i=1, 12 do
+		gl.Texture(i-1, deferredbuffers[i])
 	end
+	gl.Texture(12, depthCopyTex)
+	
+	
 	gl.TexRect(0, -1, 1, 1, 0.5, 0, 1, 1)
-	gl.Texture(0, false)
+	for i=0, 12 do
+		gl.Texture(i, false)
+	end
 	gl.UseShader(0)
 	gl.Blending("reset")
 end
 
-function AddChatActions()
-	local function EchoVars()
-		Spring.Echo("[deferred buffer visualizer] buff=".. tostring(currentbuffer) .. " alphaasred=" ..tostring(dbgDraw) .. " info:".. deferredbuffers[currentbuffer] .. ":" .. deferredbuffer_info[deferredbuffers[currentbuffer]])
-	end
-
-	local function nextbuffer() currentbuffer = math.min(currentbuffer+1, #deferredbuffers) ; EchoVars() end
-	local function prevbuffer() currentbuffer = math.max(currentbuffer-1, 1) ; EchoVars() end
-	local function DebugToggle()
-		if dbgDraw == 1 then
-			dbgDraw = 0
-		else
-			dbgDraw = 1
-		end
-		EchoVars()
-	end
-	local function DebugOff() dbgDraw = 0; EchoVars() end
-
-	widgetHandler:AddAction("nextbuffer", nextbuffer, nil, 't')
-	widgetHandler:AddAction("prevbuffer", prevbuffer, nil, 't')
-	widgetHandler:AddAction("alphabuffer", DebugToggle, nil, 't')
-end
-
-function RemoveChatActions()
-	widgetHandler:RemoveAction("nextbuffer", nextbuffer, nil, 't')
-	widgetHandler:RemoveAction("prevbuffer", prevbuffer, nil, 't')
-	widgetHandler:RemoveAction("alphabuffer", DebugToggle, nil, 't')
-end

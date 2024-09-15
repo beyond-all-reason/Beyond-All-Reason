@@ -11,48 +11,59 @@ function widget:GetInfo()
 	}
 end
 
+local spTestBuildOrder = Spring.TestBuildOrder
+
 local buildQueue = {}
 local selBuildQueueDefID
-local facingMap = {south=0, east=1, north=2, west=3}
+local facingMap = { south = 0, east = 1, north = 2, west = 3 }
 
 local isSpec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
 local preGamestartPlayer = Spring.GetGameFrame() == 0 and not isSpec
-local startDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
+local startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
+local metalMap = false
 
 local unitshapes = {}
 
-armToCor = {
-	[UnitDefNames["armmex"].id] = UnitDefNames["cormex"].id,
-	[UnitDefNames["armuwmex"].id] = UnitDefNames["coruwmex"].id,
-	[UnitDefNames["armsolar"].id] = UnitDefNames["corsolar"].id,
-	[UnitDefNames["armwin"].id] = UnitDefNames["corwin"].id,
-	[UnitDefNames["armtide"].id] = UnitDefNames["cortide"].id,
-	[UnitDefNames["armllt"].id] = UnitDefNames["corllt"].id,
-	[UnitDefNames["armrad"].id] = UnitDefNames["corrad"].id,
-	[UnitDefNames["armrl"].id] = UnitDefNames["corrl"].id,
-	[UnitDefNames["armtl"].id] = UnitDefNames["cortl"].id,
-	[UnitDefNames["armsonar"].id] = UnitDefNames["corsonar"].id,
-	[UnitDefNames["armfrt"].id] = UnitDefNames["corfrt"].id,
-	[UnitDefNames["armlab"].id] = UnitDefNames["corlab"].id,
-	[UnitDefNames["armvp"].id] = UnitDefNames["corvp"].id,
-	[UnitDefNames["armsy"].id] = UnitDefNames["corsy"].id,
-	[UnitDefNames["armmstor"].id] = UnitDefNames["cormstor"].id,
-	[UnitDefNames["armestor"].id] = UnitDefNames["corestor"].id,
-	[UnitDefNames["armmakr"].id] = UnitDefNames["cormakr"].id,
-	[UnitDefNames["armeyes"].id] = UnitDefNames["coreyes"].id,
-	[UnitDefNames["armdrag"].id] = UnitDefNames["cordrag"].id,
-	[UnitDefNames["armdl"].id] = UnitDefNames["cordl"].id,
-	[UnitDefNames["armap"].id] = UnitDefNames["corap"].id,
-	[UnitDefNames["armfrad"].id] = UnitDefNames["corfrad"].id,
-	[UnitDefNames["armuwms"].id] = UnitDefNames["coruwms"].id,
-	[UnitDefNames["armuwes"].id] = UnitDefNames["coruwes"].id,
-	[UnitDefNames["armfmkr"].id] = UnitDefNames["corfmkr"].id,
-	[UnitDefNames["armfdrag"].id] = UnitDefNames["corfdrag"].id,
-	[UnitDefNames["armptl"].id] = UnitDefNames["corptl"].id,
+local armToCorNames = {
+	["armmex"] = "cormex",
+	["armuwmex"] = "coruwmex",
+	["armsolar"] = "corsolar",
+	["armwin"] = "corwin",
+	["armtide"] = "cortide",
+	["armllt"] = "corllt",
+	["armrad"] = "corrad",
+	["armrl"] = "corrl",
+	["armtl"] = "cortl",
+	["armsonar"] = "corsonar",
+	["armfrt"] = "corfrt",
+	["armlab"] = "corlab",
+	["armvp"] = "corvp",
+	["armsy"] = "corsy",
+	["armmstor"] = "cormstor",
+	["armestor"] = "corestor",
+	["armmakr"] = "cormakr",
+	["armeyes"] = "coreyes",
+	["armdrag"] = "cordrag",
+	["armdl"] = "cordl",
+	["armap"] = "corap",
+	["armfrad"] = "corfrad",
+	["armuwms"] = "coruwms",
+	["armuwes"] = "coruwes",
+	["armfmkr"] = "corfmkr",
+	["armfdrag"] = "corfdrag",
+	["armptl"] = "corptl",
 }
-corToArm = table.invert(armToCor)
+-- convert unitname -> unitDefID
+local armToCor = {}
+for unitName, corUnitName in pairs(armToCorNames) do
+	if UnitDefNames[unitName] and UnitDefNames[corUnitName] then
+		armToCor[UnitDefNames[unitName].id] = UnitDefNames[corUnitName].id
+	end
+end
+armToCorNames = nil
 
+local corToArm = table.invert(armToCor)
 
 local function buildFacingHandler(_, _, args)
 	if not (preGamestartPlayer and selBuildQueueDefID) then
@@ -63,30 +74,43 @@ local function buildFacingHandler(_, _, args)
 	if args and args[1] == "inc" then
 		facing = (facing + 1) % 4
 		Spring.SetBuildFacing(facing)
-
 		return true
 	elseif args and args[1] == "dec" then
 		facing = (facing - 1) % 4
 		Spring.SetBuildFacing(facing)
-
 		return true
 	elseif args and facingMap[args[1]] then
 		Spring.SetBuildFacing(facingMap[args[1]])
-
 		return true
 	end
 end
 
-
 ------------------------------------------
 ---          QUEUE HANDLING            ---
 ------------------------------------------
-local BUILDING_GRID_FORCE_SHOW_REASON = "gui_pregame_build"
+local function handleBuildMenu(shift)
+	local grid = WG["gridmenu"]
+	if not grid or not grid.clearCategory or not grid.getAlwaysReturn or not grid.setCurrentCategory then
+		return
+	end
+
+	if shift and grid.getAlwaysReturn() then
+		grid.setCurrentCategory(nil)
+	elseif not shift then
+		grid.clearCategory()
+	end
+end
+
+local FORCE_SHOW_REASON = "gui_pregame_build"
 local function setPreGamestartDefID(uDefID)
 	selBuildQueueDefID = uDefID
 
-	if WG['buildinggrid'] ~= nil and WG['buildinggrid'].setForceShow ~= nil then
-		WG['buildinggrid'].setForceShow(BUILDING_GRID_FORCE_SHOW_REASON, uDefID ~= nil)
+	if WG["buildinggrid"] ~= nil and WG["buildinggrid"].setForceShow ~= nil then
+		WG["buildinggrid"].setForceShow(FORCE_SHOW_REASON, uDefID ~= nil, uDefID)
+	end
+
+	if WG["easyfacing"] ~= nil and WG["easyfacing"].setForceShow ~= nil then
+		WG["easyfacing"].setForceShow(FORCE_SHOW_REASON, uDefID ~= nil, uDefID)
 	end
 
 	local isMex = UnitDefs[uDefID] and UnitDefs[uDefID].extractsMetal > 0
@@ -124,7 +148,9 @@ local function GetUnitCanCompleteQueue(uID)
 end
 
 local function clearPregameBuildQueue()
-	if not preGamestartPlayer then return end
+	if not preGamestartPlayer then
+		return
+	end
 
 	setPreGamestartDefID()
 	buildQueue = {}
@@ -133,19 +159,19 @@ local function clearPregameBuildQueue()
 end
 
 local function buildmenuPregameDeselectHandler()
-	if not (preGamestartPlayer and selBuildQueueDefID) then return end
+	if not (preGamestartPlayer and selBuildQueueDefID) then
+		return
+	end
 
 	setPreGamestartDefID()
 
 	return true
 end
 
-
 ------------------------------------------
 ---               INIT                 ---
 ------------------------------------------
 function widget:Initialize()
-
 	-- For some reason when handler = true widgetHandler:AddAction is not available
 	widgetHandler.actionHandler:AddAction(self, "stop", clearPregameBuildQueue, nil, "p")
 	widgetHandler.actionHandler:AddAction(self, "buildfacing", buildFacingHandler, nil, "p")
@@ -153,33 +179,43 @@ function widget:Initialize()
 
 	-- Get our starting unit
 	if preGamestartPlayer then
-		if not startDefID or startDefID ~= Spring.GetTeamRulesParam(myTeamID, 'startUnit') then
-			startDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
+		if not startDefID or startDefID ~= Spring.GetTeamRulesParam(myTeamID, "startUnit") then
+			startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
 		end
 	end
 
-	WG['pregame-build'] = {}
-	WG['pregame-build'].getPreGameDefID = function()
+	metalMap = WG["resource_spot_finder"].isMetalMap
+
+	WG["pregame-build"] = {}
+	WG["pregame-build"].getPreGameDefID = function()
 		return selBuildQueueDefID
 	end
-	WG['pregame-build'].setPreGamestartDefID = function(value)
-		setPreGamestartDefID(value)
+	WG["pregame-build"].setPreGamestartDefID = function(value)
+		local inBuildOptions = {}
+		for _, opt in ipairs(UnitDefs[startDefID].buildOptions) do
+			inBuildOptions[opt] = true
+		end
+
+		if inBuildOptions[value] then
+			setPreGamestartDefID(value)
+		else
+			setPreGamestartDefID(nil)
+		end
 	end
 
-	WG['pregame-build'].setBuildQueue = function(value)
+	WG["pregame-build"].setBuildQueue = function(value)
 		buildQueue = value
 	end
-	WG['pregame-build'].getBuildQueue = function()
+	WG["pregame-build"].getBuildQueue = function()
 		return buildQueue
 	end
-	widgetHandler:RegisterGlobal(widget, 'GetPreGameDefID', WG['pregame-build'].getPreGameDefID)
-	widgetHandler:RegisterGlobal(widget, 'GetBuildQueue', WG['pregame-build'].getBuildQueue)
-
+	widgetHandler:RegisterGlobal(widget, "GetPreGameDefID", WG["pregame-build"].getPreGameDefID)
+	widgetHandler:RegisterGlobal(widget, "GetBuildQueue", WG["pregame-build"].getBuildQueue)
 end
 
 local function GetBuildingDimensions(uDefID, facing)
 	local bDef = UnitDefs[uDefID]
-	if (facing % 2 == 1) then
+	if facing % 2 == 1 then
 		return 4 * bDef.zsize, 4 * bDef.xsize
 	else
 		return 4 * bDef.xsize, 4 * bDef.zsize
@@ -190,8 +226,7 @@ local function DoBuildingsClash(buildData1, buildData2)
 	local w1, h1 = GetBuildingDimensions(buildData1[1], buildData1[5])
 	local w2, h2 = GetBuildingDimensions(buildData2[1], buildData2[5])
 
-	return math.abs(buildData1[2] - buildData2[2]) < w1 + w2 and
-		math.abs(buildData1[4] - buildData2[4]) < h1 + h2
+	return math.abs(buildData1[2] - buildData2[2]) < w1 + w2 and math.abs(buildData1[4] - buildData2[4]) < h1 + h2
 end
 
 local function removeUnitShape(id)
@@ -209,7 +244,6 @@ local function addUnitShape(id, unitDefID, px, py, pz, rotationY, teamID)
 	return unitshapes[id]
 end
 
-
 local function DrawBuilding(buildData, borderColor, drawRanges)
 	local bDefID, bx, by, bz, facing = buildData[1], buildData[2], buildData[3], buildData[4], buildData[5]
 	local bw, bh = GetBuildingDimensions(bDefID, facing)
@@ -217,15 +251,17 @@ local function DrawBuilding(buildData, borderColor, drawRanges)
 	gl.DepthTest(false)
 	gl.Color(borderColor)
 
-	gl.Shape(GL.LINE_LOOP, { { v = { bx - bw, by, bz - bh } },
-							 { v = { bx + bw, by, bz - bh } },
-							 { v = { bx + bw, by, bz + bh } },
-							 { v = { bx - bw, by, bz + bh } } })
+	gl.Shape(GL.LINE_LOOP, {
+		{ v = { bx - bw, by, bz - bh } },
+		{ v = { bx + bw, by, bz - bh } },
+		{ v = { bx + bw, by, bz + bh } },
+		{ v = { bx - bw, by, bz + bh } },
+	})
 
 	if drawRanges then
-		local isMex = UnitDefs[uDefID] and UnitDefs[uDefID].extractsMetal > 0
+		local isMex = UnitDefs[bDefID] and UnitDefs[bDefID].extractsMetal > 0
 		if isMex then
-			gl.Color(1.0, 0.3, 0.3, 0.7)
+			gl.Color(1.0, 0.0, 0.0, 0.5)
 			gl.DrawGroundCircle(bx, by, bz, Game.extractorRadius, 50)
 		end
 
@@ -235,93 +271,147 @@ local function DrawBuilding(buildData, borderColor, drawRanges)
 			gl.DrawGroundCircle(bx, by, bz, wRange, 40)
 		end
 	end
-	WG['pregame-build'].selectedID = nil
 	if WG.StopDrawUnitShapeGL4 then
-		local id = buildData[1]..'_'..buildData[2]..'_'..buildData[3]..'_'..buildData[4]..'_'..buildData[5]
-		addUnitShape(id, buildData[1], buildData[2], buildData[3], buildData[4], buildData[5]*(math.pi/2), myTeamID)
-		WG['pregame-build'].selectedID = buildData[1]
+		local id = buildData[1]
+			.. "_"
+			.. buildData[2]
+			.. "_"
+			.. buildData[3]
+			.. "_"
+			.. buildData[4]
+			.. "_"
+			.. buildData[5]
+		addUnitShape(id, buildData[1], buildData[2], buildData[3], buildData[4], buildData[5] * (math.pi / 2), myTeamID)
 	end
 end
 
-function widget:MousePress(x, y, button)
+local function isUnderwater(unitDefID)
+	return UnitDefs[unitDefID].modCategories.underwater
+end
+
+-- Special handling for buildings before game start, since there isn't yet a unit spawned to give normal orders to
+function widget:MousePress(mx, my, button)
 	if Spring.IsGUIHidden() then
 		return
 	end
-	if WG['topbar'] and WG['topbar'].showingQuit() then
+
+	if WG["topbar"] and WG["topbar"].showingQuit() then
 		return
 	end
 
-	-- Special handling for buildings before game start, since there isn't yet a unit spawned to give normal orders to
-	if preGamestartPlayer then
-		local mx, my = Spring.GetMouseState()
-		local _, pos = Spring.TraceScreenRay(mx, my, true)
+	if not preGamestartPlayer then
+		return
+	end
+	local _, _, meta, shift = Spring.GetModKeyState()
 
-		if selBuildQueueDefID then
-			if button == 1 then
-				local mexSnapPosition = WG.MexSnap and WG.MexSnap.curPosition
-				if mexSnapPosition then
-					pos = { mexSnapPosition.x, mexSnapPosition.y, mexSnapPosition.z }
+	if selBuildQueueDefID then
+		local _, pos = Spring.TraceScreenRay(mx, my, true, false, false, isUnderwater(selBuildQueueDefID))
+		if button == 1 then
+			local isMex = UnitDefs[selBuildQueueDefID] and UnitDefs[selBuildQueueDefID].extractsMetal > 0
+			if WG.ExtractorSnap then
+				local snapPos = WG.ExtractorSnap.position
+				if snapPos then
+					pos = { snapPos.x, snapPos.y, snapPos.z }
 				end
-				if not pos then
-					return
+			end
+
+			if not pos then
+				return
+			end
+
+			local buildFacing = Spring.GetBuildFacing()
+			local bx, by, bz = Spring.Pos2BuildPos(selBuildQueueDefID, pos[1], pos[2], pos[3], buildFacing)
+			local buildData = { selBuildQueueDefID, bx, by, bz, buildFacing }
+			local cx, cy, cz = Spring.GetTeamStartPosition(myTeamID) -- Returns -100, -100, -100 when none chosen
+
+			if (meta or not shift) and cx ~= -100 then
+				local cbx, cby, cbz = Spring.Pos2BuildPos(startDefID, cx, cy, cz)
+
+				if DoBuildingsClash(buildData, { startDefID, cbx, cby, cbz, 1 }) then -- avoid clashing building and commander position
+					return true
 				end
+			end
 
-				local bx, by, bz = Spring.Pos2BuildPos(selBuildQueueDefID, pos[1], pos[2], pos[3])
-				local buildFacing = Spring.GetBuildFacing()
-				local buildData = { selBuildQueueDefID, bx, by, bz, buildFacing }
-				local cx, cy, cz = Spring.GetTeamStartPosition(myTeamID) -- Returns -100, -100, -100 when none chosen
-				local _, _, meta, shift = Spring.GetModKeyState()
-
-				if (meta or not shift) and cx ~= -100 then
-					local cbx, cby, cbz = Spring.Pos2BuildPos(startDefID, cx, cy, cz)
-
-					if DoBuildingsClash(buildData, { startDefID, cbx, cby, cbz, 1 }) then -- avoid clashing building and commander position
-						return true
-					end
-				end
-
-				if Spring.TestBuildOrder(selBuildQueueDefID, bx, by, bz, buildFacing) ~= 0 then
-					if meta then
-						table.insert(buildQueue, 1, buildData)
-
-					elseif shift then
-
-						local anyClashes = false
-						for i = #buildQueue, 1, -1 do
+			if Spring.TestBuildOrder(selBuildQueueDefID, bx, by, bz, buildFacing) ~= 0 then
+				if meta then
+					table.insert(buildQueue, 1, buildData)
+				elseif shift then
+					local anyClashes = false
+					for i = #buildQueue, 1, -1 do
+						if buildQueue[i][1] > 0 then
 							if DoBuildingsClash(buildData, buildQueue[i]) then
 								anyClashes = true
 								table.remove(buildQueue, i)
 							end
 						end
+					end
 
-						if not anyClashes then
-							buildQueue[#buildQueue + 1] = buildData
+					if isMex and not metalMap then
+						-- Special handling to check if mex position is valid
+						local spot = WG["resource_spot_finder"].GetClosestMexSpot(bx, bz)
+						local validPos = spot and WG["resource_spot_finder"].IsMexPositionValid(spot, bx, bz) or false
+						local spotIsTaken = spot and WG["resource_spot_builder"].SpotHasExtractorQueued(spot) or false
+						if not validPos or spotIsTaken then
+							return true
+						end
+					end
+
+					if not anyClashes then
+						buildQueue[#buildQueue + 1] = buildData
+						handleBuildMenu(shift)
+					end
+				else
+					-- don't place mex if the spot is not valid
+					if isMex then
+						if WG.ExtractorSnap.position or metalMap then
+							buildQueue = { buildData }
 						end
 					else
 						buildQueue = { buildData }
-					end
-
-					if not shift then
-						setPreGamestartDefID(nil)
+						handleBuildMenu(shift)
 					end
 				end
 
-				return true
-			elseif button == 3 then
-				setPreGamestartDefID(nil)
+				if not shift then
+					setPreGamestartDefID(nil)
+					handleBuildMenu(shift)
+				end
 			end
-		elseif button == 1 and #buildQueue > 0 and pos then -- avoid clashing first building and commander position
-			local cbx, cby, cbz = Spring.Pos2BuildPos(startDefID, pos[1], pos[2], pos[3])
 
-			if DoBuildingsClash({ startDefID, cbx, cby, cbz, 1 }, buildQueue[1]) then
-				return true
-			end
+			return true
+		elseif button == 3 then
+			setPreGamestartDefID(nil)
 		end
+	elseif button == 1 and #buildQueue > 0 and buildQueue[1][1]>0 then -- avoid clashing first building and commander position
+		local _, pos = Spring.TraceScreenRay(mx, my, true, false, false, isUnderwater(startDefID))
+		if not pos then
+			return
+		end
+		local cbx, cby, cbz = Spring.Pos2BuildPos(startDefID, pos[1], pos[2], pos[3])
+
+		if DoBuildingsClash({ startDefID, cbx, cby, cbz, 1 }, buildQueue[1]) then
+			return true
+		end
+	elseif button == 3 and shift then
+		local x, y, _ = Spring.GetMouseState()
+		local _, pos = Spring.TraceScreenRay(x, y, true, false, false, true)
+		if pos and pos[1] then
+			local buildData = { -CMD.MOVE, pos[1], pos[2], pos[3], nil }
+		
+			buildQueue[#buildQueue + 1] = buildData
+		end
+	elseif button == 3 and #buildQueue > 0 then -- remove units from buildqueue one by one
+		-- TODO: If mouse is over a building, remove only that building instead
+		table.remove(buildQueue, #buildQueue)
+
+		return true
 	end
 end
 
 function widget:DrawWorld()
-	if not WG.StopDrawUnitShapeGL4 then return end
+	if not WG.StopDrawUnitShapeGL4 then
+		return
+	end
 
 	-- remove unit shape queue to re-add again later
 	for id, _ in pairs(unitshapes) do
@@ -330,11 +420,13 @@ function widget:DrawWorld()
 
 	-- Avoid unnecessary overhead after buildqueue has been setup in early frames
 	if Spring.GetGameFrame() > 0 then
-		widgetHandler:RemoveWidgetCallIn('DrawWorld', self)
+		widgetHandler:RemoveWidgetCallIn("DrawWorld", self)
 		return
 	end
 
-	if not preGamestartPlayer then return end
+	if not preGamestartPlayer then
+		return
+	end
 
 	-- draw pregame build queue
 	local buildDistanceColor = { 0.3, 1.0, 0.3, 0.6 }
@@ -350,16 +442,16 @@ function widget:DrawWorld()
 	local selBuildData
 	if selBuildQueueDefID then
 		local x, y, _ = Spring.GetMouseState()
-		local _, pos = Spring.TraceScreenRay(x, y, true)
+		local _, pos = Spring.TraceScreenRay(x, y, true, false, false, isUnderwater(selBuildQueueDefID))
 		if pos then
-			local bx, by, bz = Spring.Pos2BuildPos(selBuildQueueDefID, pos[1], pos[2], pos[3])
 			local buildFacing = Spring.GetBuildFacing()
+			local bx, by, bz = Spring.Pos2BuildPos(selBuildQueueDefID, pos[1], pos[2], pos[3], buildFacing)
 			selBuildData = { selBuildQueueDefID, bx, by, bz, buildFacing }
 		end
 	end
 
-	if startDefID ~= Spring.GetTeamRulesParam(myTeamID, 'startUnit') then
-		startDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
+	if startDefID ~= Spring.GetTeamRulesParam(myTeamID, "startUnit") then
+		startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
 	end
 
 	local sx, sy, sz = Spring.GetTeamStartPosition(myTeamID) -- Returns -100, -100, -100 when none chosen
@@ -377,16 +469,30 @@ function widget:DrawWorld()
 	for b = 1, #buildQueue do
 		local buildData = buildQueue[b]
 		local buildDataId = buildData[1]
-		if startDefID == UnitDefNames["armcom"].id then
-			if corToArm[buildDataId] ~= nil then
-				buildData[1] = corToArm[buildDataId]
-				buildQueue[b] = buildData
+		if buildDataId > 0 then
+			if startDefID == UnitDefNames["armcom"].id then
+				if corToArm[buildDataId] ~= nil then
+					buildData[1] = corToArm[buildDataId]
+					buildQueue[b] = buildData
+				end
+			elseif startDefID == UnitDefNames["corcom"].id then
+				if armToCor[buildDataId] ~= nil then
+					buildData[1] = armToCor[buildDataId]
+					buildQueue[b] = buildData
+				end
 			end
-		elseif startDefID == UnitDefNames["corcom"].id then
-			if armToCor[buildDataId] ~= nil then
-				buildData[1] = armToCor[buildDataId]
-				buildQueue[b] = buildData
-			end
+		end
+	end
+
+	if startDefID == UnitDefNames["armcom"].id then
+		if corToArm[selBuildQueueDefID] ~= nil then
+			selBuildData[1] = corToArm[selBuildQueueDefID]
+			selBuildQueueDefID = corToArm[selBuildQueueDefID]
+		end
+	elseif startDefID == UnitDefNames["corcom"].id then
+		if armToCor[selBuildQueueDefID] ~= nil then
+			selBuildData[1] = armToCor[selBuildQueueDefID]
+			selBuildQueueDefID = armToCor[selBuildQueueDefID]
 		end
 	end
 
@@ -395,10 +501,12 @@ function widget:DrawWorld()
 	for b = 1, #buildQueue do
 		local buildData = buildQueue[b]
 
-		if selBuildData and DoBuildingsClash(selBuildData, buildData) then
-			DrawBuilding(buildData, borderClashColor)
-		else
-			DrawBuilding(buildData, borderNormalColor)
+		if buildData[1] > 0 then
+			if selBuildData and DoBuildingsClash(selBuildData, buildData) then
+				DrawBuilding(buildData, borderClashColor)
+			else
+				DrawBuilding(buildData, borderNormalColor)
+			end
 		end
 
 		queueLineVerts[#queueLineVerts + 1] = { v = { buildData[2], buildData[3], buildData[4] } }
@@ -412,10 +520,26 @@ function widget:DrawWorld()
 
 	-- Draw selected building
 	if selBuildData then
-		if Spring.TestBuildOrder(selBuildQueueDefID, selBuildData[2], selBuildData[3], selBuildData[4], selBuildData[5]) ~= 0 then
-			DrawBuilding(selBuildData, borderValidColor, true)
+		-- mmm, convoluted logic. Pregame handling is hell
+		local isMex = UnitDefs[selBuildQueueDefID] and UnitDefs[selBuildQueueDefID].extractsMetal > 0
+		local testOrder = spTestBuildOrder(
+			selBuildQueueDefID,
+			selBuildData[2],
+			selBuildData[3],
+			selBuildData[4],
+			selBuildData[5]
+		) ~= 0
+		if not isMex then
+			local color = testOrder and borderValidColor or borderInvalidColor
+			DrawBuilding(selBuildData, color, true)
+		elseif isMex then
+			if WG.ExtractorSnap.position or metalMap then
+				DrawBuilding(selBuildData, borderValidColor, true)
+			else
+				DrawBuilding(selBuildData, borderInvalidColor, true)
+			end
 		else
-			DrawBuilding(selBuildData, borderInvalidColor, true)
+			DrawBuilding(selBuildData, borderValidColor, true)
 		end
 	end
 
@@ -427,18 +551,22 @@ end
 function widget:GameFrame(n)
 	-- Avoid unnecessary overhead after buildqueue has been setup in early frames
 	if #buildQueue == 0 then
-		widgetHandler:RemoveWidgetCallIn('GameFrame', self)
+		widgetHandler:RemoveWidgetCallIn("GameFrame", self)
 		widgetHandler:RemoveWidget(self)
 		return
 	end
 
 	-- handle the pregame build queue
-	if not (n <= 90 and n > 1) then return end
+	if not (n <= 90 and n > 1) then
+		return
+	end
 
 	-- inform gadget how long is our queue
 	local t = 0
 	for i = 1, #buildQueue do
-		t = t + UnitDefs[buildQueue[i][1]].buildTime
+		if buildQueue[i][1] > 0 then
+			t = t + UnitDefs[buildQueue[i][1]].buildTime
+		end
 	end
 	if startDefID then
 		local buildTime = t / UnitDefs[startDefID].buildSpeed
@@ -461,12 +589,16 @@ function widget:GameFrame(n)
 	if tasker then
 		for b = 1, #buildQueue do
 			local buildData = buildQueue[b]
-			Spring.GiveOrderToUnit(tasker, -buildData[1], { buildData[2], buildData[3], buildData[4], buildData[5] }, { "shift" })
+			Spring.GiveOrderToUnit(
+				tasker,
+				-buildData[1],
+				{ buildData[2], buildData[3], buildData[4], buildData[5] },
+				{ "shift" }
+			)
 		end
 		buildQueue = {}
 	end
 end
-
 
 function widget:GameStart()
 	preGamestartPlayer = false
@@ -478,22 +610,39 @@ function widget:GameStart()
 end
 
 function widget:Shutdown()
-	widgetHandler:DeregisterGlobal(widget, 'GetPreGameDefID')
-	widgetHandler:DeregisterGlobal(widget, 'GetBuildQueue')
-	WG['pregame-build'] = nil
-	if WG['buildinggrid'] ~= nil and WG['buildinggrid'].setForceShow ~= nil then
-		WG['buildinggrid'].setForceShow(BUILDING_GRID_FORCE_SHOW_REASON, false)
+	-- Stop drawing all ghosts
+	if WG.StopDrawUnitShapeGL4 then
+		for id, _ in pairs(unitshapes) do
+			removeUnitShape(id)
+		end
+	end
+	widgetHandler:DeregisterGlobal(widget, "GetPreGameDefID")
+	widgetHandler:DeregisterGlobal(widget, "GetBuildQueue")
+
+	WG["pregame-build"] = nil
+	if WG["buildinggrid"] ~= nil and WG["buildinggrid"].setForceShow ~= nil then
+		WG["buildinggrid"].setForceShow(FORCE_SHOW_REASON, false)
+	end
+
+	if WG["easyfacing"] ~= nil and WG["easyfacing"].setForceShow ~= nil then
+		WG["easyfacing"].setForceShow(FORCE_SHOW_REASON, false)
 	end
 end
 
 function widget:GetConfigData()
 	return {
 		buildQueue = buildQueue,
+		gameID = Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID"),
 	}
 end
 
 function widget:SetConfigData(data)
-	if data.buildQueue and Spring.GetGameFrame() == 0 and data.gameID and data.gameID == Game.gameID then
+	if
+		data.buildQueue
+		and Spring.GetGameFrame() == 0
+		and data.gameID
+		and data.gameID == (Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID"))
+	then
 		buildQueue = data.buildQueue
 	end
 end

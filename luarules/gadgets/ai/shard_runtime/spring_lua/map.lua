@@ -122,26 +122,6 @@ function map:GetGeoSpots() -- returns a table of spot positions
 	return f
 end
 
-function map:GetControlPoints()
-	if self.controlPoints then return self.controlPoints end
-	self.controlPoints = {}
-	if Script.LuaRules('ControlPoints') then
-		local rawPoints = Script.LuaRules.ControlPoints() or {}
-		for id = 1, #rawPoints do
-			local rawPoint = rawPoints[id]
-			local cp = ShardSpringControlPoint()
-			cp:Init(rawPoint, id)
-			self.controlPoints[id] = cp
-		end
-	end
-	return self.controlPoints
-end
-
-function map:AreControlPoints()
-	local points = self:GetControlPoints()
-	return #points > 0
-end
-
 function map:MapDimensions() -- returns a Position holding the dimensions of the map
 	return {
 		x = Game.mapSizeX / 8,

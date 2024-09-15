@@ -59,6 +59,8 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbots/t2",
 			techlevel = 2,
+			paratrooper = true,
+			fall_damage_multiplier = 0
 		},
 		sfxtypes = {
 			explosiongenerators = {
@@ -105,6 +107,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
+				energypershot=20,
 				explosiongenerator = "custom:laserhit-small-red",
 				firestarter = 100,
 				gravityaffected = "true",

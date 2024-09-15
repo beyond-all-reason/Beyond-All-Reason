@@ -65,28 +65,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
-local unbaStartBuildoptions = {}
-if Spring.GetModOptions().unba then
-	VFS.Include("unbaconfigs/buildoptions.lua")
-	for unitname,level in pairs(ArmBuildOptions) do
-		if level == 1 then
-			unbaStartBuildoptions[UnitDefNames[unitname].id] = unitname
-		end
-	end
-	ArmBuildOptions = nil
-	for unitname,level in pairs(CorBuildOptions) do
-		if level == 1 then
-			unbaStartBuildoptions[UnitDefNames[unitname].id] = unitname
-		end
-	end
-	CorBuildOptions = nil
-	ArmDefsBuildOptions = nil
-	CorDefsBuildOptions = nil
-	ArmBuildOptionsStop = nil
-	CorBuildOptionsStop = nil
-else
-	unbaStartBuildoptions = nil
-end
 
 local function restrictWindUnits(disable)
 	for unitDefID,_ in pairs(isWind) do
@@ -95,9 +73,6 @@ local function restrictWindUnits(disable)
 end
 
 local function restrictGeothermalUnits(disable)
-	if disable then 
-		Spring.Echo("Restricting Geothermal Power Plants: No vents", disable)
-	end
 	for unitDefID,_ in pairs(isGeothermal) do
 		unitRestricted[unitDefID] = disable
 	end
@@ -186,7 +161,6 @@ local minWaterUnitDepth = -11
 ------------------------------------
 
 return {
-	unbaStartBuildoptions = unbaStartBuildoptions,
 
 	unitName = unitName,
 	unitEnergyCost = unitEnergyCost,

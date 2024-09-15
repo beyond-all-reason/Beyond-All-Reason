@@ -10,6 +10,7 @@ static-var  bMoving, bAiming, Static_Var_3, restore_delay, gun_1, wpn1_lasthead;
 
 // Signal definitions
 #define SIG_AIM				2
+#define SIG_FIRE1			4
 
 
 #define BASEPIECE pelvis
@@ -29,7 +30,7 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 // Using https://github.com/Beherith/Skeletor_S3O 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
-#define SIG_WALK 4
+#define SIG_WALK 8
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\armwar_anim_walk.blend 
 	// (c) CC BY NC ND Beherith mysterme@gmail.com
 	set-signal-mask SIG_WALK;
@@ -377,6 +378,13 @@ QueryPrimary(piecenum)
 
 FirePrimary()
 {
+	return (1);
+}
+
+Shot1(zero)
+{
+	signal SIG_FIRE1;
+	set-signal-mask SIG_FIRE1;
 	if( gun_1 )
 	{
 		show lflare;
@@ -402,7 +410,7 @@ AimPrimary(heading, pitch)
 	}
 	turn aimy1 to y-axis heading speed <200.000000>;
 	turn aimx1 to x-axis <0.000000> - pitch speed <200.000000>;
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
 		wpn1_lasthead = 1000000;
 		wait-for-turn aimy1 around y-axis;

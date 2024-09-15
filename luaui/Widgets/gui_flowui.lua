@@ -14,8 +14,8 @@ WG.FlowUI = WG.FlowUI or {}
 WG.FlowUI.version = 1
 WG.FlowUI.initialized = false
 
-WG.FlowUI.opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.7) or 0.66)
-WG.FlowUI.scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
+WG.FlowUI.opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
+WG.FlowUI.scale = Spring.GetConfigFloat("ui_scale", 1)
 WG.FlowUI.tileOpacity = Spring.GetConfigFloat("ui_tileopacity", 0.011)
 WG.FlowUI.tileScale = Spring.GetConfigFloat("ui_tilescale", 7)
 WG.FlowUI.tileSize = WG.FlowUI.tileScale
@@ -241,8 +241,13 @@ end
 		color
 ]]
 WG.FlowUI.Draw.RectRoundProgress = function(left, bottom, right, top, cs, progress, color)
-	local xcen = (left + right) / 2
-	local ycen = (top + bottom) / 2
+	gl.PushMatrix()
+	gl.Translate(left, bottom, 0)
+	right = right - left
+	top = top - bottom
+	left, bottom = 0, 0
+	local xcen = (right-left)*0.5
+	local ycen = (top-bottom)*0.5
 	local alpha = 360 * progress
 	local alpha_rad = math.rad(alpha)
 	local beta_rad = math.pi / 2 - alpha_rad
@@ -294,8 +299,12 @@ WG.FlowUI.Draw.RectRoundProgress = function(left, bottom, right, top, cs, progre
 	end
 
 	gl.Color(color[1], color[2], color[3], color[4])
+	gl.Translate(xcen, ycen, 0)
+	gl.Scale(-1, 1, 1)	-- flip direction horizontally
+	gl.Translate(-xcen, -ycen, 0)
 	gl.Shape(GL.TRIANGLE_FAN, list)
 	gl.Color(1, 1, 1, 1)
+	gl.PopMatrix()
 end
 
 --[[
@@ -511,8 +520,7 @@ WG.FlowUI.Draw.Element = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pb
 
 	-- element
 	cs = cs * 0.6
-	color2[4] = color2[4] * 1.25	-- multiply to compensate for inner border 'highlight'
-	WG.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, sy - syPad, cs, tl, tr, br, bl, { color2[1]*0.33, color2[2]*0.33, color2[3]*0.33, color2[4] }, { color2[1], color2[2], color2[3], color2[4] })
+	WG.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, sy - syPad, cs, tl, tr, br, bl, { color2[1]*0.33, color2[2]*0.33, color2[3]*0.33, color2[4] * 1.25 }, { color2[1], color2[2], color2[3], color2[4] * 1.25 })
 
 	-- element - inner darkening to create highlighted border
 	local pad2 = 1

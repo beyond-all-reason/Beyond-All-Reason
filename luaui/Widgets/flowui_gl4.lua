@@ -9,7 +9,7 @@ function widget:GetInfo()
 		date      = '2021.05.020',
 		license   = 'Lua code: GNU GPL, v2 or later; GLSL code: (c) Beherith mysterme@gmail.com',
 		layer     = 100,
-		enabled   = false,  --  loaded by default?
+		enabled   = false,
 	}
 end
 
@@ -18,7 +18,6 @@ local debugmode = false
 local glLineWidth = gl.LineWidth
 local glDepthTest = gl.DepthTest
 local GL_LINES = GL.LINES
-local chobbyInterface
 local font, loadedFontSize
 local rectRoundVBO = nil
 local vsx, vsy = Spring.GetViewGeometry()
@@ -456,7 +455,6 @@ function metaElement:UpdateVBOKeys(keyname, value, delta)
 				Spring.Echo("element not found",self.name, VBO.myName,instanceKey)
 				Spring.Debug.TraceFullEcho()
 			end
-			--Spring.Debug.TableEcho(self.vboCache)
 
 			if delta then
 				local cache = self.vboCache
@@ -466,7 +464,6 @@ function metaElement:UpdateVBOKeys(keyname, value, delta)
 				self.vboCache[self.vbokeys[keyname]] = value
 			end
 			pushElementInstance(VBO,self.vboCache, instanceKey, true)
-			--Spring.Echo("Setting VBO Key", keyname, self.name, 'to',value,'for',instanceKey, #self.vboCache)
 			--todo needs a 'refresh' trigger for the ivbo
 		end
 	end
@@ -1109,7 +1106,7 @@ local function makeSliderList(sliderListConfig)
 		parent = container,
 		MouseEvents = {left = function()
 			Spring.Echo("Exporting Settings")
-			Spring.Debug.TableEcho(valuetarget)
+			Spring.Echo(valuetarget)
 		end},
 		textelements = {{text = "Export "..sliderListConfig.name, fontsize = 16, alignment = 'center'},},
 	})
@@ -2503,7 +2500,6 @@ function widget:DrawScreen()
 	if atlasID == nil then
 		atlasID = WG['flowui_atlas']
 		atlassedImages = WG['flowui_atlassedImages']
-		--Spring.Debug.TableEcho({gl.GetAtlasTexture(atlasID, "unitpics/armcom.dds")})
 	end
 	if elems < 0  then
 		elems = elems+1
@@ -2554,7 +2550,7 @@ function widget:DrawScreen()
 	end
 	--local UiButton = WG.FlowUI.Draw.Button
 	--UiButton(500, 500, 600, 550, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.8, 0.2, 0.8 }, WG.FlowUI.elementCorner * 0.5)
-	if chobbyInterface then return end
+
 	local mx, my, left, middle, right = Spring.GetMouseState()
 	uiUpdate(mx, my, left, middle, right)
 	RefreshText()

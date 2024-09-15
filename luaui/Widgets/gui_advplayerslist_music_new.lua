@@ -27,10 +27,10 @@ local showGUI = true
 local minSilenceTime = 30
 local maxSilenceTime = 120
 local warLowLevel = 1000
-local warHighLevel = 30000
-local warMeterResetTime = 60 -- seconds
+local warHighLevel = 40000
+local warMeterResetTime = 30 -- seconds
 local interruptionMinimumTime = 20 -- seconds
-local interruptionMaximumTime = 40 -- seconds
+local interruptionMaximumTime = 60 -- seconds
 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
@@ -51,12 +51,14 @@ local warhighTracks = {}
 local warlowTracks = {}
 local gameoverTracks = {}
 local bossFightTracks = {}
+local boomboxTracks = {}
+local boomboxCounter = 0
 
 local menuTracks = {}
 local loadingTracks = {}
 
 local currentTrack
-local peaceTracksPlayCounter, warhighTracksPlayCounter, warlowTracksPlayCounter, bossFightTracksPlayCounter, gameoverTracksPlayCounter
+local peaceTracksPlayCounter, warhighTracksPlayCounter, warlowTracksPlayCounter, bossFightTracksPlayCounter, gameoverTracksPlayCounter, boomboxTracksPlayCounter
 local fadeOutSkipTrack = false
 local interruptionEnabled
 local silenceTimerEnabled
@@ -80,6 +82,7 @@ local function ReloadMusicPlaylists()
 	local bossFightTracksNew   		= VFS.DirList(musicDirNew..'/bossfight', allowedExtensions)
 	local menuTracksNew 			= VFS.DirList(musicDirNew..'/menu', allowedExtensions)
 	local loadingTracksNew   		= VFS.DirList(musicDirNew..'/loading', allowedExtensions)
+	local boomboxTracksNew			= VFS.DirList(musicDirNew..'/boombox', allowedExtensions)
 
 	-- Custom Soundtrack List
 	local musicDirCustom 		= 'music/custom'
@@ -91,7 +94,6 @@ local function ReloadMusicPlaylists()
 	local bossFightTracksCustom 	= VFS.DirList(musicDirCustom..'/bossfight', allowedExtensions)
 	local menuTracksCustom 			= VFS.DirList(musicDirCustom..'/menu', allowedExtensions)
 	local loadingTracksCustom  		= VFS.DirList(musicDirCustom..'/loading', allowedExtensions)
-
 	-----------------------------------SETTINGS---------------------------------------
 
 	interruptionEnabled 			= Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1
@@ -121,6 +123,7 @@ local function ReloadMusicPlaylists()
 		table.append(bossFightTracks, bossFightTracksNew)
 		table.append(menuTracks, menuTracksNew)
 		table.append(loadingTracks, loadingTracksNew)
+		table.append(boomboxTracks, boomboxTracksNew)
 	end
 
 	if customSoundtrackEnabled then
@@ -150,6 +153,10 @@ local function ReloadMusicPlaylists()
 	if #menuTracks == 0 then
 		menuTracks = peaceTracks
 	end
+
+	if #boomboxTracks == 0 then
+		boomboxTracks = bossFightTracks
+	end
 	----------------------------------SHUFFLE--------------------------------------
 
 	local function shuffleMusic(playlist)
@@ -173,6 +180,7 @@ local function ReloadMusicPlaylists()
 	warlowTracks 	= shuffleMusic(warlowTracks)
 	gameoverTracks 	= shuffleMusic(gameoverTracks)
 	bossFightTracks = shuffleMusic(bossFightTracks)
+	boomboxTracks 	= shuffleMusic(boomboxTracks)
 
 	-- Spring.Echo("----- MUSIC PLAYER PLAYLIST -----")
 	-- Spring.Echo("----- peaceTracks -----")
@@ -225,6 +233,12 @@ local function ReloadMusicPlaylists()
 	else
 		gameoverTracksPlayCounter = 1
 	end
+
+	if #boomboxTracks > 1 then
+		boomboxTracksPlayCounter = math.random(#boomboxTracks)
+	else
+		boomboxTracksPlayCounter = 1
+	end
 end
 
 local currentTrackList = peaceTracks
@@ -244,10 +258,18 @@ local prevPlayedTime = playedTime
 local silenceTimer = math.random(minSilenceTime, maxSilenceTime)
 
 local maxMusicVolume = Spring.GetConfigInt("snd_volmusic", 50)	-- user value, cause actual volume will change during fadein/outc
+if maxMusicVolume > 99 then
+	Spring.SetConfigInt("snd_volmusic", 99)
+	maxMusicVolume = 99
+end
 local volume = Spring.GetConfigInt("snd_volmaster", 80)
+if volume > 80 then
+	Spring.SetConfigInt("snd_volmaster", 80)
+	volume = 80
+end
 
 local RectRound, UiElement, UiButton, UiSlider, UiSliderKnob, bgpadding, elementCorner
-local borderPaddingRight, borderPaddingLeft, font, draggingSlider, doCreateList, chobbyInterface, mouseover
+local borderPaddingRight, borderPaddingLeft, font, draggingSlider, doCreateList, mouseover
 local buttons = {}
 local drawlist = {}
 local advplayerlistPos = {}
@@ -257,7 +279,7 @@ local top, left, bottom, right = 0,0,0,0
 local borderPadding = bgpadding
 
 local vsx, vsy = Spring.GetViewGeometry()
-local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.7) or 0.6)
+local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
 
 local playing = (Spring.GetConfigInt('music', 1) == 1)
 local shutdown
@@ -731,6 +753,15 @@ function widget:Update(dt)
 	local _,_,paused = Spring.GetGameSpeed()
 
 	playedTime, totalTime = Spring.GetSoundStreamTime()
+
+	if boomboxCounter > 0 and playedTime > 5 then
+		boomboxCounter = 0
+	end
+
+	if currentTrackListString == "boombox" and playedTime > 60 then -- They didn't skip it, they don't hate it, we can play it in menu on next launch.
+		Spring.SetConfigInt("boomboxcaptured", 1)
+	end
+
 	if not playingInit then
 		playingInit = true
 		if playedTime ~= prevPlayedTime then
@@ -773,14 +804,7 @@ function widget:Update(dt)
 	end
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1,18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
-	end
-end
-
 function widget:DrawScreen()
-	if chobbyInterface then return end
 	if not showGUI then return end
 	updatePosition()
 	local mx, my, mlb = Spring.GetMouseState()
@@ -847,6 +871,7 @@ function PlayNewTrack(paused)
 	end
 	Spring.StopSoundStream()
 	fadeOutSkipTrack = false
+	boomboxCounter = boomboxCounter + 1
 	silenceTimer = math.random(minSilenceTime,maxSilenceTime)
 
 	if (not gameOver) and Spring.GetGameFrame() > 1 then
@@ -866,6 +891,9 @@ function PlayNewTrack(paused)
 	elseif bossHasSpawned then
 		currentTrackList = bossFightTracks
 		currentTrackListString = "bossFight"
+	elseif boomboxCounter >= 4 and #boomboxTracks > 0 then
+		currentTrackList = boomboxTracks
+		currentTrackListString = "boombox"
 	elseif warMeter >= warHighLevel then
 		currentTrackList = warhighTracks
 		currentTrackListString = "warHigh"
@@ -884,7 +912,7 @@ function PlayNewTrack(paused)
 	if #currentTrackList > 0 then
 		if currentTrackListString == "peace" then
 			currentTrack = currentTrackList[peaceTracksPlayCounter]
-			if peaceTracksPlayCounter <= #peaceTracks then
+			if peaceTracksPlayCounter < #peaceTracks then
 				peaceTracksPlayCounter = peaceTracksPlayCounter + 1
 			else
 				peaceTracksPlayCounter = 1
@@ -892,7 +920,7 @@ function PlayNewTrack(paused)
 		end
 		if currentTrackListString == "warHigh" then
 			currentTrack = currentTrackList[warhighTracksPlayCounter]
-			if warhighTracksPlayCounter <= #warhighTracks then
+			if warhighTracksPlayCounter < #warhighTracks then
 				warhighTracksPlayCounter = warhighTracksPlayCounter + 1
 			else
 				warhighTracksPlayCounter = 1
@@ -900,7 +928,7 @@ function PlayNewTrack(paused)
 		end
 		if currentTrackListString == "warLow" then
 			currentTrack = currentTrackList[warlowTracksPlayCounter]
-			if warlowTracksPlayCounter <= #warlowTracks then
+			if warlowTracksPlayCounter < #warlowTracks then
 				warlowTracksPlayCounter = warlowTracksPlayCounter + 1
 			else
 				warlowTracksPlayCounter = 1
@@ -908,7 +936,7 @@ function PlayNewTrack(paused)
 		end
 		if currentTrackListString == "bossFight" then
 			currentTrack = currentTrackList[bossFightTracksPlayCounter]
-			if bossFightTracksPlayCounter <= #bossFightTracks then
+			if bossFightTracksPlayCounter < #bossFightTracks then
 				bossFightTracksPlayCounter = bossFightTracksPlayCounter + 1
 			else
 				bossFightTracksPlayCounter = 1
@@ -916,6 +944,15 @@ function PlayNewTrack(paused)
 		end
 		if currentTrackListString == "gameOver" then
 			currentTrack = currentTrackList[gameoverTracksPlayCounter]
+		end
+		if currentTrackListString == "boombox" then
+			currentTrack = currentTrackList[boomboxTracksPlayCounter]
+			if boomboxTracksPlayCounter < #boomboxTracks then
+				boomboxTracksPlayCounter = boomboxTracksPlayCounter + 1
+			else
+				boomboxTracksPlayCounter = 1
+			end
+			boomboxCounter = 0
 		end
 	elseif #currentTrackList == 0 then
 		return
@@ -925,7 +962,7 @@ function PlayNewTrack(paused)
 		Spring.PlaySoundStream(currentTrack, 1)
 		playing = true
 		interruptionTime = math.random(interruptionMinimumTime, interruptionMaximumTime)
-		if fadeDirection then
+		if fadeDirection and currentTrackListString ~= "boombox" then
 			setMusicVolume(fadeLevel)
 		else
 			setMusicVolume(100)
@@ -1075,4 +1112,8 @@ function widget:UnitFinished()
 		--Spring.Echo("silenceTimer: ", silenceTimer)
 		silenceTimer = silenceTimer - 5
 	end
+end
+
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+
 end

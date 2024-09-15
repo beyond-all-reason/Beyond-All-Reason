@@ -6,7 +6,7 @@ function widget:GetInfo()
 		date = "20 february 2015",
 		license = "GNU GPL, v2 or later",
 		layer = -2,
-		enabled = true, --  loaded by default?
+		enabled = true,
 	}
 end
 
@@ -88,8 +88,6 @@ if #Spring.GetTeamList() - 1 == #Spring.GetAllyTeamList() - 1 then
 	singleTeams = true
 end
 
-local unba = Spring.GetModOptions().unba
-
 local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
@@ -118,7 +116,7 @@ local GaiaTeam = Spring.GetGaiaTeamID()
 
 local comHeight = {}
 for unitDefID, defs in pairs(UnitDefs) do
-	if defs.customParams.iscommander then
+	if defs.customParams.iscommander or defs.customParams.isdecoycommander or defs.customParams.isscavcommander or defs.customParams.isscavdecoycommander then
 		comHeight[unitDefID] = defs.height
 	end
 end
@@ -147,22 +145,36 @@ local function GetCommAttributes(unitID, unitDefID)
 	local name = ''
 	local luaAI = Spring.GetTeamLuaAI(team)
 	if luaAI and luaAI ~= "" and string.find(luaAI, 'Scavengers')  then
-
-	elseif Spring.GetGameRulesParam('ainame_' .. team) then
-		name = Spring.I18N('ui.playersList.aiName', { name = Spring.GetGameRulesParam('ainame_' .. team) })
-	else
-		local players = GetPlayerList(team)
-		name = (#players > 0) and GetPlayerInfo(players[1], false) or '------'
-		if players[1] then
-			playerRank = select(9, GetPlayerInfo(players[1], false))
+		--name = "Scav Commander" -- todo: i18n this thing
+		if UnitDefs[unitDefID].customParams.decoyfor then
+			name = Spring.I18N('units.scavDecoyCommanderNameTag')
+		else
+			name = Spring.I18N('units.scavCommanderNameTag')
 		end
+	elseif Spring.GetGameRulesParam('ainame_' .. team) then
+		if UnitDefs[unitDefID].customParams.decoyfor then
+			name = Spring.I18N('units.decoyCommanderNameTag')
+		else
+			name = Spring.I18N('ui.playersList.aiName', { name = Spring.GetGameRulesParam('ainame_' .. team) })
+		end
+		
+	else
+		if UnitDefs[unitDefID].customParams.decoyfor then
+			name = Spring.I18N('units.decoyCommanderNameTag')
+		else
+			local players = GetPlayerList(team)
+			name = (#players > 0) and GetPlayerInfo(players[1], false) or '------'
+			if players[1] then
+				playerRank = select(9, GetPlayerInfo(players[1], false))
+			end
 
-		for _, pID in ipairs(players) do
-			local pname, active, isspec = GetPlayerInfo(pID, false)
-			playerRank = select(9, GetPlayerInfo(pID, false))
-			if active and not isspec then
-				name = pname
-				break
+			for _, pID in ipairs(players) do
+				local pname, active, isspec = GetPlayerInfo(pID, false)
+				playerRank = select(9, GetPlayerInfo(pID, false))
+				if active and not isspec then
+					name = pname
+					break
+				end
 			end
 		end
 	end
@@ -185,15 +197,6 @@ local function GetCommAttributes(unitID, unitDefID)
 	end
 
 	local xp = 0
-	if unba then
-		xp = GetUnitRulesParam(unitID, "xp")
-		if not xp then
-			xp = GetUnitExperience(unitID)
-		end
-		if comms[unitID] and xp ~= comms[unitID][7] and name and comnameList[name] then
-			comnameList[name] = gl.DeleteList(comnameList[name])
-		end
-	end
 	local height = comHeight[unitDefID] + heightOffset
 	return { name, { r, g, b, a }, height, bgColor, nil, playerRank and playerRank+1, xp, skill}
 end
@@ -209,26 +212,6 @@ local function RemoveLists()
 	comnameIconList = {}
 end
 
-local unbaRanks = {
-	[1] = 0,
-	[2] = 2,
-	[3] = 5,
-	[4] = 9,
-	[5] = 15,
-	[6] = 23,
-	[7] = 32,
-	[8] = 42,
-	[9] = 54,
-	[10] = 68,
-	[11] = 83,
-	[12] = 99,
-	[13] = 117,
-	[14] = 137,
-	[15] = 158,
-	[16] = 180,
-	[17] = 204,
-	[18] = 230,
-}
 
 local function createComnameList(attributes)
 	if comnameList[attributes[1]] ~= nil then
@@ -236,7 +219,7 @@ local function createComnameList(attributes)
 	end
 	comnameList[attributes[1]] = gl.CreateList(function()
 		local x,y = 0,0
-		if (anonymousMode == "disabled" or spec) and showPlayerRank and not unba and attributes[6] and not isSinglePlayer then
+		if (anonymousMode == "disabled" or spec) and showPlayerRank and attributes[6] and not isSinglePlayer then
 			x = (playerRankSize*0.5)
 		end
 		local outlineColor = { 0, 0, 0, 1 }
@@ -286,29 +269,6 @@ local function createComnameList(attributes)
 				font:Print(attributes[8], x_l-(playerRankSize*0.86), y_l-(playerRankSize*0.29), playerRankSize*0.66, "con")
 				font:End()
 			end
-		end
-		-- unba commander level
-		if unba and attributes[7] then
-			local halfSize = comLevelSize*0.5
-			--local x_r = x + (((font:GetTextWidth(name) * fontSize) * 0.5) + halfSize + (fontSize * 0.1))
-			--local y_r = y + (fontSize * 0.44)
-			local x_r = 0
-			local y_r = y + (fontSize * 0.4) + (comLevelSize * 0.42)
-			local unbaCurrentRank = 1
-			for i = 2,#unbaRanks do
-				if unbaRanks[i] >= attributes[7]*100 then
-					break
-				else
-					unbaCurrentRank = i
-				end
-			end
-			if VFS.FileExists(comLevelImages..unbaCurrentRank..'.png') then
-				glTexture(comLevelImages..unbaCurrentRank..'.png')
-			else
-				glTexture(comLevelImages.. 16 ..'.png')
-			end
-			glTexRect(x_r-halfSize, y_r-halfSize, x_r+halfSize, y_r+halfSize)
-			glTexture(false)
 		end
 	end)
 end
@@ -568,26 +528,6 @@ end
 
 function widget:UnitEnteredLos(unitID, unitTeam)
 	CheckCom(unitID, GetUnitDefID(unitID), unitTeam)
-end
-
-if unba then
-	function widget:UnitExperience(unitID, unitDefID, unitTeam, xp, oldXP)
-		if comHeight[unitDefID] then
-			if xp < 0 then
-				xp = 0
-			end
-			if oldXP < 0 then
-				oldXP = 0
-			end
-			--if math.floor(xp*100) ~= math.floor(oldXP*100) then
-				GetCommAttributes(unitID, unitDefID)
-				local name, _ = GetPlayerInfo(select(2, GetTeamInfo(unitTeam, false)), false)
-				if name and comnameList[name] then
-					comnameList[name] = gl.DeleteList(comnameList[name])
-				end
-			--end
-		end
-	end
 end
 
 function toggleNameScaling()

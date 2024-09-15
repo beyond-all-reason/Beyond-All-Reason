@@ -29,13 +29,13 @@ end
 
 if not gadgetHandler:IsSyncedCode() then return end
 
-local isCommando = {}
+local isParatrooper = {}
 for udid, ud in pairs(UnitDefs) do
-	if string.find(ud.name, 'cormando') or string.find(ud.name, 'legcomt2off') or string.find(ud.name, 'lootbox') or string.find(ud.name, 'scavengerdroppodbeacon_scav') then
-		isCommando[udid] = true
+	if ud.customParams.paratrooper then
+		isParatrooper[udid] = true
 	end
-  if ud.customParams.subfolder and ud.customParams.subfolder == "other/hats" then
-		isCommando[udid] = true
+  	if ud.customParams.subfolder and ud.customParams.subfolder == "other/hats" then
+		isParatrooper[udid] = true
 	end
 end
 
@@ -49,7 +49,11 @@ function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 
 	--Spring.Echo ("unloaded " .. unitID .. " (" .. unitDefID .. "), from transport " .. transportID)
 
-	if not isCommando[unitDefID] then
+	if not isParatrooper[unitDefID] then
+		--don't destroy units with effigies. Spring.SetUnitPosition cannot move a unit mid-fall.
+		if Spring.GetUnitRulesParam(unitID, "unit_effigy") then
+			return
+		end
 		currentFrame = Spring.GetGameFrame()
 		if not toKill[currentFrame+1] then
 			toKill[currentFrame+1] = {}

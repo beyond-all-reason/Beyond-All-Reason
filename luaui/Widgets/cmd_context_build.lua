@@ -81,6 +81,37 @@ local unitlist = {
 	{'corllt', 'corptl'},
 }
 
+
+
+local legionUnitlist = {
+	--{'cormakr','legfmkr'},
+	--{'cordrag','corfdrag'},
+	--{'cormstor', 'coruwms'},
+	--{'corestor', 'coruwes'},
+	--{'legrl','corfrt'},--
+	{'leghp','legfhp'},
+	--{'legrad','corfrad'},--asym pairs cannot overlap with core placeholders
+	--{'legmg','corfhlt'},--
+	--{'cortarg','corfatf'},
+	--{'cormmkr','coruwmmm'},
+	--{'corfus','coruwfus'},
+	--{'corflak','corenaa'},
+	--{'cormoho','coruwmme'},--does this combo actually manifest on anything...?
+	{'legsolar','legtide'},
+	--{'leglab','corsy'},--soon(tm)
+	{'leglht','legtl'},
+	{'leglht', 'legptl'},--this may need more hookery in 2 places below
+	{'leghive', 'legfhive'},
+	--{'cornanotc','cornanotcplat'},
+	{'legvp','legamsub'},
+	--{'corap','corplat'},
+	--{'corasp','corfasp'},
+	--{'corgeo','coruwgeo'},
+	--{'corageo','coruwageo'},
+}
+
+
+--this has to account for legotter too, later
 local ptlCons = {
 	['armbeaver'] = true,
 	['cormuskrat'] = true,
@@ -99,12 +130,6 @@ local updateRate = 0.1
 local lastUpdateTime = 0
 local gameStarted
 
-
-local function distance2dSquared(x1, y1, x2, y2)
-	local dx = x1 - x2
-	local dy = y1 - y2
-	return dx * dx + dy * dy
-end
 
 local function maybeRemoveSelf()
 	if waterIsLava or voidWater or waterLevel < minHeight then
@@ -190,7 +215,7 @@ function widget:DrawWorld()
 
 	if mouseDownPos and lmb then
 		-- currently doing a build drag, don't swap buildings
-		if distance2dSquared(mouseDownPos[1], mouseDownPos[3], pos[1], pos[3]) > 100 then
+		if math.distance2dSquared(mouseDownPos[1], mouseDownPos[3], pos[1], pos[3]) > 100 then
 			return
 		end
 	end
@@ -262,6 +287,14 @@ function widget:Initialize()
 	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
 		maybeRemoveSelf()
 	end
+	
+	if Spring.GetModOptions().experimentallegionfaction then	
+		for _,v in ipairs(legionUnitlist) do 
+			table.insert(unitlist, v)
+		end
+	end
+
+	
 	local uDefNames = UnitDefNames
 	for _,unitNames in ipairs(unitlist) do
 		for i, unitName in ipairs(unitNames) do

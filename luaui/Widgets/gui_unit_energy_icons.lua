@@ -168,7 +168,7 @@ local function updateStalling()
 				if teamEnergy[teamID] and unitConf[unitDefID][3] > teamEnergy[teamID] and -- more neededEnergy than we have
 					(not unitConf[unitDefID][4] or ((unitConf[unitDefID][4] and (select(4, spGetUnitResources(unitID))) or 999999) < unitConf[unitDefID][3])) then
 
-					if spGetUnitRulesParam(unitID, "under_construction") ~= 1 and-- not under construction
+					if not Spring.GetUnitIsBeingBuilt(unitID) and
 						energyIconVBO.instanceIDtoIndex[unitID] == nil then -- not already being drawn
 						if Spring.ValidUnitID(unitID) and not Spring.GetUnitIsDead(unitID) then
 							pushElementInstance(
@@ -210,7 +210,7 @@ function widget:GameFrame(n)
 end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam) -- remove the corresponding ground plate if it exists
-	if unitConf[unitDefID] and spGetUnitRulesParam(unitID, "under_construction") ~= 1 then
+	if unitConf[unitDefID] and not Spring.GetUnitIsBeingBuilt(unitID) then
 		if teamUnits[unitTeam] == nil then teamUnits[unitTeam] = {} end
 		teamUnits[unitTeam][unitID] = unitDefID
 	end
@@ -236,10 +236,6 @@ function widget:DrawWorld()
 	if chobbyInterface then return end
 	if Spring.IsGUIHidden() then return end
 
-	--if lastGameFrame % 90 == 0 then
-	--	Spring.Echo("energyicons",energyIconVBO.usedElements)
-	--	Spring.Debug.TableEcho(energyIconVBO.indextoUnitID)
-	--end
 	if energyIconVBO.usedElements > 0 then
 		local disticon = Spring.GetConfigInt("UnitIconDistance", 200) * 27.5 -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		gl.DepthTest(true)

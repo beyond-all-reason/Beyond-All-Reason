@@ -75,67 +75,67 @@ local armgateShieldSphere = table.merge(defaults, {
 
 local UnitEffects = {
 	["armjuno"] = {
-		{ class = 'ShieldSphere', options = armjunoShieldSphere },
-		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 72, 0 }, size = 14, precision = 22, repeatEffect = true } },
+--		{ class = 'ShieldSphere', options = armjunoShieldSphere },
+		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 72, 0 }, size = 15.5, precision = 22, repeatEffect = true } },
 	},
 	["corjuno"] = {
-		{ class = 'ShieldSphere', options = corjunoShieldSphere },
-		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 72, 0 }, size = 14, precision = 22, repeatEffect = true } },
+--		{ class = 'ShieldSphere', options = corjunoShieldSphere },
+		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 72, 0 }, size = 15.5, precision = 22, repeatEffect = true } },
 	},
 
 	--// FUSIONS //--------------------------
 	["corafus"] = {
-		{ class = 'ShieldSphere', options = corafusShieldSphere },
-		{ class = 'ShieldJitter', options = { layer = -16, life = math.huge, pos = { 0, 60, 0 }, size = 32.5, precision = 22, repeatEffect = true } },
+--		{ class = 'ShieldSphere', options = corafusShieldSphere },
+		{ class = 'ShieldJitter', options = { layer = -16, life = math.huge, pos = { 0, 60, 0 }, size = 34.5, precision = 22, repeatEffect = true } },
 	},
 	["corfus"] = {
-		{ class = 'ShieldSphere', options = corfusShieldSphere },
-		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 50, 0 }, size = 23.5, precision = 22, repeatEffect = true } },
+--		{ class = 'ShieldSphere', options = corfusShieldSphere },
+		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 50, 0 }, size = 25.5, precision = 22, repeatEffect = true } },
 	},
 	["armafus"] = {
-		{ class = 'ShieldSphere', options = armafusShieldSphere },
-		{ class = 'ShieldJitter', options = { layer = -16, life = math.huge, pos = { 0, 60, 0 }, size = 28.5, precision = 22, repeatEffect = true } },
+--		{ class = 'ShieldSphere', options = armafusShieldSphere },
+		{ class = 'ShieldJitter', options = { layer = -16, life = math.huge, pos = { 0, 60, 0 }, size = 30.5, precision = 22, repeatEffect = true } },
 	},
 	["resourcecheat"] = {
-		{ class = 'ShieldSphere', options = armafusShieldSphere },
-		{ class = 'ShieldJitter', options = { layer = -16, life = math.huge, pos = { 0, 60, 0 }, size = 28.5, precision = 22, repeatEffect = true } },
+--		{ class = 'ShieldSphere', options = armafusShieldSphere },
+		{ class = 'ShieldJitter', options = { layer = -16, life = math.huge, pos = { 0, 60, 0 }, size = 30.5, precision = 22, repeatEffect = true } },
 	},
 	["corgate"] = {
-		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 42, 0 }, size = 12, precision = 22, repeatEffect = true } },
-		{ class = 'ShieldSphere', options = corgateShieldSphere },
+		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 42, 0 }, size = 13.5, precision = 22, repeatEffect = true } },
+--		{ class = 'ShieldSphere', options = corgateShieldSphere },
 		--{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,42,0.0}, size=555, precision=0, strength= 0.001, repeatEffect=true}},
 		--{class='ShieldJitter',options={life=math.huge, pos={0,42,0}, size=20, precision=2, repeatEffect=true}},
 	},
 	["corfgate"] = {
-		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 42, 0 }, size = 12, precision = 22, repeatEffect = true } },
-		{ class = 'ShieldSphere', options = corgateShieldSphere },
+		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 42, 0 }, size = 13.5, precision = 22, repeatEffect = true } },
+--		{ class = 'ShieldSphere', options = corgateShieldSphere },
 		--{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,42,0.0}, size=555, precision=0, strength= 0.001, repeatEffect=true}},
 		--{class='ShieldJitter',options={life=math.huge, pos={0,42,0}, size=20, precision=2, repeatEffect=true}},
 	},
 	["armgate"] = {
-		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 23.5, -5 }, size = 15, precision = 22, repeatEffect = true } },
-		{ class = 'ShieldSphere', options = armgateShieldSphere },
+		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 23.5, -5 }, size = 17, precision = 22, repeatEffect = true } },
+--		{ class = 'ShieldSphere', options = armgateShieldSphere },
 		--{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,23.5,-5}, size=555, precision=0, strength=0.001, repeatEffect=true}},
 	},
 	["armfgate"] = {
-		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 25, 0 }, size = 15, precision = 22, repeatEffect = true } },
-		{ class = 'ShieldSphere', options = table.merge(armgateShieldSphere, { pos = { 0, 25, 0 } }) },
+		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 25, 0 }, size = 17, precision = 22, repeatEffect = true } },
+--		{ class = 'ShieldSphere', options = table.merge(armgateShieldSphere, { pos = { 0, 25, 0 } }) },
 		--{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,25,0}, size=555, precision=0, strength= 0.001, repeatEffect=true}},
 	},
 	["lootboxbronze"] = {
-		{ class = 'ShieldSphere', options = table.merge(corfusShieldSphere,  {pos = { 0, 34, 0 }, size = 10} ) },
+--		{ class = 'ShieldSphere', options = table.merge(corfusShieldSphere,  {pos = { 0, 34, 0 }, size = 10} ) },
 		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 34, 0 }, size = 10.5, precision = 22, repeatEffect = true } },
 	},
 	["lootboxsilver"] = {
-		{ class = 'ShieldSphere', options = table.merge(corfusShieldSphere,  {pos = { 0, 52, 0 }, size = 15} ) },
+--		{ class = 'ShieldSphere', options = table.merge(corfusShieldSphere,  {pos = { 0, 52, 0 }, size = 15} ) },
 		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 52, 0 }, size = 15.5, precision = 22, repeatEffect = true } },
 	},
 	["lootboxgold"] = {
-		{ class = 'ShieldSphere', options = table.merge(corfusShieldSphere,  {pos = { 0, 69, 0 }, size = 20} ) },
+--		{ class = 'ShieldSphere', options = table.merge(corfusShieldSphere,  {pos = { 0, 69, 0 }, size = 20} ) },
 		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 69, 0 }, size = 20.5, precision = 22, repeatEffect = true } },
 	},
 	["lootboxplatinum"] = {
-		{ class = 'ShieldSphere', options = table.merge(corfusShieldSphere,  {pos = { 0, 87, 0 }, size = 25} ) },
+--		{ class = 'ShieldSphere', options = table.merge(corfusShieldSphere,  {pos = { 0, 87, 0 }, size = 25} ) },
 		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 87, 0 }, size = 25.5, precision = 22, repeatEffect = true } },
 	},
 
@@ -144,19 +144,21 @@ local UnitEffects = {
 local scavEffects = {}
 if UnitDefNames['armcom_scav'] then
 	for k, effect in pairs(UnitEffects) do
-		scavEffects[k .. '_scav'] = effect
-		if scavEffects[k .. '_scav'].options then
-			if scavEffects[k .. '_scav'].options.color then
-				scavEffects[k .. '_scav'].options.color = { 0.92, 0.32, 1.0 }
-			end
-			if scavEffects[k .. '_scav'].options.colormap then
-				scavEffects[k .. '_scav'].options.colormap = { { 0.92, 0.32, 1.0 } }
-			end
-			if scavEffects[k .. '_scav'].options.colormap1 then
-				scavEffects[k .. '_scav'].options.colormap1 = { { 0.92, 0.32, 1.0 } }
-			end
-			if scavEffects[k .. '_scav'].options.colormap2 then
-				scavEffects[k .. '_scav'].options.colormap2 = { { 0.92, 0.32, 1.0 } }
+		if UnitDefNames[k .. '_scav'] then 
+			scavEffects[k .. '_scav'] = effect
+			if scavEffects[k .. '_scav'].options then
+				if scavEffects[k .. '_scav'].options.color then
+					scavEffects[k .. '_scav'].options.color = { 0.92, 0.32, 1.0 }
+				end
+				if scavEffects[k .. '_scav'].options.colormap then
+					scavEffects[k .. '_scav'].options.colormap = { { 0.92, 0.32, 1.0 } }
+				end
+				if scavEffects[k .. '_scav'].options.colormap1 then
+					scavEffects[k .. '_scav'].options.colormap1 = { { 0.92, 0.32, 1.0 } }
+				end
+				if scavEffects[k .. '_scav'].options.colormap2 then
+					scavEffects[k .. '_scav'].options.colormap2 = { { 0.92, 0.32, 1.0 } }
+				end
 			end
 		end
 	end
@@ -179,6 +181,7 @@ local myPlayerID = Spring.GetMyPlayerID()
 local mySpec, fullview = Spring.GetSpectatingState()
 
 local spGetUnitRulesParam = Spring.GetUnitRulesParam
+local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitIsActive = Spring.GetUnitIsActive
 local IsPosInLos = Spring.IsPosInLos
 local GetUnitPosition = Spring.GetUnitPosition
@@ -222,7 +225,7 @@ local function addUnit(unitID, unitDefID)
 			break
 		else
 			fx.options.unit = unitID
-			fx.options.under_construction = spGetUnitRulesParam(unitID, "under_construction")
+			fx.options.under_construction = spGetUnitIsBeingBuilt(unitID)
 			AddFxs(unitID, LupsAddFX(fx.class, fx.options))
 			fx.options.unit = nil
 		end
@@ -242,16 +245,14 @@ function gadget:UnitDestroyed(unitID, unitDefID)
 end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
-	local _, _, _, _, buildProgress = Spring.GetUnitHealth(unitID)
-	if buildProgress and buildProgress >= 1 then
+	if not spGetUnitIsBeingBuilt(unitID) then
 		gadget:UnitDestroyed(unitID, unitDefID, oldTeam)
 		gadget:UnitFinished(unitID, unitDefID, newTeam)
 	end
 end
 
 function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
-	local _, _, _, _, buildProgress = Spring.GetUnitHealth(unitID)
-	if buildProgress and buildProgress >= 1 then
+	if not spGetUnitIsBeingBuilt(unitID) then
 		gadget:UnitDestroyed(unitID, unitDefID, oldTeam)
 		gadget:UnitFinished(unitID, unitDefID, newTeam)
 	end
@@ -265,7 +266,7 @@ function gadget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
 					break
 				elseif not select(3, Spring.GetUnitIsStunned(unitID)) then -- not inbuild
 					fx.options.unit = unitID
-					fx.options.under_construction = spGetUnitRulesParam(unitID, "under_construction")
+					fx.options.under_construction = spGetUnitIsBeingBuilt(unitID)
 					AddFxs(unitID, LupsAddFX(fx.class, fx.options))
 					fx.options.unit = nil
 				end
@@ -285,7 +286,7 @@ local function CheckForExistingUnits()
 	for i = 1, #allUnits do
 		local unitID = allUnits[i]
 		local unitDefID = Spring.GetUnitDefID(unitID)
-		if UnitEffects[unitDefID] and spGetUnitRulesParam(unitID, "under_construction") ~= 1 then
+		if UnitEffects[unitDefID] and not spGetUnitIsBeingBuilt(unitID) then
 			local _, _, inBuild = Spring.GetUnitIsStunned(unitID)
 			if not inBuild then
 				addUnit(unitID, unitDefID)
