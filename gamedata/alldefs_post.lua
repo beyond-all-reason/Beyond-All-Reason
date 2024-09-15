@@ -753,7 +753,7 @@ function UnitDef_Post(name, uDef)
 	categories["NOTSHIP"] = function(unitDef) return not categories.SHIP(unitDef) end
 	categories["NOTSUB"] = function(unitDef) return not subList[unitDef.movementclass] end
 	categories["CANBEUW"] = function(unitDef) return amphibList[unitDef.movementclass] end
-	categories["UNDERWATER"] = function(unitDef) return (unitDef.minwaterdepth and unitDef.waterline == nil) or (unitDef.minwaterdepth and unitDef.waterline > unitDef.minwaterdepth) end
+	categories["UNDERWATER"] = function(unitDef) return (unitDef.minwaterdepth and unitDef.waterline == nil) or (unitDef.minwaterdepth and unitDef.waterline > unitDef.minwaterdepth and unitDef.speed and unitDef.speed > 0) end
 	categories["SURFACE"] = function(unitDef) return not categories.UNDERWATER(unitDef) and not categories.VTOL(unitDef) end
 	categories["MINE"] = function(unitDef) return unitDef.weapondefs and unitDef.weapondefs.minerange end
 	categories["COMMANDER"] = function(unitDef) return commanderList[unitDef.movementclass] end
@@ -779,6 +779,7 @@ function UnitDef_Post(name, uDef)
 			if isGROUNDSCOUT == true then append(unitDef, " GROUNDSCOUT") end
 			if isRAPTOR == true then append(unitDef, " isRAPTOR") end
 			if name == "armmex" or name == "cormex" or name == "legmex" or name == "legmext15" then append(unitDef, " CANBEUW") end
+			if name == "corplat" or name == "armplat" then append(unitDef, " UNDERWATER SURFACE") end
 			-- end of temporary code
 	
 			for categoryName, condition in pairs(categories) do
