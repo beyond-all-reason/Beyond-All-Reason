@@ -324,9 +324,11 @@ customDefs.correcl = {
 customDefs.legkam = {
 	weapondefs = {
 		martyrbomb = {
-			spawns_name = "cormine1",
-			spawns_surface = "LAND",
-			spawns_expire = 99999,
+			customparams = {
+				spawns_name = "cormine1_scav",
+				spawns_surface = "LAND",
+				spawns_expire = 99999,
+			}
 		}
 	}
 }
