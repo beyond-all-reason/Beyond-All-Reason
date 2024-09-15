@@ -29,7 +29,6 @@ return {
 		health = 3500,
 		maxslope = 12,
 		speed = 30.0,
-		minwaterdepth = 0,
 		movementclass = "HTANK5",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMDRONECARRYLAND.s3o",
