@@ -19,6 +19,7 @@ local groundCollisionDefID = Game.envDamageTypes.GroundCollision
 local objectCollisionDefID = Game.envDamageTypes.ObjectCollision
 local objectCollisionVelocityThreshold = 3.3 --this defines how fast a unit has to be moving in order to take object collision damage
 local maxImpulseProportion = 0.04 --incease this to make units move less from impulse. This defines the max impulse damage allowed a unit can take relative to its mass.
+local velocityCap = 3 --measured in elmos per frame. Any unit hit with an explosion that achieves a velocity greater than this will be slowed until stopped.
 
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitVelocity = Spring.GetUnitVelocity
@@ -63,8 +64,10 @@ for weaponDefID, wDef in ipairs(WeaponDefs) do
 	end
 	
 	--generate list of exempted weapons to improve performance
+	local minImpulseFactor = 0.15
+	local minImpulseToDamageRatio = 0.2
 	if wDef.damages and wDef.damages.impulseFactor == 0 or
-		(wDef.damages.impulseFactor < 0.15 and wDef.damages.impulseBoost < maxDamage(wDef.damages) * 0.2) then
+		(wDef.damages.impulseFactor < minImpulseFactor and wDef.damages.impulseBoost < maxDamage(wDef.damages) * minImpulseToDamageRatio) then
 		weaponDefIgnored[weaponDefID] = true
 	end
 end
@@ -74,7 +77,7 @@ local function getImpulseMultiplier(unitDefID, weaponDefID, damage)
 	local impulseFactor = weaponDefIDImpulses[weaponDefID].impulsefactor or 1
 	local impulse = (damage + impulseBoost) * impulseFactor
 	local maxImpulse = unitsMaxImpulse[unitDefID]
-	local impulseMultiplier = mathCeil(mathMin(maxImpulse/impulse, 1) * 1000000) / 1000000 --we round to prevent the loss of impulse due to sheered tiny, tiny values being returned in UnitPreDamaged
+	local impulseMultiplier = mathMin(maxImpulse/impulse, 1)  --we round to prevent the loss of impulse due to sheered tiny, tiny values being returned in UnitPreDamaged
 	return impulseMultiplier
 end
 
@@ -97,7 +100,7 @@ end
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 	if not weaponDefIgnored[weaponDefID] and weaponDefID > 0 then --this section handles limiting maximum impulse
 		local impulseMultiplier = 1
-		impulseMultiplier = impulseData(unitDefID, weaponDefID, damage)
+		impulseMultiplier = getImpulseMultiplier(unitDefID, weaponDefID, damage)
 		unitInertiaCheckFlags[unitID] = gameFrame + velocityWatchDuration
 		return damage, impulseMultiplier
 	else
@@ -131,7 +134,6 @@ end
 function gadget:GameFrame(frame)
 	for unitID, expirationFrame in pairs(unitInertiaCheckFlags) do
 		if not transportedUnits[unitID] then
-			local velocityCap = 3
 			local velX, velY, velZ, velocityLength = spGetUnitVelocity(unitID)
 			if velocityLength > velocityCap then
 				velX = (velocityCap / velocityLength) * velX
@@ -144,7 +146,7 @@ function gadget:GameFrame(frame)
 				if velY < 0 then
 					decelerateVertical = 1
 				end
-				spSetUnitVelocity(unitID, (velX * decelerateHorizontal), (velY * decelerateVertical), (velZ * decelerateHorizontal))
+				spSetUnitVelocity(unitID, velX * decelerateHorizontal, velY * decelerateVertical, velZ * decelerateHorizontal)
 				expirationFrame = frame + velocityWatchDuration
 			elseif expirationFrame < frame then
 				unitInertiaCheckFlags[unitID] = nil
