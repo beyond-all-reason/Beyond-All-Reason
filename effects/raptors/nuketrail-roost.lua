@@ -172,7 +172,7 @@ return {
       },
     spikes = {
       air                = true,
-      class              = [[explspike]],
+      class              = [[CExploSpikeProjectile]],
       count              = 2,
       ground             = true,
       water              = true,
