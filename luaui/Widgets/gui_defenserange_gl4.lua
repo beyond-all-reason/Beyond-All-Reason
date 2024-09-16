@@ -8,7 +8,7 @@ function widget:GetInfo()
 		date      = "2021.04.26",
 		license   = "Lua: GPLv2, GLSL: (c) Beherith (mysterme@gmail.com)",
 		layer     = -100,
-		enabled   = false
+		enabled   = true
 	}
 end
 
@@ -66,40 +66,40 @@ end
 local enabledAsSpec = true
 
 local buttonConfig = {
-	ally = { ground = true, air = true, nuke = true },
+	ally = { ground = false, air = false, nuke = true },
 	enemy = { ground = true, air = true, nuke = true }
 }
 
 local colorConfig = { --An array of R, G, B, Alpha
     drawStencil = true, -- wether to draw the outer, merged rings (quite expensive!)
     drawInnerRings = true, -- wether to draw inner, per defense rings (very cheap)
-    externalalpha = 0.70, -- alpha of outer rings
-    internalalpha = 0.0, -- alpha of inner rings
+    externalalpha = 0.7, -- alpha of outer rings
+    internalalpha = 0.17, -- alpha of inner rings
     distanceScaleStart = 2000, -- Linewidth is 100% up to this camera height
-    distanceScaleEnd = 4000, -- Linewidth becomes 50% above this camera height
+    distanceScaleEnd = 8000, -- Linewidth becomes 50% above this camera height
     ground = {
-        color = {1.0, 0.2, 0.0, 1.0},
-        fadeparams = { 2000, 5000, 1.0, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
-        externallinethickness = 4.0,
-        internallinethickness = 2.0,
+        color = {1.6, 0.22, 0.05, 0.70},
+        fadeparams = { 2200, 5500, 1.0, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+        externallinethickness = 5.0,
+        internallinethickness = 2.5,
     },
     air = {
-        color = {0.90, 0.45, 1.2, 1.0},
-        fadeparams = { 2000, 5000, 0.4, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
-        externallinethickness = 4.0,
+        color = {0.8, 0.44, 1.6, 0.70},
+        fadeparams = { 3200, 8000, 0.4, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+        externallinethickness = 5.0,
         internallinethickness = 2.0,
     },
     nuke = {
-        color = {0.7, 0.8, 1.0, 1.0},
-        fadeparams = {5000, 4000, 0.6, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
-        externallinethickness = 4.0,
-        internallinethickness = 2.0,
+        color = {0.37, 0.82, 1.3, 0.7},
+        fadeparams = {5000, 500, 0.6, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+        externallinethickness = 6.0,
+        internallinethickness = 1.5,
     },
     cannon = {
-        color = {1.0, 0.6, 0.0, 1.0},
-        fadeparams = {3000, 6000, 0.8, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
-        externallinethickness = 4.0,
-        internallinethickness = 2.0,
+        color = {1.4, 0.86, 0.07, 0.75},
+        fadeparams = {5000, 500, 0.8, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+        externallinethickness = 6.0,
+        internallinethickness = 1.5,
     },
 }
 
@@ -192,7 +192,7 @@ local function initUnitList()
 		['armllt'] = { weapons = { 1 } },
 		['armbeamer'] = { weapons = { 1 } },
 		['armhlt'] = { weapons = { 1 } },
-		['armguard'] = { weapons = { 4} },
+		['armguard'] = { weapons = { 1 } }, --4
 		['armrl'] = { weapons = { 2 } }, --light aa
 		['armferret'] = { weapons = { 2 } },
 		['armcir'] = { weapons = { 2 } }, --chainsaw
@@ -204,16 +204,16 @@ local function initUnitList()
 		['armfflak'] = { weapons = { 2 } },  --floating flak AA
 		['armatl'] = { weapons = { 1 } },  --adv torpedo launcher
 
-		['armamb'] = { weapons = { 4 } }, --ambusher
-		['armpb'] = { weapons = { 4 } }, --pitbull
+		['armamb'] = { weapons = { 1 } }, --ambusher 4
+		['armpb'] = { weapons = { 1 } }, --pitbull 4
 		['armanni'] = { weapons = { 1 } },
 		['armflak'] = { weapons = { 2 } },
 		['armmercury'] = { weapons = { 2 } },
 		['armemp'] = { weapons = { 1 } },
 		['armamd'] = { weapons = { 3 } }, --antinuke
 
-		['armbrtha'] = { weapons = { 4 } },
-		['armvulc'] = { weapons = { 4 } },
+		['armbrtha'] = { weapons = { 4 } }, 
+		['armvulc'] = { weapons = { 4 } }, 
 
 		-- CORTEX
 		['cormaw'] = { weapons = { 1 } },
@@ -222,7 +222,7 @@ local function initUnitList()
 		['corllt'] = { weapons = { 1 } },
 		['corhllt'] = { weapons = { 1 } },
 		['corhlt'] = { weapons = { 1 } },
-		['corpun'] = { weapons = { 4} },
+		['corpun'] = { weapons = { 1} }, --4
 		['corrl'] = { weapons = { 2 } },
 		['cormadsam'] = { weapons = { 2 } },
 		['corerad'] = { weapons = { 2 } },
@@ -235,15 +235,15 @@ local function initUnitList()
 		['corfrt'] = { weapons = { 2 } }, --floating rocket laucher
 		['corenaa'] = { weapons = { 2 } }, --floating flak AA
 
-		['cortoast'] = { weapons = { 4 } },
+		['cortoast'] = { weapons = { 1 } }, --4
 		['corvipe'] = { weapons = { 1 } },
 		['cordoom'] = { weapons = { 1, 1, 1} },
 		['corflak'] = { weapons = { 2 } },
 		['corscreamer'] = { weapons = { 2 } },
-		['cortron'] = { weapons = { 1 } },
+		['cortron'] = { weapons = { 4 } },
 		['corfmd'] = { weapons = { 3 } },
-		['corint'] = { weapons = { 4 } },
-		['corbuzz'] = { weapons = { 4 } },
+		['corint'] = { weapons = { 4 } }, 
+		['corbuzz'] = { weapons = { 4 } }, 
 
 		['armscab'] = { weapons = { 3 } },
 		['armcarry'] = { weapons = { 3 } },
@@ -254,7 +254,20 @@ local function initUnitList()
 
 		-- LEGION
 		['legabm'] = { weapons = { 3 } }, --antinuke
-		['legrampart'] = { weapons = { 3 } }, --rampart
+		['legrampart'] = { weapons = { 3, 1 } }, --rampart
+		['legacluster'] = { weapons = { 1 } }, --T2 arty
+		['leghive'] = { weapons = { 1 } }, --Drone-defense
+		['legmg'] = { weapons = { 1 } }, --ground-AA MG defense
+		['legbombard'] = { weapons = { 1 } }, --Grenadier defense
+		['legbastion'] = { weapons = { 1 } }, --T2 Heatray Tower
+		['legrl'] = { weapons = { 2 } }, --T1 AA
+		['leglupara'] = { weapons = { 2 } }, --T1.5 AA
+		['legrhapsis'] = { weapons = { 2 } }, --T1.5 AA
+		['legflak'] = { weapons = { 2 } }, --T2 AA FLAK
+		['leglraa'] = { weapons = { 2 } }, --T2 LR-AA 
+		['legperdition'] = { weapons = { 4 } }, --T2 LR-AA 
+		['legstarfall'] = { weapons = { 4 } }, 
+		['leglrpc'] = { weapons = { 4 } }, 
 
 		-- SCAVENGERS
 		['scavbeacon_t1_scav'] = { weapons = { 1 } },
@@ -627,10 +640,10 @@ void main() {
 
 
 	// -- IN-SHADER MOUSE-POS BASED HIGHLIGHTING
-	float disttomousefromunit = 1.0 - smoothstep(48, 64, length(posscale.xz - mouseWorldPos.xz));
+	float disttomousefromunit = 1.0 - smoothstep(32, 64, length(posscale.xz - mouseWorldPos.xz));
 	// this will be positive if in mouse, negative else
-	float highightme = clamp( (disttomousefromunit ) + 0.0, 0.0, 1.0);
-	MOUSEALPHA = highightme;
+	float highlightme = clamp( (disttomousefromunit ) + 0.0, 0.0, 1.0);
+	MOUSEALPHA = highlightme;
 
 	// ------------ dump the stuff for FS --------------------
 	//worldPos = circleWorldPos;
