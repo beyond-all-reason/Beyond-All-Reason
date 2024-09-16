@@ -116,7 +116,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.canResurrect then
 		canResurrect[unitDefID] = true
 	end
-	if unitDef.isBuilder and not unitDef.isBuilding then
+	if unitDef.canReclaim and not unitDef.isBuilding then
 		canReclaim[unitDefID] = true
 	end
 end
