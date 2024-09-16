@@ -10,9 +10,14 @@ function widget:GetInfo()
 	}
 end
 
-local backgroundOpacity = 0.03
+local lineWidth = 1.5
+
+function widget:ViewResize(vsx, vsy)
+	lineWidth = math.max(1.5, vsy / 1080)
+end
 
 function widget:Initialize()
+	widget:ViewResize(Spring.GetViewGeometry())
 	Spring.LoadCmdColorsConfig('mouseBoxLineWidth 0')
 end
 
@@ -24,28 +29,28 @@ function widget:DrawScreen() -- This blurs the UI elements obscured by other UI 
 	local x1, y1, x2, y2 = Spring.GetSelectionBox()
 	if y2 then
 		gl.PushMatrix()
-
 		-- selection box background
-		gl.Color(1,1,1,backgroundOpacity)
+		gl.Color(1,1,1,0.025)
 		gl.Rect(x1, y1, x2, y2)
-		gl.Color(1,1,1,0.04)
+		-- selection box background vignette
+		gl.Color(1,1,1,0.03)
 		gl.Texture(":n:"..LUAUI_DIRNAME.."Images/vignette.dds")
 		gl.TexRect(x1, y1, x2, y2)
 		gl.Texture(false)
 
 		-- black selection outline
 		gl.PolygonMode(GL.FRONT_AND_BACK, GL.LINE)
-		gl.LineWidth(4.5)
-		gl.Color(0,0,0,0.25)
+		gl.LineWidth(lineWidth + 2.5)
+		gl.Color(0,0,0,0.12)
 		gl.Rect(x1, y1, x2, y2)
 
 		-- white selection outline
-		--gl.LineStipple(true)	-- animated stipplelines! ...but I think this makes it more unclean
-		gl.LineWidth(1.5)
+		gl.LineStipple(true)	-- animated stipplelines!
+		gl.LineWidth(lineWidth)
 		gl.Color(1,1,1,1)
 		gl.Rect(x1, y1, x2, y2)
 		gl.PolygonMode(GL.FRONT_AND_BACK, GL.FILL)
-		--gl.LineStipple(false)
+		gl.LineStipple(false)
 
 		gl.PopMatrix()
 	end
