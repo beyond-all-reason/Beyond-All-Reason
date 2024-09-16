@@ -258,11 +258,9 @@ cacheDataBase['usedBPExceptStalled'] = 0 																				-- BeHe
 cacheDataBase['usedBPIfNoStall'] = 0 																					-- BeHe
 
 
-local unitsPerFrame = 100 --limit processed units per frame to improve performance
+local unitsPerFrame = 30 --limit processed units per frame to improve performance
 local trackedNum = 0
-local nowChecking = 0
-local trackPosBase = 0 -- will start the next checks from here
-
+local builderCoroutine
 
 
 ---------------------------  tracking  --------------------------
@@ -1058,9 +1056,9 @@ local function updateResbar(res)  --decides where and what is drawn
 		glDeleteList(dlistResbar[res][2])
 	end
 	local barHeight = math_floor((height * widgetScale / 7) + 0.5)
-	local barHeightPadding = math_floor(((height / 4.4) * widgetScale) + 0.5) --((height/2) * widgetScale) - (barHeight/2)
+	local barHeightPadding = math_floor(((height / 4.4) * widgetScale) + 0.5) --formaly ((height/2) * widgetScale) - (barHeight/2)
 	--local barLeftPadding = 2 * widgetScale
-	local barLeftPadding = math_floor(47 * widgetScale) --xxx 53*
+	local barLeftPadding = math_floor(47 * widgetScale) -- formaly 53*
 	local barRightPadding = math_floor(14.5 * widgetScale)
 	local barHorizontalPadding_BP = barRightPadding
 	local barArea = { area[1] + math_floor((height * widgetScale) + barLeftPadding), area[2] + barHeightPadding, area[3] - barRightPadding, area[2] + barHeight + barHeightPadding }
@@ -1128,7 +1126,7 @@ local function updateResbar(res)  --decides where and what is drawn
 
 		-- Icon
 		glColor(1, 1, 1, 1)
-		local iconPadding = math_floor((area[4] - area[2]) / 9) --xxx /7
+		local iconPadding = math_floor((area[4] - area[2]) / 9) --formaly /7
 		local barHorizontalPadding_BP = math_floor(14.5 * widgetScale)
 		local iconSize = math_floor(area[4] - area[2] - iconPadding - iconPadding)
 		if res == 'BP' then
@@ -1203,70 +1201,67 @@ local function updateResbar(res)  --decides where and what is drawn
 			UiSliderKnob(math_floor(conversionIndicatorArea[1]+((conversionIndicatorArea[3]-conversionIndicatorArea[1])/2)), math_floor(conversionIndicatorArea[2]+((conversionIndicatorArea[4]-conversionIndicatorArea[2])/2)), math_floor((conversionIndicatorArea[3]-conversionIndicatorArea[1])/2), { 0.95, 0.95, 0.7, 1 })
 		end
 		--show usefulBPFactor
-		local ignore = false
-		if ignore ~= true then
-			for i = 1, 1 do
-				if res == 'BP' and config.drawBPIndicators then
-					local texWidth = 1.0 * shareSliderWidth
-					local texHeight = math_floor( shareSliderWidth / 2 ) - 1
-					local indicatorPosM = BP['mSliderPosition']
-					local indicatorPosE = BP['eSliderPosition']
-					local indicatorAreaMultiplyerM = 1
-					local indicatorAreaMultiplyerE = 1
+		for i = 1, 1 do
+			if res == 'BP' and config.drawBPIndicators then
+				local texWidth = 1.0 * shareSliderWidth
+				local texHeight = math_floor( shareSliderWidth / 2 ) - 1
+				local indicatorPosM = BP['mSliderPosition']
+				local indicatorPosE = BP['eSliderPosition']
+				local indicatorAreaMultiplyerM = 1
+				local indicatorAreaMultiplyerE = 1
 
-					if playerStallingMetal == true then
-						indicatorAreaMultiplyerM = 1.4
-					end
-					if playerStallingEnergy == true then
-						indicatorAreaMultiplyerE = 1.4
-					end
+				if playerStallingMetal == true then
+					indicatorAreaMultiplyerM = 1.4
+				end
+				if playerStallingEnergy == true then
+					indicatorAreaMultiplyerE = 1.4
+				end
 
-					local indicatorH = barHeight -- how tall are the metal-supported-BP and energy-supported-BP indicators?
-					local barIntrusion = barHeight * 0.4 -- how much of the BP bar can be obscured (vertically) by one of these indicators?
-					local indicatorW = indicatorH * 1.2 -- 1.0 would bring the indicator to a perfect point, sort of like a home plate in baseball, but 1.2 gives a little extra softness and visual weight
-					local cornerSize = indicatorH / 2
-					local metalIndicatorHalfWidth = indicatorW * indicatorAreaMultiplyerM / 2
-					local energyIndicatorHalfWidth = indicatorW * indicatorAreaMultiplyerE / 2
+				local indicatorH = barHeight -- how tall are the metal-supported-BP and energy-supported-BP indicators?
+				local barIntrusion = barHeight * 0.4 -- how much of the BP bar can be obscured (vertically) by one of these indicators?
+				local indicatorW = indicatorH * 1.2 -- 1.0 would bring the indicator to a perfect point, sort of like a home plate in baseball, but 1.2 gives a little extra softness and visual weight
+				local cornerSize = indicatorH / 2
+				local metalIndicatorHalfWidth = indicatorW * indicatorAreaMultiplyerM / 2
+				local energyIndicatorHalfWidth = indicatorW * indicatorAreaMultiplyerE / 2
 
-					-- Indicator for buildpower that current METAL income can support. This is shown along the BOTTOM edge of the BP bar.
-					if indicatorPosM ~= nil then
+				-- Indicator for buildpower that current METAL income can support. This is shown along the BOTTOM edge of the BP bar.
+				if indicatorPosM ~= nil then
+					RectRound(
+						barArea[1] + (indicatorPosM * barWidth) - metalIndicatorHalfWidth, -- left
+						barArea[2] + (barIntrusion - indicatorH * indicatorAreaMultiplyerM), -- bottom of the bar, plus an intrusion upward, minus the indicator's height
+						barArea[1] + (indicatorPosM * barWidth) + metalIndicatorHalfWidth, -- right
+						barArea[2] + barIntrusion, -- bottom of the bar, plus an intrusion upward
+						cornerSize * indicatorAreaMultiplyerM,
+						1, 1, 0, 0, -- round TopLeft, TopRight, but not BottomRight, BottomLeft (so it looks like it's pointing upward)
+						{ 0.6, 0.6, 0.6, 1 }, -- lowlight color (RGBA)
+						{ 1,   1,   1,   1 }) -- highlight color (RGBA)
+				end
+
+				if indicatorPosE ~= nil then
+					-- Indicator for the range of buildpower that energy COULD support if the wind changes.
+					if config.drawBPWindRangeIndicators and numWindGenerators > 0 and BP['eSliderPosition_minWind'] ~= nil and BP['eSliderPosition_maxWind'] ~= nil then
+						-- Draw a thin rectangle showing the possible positions of the E-supported BP slider based on min and max wind conditions.
 						RectRound(
-							barArea[1] + (indicatorPosM * barWidth) - metalIndicatorHalfWidth, -- left
-							barArea[2] + (barIntrusion - indicatorH * indicatorAreaMultiplyerM), -- bottom of the bar, plus an intrusion upward, minus the indicator's height
-							barArea[1] + (indicatorPosM * barWidth) + metalIndicatorHalfWidth, -- right
-							barArea[2] + barIntrusion, -- bottom of the bar, plus an intrusion upward
-							cornerSize * indicatorAreaMultiplyerM,
-							1, 1, 0, 0, -- round TopLeft, TopRight, but not BottomRight, BottomLeft (so it looks like it's pointing upward)
-							{ 0.6, 0.6, 0.6, 1 }, -- lowlight color (RGBA)
-							{ 1,   1,   1,   1 }) -- highlight color (RGBA)
+							barArea[1] + (BP['eSliderPosition_minWind'] * barWidth) - energyIndicatorHalfWidth, -- left
+							barArea[4] + barIntrusion, -- top of the bar, plus an intrusion upward
+							barArea[1] + (BP['eSliderPosition_maxWind'] * barWidth) + energyIndicatorHalfWidth, -- right
+							barArea[4] - barIntrusion + indicatorH, -- to the top of the E indicator assuming no multiplier
+							(indicatorH * 1 - 2 * barIntrusion) / 2, -- corner size
+							0, 0, 0, 0, -- don't round any corners
+							{ 0.8, 0.8, 0.0, 1 }, -- lowlight color (RGBA)
+							{ 0.4, 0.4, 0.0, 1 }) -- highlight color (RGBA)
 					end
 
-					if indicatorPosE ~= nil then
-						-- Indicator for the range of buildpower that energy COULD support if the wind changes.
-						if config.drawBPWindRangeIndicators and numWindGenerators > 0 and BP['eSliderPosition_minWind'] ~= nil and BP['eSliderPosition_maxWind'] ~= nil then
-							-- Draw a thin rectangle showing the possible positions of the E-supported BP slider based on min and max wind conditions.
-							RectRound(
-								barArea[1] + (BP['eSliderPosition_minWind'] * barWidth) - energyIndicatorHalfWidth, -- left
-								barArea[4] + barIntrusion, -- top of the bar, plus an intrusion upward
-								barArea[1] + (BP['eSliderPosition_maxWind'] * barWidth) + energyIndicatorHalfWidth, -- right
-								barArea[4] - barIntrusion + indicatorH, -- to the top of the E indicator assuming no multiplier
-								(indicatorH * 1 - 2 * barIntrusion) / 2, -- corner size
-								0, 0, 0, 0, -- don't round any corners
-								{ 0.8, 0.8, 0.0, 1 }, -- lowlight color (RGBA)
-								{ 0.4, 0.4, 0.0, 1 }) -- highlight color (RGBA)
-						end
-
-						-- Indicator for buildpower that current ENERGY income can support. This is shown along the TOP edge of the BP bar.
-						RectRound(
-							barArea[1] + (indicatorPosE * barWidth) - energyIndicatorHalfWidth, -- left
-							barArea[4] - barIntrusion, -- top of the bar, minus an intrusion downward
-							barArea[1] + (indicatorPosE * barWidth) + energyIndicatorHalfWidth, -- right
-							barArea[4] - barIntrusion + indicatorH * indicatorAreaMultiplyerE, -- top of the bar, minus an intrusion downward, plus the indicator's height
-							cornerSize * indicatorAreaMultiplyerE,
-							0, 0, 1, 1, -- don't round TopLeft, TopRight but round BottomRight, BottomLeft (so it looks like it's pointing downward)
-							{0.8, 0.8, 0.0, 1}, -- lowlight color (RGBA)
-							{ 1, 1, 0.2, 1 }) -- highlight color (RGBA)
-					end
+					-- Indicator for buildpower that current ENERGY income can support. This is shown along the TOP edge of the BP bar.
+					RectRound(
+						barArea[1] + (indicatorPosE * barWidth) - energyIndicatorHalfWidth, -- left
+						barArea[4] - barIntrusion, -- top of the bar, minus an intrusion downward
+						barArea[1] + (indicatorPosE * barWidth) + energyIndicatorHalfWidth, -- right
+						barArea[4] - barIntrusion + indicatorH * indicatorAreaMultiplyerE, -- top of the bar, minus an intrusion downward, plus the indicator's height
+						cornerSize * indicatorAreaMultiplyerE,
+						0, 0, 1, 1, -- don't round TopLeft, TopRight but round BottomRight, BottomLeft (so it looks like it's pointing downward)
+						{0.8, 0.8, 0.0, 1}, -- lowlight color (RGBA)
+						{ 1, 1, 0.2, 1 }) -- highlight color (RGBA)
 				end
 			end
 		end
@@ -1312,14 +1307,12 @@ local function updateResbar(res)  --decides where and what is drawn
 			WG['tooltip'].AddTooltip(res .. '_share_slider', { resbarDrawinfo[res].barArea[1], shareIndicatorArea[res][2], resbarDrawinfo[res].barArea[3], shareIndicatorArea[res][4] }, Spring.I18N('ui.topbar.resources.shareMetalTooltip'), nil, Spring.I18N('ui.topbar.resources.shareMetalTooltipTitle'))
 		end
 		if res == 'BP' and config.drawBPBar == true then -- for bp bar only
-			-- TODO: ensure these are consistent with text/highlight colors elsewhere in BAR.
 			local textColor = '\255\215\215\215'
 			local highlightColor = '\255\255\255\255'
 			local avgTotalReservedBP = math_round(BP[3])
 			local totalAvailableBP = BP[4]
 			local avgTotalUsedBP = math_round(BP[5])
 
-			-- Berechnung der Prozentsätze
 			local percentAssigned = math.floor((avgTotalReservedBP / totalAvailableBP * 100) + 0.5)
 			local percentActive = math.floor((avgTotalUsedBP / totalAvailableBP * 100) + 0.5)
 			local percentIdle = math.floor(((totalAvailableBP - avgTotalReservedBP) / totalAvailableBP * 100) + 0.5)
@@ -1334,12 +1327,10 @@ local function updateResbar(res)  --decides where and what is drawn
 				percentIdle = 0
 			end
 
-			-- Formatieren der Prozentzahlen mit führenden Leerzeichen für Ausrichtung
 			local formattedAssigned = string.format("%3d", percentAssigned) .. "%"
 			local formattedActive = string.format("%3d", percentActive) .. "%"
 			local formattedIdle = string.format("%3d", percentIdle) .. "%"
 
-			-- Erstellen des Tooltip-Textes
 			local bpTooltipText = textColor .. "Your total buildpower (BP) is " .. highlightColor .. totalAvailableBP .. textColor .. ", of which:\n"
 				.. highlightColor .. formattedAssigned .. textColor .. " is assigned to tasks or moving to jobs (dark green bar).\n"
 				.. highlightColor .. formattedActive .. textColor .. " is currently active and being used (green bar). This is the number shown.\n"
@@ -1397,7 +1388,6 @@ local function updateResbar(res)  --decides where and what is drawn
 					.. float_to_s(BP['energySupportedBP']) .. " BP supported by E income,\n\n"
 			end
 
-			-- One tooltip for the entire BP area, which isn't that big.
 			WG['tooltip'].AddTooltip(res .. '_all', {
 					resbarDrawinfo[res].barArea[1],--resbarArea[res][1],
 					resbarDrawinfo[res].barArea[2],--resbarArea[res][2],
@@ -1722,7 +1712,7 @@ function widget:GameStart()
 	init()
 end
 
-local builderCoroutine
+
 
 function widget:GameFrame(n)
 	spec = spGetSpectatingState()
@@ -1730,18 +1720,9 @@ function widget:GameFrame(n)
 	local bladeSpeedMultiplier = 0.2
 	windRotation = windRotation + (currentWind * bladeSpeedMultiplier)
 	gameFrame = n
-
-	-- calculations for the exact metal and energy draw value
-	--local builderUpdateInterval = Spring.GetTeamRulesParam(myTeamID, "builderUpdateInterval")  --
-	if builderUpdateInterval == nil  then
-		builderUpdateInterval = 3
-	end
-	local gameFrameFreq = builderUpdateInterval --- reduced the update speed to the build prio speed to save performance, any feelable drawbacks?
 	local unp = unpack or table.unpack
 	-- If we're supposed to draw the buildpower bar, do some calculations.
-	-- Skip frames between calculations _unless_ we have too many builders to do them all in one frame, in which case nowChecking will be positive when the previous frame didn't finish.
-	if config.drawBPBar and ((gameFrame % gameFrameFreq == 0) or nowChecking > 0) then
-		gameStarted = true -- TODO: is this needed?
+	if config.drawBPBar then -- calculations for the exact metal and energy draw value
 		-- Log initial cache values
 		local cacheTotalReservedBP = 0
 		local cacheTotallyUsedBP = 0
@@ -1770,8 +1751,6 @@ function widget:GameFrame(n)
 			if not success or not unitID then
 				break
 			end
-
-			--LogFrame("Processing unitID: " .. tostring(unitID) .. ", nowChecking: " .. nowChecking .. ", trackPosBase: " .. trackPosBase)
 			local currentUnitBP, unitIsBuilt, unitDefID, unitTeamID = unp(unitData)
 			--LogFrame("Unit is built, performing additional checks")
 			local unitExists, foundActivity, builtUnitDefID, mayBeBuilding, guardedUnitID = findBPCommand(unitID, unitDefID, {CMD.REPAIR, CMD.RECLAIM, CMD.CAPTURE, CMD.GUARD})
@@ -1813,7 +1792,7 @@ function widget:GameFrame(n)
 				-- (We might be repairing the constructor even if we're not helping them build.
 				-- Maybe consider us idle if the unit we're guarding is idle _and_ full-health.)
 
-				if builtUnitDefID then  -- ROBERT what is needed for BP?
+				if builtUnitDefID then  -- what is needed for BP?
 
 					local _, currentlyUsedM, _, currentlyUsedE = spGetUnitResources(unitID)
 					usedBPMetalExpense = usedBPMetalExpense + currentlyUsedM
@@ -1843,9 +1822,6 @@ function widget:GameFrame(n)
 					end
 				end
 			end
-			nowChecking = nowChecking + 1
-			--LogFrame("Incremented nowChecking: " .. nowChecking)
-			----LogFrame("nowChecking new one" ..nowChecking)
 		end
 		--LogFrame("Finished trackedBuilders loop")
 		for unitID, unitReservedBP in pairs(unitsReservedBP) do
@@ -1853,7 +1829,6 @@ function widget:GameFrame(n)
 		end
 		cacheDataBase[3] = cacheDataBase[3] + cacheTotalReservedBP
 		cacheDataBase[5] = cacheDataBase[5] + cacheTotallyUsedBP
-		-- TODO: consider averaging income and expense across all frames for which we calculated builder data.
 		local metal, metalStorage, metalPull, metalIncome, metalExpense, metalShare, metalSent = spGetTeamResources(myTeamID, "metal")
 		local energy, energyStorage, energyPull, energyIncome, energyExpense, energyShare, energySent = spGetTeamResources(myTeamID, "energy")
 
@@ -1874,14 +1849,10 @@ function widget:GameFrame(n)
 			end
 			cacheDataBase['realWindStrength'] = realWindStrength
 		end
-
-		trackPosBase = trackPosBase + unitsPerFrame
-		--LogFrame("trackPosBase-----------------" ..trackPosBase)
 	end
 
 	-- If enough frames have passed that we've calculated BP data for all builders, we can present this datapoint to the user.
-	if trackPosBase >= trackedNum then
-		trackPosBase = 0
+	if not builderCoroutine or coroutine.status(builderCoroutine) == "dead" then
 		if config.drawBPBar then --this section will smooth the values so that factories that finish units won't have too much of an impact
 			BP['reservedBP_instant'] = cacheDataBase[3]
 			BP['usedBP_instant'] = cacheDataBase[5]
@@ -1993,7 +1964,6 @@ function widget:GameFrame(n)
 		end
 		cacheDataBase[6] = 0
 		cacheDataBase[7] = 0
-		nowChecking = 0
 	end
 	if lowPrioNeededEnergy and lowPrioExpenseEnergy and lowPrioNeededMetal and lowPrioExpenseMetal then
 		stalling['lowPrioEnergy'] = Spring.GetTeamRulesParam(myTeamID, "lowPrioNeededEnergy") + Spring.GetTeamRulesParam(myTeamID, "lowPrioExpenseEnergy")
@@ -3056,7 +3026,6 @@ function widget:Shutdown()
 end
 
 function findBPCommand(unitID, unitDefID, cmdList) -- for bp bar only most likely
-	-- TODO: can we get rid of cmdlist? Moving should count as non-idle for at least commanders, and perhaps other units too.
 	local unitExists = false
 	local active = false
 	local builtUnitDefID = nil
@@ -3064,8 +3033,6 @@ function findBPCommand(unitID, unitDefID, cmdList) -- for bp bar only most likel
 	local guardedUnitID = nil -- returned in case we want to check for cycles of idle builders
 
 	local commands = nil
-	-- We only need one command to figure out if the unit is active.
-	-- TODO: Try GetUnitCurrentCommand
 	if UnitDefs[unitDefID].isFactory then
 		commands = Spring.GetFactoryCommands(unitID, 1)
 	else
