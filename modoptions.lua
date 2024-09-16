@@ -8,7 +8,7 @@
 --  name:     the displayed name
 --  desc:     the description (could be used as a tooltip)
 --  hint:     greyed out text that appears in input field when empty
---  type:     the option type ('list','string','number','bool',`subheader`,`seperator`)
+--  type:     the option type ('list','string','number','bool','subheader','separator')
 --  def:      the default value
 --  min:      minimum value for number options
 --  max:      maximum value for number options
@@ -21,10 +21,10 @@
 --         |  negative value forces new row, absolute value is used
 --         |  zero moves to the left, 1 is default, 2 is half way to the right
 --         |  recommened values: for 2 columns: 1 and 2, for 3 columns 1, 1.66, and 2.33
---  
---  lock:     if type is bool: hides the table of keys when set to TRUE     <<< can not hide seperators >>>
+--
+--  lock:     if type is bool: hides the table of keys when set to TRUE     <<< can not hide separators >>>
 --      |     if type is list: add under each item what it should SHOW when set to
---  unlock:   if type is bool: hides the table of keys when set to FALSE    <<< can not hide seperators >>>
+--  unlock:   if type is bool: hides the table of keys when set to FALSE    <<< can not hide separators >>>
 --        |   if type is list: add under each item what it should HIDE when set to
 --  bitmask:  int (1|2|4|8...etc), for when multiple options can hide an item
 
@@ -67,7 +67,7 @@ local options = {
         def    	= true,
     },
 
-    
+
     {
         key    	= "allowuserwidgets",
         name   	= "Allow Custom Widgets",
@@ -724,7 +724,7 @@ local options = {
         weight  = 2,
     },
 
-    
+
     {
         key     = "sub_header",
         name    = "Extra options for shaking up the gameplay or balancing. Not intended for ranked games.",
@@ -770,7 +770,7 @@ local options = {
 	--	section	= "options_extra",
 	--},
 
-    
+
     {
         key    	= "experimentalextraunits",
         name   	= "Extra Units Pack",
@@ -997,7 +997,7 @@ local options = {
             { key = "disabled", name = "Disabled" },
         }
     },
- 
+
     {
         key     = "sub_header",
         section = "options_extra",
@@ -1005,7 +1005,7 @@ local options = {
     },
 
 
-    { 
+    {
         key 	= "assistdronesenabled", -- TODO, turn this into booleam modoption
         name 	= "Commander Drones",
         type 	= "list",
@@ -1141,7 +1141,7 @@ local options = {
         def  	= false,
     },
 
-    -- Hidden Tests 
+    -- Hidden Tests
     {
         key    	= "shieldsrework",
         name   	= "Shields Rework",
@@ -1150,7 +1150,7 @@ local options = {
         section = "options_experimental",
         def  	= false,
     },
-    
+
     {
         key   	= "accuratelasers",
         name   	= "Accurate Lasers",
@@ -1180,7 +1180,7 @@ local options = {
         section = "options_experimental",
         def 	= false,
     },
-    
+
     {
         key    	= "faction_limiter",
         name   	= "Team Faction Limiter",
@@ -1208,7 +1208,7 @@ local options = {
         type 	= "bool",
         hidden 	= true,
         section = "options_experimental",
-        
+
         def 	= false,
     },
 
