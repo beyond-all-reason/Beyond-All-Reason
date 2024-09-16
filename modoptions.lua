@@ -909,6 +909,7 @@ local options = {
         type 	= "bool",
         def 	= false,
         section = "options_extra",
+        bitmask = 1,
         unlock  = {"evocomlevelupmethod","evocomlevelcap","evocomxpmultiplier", "evocomleveluptime", "evocomlevelupmultiplier"},
         --lock    = {"buffer_fix"},
     },
@@ -920,16 +921,17 @@ local options = {
         type 	= "list",
         def 	= "dynamic",
         section = "options_extra",
+        bitmask = 2,
         items 	= {
-            { key = "dynamic", 	name = "Dynamic"},
-            { key = "timed", name = "Timed"},
+            { key = "dynamic", 	name = "Dynamic", lock = {"evocomleveluptime"}, unlock = {"evocomlevelupmultiplier"}},
+            { key = "timed", name = "Timed", lock = {"evocomlevelupmultiplier"}, unlock = {"evocomleveluptime"}},
         }
     },
 
 
     {
         key    	= "evocomlevelupmultiplier",
-        name   	= "EvoCom (Dynamic): Evolution Mult.",
+        name   	= "EvoCom: Evolution Mult.",
         desc   	= "(Range 0.1x - 3x Multiplier) Adjusts the thresholds at which Dynamic evolutions occur",
         type   	= "number",
         section	= "options_extra",
@@ -941,7 +943,7 @@ local options = {
 
     {
         key    	= "evocomleveluptime",
-        name   	= "EvoCom (Timed): Evolution Time ",
+        name   	= "EvoCom: Evolution Time ",
         desc   	= "(Range 0.1 - 20 Minutes) Rate at which commanders will evolve if Timed method is selected.",
         type   	= "number",
         section	= "options_extra",
