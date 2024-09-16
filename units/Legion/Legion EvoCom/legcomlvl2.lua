@@ -72,7 +72,7 @@ return {
 			"leglab",
 			"legvp",
 			"legap",
-			"coreyes",
+			"legeyes",
 			"legrad",
 			"legdrag",
 			"leglht",
