@@ -1,9 +1,9 @@
 function widget:GetInfo()
 	return {
-		name = "Top Bar with Buildpower",
+		name = "Top Bar with Buildpower current",
 		desc = "Shows resources, buildpower, wind speed, commander counter, and various options.",
 		author = "Floris, Robert82",
-		date = "Feb, 2017",
+		date = "Sep, 2024",
 		license = "GNU GPL, v2 or later", 
 		layer = -99980,
 		enabled = true, --enabled by default
@@ -1844,16 +1844,7 @@ function widget:GameStart()
 	init()
 end
 
-local function unitIterator(tbl)
-	return coroutine.wrap(function()
-		for unitID, unitData in pairs(tbl) do
-			coroutine.yield(unitID, unitData)  -- Liefert das nächste Paar (unitID, unitData) und pausiert die Ausführung
-		end
-	end)
-end
-
-local unitIter = unitIterator(trackedBuilders)
-local unitIterator
+local builderCoroutine
 
 function widget:GameFrame(n)
 	--LogFrame("n " .. n)
@@ -1867,7 +1858,7 @@ function widget:GameFrame(n)
 	--LogFrame("cache - entering GameFrame")
 	--local builderUpdateInterval = Spring.GetTeamRulesParam(myTeamID, "builderUpdateInterval")  --
 	if builderUpdateInterval == nil  then
-		builderUpdateInterval = 1
+		builderUpdateInterval = 3
 	end
 	local gameFrameFreq = builderUpdateInterval --- reduced the update speed to the build prio speed to save performance, any feelable drawbacks?
 	local unp = unpack or table.unpack
@@ -1894,20 +1885,18 @@ function widget:GameFrame(n)
 
 		--LogFrame("Starting trackedBuilders loop")
 
-		-- Initialisieren des unitIterator, falls dies der erste Frame ist oder die Coroutine beendet ist
-		if not unitIterator or coroutine.status(unitIterator) == "dead" then
-			unitIterator = coroutine.create(function()
+		if not builderCoroutine or coroutine.status(builderCoroutine) == "dead" then -- init builderCoroutine
+			builderCoroutine = coroutine.create(function()
 				for unitID, unitData in pairs(trackedBuilders) do
 					coroutine.yield(unitID, unitData)
 				end
 			end)
 		end
 
-		-- Verwenden des Iterators, um Einheiten für diesen Frame zu verarbeiten
-		for i = 1, unitsPerFrame do
-			local success, unitID, unitData = coroutine.resume(unitIterator)
+		for i = 1, unitsPerFrame do -- use builderCoroutine, to work though builders
+			local success, unitID, unitData = coroutine.resume(builderCoroutine)
 			if not success or not unitID then
-				break -- Keine weiteren Einheiten mehr zum Verarbeiten oder Fehler
+				break
 			end
 
 			--LogFrame("Processing unitID: " .. tostring(unitID) .. ", nowChecking: " .. nowChecking .. ", trackPosBase: " .. trackPosBase)
@@ -2148,27 +2137,6 @@ function widget:GameFrame(n)
 	end 
 	--LogFrame("Finished GameFrame processing")
 	--LogFrame("GameFrame(n)")
-end
-
-
-function median(t)
-	if not t or #t < 1 then
-		return 0
-	end
-
-	local tSorted = {}
-	for _, v in pairs(t) do
-		table.insert(tSorted, v)
-	end
-  
-	table.sort(tSorted)
-
-	midpoint = math_floor(#tSorted / 2)
-	if math.fmod(#tSorted, 2) == 0 then
-		return (tSorted[midpoint] + tSorted[midpoint + 1]) / 2
-	else
-		return tSorted[midpoint + 1] -- Lua is 1-indexed!
-	end
 end
 
 local function updateAllyTeamOverflowing()
