@@ -1381,7 +1381,6 @@ function WeaponDef_Post(name, wDef)
 	local modOptions = Spring.GetModOptions()
 
 	if not SaveDefsToCustomParams then
-
 		-------------- EXPERIMENTAL MODOPTIONS
 		-- Standard Gravity
 		if wDef.gravityaffected == "true" and wDef.mygravity == nil then
