@@ -34,7 +34,7 @@ local buttonConfig = {
 
 local colorConfig = {
 	drawStencil = true,  -- whether to draw the outer, merged rings (quite expensive!)
-	cannon_separate_stencil = false, -- set to true to have cannon and ground be on different stencil mask
+	cannon_separate_stencil = true, -- set to true to have cannon and ground be on different stencil mask
 	drawInnerRings = true, -- whether to draw inner, per attack rings (very cheap)
 
 	externalalpha = 0.80, -- alpha of outer rings
@@ -63,8 +63,8 @@ local colorConfig = {
 		internallinethickness = 2.0,
 	},
 	cannon = {
-		color = { 1.0, 0.22, 0.05, 0.60 },
-		fadeparams = { 1500, 2200, 1.0, 0.0 }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+		color = {1.4, 0.75, 0.07, 0.40},
+		fadeparams = { 5000, 500, 1.0, 0.0 }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
 		groupselectionfadescale = 0.75,
 		externallinethickness = 3.0,
 		internallinethickness = 2.0,

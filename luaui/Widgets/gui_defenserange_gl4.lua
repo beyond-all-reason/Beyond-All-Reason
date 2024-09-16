@@ -80,8 +80,8 @@ local colorConfig = { --An array of R, G, B, Alpha
     ground = {
         color = {1.6, 0.22, 0.05, 0.70},
         fadeparams = { 2200, 5500, 1.0, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
-        externallinethickness = 5.0,
-        internallinethickness = 2.5,
+        externallinethickness = 6.0,
+        internallinethickness = 2.0,
     },
     air = {
         color = {0.8, 0.44, 1.6, 0.70},
@@ -91,7 +91,7 @@ local colorConfig = { --An array of R, G, B, Alpha
     },
     nuke = {
         color = {0.37, 0.82, 1.3, 0.7},
-        fadeparams = {5000, 500, 0.6, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+        fadeparams = {5000, 4000, 0.6, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
         externallinethickness = 6.0,
         internallinethickness = 1.5,
     },
