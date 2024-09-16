@@ -7,7 +7,7 @@ return {
   ["raptorspike-small-sparks-burn"] = {
     centerflare = {
       air                = true,
-      class              = [[heatcloud]],
+      class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
       underwater         = 1,
@@ -27,7 +27,7 @@ return {
     },
     centerflare2 = {
       air                = true,
-      class              = [[heatcloud]],
+      class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
       underwater         = 1,
@@ -191,7 +191,7 @@ return {
   ["raptorspike-medium-sparks-burn"] = {
     centerflare = {
       air                = true,
-      class              = [[heatcloud]],
+      class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
       underwater         = 1,
@@ -211,7 +211,7 @@ return {
     },
     centerflare2 = {
       air                = true,
-      class              = [[heatcloud]],
+      class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
       underwater         = 1,
@@ -375,7 +375,7 @@ return {
   ["raptorspike-large-sparks-burn"] = {
     centerflare = {
       air                = true,
-      class              = [[heatcloud]],
+      class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
       underwater         = 1,
@@ -395,7 +395,7 @@ return {
     },
     centerflare2 = {
       air                = true,
-      class              = [[heatcloud]],
+      class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
       underwater         = 1,
@@ -558,7 +558,7 @@ return {
   ["raptorspike-huge-sparks-burn"] = {
     centerflare = {
       air                = true,
-      class              = [[heatcloud]],
+      class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
       underwater         = 1,
@@ -578,7 +578,7 @@ return {
     },
     centerflare2 = {
       air                = true,
-      class              = [[heatcloud]],
+      class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
       underwater         = 1,

@@ -252,6 +252,10 @@ local function initUnitList()
 		['armantiship'] = { weapons = { 3 } },
 		['corantiship'] = { weapons = { 3 } },
 
+		-- LEGION
+		['legabm'] = { weapons = { 3 } }, --antinuke
+		['legrampart'] = { weapons = { 3 } }, --rampart
+
 		-- SCAVENGERS
 		['scavbeacon_t1_scav'] = { weapons = { 1 } },
 		['scavbeacon_t2_scav'] = { weapons = { 1 } },

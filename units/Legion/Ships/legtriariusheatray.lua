@@ -119,7 +119,7 @@ return {
 				beamttl = 0.8,
 				edgeeffectiveness = 0.15,
 				energypershot = 17,
-				explosiongenerator = "custom:genericshellexplosion-medium-beam",
+				explosiongenerator = "custom:heatray-huge",
 				firestarter = 90,
 				firetolerance = 300,
 				impulseboost = 0,

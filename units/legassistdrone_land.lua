@@ -44,7 +44,7 @@ return {
 			"legsolar",
 			"legwin",
 			"cormstor",
-			"corestor",
+			"legestor",
 			"legmex",
 			"cormakr",
 			"leglab",

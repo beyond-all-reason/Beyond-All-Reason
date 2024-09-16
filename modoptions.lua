@@ -220,6 +220,18 @@ local options = {
     },
 
     {
+        key    	= "norushtimer",
+        name   	= "No Rush Time",
+        desc   	= "Set timer in which players cannot get out of their startbox, so you have time to prepare before fighting. PLEASE NOTE: For this to work, the game needs to have set startboxes. It won't work in FFA mode without boxes. Also, it does not affect Scavengers and Raptors.",
+        type   	= "number",
+        section	= "options_main",
+        def    	= 0,
+        min    	= 0,
+        max    	= 30,
+        step   	= 1,
+    },
+
+    {
         key     = "sub_header",
         name    = "----------------------------------------------------------------------------------------------------------------------------------------",
         desc    = "",
@@ -479,8 +491,8 @@ local options = {
         def		= "initialbox",
         section	= "raptor_defense_options",
         items	= {
-            { key = "avoid", 		name = "Avoid Players", 	desc = "Hives avoid player units" },
-            { key = "initialbox", 	name = "Initial Start Box", desc = "First wave spawns in raptor start box, following hives avoid players" },
+            { key = "avoid", 		name = "Spawn Anywhere", 	desc = "Hives avoid player units" },
+            { key = "initialbox", 	name = "Growing Spawn Box", desc = "Hives spawn in limited area that increases over time" },
             { key = "alwaysbox", 	name = "Always Start Box", 	desc = "Hives always spawn in raptor start box" },
         }
     },
@@ -635,12 +647,12 @@ local options = {
         name	= "Spawn Beacons Placement",
         desc	= "Control where spawners appear",
         type	= "list",
-        def		= "avoid",
+        def		= "initialbox",
         section	= "scav_defense_options",
         items	= {
-            { key = "avoid", 		name = "Avoid Players", 	desc="Beacons avoid player units" },
-            { key = "initialbox",	name = "Initial Start Box", desc="First wave spawns in scav start box, following beacons avoid players" },
-            { key = "alwaysbox", 	name =  "Always Start Box", desc="Beacons always spawn in scav start box" },
+            { key = "avoid", 		name = "Spawn Anywhere", 	desc="Beacons avoid player units" },
+            { key = "initialbox",	name = "Growing Spawn Box", desc="Beacons spawn in limited area that increases over time" },
+            --{ key = "alwaysbox", 	name =  "Always Start Box", desc="Beacons always spawn in scav start box" },
         }
     },
 
@@ -956,9 +968,20 @@ local options = {
         step   	= 0.1,
     },
 
+    {
+        key    	= "evocomlevelupmultiplier",
+        name   	= "Evolving Commanders - Dynamic Only - Evolution Rate Multiplier.",
+        desc   	= "(Range 0.1x - 3x Multiplier) Adjusts the thresholds at which Dynamic evolutions occur",
+        type   	= "number",
+        section	= "options_extra",
+        def    	= 1,
+        min    	= 0.1,
+        max    	= 3,
+        step   	= 0.1,
+    },
 
     {
-        key    	= "evocomleveluprate",
+        key    	= "evocomleveluptime",
         name   	= "Evolving Commanders - Timed Only - Evolution Timer.",
         desc   	= "(Range 0.1 - 20 Minutes) Rate at which commanders will evolve if Timed method is selected.",
         type   	= "number",
@@ -980,7 +1003,7 @@ local options = {
 
     {
         key 	= "comrespawn",
-        name 	= "Commander Respawning Enabled",
+        name 	= "Commander Respawning",
         desc   	= "Commanders can build one Effigy. The first one is free and given for you at the start. When the commander dies, the Effigy is sacrificed in its place.",
         type 	= "list",
         def 	= "evocom",
@@ -1134,62 +1157,6 @@ local options = {
     },
 
     {
-        key    	= "experimentalnoaircollisions",
-        name   	= "Aircraft Collisions Override",
-        desc   	= "Aircraft Collisions Override",
-        hidden 	= true,
-        type   	= "bool",
-        section = "options_experimental",
-        def  	= false,
-    },
-
-    {
-        key    	= "experimentalxpgain",
-        name   	= "XP Gain Multiplier",
-        desc   	= "XP Gain Multiplier",
-        hidden 	= true,
-        type   	= "number",
-        section = "options_experimental",
-        def    	= 1,
-        min    	= 0.1,
-        max    	= 10,
-        step   	= 0.1,
-    },
-
-    {
-        key    	= "experimentalstandardgravity",
-        name   	= "Gravity Override",
-        desc   	= "Override map gravity for weapons",
-        type   	= "list",
-        section = "options_experimental",
-        def  	= "mapgravity",
-        items 	= {
-            { key = "mapgravity", 	name = "Map Gravity", 		desc = "Uses map defined gravity" },
-            { key = "low", 			name = "Low Gravity", 		desc = "80 gravity" },
-            { key = "standard", 	name = "Standard Gravity", 	desc = "120 gravity" },
-            { key = "high", 		name = "High Gravity", 		desc = "150 gravity" },
-        }
-    },
-
-    {
-        key   	= "releasecandidates",
-        name   	= "Release Candidate Units",
-        desc   	= "Adds additional units to the game which are being considered for mainline integration and are balanced, or in end tuning stages.  Currently adds Printer, Shockwave (Arm T2 EMP Mex), and Drone Carriers for armada and cortex",
-        type   	= "bool",
-        section = "options_experimental",
-        def  	= false,
-    },
-	
-    {
-        key   	= "accuratelasers",
-        name   	= "Accurate Lasers",
-        desc   	= "Removes inaccuracy vs moving units from all laser weapons as a proposed solution to overpowered scoutspam",
-        type   	= "bool",
-        section = "options_experimental",
-        def  	= false,
-    },
-
-    {
         key    	= "experimentallegionfaction",
         name   	= "Legion Faction",
         desc   	= "3rd experimental faction",
@@ -1198,49 +1165,24 @@ local options = {
         def  	= false,
     },
 
+    -- Hidden Tests 
     {
-        key 	= "emprework",
-        name 	= "EMP Rework",
-        desc 	= "EMP is changed to slow units movement and firerate, before eventually stunning.",
-        type 	= "bool",
+        key    	= "shieldsrework",
+        name   	= "Shields Rework",
+        desc   	= "Shields block all projectiles. Overkill damage is blocked once before reaching 0% charge. Shields are disabled for a few seconds upon reaching 0%.",
+        type   	= "bool",
         section = "options_experimental",
-        def 	= false,
+        def  	= false,
     },
-
+    
     {
-        key 	= "junorework",
-        name 	= "Juno Rework",
-        desc 	= "Juno stuns certain units (such as radars and jammers) rather than magically deleting them",
-        type 	= "bool",
+        key   	= "accuratelasers",
+        name   	= "Accurate Lasers",
+        desc   	= "Removes inaccuracy vs moving units from all laser weapons as a proposed solution to overpowered scoutspam",
+        type   	= "bool",
+        hidden 	= true,
         section = "options_experimental",
-        def 	= false,
-    },
-
-    {
-        key 	= "air_rework",
-        name 	= "Air Rework",
-        desc 	= "Prototype version with more maneuverable, slower air units and more differentiation between them.",
-        type 	= "bool",
-        section = "options_experimental",
-        def 	= false,
-    },
-
-    {
-        key 	= "proposed_unit_reworks",
-        name 	= "Proposed Unit Reworks",
-        desc 	= "Modoption used to test and balance unit reworks that are being considered for the base game.  Shuriken emp damage is reduced and Abductor emp damage and stuntime are reduced, but accuracy is increased.  EMP resist for units is standardized, and units that had low emp resists now take full emp damage.",
-        type 	= "bool",
-        section = "options_experimental",
-        def 	= false,
-    },
-
-    {
-        key 	= "energy_share_rework",
-        name 	= "Energy Share Rework",
-        desc 	= "Additional energy overflow/underflow mechanics. 10% of the energy income is re-distributed to prevent E-stalling.",
-        type 	= "bool",
-        section = "options_experimental",
-        def 	= false,
+        def  	= false,
     },
 
     {
@@ -1254,26 +1196,15 @@ local options = {
     },
 
     {
-        key		= "unified_maxslope",
-        name	= "Standardized Land Unit Maxslope",
-        desc	= "All land units have minimum maxslope of 36",
-        type	= "bool",
-        def		= false,
-        section	= "options_experimental",
+        key 	= "air_rework",
+        name 	= "Air Rework",
+        desc 	= "Prototype version with more maneuverable, slower air units and more differentiation between them.",
+        hidden 	= true,
+        type 	= "bool",
+        section = "options_experimental",
+        def 	= false,
     },
-
-    {
-        key    	= "norushtimer",
-        name   	= "No Rush Time",
-        desc   	= "(Range: 0 - 30). Minutes",
-        type   	= "number",
-        section	= "options_experimental",
-        def    	= 0,
-        min    	= 0,
-        max    	= 30,
-        step   	= 1,
-    },
-
+    
     {
         key    	= "faction_limiter",
         name   	= "Team Faction Limiter",
@@ -1295,13 +1226,45 @@ local options = {
     },
 
     {
-		key		= "forceallunits",
-		name	= "Force Load All Units (For modders/devs)",
-		desc	= "Load all UnitDefs even if ais or options for them aren't enabled",
-		section = "options_experimental",
-		type	= "bool",
-		def		= false,
-	},
+        key 	= "emprework",
+        name 	= "EMP Rework",
+        desc 	= "EMP is changed to slow units movement and firerate, before eventually stunning.",
+        type 	= "bool",
+        hidden 	= true,
+        section = "options_experimental",
+        
+        def 	= false,
+    },
+
+    {
+        key 	= "junorework",
+        name 	= "Juno Rework",
+        desc 	= "Juno stuns certain units (such as radars and jammers) rather than magically deleting them",
+        type 	= "bool",
+        hidden 	= true,
+        section = "options_experimental",
+        def 	= false,
+    },
+
+    {
+        key   	= "releasecandidates",
+        name   	= "Release Candidate Units",
+        desc   	= "Adds additional units to the game which are being considered for mainline integration and are balanced, or in end tuning stages.  Currently adds Printer, Siegebreaker, Phantom (Core T2 veh), Shockwave (Arm T2 EMP Mex), and Drone Carriers for armada and cortex",
+        type   	= "bool",
+        hidden 	= false,
+        section = "options_experimental",
+        def  	= false,
+    },
+
+    {
+        key 	= "proposed_unit_reworks",
+        name 	= "Proposed Unit Reworks",
+        desc 	= "Modoption used to test and balance unit reworks that are being considered for the base game.  Shuriken emp damage is reduced and Abductor emp damage and stuntime are reduced, but accuracy is increased.  EMP resist for units is standardized, and units that had low emp resists now take full emp damage.",
+        type 	= "bool",
+        hidden 	= true,
+        section = "options_experimental",
+        def 	= false,
+    },
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1741,6 +1704,15 @@ local options = {
         type    = "string",
         def     = "",
     },
+
+    {
+		key		= "forceallunits",
+		name	= "Force Load All Units (For modders/devs)",
+		desc	= "Load all UnitDefs even if ais or options for them aren't enabled",
+		section = "options_cheats",
+		type	= "bool",
+		def		= false,
+	},
 
 }
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

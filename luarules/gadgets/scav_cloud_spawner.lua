@@ -29,6 +29,7 @@ local mapz = Game.mapSizeZ
 local cloudMult = math.ceil((math.ceil(((mapx+mapz)*0.5)/512)^2)/18)
 local maxMists = (#teams-2)*(cloudMult*0.25)
 local aliveMists = {}
+local aliveWrecks = {}
 local mistDefIDs = {
     [UnitDefNames["scavmist_scav"].id] = true,
     [UnitDefNames["scavmistxl_scav"].id] = true,
@@ -52,43 +53,43 @@ function gadget:GameFrame(frame)
             if GG.IsPosInRaptorScum(randomx, randomy, randomz) then
                 Spring.SpawnCEG("scavradiation-lightning",randomx,randomy+100,randomz,0,0,0)
 
-                if math.random(0, 10) == 0 then
-                    if Spring.GetGameRulesParam("scavTechAnger") > 10 and Spring.GetGameRulesParam("scavTechAnger") < 50 and Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames["scavmist_scav"].id) < maxMists then
-                        local mist = Spring.CreateUnit("scavmist_scav", randomx, randomy, randomz, math.random(0,3), scavTeamID)
-                        if mist then
-                            Spring.GiveOrderToUnit(mist, CMD.PATROL, {randomx+math.random(-256,256), randomy, randomz+math.random(-256,256)}, {})
-                            Spring.GiveOrderToUnit(mist, CMD.PATROL, {randomx+math.random(-256,256), randomy, randomz+math.random(-256,256)}, {"shift"})
-                            Spring.GiveOrderToUnit(mist, CMD.PATROL, {randomx+math.random(-256,256), randomy, randomz+math.random(-256,256)}, {"shift"})
-                            Spring.GiveOrderToUnit(mist, CMD.PATROL, {randomx+math.random(-256,256), randomy, randomz+math.random(-256,256)}, {"shift"})
-                            Spring.GiveOrderToUnit(mist, CMD.PATROL, {randomx+math.random(-256,256), randomy, randomz+math.random(-256,256)}, {"shift"})
-                            Spring.GiveOrderToUnit(mist, CMD.PATROL, {randomx+math.random(-256,256), randomy, randomz+math.random(-256,256)}, {"shift"})
-                        end
-                    end
-                elseif math.random(0, 10) == 0 then
-                    if Spring.GetGameRulesParam("scavTechAnger") > 40 and Spring.GetGameRulesParam("scavTechAnger") < 90 and Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames["scavmistxl_scav"].id) < maxMists then
-                        local mist = Spring.CreateUnit("scavmistxl_scav", randomx, randomy, randomz, math.random(0,3), scavTeamID)
-                        if mist then
-                            Spring.GiveOrderToUnit(mist, CMD.PATROL, {randomx+math.random(-256,256), randomy, randomz+math.random(-256,256)}, {})
-                            Spring.GiveOrderToUnit(mist, CMD.PATROL, {randomx+math.random(-256,256), randomy, randomz+math.random(-256,256)}, {"shift"})
-                            Spring.GiveOrderToUnit(mist, CMD.PATROL, {randomx+math.random(-256,256), randomy, randomz+math.random(-256,256)}, {"shift"})
-                            Spring.GiveOrderToUnit(mist, CMD.PATROL, {randomx+math.random(-256,256), randomy, randomz+math.random(-256,256)}, {"shift"})
-                            Spring.GiveOrderToUnit(mist, CMD.PATROL, {randomx+math.random(-256,256), randomy, randomz+math.random(-256,256)}, {"shift"})
-                            Spring.GiveOrderToUnit(mist, CMD.PATROL, {randomx+math.random(-256,256), randomy, randomz+math.random(-256,256)}, {"shift"})
-                        end
-                    end
-                elseif math.random(0, 10) == 0 then
-                    if Spring.GetGameRulesParam("scavTechAnger") > 80 and Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames["scavmistxxl_scav"].id) < maxMists then
-                        local mist = Spring.CreateUnit("scavmistxxl_scav", randomx, randomy, randomz, math.random(0,3), scavTeamID)
-                        if mist then
-                            Spring.GiveOrderToUnit(mist, CMD.PATROL, {randomx+math.random(-256,256), randomy, randomz+math.random(-256,256)}, {})
-                            Spring.GiveOrderToUnit(mist, CMD.PATROL, {randomx+math.random(-256,256), randomy, randomz+math.random(-256,256)}, {"shift"})
-                            Spring.GiveOrderToUnit(mist, CMD.PATROL, {randomx+math.random(-256,256), randomy, randomz+math.random(-256,256)}, {"shift"})
-                            Spring.GiveOrderToUnit(mist, CMD.PATROL, {randomx+math.random(-256,256), randomy, randomz+math.random(-256,256)}, {"shift"})
-                            Spring.GiveOrderToUnit(mist, CMD.PATROL, {randomx+math.random(-256,256), randomy, randomz+math.random(-256,256)}, {"shift"})
-                            Spring.GiveOrderToUnit(mist, CMD.PATROL, {randomx+math.random(-256,256), randomy, randomz+math.random(-256,256)}, {"shift"})
-                        end
-                    end
-                end
+                --if math.random(0, 10) == 0 then
+                --    if Spring.GetGameRulesParam("scavTechAnger") > 10 and Spring.GetGameRulesParam("scavTechAnger") < 50 and Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames["scavmist_scav"].id) < maxMists then
+                --        local mist = Spring.CreateUnit("scavmist_scav", randomx, randomy, randomz, math.random(0,3), scavTeamID)
+                --        if mist then
+                --            Spring.GiveOrderToUnit(mist, CMD.PATROL, {randomx+math.random(-256,256), randomy, randomz+math.random(-256,256)}, {})
+                --            Spring.GiveOrderToUnit(mist, CMD.PATROL, {randomx+math.random(-256,256), randomy, randomz+math.random(-256,256)}, {"shift"})
+                --            Spring.GiveOrderToUnit(mist, CMD.PATROL, {randomx+math.random(-256,256), randomy, randomz+math.random(-256,256)}, {"shift"})
+                --            Spring.GiveOrderToUnit(mist, CMD.PATROL, {randomx+math.random(-256,256), randomy, randomz+math.random(-256,256)}, {"shift"})
+                --            Spring.GiveOrderToUnit(mist, CMD.PATROL, {randomx+math.random(-256,256), randomy, randomz+math.random(-256,256)}, {"shift"})
+                --            Spring.GiveOrderToUnit(mist, CMD.PATROL, {randomx+math.random(-256,256), randomy, randomz+math.random(-256,256)}, {"shift"})
+                --        end
+                --    end
+                --elseif math.random(0, 10) == 0 then
+                --    if Spring.GetGameRulesParam("scavTechAnger") > 40 and Spring.GetGameRulesParam("scavTechAnger") < 90 and Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames["scavmistxl_scav"].id) < maxMists then
+                --        local mist = Spring.CreateUnit("scavmistxl_scav", randomx, randomy, randomz, math.random(0,3), scavTeamID)
+                --        if mist then
+                --            Spring.GiveOrderToUnit(mist, CMD.PATROL, {randomx+math.random(-256,256), randomy, randomz+math.random(-256,256)}, {})
+                --            Spring.GiveOrderToUnit(mist, CMD.PATROL, {randomx+math.random(-256,256), randomy, randomz+math.random(-256,256)}, {"shift"})
+                --            Spring.GiveOrderToUnit(mist, CMD.PATROL, {randomx+math.random(-256,256), randomy, randomz+math.random(-256,256)}, {"shift"})
+                --            Spring.GiveOrderToUnit(mist, CMD.PATROL, {randomx+math.random(-256,256), randomy, randomz+math.random(-256,256)}, {"shift"})
+                --            Spring.GiveOrderToUnit(mist, CMD.PATROL, {randomx+math.random(-256,256), randomy, randomz+math.random(-256,256)}, {"shift"})
+                --            Spring.GiveOrderToUnit(mist, CMD.PATROL, {randomx+math.random(-256,256), randomy, randomz+math.random(-256,256)}, {"shift"})
+                --        end
+                --    end
+                --elseif math.random(0, 10) == 0 then
+                --    if Spring.GetGameRulesParam("scavTechAnger") > 80 and Spring.GetTeamUnitDefCount(scavTeamID, UnitDefNames["scavmistxxl_scav"].id) < maxMists then
+                --        local mist = Spring.CreateUnit("scavmistxxl_scav", randomx, randomy, randomz, math.random(0,3), scavTeamID)
+                --        if mist then
+                --            Spring.GiveOrderToUnit(mist, CMD.PATROL, {randomx+math.random(-256,256), randomy, randomz+math.random(-256,256)}, {})
+                --            Spring.GiveOrderToUnit(mist, CMD.PATROL, {randomx+math.random(-256,256), randomy, randomz+math.random(-256,256)}, {"shift"})
+                --            Spring.GiveOrderToUnit(mist, CMD.PATROL, {randomx+math.random(-256,256), randomy, randomz+math.random(-256,256)}, {"shift"})
+                --            Spring.GiveOrderToUnit(mist, CMD.PATROL, {randomx+math.random(-256,256), randomy, randomz+math.random(-256,256)}, {"shift"})
+                --            Spring.GiveOrderToUnit(mist, CMD.PATROL, {randomx+math.random(-256,256), randomy, randomz+math.random(-256,256)}, {"shift"})
+                --            Spring.GiveOrderToUnit(mist, CMD.PATROL, {randomx+math.random(-256,256), randomy, randomz+math.random(-256,256)}, {"shift"})
+                --        end
+                --    end
+                --end
             end
 
             for i = 1,5 do
@@ -114,6 +115,42 @@ function gadget:GameFrame(frame)
         end
     end
 
+    for featureID, data in pairs(aliveWrecks) do
+        if featureID%30 == frame%30 then
+            --Spring.Echo("featureID", featureID, frame)
+            local posx, posy, posz = Spring.GetFeaturePosition(featureID)
+            if GG.IsPosInRaptorScum(posx, posy, posz) then
+                --Spring.Echo("isInScum", GG.IsPosInRaptorScum(posx, posy, posz))
+                if data.resurrectable and data.resurrectable ~= "" then
+                    --Spring.Echo("resurrectable", data.resurrectable)
+                    if data.lastResurrectionCheck == select(3, Spring.GetFeatureHealth(featureID)) then
+                        local random = math.random()
+                        Spring.SetFeatureResurrect(featureID, data.ressurectable, data.facing, data.lastResurrectionCheck+(0.05*random*data.age))
+                        Spring.SpawnCEG("scav-spawnexplo", posx, posy, posz, 0,0,0)
+                        --Spring.Echo("resurrecting", data.lastResurrectionCheck)
+                        SendToUnsynced("featureReclaimFrame", featureID, data.lastResurrectionCheck+(0.05*random*data.age))
+                    end
+                    if aliveWrecks[featureID].lastResurrectionCheck >= 1 then
+                        Spring.CreateUnit(data.resurrectable, posx, posy, posz, data.facing, scavTeamID)
+                        Spring.DestroyFeature(featureID)
+                    end
+                    aliveWrecks[featureID].lastResurrectionCheck = select(3, Spring.GetFeatureHealth(featureID))
+                    aliveWrecks[featureID].age = aliveWrecks[featureID].age+0.0166
+                else
+                    local featureHealth, featureMaxHealth = Spring.GetFeatureHealth(featureID)
+                    Spring.SpawnCEG("scaspawn-trail", posx, posy, posz, 0,0,0)
+                    local random = math.random()
+                    Spring.SetFeatureHealth(featureID, featureHealth-(featureMaxHealth*0.05*random))
+                    SendToUnsynced("featureReclaimFrame", featureID, featureHealth-(featureMaxHealth*0.05*random))
+                    --Spring.Echo("killing", featureHealth)
+                    if featureHealth <= 0 then
+                        Spring.DestroyFeature(featureID)
+                    end
+                end
+            end
+        end
+    end
+
 end
 
 function gadget:UnitCreated(unitID, unitDefID)
@@ -126,4 +163,12 @@ function gadget:UnitDestroyed(unitID, unitDefID)
     if mistDefIDs[unitDefID] then
         aliveMists[unitID] = nil
     end
+end
+
+function gadget:FeatureCreated(featureID, featureAllyTeamID)
+    aliveWrecks[featureID] = {age = 0, resurrectable = Spring.GetFeatureResurrect(featureID), facing = select(2, Spring.GetFeatureResurrect(featureID)), lastResurrectionCheck = 0}
+end
+
+function gadget:FeatureDestroyed(featureID, featureAllyTeamID)
+    aliveWrecks[featureID] = nil
 end

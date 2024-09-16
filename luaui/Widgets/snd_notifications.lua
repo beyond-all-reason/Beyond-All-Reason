@@ -138,7 +138,6 @@ local unitsOfInterestNames = {
 	armbanth = 'TitanDetected',
 	armepoch = 'FlagshipDetected',
 	corblackhy = 'FlagshipDetected',
-	cormando = 'CommandoDetected',
 	armthovr = 'TransportDetected',
 	corthovr = 'TransportDetected',
 	corintr = 'TransportDetected',
@@ -442,7 +441,7 @@ function widget:GameFrame(gf)
 				queueTutorialNotification('BuildEnergy')
 			end
 			if e_income >= 50 and m_income >= 4 then
-				queueTutorialNotification('MakeFactory')
+				queueTutorialNotification('BuildFactory')
 			end
 			if not hasMadeT2 and e_income >= 600 and m_income >= 12 then
 				queueTutorialNotification('ReadyForTech2')

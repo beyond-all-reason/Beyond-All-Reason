@@ -47,6 +47,7 @@ return {
 			shield_color_mult = 0.8,
 			shield_power = 5000,
 			shield_radius = 600,
+			shield_downtime = 8,
 			subfolder = "corbuildings/seautil",
 			techlevel = 2,
 		},

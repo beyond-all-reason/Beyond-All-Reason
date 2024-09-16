@@ -34,7 +34,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 780,
-		yardmap = "yoo0y o0ooo o0ooo yo0oy",
+		yardmap = "yoooy ooooo ooooo ooooo yoooy",
 		customparams = {
 			maxrange = 1125,
 			usebuildinggrounddecal = true,
@@ -121,7 +121,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.45,
 				energypershot = 500,
-				explosiongenerator = "custom:genericshellexplosion-medium-beam",
+				explosiongenerator = "custom:heatray-huge",
 				firestarter = 90,
 				firetolerance = 300,
 				impulseboost = 0,
