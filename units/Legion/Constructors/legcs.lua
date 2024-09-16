@@ -43,7 +43,7 @@ return {
 			"legvp",
 			"legap",
 			"leglab",
-			"coreyes",
+			"legeyes",
 			"cordl",
 			"cordrag",
 			"cormaw",

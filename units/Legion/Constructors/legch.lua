@@ -55,7 +55,7 @@ return {
 			[14] = "legavp",
 			[15] = "legnanotc",
 			[16] = "legnanotcplat",
-			[17] = "coreyes",
+			[17] = "legeyes",
 			[18] = "legrad",
 			[19] = "legdrag",
 			[20] = "legdtr",
