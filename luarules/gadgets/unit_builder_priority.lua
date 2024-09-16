@@ -67,8 +67,8 @@ local highPrioBuildPowerRule = "highPrioBuildPower" -- The total buildpower of c
 local lowPrioBuildPowerRule = "lowPrioBuildPower"	-- The total buildpower of constructors set to low  priority 
 local highPrioBuildPowerWantedRule = "highPrioBuildPowerWanted" -- The total buildpower of constructors set to high priority that are building things
 local lowPrioBuildPowerWantedRule = "lowPrioBuildPowerWanted"  -- The total buildpower of constructors set to low priority that are building things
-local highPrioBuildPowerAssignedRule = "highPrioBuildPowerAssigned" -- it's actually assigned not used !!!-- The total buildpower of constructors set to high priority that is actually spent on building stuff
-local lowPrioBuildPowerAssignedRule = "lowPrioBuildPowerAssigned" -- it's actually assigned not used !!! The total buildpower of constructors set to low priority that is actually spent on building stuff
+local highPrioBuildPowerUsedRule = "highPrioBuildPowerUsed" -- The total buildpower of constructors set to high priority that is actually spent on building stuff
+local lowPrioBuildPowerUsedRule = "lowPrioBuildPowerUsed" -- The total buildpower of constructors set to low priority that is actually spent on building stuff
 
 local highPrioNeededMetalRule = "highPrioNeededMetal"
 local lowPrioNeededMetalRule = "lowPrioNeededMetal"
@@ -126,6 +126,7 @@ if not gadgetHandler:IsSyncedCode() then
 			for i= 1, countx2, 2 do 
 				uniformCache[1] = vararg[i+1]
 				gl.SetUnitBufferUniforms(vararg[i], uniformCache, 1)
+				--Spring.Echo(vararg[i], vararg[i+1])
 			end
 			
 		end
@@ -226,8 +227,8 @@ local function updateTeamList()
 		Spring.SetTeamRulesParam(teamID, totalBuildPowerRule, 0)
 		Spring.SetTeamRulesParam(teamID, highPrioBuildPowerRule, 0)
 		Spring.SetTeamRulesParam(teamID, lowPrioBuildPowerRule, 0)
-		Spring.SetTeamRulesParam(teamID, highPrioBuildPowerAssignedRule, 0)
-		Spring.SetTeamRulesParam(teamID, lowPrioBuildPowerAssignedRule, 0)
+		Spring.SetTeamRulesParam(teamID, highPrioBuildPowerUsedRule, 0)
+		Spring.SetTeamRulesParam(teamID, lowPrioBuildPowerUsedRule, 0)
 
 		Spring.SetTeamRulesParam(teamID, highPrioNeededMetalRule, 0)
 		Spring.SetTeamRulesParam(teamID, lowPrioNeededMetalRule, 0)
@@ -386,8 +387,6 @@ local function UpdatePassiveBuilders(teamID, interval)
 	end
 	-- calculate how much expense each passive con would require, and how much total expense the non-passive cons require
 
-
-
 	local passiveConsTeam = passiveCons[teamID]
 	if tracy then tracy.ZoneBeginN("UpdateStart") end 
 	local numPassiveCons = 0
@@ -399,8 +398,8 @@ local function UpdatePassiveBuilders(teamID, interval)
 	local lowPrioBuildPower = 0
 	local highPrioBuildPowerWanted = 0
 	local lowPrioBuildPowerWanted = 0
-	local highPrioBuildPowerAssigned = 0
-	local lowPrioBuildPowerAssigned = 0
+	local highPrioBuildPowerUsed = 0
+	local lowPrioBuildPowerUsed = 0
 
 	local lowPrioExpenseMetal = 0  
 	local lowPrioExpenseEnergy = 0
@@ -446,7 +445,6 @@ local function UpdatePassiveBuilders(teamID, interval)
 				expenseEnergy = (expenseEnergy <=1) and 0 or expenseEnergy * rate
 				totalNeedEnergy = totalNeedEnergy + expenseEnergy
 
-
 				if isPassive then 
 					passiveExpense[builderID] = expenseMetal  -- here it still shows the wanted metal, not the actually spent metal
 					passiveExpense[builderID+ energyOffset] = expenseEnergy
@@ -484,11 +482,14 @@ local function UpdatePassiveBuilders(teamID, interval)
 		local currentLevel, storage, pull, income, expense, share, sent, received = spGetTeamResources(teamID, resName)
 		storage = storage * share -- consider capacity only up to the share slider
 		local reservedExpense = (resName == 'energy' and highPrioNeededEnergy or highPrioNeededMetal) -- we don't want to touch this part of expense
-		if resName == 'energy' then
+		if resName == 'energy' then -- not sure if the way to calculate passiveEnergyLeft is totally correct
 			passiveEnergyLeft = currentLevel - max(income * stallMarginInc, storage * stallMarginSto) - 1 + (income - reservedExpense + received - sent) * intervalpersimspeed --amount of res available to assign to passive builders (in next interval); leave a tiny bit left over to avoid engines own "stall mode"
-			local test = max(income * stallMarginInc, storage * stallMarginSto)
+			--Spring.Echo("Formula: passiveEnergyLeft = currentLevel - max(income * stallMarginInc, storage * stallMarginSto) - 1 + (income - reservedExpense + received - sent) * intervalpersimspeed")
+			--local test = max(income * stallMarginInc, storage * stallMarginSto)
+			--Spring.Echo(" max(income * stallMarginInc, storage * stallMarginSto) "  ..test)
+			--Spring.Echo("Numbers: passiveEnergyLeft = " .. tostring(currentLevel) .. " - max(" .. tostring(income) .. " * " .. tostring(stallMarginInc) .. ", " .. tostring(storage) .. " * " .. tostring(stallMarginSto) .. ") - 1 + (" .. tostring(income) .. " - " .. tostring(reservedExpense) .. " + " .. tostring(received) .. " - " .. tostring(sent) .. ")" ..tostring(intervalpersimspeed))
+			--Spring.Echo("Passive Energy Left: " .. tostring(passiveEnergyLeft))
 			local actualPassiveEnergyLeft = currentLevel + ( 0 - max(income * stallMarginInc, storage * stallMarginSto) + (income - reservedExpense + received)) * intervalpersimspeed
-			--passiveEnergyLeft = actualPassiveEnergyLeft
 		else
 			passiveMetalLeft =  currentLevel - max(income * stallMarginInc, storage * stallMarginSto) - 1 + (income - reservedExpense + received - sent) -- * intervalpersimspeed is not needed --amount of res available to assign to passive builders (in next interval); leave a tiny bit left over to avoid engines own "stall mode"
 		end
@@ -496,16 +497,17 @@ local function UpdatePassiveBuilders(teamID, interval)
 
 	local passiveMetalStart = passiveMetalLeft
 	local passiveEnergyStart = passiveEnergyLeft
+
 	local havePassiveResourcesLeft = (passiveEnergyLeft > 0) and (passiveMetalLeft > 0 )
 	if havePassiveResourcesLeft then 
-		highPrioBuildPowerAssigned = highPrioBuildPowerWanted
+		highPrioBuildPowerUsed = highPrioBuildPowerWanted
 	else
 		highPrioNeededMetal = math.max(highPrioNeededMetal, 1)
 		highPrioNeededEnergy = math.max(highPrioNeededEnergy, 1)
 		local highPrioMetalSpend = (highPrioNeededMetal + math.min(0, passiveMetalLeft)) / highPrioNeededMetal
 		local highPrioEnergySpend = (highPrioNeededEnergy + math.min(0, passiveEnergyLeft)) / highPrioNeededEnergy
 		local highPrioMetalSpend1 = (highPrioNeededMetal + passiveMetalLeft) / highPrioNeededMetal
-		highPrioBuildPowerAssigned = highPrioBuildPowerWanted * math.min(highPrioMetalSpend, highPrioEnergySpend)
+		highPrioBuildPowerUsed = highPrioBuildPowerWanted * math.min(highPrioMetalSpend, highPrioEnergySpend)
 	end
 
 	
@@ -516,7 +518,7 @@ local function UpdatePassiveBuilders(teamID, interval)
 			if (passiveMetalLeft > -1 * costtype) then 
 				passiveMetalLeft = passiveMetalLeft + costtype
 				MaybeSetWantedBuildSpeed(builderID, maxBuildSpeed[builderID])
-				lowPrioBuildPowerAssigned = lowPrioBuildPowerAssigned + maxBuildSpeed[builderID]
+				lowPrioBuildPowerUsed = lowPrioBuildPowerUsed + maxBuildSpeed[builderID]
 				lowPrioExpenseMetal = lowPrioExpenseMetal - costtype
 			else
 				midPrioSolarMaker[builderID] = nil -- remove them if we cant give them resources here
@@ -525,7 +527,7 @@ local function UpdatePassiveBuilders(teamID, interval)
 			if (passiveEnergyLeft > costtype) then
 				passiveEnergyLeft = passiveEnergyLeft - costtype
 				MaybeSetWantedBuildSpeed(builderID, maxBuildSpeed[builderID])
-				lowPrioBuildPowerAssigned = lowPrioBuildPowerAssigned + maxBuildSpeed[builderID]
+				lowPrioBuildPowerUsed = lowPrioBuildPowerUsed + maxBuildSpeed[builderID]
 				lowPrioExpenseEnergy = lowPrioExpenseEnergy + costtype
 			else
 				midPrioSolarMaker[builderID] = nil	-- remove them if we cant give them resources here
@@ -590,7 +592,7 @@ local function UpdatePassiveBuilders(teamID, interval)
 							end
 						end
 						MaybeSetWantedBuildSpeed(builderID, wantedBuildSpeed)
-						lowPrioBuildPowerAssigned = lowPrioBuildPowerAssigned + wantedBuildSpeed
+						lowPrioBuildPowerUsed = lowPrioBuildPowerUsed + wantedBuildSpeed
 						lowPrioExpenseMetal = lowPrioExpenseMetal + passiveExpense[builderID]
 						lowPrioExpenseEnergy = lowPrioExpenseEnergy + passiveExpense[builderID + energyOffset]
 					end
@@ -638,8 +640,8 @@ local function UpdatePassiveBuilders(teamID, interval)
 	Spring.SetTeamRulesParam(teamID, lowPrioBuildPowerRule, lowPrioBuildPower)
 	Spring.SetTeamRulesParam(teamID, highPrioBuildPowerWantedRule, highPrioBuildPowerWanted)
 	Spring.SetTeamRulesParam(teamID, lowPrioBuildPowerWantedRule, lowPrioBuildPowerWanted)
-	Spring.SetTeamRulesParam(teamID, highPrioBuildPowerAssignedRule, highPrioBuildPowerAssigned)
-	Spring.SetTeamRulesParam(teamID, lowPrioBuildPowerAssignedRule, lowPrioBuildPowerAssigned)
+	Spring.SetTeamRulesParam(teamID, highPrioBuildPowerUsedRule, highPrioBuildPowerUsed)
+	Spring.SetTeamRulesParam(teamID, lowPrioBuildPowerUsedRule, lowPrioBuildPowerUsed)
 
 	Spring.SetTeamRulesParam(teamID, highPrioNeededMetalRule, highPrioNeededMetal)
 	Spring.SetTeamRulesParam(teamID, lowPrioNeededMetalRule, lowPrioNeededMetal)
