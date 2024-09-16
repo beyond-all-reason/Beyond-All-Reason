@@ -49,14 +49,14 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	set-signal-mask 0;
-	move dbl to x-axis [0] speed [8];
-	move dbl to z-axis [0] speed [8];
-	move dbr to x-axis [0] speed [8];
-	move dbr to z-axis [0] speed [8];
-	move dtl to x-axis [0] speed [8];
-	move dtl to z-axis [0] speed [8];
-	move dtr to x-axis [0] speed [8];
-	move dtr to z-axis [0] speed [8];
+	move dbl to x-axis [0] speed [1];
+	move dbl to z-axis [0] speed [1];
+	move dbr to x-axis [0] speed [1];
+	move dbr to z-axis [0] speed [1];
+	move dtl to x-axis [0] speed [1];
+	move dtl to z-axis [0] speed [1];
+	move dtr to x-axis [0] speed [1];
+	move dtr to z-axis [0] speed [1];
 }
 
 SetStunned(State)
@@ -76,14 +76,14 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	move dbl to x-axis [-3] speed [8];
-	move dbl to z-axis [-3] speed [8];
-	move dbr to x-axis [3] speed [8];
-	move dbr to z-axis [-3] speed [8];
-	move dtl to x-axis [-8] speed [8];  
-	move dtl to z-axis [3] speed [8];
-	move dtr to x-axis [3] speed [8];
-	move dtr to z-axis [3] speed [8];
+	move dbl to x-axis [-4] speed [8];
+	move dbl to z-axis [-4] speed [8];
+	move dbr to x-axis [4] speed [8];
+	move dbr to z-axis [-4] speed [8];
+	move dtl to x-axis [-4] speed [8];  
+	move dtl to z-axis [4] speed [8];
+	move dtr to x-axis [4] speed [8];
+	move dtr to z-axis [4] speed [8];
 	wait-for-move dtr along x-axis;
 	start-script RestoreAfterDelay();
 	return (1);

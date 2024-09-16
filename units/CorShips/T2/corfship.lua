@@ -121,7 +121,6 @@ return {
 				explosiongenerator = "custom:burnblackxl",
 				firestarter = 100,
 				flamegfxtime = 1,
-				groundbounce = true,
 				bounceRebound = 0.8,
 				bounceSlip = 1.0,
 				impulseboost = 0,

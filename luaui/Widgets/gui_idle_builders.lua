@@ -14,11 +14,11 @@ local alwaysShow = true		-- always show AT LEAST the label
 local alwaysShowLabel = true	-- always show the label regardless
 local showWhenSpec = false
 local showStack = false
-local iconSizeMult = 0.98
+local usedIconSizeMult = 0.98
 local playSounds = true
 local soundVolume = 0.5
 local setHeight = 0.046
-local maxGroups = 9
+local maxIcons = 9
 local showRez = true
 
 local leftclick = 'LuaUI/Sounds/buildbar_add.wav'
@@ -55,22 +55,21 @@ local height = setHeight * uiScale
 local posX = 0
 local posY = 0
 local iconMargin = 0
-local groupSize = 0
+local iconSize = 0
 local usedWidth = 0
 local usedHeight = 0
 local hovered = false
 local prevHovered = false
-local numGroups = 0
-local hoveredGroup
+local numIcons = 0
+local hoveredIcon
 local selectedUnits = Spring.GetSelectedUnits() or {}
 local selectionHasChanged = true
-local selectedGroups = {}
 local buildmenuShowingPosY = 0
 local buildmenuAlwaysShow = false
 local buildmenuIsShowing = true
 
-local groupButtons = {}
-local existingGroups = {}
+local iconButtons = {}
+local existingIcons = {}
 local clicks = {}
 local unitList = {}
 
@@ -162,19 +161,22 @@ local function updateList(force)
 		end
 	end
 
-	numGroups = 0
-	existingGroups = {}
+	numIcons = 0
+	existingIcons = {}
 	for unitDefID, _ in pairs(idleList) do
-		numGroups = numGroups + 1
-		existingGroups[numGroups] = unitDefID
+		numIcons = numIcons + 1
+		existingIcons[numIcons] = unitDefID
 	end
-	local prevHoveredGroup = hoveredGroup
-	hoveredGroup = -1
+
+	table.sort(existingIcons, function (a,b) return a < b end)
+
+	local prevhoveredIcon = hoveredIcon
+	hoveredIcon = -1
 	local x, y, b, b2, b3 = spGetMouseState()
-	if groupButtons then
-		for i,v in pairs(groupButtons) do
-			if math_isInRect(x, y, groupButtons[i][1], groupButtons[i][2], groupButtons[i][3], groupButtons[i][4]) then
-				hoveredGroup = groupButtons[i][5]
+	if iconButtons then
+		for i,v in pairs(iconButtons) do
+			if math_isInRect(x, y, iconButtons[i][1], iconButtons[i][2], iconButtons[i][3], iconButtons[i][4]) then
+				hoveredIcon = iconButtons[i][5]
 				break
 			end
 		end
@@ -204,7 +206,7 @@ local function updateList(force)
 		if not changes then
 			if not hovered then
 				return
-			elseif hoveredGroup == prevHoveredGroup then
+			elseif hoveredIcon == prevhoveredIcon then
 				return
 			end
 		end
@@ -214,28 +216,28 @@ local function updateList(force)
 		dlist = gl.DeleteList(dlist)
 	end
 
-	if numGroups == 0 and not alwaysShow then
+	if numIcons == 0 and not alwaysShow then
 		if backgroundRect then
 			backgroundRect = nil
 			checkGuishader(true)
 		end
 	else
 		dlist = gl.CreateList(function()
-			local mult = numGroups
-			if numGroups == 0 then
+			local mult = numIcons
+			if numIcons == 0 then
 				mult = 1
 			end
-			if mult > maxGroups then
-				mult = maxGroups
-				numGroups = mult
+			if mult > maxIcons then
+				mult = maxIcons
+				numIcons = mult
 			end
 
-			local groupWidth = groupSize - backgroundPadding
+			local iconWidth = iconSize - backgroundPadding
 			local startOffsetX = 0
-			if numGroups > 0 and alwaysShowLabel then
-				startOffsetX = groupWidth
+			if numIcons > 0 and alwaysShowLabel then
+				startOffsetX = iconWidth
 			end
-			usedWidth = (groupWidth * mult) + backgroundPadding + backgroundPadding + startOffsetX
+			usedWidth = (iconWidth * mult) + backgroundPadding + backgroundPadding + startOffsetX
 
 			backgroundRect = {
 				floor(posX * vsx),
@@ -246,121 +248,118 @@ local function updateList(force)
 
 			UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0))
 
-			if numGroups == 0 or alwaysShowLabel then
-				local groupRect = {
+			if numIcons == 0 or alwaysShowLabel then
+				local iconRect = {
 					floor(posX * vsx),
 					floor(posY * vsy),
-					floor(posX * vsx) + usedWidth - (groupWidth * numGroups),
+					floor(posX * vsx) + usedWidth - (iconWidth * numIcons),
 					floor(posY * vsy) + usedHeight
 				}
 				local fontSize = height*vsy*0.33
-				local offset = ((groupRect[3]-groupRect[1])/5)
+				local offset = ((iconRect[3]-iconRect[1])/5)
 				local offsetY = -(fontSize*(posY > 0 and 0.22 or 0.31))
 				local style = 'c'
 				font2:Begin()
 				font2:SetTextColor(1,1,1,0.2)
 				offset = (fontSize*0.6)
-				font2:Print(Spring.I18N('ui.idleBuilders.sleeping'), groupRect[1]+((groupRect[3]-groupRect[1])/2)-offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)+offset+offsetY, fontSize, style)
+				font2:Print(Spring.I18N('ui.idleBuilders.sleeping'), iconRect[1]+((iconRect[3]-iconRect[1])/2)-offset, iconRect[2]+((iconRect[4]-iconRect[2])/2)+offset+offsetY, fontSize, style)
 				fontSize = fontSize * 1.2
-				font2:Print(Spring.I18N('ui.idleBuilders.sleeping'), groupRect[1]+((groupRect[3]-groupRect[1])/2), groupRect[2]+((groupRect[4]-groupRect[2])/2)+offsetY, fontSize, style)
+				font2:Print(Spring.I18N('ui.idleBuilders.sleeping'), iconRect[1]+((iconRect[3]-iconRect[1])/2), iconRect[2]+((iconRect[4]-iconRect[2])/2)+offsetY, fontSize, style)
 				fontSize = fontSize * 1.2
 				offset = (fontSize*0.48)
-				font2:Print(Spring.I18N('ui.idleBuilders.sleeping'), groupRect[1]+((groupRect[3]-groupRect[1])/2)+offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)-offset+offsetY, fontSize, style)
+				font2:Print(Spring.I18N('ui.idleBuilders.sleeping'), iconRect[1]+((iconRect[3]-iconRect[1])/2)+offset, iconRect[2]+((iconRect[4]-iconRect[2])/2)-offset+offsetY, fontSize, style)
 				font2:End()
 			end
 
-			if numGroups > 0 then
-				local groupCounter = 0
-				groupButtons = {}
-				for group=1, maxGroups do
-					if existingGroups[group] then
-						local groupRect = {
-							backgroundRect[1]+backgroundPadding+((groupSize-backgroundPadding)*groupCounter)+startOffsetX,
+			if numIcons > 0 then
+				local iconCounter = 0
+				iconButtons = {}
+				for i=1, maxIcons do
+					if existingIcons[i] then
+						local iconRect = {
+							backgroundRect[1]+backgroundPadding+((iconSize-backgroundPadding)*iconCounter)+startOffsetX,
 							backgroundRect[2]+(posY-height > 0 and backgroundPadding or 0),
-							backgroundRect[1]+backgroundPadding+(groupSize-backgroundPadding)+((groupSize-backgroundPadding)*groupCounter)+startOffsetX,
+							backgroundRect[1]+backgroundPadding+(iconSize-backgroundPadding)+((iconSize-backgroundPadding)*iconCounter)+startOffsetX,
 							backgroundRect[4]-backgroundPadding
 						}
 
-						local unitCount = #idleList[existingGroups[group]]
-						local unitDefID = existingGroups[group]
+						local unitCount = #idleList[existingIcons[i]]
+						local unitDefID = existingIcons[i]
 
 						gl.Color(1,1,1,1)
-						groupButtons[#groupButtons+1] = {groupRect[1],groupRect[2],groupRect[3],groupRect[4],group}
-						local groupSize = groupRect[3]-groupRect[1]-iconMargin-iconMargin
-						local iconSize = groupSize * iconSizeMult
+						iconButtons[#iconButtons+1] = {iconRect[1],iconRect[2],iconRect[3],iconRect[4],i}
+						local iconSize = iconRect[3]-iconRect[1]-iconMargin-iconMargin
+						local usedIconSize = iconSize * usedIconSizeMult
 						local offset = 0
 						if showStack then
 							if unitCount > 4 then
-								iconSize = floor(iconSize*0.78)
-								offset = floor((groupSize - iconSize) / 4)
+								usedIconSize = floor(usedIconSize*0.78)
+								offset = floor((iconSize - usedIconSize) / 4)
 							elseif unitCount > 3 then
-								iconSize = floor(iconSize*0.83)
-								offset = floor((groupSize - iconSize) / 3)
+								usedIconSize = floor(usedIconSize*0.83)
+								offset = floor((iconSize - usedIconSize) / 3)
 							elseif unitCount> 2 then
-								iconSize = floor(iconSize*0.86)
-								offset = floor((groupSize - iconSize) / 2)
+								usedIconSize = floor(usedIconSize*0.86)
+								offset = floor((iconSize - usedIconSize) / 2)
 							elseif unitCount > 1 then
-								iconSize = floor(iconSize*0.88)
-								offset = groupSize - (iconSize*1.06)
+								usedIconSize = floor(usedIconSize*0.88)
+								offset = iconSize - (usedIconSize*1.06)
 							else
-								iconSize = floor(iconSize*0.94)
-								offset = groupSize - iconSize
+								usedIconSize = floor(usedIconSize*0.94)
+								offset = iconSize - usedIconSize
 							end
 						end
 
-						local texSize = floor(groupSize*1.33)
-						local zoom = group == hoveredGroup and (b and 0.15 or 0.105) or 0.05
+						local texSize = floor(iconSize*1.33)
+						local zoom = i == hoveredIcon and (b and 0.15 or 0.105) or 0.05
 						local highlightOpacity = 0
-						if selectedGroups[group] then
-							zoom = zoom + 0.08
-							highlightOpacity = 0.17
-						elseif group == hoveredGroup then
+						if i == hoveredIcon then
 							highlightOpacity = 0.22
 						end
 						if showStack then
 							if unitCount > 4 then
 								drawIcon(
 									unitDefID,
-									{groupRect[1]+iconMargin+(offset*4), groupRect[4]-iconMargin-(offset*4)-iconSize, groupRect[1]+iconMargin+(offset*4)+iconSize, groupRect[4]-iconMargin-(offset*4)},
+									{iconRect[1]+iconMargin+(offset*4), iconRect[4]-iconMargin-(offset*4)-usedIconSize, iconRect[1]+iconMargin+(offset*4)+usedIconSize, iconRect[4]-iconMargin-(offset*4)},
 									0.33, zoom, texSize, highlightOpacity
 								)
 							end
 							if unitCount > 3 then
 								drawIcon(
 									unitDefID,
-									{groupRect[1]+iconMargin+(offset*3), groupRect[4]-iconMargin-(offset*3)-iconSize, groupRect[1]+iconMargin+(offset*3)+iconSize, groupRect[4]-iconMargin-(offset*3)},
+									{iconRect[1]+iconMargin+(offset*3), iconRect[4]-iconMargin-(offset*3)-usedIconSize, iconRect[1]+iconMargin+(offset*3)+usedIconSize, iconRect[4]-iconMargin-(offset*3)},
 									0.45, zoom, texSize, highlightOpacity
 								)
 							end
 							if unitCount > 2 then
 								drawIcon(
 									unitDefID,
-									{groupRect[1]+iconMargin+(offset*2), groupRect[4]-iconMargin-(offset*2)-iconSize, groupRect[1]+iconMargin+(offset*2)+iconSize, groupRect[4]-iconMargin-(offset*2)},
+									{iconRect[1]+iconMargin+(offset*2), iconRect[4]-iconMargin-(offset*2)-usedIconSize, iconRect[1]+iconMargin+(offset*2)+usedIconSize, iconRect[4]-iconMargin-(offset*2)},
 									0.55, zoom, texSize, highlightOpacity
 								)
 							end
 							if unitCount > 1 then
 								drawIcon(
 									unitDefID,
-									{groupRect[1]+iconMargin+offset, groupRect[4]-iconMargin-offset-iconSize, groupRect[1]+iconMargin+offset+iconSize, groupRect[4]-iconMargin-offset},
+									{iconRect[1]+iconMargin+offset, iconRect[4]-iconMargin-offset-usedIconSize, iconRect[1]+iconMargin+offset+usedIconSize, iconRect[4]-iconMargin-offset},
 									0.7, zoom, texSize, highlightOpacity
 								)
 							end
 						end
 						drawIcon(
 							unitDefID,
-							{groupRect[1]+iconMargin, groupRect[4]-iconMargin-iconSize, groupRect[1]+iconMargin+iconSize, groupRect[4]-iconMargin},
+							{iconRect[1]+iconMargin, iconRect[4]-iconMargin-usedIconSize, iconRect[1]+iconMargin+usedIconSize, iconRect[4]-iconMargin},
 							1, zoom, texSize, highlightOpacity
 						)
 
 						if unitCount > 1 then
 							local fontSize = height*vsy*0.39
 							font:Begin()
-							font:Print('\255\240\240\240'..unitCount, groupRect[1]+iconMargin+(fontSize*0.18), groupRect[4]-iconMargin-(fontSize*0.92), fontSize, "o")
+							font:Print('\255\240\240\240'..unitCount, iconRect[1]+iconMargin+(fontSize*0.18), iconRect[4]-iconMargin-(fontSize*0.92), fontSize, "o")
 							font:End()
 						end
 
-						groupCounter = groupCounter + 1
+						iconCounter = iconCounter + 1
 					end
 				end
 			end
@@ -406,7 +405,7 @@ local function checkUnitGroupsPos(isViewresize)
 	end
 end
 
-local checkgroups = false
+local doCheckUnitGroupsPos = false
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 	height = setHeight * uiScale
@@ -453,12 +452,12 @@ function widget:ViewResize()
 			posY = 0
 		end
 	end
-	if checkgroups then  -- this is the worlds stupides workaround for not creating display lists in intialize or update with unitpics too early, especially seen in save games and scenarios.
+	if doCheckUnitGroupsPos then  -- this is the worlds stupides workaround for not creating display lists in intialize or update with unitpics too early, especially seen in save games and scenarios.
 		checkUnitGroupsPos(true)
 	end
 	iconMargin = floor((backgroundPadding * 0.5) + 0.5)
-	groupSize = floor((height * vsy) - (posY-height > 0 and backgroundPadding or 0))
-	usedHeight = groupSize + (posY-height > 0 and backgroundPadding or 0)
+	iconSize = floor((height * vsy) - (posY-height > 0 and backgroundPadding or 0))
+	usedHeight = iconSize + (posY-height > 0 and backgroundPadding or 0)
 
 	if WG['unitgroups'] then
 		local px, py, sx, sy = WG['unitgroups'].getPosition()
@@ -526,7 +525,7 @@ local function Update()
 	if Spring.GetGameFrame() <= initializeGameFrame then
 		return
 	end
-	checkgroups = true
+	doCheckUnitGroupsPos = true
 	if not (not spec or showWhenSpec) then
 		return
 	end
@@ -552,9 +551,9 @@ local function Update()
 		local tooltipAddition = ''
 		if backgroundRect and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 			local alt, ctrl, meta, shift = Spring.GetModKeyState()
-			for i,v in pairs(groupButtons) do
-				if math_isInRect(x, y, groupButtons[i][1], groupButtons[i][2], groupButtons[i][3], groupButtons[i][4]) then
-					local unitDefID = existingGroups[i]
+			for i,v in pairs(iconButtons) do
+				if math_isInRect(x, y, iconButtons[i][1], iconButtons[i][2], iconButtons[i][3], iconButtons[i][4]) then
+					local unitDefID = existingIcons[i]
 					if unitDefID then
 						tooltipTitle = Spring.I18N('ui.idleBuilders.idle', { unit = unitHumanName[unitDefID], highlightColor = "\255\190\255\190" })
 						if #idleList[unitDefID] > 1 then
@@ -622,9 +621,9 @@ function widget:MousePress(x, y, button)
 	if backgroundRect and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
 		if button == 1 or button == 3 then
-			for i,v in pairs(groupButtons) do
-				if math_isInRect(x, y, groupButtons[i][1], groupButtons[i][2], groupButtons[i][3], groupButtons[i][4]) then
-					local unitDefID = existingGroups[i]
+			for i,v in pairs(iconButtons) do
+				if math_isInRect(x, y, iconButtons[i][1], iconButtons[i][2], iconButtons[i][3], iconButtons[i][4]) then
+					local unitDefID = existingIcons[i]
 					if unitDefID then
 						local units = {}
 						if shift then

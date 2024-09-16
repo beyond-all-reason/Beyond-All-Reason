@@ -233,6 +233,7 @@ local createNanoUnitDef = function(tier)
 			subfolder = "armbuildings/landutil",
 			i18nfromunit = parameters.i18nFromUnit,
 			unitgroup = 'builder',
+			paratrooper = true,
 		},
 	}
 end

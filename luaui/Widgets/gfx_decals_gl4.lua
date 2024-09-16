@@ -1077,6 +1077,29 @@ for weaponDefID=1, #WeaponDefs do
 			glowadd = 1.8
 			bwfactor = 0.1
 
+		elseif string.find(weaponDef.name, 'pineappleofdoom') or string.find(weaponDef.name, 'heatraylarge') or string.find(weaponDef.name, 'skybeam') or string.find(weaponDef.name, 'heat_ray') then --legbastion leginc legphoenix legaheattank
+			textures = { "t_groundcrack_16_a.tga", "t_groundcrack_17_a.tga", "t_groundcrack_05_a.tga" }
+			--textures = { "t_groundcrack_16_a.tga", "t_groundcrack_17_a.tga", "t_groundcrack_10_a.tga" }
+			alphadecay = 0.004
+			radius = radius * 0.8 
+			--radiusVariation = 0.3
+			heatstart = 8000
+			heatdecay = 3.95
+			glowsustain = 20
+			glowadd = 2.8
+			bwfactor = 0.1
+
+		elseif string.find(weaponDef.name, 'starfire') then
+			textures = { "t_groundcrack_16_a.tga", "t_groundcrack_09_a.tga", "t_groundcrack_10_a.tga" }
+			alphadecay = 0.003
+			radius = radius * 1.2 --* (math.random() * 20 + 0.2)
+			radiusVariation = 0.6
+			heatstart = 9000
+			heatdecay = 2.5
+			glowsustain = 0
+			glowadd = 2.5
+			bwfactor = 0.3
+
 		elseif string.find(weaponDef.name, 'footstep') then
 			--textures = { "f_corkorg_a.tga" }
 			textures = { "t_groundcrack_10_a.tga" }

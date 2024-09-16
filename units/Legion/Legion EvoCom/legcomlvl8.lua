@@ -24,7 +24,7 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		energymake = 850,
-		energystorage = 500,
+		energystorage = 6500,
 		explodeas = "commanderExplosion",
 		footprintx = 2,
 		footprintz = 2,
@@ -34,7 +34,7 @@ return {
 		idleautoheal = 25,
 		idletime = 1800,
 		sightemitheight = 40,
-		mass = 99999,
+		mass = 4900,
 		health = 18000,
 		maxslope = 20,
 		speed = 45.5,
@@ -47,7 +47,6 @@ return {
 		objectname = "Units/LEGCOMLVL4.s3o",
 		pushresistant = true,
 		radardistance = 1200,
-		radardistancejam = 400,
 		radaremitheight = 54,
 		reclaimable = false,
 		reclaimspeed = 3621,
@@ -66,12 +65,12 @@ return {
 		upright = true,
 		workertime = 1207,
 		buildoptions = {
-			[1] = "cormoho",
+			[1] = "legmoho",
 			[2] = "corfus",
 			[3] = "legwin",
 			[5] = "cormmkr",
 			[6] = "legadvsol",
-			[7] = "corageo",
+			[7] = "leggeo",
 			[8] = "legtide",
 			[9] = "coruwadves",
 			[10] = "legamstor",
@@ -96,7 +95,7 @@ return {
 			[31] = "cordl",
 			[32] = "corenaa",
             [33] = "legbastion",
-			[34] = "coreyes",
+			[34] = "legeyes",
 			[35] = "corvoyr",
 			[36] = "corspec",
 			[37] = "legdrag",
@@ -114,8 +113,8 @@ return {
             [49] = "cormabm",
             [50] = "legkeres",
 			[51] = "corasp",
-			[52] = "cornanotc",
-			[53] = "cornanotcplat",
+			[52] = "legnanotc",
+			[53] = "legnanotcplat",
 			[54] = "corgate",
 		},
 		customparams = {
@@ -130,7 +129,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "",
-			workertimeboost = 6,
+			workertimeboost = 5,
 			wtboostunittype = "MOBILE",
 			evolution_health_transfer = "percentage",
 			evolution_target = "legcomlvl9",
@@ -145,6 +144,7 @@ return {
 			effigy = "comeffigylvl4",
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,
+			fall_damage_multiplier = 5,--this ensures commander dies when it hits the ground so effigies can trigger respawn.
 		},
 		featuredefs = {
 			dead = {
@@ -243,10 +243,10 @@ return {
 				gravityaffected = "true",
 				impulseboost = 0.5,
 				impulsefactor = 1.8,
-				name = "PlasmaCannon",
+				name = "Rapid-Fire Grenade Launcher",
 				noselfdamage = true,
-				range = 550,
-				reloadtime = 0.30,
+				range = 500,
+				reloadtime = 0.25,
 				soundhit = "xplomed2",
 				soundhitwet = "splssml",
 				soundstart = "cannon3",
@@ -254,8 +254,8 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 600,
 				damage = {
-					default = 500,
-					vtol = 300,
+					default = 475,
+					vtol = 235,
 				},
 			},
 			torpedo = {
@@ -313,7 +313,6 @@ return {
 				explosiongenerator = "custom:expldgun",
 				firestarter = 100,
 				firesubmersed = false,
-				groundbounce = true,
 				impulseboost = 0,
 				impulsefactor = 0,
 				name = "Disintegrator",
@@ -343,8 +342,8 @@ return {
 				areaofeffect = 16,
 				avoidfeature = false,
 				burnblow = false,
-                burst = 3,
-				burstrate = 0.15,
+                burst = 4,
+				burstrate = 0.12,
 				cegtag = "railgun",
 				collidefriendly = false,
 				craterareaofeffect = 0,
@@ -352,19 +351,19 @@ return {
 				cratermult = 0,
 				duration = 0.12,
 				edgeeffectiveness = 0.85,
-				energypershot = 400,
 				explosiongenerator = "custom:plasmahit-sparkonly",
 				fallOffRate = 0.2,
 				firestarter = 0,
 				impulseboost = 0.4,
 				impulsefactor = 1,
 				intensity = 0.8,
+				minintensity = 1,
 				name = "Railgun",
 				noselfdamage = true,
 				ownerExpAccWeight = 4.0,
 				proximitypriority = 3,
-				range = 1000,
-				reloadtime = 2.25,
+				range = 800,
+				reloadtime = 2.4,
 				rgbcolor = "0.74 0.64 0.94",
 				soundhit = "mavgun3",
 				soundhitwet = "splshbig",
@@ -376,8 +375,7 @@ return {
 				weapontype = "LaserCannon",
 				weaponvelocity = 3000,
 				damage = {
-					commanders = 250,
-					default = 500,
+					default = 250,
 				},
 			},
 			botcannon = {
@@ -462,13 +460,13 @@ return {
 				},
 				customparams = {
 					attackformationspread = 50,
-					carried_unit = "legdrone",  --Name of the unit spawned by this carrier unit.
-					engagementrange = 1000,
+					carried_unit = "legheavydrone",  --Name of the unit spawned by this carrier unit.
+					engagementrange = 1200,
 					spawns_surface = "LAND",    -- "LAND" or "SEA". The SEA option has not been tested currently.
 					spawnrate = 3, 			--Spawnrate roughly in seconds.
 					maxunits = 2,				--Will spawn units until this amount has been reached.
-					energycost = 50,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					metalcost = 0,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					energycost = 1000,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					metalcost = 90,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					controlradius = 1100,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
 					decayrate = 4,
 					carrierdeaththroe = "death",
@@ -477,9 +475,7 @@ return {
 					docktohealthreshold = 66,
 					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					dockingHelperSpeed = 5,
-					dockingpiecestart = 30,		--First model piece to be used for docking.
-					dockingpieceinterval = 10,	--Number of pieces to skip when docking the next unit.
-					dockingpieceend = 40,		--Last model piece used for docking. Will loop back to first when exceeded.
+					dockingpieces = "30 40",
 					dockingradius = 120,			--The range at which the units snap to the carrier unit when docking.
 				}
 			},
@@ -507,7 +503,7 @@ return {
 			[5] = {
 				badtargetcategory = "VTOL GROUNDSCOUT SHIP",
 				def = "BOTCANNON",
-				onlytargetcategory = "SURFACE",
+				onlytargetcategory = "NOTSHIP",
 			},
 			[6] = {
 				badtargetcategory = "VTOL",

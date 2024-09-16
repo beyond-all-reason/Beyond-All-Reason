@@ -120,7 +120,7 @@ return {
 				beamttl = 0.8,
 				edgeeffectiveness = 0.15,
 				energypershot = 17,
-				explosiongenerator = "custom:genericshellexplosion-medium-beam",
+				explosiongenerator = "custom:heatray-huge",
 				firestarter = 90,
 				firetolerance = 300,
 				impulseboost = 0,
@@ -196,9 +196,7 @@ return {
 					docktohealthreshold = 66,
 					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					dockingHelperSpeed = 5,
-					dockingpiecestart = 10,		--First model piece to be used for docking.
-					dockingpieceinterval = 1,	--Number of pieces to skip when docking the next unit.
-					dockingpieceend = 11,		--Last model piece used for docking. Will loop back to first when exceeded.
+					dockingpieces = "10 11",
 					dockingradius = 80,			--The range at which the units snap to the carrier unit when docking.
 				}
 			},

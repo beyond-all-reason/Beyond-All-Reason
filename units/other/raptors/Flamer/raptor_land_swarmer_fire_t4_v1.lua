@@ -112,7 +112,6 @@ return {
 				explosiongenerator = "custom:burnthermite",
 				firestarter = 100,
 				flamegfxtime = 1,
-				groundbounce = true,
 				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 0.65,

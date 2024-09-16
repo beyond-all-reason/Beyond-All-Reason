@@ -203,10 +203,10 @@ UnitSpeed(){
 	while(TRUE){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
-		animSpeed = (maxSpeed * 3) / animSpeed; // Zecrus please stop changing the unit speed or it will start skating again :/
+		animSpeed = (maxSpeed * 7/2) / animSpeed; // Zecrus please stop changing the unit speed or it will start skating again :/
 		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<1) animSpeed=1;
-		if (animspeed>6) animSpeed = 6;
+		if (animspeed>7) animSpeed = 7;
 		sleep 98;
 	}
 }

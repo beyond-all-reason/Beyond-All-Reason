@@ -56,6 +56,7 @@ return {
 			unitgroup = 'energy',
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "other/lootboxes",
+			paratrooper = true,
 		},
 		sfxtypes = {
 			explosiongenerators = {
