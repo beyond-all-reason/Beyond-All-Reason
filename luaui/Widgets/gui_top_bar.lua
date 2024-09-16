@@ -1,6 +1,6 @@
 function widget:GetInfo()
 	return {
-		name = "Top Bar with Buildpower current",
+		name = "Top Bar with Buildpower",
 		desc = "Shows resources, buildpower, wind speed, commander counter, and various options.",
 		author = "Floris, Robert82",
 		date = "Sep, 2024",
@@ -19,10 +19,9 @@ end
 
 -- for bp bar only
 local config = {
-	proMode = false,
 	drawBPBar = true,
 	autoHideButtons = false,
-	debugTooltip = false,
+	debugTooltip = true,
 
 	-- Buildpower bar: behavior tweaks to consider making permanent _or_ options
 	guardingIdleBuilderCountsAsIdle = true, -- should builders guarding idle builders be considered idle themselves?
@@ -43,12 +42,6 @@ local OPTION_SPECS = {
 		configVariable = "drawBPBar",
 		name = "buildpower bar",
 		description = "Draw the buildpower bar (requires reload)",
-		type = "bool",
-	},
-	{
-		configVariable = "proMode",
-		name = "pro mode",
-		description = "Show advanced buildpower statistics and debug info (requires reload)",
 		type = "bool",
 	},
 	{
@@ -231,7 +224,7 @@ end
 
 
 -- stores the date that is used for the res calc and BP bar
-local BP = {0, 0, 0, 0, 0}
+local BP = {0, 1, 0, 0, 0} -- BP[2] = 1 to make sure the bar gets drawn propperly because r[res][2] = 0 -> no bar
 
 -- is used for visualisation purposed in old top bar design  ql
 --BP[1] = BP['empty1']
@@ -527,7 +520,6 @@ local function RectQuad(px, py, sx, sy, offset)
 	gl.TexCoord(offset, offset)
 	gl.Vertex(px, sy, 0)
 end
-
 local function DrawRect(px, py, sx, sy, zoom)
 	gl.BeginEnd(GL.QUADS, RectQuad, px, py, sx, sy, zoom)
 end
@@ -579,7 +571,6 @@ local function short(n, f)
 		return sformat("%." .. f .. "f", n)
 	end
 end
-
 
 local function updateButtons()
 
@@ -689,7 +680,6 @@ local function updateComs(forceText)
 	dlistComsGuishader = glCreateList(function()
 		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0, 0, 1, 1)
 	end)
-
 	if dlistComs1 ~= nil then
 		glDeleteList(dlistComs1)
 	end
@@ -799,20 +789,8 @@ end
 
 -- return true if tidal speed is * relevant * , enough water in the world (>= 10%)
 local function checkTidalRelevant()
-	local mapMinHeight = 0
-	-- account for invertmap to the best of our abiltiy
-	if string.find(Spring.GetModOptions().debugcommands,"invertmap") then
-		if string.find(Spring.GetModOptions().debugcommands,"wet") then
-			-- assume that they want water if keyword "wet" is involved, too violitile between initilization and subsequent post terraform checks
-			return true
-		--else
-		--  mapMinHeight = 0
-		end
-	else
-		mapMinHeight = select(3,Spring.GetGroundExtremes())
-	end
-	mapMinHeight = mapMinHeight - (Spring.GetModOptions().map_waterlevel or 0)
-	return mapMinHeight <= -20  -- armtide/cortide can be built from 20 waterdepth (hardcoded here cause am too lazy to auto cycle trhough unitdefs and read it from there)
+	local _, _, mapMinHeight, mapMaxHeight = Spring.GetGroundExtremes()
+	return mapMinHeight <= -20	-- armtide/cortide can be built from 20 waterdepth (hardcoded here cause am too lazy to auto cycle trhough unitdefs and read it from there)
 end
 
 local function updateTidal()
@@ -902,12 +880,8 @@ local function updateResbarText(res)
 			elseif res == 'BP' and config.drawBPBar then
 				font2:SetTextColor(0.45, 0.6, 0.45, 1)
 			end
-			-- -- Text: Storage
-			if res ~= 'BP' then
+			if res ~= 'BP' then-- Text: Storage
 				font2:Print(short(r[res][2]), resbarDrawinfo[res].textStorage[2], resbarDrawinfo[res].textStorage[3], resbarDrawinfo[res].textStorage[4], resbarDrawinfo[res].textStorage[5])
-			end
-			if res == 'BP' and config.proMode and config.drawBPBar then -- total buildpower
-				font2:Print(short(r[res][4]), resbarDrawinfo[res].textStorage[2], resbarDrawinfo[res].textStorage[3], resbarDrawinfo[res].textStorage[4], resbarDrawinfo[res].textStorage[5])
 			end
 			font2:End()
 		end)
@@ -930,8 +904,6 @@ local function updateResbarText(res)
 			-- Text: pull
 			if res ~= 'BP' then
 				font2:Print("\255\240\125\125" .. "-" .. short(r[res][3]), resbarDrawinfo[res].textPull[2], resbarDrawinfo[res].textPull[3], resbarDrawinfo[res].textPull[4], resbarDrawinfo[res].textPull[5])
-			elseif res == 'BP' and config.proMode then			-- used buildpower
-				font2:Print("\255\0\255\0"  .. short(r[res][5]), resbarDrawinfo[res].textPull[2], resbarDrawinfo[res].textPull[3], resbarDrawinfo[res].textPull[4], resbarDrawinfo[res].textPull[5])
 			end
 			-- Text: expense
 			local textcolor = "\255\240\180\145"
@@ -940,8 +912,6 @@ local function updateResbarText(res)
 			end
 			if res ~= 'BP' then
 				font2:Print(textcolor .. "-" .. short(r[res][5]), resbarDrawinfo[res].textExpense[2], resbarDrawinfo[res].textExpense[3], resbarDrawinfo[res].textExpense[4], resbarDrawinfo[res].textExpense[5])
-			elseif res == 'BP' and config.proMode then			-- reserved buildpower (including used)
-				font2:Print("\255\50\155\0" .. short(r[res][3]), resbarDrawinfo[res].textExpense[2], resbarDrawinfo[res].textExpense[3], resbarDrawinfo[res].textExpense[4], resbarDrawinfo[res].textExpense[5])
 			end
 			-- Text: income
 			if res ~= 'BP' then
@@ -958,56 +928,13 @@ local function updateResbarText(res)
 				local notifyMetalStall = playerStallingMetal
 				local notifyEnergyStall = playerStallingEnergy
 
-				-- Only warn about buildpower surplus in pro mode.
-				local notifyBPSurplus = false
-				local notifyBPDeficit = false
 				local reservedBP = BP[3]
 				local totalBP = BP[4]
 				local notifyBPIdle = reservedBP / totalBP <= 0.5 and (totalBP - reservedBP) > 300
-				if BP['buildpowerSurplus'] ~= nil then
-					local indicatorPosM = BP['mSliderPosition']
-					local indicatorPosE = BP['eSliderPosition']
-
-					-- Buildpower surplus is calculated based on current metal/energy income and _predicted_ metal/
-					-- energy expenses if all builders were actively building. If this is negative, we have a buildpower
-					-- deficit, since income exceeds what all builders could possibly support.
-					notifyBPDeficit = BP['buildpowerSurplus'] < 0
-
-					-- A surplus isn't necessarily a problem, as builders don't spend 100% of their time building (if
-					-- they're driving from one location to another, for instance). And in the early-game your commander
-					-- alone will likely cause a buildpower surplus. For now, let's only warn about a surplus that
-					-- exceeds a fixed number _and_ a fixed ratio of eco-supported BP.
-
-					-- Later, we might want to focus just on the amount of BP that's actively building yet stalled, to
-					-- ignore any BP that's on guard/repair/reclaim duty. (But even a stalled-only surplus warning might
-					-- be redundant given the existing "Need metal"/"Need energy" overflow tooltips.)
-
-					-- Try to ignore early-game states where we may only have the commander and a single factory on the map.
-					notifyBPSurplus = BP['buildpowerSurplus'] > 400
-						-- Only warn about a surplus if less than 40% of our BP can be supported by our income.
-						and ((indicatorPosM ~= nil and indicatorPosM < 0.4) or (indicatorPosE ~= nil and indicatorPosE < 0.4))
-				end
-
-				-- If we're not in pro mode, be more selective with which alerts we show users.
-				if config.proMode == false then
-
-					-- These two messages aren't very useful, since you can just look at the metal and energy bars.
-					-- Only show these alerts in pro mode.
-					notifyMetalStall = false
-					notifyEnergyStall = false
-
-					-- Try to only show the most important alert at a time.
-					if notifyBPDeficit then
-						notifyBPIdle = false
-						notifyBPSurplus = false -- shouldn't happen at the same time as a deficit, but leaving it just in case
-					elseif notifyBPIdle then
-						notifyBPSurplus = false
-					end
-				end
 
 				if (res == 'metal' and (allyteamOverflowingMetal or overflowingMetal))
 						or (res == 'energy' and (allyteamOverflowingEnergy or overflowingEnergy))
-						or (res == 'BP' and config.drawBPBar and (notifyMetalStall or notifyEnergyStall or notifyBPSurplus or notifyBPDeficit or notifyBPIdle)) then
+						or (res == 'BP' and config.drawBPBar and (notifyMetalStall or notifyEnergyStall or notifyBPIdle)) then
 					if showOverflowTooltip[res] == nil then
 						showOverflowTooltip[res] = os.clock() + 1.1
 					end
@@ -1108,14 +1035,6 @@ local function updateResbarText(res)
 								offset = showBuildpowerAlert(resbarArea[res], 'Need energy', fontSize, warning_lowlight, warning_highlight, offset, bgpadding2)
 							end
 
-							if notifyBPSurplus then
-								offset = showBuildpowerAlert(resbarArea[res], 'Too much buildpower', fontSize, info_lowlight, info_highlight, offset, bgpadding2)
-							end
-
-							if notifyBPDeficit then
-								offset = showBuildpowerAlert(resbarArea[res], 'Need buildpower', fontSize, info_lowlight, info_highlight, offset, bgpadding2)
-							end
-
 							if notifyBPIdle then
 								offset = showBuildpowerAlert(resbarArea[res], 'Idle buildpower', fontSize, info_lowlight, info_highlight, offset, bgpadding2)
 							end
@@ -1185,25 +1104,17 @@ local function updateResbar(res)  --decides where and what is drawn
 	local expenseColor = "\255\210\100\100"
 	local incomeColor = "\255\100\210\100"
 
-	if res == 'BP' and config.drawBPBar == true then
-		resbarDrawinfo[res].barArea = { area[1] + barHorizontalPadding_BP, barArea[2], area[3] - barHorizontalPadding_BP, barArea[4] }
-		storageColor = "\100\125\125\100"
-		pullColor = "\100\255\0\100"
-		expenseColor = "\100\150\0\100"
-		incomeColor = "\100\100\100\100"
-	end
 
 	resbarDrawinfo[res].textStorage = { storageColor .. short(r[res][2]), barArea[3], barArea[2] + barHeight * 2.1, (height / 3.2) * widgetScale, 'ord' }
 	resbarDrawinfo[res].textPull = { pullColor .. short(r[res][3]), barArea[1] - (10 * widgetScale), barArea[2] + barHeight * 2.15, (height / 3) * widgetScale, 'ord' }
 	resbarDrawinfo[res].textExpense = { expenseColor .. short(r[res][5]), barArea[1] + (10 * widgetScale), barArea[2] + barHeight * 2.15, (height / 3) * widgetScale, 'old' }   
 	resbarDrawinfo[res].textIncome = { incomeColor .. short(r[res][4]), barArea[1] - (10 * widgetScale), barArea[2] - (barHeight * 0.55), (height / 3) * widgetScale, 'ord' }
 	resbarDrawinfo[res].textCurrent = { short(r[res][1]), barArea[1] + barWidth / 2, barArea[2] + barHeight * 1.8, (height / 2.5) * widgetScale, 'ocd' }
-	if res == 'BP' then
+	
+	if res == 'BP' and config.drawBPBar == true then
+		resbarDrawinfo[res].barArea = { area[1] + barHorizontalPadding_BP, barArea[2], area[3] - barHorizontalPadding_BP, barArea[4] }
 		barArea = resbarDrawinfo[res].barArea
 		barWidth = barArea[3] - barArea[1]
-		if not config.proMode then
-			resbarDrawinfo[res].textCurrent = { short(r[res][2]), barArea[3], barArea[2] + barHeight * 1.8, (height / 2.5) * widgetScale, 'ord' } -- right-aligned
-		end
 	end
 
 	-- add background blur
@@ -1365,8 +1276,6 @@ local function updateResbar(res)  --decides where and what is drawn
 							{0.8, 0.8, 0.0, 1}, -- lowlight color (RGBA)
 							{ 1, 1, 0.2, 1 }) -- highlight color (RGBA)
 					end
-
-					--Log("sliders end" ..i)
 				end
 			end
 		end
@@ -1423,6 +1332,16 @@ local function updateResbar(res)  --decides where and what is drawn
 			local percentAssigned = math.floor((avgTotalReservedBP / totalAvailableBP * 100) + 0.5)
 			local percentActive = math.floor((avgTotalUsedBP / totalAvailableBP * 100) + 0.5)
 			local percentIdle = math.floor(((totalAvailableBP - avgTotalReservedBP) / totalAvailableBP * 100) + 0.5)
+
+			if percentAssigned < 0 then
+				percentAssigned = 0
+			end
+			if percentActive < 0 then
+				percentActive = 0
+			end
+			if percentIdle < 0 then
+				percentIdle = 0
+			end
 
 			-- Formatieren der Prozentzahlen mit führenden Leerzeichen für Ausrichtung
 			local formattedAssigned = string.format("%3d", percentAssigned) .. "%"
@@ -1484,7 +1403,7 @@ local function updateResbar(res)  --decides where and what is drawn
 					.. float_to_s(BP['metalExpenseIfAllBPUsed']) .. " M spent if all BP is used, \n"
 					.. float_to_s(BP['energyExpenseIfAllBPUsed']) .. " E spent if all BP is used, \n"
 					.. float_to_s(BP['metalSupportedBP']) .. " BP supported by M income, \n"
-					.. float_to_s(BP['energySupportedBP']) .. " BP supported by E income,\n\n" .. versionString
+					.. float_to_s(BP['energySupportedBP']) .. " BP supported by E income,\n\n"
 			end
 
 			-- One tooltip for the entire BP area, which isn't that big.
@@ -1496,20 +1415,8 @@ local function updateResbar(res)  --decides where and what is drawn
 				},
 				bpTooltipText, nil, bpTooltipTitle)
 
-			local bpSurplus = BP['buildpowerSurplus']
-
 			local currentTooltipText = ""
-			if config.proMode then
-				if bpSurplus ~= nil then
-					if bpSurplus == 0 then
-						currentTooltipText = textColor .. "You have just enough buildpower to keep up with your income"
-					elseif bpSurplus > 0 then
-						currentTooltipText = textColor .. "You have " .. highlightColor .. bpSurplus .. textColor .. " buildpower more than you need " .. textColor .. "to keep up with your income"
-					else
-						currentTooltipText = textColor .. "You need " .. highlightColor .. -bpSurplus .. textColor .. " more buildpower " .. textColor .. "to keep up with your income"
-					end
-				end
-			elseif BP[4] > 0 then
+			if BP[4] > 0 then
 				currentTooltipText = textColor .. "You are using " .. highlightColor .. math_min(100, math_round(BP[5] * 100 / BP[4])) .. textColor .. "% of your buildpower."
 			end
 			if currentTooltipText ~= "" then
@@ -1534,7 +1441,6 @@ end
 
 
 local function drawResbarValues(res, updateText) --drawing the bar itself and value of stored res
-	--Log("drawResbarValues")
 	if res ~= 'BP' or config.drawBPBar then
 		local cappedCurRes = r[res][1]    -- limit so when production dies the value wont be much larger than what you can store
 	
@@ -1561,8 +1467,9 @@ local function drawResbarValues(res, updateText) --drawing the bar itself and va
 				additionalWidth = 0
 			end
 		else 
-			valueWidth = math_floor(((cappedCurRes / r[res][2]) * barWidth)) -- this is needed even if no bp bar
+			valueWidth = math_floor(((cappedCurRes / r[res][2]) * barWidth))
 		end
+
 		if valueWidth < math_ceil(barHeight * 0.2) or r[res][2] == 0 then
 			valueWidth = math_ceil(barHeight * 0.2)
 		end
@@ -1579,7 +1486,7 @@ local function drawResbarValues(res, updateText) --drawing the bar itself and va
 					color1 = { 0.5, 0.45, 0, 1 }
 					color2 = { 0.8, 0.75, 0, 1 }
 					glowAlpha = 0.035 + (0.07 * math_min(1, cappedCurRes / r[res][2] * 40))
-				elseif config.drawBPBar then -- for bp bar only
+				elseif config.drawBPBar == true then -- for bp bar only
 					color1 = { 0.2, 0.65, 0, 1 }
 					color2 = { 0.5, 0.75, 0, 1 }
 					glowAlpha = 0.035 + (0.06 * math_min(1, cappedCurRes / r[res][2] * 40))
@@ -1645,25 +1552,14 @@ local function drawResbarValues(res, updateText) --drawing the bar itself and va
 
 				if res == 'BP' and config.drawBPBar == true then
 					currentResValue[res] = ""
-					-- Should we show surplus BP, or percent-reserved?
-					if (not config.proMode) then
-						if BP[4] > 0 then
-							currentResValue[res] = math_min(100, math_round(BP[5] * 100 / BP[4]))
-							if     currentResValue[res] < 40 then bpCurrentColor = { 0.82, 0.39, 0.39, 1.0 } --Red
-							elseif currentResValue[res] < 60 then bpCurrentColor = { 1.0,  0.39, 0.39, 1.0 } --Orange
-							elseif currentResValue[res] < 80 then bpCurrentColor = { 1.0,  1.0,  0.39, 1.0 } --Yellow
-							else                                  bpCurrentColor = { 0.47, 0.92, 0.47, 1.0 } --Green
-							end
-							suffix = "%"
+					if BP[4] > 0 then
+						currentResValue[res] = math_min(100, math_round(BP[5] * 100 / BP[4]))
+						if     currentResValue[res] < 40 then bpCurrentColor = { 0.82, 0.39, 0.39, 1.0 } --Red
+						elseif currentResValue[res] < 60 then bpCurrentColor = { 1.0,  0.39, 0.39, 1.0 } --Orange
+						elseif currentResValue[res] < 80 then bpCurrentColor = { 1.0,  1.0,  0.39, 1.0 } --Yellow
+						else                                  bpCurrentColor = { 0.47, 0.92, 0.47, 1.0 } --Green
 						end
-					elseif BP['buildpowerSurplus'] then
-						currentResValue[res] = BP['buildpowerSurplus']
-						if     currentResValue[res] < -400 then bpCurrentColor = { 0.82, 0.39, 0.39, 1.0 } --Red
-						elseif currentResValue[res] < -300 then bpCurrentColor = { 1.0,  0.39, 0.39, 1.0 } --Orange
-						elseif currentResValue[res] < -100 then bpCurrentColor = { 1.0,  1.0,  0.39, 1.0 } --Yellow
-						elseif currentResValue[res] <    0 then bpCurrentColor = { 0.84, 0.90, 0.39, 1.0 } --Light Yellow
-						else                                    bpCurrentColor = { 0.7,  0.7,  0.7,  1.0 } --Grey: no judgment as to how _much_ surplus someone has, as long as it's non-negative
-						end
+						suffix = "%"
 					end
 				end
 				dlistResValues[res][currentResValue[res]] = glCreateList(function()
@@ -1689,7 +1585,6 @@ local function drawResbarValues(res, updateText) --drawing the bar itself and va
 			end
 		end
 	end
-	--Log("drawResbarValues  end")
 end
 
 function init()
@@ -1723,15 +1618,9 @@ function init()
 	local mebCombinedWidth = math_min(width * 2, maxTopBarWidth)
 	if config.drawBPBar then
 		mebCombinedWidth = math_min(width * 2 - widgetSpaceMargin, maxTopBarWidth) -- need an extra widgetSpaceMargin since we have an extra element
-		-- 'width' is used for both metal and energy sections. We're stealing some of this space for buildpower.
-		if config.proMode then
-			bpWidth = math_floor(mebCombinedWidth / 3)
-		else
-			bpWidth = math_floor(mebCombinedWidth / 6)
-		end
+		bpWidth = math_floor(mebCombinedWidth / 6)	-- 'width' is used for both metal and energy sections. We're stealing some of this space for buildpower.
 	end
-	-- Split the remaining width equally between metal and energy
-	width = math_floor((mebCombinedWidth - bpWidth) / 2)
+	width = math_floor((mebCombinedWidth - bpWidth) / 2)	-- Split the remaining width equally between metal and energy
 
 	-- metal
 	resbarArea['metal'] = { topbarArea[1] + filledWidth, topbarArea[2], topbarArea[1] + filledWidth + width, topbarArea[4] }
@@ -1847,7 +1736,6 @@ end
 local builderCoroutine
 
 function widget:GameFrame(n)
-	--LogFrame("n " .. n)
 	spec = spGetSpectatingState()
 
 	local bladeSpeedMultiplier = 0.2
@@ -1855,21 +1743,16 @@ function widget:GameFrame(n)
 	gameFrame = n
 
 	-- calculations for the exact metal and energy draw value
-	--LogFrame("cache - entering GameFrame")
 	--local builderUpdateInterval = Spring.GetTeamRulesParam(myTeamID, "builderUpdateInterval")  --
 	if builderUpdateInterval == nil  then
 		builderUpdateInterval = 3
 	end
 	local gameFrameFreq = builderUpdateInterval --- reduced the update speed to the build prio speed to save performance, any feelable drawbacks?
 	local unp = unpack or table.unpack
-	--LogFrame("gameFrame: " .. gameFrame .. ", gameFrameFreq: " .. gameFrameFreq .. ", nowChecking: " .. nowChecking .. ", trackPosBase: " .. trackPosBase .. ", trackedNum: " .. trackedNum)
-
 	-- If we're supposed to draw the buildpower bar, do some calculations.
 	-- Skip frames between calculations _unless_ we have too many builders to do them all in one frame, in which case nowChecking will be positive when the previous frame didn't finish.
 	if config.drawBPBar and ((gameFrame % gameFrameFreq == 0) or nowChecking > 0) then
 		gameStarted = true -- TODO: is this needed?
-		--LogFrame("Processing BPBar calculations")
-
 		-- Log initial cache values
 		local cacheTotalReservedBP = 0
 		local cacheTotallyUsedBP = 0
@@ -2038,8 +1921,6 @@ function widget:GameFrame(n)
 			local bpRatioSupportedByMIncome = 1 -- what proportion of our total BP can be supported by our metal income?
 			local bpRatioSupportedByEIncome = 1 -- what proportion of our total BP can be supported by our energy income?
 
-			BP['buildpowerSurplus'] = nil
-
 			-- What if all builders were active and pulled metal and energy in the same proportions as current builders?
 			-- (We can only calculate this if at least one builder is building.)
 			if BP['usedBP_instant'] >= 1 then
@@ -2105,11 +1986,6 @@ function widget:GameFrame(n)
 					if BP['metalSupportedBP'] ~= nil and BP['energySupportedBP'] ~= nil then
 						minSupportedBP = math_min(BP['metalSupportedBP'], BP['energySupportedBP'])
 					end
-
-					-- How much buildpower do we have, beyond what's necessary to keep up with our economy?
-					BP['buildpowerSurplus'] = totalBP - minSupportedBP
-					-- round up to the nearest 10 BP
-					BP['buildpowerSurplus'] = math_ceil(BP['buildpowerSurplus'] / 10) * 10
 				end
 			end
 
@@ -2135,12 +2011,9 @@ function widget:GameFrame(n)
 		stalling['lowPrioEnergy'] = Spring.GetTeamRulesParam(myTeamID, "lowPrioNeededEnergy") + Spring.GetTeamRulesParam(myTeamID, "lowPrioExpenseEnergy")
 		stalling['lowPrioMetal'] = Spring.GetTeamRulesParam(myTeamID, "lowPrioNeededMetal") + Spring.GetTeamRulesParam(myTeamID, "lowPrioExpenseMetal")
 	end 
-	--LogFrame("Finished GameFrame processing")
-	--LogFrame("GameFrame(n)")
 end
 
 local function updateAllyTeamOverflowing()
-	--Log("updateAllyTeamOverflowing()")
 	allyteamOverflowingMetal = false
 	allyteamOverflowingEnergy = false
 	overflowingMetal = false
@@ -2199,7 +2072,6 @@ local function updateAllyTeamOverflowing()
 			allyteamOverflowingMetal = 1
 		end
 	end
-	--Log("end")
 end
 
 local sec = 0
@@ -2249,7 +2121,6 @@ function widget:Update(dt)
 
 	sec = sec + dt
 	if sec > 0.1 then
-		--Log("sec > 0.1")
 		sec = 0
 		r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') }, BP = BP }
 		if not spec and not showQuitscreen then
@@ -2303,12 +2174,10 @@ function widget:Update(dt)
 				end
 			end
 		end
-		--Log("sec > 0.1 end")
 	end
 	
 	sec2 = sec2 + dt
 	if sec2 >= 1 then
-		--Log("sec2 >= 1")
 		sec2 = 0
 		updateResbarText('metal')
 		updateResbarText('energy')
@@ -2316,12 +2185,10 @@ function widget:Update(dt)
 			updateResbarText('BP') 
 		end
 		updateAllyTeamOverflowing()
-		--Log("sec2 >= 1 end")
 	end
 
 	-- wind
 	if gameFrame ~= lastFrame then
-		--Log("wind")
 		currentWind = sformat('%.1f', select(4, spGetWind()))
 	end
 
@@ -2329,7 +2196,6 @@ function widget:Update(dt)
 	if displayComCounter then
 		secComCount = secComCount + dt
 		if secComCount > 0.5 then
-			--Log("secComCount > 0.5")
 			secComCount = 0
 			countComs()
 		end
@@ -2372,7 +2238,6 @@ function widget:drawTidal()
 end
 
 local function drawResBars() --hadles the blinking
-	--Log("drawResBars()")
 	glPushMatrix()
 
 	local updateText = os.clock() - updateTextClock > 0.1
@@ -2454,7 +2319,6 @@ local function drawResBars() --hadles the blinking
 		end
 	end
 	glPopMatrix()
-	--Log("drawResBars() end")
 end
 
 function widget:DrawScreen()
