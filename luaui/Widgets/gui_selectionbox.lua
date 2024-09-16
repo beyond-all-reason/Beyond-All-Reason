@@ -28,7 +28,7 @@ function widget:DrawScreen() -- This blurs the UI elements obscured by other UI 
 		-- selection box background
 		gl.Color(1,1,1,backgroundOpacity)
 		gl.Rect(x1, y1, x2, y2)
-		gl.Color(1,1,1,0.06)
+		gl.Color(1,1,1,0.04)
 		gl.Texture(":n:"..LUAUI_DIRNAME.."Images/vignette.dds")
 		gl.TexRect(x1, y1, x2, y2)
 		gl.Texture(false)
