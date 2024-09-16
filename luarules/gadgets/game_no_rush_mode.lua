@@ -72,6 +72,17 @@ if gadgetHandler:IsSyncedCode() then
 
 		if frame < norushtimer and (not TeamIDsToExclude[unitTeam]) then
 			local _, _, _, _, _, allyTeamID = Spring.GetTeamInfo(unitTeam)
+			if cmdID == CMD.INSERT then
+			  cmdID = cmdParams[2]
+			  local s = #cmdParams == 7 and 4 or 3
+			  local e = #cmdParams
+			  for i = 1, s do
+				cmdParams[i] = cmdParams[i + 3]
+			  end
+			  for i = s + 1, e do
+				cmdParams[i] = nil
+			  end
+			end		
 			if cmdID < 0 then
 				if cmdParams[1] and cmdParams[2] and cmdParams[3] then
 					if not positionCheckLibrary.StartboxCheck(cmdParams[1], cmdParams[2], cmdParams[3], allyTeamID) then
