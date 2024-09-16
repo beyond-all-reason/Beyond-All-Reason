@@ -881,6 +881,7 @@ local function updateResbarText(res)
 	end
 
 	-- Add stalling M/E for any low-priority builders
+
 	if res == 'metal' then
 		r[res][3] = r[res][3] + stalling['lowPrioMetal'] 
 	elseif res == 'energy' then
@@ -1965,9 +1966,13 @@ function widget:GameFrame(n)
 		cacheDataBase[6] = 0
 		cacheDataBase[7] = 0
 	end
+	local lowPrioNeededEnergy = Spring.GetTeamRulesParam(myTeamID, "lowPrioNeededEnergy") 
+	local lowPrioExpenseEnergy = Spring.GetTeamRulesParam(myTeamID, "lowPrioExpenseEnergy")
+	local lowPrioNeededMetal = Spring.GetTeamRulesParam(myTeamID, "lowPrioNeededMetal")
+	local lowPrioExpenseMetal = Spring.GetTeamRulesParam(myTeamID, "lowPrioExpenseMetal")
 	if lowPrioNeededEnergy and lowPrioExpenseEnergy and lowPrioNeededMetal and lowPrioExpenseMetal then
-		stalling['lowPrioEnergy'] = Spring.GetTeamRulesParam(myTeamID, "lowPrioNeededEnergy") + Spring.GetTeamRulesParam(myTeamID, "lowPrioExpenseEnergy")
-		stalling['lowPrioMetal'] = Spring.GetTeamRulesParam(myTeamID, "lowPrioNeededMetal") + Spring.GetTeamRulesParam(myTeamID, "lowPrioExpenseMetal")
+		stalling['lowPrioEnergy'] = lowPrioNeededEnergy + lowPrioExpenseEnergy
+		stalling['lowPrioMetal'] = lowPrioNeededMetal + lowPrioExpenseMetal
 	end 
 end
 
