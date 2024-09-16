@@ -13,12 +13,24 @@ end
 if not gadgetHandler:IsSyncedCode() then return end
 
 --use customparams.fall_damage_multiplier = <number> a multiplier that's applied to defaultDamageMultiplier.
-local fallDamageMagnificationFactor = 14 --the multiplier by which default engine ground/object collision damage is multiplied. change this value to reduce the amount of fall/collision damage taken for all units.
-local objectCollisionVelocityThreshold = 9.1 --this defines how fast a unit has to be moving in order to take object collision damage
-local maxImpulseMultiplier = 6 -- Decrease this value to make units move less from impulse. This defines the maximum impulse allowed, which is (maxImpulseMultiplier * mass) of each unit.
-local velocityCap = 7 --measured in elmos per frame. Any unit hit with an explosion that achieves a velocity greater than this will be slowed until stopped.
-local minImpulseFactor = 0.15 --any weapondef impulseFactor below this is ignored to save performance
-local minImpulseToDamageRatio = 0.2--any impulse to damage ratio below this is ignored to save performance
+
+--the multiplier by which default engine ground/object collision damage is multiplied. change this value to reduce the amount of fall/collision damage taken for all units.
+local fallDamageMagnificationFactor = 14
+
+--this defines how fast a unit has to be moving in order to take object collision damage
+local objectCollisionVelocityThreshold = 9.1 
+
+-- Decrease this value to make units move less from impulse. This defines the maximum impulse allowed, which is (maxImpulseMultiplier * mass) of each unit.
+local maxImpulseMultiplier = 6
+
+--measured in elmos per frame. Any unit hit with an explosion that achieves a velocity greater than this will be slowed until stopped.
+local velocityCap = 7
+
+--any weapondef impulseFactor below this is ignored to save performance
+local minImpulseFactor = 0.15
+
+--any impulse to damage ratio below this is ignored to save performance
+local minImpulseToDamageRatio = 0.2
 
 local groundCollisionDefID = Game.envDamageTypes.GroundCollision
 local objectCollisionDefID = Game.envDamageTypes.ObjectCollision
