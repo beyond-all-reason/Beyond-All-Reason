@@ -141,19 +141,10 @@ function widget:GetConfigData()
 	return config
 end
 
-function nullSafeString(s)
-	if s == nil then
-		return "<nil>"
-	end
-	return tostring(s)
-end
-
 function configHasChanged()
 	local anyChange = false
 	for k, v in pairs(config) do
-		--Spring.Echo("comparing " .. nullSafeString(k) .. " = " .. nullSafeString(v) .. " to " .. nullSafeString(prevConfig[k]))
 		if prevConfig[k] ~= nil and prevConfig[k] ~= v then
-			--Spring.Echo(nullSafeString(k) .. " has changed from " .. nullSafeString(prevConfig[k]) .. " to " .. nullSafeString(v))
 			anyChange = true
 		end
 		prevConfig[k] = v
@@ -1441,150 +1432,148 @@ end
 
 
 local function drawResbarValues(res, updateText) --drawing the bar itself and value of stored res
-	if res ~= 'BP' or config.drawBPBar then
-		local cappedCurRes = r[res][1]    -- limit so when production dies the value wont be much larger than what you can store
-	
-		if r[res][1] > r[res][2] * 1.07 then
-			cappedCurRes = r[res][2] * 1.07
-		end
+    if res ~= 'BP' or config.drawBPBar then	-- only draw BP if wanted
+        local cappedCurRes = r[res][1]    -- limit so when production dies the value wont be much larger than what you can store
+    
+        if r[res][1] > r[res][2] * 1.07 then
+            cappedCurRes = r[res][2] * 1.07
+        end
 
-		local barHeight = resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]
-		local barWidth = resbarDrawinfo[res].barArea[3] - resbarDrawinfo[res].barArea[1]
-		local valueWidth 
-		local additionalWidth = 0  
-		if res == 'BP' and config.drawBPBar == true then -- for bp bar only
-			local totalBP = math_max(1, r[res][4])
-			local reservedBP = math_min(totalBP, r[res][3])
-			local usedBP = math_min(totalBP, r[res][5])
+        local barHeight = resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]
+        local barWidth = resbarDrawinfo[res].barArea[3] - resbarDrawinfo[res].barArea[1]
+        local valueWidth 
+        local additionalWidth = 0
+        if res ~= 'BP' then -- for bp bar only
+            valueWidth = math_floor(((cappedCurRes / r[res][2]) * barWidth))
+        else 
+            local totalBP = math_max(1, r[res][4])
+            local reservedBP = math_min(totalBP, r[res][3])
+            local usedBP = math_min(totalBP, r[res][5])
 
-			valueWidth = math_floor(((usedBP / totalBP) * barWidth))
-			if valueWidth > barWidth then
-				valueWidth = barWidth
-			end
-			-- Show reserved BP as a proportion of total BP
-			additionalWidth = math_floor((reservedBP / totalBP) * barWidth) - valueWidth
-			if additionalWidth < math_ceil(barHeight * 0.2) or math_ceil(barHeight * 0.2) > barWidth then
-				additionalWidth = 0
-			end
-		else 
-			valueWidth = math_floor(((cappedCurRes / r[res][2]) * barWidth))
-		end
+            valueWidth = math_floor(((usedBP / totalBP) * barWidth))
+            if valueWidth > barWidth then
+                valueWidth = barWidth
+            end
+            -- Show reserved BP as a proportion of total BP
+            additionalWidth = math_floor((reservedBP / totalBP) * barWidth) - valueWidth
+            if additionalWidth < math_ceil(barHeight * 0.2) or math_ceil(barHeight * 0.2) > barWidth then
+                additionalWidth = 0
+            end
+        end
 
-		if valueWidth < math_ceil(barHeight * 0.2) or r[res][2] == 0 then
-			valueWidth = math_ceil(barHeight * 0.2)
-		end
-		local uniqueKey = valueWidth * 10000 + additionalWidth -- for bp bar only
-		if not dlistResValuesBar[res][uniqueKey] then
-			dlistResValuesBar[res][uniqueKey] = glCreateList(function()
-				local glowSize = (resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]) * 7
-				local color1, color2, glowAlpha
-				if res == 'metal' then
-					color1 = { 0.51, 0.51, 0.5, 1 }
-					color2 = { 0.95, 0.95, 0.95, 1 }
-					glowAlpha = 0.025 + (0.05 * math_min(1, cappedCurRes / r[res][2] * 40))
-				elseif res == 'energy' then
-					color1 = { 0.5, 0.45, 0, 1 }
-					color2 = { 0.8, 0.75, 0, 1 }
-					glowAlpha = 0.035 + (0.07 * math_min(1, cappedCurRes / r[res][2] * 40))
-				elseif config.drawBPBar == true then -- for bp bar only
-					color1 = { 0.2, 0.65, 0, 1 }
-					color2 = { 0.5, 0.75, 0, 1 }
-					glowAlpha = 0.035 + (0.06 * math_min(1, cappedCurRes / r[res][2] * 40))
-				end
-				RectRound(resbarDrawinfo[res].barArea[1], resbarDrawinfo[res].barArea[2], resbarDrawinfo[res].barArea[1] + valueWidth, resbarDrawinfo[res].barArea[4], barHeight * 0.2, 1, 1, 1, 1, color1, color2)
+        if valueWidth < math_ceil(barHeight * 0.2) or r[res][2] == 0 then
+            valueWidth = math_ceil(barHeight * 0.2)
+        end
 
-				local borderSize = 1
-				RectRound(resbarDrawinfo[res].barArea[1]+borderSize, resbarDrawinfo[res].barArea[2]+borderSize, resbarDrawinfo[res].barArea[1] + valueWidth-borderSize, resbarDrawinfo[res].barArea[4]-borderSize, barHeight * 0.2, 1, 1, 1, 1, { 0, 0, 0, 0.1 }, { 0, 0, 0, 0.17 })
+        local uniqueKey = string.format("%d_%d", valueWidth, additionalWidth) -- string-based uniqueKey
+        if not dlistResValuesBar[res][uniqueKey] then
+            dlistResValuesBar[res][uniqueKey] = glCreateList(function()
+                local glowSize = (resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]) * 7
+                local color1, color2, glowAlpha
+                if res == 'metal' then
+                    color1 = { 0.51, 0.51, 0.5, 1 }
+                    color2 = { 0.95, 0.95, 0.95, 1 }
+                    glowAlpha = 0.025 + (0.05 * math_min(1, cappedCurRes / r[res][2] * 40))
+                elseif res == 'energy' then
+                    color1 = { 0.5, 0.45, 0, 1 }
+                    color2 = { 0.8, 0.75, 0, 1 }
+                    glowAlpha = 0.035 + (0.07 * math_min(1, cappedCurRes / r[res][2] * 40))
+                elseif res == 'BP' then -- Keine zusätzliche Bedingung nötig
+                    color1 = { 0.2, 0.65, 0, 1 }
+                    color2 = { 0.5, 0.75, 0, 1 }
+                    glowAlpha = 0.035 + (0.06 * math_min(1, cappedCurRes / r[res][2] * 40))
+                end
+                RectRound(resbarDrawinfo[res].barArea[1], resbarDrawinfo[res].barArea[2], resbarDrawinfo[res].barArea[1] + valueWidth, resbarDrawinfo[res].barArea[4], barHeight * 0.2, 1, 1, 1, 1, color1, color2)
 
-				-- Bar value glow
-				glBlending(GL_SRC_ALPHA, GL_ONE)
-				glColor(resbarDrawinfo[res].barColor[1], resbarDrawinfo[res].barColor[2], resbarDrawinfo[res].barColor[3], glowAlpha)
-				glTexture(barGlowCenterTexture)
-				DrawRect(resbarDrawinfo[res].barGlowMiddleTexRect[1], resbarDrawinfo[res].barGlowMiddleTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth, resbarDrawinfo[res].barGlowMiddleTexRect[4], 0.008)
-				glTexture(barGlowEdgeTexture)
-				DrawRect(resbarDrawinfo[res].barGlowLeftTexRect[1], resbarDrawinfo[res].barGlowLeftTexRect[2], resbarDrawinfo[res].barGlowLeftTexRect[3], resbarDrawinfo[res].barGlowLeftTexRect[4], 0.008)
-				DrawRect((resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth) + (glowSize * 3), resbarDrawinfo[res].barGlowRightTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth, resbarDrawinfo[res].barGlowRightTexRect[4], 0.008)
-				glTexture(false)
+                local borderSize = 1
+                RectRound(resbarDrawinfo[res].barArea[1]+borderSize, resbarDrawinfo[res].barArea[2]+borderSize, resbarDrawinfo[res].barArea[1] + valueWidth-borderSize, resbarDrawinfo[res].barArea[4]-borderSize, barHeight * 0.2, 1, 1, 1, 1, { 0, 0, 0, 0.1 }, { 0, 0, 0, 0.17 })
 
-				if res == 'BP' and config.drawBPBar then -- for bp bar only
-					local color1Secondary = { 0.1, 0.55, 0, 0.5 } 
-					local color2Secondary = { 0.3, 0.65, 0, 0.5 }
-					RectRound(resbarDrawinfo[res].barArea[1], resbarDrawinfo[res].barArea[2], resbarDrawinfo[res].barArea[1] + valueWidth + additionalWidth, resbarDrawinfo[res].barArea[4], barHeight * 0.2, 1, 1, 1, 1, color1Secondary, color2Secondary)
-				end
+                -- Bar value glow
+                glBlending(GL_SRC_ALPHA, GL_ONE)
+                glColor(resbarDrawinfo[res].barColor[1], resbarDrawinfo[res].barColor[2], resbarDrawinfo[res].barColor[3], glowAlpha)
+                glTexture(barGlowCenterTexture)
+                DrawRect(resbarDrawinfo[res].barGlowMiddleTexRect[1], resbarDrawinfo[res].barGlowMiddleTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth, resbarDrawinfo[res].barGlowMiddleTexRect[4], 0.008)
+                glTexture(barGlowEdgeTexture)
+                DrawRect(resbarDrawinfo[res].barGlowLeftTexRect[1], resbarDrawinfo[res].barGlowLeftTexRect[2], resbarDrawinfo[res].barGlowLeftTexRect[3], resbarDrawinfo[res].barGlowLeftTexRect[4], 0.008)
+                DrawRect((resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth) + (glowSize * 3), resbarDrawinfo[res].barGlowRightTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth, resbarDrawinfo[res].barGlowRightTexRect[4], 0.008)
+                glTexture(false)
 
-				if res == 'metal' then
-					-- noise
-					gl.Texture(noiseBackgroundTexture)
-					gl.Color(1, 1, 1, 0.37)
-					TexturedRectRound(resbarDrawinfo[res].barArea[1], resbarDrawinfo[res].barArea[2], resbarDrawinfo[res].barArea[1] + valueWidth, resbarDrawinfo[res].barArea[4], barHeight * 0.2, 1, 1, 1, 1, barWidth * 0.33, 0)
-					gl.Texture(false)
-				end
+                if res == 'BP' then
+                    local color1Secondary = { 0.1, 0.55, 0, 0.5 } 
+                    local color2Secondary = { 0.3, 0.65, 0, 0.5 }
+                    RectRound(resbarDrawinfo[res].barArea[1], resbarDrawinfo[res].barArea[2], resbarDrawinfo[res].barArea[1] + valueWidth + additionalWidth, resbarDrawinfo[res].barArea[4], barHeight * 0.2, 1, 1, 1, 1, color1Secondary, color2Secondary)
+                end
 
-				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-			end)
+                if res == 'metal' then
+                    -- noise
+                    gl.Texture(noiseBackgroundTexture)
+                    gl.Color(1, 1, 1, 0.37)
+                    TexturedRectRound(resbarDrawinfo[res].barArea[1], resbarDrawinfo[res].barArea[2], resbarDrawinfo[res].barArea[1] + valueWidth, resbarDrawinfo[res].barArea[4], barHeight * 0.2, 1, 1, 1, 1, barWidth * 0.33, 0)
+                    gl.Texture(false)
+                end
 
-		end
-		glCallList(dlistResValuesBar[res][uniqueKey]) --uniqueKey for bp bar only
+                glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+            end)
+        end
+        glCallList(dlistResValuesBar[res][uniqueKey]) --uniqueKey for bp bar
 
-		if res == 'energy' or (res == 'BP' and config.drawBPBar) then --  or... is for bp bar only
-			-- energy flow effect
-			gl.Color(1, 1, 1, 0.33)
-			glBlending(GL_SRC_ALPHA, GL_ONE)
-			glTexture("LuaUI/Images/paralyzed.png")
-			TexturedRectRound(resbarDrawinfo[res].barArea[1], resbarDrawinfo[res].barArea[2], resbarDrawinfo[res].barArea[1] + valueWidth, resbarDrawinfo[res].barArea[4], barHeight * 0.2, 0, 0, 1, 1, barWidth/0.5, -os.clock()/80)
-			TexturedRectRound(resbarDrawinfo[res].barArea[1], resbarDrawinfo[res].barArea[2], resbarDrawinfo[res].barArea[1] + valueWidth, resbarDrawinfo[res].barArea[4], barHeight * 0.2, 0, 0, 1, 1, barWidth/0.33, os.clock()/70)
-			TexturedRectRound(resbarDrawinfo[res].barArea[1], resbarDrawinfo[res].barArea[2], resbarDrawinfo[res].barArea[1] + valueWidth, resbarDrawinfo[res].barArea[4], barHeight * 0.2, 0, 0, 1, 1, barWidth/0.45, -os.clock()/55)
-			glTexture(false)
+        if res == 'energy' or res == 'BP' then
+            -- energy flow effect
+            gl.Color(1, 1, 1, 0.33)
+            glBlending(GL_SRC_ALPHA, GL_ONE)
+            glTexture("LuaUI/Images/paralyzed.png")
+            TexturedRectRound(resbarDrawinfo[res].barArea[1], resbarDrawinfo[res].barArea[2], resbarDrawinfo[res].barArea[1] + valueWidth, resbarDrawinfo[res].barArea[4], barHeight * 0.2, 0, 0, 1, 1, barWidth/0.5, -os.clock()/80)
+            TexturedRectRound(resbarDrawinfo[res].barArea[1], resbarDrawinfo[res].barArea[2], resbarDrawinfo[res].barArea[1] + valueWidth, resbarDrawinfo[res].barArea[4], barHeight * 0.2, 0, 0, 1, 1, barWidth/0.33, os.clock()/70)
+            TexturedRectRound(resbarDrawinfo[res].barArea[1], resbarDrawinfo[res].barArea[2], resbarDrawinfo[res].barArea[1] + valueWidth, resbarDrawinfo[res].barArea[4], barHeight * 0.2, 0, 0, 1, 1, barWidth/0.45, -os.clock()/55)
+            glTexture(false)
 
-			-- colorize a bit more (with added size)
-			local addedSize = math_floor(((resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]) * 0.15) + 0.5)
-			gl.Color(1, 1, 0, 0.14)
-			RectRound(resbarDrawinfo[res].barArea[1]-addedSize, resbarDrawinfo[res].barArea[2]-addedSize, resbarDrawinfo[res].barArea[1] + valueWidth + addedSize, resbarDrawinfo[res].barArea[4] + addedSize, barHeight * 0.33)
-			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-		end
-		if updateText then
-			currentResValue[res] = short(cappedCurRes)
-			if not dlistResValues[res][currentResValue[res]] then
+            -- colorize a bit more (with added size)
+            local addedSize = math_floor(((resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]) * 0.15) + 0.5)
+            gl.Color(1, 1, 0, 0.14)
+            RectRound(resbarDrawinfo[res].barArea[1]-addedSize, resbarDrawinfo[res].barArea[2]-addedSize, resbarDrawinfo[res].barArea[1] + valueWidth + addedSize, resbarDrawinfo[res].barArea[4] + addedSize, barHeight * 0.33)
+            glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        end
 
-				local bpCurrentColor = { 0.7,  0.7,  0.7,  1.0 }
-				local bpCurrentText = nil
-				local suffix = ""
+        if updateText then
+            currentResValue[res] = short(cappedCurRes)
+            if not dlistResValues[res][currentResValue[res]] then
 
-				if res == 'BP' and config.drawBPBar == true then
-					currentResValue[res] = ""
-					if BP[4] > 0 then
-						currentResValue[res] = math_min(100, math_round(BP[5] * 100 / BP[4]))
-						if     currentResValue[res] < 40 then bpCurrentColor = { 0.82, 0.39, 0.39, 1.0 } --Red
-						elseif currentResValue[res] < 60 then bpCurrentColor = { 1.0,  0.39, 0.39, 1.0 } --Orange
-						elseif currentResValue[res] < 80 then bpCurrentColor = { 1.0,  1.0,  0.39, 1.0 } --Yellow
-						else                                  bpCurrentColor = { 0.47, 0.92, 0.47, 1.0 } --Green
-						end
-						suffix = "%"
-					end
-				end
-				dlistResValues[res][currentResValue[res]] = glCreateList(function()
-					-- Text: current
-					font2:Begin()
-					if res == 'metal' then
-						font2:SetTextColor(0.95, 0.95, 0.95, 1)
-					elseif  res == 'energy' then
-						font2:SetTextColor(1, 1, 0.74, 1)
-					elseif config.drawBPBar then  -- for bp bar only
-						font2:SetTextColor(bpCurrentColor[1], bpCurrentColor[2], bpCurrentColor[3], bpCurrentColor[4])
-					end
-					-- Text: current
-					font2:SetOutlineColor(0, 0, 0, 1)
-					font2:Print(currentResValue[res] .. suffix, resbarDrawinfo[res].textCurrent[2], resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[4], resbarDrawinfo[res].textCurrent[5])
-					font2:End()
-				end)
-			end
-		end
-		if res ~= 'BP' or config.drawBPBar == true then
-			if dlistResValues[res][currentResValue[res]] then
-				glCallList(dlistResValues[res][currentResValue[res]])
-			end
-		end
-	end
+                local bpCurrentColor = { 0.7,  0.7,  0.7,  1.0 }
+                local bpCurrentText = nil
+                local suffix = ""
+
+                if res == 'BP' then
+                    currentResValue[res] = ""
+                    if BP[4] > 0 then
+                        currentResValue[res] = math_min(100, math_round(BP[5] * 100 / BP[4]))
+                        if     currentResValue[res] < 40 then bpCurrentColor = { 0.82, 0.39, 0.39, 1.0 } --Red
+                        elseif currentResValue[res] < 60 then bpCurrentColor = { 1.0,  0.39, 0.39, 1.0 } --Orange
+                        elseif currentResValue[res] < 80 then bpCurrentColor = { 1.0,  1.0,  0.39, 1.0 } --Yellow
+                        else                                  bpCurrentColor = { 0.47, 0.92, 0.47, 1.0 } --Green
+                        end
+                        suffix = "%"
+                    end
+                end
+                dlistResValues[res][currentResValue[res]] = glCreateList(function()
+                    font2:Begin()
+                    if res == 'metal' then
+                        font2:SetTextColor(0.95, 0.95, 0.95, 1)
+                    elseif  res == 'energy' then
+                        font2:SetTextColor(1, 1, 0.74, 1)
+                    elseif res == 'BP' then
+                        font2:SetTextColor(bpCurrentColor[1], bpCurrentColor[2], bpCurrentColor[3], bpCurrentColor[4])
+                    end
+                    font2:SetOutlineColor(0, 0, 0, 1)
+                    font2:Print(currentResValue[res] .. suffix, resbarDrawinfo[res].textCurrent[2], resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[4], resbarDrawinfo[res].textCurrent[5])
+                    font2:End()
+                end)
+            end
+        end
+
+        if dlistResValues[res][currentResValue[res]] then
+            glCallList(dlistResValues[res][currentResValue[res]])
+        end
+    end
 end
 
 function init()
@@ -1960,7 +1949,6 @@ function widget:GameFrame(n)
 					BP['metalSupportedBP'] = metalIncome / BP['metalExpenseIfAllBPUsed'] * totalBP
 					minSupportedBP = BP['metalSupportedBP']
 					bpRatioSupportedByMIncome = math_max(0, math_min(BP['metalSupportedBP'] / totalBP, 1))
-					--Spring.Echo("bpRatioSupportedByMIncome" ..bpRatioSupportedByMIncome)
 				end
 
 				if BP['energyExpensePerBP'] > 0 then
@@ -3093,7 +3081,6 @@ function findBPCommand(unitID, unitDefID, cmdList) -- for bp bar only most likel
 					if commands[i].id < 0 and not builtUnitDefID then
 						-- We're building something. A negative ID is the unitdef ID of what's being built.
 						builtUnitDefID = -commands[i].id
-						--Spring.Echo("unit " .. unitID .. " is building unitdef " .. builtUnitDefID)
 					elseif commands[i].id == CMD.GUARD then
 						mayBeBuilding = true -- building can be caused by a guard command
 						guardedUnitID = commands[i].params[1]
