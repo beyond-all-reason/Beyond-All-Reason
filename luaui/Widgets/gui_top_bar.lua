@@ -252,7 +252,6 @@ cacheDataBase['usedBP_instant'] = 0																						--formaly [3]
 cacheDataBase['reservedBP_instant'] = 0																					--formaly [5]
 cacheDataBase['usedBPMetalExpense'] = 0  																				-- BeHe
 cacheDataBase['usedBPEnergyExpense'] = 0 																				-- BeHe
-cacheDataBase['usedBPExceptStalled'] = 0 																				-- BeHe
 
 
 local unitsPerFrame = 30 --limit processed units per frame to improve performance
@@ -1727,9 +1726,8 @@ function widget:GameFrame(n)
 		local usedBPMetalExpense = 0
 		local usedBPEnergyExpense = 0
 		local buildingBP = 0 -- how much BP is actively building, regardless of how stalled it is?
-		local nonStalledBuildingBP = 0 -- how much BP is actively building and not stalled?
 
-		--local unitDefsBeingBuilt = {}
+
 		--Spring.Echo("Starting trackedBuilders loop")
 
 		if not builderCoroutine or coroutine.status(builderCoroutine) == "dead" then -- init builderCoroutine
@@ -1746,7 +1744,7 @@ function widget:GameFrame(n)
 				break
 			end
 			local currentUnitBP, unitIsBuilt, unitDefID, unitTeamID = unpack(currentlyInspectedBuilder)
-			local unitExists, foundActivity, firstTime, builtUnitDefID = findBPCommand(unitID, unitDefID, {CMD.REPAIR, CMD.RECLAIM, CMD.CAPTURE, CMD.GUARD})
+			local unitExists, foundActivity, firstTime = findBPCommand(unitID, unitDefID, {CMD.REPAIR, CMD.RECLAIM, CMD.CAPTURE, CMD.GUARD})
 			--Spring.Echo("Unit exists: " .. tostring(unitExists) .. ", foundActivity: " .. tostring(foundActivity) ..", firstTime: " .. tostring(firstTime) .. ", builtUnitDefID: " .. tostring(builtUnitDefID))
 
 			if not unitExists then
@@ -1757,26 +1755,25 @@ function widget:GameFrame(n)
 			elseif foundActivity then
 				cacheTotalReservedBP = cacheTotalReservedBP + currentUnitBP
 				if firstTime == 1 then  -- it could use resources
-					local _, currentlyUsedM, _, currentlyUsedE = spGetUnitResources(unitID)
-					usedBPMetalExpense = usedBPMetalExpense + currentlyUsedM
-					usedBPEnergyExpense = usedBPEnergyExpense + currentlyUsedE -- A builder may be cloaked, but not while it's building
-					currentlyUsedBP = currentlyUsedM / unitCostData[builtUnitDefID].MperBP -- everything costs at least 1 metal;  "currentlyUsedBP = (Spring.GetUnitCurrentBuildPower(unitID) or 0) * currentUnitBP"  does not work
-					--stallingBP = stallingBP + currentUnitBP - currentlyUsedBP  if needed
-					--if currentlyUsedBP and currentlyUsedBP >= 0 then
-					cacheTotallyUsedBP = cacheTotallyUsedBP + currentlyUsedBP
-					--end
+					local builtUnitID = spGetUnitIsBuilding(unitID)
+					if builtUnitID then -- is it in place?
+						local builtUnitDefID = spGetUnitDefID(builtUnitID)
+						local _, currentlyUsedM, _, currentlyUsedE = spGetUnitResources(unitID)
+						usedBPMetalExpense = usedBPMetalExpense + currentlyUsedM
+						usedBPEnergyExpense = usedBPEnergyExpense + currentlyUsedE -- A builder may be cloaked, but not while it's building
+						local currentlyUsedBP = currentlyUsedM / unitCostData[builtUnitDefID].MperBP -- everything costs at least 1 metal;  "currentlyUsedBP = (Spring.GetUnitCurrentBuildPower(unitID) or 0) * currentUnitBP"  does not work
+						--"stallingBP = stallingBP + currentUnitBP - currentlyUsedBP"  could be added if needed
+						cacheTotallyUsedBP = cacheTotallyUsedBP + currentlyUsedBP
+					end
 				end
 			end
 		end
-		----Spring.Echo("Finished trackedBuilders loop")
-		--cacheTotalReservedBP = cacheTotalReservedBP + unitReservedBP
 		cacheDataBase['reservedBP_instant'] = cacheDataBase['reservedBP_instant'] + cacheTotalReservedBP
 		cacheDataBase['usedBP_instant'] = cacheDataBase['usedBP_instant'] + cacheTotallyUsedBP
 
 		-- How much metal and energy are builders pulling? (This number will drop when they become resource-stalled, perhaps due to being low-priority.)
 		cacheDataBase['usedBPMetalExpense'] = cacheDataBase['usedBPMetalExpense'] + usedBPMetalExpense
 		cacheDataBase['usedBPEnergyExpense'] = cacheDataBase['usedBPEnergyExpense'] + usedBPEnergyExpense
-		cacheDataBase['usedBPExceptStalled'] = cacheDataBase['usedBPExceptStalled'] + nonStalledBuildingBP
 
 		if config.drawBPWindRangeIndicators then
 			local realWindStrength = 0
@@ -1801,7 +1798,6 @@ function widget:GameFrame(n)
 			BP['realWindStrength_instant'] = cacheDataBase['realWindStrength']
 			BP['usedBPMetalExpense'] = cacheDataBase['usedBPMetalExpense']
 			BP['usedBPEnergyExpense'] = cacheDataBase['usedBPEnergyExpense']
-			BP['usedBPExceptStalled'] = cacheDataBase['usedBPExceptStalled']
 
 			BP[3] = math_floor(addValueAndGetWeightedAverage(BP['history_reservedBP'], BP['reservedBP_instant'], 1) + 0.5)
 			BP[5] = math_floor(addValueAndGetWeightedAverage(BP['history_usedBP'], BP['usedBP_instant'], 1) + 0.5)
@@ -1822,17 +1818,9 @@ function widget:GameFrame(n)
 
 				local totalBP = BP[4]
 
-				local m_per_bp = 0
-				if BP['metalExpensePerBP'] ~= nil then
-					m_per_bp = BP['metalExpensePerBP']
-				end
-				local e_per_bp = 0
-				if BP['energyExpensePerBP'] ~= nil then
-					e_per_bp = BP['energyExpensePerBP']
-				end
 				-- How much metal and energy are we spending _not_ due to builders?
-				local metalExpenseMinusBuilders_instant  = metalExpense - BP['usedBP_instant'] * m_per_bp
-				local energyExpenseMinusBuilders_instant = energyExpense - BP['usedBP_instant'] * e_per_bp
+				local metalExpenseMinusBuilders_instant  = metalExpense - BP['usedBPMetalExpense']
+				local energyExpenseMinusBuilders_instant = energyExpense - BP['usedBPEnergyExpense']
 
 				-- TODO: How to handle metal-makers? They're a non-builder energy expense that will be turned off before we actually E-stall.
 				-- We should consider a range of metal-supported BP just like we do for wind energy.
@@ -1849,19 +1837,13 @@ function widget:GameFrame(n)
 
 				BP['metalSupportedBP'] = nil
 				BP['energySupportedBP'] = nil
-				local minSupportedBP = 0
 
-				if BP['metalExpensePerBP'] > 0 then
-					BP['metalSupportedBP'] = metalIncome / BP['metalExpenseIfAllBPUsed'] * totalBP
-					minSupportedBP = BP['metalSupportedBP']
-					bpRatioSupportedByMIncome = math_max(0, math_min(BP['metalSupportedBP'] / totalBP, 1))
-				end
-
+				BP['metalSupportedBP'] = metalIncome / BP['metalExpenseIfAllBPUsed'] * totalBP
+				bpRatioSupportedByMIncome = math_max(0, math_min(BP['metalSupportedBP'] / totalBP, 1))
+				
 				if BP['energyExpensePerBP'] > 0 then
 					BP['energySupportedBP'] = energyIncome / BP['energyExpenseIfAllBPUsed'] * totalBP --ql
-					minSupportedBP = BP['energySupportedBP']
 					bpRatioSupportedByEIncome = math_max(0, math_min(BP['energySupportedBP'] / totalBP, 1))
-
 
 					if config.drawBPWindRangeIndicators then
 						eSupportedBP_minWind = (BP['energyIncomeNoWind'] - energyExpenseMinusBuilders) / BP['energyExpensePerBP']
@@ -1873,12 +1855,6 @@ function widget:GameFrame(n)
 
 						BP['eSliderPosition_minWind'] = addValueAndGetWeightedAverage(BP['history_eSliderPosition_minWind'], bpRatioSupportedByEIncome_minWind, BP['usedBP_instant'])
 						BP['eSliderPosition_maxWind'] = addValueAndGetWeightedAverage(BP['history_eSliderPosition_maxWind'], bpRatioSupportedByEIncome_maxWind, BP['usedBP_instant'])
-					end
-				end
-
-				if BP['metalSupportedBP'] ~= nil or BP['energySupportedBP'] ~= nil then
-					if BP['metalSupportedBP'] ~= nil and BP['energySupportedBP'] ~= nil then
-						minSupportedBP = math_min(BP['metalSupportedBP'], BP['energySupportedBP'])
 					end
 				end
 			end
@@ -1893,7 +1869,6 @@ function widget:GameFrame(n)
 			cacheDataBase['realWindStrength'] = 0
 			cacheDataBase['usedBPMetalExpense'] = 0
 			cacheDataBase['usedBPEnergyExpense'] = 0
-			cacheDataBase['usedBPExceptStalled'] = 0
 
 		end
 	end
@@ -2965,7 +2940,6 @@ function findBPCommand(unitID, unitDefID, cmdList)
 	local unitExists = false
 	local activityFound = nil
 	local firstTime = nil
-	local builtUnitDefID = nil
 	local unitDef = UnitDefs[unitDefID]
 	if UnitDefs[unitDefID].isFactory then
 		commands = Spring.GetFactoryCommands(unitID, 1)
@@ -2977,23 +2951,21 @@ function findBPCommand(unitID, unitDefID, cmdList)
 	end
 	if unitDef.isFactory == true then
 		if #commands > 0 then
-			firstTime = i
+			firstTime = 1
 			activityFound = true
+			return unitExists, activityFound, firstTime
 		end
 	end
 	for i = 1, #commands do
 		for _, relevantCMD in ipairs(cmdList) do
-			if commands[i].id == relevantCMD then
+			if commands[i].id == relevantCMD or commands[i].id < 0 then
 				firstTime = i
 				activityFound = true
-			elseif commands[i].id < 0 then
-				firstTime = i
-				activityFound = true
-				builtUnitDefID = -commands[i].id
+			return unitExists, activityFound, firstTime
 			end
 		end
 	end
-	return unitExists, activityFound, firstTime, builtUnitDefID
+	return unitExists, activityFound, firstTime
 end
 
 function TrackUnit(unitID, unitDefID, unitTeam) --needed for exact calculations
