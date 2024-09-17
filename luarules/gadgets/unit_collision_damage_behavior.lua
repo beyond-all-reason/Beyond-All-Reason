@@ -152,8 +152,7 @@ function gadget:GameFrame(frame)
 				velX = (velocityCap / velocityLength) * velX
 				velY = (velocityCap / velocityLength) * velY
 				velZ = (velocityCap / velocityLength) * velZ
-			end
-			if velocityLength > velocitySlowdownThreshold then
+			elseif velocityLength > velocitySlowdownThreshold then
 				local decelerateHorizontal = 0.75
 				local decelerateVertical
 				if velY < 0 then
