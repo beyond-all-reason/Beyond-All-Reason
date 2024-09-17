@@ -209,7 +209,6 @@ function addValueAndGetWeightedAverage(t, newValue, newWeight)
 	return t.sum_vw / t.sum_w
 end
 
-
 -- stores the date that is used for the res calc and BP bar
 local BP = {0, 1, 0, 0, 0} -- BP[2] = 1 to make sure the bar gets drawn propperly because r[res][2] = 0 -> no bar
 
@@ -217,14 +216,8 @@ local BP = {0, 1, 0, 0, 0} -- BP[2] = 1 to make sure the bar gets drawn propperl
 --BP[1] = BP['empty1']
 --BP[2] ^= BP['totalMetalCostOfBuilders']
 --BP[3] ^= avgTotalReservedBP
---BP[4] ^= BP['totalAvailableBP']																						--BeHe
---BP[5] ^= BP['avgTotalUsedBP']																							--BeHe
-
-
--- Used to store recent positions of the M/E-supported sliders on the BP bar so they can be moved more smoothly.
---r['energy'][4] = 0 -- wird zumindest für wind verwendet ql
---r['metal'][4] = 0 -- wird zumindest für wind verwendet ql
---BP['energyExpense'] = 0 -- wird zumindest für wind verwendet ql
+--BP[4] ^= BP['totalAvailableBP']																						--BeHe?
+--BP[5] ^= BP['avgTotalUsedBP']																							--BeHe?
 
 -- Lists of recent datapoints, used for smoothing. The first element is the number of datapoints to keep, the second is the datapoints themselves.
 BP['history_usedBP'] = initWeightedAverage(30) -- used to calculate the average used BP
@@ -239,10 +232,8 @@ BP['history_eSliderPosition_minWind'] = initWeightedAverage(30) -- if wind is at
 BP['history_eSliderPosition_maxWind'] = initWeightedAverage(30) -- if wind is at its maximum?
 BP['history_eIncomeNoWind'] = initWeightedAverage(30) -- how much energy income is from non-wind sources?
 
-BP['reservedBP_instant'] = 0 -- it's basically cacheDataBase['reservedBP_instant']  only for reading purposes ql							-- BeHe
-BP['usedBP_instant'] = 0 -- it's basically cacheDataBase['usedBP_instant'] only for reading purposes ql								-- BeHe
-
-
+BP['reservedBP_instant'] = 0
+BP['usedBP_instant'] = 0
 
 ------------------------ performance saving  --------------------------------
 --go through the orders of units to calculate reserved BP
@@ -250,17 +241,14 @@ local builderCoroutine
 local cacheDataBase = {} -- used for coroutine
 cacheDataBase['usedBP_instant'] = 0																						--formaly [3]
 cacheDataBase['reservedBP_instant'] = 0																					--formaly [5]
-cacheDataBase['usedBPMetalExpense'] = 0  																				-- BeHe
-cacheDataBase['usedBPEnergyExpense'] = 0 																				-- BeHe
-
+cacheDataBase['usedBPMetalExpense'] = 0
+cacheDataBase['usedBPEnergyExpense'] = 0
+cacheDataBase['realWindStrength'] = 0
 
 local unitsPerFrame = 30 --limit processed units per frame to improve performance
 local trackedNum = 0
 
-
-
 ---------------------------  tracking  --------------------------
-
 
 local trackedBuilders = {} -- stores units of the player and their BP
 
@@ -1709,8 +1697,6 @@ function widget:GameStart()
 	init()
 end
 
-
-
 function widget:GameFrame(n)
 	spec = spGetSpectatingState()
 
@@ -1791,52 +1777,46 @@ function widget:GameFrame(n)
 		if not builderCoroutine or coroutine.status(builderCoroutine) == "dead" then	-- If every builder was checked store it in BP
 			BP['reservedBP_instant'] = cacheDataBase['reservedBP_instant']
 			BP['usedBP_instant'] = cacheDataBase['usedBP_instant']
-			local metalIncome = r['metal'][4]
-			local metalExpense = r['metal'][5]
-			local energyIncome = r['energy'][4]
-			local energyExpense = r['energy'][5]
-			BP['realWindStrength_instant'] = cacheDataBase['realWindStrength']
-			BP['usedBPMetalExpense'] = cacheDataBase['usedBPMetalExpense']
+			BP['usedBPMetalExpense'] = cacheDataBase['usedBPMetalExpense']  --xxx extern for tooltip only
 			BP['usedBPEnergyExpense'] = cacheDataBase['usedBPEnergyExpense']
 
 			BP[3] = math_floor(addValueAndGetWeightedAverage(BP['history_reservedBP'], BP['reservedBP_instant'], 1) + 0.5)
 			BP[5] = math_floor(addValueAndGetWeightedAverage(BP['history_usedBP'], BP['usedBP_instant'], 1) + 0.5)
+			
+			local metalIncome = r['metal'][4]
+			local energyIncome = r['energy'][4]
 
 			if config.drawBPWindRangeIndicators then
-				BP['realWindStrength_instant'] = cacheDataBase['realWindStrength']
-				BP['energyIncomeNoWind'] = addValueAndGetWeightedAverage(BP['history_eIncomeNoWind'], energyIncome - numWindGenerators * BP['realWindStrength_instant'], 1)
+				local realWindStrength_instant = cacheDataBase['realWindStrength']
+				BP['energyIncomeNoWind'] = addValueAndGetWeightedAverage(BP['history_eIncomeNoWind'], energyIncome - numWindGenerators * realWindStrength_instant, 1)
 			end
+
 			-- Assume our eco supports full BP until we calculate otherwise.
-			-- This assumption only matters if we have no active builders _or_ our builders are
-			-- spending metal OR energy but not both (e.g., building basic solar collectors).
 			local bpRatioSupportedByMIncome = 1 -- what proportion of our total BP can be supported by our metal income?
 			local bpRatioSupportedByEIncome = 1 -- what proportion of our total BP can be supported by our energy income?
 
-			-- What if all builders were active and pulled metal and energy in the same proportions as current builders?
-			-- (We can only calculate this if at least one builder is building.)
-			if BP['usedBP_instant'] >= 1 then
-
+			if BP['usedBP_instant'] >= 1 then		-- We only need to calculate this if at least one builder is building.
 				local totalBP = BP[4]
-
-				-- How much metal and energy are we spending _not_ due to builders?
-				local metalExpenseMinusBuilders_instant  = metalExpense - BP['usedBPMetalExpense']
-				local energyExpenseMinusBuilders_instant = energyExpense - BP['usedBPEnergyExpense']
-
-				-- TODO: How to handle metal-makers? They're a non-builder energy expense that will be turned off before we actually E-stall.
-				-- We should consider a range of metal-supported BP just like we do for wind energy.
-
-				local metalExpenseMinusBuilders = addValueAndGetWeightedAverage(BP['history_nonBuilderMetalExpense'], metalExpenseMinusBuilders_instant, 1)
-				local energyExpenseMinusBuilders = addValueAndGetWeightedAverage(BP['history_nonBuilderEnergyExpense'], energyExpenseMinusBuilders_instant, 1)
-				BP['nonBPMetalExpense'] = metalExpenseMinusBuilders
-				BP['nonBPEnergyExpense'] = energyExpenseMinusBuilders
+				local energyExpense = r['energy'][5]
+				local metalExpense = r['metal'][5]
 
 				BP['metalExpensePerBP'] = BP['usedBPMetalExpense'] / BP['usedBP_instant']
 				BP['energyExpensePerBP'] = BP['usedBPEnergyExpense'] / BP['usedBP_instant']
+
+				local metalExpenseMinusBuilders_instant  = metalExpense - BP['usedBPMetalExpense']
+				local energyExpenseMinusBuilders_instant = energyExpense - BP['usedBPEnergyExpense']
+
+				local metalExpenseMinusBuilders = addValueAndGetWeightedAverage(BP['history_nonBuilderMetalExpense'], metalExpenseMinusBuilders_instant, 1)
+				local energyExpenseMinusBuilders = addValueAndGetWeightedAverage(BP['history_nonBuilderEnergyExpense'], energyExpenseMinusBuilders_instant, 1)
+
+				BP['nonBPMetalExpense'] = metalExpenseMinusBuilders
+				BP['nonBPEnergyExpense'] = energyExpenseMinusBuilders
+
 				BP['metalExpenseIfAllBPUsed'] = metalExpenseMinusBuilders + BP['metalExpensePerBP'] * totalBP
 				BP['energyExpenseIfAllBPUsed'] = energyExpenseMinusBuilders + BP['energyExpensePerBP'] * totalBP
 
-				BP['metalSupportedBP'] = nil
-				BP['energySupportedBP'] = nil
+				BP['metalSupportedBP'] = nil --xxx extern for tooltip only
+				BP['energySupportedBP'] = nil --xxx extern for tooltip only
 
 				BP['metalSupportedBP'] = metalIncome / BP['metalExpenseIfAllBPUsed'] * totalBP
 				bpRatioSupportedByMIncome = math_max(0, math_min(BP['metalSupportedBP'] / totalBP, 1))
