@@ -104,7 +104,7 @@ local function massToHealthRatioMultiplier(unitID, unitDefID)
 	end
 end
 
-local function velocityDamageDirection(unitID)
+local function isValidCollisionDirection(unitID)
 	local velX, velY, velZ, velLength = spGetUnitVelocity(unitID)
 		-- y-velocity check prevents mostly horizontal object collisions from taking damage, allows damage if dropped from above
 		return velLength > collisionVelocityThreshold and -velY > (velLength * 0.82)
@@ -117,11 +117,11 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		unitInertiaCheckFlags[unitID] = gameFrame + velocityWatchDuration
 		return damage, impulseMultiplier
 	else
-		if weaponDefID == groundCollisionDefID and not transportedUnits[unitID] and velocityDamageDirection(unitID) then
+		if weaponDefID == groundCollisionDefID and not transportedUnits[unitID] and isValidCollisionDirection(unitID) then
 			damage = damage * massToHealthRatioMultiplier(unitID, unitDefID)
 			return damage, 0
 		elseif weaponDefID == objectCollisionDefID and not transportedUnits[unitID] then
-			if velocityDamageDirection(unitID) then
+			if isValidCollisionDirection(unitID) then
 				damage = damage * massToHealthRatioMultiplier(unitID, unitDefID)
 				return damage, 0
 			else
