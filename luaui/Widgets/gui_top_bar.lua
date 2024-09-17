@@ -243,15 +243,17 @@ BP['history_eSliderPosition_minWind'] = initWeightedAverage(30) -- if wind is at
 BP['history_eSliderPosition_maxWind'] = initWeightedAverage(30) -- if wind is at its maximum?
 BP['history_eIncomeNoWind'] = initWeightedAverage(30) -- how much energy income is from non-wind sources?
 
-BP['reservedBP_instant'] = 0 -- it's basically cacheDataBase[3]  only for reading purposes ql							-- BeHe
-BP['usedBP_instant'] = 0 -- it's basically cacheDataBase[5] only for reading purposes ql								-- BeHe
+BP['reservedBP_instant'] = 0 -- it's basically cacheDataBase['reservedBP_instant']  only for reading purposes ql							-- BeHe
+BP['usedBP_instant'] = 0 -- it's basically cacheDataBase['usedBP_instant'] only for reading purposes ql								-- BeHe
 
 
 
 ------------------------ performance saving  --------------------------------
 --go through the orders of units to calculate reserved BP
-
-local cacheDataBase = {0, 0, 0.1, 0, 0, 1, 1} -- gives the data to the next calc frame
+local builderCoroutine
+local cacheDataBase = {} -- used for coroutine
+cacheDataBase['usedBP_instant'] = 0																						--formaly [3]
+cacheDataBase['reservedBP_instant'] = 0																					--formaly [5]
 cacheDataBase['usedBPMetalExpense'] = 0  																				-- BeHe
 cacheDataBase['usedBPEnergyExpense'] = 0 																				-- BeHe
 cacheDataBase['usedBPExceptStalled'] = 0 																				-- BeHe
@@ -260,7 +262,7 @@ cacheDataBase['usedBPIfNoStall'] = 0 																					-- BeHe
 
 local unitsPerFrame = 30 --limit processed units per frame to improve performance
 local trackedNum = 0
-local builderCoroutine
+
 
 
 ---------------------------  tracking  --------------------------
@@ -1741,29 +1743,27 @@ function widget:GameFrame(n)
 
 		if not builderCoroutine or coroutine.status(builderCoroutine) == "dead" then -- init builderCoroutine
 			builderCoroutine = coroutine.create(function()
-				for unitID, unitData in pairs(trackedBuilders) do
-					coroutine.yield(unitID, unitData)
+				for unitID, currentlyInspectedBuilder in pairs(trackedBuilders) do
+					coroutine.yield(unitID, currentlyInspectedBuilder)
 				end
 			end)
 		end
 
 		for i = 1, unitsPerFrame do -- use builderCoroutine, to work though builders
-			local success, unitID, unitData = coroutine.resume(builderCoroutine)
+			local success, unitID, currentlyInspectedBuilder = coroutine.resume(builderCoroutine)
 			if not success or not unitID then
 				break
 			end
-			local currentUnitBP, unitIsBuilt, unitDefID, unitTeamID = unp(unitData)
+			local currentUnitBP, unitIsBuilt, unitDefID, unitTeamID = unp(currentlyInspectedBuilder)
 			--LogFrame("Unit is built, performing additional checks")
 			local unitExists, foundActivity, builtUnitDefID, mayBeBuilding, guardedUnitID = findBPCommand(unitID, unitDefID, {CMD.REPAIR, CMD.RECLAIM, CMD.CAPTURE, CMD.GUARD})
 			--LogFrame("Unit exists: " .. tostring(unitExists) .. ", foundActivity: " .. tostring(foundActivity) .. ", builtUnitDefID: " .. tostring(builtUnitDefID) .. ", mayBeBuilding: " .. tostring(mayBeBuilding) .. ", guardedUnitID: " .. tostring(guardedUnitID))
 
 			if not unitExists then
-				--LogFrame("Unit no longer exists, untracking unitID: " .. unitID)
-				
+				--LogFrame("Unit no longer exists, untracking unitID: " .. unitID)	
 				UntrackUnit(unitID)
 			elseif not unitIsBuilt then
 				break
-
 			elseif not foundActivity then
 				--LogFrame("Unit not found doing any activity, marking as idle")
 				
@@ -1808,8 +1808,8 @@ function widget:GameFrame(n)
 
 					-- Low-priority units don't have their pulled M/E reported correctly.
 
-					local nonStalledRateM = 1
-					local nonStalledRateE = 1
+					local nonStalledRateM = 1 -- wanted M
+					local nonStalledRateE = 1 -- wanted M
 					if currentlyWantedM > 0 then
 						nonStalledRateM = currentlyUsedM / currentlyWantedM
 					end
@@ -1828,10 +1828,8 @@ function widget:GameFrame(n)
 		for unitID, unitReservedBP in pairs(unitsReservedBP) do
 			cacheTotalReservedBP = cacheTotalReservedBP + unitReservedBP
 		end
-		cacheDataBase[3] = cacheDataBase[3] + cacheTotalReservedBP
-		cacheDataBase[5] = cacheDataBase[5] + cacheTotallyUsedBP
-		local metal, metalStorage, metalPull, metalIncome, metalExpense, metalShare, metalSent = spGetTeamResources(myTeamID, "metal")
-		local energy, energyStorage, energyPull, energyIncome, energyExpense, energyShare, energySent = spGetTeamResources(myTeamID, "energy")
+		cacheDataBase['reservedBP_instant'] = cacheDataBase['reservedBP_instant'] + cacheTotalReservedBP
+		cacheDataBase['usedBP_instant'] = cacheDataBase['usedBP_instant'] + cacheTotallyUsedBP
 
 		-- How much metal and energy are builders pulling? (This number will drop when they become resource-stalled, perhaps due to being low-priority.)
 		cacheDataBase['usedBPMetalExpense'] = cacheDataBase['usedBPMetalExpense'] + usedBPMetalExpense
@@ -1855,8 +1853,8 @@ function widget:GameFrame(n)
 	-- If enough frames have passed that we've calculated BP data for all builders, we can present this datapoint to the user.
 	if not builderCoroutine or coroutine.status(builderCoroutine) == "dead" then
 		if config.drawBPBar then --this section will smooth the values so that factories that finish units won't have too much of an impact
-			BP['reservedBP_instant'] = cacheDataBase[3]
-			BP['usedBP_instant'] = cacheDataBase[5]
+			BP['reservedBP_instant'] = cacheDataBase['reservedBP_instant']
+			BP['usedBP_instant'] = cacheDataBase['usedBP_instant']
 			local _, _, _, metalIncome, metalExpense, _, _ = spGetTeamResources(myTeamID, "metal")
 			BP['metalExpense'] = metalExpense
 			local _, _, _, energyIncome, energyExpense, _, _ = spGetTeamResources(myTeamID, "energy")
@@ -1954,8 +1952,8 @@ function widget:GameFrame(n)
 			BP['eSliderPosition'] = addValueAndGetWeightedAverage(BP['history_eSliderPosition'], bpRatioSupportedByEIncome, BP['usedBP_instant'])
 
 			updateResbar('BP')
-			cacheDataBase[3] = 0
-			cacheDataBase[5] = 0
+			cacheDataBase['reservedBP_instant'] = 0
+			cacheDataBase['usedBP_instant'] = 0
 			cacheDataBase['realWindStrength'] = 0
 			cacheDataBase['usedBPMetalExpense'] = 0
 			cacheDataBase['usedBPEnergyExpense'] = 0
@@ -1963,8 +1961,6 @@ function widget:GameFrame(n)
 			cacheDataBase['usedBPIfNoStall'] = 0
 
 		end
-		cacheDataBase[6] = 0
-		cacheDataBase[7] = 0
 	end
 	local lowPrioNeededEnergy = Spring.GetTeamRulesParam(myTeamID, "lowPrioNeededEnergy") 
 	local lowPrioExpenseEnergy = Spring.GetTeamRulesParam(myTeamID, "lowPrioExpenseEnergy")
