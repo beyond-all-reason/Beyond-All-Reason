@@ -2629,8 +2629,8 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "fastemgalt-small",
 	},
 	leglob = {
-		BaseSoundSelectType = "cor-bot-small-sel",
-		BaseSoundMovementType = "cor-bot-small-ok",
+		BaseSoundSelectType = "leg-bot-small-sel",
+		BaseSoundMovementType = "leg-bot-small-ok",
 		BaseSoundWeaponType = "plasma-small",
 	},
 	legcen = {
@@ -2639,8 +2639,8 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "plasma-medium",
 	},
 	legbal = {
-		BaseSoundSelectType = "cor-bot-small-sel",
-		BaseSoundMovementType = "cor-bot-small-ok",
+		BaseSoundSelectType = "leg-bot-medium-sel",
+		BaseSoundMovementType = "leg-bot-medium-ok",
 		BaseSoundWeaponType = "rocketalt-small",
 	},
 	legkark = {
