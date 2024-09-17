@@ -2295,6 +2295,10 @@ local icontypes = {
 		bitmap = "icons/metalmaker_t1.png",
 		size = 0.78749996
 	},
+	legestor = {
+		bitmap = "icons/energystorage.png",
+		size = 1.10249984
+	},
 	legcv = {
 		bitmap = "icons/vehicle_worker.png",
 		size = 0.99749994
