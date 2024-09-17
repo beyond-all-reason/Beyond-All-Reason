@@ -1284,10 +1284,6 @@ end
 
 
 function gadget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-	local udcp = UnitDefs[unitDefID].customParams
-	if udcp.subfolder == "armaircraft" then
-		--Spring.Echo("command: ", cmdID, "params: ", cmdParams, "options: ", cmdOptions)
-	end
 
     if carrierMetaList[unitID] and carrierMetaList[unitID].ignorenextcommand then
         carrierMetaList[unitID].ignorenextcommand = false
