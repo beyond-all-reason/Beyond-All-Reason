@@ -22,10 +22,6 @@ local config = {
 	drawBPBar = true,
 	autoHideButtons = false,
 	debugTooltip = true,
-
-	-- Buildpower bar: behavior tweaks to consider making permanent _or_ options
-	guardingIdleBuilderCountsAsIdle = true, -- should builders guarding idle builders be considered idle themselves?
-
 	-- Show markers on the buildpower bar that indicate how much buildpower our metal and energy income could support.
 	drawBPIndicators = true,
 	drawBPWindRangeIndicators = false,
@@ -226,9 +222,9 @@ local BP = {0, 1, 0, 0, 0} -- BP[2] = 1 to make sure the bar gets drawn propperl
 
 
 -- Used to store recent positions of the M/E-supported sliders on the BP bar so they can be moved more smoothly.
-BP['energyIncome'] = 0 -- wird zumindest für wind verwendet ql
-BP['metalExpense'] = 0 -- wird zumindest für wind verwendet ql
-BP['energyExpense'] = 0 -- wird zumindest für wind verwendet ql
+--r['energy'][4] = 0 -- wird zumindest für wind verwendet ql
+--r['metal'][4] = 0 -- wird zumindest für wind verwendet ql
+--BP['energyExpense'] = 0 -- wird zumindest für wind verwendet ql
 
 -- Lists of recent datapoints, used for smoothing. The first element is the number of datapoints to keep, the second is the datapoints themselves.
 BP['history_usedBP'] = initWeightedAverage(30) -- used to calculate the average used BP
@@ -257,7 +253,6 @@ cacheDataBase['reservedBP_instant'] = 0																					--formaly [5]
 cacheDataBase['usedBPMetalExpense'] = 0  																				-- BeHe
 cacheDataBase['usedBPEnergyExpense'] = 0 																				-- BeHe
 cacheDataBase['usedBPExceptStalled'] = 0 																				-- BeHe
-cacheDataBase['usedBPIfNoStall'] = 0 																					-- BeHe
 
 
 local unitsPerFrame = 30 --limit processed units per frame to improve performance
@@ -1369,8 +1364,8 @@ local function updateResbar(res)  --decides where and what is drawn
 					return sformat("%.3f", n)
 				end
 				bpTooltipText = bpTooltipText
-			 		.."\n\nDEBUG:"
-					.. float_to_s(avgTotalUsedBP) .. " BP used (smoothed), " .. float_to_s(BP['usedBP_instant']) .. " BP non-stalled ".. float_to_s(BP['usedBPIfNoStall']) .. " if no stall \n"
+			 		.."\n\nDEBUG:\n"
+					.. float_to_s(avgTotalUsedBP) .. " BP used (smoothed), " .. float_to_s(BP['usedBP_instant']) .. " \n"
 					.. tostring(nBuilders) .. " tracked builders\n"
 					.. tostring(nBuiltBuilders) .. " built builders\n"
 					.. tostring(BP[4]) .. " total BP \n"
@@ -1425,148 +1420,148 @@ end
 
 
 local function drawResbarValues(res, updateText) --drawing the bar itself and value of stored res
-    if res ~= 'BP' or config.drawBPBar then	-- only draw BP if wanted
-        local cappedCurRes = r[res][1]    -- limit so when production dies the value wont be much larger than what you can store
-    
-        if r[res][1] > r[res][2] * 1.07 then
-            cappedCurRes = r[res][2] * 1.07
-        end
+	if res ~= 'BP' or config.drawBPBar then	-- only draw BP if wanted
+		local cappedCurRes = r[res][1]    -- limit so when production dies the value wont be much larger than what you can store
+	
+		if r[res][1] > r[res][2] * 1.07 then
+			cappedCurRes = r[res][2] * 1.07
+		end
 
-        local barHeight = resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]
-        local barWidth = resbarDrawinfo[res].barArea[3] - resbarDrawinfo[res].barArea[1]
-        local valueWidth 
-        local additionalWidth = 0
-        if res ~= 'BP' then -- for bp bar only
-            valueWidth = math_floor(((cappedCurRes / r[res][2]) * barWidth))
-        else 
-            local totalBP = math_max(1, r[res][4])
-            local reservedBP = math_min(totalBP, r[res][3])
-            local usedBP = math_min(totalBP, r[res][5])
+		local barHeight = resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]
+		local barWidth = resbarDrawinfo[res].barArea[3] - resbarDrawinfo[res].barArea[1]
+		local valueWidth 
+		local additionalWidth = 0
+		if res ~= 'BP' then -- for bp bar only
+			valueWidth = math_floor(((cappedCurRes / r[res][2]) * barWidth))
+		else 
+			local totalBP = math_max(1, r[res][4])
+			local reservedBP = math_min(totalBP, r[res][3])
+			local usedBP = math_min(totalBP, r[res][5])
 
-            valueWidth = math_floor(((usedBP / totalBP) * barWidth))
-            if valueWidth > barWidth then
-                valueWidth = barWidth
-            end
-            -- Show reserved BP as a proportion of total BP
-            additionalWidth = math_floor((reservedBP / totalBP) * barWidth) - valueWidth
-            if additionalWidth < math_ceil(barHeight * 0.2) or math_ceil(barHeight * 0.2) > barWidth then
-                additionalWidth = 0
-            end
-        end
+			valueWidth = math_floor(((usedBP / totalBP) * barWidth))
+			if valueWidth > barWidth then
+				valueWidth = barWidth
+			end
+			-- Show reserved BP as a proportion of total BP
+			additionalWidth = math_floor((reservedBP / totalBP) * barWidth) - valueWidth
+			if additionalWidth < math_ceil(barHeight * 0.2) or math_ceil(barHeight * 0.2) > barWidth then
+				additionalWidth = 0
+			end
+		end
 
-        if valueWidth < math_ceil(barHeight * 0.2) or r[res][2] == 0 then
-            valueWidth = math_ceil(barHeight * 0.2)
-        end
+		if valueWidth < math_ceil(barHeight * 0.2) or r[res][2] == 0 then
+			valueWidth = math_ceil(barHeight * 0.2)
+		end
 
-        local uniqueKey = string.format("%d_%d", valueWidth, additionalWidth) -- string-based uniqueKey
-        if not dlistResValuesBar[res][uniqueKey] then
-            dlistResValuesBar[res][uniqueKey] = glCreateList(function()
-                local glowSize = (resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]) * 7
-                local color1, color2, glowAlpha
-                if res == 'metal' then
-                    color1 = { 0.51, 0.51, 0.5, 1 }
-                    color2 = { 0.95, 0.95, 0.95, 1 }
-                    glowAlpha = 0.025 + (0.05 * math_min(1, cappedCurRes / r[res][2] * 40))
-                elseif res == 'energy' then
-                    color1 = { 0.5, 0.45, 0, 1 }
-                    color2 = { 0.8, 0.75, 0, 1 }
-                    glowAlpha = 0.035 + (0.07 * math_min(1, cappedCurRes / r[res][2] * 40))
-                elseif res == 'BP' then -- Keine zusätzliche Bedingung nötig
-                    color1 = { 0.2, 0.65, 0, 1 }
-                    color2 = { 0.5, 0.75, 0, 1 }
-                    glowAlpha = 0.035 + (0.06 * math_min(1, cappedCurRes / r[res][2] * 40))
-                end
-                RectRound(resbarDrawinfo[res].barArea[1], resbarDrawinfo[res].barArea[2], resbarDrawinfo[res].barArea[1] + valueWidth, resbarDrawinfo[res].barArea[4], barHeight * 0.2, 1, 1, 1, 1, color1, color2)
+		local uniqueKey = string.format("%d_%d", valueWidth, additionalWidth) -- string-based uniqueKey
+		if not dlistResValuesBar[res][uniqueKey] then
+			dlistResValuesBar[res][uniqueKey] = glCreateList(function()
+				local glowSize = (resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]) * 7
+				local color1, color2, glowAlpha
+				if res == 'metal' then
+					color1 = { 0.51, 0.51, 0.5, 1 }
+					color2 = { 0.95, 0.95, 0.95, 1 }
+					glowAlpha = 0.025 + (0.05 * math_min(1, cappedCurRes / r[res][2] * 40))
+				elseif res == 'energy' then
+					color1 = { 0.5, 0.45, 0, 1 }
+					color2 = { 0.8, 0.75, 0, 1 }
+					glowAlpha = 0.035 + (0.07 * math_min(1, cappedCurRes / r[res][2] * 40))
+				elseif res == 'BP' then -- Keine zusätzliche Bedingung nötig
+					color1 = { 0.2, 0.65, 0, 1 }
+					color2 = { 0.5, 0.75, 0, 1 }
+					glowAlpha = 0.035 + (0.06 * math_min(1, cappedCurRes / r[res][2] * 40))
+				end
+				RectRound(resbarDrawinfo[res].barArea[1], resbarDrawinfo[res].barArea[2], resbarDrawinfo[res].barArea[1] + valueWidth, resbarDrawinfo[res].barArea[4], barHeight * 0.2, 1, 1, 1, 1, color1, color2)
 
-                local borderSize = 1
-                RectRound(resbarDrawinfo[res].barArea[1]+borderSize, resbarDrawinfo[res].barArea[2]+borderSize, resbarDrawinfo[res].barArea[1] + valueWidth-borderSize, resbarDrawinfo[res].barArea[4]-borderSize, barHeight * 0.2, 1, 1, 1, 1, { 0, 0, 0, 0.1 }, { 0, 0, 0, 0.17 })
+				local borderSize = 1
+				RectRound(resbarDrawinfo[res].barArea[1]+borderSize, resbarDrawinfo[res].barArea[2]+borderSize, resbarDrawinfo[res].barArea[1] + valueWidth-borderSize, resbarDrawinfo[res].barArea[4]-borderSize, barHeight * 0.2, 1, 1, 1, 1, { 0, 0, 0, 0.1 }, { 0, 0, 0, 0.17 })
 
-                -- Bar value glow
-                glBlending(GL_SRC_ALPHA, GL_ONE)
-                glColor(resbarDrawinfo[res].barColor[1], resbarDrawinfo[res].barColor[2], resbarDrawinfo[res].barColor[3], glowAlpha)
-                glTexture(barGlowCenterTexture)
-                DrawRect(resbarDrawinfo[res].barGlowMiddleTexRect[1], resbarDrawinfo[res].barGlowMiddleTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth, resbarDrawinfo[res].barGlowMiddleTexRect[4], 0.008)
-                glTexture(barGlowEdgeTexture)
-                DrawRect(resbarDrawinfo[res].barGlowLeftTexRect[1], resbarDrawinfo[res].barGlowLeftTexRect[2], resbarDrawinfo[res].barGlowLeftTexRect[3], resbarDrawinfo[res].barGlowLeftTexRect[4], 0.008)
-                DrawRect((resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth) + (glowSize * 3), resbarDrawinfo[res].barGlowRightTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth, resbarDrawinfo[res].barGlowRightTexRect[4], 0.008)
-                glTexture(false)
+				-- Bar value glow
+				glBlending(GL_SRC_ALPHA, GL_ONE)
+				glColor(resbarDrawinfo[res].barColor[1], resbarDrawinfo[res].barColor[2], resbarDrawinfo[res].barColor[3], glowAlpha)
+				glTexture(barGlowCenterTexture)
+				DrawRect(resbarDrawinfo[res].barGlowMiddleTexRect[1], resbarDrawinfo[res].barGlowMiddleTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth, resbarDrawinfo[res].barGlowMiddleTexRect[4], 0.008)
+				glTexture(barGlowEdgeTexture)
+				DrawRect(resbarDrawinfo[res].barGlowLeftTexRect[1], resbarDrawinfo[res].barGlowLeftTexRect[2], resbarDrawinfo[res].barGlowLeftTexRect[3], resbarDrawinfo[res].barGlowLeftTexRect[4], 0.008)
+				DrawRect((resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth) + (glowSize * 3), resbarDrawinfo[res].barGlowRightTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth, resbarDrawinfo[res].barGlowRightTexRect[4], 0.008)
+				glTexture(false)
 
-                if res == 'BP' then
-                    local color1Secondary = { 0.1, 0.55, 0, 0.5 } 
-                    local color2Secondary = { 0.3, 0.65, 0, 0.5 }
-                    RectRound(resbarDrawinfo[res].barArea[1], resbarDrawinfo[res].barArea[2], resbarDrawinfo[res].barArea[1] + valueWidth + additionalWidth, resbarDrawinfo[res].barArea[4], barHeight * 0.2, 1, 1, 1, 1, color1Secondary, color2Secondary)
-                end
+				if res == 'BP' then
+					local color1Secondary = { 0.1, 0.55, 0, 0.5 } 
+					local color2Secondary = { 0.3, 0.65, 0, 0.5 }
+					RectRound(resbarDrawinfo[res].barArea[1], resbarDrawinfo[res].barArea[2], resbarDrawinfo[res].barArea[1] + valueWidth + additionalWidth, resbarDrawinfo[res].barArea[4], barHeight * 0.2, 1, 1, 1, 1, color1Secondary, color2Secondary)
+				end
 
-                if res == 'metal' then
-                    -- noise
-                    gl.Texture(noiseBackgroundTexture)
-                    gl.Color(1, 1, 1, 0.37)
-                    TexturedRectRound(resbarDrawinfo[res].barArea[1], resbarDrawinfo[res].barArea[2], resbarDrawinfo[res].barArea[1] + valueWidth, resbarDrawinfo[res].barArea[4], barHeight * 0.2, 1, 1, 1, 1, barWidth * 0.33, 0)
-                    gl.Texture(false)
-                end
+				if res == 'metal' then
+					-- noise
+					gl.Texture(noiseBackgroundTexture)
+					gl.Color(1, 1, 1, 0.37)
+					TexturedRectRound(resbarDrawinfo[res].barArea[1], resbarDrawinfo[res].barArea[2], resbarDrawinfo[res].barArea[1] + valueWidth, resbarDrawinfo[res].barArea[4], barHeight * 0.2, 1, 1, 1, 1, barWidth * 0.33, 0)
+					gl.Texture(false)
+				end
 
-                glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-            end)
-        end
-        glCallList(dlistResValuesBar[res][uniqueKey]) --uniqueKey for bp bar
+				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+			end)
+		end
+		glCallList(dlistResValuesBar[res][uniqueKey]) --uniqueKey for bp bar
 
-        if res == 'energy' or res == 'BP' then
-            -- energy flow effect
-            gl.Color(1, 1, 1, 0.33)
-            glBlending(GL_SRC_ALPHA, GL_ONE)
-            glTexture("LuaUI/Images/paralyzed.png")
-            TexturedRectRound(resbarDrawinfo[res].barArea[1], resbarDrawinfo[res].barArea[2], resbarDrawinfo[res].barArea[1] + valueWidth, resbarDrawinfo[res].barArea[4], barHeight * 0.2, 0, 0, 1, 1, barWidth/0.5, -os.clock()/80)
-            TexturedRectRound(resbarDrawinfo[res].barArea[1], resbarDrawinfo[res].barArea[2], resbarDrawinfo[res].barArea[1] + valueWidth, resbarDrawinfo[res].barArea[4], barHeight * 0.2, 0, 0, 1, 1, barWidth/0.33, os.clock()/70)
-            TexturedRectRound(resbarDrawinfo[res].barArea[1], resbarDrawinfo[res].barArea[2], resbarDrawinfo[res].barArea[1] + valueWidth, resbarDrawinfo[res].barArea[4], barHeight * 0.2, 0, 0, 1, 1, barWidth/0.45, -os.clock()/55)
-            glTexture(false)
+		if res == 'energy' or res == 'BP' then
+			-- energy flow effect
+			gl.Color(1, 1, 1, 0.33)
+			glBlending(GL_SRC_ALPHA, GL_ONE)
+			glTexture("LuaUI/Images/paralyzed.png")
+			TexturedRectRound(resbarDrawinfo[res].barArea[1], resbarDrawinfo[res].barArea[2], resbarDrawinfo[res].barArea[1] + valueWidth, resbarDrawinfo[res].barArea[4], barHeight * 0.2, 0, 0, 1, 1, barWidth/0.5, -os.clock()/80)
+			TexturedRectRound(resbarDrawinfo[res].barArea[1], resbarDrawinfo[res].barArea[2], resbarDrawinfo[res].barArea[1] + valueWidth, resbarDrawinfo[res].barArea[4], barHeight * 0.2, 0, 0, 1, 1, barWidth/0.33, os.clock()/70)
+			TexturedRectRound(resbarDrawinfo[res].barArea[1], resbarDrawinfo[res].barArea[2], resbarDrawinfo[res].barArea[1] + valueWidth, resbarDrawinfo[res].barArea[4], barHeight * 0.2, 0, 0, 1, 1, barWidth/0.45, -os.clock()/55)
+			glTexture(false)
 
-            -- colorize a bit more (with added size)
-            local addedSize = math_floor(((resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]) * 0.15) + 0.5)
-            gl.Color(1, 1, 0, 0.14)
-            RectRound(resbarDrawinfo[res].barArea[1]-addedSize, resbarDrawinfo[res].barArea[2]-addedSize, resbarDrawinfo[res].barArea[1] + valueWidth + addedSize, resbarDrawinfo[res].barArea[4] + addedSize, barHeight * 0.33)
-            glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        end
+			-- colorize a bit more (with added size)
+			local addedSize = math_floor(((resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]) * 0.15) + 0.5)
+			gl.Color(1, 1, 0, 0.14)
+			RectRound(resbarDrawinfo[res].barArea[1]-addedSize, resbarDrawinfo[res].barArea[2]-addedSize, resbarDrawinfo[res].barArea[1] + valueWidth + addedSize, resbarDrawinfo[res].barArea[4] + addedSize, barHeight * 0.33)
+			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+		end
 
-        if updateText then
-            currentResValue[res] = short(cappedCurRes)
-            if not dlistResValues[res][currentResValue[res]] then
+		if updateText then
+			currentResValue[res] = short(cappedCurRes)
+			if not dlistResValues[res][currentResValue[res]] then
 
-                local bpCurrentColor = { 0.7,  0.7,  0.7,  1.0 }
-                local bpCurrentText = nil
-                local suffix = ""
+				local bpCurrentColor = { 0.7,  0.7,  0.7,  1.0 }
+				local bpCurrentText = nil
+				local suffix = ""
 
-                if res == 'BP' then
-                    currentResValue[res] = ""
-                    if BP[4] > 0 then
-                        currentResValue[res] = math_min(100, math_round(BP[5] * 100 / BP[4]))
-                        if     currentResValue[res] < 40 then bpCurrentColor = { 0.82, 0.39, 0.39, 1.0 } --Red
-                        elseif currentResValue[res] < 60 then bpCurrentColor = { 1.0,  0.39, 0.39, 1.0 } --Orange
-                        elseif currentResValue[res] < 80 then bpCurrentColor = { 1.0,  1.0,  0.39, 1.0 } --Yellow
-                        else                                  bpCurrentColor = { 0.47, 0.92, 0.47, 1.0 } --Green
-                        end
-                        suffix = "%"
-                    end
-                end
-                dlistResValues[res][currentResValue[res]] = glCreateList(function()
-                    font2:Begin()
-                    if res == 'metal' then
-                        font2:SetTextColor(0.95, 0.95, 0.95, 1)
-                    elseif  res == 'energy' then
-                        font2:SetTextColor(1, 1, 0.74, 1)
-                    elseif res == 'BP' then
-                        font2:SetTextColor(bpCurrentColor[1], bpCurrentColor[2], bpCurrentColor[3], bpCurrentColor[4])
-                    end
-                    font2:SetOutlineColor(0, 0, 0, 1)
-                    font2:Print(currentResValue[res] .. suffix, resbarDrawinfo[res].textCurrent[2], resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[4], resbarDrawinfo[res].textCurrent[5])
-                    font2:End()
-                end)
-            end
-        end
+				if res == 'BP' then
+					currentResValue[res] = ""
+					if BP[4] > 0 then
+						currentResValue[res] = math_min(100, math_round(BP[5] * 100 / BP[4]))
+						if     currentResValue[res] < 40 then bpCurrentColor = { 0.82, 0.39, 0.39, 1.0 } --Red
+						elseif currentResValue[res] < 60 then bpCurrentColor = { 1.0,  0.39, 0.39, 1.0 } --Orange
+						elseif currentResValue[res] < 80 then bpCurrentColor = { 1.0,  1.0,  0.39, 1.0 } --Yellow
+						else                                  bpCurrentColor = { 0.47, 0.92, 0.47, 1.0 } --Green
+						end
+						suffix = "%"
+					end
+				end
+				dlistResValues[res][currentResValue[res]] = glCreateList(function()
+					font2:Begin()
+					if res == 'metal' then
+						font2:SetTextColor(0.95, 0.95, 0.95, 1)
+					elseif  res == 'energy' then
+						font2:SetTextColor(1, 1, 0.74, 1)
+					elseif res == 'BP' then
+						font2:SetTextColor(bpCurrentColor[1], bpCurrentColor[2], bpCurrentColor[3], bpCurrentColor[4])
+					end
+					font2:SetOutlineColor(0, 0, 0, 1)
+					font2:Print(currentResValue[res] .. suffix, resbarDrawinfo[res].textCurrent[2], resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[4], resbarDrawinfo[res].textCurrent[5])
+					font2:End()
+				end)
+			end
+		end
 
-        if dlistResValues[res][currentResValue[res]] then
-            glCallList(dlistResValues[res][currentResValue[res]])
-        end
-    end
+		if dlistResValues[res][currentResValue[res]] then
+			glCallList(dlistResValues[res][currentResValue[res]])
+		end
+	end
 end
 
 function init()
@@ -1723,7 +1718,6 @@ function widget:GameFrame(n)
 	local bladeSpeedMultiplier = 0.2
 	windRotation = windRotation + (currentWind * bladeSpeedMultiplier)
 	gameFrame = n
-	local unp = unpack or table.unpack
 	-- If we're supposed to draw the buildpower bar, do some calculations.
 	if config.drawBPBar then -- calculations for the exact metal and energy draw value
 		-- Log initial cache values
@@ -1735,11 +1729,8 @@ function widget:GameFrame(n)
 		local buildingBP = 0 -- how much BP is actively building, regardless of how stalled it is?
 		local nonStalledBuildingBP = 0 -- how much BP is actively building and not stalled?
 
-		local unitDefsBeingBuilt = {}
-		local builderStates = {}
-		local unitsReservedBP = {}
-
-		--LogFrame("Starting trackedBuilders loop")
+		--local unitDefsBeingBuilt = {}
+		--Spring.Echo("Starting trackedBuilders loop")
 
 		if not builderCoroutine or coroutine.status(builderCoroutine) == "dead" then -- init builderCoroutine
 			builderCoroutine = coroutine.create(function()
@@ -1754,80 +1745,31 @@ function widget:GameFrame(n)
 			if not success or not unitID then
 				break
 			end
-			local currentUnitBP, unitIsBuilt, unitDefID, unitTeamID = unp(currentlyInspectedBuilder)
-			--LogFrame("Unit is built, performing additional checks")
-			local unitExists, foundActivity, builtUnitDefID, mayBeBuilding, guardedUnitID = findBPCommand(unitID, unitDefID, {CMD.REPAIR, CMD.RECLAIM, CMD.CAPTURE, CMD.GUARD})
-			--LogFrame("Unit exists: " .. tostring(unitExists) .. ", foundActivity: " .. tostring(foundActivity) .. ", builtUnitDefID: " .. tostring(builtUnitDefID) .. ", mayBeBuilding: " .. tostring(mayBeBuilding) .. ", guardedUnitID: " .. tostring(guardedUnitID))
+			local currentUnitBP, unitIsBuilt, unitDefID, unitTeamID = unpack(currentlyInspectedBuilder)
+			local unitExists, foundActivity, firstTime, builtUnitDefID = findBPCommand(unitID, unitDefID, {CMD.REPAIR, CMD.RECLAIM, CMD.CAPTURE, CMD.GUARD})
+			--Spring.Echo("Unit exists: " .. tostring(unitExists) .. ", foundActivity: " .. tostring(foundActivity) ..", firstTime: " .. tostring(firstTime) .. ", builtUnitDefID: " .. tostring(builtUnitDefID))
 
 			if not unitExists then
-				--LogFrame("Unit no longer exists, untracking unitID: " .. unitID)	
+				--Spring.Echo("Unit no longer exists, untracking unitID: " .. unitID)	
 				UntrackUnit(unitID)
 			elseif not unitIsBuilt then
 				break
-			elseif not foundActivity then
-				--LogFrame("Unit not found doing any activity, marking as idle")
-				
-				builderStates[unitID] = { false, builtUnitDefID, guardedUnitID, currentUnitBP }
-			else
-				--LogFrame("Unit is active, processing buildpower calculations")
-				
-				-- Assume all of this unit's buildpower is reserved.
-				unitsReservedBP[unitID] = currentUnitBP
-				--LogFrame("unitID  " ..tostring(unitID))
-				--LogFrame("unitsReservedBP[unitID]  " ..tostring(unitsReservedBP[unitID]))
-				-- This unit might be building, but we don't know what. See if it's building something.
-				if mayBeBuilding and not builtUnitDefID then
-					local builtUnitID = spGetUnitIsBuilding(unitID)
-					if builtUnitID ~= nil then
-						builtUnitDefID = unitDefsBeingBuilt[builtUnitID]
-						if builtUnitDefID == nil then
-							builtUnitDefID = spGetUnitDefID(builtUnitID)
-							unitDefsBeingBuilt[builtUnitID] = builtUnitDefID
-						end
-					end
-				end
-
-				builderStates[unitID] = { true, builtUnitDefID, guardedUnitID, currentUnitBP }
-
-				-- TODO: if we're guarding a constructor who's idle, should we be considered idle, too?
-				-- (We might be repairing the constructor even if we're not helping them build.
-				-- Maybe consider us idle if the unit we're guarding is idle _and_ full-health.)
-
-				if builtUnitDefID then  -- what is needed for BP?
-
+			elseif foundActivity then
+				cacheTotalReservedBP = cacheTotalReservedBP + currentUnitBP
+				if firstTime == 1 then  -- it could use resources
 					local _, currentlyUsedM, _, currentlyUsedE = spGetUnitResources(unitID)
 					usedBPMetalExpense = usedBPMetalExpense + currentlyUsedM
 					usedBPEnergyExpense = usedBPEnergyExpense + currentlyUsedE -- A builder may be cloaked, but not while it's building
-
-					--currentlyUsedBP = (Spring.GetUnitCurrentBuildPower(unitID) or 0) * currentUnitBP
-					currentlyUsedBP = currentlyUsedM / unitCostData[builtUnitDefID].MperBP -- everything costs at least 1 metal
-					buildingBP = buildingBP + currentUnitBP
-
-					local currentlyWantedM = unitCostData[builtUnitDefID].MperBP * currentUnitBP
-					local currentlyWantedE = unitCostData[builtUnitDefID].EperBP * currentUnitBP
-
-					-- Low-priority units don't have their pulled M/E reported correctly.
-
-					local nonStalledRateM = 1 -- wanted M
-					local nonStalledRateE = 1 -- wanted M
-					if currentlyWantedM > 0 then
-						nonStalledRateM = currentlyUsedM / currentlyWantedM
-					end
-					if currentlyWantedE > 0 then
-						nonStalledRateE = currentlyUsedE / currentlyWantedE
-					end
-					nonStalledBuildingBP = nonStalledBuildingBP + currentUnitBP * math_min(nonStalledRateM, nonStalledRateE)  -- ROBERT BP at the right place
-
-					if currentlyUsedBP and currentlyUsedBP >= 0 then
-						cacheTotallyUsedBP = cacheTotallyUsedBP + currentlyUsedBP
-					end
+					currentlyUsedBP = currentlyUsedM / unitCostData[builtUnitDefID].MperBP -- everything costs at least 1 metal;  "currentlyUsedBP = (Spring.GetUnitCurrentBuildPower(unitID) or 0) * currentUnitBP"  does not work
+					--stallingBP = stallingBP + currentUnitBP - currentlyUsedBP  if needed
+					--if currentlyUsedBP and currentlyUsedBP >= 0 then
+					cacheTotallyUsedBP = cacheTotallyUsedBP + currentlyUsedBP
+					--end
 				end
 			end
 		end
-		--LogFrame("Finished trackedBuilders loop")
-		for unitID, unitReservedBP in pairs(unitsReservedBP) do
-			cacheTotalReservedBP = cacheTotalReservedBP + unitReservedBP
-		end
+		----Spring.Echo("Finished trackedBuilders loop")
+		--cacheTotalReservedBP = cacheTotalReservedBP + unitReservedBP
 		cacheDataBase['reservedBP_instant'] = cacheDataBase['reservedBP_instant'] + cacheTotalReservedBP
 		cacheDataBase['usedBP_instant'] = cacheDataBase['usedBP_instant'] + cacheTotallyUsedBP
 
@@ -1835,7 +1777,6 @@ function widget:GameFrame(n)
 		cacheDataBase['usedBPMetalExpense'] = cacheDataBase['usedBPMetalExpense'] + usedBPMetalExpense
 		cacheDataBase['usedBPEnergyExpense'] = cacheDataBase['usedBPEnergyExpense'] + usedBPEnergyExpense
 		cacheDataBase['usedBPExceptStalled'] = cacheDataBase['usedBPExceptStalled'] + nonStalledBuildingBP
-		cacheDataBase['usedBPIfNoStall'] = cacheDataBase['usedBPIfNoStall'] + buildingBP
 
 		if config.drawBPWindRangeIndicators then
 			local realWindStrength = 0
@@ -1848,32 +1789,27 @@ function widget:GameFrame(n)
 			end
 			cacheDataBase['realWindStrength'] = realWindStrength
 		end
-	end
 
-	-- If enough frames have passed that we've calculated BP data for all builders, we can present this datapoint to the user.
-	if not builderCoroutine or coroutine.status(builderCoroutine) == "dead" then
-		if config.drawBPBar then --this section will smooth the values so that factories that finish units won't have too much of an impact
+
+		if not builderCoroutine or coroutine.status(builderCoroutine) == "dead" then	-- If every builder was checked store it in BP
 			BP['reservedBP_instant'] = cacheDataBase['reservedBP_instant']
 			BP['usedBP_instant'] = cacheDataBase['usedBP_instant']
-			local _, _, _, metalIncome, metalExpense, _, _ = spGetTeamResources(myTeamID, "metal")
-			BP['metalExpense'] = metalExpense
-			local _, _, _, energyIncome, energyExpense, _, _ = spGetTeamResources(myTeamID, "energy")
-			BP['energyIncome'] = energyIncome
-			BP['energyExpense'] = energyExpense
+			local metalIncome = r['metal'][4]
+			local metalExpense = r['metal'][5]
+			local energyIncome = r['energy'][4]
+			local energyExpense = r['energy'][5]
 			BP['realWindStrength_instant'] = cacheDataBase['realWindStrength']
 			BP['usedBPMetalExpense'] = cacheDataBase['usedBPMetalExpense']
 			BP['usedBPEnergyExpense'] = cacheDataBase['usedBPEnergyExpense']
 			BP['usedBPExceptStalled'] = cacheDataBase['usedBPExceptStalled']
-			BP['usedBPIfNoStall'] = cacheDataBase['usedBPIfNoStall']
 
 			BP[3] = math_floor(addValueAndGetWeightedAverage(BP['history_reservedBP'], BP['reservedBP_instant'], 1) + 0.5)
 			BP[5] = math_floor(addValueAndGetWeightedAverage(BP['history_usedBP'], BP['usedBP_instant'], 1) + 0.5)
 
 			if config.drawBPWindRangeIndicators then
 				BP['realWindStrength_instant'] = cacheDataBase['realWindStrength']
-				BP['energyIncomeNoWind'] = addValueAndGetWeightedAverage(BP['history_eIncomeNoWind'], BP['energyIncome'] - numWindGenerators * BP['realWindStrength_instant'], 1)
+				BP['energyIncomeNoWind'] = addValueAndGetWeightedAverage(BP['history_eIncomeNoWind'], energyIncome - numWindGenerators * BP['realWindStrength_instant'], 1)
 			end
-
 			-- Assume our eco supports full BP until we calculate otherwise.
 			-- This assumption only matters if we have no active builders _or_ our builders are
 			-- spending metal OR energy but not both (e.g., building basic solar collectors).
@@ -1895,8 +1831,8 @@ function widget:GameFrame(n)
 					e_per_bp = BP['energyExpensePerBP']
 				end
 				-- How much metal and energy are we spending _not_ due to builders?
-				local metalExpenseMinusBuilders_instant  = BP['metalExpense'] - BP['usedBP_instant'] * m_per_bp
-				local energyExpenseMinusBuilders_instant = BP['energyExpense'] - BP['usedBP_instant'] * e_per_bp
+				local metalExpenseMinusBuilders_instant  = metalExpense - BP['usedBP_instant'] * m_per_bp
+				local energyExpenseMinusBuilders_instant = energyExpense - BP['usedBP_instant'] * e_per_bp
 
 				-- TODO: How to handle metal-makers? They're a non-builder energy expense that will be turned off before we actually E-stall.
 				-- We should consider a range of metal-supported BP just like we do for wind energy.
@@ -1922,7 +1858,7 @@ function widget:GameFrame(n)
 				end
 
 				if BP['energyExpensePerBP'] > 0 then
-					BP['energySupportedBP'] = BP['energyIncome'] / BP['energyExpenseIfAllBPUsed'] * totalBP --ql
+					BP['energySupportedBP'] = energyIncome / BP['energyExpenseIfAllBPUsed'] * totalBP --ql
 					minSupportedBP = BP['energySupportedBP']
 					bpRatioSupportedByEIncome = math_max(0, math_min(BP['energySupportedBP'] / totalBP, 1))
 
@@ -1958,7 +1894,6 @@ function widget:GameFrame(n)
 			cacheDataBase['usedBPMetalExpense'] = 0
 			cacheDataBase['usedBPEnergyExpense'] = 0
 			cacheDataBase['usedBPExceptStalled'] = 0
-			cacheDataBase['usedBPIfNoStall'] = 0
 
 		end
 	end
@@ -3026,41 +2961,39 @@ function widget:Shutdown()
 	WG['topbar'] = nil
 end
 
-function findBPCommand(unitID, unitDefID, cmdList) -- for bp bar only most likely
+function findBPCommand(unitID, unitDefID, cmdList)
 	local unitExists = false
-	local active = false
+	local activityFound = nil
+	local firstTime = nil
 	local builtUnitDefID = nil
-	local mayBeBuilding = false -- will remain false even if builtUnitDefID is non-nil
-	local guardedUnitID = nil -- returned in case we want to check for cycles of idle builders
-
-	local commands = nil
+	local unitDef = UnitDefs[unitDefID]
 	if UnitDefs[unitDefID].isFactory then
 		commands = Spring.GetFactoryCommands(unitID, 1)
 	else
 		commands = Spring.GetUnitCommands(unitID, -1)
 	end
-
 	if commands then
 		unitExists = true
-		for i = 1, #commands do
-			for _, relevantCMD in ipairs(cmdList) do
-				if commands[i].id == relevantCMD or commands[i].id < 0 then
-					active = true
-					if commands[i].id < 0 and not builtUnitDefID then
-						-- We're building something. A negative ID is the unitdef ID of what's being built.
-						builtUnitDefID = -commands[i].id
-					elseif commands[i].id == CMD.GUARD then
-						mayBeBuilding = true -- building can be caused by a guard command
-						guardedUnitID = commands[i].params[1]
-					elseif commands[i].id == CMD.REPAIR then
-						mayBeBuilding = true -- building can be caused by a repair command
-					end
-				end
+	end
+	if unitDef.isFactory == true then
+		if #commands > 0 then
+			firstTime = i
+			activityFound = true
+		end
+	end
+	for i = 1, #commands do
+		for _, relevantCMD in ipairs(cmdList) do
+			if commands[i].id == relevantCMD then
+				firstTime = i
+				activityFound = true
+			elseif commands[i].id < 0 then
+				firstTime = i
+				activityFound = true
+				builtUnitDefID = -commands[i].id
 			end
 		end
 	end
-
-	return unitExists, active, builtUnitDefID, mayBeBuilding, guardedUnitID
+	return unitExists, activityFound, firstTime, builtUnitDefID
 end
 
 function TrackUnit(unitID, unitDefID, unitTeam) --needed for exact calculations
