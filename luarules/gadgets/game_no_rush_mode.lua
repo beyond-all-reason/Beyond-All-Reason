@@ -76,8 +76,7 @@ if gadgetHandler:IsSyncedCode() then
 			  -- CMD.INSERT wraps another command, so we need to extract it
 			  cmdID = cmdParams[2]
 			  -- Area commands have an extra radius parameter, so they shift by 4 instead of 3
-			  local isAreaCommand = (#cmdParams == 7)
-			  local paramCountToShift = isAreaCommand and 4 or 3
+			  local paramCountToShift = #cmdParams - 3
 			  -- Shift the parameters to remove the CMD.INSERT wrapper and match normal command format
 			  for i = 1, paramCountToShift do
 			    cmdParams[i] = cmdParams[i + 3]
