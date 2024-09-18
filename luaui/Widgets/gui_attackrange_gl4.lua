@@ -43,7 +43,7 @@ local colorConfig = {
 	outer_fade_height_difference = 2500, -- this is the height difference at which the outer ring starts to fade out compared to inner rings
 	ground = {
 		color = { 1.0, 0.22, 0.05, 0.60 },
-		fadeparams = { 1500, 2200, 1.0, 0.0 }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+		fadeparams = { 1500, 2400, 1.0, 0.0 }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
 		groupselectionfadescale = 0.75,
 		externallinethickness = 3.0,
 		internallinethickness = 2.0,
@@ -61,16 +61,16 @@ local colorConfig = {
 	},
 	AA = {
 		color = { 0.8, 0.44, 2.0, 0.42 },
-		fadeparams = { 1500, 2200, 1.0, 0.0 }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+		fadeparams = { 1500, 2400, 1.0, 0.0 }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
 		groupselectionfadescale = 0.75,
 		externallinethickness = 2.5,
 		internallinethickness = 2.0,
-		minimapexternallinethickness = 1.0,
+		minimapexternallinethickness = 1.5,
 		minimapinternallinethickness = 0.5,
 	},
 	cannon = {
 		color = {1.0, 0.22, 0.05, 0.60},
-		fadeparams = { 1500, 2200, 1.0, 0.0  }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+		fadeparams = { 1500, 2400, 1.0, 0.0  }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
 		groupselectionfadescale = 0.75,
 		externallinethickness = 3.5,
 		internallinethickness = 2.0,
@@ -514,6 +514,8 @@ local function AddSelectedUnit(unitID, mouseover)
 					else
 						entry.weapons[weaponNum] = 4 -- weaponTypeMap[4] is "cannon"
 					end
+				elseif weaponDef.type == "Melee" then
+					entry.weapons[weaponNum] = 1 -- weaponTypeMap[1] is "ground"
 				else
 					if weaponDef.range > 2000 then 
 						entry.weapons[weaponNum] = 5 

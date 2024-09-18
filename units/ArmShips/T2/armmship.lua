@@ -198,6 +198,7 @@ return {
 					speceffect = "split",
 					splitexplosionceg = "genericshellexplosion-medium",
 					when = "yvel<0",
+					noattackrangearc= 1,
 				},
 				damage = {
 					commanders = 350,

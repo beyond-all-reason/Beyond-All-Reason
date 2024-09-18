@@ -245,6 +245,9 @@ return {
 				damage = {
 					default = 300,
 				},
+				customparams = {
+					noattackrangearc= 1,
+				},
 			},
 		},
 		weapons = {
