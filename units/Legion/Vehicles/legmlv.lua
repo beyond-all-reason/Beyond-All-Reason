@@ -56,7 +56,7 @@ return {
 			[2] = "cormine2",
 			[3] = "cormine3",
 			[4] = "cordrag",
-			[5] = "coreyes",
+			[5] = "legeyes",
 		},
 		customparams = {
 			unitgroup = 'builder',
