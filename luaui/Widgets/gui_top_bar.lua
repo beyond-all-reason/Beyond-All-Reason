@@ -1,6 +1,6 @@
 function widget:GetInfo()
 	return {
-		name = "Top Bar with Buildpower",
+		name = "Top Bar a with Buildpower",
 		desc = "Shows resources, buildpower, wind speed, commander counter, and various options.",
 		author = "Floris, Robert82",
 		date = "Sep, 2024",
@@ -254,7 +254,7 @@ local trackedBuilders = {} -- stores units of the player and their BP
 
 -- Keep track of wind generators
 local trackedWinds = {}
-local numWindGenerators = 0
+local numWindTurbines = 0
 
 local unitCostData = {} --data of all units regarding the building costs, M/BP and E/BP
 local stalling = {}
@@ -284,6 +284,7 @@ local borderPadding = 5
 
 local wholeTeamWastingMetalCount = 0
 
+
 local noiseBackgroundTexture = ":g:LuaUI/Images/rgbnoise.png"
 local showButtons = true
 
@@ -300,7 +301,6 @@ if UnitDefs[Spring.GetTeamRulesParam(Spring.GetMyTeamID(), 'startUnit')] then
 	comTexture = ':n:Icons/'..UnitDefs[Spring.GetTeamRulesParam(Spring.GetMyTeamID(), 'startUnit')].name..'.png'
 end
 
--- Local variables for function names improve performance. See page 17 of https://www.lua.org/gems/sample.pdf ("Lua Performance Tips", by Roberto Ierusalimschy)
 local math_ceil = math.ceil
 local math_floor = math.floor
 local math_round = math.round
@@ -340,13 +340,7 @@ local spGetTeamResources = Spring.GetTeamResources
 local spGetMyTeamID = Spring.GetMyTeamID
 local spGetMouseState = Spring.GetMouseState
 local spGetWind = Spring.GetWind
---local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
---local spGetUnitCmdDescs = Spring.GetUnitCmdDescs
---local spValidUnitID = Spring.ValidUnitID
---local spGetUnitCurrentBuildPower = Spring.GetUnitCurrentBuildPower
 local spGetUnitResources = Spring.GetUnitResources
---local spGetUnitCommands = Spring.GetUnitCommands
---local spGetFactoryCommands = Spring.GetFactoryCommands
 
 local isMetalmap = false
 
@@ -361,11 +355,9 @@ local myPlayerID = Spring.GetMyPlayerID()
 local myAllyTeamList = Spring.GetTeamList(myAllyTeamID)
 local numTeamsInAllyTeam = #myAllyTeamList
 
-
-
 local supressOverflowNotifs = false
 for _, teamID in ipairs(myAllyTeamList) do
-	if select(4, Spring.GetTeamInfo(teamID, false)) then    -- is AI?
+	if select(4,Spring.GetTeamInfo(teamID,false)) then	-- is AI?
 		local luaAI = Spring.GetTeamLuaAI(teamID)
 		if luaAI and luaAI ~= "" then
 			if string.find(luaAI, 'Scavengers') or string.find(luaAI, 'Raptors') then
@@ -381,21 +373,21 @@ local sformat = string.format
 local minWind = Game.windMin
 local maxWind = Game.windMax
 -- precomputed average wind values, from wind random monte carlo simulation, given minWind and maxWind
-local avgWind = {[0] = {[1] = "0.8", [2] = "1.5", [3] = "2.2", [4] = "3.0", [5] = "3.7", [6] = "4.5", [7] = "5.2", [8] = "6.0", [9] = "6.7", [10] = "7.5", [11] = "8.2", [12] = "9.0", [13] = "9.7", [14] = "10.4", [15] = "11.2", [16] = "11.9", [17] = "12.7", [18] = "13.4", [19] = "14.2", [20] = "14.9", [21] = "15.7", [22] = "16.4", [23] = "17.2", [24] = "17.9", [25] = "18.6", [26] = "19.2", [27] = "19.6", [28] = "20.0", [29] = "20.4", [30] = "20.7", }, [1] = {[2] = "1.6", [3] = "2.3", [4] = "3.0", [5] = "3.8", [6] = "4.5", [7] = "5.2", [8] = "6.0", [9] = "6.7", [10] = "7.5", [11] = "8.2", [12] = "9.0", [13] = "9.7", [14] = "10.4", [15] = "11.2", [16] = "11.9", [17] = "12.7", [18] = "13.4", [19] = "14.2", [20] = "14.9", [21] = "15.7", [22] = "16.4", [23] = "17.2", [24] = "17.9", [25] = "18.6", [26] = "19.2", [27] = "19.6", [28] = "20.0", [29] = "20.4", [30] = "20.7", }, [2] = {[3] = "2.6", [4] = "3.2", [5] = "3.9", [6] = "4.6", [7] = "5.3", [8] = "6.0", [9] = "6.8", [10] = "7.5", [11] = "8.2", [12] = "9.0", [13] = "9.7", [14] = "10.5", [15] = "11.2", [16] = "12.0", [17] = "12.7", [18] = "13.4", [19] = "14.2", [20] = "14.9", [21] = "15.7", [22] = "16.4", [23] = "17.2", [24] = "17.9", [25] = "18.6", [26] = "19.2", [27] = "19.6", [28] = "20.0", [29] = "20.4", [30] = "20.7", }, [3] = {[4] = "3.6", [5] = "4.2", [6] = "4.8", [7] = "5.5", [8] = "6.2", [9] = "6.9", [10] = "7.6", [11] = "8.3", [12] = "9.0", [13] = "9.8", [14] = "10.5", [15] = "11.2", [16] = "12.0", [17] = "12.7", [18] = "13.5", [19] = "14.2", [20] = "15.0", [21] = "15.7", [22] = "16.4", [23] = "17.2", [24] = "17.9", [25] = "18.7", [26] = "19.2", [27] = "19.7", [28] = "20.0", [29] = "20.4", [30] = "20.7", }, [4] = {[5] = "4.6", [6] = "5.2", [7] = "5.8", [8] = "6.4", [9] = "7.1", [10] = "7.8", [11] = "8.5", [12] = "9.2", [13] = "9.9", [14] = "10.6", [15] = "11.3", [16] = "12.1", [17] = "12.8", [18] = "13.5", [19] = "14.3", [20] = "15.0", [21] = "15.7", [22] = "16.5", [23] = "17.2", [24] = "18.0", [25] = "18.7", [26] = "19.2", [27] = "19.7", [28] = "20.1", [29] = "20.4", [30] = "20.7", }, [5] = {[6] = "5.5", [7] = "6.1", [8] = "6.8", [9] = "7.4", [10] = "8.0", [11] = "8.7", [12] = "9.4", [13] = "10.1", [14] = "10.8", [15] = "11.5", [16] = "12.2", [17] = "12.9", [18] = "13.6", [19] = "14.4", [20] = "15.1", [21] = "15.8", [22] = "16.5", [23] = "17.3", [24] = "18.0", [25] = "18.8", [26] = "19.3", [27] = "19.7", [28] = "20.1", [29] = "20.4", [30] = "20.7", }, [6] = {[7] = "6.5", [8] = "7.1", [9] = "7.7", [10] = "8.4", [11] = "9.0", [12] = "9.7", [13] = "10.3", [14] = "11.0", [15] = "11.7", [16] = "12.4", [17] = "13.1", [18] = "13.8", [19] = "14.5", [20] = "15.2", [21] = "15.9", [22] = "16.7", [23] = "17.4", [24] = "18.1", [25] = "18.8", [26] = "19.4", [27] = "19.8", [28] = "20.2", [29] = "20.5", [30] = "20.8", }, [7] = {[8] = "7.5", [9] = "8.1", [10] = "8.7", [11] = "9.3", [12] = "10.0", [13] = "10.6", [14] = "11.3", [15] = "11.9", [16] = "12.6", [17] = "13.3", [18] = "14.0", [19] = "14.7", [20] = "15.4", [21] = "16.1", [22] = "16.8", [23] = "17.5", [24] = "18.2", [25] = "19.0", [26] = "19.5", [27] = "19.9", [28] = "20.3", [29] = "20.6", [30] = "20.9", }, [8] = {[9] = "8.5", [10] = "9.1", [11] = "9.7", [12] = "10.3", [13] = "11.0", [14] = "11.6", [15] = "12.2", [16] = "12.9", [17] = "13.6", [18] = "14.2", [19] = "14.9", [20] = "15.6", [21] = "16.3", [22] = "17.0", [23] = "17.7", [24] = "18.4", [25] = "19.1", [26] = "19.6", [27] = "20.0", [28] = "20.4", [29] = "20.7", [30] = "21.0", }, [9] = {[10] = "9.5", [11] = "10.1", [12] = "10.7", [13] = "11.3", [14] = "11.9", [15] = "12.6", [16] = "13.2", [17] = "13.8", [18] = "14.5", [19] = "15.2", [20] = "15.8", [21] = "16.5", [22] = "17.2", [23] = "17.9", [24] = "18.6", [25] = "19.3", [26] = "19.8", [27] = "20.2", [28] = "20.5", [29] = "20.8", [30] = "21.1", }, [10] = {[11] = "10.5", [12] = "11.1", [13] = "11.7", [14] = "12.3", [15] = "12.9", [16] = "13.5", [17] = "14.2", [18] = "14.8", [19] = "15.4", [20] = "16.1", [21] = "16.8", [22] = "17.4", [23] = "18.1", [24] = "18.8", [25] = "19.5", [26] = "20.0", [27] = "20.4", [28] = "20.7", [29] = "21.0", [30] = "21.2", }, [11] = {[12] = "11.5", [13] = "12.1", [14] = "12.7", [15] = "13.3", [16] = "13.9", [17] = "14.5", [18] = "15.1", [19] = "15.8", [20] = "16.4", [21] = "17.1", [22] = "17.7", [23] = "18.4", [24] = "19.1", [25] = "19.7", [26] = "20.2", [27] = "20.6", [28] = "20.9", [29] = "21.2", [30] = "21.4", }, [12] = {[13] = "12.5", [14] = "13.1", [15] = "13.6", [16] = "14.2", [17] = "14.9", [18] = "15.5", [19] = "16.1", [20] = "16.7", [21] = "17.4", [22] = "18.0", [23] = "18.7", [24] = "19.3", [25] = "20.0", [26] = "20.4", [27] = "20.8", [28] = "21.1", [29] = "21.4", [30] = "21.6", }, [13] = {[14] = "13.5", [15] = "14.1", [16] = "14.6", [17] = "15.2", [18] = "15.8", [19] = "16.5", [20] = "17.1", [21] = "17.7", [22] = "18.4", [23] = "19.0", [24] = "19.6", [25] = "20.3", [26] = "20.7", [27] = "21.1", [28] = "21.4", [29] = "21.6", [30] = "21.8", }, [14] = {[15] = "14.5", [16] = "15.0", [17] = "15.6", [18] = "16.2", [19] = "16.8", [20] = "17.4", [21] = "18.1", [22] = "18.7", [23] = "19.3", [24] = "20.0", [25] = "20.6", [26] = "21.0", [27] = "21.3", [28] = "21.6", [29] = "21.8", [30] = "22.0", }, [15] = {[16] = "15.5", [17] = "16.0", [18] = "16.6", [19] = "17.2", [20] = "17.8", [21] = "18.4", [22] = "19.0", [23] = "19.6", [24] = "20.3", [25] = "20.9", [26] = "21.3", [27] = "21.6", [28] = "21.9", [29] = "22.1", [30] = "22.3", }, [16] = {[17] = "16.5", [18] = "17.0", [19] = "17.6", [20] = "18.2", [21] = "18.8", [22] = "19.4", [23] = "20.0", [24] = "20.6", [25] = "21.3", [26] = "21.7", [27] = "21.9", [28] = "22.2", [29] = "22.4", [30] = "22.5", }, [17] = {[18] = "17.5", [19] = "18.0", [20] = "18.6", [21] = "19.2", [22] = "19.8", [23] = "20.4", [24] = "21.0", [25] = "21.6", [26] = "22.0", [27] = "22.3", [28] = "22.5", [29] = "22.7", [30] = "22.8", }, [18] = {[19] = "18.5", [20] = "19.0", [21] = "19.6", [22] = "20.2", [23] = "20.8", [24] = "21.4", [25] = "22.0", [26] = "22.4", [27] = "22.6", [28] = "22.8", [29] = "23.0", [30] = "23.1", }, [19] = {[20] = "19.5", [21] = "20.0", [22] = "20.6", [23] = "21.2", [24] = "21.8", [25] = "22.4", [26] = "22.7", [27] = "22.9", [28] = "23.1", [29] = "23.2", [30] = "23.4", }, [20] = {[21] = "20.4", [22] = "21.0", [23] = "21.6", [24] = "22.2", [25] = "22.8", [26] = "23.1", [27] = "23.3", [28] = "23.4", [29] = "23.6", [30] = "23.7", }, [21] = {[22] = "21.4", [23] = "22.0", [24] = "22.6", [25] = "23.2", [26] = "23.5", [27] = "23.6", [28] = "23.8", [29] = "23.9", [30] = "24.0", }, [22] = {[23] = "22.4", [24] = "23.0", [25] = "23.6", [26] = "23.8", [27] = "24.0", [28] = "24.1", [29] = "24.2", [30] = "24.2", }, [23] = {[24] = "23.4", [25] = "24.0", [26] = "24.2", [27] = "24.4", [28] = "24.4", [29] = "24.5", [30] = "24.5", }, [24] = {[25] = "24.4", [26] = "24.6", [27] = "24.7", [28] = "24.7", [29] = "24.8", [30] = "24.8", }, }
+local avgWind = {[0]={[1]="0.8",[2]="1.5",[3]="2.2",[4]="3.0",[5]="3.7",[6]="4.5",[7]="5.2",[8]="6.0",[9]="6.7",[10]="7.5",[11]="8.2",[12]="9.0",[13]="9.7",[14]="10.4",[15]="11.2",[16]="11.9",[17]="12.7",[18]="13.4",[19]="14.2",[20]="14.9",[21]="15.7",[22]="16.4",[23]="17.2",[24]="17.9",[25]="18.6",[26]="19.2",[27]="19.6",[28]="20.0",[29]="20.4",[30]="20.7",},[1]={[2]="1.6",[3]="2.3",[4]="3.0",[5]="3.8",[6]="4.5",[7]="5.2",[8]="6.0",[9]="6.7",[10]="7.5",[11]="8.2",[12]="9.0",[13]="9.7",[14]="10.4",[15]="11.2",[16]="11.9",[17]="12.7",[18]="13.4",[19]="14.2",[20]="14.9",[21]="15.7",[22]="16.4",[23]="17.2",[24]="17.9",[25]="18.6",[26]="19.2",[27]="19.6",[28]="20.0",[29]="20.4",[30]="20.7",},[2]={[3]="2.6",[4]="3.2",[5]="3.9",[6]="4.6",[7]="5.3",[8]="6.0",[9]="6.8",[10]="7.5",[11]="8.2",[12]="9.0",[13]="9.7",[14]="10.5",[15]="11.2",[16]="12.0",[17]="12.7",[18]="13.4",[19]="14.2",[20]="14.9",[21]="15.7",[22]="16.4",[23]="17.2",[24]="17.9",[25]="18.6",[26]="19.2",[27]="19.6",[28]="20.0",[29]="20.4",[30]="20.7",},[3]={[4]="3.6",[5]="4.2",[6]="4.8",[7]="5.5",[8]="6.2",[9]="6.9",[10]="7.6",[11]="8.3",[12]="9.0",[13]="9.8",[14]="10.5",[15]="11.2",[16]="12.0",[17]="12.7",[18]="13.5",[19]="14.2",[20]="15.0",[21]="15.7",[22]="16.4",[23]="17.2",[24]="17.9",[25]="18.7",[26]="19.2",[27]="19.7",[28]="20.0",[29]="20.4",[30]="20.7",},[4]={[5]="4.6",[6]="5.2",[7]="5.8",[8]="6.4",[9]="7.1",[10]="7.8",[11]="8.5",[12]="9.2",[13]="9.9",[14]="10.6",[15]="11.3",[16]="12.1",[17]="12.8",[18]="13.5",[19]="14.3",[20]="15.0",[21]="15.7",[22]="16.5",[23]="17.2",[24]="18.0",[25]="18.7",[26]="19.2",[27]="19.7",[28]="20.1",[29]="20.4",[30]="20.7",},[5]={[6]="5.5",[7]="6.1",[8]="6.8",[9]="7.4",[10]="8.0",[11]="8.7",[12]="9.4",[13]="10.1",[14]="10.8",[15]="11.5",[16]="12.2",[17]="12.9",[18]="13.6",[19]="14.4",[20]="15.1",[21]="15.8",[22]="16.5",[23]="17.3",[24]="18.0",[25]="18.8",[26]="19.3",[27]="19.7",[28]="20.1",[29]="20.4",[30]="20.7",},[6]={[7]="6.5",[8]="7.1",[9]="7.7",[10]="8.4",[11]="9.0",[12]="9.7",[13]="10.3",[14]="11.0",[15]="11.7",[16]="12.4",[17]="13.1",[18]="13.8",[19]="14.5",[20]="15.2",[21]="15.9",[22]="16.7",[23]="17.4",[24]="18.1",[25]="18.8",[26]="19.4",[27]="19.8",[28]="20.2",[29]="20.5",[30]="20.8",},[7]={[8]="7.5",[9]="8.1",[10]="8.7",[11]="9.3",[12]="10.0",[13]="10.6",[14]="11.3",[15]="11.9",[16]="12.6",[17]="13.3",[18]="14.0",[19]="14.7",[20]="15.4",[21]="16.1",[22]="16.8",[23]="17.5",[24]="18.2",[25]="19.0",[26]="19.5",[27]="19.9",[28]="20.3",[29]="20.6",[30]="20.9",},[8]={[9]="8.5",[10]="9.1",[11]="9.7",[12]="10.3",[13]="11.0",[14]="11.6",[15]="12.2",[16]="12.9",[17]="13.6",[18]="14.2",[19]="14.9",[20]="15.6",[21]="16.3",[22]="17.0",[23]="17.7",[24]="18.4",[25]="19.1",[26]="19.6",[27]="20.0",[28]="20.4",[29]="20.7",[30]="21.0",},[9]={[10]="9.5",[11]="10.1",[12]="10.7",[13]="11.3",[14]="11.9",[15]="12.6",[16]="13.2",[17]="13.8",[18]="14.5",[19]="15.2",[20]="15.8",[21]="16.5",[22]="17.2",[23]="17.9",[24]="18.6",[25]="19.3",[26]="19.8",[27]="20.2",[28]="20.5",[29]="20.8",[30]="21.1",},[10]={[11]="10.5",[12]="11.1",[13]="11.7",[14]="12.3",[15]="12.9",[16]="13.5",[17]="14.2",[18]="14.8",[19]="15.4",[20]="16.1",[21]="16.8",[22]="17.4",[23]="18.1",[24]="18.8",[25]="19.5",[26]="20.0",[27]="20.4",[28]="20.7",[29]="21.0",[30]="21.2",},[11]={[12]="11.5",[13]="12.1",[14]="12.7",[15]="13.3",[16]="13.9",[17]="14.5",[18]="15.1",[19]="15.8",[20]="16.4",[21]="17.1",[22]="17.7",[23]="18.4",[24]="19.1",[25]="19.7",[26]="20.2",[27]="20.6",[28]="20.9",[29]="21.2",[30]="21.4",},[12]={[13]="12.5",[14]="13.1",[15]="13.6",[16]="14.2",[17]="14.9",[18]="15.5",[19]="16.1",[20]="16.7",[21]="17.4",[22]="18.0",[23]="18.7",[24]="19.3",[25]="20.0",[26]="20.4",[27]="20.8",[28]="21.1",[29]="21.4",[30]="21.6",},[13]={[14]="13.5",[15]="14.1",[16]="14.6",[17]="15.2",[18]="15.8",[19]="16.5",[20]="17.1",[21]="17.7",[22]="18.4",[23]="19.0",[24]="19.6",[25]="20.3",[26]="20.7",[27]="21.1",[28]="21.4",[29]="21.6",[30]="21.8",},[14]={[15]="14.5",[16]="15.0",[17]="15.6",[18]="16.2",[19]="16.8",[20]="17.4",[21]="18.1",[22]="18.7",[23]="19.3",[24]="20.0",[25]="20.6",[26]="21.0",[27]="21.3",[28]="21.6",[29]="21.8",[30]="22.0",},[15]={[16]="15.5",[17]="16.0",[18]="16.6",[19]="17.2",[20]="17.8",[21]="18.4",[22]="19.0",[23]="19.6",[24]="20.3",[25]="20.9",[26]="21.3",[27]="21.6",[28]="21.9",[29]="22.1",[30]="22.3",},[16]={[17]="16.5",[18]="17.0",[19]="17.6",[20]="18.2",[21]="18.8",[22]="19.4",[23]="20.0",[24]="20.6",[25]="21.3",[26]="21.7",[27]="21.9",[28]="22.2",[29]="22.4",[30]="22.5",},[17]={[18]="17.5",[19]="18.0",[20]="18.6",[21]="19.2",[22]="19.8",[23]="20.4",[24]="21.0",[25]="21.6",[26]="22.0",[27]="22.3",[28]="22.5",[29]="22.7",[30]="22.8",},[18]={[19]="18.5",[20]="19.0",[21]="19.6",[22]="20.2",[23]="20.8",[24]="21.4",[25]="22.0",[26]="22.4",[27]="22.6",[28]="22.8",[29]="23.0",[30]="23.1",},[19]={[20]="19.5",[21]="20.0",[22]="20.6",[23]="21.2",[24]="21.8",[25]="22.4",[26]="22.7",[27]="22.9",[28]="23.1",[29]="23.2",[30]="23.4",},[20]={[21]="20.4",[22]="21.0",[23]="21.6",[24]="22.2",[25]="22.8",[26]="23.1",[27]="23.3",[28]="23.4",[29]="23.6",[30]="23.7",},[21]={[22]="21.4",[23]="22.0",[24]="22.6",[25]="23.2",[26]="23.5",[27]="23.6",[28]="23.8",[29]="23.9",[30]="24.0",},[22]={[23]="22.4",[24]="23.0",[25]="23.6",[26]="23.8",[27]="24.0",[28]="24.1",[29]="24.2",[30]="24.2",},[23]={[24]="23.4",[25]="24.0",[26]="24.2",[27]="24.4",[28]="24.4",[29]="24.5",[30]="24.5",},[24]={[25]="24.4",[26]="24.6",[27]="24.7",[28]="24.7",[29]="24.8",[30]="24.8",},}
 -- precomputed percentage of time wind is less than 6, from wind random monte carlo simulation, given minWind and maxWind
-local riskWind = {[0] = {[1] = "100", [2] = "100", [3] = "100", [4] = "100", [5] = "100", [6] = "100", [7] = "56", [8] = "42", [9] = "33", [10] = "27", [11] = "22", [12] = "18.5", [13] = "15.8", [14] = "13.6", [15] = "11.8", [16] = "10.4", [17] = "9.2", [18] = "8.2", [19] = "7.4", [20] = "6.7", [21] = "6.0", [22] = "5.5", [23] = "5.0", [24] = "4.6", [25] = "4.3", [26] = "4.0", [27] = "3.7", [28] = "3.4", [29] = "3.2", [30] = "3.0", }, [1] = {[2] = "100", [3] = "100", [4] = "100", [5] = "100", [6] = "100", [7] = "56", [8] = "42", [9] = "33", [10] = "27", [11] = "22", [12] = "18.5", [13] = "15.7", [14] = "13.6", [15] = "11.8", [16] = "10.4", [17] = "9.2", [18] = "8.2", [19] = "7.4", [20] = "6.7", [21] = "6.0", [22] = "5.5", [23] = "5.0", [24] = "4.6", [25] = "4.3", [26] = "4.0", [27] = "3.7", [28] = "3.4", [29] = "3.2", [30] = "3.0", }, [2] = {[3] = "100", [4] = "100", [5] = "100", [6] = "100", [7] = "55", [8] = "42", [9] = "33", [10] = "27", [11] = "22", [12] = "18.4", [13] = "15.6", [14] = "13.5", [15] = "11.8", [16] = "10.4", [17] = "9.2", [18] = "8.2", [19] = "7.4", [20] = "6.6", [21] = "6.0", [22] = "5.5", [23] = "5.0", [24] = "4.6", [25] = "4.3", [26] = "3.9", [27] = "3.6", [28] = "3.4", [29] = "3.1", [30] = "2.9", }, [3] = {[4] = "100", [5] = "100", [6] = "100", [7] = "53", [8] = "40", [9] = "32", [10] = "25", [11] = "21", [12] = "17.8", [13] = "15.2", [14] = "13.2", [15] = "11.5", [16] = "10.2", [17] = "9.1", [18] = "8.1", [19] = "7.3", [20] = "6.6", [21] = "6.0", [22] = "5.4", [23] = "5.0", [24] = "4.6", [25] = "4.2", [26] = "3.9", [27] = "3.6", [28] = "3.4", [29] = "3.1", [30] = "2.9", }, [4] = {[5] = "100", [6] = "100", [7] = "49", [8] = "36", [9] = "29", [10] = "23", [11] = "19.4", [12] = "16.4", [13] = "14.0", [14] = "12.2", [15] = "10.8", [16] = "9.6", [17] = "8.6", [18] = "7.7", [19] = "7.0", [20] = "6.3", [21] = "5.8", [22] = "5.3", [23] = "4.8", [24] = "4.4", [25] = "4.1", [26] = "3.8", [27] = "3.5", [28] = "3.3", [29] = "3.0", [30] = "2.8", }, [5] = {[6] = "100", [7] = "41", [8] = "30", [9] = "24", [10] = "19.5", [11] = "16.2", [12] = "13.9", [13] = "11.9", [14] = "10.4", [15] = "9.3", [16] = "8.3", [17] = "7.5", [18] = "6.8", [19] = "6.2", [20] = "5.7", [21] = "5.2", [22] = "4.8", [23] = "4.4", [24] = "4.1", [25] = "3.8", [26] = "3.5", [27] = "3.2", [28] = "3.0", [29] = "2.8", [30] = "2.6", }, [6] = {[7] = "16.0", [8] = "12.4", [9] = "10.5", [10] = "9.0", [11] = "8.0", [12] = "7.3", [13] = "6.6", [14] = "6.0", [15] = "5.5", [16] = "5.1", [17] = "4.7", [18] = "4.4", [19] = "4.2", [20] = "3.9", [21] = "3.6", [22] = "3.4", [23] = "3.2", [24] = "3.0", [25] = "2.8", [26] = "2.7", [27] = "2.5", [28] = "2.4", [29] = "2.2", [30] = "2.1", }, }
+local riskWind = {[0]={[1]="100",[2]="100",[3]="100",[4]="100",[5]="100",[6]="100",[7]="56",[8]="42",[9]="33",[10]="27",[11]="22",[12]="18.5",[13]="15.8",[14]="13.6",[15]="11.8",[16]="10.4",[17]="9.2",[18]="8.2",[19]="7.4",[20]="6.7",[21]="6.0",[22]="5.5",[23]="5.0",[24]="4.6",[25]="4.3",[26]="4.0",[27]="3.7",[28]="3.4",[29]="3.2",[30]="3.0",},[1]={[2]="100",[3]="100",[4]="100",[5]="100",[6]="100",[7]="56",[8]="42",[9]="33",[10]="27",[11]="22",[12]="18.5",[13]="15.7",[14]="13.6",[15]="11.8",[16]="10.4",[17]="9.2",[18]="8.2",[19]="7.4",[20]="6.7",[21]="6.0",[22]="5.5",[23]="5.0",[24]="4.6",[25]="4.3",[26]="4.0",[27]="3.7",[28]="3.4",[29]="3.2",[30]="3.0",},[2]={[3]="100",[4]="100",[5]="100",[6]="100",[7]="55",[8]="42",[9]="33",[10]="27",[11]="22",[12]="18.4",[13]="15.6",[14]="13.5",[15]="11.8",[16]="10.4",[17]="9.2",[18]="8.2",[19]="7.4",[20]="6.6",[21]="6.0",[22]="5.5",[23]="5.0",[24]="4.6",[25]="4.3",[26]="3.9",[27]="3.6",[28]="3.4",[29]="3.1",[30]="2.9",},[3]={[4]="100",[5]="100",[6]="100",[7]="53",[8]="40",[9]="32",[10]="25",[11]="21",[12]="17.8",[13]="15.2",[14]="13.2",[15]="11.5",[16]="10.2",[17]="9.1",[18]="8.1",[19]="7.3",[20]="6.6",[21]="6.0",[22]="5.4",[23]="5.0",[24]="4.6",[25]="4.2",[26]="3.9",[27]="3.6",[28]="3.4",[29]="3.1",[30]="2.9",},[4]={[5]="100",[6]="100",[7]="49",[8]="36",[9]="29",[10]="23",[11]="19.4",[12]="16.4",[13]="14.0",[14]="12.2",[15]="10.8",[16]="9.6",[17]="8.6",[18]="7.7",[19]="7.0",[20]="6.3",[21]="5.8",[22]="5.3",[23]="4.8",[24]="4.4",[25]="4.1",[26]="3.8",[27]="3.5",[28]="3.3",[29]="3.0",[30]="2.8",},[5]={[6]="100",[7]="41",[8]="30",[9]="24",[10]="19.5",[11]="16.2",[12]="13.9",[13]="11.9",[14]="10.4",[15]="9.3",[16]="8.3",[17]="7.5",[18]="6.8",[19]="6.2",[20]="5.7",[21]="5.2",[22]="4.8",[23]="4.4",[24]="4.1",[25]="3.8",[26]="3.5",[27]="3.2",[28]="3.0",[29]="2.8",[30]="2.6",},[6]={[7]="16.0",[8]="12.4",[9]="10.5",[10]="9.0",[11]="8.0",[12]="7.3",[13]="6.6",[14]="6.0",[15]="5.5",[16]="5.1",[17]="4.7",[18]="4.4",[19]="4.2",[20]="3.9",[21]="3.6",[22]="3.4",[23]="3.2",[24]="3.0",[25]="2.8",[26]="2.7",[27]="2.5",[28]="2.4",[29]="2.2",[30]="2.1",},}
 -- pull average wind from precomputed table, if it exists
 local avgWindValue = avgWind[minWind]
 if avgWindValue ~= nil then
-	avgWindValue = avgWindValue[maxWind]
+	avgWindValue=avgWindValue[maxWind]
 end
 if avgWindValue == nil then
-	avgWindValue = "~" .. tostring(math_max(minWind, maxWind * .75)) --fallback approximation
+	avgWindValue="~" .. tostring(math_max(minWind,maxWind*.75)) --fallback approximation
 end
 -- pull wind risk from precomputed table, if it exists
 local riskWindValue = riskWind[minWind]
 if riskWindValue ~= nil then
-	riskWindValue = riskWindValue[maxWind]
+	riskWindValue=riskWindValue[maxWind]
 end
 if riskWindValue == nil then
 	if minWind+maxWind >= 0.5 then
@@ -471,7 +463,7 @@ local playerStallingEnergy = false
 
 local isCommander = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.customParams.iscommander then
+	if unitDef.customParams.iscommander then  -- xxx why is "or unitDef.customParams.isscavcommander" missing?
 		isCommander[unitDefID] = true
 	end
 end
@@ -497,7 +489,7 @@ local function DrawRect(px, py, sx, sy, zoom)
 	gl.BeginEnd(GL.QUADS, RectQuad, px, py, sx, sy, zoom)
 end
 
-function widget:ViewResize() --gets called one time at function widget:Initialize()
+function widget:ViewResize()
 	vsx, vsy = gl.GetViewSizes()
 	widgetScale = (vsy / height) * 0.0425
 	widgetScale = widgetScale * ui_scale
@@ -558,7 +550,7 @@ local function updateButtons()
 		buttonsArea['buttons'] = {}
 
 		local margin = bgpadding
-		local textPadding = math_floor(fontsize * 0.8)
+		local textPadding = math_floor(fontsize*0.8)
 		local sidePadding = textPadding
 		local offset = sidePadding
 		local lastbutton
@@ -619,7 +611,7 @@ local function updateButtons()
 	end
 	if showButtons then
 		dlistButtonsGuishader = glCreateList(function()
-			RectRound(buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4], 5.5 * widgetScale, 0, 0, 1, 1)
+			RectRound(buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4], 5.5 * widgetScale, 0,0,1,1)
 		end)
 		if WG['guishader'] then
 			WG['guishader'].InsertDlist(dlistButtonsGuishader, 'topbar_buttons')
@@ -651,8 +643,9 @@ local function updateComs(forceText)
 		glDeleteList(dlistComsGuishader)
 	end
 	dlistComsGuishader = glCreateList(function()
-		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0, 0, 1, 1)
+		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0,0,1,1)
 	end)
+
 	if dlistComs1 ~= nil then
 		glDeleteList(dlistComs1)
 	end
@@ -697,7 +690,7 @@ end
 local function updateWind()
 	local area = windArea
 
-	local bladesSize = height * 0.53 * widgetScale
+	local bladesSize = height*0.53 * widgetScale
 
 	-- add background blur
 	if dlistWindGuishader ~= nil then
@@ -707,7 +700,7 @@ local function updateWind()
 		glDeleteList(dlistWindGuishader)
 	end
 	dlistWindGuishader = glCreateList(function()
-		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0, 0, 1, 1)
+		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0,0,1,1)
 	end)
 
 	if dlistWind1 ~= nil then
@@ -749,8 +742,8 @@ local function updateWind()
 		else
 			font2:Begin()
 			--font2:Print("\255\200\200\200no wind", windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.05) - (fontsize / 5), fontsize, 'oc') -- Wind speed text
-			font2:Print("\255\200\200\200" .. Spring.I18N('ui.topbar.wind.nowind1'), windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 1.5) - (fontsize / 5), fontsize * 1.06, 'oc') -- Wind speed text
-			font2:Print("\255\200\200\200" .. Spring.I18N('ui.topbar.wind.nowind2'), windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.8) - (fontsize / 5), fontsize * 1.06, 'oc') -- Wind speed text
+			font2:Print("\255\200\200\200" .. Spring.I18N('ui.topbar.wind.nowind1'), windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 1.5) - (fontsize / 5), fontsize*1.06, 'oc') -- Wind speed text
+			font2:Print("\255\200\200\200" .. Spring.I18N('ui.topbar.wind.nowind2'), windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.8) - (fontsize / 5), fontsize*1.06, 'oc') -- Wind speed text
 			font2:End()
 		end
 	end)
@@ -760,7 +753,7 @@ local function updateWind()
 	end
 end
 
--- return true if tidal speed is * relevant * , enough water in the world (>= 10%)
+-- return true if tidal speed is *relevant*, enough water in the world (>= 10%)
 local function checkTidalRelevant()
 	local _, _, mapMinHeight, mapMaxHeight = Spring.GetGroundExtremes()
 	return mapMinHeight <= -20	-- armtide/cortide can be built from 20 waterdepth (hardcoded here cause am too lazy to auto cycle trhough unitdefs and read it from there)
@@ -777,7 +770,7 @@ local function updateTidal()
 		glDeleteList(dlistTidalGuishader)
 	end
 	dlistTidalGuishader = glCreateList(function()
-		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0, 0, 1, 1)
+		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0,0,1,1)
 	end)
 
 	if tidaldlist1 ~= nil then
@@ -786,8 +779,8 @@ local function updateTidal()
 	if tidaldlist2 ~= nil then
 		glDeleteList(tidaldlist2)
 	end
-	local wavesSize = height * 0.53 * widgetScale
-	tidalWaveAnimationHeight = height * 0.1 * widgetScale
+	local wavesSize = height*0.53 * widgetScale
+	tidalWaveAnimationHeight = height*0.1 * widgetScale
 	tidaldlist1 = glCreateList(function()
 		UiElement(area[1], area[2], area[3], area[4], 0, 0, 1, 1)
 		if WG['guishader'] then
@@ -815,19 +808,21 @@ local function updateTidal()
 	end
 end
 
+
 local function updateResbarText(res)
+
 	if dlistResbar[res][4] ~= nil then
 		glDeleteList(dlistResbar[res][4])
 	end
 	dlistResbar[res][4] = glCreateList(function()
-		RectRound(resbarArea[res][1] + bgpadding, resbarArea[res][2] + bgpadding, resbarArea[res][3] - bgpadding, resbarArea[res][4], bgpadding * 1.25, 0, 0, 1, 1)
+		RectRound(resbarArea[res][1] + bgpadding, resbarArea[res][2] + bgpadding, resbarArea[res][3] - bgpadding, resbarArea[res][4], bgpadding * 1.25, 0,0,1,1)
 		RectRound(resbarArea[res][1], resbarArea[res][2], resbarArea[res][3], resbarArea[res][4], 5.5 * widgetScale, 0, 0, 1, 1)
 	end)
 	if dlistResbar[res][5] ~= nil then
 		glDeleteList(dlistResbar[res][5])
 	end
 	dlistResbar[res][5] = glCreateList(function()
-		RectRound(resbarArea[res][1], resbarArea[res][2], resbarArea[res][3], resbarArea[res][4], 5.5 * widgetScale, 0, 0, 1, 1)
+		RectRound(resbarArea[res][1], resbarArea[res][2], resbarArea[res][3], resbarArea[res][4], 5.5 * widgetScale, 0,0,1, 1)
 	end)
 
 	-- storage changed!
@@ -864,9 +859,7 @@ local function updateResbarText(res)
 		glDeleteList(dlistResbar[res][3])
 	end
 
-	-- Add stalling M/E for any low-priority builders
-
-	if res == 'metal' then
+	if res == 'metal' then	-- Add stalling M/E for any low-priority builders
 		r[res][3] = r[res][3] + stalling['lowPrioMetal'] 
 	elseif res == 'energy' then
 		r[res][3] = r[res][3] + stalling['lowPrioEnergy']
@@ -940,8 +933,8 @@ local function updateResbarText(res)
 									else
 										--WG['notifications'].addEvent('YouAreWastingEnergy')
 									end
-								elseif r[res][6] > 0.75 then    -- supress if you are deliberately overflowing by adjusting the share slider down
-									--WG['notifications'].addEvent('YouAreOverflowingEnergy')   -- this annoys the fuck out of em and makes them build energystoages too much
+								elseif r[res][6] > 0.75 then	-- supress if you are deliberately overflowing by adjustingthe share slider down
+									--WG['notifications'].addEvent('YouAreOverflowingEnergy')	-- this annoys the fuck out of em and makes them build energystoages too much
 								end
 							end
 						end
@@ -996,7 +989,6 @@ local function updateResbarText(res)
 							font2:Print(text, resbarArea[res][3], resbarArea[res][2] - 9.3 * widgetScale, fontSize, 'or')
 						elseif config.drawBPBar then
 							local offset = 0
-
 							local warning_lowlight = { 0.35, 0.1, 0.1, 1 }
 							local warning_highlight = { 0.25, 0.05, 0.05, 1 }
 							local info_lowlight = { 0.20, 0.20, 0.20, 1 }
@@ -1073,18 +1065,11 @@ local function updateResbar(res)  --decides where and what is drawn
 	resbarDrawinfo[res].barGlowLeftTexRect = { resbarDrawinfo[res].barTexRect[1] - (glowSize * 2.5), resbarDrawinfo[res].barTexRect[2] - glowSize, resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[4] + glowSize }
 	resbarDrawinfo[res].barGlowRightTexRect = { resbarDrawinfo[res].barTexRect[3] + (glowSize * 2.5), resbarDrawinfo[res].barTexRect[2] - glowSize, resbarDrawinfo[res].barTexRect[3], resbarDrawinfo[res].barTexRect[4] + glowSize }
 
-	local storageColor = "\255\150\150\100"
-	local pullColor = "\255\210\100\100"
-	local expenseColor = "\255\210\100\100"
-	local incomeColor = "\255\100\210\100"
-
-
-	resbarDrawinfo[res].textStorage = { storageColor .. short(r[res][2]), barArea[3], barArea[2] + barHeight * 2.1, (height / 3.2) * widgetScale, 'ord' }
-	resbarDrawinfo[res].textPull = { pullColor .. short(r[res][3]), barArea[1] - (10 * widgetScale), barArea[2] + barHeight * 2.15, (height / 3) * widgetScale, 'ord' }
-	resbarDrawinfo[res].textExpense = { expenseColor .. short(r[res][5]), barArea[1] + (10 * widgetScale), barArea[2] + barHeight * 2.15, (height / 3) * widgetScale, 'old' }   
-	resbarDrawinfo[res].textIncome = { incomeColor .. short(r[res][4]), barArea[1] - (10 * widgetScale), barArea[2] - (barHeight * 0.55), (height / 3) * widgetScale, 'ord' }
 	resbarDrawinfo[res].textCurrent = { short(r[res][1]), barArea[1] + barWidth / 2, barArea[2] + barHeight * 1.8, (height / 2.5) * widgetScale, 'ocd' }
-	
+	resbarDrawinfo[res].textStorage = { "\255\150\150\150" .. short(r[res][2]), barArea[3], barArea[2] + barHeight * 2.1, (height / 3.2) * widgetScale, 'ord' }
+	resbarDrawinfo[res].textPull = { "\255\210\100\100" .. short(r[res][3]), barArea[1] - (10 * widgetScale), barArea[2] + barHeight * 2.15, (height / 3) * widgetScale, 'ord' }
+	resbarDrawinfo[res].textExpense = { "\255\210\100\100" .. short(r[res][5]), barArea[1] + (10 * widgetScale), barArea[2] + barHeight * 2.15, (height / 3) * widgetScale, 'old' }
+	resbarDrawinfo[res].textIncome = { "\255\100\210\100" .. short(r[res][4]), barArea[1] - (10 * widgetScale), barArea[2] - (barHeight * 0.55), (height / 3) * widgetScale, 'ord' }
 	if res == 'BP' and config.drawBPBar == true then
 		resbarDrawinfo[res].barArea = { area[1] + barHorizontalPadding_BP, barArea[2], area[3] - barHorizontalPadding_BP, barArea[4] }
 		barArea = resbarDrawinfo[res].barArea
@@ -1099,7 +1084,7 @@ local function updateResbar(res)  --decides where and what is drawn
 		glDeleteList(dlistResbar[res][0])
 	end
 	dlistResbar[res][0] = glCreateList(function()
-		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0, 0, 1, 1)
+		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0,0,1,1)
 	end)
 
 	dlistResbar[res][1] = glCreateList(function()
@@ -1120,10 +1105,10 @@ local function updateResbar(res)  --decides where and what is drawn
 		local bgpaddingHalf = math_floor((bgpadding * 0.5) + 0.5)
 		local texSize = math_floor(iconSize * 2)
 		if res == 'metal' then
-			glTexture(":lr" ..texSize ..", " ..texSize ..":LuaUI/Images/metal.png")
+			glTexture(":lr" .. texSize .. "," .. texSize .. ":LuaUI/Images/metal.png")
 		elseif res == 'energy' then
 
-			glTexture(":lr" ..texSize ..", " ..texSize ..":LuaUI/Images/energy.png") 
+			glTexture(":lr" .. texSize .. "," .. texSize .. ":LuaUI/Images/energy.png") 
 		elseif config.drawBPBar == true then
 			glColor(1, 0.9, 0.2, 1)
 			glTexture(":lr" ..texSize ..", " ..texSize ..":LuaUI/images/stripes.png") --for bp bar only
@@ -1144,18 +1129,16 @@ local function updateResbar(res)  --decides where and what is drawn
 		local borderSize = 1
 		local fullBarColorLow = { 0, 0, 0, 0.12 } -- bottom (lowlight)
 		local fullBarColorHigh = { 0, 0, 0, 0.15 } -- top (highlight)
-		if res == 'BP' then
-			-- red background, since unused BP is a problem
+		if res == 'BP' then	-- red background, since unused BP is a problem
 			fullBarColorLow = { 1, 0, 0, 0.22 } -- bottom (lowlight)
 			fullBarColorHigh = { 1, 0, 0, 0.25 } -- top (highlight)
 		end
 		RectRound(barArea[1] - edgeWidth + borderSize, barArea[2] - edgeWidth + borderSize, barArea[3] + edgeWidth - borderSize, barArea[4] + edgeWidth - borderSize, barHeight * 0.2, 1, 1, 1, 1, fullBarColorLow, fullBarColorHigh)
 
 		gl.Texture(noiseBackgroundTexture)
-		gl.Color(1, 1, 1, 0.16)
-		TexturedRectRound(barArea[1] - edgeWidth, barArea[2] - edgeWidth, barArea[3] + edgeWidth, barArea[4] + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, barWidth * 0.33, 0)
+		gl.Color(1,1,1, 0.16)
+		TexturedRectRound(barArea[1] - edgeWidth, barArea[2] - edgeWidth, barArea[3] + edgeWidth, barArea[4] + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, barWidth*0.33, 0)
 		gl.Texture(false)
-
 		glBlending(GL_SRC_ALPHA, GL_ONE)
 		RectRound(barArea[1] - addedSize - edgeWidth, barArea[2] - addedSize - edgeWidth, barArea[3] + addedSize + edgeWidth, barArea[4] + addedSize + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, { 0, 0, 0, 0.1 }, { 0, 0, 0, 0.1 })
 		RectRound(barArea[1] - addedSize, barArea[2] - addedSize, barArea[3] + addedSize, barArea[4] + addedSize, barHeight * 0.33, 1, 1, 1, 1, { 0.15, 0.15, 0.15, 0.2 }, { 0.8, 0.8, 0.8, 0.16 })
@@ -1184,9 +1167,10 @@ local function updateResbar(res)  --decides where and what is drawn
 				cornerSize = 1.33 * widgetScale
 			end
 			UiSliderKnob(math_floor(conversionIndicatorArea[1]+((conversionIndicatorArea[3]-conversionIndicatorArea[1])/2)), math_floor(conversionIndicatorArea[2]+((conversionIndicatorArea[4]-conversionIndicatorArea[2])/2)), math_floor((conversionIndicatorArea[3]-conversionIndicatorArea[1])/2), { 0.95, 0.95, 0.7, 1 })
+		
 		end
-		--show usefulBPFactor
-		for i = 1, 1 do
+		
+		for i = 1, 1 do --show usefulBPFactor
 			if res == 'BP' and config.drawBPIndicators then
 				local texWidth = 1.0 * shareSliderWidth
 				local texHeight = math_floor( shareSliderWidth / 2 ) - 1
@@ -1224,7 +1208,7 @@ local function updateResbar(res)  --decides where and what is drawn
 
 				if indicatorPosE ~= nil then
 					-- Indicator for the range of buildpower that energy COULD support if the wind changes.
-					if config.drawBPWindRangeIndicators and numWindGenerators > 0 and BP['eSliderPosition_minWind'] ~= nil and BP['eSliderPosition_maxWind'] ~= nil then
+					if config.drawBPWindRangeIndicators and numWindTurbines > 0 and BP['eSliderPosition_minWind'] ~= nil and BP['eSliderPosition_maxWind'] ~= nil then
 						-- Draw a thin rectangle showing the possible positions of the E-supported BP slider based on min and max wind conditions.
 						RectRound(
 							barArea[1] + (BP['eSliderPosition_minWind'] * barWidth) - energyIndicatorHalfWidth, -- left
@@ -1275,22 +1259,24 @@ local function updateResbar(res)  --decides where and what is drawn
 			end
 		end
 	end)
+
 	local resourceTranslations = {
 		metal = Spring.I18N('ui.topbar.resources.metal'), 
-		energy = Spring.I18N('ui.topbar.resources.energy')
+		energy =  Spring.I18N('ui.topbar.resources.energy')
 	}
 
 	local resourceName = resourceTranslations[res]
 
 	-- add tooltips
-	if WG['tooltip'] ~= nil and conversionIndicatorArea then  -- tool tips 
-		if res == 'energy' then -- tool tips for share sliders
+	if WG['tooltip'] ~= nil and conversionIndicatorArea then
+		if res == 'energy' then
 			WG['tooltip'].AddTooltip(res .. '_share_slider', { resbarDrawinfo[res].barArea[1], shareIndicatorArea[res][2], conversionIndicatorArea[1], shareIndicatorArea[res][4] }, Spring.I18N('ui.topbar.resources.shareEnergyTooltip'), nil, Spring.I18N('ui.topbar.resources.shareEnergyTooltipTitle'))
 			WG['tooltip'].AddTooltip(res .. '_share_slider2', { conversionIndicatorArea[3], shareIndicatorArea[res][2], resbarDrawinfo[res].barArea[3], shareIndicatorArea[res][4] }, Spring.I18N('ui.topbar.resources.shareEnergyTooltip'), nil, Spring.I18N('ui.topbar.resources.shareEnergyTooltipTitle'))
 			WG['tooltip'].AddTooltip(res .. '_metalmaker_slider', conversionIndicatorArea, Spring.I18N('ui.topbar.resources.conversionTooltip'), nil, Spring.I18N('ui.topbar.resources.conversionTooltipTitle'))
 		else
 			WG['tooltip'].AddTooltip(res .. '_share_slider', { resbarDrawinfo[res].barArea[1], shareIndicatorArea[res][2], resbarDrawinfo[res].barArea[3], shareIndicatorArea[res][4] }, Spring.I18N('ui.topbar.resources.shareMetalTooltip'), nil, Spring.I18N('ui.topbar.resources.shareMetalTooltipTitle'))
 		end
+
 		if res == 'BP' and config.drawBPBar == true then -- for bp bar only
 			local textColor = '\255\215\215\215'
 			local highlightColor = '\255\255\255\255'
@@ -1350,6 +1336,9 @@ local function updateResbar(res)  --decides where and what is drawn
 					end
 					return sformat("%.3f", n)
 				end
+				if BP['metalExpenseIfAllBPUsed'] and BP['energyExpenseIfAllBPUsed'] then
+				local metalSupportedBP = r['metal'][4] / BP['metalExpenseIfAllBPUsed'] * BP[4]
+				local energySupportedBP = r['energy'][4] / BP['energyExpenseIfAllBPUsed'] * BP[4]
 				bpTooltipText = bpTooltipText
 			 		.."\n\nDEBUG:\n"
 					.. float_to_s(avgTotalUsedBP) .. " BP used (smoothed), " .. float_to_s(BP['usedBP_instant']) .. " \n"
@@ -1364,13 +1353,14 @@ local function updateResbar(res)  --decides where and what is drawn
 					.. float_to_s(r['metal'][5]) .. " / " .. float_to_s(r['energy'][5]) .. " metal/energy expense, \n"
 					.. float_to_s(BP['metalExpensePerBP']) .. " / " .. float_to_s(BP['energyExpensePerBP']) .. " M/E expense per BP, \n"
 					.. float_to_s(r['energy'][4]) .." E income\n"
-					.. float_to_s(numWindGenerators) .." wind generators\n"
+					.. float_to_s(numWindTurbines) .." wind generators\n"
 					.. "\nprojections:\n"
 					.. float_to_s(eIncomeNoWind) .." E income without wind\n"
 					.. float_to_s(BP['metalExpenseIfAllBPUsed']) .. " M spent if all BP is used, \n"
 					.. float_to_s(BP['energyExpenseIfAllBPUsed']) .. " E spent if all BP is used, \n"
-					.. float_to_s(BP['metalSupportedBP']) .. " BP supported by M income, \n"
-					.. float_to_s(BP['energySupportedBP']) .. " BP supported by E income,\n\n"
+					.. float_to_s(metalSupportedBP) .. " BP supported by M income, \n"
+					.. float_to_s(energySupportedBP) .. " BP supported by E income,\n\n"
+				end
 			end
 
 			WG['tooltip'].AddTooltip(res .. '_all', {
@@ -1405,11 +1395,9 @@ local function updateResbar(res)  --decides where and what is drawn
 	end
 end
 
-
-local function drawResbarValues(res, updateText) --drawing the bar itself and value of stored res
+local function drawResbarValues(res, updateText)
 	if res ~= 'BP' or config.drawBPBar then	-- only draw BP if wanted
 		local cappedCurRes = r[res][1]    -- limit so when production dies the value wont be much larger than what you can store
-	
 		if r[res][1] > r[res][2] * 1.07 then
 			cappedCurRes = r[res][2] * 1.07
 		end
@@ -1449,14 +1437,15 @@ local function drawResbarValues(res, updateText) --drawing the bar itself and va
 					color1 = { 0.51, 0.51, 0.5, 1 }
 					color2 = { 0.95, 0.95, 0.95, 1 }
 					glowAlpha = 0.025 + (0.05 * math_min(1, cappedCurRes / r[res][2] * 40))
-				elseif res == 'energy' then
-					color1 = { 0.5, 0.45, 0, 1 }
-					color2 = { 0.8, 0.75, 0, 1 }
-					glowAlpha = 0.035 + (0.07 * math_min(1, cappedCurRes / r[res][2] * 40))
 				elseif res == 'BP' then -- Keine zusätzliche Bedingung nötig
 					color1 = { 0.2, 0.65, 0, 1 }
 					color2 = { 0.5, 0.75, 0, 1 }
 					glowAlpha = 0.035 + (0.06 * math_min(1, cappedCurRes / r[res][2] * 40))
+				elseif res == 'energy' then
+					color1 = { 0.5, 0.45, 0, 1 }
+					color2 = { 0.8, 0.75, 0, 1 }
+					glowAlpha = 0.035 + (0.07 * math_min(1, cappedCurRes / r[res][2] * 40))
+
 				end
 				RectRound(resbarDrawinfo[res].barArea[1], resbarDrawinfo[res].barArea[2], resbarDrawinfo[res].barArea[1] + valueWidth, resbarDrawinfo[res].barArea[4], barHeight * 0.2, 1, 1, 1, 1, color1, color2)
 
@@ -1472,7 +1461,6 @@ local function drawResbarValues(res, updateText) --drawing the bar itself and va
 				DrawRect(resbarDrawinfo[res].barGlowLeftTexRect[1], resbarDrawinfo[res].barGlowLeftTexRect[2], resbarDrawinfo[res].barGlowLeftTexRect[3], resbarDrawinfo[res].barGlowLeftTexRect[4], 0.008)
 				DrawRect((resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth) + (glowSize * 3), resbarDrawinfo[res].barGlowRightTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth, resbarDrawinfo[res].barGlowRightTexRect[4], 0.008)
 				glTexture(false)
-
 				if res == 'BP' then
 					local color1Secondary = { 0.1, 0.55, 0, 0.5 } 
 					local color2Secondary = { 0.3, 0.65, 0, 0.5 }
@@ -1482,19 +1470,20 @@ local function drawResbarValues(res, updateText) --drawing the bar itself and va
 				if res == 'metal' then
 					-- noise
 					gl.Texture(noiseBackgroundTexture)
-					gl.Color(1, 1, 1, 0.37)
+					gl.Color(1,1,1, 0.37)
 					TexturedRectRound(resbarDrawinfo[res].barArea[1], resbarDrawinfo[res].barArea[2], resbarDrawinfo[res].barArea[1] + valueWidth, resbarDrawinfo[res].barArea[4], barHeight * 0.2, 1, 1, 1, 1, barWidth * 0.33, 0)
 					gl.Texture(false)
 				end
 
 				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 			end)
+
 		end
 		glCallList(dlistResValuesBar[res][uniqueKey]) --uniqueKey for bp bar
 
 		if res == 'energy' or res == 'BP' then
 			-- energy flow effect
-			gl.Color(1, 1, 1, 0.33)
+			gl.Color(1,1,1, 0.33)
 			glBlending(GL_SRC_ALPHA, GL_ONE)
 			glTexture("LuaUI/Images/paralyzed.png")
 			TexturedRectRound(resbarDrawinfo[res].barArea[1], resbarDrawinfo[res].barArea[2], resbarDrawinfo[res].barArea[1] + valueWidth, resbarDrawinfo[res].barArea[4], barHeight * 0.2, 0, 0, 1, 1, barWidth/0.5, -os.clock()/80)
@@ -1530,6 +1519,7 @@ local function drawResbarValues(res, updateText) --drawing the bar itself and va
 					end
 				end
 				dlistResValues[res][currentResValue[res]] = glCreateList(function()
+					-- Text: current
 					font2:Begin()
 					if res == 'metal' then
 						font2:SetTextColor(0.95, 0.95, 0.95, 1)
@@ -1544,7 +1534,6 @@ local function drawResbarValues(res, updateText) --drawing the bar itself and va
 				end)
 			end
 		end
-
 		if dlistResValues[res][currentResValue[res]] then
 			glCallList(dlistResValues[res][currentResValue[res]])
 		end
@@ -1552,7 +1541,9 @@ local function drawResbarValues(res, updateText) --drawing the bar itself and va
 end
 
 function init()
+
 	r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') } }
+
 	if config.drawBPBar then
 		r['BP'] = BP
 	end
@@ -1602,7 +1593,6 @@ function init()
 	resbarArea['energy'] = { topbarArea[1] + filledWidth, topbarArea[2], topbarArea[1] + filledWidth + width, topbarArea[4] }
 	filledWidth = filledWidth + width + widgetSpaceMargin
 	updateResbar('energy')
-
 
 	-- wind
 	width = math_floor((height * 1.18) * widgetScale)
@@ -1665,7 +1655,7 @@ local function countComs(forceUpdate)
 	local prevEnemyComs = enemyComs
 	allyComs = 0
 	for _, teamID in ipairs(myAllyTeamList) do
-		for unitDefID, _ in pairs(isCommander) do
+		for unitDefID,_ in pairs(isCommander) do
 			allyComs = allyComs + Spring.GetTeamUnitDefCount(teamID, unitDefID)
 		end
 	end
@@ -1698,11 +1688,11 @@ function widget:GameStart()
 end
 
 function widget:GameFrame(n)
-	spec = spGetSpectatingState()
+	gameFrame = n
+	--spec = spGetSpectatingState()
 
 	local bladeSpeedMultiplier = 0.2
 	windRotation = windRotation + (currentWind * bladeSpeedMultiplier)
-	gameFrame = n
 	-- If we're supposed to draw the buildpower bar, do some calculations.
 	if config.drawBPBar then -- calculations for the exact metal and energy draw value
 		-- Log initial cache values
@@ -1761,105 +1751,96 @@ function widget:GameFrame(n)
 		cacheDataBase['usedBPMetalExpense'] = cacheDataBase['usedBPMetalExpense'] + usedBPMetalExpense
 		cacheDataBase['usedBPEnergyExpense'] = cacheDataBase['usedBPEnergyExpense'] + usedBPEnergyExpense
 
-		if config.drawBPWindRangeIndicators then
-			local realWindStrength = 0
-			for unitID in pairs(trackedWinds) do
-				local metalMake, metalUse, energyMake, energyUse = spGetUnitResources(unitID)
-				if energyMake ~= nil then
-					realWindStrength = energyMake
-					break
-				end
-			end
-			cacheDataBase['realWindStrength'] = realWindStrength
-		end
-
-
 		if not builderCoroutine or coroutine.status(builderCoroutine) == "dead" then	-- If every builder was checked store it in BP
 			BP['reservedBP_instant'] = cacheDataBase['reservedBP_instant']
 			BP['usedBP_instant'] = cacheDataBase['usedBP_instant']
 			BP['usedBPMetalExpense'] = cacheDataBase['usedBPMetalExpense']  --xxx extern for tooltip only
 			BP['usedBPEnergyExpense'] = cacheDataBase['usedBPEnergyExpense']
 
+			cacheDataBase['reservedBP_instant'] = 0
+			cacheDataBase['usedBP_instant'] = 0
+			cacheDataBase['usedBPMetalExpense'] = 0
+			cacheDataBase['usedBPEnergyExpense'] = 0
 			BP[3] = math_floor(addValueAndGetWeightedAverage(BP['history_reservedBP'], BP['reservedBP_instant'], 1) + 0.5)
 			BP[5] = math_floor(addValueAndGetWeightedAverage(BP['history_usedBP'], BP['usedBP_instant'], 1) + 0.5)
-			
-			local metalIncome = r['metal'][4]
-			local energyIncome = r['energy'][4]
+		end
 
-			if config.drawBPWindRangeIndicators then
-				local realWindStrength_instant = cacheDataBase['realWindStrength']
-				BP['energyIncomeNoWind'] = addValueAndGetWeightedAverage(BP['history_eIncomeNoWind'], energyIncome - numWindGenerators * realWindStrength_instant, 1)
-			end
 
-			-- Assume our eco supports full BP until we calculate otherwise.
-			local bpRatioSupportedByMIncome = 1 -- what proportion of our total BP can be supported by our metal income?
-			local bpRatioSupportedByEIncome = 1 -- what proportion of our total BP can be supported by our energy income?
 
-			if BP['usedBP_instant'] >= 1 then		-- We only need to calculate this if at least one builder is building.
+		if n %3 == 0 then
+			if BP['usedBP_instant'] >= 1 then
+				-- We only need to calculate this if at least one builder is building.
+				BP['metalExpensePerBP'] = BP['usedBPMetalExpense'] / BP['usedBP_instant']
+				BP['energyExpensePerBP'] = BP['usedBPEnergyExpense'] / BP['usedBP_instant']
 				local totalBP = BP[4]
 				local energyExpense = r['energy'][5]
 				local metalExpense = r['metal'][5]
-
-				BP['metalExpensePerBP'] = BP['usedBPMetalExpense'] / BP['usedBP_instant']
-				BP['energyExpensePerBP'] = BP['usedBPEnergyExpense'] / BP['usedBP_instant']
-
 				local metalExpenseMinusBuilders_instant  = metalExpense - BP['usedBPMetalExpense']
 				local energyExpenseMinusBuilders_instant = energyExpense - BP['usedBPEnergyExpense']
-
 				local metalExpenseMinusBuilders = addValueAndGetWeightedAverage(BP['history_nonBuilderMetalExpense'], metalExpenseMinusBuilders_instant, 1)
 				local energyExpenseMinusBuilders = addValueAndGetWeightedAverage(BP['history_nonBuilderEnergyExpense'], energyExpenseMinusBuilders_instant, 1)
+				BP['nonBPMetalExpense'] = metalExpenseMinusBuilders --xxx extern for tooltip only
+				BP['nonBPEnergyExpense'] = energyExpenseMinusBuilders --xxx extern for tooltip only
+				BP['metalExpenseIfAllBPUsed'] = metalExpenseMinusBuilders + BP['metalExpensePerBP'] * totalBP --xxx extern for tooltip only
+				BP['energyExpenseIfAllBPUsed'] = energyExpenseMinusBuilders + BP['energyExpensePerBP'] * totalBP --xxx extern for tooltip only
 
-				BP['nonBPMetalExpense'] = metalExpenseMinusBuilders
-				BP['nonBPEnergyExpense'] = energyExpenseMinusBuilders
-
-				BP['metalExpenseIfAllBPUsed'] = metalExpenseMinusBuilders + BP['metalExpensePerBP'] * totalBP
-				BP['energyExpenseIfAllBPUsed'] = energyExpenseMinusBuilders + BP['energyExpensePerBP'] * totalBP
-
-				BP['metalSupportedBP'] = nil --xxx extern for tooltip only
-				BP['energySupportedBP'] = nil --xxx extern for tooltip only
-
-				BP['metalSupportedBP'] = metalIncome / BP['metalExpenseIfAllBPUsed'] * totalBP
-				bpRatioSupportedByMIncome = math_max(0, math_min(BP['metalSupportedBP'] / totalBP, 1))
+				local metalIncome = r['metal'][4]
+				local energyIncome = r['energy'][4]
+				-- Assume our eco supports full BP until we calculate otherwise.
+				--local bpRatioSupportedByMIncome = 1 -- what proportion of our total BP can be supported by our metal income?
+				local bpRatioSupportedByEIncome = 1 -- what proportion of our total BP can be supported by our energy income?
+				local metalSupportedBP = metalIncome / BP['metalExpenseIfAllBPUsed'] * totalBP 
+				local bpRatioSupportedByMIncome = math_max(0, math_min(metalSupportedBP / totalBP, 1))
 				
 				if BP['energyExpensePerBP'] > 0 then
-					BP['energySupportedBP'] = energyIncome / BP['energyExpenseIfAllBPUsed'] * totalBP --ql
-					bpRatioSupportedByEIncome = math_max(0, math_min(BP['energySupportedBP'] / totalBP, 1))
-
-					if config.drawBPWindRangeIndicators then
-						eSupportedBP_minWind = (BP['energyIncomeNoWind'] - energyExpenseMinusBuilders) / BP['energyExpensePerBP']
-						local bpRatioSupportedByEIncome_minWind = math_max(0, math_min(eSupportedBP_minWind / totalBP, 1))
-
-						maxEPerWindGenerator = math_min(25, Game.windMax)
-						eSupportedBP_maxWind = (BP['energyIncomeNoWind'] + numWindGenerators * maxEPerWindGenerator - energyExpenseMinusBuilders) / BP['energyExpensePerBP']
-						local bpRatioSupportedByEIncome_maxWind = math_max(0, math_min(eSupportedBP_maxWind / totalBP, 1))
-
-						BP['eSliderPosition_minWind'] = addValueAndGetWeightedAverage(BP['history_eSliderPosition_minWind'], bpRatioSupportedByEIncome_minWind, BP['usedBP_instant'])
-						BP['eSliderPosition_maxWind'] = addValueAndGetWeightedAverage(BP['history_eSliderPosition_maxWind'], bpRatioSupportedByEIncome_maxWind, BP['usedBP_instant'])
-					end
+					local energySupportedBP = energyIncome / BP['energyExpenseIfAllBPUsed'] * totalBP --ql
+					bpRatioSupportedByEIncome = math_max(0, math_min(energySupportedBP / totalBP, 1))
 				end
+				-- Weighted average of slider positions. If weight (BP['usedBP_instant']) is 0 the table won't be altered at all.
+				BP['mSliderPosition'] = addValueAndGetWeightedAverage(BP['history_mSliderPosition'], bpRatioSupportedByMIncome, BP['usedBP_instant'])
+				BP['eSliderPosition'] = addValueAndGetWeightedAverage(BP['history_eSliderPosition'], bpRatioSupportedByEIncome, BP['usedBP_instant'])
+				
+				
+				if config.drawBPWindRangeIndicators then
+				Spring.Echo('drawBPWindRangeIndicators')
+					local realWindStrength = 0
+					for unitID in pairs(trackedWinds) do
+						local _, _, energyMake, _ = spGetUnitResources(unitID)
+						if energyMake ~= nil then
+							realWindStrength = energyMake
+							break
+						end
+					end
+					cacheDataBase['realWindStrength'] = 0
+					BP['energyIncomeNoWind'] = energyIncome - numWindTurbines * realWindStrength
+					eSupportedBP_minWind = (BP['energyIncomeNoWind'] - energyExpenseMinusBuilders) / BP['energyExpensePerBP'] -- is that what we want? e converters exist...
+					local bpRatioSupportedByEIncome_minWind = math_max(0, math_min(eSupportedBP_minWind / totalBP, 1))
+
+					maxEPerWindGenerator = math_min(25, Game.windMax)
+					eSupportedBP_maxWind = (BP['energyIncomeNoWind'] + numWindTurbines * maxEPerWindGenerator - energyExpenseMinusBuilders) / BP['energyExpensePerBP']
+					local bpRatioSupportedByEIncome_maxWind = math_max(0, math_min(eSupportedBP_maxWind / totalBP, 1))
+					BP['eSliderPosition_minWind'] = addValueAndGetWeightedAverage(BP['history_eSliderPosition_minWind'], bpRatioSupportedByEIncome_minWind, BP['usedBP_instant'])
+					BP['eSliderPosition_maxWind'] = addValueAndGetWeightedAverage(BP['history_eSliderPosition_maxWind'], bpRatioSupportedByEIncome_maxWind, BP['usedBP_instant'])
+					--BP['eSliderPosition_minWind'] = bpRatioSupportedByEIncome_minWind * BP[5] / BP[4]
+					--BP['eSliderPosition_maxWind'] = bpRatioSupportedByEIncome_maxWind * BP[5] / BP[4]
+				end
+			else
+				BP['eSliderPosition_minWind'] = 1
+				BP['eSliderPosition_maxWind'] = 1
+				BP['mSliderPosition'] = nil
+				BP['eSliderPosition'] = nil
 			end
-
-			-- Weighted average of slider positions. If weight (BP['usedBP_instant']) is 0 the table won't be altered at all.
-			BP['mSliderPosition'] = addValueAndGetWeightedAverage(BP['history_mSliderPosition'], bpRatioSupportedByMIncome, BP['usedBP_instant'])
-			BP['eSliderPosition'] = addValueAndGetWeightedAverage(BP['history_eSliderPosition'], bpRatioSupportedByEIncome, BP['usedBP_instant'])
-
-			updateResbar('BP')
-			cacheDataBase['reservedBP_instant'] = 0
-			cacheDataBase['usedBP_instant'] = 0
-			cacheDataBase['realWindStrength'] = 0
-			cacheDataBase['usedBPMetalExpense'] = 0
-			cacheDataBase['usedBPEnergyExpense'] = 0
-
 		end
+		local lowPrioNeededEnergy = Spring.GetTeamRulesParam(myTeamID, "lowPrioNeededEnergy") 
+		local lowPrioExpenseEnergy = Spring.GetTeamRulesParam(myTeamID, "lowPrioExpenseEnergy")
+		local lowPrioNeededMetal = Spring.GetTeamRulesParam(myTeamID, "lowPrioNeededMetal")
+		local lowPrioExpenseMetal = Spring.GetTeamRulesParam(myTeamID, "lowPrioExpenseMetal")
+		if lowPrioNeededEnergy and lowPrioExpenseEnergy and lowPrioNeededMetal and lowPrioExpenseMetal then
+			stalling['lowPrioEnergy'] = lowPrioNeededEnergy + lowPrioExpenseEnergy
+			stalling['lowPrioMetal'] = lowPrioNeededMetal + lowPrioExpenseMetal
+		end
+		updateResbar('BP')
 	end
-	local lowPrioNeededEnergy = Spring.GetTeamRulesParam(myTeamID, "lowPrioNeededEnergy") 
-	local lowPrioExpenseEnergy = Spring.GetTeamRulesParam(myTeamID, "lowPrioExpenseEnergy")
-	local lowPrioNeededMetal = Spring.GetTeamRulesParam(myTeamID, "lowPrioNeededMetal")
-	local lowPrioExpenseMetal = Spring.GetTeamRulesParam(myTeamID, "lowPrioExpenseMetal")
-	if lowPrioNeededEnergy and lowPrioExpenseEnergy and lowPrioNeededMetal and lowPrioExpenseMetal then
-		stalling['lowPrioEnergy'] = lowPrioNeededEnergy + lowPrioExpenseEnergy
-		stalling['lowPrioMetal'] = lowPrioNeededMetal + lowPrioExpenseMetal
-	end 
 end
 
 local function updateAllyTeamOverflowing()
@@ -1876,10 +1857,10 @@ local function updateAllyTeamOverflowing()
 	local energyPercentile, metalPercentile
 	local teams = Spring.GetTeamList(myAllyTeamID)
 	for i, teamID in pairs(teams) do
-		local energy, energyStorage, energyPull, energyIncome, energyExpense, energyShare, energySent = spGetTeamResources(teamID, "energy")
+		local energy, energyStorage, energyPull, _,_, energyShare, energySent = spGetTeamResources(teamID, "energy")
 		totalEnergy = totalEnergy + energy
 		totalEnergyStorage = totalEnergyStorage + energyStorage
-		local metal, metalStorage, metalPull, metalIncome, metalExpense, metalShare, metalSent = spGetTeamResources(teamID, "metal")
+		local metal, metalStorage, metalPull, _, _, metalShare, metalSent = spGetTeamResources(teamID, "metal")
 		totalMetal = totalMetal + metal
 		totalMetalStorage = totalMetalStorage + metalStorage
 		if teamID == myTeamID then
@@ -1897,7 +1878,6 @@ local function updateAllyTeamOverflowing()
 					overflowingMetal = 1
 				end
 			end
-
 			if res ~= 'BP' or config.drawBPBar == true then
 				local metalIndicatorPos = BP['mSliderPosition']
 				local energyIndicatorPos = BP['eSliderPosition']
@@ -1906,7 +1886,6 @@ local function updateAllyTeamOverflowing()
 			end
 		end
 	end
-
 	energyPercentile = totalEnergy / totalEnergyStorage
 	metalPercentile = totalMetal / totalMetalStorage
 	if energyPercentile > 0.975 then
@@ -1928,8 +1907,8 @@ local sec2 = 0
 local secComCount = 0
 local blinkDirection = true
 local blinkProgress = 0
-
 function widget:Update(dt)
+
 	local prevMyTeamID = myTeamID
 	if spec and spGetMyTeamID() ~= prevMyTeamID then
 		-- check if the team that we are spectating changed
@@ -1969,7 +1948,7 @@ function widget:Update(dt)
 	end
 
 	sec = sec + dt
-	if sec > 0.1 then
+	if sec > 0.033 then
 		sec = 0
 		r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') }, BP = BP }
 		if not spec and not showQuitscreen then
@@ -1979,7 +1958,7 @@ function widget:Update(dt)
 						resbarHover = 'BP'
 						updateResbar('BP')
 					end
-				elseif resbarHover ~= nil and resbarHover == 'BP' then -- for bp bar only
+				elseif resbarHover ~= nil and resbarHover == 'BP' then
 					resbarHover = nil
 					updateResbar('BP')
 				end
@@ -2151,6 +2130,7 @@ local function drawResBars() --hadles the blinking
 		glCallList(dlistResbar[res][3])
 		glCallList(dlistResbar[res][2])
 	end
+
 	if config.drawBPBar == true then
 		res = 'BP' -- for bp bar only
 		if dlistResbar[res][1] and dlistResbar[res][2] and dlistResbar[res][3] then
@@ -2171,6 +2151,7 @@ local function drawResBars() --hadles the blinking
 end
 
 function widget:DrawScreen()
+
 	drawResBars()
 
 	local now = os.clock()
@@ -2220,7 +2201,7 @@ function widget:DrawScreen()
 			if not showButtons then
 				showButtons = true
 				dlistButtonsGuishader = glCreateList(function()
-					RectRound(buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4], 5.5 * widgetScale, 0, 0, 1, 1)
+					RectRound(buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4], 5.5 * widgetScale, 0,0,1,1)
 				end)
 				if WG['guishader'] then
 					WG['guishader'].InsertDlist(dlistButtonsGuishader, 'topbar_buttons')
@@ -2244,7 +2225,7 @@ function widget:DrawScreen()
 		if WG['changelog'] and WG['changelog'].haschanges() then
 			local button = 'changelog'
 			local paddingsize = 1
-			RectRound(buttonsArea['buttons'][button][1]+paddingsize, buttonsArea['buttons'][button][2]+paddingsize, buttonsArea['buttons'][button][3]-paddingsize, buttonsArea['buttons'][button][4]-paddingsize, 3.5 * widgetScale, 0, 0, 0, button == firstButton and 1 or 0, { 1, 1, 1, 0.1 * blinkProgress })
+			RectRound(buttonsArea['buttons'][button][1]+paddingsize, buttonsArea['buttons'][button][2]+paddingsize, buttonsArea['buttons'][button][3]-paddingsize, buttonsArea['buttons'][button][4]-paddingsize, 3.5 * widgetScale, 0, 0, 0, button == firstButton and 1 or 0, { 1,1,1, 0.1*blinkProgress })
 		end
 
 		-- hovered?
@@ -2252,7 +2233,7 @@ function widget:DrawScreen()
 			for button, pos in pairs(buttonsArea['buttons']) do
 				if math_isInRect(mx, my, pos[1], pos[2], pos[3], pos[4]) then
 					local paddingsize = 1
-					RectRound(buttonsArea['buttons'][button][1]+paddingsize, buttonsArea['buttons'][button][2]+paddingsize, buttonsArea['buttons'][button][3]-paddingsize, buttonsArea['buttons'][button][4]-paddingsize, 3.5 * widgetScale, 0, 0, 0, button == firstButton and 1 or 0, { 0, 0, 0, 0.06 })
+					RectRound(buttonsArea['buttons'][button][1]+paddingsize, buttonsArea['buttons'][button][2]+paddingsize, buttonsArea['buttons'][button][3]-paddingsize, buttonsArea['buttons'][button][4]-paddingsize, 3.5 * widgetScale, 0, 0, 0, button == firstButton and 1 or 0, { 0,0,0, 0.06 })
 					glBlending(GL_SRC_ALPHA, GL_ONE)
 					RectRound(buttonsArea['buttons'][button][1], buttonsArea['buttons'][button][2], buttonsArea['buttons'][button][3], buttonsArea['buttons'][button][4], 3.5 * widgetScale, 0, 0, 0, button == firstButton and 1 or 0, { 1, 1, 1, mb and 0.13 or 0.03 }, { 0.44, 0.44, 0.44, mb and 0.4 or 0.2 })
 					local mult = 1
@@ -2346,7 +2327,7 @@ function widget:DrawScreen()
 				}
 
 				-- window
-				UiElement(quitscreenArea[1], quitscreenArea[2], quitscreenArea[3], quitscreenArea[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, {1, 1, 1, 0.6 + (0.34 * fadeProgress)}, {0.45, 0.45, 0.4, 0.025 + (0.025 * fadeProgress)})
+				UiElement(quitscreenArea[1], quitscreenArea[2], quitscreenArea[3], quitscreenArea[4], 1,1,1,1, 1,1,1,1, nil, {1, 1, 1, 0.6 + (0.34 * fadeProgress)}, {0.45, 0.45, 0.4, 0.025 + (0.025 * fadeProgress)})
 
 				local color1, color2
 
@@ -2370,7 +2351,7 @@ function widget:DrawScreen()
 						color1 = { 0, 0.25, 0, 0.35 + (0.5 * fadeProgress) }
 						color2 = { 0, 0.5, 0, 0.35 + (0.5 * fadeProgress) }
 					end
-					UiButton(quitscreenStayArea[1], quitscreenStayArea[2], quitscreenStayArea[3], quitscreenStayArea[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, color1, color2, padding * 0.5)
+					UiButton(quitscreenStayArea[1], quitscreenStayArea[2], quitscreenStayArea[3], quitscreenStayArea[4], 1,1,1,1, 1,1,1,1, nil, color1, color2, padding * 0.5)
 					font2:Print(Spring.I18N('ui.topbar.quit.stay'), quitscreenStayArea[1] + ((quitscreenStayArea[3] - quitscreenStayArea[1]) / 2), quitscreenStayArea[2] + ((quitscreenStayArea[4] - quitscreenStayArea[2]) / 2) - (fontSize / 3), fontSize, "con")
 				end
 
@@ -2383,7 +2364,7 @@ function widget:DrawScreen()
 						color1 = { 0.18, 0.18, 0.18, 0.4 + (0.5 * fadeProgress) }
 						color2 = { 0.33, 0.33, 0.33, 0.4 + (0.5 * fadeProgress) }
 					end
-					UiButton(quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, color1, color2, padding * 0.5)
+					UiButton(quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[4], 1,1,1,1, 1,1,1,1, nil, color1, color2, padding * 0.5)
 					font2:Print(Spring.I18N('ui.topbar.quit.resign'), quitscreenResignArea[1] + ((quitscreenResignArea[3] - quitscreenResignArea[1]) / 2), quitscreenResignArea[2] + ((quitscreenResignArea[4] - quitscreenResignArea[2]) / 2) - (fontSize / 3), fontSize, "con")
 				end
 
@@ -2396,7 +2377,7 @@ function widget:DrawScreen()
 						color1 = { 0.25, 0, 0, 0.35 + (0.5 * fadeProgress) }
 						color2 = { 0.5, 0, 0, 0.35 + (0.5 * fadeProgress) }
 					end
-					UiButton(quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, color1, color2, padding * 0.5)
+					UiButton(quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4], 1,1,1,1, 1,1,1,1, nil, color1, color2, padding * 0.5)
 					font2:Print(Spring.I18N('ui.topbar.quit.quit'), quitscreenQuitArea[1] + ((quitscreenQuitArea[3] - quitscreenQuitArea[1]) / 2), quitscreenQuitArea[2] + ((quitscreenQuitArea[4] - quitscreenQuitArea[2]) / 2) - (fontSize / 3), fontSize, "con")
 				end
 
@@ -2534,11 +2515,11 @@ local function applyButtonAction(button)
 		if isSinglePlayer and allowSavegame and WG['savegame'] ~= nil then
 			--local gameframe = Spring.GetGameFrame()
 			--local minutes = math.floor((gameframe / 30 / 60))
-			--local seconds = math.floor((gameframe - ((minutes * 60) * 30)) / 30)
+			--local seconds = math.floor((gameframe - ((minutes*60)*30)) / 30)
 			--if seconds == 0 then
-			--  seconds = '00'
+			--	seconds = '00'
 			--elseif seconds < 10 then
-			--  seconds = '0'..seconds
+			--	seconds = '0'..seconds
 			--end
 			local time = os.date("%Y%m%d_%H%M%S")
 			Spring.SendCommands("savegame "..time)
@@ -2591,7 +2572,7 @@ function widget:GameOver()
 end
 
 function widget:MouseWheel(up, value)
-	--up = true/false, value = -1/1
+	--up = true/false , value = -1/1
 	if showQuitscreen ~= nil and quitscreenArea ~= nil then
 		return true
 	end
@@ -2732,7 +2713,8 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 	if not isCommander[unitDefID] then
 		return
 	end
-	if select(6, Spring.GetTeamInfo(unitTeam, false)) == myAllyTeamID then	--record com created
+	--record com created
+	if select(6, Spring.GetTeamInfo(unitTeam, false)) == myAllyTeamID then
 		allyComs = allyComs + 1
 	elseif spec then
 		enemyComs = enemyComs + 1
@@ -2753,9 +2735,7 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
-	
 	UntrackUnit(unitID, unitDefID, unitTeam)
-
 	if not isCommander[unitDefID] then
 		return
 	end
@@ -2769,7 +2749,7 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 end
 
 function widget:LanguageChanged()
-	updateButtons()
+	updateButtons() -- XXX  formaly "widget:ViewResize()"
 end
 
 function widget:Initialize()
@@ -2783,6 +2763,7 @@ function widget:Initialize()
 
 	gameFrame = Spring.GetGameFrame()
 	Spring.SendCommands("resbar 0")
+
 	InitAdditionalValues()
 	for unitDefID, unitDef in pairs(UnitDefs) do -- fill unitCostData this is needed for exact calculations
 		local energy = unitDef.energyCost
@@ -2820,6 +2801,11 @@ function widget:Initialize()
 	WG['topbar'].getShowButtons = function()
 		return showButtons
 	end
+	
+	--WG['topbar'].updateTopBarEnergy = function(value)
+	--	draggingConversionIndicatorValue = value
+	--	updateResbar('energy')
+	--end
 
 	widget:ViewResize()
 
@@ -2827,7 +2813,7 @@ function widget:Initialize()
 		widget:GameStart()
 	end
 
-	if WG['resource_spot_finder'] and WG['resource_spot_finder'].metalSpotsList and #WG['resource_spot_finder'].metalSpotsList > 0 and #WG['resource_spot_finder'].metalSpotsList <= 2 then -- probably speedmetal kind of map
+	if WG['resource_spot_finder'] and WG['resource_spot_finder'].metalSpotsList and #WG['resource_spot_finder'].metalSpotsList > 0 and #WG['resource_spot_finder'].metalSpotsList <= 2 then	-- probably speedmetal kind of map
 		isMetalmap = true
 	end
 end
@@ -2962,7 +2948,7 @@ function TrackUnit(unitID, unitDefID, unitTeam) --needed for exact calculations
 				trackedBuilders[unitID] = { unitDef.buildSpeed, isBuilt, unitDefID, unitTeam }
 			elseif unitDef.name == "armwin" or unitDef.name == "corwin" then -- wind generator
 				trackedWinds[unitID] = 1
-				numWindGenerators = numWindGenerators + 1
+				numWindTurbines = numWindTurbines + 1
 			end
 		end
 	end
@@ -2982,7 +2968,7 @@ function UntrackUnit(unitID, unitDefID, unitTeam) -- needed for exact calculatio
 		end
 		if trackedWinds[unitID] then
 			trackedWinds[unitID] = nil
-			numWindGenerators = numWindGenerators - 1
+			numWindTurbines = numWindTurbines - 1
 		end
 	end
 end
@@ -2992,7 +2978,7 @@ function InitAdditionalValues()
 	trackedNum = 0
 	trackedBuilders = {}
 	trackedWinds = {}
-	numWindGenerators = 0
+	numWindTurbines = 0
 
 	for _, unitID in pairs(Spring.GetTeamUnits(myTeamID)) do  -- needed for exact calculations
 		TrackUnit(unitID, Spring.GetUnitDefID(unitID), myTeamID)
