@@ -151,6 +151,9 @@ return {
 					[2] = 0.33,
 					[3] = 0.7,
 				},
+				customparams = {
+					noattackrangearc= 1,
+				},
 			},
 			heavyplasma = {
 				accuracy = 600,
@@ -182,6 +185,9 @@ return {
 					default = 437,
 					vtol = 200,
 				},
+				customparams = {
+					noattackrangearc= 1,
+				},
 			},
 			mediumplasma = {
 				accuracy = 350,
@@ -209,6 +215,9 @@ return {
 				damage = {
 					default = 270,
 					vtol = 65,
+				},
+				customparams = {
+					noattackrangearc= 1,
 				},
 			},
 			ferret_missile = {
@@ -260,6 +269,9 @@ return {
 				damage = {
 					vtol = 150,
 					commanders = 1,
+				},
+				customparams = {
+					noattackrangearc= 1,
 				},
 			},
 		},

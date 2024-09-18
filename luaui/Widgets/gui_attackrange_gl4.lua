@@ -179,7 +179,10 @@ local function initializeUnitDefRing(unitDefID)
 			local color = colorConfig[weaponTypeMap[weaponType]].color
 			local fadeparams = colorConfig[weaponTypeMap[weaponType]].fadeparams
 
-			local isCylinder = weaponDef.cylinderTargeting and 1 or 0
+			local isCylinder = 0 
+			if (weaponDef.cylinderTargeting)  and (weaponDef.cylinderTargeting > 0.0) then
+				isCylinder = 1
+			end	
 			local isDgun = (weaponDef.type == "DGun") and 1 or 0
 
 			local wName = weaponDef.name
@@ -206,7 +209,11 @@ local function initializeUnitDefRing(unitDefID)
 			-- maindir "0 1 0" is designed for shooting at feet prevention!
 
 			local maxangledif = 0
-			if weapons[weaponNum].maxAngleDif > -1 then
+
+			-- customParams (note the case), is a table of strings always
+			if (weapons[weaponNum].maxAngleDif > -1) and
+				(not (weaponDef.customParams and weaponDef.customParams.noattackrangearc)) then
+				--Spring.Echo(weaponDef.customParams)--, weapons[weaponNum].customParams.noattackarc)
 				local offsetdegrees = 0
 				local difffract = 0
 
@@ -252,7 +259,7 @@ local function initializeUnitDefRing(unitDefID)
 			local ringParams = { range, color[1], color[2], color[3], color[4],
 				fadeparams[1], fadeparams[2], fadeparams[3], fadeparams[4],
 				weaponDef.projectilespeed or 1,
-				isCylinder,
+				isCylinder,-- and 1 or 0,
 				weaponDef.heightBoostFactor or 0,
 				weaponDef.heightMod or 0,
 				groupselectionfadescale,
