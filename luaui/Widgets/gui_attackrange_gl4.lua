@@ -63,10 +63,10 @@ local colorConfig = {
 		internallinethickness = 2.0,
 	},
 	cannon = {
-		color = {1.4, 0.75, 0.07, 0.40},
+		color = {1.0, 0.22, 0.05, 0.60},
 		fadeparams = { 5000, 500, 1.0, 0.0 }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
 		groupselectionfadescale = 0.75,
-		externallinethickness = 3.0,
+		externallinethickness = 5.0,
 		internallinethickness = 2.0,
 	},
 }
