@@ -190,6 +190,9 @@ return {
 					default = 21,
 					vtol = 21,
 				},
+				customparams = {
+					noattackrangearc= 1,
+				},
 			},
 			railgunt2 = {
 				areaofeffect = 16,

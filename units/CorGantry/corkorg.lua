@@ -254,6 +254,7 @@ return {
 				customparams = {
 					lups_noshockwave = true,
 					nofire = true,
+					noattackrangearc= 1,
 				},
 				damage = {
 					default = 150,
