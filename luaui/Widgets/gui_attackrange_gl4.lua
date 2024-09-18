@@ -64,16 +64,23 @@ local colorConfig = {
 	},
 	cannon = {
 		color = {1.0, 0.22, 0.05, 0.60},
-		fadeparams = { 5000, 500, 1.0, 0.0 }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+		fadeparams = { 1500, 2200, 1.0, 0.0  }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
 		groupselectionfadescale = 0.75,
 		externallinethickness = 5.0,
 		internallinethickness = 2.0,
+	},
+	lrpc = {
+		color = {1.0, 0.22, 0.05, 0.60},
+		fadeparams = { 5000, 1500, 1.0, 0.0 }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+		groupselectionfadescale = 0.75,
+		externallinethickness = 5.0,
+		internallinethickness = 2.0, 
 	},
 }
 
 ----------------------------------
 local show_selected_weapon_ranges = true
-local weaponTypeMap = { 'ground', 'nano', 'AA', 'cannon' }
+local weaponTypeMap = { 'ground', 'nano', 'AA', 'cannon', 'lrpc' }
 
 local unitDefRings = {} --each entry should be a unitdefIDkey to a table:
 
@@ -373,10 +380,10 @@ local largeCircleSegments = 512
 local smallCircleVBO = nil
 local smallCircleSegments = 128
 
-local weaponTypeToString = { "ground", "nano", "AA", "cannon", }
+local weaponTypeToString = { "ground", "nano", "AA", "cannon", 'lrpc' }
 local allyenemypairs = { "ally", "enemy" }
 local attackRangeClasses = { 'enemyground', 'enemyAA', 'enemynano', 'allyground', 'allyAA', 'enemycannon', 'allycannon',
-	'allynano' }
+	'allynano', 'allylrpc', 'enemylrpc' }
 local attackRangeVAOs = {}
 
 local circleInstanceVBOLayout = {
@@ -491,7 +498,11 @@ local function AddSelectedUnit(unitID, mouseover)
 				if weapon.onlyTargets and weapon.onlyTargets.vtol then
 					entry.weapons[weaponNum] = 3 -- weaponTypeMap[3] is "AA"
 				elseif weaponDef.type == "Cannon" then
-					entry.weapons[weaponNum] = 4 -- weaponTypeMap[4] is "cannon"
+					if weaponDef.range > 3000 then 
+						entry.weapons[weaponNum] = 5 -- weaponTypeMap[5] is "lrpc"
+					else
+						entry.weapons[weaponNum] = 4 -- weaponTypeMap[4] is "cannon"
+					end
 				else
 					entry.weapons[weaponNum] = 1 -- weaponTypeMap[1] is "ground"
 				end
@@ -935,6 +946,7 @@ local function GetCameraHeightFactor()
 end
 
 local groundnukeair = { "ground", "nano", "AA" }
+local cannonlrpc = { "cannon", "lrpc" }
 local function DRAWRINGS(primitiveType, linethickness)
 	if not show_selected_weapon_ranges and not isBuilding then return end
 	local stencilMask
@@ -958,18 +970,22 @@ local function DRAWRINGS(primitiveType, linethickness)
 
 	attackRangeShader:SetUniform("cannonmode", 1)
 	for i, allyState in ipairs(allyenemypairs) do
-		local atkRangeClass = allyState .. "cannon"
-		local iT = attackRangeVAOs[atkRangeClass]
-		local stencilOffset = colorConfig.cannon_separate_stencil and 3 or 0
-		stencilMask = 2 ^ (4 * (i - 1) + stencilOffset) -- if 0 then it's on the same as "ground"
-		drawcounts[stencilMask] = iT.usedElements
-		if iT.usedElements > 0 then
-			if linethickness then
-				glLineWidth(colorConfig['cannon'][linethickness] * cameraHeightFactor)
+		for j, wt in ipairs(cannonlrpc) do
+			if linethickness or wt == 'cannon' then 
+				local atkRangeClass = allyState .. wt
+				local iT = attackRangeVAOs[atkRangeClass]
+				local stencilOffset = colorConfig.cannon_separate_stencil and 3 or 0
+				stencilMask = 2 ^ (4 * (i - 1) + stencilOffset) -- if 0 then it's on the same as "ground"
+				drawcounts[stencilMask] = iT.usedElements
+				if iT.usedElements > 0 then
+					if linethickness then
+						glLineWidth(colorConfig[wt][linethickness] * cameraHeightFactor)
+					end
+					glStencilMask(stencilMask)
+					glStencilFunc(GL_NOTEQUAL, stencilMask, stencilMask)
+					iT.VAO:DrawArrays(primitiveType, iT.numVertices, 0, iT.usedElements, 0) -- +1!!!
+				end
 			end
-			glStencilMask(stencilMask)
-			glStencilFunc(GL_NOTEQUAL, stencilMask, stencilMask)
-			iT.VAO:DrawArrays(primitiveType, iT.numVertices, 0, iT.usedElements, 0) -- +1!!!
 		end
 	end
 end
