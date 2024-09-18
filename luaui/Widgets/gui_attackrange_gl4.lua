@@ -203,7 +203,7 @@ local function initializeUnitDefRing(unitDefID)
 			local isDgun = (weaponDef.type == "DGun") and 1 or 0
 
 			local wName = weaponDef.name
-			if (weaponDef.type == "AircraftBomb") or (wName:find("bogus")) then
+			if (weaponDef.type == "AircraftBomb") or (wName:find("bogus")) or weaponDef.customParams.bogus then
 				range = 0
 			end
 			--Spring.Echo("weaponNum: ".. weaponNum ..", name: " .. tableToString(weaponDef.name))
