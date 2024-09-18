@@ -1077,6 +1077,10 @@ local function DRAWRINGS(primitiveType, linethickness)
 	end
 
 	defenseRangeShader:SetUniform("cannonmode",1)
+	if not linethickness then 
+		-- NOTE: THIS IS THE WORLDS NASTIEST HACK TO PREVENT THE CANNON RINGS FROM BEING DRAWN STENCILED!
+		return 
+	end
 	for i,allyState in ipairs(allyenemypairs) do
 		local defRangeClass = allyState.."cannon"
 		local iT = defenseRangeVAOs[defRangeClass]
@@ -1084,7 +1088,7 @@ local function DRAWRINGS(primitiveType, linethickness)
 		drawcounts[stencilMask] = iT.usedElements
 		if iT.usedElements > 0 and buttonConfig[allyState]["ground"] then
 			if linethickness then
-				glLineWidth(colorConfig['cannon'][linethickness] * cameraHeightFactor)
+				glLineWidth(colorConfig['cannon'][linethickness] * cameraHeightFactor * 0.15)
 			end
 			glStencilMask(stencilMask)
 			glStencilFunc(GL.NOTEQUAL, stencilMask, stencilMask)
