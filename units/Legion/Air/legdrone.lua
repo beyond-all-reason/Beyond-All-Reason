@@ -139,6 +139,9 @@ return {
 					default = 12,
 					vtol = 4,
 				},
+				customparams = {
+					noattackrangearc= 1,
+				},
 			},
 		},
 		weapons = {

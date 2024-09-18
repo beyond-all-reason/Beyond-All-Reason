@@ -172,7 +172,7 @@ return {
 				},
 				customparams = {
 					bogus = 1
-				}
+				},
 			},
 			coraabot_missile1 = {
 				areaofeffect = 24,
@@ -220,6 +220,9 @@ return {
 				weaponvelocity = 825,
 				damage = {
 					vtol = 80,
+				},
+				customparams = {
+					bogus = 1
 				},
 			},
 			coraabot_missile2 = {
@@ -269,6 +272,9 @@ return {
 				damage = {
 					vtol = 80,
 				},
+				customparams = {
+					bogus = 1
+				},
 			},
 			coraabot_missile3 = {
 				areaofeffect = 24,
@@ -316,6 +322,9 @@ return {
 				weaponvelocity = 825,
 				damage = {
 					vtol = 80,
+				},
+				customparams = {
+					bogus = 1
 				},
 			},
 			coraabot_missile4 = {
