@@ -39,11 +39,11 @@ local colorConfig = {
 
 	externalalpha = 0.80, -- alpha of outer rings
 	internalalpha = 0.20, -- alpha of inner rings
-	fill_alpha = 0.11, -- this is the solid color in the middle of the stencil
+	fill_alpha = 0.10, -- this is the solid color in the middle of the stencil
 	outer_fade_height_difference = 2500, -- this is the height difference at which the outer ring starts to fade out compared to inner rings
 	ground = {
 		color = { 1.0, 0.22, 0.05, 0.60 },
-		fadeparams = { 1500, 10000, 1.0, 0.0 }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+		fadeparams = { 1500, 3500, 1.0, 0.0 }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
 		groupselectionfadescale = 0.75,
 		externallinethickness = 3.0,
 		internallinethickness = 1.8,
@@ -51,8 +51,8 @@ local colorConfig = {
 		minimapinternallinethickness = 0.5,
 	},
 	nano = {
-		color = { 0.24, 1.0, 0.2, 0.40 },
-		fadeparams = { 2000, 10000, 1.0, 0.0 }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+		color = { 0.24, 1.0, 0.2, 0.60 },
+		fadeparams = { 2000, 4000, 1.0, 0.0 }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
 		groupselectionfadescale = 0.05,
 		externallinethickness = 3.0,
 		internallinethickness = 2.0,
@@ -60,8 +60,8 @@ local colorConfig = {
 		minimapinternallinethickness = 0.5,
 	},
 	AA = {
-		color = { 0.8, 0.44, 2.0, 0.42 },
-		fadeparams = { 1500, 10000, 1.0, 0.0 }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+		color = { 0.8, 0.44, 2.0, 0.45 },
+		fadeparams = { 1500, 3500, 1.0, 0.0 }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
 		groupselectionfadescale = 0.75,
 		externallinethickness = 3.0,
 		internallinethickness = 1.8,
@@ -70,9 +70,9 @@ local colorConfig = {
 	},
 	cannon = {
 		color = {1.0, 0.22, 0.05, 0.60},
-		fadeparams = { 1500, 10000, 1.0, 0.0  }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+		fadeparams = { 1500, 4000, 1.0, 0.0  }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
 		groupselectionfadescale = 0.75,
-		externallinethickness = 3.5,
+		externallinethickness = 3.0,
 		internallinethickness = 2.0,
 		minimapexternallinethickness = 1.0,
 		minimapinternallinethickness = 0.5,
@@ -82,7 +82,7 @@ local colorConfig = {
 		fadeparams = { 5000, 1000, 1.0, 0.5 }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
 		groupselectionfadescale = 0.75,
 		externallinethickness = 3.0,
-		internallinethickness = 2.0, 
+		internallinethickness = 2.0, -- Not used as LRPC is not stencilled
 		minimapexternallinethickness = 2.0,
 		minimapinternallinethickness = 0.5,
 	},

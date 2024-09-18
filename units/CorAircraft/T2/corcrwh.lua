@@ -122,6 +122,9 @@ return {
 				damage = {
 					default = 90,
 				},
+				customparams = {
+					noattackrangearc= 1,
+				},
 			},
 			dragonmawh = {
 				accuracy = 700,
@@ -168,7 +171,10 @@ return {
 				damage = {
 					default = 6,
 					subs = 3,
-				}
+				},
+				customparams = {
+					noattackrangearc= 1,
+				},
 			},
 			dragon_missileh = {
 				areaofeffect = 16,

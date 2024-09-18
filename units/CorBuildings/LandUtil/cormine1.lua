@@ -99,14 +99,15 @@ return {
 				damage = {
 					default = 0,
 				},
-				customparams = {
-					bogus = 1
-				}
+				-- customparams = {
+				-- 	bogus = 1
+				-- }
 			},
 		},
 		weapons = {
 			[1] = {
 				def = "MINERANGE",
+				onlytargetcategory = "SURFACE",
 			},
 		},
 	},
