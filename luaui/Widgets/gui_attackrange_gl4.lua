@@ -39,7 +39,7 @@ local colorConfig = {
 
 	externalalpha = 0.80, -- alpha of outer rings
 	internalalpha = 0.20, -- alpha of inner rings
-	fill_alpha = 0.10, -- this is the solid color in the middle of the stencil
+	fill_alpha = 0.11, -- this is the solid color in the middle of the stencil
 	outer_fade_height_difference = 2500, -- this is the height difference at which the outer ring starts to fade out compared to inner rings
 	ground = {
 		color = { 1.0, 0.22, 0.05, 0.60 },
@@ -60,7 +60,7 @@ local colorConfig = {
 		minimapinternallinethickness = 0.5,
 	},
 	AA = {
-		color = { 0.8, 0.44, 2.0, 0.40 },
+		color = { 0.8, 0.44, 2.0, 0.42 },
 		fadeparams = { 1500, 2200, 1.0, 0.0 }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
 		groupselectionfadescale = 0.75,
 		externallinethickness = 2.5,
@@ -72,18 +72,18 @@ local colorConfig = {
 		color = {1.0, 0.22, 0.05, 0.60},
 		fadeparams = { 1500, 2200, 1.0, 0.0  }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
 		groupselectionfadescale = 0.75,
-		externallinethickness = 5.0,
+		externallinethickness = 3.5,
 		internallinethickness = 2.0,
 		minimapexternallinethickness = 1.0,
 		minimapinternallinethickness = 0.5,
 	},
 	lrpc = {
 		color = {1.0, 0.22, 0.05, 0.60},
-		fadeparams = { 5000, 1500, 1.0, 0.0 }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+		fadeparams = { 5000, 1000, 1.0, 0.5 }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
 		groupselectionfadescale = 0.75,
-		externallinethickness = 5.0,
+		externallinethickness = 3.0,
 		internallinethickness = 2.0, 
-		minimapexternallinethickness = 1.0,
+		minimapexternallinethickness = 2.0,
 		minimapinternallinethickness = 0.5,
 	},
 }
@@ -509,13 +509,17 @@ local function AddSelectedUnit(unitID, mouseover)
 				if weapon.onlyTargets and weapon.onlyTargets.vtol then
 					entry.weapons[weaponNum] = 3 -- weaponTypeMap[3] is "AA"
 				elseif weaponDef.type == "Cannon" then
-					if weaponDef.range > 3000 then 
+					if weaponDef.range > 2000 then 
 						entry.weapons[weaponNum] = 5 -- weaponTypeMap[5] is "lrpc"
 					else
 						entry.weapons[weaponNum] = 4 -- weaponTypeMap[4] is "cannon"
 					end
 				else
-					entry.weapons[weaponNum] = 1 -- weaponTypeMap[1] is "ground"
+					if weaponDef.range > 2000 then 
+						entry.weapons[weaponNum] = 5 
+					else
+						entry.weapons[weaponNum] = 1 -- weaponTypeMap[1] is "ground"
+					end
 				end
 			end
 		end

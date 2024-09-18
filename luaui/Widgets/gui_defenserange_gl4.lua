@@ -78,28 +78,28 @@ local colorConfig = { --An array of R, G, B, Alpha
     distanceScaleStart = 2000, -- Linewidth is 100% up to this camera height
     distanceScaleEnd = 8000, -- Linewidth becomes 50% above this camera height
     ground = {
-        color = {1.5, 0.20, 0.05, 0.74},
+        color = {1.3, 0.18, 0.04, 0.74},
         fadeparams = { 2200, 5500, 1.0, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
-        externallinethickness = 5.0,
+        externallinethickness = 6.0,
         internallinethickness = 2.0,
     },
     air = {
         color = {0.8, 0.44, 1.6, 0.70},
         fadeparams = { 3200, 8000, 0.4, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
-        externallinethickness = 5.0,
+        externallinethickness = 4.0,
         internallinethickness = 2.0,
     },
     nuke = {
-        color = {1.0, 0.8, 0.3, 1.0},
-        fadeparams = {5000, 4000, 0.6, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+        color = {1.2, 1.0, 0.3, 0.8},
+        fadeparams = {6000, 3000, 0.6, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
         externallinethickness = 4.0,
-        internallinethickness = 1.5,
+        internallinethickness = 1.0,
     },
     cannon = {
-        color = {1.5, 0.20, 0.05, 0.65},
-        fadeparams = {5000, 500, 0.8, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
-        externallinethickness = 8.0,
-        internallinethickness = 0.1,
+        color = {1.3, 0.18, 0.04, 0.5},
+        fadeparams = {7000, 6000, 0.8, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+        externallinethickness = 10.0,
+        internallinethickness = 1.0,
     },
 }
 

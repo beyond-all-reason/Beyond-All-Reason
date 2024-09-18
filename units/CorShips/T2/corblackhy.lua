@@ -181,6 +181,9 @@ return {
 					default = 270,
 					vtol = 65,
 				},
+				customparams = {
+					noattackrangearc= 1,
+				},
 			},
 			heavyplasma = {
 				accuracy = 500,
@@ -262,6 +265,9 @@ return {
 				weaponvelocity = 1200,
 				damage = {
 					vtol = 150,
+				},
+				customparams = {
+					noattackrangearc= 1,
 				},
 			},
 		},
