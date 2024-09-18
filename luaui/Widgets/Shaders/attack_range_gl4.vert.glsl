@@ -249,7 +249,9 @@ void main() {
 
 	//--- DISTANCE FADE ---
 	vec4 camPos = cameraViewInv[3];
-	float distToCam = length(modelWorldPos.xyz - camPos.xyz); //dist from cam
+
+	// Note that this is not the same as the distance from the unit to the camera, but the distance from the circle to the camera
+	float distToCam = length(circleWorldPos.xyz - camPos.xyz); //dist from cam
 	// FadeStart, FadeEnd, StartAlpha, EndAlpha
 	float fadeDist = visibility.y - visibility.x;
 	if (ISDGUN > 0.5) {
