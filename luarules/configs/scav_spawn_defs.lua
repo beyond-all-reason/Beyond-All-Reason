@@ -179,12 +179,12 @@ local difficultyParameters = {
 
 local tierConfiguration = { -- Double maxSquadSize for special squads
 	[1] = {minAnger = 0,  maxAnger = 20, 	maxSquadSize = 1},
-	[2] = {minAnger = 10, maxAnger = 65, 	maxSquadSize = 12},
+	[2] = {minAnger = 10, maxAnger = 65, 	maxSquadSize = 10},
 	[3] = {minAnger = 20, maxAnger = 100, 	maxSquadSize = 10},
-	[4] = {minAnger = 35, maxAnger = 200, 	maxSquadSize = 8},
-	[5] = {minAnger = 45, maxAnger = 350, 	maxSquadSize = 6},
-	[6] = {minAnger = 60, maxAnger = 500, 	maxSquadSize = 4},
-	[7] = {minAnger = 80, maxAnger = 1000, 	maxSquadSize = 2},
+	[4] = {minAnger = 35, maxAnger = 200, 	maxSquadSize = 10},
+	[5] = {minAnger = 45, maxAnger = 350, 	maxSquadSize = 8},
+	[6] = {minAnger = 60, maxAnger = 500, 	maxSquadSize = 5},
+	[7] = {minAnger = 80, maxAnger = 1000, 	maxSquadSize = 3},
 }
 
 --local teamAngerEasementFB = 16
@@ -1522,6 +1522,7 @@ scavBehaviours = {
 		[UnitDefNames["scavmist_scav"].id]			= true,
 		[UnitDefNames["scavmistxl_scav"].id]		= true,
 		[UnitDefNames["scavmistxxl_scav"].id]		= true,
+		[UnitDefNames["armvadert4_scav"].id]		= true,
 	},
 	ALWAYSMOVE = { -- Always use Move command, no matter what category this unit is in
 		[UnitDefNames["cormandot4_scav"].id]		= true,
@@ -1905,18 +1906,23 @@ addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, un
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "6 armmeatball_scav","6 armassimilator_scav","2 armyork_scav","2 corsent_scav",}, weight = 4, maxAnger = tierConfiguration[6].maxAnger}) --T3 Assault/AA
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "6 corshiva_scav","2 armraz_scav","1 legpede_scav","1 armyork_scav","1 corsent_scav",}, weight = 4, maxAnger = tierConfiguration[6].maxAnger}) --T3 Assault/AA
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "2 armvang_scav","2 corcat_scav","1 armyork_scav","1 corsent_scav",}, weight = 4, maxAnger = tierConfiguration[6].maxAnger}) --T3 Arty/AA
+addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "5 armvadert4_scav",}, weight = 3, maxAnger = 1000}) --Epic Tumbleweeds
+addNewSquad({ type = "specialSea", minAnger = tierConfiguration[6].minAnger, units = { "5 armvadert4_scav",}, weight = 3, maxAnger = 1000}) --Epic Tumbleweeds
 --air
 addNewSquad({ type = "specialAirLand", minAnger = tierConfiguration[6].minAnger, units = { "40 armfig_scav","40 corveng_scav",}, weight = 4, maxAnger = 1000}) --T2 Fighters
 addNewSquad({ type = "specialAirSea", minAnger = tierConfiguration[6].minAnger, units = { "40 armsfig_scav","40 corsfix_scav",}, weight = 5, maxAnger = 1000}) --T2 Fighters
 addNewSquad({ type = "specialAirLand", minAnger = tierConfiguration[6].minAnger, units = { "15 armblade_scav","15 armbrawl_scav","1 legfort_scav","1 corcrw_scav", "1 corcrwh_scav","15 corape_scav"}, weight = 2, maxAnger = 1000}) --T2 Gunships
 ------Tier 4 80%+
-
+addNewSquad({ type = "specialLand", minAnger = tierConfiguration[7].minAnger, units = { "10 armvadert4_scav",}, weight = 3, maxAnger = 1000}) --Epic Tumbleweeds
+addNewSquad({ type = "specialSea", minAnger = tierConfiguration[7].minAnger, units = { "10 armvadert4_scav",}, weight = 3, maxAnger = 1000}) --Epic Tumbleweeds
 addNewSquad({ type = "specialAirLand", minAnger = tierConfiguration[7].minAnger, units = { "80 armfig_scav","80 corveng_scav",}, weight = 5, maxAnger = 1000}) --T2 Fighters
 addNewSquad({ type = "specialAirLand", minAnger = tierConfiguration[7].minAnger, units = { "10 armfepocht4_scav",}, weight = 1, maxAnger = 1000}) --Armada Flying Flagships
 addNewSquad({ type = "specialAirLand", minAnger = tierConfiguration[7].minAnger, units = { "10 corfblackhyt4_scav",}, weight = 1, maxAnger = 1000}) --Cortex Flying Flagships
 addNewSquad({ type = "specialAirSea", minAnger = tierConfiguration[7].minAnger, units = { "80 armsfig_scav","80 corsfix_scav",}, weight = 5, maxAnger = 1000}) --T2 Fighters
 addNewSquad({ type = "specialAirSea", minAnger = tierConfiguration[7].minAnger, units = { "10 armfepocht4_scav",}, weight = 1, maxAnger = 1000}) --Armada Flying Flagships
 addNewSquad({ type = "specialAirSea", minAnger = tierConfiguration[7].minAnger, units = { "10 corfblackhyt4_scav",}, weight = 1, maxAnger = 1000}) --Cortex Flying Flagships
+
+
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Settings -- Adjust these
