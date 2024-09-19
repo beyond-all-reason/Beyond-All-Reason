@@ -20,6 +20,9 @@ local fallDamageMagnificationFactor = 14
 --this defines how fast a unit has to be moving in order to take object collision damage
 local collisionVelocityThreshold = 99 / Game.gameSpeed
 
+--the angle of descent that is allowed collision damage. The angle is measured from directly above downward.
+local validCollisionAngleMultiplier = math.cos(math.rad(35)) --degrees
+
 -- Decrease this value to make units move less from impulse. This defines the maximum impulse allowed, which is (maxImpulseMultiplier * mass) of each unit.
 local maxImpulseMultiplier = 5
 
@@ -90,7 +93,7 @@ local function getImpulseMultiplier(unitDefID, weaponDefID, damage)
 	local impulseFactor = weaponDefIDImpulses[weaponDefID].impulseFactor or 1
 	local impulse = (damage + impulseBoost) * impulseFactor
 	local maxImpulse = unitsMaxImpulse[unitDefID]
-	local impulseMultiplier = mathMin(maxImpulse/impulse, 1) -- doesn't cap negative to -1 somewhat purposefully
+	local impulseMultiplier = mathMin(maxImpulse/impulse, 1) -- negative impulse values are not capped.
 	return impulseMultiplier
 end
 
@@ -107,7 +110,7 @@ end
 local function isValidCollisionDirection(unitID)
 	local velX, velY, velZ, velLength = spGetUnitVelocity(unitID)
 		-- y-velocity check prevents mostly horizontal object collisions from taking damage, allows damage if dropped from above
-		return velLength > collisionVelocityThreshold and -velY > (velLength * 0.82)
+		return velLength > collisionVelocityThreshold and -velY > (velLength * validCollisionAngleMultiplier)
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
