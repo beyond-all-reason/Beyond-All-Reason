@@ -14,7 +14,7 @@ if not gadgetHandler:IsSyncedCode() then return end
 
 --customparams.fall_damage_multiplier = <number> a multiplier that's applied to defaultDamageMultiplier which affects the amount of damage taken from falling/collisions.
 
---the multiplier by which default engine ground/object collision damage is multiplied. change this value to reduce the amount of fall/collision damage taken for all units.
+--the multiplier by which default engine ground/object collision damage is multiplied. change this value to reduce the amount of fall/collision damage taken for all units. Chosen empirically.
 local fallDamageMagnificationFactor = 14
 
 --this defines how fast a unit has to be moving in order to take object collision damage
@@ -114,22 +114,20 @@ local function isValidCollisionDirection(unitID)
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-	if not weaponDefIgnored[weaponDefID] and weaponDefID > 0 then --this section handles limiting maximum impulse
+	if not weaponDefIgnored[weaponDefID] and weaponDefID >= 0 then --this section handles limiting maximum impulse
 		local impulseMultiplier = 1
 		impulseMultiplier = getImpulseMultiplier(unitDefID, weaponDefID, damage)
 		unitInertiaCheckFlags[unitID] = gameFrame + velocityWatchFrames
 		return damage, impulseMultiplier
-	else
-		if weaponDefID == groundCollisionDefID and not transportedUnits[unitID] and isValidCollisionDirection(unitID) then
+	elseif weaponDefID == groundCollisionDefID and not transportedUnits[unitID] and isValidCollisionDirection(unitID) then
 			damage = damage * massToHealthRatioMultiplier(unitID, unitDefID)
 			return damage, 0
-		elseif weaponDefID == objectCollisionDefID and not transportedUnits[unitID] then
-			if isValidCollisionDirection(unitID) then
-				damage = damage * massToHealthRatioMultiplier(unitID, unitDefID)
-				return damage, 0
-			else
-				return 0, 0
-			end
+	elseif weaponDefID == objectCollisionDefID and not transportedUnits[unitID] then
+		if isValidCollisionDirection(unitID) then
+			damage = damage * massToHealthRatioMultiplier(unitID, unitDefID)
+			return damage, 0
+		else
+			return 0, 0
 		end
 	end
 end
@@ -151,17 +149,17 @@ function gadget:GameFrame(frame)
 	for unitID, expirationFrame in pairs(unitInertiaCheckFlags) do
 		if not transportedUnits[unitID] then
 			local velX, velY, velZ, velocityLength = spGetUnitVelocity(unitID)
-			if velocityLength > velocityCap then
+			if velocityLength > velocityCap then --sheer off extreme velocities within acceptable range
 				velX = (velocityCap / velocityLength) * velX
 				velY = (velocityCap / velocityLength) * velY
 				velZ = (velocityCap / velocityLength) * velZ
 			elseif velocityLength > velocitySlowdownThreshold then
-				local decelerateHorizontal = 0.75
+				local decelerateHorizontal = 0.75 --Number empirically tested to produce optimal deceleration without looking goofy.
 				local decelerateVertical
 				if velY < 0 then
 					decelerateVertical = 0
 				else
-					decelerateVertical = 0.85
+					decelerateVertical = 0.85 --Number empirically tested to produce optimal deceleration without looking goofy.
 				end
 				spSetUnitVelocity(unitID, velX * decelerateHorizontal, velY - decelerateVertical * velY, velZ * decelerateHorizontal)
 				expirationFrame = frame + velocityWatchFrames
