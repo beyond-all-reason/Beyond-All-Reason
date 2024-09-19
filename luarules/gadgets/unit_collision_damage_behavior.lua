@@ -18,7 +18,7 @@ if not gadgetHandler:IsSyncedCode() then return end
 local fallDamageMagnificationFactor = 14
 
 --this defines how fast a unit has to be moving in order to take object collision damage
-local collisionVelocityThreshold = 3.3
+local collisionVelocityThreshold = 99 / Game.gameSpeed
 
 -- Decrease this value to make units move less from impulse. This defines the maximum impulse allowed, which is (maxImpulseMultiplier * mass) of each unit.
 local maxImpulseMultiplier = 5
