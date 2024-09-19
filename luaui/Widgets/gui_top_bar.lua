@@ -24,7 +24,7 @@ local config = {
 	debugTooltip = true,
 	-- Show markers on the buildpower bar that indicate how much buildpower our metal and energy income could support.
 	drawBPIndicators = true,
-	drawBPWindRangeIndicators = true,
+	drawBPWindRangeIndicators = false,
 
 	barScale = 1,
 	barWidth = 1,
@@ -246,19 +246,17 @@ cacheDataBase['usedBPEnergyExpense'] = 0
 cacheDataBase['realWindStrength'] = 0
 
 local unitsPerFrame = 30 --limit processed units per frame to improve performance
+local trackedNum = 0
 
 ---------------------------  tracking  --------------------------
 
-local trackedBuilders = {} -- important infos of units of the player
-local trackedProjects = {}
-local builderDefs = {} -- store unitDefs in here
+local trackedBuilders = {} -- stores units of the player and their BP
 
-local trackedWinds = {} -- Keep track of wind generators
-local windGenDefs = {} -- store unitDefs in here
-local multiplicatorWindTurbines = 0
+-- Keep track of wind generators
+local trackedWinds = {}
+local numWindTurbines = 0
 
 local unitCostData = {} --data of all units regarding the building costs, M/BP and E/BP
-
 local stalling = {}
 stalling['lowPrioEnergy'] = 0 -- totalStallingM = 0
 stalling['lowPrioMetal'] = 0 --totalStallingE = 0
@@ -1027,88 +1025,6 @@ function showBuildpowerAlert(resourceArea, text, fontSize, lowlightColor, highli
 	return offset + textWidth
 end
 
-local function updateBPIndicatorPos()---yyy
-    local res = 'BP'
-	dlistResbar[res][2] = glCreateList(function()
-		if resbarDrawinfo[res].barArea then
-			if config.drawBPIndicators then
-				local barArea = resbarDrawinfo[res].barArea
-				local barWidth = barArea[3] - barArea[1]
-				local barHeight = barArea[4] - barArea[2]
-				local shareSliderWidth = resbarDrawinfo[res].shareSliderWidth or (barHeight + math_floor(barHeight / 1.55) * 2)
-				local indicatorPosM = BP['mSliderPosition']
-				local indicatorPosE = BP['eSliderPosition']
-				local indicatorAreaMultiplyerM = playerStallingMetal and 1.4 or 1
-				local indicatorAreaMultiplyerE = playerStallingEnergy and 1.4 or 1
-				local indicatorH = barHeight
-				local barIntrusion = barHeight * 0.4
-				local indicatorW = indicatorH * 1.2
-				local cornerSize = indicatorH / 2
-				local metalIndicatorHalfWidth = indicatorW * indicatorAreaMultiplyerM / 2
-				local energyIndicatorHalfWidth = indicatorW * indicatorAreaMultiplyerE / 2
-				-- Indikator für die METALL-unterstützte BP (untere Kante)
-				if indicatorPosM then
-					local x1 = barArea[1] + (indicatorPosM * barWidth) - metalIndicatorHalfWidth
-					local y1 = barArea[2] + (barIntrusion - indicatorH * indicatorAreaMultiplyerM)
-					local x2 = barArea[1] + (indicatorPosM * barWidth) + metalIndicatorHalfWidth
-					local y2 = barArea[2] + barIntrusion
-					-- Berechnung des maximal zulässigen Eckenradius
-					local maxCornerRadius = math_min((x2 - x1) / 2, (y2 - y1) / 2)
-					local cornerRadius = cornerSize * indicatorAreaMultiplyerM
-					if cornerRadius > maxCornerRadius then
-						cornerRadius = maxCornerRadius
-					end
-					-- Optionale Rundung der Werte
-					x1 = math_floor(x1 + 0.5)
-					y1 = math_floor(y1 + 0.5)
-					x2 = math_floor(x2 + 0.5)
-					y2 = math_floor(y2 + 0.5)
-					-- Keine Rundung des Eckenradius oder Rundung nach unten
-					cornerRadius = math_floor(cornerRadius)
-					RectRound(
-						x1, y1, x2, y2,
-						cornerRadius,
-						1, 1, 0, 0,
-						{ 0.6, 0.6, 0.6, 1 },
-						{ 1, 1, 1, 1 }
-					)
-				end
-
-				-- Indikator für die ENERGIE-unterstützte BP (obere Kante)
-				if indicatorPosE then
-					-- Bereichsindikator basierend auf Windbedingungen
-					if config.drawBPWindRangeIndicators and multiplicatorWindTurbines > 0 and BP['eSliderPosition_minWind'] and BP['eSliderPosition_maxWind'] then
-						RectRound(
-							barArea[1] + (BP['eSliderPosition_minWind'] * barWidth) - energyIndicatorHalfWidth,
-							barArea[4] + barIntrusion,
-							barArea[1] + (BP['eSliderPosition_maxWind'] * barWidth) + energyIndicatorHalfWidth,
-							barArea[4] - barIntrusion + indicatorH,
-							(indicatorH * 1 - 2 * barIntrusion) / 2,
-							0, 0, 0, 0,
-							{ 0.8, 0.8, 0.0, 1 },
-							{ 0.4, 0.4, 0.0, 1 }
-						)
-					end
-
-					RectRound(
-						barArea[1] + (indicatorPosE * barWidth) - energyIndicatorHalfWidth,
-						barArea[4] - barIntrusion,
-						barArea[1] + (indicatorPosE * barWidth) + energyIndicatorHalfWidth,
-						barArea[4] - barIntrusion + indicatorH * indicatorAreaMultiplyerE,
-						cornerSize * indicatorAreaMultiplyerE,
-						0, 0, 1, 1,
-						{ 0.8, 0.8, 0.0, 1 },
-						{ 1, 1, 0.2, 1 }
-					)
-				end
-			end
-		end
-	end)
-end
-
-
-
-
 local function updateResbar(res)  --decides where and what is drawn
 	local area = resbarArea[res]
 
@@ -1253,27 +1169,94 @@ local function updateResbar(res)  --decides where and what is drawn
 			UiSliderKnob(math_floor(conversionIndicatorArea[1]+((conversionIndicatorArea[3]-conversionIndicatorArea[1])/2)), math_floor(conversionIndicatorArea[2]+((conversionIndicatorArea[4]-conversionIndicatorArea[2])/2)), math_floor((conversionIndicatorArea[3]-conversionIndicatorArea[1])/2), { 0.95, 0.95, 0.7, 1 })
 		
 		end
+		
+		for i = 1, 1 do --show usefulBPFactor
+			if res == 'BP' and config.drawBPIndicators then
+				local texWidth = 1.0 * shareSliderWidth
+				local texHeight = math_floor( shareSliderWidth / 2 ) - 1
+				local indicatorPosM = BP['mSliderPosition']
+				local indicatorPosE = BP['eSliderPosition']
+				local indicatorAreaMultiplyerM = 1
+				local indicatorAreaMultiplyerE = 1
+
+				if playerStallingMetal == true then
+					indicatorAreaMultiplyerM = 1.4
+				end
+				if playerStallingEnergy == true then
+					indicatorAreaMultiplyerE = 1.4
+				end
+
+				local indicatorH = barHeight -- how tall are the metal-supported-BP and energy-supported-BP indicators?
+				local barIntrusion = barHeight * 0.4 -- how much of the BP bar can be obscured (vertically) by one of these indicators?
+				local indicatorW = indicatorH * 1.2 -- 1.0 would bring the indicator to a perfect point, sort of like a home plate in baseball, but 1.2 gives a little extra softness and visual weight
+				local cornerSize = indicatorH / 2
+				local metalIndicatorHalfWidth = indicatorW * indicatorAreaMultiplyerM / 2
+				local energyIndicatorHalfWidth = indicatorW * indicatorAreaMultiplyerE / 2
+
+				-- Indicator for buildpower that current METAL income can support. This is shown along the BOTTOM edge of the BP bar.
+				if indicatorPosM ~= nil then
+					RectRound(
+						barArea[1] + (indicatorPosM * barWidth) - metalIndicatorHalfWidth, -- left
+						barArea[2] + (barIntrusion - indicatorH * indicatorAreaMultiplyerM), -- bottom of the bar, plus an intrusion upward, minus the indicator's height
+						barArea[1] + (indicatorPosM * barWidth) + metalIndicatorHalfWidth, -- right
+						barArea[2] + barIntrusion, -- bottom of the bar, plus an intrusion upward
+						cornerSize * indicatorAreaMultiplyerM,
+						1, 1, 0, 0, -- round TopLeft, TopRight, but not BottomRight, BottomLeft (so it looks like it's pointing upward)
+						{ 0.6, 0.6, 0.6, 1 }, -- lowlight color (RGBA)
+						{ 1,   1,   1,   1 }) -- highlight color (RGBA)
+				end
+
+				if indicatorPosE ~= nil then
+					-- Indicator for the range of buildpower that energy COULD support if the wind changes.
+					if config.drawBPWindRangeIndicators and numWindTurbines > 0 and BP['eSliderPosition_minWind'] ~= nil and BP['eSliderPosition_maxWind'] ~= nil then
+						-- Draw a thin rectangle showing the possible positions of the E-supported BP slider based on min and max wind conditions.
+						RectRound(
+							barArea[1] + (BP['eSliderPosition_minWind'] * barWidth) - energyIndicatorHalfWidth, -- left
+							barArea[4] + barIntrusion, -- top of the bar, plus an intrusion upward
+							barArea[1] + (BP['eSliderPosition_maxWind'] * barWidth) + energyIndicatorHalfWidth, -- right
+							barArea[4] - barIntrusion + indicatorH, -- to the top of the E indicator assuming no multiplier
+							(indicatorH * 1 - 2 * barIntrusion) / 2, -- corner size
+							0, 0, 0, 0, -- don't round any corners
+							{ 0.8, 0.8, 0.0, 1 }, -- lowlight color (RGBA)
+							{ 0.4, 0.4, 0.0, 1 }) -- highlight color (RGBA)
+					end
+
+					-- Indicator for buildpower that current ENERGY income can support. This is shown along the TOP edge of the BP bar.
+					RectRound(
+						barArea[1] + (indicatorPosE * barWidth) - energyIndicatorHalfWidth, -- left
+						barArea[4] - barIntrusion, -- top of the bar, minus an intrusion downward
+						barArea[1] + (indicatorPosE * barWidth) + energyIndicatorHalfWidth, -- right
+						barArea[4] - barIntrusion + indicatorH * indicatorAreaMultiplyerE, -- top of the bar, minus an intrusion downward, plus the indicator's height
+						cornerSize * indicatorAreaMultiplyerE,
+						0, 0, 1, 1, -- don't round TopLeft, TopRight but round BottomRight, BottomLeft (so it looks like it's pointing downward)
+						{0.8, 0.8, 0.0, 1}, -- lowlight color (RGBA)
+						{ 1, 1, 0.2, 1 }) -- highlight color (RGBA)
+				end
+			end
+		end
 		-- Share slider
 		if not isSingle then
-			if res == 'energy' then
-				eneryOverflowLevel = r[res][6]
-			else
-				metalOverflowLevel = r[res][6]
+			if res ~= 'BP' then
+				if res == 'energy' then
+					eneryOverflowLevel = r[res][6]
+				else
+					metalOverflowLevel = r[res][6]
+				end
+				local value = r[res][6]
+				if draggingShareIndicator and draggingShareIndicatorValue[res] ~= nil then
+					value = draggingShareIndicatorValue[res]
+				else
+					draggingShareIndicatorValue[res] = value
+				end
+				shareIndicatorArea[res] = { math_floor(barArea[1] + (value * barWidth) - (shareSliderWidth / 2)), math_floor(barArea[2] - sliderHeightAdd), math_floor(barArea[1] + (value * barWidth) + (shareSliderWidth / 2)), math_floor(barArea[4] + sliderHeightAdd) }
+				local cornerSize
+				if not showQuitscreen and resbarHover ~= nil and resbarHover == res then
+					cornerSize = 2 * widgetScale
+				else
+					cornerSize = 1.33 * widgetScale
+				end
+				UiSliderKnob(math_floor(shareIndicatorArea[res][1]+((shareIndicatorArea[res][3]-shareIndicatorArea[res][1])/2)), math_floor(shareIndicatorArea[res][2]+((shareIndicatorArea[res][4]-shareIndicatorArea[res][2])/2)), math_floor((shareIndicatorArea[res][3]-shareIndicatorArea[res][1])/2), { 0.85, 0, 0, 1 })
 			end
-			local value = r[res][6]
-			if draggingShareIndicator and draggingShareIndicatorValue[res] ~= nil then
-				value = draggingShareIndicatorValue[res]
-			else
-				draggingShareIndicatorValue[res] = value
-			end
-			shareIndicatorArea[res] = { math_floor(barArea[1] + (value * barWidth) - (shareSliderWidth / 2)), math_floor(barArea[2] - sliderHeightAdd), math_floor(barArea[1] + (value * barWidth) + (shareSliderWidth / 2)), math_floor(barArea[4] + sliderHeightAdd) }
-			local cornerSize
-			if not showQuitscreen and resbarHover ~= nil and resbarHover == res then
-				cornerSize = 2 * widgetScale
-			else
-				cornerSize = 1.33 * widgetScale
-			end
-			UiSliderKnob(math_floor(shareIndicatorArea[res][1]+((shareIndicatorArea[res][3]-shareIndicatorArea[res][1])/2)), math_floor(shareIndicatorArea[res][2]+((shareIndicatorArea[res][4]-shareIndicatorArea[res][2])/2)), math_floor((shareIndicatorArea[res][3]-shareIndicatorArea[res][1])/2), { 0.85, 0, 0, 1 })
 		end
 	end)
 
@@ -1323,8 +1306,7 @@ local function updateResbar(res)  --decides where and what is drawn
 				.. highlightColor .. formattedAssigned .. textColor .. " is assigned to tasks or moving to jobs (dark green bar).\n"
 				.. highlightColor .. formattedActive .. textColor .. " is currently active and being used (green bar). This is the number shown.\n"
 				.. highlightColor .. formattedIdle .. textColor .. " is idle with no BP tasks (red part)."
-
-
+		
 			if config.drawBPIndicators and BP['mSliderPosition'] ~= nil and BP['eSliderPosition'] ~= nil then
 				bpTooltipText = bpTooltipText .. "\n\n"
 					.. textColor .. "The grey and yellow indicators show you that, if all BP were fully engaged:\n"
@@ -1371,7 +1353,7 @@ local function updateResbar(res)  --decides where and what is drawn
 					.. float_to_s(r['metal'][5]) .. " / " .. float_to_s(r['energy'][5]) .. " metal/energy expense, \n"
 					.. float_to_s(BP['metalExpensePerBP']) .. " / " .. float_to_s(BP['energyExpensePerBP']) .. " M/E expense per BP, \n"
 					.. float_to_s(r['energy'][4]) .." E income\n"
-					.. float_to_s(multiplicatorWindTurbines) .." wind generators\n"
+					.. float_to_s(numWindTurbines) .." wind generators\n"
 					.. "\nprojections:\n"
 					.. float_to_s(eIncomeNoWind) .." E income without wind\n"
 					.. float_to_s(BP['metalExpenseIfAllBPUsed']) .. " M spent if all BP is used, \n"
@@ -1705,36 +1687,42 @@ function widget:GameStart()
 	init()
 end
 
-local builderList = {}
-local currentBuilderIndex = 1
-
-local function RefreshBuilderList()
-    builderList = {}
-    for unitID, builderData in pairs(trackedBuilders) do
-        table.insert(builderList, {unitID = unitID, data = builderData})
-    end
-    currentBuilderIndex = 1
-end
-
 function widget:GameFrame(n)
 	gameFrame = n
+	--spec = spGetSpectatingState()
+
 	local bladeSpeedMultiplier = 0.2
 	windRotation = windRotation + (currentWind * bladeSpeedMultiplier)
+	-- If we're supposed to draw the buildpower bar, do some calculations.
 	if config.drawBPBar then -- calculations for the exact metal and energy draw value
+		-- Log initial cache values
 		local cacheTotalReservedBP = 0
 		local cacheTotallyUsedBP = 0
 
 		local usedBPMetalExpense = 0
 		local usedBPEnergyExpense = 0
-		local buildingBP = 0
-		for i = 1, 100 do
-			if currentBuilderIndex > #builderList then
+		local buildingBP = 0 -- how much BP is actively building, regardless of how stalled it is?
+
+
+		--Spring.Echo("Starting trackedBuilders loop")
+
+		if not builderCoroutine or coroutine.status(builderCoroutine) == "dead" then -- init builderCoroutine
+			builderCoroutine = coroutine.create(function()
+				for unitID, currentlyInspectedBuilder in pairs(trackedBuilders) do
+					coroutine.yield(unitID, currentlyInspectedBuilder)
+				end
+			end)
+		end
+
+		for i = 1, unitsPerFrame do -- use builderCoroutine, to work though builders
+			local success, unitID, currentlyInspectedBuilder = coroutine.resume(builderCoroutine)
+			if not success or not unitID then
 				break
 			end
-			local builder = builderList[currentBuilderIndex]
-			currentBuilderIndex = currentBuilderIndex + 1
-			local currentUnitBP, unitIsBuilt, unitDefID, unitTeamID= unpack(currentlyInspectedBuilder)
-			local unitExists, foundActivity, firstTime, builtUnitDefID = findBPCommand(unitID, unitDefID, {CMD.REPAIR, CMD.RECLAIM, CMD.CAPTURE, CMD.GUARD})
+			local currentUnitBP, unitIsBuilt, unitDefID, unitTeamID = unpack(currentlyInspectedBuilder)
+			local unitExists, foundActivity, firstTime = findBPCommand(unitID, unitDefID, {CMD.REPAIR, CMD.RECLAIM, CMD.CAPTURE, CMD.GUARD})
+			--Spring.Echo("Unit exists: " .. tostring(unitExists) .. ", foundActivity: " .. tostring(foundActivity) ..", firstTime: " .. tostring(firstTime) .. ", builtUnitDefID: " .. tostring(builtUnitDefID))
+
 			if not unitExists then
 				--Spring.Echo("Unit no longer exists, untracking unitID: " .. unitID)	
 				UntrackUnit(unitID)
@@ -1744,7 +1732,8 @@ function widget:GameFrame(n)
 				cacheTotalReservedBP = cacheTotalReservedBP + currentUnitBP
 				if firstTime == 1 then  -- it could use resources
 					local builtUnitID = spGetUnitIsBuilding(unitID)
-					if builtUnitID and builtUnitDefID then -- is it in place?
+					if builtUnitID then -- is it in place?
+						local builtUnitDefID = spGetUnitDefID(builtUnitID)
 						local _, currentlyUsedM, _, currentlyUsedE = spGetUnitResources(unitID)
 						usedBPMetalExpense = usedBPMetalExpense + currentlyUsedM
 						usedBPEnergyExpense = usedBPEnergyExpense + currentlyUsedE -- A builder may be cloaked, but not while it's building
@@ -1762,7 +1751,7 @@ function widget:GameFrame(n)
 		cacheDataBase['usedBPMetalExpense'] = cacheDataBase['usedBPMetalExpense'] + usedBPMetalExpense
 		cacheDataBase['usedBPEnergyExpense'] = cacheDataBase['usedBPEnergyExpense'] + usedBPEnergyExpense
 
-		if currentBuilderIndex > #builderList then
+		if not builderCoroutine or coroutine.status(builderCoroutine) == "dead" then	-- If every builder was checked store it in BP
 			BP['reservedBP_instant'] = cacheDataBase['reservedBP_instant']
 			BP['usedBP_instant'] = cacheDataBase['usedBP_instant']
 			BP['usedBPMetalExpense'] = cacheDataBase['usedBPMetalExpense']  --xxx extern for tooltip only
@@ -1777,66 +1766,70 @@ function widget:GameFrame(n)
 		end
 
 
-		if BP['usedBP_instant'] >= 1 then
-			-- We only need to calculate this if at least one builder is building.
-			BP['metalExpensePerBP'] = BP['usedBPMetalExpense'] / BP['usedBP_instant']
-			BP['energyExpensePerBP'] = BP['usedBPEnergyExpense'] / BP['usedBP_instant']
-			local totalBP = BP[4]
-			local energyExpense = r['energy'][5]
-			local metalExpense = r['metal'][5]
-			local metalExpenseMinusBuilders_instant  = metalExpense - BP['usedBPMetalExpense']
-			local energyExpenseMinusBuilders_instant = energyExpense - BP['usedBPEnergyExpense']
-			local metalExpenseMinusBuilders = addValueAndGetWeightedAverage(BP['history_nonBuilderMetalExpense'], metalExpenseMinusBuilders_instant, 1)
-			local energyExpenseMinusBuilders = addValueAndGetWeightedAverage(BP['history_nonBuilderEnergyExpense'], energyExpenseMinusBuilders_instant, 1)
-			BP['nonBPMetalExpense'] = metalExpenseMinusBuilders --xxx extern for tooltip only
-			BP['nonBPEnergyExpense'] = energyExpenseMinusBuilders --xxx extern for tooltip only
-			BP['metalExpenseIfAllBPUsed'] = metalExpenseMinusBuilders + BP['metalExpensePerBP'] * totalBP --xxx extern for tooltip only
-			BP['energyExpenseIfAllBPUsed'] = energyExpenseMinusBuilders + BP['energyExpensePerBP'] * totalBP --xxx extern for tooltip only
 
-			local metalIncome = r['metal'][4]
-			local energyIncome = r['energy'][4]
-			-- Assume our eco supports full BP until we calculate otherwise.
-			--local bpRatioSupportedByMIncome = 1 -- what proportion of our total BP can be supported by our metal income?
-			local bpRatioSupportedByEIncome = 1 -- what proportion of our total BP can be supported by our energy income?
-			local metalSupportedBP = metalIncome / BP['metalExpenseIfAllBPUsed'] * totalBP 
-			local bpRatioSupportedByMIncome = math_max(0, math_min(metalSupportedBP / totalBP, 1))
-			
-			if BP['energyExpensePerBP'] > 0 then
-				local energySupportedBP = energyIncome / BP['energyExpenseIfAllBPUsed'] * totalBP --ql
-				bpRatioSupportedByEIncome = math_max(0, math_min(energySupportedBP / totalBP, 1))
-			end
-			-- Weighted average of slider positions. If weight (BP['usedBP_instant']) is 0 the table won't be altered at all.
-			BP['mSliderPosition'] = addValueAndGetWeightedAverage(BP['history_mSliderPosition'], bpRatioSupportedByMIncome, BP['usedBP_instant'])
-			BP['eSliderPosition'] = addValueAndGetWeightedAverage(BP['history_eSliderPosition'], bpRatioSupportedByEIncome, BP['usedBP_instant'])
-			
-			
-			if config.drawBPWindRangeIndicators then
-				local realWindStrength = 0
-				for unitID in pairs(trackedWinds) do
-					local _, _, energyMake, _ = spGetUnitResources(unitID)
-					if energyMake ~= nil then
-						realWindStrength = energyMake
-						break
-					end
+		if n %3 == 0 then
+			if BP['usedBP_instant'] >= 1 then
+				-- We only need to calculate this if at least one builder is building.
+				BP['metalExpensePerBP'] = BP['usedBPMetalExpense'] / BP['usedBP_instant']
+				BP['energyExpensePerBP'] = BP['usedBPEnergyExpense'] / BP['usedBP_instant']
+				local totalBP = BP[4]
+				local energyExpense = r['energy'][5]
+				local metalExpense = r['metal'][5]
+				local metalExpenseMinusBuilders_instant  = metalExpense - BP['usedBPMetalExpense']
+				local energyExpenseMinusBuilders_instant = energyExpense - BP['usedBPEnergyExpense']
+				local metalExpenseMinusBuilders = addValueAndGetWeightedAverage(BP['history_nonBuilderMetalExpense'], metalExpenseMinusBuilders_instant, 1)
+				local energyExpenseMinusBuilders = addValueAndGetWeightedAverage(BP['history_nonBuilderEnergyExpense'], energyExpenseMinusBuilders_instant, 1)
+				BP['nonBPMetalExpense'] = metalExpenseMinusBuilders --xxx extern for tooltip only
+				BP['nonBPEnergyExpense'] = energyExpenseMinusBuilders --xxx extern for tooltip only
+				BP['metalExpenseIfAllBPUsed'] = metalExpenseMinusBuilders + BP['metalExpensePerBP'] * totalBP --xxx extern for tooltip only
+				BP['energyExpenseIfAllBPUsed'] = energyExpenseMinusBuilders + BP['energyExpensePerBP'] * totalBP --xxx extern for tooltip only
+
+				local metalIncome = r['metal'][4]
+				local energyIncome = r['energy'][4]
+				-- Assume our eco supports full BP until we calculate otherwise.
+				--local bpRatioSupportedByMIncome = 1 -- what proportion of our total BP can be supported by our metal income?
+				local bpRatioSupportedByEIncome = 1 -- what proportion of our total BP can be supported by our energy income?
+				local metalSupportedBP = metalIncome / BP['metalExpenseIfAllBPUsed'] * totalBP 
+				local bpRatioSupportedByMIncome = math_max(0, math_min(metalSupportedBP / totalBP, 1))
+				
+				if BP['energyExpensePerBP'] > 0 then
+					local energySupportedBP = energyIncome / BP['energyExpenseIfAllBPUsed'] * totalBP --ql
+					bpRatioSupportedByEIncome = math_max(0, math_min(energySupportedBP / totalBP, 1))
 				end
-				cacheDataBase['realWindStrength'] = 0
-				BP['energyIncomeNoWind'] = energyIncome - multiplicatorWindTurbines * realWindStrength
-				eSupportedBP_minWind = (BP['energyIncomeNoWind'] - energyExpenseMinusBuilders) / BP['energyExpensePerBP'] -- is that what we want? e converters exist...
-				local bpRatioSupportedByEIncome_minWind = math_max(0, math_min(eSupportedBP_minWind / totalBP, 1))
+				-- Weighted average of slider positions. If weight (BP['usedBP_instant']) is 0 the table won't be altered at all.
+				BP['mSliderPosition'] = addValueAndGetWeightedAverage(BP['history_mSliderPosition'], bpRatioSupportedByMIncome, BP['usedBP_instant'])
+				BP['eSliderPosition'] = addValueAndGetWeightedAverage(BP['history_eSliderPosition'], bpRatioSupportedByEIncome, BP['usedBP_instant'])
+				
+				
+				if config.drawBPWindRangeIndicators then
+				Spring.Echo('drawBPWindRangeIndicators')
+					local realWindStrength = 0
+					for unitID in pairs(trackedWinds) do
+						local _, _, energyMake, _ = spGetUnitResources(unitID)
+						if energyMake ~= nil then
+							realWindStrength = energyMake
+							break
+						end
+					end
+					cacheDataBase['realWindStrength'] = 0
+					BP['energyIncomeNoWind'] = energyIncome - numWindTurbines * realWindStrength
+					eSupportedBP_minWind = (BP['energyIncomeNoWind'] - energyExpenseMinusBuilders) / BP['energyExpensePerBP'] -- is that what we want? e converters exist...
+					local bpRatioSupportedByEIncome_minWind = math_max(0, math_min(eSupportedBP_minWind / totalBP, 1))
 
-				maxEPerWindGenerator = math_min(25, Game.windMax)
-				eSupportedBP_maxWind = (BP['energyIncomeNoWind'] + multiplicatorWindTurbines * maxEPerWindGenerator - energyExpenseMinusBuilders) / BP['energyExpensePerBP']
-				local bpRatioSupportedByEIncome_maxWind = math_max(0, math_min(eSupportedBP_maxWind / totalBP, 1))
-				BP['eSliderPosition_minWind'] = addValueAndGetWeightedAverage(BP['history_eSliderPosition_minWind'], bpRatioSupportedByEIncome_minWind, BP['usedBP_instant'])
-				BP['eSliderPosition_maxWind'] = addValueAndGetWeightedAverage(BP['history_eSliderPosition_maxWind'], bpRatioSupportedByEIncome_maxWind, BP['usedBP_instant'])
-				--BP['eSliderPosition_minWind'] = bpRatioSupportedByEIncome_minWind * BP[5] / BP[4]
-				--BP['eSliderPosition_maxWind'] = bpRatioSupportedByEIncome_maxWind * BP[5] / BP[4]
+					maxEPerWindGenerator = math_min(25, Game.windMax)
+					eSupportedBP_maxWind = (BP['energyIncomeNoWind'] + numWindTurbines * maxEPerWindGenerator - energyExpenseMinusBuilders) / BP['energyExpensePerBP']
+					local bpRatioSupportedByEIncome_maxWind = math_max(0, math_min(eSupportedBP_maxWind / totalBP, 1))
+					BP['eSliderPosition_minWind'] = addValueAndGetWeightedAverage(BP['history_eSliderPosition_minWind'], bpRatioSupportedByEIncome_minWind, BP['usedBP_instant'])
+					BP['eSliderPosition_maxWind'] = addValueAndGetWeightedAverage(BP['history_eSliderPosition_maxWind'], bpRatioSupportedByEIncome_maxWind, BP['usedBP_instant'])
+					--BP['eSliderPosition_minWind'] = bpRatioSupportedByEIncome_minWind * BP[5] / BP[4]
+					--BP['eSliderPosition_maxWind'] = bpRatioSupportedByEIncome_maxWind * BP[5] / BP[4]
+				end
+			else
+				BP['eSliderPosition_minWind'] = 1
+				BP['eSliderPosition_maxWind'] = 1
+				BP['mSliderPosition'] = nil
+				BP['eSliderPosition'] = nil
 			end
-		else
-			BP['eSliderPosition_minWind'] = 1
-			BP['eSliderPosition_maxWind'] = 1
-			BP['mSliderPosition'] = nil
-			BP['eSliderPosition'] = nil
 		end
 		local lowPrioNeededEnergy = Spring.GetTeamRulesParam(myTeamID, "lowPrioNeededEnergy") 
 		local lowPrioExpenseEnergy = Spring.GetTeamRulesParam(myTeamID, "lowPrioExpenseEnergy")
@@ -1846,8 +1839,8 @@ function widget:GameFrame(n)
 			stalling['lowPrioEnergy'] = lowPrioNeededEnergy + lowPrioExpenseEnergy
 			stalling['lowPrioMetal'] = lowPrioNeededMetal + lowPrioExpenseMetal
 		end
+		updateResbar('BP')
 	end
-	updateBPIndicatorPos()
 end
 
 local function updateAllyTeamOverflowing()
@@ -1955,7 +1948,7 @@ function widget:Update(dt)
 	end
 
 	sec = sec + dt
-	if sec > 0.1 then
+	if sec > 0.033 then
 		sec = 0
 		r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') }, BP = BP }
 		if not spec and not showQuitscreen then
@@ -2772,7 +2765,17 @@ function widget:Initialize()
 	Spring.SendCommands("resbar 0")
 
 	InitAdditionalValues()
-
+	for unitDefID, unitDef in pairs(UnitDefs) do -- fill unitCostData this is needed for exact calculations
+		local energy = unitDef.energyCost
+		unitCostData[unitDefID] = {
+			buildTime = unitDef.buildTime, 
+			energy = unitDef.energyCost, 
+			metal = unitDef.metalCost, 
+			EperBP = unitDef.energyCost/unitDef.buildTime, 
+			MperBP = unitDef.metalCost/unitDef.buildTime
+		}
+		local unitName = UnitDefs[unitDefID].name
+	end
 	-- determine if we want to show comcounter
 	local allteams = Spring.GetTeamList()
 	local teamN = table.maxn(allteams) - 1               --remove gaia
@@ -2899,116 +2902,85 @@ function widget:Shutdown()
 	WG['topbar'] = nil
 end
 
-
 function findBPCommand(unitID, unitDefID, cmdList)
-    local unitExists = false
-    local activityFound = nil
-    local firstTime = nil
-    local builtUnitDefID = nil
-    local builderInfo = builderDefs[unitDefID]
-
-    if builderInfo then
-        local commands
-        if builderInfo.isFactory then
-            commands = Spring.GetFactoryCommands(unitID, 1)
-        else
-            commands = Spring.GetUnitCommands(unitID, -1)
-        end
-        if commands and #commands > 0 then
-            unitExists = true
-            -- Erstelle ein Lookup-Table für cmdList
-            local cmdSet = {}
-            for _, cmdID in ipairs(cmdList) do
-                cmdSet[cmdID] = true
-            end
-
-            -- Spezielle Behandlung für Fabriken
-            if builderInfo.isFactory then
-                firstTime = 1
-                activityFound = true
-                return unitExists, activityFound, firstTime
-            end
-
-            for i = 1, #commands do
-                local cmdID = commands[i].id
-                if cmdSet[cmdID] or cmdID < 0 then
-                    firstTime = i
-                    activityFound = true
-                    if cmdID < 0 then
-                        builtUnitDefID = -cmdID
-                    end
-                    return unitExists, activityFound, firstTime, builtUnitDefID
-                end
-            end
-        end
-    end
-    return unitExists, activityFound, firstTime, builtUnitDefID
+	local unitExists = false
+	local activityFound = nil
+	local firstTime = nil
+	local unitDef = UnitDefs[unitDefID]
+	if UnitDefs[unitDefID].isFactory then
+		commands = Spring.GetFactoryCommands(unitID, 1)
+	else
+		commands = Spring.GetUnitCommands(unitID, -1)
+	end
+	if commands then
+		unitExists = true
+	end
+	if unitDef.isFactory == true then
+		if #commands > 0 then
+			firstTime = 1
+			activityFound = true
+			return unitExists, activityFound, firstTime
+		end
+	end
+	for i = 1, #commands do
+		for _, relevantCMD in ipairs(cmdList) do
+			if commands[i].id == relevantCMD or commands[i].id < 0 then
+				firstTime = i
+				activityFound = true
+			return unitExists, activityFound, firstTime
+			end
+		end
+	end
+	return unitExists, activityFound, firstTime
 end
-
-
 
 function TrackUnit(unitID, unitDefID, unitTeam) --needed for exact calculations
 	if (myTeamID == unitTeam) then
-		local _, _, _, _, build = Spring.GetUnitHealth(unitID) 
-		local isBuilt = build >= 1 --is it finished?
-		if isBuilt then
-			local builderInfo = builderDefs[unitDefID] -- Get builder info from the pre-filled table
-			if builderInfo and not trackedBuilders[unitID] then
-				BP[4] = BP[4] + builderInfo.buildSpeed -- BP[4] is totalAvailableBP
-				trackedBuilders[unitID] = { builderInfo.buildSpeed, isBuilt, unitDefID, unitTeam, nil}
-			end
-			local energyMultiplier = windGenDefs[unitDefID] -- Get energyMultiplier info from the pre-filled table
-			if energyMultiplier and not trackedWinds[unitID] then
+		local unitDef = UnitDefs[unitDefID]
+		local _, _, _, _, build = Spring.GetUnitHealth(unitID) --is it finished?
+		local isBuilt = build >= 1
+		if isBuilt and unitDef then
+			if unitDef.buildSpeed and unitDef.buildSpeed > 0 and unitDef.canAssist or UnitDefs[unitDefID].isFactory then
+				trackedNum = trackedNum + 1
+				if not trackedBuilders[unitID] then				-- We may have already tracked this unit when it started being built. No need to add its BP again.
+					BP[4] = BP[4] + unitDef.buildSpeed -- BP[4] ^= totalAvailableBP
+				end
+				trackedBuilders[unitID] = { unitDef.buildSpeed, isBuilt, unitDefID, unitTeam }
+			elseif unitDef.name == "armwin" or unitDef.name == "corwin" then -- wind generator
 				trackedWinds[unitID] = 1
-				multiplicatorWindTurbines = multiplicatorWindTurbines + energyMultiplier
+				numWindTurbines = numWindTurbines + 1
 			end
 		end
 	end
 end
 
 function UntrackUnit(unitID, unitDefID, unitTeam) -- needed for exact calculations
-	if (myTeamID == unitTeam) then
-        if trackedBuilders[unitID] then
-            local builderInfo = builderDefs[unitDefID] -- Get builder info from the pre-filled table
-            if builderInfo then
-                BP[4] = math.max(0, BP[4] - builderInfo.buildSpeed) -- Prevent negative BP[4]
-            end
-            trackedBuilders[unitID] = nil -- Remove from tracked builders
-        end
-		local energyMultiplier = windGenDefs[unitDefID]
-		if energyMultiplier then
+	local unitDef = UnitDefs[unitDefID]
+	if (myTeamID == unitTeam) and unitDef then
+		if trackedBuilders[unitID] then
+			if unitDef.buildSpeed and unitDef.buildSpeed > 0 and unitDef.canAssist or UnitDefs[unitDefID].isFactory then
+			trackedNum = trackedNum - 1
+				BP[4] = BP[4] - trackedBuilders[unitID][1] -- BP[4] ^= totalAvailableBP
+			end
+		end
+		if trackedBuilders[unitID] then
+			 trackedBuilders[unitID] = nil
+		end
+		if trackedWinds[unitID] then
 			trackedWinds[unitID] = nil
-			multiplicatorWindTurbines = multiplicatorWindTurbines - energyMultiplier
+			numWindTurbines = numWindTurbines - 1
 		end
 	end
 end
 
 function InitAdditionalValues()
-	BP[4] = 0	
-	trackedWinds = {}
-	multiplicatorWindTurbines = 0
+	BP[4] = 0
+	trackedNum = 0
 	trackedBuilders = {}
+	trackedWinds = {}
+	numWindTurbines = 0
 
-	for unitDefID, unitDef in pairs(UnitDefs) do -- fill unitCostData this is needed for exact calculations
-		local energy = unitDef.energyCost
-		unitCostData[unitDefID] = {
-			buildTime = unitDef.buildTime, 
-			energy = unitDef.energyCost, 
-			metal = unitDef.metalCost, 
-			EperBP = unitDef.energyCost/unitDef.buildTime, 
-			MperBP = unitDef.metalCost/unitDef.buildTime
-		}
-		if unitDef.windGenerator and unitDef.windGenerator > 0 then -- Populate the windGenDefs
-			windGenDefs[unitDefID] = (unitDef.customParams and unitDef.customParams.energymultiplier) or 1
-		end
-		if unitDef.buildSpeed and unitDef.buildSpeed > 0 and unitDef.canAssist or UnitDefs[unitDefID].isFactory then -- Populate the builderDefs table
-			builderDefs[unitDefID]= {
-				buildSpeed = unitDef.buildSpeed,
-				isFactory = UnitDefs[unitDefID].isFactory
-			}
-		end
-	end
 	for _, unitID in pairs(Spring.GetTeamUnits(myTeamID)) do  -- needed for exact calculations
-		TrackUnit(unitID, spGetUnitDefID(unitID), myTeamID)
+		TrackUnit(unitID, Spring.GetUnitDefID(unitID), myTeamID)
 	end
 end
