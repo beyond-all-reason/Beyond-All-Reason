@@ -29,20 +29,23 @@ local weaponDefWatch = {}
 local gameFrame = 0
 local velocityWatchDuration = 8
 local movedefsTable = {}
+local unitDefData = {}
 
-for _, entry in ipairs(moveDefsData) do
-  if entry.name and entry.maxwaterdepth and entry.maxwaterdepth < ignoredMaxWaterDepthThreshold then
+for _, entry in pairs(moveDefsData) do
+  if entry.name and not entry.minwaterdepth and entry.maxwaterdepth and entry.maxwaterdepth < ignoredMaxWaterDepthThreshold then
     movedefsTable[entry.name] = entry.maxwaterdepth
   end
 end
 
--- Print the result table for verification
-for k, v in pairs(movedefsTable) do
-  Spring.Echo("shitpickle", k, v)
-end
-
 for unitDefID, unitDef in ipairs(UnitDefs) do
-	local fallDamageMultiplier = unitDef.customParams.fall_damage_multiplier or 1.0
+	if unitDef.name == "corak" then
+	Spring.Echo("corak shit", unitDef.maxwaterdepth)
+	end
+	if unitDef.movementClass then --and movedefsTable[unitDef.movementClass] then
+		unitDefData[unitDefID] = {}
+		unitDefData[unitDefID].fallDamageMultiplier = unitDef.customParams.fall_damage_multiplier or 1.0
+		Spring.Echo("Shit found!", unitDef.name, unitDef.movementClass)
+	end
 end
 
 local function GetUnitHeightAboveGroundAndWater(unitID) -- returns nil for invalid units
@@ -78,13 +81,14 @@ end
 
 function gadget:UnitEnteredWater(unitID, unitDefID, unitTeam)
 
-	Spring.Echo(unitID)
-	Spring.Echo(moveDefsData.COMMANDERBOT)
+	--Spring.Echo(unitID)
+	--Spring.Echo(moveDefsData.COMMANDERBOT)
 
 end
 
 function gadget:UnitLeftWater(unitID, unitDefID, unitTeam)
+	local movedata = Spring.GetUnitMoveTypeData(unitID)
 
-	Spring.Echo(unitID)
+	Spring.Echo(movedata)
 
 end
