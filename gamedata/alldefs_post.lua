@@ -84,7 +84,7 @@ function UnitDef_Post(name, uDef)
 
 	--global physics behavior changes
 	if uDef.health then
-		uDef.minCollisionSpeed = 2.5 -- define the minimum velocity(speed) required for all units to suffer fall/collision damage.
+		uDef.minCollisionSpeed = 75 / Game.gameSpeed -- define the minimum velocity(speed) required for all units to suffer fall/collision damage.
 	end
 
 	-- inidivual unit hat processing
