@@ -90,7 +90,7 @@ local function getImpulseMultiplier(unitDefID, weaponDefID, damage)
 	local impulseFactor = weaponDefIDImpulses[weaponDefID].impulseFactor or 1
 	local impulse = (damage + impulseBoost) * impulseFactor
 	local maxImpulse = unitsMaxImpulse[unitDefID]
-	local impulseMultiplier = mathMin(maxImpulse/impulse, 1)
+	local impulseMultiplier = mathMin(maxImpulse/impulse, 1) -- doesn't cap negative to -1 somewhat purposefully
 	return impulseMultiplier
 end
 
