@@ -23,8 +23,8 @@ local collisionVelocityThreshold = 99 / Game.gameSpeed
 -- Decrease this value to make units move less from impulse. This defines the maximum impulse allowed, which is (maxImpulseMultiplier * mass) of each unit.
 local maxImpulseMultiplier = 5
 
---measured in elmos per frame. If a unit is launched via explosion faster than this, it is instantly slowed to this value
-local velocityCap = 9
+-- elmo/s, converted to elmo/frame. If a unit is launched via explosion faster than this, it is instantly slowed to this value
+local velocityCap = 270 / Game.gameSpeed
 
 --measured in elmos per frame. If velocity is above this threshold, it will be slowed until below this threshold.
 local velocitySlowdownThreshold = 6
