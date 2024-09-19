@@ -53,7 +53,7 @@ function gadget:GetInfo()
 	}
 end
 
-local DEBUG = true -- will draw the buildSpeeds above builders. Perf heavy but its debugging only.
+local DEBUG = false -- will draw the buildSpeeds above builders. Perf heavy but its debugging only.
 local VERBOSE = false -- will spam debug into infolog
 local FORWARDUNIFORMS = false -- Needed for future nanospray GL4
 -- Available Info to Widgets:
