@@ -60,7 +60,7 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 	unitMasses[unitDefID] = unitDef.mass
 end
 
-for name, weaponDefID in pairs(Game.envDamageTypes or {}) do
+for name, weaponDefID in pairs(Game.envDamageTypes) do
 	weaponDefIgnored[weaponDefID] = true
 end
 
