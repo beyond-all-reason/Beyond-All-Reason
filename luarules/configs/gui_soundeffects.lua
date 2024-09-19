@@ -1110,6 +1110,11 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "arm-air-transport-small-ok",
 		BaseSoundWeaponType = "transport-large",
 	},
+	armhvytrans = {
+		BaseSoundSelectType = "arm-air-transport-small-sel",
+		BaseSoundMovementType = "arm-air-transport-small-ok",
+		BaseSoundWeaponType = "transport-large",
+	},
 	armfig = {
 		BaseSoundSelectType = "arm-air-small-sel",
 		BaseSoundMovementType = "arm-air-small-ok",
@@ -2357,6 +2362,11 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "emp-laser",
 	},
 	corvalk = {
+		BaseSoundSelectType = "arm-air-transport-small-sel",
+		BaseSoundMovementType = "arm-air-transport-small-ok",
+		BaseSoundWeaponType = "transport-large",
+	},
+	corhvytrans = {
 		BaseSoundSelectType = "arm-air-transport-small-sel",
 		BaseSoundMovementType = "arm-air-transport-small-ok",
 		BaseSoundWeaponType = "transport-large",
