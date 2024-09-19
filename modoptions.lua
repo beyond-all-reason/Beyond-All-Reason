@@ -1182,16 +1182,6 @@ local options = {
     },
 
     {
-        key    	= "faction_limiter",
-        name   	= "Team Faction Limiter",
-        desc   	= "Limit which faction a team may play. Format; list factions, seperating teams by a comma, e.g. \"armada cortex, legion\" = cor/arm vs legion.",
-        type   	= "string",
-        section	= "options_experimental",
-        def		= "",
-		hidden	= true,
-    },
-
-    {
         key 	= "skyshift",
         name 	= "Skyshift: Air Rework",
         desc 	= "A complete overhaul of air units and mechanics",
