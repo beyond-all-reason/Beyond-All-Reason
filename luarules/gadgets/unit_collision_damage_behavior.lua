@@ -51,7 +51,7 @@ local unitMasses = {}
 local weaponDefIgnored = {}
 local unitInertiaCheckFlags = {}
 local gameFrame = 0
-local velocityWatchDuration = 8
+local velocityWatchFrames = 8
 
 for unitDefID, unitDef in ipairs(UnitDefs) do
 	local fallDamageMultiplier = unitDef.customParams.fall_damage_multiplier or 1.0
@@ -114,7 +114,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 	if not weaponDefIgnored[weaponDefID] and weaponDefID > 0 then --this section handles limiting maximum impulse
 		local impulseMultiplier = 1
 		impulseMultiplier = getImpulseMultiplier(unitDefID, weaponDefID, damage)
-		unitInertiaCheckFlags[unitID] = gameFrame + velocityWatchDuration
+		unitInertiaCheckFlags[unitID] = gameFrame + velocityWatchFrames
 		return damage, impulseMultiplier
 	else
 		if weaponDefID == groundCollisionDefID and not transportedUnits[unitID] and isValidCollisionDirection(unitID) then
@@ -161,7 +161,7 @@ function gadget:GameFrame(frame)
 					decelerateVertical = 0.85
 				end
 				spSetUnitVelocity(unitID, velX * decelerateHorizontal, velY - decelerateVertical * velY, velZ * decelerateHorizontal)
-				expirationFrame = frame + velocityWatchDuration
+				expirationFrame = frame + velocityWatchFrames
 			elseif expirationFrame < frame then
 				unitInertiaCheckFlags[unitID] = nil
 			end
