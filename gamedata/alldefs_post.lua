@@ -78,6 +78,9 @@ end
 function UnitDef_Post(name, uDef)
 	local modOptions = Spring.GetModOptions()
 
+	local isScav = string.sub(name, -5, -1) == "_scav"
+	local basename = isScav and string.sub(name, 1, -6) or name
+
 	if not uDef.icontype then
 		uDef.icontype = name
 	end
@@ -169,6 +172,29 @@ function UnitDef_Post(name, uDef)
 			end
 		end
 
+		if modOptions.unit_restrictions_notech15 then
+			-- Tech 1.5 is a semi offical thing, modoption ported from teiserver meme commands
+			local tech15 = {
+				corhp		= true,
+				corfhp		= true,
+				corplat		= true,
+				coramsub	= true,
+
+				armhp		= true,
+				armfhp		= true,
+				armplat		= true,
+				armamsub	= true,
+
+				leghp		= true,
+				legfhp		= true,
+				legplat		= true,
+				legamsub	= true,
+			}
+			if tech15[basename] then
+				uDef.maxthisunit = 0
+			end
+		end
+
 		if modOptions.unit_restrictions_noair then
 			if string.find(uDef.customparams.subfolder, "Aircraft") then
 				uDef.maxthisunit = 0
@@ -217,6 +243,12 @@ function UnitDef_Post(name, uDef)
 			end
 		end
 
+		if modOptions.unit_restrictions_nofusion then
+			if basename == "armdf" or string.sub(basename, -3) == "fus" then
+				uDef.maxthisunit = 0
+			end
+		end
+
 		if modOptions.unit_restrictions_nonukes then
 			local Nukes = {
 				armamd = true,
@@ -238,6 +270,40 @@ function UnitDef_Post(name, uDef)
 			}
 			if Nukes[name] then
 				uDef.maxthisunit = 0
+			end
+		end
+
+		if modOptions.unit_restrictions_nodefence then
+			local whitelist = {
+				armllt	= true,
+				armrl	= true,
+				armfrt	= true,
+				armtl	= true,
+
+				corllt	= true,
+				corrl	= true,
+				cortl	= true,
+				corfrt	= true,
+
+				leglht	= true,
+				legrl	= true,
+				--sea tl= true,
+				--sea aa= true,
+			}
+			-- "defense" or "defence", as legion doesn't fully follow past conventions
+			if not whitelist[name] and string.find(string.lower(uDef.customparams.subfolder), "defen") then
+				uDef.maxthisunit = 0
+			end
+		end
+
+		if modOptions.unit_restrictions_noantinuke then
+			if uDef.weapondefs then
+				for _, weapon in pairs(uDef.weapondefs) do
+					if weapon.interceptor and weapon.interceptor == 1 then
+						uDef.maxthisunit = 0
+						break
+					end
+				end
 			end
 		end
 
