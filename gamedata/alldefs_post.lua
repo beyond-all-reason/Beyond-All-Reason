@@ -159,17 +159,6 @@ function UnitDef_Post(name, uDef)
 		if not uDef.customparams.subfolder then
 			uDef.customparams.subfolder = "none"
 		end
-		if modOptions.unit_restrictions_notech2 then
-			if tonumber(uDef.customparams.techlevel) == 2 or tonumber(uDef.customparams.techlevel) == 3 then
-				uDef.maxthisunit = 0
-			end
-		end
-
-		if modOptions.unit_restrictions_notech3 then
-			if tonumber(uDef.customparams.techlevel) == 3 then
-				uDef.maxthisunit = 0
-			end
-		end
 
 		if modOptions.unit_restrictions_notech15 then
 			if tonumber(uDef.customparams.techlevel) == 2 or tonumber(uDef.customparams.techlevel) == 3 then
@@ -195,6 +184,14 @@ function UnitDef_Post(name, uDef)
 				if tech15[basename] then
 					uDef.maxthisunit = 0
 				end
+			end
+		elseif modOptions.unit_restrictions_notech2 then
+			if tonumber(uDef.customparams.techlevel) == 2 or tonumber(uDef.customparams.techlevel) == 3 then
+				uDef.maxthisunit = 0
+			end
+		elseif modOptions.unit_restrictions_notech3 then
+			if tonumber(uDef.customparams.techlevel) == 3 then
+				uDef.maxthisunit = 0
 			end
 		end
 
