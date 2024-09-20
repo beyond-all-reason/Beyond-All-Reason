@@ -507,6 +507,14 @@ local options = {
         def     =  true,
     },
 
+	{
+		key		= "sub_header",
+		name	= "To Play Add a Raptors AI to the enemy Team: [Add AI]; [RaptorsAI]",
+		desc	= "",
+		section	= "raptor_defense_options",
+		type	= "subheader",
+	},
+
     {
         key     = "sub_header",
         section = "raptor_defense_options",
@@ -656,6 +664,15 @@ local options = {
         type    = "subheader",
         def     =  true,
     },
+
+	{
+		key		= "sub_header",
+		name	= "To Play Add a Scavangers AI to the enemy Team: [Add AI]; [ScavangersAI]",
+		desc	= "",
+		section	= "scav_defense_options",
+		type	= "subheader",
+	},
+
 
     {
         key     = "sub_header",
