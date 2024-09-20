@@ -10,7 +10,7 @@ return {
 		buildtime = 6150,
 		canattack = false,
 		canrepeat = false,
-		category = "ALL UNDERWATER NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "SURFACE",
 		corpse = "DEAD",
 		damagemodifier = 0.46,
 		explodeas = "mediumBuildingexplosiongeneric-uw",

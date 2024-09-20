@@ -8,7 +8,7 @@ return {
 		buildtime = 42000,
 		canattack = false,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "40 40 40",
 		collisionvolumetype = "BOX",

@@ -7,7 +7,7 @@ return {
 		buildpic = "ARMSNIPE.DDS",
 		buildtime = 19000,
 		canmove = true,
-		category = "BOT MOBILE WEAPON ALL NOTSHIP NOTAIR NOTHOVER NOTSUB SURFACE EMPABLE",
+		category = "",
 		cloakcost = 75,
 		cloakcostmoving = 200,
 		collisionvolumeoffsets = "0 0 0",

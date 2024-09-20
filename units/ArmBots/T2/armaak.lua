@@ -8,7 +8,7 @@ return {
 		buildpic = "ARMAAK.DDS",
 		buildtime = 7000,
 		canmove = true,
-		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 -1 1",
 		collisionvolumescales = "25 32 16",
 		collisionvolumetype = "box",

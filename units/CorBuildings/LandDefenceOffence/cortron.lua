@@ -7,7 +7,7 @@ return {
 		metalcost = 1200,
 		buildpic = "CORTRON.DDS",
 		buildtime = 59000,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "59 47 59",
 		collisionvolumetype = "CylY",

@@ -8,7 +8,7 @@ return {
 		buildpic = "CORBUZZ.DDS",
 		buildtime = 1400000,
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "80 160 80",
 		collisionvolumetype = "CylY",

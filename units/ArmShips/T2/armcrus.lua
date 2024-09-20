@@ -9,7 +9,7 @@ return {
 		buildpic = "ARMCRUS.DDS",
 		buildtime = 17000,
 		canmove = true,
-		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 -8 0",
 		collisionvolumescales = "32 32 112",
 		collisionvolumetype = "CylZ",

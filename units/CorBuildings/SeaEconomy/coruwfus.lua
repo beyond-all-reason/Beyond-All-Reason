@@ -9,7 +9,7 @@ return {
 		buildpic = "CORUWFUS.DDS",
 		buildtime = 105000,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE UNDERWATER EMPABLE",
+		category = "SURFACE",
 		corpse = "DEAD",
 		energymake = 1220,
 		energystorage = 2500,

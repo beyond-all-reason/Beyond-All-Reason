@@ -9,7 +9,7 @@ return {
 		buildpic = "ARMACK.DDS",
 		buildtime = 9500,
 		canmove = true,
-		category = "BOT MOBILE ALL NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "27 35 23",
 		collisionvolumetype = "box",

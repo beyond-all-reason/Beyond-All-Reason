@@ -8,7 +8,7 @@ return {
 		buildpic = "ARMHP.DDS",
 		buildtime = 11000,
 		canmove = true,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		collisionvolumescales = "100 40 90",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",

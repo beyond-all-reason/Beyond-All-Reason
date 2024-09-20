@@ -9,7 +9,7 @@ return {
 		buildpic = "CORSOLAR.DDS",
 		buildtime = 2800,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "77 78 77",
 		collisionvolumetype = "Ell",

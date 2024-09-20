@@ -7,7 +7,7 @@ return {
 		buildpic = "CORSH.DDS",
 		buildtime = 1500,
 		canmove = true,
-		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 -3 0",
 		collisionvolumescales = "18 15 30",
 		collisionvolumetype = "Box",

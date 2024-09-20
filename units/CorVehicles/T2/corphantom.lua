@@ -8,7 +8,7 @@ return {
 		buildpic = "CORPHANTOM.DDS",
 		buildtime = 9000,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE CANBEUW",
+		category = "",
 		cloakcost = 10,
 		cloakcostmoving = 30,
 		collisionvolumeoffsets = "0 -4 0",

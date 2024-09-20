@@ -8,7 +8,7 @@ return {
 		buildpic = "ARMCKFUS.DDS",
 		buildtime = 84400,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		cloakcost = 100,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "97 42 51",

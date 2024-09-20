@@ -7,7 +7,7 @@ return {
 		buildpic = "CORSHIVA.DDS",
 		buildtime = 30600,
 		canmove = true,
-		category = "BOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 -5 0",
 		collisionvolumescales = "61 60 61",
 		collisionvolumetype = "cylY",

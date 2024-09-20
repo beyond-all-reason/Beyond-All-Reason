@@ -10,7 +10,7 @@ return {
 		buildtime = 9950,
 		canattack = false,
 		canrepeat = false,
-		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		cloakcost = 25,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "32 82 32",

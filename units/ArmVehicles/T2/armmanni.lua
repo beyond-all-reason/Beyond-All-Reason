@@ -7,7 +7,7 @@ return {
 		buildpic = "ARMMANNI.DDS",
 		buildtime = 25700,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "39 49 39", -- have this be defined in collisions.lua
 		collisionvolumetype = "box",

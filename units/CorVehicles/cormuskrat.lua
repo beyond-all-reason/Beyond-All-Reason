@@ -9,7 +9,7 @@ return {
 		buildpic = "CORMUSKRAT.DDS",
 		buildtime = 6860,
 		canmove = true,
-		category = "ALL TANK PHIB NOTSUB  NOWEAPON NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 0 1",
 		collisionvolumescales = "26 28 46",
 		collisionvolumetype = "Box",

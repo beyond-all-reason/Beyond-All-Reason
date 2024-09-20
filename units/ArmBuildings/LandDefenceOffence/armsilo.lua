@@ -7,7 +7,7 @@ return {
 		metalcost = 8100,
 		buildpic = "ARMSILO.DDS",
 		buildtime = 178500,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "-1 3 1",
 		collisionvolumescales = "90 80 90",
 		collisionvolumetype = "CylY",

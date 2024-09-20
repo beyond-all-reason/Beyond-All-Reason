@@ -14,7 +14,7 @@ return {
 		canpatrol = true,
 		canstop = 1,
 		cantbetransported = true,
-		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE EMPABLE",
+		category = "",
 		corpse = "dead",
 		explodeas = "largeexplosiongeneric",
 		footprintx = 4,

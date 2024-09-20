@@ -10,7 +10,7 @@ return {
 		buildpic = "CORFSHIP.DDS",
 		buildtime = 9400,
 		canmove = true,
-		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 -5 -2",
 		collisionvolumescales = "27 20 81",
 		collisionvolumetype = "box",

@@ -7,7 +7,7 @@ return {
 		buildpic = "ARMMAR.DDS",
 		buildtime = 26100,
 		canmove = true,
-		category = "BOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "50 70 50",
 		collisionvolumetype = "CYLY",

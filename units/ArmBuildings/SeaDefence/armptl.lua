@@ -9,7 +9,7 @@ return {
 		buildpic = "ARMTL.DDS",
 		buildtime = 3700,
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		corpse = "DEAD",
 		explodeas = "mediumBuildingExplosionGeneric",
 		footprintx = 3,
@@ -25,6 +25,7 @@ return {
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 494,
 		sonardistance = 230,
+		waterline = 0,
 		yardmap = "ooooooooo",
 		customparams = {
 			unitgroup = 'sub',

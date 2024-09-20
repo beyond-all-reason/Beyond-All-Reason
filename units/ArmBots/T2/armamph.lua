@@ -7,7 +7,7 @@ return {
 		buildpic = "ARMAMPH.DDS",
 		buildtime = 5200,
 		canmove = true,
-		category = "BOT MOBILE WEAPON ALL NOTSHIP NOTAIR NOTSUB SURFACE PHIB EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 0 -1",
 		collisionvolumescales = "27 35 21",
 		collisionvolumetype = "cylY",

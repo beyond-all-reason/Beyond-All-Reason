@@ -9,7 +9,7 @@ return {
 		buildpic = "ARMUWAGEO.DDS",
 		buildtime = 33300,
 		canrepeat = false,
-		category = "ALL NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER UNDERWATER EMPABLE",
+		category = "SURFACE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "107 77 107",
 		collisionvolumetype = "CylY",

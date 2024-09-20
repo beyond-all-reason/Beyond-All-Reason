@@ -7,7 +7,7 @@ return {
 		buildpic = "CORVROC.DDS",
 		buildtime = 15000,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 -9 -2",
 		collisionvolumescales = "40 40 44",
 		collisionvolumetype = "Box",

@@ -7,7 +7,7 @@ return {
 		buildpic = "ARMHAM.DDS",
 		buildtime = 2200,
 		canmove = true,
-		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 -2 0",
 		collisionvolumescales = "29 30 29",
 		collisionvolumetype = "CylY",

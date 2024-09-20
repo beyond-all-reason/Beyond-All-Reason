@@ -10,7 +10,7 @@ return {
 		buildpic = "CORUWMME.DDS",
 		buildtime = 14100,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE UNDERWATER EMPABLE",
+		category = "SURFACE",
 		corpse = "DEAD",
 		damagemodifier = 0.5,
 		energyupkeep = 20,

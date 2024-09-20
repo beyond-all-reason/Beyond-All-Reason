@@ -8,7 +8,7 @@ return {
 		buildpic = "CORCRASH.DDS",
 		buildtime = 1900,
 		canmove = true,
-		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "30 32 30",
 		collisionvolumetype = "CYLY",

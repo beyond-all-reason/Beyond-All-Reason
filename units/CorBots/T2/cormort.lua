@@ -7,7 +7,7 @@ return {
 		buildpic = "CORMORT.DDS",
 		buildtime = 5140,
 		canmove = true,
-		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "2 0 0",
 		collisionvolumescales = "28 35 28", -- possible 2 hotbox scheme here for the body and barrel of the weapon
 		collisionvolumetype = "CylY",

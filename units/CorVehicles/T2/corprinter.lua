@@ -10,7 +10,7 @@ return {
 		builddistance = 200,
 		builder = true,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "36 36 54",
 		collisionvolumetype = "Box",

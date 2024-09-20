@@ -8,7 +8,7 @@ return {
 		buildpic = "CORPARROW.DDS",
 		buildtime = 22200,
 		canmove = true,
-		category = "ALL TANK PHIB WEAPON NOTSUB NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 -10 1",
 		collisionvolumescales = "44 35 53",
 		collisionvolumetype = "Box",

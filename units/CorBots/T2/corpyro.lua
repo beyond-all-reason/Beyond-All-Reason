@@ -7,7 +7,7 @@ return {
 		buildpic = "CORPYRO.DDS",
 		buildtime = 5030,
 		canmove = true,
-		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 0 -2",
 		collisionvolumescales = "28 35 28",
 		collisionvolumetype = "CylY",

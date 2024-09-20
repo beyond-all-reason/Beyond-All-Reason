@@ -7,7 +7,7 @@ return {
 		buildpic = "CORSNAP.DDS",
 		buildtime = 3500,
 		canmove = true,
-		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "32 16 38",
 		collisionvolumetype = "Box",

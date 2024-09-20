@@ -8,7 +8,7 @@ return {
 		buildpic = "ARMAFUS.DDS",
 		buildtime = 312500,
 		canrepeat = false,
-		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "96 96 96",
 		collisionvolumetype = "Box",

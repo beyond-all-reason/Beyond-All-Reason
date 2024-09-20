@@ -8,7 +8,7 @@ return {
 		buildpic = "CORSIEGEBREAKER.DDS",
 		buildtime = 20000,
 		canmove = true,
-		category = "ALL TANK WEAPON NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "3.5 3 2",
 		collisionvolumescales = "32 18 55",
 		collisionvolumetype = "BOX",

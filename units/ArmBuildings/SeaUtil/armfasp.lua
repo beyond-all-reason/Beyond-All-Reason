@@ -10,7 +10,7 @@ return {
 		buildpic = "ARMFASP.DDS",
 		buildtime = 9100,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 -10 0",
 		collisionvolumescales = "155 55 155",
 		collisionvolumetype = "Box",

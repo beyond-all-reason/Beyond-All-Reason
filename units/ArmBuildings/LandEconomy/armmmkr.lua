@@ -9,7 +9,7 @@ return {
 		buildpic = "ARMMMKR.DDS",
 		buildtime = 35000,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		corpse = "DEAD",
 		explodeas = "advmetalmaker",
 		footprintx = 4,

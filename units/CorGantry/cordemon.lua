@@ -7,7 +7,7 @@ return {
 		buildpic = "CORDEMON.DDS",
 		buildtime = 120000,
 		canmove = true,
-		category = "BOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "60 88 60",
 		collisionvolumetype = "CylY",

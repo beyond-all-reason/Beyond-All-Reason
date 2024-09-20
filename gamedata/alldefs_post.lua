@@ -752,7 +752,7 @@ function UnitDef_Post(name, uDef)
 	categories["SHIP"] = function(unitDef) return shipList[unitDef.movementclass] or (hoverList[unitDef.movementclass] and unitDef.maxwaterdepth and unitDef.maxwaterdepth >=1) end
 	categories["NOTSHIP"] = function(unitDef) return not categories.SHIP(unitDef) end
 	categories["NOTSUB"] = function(unitDef) return not subList[unitDef.movementclass] end
-	categories["CANBEUW"] = function(unitDef) return amphibList[unitDef.movementclass] end
+	categories["CANBEUW"] = function(unitDef) return amphibList[unitDef.movementclass] or unitDef.cansubmerge == true end
 	categories["UNDERWATER"] = function(unitDef) return (unitDef.minwaterdepth and unitDef.waterline == nil) or (unitDef.minwaterdepth and unitDef.waterline > unitDef.minwaterdepth and unitDef.speed and unitDef.speed > 0) end
 	categories["SURFACE"] = function(unitDef) return not categories.UNDERWATER(unitDef) and not categories.VTOL(unitDef) end
 	categories["MINE"] = function(unitDef) return unitDef.weapondefs and unitDef.weapondefs.minerange end

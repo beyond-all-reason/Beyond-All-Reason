@@ -9,7 +9,7 @@ return {
 		buildpic = "CORERAD.DDS",
 		buildtime = 12000,
 		canrepeat = false,
-		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		corpse = "DEAD",
 		explodeas = "mediumBuildingExplosionGeneric",
 		footprintx = 4,

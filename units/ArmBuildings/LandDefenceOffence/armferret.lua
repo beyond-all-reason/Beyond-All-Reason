@@ -9,7 +9,7 @@ return {
 		buildpic = "ARMFERRET.DDS",
 		buildtime = 5800,
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		cloakcost = 12,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "46 25 46",

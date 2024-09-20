@@ -9,7 +9,7 @@ return {
 		buildpic = "ARMTL.DDS",
 		buildtime = 3700,
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		corpse = "DEAD",
 		explodeas = "mediumExplosionGeneric",
 		footprintx = 3,

@@ -9,7 +9,7 @@ return {
 		buildpic = "ARMSOLAR.DDS",
 		buildtime = 2800,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0.0 -18.0 1.0",
 		collisionvolumescales = "50.0 76.0 50.0",
 		collisionvolumetype = "Ell",

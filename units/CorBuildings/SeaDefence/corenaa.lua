@@ -10,7 +10,7 @@ return {
 		buildpic = "CORENAA.DDS",
 		buildtime = 23100,
 		canrepeat = false,
-		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 -10 0",
 		collisionvolumescales = "42 44 42",
 		collisionvolumetype = "CylY",

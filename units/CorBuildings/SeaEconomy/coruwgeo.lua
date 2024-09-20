@@ -9,7 +9,7 @@ return {
 		buildpic = "CORUWGEO.DDS",
 		buildtime = 12900,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER UNDERWATER EMPABLE",
+		category = "SURFACE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "63 45 63",
 		collisionvolumetype = "cylY",

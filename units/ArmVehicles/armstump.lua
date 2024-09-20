@@ -7,7 +7,7 @@ return {
 		buildpic = "ARMSTUMP.DDS",
 		buildtime = 2900,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "34 18 40",
 		collisionvolumetype = "Box",

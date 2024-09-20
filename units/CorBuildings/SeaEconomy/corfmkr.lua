@@ -9,7 +9,7 @@ return {
 		buildpic = "CORFMKR.DDS",
 		buildtime = 2680,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		explodeas = "largeBuildingExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,

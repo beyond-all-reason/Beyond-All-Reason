@@ -14,7 +14,7 @@ return {
 		canpatrol = true,
 		canstop = 1,
 		cantbetransported = true,
-		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 3 0",
 		collisionvolumescales = "52 40 58",
 		collisionvolumetype = "CylY",

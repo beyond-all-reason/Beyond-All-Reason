@@ -8,7 +8,7 @@ return {
 		buildpic = "coronager.DDS",
 		buildtime = 20000,
 		canmove = true,
-		category = "ALL MOBILE NOTLAND WEAPON SUB NOTSHIP NOTAIR NOTHOVER EMPABLE UNDERWATER",
+		category = "",
 		collisionvolumeoffsets = "0 -5 0",
 		collisionvolumescales = "18 18 60",
 		collisionvolumetype = "box",

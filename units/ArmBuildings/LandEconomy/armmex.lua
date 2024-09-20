@@ -10,7 +10,7 @@ return {
 		buildpic = "ARMMEX.DDS",
 		buildtime = 1800,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE CANBEUW UNDERWATER",
+		category = "CANBEUW",
 		collisionvolumeoffsets = "0 -2 0",
 		collisionvolumescales = "48 33 48",
 		collisionvolumetype = "CylY",

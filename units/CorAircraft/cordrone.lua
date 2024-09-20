@@ -9,7 +9,7 @@ return {
 		buildtime = 1500,
 		canfly = true,
 		canmove = true,
-		category = "ALL WEAPON VTOL NOTSUB NOTHOVER",
+		category = "",
 		collide = true,
 		cruisealtitude = 40,
 		explodeas = "tinyExplosionGeneric",

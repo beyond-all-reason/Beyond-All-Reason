@@ -11,7 +11,7 @@ return {
 		canguard = false,
 		canpatrol = false,
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON MINE NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		cloakcost = 0.5,
 		collide = false,
 		collisionvolumeoffsets = "0 0 0",

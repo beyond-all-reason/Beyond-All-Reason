@@ -8,7 +8,7 @@ return {
 		buildpic = "ARMPLAT.DDS",
 		buildtime = 12000,
 		canmove = true,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE UNDERWATER",
+		category = "SURFACE UNDERWATER",
 		corpse = "DEAD",
 		energystorage = 200,
 		explodeas = "largeBuildingexplosiongeneric",
