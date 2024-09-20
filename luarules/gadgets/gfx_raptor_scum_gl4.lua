@@ -116,7 +116,6 @@ if gadgetHandler:IsSyncedCode() then
 		for unitDefID, unitDef in pairs(UnitDefs) do
 			if unitDef.customParams.isscavenger and (not unitDef.canMove) and (not string.find(unitDef.name, "lootbox")) and not scumSpawnerIDs[unitDefID] and (not unitDef.customParams.objectify) and (not unitDef.canCloak) and not scumSpawnerExclusions[unitDef.name]then
 				scumSpawnerIDs[unitDefID] = {radius = 600, growthrate = 1.2}
-				Spring.Echo(unitDef.name, "radius", scumSpawnerIDs[unitDefID].radius)
 			end
 		end
 
