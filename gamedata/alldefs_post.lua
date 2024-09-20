@@ -78,6 +78,9 @@ end
 function UnitDef_Post(name, uDef)
 	local modOptions = Spring.GetModOptions()
 
+	local isScav = string.sub(name, -5, -1) == "_scav"
+	local basename = isScav and string.sub(name, 1, -6) or name
+
 	if not uDef.icontype then
 		uDef.icontype = name
 	end
@@ -186,21 +189,8 @@ function UnitDef_Post(name, uDef)
 				legfhp		= true,
 				legplat		= true,
 				legamsub	= true,
-
-				corhp_scav		= true,
-				corfhp_scav		= true,
-				corplat_scav	= true,
-				coramsub_scav	= true,
-				armhp_scav		= true,
-				armfhp_scav		= true,
-				armplat_scav	= true,
-				armamsub_scav	= true,
-				leghp_scav		= true,
-				legfhp_scav		= true,
-				legplat_scav	= true,
-				legamsub_scav	= true,
 			}
-			if tech15[name] then
+			if tech15[basename] then
 				uDef.maxthisunit = 0
 			end
 		end
@@ -254,7 +244,7 @@ function UnitDef_Post(name, uDef)
 		end
 
 		if modOptions.unit_restrictions_nofusion then
-			if name == "armdf" or name == "armdf_scav" or string.sub(name, string.len(name) - 2) == "fus" then
+			if basename == "armdf" or string.sub(basename, -3) == "fus" then
 				uDef.maxthisunit = 0
 			end
 		end
