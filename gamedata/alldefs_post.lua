@@ -78,8 +78,7 @@ end
 function UnitDef_Post(name, uDef)
 	local modOptions = Spring.GetModOptions()
 
-	local isScav = string.sub(name, -5, -1) == "_scav"
-	local basename = isScav and string.sub(name, 1, -6) or name
+	local basename = uDef.customparams.fromunit or name
 
 	if not uDef.icontype then
 		uDef.icontype = name
@@ -173,25 +172,29 @@ function UnitDef_Post(name, uDef)
 		end
 
 		if modOptions.unit_restrictions_notech15 then
-			-- Tech 1.5 is a semi offical thing, modoption ported from teiserver meme commands
-			local tech15 = {
-				corhp		= true,
-				corfhp		= true,
-				corplat		= true,
-				coramsub	= true,
-
-				armhp		= true,
-				armfhp		= true,
-				armplat		= true,
-				armamsub	= true,
-
-				leghp		= true,
-				legfhp		= true,
-				legplat		= true,
-				legamsub	= true,
-			}
-			if tech15[basename] then
+			if tonumber(uDef.customparams.techlevel) == 2 or tonumber(uDef.customparams.techlevel) == 3 then
 				uDef.maxthisunit = 0
+			else
+				-- Tech 1.5 is a semi offical thing, modoption ported from teiserver meme commands
+				local tech15 = {
+					corhp		= true,
+					corfhp		= true,
+					corplat		= true,
+					coramsub	= true,
+
+					armhp		= true,
+					armfhp		= true,
+					armplat		= true,
+					armamsub	= true,
+
+					leghp		= true,
+					legfhp		= true,
+					legplat		= true,
+					legamsub	= true,
+				}
+				if tech15[basename] then
+					uDef.maxthisunit = 0
+				end
 			end
 		end
 

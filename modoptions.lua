@@ -270,21 +270,27 @@ local options = {
 	{
 		key		= "unit_restrictions_notech15",
 		name	= "Disable Tech 1.5",
-		desc	= "Disables: Sea Plane Labs, Hovercraft labs, and Amphibious labs. (Considered Tier 1.5)",
+		desc	= "Disables Tech 1.5 and up: T1.5: Sea Plane Labs, Hovercraft labs, and Amphibious labs.",
 		type	= "bool",
 		section	= "options_main",
 		def		= false,
 		column	= 1,
+		bitmask	= 1,
+		lock	= {"unit_restrictions_notech2", "unit_restrictions_notech3", "buffer_t4"},
+		unlock	= {"buffer_t2", "buffer_t3",},
 	},
 
     {
         key    	= "unit_restrictions_notech2",
         name   	= "Disable Tech 2",
-        desc   	= "Disable Tech 2",
+        desc   	= "Disable Tech 2 and up",
         type   	= "bool",
         section	= "options_main",
         def    	= false,
         column  = 1.66,
+		bitmask	= 2,
+		lock	= {"unit_restrictions_notech3"},
+		unlock	= {"buffer_t4",},
     },
 
     {
@@ -296,6 +302,10 @@ local options = {
         def    	= false,
         column  = 2.33,
     },
+
+	{	key = "buffer_t2", type = "subheader", name = "", section = "options_main",},
+	{	key = "buffer_t3", type = "subheader", name = "\255\128\128\128Disable Tech 2 [Tech 1.5]                                          Disable Tech 3 [Tech 2]", section = "options_main", column  = -1.66, },
+	{	key = "buffer_t4", type = "subheader", name = "\255\128\128\128Disable Tech 3 [Tech 2]", section	= "options_main", column  = -2.33,},
 
     {
         key    	= "unit_restrictions_noair",
