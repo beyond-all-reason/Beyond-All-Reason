@@ -21,16 +21,16 @@ local fallDamageMagnificationFactor = 14
 local collisionVelocityThreshold = 99 / Game.gameSpeed
 
 --the angle of descent that is allowed collision damage. The angle is measured from directly above downward.
-local validCollisionAngleMultiplier = math.cos(math.rad(35)) --degrees
+local validCollisionAngleMultiplier = math.cos(math.rad(20)) --degrees
 
 -- Decrease this value to make units move less from impulse. This defines the maximum impulse allowed, which is (maxImpulseMultiplier * mass) of each unit.
-local maxImpulseMultiplier = 5
+local maxImpulseMultiplier = 5.5
 
 -- elmo/s, converted to elmo/frame. If a unit is launched via explosion faster than this, it is instantly slowed to this value
-local velocityCap = 270 / Game.gameSpeed
+local velocityCap = 11
 
 --measured in elmos per frame. If velocity is above this threshold, it will be slowed until below this threshold.
-local velocitySlowdownThreshold = 6
+local velocitySlowdownThreshold = 1
 
 --any weapondef impulseFactor below this is ignored to save performance
 local minImpulseFactor = 0.15
@@ -43,8 +43,10 @@ local objectCollisionDefID = Game.envDamageTypes.ObjectCollision
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitVelocity = Spring.GetUnitVelocity
 local spSetUnitVelocity = Spring.SetUnitVelocity
+local spGetUnitIsDead = Spring.GetUnitIsDead
 local mathMin = math.min
 local mathMax = math.max
+local mathAbs = math.abs
 
 local fallDamageMultipliers = {}
 local unitsMaxImpulse = {}
@@ -54,7 +56,8 @@ local unitMasses = {}
 local weaponDefIgnored = {}
 local unitInertiaCheckFlags = {}
 local gameFrame = 0
-local velocityWatchFrames = 8
+local velocityWatchFrames = 300 / Game.gameSpeed
+local velLengthOffsetCap = velocityCap * 0.75 --Empirically chosen. Ensures that the resultant velocity reduction is below the cap due to how Velocity Length is usually larger than any single XYZ velocity.
 
 for unitDefID, unitDef in ipairs(UnitDefs) do
 	local fallDamageMultiplier = unitDef.customParams.fall_damage_multiplier or 1.0
@@ -70,6 +73,9 @@ end
 for weaponDefID, wDef in ipairs(WeaponDefs) do
 	if wDef.damages and wDef.damages.impulseBoost and wDef.damages.impulseFactor then
 		weaponDefIDImpulses[weaponDefID] = {impulseBoost = wDef.damages.impulseBoost, impulseFactor = wDef.damages.impulseFactor}
+		if wDef.beamtime then
+			weaponDefIDImpulses[weaponDefID].impulseBoost = weaponDefIDImpulses[weaponDefID].impulseBoost * 1 / math.floor(wDef.beamtime * Game.gameSpeed) --this splits up impulseBoost across the number of frames that damage is dealt
+		end
 	end
 
 	
@@ -147,25 +153,42 @@ end
 
 function gadget:GameFrame(frame)
 	for unitID, expirationFrame in pairs(unitInertiaCheckFlags) do
-		if not transportedUnits[unitID] then
+		if not transportedUnits[unitID] and not spGetUnitIsDead(unitID) then
 			local velX, velY, velZ, velocityLength = spGetUnitVelocity(unitID)
-			if velocityLength > velocityCap then --sheer off extreme velocities within acceptable range
-				velX = (velocityCap / velocityLength) * velX
-				velY = (velocityCap / velocityLength) * velY
-				velZ = (velocityCap / velocityLength) * velZ
+			
+			if velocityLength > velocityCap then -- Sheer off extreme velocities within acceptable range
+		
+				local horizontalVelocity = math.sqrt(mathAbs(velX)^2 + mathAbs(velZ)^2) --math abs to prevent NaN values
+				local newVelY = mathAbs(mathMin(horizontalVelocity * 0.07, velY))
+				local newVelYToOldVelYRatio
+				if velY ~= 0 then
+				newVelYToOldVelYRatio = mathMin(mathAbs(newVelY/velY), 1)
+				else
+					newVelYToOldVelYRatio = 1
+				end
+
+				local scale = velLengthOffsetCap / mathMax(mathAbs(velX), mathAbs(newVelY), mathAbs(velZ))
+
+				velX = velX * scale * newVelYToOldVelYRatio
+				velZ = velZ * scale * newVelYToOldVelYRatio
+
+				spSetUnitVelocity(unitID, velX, newVelY, velZ)
+				expirationFrame = frame + velocityWatchFrames
 			elseif velocityLength > velocitySlowdownThreshold then
-				local decelerateHorizontal = 0.75 --Number empirically tested to produce optimal deceleration without looking goofy.
+				local decelerateHorizontal = 0.98 --Number empirically tested to produce optimal deceleration without looking goofy.
 				local decelerateVertical
 				if velY < 0 then
-					decelerateVertical = 0
+					decelerateVertical = 1
 				else
-					decelerateVertical = 0.85 --Number empirically tested to produce optimal deceleration without looking goofy.
+					decelerateVertical = 0.92 --Number empirically tested to produce optimal deceleration without looking goofy.
 				end
-				spSetUnitVelocity(unitID, velX * decelerateHorizontal, velY - decelerateVertical * velY, velZ * decelerateHorizontal)
+				spSetUnitVelocity(unitID, velX * decelerateHorizontal, velY * decelerateVertical, velZ * decelerateHorizontal)
 				expirationFrame = frame + velocityWatchFrames
 			elseif expirationFrame < frame then
 				unitInertiaCheckFlags[unitID] = nil
 			end
+		else
+			unitInertiaCheckFlags[unitID] = nil
 		end
 	end
 	gameFrame = frame
