@@ -158,7 +158,7 @@ function gadget:GameFrame(frame)
 			
 			if velocityLength > velocityCap then -- Sheer off extreme velocities within acceptable range
 				local verticalVelocityCapThreshold = 0.07 --value derived from empirical testing to prevent fall damage and goofy trajectories from impulse
-				local horizontalVelocity = math.sqrt(mathAbs(velX)^2 + mathAbs(velZ)^2) --math abs to prevent NaN values
+				local horizontalVelocity = math.sqrt(velX^2 + velZ^2)
 				local newVelY = mathAbs(mathMin(horizontalVelocity * verticalVelocityCapThreshold, velY))
 				local newVelYToOldVelYRatio
 				if velY ~= 0 then
