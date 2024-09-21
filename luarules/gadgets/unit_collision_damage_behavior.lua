@@ -24,13 +24,13 @@ local collisionVelocityThreshold = 99 / Game.gameSpeed
 local validCollisionAngleMultiplier = math.cos(math.rad(20)) --degrees
 
 -- Decrease this value to make units move less from impulse. This defines the maximum impulse allowed, which is (maxImpulseMultiplier * mass) of each unit.
-local maxImpulseMultiplier = 5.5
+local maxImpulseMultiplier = 165 / Game.gameSpeed
 
--- elmo/s, converted to elmo/frame. If a unit is launched via explosion faster than this, it is instantly slowed to this value
-local velocityCap = 11
+-- elmo/s, converted to elmo/frame. If a unit is launched via explosion faster than this, it is instantly slowed to the derivitive velLengthOffsetCap.
+local velocityCap = 330 / Game.gameSpeed
 
 --measured in elmos per frame. If velocity is above this threshold, it will be slowed until below this threshold.
-local velocitySlowdownThreshold = 1
+local velocitySlowdownThreshold = 30 / Game.gameSpeed
 
 --any weapondef impulseFactor below this is ignored to save performance
 local minImpulseFactor = 0.15
@@ -157,9 +157,9 @@ function gadget:GameFrame(frame)
 			local velX, velY, velZ, velocityLength = spGetUnitVelocity(unitID)
 			
 			if velocityLength > velocityCap then -- Sheer off extreme velocities within acceptable range
-		
+				local verticalVelocityCapThreshold = 0.07 --value derived from empirical testing to prevent fall damage and goofy trajectories from impulse
 				local horizontalVelocity = math.sqrt(mathAbs(velX)^2 + mathAbs(velZ)^2) --math abs to prevent NaN values
-				local newVelY = mathAbs(mathMin(horizontalVelocity * 0.07, velY))
+				local newVelY = mathAbs(mathMin(horizontalVelocity * verticalVelocityCapThreshold, velY))
 				local newVelYToOldVelYRatio
 				if velY ~= 0 then
 				newVelYToOldVelYRatio = mathMin(mathAbs(newVelY/velY), 1)
