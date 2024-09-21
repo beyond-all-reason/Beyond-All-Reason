@@ -43,6 +43,7 @@ math_random = math.random	-- not a local cause the includes below use it
 
 local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
 local blueprintController = VFS.Include('luarules/gadgets/scavengers/Blueprints/BYAR/blueprint_controller.lua')
+local scavConfig = VFS.Include('LuaRules/Configs/scav_spawn_defs.lua')
 
 local spawnCutoffFrame = (math.ceil( math.ceil(mapsizeX*mapsizeZ) / 1000000 )) * 3
 
@@ -115,188 +116,35 @@ local seaGeosList = {
 	"coruwageo",
 }
 
-local landDefences = {
-	-- T1
-	"armllt",
-	"armllt",
-	"armllt",
-	"armllt",
-	"armllt",
-	"armrl",
-	"armrl",
-	"armrl",
-	"armrl",
-	"armrl",
-	"armbeamer",
-	"armhlt",
-	"armguard",
-	"armferret",
-	"armcir",
-	"armrad",
-	"armjamt",
-	-- T2
-	"armpb",
-	"armamb",
-	"armanni",
-	"armbrtha",
-	"armflak",
-	"armmercury",
-	"armemp",
-	"armamd",
-	"armarad",
-	"armveil",
+local landDefences = {}
+local seaDefences = {}
+for i = 1,#scavConfig.unprocessedScavTurrets do
+	if i ~= 7 then -- we don't want the endgame stuff in these ruins
+		for unitName, defs in pairs(scavConfig.unprocessedScavTurrets[i]) do
 
-	-- T1
-	"corllt",
-	"corllt",
-	"corllt",
-	"corllt",
-	"corllt",
-	"corrl",
-	"corrl",
-	"corrl",
-	"corrl",
-	"corrl",
-	"corhllt",
-	"corhlt",
-	"corpun",
-	"cormadsam",
-	"corerad",
-	"corrad",
-	"corjamt",
-	-- T2
-	"corvipe",
-	"cortoast",
-	"cordoom",
-	"corint",
-	"corflak",
-	"corscreamer",
-	"cortron",
-	"corfmd",
-	"corarad",
-	"corshroud",
-
-	-- T1
-	"leglht",
-	"leglht",
-	"leglht",
-	"leglht",
-	"leglht",
-	"legrl",
-	"legrl",
-	"legrl",
-	"legrl",
-	"legrl",
-	"leghive",
-	"legcluster",
-	"legmg",
-	"legrhapsis",
-	"leglupara",
-	"legrad",
-	"legjam",
-	-- T2
-	"legbombard",
-	"legacluster",
-	"legbastion",
-	"leglrpc",
-	"legflak",
-	"leglraa",
-	"legperdition",
-	"legabm",
-
-	-- Eco
-	"armfus",
-	"armfus",
-	"armfus",
-	"armfus",
-	"armfus",
-	"armafus",
-	"armafus",
-	"armafus",
-	"armafus",
-	"armafus",
-	"corfus",
-	"corfus",
-	"corfus",
-	"corfus",
-	"corfus",
-	"corafus",
-	"corafus",
-	"corafus",
-	"corafus",
-	"corafus",
-
-	--scavpopups
-	"corscavfort",
-	"corscavdrag",
-	"corscavdrag",
-	"corscavdrag",
-	"corscavdrag",
-	"corscavdrag",
-	"corscavdrag",
-	"corscavdrag",
-	"corscavdrag",
-	"corscavdrag",
-	"corscavdrag",
-	"corscavdrag",
-	"corscavdtf",
-	"corscavdtf",
-	"corscavdtf",
-	"corscavdtf",
-	"corscavdtf",
-	"corscavdtf",
-	"corscavdtl",
-	"corscavdtl",
-	"corscavdtl",
-	"corscavdtl",
-	"corscavdtl",
-	"corscavdtm",
-	"corscavdtm",
-	"corscavdtm",
-	"corscavdtm",
-	"corscavdtm",
-	"corscavdtm",
-}
-
-local seaDefences = {
-	-- T1
-	"armtl",
-	"armfrt",
-	"armfhlt",
-	"armfrad",
-	--T2
-	"armatl",
-	"armfflak",
-	"armkraken",
-	"armason",
-
-
-	-- T1
-	"cortl",
-	"corfrt",
-	"corfhlt",
-	"corfrad",
-	-- T2
-	"coratl",
-	"corenaa",
-	"corfdoom",
-	"corason",
-
-	-- T1
-	"legfhive",
-
-	-- Eco
-	"armuwfus",
-	"armuwfus",
-	"armuwfus",
-	"armuwfus",
-	"armuwfus",
-	"coruwfus",
-	"coruwfus",
-	"coruwfus",
-	"coruwfus",
-	"coruwfus",
-}
+			if string.sub(unitName, -5, -1) == "_scav" and UnitDefNames[string.sub(unitName, 1, -6)] then unitName = string.sub(unitName, 1, -6) end -- convert scav unit into non-scav
+			if not UnitDefNames[unitName] then
+				Spring.Echo("We got a fucked unit name here: " .. unitName)
+			end
+			if defs.type ~= "nuke" and UnitDefNames[unitName] and not UnitDefNames[unitName].isFactory then -- we don't want nukes and factories in ruins
+				if defs.surface == "land" then
+					for _ = 1,defs.maxExisting do
+						landDefences[#landDefences+1] = unitName
+					end
+				elseif defs.surface == "sea" then
+					for _ = 1,defs.maxExisting do
+						seaDefences[#seaDefences+1] = unitName
+					end
+				elseif defs.surface == "mixed" then
+					for _ = 1,defs.maxExisting do
+						landDefences[#landDefences+1] = unitName
+						seaDefences[#seaDefences+1] = unitName
+					end
+				end
+			end
+		end
+	end
+end
 
 
 

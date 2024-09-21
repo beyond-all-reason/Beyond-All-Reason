@@ -1148,7 +1148,7 @@ local Turrets = {
 		["corfhp_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1},
 		["corsy_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1},
 		["legfhp_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1},
-		["legsy_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1},
+		--["legsy_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1},
 	},
 	[3] = {
 		["armbeamer_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 5},
@@ -1245,7 +1245,7 @@ local Turrets = {
 		["corasy_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1},
 		["corplat_scav"] = {type = "antiair", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1},
 		["legamsub_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1},
-		["legasy_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1},
+		--["legasy_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1},
 	},
 	[5] = {
 		-- T2 popup arty
@@ -2028,6 +2028,7 @@ local config = { -- Don't touch this! ------------------------------------------
 	spawnSquare            	= spawnSquare,
 	spawnSquareIncrement   	= spawnSquareIncrement,
 	scavTurrets				= table.copy(scavTurrets),
+	unprocessedScavTurrets  = table.copy(Turrets),
 	scavMinions				= scavMinions,
 	scavBehaviours 			= scavBehaviours,
 	difficultyParameters   	= difficultyParameters,
