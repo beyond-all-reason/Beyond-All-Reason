@@ -79,7 +79,6 @@ local spGetGroundHeight = Spring.GetGroundHeight
 local spIsGUIHidden = Spring.IsGUIHidden
 local spTraceScreenRay = Spring.TraceScreenRay
 local spGetActiveCommand = Spring.GetActiveCommand
-local spGetActiveCmdDesc = Spring.GetActiveCmdDesc
 local spGetMapDrawMode = Spring.GetMapDrawMode
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetCameraVectors = Spring.GetCameraVectors
@@ -644,13 +643,8 @@ do
 		if actionActive == true or onMapDrawMode() == true then
 			return true
 		else
-			local currentCmd = spGetActiveCommand()
-			if currentCmd ~= nil then
-				local activeCmdDesc = spGetActiveCmdDesc(currentCmd)
-				return activeCmdDesc ~= nil and activeCmdDesc.name == "Reclaim"
-			else
-				return false
-			end
+			local _, _, _, cmdName = spGetActiveCommand()
+			return (cmdName and cmdName == 'Reclaim')
 		end
 	end
 
@@ -705,7 +699,7 @@ local function DrawFeatureClusterText()
 		local cameraFacing = math.atan2(-camUpVector[1], -camUpVector[3]) * (180 / math.pi)
 		for clusterID = 1, #featureClusters do
 			local center = featureClusters[clusterID].center
-			
+
 			glPushMatrix()
 
 			glTranslate(center.x, center.y, center.z)

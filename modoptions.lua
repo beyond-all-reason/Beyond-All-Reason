@@ -32,7 +32,7 @@ local options = {
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    -- Restrictions
+    -- Main + Restrictions
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     {
@@ -267,6 +267,16 @@ local options = {
 		def 	= false,
 	},
 
+	{
+		key		= "unit_restrictions_notech15",
+		name	= "Disable Tech 1.5",
+		desc	= "Disables: Sea Plane Labs, Hovercraft labs, and Amphibious labs. (Considered Tier 1.5)",
+		type	= "bool",
+		section	= "options_main",
+		def		= false,
+		column	= 1,
+	},
+
     {
         key    	= "unit_restrictions_notech2",
         name   	= "Disable Tech 2",
@@ -274,7 +284,7 @@ local options = {
         type   	= "bool",
         section	= "options_main",
         def    	= false,
-        column  = 1,
+        column  = 1.66,
     },
 
     {
@@ -284,7 +294,7 @@ local options = {
         type   	= "bool",
         section	= "options_main",
         def    	= false,
-        column  = 1.66,
+        column  = 2.33,
     },
 
     {
@@ -296,6 +306,16 @@ local options = {
         def    	= false,
         column  = 1,
     },
+
+	{
+		key		= "unit_restrictions_nodefence",
+		name	= "Disable Defences",
+		desc	= "Disables Defensive Structures, apart from basic LLTs and basic AA",
+		type	= "bool",
+		section	= "options_main",
+		def		= false,
+		column	= 1.66,
+	},
 
     {
         key    	= "unit_restrictions_noextractors",
@@ -317,15 +337,15 @@ local options = {
         column  = 1.66,
     },
 
-    {
-        key    	= "unit_restrictions_nonukes",
-        name   	= "Disable Nuclear Missiles",
-        desc   	= "Disable Nuclear Missiles",
-        type   	= "bool",
-        section	= "options_main",
-        def    	= false,
-        column  = 1,
-    },
+	{
+		key		= "unit_restrictions_nofusion",
+		name	= "Disable Fusion Generators",
+		desc	= "Disables Normal and Advanced Fusion Energy Generators",
+		type	= "bool",
+		section	= "options_main",
+		def		= false,
+		column	= 2.33,
+	},
 
     {
         key    	= "unit_restrictions_notacnukes",
@@ -334,8 +354,28 @@ local options = {
         type   	= "bool",
         section	= "options_main",
         def    	= false,
+        column  = 1,
+    },
+
+    {
+        key    	= "unit_restrictions_nonukes",
+        name   	= "Disable Nuclear Missiles",
+        desc   	= "Disable Nuclear Missiles",
+        type   	= "bool",
+        section	= "options_main",
+        def    	= false,
         column  = 1.66,
     },
+
+	{
+		key		= "unit_restrictions_noantinuke",
+		name	= "Disable Anti-Nuke Defence",
+		desc	= "Disables Nuke Interceptor Units and Structures.",
+		type	= "bool",
+		section	= "options_main",
+		def		= false,
+		column	= 2.33,
+	},
 
     {
         key    	= "unit_restrictions_nolrpc",
@@ -1179,16 +1219,6 @@ local options = {
         type 	= "bool",
         section = "options_experimental",
         def 	= false,
-    },
-
-    {
-        key    	= "faction_limiter",
-        name   	= "Team Faction Limiter",
-        desc   	= "Limit which faction a team may play. Format; list factions, seperating teams by a comma, e.g. \"armada cortex, legion\" = cor/arm vs legion.",
-        type   	= "string",
-        section	= "options_experimental",
-        def		= "",
-		hidden	= true,
     },
 
     {
