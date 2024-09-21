@@ -46,25 +46,259 @@ local blueprintController = VFS.Include('luarules/gadgets/scavengers/Blueprints/
 
 local spawnCutoffFrame = (math.ceil( math.ceil(mapsizeX*mapsizeZ) / 1000000 )) * 3
 
+-- TODO: Add weights to this crap.
 local landMexesList = {
-	--"armmex",
-	--"cormex",
-	--"armamex_scav",
-	--"corexp",
+	"armmex",
+	"armamex",
+	"armmoho",
+	"armmoho",
+	"armmoho",
 	"armmoho",
 	"armshockwave",
+	"cormex",
+	"corexp",
+	"cormoho",
+	"cormoho",
+	"cormoho",
 	"cormoho",
 	"cormexp",
+	"cormexp",
+	"legmex",
+	"legmext15",
+	"legmoho",
+	"legmoho",
+	"legmoho",
 	"legmoho",
 }
+
 local seaMexesList = {
-	--"armmex",
-	--"cormex",
-	--"armuwmex",
-	--"coruwmex",
+	"armmex",
+	"armuwmex",
 	"armuwmme",
+	"armuwmme",
+	"armuwmme",
+	"armuwmme",
+	"cormex",
+	"coruwmex",
+	"coruwmme",
+	"coruwmme",
+	"coruwmme",
 	"coruwmme",
 }
+
+local landGeosList = {
+	"armgeo",
+	"armgmm",
+	"armageo",
+	"armageo",
+	"armageo",
+	"armageo",
+	"corgeo",
+	"corageo",
+	"corageo",
+	"corageo",
+	"corageo",
+	"corbhmth",
+	"corbhmth",
+	"leggeo",
+	"legageo",
+	"legageo",
+	"legageo",
+	"legageo",
+	"legrampart",
+}
+
+local seaGeosList = {
+	"armuwgeo",
+	"armuwageo",
+	"coruwgeo",
+	"coruwageo",
+}
+
+local landDefences = {
+	-- T1
+	"armllt",
+	"armllt",
+	"armllt",
+	"armllt",
+	"armllt",
+	"armrl",
+	"armrl",
+	"armrl",
+	"armrl",
+	"armrl",
+	"armbeamer",
+	"armhlt",
+	"armguard",
+	"armferret",
+	"armcir",
+	"armrad",
+	"armjamt",
+	-- T2
+	"armpb",
+	"armamb",
+	"armanni",
+	"armbrtha",
+	"armflak",
+	"armmercury",
+	"armemp",
+	"armamd",
+	"armarad",
+	"armveil",
+
+	-- T1
+	"corllt",
+	"corllt",
+	"corllt",
+	"corllt",
+	"corllt",
+	"corrl",
+	"corrl",
+	"corrl",
+	"corrl",
+	"corrl",
+	"corhllt",
+	"corhlt",
+	"corpun",
+	"cormadsam",
+	"corerad",
+	"corrad",
+	"corjamt",
+	-- T2
+	"corvipe",
+	"cortoast",
+	"cordoom",
+	"corint",
+	"corflak",
+	"corscreamer",
+	"cortron",
+	"corfmd",
+	"corarad",
+	"corshroud",
+
+	-- T1
+	"leglht",
+	"leglht",
+	"leglht",
+	"leglht",
+	"leglht",
+	"legrl",
+	"legrl",
+	"legrl",
+	"legrl",
+	"legrl",
+	"leghive",
+	"legcluster",
+	"legmg",
+	"legrhapsis",
+	"leglupara",
+	"legrad",
+	"legjam",
+	-- T2
+	"legbombard",
+	"legacluster",
+	"legbastion",
+	"leglrpc",
+	"legflak",
+	"leglraa",
+	"legperdition",
+	"legabm",
+
+	-- Eco
+	"armfus",
+	"armfus",
+	"armfus",
+	"armfus",
+	"armfus",
+	"armafus",
+	"armafus",
+	"armafus",
+	"armafus",
+	"armafus",
+	"corfus",
+	"corfus",
+	"corfus",
+	"corfus",
+	"corfus",
+	"corafus",
+	"corafus",
+	"corafus",
+	"corafus",
+	"corafus",
+
+	--scavpopups
+	"corscavfort",
+	"corscavdrag",
+	"corscavdrag",
+	"corscavdrag",
+	"corscavdrag",
+	"corscavdrag",
+	"corscavdrag",
+	"corscavdrag",
+	"corscavdrag",
+	"corscavdrag",
+	"corscavdrag",
+	"corscavdrag",
+	"corscavdtf",
+	"corscavdtf",
+	"corscavdtf",
+	"corscavdtf",
+	"corscavdtf",
+	"corscavdtf",
+	"corscavdtl",
+	"corscavdtl",
+	"corscavdtl",
+	"corscavdtl",
+	"corscavdtl",
+	"corscavdtm",
+	"corscavdtm",
+	"corscavdtm",
+	"corscavdtm",
+	"corscavdtm",
+	"corscavdtm",
+}
+
+local seaDefences = {
+	-- T1
+	"armtl",
+	"armfrt",
+	"armfhlt",
+	"armfrad",
+	--T2
+	"armatl",
+	"armfflak",
+	"armkraken",
+	"armason",
+
+
+	-- T1
+	"cortl",
+	"corfrt",
+	"corfhlt",
+	"corfrad",
+	-- T2
+	"coratl",
+	"corenaa",
+	"corfdoom",
+	"corason",
+
+	-- T1
+	"legfhive",
+
+	-- Eco
+	"armuwfus",
+	"armuwfus",
+	"armuwfus",
+	"armuwfus",
+	"armuwfus",
+	"coruwfus",
+	"coruwfus",
+	"coruwfus",
+	"coruwfus",
+	"coruwfus",
+}
+
+
 
 local function randomlyRotateBlueprint()
 	local randomRotation = math.random(0,3)
@@ -195,7 +429,7 @@ end
 
 local function SpawnMexes(mexSpots)
 	for i = 1,#mexSpots do
-		if math.random(0,3) == 0 then
+		if math.random(0,1) == 0 then
 			local spot = mexSpots[i]
 			local posx = spot.x
 			local posz = spot.z
@@ -226,16 +460,128 @@ local function SpawnMexes(mexSpots)
 				Spring.SetUnitNeutral(unit, true)
 				Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
 				Spring.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
+
+				for i = 1,5 do
+					local posx2 = spot.x+math.random(-256,256)
+					local posz2 = spot.z+math.random(-256,256)
+					local posy2 = Spring.GetGroundHeight(posx2, posz2)
+					local defencesList
+					if posy2 > 0 then
+						defencesList = landDefences
+					else
+						defencesList = seaDefences
+					end
+				
+					local radius = 128
+					local canBuildHere = positionCheckLibrary.VisibilityCheckEnemy(posx2, posy2, posz2, radius, GaiaAllyTeamID, true, true, true)
+								and positionCheckLibrary.MapEdgeCheck(posx2, posy2, posz2, radius)
+								and positionCheckLibrary.OccupancyCheck(posx2, posy2, posz2, radius)
+								and positionCheckLibrary.FlatAreaCheck(posx2, posy2, posz2, radius)
+				
+					if posy2 > 0 then
+						canBuildHere = canBuildHere and positionCheckLibrary.SurfaceCheck(posx2, posy2, posz2, radius)
+					elseif posy2 <= 0 then
+						canBuildHere = canBuildHere and positionCheckLibrary.SurfaceCheck(posx2, posy2, posz2, radius, true)
+					end
+				
+					if canBuildHere then
+						local defence = defencesList[math.random(1,#defencesList)]
+						local unit = Spring.CreateUnit(UnitDefNames[defence].id, posx2, posy2, posz2, math.random(0,3), GaiaTeamID)
+						Spring.SpawnCEG("scav-spawnexplo", posx2, posy2, posz2, 0,0,0)
+						Spring.SetUnitNeutral(unit, true)
+						Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
+						Spring.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
+					end
+				end
+			end
+		end
+	end
+end
+
+local function SpawnGeos(geoSpots)
+	for i = 1,#geoSpots do
+		if math.random(0,1) == 0 then
+			local spot = geoSpots[i]
+			local posx = spot.x
+			local posz = spot.z
+			local posy = Spring.GetGroundHeight(posx, posz)
+			local geosList
+			if posy > 0 then
+				geosList = landGeosList
+			else
+				geosList = seaGeosList
+			end
+
+			local radius = 64
+			local canBuildHere = positionCheckLibrary.VisibilityCheckEnemy(posx, posy, posz, radius, GaiaAllyTeamID, true, true, true)
+						and positionCheckLibrary.MapEdgeCheck(posx, posy, posz, radius)
+						and positionCheckLibrary.OccupancyCheck(posx, posy, posz, radius)
+						and positionCheckLibrary.FlatAreaCheck(posx, posy, posz, radius)
+
+			if posy > 0 then
+				canBuildHere = canBuildHere and positionCheckLibrary.SurfaceCheck(posx, posy, posz, radius)
+			elseif posy <= 0 then
+				canBuildHere = canBuildHere and positionCheckLibrary.SurfaceCheck(posx, posy, posz, radius, true)
+			end
+
+			if canBuildHere then
+				local geo = geosList[math.random(1,#geosList)]
+				local unit = Spring.CreateUnit(UnitDefNames[geo].id, posx, posy, posz, math.random(0,3), GaiaTeamID)
+				Spring.SpawnCEG("scav-spawnexplo", posx, posy, posz, 0,0,0)
+				Spring.SetUnitNeutral(unit, true)
+				Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
+				Spring.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
+
+				for i = 1,10 do
+					local posx2 = spot.x+math.random(-512,512)
+					local posz2 = spot.z+math.random(-512,512)
+					local posy2 = Spring.GetGroundHeight(posx2, posz2)
+					local defencesList
+					if posy2 > 0 then
+						defencesList = landDefences
+					else
+						defencesList = seaDefences
+					end
+				
+					local radius = 128
+					local canBuildHere = positionCheckLibrary.VisibilityCheckEnemy(posx2, posy2, posz2, radius, GaiaAllyTeamID, true, true, true)
+								and positionCheckLibrary.MapEdgeCheck(posx2, posy2, posz2, radius)
+								and positionCheckLibrary.OccupancyCheck(posx2, posy2, posz2, radius)
+								and positionCheckLibrary.FlatAreaCheck(posx2, posy2, posz2, radius)
+				
+					if posy2 > 0 then
+						canBuildHere = canBuildHere and positionCheckLibrary.SurfaceCheck(posx2, posy2, posz2, radius)
+					elseif posy2 <= 0 then
+						canBuildHere = canBuildHere and positionCheckLibrary.SurfaceCheck(posx2, posy2, posz2, radius, true)
+					end
+				
+					if canBuildHere then
+						local defence = defencesList[math.random(1,#defencesList)]
+						local unit = Spring.CreateUnit(UnitDefNames[defence].id, posx2, posy2, posz2, math.random(0,3), GaiaTeamID)
+						Spring.SpawnCEG("scav-spawnexplo", posx2, posy2, posz2, 0,0,0)
+						Spring.SetUnitNeutral(unit, true)
+						Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
+						Spring.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
+					end
+				end
 			end
 		end
 	end
 end
 
 function gadget:GameFrame(n)
-	if n == 301 then
+
+	if n == spawnCutoffFrame+30 then
 		local mexSpots = GG["resource_spot_finder"] and GG["resource_spot_finder"].metalSpotsList or nil
 		if mexSpots and #mexSpots > 5 then
 			SpawnMexes(mexSpots)
+		end
+	end
+
+	if n == spawnCutoffFrame+60 then
+		local geoSpots = GG["resource_spot_finder"] and GG["resource_spot_finder"].geoSpotsList or nil
+		if geoSpots and #geoSpots >= 1 then
+			SpawnGeos(geoSpots)
 		end
 	end
 
