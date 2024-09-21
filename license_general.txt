@@ -1,9 +1,9 @@
 The Code:
-The Spring Engine (which this game runs on) requires that all the code the games use are under the GPL licence. (https://springrts.com)
+The Recoil Engine (which this game runs on) requires that all the code the games use are compatible with the GNU GPL licence, v2 or later. (https://beyond-all-reason.github.io/spring/)
 
 Models:
 Models by Cremuss are released under the CC-BY-SA 4.0 license. 
-All other models are released under the CC-BY-NC-ND 4.0 license. 
+All other models are proprietary, copyright owned by Beherith (mysterme@gmail.com).
 These are all the models made by: FireStorm, Beherith, Mr Bob, Kaiser, Cremuss
 (you can lookup who made each unit in the units/ folders having customparam: 'author')
 Please see the respective folders for more information.
@@ -17,4 +17,4 @@ license_sounds.txt
 license_unitpics.txt
 otherwise... all rights reserved.
 
-The usage of any CC-BY-NC-ND licensed content from Beyond All Reason (BAR) as a dependency is not permitted, under the no-derivatives clause.
+The usage of any proprietary content from Beyond All Reason (BAR) as a dependency is not permitted.
