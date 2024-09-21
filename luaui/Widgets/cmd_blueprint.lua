@@ -907,8 +907,8 @@ end
 
 local function createBuildingComparator(sortSpec)
 	return function(a, b)
-		a = pack(Spring.Pos2BuildPos(a.unitDefID, a.position[1], a.position[2], a.position[3]))
-		b = pack(Spring.Pos2BuildPos(b.unitDefID, b.position[1], b.position[2], b.position[3]))
+		a = pack(Spring.Pos2BuildPos(a.unitDefID, a.position[1], a.position[2], a.position[3], a.facing))
+		b = pack(Spring.Pos2BuildPos(b.unitDefID, b.position[1], b.position[2], b.position[3], b.facing))
 		for _, index in ipairs(sortSpec) do
 			local ascending = index > 0
 			index = math.abs(index)
@@ -986,7 +986,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 				local z = pos[3] + bpu.position[3]
 				local y = Spring.GetGroundHeight(x, z)
 
-				local sx, sy, sz = Spring.Pos2BuildPos(bpu.unitDefID, x, y, z)
+				local sx, sy, sz = Spring.Pos2BuildPos(bpu.unitDefID, x, y, z, bpu.facing)
 
 				return {
 					blueprintUnitID = bpu.blueprintUnitID,
