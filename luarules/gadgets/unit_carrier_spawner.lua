@@ -717,7 +717,7 @@ end
 
 function gadget:ProjectileCreated(proID, proOwnerID, proWeaponDefID)
 	if proOwnerID then
-	    local carrierUnitID = spGetUnitRulesParam(proOwnerID, "carrier_host_unit_id")
+	    local carrierUnitID = spGetUnitRulesParam(tonumber(proOwnerID), "carrier_host_unit_id")
 	    if carrierUnitID then
 		    if carrierMetaList[carrierUnitID].subUnitsList[proOwnerID] then
 			    if carrierMetaList[carrierUnitID].subUnitsList[proOwnerID].dronetype == "bomber" and carrierMetaList[carrierUnitID].subUnitsList[proOwnerID].bomberStage > 0 then
