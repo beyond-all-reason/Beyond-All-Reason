@@ -716,17 +716,19 @@ function gadget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdTag, cmdParam
 end
 
 function gadget:ProjectileCreated(proID, proOwnerID, proWeaponDefID)
-	local carrierUnitID = spGetUnitRulesParam(proOwnerID, "carrier_host_unit_id")
-	if carrierUnitID then
-		if carrierMetaList[carrierUnitID].subUnitsList[proOwnerID] then
-			if carrierMetaList[carrierUnitID].subUnitsList[proOwnerID].dronetype == "bomber" and carrierMetaList[carrierUnitID].subUnitsList[proOwnerID].bomberStage > 0 then
-				local currentTime =  spGetGameSeconds()
-				if ((currentTime - carrierMetaList[carrierUnitID].subUnitsList[proOwnerID].lastBombing) >= 4) then
-					Spring.MoveCtrl.SetAirMoveTypeData(proOwnerID, {maxRudder = carrierMetaList[carrierUnitID].subUnitsList[proOwnerID].originalmaxrudder})
-					carrierMetaList[carrierUnitID].subUnitsList[proOwnerID].bomberStage = carrierMetaList[carrierUnitID].subUnitsList[proOwnerID].bomberStage + 1
-					carrierMetaList[carrierUnitID].subUnitsList[proOwnerID].lastBombing = spGetGameSeconds()
-				end
-			end
+	if proOwnerID then
+	    local carrierUnitID = spGetUnitRulesParam(proOwnerID, "carrier_host_unit_id")
+	    if carrierUnitID then
+		    if carrierMetaList[carrierUnitID].subUnitsList[proOwnerID] then
+			    if carrierMetaList[carrierUnitID].subUnitsList[proOwnerID].dronetype == "bomber" and carrierMetaList[carrierUnitID].subUnitsList[proOwnerID].bomberStage > 0 then
+				    local currentTime =  spGetGameSeconds()
+				    if ((currentTime - carrierMetaList[carrierUnitID].subUnitsList[proOwnerID].lastBombing) >= 4) then
+					    Spring.MoveCtrl.SetAirMoveTypeData(proOwnerID, {maxRudder = carrierMetaList[carrierUnitID].subUnitsList[proOwnerID].originalmaxrudder})
+					    carrierMetaList[carrierUnitID].subUnitsList[proOwnerID].bomberStage = carrierMetaList[carrierUnitID].subUnitsList[proOwnerID].bomberStage + 1
+					    carrierMetaList[carrierUnitID].subUnitsList[proOwnerID].lastBombing = spGetGameSeconds()
+				    end
+			    end
+		    end
 		end
 	end
 end
