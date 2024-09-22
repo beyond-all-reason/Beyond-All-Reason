@@ -9,7 +9,7 @@ return {
 		buildpic = "ARMUWGEO.DDS",
 		buildtime = 13100,
 		canrepeat = false,
-		category = "SURFACE",
+		category = "",
 		collisionvolumeoffsets = "0 -4 0",
 		collisionvolumescales = "60 70 60",
 		collisionvolumetype = "Box",

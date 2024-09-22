@@ -10,7 +10,7 @@ return {
 		buildpic = "CORUWMME.DDS",
 		buildtime = 14100,
 		canrepeat = false,
-		category = "SURFACE",
+		category = "",
 		corpse = "DEAD",
 		damagemodifier = 0.5,
 		energyupkeep = 20,

@@ -9,7 +9,7 @@ return {
 		buildpic = "ARMUWFUS.DDS",
 		buildtime = 99900,
 		canrepeat = false,
-		category = "SURFACE",
+		category = "",
 		corpse = "DEAD",
 		energymake = 1200,
 		energystorage = 2500,

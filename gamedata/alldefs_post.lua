@@ -754,7 +754,7 @@ function UnitDef_Post(name, uDef)
 	categories["NOTSUB"] = function(unitDef) return not subList[unitDef.movementclass] end
 	categories["CANBEUW"] = function(unitDef) return amphibList[unitDef.movementclass] or unitDef.cansubmerge == true end
 	categories["UNDERWATER"] = function(unitDef) return (unitDef.minwaterdepth and unitDef.waterline == nil) or (unitDef.minwaterdepth and unitDef.waterline > unitDef.minwaterdepth and unitDef.speed and unitDef.speed > 0) end
-	categories["SURFACE"] = function(unitDef) return not categories.UNDERWATER(unitDef) and not categories.VTOL(unitDef) end
+	categories["SURFACE"] = function(unitDef) return not (categories.UNDERWATER(unitDef) and categories.MOBILE(unitDef)) and not categories.VTOL(unitDef) end
 	categories["MINE"] = function(unitDef) return unitDef.weapondefs and unitDef.weapondefs.minerange end
 	categories["COMMANDER"] = function(unitDef) return commanderList[unitDef.movementclass] end
 	categories["EMPABLE"] = function(unitDef) return categories.SURFACE(unitDef) and unitDef.customparams and unitDef.customparams.paralyzemultiplier ~= 0 end

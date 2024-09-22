@@ -9,7 +9,7 @@ return {
 		buildpic = "CORUWAGEO.DDS",
 		buildtime = 32000,
 		canrepeat = false,
-		category = "SURFACE",
+		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "96 86 96",
 		collisionvolumetype = "cylY",

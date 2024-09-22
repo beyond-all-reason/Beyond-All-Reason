@@ -8,7 +8,7 @@ return {
 		buildpic = "ARMAMSUB.DDS",
 		buildtime = 11100,
 		canmove = true,
-		category = "SURFACE",
+		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "118 40 119",
 		collisionvolumetype = "Box",

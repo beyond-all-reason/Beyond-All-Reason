@@ -8,7 +8,7 @@ return {
 		buildpic = "CORAMSUB.DDS",
 		buildtime = 11400,
 		canmove = true,
-		category = "SURFACE",
+		category = "",
 		collisionvolumeoffsets = "0 0 -2",
 		collisionvolumescales = "115 36 112",
 		collisionvolumetype = "Box",

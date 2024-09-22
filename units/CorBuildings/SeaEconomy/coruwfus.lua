@@ -9,7 +9,7 @@ return {
 		buildpic = "CORUWFUS.DDS",
 		buildtime = 105000,
 		canrepeat = false,
-		category = "SURFACE",
+		category = "",
 		corpse = "DEAD",
 		energymake = 1220,
 		energystorage = 2500,

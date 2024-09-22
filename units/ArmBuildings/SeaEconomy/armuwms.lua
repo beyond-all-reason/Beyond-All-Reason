@@ -8,7 +8,7 @@ return {
 		buildpic = "ARMUWMS.DDS",
 		buildtime = 2920,
 		canrepeat = false,
-		category = "SURFACE",
+		category = "",
 		corpse = "DEAD",
 		explodeas = "largeBuildingexplosiongeneric-uw",
 		footprintx = 4,
