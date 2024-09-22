@@ -128,15 +128,15 @@ for i = 1,#scavConfig.unprocessedScavTurrets do
 			end
 			if defs.type ~= "nuke" and UnitDefNames[unitName] and not UnitDefNames[unitName].isFactory then -- we don't want nukes and factories in ruins
 				if defs.surface == "land" then
-					for _ = 1,defs.maxExisting do
+					for _ = 1,defs.maxExisting*((7-i)^2) do
 						landDefences[#landDefences+1] = unitName
 					end
 				elseif defs.surface == "sea" then
-					for _ = 1,defs.maxExisting do
+					for _ = 1,defs.maxExisting*((7-i)^2) do
 						seaDefences[#seaDefences+1] = unitName
 					end
 				elseif defs.surface == "mixed" then
-					for _ = 1,defs.maxExisting do
+					for _ = 1,defs.maxExisting*((7-i)^2) do
 						landDefences[#landDefences+1] = unitName
 						seaDefences[#seaDefences+1] = unitName
 					end
@@ -240,7 +240,7 @@ function getNearestBlocker(x, z)
             end
 		end
     end
-	Spring.Echo(lowestDist, math.sqrt(lowestDist))
+	--Spring.Echo(lowestDist, math.sqrt(lowestDist))
     return math.sqrt(lowestDist)
 end
 
