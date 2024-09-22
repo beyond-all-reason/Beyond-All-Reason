@@ -312,7 +312,7 @@ local function parseFilter(filterDef)
 			end
 
 			filters.name = invertCurry(invert, function(udef, _, _, name)
-				return stringContains(udef.name, name)
+				return stringContains(udef.translatedHumanName, name)
 			end, name)
 		else
 			error(token .. " is not a valid filter")
