@@ -1,6 +1,7 @@
 -------------------------------------------------
 -- An API wrapper to draw simple graphical primitives at units extremely efficiently
--- License: Lua code GPL V2, GLSL shader code: (c) Beherith (mysterme@gmail.com)
+-- License: GNU GPL v2
+-- (c) 2021 Beherith (mysterme@gmail.com)
 -------------------------------------------------
 
 local DrawPrimitiveAtUnit = {}

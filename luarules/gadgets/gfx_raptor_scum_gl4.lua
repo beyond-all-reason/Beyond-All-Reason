@@ -4,7 +4,7 @@ function gadget:GetInfo()
 		desc = "Draws scum with global overlap texturing",
 		author = "Beherith",
 		date = "2022.04.20",
-		license = "Lua code: GNU GPL, v2 or later, Shader GLSL code: (c) Beherith (mysterme@gmail.com)",
+		license = "GNU GPL, v2 or later",
 		layer = -1,
 		enabled = true,
 	}
@@ -387,6 +387,9 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then
 	#extension GL_ARB_shader_storage_buffer_object : require
 	#extension GL_ARB_shading_language_420pack: require
 
+	// (C) 2022 Beherith (mysterme@gmail.com)
+	// Licenced under the MIT licence
+
 	#line 5000
 
 	layout (location = 0) in vec4 xyworld_xyfract; // l w rot and maxalpha
@@ -460,6 +463,10 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then
 	#version 330
 	#extension GL_ARB_uniform_buffer_object : require
 	#extension GL_ARB_shading_language_420pack: require
+
+	// (C) 2022 Beherith (mysterme@gmail.com)
+	// Licenced under the MIT licence
+
 	//__ENGINEUNIFORMBUFFERDEFS__
 	//__DEFINES__
 

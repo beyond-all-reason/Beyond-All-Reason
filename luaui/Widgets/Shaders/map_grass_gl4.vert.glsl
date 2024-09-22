@@ -1,8 +1,8 @@
 #version 420
 #line 10000
 
-// This shader is Copyright (c) 2024 Beherith (mysterme@gmail.com) and licensed under the MIT License
-
+// (C) 2024 Beherith (mysterme@gmail.com)
+// Licenced under the MIT licence
 
 //__DEFINES__
 /*

@@ -7,7 +7,7 @@ function widget:GetInfo()
 		desc = "Draws the info texture needed for many shaders",
 		author = "Beherith",
 		date = "2022.12.12",
-		license = "Lua code is GPL V2, GLSL is (c) Beherith",
+		license = "GNU GPL v2",
 		layer = -10000, -- lol this isnt even a number
 		enabled = true
 	}

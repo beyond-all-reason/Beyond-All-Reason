@@ -5,7 +5,7 @@ function widget:GetInfo()
     desc      = "Faster gl.UnitShape, Use WG.UnitShapeGL4",
     author    = "Beherith",
     date      = "2021.11.04",
-    license   = "Lua Code: GPL V2, GLSL code: (c) Beherith (mysterme@gmail.com)",
+    license   = "GNU GPL v2",
     layer     = 0,
     enabled   = true,
   }
@@ -28,6 +28,9 @@ local vsSrc = [[
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shader_storage_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
+
+// (C) 2021 Beherith (mysterme@gmail.com)
+// Licenced under the MIT licence
 
 #line 10000
 //__DEFINES__
@@ -121,6 +124,10 @@ local fsSrc = [[
 #version 330
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
+
+// (C) 2021 Beherith (mysterme@gmail.com)
+// Licenced under the MIT licence
+
 #line 20000
 
 // 4D NOISE:

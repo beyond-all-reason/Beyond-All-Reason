@@ -7,7 +7,7 @@ function widget:GetInfo()
 		author    = 'Beherith',
 		version   = '1.0',
 		date      = '2021.05.020',
-		license   = 'Lua code: GNU GPL, v2 or later; GLSL code: (c) Beherith mysterme@gmail.com',
+		license   = 'GNU GPL, v2 or later',
 		layer     = 100,
 		enabled   = false,
 	}
@@ -1258,6 +1258,10 @@ local vsSrc = [[
 
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
+
+// (C) 2021 Beherith (mysterme@gmail.com)
+// Licenced under the MIT licence
+
 //__ENGINEUNIFORMBUFFERDEFS__
 
 layout (location = 0) in vec4 screenpos; // left, bottom, right, top, in pixels
@@ -1304,6 +1308,9 @@ local gsSrc = [[
 
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
+
+// (C) 2021 Beherith (mysterme@gmail.com)
+// Licenced under the MIT licence
 
 layout (points) in;
 layout (triangle_strip, max_vertices = 32) out; // 9 tris * 3
@@ -1535,6 +1542,8 @@ local fsSrc = [[
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
 
+// (C) 2021 Beherith (mysterme@gmail.com)
+// Licenced under the MIT licence
 
 uniform sampler2D bgTex;
 uniform sampler2D uiAtlas;

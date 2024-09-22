@@ -4,7 +4,7 @@ function widget:GetInfo()
 		desc = "This is just a test",
 		author = "Beherith",
 		date = "2023.",
-		license = "Lua code: GNU GPL, v2 or later, Shader GLSL code: (c) Beherith (mysterme@gmail.com)",
+		license = "GNU GPL, v2 or later",
 		layer = -1,
 		enabled = false,
 	}

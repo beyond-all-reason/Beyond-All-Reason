@@ -4,7 +4,7 @@ function widget:GetInfo()
 		desc    = "Displays rotating circles around metal spots",
 		author  = "Floris, Beherith GL4",
 		date    = "October 2019",
-		license  = "Lua: GNU GPL, v2 or later,  GLSL: (c) Beherith (mysterme@gmail.com)",
+		license  = "GNU GPL, v2 or later",
 		layer   = 2,
 		enabled = true,
 	}
