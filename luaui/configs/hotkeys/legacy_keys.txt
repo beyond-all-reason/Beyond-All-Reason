@@ -119,6 +119,8 @@ bind sc_z buildunit_armamex
 bind Shift+sc_z buildunit_armamex
 bind sc_z buildunit_cormex
 bind Shift+sc_z buildunit_cormex
+bind sc_z buildunit_legmex
+bind Shift+sc_z buildunit_legmex
 bind sc_z buildunit_corexp
 bind Shift+sc_z buildunit_corexp
 bind sc_z buildunit_armmoho
@@ -269,3 +271,10 @@ bind sc_y settargetnoground
 bind Ctrl+sc_` group unset
 
 bind Alt+sc_` remove_from_autogroup // Auto Group
+
+// blueprint
+bind           Alt+sc_b  blueprint_place
+bind           Alt+sc_c  blueprint_create
+bind           Alt+sc_d  blueprint_delete
+bind           Alt+sc_[  blueprint_prev
+bind           Alt+sc_]  blueprint_next

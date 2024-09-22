@@ -22,9 +22,11 @@ local unitdefConfigNames = {
 	['corsktl'] = false,
 	['armgremlin'] = true,
 	['armamex'] = true,
+	['armshockwave'] = true,
 	['armckfus'] = true,
 	['armspy'] = true,
 	['corspy'] = true,
+	['corphantom'] = true,
 }
 -- convert unitname -> unitDefID
 local unitdefConfig = {}

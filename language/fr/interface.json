@@ -682,7 +682,7 @@
 			"reconnected": "Mode sans propriétaire : équipe %{team} reconnectée"
 		},
 		"unitTotals": {
-			"totals": "%{titleColor} Unités %{textColor}%{units}/%{maxUnits}%{titleColor}Total %{textColor}%{totalUnits}"
+			"totals": "%{titleColor}Unités  %{textColor}%{units} / %{maxUnits}     %{titleColor}Total  %{textColor}%{totalUnits}"
 		},
 		"resolutionswitcher": {
 			"multidisplay": "Multi-affichage",

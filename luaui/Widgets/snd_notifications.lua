@@ -34,6 +34,13 @@ VFS.Include('common/wav.lua')
 local language = Spring.GetConfigString('language', 'en')
 
 local voiceSet = Spring.GetConfigString('voiceset', defaultVoiceSet)
+
+-- fix old config
+if not string.find(voiceSet, '/', nil, true)	then
+	Spring.SetConfigString("voiceset", defaultVoiceSet)
+	voiceSet = defaultVoiceSet
+end
+
 if string.sub(voiceSet, 1, 2) ~= language then
 	local languageDirs = VFS.SubDirs('sounds/voice', '*')
 	for k, f in ipairs(languageDirs) do
@@ -46,6 +53,7 @@ if string.sub(voiceSet, 1, 2) ~= language then
 		end
 	end
 end
+
 
 local LastPlay = {}
 local notification = {}
@@ -130,7 +138,6 @@ local unitsOfInterestNames = {
 	armbanth = 'TitanDetected',
 	armepoch = 'FlagshipDetected',
 	corblackhy = 'FlagshipDetected',
-	cormando = 'CommandoDetected',
 	armthovr = 'TransportDetected',
 	corthovr = 'TransportDetected',
 	corintr = 'TransportDetected',
@@ -231,7 +238,7 @@ for udefID, def in ipairs(UnitDefs) do
 			isAircraft[udefID] = true
 		end
 		if def.customParams.techlevel then
-			if def.customParams.techlevel == '2' and not def.customParams.iscommander then
+			if def.customParams.techlevel == '2' and not (def.customParams.iscommander or def.customParams.isscavcommander) then
 				isT2[udefID] = true
 			end
 			if def.customParams.techlevel == '3' and not def.isBuilding then
@@ -241,7 +248,7 @@ for udefID, def in ipairs(UnitDefs) do
 		if def.modCategories.mine then
 			isMine[udefID] = true
 		end
-		if def.customParams.iscommander then
+		if def.customParams.iscommander or def.customParams.isscavcommander then
 			isCommander[udefID] = true
 		end
 		if def.isBuilder and def.canAssist then
@@ -314,15 +321,12 @@ local function gadgetNotificationEvent(msg)
 		return
 	end
 
-	if string.find(msg, "SoundEvents", nil, true) then
-		msg = string.sub(msg, 13)
-		local forceplay = (string.sub(msg, string.len(msg) - 1) == ' y')
-		if not isSpec or (isSpec and playTrackedPlayerNotifs and lockPlayerID ~= nil) or forceplay then
-			local event = string.sub(msg, 1, string.find(msg, " ", nil, true) - 1)
-			local player = string.sub(msg, string.find(msg, " ", nil, true) + 1, string.len(msg))
-			if forceplay or (tonumber(player) and (tonumber(player) == Spring.GetMyPlayerID())) or (isSpec and tonumber(player) == lockPlayerID) then
-				queueNotification(event, forceplay)
-			end
+	local forceplay = (string.sub(msg, string.len(msg) - 1) == ' y')
+	if not isSpec or (isSpec and playTrackedPlayerNotifs and lockPlayerID ~= nil) or forceplay then
+		local event = string.sub(msg, 1, string.find(msg, " ", nil, true) - 1)
+		local player = string.sub(msg, string.find(msg, " ", nil, true) + 1, string.len(msg))
+		if forceplay or (tonumber(player) and (tonumber(player) == Spring.GetMyPlayerID())) or (isSpec and tonumber(player) == lockPlayerID) then
+			queueNotification(event, forceplay)
 		end
 	end
 end
@@ -437,7 +441,7 @@ function widget:GameFrame(gf)
 				queueTutorialNotification('BuildEnergy')
 			end
 			if e_income >= 50 and m_income >= 4 then
-				queueTutorialNotification('MakeFactory')
+				queueTutorialNotification('BuildFactory')
 			end
 			if not hasMadeT2 and e_income >= 600 and m_income >= 12 then
 				queueTutorialNotification('ReadyForTech2')

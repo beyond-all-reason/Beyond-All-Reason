@@ -56,7 +56,7 @@ function widget:Initialize()
     end
 end
 
-function widget:UnitFinished(unitID, unitDefID, unitTeam)
+function widget:UnitCreated(unitID, unitDefID, unitTeam)
     if isFactory[unitDefID] then
         Spring.GiveOrderToUnit(unitID, CMD.REPEAT, { 1 }, 0)
     end

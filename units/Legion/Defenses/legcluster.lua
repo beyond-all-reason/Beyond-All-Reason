@@ -123,7 +123,7 @@ return {
 				noselfdamage = true,
 				range = 1000,
 				reloadtime = 4.0,
-				rgbcolor = "0.7 0.7 1.0 1.0 1.0 1.0 1.0 1.0",
+				rgbcolor = "0.7 0.7 1.0",
 				soundhit = "xplomed2",
 				soundhitwet = "splsmed",
 				soundstart = "cannhvy5",
@@ -132,7 +132,6 @@ return {
 				weaponvelocity = 450,
 				customparams = {
 					cluster = true,
-					bouncing = true,
 					number = 3,
 				},
 				damage = {
@@ -156,7 +155,7 @@ return {
 				name = "Cluster Munitions",
 				noselfdamage = true,
 				range = 180,
-				rgbcolor = "0.7 0.7 1.0 1.0 1.0 1.0 1.0 1.0",
+				rgbcolor = "0.7 0.7 1.0",
 				soundhit = "xplomed2",
 				soundhitwet = "splsmed",
 				soundstart = "cannhvy5",
@@ -187,7 +186,7 @@ return {
 				noselfdamage = true,
 				range = 1000,
 				reloadtime = 9.4,
-				rgbcolor = "0.7 0.7 1.0 1.0 1.0 1.0 1.0 1.0",
+				rgbcolor = "0.7 0.7 1.0",
 				soundhit = "xplomed2",
 				soundhitwet = "splsmed",
 				soundstart = "cannhvy5",
@@ -196,7 +195,6 @@ return {
 				weaponvelocity = 450,
 				customparams = {
 					cluster = true,
-					bouncing = true,
 					number = 6,
 				},
 				damage = {

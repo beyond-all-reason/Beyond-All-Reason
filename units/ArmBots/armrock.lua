@@ -1,7 +1,7 @@
 return {
 	armrock = {
-		maxacc = 0.131,
-		maxdec = 0.6156,
+		maxacc = 0.138,
+		maxdec = 0.6486,
 		energycost = 1000,
 		metalcost = 120,
 		buildpic = "ARMROCK.DDS",
@@ -19,7 +19,7 @@ return {
 		idletime = 1800,
 		health = 720,
 		maxslope = 14,
-		speed = 48.2,
+		speed = 50.7,
 		maxwaterdepth = 12,
 		movementclass = "BOT3",
 		movestate = 0,
@@ -119,7 +119,7 @@ return {
 				name = "Medium g2g rocket launcher",
 				noselfdamage = true,
 				range = 475,
-				reloadtime = 4,
+				reloadtime = 3.8,
 				smoketrail = true,
 				smokePeriod = 11,
 				smoketime = 28,
@@ -138,7 +138,7 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 190,
 				damage = {
-					default = 173,
+					default = 157,
 				},
 			},
 		},

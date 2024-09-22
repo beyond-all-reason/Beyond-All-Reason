@@ -14,43 +14,15 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 
-	local spCreateFeature         = Spring.CreateFeature
 	local spCreateUnit            = Spring.CreateUnit
 	local spDestroyUnit           = Spring.DestroyUnit
-	local spGetGameFrame          = Spring.GetGameFrame
-	local spGetProjectileDefID    = Spring.GetProjectileDefID
-	local spGetProjectileTeamID   = Spring.GetProjectileTeamID
-	local spGetUnitHealth		  = Spring.GetUnitHealth
-	local spGetUnitShieldState    = Spring.GetUnitShieldState
 	local spGiveOrderToUnit       = Spring.GiveOrderToUnit
-	local spSetFeatureDirection   = Spring.SetFeatureDirection
 	local spSetUnitRulesParam     = Spring.SetUnitRulesParam
 	local spGetUnitPosition       = Spring.GetUnitPosition
-	local SetUnitNoSelect         = Spring.SetUnitNoSelect
 	local spGetUnitRulesParam = Spring.GetUnitRulesParam
-	local spUseTeamResource = Spring.UseTeamResource --(teamID, "metal"|"energy", amount) return nil | bool hadEnough
-	local spGetTeamResources = Spring.GetTeamResources --(teamID, "metal"|"energy") return nil | currentLevel
-	local GetCommandQueue     = Spring.GetCommandQueue
-	local spSetUnitArmored = Spring.SetUnitArmored
-	local spGetUnitStates = Spring.GetUnitStates
-	local spGetUnitBasePosition = Spring.GetUnitBasePosition
-	local spGetUnitDefID        = Spring.GetUnitDefID
-	local spSetUnitVelocity     = Spring.SetUnitVelocity
-	local spGetUnitHeading      = Spring.GetUnitHeading
-	local spGetUnitVelocity     = Spring.GetUnitVelocity
 	local spGetUnitHealth 		= Spring.GetUnitHealth
-
-	local spGetUnitExperience	= Spring.GetUnitExperience
 	local spGetUnitTeam 		= Spring.GetUnitTeam
-	local spGetUnitDirection 	= Spring.GetUnitDirection
-	local spGetUnitStockpile 	= Spring.GetUnitStockpile
-	local spGetUnitCommands = Spring.GetUnitCommands
-	local spEcho = Spring.Echo
 	local spSetUnitHealth = Spring.SetUnitHealth
-
-	local spSetUnitExperience = Spring.SetUnitExperience
-	local spSetUnitStockpile = Spring.SetUnitStockpile
-	local spSetUnitDirection = Spring.SetUnitDirection
 	local spGetGameSeconds = Spring.GetGameSeconds
 	local spGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
 
@@ -114,10 +86,14 @@ if gadgetHandler:IsSyncedCode() then
 			local ex,ey,ez = spGetUnitPosition(respawnMetaList[unitID].effigyID)
 			Spring.SetUnitPosition(unitID, ex, ez, true)
 			Spring.SpawnCEG("commander-spawn", ex, ey, ez, 0, 0, 0)
+			Spring.PlaySoundFile("commanderspawn-mono", 1.0, ex, ey, ez, 0, 0, 0, "sfx")
+			GG.ComSpawnDefoliate(ex, ey, ez)
 
 			if respawnMetaList[unitID].respawn_pad == "false" then
 				Spring.SetUnitPosition(respawnMetaList[unitID].effigyID, x, z, true)
 				Spring.SpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
+				Spring.PlaySoundFile("commanderspawn-mono", 1.0, x, y, z, 0, 0, 0, "sfx")
+				GG.ComSpawnDefoliate(x, y, z)
 			end
 
 			if respawnMetaList[unitID].destructive_respawn then
@@ -126,10 +102,11 @@ if gadgetHandler:IsSyncedCode() then
 			    else
 				    spDestroyUnit(respawnMetaList[unitID].effigyID, false, false)
 				end
+				spSetUnitRulesParam(unitID, "unit_effigy", nil, PRIVATE)
 				respawnMetaList[unitID].effigyID = nil
 			end
-			local stunDuration = maxHealth + (100*respawnMetaList[unitID].minimum_respawn_stun) + (diag((x-ex), (z-ez))*respawnMetaList[unitID].distance_stun_multiplier)
-			spSetUnitHealth(unitID, {health = 1, capture = 0, paralyze = stunDuration, build = 0})
+			local stunDuration = maxHealth + ((maxHealth/30)*respawnMetaList[unitID].minimum_respawn_stun) + (((maxHealth/30)*diag((x-ex), (z-ez))*respawnMetaList[unitID].distance_stun_multiplier)/250)--250 is an arbitrary number that seems to produce desired results.
+			spSetUnitHealth(unitID, {health = 1, capture = 0, paralyze = stunDuration,})
 			spGiveOrderToUnit(unitID, CMD.STOP, {}, 0)
 		end
     end
@@ -152,8 +129,6 @@ if gadgetHandler:IsSyncedCode() then
 				distance_stun_multiplier = tonumber(udcp.distance_stun_multiplier) or 0,
 				destructive_respawn = udcp.destructive_respawn or true,
 				respawn_pad = udcp.respawn_pad or "false",
-				
-				
 				respawnTimer = spGetGameSeconds(),
 				effigyID = nil,
 			}
@@ -167,12 +142,14 @@ if gadgetHandler:IsSyncedCode() then
 			
 					if respawnMetaList[unitID].effigy_offset == 0 then
 						local newUnitID = spCreateUnit(respawnMetaList[unitID].effigy, x, groundH, z, 0, unitTeam)
+						spSetUnitRulesParam(unitID, "unit_effigy", newUnitID, PRIVATE)
 						if newUnitID then
 							respawnMetaList[unitID].effigyID = newUnitID
 							return
 						end
 					elseif not blockType then
 						local newUnitID = spCreateUnit(respawnMetaList[unitID].effigy, x-i, groundH, z-i, 0, unitTeam)
+						spSetUnitRulesParam(unitID, "unit_effigy", newUnitID, PRIVATE)
 						if newUnitID then
 							respawnMetaList[unitID].effigyID = newUnitID
 							return
@@ -196,6 +173,7 @@ if gadgetHandler:IsSyncedCode() then
 					end
 					spDestroyUnit(oldeffigyID, false, true)
 				end
+				spSetUnitRulesParam(builderID, "unit_effigy", unitID, PRIVATE)
 			else
 				for vipID, _ in pairs(respawnMetaList) do
 					local team = spGetUnitTeam(vipID)
@@ -212,11 +190,11 @@ if gadgetHandler:IsSyncedCode() then
 							end
 							spDestroyUnit(oldeffigyID, false, true)
 						end
+						spSetUnitRulesParam(builderID, "unit_effigy", unitID, PRIVATE)
 						return
 					end
 				end
 			end
-			
 		end
 	end
 
@@ -225,7 +203,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:UnitDestroyed(unitID)
 		if respawnMetaList[unitID] then
 			if respawnMetaList[unitID].respawn_pad == "false" then
-				local newID = Spring.GetUnitRulesParam(unitID, "unit_evolved")
+				local newID = spGetUnitRulesParam(unitID, "unit_evolved")
                 if newID then
 					if respawnMetaList[newID].effigyID then
 						if respawnMetaList[unitID].effigyID then
@@ -332,7 +310,7 @@ else
 			announcementEnabled = true
 			announcementStart = spGetGameSeconds()
 		end
-		Spring.PlaySoundFile("commanderspawn", 0.6, 'ui')
+		--Spring.PlaySoundFile("commanderspawn", 0.6, 'ui')
 	end
 
 	function gadget:DrawScreen()

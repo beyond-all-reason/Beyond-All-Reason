@@ -211,7 +211,7 @@ local clickCellColor = { 0.3, 0.8, 0.25, 0.2 }
 
 local sec = 0
 local bgpadding, iconMargin, activeAreaMargin
-local dlistGuishader, dlistGuishaderBuilders, dlistBuildmenu, dlistProgress, font2
+local dlistGuishader, dlistGuishaderBuilders, dlistGuishaderBuildersNext, dlistBuildmenu, dlistProgress, font2
 local redraw, redrawProgress, ordermenuHeight, prevAdvplayerlistLeft
 local doUpdate, doUpdateClock
 
@@ -229,7 +229,7 @@ local minimapHeight = 0.235
 
 local selectedBuilders = {}
 local selectedBuildersCount = 0
-local prevBuildRectsCount = 0
+local prevSelectedBuildersCount = 0
 
 local cellRects = {}
 for i = 1, cellCount do
@@ -1700,7 +1700,6 @@ local function drawCell(rect)
 		local color = { 0.1, 0.1, 0.1, 0.7 }
 		local pad = cellPadding + iconPadding
 		RectRound(rect.x + pad, rect.y + pad, rect.xEnd - pad, rect.yEnd - pad, cornerSize, 1, 1, 1, 1, color, color)
-
 		return
 	end
 
@@ -2318,27 +2317,40 @@ end
 -------------------------------------------------------------------------------
 
 local function checkGuishaderBuilders()
-	if #builderRects > 1 then
-		if prevBuildRectsCount ~= #builderRects then
-			prevBuildRectsCount = #builderRects
+	if selectedBuildersCount > 1 and activeBuilder then
+		if prevSelectedBuildersCount ~= selectedBuildersCount then
+			prevSelectedBuildersCount = selectedBuildersCount
 			if dlistGuishaderBuilders then
 				dlistGuishaderBuilders = gl.DeleteList(dlistGuishaderBuilders)
+				dlistGuishaderBuildersNext = gl.DeleteList(dlistGuishaderBuildersNext)
 			end
 			dlistGuishaderBuilders = gl.CreateList(function()
 				RectRound(
-					buildersRect.x,
-					buildersRect.y,
-					buildersRect.xEnd + (bgpadding * 2),
-					buildersRect.yEnd + bgpadding + (iconMargin * 2),
-					elementCorner
+						buildersRect.x,
+						buildersRect.y,
+						buildersRect.xEnd + (bgpadding * 2),
+						buildersRect.yEnd + bgpadding + (iconMargin * 2),
+						elementCorner
 				)
 			end)
 			WG["guishader"].InsertDlist(dlistGuishaderBuilders, "buildmenubuilders")
+			dlistGuishaderBuildersNext = gl.CreateList(function()
+				RectRound(
+						nextBuilderRect.x,
+						nextBuilderRect.y,
+						nextBuilderRect.xEnd,
+						nextBuilderRect.yEnd,
+						elementCorner * 0.5
+				)
+			end)
+			WG["guishader"].InsertDlist(dlistGuishaderBuildersNext, "buildmenubuildersnext")
 		end
 	elseif dlistGuishaderBuilders then
-		prevBuildRectsCount = 0
+		prevSelectedBuildersCount = 0
 		WG["guishader"].DeleteDlist("buildmenubuilders")
+		WG["guishader"].DeleteDlist("buildmenubuildersNext")
 		dlistGuishaderBuilders = nil
+		dlistGuishaderBuildersNext = nil
 	end
 end
 
@@ -2354,6 +2366,7 @@ function widget:DrawScreen()
 			end
 			if dlistGuishaderBuilders then
 				WG["guishader"].RemoveDlist("buildmenubuilders")
+				WG["guishader"].RemoveDlist("buildmenubuildersnext")
 			end
 		end
 	else
@@ -2366,7 +2379,6 @@ function widget:DrawScreen()
 			if dlistGuishader then
 				WG["guishader"].InsertDlist(dlistGuishader, "buildmenu")
 			end
-
 			checkGuishaderBuilders()
 		end
 
@@ -2377,7 +2389,6 @@ function widget:DrawScreen()
 				drawBuildMenu()
 			end)
 		end
-
 		gl.CallList(dlistBuildmenu)
 
 		if redrawProgress then
@@ -2431,21 +2442,21 @@ function widget:UnitCommand(unitID, _, _, cmdID, _, cmdParams)
 end
 
 -- update queue number
--- UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, userOrders)
-function widget:UnitFromFactory(_, unitDefID, _, factoryID)
+-- UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, options, cmdTag)
+function widget:UnitCmdDone(unitID, _, _, cmdID, _, options)
 	-- if factory is not current active builder return
-	if factoryID ~= activeBuilderID then
+	if unitID ~= activeBuilderID then
 		return
 	end
 
-	-- If factory is in repeat, queue does not change
-	local factoryRepeat = select(4, Spring.GetUnitStates(factoryID, false, true))
+	-- If factory is in repeat, queue does not change, except if it is alt-queued
+	local factoryRepeat = select(4, Spring.GetUnitStates(unitID, false, true))
 
-	if factoryRepeat then
+	if factoryRepeat and not options.alt then
 		return
 	end
 
-	updateQueueNr(unitDefID, -1)
+	updateQueueNr(-cmdID, -1)
 end
 
 -- PERF: Fix convoluted setActiveBuilder and multiple calls to getselectedsorted

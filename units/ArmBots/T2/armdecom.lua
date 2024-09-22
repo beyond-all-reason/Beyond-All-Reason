@@ -25,8 +25,8 @@ return {
 		energymake = 15,
 		energystorage = 50,
 		explodeas = "decoycommander",
-		footprintx = 2,
-		footprintz = 2,
+		footprintx = 3,
+		footprintz = 3,
 		hidedamage = true,
     	holdsteady = true,
 		idleautoheal = 5,
@@ -82,6 +82,7 @@ return {
 			paralyzemultiplier = 0.025,
 			subfolder = "armbots/t2",
 			techlevel = 2,
+			isdecoycommander = true,
 		},
 		sfxtypes = {
 			explosiongenerators = {
@@ -215,7 +216,6 @@ return {
 				explosiongenerator = "custom:expldgun",
 				firestarter = 100,
 				firesubmersed = false,
-				groundbounce = true,
 				impulseboost = 0,
 				impulsefactor = 0,
 				name = "Decoy-disintegrator",

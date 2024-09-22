@@ -5,9 +5,9 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-//piece  base, door1, door2, flare, cagelight1, cagelight2, cagelight3, cagelight4, cagelight_emit1, cagelight_emit2, cagelight_emit3, cagelight_emit4;
-piece base, blade1, blade2, blade3, blade4, blade5, blade6, cagelight1, cagelight2, cagelight3, siloVent, flare,
-cagelight_emit1, cagelight_emit2, cagelight_emit3, ventSmoke;
+
+piece base, blade1, blade2, blade3, blade4, blade5, blade6, cagelight1, cagelight2, cagelight3, siloVent, 
+flare, cagelight_emit1, cagelight_emit2, cagelight_emit3, ventSmoke;
 static-var  restore_delay, shotcount, issmoking;
 
 static-var  silo_state;
@@ -29,34 +29,34 @@ SmokeItUp()
 	{
 		issmoking = 1;
 		emit-sfx 257 from ventSmoke;
-		sleep 1000;
+		sleep 500;
 		issmoking = 1;
 		emit-sfx 257 from ventSmoke;
-		sleep 1000;
+		sleep 500;
 		issmoking = 1;
 		emit-sfx 257 from ventSmoke;
-		sleep 1000;
+		sleep 500;
 		issmoking = 1;
 		emit-sfx 257 from ventSmoke;
-		sleep 1000;
+		sleep 500;
 		issmoking = 1;
 		emit-sfx 257 from ventSmoke;
-		sleep 1000;
+		sleep 500;
 		issmoking = 1;
 		emit-sfx 257 from ventSmoke;
-		sleep 1000;
+		sleep 500;
 		issmoking = 1;
 		emit-sfx 257 from ventSmoke;
-		sleep 1000;
+		sleep 500;
 		issmoking = 1;
 		emit-sfx 257 from ventSmoke;
-		sleep 1000;
+		sleep 500;
 		issmoking = 1;
 		emit-sfx 257 from ventSmoke;
-		sleep 1000;
+		sleep 500;
 		issmoking = 1;
 		emit-sfx 257 from ventSmoke;
-		sleep 1000;
+		sleep 500;
 		issmoking = 0;
 	}
 }
@@ -116,11 +116,9 @@ OpenSilo()
 		turn blade5 to y-axis <-35> speed <4.118>;
 		turn blade6 to y-axis <-35> speed <4.118>;
 
-		move siloVent to y-axis [5] speed [1];
-		show ventSmoke;
-		start-script SmokeItUp();
-
+		turn siloVent to x-axis <-45> speed <8>;
 		wait-for-turn blade1 around y-axis;
+		
 		silo_state = 2;
 	}
 }
@@ -128,6 +126,8 @@ OpenSilo()
 CloseSiloDoors()
 {
 	// 30 seconds to close from <127.5> open position
+	show ventSmoke;
+	start-script SmokeItUp();
 	stop-spin cagelight1 around y-axis decelerate <10>;
 	stop-spin cagelight2 around y-axis decelerate <10>;
 	stop-spin cagelight3 around y-axis decelerate <10>;
@@ -135,7 +135,7 @@ CloseSiloDoors()
 	move cagelight2 to y-axis [-2] speed [0.5];
 	move cagelight3 to y-axis [-2] speed [0.5];
 
-	move siloVent to y-axis [0] speed [0.5];
+	turn siloVent to x-axis <0> speed <4>;
 
 	turn blade1 to y-axis <0> speed <1.167>;
 	turn blade2 to y-axis <0> speed <1.167>;
@@ -148,9 +148,9 @@ CloseSiloDoors()
 	hide cagelight_emit1;
 	hide cagelight_emit2;
 	hide cagelight_emit3;
-	hide ventSmoke;
 	
 	wait-for-turn blade1 around y-axis;
+	hide ventSmoke;
 	silo_state = 0;
 }
 

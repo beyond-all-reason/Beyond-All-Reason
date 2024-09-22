@@ -1,14 +1,13 @@
 local playerCountScale = 1
 if Spring.Utilities.Gametype.IsScavengers() then
-	playerCountScale = (#Spring.GetTeamList() - 2) /
-		8 -- -2 because scavs and gaia shouldn't count, divided by 8 because we use 8 player games as a baseline
+	playerCountScale = math.min(1, (#Spring.GetTeamList() - 2) / 8) -- -2 because scavs and gaia shouldn't count, divided by 8 because we use 8 player games as a baseline
 end
 
 local baseValues = { --format: {value, multiplier}
 
 	--health related
-	autoHeal = { 10, 1.15 },
-	health = { 650000, 1.15 },
+	autoHeal = { 10 * playerCountScale, 1.15 },
+	health = { math.min(800000 * playerCountScale, 10000000), 1.15 },
 
 	--DPS related
 	botCannonProjectiles = { 3 * playerCountScale, 1.15 },
@@ -242,7 +241,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				weaponvelocity = 920,
 				damage = {
 					default = stats.minigunDamage,
-					vtol = stats.minigunDamage/3,
+					vtol = stats.minigunDamage/2,
 				},
 			},
 			torpedo = {
@@ -261,7 +260,6 @@ for difficulty, stats in pairs(difficultyParams) do
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-small-uw",
 				flighttime = 1.75,
-				groundbounce = true,
 				gravityaffected = "true",
 				mygravity = 0.2,
 				impulseboost = 0.123,
@@ -421,7 +419,7 @@ for difficulty, stats in pairs(difficultyParams) do
 			eaterbeam = {
 				areaofeffect = 300,
 				avoidfeature = false,
-				beamtime = 1,
+				beamtime = 1.2,
 				--burst = 2,
 				--burstrate = 0.33,
 				camerashake = 2000,
@@ -443,7 +441,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				noselfdamage = true,
 				--proximitypriority = -0.2,
 				range = 600,
-				reloadtime = 0.33,
+				reloadtime = 0.30,
 				rgbcolor = "0.5 0.2 0.8",
 				rgbcolor2 = "0.6 0.4 0.8",
 				scrollspeed = -5,
@@ -485,7 +483,6 @@ for difficulty, stats in pairs(difficultyParams) do
 				firestarter = 100,
 				firesubmersed = false,
 				gravityaffected = true,
-				groundbounce = true,
 				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 4,
@@ -513,7 +510,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				},
 			},
 			turbo_missilelauncher = {
-				areaofeffect = 250,
+				areaofeffect = 350,
 				avoidfeature = false,
 				burnblow = true,
 				burst = 6,
@@ -545,7 +542,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				soundhit = "corban_b",
 				soundhitwet = "splsmed",
 				soundstart = "corban_a",
-				sprayangle = 4000,
+				sprayangle = 6000,
 				startvelocity = 600,
 				texture1 = "null",
 				texture2 = "railguntrail",
@@ -562,7 +559,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				wobble = 5000,
 				damage = {
 					default = stats.missileDamage/6,
-					vtol = stats.missileDamage,
+					vtol = stats.missileDamage*2,
 				},
 			},
 			turbo_napalm = {
@@ -655,7 +652,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				weaponvelocity = 920,
 				damage = {
 					default = stats.minigunDamage*4,
-					vtol = (stats.minigunDamage*4)/3,
+					vtol = (stats.minigunDamage*4)/2,
 					subs = stats.minigunDamage,
 				},
 			},
@@ -905,7 +902,7 @@ for difficulty, stats in pairs(difficultyParams) do
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL",
+				--badtargetcategory = "VTOL",
 				def = "machinegun",
 				onlytargetcategory = "NOTSUB",
 				burstControlWhenOutOfArc = 1,
@@ -950,7 +947,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				onlytargetcategory = "NOTSHIP",
 			},
 			[10] = {
-				badtargetcategory = "SURFACE",
+				--badtargetcategory = "SURFACE",
 				def = "turbo_machinegun",
 				onlytargetcategory = "NOTSUB",
 				burstControlWhenOutOfArc = 3,

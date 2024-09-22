@@ -40,7 +40,7 @@ return {
 		turnrate = 370,
 		customparams = {
 			unitgroup = 'weaponaa',
-			maxrange = 550,
+			maxrange = 575,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corvehicles",
@@ -174,7 +174,7 @@ return {
 				name = "Light g2g missile launcher",
 				noselfdamage = true,
 				predictboost = 1,
-				range = 550,
+				range = 575,
 				reloadtime = 2.5,
 				smoketrail = true,
 				smokePeriod = 8,

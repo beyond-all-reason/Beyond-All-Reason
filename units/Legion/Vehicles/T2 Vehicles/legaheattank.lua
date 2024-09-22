@@ -18,7 +18,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		leavetracks = true,
-		health = 7000,
+		health = 7700,
 		maxslope = 12,
 		speed = 51.0,
 		maxwaterdepth = 15,
@@ -113,7 +113,7 @@ return {
 		},
 		weapondefs = {
 			heat_ray = {
-				areaofeffect = 24,
+				areaofeffect = 64,
 				avoidfeature = false,
 				avoidfriendly = true,
 				beamtime = 0.033,
@@ -122,8 +122,8 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
-				energypershot = 500,
-				explosiongenerator = "custom:laserhit-medium",
+				energypershot = 300,
+				explosiongenerator = "custom:heatray-large",
 				firestarter = 30,
 				firetolerance = 1820,
 				impulseboost = 0,

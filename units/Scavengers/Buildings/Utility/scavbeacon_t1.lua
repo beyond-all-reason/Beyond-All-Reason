@@ -50,6 +50,7 @@ return {
 		customparams = {
 			subfolder = "scavengers",
 			normaltex = "unittextures/cor_normal.dds",
+			paratrooper = true,
 		},
 		featuredefs = {},
 		sfxtypes = {

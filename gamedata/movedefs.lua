@@ -76,7 +76,7 @@ local moveDatas = {
 	-- 	maxwaterslope = 80,
 	-- },
 	-- amphibious tanks
-	-- corgarp armbeaver armmar corparrow armprow corseal corsala cormuskrat armcroc armpincer corintr legassistdrone_land corassistdrone armassistdrone legotter
+	-- corgarp armbeaver armmar corparrow armprow corseal corsala cormuskrat armcroc armpincer corintr legassistdrone_land corassistdrone armassistdrone legotter corphantom
 	ATANK3 = {
 		crushstrength = 30,
 		depthmod = 0,
@@ -833,12 +833,6 @@ local moveDatas = {
 local defs = {}
 
 for moveName, moveData in pairs(moveDatas) do
-	if Spring.GetModOptions().unified_maxslope then
-		if moveData.maxslope then
-			moveData.maxslope = math.max(moveData.maxslope, 36)
-		end
-	end
-
 	moveData.heatmapping = true
 	moveData.name = moveName
 	moveData.allowRawMovement = true

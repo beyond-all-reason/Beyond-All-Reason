@@ -130,10 +130,10 @@ void main(){
 	#ifndef DEBUGSHOW
 		if (health < 0.00001) return;
 		if ((BARTYPE & BITPERCENTAGE) > 0u) { // for percentage bars
-			if (health > 0.995) return;
+			if (health > 0.999) return;
 		}else{
 			if ((BARTYPE & BITGETPROGRESS) > 0u) { // reload bar?
-				if (health > 0.995) return;
+				if (health > 0.999) return;
 			}
 			if ((BARTYPE & BITUSEOVERLAY) > 0u){ // for textured percentage bars bars
 			//	if (health > 0.995) return;

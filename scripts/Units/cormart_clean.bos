@@ -1,7 +1,7 @@
 
 #include "../recoil_common_includes.h"
 
-piece  base, flare, turret, sleeve, barrel, gun;
+piece  base, turret, gun, sleeve, barrel, flare, trackfl, trackfr, trackbl, trackbr;
 
 static-var  restore_delay;
 static-var  out_of_arc_count;
@@ -31,7 +31,6 @@ static-var  out_of_arc_count;
 Create()
 {
 	hide flare;
-	hide flare;
 	restore_delay = 3000;
 	out_of_arc_count = 0;
 	call-script TB_Init();
@@ -42,12 +41,54 @@ StartMoving(reversing)
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
 	START_TILTBANK;
+	
+	// Retract Tracks
+	turn trackfl to y-axis <0.0> speed <90.0>;
+	turn trackfr to y-axis <0.0> speed <90.0>;
+	turn trackbl to y-axis <0.0> speed <90.0>;
+	turn trackbr to y-axis <0.0> speed <90.0>;
+	turn trackfl to x-axis <0.0> speed <20.0>;
+	turn trackfr to x-axis <0.0> speed <20.0>;
+	turn trackbl to x-axis <0.0> speed <20.0>;
+	turn trackbr to x-axis <0.0> speed <20.0>;
+	
+	move trackfl to z-axis [0.0] speed [6.0];
+	move trackfr to z-axis [0.0] speed [6.0];
+	move trackbl to z-axis [0.0] speed [6.0];
+	move trackbr to z-axis [0.0] speed [6.0];
+	move trackfl to x-axis [0.0] speed [6.0];
+	move trackfr to x-axis [0.0] speed [6.0];
+	move trackbl to x-axis [0.0] speed [6.0];
+	move trackbr to x-axis [0.0] speed [6.0];
+	
+	move base to y-axis [0.0] speed [3.5];
 }
 
 StopMoving()
 {
 	signal SIGNAL_MOVE;
 	STOP_TILTBANK;
+	
+	// Deploy Tracks
+	turn trackfl to y-axis <30.0> speed <90.0>;
+	turn trackfr to y-axis <-30.0> speed <90.0>;
+	turn trackbl to y-axis <-30.0> speed <90.0>;
+	turn trackbr to y-axis <30.0> speed <90.0>;
+	turn trackfl to x-axis <20.0> speed <20.0>;
+	turn trackfr to x-axis <20.0> speed <20.0>;
+	turn trackbl to x-axis <-20.0> speed <20.0>;
+	turn trackbr to x-axis <-20.0> speed <20.0>;
+	
+	move trackfl to z-axis [2.0] speed [6.0];
+	move trackfr to z-axis [2.0] speed [6.0];
+	move trackbl to z-axis [-2.0] speed [6.0];
+	move trackbr to z-axis [-2.0] speed [6.0];
+	move trackfl to x-axis [2.0] speed [6.0];
+	move trackfr to x-axis [-2.0] speed [6.0];
+	move trackbl to x-axis [2.0] speed [6.0];
+	move trackbr to x-axis [-2.0] speed [6.0];
+	
+	move base to y-axis [3.5] speed [3.5];
 }
 
 
@@ -112,10 +153,10 @@ FireWeapon1()
 {
 	emit-sfx 1024 + 0 from flare;
 	move sleeve to z-axis [-3.0] speed [1250.0];
-	move barrel to z-axis [-6.0] speed [1250.0];
+	move barrel to z-axis [-3.0] speed [1250.0];
 	wait-for-move sleeve along z-axis;
-	move barrel to z-axis [0.0] speed [7.500000];
-	move sleeve to z-axis [0.0] speed [7.500000];
+	move barrel to z-axis [0.0] speed [3.0];
+	move sleeve to z-axis [0.0] speed [9.0];
 	return (0);
 }
 
@@ -141,8 +182,8 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type BITMAPONLY | NOHEATCLOUD;
 		explode gun type BITMAPONLY | NOHEATCLOUD;
-		explode sleeve type BITMAPONLY | NOHEATCLOUD;
-		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode barrel type BITMAPONLY | NOHEATCLOUD;
+		explode sleeve type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		
 		return(corpsetype);
 	}

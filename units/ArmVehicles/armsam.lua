@@ -40,7 +40,7 @@ return {
 		turnrate = 370,
 		customparams = {
 			unitgroup = 'weaponaa',
-			maxrange = 525,
+			maxrange = 550,
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armvehicles",
@@ -176,7 +176,7 @@ return {
 				name = "Light g2g missile launcher",
 				noselfdamage = true,
 				predictboost = 1,
-				range = 525,
+				range = 550,
 				reloadtime = 3.33333,
 				smoketrail = true,
 				smokePeriod = 8,

@@ -655,8 +655,7 @@ end
 function uploadAllElements(iT)
 	-- upload all USED elements
 	if iT.usedElements == 0 then return end
-	--Spring.Echo("uploadAllElements", iT.usedElements)
-	--Spring.Debug.TableEcho(iT.indextoUnitID)
+
 	iT.instanceVBO:Upload(iT.instanceData,nil,0, 1, iT.usedElements * iT.instanceStep)
 	iT.dirty = false
 	if iT.indextoUnitID then
@@ -1266,4 +1265,43 @@ function makeSphereVBO(sectorCount, stackCount, radius) -- http://www.songho.ca/
 	sphereIndexVBO:Upload(VBOData)
 
 	return sphereVBO, numVerts, sphereIndexVBO, #VBOData
+end
+
+
+function MakeTexRectVAO(minX,minY, maxX, maxY, minU, minV, maxU, maxV)
+	-- Draw with myGL4TexRectVAO:DrawArrays(GL.TRIANGLES)
+	minX,minY,maxX,maxY,minU,minV,maxU,maxV  = minX or -1,minY or -1,maxX or 1, maxY or 1, minU or 0, minV or 0, maxU or 1, maxV or 1
+
+	local myGL4TexRectVAO
+	local rectVBO = gl.GetVBO(GL.ARRAY_BUFFER,false)
+	if rectVBO == nil then return nil end
+
+	--rectVBO:Define(	6,	{{id = 0, name = "position_xy_uv", size = 8}})
+	local z = 0.5
+	local w = 1
+	rectVBO:Define(	6,	{{id = 0, name = "pos", size = 4}})
+	rectVBO:Upload({
+			
+		minX,minY, minU, minV, --bl
+		minX,maxY, minU, maxV, --tr
+		maxX,maxY, maxU, maxV, --tr
+		maxX,maxY, maxU, maxV, --tr
+		maxX,minY, maxU, minV, --br
+		minX,minY, minU, minV, --bl
+			})
+	
+	--[[rectVBO:Upload( {
+		minX,minY,z,w, minU, minV,0,0, --bl
+		minX,maxY,z,w, minU, maxV,0,0, --br
+		maxX,maxY,z,w, maxU, maxV,0,0,--tr
+		maxX,maxY,z,w,maxU, maxV,0,0, --tr
+		maxX,minY,z,w, maxU, minV,0,0, --br
+		minX,minY,z,w, minU, minV,0,0, --bl
+	})
+	]]--
+			
+	myGL4TexRectVAO = gl.GetVAO()
+	if myGL4TexRectVAO == nil then return nil end
+	myGL4TexRectVAO:AttachVertexBuffer(rectVBO)
+	return myGL4TexRectVAO
 end

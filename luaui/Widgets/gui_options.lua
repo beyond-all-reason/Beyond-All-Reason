@@ -46,16 +46,12 @@ end
 local isPotatoCpu = false
 local isPotatoGpu = false
 local gpuMem = (Platform.gpuMemorySize and Platform.gpuMemorySize or 1000) / 1000
---if Platform ~= nil and Platform.gpuVendor == 'Intel' then
---	isPotatoGpu = true
---end
 if not gpuMem then
 	gpuMem = 0
 end
 if gpuMem > 0 and gpuMem < 2500 then
 	isPotatoGpu = true
-end
-if not Platform.glHaveGL4 then
+elseif not Platform.glHaveGL4 then
 	isPotatoGpu = true
 end
 
@@ -64,6 +60,7 @@ local hideOtherLanguagesVoicepacks = true	-- maybe later allow people to pick ot
 local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
 
 local devMode = Spring.Utilities.IsDevMode()
+local devUI = Spring.Utilities.ShowDevUI()
 
 local advSettings = false
 local initialized = false
@@ -74,7 +71,6 @@ local cameraPanTransitionTime = 0.03
 
 local optionColor = '\255\255\255\255'
 local widgetOptionColor = '\255\160\160\160'
-local musicOptionColor = '\255\130\160\130'
 local devOptionColor = '\255\200\110\100'
 local devMainOptionColor = '\255\245\166\140'
 
@@ -202,6 +198,22 @@ local requireRestartDefaults = {}
 local gameOver = false
 local presets = {}
 
+local reclaimFieldHighlightOptions = {
+	Spring.I18N('ui.settings.option.reclaimfieldhighlight_always'),
+	Spring.I18N('ui.settings.option.reclaimfieldhighlight_resource'),
+	Spring.I18N('ui.settings.option.reclaimfieldhighlight_reclaimer'),
+	Spring.I18N('ui.settings.option.reclaimfieldhighlight_resbot'),
+	Spring.I18N('ui.settings.option.reclaimfieldhighlight_order'),
+	Spring.I18N('ui.settings.option.reclaimfieldhighlight_disabled')
+}
+
+local spectatorHUDConfigOptions = {
+	Spring.I18N('ui.settings.option.spectator_hud_config_basic'),
+	Spring.I18N('ui.settings.option.spectator_hud_config_advanced'),
+	Spring.I18N('ui.settings.option.spectator_hud_config_expert'),
+	Spring.I18N('ui.settings.option.spectator_hud_config_custom'),
+}
+
 local startScript = VFS.LoadFile("_script.txt")
 if not startScript then
 	local modoptions = ''
@@ -281,8 +293,7 @@ local function showOption(option)
 	if not option.category
 		or option.category == types.basic
 		or (advSettings and option.category == types.advanced)
-		or devMode
-		or Spring.Utilities.ShowDevUI() then
+		or (devMode or devUI) then
 		return true
 	end
 	return false
@@ -564,7 +575,7 @@ function DrawWindow()
 	local color2 = '\255\125\125\125'
 	local color = '\255\255\255\255'
 	local title = ""
-	if devMode then
+	if devMode or devUI then
 		title = devOptionColor .. Spring.I18N('ui.settings.option.devmode')
 	elseif advSettings then
 		title = "" .. color2 .. Spring.I18N('ui.settings.basic') .. "  /  " .. color .. Spring.I18N('ui.settings.advanced')
@@ -593,7 +604,7 @@ function DrawWindow()
 		for id, group in pairs(optionGroups) do
 			if group.numOptions > 0 then
 				groupRect[id] = { xpos, titleRect[2], math.floor(xpos + (font2:GetTextWidth(group.name) * tabFontSize) + (33 * widgetScale)), titleRect[4] }
-				if devMode or group.id ~= 'dev' then
+				if devMode or devUI or group.id ~= 'dev' then
 					xpos = groupRect[id][3]
 					if currentGroupTab == nil or currentGroupTab ~= group.id then
 						RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], elementCorner, 1, 1, 0, 0, WG['guishader'] and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG['guishader'] and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
@@ -1053,7 +1064,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
 			return true
 		elseif groupRect ~= nil then
 			for id, group in pairs(optionGroups) do
-				if devMode or group.id ~= 'dev' then
+				if devMode or devUI or group.id ~= 'dev' then
 					if math_isInRect(mx, my, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
 						return true
 					end
@@ -1083,10 +1094,7 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 end
 
-local quitscreen = false
-local prevQuitscreen = false
-
-function widget:DrawScreen()
+local function checkPause()
 	-- pause/unpause when the options/quitscreen interface shows
 	local _, _, isClientPaused, _ = Spring.GetGameState()
 	if not isClientPaused then
@@ -1104,6 +1112,11 @@ function widget:DrawScreen()
 			pauseGameWhenSingleplayerExecuted = show
 		end
 	end
+end
+
+local quitscreen = false
+local prevQuitscreen = false
+local function checkQuitscreen()
 	quitscreen = (WG['topbar'] and WG['topbar'].showingQuit() or false)
 	if (isSinglePlayer or isReplay) and pauseGameWhenSingleplayer and prevQuitscreen ~= quitscreen then
 		if quitscreen and isClientPaused and not showToggledOff then
@@ -1115,6 +1128,12 @@ function widget:DrawScreen()
 		end
 	end
 	prevQuitscreen = quitscreen
+end
+
+function widget:DrawScreen()
+	-- doing in separate functions to prevent a > 60 upvalues error
+	checkPause()
+	checkQuitscreen()
 
 	-- doing it here so other widgets having higher layer number value are also loaded
 	if not initialized then
@@ -1152,7 +1171,7 @@ function widget:DrawScreen()
 			if groupRect ~= nil then
 				for id, group in pairs(optionGroups) do
 					if group.numOptions > 0 then
-						if devMode or group.id ~= 'dev' then
+						if devMode or devUI or group.id ~= 'dev' then
 							if math_isInRect(mx, my, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
 								Spring.SetMouseCursor('cursornormal')
 								break
@@ -1176,7 +1195,7 @@ function widget:DrawScreen()
 							guishaderedTabs = true
 							for id, group in pairs(optionGroups) do
 								if group.numOptions > 0 then
-									if devMode or group.id ~= 'dev' then
+									if devMode or devUI or group.id ~= 'dev' then
 										if groupRect[id] then
 											RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], elementCorner, 1, 1, 0, 0)
 										end
@@ -1194,7 +1213,7 @@ function widget:DrawScreen()
 
 			-- mouseover (highlight and tooltip)
 			local description = ''
-			if not devMode and titleRect ~= nil and math_isInRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
+			if not (devMode or devUI) and titleRect ~= nil and math_isInRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
 				local groupMargin = math.floor(bgpadding * 0.8)
 				-- gloss
 				glBlending(GL_SRC_ALPHA, GL_ONE)
@@ -1206,7 +1225,7 @@ function widget:DrawScreen()
 				if groupRect ~= nil then
 					for id, group in pairs(optionGroups) do
 						if group.numOptions > 0 then
-							if devMode or group.id ~= 'dev' then
+							if devMode or devUI or group.id ~= 'dev' then
 								if math_isInRect(mx, my, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
 									mouseoverGroupTab(id)
 								end
@@ -1248,7 +1267,7 @@ function widget:DrawScreen()
 					for i, o in pairs(optionHover) do
 						if options[i] and math_isInRect(mx, my, o[1], o[2], o[3], o[4]) and options[i].type and options[i].type ~= 'label' and options[i].type ~= 'text' then
 							-- display console command at the bottom
-							if (advSettings or devMode) and (options[i].onchange ~= nil or options[i].widget) then
+							if (advSettings or devMode or devUI) and (options[i].onchange ~= nil or options[i].widget) then
 								if not consoleCmdDlist or not lastConsoleCmdOption or lastConsoleCmdOption ~= options[i].id then
 									if consoleCmdDlist then
 										consoleCmdDlist = glDeleteList(consoleCmdDlist)
@@ -1592,7 +1611,7 @@ function mouseEvent(mx, my, button, release)
 		if not (inputText and inputText ~= '' and inputMode == '') and groupRect ~= nil then
 			for id, group in pairs(optionGroups) do
 				if group.numOptions > 0 then
-					if devMode or group.id ~= 'dev' then
+					if devMode or devUI or group.id ~= 'dev' then
 						if math_isInRect(mx, my, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
 							if not release then
 								currentGroupTab = group.id
@@ -1612,7 +1631,7 @@ function mouseEvent(mx, my, button, release)
 
 		if button == 1 then
 			if release then
-				if not devMode and titleClick then
+				if not (devMode or devUI) and titleClick then
 					advSettings = not advSettings
 					startColumn = 1
 				end
@@ -1967,7 +1986,7 @@ function init()
 			if v_px >= display.x and v_px < display.x + display.width and v_py >= display.y and v_py < display.y + display.height then
 				currentDisplay = index
 			end
-		elseif devMode then -- advSettings
+		elseif devMode or devUI then -- advSettings
 			displayNames[index] = display.name
 			hasMultiDisplayOption = true
 		end
@@ -3769,7 +3788,16 @@ function init()
 		  end,
 		},
 
-		{ id = "highlightselunits", group = "ui", category = types.basic, widget = "Highlight Selected Units GL4", name = Spring.I18N('ui.settings.option.highlightselunits'), type = "bool", value = GetWidgetToggleValue("Highlight Selected Units GL4"), description = Spring.I18N('ui.settings.option.highlightselunits_descr') },
+		--{ id = "highlightselunits", group = "ui", category = types.basic, widget = "Highlight Selected Units GL4", name = Spring.I18N('ui.settings.option.highlightselunits'), type = "bool", value = GetWidgetToggleValue("Highlight Selected Units GL4"), description = Spring.I18N('ui.settings.option.highlightselunits_descr') },
+		
+		{ id = "highlightselunits", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.highlightselunits'),  type = "bool", value = true, description = Spring.I18N('ui.settings.option.selectedunits_teamcoloropacity_descr'),
+		  onload = function(i)
+			  loadWidgetData("Selected Units GL4", "highlightselunits", { 'selectionHighlight' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Selected Units GL4', 'selectedunits', 'setSelectionHighlight', { 'selectionHighlight' }, value)
+		  end,
+		},
 		--{ id = "highlightselunits_opacity", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.highlightselunits_opacity'), min = 0.02, max = 0.12, step = 0.01, type = "slider", value = 0.05, description = Spring.I18N('ui.settings.option.highlightselunits_opacity_descr'),
 		--  onload = function(i)
 		--	  loadWidgetData("Highlight Selected Units GL4", "highlightselunits_opacity", { 'highlightAlpha' })
@@ -3787,7 +3815,16 @@ function init()
 		--  end,
 		--},
 
-		{ id = "highlightunit", group = "ui", category = types.advanced, widget = "Highlight Unit GL4", name = Spring.I18N('ui.settings.option.highlightunit'), type = "bool", value = GetWidgetToggleValue("Highlight Unit GL4"), description = Spring.I18N('ui.settings.option.highlightunit_descr') },
+		-- { id = "highlightunit", group = "ui", category = types.advanced, widget = "Highlight Unit GL4", name = Spring.I18N('ui.settings.option.highlightunit'), type = "bool", value = GetWidgetToggleValue("Highlight Unit GL4"), description = Spring.I18N('ui.settings.option.highlightunit_descr') },
+		
+				{ id = "highlightunit", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.highlightunit'),  type = "bool", value = true, description = Spring.I18N('ui.settings.option.highlightunit_descr'),
+		  onload = function(i)
+			  loadWidgetData("Selected Units GL4", "highlightunit", { 'mouseoverHighlight' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Selected Units GL4', 'selectedunits', 'setMouseoverHighlight', { 'mouseoverHighlight' }, value)
+		  end,
+		},
 
 		{ id = "cursorlight", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.cursorlight'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.cursorlight_descr'),
 		  onload = function(i)
@@ -4029,6 +4066,16 @@ function init()
 			end,
 		},
 
+		{ id = "highlightcomwrecks", group = "ui", category = types.advanced, widget = "Highlight Commander Wrecks", name = Spring.I18N('ui.settings.option.highlightcomwrecks'), type = "bool", value = GetWidgetToggleValue("Highlight Commander Wrecks"), description = Spring.I18N('ui.settings.option.highlightcomwrecks_descr') },
+		{ id = "highlightcomwrecks_teamcolor", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.highlightcomwrecks_teamcolor'), type = "bool", value = true, description = Spring.I18N('ui.settings.option.highlightcomwrecks_teamcolor_descr'),
+		  onload = function(i)
+			  loadWidgetData("Highlight Commander Wrecks", "highlightcomwrecks_teamcolor", { 'useTeamColor' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Highlight Commander Wrecks', 'highlightcomwrecks', 'setUseTeamColor', { 'useTeamColor' }, value)
+		  end,
+		},
+
 		{ id = "buildinggrid", group = "ui", category = types.basic, widget = "Building Grid GL4", name = Spring.I18N('ui.settings.option.buildinggrid'), type = "bool", value = GetWidgetToggleValue("Building Grid GL4"), description = Spring.I18N('ui.settings.option.buildinggrid_descr') },
 		{ id = "buildinggridopacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.buildinggridopacity'), type = "slider", min = 0.3, max = 1, step = 0.05, value = (WG['buildinggrid'] ~= nil and WG['buildinggrid'].getOpacity ~= nil and WG['buildinggrid'].getOpacity()) or 1, description = '',
 		  onload = function(i)
@@ -4044,6 +4091,7 @@ function init()
 			  end
 		  end,
 		},
+		{ id = "startpositionsuggestions", group = "ui", category = types.basic, widget = "Start Position Suggestions", name = Spring.I18N('ui.settings.option.startpositionsuggestions'), type = "bool", value = GetWidgetToggleValue("Start Position Suggestions"), description = Spring.I18N('ui.settings.option.startpositionsuggestions_descr') },
 
 		{ id = "label_ui_ranges", group = "ui", name = Spring.I18N('ui.settings.option.label_ranges'), category = types.basic },
 		{ id = "label_ui_ranges_spacer", group = "ui", category = types.basic },
@@ -4210,12 +4258,132 @@ function init()
 
 		{ id = "antiranges", group = "ui", category = types.advanced, widget = "Anti Ranges", name = Spring.I18N('ui.settings.option.antiranges'), type = "bool", value = GetWidgetToggleValue("Anti Ranges"), description = Spring.I18N('ui.settings.option.antiranges_descr') },
 
+		{ id = "label_ui_spectator", group = "ui", name = Spring.I18N('ui.settings.option.label_spectator'), category = types.basic },
+		{ id = "label_ui_spectator_spacer", group = "ui", category = types.basic },
+
+		{ id = "spectator_hud", group = "ui", category = types.basic, widget = "Spectator HUD", name = Spring.I18N('ui.settings.option.spectator_hud'), type = "bool", value = GetWidgetToggleValue("Spectator HUD"), description = Spring.I18N('ui.settings.option.spectator_hud_descr') },
+		{ id = "spectator_hud_size", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.spectator_hud_size'), type = "slider", min = 0.1, max = 2, step = 0.1, value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getWidgetSize ~= nil and WG['spectator_hud'].getWidgetSize()) or 0.8, description = '',
+		  onload = function(i)
+			  loadWidgetData("Spectator HUD", "spectator_hud_size", { 'widgetScale' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Spectator HUD', 'spectator_hud', 'setWidgetSize', { 'widgetScale' }, value)
+		  end,
+		},
+
+		{ id = "spectator_hud_config", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.spectator_hud_config'), type = "select", options = spectatorHUDConfigOptions, value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getConfig ~= nil and WG['spectator_hud'].getConfig()) or 1, description = Spring.I18N('ui.settings.option.spectator_hud_config_descr'),
+			onload = function(i)
+				loadWidgetData("Spectator HUD", "spectator_hud_config", { 'config' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Spectator HUD', 'spectator_hud', 'setConfig', { 'config' }, value)
+				init()
+			end,
+		},
+
+		{ id = "spectator_hud_metric_metalIncome", group = "ui", category = types.advanced, name = Spring.I18N('ui.spectator_hud.metalIncome_title'), type = "bool", value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getMetricEnabled~= nil and WG['spectator_hud'].getMetricEnabled('metalIncome')) or 1, description = Spring.I18N('ui.spectator_hud.metalIncome_tooltip'),
+			onload = function(i)
+				loadWidgetData("Spectator HUD", "spectator_hud_metric_metalIncome", { 'metricsEnabled', 'metalIncome' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Spectator HUD', 'spectator_hud', 'setMetricEnabled', { 'metricsEnabled', 'metalIncome' }, value, { 'metalIncome', value })
+			end,
+		},
+		{ id = "spectator_hud_metric_energyIncome", group = "ui", category = types.advanced, name = Spring.I18N('ui.spectator_hud.energyIncome_title'), type = "bool", value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getMetricEnabled~= nil and WG['spectator_hud'].getMetricEnabled('energyIncome')) or 1, description = Spring.I18N('ui.spectator_hud.energyIncome_tooltip'),
+			onload = function(i)
+				loadWidgetData("Spectator HUD", "spectator_hud_metric_energyIncome", { 'metricsEnabled', 'energyIncome' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Spectator HUD', 'spectator_hud', 'setMetricEnabled', { 'metricsEnabled', 'energyIncome' }, value, { 'energyIncome', value })
+			end,
+		},
+		{ id = "spectator_hud_metric_buildPower", group = "ui", category = types.advanced, name = Spring.I18N('ui.spectator_hud.buildPower_title'), type = "bool", value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getMetricEnabled~= nil and WG['spectator_hud'].getMetricEnabled('buildPower')) or 1, description = Spring.I18N('ui.spectator_hud.buildPower_tooltip'),
+			onload = function(i)
+				loadWidgetData("Spectator HUD", "spectator_hud_metric_buildPower", { 'metricsEnabled', 'buildPower' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Spectator HUD', 'spectator_hud', 'setMetricEnabled', { 'metricsEnabled', 'buildPower' }, value, { 'buildPower', value })
+			end,
+		},
+		{ id = "spectator_hud_metric_metalProduced", group = "ui", category = types.advanced, name = Spring.I18N('ui.spectator_hud.metalProduced_title'), type = "bool", value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getMetricEnabled~= nil and WG['spectator_hud'].getMetricEnabled('metalProduced')) or 1, description = Spring.I18N('ui.spectator_hud.metalProduced_tooltip'),
+			onload = function(i)
+				loadWidgetData("Spectator HUD", "spectator_hud_metric_metalProduced", { 'metricsEnabled', 'metalProduced' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Spectator HUD', 'spectator_hud', 'setMetricEnabled', { 'metricsEnabled', 'metalProduced' }, value, { 'metalProduced', value })
+			end,
+		},
+		{ id = "spectator_hud_metric_energyProduced", group = "ui", category = types.advanced, name = Spring.I18N('ui.spectator_hud.energyProduced_title'), type = "bool", value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getMetricEnabled~= nil and WG['spectator_hud'].getMetricEnabled('energyProduced')) or 1, description = Spring.I18N('ui.spectator_hud.energyProduced_tooltip'),
+			onload = function(i)
+				loadWidgetData("Spectator HUD", "spectator_hud_metric_energyProduced", { 'metricsEnabled', 'energyProduced' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Spectator HUD', 'spectator_hud', 'setMetricEnabled', { 'metricsEnabled', 'energyProduced' }, value, { 'energyProduced', value })
+			end,
+		},
+		{ id = "spectator_hud_metric_metalExcess", group = "ui", category = types.advanced, name = Spring.I18N('ui.spectator_hud.metalExcess_title'), type = "bool", value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getMetricEnabled~= nil and WG['spectator_hud'].getMetricEnabled('metalExcess')) or 1, description = Spring.I18N('ui.spectator_hud.metalExcess_tooltip'),
+			onload = function(i)
+				loadWidgetData("Spectator HUD", "spectator_hud_metric_metalExcess", { 'metricsEnabled', 'metalExcess' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Spectator HUD', 'spectator_hud', 'setMetricEnabled', { 'metricsEnabled', 'metalExcess' }, value, { 'metalExcess', value })
+			end,
+		},
+		{ id = "spectator_hud_metric_energyExcess", group = "ui", category = types.advanced, name = Spring.I18N('ui.spectator_hud.energyExcess_title'), type = "bool", value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getMetricEnabled~= nil and WG['spectator_hud'].getMetricEnabled('energyExcess')) or 1, description = Spring.I18N('ui.spectator_hud.energyExcess_tooltip'),
+			onload = function(i)
+				loadWidgetData("Spectator HUD", "spectator_hud_metric_energyExcess", { 'metricsEnabled', 'energyExcess' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Spectator HUD', 'spectator_hud', 'setMetricEnabled', { 'metricsEnabled', 'energyExcess' }, value, { 'energyExcess', value })
+			end,
+		},
+		{ id = "spectator_hud_metric_armyValue", group = "ui", category = types.advanced, name = Spring.I18N('ui.spectator_hud.armyValue_title'), type = "bool", value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getMetricEnabled~= nil and WG['spectator_hud'].getMetricEnabled('armyValue')) or 1, description = Spring.I18N('ui.spectator_hud.armyValue_tooltip'),
+			onload = function(i)
+				loadWidgetData("Spectator HUD", "spectator_hud_metric_armyValue", { 'metricsEnabled', 'armyValue' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Spectator HUD', 'spectator_hud', 'setMetricEnabled', { 'metricsEnabled', 'armyValue' }, value, { 'armyValue', value })
+			end,
+		},
+		{ id = "spectator_hud_metric_defenseValue", group = "ui", category = types.advanced, name = Spring.I18N('ui.spectator_hud.defenseValue_title'), type = "bool", value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getMetricEnabled~= nil and WG['spectator_hud'].getMetricEnabled('defenseValue')) or 1, description = Spring.I18N('ui.spectator_hud.defenseValue_tooltip'),
+			onload = function(i)
+				loadWidgetData("Spectator HUD", "spectator_hud_metric_defenseValue", { 'metricsEnabled', 'defenseValue' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Spectator HUD', 'spectator_hud', 'setMetricEnabled', { 'metricsEnabled', 'defenseValue' }, value, { 'defenseValue', value })
+			end,
+		},
+		{ id = "spectator_hud_metric_utilityValue", group = "ui", category = types.advanced, name = Spring.I18N('ui.spectator_hud.utilityValue_title'), type = "bool", value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getMetricEnabled~= nil and WG['spectator_hud'].getMetricEnabled('utilityValue')) or 1, description = Spring.I18N('ui.spectator_hud.utilityValue_tooltip'),
+			onload = function(i)
+				loadWidgetData("Spectator HUD", "spectator_hud_metric_utilityValue", { 'metricsEnabled', 'utilityValue' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Spectator HUD', 'spectator_hud', 'setMetricEnabled', { 'metricsEnabled', 'utilityValue' }, value, { 'utilityValue', value })
+			end,
+		},
+		{ id = "spectator_hud_metric_economyValue", group = "ui", category = types.advanced, name = Spring.I18N('ui.spectator_hud.economyValue_title'), type = "bool", value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getMetricEnabled~= nil and WG['spectator_hud'].getMetricEnabled('economyValue')) or 1, description = Spring.I18N('ui.spectator_hud.economyValue_tooltip'),
+			onload = function(i)
+				loadWidgetData("Spectator HUD", "spectator_hud_metric_economyValue", { 'metricsEnabled', 'economyValue' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Spectator HUD', 'spectator_hud', 'setMetricEnabled', { 'metricsEnabled', 'economyValue' }, value, { 'economyValue', value })
+			end,
+		},
+		{ id = "spectator_hud_metric_damageDealt", group = "ui", category = types.advanced, name = Spring.I18N('ui.spectator_hud.damageDealt_title'), type = "bool", value = (WG['spectator_hud'] ~= nil and WG['spectator_hud'].getMetricEnabled~= nil and WG['spectator_hud'].getMetricEnabled('damageDealt')) or 1, description = Spring.I18N('ui.spectator_hud.damageDealt_tooltip'),
+			onload = function(i)
+				loadWidgetData("Spectator HUD", "spectator_hud_metric_damageDealt", { 'metricsEnabled', 'damageDealt' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Spectator HUD', 'spectator_hud', 'setMetricEnabled', { 'metricsEnabled', 'damageDealt' }, value, { 'damageDealt', value })
+			end,
+		},
 
 		{ id = "label_ui_developer", group = "ui", name = Spring.I18N('ui.settings.option.label_developer'), category = types.advanced },
 		{ id = "label_ui_developer_spacer", group = "ui", category = types.advanced },
 
-		{ id = "devmode", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.devmode'), type = "bool", value = Spring.Utilities.ShowDevUI(), description = Spring.I18N('ui.settings.option.devmode_descr'),
+		{ id = "devmode", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.devmode'), type = "bool", value = devUI, description = Spring.I18N('ui.settings.option.devmode_descr'),
 		  onchange = function(i, value)
+			  devUI = value
 			  Spring.SetConfigInt("DevUI", value and 1 or 0)
 			  Spring.SendCommands("luaui reload")
 		  end,
@@ -4556,6 +4724,25 @@ function init()
 		{ id = "label_dev_debug_spacer", group = "dev", category = types.dev },
 
 		{ id = "profiler", group = "dev", category = types.dev, widget = "Widget Profiler", name = Spring.I18N('ui.settings.option.profiler'), type = "bool", value = GetWidgetToggleValue("Widget Profiler"), description = "" },
+		{ id = "profiler_min_time", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.profiler_min_time'), type = "slider", min = 0, max = 0.05, step = 0.001, value = Spring.GetConfigFloat("profiler_min_time", 0.05), description = 'Affects both Widget Profiler and Gadget Profiler',
+		onload = function(i)
+		end,
+		onchange = function(i, value)
+			Spring.SetConfigFloat("profiler_min_time", value)
+		end,
+		},
+		{ id = "profiler_min_memory", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.profiler_min_memory'), type = "slider", min = 0, max = 10, step = 1, value = Spring.GetConfigFloat("profiler_min_memory", 5), description = 'Affects both Widget Profiler and Gadget Profiler',
+		onload = function(i)
+		end,
+		onchange = function(i, value)
+		  Spring.SetConfigFloat("profiler_min_memory", value)
+		end,
+		},
+		{ id = "profiler_sort_by_load", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.profiler_sort_by_load'), type = "bool", value = Spring.GetConfigInt("profiler_sort_by_load", 1), description = 'Affects both Widget Profiler and Gadget Profiler',
+		onchange = function(i, value)
+			Spring.SetConfigInt("profiler_sort_by_load", (value and '1' or '0'))
+		end,
+	  },
 		{ id = "framegrapher", group = "dev", category = types.dev, widget = "Frame Grapher", name = Spring.I18N('ui.settings.option.framegrapher'), type = "bool", value = GetWidgetToggleValue("Frame Grapher"), description = "" },
 
 		{ id = "debugcolvol", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.debugcolvol'), type = "bool", value = false, description = "",
@@ -4566,7 +4753,7 @@ function init()
 		{ id = "echocamerastate", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.echocamerastate'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.echocamerastate_descr'),
 		  onchange = function(i, value)
 			  options[getOptionByID('echocamerastate')].value = false
-			  Spring.Debug.TableEcho(Spring.GetCameraState())
+			  Spring.Echo(Spring.GetCameraState())
 		  end,
 		},
 
@@ -5567,10 +5754,6 @@ function init()
 		end
 	end
 
-	if not devMode then
-		options[getOptionByID('restart')] = nil
-	end
-
 	local localWidgetCount = 0
 	for name, data in pairs(widgetHandler.knownWidgets) do
 		if not data.fromZip then
@@ -5584,7 +5767,7 @@ function init()
 		options[getOptionByID('label_ui_developer_spacer')] = nil
 	end
 
-	if devMode or localWidgetCount == 0 then
+	if devMode or devUI or localWidgetCount == 0 then
 		options[getOptionByID('widgetselector')] = nil
 	end
 
@@ -5592,6 +5775,21 @@ function init()
 		options[getOptionByID('gridmenu_alwaysreturn')] = nil
 		options[getOptionByID('gridmenu_autoselectfirst')] = nil
 		options[getOptionByID('gridmenu_labbuildmode')] = nil
+	end
+
+	if spectatorHUDConfigOptions[options[getOptionByID('spectator_hud_config')].value] ~= Spring.I18N('ui.settings.option.spectator_hud_config_custom') then
+		options[getOptionByID('spectator_hud_metric_metalIncome')] = nil
+		options[getOptionByID('spectator_hud_metric_energyIncome')] = nil
+		options[getOptionByID('spectator_hud_metric_buildPower')] = nil
+		options[getOptionByID('spectator_hud_metric_metalProduced')] = nil
+		options[getOptionByID('spectator_hud_metric_energyProduced')] = nil
+		options[getOptionByID('spectator_hud_metric_metalExcess')] = nil
+		options[getOptionByID('spectator_hud_metric_energyExcess')] = nil
+		options[getOptionByID('spectator_hud_metric_armyValue')] = nil
+		options[getOptionByID('spectator_hud_metric_defenseValue')] = nil
+		options[getOptionByID('spectator_hud_metric_utilityValue')] = nil
+		options[getOptionByID('spectator_hud_metric_economyValue')] = nil
+		options[getOptionByID('spectator_hud_metric_damageDealt')] = nil
 	end
 
 	-- hide English unit names toggle if using English
@@ -5841,7 +6039,7 @@ function init()
 
 	-- add sound notification sets
 	if getOptionByID('notifications_set') then
-		local voiceset = Spring.GetConfigString("voiceset", 'allison')
+		local voiceset = Spring.GetConfigString("voiceset", 'en/allison')
 		local currentVoiceSetOption
 		local sets = {}
 		local languageDirs = VFS.SubDirs('sounds/voice', '*')
@@ -5931,9 +6129,11 @@ function init()
 		[UnitDefNames["corsktl"].id] = false,
 		[UnitDefNames["armgremlin"].id] = true,
 		[UnitDefNames["armamex"].id] = true,
+		[UnitDefNames["armshockwave"].id] = true,
 		[UnitDefNames["armckfus"].id] = true,
 		[UnitDefNames["armspy"].id] = true,
 		[UnitDefNames["corspy"].id] = true,
+		[UnitDefNames["corphantom"].id] = true,
 	}
 	local unitdefConfig = {}
 	if WG['autocloak'] ~= nil then
@@ -6203,16 +6403,6 @@ function widget:Initialize()
 	if widgetHandler:IsWidgetKnown("Fog Volumes Old GL4") then
 		widgetHandler:DisableWidget("Fog Volumes Old GL4")
 	end
-
-	-- enable previous default disabled widgets to their new default state
-	if newerVersion then
-		if version <= 1.4 then
-			if widgetHandler.orderList["Commblast Range GL4"] and widgetHandler.orderList["Commblast Range GL4"] < 0.5 then
-				widgetHandler:EnableWidget("Commblast Range GL4")
-			end
-		end
-	end
-
 	if widgetHandler.orderList["FlowUI"] and widgetHandler.orderList["FlowUI"] < 0.5 then
 		widgetHandler:EnableWidget("FlowUI")
 	end

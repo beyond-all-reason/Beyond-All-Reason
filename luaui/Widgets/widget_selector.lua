@@ -583,7 +583,7 @@ function widget:DrawScreen()
 	if WG['guishader'] == nil then
 		activeGuishader = false
 	end
-	if WG['guishader'] and not activeGuishader then
+	if WG['guishader'] then
 		activeGuishader = true
 		dlistGuishader = gl.CreateList(function()
 			RectRound(floor(minx - (bgPadding * sizeMultiplier)), floor(miny - (bgPadding * sizeMultiplier)), floor(maxx + (bgPadding * sizeMultiplier)), floor(maxy + (bgPadding * sizeMultiplier)), 6 * sizeMultiplier)
@@ -966,8 +966,10 @@ function widget:MouseRelease(x, y, mb)
 		end
 		if mb == 2 then
 			widgetHandler:LowerWidget(w)
+			Spring.Echo('widgetHandler:LowerWidget')
 		else
 			widgetHandler:RaiseWidget(w)
+			Spring.Echo('widgetHandler:RaiseWidget')
 		end
 		widgetHandler:SaveConfigData()
 	end

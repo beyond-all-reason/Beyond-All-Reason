@@ -33,10 +33,6 @@ local bladeSpeedMultiplier = 0.2
 
 local wholeTeamWastingMetalCount = 0
 
-local underflowEnabled = (Spring.GetModOptions().energy_share_rework == true)
-local underflowTranslation = { Spring.I18N('ui.topbar.underflow.generous'), Spring.I18N('ui.topbar.underflow.greedy') }
-local generousPlayer = true -- otherwise greedy
-local showUnderflowButton = true
 
 local noiseBackgroundTexture = ":g:LuaUI/Images/rgbnoise.png"
 local showButtons = true
@@ -209,7 +205,7 @@ local overflowingEnergy = false
 
 local isCommander = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.customParams.iscommander then
+	if unitDef.customParams.iscommander or unitDef.customParams.isscavcommander then
 		isCommander[unitDefID] = true
 	end
 end
@@ -775,10 +771,6 @@ local function updateResbar(res)
 		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0,0,1,1)
 	end)
 
-	if underflowEnabled then
-		generousPlayer = Spring.GetTeamRulesParam(myTeamID, "underflowStatus") or false
-	end
-
 	dlistResbar[res][1] = glCreateList(function()
 		UiElement(area[1], area[2], area[3], area[4], 0, 0, 1, 1)
 
@@ -800,25 +792,6 @@ local function updateResbar(res)
 		glTexRect(area[1] + bgpaddingHalf + iconPadding, area[2] + bgpaddingHalf + iconPadding, area[1] + bgpaddingHalf + iconPadding + iconSize, area[4] + bgpaddingHalf - iconPadding)
 		glTexture(false)
 
-		if underflowEnabled and showUnderflowButton and (res == "energy") and fontSize then
-			local w = math_floor(320 * widgetScale)
-			local padding = math_floor(w / 90)
-			local color1, color2
-			if generousPlayer then
-				color1 = { 0.5, 0.45, 0, 0.25 }
-				color2 = { 0.8, 0.75, 0, 0.25 }
-				UiButton(area[1] + 2, area[2] + 2, area[1] + 64, area[2] + 16, 1,1,1,1, 1,1,1,1, nil, color1, color2, padding * 0.5)
-				font2:SetTextColor(1, 1, 1, 1)
-				font2:Print(underflowTranslation[1], area[1] + 32, area[2] + 6, fontSize * 0.5, 'oc')
-			else
-				color1 = { 0.35, 0.1, 0.1, 1 }
-				color2 = { 0.25, 0.05, 0.05, 1 }
-				UiButton(area[1] + 2, area[2] + 2, area[1] + 64, area[2] + 16, 1,1,1,1, 1,1,1,1, nil, color1, color2, padding * 0.5)
-				font2:SetTextColor(1, 1, 1, 0.9)
-				font2:Print(underflowTranslation[2], area[1] + 32, area[2] + 6, fontSize * 0.5, 'oc')
-			end
-		end
-
 		-- Bar background
 		local addedSize = math_floor(((barArea[4] - barArea[2]) * 0.15) + 0.5)
 		--RectRound(barArea[1] - edgeWidth, barArea[2] - edgeWidth, barArea[3] + edgeWidth, barArea[4] + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, { 1,1,1, 0.03 }, { 1,1,1, 0.03 })
@@ -829,7 +802,6 @@ local function updateResbar(res)
 		gl.Color(1,1,1, 0.16)
 		TexturedRectRound(barArea[1] - edgeWidth, barArea[2] - edgeWidth, barArea[3] + edgeWidth, barArea[4] + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, barWidth*0.33, 0)
 		gl.Texture(false)
-
 		glBlending(GL_SRC_ALPHA, GL_ONE)
 		RectRound(barArea[1] - addedSize - edgeWidth, barArea[2] - addedSize - edgeWidth, barArea[3] + addedSize + edgeWidth, barArea[4] + addedSize + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, { 0, 0, 0, 0.1 }, { 0, 0, 0, 0.1 })
 		RectRound(barArea[1] - addedSize, barArea[2] - addedSize, barArea[3] + addedSize, barArea[4] + addedSize, barHeight * 0.33, 1, 1, 1, 1, { 0.15, 0.15, 0.15, 0.2 }, { 0.8, 0.8, 0.8, 0.16 })
@@ -898,8 +870,6 @@ local function updateResbar(res)
 			WG['tooltip'].AddTooltip(res .. '_share_slider', { resbarDrawinfo[res].barArea[1], shareIndicatorArea[res][2], conversionIndicatorArea[1], shareIndicatorArea[res][4] }, Spring.I18N('ui.topbar.resources.shareEnergyTooltip'), nil, Spring.I18N('ui.topbar.resources.shareEnergyTooltipTitle'))
 			WG['tooltip'].AddTooltip(res .. '_share_slider2', { conversionIndicatorArea[3], shareIndicatorArea[res][2], resbarDrawinfo[res].barArea[3], shareIndicatorArea[res][4] }, Spring.I18N('ui.topbar.resources.shareEnergyTooltip'), nil, Spring.I18N('ui.topbar.resources.shareEnergyTooltipTitle'))
 			WG['tooltip'].AddTooltip(res .. '_metalmaker_slider', conversionIndicatorArea, Spring.I18N('ui.topbar.resources.conversionTooltip'), nil, Spring.I18N('ui.topbar.resources.conversionTooltipTitle'))
-
-			WG['tooltip'].AddTooltip(res .. '_underflow', { area[1] + 2, area[2] + 2, area[1] + 64, area[2] + 16 }, Spring.I18N('ui.topbar.underflow.tooltipText'), nil, Spring.I18N('ui.topbar.underflow.tooltipTitle'))
 		else
 			WG['tooltip'].AddTooltip(res .. '_share_slider', { resbarDrawinfo[res].barArea[1], shareIndicatorArea[res][2], resbarDrawinfo[res].barArea[3], shareIndicatorArea[res][4] }, Spring.I18N('ui.topbar.resources.shareMetalTooltip'), nil, Spring.I18N('ui.topbar.resources.shareMetalTooltipTitle'))
 		end
@@ -1884,11 +1854,6 @@ function widget:MousePress(x, y, button)
 				if math_isInRect(x, y, shareIndicatorArea['energy'][1], shareIndicatorArea['energy'][2], shareIndicatorArea['energy'][3], shareIndicatorArea['energy'][4]) then
 					draggingShareIndicator = 'energy'
 				end
-				local area = resbarArea["energy"]
-				if underflowEnabled and showUnderflowButton and math_isInRect(x, y, area[1] + 2, area[2] + 2, area[1] + 64, area[2] + 16) then
-					Spring.SendLuaRulesMsg("underflowToggle")
-					updateResbar("energy")
-				end
 			end
 			if draggingShareIndicator == nil and math_isInRect(x, y, conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4]) then
 				draggingConversionIndicator = true
@@ -2024,13 +1989,6 @@ function widget:Initialize()
 
 	if WG['resource_spot_finder'] and WG['resource_spot_finder'].metalSpotsList and #WG['resource_spot_finder'].metalSpotsList > 0 and #WG['resource_spot_finder'].metalSpotsList <= 2 then	-- probably speedmetal kind of map
 		isMetalmap = true
-	end
-
-	if underflowEnabled then
-		generousPlayer = Spring.GetTeamRulesParam(myTeamID, "underflowStatus") or false
-		if (Spring.GetTeamRulesParam(myTeamID, "underflowStatus") == nil) then
-			showUnderflowButton = false
-		end
 	end
 end
 

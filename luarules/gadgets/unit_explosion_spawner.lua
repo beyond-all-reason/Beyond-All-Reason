@@ -21,6 +21,7 @@ end
 -- spawns_mode = if you have multiple entries, use one of these strings: "random" "random_locked" or "sequential"
 -- spawns_expire = how long before your unit is destroyed in seconds
 -- spawns_ceg = use to spawn an arbitrary ceg in addition to the explosion effect used in the weapondefs. uses Spring.SpawnCEG()
+-- spawns_stun = a number, use it to define how long a unit will be stunned for after landing.
 
 
 local spCreateFeature         = Spring.CreateFeature
@@ -34,6 +35,8 @@ local spGiveOrderToUnit       = Spring.GiveOrderToUnit
 local spSetFeatureDirection   = Spring.SetFeatureDirection
 local spSetUnitRulesParam     = Spring.SetUnitRulesParam
 local spSpawnCEG 			  = Spring.SpawnCEG
+local spGetUnitHealth 		  = Spring.GetUnitHealth
+local spSetUnitHealth		  = Spring.SetUnitHealth
 
 local mapsizeX 				  = Game.mapSizeX
 local mapsizeZ 				  = Game.mapSizeZ
@@ -64,6 +67,7 @@ local expireCount = 0
 local spawnList = {} -- [index] = {.spawnDef, .teamID, .x, .y, .z, .ownerID}, subtables reused
 local spawnCount = 0
 local spawnNames = {}
+local minWaterDepth = -12 --calibrated off of the armpw's (minimum found) maxwaterdepth value
 
 for weaponDefID = 1, #WeaponDefs do
 	local wdcp = WeaponDefs[weaponDefID].customParams
@@ -75,11 +79,22 @@ for weaponDefID = 1, #WeaponDefs do
 			surface = wdcp.spawns_surface,
 			mode = wdcp.spawns_mode,
 			ceg = wdcp.spawns_ceg,
+			stun = wdcp.spawns_stun,
 		}
 		if wdcp.spawn_blocked_by_shield then
 			shieldCollide[weaponDefID] = WeaponDefs[weaponDefID].damages[Game.armorTypes.shield]
 		end
 		wantedList[#wantedList + 1] = weaponDefID
+	end
+end
+
+local scavengerAITeamID = 999
+local teams = Spring.GetTeamList()
+for i = 1, #teams do
+	local luaAI = Spring.GetTeamLuaAI(teams[i])
+	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
+		scavengerAITeamID = i - 1
+		break
 	end
 end
 
@@ -107,7 +122,7 @@ local function SpawnUnit(spawnData)
 			if spawnData.x > 0 and spawnData.x < mapsizeX and spawnData.z > 0 and spawnData.z < mapsizeZ then
 				local y = Spring.GetGroundHeight(spawnData.x, spawnData.z)
 				if spawnData.y < math.max(y+32, 32) then
-					if string.find(spawnDef.surface, "LAND") and y > 0 then
+					if string.find(spawnDef.surface, "LAND") and y > minWaterDepth then
 						validSurface = true
 					elseif string.find(spawnDef.surface, "SEA") and y <= 0 then
 						validSurface = true
@@ -150,14 +165,25 @@ local function SpawnUnit(spawnData)
 					local unitName = strSplit(spawnDef.name)
 					spawnUnitName = unitName[1]
 				end
-				unitID = spCreateUnit(spawnUnitName, spawnData.x, spawnData.y, spawnData.z, 0, spawnData.teamID)
-				if spawnDef.ceg then
-					spSpawnCEG(spawnDef.ceg, spawnData.x, spawnData.y, spawnData.z, 0,0,0)
+				if UnitDefNames[spawnUnitName] then
+					unitID = spCreateUnit(spawnUnitName, spawnData.x, spawnData.y, spawnData.z, 0, spawnData.teamID)
+				else
+					Spring.Echo('INVALID UNIT NAME IN UNIT EXPLOSION SPAWNER', spawnUnitName)
 				end
 			end
 			if not unitID then
 				-- unit limit hit or invalid spawn surface
 				return
+			end
+
+			if spawnDef.ceg then
+					spSpawnCEG(spawnDef.ceg, spawnData.x, spawnData.y, spawnData.z, 0,0,0)
+			end
+
+			if spawnDef.stun then
+				local maxHealth = select(2, spGetUnitHealth(unitID))
+				local paralyzeTime = maxHealth + ((maxHealth/30)*spawnDef.stun)
+				spSetUnitHealth(unitID, {paralyze = paralyzeTime })
 			end
 
 			local ownerID = spawnData.ownerID
@@ -184,7 +210,11 @@ local function SpawnUnit(spawnData)
 				expireCount = expireCount + 1
 				expireByID[unitID] = expireCount
 				expireID[expireCount] = unitID
-				expireList[expireCount] = spGetGameFrame() + spawnDef.expire
+				if Spring.GetUnitTeam(unitID) ~= scavengerAITeamID then
+					expireList[expireCount] = spGetGameFrame() + spawnDef.expire
+				else
+					expireList[expireCount] = spGetGameFrame() + 99999
+				end
 			end
 
 			-- force a slowupdate to make the unit act immediately
@@ -194,6 +224,20 @@ local function SpawnUnit(spawnData)
 
 		end
 	end
+end
+
+function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
+	-- Catch units that are expirable right before they die, so they don't create wreck on death.
+	if expireByID[unitID] then
+		if Spring.GetUnitHealth(unitID) and damage and damage > Spring.GetUnitHealth(unitID) then
+			if attackerID then
+				Spring.DestroyUnit(unitID, true, false, attackerID)
+			else
+				Spring.DestroyUnit(unitID, true)
+			end
+		end
+	end
+
 end
 
 function gadget:Initialize()

@@ -1,4 +1,5 @@
-#define TA			// This is a TA script
+
+#include "../recoil_common_includes.h"
 
 #include "sfxtype.h"
 #include "exptype.h"
@@ -123,6 +124,8 @@ Create()
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
 	animSpeed = 4;
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script RequestState(1);
 	start-script WheelControl();
 }
 

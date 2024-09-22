@@ -106,7 +106,7 @@ local definitions = {
     },
     centerflare = {
       air                = true,
-      class              = [[heatcloud]],
+      class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
       water              = false,
@@ -254,7 +254,7 @@ local definitions = {
     },
     centerflare = {
       air                = true,
-      class              = [[heatcloud]],
+      class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
       water              = false,
@@ -404,7 +404,7 @@ local definitions = {
     -- },
     -- centerflare = {
     --   air                = true,
-    --   class              = [[heatcloud]],
+    --   class              = [[CHeatCloudProjectile]],
     --   count              = 1,
     --   ground             = true,
     --   underwater         = 1,
@@ -552,7 +552,7 @@ local definitions = {
     },
     centerflare = {
       air                = true,
-      class              = [[heatcloud]],
+      class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
       water              = false,

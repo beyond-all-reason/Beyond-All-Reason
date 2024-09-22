@@ -5,7 +5,7 @@
 #define SIGNAL_MOVE 	1
 #define SIGNAL_AIM 	2
 
-piece  base, armor, aimy1, turret, aimx1, sleeve, barrel, flare, casing, wheelfl, wheelfr, wheelml, wheelmr, wheelbl, wheelbr;
+piece  base, armor, aimy1, turret, aimx1, sleeve, barrel, flare, wheelfl, wheelfr, wheelml, wheelmr, wheelbl, wheelbr;
 
 static-var  restore_delay, currentSpeed, moveSpeed, wheelSpeed, oldHeading;
 

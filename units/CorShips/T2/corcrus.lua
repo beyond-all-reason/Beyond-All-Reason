@@ -159,7 +159,7 @@ return {
 				name = "Medium depthcharge launcher",
 				noselfdamage = true,
 				range = 450,
-				reloadtime = 2,
+				reloadtime = 1.8,
 				soundhit = "xplodep2",
 				soundstart = "torpedo1",
 				startvelocity = 150,

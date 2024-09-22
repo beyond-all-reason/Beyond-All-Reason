@@ -7,15 +7,19 @@ local SIG_OPENCLOSE = 4;
 
 include("include/util.lua");
 
+local litelab = UnitDefs[unitDefID].customParams.litelab ~= nil
+
 function open()
 	UnitScript.Signal(SIG_OPENCLOSE);
 	UnitScript.SetSignalMask(SIG_OPENCLOSE);
 	--Activate
-	UnitScript.Move(doorl, x_axis, -17, 17);
-	UnitScript.Move(doorr, x_axis, 17, 17);
-	UnitScript.Move(doorf, y_axis, -16, 16);
-	UnitScript.WaitForMove(doorl, x_axis);
-	Sleep(1000);
+	if not litelab then
+		UnitScript.Move(doorl, x_axis, -17, 17);
+		UnitScript.Move(doorr, x_axis, 17, 17);
+		UnitScript.Move(doorf, y_axis, -16, 16);
+		UnitScript.WaitForMove(doorl, x_axis);
+		Sleep(1000);
+	end
 	--Open yard
 	open_yard();
 	--Get into buildstance
@@ -30,15 +34,22 @@ function close()
 	--Close yard
 	close_yard();
 	--Deactivate
-	UnitScript.Move(doorf, y_axis, 16, 16);
-	UnitScript.Move(doorl, x_axis, 0, 17);
-	UnitScript.Move(doorr, x_axis, 0, 17);
-	UnitScript.Move(doorf, y_axis, 0, 16);
-	UnitScript.WaitForMove(doorl, x_axis);
-	Sleep(500);
+	if not litelab then
+		UnitScript.Move(doorf, y_axis, 16, 16);
+		UnitScript.Move(doorl, x_axis, 0, 17);
+		UnitScript.Move(doorr, x_axis, 0, 17);
+		UnitScript.Move(doorf, y_axis, 0, 16);
+		UnitScript.WaitForMove(doorl, x_axis);
+		Sleep(500);
+	end
 end
 
 function script.Create()
+	if litelab then
+		Hide(doorl);
+		Hide(doorr);
+		Hide(doorf);
+	end
 	Hide(nano1);
 	Hide(nano2);
 	Hide(nano3);
