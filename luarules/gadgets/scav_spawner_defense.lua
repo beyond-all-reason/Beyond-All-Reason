@@ -1842,7 +1842,7 @@ if gadgetHandler:IsSyncedCode() then
 				spawnQueue = {}
 				scavEvent("boss") -- notify unsynced about boss spawn
 				_, bossMaxHP = GetUnitHealth(bossID)
-				Spring.SetUnitHealth(bossID, bossMaxHP*(bossAnger*0.01))
+				Spring.SetUnitHealth(bossID, bossMaxHP*(techAnger*0.01))
 				SetUnitExperience(bossID, 0)
 				timeOfLastWave = t
 				burrows[bossID] = {
@@ -1864,10 +1864,10 @@ if gadgetHandler:IsSyncedCode() then
 
 	function updateScavSpawnBox()
 		if config.burrowSpawnType == "initialbox_post" or config.burrowSpawnType == "initialbox" then
-			lsx1 = math.max(ScavStartboxXMin - ((MAPSIZEX*0.01) * (techAnger+30)), 0)
-			lsz1 = math.max(ScavStartboxZMin - ((MAPSIZEZ*0.01) * (techAnger+30)), 0)
-			lsx2 = math.min(ScavStartboxXMax + ((MAPSIZEX*0.01) * (techAnger+30)), MAPSIZEX)
-			lsz2 = math.min(ScavStartboxZMax + ((MAPSIZEZ*0.01) * (techAnger+30)), MAPSIZEZ)
+			lsx1 = math.max(ScavStartboxXMin - ((MAPSIZEX*0.01) * (techAnger+15)), 0)
+			lsz1 = math.max(ScavStartboxZMin - ((MAPSIZEZ*0.01) * (techAnger+15)), 0)
+			lsx2 = math.min(ScavStartboxXMax + ((MAPSIZEX*0.01) * (techAnger+15)), MAPSIZEX)
+			lsz2 = math.min(ScavStartboxZMax + ((MAPSIZEZ*0.01) * (techAnger+15)), MAPSIZEZ)
 			--Spring.Echo("lsx1", lsx1, "lsx2", lsx2, "lsz1", lsz1, "lsz2", lsz2)
 		end
 	end
