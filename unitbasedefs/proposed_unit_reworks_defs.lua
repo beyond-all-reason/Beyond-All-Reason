@@ -70,6 +70,12 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		if name == "armdfly" then
 			uDef.transportcapacity = 1
 		end
+        if name == "armap" then
+            uDef.buildoptions[7] = "armhvytrans"
+		end
+        if name == "corap" then
+            uDef.buildoptions[7] = "corhvytrans"
+		end
 
 	return uDef
 end
