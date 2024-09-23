@@ -13,7 +13,7 @@ end
 if not gadgetHandler:IsSyncedCode() then return end
 
 --any maxWaterDepth movedef equal to or above this number will not take drowning damage.
-local ignoredMaxWaterDepthThreshold = 5000
+local isDrownableMaxWaterDepth = 5000
 
 --a percentage of health taken as damage per second when stuck below maxWaterDepth.
 local drowningDamage = 0.05
@@ -63,7 +63,7 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 		unitDefData[unitDefID].unitDefID = unitDefID
 	end
 	if unitDef.moveDef.depth then
-		if unitDef.moveDef.depth >= ignoredMaxWaterDepthThreshold then
+		if unitDef.moveDef.depth >= isDrownableMaxWaterDepth then
 			if string.find(unitDef.moveDef.name, "hover") and not string.find(unitDef.moveDef.name, "raptor") then
 				unitDefData[unitDefID].isHover = true
 			else
