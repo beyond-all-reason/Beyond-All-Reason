@@ -8,7 +8,7 @@ return {
 		buildpic = "LEGAMPHTANK.DDS",
 		buildtime = 2610,
 		canmove = true,
-		category = "ALL TANK PHIB WEAPON NOTSUB NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 0 1",
 		collisionvolumescales = "31 13 31",
 		collisionvolumetype = "Box",

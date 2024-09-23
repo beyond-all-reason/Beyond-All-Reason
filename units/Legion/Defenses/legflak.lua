@@ -9,7 +9,7 @@ return {
 		buildpic = "LEGFLAK.DDS",
 		buildtime = 19000,
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 -3 0",
 		collisionvolumescales = "55 85 55",
 		collisionvolumetype = "CylY",

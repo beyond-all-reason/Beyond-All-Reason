@@ -8,7 +8,7 @@ return {
 		buildpic = "legsy.dds",
 		buildtime = 6600,
 		canmove = true,
-		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 0 2",
 		collisionvolumescales = "124 59 122",
 		collisionvolumetype = "Box",

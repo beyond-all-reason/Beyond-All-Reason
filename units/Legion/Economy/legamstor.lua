@@ -6,7 +6,7 @@ return {
 		buildpic = "legamstor.DDS",
 		buildtime = 20500,
 		canrepeat = false,
-		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE UNDERWATER EMPABLE",
+		category = "CANBEUW",
 		collisionvolumeoffsets = "-6 0 0",
 		collisionvolumescales = "46 40 58",
 		collisionvolumetype = "Box",

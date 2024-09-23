@@ -18,7 +18,7 @@ return {
 		canmove = true,
 		capturable = false,
 		capturespeed = 2100,
-		category = "ALL WEAPON NOTSUB COMMANDER NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 3 0",
 		collisionvolumescales = "31 57 31",
 		collisionvolumetype = "CylY",

@@ -10,7 +10,7 @@ return {
 		buildpic = "leghastatus.DDS",
 		buildtime = 4400,
 		canmove = true,
-		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 -4 1",
 		collisionvolumescales = "26 26 76",
 		collisionvolumetype = "CylZ",

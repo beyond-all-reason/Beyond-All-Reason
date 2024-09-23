@@ -8,7 +8,7 @@ return {
 		buildpic = "legsnapper.DDS",
 		buildtime = 8000,
 		canmove = true,
-		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "25 9 20",
 		collisionvolumetype = "CylY",

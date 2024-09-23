@@ -9,7 +9,7 @@ return {
 		buildpic = "LEGLAB.DDS",
 		buildtime = 6500,
 		canmove = true,
-		category = "ALL NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 5 0",
 		collisionvolumescales = "100 45 100",
 		collisionvolumetype = "CylY",

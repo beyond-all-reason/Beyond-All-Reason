@@ -8,7 +8,7 @@ return {
 		buildpic = "LEGCEN.DDS",
 		buildtime = 3000,
 		canmove = true,
-		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 -1 1",
 		collisionvolumescales = "18 20 30",
 		collisionvolumetype = "box",

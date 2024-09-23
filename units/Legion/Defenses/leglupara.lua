@@ -9,7 +9,7 @@ return {
 		buildpic = "LEGLUPARA.DDS",
 		buildtime = 12500,
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 -5 0",
 		collisionvolumescales = "45 65 45",
 		collisionvolumetype = "CylY",

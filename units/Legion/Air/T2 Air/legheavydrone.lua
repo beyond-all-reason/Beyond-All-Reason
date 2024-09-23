@@ -10,7 +10,7 @@ return {
 		canfly = true,
 		canmove = true,
 		cantbetransported = false,
-		category = "ALL WEAPON VTOL NOTSUB NOTHOVER",
+		category = "",
 		collide = true,
 		cruisealtitude = 68,
 		explodeas = "tinyExplosionGeneric",

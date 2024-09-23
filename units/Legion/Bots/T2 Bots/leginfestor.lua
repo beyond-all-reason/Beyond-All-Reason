@@ -11,7 +11,7 @@ return {
 		canassist = true,
 		canreclaim = true,
 		canmove = true,
-		category = "ALL BOT WEAPON NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "36 26 44",
 		collisionvolumetype = "CylY",

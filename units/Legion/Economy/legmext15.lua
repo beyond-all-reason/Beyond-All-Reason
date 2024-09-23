@@ -10,7 +10,7 @@ return {
 		buildpic = "LEGMEXT15.DDS",
 		buildtime = 5000,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE CANBEUW UNDERWATER",
+		category = "CANBEUW",
 		collisionvolumeoffsets = "0 -3 0",
 		collisionvolumescales = "48 30 48",
 		collisionvolumetype = "CylY",

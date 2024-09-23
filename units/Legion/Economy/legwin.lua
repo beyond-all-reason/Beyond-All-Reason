@@ -8,7 +8,7 @@ return {
 		buildpic = "LEGWIN.DDS",
 		buildtime = 1680,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 2 0",
 		collisionvolumescales = "34 89 34",
 		collisionvolumetype = "CylY",

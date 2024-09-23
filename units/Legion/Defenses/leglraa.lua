@@ -9,7 +9,7 @@ return {
 		buildpic = "LEGLRAA.DDS",
 		buildtime = 28000,
 		canrepeat = false,
-		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "63 57 63",
 		collisionvolumetype = "CylY",

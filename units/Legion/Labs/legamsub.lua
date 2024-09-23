@@ -8,7 +8,7 @@ return {
 		buildpic = "LEGAMSUB.DDS",
 		buildtime = 11400,
 		canmove = true,
-		category = "ALL NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER UNDERWATER EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 0 -2",
 		collisionvolumescales = "115 36 112",
 		collisionvolumetype = "Box",

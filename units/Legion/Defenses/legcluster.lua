@@ -9,7 +9,7 @@ return {
 		buildpic = "LEGCLUSTER.DDS",
 		buildtime = 19300,
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "47 47 47",
 		collisionvolumetype = "CylY",
