@@ -444,6 +444,7 @@ local armorDefs = {
 		"leghp",
 		"legfhp",
 		"legch",
+		"legeyes",
 	},
 
 	space = {
@@ -469,6 +470,8 @@ local armorDefs = {
 		"legnanotcplat",
 	},
 	vtol = {
+		"armhvytrans",
+		"corhvytrans",
 		"raptors3",
 		"armaca",
 		"armca",

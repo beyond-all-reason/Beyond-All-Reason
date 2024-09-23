@@ -216,7 +216,7 @@ return {
 	  water				 = true,
 	  underwater		 = true,
       alwaysvisible      = true,
-      class              = [[heatcloud]],
+      class              = [[CHeatCloudProjectile]],
       count              = 2,
       properties = {
         alwaysvisible      = true,
@@ -237,7 +237,7 @@ return {
 	  water				 = true,
 	  underwater		 = true,
       alwaysvisible      = true,
-      class              = [[heatcloud]],
+      class              = [[CHeatCloudProjectile]],
       count              = 10,
       properties = {
         alwaysvisible      = true,

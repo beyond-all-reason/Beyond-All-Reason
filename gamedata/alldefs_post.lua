@@ -78,8 +78,16 @@ end
 function UnitDef_Post(name, uDef)
 	local modOptions = Spring.GetModOptions()
 
+	local isScav = string.sub(name, -5, -1) == "_scav"
+	local basename = isScav and string.sub(name, 1, -6) or name
+
 	if not uDef.icontype then
 		uDef.icontype = name
+	end
+
+	--global physics behavior changes
+	if uDef.health then
+		uDef.minCollisionSpeed = 75 / Game.gameSpeed -- define the minimum velocity(speed) required for all units to suffer fall/collision damage.
 	end
 
 	-- inidivual unit hat processing
@@ -169,6 +177,29 @@ function UnitDef_Post(name, uDef)
 			end
 		end
 
+		if modOptions.unit_restrictions_notech15 then
+			-- Tech 1.5 is a semi offical thing, modoption ported from teiserver meme commands
+			local tech15 = {
+				corhp		= true,
+				corfhp		= true,
+				corplat		= true,
+				coramsub	= true,
+
+				armhp		= true,
+				armfhp		= true,
+				armplat		= true,
+				armamsub	= true,
+
+				leghp		= true,
+				legfhp		= true,
+				legplat		= true,
+				legamsub	= true,
+			}
+			if tech15[basename] then
+				uDef.maxthisunit = 0
+			end
+		end
+
 		if modOptions.unit_restrictions_noair then
 			if string.find(uDef.customparams.subfolder, "Aircraft") then
 				uDef.maxthisunit = 0
@@ -217,6 +248,12 @@ function UnitDef_Post(name, uDef)
 			end
 		end
 
+		if modOptions.unit_restrictions_nofusion then
+			if basename == "armdf" or string.sub(basename, -3) == "fus" then
+				uDef.maxthisunit = 0
+			end
+		end
+
 		if modOptions.unit_restrictions_nonukes then
 			local Nukes = {
 				armamd = true,
@@ -238,6 +275,40 @@ function UnitDef_Post(name, uDef)
 			}
 			if Nukes[name] then
 				uDef.maxthisunit = 0
+			end
+		end
+
+		if modOptions.unit_restrictions_nodefence then
+			local whitelist = {
+				armllt	= true,
+				armrl	= true,
+				armfrt	= true,
+				armtl	= true,
+
+				corllt	= true,
+				corrl	= true,
+				cortl	= true,
+				corfrt	= true,
+
+				leglht	= true,
+				legrl	= true,
+				--sea tl= true,
+				--sea aa= true,
+			}
+			-- "defense" or "defence", as legion doesn't fully follow past conventions
+			if not whitelist[name] and string.find(string.lower(uDef.customparams.subfolder), "defen") then
+				uDef.maxthisunit = 0
+			end
+		end
+
+		if modOptions.unit_restrictions_noantinuke then
+			if uDef.weapondefs then
+				for _, weapon in pairs(uDef.weapondefs) do
+					if weapon.interceptor and weapon.interceptor == 1 then
+						uDef.maxthisunit = 0
+						break
+					end
+				end
 			end
 		end
 
@@ -753,7 +824,7 @@ function UnitDef_Post(name, uDef)
 	categories["NOTSHIP"] = function(unitDef) return not categories.SHIP(unitDef) end
 	categories["NOTSUB"] = function(unitDef) return not subList[unitDef.movementclass] end
 	categories["CANBEUW"] = function(unitDef) return amphibList[unitDef.movementclass] end
-	categories["UNDERWATER"] = function(unitDef) return (unitDef.minwaterdepth and unitDef.waterline == nil) or (unitDef.minwaterdepth and unitDef.waterline > unitDef.minwaterdepth) end
+	categories["UNDERWATER"] = function(unitDef) return (unitDef.minwaterdepth and unitDef.waterline == nil) or (unitDef.minwaterdepth and unitDef.waterline > unitDef.minwaterdepth and unitDef.speed and unitDef.speed > 0) end
 	categories["SURFACE"] = function(unitDef) return not categories.UNDERWATER(unitDef) and not categories.VTOL(unitDef) end
 	categories["MINE"] = function(unitDef) return unitDef.weapondefs and unitDef.weapondefs.minerange end
 	categories["COMMANDER"] = function(unitDef) return commanderList[unitDef.movementclass] end
@@ -779,6 +850,7 @@ function UnitDef_Post(name, uDef)
 			if isGROUNDSCOUT == true then append(unitDef, " GROUNDSCOUT") end
 			if isRAPTOR == true then append(unitDef, " isRAPTOR") end
 			if name == "armmex" or name == "cormex" or name == "legmex" or name == "legmext15" then append(unitDef, " CANBEUW") end
+			if name == "corplat" or name == "armplat" then append(unitDef, " UNDERWATER SURFACE") end
 			-- end of temporary code
 	
 			for categoryName, condition in pairs(categories) do
@@ -1376,9 +1448,23 @@ function WeaponDef_Post(name, wDef)
 
 	if not SaveDefsToCustomParams then
 		-------------- EXPERIMENTAL MODOPTIONS
+		
 		-- Standard Gravity
+		local gravityOverwriteExemptions = { --add the name of the weapons (or just the name of the unit followed by _ ) to this table to exempt from gravity standardization.
+			'cormship_', 'armmship_'
+		}
 		if wDef.gravityaffected == "true" and wDef.mygravity == nil then
-			wDef.mygravity = 0.1445
+			local isExempt = false
+
+			for _, exemption in ipairs(gravityOverwriteExemptions) do
+				if string.find(name, exemption) then
+					isExempt = true
+					break
+				end
+			end
+			if not isExempt then
+				wDef.mygravity = 0.1445
+			end
 		end
 		
 		-- Accurate Lasers		
