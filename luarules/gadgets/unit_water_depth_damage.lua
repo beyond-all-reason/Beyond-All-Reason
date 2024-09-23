@@ -1,9 +1,9 @@
 function gadget:GetInfo()
 	return {
-		name = "Collision Damage Behavior",
-		desc = "Magnifies the default engine ground and object collision damage and handles max impulse limits",
+		name = "Water Crush and Collision Damage",
+		desc = "Creates and handles water collision events, and kills units stuck underwater",
 		author = "SethDGamre",
-		date = "2024.8.29",
+		date = "2024.9.22",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
 		enabled = true
@@ -149,7 +149,7 @@ function gadget:GameFrame(frame)
 				local movableSpot = spTestMoveOrder(data.unitDefID, posX, posY, posZ, nil, nil, nil, true, true, true) --somehow, this works. Copied from elsewhere in the code, spring wiki and recoil and game repo didn't have any info on this format.
 				if not movableSpot then
 					spSpawnCEG('blacksmoke', posX, posY, posZ) --actually looks like tiny bubbles underwater
-					spPlaySoundFile('xplodep3', 0.15, posX, posY, posZ, 'sfx')
+					spPlaySoundFile('lavarumbleshort1', 0.50, posX, posY, posZ, 'sfx')
 					spAddUnitDamage(unitID, data.drowningDamage, 0, gaiaTeamID, waterDamageDefID)
 				end
 			else
