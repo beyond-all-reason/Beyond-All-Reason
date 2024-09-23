@@ -11,7 +11,7 @@ return {
 		canmove = true,
 		canreclaim = false,
 		canrepair = false,
-		category = "ALL TANK MOBILE NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE T4AIR",
+		category = "",
 		collisionvolumeoffsets = "0 25 -3",
 		collisionvolumescales = "48 57 142",
 		collisionvolumetype = "Box",

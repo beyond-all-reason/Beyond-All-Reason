@@ -67,7 +67,7 @@ for difficulty, stats in pairs(difficultyParams) do
 		canmove = true,
 		capturable = false,
 		capturespeed = 1800,
-		category = "ALL WEAPON NOTSUB COMMANDER NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 12 0",
 		collisionvolumescales = "111 207 111",
 		collisionvolumetype = "CylY",

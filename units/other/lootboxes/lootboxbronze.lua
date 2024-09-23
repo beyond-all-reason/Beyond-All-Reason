@@ -18,7 +18,7 @@ return {
 		canstop = false,
 		cantbetransported = false,
 		capturable = true,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "32 32 32",
 		collisionvolumetype = "box",

@@ -8,7 +8,7 @@ return {
 		buildpic = "ARMWINT2.DDS",
 		buildtime = 16000,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "68 174 68",
 		collisionvolumetype = "CylY",

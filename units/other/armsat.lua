@@ -11,7 +11,7 @@ return {
 		canfly = true,
 		canmove = true,
 		capturable = false,
-		category = "ALL NOTLAND MOBILE NOTSUB NOWEAPON NOTSHIP NOTHOVER SPACE",
+		category = "",
 		collide = false,
 		cruisealtitude = 2700,
 		explodeas = "largeexplosiongeneric",

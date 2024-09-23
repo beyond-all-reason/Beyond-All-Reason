@@ -9,7 +9,7 @@ return {
 		buildpic = "FREEFUSION.DDS",
 		buildtime = 800,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "",
 		corpse = "DEAD",
 		energymake = 850,
 		energystorage = 150,

@@ -13,7 +13,7 @@ return {
 		canpatrol = true,
 		canstop = "1",
 		capturable = false,
-		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE RAPTOR EMPABLE",
+		category = "RAPTOR",
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "25 34 44",
 		collisionvolumetype = "box",

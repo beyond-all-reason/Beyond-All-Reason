@@ -11,7 +11,7 @@ return {
 		buildtime = 10,
 		canmove = false,
 		capturable = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "0 0 0",
 		collisionvolumetype = "box",

@@ -11,7 +11,7 @@ return {
 		buildtime = 250000,
 		canfly = true,
 		canmove = true,
-		category = "ALL WEAPON NOTSUB VTOL NOTHOVER T4AIR",
+		category = "T4AIR",
 		collide = true,
 		collisionvolumeoffsets = "0 -14 10",
 		collisionvolumescales = "70 70 170",

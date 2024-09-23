@@ -46,7 +46,7 @@ for lvl, stats in pairs(lvlParams) do
 		canmove = false,
 		canselfdestruct = false,
 		capturable = false,
-		category = "ALL WEAPON COMMANDER NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
+		category = "",
 		cloakcost = 0,
 		cloakcostmoving = 0,
 		cloaktimeout = 0,

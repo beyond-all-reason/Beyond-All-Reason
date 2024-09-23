@@ -10,7 +10,7 @@ return {
 		buildtime = 100000,
 		blocking = false,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		cloakcost = 10,
 		explodeas = "scavcomexplosion",
 		footprintx = 5,

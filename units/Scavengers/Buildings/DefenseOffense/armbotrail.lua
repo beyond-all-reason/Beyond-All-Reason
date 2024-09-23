@@ -8,7 +8,7 @@ return {
 		buildpic = "ARMBOTRAIL.DDS",
 		buildtime = 255000,
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 0 -20",
 		collisionvolumescales = "48 90 48",
 		collisionvolumetype = "CylY",

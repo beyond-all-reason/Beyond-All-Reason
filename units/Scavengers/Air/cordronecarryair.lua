@@ -12,7 +12,7 @@ return {
 		canmove = true,
 		canreclaim = false,
 		canrepair = false,
-		category = "ALL NOTLAND MOBILE NOTSUB NOTSHIP VTOL NOTHOVER EMPABLE",
+		category = "",
 		collide = true,
 		collisionvolumeoffsets = "-1 5 2",
 		collisionvolumescales = "48 48 136",

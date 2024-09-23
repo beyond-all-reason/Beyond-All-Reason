@@ -7,7 +7,7 @@ return {
 		buildpic = "CORKARGANETHT4.DDS",
 		buildtime = 120000,
 		canmove = true,
-		category = "BOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0.0 -2.0 1",
 		collisionvolumescales = "56.0 60.0 40.0",
 		collisionvolumetype = "box",

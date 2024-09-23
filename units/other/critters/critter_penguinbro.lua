@@ -15,7 +15,7 @@ return {
 		canstop = "1",
 		cantbetransported = true,
 		capturable = false,
-		category = "MOBILE WEAPON NOTAIR NOTSUB",
+		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "15 32 15",
 		collisionvolumetype = "CylY",

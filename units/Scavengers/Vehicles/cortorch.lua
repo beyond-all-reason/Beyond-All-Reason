@@ -8,7 +8,7 @@ return {
 		buildpic = "CORTORCH.DDS",
 		buildtime = 4150,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "",
 		collisionvolumeoffsets = "0 -3 0",
 		collisionvolumescales = "30 21 36",
 		collisionvolumetype = "Box",

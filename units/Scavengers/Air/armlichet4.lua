@@ -9,7 +9,7 @@ return {
 		buildtime = 240000,
 		canfly = true,
 		canmove = true,
-		category = "ALL WEAPON NOTSUB VTOL NOTHOVER",
+		category = "T4AIR",
 		collide = false,
 		cruisealtitude = 150,
 		explodeas = "hugeexplosiongeneric",

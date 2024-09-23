@@ -12,7 +12,7 @@ return {
 		cancapture = true,
 		canfly = true,
 		canmove = true,
-		category = "ALL MOBILE NOTLAND NOTSUB VTOL NOWEAPON NOTSHIP NOTHOVER",
+		category = "",
 		collide = true,
 		cruisealtitude = 100,
 		explodeas = "smallexplosiongeneric-builder",
