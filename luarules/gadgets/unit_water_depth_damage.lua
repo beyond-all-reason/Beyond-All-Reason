@@ -41,6 +41,8 @@ local spGetUnitPosition = Spring.GetUnitPosition
 local spSpawnCEG = Spring.SpawnCEG
 local spPlaySoundFile = Spring.PlaySoundFile
 local spTestMoveOrder = Spring.TestMoveOrder
+local spGetUnitHealth = Spring.GetUnitHealth
+local spDestroyUnit = Spring.DestroyUnit
 
 --tables
 local unitDefData = {}
@@ -92,14 +94,22 @@ end
 function gadget:UnitEnteredWater(unitID, unitDefID, unitTeam)
 	if fallingUnits[unitID] and not livingTransports[fallingUnits[unitID].transportID] then
 		local velX, velY, velZ, velLength = spGetUnitVelocity(unitID)
+		local posX, posY, posZ = spGetUnitBasePosition(unitID)
 		if velLength > velocityThreshold then
-			local posX, posY, posZ = spGetUnitBasePosition(unitID)
 			spSpawnCEG('watersplash_large', posX, posY, posZ)
 			spPlaySoundFile('xplodep3', 0.5, posX, posY, posZ, 'sfx')
 			if unitDefData[unitDefID].isHover then
+				local health, maxHealth = spGetUnitHealth(unitID)
 				local damage = (unitDefData[unitDefID].fallDamage * velLength) * (fallDamageCompoundingFactor ^ velLength)
+				if damage >= health then
+					spDestroyUnit(unitID) --this ensures a wreck is left behind. If damage is too great, it destroys the heap.
+				else
 				spAddUnitDamage(unitID, damage, 0, gaiaTeamID, waterDamageDefID)
+				end
 			end
+		else
+			spSpawnCEG('watersplash_small', posX, posY, posZ)
+			spPlaySoundFile('xplodep3', 0.3, posX, posY, posZ, 'sfx')
 		end
 		fallingUnits[unitID] = nil
 	else
