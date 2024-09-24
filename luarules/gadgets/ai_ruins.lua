@@ -311,7 +311,7 @@ end
 local SpawnedMexes = {}
 local function SpawnMexes(mexSpots)
 	for i = 1,#mexSpots do
-		if math.random(0,1) == 0 then
+		if math.random(0,2) == 0 then
 			local spot = mexSpots[i]
 			local posx = spot.x
 			local posz = spot.z
@@ -342,7 +342,7 @@ local function SpawnMexes(mexSpots)
 				Spring.SetUnitNeutral(unit, true)
 				Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
 				Spring.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
-				SpawnedMexes[i] = math.random(2,10)
+				SpawnedMexes[i] = math.random(1,2)
 			end
 		end
 	end
@@ -382,7 +382,7 @@ local function SpawnGeos(geoSpots)
 				Spring.SetUnitNeutral(unit, true)
 				Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
 				Spring.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
-				SpawnedGeos[i] = math.random(5,20)
+				SpawnedGeos[i] = math.random(2,3)
 			end
 		end
 	end
@@ -480,6 +480,48 @@ local function SpawnMexGeoRandomStructures()
 	end
 end
 
+local function SpawnRandomStructures()
+	for i = 1,math.ceil(spawnCutoffFrame/10) do
+		for j = 1,20 do
+			local posx = math.random(196,Game.mapSizeX-196)
+			local posz = math.random(196,Game.mapSizeZ-196)
+			local posy = Spring.GetGroundHeight(posx, posz)
+			local defencesList
+			if posy > 0 then
+				defencesList = landDefences
+			else
+				defencesList = seaDefences
+			end
+
+			local radius = 128
+			local canBuildHere = positionCheckLibrary.VisibilityCheckEnemy(posx, posy, posz, radius, GaiaAllyTeamID, true, true, true)
+						and positionCheckLibrary.MapEdgeCheck(posx, posy, posz, radius)
+						and positionCheckLibrary.OccupancyCheck(posx, posy, posz, radius)
+						and positionCheckLibrary.FlatAreaCheck(posx, posy, posz, radius)
+
+			if posy > 0 then
+				canBuildHere = canBuildHere and positionCheckLibrary.SurfaceCheck(posx, posy, posz, radius)
+			elseif posy <= 0 then
+				canBuildHere = canBuildHere and positionCheckLibrary.SurfaceCheck(posx, posy, posz, radius, true)
+			end
+
+			if canBuildHere and getNearestBlocker(posx, posz) < radius then
+				canBuildHere = false
+			end
+
+			if canBuildHere then
+				local defence = defencesList[math.random(1,#defencesList)]
+				local unit = Spring.CreateUnit(UnitDefNames[defence].id, posx, posy, posz, math.random(0,3), GaiaTeamID)
+				--Spring.SpawnCEG("scav-spawnexplo", posx, posy, posz, 0,0,0)
+				Spring.SetUnitNeutral(unit, true)
+				Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
+				Spring.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
+				break
+			end
+		end
+	end
+end
+
 function gadget:GameFrame(n)
 
 	if n == 15 then
@@ -498,6 +540,10 @@ function gadget:GameFrame(n)
 
 	if n == spawnCutoffFrame then
 		SpawnMexGeoRandomStructures()
+	end
+
+	if n == spawnCutoffFrame + 5 then
+		SpawnRandomStructures()
 	end
 
 	if n < (10/ruinDensityMultiplier) or n%(10/ruinDensityMultiplier) ~= 0 or n > spawnCutoffFrame+5 then
