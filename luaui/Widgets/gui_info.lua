@@ -1530,8 +1530,12 @@ local function drawUnitInfo()
 		end
 
 		if unitDefInfo[displayUnitDefID].transport then
-			addTextInfo(texts.transportmaxmass, unitDefInfo[displayUnitDefID].transport[1])
-			addTextInfo(texts.transportmaxsize, unitDefInfo[displayUnitDefID].transport[2])
+			if unitDefInfo[displayUnitDefID].transport[1] < 5001 then
+				addTextInfo("Transport: Light", nil)
+			end
+			if unitDefInfo[displayUnitDefID].transport[1] > 5000 then
+				addTextInfo("Transport: Heavy", nil)
+			end
 			addTextInfo(texts.transportcapacity, unitDefInfo[displayUnitDefID].transport[3])
 		end
 
