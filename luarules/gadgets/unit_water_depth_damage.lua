@@ -12,6 +12,8 @@ end
 
 if not gadgetHandler:IsSyncedCode() then return end
 
+--use customParams.water_fall_damage_multiplier = 1.0 to change the amount of fall damage taken by specific units.
+
 --any maxWaterDepth movedef equal to or above this number will not take drowning damage.
 local isDrownableMaxWaterDepth = 5000
 
@@ -55,7 +57,7 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 
 	unitDefData[unitDefID] = {}
 
-	unitDefData[unitDefID].fallDamageMultiplier = unitDef.customParams.fall_damage_multiplier or 1
+	unitDefData[unitDefID].fallDamageMultiplier = unitDef.customParams.water_fall_damage_multiplier or 1
 
 	if unitDef.health then
 		unitDefData[unitDefID].drowningDamage = unitDef.health * drowningDamage
@@ -98,7 +100,7 @@ function gadget:UnitEnteredWater(unitID, unitDefID, unitTeam)
 		if velLength > velocityThreshold then
 			spSpawnCEG('watersplash_large', posX, posY, posZ)
 			spPlaySoundFile('xplodep3', 0.5, posX, posY, posZ, 'sfx')
-			if unitDefData[unitDefID].isHover then
+			if unitDefData[unitDefID] then
 				local health, maxHealth = spGetUnitHealth(unitID)
 				local damage = (unitDefData[unitDefID].fallDamage * velLength) * (fallDamageCompoundingFactor ^ velLength)
 				if damage >= health then
