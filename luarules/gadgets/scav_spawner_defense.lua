@@ -1522,8 +1522,8 @@ if gadgetHandler:IsSyncedCode() then
 			Spring.SetUnitHealth(unitID, maxH)
 			local x,y,z = Spring.GetUnitPosition(unitID)
 			if (not UnitDefs[unitDefID].isscavenger) and UnitDefs[unitDefID] and UnitDefs[unitDefID].name and UnitDefNames[UnitDefs[unitDefID].name .. "_scav"] then
+				createUnitQueue[#createUnitQueue+1] = {UnitDefs[unitDefID].name .. "_scav", x, y, z, Spring.GetUnitBuildFacing(unitID) or 0, scavTeamID}
 				Spring.DestroyUnit(unitID, true, true)
-				createUnitQueue[#createUnitQueue+1] = {UnitDefs[unitDefID].name .. "_scav", x, y, z, 0, scavTeamID}
 			end
 			Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{config.defaultScavFirestate},0)
 			Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
@@ -2079,7 +2079,7 @@ if gadgetHandler:IsSyncedCode() then
 						end
 						captureProgress = math.min(0.05, captureProgress)
 						if Spring.GetUnitTeam(unitID) ~= scavTeamID and GG.IsPosInRaptorScum(ux, uy, uz) then
-							if captureLevel+captureProgress >= 0.99 or Spring.GetUnitTeam(unitID) == gaiaTeamID then
+							if captureLevel+captureProgress >= 0.99 then
 								Spring.TransferUnit(unitID, scavTeamID, false)
 								Spring.SetUnitHealth(unitID, {capture = 0.95})
 								Spring.SetUnitHealth(unitID, {health = maxHealth})
@@ -2149,8 +2149,8 @@ if gadgetHandler:IsSyncedCode() then
 
 			local x,y,z = Spring.GetUnitPosition(unitID)
 			if (not UnitDefs[unitDefID].isscavenger) and UnitDefs[unitDefID] and UnitDefs[unitDefID].name and UnitDefNames[UnitDefs[unitDefID].name .. "_scav"] then
+				createUnitQueue[#createUnitQueue+1] = {UnitDefs[unitDefID].name .. "_scav", x, y, z, Spring.GetUnitBuildFacing(unitID) or 0, scavTeamID}
 				Spring.DestroyUnit(unitID, true, true)
-				createUnitQueue[#createUnitQueue+1] = {UnitDefs[unitDefID].name .. "_scav", x, y, z, 0, scavTeamID}
 			end
 			Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{config.defaultScavFirestate},0)
 			Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
