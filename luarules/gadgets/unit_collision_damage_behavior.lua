@@ -108,7 +108,7 @@ local function massToHealthRatioMultiplier(unitID, unitDefID)
 	local health, maxHealth = spGetUnitHealth(unitID)
 	if maxHealth then
 		local massToMaxHealthMultiplier = (maxHealth / unitMasses[unitDefID]) * fallDamageMultipliers[unitDefID]
-		return massToMaxHealthMultiplier
+		return massToMaxHealthMultiplier, health
 	else
 		return fallDamageMultipliers[unitDefID], health
 	end
@@ -137,9 +137,9 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		unitInertiaCheckFlags[unitID] = gameFrame + velocityWatchFrames
 		return damage, impulseMultiplier
 	elseif (weaponDefID == groundCollisionDefID or weaponDefID == objectCollisionDefID) and not transportedUnits[unitID] and isValidCollisionDirection(unitID) then
-			local healthRatioMultiplier, health = massToHealthRatioMultiplier(unitID, unitDefID)
-			damage = preventOverkillDamage(unitID, damage, health, healthRatioMultiplier)
-			return damage, 0
+		local healthRatioMultiplier, health = massToHealthRatioMultiplier(unitID, unitDefID)
+		damage = preventOverkillDamage(unitID, damage, health, healthRatioMultiplier)
+		return damage, 0
 	else
 		return damage
 	end
