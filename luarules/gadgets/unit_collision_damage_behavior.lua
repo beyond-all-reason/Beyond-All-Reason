@@ -44,6 +44,7 @@ local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitVelocity = Spring.GetUnitVelocity
 local spSetUnitVelocity = Spring.SetUnitVelocity
 local spGetUnitIsDead = Spring.GetUnitIsDead
+local spDestroyUnit = Spring.DestroyUnit
 local mathMin = math.min
 local mathMax = math.max
 local mathAbs = math.abs
@@ -107,9 +108,19 @@ local function massToHealthRatioMultiplier(unitID, unitDefID)
 	local health, maxHealth = spGetUnitHealth(unitID)
 	if maxHealth then
 		local massToMaxHealthMultiplier = (maxHealth / unitMasses[unitDefID]) * fallDamageMultipliers[unitDefID]
-		return massToMaxHealthMultiplier
+		return massToMaxHealthMultiplier, health
 	else
-		return fallDamageMultipliers[unitDefID]
+		return fallDamageMultipliers[unitDefID], health
+	end
+end
+
+local function preventOverkillDamage(unitID, damage, health, healthRatioMultiplier)
+	damage = damage * healthRatioMultiplier
+	if damage >= health then
+		spDestroyUnit(unitID) --this ensures a wreck is left behind. If damage is too great, it destroys the heap.
+		return 0
+	else
+		return damage
 	end
 end
 
@@ -125,16 +136,12 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		impulseMultiplier = getImpulseMultiplier(unitDefID, weaponDefID, damage)
 		unitInertiaCheckFlags[unitID] = gameFrame + velocityWatchFrames
 		return damage, impulseMultiplier
-	elseif weaponDefID == groundCollisionDefID and not transportedUnits[unitID] and isValidCollisionDirection(unitID) then
-			damage = damage * massToHealthRatioMultiplier(unitID, unitDefID)
-			return damage, 0
-	elseif weaponDefID == objectCollisionDefID and not transportedUnits[unitID] then
-		if isValidCollisionDirection(unitID) then
-			damage = damage * massToHealthRatioMultiplier(unitID, unitDefID)
-			return damage, 0
-		else
-			return 0, 0
-		end
+	elseif (weaponDefID == groundCollisionDefID or weaponDefID == objectCollisionDefID) and not transportedUnits[unitID] and isValidCollisionDirection(unitID) then
+		local healthRatioMultiplier, health = massToHealthRatioMultiplier(unitID, unitDefID)
+		damage = preventOverkillDamage(unitID, damage, health, healthRatioMultiplier)
+		return damage, 0
+	else
+		return damage
 	end
 end
 
