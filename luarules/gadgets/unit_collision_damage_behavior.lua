@@ -96,8 +96,12 @@ for weaponDefID, wDef in ipairs(WeaponDefs) do
 end
 
 local function getImpulseMultiplier(unitDefID, weaponDefID, damage)
-	local impulseBoost = weaponDefIDImpulses[weaponDefID].impulseBoost or 0
-	local impulseFactor = weaponDefIDImpulses[weaponDefID].impulseFactor or 1
+	local impulseBoost = 0
+	local impulseFactor = 1
+	if weaponDefID and weaponDefIDImpulses[weaponDefID] then
+		impulseBoost = weaponDefIDImpulses[weaponDefID].impulseBoost or 0
+		impulseFactor = weaponDefIDImpulses[weaponDefID].impulseFactor or 1
+	end
 	local impulse = (damage + impulseBoost) * impulseFactor
 	local maxImpulse = unitsMaxImpulse[unitDefID]
 	local impulseMultiplier = mathMin(maxImpulse/impulse, 1) -- negative impulse values are not capped.
