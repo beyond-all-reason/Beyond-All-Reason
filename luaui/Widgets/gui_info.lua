@@ -1532,10 +1532,10 @@ local function drawUnitInfo()
 		if unitDefInfo[displayUnitDefID].transport then
 
 			if unitDefInfo[displayUnitDefID].transport[1] < 5001 then
-				addTextInfo(Spring.I18N('ui.info.transport_light', { highlightColor = "\255\255\255\255" }), nil)
+				addTextInfo(Spring.I18N('ui.info.transport_light', { highlightColor = valueColor }), nil)
 			end
 			if unitDefInfo[displayUnitDefID].transport[1] > 5000 then
-				addTextInfo(Spring.I18N('ui.info.transport_heavy', { highlightColor = "\255\255\255\255" }), nil)
+				addTextInfo(Spring.I18N('ui.info.transport_heavy', { highlightColor = valueColor }), nil)
 			end
 			addTextInfo(texts.transportcapacity, unitDefInfo[displayUnitDefID].transport[3])
 		end
