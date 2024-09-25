@@ -112,6 +112,7 @@ return {
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
+				damagemodifier = 0.33,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:burnblackbig",
 				firestarter = 100,

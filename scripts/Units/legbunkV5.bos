@@ -1,0 +1,362 @@
+#define TA			// This is a TA script
+
+#include "../recoil_common_includes.h"
+
+piece  pelvis,  aimy1, torsointer, aimx1, lshoulder, lforearmtop, pilebunk, exhaustflare1, exhaustflare2, impale, pileflare001, lasflare002, head, rshoulder, rforearm, thrustback, thrustbackflare1, thrustbackflare2, lthigh, lmidleg, lshin, lfootjoint, ltoes, rthigh, rmidleg, rshin, rfeetjoint, rtoes;
+
+
+// For C:\Users\Furtan GPunkt\Downloads\Lgepilv21-Walkcycle.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2))
+
+// this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
+static-var isAiming, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, tdamage, shieldup , shieldLimit, restore_delay;
+#define SIGNAL_MOVE 1
+#define SIG_WALK			2
+#define SIG_AIM				4
+#define SIG_AIM_2			8
+
+Create()
+{
+	hide aimx1;
+	hide aimy1;
+	isMoving = FALSE;
+	animSpeed = 4; // Set to 4 for 75ms, 4.3733 for 82ms
+	tdamage = 0; // Coutns the ammount of damage taken since last fully healed
+	shieldup = 1; //Taken from Phalanx Code, used to know if the Armored state is active or not!
+	set ARMORED to 1; //Tells the game to start armored
+	shieldLimit = 500000; // Damage limit of armor
+	restore_delay = 3000; // Delay from returning to relaxed idle stance
+	call-script StopWalking(); //Start in power pose! Thank you cleaned Pawn <3
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = torsointer;
+}
+
+HitByWeaponId(anglex, anglez, weaponid, dmg)	// angle[x|z] is always [-500;500], damage is multiplied by 100
+{
+	get PRINT(anglex);
+	//get PRINT(anglex,anglez,dmg/10);
+
+	tdamage = dmg + tdamage;
+	//if ((tdamage > shieldLimit) AND (shieldup == 1))
+	//{
+	//	explode rforearm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD; //TODO: Replace rforearm by a shield object
+	//	hide rforearm;
+	//	set ARMORED to 0;
+	//	shieldup = 0;
+	//}
+	return (100);
+}
+
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	turn aimy1 to y-axis <0.000000> speed <90.000000>;
+	turn aimx1 to x-axis <0.000000> speed <45.000000>;
+	wait-for-turn aimy1 around y-axis;
+	wait-for-turn aimx1 around x-axis;
+	show rforearm;
+	tdamage = 0; //FIXME: This is not supposed to happen here! It should actually only be reset with its friend when fully healed.
+	set ARMORED to 1;
+	shieldup = 1;
+	isAiming = FALSE;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = torsointer;
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = pilebunk;
+}
+
+AimPrimary(heading, pitch)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	isAiming = TRUE;
+	turn aimy1 to y-axis heading/4 speed <200.000000>;
+	turn aimx1 to x-axis <0.000000> - pitch speed <90.000000>;
+	//wait-for-turn aimy1 around y-axis;
+	start-script RestoreAfterDelay();
+	wait-for-turn aimx1 around x-axis;
+	wait-for-turn aimy1 around y-axis;
+	return (1);
+}
+
+FireWeapon1()
+{
+	//start-script Rock_Main_Cannon();
+
+	move impale to z-axis [75.000000] speed [1000.000000];
+	spin impale around z-axis speed <360> accelerate <120>;
+	emit-sfx UNIT_SFX0 from exhaustflare1;
+	emit-sfx UNIT_SFX0 from exhaustflare2;
+	start-script FireBunkerExhausts();
+	sleep 100;
+	//hide spark_emit2;
+	wait-for-move impale along z-axis;
+	move impale to z-axis [0.000000] speed [30.000000];
+	wait-for-move impale along z-axis;
+	stop-spin impale around z-axis decelerate <15>;
+}
+
+RestoreAfterDelay()
+{
+	set-signal-mask SIG_AIM;
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
+}
+
+FireBunkerExhausts()
+{
+		show exhaustflare1;
+		show exhaustflare2;
+		sleep 225;
+		hide exhaustflare1;
+		hide exhaustflare2;
+		return (1);
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode pelvis type BITMAPONLY | NOHEATCLOUD;
+		explode rthigh type BITMAPONLY | NOHEATCLOUD;
+		explode head type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rleg type BITMAPONLY | NOHEATCLOUD;
+		//explode rfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lthigh type BITMAPONLY | NOHEATCLOUD;
+		//explode lleg type BITMAPONLY | NOHEATCLOUD;
+		//explode lfoot type BITMAPONLY | NOHEATCLOUD;
+		explode torsointer type BITMAPONLY | NOHEATCLOUD;
+		//explode luparm type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode ruparm type BITMAPONLY | NOHEATCLOUD;
+		//explode flare type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+}
+
+
+Walk() {// For S:\Projects\BeyondAllReason\PilumProject\PilumBlends\legbunkV4-Walk-backed.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2))
+	set-signal-mask SIGNAL_MOVE;
+	if (isMoving) { //Frame:4
+			turn Cylinder to x-axis <-19.999999> speed <599.999983> / animSpeed;
+			turn Cylinder.019 to x-axis <-19.999999> speed <599.999983> / animSpeed;
+			turn Plane.007 to x-axis <14.458576> speed <433.757293> / animSpeed;
+			turn Plane.008 to x-axis <-19.061665> speed <571.849938> / animSpeed;
+			turn lfootjoint to x-axis <23.131773> speed <693.953179> / animSpeed;
+			turn lmidleg to x-axis <-1.246041> speed <37.381227> / animSpeed;
+			turn lshin to x-axis <-8.968483> speed <269.054496> / animSpeed;
+			turn lthigh to x-axis <-28.917160> speed <867.514792> / animSpeed;
+			move pelvis to z-axis [2.736661] speed [82.099836] / animSpeed;
+			move pelvis to y-axis [0.164505] speed [4.935150] / animSpeed;
+			turn pelvis to x-axis <16.000000> speed <479.999996> / animSpeed;
+			turn rfootjoint to x-axis <-26.579254> speed <797.377628> / animSpeed;
+			turn rmidleg to x-axis <-52.374881> speed <1571.246428> / animSpeed;
+			turn rshin to x-axis <61.561178> speed <1846.835340> / animSpeed;
+			turn rthigh to x-axis <38.123975> speed <1143.719240> / animSpeed;
+			turn torso to y-axis <2.000000> speed <60.000000> / animSpeed;
+			turn upperarm.l to x-axis <4.000000> speed <119.999999> / animSpeed;
+			turn upperarm.l.001 to x-axis <4.000000> speed <119.999999> / animSpeed;
+		sleep ((33*animSpeed) -1);
+	}
+	while(isMoving) {
+		if (isMoving) { //Frame:8
+			turn Plane.007 to x-axis <14.334303> speed <3.728208> / animSpeed;
+			turn Plane.008 to x-axis <-4.508207> speed <436.603715> / animSpeed;
+			turn lfootjoint to x-axis <17.603470> speed <165.849065> / animSpeed;
+			turn lmidleg to x-axis <-2.935646> speed <50.688160> / animSpeed;
+			turn lshin to x-axis <-12.854882> speed <116.591969> / animSpeed;
+			turn lthigh to x-axis <-28.668613> speed <7.456415> / animSpeed;
+			move pelvis to z-axis [1.879989] speed [25.700179] / animSpeed;
+			move pelvis to y-axis [-1.603920] speed [53.052750] / animSpeed;
+			turn rfootjoint to x-axis <22.094987> speed <1460.227253> / animSpeed;
+			turn rmidleg to x-axis <9.905176> speed <1868.401714> / animSpeed;
+			turn rshin to x-axis <16.757941> speed <1344.097115> / animSpeed;
+			turn rthigh to x-axis <9.016416> speed <873.226768> / animSpeed;
+			turn torso to y-axis <1.000000> speed <30.000000> / animSpeed;
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:12
+			turn Plane.007 to x-axis <6.174500> speed <244.794087> / animSpeed;
+			turn Plane.008 to x-axis <2.386206> speed <206.832397> / animSpeed;
+			turn lfootjoint to x-axis <9.327679> speed <248.273731> / animSpeed;
+			turn lmidleg to x-axis <7.200204> speed <304.075495> / animSpeed;
+			turn lshin to x-axis <-20.178874> speed <219.719741> / animSpeed;
+			turn lthigh to x-axis <-12.349004> speed <489.588250> / animSpeed;
+			move pelvis to z-axis [-0.493514] speed [71.205086] / animSpeed;
+			move pelvis to y-axis [-3.372347] speed [53.052807] / animSpeed;
+			turn rfootjoint to x-axis <31.734896> speed <289.197262> / animSpeed;
+			turn rmidleg to x-axis <36.173365> speed <788.045660> / animSpeed;
+			turn rshin to x-axis <-21.297075> speed <1141.650462> / animSpeed;
+			turn rthigh to x-axis <-4.772412> speed <413.664819> / animSpeed;
+			turn torso to y-axis <-0.000000> speed <30.000000> / animSpeed;
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:16
+			turn Plane.007 to x-axis <-4.200308> speed <311.244229> / animSpeed;
+			turn Plane.008 to x-axis <14.059938> speed <350.211980> / animSpeed;
+			turn lfootjoint to x-axis <-16.720197> speed <781.436299> / animSpeed;
+			turn lmidleg to x-axis <-1.176111> speed <251.289446> / animSpeed;
+			turn lshin to x-axis <-6.504311> speed <410.236862> / animSpeed;
+			turn lthigh to x-axis <8.400614> speed <622.488560> / animSpeed;
+			move pelvis to z-axis [0.411262] speed [27.143279] / animSpeed;
+			move pelvis to y-axis [-2.919958] speed [13.571663] / animSpeed;
+			turn rfootjoint to x-axis <42.976271> speed <337.241239> / animSpeed;
+			turn rmidleg to x-axis <18.313423> speed <535.798270> / animSpeed;
+			turn rthigh to x-axis <-28.119962> speed <700.426521> / animSpeed;
+			turn torso to y-axis <-1.000000> speed <30.000003> / animSpeed;
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:20
+			turn Plane.007 to x-axis <-19.061678> speed <445.841119> / animSpeed;
+			turn Plane.008 to x-axis <14.458604> speed <11.959960> / animSpeed;
+			turn lfootjoint to x-axis <-26.579398> speed <295.776014> / animSpeed;
+			turn lmidleg to x-axis <-52.374338> speed <1535.946799> / animSpeed;
+			turn lshin to x-axis <61.559812> speed <2041.923703> / animSpeed;
+			turn lthigh to x-axis <38.123715> speed <891.693021> / animSpeed;
+			move pelvis to z-axis [2.736661] speed [69.761986] / animSpeed;
+			move pelvis to y-axis [0.164505] speed [92.533894] / animSpeed;
+			turn rfootjoint to x-axis <23.132365> speed <595.317171> / animSpeed;
+			turn rmidleg to x-axis <-1.246611> speed <586.801016> / animSpeed;
+			turn rshin to x-axis <-8.968544> speed <371.302146> / animSpeed;
+			turn rthigh to x-axis <-28.917208> speed <23.917359> / animSpeed;
+			turn torso to y-axis <-2.000000> speed <29.999997> / animSpeed;
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:24
+			turn Plane.007 to x-axis <-4.508382> speed <436.598900> / animSpeed;
+			turn Plane.008 to x-axis <14.334397> speed <3.726210> / animSpeed;
+			turn lfootjoint to x-axis <22.095109> speed <1460.235193> / animSpeed;
+			turn lmidleg to x-axis <9.905024> speed <1868.380865> / animSpeed;
+			turn lshin to x-axis <16.757603> speed <1344.066277> / animSpeed;
+			turn lthigh to x-axis <9.016773> speed <873.208275> / animSpeed;
+			move pelvis to z-axis [1.879989] speed [25.700179] / animSpeed;
+			move pelvis to y-axis [-1.603920] speed [53.052750] / animSpeed;
+			turn rfootjoint to x-axis <17.603902> speed <165.853881> / animSpeed;
+			turn rmidleg to x-axis <-2.935958> speed <50.680409> / animSpeed;
+			turn rshin to x-axis <-12.854904> speed <116.590791> / animSpeed;
+			turn rthigh to x-axis <-28.668800> speed <7.452214> / animSpeed;
+			turn torso to y-axis <-1.000000> speed <30.000000> / animSpeed;
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:28
+			turn Plane.007 to x-axis <2.384351> speed <206.781971> / animSpeed;
+			turn Plane.008 to x-axis <6.174439> speed <244.798723> / animSpeed;
+			turn lfootjoint to x-axis <31.737399> speed <289.268722> / animSpeed;
+			turn lmidleg to x-axis <36.170090> speed <787.951967> / animSpeed;
+			turn lshin to x-axis <-21.299972> speed <1141.727250> / animSpeed;
+			turn lthigh to x-axis <-4.768710> speed <413.564467> / animSpeed;
+			move pelvis to z-axis [-0.493514] speed [71.205086] / animSpeed;
+			move pelvis to y-axis [-3.372347] speed [53.052807] / animSpeed;
+			turn rfootjoint to x-axis <9.327981> speed <248.277650> / animSpeed;
+			turn rmidleg to x-axis <7.199898> speed <304.075687> / animSpeed;
+			turn rshin to x-axis <-20.179007> speed <219.723096> / animSpeed;
+			turn rthigh to x-axis <-12.348883> speed <489.597522> / animSpeed;
+			turn torso to y-axis <-0.000000> speed <30.000000> / animSpeed;
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:32
+			turn Plane.007 to x-axis <14.058195> speed <350.215329> / animSpeed;
+			turn Plane.008 to x-axis <-4.200376> speed <311.244472> / animSpeed;
+			turn lfootjoint to x-axis <42.978518> speed <337.233555> / animSpeed;
+			turn lmidleg to x-axis <18.310205> speed <535.796529> / animSpeed;
+			turn lthigh to x-axis <-28.116438> speed <700.431848> / animSpeed;
+			move pelvis to z-axis [0.411262] speed [27.143279] / animSpeed;
+			move pelvis to y-axis [-2.919958] speed [13.571663] / animSpeed;
+			turn rfootjoint to x-axis <-16.720334> speed <781.449439> / animSpeed;
+			turn rmidleg to x-axis <-1.176055> speed <251.278586> / animSpeed;
+			turn rshin to x-axis <-6.504378> speed <410.238860> / animSpeed;
+			turn rthigh to x-axis <8.400760> speed <622.489277> / animSpeed;
+			turn torso to y-axis <1.000000> speed <30.000003> / animSpeed;
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:36
+			turn Plane.007 to x-axis <14.458576> speed <12.011443> / animSpeed;
+			turn Plane.008 to x-axis <-19.061665> speed <445.838647> / animSpeed;
+			turn lfootjoint to x-axis <23.131773> speed <595.402360> / animSpeed;
+			turn lmidleg to x-axis <-1.246041> speed <586.687395> / animSpeed;
+			turn lshin to x-axis <-8.968483> speed <371.368407> / animSpeed;
+			turn lthigh to x-axis <-28.917160> speed <24.021656> / animSpeed;
+			move pelvis to z-axis [2.736661] speed [69.761986] / animSpeed;
+			move pelvis to y-axis [0.164505] speed [92.533894] / animSpeed;
+			turn rfootjoint to x-axis <-26.579253> speed <295.767562> / animSpeed;
+			turn rmidleg to x-axis <-52.374881> speed <1535.964780> / animSpeed;
+			turn rshin to x-axis <61.561178> speed <2041.966682> / animSpeed;
+			turn rthigh to x-axis <38.123975> speed <891.696453> / animSpeed;
+			turn torso to y-axis <2.000000> speed <29.999997> / animSpeed;
+		sleep ((33*animSpeed) -1);
+		}
+	}
+}
+// Call this from StopMoving()!
+StopWalking() {
+	animSpeed = 10; // tune restore speed here, higher values are slower restore speeds
+	move pelvis to y-axis [0.000000] speed [231.334734] / animSpeed;
+	move pelvis to z-axis [0.000000] speed [205.249590] / animSpeed;
+	turn Cylinder to x-axis <0.000000> speed <1499.999956> / animSpeed;
+	turn Cylinder.019 to x-axis <0.000000> speed <1499.999956> / animSpeed;
+	turn Plane.007 to x-axis <0.000000> speed <1114.602797> / animSpeed;
+	turn Plane.008 to x-axis <0.000000> speed <1429.624846> / animSpeed;
+	turn lfootjoint to x-axis <0.000000> speed <3650.587982> / animSpeed;
+	turn lmidleg to x-axis <0.000000> speed <4670.952162> / animSpeed;
+	turn lmidleg to z-axis <0.190059> speed <-1.583823> / animSpeed;
+	turn lshin to x-axis <0.000000> speed <5104.809257> / animSpeed;
+	turn lshin to z-axis <-0.175490> speed <-1.462415> / animSpeed;
+	turn lthigh to x-axis <0.000000> speed <2229.232552> / animSpeed;
+	turn lthigh to z-axis <-0.172568> speed <-1.438067> / animSpeed;
+	turn pelvis to x-axis <0.000000> speed <1199.999991> / animSpeed;
+	turn rfootjoint to x-axis <0.000000> speed <3650.568131> / animSpeed;
+	turn rmidleg to x-axis <0.000000> speed <4671.004284> / animSpeed;
+	turn rmidleg to z-axis <-0.298887> speed <-2.490725> / animSpeed;
+	turn rshin to x-axis <0.000000> speed <5104.916704> / animSpeed;
+	turn rthigh to x-axis <0.000000> speed <2859.298101> / animSpeed;
+	turn torso to y-axis <0.000000> speed <149.999999> / animSpeed;
+	turn upperarm.l to x-axis <0.000000> speed <299.999998> / animSpeed;
+	turn upperarm.l.001 to x-axis <0.000000> speed <299.999998> / animSpeed;
+}
+
+
+// REMEMBER TO animspeed = 2 in Create() !!
+UnitSpeed(){
+	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
+	animFramesPerKeyframe = 2; //we need to calc the frames per keyframe value, from the known animtime
+	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
+	while(TRUE){
+		animSpeed = (get CURRENT_SPEED);
+		if (animSpeed<1) animSpeed=1;
+		animSpeed = (maxSpeed * 4) / animSpeed;
+		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
+		if (animSpeed<1) animSpeed=1;
+		if (animspeed>5) animSpeed = 5;
+		sleep 94;
+	}
+}
+
+StartMoving(){
+	signal SIGNAL_MOVE;
+	isMoving=TRUE;
+	start-script UnitSpeed();
+	start-script Walk();
+}
+StopMoving(){
+	signal SIGNAL_MOVE;
+	isMoving=FALSE;
+	call-script StopWalking();
+}

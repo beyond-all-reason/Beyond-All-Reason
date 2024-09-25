@@ -13,6 +13,7 @@ static-var isAiming, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, tdama
 #define SIG_WALK			2
 #define SIG_AIM				4
 #define SIG_AIM_2			8
+#define SIG_ARMOR			16
 
 Create()
 {
@@ -38,15 +39,34 @@ HitByWeaponId(anglex, anglez, weaponid, dmg)	// angle[x|z] is always [-500;500],
 	get PRINT(anglex);
 	//get PRINT(anglex,anglez,dmg/10);
 
+	signal SIG_ARMOR;
+
 	tdamage = dmg + tdamage;
-	//if ((tdamage > shieldLimit) AND (shieldup == 1))
-	//{
-	//	explode rforearm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD; //TODO: Replace rforearm by a shield object
-	//	hide rforearm;
-	//	set ARMORED to 0;
-	//	shieldup = 0;
+	if ((tdamage > shieldLimit) AND (shieldup == 1))
+	{
+		explode rforearm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD; //TODO: Replace rforearm by a shield object
+		hide rforearm;
+		set ARMORED to 0;
+		shieldup = 0;
+	}
+	call-script RestoreArmor();
+	//else if (shieldup == 0 && HEALTH == 100) {
+	//
 	//}
 	return (100);
+}
+//TODO: No clue if this is it? Gets called in the SetStunned
+//FIXME: Currently, this guy is immortal. Remember to also check damagemodifier in the lua script.
+RestoreArmor(){
+	signal SIG_ARMOR;
+	set-signal-mask SIG_ARMOR;
+
+	while(HEALTH != 100) {sleep 100;}
+
+	show rforearm;
+	tdamage = 0;
+	set ARMORED to 1;
+	shieldup = 1;
 }
 
 static-var  Stunned;
@@ -55,20 +75,24 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn aimy1 to y-axis <0.000000> speed <90.000000>;
+	turn aimy1 to y-axis <0.000000> speed <45.000000>;
 	turn aimx1 to x-axis <0.000000> speed <45.000000>;
 	wait-for-turn aimy1 around y-axis;
 	wait-for-turn aimx1 around x-axis;
+	isAiming = FALSE;
 	show rforearm;
-	tdamage = 0; //FIXME: This is not supposed to happen here! It should actually only be reset with its friend when fully healed.
+
+	//FIXME: This is not supposed to happen here! It should actually only be reset with its friend when fully healed.
+	tdamage = 0;
 	set ARMORED to 1;
 	shieldup = 1;
-	isAiming = FALSE;
 }
+
 SetStunned(State)
 {
     Stunned = State;
 	if (!Stunned) {
+		call-script RestoreArmor(); //Should this be here, or in the ExecuteRestoreAfterDelay? It should be seperate from it, so when yer getting healed it does it.
 	    start-script ExecuteRestoreAfterDelay();
 	}
 }
@@ -88,8 +112,8 @@ AimPrimary(heading, pitch)
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	isAiming = TRUE;
-	turn aimy1 to y-axis heading/4 speed <200.000000>;
-	turn aimx1 to x-axis <0.000000> - pitch speed <90.000000>;
+	turn aimy1 to y-axis heading speed <90.000000>;
+	turn aimx1 to x-axis <0.000000> - pitch/4 speed <200.000000>;
 	//wait-for-turn aimy1 around y-axis;
 	start-script RestoreAfterDelay();
 	wait-for-turn aimx1 around x-axis;
