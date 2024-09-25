@@ -56,7 +56,7 @@ local transportedUnits = {}
 local unitMasses = {}
 local weaponDefIgnored = {}
 local unitInertiaCheckFlags = {}
-local killQueue = {}
+local fallingKillQueue = {}
 local fallingUnits = {}
 
 local gameFrame = 0
@@ -124,7 +124,7 @@ end
 local function preventOverkillDamage(unitID, damage, health, healthRatioMultiplier)
 	damage = damage * healthRatioMultiplier
 	if damage >= health then
-		killQueue[unitID] = true --done in GameFrame to take it out of unitPreDamaged
+		fallingKillQueue[unitID] = true --done in GameFrame to take it out of unitPreDamaged
 		return 0
 	else
 		return damage
@@ -211,9 +211,9 @@ function gadget:GameFrame(frame)
 		end
 	end
 
-	for unitID, bool in pairs(killQueue) do
+	for unitID, bool in pairs(fallingKillQueue) do
 		spDestroyUnit(unitID) --this ensures a wreck is left behind. If damage is too great, it destroys the heap.
-		killQueue[unitID] = nil
+		fallingKillQueue[unitID] = nil
 	end
 	gameFrame = frame
 end
