@@ -211,7 +211,7 @@ function gadget:GameFrame(frame)
 		end
 	end
 
-	for unitID, bool in pairs(fallingKillQueue) do
+	for unitID, _ in pairs(fallingKillQueue) do
 		spDestroyUnit(unitID) --this ensures a wreck is left behind. If damage is too great, it destroys the heap.
 		fallingKillQueue[unitID] = nil
 	end
