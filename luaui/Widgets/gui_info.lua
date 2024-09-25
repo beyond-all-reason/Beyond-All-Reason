@@ -1530,13 +1530,12 @@ local function drawUnitInfo()
 		end
 
 		if unitDefInfo[displayUnitDefID].transport then
-			local lightTrans = texts.transport .. ': ' .. texts.light
-			local heavyTrans = texts.transport .. ': ' .. texts.heavy
+
 			if unitDefInfo[displayUnitDefID].transport[1] < 5001 then
-				addTextInfo(lightTrans, nil)
+				addTextInfo(texts.transport, texts.light)
 			end
 			if unitDefInfo[displayUnitDefID].transport[1] > 5000 then
-				addTextInfo(heavyTrans, nil)
+				addTextInfo(texts.transport, texts.heavy)
 			end
 			addTextInfo(texts.transportcapacity, unitDefInfo[displayUnitDefID].transport[3])
 		end
