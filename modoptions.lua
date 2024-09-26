@@ -32,7 +32,7 @@ local options = {
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    -- Restrictions
+    -- Main + Restrictions
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     {
@@ -267,6 +267,16 @@ local options = {
 		def 	= false,
 	},
 
+	{
+		key		= "unit_restrictions_notech15",
+		name	= "Disable Tech 1.5",
+		desc	= "Disables: Sea Plane Labs, Hovercraft labs, and Amphibious labs. (Considered Tier 1.5)",
+		type	= "bool",
+		section	= "options_main",
+		def		= false,
+		column	= 1,
+	},
+
     {
         key    	= "unit_restrictions_notech2",
         name   	= "Disable Tech 2",
@@ -274,7 +284,7 @@ local options = {
         type   	= "bool",
         section	= "options_main",
         def    	= false,
-        column  = 1,
+        column  = 1.66,
     },
 
     {
@@ -284,7 +294,7 @@ local options = {
         type   	= "bool",
         section	= "options_main",
         def    	= false,
-        column  = 1.66,
+        column  = 2.33,
     },
 
     {
@@ -296,6 +306,16 @@ local options = {
         def    	= false,
         column  = 1,
     },
+
+	{
+		key		= "unit_restrictions_nodefence",
+		name	= "Disable Defences",
+		desc	= "Disables Defensive Structures, apart from basic LLTs and basic AA",
+		type	= "bool",
+		section	= "options_main",
+		def		= false,
+		column	= 1.66,
+	},
 
     {
         key    	= "unit_restrictions_noextractors",
@@ -317,15 +337,15 @@ local options = {
         column  = 1.66,
     },
 
-    {
-        key    	= "unit_restrictions_nonukes",
-        name   	= "Disable Nuclear Missiles",
-        desc   	= "Disable Nuclear Missiles",
-        type   	= "bool",
-        section	= "options_main",
-        def    	= false,
-        column  = 1,
-    },
+	{
+		key		= "unit_restrictions_nofusion",
+		name	= "Disable Fusion Generators",
+		desc	= "Disables Normal and Advanced Fusion Energy Generators",
+		type	= "bool",
+		section	= "options_main",
+		def		= false,
+		column	= 2.33,
+	},
 
     {
         key    	= "unit_restrictions_notacnukes",
@@ -334,8 +354,28 @@ local options = {
         type   	= "bool",
         section	= "options_main",
         def    	= false,
+        column  = 1,
+    },
+
+    {
+        key    	= "unit_restrictions_nonukes",
+        name   	= "Disable Nuclear Missiles",
+        desc   	= "Disable Nuclear Missiles",
+        type   	= "bool",
+        section	= "options_main",
+        def    	= false,
         column  = 1.66,
     },
+
+	{
+		key		= "unit_restrictions_noantinuke",
+		name	= "Disable Anti-Nuke Defence",
+		desc	= "Disables Nuke Interceptor Units and Structures.",
+		type	= "bool",
+		section	= "options_main",
+		def		= false,
+		column	= 2.33,
+	},
 
     {
         key    	= "unit_restrictions_nolrpc",
@@ -456,6 +496,14 @@ local options = {
         type    = "subheader",
         def     =  true,
     },
+
+	{
+		key		= "sub_header",
+		name	= "To Play Add a Raptors AI to the enemy Team: [Add AI], [RaptorsDefense AI]",
+		desc	= "",
+		section	= "raptor_defense_options",
+		type	= "subheader",
+	},
 
     {
         key     = "sub_header",
@@ -606,6 +654,15 @@ local options = {
         type    = "subheader",
         def     =  true,
     },
+
+	{
+		key		= "sub_header",
+		name	= "To Play Add a Scavangers AI to the enemy Team: [Add AI], [ScavengersDefense AI]",
+		desc	= "",
+		section	= "scav_defense_options",
+		type	= "subheader",
+	},
+
 
     {
         key     = "sub_header",
@@ -1182,16 +1239,6 @@ local options = {
     },
 
     {
-        key    	= "faction_limiter",
-        name   	= "Team Faction Limiter",
-        desc   	= "Limit which faction a team may play. Format; list factions, seperating teams by a comma, e.g. \"armada cortex, legion\" = cor/arm vs legion.",
-        type   	= "string",
-        section	= "options_experimental",
-        def		= "",
-		hidden	= true,
-    },
-
-    {
         key 	= "skyshift",
         name 	= "Skyshift: Air Rework",
         desc 	= "A complete overhaul of air units and mechanics",
@@ -1235,9 +1282,9 @@ local options = {
     {
         key 	= "proposed_unit_reworks",
         name 	= "Proposed Unit Reworks",
-        desc 	= "Modoption used to test and balance unit reworks that are being considered for the base game.  Shuriken emp damage is reduced and Abductor emp damage and stuntime are reduced, but accuracy is increased.  EMP resist for units is standardized, and units that had low emp resists now take full emp damage.",
+        desc 	= "Modoption used to test and balance unit reworks that are being considered for the base game.  Shuriken emp damage is reduced and Abductor emp damage and stuntime are reduced, but accuracy is increased.  EMP resist for units is standardized, and units that had low emp resists now take full emp damage. Heavier T1 transport added, light T1 transports cheaper but can carry only 750mass units. T2 transports carry only single unit, Skyhook speed/buildtime/LoS buffed. T3 and heavy T2 units mass reduced (now equals their m cost), Liche impulse nerfed.",
         type 	= "bool",
-        hidden 	= true,
+        --hidden 	= true,
         section = "options_experimental",
         def 	= false,
     },

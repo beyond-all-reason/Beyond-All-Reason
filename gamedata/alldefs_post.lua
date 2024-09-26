@@ -78,8 +78,16 @@ end
 function UnitDef_Post(name, uDef)
 	local modOptions = Spring.GetModOptions()
 
+	local isScav = string.sub(name, -5, -1) == "_scav"
+	local basename = isScav and string.sub(name, 1, -6) or name
+
 	if not uDef.icontype then
 		uDef.icontype = name
+	end
+
+	--global physics behavior changes
+	if uDef.health then
+		uDef.minCollisionSpeed = 75 / Game.gameSpeed -- define the minimum velocity(speed) required for all units to suffer fall/collision damage.
 	end
 
 	-- inidivual unit hat processing
@@ -169,6 +177,29 @@ function UnitDef_Post(name, uDef)
 			end
 		end
 
+		if modOptions.unit_restrictions_notech15 then
+			-- Tech 1.5 is a semi offical thing, modoption ported from teiserver meme commands
+			local tech15 = {
+				corhp		= true,
+				corfhp		= true,
+				corplat		= true,
+				coramsub	= true,
+
+				armhp		= true,
+				armfhp		= true,
+				armplat		= true,
+				armamsub	= true,
+
+				leghp		= true,
+				legfhp		= true,
+				legplat		= true,
+				legamsub	= true,
+			}
+			if tech15[basename] then
+				uDef.maxthisunit = 0
+			end
+		end
+
 		if modOptions.unit_restrictions_noair then
 			if string.find(uDef.customparams.subfolder, "Aircraft") then
 				uDef.maxthisunit = 0
@@ -217,6 +248,12 @@ function UnitDef_Post(name, uDef)
 			end
 		end
 
+		if modOptions.unit_restrictions_nofusion then
+			if basename == "armdf" or string.sub(basename, -3) == "fus" then
+				uDef.maxthisunit = 0
+			end
+		end
+
 		if modOptions.unit_restrictions_nonukes then
 			local Nukes = {
 				armamd = true,
@@ -238,6 +275,40 @@ function UnitDef_Post(name, uDef)
 			}
 			if Nukes[name] then
 				uDef.maxthisunit = 0
+			end
+		end
+
+		if modOptions.unit_restrictions_nodefence then
+			local whitelist = {
+				armllt	= true,
+				armrl	= true,
+				armfrt	= true,
+				armtl	= true,
+
+				corllt	= true,
+				corrl	= true,
+				cortl	= true,
+				corfrt	= true,
+
+				leglht	= true,
+				legrl	= true,
+				--sea tl= true,
+				--sea aa= true,
+			}
+			-- "defense" or "defence", as legion doesn't fully follow past conventions
+			if not whitelist[name] and string.find(string.lower(uDef.customparams.subfolder), "defen") then
+				uDef.maxthisunit = 0
+			end
+		end
+
+		if modOptions.unit_restrictions_noantinuke then
+			if uDef.weapondefs then
+				for _, weapon in pairs(uDef.weapondefs) do
+					if weapon.interceptor and weapon.interceptor == 1 then
+						uDef.maxthisunit = 0
+						break
+					end
+				end
 			end
 		end
 
@@ -981,43 +1052,8 @@ function UnitDef_Post(name, uDef)
 	end
 
 	if modOptions.proposed_unit_reworks == true then
-		if name == "corbw" then
-			uDef.weapondefs.bladewing_lyzer.damage.default = 600
-			uDef.weapons[1].onlytargetcategory = "SURFACE"
-		end
-		if name == "armdfly" then
-			uDef.weapondefs.armdfly_paralyzer.damage.default = 10500
-			uDef.weapondefs.armdfly_paralyzer.paralyzetime = 6
-			uDef.weapondefs.armdfly_paralyzer.beamtime = 0.2
-			uDef.weapons[1].onlytargetcategory = "SURFACE"
-		end
-		if name == "armspid" then
-			uDef.weapons[1].onlytargetcategory = "SURFACE"
-		end
-		if name == "corgator" then
-			uDef.weapondefs.gator_laserx.damage.vtol = 14
-		end
-		if name == "corak" then
-			uDef.weapondefs.gator_laser.damage.vtol = 7
-		end
-		if name == "armpw" then
-			uDef.weapondefs.emg.damage.vtol = 3
-		end
-		if name == "armsh" then
-			uDef.weapondefs.armsh_weapon.damage.vtol = 7
-		end
-		if name == "corsh" then
-			uDef.weapondefs.armsh_weapon.damage.vtol = 7
-		end
-		if uDef.customparams.paralyzemultiplier then
-			if uDef.customparams.paralyzemultiplier < 0.03 then
-				uDef.customparams.paralyzemultiplier = 0
-			elseif uDef.customparams.paralyzemultiplier < 0.5 then
-				uDef.customparams.paralyzemultiplier = 0.2
-			else
-				uDef.customparams.paralyzemultiplier = 1
-			end
-		end	
+		local proposed_unit_reworks = VFS.Include("unitbasedefs/proposed_unit_reworks_defs.lua")
+		uDef = proposed_unit_reworks.proposed_unit_reworksTweaks(name, uDef)
 	end
 
 	--Lategame Rebalance
@@ -1377,9 +1413,23 @@ function WeaponDef_Post(name, wDef)
 
 	if not SaveDefsToCustomParams then
 		-------------- EXPERIMENTAL MODOPTIONS
+		
 		-- Standard Gravity
+		local gravityOverwriteExemptions = { --add the name of the weapons (or just the name of the unit followed by _ ) to this table to exempt from gravity standardization.
+			'cormship_', 'armmship_'
+		}
 		if wDef.gravityaffected == "true" and wDef.mygravity == nil then
-			wDef.mygravity = 0.1445
+			local isExempt = false
+
+			for _, exemption in ipairs(gravityOverwriteExemptions) do
+				if string.find(name, exemption) then
+					isExempt = true
+					break
+				end
+			end
+			if not isExempt then
+				wDef.mygravity = 0.1445
+			end
 		end
 		
 		-- Accurate Lasers		
