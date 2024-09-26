@@ -51,27 +51,29 @@ local function updateAllowedSpeed(transportId)
 	local tunitdefcustom
 	local iscom = false
 	local transportspeedmult = 0.0
-	if units then
-		for _,tUnitId in pairs(units) do
-			tunitdefid = spGetUnitDefID(tUnitId)
-			tunitdefcustom = UnitDefs[tunitdefid].customParams		
-			if (tunitdefcustom ~=nil) then
-				transportspeedmult = tunitdefcustom.transportspeedmult ~=nil and tunitdefcustom.transportspeedmult or transportspeedmult--use custom if present (can be tweaked)
-				iscom = tunitdefcustom.iscommander=='1'
+	if Spring.GetModOptions().proposed_unit_reworks == false then
+		if units then
+			for _,tUnitId in pairs(units) do
+				tunitdefid = spGetUnitDefID(tUnitId)
+				tunitdefcustom = UnitDefs[tunitdefid].customParams		
+				if (tunitdefcustom ~=nil) then
+					transportspeedmult = tunitdefcustom.transportspeedmult ~=nil and tunitdefcustom.transportspeedmult or transportspeedmult--use custom if present (can be tweaked)
+					iscom = tunitdefcustom.iscommander=='1'
+				end
+				
+				currentMassUsage = currentMassUsage + unitMass[tunitdefid]
 			end
-			
-			currentMassUsage = currentMassUsage + unitMass[tunitdefid]
-		end
-		massUsageFraction = (currentMassUsage / unitTransportMass[uDefID])
+			massUsageFraction = (currentMassUsage / unitTransportMass[uDefID])
 
-		if (iscom) then
+			if (iscom) then
 
-			allowedSpeed = unitSpeed[uDefID] * (1 - massUsageFraction * (TRANSPORTED_MASS_SPEED_PENALTY+transportspeedmult)) / FRAMES_PER_SECOND
-		else
-			allowedSpeed = unitSpeed[uDefID] * (1 - massUsageFraction * TRANSPORTED_MASS_SPEED_PENALTY) / FRAMES_PER_SECOND
-			--Spring.Echo("unit "..transportUnitDef.name.." is air transport at  "..(massUsageFraction*100).."%".." load, curSpeed="..vw.." allowedSpeed="..allowedSpeed)
+				allowedSpeed = unitSpeed[uDefID] * (1 - massUsageFraction * (TRANSPORTED_MASS_SPEED_PENALTY+transportspeedmult)) / FRAMES_PER_SECOND
+			else
+				allowedSpeed = unitSpeed[uDefID] * (1 - massUsageFraction * TRANSPORTED_MASS_SPEED_PENALTY) / FRAMES_PER_SECOND
+				--Spring.Echo("unit "..transportUnitDef.name.." is air transport at  "..(massUsageFraction*100).."%".." load, curSpeed="..vw.." allowedSpeed="..allowedSpeed)
+			end
+			airTransportMaxSpeeds[transportId] = allowedSpeed
 		end
-		airTransportMaxSpeeds[transportId] = allowedSpeed
 	end
 end
 

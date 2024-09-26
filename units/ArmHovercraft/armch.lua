@@ -25,7 +25,7 @@ return {
 		maxslope = 16,
 		speed = 66.9,
 		maxwaterdepth = 0,
-		movementclass = "HOVER2",
+		movementclass = "HOVER3",
 		objectname = "Units/ARMCH.s3o",
 		radardistance = 50,
 		script = "Units/ARMCH.cob",

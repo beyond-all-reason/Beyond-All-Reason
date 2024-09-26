@@ -907,6 +907,8 @@
 			"armyValue_tooltip": "Цена армии в металле,\nвключая командира",
 			"defenseValue_title": "Стоимость Обороны",
 			"defenseValue_tooltip": "Стоимость обороны в металле",
+			"utilityValue_title": "Стоимость Прочего",
+			"utilityValue_tooltip": "Стоимость прочих строений в металле",
 			"economyValue_title": "Значение экономики",
 			"economyValue_tooltip": "Цена экономики в металле",
 			"damageDealt_title": "Урона Нанесено",
@@ -1557,6 +1559,9 @@
 				"customwidgets": "Разрешить пользовательские виджеты",
 				"customwidgets_descr": "Разрешить загрузку пользовательских виджетов (размещенных внутри spring/luaui/widgets)",
 				"profiler": "Профайлер виджетов",
+				"profiler_min_time": "Миним. Время",
+				"profiler_min_memory": "Миним. Память",
+				"profiler_sort_by_load": "Сорт. По Загрузке",
 				"framegrapher": "График кадров",
 				"autocheat": "Автоматическое включение читов для $VERSION",
 				"autocheat_descr": "делает: /cheat, /globallos, /godmode",
@@ -1621,6 +1626,7 @@
 				"spectator_hud_config_basic": "Обычные",
 				"spectator_hud_config_advanced": "Продвинутые",
 				"spectator_hud_config_expert": "Эксперт",
+				"spectator_hud_config_custom": "Пользовательские",
 				"startpositionsuggestions": "Рекомендованные Стартовые Позиции",
 				"startpositionsuggestions_descr": "Показать на карте места для старта, рекомендуемые экспертами "
 			}
