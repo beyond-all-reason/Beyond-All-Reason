@@ -15,6 +15,7 @@ if not gadgetHandler:IsSyncedCode() then return end
 --use customParams.water_fall_damage_multiplier = 1.0 to change the amount of fall damage taken by specific units.
 
 --any maxWaterDepth movedef equal to or above this number will not take drowning damage.
+-- performance optimisation to avoid checking amphs and hovers
 local isDrownableMaxWaterDepth = 5000
 
 --a percentage of health taken as damage per second when stuck below maxWaterDepth.
