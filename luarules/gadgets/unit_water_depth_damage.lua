@@ -30,7 +30,7 @@ local fallDamageCompoundingFactor = 1.05
 local gameFrame = 0
 local gameFrameExpirationThreshold = 3
 local gaiaTeamID = Spring.GetGaiaTeamID()
-local velocityThreshold = 2.5
+local velocityThreshold = 75 / Game.gameSpeed
 local waterDamageDefID = -5
 local gameSpeed = Game.gameSpeed
 
