@@ -32,6 +32,7 @@ local gameFrameExpirationThreshold = 3
 local gaiaTeamID = Spring.GetGaiaTeamID()
 local velocityThreshold = 2.5
 local waterDamageDefID = -5
+local gameSpeed = Game.gameSpeed
 
 --functions
 local spGetUnitIsDead = Spring.GetUnitIsDead
@@ -154,14 +155,17 @@ function gadget:GameFrame(frame)
 		end
 	end
 
-	if frame % Game.gameSpeed == 6 then
+	if frame % gameSpeed == 6 then
 		for unitID, data in pairs(drowningUnitsWatch) do
 			local posX, posY, posZ = getUnitPositionHeight(unitID)
 			if posX then
 				local movableSpot = spTestMoveOrder(data.unitDefID, posX, posY, posZ, nil, nil, nil, true, true, true) --somehow, this works. Copied from elsewhere in the code, spring wiki and recoil and game repo didn't have any info on this format.
 				if not movableSpot then
 					spSpawnCEG('blacksmoke', posX, posY, posZ) --actually looks like tiny bubbles underwater
-					spPlaySoundFile('lavarumbleshort1', 0.50, posX, posY, posZ, 'sfx')
+					spPlaySoundFile('lavarumbleshort1', 0.40, posX, posY, posZ, 'sfx')
+					if math.random(1, 6) == 1 then
+						spPlaySoundFile('alien_electric', 0.50, posX, posY, posZ, 'sfx')
+					end
 					spAddUnitDamage(unitID, data.drowningDamage, 0, gaiaTeamID, waterDamageDefID)
 				end
 			else
