@@ -135,6 +135,14 @@ local icontypes = {
 		bitmap = "icons/air_trans.png",
 		size = 1.36499989
 	},
+	armhvytrans = {
+		bitmap = "icons/air_trans.png",
+		size = 1.5
+	},
+	corhvytrans = {
+		bitmap = "icons/air_trans.png",
+		size = 1.5
+	},
 	armavp = {
 		bitmap = "icons/factory_vehicle_t2.png",
 		size = 1.9425

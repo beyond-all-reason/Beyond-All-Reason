@@ -496,11 +496,21 @@ local function drawStats(uDefID, uID)
 	-- Transportable
 	------------------------------------------------------------------------------------
 
-	if transportable and mass > 0 and size > 0 then
-		if mass < 5000 and size < 3 then -- 3 is t1 transport max size
-			DrawText(texts.transportable..':', blue .. texts.transportable_light)
-		elseif mass < 100000 and size < 4 then
-			DrawText(texts.transportable..':', yellow .. texts.transportable_heavy)
+	if Spring.GetModOptions().proposed_unit_reworks == true then
+		if transportable and mass > 0 and size > 0 then
+			if mass < 751 and size < 4 then -- 3 is t1 transport max size
+				DrawText(texts.transportable..':', blue .. texts.transportable_light)
+			elseif mass < 100000 and size < 5 then
+				DrawText(texts.transportable..':', yellow .. texts.transportable_heavy)
+			end
+		end
+	else
+		if transportable and mass > 0 and size > 0 then
+			if mass < 5000 and size < 4 then -- 3 is t1 transport max size
+				DrawText(texts.transportable..':', blue .. texts.transportable_light)
+			elseif mass < 100000 and size < 5 then
+				DrawText(texts.transportable..':', yellow .. texts.transportable_heavy)
+			end
 		end
 	end
 	cY = cY - fontSize
