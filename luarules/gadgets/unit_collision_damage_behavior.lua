@@ -24,12 +24,12 @@ local collisionVelocityThreshold = 99 / Game.gameSpeed
 local validCollisionAngleMultiplier = math.cos(math.rad(20)) --degrees
 
 -- Decrease this value to make units move less from impulse. This defines the maximum impulse allowed, which is (maxImpulseMultiplier * mass) of each unit.
-local maxImpulseMultiplier = 165 / Game.gameSpeed
+local maxImpulseMultiplier = 160 / Game.gameSpeed
 
--- elmo/s, converted to elmo/frame. If a unit is launched via explosion faster than this, it is instantly slowed to the derivitive velLengthOffsetCap.
-local velocityCap = 330 / Game.gameSpeed
+-- elmo/s, converted to elmo/frame. If a unit is launched via explosion faster than this, it is instantly slowed to the derivitive velLengthOffsetCap. If unit speed/gameSpeed is greater, use that instead.
+local velocityCap = 270 / Game.gameSpeed
 
---measured in elmos per frame. If velocity is above this threshold, it will be slowed until below this threshold.
+--measured in elmos per frame. If velocity is above this threshold, it will be slowed until below this threshold so long as its initial velocity was greater than velocityCap.
 local velocitySlowdownThreshold = 30 / Game.gameSpeed
 
 --any weapondef impulseFactor below this is ignored to save performance
@@ -54,16 +54,26 @@ local unitsMaxImpulse = {}
 local weaponDefIDImpulses = {}
 local transportedUnits = {}
 local unitMasses = {}
+local unitDefData = {}
 local weaponDefIgnored = {}
 local unitInertiaCheckFlags = {}
 local fallingKillQueue = {}
 local fallingUnits = {}
 
 local gameFrame = 0
-local velocityWatchFrames = 300 / Game.gameSpeed
-local velLengthOffsetCap = velocityCap * 0.75 --Empirically chosen. Ensures that the resultant velocity reduction is below the cap due to how Velocity Length is usually larger than any single XYZ velocity.
+local velocityWatchFrames = 30 / Game.gameSpeed
 
 for unitDefID, unitDef in ipairs(UnitDefs) do
+
+	unitDefData[unitDefID] = {}
+	unitDefData[unitDefID].speed = unitDef.speed or 0
+	if unitDef.speed and unitDef.speed > 0 then
+		unitDefData[unitDefID].velocityCap = math.max(unitDef.speed / Game.gameSpeed, velocityCap)
+	else
+		unitDefData[unitDefID].velocityCap = velocityCap
+	end
+	unitDefData[unitDefID].velLengthOffsetCap = unitDefData[unitDefID].velocityCap * 0.75 --Empirically chosen. Ensures that the resultant velocity reduction is below the cap due to how Velocity Length is usually larger than any single XYZ velocity.
+
 	local fallDamageMultiplier = unitDef.customParams.fall_damage_multiplier or 1.0
 	fallDamageMultipliers[unitDefID] = fallDamageMultiplier * fallDamageMagnificationFactor
 	unitsMaxImpulse[unitDefID] = unitDef.mass * maxImpulseMultiplier
@@ -141,7 +151,9 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 	if not weaponDefIgnored[weaponDefID] and weaponDefID >= 0 then --this section handles limiting maximum impulse
 		local impulseMultiplier = 1
 			impulseMultiplier = getImpulseMultiplier(unitDefID, weaponDefID, damage)
-			unitInertiaCheckFlags[unitID] = gameFrame + velocityWatchFrames
+			unitInertiaCheckFlags[unitID] = unitInertiaCheckFlags[unitID] or {}
+			unitInertiaCheckFlags[unitID].expirationFrame = gameFrame + velocityWatchFrames
+			unitInertiaCheckFlags[unitID].unitDefID = unitDefID
 			return damage, impulseMultiplier
 	elseif (weaponDefID == groundCollisionDefID or weaponDefID == objectCollisionDefID) and (isValidCollisionDirection(unitID) or fallingUnits[unitID]) then
 		local healthRatioMultiplier, health = massToHealthRatioMultiplier(unitID, unitDefID)
@@ -171,12 +183,12 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 end
 
 function gadget:GameFrame(frame)
-	for unitID, expirationFrame in pairs(unitInertiaCheckFlags) do
+	for unitID, data in pairs(unitInertiaCheckFlags) do
 		if not transportedUnits[unitID] and not spGetUnitIsDead(unitID) then
 			local velX, velY, velZ, velocityLength = spGetUnitVelocity(unitID)
-			
-			if velocityLength > velocityCap then -- Sheer off extreme velocities within acceptable range
-				local verticalVelocityCapThreshold = 0.07 --value derived from empirical testing to prevent fall damage and goofy trajectories from impulse
+
+			if velocityLength > unitDefData[data.unitDefID].velocityCap then -- Sheer off extreme velocities within acceptable range
+				local verticalVelocityCapThreshold = 0.03 --value derived from empirical testing to prevent fall damage and goofy trajectories from impulse
 				local horizontalVelocity = math.sqrt(velX^2 + velZ^2)
 				local newVelY = mathAbs(mathMin(horizontalVelocity * verticalVelocityCapThreshold, velY))
 				local newVelYToOldVelYRatio
@@ -186,14 +198,15 @@ function gadget:GameFrame(frame)
 					newVelYToOldVelYRatio = 1
 				end
 
-				local scale = velLengthOffsetCap / mathMax(mathAbs(velX), mathAbs(newVelY), mathAbs(velZ))
+				local scale = unitDefData[data.unitDefID].velLengthOffsetCap / mathMax(mathAbs(velX), mathAbs(newVelY), mathAbs(velZ))
 
 				velX = velX * scale * newVelYToOldVelYRatio
 				velZ = velZ * scale * newVelYToOldVelYRatio
 
 				spSetUnitVelocity(unitID, velX, newVelY, velZ)
-				expirationFrame = frame + velocityWatchFrames
-			elseif velocityLength > velocitySlowdownThreshold then
+				data.expirationFrame = frame + velocityWatchFrames
+				data.velocityReduced = true
+			elseif data.velocityReduced and velocityLength > unitDefData[data.unitDefID].speed then
 				local decelerateHorizontal = 0.98 --Number empirically tested to produce optimal deceleration without looking goofy.
 				local decelerateVertical
 				if velY < 0 then
@@ -202,8 +215,7 @@ function gadget:GameFrame(frame)
 					decelerateVertical = 0.92 --Number empirically tested to produce optimal deceleration without looking goofy.
 				end
 				spSetUnitVelocity(unitID, velX * decelerateHorizontal, velY * decelerateVertical, velZ * decelerateHorizontal)
-				expirationFrame = frame + velocityWatchFrames
-			elseif expirationFrame < frame then
+			elseif data.expirationFrame < frame then
 				unitInertiaCheckFlags[unitID] = nil
 			end
 		else
