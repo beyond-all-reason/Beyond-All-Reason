@@ -36,8 +36,8 @@ bind         Shift+sc_e  reclaim
 bind               sc_f  fight
 bind         Shift+sc_f  fight
 bind           Alt+sc_f  forcestart
-bind               sc_g  stopproduction
-bind         Shift+sc_g  stopproduction
+bind           Alt+sc_g  stopproduction
+bind     Alt+Shift+sc_g  stopproduction
 bind               sc_g  stop
 bind         Shift+sc_g  stop
 bind               sc_h  patrol
