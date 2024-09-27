@@ -1,5 +1,5 @@
 return {
-	cor_hat_fightnight = {
+	cor_hat_legfn = {
 		maxacc = 0,
 		blocking = false,
 		maxdec = 0,
@@ -26,7 +26,7 @@ return {
 		maxslope = 64,
 		maxwaterdepth = 1000,
 		movementclass = "NANO",
-		objectname = "hats/cor_hat_fightnight.s3o",
+		objectname = "hats/cor_hat_legfn.s3o",
 		reclaimable = false,
 		repairable = false,
 		script = "blank.cob", --"hats/hat.cob",
@@ -37,7 +37,7 @@ return {
 		upright = false,
 		customparams = {
 			nohealthbars = true,
-			model_author = "NebuchadnezzarII=", -- Gloves only, unit by Mr Bob
+			model_author = "NebuchadnezzarII", -- Glove only, unit by Tharsis
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "other/hats",
 			decoration = 1,
