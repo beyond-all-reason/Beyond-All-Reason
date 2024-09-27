@@ -102,7 +102,6 @@ for weaponDefID, wDef in ipairs(WeaponDefs) do
 		end
 	end
 
-	
 	local function maxDamage(damages)
 		local damage = damages[0]
 		for i = 1, #damages do
