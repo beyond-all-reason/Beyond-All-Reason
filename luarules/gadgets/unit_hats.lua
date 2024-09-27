@@ -68,8 +68,10 @@ local unitDefCanWearHats = {
 	unitDefCanWearHats[UnitDefNames.legcomlvl3.id] = true
 	unitDefCanWearHats[UnitDefNames.legcomlvl4.id] = true
  end
+ local legchamps = { -- Legion Fight Night winner(s)
+ }
 local champion = { --   Fight Night 1v1 winner
-["[DME}Flying_Duck]"] = true,
+["[DME]FlyingDuck"] = true,
 }
  local vikings = {
 	["[HELO]Austin"] = true,
