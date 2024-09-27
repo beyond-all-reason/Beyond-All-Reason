@@ -32,7 +32,7 @@ SaveDefsToCustomParams = false
 -------------------------
 
 function PrebakeUnitDefs()
-	for name, unitDef in pairs(UnitDefs) do
+	for name, uDef in pairs(UnitDefs) do
 		-- UnitDef changes go here
 	end
 end
