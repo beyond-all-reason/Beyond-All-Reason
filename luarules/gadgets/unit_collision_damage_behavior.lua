@@ -24,10 +24,13 @@ local collisionVelocityThreshold = 99 / Game.gameSpeed
 local validCollisionAngleMultiplier = math.cos(math.rad(20)) --degrees
 
 -- Decrease this value to make units move less from impulse. This defines the maximum impulse allowed, which is (maxImpulseMultiplier * mass) of each unit.
-local maxImpulseMultiplier = 160 / Game.gameSpeed
+local maxImpulseMultiplier = 5.5
 
--- elmo/s, converted to elmo/frame. If a unit is launched via explosion faster than this, it is instantly slowed to the derivitive velLengthOffsetCap. If unit speed/gameSpeed is greater, use that instead.
-local velocityCap = 270 / Game.gameSpeed
+--to save performance and reduce unit hesitation from nominal impulse, impulse values below (maxImpulseMultiplier * mass) returns 0 impulse.
+local minImpulseMultiplier = 1
+
+-- elmo/s, converted to elmo/frame. If a unit is launched via explosion faster than this, it is instantly slowed. If unit speed/gameSpeed is greater or canFly = true, speed/gameSpeed is used instead.
+local velocityCap = 330 / Game.gameSpeed
 
 --measured in elmos per frame. If velocity is above this threshold, it will be slowed until below this threshold so long as its initial velocity was greater than velocityCap.
 local velocitySlowdownThreshold = 30 / Game.gameSpeed
@@ -51,6 +54,7 @@ local mathAbs = math.abs
 
 local fallDamageMultipliers = {}
 local unitsMaxImpulse = {}
+local unitsMinImpulse = {}
 local weaponDefIDImpulses = {}
 local transportedUnits = {}
 local unitMasses = {}
@@ -58,25 +62,31 @@ local unitDefData = {}
 local weaponDefIgnored = {}
 local unitInertiaCheckFlags = {}
 local fallingKillQueue = {}
+local launchedUnits = {}
 local fallingUnits = {}
 
 local gameFrame = 0
-local velocityWatchFrames = 30 / Game.gameSpeed
+local velocityWatchFrames = 300 / Game.gameSpeed
 
 for unitDefID, unitDef in ipairs(UnitDefs) do
-
 	unitDefData[unitDefID] = {}
-	unitDefData[unitDefID].speed = unitDef.speed or 0
+	if unitDef.canFly then
+		unitDefData[unitDefID].canFly = true
+	end
 	if unitDef.speed and unitDef.speed > 0 then
-		unitDefData[unitDefID].velocityCap = math.max(unitDef.speed / Game.gameSpeed, velocityCap)
+		if unitDefData[unitDefID].canFly then
+			unitDefData[unitDefID].velocityCap = unitDef.speed / Game.gameSpeed
+		else
+			unitDefData[unitDefID].velocityCap = math.max(unitDef.speed / Game.gameSpeed, velocityCap)
+		end
 	else
 		unitDefData[unitDefID].velocityCap = velocityCap
 	end
-	unitDefData[unitDefID].velLengthOffsetCap = unitDefData[unitDefID].velocityCap * 0.75 --Empirically chosen. Ensures that the resultant velocity reduction is below the cap due to how Velocity Length is usually larger than any single XYZ velocity.
 
 	local fallDamageMultiplier = unitDef.customParams.fall_damage_multiplier or 1.0
 	fallDamageMultipliers[unitDefID] = fallDamageMultiplier * fallDamageMagnificationFactor
 	unitsMaxImpulse[unitDefID] = unitDef.mass * maxImpulseMultiplier
+	unitsMinImpulse[unitDefID] = unitDef.mass * minImpulseMultiplier
 	unitMasses[unitDefID] = unitDef.mass
 end
 
@@ -116,8 +126,12 @@ local function getImpulseMultiplier(unitDefID, weaponDefID, damage)
 		impulseFactor = weaponDefIDImpulses[weaponDefID].impulseFactor or 1
 	end
 	local impulse = (damage + impulseBoost) * impulseFactor
-	local maxImpulse = unitsMaxImpulse[unitDefID]
-	local impulseMultiplier = mathMin(maxImpulse/impulse, 1) -- negative impulse values are not capped.
+	local impulseMultiplier
+	if impulse < unitsMinImpulse[unitDefID] then
+		impulseMultiplier = 0
+	else
+		impulseMultiplier = mathMin(unitsMaxImpulse[unitDefID]/impulse, 1) -- negative impulse values are not capped.
+	end
 	return impulseMultiplier
 end
 
@@ -151,9 +165,9 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 	if not weaponDefIgnored[weaponDefID] and weaponDefID >= 0 then --this section handles limiting maximum impulse
 		local impulseMultiplier = 1
 			impulseMultiplier = getImpulseMultiplier(unitDefID, weaponDefID, damage)
-			unitInertiaCheckFlags[unitID] = unitInertiaCheckFlags[unitID] or {}
-			unitInertiaCheckFlags[unitID].expirationFrame = gameFrame + velocityWatchFrames
-			unitInertiaCheckFlags[unitID].unitDefID = unitDefID
+			if not unitInertiaCheckFlags[unitID] and impulseMultiplier ~= 0 then
+				unitInertiaCheckFlags[unitID] = {expirationFrame = gameFrame + velocityWatchFrames, velocityCap = unitDefData[unitDefID].velocityCap}
+			end
 			return damage, impulseMultiplier
 	elseif (weaponDefID == groundCollisionDefID or weaponDefID == objectCollisionDefID) and (isValidCollisionDirection(unitID) or fallingUnits[unitID]) then
 		local healthRatioMultiplier, health = massToHealthRatioMultiplier(unitID, unitDefID)
@@ -173,23 +187,34 @@ function gadget:UnitUnloaded(unitID, unitDefID, unitTeam,  transportID, transpor
 	fallingUnits[unitID] = true --units falling from transports should take collision damagee from any trajectory, including when bouncing off of other objects.
 end
 
+function gadget:UnitEnteredAir(unitID, unitDefID, unitTeam)
+	if not transportedUnits[unitID] and not unitDefData[unitDefID].canFly then
+		launchedUnits[unitID] = true
+	end
+end
+
 function gadget:UnitLeftAir(unitID, unitDefID, unitTeam)
 	fallingUnits[unitID] = nil
+	launchedUnits[unitID] = nil
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	transportedUnits[unitID] = nil
 	unitInertiaCheckFlags[unitID] = nil
+	launchedUnits[unitID] = nil
+	fallingUnits[unitID] = nil
 end
 
 function gadget:GameFrame(frame)
 	for unitID, data in pairs(unitInertiaCheckFlags) do
 		if not transportedUnits[unitID] and not spGetUnitIsDead(unitID) then
 			local velX, velY, velZ, velocityLength = spGetUnitVelocity(unitID)
-
-			if velocityLength > unitDefData[data.unitDefID].velocityCap then -- Sheer off extreme velocities within acceptable range
-				local verticalVelocityCapThreshold = 0.03 --value derived from empirical testing to prevent fall damage and goofy trajectories from impulse
-				local horizontalVelocity = math.sqrt(velX^2 + velZ^2)
+			if not data.velocityReduced and velocityLength > data.velocityCap then -- Sheer off extreme velocities within acceptable range
+				local verticalVelocityCapThreshold = 0.07 --value derived from empirical testing to prevent fall damage and goofy trajectories from impulse
+				local horizontalVelocity =  0
+				if velX ~= 0 or velY ~= 0 then
+					horizontalVelocity = math.sqrt(velX^2 + velZ^2)
+				end
 				local newVelY = mathAbs(mathMin(horizontalVelocity * verticalVelocityCapThreshold, velY))
 				local newVelYToOldVelYRatio
 				if velY ~= 0 then
@@ -198,15 +223,15 @@ function gadget:GameFrame(frame)
 					newVelYToOldVelYRatio = 1
 				end
 
-				local scale = unitDefData[data.unitDefID].velLengthOffsetCap / mathMax(mathAbs(velX), mathAbs(newVelY), mathAbs(velZ))
+				local scale = data.velocityCap / mathMax(mathAbs(velX), mathAbs(newVelY), mathAbs(velZ))
 
 				velX = velX * scale * newVelYToOldVelYRatio
 				velZ = velZ * scale * newVelYToOldVelYRatio
 
 				spSetUnitVelocity(unitID, velX, newVelY, velZ)
-				data.expirationFrame = frame + velocityWatchFrames
 				data.velocityReduced = true
-			elseif data.velocityReduced and velocityLength > unitDefData[data.unitDefID].speed then
+				data.expirationFrame = frame + velocityWatchFrames
+			elseif launchedUnits[unitID] and velocityLength > velocitySlowdownThreshold then
 				local decelerateHorizontal = 0.98 --Number empirically tested to produce optimal deceleration without looking goofy.
 				local decelerateVertical
 				if velY < 0 then
@@ -215,11 +240,14 @@ function gadget:GameFrame(frame)
 					decelerateVertical = 0.92 --Number empirically tested to produce optimal deceleration without looking goofy.
 				end
 				spSetUnitVelocity(unitID, velX * decelerateHorizontal, velY * decelerateVertical, velZ * decelerateHorizontal)
+				data.expirationFrame = frame + velocityWatchFrames
 			elseif data.expirationFrame < frame then
 				unitInertiaCheckFlags[unitID] = nil
+				launchedUnits[unitID] = nil
 			end
 		else
 			unitInertiaCheckFlags[unitID] = nil
+			launchedUnits[unitID] = nil
 		end
 	end
 
