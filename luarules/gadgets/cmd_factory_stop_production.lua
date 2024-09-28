@@ -15,7 +15,7 @@ end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-local magicValue = "SendStopProductionToLuaUI"
+local magicValue = "StopProduction"
 
 include("luarules/configs/customcmds.h.lua")
 
@@ -137,9 +137,11 @@ else
 		gadget:PlayerChanged()
 	end
 
-	function gadget:RecvFromSynced(magic, unitID, unitDefID, unitTeam, cmdID)
-		if magic == magicValue and (spAreTeamsAllied(unitTeam, myTeamID) or isSpec) then
+	local function sendCommandIssueToLuaUI(unitID, unitDefID, unitTeam, cmdID)
+		if spAreTeamsAllied(unitTeam, myTeamID) or isSpec then
 			scriptUnitCommand(unitID, unitDefID, unitTeam, cmdID, {}, {coded = 0})
 		end
 	end
+
+	gadgetHandler:AddSyncAction(magicValue, sendCommandIssueToLuaUI)
 end
