@@ -58,14 +58,10 @@ local livingTransports = {}
 for unitDefID, unitDef in ipairs(UnitDefs) do
 
 	unitDefData[unitDefID] = {}
-
 	unitDefData[unitDefID].fallDamageMultiplier = unitDef.customParams.water_fall_damage_multiplier or 1
-
-	if unitDef.health then
-		unitDefData[unitDefID].drowningDamage = unitDef.health * drowningDamage
-		unitDefData[unitDefID].fallDamage = unitDef.health * fallDamage * unitDefData[unitDefID].fallDamageMultiplier
-		unitDefData[unitDefID].unitDefID = unitDefID
-	end
+	unitDefData[unitDefID].drowningDamage = unitDef.health * drowningDamage
+	unitDefData[unitDefID].fallDamage = unitDef.health * fallDamage * unitDefData[unitDefID].fallDamageMultiplier
+	unitDefData[unitDefID].unitDefID = unitDefID
 	if unitDef.moveDef.depth then
 		if unitDef.moveDef.depth and unitDef.moveDef.depth >= isDrownableMaxWaterDepth then
 			if unitDef.moveDef.name and string.find(unitDef.moveDef.name, "hover") and not string.find(unitDef.moveDef.name, "raptor") then
