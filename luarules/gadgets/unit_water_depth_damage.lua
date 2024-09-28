@@ -14,6 +14,9 @@ if not gadgetHandler:IsSyncedCode() then return end
 
 --use customParams.water_fall_damage_multiplier = 1.0 to change the amount of fall damage taken by specific units.
 
+--required velocity in a frame for a unit to take collision damage from falling into water.
+local velocityThreshold = 99 / Game.gameSpeed
+
 --any maxWaterDepth movedef equal to or above this number will not take drowning damage.
 -- performance optimisation to avoid checking amphs and hovers
 local isDrownableMaxWaterDepth = 5000
@@ -31,7 +34,6 @@ local fallDamageCompoundingFactor = 1.05
 local gameFrame = 0
 local gameFrameExpirationThreshold = 3
 local gaiaTeamID = Spring.GetGaiaTeamID()
-local velocityThreshold = 75 / Game.gameSpeed
 local waterDamageDefID = Game.envDamageTypes.Water
 local gameSpeed = Game.gameSpeed
 
