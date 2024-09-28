@@ -65,7 +65,7 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 	defData.unitDefID = unitDefID
 	if unitDef.moveDef.depth then
 		if unitDef.moveDef.depth and unitDef.moveDef.depth >= isDrownableMaxWaterDepth then
-			if unitDef.moveDef.name and string.find(unitDef.moveDef.name, "hover") and not string.find(unitDef.moveDef.name, "raptor") then
+			if unitDef.moveDef.name and string.find(unitDef.moveDef.name, "hover") then --units must have "hover" in their movedef name in order to be treated as hovercraft
 				defData.isHover = true
 			else
 				defData.isAmphibious = true
