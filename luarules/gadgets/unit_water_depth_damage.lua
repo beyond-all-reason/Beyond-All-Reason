@@ -67,8 +67,8 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 		unitDefData[unitDefID].unitDefID = unitDefID
 	end
 	if unitDef.moveDef.depth then
-		if unitDef.moveDef.depth >= isDrownableMaxWaterDepth then
-			if string.find(unitDef.moveDef.name, "hover") and not string.find(unitDef.moveDef.name, "raptor") then
+		if unitDef.moveDef.depth and unitDef.moveDef.depth >= isDrownableMaxWaterDepth then
+			if unitDef.moveDef.name and string.find(unitDef.moveDef.name, "hover") and not string.find(unitDef.moveDef.name, "raptor") then
 				unitDefData[unitDefID].isHover = true
 			else
 				unitDefData[unitDefID].isAmphibious = true
