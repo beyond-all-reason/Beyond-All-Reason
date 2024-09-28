@@ -54,7 +54,7 @@ local spDestroyUnit = Spring.DestroyUnit
 local unitDefData = {}
 local transportDrops = {}
 local drowningUnitsWatch = {}
-local expiringtransportDrops = {}
+local expiringTransportDrops = {}
 local livingTransports = {}
 
 for unitDefID, unitDef in ipairs(UnitDefs) do
@@ -87,7 +87,7 @@ end
 
 function gadget:UnitLeftAir(unitID, unitDefID, unitTeam)
 	if transportDrops[unitID] then
-		expiringtransportDrops[unitID] = gameFrame + gameFrameExpirationThreshold
+		expiringTransportDrops[unitID] = gameFrame + gameFrameExpirationThreshold
 	end
 end
 
@@ -127,7 +127,7 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	transportDrops[unitID] = nil
-	expiringtransportDrops[unitID] = nil
+	expiringTransportDrops[unitID] = nil
 	livingTransports[unitID] = nil
 	drowningUnitsWatch[unitID] = nil
 end
@@ -145,9 +145,9 @@ end
 function gadget:GameFrame(frame)
 	gameFrame = frame
 
-	for unitID, expirationFrame in pairs(expiringtransportDrops) do
+	for unitID, expirationFrame in pairs(expiringTransportDrops) do
 		if expirationFrame < frame then
-			expiringtransportDrops[unitID] = nil
+			expiringTransportDrops[unitID] = nil
 			transportDrops[unitID] = nil
 		end
 	end
