@@ -56,7 +56,6 @@ local expiringFallingUnits = {}
 local livingTransports = {}
 
 for unitDefID, unitDef in ipairs(UnitDefs) do
-
 	unitDefData[unitDefID] = {}
 	unitDefData[unitDefID].fallDamageMultiplier = unitDef.customParams.water_fall_damage_multiplier or 1
 	unitDefData[unitDefID].drowningDamage = unitDef.health * drowningDamage
@@ -69,20 +68,19 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 			else
 				unitDefData[unitDefID].isAmphibious = true
 			end
-		else 
+		else
 			unitDefData[unitDefID].isDrownable = true
 		end
 	end
-
 end
 
-function gadget:UnitLoaded(unitID, unitDefID, unitTeam,  transportID, transportTeam)
+function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
 	livingTransports[transportID] = true
 end
 
-function gadget:UnitUnloaded(unitID, unitDefID, unitTeam,  transportID, transportTeam)
-		fallingUnits[unitID] = fallingUnits[unitID] or {}
-		fallingUnits[unitID].transportID = transportID
+function gadget:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
+	fallingUnits[unitID] = fallingUnits[unitID] or {}
+	fallingUnits[unitID].transportID = transportID
 end
 
 function gadget:UnitLeftAir(unitID, unitDefID, unitTeam)
@@ -100,11 +98,12 @@ function gadget:UnitEnteredWater(unitID, unitDefID, unitTeam)
 			spPlaySoundFile('xplodep3', 0.5, posX, posY, posZ, 'sfx')
 			if unitDefData[unitDefID] then
 				local health, maxHealth = spGetUnitHealth(unitID)
-				local damage = (unitDefData[unitDefID].fallDamage * velLength) * (fallDamageCompoundingFactor ^ velLength)
+				local damage = (unitDefData[unitDefID].fallDamage * velLength) *
+					(fallDamageCompoundingFactor ^ velLength)
 				if damage >= health then
 					spDestroyUnit(unitID) --this ensures a wreck is left behind. If damage is too great, it destroys the heap.
 				else
-				spAddUnitDamage(unitID, damage, 0, gaiaTeamID, waterDamageDefID)
+					spAddUnitDamage(unitID, damage, 0, gaiaTeamID, waterDamageDefID)
 				end
 			end
 		else
@@ -135,7 +134,7 @@ end
 local function getUnitPositionHeight(unitID) -- returns nil for invalid units
 	if (spGetUnitIsDead(unitID) ~= false) or (spValidUnitID(unitID) ~= true) then return nil, nil, nil end
 	local posX, posY, posZ = spGetUnitPosition(unitID)
-	if posX and posY and posZ  then
+	if posX and posY and posZ then
 		return posX, posY, posZ
 	else
 		return nil, nil, nil
@@ -171,6 +170,3 @@ function gadget:GameFrame(frame)
 		end
 	end
 end
-
-
-
