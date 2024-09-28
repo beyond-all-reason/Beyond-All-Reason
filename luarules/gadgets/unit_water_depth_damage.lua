@@ -56,22 +56,23 @@ local expiringFallingUnits = {}
 local livingTransports = {}
 
 for unitDefID, unitDef in ipairs(UnitDefs) do
-	unitDefData[unitDefID] = {}
-	unitDefData[unitDefID].fallDamageMultiplier = unitDef.customParams.water_fall_damage_multiplier or 1
-	unitDefData[unitDefID].drowningDamage = unitDef.health * drowningDamage
-	unitDefData[unitDefID].fallDamage = unitDef.health * fallDamage * unitDefData[unitDefID].fallDamageMultiplier
-	unitDefData[unitDefID].unitDefID = unitDefID
+	local defData = {}
+	defData.fallDamageMultiplier = unitDef.customParams.water_fall_damage_multiplier or 1
+	defData.drowningDamage = unitDef.health * drowningDamage
+	defData.fallDamage = unitDef.health * fallDamage * defData.fallDamageMultiplier
+	defData.unitDefID = unitDefID
 	if unitDef.moveDef.depth then
 		if unitDef.moveDef.depth and unitDef.moveDef.depth >= isDrownableMaxWaterDepth then
 			if unitDef.moveDef.name and string.find(unitDef.moveDef.name, "hover") and not string.find(unitDef.moveDef.name, "raptor") then
-				unitDefData[unitDefID].isHover = true
+				defData.isHover = true
 			else
-				unitDefData[unitDefID].isAmphibious = true
+				defData.isAmphibious = true
 			end
 		else
-			unitDefData[unitDefID].isDrownable = true
+			defData.isDrownable = true
 		end
 	end
+	unitDefData[unitDefID] = defData
 end
 
 function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
