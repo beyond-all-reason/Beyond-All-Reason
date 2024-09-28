@@ -52,9 +52,9 @@ local spDestroyUnit = Spring.DestroyUnit
 
 --tables
 local unitDefData = {}
-local fallingUnits = {}
+local transportDrops = {}
 local drowningUnitsWatch = {}
-local expiringFallingUnits = {}
+local expiringtransportDrops = {}
 local livingTransports = {}
 
 for unitDefID, unitDef in ipairs(UnitDefs) do
@@ -82,18 +82,17 @@ function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTe
 end
 
 function gadget:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
-	fallingUnits[unitID] = fallingUnits[unitID] or {}
-	fallingUnits[unitID].transportID = transportID
+	transportDrops[unitID] = transportID
 end
 
 function gadget:UnitLeftAir(unitID, unitDefID, unitTeam)
-	if fallingUnits[unitID] then
-		expiringFallingUnits[unitID] = gameFrame + gameFrameExpirationThreshold
+	if transportDrops[unitID] then
+		expiringtransportDrops[unitID] = gameFrame + gameFrameExpirationThreshold
 	end
 end
 
 function gadget:UnitEnteredWater(unitID, unitDefID, unitTeam)
-	if fallingUnits[unitID] and not livingTransports[fallingUnits[unitID].transportID] then
+	if transportDrops[unitID] and not livingTransports[transportDrops[unitID]] then
 		local velX, velY, velZ, velLength = spGetUnitVelocity(unitID)
 		local posX, posY, posZ = spGetUnitBasePosition(unitID)
 		if velLength > velocityThreshold then
@@ -101,8 +100,7 @@ function gadget:UnitEnteredWater(unitID, unitDefID, unitTeam)
 			spPlaySoundFile('xplodep3', 0.5, posX, posY, posZ, 'sfx')
 			if unitDefData[unitDefID] then
 				local health, maxHealth = spGetUnitHealth(unitID)
-				local damage = (unitDefData[unitDefID].fallDamage * velLength) *
-					(fallDamageCompoundingFactor ^ velLength)
+				local damage = (unitDefData[unitDefID].fallDamage * velLength) * (fallDamageCompoundingFactor ^ velLength)
 				if damage >= health then
 					spDestroyUnit(unitID) --this ensures a wreck is left behind. If damage is too great, it destroys the heap.
 				else
@@ -113,9 +111,9 @@ function gadget:UnitEnteredWater(unitID, unitDefID, unitTeam)
 			spSpawnCEG('watersplash_small', posX, posY, posZ)
 			spPlaySoundFile('xplodep3', 0.3, posX, posY, posZ, 'sfx')
 		end
-		fallingUnits[unitID] = nil
+		transportDrops[unitID] = nil
 	else
-		fallingUnits[unitID] = nil
+		transportDrops[unitID] = nil
 	end
 
 	if unitDefData[unitDefID] and unitDefData[unitDefID].isDrownable then
@@ -128,8 +126,8 @@ function gadget:UnitLeftWater(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-	fallingUnits[unitID] = nil
-	expiringFallingUnits[unitID] = nil
+	transportDrops[unitID] = nil
+	expiringtransportDrops[unitID] = nil
 	livingTransports[unitID] = nil
 	drowningUnitsWatch[unitID] = nil
 end
@@ -147,10 +145,10 @@ end
 function gadget:GameFrame(frame)
 	gameFrame = frame
 
-	for unitID, expirationFrame in pairs(expiringFallingUnits) do
+	for unitID, expirationFrame in pairs(expiringtransportDrops) do
 		if expirationFrame < frame then
-			expiringFallingUnits[unitID] = nil
-			fallingUnits[unitID] = nil
+			expiringtransportDrops[unitID] = nil
+			transportDrops[unitID] = nil
 		end
 	end
 
