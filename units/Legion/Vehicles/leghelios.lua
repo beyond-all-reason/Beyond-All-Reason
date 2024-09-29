@@ -7,7 +7,6 @@ return {
 		buildpic = "LEGHELIOS.DDS",
 		buildtime = 2600,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 -4 1",
 		collisionvolumescales = "30 12 28",
 		collisionvolumetype = "Box",

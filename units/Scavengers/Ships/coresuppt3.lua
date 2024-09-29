@@ -9,7 +9,6 @@ return {
 		buildpic = "coresuppt3.DDS",
 		buildtime = 400000,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 -14 -6",
 		collisionvolumescales = "84 84 246",--"19 19 58",
 		collisionvolumetype = "CylZ",

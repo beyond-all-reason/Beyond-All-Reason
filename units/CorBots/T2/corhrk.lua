@@ -7,7 +7,6 @@ return {
 		buildpic = "CORHRK.DDS",
 		buildtime = 6600,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 1 -1",
 		collisionvolumescales = "26 31 33", -- single hitbox in the collisionvolumes.lua this line is not respected here
 		collisionvolumetype = "Box",

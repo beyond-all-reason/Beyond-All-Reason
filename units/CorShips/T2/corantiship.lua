@@ -14,7 +14,6 @@ return {
 		canmove = true,
 		canreclaim = false,
 		canrepair = false,
-		category = "",
 		collisionvolumeoffsets = "0 0 2",
 		collisionvolumescales = "48 48 140",
 		collisionvolumetype = "CylZ",

@@ -7,7 +7,6 @@ return {
 		buildpic = "LEGASKIRMTANK.DDS",
 		buildtime = 8750,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "30 30 34", ---not respected used collisionvolumes.lua
 		collisionvolumetype = "BOX",

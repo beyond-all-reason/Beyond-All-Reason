@@ -14,7 +14,6 @@ return {
 		canpatrol = true,
 		canstop = 1,
 		cantbetransported = true,
-		category = "",
 		corpse = "dead",
 		explodeas = "largeexplosiongeneric",
 		footprintx = 4,

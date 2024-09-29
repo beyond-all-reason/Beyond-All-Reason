@@ -9,7 +9,6 @@ return {
 		buildpic = "ARMGUARD.DDS",
 		buildtime = 21400,
 		canrepeat = false,
-		category = "",
 		collisionvolumeoffsets = "0 -5 0",
 		collisionvolumescales = "48 40 48",
 		collisionvolumetype = "box",

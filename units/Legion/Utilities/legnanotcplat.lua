@@ -16,7 +16,6 @@ return {
 		canrepeat = false,
 		canstop = true,
 		cantbetransported = true, -- transports cannot drop them back into water, reenable once that works
-		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "31 50 31",
 		collisionvolumetype = "CylY",

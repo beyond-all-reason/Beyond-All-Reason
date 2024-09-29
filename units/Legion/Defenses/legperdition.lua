@@ -7,7 +7,6 @@ return {
 		metalcost = 1250,
 		buildpic = "legperdition.DDS",
 		buildtime = 62000,
-		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "80 70 80",
 		collisionvolumetype = "CylY",

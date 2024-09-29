@@ -7,7 +7,6 @@ return {
 		buildpic = "LEGCAR.DDS",
 		buildtime = 11000,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "42 12 42",
 		collisionvolumetype = "Box",

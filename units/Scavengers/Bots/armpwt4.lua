@@ -7,7 +7,6 @@ return {
 		buildpic = "scavengers/armpwt4.DDS",
 		buildtime = 150000,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 -1 -5",
 		collisionvolumescales = "55 80 55",
 		collisionvolumetype = "CylY",

@@ -9,7 +9,6 @@ return {
 		buildpic = "ARMCK.DDS",
 		buildtime = 3450,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "27 30 27",
 		collisionvolumetype = "CylY",

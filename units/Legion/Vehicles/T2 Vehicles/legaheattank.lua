@@ -7,7 +7,6 @@ return {
 		buildpic = "LEGAHEATTANK.DDS",
 		buildtime = 19000,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 0 2",
 		collisionvolumescales = "46 25 46",
 		collisionvolumetype = "CylY",

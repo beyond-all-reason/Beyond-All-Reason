@@ -10,7 +10,6 @@ return {
 		buildpic = "ARMPSHIP.DDS",
 		buildtime = 4250,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 -4 1",
 		collisionvolumescales = "26 26 76",
 		collisionvolumetype = "CylZ",

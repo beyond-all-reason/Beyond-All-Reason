@@ -15,7 +15,6 @@ return {
 		canstop = "1",
 		cantbetransported = false,
 		capturable = false,
-		category = "",
 		defaultmissiontype = "Standby",
 		explodeas = "SMALLBUG_DEATH",
 		footprintx = 1,

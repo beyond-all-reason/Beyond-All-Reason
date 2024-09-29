@@ -9,7 +9,6 @@ return {
 		buildpic = "LEGACK.DDS",
 		buildtime = 9700,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "25 38 28",
 		collisionvolumetype = "Box",

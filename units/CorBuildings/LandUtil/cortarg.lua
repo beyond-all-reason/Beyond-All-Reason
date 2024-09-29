@@ -9,7 +9,6 @@ return {
 		buildpic = "CORTARG.DDS",
 		buildtime = 10900,
 		canrepeat = false,
-		category = "",
 		corpse = "DEAD",
 		energyupkeep = 100,
 		explodeas = "mediumBuildingExplosionGeneric",

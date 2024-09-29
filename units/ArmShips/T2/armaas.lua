@@ -9,7 +9,6 @@ return {
 		buildpic = "ARMAAS.DDS",
 		buildtime = 15000,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 -5 -1",
 		collisionvolumescales = "31 31 74",
 		collisionvolumetype = "CylZ",

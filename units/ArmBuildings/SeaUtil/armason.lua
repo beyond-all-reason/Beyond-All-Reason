@@ -10,7 +10,6 @@ return {
 		buildtime = 6150,
 		canattack = false,
 		canrepeat = false,
-		category = "",
 		corpse = "DEAD",
 		damagemodifier = 0.46,
 		explodeas = "mediumBuildingexplosiongeneric-uw",

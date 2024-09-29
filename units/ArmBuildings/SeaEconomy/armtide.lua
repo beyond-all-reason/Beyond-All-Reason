@@ -9,7 +9,6 @@ return {
 		buildpic = "ARMTIDE.DDS",
 		buildtime = 2190,
 		canrepeat = false,
-		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "37 26 39",
 		collisionvolumetype = "Box",

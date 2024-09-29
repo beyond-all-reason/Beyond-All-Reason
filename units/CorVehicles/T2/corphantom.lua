@@ -8,7 +8,6 @@ return {
 		buildpic = "CORPHANTOM.DDS",
 		buildtime = 9000,
 		canmove = true,
-		category = "",
 		cloakcost = 10,
 		cloakcostmoving = 30,
 		collisionvolumeoffsets = "0 -4 0",

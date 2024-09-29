@@ -8,7 +8,6 @@ return {
 		buildpic = "ARMVADER.DDS",
 		buildtime = 7900,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 2 0",
 		collisionvolumescales = "17 13 17",
 		collisionvolumetype = "box",

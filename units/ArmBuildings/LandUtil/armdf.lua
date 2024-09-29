@@ -8,7 +8,6 @@ return {
 		buildpic = "ARMDF.DDS",
 		buildtime = 7500,
 		canrepeat = false,
-		category = "",
 		collisionvolumeoffsets = "0 0 -2",
 		collisionvolumescales = "91 57 59",
 		collisionvolumetype = "Box",

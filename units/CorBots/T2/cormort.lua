@@ -7,7 +7,6 @@ return {
 		buildpic = "CORMORT.DDS",
 		buildtime = 5140,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "2 0 0",
 		collisionvolumescales = "28 35 28", -- possible 2 hotbox scheme here for the body and barrel of the weapon
 		collisionvolumetype = "CylY",

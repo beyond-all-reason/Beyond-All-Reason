@@ -7,7 +7,6 @@ return {
 		buildpic = "CORKARG.DDS",
 		buildtime = 76000,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0.0 -2.0 1",
 		collisionvolumescales = "59.0 63.0 42.0",
 		collisionvolumetype = "box",

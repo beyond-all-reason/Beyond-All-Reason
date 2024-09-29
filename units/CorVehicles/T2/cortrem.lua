@@ -7,7 +7,6 @@ return {
 		buildpic = "CORTREM.DDS",
 		buildtime = 31100,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 -5 3",
 		collisionvolumescales = "37 61 51",
 		collisionvolumetype = "Box",

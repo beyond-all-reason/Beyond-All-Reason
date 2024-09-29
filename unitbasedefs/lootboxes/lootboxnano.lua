@@ -165,7 +165,6 @@ local createNanoUnitDef = function(tier)
 		cantbetransported = false,
 		capturable = true,
 		canhover = true,
-		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = parameters.collisionVolumeScales,
 		collisionvolumetype = "CylY",

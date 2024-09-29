@@ -9,7 +9,6 @@ return {
 		buildpic = "ARMADVSOL.DDS",
 		buildtime = 7950,
 		canrepeat = false,
-		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "46 34 46",
 		collisionvolumetype = "CylY",

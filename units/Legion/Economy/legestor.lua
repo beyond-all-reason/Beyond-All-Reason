@@ -9,7 +9,6 @@ return {
 		buildpic = "LEGESTOR.DDS",
 		buildtime = 4260,
 		canrepeat = false,
-		category = "",
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "60 35 60",
 		collisionvolumetype = "CylY",

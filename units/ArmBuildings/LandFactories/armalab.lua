@@ -9,7 +9,6 @@ return {
 		buildpic = "ARMALAB.DDS",
 		buildtime = 16200,
 		canmove = true,
-		category = "",
 		collisionvolumescales = "85 75 100",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",

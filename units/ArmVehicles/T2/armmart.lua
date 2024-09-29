@@ -7,7 +7,6 @@ return {
 		buildpic = "ARMMART.DDS",
 		buildtime = 6500,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 0 -2",
 		collisionvolumescales = "36 20 38",
 		collisionvolumetype = "Box",

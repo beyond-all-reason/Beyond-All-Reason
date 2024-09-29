@@ -9,7 +9,6 @@ return {
 		buildpic = "CORACSUB.DDS",
 		buildtime = 18000,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 0 4",
 		collisionvolumescales = "38 9 72",
 		collisionvolumetype = "box",

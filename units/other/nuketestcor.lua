@@ -10,7 +10,6 @@ return {
 		buildpic = "other/nuketest.dds",
 		buildtime = 10500,
 		capturable = false,
-		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "0 0 0",
 		collisionvolumetype = "box",

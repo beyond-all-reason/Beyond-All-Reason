@@ -10,7 +10,6 @@ return {
 		buildpic = "legmoho.DDS",
 		buildtime = 14100,
 		canrepeat = false,
-		category = "",
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "70 40 70",
 		collisionvolumetype = "CylY",

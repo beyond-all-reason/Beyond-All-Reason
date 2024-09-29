@@ -10,7 +10,6 @@ return {
 		buildpic = "CORASP.DDS",
 		buildtime = 9300,
 		canrepeat = false,
-		category = "",
 		collisionvolumeoffsets = "0 -9 0",
 		collisionvolumescales = "135 27 135",
 		collisionvolumetype = "Box",

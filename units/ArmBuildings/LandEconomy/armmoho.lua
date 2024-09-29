@@ -10,7 +10,6 @@ return {
 		buildpic = "ARMMOHO.DDS",
 		buildtime = 14900,
 		canrepeat = false,
-		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "70 70 70",
 		collisionvolumetype = "CylY",

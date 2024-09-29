@@ -10,7 +10,6 @@ return {
 		buildpic = "corslrpc.DDS",
 		buildtime = 100000,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 0 -10",
 		collisionvolumescales = "75 75 182",
 		collisionvolumetype = "CylZ",

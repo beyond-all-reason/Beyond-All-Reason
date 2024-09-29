@@ -15,7 +15,6 @@ return {
 		canreclaim = true,
 		canrepair = true,
 		canrestore = false,
-		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "38 50 22",
 		collisionvolumetype = "box",

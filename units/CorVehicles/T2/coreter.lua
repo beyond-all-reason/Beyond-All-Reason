@@ -9,7 +9,6 @@ return {
 		buildtime = 6400,
 		canattack = false,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 -3 0",
 		collisionvolumescales = "26.5 26.5 47.5",
 		collisionvolumetype = "BOX",

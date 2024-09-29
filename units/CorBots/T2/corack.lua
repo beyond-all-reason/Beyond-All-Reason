@@ -9,7 +9,6 @@ return {
 		buildpic = "CORACK.DDS",
 		buildtime = 9700,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "28 42 30",
 		collisionvolumetype = "Box",

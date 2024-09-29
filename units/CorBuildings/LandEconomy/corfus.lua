@@ -9,7 +9,6 @@ return {
 		buildpic = "CORFUS.DDS",
 		buildtime = 75400,
 		canrepeat = false,
-		category = "",
 		corpse = "DEAD",
 		energymake = 1100,
 		energystorage = 2500,

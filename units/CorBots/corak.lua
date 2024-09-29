@@ -7,7 +7,6 @@ return {
 		buildpic = "CORAK.DDS",
 		buildtime = 1280,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 -2 0",
 		collisionvolumescales = "24 32 24",
 		collisionvolumetype = "CylY",

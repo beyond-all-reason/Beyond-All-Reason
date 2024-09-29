@@ -9,7 +9,6 @@ return {
 		buildtime = 20000,
 		canfly = true,
 		canmove = true,
-		category = "",
 		collide = false,
 		collisionvolumeoffsets = "1 -3 0",
 		collisionvolumescales = "52 21 52",

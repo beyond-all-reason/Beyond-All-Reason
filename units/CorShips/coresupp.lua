@@ -8,7 +8,6 @@ return {
 		buildpic = "CORESUPP.DDS",
 		buildtime = 1400,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "20 16 40",
 		collisionvolumetype = "CylZ",

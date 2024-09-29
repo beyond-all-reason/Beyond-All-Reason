@@ -7,7 +7,6 @@ return {
 		buildpic = "LEGMRV.DDS",
 		buildtime = 4900,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 -6 0",
 		collisionvolumescales = "34 26 38",
 		collisionvolumetype = "CylZ",

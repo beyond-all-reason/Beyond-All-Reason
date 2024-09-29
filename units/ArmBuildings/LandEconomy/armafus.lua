@@ -8,7 +8,6 @@ return {
 		buildpic = "ARMAFUS.DDS",
 		buildtime = 312500,
 		canrepeat = false,
-		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "96 96 96",
 		collisionvolumetype = "Box",

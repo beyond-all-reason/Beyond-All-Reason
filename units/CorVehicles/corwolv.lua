@@ -7,7 +7,6 @@ return {
 		buildpic = "CORWOLV.DDS",
 		buildtime = 3550,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "28 22 38",
 		collisionvolumetype = "Box",

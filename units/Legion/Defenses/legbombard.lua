@@ -7,7 +7,6 @@ return {
 		buildpic = "legbombard.dds",
 		buildtime = 17500,
 		canrepeat = false,
-		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "32 18 32",
 		collisionvolumetype = "Box",

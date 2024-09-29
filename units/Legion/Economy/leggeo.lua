@@ -9,7 +9,6 @@ return {
 		buildpic = "LEGGEO.DDS",
 		buildtime = 12900,
 		canrepeat = false,
-		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "63 45 63",
 		collisionvolumetype = "cylY",

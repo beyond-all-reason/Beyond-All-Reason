@@ -9,7 +9,6 @@ return {
 		buildpic = "CORARCH.DDS",
 		buildtime = 15000,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 -4 3",
 		collisionvolumescales = "37 37 74",
 		collisionvolumetype = "CylZ",

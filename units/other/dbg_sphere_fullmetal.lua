@@ -9,7 +9,6 @@ return {
 		buildtime = 5090,
 		canmove = true,
 		capturable = false,
-		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "28 15 28",
 		collisionvolumetype = "box",

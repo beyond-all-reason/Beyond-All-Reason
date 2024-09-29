@@ -14,7 +14,6 @@ return {
 		canpatrol = true,
 		canstop = 1,
 		cantbetransported = true,
-		category = "",
 		collisionvolumeoffsets = "0 3 0",
 		collisionvolumescales = "52 40 58",
 		collisionvolumetype = "CylY",

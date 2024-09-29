@@ -9,7 +9,6 @@ return {
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,
-		category = "",
 		collide = false,
 		cruisealtitude = 210,
 		explodeas = "mediumexplosiongeneric",

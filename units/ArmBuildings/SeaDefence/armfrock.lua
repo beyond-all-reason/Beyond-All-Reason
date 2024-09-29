@@ -10,7 +10,6 @@ return {
 		buildpic = "ARMFROCK.DDS",
 		buildtime = 5810,
 		canrepeat = false,
-		category = "",
 		collisionvolumeoffsets = "0 15 0",
 		collisionvolumescales = "36 59 36",
 		collisionvolumetype = "CylY",

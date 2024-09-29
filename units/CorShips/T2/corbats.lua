@@ -8,7 +8,6 @@ return {
 		buildpic = "CORBATS.DDS",
 		buildtime = 36000,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 -15 2",
 		collisionvolumescales = "62 62 148",
 		collisionvolumetype = "CylZ",

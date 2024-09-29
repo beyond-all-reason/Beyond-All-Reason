@@ -7,7 +7,6 @@ return {
 		buildpic = "ARMANAC.DDS",
 		buildtime = 3000,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 -2 0",
 		collisionvolumescales = "40 19 40",
 		collisionvolumetype = "Cyly",

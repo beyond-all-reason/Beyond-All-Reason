@@ -9,7 +9,6 @@ return {
 		buildpic = "CORTL.DDS",
 		buildtime = 3750,
 		canrepeat = false,
-		category = "",
 		corpse = "DEAD",
 		explodeas = "mediumBuildingexplosiongeneric",
 		footprintx = 3,

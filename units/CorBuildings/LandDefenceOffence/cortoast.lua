@@ -9,7 +9,6 @@ return {
 		buildpic = "CORTOAST.DDS",
 		buildtime = 25700,
 		canrepeat = false,
-		category = "",
 		corpse = "DEAD",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "60 30 15",

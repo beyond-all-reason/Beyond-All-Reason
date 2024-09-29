@@ -7,7 +7,6 @@ return {
 		buildpic = "CORRAID.DDS",
 		buildtime = 3310,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "32 16 32",
 		collisionvolumetype = "Box",

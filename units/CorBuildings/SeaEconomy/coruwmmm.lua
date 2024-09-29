@@ -9,7 +9,6 @@ return {
 		buildpic = "CORUWMMM.DDS",
 		buildtime = 31300,
 		canrepeat = false,
-		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "120 120 120",
 		collisionvolumetype = "Ell",

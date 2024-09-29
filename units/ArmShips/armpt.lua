@@ -10,7 +10,6 @@ return {
 		buildpic = "ARMPT.DDS",
 		buildtime = 2700,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 -5 0",
 		collisionvolumescales = "24 24 48",
 		collisionvolumetype = "CylZ",

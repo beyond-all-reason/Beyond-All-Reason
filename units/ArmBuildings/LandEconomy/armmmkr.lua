@@ -9,7 +9,6 @@ return {
 		buildpic = "ARMMMKR.DDS",
 		buildtime = 35000,
 		canrepeat = false,
-		category = "",
 		corpse = "DEAD",
 		explodeas = "advmetalmaker",
 		footprintx = 4,

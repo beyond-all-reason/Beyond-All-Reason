@@ -8,7 +8,6 @@ return {
 		buildtime = 17000,
 		canmove = true,
 		cantbetransported = true,
-		category = "",
 		cloakcost = 150,
 		cloakcostmoving = 400,
 		collisionvolumeoffsets = "0.5 -1 0",

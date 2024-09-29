@@ -9,7 +9,6 @@ return {
 		buildpic = "CORERAD.DDS",
 		buildtime = 12000,
 		canrepeat = false,
-		category = "",
 		corpse = "DEAD",
 		explodeas = "mediumBuildingExplosionGeneric",
 		footprintx = 4,

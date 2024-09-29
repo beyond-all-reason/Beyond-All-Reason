@@ -9,7 +9,6 @@ return {
 		buildpic = "ARMESTOR.DDS",
 		buildtime = 4110,
 		canrepeat = false,
-		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "42 34 42",
 		collisionvolumetype = "CylY",

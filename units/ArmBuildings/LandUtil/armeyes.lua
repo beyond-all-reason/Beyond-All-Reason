@@ -9,7 +9,6 @@ return {
 		buildpic = "ARMEYES.DDS",
 		buildtime = 750,
 		canrepeat = false,
-		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "20 32 20",
 		collisionvolumetype = "CylY",

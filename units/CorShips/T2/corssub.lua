@@ -8,7 +8,6 @@ return {
 		buildpic = "CORSSUB.DDS",
 		buildtime = 24750,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "52 14 67",
 		collisionvolumetype = "box",

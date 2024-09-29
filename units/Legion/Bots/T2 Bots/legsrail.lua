@@ -7,7 +7,6 @@ return {
 		buildpic = "LEGSRAIL.DDS",
 		buildtime = 18000,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 10 0",
 		collisionvolumescales = "45 40 45",
 		collisionvolumetype = "CylY",

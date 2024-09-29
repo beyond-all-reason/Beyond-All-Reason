@@ -14,7 +14,6 @@ return {
 		canmove = true,
 		canrepair = false,
 		canrestore = false,
-		category = "",
 		cloakcost = 50,
 		cloakcostmoving = 100,
 		collisionvolumeoffsets = "0 -2 0",

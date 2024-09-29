@@ -9,7 +9,6 @@ return {
 		buildpic = "ARMFATF.DDS",
 		buildtime = 9880,
 		canrepeat = false,
-		category = "",
 		collisionvolumeoffsets = "0 -10 0",
 		collisionvolumescales = "52 44 52",
 		collisionvolumetype = "CylY",

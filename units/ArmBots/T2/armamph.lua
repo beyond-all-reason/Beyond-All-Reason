@@ -7,7 +7,6 @@ return {
 		buildpic = "ARMAMPH.DDS",
 		buildtime = 5200,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 0 -1",
 		collisionvolumescales = "27 35 21",
 		collisionvolumetype = "cylY",

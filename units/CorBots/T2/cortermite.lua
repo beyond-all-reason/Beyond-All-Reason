@@ -7,7 +7,6 @@ return {
 		buildpic = "CORTERMITE.DDS",
 		buildtime = 15000,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "40 26 48",
 		collisionvolumetype = "CylY",

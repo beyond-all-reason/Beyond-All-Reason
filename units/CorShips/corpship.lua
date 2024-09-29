@@ -10,7 +10,6 @@ return {
 		buildpic = "CORPSHIP.DDS",
 		buildtime = 4550,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 -7 -2",
 		collisionvolumescales = "25 24 71",
 		collisionvolumetype = "box",

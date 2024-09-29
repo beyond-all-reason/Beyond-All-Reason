@@ -6,7 +6,6 @@ return {
 		buildpic = "CORMWALL.DDS",
 		buildtime = 14000, -- was 12214
 		canrepeat = false,
-		category = "",
 		collisionvolumeoffsets = "0 -3 0",
 		collisionvolumescales = "32 50 32",
 		collisionvolumetype = "CylY",

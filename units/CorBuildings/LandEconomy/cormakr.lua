@@ -9,7 +9,6 @@ return {
 		buildpic = "CORMAKR.DDS",
 		buildtime = 2680,
 		canrepeat = false,
-		category = "",
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "32 25 32",
 		collisionvolumetype = "Box",

@@ -7,7 +7,6 @@ return {
 		buildpic = "CORSNAP.DDS",
 		buildtime = 3500,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "32 16 38",
 		collisionvolumetype = "Box",

@@ -8,7 +8,6 @@ return {
 		buildpic = "CORMIST.DDS",
 		buildtime = 3440,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 -6 1",
 		collisionvolumescales = "34 18 43",
 		collisionvolumetype = "Box",

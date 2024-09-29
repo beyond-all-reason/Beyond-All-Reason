@@ -9,7 +9,6 @@ return {
 		buildpic = "FREEFUSION.DDS",
 		buildtime = 800,
 		canrepeat = false,
-		category = "",
 		corpse = "DEAD",
 		energymake = 850,
 		energystorage = 150,

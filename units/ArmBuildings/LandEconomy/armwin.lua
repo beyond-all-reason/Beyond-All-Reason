@@ -8,7 +8,6 @@ return {
 		buildpic = "ARMWIN.DDS",
 		buildtime = 1600,
 		canrepeat = false,
-		category = "",
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "34 87 34",
 		collisionvolumetype = "CylY",

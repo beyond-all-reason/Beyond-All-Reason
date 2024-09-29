@@ -7,7 +7,6 @@ return {
 		buildpic = "CORDEMON.DDS",
 		buildtime = 120000,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "60 88 60",
 		collisionvolumetype = "CylY",

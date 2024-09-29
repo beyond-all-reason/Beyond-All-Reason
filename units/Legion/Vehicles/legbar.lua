@@ -7,7 +7,6 @@ return {
 		buildpic = "LEGBAR.DDS",
 		buildtime = 4000,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 -2 0",
 		collisionvolumescales = "37 15 44",
 		collisionvolumetype = "Box",

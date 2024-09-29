@@ -9,7 +9,6 @@ return {
 		buildpic = "CORGPLAT.DDS",
 		buildtime = 3000,
 		canrepeat = false,
-		category = "",
 		collisionvolumeoffsets = "0 -6 0",
 		collisionvolumescales = "45 36 45",
 		collisionvolumetype = "CylY",

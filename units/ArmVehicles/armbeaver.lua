@@ -9,7 +9,6 @@ return {
 		buildpic = "ARMBEAVER.DDS",
 		buildtime = 6700,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "34 26 41",
 		collisionvolumetype = "Box",

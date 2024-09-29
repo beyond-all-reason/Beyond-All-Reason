@@ -8,7 +8,6 @@ return {
 		buildpic = "LEGGANT.DDS",
 		buildtime = 67300,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 -5 8",
 		collisionvolumescales = "150 43 150",
 		collisionvolumetype = "CylY",

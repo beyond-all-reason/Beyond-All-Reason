@@ -10,7 +10,6 @@ return {
 		buildpic = "CORFDOOM.DDS",
 		buildtime = 24000,
 		canrepeat = false,
-		category = "",
 		collisionvolumeoffsets = "0.0 15 0.0",
 		collisionvolumescales = "55.0 90 55.0",
 		collisionvolumetype = "box",

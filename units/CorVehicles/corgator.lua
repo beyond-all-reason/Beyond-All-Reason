@@ -7,7 +7,6 @@ return {
 		buildpic = "CORGATOR.DDS",
 		buildtime = 1761,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 -1 1",
 		collisionvolumescales = "30 15 38",
 		collisionvolumetype = "Box",

@@ -11,7 +11,6 @@ return {
         cancloak = true,
         repairable = false,
 		canmove = true,
-		category = "",
         cloakcost = 0,
 		cloakcostmoving = 0,
         cloaktimeout = 0,

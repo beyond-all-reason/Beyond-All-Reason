@@ -8,7 +8,6 @@ return {
 		buildpic = "CORAFUS.DDS",
 		buildtime = 329200,
 		canrepeat = false,
-		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "84 95 84",
 		collisionvolumetype = "CylY",

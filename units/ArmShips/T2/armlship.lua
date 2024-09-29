@@ -8,7 +8,6 @@ return {
 		buildpic = "ARMLSHIP.DDS",
 		buildtime = 11400,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 0 4",
 		collisionvolumescales = "28 30 82",
 		collisionvolumetype = "box",

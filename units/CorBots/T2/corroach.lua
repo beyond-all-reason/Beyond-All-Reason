@@ -8,7 +8,6 @@ return {
 		buildpic = "CORROACH.DDS",
 		buildtime = 7900,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "20 9 20",
 		collisionvolumetype = "CylY",

@@ -8,7 +8,6 @@ return {
 		buildpic = "CORSHARK.DDS",
 		buildtime = 18000,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0.5 0 0",
 		collisionvolumescales = "20 15 64",
 		collisionvolumetype = "box",

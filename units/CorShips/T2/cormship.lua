@@ -8,7 +8,6 @@ return {
 		buildpic = "CORMSHIP.DDS",
 		buildtime = 15000,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 -8 0",
 		collisionvolumescales = "43 43 101",
 		collisionvolumetype = "CylZ",

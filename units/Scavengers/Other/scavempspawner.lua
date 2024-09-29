@@ -12,7 +12,6 @@ return {
 		craterboost = 0,
 		cratermult = 0,
 		capturable = false,
-		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "0 0 0",
 		collisionvolumetype = "box",

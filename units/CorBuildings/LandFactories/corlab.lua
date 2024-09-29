@@ -9,7 +9,6 @@ return {
 		buildpic = "CORLAB.DDS",
 		buildtime = 6500,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "93 92 87",
 		collisionvolumetype = "Box",

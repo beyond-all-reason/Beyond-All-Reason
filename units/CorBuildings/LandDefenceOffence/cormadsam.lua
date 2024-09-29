@@ -9,7 +9,6 @@ return {
 		buildpic = "CORMADSAM.DDS",
 		buildtime = 5240,
 		canrepeat = false,
-		category = "",
 		collisionvolumeoffsets = "-1 5 -2",
 		collisionvolumescales = "45 54 45",
 		collisionvolumetype = "CylY",

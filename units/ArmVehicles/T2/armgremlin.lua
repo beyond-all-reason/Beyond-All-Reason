@@ -7,7 +7,6 @@ return {
 		buildpic = "ARMGREMLIN.DDS",
 		buildtime = 6700,
 		canmove = true,
-		category = "",
 		cloakcost = 5,
 		cloakcostmoving = 20,
 		collisionvolumeoffsets = "0 1 0",

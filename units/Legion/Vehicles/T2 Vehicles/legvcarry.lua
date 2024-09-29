@@ -7,7 +7,6 @@ return {
 		buildpic = "LEGVCARRY.DDS",
 		buildtime = 6000,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 10 0",
 		collisionvolumescales = "44 38 44",
 		collisionvolumetype = "Box",

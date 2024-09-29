@@ -11,7 +11,6 @@ return {
 		buildtime = 15000,
 		canattack = true,
 		canrepeat = false,
-		category = "",
 		cloakcost = 20,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "40 45 40",

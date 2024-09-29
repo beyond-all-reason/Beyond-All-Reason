@@ -8,7 +8,6 @@ return {
 		buildpic = "CORUWES.DDS",
 		buildtime = 4260,
 		canrepeat = false,
-		category = "",
 		corpse = "DEAD",
 		energystorage = 6000,
 		explodeas = "largeBuildingExplosionGeneric-uw",

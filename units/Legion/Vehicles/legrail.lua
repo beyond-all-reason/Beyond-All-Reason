@@ -8,7 +8,6 @@ return {
 		buildpic = "LEGRAIL.DDS",
 		buildtime = 4000,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 7 4",
 		collisionvolumescales = "37 39 40",
 		collisionvolumetype = "Box",

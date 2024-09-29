@@ -9,7 +9,6 @@ return {
 		buildpic = "CORSUB.DDS",
 		buildtime = 7200,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 -4 0",
 		collisionvolumescales = "35 17 50",
 		collisionvolumetype = "box",

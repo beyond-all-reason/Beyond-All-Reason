@@ -10,7 +10,6 @@ return {
 		buildtime = 9100,
 		canattack = false,
 		canrepeat = false,
-		category = "",
 		corpse = "DEAD",
 		energyupkeep = 125,
 		explodeas = "smallBuildingexplosiongeneric",

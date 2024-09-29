@@ -8,7 +8,6 @@ return {
 		buildpic = "CORHP.DDS",
 		buildtime = 11000,
 		canmove = true,
-		category = "",
 		collisionvolumescales = "120 32 108",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",

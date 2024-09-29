@@ -8,7 +8,6 @@ return {
 		buildpic = "CORMSTOR.DDS",
 		buildtime = 2920,
 		canrepeat = false,
-		category = "",
 		collisionvolumeoffsets = "0 -10 0",
 		collisionvolumescales = "64 60 64",
 		collisionvolumetype = "Box",

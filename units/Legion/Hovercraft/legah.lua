@@ -8,7 +8,6 @@ return {
 		buildpic = "legah.DDS",
 		buildtime = 3300,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 -3 0",
 		collisionvolumescales = "28 12 38",
 		collisionvolumetype = "Box",

@@ -8,7 +8,6 @@ return {
 		buildpic = "ARMCROC.DDS",
 		buildtime = 16000,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 0 -3",
 		collisionvolumescales = "40 30 56",
 		collisionvolumetype = "Box",

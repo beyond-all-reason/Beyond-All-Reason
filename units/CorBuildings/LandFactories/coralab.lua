@@ -9,7 +9,6 @@ return {
 		buildpic = "CORALAB.DDS",
 		buildtime = 16800,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 13 8",
 		collisionvolumescales = "101 51 90",
 		collisionvolumetype = "Box",

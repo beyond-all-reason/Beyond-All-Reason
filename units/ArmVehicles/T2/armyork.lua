@@ -8,7 +8,6 @@ return {
 		buildpic = "ARMYORK.DDS",
 		buildtime = 9950,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 -10 -2",
 		collisionvolumescales = "31 31 38",
 		collisionvolumetype = "box",

@@ -11,7 +11,6 @@ return {
 		canguard = false,
 		canpatrol = false,
 		canrepeat = false,
-		category = "",
 		cloakcost = 2,
 		collide = false,
 		collisionvolumeoffsets = "0 -1.5 0",

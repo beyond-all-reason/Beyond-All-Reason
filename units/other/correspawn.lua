@@ -17,7 +17,6 @@ return {
 		canrepeat = false,
 		canstop = true,
 		cantbetransported = true,
-		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "31 50 31",
 		collisionvolumetype = "CylY",

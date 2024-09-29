@@ -12,7 +12,6 @@ return {
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,
-		category = "",
 		collide = true,
 		cruisealtitude = 50,
 		energymake = 20,

@@ -10,7 +10,6 @@ return {
 		buildpic = "other/meteor.dds",
 		buildtime = 1,
 		canrepeat = false,
-		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "56 11 56",
 		collisionvolumetype = "box",

@@ -9,7 +9,6 @@ return {
 		buildpic = "ARMACK.DDS",
 		buildtime = 9500,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "27 35 23",
 		collisionvolumetype = "box",

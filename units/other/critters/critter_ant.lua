@@ -15,7 +15,6 @@ return {
 		canstop = "1",
 		cantbetransported = true,
 		capturable = false,
-		category = "",
 		defaultmissiontype = "Standby",
 		explodeas = "TINYBUG_DEATH",
 		floater = true,

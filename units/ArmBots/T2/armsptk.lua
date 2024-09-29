@@ -7,7 +7,6 @@ return {
 		buildpic = "ARMSPTK.DDS",
 		buildtime = 8800,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 -2 0",
 		collisionvolumescales = "42 28 42",
 		collisionvolumetype = "CylY",

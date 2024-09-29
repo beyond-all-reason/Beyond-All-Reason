@@ -8,7 +8,6 @@ return {
 		buildpic = "ARMAH.DDS",
 		buildtime = 3560,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 -3 0",
 		collisionvolumescales = "34 20 34",
 		collisionvolumetype = "CylY",

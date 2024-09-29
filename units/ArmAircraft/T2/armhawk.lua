@@ -10,7 +10,6 @@ return {
 		buildtime = 8900,
 		canfly = true,
 		canmove = true,
-		category = "",
 		collide = false,
 		cruisealtitude = 160,
 		explodeas = "smallExplosionGenericAir",

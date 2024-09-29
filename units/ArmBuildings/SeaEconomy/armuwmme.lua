@@ -10,7 +10,6 @@ return {
 		buildpic = "ARMUWMME.DDS",
 		buildtime = 14900,
 		canrepeat = false,
-		category = "",
 		corpse = "DEAD",
 		energyupkeep = 20,
 		explodeas = "hugeBuildingExplosionGeneric-uw",

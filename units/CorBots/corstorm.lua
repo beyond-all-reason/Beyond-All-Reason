@@ -7,7 +7,6 @@ return {
 		buildpic = "CORSTORM.DDS",
 		buildtime = 1950,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 0 -2",
 		collisionvolumescales = "22 28 22",
 		collisionvolumetype = "cylY",

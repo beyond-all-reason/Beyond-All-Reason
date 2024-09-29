@@ -7,7 +7,6 @@ return {
 		buildpic = "CORMAW.DDS",
 		buildtime = 4420,
 		canrepeat = false,
-		category = "",
 		corpse = "DEAD",
 		damagemodifier = 0.33,
 		decoyfor = "cordrag",

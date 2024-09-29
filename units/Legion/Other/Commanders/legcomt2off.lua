@@ -15,7 +15,6 @@ return {
 		canmove = true,
 		capturable = false,
 		capturespeed = 1800,
-		category = "",
 		collisionvolumeoffsets = "0 3 0",
 		collisionvolumescales = "28 52 28",
 		collisionvolumetype = "CylY",

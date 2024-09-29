@@ -7,7 +7,6 @@ return {
 		buildpic = "ARMCLAW.DDS",
 		buildtime = 4650,
 		canrepeat = false,
-		category = "",
 		corpse = "DEAD",
 		damagemodifier = 0.33,
 		decoyfor = "armdrag",

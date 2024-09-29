@@ -9,7 +9,6 @@ return {
 		buildpic = "ARMAAP.DDS",
 		buildtime = 20900,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "-8 4 0",
 		collisionvolumescales = "130 70 70",
 		collisionvolumetype = "Box",

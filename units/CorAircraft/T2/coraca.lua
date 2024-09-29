@@ -11,7 +11,6 @@ return {
 		buildtime = 18000,
 		canfly = true,
 		canmove = true,
-		category = "",
 		collide = true,
 		cruisealtitude = 70,
 		energystorage = 50,

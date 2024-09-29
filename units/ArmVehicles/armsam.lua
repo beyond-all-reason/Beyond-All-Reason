@@ -8,7 +8,6 @@ return {
 		buildpic = "ARMSAM.DDS",
 		buildtime = 3420,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "26 15 41",
 		collisionvolumetype = "Box",

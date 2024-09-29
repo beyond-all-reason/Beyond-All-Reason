@@ -8,7 +8,6 @@ return {
 		buildpic = "ARMJETH.DDS",
 		buildtime = 1830,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "28 30 28",
 		collisionvolumetype = "CylY",

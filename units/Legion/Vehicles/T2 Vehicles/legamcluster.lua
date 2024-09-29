@@ -7,7 +7,6 @@ return {
 		buildpic = "LEGAMCLUSTER.DDS",
 		buildtime = 8000,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 0 -2",
 		collisionvolumescales = "36 20 38",
 		collisionvolumetype = "Box",

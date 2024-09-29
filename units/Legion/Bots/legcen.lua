@@ -8,7 +8,6 @@ return {
 		buildpic = "LEGCEN.DDS",
 		buildtime = 3000,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 -1 1",
 		collisionvolumescales = "18 20 30",
 		collisionvolumetype = "box",

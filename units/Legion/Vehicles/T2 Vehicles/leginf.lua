@@ -8,7 +8,6 @@ return {
 		buildpic = "LEGINF.DDS",
 		buildtime = 33000,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 -10 0",
 		collisionvolumescales = "47 31 57",
 		collisionvolumetype = "Box",

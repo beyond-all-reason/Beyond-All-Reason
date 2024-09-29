@@ -9,7 +9,6 @@ return {
 		buildpic = "armserpt3.DDS",
 		buildtime = 250000,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 -4 0",
 		collisionvolumescales = "90 38 114",
 		collisionvolumetype = "box",

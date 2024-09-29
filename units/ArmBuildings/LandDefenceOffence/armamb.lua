@@ -9,7 +9,6 @@ return {
 		buildpic = "ARMAMB.DDS",
 		buildtime = 27000,
 		canrepeat = false,
-		category = "",
 		cloakcost = 24,
 		corpse = "DEAD",
 		collisionvolumeoffsets = "0 0 0",

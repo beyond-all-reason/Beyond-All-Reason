@@ -7,7 +7,6 @@ return {
 		buildpic = "CORLEVLR.DDS",
 		buildtime = 3000,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "29 20 32",   ---not respected used collisionvolumes.lua
 		collisionvolumetype = "Box",

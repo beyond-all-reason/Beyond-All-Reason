@@ -7,7 +7,6 @@ return {
 		buildpic = "CORTHUD.DDS",
 		buildtime = 2100,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "29 32 29",
 		collisionvolumetype = "CylY",

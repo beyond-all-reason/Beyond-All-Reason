@@ -756,6 +756,7 @@ function UnitDef_Post(name, uDef)
 	categories["COMMANDER"] = function(uDef) return commanderList[uDef.movementclass] end
 	categories["EMPABLE"] = function(uDef) return uDef.customparams and uDef.customparams.paralyzemultiplier ~= 0 end
 	
+	uDef.category = uDef.category or ""
 	if not string.find(uDef.category, "OBJECT") then -- objects should not be targetable and therefore are not assigned any other category
 		for categoryName, condition in pairs(categories) do
 			if uDef.exemptcategory == nil or not string.find(uDef.exemptcategory, categoryName) then

@@ -9,7 +9,6 @@ return {
 		buildpic = "CORTIDE.DDS",
 		buildtime = 2100,
 		canrepeat = false,
-		category = "",
 		collisionvolumeoffsets = "-3 2 -1",
 		collisionvolumescales = "28 30 33",
 		collisionvolumetype = "Box",

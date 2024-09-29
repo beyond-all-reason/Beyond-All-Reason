@@ -8,7 +8,6 @@ return {
 		buildpic = "CORWINT2.DDS",
 		buildtime = 17000,
 		canrepeat = false,
-		category = "",
 		collisionvolumeoffsets = "0 2 0",
 		collisionvolumescales = "68 178 68",
 		collisionvolumetype = "CylY",

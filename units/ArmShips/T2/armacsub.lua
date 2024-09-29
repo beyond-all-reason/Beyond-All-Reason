@@ -9,7 +9,6 @@ return {
 		buildpic = "ARMACSUB.DDS",
 		buildtime = 18000,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 0 -1",
 		collisionvolumescales = "31 30 63",
 		collisionvolumetype = "CylZ",

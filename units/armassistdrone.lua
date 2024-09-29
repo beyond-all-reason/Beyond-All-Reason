@@ -12,7 +12,6 @@ return {
 		cancapture = true,
 		canfly = true,
 		canmove = true,
-		category = "",
 		collide = true,
 		cruisealtitude = 100,
 		explodeas = "smallexplosiongeneric-builder",

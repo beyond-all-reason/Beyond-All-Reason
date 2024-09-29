@@ -7,7 +7,6 @@ return {
 		buildpic = "corkorg.DDS",
 		buildtime = 555000,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 -6 -5",
 		collisionvolumescales = "97 160 85",
 		collisionvolumetype = "CylY",

@@ -9,7 +9,6 @@ return {
 		buildpic = "MISSION_COMMAND_TOWER.DDS",
 		buildtime = 100000,
 		canrepeat = false,
-		category = "",
 		energymake = 250,
 		energyupkeep = 0,
 		explodeas = "fusionExplosion",

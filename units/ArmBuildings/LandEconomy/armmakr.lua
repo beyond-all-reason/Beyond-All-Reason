@@ -9,7 +9,6 @@ return {
 		buildpic = "ARMMAKR.DDS",
 		buildtime = 2600,
 		canrepeat = false,
-		category = "",
 		collisionvolumeoffsets = "0 -3 0",
 		collisionvolumescales = "40 40 40",
 		collisionvolumetype = "CYLY",

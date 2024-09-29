@@ -66,7 +66,6 @@ for difficulty, stats in pairs(difficultyParams) do
 		canmove = true,
 		capturable = false,
 		capturespeed = 1800,
-		category = "",
 		collisionvolumeoffsets = "0 12 0",
 		collisionvolumescales = "111 207 111",
 		collisionvolumetype = "CylY",

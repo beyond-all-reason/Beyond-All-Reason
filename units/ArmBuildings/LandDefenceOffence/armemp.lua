@@ -7,7 +7,6 @@ return {
 		metalcost = 1600,
 		buildpic = "ARMEMP.DDS",
 		buildtime = 79300,
-		category = "",
 		collisionvolumeoffsets = "0 5 0",
 		collisionvolumescales = "80 30 60",
 		collisionvolumetype = "Box",

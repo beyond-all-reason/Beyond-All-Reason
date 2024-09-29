@@ -7,7 +7,6 @@ return {
 		buildpic = "LEGHADES.DDS",
 		buildtime = 1500,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "16 10 23",
 		collisionvolumetype = "Box",

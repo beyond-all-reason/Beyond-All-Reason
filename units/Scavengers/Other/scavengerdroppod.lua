@@ -10,7 +10,6 @@ return {
 		--builder = true,
 		buildpic = "scavengers/scavengerdroppod.DDS",
 		buildtime = 10,
-		category = "",
 		canmove = false,
 		capturable = false,
 		collisionvolumeoffsets = "0 0 0",

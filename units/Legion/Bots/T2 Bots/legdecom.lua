@@ -15,7 +15,6 @@ return {
 		canmove = true,
 		capturable = false,
 		capturespeed = 900,
-		category = "",
 		cloakcost = 30,
 		cloakcostmoving = 180,
 		collisionvolumeoffsets = "0 3 0",

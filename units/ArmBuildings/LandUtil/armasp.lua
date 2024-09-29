@@ -10,7 +10,6 @@ return {
 		buildpic = "ARMASP.DDS",
 		buildtime = 9100,
 		canrepeat = false,
-		category = "",
 		collisionvolumeoffsets = "0 -10 0",
 		collisionvolumescales = "135 27 135",
 		collisionvolumetype = "Box",

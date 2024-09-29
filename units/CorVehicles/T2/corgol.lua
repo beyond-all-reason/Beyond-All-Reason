@@ -7,7 +7,6 @@ return {
 		buildpic = "CORGOL.DDS",
 		buildtime = 26100,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 -10 -1",
 		collisionvolumescales = "50 50 50",
 		collisionvolumetype = "BOX",

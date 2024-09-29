@@ -7,7 +7,6 @@ return {
 		buildpic = "CORSCAVDTL.DDS",
 		buildtime = 4600,
 		canrepeat = false,
-		category = "",
 		collisionvolumeoffsets = "0 -24 0",
 		collisionvolumescales = "30 51 30",
 		collisionvolumetype = "Ell",

@@ -9,7 +9,6 @@ return {
 		buildpic = "ARMMERCURY.DDS",
 		buildtime = 28000,
 		canrepeat = false,
-		category = "",
 		collisionvolumeoffsets = "-1 -1 0",
 		collisionvolumescales = "60 78 60",
 		collisionvolumetype = "CylY",

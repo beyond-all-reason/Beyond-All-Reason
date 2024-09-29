@@ -9,7 +9,6 @@ return {
 		buildpic = "ARMATL.DDS",
 		buildtime = 9260,
 		canrepeat = false,
-		category = "",
 		corpse = "DEAD",
 		explodeas = "smallBuildingExplosionGeneric",
 		footprintx = 4,

@@ -7,7 +7,6 @@ return {
 		buildpic = "ARMFLASH.DDS",
 		buildtime = 1960,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 -2 -1",
 		collisionvolumescales = "24 13 31",
 		collisionvolumetype = "Box",

@@ -17,7 +17,6 @@ return {
 		canstop = false,
 		cantbetransported = false,
 		capturable = true,
-		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "48 48 48",
 		collisionvolumetype = "box",

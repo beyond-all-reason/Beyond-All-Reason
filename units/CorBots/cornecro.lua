@@ -11,7 +11,6 @@ return {
 		canassist = false,
 		canmove = true,
 		canresurrect = true,
-		category = "",
 		collisionvolumeoffsets = "0 -2 1",
 		collisionvolumescales = "28 34 28",
 		collisionvolumetype = "CylY",

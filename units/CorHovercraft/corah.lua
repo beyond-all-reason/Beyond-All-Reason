@@ -8,7 +8,6 @@ return {
 		buildpic = "CORAH.DDS",
 		buildtime = 3650,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "28 16 35",
 		collisionvolumetype = "Box",

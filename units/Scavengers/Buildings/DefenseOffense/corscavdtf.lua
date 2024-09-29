@@ -7,7 +7,6 @@ return {
 		buildpic = "CORSCAVDTF.DDS",
 		buildtime = 4400,
 		canrepeat = false,
-		category = "",
 		corpse = "DEAD",
 		damagemodifier = 0.25,
 		decoyfor = "scavdrag",

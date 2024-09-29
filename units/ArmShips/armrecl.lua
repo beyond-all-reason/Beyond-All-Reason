@@ -13,7 +13,6 @@ return {
 		canassist = false,
 		canmove = true,
 		canresurrect = true,
-		category = "",
 		collisionvolumeoffsets = "0 0 2",
 		collisionvolumescales = "38 17 50",
 		collisionvolumetype = "box",

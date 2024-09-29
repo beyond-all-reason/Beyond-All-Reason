@@ -9,7 +9,6 @@ return {
 		buildpic = "ARMFFLAK.DDS",
 		buildtime = 21900,
 		canrepeat = false,
-		category = "",
 		collisionvolumeoffsets = "0 -10 0",
 		collisionvolumescales = "42 64 42",
 		collisionvolumetype = "CylY",

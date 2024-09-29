@@ -17,7 +17,6 @@ return {
 		canselfrepair = true,
 		capturable = false,
 		capturespeed = 1800,
-		category = "",
 		cloakcost = 100,
 		cloakcostmoving = 1000,
 		collisionvolumeoffsets = "0 3 0",

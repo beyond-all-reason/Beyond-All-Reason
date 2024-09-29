@@ -7,7 +7,6 @@ return {
 		buildpic = "ARMLATNK.DDS",
 		buildtime = 6030,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "30 26 34",
 		collisionvolumetype = "Box",

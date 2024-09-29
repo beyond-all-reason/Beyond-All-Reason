@@ -8,7 +8,6 @@ return {
 		buildpic = "CORSY.DDS",
 		buildtime = 6600,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 0 2",
 		collisionvolumescales = "124 59 122",
 		collisionvolumetype = "Box",

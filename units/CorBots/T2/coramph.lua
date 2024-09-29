@@ -8,7 +8,6 @@ return {
 		buildpic = "CORAMPH.DDS",
 		buildtime = 9650,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "32 29 32", -- possible multihotbox scheme here
 		collisionvolumetype = "CylY",

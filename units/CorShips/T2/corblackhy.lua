@@ -9,7 +9,6 @@ return {
 		buildpic = "CORBLACKHY.DDS",
 		buildtime = 175300,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 -24 5",
 		collisionvolumescales = "80 80 186",
 		collisionvolumetype = "CylZ",

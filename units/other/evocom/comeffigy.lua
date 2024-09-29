@@ -46,7 +46,6 @@ for lvl, stats in pairs(lvlParams) do
 		canmove = false,
 		canselfdestruct = false,
 		capturable = false,
-		category = "",
 		cloakcost = 0,
 		cloakcostmoving = 0,
 		cloaktimeout = 0,

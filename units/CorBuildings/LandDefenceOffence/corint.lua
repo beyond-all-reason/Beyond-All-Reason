@@ -8,7 +8,6 @@ return {
 		buildpic = "CORINT.DDS",
 		buildtime = 93300,
 		canrepeat = false,
-		category = "",
 		collisionvolumeoffsets = "0 0 -20",
 		collisionvolumescales = "72 105 72",
 		collisionvolumetype = "CylY",

@@ -10,7 +10,6 @@ return {
 		buildtime = 169800,
 		canmove = true,
 		canattackground = true,
-		category = "",
 		collisionvolumeoffsets = "0 -6 3",
 		collisionvolumescales = "71 71 180",
 		collisionvolumetype = "CylZ",

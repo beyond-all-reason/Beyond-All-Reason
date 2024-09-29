@@ -8,7 +8,6 @@ return {
 		buildpic = "CORAAK.DDS",
 		buildtime = 7600,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "27 29 22", -- questions for later
 		collisionvolumetype = "Box",

@@ -9,7 +9,6 @@ return {
 		buildpic = "LEGCK.DDS",
 		buildtime = 3550,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 0 -1",
 		collisionvolumescales = "25 31 25",
 		collisionvolumetype = "CylY",

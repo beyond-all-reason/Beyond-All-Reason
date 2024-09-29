@@ -7,7 +7,6 @@ return {
 		buildpic = "ARMSD.DDS",
 		buildtime = 11900,
 		canrepeat = false,
-		category = "",
 		collisionvolumeoffsets = "0 -6 0",
 		collisionvolumescales = "75 23 75",
 		collisionvolumetype = "CylY",

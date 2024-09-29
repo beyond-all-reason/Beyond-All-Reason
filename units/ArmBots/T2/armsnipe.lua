@@ -7,7 +7,6 @@ return {
 		buildpic = "ARMSNIPE.DDS",
 		buildtime = 19000,
 		canmove = true,
-		category = "",
 		cloakcost = 75,
 		cloakcostmoving = 200,
 		collisionvolumeoffsets = "0 0 0",

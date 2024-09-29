@@ -9,7 +9,6 @@ return {
 		buildpic = "CORBHMTH.DDS",
 		buildtime = 59600,
 		canrepeat = false,
-		category = "",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "80 80 80",
 		collisionvolumetype = "CylY",

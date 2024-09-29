@@ -8,7 +8,6 @@ return {
 		buildpic = "ARMPINCER.DDS",
 		buildtime = 2610,
 		canmove = true,
-		category = "",
 		collisionvolumeoffsets = "0 0 1",
 		collisionvolumescales = "31 13 31",
 		collisionvolumetype = "Box",
