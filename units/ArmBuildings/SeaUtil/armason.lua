@@ -11,7 +11,6 @@ return {
 		canattack = false,
 		canrepeat = false,
 		corpse = "DEAD",
-		damagemodifier = 0.46,
 		explodeas = "mediumBuildingexplosiongeneric-uw",
 		footprintx = 4,
 		footprintz = 4,

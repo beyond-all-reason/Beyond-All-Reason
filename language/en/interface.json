@@ -865,6 +865,8 @@
 			"transportmaxmass": "transport max mass",
 			"transportmaxsize": "transport max size",
 			"transportcapacity": "transport capacity",
+			"transport_heavy": "transport %{highlightColor}Heavy",
+			"transport_light": "transport %{highlightColor}Light",
 			"mass": "mass",
 			"footprint": "size",
 			"speed": "speed",
