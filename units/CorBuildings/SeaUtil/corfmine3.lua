@@ -1,10 +1,6 @@
 return {
 	corfmine3 = {
-		maxacc = 0,
 		blocking = false,
-		maxdec = 0,
-		energycost = 1600,
-		metalcost = 25,
 		buildpic = "CORFMINE3.DDS",
 		buildtime = 150,
 		canattack = false,
@@ -17,15 +13,19 @@ return {
 		collisionvolumeoffsets = "0 -0.5 0",
 		collisionvolumescales = "20 5 20",
 		collisionvolumetype = "Ell",
+		energycost = 1600,
 		explodeas = "FMINE_HEAVY",
 		firestate = 2,
 		footprintx = 1,
 		footprintz = 1,
+		health = 11,
 		idleautoheal = 10,
 		idletime = 300,
 		initcloaked = true,
-		health = 11,
+		maxacc = 0,
+		maxdec = 0,
 		maxslope = 40,
+		metalcost = 25,
 		mincloakdistance = 8,
 		minwaterdepth = 0,
 		nochasecategory = "VTOL",
@@ -40,15 +40,15 @@ return {
 		waterline = 1,
 		yardmap = "w",
 		customparams = {
-			mine = true,
-			unitgroup = 'explo',
 			detonaterange = "64",
+			instantselfd = true,
+			mine = true,
 			model_author = "Tristan",
 			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "corbuildings/seautil",
-			instantselfd = true,
+			subfolder = "CorBuildings/SeaUtil",
+			unitgroup = "explo",
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {
@@ -97,12 +97,12 @@ return {
 				tolerance = 1000000,
 				weapontype = "Melee",
 				weaponvelocity = 100000,
+				customparams = {
+					bogus = 1,
+				},
 				damage = {
 					default = 0,
 				},
-				customparams = {
-					bogus = 1
-				}
 			},
 		},
 		weapons = {

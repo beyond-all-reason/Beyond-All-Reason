@@ -1,9 +1,5 @@
 return {
 	corfhp = {
-		maxacc = 0,
-		maxdec = 0,
-		energycost = 3000,
-		metalcost = 900,
 		builder = true,
 		buildpic = "CORFHP.DDS",
 		buildtime = 11000,
@@ -12,13 +8,17 @@ return {
 		collisionvolumescales = "120 32 106",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
+		energycost = 3000,
 		energystorage = 200,
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 8,
 		footprintz = 7,
+		health = 3750,
 		idleautoheal = 5,
 		idletime = 1800,
-		health = 3750,
+		maxacc = 0,
+		maxdec = 0,
+		metalcost = 900,
 		metalstorage = 200,
 		minwaterdepth = 5,
 		objectname = "Units/CORFHP.s3o",
@@ -39,10 +39,10 @@ return {
 			[6] = "corhal",
 		},
 		customparams = {
-			unitgroup = 'builder',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corbuildings/seafactories",
+			subfolder = "CorBuildings/SeaFactories",
+			unitgroup = "builder",
 		},
 		featuredefs = {
 			dead = {

@@ -1,10 +1,6 @@
 return {
 	armfmine3 = {
-		maxacc = 0,
 		blocking = false,
-		maxdec = 0,
-		energycost = 1600,
-		metalcost = 25,
 		buildpic = "ARMFMINE3.DDS",
 		buildtime = 150,
 		canattack = false,
@@ -17,15 +13,19 @@ return {
 		collisionvolumeoffsets = "0 -1.5 0",
 		collisionvolumescales = "18 5 18",
 		collisionvolumetype = "CylY",
+		energycost = 1600,
 		explodeas = "FMINE_HEAVY",
 		firestate = 2,
 		footprintx = 1,
 		footprintz = 1,
+		health = 11,
 		idleautoheal = 10,
 		idletime = 300,
 		initcloaked = true,
-		health = 11,
+		maxacc = 0,
+		maxdec = 0,
 		maxslope = 40,
+		metalcost = 25,
 		mincloakdistance = 8,
 		minwaterdepth = 0,
 		nochasecategory = "VTOL",
@@ -40,15 +40,15 @@ return {
 		waterline = 1,
 		yardmap = "w",
 		customparams = {
-			mine = true,
-			unitgroup = 'explo',
 			detonaterange = "64",
+			instantselfd = true,
+			mine = true,
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "armbuildings/seautil",
-			instantselfd = true,
+			subfolder = "ArmBuildings/SeaUtil",
+			unitgroup = "explo",
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {
@@ -97,12 +97,12 @@ return {
 				tolerance = 1000000,
 				weapontype = "Melee",
 				weaponvelocity = 100000,
+				customparams = {
+					bogus = 1,
+				},
 				damage = {
 					default = 0,
 				},
-				customparams = {
-					bogus = 1
-				}
 			},
 		},
 		weapons = {

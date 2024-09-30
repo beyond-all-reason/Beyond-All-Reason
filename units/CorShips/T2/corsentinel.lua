@@ -40,14 +40,14 @@ return {
 		turnrate = 180,
 		waterline = 0,
 		customparams = {
+			childreninheritxp = "DRONE",
+			inheritxpratemultiplier = 1,
 			maxrange = 600,
 			model_author = "Odin, Hornet",
 			normaltex = "unittextures/Cor_normal.dds",
-			subfolder = "corships/t2",
-			techlevel = 2,
-			inheritxpratemultiplier = 1,
-			childreninheritxp = "DRONE",
 			parentsinheritxp = "DRONE",
+			subfolder = "CorShips/T2",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {
@@ -127,7 +127,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
-				explosiongenerator = "",--"custom:genericshellexplosion-medium",
+				explosiongenerator = "",
 				gravityaffected = "true",
 				hightrajectory = 1,
 				impulseboost = 1.9,
@@ -137,40 +137,38 @@ return {
 				range = 1300,
 				reloadtime = 2.5,
 				size = 0,
-				soundhit = "",--"xplomed2",
-				soundhitwet = "",--"splssml",
-				soundstart = "",--"cannhvy1",
+				soundhit = "",
+				soundhitwet = "",
+				soundstart = "",
 				turret = true,
 				waterweapon = true,
 				weapontype = "Cannon",
 				weaponvelocity = 800,
+				customparams = {
+					attackformationoffset = 30,
+					attackformationspread = 200,
+					buildcostenergy = 1000,
+					buildcostmetal = 40,
+					carried_unit = "cortdrone",
+					carrierdeaththroe = "death",
+					controlradius = 1400,
+					decayrate = 2,
+					dockingarmor = 0.2,
+					dockinghealrate = 54,
+					dockinghelperspeed = 5,
+					dockingpieces = "4 5 6 7 8 9 10",
+					dockingradius = 300,
+					docktohealthreshold = 50,
+					enabledocking = true,
+					engagementrange = 1300,
+					maxunits = 5,
+					spawnrate = 6,
+					spawns_surface = "SEA",
+				},
 				damage = {
 					default = 0,
 				},
-				customparams = {
-					carried_unit = "cortdrone",     --Name of the unit spawned by this carrier unit.
-					-- carried_unit2... 			Currently not implemented, but planned.
-					engagementrange = 1300,
-					spawns_surface = "SEA",    -- "LAND" or "SEA". The SEA option has not been tested currently.
-					spawnrate = 6, 				--Spawnrate roughly in seconds.
-					maxunits = 5,				--Will spawn units until this amount has been reached.
-					buildcostenergy = 1000,--650,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					buildcostmetal = 40,--29,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					controlradius = 1400,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
-					decayrate = 2,
-					attackformationspread = 200,	--Used to spread out the drones when attacking from a docked state. Distance between each drone when spreading out.
-					attackformationoffset = 30,	--Used to spread out the drones when attacking from a docked state. Distance from the carrier when they start moving directly to the target. Given as a percentage of the distance to the target.
-					carrierdeaththroe = "death",
-					dockingarmor = 0.2,
-					dockinghealrate = 54,
-					docktohealthreshold = 50,
-					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
-					dockingHelperSpeed = 5,
-					dockingpieces = "4 5 6 7 8 9 10",
-					dockingradius = 300,			--The range at which the units snap to the carrier unit when docking.
-				}
 			},
-			
 			sentinel_depthcharge = {
 				avoidfeature = false,
 				avoidfriendly = false,
@@ -194,10 +192,10 @@ return {
 				range = 600,
 				reloadtime = 1.5,
 				soundhit = "xplodep2",
-				soundhitwet = "splsmed",
-				soundstart = "torpedo1",
 				soundhitvolume = 3,
+				soundhitwet = "splsmed",
 				soundhitwetvolume = 12,
+				soundstart = "torpedo1",
 				startvelocity = 300,
 				tracks = true,
 				turnrate = 64000,
@@ -206,12 +204,9 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
 				damage = {
-					--commanders = 340,
 					default = 255,
-					-- subs = 300,
 				},
-			},			
-			
+			},
 		},
 		weapons = {
 			[1] = {

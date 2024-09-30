@@ -1,10 +1,6 @@
 return {
 	armmine2 = {
-		maxacc = 0,
 		blocking = false,
-		maxdec = 0,
-		energycost = 1050,
-		metalcost = 16,
 		buildpic = "ARMMINE2.DDS",
 		buildtime = 100,
 		canattack = false,
@@ -17,17 +13,21 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "15 10 15",
 		collisionvolumetype = "cyly",
+		energycost = 1050,
 		explodeas = "MINE_MEDIUM",
 		firestate = 2,
 		footprintx = 1,
 		footprintz = 1,
+		health = 11,
 		idleautoheal = 10,
 		idletime = 300,
 		initcloaked = true,
 		levelground = false,
-		health = 11,
+		maxacc = 0,
+		maxdec = 0,
 		maxslope = 40,
 		maxwaterdepth = 0,
+		metalcost = 16,
 		mincloakdistance = 8,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMMINE2.s3o",
@@ -38,15 +38,15 @@ return {
 		sightdistance = 83.2,
 		stealth = true,
 		customparams = {
-			mine = true,
-			unitgroup = 'explo',
 			detonaterange = "64",
+			instantselfd = true,
+			mine = true,
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "armbuildings/landutil",
-			instantselfd = true,
+			subfolder = "ArmBuildings/LandUtil",
+			unitgroup = "explo",
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {
@@ -95,12 +95,12 @@ return {
 				tolerance = 1000000,
 				weapontype = "Melee",
 				weaponvelocity = 100000,
+				customparams = {
+					bogus = 1,
+				},
 				damage = {
 					default = 0,
 				},
-				customparams = {
-					bogus = 1
-				}
 			},
 		},
 		weapons = {

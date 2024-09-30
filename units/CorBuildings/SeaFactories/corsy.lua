@@ -1,9 +1,5 @@
 return {
 	corsy = {
-		maxacc = 0,
-		maxdec = 0,
-		energycost = 1200,
-		metalcost = 600,
 		builder = true,
 		buildpic = "CORSY.DDS",
 		buildtime = 6600,
@@ -13,13 +9,17 @@ return {
 		collisionvolumescales = "124 59 122",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
+		energycost = 1200,
 		energystorage = 100,
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 8,
 		footprintz = 8,
+		health = 4300,
 		idleautoheal = 5,
 		idletime = 1800,
-		health = 4300,
+		maxacc = 0,
+		maxdec = 0,
+		metalcost = 600,
 		metalstorage = 100,
 		minwaterdepth = 30,
 		objectname = "Units/CORSY.s3o",
@@ -41,10 +41,10 @@ return {
 			[7] = "corsub",
 		},
 		customparams = {
-			unitgroup = 'builder',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corbuildings/seafactories",
+			subfolder = "CorBuildings/SeaFactories",
+			unitgroup = "builder",
 		},
 		featuredefs = {
 			dead = {

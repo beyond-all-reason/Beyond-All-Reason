@@ -1,15 +1,13 @@
 return {
 	armexcalibur = {
-		maxacc = 0.03,
 		activatewhenbuilt = false,
-		maxdec = 0.05,
 		buildcostenergy = 16000,
 		buildcostmetal = 900,
 		buildpic = "armexcalibur.DDS",
 		buildtime = 18000,
 		canmove = true,
 		category = "ALL MOBILE NOTLAND WEAPON SUB NOTSHIP NOTAIR NOTHOVER EMPABLE UNDERWATER",
-		collide=true,
+		collide = true,
 		collisionvolumeoffsets = "0 1 -4",
 		collisionvolumescales = "20 15 52",
 		collisionvolumetype = "box",
@@ -17,10 +15,11 @@ return {
 		explodeas = "mediumExplosionGeneric-uw",
 		footprintx = 3,
 		footprintz = 3,
+		health = 1200,
 		idleautoheal = 10,
 		idletime = 900,
-		health = 1200,
-		speed = 60,
+		maxacc = 0.03,
+		maxdec = 0.05,
 		minwaterdepth = 15,
 		movementclass = "BOAT3",
 		nochasecategory = "VTOL",
@@ -30,18 +29,18 @@ return {
 		selfdestructas = "mediumExplosionGenericSelfd-uw",
 		sightdistance = 500,
 		sonardistance = 200,
+		speed = 60,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 540,
 		upright = true,
-		--usepiececollisionvolumes = 1,
 		waterline = 25,
 		customparams = {
-			unitgroup = 'sub',
 			model_author = "Hornet",
 			normaltex = "unittextures/arm_normal.dds",
-			subfolder = "armships/t2",
+			subfolder = "ArmShips/T2",
 			techlevel = 2,
+			unitgroup = "sub",
 		},
 		featuredefs = {
 			dead = {
@@ -83,19 +82,16 @@ return {
 			},
 		},
 		sfxtypes = {
-		
 			explosiongenerators = {
 				[0] = "custom:subbubbles",
 				[1] = "custom:subwake",
 				[2] = "custom:tachyonshot",
-			},		
-		
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
 				[2] = "deathceg3",
 				[3] = "deathceg4",
 			},
-
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -132,7 +128,7 @@ return {
 				energypershot = 400,
 				explosiongenerator = "custom:laserhit-large-blue",
 				firestarter = 45,
-				fireTolerance = 1000,
+				firetolerance = 1000,
 				impulseboost = 0,
 				impulsefactor = 0,
 				largebeamlaser = true,

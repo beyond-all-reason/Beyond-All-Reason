@@ -31,19 +31,19 @@ return {
 		sightdistance = 273,
 		yardmap = "h cbbbbgbbbc bgbggbbggb bgbgbggbbb bbgggbgggb gbgbgggbgb bgbgggbgbg bgggbgggbb bbbggbgbgb bggbbggbgb cbbbgbbbbc",
 		customparams = {
-			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/armgeo_aoplane.dds",
-			buildinggrounddecalsizey = 6,
-			buildinggrounddecalsizex = 6,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'energy',
+			buildinggrounddecalsizex = 6,
+			buildinggrounddecalsizey = 6,
+			buildinggrounddecaltype = "decals/armgeo_aoplane.dds",
 			cvbuildable = true,
 			geothermal = 1,
 			model_author = "Cremuss, Hornet",
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "armbuildings/seaeconomy",
+			subfolder = "ArmBuildings/SeaEconomy",
+			unitgroup = "energy",
+			usebuildinggrounddecal = true,
 		},
 		featuredefs = {
 			dead = {
@@ -77,13 +77,13 @@ return {
 			},
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:geobubbles",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
 				[2] = "deathceg3",
 				[3] = "deathceg4",
-			},
-			explosiongenerators = {
-				[1] = "custom:geobubbles",
 			},
 		},
 		sounds = {

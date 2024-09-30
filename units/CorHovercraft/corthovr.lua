@@ -1,10 +1,6 @@
 return {
 	corthovr = {
-		maxacc = 0.03101,
-		maxdec = 0.03101,
 		buildangle = 16384,
-		energycost = 8000,
-		metalcost = 700,
 		buildpic = "CORTHOVR.DDS",
 		buildtime = 19600,
 		canmove = true,
@@ -14,13 +10,16 @@ return {
 		collisionvolumescales = "60 60 80",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
+		energycost = 8000,
 		explodeas = "largeexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,
+		health = 5600,
 		idleautoheal = 5,
 		idletime = 1800,
-		health = 5600,
-		speed = 55.2,
+		maxacc = 0.03101,
+		maxdec = 0.03101,
+		metalcost = 700,
 		minwaterdepth = 12,
 		movementclass = "HHOVER4",
 		nochasecategory = "ALL",
@@ -30,6 +29,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 325,
+		speed = 55.2,
 		transportcapacity = 20,
 		transportsize = 3,
 		transportunloadmethod = 0,
@@ -41,7 +41,7 @@ return {
 		customparams = {
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corhovercraft",
+			subfolder = "CorHovercraft",
 		},
 		featuredefs = {
 			dead = {

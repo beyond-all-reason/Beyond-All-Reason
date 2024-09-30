@@ -1,11 +1,7 @@
 return {
 	armtship = {
-		maxacc = 0.02952,
 		autoheal = 5,
-		maxdec = 0.02952,
 		buildangle = 16384,
-		energycost = 3500,
-		metalcost = 350,
 		buildpic = "ARMTSHIP.DDS",
 		buildtime = 6500,
 		canattack = false,
@@ -15,13 +11,16 @@ return {
 		collisionvolumescales = "50 50 80",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
+		energycost = 3500,
 		explodeas = "hugeExplosionGeneric",
 		floater = true,
 		footprintx = 6,
 		footprintz = 6,
-		loadingradius = 250,
 		health = 3200,
-		speed = 72.0,
+		loadingradius = 250,
+		maxacc = 0.02952,
+		maxdec = 0.02952,
+		metalcost = 350,
 		minwaterdepth = 0,
 		movementclass = "BOAT5",
 		nochasecategory = "ALL",
@@ -32,6 +31,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "hugeExplosionGenericSelfd",
 		sightdistance = 550,
+		speed = 72,
 		transportcapacity = 40,
 		transportsize = 4,
 		transportunloadmethod = 0,
@@ -43,7 +43,7 @@ return {
 		customparams = {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armships",
+			subfolder = "ArmShips",
 		},
 		featuredefs = {
 			dead = {

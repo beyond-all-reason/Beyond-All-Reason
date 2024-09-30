@@ -1,10 +1,6 @@
 return {
 	corroach = {
-		maxacc = 0.138,
 		activatewhenbuilt = true,
-		maxdec = 0.5175,
-		energycost = 5800,
-		metalcost = 69,
 		buildpic = "CORROACH.DDS",
 		buildtime = 7900,
 		canmove = true,
@@ -12,16 +8,19 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "20 9 20",
 		collisionvolumetype = "CylY",
+		energycost = 5800,
 		explodeas = "crawl_blastsml",
 		footprintx = 2,
 		footprintz = 2,
+		health = 620,
 		idleautoheal = 5,
 		idletime = 1800,
 		mass = 1500,
-		health = 620,
+		maxacc = 0.138,
+		maxdec = 0.5175,
 		maxslope = 32,
-		speed = 81.0,
 		maxwaterdepth = 112,
+		metalcost = 69,
 		movementclass = "ABOTBOMB2",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORROACH.s3o",
@@ -30,17 +29,18 @@ return {
 		selfdestructas = "crawl_blast",
 		selfdestructcountdown = 0,
 		sightdistance = 260,
+		speed = 81,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.782,
 		turnrate = 1733.04993,
 		customparams = {
-			unitgroup = 'explo',
+			instantselfd = true,
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corbots/t2",
+			subfolder = "CorBots/T2",
 			techlevel = 2,
-			instantselfd = true,
+			unitgroup = "explo",
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {
@@ -89,13 +89,13 @@ return {
 				soundhitwet = "splshbig",
 				weapontype = "Cannon",
 				weaponvelocity = 1000,
+				customparams = {
+					bogus = 1,
+				},
 				damage = {
 					crawlingbombs = 1000,
 					default = 0,
 				},
-				customparams = {
-					bogus = 1
-				}
 			},
 			crawl_dummy = {
 				areaofeffect = 0,
@@ -117,12 +117,12 @@ return {
 				waterweapon = true,
 				weapontype = "Melee",
 				weaponvelocity = 100000,
+				customparams = {
+					bogus = 1,
+				},
 				damage = {
 					default = 0,
 				},
-				customparams = {
-					bogus = 1
-				}
 			},
 		},
 		weapons = {

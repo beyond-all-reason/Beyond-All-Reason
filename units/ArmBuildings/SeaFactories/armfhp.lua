@@ -1,9 +1,5 @@
 return {
 	armfhp = {
-		maxacc = 0,
-		maxdec = 0,
-		energycost = 3000,
-		metalcost = 900,
 		builder = true,
 		buildpic = "ARMFHP.DDS",
 		buildtime = 11000,
@@ -12,13 +8,17 @@ return {
 		collisionvolumescales = "120 32 106",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
+		energycost = 3000,
 		energystorage = 200,
 		explodeas = "largeBuildingExplosionGeneric",
 		footprintx = 8,
 		footprintz = 7,
+		health = 3350,
 		idleautoheal = 5,
 		idletime = 1800,
-		health = 3350,
+		maxacc = 0,
+		maxdec = 0,
+		metalcost = 900,
 		metalstorage = 200,
 		minwaterdepth = 5,
 		objectname = "Units/ARMFHP.s3o",
@@ -38,10 +38,10 @@ return {
 			[5] = "armmh",
 		},
 		customparams = {
-			unitgroup = 'builder',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armbuildings/seafactories",
+			subfolder = "ArmBuildings/SeaFactories",
+			unitgroup = "builder",
 		},
 		featuredefs = {
 			dead = {

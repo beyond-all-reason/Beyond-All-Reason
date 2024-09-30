@@ -1,9 +1,5 @@
 return {
 	armsy = {
-		maxacc = 0,
-		maxdec = 0,
-		energycost = 1200,
-		metalcost = 600,
 		builder = true,
 		buildpic = "ARMSY.DDS",
 		buildtime = 6660,
@@ -13,13 +9,17 @@ return {
 		collisionvolumescales = "116 63 116",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
+		energycost = 1200,
 		energystorage = 100,
 		explodeas = "largeBuildingExplosionGeneric",
 		footprintx = 8,
 		footprintz = 8,
+		health = 4100,
 		idleautoheal = 5,
 		idletime = 1800,
-		health = 4100,
+		maxacc = 0,
+		maxdec = 0,
+		metalcost = 600,
 		metalstorage = 100,
 		minwaterdepth = 30,
 		objectname = "Units/ARMSY.s3o",
@@ -41,10 +41,10 @@ return {
 			[7] = "armsub",
 		},
 		customparams = {
-			unitgroup = 'builder',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armbuildings/seafactories",
+			subfolder = "ArmBuildings/SeaFactories",
+			unitgroup = "builder",
 		},
 		featuredefs = {
 			dead = {

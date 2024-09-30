@@ -1,9 +1,5 @@
 return {
 	armsnipe = {
-		maxacc = 0.138,
-		maxdec = 0.6486,
-		energycost = 20000,
-		metalcost = 680,
 		buildpic = "ARMSNIPE.DDS",
 		buildtime = 19000,
 		canmove = true,
@@ -14,34 +10,38 @@ return {
 		collisionvolumescales = "30 44 30",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
+		energycost = 20000,
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
+		health = 580,
 		idleautoheal = 5,
 		idletime = 1800,
-		health = 580,
+		maxacc = 0.138,
+		maxdec = 0.6486,
 		maxslope = 14,
-		speed = 33.0,
 		maxwaterdepth = 22,
+		metalcost = 680,
 		mincloakdistance = 80,
 		movementclass = "BOT3",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMSNIPE.s3o",
-		power = 750, --compensation for XP rank with super low AoE weapons
+		power = 750,
 		script = "Units/ARMSNIPE.cob",
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 455,
+		speed = 33,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.7788,
 		turnrate = 1538.69995,
 		upright = true,
 		customparams = {
-			unitgroup = 'weapon',
 			model_author = "Kaiser",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armbots/t2",
+			subfolder = "ArmBots/T2",
 			techlevel = 2,
+			unitgroup = "weapon",
 		},
 		featuredefs = {
 			dead = {
@@ -106,7 +106,7 @@ return {
 			},
 		},
 		weapondefs = {
-			armsnipe_weapon = {	-- NOTE this range of 900 was shown in unit stats but was only effectively 800 by range
+			armsnipe_weapon = {
 				areaofeffect = 16,
 				avoidfeature = true,
 				avoidfriendly = true,
@@ -177,8 +177,7 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 3000,
-				customparams = {
-				},
+				customparams = {},
 				damage = {
 					commanders = 1025,
 					default = 2500,

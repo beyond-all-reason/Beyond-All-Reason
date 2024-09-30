@@ -1,11 +1,7 @@
 return {
 	corfhlt = {
-		maxacc = 0,
 		activatewhenbuilt = true,
-		maxdec = 0,
 		buildangle = 16384,
-		energycost = 6200,
-		metalcost = 480,
 		buildpic = "CORFHLT.DDS",
 		buildtime = 11400,
 		canrepeat = false,
@@ -14,12 +10,16 @@ return {
 		collisionvolumescales = "73 67 73",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
+		energycost = 6200,
 		explodeas = "mediumBuildingexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,
+		health = 4350,
 		idleautoheal = 5,
 		idletime = 1800,
-		health = 4350,
+		maxacc = 0,
+		maxdec = 0,
+		metalcost = 480,
 		minwaterdepth = 5,
 		nochasecategory = "MOBILE",
 		objectname = "Units/CORFHLT.s3o",
@@ -30,11 +30,11 @@ return {
 		waterline = 3,
 		yardmap = "wwwwwwwww",
 		customparams = {
-			unitgroup = 'weapon',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,
-			subfolder = "corbuildings/seadefence",
+			subfolder = "CorBuildings/SeaDefence",
+			unitgroup = "weapon",
 		},
 		featuredefs = {
 			dead = {
@@ -125,8 +125,8 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "CORFHLT_LASER",
-				onlytargetcategory = "NOTSUB",
 				fastautoretargeting = true,
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

@@ -1,9 +1,5 @@
 return {
 	corasy = {
-		maxacc = 0,
-		maxdec = 0,
-		energycost = 10000,
-		metalcost = 3100,
 		builder = true,
 		buildpic = "CORASY.DDS",
 		buildtime = 15700,
@@ -13,13 +9,17 @@ return {
 		collisionvolumescales = "186 78 183",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
+		energycost = 10000,
 		energystorage = 200,
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 12,
 		footprintz = 12,
+		health = 5900,
 		idleautoheal = 5,
 		idletime = 1800,
-		health = 5900,
+		maxacc = 0,
+		maxdec = 0,
+		metalcost = 3100,
 		metalstorage = 200,
 		minwaterdepth = 30,
 		objectname = "Units/CORASY.s3o",
@@ -46,11 +46,11 @@ return {
 			[12] = "corfship",
 		},
 		customparams = {
-			unitgroup = 'buildert2',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corbuildings/seafactories",
+			subfolder = "CorBuildings/SeaFactories",
 			techlevel = 2,
+			unitgroup = "buildert2",
 		},
 		featuredefs = {
 			dead = {
