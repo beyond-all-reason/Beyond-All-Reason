@@ -35,7 +35,7 @@ return {
 		customparams = {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
-			paralyzemultiplier = 0.125,
+			paralyzemultiplier = 0.2,
 			subfolder = "ArmBots/T2",
 			techlevel = 2,
 			unitgroup = "weapon",

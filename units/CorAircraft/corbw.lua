@@ -104,7 +104,7 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
 				damage = {
-					default = 800,
+					default = 600,
 				},
 			},
 		},
@@ -113,7 +113,7 @@ return {
 				def = "BLADEWING_LYZER",
 				maindir = "0 0 1",
 				maxangledif = 90,
-				onlytargetcategory = "EMPABLE",
+				onlytargetcategory = "SURFACE",
 			},
 		},
 	},

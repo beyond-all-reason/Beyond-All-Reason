@@ -100,7 +100,7 @@ return {
 				firestarter = 100,
 				flighttime = 2,
 				impulseboost = 0.123,
-				impulsefactor = 2,
+				impulsefactor = 1,
 				model = "catapultmissile.s3o",
 				name = "Tactical nuclear homing missile",
 				noselfdamage = true,

@@ -49,7 +49,7 @@ return {
 			basename = "base",
 			model_author = "Hornet",
 			normaltex = "unittextures/cor_normal.dds",
-			paralyzemultiplier = 0.5,
+			paralyzemultiplier = 1,
 			subfolder = "CorVehicles/T2",
 			techlevel = 2,
 			unitgroup = "util",

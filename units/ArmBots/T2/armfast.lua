@@ -133,7 +133,7 @@ return {
 				weaponvelocity = 500,
 				damage = {
 					default = 12,
-					vtol = 1,
+					vtol = 4,
 				},
 			},
 		},

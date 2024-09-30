@@ -2,13 +2,13 @@ return {
 	armatlas = {
 		blocking = false,
 		buildpic = "ARMATLAS.DDS",
-		buildtime = 4620,
+		buildtime = 3850,
 		canfly = true,
 		canmove = true,
 		category = "ALL MOBILE WEAPON NOTLAND NOTSUB VTOL NOTSHIP NOTHOVER",
 		collide = false,
 		cruisealtitude = 100,
-		energycost = 2200,
+		energycost = 1300,
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 2,
 		footprintz = 3,
@@ -29,7 +29,7 @@ return {
 		sightdistance = 260,
 		speed = 207,
 		transportcapacity = 1,
-		transportmass = 4999,
+		transportmass = 750,
 		transportsize = 3,
 		transportunloadmethod = 0,
 		turninplaceanglelimit = 360,
@@ -38,7 +38,7 @@ return {
 		customparams = {
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
-			paralyzemultiplier = 0.025,
+			paralyzemultiplier = 0,
 			subfolder = "ArmAircraft",
 		},
 		sfxtypes = {

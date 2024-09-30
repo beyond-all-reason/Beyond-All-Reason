@@ -2,13 +2,13 @@ return {
 	corvalk = {
 		blocking = false,
 		buildpic = "CORVALK.DDS",
-		buildtime = 4940,
+		buildtime = 4120,
 		canfly = true,
 		canmove = true,
 		category = "ALL MOBILE WEAPON NOTLAND VTOL NOTSUB NOTSHIP NOTHOVER",
 		collide = false,
 		cruisealtitude = 100,
-		energycost = 2450,
+		energycost = 1450,
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 2,
 		footprintz = 3,
@@ -29,7 +29,7 @@ return {
 		sightdistance = 260,
 		speed = 198,
 		transportcapacity = 1,
-		transportmass = 4999,
+		transportmass = 750,
 		transportsize = 3,
 		transportunloadmethod = 0,
 		turninplaceanglelimit = 360,
@@ -38,7 +38,7 @@ return {
 		customparams = {
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			paralyzemultiplier = 0.025,
+			paralyzemultiplier = 0,
 			subfolder = "CorAircraft",
 		},
 		sfxtypes = {

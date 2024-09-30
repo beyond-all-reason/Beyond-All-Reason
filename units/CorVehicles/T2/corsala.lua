@@ -46,7 +46,7 @@ return {
 			kickback = "-2.4",
 			model_author = "Itanthias, Hornet",
 			normaltex = "unittextures/cor_normal.dds",
-			paralyzemultiplier = 0.1,
+			paralyzemultiplier = 0.2,
 			subfolder = "CorVehicles/T2",
 			techlevel = 2,
 			unitgroup = "weapon",

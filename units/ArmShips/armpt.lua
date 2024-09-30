@@ -44,7 +44,7 @@ return {
 			maxrange = "260",
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
-			paralyzemultiplier = 0.5,
+			paralyzemultiplier = 1,
 			subfolder = "ArmShips",
 			unitgroup = "weaponaa",
 		},

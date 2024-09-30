@@ -12,7 +12,7 @@ return {
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 2,
 		footprintz = 3,
-		health = 800,
+		health = 720,
 		idleautoheal = 5,
 		idletime = 1800,
 		loadingradius = 300,
@@ -37,7 +37,7 @@ return {
 		customparams = {
 			model_author = "Protar",
 			normaltex = "unittextures/Arm_normal.dds",
-			paralyzemultiplier = 0.025,
+			paralyzemultiplier = 0,
 			subfolder = "ArmAircraft",
 		},
 		sfxtypes = {

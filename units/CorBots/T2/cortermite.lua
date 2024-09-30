@@ -38,7 +38,7 @@ return {
 		customparams = {
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
-			paralyzemultiplier = 0.125,
+			paralyzemultiplier = 0.2,
 			subfolder = "CorBots/T2",
 			techlevel = 2,
 			unitgroup = "weapon",

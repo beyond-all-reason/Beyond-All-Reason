@@ -42,7 +42,7 @@ return {
 		customparams = {
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			paralyzemultiplier = 0.5,
+			paralyzemultiplier = 1,
 			subfolder = "CorShips",
 			unitgroup = "weaponaa",
 		},

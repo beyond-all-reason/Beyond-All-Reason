@@ -46,7 +46,7 @@ return {
 			kickback = "-4",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			paralyzemultiplier = 0.25,
+			paralyzemultiplier = 0.2,
 			subfolder = "CorVehicles/T2",
 			techlevel = 2,
 			unitgroup = "weapon",

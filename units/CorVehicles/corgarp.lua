@@ -46,7 +46,7 @@ return {
 			kickback = "-2.4",
 			model_author = "Flaka",
 			normaltex = "unittextures/cor_normal.dds",
-			paralyzemultiplier = 0.125,
+			paralyzemultiplier = 0.2,
 			subfolder = "CorVehicles",
 			unitgroup = "weapon",
 			weapon1turretx = 90,

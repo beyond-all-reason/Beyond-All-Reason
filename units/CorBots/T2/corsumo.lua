@@ -15,7 +15,6 @@ return {
 		health = 15600,
 		idleautoheal = 5,
 		idletime = 1800,
-		mass = 5001,
 		maxacc = 0.0552,
 		maxdec = 0.43125,
 		maxslope = 15,
@@ -38,7 +37,7 @@ return {
 		customparams = {
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
-			paralyzemultiplier = 0.5,
+			paralyzemultiplier = 1,
 			subfolder = "CorBots/T2",
 			techlevel = 2,
 			unitgroup = "weapon",

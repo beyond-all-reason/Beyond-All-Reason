@@ -45,7 +45,7 @@ return {
 			kickback = "-2.4",
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
-			paralyzemultiplier = 0.25,
+			paralyzemultiplier = 0.2,
 			subfolder = "ArmVehicles/T2",
 			techlevel = 2,
 			unitgroup = "weapon",

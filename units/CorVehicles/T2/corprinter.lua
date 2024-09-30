@@ -52,7 +52,7 @@ return {
 		customparams = {
 			model_author = "MASHUP, Itanthias, name inspired by Themitri",
 			normaltex = "unittextures/cor_normal.dds",
-			paralyzemultiplier = 0.1,
+			paralyzemultiplier = 0.2,
 			subfolder = "CorVehicles/T2",
 			techlevel = 2,
 			unitgroup = "buildert2",

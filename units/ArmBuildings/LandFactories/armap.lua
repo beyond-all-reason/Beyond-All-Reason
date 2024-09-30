@@ -41,6 +41,7 @@ return {
 			[4] = "armthund",
 			[5] = "armatlas",
 			[6] = "armkam",
+			[7] = "armhvytrans",
 		},
 		customparams = {
 			airfactory = true,

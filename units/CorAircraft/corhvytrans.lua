@@ -12,7 +12,7 @@ return {
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 2,
 		footprintz = 3,
-		health = 1000,
+		health = 900,
 		idleautoheal = 5,
 		idletime = 1800,
 		loadingradius = 300,
@@ -37,7 +37,7 @@ return {
 		customparams = {
 			model_author = "Protar",
 			normaltex = "unittextures/cor_normal.dds",
-			paralyzemultiplier = 0.025,
+			paralyzemultiplier = 0,
 			subfolder = "CorAircraft",
 		},
 		sfxtypes = {
