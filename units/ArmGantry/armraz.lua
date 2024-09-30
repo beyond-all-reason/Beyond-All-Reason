@@ -155,6 +155,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL GROUNDSCOUT",
 				burstcontrolwhenoutofarc = 2,
+				comment = "seems to have 40 deg burst limit arc limit w the burstcontrolwhenoutofarc = 2, fastautoretargeting, compounding"
 				def = "MECH_RAPIDLASER",
 				fastautoretargeting = true,
 				onlytargetcategory = "NOTSUB",

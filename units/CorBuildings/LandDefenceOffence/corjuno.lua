@@ -152,6 +152,7 @@ return {
 				},
 			},
 			juno_pulse_ghost = {
+				comment = "Juno rework needs this to avoid loops. Just having this on 1 juno like this, is enough."
 				damage = {
 					default = 1,
 					mines = 1,
