@@ -26,7 +26,6 @@ return {
 		movementclass = "BOT3",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMSNIPE.s3o",
-		power = 750,
 		script = "Units/ARMSNIPE.cob",
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 455,
