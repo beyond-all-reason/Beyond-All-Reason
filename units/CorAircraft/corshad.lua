@@ -1,6 +1,5 @@
 return {
 	corshad = {
-		acceleration = 0.05,
 		blocking = false,
 		buildpic = "CORSHAD.DDS",
 		buildtime = 5050,
@@ -36,7 +35,6 @@ return {
 		speed = 234,
 		speedtofront = 0.06183,
 		turnradius = 64,
-		turnrate = 800,
 		usesmoothmesh = true,
 		wingangle = 0.06296,
 		wingdrag = 0.145,

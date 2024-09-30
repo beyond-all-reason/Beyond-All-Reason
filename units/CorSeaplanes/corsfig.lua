@@ -1,6 +1,5 @@
 return {
 	corsfig = {
-		acceleration = 0.37,
 		airsightdistance = 950,
 		blocking = false,
 		buildpic = "CORSFIG.DDS",
@@ -35,7 +34,6 @@ return {
 		speed = 315.60001,
 		speedtofront = 0.07,
 		turnradius = 64,
-		turnrate = 680,
 		usesmoothmesh = true,
 		wingangle = 0.06252,
 		wingdrag = 0.235,

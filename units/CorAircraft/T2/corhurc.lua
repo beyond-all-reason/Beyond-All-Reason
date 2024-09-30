@@ -1,6 +1,5 @@
 return {
 	corhurc = {
-		acceleration = 0.04,
 		blocking = false,
 		buildpic = "CORHURC.DDS",
 		buildtime = 31000,
@@ -36,7 +35,6 @@ return {
 		speed = 248.399,
 		speedtofront = 0.063,
 		turnradius = 64,
-		turnrate = 400,
 		usesmoothmesh = true,
 		wingangle = 0.06148,
 		wingdrag = 0.125,

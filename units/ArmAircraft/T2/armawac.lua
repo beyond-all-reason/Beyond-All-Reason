@@ -1,6 +1,5 @@
 return {
 	armawac = {
-		acceleration = 0.25,
 		blocking = false,
 		buildpic = "ARMAWAC.DDS",
 		buildtime = 12800,
@@ -36,7 +35,6 @@ return {
 		speed = 317.39999,
 		speedtofront = 0.06417,
 		turnradius = 64,
-		turnrate = 650,
 		usesmoothmesh = true,
 		wingangle = 0.06241,
 		wingdrag = 0.135,

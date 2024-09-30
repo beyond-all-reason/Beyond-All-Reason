@@ -1,6 +1,5 @@
 return {
 	armpnix = {
-		acceleration = 0.04,
 		blocking = false,
 		buildpic = "ARMPNIX.DDS",
 		buildtime = 21000,
@@ -36,7 +35,6 @@ return {
 		speed = 258,
 		speedtofront = 0.063,
 		turnradius = 64,
-		turnrate = 450,
 		usesmoothmesh = true,
 		wingangle = 0.06167,
 		wingdrag = 0.125,

@@ -1,6 +1,5 @@
 return {
 	armfig = {
-		acceleration = 0.3,
 		airsightdistance = 950,
 		blocking = false,
 		buildpic = "ARMFIG.DDS",
@@ -34,7 +33,6 @@ return {
 		speed = 289.20001,
 		speedtofront = 0.06417,
 		turnradius = 64,
-		turnrate = 850,
 		usesmoothmesh = true,
 		wingangle = 0.06315,
 		wingdrag = 0.185,

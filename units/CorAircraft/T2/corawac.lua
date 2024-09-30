@@ -1,6 +1,5 @@
 return {
 	corawac = {
-		acceleration = 0.25,
 		blocking = false,
 		buildpic = "CORAWAC.DDS",
 		buildtime = 13300,
@@ -36,7 +35,6 @@ return {
 		speed = 321,
 		speedtofront = 0.06417,
 		turnradius = 64,
-		turnrate = 650,
 		usesmoothmesh = true,
 		wingangle = 0.06241,
 		wingdrag = 0.11,

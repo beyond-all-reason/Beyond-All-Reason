@@ -1,6 +1,5 @@
 return {
 	armsb = {
-		acceleration = 0.055,
 		buildpic = "ARMSB.DDS",
 		buildtime = 8000,
 		canfly = true,
@@ -36,7 +35,6 @@ return {
 		speed = 267.29999,
 		speedtofront = 0.07,
 		turnradius = 64,
-		turnrate = 600,
 		usesmoothmesh = true,
 		wingangle = 0.06222,
 		wingdrag = 3.035,

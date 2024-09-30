@@ -1,6 +1,5 @@
 return {
 	armthund = {
-		acceleration = 0.05,
 		buildpic = "ARMTHUND.DDS",
 		buildtime = 4780,
 		canfly = true,
@@ -35,7 +34,6 @@ return {
 		speed = 255,
 		speedtofront = 0.063,
 		turnradius = 64,
-		turnrate = 850,
 		usesmoothmesh = true,
 		wingangle = 0.06315,
 		wingdrag = 0.135,

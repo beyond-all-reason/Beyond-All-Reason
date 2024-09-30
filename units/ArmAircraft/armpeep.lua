@@ -1,6 +1,5 @@
 return {
 	armpeep = {
-		acceleration = 0.3,
 		blocking = false,
 		buildpic = "ARMPEEP.DDS",
 		buildtime = 2800,
@@ -36,7 +35,6 @@ return {
 		speed = 375,
 		speedtofront = 0.06417,
 		turnradius = 64,
-		turnrate = 850,
 		usesmoothmesh = true,
 		wingangle = 0.06315,
 		wingdrag = 0.0575,

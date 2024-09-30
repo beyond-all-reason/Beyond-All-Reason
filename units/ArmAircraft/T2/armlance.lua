@@ -1,6 +1,5 @@
 return {
 	armlance = {
-		acceleration = 0.2,
 		buildpic = "ARMLANCE.DDS",
 		buildtime = 15100,
 		canfly = true,
@@ -36,7 +35,6 @@ return {
 		speed = 285,
 		speedtofront = 0.06417,
 		turnradius = 64,
-		turnrate = 700,
 		usesmoothmesh = true,
 		wingangle = 0.06259,
 		wingdrag = 0.185,

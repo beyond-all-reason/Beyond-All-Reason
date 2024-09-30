@@ -1,6 +1,5 @@
 return {
 	cortitan = {
-		acceleration = 0.2,
 		blocking = false,
 		buildpic = "CORTITAN.DDS",
 		buildtime = 14700,
@@ -37,7 +36,6 @@ return {
 		speed = 279,
 		speedtofront = 0.063,
 		turnradius = 64,
-		turnrate = 600,
 		usesmoothmesh = true,
 		wingangle = 0.06222,
 		wingdrag = 0.18,

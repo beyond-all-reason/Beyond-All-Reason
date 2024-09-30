@@ -1,6 +1,5 @@
 return {
 	armstil = {
-		acceleration = 0.25,
 		blocking = false,
 		buildpic = "ARMSTIL.DDS",
 		buildtime = 32000,
@@ -39,7 +38,6 @@ return {
 		speedtofront = 0.06125,
 		stealth = true,
 		turnradius = 64,
-		turnrate = 500,
 		usesmoothmesh = true,
 		wingangle = 0.06222,
 		wingdrag = 0.115,

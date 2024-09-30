@@ -1,6 +1,5 @@
 return {
 	corhunt = {
-		acceleration = 0.22,
 		blocking = false,
 		buildpic = "CORHUNT.DDS",
 		buildtime = 9500,
@@ -37,7 +36,6 @@ return {
 		speed = 324.29999,
 		speedtofront = 0.07,
 		turnradius = 64,
-		turnrate = 680,
 		usesmoothmesh = true,
 		wingangle = 0.06252,
 		wingdrag = 0.11,

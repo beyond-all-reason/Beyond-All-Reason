@@ -1,6 +1,5 @@
 return {
 	corveng = {
-		acceleration = 0.3,
 		airsightdistance = 950,
 		blocking = false,
 		buildpic = "CORVENG.DDS",
@@ -34,7 +33,6 @@ return {
 		speed = 297.60001,
 		speedtofront = 0.063,
 		turnradius = 64,
-		turnrate = 850,
 		usesmoothmesh = true,
 		wingangle = 0.06315,
 		wingdrag = 0.165,

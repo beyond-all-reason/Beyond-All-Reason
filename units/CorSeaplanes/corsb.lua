@@ -1,6 +1,5 @@
 return {
 	corsb = {
-		acceleration = 0.055,
 		blocking = false,
 		buildpic = "CORSB.DDS",
 		buildtime = 7000,
@@ -37,7 +36,6 @@ return {
 		speed = 240,
 		speedtofront = 0.07,
 		turnradius = 64,
-		turnrate = 600,
 		usesmoothmesh = true,
 		wingangle = 0.06222,
 		wingdrag = 0.125,

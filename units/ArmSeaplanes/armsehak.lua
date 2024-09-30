@@ -1,6 +1,5 @@
 return {
 	armsehak = {
-		acceleration = 0.2,
 		blocking = false,
 		buildpic = "ARMSEHAK.DDS",
 		buildtime = 9050,
@@ -37,7 +36,6 @@ return {
 		speed = 338.10001,
 		speedtofront = 0.07,
 		turnradius = 64,
-		turnrate = 750,
 		usesmoothmesh = true,
 		wingangle = 0.06278,
 		wingdrag = 0.135,

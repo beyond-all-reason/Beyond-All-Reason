@@ -1,6 +1,5 @@
 return {
 	armhawk = {
-		acceleration = 0.4,
 		airsightdistance = 1100,
 		blocking = false,
 		buildpic = "ARMHAWK.DDS",
@@ -35,7 +34,6 @@ return {
 		speedtofront = 0.063,
 		stealth = true,
 		turnradius = 64,
-		turnrate = 900,
 		usesmoothmesh = true,
 		wingangle = 0.06333,
 		wingdrag = 0.0575,

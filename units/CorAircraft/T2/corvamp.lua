@@ -1,6 +1,5 @@
 return {
 	corvamp = {
-		acceleration = 0.35,
 		airsightdistance = 1100,
 		blocking = false,
 		buildpic = "CORVAMP.DDS",
@@ -35,7 +34,6 @@ return {
 		speedtofront = 0.06475,
 		stealth = true,
 		turnradius = 64,
-		turnrate = 980,
 		usesmoothmesh = true,
 		wingangle = 0.06363,
 		wingdrag = 0.21,

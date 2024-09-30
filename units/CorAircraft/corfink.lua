@@ -1,6 +1,5 @@
 return {
 	corfink = {
-		acceleration = 0.3,
 		blocking = false,
 		buildpic = "CORFINK.DDS",
 		buildtime = 2400,
@@ -36,7 +35,6 @@ return {
 		speed = 360,
 		speedtofront = 0.06125,
 		turnradius = 64,
-		turnrate = 850,
 		usesmoothmesh = true,
 		wingangle = 0.06315,
 		wingdrag = 0.06,

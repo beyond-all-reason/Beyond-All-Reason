@@ -1,6 +1,5 @@
 return {
 	armliche = {
-		acceleration = 0.15,
 		blocking = false,
 		buildpic = "ARMLICHE.DDS",
 		buildtime = 57400,
@@ -37,7 +36,6 @@ return {
 		speed = 294.89999,
 		speedtofront = 0.06767,
 		turnradius = 64,
-		turnrate = 540,
 		usesmoothmesh = true,
 		wingangle = 0.062,
 		wingdrag = 0.135,
