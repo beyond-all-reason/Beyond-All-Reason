@@ -41,7 +41,7 @@ return {
 		movementclass = "COMMANDERBOT",
 		movestate = 0,
 		nochasecategory = "ALL",
-		objectname = "Units/ARMCOM.s3o",
+		objectname = "Units/ARMCOM"..(Spring.GetModOptions().xmas and '-XMAS' or '')..".s3o",
 		pushresistant = true,
 		radardistance = 700,
 		radaremitheight = 40,
