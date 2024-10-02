@@ -21,7 +21,7 @@ return {
 		maxslope = 16,
 		maxwaterdepth = 0,
 		metalcost = 230,
-		movementclass = "HOVER2",
+		movementclass = "HOVER3",
 		movestate = 0,
 		nochasecategory = "NOTAIR",
 		objectname = "Units/ARMAH.s3o",
