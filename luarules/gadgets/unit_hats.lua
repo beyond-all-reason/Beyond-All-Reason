@@ -71,7 +71,7 @@ local unitDefCanWearHats = {
  local legchamps = { -- Legion Fight Night winner(s)
  }
 local champion = { --   Fight Night 1v1 winner
-["[DmE]FlyingDuck"] = true,
+	["[DmE]FlyingDuck"] = true,
 }
  local vikings = {
 	["[HELO]Austin"] = true,
@@ -80,7 +80,7 @@ local champion = { --   Fight Night 1v1 winner
 	["Lostdeadman"] = true,
 	["Narnuk"] = true,
 	["Yanami"] = true,
-	["Hellshound"] = true,
+	["HellsHound"] = true,
 }
 local kings = {
 	["Yanami"] = true,
