@@ -123,6 +123,7 @@ DeployWeapon()
   weapon_state = 3;
   wait-for-move barrel along z-axis;
   weapon_state = 4;
+  set ARMORED to 0;
 }
 
 RetractWeapon()
@@ -137,6 +138,7 @@ RetractWeapon()
     weapon_state = 5;
     wait-for-move barrel along z-axis;
     weapon_state = 2;
+	set ARMORED to 1;
   }
 
   if (weapon_state == 2 OR weapon_state == 6 OR weapon_state == 1)
@@ -146,6 +148,7 @@ RetractWeapon()
     weapon_state = 6;
     wait-for-move top along y-axis;
     weapon_state = 0;
+	set ARMORED to 1;
   }
 }
 
