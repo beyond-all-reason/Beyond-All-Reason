@@ -201,6 +201,7 @@ local settings = {
 
 	-- this table is used only when widgetConfig is set to custom
 	metricsEnabled = {},
+	oneTimeEcostatsEnableDone = false,
 }
 
 local metricKeys = {
@@ -1902,6 +1903,11 @@ local function reInit()
 end
 
 function widget:Initialize()
+	-- One time enabling of ecostats since old spectator hud versions would disable ecostats
+	-- and we don't want people not being able to enable it again easily.
+	if not settings.oneTimeEcostatsEnableDone and widgetHandler:IsWidgetKnown("Ecostats") then
+		widgetHandler:EnableWidget("Ecostats")
+	end
 	-- Note: Widget is logically enabled only if there are exactly two teams
 	-- If yes, we will hide ecostats (hide at init() and show at deInit())
 	-- If no, we will do nothing since user might or might not be using ecostats
@@ -2109,6 +2115,7 @@ function widget:GetConfigData()
 	local result = {
 		widgetScale = settings.widgetScale,
 		widgetConfig = settings.widgetConfig,
+		oneTimeEcostatsEnableDone = true,
 	}
 
 	result.metricsEnabled = {}
@@ -2125,6 +2132,9 @@ function widget:SetConfigData(data)
 	end
 	if data.widgetConfig then
 		settings.widgetConfig = data.widgetConfig
+	end
+	if data.oneTimeEcostatsEnableDone then
+		settings.oneTimeEcostatsEnableDone = data.oneTimeEcostatsEnableDone
 	end
 
 	if data["metricsEnabled"] then
