@@ -62,6 +62,7 @@ local gaiaID = Spring.GetGaiaTeamID()
 local gaiaAllyID = select(6, Spring.GetTeamInfo(gaiaID, false))
 
 local widgetEnabled = nil
+local ecostatsWidget = nil
 
 local haveFullView = false
 
@@ -1820,7 +1821,23 @@ local function initGL4()
 	return shaderCompiled
 end
 
+local function hideEcostats()
+	if widgetEnabled and widgetHandler:IsWidgetKnown("Ecostats") then
+		ecostatsWidget = widgetHandler:FindWidget("Ecostats")
+		if (not ecostatsWidget) then return end
+		widgetHandler:RemoveWidget(ecostatsWidget)
+	end
+end
+
+local function showEcostats()
+	if ecostatsWidget then
+		widgetHandler:InsertWidget(ecostatsWidget)
+		ecostatsWidget = nil
+	end
+end
+
 local function init()
+	hideEcostats()
 	font = WG['fonts'].getFont()
 
 	viewScreenWidth, viewScreenHeight = Spring.GetViewGeometry()
@@ -1876,6 +1893,7 @@ local function deInit()
 	deleteMetricDisplayLists()
 	deleteKnobVAO()
 	deleteTextures()
+	showEcostats()
 end
 
 local function reInit()
@@ -1885,20 +1903,10 @@ end
 
 function widget:Initialize()
 	-- Note: Widget is logically enabled only if there are exactly two teams
-	-- If yes, we disable ecostats
-	-- If no, we enable ecostats
-	-- TODO: What if user doesn't want to have Ecostats?
+	-- If yes, we will hide ecostats (hide at init() and show at deInit())
+	-- If no, we will do nothing since user might or might not be using ecostats
 	widgetEnabled = getAmountOfAllyTeams() == 2
-	if widgetEnabled then
-		if widgetHandler:IsWidgetKnown("Ecostats") then
-			widgetHandler:DisableWidget("Ecostats")
-		end
-	else
-		if widgetHandler:IsWidgetKnown("Ecostats") then
-			widgetHandler:EnableWidget("Ecostats")
-		end
-		return
-	end
+	if not widgetEnabled then return end
 
 	WG["spectator_hud"] = {}
 
