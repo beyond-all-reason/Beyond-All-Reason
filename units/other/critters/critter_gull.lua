@@ -17,6 +17,7 @@ return {
 		canstop = "1",
 		cantbetransported = true,
 		capturable = false,
+		category = "OBJECT",
 		collide = false,
 		collision = false,
 		cruisealtitude = 200,

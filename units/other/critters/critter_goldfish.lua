@@ -16,6 +16,7 @@ return {
 		canstop = true,
 		cantbetransported = true,
 		capturable = false,
+		category = "OBJECT",
 		explodeas = "TINYBUG_DEATH",
 		footprintx = 1,
 		footprintz = 1,
