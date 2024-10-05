@@ -26,7 +26,7 @@ local validCollisionAngleMultiplier = math.cos(math.rad(20)) --degrees
 -- Decrease this value to make units move less from impulse. This defines the maximum impulse allowed, which is (maxImpulseMultiplier * mass) of each unit.
 local maxImpulseMultiplier = 5.5
 
---to save performance and reduce unit hesitation from nominal impulse, impulse values below (maxImpulseMultiplier * mass) returns 0 impulse.
+--to save performance and reduce unit hesitation from nominal impulse, impulse values below (minImpulseMultiplier * mass) returns 0 impulse.
 local minImpulseMultiplier = 1
 
 -- elmo/s, converted to elmo/frame. If a unit is launched via explosion faster than this, it is instantly slowed. If unit speed/gameSpeed is greater or canFly = true, speed/gameSpeed is used instead.
