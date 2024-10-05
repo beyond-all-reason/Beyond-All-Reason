@@ -210,6 +210,7 @@ return {
 		},
 		weapons = {
 			[1] = {
+				burstControlWhenOutOfArc = 2,
 				def = "lightning",
 				onlytargetcategory = "SURFACE",
 				fastautoretargeting = true,
