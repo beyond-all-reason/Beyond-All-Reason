@@ -210,10 +210,7 @@ function gadget:GameFrame(frame)
 			local velX, velY, velZ, velocityLength = spGetUnitVelocity(unitID)
 			if not data.velocityReduced and velocityLength > data.velocityCap then
 				local verticalVelocityCapThreshold = 0.07 --value derived from empirical testing to prevent fall damage and goofy trajectories from impulse
-				local horizontalVelocity =  0
-				if velX ~= 0 or velY ~= 0 then
-					horizontalVelocity = math.sqrt(velX^2 + velZ^2)
-				end
+				local horizontalVelocity = math.sqrt(velX^2 + velZ^2)
 				local newVelY = mathAbs(mathMin(horizontalVelocity * verticalVelocityCapThreshold, velY))
 				local newVelYToOldVelYRatio
 				if velY ~= 0 then
