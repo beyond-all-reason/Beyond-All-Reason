@@ -118,7 +118,7 @@ for weaponDefID, wDef in ipairs(WeaponDefs) do
 end
 
 local function getImpulseMultiplier(unitDefID, weaponDefID, damage)
-	local impulseBoost = 0
+	local impulseBoost = 0.001 --to ensure that impulse is never 0 to prevent division errors.
 	local impulseFactor = 1
 	if weaponDefID and weaponDefIDImpulses[weaponDefID] then
 		impulseBoost = weaponDefIDImpulses[weaponDefID].impulseBoost or 0
