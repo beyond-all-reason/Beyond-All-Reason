@@ -208,7 +208,7 @@ function gadget:GameFrame(frame)
 	for unitID, data in pairs(unitInertiaCheckFlags) do
 		if not transportedUnits[unitID] and not spGetUnitIsDead(unitID) then
 			local velX, velY, velZ, velocityLength = spGetUnitVelocity(unitID)
-			if not data.velocityReduced and velocityLength > data.velocityCap then -- Sheer off extreme velocities within acceptable range
+			if not data.velocityReduced and velocityLength > data.velocityCap then
 				local verticalVelocityCapThreshold = 0.07 --value derived from empirical testing to prevent fall damage and goofy trajectories from impulse
 				local horizontalVelocity =  0
 				if velX ~= 0 or velY ~= 0 then
