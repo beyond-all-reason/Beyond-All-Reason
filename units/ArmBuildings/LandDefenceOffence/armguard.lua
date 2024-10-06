@@ -151,7 +151,7 @@ return {
 				impulsefactor = 1.4,
 				name = "High-trajectory g2g long-range AoE plasma cannon",
 				noselfdamage = true,
-				proximitypriority = -2,
+				proximitypriority = -1,
 				range = 1220,
 				reloadtime = 7,
 				soundhit = "xplomed2",

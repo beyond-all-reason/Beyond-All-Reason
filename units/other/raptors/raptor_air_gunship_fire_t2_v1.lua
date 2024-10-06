@@ -109,7 +109,7 @@ return {
 				intensity = 0.65,
 				name = "FlameThrower",
 				noselfdamage = true,
-				proximitypriority = 4,
+				proximitypriority = 1,
 				range = 400,
 				reloadtime = 0.7,
 				rgbcolor = "1 0.94 0.88",

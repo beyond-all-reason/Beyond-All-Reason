@@ -127,7 +127,7 @@ return {
 				name = "Rapid-fire long-range g2a missile barrel",
 				noselfdamage = true,
 				projectiles = 1,
-				proximitypriority = -2,
+				proximitypriority = -1,
 				range = 1125,
 				reloadtime = 1.6,
 				smoketrail = true,

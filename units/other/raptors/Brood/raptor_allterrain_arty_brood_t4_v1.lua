@@ -96,7 +96,7 @@ return {
 				model = "Raptors/s_raptor_white.s3o",
 				name = "GOOLAUNCHER",
 				noselfdamage = true,
-				proximitypriority = -4,
+				proximitypriority = -1,
 				range = 2000,
 				reloadtime = 10,
 				rgbcolor = "0.5 0 1",

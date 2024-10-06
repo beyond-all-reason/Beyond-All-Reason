@@ -85,7 +85,7 @@ return {
 				hightrajectory = 1,
 				model = "Raptors/greyrock2.s3o",
 				name = "METEORLAUNCHER",
-				proximitypriority = -6,
+				proximitypriority = -1,
 				range = 72000,
 				reloadtime = 30,
 				soundhit = "nukecor",

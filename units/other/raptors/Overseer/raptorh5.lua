@@ -94,7 +94,7 @@ return {
 				name = "ControlBlob",
 				noselfdamage = true,
 				predictboost = 1,
-				proximitypriority = -2,
+				proximitypriority = -1,
 				range = 1000,
 				reloadtime = 0.5,
 				rgbcolor = "0.42 0.07 0.07",

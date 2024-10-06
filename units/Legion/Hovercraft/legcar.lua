@@ -128,7 +128,7 @@ return {
 				name = "Medium Shotgun",
 				noselfdamage = true,
 				ownerExpAccWeight = 4.0,
-				proximitypriority = 3,
+				proximitypriority = 1,
 				range = 321,
 				reloadtime = 2,
 				rgbcolor = "1 0.95 0.4",

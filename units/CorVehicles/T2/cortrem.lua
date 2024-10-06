@@ -125,7 +125,7 @@ return {
 				impulsefactor = 1.4,
 				name = "RapidArtillery",
 				noselfdamage = true,
-				proximitypriority = -3,
+				proximitypriority = -1,
 				range = 1470,
 				mygravity = 0.1333,
 				reloadtime = 0.5,

@@ -78,7 +78,7 @@ return {
 				laserflaresize = 3.146,
 				name = "LightLaser",
 				noselfdamage = true,
-				proximitypriority = 2,
+				proximitypriority = 1,
 				range = 266,
 				reloadtime = 0.2,
 				rgbcolor = "1 0 0",

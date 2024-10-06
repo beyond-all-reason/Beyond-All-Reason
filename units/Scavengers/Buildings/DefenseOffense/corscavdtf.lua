@@ -133,7 +133,7 @@ return {
 				intensity = 0.75,
 				name = "Pop-up anti-swarm AoE flamethrower",
 				noselfdamage = true,
-				proximitypriority = 3,
+				proximitypriority = 1,
 				range = 410,
 				reloadtime = 1.1,
 				rgbcolor = "1 0.94 0.88",

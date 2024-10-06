@@ -97,7 +97,7 @@ return {
 				sizedecay = 0.04,
 				alphaDecay = 0.18,
 				stages = 8,
-				proximitypriority = -4,
+				proximitypriority = -1,
 				range = 1500,
 				reloadtime = 20,
 				rgbcolor = "0.8 0.99 0.11",

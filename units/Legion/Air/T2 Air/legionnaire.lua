@@ -105,7 +105,7 @@ return {
 				noselfdamage = true,
 				ownerExpAccWeight = 8.0,
 				predictboost = 1,
-				proximitypriority = 3,
+				proximitypriority = 1,
 				range = 600,
 				reloadtime = 1,
 				rgbcolor = "1 0.4 0.95",

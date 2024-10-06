@@ -168,7 +168,7 @@ return {
 				name = "Heavy rotary cannon",
 				noselfdamage = true,
 				ownerExpAccWeight = 4.0,
-				proximitypriority = 3,
+				proximitypriority = 1,
 				range = 481,
 				reloadtime = 1,
 				rgbcolor = "1 0.95 0.4",
