@@ -46,7 +46,7 @@ return {
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0,
-			subfolder = "corships/t2",
+			subfolder = "CorShips/T2",
 			techlevel = 3,
 		},
 		featuredefs = {

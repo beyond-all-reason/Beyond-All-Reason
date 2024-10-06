@@ -39,7 +39,7 @@ return {
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",
 			removewait = true,
-			subfolder = "armbuildings/landdefenceoffence",
+			subfolder = "ArmBuildings/LandDefenceOffence",
 			techlevel = 2,
 		},
 		featuredefs = {

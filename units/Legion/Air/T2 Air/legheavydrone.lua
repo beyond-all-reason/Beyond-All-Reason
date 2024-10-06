@@ -36,7 +36,7 @@ return {
 		customparams = {
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "coraircraft",
+			subfolder = "CorAircraft",
 			drone = 1,
 			nohealthbars = 1,
 		},

@@ -39,7 +39,7 @@ return {
 			maxrange = "350",
 			model_author = "PtaQ",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armgantry",
+			subfolder = "ArmGantry",
 			techlevel = 3,
 			weapon1turretx = 90,
 			weapon1turrety = 150,

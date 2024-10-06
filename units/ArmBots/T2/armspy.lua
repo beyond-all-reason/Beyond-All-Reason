@@ -52,7 +52,7 @@ return {
 			unitgroup = 'buildert2',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armbots/t2",
+			subfolder = "ArmBots/T2",
 			techlevel = 2,
 			paralyzemultiplier = 0.002,
 		},

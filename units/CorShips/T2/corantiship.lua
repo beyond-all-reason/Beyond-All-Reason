@@ -54,7 +54,7 @@ return {
 			unitgroup = 'antinuke',
 			model_author = "Odin",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corships/t2",
+			subfolder = "CorShips/T2",
 			techlevel = 2,
 		},
 		featuredefs = {

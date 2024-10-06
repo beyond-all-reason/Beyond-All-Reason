@@ -48,7 +48,7 @@ return {
 		yardmap = "",
 		reclaimable = true,
 		customparams = {
-			subfolder = "scavengers",
+			subfolder = "Scavengers",
 			normaltex = "unittextures/cor_normal.dds",
 			paratrooper = true,
 		},

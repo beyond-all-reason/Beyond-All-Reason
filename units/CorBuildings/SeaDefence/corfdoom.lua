@@ -39,7 +39,7 @@ return {
 			model_author = "Zecrus",
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,
-			subfolder = "corbuildings/seadefence",
+			subfolder = "CorBuildings/SeaDefence",
 			techlevel = 2,
 		},
 		featuredefs = {

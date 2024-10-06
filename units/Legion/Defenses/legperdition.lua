@@ -37,7 +37,7 @@ return {
 			model_author = "Hornet, Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
-			subfolder = "corbuildings/landdefenceoffence",
+			subfolder = "CorBuildings/LandDefenceOffence",
 			techlevel = 2,
 		},
 		featuredefs = {

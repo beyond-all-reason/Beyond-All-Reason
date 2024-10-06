@@ -38,7 +38,7 @@ return {
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.1,
-			subfolder = "corbuildings/landutil",
+			subfolder = "CorBuildings/LandUtil",
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {

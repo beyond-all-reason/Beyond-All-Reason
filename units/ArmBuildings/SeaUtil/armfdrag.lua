@@ -39,7 +39,7 @@ return {
 			objectify = true,
 			removestop = true,
 			removewait = true,
-			subfolder = "armbuildings/seautil",
+			subfolder = "ArmBuildings/SeaUtil",
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {

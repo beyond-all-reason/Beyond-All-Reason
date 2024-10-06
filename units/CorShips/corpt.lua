@@ -44,7 +44,7 @@ return {
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.5,
-			subfolder = "corships",
+			subfolder = "CorShips",
 		},
 		featuredefs = {
 			dead = {

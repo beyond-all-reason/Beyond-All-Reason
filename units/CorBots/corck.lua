@@ -74,7 +74,7 @@ return {
 			unitgroup = 'builder',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corbots",
+			subfolder = "CorBots",
 		},
 		featuredefs = {
 			dead = {

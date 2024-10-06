@@ -40,7 +40,7 @@ return {
 			unitgroup = 'weapon',
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armgantry",
+			subfolder = "ArmGantry",
 			onoffname = "trajectory",
 			techlevel = 3,
 		},

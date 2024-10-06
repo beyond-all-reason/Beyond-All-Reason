@@ -38,7 +38,7 @@ return {
 			unitgroup = 'aa',
 			model_author = "Kaiser, PtaQ",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armbots",
+			subfolder = "ArmBots",
 		},
 		featuredefs = {
 			dead = {

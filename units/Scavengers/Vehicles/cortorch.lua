@@ -44,7 +44,7 @@ return {
 			model_author = "Flaka, Itanthias kitbash",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.0130,
-			subfolder = "corvehicles",
+			subfolder = "CorVehicles",
 		},
 		featuredefs = {
 			dead = {

@@ -35,7 +35,7 @@ return {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			removewait = true,
-			subfolder = "armbuildings/seadefence",
+			subfolder = "ArmBuildings/SeaDefence",
 		},
 		featuredefs = {
 			dead = {

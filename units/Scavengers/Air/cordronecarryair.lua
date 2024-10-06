@@ -49,7 +49,7 @@ return {
 		customparams = {
 			model_author = "Odin",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "scavengers/air",
+			subfolder = "Scavengers/air",
 			techlevel = 3,
 			inheritxpratemultiplier = 1,
 			childreninheritxp = "DRONE",

@@ -88,7 +88,7 @@ return {
 			unitgroup = 'builder',
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armseaplanes",
+			subfolder = "ArmSeaplanes",
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {

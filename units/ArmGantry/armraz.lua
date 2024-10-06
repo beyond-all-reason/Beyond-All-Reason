@@ -38,7 +38,7 @@ return {
 			unitgroup = 'weapon',
 			model_author = "PtaQ",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armgantry",
+			subfolder = "ArmGantry",
 			techlevel = 3,
 			weapon1turretx = 200,
 			weapon1turrety = 200,

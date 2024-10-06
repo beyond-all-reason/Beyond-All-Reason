@@ -47,7 +47,7 @@ return {
 			paralyzemultiplier = 0,
 			removestop = true,
 			removewait = true,
-			subfolder = "corbuildings/landutil",
+			subfolder = "CorBuildings/LandUtil",
 			techlevel = 2,
 		},
 		featuredefs = {

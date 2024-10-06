@@ -46,7 +46,7 @@ return {
 			paralyzemultiplier = 0,
 			removestop = true,
 			removewait = true,
-			subfolder = "armbuildings/landutil",
+			subfolder = "ArmBuildings/LandUtil",
 		},
 		featuredefs = {
 			rockteeth = {

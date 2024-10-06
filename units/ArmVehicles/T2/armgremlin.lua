@@ -49,7 +49,7 @@ return {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.2,
-			subfolder = "armvehicles/t2",
+			subfolder = "ArmVehicles/T2",
 			techlevel = 2,
 			weapon1turretx = 200,
 			weapon1turrety = 200,

@@ -57,7 +57,7 @@ return {
 			unitgroup = 'buildert2',
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corbots/t2",
+			subfolder = "CorBots/T2",
 			techlevel = 2,
 			paratrooper = true,
 			fall_damage_multiplier = 0

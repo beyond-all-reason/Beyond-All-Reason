@@ -75,7 +75,7 @@ return {
 			area_mexT15_def = "legmext15",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "corbots",
+			subfolder = "CorBots",
 		},
 		featuredefs = {
 			dead = {

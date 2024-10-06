@@ -40,7 +40,7 @@ return {
 			unitgroup = 'aa',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corhovercraft",
+			subfolder = "CorHovercraft",
 		},
 		featuredefs = {
 			dead = {

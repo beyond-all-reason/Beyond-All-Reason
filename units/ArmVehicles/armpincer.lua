@@ -48,7 +48,7 @@ return {
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.125,
-			subfolder = "armvehicles",
+			subfolder = "ArmVehicles",
 			weapon1turretx = 64,
 			weapon1turrety = 75,
 		},

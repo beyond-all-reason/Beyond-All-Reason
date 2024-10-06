@@ -47,7 +47,7 @@ return {
 			kickback = "-6",
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armvehicles/t2",
+			subfolder = "ArmVehicles/T2",
 			techlevel = 2,
 			weapon1turretx = 35,
 			weapon1turrety = 35,

@@ -75,7 +75,7 @@ return {
 			unitgroup = 'builder',
 			model_author = "Mr Bob, Flaka",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "coraircraft",
+			subfolder = "CorAircraft",
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {

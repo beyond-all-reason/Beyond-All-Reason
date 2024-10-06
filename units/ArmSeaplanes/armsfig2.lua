@@ -43,7 +43,7 @@ return {
 			unitgroup = 'aa',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armseaplanes",
+			subfolder = "ArmSeaplanes",
 			fighter = 1,
 		},
 		sfxtypes = {

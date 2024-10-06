@@ -44,7 +44,7 @@ return {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.1,
-			subfolder = "armships",
+			subfolder = "ArmShips",
 			techlevel = 2,
 		},
 		featuredefs = {

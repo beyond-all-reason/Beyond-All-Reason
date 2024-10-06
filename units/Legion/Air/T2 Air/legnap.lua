@@ -45,7 +45,7 @@ return {
 			unitgroup = 'weapon',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "coraircraft/t2",
+			subfolder = "CorAircraft/T2",
 			techlevel = 2,
 		},
 		sfxtypes = {

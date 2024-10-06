@@ -48,7 +48,7 @@ return {
 			shield_power = 5000,
 			shield_radius = 600,
 			shield_downtime = 8,
-			subfolder = "armbuildings/seautil",
+			subfolder = "ArmBuildings/SeaUtil",
 			techlevel = 2,
 		},
 		featuredefs = {

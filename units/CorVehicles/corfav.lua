@@ -45,7 +45,7 @@ return {
 			kickback = "0",
 			model_author = "Flaka",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corvehicles",
+			subfolder = "CorVehicles",
 			weapon1turretx = 300,
 			weapon1turrety = 300,
 		},

@@ -42,7 +42,7 @@ return {
 			unitgroup = 'aa',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "coraircraft",
+			subfolder = "CorAircraft",
 			fighter = 1,
 		},
 		sfxtypes = {

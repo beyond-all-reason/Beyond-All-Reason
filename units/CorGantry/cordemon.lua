@@ -39,7 +39,7 @@ return {
 			maxrange = "500",
 			model_author = "FireStorm, Hornet",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corgantry",
+			subfolder = "CorGantry",
 			techlevel = 3,
 		},
 		featuredefs = {

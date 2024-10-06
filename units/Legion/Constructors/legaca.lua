@@ -74,7 +74,7 @@ return {
 			unitgroup = 'buildert2',
 			model_author = "Mr Bob, Flaka",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "coraircraft/t2",
+			subfolder = "CorAircraft/T2",
 			techlevel = 2,
 		},
 		sfxtypes = {

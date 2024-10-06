@@ -40,7 +40,7 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "legion/economy",
+			subfolder = "Legion/economy",
 		},
 		featuredefs = {
 			dead = {

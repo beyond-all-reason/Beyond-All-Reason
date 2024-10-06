@@ -45,7 +45,7 @@ return {
 			kickback = "-4",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corvehicles",
+			subfolder = "CorVehicles",
 			weapon1turretx = 20,
 			weapon1turrety = 170,
 		},

@@ -49,7 +49,7 @@ return {
 			unitgroup = 'builder',
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "corbuildings/landutil",
+			subfolder = "CorBuildings/LandUtil",
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {

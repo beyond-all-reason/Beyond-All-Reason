@@ -39,7 +39,7 @@ return {
 			flashlightmin = 0.8,
 			removestop = true,
 			removewait = true,
-			subfolder = "corbuildings/landeconomy",
+			subfolder = "CorBuildings/LandEconomy",
 			techlevel = 2,
 		},
 		featuredefs = {

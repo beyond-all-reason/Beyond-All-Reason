@@ -44,7 +44,7 @@ return {
 			unitgroup = 'util',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armaircraft",
+			subfolder = "ArmAircraft",
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {
