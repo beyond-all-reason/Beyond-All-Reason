@@ -12,7 +12,6 @@ return {
 		canrepeat = false,
 		category = "ALL UNDERWATER NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "DEAD",
-		damagemodifier = 0.46,
 		explodeas = "mediumBuildingexplosiongeneric-uw",
 		footprintx = 4,
 		footprintz = 4,
