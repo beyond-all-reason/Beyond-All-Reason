@@ -24,6 +24,7 @@ return {
 		maxwaterdepth = 0,
 		noautofire = true,
 		objectname = "Units/ARMAMD.s3o",
+		radardistance = 50,
 		script = "Units/ARMAMD.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
