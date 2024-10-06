@@ -1,5 +1,6 @@
 return {
 	armrecl = {
+		activatewhenbuilt = true,
 		maxacc = 0.05262,
 		autoheal = 2,
 		maxdec = 0.05262,
