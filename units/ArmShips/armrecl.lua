@@ -1,7 +1,6 @@
 return {
 	armrecl = {
 		maxacc = 0.05262,
-		activatewhenbuilt = true,
 		autoheal = 2,
 		maxdec = 0.05262,
 		energycost = 3000,
