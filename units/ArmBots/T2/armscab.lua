@@ -1,5 +1,6 @@
 return {
 	armscab = {
+		activatewhenbuilt = true,
 		maxacc = 0.03663,
 		maxdec = 0.07326,
 		energycost = 30000,
