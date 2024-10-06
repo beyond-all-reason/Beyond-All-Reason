@@ -1,33 +1,37 @@
-# Translation workflow is:
-# 1. English I18N keys/captions changed on master
-# 2. master merged to transifex-synchronization-source
-# 3. Transifex picks up changes on transifex-synchronization-source
-# 4. Translations made on Transifex
-# 5. Transifex creates pull request against transifex-synchronization-source
-
-# Since transifex-synchronization-source is just a staging branch to
-# control updates to Transifex, it is never merged to master, so we
-# need to change the merge target of Transifex's pull requests to master
-name: Translations set merge target to master
+# Since transifex-synchronization-source is just a staging branch to control
+# updates to Transifex, we need to force merge the translations to master,
+# excluding the English source files
+name: Translations merge to master
 
 on:
   pull_request:
-    types: [opened, synchronize]
+    types: [closed]
     branches:
-      - 'transifex-synchronization-source'
+      - transifex-synchronization-source
 
 jobs:
-  auto_change_base_branch:
+  merge-translations:
+    if: github.event.pull_request.user.login == 'transifex-integration[bot]' && github.event.pull_request.merged == true
     runs-on: ubuntu-latest
-
     steps:
-    - name: Change base branch of pull request
-      run: |
-        TOKEN="${{ secrets.GITHUB_TOKEN }}"
-        PR_NUMBER="${{ github.event.number }}"
-        NEW_BASE_BRANCH="master"
+      - name: Checkout master branch
+        uses: actions/checkout@v4
+        with:
+          ref: master
 
-        URL="https://api.github.com/repos/${{ github.repository }}/pulls/${PR_NUMBER}"
-        DATA="{\"base\":\"${NEW_BASE_BRANCH}\"}"
+      - name: Setup Git User
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-        curl -X PATCH -H "Authorization: token $TOKEN" -H "Accept: application/vnd.github.v3+json" -d "$DATA" "$URL"
+      - name: Force merge translation directories (excluding English)
+        run: |
+          git fetch --unshallow origin transifex-synchronization-source
+          for dir in language/*/; do
+            if [ -d $dir ] && [ "$(basename $dir)" != "en" ]; then
+              git checkout origin/transifex-synchronization-source -- $dir
+              git add $dir
+            fi
+          done
+          git commit -m "[Transifex] Update translations on master"
+          git push origin master --force
