@@ -1,6 +1,7 @@
 return {
 	armah = {
 		maxacc = 0.06585,
+		activatewhenbuilt = true,
 		airsightdistance = 800,
 		maxdec = 0.06585,
 		energycost = 4500,

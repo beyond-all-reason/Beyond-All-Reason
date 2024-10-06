@@ -1,5 +1,6 @@
 return {
 	raptor_allterrain_swarmer_basic_t2_v1 = {
+		activatewhenbuilt = true,
 		maxacc = 1.4375,
 		maxdec = 2.3,
 		energycost = 5280,
