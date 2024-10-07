@@ -104,7 +104,6 @@ return {
 			vipersabot = {
 				areaofeffect = 24,
 				avoidfeature = false,
-				burnblow = true,
 				cegtag = "missiletrailviper",
 				craterareaofeffect = 0,
 				craterboost = 0,
