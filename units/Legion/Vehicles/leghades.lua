@@ -2,10 +2,10 @@ return {
 	leghades = {
 		maxacc = 0.06788,
 		maxdec = 0.13575,
-		energycost = 750,
-		metalcost = 60,
+		energycost = 800,
+		metalcost = 65,
 		buildpic = "LEGHADES.DDS",
-		buildtime = 1500,
+		buildtime = 1600,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -1 0",
