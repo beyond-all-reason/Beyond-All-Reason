@@ -1,5 +1,6 @@
 return {
 	armlship = {
+		activatewhenbuilt = true,
 		maxacc = 0.065,
 		blocking = true,
 		maxdec = 0.065,

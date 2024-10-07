@@ -1,5 +1,6 @@
 return {
 	armplat = {
+		activatewhenbuilt = false, --sonar/radar only activates when deployed and building stuff.
 		maxacc = 0,
 		maxdec = 0,
 		energycost = 5000,

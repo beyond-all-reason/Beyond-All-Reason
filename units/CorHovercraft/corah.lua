@@ -1,6 +1,7 @@
 return {
 	corah = {
 		maxacc = 0.06316,
+		activatewhenbuilt = true,
 		airsightdistance = 800,
 		maxdec = 0.06316,
 		energycost = 4700,
