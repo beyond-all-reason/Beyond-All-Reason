@@ -51,7 +51,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			rockrestorespeed = "1",
 			rockspeed = "2",
-			subfolder = "corvehicles",
+			subfolder = "CorVehicles",
 			weapon1turretx = 200,
 			weapon1turrety = 200,
 		},

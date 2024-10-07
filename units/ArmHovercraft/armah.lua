@@ -22,7 +22,7 @@ return {
 		maxslope = 16,
 		speed = 88.5,
 		maxwaterdepth = 0,
-		movementclass = "HOVER2",
+		movementclass = "HOVER3",
 		movestate = 0,
 		nochasecategory = "NOTAIR",
 		objectname = "Units/ARMAH.s3o",
@@ -39,7 +39,7 @@ return {
 			unitgroup = 'aa',
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armhovercraft",
+			subfolder = "ArmHovercraft",
 		},
 		featuredefs = {
 			dead = {

@@ -41,7 +41,7 @@ return {
 			unitgroup = 'weapon',
 			model_author = "tHARSIS",
 			normaltex = "unittextures/LEG_normal.dds",
-			subfolder = "coraircraft/t2",
+			subfolder = "CorAircraft/T2",
 			techlevel = 2,
 		},
 		sfxtypes = {

@@ -38,7 +38,7 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "legion/utilities",
+			subfolder = "Legion/utilities",
 		},
 		featuredefs = {
 			cdragonseyes_dead = {

@@ -44,7 +44,7 @@ return {
 			unitgroup = 'util',
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corbots/t2",
+			subfolder = "CorBots/T2",
 			techlevel = 2,
 			off_on_stun = "true",
 		},

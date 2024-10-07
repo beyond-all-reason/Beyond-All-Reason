@@ -43,7 +43,7 @@ return {
 		customparams = {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armships",
+			subfolder = "ArmShips",
 		},
 		featuredefs = {
 			dead = {

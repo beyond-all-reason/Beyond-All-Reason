@@ -34,7 +34,7 @@ return {
 			unitgroup = 'aa',
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,
-			subfolder = "corbuildings/seadefence",
+			subfolder = "CorBuildings/SeaDefence",
 		},
 		featuredefs = {
 			dead = {

@@ -38,7 +38,7 @@ return {
 			unitgroup = 'explo',
 			model_author = "Hornet",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "legion/bots/t2 bots",
+			subfolder = "Legion/bots/t2 bots",
 			techlevel = 2,
 			instantselfd = true,
 		},

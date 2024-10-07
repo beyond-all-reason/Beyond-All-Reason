@@ -43,7 +43,7 @@ return {
 			removestop = true,
 			removewait = true,
 			solar = true,
-			subfolder = "armbuildings/landeconomy",
+			subfolder = "ArmBuildings/LandEconomy",
 		},
 		featuredefs = {
 			dead = {

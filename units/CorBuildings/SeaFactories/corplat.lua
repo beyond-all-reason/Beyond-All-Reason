@@ -42,7 +42,7 @@ return {
 			airfactory = true,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corbuildings/seafactories",
+			subfolder = "CorBuildings/SeaFactories",
 		},
 		featuredefs = {
 			dead = {

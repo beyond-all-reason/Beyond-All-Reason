@@ -88,7 +88,7 @@ return {
 			unitgroup = 'builder',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corseaplanes",
+			subfolder = "CorSeaplanes",
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {

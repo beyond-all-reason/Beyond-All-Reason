@@ -10,7 +10,7 @@ return {
 		buildtime = 32000,
 		canrepeat = false,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER UNDERWATER EMPABLE",
-		collisionvolumeoffsets = "0 0 0",
+		collisionvolumeoffsets = "0 5 0",
 		collisionvolumescales = "96 86 96",
 		collisionvolumetype = "cylY",
 		energymake = 1250,
@@ -43,7 +43,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "corbuildings/landeconomy",
+			subfolder = "CorBuildings/LandEconomy",
 			techlevel = 2,
 		},
 		sfxtypes = {

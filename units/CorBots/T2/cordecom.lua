@@ -80,7 +80,7 @@ return {
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.025,
-			subfolder = "corbots/t2",
+			subfolder = "CorBots/T2",
 			techlevel = 2,
 			isdecoycommander = true,
 		},

@@ -31,7 +31,7 @@ return {
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,
-			subfolder = "corbuildings/seadefence",
+			subfolder = "CorBuildings/SeaDefence",
 			techlevel = 2,
 		},
 		featuredefs = {

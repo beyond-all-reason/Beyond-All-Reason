@@ -43,7 +43,7 @@ return {
 		customparams = {
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corships",
+			subfolder = "CorShips",
 		},
 		featuredefs = {
 			dead = {

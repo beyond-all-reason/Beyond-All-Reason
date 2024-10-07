@@ -38,7 +38,7 @@ return {
 			model_author = "Protar",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
-			subfolder = "armaircraft",
+			subfolder = "ArmAircraft",
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {

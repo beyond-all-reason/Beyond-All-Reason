@@ -39,7 +39,7 @@ return {
 			unitgroup = 'weapon',
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corgantry",
+			subfolder = "CorGantry",
 			techlevel = 3,
 		},
 		featuredefs = {

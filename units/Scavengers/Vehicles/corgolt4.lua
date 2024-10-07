@@ -45,7 +45,7 @@ return {
 			kickback = "-4",
 			model_author = "Mr Bob, Hornet",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corvehicles",
+			subfolder = "CorVehicles",
 			techlevel = 3,
 			weapon1turretx = 20,
 			weapon1turrety = 170,

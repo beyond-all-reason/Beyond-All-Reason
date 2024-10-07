@@ -43,7 +43,7 @@ return {
 			unitgroup = 'aa',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armaircraft/t2",
+			subfolder = "ArmAircraft/T2",
 			techlevel = 2,
 			fighter = 1,
 		},

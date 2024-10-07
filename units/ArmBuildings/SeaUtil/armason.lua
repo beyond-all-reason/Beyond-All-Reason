@@ -12,7 +12,6 @@ return {
 		canrepeat = false,
 		category = "ALL UNDERWATER NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "DEAD",
-		damagemodifier = 0.46,
 		explodeas = "mediumBuildingexplosiongeneric-uw",
 		footprintx = 4,
 		footprintz = 4,
@@ -40,7 +39,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "armbuildings/seautil",
+			subfolder = "ArmBuildings/SeaUtil",
 			techlevel = 2,
 		},
 		featuredefs = {

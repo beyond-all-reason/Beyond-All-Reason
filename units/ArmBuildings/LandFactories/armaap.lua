@@ -56,7 +56,7 @@ return {
 			airfactory = true,
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armbuildings/landfactories",
+			subfolder = "ArmBuildings/LandFactories",
 			techlevel = 2,
 		},
 		featuredefs = {

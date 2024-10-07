@@ -52,7 +52,7 @@ return {
 			unitgroup = 'builder',
 			model_author = "Beherith, Hornet",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corbuildings/landutil",
+			subfolder = "CorBuildings/LandUtil",
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {

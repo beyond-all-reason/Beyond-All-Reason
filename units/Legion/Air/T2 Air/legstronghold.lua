@@ -42,7 +42,7 @@ return {
 			model_author = "Mr Bob, Hornet",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.025,
-			subfolder = "coraircraft/t2",
+			subfolder = "CorAircraft/T2",
 			techlevel = 2,
 		},
 		sfxtypes = {

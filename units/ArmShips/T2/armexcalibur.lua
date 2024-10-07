@@ -40,7 +40,7 @@ return {
 			unitgroup = 'sub',
 			model_author = "Hornet",
 			normaltex = "unittextures/arm_normal.dds",
-			subfolder = "armships/t2",
+			subfolder = "ArmShips/T2",
 			techlevel = 2,
 		},
 		featuredefs = {

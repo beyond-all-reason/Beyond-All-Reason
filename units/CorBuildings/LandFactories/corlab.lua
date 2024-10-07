@@ -49,7 +49,7 @@ return {
 			unitgroup = 'builder',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corbuildings/landfactories",
+			subfolder = "CorBuildings/LandFactories",
 		},
 		featuredefs = {
 			dead = {

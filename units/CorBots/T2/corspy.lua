@@ -52,7 +52,7 @@ return {
 			unitgroup = 'buildert2',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corbots/t2",
+			subfolder = "CorBots/T2",
 			techlevel = 2,
 			paralyzemultiplier = 0.002,
 		},

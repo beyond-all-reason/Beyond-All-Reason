@@ -47,7 +47,7 @@ return {
 			shield_power = 3250,
 			shield_radius = 550,
 			shield_downtime = 8,
-			subfolder = "corbuildings/landutil",
+			subfolder = "CorBuildings/LandUtil",
 			techlevel = 2,
 		},
 		featuredefs = {

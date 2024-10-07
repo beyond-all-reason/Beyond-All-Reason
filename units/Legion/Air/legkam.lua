@@ -47,7 +47,7 @@ return {
 			unitgroup = 'weapon',
 			model_author = "Protar",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "coraircraft",
+			subfolder = "CorAircraft",
 		},
 		sfxtypes = {
 			explosiongenerators = {

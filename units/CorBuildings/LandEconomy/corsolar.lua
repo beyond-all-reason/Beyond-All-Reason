@@ -44,7 +44,7 @@ return {
 			removestop = true,
 			removewait = true,
 			solar = true,
-			subfolder = "corbuildings/landeconomy",
+			subfolder = "CorBuildings/LandEconomy",
 		},
 		featuredefs = {
 			dead = {

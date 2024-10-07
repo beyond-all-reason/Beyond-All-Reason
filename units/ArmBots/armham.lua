@@ -39,7 +39,7 @@ return {
 			unitgroup = 'weapon',
 			model_author = "Kaiser",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armbots",
+			subfolder = "ArmBots",
 		},
 		featuredefs = {
 			dead = {

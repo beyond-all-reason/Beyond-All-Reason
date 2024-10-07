@@ -124,7 +124,7 @@ for lvl, stats in pairs(lvlParams) do
 			model_author = "SethDGamre",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.001,
-			subfolder = "scavengers",
+			subfolder = "Scavengers",
             inheritxpratemultiplier = 0.1,
 			childreninheritxp = "BOTCANNON",
 			parentsinheritxp = "BOTCANNON",

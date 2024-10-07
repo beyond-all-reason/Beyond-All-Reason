@@ -38,7 +38,7 @@ return {
 			model_author = "Protar",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.025,
-			subfolder = "coraircraft",
+			subfolder = "CorAircraft",
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {

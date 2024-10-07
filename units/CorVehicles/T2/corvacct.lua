@@ -55,7 +55,7 @@ return {
 			model_author = "Carved up corintr, with bolted on nanotower",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.1,
-			subfolder = "corvehicles/t2",
+			subfolder = "CorVehicles/T2",
 			techlevel = 2,
 		},
 		sfxtypes = {

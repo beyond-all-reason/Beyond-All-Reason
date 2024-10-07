@@ -45,7 +45,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			onoffname = "trajectory",
 			removewait = true,
-			subfolder = "armbuildings/landdefenceoffence",
+			subfolder = "ArmBuildings/LandDefenceOffence",
 			techlevel = 2,
 		},
 		featuredefs = {

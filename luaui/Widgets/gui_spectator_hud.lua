@@ -62,6 +62,7 @@ local gaiaID = Spring.GetGaiaTeamID()
 local gaiaAllyID = select(6, Spring.GetTeamInfo(gaiaID, false))
 
 local widgetEnabled = nil
+local ecostatsWidget = nil
 
 local haveFullView = false
 
@@ -200,6 +201,7 @@ local settings = {
 
 	-- this table is used only when widgetConfig is set to custom
 	metricsEnabled = {},
+	oneTimeEcostatsEnableDone = false,
 }
 
 local metricKeys = {
@@ -1820,7 +1822,23 @@ local function initGL4()
 	return shaderCompiled
 end
 
+local function hideEcostats()
+	if widgetEnabled and widgetHandler:IsWidgetKnown("Ecostats") then
+		ecostatsWidget = widgetHandler:FindWidget("Ecostats")
+		if (not ecostatsWidget) then return end
+		widgetHandler:RemoveWidget(ecostatsWidget)
+	end
+end
+
+local function showEcostats()
+	if ecostatsWidget then
+		widgetHandler:InsertWidget(ecostatsWidget)
+		ecostatsWidget = nil
+	end
+end
+
 local function init()
+	hideEcostats()
 	font = WG['fonts'].getFont()
 
 	viewScreenWidth, viewScreenHeight = Spring.GetViewGeometry()
@@ -1876,6 +1894,7 @@ local function deInit()
 	deleteMetricDisplayLists()
 	deleteKnobVAO()
 	deleteTextures()
+	showEcostats()
 end
 
 local function reInit()
@@ -1884,21 +1903,16 @@ local function reInit()
 end
 
 function widget:Initialize()
-	-- Note: Widget is logically enabled only if there are exactly two teams
-	-- If yes, we disable ecostats
-	-- If no, we enable ecostats
-	-- TODO: What if user doesn't want to have Ecostats?
-	widgetEnabled = getAmountOfAllyTeams() == 2
-	if widgetEnabled then
-		if widgetHandler:IsWidgetKnown("Ecostats") then
-			widgetHandler:DisableWidget("Ecostats")
-		end
-	else
-		if widgetHandler:IsWidgetKnown("Ecostats") then
-			widgetHandler:EnableWidget("Ecostats")
-		end
-		return
+	-- One time enabling of ecostats since old spectator hud versions would disable ecostats
+	-- and we don't want people not being able to enable it again easily.
+	if not settings.oneTimeEcostatsEnableDone and widgetHandler:IsWidgetKnown("Ecostats") then
+		widgetHandler:EnableWidget("Ecostats")
 	end
+	-- Note: Widget is logically enabled only if there are exactly two teams
+	-- If yes, we will hide ecostats (hide at init() and show at deInit())
+	-- If no, we will do nothing since user might or might not be using ecostats
+	widgetEnabled = getAmountOfAllyTeams() == 2
+	if not widgetEnabled then return end
 
 	WG["spectator_hud"] = {}
 
@@ -2101,6 +2115,7 @@ function widget:GetConfigData()
 	local result = {
 		widgetScale = settings.widgetScale,
 		widgetConfig = settings.widgetConfig,
+		oneTimeEcostatsEnableDone = true,
 	}
 
 	result.metricsEnabled = {}
@@ -2117,6 +2132,9 @@ function widget:SetConfigData(data)
 	end
 	if data.widgetConfig then
 		settings.widgetConfig = data.widgetConfig
+	end
+	if data.oneTimeEcostatsEnableDone then
+		settings.oneTimeEcostatsEnableDone = data.oneTimeEcostatsEnableDone
 	end
 
 	if data["metricsEnabled"] then

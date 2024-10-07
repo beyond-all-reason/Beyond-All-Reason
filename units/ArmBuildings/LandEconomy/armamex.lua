@@ -49,7 +49,7 @@ return {
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
 			removewait = true,
-			subfolder = "armbuildings/landeconomy",
+			subfolder = "ArmBuildings/LandEconomy",
 		},
 		featuredefs = {
 			dead = {

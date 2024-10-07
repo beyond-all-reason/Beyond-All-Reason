@@ -48,7 +48,7 @@ return {
 			unitgroup = 'buildert3',
 			model_author = "Cremuss",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corbuildings/seafactories",
+			subfolder = "CorBuildings/SeaFactories",
 			techlevel = 3,
 		},
 		featuredefs = {

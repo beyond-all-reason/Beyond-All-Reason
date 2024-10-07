@@ -38,7 +38,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "corbuildings/seaeconomy",
+			subfolder = "CorBuildings/SeaEconomy",
 		},
 		featuredefs = {
 			dead = {

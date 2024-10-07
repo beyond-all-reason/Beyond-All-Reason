@@ -43,7 +43,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "armbuildings/landeconomy",
+			subfolder = "ArmBuildings/LandEconomy",
 		},
 		featuredefs = {
 			dead = {

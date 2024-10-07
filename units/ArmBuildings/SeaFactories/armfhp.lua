@@ -41,7 +41,7 @@ return {
 			unitgroup = 'builder',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armbuildings/seafactories",
+			subfolder = "ArmBuildings/SeaFactories",
 		},
 		featuredefs = {
 			dead = {

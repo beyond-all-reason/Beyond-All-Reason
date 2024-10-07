@@ -37,7 +37,7 @@ return {
 			unitgroup = 'weapon',
 			model_author = "Zecrus",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armgantry",
+			subfolder = "ArmGantry",
 			techlevel = 2,
 			weapon1turretx = 90,
 			weapon1turrety = 150,

@@ -51,7 +51,7 @@ return {
 			model_author = "Hornet",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.5,
-			subfolder = "corevehicles/t2",
+			subfolder = "corevehicles/T2",
 			techlevel = 2,
 		},
 		featuredefs = {

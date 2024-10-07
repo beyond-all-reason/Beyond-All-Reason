@@ -93,7 +93,7 @@ return {
 			unitgroup = 'builder',
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "corvehicles",
+			subfolder = "CorVehicles",
 		},
 		featuredefs = {
 			dead = {

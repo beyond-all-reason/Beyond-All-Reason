@@ -40,7 +40,7 @@ return {
 			model_author = "Beherith, Hornet",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.125,
-			subfolder = "corbots/t2",
+			subfolder = "CorBots/T2",
 			techlevel = 3,
 		},
 		featuredefs = {

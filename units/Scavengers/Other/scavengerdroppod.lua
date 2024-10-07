@@ -40,7 +40,7 @@ return {
 		waterline = 0,
 		yardmap = "",
 		customparams = {
-			subfolder = "scavengers",
+			subfolder = "Scavengers",
 			normaltex = "unittextures/cor_normal.dds",
 		},
 		featuredefs = {},

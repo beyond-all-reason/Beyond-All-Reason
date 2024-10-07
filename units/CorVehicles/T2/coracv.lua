@@ -77,7 +77,7 @@ return {
 			unitgroup = 'buildert2',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corvehicles/t2",
+			subfolder = "CorVehicles/T2",
 			techlevel = 2,
 		},
 		featuredefs = {

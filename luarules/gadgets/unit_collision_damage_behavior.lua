@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		date = "2024.8.29",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = false
 	}
 end
 
@@ -44,6 +44,7 @@ local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitVelocity = Spring.GetUnitVelocity
 local spSetUnitVelocity = Spring.SetUnitVelocity
 local spGetUnitIsDead = Spring.GetUnitIsDead
+local spDestroyUnit = Spring.DestroyUnit
 local mathMin = math.min
 local mathMax = math.max
 local mathAbs = math.abs
@@ -55,6 +56,9 @@ local transportedUnits = {}
 local unitMasses = {}
 local weaponDefIgnored = {}
 local unitInertiaCheckFlags = {}
+local fallingKillQueue = {}
+local fallingUnits = {}
+
 local gameFrame = 0
 local velocityWatchFrames = 300 / Game.gameSpeed
 local velLengthOffsetCap = velocityCap * 0.75 --Empirically chosen. Ensures that the resultant velocity reduction is below the cap due to how Velocity Length is usually larger than any single XYZ velocity.
@@ -95,8 +99,12 @@ for weaponDefID, wDef in ipairs(WeaponDefs) do
 end
 
 local function getImpulseMultiplier(unitDefID, weaponDefID, damage)
-	local impulseBoost = weaponDefIDImpulses[weaponDefID].impulseBoost or 0
-	local impulseFactor = weaponDefIDImpulses[weaponDefID].impulseFactor or 1
+	local impulseBoost = 0
+	local impulseFactor = 1
+	if weaponDefID and weaponDefIDImpulses[weaponDefID] then
+		impulseBoost = weaponDefIDImpulses[weaponDefID].impulseBoost or 0
+		impulseFactor = weaponDefIDImpulses[weaponDefID].impulseFactor or 1
+	end
 	local impulse = (damage + impulseBoost) * impulseFactor
 	local maxImpulse = unitsMaxImpulse[unitDefID]
 	local impulseMultiplier = mathMin(maxImpulse/impulse, 1) -- negative impulse values are not capped.
@@ -107,9 +115,19 @@ local function massToHealthRatioMultiplier(unitID, unitDefID)
 	local health, maxHealth = spGetUnitHealth(unitID)
 	if maxHealth then
 		local massToMaxHealthMultiplier = (maxHealth / unitMasses[unitDefID]) * fallDamageMultipliers[unitDefID]
-		return massToMaxHealthMultiplier
+		return massToMaxHealthMultiplier, health
 	else
-		return fallDamageMultipliers[unitDefID]
+		return fallDamageMultipliers[unitDefID], health
+	end
+end
+
+local function preventOverkillDamage(unitID, damage, health, healthRatioMultiplier)
+	damage = damage * healthRatioMultiplier
+	if damage >= health then
+		fallingKillQueue[unitID] = true --done in GameFrame to take it out of unitPreDamaged
+		return 0
+	else
+		return damage
 	end
 end
 
@@ -122,19 +140,15 @@ end
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 	if not weaponDefIgnored[weaponDefID] and weaponDefID >= 0 then --this section handles limiting maximum impulse
 		local impulseMultiplier = 1
-		impulseMultiplier = getImpulseMultiplier(unitDefID, weaponDefID, damage)
-		unitInertiaCheckFlags[unitID] = gameFrame + velocityWatchFrames
-		return damage, impulseMultiplier
-	elseif weaponDefID == groundCollisionDefID and not transportedUnits[unitID] and isValidCollisionDirection(unitID) then
-			damage = damage * massToHealthRatioMultiplier(unitID, unitDefID)
-			return damage, 0
-	elseif weaponDefID == objectCollisionDefID and not transportedUnits[unitID] then
-		if isValidCollisionDirection(unitID) then
-			damage = damage * massToHealthRatioMultiplier(unitID, unitDefID)
-			return damage, 0
-		else
-			return 0, 0
-		end
+			impulseMultiplier = getImpulseMultiplier(unitDefID, weaponDefID, damage)
+			unitInertiaCheckFlags[unitID] = gameFrame + velocityWatchFrames
+			return damage, impulseMultiplier
+	elseif (weaponDefID == groundCollisionDefID or weaponDefID == objectCollisionDefID) and (isValidCollisionDirection(unitID) or fallingUnits[unitID]) then
+		local healthRatioMultiplier, health = massToHealthRatioMultiplier(unitID, unitDefID)
+		damage = preventOverkillDamage(unitID, damage, health, healthRatioMultiplier)
+		return damage, 0
+	else
+		return damage, 0
 	end
 end
 
@@ -144,6 +158,11 @@ end
 
 function gadget:UnitUnloaded(unitID, unitDefID, unitTeam,  transportID, transportTeam)
 	transportedUnits[unitID] = nil
+	fallingUnits[unitID] = true --units falling from transports should take collision damagee from any trajectory, including when bouncing off of other objects.
+end
+
+function gadget:UnitLeftAir(unitID, unitDefID, unitTeam)
+	fallingUnits[unitID] = nil
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
@@ -190,6 +209,11 @@ function gadget:GameFrame(frame)
 		else
 			unitInertiaCheckFlags[unitID] = nil
 		end
+	end
+
+	for unitID, _ in pairs(fallingKillQueue) do
+		spDestroyUnit(unitID) --this ensures a wreck is left behind. If damage is too great, it destroys the heap.
+		fallingKillQueue[unitID] = nil
 	end
 	gameFrame = frame
 end

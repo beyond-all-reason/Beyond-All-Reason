@@ -43,7 +43,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "armbuildings/seaeconomy",
+			subfolder = "ArmBuildings/SeaEconomy",
 			techlevel = 2,
 		},
 		sfxtypes = {

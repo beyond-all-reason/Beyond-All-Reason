@@ -37,7 +37,7 @@ return {
 			unitgroup = 'weapon',
 			model_author = "FireStorm, PtaQ",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armbots/t2",
+			subfolder = "ArmBots/T2",
 			techlevel = 2,
 			weapon1turretx = 400,
 			weapon1turrety = 500,

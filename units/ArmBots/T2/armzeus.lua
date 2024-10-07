@@ -37,7 +37,7 @@ return {
 			unitgroup = 'weapon',
 			model_author = "FireStorm, FLaka",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armbots/t2",
+			subfolder = "ArmBots/T2",
 			techlevel = 2,
 		},
 		featuredefs = {

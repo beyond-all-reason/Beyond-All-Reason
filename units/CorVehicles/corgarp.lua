@@ -48,7 +48,7 @@ return {
 			model_author = "Flaka",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.125,
-			subfolder = "corvehicles",
+			subfolder = "CorVehicles",
 			weapon1turretx = 90,
 			weapon1turrety = 90,
 		},

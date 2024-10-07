@@ -44,7 +44,7 @@ return {
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0,
-			subfolder = "corgantry",
+			subfolder = "CorGantry",
 			techlevel = 3,
 		},
 		featuredefs = {

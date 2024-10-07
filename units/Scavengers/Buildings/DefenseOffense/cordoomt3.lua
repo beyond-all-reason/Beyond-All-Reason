@@ -47,7 +47,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,
 			paralyzemultiplier = 0.4,
-			subfolder = "corbuildings/landdefenceoffence",
+			subfolder = "CorBuildings/LandDefenceOffence",
 			techlevel = 3,
 		},
 		featuredefs = {

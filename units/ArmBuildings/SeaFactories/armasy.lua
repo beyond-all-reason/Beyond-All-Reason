@@ -49,7 +49,7 @@ return {
 			unitgroup = 'buildert2',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armbuildings/seafactories",
+			subfolder = "ArmBuildings/SeaFactories",
 			techlevel = 2,
 		},
 		featuredefs = {

@@ -74,7 +74,7 @@ return {
 			unitgroup = 'builder',
 			model_author = "FireStorm, Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armaircraft",
+			subfolder = "ArmAircraft",
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {

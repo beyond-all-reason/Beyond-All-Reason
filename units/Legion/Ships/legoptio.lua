@@ -41,7 +41,7 @@ return {
 			unitgroup = 'aa',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corships/t2",
+			subfolder = "CorShips/T2",
 			techlevel = 2,
 		},
 		featuredefs = {

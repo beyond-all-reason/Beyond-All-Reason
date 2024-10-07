@@ -44,7 +44,7 @@ return {
 			removestop = true,
 			removewait = true,
 			solar = true,
-			subfolder = "legion/economy",
+			subfolder = "Legion/economy",
 		},
 		featuredefs = {
 			dead = {
