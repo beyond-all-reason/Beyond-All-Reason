@@ -137,26 +137,37 @@ function gadget:Initialize()
 
     local areaDamageTypes = {}
     for weaponDefID, params in pairs(timedDamageWeapons) do
-        if params.resistance ~= nil and params.resistance ~= "none" then
-            areaDamageTypes[params.resistance] = true
-        else
+        if params.resistance == nil then
             params.resistance = "none"
+        elseif params.resistance ~= "none" then
+            areaDamageTypes[params.resistance] = true
         end
     end
-
+    local immunities = { all = areaDamageTypes, none = {} }
     for unitDefID, unitDef in ipairs(UnitDefs) do
-        local immunities = {}
-        if unitDef.canFly then
-            immunities["all"] = true
-        elseif unitDef.customParams.areadamageresistance then
+        local unitImmunity
+        if unitDef.canFly or unitDef.armorType == Game.armorTypes.indestructible then
+            unitImmunity = immunities.all
+        elseif unitDef.customParams.areadamageresistance == nil then
+            unitImmunity = immunities.none
+        else
             local resistance = string.lower(unitDef.customParams.areadamageresistance)
-            for damageType in pairs(areaDamageTypes) do
-                if string.find(resistance, damageType, nil, true) then
-                    immunities[damageType] = true
+            if immunities[resistance] then
+                unitImmunity = immunities[resistance]
+            else
+                unitImmunity = {}
+                for damageType in pairs(areaDamageTypes) do
+                    if string.find(resistance, damageType, nil, false) then
+                        unitImmunity[damageType] = true
+                    end
                 end
+                if not next(unitImmunity) then
+                    unitImmunity = immunities.none
+                end
+                immunities[resistance] = unitImmunity
             end
         end
-        unitDamageImmunity[unitDefID] = immunities
+        unitDamageImmunity[unitDefID] = unitImmunity
     end
 
     if next(timedDamageWeapons) then
@@ -215,8 +226,7 @@ function gadget:GameFrame(frame)
             local unitsInRange = Spring.GetUnitsInSphere(x, y, z, explosionStats.range)
             for j = 1,#unitsInRange do
                 local unitID = unitsInRange[j]
-                local unitImmunities = unitDamageImmunity[Spring.GetUnitDefID(unitID)]
-                if not unitImmunities.all and not unitImmunities[damageType] then
+                if not unitDamageImmunity[Spring.GetUnitDefID(unitID)][damageType] then
                     Spring.AddUnitDamage(unitID, damage, 0, explosionStats.owner, explosionStats.weapon)
                     local ux, uy, uz = Spring.GetUnitPosition(unitID)
                     Spring.SpawnCEG(explosionStats.damageCeg, ux, uy + 8, uz, 0, 0, 0)
