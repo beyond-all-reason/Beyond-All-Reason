@@ -5,7 +5,6 @@ return {
 		canmanualfire = true,
 		canmove = true,
 		cantbetransported = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "58 34 58",
 		collisionvolumetype = "Box",

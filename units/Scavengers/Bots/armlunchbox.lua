@@ -7,7 +7,6 @@ return {
 		buildpic = "ARMLUNCHBOX.DDS",
 		buildtime = 71000,
 		canmove = true,
-		category = "ALL NOTSUB WEAPON NOTAIR NOTHOVER SURFACE BOT EMPABLE",
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "65 60 65",
 		collisionvolumetype = "CylY",

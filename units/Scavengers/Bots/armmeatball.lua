@@ -7,7 +7,6 @@ return {
 		buildpic = "ARMMEATBALL.DDS",
 		buildtime = 30000,
 		canmove = true,
-		category = "BOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		collisionvolumeoffsets = "0 -2 -1",
 		collisionvolumescales = "34 68 38",
 		collisionvolumetype = "Box",

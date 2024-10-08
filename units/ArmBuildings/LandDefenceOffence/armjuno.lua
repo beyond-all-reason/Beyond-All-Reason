@@ -2,7 +2,6 @@ return {
 	armjuno = {
 		buildpic = "ARMJUNO.DDS",
 		buildtime = 21800,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "44 128 44",
 		collisionvolumetype = "CylY",

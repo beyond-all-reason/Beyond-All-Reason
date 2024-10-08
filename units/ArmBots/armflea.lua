@@ -3,7 +3,7 @@ return {
 		buildpic = "ARMFLEA.DDS",
 		buildtime = 800,
 		canmove = true,
-		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE GROUNDSCOUT EMPABLE",
+		category = "GROUNDSCOUT",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "20 12 20",
 		collisionvolumetype = "cylY",

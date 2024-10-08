@@ -11,7 +11,6 @@ return {
 		buildtime = 90000,
 		canfly = true,
 		canmove = true,
-		category = "ALL WEAPON VTOL NOTSUB NOTHOVER",
 		collide = true,
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "70 40 110",

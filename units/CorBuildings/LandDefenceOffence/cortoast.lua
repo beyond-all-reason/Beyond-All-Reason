@@ -5,7 +5,6 @@ return {
 		buildpic = "CORTOAST.DDS",
 		buildtime = 25700,
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "60 30 15",
 		collisionvolumetype = "CylY",

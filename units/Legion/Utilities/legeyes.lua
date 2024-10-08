@@ -9,7 +9,7 @@ return {
 		buildpic = "COREYES.DDS",
 		buildtime = 750,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",		 collisionvolumeoffsets = "0 0 0",
+		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "20 24 20",
 		collisionvolumetype = "CylY",
 		cloakcost = 10,

@@ -5,7 +5,6 @@ return {
 		buildtime = 10000,
 		canfly = true,
 		canmove = true,
-		category = "ALL NOTSUB VTOL NOWEAPON NOTHOVER",
 		collide = false,
 		collisionvolumeoffsets = "1 -3 0",
 		collisionvolumescales = "52 21 52",

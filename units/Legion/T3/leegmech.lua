@@ -8,7 +8,6 @@ return {
 		buildpic = "LEGMECH.DDS",
 		buildtime = 200000,
 		canmove = true,
-		category = "BOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		collisionvolumeoffsets = "0 -11 0",
 		collisionvolumescales = "66 86 66",
 		collisionvolumetype = "CylY",

@@ -9,7 +9,6 @@ return {
 		buildpic = "LEGACEB.DDS",
 		buildtime = 9500,
 		canmove = true,
-		category = "BOT MOBILE ALL NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "30 26 30",
 		collisionvolumetype = "CylY",

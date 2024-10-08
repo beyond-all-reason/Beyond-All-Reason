@@ -5,7 +5,7 @@ return {
 		buildpic = "CORPLAT.DDS",
 		buildtime = 11800,
 		canmove = true,
-		category = "ALL NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE UNDERWATER",
+		category = "SURFACE UNDERWATER",
 		corpse = "DEAD",
 		energycost = 5500,
 		energystorage = 200,

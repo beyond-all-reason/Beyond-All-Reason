@@ -3,7 +3,6 @@ return {
 		buildangle = 8192,
 		buildpic = "ARMEMP.DDS",
 		buildtime = 79300,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 5 0",
 		collisionvolumescales = "80 30 60",
 		collisionvolumetype = "Box",

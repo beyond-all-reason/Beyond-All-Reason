@@ -16,7 +16,7 @@ return {
 		canstop = "1",
 		capturable = false,
 		cancloak = true,
-		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE RAPTOR EMPABLE",
+		category = "RAPTOR",
 		cloakcost = 0,
 		cloakcostmoving = 0,
 		collisionvolumeoffsets = "0 0 2",

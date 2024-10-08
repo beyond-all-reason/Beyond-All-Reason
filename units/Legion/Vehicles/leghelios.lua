@@ -7,7 +7,6 @@ return {
 		buildpic = "LEGHELIOS.DDS",
 		buildtime = 2600,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -4 1",
 		collisionvolumescales = "30 12 28",
 		collisionvolumetype = "Box",

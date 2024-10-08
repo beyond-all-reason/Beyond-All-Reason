@@ -7,7 +7,6 @@ return {
 		buildpic = "CORAKT4.DDS",
 		buildtime = 120000,
 		canmove = true,
-		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -2 -3",
 		collisionvolumescales = "49 56 49",
 		collisionvolumetype = "CylY",

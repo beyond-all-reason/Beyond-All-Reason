@@ -3,7 +3,6 @@ return {
 		buildpic = "ARMFBOY.DDS",
 		buildtime = 21000,
 		canmove = true,
-		category = "BOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "34 40 42",
 		collisionvolumetype = "Box",

@@ -4,7 +4,6 @@ return {
 		buildpic = "CORROACH.DDS",
 		buildtime = 7900,
 		canmove = true,
-		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "20 9 20",
 		collisionvolumetype = "CylY",

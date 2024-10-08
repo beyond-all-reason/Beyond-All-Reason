@@ -20,7 +20,7 @@ return {
 		cantbetransported = true,
 		capturable = false,
 		cancloak = true,
-		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE RAPTOR EMPABLE",
+		category = "RAPTOR",
 		cloakcost = 0,
 		cloakcostmoving = 0,
 		collisionspherescale = 1.75,

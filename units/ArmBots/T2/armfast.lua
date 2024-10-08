@@ -3,7 +3,6 @@ return {
 		buildpic = "ARMFAST.DDS",
 		buildtime = 3960,
 		canmove = true,
-		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -2 1",
 		collisionvolumescales = "25 37 11",
 		collisionvolumetype = "box",

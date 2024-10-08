@@ -5,7 +5,6 @@ return {
 		buildpic = "ARMKRAKEN.DDS",
 		buildtime = 20000,
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -15 0",
 		collisionvolumescales = "84 60 84",
 		collisionvolumetype = "CylY",

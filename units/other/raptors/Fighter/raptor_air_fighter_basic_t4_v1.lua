@@ -21,7 +21,7 @@ return {
 		canstop = true,
 		cansubmerge = false,
 		capturable = false,
-		category = "ALL MOBILE WEAPON NOTLAND VTOL NOTSUB NOTSHIP NOTHOVER RAPTOR",
+		category = "RAPTOR",
 		collide = false,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "58 58 58",

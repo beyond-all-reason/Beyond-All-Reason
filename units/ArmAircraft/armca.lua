@@ -7,7 +7,6 @@ return {
 		buildtime = 7960,
 		canfly = true,
 		canmove = true,
-		category = "ALL MOBILE NOTLAND NOTSUB VTOL NOWEAPON NOTSHIP NOTHOVER",
 		collide = true,
 		cruisealtitude = 70,
 		energycost = 3000,

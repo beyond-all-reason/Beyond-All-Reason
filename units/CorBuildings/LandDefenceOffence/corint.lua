@@ -4,7 +4,6 @@ return {
 		buildpic = "CORINT.DDS",
 		buildtime = 93300,
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 -20",
 		collisionvolumescales = "72 105 72",
 		collisionvolumetype = "CylY",

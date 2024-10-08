@@ -5,7 +5,6 @@ return {
 		buildpic = "ARMCIR.DDS",
 		buildtime = 12000,
 		canrepeat = false,
-		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "50 77 50",
 		collisionvolumetype = "CylY",

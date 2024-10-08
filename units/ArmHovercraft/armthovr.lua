@@ -5,7 +5,6 @@ return {
 		buildtime = 20350,
 		canmove = true,
 		cantbetransported = true,
-		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE EMPABLE",
 		collisionvolumeoffsets = "-1 -1 -3",
 		collisionvolumescales = "56 56 75",
 		collisionvolumetype = "CylZ",

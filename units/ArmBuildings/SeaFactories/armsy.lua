@@ -4,7 +4,6 @@ return {
 		buildpic = "ARMSY.DDS",
 		buildtime = 6660,
 		canmove = true,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "-2 -3 -3",
 		collisionvolumescales = "116 63 116",
 		collisionvolumetype = "Box",

@@ -9,7 +9,6 @@ return {
 		buildpic = "LEGAAP.DDS",
 		buildtime = 20700,
 		canmove = true,
-		category = "ALL NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 10 -2",
 		collisionvolumescales = "113 43 89",
 		collisionvolumetype = "Box",

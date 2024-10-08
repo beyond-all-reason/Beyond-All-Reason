@@ -17,7 +17,7 @@ return {
 		canstop = "1",
 		cantbetransported = true,
 		capturable = false,
-		category = "MOBILE NOTLAND NOTSUB VTOL NOTSHIP NOTHOVER",
+		category = "OBJECT",
 		collide = false,
 		collision = false,
 		cruisealtitude = 200,

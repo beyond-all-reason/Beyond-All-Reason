@@ -9,7 +9,7 @@ return {
 		metalcost = 2500,
 		buildpic = "scavengers/SCAVBEACON.DDS",
 		buildtime = 25000,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "CANBEUW",
 		canmove = false,
 		canSelfDestruct = false,
 		capturable = true,

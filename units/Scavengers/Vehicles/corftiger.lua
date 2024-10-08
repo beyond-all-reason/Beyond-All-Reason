@@ -7,7 +7,6 @@ return {
 		buildpic = "CORFTIGER.DDS",
 		buildtime = 11500,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -6 0",
 		collisionvolumescales = "34 34 38",
 		collisionvolumetype = "BOX",

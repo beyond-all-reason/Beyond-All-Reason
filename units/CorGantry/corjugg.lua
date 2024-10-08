@@ -4,7 +4,6 @@ return {
 		buildtime = 630000,
 		canmove = true,
 		cantbetransported = true,
-		category = "BOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "90 80 90",
 		collisionvolumetype = "CylY",

@@ -4,7 +4,6 @@ return {
 		buildpic = "CORAMSUB.DDS",
 		buildtime = 11400,
 		canmove = true,
-		category = "ALL NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER UNDERWATER EMPABLE",
 		collisionvolumeoffsets = "0 85 -2",
 		collisionvolumescales = "115 55 112",
 		collisionvolumetype = "Box",

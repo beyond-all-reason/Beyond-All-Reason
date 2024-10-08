@@ -7,7 +7,6 @@ return {
 		buildpic = "LEGSRAIL.DDS",
 		buildtime = 18000,
 		canmove = true,
-		category = "ALL NOTSUB WEAPON NOTAIR NOTHOVER SURFACE BOT EMPABLE",
 		collisionvolumeoffsets = "0 10 0",
 		collisionvolumescales = "45 40 45",
 		collisionvolumetype = "CylY",
