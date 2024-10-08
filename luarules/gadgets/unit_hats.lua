@@ -69,7 +69,7 @@ local unitDefCanWearHats = {
 	unitDefCanWearHats[UnitDefNames.legcomlvl4.id] = true
  end
  local legchamps = { -- Legion Fight Night winner(s)
-	["[DmE]Wraxell]"] = true,
+	["[DmE]Wraxell"] = true,
 	["[pretor]"] = true,
 	["[Stud]Lovish"] = true, 
 }
