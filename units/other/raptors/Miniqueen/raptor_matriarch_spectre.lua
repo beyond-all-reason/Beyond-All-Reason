@@ -45,7 +45,6 @@ return {
 		noautofire = false,
 		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/raptor_miniqueen_spectre.s3o",
-		pushresistant = true,
 		script = "Raptors/raptor_miniqueen.cob",
 		seismicsignature = 0,
 		selfdestructas = "BUG_DEATH",

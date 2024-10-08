@@ -608,14 +608,6 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-	-- mass remove push resistance
-	if uDef.pushresistant and uDef.pushresistant == true then
-		uDef.pushresistant = false
-		if not uDef.mass then
-			uDef.mass = 4999
-		end
-	end
-
 	if string.find(name, "raptor") and uDef.health then
 		local raptorHealth = uDef.health
 		uDef.activatewhenbuilt = true

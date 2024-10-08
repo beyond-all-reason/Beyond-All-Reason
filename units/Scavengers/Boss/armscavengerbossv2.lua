@@ -92,7 +92,6 @@ for difficulty, stats in pairs(difficultyParams) do
 		movementclass = "SCAVCOMMANDERBOT",
 		nochasecategory = "ALL",
 		objectname = "Units/scavboss/armscavengerbossv2.s3o",
-		pushresistant = true,
 		radardistance = 500,
 		radaremitheight = 54,
 		reclaimable = false,

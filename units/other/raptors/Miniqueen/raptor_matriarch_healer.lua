@@ -40,7 +40,6 @@ return {
 		noautofire = false,
 		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/raptor_miniqueen_healer.s3o",
-		pushresistant = true,
 		repairable = false,
 		script = "Raptors/raptor_miniqueen.cob",
 		seismicsignature = 0,

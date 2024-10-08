@@ -25,7 +25,6 @@ return {
 		movementclass = "HBOT5",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORJUGG.s3o",
-		pushresistant = true,
 		script = "Units/CORJUGG.cob",
 		seismicsignature = 0,
 		selfdestructas = "juggernautSelfd",

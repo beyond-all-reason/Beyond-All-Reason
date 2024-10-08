@@ -25,7 +25,6 @@ return {
 		movementclass = "BOAT5",
 		nochasecategory = "ALL",
 		objectname = "Units/CORTSHIP.s3o",
-		pushresistant = true,
 		releaseheld = false,
 		script = "Units/CORTSHIP.cob",
 		seismicsignature = 0,

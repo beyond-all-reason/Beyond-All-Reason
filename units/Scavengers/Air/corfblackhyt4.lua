@@ -31,7 +31,6 @@ return {
 		maxwaterdepth = 15,
 		objectname = "Units/scavboss/corfblackhyt4.s3o",
 		script = "Units/scavboss/corfblackhyt4.cob",
-		pushresistant = true,
 		radardistance = 1510,
 		radaremitheight = 64,
 		seismicsignature = 0,

@@ -27,7 +27,6 @@ return {
 		movementclass = "HTANK5",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMTHOR.s3o",
-		pushresistant = true,
 		script = "Units/ARMTHOR.cob",
 		seismicsignature = 0,
 		selfdestructas = "explosiont3xxl",

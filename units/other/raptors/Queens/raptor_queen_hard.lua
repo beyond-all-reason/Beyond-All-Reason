@@ -43,7 +43,6 @@ return {
 		noautofire = false,
 		nochasecategory = "VTOL SPACE",
 		objectname = "Raptors/epic_raptorq.s3o",
-		pushresistant = true,
 		script = "Raptors/epic_raptorq.cob",
 		seismicsignature = 0,
 		selfdestructas = "crawl_blastsmlscavboss",
