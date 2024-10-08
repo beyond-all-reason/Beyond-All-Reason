@@ -71,7 +71,7 @@ local unitDefCanWearHats = {
  local legchamps = { -- Legion Fight Night winner(s)
 	["[DmE]Wraxell"] = true,
 	["[pretor]"] = true,
-	["[Stud]Lovish"] = true, 
+	[119539] = true, -- [Stud]Lovish
 }
 local champion = { --   Fight Night 1v1 winner
 	["[DmE]FlyingDuck"] = true,
@@ -104,11 +104,25 @@ local bronzeMedals = {
 local uniques = {--playername, hat ident, CaSe MaTtErS
 }
 
+local function MatchPlayer(gadgets, name, accountID)
+	if gadgets[name] or (accountID and gadgets[accountID]) then
+		return true
+	end
+	return false
+end
+
 function gadget:GameFrame(gf)
 	if gf == 90 then
 		for _, playerID in ipairs(Spring.GetPlayerList()) do
 
-			local playerName, _, spec, teamID = Spring.GetPlayerInfo(playerID, false)
+			local accountID = false
+			local playerInfo = { Spring.GetPlayerInfo(playerID, true) }
+			local playerName = playerInfo[1]
+			local spec = playerInfo[3]
+			local teamID = playerInfo[4]
+			if playerInfo[11] and playerInfo[11].accountid then
+				accountID = tonumber(playerInfo[11].accountid)
+			end
 
 			if not spec then
 				local units = Spring.GetTeamUnits(teamID)
@@ -119,19 +133,19 @@ function gadget:GameFrame(gf)
 
 					if unitDefCanWearHats[unitDefID] then
             
-						if legchamps[playerName] and UnitDefNames['cor_hat_legfn'] then
+						if MatchPlayer(legchamps, playerName, accountID) and UnitDefNames['cor_hat_legfn'] then
 							local hatDefID = UnitDefNames['cor_hat_legfn'].id
 							local unitID = Spring.CreateUnit(hatDefID, unitPosX, unitPosY, unitPosZ, 0, teamID)
 							gadget:UnitGiven(unitID, hatDefID, teamID)
 						end
 
-						if champion[playerName] and UnitDefNames['cor_hat_fightnight'] then
+						if MatchPlayer(champion, playerName, accountID) and UnitDefNames['cor_hat_fightnight'] then
 							local hatDefID = UnitDefNames['cor_hat_fightnight'].id
 							local unitID = Spring.CreateUnit(hatDefID, unitPosX, unitPosY, unitPosZ, 0, teamID)
 							gadget:UnitGiven(unitID, hatDefID, teamID)
 						end
 
-						if vikings[playerName] and UnitDefNames['cor_hat_viking'] then
+						if MatchPlayer(vikings, playerName, accountID) and UnitDefNames['cor_hat_viking'] then
 							local hatDefID = UnitDefNames['cor_hat_viking'].id
 							local unitID = Spring.CreateUnit(hatDefID, unitPosX, unitPosY, unitPosZ, 0, teamID)
 							gadget:UnitGiven(unitID, hatDefID, teamID)
@@ -160,16 +174,16 @@ function gadget:GameFrame(gf)
 								end
 							end
 						else
-							if kings[playerName] and Spring.GetCOBScriptID(unitID, 'ShowCrown') then
+							if MatchPlayer(kings, playerName, accountID) and Spring.GetCOBScriptID(unitID, 'ShowCrown') then
 								Spring.CallCOBScript(unitID, "ShowCrown", 0)
 							end
-							if goldMedals[playerName] and Spring.GetCOBScriptID(unitID, 'ShowMedalGold') then
+							if MatchPlayer(goldMedals, playerName, accountID) and Spring.GetCOBScriptID(unitID, 'ShowMedalGold') then
 								Spring.CallCOBScript(unitID, "ShowMedalGold", 0)
 							end
-							if silverMedals[playerName] and Spring.GetCOBScriptID(unitID, 'ShowMedalSilver') then
+							if MatchPlayer(silverMedals, playerName, accountID) and Spring.GetCOBScriptID(unitID, 'ShowMedalSilver') then
 								Spring.CallCOBScript(unitID, "ShowMedalSilver", 0)
 							end
-							if bronzeMedals[playerName] and Spring.GetCOBScriptID(unitID, 'ShowMedalBronze') then
+							if MatchPlayer(bronzeMedals, playerName, accountID) and Spring.GetCOBScriptID(unitID, 'ShowMedalBronze') then
 								Spring.CallCOBScript(unitID, "ShowMedalBronze", 0)
 							end
 						end
