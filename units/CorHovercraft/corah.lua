@@ -1,5 +1,6 @@
 return {
 	corah = {
+		activatewhenbuilt = true,
 		airsightdistance = 800,
 		buildpic = "CORAH.DDS",
 		buildtime = 3650,

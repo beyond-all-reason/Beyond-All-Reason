@@ -1,5 +1,6 @@
 return {
 	legap = {
+		activatewhenbuilt = true,
 		maxacc = 0,
 		maxdec = 0,
 		energycost = 1350,

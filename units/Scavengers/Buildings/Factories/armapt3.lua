@@ -1,5 +1,6 @@
 return {
 	armapt3 = {
+		activatewhenbuilt = true,
 		maxacc = 0,
 		maxdec = 0,
 		energycost = 60000,

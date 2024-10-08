@@ -1,5 +1,6 @@
 return {
 	armah = {
+		activatewhenbuilt = true,
 		airsightdistance = 800,
 		buildpic = "ARMAH.DDS",
 		buildtime = 3560,

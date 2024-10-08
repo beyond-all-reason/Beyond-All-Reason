@@ -1,5 +1,6 @@
 return {
 	armlship = {
+		activatewhenbuilt = true,
 		blocking = true,
 		buildpic = "ARMLSHIP.DDS",
 		buildtime = 11400,
