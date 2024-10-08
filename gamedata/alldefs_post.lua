@@ -1025,19 +1025,6 @@ function UnitDef_Post(name, uDef)
 
 	end
 
-	--No Comtrans
-	if modOptions.no_comtrans == true then
-		if uDef.customparams and uDef.customparams.iscommander then
-			uDef.mass = 5001
-		end
-	end
-
-	--Slow Comtrans
-	if modOptions.slow_comtrans == true then
-		if uDef.customparams and uDef.customparams.iscommander then
-			uDef.customparams.transportspeedmult = 0.3
-		end
-	end
 
 	--Air rework
 	if modOptions.air_rework == true then

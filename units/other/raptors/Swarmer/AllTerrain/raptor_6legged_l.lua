@@ -1,5 +1,6 @@
 return {
 	raptor_6legged_l = {
+		activatewhenbuilt = true,
 		maxacc = 1.4375,
 		maxdec = 2.3,
 		energycost = 5280,

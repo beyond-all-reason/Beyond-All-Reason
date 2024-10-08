@@ -1,5 +1,6 @@
 return {
 	raptor_land_spiker_spectre_t4_v1 = {
+		activatewhenbuilt = true,
 		maxacc = 3.45,
 		maxdec = 3.45,
 		energycost = 174,

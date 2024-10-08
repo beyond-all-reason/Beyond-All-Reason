@@ -1,3 +1,13 @@
+# October 2024
+• [All units] EMP resist for units is standardized, and units that had low emp resists now take full emp damage.  Units that had between 50-95% emp resist now all have 80% emp resist.  Units that had 95+% emp resist are now fully emp immune.  
+• [New units] Heavy T1 air transport for arm (Osprey) and for cor (Hephastus) moved to the basegame.  These transports can carry the same weight as T2 transports but at a lower movespeed, and are able to transport the commander.  Osprey costs 190m 4000E, has 110 speed, and 630 health.  Hephaestus costs 190m 4000E, has 100 speed, and 800 health.  
+• [Stork/Hercules] T1 light air transports no longer able to transport the commander, and can now only carry units below 750 metal.  Energy/metal/buildcost reverted to earlier values (68m 1300E 3850bp for Stork and 74m 1450E 4120bp for Hercules)
+• [Shuriken] emp damage per shot reduced from 800-600, weapon can no longer fire at air units
+• [Abductor] emp damage per shot reduced 22500->10500, beam duration 0.5->0.2s (improves accuracy), stuntime reduced from 15->6s
+• [Liche] weapon no longer has an extra impulse multiplier
+• [Skyhook] T2 cor air transport speed increased 210->235, health increased 1830->2200.  Line of sight increased 260->500
+• [Webber] No longer able to target air units
+
 # September 2024
 • [All units] Gravity standardized for all projectiles to 130, so weapons will behave the same way across all maps.  
 • [Rocketeer + Aggravator] Reverted the last 2 balance changes: damage per shot 173->157, reloadtime 4->3.8s, speed/acceleration 5% higher

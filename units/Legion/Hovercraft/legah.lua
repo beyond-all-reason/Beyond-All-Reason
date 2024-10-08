@@ -1,5 +1,6 @@
 return {
 	legah = {
+		activatewhenbuilt = true,
 		maxacc = 0.06316,
 		airsightdistance = 800,
 		maxdec = 0.06316,

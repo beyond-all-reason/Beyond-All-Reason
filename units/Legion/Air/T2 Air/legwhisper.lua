@@ -1,6 +1,5 @@
 return {
 	legwhisper = {
-		maxacc= 0.25,
 		blocking = false,
 		maxdec = 0.0375,
 		energycost = 9000,
