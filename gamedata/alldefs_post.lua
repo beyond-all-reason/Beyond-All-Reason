@@ -616,6 +616,37 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
+	--experimental mass standardization based on size
+	if modOptions.mass_impulse_rework then
+		
+		--size tables
+		local tinyMassesTable = {
+			'armflea', 'corroach', 'corsktl', 'armvader', 'corfav', 'armfav',
+		}
+		local smallMassesTable = {
+			'armfark', 'corspy', 'armspy', 'cornecro', 'armrectr', 'corfast', 'armflash', 'armgremlin', 'armfast', 'armamph', 'armspid', 'armmark', 'corgator',
+			'armrock', 'corthud', 'corvoyr', 'armham', 'armjeth', 'corcrash', 'corstorm', 'corsh', 'armpw', 'armsh', 'corak',
+		}
+		local mediumMassesTable = {
+			'armpincer', 'armstump', 'armsam', 'armmart', 'armjanus', 'cormist', 'corgarp', 'corwolv', 'corraid', 'corsala', 'corvrad', 'armseer', 'armlatnk',
+			'armjam', 'armwar', 'coramph', 'corpyro', 'cormort', 'coraak', 'corspec', 'armfido', 'armsptk', 'armzues', 'armsnipe', 'corah', 'corsnap', 'cormh',
+			'armah', 'armanac', 'armmh', 'armmlv', 'cormlv', 'armck', 'corck', 'cormando', 'corch', 'armch', 'armconsul',
+		}
+		local largeMassesTable = {
+
+		}
+		local hugeMassesTable = {
+
+		}
+		local gargantuanMassesTable = {
+			
+		}
+		local immovableMassesTable = {
+
+		}
+	end
+
+
 	if string.find(name, "raptor") and uDef.health then
 		local raptorHealth = uDef.health
 		uDef.activatewhenbuilt = true
