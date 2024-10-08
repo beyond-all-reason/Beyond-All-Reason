@@ -104,8 +104,8 @@ local bronzeMedals = {
 local uniques = {--playername, hat ident, CaSe MaTtErS
 }
 
-local function MatchPlayer(gadgets, name, accountID)
-	if gadgets[name] or (accountID and gadgets[accountID]) then
+local function MatchPlayer(awardees, name, accountID)
+	if awardees[name] or (accountID and awardees[accountID]) then
 		return true
 	end
 	return false
