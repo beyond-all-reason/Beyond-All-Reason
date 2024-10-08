@@ -86,7 +86,7 @@ local champion = { --   Fight Night 1v1 winner
 	[5467] = true,   -- HellsHound
 }
 local kings = {
-	[38971"Yanami"] = true,
+	[38971] = true,  -- Yanami
 }
 local goldMedals = {	 -- Nation Wars winners
 	["Nezah"] = true,
