@@ -15,12 +15,19 @@ if not gadgetHandler:IsSyncedCode() then
     return
 end
 
---------------------------------------------------------------------------------
 
-local timedDamageWeapons
-local unitDamageImmunity
-local aliveExplosions
-local frameIndex
+--------------------------------------------------------------------------------
+-- Configuration ---------------------------------------------------------------
+
+local damageInterval = 0.7333
+local areaSizePresets = {
+    37.5,  46,  54,  63,  75,
+      88, 100, 125, 150, 175,
+     200, 225, 250, 275, 300,
+}
+
+--------------------------------------------------------------------------------
+-- Local variables -------------------------------------------------------------
 
 -- Params:
 -- ceg - ceg to spawn when explosion happens
@@ -29,6 +36,15 @@ local frameIndex
 -- damage - damage per second
 -- range - from center to edge, in elmos
 -- resistance - defines which units are resistant to this type of damage when it matches with 'areadamageresistance' customparameter in a unit.
+local timedDamageWeapons
+local unitDamageImmunity
+
+local aliveExplosions
+local frameExplosions
+local gameFrame
+local frameIndex
+
+damageInterval = math.round(Game.gameSpeed * damageInterval)
 
 --------------------------------------------------------------------------------
 
