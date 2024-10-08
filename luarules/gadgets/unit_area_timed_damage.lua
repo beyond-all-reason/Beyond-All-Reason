@@ -191,11 +191,21 @@ function gadget:Explosion(weaponDefID, px, py, pz, attackerID, projectileID)
     if timedDamageWeapons[weaponDefID] ~= nil then
         local explosion = timedDamageWeapons[weaponDefID]
         local elevation = math.max(Spring.GetGroundHeight(px, pz), 0)
-        if py <= elevation + explosion.range*0.5 then
+        if py <= elevation + explosion.range then
+            local dx, dy, dz
+            if elevation > 0 then
+                dx, dy, dz = Spring.GetGroundNormal(px, pz)
+            else
+                dx, dy, dz = 0, 1, 0
+            end
+
             frameExplosions[#frameExplosions+1] = {
                 x = px,
                 y = elevation,
                 z = pz,
+                dx = dx,
+                dy = dy,
+                dz = dz,
                 endFrame = gameFrame + explosion.frames,
                 damage = explosion.damage,
                 range = explosion.range,
@@ -211,7 +221,6 @@ end
 
 function gadget:GameFrame(frame)
     offset = 1 + (frame % damageInterval)
-    local currentTime = Spring.GetGameSeconds()
     local explosions = aliveExplosions[offset]
     for explosionID, explosionStats in pairs(explosions) do
         if explosionStats.endFrame >= frame then
@@ -221,7 +230,7 @@ function gadget:GameFrame(frame)
             local damage = explosionStats.damage
             local damageType = explosionStats.resistance
 
-            Spring.SpawnCEG(explosionStats.ceg, x, y + 8, z, 0, 0, 0)
+            Spring.SpawnCEG(explosionStats.ceg, x, y + 8, z, explosionStats.dx, explosionStats.dy, explosionStats.dz)
 
             local unitsInRange = Spring.GetUnitsInSphere(x, y, z, explosionStats.range)
             for j = 1,#unitsInRange do
