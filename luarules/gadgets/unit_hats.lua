@@ -69,32 +69,32 @@ local unitDefCanWearHats = {
 	unitDefCanWearHats[UnitDefNames.legcomlvl4.id] = true
  end
  local legchamps = { -- Legion Fight Night winner(s)
-	["[DmE]Wraxell"] = true,
-	["[pretor]"] = true,
+	[144092] = true, -- [DmE]Wraxell
+	[42178] = true,  -- [pretor]
 	[119539] = true, -- [Stud]Lovish
 }
 local champion = { --   Fight Night 1v1 winner
-	["[DmE]FlyingDuck"] = true,
+	[139738] = true, -- [DmE]FlyingDuck
 }
  local vikings = {
-	["[HELO]Austin"] = true,
-	["[teh]Teddy"] = true,
+	[59340] = true,  -- [HELO]Austin
+	[3913] = true,   -- [teh]Teddy
 	["MightySheep"] = true,
-	["Lostdeadman"] = true,
-	["Narnuk"] = true,
-	["Yanami"] = true,
-	["HellsHound"] = true,
+	[54088] = true,  -- Lostdeadman
+	[123900] = true, -- Narnuk
+	[38971] = true,  -- Yanami
+	[5467] = true,   -- HellsHound
 }
 local kings = {
-	["Yanami"] = true,
+	[38971"Yanami"] = true,
 }
-local goldMedals = {	-- Nation Wars winners
+local goldMedals = {	 -- Nation Wars winners
 	["Nezah"] = true,
-	["[waa]Delfea"] = true,
-	["[waa]Eural"] = true,
-	["Kuchy"] = true,
-	["Darkclone"] = true,
-	["[200IQ]DrSmashy"] = true,
+	[63960] = true,  -- [waa]Delfea
+	[44807] = true,  -- [waa]Eural
+	[59916] = true,  -- Kuchy
+	[119832] = true, -- Darkclone
+	[2220] = true,   -- "[200IQ]DrSmashy"
 
 }
 local silverMedals = {
