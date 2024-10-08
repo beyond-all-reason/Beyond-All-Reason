@@ -26,7 +26,6 @@ return {
 		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORWOLV.s3o",
-		pushresistant = true,
 		script = "Units/CORWOLV.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",

@@ -24,6 +24,7 @@ return {
 		health = 1560,
 		idleautoheal = 9,
 		idletime = 900,
+		mass = 750,
 		maxacc = 0.4025,
 		maxdec = 1.725,
 		maxslope = 20,
