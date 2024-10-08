@@ -69,12 +69,18 @@ local unitDefCanWearHats = {
 	unitDefCanWearHats[UnitDefNames.legcomlvl4.id] = true
  end
  local legchamps = { -- Legion Fight Night winner(s)
+<<<<<<< Updated upstream
 	["[DmE]Wraxell"] = true,
 	["[pretor]"] = true,
 	["[Stud]Lovish"] = true, 
+=======
+	["144092"] = true, -- [DmE]Wraxell
+	["42178"] = true, -- [pretor]
+	["119539"] = true, -- [Stud]Lovish
+>>>>>>> Stashed changes
 }
 local champion = { --   Fight Night 1v1 winner
-	["[DmE]FlyingDuck"] = true,
+	["139738"] = true, -- [DmE]FlyingDuck
 }
  local vikings = {
 	["[HELO]Austin"] = true,
@@ -108,7 +114,7 @@ function gadget:GameFrame(gf)
 	if gf == 90 then
 		for _, playerID in ipairs(Spring.GetPlayerList()) do
 
-			local playerName, _, spec, teamID = Spring.GetPlayerInfo(playerID, false)
+			local playerName, _, spec, teamID, _, _, _, _, _, _, accountInfo = Spring.GetPlayerInfo(playerID, false)
 
 			if not spec then
 				local units = Spring.GetTeamUnits(teamID)
@@ -119,16 +125,17 @@ function gadget:GameFrame(gf)
 
 					if unitDefCanWearHats[unitDefID] then
             
-						if legchamps[playerName] and UnitDefNames['cor_hat_legfn'] then
-							local hatDefID = UnitDefNames['cor_hat_legfn'].id
-							local unitID = Spring.CreateUnit(hatDefID, unitPosX, unitPosY, unitPosZ, 0, teamID)
-							gadget:UnitGiven(unitID, hatDefID, teamID)
-						end
-
-						if champion[playerName] and UnitDefNames['cor_hat_fightnight'] then
-							local hatDefID = UnitDefNames['cor_hat_fightnight'].id
-							local unitID = Spring.CreateUnit(hatDefID, unitPosX, unitPosY, unitPosZ, 0, teamID)
-							gadget:UnitGiven(unitID, hatDefID, teamID)
+						if accountInfo and accountInfo.accountid then
+							if legchamps[accountInfo.accountid] and UnitDefNames['cor_hat_legfn'] then
+								local hatDefID = UnitDefNames['cor_hat_legfn'].id
+								local unitID = Spring.CreateUnit(hatDefID, unitPosX, unitPosY, unitPosZ, 0, teamID)
+								gadget:UnitGiven(unitID, hatDefID, teamID)
+							end
+							if champion[accountInfo.accountid] and UnitDefNames['cor_hat_fightnight'] then
+								local hatDefID = UnitDefNames['cor_hat_fightnight'].id
+								local unitID = Spring.CreateUnit(hatDefID, unitPosX, unitPosY, unitPosZ, 0, teamID)
+								gadget:UnitGiven(unitID, hatDefID, teamID)
+							end
 						end
 
 						if vikings[playerName] and UnitDefNames['cor_hat_viking'] then
