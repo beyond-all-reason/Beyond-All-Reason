@@ -12,7 +12,6 @@ return {
 		collisionvolumescales = "75 44 75",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		damagemodifier = 0.5,
 		decoyfor = "cormoho",
 		energycost = 12000,
 		energyupkeep = 20,
