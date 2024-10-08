@@ -79,7 +79,7 @@ local champion = { --   Fight Night 1v1 winner
  local vikings = {
 	[59340] = true,  -- [HELO]Austin
 	[3913] = true,   -- [teh]Teddy
-	["MightySheep"] = true,
+	[7137] = true,	-- MightySheep
 	[54088] = true,  -- Lostdeadman
 	[123900] = true, -- Narnuk
 	[38971] = true,  -- Yanami
@@ -89,13 +89,12 @@ local kings = {
 	[38971] = true,  -- Yanami
 }
 local goldMedals = {	 -- Nation Wars winners
-	["Nezah"] = true,
+	[87571] = true,	-- Nezah
 	[63960] = true,  -- [waa]Delfea
 	[44807] = true,  -- [waa]Eural
 	[59916] = true,  -- Kuchy
 	[119832] = true, -- Darkclone
 	[2220] = true,   -- "[200IQ]DrSmashy"
-
 }
 local silverMedals = {
 }
