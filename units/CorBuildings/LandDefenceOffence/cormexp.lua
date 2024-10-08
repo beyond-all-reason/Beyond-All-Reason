@@ -1,11 +1,7 @@
 return {
 	cormexp = {
-		maxacc = 0,
 		activatewhenbuilt = true,
-		maxdec = 0,
 		buildangle = 2048,
-		energycost = 12000,
-		metalcost = 2400,
 		buildingmask = 0,
 		buildpic = "CORMEXP.DDS",
 		buildtime = 32500,
@@ -17,16 +13,20 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		decoyfor = "cormoho",
+		energycost = 12000,
 		energyupkeep = 20,
 		explodeas = "hugeBuildingexplosiongeneric",
 		extractsmetal = 0.004,
 		footprintx = 4,
 		footprintz = 4,
+		health = 7800,
 		idleautoheal = 5,
 		idletime = 1800,
-		health = 7800,
+		maxacc = 0,
+		maxdec = 0,
 		maxslope = 30,
 		maxwaterdepth = 20,
+		metalcost = 2400,
 		metalstorage = 600,
 		nochasecategory = "MOBILE",
 		objectname = "Units/CORMEXP.s3o",
@@ -37,12 +37,10 @@ return {
 		sightdistance = 676,
 		yardmap = "h oooooooo osssssso osssssso ossoosso ossoosso osssssso osssssso oooooooo",
 		customparams = {
-			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/cormoho_aoplane.dds",
-			buildinggrounddecalsizey = 7.6,
-			buildinggrounddecalsizex = 7.6,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'metal',
+			buildinggrounddecalsizex = 7.6,
+			buildinggrounddecalsizey = 7.6,
+			buildinggrounddecaltype = "decals/cormoho_aoplane.dds",
 			cvbuildable = true,
 			metal_extractor = 4,
 			model_author = "Mr Bob",
@@ -50,6 +48,8 @@ return {
 			removewait = true,
 			subfolder = "CorBuildings/LandDefenceOffence",
 			techlevel = 2,
+			unitgroup = "metal",
+			usebuildinggrounddecal = true,
 		},
 		featuredefs = {
 			dead = {
@@ -186,8 +186,8 @@ return {
 		weapons = {
 			[1] = {
 				def = "CORSUMO_WEAPON",
-				onlytargetcategory = "NOTSUB",
 				fastautoretargeting = true,
+				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
 				def = "CORMEXP_ROCKET",

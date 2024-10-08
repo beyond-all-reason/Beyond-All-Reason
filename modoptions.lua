@@ -249,24 +249,6 @@ local options = {
         def     =  true,
     },
 
-    {
-		key 	= "no_comtrans",
-		name 	= "T1 Transports Can't Load Coms",
-		desc 	= "Commanders will be too heavy for tech 1 transports to carry. (Tech 2 transports can still carry)",
-		type 	= "bool",
-		section = "options_main",
-		def 	= false,
-	},
-
-	{
-		key 	= "slow_comtrans",
-		name 	= "Slower Transported Commanders",
-		desc 	= "Transports carrying commanders are significantly slower, limiting offensive use and reactive mobility",
-		type 	= "bool",
-		section = "options_main",
-		def 	= false,
-	},
-
 	{
 		key		= "unit_restrictions_notech15",
 		name	= "Disable Tech 1.5",
@@ -1282,9 +1264,9 @@ local options = {
     {
         key 	= "proposed_unit_reworks",
         name 	= "Proposed Unit Reworks",
-        desc 	= "Modoption used to test and balance unit reworks that are being considered for the base game.  Shuriken emp damage is reduced and Abductor emp damage and stuntime are reduced, but accuracy is increased.  EMP resist for units is standardized, and units that had low emp resists now take full emp damage. Heavier T1 transport added, light T1 transports cheaper but can carry only 750mass units. T2 transports carry only single unit, Skyhook speed/buildtime/LoS buffed. T3 and heavy T2 units mass reduced (now equals their m cost), Liche impulse nerfed.",
+        desc 	= "Modoption used to test and balance unit reworks that are being considered for the base game.",
         type 	= "bool",
-        --hidden 	= true,
+        hidden 	= true,
         section = "options_experimental",
         def 	= false,
     },
