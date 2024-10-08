@@ -75,7 +75,7 @@ local sub1, sub2 = '-area-', '-repeating'
 local pattern = sub1..'\d+'..sub2
 local midX, midZ = Game.mapSizeX / 2, Game.mapSizeZ / 2
 local lowY = Spring.GetGroundHeight(midX, midZ) - 10000
-local function getNearestCEG(weaponDefID, params)
+local function getNearestCEG(params)
     local ceg, range = params.ceg, params.range
     local sizeBest, diffBest = math.huge, math.huge
     for ii = 1, #areaSizePresets do
@@ -122,7 +122,7 @@ function gadget:Initialize()
         if  string.find(params.ceg, pattern, nil, false) and not
             string.find(params.ceg, sub1..math.floor(params.range)..sub2)
         then
-            local ceg, range = getNearestCEG(weaponDefID, params)
+            local ceg, range = getNearestCEG(params)
             local name = WeaponDefs[weaponDefID].name
             if ceg and range then
                 params.ceg = ceg
