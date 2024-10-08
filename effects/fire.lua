@@ -1687,8 +1687,8 @@ for ii = 1, #areaCegSizes do
   local inset = radiusFlame * 0.5
 
   local count, delay, pos
-  count = math.ceil((radius ^ 2 / radiusFlame ^ 2) * (1/2))
-  if count > 5 then
+  count = math.ceil((radius ^ 2 / radiusFlame ^ 2) * (1/5)) -- longer particle life => decrease this fraction
+  if count > 4 then
     expgen.fireflamearea.properties.explosiongenerator = [[custom:fire-flames-large-repeat]]
     expgen.fireflameground.properties.explosiongenerator = [[custom:fire-burnground-large-repeat]]
     radiusFlame = 84
