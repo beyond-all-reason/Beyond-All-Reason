@@ -70,15 +70,15 @@ local labGrids = {
 	-- T1 air
 	armap = {
 		"armca", "armfig", "armkam", "armthund",           -- T1 con, fig, gunship, bomber
-		"armpeep", "armatlas",                             -- radar, transport,
+		"armpeep", "armatlas", "armhvytrans",                -- radar, light transport, medium transport
 	},
 	corap = {
 		"corca", "corveng", "corbw", "corshad",              -- T1 con, fig, drone, bomber
-		"corfink", "corvalk",                                -- radar, transport
+		"corfink", "corvalk", "corhvytrans",                 -- radar, light transport, medium transport
 	},
     legap = {
 		"legca", "legfig", "legmos", "legkam",              -- T1 con, fig, drone, bomber
-		"legcib", "legatrans",                                -- radar, transport
+		"legcib", "legatrans", "corhvytrans",                -- radar, light transport, medium transport
 	},
 	-- T2 air
 	armaap = {

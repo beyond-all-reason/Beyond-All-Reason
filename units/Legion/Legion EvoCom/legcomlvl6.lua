@@ -45,7 +45,6 @@ return {
 		movementclass = "COMMANDERBOT",
 		nochasecategory = "ALL",
 		objectname = "Units/LEGCOMLVL4.s3o",
-		pushresistant = true,
 		radardistance = 1000,
 		radaremitheight = 54,
 		reclaimable = false,

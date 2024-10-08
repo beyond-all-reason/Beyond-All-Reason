@@ -42,7 +42,6 @@ return {
 		movementclass = "SCAVCOMMANDERBOT",
 		nochasecategory = "ALL",
 		objectname = "Units/scavboss/CORCOMBOSS.s3o",
-		pushresistant = true,
 		radardistance = 2000,
 		radaremitheight = 100,
 		reclaimable = false,

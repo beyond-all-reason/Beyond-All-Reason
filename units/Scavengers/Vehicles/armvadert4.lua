@@ -26,7 +26,6 @@ return {
 		movementclass = "EPICALLTERRAIN",
 		nochasecategory = "VTOL",
 		objectname = "Units/scavboss/armvadert4.s3o",
-		pushresistant = true,
 		script = "Units/scavboss/armvadert4.cob",
 		seismicsignature = 0,
 		selfdestructas = "crawl_blastsmlscavboss",

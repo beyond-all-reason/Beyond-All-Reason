@@ -46,7 +46,6 @@ return {
 		movementclass = "COMMANDERBOT",
 		nochasecategory = "ALL",
 		objectname = "Units/CORCOMHILVL.s3o",
-		pushresistant = true,
 		radardistance = 1000,
 		radaremitheight = 40,
 		reclaimable = false,
