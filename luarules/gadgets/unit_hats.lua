@@ -116,12 +116,9 @@ function gadget:GameFrame(gf)
 		for _, playerID in ipairs(Spring.GetPlayerList()) do
 
 			local accountID = false
-			local playerInfo = { Spring.GetPlayerInfo(playerID, true) }
-			local playerName = playerInfo[1]
-			local spec = playerInfo[3]
-			local teamID = playerInfo[4]
-			if playerInfo[11] and playerInfo[11].accountid then
-				accountID = tonumber(playerInfo[11].accountid)
+			local playerName, _, spec, teamID, _, _, _, _, _, _, accountInfo = Spring.GetPlayerInfo(playerID, true)
+			if accountInfo and accountInfo.accountid then
+				accountID = tonumber(accountInfo.accountid)
 			end
 
 			if not spec then
