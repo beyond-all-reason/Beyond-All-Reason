@@ -43,7 +43,7 @@ return {
 			unitgroup = 'aa',
 			model_author = "Hornet",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "coraircraft/t2",
+			subfolder = "CorAircraft/T2",
 			techlevel = 2,
 			fighter = 1,
 		},

@@ -45,7 +45,7 @@ return {
 			kickback = "-2",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "armvehicles",
+			subfolder = "ArmVehicles",
 			weapon1turretx = 240,
 			weapon1turrety = 240,
 		},

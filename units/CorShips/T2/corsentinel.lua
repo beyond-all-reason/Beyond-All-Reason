@@ -43,7 +43,7 @@ return {
 			maxrange = 600,
 			model_author = "Odin, Hornet",
 			normaltex = "unittextures/Cor_normal.dds",
-			subfolder = "corships/t2",
+			subfolder = "CorShips/T2",
 			techlevel = 2,
 			inheritxpratemultiplier = 1,
 			childreninheritxp = "DRONE",

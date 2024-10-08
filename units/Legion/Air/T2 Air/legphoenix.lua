@@ -48,7 +48,7 @@ return {
 			unitgroup = 'weapon',
 			model_author = "Hornet",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "legionaircraft/t2",
+			subfolder = "Legionaircraft/T2",
 			techlevel = 2,
 		},
 		featuredefs = {

@@ -40,7 +40,7 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "armbuildings/landeconomy",
+			subfolder = "ArmBuildings/LandEconomy",
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {

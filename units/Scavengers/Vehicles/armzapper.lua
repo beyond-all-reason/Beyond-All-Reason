@@ -45,7 +45,7 @@ return {
 			lumamult = "1.3",
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armvehicles",
+			subfolder = "ArmVehicles",
 			weapon1turretx = 300,
 			weapon1turrety = 300,
 		},

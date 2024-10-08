@@ -45,7 +45,7 @@ return {
 		customparams = {
 			model_author = "EnderRobo",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "legvehicles/t2",
+			subfolder = "legvehicles/T2",
 			techlevel = 2,
 		},
 		featuredefs = {

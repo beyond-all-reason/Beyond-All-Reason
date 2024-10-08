@@ -50,7 +50,7 @@ return {
             model_author = "Tharsis",
             normaltex = "unittextures/LEG_normal.dds",
             removewait = true,
-            subfolder = "corbuildings/landeconomy",
+            subfolder = "CorBuildings/LandEconomy",
             techlevel = 2,
 			inheritxpratemultiplier = 1,
 			childreninheritxp = "DRONE",

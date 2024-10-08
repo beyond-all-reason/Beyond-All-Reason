@@ -62,7 +62,7 @@ return {
 			unitgroup = 'builder',
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "legion/vehicles",
+			subfolder = "Legion/vehicles",
 		},
 		featuredefs = {
 			dead = {

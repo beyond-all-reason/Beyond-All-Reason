@@ -73,7 +73,7 @@ return {
 			unitgroup = 'builder',
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armvehicles",
+			subfolder = "ArmVehicles",
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {

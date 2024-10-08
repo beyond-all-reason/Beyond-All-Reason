@@ -75,7 +75,7 @@ return {
 			area_mex_def = "legmoho",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "corbots/t2",
+			subfolder = "CorBots/T2",
 			techlevel = 2,
 		},
 		featuredefs = {

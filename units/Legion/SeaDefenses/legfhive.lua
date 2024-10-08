@@ -43,7 +43,7 @@ return {
 			model_author = "Zephyr",--naval edition by / c/o Hornet
 			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
-			subfolder = "corbuildings/landdefenceoffence",
+			subfolder = "CorBuildings/LandDefenceOffence",
 			legacyname = "Gaat Gun",
 			inheritxpratemultiplier = 1,
 			childreninheritxp = "DRONE",

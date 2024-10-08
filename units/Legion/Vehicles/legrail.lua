@@ -43,7 +43,7 @@ return {
 			unitgroup = 'weaponaa',
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "armvehicles",
+			subfolder = "ArmVehicles",
 		},
 		featuredefs = {
 			dead = {

@@ -40,7 +40,7 @@ return {
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			onoffname = "trajectory",
-			subfolder = "corbuildings/landdefenceoffence",
+			subfolder = "CorBuildings/LandDefenceOffence",
 		},
 		featuredefs = {
 			dead = {

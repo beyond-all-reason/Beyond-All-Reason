@@ -46,7 +46,7 @@ return {
 			lumamult = "1.2",
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armvehicles",
+			subfolder = "ArmVehicles",
 			weapon1turretx = 45,
 			weapon1turrety = 80,
 			inheritxpratemultiplier = 1,
