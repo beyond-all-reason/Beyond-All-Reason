@@ -28,7 +28,6 @@ return {
 		movementclass = "VBOT5",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMBANTH.s3o",
-		pushresistant = true,
 		script = "Units/ARMBANTH.cob",
 		seismicsignature = 0,
 		selfdestructas = "banthaSelfd",

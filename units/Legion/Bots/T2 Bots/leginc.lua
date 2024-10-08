@@ -25,7 +25,6 @@ return {
 		movementclass = "HBOT4",
 		nochasecategory = "VTOL",
 		objectname = "Units/leginc.s3o",
-		pushresistant = true,
 		script = "Units/leginc_clean.cob",
 		seismicsignature = 0,
 		selfdestructas = "penetrator",

@@ -45,7 +45,6 @@ return {
 		movestate = 0,
 		nochasecategory = "ALL",
 		objectname = "Units/LEGCOM.s3o",
-		pushresistant = true,
 		radardistance = 700,
 		radaremitheight = 40,
 		reclaimable = false,

@@ -26,7 +26,6 @@ return {
 		movementclass = "HBOT4",
 		nochasecategory = "VTOL",
 		objectname = "Units/LEGMECH.s3o",
-		pushresistant = true,
 		script = "Units/LEGMECH.cob",
 		seismicsignature = 0,
 		selfdestructas = "banthaSelfd",

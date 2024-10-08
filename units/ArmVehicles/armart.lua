@@ -26,7 +26,6 @@ return {
 		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/armart.s3o",
-		pushresistant = true,
 		script = "Units/armart.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",

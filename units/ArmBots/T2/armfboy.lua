@@ -23,7 +23,6 @@ return {
 		movementclass = "HBOT4",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMFBOY.s3o",
-		pushresistant = true,
 		script = "Units/ARMFBOY.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",

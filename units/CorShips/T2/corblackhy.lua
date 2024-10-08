@@ -26,7 +26,6 @@ return {
 		movementclass = "BOAT8",
 		movestate = 0,
 		objectname = "Units/CORBLACKHY.s3o",
-		pushresistant = true,
 		radardistance = 1510,
 		radaremitheight = 64,
 		script = "Units/CORBLACKHY.cob",
