@@ -1,5 +1,6 @@
 return {
 	legoptio = {
+		activatewhenbuilt = true,
 		maxacc = 0.03127,
 		airsightdistance = 850,
 		maxdec = 0.03127,

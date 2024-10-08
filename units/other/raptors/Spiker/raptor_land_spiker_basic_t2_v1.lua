@@ -1,5 +1,6 @@
 return {
 	raptor_land_spiker_basic_t2_v1 = {
+		activatewhenbuilt = true,
 		maxacc = 1.725,
 		maxdec = 1.4375,
 		energycost = 174,

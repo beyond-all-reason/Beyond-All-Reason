@@ -1,5 +1,6 @@
 return {
 	legap = {
+		activatewhenbuilt = true,
 		maxacc = 0,
 		maxdec = 0,
 		energycost = 1350,
@@ -41,6 +42,7 @@ return {
 			[4] = "legcib",
 			[5] = "legmos",
 			[6] = "legatrans",
+			[7] = "corhvytrans",
 		},
 		customparams = {
 			usebuildinggrounddecal = true,

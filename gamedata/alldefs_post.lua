@@ -608,14 +608,6 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-	-- mass remove push resistance
-	if uDef.pushresistant and uDef.pushresistant == true then
-		uDef.pushresistant = false
-		if not uDef.mass then
-			uDef.mass = 4999
-		end
-	end
-
 	if string.find(name, "raptor") and uDef.health then
 		local raptorHealth = uDef.health
 		uDef.activatewhenbuilt = true
@@ -1025,19 +1017,6 @@ function UnitDef_Post(name, uDef)
 
 	end
 
-	--No Comtrans
-	if modOptions.no_comtrans == true then
-		if uDef.customparams and uDef.customparams.iscommander then
-			uDef.mass = 5001
-		end
-	end
-
-	--Slow Comtrans
-	if modOptions.slow_comtrans == true then
-		if uDef.customparams and uDef.customparams.iscommander then
-			uDef.customparams.transportspeedmult = 0.3
-		end
-	end
 
 	--Air rework
 	if modOptions.air_rework == true then
