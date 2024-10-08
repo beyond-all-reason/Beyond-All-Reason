@@ -15,492 +15,251 @@ if not gadgetHandler:IsSyncedCode() then
     return
 end
 
------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+--------------------------------------------------------------------------------
+-- Configuration ---------------------------------------------------------------
+
+local damageInterval = 0.7333
+local areaSizePresets = {
+    37.5,  46,  54,  63,  75,
+      88, 100, 125, 150, 175,
+     200, 225, 250, 275, 300,
+}
+
+-- Defaults and customparams
+local prefixes = { unit = 'area_ondeath_', weapon = 'area_onhit_' }
+local damage, time, range, resistance = 30, 10, 75, "none"
+
+--------------------------------------------------------------------------------
+-- Local variables -------------------------------------------------------------
+
+-- Params:
 -- ceg - ceg to spawn when explosion happens
 -- damageCeg - ceg to spawn when damage is dealt
 -- time - how long the effect should stay
 -- damage - damage per second
 -- range - from center to edge, in elmos
 -- resistance - defines which units are resistant to this type of damage when it matches with 'areadamageresistance' customparameter in a unit.
+local timedDamageWeapons
+local unitDamageImmunity
 
-local TimedDamageWeaponsNames = {
-    ['raptor_land_assault_acid_t2_v1_acidspit'] = {
-        ceg = "acid-area-150",
-        damageCeg = "acid-damage-gen",
-        time = 10,
-        damage = 100,
-        range = 150,
-        resistance = "_RAPTORACID_",
-    },
-    ['raptor_allterrain_arty_acid_t2_v1_acidspit'] = {
-        ceg = "acid-area-150",
-        damageCeg = "acid-damage-gen",
-        time = 10,
-        damage = 200,
-        range = 150,
-        resistance = "_RAPTORACID_",
-    },
-    ['raptor_allterrain_arty_acid_t4_v1_acidspit'] = {
-        ceg = "acid-area-150",
-        damageCeg = "acid-damage-gen",
-        time = 10,
-        damage = 200,
-        range = 150,
-        resistance = "_RAPTORACID_",
-    },
-    ['raptor_air_bomber_acid_t2_v1_acidbomb'] = {
-        ceg = "acid-area-150",
-        damageCeg = "acid-damage-gen",
-        time = 10,
-        damage = 100,
-        range = 150,
-        resistance = "_RAPTORACID_",
-    },
-    ['raptor_land_swarmer_acids_t2_v1_acidspit'] = {
-        ceg = "acid-area-75",
-        damageCeg = "acid-damage-gen",
-        time = 10,
-        damage = 40,
-        range = 75,
-        resistance = "_RAPTORACID_",
-    },
-    ['raptor_allterrain_swarmer_acid_t2_v1_acidspit'] = {
-        ceg = "acid-area-75",
-        damageCeg = "acid-damage-gen",
-        time = 10,
-        damage = 40,
-        range = 75,
-        resistance = "_RAPTORACID_",
-    },
-    ['raptor_allterrain_assault_acid_t2_v1_acidspit'] = {
-        ceg = "acid-area-150",
-        damageCeg = "acid-damage-gen",
-        time = 10,
-        damage = 100,
-        range = 150,
-        resistance = "_RAPTORACID_",
-    },
-    ['raptor_turret_acid_t2_v1_acidspit'] = {
-        ceg = "acid-area-150",
-        damageCeg = "acid-damage-gen",
-        time = 10,
-        damage = 200,
-        range = 150,
-        resistance = "_RAPTORACID_",
-    },
-    ['raptor_turret_acid_t3_v1_acidspit'] = {
-        ceg = "acid-area-150",
-        damageCeg = "acid-damage-gen",
-        time = 10,
-        damage = 200,
-        range = 150,
-        resistance = "_RAPTORACID_",
-    },
-    ['raptor_turret_acid_t4_v1_acidspit'] = {
-        ceg = "acid-area-150",
-        damageCeg = "acid-damage-gen",
-        time = 10,
-        damage = 200,
-        range = 150,
-        resistance = "_RAPTORACID_",
-    },
-    ['raptor_matriarch_acid_acidgoo'] = {
-        ceg = "acid-area-75",
-        damageCeg = "acid-damage-gen",
-        time = 10,
-        damage = 40,
-        range = 75,
-        resistance = "_RAPTORACID_",
-    },
-    ['raptor_matriarch_acid_spike_acid_blob'] = {
-        ceg = "acid-area-75",
-        damageCeg = "acid-damage-gen",
-        time = 10,
-        damage = 40,
-        range = 75,
-        resistance = "_RAPTORACID_",
-    },
+local aliveExplosions
+local frameExplosions
+local gameFrame
+local frameIndex
 
+damageInterval = math.round(Game.gameSpeed * damageInterval)
 
-	['leegmech_aimhull'] = {
-        ceg = "fire-area-75",
-        damageCeg = "burnflamexl",
-        time = 10,
-        damage = 30,
-        range = 75,
-        resistance = "test",
-    },
-    ['leegmech_scav_aimhull'] = {
-        ceg = "fire-area-75",
-        damageCeg = "burnflamexl",
-        time = 10,
-        damage = 30,
-        range = 75,
-        resistance = "test",
-    },
-	['legbart_clusternapalm'] = {
-        ceg = "fire-area-75",
-        damageCeg = "burnflamexl",
-        time = 10,
-        damage = 30,
-        range = 75,
-        resistance = "test",
-    },
-    ['legbart_scav_clusternapalm'] = {
-        ceg = "fire-area-75",
-        damageCeg = "burnflamexl",
-        time = 10,
-        damage = 30,
-        range = 75,
-        resistance = "test",
-    },
-	['legbar_clusternapalm'] = {
-        ceg = "fire-area-75",
-        damageCeg = "burnflamexl",
-        time = 10,
-        damage = 30,
-        range = 75,
-        resistance = "test",
-    },
-    ['legbar_scav_clusternapalm'] = {
-        ceg = "fire-area-75",
-        damageCeg = "burnflamexl",
-        time = 10,
-        damage = 30,
-        range = 75,
-        resistance = "test",
-    },
-	-- ['leginc_heatraylarge'] = {
-    --     ceg = "burnflamexm",
-    --     damageCeg = "burnflamexl",
-    --     time = 1,
-    --     damage = 0,
-    --     range = 37,
-    --     resistance = "test",
-    -- },
-    -- ['leginc_scav_heatraylarge'] = {
-    --     ceg = "burnflamexm",
-    --     damageCeg = "burnflamexl",
-    --     time = 1,
-    --     damage = 0,
-    --     range = 37,
-    --     resistance = "test",
-    -- },
-    -- ['legbastion_pineappleofdoom'] = {
-    --     ceg = "fire-incinerator",
-    --     damageCeg = "burnflamexl",
-    --     time = 2,
-    --     damage = 0,
-    --     range = 50,
-    --     resistance = "test",
-    -- },
-    -- ['legbastion_scav_pineappleofdoom'] = {
-    --     ceg = "fire-incinerator",
-    --     damageCeg = "burnflamexl",
-    --     time = 2,
-    --     damage = 0,
-    --     range = 50,
-    --     resistance = "test",
-    -- },
-	['leginf_rapidnapalm'] = {
-        ceg = "fire-area-75",
-        damageCeg = "burnflamexl",
-        time = 10,
-        damage = 30,
-        range = 75,
-        resistance = "test",
-    },
-    ['leginf_scav_rapidnapalm'] = {
-        ceg = "fire-area-75",
-        damageCeg = "burnflamexl",
-        time = 10,
-        damage = 30,
-        range = 75,
-        resistance = "test",
-    },
-	['legnap_napalmbombs'] = {
-        ceg = "fire-area-150",
-        damageCeg = "burnflamexl",
-        time = 15,
-        damage = 30,
-        range = 150,
-        resistance = "test",
-    },
-    ['legnap_scav_napalmbombs'] = {
-        ceg = "fire-area-150",
-        damageCeg = "burnflamexl",
-        time = 15,
-        damage = 30,
-        range = 150,
-        resistance = "test",
-    },
-	['legcom_napalmmissile'] = {
-        ceg = "fire-area-150",
-        damageCeg = "burnflamexl",
-        time = 10,
-        damage = 75,
-        range = 100,
-        resistance = "test",
-    },
-    --['legcom_scav_napalmmissile'] = { -- These have been replaced with unit cannon
-    --    ceg = "fire-area-150",
-    --    damageCeg = "burnflamexl",
-    --    time = 10,
-    --    damage = 75,
-    --    range = 100,
-    --    resistance = "test",
-    --},
-	['legcomlvl2_napalmmissile'] = {
-        ceg = "fire-area-150",
-        damageCeg = "burnflamexl",
-        time = 10,
-        damage = 75,
-        range = 100,
-        resistance = "test",
-    },
-    --['legcomlvl2_scav_napalmmissile'] = { -- These have been replaced with unit cannon
-    --    ceg = "fire-area-150",
-    --    damageCeg = "burnflamexl",
-    --    time = 10,
-    --    damage = 75,
-    --    range = 100,
-    --    resistance = "test",
-    --},
-	['legcomlvl3_napalmmissile'] = {
-        ceg = "fire-area-150",
-        damageCeg = "burnflamexl",
-        time = 10,
-        damage = 150,
-        range = 150,
-        resistance = "test",
-    },
-    --['legcomlvl3_scav_napalmmissile'] = { -- These have been replaced with unit cannon
-    --    ceg = "fire-area-150",
-    --    damageCeg = "burnflamexl",
-    --    time = 10,
-    --    damage = 150,
-    --    range = 150,
-    --    resistance = "test",
-    --},
-	['legcomlvl4_napalmmissile'] = {
-        ceg = "fire-area-150",
-        damageCeg = "burnflamexl",
-        time = 10,
-        damage = 150,
-        range = 150,
-        resistance = "test",
-    },
-    --['legcomlvl4_scav_napalmmissile'] = { -- These have been replaced with unit cannon
-    --    ceg = "fire-area-150",
-    --    damageCeg = "burnflamexl",
-    --    time = 10,
-    --    damage = 150,
-    --    range = 150,
-    --    resistance = "test",
-    --},
-	['legperdition_napalmmissile'] = {
-        ceg = "fire-area-150",
-        damageCeg = "burnflamexl",
-        time = 15,
-        damage = 175,
-        range = 150,
-        resistance = "test",
-    },
-    ['legperdition_scav_napalmmissile'] = {
-        ceg = "fire-area-150",
-        damageCeg = "burnflamexl",
-        time = 15,
-        damage = 175,
-        range = 150,
-        resistance = "test",
-    },
-    ['scavengerbossv4_normal_turbo_napalm'] = {
-        ceg = "fire-area-75",
-        damageCeg = "burnflamexl",
-        time = 12,
-        damage = 20,
-        range = 150,
-        resistance = "test",
-    },
+--------------------------------------------------------------------------------
+-- Local functions -------------------------------------------------------------
 
-}
---duplicate entry for scavengerbossv4
-local scavengerBossV4Table = {'scavengerbossv4_veryeasy_turbo_napalm', 'scavengerbossv4_easy_turbo_napalm', 'scavengerbossv4_hard_turbo_napalm', 'scavengerbossv4_veryhard_turbo_napalm', 'scavengerbossv4_epic_turbo_napalm',
- 'scavengerbossv4_veryeasy_scav_turbo_napalm', 'scavengerbossv4_easy_scav_turbo_napalm', 'scavengerbossv4_normal_scav_turbo_napalm', 'scavengerbossv4_hard_scav_turbo_napalm', 'scavengerbossv4_veryhard_scav_turbo_napalm', 'scavengerbossv4_epic_scav_turbo_napalm'}
-for _, name in pairs(scavengerBossV4Table) do
-	TimedDamageWeaponsNames[name] = table.copy(TimedDamageWeaponsNames['scavengerbossv4_normal_turbo_napalm'])
+local function getExplosionParams(def, prefix)
+    local params = {
+        ceg        = def.customParams[ prefix.."ceg"        ],
+        damageCeg  = def.customParams[ prefix.."damageceg"  ],
+        resistance = def.customParams[ prefix.."resistance" ] or resistance,
+        damage     = def.customParams[ prefix.."damage"     ] or damage,
+        frames     = def.customParams[ prefix.."time"       ] or time,
+        range      = def.customParams[ prefix.."range"      ] or range,
+    }
+    params.damage = tonumber(params.damage) * (damageInterval/Game.gameSpeed)
+    params.frames = tonumber(params.frames) * Game.gameSpeed
+    params.frames = math.round(params.frames / damageInterval) * damageInterval
+    params.range = tonumber(params.range)
+    params.resistance = string.lower(params.resistance)
+    return params
 end
 
--- convert weaponname -> weaponDefID
-local TimedDamageWeapons = {}
-for name, params in pairs(TimedDamageWeaponsNames) do
-	if WeaponDefNames[name] then
-		TimedDamageWeapons[WeaponDefNames[name].id] = params
-	end
-end
-TimedDamageWeaponsNames = nil
-
-local TimedDamageDyingUnitsNames = {
-    ['raptor_land_assault_acid_t2_v1'] = {
-        ceg = "acid-area-150",
-        damageCeg = "acid-damage-gen",
-        time = 10,
-        damage = 100,
-        range = 150,
-        resistance = "_RAPTORACID_",
-    },
-    ['raptor_allterrain_arty_acid_t2_v1'] = {
-        ceg = "acid-area-150",
-        damageCeg = "acid-damage-gen",
-        time = 10,
-        damage = 100,
-        range = 150,
-        resistance = "_RAPTORACID_",
-    },
-    ['raptor_allterrain_arty_acid_t4_v1'] = {
-        ceg = "acid-area-150",
-        damageCeg = "acid-damage-gen",
-        time = 10,
-        damage = 100,
-        range = 150,
-        resistance = "_RAPTORACID_",
-    },
-    ['raptor_land_swarmer_acids_t2_v1'] = {
-        ceg = "acid-area-75",
-        damageCeg = "acid-damage-gen",
-        time = 10,
-        damage = 40,
-        range = 75,
-        resistance = "_RAPTORACID_",
-    },
-    ['raptor_allterrain_swarmer_acid_t2_v1'] = {
-        ceg = "acid-area-75",
-        damageCeg = "acid-damage-gen",
-        time = 10,
-        damage = 40,
-        range = 75,
-        resistance = "_RAPTORACID_",
-    },
-}
--- convert unitname -> unitDefID
-local TimedDamageDyingUnits = {}
-for name, params in pairs(TimedDamageDyingUnitsNames) do
-	if UnitDefNames[name] then
-		TimedDamageDyingUnits[UnitDefNames[name].id] = params
-	end
-end
-TimedDamageDyingUnitsNames = nil
-
------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
--- local aliveExplosions = {}
-
--- local function getRandomFreeExplosionID()
---     local attempts = 0
---     repeat
---         attempts = attempts + 1
---         local number = math.random(1,100000)
---         if not aliveExplosions[number] then
---             return number
---         end
---     until attempts >= 100000
---     return nil
--- end
-
-local aliveExplosions = {}
-local aliveExplosionsCounter = 1
-
-function gadget:Initialize()
-    for id, a in pairs(TimedDamageWeapons) do
-        Script.SetWatchExplosion(id, true)
-    end
-end
-
-function gadget:Explosion(weaponDefID, px, py, pz, AttackerID, ProjectileID)
-    if TimedDamageWeapons[weaponDefID] then
-        local currentTime = Spring.GetGameSeconds()
-        if py <= math.max(Spring.GetGroundHeight(px, pz), 0) + TimedDamageWeapons[weaponDefID].range*0.5 then
-            aliveExplosions[aliveExplosionsCounter] = {
-                x = px,
-                y = math.max(Spring.GetGroundHeight(px, pz), 0),
-                z = pz,
-                endTime = currentTime + TimedDamageWeapons[weaponDefID].time,
-                damage = TimedDamageWeapons[weaponDefID].damage,
-                range = TimedDamageWeapons[weaponDefID].range,
-                ceg = TimedDamageWeapons[weaponDefID].ceg,
-                cegSpawned = false,
-                damageCeg = TimedDamageWeapons[weaponDefID].damageCeg,
-                resistance = TimedDamageWeapons[weaponDefID].resistance,
-            }
-            aliveExplosionsCounter = aliveExplosionsCounter + 1
+-- Change (eg) fire-area-150-repeating to fire-area-<range>-repeating for tweakdefs:
+local sub1, sub2 = '-area-', '-repeating'
+local pattern = sub1..'\d+'..sub2
+local midX, midZ = Game.mapSizeX / 2, Game.mapSizeZ / 2
+local lowY = Spring.GetGroundHeight(midX, midZ) - 10000
+local function getNearestCEG(params)
+    local ceg, range = params.ceg, params.range
+    local sizeBest, diffBest = math.huge, math.huge
+    for ii = 1, #areaSizePresets do
+        local size = areaSizePresets[ii]
+        local diff = math.abs(range / size - size / range)
+        if diff < diffBest then
+            local cegTest = string.gsub(ceg, pattern, sub1..math.floor(sizeBest)..sub2)
+            local success, cegID = Spring.SpawnCEG(cegTest, midX, lowY, midZ) -- hidden-ish
+            if success and cegID then
+                diffBest = diff
+                sizeBest = size
+            end
         end
     end
+    if sizeBest < math.huge then
+        ceg = string.gsub(ceg, '\d+', sizeBest, 1)
+        return ceg, sizeBest
+    end
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-    if TimedDamageDyingUnits[unitDefID] then
-        local currentTime = Spring.GetGameSeconds()
-        local px, py, pz = Spring.GetUnitPosition(unitID)
-        if py <= math.max(Spring.GetGroundHeight(px, pz), 0) + TimedDamageDyingUnits[unitDefID].range*0.5 then
-            aliveExplosions[aliveExplosionsCounter] = {
+--------------------------------------------------------------------------------
+-- Gadget callins --------------------------------------------------------------
+
+function gadget:Initialize()
+    timedDamageWeapons = {}
+    unitDamageImmunity = {}
+
+    local weaponDefBaseIndex = 0
+    for weaponDefID = weaponDefBaseIndex, #WeaponDefs do
+        local weaponDef = WeaponDefs[weaponDefID]
+        if weaponDef.customParams and weaponDef.customParams[prefixes.weapon.."ceg"] then
+            timedDamageWeapons[weaponDefID] = getExplosionParams(weaponDef, prefixes.weapon)
+        end
+    end
+    for unitDefID, unitDef in ipairs(UnitDefs) do
+        if unitDef.customParams[prefixes.unit.."ceg"] then
+            local params = getExplosionParams(unitDef, prefixes.unit)
+            timedDamageWeapons[WeaponDefNames[unitDef.deathExplosion].id] = params
+            timedDamageWeapons[WeaponDefNames[unitDef.selfDExplosion].id] = params
+        end
+    end
+
+    for weaponDefID, params in pairs(timedDamageWeapons) do
+        if  string.find(params.ceg, pattern, nil, false) and not
+            string.find(params.ceg, sub1..math.floor(params.range)..sub2)
+        then
+            local ceg, range = getNearestCEG(params)
+            local name = WeaponDefs[weaponDefID].name
+            if ceg and range then
+                params.ceg = ceg
+                params.range = range
+                Spring.Log(gadget:GetInfo().name, LOG.INFO, 'Set '..name..' to range, ceg = '..params.range..', '..params.ceg)
+            else
+                timedDamageWeapons[weaponDefID] = nil
+                Spring.Log(gadget:GetInfo().name, LOG.WARN, 'Removed '..name..' from area timed damage weapons.')
+            end
+        end
+    end
+
+    local areaDamageTypes = {}
+    for weaponDefID, params in pairs(timedDamageWeapons) do
+        if params.resistance == nil then
+            params.resistance = "none"
+        elseif params.resistance ~= "none" then
+            areaDamageTypes[params.resistance] = true
+        end
+    end
+    local immunities = { all = areaDamageTypes, none = {} }
+    for unitDefID, unitDef in ipairs(UnitDefs) do
+        local unitImmunity
+        if unitDef.canFly or unitDef.armorType == Game.armorTypes.indestructible then
+            unitImmunity = immunities.all
+        elseif unitDef.customParams.areadamageresistance == nil then
+            unitImmunity = immunities.none
+        else
+            local resistance = string.lower(unitDef.customParams.areadamageresistance)
+            if immunities[resistance] then
+                unitImmunity = immunities[resistance]
+            else
+                unitImmunity = {}
+                for damageType in pairs(areaDamageTypes) do
+                    if string.find(resistance, damageType, nil, false) then
+                        unitImmunity[damageType] = true
+                    end
+                end
+                if not next(unitImmunity) then
+                    unitImmunity = immunities.none
+                end
+                immunities[resistance] = unitImmunity
+            end
+        end
+        unitDamageImmunity[unitDefID] = unitImmunity
+    end
+
+    if next(timedDamageWeapons) then
+        for weaponDefID in pairs(timedDamageWeapons) do
+            Script.SetWatchExplosion(weaponDefID, true)
+        end
+        aliveExplosions = {}
+        for ii = 1, damageInterval do
+            aliveExplosions[ii] = {}
+        end
+        gameFrame = Spring.GetGameFrame()
+        frameIndex = 1 + (gameFrame % damageInterval)
+        frameExplosions = aliveExplosions[frameIndex]
+    else
+        Spring.Log(gadget:GetInfo().name, LOG.INFO, "No timed areas found. Removing gadget.")
+        gadgetHandler:RemoveGadget(self)
+    end
+end
+
+function gadget:Explosion(weaponDefID, px, py, pz, attackerID, projectileID)
+    if timedDamageWeapons[weaponDefID] ~= nil then
+        local explosion = timedDamageWeapons[weaponDefID]
+        local elevation = math.max(Spring.GetGroundHeight(px, pz), 0)
+        if py <= elevation + explosion.range then
+            local dx, dy, dz
+            if elevation > 0 then
+                dx, dy, dz = Spring.GetGroundNormal(px, pz)
+            else
+                dx, dy, dz = 0, 1, 0
+            end
+
+            frameExplosions[#frameExplosions+1] = {
                 x = px,
-                y = math.max(Spring.GetGroundHeight(px, pz), 0),
+                y = elevation,
                 z = pz,
-                endTime = currentTime + TimedDamageDyingUnits[unitDefID].time,
-                damage = TimedDamageDyingUnits[unitDefID].damage,
-                range = TimedDamageDyingUnits[unitDefID].range,
-                ceg = TimedDamageDyingUnits[unitDefID].ceg,
-                cegSpawned = false,
-                damageCeg = TimedDamageDyingUnits[unitDefID].damageCeg,
-                resistance = TimedDamageDyingUnits[unitDefID].resistance,
+                dx = dx,
+                dy = dy,
+                dz = dz,
+                endFrame = gameFrame + explosion.frames,
+                damage = explosion.damage,
+                range = explosion.range,
+                ceg = explosion.ceg,
+                damageCeg = explosion.damageCeg,
+                resistance = explosion.resistance,
+                owner = attackerID,
+                weapon = weaponDefID,
             }
-            aliveExplosionsCounter = aliveExplosionsCounter + 1
         end
     end
 end
 
 function gadget:GameFrame(frame)
-    if frame%22 == 10 then
-        local currentTime = Spring.GetGameSeconds()
-        for explosionID, explosionStats in pairs(aliveExplosions) do
-        --for i = 1,#aliveExplosions do
-            if explosionStats.endTime >= currentTime then
-                local x = explosionStats.x
-                local z = explosionStats.z
-                local y = explosionStats.y or Spring.GetGroundHeight(x,z)
-                if explosionStats.cegSpawned == false then
-                    Spring.SpawnCEG(explosionStats.ceg, x, y + 8, z, 0, 0, 0)
-                    explosionStats.cegSpawned = true
-                end
-                local damage = explosionStats.damage*0.733
-                local range = explosionStats.range
-                local resistance = explosionStats.resistance
-                local unitsInRange = Spring.GetUnitsInSphere(x, y, z, range)
-                for j = 1,#unitsInRange do
-                    local unitID = unitsInRange[j]
-                    local unitDefID = Spring.GetUnitDefID(unitID)
-                    if (not UnitDefs[unitDefID].canFly) and (not (UnitDefs[unitDefID].customParams and UnitDefs[unitDefID].customParams.areadamageresistance and string.find(UnitDefs[unitDefID].customParams.areadamageresistance, resistance))) then
-                        Spring.AddUnitDamage(unitID, damage, 0, Spring.GetGaiaTeamID(), 1)
-                        local ux, uy, uz = Spring.GetUnitPosition(unitID)
-                        Spring.SpawnCEG(explosionStats.damageCeg, ux, uy + 8, uz, 0, 0, 0)
-                    end
-                end
-                local featuresInRange = Spring.GetFeaturesInSphere(x, y, z, range)
-                for j = 1,#featuresInRange do
-                    local featureID = featuresInRange[j]
-                    local health = Spring.GetFeatureHealth(featureID)
-                    if health > damage then
-                        Spring.SetFeatureHealth(featureID, health - damage)
-                    else
-                        Spring.DestroyFeature(featureID)
-                    end
-                    local ux, uy, uz = Spring.GetFeaturePosition(featureID)
+    offset = 1 + (frame % damageInterval)
+    local explosions = aliveExplosions[offset]
+    for explosionID, explosionStats in pairs(explosions) do
+        if explosionStats.endFrame >= frame then
+            local x = explosionStats.x
+            local y = explosionStats.y
+            local z = explosionStats.z
+            local damage = explosionStats.damage
+            local damageType = explosionStats.resistance
+
+            Spring.SpawnCEG(explosionStats.ceg, x, y + 8, z, explosionStats.dx, explosionStats.dy, explosionStats.dz)
+
+            local unitsInRange = Spring.GetUnitsInSphere(x, y, z, explosionStats.range)
+            for j = 1,#unitsInRange do
+                local unitID = unitsInRange[j]
+                if not unitDamageImmunity[Spring.GetUnitDefID(unitID)][damageType] then
+                    Spring.AddUnitDamage(unitID, damage, 0, explosionStats.owner, explosionStats.weapon)
+                    local ux, uy, uz = Spring.GetUnitPosition(unitID)
                     Spring.SpawnCEG(explosionStats.damageCeg, ux, uy + 8, uz, 0, 0, 0)
                 end
-            else -- This explosion is outdated, we can remove it from the list
-                aliveExplosions[explosionID] = nil
             end
+
+            local featuresInRange = Spring.GetFeaturesInSphere(x, y, z, explosionStats.range)
+            for j = 1,#featuresInRange do
+                local featureID = featuresInRange[j]
+                local health = Spring.GetFeatureHealth(featureID)
+                if health > damage then
+                    Spring.SetFeatureHealth(featureID, health - damage)
+                else
+                    Spring.DestroyFeature(featureID)
+                end
+                local ux, uy, uz = Spring.GetFeaturePosition(featureID)
+                Spring.SpawnCEG(explosionStats.damageCeg, ux, uy + 8, uz, 0, 0, 0)
+            end
+        else
+            explosions[explosionID] = nil
         end
     end
+
+    gameFrame = frame
+    frameIndex = offset
+    frameExplosions = explosions
 end

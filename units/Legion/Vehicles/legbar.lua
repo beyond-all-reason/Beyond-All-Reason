@@ -127,7 +127,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
-				explosiongenerator = "custom:genericshellexplosion-small",
+				explosiongenerator = "custom:fire-explosion-small",
 				flamegfxtime = 1,
 				gravityaffected = "true",
 				impulseboost = 0.123,
@@ -147,6 +147,14 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 250,
+				customparams = {
+					area_onhit_ceg = "fire-area-75-repeat",
+					area_onhit_damageCeg = "burnflamexl-gen",
+					area_onhit_time = 10,
+					area_onhit_damage = 30,
+					area_onhit_range = 75,
+					area_onhit_resistance = "test",
+				},
 				damage = {
 					default = 30,
 					subs = 10,
