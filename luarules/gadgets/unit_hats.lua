@@ -69,15 +69,9 @@ local unitDefCanWearHats = {
 	unitDefCanWearHats[UnitDefNames.legcomlvl4.id] = true
  end
  local legchamps = { -- Legion Fight Night winner(s)
-<<<<<<< Updated upstream
-	["[DmE]Wraxell"] = true,
-	["[pretor]"] = true,
-	["[Stud]Lovish"] = true, 
-=======
 	["144092"] = true, -- [DmE]Wraxell
 	["42178"] = true, -- [pretor]
 	["119539"] = true, -- [Stud]Lovish
->>>>>>> Stashed changes
 }
 local champion = { --   Fight Night 1v1 winner
 	["139738"] = true, -- [DmE]FlyingDuck
