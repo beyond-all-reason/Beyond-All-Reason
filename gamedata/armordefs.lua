@@ -409,6 +409,7 @@ local armorDefs = {
 
 		"armapt3",
 		"corapt3",
+		"legapt3",
 		"legjam",
 		"legrad",
 		"leglht",
@@ -511,6 +512,7 @@ local armorDefs = {
 		"legassistdrone",
 		"legmos",
 		"legfort",
+		"legfortt4",
 		"legca",
 		"legaca",
 		"armdrone",

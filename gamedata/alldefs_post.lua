@@ -216,6 +216,7 @@ function UnitDef_Post(name, uDef)
 				coraap = true,
 				corplat = true,
 				corapt3 = true,
+				legapt3 = true,
 				armapt3 = true,
 				legap = true,
 				legaap = true,
@@ -226,6 +227,7 @@ function UnitDef_Post(name, uDef)
 				coraap_scav = true,
 				corplat_scav = true,
 				corapt3_scav = true,
+				legapt3_scav = true,
 				armapt3_scav = true,
 				legap_scav = true,
 				legaap_scav = true,
@@ -500,12 +502,6 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 1] = "armzapper"
 		elseif name == "legavp" then
 			local numBuildoptions = #uDef.buildoptions
-
-			uDef.buildoptions[numBuildoptions + 1] = "corgatreap"
-			uDef.buildoptions[numBuildoptions + 2] = "corforge"
-			uDef.buildoptions[numBuildoptions + 3] = "corftiger"
-			uDef.buildoptions[numBuildoptions + 4] = "cortorch"
-			uDef.buildoptions[numBuildoptions + 5] = "corvac" --corprinter
 		elseif name == "coravp" then
 			local printerpresent = false
 
@@ -581,12 +577,10 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 8] = "cormwall"
 		elseif name == "legaca" or name == "legack" or name == "legacv" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions + 1] = "corapt3"
+			uDef.buildoptions[numBuildoptions + 1] = "legapt3"
 			uDef.buildoptions[numBuildoptions + 2] = "legministarfall"
 			uDef.buildoptions[numBuildoptions + 3] = "legwint2"
-			uDef.buildoptions[numBuildoptions + 4] = "corhllllt"
-			uDef.buildoptions[numBuildoptions + 5] = "cordoomt3"
-			uDef.buildoptions[numBuildoptions + 6] = "legnanotct2"
+			uDef.buildoptions[numBuildoptions + 4] = "legnanotct2"
 		elseif name == "armasy" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "armptt2"
