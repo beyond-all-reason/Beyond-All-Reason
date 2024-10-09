@@ -143,7 +143,7 @@ return {
 				noselfdamage = true,
 				paralyzer = true,
 				paralyzetime = 5,
-				proximitypriority = 3,
+				proximitypriority = 1,
 				range = 500,
 				reloadtime = 1.3,
 				rgbcolor = "0.8 0.8 1",

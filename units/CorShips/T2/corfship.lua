@@ -178,7 +178,7 @@ return {
 				intensity = 0.85,
 				name = "Heavy long range AoE flamethrower",
 				noselfdamage = true,
-				proximitypriority = 3,
+				proximitypriority = 1,
 				range = 450,
 				reloadtime = 0.1333,
 				rgbcolor = "1 0.94 0.88",

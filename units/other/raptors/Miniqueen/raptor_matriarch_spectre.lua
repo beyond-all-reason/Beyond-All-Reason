@@ -101,7 +101,7 @@ return {
 				model = "Raptors/SGreyRock1.S3O",
 				name = "Blob",
 				noselfdamage = true,
-				proximitypriority = -4,
+				proximitypriority = -1,
 				range = 1000,
 				reloadtime = 20,
 				rgbcolor = "0.1 0.6 1",

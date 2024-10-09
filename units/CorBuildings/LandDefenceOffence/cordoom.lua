@@ -203,7 +203,7 @@ return {
 				laserflaresize = 5.5,
 				name = "Light close-quarters g2g laser",
 				noselfdamage = true,
-				proximitypriority = 3,
+				proximitypriority = 1,
 				range = 370,
 				reloadtime = 0.26667,
 				rgbcolor = "1 0 0",

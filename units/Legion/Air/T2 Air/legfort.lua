@@ -102,7 +102,7 @@ return {
 				name = "Rapid-fire a2g machine guns",
 				noselfdamage = true,
 				ownerExpAccWeight = 4.0,
-				proximitypriority = 3,
+				proximitypriority = 1,
 				range = 650,
 				reloadtime = .3,
 				rgbcolor = "1 0.95 0.4",

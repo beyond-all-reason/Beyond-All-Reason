@@ -169,7 +169,7 @@ return {
 				name = "Light rotary cannon",
 				noselfdamage = true,
 				ownerExpAccWeight = 4.0,
-				proximitypriority = 3,
+				proximitypriority = 1,
 				range = 450,
 				reloadtime = 0.675,
 				rgbcolor = "1 0.95 0.4",

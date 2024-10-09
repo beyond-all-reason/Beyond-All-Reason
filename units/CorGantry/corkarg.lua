@@ -167,7 +167,7 @@ return {
 				impulsefactor = 1.5,
 				name = "KargCrush",
 				noselfdamage = true,
-				proximitypriority = 5,
+				proximitypriority = 1,
 				range = 55,
 				reloadtime = 0.2,
 				rgbcolor = "0 0 0",

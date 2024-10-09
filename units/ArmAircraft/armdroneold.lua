@@ -129,7 +129,7 @@ return {
 				name = "Railgun",
 				noselfdamage = true,
 				ownerexpaccweight = 4,
-				proximitypriority = 3,
+				proximitypriority = 1,
 				range = 350,
 				reloadtime = 6,
 				rgbcolor = "0.34 0.64 0.94",

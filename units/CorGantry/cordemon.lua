@@ -130,7 +130,7 @@ return {
 				noexplode = true,
 				noselfdamage = true,
 				predictboost = 1,
-				proximitypriority = 3,
+				proximitypriority = 1,
 				range = 500,
 				reloadtime = 0.0667,
 				rgbcolor = "1 0.94 0.88",

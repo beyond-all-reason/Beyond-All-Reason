@@ -120,7 +120,7 @@ return {
 				model = "corscreamermissile.s3o",
 				name = "Long-range heavy g2a missile launcher",
 				noselfdamage = true,
-				proximitypriority = -2,
+				proximitypriority = -1,
 				range = 2400,
 				reloadtime = 1.8,
 				smokecolor = 0.9,

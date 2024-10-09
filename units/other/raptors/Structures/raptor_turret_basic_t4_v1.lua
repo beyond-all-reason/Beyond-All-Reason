@@ -90,7 +90,7 @@ return {
 				interceptedbyshieldtype = 1,
 				name = "GOOLAUNCHER",
 				noselfdamage = true,
-				proximitypriority = -4,
+				proximitypriority = -1,
 				range = 5000,
 				reloadtime = 240,
 				rgbcolor = "1 0.5 0.1",

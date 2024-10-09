@@ -126,7 +126,7 @@ return {
 			-- 	laserflaresize = 8.8,
 			-- 	name = "Rapid-fire close quarters g2g armor-piercing laser",
 			-- 	noselfdamage = true,
-			-- 	proximitypriority = 1.3,
+			-- 	proximitypriority = 1,
 			-- 	pulsespeed = 8,
 			-- 	range = 475,
 			-- 	reloadtime = 0.63333,

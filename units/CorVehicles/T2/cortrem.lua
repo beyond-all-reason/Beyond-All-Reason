@@ -125,7 +125,7 @@ return {
 				mygravity = 0.1333,
 				name = "RapidArtillery",
 				noselfdamage = true,
-				proximitypriority = -3,
+				proximitypriority = -1,
 				range = 1470,
 				reloadtime = 0.5,
 				soundhit = "xplomed4",

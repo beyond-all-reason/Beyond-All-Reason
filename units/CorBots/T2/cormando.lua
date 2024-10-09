@@ -117,7 +117,7 @@ return {
 				name = "CommandoBlaster",
 				noselfdamage = true,
 				predictboost = 0.5,
-				proximitypriority = -10,
+				proximitypriority = -1,
 				range = 300,
 				reloadtime = 0.5,
 				rgbcolor = "0.85,0.3,0.2",

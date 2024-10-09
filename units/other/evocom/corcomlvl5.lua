@@ -358,7 +358,7 @@ return {
 				laserflaresize = 20,
 				name = "Eye laser",
 				noselfdamage = true,
-				proximitypriority = 3,
+				proximitypriority = 1,
 				range = 620,
 				reloadtime = 0.19,
 				rgbcolor = "1 0 0",

@@ -179,7 +179,7 @@ return {
 				collidefirebase = false,
 				collideneutral = false,
 				flighttime = 2.05,
-				proximityPriority = 3,
+				proximityPriority = 1,
 				gravityaffected = true,
 				waterbounce = true,
 				predictboost = 0.8,
