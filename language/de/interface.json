@@ -267,9 +267,6 @@
 			"menus": {
 				"title": "Menüs",
 				"settings": "Einstellungen",
-				"widgetsKey": "F11",
-				"widgets": "Widgetliste",
-				"share": "Einheiten/Ressourcen teilen"
 			},
 			"camera": {
 				"title": "Kamerabewegung",
@@ -319,7 +316,6 @@
 				"title": "Auswahlbefehle",
 				"defaultKey": "(nichts)",
 				"default": "Standardbefehl (meist Bewegen)",
-				"move": "Bewegen",
 				"attack": "Angreifen",
 				"stop": "Stoppen (löscht Befehlswarteschlange)",
 				"repair": "Reparieren",
@@ -348,20 +344,19 @@
 				"append": "Befehl am Ende der Warteschlange anfügen",
 				"appendKey": "Umschalttaste + (irgendein Befehl)",
 				"prependKey": "Leertaste + (irgendein Befehl)",
-				"prepend": "Befehl am Anfang der Warteschlange einfügen"
+				"prepend": "Befehl am Anfang der Warteschlange einfügen",
+				"commandSkipCurrent": "Cancel current order",
+				"commandCancelLast": "Cancel last order"
 			},
 			"buildOrders": {
 				"title": "Bauaufträge auswählen",
 				"selectTileKey": "(Maus)",
 				"selectTile": "Aus Einheitenbaumenü auswählen",
-				"metalKey": "Y",
-				"metal": "Durch Metallextraktoren schalten",
-				"energyKey": "X",
-				"energy": "Durch Energieproduktion schalten",
-				"intelKey": "C",
-				"intel": "Durch Radar/Verteidigung/etc. schalten",
-				"factoriesKey": "V",
-				"factories": "Durch Fabriken schalten",
+				"categorySelectorKey": "TranslateMe",
+				"categorySelector": "TranslateMe",
+				"buildingSelectorKey": "TranslateMe",
+				"buildingSelector": "TranslateMe",
+				"switchPage": "TranslateMe",
 				"rotateKey": "ü und +",
 				"rotate": "Gebäudeausrichtung ändern"
 			},
@@ -394,8 +389,10 @@
 				"removeAutoGroup": "Einheitstyp aus Autogruppe entfernen",
 				"groupKey": "(Nummer)",
 				"group": "Alle der Gruppe (Nummer) zugewiesenen Einheiten auswählen",
-				"sameTypeKey": "STRG + Y",
-				"sameType": "Alle Einheiten des selben Typs wie die Ausgewählte auswählen"
+				"sameTypeAllKey": "STRG + Y",
+				"sameTypeAll": "Alle Einheiten des selben Typs wie die Ausgewählte auswählen",
+				"sameTypeVisibleKey": "TranslateMe",
+				"sameTypeVisible": "TranslateMe"
 			},
 			"drawing": {
 				"title": "Zeichnen",

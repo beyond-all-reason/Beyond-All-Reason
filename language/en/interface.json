@@ -298,8 +298,8 @@
 		},
 		"keybinds": {
 			"title": "Keybinds",
-			"disclaimer": "These keybinds are set by default. If you remove/replace hotkey widgets, or use your own uikeys, they might stop working!",
-			"howtochangekeybinds":"To change them: in Settings/Control tab, set Keybindings to Custom to create the BAR/data/uikeys.txt file.\nEdit this file and type /keyreload in chat to reload them.",
+			"disclaimer": "These keybinds are set by default. If you switch to a keybind preset other than Grid, keys in the 3rd column will be inaccurate!",
+			"howtochangekeybinds":"To change them: in Settings/Control tab, set Keybindings to Custom to create the BAR/data/uikeys.txt file.\nEdit this file and type /keyreload in chat to reload them. You can find help for keybinding in #keybinding-support on Discord.",
 			"chat": {
 				"title": "Chat",
 				"send": "Send chat message",
@@ -313,7 +313,6 @@
 			"menus": {
 				"title": "Menus",
 				"settings": "Settings",
-				"share": "Share units / resources"
 			},
 			"camera": {
 				"title": "Camera movement",
@@ -361,22 +360,21 @@
 			},
 			"orders": {
 				"title": "Selecting orders",
-				"defaultKey": "(none)",
-				"default": "default order (usually move)",
-				"move": "move",
-				"attack": "attack",
-				"stop": "stop (clears order queue)",
-				"repair": "repair",
-				"reclaim": "reclaim",
-				"resurrect": "resurrect",
-				"patrol": "patrol",
-				"fight": "fight",
-				"setTarget": "set priority target",
-				"cancelTarget": "cancel priority target",
-				"wait": "wait (pause current command)",
-				"cloak": "cloak",
-				"dGun": "manual fire (dgun)",
-				"selfDestruct": "self-destruct"
+				"defaultKey": "Right Mouse",
+				"default": "Default order (usually move)",
+				"attack": "Attack",
+				"stop": "Stop (clears order queue)",
+				"repair": "Repair",
+				"reclaim": "Reclaim",
+				"resurrect": "Resurrect",
+				"patrol": "Patrol",
+				"fight": "Fight",
+				"setTarget": "Set priority target",
+				"cancelTarget": "Cancel all targets",
+				"wait": "Wait (pause current command)",
+				"cloak": "Cloak",
+				"dGun": "Manual fire (dgun)",
+				"selfDestruct": "Self-destruct"
 			},
 			"issueOrders": {
 				"title": "Giving selected orders",
@@ -389,23 +387,22 @@
 			},
 			"queues": {
 				"title": "Queueing orders",
-				"append": "Add order to end of order queue",
+				"append": "Add order to end of queue",
 				"appendKey": "shift + (some order)",
 				"prependKey": "space + (some order)",
-				"prepend": "Add order to start of order queue"
+				"prepend": "Add order to start of queue",
+				"commandSkipCurrent": "Cancel current order",
+				"commandCancelLast": "Cancel last order"
 			},
 			"buildOrders": {
 				"title": "Selecting build orders",
-				"selectTileKey": "(mouse)",
+				"selectTileKey": "left mouse",
 				"selectTile": "Select from units build-menu",
-				"metalKey": "z",
-				"metal": "Cycle through mexes",
-				"energyKey": "x",
-				"energy": "Cycle through energy production",
-				"intelKey": "c",
-				"intel": "Cycle through radar/defence/etc",
-				"factoriesKey": "v",
-				"factories": "Cycle through factories",
+				"categorySelectorKey": "z to v",
+				"categorySelector": "Select building category, then..",
+				"buildingSelectorKey": "q to v",
+				"buildingSelector": "Select specific building for placement",
+				"switchPage": "Switch page",
 				"rotateKey": "[ and ]",
 				"rotate": "Change facing of buildings"
 			},
@@ -419,17 +416,17 @@
 				"line": "Build in a line",
 				"gridKey": "shift + alt + (build order)",
 				"grid": "Build in a square",
-				"spacingUpKey": "alt+z",
+				"spacingUpKey": "alt + z",
 				"spacingUp": "Increase build spacing",
-				"spacingDownKey": "alt+x",
+				"spacingDownKey": "alt + x",
 				"spacingDown": "Decrease build spacing"
 			},
 			"massSelect": {
 				"title": "Group selection",
-				"allKey": "ctrl + a",
+				"allKey": "ctrl + e",
 				"all": "Select all units",
-				"buildersKey": "ctrl + b",
-				"builders": "Select all constructors",
+				"buildersKey": "ctrl + tab",
+				"builders": "Select idle constructor",
 				"createGroupKey": "ctrl + (num)",
 				"createGroup": "Add units to group (num=1,2,..)",
 				"createAutoGroupKey": "alt + (num)",
@@ -438,8 +435,10 @@
 				"removeAutoGroup": "Remove unit type from autogroup",
 				"groupKey": "(num)",
 				"group": "Select all units assigned to group (num)",
-				"sameTypeKey": "ctrl + z",
-				"sameType": "Select all units of same type as selected"
+				"sameTypeAllKey": "ctrl + w",
+				"sameTypeAll": "Select all units of same type as selected",
+				"sameTypeVisibleKey": "q",
+				"sameTypeVisible": "Select visible units of same type as selected"
 			},
 			"drawing": {
 				"title": "Drawing",
@@ -453,7 +452,7 @@
 			"console": {
 				"title": "Console commands",
 				"eraseKey": "/clearmapmarks",
-				"erase": "Erase all drawings and markes",
+				"erase": "Erase all drawings and markers",
 				"pauseKey": "/pause",
 				"pause": "Pause"
 			}
