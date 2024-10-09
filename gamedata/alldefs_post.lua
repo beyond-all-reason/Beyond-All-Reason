@@ -663,24 +663,48 @@ function UnitDef_Post(name, uDef)
 			armbanth = true, armthor = true, corjugg = true, corkorg = true, cordemon = true, leegmech = true
 		}
 		
+		local applyAllTerrainMassBonuses = {
+
+		}
+		local applyTreadsMassBonuses = {
+
+		}
+		local applyBoatMassBonuses = {
+
+		}
+		local applyDensityMassBonuses = {
+
+		}
+		local applyHovercraftMassPenalty = {
+
+		}
+		local applyFlyingMassPenalty = {
+			
+		}
+
 		--assign the masses
-		if tinyMassesTable[uDef.name] then
-			uDef.mass = sizeMasses.tiny
-		elseif smallMassesTable[uDef.name] then
-			uDef.mass = sizeMasses.small
-		elseif mediumMassesTable[uDef.name] then
-			uDef.mass = sizeMasses.medium
-		elseif largeMassesTable[uDef.name] then
-			uDef.mass = sizeMasses.large
-		elseif hugeMassesTable[uDef.name] then
-			uDef.mass = sizeMasses.huge
-		elseif gargantuanMassesTable[uDef.name] then
-			uDef.mass = sizeMasses.gargantuan
-		elseif immovableMassesTable[uDef.name] then
-			uDef.mass = sizeMasses.collosal
-		else
-			uDef.mass = nil -- Or any default value you prefer
+		local function assignMass()
+			if tinyMassesTable[uDef.name] then
+				uDef.mass = sizeMasses.tiny
+			elseif smallMassesTable[uDef.name] then
+				uDef.mass = sizeMasses.small
+			elseif mediumMassesTable[uDef.name] then
+				uDef.mass = sizeMasses.medium
+			elseif largeMassesTable[uDef.name] then
+				uDef.mass = sizeMasses.large
+			elseif hugeMassesTable[uDef.name] then
+				uDef.mass = sizeMasses.huge
+			elseif gargantuanMassesTable[uDef.name] then
+				uDef.mass = sizeMasses.gargantuan
+			elseif immovableMassesTable[uDef.name] then
+				uDef.mass = sizeMasses.collosal
+			else
+				uDef.mass = nil -- Or any default value you prefer
+			end
 		end
+
+		assignMass()
+
 	end
 
 
