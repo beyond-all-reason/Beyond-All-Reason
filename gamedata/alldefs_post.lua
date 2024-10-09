@@ -621,19 +621,24 @@ function UnitDef_Post(name, uDef)
 		
 		--size tables
 		local tinyMassesTable = {
-			'armflea', 'corroach', 'corsktl', 'armvader', 'corfav', 'armfav',
+			'armfav', 'armflea', 'armvader', 'corfav', 'corroach', 'corsktl', 'legscout', 'legsnapper',
 		}
 		local smallMassesTable = {
-			'armfark', 'corspy', 'armspy', 'cornecro', 'armrectr', 'corfast', 'armflash', 'armgremlin', 'armfast', 'armamph', 'armspid', 'armmark', 'corgator',
-			'armrock', 'corthud', 'corvoyr', 'armham', 'armjeth', 'corcrash', 'corstorm', 'corsh', 'armpw', 'armsh', 'corak',
+			'armamph', 'armfast', 'armfark', 'armflash', 'armgremlin', 'armham', 'armjeth', 'armmark', 'armpw', 'armrectr',
+			'armrock', 'armsh', 'armspid', 'armspy', 'corak', 'corcrash', 'corfast', 'corgator', 'cornecro', 'corsh', 'corspy',
+			'corstorm', 'corthud', 'corvoyr', 'legcen', 'leghades', 'legglob', 'leggob', 'leghelios', 'legsh',
 		}
 		local mediumMassesTable = {
-			'armpincer', 'armstump', 'armsam', 'armmart', 'armjanus', 'cormist', 'corgarp', 'corwolv', 'corraid', 'corsala', 'corvrad', 'armseer', 'armlatnk',
-			'armjam', 'armwar', 'coramph', 'corpyro', 'cormort', 'coraak', 'corspec', 'armfido', 'armsptk', 'armzues', 'armsnipe', 'corah', 'corsnap', 'cormh',
-			'armah', 'armanac', 'armmh', 'armmlv', 'cormlv', 'armck', 'corck', 'cormando', 'corch', 'armch', 'armconsul',
+			'armah', 'armanac', 'armch', 'armck', 'armconsul', 'armfido', 'armjam', 'armjanus', 'armlatnk', 'armmart', 'armmh',
+			'armmlv', 'armpincer', 'armsam', 'armsnipe', 'armsptk', 'armseer', 'armstump', 'armwar', 'armzues', 'coraak', 'corah',
+			'coramph', 'corch', 'corck', 'corgarp', 'cormando', 'cormh', 'cormist', 'cormlv', 'cormort', 'corpyro', 'corraid',
+			'corsala', 'corsnap', 'corspec', 'corvrad', 'corwolv', 'legaceb', 'legah', 'legamphtank', 'legbal', 'legbar', 'legck',
+			'leggat', 'leginfestor', 'legkark', 'legmlv', 'legmh', 'legner', 'legrail'
 		}
 		local largeMassesTable = {
-
+			'armbeaver', 'armcom', 'armcv', 'armdecom', 'armmav', 'armmart', 'armyork',
+			'corack', 'corcan', 'corcom', 'corcv', 'cordecom', 'corhal', 'corhrk', 'cormart', 'cormuskrat', 'corsent', 'coreter',
+			'legack', 'legamcluster', 'legcar', 'legcom', 'legcv', 'legdecom', 'legotter', 'legshot', 'legstr',
 		}
 		local hugeMassesTable = {
 
