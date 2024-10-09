@@ -1,4 +1,4 @@
-name: Translations update English source
+name: Translations rebase from master
 
 on:
   workflow_dispatch: 
@@ -14,17 +14,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: transifex-synchronization-source
+          fetch-depth: 0
 
       - name: Setup Git User
         run: |
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
 
-      - name: Update English Source to Transifex
+      - name: Transifex Rebase
         run: |
-          git fetch origin master
-          git checkout origin/master -- language/en
-          git add language/en
-          git commit -m "[Transifex] Update English source files"
-          git push origin transifex-synchronization-source --force
+          git checkout transifex-synchronization-source
+          git reset origin/master --hard
+          git push origin transifex-synchronization-source --force-with-lease
