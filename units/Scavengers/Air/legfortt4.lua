@@ -33,7 +33,7 @@ return {
 		script = "Units/scavboss/legfortt4.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
-		sightdistance = 600,
+		sightdistance = 1200,
 		turninplaceanglelimit = 360,
 		turnrate = 120,
 		upright = true,
