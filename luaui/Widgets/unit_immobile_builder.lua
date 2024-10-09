@@ -134,7 +134,7 @@ function widget:UnitCommand(unitID, unitDefID, _, cmdID, _, cmdOpts)
 	if isImmobileBuilder[unitDefID] and cmdOpts.shift and cmdID ~= CMD_FIGHT then
 		local commandQueue = spGetCommandQueue(unitID, -1)
 		local lastCommand = commandQueue[#commandQueue]
-		if lastCommand.id == CMD_FIGHT then
+		if lastCommand and lastCommand.id == CMD_FIGHT then
 			spGiveOrderToUnit(unitID, CMD.REMOVE, { lastCommand.tag }, 0)
 		end
 	end
