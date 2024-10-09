@@ -620,35 +620,67 @@ function UnitDef_Post(name, uDef)
 	if modOptions.mass_impulse_rework then
 		
 		--size tables
+		local sizeMasses = {
+			tiny = 36,
+			small = 100,
+			medium = 250,
+			large = 700,
+			huge = 1800,
+			gargantuan = 4500,
+			collosal = 11700
+		}
+
 		local tinyMassesTable = {
-			'armfav', 'armflea', 'armvader', 'corfav', 'corroach', 'corsktl', 'legscout', 'legsnapper',
+			armfav = true, armflea = true, armvader = true, corfav = true, corroach = true, corsktl = true, legscout = true, legsnapper = true,
 		}
 		local smallMassesTable = {
-			'armamph', 'armfast', 'armfark', 'armflash', 'armgremlin', 'armham', 'armjeth', 'armmark', 'armpw', 'armrectr',
-			'armrock', 'armsh', 'armspid', 'armspy', 'corak', 'corcrash', 'corfast', 'corgator', 'cornecro', 'corsh', 'corspy',
-			'corstorm', 'corthud', 'corvoyr', 'legcen', 'leghades', 'legglob', 'leggob', 'leghelios', 'legsh',
+			armamph = true, armfast = true, armfark = true, armflash = true, armgremlin = true, armham = true, armjeth = true, armmark = true, armpw = true, armrectr = true,
+			armrock = true, armsh = true, armspid = true, armspy = true, corak = true, corcrash = true, corfast = true, corgator = true, cornecro = true, corsh = true, corspy = true,
+			corstorm = true, corthud = true, corvoyr = true, legcen = true, leghades = true, legglob = true, leggob = true, leghelios = true, legsh = true,
 		}
 		local mediumMassesTable = {
-			'armah', 'armanac', 'armch', 'armck', 'armconsul', 'armfido', 'armjam', 'armjanus', 'armlatnk', 'armmart', 'armmh',
-			'armmlv', 'armpincer', 'armsam', 'armsnipe', 'armsptk', 'armseer', 'armstump', 'armwar', 'armzues', 'coraak', 'corah',
-			'coramph', 'corch', 'corck', 'corgarp', 'cormando', 'cormh', 'cormist', 'cormlv', 'cormort', 'corpyro', 'corraid',
-			'corsala', 'corsnap', 'corspec', 'corvrad', 'corwolv', 'legaceb', 'legah', 'legamphtank', 'legbal', 'legbar', 'legck',
-			'leggat', 'leginfestor', 'legkark', 'legmlv', 'legmh', 'legner', 'legrail'
+			armah = true, armanac = true, armch = true, armck = true, armconsul = true, armfido = true, armjam = true, armjanus = true, armlatnk = true, armmart = true, armmh = true,
+			armmlv = true, armpincer = true, armsam = true, armsnipe = true, armsptk = true, armseer = true, armstump = true, armwar = true, armzues = true,
+			coraak = true, corah = true, coramph = true, corch = true, corck = true, corgarp = true, cormando = true, cormh = true, cormist = true, cormlv = true, cormort = true,
+			corpyro = true, corraid = true, corsala = true, corsnap = true, corspec = true, corvrad = true, corwolv = true,
+			legaceb = true, legah = true, legamphtank = true, legbal = true, legbar = true, legck = true, leggat = true, leginfestor = true, legkark = true, legmlv = true,
+			legmrv = true, legmh = true, legner = true, legrail = true,
 		}
 		local largeMassesTable = {
-			'armbeaver', 'armcom', 'armcv', 'armdecom', 'armmav', 'armmart', 'armyork',
-			'corack', 'corcan', 'corcom', 'corcv', 'cordecom', 'corhal', 'corhrk', 'cormart', 'cormuskrat', 'corsent', 'coreter',
-			'legack', 'legamcluster', 'legcar', 'legcom', 'legcv', 'legdecom', 'legotter', 'legshot', 'legstr',
+			armbeaver = true, armcom = true, armcv = true, armdecom = true, armmav = true, armmart = true, armyork = true,
+			corack = true, corcan = true, corcom = true, corcv = true, cordecom = true, corhal = true, corhrk = true, cormart = true, cormuskrat = true, corsent = true, coreter = true,
+			legack = true, legamcluster = true, legcar = true, legcom = true, legcv = true, legdecom = true, legotter = true, legshot = true, legstr = true,
 		}
 		local hugeMassesTable = {
-
+			armacv = true, armbull = true, armcroc = true, armfboy = true, armmanni = true, armmar = true, armmerl = true, armscab = true, armlun = true,
+			corparrow = true, correap = true, corshiva = true, corsok = true, cormabm = true, cortrem = true, corvroc = true,
+			legacv = true, legaheattank = true, legavroc = true, legbart = true, legfloat = true, legmed = true, legsrail = true, legvcarry = true,
 		}
 		local gargantuanMassesTable = {
-			
+			armraz = true, armvang = true, corcat = true, corgol = true, corkarg = true, leginc = true, leginf = true, legkeres = true, legpede = true,
 		}
 		local immovableMassesTable = {
-
+			armbanth = true, armthor = true, corjugg = true, corkorg = true, cordemon = true, leegmech = true
 		}
+		
+		--assign the masses
+		if tinyMassesTable[uDef.name] then
+			uDef.mass = sizeMasses.tiny
+		elseif smallMassesTable[uDef.name] then
+			uDef.mass = sizeMasses.small
+		elseif mediumMassesTable[uDef.name] then
+			uDef.mass = sizeMasses.medium
+		elseif largeMassesTable[uDef.name] then
+			uDef.mass = sizeMasses.large
+		elseif hugeMassesTable[uDef.name] then
+			uDef.mass = sizeMasses.huge
+		elseif gargantuanMassesTable[uDef.name] then
+			uDef.mass = sizeMasses.gargantuan
+		elseif immovableMassesTable[uDef.name] then
+			uDef.mass = sizeMasses.collosal
+		else
+			uDef.mass = nil -- Or any default value you prefer
+		end
 	end
 
 
