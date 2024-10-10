@@ -153,7 +153,6 @@ return {
 				damage = {
 					default = 1,
 					vtol = 750,
-					space = 750,
 				},
 			},
 			railgunt2 = {

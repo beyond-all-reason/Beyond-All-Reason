@@ -436,7 +436,7 @@ local armorDefs = {
 		"legotter",
 		"legacv",
 		"legack",
-		
+
 		"legah",
 		"legmh",
 		"legner",
@@ -445,10 +445,6 @@ local armorDefs = {
 		"legfhp",
 		"legch",
 		"legeyes",
-	},
-
-	space = {
-		"armsat",
 	},
 	mines = {
 		"armfmine3",
