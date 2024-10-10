@@ -378,6 +378,42 @@ local options = {
         def    	= false,
         column  = 1.66,
     },
+    
+    {
+		key			="disable_unit_sharing",
+		name   		="Disable Unit Sharing",
+		desc   		="Disable sharing units and structures to allies",
+		type   		="bool",
+		section		="restrictions",
+		def    		= false,
+	},
+	{
+		key			="disable_assist_ally_construction",
+		name   		="Disable Assist Ally Construction",
+		desc   		="Disables assisting an allied blueprint or lab.",
+		type   		="bool",
+		section		="restrictions",
+		def    		= false,
+	},
+	{
+		key			="tax_resource_sharing_and_prevent_some_reclaim_loopholes",
+		name   		="Tax Resource Sharing",
+		desc   		="Taxes resource sharing and overflow (engine TODO), and disables reclaiming allied units for metal. If using, should also select 'Disable Unit Sharing' and 'Disable Assist Ally Construction'",
+		type   		= "bool",
+		section		="restrictions",
+		def    		= false,
+	},
+	{
+		key    = "tax_resource_sharing_amount",
+		name   = "Resource Sharing Tax Amount",
+		desc   = "(Range: 0 - 0.99). What portion of shared resources (including overflow) will consumed as transfer tax.",
+		type   = "number",
+		def    = 0.4,
+		min    = 0,
+		max    = 0.99,
+		step   = 0.01,
+		section= "restrictions",
+	},
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
