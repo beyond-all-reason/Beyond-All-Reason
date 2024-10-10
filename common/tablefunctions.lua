@@ -438,3 +438,28 @@ if not pairsByKeys then
 		return iter
 	end
 end
+
+if not table.countMem then 
+	--- Estimate how much memory a table (recursively) consumes
+	---@generic V
+	---@param tbl V[]|table<any, V>
+	---@param maxdepth
+	---@return integer number of bytes estimated by this table.
+	function table.countMem(tbl, maxdepth)
+		if maxdepth == 0 then return 0 end
+		maxdepth = maxdepth or 0
+		local ttype = type(tbl)
+		local myMem = 0
+		if ttype == 'table' then 
+			for k,v in pairs(tbl) do 
+				myMem = myMem + table.countMem(k, maxdepth-1) + table.countMem(v, maxdepth-1)
+			end
+			return myMem
+		elseif ttype == 'string' then 
+			return 24 -- cause hash is 8, len is 8, and pointer is 8
+		else -- number, bool, function, userdata et al
+			return 16
+		end
+	end
+end
+
