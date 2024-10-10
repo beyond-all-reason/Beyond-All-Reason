@@ -2834,13 +2834,13 @@ GUIUnitSoundEffects = {
 
 	-- LEGION T1 BOTS
 	legck = {
-		BaseSoundSelectType = "cor-bot-small-sel",
-		BaseSoundMovementType = "cor-bot-small-ok",
+		BaseSoundSelectType = "leg-bot-con-sel",
+		BaseSoundMovementType = "leg-bot-con-ok",
 		BaseSoundWeaponType = "conalt-small",
 	},
 	leggob = {
-		BaseSoundSelectType = "arm-bot-tiny-sel",
-		BaseSoundMovementType = "arm-bot-tiny-ok",
+		BaseSoundSelectType = "leg-bot-tiny-sel",
+		BaseSoundMovementType = "leg-bot-tiny-ok",
 		BaseSoundWeaponType = "fastemgalt-small",
 	},
 	leglob = {
@@ -2876,8 +2876,8 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "heatray",
 	},
 	legaceb = {
-		BaseSoundSelectType = "cor-bot-at-sel",
-		BaseSoundMovementType = "cor-bot-at-ok",
+		BaseSoundSelectType = "leg-bot-aceb-sel",
+		BaseSoundMovementType = "leg-bot-aceb-ok",
 		BaseSoundWeaponType = "con-assist",
 	},
 	leginc = {
@@ -2891,8 +2891,8 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "fastemg-medium",
 	},
 	legbart = {
-		BaseSoundSelectType = "cor-bot-medium-sel",
-		BaseSoundMovementType = "cor-bot-medium-ok",
+		BaseSoundSelectType = "leg-bart-medium-sel",
+		BaseSoundMovementType = "leg-bart-medium-ok",
 		BaseSoundWeaponType = "flame-alt",
 	},
 	legsrail = {
@@ -2950,8 +2950,8 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "plasma-small",
 	},
 	legbar = {
-		BaseSoundSelectType = "leg-veh-small-sel",
-		BaseSoundMovementType = "leg-veh-small-ok",
+		BaseSoundSelectType = "leg-flame-medium-sel",
+		BaseSoundMovementType = "leg-flame-medium-ok",
 		BaseSoundWeaponType = "flame-alt",
 	},
 	legrail = {
