@@ -48,6 +48,7 @@ local frameExplosions
 local gameFrame
 local frameIndex
 
+local cegOffset = math.round(Game.gameSpeed * damageInterval * 0.5)
 damageInterval = math.round(Game.gameSpeed * damageInterval)
 
 --------------------------------------------------------------------------------
@@ -194,9 +195,7 @@ function gadget:Explosion(weaponDefID, px, py, pz, attackerID, projectileID)
         if py <= elevation + explosion.range then
             local dx, dy, dz
             if elevation > 0 then
-                dx, dy, dz = Spring.GetGroundNormal(px, pz)
-            else
-                dx, dy, dz = 0, 1, 0
+                dx, dy, dz = Spring.GetGroundNormal(px, pz, true)
             end
 
             frameExplosions[#frameExplosions+1] = {
@@ -220,41 +219,43 @@ function gadget:Explosion(weaponDefID, px, py, pz, attackerID, projectileID)
 end
 
 function gadget:GameFrame(frame)
+    local offset = 1 + ((frame + cegOffset) % damageInterval)
+    for _, explosionStats in pairs(aliveExplosions[offset]) do
+        Spring.SpawnCEG(explosionStats.ceg, explosionStats.x, explosionStats.y + 8, explosionStats.z, explosionStats.dx, explosionStats.dy, explosionStats.dz)
+    end
+
     offset = 1 + (frame % damageInterval)
     local explosions = aliveExplosions[offset]
     for explosionID, explosionStats in pairs(explosions) do
-        if explosionStats.endFrame >= frame then
-            local x = explosionStats.x
-            local y = explosionStats.y
-            local z = explosionStats.z
-            local damage = explosionStats.damage
-            local damageType = explosionStats.resistance
+        local damage = explosionStats.damage
+        local resistance = explosionStats.resistance
+        local ownerID = explosionStats.owner
+        local weaponID = explosionStats.weapon
 
-            Spring.SpawnCEG(explosionStats.ceg, x, y + 8, z, explosionStats.dx, explosionStats.dy, explosionStats.dz)
-
-            local unitsInRange = Spring.GetUnitsInSphere(x, y, z, explosionStats.range)
-            for j = 1,#unitsInRange do
-                local unitID = unitsInRange[j]
-                if not unitDamageImmunity[Spring.GetUnitDefID(unitID)][damageType] then
-                    Spring.AddUnitDamage(unitID, damage, 0, explosionStats.owner, explosionStats.weapon)
-                    local ux, uy, uz = Spring.GetUnitPosition(unitID)
-                    Spring.SpawnCEG(explosionStats.damageCeg, ux, uy + 8, uz, 0, 0, 0)
-                end
+        local unitsInRange = Spring.GetUnitsInSphere(explosionStats.x, explosionStats.y, explosionStats.z, explosionStats.range)
+        for j = 1,#unitsInRange do
+            local unitID = unitsInRange[j]
+            if not unitDamageImmunity[Spring.GetUnitDefID(unitID)][resistance] then
+                Spring.AddUnitDamage(unitID, damage, 0, ownerID, weaponID)
+                local ux, uy, uz = Spring.GetUnitPosition(unitID)
+                Spring.SpawnCEG(explosionStats.damageCeg, ux, uy + 8, uz)
             end
+        end
 
-            local featuresInRange = Spring.GetFeaturesInSphere(x, y, z, explosionStats.range)
-            for j = 1,#featuresInRange do
-                local featureID = featuresInRange[j]
-                local health = Spring.GetFeatureHealth(featureID)
-                if health > damage then
-                    Spring.SetFeatureHealth(featureID, health - damage)
-                else
-                    Spring.DestroyFeature(featureID)
-                end
-                local ux, uy, uz = Spring.GetFeaturePosition(featureID)
-                Spring.SpawnCEG(explosionStats.damageCeg, ux, uy + 8, uz, 0, 0, 0)
+        local featuresInRange = Spring.GetFeaturesInSphere(explosionStats.x, explosionStats.y, explosionStats.z, explosionStats.range)
+        for j = 1,#featuresInRange do
+            local featureID = featuresInRange[j]
+            local health = Spring.GetFeatureHealth(featureID)
+            if health > damage then
+                Spring.SetFeatureHealth(featureID, health - damage)
+            else
+                Spring.DestroyFeature(featureID)
             end
-        else
+            local ux, uy, uz = Spring.GetFeaturePosition(featureID)
+            Spring.SpawnCEG(explosionStats.damageCeg, ux, uy + 8, uz)
+        end
+
+        if explosionStats.endFrame <= frame then
             explosions[explosionID] = nil
         end
     end
