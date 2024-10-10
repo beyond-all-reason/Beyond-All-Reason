@@ -617,7 +617,8 @@ function UnitDef_Post(name, uDef)
 	end
 
 	--experimental mass standardization based on size
-	if modOptions.mass_impulse_rework then
+	if modOptions.mass_impulse_rework and (uDef.mass or uDef.metalcost) then
+		Spring.Echo("StepStop 1", name)
 		
 		--size tables
 		local sizeMasses = {
@@ -627,8 +628,16 @@ function UnitDef_Post(name, uDef)
 			large = 700,
 			huge = 1800,
 			gargantuan = 4500,
-			collosal = 11700
+			colossal = 11700
 		}
+
+		local hovercraftMassMultiplier = 0.8
+		local boatMassMultiplier = 1
+		local treadedMassMultiplier = 1.25
+		local fourLeggedMassMultiplier = 1.1
+		local sixLeggedMassMultiplier = 1.35
+		local submarineMassMultiplier = 1
+		local aircraftMassMultiplier  = 0.6
 
 		local tinyMassesTable = {
 			armfav = true, armflea = true, armvader = true, corfav = true, corroach = true, corsktl = true, legscout = true, legsnapper = true,
@@ -647,13 +656,13 @@ function UnitDef_Post(name, uDef)
 			legmrv = true, legmh = true, legner = true, legrail = true,
 		}
 		local largeMassesTable = {
-			armbeaver = true, armcom = true, armcv = true, armdecom = true, armmav = true, armmart = true, armyork = true,
+			armack = true, armbeaver = true, armcom = true, armcv = true, armdecom = true, armmav = true, armmart = true, armyork = true,
 			corack = true, corcan = true, corcom = true, corcv = true, cordecom = true, corhal = true, corhrk = true, cormart = true, cormuskrat = true, corsent = true, coreter = true,
-			legack = true, legamcluster = true, legcar = true, legcom = true, legcv = true, legdecom = true, legotter = true, legshot = true, legstr = true,
+			legack = true, legacv = true, legamcluster = true, legcar = true, legcom = true, legcv = true, legdecom = true, legotter = true, legshot = true, legstr = true,
 		}
 		local hugeMassesTable = {
 			armacv = true, armbull = true, armcroc = true, armfboy = true, armmanni = true, armmar = true, armmerl = true, armscab = true, armlun = true,
-			corparrow = true, correap = true, corshiva = true, corsok = true, cormabm = true, cortrem = true, corvroc = true,
+			coracv = true, corparrow = true, correap = true, corshiva = true, corsok = true, cormabm = true, cortrem = true, corvroc = true,
 			legacv = true, legaheattank = true, legavroc = true, legbart = true, legfloat = true, legmed = true, legsrail = true, legvcarry = true,
 		}
 		local gargantuanMassesTable = {
@@ -663,48 +672,66 @@ function UnitDef_Post(name, uDef)
 			armbanth = true, armthor = true, corjugg = true, corkorg = true, cordemon = true, leegmech = true
 		}
 		
-		local applyAllTerrainMassBonuses = {
-
+		local sixLeggedMassTable = {
+			armspid = true, armscab = true, armsptk = true,
+			corkarg = true, corroach = true,
+			legaceb = true, leginfestor = true, legpede = true, legsnapper = true, legsrail = true,
 		}
-		local applyTreadsMassBonuses = {
 
-		}
-		local applyBoatMassBonuses = {
-
-		}
-		local applyDensityMassBonuses = {
-
-		}
-		local applyHovercraftMassPenalty = {
-
-		}
-		local applyFlyingMassPenalty = {
-			
+		local fourLeggedMassTable = {
+			armfido = true, armflea = true, armvang = true,
+			coraak = true, corack = true, corcrash = true, corjugg = true, corkorg = true, corsktl = true, corsumo = true,
+			legack = true, legcen = true, legck = true, leginc = true
 		}
 
 		--assign the masses
-		local function assignMass()
-			if tinyMassesTable[uDef.name] then
+		local function assignBaseMass()
+			if tinyMassesTable[name] then
 				uDef.mass = sizeMasses.tiny
-			elseif smallMassesTable[uDef.name] then
+			elseif smallMassesTable[name] then
 				uDef.mass = sizeMasses.small
-			elseif mediumMassesTable[uDef.name] then
+			elseif mediumMassesTable[name] then
 				uDef.mass = sizeMasses.medium
-			elseif largeMassesTable[uDef.name] then
+			elseif largeMassesTable[name] then
 				uDef.mass = sizeMasses.large
-			elseif hugeMassesTable[uDef.name] then
+			elseif hugeMassesTable[name] then
 				uDef.mass = sizeMasses.huge
-			elseif gargantuanMassesTable[uDef.name] then
+			elseif gargantuanMassesTable[name] then
 				uDef.mass = sizeMasses.gargantuan
-			elseif immovableMassesTable[uDef.name] then
-				uDef.mass = sizeMasses.collosal
-			else
-				uDef.mass = nil -- Or any default value you prefer
+			elseif immovableMassesTable[name] then
+				uDef.mass = sizeMasses.colossal
+			else uDef.mass = uDef.mass or uDef.metalcost
 			end
 		end
 
-		assignMass()
+		assignBaseMass()
 
+		--assign mass bonuses
+		if uDef.movementclass then
+			local mc = uDef.movementclass
+			if fourLeggedMassTable[name] then
+				uDef.mass = uDef.mass * fourLeggedMassMultiplier
+				--Spring.Echo(name, uDef.mass, "4 legged")
+			elseif sixLeggedMassTable[name] then
+				uDef.mass = uDef.mass * sixLeggedMassMultiplier
+				Spring.Echo(name, uDef.mass, "6 legged")
+			elseif string.find(uDef.category, "VTOL") then --zzz
+				uDef.mass = uDef.mass * aircraftMassMultiplier
+				Spring.Echo(name, uDef.mass, "VTOL")
+			elseif mc == "TANK2" or mc == "TANK3" or mc == "MTANK3" or mc == "HTANK4" or mc == "HTANK5" or mc == "ATANK3" then
+				uDef.mass = uDef.mass * treadedMassMultiplier
+				Spring.Echo(name, uDef.mass, "Treaded")
+			elseif mc == "BOAT3" or mc == "BOAT4" or mc == "BOAT5" or mc == "BOAT8" or mc == "EPICSHIP" then
+				uDef.mass = uDef.mass * boatMassMultiplier
+				Spring.Echo(name, uDef.mass, "Boat")
+			elseif mc == "HOVER2" or mc == "HOVER3" or mc == "HHOVER4" then
+				uDef.mass = uDef.mass * hovercraftMassMultiplier
+				Spring.Echo(name, uDef.mass, "Hover")
+			elseif mc == "UBOAT4" or mc == "EPICSUBMARINE" then
+				uDef.mass = uDef.mass * submarineMassMultiplier
+				Spring.Echo(name, uDef.mass, "Submarine")
+			end
+		end
 	end
 
 
