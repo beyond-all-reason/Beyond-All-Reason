@@ -61,6 +61,8 @@ bind sc_l loadunits
 bind Shift+sc_l loadunits
 bind sc_m move
 bind Shift+sc_m move
+bind sc_n command_skip_current
+bind Ctrl+sc_n command_cancel_last
 bind sc_p patrol
 bind Shift+sc_p patrol
 bind sc_q,sc_q drawlabel // double hit Q for drawlabel
