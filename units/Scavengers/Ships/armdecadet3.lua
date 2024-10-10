@@ -9,7 +9,6 @@ return {
 		buildpic = "armdecadet3.DDS",
 		buildtime = 90000,
 		canmove = true,
-		category = "ALL WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 -3",
 		collisionvolumescales = "52 52 153",
 		collisionvolumetype = "CylZ",

@@ -9,7 +9,7 @@ return {
 		builddistance = 800,
 		builder = true,
 		canmove = false,
-		category = "",
+		category = "OBJECT",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "0 0 0",
 		collisionvolumetype = "Box",

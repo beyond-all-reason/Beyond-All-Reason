@@ -3,7 +3,6 @@ return {
 		buildpic = "ARMGREMLIN.DDS",
 		buildtime = 6700,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		cloakcost = 5,
 		cloakcostmoving = 20,
 		collisionvolumeoffsets = "0 1 0",

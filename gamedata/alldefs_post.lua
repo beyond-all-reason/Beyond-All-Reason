@@ -750,11 +750,8 @@ function UnitDef_Post(name, uDef)
 	----------------------------------------------------------------------
 	-- CATEGORY ASSIGNER
 	----------------------------------------------------------------------
-
-	local function manualCategory(unitDef, categoryString) return string.find(unitDef.category, categoryString) end
-	local function append(unitDef, appendString) do unitDef.category = unitDef.category..appendString end end
 	
-	-- unitDef.movementclass lists
+	-- uDef.movementclass lists
 	local hoverList = {
 		HOVER2 = true,
 		HOVER3 = true,
@@ -798,52 +795,30 @@ function UnitDef_Post(name, uDef)
 	-- Deprecated caregories: BOT TANK PHIB NOTLAND SPACE
 	
 	categories["ALL"] = function() return true end
-	categories["MOBILE"] = function(unitDef) return unitDef.speed and unitDef.speed > 0 end
-	categories["NOTMOBILE"] = function(unitDef) return not categories.MOBILE(unitDef) end
-	categories["WEAPON"] = function(unitDef) return unitDef.weapondefs ~= nil end
-	categories["NOWEAPON"] = function(unitDef) return not categories.WEAPON(unitDef) end
-	categories["VTOL"] = function(unitDef) return unitDef.canfly == true end
-	categories["NOTAIR"] = function(unitDef) return not categories.VTOL(unitDef) end
-	categories["HOVER"] = function(unitDef) return hoverList[unitDef.movementclass] and (unitDef.maxwaterdepth == nil or unitDef.maxwaterdepth < 1) end -- convertible tank/boats have maxwaterdepth
-	categories["NOTHOVER"] = function(unitDef) return not categories.HOVER(unitDef) end
-	categories["SHIP"] = function(unitDef) return shipList[unitDef.movementclass] or (hoverList[unitDef.movementclass] and unitDef.maxwaterdepth and unitDef.maxwaterdepth >=1) end
-	categories["NOTSHIP"] = function(unitDef) return not categories.SHIP(unitDef) end
-	categories["NOTSUB"] = function(unitDef) return not subList[unitDef.movementclass] end
-	categories["CANBEUW"] = function(unitDef) return amphibList[unitDef.movementclass] end
-	categories["UNDERWATER"] = function(unitDef) return (unitDef.minwaterdepth and unitDef.waterline == nil) or (unitDef.minwaterdepth and unitDef.waterline > unitDef.minwaterdepth and unitDef.speed and unitDef.speed > 0) end
-	categories["SURFACE"] = function(unitDef) return not categories.UNDERWATER(unitDef) and not categories.VTOL(unitDef) end
-	categories["MINE"] = function(unitDef) return unitDef.weapondefs and unitDef.weapondefs.minerange end
-	categories["COMMANDER"] = function(unitDef) return commanderList[unitDef.movementclass] end
-	categories["EMPABLE"] = function(unitDef) return categories.SURFACE(unitDef) and unitDef.customparams and unitDef.customparams.paralyzemultiplier ~= 0 end
+	categories["MOBILE"] = function(uDef) return uDef.speed and uDef.speed > 0 end
+	categories["NOTMOBILE"] = function(uDef) return not categories.MOBILE(uDef) end
+	categories["WEAPON"] = function(uDef) return uDef.weapondefs ~= nil end
+	categories["NOWEAPON"] = function(uDef) return not categories.WEAPON(uDef) end
+	categories["VTOL"] = function(uDef) return uDef.canfly == true end
+	categories["NOTAIR"] = function(uDef) return not categories.VTOL(uDef) end
+	categories["HOVER"] = function(uDef) return hoverList[uDef.movementclass] and (uDef.maxwaterdepth == nil or uDef.maxwaterdepth < 1) end -- convertible tank/boats have maxwaterdepth
+	categories["NOTHOVER"] = function(uDef) return not categories.HOVER(uDef) end
+	categories["SHIP"] = function(uDef) return shipList[uDef.movementclass] or (hoverList[uDef.movementclass] and uDef.maxwaterdepth and uDef.maxwaterdepth >=1) end
+	categories["NOTSHIP"] = function(uDef) return not categories.SHIP(uDef) end
+	categories["NOTSUB"] = function(uDef) return not subList[uDef.movementclass] end
+	categories["CANBEUW"] = function(uDef) return amphibList[uDef.movementclass] or uDef.cansubmerge == true end
+	categories["UNDERWATER"] = function(uDef) return (uDef.minwaterdepth and uDef.waterline == nil) or (uDef.minwaterdepth and uDef.waterline > uDef.minwaterdepth and uDef.speed and uDef.speed > 0) end
+	categories["SURFACE"] = function(uDef) return not (categories.UNDERWATER(uDef) and categories.MOBILE(uDef)) and not categories.VTOL(uDef) end
+	categories["MINE"] = function(uDef) return uDef.weapondefs and uDef.weapondefs.minerange end
+	categories["COMMANDER"] = function(uDef) return commanderList[uDef.movementclass] end
+	categories["EMPABLE"] = function(uDef) return uDef.customparams and uDef.customparams.paralyzemultiplier ~= 0 end
 	
-	
-	for name, unitDef in pairs(UnitDefs) do
-		if string.find(unitDef.category, "OBJECT") then -- objects should not be targetable and therefore are not assigned any other category
-		else
-	
-			-- temrorary code, pending unitdef cleanup
-			local isT4AIR
-			local isLIGHTAIRSCOUT
-			local isGROUNDSCOUT
-			local isRAPTOR
-			if manualCategory(unitDef, "T4AIR") then isT4AIR = true end
-			if manualCategory(unitDef, "LIGHTAIRSCOUT") then isLIGHTAIRSCOUT = true end
-			if manualCategory(unitDef, "GROUNDSCOUT") then isGROUNDSCOUT = true end
-			if manualCategory(unitDef, "RAPTOR") then isRAPTOR = true end
-			unitDef.category = ""
-			if isT4AIR == true then append(unitDef, " T4AIR") end
-			if isLIGHTAIRSCOUT == true then append(unitDef, " LIGHTAIRSCOUT") end
-			if isGROUNDSCOUT == true then append(unitDef, " GROUNDSCOUT") end
-			if isRAPTOR == true then append(unitDef, " isRAPTOR") end
-			if name == "armmex" or name == "cormex" or name == "legmex" or name == "legmext15" then append(unitDef, " CANBEUW") end
-			if name == "corplat" or name == "armplat" then append(unitDef, " UNDERWATER SURFACE") end
-			-- end of temporary code
-	
-			for categoryName, condition in pairs(categories) do
-				if unitDef.exemptcategory == nil or not string.find(unitDef.exemptcategory, categoryName) then
-					if condition(unitDef) then
-						append(unitDef, " " .. categoryName)
-					end
+	uDef.category = uDef.category or ""
+	if not string.find(uDef.category, "OBJECT") then -- objects should not be targetable and therefore are not assigned any other category
+		for categoryName, condition in pairs(categories) do
+			if uDef.exemptcategory == nil or not string.find(uDef.exemptcategory, categoryName) then
+				if condition(uDef) then
+						uDef.category = uDef.category.." " .. categoryName
 				end
 			end
 		end

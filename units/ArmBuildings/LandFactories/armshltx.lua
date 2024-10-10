@@ -4,7 +4,6 @@ return {
 		buildpic = "ARMSHLTX.DDS",
 		buildtime = 61400,
 		canmove = true,
-		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "137 75 145",
 		collisionvolumetype = "Box",

@@ -9,7 +9,6 @@ return {
 		buildpic = "COREYES.DDS",
 		buildtime = 750,
 		canrepeat = false,
-		category = "ALL",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "20 24 20",
 		collisionvolumetype = "CylY",

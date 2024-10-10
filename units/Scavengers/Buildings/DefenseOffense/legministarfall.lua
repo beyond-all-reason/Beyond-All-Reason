@@ -8,7 +8,6 @@ return {
 		buildpic = "LEGSTARFALL.DDS",
 		buildtime = 65000,
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -3 0",
 		collisionvolumescales = "52 65 52",
 		collisionvolumetype = "CylY",

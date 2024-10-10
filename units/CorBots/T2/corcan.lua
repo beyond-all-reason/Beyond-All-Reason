@@ -3,7 +3,6 @@ return {
 		buildpic = "CORCAN.DDS",
 		buildtime = 11700,
 		canmove = true,
-		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 -2",
 		collisionvolumescales = "32 34 30",
 		collisionvolumetype = "CylY",

@@ -10,7 +10,6 @@ return {
 		buildpic = "LEGOTTER.DDS",
 		buildtime = 6860,
 		canmove = true,
-		category = "ALL TANK PHIB NOTSUB  NOWEAPON NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		collisionvolumeoffsets = "0 -1 1",
 		collisionvolumescales = "22 16 41",
 		collisionvolumetype = "Box",

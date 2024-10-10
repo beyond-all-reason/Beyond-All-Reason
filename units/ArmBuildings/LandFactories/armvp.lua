@@ -5,7 +5,6 @@ return {
 		buildpic = "ARMVP.DDS",
 		buildtime = 7200,
 		canmove = true,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumescales = "120 34 92",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",

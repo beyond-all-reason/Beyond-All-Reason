@@ -84,7 +84,6 @@ for lvl, stats in pairs(lvlParams) do
 		cancloak = true,
         initcloaked = true,
 		decloakonfire = false,
-		category = "ALL BOT MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "64 24 64",
 		collisionvolumetype = "CylY",

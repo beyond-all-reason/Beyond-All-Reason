@@ -2,7 +2,6 @@ return {
 	corjuno = {
 		buildpic = "CORJUNO.DDS",
 		buildtime = 27700,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -2 0",
 		collisionvolumescales = "50 88 50",
 		collisionvolumetype = "CylY",

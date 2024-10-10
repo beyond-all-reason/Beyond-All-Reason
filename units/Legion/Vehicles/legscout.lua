@@ -7,7 +7,7 @@ return {
 		buildpic = "LEGSCOUT.DDS",
 		buildtime = 900,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE GROUNDSCOUT EMPABLE",
+		category = "GROUNDSCOUT",
 		collisionvolumeoffsets = "0 -3 0",
 		collisionvolumescales = "14 16 14",
 		collisionvolumetype = "Box",

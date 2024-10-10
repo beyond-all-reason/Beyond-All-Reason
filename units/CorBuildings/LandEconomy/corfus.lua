@@ -5,7 +5,6 @@ return {
 		buildpic = "CORFUS.DDS",
 		buildtime = 75400,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "DEAD",
 		energycost = 26000,
 		energymake = 1100,

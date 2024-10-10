@@ -10,7 +10,6 @@ return {
 		buildtime = 500,
 		cancapture = true,
 		canmove = true,
-		category = "ALL TANK PHIB NOTSUB  NOWEAPON NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "17 11 21",
 		collisionvolumetype = "Box",

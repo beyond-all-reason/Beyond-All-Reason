@@ -10,7 +10,6 @@ return {
 		canpatrol = true,
 		canstop = 1,
 		cantbetransported = true,
-		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE EMPABLE",
 		corpse = "dead",
 		energycost = 23000,
 		explodeas = "largeexplosiongeneric",

@@ -9,7 +9,6 @@ return {
 		buildpic = "LEGLRAA.DDS",
 		buildtime = 28000,
 		canrepeat = false,
-		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "63 57 63",
 		collisionvolumetype = "CylY",
@@ -154,7 +153,6 @@ return {
 				damage = {
 					default = 1,
 					vtol = 750,
-					space = 750,
 				},
 			},
 			railgunt2 = {
@@ -201,7 +199,6 @@ return {
 					--commanders = 750,
 					default = 1,
 					vtol = 700,
-					space = 700,
 				},
 			},
 		},
@@ -209,7 +206,7 @@ return {
 			[1] = {
 				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
 				def = "railgunt2",
-				onlytargetcategory = "VTOL SPACE",
+				onlytargetcategory = "VTOL/SeaUtil",
 			},
 		},
 	},

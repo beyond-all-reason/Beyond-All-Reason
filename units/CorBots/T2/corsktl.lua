@@ -4,7 +4,6 @@ return {
 		buildtime = 17000,
 		canmove = true,
 		cantbetransported = true,
-		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		cloakcost = 150,
 		cloakcostmoving = 400,
 		collisionvolumeoffsets = "0.5 -1 0",

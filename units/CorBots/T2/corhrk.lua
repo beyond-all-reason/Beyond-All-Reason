@@ -3,7 +3,6 @@ return {
 		buildpic = "CORHRK.DDS",
 		buildtime = 6600,
 		canmove = true,
-		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 1 -1",
 		collisionvolumescales = "26 31 33",
 		collisionvolumetype = "Box",

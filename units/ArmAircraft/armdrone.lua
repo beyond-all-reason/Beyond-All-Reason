@@ -5,7 +5,6 @@ return {
 		buildtime = 1200,
 		canfly = true,
 		canmove = true,
-		category = "ALL WEAPON NOTSUB VTOL NOTHOVER",
 		collide = true,
 		cruisealtitude = 40,
 		energycost = 600,

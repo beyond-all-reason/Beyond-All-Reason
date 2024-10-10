@@ -7,7 +7,6 @@ return {
 		canassist = false,
 		canmove = true,
 		canresurrect = true,
-		category = "BOT MOBILE ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "24 32 24",
 		collisionvolumetype = "CylY",

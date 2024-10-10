@@ -4,7 +4,6 @@ return {
 		buildpic = "CORGANT.DDS",
 		buildtime = 67300,
 		canmove = true,
-		category = "ALL NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -5 8",
 		collisionvolumescales = "150 43 150",
 		collisionvolumetype = "CylY",

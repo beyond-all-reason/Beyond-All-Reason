@@ -4,7 +4,6 @@ return {
 		buildpic = "CORVIPE.DDS",
 		buildtime = 15000,
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "DEAD",
 		damagemodifier = 0.5,
 		energycost = 14000,

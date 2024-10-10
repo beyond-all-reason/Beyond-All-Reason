@@ -5,7 +5,6 @@ return {
 		buildtime = 3950,
 		canattack = false,
 		canmove = true,
-		category = "BOT MOBILE ALL NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "26 34 26",
 		collisionvolumetype = "CylY",

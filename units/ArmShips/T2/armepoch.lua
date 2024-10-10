@@ -6,7 +6,6 @@ return {
 		buildtime = 169800,
 		canattackground = true,
 		canmove = true,
-		category = "ALL WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -6 3",
 		collisionvolumescales = "71 71 180",
 		collisionvolumetype = "CylZ",

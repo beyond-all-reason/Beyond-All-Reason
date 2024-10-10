@@ -7,7 +7,6 @@ return {
 		buildpic = "ARMASSIMILATOR.DDS",
 		buildtime = 25000,
 		canmove = true,
-		category = "BOT MOBILE WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0.0 -2.0 -5",
 		collisionvolumescales = "50.0 60.0 50.0",
 		collisionvolumetype = "box",

@@ -8,7 +8,6 @@ return {
 		buildpic = "LEGFHP.DDS",
 		buildtime = 11000,
 		canmove = true,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumescales = "120 32 106",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",

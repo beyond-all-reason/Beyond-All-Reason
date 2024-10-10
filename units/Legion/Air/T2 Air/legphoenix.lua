@@ -10,7 +10,6 @@ return {
 		canfly = true,
 		canattack = true,
 		canmove = true,
-		category = "ALL NOTLAND MOBILE WEAPON VTOL NOTSUB NOTSHIP NOTHOVER",
 		collisionvolumeoffsets = "0 0 5",
 		collisionvolumescales = "110 20 60",--yes this is unconventional but needs to be this way (passes the Drivver Test)
 		collisionvolumetype = "Box",

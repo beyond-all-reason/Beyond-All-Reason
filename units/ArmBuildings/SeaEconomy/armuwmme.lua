@@ -6,7 +6,6 @@ return {
 		buildpic = "ARMUWMME.DDS",
 		buildtime = 14900,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE UNDERWATER EMPABLE",
 		corpse = "DEAD",
 		energycost = 7700,
 		energyupkeep = 20,

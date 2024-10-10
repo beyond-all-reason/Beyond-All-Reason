@@ -4,7 +4,6 @@ return {
 		buildpic = "CORSALA.DDS",
 		buildtime = 7900,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		collisionvolumeoffsets = "0 -5.5 0",
 		collisionvolumescales = "31 34 31",
 		collisionvolumetype = "BOX",

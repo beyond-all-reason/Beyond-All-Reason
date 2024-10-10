@@ -5,7 +5,6 @@ return {
 		buildpic = "CORDOOM.DDS",
 		buildtime = 55200,
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0.0 -17.0 0.0",
 		collisionvolumescales = "48.0 110.0 48.0",
 		collisionvolumetype = "box",

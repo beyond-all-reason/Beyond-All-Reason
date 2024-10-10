@@ -9,7 +9,6 @@ return {
 		buildpic = "LEGCK.DDS",
 		buildtime = 3250,
 		canmove = true,
-		category = "BOT MOBILE ALL NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 -1",
 		collisionvolumescales = "22 27 22",
 		collisionvolumetype = "CylY",

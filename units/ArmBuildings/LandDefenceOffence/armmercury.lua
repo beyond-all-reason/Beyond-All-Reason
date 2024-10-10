@@ -5,7 +5,6 @@ return {
 		buildpic = "ARMMERCURY.DDS",
 		buildtime = 28000,
 		canrepeat = false,
-		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "-1 -1 0",
 		collisionvolumescales = "60 78 60",
 		collisionvolumetype = "CylY",
@@ -149,7 +148,6 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1850,
 				damage = {
-					space = 750,
 					vtol = 750,
 				},
 			},
@@ -158,7 +156,7 @@ return {
 			[1] = {
 				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
 				def = "ARM_ADVSAM",
-				onlytargetcategory = "VTOL SPACE",
+				onlytargetcategory = "VTOL",
 			},
 		},
 	},

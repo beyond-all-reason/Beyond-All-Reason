@@ -4,7 +4,6 @@ return {
 		buildpic = "CORESUPP.DDS",
 		buildtime = 1400,
 		canmove = true,
-		category = "ALL WEAPON SHIP NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "20 16 40",
 		collisionvolumetype = "CylZ",

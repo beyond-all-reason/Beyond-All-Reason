@@ -9,7 +9,6 @@ return {
 		buildpic = "LEGCH.DDS",
 		buildtime = 4580,
 		canmove = true,
-		category = "ALL HOVER MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "27 18 38",
 		collisionvolumetype = "Box",

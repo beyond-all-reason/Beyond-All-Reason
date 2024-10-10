@@ -4,7 +4,6 @@ return {
 		buildpic = "CORSENT.DDS",
 		buildtime = 12000,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -4 -4",
 		collisionvolumescales = "40.5 40.5 43.5",
 		collisionvolumetype = "BOX",
