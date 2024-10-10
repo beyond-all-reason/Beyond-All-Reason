@@ -9,7 +9,7 @@ function widget:GetInfo()
 		desc = "Thruster effects on air jet exhausts (auto limits and disables when low fps)",
 		author = "GoogleFrog, jK, Floris, Beherith",
 		date = "2021.05.16",
-		license = "Lua code is GNU GPL, v2 or later, GLSL shader code is (c) Beherith, mysterme@gmail.com",
+		license = "GNU GPL, v2 or later",
 		layer = -1,
 		enabled = true,
 	}
@@ -543,6 +543,10 @@ local vsSrc =
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shader_storage_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
+
+// (C) 2021 Beherith (mysterme@gmail.com)
+// Licenced under the MIT licence
+
 #line 10000
 uniform float timer;
 
@@ -691,6 +695,10 @@ local fsSrc =
 #version 420
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
+
+// (C) 2022 Beherith (mysterme@gmail.com)
+// Licenced under the MIT licence
+
 #line 20000
 uniform sampler2D noiseMap;
 uniform sampler2D mask;

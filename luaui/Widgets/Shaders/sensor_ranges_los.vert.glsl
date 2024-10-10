@@ -3,7 +3,8 @@
 #extension GL_ARB_shader_storage_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
 
-// This shader is (c) Beherith (mysterme@gmail.com)
+// (C) 2023 Beherith (mysterme@gmail.com)
+// Licenced under the MIT licence
 
 #line 10000
 

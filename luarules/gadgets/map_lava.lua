@@ -4,7 +4,7 @@ function gadget:GetInfo()
 		desc      = "lava",
 		author    = "knorke, Beherith, The_Yak, Anarchid, Kloot, Gajop, ivand, Damgam",
 		date      = "Feb 2011, Nov 2013, 2022!",
-		license   = "Lua: GNU GPL, v2 or later, GLSL: (c) Beherith (mysterme@gmail.com)",
+		license   = "GNU GPL, v2 or later",
 		layer     = -3,
 		enabled   = true
 	}
@@ -281,6 +281,10 @@ else  -- UNSYCNED
 	#extension GL_ARB_uniform_buffer_object : require
 	#extension GL_ARB_shader_storage_buffer_object : require
 	#extension GL_ARB_shading_language_420pack: require
+
+	// (C) 2022 Beherith (mysterme@gmail.com)
+	// Licenced under the MIT licence
+
 	#line 10000
 	layout (location = 0) in vec2 planePos;
 
@@ -338,6 +342,9 @@ else  -- UNSYCNED
 	#version 330
 	#extension GL_ARB_uniform_buffer_object : require
 	#extension GL_ARB_shading_language_420pack: require
+
+	// (C) 2022 Beherith (mysterme@gmail.com)
+	// Licenced under the MIT licence
 
 	#line 20000
 
@@ -479,6 +486,10 @@ else  -- UNSYCNED
 	#extension GL_ARB_uniform_buffer_object : require
 	#extension GL_ARB_shader_storage_buffer_object : require
 	#extension GL_ARB_shading_language_420pack: require
+
+	// (C) 2022 Beherith (mysterme@gmail.com)
+	// Licenced under the MIT licence
+
 	#line 10000
 	layout (location = 0) in vec2 planePos;
 
@@ -534,6 +545,9 @@ else  -- UNSYCNED
 	#version 330
 	#extension GL_ARB_uniform_buffer_object : require
 	#extension GL_ARB_shading_language_420pack: require
+
+	// (C) 2022 Beherith (mysterme@gmail.com)
+	// Licenced under the MIT licence
 
 	#line 20000
 
