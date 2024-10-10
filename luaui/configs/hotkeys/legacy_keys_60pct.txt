@@ -107,7 +107,7 @@ bind Alt+enter fullscreen
 
 bind Ctrl+sc_a select AllMap++_ClearSelection_SelectAll+
 bind Ctrl+sc_b select AllMap+_Builder_Idle+_ClearSelection_SelectOne+
-bind Ctrl+sc_c selectcomm
+bind Ctrl+sc_c selectcomm focus
 bind Ctrl+sc_v select AllMap+_Not_Builder_Not_Commander_InPrevSel_Not_InHotkeyGroup+_SelectAll+
 bind Ctrl+sc_w select AllMap+_Not_Aircraft_Weapons+_ClearSelection_SelectAll+
 bind Ctrl+sc_x select AllMap+_InPrevSel_Not_InHotkeyGroup+_SelectAll+
@@ -271,3 +271,10 @@ bind sc_y settargetnoground
 bind Ctrl+meta+sc_q group unset
 // if WG[bind Auto Group ] then
 bind Alt+sc_q remove_from_autogroup
+
+// blueprint
+bind           Alt+sc_b  blueprint_place
+bind           Alt+sc_c  blueprint_create
+bind           Alt+sc_d  blueprint_delete
+bind           Alt+sc_[  blueprint_prev
+bind           Alt+sc_]  blueprint_next

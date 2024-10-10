@@ -294,6 +294,7 @@ unitDefRenames = {
 	corcv = "cortex_constructionvehicle",
 	cordecom = "cortex_decoycommander",
 	cordemon = "cortex_demon",
+	cordeadeye = "cortex_deadeye",
 	cordl = "cortex_jellyfish",
 	cordoom = "cortex_bulwark",
 	cordoomt3 = "cortex_epicbulwark",

@@ -15,7 +15,7 @@ return {
 		canstop = "1",
 		capturable = false,
 		cancloak = true,
-		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE RAPTOR EMPABLE",
+		category = "RAPTOR",
 		cloakcost = 0,
 		cloakcostmoving = 0,
 		collisionvolumeoffsets = "0 -10 0",
@@ -36,7 +36,7 @@ return {
 		mincloakdistance = 50,
 		movementclass = "RAPTORBIGHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL SPACE",
+		nochasecategory = "VTOL",
 		objectname = "Raptors/raptora_spectre.s3o",
 		script = "Raptors/raptora1.cob",
 		seismicsignature = 3,
@@ -163,7 +163,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL SPACE",
+				badtargetcategory = "VTOL",
 				def = "WEAPON",
 				maindir = "0 0 1",
 				maxangledif = 125,

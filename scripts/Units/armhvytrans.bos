@@ -1,0 +1,130 @@
+
+#include "../recoil_common_includes.h"
+
+piece  base, link, base, jetfl, jetfr, jetbl, jetbr, thrustfl, thrustfr, thrustbl, thrustbr;
+
+
+#define BASEPIECE base
+#define HITSPEED <20.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 1
+#define MAXTILT 200
+
+#define IDLEHOVERSCALE 16
+#define IDLEHOVERSPEED 60
+#define IDLEBASEPIECE base
+#include "../idlehover.h"
+
+
+
+Create()
+{
+	hide link;
+	hide thrustfl;
+	hide thrustfr;
+	hide thrustbl;
+	hide thrustbr;
+	
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script IdleHover();
+}
+
+QueryTransport(pieceIndex)
+{
+	pieceIndex = link;
+}
+
+
+BeginTransport(targetHeight)
+{
+	move link to y-axis [0.0] - targetHeight now;
+
+}
+
+Activate()
+{
+	show thrustfl;
+	show thrustfr;
+	show thrustbl;
+	show thrustbr;
+}
+
+Deactivate()
+{
+	hide thrustfl;
+	hide thrustfr;
+	hide thrustbl;
+	hide thrustbr;
+}
+
+EndTransport()
+{
+}
+
+MoveRate0()
+{
+	turn jetfl to x-axis <-90.0> speed <180.0>;
+	turn jetfr to x-axis <-90.0> speed <180.0>;
+	turn jetbl to x-axis <-90.0> speed <180.0>;
+	turn jetbr to x-axis <-90.0> speed <180.0>;
+
+}
+
+MoveRate1()
+{
+	turn jetfl to x-axis <-60.0> speed <30.0>;
+	turn jetfr to x-axis <-60.0> speed <30.0>;
+	turn jetbl to x-axis <-60.0> speed <30.0>;
+	turn jetbr to x-axis <-60.0> speed <30.0>;
+}
+
+MoveRate2()
+{
+	turn jetfl to x-axis <-30.0> speed <60.0>;
+	turn jetfr to x-axis <-30.0> speed <60.0>;
+	turn jetbl to x-axis <-30.0> speed <60.0>;
+	turn jetbr to x-axis <-30.0> speed <60.0>;
+
+}
+
+MoveRate3()
+{
+	turn jetfl to x-axis <0.0> speed <80.0>;
+	turn jetfr to x-axis <0.0> speed <80.0>;
+	turn jetbl to x-axis <0.0> speed <80.0>;
+	turn jetbr to x-axis <0.0> speed <80.0>;
+}
+
+
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode jetfl type BITMAPONLY | NOHEATCLOUD;
+		return (corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode jetfl type BITMAPONLY | NOHEATCLOUD;
+		explode jetfr type BITMAPONLY | NOHEATCLOUD;
+		return (corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode jetfl type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+		explode jetfr type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		return (corpsetype);
+	}
+	corpsetype = 3;
+	explode base type BITMAPONLY | NOHEATCLOUD;
+	explode jetfl type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode jetfr type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+	return corpsetype;
+}

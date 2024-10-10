@@ -18,13 +18,12 @@ return {
 		canmove = true,
 		capturable = false,
 		capturespeed = 1800,
-		category = "ALL WEAPON NOTSUB COMMANDER NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		collisionvolumeoffsets = "0 4 0",
 		collisionvolumescales = "37 69 37",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		energymake = 1375,
-		energystorage = 100,
+		energystorage = 8000,
 		explodeas = "commanderExplosion",
 		footprintx = 2,
 		footprintz = 2,
@@ -34,7 +33,7 @@ return {
 		idleautoheal = 30,
 		idletime = 1800,
 		sightemitheight = 40,
-		mass = 99999,
+		mass = 4900,
 		health = 20000,
 		maxslope = 20,
 		speed = 47.5,
@@ -45,9 +44,7 @@ return {
 		movementclass = "COMMANDERBOT",
 		nochasecategory = "ALL",
 		objectname = "Units/LEGCOMLVL4.s3o",
-		pushresistant = true,
 		radardistance = 1200,
-		radardistancejam = 500,
 		radaremitheight = 54,
 		reclaimable = false,
 		reclaimspeed = 4416,
@@ -71,7 +68,7 @@ return {
 			[3] = "legwin",
 			[5] = "cormmkr",
 			[6] = "legadvsol",
-			[7] = "corageo",
+			[7] = "leggeo",
 			[8] = "legtide",
 			[9] = "coruwadves",
 			[10] = "legamstor",
@@ -96,7 +93,7 @@ return {
 			[31] = "cordl",
 			[32] = "corenaa",
             [33] = "legbastion",
-			[34] = "coreyes",
+			[34] = "legeyes",
 			[35] = "corvoyr",
 			[36] = "corspec",
 			[37] = "legdrag",
@@ -115,8 +112,8 @@ return {
             [50] = "legkeres",
 			[51] = "legpede",
 			[52] = "corasp",
-			[53] = "cornanotc",
-			[54] = "cornanotcplat",
+			[53] = "legnanotc",
+			[54] = "legnanotcplat",
 			[55] = "corgate",
 		},
 		customparams = {
@@ -146,6 +143,7 @@ return {
 			effigy = "comeffigylvl5",
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,
+			fall_damage_multiplier = 5,--this ensures commander dies when it hits the ground so effigies can trigger respawn.
 		},
 		featuredefs = {
 			dead = {
@@ -246,9 +244,9 @@ return {
 				gravityaffected = "true",
 				impulseboost = 0.5,
 				impulsefactor = 1.8,
-				name = "PlasmaCannon",
+				name = "Rapid-Fire Grenade Launcher",
 				noselfdamage = true,
-				range = 550,
+				range = 500,
 				reloadtime = 0.4,
 				soundhit = "xplomed2",
 				soundhitwet = "splssml",
@@ -259,7 +257,7 @@ return {
 				weaponvelocity = 600,
 				damage = {
 					default = 500,
-					vtol = 300,
+					vtol = 250,
 				},
 			},
 			torpedo = {
@@ -317,7 +315,6 @@ return {
 				explosiongenerator = "custom:expldgun",
 				firestarter = 100,
 				firesubmersed = false,
-				groundbounce = true,
 				impulseboost = 0,
 				impulsefactor = 0,
 				name = "Disintegrator",
@@ -357,19 +354,19 @@ return {
 				cratermult = 0,
 				duration = 0.12,
 				edgeeffectiveness = 0.85,
-				energypershot = 400,
 				explosiongenerator = "custom:plasmahit-sparkonly",
 				fallOffRate = 0.2,
 				firestarter = 0,
 				impulseboost = 0.4,
 				impulsefactor = 1,
 				intensity = 0.8,
+				minintensity = 1,
 				name = "Railgun",
 				noselfdamage = true,
 				ownerExpAccWeight = 4.0,
-				proximitypriority = 3,
-				range = 1000,
-				reloadtime = 2.25,
+				proximitypriority = 1,
+				range = 870,
+				reloadtime = 2.2,
 				rgbcolor = "0.74 0.64 0.94",
 				soundhit = "mavgun3",
 				soundhitwet = "splshbig",
@@ -381,8 +378,7 @@ return {
 				weapontype = "LaserCannon",
 				weaponvelocity = 3000,
 				damage = {
-					commanders = 250,
-					default = 500,
+					default = 250,
 				},
 			},
 			botcannon = {
@@ -467,13 +463,13 @@ return {
 				},
 				customparams = {
 					attackformationspread = 50,
-					carried_unit = "legdrone",  --Name of the unit spawned by this carrier unit.
-					engagementrange = 1000,
+					carried_unit = "legheavydrone",  --Name of the unit spawned by this carrier unit.
+					engagementrange = 1800,
 					spawns_surface = "LAND",    -- "LAND" or "SEA". The SEA option has not been tested currently.
 					spawnrate = 2, 			--Spawnrate roughly in seconds.
 					maxunits = 2,				--Will spawn units until this amount has been reached.
-					energycost = 50,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					metalcost = 0,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					energycost = 1000,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					metalcost = 90,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					controlradius = 1100,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
 					decayrate = 4,
 					carrierdeaththroe = "death",
@@ -482,9 +478,7 @@ return {
 					docktohealthreshold = 66,
 					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					dockingHelperSpeed = 5,
-					dockingpiecestart = 30,		--First model piece to be used for docking.
-					dockingpieceinterval = 10,	--Number of pieces to skip when docking the next unit.
-					dockingpieceend = 40,		--Last model piece used for docking. Will loop back to first when exceeded.
+					dockingpieces = "30 40",
 					dockingradius = 120,			--The range at which the units snap to the carrier unit when docking.
 				}
 			},
@@ -512,7 +506,7 @@ return {
 			[5] = {
 				badtargetcategory = "VTOL GROUNDSCOUT SHIP",
 				def = "BOTCANNON",
-				onlytargetcategory = "SURFACE",
+				onlytargetcategory = "NOTSHIP",
 			},
 			[6] = {
 				badtargetcategory = "VTOL",

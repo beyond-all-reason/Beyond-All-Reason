@@ -17,7 +17,6 @@ return {
 		canstop = false,
 		cantbetransported = false,
 		capturable = true,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "48 48 48",
 		collisionvolumetype = "box",
@@ -56,6 +55,7 @@ return {
 			unitgroup = 'energy',
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "other/lootboxes",
+			paratrooper = true,
 		},
 		sfxtypes = {
 			explosiongenerators = {

@@ -46,11 +46,11 @@ local function bakeUnitDefs()
 	for name, unitDef in pairs(regularUnitDefs) do
 		-- usable when baking ... keeping subfolder structure
 		local filepath = getFilePath(name .. ".lua", "units/")
-
 		if filepath then
-			unitDef.customparams.subfolder = string.sub(filepath, 7, #filepath - 1)
+			if not unitDef.customparams.subfolder or string.sub(filepath, 7, #filepath - 1) ~= string.lower(unitDef.customparams.subfolder) then
+				unitDef.customparams.subfolder = string.sub(filepath, 7, #filepath - 1)		-- not that this always gets to be lowercase despite whatever it is in the repo
+			end
 		end
-
 		SaveDefToCustomParams("UnitDefs", name, unitDef)
 	end
 end

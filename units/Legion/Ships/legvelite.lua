@@ -8,7 +8,6 @@ return {
 		buildpic = "ARMDECADE.DDS",
 		buildtime = 2300,
 		canmove = true,
-		category = "ALL WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -7 -1",
 		collisionvolumescales = "21 25 62",
 		collisionvolumetype = "CylZ",
@@ -37,7 +36,7 @@ return {
 			unitgroup = 'weapon',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armships",
+			subfolder = "ArmShips",
 		},
 		featuredefs = {
 			dead = {
@@ -124,7 +123,7 @@ return {
 				name = "Rapid-fire machine gun",
 				noselfdamage = true,
 				ownerExpAccWeight = 4.0,
-				proximitypriority = 3,
+				proximitypriority = 1,
 				range = 275,
 				reloadtime = 0.45,
 				rgbcolor = "1 0.95 0.4",

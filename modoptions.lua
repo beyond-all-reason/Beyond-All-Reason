@@ -8,7 +8,7 @@
 --  name:     the displayed name
 --  desc:     the description (could be used as a tooltip)
 --  hint:     greyed out text that appears in input field when empty
---  type:     the option type ('list','string','number','bool')
+--  type:     the option type ('list','string','number','bool','subheader','separator')
 --  def:      the default value
 --  min:      minimum value for number options
 --  max:      maximum value for number options
@@ -17,13 +17,22 @@
 --  items:    array of item strings for list options
 --  section:  so lobbies can order options in categories/panels
 --  scope:    'all', 'player', 'team', 'allyteam'      <<< not supported yet >>>
+--  collumn:  moves the option 1 row up if value is greater than the preivous row's one, default: 1
+--         |  negative value forces new row, absolute value is used
+--         |  zero moves to the left, 1 is default, 2 is half way to the right
+--         |  recommened values: for 2 columns: 1 and 2, for 3 columns 1, 1.66, and 2.33
 --
+--  lock:     if type is bool: hides the table of keys when set to TRUE     <<< can not hide separators >>>
+--      |     if type is list: add under each item what it should SHOW when set to
+--  unlock:   if type is bool: hides the table of keys when set to FALSE    <<< can not hide separators >>>
+--        |   if type is list: add under each item what it should HIDE when set to
+--  bitmask:  int (1|2|4|8...etc), for when multiple options can hide an item
 
 local options = {
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    -- Restrictions
+    -- Main + Restrictions
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     {
@@ -45,11 +54,8 @@ local options = {
 
     {
         key     = "sub_header",
-        name    = "----------------------------------------------------------------------------------------------------------------------------------------",
-        desc    = "",
         section = "options_main",
-        type    = "subheader",
-        def     =  true,
+        type    = "separator",
     },
 
     {
@@ -61,7 +67,7 @@ local options = {
         def    	= true,
     },
 
-    
+
     {
         key    	= "allowuserwidgets",
         name   	= "Allow Custom Widgets",
@@ -82,11 +88,8 @@ local options = {
 
     {
         key     = "sub_header",
-        name    = "----------------------------------------------------------------------------------------------------------------------------------------",
-        desc    = "",
         section = "options_main",
-        type    = "subheader",
-        def     =  true,
+        type    = "separator",
     },
 
     {
@@ -220,12 +223,21 @@ local options = {
     },
 
     {
+        key    	= "norushtimer",
+        name   	= "No Rush Time",
+        desc   	= "Set timer in which players cannot get out of their startbox, so you have time to prepare before fighting. PLEASE NOTE: For this to work, the game needs to have set startboxes. It won't work in FFA mode without boxes. Also, it does not affect Scavengers and Raptors.",
+        type   	= "number",
+        section	= "options_main",
+        def    	= 0,
+        min    	= 0,
+        max    	= 30,
+        step   	= 1,
+    },
+
+    {
         key     = "sub_header",
-        name    = "----------------------------------------------------------------------------------------------------------------------------------------",
-        desc    = "",
         section = "options_main",
-        type    = "subheader",
-        def     =  true,
+        type    = "separator",
     },
 
     {
@@ -237,22 +249,14 @@ local options = {
         def     =  true,
     },
 
-    {
-		key 	= "no_comtrans",
-		name 	= "T1 transports cant load commanders",
-		desc 	= "Commanders will be too heavy for tech 1 transports to carry. (Tech 2 transports can still carry)",
-		type 	= "bool",
-		section = "options_main",
-		def 	= false,
-	},
-
 	{
-		key 	= "slow_comtrans",
-		name 	= "Slower Transported Commanders",
-		desc 	= "Transports carrying commanders are significantly slower, limiting offensive use and reactive mobility",
-		type 	= "bool",
-		section = "options_main",
-		def 	= false,
+		key		= "unit_restrictions_notech15",
+		name	= "Disable Tech 1.5",
+		desc	= "Disables: Sea Plane Labs, Hovercraft labs, and Amphibious labs. (Considered Tier 1.5)",
+		type	= "bool",
+		section	= "options_main",
+		def		= false,
+		column	= 1,
 	},
 
     {
@@ -262,6 +266,7 @@ local options = {
         type   	= "bool",
         section	= "options_main",
         def    	= false,
+        column  = 1.66,
     },
 
     {
@@ -271,6 +276,7 @@ local options = {
         type   	= "bool",
         section	= "options_main",
         def    	= false,
+        column  = 2.33,
     },
 
     {
@@ -280,7 +286,18 @@ local options = {
         type   	= "bool",
         section	= "options_main",
         def    	= false,
+        column  = 1,
     },
+
+	{
+		key		= "unit_restrictions_nodefence",
+		name	= "Disable Defences",
+		desc	= "Disables Defensive Structures, apart from basic LLTs and basic AA",
+		type	= "bool",
+		section	= "options_main",
+		def		= false,
+		column	= 1.66,
+	},
 
     {
         key    	= "unit_restrictions_noextractors",
@@ -289,6 +306,7 @@ local options = {
         type   	= "bool",
         section	= "options_main",
         def    	= false,
+        column  = 1,
     },
 
     {
@@ -298,6 +316,27 @@ local options = {
         type   	= "bool",
         section	= "options_main",
         def    	= false,
+        column  = 1.66,
+    },
+
+	{
+		key		= "unit_restrictions_nofusion",
+		name	= "Disable Fusion Generators",
+		desc	= "Disables Normal and Advanced Fusion Energy Generators",
+		type	= "bool",
+		section	= "options_main",
+		def		= false,
+		column	= 2.33,
+	},
+
+    {
+        key    	= "unit_restrictions_notacnukes",
+        name   	= "Disable Tactical Missiles/EMPs",
+        desc   	= "Disables Cortex Tactical Missile Launcher and Armada EMP Missile Launcher",
+        type   	= "bool",
+        section	= "options_main",
+        def    	= false,
+        column  = 1,
     },
 
     {
@@ -307,33 +346,37 @@ local options = {
         type   	= "bool",
         section	= "options_main",
         def    	= false,
+        column  = 1.66,
     },
 
-    {
-        key    	= "unit_restrictions_notacnukes",
-        name   	= "Disable Tactical Nukes and EMPs",
-        desc   	= "Disable Tactical Nukes and EMPs",
-        type   	= "bool",
-        section	= "options_main",
-        def    	= false,
-    },
+	{
+		key		= "unit_restrictions_noantinuke",
+		name	= "Disable Anti-Nuke Defence",
+		desc	= "Disables Nuke Interceptor Units and Structures.",
+		type	= "bool",
+		section	= "options_main",
+		def		= false,
+		column	= 2.33,
+	},
 
     {
         key    	= "unit_restrictions_nolrpc",
-        name   	= "Disable Long Range Artilery (LRPC) structures",
-        desc   	= "Disable Long Range Artilery (LRPC) structures",
+        name   	= "Disable Long Range Artilery (LRPC)",
+        desc   	= "Disable Long Range Plasma Artilery (LRPC) structures",
         type   	= "bool",
         section	= "options_main",
         def    	= false,
+        column  = 1,
     },
 
     {
         key    	= "unit_restrictions_noendgamelrpc",
-        name   	= "Disable Endgame Long Range Artilery (LRPC) structures (AKA lolcannons)",
-        desc   	= "Disable Endgame Long Range Artilery (LRPC) structures (AKA lolcannons)",
+        name   	= "Disable Endgame Artilery (LRPC)",
+        desc   	= "Disable Endgame Long Range Plasma Artilery (LRPC) structures (AKA lolcannons)",
         type   	= "bool",
         section	= "options_main",
         def    	= false,
+        column  = 1.66,
     },
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -436,13 +479,18 @@ local options = {
         def     =  true,
     },
 
+	{
+		key		= "sub_header",
+		name	= "To Play Add a Raptors AI to the enemy Team: [Add AI], [RaptorsDefense AI]",
+		desc	= "",
+		section	= "raptor_defense_options",
+		type	= "subheader",
+	},
+
     {
         key     = "sub_header",
-        name    = "----------------------------------------------------------------------------------------------------------------------------------------",
-        desc    = "",
         section = "raptor_defense_options",
-        type    = "subheader",
-        def     =  true,
+        type    = "separator",
     },
 
     {
@@ -464,11 +512,8 @@ local options = {
 
     {
         key     = "sub_header",
-        name    = "----------------------------------------------------------------------------------------------------------------------------------------",
-        desc    = "",
         section = "raptor_defense_options",
-        type    = "subheader",
-        def     =  true,
+        type    = "separator",
     },
 
     {
@@ -479,8 +524,8 @@ local options = {
         def		= "initialbox",
         section	= "raptor_defense_options",
         items	= {
-            { key = "avoid", 		name = "Avoid Players", 	desc = "Hives avoid player units" },
-            { key = "initialbox", 	name = "Initial Start Box", desc = "First wave spawns in raptor start box, following hives avoid players" },
+            { key = "avoid", 		name = "Spawn Anywhere", 	desc = "Hives avoid player units" },
+            { key = "initialbox", 	name = "Growing Spawn Box", desc = "Hives spawn in limited area that increases over time" },
             { key = "alwaysbox", 	name = "Always Start Box", 	desc = "Hives always spawn in raptor start box" },
         }
     },
@@ -496,11 +541,8 @@ local options = {
 
     {
         key     = "sub_header",
-        name    = "----------------------------------------------------------------------------------------------------------------------------------------",
-        desc    = "",
         section = "raptor_defense_options",
-        type    = "subheader",
-        def     =  true,
+        type    = "separator",
     },
 
     {
@@ -595,13 +637,19 @@ local options = {
         def     =  true,
     },
 
+	{
+		key		= "sub_header",
+		name	= "To Play Add a Scavangers AI to the enemy Team: [Add AI], [ScavengersDefense AI]",
+		desc	= "",
+		section	= "scav_defense_options",
+		type	= "subheader",
+	},
+
+
     {
         key     = "sub_header",
-        name    = "----------------------------------------------------------------------------------------------------------------------------------------",
-        desc    = "",
         section = "scav_defense_options",
-        type    = "subheader",
-        def     =  true,
+        type    = "separator",
     },
 
     {
@@ -623,11 +671,8 @@ local options = {
 
     {
         key     = "sub_header",
-        name    = "----------------------------------------------------------------------------------------------------------------------------------------",
-        desc    = "",
         section = "scav_defense_options",
-        type    = "subheader",
-        def     =  true,
+        type    = "separator",
     },
 
     {
@@ -635,12 +680,12 @@ local options = {
         name	= "Spawn Beacons Placement",
         desc	= "Control where spawners appear",
         type	= "list",
-        def		= "avoid",
+        def		= "initialbox",
         section	= "scav_defense_options",
         items	= {
-            { key = "avoid", 		name = "Avoid Players", 	desc="Beacons avoid player units" },
-            { key = "initialbox",	name = "Initial Start Box", desc="First wave spawns in scav start box, following beacons avoid players" },
-            { key = "alwaysbox", 	name =  "Always Start Box", desc="Beacons always spawn in scav start box" },
+            { key = "avoid", 		name = "Spawn Anywhere", 	desc="Beacons avoid player units" },
+            { key = "initialbox",	name = "Growing Spawn Box", desc="Beacons spawn in limited area that increases over time" },
+            --{ key = "alwaysbox", 	name =  "Always Start Box", desc="Beacons always spawn in scav start box" },
         }
     },
 
@@ -655,11 +700,8 @@ local options = {
 
     {
         key     = "sub_header",
-        name    = "----------------------------------------------------------------------------------------------------------------------------------------",
-        desc    = "",
         section = "scav_defense_options",
-        type    = "subheader",
-        def     =  true,
+        type    = "separator",
     },
 
     {
@@ -721,7 +763,7 @@ local options = {
         weight  = 2,
     },
 
-    
+
     {
         key     = "sub_header",
         name    = "Extra options for shaking up the gameplay or balancing. Not intended for ranked games.",
@@ -733,11 +775,8 @@ local options = {
 
     {
         key     = "sub_header",
-        name    = "----------------------------------------------------------------------------------------------------------------------------------------",
-        desc    = "",
         section = "options_extra",
-        type    = "subheader",
-        def     =  true,
+        type    = "separator",
     },
 
     --{
@@ -770,7 +809,7 @@ local options = {
 	--	section	= "options_extra",
 	--},
 
-    
+
     {
         key    	= "experimentalextraunits",
         name   	= "Extra Units Pack",
@@ -782,12 +821,10 @@ local options = {
 
     {
         key     = "sub_header",
-        name    = "----------------------------------------------------------------------------------------------------------------------------------------",
-        desc    = "",
         section = "options_extra",
-        type    = "subheader",
-        def     =  true,
+        type    = "separator",
     },
+
 
     {
         key 	= "map_waterlevel",
@@ -812,12 +849,10 @@ local options = {
 
     {
         key     = "sub_header",
-        name    = "----------------------------------------------------------------------------------------------------------------------------------------",
-        desc    = "",
         section = "options_extra",
-        type    = "subheader",
-        def     =  true,
+        type    = "separator",
     },
+
 
     {
         key 	= "ruins",
@@ -827,9 +862,9 @@ local options = {
         def 	= "scav_only",
         section = "options_extra",
         items 	= {
-            { key = "enabled", 		name = "Enabled" },
-            { key = "scav_only", 	name = "Enabled for Scavengers only" },
-            { key = "disabled", 	name = "Disabled" },
+            { key = "enabled", 		name = "Enabled", unlock = {"ruins_density", "ruins_only_t1"} },
+            { key = "scav_only", 	name = "Enabled for Scavengers only", unlock = {"ruins_density", "ruins_only_t1"} },
+            { key = "disabled", 	name = "Disabled", lock = {"ruins_density", "ruins_only_t1"} },
         }
     },
 
@@ -867,12 +902,10 @@ local options = {
 
     {
         key     = "sub_header",
-        name    = "----------------------------------------------------------------------------------------------------------------------------------------",
-        desc    = "",
         section = "options_extra",
-        type    = "subheader",
-        def     =  true,
+        type    = "separator",
     },
+
 
     {
         key 	= "lootboxes",
@@ -882,9 +915,9 @@ local options = {
         def 	= "scav_only",
         section = "options_extra",
         items 	= {
-            { key = "enabled", 		name = "Enabled" },
-            { key = "scav_only", 	name = "Enabled for Scavengers only" },
-            { key = "disabled", 	name = "Disabled" },
+            { key = "enabled", 		name = "Enabled", unlock = {"lootboxes_density"} },
+            { key = "scav_only", 	name = "Enabled for Scavengers only", unlock = {"lootboxes_density"} },
+            { key = "disabled", 	name = "Disabled", lock = {"lootboxes_density"} },
         }
     },
 
@@ -903,38 +936,65 @@ local options = {
 
     {
         key     = "sub_header",
-        name    = "----------------------------------------------------------------------------------------------------------------------------------------",
-        desc    = "",
         section = "options_extra",
-        type    = "subheader",
-        def     =  true,
+        type    = "separator",
     },
+
 
     {
         key 	= "evocom",
-        name 	= "Evolving Commanders Enabled",
+        name 	= "Evolving Commanders",
         desc   	= "Commanders evolve, gaining new weapons and abilities.",
         type 	= "bool",
         def 	= false,
         section = "options_extra",
+        bitmask = 1,
+        unlock  = {"evocomlevelupmethod","evocomlevelcap","evocomxpmultiplier", "evocomleveluptime", "evocomlevelupmultiplier"},
+        --lock    = {"buffer_fix"},
     },
 
     {
         key 	= "evocomlevelupmethod",
-        name 	= "Evolving Commanders: Leveling Method",
+        name 	= "EvoCom: Leveling Method",
         desc   	= "Dynamic: Commanders evolve to keep up with the highest power player. Timed: Static Evolution Rate",
         type 	= "list",
         def 	= "dynamic",
         section = "options_extra",
+        bitmask = 2,
         items 	= {
-            { key = "dynamic", 	name = "Dynamic" },
-            { key = "timed", name = "Timed" },
+            { key = "dynamic", 	name = "Dynamic", lock = {"evocomleveluptime"}, unlock = {"evocomlevelupmultiplier"}},
+            { key = "timed", name = "Timed", lock = {"evocomlevelupmultiplier"}, unlock = {"evocomleveluptime"}},
         }
+    },
+
+
+    {
+        key    	= "evocomlevelupmultiplier",
+        name   	= "EvoCom: Evolution Mult.",
+        desc   	= "(Range 0.1x - 3x Multiplier) Adjusts the thresholds at which Dynamic evolutions occur",
+        type   	= "number",
+        section	= "options_extra",
+        def    	= 1,
+        min    	= 0.1,
+        max    	= 3,
+        step   	= 0.1,
+    },
+
+    {
+        key    	= "evocomleveluptime",
+        name   	= "EvoCom: Evolution Time ",
+        desc   	= "(Range 0.1 - 20 Minutes) Rate at which commanders will evolve if Timed method is selected.",
+        type   	= "number",
+        section	= "options_extra",
+        def    	= 5,
+        min    	= 0.1,
+        max    	= 20,
+        step   	= 0.1,
     },
 
     {
         key    	= "evocomlevelcap",
-        name   	= "Evolving Commanders: Max Level",
+        name   	= "EvoCom: Max Level",
         desc   	= "(Range 2 - 10) Changes the Evolving Commanders maximum level",
         type   	= "number",
         section	= "options_extra",
@@ -946,8 +1006,8 @@ local options = {
 
     {
         key    	= "evocomxpmultiplier",
-        name   	= "Evolving Commanders: Commander XP Multiplier - Does not affect leveling!",
-        desc   	= "(Range 0.1 - 10) Changes the rate at which Evolving Commanders gain Experience.",
+        name   	= "EvoCom: Commander XP Multiplier",
+        desc   	= "(Range 0.1 - 10) Does not affect leveling! Changes the rate at which Evolving Commanders gain Experience.",
         type   	= "number",
         section	= "options_extra",
         def    	= 1,
@@ -956,31 +1016,16 @@ local options = {
         step   	= 0.1,
     },
 
-
-    {
-        key    	= "evocomleveluprate",
-        name   	= "Evolving Commanders - Timed Only - Evolution Timer.",
-        desc   	= "(Range 0.1 - 20 Minutes) Rate at which commanders will evolve if Timed method is selected.",
-        type   	= "number",
-        section	= "options_extra",
-        def    	= 5,
-        min    	= 0.1,
-        max    	= 20,
-        step   	= 0.1,
-    },
-
     {
         key     = "sub_header",
-        name    = "----------------------------------------------------------------------------------------------------------------------------------------",
-        desc    = "",
         section = "options_extra",
-        type    = "subheader",
-        def     =  true,
+        type    = "separator",
     },
+
 
     {
         key 	= "comrespawn",
-        name 	= "Commander Respawning Enabled",
+        name 	= "Commander Respawning",
         desc   	= "Commanders can build one Effigy. The first one is free and given for you at the start. When the commander dies, the Effigy is sacrificed in its place.",
         type 	= "list",
         def 	= "evocom",
@@ -991,31 +1036,29 @@ local options = {
             { key = "disabled", name = "Disabled" },
         }
     },
- 
-    {
-        key     = "sub_header",
-        name    = "----------------------------------------------------------------------------------------------------------------------------------------",
-        desc    = "",
-        section = "options_extra",
-        type    = "subheader",
-        def     =  true,
-    },
 
     {
-        key 	= "assistdronesenabled",
-        name 	= "Commander Drones Enabled",
+        key     = "sub_header",
+        section = "options_extra",
+        type    = "separator",
+    },
+
+
+    {
+        key 	= "assistdronesenabled", -- TODO, turn this into booleam modoption
+        name 	= "Commander Drones",
         type 	= "list",
         def 	= "disabled",
         section = "options_extra",
         items 	= {
-            { key = "enabled", 	name = "Enabled" },
-            { key = "disabled", name = "Disabled" },
+            { key = "enabled", 	name = "Enabled", unlock = {"assistdronesbuildpowermultiplier", "assistdronescount", "assistdronesair"} },
+            { key = "disabled", name = "Disabled", lock = {"assistdronesbuildpowermultiplier", "assistdronescount", "assistdronesair"} },
         }
     },
 
     {
         key    	= "assistdronesbuildpowermultiplier",
-        name   	= "Commander Drones: Buildpower Multiplier",
+        name   	= "ComDrones: Buildpower Multiplier",
         desc   	= "(Range 0.5 - 5). How much buildpower commander drones should have",
         type   	= "number",
         section	= "options_extra",
@@ -1027,7 +1070,7 @@ local options = {
 
     {
         key    	= "assistdronescount",
-        name   	= "Commander Drones: Count",
+        name   	= "ComDrones: Count",
         desc   	= "How many assist drones per commander should be spawned",
         type   	= "number",
         section	= "options_extra",
@@ -1039,7 +1082,7 @@ local options = {
 
     {
         key    	= "assistdronesair",
-        name   	= "Commander Drones: Use Air Drones",
+        name   	= "ComDrones: Use Air Drones",
         desc   	= "Switch between aircraft drones and amphibious vehicle drones.",
         type   	= "bool",
         def    	= true,
@@ -1048,28 +1091,26 @@ local options = {
 
     {
         key     = "sub_header",
-        name    = "----------------------------------------------------------------------------------------------------------------------------------------",
-        desc    = "",
         section = "options_extra",
-        type    = "subheader",
-        def     =  true,
+        type    = "separator",
     },
 
+
     {
-        key 	= "commanderbuildersenabled",
-        name 	= "Base Builder Turret Enabled",
+        key 	= "commanderbuildersenabled", -- TODO, turn this into boolean modoption
+        name 	= "Base Builder Turret",
         type 	= "list",
         def 	= "disabled",
         section = "options_extra",
         items 	= {
-            { key = "enabled", 	name = "Enabled" },
-            { key = "disabled", name = "Disabled" },
+            { key = "enabled", 	name = "Enabled", unlock = {"commanderbuildersrange", "commanderbuildersbuildpower"} },
+            { key = "disabled", name = "Disabled", lock = {"commanderbuildersrange", "commanderbuildersbuildpower"} },
         }
     },
 
     {
         key    	= "commanderbuildersrange",
-        name   	= "Base Builder Turret: Buildrange",
+        name   	= "Base Builder Turret: Range",
         desc   	= "(Range 500 - 2000).",
         type   	= "number",
         section	= "options_extra",
@@ -1126,58 +1167,8 @@ local options = {
 
     {
         key     = "sub_header",
-        name    = "----------------------------------------------------------------------------------------------------------------------------------------",
-        desc    = "",
         section = "options_experimental",
-        type    = "subheader",
-        def     =  true,
-    },
-
-    {
-        key    	= "experimentalnoaircollisions",
-        name   	= "Aircraft Collisions Override",
-        desc   	= "Aircraft Collisions Override",
-        hidden 	= true,
-        type   	= "bool",
-        section = "options_experimental",
-        def  	= false,
-    },
-
-    {
-        key    	= "experimentalxpgain",
-        name   	= "XP Gain Multiplier",
-        desc   	= "XP Gain Multiplier",
-        hidden 	= true,
-        type   	= "number",
-        section = "options_experimental",
-        def    	= 1,
-        min    	= 0.1,
-        max    	= 10,
-        step   	= 0.1,
-    },
-
-    {
-        key    	= "experimentalstandardgravity",
-        name   	= "Gravity Override",
-        desc   	= "Override map gravity for weapons",
-        type   	= "list",
-        section = "options_experimental",
-        def  	= "mapgravity",
-        items 	= {
-            { key = "mapgravity", 	name = "Map Gravity", 		desc = "Uses map defined gravity" },
-            { key = "low", 			name = "Low Gravity", 		desc = "80 gravity" },
-            { key = "standard", 	name = "Standard Gravity", 	desc = "120 gravity" },
-            { key = "high", 		name = "High Gravity", 		desc = "150 gravity" },
-        }
-    },
-
-    {
-        key   	= "releasecandidates",
-        name   	= "Release Candidate Units",
-        desc   	= "Adds additional units to the game which are being considered for mainline integration and are balanced, or in end tuning stages.  Currently adds Printer, Shockwave (Arm T2 EMP Mex), and Drone Carriers for armada and cortex",
-        type   	= "bool",
-        section = "options_experimental",
-        def  	= false,
+        type    = "separator",
     },
 
     {
@@ -1189,49 +1180,24 @@ local options = {
         def  	= false,
     },
 
+    -- Hidden Tests
     {
-        key 	= "emprework",
-        name 	= "EMP Rework",
-        desc 	= "EMP is changed to slow units movement and firerate, before eventually stunning.",
-        type 	= "bool",
+        key    	= "shieldsrework",
+        name   	= "Shields Rework",
+        desc   	= "Shields block all projectiles. Overkill damage is blocked once before reaching 0% charge. Shields are disabled for a few seconds upon reaching 0%.",
+        type   	= "bool",
         section = "options_experimental",
-        def 	= false,
+        def  	= false,
     },
 
     {
-        key 	= "junorework",
-        name 	= "Juno Rework",
-        desc 	= "Juno stuns certain units (such as radars and jammers) rather than magically deleting them",
-        type 	= "bool",
+        key   	= "accuratelasers",
+        name   	= "Accurate Lasers",
+        desc   	= "Removes inaccuracy vs moving units from all laser weapons as a proposed solution to overpowered scoutspam",
+        type   	= "bool",
+        hidden 	= true,
         section = "options_experimental",
-        def 	= false,
-    },
-
-    {
-        key 	= "air_rework",
-        name 	= "Air Rework",
-        desc 	= "Prototype version with more maneuverable, slower air units and more differentiation between them.",
-        type 	= "bool",
-        section = "options_experimental",
-        def 	= false,
-    },
-
-    {
-        key 	= "proposed_unit_reworks",
-        name 	= "Proposed Unit Reworks",
-        desc 	= "Modoption used to test and balance unit reworks that are being considered for the base game.  Shuriken emp damage is reduced and Abductor emp damage and stuntime are reduced, but accuracy is increased.  EMP resist for units is standardized, and units that had low emp resists now take full emp damage.",
-        type 	= "bool",
-        section = "options_experimental",
-        def 	= false,
-    },
-
-    {
-        key 	= "energy_share_rework",
-        name 	= "Energy Share Rework",
-        desc 	= "Additional energy overflow/underflow mechanics. 10% of the energy income is re-distributed to prevent E-stalling.",
-        type 	= "bool",
-        section = "options_experimental",
-        def 	= false,
+        def  	= false,
     },
 
     {
@@ -1245,34 +1211,13 @@ local options = {
     },
 
     {
-        key		= "unified_maxslope",
-        name	= "Standardized Land Unit Maxslope",
-        desc	= "All land units have minimum maxslope of 36",
-        type	= "bool",
-        def		= false,
-        section	= "options_experimental",
-    },
-
-    {
-        key    	= "norushtimer",
-        name   	= "No Rush Time",
-        desc   	= "(Range: 0 - 30). Minutes",
-        type   	= "number",
-        section	= "options_experimental",
-        def    	= 0,
-        min    	= 0,
-        max    	= 30,
-        step   	= 1,
-    },
-
-    {
-        key    	= "faction_limiter",
-        name   	= "Team Faction Limiter",
-        desc   	= "Limit which faction a team may play. Format; list factions, seperating teams by a comma, e.g. \"armada cortex, legion\" = cor/arm vs legion.",
-        type   	= "string",
-        section	= "options_experimental",
-        def		= "",
-		hidden	= true,
+        key 	= "air_rework",
+        name 	= "Air Rework",
+        desc 	= "Prototype version with more maneuverable, slower air units and more differentiation between them.",
+        hidden 	= true,
+        type 	= "bool",
+        section = "options_experimental",
+        def 	= false,
     },
 
     {
@@ -1286,13 +1231,45 @@ local options = {
     },
 
     {
-		key		= "forceallunits",
-		name	= "Force Load All Units (For modders/devs)",
-		desc	= "Load all UnitDefs even if ais or options for them aren't enabled",
-		section = "options_experimental",
-		type	= "bool",
-		def		= false,
-	},
+        key 	= "emprework",
+        name 	= "EMP Rework",
+        desc 	= "EMP is changed to slow units movement and firerate, before eventually stunning.",
+        type 	= "bool",
+        hidden 	= true,
+        section = "options_experimental",
+
+        def 	= false,
+    },
+
+    {
+        key 	= "junorework",
+        name 	= "Juno Rework",
+        desc 	= "Juno stuns certain units (such as radars and jammers) rather than magically deleting them",
+        type 	= "bool",
+        hidden 	= true,
+        section = "options_experimental",
+        def 	= false,
+    },
+
+    {
+        key   	= "releasecandidates",
+        name   	= "Release Candidate Units",
+        desc   	= "Adds additional units to the game which are being considered for mainline integration and are balanced, or in end tuning stages.  Currently adds Printer, Siegebreaker, Phantom (Core T2 veh), Shockwave (Arm T2 EMP Mex), and Drone Carriers for armada and cortex",
+        type   	= "bool",
+        hidden 	= false,
+        section = "options_experimental",
+        def  	= false,
+    },
+
+    {
+        key 	= "proposed_unit_reworks",
+        name 	= "Proposed Unit Reworks",
+        desc 	= "Modoption used to test and balance unit reworks that are being considered for the base game.",
+        type 	= "bool",
+        hidden 	= true,
+        section = "options_experimental",
+        def 	= false,
+    },
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1460,16 +1437,13 @@ local options = {
 
     {
         key     = "sub_header",
-        name    = "----------------------------------------------------------------------------------------------------------------------------------------",
-        desc    = "",
         section = "options_cheats",
-        type    = "subheader",
-        def     =  true,
+        type    = "separator",
     },
 
     {
         key     = "sub_header",
-        name    = "-- Resources",
+        name    = "-- Starting Resources",
         desc    = "",
         section = "options_cheats",
         type    = "subheader",
@@ -1525,8 +1499,23 @@ local options = {
     },
 
     {
+        key     = "sub_header",
+        section = "options_cheats",
+        type    = "separator",
+    },
+
+    {
+        key     = "sub_header",
+        name    = "-- Resource Multipliers",
+        desc    = "",
+        section = "options_cheats",
+        type    = "subheader",
+        def     =  true,
+    },
+
+    {
         key		= "multiplier_resourceincome",
-        name	= "Overall Resource Income Multiplier",
+        name	= "Overall Resource Income",
         desc	= "(Range 0.1 - 10). Stacks up with the three options below.",
         type	= "number",
         section = "options_cheats",
@@ -1538,7 +1527,7 @@ local options = {
 
     {
         key		= "multiplier_metalextraction",
-        name	= "Metal Extraction Multiplier ",
+        name	= "Metal Extraction ",
         desc	= "(Range 0.1 - 10).",
         type	= "number",
         section = "options_cheats",
@@ -1550,7 +1539,7 @@ local options = {
 
     {
         key		= "multiplier_energyconversion",
-        name	= "Energy Conversion Efficiency Multiplier ",
+        name	= "Energy Conversion Efficiency",
         desc	= "(Range 0.1 - 2). lower means you get less metal per energy converted",
         type	= "number",
         section = "options_cheats",
@@ -1562,7 +1551,7 @@ local options = {
 
     {
         key 	= "multiplier_energyproduction",
-        name 	= "Energy Production Multiplier",
+        name 	= "Energy Production",
         desc 	= "(Range 0.1 - 10).",
         type 	= "number",
         section = "options_cheats",
@@ -1574,16 +1563,13 @@ local options = {
 
     {
         key     = "sub_header",
-        name    = "----------------------------------------------------------------------------------------------------------------------------------------",
-        desc    = "",
         section = "options_cheats",
-        type    = "subheader",
-        def     =  true,
+        type    = "separator",
     },
 
     {
         key     = "cheatsdescription7",
-        name    = "-- Unit Parameters",
+        name    = "-- Unit Parameter Multipliers",
         desc    = "",
         section = "options_cheats",
         type    = "subheader",
@@ -1592,7 +1578,7 @@ local options = {
 
     {
         key		= "multiplier_maxvelocity",
-        name	= "Unit Max Velocity Multiplier",
+        name	= "Unit Max Velocity",
         desc	= "(Range 0.1 - 10).",
         type	= "number",
         section = "options_cheats",
@@ -1604,7 +1590,7 @@ local options = {
 
     {
         key	= "multiplier_turnrate",
-        name	= "Unit Turn Rate Multiplier",
+        name	= "Unit Turn Rate",
         desc	= "(Range 0.1 - 10).",
         type	= "number",
         section = "options_cheats",
@@ -1616,7 +1602,7 @@ local options = {
 
     {
         key		= "multiplier_builddistance",
-        name	= "Build Range Multiplier ",
+        name	= "Build Range",
         desc	= "(Range 0.5 - 10).",
         type	= "number",
         section = "options_cheats",
@@ -1628,7 +1614,7 @@ local options = {
 
     {
         key		= "multiplier_buildpower",
-        name	= "Build Power Multiplier",
+        name	= "Build Power",
         desc	= "(Range 0.1 - 10).",
         type	= "number",
         section = "options_cheats",
@@ -1640,7 +1626,7 @@ local options = {
 
     {
         key		= "multiplier_losrange",
-        name	= "Vision Range Multiplier",
+        name	= "Vision Range",
         desc	= "(Range 0.5 - 10).",
         type	= "number",
         section = "options_cheats",
@@ -1652,7 +1638,7 @@ local options = {
 
     {
         key		= "multiplier_radarrange",
-        name	= "Radar And Sonar Range Multiplier",
+        name	= "Radar And Sonar Range",
         desc	= "(Range 0.5 - 10).",
         type	= "number",
         section = "options_cheats",
@@ -1664,7 +1650,7 @@ local options = {
 
     {
         key		= "multiplier_weaponrange",
-        name	= "Weapon Range Multiplier",
+        name	= "Weapon Range",
         desc	= "(Range 0.5 - 10).",
         type	= "number",
         section = "options_cheats",
@@ -1676,7 +1662,7 @@ local options = {
 
     {
         key		= "multiplier_weapondamage",
-        name	= "Weapon Damage Multiplier ",
+        name	= "Weapon Damage",
         desc	= "(Range 0.1 - 10). Also affects unit death explosions.",
         type	= "number",
         section = "options_cheats",
@@ -1688,7 +1674,7 @@ local options = {
 
     {
         key		= "multiplier_shieldpower",
-        name	= "Shield Power Multiplier",
+        name	= "Shield Power",
         desc	= "(Range 0.1 - 10)",
         type	= "number",
         section = "options_cheats",
@@ -1696,6 +1682,21 @@ local options = {
         min		= 0.1,
         max		= 10,
         step	= 0.1,
+    },
+
+    {
+        key     = "sub_header",
+        section = "options_cheats",
+        type    = "separator",
+    },
+
+    {
+        key     = "cheatsdescription7",
+        name    = "-- Other",
+        desc    = "",
+        section = "options_cheats",
+        type    = "subheader",
+        def     =  true,
     },
 
     {
@@ -1732,6 +1733,15 @@ local options = {
         type    = "string",
         def     = "",
     },
+
+    {
+		key		= "forceallunits",
+		name	= "Force Load All Units (Dev/Modding)",
+		desc	= "Load all UnitDefs even if ais or options for them aren't enabled",
+		section = "options_cheats",
+		type	= "bool",
+		def		= false,
+	},
 
 }
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
