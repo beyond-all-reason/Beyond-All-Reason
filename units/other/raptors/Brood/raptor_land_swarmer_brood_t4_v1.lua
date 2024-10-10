@@ -32,7 +32,7 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "RAPTORSMALLHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL SPACE",
+		nochasecategory = "VTOL",
 		objectname = "Raptors/s_raptorboss_white.s3o",
 		script = "Raptors/raptorh2.cob",
 		selfdestructas = "BUG_DEATH",

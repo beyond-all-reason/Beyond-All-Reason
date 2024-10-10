@@ -43,7 +43,7 @@ return {
 		speed = 525.0,
 		moverate1 = "32",
 		noautofire = false,
-		nochasecategory = "VTOL SPACE",
+		nochasecategory = "VTOL",
 		objectname = "Raptors/raptorairscout2.s3o",
 		radardistance = 2000,
 		script = "Raptors/raptorairscout.cob",

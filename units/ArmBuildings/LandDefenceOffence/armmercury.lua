@@ -148,7 +148,6 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1850,
 				damage = {
-					space = 750,
 					vtol = 750,
 				},
 			},
@@ -157,7 +156,7 @@ return {
 			[1] = {
 				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
 				def = "ARM_ADVSAM",
-				onlytargetcategory = "VTOL SPACE",
+				onlytargetcategory = "VTOL",
 			},
 		},
 	},

@@ -32,7 +32,7 @@ return {
 		maxwaterdepth = 15,
 		movementclass = "RAPTORALLTERRAINHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL SPACE",
+		nochasecategory = "VTOL",
 		objectname = "Raptors/raptorc3b.s3o",
 		script = "Raptors/raptorc3b.cob",
 		seismicsignature = 0,

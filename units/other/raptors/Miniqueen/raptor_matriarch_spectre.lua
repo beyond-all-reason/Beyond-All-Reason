@@ -43,7 +43,7 @@ return {
 		mincloakdistance = 200,
 		movementclass = "RAPTORQUEENHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL SPACE",
+		nochasecategory = "VTOL",
 		objectname = "Raptors/raptor_miniqueen_spectre.s3o",
 		pushresistant = true,
 		script = "Raptors/raptor_miniqueen.cob",

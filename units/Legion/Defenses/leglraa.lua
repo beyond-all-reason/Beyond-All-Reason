@@ -199,7 +199,6 @@ return {
 					--commanders = 750,
 					default = 1,
 					vtol = 700,
-					space = 700,
 				},
 			},
 		},
@@ -207,7 +206,7 @@ return {
 			[1] = {
 				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
 				def = "railgunt2",
-				onlytargetcategory = "VTOL SPACE",
+				onlytargetcategory = "VTOL/SeaUtil",
 			},
 		},
 	},

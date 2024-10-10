@@ -31,7 +31,7 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "RAPTORBIGHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL SPACE",
+		nochasecategory = "VTOL",
 		objectname = "Raptors/raptore2.s3o",
 		script = "Raptors/raptora1.cob",
 		seismicsignature = 0,
@@ -122,7 +122,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL SPACE",
+				badtargetcategory = "VTOL",
 				def = "raptorparalyzerbig",
 				maindir = "0 0 1",
 				maxangledif = 125,

@@ -44,7 +44,7 @@ return {
 		speed = 240.0,
 		moverate1 = "32",
 		noautofire = false,
-		nochasecategory = "VTOL SPACE",
+		nochasecategory = "VTOL",
 		objectname = "Raptors/raptorf1_mini.s3o",
 		script = "Raptors/raptorf1.cob",
 		seismicsignature = 0,

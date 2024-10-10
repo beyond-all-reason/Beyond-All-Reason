@@ -44,7 +44,7 @@ return {
 		speed = 240.0,
 		moverate1 = "32",
 		noautofire = false,
-		nochasecategory = "VTOL SPACE",
+		nochasecategory = "VTOL",
 		objectname = "Raptors/raptorf1.s3o",
 		script = "Raptors/raptorf1.cob",
 		seismicsignature = 0,
@@ -133,7 +133,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL SPACE",
+				badtargetcategory = "VTOL",
 				def = "FLAMER",
 				maindir = "0 0 1",
 				maxangledif = 270,
