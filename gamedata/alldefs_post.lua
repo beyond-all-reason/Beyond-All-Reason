@@ -616,11 +616,11 @@ function UnitDef_Post(name, uDef)
 		--size tables
 		local sizeMasses = {
 			tiny = 45,--36,
-			small = 180,--100,
-			medium = 300,--250,
-			large = 750,--700,
-			huge = 1200,--1800,
-			gargantuan = 3000,--4500,
+			small = 90,--100,
+			medium = 180,--250,
+			large = 480,--700,
+			huge = 1080,--1800,
+			gargantuan = 4800,--4500,
 			colossal = 12000,--11700
 		}
 
