@@ -16,7 +16,7 @@ end
 if not gadgetHandler:IsSyncedCode() then
 	return false
 end
-if not Spring.GetModOptions().tax_resource_sharing_and_prevent_some_reclaim_loopholes then
+if Spring.GetModOptions().tax_resource_sharing_amount == 0 then
 	return false
 end
 
@@ -24,6 +24,8 @@ local spIsCheatingEnabled = Spring.IsCheatingEnabled
 local spGetTeamUnitCount = Spring.GetTeamUnitCount
 
 local gameMaxUnits = math.min(Spring.GetModOptions().maxunits, math.floor(32000 / #Spring.GetTeamList()))
+
+local sharingTax = Spring.GetModOptions().tax_resource_sharing_amount
 
 ----------------------------------------------------------------
 -- Callins
@@ -52,11 +54,10 @@ function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType
 	-- rShare is the share slider setting, don't exceed their share slider max when sharing
 	local maxShare = rStor * rShare - rCur
 
-	local sharingTax = Spring.GetModOptions().tax_resource_sharing_amount 
 	local taxedAmount = math.min((1-sharingTax)*amount, maxShare)
 	local totalAmount = taxedAmount / (1-sharingTax)
-	local transferTax = totalAmount * sharingTax	
-	
+	local transferTax = totalAmount * sharingTax
+
 	Spring.SetTeamResource(receiverTeamId, resourceName, rCur+taxedAmount)
 	local sCur, _, _, _, _, _ = Spring.GetTeamResources(senderTeamId, resourceName)
 	Spring.SetTeamResource(senderTeamId, resourceName, sCur-totalAmount)
