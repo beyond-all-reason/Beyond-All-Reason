@@ -2352,25 +2352,25 @@ local definitions = {
       ground     = true,
       properties = {
         airdrag             = 0.92,
-        colormap            = [[0.05 0.10 0.05 0.03  0.33 0.40 0.33 0.2  0.32 0.37 0.32 0.13  0.30 0.30 0.30 0.08   0 0 0 0.01]],
+        colormap            = [[0.05 0.10 0.05 0.03  0.33 0.40 0.33 0.2  0.3 0.34 0.3 0.1  0.22 0.22 0.22 0.07   0 0 0 0.01]],
         directional         = false,
         emitrot             = 6,
         emitrotspread       = 4,
         emitvector          = [[-0.1 r0.2, 1, -0.1 r0.2]],
         gravity             = [[0, 0.055, 0]],
         numparticles        = [[0.18 r1]],
-        particlelife        = 44,
-        particlelifespread  = 88,
-        particlesize        = 20,
-        particlesizespread  = 72,
+        particlelife        = 30,
+        particlelifespread  = 90,
+        particlesize        = 64,
+        particlesizespread  = 64,
         particlespeed       = 2.3,
         particlespeedspread = 2.3,
         rotParams           = [[-10 r20, -5 r10, -120 r60]],
-        pos                 = [[0, 15, 0]],
-        sizegrowth          = 0.8,
-        sizemod             = 0.99,
+        pos                 = [[0, 48, 0]],
+        sizegrowth          = 1,
+        sizemod             = 0.985,
         texture             = [[cloudmist]],
-        drawOrder           = 0,
+        drawOrder           = 1,
       },
     },
   },
@@ -2385,18 +2385,19 @@ local definitions = {
       underwater = true,
       water      = true,
       properties = {
-        colormap      = [[0.05 0.09 0.02 0.10   0.12 0.24 0.04 0.08    0.14 0.24 0.06 0.1    0.14 0.24 0.06 0.1    0.14 0.24 0.06 0.1    0.13 0.20 0.06 0.1    0.10 0.16 0.03 0.06   0 0 0 0.01]],
+        colormap      = [[0.045 0.045 0.045 0.06   0.05 0.08 0.043 0.067   0.06 0.12 0.04 0.08    0.075 0.15 0.05 0.10   0.09 0.18 0.06 0.12    0.09 0.18 0.06 0.12    0.09 0.18 0.06 0.12    0.09 0.18 0.06 0.12    0.09 0.18 0.06 0.12    0.042 0.09 0.028 0.06   0 0 0 0.01]],
         dir           = [[dir]],
         frontoffset   = 0,
         fronttexture  = [[bloodcentersplatshwhite]],
         length        = 0,
         sidetexture   = [[none]],
         size          = [[230 r60]],
-        sizegrowth    = 0.1,
-        ttl           = 108,
+        sizegrowth    = 0.10,
+        ttl           = 132,
         pos           = [[0, 8, 0]],
         rotParams     = [[0, 0, -180 r360]],
         alwaysvisible = true,
+        drawOrder     = 1,
       },
     },
     acid_randomsmoke = {
@@ -2407,7 +2408,7 @@ local definitions = {
       water      = true,
       underwater = true,
       properties = {
-        delay              = [[r12]],
+        delay              = [[r18]],
         explosiongenerator = [[custom:acid-area-smoke-repeat]],
         pos                = [[-128 r256, 0 r20, -128 r256]],
       },
@@ -2451,7 +2452,7 @@ local function size(radius)
 end
 
 local function pos(radius, ypos)
-  local xz = string.format([[%.0f %.0f]], radius * -0.4, radius * 0.8)
+  local xz = string.format([[%.0f r%.0f]], radius * -0.4, radius * 0.8)
   return xz .. ", " .. (ypos or [[0]]) .. ", " .. xz
 end
 
