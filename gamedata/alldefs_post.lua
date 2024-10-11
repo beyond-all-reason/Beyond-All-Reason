@@ -618,7 +618,6 @@ function UnitDef_Post(name, uDef)
 
 	--experimental mass standardization based on size
 	if modOptions.mass_impulse_rework and (uDef.mass or uDef.metalcost) then
-		Spring.Echo("StepStop 1", name)
 		
 		--size tables
 		local sizeMasses = {
@@ -634,6 +633,7 @@ function UnitDef_Post(name, uDef)
 		local hovercraftMassMultiplier = 0.8
 		local boatMassMultiplier = 1
 		local treadedMassMultiplier = 1.25
+		local twoLeggedMassMultiplier = 1
 		local fourLeggedMassMultiplier = 1.1
 		local sixLeggedMassMultiplier = 1.35
 		local submarineMassMultiplier = 1
@@ -684,6 +684,27 @@ function UnitDef_Post(name, uDef)
 			legack = true, legcen = true, legck = true, leginc = true
 		}
 
+		local twoLeggedMassTable = {
+			armaak = true, armack = true, armaser = true, armassimilator = true, armcom = true, armcomcon = true, armcomboss = true, 
+			armcomlvl10 = true, armcomlvl2 = true, armcomlvl3 = true, armcomlvl4 = true, armcomlvl5 = true, armcomlvl6 = true, armcomlvl7 = true, 
+			armcomlvl8 = true, armcomlvl9 = true, armdecom = true, armdecomlvl3 = true, armdecomlvl6 = true, armdecomlvl10 = true, armfark = true, 
+			armfboy = true, armfast = true, armham = true, armjeth = true, armlunchbox = true, armmar = true, armmeatball = true, armmav = true, 
+			armpwt4 = true, armpw = true, armraz = true, armrock = true, armspy = true, armsnipe = true, armscavengerbossv2_easy = true, armscavengerbossv2_hard = true, 
+			armscavengerbossv2_normal = true, armscavengerbossv2_veryhard = true, armvader = true, armwar = true, armzeus = true, babyleglob = true, babylegshot = true, 
+			babyarmvader = true, chip = true, comeffigylvl1 = true, comeffigylvl2 = true, comeffigylvl3 = true, comeffigylvl5 = true, cordecom = true, cordecomlvl3 = true, 
+			cordecomlvl6 = true, cordecomlvl10 = true, coramph = true, corcan = true, corcat = true, corcom = true, corcomboss = true, corcomcon = true, corcomlvl2 = true, 
+			corcomlvl3 = true, corcomlvl5 = true, corcomlvl7 = true, corcomlvl8 = true, corcomlvl9 = true, corcomlvl10 = true, cordeadeye = true, cordemon = true, corfast = true, 
+			corhrk = true, corpyro = true, corshiva = true, corspec = true, corspy = true, corstorm = true, corthermite = true, corthud = true, corvoyr = true, critter_ant = true, 
+			critter_crab = true, critter_duck = true, critter_penguin = true, critter_penguinbro = true, critter_penguinking = true, dbg_sphere = true, dbg_sphere_fullmetal = true, 
+			dice = true, leegmech = true, legack = true, legbal = true, legbart = true, legcom = true, legcomecon = true, legcomlvl2 = true, legcomlvl3 = true, legcomlvl4 = true, 
+			legcomlvl5 = true, legcomlvl6 = true, legcomlvl7 = true, legcomlvl10 = true, legcomoff = true, legcomt2com = true, legcomt2def = true, legcomt2off = true, legdecom = true, 
+			legdecomlvl3 = true, legdecomlvl6 = true, legdecomlvl10 = true, leggob = true, legkark = true, legshot = true, legstr = true, leglob = true, leghades = true, 
+			squadcorak = true, squadcorakt4 = true, squadcorkarg = true, squadarmpwt4 = true, squadarmsptk = true, xmasball1_1 = true, xmasball1_2 = true, xmasball1_3 = true, 
+			xmasball1_4 = true, xmasball1_5 = true, xmasball1_6 = true, xmasball2_1 = true, xmasball2_2 = true, xmasball2_3 = true, xmasball2_4 = true, xmasball2_5 = true, 
+			xmasball2_6 = true, pbr_cube = true,
+
+		}
+
 		--assign the masses
 		local function assignBaseMass()
 			if tinyMassesTable[name] then
@@ -707,17 +728,17 @@ function UnitDef_Post(name, uDef)
 		assignBaseMass()
 
 		--assign mass bonuses
-		if uDef.movementclass then
+		if uDef.movementclass and (string.find(name, "cor") or string.find(name, "arm") or string.find(name, "leg")) then
 			local mc = uDef.movementclass
 			if fourLeggedMassTable[name] then
 				uDef.mass = uDef.mass * fourLeggedMassMultiplier
-				--Spring.Echo(name, uDef.mass, "4 legged")
+				Spring.Echo(name, uDef.mass, "4 legged")
 			elseif sixLeggedMassTable[name] then
 				uDef.mass = uDef.mass * sixLeggedMassMultiplier
 				Spring.Echo(name, uDef.mass, "6 legged")
-			elseif string.find(uDef.category, "VTOL") then --zzz
-				uDef.mass = uDef.mass * aircraftMassMultiplier
-				Spring.Echo(name, uDef.mass, "VTOL")
+			elseif twoLeggedMassTable[name] then
+				uDef.mass = uDef.mass * twoLeggedMassMultiplier
+				Spring.Echo(name, uDef.mass, "BOT")
 			elseif mc == "TANK2" or mc == "TANK3" or mc == "MTANK3" or mc == "HTANK4" or mc == "HTANK5" or mc == "ATANK3" then
 				uDef.mass = uDef.mass * treadedMassMultiplier
 				Spring.Echo(name, uDef.mass, "Treaded")
@@ -731,6 +752,11 @@ function UnitDef_Post(name, uDef)
 				uDef.mass = uDef.mass * submarineMassMultiplier
 				Spring.Echo(name, uDef.mass, "Submarine")
 			end
+		elseif uDef.canfly == true then
+			uDef.mass = uDef.mass * aircraftMassMultiplier
+			Spring.Echo(name, uDef.mass, "VTOL")
+		else
+			-- Spring.Echo(name, "Invalid")
 		end
 	end
 
