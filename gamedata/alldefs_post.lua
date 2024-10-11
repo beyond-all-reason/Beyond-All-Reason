@@ -706,26 +706,23 @@ function UnitDef_Post(name, uDef)
 		}
 
 		--assign the masses
-		local function assignBaseMass()
-			if tinyMassesTable[name] then
-				uDef.mass = sizeMasses.tiny
-			elseif smallMassesTable[name] then
-				uDef.mass = sizeMasses.small
-			elseif mediumMassesTable[name] then
-				uDef.mass = sizeMasses.medium
-			elseif largeMassesTable[name] then
-				uDef.mass = sizeMasses.large
-			elseif hugeMassesTable[name] then
-				uDef.mass = sizeMasses.huge
-			elseif gargantuanMassesTable[name] then
-				uDef.mass = sizeMasses.gargantuan
-			elseif immovableMassesTable[name] then
-				uDef.mass = sizeMasses.colossal
-			else uDef.mass = uDef.mass or uDef.metalcost
-			end
+		if tinyMassesTable[name] then
+			uDef.mass = sizeMasses.tiny
+		elseif smallMassesTable[name] then
+			uDef.mass = sizeMasses.small
+		elseif mediumMassesTable[name] then
+			uDef.mass = sizeMasses.medium
+		elseif largeMassesTable[name] then
+			uDef.mass = sizeMasses.large
+		elseif hugeMassesTable[name] then
+			uDef.mass = sizeMasses.huge
+		elseif gargantuanMassesTable[name] then
+			uDef.mass = sizeMasses.gargantuan
+		elseif immovableMassesTable[name] then
+			uDef.mass = sizeMasses.colossal
+		else 
+			uDef.mass = uDef.mass or uDef.metalcost
 		end
-
-		assignBaseMass()
 
 		--assign mass bonuses
 		if uDef.movementclass and (string.find(name, "cor") or string.find(name, "arm") or string.find(name, "leg")) then
