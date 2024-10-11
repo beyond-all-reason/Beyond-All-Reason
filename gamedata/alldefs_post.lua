@@ -615,13 +615,13 @@ function UnitDef_Post(name, uDef)
 		
 		--size tables
 		local sizeMasses = {
-			tiny = 36,
-			small = 100,
-			medium = 250,
-			large = 700,
-			huge = 1800,
-			gargantuan = 4500,
-			colossal = 11700
+			tiny = 45,--36,
+			small = 180,--100,
+			medium = 300,--250,
+			large = 750,--700,
+			huge = 1200,--1800,
+			gargantuan = 3000,--4500,
+			colossal = 12000,--11700
 		}
 
 		local hovercraftMassMultiplier = 0.8
@@ -753,8 +753,10 @@ function UnitDef_Post(name, uDef)
 		}
 		
 		if impulseUnits[name] then
-			uDef.weapondefs.cortron_weapon.impulsefactor = 1
-		end
+			for weaponName, weaponDef in pairs(uDef.weapondefs) do
+				weaponDef.impulsefactor = 1
+			end
+		end		
 	end
 
 	if string.find(name, "raptor") and uDef.health then
