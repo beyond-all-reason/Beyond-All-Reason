@@ -616,8 +616,8 @@ function UnitDef_Post(name, uDef)
 		--size tables
 		local sizeMasses = {
 			tiny = 45,--36,
-			small = 90,--100,
-			medium = 180,--250,
+			small = 120,--100,
+			medium = 210,--250,
 			large = 480,--700,
 			huge = 1080,--1800,
 			gargantuan = 4800,--4500,
@@ -747,16 +747,15 @@ function UnitDef_Post(name, uDef)
 
 		--add weapon impulses
 		local impulseUnits = {
-			corshiva = true, armliche = true, cortrem = true, armbrtha = true, corint = true, armvang = true, armvulc = true, corbuzz = true, armfboy = true, corgol = true,
-			armmav = true, armsilo = true, corsilo = true, cortron = true, corcat = true, corban = true, corparrow = true, corvroc = true, armmerl = true, corhrk = true,
-			cortoast = true, armamb = true, corpun = true, armguard = true
+			corshiva = 0.8, armliche = 1.4, cortrem = 1, armbrtha = 1.4, corint = 1.4, armvang = 1, armvulc = 1, corbuzz = 1, armfboy = 1.4, corgol = 1.4,
+			armmav = 0.8, armsilo = 1, corsilo = 1, cortron = 1, corcat = 0.8, corban = 1.4, corparrow = 0.5, corvroc = 1, armmerl = 1, corhrk = 1,
+			cortoast = 1, armamb = 1, corpun = 1, armguard = 1
 		}
-		
 		if impulseUnits[name] then
 			for weaponName, weaponDef in pairs(uDef.weapondefs) do
-				weaponDef.impulsefactor = 1
+				weaponDef.impulsefactor = impulseUnits[name]
 			end
-		end		
+		end
 	end
 
 	if string.find(name, "raptor") and uDef.health then
