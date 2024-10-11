@@ -9,7 +9,6 @@ return {
 		buildpic = "legbastion.DDS",
 		buildtime = 79000,
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0.0 0.0 0.0",
 		collisionvolumescales = "60 150 60",
 		collisionvolumetype = "box",
@@ -46,7 +45,7 @@ return {
 			model_author = "Hornet",
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,
-			subfolder = "corbuildings/landdefenceoffence",
+			subfolder = "CorBuildings/LandDefenceOffence",
 			techlevel = 2,
 		},
 		featuredefs = {

@@ -12,7 +12,6 @@ return {
 		canmove = true,
 		canreclaim = false,
 		canrepair = false,
-		category = "ALL NOTLAND MOBILE NOTSUB NOTSHIP VTOL NOTHOVER EMPABLE",
 		collide = true,
 		collisionvolumeoffsets = "-1 5 2",
 		collisionvolumescales = "48 48 136",
@@ -49,7 +48,7 @@ return {
 		customparams = {
 			model_author = "Odin",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "scavengers/air",
+			subfolder = "Scavengers/air",
 			techlevel = 3,
 			inheritxpratemultiplier = 1,
 			childreninheritxp = "DRONE",

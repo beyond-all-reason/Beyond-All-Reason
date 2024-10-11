@@ -2367,6 +2367,14 @@ local icontypes = {
 		bitmap = "icons/air_battleship.png",
 		size = 2.29999995
 	},
+	legfortt4 = {
+		bitmap = "icons/air_battleship.png",
+		size = 4.0
+	},
+	legapt3 = {
+		bitmap = "icons/factory_air_t3.png",
+		size = 1.52250004
+	},
 	leggant = {
 		bitmap = "icons/factory_gantry.png",
 		size = 2.51999998

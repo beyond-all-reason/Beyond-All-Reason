@@ -249,24 +249,6 @@ local options = {
         def     =  true,
     },
 
-    {
-		key 	= "no_comtrans",
-		name 	= "T1 Transports Can't Load Coms",
-		desc 	= "Commanders will be too heavy for tech 1 transports to carry. (Tech 2 transports can still carry)",
-		type 	= "bool",
-		section = "options_main",
-		def 	= false,
-	},
-
-	{
-		key 	= "slow_comtrans",
-		name 	= "Slower Transported Commanders",
-		desc 	= "Transports carrying commanders are significantly slower, limiting offensive use and reactive mobility",
-		type 	= "bool",
-		section = "options_main",
-		def 	= false,
-	},
-
 	{
 		key		= "unit_restrictions_notech15",
 		name	= "Disable Tech 1.5",
@@ -396,6 +378,42 @@ local options = {
         def    	= false,
         column  = 1.66,
     },
+    
+    {
+		key			="disable_unit_sharing",
+		name   		="Disable Unit Sharing",
+		desc   		="Disable sharing units and structures to allies",
+		type   		="bool",
+		section		="restrictions",
+		def    		= false,
+	},
+	{
+		key			="disable_assist_ally_construction",
+		name   		="Disable Assist Ally Construction",
+		desc   		="Disables assisting an allied blueprint or lab.",
+		type   		="bool",
+		section		="restrictions",
+		def    		= false,
+	},
+	{
+		key			="tax_resource_sharing_and_prevent_some_reclaim_loopholes",
+		name   		="Tax Resource Sharing",
+		desc   		="Taxes resource sharing and overflow (engine TODO), and disables reclaiming allied units for metal. If using, should also select 'Disable Unit Sharing' and 'Disable Assist Ally Construction'",
+		type   		= "bool",
+		section		="restrictions",
+		def    		= false,
+	},
+	{
+		key    = "tax_resource_sharing_amount",
+		name   = "Resource Sharing Tax Amount",
+		desc   = "(Range: 0 - 0.99). What portion of shared resources (including overflow) will consumed as transfer tax.",
+		type   = "number",
+		def    = 0.4,
+		min    = 0,
+		max    = 0.99,
+		step   = 0.01,
+		section= "restrictions",
+	},
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1282,9 +1300,9 @@ local options = {
     {
         key 	= "proposed_unit_reworks",
         name 	= "Proposed Unit Reworks",
-        desc 	= "Modoption used to test and balance unit reworks that are being considered for the base game.  Shuriken emp damage is reduced and Abductor emp damage and stuntime are reduced, but accuracy is increased.  EMP resist for units is standardized, and units that had low emp resists now take full emp damage. Heavier T1 transport added, light T1 transports cheaper but can carry only 750mass units. T2 transports carry only single unit, Skyhook speed/buildtime/LoS buffed. T3 and heavy T2 units mass reduced (now equals their m cost), Liche impulse nerfed.",
+        desc 	= "Modoption used to test and balance unit reworks that are being considered for the base game.",
         type 	= "bool",
-        --hidden 	= true,
+        hidden 	= true,
         section = "options_experimental",
         def 	= false,
     },

@@ -9,7 +9,7 @@ return {
 		metalcost = 500,
 		buildpic = "scavengers/SCAVBEACON.DDS",
 		buildtime = 5000,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
+		category = "CANBEUW",
 		canmove = false,
 		canSelfDestruct = false,
 		capturable = true,
@@ -48,7 +48,7 @@ return {
 		yardmap = "",
 		reclaimable = true,
 		customparams = {
-			subfolder = "scavengers",
+			subfolder = "Scavengers",
 			normaltex = "unittextures/cor_normal.dds",
 			paratrooper = true,
 		},

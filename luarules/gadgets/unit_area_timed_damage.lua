@@ -235,6 +235,22 @@ local TimedDamageWeaponsNames = {
         range = 150,
         resistance = "test",
     },
+    ['legfortt4_rapidnapalm'] = {
+        ceg = "fire-area-75",
+        damageCeg = "burnflamexl",
+        time = 10,
+        damage = 30,
+        range = 75,
+        resistance = "test",
+    },
+    ['legfortt4_scav_rapidnapalm'] = {
+        ceg = "fire-area-75",
+        damageCeg = "burnflamexl",
+        time = 10,
+        damage = 30,
+        range = 75,
+        resistance = "test",
+    },
 	['legcom_napalmmissile'] = {
         ceg = "fire-area-150",
         damageCeg = "burnflamexl",

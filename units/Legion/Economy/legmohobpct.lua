@@ -9,7 +9,7 @@ return {
 		builddistance = 800,
 		builder = true,
 		canmove = false,
-		category = "",
+		category = "OBJECT",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "0 0 0",
 		collisionvolumetype = "Box",
@@ -38,7 +38,7 @@ return {
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.1,
-			subfolder = "corbuildings/landutil",
+			subfolder = "CorBuildings/LandUtil",
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {

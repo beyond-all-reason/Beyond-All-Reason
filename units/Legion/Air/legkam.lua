@@ -9,7 +9,6 @@ return {
 		buildtime = 2200,
 		canfly = true,
 		canmove = true,
-		category = "ALL MOBILE WEAPON NOTLAND VTOL NOTSUB NOTSHIP NOTHOVER",
 		collide = false,
 		collisionvolumeoffsets = "0 5 12",
 		collisionvolumescales = "15 15 40",
@@ -47,7 +46,7 @@ return {
 			unitgroup = 'weapon',
 			model_author = "Protar",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "coraircraft",
+			subfolder = "CorAircraft",
 		},
 		sfxtypes = {
 			explosiongenerators = {

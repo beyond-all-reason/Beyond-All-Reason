@@ -10,7 +10,6 @@ return {
 		canfly = true,
 		canmove = true,
 		cantbetransported = false,
-		category = "ALL WEAPON VTOL NOTSUB NOTHOVER",
 		collide = true,
 		cruisealtitude = 68,
 		explodeas = "tinyExplosionGeneric",
@@ -36,7 +35,7 @@ return {
 		customparams = {
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "coraircraft",
+			subfolder = "CorAircraft",
 			drone = 1,
 			nohealthbars = 1,
 		},

@@ -9,7 +9,6 @@ return {
 		buildpic = "MISSION_COMMAND_TOWER.DDS",
 		buildtime = 100000,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		energymake = 250,
 		energyupkeep = 0,
 		explodeas = "fusionExplosion",

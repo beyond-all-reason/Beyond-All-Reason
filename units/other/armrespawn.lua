@@ -17,7 +17,6 @@ return {
 		canrepeat = false,
 		canstop = true,
 		cantbetransported = true,
-		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "31 50 31",
 		collisionvolumetype = "CylY",
@@ -52,7 +51,7 @@ return {
 			unitgroup = 'builder',
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armbuildings/seautil",
+			subfolder = "ArmBuildings/SeaUtil",
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {

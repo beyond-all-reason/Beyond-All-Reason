@@ -6,7 +6,6 @@ return {
 		buildpic = "CORMWALL.DDS",
 		buildtime = 14000, -- was 12214
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -3 0",
 		collisionvolumescales = "32 50 32",
 		collisionvolumetype = "CylY",
@@ -46,7 +45,7 @@ return {
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,
-			subfolder = "corbuildings/landdefenceoffence",
+			subfolder = "CorBuildings/LandDefenceOffence",
 			techlevel = 2,
 		},
 		featuredefs = {

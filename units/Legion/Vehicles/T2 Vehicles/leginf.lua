@@ -8,7 +8,6 @@ return {
 		buildpic = "LEGINF.DDS",
 		buildtime = 33000,
 		canmove = true,
-		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE TANK EMPABLE",
 		collisionvolumeoffsets = "0 -10 0",
 		collisionvolumescales = "47 31 57",
 		collisionvolumetype = "Box",
@@ -43,7 +42,7 @@ return {
 			unitgroup = 'weapon',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corvehicles/t2",
+			subfolder = "CorVehicles/T2",
 			techlevel = 2,
 		},
 		featuredefs = {

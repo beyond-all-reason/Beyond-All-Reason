@@ -7,7 +7,6 @@ return {
 		buildpic = "LEGMED.DDS",
 		buildtime = 22500,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -11 -2",
 		collisionvolumescales = "48 48 53",
 		collisionvolumetype = "Box",

@@ -51,7 +51,7 @@ local function updateAllowedSpeed(transportId)
 	local tunitdefcustom
 	local iscom = false
 	local transportspeedmult = 0.0
-	if Spring.GetModOptions().proposed_unit_reworks == false then
+	if 1 == 2 then --stops the gadget from doing anything. CHANGE TO GET ACTUAL SLOWDOWN
 		if units then
 			for _,tUnitId in pairs(units) do
 				tunitdefid = spGetUnitDefID(tUnitId)
