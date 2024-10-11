@@ -2261,39 +2261,39 @@ local icontypes = {
 	},
 	legcom = {
 		bitmap = "icons/legcom.png",
-		size = 1.60000002
+		size = 1.83749986
 	},
 	legcomecon = {
-		bitmap = "icons/legcom_econ.png",
+		bitmap = "icons/legcom.png",
 		size = 1.83749986
 	},
 	legcomlvl2 = {
-		bitmap = "icons/legcom_off.png",
+		bitmap = "icons/legcom.png",
 		size = 1.83749986
 	},
 	legcomlvl3 = {
-		bitmap = "icons/legcom_off.png",
-		size = 2.20000005
+		bitmap = "icons/legcom.png",
+		size = 1.83749986
 	},
 	legcomlvl4 = {
-		bitmap = "icons/legcomt2com.png",
-		size = 2.5
+		bitmap = "icons/legcom.png",
+		size = 1.83749986
 	},
 	legcomoff = {
-		bitmap = "icons/legcom_off.png",
+		bitmap = "icons/legcom.png",
 		size = 1.83749986
 	},
 	legcomt2com = {
-		bitmap = "icons/legcomt2com.png",
-		size = 2.5
+		bitmap = "icons/legcom.png",
+		size = 1.83749986
 	},
 	legcomt2def = {
-		bitmap = "icons/legcomt2_def.png",
-		size = 2.20000005
+		bitmap = "icons/legcom.png",
+		size = 1.83749986
 	},
 	legcomt2off = {
-		bitmap = "icons/legcom_off.png",
-		size = 2.20000005
+		bitmap = "icons/legcom.png",
+		size = 1.83749986
 	},
 	legcs = {
 		bitmap = "icons/ship_worker.png",
