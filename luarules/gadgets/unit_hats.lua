@@ -115,7 +115,7 @@ function gadget:GameFrame(gf)
 		for _, playerID in ipairs(Spring.GetPlayerList()) do
 
 			local accountID = false
-			local playerName, _, spec, teamID, _, _, _, _, _, _, accountInfo = Spring.GetPlayerInfo(playerID, false)
+			local playerName, _, spec, teamID, _, _, _, _, _, accountInfo = Spring.GetPlayerInfo(playerID)
 			if accountInfo and accountInfo.accountid then
 				accountID = tonumber(accountInfo.accountid)
 			end
@@ -128,7 +128,7 @@ function gadget:GameFrame(gf)
 					local unitPosX, unitPosY, unitPosZ = Spring.GetUnitPosition(unitID)
 
 					if unitDefCanWearHats[unitDefID] then
-            
+
 						if MatchPlayer(legchamps, playerName, accountID) and UnitDefNames['cor_hat_legfn'] then
 							local hatDefID = UnitDefNames['cor_hat_legfn'].id
 							local unitID = Spring.CreateUnit(hatDefID, unitPosX, unitPosY, unitPosZ, 0, teamID)
