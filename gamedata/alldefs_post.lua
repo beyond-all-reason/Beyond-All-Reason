@@ -688,15 +688,10 @@ function UnitDef_Post(name, uDef)
 			babyarmvader = true, chip = true, comeffigylvl1 = true, comeffigylvl2 = true, comeffigylvl3 = true, comeffigylvl5 = true, cordecom = true, cordecomlvl3 = true, 
 			cordecomlvl6 = true, cordecomlvl10 = true, coramph = true, corcan = true, corcat = true, corcom = true, corcomboss = true, corcomcon = true, corcomlvl2 = true, 
 			corcomlvl3 = true, corcomlvl5 = true, corcomlvl7 = true, corcomlvl8 = true, corcomlvl9 = true, corcomlvl10 = true, cordeadeye = true, cordemon = true, corfast = true, 
-			corhrk = true, corpyro = true, corshiva = true, corspec = true, corspy = true, corstorm = true, corthermite = true, corthud = true, corvoyr = true, critter_ant = true, 
-			critter_crab = true, critter_duck = true, critter_penguin = true, critter_penguinbro = true, critter_penguinking = true, dbg_sphere = true, dbg_sphere_fullmetal = true, 
-			dice = true, leegmech = true, legack = true, legbal = true, legbart = true, legcom = true, legcomecon = true, legcomlvl2 = true, legcomlvl3 = true, legcomlvl4 = true, 
+			corhrk = true, corpyro = true, corshiva = true, corspec = true, corspy = true, corstorm = true, corthermite = true, corthud = true, corvoyr = true, leegmech = true, legack = true, legbal = true, legbart = true, legcom = true, legcomecon = true, legcomlvl2 = true, legcomlvl3 = true, legcomlvl4 = true, 
 			legcomlvl5 = true, legcomlvl6 = true, legcomlvl7 = true, legcomlvl10 = true, legcomoff = true, legcomt2com = true, legcomt2def = true, legcomt2off = true, legdecom = true, 
 			legdecomlvl3 = true, legdecomlvl6 = true, legdecomlvl10 = true, leggob = true, legkark = true, legshot = true, legstr = true, leglob = true, leghades = true, 
-			squadcorak = true, squadcorakt4 = true, squadcorkarg = true, squadarmpwt4 = true, squadarmsptk = true, xmasball1_1 = true, xmasball1_2 = true, xmasball1_3 = true, 
-			xmasball1_4 = true, xmasball1_5 = true, xmasball1_6 = true, xmasball2_1 = true, xmasball2_2 = true, xmasball2_3 = true, xmasball2_4 = true, xmasball2_5 = true, 
-			xmasball2_6 = true, pbr_cube = true,
-
+			squadcorak = true, squadcorakt4 = true, squadcorkarg = true, squadarmpwt4 = true, squadarmsptk = true,
 		}
 
 		--assign the masses
@@ -748,6 +743,17 @@ function UnitDef_Post(name, uDef)
 			Spring.Echo(name, uDef.mass, "VTOL")
 		else
 			-- Spring.Echo(name, "Invalid")
+		end
+
+		--add weapon impulses
+		local impulseUnits = {
+			corshiva = true, armliche = true, cortrem = true, armbrtha = true, corint = true, armvang = true, armvulc = true, corbuzz = true, armfboy = true, corgol = true,
+			armmav = true, armsilo = true, corsilo = true, cortron = true, corcat = true, corban = true, corparrow = true, corvroc = true, armmerl = true, corhrk = true,
+			cortoast = true, armamb = true, corpun = true, armguard = true
+		}
+		
+		if impulseUnits[name] then
+			uDef.weapondefs.cortron_weapon.impulsefactor = 1
 		end
 	end
 
