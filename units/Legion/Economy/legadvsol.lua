@@ -9,7 +9,6 @@ return {
 		buildpic = "LEGADVSOL.DDS",
 		buildtime = 14000,
 		canrepeat = false,
-		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "60 44 60",
 		collisionvolumetype = "CylY",

@@ -7,7 +7,6 @@ return {
 		buildpic = "scavengers/armsptkt4.DDS",
 		buildtime = 75000,
 		canmove = true,
-		category = "ALL BOT MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -4 0",
 		collisionvolumescales = "75 50 75",
 		collisionvolumetype = "CylY",

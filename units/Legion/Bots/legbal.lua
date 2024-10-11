@@ -7,7 +7,6 @@ return {
 		buildpic = "LEGBAL.DDS",
 		buildtime = 2400,
 		canmove = true,
-		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -2 -1",
 		collisionvolumescales = "26 36 20",
 		collisionvolumetype = "box",

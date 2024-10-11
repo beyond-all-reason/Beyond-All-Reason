@@ -9,7 +9,6 @@ return {
 		buildpic = "LEGAP.DDS",
 		buildtime = 7180,
 		canmove = true,
-		category = "ALL NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "110 33 90",
 		collisionvolumetype = "Box",
@@ -42,6 +41,7 @@ return {
 			[4] = "legcib",
 			[5] = "legmos",
 			[6] = "legatrans",
+			[7] = "corhvytrans",
 		},
 		customparams = {
 			usebuildinggrounddecal = true,

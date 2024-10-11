@@ -9,7 +9,6 @@ return {
 		buildpic = "legbastion.DDS",
 		buildtime = 79000,
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0.0 0.0 0.0",
 		collisionvolumescales = "60 150 60",
 		collisionvolumetype = "box",

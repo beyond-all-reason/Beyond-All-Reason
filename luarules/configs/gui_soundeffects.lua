@@ -3093,6 +3093,11 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-air-gunship-large-ok",
 		BaseSoundWeaponType = "plasma-huge",
 	},
+	legfortt4 = {
+		BaseSoundSelectType = "cor-air-gunship-large-sel",
+		BaseSoundMovementType = "cor-air-gunship-large-ok",
+		BaseSoundWeaponType = "plasma-huge",
+	},
 	legstronghold = {
 		BaseSoundSelectType = "arm-air-transport-large-sel",
 		BaseSoundMovementType = "arm-air-transport-large-ok",
