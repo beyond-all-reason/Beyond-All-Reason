@@ -66,15 +66,12 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 	if unitDef.moveDef.depth and unitDef.moveDef.smClass ~= Game.speedModClasses.Boat and unitDef.moveDef.smClass ~= Game.speedModClasses.ship then
 		if unitDef.moveDef.depth >= isDrownableMaxWaterDepth  then
 			if unitDef.moveDef.smClass == Game.speedModClasses.Hover then --units must have "hover" in their movedef name in order to be treated as hovercraft
-			Spring.Echo("Hover:", unitDef.name)
 				defData.isHover = true
 			else
-				Spring.Echo("Amphibious:", unitDef.name)
 				defData.isAmphibious = true
 			end
 		else
 			defData.isDrownable = true
-			Spring.Echo("Drownable:", unitDef.name)
 		end
 	end
 	unitDefData[unitDefID] = defData
