@@ -699,18 +699,19 @@ function UnitDef_Post(name, uDef)
 		}
 
 		local twoLeggedMassTable = {
-			armaak = true, armack = true, armaser = true, armassimilator = true, armcom = true, armcomcon = true, armcomboss = true, 
-			armcomlvl10 = true, armcomlvl2 = true, armcomlvl3 = true, armcomlvl4 = true, armcomlvl5 = true, armcomlvl6 = true, armcomlvl7 = true, 
-			armcomlvl8 = true, armcomlvl9 = true, armdecom = true, armdecomlvl3 = true, armdecomlvl6 = true, armdecomlvl10 = true, armfark = true, 
-			armfboy = true, armfast = true, armham = true, armjeth = true, armlunchbox = true, armmar = true, armmeatball = true, armmav = true, 
-			armpwt4 = true, armpw = true, armraz = true, armrock = true, armspy = true, armsnipe = true, armscavengerbossv2_easy = true, armscavengerbossv2_hard = true, 
-			armscavengerbossv2_normal = true, armscavengerbossv2_veryhard = true, armvader = true, armwar = true, armzeus = true, babyleglob = true, babylegshot = true, 
-			babyarmvader = true, chip = true, comeffigylvl1 = true, comeffigylvl2 = true, comeffigylvl3 = true, comeffigylvl5 = true, cordecom = true, cordecomlvl3 = true, 
-			cordecomlvl6 = true, cordecomlvl10 = true, coramph = true, corcan = true, corcat = true, corcom = true, corcomboss = true, corcomcon = true, corcomlvl2 = true, 
-			corcomlvl3 = true, corcomlvl5 = true, corcomlvl7 = true, corcomlvl8 = true, corcomlvl9 = true, corcomlvl10 = true, cordeadeye = true, cordemon = true, corfast = true, 
-			corhrk = true, corpyro = true, corshiva = true, corspec = true, corspy = true, corstorm = true, corthermite = true, corthud = true, corvoyr = true, leegmech = true, legack = true, legbal = true, legbart = true, legcom = true, legcomecon = true, legcomlvl2 = true, legcomlvl3 = true, legcomlvl4 = true, 
-			legcomlvl5 = true, legcomlvl6 = true, legcomlvl7 = true, legcomlvl10 = true, legcomoff = true, legcomt2com = true, legcomt2def = true, legcomt2off = true, legdecom = true, 
-			legdecomlvl3 = true, legdecomlvl6 = true, legdecomlvl10 = true, leggob = true, legkark = true, legshot = true, legstr = true, leglob = true, leghades = true, 
+			armaak = true, armack = true, armaser = true, armassimilator = true, armcom = true, armcomcon = true, armcomboss = true,
+			armcomlvl10 = true, armcomlvl2 = true, armcomlvl3 = true, armcomlvl4 = true, armcomlvl5 = true, armcomlvl6 = true, armcomlvl7 = true,
+			armcomlvl8 = true, armcomlvl9 = true, armdecom = true, armdecomlvl3 = true, armdecomlvl6 = true, armdecomlvl10 = true, armfark = true,
+			armfboy = true, armfast = true, armham = true, armjeth = true, armlunchbox = true, armmar = true, armmeatball = true, armmav = true,
+			armpwt4 = true, armpw = true, armraz = true, armrock = true, armspy = true, armsnipe = true, armscavengerbossv2_easy = true, armscavengerbossv2_hard = true,
+			armscavengerbossv2_normal = true, armscavengerbossv2_veryhard = true, armvader = true, armwar = true, armzeus = true, babyleglob = true, babylegshot = true,
+			babyarmvader = true, chip = true, comeffigylvl1 = true, comeffigylvl2 = true, comeffigylvl3 = true, comeffigylvl5 = true, cordecom = true, cordecomlvl3 = true,
+			cordecomlvl6 = true, cordecomlvl10 = true, coramph = true, corcan = true, corcat = true, corcom = true, corcomboss = true, corcomcon = true, corcomlvl2 = true,
+			corcomlvl3 = true, corcomlvl5 = true, corcomlvl7 = true, corcomlvl8 = true, corcomlvl9 = true, corcomlvl10 = true, cordeadeye = true, cordemon = true, corfast = true,
+			corhrk = true, corpyro = true, corshiva = true, corspec = true, corspy = true, corstorm = true, corthermite = true, corthud = true, corvoyr = true, leegmech = true,
+			legack = true, legbal = true, legbart = true, legcom = true, legcomecon = true, legcomlvl2 = true, legcomlvl3 = true, legcomlvl4 = true, legcomlvl5 = true,
+			legcomlvl6 = true, legcomlvl7 = true, legcomlvl10 = true, legcomoff = true, legcomt2com = true, legcomt2def = true, legcomt2off = true, legdecom = true,
+			legdecomlvl3 = true, legdecomlvl6 = true, legdecomlvl10 = true, leggob = true, legkark = true, legshot = true, legstr = true, leglob = true, leghades = true,
 			squadcorak = true, squadcorakt4 = true, squadcorkarg = true, squadarmpwt4 = true, squadarmsptk = true, corakt4 = true, cormandot4 = true,
 		}
 
