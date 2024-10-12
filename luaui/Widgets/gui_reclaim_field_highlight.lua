@@ -75,6 +75,7 @@ local glVertex = gl.Vertex
 local spGetCameraPosition = Spring.GetCameraPosition
 local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGetFeatureResources = Spring.GetFeatureResources
+local spGetFeatureVelocity = Spring.GetFeatureVelocity
 local spGetGroundHeight = Spring.GetGroundHeight
 local spIsGUIHidden = Spring.IsGUIHidden
 local spTraceScreenRay = Spring.TraceScreenRay
@@ -771,37 +772,33 @@ function widget:GameFrame(frame)
 
 	local featuresAdded = false
 	for featureID, fInfo in pairs(flyingFeatures) do
-		local x, y, z = spGetFeaturePosition(featureID)
-		if x ~= fInfo.x or y ~= fInfo.y or z ~= fInfo.z then
-			fInfo.x, fInfo.y, fInfo.z = x, y, z
-		else
+		local _,_,_, vw = spGetFeatureVelocity(featureID)
+		if vw <= 1e-3 then
 			flyingFeatures[featureID] = nil
-			local metal = spGetFeatureResources(featureID)
-			if metal >= minFeatureMetal then
-				fInfo.metal = metal
-				local M = featureNeighborsMatrix
-				local M_newFeature = {}
-				local reachDistSq, epsilonSq = mathHuge, epsilonSq
-				for fid2, feat2 in pairs(knownFeatures) do
-					local distSq = (x - feat2.x)^2 + (z - feat2.z)^2
-					if distSq <= epsilonSq then
-						M[fid2][featureID] = distSq
-						M_newFeature[fid2] = distSq
-						if distSq < reachDistSq then
-							reachDistSq = distSq
-						end
-						if feat2.rd == nil or distSq < feat2.rd then
-							feat2.rd = distSq
-						end
+			local x, y, z = spGetFeaturePosition(featureID)
+			fInfo.x, fInfo.y, fInfo.z = x, y, z
+			local M = featureNeighborsMatrix
+			local M_newFeature = {}
+			local reachDistSq, epsilonSq = mathHuge, epsilonSq
+			for fid2, feat2 in pairs(knownFeatures) do
+				local distSq = (x - feat2.x)^2 + (z - feat2.z)^2
+				if distSq <= epsilonSq then
+					M[fid2][featureID] = distSq
+					M_newFeature[fid2] = distSq
+					if distSq < reachDistSq then
+						reachDistSq = distSq
+					end
+					if feat2.rd == nil or distSq < feat2.rd then
+						feat2.rd = distSq
 					end
 				end
-				featureNeighborsMatrix[featureID] = M_newFeature
-				if reachDistSq < epsilonSq then
-					fInfo.rd = reachDistSq
-				end
-				knownFeatures[featureID] = fInfo
-				featuresAdded = true
 			end
+			featureNeighborsMatrix[featureID] = M_newFeature
+			if reachDistSq < epsilonSq then
+				fInfo.rd = reachDistSq
+			end
+			knownFeatures[featureID] = fInfo
+			featuresAdded = true
 		end
 	end
 
@@ -856,10 +853,10 @@ function widget:FeatureCreated(featureID, allyTeamID)
 			z     = z,
 		}
 
-		-- To deal with e.g. raptor eggs spawning from unit midpoint:
+		-- To deal with e.g. raptor eggs spawning at altitude ~20:
 		if y > 0 then
-			local y_gh = spGetGroundHeight(x, z)
-			if y_gh > 0 and y > y_gh + 2 then
+			local elevation = spGetGroundHeight(x, z)
+			if elevation > 0 and y > elevation + 2 then
 				flyingFeatures[featureID] = feature
 				return -- Delay clusterizing until stationary.
 			end
