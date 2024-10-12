@@ -624,48 +624,53 @@ function UnitDef_Post(name, uDef)
 			colossal = 12000,--11700
 		}
 
-		local hovercraftMassMultiplier = 0.8
+		local hovercraftMassMultiplier = 1
 		local boatMassMultiplier = 1
-		local treadedMassMultiplier = 1.25
+		local treadedMassMultiplier = 1.5
 		local twoLeggedMassMultiplier = 1
 		local fourLeggedMassMultiplier = 1.1
-		local sixLeggedMassMultiplier = 1.35
+		local sixLeggedMassMultiplier = 1.5
 		local submarineMassMultiplier = 1
 		local aircraftMassMultiplier  = 0.6
 
 		local tinyMassesTable = {
-			armfav = true, armflea = true, armvader = true, corfav = true, corroach = true, corsktl = true, legscout = true, legsnapper = true,
+			armfav = 1, armflea = 1, armvader = 1, corfav = 1, corroach = 1, corsktl = 1, legscout = 1, legsnapper = 1
 		}
 		local smallMassesTable = {
-			armamph = true, armfast = true, armfark = true, armflash = true, armgremlin = true, armham = true, armjeth = true, armmark = true, armpw = true, armrectr = true,
-			armrock = true, armsh = true, armspid = true, armspy = true, corak = true, corcrash = true, corfast = true, corgator = true, cornecro = true, corsh = true, corspy = true,
-			corstorm = true, corthud = true, corvoyr = true, legcen = true, leghades = true, legglob = true, leggob = true, leghelios = true, legsh = true,
+			armamph = 1, armfast = 1, armfark = 1, armflash = 1, armgremlin = 1, armham = 1, armjeth = 1, armmark = 1, armpw = 1, armrectr = 1,
+			armrock = 1, armsh = 1, armspid = 1, armspy = 1, corak = 1, corcrash = 1, corfast = 1, corgator = 1, cornecro = 1, corsh = 1, corspy = 1,
+			corstorm = 1, corthud = 1, corvoyr = 1, legcen = 1, leghades = 1, legglob = 1, leggob = 1, leghelios = 1, legsh = 1
 		}
 		local mediumMassesTable = {
-			armah = true, armanac = true, armch = true, armck = true, armconsul = true, armfido = true, armjam = true, armjanus = true, armlatnk = true, armmart = true, armmh = true,
-			armmlv = true, armpincer = true, armsam = true, armsnipe = true, armsptk = true, armseer = true, armstump = true, armwar = true, armzues = true,
-			coraak = true, corah = true, coramph = true, corch = true, corck = true, corgarp = true, cormando = true, cormh = true, cormist = true, cormlv = true, cormort = true,
-			corpyro = true, corraid = true, corsala = true, corsnap = true, corspec = true, corvrad = true, corwolv = true,
-			legaceb = true, legah = true, legamphtank = true, legbal = true, legbar = true, legck = true, leggat = true, leginfestor = true, legkark = true, legmlv = true,
-			legmrv = true, legmh = true, legner = true, legrail = true,
+			armah = 1, armanac = 1, armch = 1, armck = 1, armconsul = 1, armdecade = 1, armfido = 1, armjam = 1, armjanus = 1, armlatnk = 1,
+			armmart = 1, armmh = 1, armmlv = 1, armpincer = 1, armpt = 1, armsam = 1, armsnipe = 1, armsptk = 1, armseer = 1, armsub = 1, armstump = 1,
+			armwar = 1, armzues = 1, coraak = 1, coracsub = 1, corah = 1, coramph = 1, corch = 1, corck = 1, corgarp = 1, cormando = 1, cormh = 1,
+			cormist = 1, cormlv = 1, cormort = 1, coronager = 1, corpyro = 1, corraid = 1, corsala = 1, corsnap = 1, corspec = 1, corsub = 1, corsupp = 1,
+			corvrad = 1, corwolv = 1, legaceb = 1, legah = 1, legamphtank = 1, legbal = 1, legbar = 1, legck = 1, leggat = 1, leginfestor = 1, legkark = 1,
+			legmh = 1, legmlv = 1, legmrv = 1, legner = 1, legrail = 1
 		}
 		local largeMassesTable = {
-			armack = true, armbeaver = true, armcom = true, armcv = true, armdecom = true, armmav = true, armmart = true, armyork = true,
-			corack = true, corcan = true, corcom = true, corcv = true, cordecom = true, corhal = true, corhrk = true, cormart = true, cormuskrat = true, corsent = true, coreter = true,
-			legack = true, legacv = true, legamcluster = true, legcar = true, legcom = true, legcv = true, legdecom = true, legotter = true, legshot = true, legstr = true,
+			armaas = 1, armacsub = 1, armack = 1, armbeaver = 1, armcom = 1, armcs = 1, armcv = 1, armdecom = 1, armlship = 1, armmart = 1,
+			armmav = 1, armmis = 1, armpship = 1, armrecl = 1, armserp = 1, armsjam = 1, armyork = 1, armsubk = 1, coracsub = 1, corarch = 1,
+			corcan = 1, corcom = 1, corcs = 1, corcv = 1, cordecom = 1, correcl = 1, corfship = 1, corhal = 1, corhrk = 1, cormart = 1, cormls = 1,
+			cormuskrat = 1, corpship = 1, corsent = 1, corshark = 1, corsjam = 1, corssub = 1, coreter = 1, legacv = 1, legack = 1, legamcluster = 1,
+			legcar = 1, legcom = 1, legcv = 1, legdecom = 1, legotter = 1, legshot = 1, legstr = 1
 		}
 		local hugeMassesTable = {
-			armacv = true, armbull = true, armcroc = true, armfboy = true, armmanni = true, armmar = true, armmerl = true, armscab = true, armlun = true,
-			coracv = true, corparrow = true, correap = true, corshiva = true, corsok = true, cormabm = true, cortrem = true, corvroc = true,
-			legacv = true, legaheattank = true, legavroc = true, legbart = true, legfloat = true, legmed = true, legsrail = true, legvcarry = true,
+			armacv = 1, armbull = 1, armcrus = 1, armcroc = 1, armfboy = 1, armaat = 1, armmar = 1, armmship = 1, armmanni = 1, armmerl = 1,
+			armroy = 1, armscab = 1, armlun = 1, coracv = 1, corcrus = 1, corparrow = 1, correap = 1, corshiva = 1, corsok = 1, cormabm = 1,
+			cortrem = 1, corvroc = 1, corroy = 1, corsentinel = 1, cormship = 1, legacv = 1, legaheattank = 1, legavroc = 1, legbart = 1, legfloat = 1,
+			legmed = 1, legsrail = 1, legvcarry = 1
 		}
 		local gargantuanMassesTable = {
-			armraz = true, armvang = true, corcat = true, corgol = true, corkarg = true, leginc = true, leginf = true, legkeres = true, legpede = true,
+			armantiship = 1, armbats = 1, armraz = 1, armvang = 1, corantiship = 1, corbats = 1, corcat = 1, cordesolator = 1, cordronecarry = 1,
+			corgol = 1, corkarg = 1, leginc = 1, leginf = 1, legkeres = 1, legpede = 1
 		}
-		local immovableMassesTable = {
-			armbanth = true, armthor = true, corjugg = true, corkorg = true, cordemon = true, leegmech = true
+		local colossalMassesTable = {
+			armbanth = 1, armdecadet3 = 1, armepoc = 1, armthor = 1, corblackhy = 1, cordemon = 1, corjugg = 1, corkorg = 1,
+			corsirpc = 1, coresuppt3 = 1, leegmech = 1
 		}
-		
+
 		local sixLeggedMassTable = {
 			armspid = true, armscab = true, armsptk = true,
 			corkarg = true, corroach = true,
@@ -696,19 +701,19 @@ function UnitDef_Post(name, uDef)
 
 		--assign the masses
 		if tinyMassesTable[name] then
-			uDef.mass = sizeMasses.tiny
+			uDef.mass = sizeMasses.tiny * colossalMassesTable[name]
 		elseif smallMassesTable[name] then
-			uDef.mass = sizeMasses.small
+			uDef.mass = sizeMasses.small * colossalMassesTable[name]
 		elseif mediumMassesTable[name] then
-			uDef.mass = sizeMasses.medium
+			uDef.mass = sizeMasses.medium * colossalMassesTable[name]
 		elseif largeMassesTable[name] then
-			uDef.mass = sizeMasses.large
+			uDef.mass = sizeMasses.large * colossalMassesTable[name]
 		elseif hugeMassesTable[name] then
-			uDef.mass = sizeMasses.huge
+			uDef.mass = sizeMasses.huge * colossalMassesTable[name]
 		elseif gargantuanMassesTable[name] then
-			uDef.mass = sizeMasses.gargantuan
-		elseif immovableMassesTable[name] then
-			uDef.mass = sizeMasses.colossal
+			uDef.mass = sizeMasses.gargantuan * colossalMassesTable[name]
+		elseif colossalMassesTable[name] then
+			uDef.mass = sizeMasses.colossal * colossalMassesTable[name]
 		else 
 			uDef.mass = uDef.mass or uDef.metalcost
 		end
