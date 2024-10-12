@@ -615,10 +615,10 @@ function UnitDef_Post(name, uDef)
 		
 		--size tables
 		local sizeMasses = {
-			tiny = 45,--36,
-			small = 120,--100,
-			medium = 210,--250,
-			large = 480,--700,
+			tiny = 36,--36,
+			small = 84,--100,
+			medium = 180,--250,
+			large = 440,--700,
 			huge = 1080,--1800,
 			gargantuan = 4800,--4500,
 			colossal = 12000,--11700
@@ -639,7 +639,9 @@ function UnitDef_Post(name, uDef)
 		local smallMassesTable = {
 			armamph = 1, armfast = 1, armfark = 1, armflash = 1, armgremlin = 1, armham = 1, armjeth = 1, armmark = 1, armpw = 1, armrectr = 1,
 			armrock = 1, armsh = 1, armspid = 1, armspy = 1, corak = 1, corcrash = 1, corfast = 1, corgator = 1, cornecro = 1, corsh = 1, corspy = 1,
-			corstorm = 1, corthud = 1, corvoyr = 1, legcen = 1, leghades = 1, legglob = 1, leggob = 1, leghelios = 1, legsh = 1
+			corstorm = 1, corthud = 1, corvoyr = 1, legcen = 1, leghades = 1, legglob = 1, leggob = 1, leghelios = 1, legsh = 1,
+			corfink = 1, legvenator = 1, armstil = 1, corvamp = 1, corveng = 1, corhunt = 1, corsfig = 1, legcib = 1, armsfig = 1,
+			legfig = 1, armsaber = 1, corbw = 1, legkam = 1, legmos = 1, armkam = 1,
 		}
 		local mediumMassesTable = {
 			armah = 1, armanac = 1, armch = 1, armck = 1, armconsul = 1, armdecade = 1, armfido = 1, armjam = 1, armjanus = 1, armlatnk = 1,
@@ -647,33 +649,38 @@ function UnitDef_Post(name, uDef)
 			armwar = 1, armzues = 1, coraak = 1, coracsub = 1, corah = 1, coramph = 1, corch = 1, corck = 1, corgarp = 1, cormando = 1, cormh = 1,
 			cormist = 1, cormlv = 1, cormort = 1, coronager = 1, corpyro = 1, corraid = 1, corsala = 1, corsnap = 1, corspec = 1, corsub = 1, corsupp = 1,
 			corvrad = 1, corwolv = 1, legaceb = 1, legah = 1, legamphtank = 1, legbal = 1, legbar = 1, legck = 1, leggat = 1, leginfestor = 1, legkark = 1,
-			legmh = 1, legmlv = 1, legmrv = 1, legner = 1, legrail = 1
+			legmh = 1, legmlv = 1, legmrv = 1, legner = 1, legrail = 1, legwhisper = 1, armsehak = 1, armhawk = 1, armfig = 1, corawac = 1, legionnaire = 1,
+			armkam = 1, armcsa = 1, legca = 1, cortitan = 1, armca = 1, armblade = 1, corca = 1, corcsa = 1, armbrawl = 1, armseap = 1, corape = 1,
+			corvalk = 1, armawac = 1
 		}
 		local largeMassesTable = {
 			armaas = 1, armacsub = 1, armack = 1, armbeaver = 1, armcom = 1, armcs = 1, armcv = 1, armdecom = 1, armlship = 1, armmart = 1,
 			armmav = 1, armmis = 1, armpship = 1, armrecl = 1, armserp = 1, armsjam = 1, armyork = 1, armsubk = 1, coracsub = 1, corarch = 1,
 			corcan = 1, corcom = 1, corcs = 1, corcv = 1, cordecom = 1, correcl = 1, corfship = 1, corhal = 1, corhrk = 1, cormart = 1, cormls = 1,
 			cormuskrat = 1, corpship = 1, corsent = 1, corshark = 1, corsjam = 1, corssub = 1, coreter = 1, legacv = 1, legack = 1, legamcluster = 1,
-			legcar = 1, legcom = 1, legcv = 1, legdecom = 1, legotter = 1, legshot = 1, legstr = 1
+			legcar = 1, legcom = 1, legcv = 1, legdecom = 1, legotter = 1, legshot = 1, legstr = 1, legnap = 1, corsb = 1, armpnix = 1, legmineb = 1,
+			legphoenix = 1, legaca = 1, coraca = 1, armaca = 1, armlance = 1, armseap = 1, legatrans = 1, corcut = 1, corhvytrans = 1, armhvytrans = 1,
+			corhurc = 1, armsb = 1, armatlas = 1, armthund = 1, armdfly = 1, cortitan = 1, corshad = 1
 		}
 		local hugeMassesTable = {
 			armacv = 1, armbull = 1, armcrus = 1, armcroc = 1, armfboy = 1, armaat = 1, armmar = 1, armmship = 1, armmanni = 1, armmerl = 1,
 			armroy = 1, armscab = 1, armlun = 1, coracv = 1, corcrus = 1, corparrow = 1, correap = 1, corshiva = 1, corsok = 1, cormabm = 1,
 			cortrem = 1, corvroc = 1, corroy = 1, corsentinel = 1, cormship = 1, legacv = 1, legaheattank = 1, legavroc = 1, legbart = 1, legfloat = 1,
-			legmed = 1, legsrail = 1, legvcarry = 1
+			legmed = 1, legsrail = 1, legvcarry = 1, corakt4 = 1, cormandot4 = 1,
 		}
 		local gargantuanMassesTable = {
 			armantiship = 1, armbats = 1, armraz = 1, armvang = 1, corantiship = 1, corbats = 1, corcat = 1, cordesolator = 1, cordronecarry = 1,
-			corgol = 1, corkarg = 1, leginc = 1, leginf = 1, legkeres = 1, legpede = 1
+			corgol = 1, corkarg = 1, leginc = 1, leginf = 1, legkeres = 1, legpede = 1, cordronecarryair = 1, corcrw = 1, legfort = 1, legstronghold = 1,
+			corcrwh = 1, corseah = 1, corthermite = 1, 
 		}
 		local colossalMassesTable = {
-			armbanth = 1, armdecadet3 = 1, armepoc = 1, armthor = 1, corblackhy = 1, cordemon = 1, corjugg = 1, corkorg = 1,
-			corsirpc = 1, coresuppt3 = 1, leegmech = 1
+			armbanth = 1, armdecadet3 = 1, armepoc = 1, armthor = 1, corblackhy = 1, cordemon = 1, corjugg = 1, corkorg = 1, corkarganetht4 = 1, corgolt4 = 1,
+			corsirpc = 1, coresuppt3 = 1, leegmech = 1, corcrwt4 = 1, armlichet4 = 1, legfortt4 = 1, corfblackhyt4 = 1, armfepocht4 = 1
 		}
 
 		local sixLeggedMassTable = {
 			armspid = true, armscab = true, armsptk = true,
-			corkarg = true, corroach = true,
+			corkarg = true, corroach = true, corthermite = true, corkarganetht4 = true,
 			legaceb = true, leginfestor = true, legpede = true, legsnapper = true, legsrail = true,
 		}
 
@@ -696,22 +703,22 @@ function UnitDef_Post(name, uDef)
 			corhrk = true, corpyro = true, corshiva = true, corspec = true, corspy = true, corstorm = true, corthermite = true, corthud = true, corvoyr = true, leegmech = true, legack = true, legbal = true, legbart = true, legcom = true, legcomecon = true, legcomlvl2 = true, legcomlvl3 = true, legcomlvl4 = true, 
 			legcomlvl5 = true, legcomlvl6 = true, legcomlvl7 = true, legcomlvl10 = true, legcomoff = true, legcomt2com = true, legcomt2def = true, legcomt2off = true, legdecom = true, 
 			legdecomlvl3 = true, legdecomlvl6 = true, legdecomlvl10 = true, leggob = true, legkark = true, legshot = true, legstr = true, leglob = true, leghades = true, 
-			squadcorak = true, squadcorakt4 = true, squadcorkarg = true, squadarmpwt4 = true, squadarmsptk = true,
+			squadcorak = true, squadcorakt4 = true, squadcorkarg = true, squadarmpwt4 = true, squadarmsptk = true, corakt4 = true, cormandot4 = true,
 		}
 
 		--assign the masses
 		if tinyMassesTable[name] then
-			uDef.mass = sizeMasses.tiny * colossalMassesTable[name]
+			uDef.mass = sizeMasses.tiny * tinyMassesTable[name]
 		elseif smallMassesTable[name] then
-			uDef.mass = sizeMasses.small * colossalMassesTable[name]
+			uDef.mass = sizeMasses.small * smallMassesTable[name]
 		elseif mediumMassesTable[name] then
-			uDef.mass = sizeMasses.medium * colossalMassesTable[name]
+			uDef.mass = sizeMasses.medium * mediumMassesTable[name]
 		elseif largeMassesTable[name] then
-			uDef.mass = sizeMasses.large * colossalMassesTable[name]
+			uDef.mass = sizeMasses.large * largeMassesTable[name]
 		elseif hugeMassesTable[name] then
-			uDef.mass = sizeMasses.huge * colossalMassesTable[name]
+			uDef.mass = sizeMasses.huge * hugeMassesTable[name]
 		elseif gargantuanMassesTable[name] then
-			uDef.mass = sizeMasses.gargantuan * colossalMassesTable[name]
+			uDef.mass = sizeMasses.gargantuan * gargantuanMassesTable[name]
 		elseif colossalMassesTable[name] then
 			uDef.mass = sizeMasses.colossal * colossalMassesTable[name]
 		else 
