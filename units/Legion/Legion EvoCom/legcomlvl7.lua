@@ -443,7 +443,7 @@ return {
 			},
 			[3] = {
 				def = "disintegrator",
-				onlytargetcategory = "SURFACE",
+				onlytargetcategory = "NOTSUB",
 			},
 			[4] = {
 				badtargetcategory = "NOTAIR GROUNDSCOUT",
