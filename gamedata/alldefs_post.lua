@@ -637,9 +637,10 @@ function UnitDef_Post(name, uDef)
 		local aircraftMassMultiplier  = 0.6
 		local massPerExtraTechLevelMultiplier = 1
 
+		--mass category tables. YOU MAY CHANGE THE NUMBERS. Keep them within 0.75-1.25 so consistency is maintained.
 		local tinyMassesTable = {
 			armfav = 1, armflea = 1, armvader = 1, corfav = 1, corroach = 1, corsktl = 1, legscout = 1, legsnapper = 1
-		}	
+		}
 		local smallMassesTable = {
 			armamph = 1, armfast = 1, armfark = 1, armflash = 1, armgremlin = 1, armham = 1, armjeth = 1, armmark = 1, armpw = 1, armrectr = 1,
 			armrock = 1, armsh = 1, armspid = 1, armspy = 1, armstil = 1, armsaber = 1, armkam = 1, armzapper = 1, corak = 1, corbw = 1,
