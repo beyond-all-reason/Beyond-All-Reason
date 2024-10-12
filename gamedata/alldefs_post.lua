@@ -613,6 +613,9 @@ function UnitDef_Post(name, uDef)
 	--experimental mass standardization based on size
 	if modOptions.mass_impulse_rework and (uDef.mass or uDef.metalcost) then
 		
+		--imperically selected. This scales how much impulse weapons will deal proportionally to affect each tier of sizeMasses table entries.
+		local targetImpulseMultiplier = 5
+
 		--size tables
 		local sizeMasses = {
 			tiny = 36,--36,
@@ -632,6 +635,7 @@ function UnitDef_Post(name, uDef)
 		local sixLeggedMassMultiplier = 1.5
 		local submarineMassMultiplier = 1
 		local aircraftMassMultiplier  = 0.6
+		local massPerExtraTechLevelMultiplier = 1
 
 		local tinyMassesTable = {
 			armfav = 1, armflea = 1, armvader = 1, corfav = 1, corroach = 1, corsktl = 1, legscout = 1, legsnapper = 1
@@ -728,6 +732,10 @@ function UnitDef_Post(name, uDef)
 		else 
 			uDef.mass = uDef.mass or uDef.metalcost
 		end
+		if uDef.customparams.techlevel and uDef.customparams.techlevel > 1 then
+			local techMultiplierCount = uDef.customparams.techlevel - 1
+			uDef.mass = uDef.mass * massPerExtraTechLevelMultiplier * techMultiplierCount
+		end
 
 		--assign mass bonuses
 		if uDef.movementclass and (string.find(name, "cor") or string.find(name, "arm") or string.find(name, "leg")) then
@@ -772,7 +780,7 @@ function UnitDef_Post(name, uDef)
 			for weaponName, weaponDef in pairs(uDef.weapondefs) do
 				local damage = weaponDef.damage.default or next(weaponDef.damage)
 				if damage and damage > 0 then
-					local targetImpulse = sizeMasses[impulseUnits[name]] * 5
+					local targetImpulse = sizeMasses[impulseUnits[name]] * targetImpulseMultiplier
 					weaponDef.impulsefactor = math.ceil((targetImpulse / damage) * 100) / 100
 					Spring.Echo(name, "impulseFactor", weaponDef.impulsefactor)
 				else
