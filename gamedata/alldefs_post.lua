@@ -614,16 +614,16 @@ function UnitDef_Post(name, uDef)
 	if modOptions.mass_impulse_rework and (uDef.mass or uDef.metalcost) then
 		
 		--imperically selected. This scales how much impulse weapons will deal proportionally to affect each tier of sizeMasses table entries.
-		local targetImpulseMultiplier = 5
+		local targetImpulseMultiplier = 4
 
 		--size tables
 		local sizeMasses = {
-			tiny = 36,--36,
-			small = 84,--100,
-			medium = 180,--250,
-			large = 440,--700,
-			huge = 1080,--1800,
-			gargantuan = 4800,--4500,
+			tiny = 60,--36,
+			small = 120,--100,
+			medium = 240,--250,
+			large = 480,--700,
+			huge = 960,--1800,
+			gargantuan = 2880,--4500,
 			colossal = 12000,--11700
 		}
 
