@@ -617,17 +617,6 @@ StopWalking() {
 	}
 }
 
-ResumeBuilding()
-{
-	sleep 800;
-	if( isBuilding AND ( !isAiming ) )
-	{
-		turn torso to y-axis buildHeading speed <150.000000>;
-		turn rarm to x-axis <-55.000000> - buildPitch speed <45.000000>;
-	}
-	return (0);
-}
-
 
 //-----------------------------------------------------------------------
 //--gun functions
@@ -677,10 +666,6 @@ AimWeapon1(heading, pitch) //pew pew
 	
 	isAiming = 1;
 	wait-for-turn aimy1 around y-axis;
-	if( isBuilding == 1 )
-	{
-		start-script ResumeBuilding();
-	}
 	start-script RestoreAfterDelay();
 	return (1);
 }
