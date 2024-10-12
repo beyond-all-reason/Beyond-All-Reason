@@ -241,8 +241,7 @@ local options = {
 		name	= "Resource Sharing Tax",
 		desc	=	"Taxes resource sharing".."\255\128\128\128".." and overflow (engine TODO:)\n"..
 					"Set to [0] to turn off. Recommened: [0.4]. (Ranges: 0 - 0.99)\n"..
-					"*Disables: Reclaiming of Allied Units\n"..
-					"*Recommended: [Disable Unit Sharing] and [Disable Assist Ally Construction] to prevent loopholes",
+					"*Disables: Reclaiming of Allied Units, [Unit Sharing] and [Assisting Ally Construction] to prevent loopholes",
 		type	= "number",
 		def		= 0,
 		min		= 0,
