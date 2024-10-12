@@ -240,7 +240,7 @@ end
 ---@param teamID_src number source team
 ---@param teamID_rec number recieving team
 ---@param resourceType resourceTypes
----@param amount number
+---@param amount number 
 ---@return nil
 ---
 ---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.ShareTeamResource)
@@ -259,22 +259,22 @@ end
 
 --- If one condition is fulfilled all beneath it are too (e.g. if an unit is in LOS it can read params with `inradar=true` even if the param has `inlos=false`) All GameRulesParam are public, TeamRulesParams can just be `private`,`allied` and/or `public` You can read RulesParams from any Lua enviroments! With those losAccess policies you can limit their access.
 --- Fields:
----     private bool only readable by the ally (default)
----     allied bool readable by ally + ingame allied
+---     private bool only readable by the ally (default) 
+---     allied bool readable by ally + ingame allied 
 ---     typed bool readable if the unit is type (= in radar and was once in LOS)
----     inlos bool readable if the unit is in LOS
----     inradar bool readable if the unit is in AirLOS
----     public bool readable by all
+---     inlos bool readable if the unit is in LOS 
+---     inradar bool readable if the unit is in AirLOS 
+---     public bool readable by all 
 
 ---@alias losAccess
----| "private" #only readable by the ally (default)
----| "allied" #readable by ally + ingame allied
----| "inlos" #readable if the unit is in LOS
+---| "private" #only readable by the ally (default) 
+---| "allied" #readable by ally + ingame allied 
+---| "inlos" #readable if the unit is in LOS 
 ---| "typed" #readable if the unit is type (= in radar and was once in LOS)
----| "inradar" #readable if the unit is in AirLOS
----| "public" #readable by all
+---| "inradar" #readable if the unit is in AirLOS 
+---| "public" #readable by all 
 
----@param paramName string
+---@param paramName string 
 ---@param paramValue number | string #numeric paramValues in quotes will be converted to number.
 ---@param losAccess? losAccess # not typically used in GameRules, see GetGameRulesParams, it will be ignored.
 ---@return nil
@@ -392,8 +392,8 @@ end
 ---@param teamID number
 ---@param build? boolean # the unit is created in "being built" state with buildProgress = 0 (default false)
 ---@param flattenGround? boolean # the unit flattens ground, if it normally does so (default true)
----@param unitID? number # Requests specific unitID
----@param builderID? number #
+---@param unitID? number # Requests specific unitID 
+---@param builderID? number # 
 ---@return nil | number # `unitID` meaning unit was created
 ---
 ---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.CreateUnit)
@@ -408,7 +408,7 @@ end
 ---@param UnitID number
 ---@param selfd? boolean # if true, Makes the unit act like it self-destructed.
 ---@param reclaimed? boolean # Don't show any DeathSequences, don't leave a wreckage. This does not give back the resources to the team!
----@param attackerID? number
+---@param attackerID? number 
 ---@param cleanupImmediately? boolean # stronger version of reclaimed, removes the unit unconditionally and makes its ID available for immediate reuse (otherwise it takes a few frames) (default false)
 ---@return nil
 ---
@@ -514,8 +514,8 @@ return  nil
 end
 
 ---@param unitID number
----@param forceUseWeapons? number #
----@param allowUseWeapons? number #
+---@param forceUseWeapons? number # 
+---@param allowUseWeapons? number # 
 ---@return nil
 ---
 ---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitUseWeapons)
@@ -560,7 +560,7 @@ end
 ---@return nil
 ---
 ---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitWeaponState)
----@diagnostic disable-next-line
+---@diagnostic disable-next-line 
 function Spring.SetUnitWeaponState (unitID, weaponNum, key, value)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 assert(type(weaponNum) == "number","Argument weaponNum is of invalid type - expected number");
@@ -569,19 +569,19 @@ return nil
 end
 
 ---@alias damages table
----| "paralyzeDamageTime=number"
----| "impulseFactor=number"
----| "impulseBoost=number"
----| "craterMult=number"
----| "craterBoost=number"
----| "dynDamageExp=number"
----| "dynDamageMin=number"
----| "dynDamageRange=number"
+---| "paralyzeDamageTime=number" 
+---| "impulseFactor=number" 
+---| "impulseBoost=number" 
+---| "craterMult=number" 
+---| "craterBoost=number" 
+---| "dynDamageExp=number" 
+---| "dynDamageMin=number" 
+---| "dynDamageRange=number" 
 ---| "dynDamageInverted=number" (<>0.0f := true)
----| "craterAreaOfEffect=number"
----| "damageAreaOfEffect=number"
----| "edgeEffectiveness=number"
----| "explosionSpeed=number"
+---| "craterAreaOfEffect=number" 
+---| "damageAreaOfEffect=number" 
+---| "edgeEffectiveness=number" 
+---| "explosionSpeed=number" 
 
 ---@param unitID number
 ---@param weaponNum number | string # Number or string ["selfDestruct" | "explode"]
@@ -644,7 +644,7 @@ end
 
 ---@param unitID number
 ---@param armored? boolean
----@param armorMultiple? number # Cannot be less than zero, clamped to .0001
+---@param armorMultiple? number # Cannot be less than zero, clamped to .0001 
 ---@return nil
 ---
 ---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitArmored)
@@ -750,7 +750,7 @@ end
 
 ---@param unitID number
 ---@param depth number # corresponds to metal extraction rawState
----@param range? number similar to "extractsMetal" in unitDefs
+---@param range? number similar to "extractsMetal" in unitDefs 
 ---
 ---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitMetalExtraction)
 function Spring.SetUnitMetalExtraction(unitID, depth, range) end
@@ -840,7 +840,7 @@ end
 
 ---@param unitID number
 ---@param weaponID number (default -1)
----@param enabled boolean?
+---@param enabled boolean? 
 ---@param power number?
 ---
 ---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitShieldState)
@@ -862,8 +862,8 @@ end
 ---| 'maxDamage'
 ---| 'moveFactor'
 ---| 'mode'
----@param y number? # only when type is "dir"
----@param z number? # only when type is "dir"
+---@param y number? # only when type is "dir" 
+---@param z number? # only when type is "dir" 
 ---
 ---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitFlanking)
 function Spring.SetUnitFlanking (unitID, type, arg1, y, z)
@@ -883,9 +883,9 @@ function Spring.SetUnitNeutral (unitID, neutral)
 end
 
 ---@param unitID number
----@param x? number # when nil or not passed it will drop target and ignore other parameters
----@param y? number #
----@param z? number #
+---@param x? number # when nil or not passed it will drop target and ignore other parameters 
+---@param y? number # 
+---@param z? number # 
 ---@param dgun boolean? # default false
 ---@param userTarget boolean? # default false
 ---@param weaponNum number? # default -1
@@ -915,7 +915,7 @@ end
 ---@param apX number new positionX that enemies aim at on this unit
 ---@param apY number new positionY that enemies aim at on this unit
 ---@param apZ number new positionZ that enemies aim at on this unit
----@param relative? boolean are the new coordinates relative to the world (false) or unit (true) coordinates? Also, not that apY is inverted. (default false)
+---@param relative? boolean are the new coordinates relative to the world (false) or unit (true) coordinates? Also, not that apY is inverted. (default false) 
 ---@return boolean success
 ---
 ---[Open in Browser](https://beyond-all-reason.github.io/spring/ldoc/modules/SyncedCtrl.html#Spring.SetUnitMidAndAimPos)
@@ -1029,8 +1029,8 @@ end
 ---@param offsetX number
 ---@param offsetY number
 ---@param offsetZ number
----@param volumeType? number
----@param primaryAxis? number
+---@param volumeType? number 
+---@param primaryAxis? number 
 function Spring.SetUnitPieceCollisionVolumeData (unitID, pieceIndex, enable, scaleX, scaleY, scaleZ, offsetX, offsetY, offsetZ, volumeType, primaryAxis)
 return nil
 end
@@ -1053,9 +1053,9 @@ end
 ---@param goalx number
 ---@param goaly number
 ---@param goalz number
----@param goalRadius? number
----@param moveSpeed? number
----@param moveRaw? boolean
+---@param goalRadius? number 
+---@param moveSpeed? number 
+---@param moveRaw? boolean 
 ---@return nil
 function Spring.SetUnitMoveGoal (unitID, goalx, goaly, goalz, goalRadius, moveSpeed, moveRaw)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
@@ -1119,7 +1119,7 @@ end
 ---@param unitID number
 ---@param x number
 ---@param z number
----@param alwaysAboveSea? boolean
+---@param alwaysAboveSea? boolean 
 ---@return nil
 function Spring.SetUnitPosition (unitID, x, z, alwaysAboveSea)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
@@ -1172,7 +1172,7 @@ end
 ---@param x number
 ---@param y number
 ---@param z number
----@param decayRate? number
+---@param decayRate? number 
 ---@return nil
 function Spring.AddUnitImpulse (unitID, x, y, z, decayRate)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
@@ -1210,7 +1210,7 @@ return  nil
 end
 
 --TODO is this function deprecated, debug only, or intended to be maintained?
----Marked not permanent, missing doc in Recoil API autodoc
+---Marked not permanent, missing doc in Recoil API autodoc 
 ---@param unitID number
 ---@param weaponID number
 ---@return nil
@@ -1326,7 +1326,7 @@ end
 ---@param apX number new positionX that enemies aim at on this unit
 ---@param apY number new positionY that enemies aim at on this unit
 ---@param apZ number new positionZ that enemies aim at on this unit
----@param relative? boolean are the new coordinates relative to the world (false) or unit (true) coordinates? Also, not that apY is inverted. (default false)
+---@param relative? boolean are the new coordinates relative to the world (false) or unit (true) coordinates? Also, not that apY is inverted. (default false) 
 ---@return boolean
 function Spring.SetFeatureMidAndAimPos ( featureID, mpX, mpY, mpZ, apX, apY, apZ, relative)
 assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
@@ -1919,7 +1919,7 @@ return  numberMock
  end
 
 --Spring.Echo ( arg1 [, arg2 [, ... ]] )
--- return: nil
+-- return: nil 
 ---@param msg string
 function Spring.Echo ( msg, ... )
  assert(type(msg) == "string","Argument command1 is of invalid type - expected string");
@@ -2468,8 +2468,8 @@ assert(type(standardShaderID) == "number","Argument standardShaderID is of inval
 assert(type(deferredShaderID) == "number","Argument deferredShaderID is of invalid type - expected number");
 return  numberMock
  end
-
-
+ 
+ 
 function Spring.IsReplay ( )
 return  booleanMock
  end
@@ -2997,7 +2997,7 @@ end
 
 ---@param unitID number
 ---@param fuel number
----@deprecated
+---@deprecated 
 function Spring.SetUnitFuel (unitID, fuel)
 	assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
 	assert(type(fuel) == "number","Argument fuel is of invalid type - expected number");
