@@ -766,7 +766,7 @@ function UnitDef_Post(name, uDef)
 			corshiva = "medium", armliche = "gargantuan", cortrem = "medium", armbrtha = "gargantuan", corint = "gargantuan", armvang = "huge", armvulc = "large",
 			corbuzz = "large", armfboy = "huge", corgol = "huge", armmav = "medium", armsilo = "gargantuan", corsilo = "gargantuan", cortron = "gargantuan",
 			corcat = "large", corban = "huge", corparrow = "large", corvroc = "huge", armmerl = "huge", corhrk = "large", cortoast = "huge",
-			armamb = "huge", corpun = "large", armguard = "large"
+			armamb = "huge", corpun = "large", armguard = "large", armjanus = "medium", corlevlr = "medium", armmart = "tiny", corwolv = "tiny"
 		}
 		if impulseUnits[name] then
 			for weaponName, weaponDef in pairs(uDef.weapondefs) do
