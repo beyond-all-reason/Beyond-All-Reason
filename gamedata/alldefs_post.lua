@@ -625,7 +625,7 @@ function UnitDef_Post(name, uDef)
 		}
 
 		local hovercraftMassMultiplier = 1
-		local boatMassMultiplier = 1
+		local boatMassMultiplier = 1.5
 		local treadedMassMultiplier = 1.5
 		local twoLeggedMassMultiplier = 1
 		local fourLeggedMassMultiplier = 1.1
@@ -763,13 +763,21 @@ function UnitDef_Post(name, uDef)
 
 		--add weapon impulses
 		local impulseUnits = {
-			corshiva = 0.8, armliche = 1.4, cortrem = 1, armbrtha = 1.4, corint = 1.4, armvang = 1, armvulc = 1, corbuzz = 1, armfboy = 1.4, corgol = 1.4,
-			armmav = 0.8, armsilo = 1, corsilo = 1, cortron = 1, corcat = 0.8, corban = 1.4, corparrow = 0.5, corvroc = 1, armmerl = 1, corhrk = 1,
-			cortoast = 1, armamb = 1, corpun = 1, armguard = 1
+			corshiva = "medium", armliche = "gargantuan", cortrem = "medium", armbrtha = "huge", corint = "huge", armvang = "huge", armvulc = "large",
+			corbuzz = "large", armfboy = "huge", corgol = "huge", armmav = "medium", armsilo = "gargantuan", corsilo = "gargantuan", cortron = "gargantuan",
+			corcat = "large", corban = "huge", corparrow = "large", corvroc = "huge", armmerl = "huge", corhrk = "large", cortoast = "huge",
+			armamb = "huge", corpun = "large", armguard = "large"
 		}
 		if impulseUnits[name] then
 			for weaponName, weaponDef in pairs(uDef.weapondefs) do
-				weaponDef.impulsefactor = impulseUnits[name]
+				local damage = weaponDef.damage.default or next(weaponDef.damage)
+				if damage and damage > 0 then
+					local targetImpulse = sizeMasses[impulseUnits[name]] * 5
+					weaponDef.impulsefactor = math.ceil((targetImpulse / damage) * 100) / 100
+					Spring.Echo(name, "impulseFactor", weaponDef.impulsefactor)
+				else
+					weaponDef.impulsefactor = 0.123
+				end
 			end
 		end
 	end
