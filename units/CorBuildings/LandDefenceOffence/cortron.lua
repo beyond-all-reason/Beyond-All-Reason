@@ -3,7 +3,6 @@ return {
 		buildangle = 8192,
 		buildpic = "CORTRON.DDS",
 		buildtime = 59000,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "59 47 59",
 		collisionvolumetype = "CylY",

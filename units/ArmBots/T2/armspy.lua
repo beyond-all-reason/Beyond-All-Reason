@@ -10,7 +10,6 @@ return {
 		canmove = true,
 		canrepair = false,
 		canrestore = false,
-		category = "BOT MOBILE ALL NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		cloakcost = 50,
 		cloakcostmoving = 100,
 		collisionvolumeoffsets = "0 0 0",

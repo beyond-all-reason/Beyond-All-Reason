@@ -5,7 +5,6 @@ return {
 		buildpic = "ARMAH.DDS",
 		buildtime = 3560,
 		canmove = true,
-		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -3 0",
 		collisionvolumescales = "34 20 34",
 		collisionvolumetype = "CylY",

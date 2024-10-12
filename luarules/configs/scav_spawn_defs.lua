@@ -1001,6 +1001,7 @@ local AirUnitsList = {
 			["corcrwt4_scav"] = 2,
 			--Legion
 			["legfort_scav"] = 3,
+			["legfortt4_scav"] = 1,
 
 		},
 	},
@@ -1075,6 +1076,7 @@ local AirUnitsList = {
 			["corcrwh_scav"] = 3,
 			--Legion
 			["legfort_scav"] = 3,
+			["legfortt4_scav"] = 3,
 		},
 	}
 }

@@ -5,7 +5,6 @@ return {
 		buildpic = "CORUWMMM.DDS",
 		buildtime = 31300,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "120 120 120",
 		collisionvolumetype = "Ell",

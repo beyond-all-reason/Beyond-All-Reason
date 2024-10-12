@@ -6,7 +6,7 @@ return {
 		buildpic = "CORUWMEX.DDS",
 		buildtime = 1880,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE UNDERWATER EMPABLE",
+		category = "CANBEUW",
 		collisionvolumeoffsets = "0 -55 0",
 		collisionvolumescales = "31 128 31",
 		collisionvolumetype = "CylY",

@@ -6,7 +6,6 @@ return {
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,
-		category = "ALL MOBILE WEAPON VTOL NOTLAND NOTSUB NOTSHIP NOTHOVER CANBEUW",
 		collide = true,
 		cruisealtitude = 85,
 		energycost = 5400,

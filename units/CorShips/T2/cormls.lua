@@ -5,7 +5,6 @@ return {
 		buildpic = "CORMLS.DDS",
 		buildtime = 4800,
 		canmove = true,
-		category = "ALL NOWEAPON SHIP NOTSUB MOBILE NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "-2 -3 0",
 		collisionvolumescales = "24 24 42",
 		collisionvolumetype = "CylZ",

@@ -5,7 +5,6 @@ return {
 		buildpic = "ARMTL.DDS",
 		buildtime = 3700,
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "DEAD",
 		energycost = 1500,
 		explodeas = "mediumBuildingExplosionGeneric",
@@ -25,6 +24,7 @@ return {
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 494,
 		sonardistance = 230,
+		waterline = 0,
 		yardmap = "ooooooooo",
 		customparams = {
 			model_author = "FireStorm",

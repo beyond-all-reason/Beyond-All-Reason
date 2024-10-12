@@ -4,7 +4,6 @@ return {
 		buildpic = "CORGANTUW.DDS",
 		buildtime = 67300,
 		canmove = true,
-		category = "ALL NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER UNDERWATER EMPABLE",
 		collisionvolumeoffsets = "0 -5 8",
 		collisionvolumescales = "150 43 150",
 		collisionvolumetype = "CylY",

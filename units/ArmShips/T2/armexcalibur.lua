@@ -6,7 +6,6 @@ return {
 		buildpic = "armexcalibur.DDS",
 		buildtime = 18000,
 		canmove = true,
-		category = "ALL MOBILE NOTLAND WEAPON SUB NOTSHIP NOTAIR NOTHOVER EMPABLE UNDERWATER",
 		collide = true,
 		collisionvolumeoffsets = "0 1 -4",
 		collisionvolumescales = "20 15 52",

@@ -3,7 +3,6 @@ return {
 		buildangle = 8192,
 		buildpic = "CORSILO.DDS",
 		buildtime = 181000,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 18 -2",
 		collisionvolumescales = "90 38 84",
 		collisionvolumetype = "Box",

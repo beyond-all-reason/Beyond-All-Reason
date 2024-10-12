@@ -4,7 +4,6 @@ return {
 		buildpic = "ARMVULC.DDS",
 		buildtime = 1400000,
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 -45",
 		collisionvolumescales = "90 145 90",
 		collisionvolumetype = "CylY",

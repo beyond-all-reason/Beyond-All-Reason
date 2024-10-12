@@ -4,7 +4,6 @@ return {
 		buildpic = "CORGARP.DDS",
 		buildtime = 3100,
 		canmove = true,
-		category = "ALL TANK PHIB WEAPON NOTSUB NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		collisionvolumeoffsets = "0 -3 0",
 		collisionvolumescales = "30 21 36",
 		collisionvolumetype = "Box",

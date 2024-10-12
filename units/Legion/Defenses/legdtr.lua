@@ -7,7 +7,6 @@ return {
 		buildpic = "LEGDTR.DDS",
 		buildtime = 4420,
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "DEAD",
 		damagemodifier = 0.33,
 		decoyfor = "legdrag",

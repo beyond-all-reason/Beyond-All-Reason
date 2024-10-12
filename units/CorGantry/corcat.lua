@@ -4,7 +4,6 @@ return {
 		buildtime = 127000,
 		canmove = true,
 		cantbetransported = true,
-		category = "WEAPON NOTSUB NOTAIR NOTHOVER SURFACE BOT EMPABLE",
 		collisionvolumeoffsets = "0 0 2",
 		collisionvolumescales = "60 53 48",
 		collisionvolumetype = "CylY",

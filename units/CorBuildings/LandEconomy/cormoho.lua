@@ -6,7 +6,6 @@ return {
 		buildpic = "CORMOHO.DDS",
 		buildtime = 14100,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "79 37 79",
 		collisionvolumetype = "CylY",

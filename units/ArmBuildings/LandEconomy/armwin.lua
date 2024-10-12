@@ -4,7 +4,6 @@ return {
 		buildpic = "ARMWIN.DDS",
 		buildtime = 1600,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "34 87 34",
 		collisionvolumetype = "CylY",

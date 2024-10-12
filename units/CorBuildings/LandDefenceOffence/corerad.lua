@@ -5,7 +5,6 @@ return {
 		buildpic = "CORERAD.DDS",
 		buildtime = 12000,
 		canrepeat = false,
-		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "DEAD",
 		energycost = 7900,
 		explodeas = "mediumBuildingExplosionGeneric",

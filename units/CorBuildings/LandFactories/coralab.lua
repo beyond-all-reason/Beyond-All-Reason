@@ -5,7 +5,6 @@ return {
 		buildpic = "CORALAB.DDS",
 		buildtime = 16800,
 		canmove = true,
-		category = "ALL NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 13 8",
 		collisionvolumescales = "101 51 90",
 		collisionvolumetype = "Box",

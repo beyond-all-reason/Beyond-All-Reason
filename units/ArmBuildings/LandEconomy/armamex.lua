@@ -6,7 +6,6 @@ return {
 		buildpic = "ARMAMEX.DDS",
 		buildtime = 1800,
 		canrepeat = false,
-		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
 		cloakcost = 12,
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "70 50 70",

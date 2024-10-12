@@ -3,7 +3,6 @@ return {
 		buildpic = "CORMART.DDS",
 		buildtime = 6500,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "38 24 41",
 		collisionvolumetype = "Box",

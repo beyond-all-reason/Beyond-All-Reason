@@ -6,7 +6,6 @@ return {
 		canfly = true,
 		canmove = true,
 		cantbetransported = false,
-		category = "ALL WEAPON VTOL NOTSUB NOTHOVER",
 		collide = true,
 		cruisealtitude = 78,
 		energycost = 1300,
