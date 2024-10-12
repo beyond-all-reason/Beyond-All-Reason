@@ -149,7 +149,7 @@ return {
 				footprintz = 2,
 				height = 20,
 				metal = 2750,
-				object = 'Units/armcom_dead.s3o',
+				object = 'Units/legcom_dead.s3o',
 				reclaimable = true,
 			},
 			heap = {
