@@ -723,6 +723,8 @@ function widget:Initialize()
 	for _, featureID in ipairs(Spring.GetAllFeatures()) do
 		widget:FeatureCreated(featureID)
 	end
+
+	camUpVector = spGetCameraVectors().up
 end
 
 function widget:Shutdown()
