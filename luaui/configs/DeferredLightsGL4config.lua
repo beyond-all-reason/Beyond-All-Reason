@@ -9323,7 +9323,7 @@ local unitLights = {
 		headlightcorcom = {
 			lightType = 'cone',
 			pieceName = 'head',
-			lightConfig = { posx = 0, posy = 1, posz = 9, radius = 420,
+			lightConfig = { posx = 0, posy = 1, posz = 5.5, radius = 420,
 							dirx = 0, diry = -0.17, dirz = 1, theta = 0.25999999,
 							r = -1, g = 1, b = 1, a = 0.5,
 							modelfactor = 0.1, specular = 0.5, scattering = 3.2, lensflare = 1,
