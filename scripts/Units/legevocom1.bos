@@ -3,7 +3,7 @@
 
 //INCREMENT THIS COUNTER FOR EVERY HOUR OF YOUR LIFE WASTED HERE: 26
 		
-piece	pelvis, torso, head, Pack, aaturret, aabarrel, packdecor, lshoulder, larm, lhand, barrelheatray, rshoulder, rarm, rhand, barreldgun, lthigh, lleg, lfoot, ltoes, rthigh, rleg, rfoot, rtoes,
+piece	pelvis, torso, head, pack, aaturret, aabarrel, packdecor, lshoulder, larm, lhand, barrelminigun, rshoulder, rarm, rhand, barreldgun, lthigh, lleg, lfoot, ltoes, rthigh, rleg, rfoot, rtoes,
 		aimxl, aimxr, aimy1, hatpoint, misflare, tankpivot, nano, flare, flaredgun, teleport;
 
 static-var isAiming, isBuilding, isAimingDgun, buildHeading, buildPitch, leftArm, rightArm, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, torsoRot, isDancing, idleTime, shotcount;
@@ -497,7 +497,7 @@ Create(){
 	hide teleport;
 	
 	spin aaturret around y-axis speed <33>; 
-	spin packdecor around y-axis speed <-100>;
+	spin packdecor around y-axis speed <-100>; \
 	turn tankpivot to x-axis <-5> now;
 	
 	animSpeed = 4;
@@ -560,6 +560,7 @@ ExecuteRestoreAfterDelay()
 	turn aimy1 to  y-axis <0> speed <100.0>; 
 	spin aaturret around y-axis speed <33>; 
 	turn aabarrel to  x-axis <-30> speed <100.0>;
+	stop-spin barrelminigun around z-axis decelerate <30>;
 	
 	turn larm to x-axis <15> speed <95.0000>; 
 	turn rarm to x-axis <15> speed <95.0000>; 
@@ -681,11 +682,16 @@ lua_UnitScriptLight(lightIndex, count)
 
 FireWeapon1()
 {
-	sleep 100;
-	
-	++shotcount;
-	emit-sfx 1024 + 0 from flare;
 	call-script lua_UnitScriptLight(1, shotcount);
+	++shotcount;
+	spin barrelminigun around z-axis speed <600> accelerate <60>;
+	emit-sfx 1024 + 3 from flare;
+	sleep 100;
+	emit-sfx 1024 + 3 from flare;
+	sleep 100;
+	emit-sfx 1024 + 3 from flare;
+	sleep 100;
+	emit-sfx 1024 + 3 from flare;
 	return (0);
 }
 
@@ -792,10 +798,57 @@ AimWeapon4(heading, pitch)
 	return (1);
 }
 
+/////////// Bot Cannon
+QueryWeapon5(piecenum)
+{
+	piecenum = flaredgun;
+	return (0);
+}
+
+AimFromWeapon5(piecenum)
+{
+	piecenum = rhand;
+	return (0);
+}
+
+FireWeapon5()
+{
+	emit-sfx 1024 + 1 from flaredgun;
+	isAimingDgun = 0;
+	call-script lua_UnitScriptLight(3, shotcount);
+	++shotcount;
+	
+	move barreldgun to z-axis [-5] now;
+	
+	move barreldgun to z-axis [0] speed [10];
+	
+	return (0);
+}
+
+AimWeapon5(heading, pitch)
+{
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	isAimingDgun = 1;
+	isAiming = 1;
+	rightArm = 0;
+	
+	turn aimy1 to y-axis heading speed <360.0000> ;
+	torsoRot = heading;
+	turn rshoulder to y-axis <0.0> speed <300.0>;
+	turn rarm to x-axis 0-(pitch/2) speed <390.0000>;
+	turn rhand to x-axis 0-(pitch/2) speed <390.0000>;
+	
+	wait-for-turn aimy1 around y-axis;
+	
+	return (1);
+}
+
 StartBuilding(heading, pitch)
 {
 	signal SIGNAL_BUILD;
-	isBuilding = 1;
+	set-signal-mask SIGNAL_BUILD;
+	isBuilding = 0;
 	show nano;
 	rightArm = 0;
 	
@@ -807,6 +860,9 @@ StartBuilding(heading, pitch)
 	wait-for-turn aimy1 around y-axis;
 
 	set INBUILDSTANCE to 1;
+	buildHeading = heading;
+	buildPitch = pitch;
+	return (0);
 }
 
 TargetCleared(Func_Var_1)
@@ -831,6 +887,7 @@ StopBuilding()
 }
 
 Dance() {
+	set-signal-mask SIGNAL_MOVE;
 	isDancing = TRUE;
 	while(isDancing)
 	{

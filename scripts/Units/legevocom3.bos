@@ -3,14 +3,14 @@
 
 //INCREMENT THIS COUNTER FOR EVERY HOUR OF YOUR LIFE WASTED HERE: 26
 		
-piece	pelvis, torso, head, Pack, aaturret, aabarrel, packdecor, lshoulder, larm, lhand, barrelheatray, rshoulder, rarm, rhand, barreldgun, lthigh, lleg, lfoot, ltoes, rthigh, rleg, rfoot, rtoes,
-		aimxl, aimxr, aimy1, hatpoint, misflare, tankpivot, nano, flare, flaredgun, teleport;
+piece	pelvis, torso, head, pack, rgturret, rgturretarm, rgsleeve, sleevedeco2, rgbarrel, packdecor, lshoulder, larm, lhand, barrelchainplasma, rshoulder, rarm, rhand, barreldgun, lthigh, lleg, lfoot, ltoes, rthigh, rleg, rfoot, rtoes,
+		aimxl, aimxr, aimy1, hatpoint, rgflare, tankpivot, nano, flare, flaredgun, teleport;
 
 static-var isAiming, isBuilding, isAimingDgun, buildHeading, buildPitch, leftArm, rightArm, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, torsoRot, isDancing, idleTime, shotcount;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
-#define SIGNAL_move 512
+#define SIGNAL_MOVE 512
 #define SIGNAL_AIM2 1024
 #define SIGNAL_BUILD 2048
 
@@ -432,7 +432,7 @@ UnitSpeed(){
 	while(TRUE){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
-		animSpeed = (maxSpeed * 6) / animSpeed; 
+		animSpeed = (maxSpeed * 5) / animSpeed; 
 		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<2) animSpeed=2;
 		if (animspeed>8) animSpeed = 8;
@@ -495,13 +495,12 @@ Create(){
 	hide hatpoint;
 	hide aimy1;
 	hide teleport;
-	
-	spin aaturret around y-axis speed <33>; 
+	spin sleevedeco2 around z-axis speed <-100>;
 	spin packdecor around y-axis speed <-100>;
 	turn tankpivot to x-axis <-5> now;
 	
 	animSpeed = 4;
-	isMoving = 0;
+	isMoving = FALSE;
 	isAiming = 0;
 	isBuilding = 0;
 	isAimingDgun = 0;
@@ -517,7 +516,7 @@ Create(){
 	start-script UnitSpeed();
 	call-script StopWalking();
 	call-script StopDance();
-	call-script RestoreAfterDelay();
+	start-script RestoreAfterDelay();
 }
 
 QueryNanoPiece(piecenum)
@@ -547,19 +546,17 @@ RestoreAfterDelay()
 
 ExecuteRestoreAfterDelay()
 {
-    if (Stunned) {
-        return (1);
-    }
-	
 	isAiming = 0;
 	isAimingDgun = 0;
 	rightarm = 1;
 	leftarm = 1;
 	torsoRot = 0;
 	
-	turn aimy1 to  y-axis <0> speed <100.0>; 
-	spin aaturret around y-axis speed <33>; 
-	turn aabarrel to  x-axis <-30> speed <100.0>;
+	turn aimy1 to  y-axis <0> speed <100.0>;
+	stop-spin barrelchainplasma around z-axis decelerate <30>;
+	turn rgturret to y-axis <0> speed <30>;
+	turn rgturretarm to x-axis <-5> speed <30>;
+	turn rgsleeve to x-axis <-5> speed <30>;
 	
 	turn larm to x-axis <15> speed <95.0000>; 
 	turn rarm to x-axis <15> speed <95.0000>; 
@@ -654,7 +651,7 @@ AimWeapon1(heading, pitch) //pew pew
 	
 	if (isDancing)
 	{
-		call-script StopDance();
+		start-script StopDance();
 	}
 	
 	signal SIGNAL_AIM1;
@@ -681,42 +678,59 @@ lua_UnitScriptLight(lightIndex, count)
 
 FireWeapon1()
 {
-	sleep 100;
-	
+	emit-sfx 1024 + 3 from flare;
+	spin barrelchainplasma around z-axis speed <400> accelerate <60>;
 	++shotcount;
-	emit-sfx 1024 + 0 from flare;
 	call-script lua_UnitScriptLight(1, shotcount);
 	return (0);
 }
 
-/////////// Underwater Torpedo
+
+
+/////////// Torpedo (from dgun arm)
 QueryWeapon2(piecenum)
 {
-	piecenum = misflare;
+	piecenum = flaredgun;
 	return (0);
 }
 
 AimFromWeapon2(piecenum)
 {
-	piecenum = aabarrel;
+	piecenum = rhand;
+	return (0);
+}
+
+FireWeapon2()
+{
+	move barreldgun to z-axis [-5] now;
+	
+	move barreldgun to z-axis [0] speed [10];
+	
 	return (0);
 }
 
 AimWeapon2(heading, pitch)
 {
-	signal SIGNAL_AIM2;
-	set-signal-mask SIGNAL_AIM2;
-	turn aaturret to y-axis heading - torsoRot speed <250.0>;
-	turn aabarrel to x-axis <0> - pitch speed <200.0>;
-	wait-for-turn aaturret around y-axis;
-	wait-for-turn aabarrel around x-axis;
+	if (isAimingDgun){
+		return (0);
+	}
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	isAiming = 1;
+	rightArm = 0;
+	
+	turn aimy1 to y-axis heading speed <360.0000> ;
+	torsoRot = heading;
+	turn rshoulder to y-axis <0.0> speed <300.0>;
+	turn rarm to x-axis 0-(pitch/2) speed <390.0000>;
+	turn rhand to x-axis 0-(pitch/2) speed <390.0000>;
+	
+	wait-for-turn aimy1 around y-axis;
+	
 	return (1);
 }
 
-FireWeapon2()
-{
-	return (0);
-}
+
 
 /////////// D-Gun
 QueryWeapon3(piecenum)
@@ -729,6 +743,26 @@ AimFromWeapon3(piecenum)
 {
 	piecenum = rhand;
 	return (0);
+}
+
+AimWeapon3(heading, pitch)
+{
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	
+	isAimingDgun = 1;
+	isAiming = 1;
+	rightArm = 0;
+	
+	turn aimy1 to y-axis heading speed <360.0000> ;
+	torsoRot = heading;
+	turn rshoulder to y-axis <0.0> speed <300.0>;
+	turn rarm to x-axis 0-(pitch/2) speed <390.0000>;
+	turn rhand to x-axis 0-(pitch/2) speed <390.0000>;
+	
+	wait-for-turn aimy1 around y-axis;
+	
+	return (1);
 }
 
 FireWeapon3()
@@ -745,11 +779,77 @@ FireWeapon3()
 	return (0);
 }
 
-AimWeapon3(heading, pitch)
+
+
+QueryWeapon4(piecenum) //railgun
+{
+	piecenum = rgflare;
+	return (0);
+}
+
+AimFromWeapon4(piecenum)
+{
+	piecenum = rgturretarm;
+	return (0);
+}
+
+FireWeapon4()
+{
+	move rgbarrel to z-axis [-5] now;
+	move rgbarrel to z-axis [0] speed [5];
+	return (0);
+}
+
+AimWeapon4(heading, pitch)
+{
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
+	call-script lua_UnitScriptLight(2, shotcount);
+	++shotcount;
+	
+	turn rgturret to y-axis heading - torsoRot speed <250.0>;
+	turn rgturretarm to x-axis 0-(pitch/2) speed <200.0>;
+	turn rgsleeve to x-axis 0-(pitch/2) speed <200.0>;
+	
+	wait-for-turn rgturret around y-axis;
+	
+	return (1);
+}
+
+
+
+/////////// Bot Cannon
+QueryWeapon5(piecenum)
+{
+	piecenum = flaredgun;
+	return (0);
+}
+
+AimFromWeapon5(piecenum)
+{
+	piecenum = rhand;
+	return (0);
+}
+
+FireWeapon5()
+{
+	emit-sfx 1024 + 1 from flaredgun;
+	isAimingDgun = 0;
+	call-script lua_UnitScriptLight(3, shotcount);
+	++shotcount;
+	
+	move barreldgun to z-axis [-5] now;
+	
+	move barreldgun to z-axis [0] speed [10];
+	
+	return (0);
+}
+
+AimWeapon5(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	isAimingDgun = 1;
+	
 	isAiming = 1;
 	rightArm = 0;
 	
@@ -764,38 +864,13 @@ AimWeapon3(heading, pitch)
 	return (1);
 }
 
-QueryWeapon4(piecenum) //ferret
-{
-	piecenum = misflare;
-	return (0);
-}
 
-AimFromWeapon4(piecenum)
-{
-	piecenum = aabarrel;
-	return (0);
-}
-
-FireWeapon4()
-{
-	return (0);
-}
-
-AimWeapon4(heading, pitch)
-{
-	signal SIGNAL_AIM2;
-	set-signal-mask SIGNAL_AIM2;
-	turn aaturret to y-axis heading - torsoRot speed <250.0>;
-	turn aabarrel to x-axis <0> - pitch speed <200.0>;
-	wait-for-turn aaturret around y-axis;
-	wait-for-turn aabarrel around x-axis;
-	return (1);
-}
 
 StartBuilding(heading, pitch)
 {
 	signal SIGNAL_BUILD;
-	isBuilding = 1;
+	set-signal-mask SIGNAL_BUILD;
+	isBuilding = 0;
 	show nano;
 	rightArm = 0;
 	
@@ -807,12 +882,13 @@ StartBuilding(heading, pitch)
 	wait-for-turn aimy1 around y-axis;
 
 	set INBUILDSTANCE to 1;
+	buildHeading = heading;
+	buildPitch = pitch;
+	return (0);
 }
 
 TargetCleared(Func_Var_1)
 {
-	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
 	call-script RestoreAfterDelay();
 	return (0);
 }
@@ -1179,7 +1255,6 @@ Dance() {
 		}
 	}
 }
-
 // Call this when doing literally anything
 StopDance() {
 	move pelvis to x-axis [0] speed [90.651491] / animSpeed;
