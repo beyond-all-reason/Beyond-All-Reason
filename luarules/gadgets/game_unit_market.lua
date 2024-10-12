@@ -189,7 +189,7 @@ local function tryToBuyUnit(unitID, msgFromTeamID)
     UnitSoldBroadcast(unitID, price, old_ownerTeamID, msgFromTeamID)
 end
 
-if true then
+if disable_unit_sharing then
     function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, capture)
         if(capture) then
             return true
