@@ -122,6 +122,7 @@ end
 
 -- Information tables
 local knownFeatures
+local flyingFeatures
 local featureClusters
 local featureConvexHulls
 local featureNeighborsMatrix
@@ -555,6 +556,7 @@ end
 
 local function RemoveFeature(featureID)
 	local neighbors = featureNeighborsMatrix[featureID]
+	local epsilonSq = epsilonSq
 	if neighbors ~= nil then
 		for nid, distSq in pairs(neighbors) do
 			-- Update the reachability of neighbors linked through this point.
@@ -579,6 +581,7 @@ local function RemoveFeature(featureID)
 end
 
 local function UpdateFeatureReclaim()
+	local dirty, wrong = false, false
 	for fid, fInfo in pairs(knownFeatures) do
 		local metal = spGetFeatureResources(fid)
 		if metal >= minFeatureMetal then
@@ -589,15 +592,22 @@ local function UpdateFeatureReclaim()
 				end
 				fInfo.metal = metal
 			end
-			redrawingNeeded = true
+			dirty = true
 		else
 			RemoveFeature(fid)
-			clusterizingNeeded = true
+			wrong = true
 		end
 	end
 
-	for ii = 1, #featureClusters do
-		featureClusters[ii].text = string.formatSI(featureClusters[ii].metal)
+	if not wrong then
+		for ii = 1, #featureClusters do
+			featureClusters[ii].text = string.formatSI(featureClusters[ii].metal)
+		end
+	else
+		clusterizingNeeded = true
+	end
+	if dirty then
+		redrawingNeeded = true
 	end
 end
 
@@ -654,7 +664,7 @@ do
 		--[[3]] onSelectReclaimer,
 		--[[4]] onSelectResurrector,
 		--[[5]] onActiveCommand,
-		--[[6]] widgetHandler:RemoveWidget(),
+		--[[6]] widgetHandler.RemoveWidget,
 	}
 
 	UpdateDrawEnabled = function ()
@@ -734,6 +744,7 @@ function widget:Initialize()
 
 	-- Start/restart feature clustering.
 	knownFeatures = {}
+	flyingFeatures = {}
 	featureNeighborsMatrix = {}
 	featureClusters = {}
 	featureConvexHulls = {}
@@ -789,7 +800,43 @@ function widget:GameFrame(frame)
 		return
 	end
 
-	if clusterizingNeeded == true then
+	local featuresAdded = false
+	for featureID, fInfo in pairs(flyingFeatures) do
+		local x, y, z = spGetFeaturePosition(featureID)
+		if x ~= fInfo.x or y ~= fInfo.y or z ~= fInfo.z then
+			fInfo.x, fInfo.y, fInfo.z = x, y, z
+		else
+			flyingFeatures[featureID] = nil
+			local metal = spGetFeatureResources(featureID)
+			if metal >= minFeatureMetal then
+				fInfo.metal = metal
+				local M = featureNeighborsMatrix
+				local M_newFeature = {}
+				local reachDistSq, epsilonSq = mathHuge, epsilonSq
+				for fid2, feat2 in pairs(knownFeatures) do
+					local distSq = (x - feat2.x)^2 + (z - feat2.z)^2
+					if distSq <= epsilonSq then
+						M[fid2][featureID] = distSq
+						M_newFeature[fid2] = distSq
+						if distSq < reachDistSq then
+							reachDistSq = distSq
+						end
+						if feat2.rd == nil or distSq < feat2.rd then
+							feat2.rd = distSq
+						end
+					end
+				end
+				featureNeighborsMatrix[featureID] = M_newFeature
+				if reachDistSq < epsilonSq then
+					fInfo.rd = reachDistSq
+				end
+				knownFeatures[featureID] = fInfo
+				featuresAdded = true
+			end
+		end
+	end
+
+	if featuresAdded or clusterizingNeeded then
 		for fid, fInfo in pairs(knownFeatures) do
 			local metal = spGetFeatureResources(fid)
 			if metal < minFeatureMetal then
@@ -828,10 +875,27 @@ function widget:FeatureCreated(featureID, allyTeamID)
 	local metal = spGetFeatureResources(featureID)
 	if metal >= minFeatureMetal then
 		local x, y, z = spGetFeaturePosition(featureID)
+		local feature = {
+			fid   = featureID,
+			metal = metal,
+			x     = x,
+			y     = max(0, y),
+			z     = z,
+		}
 
+		-- To deal with e.g. raptor eggs spawning from unit midpoint:
+		if y > 0 then
+			local y_gh = spGetGroundHeight(x, z)
+			if y_gh > 0 and y > y_gh + 2 then
+				flyingFeatures[featureID] = feature
+				return -- Delay clusterizing until stationary.
+			end
+		end
+
+		-- Assuming the feature's motion is highly likely negligible:
 		local M = featureNeighborsMatrix
 		local M_newFeature = {}
-		local reachDistSq = mathHuge
+		local reachDistSq, epsilonSq = mathHuge, epsilonSq
 		for fid2, feat2 in pairs(knownFeatures) do
 			local distSq = (x - feat2.x)^2 + (z - feat2.z)^2
 			if distSq <= epsilonSq then
@@ -846,16 +910,10 @@ function widget:FeatureCreated(featureID, allyTeamID)
 			end
 		end
 		featureNeighborsMatrix[featureID] = M_newFeature
-
-		knownFeatures[featureID] = {
-			fid   = featureID,
-			metal = metal,
-			rd    = (reachDistSq < epsilonSq and reachDistSq) or nil,
-			x     = x,
-			y     = max(0, y), -- Ground height is checked later.
-			z     = z,
-		}
-
+		if reachDistSq < epsilonSq then
+			feature.rd = reachDistSq
+		end
+		knownFeatures[featureID] = feature
 		clusterizingNeeded = true
 	end
 end
@@ -864,6 +922,8 @@ function widget:FeatureDestroyed(featureID, allyTeamID)
 	if knownFeatures[featureID] ~= nil then
 		RemoveFeature(featureID)
 		clusterizingNeeded = true
+	else
+		flyingFeatures[featureID] = nil
 	end
 end
 
