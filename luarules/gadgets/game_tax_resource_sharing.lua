@@ -16,7 +16,7 @@ end
 if not gadgetHandler:IsSyncedCode() then
 	return false
 end
-if not Spring.GetModOptions().tax_resource_sharing_and_prevent_some_reclaim_loopholes then
+if Spring.GetModOptions().tax_resource_sharing_amount == 0 then
 	return false
 end
 
@@ -24,6 +24,8 @@ local spIsCheatingEnabled = Spring.IsCheatingEnabled
 local spGetTeamUnitCount = Spring.GetTeamUnitCount
 
 local gameMaxUnits = math.min(Spring.GetModOptions().maxunits, math.floor(32000 / #Spring.GetTeamList()))
+
+local sharingTax = Spring.GetModOptions().tax_resource_sharing_amount
 
 ----------------------------------------------------------------
 -- Callins
@@ -52,11 +54,10 @@ function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType
 	-- rShare is the share slider setting, don't exceed their share slider max when sharing
 	local maxShare = rStor * rShare - rCur
 
-	local sharingTax = Spring.GetModOptions().tax_resource_sharing_amount 
 	local taxedAmount = math.min((1-sharingTax)*amount, maxShare)
 	local totalAmount = taxedAmount / (1-sharingTax)
-	local transferTax = totalAmount * sharingTax	
-	
+	local transferTax = totalAmount * sharingTax
+
 	Spring.SetTeamResource(receiverTeamId, resourceName, rCur+taxedAmount)
 	local sCur, _, _, _, _, _ = Spring.GetTeamResources(senderTeamId, resourceName)
 	Spring.SetTeamResource(senderTeamId, resourceName, sCur-totalAmount)
@@ -74,10 +75,8 @@ function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
 end
 
 
-	
--- Disallow reclaiming allied units for metal
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
-
+	-- Disallow reclaiming allied units for metal
 	if (cmdID == CMD.RECLAIM and #cmdParams >= 1) then
 		local targetID = cmdParams[1]
 		local targetTeam
@@ -88,20 +87,15 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 		if unitTeam ~= targetTeam and Spring.AreTeamsAllied(unitTeam, targetTeam) then
 			return false
 		end
-	end
-	return true
-end
-
--- Also block guarding allied units that can reclaim
-function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
-	if (cmdID == CMD.GUARD) then
+	-- Also block guarding allied units that can reclaim
+	elseif (cmdID == CMD.GUARD) then
 		local targetID = cmdParams[1]
 		local targetTeam = Spring.GetUnitTeam(targetID)
 		local targetUnitDef = UnitDefs[Spring.GetUnitDefID(targetID)]
 
 		if (unitTeam ~= Spring.GetUnitTeam(targetID)) and Spring.AreTeamsAllied(unitTeam, targetTeam) then
 			-- Labs are considered able to reclaim. In practice you will always use this modoption with "disable_assist_ally_construction", so disallowing guard labs here is fine
-			if targetUnitDef.canReclaim then 
+			if targetUnitDef.canReclaim then
 				return false
 			end
 		end
