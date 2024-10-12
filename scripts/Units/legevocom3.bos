@@ -537,11 +537,11 @@ SetStunned(State)
 RestoreAfterDelay()
 {
 	set-signal-mask SIGNAL_AIM1;
-    if (Stunned) {
-        return (1);
-    }
-	sleep 1000;
-	start-script ExecuteRestoreAfterDelay();
+	sleep 2000;
+	if (!isBuilding)
+	{
+		start-script ExecuteRestoreAfterDelay();
+	}
 }
 
 ExecuteRestoreAfterDelay()

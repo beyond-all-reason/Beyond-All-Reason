@@ -538,9 +538,11 @@ SetStunned(State)
 RestoreAfterDelay()
 {
 	set-signal-mask SIGNAL_AIM1;
-	
-	sleep 1000;
-	start-script ExecuteRestoreAfterDelay();
+	sleep 2000;
+	if (!isBuilding)
+	{
+		start-script ExecuteRestoreAfterDelay();
+	}
 }
 
 ExecuteRestoreAfterDelay()
@@ -793,7 +795,6 @@ AimWeapon4(heading, pitch)
 StartBuilding(heading, pitch)
 {
 	signal SIGNAL_BUILD;
-	set-signal-mask SIGNAL_BUILD;
 	isBuilding = 1;
 	show nano;
 	rightArm = 0;
@@ -806,9 +807,6 @@ StartBuilding(heading, pitch)
 	wait-for-turn aimy1 around y-axis;
 
 	set INBUILDSTANCE to 1;
-	buildHeading = heading;
-	buildPitch = pitch;
-	return (0);
 }
 
 TargetCleared(Func_Var_1)
