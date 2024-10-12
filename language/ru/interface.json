@@ -865,6 +865,8 @@
 			"transportmaxmass": " максимальная масса груза",
 			"transportmaxsize": "максимальный размер груза",
 			"transportcapacity": "вместимость",
+			"transport_heavy": "транспорт %{highlightColor}(Тяжелый)",
+			"transport_light": "транспорт %{highlightColor}(Лёгкий)",
 			"mass": "масса",
 			"footprint": "размер",
 			"speed": "скорость",
