@@ -617,7 +617,7 @@ local function drawCell(cell, zoom)
 				else
 					commandQueue = Spring.GetCommandQueue(referenceUnit, 1)
 				end
-				if commandQueue[1] and commandQueue[1].id == CMD.WAIT then
+				if commandQueue and commandQueue[1] and commandQueue[1].id == CMD.WAIT then
 					curstate = 2
 				else
 					curstate = 1
