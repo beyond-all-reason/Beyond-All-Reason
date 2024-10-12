@@ -106,7 +106,7 @@ return {
 				ownerExpAccWeight = 4.0,
 				proximitypriority = 1,
 				range = 500,
-				reloadtime = 1.5,
+				reloadtime = 1.6,
 				rgbcolor = "1 0.95 0.4",
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
@@ -119,7 +119,7 @@ return {
 				weapontype = "LaserCannon",
 				weaponvelocity = 960,
 				damage = {
-					default = 40,
+					default = 36,
 					vtol = 13,
 				},
 			},
