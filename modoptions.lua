@@ -272,16 +272,19 @@ local options = {
 	{	key = "tax_padding", name = "", type = "subheader", section = "options_main", column = -3, },
 	{
 		key		= "disable_unit_sharing_forced",
-		name	= "\255\252\191\76".."Disable Unit Sharing                              [Forced ON]",
+		--name	= "\255\252\191\76".."Disable Unit Sharing                              [Forced ON]",
+		name	= "\255\252\191\76".."Disable Unit Sharing                                                             Disable Assist Ally Construction",
 		type	= "subheader",
 		section	= "options_main",
 	},
 	{
 		key		= "disable_assist_ally_construction_forced",
-		name	= "\255\252\191\76".."Disable Assist Ally Construction           [Forced ON]",
+		--name	= "\255\252\191\76".."Disable Assist Ally Construction           [Forced ON]",
+		name	= "\255\252\191\76".."[■]                                                                          [■]",
 		type	= "subheader",
 		section	= "options_main",
-		column	= 1.76,
+		column	= 1.505,
+		font	= 4,
 	},
 	{
 		key		= "unit_market",
