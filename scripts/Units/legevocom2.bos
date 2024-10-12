@@ -6,7 +6,7 @@
 piece	pelvis, torso, head, pack, rgturret, rgturretarm, rgsleeve, sleevedeco2, rgbarrel, packdecor, lshoulder, larm, lhand, barrelminigun, rshoulder, rarm, rhand, barreldgun, lthigh, lleg, lfoot, ltoes, rthigh, rleg, rfoot, rtoes,
 		aimxl, aimxr, aimy1, hatpoint, rgflare, tankpivot, nano, flare, flaredgun, teleport;
 
-static-var isAiming, isBuilding, isAimingDgun, buildHeading, buildPitch, leftArm, rightArm, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, torsoRot, isDancing, idleTime;
+static-var isAiming, isBuilding, isAimingDgun, buildHeading, buildPitch, leftArm, rightArm, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, torsoRot, isDancing, idleTime, shotcount;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -431,7 +431,7 @@ UnitSpeed(){
 	while(TRUE){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
-		animSpeed = (maxSpeed * 5) / animSpeed; 
+		animSpeed = (maxSpeed * 6) / animSpeed; 
 		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<2) animSpeed=2;
 		if (animspeed>8) animSpeed = 8;
@@ -461,9 +461,6 @@ UnitSpeed(){
 
 StartMoving(reversing)
 {
-	signal SIGNAL_MOVE;
-	set-signal-mask SIGNAL_MOVE;
-	
 	turn ltoes to z-axis <0> speed <2000>;
 	turn rtoes to z-axis <0> speed <2000>;
 	turn ltoes to z-axis <0> speed <2000>;
@@ -471,7 +468,10 @@ StartMoving(reversing)
 	turn lthigh to y-axis <0> speed <200>; 
 	turn rthigh to y-axis <0> speed <200>; 
 	
-	isMoving = 1;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	isMoving = TRUE;
+	call-script StopDance();
 	start-script walk();
 }
 
@@ -488,7 +488,6 @@ StopMoving(){
 Create(){
 
 	hide nano;
-	hide flare;
 	hide aimxr;
 	hide flaredgun;
 	hide aimxl;
@@ -511,9 +510,11 @@ Create(){
 	torsoRot = 0;
 	isDancing = FALSE;
 	idleTime = 0;
+	shotcount = 0;
 	
 	start-script UnitSpeed();
 	call-script StopWalking();
+	call-script StopDance();
 	start-script RestoreAfterDelay();
 }
 
@@ -683,8 +684,15 @@ AimWeapon1(heading, pitch) //pew pew
 	return (1);
 }
 
+lua_UnitScriptLight(lightIndex, count)
+{
+	return 0;
+}
+
 FireWeapon1()
 {
+	call-script lua_UnitScriptLight(1, shotcount);
+	++shotcount;
 	spin barrelminigun around z-axis speed <600> accelerate <60>;
 	emit-sfx 1024 + 3 from flare;
 	sleep 100;
@@ -765,6 +773,8 @@ AimWeapon3(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
+	call-script lua_UnitScriptLight(3, shotcount);
+	++shotcount;
 	
 	isAiming = 1;
 	rightArm = 0;
@@ -796,6 +806,8 @@ FireWeapon4()
 {
 	move rgbarrel to z-axis [-5] now;
 	move rgbarrel to z-axis [0] speed [5];
+	call-script lua_UnitScriptLight(2, shotcount);
+	++shotcount;
 	return (0);
 }
 
@@ -830,6 +842,8 @@ FireWeapon5()
 {
 	emit-sfx 1024 + 1 from flaredgun;
 	isAimingDgun = 0;
+	call-script lua_UnitScriptLight(3, shotcount);
+	++shotcount;
 	
 	move barreldgun to z-axis [-5] now;
 	
@@ -1247,7 +1261,6 @@ Dance() {
 		}
 	}
 }
-
 // Call this when doing literally anything
 StopDance() {
 	move pelvis to x-axis [0] speed [90.651491] / animSpeed;

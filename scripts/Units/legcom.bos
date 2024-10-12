@@ -3,10 +3,10 @@
 
 //INCREMENT THIS COUNTER FOR EVERY HOUR OF YOUR LIFE WASTED HERE: 26
 		
-piece	pelvis, torso, head, pack, aaturret, aabarrel, packdecor, lshoulder, larm, lhand, barrelheatray, rshoulder, rarm, rhand, barreldgun, lthigh, lleg, lfoot, ltoes, rthigh, rleg, rfoot, rtoes,
+piece	pelvis, torso, head, Pack, aaturret, aabarrel, packdecor, lshoulder, larm, lhand, barrelheatray, rshoulder, rarm, rhand, barreldgun, lthigh, lleg, lfoot, ltoes, rthigh, rleg, rfoot, rtoes,
 		aimxl, aimxr, aimy1, hatpoint, misflare, tankpivot, nano, flare, flaredgun, teleport;
 
-static-var isAiming, isBuilding, isAimingDgun, buildHeading, buildPitch, leftArm, rightArm, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, torsoRot, isDancing, idleTime;
+static-var isAiming, isBuilding, isAimingDgun, buildHeading, buildPitch, leftArm, rightArm, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, torsoRot, isDancing, idleTime, shotcount;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -431,7 +431,7 @@ UnitSpeed(){
 	while(TRUE){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
-		animSpeed = (maxSpeed * 5) / animSpeed; 
+		animSpeed = (maxSpeed * 6) / animSpeed; 
 		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<2) animSpeed=2;
 		if (animspeed>8) animSpeed = 8;
@@ -470,7 +470,7 @@ StartMoving(reversing)
 	
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
-	isMoving = 1;
+	isMoving = TRUE;
 	call-script StopDance();
 	start-script walk();
 }
@@ -488,7 +488,6 @@ StopMoving(){
 Create(){
 
 	hide nano;
-	hide flare;
 	hide aimxr;
 	hide flaredgun;
 	hide aimxl;
@@ -512,6 +511,7 @@ Create(){
 	torsoRot = 0;
 	isDancing = FALSE;
 	idleTime = 0;
+	shotcount = 0;
 	
 	start-script UnitSpeed();
 	call-script StopWalking();
@@ -686,9 +686,18 @@ AimWeapon1(heading, pitch) //pew pew
 	return (1);
 }
 
+lua_UnitScriptLight(lightIndex, count)
+{
+	return 0;
+}
+
 FireWeapon1()
 {
 	sleep 100;
+	
+	++shotcount;
+	emit-sfx 1024 + 0 from flare;
+	call-script lua_UnitScriptLight(1, shotcount);
 	return (0);
 }
 
@@ -738,6 +747,8 @@ FireWeapon3()
 {
 	emit-sfx 1024 + 1 from flaredgun;
 	isAimingDgun = 0;
+	call-script lua_UnitScriptLight(3, shotcount);
+	++shotcount;
 	
 	move barreldgun to z-axis [-5] now;
 	

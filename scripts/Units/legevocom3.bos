@@ -6,7 +6,7 @@
 piece	pelvis, torso, head, pack, rgturret, rgturretarm, rgsleeve, sleevedeco2, rgbarrel, packdecor, lshoulder, larm, lhand, barrelchainplasma, rshoulder, rarm, rhand, barreldgun, lthigh, lleg, lfoot, ltoes, rthigh, rleg, rfoot, rtoes,
 		aimxl, aimxr, aimy1, hatpoint, rgflare, tankpivot, nano, flare, flaredgun, teleport;
 
-static-var isAiming, isBuilding, isAimingDgun, buildHeading, buildPitch, leftArm, rightArm, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, torsoRot, isDancing, idleTime;
+static-var isAiming, isBuilding, isAimingDgun, buildHeading, buildPitch, leftArm, rightArm, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, torsoRot, isDancing, idleTime, shotcount;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -488,7 +488,6 @@ StopMoving(){
 Create(){
 
 	hide nano;
-	hide flare;
 	hide aimxr;
 	hide flaredgun;
 	hide aimxl;
@@ -511,6 +510,7 @@ Create(){
 	torsoRot = 0;
 	isDancing = FALSE;
 	idleTime = 0;
+	shotcount = 0;
 	
 	start-script UnitSpeed();
 	call-script StopWalking();
@@ -685,10 +685,17 @@ AimWeapon1(heading, pitch) //pew pew
 	return (1);
 }
 
+lua_UnitScriptLight(lightIndex, count)
+{
+	return 0;
+}
+
 FireWeapon1()
 {
-	spin barrelchainplasma around z-axis speed <400> accelerate <60>;
 	emit-sfx 1024 + 3 from flare;
+	spin barrelchainplasma around z-axis speed <400> accelerate <60>;
+	++shotcount;
+	call-script lua_UnitScriptLight(1, shotcount);
 	return (0);
 }
 
@@ -776,6 +783,8 @@ FireWeapon3()
 {
 	emit-sfx 1024 + 1 from flaredgun;
 	isAimingDgun = 0;
+	call-script lua_UnitScriptLight(3, shotcount);
+	++shotcount;
 	
 	move barreldgun to z-axis [-5] now;
 	
@@ -809,6 +818,8 @@ AimWeapon4(heading, pitch)
 {
 	signal SIGNAL_AIM2;
 	set-signal-mask SIGNAL_AIM2;
+	call-script lua_UnitScriptLight(2, shotcount);
+	++shotcount;
 	
 	turn rgturret to y-axis heading - torsoRot speed <250.0>;
 	turn rgturretarm to x-axis 0-(pitch/2) speed <200.0>;
@@ -838,6 +849,8 @@ FireWeapon5()
 {
 	emit-sfx 1024 + 1 from flaredgun;
 	isAimingDgun = 0;
+	call-script lua_UnitScriptLight(3, shotcount);
+	++shotcount;
 	
 	move barreldgun to z-axis [-5] now;
 	
