@@ -6,7 +6,7 @@ function widget:GetInfo()
 		author = "woss (Tyson Buzza)",
 		date = "Aug 24, 2024",
 		license = "Public Domain",
-		layer = -999999,
+		layer = 1,
 		enabled = false
 	}
 end

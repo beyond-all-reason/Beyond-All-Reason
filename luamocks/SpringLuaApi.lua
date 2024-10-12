@@ -70,7 +70,6 @@ Engine = {
 }
 
 ---@param path string
---- @return any
 function VFS.Include(path)
     assert(type(path) == "string", "Argument path is of invalid type - expected string");
     return numberMock
