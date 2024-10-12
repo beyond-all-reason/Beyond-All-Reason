@@ -162,63 +162,6 @@ local options = {
     },
 
     {
-        key 	= "unit_market",
-        name 	= "Unit Market",
-        desc 	= "Allow players to trade units. (Select unit, press 'For Sale' in order window or say /sell_unit in chat to mark the unit for sale. Double-click to buy from allies. T2cons show up in shop window!)",
-        type   	= "bool",
-        def    	= false,
-        section = "options_main",
-		lock	= {"disable_unit_sharing"},
-		unlock	= {"disable_unit_sharing_locked"},
-    },
-	{
-		key		= "unit_market_locked",
-		name	= "\255\128\128\128".."Unit Market                                             [Disable Unit Sharing]",
-		type	= "subheader",
-		section = "options_main",
-	},
-
-	{
-		key		= "disable_unit_sharing",
-		name	= "Disable Unit Sharing",
-		desc	= "Disable sharing units and structures to allies",
-		type	= "bool",
-		section	= "options_main",
-		def		= false,
-		lock	= {"unit_market"},
-		unlock	= {"unit_market_locked"},
-	},
-	{
-		key		= "disable_unit_sharing_locked",
-		name	= "\255\128\128\128".."Disable Unit Sharing                              [Unit Market]",
-		type	= "subheader",
-		section	= "options_main",
-	},
-	{
-		key		= "disable_assist_ally_construction",
-		name	= "Disable Assist Ally Construction",
-		desc	= "Disables assisting allied blueprints and labs.",
-		type	= "bool",
-		section	= "options_main",
-		def		=  false,
-	},
-	{
-		key		= "tax_resource_sharing_amount",
-		name	= "Resource Sharing Tax",
-		desc	=	"Taxes resource sharing".."\255\128\128\128".." and overflow (engine TODO:)\n"..
-					"Set to [0] to turn off. Recommened: [0.4]. (Ranges: 0 - 0.99)\n"..
-					"*Disables: Reclaiming of Allied Units\n"..
-					"*Recommended: [Disable Unit Sharing] and [Disable Assist Ally Construction] to prevent loopholes",
-		type	= "number",
-		def		= 0,
-		min		= 0,
-		max		= 0.99,
-		step	= 0.01,
-		section	= "options_main",
-		column	= 1,
-	},
-
-    {
         key		= "transportenemy",
         name	= "Enemy Transporting",
         desc	= "Toggle which enemy units you can kidnap with an air transport",
@@ -231,7 +174,6 @@ local options = {
             { key= "none", 		name= "Disallow All", 		desc= "No enemy units can be napped" },
         }
     },
-
 
     {
         key     = "teamffa_start_boxes_shuffle",
@@ -281,6 +223,76 @@ local options = {
         max    	= 30,
         step   	= 1,
     },
+
+	{
+		key		= "sub_header",
+		section	= "options_main",
+		type	= "separator",
+	},
+	{
+		key		= "sub_header",
+		name	= "-- Sharing and Taxes",
+		section	= "options_main",
+		type	= "subheader",
+		def		=  true,
+	},
+	{
+		key		= "tax_resource_sharing_amount",
+		name	= "Resource Sharing Tax",
+		desc	=	"Taxes resource sharing".."\255\128\128\128".." and overflow (engine TODO:)\n"..
+					"Set to [0] to turn off. Recommened: [0.4]. (Ranges: 0 - 0.99)\n"..
+					"*Disables: Reclaiming of Allied Units\n"..
+					"*Recommended: [Disable Unit Sharing] and [Disable Assist Ally Construction] to prevent loopholes",
+		type	= "number",
+		def		= 0,
+		min		= 0,
+		max		= 0.99,
+		step	= 0.01,
+		section	= "options_main",
+		column	= 1,
+		lock	= {"disable_unit_sharing","disable_assist_ally_construction"},
+		unlock	= {"disable_unit_sharing_forced","disable_assist_ally_construction_forced"},
+	},
+	{
+		key		= "disable_unit_sharing",
+		name	= "Disable Unit Sharing",
+		desc	= "Disable sharing units and structures to allies",
+		type	= "bool",
+		section	= "options_main",
+		def		= false,
+	},
+	{
+		key		= "disable_assist_ally_construction",
+		name	= "Disable Assist Ally Construction",
+		desc	= "Disables assisting allied blueprints and labs.",
+		type	= "bool",
+		section	= "options_main",
+		def		=  false,
+		column	= 1.76,
+	},
+	{	key = "tax_padding", name = "", type = "subheader", section = "options_main", column = -3, },
+	{
+		key		= "disable_unit_sharing_forced",
+		name	= "\255\252\191\76".."Disable Unit Sharing                              [Forced ON]",
+		type	= "subheader",
+		section	= "options_main",
+	},
+	{
+		key		= "disable_assist_ally_construction_forced",
+		name	= "\255\252\191\76".."Disable Assist Ally Construction           [Forced ON]",
+		type	= "subheader",
+		section	= "options_main",
+		column	= 1.76,
+	},
+	{
+		key		= "unit_market",
+		name	= "Unit Market",
+		desc	= "Allow players to trade units. (Select unit, press 'For Sale' in order window or say /sell_unit in chat to mark the unit for sale. Double-click to buy from allies. T2cons show up in shop window!)",
+		type	= "bool",
+		def		= false,
+		section	= "options_main",
+	},
+
 
     {
         key     = "sub_header",
