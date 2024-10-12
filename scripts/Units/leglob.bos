@@ -6,7 +6,7 @@
 
 piece pelvis, aimy1, torso, aimx1, sleeve, barrel, flare, armor, flap, lthigh, lleg, lfoot, rthigh, rleg, rfoot;
 
-static-var  isMoving, animSpeed, maxSpeed, animFramesPerKeyframe, StompXZ, StompHeading;
+static-var  isMoving, animSpeed, maxSpeed, animFramesPerKeyframe, StompXZ, StompHeading, aimingClose;
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
@@ -16,6 +16,7 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 // Signal definitions
 #define SIGNAL_AIM1 256
 #define SIGNAL_MOVE 1
+#define SIGNAL_RESETDELAY 2
 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 Walk() {
@@ -162,6 +163,7 @@ Create()
 	animSpeed = 3;
 	isMoving = FALSE;
 	animSpeed = 4;
+	aimingClose = 0;
 }
 
 StartMoving(reversing)
@@ -193,7 +195,17 @@ AimFromWeapon1(pieceIndex)
 	pieceIndex = aimx1;
 }
 
+AimFromWeapon2(pieceIndex)
+{
+	pieceIndex = aimx1;
+}
+
 QueryWeapon1(pieceIndex)
+{
+	pieceIndex = flare;
+}
+
+QueryWeapon2(pieceIndex)
 {
 	pieceIndex = flare;
 }
@@ -228,15 +240,25 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
+ResetAimingClose()
+{
+	signal SIGNAL_RESETDELAY;
+	set-signal-mask SIGNAL_RESETDELAY;
+	sleep 200;
+	aimingClose = 0;
+}
+
 AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	
+	aimingClose = 1;
+	start-script ResetAimingClose();
+
 	if (pitch >= <13>)
 	{
-		move flap to y-axis [1] speed [4];
-		move flap to z-axis [-3] speed [6];
+		move flap to y-axis [1.6] speed [4];
+		move flap to z-axis [-5] speed [6];
 	}
 	else
 	{
@@ -251,12 +273,67 @@ AimWeapon1(heading, pitch)
 	wait-for-turn aimx1 around x-axis;
 	
 	start-script RestoreAfterDelay();
+
+		var reloading;
+	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(2));
+	if( reloading )
+	{
+		return(0);
+	}
+
+	return (1);
+}
+
+AimWeapon2(heading, pitch)
+{
+	if (aimingClose == 1){
+		return (0);
+	}
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+
+	if (pitch >= <13>)
+	{
+		move flap to y-axis [1.6] speed [4];
+		move flap to z-axis [-5] speed [6];
+	}
+	else
+	{
+		move flap to y-axis [0.0] speed [1];
+		move flap to z-axis [0.0] speed [6];
+	}
+	
+	turn aimy1 to y-axis heading speed <140>;
+	turn aimx1 to x-axis <0.0> - pitch speed <50>;
+	
+	wait-for-turn aimy1 around y-axis; 
+	wait-for-turn aimx1 around x-axis;
+
+	start-script RestoreAfterDelay();
+		
+	var reloading;
+	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(1));
+	if( reloading )
+	{
+		return(0);
+	}
+
 	return (1);
 }
 
 FireWeapon1()
 {
-	move barrel to z-axis [-2.000000] speed [60.000000];
+	move barrel to z-axis [-3.000000] speed [60.000000];
+	emit-sfx 1024 + 0 from flare;
+	wait-for-move barrel along z-axis;
+	move barrel to z-axis [0.000000] speed [4.000000];
+	wait-for-move barrel along z-axis;
+	return (0);
+}
+
+FireWeapon2()
+{
+	move barrel to z-axis [-5.000000] speed [60.000000];
 	emit-sfx 1024 + 0 from flare;
 	wait-for-move barrel along z-axis;
 	move barrel to z-axis [0.000000] speed [4.000000];
