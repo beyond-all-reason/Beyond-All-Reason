@@ -627,6 +627,7 @@ function UnitDef_Post(name, uDef)
 			colossal = 12000,--11700
 		}
 
+		--do not set land units below 1x multiplier to avoid transportability issues
 		local hovercraftMassMultiplier = 1
 		local boatMassMultiplier = 1.5
 		local treadedMassMultiplier = 1.5
@@ -728,16 +729,16 @@ function UnitDef_Post(name, uDef)
 			uDef.customparams.unit_weight_class = 3
 		elseif largeMassesTable[name] then
 			uDef.mass = sizeMasses.large * largeMassesTable[name]
-			uDef.customparams.unit_weight_class = 4
+			uDef.customparams.unit_weight_class = 3
 		elseif hugeMassesTable[name] then
 			uDef.mass = sizeMasses.huge * hugeMassesTable[name]
-			uDef.customparams.unit_weight_class = 5
+			uDef.customparams.unit_weight_class = 3
 		elseif gargantuanMassesTable[name] then
 			uDef.mass = sizeMasses.gargantuan * gargantuanMassesTable[name]
-			uDef.customparams.unit_weight_class = 6
+			uDef.customparams.unit_weight_class = 3
 		elseif colossalMassesTable[name] then
 			uDef.mass = sizeMasses.colossal * colossalMassesTable[name]
-			uDef.customparams.unit_weight_class = 7
+			uDef.customparams.unit_weight_class = 3
 		else
 			uDef.mass = uDef.mass or uDef.metalcost
 			uDef.customparams.unit_weight_class = 3
@@ -797,6 +798,13 @@ function UnitDef_Post(name, uDef)
 					weaponDef.impulsefactor = 0.123
 				end
 			end
+		end
+
+		local transportUnits = { --assign the category the transport is ~UNABLE~ to carry
+			armatlas = "large", armhvytrans = "gargantuan", armdfly = "gargantuan", corvalk = "large", corhvytrans = "gargantuan", corseah = "gargantuan", legatrans = "large", legstronghold = "gargantuan"
+		}
+		if transportUnits[name] then
+			uDef.transportmass = sizeMasses[transportUnits[name]] - 1
 		end
 	end
 
