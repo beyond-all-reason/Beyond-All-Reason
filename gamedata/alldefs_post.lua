@@ -780,22 +780,51 @@ function UnitDef_Post(name, uDef)
 			-- Spring.Echo(name, "Invalid")
 		end
 
-		--add weapon impulses
+		--add weapon impulses. Acceptable formats are: String representing the key entry in sizeMasses table from above, arbitrary number of desired resultant impulse, or
+		--a table of key = (either string/number value mentioned before) based on the key of each weapon listed in the unit's weapondefs.
 		local impulseUnits = {
-			corshiva = "medium", armliche = "gargantuan", cortrem = "medium", armbrtha = "gargantuan", corint = "gargantuan", armvang = "huge", armvulc = "large",
+			corshiva = {shiva_gun = "medium", shiva_rocket = 1000}, armliche = "gargantuan", cortrem = "medium", armbrtha = "gargantuan", corint = "gargantuan", armvang = "huge", armvulc = "large",
 			corbuzz = "large", armfboy = "huge", corgol = "huge", armmav = "medium", armsilo = "gargantuan", corsilo = "gargantuan", cortron = "gargantuan",
 			corcat = "large", corban = "huge", corparrow = "large", corvroc = "huge", armmerl = "huge", corhrk = "large", cortoast = "huge",
 			armamb = "huge", corpun = "large", armguard = "large", armjanus = "medium", corlevlr = "medium", armmart = "tiny", corwolv = "tiny"
 		}
 		if impulseUnits[name] then
 			for weaponName, weaponDef in pairs(uDef.weapondefs) do
-				local damage = weaponDef.damage.default or next(weaponDef.damage)
-				if damage and damage > 0 then
-					local targetImpulse = sizeMasses[impulseUnits[name]] * targetImpulseMultiplier
-					weaponDef.impulsefactor = math.ceil((targetImpulse / damage) * 100) / 100
-					Spring.Echo(name, "impulseFactor", weaponDef.impulsefactor)
-				else
-					weaponDef.impulsefactor = 0.123
+				if type(impulseUnits[name]) == "number" then
+					local damage = weaponDef.damage.default or next(weaponDef.damage)
+					if damage and damage > 0 then
+						local targetImpulse = impulseUnits[name]
+						weaponDef.impulsefactor = math.ceil((targetImpulse / damage) * 100) / 100
+						Spring.Echo(name, "impulseFactor", weaponDef.impulsefactor)
+					end
+				elseif type(impulseUnits[name]) == "string" then
+					local damage = weaponDef.damage.default or next(weaponDef.damage)
+					if damage and damage > 0 then
+						local targetImpulse = sizeMasses[impulseUnits[name]] * targetImpulseMultiplier
+						weaponDef.impulsefactor = math.ceil((targetImpulse / damage) * 100) / 100
+						Spring.Echo(name, "impulseFactor", weaponDef.impulsefactor)
+					end
+				elseif type(impulseUnits[name]) == "table" then
+					for impulseUnitsWeaponName, data in pairs(impulseUnits[name]) do
+						if weaponName == impulseUnitsWeaponName then
+							if type(data) == "number" then
+								local damage = weaponDef.damage.default or next(weaponDef.damage)
+								if damage and damage > 0 then
+									local targetImpulse = data
+									weaponDef.impulsefactor = math.ceil((targetImpulse / damage) * 100) / 100
+									Spring.Echo(name, impulseUnitsWeaponName, "impulseFactor", weaponDef.impulsefactor, data)
+								end
+							elseif type(data) == "string" then
+								local damage = weaponDef.damage.default or next(weaponDef.damage)
+								if damage and damage > 0 then
+									local targetImpulse = sizeMasses[data] * targetImpulseMultiplier
+									weaponDef.impulsefactor = math.ceil((targetImpulse / damage) * 100) / 100
+									Spring.Echo(name, impulseUnitsWeaponName, "impulseFactor", weaponDef.impulsefactor, data)
+								end
+							end
+							break
+						end
+					end
 				end
 			end
 		end
