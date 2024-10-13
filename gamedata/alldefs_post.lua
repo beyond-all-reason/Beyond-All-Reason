@@ -780,14 +780,17 @@ function UnitDef_Post(name, uDef)
 			-- Spring.Echo(name, "Invalid")
 		end
 
+		--any units you want to give impulse to, add an entry to this table. Giving it a string size category will produce optimal yeetage for that amount of mass.
 		--add weapon impulses. Acceptable formats are: String representing the key entry in sizeMasses table from above, arbitrary number of desired resultant impulse, or
 		--a table of key = (either string/number value mentioned before) based on the key of each weapon listed in the unit's weapondefs.
 		local impulseUnits = {
-			corshiva = {shiva_gun = "medium", shiva_rocket = 1000}, armliche = "gargantuan", cortrem = "medium", armbrtha = "gargantuan", corint = "gargantuan", armvang = "huge", armvulc = "large",
+			corshiva = {shiva_gun = "small", shiva_rocket = "large"}, armliche = "gargantuan", cortrem = "medium", armbrtha = "gargantuan", corint = "gargantuan", armvang = "huge", armvulc = "large",
 			corbuzz = "large", armfboy = "huge", corgol = "huge", armmav = "medium", armsilo = "gargantuan", corsilo = "gargantuan", cortron = "gargantuan",
 			corcat = "large", corban = "huge", corparrow = "large", corvroc = "huge", armmerl = "huge", corhrk = "large", cortoast = "huge",
 			armamb = "huge", corpun = "large", armguard = "large", armjanus = "medium", corlevlr = "medium", armmart = "tiny", corwolv = "tiny"
 		}
+
+		--ignore this nerdinese, it just assigns the impulse values derived from the above table entries.
 		if impulseUnits[name] then
 			for weaponName, weaponDef in pairs(uDef.weapondefs) do
 				if type(impulseUnits[name]) == "number" then
@@ -827,6 +830,14 @@ function UnitDef_Post(name, uDef)
 					end
 				end
 			end
+		elseif uDef.weapondefs then
+					--remove impulse from unlisted units
+			-- for weaponName, weaponDef in pairs(uDef.weapondefs) do
+			-- 	if weaponDef.impulsefactor and weaponDef.impulsefactor > 0 then
+			-- 		weaponDef.impulsefactor = 0.123
+			-- 	end
+			-- 	weaponDef.impulseboost = nil
+			-- end
 		end
 
 		local transportUnits = { --assign the category the transport is ~UNABLE~ to carry
