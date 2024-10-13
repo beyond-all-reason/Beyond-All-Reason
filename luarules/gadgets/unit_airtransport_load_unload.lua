@@ -11,14 +11,20 @@ function gadget:GetInfo()
 	}
 end
 
-local isAirTransport = {}
+local transporteeWeights = {}
+local airTransportWeights = {}
+local airTransportDistances = {}
 for udefID,def in ipairs(UnitDefs) do
 	if def.canFly and def.isTransport then
 		if def.customParams.techlevel then
-			isAirTransport[udefID] = 30		-- 15 elmos
+			airTransportDistances[udefID] = 30		-- 15 elmos
 		else
-			isAirTransport[udefID] = 20		-- 10 elmos
+			airTransportDistances[udefID] = 20		-- 10 elmos
 		end
+		airTransportWeights[udefID] = tonumber(def.customParams.transportable_weight_class) or 3 --medium weight class fallback
+	end
+	if def.customParams then
+		transporteeWeights[udefID] = tonumber(def.customParams.unit_weight_class) or 3 --medium weight class fallback
 	end
 end
 
@@ -36,12 +42,18 @@ if (gadgetHandler:IsSyncedCode()) then
 	end
 
 	function gadget:AllowUnitTransportLoad(transporterID, transporterUnitDefID, transporterTeam, transporteeID, transporteeUnitDefID, transporteeTeam, goalX, goalY, goalZ)
-		if isAirTransport[transporterUnitDefID] then
+		if airTransportDistances[transporterUnitDefID] then
 			--local terDefs = UnitDefs[transporterUnitDefID]
 			--local teeDefs = UnitDefs[transporteeUnitDefID]
+			if airTransportWeights[transporterUnitDefID] and transporteeWeights[transporteeUnitDefID] then
+				if airTransportWeights[transporterUnitDefID] < transporteeWeights[transporteeUnitDefID] then
+					Spring.Echo("TOO FAT!")
+					return false
+				end
+			end
 			local pos1 = {Spring.GetUnitPosition(transporterID)}
 			local pos2 = {goalX, goalY, goalZ}
-			if gadget:Distance(pos1, pos2) <= isAirTransport[transporterUnitDefID] then
+			if gadget:Distance(pos1, pos2) <= airTransportDistances[transporterUnitDefID] then
 				if Spring.AreTeamsAllied(Spring.GetUnitTeam(transporterID), Spring.GetUnitTeam(transporteeID)) or select(4, Spring.GetUnitVelocity(transporteeID)) < 0.5 then	-- make it hard for moving enemy units to be picked up
 					Spring.SetUnitVelocity(transporterID, 0,0,0)
 					return true
@@ -57,12 +69,12 @@ if (gadgetHandler:IsSyncedCode()) then
 	end
 
 	function gadget:AllowUnitTransportUnload(transporterID, transporterUnitDefID, transporterTeam, transporteeID, transporteeUnitDefID, transporteeTeam, goalX, goalY, goalZ)
-		if isAirTransport[transporterUnitDefID] then
+		if airTransportDistances[transporterUnitDefID] then
 			--local terDefs = UnitDefs[transporterUnitDefID]
 			--local teeDefs = UnitDefs[transporteeUnitDefID]
 			local pos1 = {Spring.GetUnitPosition(transporterID)}
 			local pos2 = {goalX, goalY, goalZ}
-			if gadget:Distance(pos1, pos2) <= isAirTransport[transporterUnitDefID] then
+			if gadget:Distance(pos1, pos2) <= airTransportDistances[transporterUnitDefID] then
 				Spring.SetUnitVelocity(transporterID, 0,0,0)
 				return true
 			else
