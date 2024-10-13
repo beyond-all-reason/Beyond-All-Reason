@@ -716,23 +716,31 @@ function UnitDef_Post(name, uDef)
 			squadcorak = true, squadcorakt4 = true, squadcorkarg = true, squadarmpwt4 = true, squadarmsptk = true, corakt4 = true, cormandot4 = true,
 		}
 
-		--assign the masses
+		--assign the masses and transport weights
 		if tinyMassesTable[name] then
 			uDef.mass = sizeMasses.tiny * tinyMassesTable[name]
+			uDef.customparams.unit_weight_class = 1
 		elseif smallMassesTable[name] then
 			uDef.mass = sizeMasses.small * smallMassesTable[name]
+			uDef.customparams.unit_weight_class = 2
 		elseif mediumMassesTable[name] then
 			uDef.mass = sizeMasses.medium * mediumMassesTable[name]
+			uDef.customparams.unit_weight_class = 3
 		elseif largeMassesTable[name] then
 			uDef.mass = sizeMasses.large * largeMassesTable[name]
+			uDef.customparams.unit_weight_class = 4
 		elseif hugeMassesTable[name] then
 			uDef.mass = sizeMasses.huge * hugeMassesTable[name]
+			uDef.customparams.unit_weight_class = 5
 		elseif gargantuanMassesTable[name] then
 			uDef.mass = sizeMasses.gargantuan * gargantuanMassesTable[name]
+			uDef.customparams.unit_weight_class = 6
 		elseif colossalMassesTable[name] then
 			uDef.mass = sizeMasses.colossal * colossalMassesTable[name]
-		else 
+			uDef.customparams.unit_weight_class = 7
+		else
 			uDef.mass = uDef.mass or uDef.metalcost
+			uDef.customparams.unit_weight_class = 3
 		end
 		if uDef.customparams.techlevel and uDef.customparams.techlevel > 1 then
 			local techMultiplierCount = uDef.customparams.techlevel - 1
