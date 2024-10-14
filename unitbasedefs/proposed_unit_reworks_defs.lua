@@ -1,81 +1,122 @@
 local function proposed_unit_reworksTweaks(name, uDef)
-		if name == "corbw" then
-			uDef.weapondefs.bladewing_lyzer.damage.default = 600
-			uDef.weapons[1].onlytargetcategory = "SURFACE"
-		end
-		if name == "armdfly" then
-			uDef.weapondefs.armdfly_paralyzer.damage.default = 10500
-			uDef.weapondefs.armdfly_paralyzer.paralyzetime = 6
-			uDef.weapondefs.armdfly_paralyzer.beamtime = 0.2
-			uDef.weapons[1].onlytargetcategory = "SURFACE"
-		end
-		if name == "armspid" then
-			uDef.weapons[1].onlytargetcategory = "SURFACE"
-		end
-		if name == "corgator" then
-			uDef.weapondefs.gator_laserx.damage.vtol = 14
-		end
-		if name == "corak" then
-			uDef.weapondefs.gator_laser.damage.vtol = 7
-		end
-		if name == "armpw" then
-			uDef.weapondefs.emg.damage.vtol = 3
-		end
-		if name == "armsh" then
-			uDef.weapondefs.armsh_weapon.damage.vtol = 7
-		end
-		if name == "corsh" then
-			uDef.weapondefs.armsh_weapon.damage.vtol = 7
-		end
-		if uDef.customparams.paralyzemultiplier then
-			if uDef.customparams.paralyzemultiplier < 0.03 then
-				uDef.customparams.paralyzemultiplier = 0
-			elseif uDef.customparams.paralyzemultiplier < 0.5 then
-				uDef.customparams.paralyzemultiplier = 0.2
-			else
-				uDef.customparams.paralyzemultiplier = 1
-			end
-		end	
+	if name == "corshiva" then
+		uDef.weapondefs.shiva_gun.impulsefactor = 1
+		uDef.weapondefs.shiva_rocket.impulsefactor = 1
+	end
+	if name == "cortrem" then
+		uDef.weapondefs.tremor_spread_fire.impulsefactor = 1
+		uDef.weapondefs.tremor_spread_fire.edgeeffectiveness = 0.15
+	end
+		
+	if name == "armbrtha" then
+		uDef.weapondefs.lrpc.impulsefactor = 1
+		uDef.weapondefs.lrpc.model = nil
+		uDef.weapondefs.lrpc.name = "Long-range plasma cannon"
+	end
+			
+	if name == "corint" then
+		uDef.weapondefs.lrpc.impulsefactor = 1
+		uDef.weapondefs.lrpc.model = nil
+		uDef.weapondefs.lrpc.name = "Long-range plasma cannon"
+	end
+		
+	if name == "armvang" then
+		uDef.weapondefs.shocker_low.impulsefactor = 1
+		uDef.weapondefs.shocker_high.impulsefactor = 1
+	end
+		
+	if name == "armvulc" then
+		uDef.weapondefs.rflrpc.impulsefactor = 1
+		uDef.weapondefs.rflrpc.areaofeffect = 135
+		uDef.weapondefs.rflrpc.edgeeffectiveness = 0.15
+		uDef.weapondefs.rflrpc.reloadtime = 0.6
+		uDef.weapondefs.rflrpc.energypershot = 15000
+		uDef.weapondefs.rflrpc.name = "Rapid-fire long-range plasma cannon"
+		uDef.weapondefs.rflrpc.damage = {
+			default = 1625,
+			shields = 812,
+			subs = 500,
+		}
+	end
+		
+	if name == "corbuzz" then
+		uDef.weapondefs.rflrpc.impulsefactor = 1
+		uDef.weapondefs.rflrpc.areaofeffect = 157
+		uDef.weapondefs.rflrpc.edgeeffectiveness = 0.15
+		uDef.weapondefs.rflrpc.reloadtime = 0.75
+		uDef.weapondefs.rflrpc.energypershot = 18000
+		uDef.weapondefs.rflrpc.name = "Rapid-fire long-range plasma cannon"
+		uDef.weapondefs.rflrpc.damage = {
+			default = 2000,
+			shields = 1000,
+			subs = 600,
+		}
+	end
+		
+	if name == "armfboy" then
+		uDef.weapondefs.arm_fatboy_notalaser.impulsefactor = 1
+	end
+		
+	if name == "corgol" then
+		uDef.weapondefs.cor_gol.impulsefactor = 1
+	end
+	if name == "armmav" then
+		uDef.weapondefs.armmav_weapon.impulsefactor = 1
+	end
+		
+	if name == "armsilo" then
+		uDef.weapondefs.nuclear_missile.impulsefactor = 1
+	end
+		
+	if name == "corsilo" then
+		uDef.weapondefs.crblmssl.impulsefactor = 1
+	end
+	if name == "cortron" then
+		uDef.weapondefs.cortron_weapon.impulsefactor = 1
+	end
+		
+	if name == "corcat" then
+		uDef.weapondefs.exp_heavyrocket.impulsefactor = 1
+	end
+		
+	if name == "corban" then
+		uDef.weapondefs.banisher.impulsefactor = 1
+	end
+		
+	if name == "corparrow" then
+		uDef.weapondefs.cor_parrow.impulsefactor = 1
+	end
+		
+	if name == "corvroc" then
+		uDef.weapondefs.cortruck_rocket.impulsefactor = 1
+	end
+		
+	if name == "armmerl" then
+		uDef.weapondefs.armtruck_rocket.impulsefactor = 1
+	end
+		
+	if name == "corhrk" then
+		uDef.weapondefs.corhrk_rocket.impulsefactor = 1
+	end
+		
+	if name == "cortoast" then
+		uDef.weapondefs.cortoast_gun.impulsefactor = 1
+	end
+		
+	if name == "armamb" then
+		uDef.weapondefs.armamb_gun.impulsefactor = 1
+	end
+	if name == "corpun" then
+		uDef.weapondefs.plasma.impulsefactor = 1
+	end
+		
+	if name == "armguard" then
+		uDef.weapondefs.plasma.impulsefactor = 1
+	end
 
-		if uDef.mass == 200000 or  uDef.mass == 2000000 or uDef.mass == 100000 or uDef.mass == 999999995904 then
-			uDef.mass = uDef.metalcost
-			uDef.cantbetransported = true
-		end
-		if uDef.mass then
-			if uDef.mass > 4899 and uDef.mass < 5002 then
-				uDef.mass = uDef.metalcost
-			end
-		end
-
-		if name == "armliche" then
-			uDef.weapondefs.arm_pidr.impulsefactor = 1
-		end
-
-		if name == "corvalk" then
-			uDef.transportmass = 750
-			uDef.energycost = 1450
-			uDef.buildtime = 4120
-		end
-		if name == "armatlas" then
-			uDef.transportmass = 750
-			uDef.energycost = 1300
-			uDef.buildtime = 3850
-		end
-		if name == "corseah" then
-			uDef.speed = 235
-		    uDef.sightdistance = 500
-			uDef.transportcapacity = 1
-			uDef.buildtime = 10000
-		end
-		if name == "armdfly" then
-			uDef.transportcapacity = 1
-		end
-        if name == "armap" then
-            uDef.buildoptions[7] = "armhvytrans"
-		end
-        if name == "corap" then
-            uDef.buildoptions[7] = "corhvytrans"
-		end
+	if name == "corbhmth" then
+		uDef.weapondefs.corbhmth_weapon.impulsefactor = 1
+	end
 
 	return uDef
 end
