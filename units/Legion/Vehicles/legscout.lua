@@ -124,7 +124,6 @@ return {
 				duration = 0.035,
 				edgeeffectiveness = 0.5,
 				explosiongenerator = "custom:plasmahit-sparkonly",
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				intensity = 0.8,
 				name = "Light g2g Machine Gun",

@@ -96,7 +96,6 @@ return {
 				edgeeffectiveness = 0.85,
 				explosiongenerator = "custom:burnfire-bomb",
 				gravityaffected = "true",
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "legbomb.s3o",
 				mygravity = 0.4,

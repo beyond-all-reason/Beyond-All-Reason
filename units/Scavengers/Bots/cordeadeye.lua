@@ -127,7 +127,6 @@ return {
 				explosiongenerator = "custom:laserhit-large-red",
 				firestarter = 90,
 				impactonly = 1,
-				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 10,
 				name = "HighEnergyLaser",

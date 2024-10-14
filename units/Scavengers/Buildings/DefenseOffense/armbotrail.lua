@@ -125,7 +125,6 @@ return {
 				gravityaffected = "true",
 				heightboostfactor = 8,
 				hightrajectory = 0,
-				impulseboost = 0.5,
 				impulsefactor = 0.5,
 				leadbonus = 0,
 				metalpershot = 96,
