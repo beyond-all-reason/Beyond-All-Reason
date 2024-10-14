@@ -2921,6 +2921,11 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-bot-t3-at-ok",
 		BaseSoundWeaponType = "sniper",
 	},
+	legsrailt4 = {
+		BaseSoundSelectType = "cor-bot-t3-at-sel",
+		BaseSoundMovementType = "cor-bot-t3-at-ok",
+		BaseSoundWeaponType = "sniper",
+	},
 	legshot = {
 		BaseSoundSelectType = "cor-bot-large-sel",
 		BaseSoundMovementType = "cor-bot-large-ok",
