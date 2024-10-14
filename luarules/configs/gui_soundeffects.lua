@@ -3277,6 +3277,7 @@ GUIUnitSoundEffects = {
 	xmasball2_6 = {},
 	armstone = {},
 	corstone = {},
+	legstone = {},
 	resourcecheat = {},
 
 	scavempspawner = {},

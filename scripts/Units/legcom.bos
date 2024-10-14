@@ -462,24 +462,22 @@ UnitSpeed(){
 
 StartMoving(reversing)
 {
-	turn ltoes to z-axis <0> speed <2000>;
-	turn rtoes to z-axis <0> speed <2000>;
-	turn ltoes to z-axis <0> speed <2000>;
-	turn rtoes to z-axis <0> speed <2000>;
-	turn lthigh to y-axis <0> speed <200>; 
-	turn rthigh to y-axis <0> speed <200>; 
-	
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
 	isMoving = TRUE;
-	call-script StopDance();
+	
+	turn ltoes to z-axis <0> speed <2000>;
+	turn rtoes to z-axis <0> speed <2000>;
+	turn ltoes to z-axis <0> speed <2000>;
+	turn rtoes to z-axis <0> speed <2000>;
+	turn lthigh to y-axis <0> speed <600>; 
+	turn rthigh to y-axis <0> speed <600>; 
+	
+	if (isDancing)
+	{
+		call-script StopDance();
+	}
 	start-script walk();
-}
-
-StopMoving(){
-	signal SIGNAL_MOVE;
-	isMoving=FALSE;
-	call-script StopWalking();
 }
 
 //--------------------------------------------------------
