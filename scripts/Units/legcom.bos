@@ -10,7 +10,7 @@ static-var isAiming, isBuilding, isAimingDgun, buildHeading, buildPitch, leftArm
 
 // Signal definitions
 #define SIGNAL_AIM1 256
-#define SIGNAL_move 512
+#define SIGNAL_MOVE 512
 #define SIGNAL_AIM2 1024
 #define SIGNAL_BUILD 2048
 
@@ -478,6 +478,12 @@ StartMoving(reversing)
 		call-script StopDance();
 	}
 	start-script walk();
+}
+
+StopMoving(){
+	signal SIGNAL_MOVE;
+	isMoving=FALSE;
+	call-script StopWalking();
 }
 
 //--------------------------------------------------------
