@@ -10,7 +10,7 @@ static-var isAiming, isBuilding, isAimingDgun, buildHeading, buildPitch, leftArm
 
 // Signal definitions
 #define SIGNAL_AIM1 256
-#define SIGNAL_move 512
+#define SIGNAL_MOVE 512
 #define SIGNAL_AIM2 1024
 #define SIGNAL_BUILD 2048
 
@@ -462,17 +462,21 @@ UnitSpeed(){
 
 StartMoving(reversing)
 {
-	turn ltoes to z-axis <0> speed <2000>;
-	turn rtoes to z-axis <0> speed <2000>;
-	turn ltoes to z-axis <0> speed <2000>;
-	turn rtoes to z-axis <0> speed <2000>;
-	turn lthigh to y-axis <0> speed <200>; 
-	turn rthigh to y-axis <0> speed <200>; 
-	
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
 	isMoving = TRUE;
-	call-script StopDance();
+	
+	turn ltoes to z-axis <0> speed <2000>;
+	turn rtoes to z-axis <0> speed <2000>;
+	turn ltoes to z-axis <0> speed <2000>;
+	turn rtoes to z-axis <0> speed <2000>;
+	turn lthigh to y-axis <0> speed <600>; 
+	turn rthigh to y-axis <0> speed <600>; 
+	
+	if (isDancing)
+	{
+		call-script StopDance();
+	}
 	start-script walk();
 }
 
