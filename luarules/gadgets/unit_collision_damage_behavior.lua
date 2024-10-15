@@ -29,6 +29,9 @@ local maxImpulseMultiplier = 5.5
 --to save performance and reduce unit hesitation from nominal impulse, impulse values below (minImpulseMultiplier * mass) returns 0 impulse.
 local minImpulseMultiplier = 2.5
 
+--this defines the floor to which impulse is sheered to when below minImpulseMultiplier. (mass * minImpulseFloorMultiplier). This is emperically chosen to remove acceleration resets from trivial impulse amounts while retaining hit reactions.
+local minImpulseFloorMultiplier = 0.28
+
 -- elmo/s, converted to elmo/frame. If a unit is launched via explosion faster than this, it is instantly slowed. If unit speed/gameSpeed is greater or canFly = true, speed/gameSpeed is used instead.
 local velocityCap = 330 / Game.gameSpeed
 
@@ -55,6 +58,7 @@ local mathAbs = math.abs
 local fallDamageMultipliers = {}
 local unitsMaxImpulse = {}
 local unitsMinImpulse = {}
+local unitsMinImpulseFloor = {}
 local weaponDefIDImpulses = {}
 local transportedUnits = {}
 local unitMasses = {}
@@ -87,6 +91,7 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 	fallDamageMultipliers[unitDefID] = fallDamageMultiplier * fallDamageMagnificationFactor
 	unitsMaxImpulse[unitDefID] = unitDef.mass * maxImpulseMultiplier
 	unitsMinImpulse[unitDefID] = unitDef.mass * minImpulseMultiplier
+	unitsMinImpulseFloor[unitDefID] = unitDef.mass * minImpulseFloorMultiplier
 	unitMasses[unitDefID] = unitDef.mass
 end
 
@@ -127,7 +132,7 @@ local function getImpulseMultiplier(unitDefID, weaponDefID, damage)
 	local impulse = (damage + impulseBoost) * impulseFactor
 	local impulseMultiplier
 	if impulse < unitsMinImpulse[unitDefID] then
-		impulseMultiplier = 0
+		impulseMultiplier = mathMin(unitsMinImpulseFloor[unitDefID]/impulse, 1)
 	else
 		impulseMultiplier = mathMin(unitsMaxImpulse[unitDefID]/impulse, 1) -- negative impulse values are not capped.
 	end
