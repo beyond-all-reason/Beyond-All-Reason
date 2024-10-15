@@ -20,26 +20,30 @@ end
 -- Configuration ---------------------------------------------------------------
 
 local damageInterval = 0.7333
+
+-- Since I couldn't figure out totally arbitrary-radius variable CEGs for fire,
+-- we're left with this static list, which is repeated in the expgen def files:
 local areaSizePresets = {
     37.5,  46,  54,  63,  75,
       88, 100, 125, 150, 175,
      200, 225, 250, 275, 300,
 }
 
--- Defaults and customparams
+-- Customparams and defaults:
 local prefixes = { unit = 'area_ondeath_', weapon = 'area_onhit_' }
 local damage, time, range, resistance = 30, 10, 75, "none"
 
---------------------------------------------------------------------------------
--- Local variables -------------------------------------------------------------
-
--- Params:
+-- Customparams are named like <prefix>_<paramName>, for ex. "area_onhit_ceg".
 -- ceg - ceg to spawn when explosion happens
 -- damageCeg - ceg to spawn when damage is dealt
 -- time - how long the effect should stay
 -- damage - damage per second
 -- range - from center to edge, in elmos
 -- resistance - defines which units are resistant to this type of damage when it matches with 'areadamageresistance' customparameter in a unit.
+
+--------------------------------------------------------------------------------
+-- Local variables -------------------------------------------------------------
+
 local timedDamageWeapons
 local unitDamageImmunity
 
