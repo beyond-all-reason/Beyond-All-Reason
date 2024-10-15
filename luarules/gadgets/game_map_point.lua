@@ -2,7 +2,7 @@
 function gadget:GetInfo()
 	return {
 		name    = "Game Map Point",
-		desc	= 'allow sending map points using the i18n library so everyone can see them in their own language',
+		desc	= 'allow sending synced->unsynced map point messages so they can be further processed by luaui',
 		author	= 'Saurtron',
 		date	= 'Oct 2024',
 		license	= 'GNU GPL, v2 or later',
