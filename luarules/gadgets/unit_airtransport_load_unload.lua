@@ -11,6 +11,10 @@ function gadget:GetInfo()
 	}
 end
 
+local CMD_LOAD_UNITS = CMD.LOAD_UNITS
+
+local spGetUnitDefID = Spring.GetUnitDefID
+
 local transporteeWeights = {}
 local airTransportWeights = {}
 local airTransportDistances = {}
@@ -41,16 +45,28 @@ if (gadgetHandler:IsSyncedCode()) then
 		return (dist)
 	end
 
+	function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced, fromLua)
+		if cmdID == CMD_LOAD_UNITS then
+			if #cmdParams == 1 then
+				--Spring.Echo(cmdParams)
+				local transporteeDefID = spGetUnitDefID(cmdParams[1])
+				--Spring.Echo(transporteeDefID, airTransportWeights[unitDefID], transporteeWeights[transporteeDefID])
+				if airTransportWeights[unitDefID] and transporteeWeights[transporteeDefID] then
+					if airTransportWeights[unitDefID] < transporteeWeights[transporteeDefID] then
+						-- Spring.Echo("TOO BIG!")
+						-- return false
+					end
+				end
+			end
+		end
+		return true
+	end
+
 	function gadget:AllowUnitTransportLoad(transporterID, transporterUnitDefID, transporterTeam, transporteeID, transporteeUnitDefID, transporteeTeam, goalX, goalY, goalZ)
 		if airTransportDistances[transporterUnitDefID] then
 			--local terDefs = UnitDefs[transporterUnitDefID]
 			--local teeDefs = UnitDefs[transporteeUnitDefID]
-			if airTransportWeights[transporterUnitDefID] and transporteeWeights[transporteeUnitDefID] then
-				if airTransportWeights[transporterUnitDefID] < transporteeWeights[transporteeUnitDefID] then
-					Spring.Echo("TOO FAT!")
-					return false
-				end
-			end
+			--Spring.Echo(transporteeID)
 			local pos1 = {Spring.GetUnitPosition(transporterID)}
 			local pos2 = {goalX, goalY, goalZ}
 			if gadget:Distance(pos1, pos2) <= airTransportDistances[transporterUnitDefID] then
