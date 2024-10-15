@@ -616,6 +616,9 @@ function UnitDef_Post(name, uDef)
 		--imperically selected. This scales how much impulse weapons will deal proportionally to affect each tier of sizeMasses table entries.
 		local targetImpulseMultiplier = 4
 
+		--this is used to make units transportable by prior weight class and by setting the weight class of the transports.
+		local transportDeduction = 1
+
 		--size tables
 		local sizeMasses = {
 			tiny = 60,--36,
@@ -625,6 +628,7 @@ function UnitDef_Post(name, uDef)
 			huge = 960,--1800,
 			gargantuan = 2880,--4500,
 			colossal = 12000,--11700
+			commander = 20000
 		}
 
 		--do not set land units below 1x multiplier to avoid transportability issues
@@ -688,6 +692,10 @@ function UnitDef_Post(name, uDef)
 			armthundt4 = 1, armserpt3 = 1, armseadragon = 1, armvadert4 = 1, armrattet4 = 1, armdronecarryland = 1
 		}
 
+		local transportableLikePreviousSizeTable = {
+			armbeaver = true, armcv = true, corcv = true, cormuskrat = true, legcv = true, legotter = true
+		}
+
 		local sixLeggedMassTable = {
 			armspid = true, armscab = true, armsptk = true, armsptkt4 = true,
 			corkarg = true, corroach = true, corthermite = true, corkarganetht4 = true,
@@ -718,31 +726,35 @@ function UnitDef_Post(name, uDef)
 		}
 
 		--assign the masses and transport weights
-		if tinyMassesTable[name] then
+		if uDef.customparams and uDef.customparams.iscommander then
+			uDef.mass = sizeMasses.commander
+			--uDef.customparams.unit_weight_class = 1
+		elseif tinyMassesTable[name] then
 			uDef.mass = sizeMasses.tiny * tinyMassesTable[name]
-			uDef.customparams.unit_weight_class = 1
+			--uDef.customparams.unit_weight_class = 1
 		elseif smallMassesTable[name] then
 			uDef.mass = sizeMasses.small * smallMassesTable[name]
-			uDef.customparams.unit_weight_class = 2
+			--uDef.customparams.unit_weight_class = 2
 		elseif mediumMassesTable[name] then
 			uDef.mass = sizeMasses.medium * mediumMassesTable[name]
-			uDef.customparams.unit_weight_class = 3
+			--uDef.customparams.unit_weight_class = 3
 		elseif largeMassesTable[name] then
 			uDef.mass = sizeMasses.large * largeMassesTable[name]
-			uDef.customparams.unit_weight_class = 3
+			--uDef.customparams.unit_weight_class = 4
 		elseif hugeMassesTable[name] then
 			uDef.mass = sizeMasses.huge * hugeMassesTable[name]
-			uDef.customparams.unit_weight_class = 3
+			--uDef.customparams.unit_weight_class = 5
 		elseif gargantuanMassesTable[name] then
 			uDef.mass = sizeMasses.gargantuan * gargantuanMassesTable[name]
-			uDef.customparams.unit_weight_class = 3
+			--uDef.customparams.unit_weight_class = 6
 		elseif colossalMassesTable[name] then
 			uDef.mass = sizeMasses.colossal * colossalMassesTable[name]
-			uDef.customparams.unit_weight_class = 3
+			--uDef.customparams.unit_weight_class = 7
 		else
 			uDef.mass = uDef.mass or uDef.metalcost
-			uDef.customparams.unit_weight_class = 3
+			--uDef.customparams.unit_weight_class = 5
 		end
+
 		if uDef.customparams.techlevel and uDef.customparams.techlevel > 1 then
 			local techMultiplierCount = uDef.customparams.techlevel - 1
 			uDef.mass = uDef.mass * massPerExtraTechLevelMultiplier * techMultiplierCount
@@ -751,7 +763,13 @@ function UnitDef_Post(name, uDef)
 		--assign mass bonuses
 		if uDef.movementclass and (string.find(name, "cor") or string.find(name, "arm") or string.find(name, "leg")) then
 			local mc = uDef.movementclass
-			if fourLeggedMassTable[name] then
+			if uDef.customparams and uDef.customparams.iscommander then
+				Spring.Echo(name, uDef.mass, "commander")
+			end
+			if transportableLikePreviousSizeTable[name] then
+				uDef.mass = uDef.mass - transportDeduction
+				Spring.Echo(name, uDef.mass, "Previous Size Transportable")
+			elseif fourLeggedMassTable[name] then
 				uDef.mass = uDef.mass * fourLeggedMassMultiplier
 				Spring.Echo(name, uDef.mass, "4 legged")
 			elseif sixLeggedMassTable[name] then
@@ -784,9 +802,9 @@ function UnitDef_Post(name, uDef)
 		--add weapon impulses. Acceptable formats are: String representing the key entry in sizeMasses table from above, arbitrary number of desired resultant impulse, or
 		--a table of key = (either string/number value mentioned before) based on the key of each weapon listed in the unit's weapondefs.
 		local impulseUnits = {
-			corshiva = {shiva_gun = "small", shiva_rocket = "large"}, armliche = "gargantuan", cortrem = "medium", armbrtha = "gargantuan", corint = "gargantuan", armvang = "huge", armvulc = "large",
-			corbuzz = "large", armfboy = "huge", corgol = "huge", armmav = "medium", armsilo = "gargantuan", corsilo = "gargantuan", cortron = "gargantuan",
-			corcat = "large", corban = "huge", corparrow = "large", corvroc = "huge", armmerl = "huge", corhrk = "large", cortoast = "huge",
+			corshiva = {shiva_gun = "medium", shiva_rocket = "large"}, armliche = "gargantuan", cortrem = "medium", armbrtha = "gargantuan", corint = "gargantuan", 
+			armvang = "huge", armvulc = "large", corbuzz = "large", armfboy = "huge", corgol = "huge", armmav = "medium", armsilo = "gargantuan", corsilo = "gargantuan",
+			cortron = "gargantuan", corcat = "large", corban = "huge", corparrow = "large", corvroc = "huge", armmerl = "huge", corhrk = "large", cortoast = "huge",
 			armamb = "huge", corpun = "large", armguard = "large", armjanus = "medium", corlevlr = "medium", armmart = "tiny", corwolv = "tiny"
 		}
 
@@ -798,14 +816,14 @@ function UnitDef_Post(name, uDef)
 					if damage and damage > 0 then
 						local targetImpulse = impulseUnits[name]
 						weaponDef.impulsefactor = math.ceil((targetImpulse / damage) * 100) / 100
-						Spring.Echo(name, "impulseFactor", weaponDef.impulsefactor)
+						Spring.Echo(name, "impulsefactor", weaponDef.impulsefactor)
 					end
 				elseif type(impulseUnits[name]) == "string" then
 					local damage = weaponDef.damage.default or next(weaponDef.damage)
 					if damage and damage > 0 then
 						local targetImpulse = sizeMasses[impulseUnits[name]] * targetImpulseMultiplier
 						weaponDef.impulsefactor = math.ceil((targetImpulse / damage) * 100) / 100
-						Spring.Echo(name, "impulseFactor", weaponDef.impulsefactor)
+						Spring.Echo(name, "impulsefactor", weaponDef.impulsefactor)
 					end
 				elseif type(impulseUnits[name]) == "table" then
 					for impulseUnitsWeaponName, data in pairs(impulseUnits[name]) do
@@ -844,7 +862,7 @@ function UnitDef_Post(name, uDef)
 			armatlas = "large", armhvytrans = "gargantuan", armdfly = "gargantuan", corvalk = "large", corhvytrans = "gargantuan", corseah = "gargantuan", legatrans = "large", legstronghold = "gargantuan"
 		}
 		if transportUnits[name] then
-			uDef.transportmass = sizeMasses[transportUnits[name]] - 1
+			uDef.transportmass = sizeMasses[transportUnits[name]] - transportDeduction
 		end
 	end
 
