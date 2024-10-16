@@ -810,7 +810,7 @@ function UnitDef_Post(name, uDef)
 			armamb = "huge", corpun = "large", armguard = "large", armjanus = "medium", corlevlr = "medium",
 			--seth's suggestions
 			armart = "tiny", corwolv = "tiny", legrail = "medium", legkark = {corlevlr_weapon = "medium", corwar_laser = 0.123}, legsrail = "large", armsnipe = "medium",
-			armfido = "tiny", armsptk = "medium", armmart = "medium", cormart = "medium", armcroc = "medium", legavroc = "huge", legaskirmtank = "tiny",
+			armfido = "tiny", armsptk = "medium", armmart = "medium", cormart = "medium", armcroc = {arm_triton = "medium"}, legavroc = "huge", legaskirmtank = "tiny",
 			legamcluster = {arm_artillery = "medium", cluster_munition = "small"}, legmed = {legmed_missile = "medium"}, legfloat = {legfloat_gauss = "medium"},
 			legfort = {plasma = "medium"}, corape = "small", armblade = "small", armpnix = "medium", corhurc = "medium", corshad = "small", armthund = "small",
 		}
