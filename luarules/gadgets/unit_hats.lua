@@ -75,7 +75,6 @@ local unitDefCanWearHats = {
 }
 local champion = { --   Fight Night 1v1 winner
 	[139738] = true, -- [DmE]FlyingDuck
-	[82263] = true, -- PRO_Autopilot
 }
  local vikings = {
 	[59340] = true,  -- [HELO]Austin
