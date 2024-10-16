@@ -2619,10 +2619,6 @@ local icontypes = {
 		bitmap = "icons/allterrain_t2_rail.png",
 		size = 1.85000002
 	},
-	legsrailt4 = {
-		bitmap = "icons/allterrain_t2_rail.png",
-		size = 4
-	},
 	legstarfall = {
 		bitmap = "icons/armvulc.png",
 		size = 3.25499964
