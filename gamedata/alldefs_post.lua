@@ -1389,13 +1389,13 @@ function WeaponDef_Post(name, wDef)
 
 		if modOptions.proposed_unit_reworks then
 			if name == 'mine_heavy' then
-				wdef.damage.default = 3000
+				wDef.damage.default = 3000
 				wDef.edgeeffectiveness = 0.5
-				wdef.impulsefactor = 0.8
+				wDef.impulsefactor = 0.8
 			end
 			if name == 'mine_medium' then
 				wDef.edgeeffectiveness = 0.5
-				wdef.impulsefactor = 0.8
+				wDef.impulsefactor = 0.8
 			end				
 		end
 

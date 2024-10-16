@@ -150,7 +150,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 			[5] = "cordrag",
 			[6] = "coreyes",
 			[7] = "corjamt",
-		},
+		}
 	end
 
 	return uDef
