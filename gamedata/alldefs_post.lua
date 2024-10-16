@@ -799,13 +799,20 @@ function UnitDef_Post(name, uDef)
 		end
 
 		--any units you want to give impulse to, add an entry to this table. Giving it a string size category will produce optimal yeetage for that amount of mass.
-		--add weapon impulses. Acceptable formats are: String representing the key entry in sizeMasses table from above, arbitrary number of desired resultant impulse, or
-		--a table of key = (either string/number value mentioned before) based on the key of each weapon listed in the unit's weapondefs.
+		--add weapon impulses. Acceptable formats are: String representing the key entry in sizeMasses table from above, arbitrary number of desired resultant impulse,
+		--if number is < 10 then it'll be directly assigned as impulseFactor. For units with multiple weapons, use a table of:
+		--key = (either string/number value as mentioned before) based on the key of each weapon listed in the unit's weapondefs.
 		local impulseUnits = {
+			--johannas' picks
 			corshiva = {shiva_gun = "medium", shiva_rocket = "large"}, armliche = "gargantuan", cortrem = "medium", armbrtha = "gargantuan", corint = "gargantuan", 
 			armvang = "huge", armvulc = "large", corbuzz = "large", armfboy = "huge", corgol = "huge", armmav = "medium", armsilo = "gargantuan", corsilo = "gargantuan",
-			cortron = "gargantuan", corcat = "large", corban = "huge", corparrow = "large", corvroc = "huge", armmerl = "huge", corhrk = "large", cortoast = "huge",
-			armamb = "huge", corpun = "large", armguard = "large", armjanus = "medium", corlevlr = "medium", armmart = "tiny", corwolv = "tiny"
+			cortron = "gargantuan", corcat = "large", corban = "huge", corparrow = "medium", corvroc = "huge", armmerl = "huge", corhrk = "large", cortoast = "huge",
+			armamb = "huge", corpun = "large", armguard = "large", armjanus = "medium", corlevlr = "medium",
+			--seth's suggestions
+			armart = "tiny", corwolv = "tiny", legrail = "medium", legkark = {corlevlr_weapon = "medium", corwar_laser = 0.123}, legsrail = "large", armsnipe = "medium",
+			armfido = "tiny", armsptk = "medium", armmart = "medium", cormart = "medium", armcroc = "medium", legavroc = "huge", legaskirmtank = "tiny",
+			legamcluster = {arm_artillery = "medium", cluster_munition = "small"}, legmed = {legmed_missile = "medium"}, legfloat = {legfloat_gauss = "medium"},
+			legfort = {plasma = "medium"}, corape = "small", armblade = "small", armpnix = "medium", corhurc = "medium", corshad = "small", armthund = "small",
 		}
 
 		--ignore this nerdinese, it just assigns the impulse values derived from the above table entries.
@@ -814,9 +821,14 @@ function UnitDef_Post(name, uDef)
 				if type(impulseUnits[name]) == "number" then
 					local damage = weaponDef.damage.default or next(weaponDef.damage)
 					if damage and damage > 0 then
+						if impulseUnits[name] <= 10 then
+							weaponDef.impulsefactor = impulseUnits[name]
+							Spring.Echo(name, "impulsefactor", weaponDef.impulsefactor)
+						else
 						local targetImpulse = impulseUnits[name]
 						weaponDef.impulsefactor = math.ceil((targetImpulse / damage) * 100) / 100
 						Spring.Echo(name, "impulsefactor", weaponDef.impulsefactor)
+						end
 					end
 				elseif type(impulseUnits[name]) == "string" then
 					local damage = weaponDef.damage.default or next(weaponDef.damage)
@@ -831,9 +843,14 @@ function UnitDef_Post(name, uDef)
 							if type(data) == "number" then
 								local damage = weaponDef.damage.default or next(weaponDef.damage)
 								if damage and damage > 0 then
+									if data <= 10 then
+										weaponDef.impulsefactor = data
+										Spring.Echo(name, impulseUnitsWeaponName, "impulseFactor", weaponDef.impulsefactor, data)
+									else
 									local targetImpulse = data
 									weaponDef.impulsefactor = math.ceil((targetImpulse / damage) * 100) / 100
 									Spring.Echo(name, impulseUnitsWeaponName, "impulseFactor", weaponDef.impulsefactor, data)
+									end
 								end
 							elseif type(data) == "string" then
 								local damage = weaponDef.damage.default or next(weaponDef.damage)
