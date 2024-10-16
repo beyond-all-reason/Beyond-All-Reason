@@ -2261,39 +2261,39 @@ local icontypes = {
 	},
 	legcom = {
 		bitmap = "icons/legcom.png",
-		size = 1.83749986
+		size = 1.60000002
 	},
 	legcomecon = {
-		bitmap = "icons/legcom.png",
+		bitmap = "icons/legcom_econ.png",
 		size = 1.83749986
 	},
 	legcomlvl2 = {
-		bitmap = "icons/legcom.png",
+		bitmap = "icons/legcom_off.png",
 		size = 1.83749986
 	},
 	legcomlvl3 = {
-		bitmap = "icons/legcom.png",
-		size = 1.83749986
+		bitmap = "icons/legcom_off.png",
+		size = 2.20000005
 	},
 	legcomlvl4 = {
-		bitmap = "icons/legcom.png",
-		size = 1.83749986
+		bitmap = "icons/legcomt2com.png",
+		size = 2.5
 	},
 	legcomoff = {
-		bitmap = "icons/legcom.png",
+		bitmap = "icons/legcom_off.png",
 		size = 1.83749986
 	},
 	legcomt2com = {
-		bitmap = "icons/legcom.png",
-		size = 1.83749986
+		bitmap = "icons/legcomt2com.png",
+		size = 2.5
 	},
 	legcomt2def = {
-		bitmap = "icons/legcom.png",
-		size = 1.83749986
+		bitmap = "icons/legcomt2_def.png",
+		size = 2.20000005
 	},
 	legcomt2off = {
-		bitmap = "icons/legcom.png",
-		size = 1.83749986
+		bitmap = "icons/legcom_off.png",
+		size = 2.20000005
 	},
 	legcs = {
 		bitmap = "icons/ship_worker.png",
@@ -2618,10 +2618,6 @@ local icontypes = {
 	legsrail = {
 		bitmap = "icons/allterrain_t2_rail.png",
 		size = 1.85000002
-	},
-	legsrailt4 = {
-		bitmap = "icons/allterrain_t2_rail.png",
-		size = 4
 	},
 	legstarfall = {
 		bitmap = "icons/armvulc.png",

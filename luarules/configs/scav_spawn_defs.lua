@@ -452,7 +452,6 @@ local LandUnitsList = {
 			["legamcluster_scav"] = 2,
 			["legvcarry_scav"] = 2,
 			["legbart_scav"] = 2,
-			["legsrail_scav"] = 2,
 
 		},
 		[5] = {
@@ -488,7 +487,7 @@ local LandUnitsList = {
 			--Cortex
 
 			--Legion
-			["legsrailt4_scav"] = 2,
+			--N/A
 		},
 	},
 	Healer = {
