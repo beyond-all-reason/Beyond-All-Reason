@@ -13,7 +13,6 @@ static-var isAiming, isBuilding, isAimingDgun, buildHeading, buildPitch, leftArm
 #define SIGNAL_MOVE 512
 #define SIGNAL_AIM2 1024
 #define SIGNAL_BUILD 2048
-#define SIGNAL_AIM3 4096
 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 Walk() {// For C:\Users\logst\Downloads\BAR\legcom walk.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2)) 
@@ -463,21 +462,17 @@ UnitSpeed(){
 
 StartMoving(reversing)
 {
+	turn ltoes to z-axis <0> speed <2000>;
+	turn rtoes to z-axis <0> speed <2000>;
+	turn ltoes to z-axis <0> speed <2000>;
+	turn rtoes to z-axis <0> speed <2000>;
+	turn lthigh to y-axis <0> speed <200>; 
+	turn rthigh to y-axis <0> speed <200>; 
+	
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
 	isMoving = TRUE;
-	
-	turn ltoes to z-axis <0> speed <2000>;
-	turn rtoes to z-axis <0> speed <2000>;
-	turn ltoes to z-axis <0> speed <2000>;
-	turn rtoes to z-axis <0> speed <2000>;
-	turn lthigh to y-axis <0> speed <600>; 
-	turn rthigh to y-axis <0> speed <600>; 
-	
-	if (isDancing)
-	{
-		call-script StopDance();
-	}
+	call-script StopDance();
 	start-script walk();
 }
 
@@ -752,8 +747,8 @@ AimFromWeapon3(piecenum)
 
 AimWeapon3(heading, pitch)
 {
-	signal SIGNAL_AIM3;
-	set-signal-mask SIGNAL_AIM3;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	
 	isAimingDgun = 1;
 	isAiming = 1;
@@ -832,13 +827,14 @@ QueryWeapon5(piecenum)
 
 AimFromWeapon5(piecenum)
 {
-	piecenum = lhand;
+	piecenum = rhand;
 	return (0);
 }
 
 FireWeapon5()
 {
 	emit-sfx 1024 + 1 from flaredgun;
+	isAimingDgun = 0;
 	call-script lua_UnitScriptLight(3, shotcount);
 	++shotcount;
 	
@@ -851,8 +847,8 @@ FireWeapon5()
 
 AimWeapon5(heading, pitch)
 {
-	signal SIGNAL_AIM3;
-	set-signal-mask SIGNAL_AIM3;
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	
 	isAiming = 1;
 	rightArm = 0;
@@ -868,10 +864,13 @@ AimWeapon5(heading, pitch)
 	return (1);
 }
 
+
+
 StartBuilding(heading, pitch)
 {
 	signal SIGNAL_BUILD;
-	isBuilding = 1;
+	set-signal-mask SIGNAL_BUILD;
+	isBuilding = 0;
 	show nano;
 	rightArm = 0;
 	
@@ -883,12 +882,13 @@ StartBuilding(heading, pitch)
 	wait-for-turn aimy1 around y-axis;
 
 	set INBUILDSTANCE to 1;
+	buildHeading = heading;
+	buildPitch = pitch;
+	return (0);
 }
 
 TargetCleared(Func_Var_1)
 {
-	signal SIGNAL_AIM1;
-	set-signal-mask SIGNAL_AIM1;
 	call-script RestoreAfterDelay();
 	return (0);
 }
