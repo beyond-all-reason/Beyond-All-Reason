@@ -614,7 +614,7 @@ function UnitDef_Post(name, uDef)
 	if modOptions.mass_impulse_rework and (uDef.mass or uDef.metalcost) then
 		
 		--imperically selected. This scales how much impulse weapons will deal proportionally to affect each tier of sizeMasses table entries.
-		local targetImpulseMultiplier = 4
+		local targetImpulseMultiplier = 3.25
 
 		--this is used to make units transportable by prior weight class and by setting the weight class of the transports.
 		local transportDeduction = 1
@@ -622,7 +622,7 @@ function UnitDef_Post(name, uDef)
 		--size tables
 		local sizeMasses = {
 			tiny = 60,--36,
-			small = 120,--100,
+			small = 98,--100,
 			medium = 240,--250,
 			large = 480,--700,
 			huge = 960,--1800,
@@ -641,6 +641,10 @@ function UnitDef_Post(name, uDef)
 		local submarineMassMultiplier = 1
 		local aircraftMassMultiplier  = 0.6
 		local massPerExtraTechLevelMultiplier = 1
+
+		--for diagnostics
+		local originalMass = uDef.mass or uDef.metalcost
+		local sizeMass = 0
 
 		--mass category tables. YOU MAY CHANGE THE NUMBERS. Keep them within 0.75-1.25 so consistency is maintained.
 		local tinyMassesTable = {
@@ -754,7 +758,7 @@ function UnitDef_Post(name, uDef)
 			uDef.mass = uDef.mass or uDef.metalcost
 			--uDef.customparams.unit_weight_class = 5
 		end
-
+		sizeMass = uDef.mass
 		if uDef.customparams.techlevel and uDef.customparams.techlevel > 1 then
 			local techMultiplierCount = uDef.customparams.techlevel - 1
 			uDef.mass = uDef.mass * massPerExtraTechLevelMultiplier * techMultiplierCount
@@ -764,36 +768,36 @@ function UnitDef_Post(name, uDef)
 		if uDef.movementclass and (string.find(name, "cor") or string.find(name, "arm") or string.find(name, "leg")) then
 			local mc = uDef.movementclass
 			if uDef.customparams and uDef.customparams.iscommander then
-				Spring.Echo(name, uDef.mass, "commander")
+				--Spring.Echo(name, uDef.mass, "commander")
 			end
 			if transportableLikePreviousSizeTable[name] then
 				uDef.mass = uDef.mass - transportDeduction
-				Spring.Echo(name, uDef.mass, "Previous Size Transportable")
+				--Spring.Echo(name, uDef.mass, "Previous Size Transportable")
 			elseif fourLeggedMassTable[name] then
 				uDef.mass = uDef.mass * fourLeggedMassMultiplier
-				Spring.Echo(name, uDef.mass, "4 legged")
+				--Spring.Echo(name, uDef.mass, "4 legged")
 			elseif sixLeggedMassTable[name] then
 				uDef.mass = uDef.mass * sixLeggedMassMultiplier
-				Spring.Echo(name, uDef.mass, "6 legged")
+				--Spring.Echo(name, uDef.mass, "6 legged")
 			elseif twoLeggedMassTable[name] then
 				uDef.mass = uDef.mass * twoLeggedMassMultiplier
-				Spring.Echo(name, uDef.mass, "BOT")
+				--Spring.Echo(name, uDef.mass, "BOT")
 			elseif mc == "TANK2" or mc == "TANK3" or mc == "MTANK3" or mc == "HTANK4" or mc == "HTANK5" or mc == "ATANK3" then
 				uDef.mass = uDef.mass * treadedMassMultiplier
-				Spring.Echo(name, uDef.mass, "Treaded")
+				--Spring.Echo(name, uDef.mass, "Treaded")
 			elseif mc == "BOAT3" or mc == "BOAT4" or mc == "BOAT5" or mc == "BOAT8" or mc == "EPICSHIP" then
 				uDef.mass = uDef.mass * boatMassMultiplier
-				Spring.Echo(name, uDef.mass, "Boat")
+				--Spring.Echo(name, uDef.mass, "Boat")
 			elseif mc == "HOVER2" or mc == "HOVER3" or mc == "HHOVER4" then
 				uDef.mass = uDef.mass * hovercraftMassMultiplier
-				Spring.Echo(name, uDef.mass, "Hover")
+				--Spring.Echo(name, uDef.mass, "Hover")
 			elseif mc == "UBOAT4" or mc == "EPICSUBMARINE" then
 				uDef.mass = uDef.mass * submarineMassMultiplier
-				Spring.Echo(name, uDef.mass, "Submarine")
+				--Spring.Echo(name, uDef.mass, "Submarine")
 			end
 		elseif uDef.canfly == true then
 			uDef.mass = uDef.mass * aircraftMassMultiplier
-			Spring.Echo(name, uDef.mass, "VTOL")
+			--Spring.Echo(name, uDef.mass, "VTOL")
 		else
 			-- Spring.Echo(name, "Invalid")
 		end
@@ -823,11 +827,11 @@ function UnitDef_Post(name, uDef)
 					if damage and damage > 0 then
 						if impulseUnits[name] <= 10 then
 							weaponDef.impulsefactor = impulseUnits[name]
-							Spring.Echo(name, "impulsefactor", weaponDef.impulsefactor)
+							--Spring.Echo(name, "impulsefactor", weaponDef.impulsefactor)
 						else
 						local targetImpulse = impulseUnits[name]
 						weaponDef.impulsefactor = math.ceil((targetImpulse / damage) * 100) / 100
-						Spring.Echo(name, "impulsefactor", weaponDef.impulsefactor)
+						--Spring.Echo(name, "impulsefactor", weaponDef.impulsefactor)
 						end
 					end
 				elseif type(impulseUnits[name]) == "string" then
@@ -835,7 +839,7 @@ function UnitDef_Post(name, uDef)
 					if damage and damage > 0 then
 						local targetImpulse = sizeMasses[impulseUnits[name]] * targetImpulseMultiplier
 						weaponDef.impulsefactor = math.ceil((targetImpulse / damage) * 100) / 100
-						Spring.Echo(name, "impulsefactor", weaponDef.impulsefactor)
+						--Spring.Echo(name, "impulsefactor", weaponDef.impulsefactor)
 					end
 				elseif type(impulseUnits[name]) == "table" then
 					for impulseUnitsWeaponName, data in pairs(impulseUnits[name]) do
@@ -845,11 +849,11 @@ function UnitDef_Post(name, uDef)
 								if damage and damage > 0 then
 									if data <= 10 then
 										weaponDef.impulsefactor = data
-										Spring.Echo(name, impulseUnitsWeaponName, "impulseFactor", weaponDef.impulsefactor, data)
+										--Spring.Echo(name, impulseUnitsWeaponName, "impulseFactor", weaponDef.impulsefactor, data)
 									else
 									local targetImpulse = data
 									weaponDef.impulsefactor = math.ceil((targetImpulse / damage) * 100) / 100
-									Spring.Echo(name, impulseUnitsWeaponName, "impulseFactor", weaponDef.impulsefactor, data)
+									--Spring.Echo(name, impulseUnitsWeaponName, "impulseFactor", weaponDef.impulsefactor, data)
 									end
 								end
 							elseif type(data) == "string" then
@@ -857,7 +861,7 @@ function UnitDef_Post(name, uDef)
 								if damage and damage > 0 then
 									local targetImpulse = sizeMasses[data] * targetImpulseMultiplier
 									weaponDef.impulsefactor = math.ceil((targetImpulse / damage) * 100) / 100
-									Spring.Echo(name, impulseUnitsWeaponName, "impulseFactor", weaponDef.impulsefactor, data)
+									--Spring.Echo(name, impulseUnitsWeaponName, "impulseFactor", weaponDef.impulsefactor, data)
 								end
 							end
 							break
@@ -874,12 +878,23 @@ function UnitDef_Post(name, uDef)
 			-- 	weaponDef.impulseboost = nil
 			-- end
 		end
-
-		local transportUnits = { --assign the category the transport is ~UNABLE~ to carry
+		
+		--assign the category the transport is ~UNABLE~ to carry
+		local transportUnits = { 
 			armatlas = "large", armhvytrans = "gargantuan", armdfly = "gargantuan", corvalk = "large", corhvytrans = "gargantuan", corseah = "gargantuan", legatrans = "large", legstronghold = "gargantuan"
 		}
 		if transportUnits[name] then
 			uDef.transportmass = sizeMasses[transportUnits[name]] - transportDeduction
+		end
+
+		--populate newMassToMetalRatios tables for later echo'ing
+		if uDef.mass and uDef.mass ~= originalMass and not uDef.customparams.evocomlvl and uDef.customparams.techlevel and uDef.customparams.techlevel == 1 then
+			local newMassToMetalRatio = math.ceil((uDef.mass / originalMass) * 100)
+			--Spring.Echo(name.." "..newMassToMetalRatio.."%")--, "old "..originalMass, "new "..uDef.mass, )
+			if smallMassesTable[name] then
+				local sizeMassToMetalRatio = math.ceil((sizeMass / originalMass) * 100)
+				Spring.Echo(name.." "..sizeMassToMetalRatio.."%")
+			end
 		end
 	end
 
