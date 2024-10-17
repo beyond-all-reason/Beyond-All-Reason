@@ -888,7 +888,7 @@ function UnitDef_Post(name, uDef)
 		end
 
 		--populate newMassToMetalRatios tables for later echo'ing
-		if uDef.mass and uDef.mass ~= originalMass and not uDef.customparams.evocomlvl and uDef.customparams.techlevel and uDef.customparams.techlevel == 1 then
+		if uDef.mass and uDef.mass ~= originalMass and not uDef.customparams.evocomlvl then
 			local newMassToMetalRatio = math.ceil((uDef.mass / originalMass) * 100)
 			Spring.Echo(name.." "..newMassToMetalRatio.."%")--, "old "..originalMass, "new "..uDef.mass, )
 			if smallMassesTable[name] then
