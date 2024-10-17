@@ -9,13 +9,13 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	end
 		
 	if name == "armbrtha" then
-		uDef.weapondefs.lrpc.impulsefactor = 0.8
+		uDef.weapondefs.lrpc.impulsefactor = 1
 		uDef.weapondefs.lrpc.model = nil
 		uDef.weapondefs.lrpc.name = "Long-range plasma cannon"
 	end
 			
 	if name == "corint" then
-		uDef.weapondefs.lrpc.impulsefactor = 0.8
+		uDef.weapondefs.lrpc.impulsefactor = 1
 		uDef.weapondefs.lrpc.model = nil
 		uDef.weapondefs.lrpc.name = "Long-range plasma cannon"
 	end
@@ -26,7 +26,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	end
 		
 	if name == "armvulc" then
-		uDef.weapondefs.rflrpc.impulsefactor = 0.8
+		uDef.weapondefs.rflrpc.impulsefactor = 1
 		uDef.weapondefs.rflrpc.areaofeffect = 135
 		uDef.weapondefs.rflrpc.edgeeffectiveness = 0.15
 		uDef.weapondefs.rflrpc.reloadtime = 0.6
@@ -40,7 +40,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	end
 		
 	if name == "corbuzz" then
-		uDef.weapondefs.rflrpc.impulsefactor = 0.8
+		uDef.weapondefs.rflrpc.impulsefactor = 1
 		uDef.weapondefs.rflrpc.areaofeffect = 157
 		uDef.weapondefs.rflrpc.edgeeffectiveness = 0.15
 		uDef.weapondefs.rflrpc.reloadtime = 0.75
@@ -61,18 +61,18 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.weapondefs.cor_gol.impulsefactor = 0.8
 	end
 	if name == "armmav" then
-		uDef.weapondefs.armmav_weapon.impulsefactor = 0.8
+		uDef.weapondefs.armmav_weapon.impulsefactor = 1
 	end
 		
 	if name == "armsilo" then
-		uDef.weapondefs.nuclear_missile.impulsefactor = 0.8
+		uDef.weapondefs.nuclear_missile.impulsefactor = 1
 	end
 		
 	if name == "corsilo" then
-		uDef.weapondefs.crblmssl.impulsefactor = 0.8
+		uDef.weapondefs.crblmssl.impulsefactor = 1
 	end
 	if name == "cortron" then
-		uDef.weapondefs.cortron_weapon.impulsefactor = 0.8
+		uDef.weapondefs.cortron_weapon.impulsefactor = 1
 	end
 		
 	if name == "corcat" then
@@ -152,7 +152,12 @@ local function proposed_unit_reworksTweaks(name, uDef)
 			[7] = "corjamt",
 		}
 	end
-
+	if name == "corcv" then
+		uDef.mass = 210
+	end
+	if name == "armcv" then
+		uDef.mass = 200
+	end
 	return uDef
 end
 
