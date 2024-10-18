@@ -161,6 +161,57 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		end
 	end
 
+	if name == "coralab" then
+		uDef.buildoptions = {
+			[1] = "corack",
+			[2] = "corfast",
+			[3] = "corpyro",
+			[4] = "coramph",
+			[5] = "corcan",
+			[6] = "corsumo",
+			[7] = "cortermite",
+			[8] = "cormort",
+			[9] = "corhrk",
+			[10] = "coraak",
+			[11] = "corroach2",
+			[12] = "corsktl2",
+			[13] = "cordecom",
+			[14] = "corvoyr",
+			[15] = "corspy",
+			[16] = "corspec",
+			[17] = "cormando",
+		}
+	end
+	if name == "armalab" then
+		uDef.buildoptions = {
+			[1] = "armack",
+			[2] = "armfark",
+			[3] = "armfast",
+			[4] = "armamph",
+			[5] = "armzeus",
+			[6] = "armmav",
+			[7] = "armsptk",
+			[8] = "armfido",
+			[9] = "armsnipe",
+			[10] = "armfboy",
+			[11] = "armspid",
+			[12] = "armaak",
+			[13] = "armvader2",
+			[14] = "armdecom",
+			[15] = "armscab",
+			[16] = "armaser",
+			[17] = "armspy",
+			[18] = "armmark",
+		}
+	end
+
+	if name == "armroy" then
+		uDef.weapondefs.depthcharge.turnrate = 9000
+	end
+	if name == "corroy" then
+		uDef.weapondefs.depthcharge.turnrate = 9000
+	end
+
 	return uDef
 end
 
