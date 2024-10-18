@@ -83,6 +83,9 @@ local armorDefs = {
 		"corroach",
 		"legsnapper",
 		"corsktl",
+		"armvader2",
+		"corroach2",
+		"corsktl2",
 	},
 	walls = {
 		"armdrag",
