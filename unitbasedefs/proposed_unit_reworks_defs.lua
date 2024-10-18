@@ -76,15 +76,15 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	end
 		
 	if name == "corcat" then
-		uDef.weapondefs.exp_heavyrocket.impulsefactor = 0.8
+		uDef.weapondefs.exp_heavyrocket.impulsefactor = 0.6
 	end
 		
 	if name == "corban" then
-		uDef.weapondefs.banisher.impulsefactor = 0.8
+		uDef.weapondefs.banisher.impulsefactor = 0.9
 	end
 		
 	if name == "corparrow" then
-		uDef.weapondefs.cor_parrow.impulsefactor = 0.8
+		uDef.weapondefs.cor_parrow.impulsefactor = 0.7
 	end
 		
 	if name == "corvroc" then
@@ -100,19 +100,19 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	end
 		
 	if name == "cortoast" then
-		uDef.weapondefs.cortoast_gun.impulsefactor = 0.8
+		uDef.weapondefs.cortoast_gun.impulsefactor = 0.7
 	end
 		
 	if name == "armamb" then
-		uDef.weapondefs.armamb_gun.impulsefactor = 0.8
+		uDef.weapondefs.armamb_gun.impulsefactor = 0.7
 	end
 
 	if name == "corpun" then
-		uDef.weapondefs.plasma.impulsefactor = 0.8
+		uDef.weapondefs.plasma.impulsefactor = 0.7
 	end
 		
 	if name == "armguard" then
-		uDef.weapondefs.plasma.impulsefactor = 0.8
+		uDef.weapondefs.plasma.impulsefactor = 0.7
 	end
 
 	if name == "corbhmth" then
@@ -130,7 +130,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.buildtime = 300
 	end
 	if name == "armmine3" or name == "cormine3" then
-		uDef.cloakcost = 5
+		uDef.cloakcost = 6
 		uDef.metalcost = 50
 		uDef.energycost = 2800
 		uDef.buildtime = 700
@@ -152,12 +152,15 @@ local function proposed_unit_reworksTweaks(name, uDef)
 			[7] = "corjamt",
 		}
 	end
-	if name == "corcv" then
-		uDef.mass = 210
+	
+	if uDef.metalcost and uDef.health and uDef.canmove == true and uDef.mass == nil then
+		local healthmass = math.ceil(uDef.health/6)
+		uDef.mass = math.max(uDef.metalcost, healthmass)
+		if uDef.metalcost < healthmass then
+			Spring.Echo(name, uDef.mass, uDef.metalcost, uDef.mass - uDef.metalcost)
+		end
 	end
-	if name == "armcv" then
-		uDef.mass = 200
-	end
+
 	return uDef
 end
 
