@@ -20,7 +20,7 @@ return {
 		maxdec = 0.6486,
 		maxslope = 255,
 		maxwaterdepth = 30,
-		metalcost = 540,
+		metalcost = 755,
 		mincloakdistance = 60,
 		movementclass = "ABOTBOMB2",
 		nochasecategory = "VTOL",
