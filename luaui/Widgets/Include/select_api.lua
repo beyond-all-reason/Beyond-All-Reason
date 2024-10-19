@@ -4,12 +4,6 @@
 --- @field getCommand fun(cmd: string): any
 local SelectApi = {}
 
--- command definitions from https://github.com/beyond-all-reason/spring/blob/BAR105/rts/Sim/Units/CommandAI/Command.h
-local CMD_STOP = 0
-local CMD_WAIT = 5
-local CMD_PATROL = 15
-local CMD_GUARD = 25
-
 local defaultdamagetag = Game.armorTypes['default']
 local vtoldamagetag = Game.armorTypes['vtol']
 
@@ -34,12 +28,6 @@ local function isBuilder(udef)
 		(udef.canRepair and udef.repairSpeed > 0) or                              -- repair
 		(udef.buildOptions and udef.buildOptions[1]) or                           -- build options
 		(udef.canStockpile and udef.modCategories.ship and udef.modCategories.noweapon) -- is carrier ship
-end
-
-local nameLookup = {}
-
-for udid, udef in pairs(UnitDefs) do
-	nameLookup[udef.name] = udid
 end
 
 local function invertCurry(invert, filter, args)
@@ -76,7 +64,7 @@ local function checkCmd(uid, cmdId, indexTemp)
 end
 
 local function isIdle(udef, _udefid, uid)
-	return spGetCommandQueue(uid, 0) == 0
+	return spGetCommandQueue(uid, 0) == CMD.STOP
 end
 
 local function stringContains(mainString, searchString)
@@ -88,9 +76,7 @@ local function parseFilter(filterDef)
 	local tokens = {}
 	local tokenIndex = 1
 
-	for token in filterDef:gmatch("[^_]+") do
-		table.insert(tokens, token)
-	end
+	tokens = filterDef:split("_")
 
 	local function getNextToken()
 		local token = tokens[tokenIndex]
@@ -156,16 +142,16 @@ local function parseFilter(filterDef)
 			filters.idle = invertCurry(invert, isIdle)
 		elseif token == "Guarding" then
 			filters.guarding = invertCurry(invert, function(_udef, _udefid, uid)
-				return checkCmd(uid, CMD_GUARD)
+				return checkCmd(uid, CMD.GUARD)
 			end)
 		elseif token == "Waiting" then
 			filters.waiting = invertCurry(invert, function(_udef, _udefid, uid)
-				return checkCmd(uid, CMD_WAIT)
+				return checkCmd(uid, CMD.WAIT)
 			end)
 		elseif token == "Patrolling" then
 			filters.patrolling = invertCurry(invert, function(_udef, _udefid, uid)
 				for i = 1, 4, 1 do
-					if checkCmd(uid, CMD_PATROL, i) then
+					if checkCmd(uid, CMD.PATROL, i) then
 						return true
 					end
 				end
@@ -187,7 +173,7 @@ local function parseFilter(filterDef)
 				local unitGroup = spGetUnitGroup(uid)
 				return unitGroup == selectGroup
 			end, group)
-		elseif token == "InPrevSel" then
+		elseif token == "InPrevSel" or token == "InPreviousSelection" then
 			filters.inPrevSel = invertCurry(invert, function(udef, _, uid)
 				local isSelected = spIsUnitSelected(uid)
 				return isSelected
@@ -216,20 +202,6 @@ local function parseFilter(filterDef)
 				local health = spGetUnitHealth(uid)
 				return health > minHealth
 			end, minHealthPercent)
-			-- elseif token == "RulesParamEquals" then
-			-- 	local param = getNextToken()
-			-- 	local value = getNextToken()
-
-			-- 	if not value or not param then
-			-- 		break
-			-- 	end
-
-			-- 	local filterName = param .. "Rule"
-			-- 	filters[filterName] = invertCurry(invert, function(udef, _, uid, args)
-			-- 		local param = args.param
-			-- 		local value = args.value
-			-- 		-- implementation here?
-			-- 	end, {param = param, value = value})
 		elseif token == "AntiAir" then
 			filters.antiAir = invertCurry(invert, function(udef)
 				if udef.wDefs == nil or udef.canFly then
@@ -280,7 +252,7 @@ local function parseFilter(filterDef)
 				break
 			end
 
-			local udefid = nameLookup[name];
+			local udefid = UnitDefNames[name];
 
 			if udefid then
 				idMatchesSet[udefid] = true
@@ -344,9 +316,9 @@ end
 --- passes the filter.
 ---
 --- @param uid integer The unit ID
---- @param filterFns table List of filter functions
+--- @param filterFunctions table List of filter functions
 --- @return boolean? passes Whether the unit passes the filter, nil if the unit doesn't exist
-function SelectApi.unitPassesFilter(uid, filterFns)
+function SelectApi.unitPassesFilter(uid, filterFunctions)
 	local udefid = spGetUnitDefID(uid)
 
 	if not udefid then
@@ -355,8 +327,8 @@ function SelectApi.unitPassesFilter(uid, filterFns)
 
 	local udef = UnitDefs[udefid]
 
-	for _filterName, filterFn in pairs(filterFns) do
-		if not filterFn(udef, udefid, uid) then
+	for _filterName, filterFunction in pairs(filterFunctions) do
+		if not filterFunction(udef, udefid, uid) then
 			return false
 		end
 	end
@@ -367,6 +339,17 @@ end
 -- command
 local function startsWith(str, prefix)
 	return str:match("^" .. prefix) ~= nil
+end
+
+local function getAlreadySelectedSet()
+	local alreadySelectedUnits = spGetSelectedUnits()
+	local alreadySelectedSet = {}
+
+	for _, unit in ipairs(alreadySelectedUnits) do
+		alreadySelectedSet[unit] = true
+	end
+
+	return alreadySelectedSet
 end
 
 local function getMouseWorldPos()
@@ -428,24 +411,12 @@ local function getCountUnits(uids, countUntil, appendSelected)
 	return units
 end
 
-
-function getAlreadySelectedSet()
-	local alreadySelectedUnits = Spring.GetSelectedUnits()
-	local alreadySelectedSet = {}
-
-	for _, unit in ipairs(alreadySelectedUnits) do
-		alreadySelectedSet[unit] = true
-	end
-
-	return alreadySelectedSet
-end
-
 local function parseNumber(input, fn)
 	local numStr = input:match("_([^_]+)")
 	local distance = tonumber(numStr)
 
 	if not distance then
-		error("Invalid input: expected a number after the underscore.")
+		error("Invalid input, expected a number after the underscore: " .. input)
 	end
 
 	return function(args)
@@ -454,7 +425,7 @@ local function parseNumber(input, fn)
 end
 
 
-local function parseConclusion(conclusionDef, commandDef)
+local function parseConclusion(conclusionDef)
 	local appendSelected = true
 	local prefix = conclusionDef:sub(1, 15)
 
@@ -521,12 +492,12 @@ local function parseConclusion(conclusionDef, commandDef)
 			local oneUid = { closest_uid }
 			Spring.SelectUnitArray(oneUid, appendSelected)
 		end
-	elseif startsWith(conclusionDef, "SelectNum_") then
+	elseif startsWith(conclusionDef, "SelectNum_") or startsWith(conclusionDef, "SelectNumber_") then
 		return parseNumber(conclusionDef, function(countUntil, uids)
 			uids = getCountUnits(uids, countUntil, appendSelected)
 			Spring.SelectUnitArray(uids, appendSelected)
 		end)
-	elseif startsWith(conclusionDef, "SelectPart_50+") then
+	elseif startsWith(conclusionDef, "SelectPart_") then
 		return parseNumber(conclusionDef, function(percent, uids)
 			local countUntil = math.floor(#uids * percent / 100)
 			uids = getCountUnits(uids, countUntil, appendSelected)
@@ -548,20 +519,20 @@ local function parseSource(sourceDef)
 			local myTeamId = Spring.GetMyTeamID()
 			return Spring.GetVisibleUnits(myTeamId)
 		end
-	elseif sourceDef == "PrevSelection" then
+	elseif sourceDef == "PrevSelection" or sourceDef == "PreviousSelection" then
 		return function()
-			return Spring.GetSelectedUnits()
+			return spGetSelectedUnits()
 		end
 	elseif startsWith(sourceDef, "FromMouse_") then
 		return parseNumber(sourceDef, function(distance)
 			local x, y, z = getMouseWorldPos()
-			if z and y and z then
+			if x and y and z then
 				return Spring.GetUnitsInSphere(x, y, z, distance)
 			else
 				return {}
 			end
 		end)
-	elseif startsWith(sourceDef, "FromMouseC_") then
+	elseif startsWith(sourceDef, "FromMouseC_") or startsWith(sourceDef, "FromMouseCylinder_") then
 		return parseNumber(sourceDef, function(distance)
 			local x, y, z = getMouseWorldPos()
 			if x and z then
@@ -589,7 +560,7 @@ local function parseCommand(commandDef)
 
 	local source = parseSource(sourceDef)
 	local filter = SelectApi.getFilter(filterDef)
-	local conclusion = parseConclusion(conclusionDef, commandDef)
+	local conclusion = parseConclusion(conclusionDef)
 
 	return function()
 		local uids = source()
