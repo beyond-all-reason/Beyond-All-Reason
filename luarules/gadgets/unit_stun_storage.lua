@@ -79,8 +79,8 @@ end
 function gadget:UnitDamaged(unitID, unitDefID, teamID, damage, paralyzer)
 	-- when freshly EMP'd: reduce total storage
 	if paralyzer and storageDefs[unitDefID] and not paralyzedUnits[unitID] then
-		local _, maxHealth, paralyzeDamage, _, _ = Spring.GetUnitHealth(unitID)
-		if paralyzeDamage + damage > maxHealth then
+		local _, maxHealth, paralyzeDamage, _, buildProgress = Spring.GetUnitHealth(unitID)
+		if buildProgress == 1 and paralyzeDamage + damage > maxHealth then
 			if not isCommander[unitDefID] or Spring.GetGameFrame() > 150 then	-- workaround to prevent commander-gate paralyze effect to rob you of half your starting resources
 				reduceStorage(unitID, unitDefID, teamID)
 			end
