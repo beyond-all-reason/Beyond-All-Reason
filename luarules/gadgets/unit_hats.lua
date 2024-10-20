@@ -88,17 +88,28 @@ local champion = { --   Fight Night 1v1 winner
 local kings = {
 	[38971] = true,  -- Yanami
 }
-local goldMedals = {	 -- Nation Wars winners
-	[87571] = true,	-- Nezah
-	[63960] = true,  -- [waa]Delfea
-	[44807] = true,  -- [waa]Eural
-	[59916] = true,  -- Kuchy
-	[119832] = true, -- Darkclone
-	[2220] = true,   -- "[200IQ]DrSmashy"
+local goldMedals = { -- Nation Wars 1st place
+	[59340] = true,  -- [HELO]Austin
+	[439] = true,    -- goopy
+	[2377] = true,   -- therxyy
+	[79095] = true,  -- GOD_HATES_COWARDS
+	[134184] = true, -- Raigeki
 }
-local silverMedals = {
+local silverMedals = { -- Nation Wars 2nd place
+	[116414] = true, -- random_variable
+	[1422] = true,   -- ZaRxT4
+	[134481] = true, -- Blxssom
+	[71083] = true,  -- [Simple]Devil
+	[157708] = true, -- Luisb288
+	[179043] = true, -- TeriyakiThilo
 }
-local bronzeMedals = {
+local bronzeMedals = { -- Nation Wars 3rd place
+	[66696] = true,  -- Helicopter
+	[82279] = true,  -- Elydrid
+	[149904] = true, -- Zeff
+	[75569] = true,  -- Dunaa
+	[88594] = true,  -- Blackmelon
+	[42214] = true,  -- [BAB]Tenebos
 }
 local uniques = {--playername, hat ident, CaSe MaTtErS
 }
