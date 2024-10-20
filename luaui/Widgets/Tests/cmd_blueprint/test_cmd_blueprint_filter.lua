@@ -15,10 +15,6 @@ function setup()
 	end
 	widgetHandler:EnableWidget(widgetName, true)
 
-	widget = widgetHandler:FindWidget(widgetName)
-	assert(widget)
-	mock_saveBlueprintsToFile = Test.mock(widget, "saveBlueprintsToFile")
-
 	initialCameraState = Spring.GetCameraState()
 
 	Spring.SetCameraState({
@@ -44,44 +40,25 @@ function test()
 	widget = widgetHandler:FindWidget(widgetName)
 	assert(widget)
 
-	widget.blueprints = {}
-	widget.setSelectedBlueprintIndex(nil)
+	mock_saveBlueprintsToFile = Test.mock(widget, "saveBlueprintsToFile")
 
-	local blueprintUnitDefName = "armsolar"
+	-- load test blueprints
+	widget.BLUEPRINT_FILE_PATH = "LuaUI/Widgets/Tests/cmd_blueprint/test_cmd_blueprint_filter_blueprints.json"
+	widget.loadBlueprintsFromFile()
+
+	Test.clearMap()
+
 	local builderUnitDefName = "armck"
-
-	local blueprintUnitDefID = UnitDefNames[blueprintUnitDefName].id
 
 	local myTeamID = Spring.GetMyTeamID()
 	local x, z = Game.mapSizeX / 2, Game.mapSizeZ / 2
 	local y = Spring.GetGroundHeight(x, z)
 	local facing = 1
 
-	local blueprintUnitID = SyncedRun(function(locals)
-		return Spring.CreateUnit(
-			locals.blueprintUnitDefName,
-			locals.x,
-			locals.y,
-			locals.z,
-			locals.facing,
-			locals.myTeamID
-		)
-	end)
-
-	Spring.SelectUnit(blueprintUnitID)
-
-	Test.waitFrames(delay)
-
-	widget:CommandNotify(CMD_BLUEPRINT_CREATE, {}, {})
-
-	assert(#(widget.blueprints) == 1)
-
-	Test.clearMap()
-
 	local builderUnitID = SyncedRun(function(locals)
 		return Spring.CreateUnit(
 			locals.builderUnitDefName,
-			locals.x + 100,
+			locals.x,
 			locals.y,
 			locals.z,
 			locals.facing,
@@ -108,17 +85,25 @@ function test()
 
 	assert(widget.blueprintPlacementActive)
 
-	local sx, sy = Spring.WorldToScreenCoords(x, y, z)
-	Spring.WarpMouse(sx, sy)
+	-- make sure we skipped the blueprint #1, which is invalid
+	assert(widget.selectedBlueprintIndex == 2, widget.selectedBlueprintIndex)
 
-	Test.waitFrames(delay)
+	-- make sure we skipped blueprint #3, which is cortex and unbuildable by armada
+	widget.handleBlueprintNextAction()
+	assert(widget.selectedBlueprintIndex == 4, widget.selectedBlueprintIndex)
 
-	widget:CommandNotify(CMD_BLUEPRINT_PLACE, {}, {})
+	-- make sure we rotate to the next valid blueprint, #2
+	widget.handleBlueprintDeleteAction()
+	assert(widget.selectedBlueprintIndex == 2, widget.selectedBlueprintIndex)
 
-	Test.waitFrames(delay)
+	-- reset blueprints
+	widget.loadBlueprintsFromFile()
 
-	local builderQueue = Spring.GetCommandQueue(builderUnitID, -1)
+	-- make sure we rotate to the next valid blueprint, #3 (which shifted from #4)
+	widget.handleBlueprintDeleteAction()
+	assert(widget.selectedBlueprintIndex == 3, widget.selectedBlueprintIndex)
 
-	assert(#builderQueue == 1)
-	assert(builderQueue[1].id == -blueprintUnitDefID)
+	-- make sure we rotate to the next valid blueprint, nil
+	widget.handleBlueprintDeleteAction()
+	assert(widget.selectedBlueprintIndex == nil, widget.selectedBlueprintIndex)
 end
