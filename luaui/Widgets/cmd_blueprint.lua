@@ -1066,16 +1066,12 @@ local function deserializeBlueprint(serializedBlueprint)
 end
 
 local function loadBlueprintsFromFile()
-	local file = io.open(BLUEPRINT_FILE_PATH, "r")
+	local content = VFS.LoadFile(BLUEPRINT_FILE_PATH)
 
-	if not file then
-		Spring.Echo("Failed to open blueprints file for reading: " .. BLUEPRINT_FILE_PATH)
+	if not content then
+		Spring.Echo("Failed to read blueprints file: " .. BLUEPRINT_FILE_PATH)
 		return
 	end
-
-	local content = file:read("*all")
-
-	file:close()
 
 	local decoded = Json.decode(content)
 
