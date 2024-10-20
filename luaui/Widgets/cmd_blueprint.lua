@@ -260,6 +260,13 @@ local function getSelectedBlueprint()
 	return blueprints[selectedBlueprintIndex]
 end
 
+-- Returns the blueprint modified to work with the currently selected
+-- constructors. For example, if Cortext constructors are selected, any Armada
+-- wind turbines will be swapped with Cortex wind turbines.
+local function getSelectedBlueprintModifiedForActiveBuilders()
+	return WG["api_blueprint"].modifyBlueprintForActiveBuilders(blueprints[selectedBlueprintIndex])
+end
+
 local function setSelectedBlueprintIndex(index)
 	selectedBlueprintIndex = index
 
@@ -924,7 +931,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	if cmdID == CMD_BLUEPRINT_CREATE then
 		handleBlueprintCreateAction()
 	elseif cmdID == CMD_BLUEPRINT_PLACE then
-		local selectedBlueprint = getSelectedBlueprint()
+		local selectedBlueprint = getSelectedBlueprintModifiedForActiveBuilders()
 
 		if not selectedBlueprint then
 			Spring.Echo("[Blueprint] no active blueprints")

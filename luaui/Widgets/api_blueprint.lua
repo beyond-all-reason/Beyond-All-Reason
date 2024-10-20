@@ -182,9 +182,9 @@ local outlineVertexVBOLayout = {
 
 local outlineInstanceVBO = nil
 local outlineInstanceVBOLayout = {
-	{ id = 1, name = 'position', size = 3 },
+	{ id = 1, name = 'position',   size = 3 },
 	{ id = 2, name = 'dimensions', size = 2 },
-	{ id = 3, name = 'color', size = 4 },
+	{ id = 3, name = 'color',      size = 4 },
 }
 
 local function makeOutlineVBO()
@@ -472,7 +472,8 @@ local function getBuildPositionsBox(blueprint, startPos, endPos, spacing)
 		-- go right bottom side
 		table.append(result, fillRow(startPos[1] + xStep, startPos[3] + (zNum - 1) * zStep, xStep, 0, xNum - 1))
 		-- go up right side
-		table.append(result, fillRow(startPos[1] + (xNum - 1) * xStep, startPos[3] + (zNum - 2) * zStep, 0, -zStep, zNum - 1))
+		table.append(result,
+			fillRow(startPos[1] + (xNum - 1) * xStep, startPos[3] + (zNum - 2) * zStep, 0, -zStep, zNum - 1))
 		-- go left top side
 		table.append(result, fillRow(startPos[1] + (xNum - 2) * xStep, startPos[3], -xStep, 0, xNum - 1))
 	elseif xNum == 1 then
@@ -652,7 +653,7 @@ local function drawOutlines()
 
 	gl.LineWidth(2)
 	gl.DepthTest(GL.ALWAYS) -- so that it wont be drawn behind terrain
-	gl.DepthMask(false) -- so that we dont write the depth of the drawn pixels
+	gl.DepthMask(false)  -- so that we dont write the depth of the drawn pixels
 	gl.Texture(0, "$heightmap")
 	outlineShader:Activate()
 	outlineInstanceVBO.VAO:DrawArrays(
@@ -679,12 +680,173 @@ end
 -- api
 -- ===
 
+
+local similarStructures = {
+	{ "corafus",        "armafus" },
+	{ "corageo",        "armageo" },
+	{ "corapt3",        "armapt3" },
+	{ "corarad",        "armarad" },
+	{ "corason",        "armason" },
+	{ "corasp",         "armasp" },
+	{ "corasy",         "armasy" },
+	{ "coratl",         "armatl" },
+	{ "cordl",          "armdl" },
+	{ "corestor",       "armestor" },
+	{ "coreyes",        "armeyes" },
+	{ "corfasp",        "armfasp" },
+	{ "corfatf",        "armfatf" },
+	{ "corfdrag",       "armfdrag" },
+	{ "corfgate",       "armfgate" },
+	{ "corfhlt",        "armfhlt" },
+	{ "corfmine3",      "armfmine3" },
+	{ "corfrad",        "armfrad" },
+	{ "corfrock",       "armfrock" },
+	{ "corfrt",         "armfrt" },
+	{ "corfus",         "armfus" },
+	{ "corgant",        "armgant" },
+	{ "corgate",        "armgate" },
+	{ "corgeo",         "armgeo" },
+	{ "corgplat",       "armgplat" },
+	{ "corhlt",         "armhlt" },
+	{ "corjamt",        "armjamt" },
+	{ "corjuno",        "armjuno" },
+	{ "corllt",         "armllt" },
+	{ "cormakr",        "armmakr",       "legeconv" },
+	{ "cormine1",       "armmine1" },
+	{ "cormine2",       "armmine2" },
+	{ "cormine3",       "armmine3" },
+	{ "cormmkr",        "armmmkr" },
+	{ "cornanotc2plat", "armnanotc2plat" },
+	{ "cornanotc",      "armnanotc" },
+	{ "cornanotcplat",  "armnanotcplat" },
+	{ "cornanotct2",    "armnanotct2" },
+	{ "corplat",        "armplat" },
+	{ "corsd",          "armsd" },
+	{ "corsonar",       "armsonar" },
+	{ "corsy",          "armsy" },
+	{ "cortarg",        "armtarg" },
+	{ "coruwadves",     "armuwadves" },
+	{ "coruwadvms",     "armuwadvms" },
+	{ "coruwageo",      "armuwageo" },
+	{ "coruwes",        "armuwes" },
+	{ "coruwfus",       "armuwfus" },
+	{ "coruwgeo",       "armuwgeo" },
+	{ "coruwmex",       "armuwmex" },
+	{ "coruwmme",       "armuwmme" },
+	{ "coruwmmm",       "armuwmmm" },
+	{ "coruwms",        "armuwms" },
+	{ "coraap",         "armaap",        "legaap" },
+	{ "coradvsol",      "armadvsol",     "legadvsol" },
+	{ "coralab",        "armalab",       "legalab" },
+	{ "coramsub",       "armamsub",      "legamsub" },
+	{ "corap",          "armap",         "legap" },
+	{ "coravp",         "armavp",        "legavp" },
+	{ "cordrag",        "armdrag",       "legdrag" },
+	{ "corfhp",         "armfhp",        "legfhp" },
+	{ "corflak",        "armflak",       "legflak" },
+	{ "corfmkr",        "armfmkr",       "legfmkr" },
+	{ "corfort",        "armfort",       "legfort" },
+	{ "corhp",          "armhp",         "leghp" },
+	{ "corlab",         "armlab",        "leglab" },
+	{ "cormex",         "armmex",        "legmex" },
+	{ "cormoho",        "armmoho",       "legmoho" },
+	{ "cormstor",       "armmstor",      "legmstor" },
+	{ "corptl",         "armptl",        "legptl" },
+	{ "corrad",         "armrad",        "legrad" },
+	{ "corrl",          "armrl",         "legrl" },
+	{ "corsilo",        "armsilo",       "legsilo" },
+	{ "corsolar",       "armsolar",      "legsolar" },
+	{ "cortide",        "armtide",       "legtide" },
+	{ "cortl",          "armtl",         "legtl" },
+	{ "corvp",          "armvp",         "legvp" },
+	{ "corwin",         "armwin",        "legwin" },
+	{ "corwint2",       "armwint2",      "legwint2" },
+}
+
+local unitDefsByName = {}
+for _, udef in pairs(UnitDefs) do
+	unitDefsByName[udef.name] = udef
+end
+
+similarStructures = table.map(similarStructures,
+	function(t)
+		return table.map(t, function(uname)
+			if unitDefsByName[uname] then
+				return unitDefsByName[uname].id
+			else
+				return nil
+			end
+		end)
+	end)
+
+local similarStructuresIndex = {}
+for _, t in pairs(similarStructures) do
+	for _, v in pairs(t) do
+		similarStructuresIndex[v] = t
+	end
+end
+
+-- Takes a blueprint and returns a new blueprint that works with the current set
+-- of builders if the current set of builders cannot build certain buildings.
+-- I.e. replaces Armada buildings with their Cortext/Legion counterparts and
+-- vice versa.
+local function modifyBlueprintForActiveBuilders(blueprint)
+	if not blueprint then
+		return nil
+	end
+
+	-- Takes a blueprint unit. If that blueprint unit is not buildable by the
+	-- current set of constructors, use the similarStructuresIndex to try to
+	-- find a suitable replacement building and return a new blueprint unit with
+	-- the replacement UnitDefId.
+	local function swapBlueprintUnitIfUnbuildable(bpunit)
+		if activeBuilderBuildOptions[bpunit.unitDefID] then
+			-- If the current builder options can build this unit, then cool.
+			return bpunit
+		else
+			-- If the current builder cannot build this building, see if there's
+			-- a "similar" structure it can build. i.e. maybe the blueprint is
+			-- for Armada wind turbines, but we have a Cortex constructor.
+			local newUnitDefId = nil
+			for _, alternative in pairs(similarStructuresIndex[bpunit.unitDefID] or {}) do
+				if activeBuilderBuildOptions[alternative] then
+					newUnitDefId = alternative
+					break
+				end
+			end
+
+			if newUnitDefId then
+				return {
+					blueprintUnitID = bpunit.blueprintUnitID,
+					unitDefID = newUnitDefId,
+					position = bpunit.position,
+					facing = bpunit.facing,
+				}
+			else
+				-- No suitable alternative found, just return the original.
+				return bpunit
+			end
+		end
+	end
+
+	-- Copy the blueprint by value, changing only the UnitDefIDs if we need.
+	return {
+		name = blueprint.name,
+		spacing = blueprint.spacing,
+		facing = blueprint.facing,
+		dimensions = blueprint.dimensions,
+		floatOnWater = blueprint.floatOnWater,
+		ordered = blueprint.order,
+		units = table.map(blueprint.units, swapBlueprintUnitIfUnbuildable)
+	}
+end
+
 local function setActiveBlueprint(bp)
 	if bp then
 		bp = rotateBlueprint(bp, bp.facing)
 	end
 
-	activeBlueprint = bp
+	activeBlueprint = modifyBlueprintForActiveBuilders(bp)
 
 	clearInstances()
 	updateInstances(activeBlueprint, activeBuildPositions, SpringGetMyTeamID())
@@ -741,6 +903,7 @@ function widget:Initialize()
 		setActiveBlueprint = setActiveBlueprint,
 		setActiveBuilders = setActiveBuilders,
 		setBlueprintPositions = setBlueprintPositions,
+		modifyBlueprintForActiveBuilders = modifyBlueprintForActiveBuilders,
 
 		rotateBlueprint = rotateBlueprint,
 		calculateBuildPositions = calculateBuildPositions,
