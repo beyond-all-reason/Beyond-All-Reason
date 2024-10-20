@@ -280,3 +280,6 @@ bind           Alt+sc_c  blueprint_create
 bind           Alt+sc_d  blueprint_delete
 bind           Alt+sc_[  blueprint_prev
 bind           Alt+sc_]  blueprint_next
+
+// quotas
+bind           Alt+sc_g  factoryqueuemode
