@@ -32,8 +32,6 @@ if gadgetHandler:IsSyncedCode() then
 	local spGiveOrderToUnit = Spring.GiveOrderToUnit
 	local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
 
-	local sendToUnsynced = SendToUnsynced
-
 	local CMD_WAIT = CMD.WAIT
 	local EMPTY = {}
 	local DEQUEUE_OPTS = { "right", "ctrl", "shift" } -- right: dequeue, ctrl+shift: 100
@@ -102,7 +100,7 @@ if gadgetHandler:IsSyncedCode() then
 		spGiveOrderToUnit(unitID, CMD_WAIT, EMPTY, 0) -- Removes wait if there is a wait but doesn't readd it.
 		spGiveOrderToUnit(unitID, CMD_WAIT, EMPTY, 0) -- If a factory is waiting, it will not clear the current build command, even if the cmd is removed.
 		-- See: http://zero-k.info/Forum/Post/237176#237176 for details.
-		sendToUnsynced(identifier, unitID, unitDefID, unitTeam, cmdID)
+		SendToUnsynced(identifier, unitID, unitDefID, unitTeam, cmdID)
 	end
 
 	--------------------------------------------------------------------------------
@@ -122,24 +120,20 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 else
-	local scriptUnitCommand = Script.LuaUI.UnitCommand
-
-	local spGetSpectatingState = Spring.GetSpectatingState
-	local spAreTeamsAllied = Spring.AreTeamsAllied
 	local myTeamID, isSpec
 
 	function gadget:PlayerChanged()
 		myTeamID = Spring.GetMyTeamID()
-		isSpec = spGetSpectatingState()
+		isSpec = Spring.GetSpectatingState()
 	end
 
 	function gadget:Initialize()
 		gadget:PlayerChanged()
 	end
 
-	function gadget:RecvFromSynced(magic, unitID, unitDefID, unitTeam, cmdID)
-		if magic == identifier and (spAreTeamsAllied(unitTeam, myTeamID) or isSpec) then
-			scriptUnitCommand(unitID, unitDefID, unitTeam, cmdID, {}, {coded = 0})
+	function gadget:RecvFromSynced(messageID, unitID, unitDefID, unitTeam, cmdID)
+		if messageID == identifier and (Spring.AreTeamsAllied(unitTeam, myTeamID) or isSpec) then
+			Script.LuaUI.UnitCommand(unitID, unitDefID, unitTeam, cmdID, {}, {coded = 0})
 		end
 	end
 end
