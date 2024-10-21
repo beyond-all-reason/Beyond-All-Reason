@@ -8,7 +8,6 @@ return {
 		buildpic = "LEGCEN.DDS",
 		buildtime = 3000,
 		canmove = true,
-		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -1 1",
 		collisionvolumescales = "18 20 30",
 		collisionvolumetype = "box",
@@ -18,9 +17,9 @@ return {
 		footprintz = 2,
 		idleautoheal = 5,
 		idletime = 1800,
-		health = 830,
+		health = 750,
 		maxslope = 14,
-		speed = 93.0,
+		speed = 90.0,
 		maxwaterdepth = 12,
 		movementclass = "BOT3",
 		nochasecategory = "VTOL",
@@ -38,7 +37,7 @@ return {
 			unitgroup = 'weapon',
 			model_author = "Zecrus",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armbots",
+			subfolder = "ArmBots",
 		},
 		featuredefs = {
 			dead = {

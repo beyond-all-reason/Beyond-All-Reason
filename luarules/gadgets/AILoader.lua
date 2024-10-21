@@ -78,7 +78,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:RecvLuaMsg(msg, playerID)
 		--msg = 'StGiveOrderToSync'..';'..id..';'..cmd..';'..pos..';'..opts..';'..timeout..';'..uname..';'.'StEndGOTS'
-		--Spring.Debug.TableEcho(datas)
 		if string.sub(msg,1,17) ~= 'StGiveOrderToSync' then
 			return
 		end
@@ -103,14 +102,14 @@ if gadgetHandler:IsSyncedCode() then
 
 		pos = string.split(pos,',')
 		if not pos or not pos[1] or pos[1] == '' then
-			Spring.Debug.TableEcho(pos)
+			Spring.Echo(pos)
 			spEcho('warn! invalid POS argument in STAI gotu luarules message')
 			return
 		end
 		if opts ~= 0 then
 			opts = string.split(opts,',')
 			if not opts or not opts[1] or opts[1] == '' then
-				Spring.Debug.TableEcho(opts)
+				Spring.Echo(opts)
 				spEcho('warn! invalid OPTS argument in STAI gotu luarules message')
 				return
 			end
@@ -126,87 +125,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 
-
-
-
-
-
-
-
-
-
-
--- 	function gadget:RecvLuaMsg1(msg, playerID)
---
--- 		if string.sub(msg,1,17) == 'StGiveOrderToSync' then
--- 			local id = string.split(msg,"*")
--- 			local cmd = string.split(msg,'_')
--- 			local pos = string.split(msg,':')
--- 			local opts = string.split(msg,';')
--- 			local timeout = string.split(msg,'#')
--- 			local unit = string.split(msg,'!')
--- 			if #id ~= 3 or #cmd ~= 3 or #pos ~= 3 or #opts ~= 3 or #timeout ~= 3 or #unit ~= 3 then
--- 				spEcho('format incomplete',unit,#id,#cmd,#pos,#opts,#timeout,#unit)
--- 				spEcho('recvluamsg',msg)
--- 				spEcho('splitting length',unit,#id,#cmd,#pos,#opts,#timeout,#unit)
--- 				spEcho('GiveOrderToUnit : ')
--- 				spEcho('unit',unit,type(unit))
--- 				spEcho('id',id,type(id))
--- 				spEcho('cmd',cmd,type(cmd))
--- 				spEcho('pos',pos,type(pos))
--- 				spEcho('opts',opts,type(opts))
--- 				spEcho('timeout',timeout,type(timeout))
--- 				Spring.Debug.TableEcho(pos)
--- 				return
--- 			end
--- 			id = id[2]
--- 			cmd = cmd[2]
--- 			pos = pos[2]
--- 			opts = opts[2]
--- 			timeout = timeout[2]
--- 			unit = unit[2]
--- 			if not Spring.ValidUnitID ( id )  then
--- 				Spring.Echo('ST RECEIVEDGOTS ID INVALID','name',unit,'id',id,'cmd',cmd)
--- 				return
--- 			end
--- 			if string.split(pos,',') then
--- 				pos = string.split(pos,',')
--- 				if not pos[1] or pos[1] == '' then
--- 					Spring.Debug.TableEcho(pos)
--- 					spEcho('warn! invalid pos argument in STAI gotu luarules message')
--- 					return
--- 				end
--- 			end
--- 			if string.split(opts,',') then
--- 				opts = string.split(opts,',')
--- 				if not opts[1] or opts[1] == '' then
--- 					Spring.Debug.TableEcho(pos)
--- 					spEcho('warn! invalid opts argument in STAI gotu luarules message')
--- 					return
--- 				end
--- 			end
--- 			if type(timeout) ~= 'table' then--maybe this is not required
--- 				timeout = {timeout}
--- 			end
--- 			if dbg then
--- 				spEcho('recvluamsg',msg)
--- 				spEcho('splitting length',unit,#id,#cmd,#pos,#opts,#timeout,#unit)
--- 				spEcho('GiveOrderToUnit : ')
--- 				spEcho('unit',unit,type(unit))
--- 				spEcho('id',id,type(id))
--- 				spEcho('cmd',cmd,type(cmd))
--- 				spEcho('pos',pos,type(pos))
--- 				spEcho('opts',opts,type(opts))
--- 				spEcho('timeout',timeout,type(timeout))
--- 				Spring.Debug.TableEcho(pos)
--- 			end
--- 			local order = Spring.GiveOrderToUnit(id,cmd,pos,opts,timeout)
--- 			if order ~= true then
--- 				spEcho('order error in STAI unsync to sync give order to unit',msg)
--- 				spEcho('order', order,id,cmd,pos,opts,timeout)
--- 			end
--- 		end
--- 	end
 else
 
 	-- UNSYNCED CODE

@@ -37,7 +37,7 @@ local spawnpads = {
     [UDN.corcom.id] = "correspawn",
 }
 if Spring.GetModOptions().experimentallegionfaction then
-	spawnpads[UDN.legcom.id] = "correspawn"
+	spawnpads[UDN.legcom.id] = "legnanotcbase"
 end
 
 function SpawnAssistTurret(unitID, unitDefID, unitTeam)

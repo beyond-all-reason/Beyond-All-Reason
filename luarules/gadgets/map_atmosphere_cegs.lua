@@ -85,8 +85,7 @@ if not gadgetHandler:IsSyncedCode() then
 			},
 			sunDir = {gl.GetSun("pos")},
 		}
-		--Spring.Echo("GetLightingAndAtmosphere")
-		--Spring.Debug.TableEcho(res)
+
 		return res
 	end
 
@@ -185,8 +184,6 @@ if not gadgetHandler:IsSyncedCode() then
 					end
 				end
 			end
-			--Spring.Echo("endlight =")
-			--Spring.Debug.TableEcho(endlight)
 		end
 		local dt = 300
 		local tstart = 60
@@ -202,7 +199,6 @@ if not gadgetHandler:IsSyncedCode() then
 				MixLightingAndAtmosphere(endlight, initlight, mixfac, mixedlight)
 			end
 			SetLightingAndAtmosphere(mixedlight)
-			--Spring.Debug.TableEcho(mixedlight)
 		end
 
 	end

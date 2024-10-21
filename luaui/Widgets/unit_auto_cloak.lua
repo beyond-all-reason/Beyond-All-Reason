@@ -26,6 +26,7 @@ local unitdefConfigNames = {
 	['armckfus'] = true,
 	['armspy'] = true,
 	['corspy'] = true,
+	['corphantom'] = true,
 }
 -- convert unitname -> unitDefID
 local unitdefConfig = {}

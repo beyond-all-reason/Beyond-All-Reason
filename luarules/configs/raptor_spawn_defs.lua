@@ -17,7 +17,7 @@ local economyScale = 1 * Spring.GetModOptions().multiplier_resourceincome *
 (((((Spring.GetModOptions().startmetal - 1000) / 9000) + 1)*0.1)+0.9) *
 (((((Spring.GetModOptions().startenergy - 1000) / 9000) + 1)*0.1)+0.9)
 
-economyScale = (economyScale*0.33)+0.67
+economyScale = math.min(5, (economyScale*0.33)+0.67)
 
 local burrowName = 'raptor_hive'
 

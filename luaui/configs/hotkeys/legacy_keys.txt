@@ -56,6 +56,8 @@ bind sc_l loadunits
 bind Shift+sc_l loadunits
 bind sc_m move
 bind Shift+sc_m move
+bind sc_n  command_skip_current
+bind Ctrl+sc_n  command_cancel_last
 bind sc_p patrol
 bind Shift+sc_p patrol
 bind sc_q,sc_q drawlabel // double hit Q for drawlabel, these are only present due to legacy. Should be deprecated at some point
@@ -271,3 +273,10 @@ bind sc_y settargetnoground
 bind Ctrl+sc_` group unset
 
 bind Alt+sc_` remove_from_autogroup // Auto Group
+
+// blueprint
+bind           Alt+sc_b  blueprint_place
+bind           Alt+sc_c  blueprint_create
+bind           Alt+sc_d  blueprint_delete
+bind           Alt+sc_[  blueprint_prev
+bind           Alt+sc_]  blueprint_next

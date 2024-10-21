@@ -7,7 +7,6 @@ return {
 		buildpic = "LEGFLOAT.DDS",
 		buildtime = 16000,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSHIP NOTHOVER NOTAIR NOTSUB SURFACE PHIB EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "40 20 50",
 		collisionvolumetype = "Box",
@@ -45,7 +44,7 @@ return {
 		customparams = {
 			model_author = "EnderRobo",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "legvehicles/t2",
+			subfolder = "legvehicles/T2",
 			techlevel = 2,
 		},
 		featuredefs = {
@@ -169,7 +168,7 @@ return {
 				name = "Light rotary cannon",
 				noselfdamage = true,
 				ownerExpAccWeight = 4.0,
-				proximitypriority = 3,
+				proximitypriority = 1,
 				range = 450,
 				reloadtime = 0.675,
 				rgbcolor = "1 0.95 0.4",

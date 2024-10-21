@@ -143,6 +143,9 @@ local function SpawnLootbox(posx, posy, posz)
 	if spawnedUnit then
 		Spring.SetUnitNeutral(spawnedUnit, true)
 		Spring.SetUnitAlwaysVisible(spawnedUnit, true)
+		Spring.SpawnCEG("commander-spawn-alwaysvisible", posx, posy, posz, 0, 0, 0)
+		Spring.PlaySoundFile("commanderspawn-mono", 1.0, posx, posy, posz, 0, 0, 0, "sfx")
+		GG.ComSpawnDefoliate(posx, posy, posz)
 	end
 end
 

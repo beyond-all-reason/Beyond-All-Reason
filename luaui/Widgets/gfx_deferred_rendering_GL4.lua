@@ -820,8 +820,6 @@ local function AddStaticLightsForUnit(unitID, unitDefID, noUpload, reason)
 		end
 		for lightname, lightParams in pairs(unitDefLight) do
 			if lightname ~= 'initComplete' then
-				--Spring.Debug.TraceFullEcho(nil,nil,nil,"AddStaticLightsForUnit")
-				--Spring.Debug.TableEcho(lightParams)
 				local targetVBO = unitLightVBOMap[lightParams.lightType]
 
 				if (not spec) and lightParams.alliedOnly == true and Spring.IsUnitAllied(unitID) == false then return end
@@ -1311,15 +1309,11 @@ local function updateProjectileLights(newgameframe)
 				local weapon, piece = spGetProjectileType(projectileID)
 				if piece then
 					local explosionflags = spGetPieceProjectileParams(projectileID)
-					--if explosionflags and explosionflags%32 > 15 then
-						local gib = gibLight.lightParamTable
-						gib[1] = px
-						gib[2] = py
-						gib[3] = pz
-						AddLight(projectileID, nil, nil, projectilePointLightVBO, gib, noUpload)
-						--Spring.Echo("added gib")
-						--Spring.Debug.TableEcho(gib)
-					--end
+					local gib = gibLight.lightParamTable
+					gib[1] = px
+					gib[2] = py
+					gib[3] = pz
+					AddLight(projectileID, nil, nil, projectilePointLightVBO, gib, noUpload)
 				else
 					local weaponDefID = spGetProjectileDefID ( projectileID )
 					if projectileDefLights[weaponDefID] and ( projectileID % (projectileDefLights[weaponDefID].fraction or 1) == 0 ) then
@@ -1618,13 +1612,11 @@ function widget:Initialize()
 	local success, mapinfo = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua confs
 
 	if nightFactor ~= 1 then
-		--Spring.Debug.TableEcho(mapinfo)
 		local nightLightingParams = {}
 		for _,v in ipairs(adjustfornight) do
 			nightLightingParams[v] = mapinfo.lighting[string.lower(v)]
 			if nightLightingParams[v] ~= nil then
 				for k2, v2 in pairs(nightLightingParams[v]) do
-					--Spring.Echo(v,k2,v2)
 					if tonumber(v2) then
 						if string.find(v, 'unit', nil, true) then
 							nightLightingParams[v][k2] = v2 * nightFactor * unitNightFactor

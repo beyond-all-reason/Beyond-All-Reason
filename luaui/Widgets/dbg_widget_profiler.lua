@@ -316,7 +316,11 @@ local totalSpace = {}
 
 local sortedList = {}
 local function SortFunc(a, b)
-	return a.plainname < b.plainname
+	if Spring.GetConfigInt("profiler_sort_by_load", 1) == 1 then
+		return a.tLoad > b.tLoad
+	else
+		return a.plainname < b.plainname
+	end
 end
 
 local deltaTime
@@ -477,13 +481,15 @@ function widget:DrawScreen()
 
 			local tLoad = timeLoadAverages[wname]
 			local sLoad = spaceLoadAverages[wname]
-			sortedList[n] = { plainname = wname, fullname = wname .. ' \255\200\200\200(' .. cmaxname_t .. ',' .. cmaxname_space .. ')', tLoad = tLoad, sLoad = sLoad, tTime = t / deltaTime }
+			if tLoad >= Spring.GetConfigFloat("profiler_min_time", 0.05) or sLoad >= Spring.GetConfigFloat("profiler_min_memory", 5) then -- Only show heavy widgets
+				sortedList[n] = { plainname = wname, fullname = wname .. ' \255\200\200\200(' .. cmaxname_t .. ',' .. cmaxname_space .. ')', tLoad = tLoad, sLoad = sLoad, tTime = t / deltaTime }
+				n = n + 1
+			end
 			allOverTime = allOverTime + tLoad
 			allOverSpace = allOverSpace + sLoad
 
-			n = n + 1
+			
 		end
-
 		table.sort(sortedList, SortFunc)
 
 		for i = 1, #sortedList do

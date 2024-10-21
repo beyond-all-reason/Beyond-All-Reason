@@ -67,7 +67,6 @@ for difficulty, stats in pairs(difficultyParams) do
 		canmove = true,
 		capturable = false,
 		capturespeed = 1800,
-		category = "ALL WEAPON NOTSUB COMMANDER NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		collisionvolumeoffsets = "0 12 0",
 		collisionvolumescales = "111 207 111",
 		collisionvolumetype = "CylY",
@@ -94,7 +93,6 @@ for difficulty, stats in pairs(difficultyParams) do
 		movementclass = "SCAVCOMMANDERBOT",
 		nochasecategory = "ALL",
 		objectname = "Units/scavboss/scavengerbossv4.s3o",
-		pushresistant = true,
 		radardistance = 2000,
 		radaremitheight = 54,
 		reclaimable = false,
@@ -241,7 +239,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				weaponvelocity = 920,
 				damage = {
 					default = stats.minigunDamage,
-					vtol = stats.minigunDamage/3,
+					vtol = stats.minigunDamage/2,
 				},
 			},
 			torpedo = {
@@ -260,7 +258,6 @@ for difficulty, stats in pairs(difficultyParams) do
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-small-uw",
 				flighttime = 1.75,
-				groundbounce = true,
 				gravityaffected = "true",
 				mygravity = 0.2,
 				impulseboost = 0.123,
@@ -484,7 +481,6 @@ for difficulty, stats in pairs(difficultyParams) do
 				firestarter = 100,
 				firesubmersed = false,
 				gravityaffected = true,
-				groundbounce = true,
 				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 4,
@@ -561,7 +557,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				wobble = 5000,
 				damage = {
 					default = stats.missileDamage/6,
-					vtol = stats.missileDamage,
+					vtol = stats.missileDamage*2,
 				},
 			},
 			turbo_napalm = {
@@ -654,7 +650,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				weaponvelocity = 920,
 				damage = {
 					default = stats.minigunDamage*4,
-					vtol = (stats.minigunDamage*4)/3,
+					vtol = (stats.minigunDamage*4)/2,
 					subs = stats.minigunDamage,
 				},
 			},
@@ -904,7 +900,7 @@ for difficulty, stats in pairs(difficultyParams) do
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL",
+				--badtargetcategory = "VTOL",
 				def = "machinegun",
 				onlytargetcategory = "NOTSUB",
 				burstControlWhenOutOfArc = 1,
@@ -949,7 +945,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				onlytargetcategory = "NOTSHIP",
 			},
 			[10] = {
-				badtargetcategory = "SURFACE",
+				--badtargetcategory = "SURFACE",
 				def = "turbo_machinegun",
 				onlytargetcategory = "NOTSUB",
 				burstControlWhenOutOfArc = 3,

@@ -8,7 +8,6 @@ return {
 		buildpic = "CORTORCH.DDS",
 		buildtime = 4150,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -3 0",
 		collisionvolumescales = "30 21 36",
 		collisionvolumetype = "Box",
@@ -44,7 +43,7 @@ return {
 			model_author = "Flaka, Itanthias kitbash",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.0130,
-			subfolder = "corvehicles",
+			subfolder = "CorVehicles",
 		},
 		featuredefs = {
 			dead = {

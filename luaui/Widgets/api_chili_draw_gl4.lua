@@ -50,7 +50,7 @@ local function makeAtlas()
 	addDirToAtlas(atlasTexture, "luaui/images/chiliskin_gl4", "tech")
 	gl.FinalizeTextureAtlas(atlasTexture)	
 	local texInfo = gl.TextureInfo(atlasTexture ) 
-	--Spring.Debug.TableEcho(texInfo)	
+
 	atlasX = texInfo.xsize -- cool this works
 	atlasY = texInfo.ysize
 	for filepath,_ in pairs(atlassedImagesUVs) do

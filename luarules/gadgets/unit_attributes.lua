@@ -665,7 +665,7 @@ function gadget:GameFrame(f)
 
 
 	if false and f % 50 == 1 then
-		Spring.Debug.TableEcho(unitSlowed)
+		Spring.Echo(unitSlowed)
 	end
 
 end

@@ -958,7 +958,7 @@ else	-- UNSYNCED
 			local mapcx = Game.mapSizeX/2
 			local mapcz = Game.mapSizeZ/2
 			local mapcy = Spring.GetGroundHeight(mapcx,mapcz)
-			--Spring.Debug.TableEcho(camState)
+
 			camState["px"] = mapcx
 			camState["py"] = mapcy
 			camState["pz"] = mapcz
@@ -1154,8 +1154,7 @@ else	-- UNSYNCED
 				stats.display = tostring(vsx) ..'x' .. tostring(vsy)
 
 				Spring.Echo("Benchmark Results")
-				Spring.Debug.TableEcho(stats)
-
+				Spring.Echo(stats)
 
 				if Spring.GetMenuName then
 					local message = Json.encode(stats)
@@ -1172,7 +1171,7 @@ else	-- UNSYNCED
 			if Spring.GetModOptions().scenariooptions then
 				--Spring.Echo("Scenario: Spawning on frame", Spring.GetGameFrame())
 				local scenariooptions = string.base64Decode(Spring.GetModOptions().scenariooptions)
-				Spring.Debug.TableEcho(scenariooptions)
+				Spring.Echo(scenariooptions)
 				scenariooptions = Json.decode(scenariooptions)
 				if scenariooptions and scenariooptions.benchmarkcommand then
 					--This is where the magic happens!

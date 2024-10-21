@@ -21,49 +21,123 @@ local isSpec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
 local preGamestartPlayer = Spring.GetGameFrame() == 0 and not isSpec
 local startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
+local prevStartDefID = startDefID
 local metalMap = false
 
 local unitshapes = {}
 
-local armToCorNames = {
-	["armmex"] = "cormex",
-	["armuwmex"] = "coruwmex",
-	["armsolar"] = "corsolar",
-	["armwin"] = "corwin",
-	["armtide"] = "cortide",
-	["armllt"] = "corllt",
-	["armrad"] = "corrad",
-	["armrl"] = "corrl",
-	["armtl"] = "cortl",
-	["armsonar"] = "corsonar",
-	["armfrt"] = "corfrt",
-	["armlab"] = "corlab",
-	["armvp"] = "corvp",
-	["armsy"] = "corsy",
-	["armmstor"] = "cormstor",
-	["armestor"] = "corestor",
-	["armmakr"] = "cormakr",
-	["armeyes"] = "coreyes",
-	["armdrag"] = "cordrag",
-	["armdl"] = "cordl",
-	["armap"] = "corap",
-	["armfrad"] = "corfrad",
-	["armuwms"] = "coruwms",
-	["armuwes"] = "coruwes",
-	["armfmkr"] = "corfmkr",
-	["armfdrag"] = "corfdrag",
-	["armptl"] = "corptl",
+local corNames = {
+	"cormex",
+	"corsolar",
+	"corwin",
+	"cortide",
+	"corllt",
+	"corrad",
+	"corrl",
+	"cortl",
+	"corfrt",
+	"corlab",
+	"corvp",
+	"corsy",
+	"cormstor",
+	"corestor",
+	"cormakr",
+	"coreyes",
+	"cordrag",
+	"cordl",
+	"corap",
+	"corfrad",
+	"coruwms",
+	"coruwes",
+	"corfmkr",
+	"corfdrag",
+	"corhp",
+	"corfhp",
 }
+local armNames = {
+	"armmex",
+	"armsolar",
+	"armwin",
+	"armtide",
+	"armllt",
+	"armrad",
+	"armrl",
+	"armtl",
+	"armfrt",
+	"armlab",
+	"armvp",
+	"armsy",
+	"armmstor",
+	"armestor",
+	"armmakr",
+	"armeyes",
+	"armdrag",
+	"armdl",
+	"armap",
+	"armfrad",
+	"armuwms",
+	"armuwes",
+	"armfmkr",
+	"armfdrag",
+	"armhp",
+	"armfhp",
+}
+local legNames = {
+	"legmex",
+	"legsolar",
+	"legwin",
+	"legtide",
+	"leglht",
+	"legrad",
+	"legrl",
+	"cortl",
+	"corfrt",
+	"leglab",
+	"legvp",
+	"corsy",
+	"legmstor",
+	"legestor",
+	"legeconv",
+	"legeyes",
+	"legdrag",
+	"cordl",
+	"legap",
+	"corfrad",
+	"coruwms",
+	"coruwes",
+	"legfmkr",
+	"corfdrag",
+	"leghp",
+	"legfhp",
+}
+
 -- convert unitname -> unitDefID
-local armToCor = {}
-for unitName, corUnitName in pairs(armToCorNames) do
-	if UnitDefNames[unitName] and UnitDefNames[corUnitName] then
-		armToCor[UnitDefNames[unitName].id] = UnitDefNames[corUnitName].id
+local indexToCor = {}
+local indexToArm = {}
+local indexToLeg = {}
+for index, corUnitName in ipairs(corNames) do
+	if UnitDefNames[corUnitName] then
+		indexToCor[index] = UnitDefNames[corUnitName].id
 	end
 end
-armToCorNames = nil
+for index, armUnitName in ipairs(armNames) do
+	if UnitDefNames[armUnitName] then
+		indexToArm[index] = UnitDefNames[armUnitName].id
+	end
+end
+for index, legUnitName in ipairs(legNames) do
+	if UnitDefNames[legUnitName] then
+		indexToLeg[index] = UnitDefNames[legUnitName].id
+	end
+end
 
-local corToArm = table.invert(armToCor)
+corNames = nil
+armNames = nil
+legNames = nil
+
+local corToIndex = table.invert(indexToCor)
+local armToIndex = table.invert(indexToArm)
+local legToIndex = table.invert(indexToLeg)
 
 local function buildFacingHandler(_, _, args)
 	if not (preGamestartPlayer and selBuildQueueDefID) then
@@ -302,6 +376,7 @@ function widget:MousePress(mx, my, button)
 	if not preGamestartPlayer then
 		return
 	end
+	local _, _, meta, shift = Spring.GetModKeyState()
 
 	if selBuildQueueDefID then
 		local _, pos = Spring.TraceScreenRay(mx, my, true, false, false, isUnderwater(selBuildQueueDefID))
@@ -322,7 +397,6 @@ function widget:MousePress(mx, my, button)
 			local bx, by, bz = Spring.Pos2BuildPos(selBuildQueueDefID, pos[1], pos[2], pos[3], buildFacing)
 			local buildData = { selBuildQueueDefID, bx, by, bz, buildFacing }
 			local cx, cy, cz = Spring.GetTeamStartPosition(myTeamID) -- Returns -100, -100, -100 when none chosen
-			local _, _, meta, shift = Spring.GetModKeyState()
 
 			if (meta or not shift) and cx ~= -100 then
 				local cbx, cby, cbz = Spring.Pos2BuildPos(startDefID, cx, cy, cz)
@@ -338,9 +412,11 @@ function widget:MousePress(mx, my, button)
 				elseif shift then
 					local anyClashes = false
 					for i = #buildQueue, 1, -1 do
-						if DoBuildingsClash(buildData, buildQueue[i]) then
-							anyClashes = true
-							table.remove(buildQueue, i)
+						if buildQueue[i][1] > 0 then
+							if DoBuildingsClash(buildData, buildQueue[i]) then
+								anyClashes = true
+								table.remove(buildQueue, i)
+							end
 						end
 					end
 
@@ -380,7 +456,7 @@ function widget:MousePress(mx, my, button)
 		elseif button == 3 then
 			setPreGamestartDefID(nil)
 		end
-	elseif button == 1 and #buildQueue > 0 then -- avoid clashing first building and commander position
+	elseif button == 1 and #buildQueue > 0 and buildQueue[1][1]>0 then -- avoid clashing first building and commander position
 		local _, pos = Spring.TraceScreenRay(mx, my, true, false, false, isUnderwater(startDefID))
 		if not pos then
 			return
@@ -389,6 +465,14 @@ function widget:MousePress(mx, my, button)
 
 		if DoBuildingsClash({ startDefID, cbx, cby, cbz, 1 }, buildQueue[1]) then
 			return true
+		end
+	elseif button == 3 and shift then
+		local x, y, _ = Spring.GetMouseState()
+		local _, pos = Spring.TraceScreenRay(x, y, true, false, false, true)
+		if pos and pos[1] then
+			local buildData = { -CMD.MOVE, pos[1], pos[2], pos[3], nil }
+		
+			buildQueue[#buildQueue + 1] = buildData
 		end
 	elseif button == 3 and #buildQueue > 0 then -- remove units from buildqueue one by one
 		-- TODO: If mouse is over a building, remove only that building instead
@@ -456,32 +540,43 @@ function widget:DrawWorld()
 	end
 
 	-- Check for faction change
-	for b = 1, #buildQueue do
-		local buildData = buildQueue[b]
-		local buildDataId = buildData[1]
-		if startDefID == UnitDefNames["armcom"].id then
-			if corToArm[buildDataId] ~= nil then
-				buildData[1] = corToArm[buildDataId]
-				buildQueue[b] = buildData
-			end
-		elseif startDefID == UnitDefNames["corcom"].id then
-			if armToCor[buildDataId] ~= nil then
-				buildData[1] = armToCor[buildDataId]
-				buildQueue[b] = buildData
-			end
+	if prevStartDefID ~= startDefID then
+		local prevFaction = UnitDefs[prevStartDefID].name
+		local prevFactionToIndex
+		if prevFaction == "armcom" then
+			prevFactionToIndex = armToIndex
+		elseif prevFaction == "corcom" then
+			prevFactionToIndex = corToIndex
+		elseif prevFaction == "legcom" then
+			prevFactionToIndex = legToIndex
 		end
-	end
+		local currentFaction = UnitDefs[startDefID].name
+		local indexToCurrentFaction
+		if currentFaction == "armcom" then
+			indexToCurrentFaction = indexToArm
+		elseif currentFaction == "corcom" then
+			indexToCurrentFaction = indexToCor
+		elseif currentFaction == "legcom" then
+			indexToCurrentFaction = indexToLeg
+		end
 
-	if startDefID == UnitDefNames["armcom"].id then
-		if corToArm[selBuildQueueDefID] ~= nil then
-			selBuildData[1] = corToArm[selBuildQueueDefID]
-			selBuildQueueDefID = corToArm[selBuildQueueDefID]
+		if prevFactionToIndex and indexToCurrentFaction then
+			for b = 1, #buildQueue do
+				local buildData = buildQueue[b]
+				local buildDataId = buildData[1]
+				if buildDataId > 0 then
+					buildData[1] = indexToCurrentFaction[prevFactionToIndex[buildDataId]]
+					buildQueue[b] = buildData
+				end
+			end
+
+			local selBuildQueueDefIDConverted = indexToCurrentFaction[prevFactionToIndex[selBuildQueueDefID]]
+			if selBuildQueueDefIDConverted ~= nil then
+				selBuildData[1] = selBuildQueueDefIDConverted
+				selBuildQueueDefID = selBuildQueueDefIDConverted
+			end
 		end
-	elseif startDefID == UnitDefNames["corcom"].id then
-		if armToCor[selBuildQueueDefID] ~= nil then
-			selBuildData[1] = armToCor[selBuildQueueDefID]
-			selBuildQueueDefID = armToCor[selBuildQueueDefID]
-		end
+		prevStartDefID = startDefID
 	end
 
 	-- Draw all the buildings
@@ -489,10 +584,12 @@ function widget:DrawWorld()
 	for b = 1, #buildQueue do
 		local buildData = buildQueue[b]
 
-		if selBuildData and DoBuildingsClash(selBuildData, buildData) then
-			DrawBuilding(buildData, borderClashColor)
-		else
-			DrawBuilding(buildData, borderNormalColor)
+		if buildData[1] > 0 then
+			if selBuildData and DoBuildingsClash(selBuildData, buildData) then
+				DrawBuilding(buildData, borderClashColor)
+			else
+				DrawBuilding(buildData, borderNormalColor)
+			end
 		end
 
 		queueLineVerts[#queueLineVerts + 1] = { v = { buildData[2], buildData[3], buildData[4] } }
@@ -550,7 +647,9 @@ function widget:GameFrame(n)
 	-- inform gadget how long is our queue
 	local t = 0
 	for i = 1, #buildQueue do
-		t = t + UnitDefs[buildQueue[i][1]].buildTime
+		if buildQueue[i][1] > 0 then
+			t = t + UnitDefs[buildQueue[i][1]].buildTime
+		end
 	end
 	if startDefID then
 		local buildTime = t / UnitDefs[startDefID].buildSpeed

@@ -9,7 +9,6 @@ return {
 		buildpic = "coresuppt3.DDS",
 		buildtime = 400000,
 		canmove = true,
-		category = "ALL WEAPON SHIP NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -14 -6",
 		collisionvolumescales = "84 84 246",--"19 19 58",
 		collisionvolumetype = "CylZ",
@@ -38,7 +37,7 @@ return {
 			unitgroup = 'weapon',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corships",
+			subfolder = "CorShips",
 			techlevel = 3,
 		},
 		featuredefs = {

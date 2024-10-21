@@ -3,7 +3,7 @@
 #define SIGNAL_MOVE 1
 #define SIGNAL_BUILD 2
 
-piece base, mlwheel, mrwheel, blwheel, brwheel, flwheel, frwheel, arml, armr, lpanel, rpanel, solar, loturret, upturret, nano, beam, cagelight, cagelight_emit;
+piece base, mlwheel, mrwheel, blwheel, brwheel, flwheel, frwheel, arml, armr, lpanel, rpanel, solar, cylinderdeco, loturret, upturret, nano, beam, cagelight, cagelight_emit;
 
 static-var  restore_delay, readyToBuild, currentSpeed, moveSpeed, wheelSpeed, oldHeading;
 
@@ -82,6 +82,7 @@ Create()
 	oldheading = get HEADING;
 	start-script Steering();
 	SLEEP_UNTIL_UNITFINISHED;
+	spin cylinderdeco around x-axis speed <30>;
 	set INBUILDSTANCE to FALSE;
 }
 
@@ -118,6 +119,8 @@ StartBuilding(heading, pitch)
 	show cagelight_emit;
 	spin cagelight_emit around y-axis speed <250>;
 	
+	spin cylinderdeco around x-axis speed <240> accelerate <10>;
+	
 	readyToBuild = 1;
 }
 
@@ -128,6 +131,8 @@ StopBuilding()
 	
 	hide cagelight_emit;
 	turn cagelight to y-axis <0> speed <1000>;
+	
+	spin cylinderdeco around x-axis speed <30> accelerate <10>;
 
 	sleep 6000;
 	set INBUILDSTANCE to FALSE;

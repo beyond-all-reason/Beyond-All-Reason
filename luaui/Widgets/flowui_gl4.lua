@@ -455,7 +455,6 @@ function metaElement:UpdateVBOKeys(keyname, value, delta)
 				Spring.Echo("element not found",self.name, VBO.myName,instanceKey)
 				Spring.Debug.TraceFullEcho()
 			end
-			--Spring.Debug.TableEcho(self.vboCache)
 
 			if delta then
 				local cache = self.vboCache
@@ -465,7 +464,6 @@ function metaElement:UpdateVBOKeys(keyname, value, delta)
 				self.vboCache[self.vbokeys[keyname]] = value
 			end
 			pushElementInstance(VBO,self.vboCache, instanceKey, true)
-			--Spring.Echo("Setting VBO Key", keyname, self.name, 'to',value,'for',instanceKey, #self.vboCache)
 			--todo needs a 'refresh' trigger for the ivbo
 		end
 	end
@@ -1108,7 +1106,7 @@ local function makeSliderList(sliderListConfig)
 		parent = container,
 		MouseEvents = {left = function()
 			Spring.Echo("Exporting Settings")
-			Spring.Debug.TableEcho(valuetarget)
+			Spring.Echo(valuetarget)
 		end},
 		textelements = {{text = "Export "..sliderListConfig.name, fontsize = 16, alignment = 'center'},},
 	})
@@ -2502,7 +2500,6 @@ function widget:DrawScreen()
 	if atlasID == nil then
 		atlasID = WG['flowui_atlas']
 		atlassedImages = WG['flowui_atlassedImages']
-		--Spring.Debug.TableEcho({gl.GetAtlasTexture(atlasID, "unitpics/armcom.dds")})
 	end
 	if elems < 0  then
 		elems = elems+1

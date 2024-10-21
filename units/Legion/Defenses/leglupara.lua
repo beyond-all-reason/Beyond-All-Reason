@@ -9,7 +9,6 @@ return {
 		buildpic = "LEGLUPARA.DDS",
 		buildtime = 12500,
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -5 0",
 		collisionvolumescales = "45 65 45",
 		collisionvolumetype = "CylY",
@@ -39,7 +38,7 @@ return {
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
-			subfolder = "legion/defenses",
+			subfolder = "Legion/defenses",
 		},
 		featuredefs = {
 			dead = {

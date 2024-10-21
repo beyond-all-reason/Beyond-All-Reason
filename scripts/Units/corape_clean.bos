@@ -34,8 +34,18 @@ Create()
 	hide rflare;
 	hide lflare;
 	gun_1 = rflare;
-	turn rwing to z-axis <-60> speed <90>;
-	turn lwing to z-axis <60> speed <90>;	
+
+	turn rwing to z-axis <0> speed <90>;
+	turn lwing to z-axis <0> speed <90>;
+	turn rwing to x-axis <90> speed <90>;
+	turn lwing to x-axis <90> speed <90>;
+	//turn rmislink to x-axis <90> speed <90>;
+	//turn lmislink to x-axis <90> speed <90>;
+	//turn wing to x-axis <0> -pitch speed <300>;
+	turn rjet to x-axis <-90> speed <90>;
+	turn ljet to x-axis <-90> speed <90>;
+	wait-for-turn rjet around x-axis;
+	wait-for-turn ljet around x-axis;
 	SLEEP_UNTIL_UNITFINISHED;
 	start-script IdleHover();
 }
@@ -44,6 +54,7 @@ Activate()
 {
 	show rthrust;
 	show lthrust;
+
 }
 
 Deactivate()
@@ -74,12 +85,13 @@ RestoreAfterDelay()
 	set-signal-mask SIGNAL_AIM1;
 	sleep restore_delay;
 	set-signal-mask 0;
+	/*
    	turn rjet to x-axis <0> speed <90>;
 	turn ljet to x-axis <0> speed <90>;
 	turn rwing to z-axis <-45> speed <90>;
 	turn lwing to z-axis <45> speed <90>;
 	turn rwing to x-axis <0> speed <90>;
-	turn lwing to x-axis <0> speed <90>;
+	turn lwing to x-axis <0> speed <90>;//*/
 	//turn rmislink to x-axis <0> speed <90>;
 	//turn lmislink to x-axis <-0> speed <90>;
 
@@ -99,6 +111,7 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
+	/*
 	turn rwing to z-axis <0> speed <90>;
 	turn lwing to z-axis <0> speed <90>;
 	turn rwing to x-axis <90> speed <90>;
@@ -109,7 +122,7 @@ AimWeapon1(heading, pitch)
 	turn rjet to x-axis <-90> speed <90>;
 	turn ljet to x-axis <-90> speed <90>;
 	wait-for-turn rjet around x-axis;
-	wait-for-turn ljet around x-axis;
+	wait-for-turn ljet around x-axis;//*/
 
 	start-script RestoreAfterDelay();
 	return (1);

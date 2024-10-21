@@ -235,7 +235,7 @@ do
 		tt_doublequote_string,
 		tt_singlequote_string,
 		tt_array_value,
-		tt_array_seperator,
+		tt_array_separator,
 		tt_numeric,
 		tt_boolean,
 		tt_null,
@@ -243,7 +243,7 @@ do
 		tt_comment_middle,
 		tt_ignore --< tt_ignore is special - marked tokens will be tt_ignored
 			= {},{},{},{},{},{},{},{},{},{},{},{},{},{}
-			--= {myname = "tt_object_key"},{myname = "tt_object_colon"},{myname = "tt_object_value"},{myname = "tt_doublequote_string"},{myname = "tt_singlequote_string"},{myname = "tt_array_value"},{myname = "tt_array_seperator"},{myname = "tt_numeric"},{myname = "tt_boolean"},{myname = "tt_null"},{myname = "tt_comment_start"},{myname = "tt_comment_middle"},{myname = "tt_ignore"}
+			--= {myname = "tt_object_key"},{myname = "tt_object_colon"},{myname = "tt_object_value"},{myname = "tt_doublequote_string"},{myname = "tt_singlequote_string"},{myname = "tt_array_value"},{myname = "tt_array_separator"},{myname = "tt_numeric"},{myname = "tt_boolean"},{myname = "tt_null"},{myname = "tt_comment_start"},{myname = "tt_comment_middle"},{myname = "tt_ignore"}
 	
 	-- strings to be used in certain token tables
 	local strchars = "" -- all valid string characters (all except newlines)
@@ -283,7 +283,7 @@ do
 	-- as values, anything is possible, numbers, arrays, objects, boolean, null, strings
 	init_token_table (tt_object_value) "tt_object_value: object ({ or [ or ' or \" or number or boolean or null expected)"
 		:link(tt_object_key)         :to "{" 
-		:link(tt_array_seperator)    :to "[" 
+		:link(tt_array_separator)    :to "[" 
 		:link(tt_singlequote_string) :to "'" 
 		:link(tt_doublequote_string) :to '"' 
 		:link(tt_numeric)            :to "0123456789.-" 
@@ -306,15 +306,15 @@ do
 		
 	-- array reader that expects termination of the array or a comma that indicates the next value
 	init_token_table (tt_array_value) "tt_array_value: array (, or ] expected)"
-		:link(tt_array_seperator)    :to "," 
+		:link(tt_array_separator)    :to "," 
 		:link(true)                  :to "]"
 		:link(tt_comment_start)      :to "/" 
 		:link(tt_ignore)             :to " \t\r\n"
 	
 	-- a value, pretty similar to tt_object_value
-	init_token_table (tt_array_seperator) "tt_array_seperator: array ({ or [ or ' or \" or number or boolean or null expected)"
+	init_token_table (tt_array_separator) "tt_array_separator: array ({ or [ or ' or \" or number or boolean or null expected)"
 		:link(tt_object_key)         :to "{" 
-		:link(tt_array_seperator)    :to "[" 
+		:link(tt_array_separator)    :to "[" 
 		:link(tt_singlequote_string) :to "'" 
 		:link(tt_doublequote_string) :to '"'  
 		:link(tt_comment_start)      :to "/" 
@@ -443,7 +443,7 @@ do
 		-- read a value depending on what token was returned, might require info what was used (in case of comments)
 		function read_value (t,fromt)
 			if t == tt_object_key         then return read_object_key({}) end
-			if t == tt_array_seperator    then return read_array({}) end
+			if t == tt_array_separator    then return read_array({}) end
 			if t == tt_singlequote_string or 
 			   t == tt_doublequote_string then return read_string(t) end
 			if t == tt_numeric            then return read_num() end
@@ -477,10 +477,10 @@ do
 			while true do
 				
 				-- At this point, the array might be empty!
-				local next_tokenvalue = next_token(tt_array_seperator)
+				local next_tokenvalue = next_token(tt_array_separator)
 				if next_tokenvalue == true then return o end
 				
-				o[i] = read_value(next_tokenvalue, tt_array_seperator)
+				o[i] = read_value(next_tokenvalue, tt_array_separator)
 				local t = next_token(tt_array_value)
 				if t == tt_comment_start then
 					t = read_comment(tt_array_value)

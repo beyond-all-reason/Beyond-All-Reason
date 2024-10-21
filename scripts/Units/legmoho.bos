@@ -1,141 +1,73 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
-//piece  base,fan,top,column;
-piece base, rotor;
+piece  base, rotor;
 
-static-var  Static_Var_1, Static_Var_2, Static_Var_3, statechg_DesiredState, statechg_StateChanging, Stunned;
+static-var  resourceRate, Stunned;
 
-
-Go()
-{
-	if (Stunned) {
-		return(0);
-	}
-	set ARMORED to 0;
-	//move fan to y-axis [3.000000] speed [10.000000];
-	//wait-for-move fan along y-axis;
-	//spin rotorBottom around y-axis speed (Static_Var_1*2) accelerate Static_Var_2;
-	spin rotor around y-axis speed (Static_Var_1/4) accelerate (Static_Var_2/2);
-}
-
-Stop()
-{
-	//stop-spin rotorBottom around y-axis decelerate Static_Var_3;
-	stop-spin rotor around y-axis decelerate Static_Var_3;
-	wait-for-turn rotor around y-axis;
-	//move fan to y-axis [0.000000] speed [10.000000];
-	set ARMORED to 1;
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
 
 SetStunned(State)
 {
 	Stunned = State;
 	if (State) {
-	    call-script Stop();
+	    call-script Deactivate();
 	}else{
-	    if (statechg_DesiredState == 0) {
-	        call-script Go();
-	    }
+	    call-script Activate();
 	}
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
 }
 
 Create()
 {
-	Static_Var_1 = 1500;
-	Static_Var_2 = 240;
-	Static_Var_3 = 480;
-	call-script InitState();
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 250;
-	}
+	resourceRate = 500;
 }
 
-#define SMOKEPIECE base
+
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Activate()
 {
-	start-script RequestState(0);
+	spin rotor around y-axis speed resourceRate accelerate <0.500000>;
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
+	stop-spin rotor around y-axis decelerate <1.0>;
 }
 
-SetSpeed(Func_Var_1)
+SetSpeed(windOrMetal)
 {
-	Static_Var_1 = Func_Var_1 * 60;
+	resourceRate = windOrMetal * 8;
+	if (resourceRate > 0) call-script Activate(); // Because SetSpeed is called after Activate
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
 
 Killed(severity, corpsetype)
 {
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		//explode rotorBottom type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rotor type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode rotor type FIRE | SMOKE | FALL | BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		//explode rotorBottom type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode rotor type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode rotor type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rotorBottom type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode rotor type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode rotor type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode rotorBottom type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

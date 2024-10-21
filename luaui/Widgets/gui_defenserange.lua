@@ -116,6 +116,9 @@ modConfig["BYAR"]["unitList"] = {
 	
 	legtl = { weapons = { 1 } }, --torp launcher
 
+	legabm = { weapons = { 3 } },
+	legrampart = { weapons = { 3 }},
+
 	-- SCAVENGERS
 	scavbeacon_t1_scav = { weapons = { 1 } },
 	scavbeacon_t2_scav = { weapons = { 1 } },

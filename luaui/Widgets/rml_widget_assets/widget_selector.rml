@@ -1,0 +1,113 @@
+<rml>
+
+	<head>
+		<title>Widget Selector</title>
+		<!-- file is in same directory, can just refer to it with local path -->
+		<link type="text/template" href="draggable.rml" />
+		<link type="text/rcss" href="/LuaUI/rml_common/styles.rcss" />
+		<style>
+			body {
+				width: 400dp;
+				height: 1000dp;
+
+				margin: auto;
+				font-family: Exo 2;
+			}
+
+			div {
+				/* display: block;
+				margin: auto; */
+			}
+
+			.flex {
+				display: flex;
+				flex-direction: column;
+				padding: 3px;
+			}
+
+			.flex>input {
+				padding: 10px;
+				margin: 3px;
+				flex: 1;
+			}
+
+			.flex>.double-width {
+				flex: 2;
+			}
+
+			h2 {
+				text-align: center;
+				font-size: 1.3em;
+				color: #243434;
+				border-bottom: 1px #666;
+			}
+
+			label {
+				width: 100%
+			}
+
+			.disabled {
+				color: red
+			}
+
+			.enabled {
+				color: yellow;
+			}
+
+			.active {
+				color: green;
+			}
+
+			#widgetl {
+				text-align: left;
+			}
+
+			.ws {
+				text-align: left;
+				width: 100%
+			}
+
+			#top {
+				height: 80%;
+				overflow-y: scroll;
+			}
+
+			#wrap {
+				height: 100%
+			}
+
+			.filtered {
+				display: none;
+			}
+		</style>
+		<script>
+			function OnWindowLoad(document, name)
+				--document: GetElementById('title').inner_rml = document.title
+				document: GetElementById('title').inner_rml = name
+			end
+			function printtest(val)
+				Spring.Echo("print test", val)
+			end
+		</script>
+	</head>
+
+	<body template="draggable" onload="OnWindowLoad(document, 'Widget Selector')">
+		<div id="wrap" data-model="widget_list_data">
+			<div id="top">
+				<div id="widgetl">
+					<div class="ws" data-for="w, wi: widgets">
+						<label data-if="!w.filtered" data-class-disabled="!w.active" data-class-enabled="w.enabled && !w.active"
+							data-class-active="w.active"><input type="checkbox" data-checked="w.enabled"
+								data-event-click="toggleWidget(wi+1)" />{{w.name}}</label>
+					</div>
+				</div>
+			</div>
+			<label class="ws"><input type="text" onchange="widget:filterList(event,element)"
+					onkeydown="widget:handleKey(event,element)"></input>Filter</label>
+			<!-- <button onclick="widget:buttonPress('test')">Self-D</button>
+		 <button onclick="buttonPress('test')">2</button>
+		 <button onclick="Spring.Echo('test')">3</button>-->
+			<button onclick="OnWindowLoad(document, 'test')">4</button>
+		</div>
+	</body>
+</rml>

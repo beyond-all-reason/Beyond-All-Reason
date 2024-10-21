@@ -59,6 +59,15 @@ if infolog then
 	end
 end
 
+local hasLowRam = false
+local ram = string.match(Platform.hwConfig, '([0-9]*MB RAM)')
+if ram ~= nil then
+	ram = string.gsub(ram, "MB RAM", "")
+end
+if tonumber(ram) and tonumber(ram) > 1000 and tonumber(ram) < 11000 then
+	hasLowRam = true
+end
+
 -- I18N module does not support accessing translation keys by index number, so need to concatenate name
 local tipKeys = {
 	'alwaysExpand',
@@ -453,8 +462,8 @@ function addon.DrawLoadScreen()
 			if showTips and showTipAboveBar and showTipBackground then
 				guishaderRects['loadprocess2'] = {(posX*vsx)-borderSize, ((posY*vsy)+height+borderSize), (vsx-(posX*vsx))+borderSize, tipPosYtop*vsy}
 			end
-			if usingIntelPotato then
-				guishaderRects['loadprocess3'] = {0, 0.95*vsy, vsx,vsy}
+			if usingIntelPotato or hasLowRam then
+				guishaderRects['loadprocess3'] = {0, ((usingIntelPotato and hasLowRam) and 0.9 or 0.95)*vsy, vsx,vsy}
 			end
 			DrawStencilTexture()
 		end
@@ -587,11 +596,11 @@ function addon.DrawLoadScreen()
 
 	-- progress text
 	gl.PushMatrix()
-		gl.Scale(1/vsx,1/vsy,1)
-		gl.Translate(vsx/2, (posY*vsy)+(height*0.68), 0)
-		font:SetTextColor(0.88,0.88,0.88,1)
-		font:SetOutlineColor(0,0,0,0.85)
-		font:Print(lastLoadMessage, 0, 0, barTextSize, "oac")
+	gl.Scale(1/vsx,1/vsy,1)
+	gl.Translate(vsx/2, (posY*vsy)+(height*0.68), 0)
+	font:SetTextColor(0.88,0.88,0.88,1)
+	font:SetOutlineColor(0,0,0,0.85)
+	font:Print(lastLoadMessage, 0, 0, barTextSize, "oac")
 	gl.PopMatrix()
 
 
@@ -629,6 +638,22 @@ function addon.DrawLoadScreen()
 		font2:SetTextColor(0.8,0.8,0.8,1)
 		font2:SetOutlineColor(0,0,0,0.8)
 		font2:Print(Spring.I18N('ui.loadScreen.intelGpuWarning', { textColor = '\255\200\200\200', warnColor = '\255\255\255\255' }), 0, 0, height*0.66, "oac")
+		gl.PopMatrix()
+	end
+
+	if hasLowRam then
+		if usingIntelPotato then
+			gl.Color(0.066,0.066,0.066,(blurShader and 0.55 or 0.7))
+		else
+			gl.Color(0.15,0.15,0.15,(blurShader and 0.55 or 0.7))
+		end
+		gl.Rect(0,(usingIntelPotato and 0.9 or 0.95),1,usingIntelPotato and 0.95 or 1)
+		gl.PushMatrix()
+		gl.Scale(1/vsx,1/vsy,1)
+		gl.Translate(vsx/2, (usingIntelPotato and 0.938 or 0.988)*vsy, 0)
+		font2:SetTextColor(0.8,0.8,0.8,1)
+		font2:SetOutlineColor(0,0,0,0.8)
+		font2:Print(Spring.I18N('ui.loadScreen.lowRamWarning', { textColor = '\255\200\200\200', warnColor = '\255\255\255\255' }), 0, 0, height*0.66, "oac")
 		gl.PopMatrix()
 	end
 end

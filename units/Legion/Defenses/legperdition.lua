@@ -7,7 +7,6 @@ return {
 		metalcost = 1250,
 		buildpic = "legperdition.DDS",
 		buildtime = 62000,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "80 70 80",
 		collisionvolumetype = "CylY",
@@ -37,7 +36,7 @@ return {
 			model_author = "Hornet, Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
-			subfolder = "corbuildings/landdefenceoffence",
+			subfolder = "CorBuildings/LandDefenceOffence",
 			techlevel = 2,
 		},
 		featuredefs = {

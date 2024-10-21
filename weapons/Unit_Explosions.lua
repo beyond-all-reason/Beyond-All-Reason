@@ -552,6 +552,23 @@ local unitDeaths = {
 		}
 	},
 
+	deadeyeSelfd = {
+		weaponType = "Cannon",
+		areaofeffect = 520,
+		camerashake = 520,
+		impulseboost = impulseboost,
+		impulsefactor = impulsefactor,
+		soundhit = "xplolrg2",
+		soundstart = "largegun",
+		explosiongenerator = "custom:genericbuildingexplosion-huge",
+		damage = {
+			default = 540,
+		},
+		customparams = {
+			unitexplosion = 1,
+		}
+	},
+
 	bantha = {
 		weaponType = "Cannon",
 		areaofeffect = 500,

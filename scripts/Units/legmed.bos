@@ -233,7 +233,7 @@ FireSecondary()
 	weapon = 0;
 	start-script Close();
 	shot = 0;
-	sleep 4000;														//Combined sleep in this script must be about 2 seconds shorter than the reload time, so the hatches open on time for next shot
+	sleep 7000;														//Combined sleep in this script must be about 1 second shorter than the reload time, so the hatches open on time for next shot
 	justfired = 0;													//Enables hatches opening for next shot
 }
 

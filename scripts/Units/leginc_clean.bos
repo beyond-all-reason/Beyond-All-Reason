@@ -3,7 +3,7 @@
 
 piece body, aimy1, turret, aimx1, sleeve, flare, ringinner, ringouter, blfoot, blhinge, bltoes, brfoot, brhinge, brtoes, flfoot, flhinge, fltoes, frfoot, frhinge, frtoes;
 
-static-var  restore_delay, timeLeft, animSpeed, maxSpeed, animFramesPerKeyframe, Stunned, isMoving, oldhead, isfiring, gameframe, lastfired, firetime;
+static-var  restore_delay, timeLeft, animSpeed, maxSpeed, animFramesPerKeyframe, Stunned, isMoving, oldhead, isfiring, gameframe, lastfired, firetime, aimAdj, oldsteerheading;
 
 
 #define BASEPIECE body
@@ -14,17 +14,24 @@ static-var  restore_delay, timeLeft, animSpeed, maxSpeed, animFramesPerKeyframe,
 #define RECOIL_POWER 1000
 #include "../unit_hitbyweaponid_and_smoke.h"
 
-
 //#define TB_BASE body 
 //#define TB_TURNRATE <12.0> 
 //#define TB_TILT_X <0.20>
 //#define TB_BANK_Z <0.15> // Do not define this if you dont want banking
 //#include "../tilt_bank_mobileunit.h"
 
-
-
-
-
+Steering(heading, steery, currentSpeed)
+{
+	//signal SIGNAL_MOVE;
+	//set-signal-mask SIGNAL_MOVE;
+	while(1)
+	{
+		heading = get HEADING;
+		aimAdj = (heading - oldsteerheading);
+		sleep 33;
+		oldsteerheading = heading;
+	}
+}
 
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -580,7 +587,7 @@ TimeToRestore(addTime) {
 	//get PRINT(333333);
     isfiring = 0;
 	oldhead = -1000000;
-		
+	aimAdj = 0;	
 	//stop-spin barrelMid around z-axis decelerate <5>;
 	//wait-for-turn turretBase around y-axis;
 }
@@ -625,10 +632,11 @@ Create()
 	firetime = 120;
 	lastfired = get(GAME_FRAME)-200;
 
-	
+	oldsteerheading = get HEADING;
 	isMoving = FALSE;
 	animSpeed = 3;
-	
+	aimAdj = 0;
+	start-script Steering();
 	start-script SweepFire();
 	start-script StopMoving();
 	start-script UnitSpeed();
@@ -661,7 +669,7 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn aimy1 to y-axis heading speed <30>;
+	turn aimy1 to y-axis heading - aimAdj speed <30>;
 	turn aimx1 to x-axis -1*pitch speed <15>;
     if (timeLeft == 0)
     {

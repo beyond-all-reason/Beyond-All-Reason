@@ -9,7 +9,6 @@ piece  flare1, flare2, pelvis, aimy1, torso, aimx1, sleeve, nano, armor, cable, 
 
 static-var  isMoving, readyToBuild, animSpeed, maxSpeed, animFramesPerKeyframe, nanoNozzle;
 
-static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 Walk() {// For C:\Users\logst\Downloads\BAR\legck anim.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2)) 
 	set-signal-mask SIGNAL_MOVE;
 	while(isMoving) {
@@ -346,7 +345,7 @@ UnitSpeed(){
 	while(TRUE){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
-		animSpeed = (maxSpeed * 2) / animSpeed; 
+		animSpeed = (maxSpeed * 23/10) / animSpeed; 
 		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<1) animSpeed=1;
 		if (animspeed>6) animSpeed = 6;

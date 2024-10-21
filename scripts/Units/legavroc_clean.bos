@@ -17,7 +17,7 @@ static-var  OpenedState, restore_delay, whichGun;
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 6
 #define MAXTILT 100
-#define RECOIL_POWER 100000
+#define RECOIL_POWER 0
 #include "../unit_hitbyweaponid_and_smoke.h"
 
 #define TB_BASE base 
@@ -69,36 +69,17 @@ ExecuteRestoreAfterDelay()
 		OpenedState = 0;
 		set ARMORED to 0;
 
+		turn barrel to x-axis <0> speed <45>;
 
-		// move barrelC to y-axis [0] speed [24];
-		// move sleeveC to y-axis [0] speed [24];
-		// sleep 50;
-		// move barrelB to y-axis [0] speed [24];
-		// move sleeveB to y-axis [0] speed [24];
-		// sleep 50;
-		// move barrelA to y-axis [0] speed [24];
-		// move sleeveA to y-axis [0] speed [24];
-		// wait-for-move barrelA along y-axis;
-
-		turn barrel to x-axis <0> speed <90>;
-		wait-for-turn barrel around x-axis;
-
-		move doorB to x-axis [0] speed [4];
-		move doorA to x-axis [0] speed [4];
-		wait-for-move doorB along x-axis;
 		turn hingeB to z-axis <0> speed <60>;
 		turn hingeA to z-axis <0> speed <60>;
 		wait-for-turn hingeB around z-axis;
-		move doorB to x-axis [0] speed [7];
-		move doorA to x-axis [0] speed [7];
+		wait-for-turn barrel around x-axis;
+		move doorB to x-axis [0] speed [4];
+		move doorA to x-axis [0] speed [4];
 		wait-for-move doorB along x-axis;
 		move doorB to y-axis [0] speed [1];
 		move doorA to y-axis [0] speed [1];
-
-		// turn turret to y-axis <0> speed <90>;
-		// wait-for-turn turret around y-axis;
-		// turn door to z-axis <0> speed <90>;
-		// wait-for-turn door around z-axis;
 	}
 }
 SetStunned(State)
@@ -131,28 +112,9 @@ AimWeapon1(heading, pitch)
 		wait-for-move doorB along x-axis;
 		turn hingeA to z-axis <-60> speed <120>;
 		turn hingeB to z-axis <60> speed <120>;
-		wait-for-turn hingeB around z-axis;
 
-		turn barrel to x-axis <-90> speed <180>;
+		turn barrel to x-axis <-90> speed <90>;
 		wait-for-turn barrel around x-axis;
-		//move doorA to x-axis [-4] now; //speed [16];
-		//move doorB to x-axis [4] now; //speed [16];
-		//wait-for-move doorB along x-axis;
-
-		// move sleeveA to y-axis [12] speed [24];
-		// move barrelA to y-axis [14] speed [24];
-		// sleep 50;
-		// move sleeveB to y-axis [12] speed [24];
-		// move barrelB to y-axis [14] speed [24];
-		// sleep 50;
-		// move sleeveC to y-axis [12] speed [24];
-		// move barrelC to y-axis [14] speed [24];
-		// wait-for-move barrelC along y-axis;
-
-		// turn door to z-axis <90> speed <90>;
-		// wait-for-turn door around z-axis;
-		// turn turret to y-axis <-90> speed <90>;
-		// wait-for-turn turret around y-axis;
 	}
 	OpenedState = 1;
 
@@ -163,39 +125,11 @@ AimWeapon1(heading, pitch)
 FireWeapon1()
 {
 	emit-sfx 1024 + 0 from flare;
-	// if (whichGun == 0){
-	// 	emit-sfx 1024 + 0 from flareA;
-	// 	//sleep 100;
-	// 	//whichGun = 1;
-	// }
-	// if (whichGun == 1){
-	// 	emit-sfx 1024 + 0 from flareB;
-	// 	//sleep 100;
-	// 	//whichGun = 2;
-	// }
-	// if (whichGun == 2){
-	// 	emit-sfx 1024 + 0 from flareC;
-	// 	//sleep 100;
-	// 	//whichGun = 0;s
-	// }
-	// ++whichgun;
-	// if(whichgun >= 3){
-	// 	whichgun = 0;
-	// }
 }
 
 QueryWeapon1(pieceIndex)
 {
 	pieceIndex = flare;
-	// if (whichGun == 0){
-	// 	pieceIndex = flareA;
-	// }
-	// if (whichGun == 1){
-	// 	pieceIndex = flareB;
-	// }
-	// if (whichGun == 2){
-	// 	pieceIndex = flareC;
-	// }
 }
 
 

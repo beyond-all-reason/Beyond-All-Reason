@@ -4,7 +4,7 @@
 //piece base, turretBase, gun, gearR, gearL, coverR, coverL;
 piece base, turretBase, turretStrut, gun, flarer, flarel, smoke1, smoke2;
 
-static-var  statechg_DesiredState, statechg_StateChanging, restore_delay, whichGun, timeLeft, targetswap, isfiring, gameframe, lastfired, timer, firetime, oldhead;
+static-var  statechg_DesiredState, statechg_StateChanging, restore_delay, whichGun, timeLeft, targetswap, isfiring, gameframe, lastfired, timer, firetime, oldhead, aimAdj, oldsteerheading;
 
 // Signal definitions
 // Signal definitions
@@ -21,6 +21,18 @@ static-var  statechg_DesiredState, statechg_StateChanging, restore_delay, whichG
 #define VD_DIRTCEG 1024 + 1
 #include "../vehicle_dirt_cegs.h"
 
+Steering(heading, steery, currentSpeed)
+{
+	//signal SIGNAL_MOVE;
+	//set-signal-mask SIGNAL_MOVE;
+	while(1)
+	{
+		heading = get HEADING;
+		aimAdj = (heading - oldsteerheading);
+		sleep 33;
+		oldsteerheading = heading;
+	}
+}
 
 #define BASEPIECE base
 #define HITSPEED <45.0>
@@ -43,14 +55,17 @@ Create()
 	//hide flare;
 	// hide flarer;
 	// hide flarel;
+	start-script Steering();
+	timeLeft = 0;
+    isfiring = 0;
+	oldsteerheading = get HEADING;
+	oldhead = 1000000;
+	aimAdj = 0;
+	timer = 0;
 	targetswap = 0;
 	firetime = 54;
-	isfiring = 0;
 	lastfired = get(GAME_FRAME)-200;	
-	
-	
 	restore_delay = 3000;
-	timeLeft = 0;
 	//call-script TB_Init();
 	call-script SweepFire();
 	whichGun = 0;
@@ -106,7 +121,8 @@ TimeToRestore(addTime){
 
     timeLeft = 0;
     isfiring = 0;
-	oldhead = -1000000;
+	oldhead = 1000000;
+	aimAdj = 0;
 	timer = 0;
 	targetswap = 0;
 		
@@ -155,32 +171,21 @@ AimWeapon1(heading, pitch)
         start-script TimeToRestore();
     }
     timeLeft = restore_delay;
-
-
 	if (get ABS(oldhead - heading) > 500)
 	{
 		targetswap = 1;
 	}
 	gameframe = get(GAME_FRAME);
-
-	if ((get ABS(oldhead - heading) < 500) AND oldhead != -1000000)
+	turn turretBase to y-axis heading - aimAdj speed <65>;
+	turn turretStrut to x-axis <0.000000> - pitch speed <65>;
+	if (((get ABS(oldhead - heading)) > 65536) OR(((get ABS(oldhead - heading)) > 5000) AND ((get ABS(oldhead - heading)) < 64236)))
 	{
-		//get PRINT (456, oldhead, heading, get ABS(oldhead - heading));
-		//skip the wait just do it
-		//oldhead = heading;
-		//isfiring = 1;
-		//return (1);
+		oldhead = 1000000;
+		wait-for-turn turretBase around y-axis;
+		wait-for-turn turretStrut around x-axis;
 	}
-
 	oldhead = heading;
 	isfiring = 1;
-
-
-	turn turretBase to y-axis heading speed <65>;
-	turn turretStrut to x-axis <0.000000> - pitch speed <65>;
-	wait-for-turn turretBase around y-axis;
-	wait-for-turn turretStrut around x-axis;
-
     return (1);
 }
 

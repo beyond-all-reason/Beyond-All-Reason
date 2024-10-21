@@ -966,8 +966,10 @@ function widget:MouseRelease(x, y, mb)
 		end
 		if mb == 2 then
 			widgetHandler:LowerWidget(w)
+			Spring.Echo('widgetHandler:LowerWidget')
 		else
 			widgetHandler:RaiseWidget(w)
+			Spring.Echo('widgetHandler:RaiseWidget')
 		end
 		widgetHandler:SaveConfigData()
 	end

@@ -419,7 +419,11 @@ else
 	local sortedList = {}
 	local sortedListSYNCED = {}
 	local function SortFunc(a, b)
-		return a.plainname < b.plainname
+		if Spring.GetConfigInt("profiler_sort_by_load", 1) == 1 then
+			return a.tLoad > b.tLoad
+		else
+			return a.plainname < b.plainname
+		end
 	end
 
 	local minPerc = 0.0005 -- above this value, we fade in how red we mark a widget (/gadget)
@@ -515,12 +519,14 @@ else
 			local tTime = t / deltaTime
 
 			local tColourString, sColourString = GetRedColourStrings(tTime, sLoad, gname, redStr, deltaTime)
-
-			sorted[n] = { plainname = gname, fullname = gname .. ' \255\200\200\200(' .. cmaxname_t .. ',' .. cmaxname_space .. ')', tLoad = tLoad, sLoad = sLoad, tTime = tTime, tColourString = tColourString, sColourString = sColourString }
+			if tLoad >= Spring.GetConfigFloat("profiler_min_time", 0.05) or sLoad >= Spring.GetConfigFloat("profiler_min_memory", 5) then -- Only show heavy gadgets
+				sorted[n] = { plainname = gname, fullname = gname .. ' \255\200\200\200(' .. cmaxname_t .. ',' .. cmaxname_space .. ')', tLoad = tLoad, sLoad = sLoad, tTime = tTime, tColourString = tColourString, sColourString = sColourString }
+				n = n + 1
+			end
 			allOverTime = allOverTime + tLoad
 			allOverSpace = allOverSpace + sLoad
 
-			n = n + 1
+			
 		end
 
 		table.sort(sorted, SortFunc)

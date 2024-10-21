@@ -4,10 +4,10 @@
 
 --Skeleton pieces
 --local head, torso, luparm, biggun, ruparm, rloarm, lflare, nano, laserflare, pelvis, rthigh, lthigh, lleg, rleg, rfoot, rfootstep, lfoot, lfootstep, dish, barrel, aimy1, bigguncyl,hatpoint, crown, medalsilver, medalbronze, medalgold, cagelight, cagelight_emit = piece("head", "torso", "luparm", "biggun", "ruparm","rloarm","lflare", "nano", "laserflare", "pelvis", "rthigh", "lthigh" ,"lleg", "rleg", "rfoot", "rfootstep", "lfoot", "lfootstep", "dish", "barrel", "aimy1","bigguncyl","hatpoint", "crown", "medalsilver", "medalbronze", "medalgold", "cagelight", "cagelight_emit")
-local head, torso, luparm, biggun, ruparm, rloarm, lflare, nano, laserflare, pelvis, rthigh, lthigh, lleg, rleg, rfoot, rfootstep, lfoot, lfootstep, dish, barrel, aimy1, bigguncyl,hatpoint, crown, medalsilver, medalbronze, medalgold, armhexl, armhexl2, armhexl_emit, armhexl2_emit = piece("head", "torso", "luparm", "biggun", "ruparm","rloarm","lflare", "nano", "laserflare", "pelvis", "rthigh", "lthigh" ,"lleg", "rleg", "rfoot", "rfootstep", "lfoot", "lfootstep", "dish", "barrel", "aimy1","bigguncyl","hatpoint", "crown", "medalsilver", "medalbronze", "medalgold", "armhexl", "armhexl2", "armhexl_emit", "armhexl2_emit")
+local head, torso, luparm, biggun, ruparm, rloarm, lflare, nano, laserflare, pelvis, rthigh, lthigh, lleg, rleg, rfoot, rfootstep, lfoot, lfootstep, dish, barrel, aimy1, bigguncyl,hatpoint, armhexl, armhexl2, armhexl_emit, armhexl2_emit, missileflare = piece("head", "torso", "luparm", "biggun", "ruparm","rloarm","lflare", "nano", "laserflare", "pelvis", "rthigh", "lthigh" ,"lleg", "rleg", "rfoot", "rfootstep", "lfoot", "lfootstep", "dish", "barrel", "aimy1","bigguncyl","hatpoint", "armhexl", "armhexl2", "armhexl_emit", "armhexl2_emit", "missileflare")
 
 local weapons = {
-	[1] = "dronepointer",
+	[1] = "backlauncher",
 	[2] = "uwlaser",
 	[3] = "dgun",
 	[4] = "tachcannon",
@@ -925,16 +925,7 @@ function script.Create()
 	--Turn(lflare, 1,math.rad(90)) -- WHY?
 	--Turn(nano, 1,math.rad(90)) -- WHY?
 	--Turn(laserflare, 1,math.rad(90)) -- WHY?
-
-	Hide(crown)
-	Hide(medalgold)
-	Hide(medalsilver)
-	Hide(medalbronze)
-	Move(crown, y_axis, 100, 9999)
-	Move(medalgold, y_axis, 100, 9999)
-	Move(medalsilver, y_axis, 100, 9999)
-	Move(medalbronze, y_axis, 100, 9999)
-
+	Hide(missileflare)
 	Hide(nano)
 	Hide(armhexl_emit)
 	Hide(armhexl2_emit)
@@ -953,19 +944,6 @@ function script.Create()
 	StartThread(UnitSpeed)
 	StartThread(StopWalking)
 	StartThread(TimerCheck)
-end
-
-function ShowCrown()
-	Show(crown)
-end
-function ShowMedalGold()
-	Show(medalgold)
-end
-function ShowMedalSilver()
-	Show(medalsilver)
-end
-function ShowMedalBronze()
-	Show(medalbronze)
 end
 
 function script.StartMoving()
@@ -989,10 +967,10 @@ function script.AimFromWeapon(weapon)
 		return 0 -- this is somehow the best way to ensuse dgun hits whatever target its aimed at
     elseif weapons[weapon] == "tachcannon" then
         return luparm
-    elseif weapons[weapon] == "dronepointer" then
-        return nano
 	elseif weapons[weapon] == "flashbang" then
         return nano
+	elseif weapons[weapon] == "backlauncher" then
+		return torso
 	end
 end
 
@@ -1062,10 +1040,10 @@ function script.AimWeapon(weapon, heading, pitch)
 		    WaitForTurn(aimy1,2)
 		    return true
         end
-    elseif weapons[weapon] == "dronepointer" then
-			return false
 	elseif weapons[weapon] == "flashbang" then
-			return false
+		return false
+	elseif weapons[weapon] == "backlauncher" then
+		return true
 	end
 end
 
@@ -1094,12 +1072,12 @@ function script.FireWeapon(weapon)
 		turn(biggun, 1, -85, 100)
 		move(barrel, 2, 0, 5)
 		return true
-    elseif weapons[weapon] == "dronepointer" then
-		Sleep(100)
-		return false
 	elseif weapons[weapon] == "flashbang" then
 		Sleep(100)
 		return false
+	elseif weapons[weapon] == "backlauncher" then
+		Sleep(100)
+		return true
 	end
 end
 
@@ -1112,10 +1090,10 @@ function script.QueryWeapon(weapon)
 		return lflare
     elseif weapons[weapon] == "tachcannon" then
 		return lflare
-    elseif weapons[weapon] == "dronepointer" then
-		return nano
 	elseif weapons[weapon] == "flashbang" then
 		return nano
+	elseif weapons[weapon] == "backlauncher" then
+		return missileflare
 	end
 end
 

@@ -36,6 +36,7 @@ local isAirplantNames = {
 
 	['legap'] = true,
 	['legaap'] = true,
+	['legapt3'] = true,
 }
 -- convert unitname -> unitDefID
 local isAirplant = {}

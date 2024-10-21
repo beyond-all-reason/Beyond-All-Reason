@@ -70,8 +70,6 @@ function gadget:Initialize()
 			end
 		end
 	end
-	--Spring.Echo('hornet debug wantedweaponlist')
-	--Spring.Debug.TableEcho(wantedWeaponList)
 end
 
 
@@ -90,8 +88,6 @@ for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 		end
 	end
 end
---Spring.Echo('hornet debug degunweapons')
---Spring.Debug.TableEcho(fireballWeapons)
 
 
 

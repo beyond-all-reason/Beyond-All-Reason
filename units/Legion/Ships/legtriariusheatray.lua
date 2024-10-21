@@ -9,7 +9,6 @@ return {
 		buildpic = "legtriariusheatray.DDS",
 		buildtime = 11000,
 		canmove = true,
-		category = "ALL NOTLAND MOBILE WEAPON SHIP NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -5 1",
 		collisionvolumescales = "34 34 82",
 		collisionvolumetype = "CylZ",
@@ -40,7 +39,7 @@ return {
 			unitgroup = 'weaponsub',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corships",
+			subfolder = "CorShips",
 		},
 		featuredefs = {
 			dead = {
@@ -119,7 +118,7 @@ return {
 				beamttl = 0.8,
 				edgeeffectiveness = 0.15,
 				energypershot = 17,
-				explosiongenerator = "custom:genericshellexplosion-medium-beam",
+				explosiongenerator = "custom:heatray-huge",
 				firestarter = 90,
 				firetolerance = 300,
 				impulseboost = 0,

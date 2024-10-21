@@ -7,7 +7,6 @@ return {
 		buildpic = "LEGBART.DDS",
 		buildtime = 10000,
 		canmove = true,
-		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -5 -5",
 		collisionvolumescales = "28 45 35",
 		collisionvolumetype = "CylY",
@@ -37,7 +36,7 @@ return {
 			unitgroup = 'weapon',
 			model_author = "Zecrus",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corbots/t2",
+			subfolder = "CorBots/T2",
 			techlevel = 2,
 		},
 		featuredefs = {
