@@ -14,6 +14,12 @@ if not gadgetHandler:IsSyncedCode() then return end
 
 --customparams.fall_damage_multiplier = <number> a multiplier that's applied to defaultDamageMultiplier which affects the amount of damage taken from falling/collisions.
 
+--use customparam impulse_hitstun_resistant = true to use this feature.
+--to reduce unit hesitation from nominal impulse, impulse values below (minImpulseMultiplier * mass) is reduced to minImpulseFloorMultiplier proportionally. This is empirically tested to be the highest ratio a unit's accelleration is reset from impulse.
+local minImpulseMultiplier = 2.5
+--this defines the floor to which impulse is sheered to when below minImpulseMultiplier. (mass * minImpulseFloorMultiplier). This is emperically chosen to remove acceleration resets from trivial impulse amounts while retaining hit reactions.
+local minImpulseFloorMultiplier = 0.28
+
 --the multiplier by which default engine ground/object collision damage is multiplied. change this value to reduce the amount of fall/collision damage taken for all units. Chosen empirically.
 local fallDamageMagnificationFactor = 14
 
@@ -25,9 +31,6 @@ local validCollisionAngleMultiplier = math.cos(math.rad(20)) --degrees
 
 -- Decrease this value to make units move less from impulse. This defines the maximum impulse allowed, which is (maxImpulseMultiplier * mass) of each unit.
 local maxImpulseMultiplier = 5.5
-
---to save performance and reduce unit hesitation from nominal impulse, impulse values below (minImpulseMultiplier * mass) returns 0 impulse.
-local minImpulseMultiplier = 1
 
 -- elmo/s, converted to elmo/frame. If a unit is launched via explosion faster than this, it is instantly slowed. If unit speed/gameSpeed is greater or canFly = true, speed/gameSpeed is used instead.
 local velocityCap = 330 / Game.gameSpeed
@@ -55,6 +58,8 @@ local mathAbs = math.abs
 local fallDamageMultipliers = {}
 local unitsMaxImpulse = {}
 local unitsMinImpulse = {}
+local hitstunResistantUnits = {}
+local unitsMinImpulseFloor = {}
 local weaponDefIDImpulses = {}
 local transportedUnits = {}
 local unitMasses = {}
@@ -87,7 +92,12 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 	fallDamageMultipliers[unitDefID] = fallDamageMultiplier * fallDamageMagnificationFactor
 	unitsMaxImpulse[unitDefID] = unitDef.mass * maxImpulseMultiplier
 	unitsMinImpulse[unitDefID] = unitDef.mass * minImpulseMultiplier
+	unitsMinImpulseFloor[unitDefID] = unitDef.mass * minImpulseFloorMultiplier
 	unitMasses[unitDefID] = unitDef.mass
+
+	if unitDef.customParams.impulse_hitstun_resistant == true then
+		hitstunResistantUnits[unitDefID] = true
+	end
 end
 
 for name, weaponDefID in pairs(Game.envDamageTypes) do
@@ -126,8 +136,8 @@ local function getImpulseMultiplier(unitDefID, weaponDefID, damage)
 	end
 	local impulse = (damage + impulseBoost) * impulseFactor
 	local impulseMultiplier
-	if impulse < unitsMinImpulse[unitDefID] then
-		impulseMultiplier = 0
+	if hitstunResistantUnits[unitDefID] and impulse < unitsMinImpulse[unitDefID] then
+		impulseMultiplier = mathMin(unitsMinImpulseFloor[unitDefID]/impulse, 1)
 	else
 		impulseMultiplier = mathMin(unitsMaxImpulse[unitDefID]/impulse, 1) -- negative impulse values are not capped.
 	end

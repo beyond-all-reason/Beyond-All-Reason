@@ -1307,6 +1307,16 @@ local options = {
         def 	= false,
     },
 
+    {
+        key 	= "mass_impulse_rework",
+        name 	= "Mass/Impulse Rework",
+        desc 	= "Adds impulse to the weapons of some units. Reworks the mass(explosion resistance) values of units for more consistent impulse effects.",
+        type 	= "bool",
+        --hidden 	= true,
+        section = "options_experimental",
+        def 	= false,
+    },
+    
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     -- Unused Options

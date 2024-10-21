@@ -602,6 +602,302 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
+	-- mass remove push resistance
+	if uDef.pushresistant and uDef.pushresistant == true then
+		uDef.pushresistant = false
+		if not uDef.mass then
+			uDef.mass = 4999
+		end
+	end
+
+	--experimental mass standardization based on size
+	if modOptions.mass_impulse_rework and (uDef.mass or uDef.metalcost) then
+		
+		--imperically selected. This scales how much impulse weapons will deal proportionally to affect each tier of sizeMasses table entries.
+		local targetImpulseMultiplier = 3.25
+
+		--this is used to make units transportable by prior weight class and by setting the weight class of the transports.
+		local transportDeduction = 1
+
+		--size tables
+		local sizeMasses = {
+			tiny = 60,--36,
+			small = 98,--100,
+			medium = 240,--250,
+			large = 480,--700,
+			huge = 960,--1800,
+			gargantuan = 2880,--4500,
+			colossal = 12000,--11700
+			commander = 20000
+		}
+
+		--do not set land units below 1x multiplier to avoid transportability issues
+		local hovercraftMassMultiplier = 1
+		local boatMassMultiplier = 1.5
+		local treadedMassMultiplier = 1.5
+		local twoLeggedMassMultiplier = 1
+		local fourLeggedMassMultiplier = 1.1
+		local sixLeggedMassMultiplier = 1.5
+		local submarineMassMultiplier = 1
+		local aircraftMassMultiplier  = 0.6
+		local massPerExtraTechLevelMultiplier = 1
+
+		--for diagnostics
+		local originalMass = uDef.mass or uDef.metalcost
+		local sizeMass = 0
+
+		--mass category tables. YOU MAY CHANGE THE NUMBERS. Keep them within 0.75-1.25 so consistency is maintained.
+		local tinyMassesTable = {
+			armfav = 1, armflea = 1, armvader = 1, corfav = 1, corroach = 1, corsktl = 1, legscout = 1, legsnapper = 1
+		}
+		local smallMassesTable = {
+			armamph = 1, armfast = 1, armfark = 1, armflash = 1, armgremlin = 1, armham = 1, armjeth = 1, armmark = 1, armpw = 1, armrectr = 1,
+			armrock = 1, armsh = 1, armspid = 1, armspy = 1, armstil = 1, armsaber = 1, armkam = 1, armzapper = 1, corak = 1, corbw = 1,
+			corcrash = 1, corfast = 1, corfink = 1, corgator = 1, corhunt = 1, cornecro = 1, corstorm = 1, corsh = 1, corsfig = 1, corspy = 1,
+			corthud = 1, corvamp = 1, corveng = 1, corvoyr = 1, legcen = 1, legcib = 1, legfig = 1, legglob = 1, leggob = 1, leggremlin = 1,
+			leghelios = 1, leghades = 1, legkam = 1, legmos = 1, legsh = 1, legvenator = 1
+		}
+		local mediumMassesTable = {
+			armah = 1, armanac = 1, armch = 1, armck = 1, armconsul = 1, armdecade = 1, armfido = 1, armfig = 1, armhawk = 1, armjam = 1,
+			armjanus = 1, armkam = 1, armlatnk = 1, armmart = 1, armmh = 1, armmlv = 1, armpincer = 1, armpt = 1, armsam = 1, armsnipe = 1,
+			armsptk = 1, armseer = 1, armsehak = 1, armsub = 1, armstump = 1, armwar = 1, armzues = 1, armbrawl = 1, armblade = 1, armca = 1,
+			armcsa = 1, armseap = 1, armatlas = 1, armawac = 1, coraak = 1, coracsub = 1, corah = 1, coramph = 1, corape = 1, corca = 1,
+			corch = 1, corck = 1, corcsa = 1, corfig = 1, corgarp = 1, corhunt = 1, cormando = 1, cormh = 1, cormist = 1, cormlv = 1,
+			cormort = 1, corpyro = 1, coronager = 1, corphantom = 1, corraid = 1, corsala = 1, corsnap = 1, corspec = 1, corsub = 1,
+			corsupp = 1, cortitan = 1, cortorch = 1, corvrad = 1, corwolv = 1, legaceb = 1, legah = 1, legamphtank = 1, legbal = 1, legbar = 1,
+			legca = 1, legck = 1, leggat = 1, leginfestor = 1, legkark = 1, legmh = 1, legmlv = 1, legmrv = 1, legner = 1, legrail = 1,
+			legwhisper = 1, legionnaire = 1
+		}
+		local largeMassesTable = {
+			armacsub = 1, armaas = 1, armaca = 1, armack = 1, armbeaver = 1, armcom = 1, armcs = 1, armcv = 1, armdecom = 1, armlance = 1,
+			armlship = 1, armmart = 1, armmav = 1, armmis = 1, armnap = 1, armpship = 1, armrecl = 1, armserp = 1, armsb = 1, armsjam = 1,
+			armsubk = 1, armyork = 1, armexcalibur = 1, armthund = 1, armseap = 1, armhvytrans = 1, armatlas = 1, armdfly = 1, coracsub = 1,
+			coraca = 1, corarch = 1, corcan = 1, corcom = 1, corcs = 1, corcut = 1, corcv = 1, cordecom = 1, correcl = 1, corforge = 1,
+			corfship = 1, corhal = 1, corhrk = 1, corhurc = 1, corlance = 1, cormart = 1, cormls = 1, cormuskrat = 1, corpship = 1,
+			corftiger = 1, corsb = 1, corsent = 1, corshark = 1, corsjam = 1, corssub = 1, coreter = 1, cordeadeye = 1, legaca = 1, legack = 1,
+			legacv = 1, legamcluster = 1, legcar = 1, legcom = 1, legcv = 1, legdecom = 1, legmineb = 1, legnap = 1, legotter = 1, legphoenix = 1,
+			legshot = 1, legstr = 1
+		}
+		local hugeMassesTable = {
+			armacv = 1, armaat = 1, armbull = 1, armcrus = 1, armcroc = 1, armfboy = 1, armmar = 1, armmanni = 1, armmship = 1, armmerl = 1,
+			armroy = 1, armscab = 1, armlun = 1, coracv = 1, corcrus = 1, corparrow = 1, correap = 1, corshiva = 1, corsok = 1, cormabm = 1,
+			cortrem = 1, corvroc = 1, corroy = 1, corsentinel = 1, cormship = 1, legacv = 1, legaheattank = 1, legavroc = 1, legbart = 1,
+			legfloat = 1, legmed = 1, legsrail = 1, legvcarry = 1
+		}
+		local gargantuanMassesTable = {
+			armantiship = 1, armbats = 1, armraz = 1, armvang = 1, corantiship = 1, corbats = 1, corcat = 1, cordesolator = 1, cordronecarry = 1,
+			corgol = 1, corkarg = 1, leginc = 1, leginf = 1, legkeres = 1, legpede = 1, cordronecarryair = 1, corcrw = 1, legfort = 1, legstronghold = 1,
+			corcrwh = 1, corseah = 1, corthermite = 1, armdronecarry = 1, armptt2 = 1, armpshipt3 = 1, corakt4 = 1, cormandot4 = 1,
+			corsiegebreaker = 1, corgatreap = 1, corvac = 1, armtrident = 1, armassimilator = 1, armmeatball = 1, armsptkt4 = 1
+		}
+		local colossalMassesTable = {
+			armbanth = 1, armdecadet3 = 1, armepoc = 1, armthor = 1, corblackhy = 1, cordemon = 1, corjugg = 1, corkorg = 1, corkarganetht4 = 1,
+			corgolt4 = 1, corsirpc = 1, coresuppt3 = 1, leegmech = 1, corcrwt4 = 1, armlichet4 = 1, legfortt4 = 1, corfblackhyt4 = 1, armfepocht4 = 1,
+			armthundt4 = 1, armserpt3 = 1, armseadragon = 1, armvadert4 = 1, armrattet4 = 1, armdronecarryland = 1
+		}
+
+		local transportableLikePreviousSizeTable = {
+			armbeaver = true, armcv = true, corcv = true, cormuskrat = true, legcv = true, legotter = true
+		}
+
+		local sixLeggedMassTable = {
+			armspid = true, armscab = true, armsptk = true, armsptkt4 = true,
+			corkarg = true, corroach = true, corthermite = true, corkarganetht4 = true,
+			legaceb = true, leginfestor = true, legpede = true, legsnapper = true, legsrail = true,
+		}
+
+		local fourLeggedMassTable = {
+			armfido = true, armflea = true, armvang = true,
+			coraak = true, corack = true, corcrash = true, corjugg = true, corkorg = true, corsktl = true, corsumo = true, cordeadeye = true,
+			legack = true, legcen = true, legck = true, leginc = true
+		}
+
+		local twoLeggedMassTable = {
+			armaak = true, armack = true, armaser = true, armassimilator = true, armcom = true, armcomcon = true, armcomboss = true,
+			armcomlvl10 = true, armcomlvl2 = true, armcomlvl3 = true, armcomlvl4 = true, armcomlvl5 = true, armcomlvl6 = true, armcomlvl7 = true,
+			armcomlvl8 = true, armcomlvl9 = true, armdecom = true, armdecomlvl3 = true, armdecomlvl6 = true, armdecomlvl10 = true, armfark = true,
+			armfboy = true, armfast = true, armham = true, armjeth = true, armlunchbox = true, armmar = true, armmeatball = true, armmav = true,
+			armpwt4 = true, armpw = true, armraz = true, armrock = true, armspy = true, armsnipe = true, armscavengerbossv2_easy = true, armscavengerbossv2_hard = true,
+			armscavengerbossv2_normal = true, armscavengerbossv2_veryhard = true, armvader = true, armwar = true, armzeus = true, babyleglob = true, babylegshot = true,
+			babyarmvader = true, chip = true, comeffigylvl1 = true, comeffigylvl2 = true, comeffigylvl3 = true, comeffigylvl5 = true, cordecom = true, cordecomlvl3 = true,
+			cordecomlvl6 = true, cordecomlvl10 = true, coramph = true, corcan = true, corcat = true, corcom = true, corcomboss = true, corcomcon = true, corcomlvl2 = true,
+			corcomlvl3 = true, corcomlvl5 = true, corcomlvl7 = true, corcomlvl8 = true, corcomlvl9 = true, corcomlvl10 = true, cordeadeye = true, cordemon = true, corfast = true,
+			corhrk = true, corpyro = true, corshiva = true, corspec = true, corspy = true, corstorm = true, corthermite = true, corthud = true, corvoyr = true, leegmech = true,
+			legack = true, legbal = true, legbart = true, legcom = true, legcomecon = true, legcomlvl2 = true, legcomlvl3 = true, legcomlvl4 = true, legcomlvl5 = true,
+			legcomlvl6 = true, legcomlvl7 = true, legcomlvl10 = true, legcomoff = true, legcomt2com = true, legcomt2def = true, legcomt2off = true, legdecom = true,
+			legdecomlvl3 = true, legdecomlvl6 = true, legdecomlvl10 = true, leggob = true, legkark = true, legshot = true, legstr = true, leglob = true, leghades = true,
+			squadcorak = true, squadcorakt4 = true, squadcorkarg = true, squadarmpwt4 = true, squadarmsptk = true, corakt4 = true, cormandot4 = true,
+		}
+
+		--assign the masses and transport weights
+		if uDef.customparams and uDef.customparams.iscommander then
+			uDef.mass = sizeMasses.commander
+			--uDef.customparams.unit_weight_class = 1
+		elseif tinyMassesTable[name] then
+			uDef.mass = sizeMasses.tiny * tinyMassesTable[name]
+			--uDef.customparams.unit_weight_class = 1
+		elseif smallMassesTable[name] then
+			uDef.mass = sizeMasses.small * smallMassesTable[name]
+			--uDef.customparams.unit_weight_class = 2
+		elseif mediumMassesTable[name] then
+			uDef.mass = sizeMasses.medium * mediumMassesTable[name]
+			--uDef.customparams.unit_weight_class = 3
+		elseif largeMassesTable[name] then
+			uDef.mass = sizeMasses.large * largeMassesTable[name]
+			--uDef.customparams.unit_weight_class = 4
+		elseif hugeMassesTable[name] then
+			uDef.mass = sizeMasses.huge * hugeMassesTable[name]
+			--uDef.customparams.unit_weight_class = 5
+		elseif gargantuanMassesTable[name] then
+			uDef.mass = sizeMasses.gargantuan * gargantuanMassesTable[name]
+			--uDef.customparams.unit_weight_class = 6
+		elseif colossalMassesTable[name] then
+			uDef.mass = sizeMasses.colossal * colossalMassesTable[name]
+			--uDef.customparams.unit_weight_class = 7
+		else
+			uDef.mass = uDef.mass or uDef.metalcost
+			--uDef.customparams.unit_weight_class = 5
+		end
+		sizeMass = uDef.mass
+		if uDef.customparams.techlevel and uDef.customparams.techlevel > 1 then
+			local techMultiplierCount = uDef.customparams.techlevel - 1
+			uDef.mass = uDef.mass * massPerExtraTechLevelMultiplier * techMultiplierCount
+		end
+
+		--assign mass bonuses
+		if uDef.movementclass and (string.find(name, "cor") or string.find(name, "arm") or string.find(name, "leg")) then
+			local mc = uDef.movementclass
+			if uDef.customparams and uDef.customparams.iscommander then
+				--Spring.Echo(name, uDef.mass, "commander")
+			end
+			if transportableLikePreviousSizeTable[name] then
+				uDef.mass = uDef.mass - transportDeduction
+				--Spring.Echo(name, uDef.mass, "Previous Size Transportable")
+			elseif fourLeggedMassTable[name] then
+				uDef.mass = uDef.mass * fourLeggedMassMultiplier
+				--Spring.Echo(name, uDef.mass, "4 legged")
+			elseif sixLeggedMassTable[name] then
+				uDef.mass = uDef.mass * sixLeggedMassMultiplier
+				--Spring.Echo(name, uDef.mass, "6 legged")
+			elseif twoLeggedMassTable[name] then
+				uDef.mass = uDef.mass * twoLeggedMassMultiplier
+				--Spring.Echo(name, uDef.mass, "BOT")
+			elseif mc == "TANK2" or mc == "TANK3" or mc == "MTANK3" or mc == "HTANK4" or mc == "HTANK5" or mc == "ATANK3" then
+				uDef.mass = uDef.mass * treadedMassMultiplier
+				--Spring.Echo(name, uDef.mass, "Treaded")
+			elseif mc == "BOAT3" or mc == "BOAT4" or mc == "BOAT5" or mc == "BOAT8" or mc == "EPICSHIP" then
+				uDef.mass = uDef.mass * boatMassMultiplier
+				--Spring.Echo(name, uDef.mass, "Boat")
+			elseif mc == "HOVER2" or mc == "HOVER3" or mc == "HHOVER4" then
+				uDef.mass = uDef.mass * hovercraftMassMultiplier
+				--Spring.Echo(name, uDef.mass, "Hover")
+			elseif mc == "UBOAT4" or mc == "EPICSUBMARINE" then
+				uDef.mass = uDef.mass * submarineMassMultiplier
+				--Spring.Echo(name, uDef.mass, "Submarine")
+			end
+		elseif uDef.canfly == true then
+			uDef.mass = uDef.mass * aircraftMassMultiplier
+			--Spring.Echo(name, uDef.mass, "VTOL")
+		else
+			-- Spring.Echo(name, "Invalid")
+		end
+
+		--any units you want to give impulse to, add an entry to this table. Giving it a string size category will produce optimal yeetage for that amount of mass.
+		--add weapon impulses. Acceptable formats are: String representing the key entry in sizeMasses table from above, arbitrary number of desired resultant impulse,
+		--if number is < 10 then it'll be directly assigned as impulseFactor. For units with multiple weapons, use a table of:
+		--key = (either string/number value as mentioned before) based on the key of each weapon listed in the unit's weapondefs.
+		local impulseUnits = {
+			--johannas' picks
+			corshiva = {shiva_gun = "medium", shiva_rocket = "large"}, armliche = "gargantuan", cortrem = "medium", armbrtha = "gargantuan", corint = "gargantuan", 
+			armvang = "huge", armvulc = "large", corbuzz = "large", armfboy = "huge", corgol = "huge", armmav = "medium", armsilo = "gargantuan", corsilo = "gargantuan",
+			cortron = "gargantuan", corcat = "large", corban = "huge", corparrow = "medium", corvroc = "huge", armmerl = "huge", corhrk = "large", cortoast = "huge",
+			armamb = "huge", corpun = "large", armguard = "large", armjanus = "medium", corlevlr = "medium",
+			--seth's suggestions
+			armart = "tiny", corwolv = "tiny", legrail = "medium", legkark = {corlevlr_weapon = "medium", corwar_laser = 0.123}, legsrail = "large", armsnipe = "medium",
+			armfido = "tiny", armsptk = "medium", armmart = "medium", cormart = "medium", armcroc = {arm_triton = "medium"}, legavroc = "huge", legaskirmtank = "tiny",
+			legamcluster = {arm_artillery = "medium", cluster_munition = "small"}, legmed = {legmed_missile = "medium"}, legfloat = {legfloat_gauss = "medium"},
+			legfort = {plasma = "medium"}, corape = "small", armblade = "small", armpnix = "medium", corhurc = "medium", corshad = "small", armthund = "small",
+		}
+
+		--ignore this nerdinese, it just assigns the impulse values derived from the above table entries.
+		if impulseUnits[name] then
+			for weaponName, weaponDef in pairs(uDef.weapondefs) do
+				if type(impulseUnits[name]) == "number" then
+					local damage = weaponDef.damage.default or next(weaponDef.damage)
+					if damage and damage > 0 then
+						if impulseUnits[name] <= 10 then
+							weaponDef.impulsefactor = impulseUnits[name]
+							--Spring.Echo(name, "impulsefactor", weaponDef.impulsefactor)
+						else
+						local targetImpulse = impulseUnits[name]
+						weaponDef.impulsefactor = math.ceil((targetImpulse / damage) * 100) / 100
+						--Spring.Echo(name, "impulsefactor", weaponDef.impulsefactor)
+						end
+					end
+				elseif type(impulseUnits[name]) == "string" then
+					local damage = weaponDef.damage.default or next(weaponDef.damage)
+					if damage and damage > 0 then
+						local targetImpulse = sizeMasses[impulseUnits[name]] * targetImpulseMultiplier
+						weaponDef.impulsefactor = math.ceil((targetImpulse / damage) * 100) / 100
+						--Spring.Echo(name, "impulsefactor", weaponDef.impulsefactor)
+					end
+				elseif type(impulseUnits[name]) == "table" then
+					for impulseUnitsWeaponName, data in pairs(impulseUnits[name]) do
+						if weaponName == impulseUnitsWeaponName then
+							if type(data) == "number" then
+								local damage = weaponDef.damage.default or next(weaponDef.damage)
+								if damage and damage > 0 then
+									if data <= 10 then
+										weaponDef.impulsefactor = data
+										--Spring.Echo(name, impulseUnitsWeaponName, "impulseFactor", weaponDef.impulsefactor, data)
+									else
+									local targetImpulse = data
+									weaponDef.impulsefactor = math.ceil((targetImpulse / damage) * 100) / 100
+									--Spring.Echo(name, impulseUnitsWeaponName, "impulseFactor", weaponDef.impulsefactor, data)
+									end
+								end
+							elseif type(data) == "string" then
+								local damage = weaponDef.damage.default or next(weaponDef.damage)
+								if damage and damage > 0 then
+									local targetImpulse = sizeMasses[data] * targetImpulseMultiplier
+									weaponDef.impulsefactor = math.ceil((targetImpulse / damage) * 100) / 100
+									--Spring.Echo(name, impulseUnitsWeaponName, "impulseFactor", weaponDef.impulsefactor, data)
+								end
+							end
+							break
+						end
+					end
+				end
+			end
+		elseif uDef.weapondefs then
+					--remove impulse from unlisted units
+			-- for weaponName, weaponDef in pairs(uDef.weapondefs) do
+			-- 	if weaponDef.impulsefactor and weaponDef.impulsefactor > 0 then
+			-- 		weaponDef.impulsefactor = 0.123
+			-- 	end
+			-- 	weaponDef.impulseboost = nil
+			-- end
+		end
+		
+		--assign the category the transport is ~UNABLE~ to carry
+		local transportUnits = { 
+			armatlas = "large", armhvytrans = "gargantuan", armdfly = "gargantuan", corvalk = "large", corhvytrans = "gargantuan", corseah = "gargantuan", legatrans = "large", legstronghold = "gargantuan"
+		}
+		if transportUnits[name] then
+			uDef.transportmass = sizeMasses[transportUnits[name]] - transportDeduction
+		end
+
+		--populate newMassToMetalRatios tables for later echo'ing
+		if uDef.mass and uDef.mass ~= originalMass and not uDef.customparams.evocomlvl then
+			local newMassToMetalRatio = math.ceil((uDef.mass / originalMass) * 100)
+			Spring.Echo(name.." "..newMassToMetalRatio.."%")--, "old "..originalMass, "new "..uDef.mass, )
+			if smallMassesTable[name] then
+				local sizeMassToMetalRatio = math.ceil((sizeMass / originalMass) * 100)
+				--Spring.Echo(name.." "..sizeMassToMetalRatio.."%")
+			end
+		end
+	end
+
 	if string.find(name, "raptor") and uDef.health then
 		local raptorHealth = uDef.health
 		uDef.activatewhenbuilt = true
