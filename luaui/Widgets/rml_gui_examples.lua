@@ -477,10 +477,10 @@ function createBasicStylesPage()
 		</div>
 	]])
 
-	local shadowPropertiesSection = createSection('Box Shadow Property', [[
+	local shadowPropertiesSection = createSection('Box Shadow Propertyy', [[
 		<div class="container" style="display: flex; flex-direction: row; padding: 50dp 8dp; background-color: white;">
 			<div style="width: 100dp; height: 100dp; border: 1dp white; background-color: #555; 
-				box-shadow: 10dp 10dp 6dp 10dp black; filter: opacity(1);"
+				box-shadow: 10dp 10dp 6dp 10dp black; margin-right: 30dp;"
 			>
 				Box Shadow
 			</div>
@@ -490,8 +490,7 @@ function createBasicStylesPage()
 					#c88 60dp 60dp 0 0,
 					#baa 90dp 90dp 0 0,
 					#ffac 0 0 .8em 8dp inset;
-				margin-bottom: 100dp;
-				filter: opacity(1);"
+				margin-bottom: 100dp;"
 			>
 				Multiple Box Shadows
 			</div>
