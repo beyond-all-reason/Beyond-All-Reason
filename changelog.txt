@@ -115,6 +115,7 @@
 • [Oppressor] Depthcharge reloadtime decreased 2->1.9s
 • [Tremor] The weapon's spread is now proportional to the distance between the tremor and its target.  Fire rate reduced from 3->2 shots per second, damage per shot increased 100->150.  
 • [Veh Cons] Brake rates significantly increased, to prevent drifting into blueprints.
+• [Crawling Bombs] Manual attack and proximity trigger now use the more powerful self-d explosion. Proximity trigger radius reduced 80->32.
 
 # June 2023
  • [Shiva] Weapon reloadtime reduced by 33% (3s->2s), damage per shot reduced 33% (900->600), turret turnrate increased.  Script and hitbox adjusted to reduce friendly fire.  
