@@ -1,0 +1,213 @@
+[Game]
+{
+	[allyTeam4]
+	{
+		startrectright = 0.98477155;
+		startrectbottom = 0.35025382;
+		startrectleft = 0.57106596;
+		numallies = 0;
+		startrecttop = 0.03299492;
+	}
+
+	[allyTeam0]
+	{
+		startrectright = 0.41370559;
+		startrectbottom = 0.95431471;
+		startrectleft = 0;
+		numallies = 0;
+		startrecttop = 0.19796956;
+	}
+
+	[ai4]
+	{
+		Host = 0;
+		IsFromDemo = 0;
+		Name = ScavengersDefenseAI(1);
+		ShortName = ScavengersAI;
+		Team = 5;
+		Version = <not-versioned>;
+	}
+
+	[ai1]
+	{
+		Host = 0;
+		IsFromDemo = 0;
+		Name = InactiveAI(2);
+		ShortName = NullAI;
+		Team = 2;
+		Version = 0.1;
+	}
+
+	[team1]
+	{
+		Side = Armada;
+		Handicap = 0;
+		RgbColor = 0.99609375 0.546875 0;
+		AllyTeam = 3;
+		TeamLeader = 0;
+	}
+
+	[ai2]
+	{
+		Host = 0;
+		IsFromDemo = 0;
+		Name = RaptorsDefenseAI(1);
+		ShortName = RaptorsAI;
+		Team = 3;
+		Version = <not-versioned>;
+	}
+
+	[ai5]
+	{
+		Host = 0;
+		IsFromDemo = 0;
+		Name = InactiveAI(4);
+		ShortName = NullAI;
+		Team = 6;
+		Version = 0.1;
+	}
+
+	[ai3]
+	{
+		Host = 0;
+		IsFromDemo = 0;
+		Name = InactiveAI(1);
+		ShortName = NullAI;
+		Team = 4;
+		Version = 0.1;
+	}
+
+	[team3]
+	{
+		Side = Armada;
+		Handicap = 0;
+		RgbColor = 0.99609375 0.546875 0;
+		AllyTeam = 6;
+		TeamLeader = 0;
+	}
+
+	[allyTeam3]
+	{
+		startrectright = 0.64467001;
+		startrectbottom = 0.52538073;
+		startrectleft = 0.30964467;
+		numallies = 0;
+		startrecttop = 0.19035535;
+	}
+
+	[team2]
+	{
+		Side = Armada;
+		Handicap = 0;
+		RgbColor = 0.99609375 0.546875 0;
+		AllyTeam = 2;
+		TeamLeader = 0;
+	}
+
+	[team6]
+	{
+		Side = Armada;
+		Handicap = 0;
+		RgbColor = 0.99609375 0.546875 0;
+		AllyTeam = 4;
+		TeamLeader = 0;
+	}
+
+	[team5]
+	{
+		Side = Armada;
+		Handicap = 0;
+		RgbColor = 0.99609375 0.546875 0;
+		AllyTeam = 5;
+		TeamLeader = 0;
+	}
+
+	[allyTeam6]
+	{
+		startrectright = 0.98984772;
+		startrectbottom = 0.9416244;
+		startrectleft = 0.30710658;
+		numallies = 0;
+		startrecttop = 0.84771574;
+	}
+
+	[team4]
+	{
+		Side = Cortex;
+		Handicap = 0;
+		RgbColor = 0.99609375 0.546875 0;
+		AllyTeam = 1;
+		TeamLeader = 0;
+	}
+
+	[allyTeam5]
+	{
+		startrectright = 0.95939088;
+		startrectbottom = 0.8375634;
+		startrectleft = 0.39340103;
+		numallies = 0;
+		startrecttop = 0.73350251;
+	}
+
+	[allyTeam2]
+	{
+		startrectright = 0.83756346;
+		startrectbottom = 0.98730963;
+		startrectleft = 0.57106596;
+		numallies = 0;
+		startrecttop = 0.46446702;
+	}
+
+	[allyTeam1]
+	{
+		startrectright = 0.66751266;
+		startrectbottom = 0.69289339;
+		startrectleft = 0.23604061;
+		numallies = 0;
+		startrecttop = 0.50253808;
+	}
+
+	[team0]
+	{
+		Side = Armada;
+		Handicap = 0;
+		RgbColor = 0.99609375 0.546875 0;
+		AllyTeam = 0;
+		TeamLeader = 0;
+	}
+
+	[modoptions]
+	{
+		teamffa_start_boxes_shuffle = 0;
+	}
+
+	[ai0]
+	{
+		Host = 0;
+		IsFromDemo = 0;
+		Name = InactiveAI(3);
+		ShortName = NullAI;
+		Team = 1;
+		Version = 0.1;
+	}
+
+	[player0]
+	{
+		IsFromDemo = 0;
+		Name = Player;
+		Team = 0;
+		rank = 0;
+	}
+
+	hostip = 127.0.0.1;
+	hostport = 0;
+	ishost = 1;
+	GameStartDelay = 5;
+	numplayers = 1;
+	numusers = 7;
+	startpostype = 2;
+	mapname = Supreme Isthmus v1.8;
+	myplayername = Player;
+	gametype = Beyond All Reason $VERSION;
+	nohelperais = 0;
+}
