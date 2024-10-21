@@ -2891,8 +2891,8 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "fastemg-medium",
 	},
 	legbart = {
-		BaseSoundSelectType = "leg-bart-medium-sel",
-		BaseSoundMovementType = "leg-bart-medium-ok",
+		BaseSoundSelectType = "cor-bot-medium-sel",
+		BaseSoundMovementType = "cor-bot-medium-ok",
 		BaseSoundWeaponType = "flame-alt",
 	},
 	legsrail = {
