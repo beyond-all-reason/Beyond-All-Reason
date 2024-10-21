@@ -207,6 +207,8 @@ function UnitDef_Post(name, uDef)
 				uDef.maxthisunit = 0
 			elseif uDef.canfly then
 				uDef.maxthisunit = 0
+			elseif uDef.customparams.childreninheritxp == "DRONE" then
+				uDef.maxthisunit = 0
 			end
 			local AircraftFactories = {
 				armap = true,
