@@ -258,13 +258,26 @@ local function SetupUnitDef(unitDefID, unitDef)
 				if weaponDef.canAttackGround
 					and not (weaponDef.type == "Shield")
 					and not ToBool(weaponDef.interceptor)
-					and (weaponDef.damageAreaOfEffect > maxSpread or weaponDef.range * (weaponDef.accuracy + weaponDef.sprayAngle) > maxSpread)
 					and not string.find(weaponDef.name, "flak", nil, true) then
+					if (weaponDef.damageAreaOfEffect > maxSpread or weaponDef.range * (weaponDef.accuracy + weaponDef.sprayAngle) > maxSpread) then
 
-					maxSpread = max(weaponDef.damageAreaOfEffect, weaponDef.range * (weaponDef.accuracy + weaponDef.sprayAngle))
-					maxWeaponDef = weaponDef
+						maxSpread = max(weaponDef.damageAreaOfEffect, weaponDef.range * (weaponDef.accuracy + weaponDef.sprayAngle))
+						maxWeaponDef = weaponDef
 
-					weaponTable = (weaponDef.manualFire and unitDef.canManualFire) and manualWeaponInfo or weaponInfo
+						weaponTable = (weaponDef.manualFire and unitDef.canManualFire) and manualWeaponInfo or weaponInfo
+
+					-- Handle projectiles that split or spawn other projectiles or explosions.
+					-- elseif weaponDef.customParams.speceffect == "split" then
+					-- elseif weaponDef.customParams.spark_forkdamage then
+					-- elseif weaponDef.customParams.cluster then
+					elseif weaponDef.customParams and weaponDef.customParams.overpen_exp_def then
+						local expDef = WeaponDefNames[weaponDef.customParams.overpen_exp_def]
+						if expDef.damageAreaOfEffect > maxSpread then
+							maxSpread = expDef.damageAreaOfEffect
+							maxWeaponDef = weaponDef
+							weaponTable = (weaponDef.manualFire and unitDef.canManualFire) and manualWeaponInfo or weaponInfo
+						end
+					end
 				end
 			end
 		end
@@ -281,6 +294,10 @@ local function SetupUnitDef(unitDefID, unitDef)
 	local mobile = unitDef.speed > 0
 	local waterWeapon = maxWeaponDef.waterWeapon
 	local ee = maxWeaponDef.edgeEffectiveness
+
+	if maxWeaponDef.customParams and maxWeaponDef.customParams.overpen_exp_def then
+		aoe = max(aoe, WeaponDefNames[maxWeaponDef.customParams.overpen_exp_def].damageAreaOfEffect)
+	end
 
 	if weaponType == "DGun" then
 		weaponTable[unitDefID] = { type = "dgun", range = maxWeaponDef.range, unitname = unitDef.name, requiredEnergy = maxWeaponDef.energyCost }
@@ -328,6 +345,7 @@ local function SetupUnitDef(unitDefID, unitDef)
 	if maxWeaponDef.energyCost > 0 then
 		weaponTable[unitDefID].requiredEnergy = maxWeaponDef.energyCost
 	end
+
 
 	weaponTable[unitDefID].aoe = aoe
 	weaponTable[unitDefID].cost = cost

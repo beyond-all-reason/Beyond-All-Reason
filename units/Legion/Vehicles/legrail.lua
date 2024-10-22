@@ -112,6 +112,7 @@ return {
 				avoidfeature = false,
 				burnblow = false,
 				cegtag = "railgun",
+				collisionsize = 0.7,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
@@ -139,6 +140,9 @@ return {
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 3240,
+				customparams = {
+					overpen = true,
+				},
 				damage = {
 					commanders = 100,
 					default = 200,

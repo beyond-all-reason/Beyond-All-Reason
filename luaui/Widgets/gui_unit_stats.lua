@@ -177,11 +177,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
--- Reverse armor type table
-local armorTypes = {}
-for ii = 1, #Game.armorTypes do
-	armorTypes[Game.armorTypes[ii]] = ii
-end
+local armorTypes = Game.armorTypes
 
 ------------------------------------------------------------------------------------
 -- Functions
@@ -333,14 +329,8 @@ if useSelection then
 end
 
 
-local function drawStats(uDefID, uID)
-	local mx, my = spGetMouseState()
+local function drawStats(uDefID, uID, mx, my)
 	local alt, ctrl, meta, shift = spGetModKeyState()
-	if WG['chat'] and WG['chat'].isInputActive then
-		if WG['chat'].isInputActive() then
-			showStats = false
-		end
-	end
 
 	local uDef = uDefs[uDefID]
 	local maxHP = uDef.health
@@ -600,6 +590,13 @@ local function drawStats(uDefID, uID)
 				local cmNumber = uWep.customParams.number or 5 -- note: keep in sync with cluster defaults
 				local cmDamage = WeaponDefNames[munition].damages[0]
 				defaultDamage = defaultDamage + cmDamage * cmNumber
+			elseif uWep.customParams.overpen and uWep.customParams.overpen_exp_def then
+				local explosion = WeaponDefNames[uWep.customParams.overpen_exp_def].damages
+				if string.find(uWep.name, "nuclear_missile") then
+					defaultDamage = explosion and explosion[0] or 0 -- ignore the fighter-wall bypass damage
+				else
+					defaultDamage = defaultDamage + (explosion and explosion[0] or 0)
+				end
 			end
 		end
 
@@ -683,41 +680,52 @@ local function drawStats(uDefID, uID)
 
 				local modString = ""
 				-- Group armor types by the damage they take.
-				local modifiers = {}
-				local defaultRate = uWep.damages[0] or 0
-				local defaultName = Game.armorTypes[0] or 'default'
-				for cat = 0, #uWep.damages do
-					local catName = Game.armorTypes[cat]
-					local catDamage = uWep.damages[cat] or defaultRate
-
-					if catName and catDamage then
-						local rate = catDamage
-						if not modifiers[rate] then modifiers[rate] = {} end
-						if rate == defaultRate then
-							modifiers[rate] = { defaultName }
-							defaultRate = rate
-						else
-							table.insert(modifiers[rate], catName)
-						end
+				local damageGroups = {}
+				local default = armorTypes.default
+				local damages = uWep.damages
+				local baseIndex
+				if damages[default] > 1 and damages[default] >= damages[armorTypes.vtol] then
+					baseIndex = default
+				elseif damages[armorTypes.vtol] > 1 then
+					baseIndex = armorTypes.vtol
+				elseif damages[armorTypes.mines] > 1 then
+					baseIndex = armorTypes.mines
+				else
+					baseIndex = default -- we just hope this doesn't happen tbh
+				end
+				local baseRate = damages[baseIndex]
+				local baseName = armorTypes[baseIndex]
+				local isDefault = baseIndex == default
+				damageGroups[baseRate] = { baseName }
+				for cat = 0, #damages do
+					local catName = armorTypes[cat]
+					local catDamage = damages[cat] or baseRate
+					if damageGroups[catDamage] == nil then damageGroups[catDamage] = {} end
+					if catDamage ~= baseRate or (isDefault == false and catName ~= baseName) then
+						table.insert(damageGroups[catDamage], catName)
 					end
 				end
-
-				local sorted = {}
-				for k ,_ in pairs(modifiers) do table.insert(sorted, k) end
-				table.sort(sorted, function(a, b) return a > b end) -- descending sort
-				local maxDamage = sorted[1]
-
-				modString = "default = "..yellow..format("%d", 100 * defaultRate / maxDamage).."%"
-				local count = 0
-				for _ in pairs(modifiers) do count = count + 1 end
-				if count > 1 then
-					for _, rate in pairs(sorted) do
-						if rate ~= defaultRate then
-							local armors = table.concat(modifiers[rate], ", ")
-							local percent = format("%d", floor(100 * rate / maxDamage))
-							if armors and percent then
-								modString = modString..white.."; "..armors.." = "..yellow..percent.."%"
-							end
+				damageGroups[damages[default]] = { armorTypes[default] } -- collapse defaults
+				-- Sort descending, then put the weapon's main damage type first.
+				local damageSorted = {}
+				for k ,_ in pairs(damageGroups) do table.insert(damageSorted, k) end
+				table.sort(damageSorted, function(a, b) return a > b end)
+				local comparisonRate = damageSorted[1]
+				if comparisonRate ~= baseRate then
+					local index = table.getKeyOf(damageGroups, baseRate)
+					table.remove(damageSorted, index)
+					table.insert(damageSorted, 1, baseRate)
+					comparisonRate = baseRate
+				end
+				-- Convert to percentages, format, and display.
+				modString = (isDefault and "default = ") or (table.concat(damageGroups[comparisonRate], ", ").." = ")
+				modString = modString..yellow..format("%d", 100 * baseRate / comparisonRate).."%"
+				if #damageSorted > 1 then
+					for _, rate in pairs(damageSorted) do
+						if rate ~= baseRate then
+							local armors = table.concat(damageGroups[rate], ", ")
+							local percent = format("%d", floor(100 * rate / comparisonRate))
+							modString = modString..white.."; "..armors.." = "..yellow..percent.."%"
 						end
 					end
 				end
@@ -846,8 +854,8 @@ function widget:DrawScreen()
 		return
 	end
 	local mx, my = spGetMouseState()
-	local uID
 	local rType, unitID = spTraceScreenRay(mx, my)
+	local uID
 	if rType == 'unit' then
 		uID = unitID
 	end
@@ -864,7 +872,8 @@ function widget:DrawScreen()
 	local _, activeID = Spring.GetActiveCommand()
 	if not activeID then activeID = 0 end
 	if not uID and (WG['buildmenu'] and not WG['buildmenu'].hoverID) and not (activeID < 0) then
-		RemoveGuishader() return
+		RemoveGuishader()
+		return
 	elseif WG['buildmenu'] and WG['buildmenu'].hoverID and not (activeID < 0) then
 		uID = nil
 		useHoverID = true
@@ -883,5 +892,5 @@ function widget:DrawScreen()
 		return
 	end
 
-	drawStats(uDefID, uID)
+	drawStats(uDefID, uID, mx, my)
 end

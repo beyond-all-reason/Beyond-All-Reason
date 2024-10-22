@@ -108,6 +108,7 @@ return {
 				avoidfeature = false,
 				burnblow = false,
 				cegtag = "railgun",
+				collisionSize = 0.667,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
@@ -117,6 +118,7 @@ return {
 				explosiongenerator = "custom:plasmahit-sparkonly",
 				fallOffRate = 0.2,
 				firestarter = 0,
+				impactonly = true,
 				impulseboost = 0.4,
 				impulsefactor = 1,
 				intensity = 0.8,
@@ -139,6 +141,9 @@ return {
 				damage = {
 					commanders = 375,
 					default = 750,
+				},
+				customparams = {
+					overpen = true,
 				},
 			},
 		},
