@@ -129,7 +129,7 @@ layout (triangle_strip, max_vertices = 4) out;
 
 uniform sampler2D heightTex;
 #ifdef DEFERRED_MODE
-	uniform sampler2D mapNormalTex;
+	//uniform sampler2D mapNormalTex;
 #endif
 
 
@@ -155,7 +155,7 @@ out DataGS {
 bool MyEmitTestVertex(vec2 xzVec, bool testme) {
 	vec4 worldPos = gl_in[0].gl_Position + vec4(xzVec.x, 0.0, xzVec.y, 0.0);
 	uv = worldPos.xz / mapSize.xy;
-	uv = uv - dataIn[0].vMirrorParams.xy; // So negative UVs mean flipping
+	//uv = uv - dataIn[0].vMirrorParams.xy; // So negative UVs mean flipping
 	vec2 UVHM =  heightmapUVatWorldPos(worldPos.xz);
 	worldPos.y = textureLod(heightTex, UVHM, 0.0).x;
 	
@@ -303,13 +303,22 @@ void main() {
 		finalColor.rgb *= brightness;
 	#endif
 	
-	vec3 mapNormal = normalize(texture(mapNormalTex,uv).rgb * 2.0 - 1.0);
+	vec3 mapNormal = vec3(0);
+	
+	#ifdef DEFERRED_MODE
+		mapNormal.xz = texture(mapNormalTex,uv).ra;
+		mapNormal.y = sqrt(1.0 - dot(mapNormal.xz, mapNormal.xz));
+		mapNormal = normalize(mapNormal);
+	#else
+		mapNormal = normalize(texture(mapNormalTex,uv).rgb * 2.0 - 1.0);
+	#endif
 	if (uv.x < 0) mapNormal.x *= -1.0; // because negative UVs mean flipping
 	if (uv.y < 0) mapNormal.y *= -1.0;
-	fragColor.rgb = fragColor.rgb * (dot(mapNormal, sunDir.xzy) * 0.5 + 1.0);
+	finalColor.rgb = finalColor.rgb * (dot(mapNormal, sunDir.xzy) * 0.5 + 1.0);
 
 	finalColor.rgb = mix(fogColor.rgb, finalColor.rgb, alphaFog.y);
-	finalColor.a = alphaFog.x;
+	finalColor.a = alphaFog.x; 
+	//finalColor.rg = uv;
 	#ifdef DEFERRED_MODE
 		// TODO: normals arent correct, they are mirrored :/ 
 		#if GBUFFER_COUNT > 0
@@ -368,7 +377,7 @@ out DataGS {
 	vec2 alphaFog;
 	vec2 uv;
 };
-
+#line 11000
 void main() {
 	vec2 flip = aMirrorParams.xy;
 	vec2 offset = aMirrorParams.zw;
@@ -384,7 +393,7 @@ void main() {
 	
 	uv = mix(uv, 1.0 - uv, flip);
 	
-	worldPos.y = textureLod(heightTex, heighmapUVatWorldPos(uv * mapSize.xy), 0.0).x;
+	worldPos.y = textureLod(heightTex, heightmapUVatWorldPos(uv * mapSize.xy), 0.0).x;
 	
 	const vec2 edgeTightening = vec2(0.5); // to tighten edges a little better
 	//worldPos.xz = abs(flip * mapSize.xy - worldPos.xz);
@@ -529,8 +538,8 @@ function widget:Initialize()
 		uniformInt = {
 			colorTex = 0,
 			heightTex = 1,
-			mapDepthTex = 2,
-			mapNormalTex = 3,
+			--mapDepthTex = 2,
+			mapNormalTex = 2,
 		},
 		uniformFloat = {
 			shaderParams = {gridSize, brightness, (curvature and 1.0) or 0.0, (fogEffect and 1.0) or 0.0},
@@ -718,7 +727,10 @@ end
 
 -- This requires both the callin and the config int to be enabled
 -- Note that the performance of this draw call is somehow much greater than the screen space one. Very sad :?
+
+
 function widget:DrawGroundDeferred()
+	--Spring.Echo("widget:DrawGroundDeferred")
 	if #mirrorParams == 0 then
 		return
 	end
@@ -774,7 +786,7 @@ function widget:DrawWorldPreUnit()
 
 	gl.Texture(0, colorTex)
 	gl.Texture(1, "$heightmap")
-	gl.Texture(3, "$ssmf_normals")
+	gl.Texture(2, "$ssmf_normals")
 	mapExtensionShader:Activate()
 	mapExtensionShader:SetUniform("shaderParams", gridSize, brightness * nightFactor, (curvature and 1.0) or 0.0, (fogEffect and 1.0) or 0.0)
 	--gl.RunQuery(q, function()
@@ -783,7 +795,7 @@ function widget:DrawWorldPreUnit()
 	mapExtensionShader:Deactivate()
 	gl.Texture(0, false)
 	gl.Texture(1, false)
-	gl.Texture(3, false)
+	gl.Texture(2, false)
 
 	gl.DepthTest(GL.ALWAYS)
 	gl.DepthTest(false)

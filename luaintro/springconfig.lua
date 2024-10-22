@@ -71,6 +71,9 @@ Spring.SetConfigInt("MaxDynamicModelLights", 0)
 Spring.SetConfigInt("AllowDeferredMapRendering", 1)
 Spring.SetConfigInt("AllowDeferredModelRendering", 1)
 
+-- Enables the DrawGroundDeferred event, which is needed for deferred map edge rendering
+Spring.SetConfigInt("AllowDrawMapDeferredEvents", 1)
+
 -- Disable LoadingMT because: crashes on load, but fixed in 105.1.1-1422, redisable in 105.1.1-1432
 --Spring.SetConfigInt("LoadingMT", 0)
 
