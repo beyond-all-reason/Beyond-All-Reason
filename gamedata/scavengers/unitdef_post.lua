@@ -244,6 +244,9 @@ local function scavUnitDef_Post(name, uDef)
 		uDef.buildoptions[numBuildoptions + 2] = "armpwt4_scav"
 		uDef.buildoptions[numBuildoptions + 3] = "armvadert4_scav"
 		uDef.buildoptions[numBuildoptions + 4] = "armmeatball_scav"
+	elseif name == "armap_scav" then
+		local numBuildoptions = #uDef.buildoptions
+		uDef.buildoptions[numBuildoptions + 1] = "armfify_scav"
 	elseif name == "corgantuw_scav" then
 		local numBuildoptions = #uDef.buildoptions
 		uDef.buildoptions[numBuildoptions + 1] = "corgolt4_scav"
