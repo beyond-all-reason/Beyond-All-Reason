@@ -143,7 +143,7 @@ return {
 					default = 750,
 				},
 				customparams = {
-					overpen = true,
+					overpenetrate = true,
 				},
 			},
 		},

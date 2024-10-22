@@ -386,16 +386,13 @@ local function refreshUnitInfo()
 						local forkd = weaponDef.customParams.spark_forkdamage
 						local forkn = weaponDef.customParams.spark_maxunits or 1
 						calculateWeaponDPS(weaponDef, weaponDef.damages[0] * (1 + forkd * forkn))
-					elseif weaponDef.customParams.overpen_exp_def then
+					elseif weaponDef.customParams.overpenetrate_explode_def then
 						local wepDamage = weaponDef.damages[0]
-						local expDamage = WeaponDefNames[weaponDef.customParams.overpen_exp_def].damages[0]
-						if string.find(weaponDef.name, "nuclear_missile") then -- ignore the "impact" damage to fighters, etc.
-							calculateWeaponDPS(weaponDef, expDamage)
-						else
-							local proPerSec = (weaponDef.salvoSize * weaponDef.projectiles) / weaponDef.reload
-							unitDefInfo[unitDefID].mindps = (unitDefInfo[unitDefID].mindps or 0) + proPerSec * wepDamage
-							unitDefInfo[unitDefID].maxdps = (unitDefInfo[unitDefID].maxdps or 0) + proPerSec * (wepDamage + expDamage)
-						end
+						local expDamage = WeaponDefNames[weaponDef.customParams.overpenetrate_explode_def].damages[0]
+						
+						local projectilesPerSec = (weaponDef.salvoSize * weaponDef.projectiles) / weaponDef.reload
+						unitDefInfo[unitDefID].mindps = (unitDefInfo[unitDefID].mindps or 0) + projectilesPerSec * wepDamage
+						unitDefInfo[unitDefID].maxdps = (unitDefInfo[unitDefID].maxdps or 0) + projectilesPerSec * (wepDamage + expDamage)
 					end
 
 					if unitExempt and weaponDef.paralyzer then -- DPS => EMP
