@@ -177,9 +177,6 @@ return {
 				weapontimer = 2,
 				weapontype = "Cannon",
 				weaponvelocity = 600,
-				customparams = {
-					overpen = true,
-				},
 				damage = {
 					default = 235,
 					vtol = 60,
