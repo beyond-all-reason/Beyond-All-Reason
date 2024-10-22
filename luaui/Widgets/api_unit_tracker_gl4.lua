@@ -770,7 +770,7 @@ end
 local iHaveDesynced = false
 -- Example console line:
 -- [t=00:01:41.862230][f=0011049] Sync error for UnnamedPlayer in frame 11044 (got 5537e3ca, correct is cc130165)
-local syncerrorpattern = " Sync error for ([%w%[%]_]+) in frame (%d+) %(got (%x+), correct is (%x+)%)"
+local syncerrorpattern = "Sync error for ([%w%[%]_]+) in frame (%d+) %(got (%x+), correct is (%x+)%)"
 
 function widget:AddConsoleLine(lines, priority)
 	--Spring.Echo(lines)
