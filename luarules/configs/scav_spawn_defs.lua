@@ -882,6 +882,7 @@ if not Spring.GetModOptions().unit_restrictions_noair then
 		["armca_scav"] = 2,
 		["corca_scav"] = 2,
 		["legca_scav"] = 2,
+		["armfify_scav"] = 2,
 	}
 	local t2landairconstructors = {
 		["armaca_scav"] = 2,
