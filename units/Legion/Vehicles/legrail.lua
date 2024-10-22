@@ -8,7 +8,6 @@ return {
 		buildpic = "LEGRAIL.DDS",
 		buildtime = 4000,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 7 4",
 		collisionvolumescales = "37 39 40",
 		collisionvolumetype = "Box",
@@ -43,7 +42,7 @@ return {
 			unitgroup = 'weaponaa',
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "armvehicles",
+			subfolder = "ArmVehicles",
 		},
 		featuredefs = {
 			dead = {
@@ -127,7 +126,7 @@ return {
 				name = "Railgun",
 				noselfdamage = true,
 				ownerExpAccWeight = 4.0,
-				proximitypriority = 3,
+				proximitypriority = 1,
 				range = 650,
 				reloadtime = 8,
 				rgbcolor = "0.34 0.64 0.94",

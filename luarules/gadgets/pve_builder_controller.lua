@@ -52,7 +52,6 @@ for unitDefID, data in pairs(UnitDefs) do
             unitDefName = data.name,
             isFactory = data.isFactory,
         }
-        Spring.Echo(data.name, data.isFactory)
 	end
 end
 

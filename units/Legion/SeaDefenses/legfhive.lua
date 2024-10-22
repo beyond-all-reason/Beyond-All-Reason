@@ -9,7 +9,6 @@ return {
 		buildtime = 7500,
 		canrepeat = false,
 		canmove = true,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -7 0",
 		collisionvolumescales = "44 23 44",
 		collisionvolumetype = "Box",
@@ -43,7 +42,7 @@ return {
 			model_author = "Zephyr",--naval edition by / c/o Hornet
 			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
-			subfolder = "corbuildings/landdefenceoffence",
+			subfolder = "CorBuildings/LandDefenceOffence",
 			legacyname = "Gaat Gun",
 			inheritxpratemultiplier = 1,
 			childreninheritxp = "DRONE",

@@ -7,7 +7,6 @@ return {
 		buildpic = "CORTHERMITE.DDS",
 		buildtime = 18800,
 		canmove = true,
-		category = "ALL BOT WEAPON NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "80 50 98",--40 26 48
 		collisionvolumetype = "CylY",
@@ -40,7 +39,7 @@ return {
 			model_author = "Beherith, Hornet",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.125,
-			subfolder = "corbots/t2",
+			subfolder = "CorBots/T2",
 			techlevel = 3,
 		},
 		featuredefs = {

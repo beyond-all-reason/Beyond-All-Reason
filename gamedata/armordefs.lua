@@ -409,6 +409,7 @@ local armorDefs = {
 
 		"armapt3",
 		"corapt3",
+		"legapt3",
 		"legjam",
 		"legrad",
 		"leglht",
@@ -436,7 +437,7 @@ local armorDefs = {
 		"legotter",
 		"legacv",
 		"legack",
-		
+
 		"legah",
 		"legmh",
 		"legner",
@@ -445,10 +446,6 @@ local armorDefs = {
 		"legfhp",
 		"legch",
 		"legeyes",
-	},
-
-	space = {
-		"armsat",
 	},
 	mines = {
 		"armfmine3",
@@ -470,6 +467,8 @@ local armorDefs = {
 		"legnanotcplat",
 	},
 	vtol = {
+		"armhvytrans",
+		"corhvytrans",
 		"raptors3",
 		"armaca",
 		"armca",
@@ -509,6 +508,7 @@ local armorDefs = {
 		"legassistdrone",
 		"legmos",
 		"legfort",
+		"legfortt4",
 		"legca",
 		"legaca",
 		"armdrone",

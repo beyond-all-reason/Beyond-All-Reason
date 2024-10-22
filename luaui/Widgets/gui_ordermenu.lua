@@ -134,6 +134,13 @@ local isSpectating = Spring.GetSpectatingState()
 local cursorTextures = {}
 local actionHotkeys
 
+local isFactory = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.isFactory then
+		isFactory[unitDefID] = true
+	end
+end
+
 local function convertColor(r, g, b)
 	return string.char(255, (r * 255), (g * 255), (b * 255))
 end
@@ -231,9 +238,11 @@ local function setupCellGrid(force)
 end
 
 local function refreshCommands()
+	local waitCommand
 	local stateCommands = {}
 	local otherCommands = {}
 	local stateCommandsCount = 0
+	local waitCommandCount = 0
 	local otherCommandsCount = 0
 	local activeCmdDescs = spGetActiveCmdDescs()
 	for _, command in ipairs(activeCmdDescs) do
@@ -247,6 +256,9 @@ local function refreshCommands()
 				elseif isStateCommand[command.id] then
 					stateCommandsCount = stateCommandsCount + 1
 					stateCommands[stateCommandsCount] = command
+				elseif command.id == CMD.WAIT then
+					waitCommandCount = 1
+					waitCommand = command
 				else
 					otherCommandsCount = otherCommandsCount + 1
 					otherCommands[otherCommandsCount] = command
@@ -258,8 +270,11 @@ local function refreshCommands()
 	for i = 1, stateCommandsCount do
 		commands[i] = stateCommands[i]
 	end
+	if waitCommand then
+		commands[1 + stateCommandsCount] = waitCommand
+	end
 	for i = 1, otherCommandsCount do
-		commands[i + stateCommandsCount] = otherCommands[i]
+		commands[i + stateCommandsCount + waitCommandCount] = otherCommands[i]
 	end
 
 	setupCellGrid(false)
@@ -581,9 +596,35 @@ local function drawCell(cell, zoom)
 		end
 
 		-- state lights
-		if isStateCommand[cmd.id] then
-			local statecount = #cmd.params - 1 --number of states for the cmd
-			local curstate = cmd.params[1] + 1
+		if isStateCommand[cmd.id] or cmd.id == CMD.WAIT then
+			local statecount, curstate
+			if isStateCommand[cmd.id] then
+				statecount = #cmd.params - 1 --number of states for the cmd
+				curstate = cmd.params[1] + 1
+			else
+				statecount = 2
+				local referenceUnit
+				for _, unitID in ipairs(Spring.GetSelectedUnits()) do
+					local canWait = Spring.FindUnitCmdDesc(unitID, CMD.WAIT)
+					if canWait then
+						referenceUnit = unitID
+						break
+					end
+				end
+				if referenceUnit then
+					local commandQueue
+					if isFactory[Spring.GetUnitDefID(referenceUnit)] then
+						commandQueue = Spring.GetFactoryCommands(referenceUnit, 1)
+					else
+						commandQueue = Spring.GetCommandQueue(referenceUnit, 1)
+					end
+					if commandQueue and commandQueue[1] and commandQueue[1].id == CMD.WAIT then
+						curstate = 2
+					else
+						curstate = 1
+					end
+				end
+			end
 			local desiredState = nil
 			if clickedCellDesiredState and cell == clickedCell then
 				desiredState = clickedCellDesiredState + 1
@@ -874,7 +915,7 @@ function widget:MousePress(x, y, button)
 end
 
 function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdOpts, cmdParams, cmdTag)
-	if isStateCommand[cmdID] then
+	if isStateCommand[cmdID] or cmdID == CMD.WAIT then
 		if not hiddenCommands[cmdID] and doUpdateClock == nil then
 			doUpdateClock = os_clock() + 0.01
 		end

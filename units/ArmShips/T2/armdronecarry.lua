@@ -11,7 +11,6 @@ return {
 		canmove = true,
 		canreclaim = false,
 		canrepair = false,
-		category = "ALL NOTLAND MOBILE NOTSUB NOWEAPON SHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "3 -7 -3",
 		collisionvolumescales = "48 48 140",
 		collisionvolumetype = "CylZ",
@@ -47,7 +46,7 @@ return {
 		customparams = {
 			model_author = "Odin",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armships/t2",
+			subfolder = "ArmShips/T2",
 			techlevel = 2,
 			inheritxpratemultiplier = 1,
 			childreninheritxp = "DRONE",

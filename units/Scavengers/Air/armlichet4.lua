@@ -9,7 +9,7 @@ return {
 		buildtime = 240000,
 		canfly = true,
 		canmove = true,
-		category = "ALL WEAPON NOTSUB VTOL NOTHOVER",
+		category = "T4AIR",
 		collide = false,
 		cruisealtitude = 150,
 		explodeas = "hugeexplosiongeneric",
@@ -46,7 +46,7 @@ return {
 			lumamult = "1.7",
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armaircraft/t2",
+			subfolder = "ArmAircraft/T2",
 			techlevel = 3,
 		},
 		sfxtypes = {

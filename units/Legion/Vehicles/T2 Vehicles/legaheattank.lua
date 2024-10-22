@@ -7,7 +7,6 @@ return {
 		buildpic = "LEGAHEATTANK.DDS",
 		buildtime = 19000,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 2",
 		collisionvolumescales = "46 25 46",
 		collisionvolumetype = "CylY",
@@ -125,7 +124,7 @@ return {
 				energypershot = 300,
 				explosiongenerator = "custom:heatray-large",
 				firestarter = 30,
-				firetolerance = 1820,
+				firetolerance = 5000,
 				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 6,
@@ -143,7 +142,7 @@ return {
 				soundstartvolume = 11,
 				soundtrigger = 1,
 				targetmoveerror = 0.001,
-				tolerance = 1820,
+				tolerance = 5000,
 				thickness = 4.0,
 				turret = true,
 				weapontype = "BeamLaser",
@@ -153,7 +152,7 @@ return {
 					vtol = 10,
 				},
 				customparams = {
-					sweepfire=3.25,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
+					sweepfire=9,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
 				}
 			},
 		},

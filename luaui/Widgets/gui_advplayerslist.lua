@@ -3570,7 +3570,10 @@ function CheckPlayersChange()
                 updateTake(allyTeamID)
                 sorting = true
             end
-
+            if desynced ~= player[i].desynced then
+                forceMainListRefresh = true
+                sorting = true
+            end
             -- Update stall / cpu / ping info for each player
             if player[i].spec == false then
                 player[i].needm = GetNeed("metal", player[i].team)

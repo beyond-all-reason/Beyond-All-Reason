@@ -10,7 +10,7 @@ return {
 		buildpic = "LEGMEX.DDS",
 		buildtime = 1880,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE CANBEUW UNDERWATER",
+		category = "CANBEUW",
 		collisionvolumeoffsets = "0 -3 0",
 		collisionvolumescales = "48 30 48",
 		collisionvolumetype = "CylY",
@@ -46,7 +46,7 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "corbuildings/landeconomy",
+			subfolder = "CorBuildings/LandEconomy",
 		},
 		featuredefs = {
 			dead = {

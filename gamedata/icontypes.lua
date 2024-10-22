@@ -135,6 +135,14 @@ local icontypes = {
 		bitmap = "icons/air_trans.png",
 		size = 1.36499989
 	},
+	armhvytrans = {
+		bitmap = "icons/air_trans.png",
+		size = 1.5
+	},
+	corhvytrans = {
+		bitmap = "icons/air_trans.png",
+		size = 1.5
+	},
 	armavp = {
 		bitmap = "icons/factory_vehicle_t2.png",
 		size = 1.9425
@@ -2295,6 +2303,10 @@ local icontypes = {
 		bitmap = "icons/metalmaker_t1.png",
 		size = 0.78749996
 	},
+	legestor = {
+		bitmap = "icons/energystorage.png",
+		size = 1.10249984
+	},
 	legcv = {
 		bitmap = "icons/vehicle_worker.png",
 		size = 0.99749994
@@ -2354,6 +2366,14 @@ local icontypes = {
 	legfort = {
 		bitmap = "icons/air_battleship.png",
 		size = 2.29999995
+	},
+	legfortt4 = {
+		bitmap = "icons/air_battleship.png",
+		size = 4.0
+	},
+	legapt3 = {
+		bitmap = "icons/factory_air_t3.png",
+		size = 1.52250004
 	},
 	leggant = {
 		bitmap = "icons/factory_gantry.png",

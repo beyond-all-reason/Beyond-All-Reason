@@ -32,7 +32,7 @@ local options = {
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    -- Restrictions
+    -- Main + Restrictions
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     {
@@ -162,15 +162,6 @@ local options = {
     },
 
     {
-        key 	= "unit_market",
-        name 	= "Unit Market",
-        desc 	= "Allow players to trade units. (Select unit, press 'For Sale' in order window or say /sell_unit in chat to mark the unit for sale. Double-click to buy from allies. T2cons show up in shop window!)",
-        type   	= "bool",
-        def    	= false,
-        section = "options_main",
-    },
-
-    {
         key		= "transportenemy",
         name	= "Enemy Transporting",
         desc	= "Toggle which enemy units you can kidnap with an air transport",
@@ -183,7 +174,6 @@ local options = {
             { key= "none", 		name= "Disallow All", 		desc= "No enemy units can be napped" },
         }
     },
-
 
     {
         key     = "teamffa_start_boxes_shuffle",
@@ -234,6 +224,78 @@ local options = {
         step   	= 1,
     },
 
+	{
+		key		= "sub_header",
+		section	= "options_main",
+		type	= "separator",
+	},
+	{
+		key		= "sub_header",
+		name	= "-- Sharing and Taxes",
+		section	= "options_main",
+		type	= "subheader",
+		def		=  true,
+	},
+	{
+		key		= "tax_resource_sharing_amount",
+		name	= "Resource Sharing Tax",
+		desc	=	"Taxes resource sharing".."\255\128\128\128".." and overflow (engine TODO:)\n"..
+					"Set to [0] to turn off. Recommened: [0.4]. (Ranges: 0 - 0.99)\n"..
+					"*Disables: Reclaiming of Allied Units, [Unit Sharing] and [Assisting Ally Construction] to prevent loopholes",
+		type	= "number",
+		def		= 0,
+		min		= 0,
+		max		= 0.99,
+		step	= 0.01,
+		section	= "options_main",
+		column	= 1,
+		lock	= {"disable_unit_sharing","disable_assist_ally_construction"},
+		unlock	= {"disable_unit_sharing_forced","disable_assist_ally_construction_forced"},
+	},
+	{
+		key		= "disable_unit_sharing",
+		name	= "Disable Unit Sharing",
+		desc	= "Disable sharing units and structures to allies",
+		type	= "bool",
+		section	= "options_main",
+		def		= false,
+	},
+	{
+		key		= "disable_assist_ally_construction",
+		name	= "Disable Assist Ally Construction",
+		desc	= "Disables assisting allied blueprints and labs.",
+		type	= "bool",
+		section	= "options_main",
+		def		=  false,
+		column	= 1.76,
+	},
+	{	key = "tax_padding", name = "", type = "subheader", section = "options_main", column = -3, },
+	{
+		key		= "disable_unit_sharing_forced",
+		--name	= "\255\252\191\76".."Disable Unit Sharing                              [Forced ON]",
+		name	= "\255\252\191\76".."Disable Unit Sharing                                                             Disable Assist Ally Construction",
+		type	= "subheader",
+		section	= "options_main",
+	},
+	{
+		key		= "disable_assist_ally_construction_forced",
+		--name	= "\255\252\191\76".."Disable Assist Ally Construction           [Forced ON]",
+		name	= "\255\252\191\76".."[■]                                                                          [■]",
+		type	= "subheader",
+		section	= "options_main",
+		column	= 1.505,
+		font	= 4,
+	},
+	{
+		key		= "unit_market",
+		name	= "Unit Market",
+		desc	= "Allow players to trade units. (Select unit, press 'For Sale' in order window or say /sell_unit in chat to mark the unit for sale. Double-click to buy from allies. T2cons show up in shop window!)",
+		type	= "bool",
+		def		= false,
+		section	= "options_main",
+	},
+
+
     {
         key     = "sub_header",
         section = "options_main",
@@ -249,22 +311,14 @@ local options = {
         def     =  true,
     },
 
-    {
-		key 	= "no_comtrans",
-		name 	= "T1 Transports Can't Load Coms",
-		desc 	= "Commanders will be too heavy for tech 1 transports to carry. (Tech 2 transports can still carry)",
-		type 	= "bool",
-		section = "options_main",
-		def 	= false,
-	},
-
 	{
-		key 	= "slow_comtrans",
-		name 	= "Slower Transported Commanders",
-		desc 	= "Transports carrying commanders are significantly slower, limiting offensive use and reactive mobility",
-		type 	= "bool",
-		section = "options_main",
-		def 	= false,
+		key		= "unit_restrictions_notech15",
+		name	= "Disable Tech 1.5",
+		desc	= "Disables: Sea Plane Labs, Hovercraft labs, and Amphibious labs. (Considered Tier 1.5)",
+		type	= "bool",
+		section	= "options_main",
+		def		= false,
+		column	= 1,
 	},
 
     {
@@ -274,7 +328,7 @@ local options = {
         type   	= "bool",
         section	= "options_main",
         def    	= false,
-        column  = 1,
+        column  = 1.66,
     },
 
     {
@@ -284,7 +338,7 @@ local options = {
         type   	= "bool",
         section	= "options_main",
         def    	= false,
-        column  = 1.66,
+        column  = 2.33,
     },
 
     {
@@ -296,6 +350,16 @@ local options = {
         def    	= false,
         column  = 1,
     },
+
+	{
+		key		= "unit_restrictions_nodefence",
+		name	= "Disable Defences",
+		desc	= "Disables Defensive Structures, apart from basic LLTs and basic AA",
+		type	= "bool",
+		section	= "options_main",
+		def		= false,
+		column	= 1.66,
+	},
 
     {
         key    	= "unit_restrictions_noextractors",
@@ -317,15 +381,15 @@ local options = {
         column  = 1.66,
     },
 
-    {
-        key    	= "unit_restrictions_nonukes",
-        name   	= "Disable Nuclear Missiles",
-        desc   	= "Disable Nuclear Missiles",
-        type   	= "bool",
-        section	= "options_main",
-        def    	= false,
-        column  = 1,
-    },
+	{
+		key		= "unit_restrictions_nofusion",
+		name	= "Disable Fusion Generators",
+		desc	= "Disables Normal and Advanced Fusion Energy Generators",
+		type	= "bool",
+		section	= "options_main",
+		def		= false,
+		column	= 2.33,
+	},
 
     {
         key    	= "unit_restrictions_notacnukes",
@@ -334,8 +398,28 @@ local options = {
         type   	= "bool",
         section	= "options_main",
         def    	= false,
+        column  = 1,
+    },
+
+    {
+        key    	= "unit_restrictions_nonukes",
+        name   	= "Disable Nuclear Missiles",
+        desc   	= "Disable Nuclear Missiles",
+        type   	= "bool",
+        section	= "options_main",
+        def    	= false,
         column  = 1.66,
     },
+
+	{
+		key		= "unit_restrictions_noantinuke",
+		name	= "Disable Anti-Nuke Defence",
+		desc	= "Disables Nuke Interceptor Units and Structures.",
+		type	= "bool",
+		section	= "options_main",
+		def		= false,
+		column	= 2.33,
+	},
 
     {
         key    	= "unit_restrictions_nolrpc",
@@ -356,6 +440,7 @@ local options = {
         def    	= false,
         column  = 1.66,
     },
+
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -456,6 +541,14 @@ local options = {
         type    = "subheader",
         def     =  true,
     },
+
+	{
+		key		= "sub_header",
+		name	= "To Play Add a Raptors AI to the enemy Team: [Add AI], [RaptorsDefense AI]",
+		desc	= "",
+		section	= "raptor_defense_options",
+		type	= "subheader",
+	},
 
     {
         key     = "sub_header",
@@ -606,6 +699,15 @@ local options = {
         type    = "subheader",
         def     =  true,
     },
+
+	{
+		key		= "sub_header",
+		name	= "To Play Add a Scavangers AI to the enemy Team: [Add AI], [ScavengersDefense AI]",
+		desc	= "",
+		section	= "scav_defense_options",
+		type	= "subheader",
+	},
+
 
     {
         key     = "sub_header",
@@ -1182,16 +1284,6 @@ local options = {
     },
 
     {
-        key    	= "faction_limiter",
-        name   	= "Team Faction Limiter",
-        desc   	= "Limit which faction a team may play. Format; list factions, seperating teams by a comma, e.g. \"armada cortex, legion\" = cor/arm vs legion.",
-        type   	= "string",
-        section	= "options_experimental",
-        def		= "",
-		hidden	= true,
-    },
-
-    {
         key 	= "skyshift",
         name 	= "Skyshift: Air Rework",
         desc 	= "A complete overhaul of air units and mechanics",
@@ -1235,7 +1327,7 @@ local options = {
     {
         key 	= "proposed_unit_reworks",
         name 	= "Proposed Unit Reworks",
-        desc 	= "Modoption used to test and balance unit reworks that are being considered for the base game.  Shuriken emp damage is reduced and Abductor emp damage and stuntime are reduced, but accuracy is increased.  EMP resist for units is standardized, and units that had low emp resists now take full emp damage.",
+        desc 	= "Modoption used to test and balance unit reworks that are being considered for the base game.",
         type 	= "bool",
         hidden 	= true,
         section = "options_experimental",

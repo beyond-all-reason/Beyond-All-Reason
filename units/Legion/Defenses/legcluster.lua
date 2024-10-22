@@ -9,7 +9,6 @@ return {
 		buildpic = "LEGCLUSTER.DDS",
 		buildtime = 19300,
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "47 47 47",
 		collisionvolumetype = "CylY",
@@ -40,7 +39,7 @@ return {
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			onoffname = "trajectory",
-			subfolder = "corbuildings/landdefenceoffence",
+			subfolder = "CorBuildings/LandDefenceOffence",
 		},
 		featuredefs = {
 			dead = {
