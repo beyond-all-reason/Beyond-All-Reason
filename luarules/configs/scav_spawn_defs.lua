@@ -1458,6 +1458,7 @@ scavBehaviours = {
 		[UnitDefNames["cornecro_scav"].id] = true,--Cortex Rezzer
 		[UnitDefNames["armca_scav"].id] = true,
 		[UnitDefNames["armaca_scav"].id] = true,
+		[UnitDefNames["armfify_scav"].id] = true
 		[UnitDefNames["armcsa_scav"].id] = true,
 		[UnitDefNames["corca_scav"].id] = true,
 		[UnitDefNames["coraca_scav"].id] = true,

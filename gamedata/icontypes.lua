@@ -375,6 +375,10 @@ local icontypes = {
 		bitmap = "icons/air.png",
 		size = 0.86099994
 	},
+	armfify = {
+		bitmap = "icons/air_t1_rez.png",
+		size = 1.25999999
+	},
 	armflak = {
 		bitmap = "icons/aa_flak_t2.png",
 		size = 1.5
