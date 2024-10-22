@@ -5,6 +5,7 @@ local types = GG['MissionAPI'].ActionTypes
 local actions = GG['MissionAPI'].Actions
 
 local typeMapping = {
+-- Since the names are all the same, could we ditch this mapping and do it dynamically intead?
 	[types.EnableTrigger] = actionFunctions.EnableTrigger,
 	[types.DisableTrigger] = actionFunctions.DisableTrigger,
 	[types.IssueOrders] = actionFunctions.IssueOrders,
@@ -19,7 +20,7 @@ local typeMapping = {
 	-- [types.SpawnWeapons] = ,
 	-- [types.SpawnEffects] = ,
 	[types.TransferUnits] = actionFunctions.TransferUnits,
-	[types.SpawnExplosion] = actionFunctions.SpawnUnits,
+	[types.SpawnExplosion] = actionFunctions.SpawnExplosion,
 	-- [types.RevealLOS] = ,
 	-- [types.UnrevealLOS] = ,
 	-- [types.AlterMapZones] = ,
@@ -29,8 +30,8 @@ local typeMapping = {
 	-- [types.Unpause] = ,
 	-- [types.PlayMedia] = ,
 	[types.SendMessage] = actionFunctions.SendMessage,
-	-- [types.Victory] = ,
-	-- [types.Defeat] = ,
+	[types.Victory] = actionFunctions.Victory,
+	[types.Defeat] = actionFunctions.Defeat,
 }
 
 -- unpack() does not handle optional parameters, as it cannot pass a value as nil
