@@ -17,7 +17,7 @@ local triggers = {
 	spawnHero = {
 		type = triggerTypes.TimeElapsed,
 		settings = {
-			repeating = true,
+			repeating = false,
 		},
 		parameters = {
 			gameFrame = 1,
@@ -25,7 +25,7 @@ local triggers = {
 		},
 		actions = { 'spawnHero' },
 	},
-
+--[[
 	despawnHero = {
 		type = triggerTypes.TimeElapsed,
 		settings = {
@@ -36,7 +36,7 @@ local triggers = {
 			interval = 180,
 		},
 		actions = { 'despawnHero' },
-	},
+	},]]--
 }
 
 local actions = {
@@ -51,18 +51,19 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			name = 'hero',
-			unitDefName = 'corkorg',
-			x = 100,
-			z = 100,
+			unitDefName = 'coraca',
+			position = { x = 100, z = 200 },
+			quantity = 2,
+			facing = 'n',
 		},
 	},
-
+--[[
 	despawnHero = {
 		type = actionTypes.DespawnUnits,
 		parameters = {
 			name = 'hero',
 		},
-	},
+	},--]]
 }
 
 return {
