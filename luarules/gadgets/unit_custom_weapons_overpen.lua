@@ -6,13 +6,20 @@ function gadget:GetInfo()
 		version = '1.0',
 		date    = '2024-10',
 		license = 'GNU GPL, v2 or later',
-		layer   = 0,
+		layer   = -999991,
 		enabled = true
 	}
 end
 
 if not gadgetHandler:IsSyncedCode() then return false end
 
+-- Current issues
+-- 1. When a penetrator leaves behind a wreck, it can damage the wreck, also.
+-- 2. Projectile visuals overshoot the target somewhat, even when not piercing.
+-- 3. Collisions trigger events without order; distant units are damaged first.
+-- 4. No visual feedback for a weaker projectile vs. one at its full strength.
+-- 5. Aimpoints are often too low to align through more than one enemy unit.
+-- 6. Probably should replace explode_def with a ceg name, unless it's in use.
 
 --------------------------------------------------------------------------------
 -- Configuration ---------------------------------------------------------------
@@ -311,7 +318,6 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 				consumedIDs[projectileID] = true
 			end
 		else
-			Spring.Log(gadget:GetInfo().name, LOG.INFO, 'Prevented a double-impact from occurring.')
 			return 0, 0
 		end
 	end
@@ -333,7 +339,6 @@ function gadget:FeaturePreDamaged(featureID, featureDefID, featureTeam, damage, 
 				consumedIDs[projectileID] = true
 			end
 		else
-			Spring.Log(gadget:GetInfo().name, LOG.INFO, 'Prevented a double-impact from occurring.')
 			return 0, 0
 		end
 	end
