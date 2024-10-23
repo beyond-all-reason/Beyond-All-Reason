@@ -9,7 +9,6 @@ return {
 		buildpic = "armserpt3.DDS",
 		buildtime = 250000,
 		canmove = true,
-		category = "ALL NOTLAND MOBILE WEAPON NOTAIR NOTHOVER CANBEUW SURFACE EMPABLE UNDERWATER",
 		collisionvolumeoffsets = "0 -4 0",
 		collisionvolumescales = "90 38 114",
 		collisionvolumetype = "box",
@@ -40,7 +39,7 @@ return {
 			unitgroup = 'sub',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armships/t2",
+			subfolder = "ArmShips/T2",
 			techlevel = 3,
 		},
 		featuredefs = {

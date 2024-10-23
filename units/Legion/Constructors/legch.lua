@@ -9,7 +9,6 @@ return {
 		buildpic = "LEGCH.DDS",
 		buildtime = 4580,
 		canmove = true,
-		category = "ALL HOVER MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "27 18 38",
 		collisionvolumetype = "Box",
@@ -55,7 +54,7 @@ return {
 			[14] = "legavp",
 			[15] = "legnanotc",
 			[16] = "legnanotcplat",
-			[17] = "coreyes",
+			[17] = "legeyes",
 			[18] = "legrad",
 			[19] = "legdrag",
 			[20] = "legdtr",
@@ -90,7 +89,7 @@ return {
 			unitgroup = 'builder',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corhovercraft",
+			subfolder = "CorHovercraft",
 		},
 		featuredefs = {
 			dead = {

@@ -38,7 +38,7 @@ return {
     },
     outerflash = {
       air                = true,
-      class              = [[heatcloud]],
+      class              = [[CHeatCloudProjectile]],
       count              = 2,
       ground             = true,
       water              = true,

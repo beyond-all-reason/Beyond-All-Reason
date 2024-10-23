@@ -1584,6 +1584,13 @@ function gadgetHandler:UnitReverseBuilt(unitID, unitDefID, unitTeam)
 	return
 end
 
+function gadgetHandler:UnitStunned(unitID, unitDefID, unitTeam, stunned)
+	for _,g in r_ipairs(self.UnitStunnedList) do
+		g:UnitStunned(unitID, unitDefID, unitTeam, stunned)
+	end
+	return
+end
+
 function gadgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	tracy.ZoneBeginN("G:UnitDestroyed")
 	gadgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
@@ -1897,10 +1904,10 @@ function gadgetHandler:ProjectileCreated(proID, proOwnerID, proWeaponDefID)
 	return
 end
 
-function gadgetHandler:ProjectileDestroyed(proID)
+function gadgetHandler:ProjectileDestroyed(proID, proOwnerID, proWeaponDefID)
 	tracy.ZoneBeginN("G:ProjectileDestroyed")
 	for _, g in ipairs(self.ProjectileDestroyedList) do
-		g:ProjectileDestroyed(proID)
+		g:ProjectileDestroyed(proID, proOwnerID, proWeaponDefID)
 	end
 	tracy.ZoneEnd()
 	return

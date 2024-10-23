@@ -9,7 +9,6 @@ return {
 		buildpic = "LEGAVP.DDS",
 		buildtime = 18500,
 		canmove = true,
-		category = "ALL NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "1 0 0",
 		collisionvolumescales = "124 70 109",
 		collisionvolumetype = "Box",
@@ -59,7 +58,7 @@ return {
 			unitgroup = 'buildert2',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corbuildings/landfactories",
+			subfolder = "CorBuildings/LandFactories",
 			techlevel = 2,
 		},
 		featuredefs = {

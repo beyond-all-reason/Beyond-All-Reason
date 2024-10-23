@@ -11,7 +11,7 @@ return {
 		buildtime = 250000,
 		canfly = true,
 		canmove = true,
-		category = "ALL WEAPON NOTSUB VTOL NOTHOVER T4AIR",
+		category = "T4AIR",
 		collide = true,
 		collisionvolumeoffsets = "0 -14 10",
 		collisionvolumescales = "70 70 170",
@@ -46,7 +46,7 @@ return {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0,
-			subfolder = "armships/t2",
+			subfolder = "ArmShips/T2",
 			techlevel = 3,
 		},
 		featuredefs = {

@@ -82,22 +82,22 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:Initialize()
 		local scumGenerators = {
-				raptor_hive = {radius = 1536, growthrate = 0.8},
-				raptor_turret_basic_t3_v1 = {radius = 1024, growthrate = 0.4},
-				raptor_turret_basic_t2_v1 = {radius = 512, growthrate = 0.2},
-				raptor_turret_basic_t4_v1 = {radius = 1536, growthrate = 0.8},
-				raptor_turret_antiair_t3_v1 = {radius = 1024, growthrate = 0.4},
-				raptor_turret_antiair_t2_v1 = {radius = 512, growthrate = 0.2},
-				raptor_turret_antiair_t4_v1 = {radius = 1536, growthrate = 0.8},
-				raptor_turret_acid_t3_v1 = {radius = 1024, growthrate = 0.4},
-				raptor_turret_acid_t2_v1 = {radius = 512, growthrate = 0.2},
-				raptor_turret_acid_t4_v1 = {radius = 1536, growthrate = 0.8},
-				raptor_turret_emp_t3_v1 = {radius = 1024, growthrate = 0.4},
-				raptor_turret_emp_t2_v1 = {radius = 512, growthrate = 0.2},
-				raptor_turret_emp_t4_v1 = {radius = 1536, growthrate = 0.8},
-				raptor_turret_antinuke_t3_v1 = {radius = 1024, growthrate = 0.4},
-				raptor_turret_antinuke_t2_v1 = {radius = 512, growthrate = 0.2},
-				raptor_turret_meteor_t4_v1 = {radius = 1536, growthrate = 0.8},
+				raptor_hive = {radius = 800, growthrate = 0.8},
+				raptor_turret_basic_t3_v1 = {radius = 600, growthrate = 0.4},
+				raptor_turret_basic_t2_v1 = {radius = 400, growthrate = 0.2},
+				raptor_turret_basic_t4_v1 = {radius = 800, growthrate = 0.8},
+				raptor_turret_antiair_t3_v1 = {radius = 600, growthrate = 0.4},
+				raptor_turret_antiair_t2_v1 = {radius = 400, growthrate = 0.2},
+				raptor_turret_antiair_t4_v1 = {radius = 800, growthrate = 0.8},
+				raptor_turret_acid_t3_v1 = {radius = 600, growthrate = 0.4},
+				raptor_turret_acid_t2_v1 = {radius = 400, growthrate = 0.2},
+				raptor_turret_acid_t4_v1 = {radius = 800, growthrate = 0.8},
+				raptor_turret_emp_t3_v1 = {radius = 600, growthrate = 0.4},
+				raptor_turret_emp_t2_v1 = {radius = 400, growthrate = 0.2},
+				raptor_turret_emp_t4_v1 = {radius = 800, growthrate = 0.8},
+				raptor_turret_antinuke_t3_v1 = {radius = 600, growthrate = 0.4},
+				raptor_turret_antinuke_t2_v1 = {radius = 400, growthrate = 0.2},
+				raptor_turret_meteor_t4_v1 = {radius = 800, growthrate = 0.8},
 
 				scavbeacon_t1_scav = {radius = 740, growthrate = 0.74},
 				scavbeacon_t2_scav = {radius = 880, growthrate = 0.88},
@@ -116,7 +116,6 @@ if gadgetHandler:IsSyncedCode() then
 		for unitDefID, unitDef in pairs(UnitDefs) do
 			if unitDef.customParams.isscavenger and (not unitDef.canMove) and (not string.find(unitDef.name, "lootbox")) and not scumSpawnerIDs[unitDefID] and (not unitDef.customParams.objectify) and (not unitDef.canCloak) and not scumSpawnerExclusions[unitDef.name]then
 				scumSpawnerIDs[unitDefID] = {radius = 600, growthrate = 1.2}
-				Spring.Echo(unitDef.name, "radius", scumSpawnerIDs[unitDefID].radius)
 			end
 		end
 

@@ -16,7 +16,6 @@ return {
 		canrepeat = false,
 		canstop = true,
 		cantbetransported = false,
-		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "46 80 46",
 		collisionvolumetype = "CylY",
@@ -41,6 +40,7 @@ return {
 		terraformspeed = 3000,
 		turnrate = 1,
 		upright = true,
+		waterline = 0,
 		workertime = 600,
 		customparams = {
 			usebuildinggrounddecal = true,
@@ -51,7 +51,7 @@ return {
 			unitgroup = 'builder',
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "corbuildings/landutil",
+			subfolder = "CorBuildings/LandUtil",
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {

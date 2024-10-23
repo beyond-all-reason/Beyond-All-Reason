@@ -23,8 +23,8 @@ local config = {
 	circleRadius = 300,
 	circleThickness = 6,
 
-	playerTextSize = 180,
-	roleTextSize = 100,
+	playerTextSize = 140,
+	roleTextSize = 90,
 	tutorialTextSize = 20,
 
 	spawnPointCircleColor = { 1, 1, 1, 0.6 },
@@ -43,6 +43,9 @@ local config = {
 
 	tutorialMaxWidthChars = 100,
 }
+
+local vsx, vsy = Spring.GetViewGeometry()
+local resMult = vsy/1440
 
 -- engine call optimizations
 -- =========================
@@ -565,11 +568,7 @@ local function wrapText(str, maxLength)
 end
 
 local function drawTooltip()
-	if not tooltipKey then
-		return
-	end
-
-	if Spring.DiffTimers(Spring.GetTimer(), tooltipStartTime) < config.tooltipDelay then
+	if not tooltipKey or Spring.DiffTimers(Spring.GetTimer(), tooltipStartTime) < config.tooltipDelay then
 		return
 	end
 
@@ -585,7 +584,6 @@ local function drawTooltip()
 	end
 
 	local xOffset, yOffset = 20, -12
-
 	WG["tooltip"].ShowTooltip(
 		"startPositionTooltip",
 		wrapText(
@@ -603,6 +601,7 @@ local function drawTutorial()
 		return
 	end
 
+	fontTutorial:SetOutlineColor(0,0,0,1)
 	fontTutorial:SetTextColor(0.9, 0.9, 0.9, 1)
 	fontTutorial:Print(
 		wrapText(
@@ -611,26 +610,27 @@ local function drawTutorial()
 		),
 		vsx * 0.5,
 		vsy * 0.75,
-		config.tutorialTextSize,
+		config.tutorialTextSize*resMult,
 		"cao"
 	)
 end
 
 function widget:ViewResize()
-	local baseFontSize = math.max(config.playerTextSize, config.roleTextSize) / 2
+	vsx, vsy = Spring.GetViewGeometry()
+	resMult = vsy/1440
+	local baseFontSize = math.max(config.playerTextSize, config.roleTextSize) * 0.6
 	font = gl.LoadFont(
 		"fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf"),
-		baseFontSize,
-		baseFontSize / 16,
-		10
+		baseFontSize*resMult,
+		(baseFontSize*resMult) / 14,
+		1
 	)
 	fontTutorial = gl.LoadFont(
 		"fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf"),
-		config.tutorialTextSize,
-		config.tutorialTextSize / 16,
-		10
+		config.tutorialTextSize*resMult,
+		(config.tutorialTextSize*resMult) / 14,
+		1
 	)
-	vsx, vsy = Spring.GetViewGeometry()
 end
 
 function widget:GetConfigData()
@@ -647,11 +647,8 @@ end
 
 function widget:Initialize()
 	Spring.SetLogSectionFilterLevel(widget:GetInfo().name, LOG.INFO)
-
 	widget:ViewResize()
-
 	startPositions = loadStartPositions()
-
 	if not startPositions then
 		widgetHandler:RemoveWidget()
 		return
@@ -733,7 +730,6 @@ end
 local t = 0
 function widget:Update(dt)
 	checkTooltips()
-
 	t = t + dt
 	if t > 0.5 then
 		checkPlacedCommanders()
@@ -746,11 +742,9 @@ function widget:DrawWorldPreUnit()
 		widgetHandler:RemoveWidget()
 		return
 	end
-
 	if SpringIsGUIHidden() then
 		return
 	end
-
 	drawAllStartLocations()
 end
 
@@ -758,7 +752,6 @@ function widget:DrawScreen()
 	if SpringIsGUIHidden() then
 		return
 	end
-
 	drawTooltip()
 	drawTutorial()
 end

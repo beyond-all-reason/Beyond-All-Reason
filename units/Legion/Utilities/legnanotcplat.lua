@@ -16,7 +16,6 @@ return {
 		canrepeat = false,
 		canstop = true,
 		cantbetransported = true, -- transports cannot drop them back into water, reenable once that works
-		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "31 50 31",
 		collisionvolumetype = "CylY",
@@ -41,6 +40,7 @@ return {
 		terraformspeed = 1000,
 		turnrate = 1,
 		upright = true,
+		waterline = 0,
 		workertime = 200,
 		customparams = {
 			usebuildinggrounddecal = false,
@@ -51,7 +51,7 @@ return {
 			unitgroup = "builder",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "corbuildings/seautil",
+			subfolder = "CorBuildings/SeaUtil",
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {

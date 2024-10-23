@@ -9,7 +9,6 @@ return {
 		buildtime = 4000,
 		canfly = true,
 		canmove = true,
-		category = "ALL WEAPON NOTSUB VTOL NOTHOVER",
 		collide = true,
 		cruisealtitude = 70,
 		explodeas = "smallExplosionGeneric",
@@ -34,7 +33,7 @@ return {
 			unitgroup = 'weapon',
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "armaircraft",
+			subfolder = "ArmAircraft",
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {
