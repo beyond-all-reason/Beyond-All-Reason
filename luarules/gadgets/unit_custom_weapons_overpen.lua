@@ -1,13 +1,13 @@
 function gadget:GetInfo()
 	return {
-		name    = 'Impactor Over-Penetration',
-		desc    = 'Projectiles punch through targets with custom stop behavior.',
+		name    = 'Penetrator Weapons',
+		desc    = 'Customizes weapons to overpenetrate targets that they destroy.',
 		author  = 'efrec',
 		version = '1.0',
 		date    = '2024-10',
 		license = 'GNU GPL, v2 or later',
-		layer   = -999991,
-		enabled = true
+		layer   = -999991, -- Damage otherwise inflated in api_damage_stats.lua
+		enabled = true,
 	}
 end
 
