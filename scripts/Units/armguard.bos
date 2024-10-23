@@ -80,31 +80,13 @@ restoreAfterDelay()
 	turn sleeves to x-axis <0.000000> speed <45.000000>;
 }
 
-resetStateLow()
+resetState()
 {
 	signal SIGNAL_RESET_DELAY;
-	get PRINT(aimingState, 7777);
 	set-signal-mask SIGNAL_RESET_DELAY;
-	get PRINT(aimingState, 8888);
-	sleep 1000;
-	get PRINT(aimingState, 9999);
+	sleep 250;
 	aimingState = 0;
-	get PRINT(aimingState, 11112);
 }
-
-// resetStateHigh()
-// {
-// 	signal SIGNAL_RESET_DELAY;
-// 	get PRINT(aimingState, 1111);
-// 	sleep 3000;
-// 	get PRINT(aimingState, 2222);
-// 	aimingState = 0;
-// 	get PRINT(aimingState, 3333);
-// 	set-signal-mask SIGNAL_RESET_DELAY;
-// 	get PRINT(aimingState, 4444);
-// 	sleep 50;
-// 	get PRINT(aimingState, 5555);
-// }
 
 aimCommon(heading, pitch)
 {
@@ -122,7 +104,7 @@ AimPrimary(heading, pitch)
 		return (0);
 	}
 	aimingState = 1;
-	start-script resetStateLow();
+	start-script resetState();
 	signal SIGNAL_AIM;
 	set-signal-mask SIGNAL_AIM;
 	call-script aimCommon(heading, pitch);
@@ -145,7 +127,6 @@ AimSecondary(heading, pitch)
 	}
 	var frame;
 	frame = (get GAME_FRAME);
-	get PRINT(aimingState, 9690, frame, resetHighFrame);
 	if (aimingState == 2 && frame > resetHighFrame){
 		aimingState = 0;
 		return (0);
