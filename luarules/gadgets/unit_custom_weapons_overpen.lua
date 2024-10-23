@@ -23,7 +23,7 @@ local hardStopIncrease = 2.0 -- Reduces the impulse falloff when damage is reduc
 
 -- Default customparam values
 
-local penaltyDefault   = 0.02 -- Additional damage% loss per hit.
+local penaltyDefault   = 0.01 -- Additional damage% loss per hit.
 
 local falloffPerType  = { -- Whether the projectile loses damage per hit.
 	DGun              = false ,
@@ -67,18 +67,13 @@ local slowdownPerType = { -- Whether the projectile loses velocity, as well.
 -- Locals ----------------------------------------------------------------------
 
 local min  = math.min
-local atan = math.atan
-local cos  = math.cos
 
-local spGetProjectileDirection  = Spring.GetProjectileDirection
-local spGetProjectilePosition   = Spring.GetProjectilePosition
-local spGetProjectileTimeToLive = Spring.GetProjectileTimeToLive
-local spGetProjectileVelocity   = Spring.GetProjectileVelocity
-local spGetUnitHealth           = Spring.GetUnitHealth
-local spGetUnitPosition         = Spring.GetUnitPosition
-local spGetUnitRadius           = Spring.GetUnitRadius
-local spSpawnExplosion          = Spring.SpawnExplosion
-local spSpawnProjectile         = Spring.SpawnProjectile
+local spGetProjectileVelocity  = Spring.GetProjectileVelocity
+local spGetUnitHealth          = Spring.GetUnitHealth
+local spSetProjectileVelocity  = Spring.SetProjectileVelocity
+local spDeleteProjectile       = Spring.DeleteProjectile
+local spSpawnExplosion         = Spring.SpawnExplosion
+local spSpawnProjectile        = Spring.SpawnProjectile
 
 local gameSpeed  = Game.gameSpeed
 local mapGravity = Game.gravity / (gameSpeed * gameSpeed) * (-1)
@@ -93,10 +88,10 @@ local weaponParams = {}
 local explosionParams = {}
 local unitArmorType = {}
 
--- Keep track of projectiles, respawning projectiles, and remaining damage.
+-- Track projectiles and their remaining damage and prevent re-collisions.
 
 local projectiles = {}
-local gameFrame = 0
+local consumedIDs = {}
 
 --------------------------------------------------------------------------------
 -- Local functions -------------------------------------------------------------
@@ -190,8 +185,8 @@ end
 
 ---Create an explosion around the impact point of a projectile (with an explode_def).
 local function spawnPenetratorExplosion(explosionDefID, projectileID, attackerID, targetID, isUnit)
-	local px, py, pz = spGetProjectilePosition(projectileID)
-	local dx, dy, dz = spGetProjectileDirection(projectileID)
+	local px, py, pz = Spring.GetProjectilePosition(projectileID)
+	local dx, dy, dz = Spring.GetProjectileDirection(projectileID)
 	local explosion = explosionParams[explosionDefID]
 	explosion.owner = attackerID
 	explosion.projectileID = projectileID
@@ -207,7 +202,7 @@ local function spawnPenetratorExplosion(explosionDefID, projectileID, attackerID
 	spSpawnExplosion(px, py, pz, dx, dy, dz, explosion)
 end
 
----Diminish projectile damage/momentum until consumed and return the damage/impulse of collision.
+---Diminish projectile damage/momentum until consumed and return the damage/impulse dealt.
 ---Slower projectiles that destroy a unit might hit the unit's wreck/heap immediately after, currently.
 local function getPenetratorDamage(targetID, isUnit, health, healthMax, damageToArmorType, damage, projectileID, attackerID)
 	local penetrator = projectiles[projectileID]
@@ -224,14 +219,14 @@ local function getPenetratorDamage(targetID, isUnit, health, healthMax, damageTo
 		damageLeftAfter = 1
 	end
 
-	if damageToArmorType * damageLeftAfter > 1 and healthMax * damageThreshold < damageBase then
+	if damageToArmorType * damageLeftAfter > 1 and healthMax * damageThreshold <= damageBase then
 		-- Projectile over-penetrates the target.
 		penetrator.damageLeft = damageLeftAfter
 		if weaponData.slowing then
 			local mod = hardStopIncrease
 			local speedRatio = (1 + mod * damageLeftAfter) / (1 + mod * damageLeftBefore)
 			local vx, vy, vz = spGetProjectileVelocity(projID)
-			Spring.SetProjectileVelocity(projectileID, vx * speedRatio, vy * speedRatio, vz * speedRatio)
+			spSetProjectileVelocity(projectileID, vx * speedRatio, vy * speedRatio, vz * speedRatio)
 		end
 		return damage
 	else
@@ -240,8 +235,7 @@ local function getPenetratorDamage(targetID, isUnit, health, healthMax, damageTo
 		if explosionDefID then
 			spawnPenetratorExplosion(explosionDefID, projectileID, attackerID, targetID, isUnit)
 		end
-		projectiles[projectileID] = nil
-		Spring.DeleteProjectile(projectileID)
+		consumedIDs[projectileID] = true
 		local mod = hardStopIncrease
 		local impulse = (1 + mod) / (1 + mod * min(1, damageBase / damageToArmorType))
 		return damage, impulse
@@ -266,13 +260,20 @@ function gadget:Initialize()
 	for unitDefID, unitDef in ipairs(UnitDefs) do
 		unitArmorType[unitDefID] = unitDef.armorType
 	end
+end
 
-	gameFrame = Spring.GetGameFrame()
+function gadget:GameFrame(frame)
+	for projectileID in pairs(consumedIDs) do
+		consumedIDs[projectileID] = nil
+		projectiles[projectileID] = nil
+		spDeleteProjectile(projectileID)
+	end
 end
 
 function gadget:ProjectileCreated(projectileID, ownerID, weaponDefID)
 	local params = weaponParams[weaponDefID]
 	if params then
+		consumedIDs[projectileID] = nil
 		projectiles[projectileID] = {
 			damageLeft = 1,
 			damages    = params.damages,
@@ -289,6 +290,7 @@ function gadget:ProjectileDestroyed(projectileID)
 		if explosionDefID then
 			spawnPenetratorExplosion(explosionDefID, projectileID, penetrator.ownerID)
 		end
+		consumedIDs[projectileID] = nil
 		projectiles[projectileID] = nil
 	end
 end
@@ -296,17 +298,21 @@ end
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeamID)
 	local penetrator = projectiles[projectileID]
 	if penetrator then
-		if damage > 0 then
-			local health, healthMax = spGetUnitHealth(unitID)
-			local damageToArmorType = penetrator.damages[unitArmorType[unitDefID]]
-			return getPenetratorDamage(unitID, true, health, healthMax, damageToArmorType, damage, projectileID, attackerID)
-		else
-			local explosionDefID = penetrator.params.explosionDefID
-			if explosionDefID then
-				spawnPenetratorExplosion(explosionDefID, projectileID, penetrator.ownerID)
+		if not consumedIDs[projectileID] then
+			if damage > 0 then
+				local health, healthMax = spGetUnitHealth(unitID)
+				local damageToArmorType = penetrator.damages[unitArmorType[unitDefID]]
+				return getPenetratorDamage(unitID, true, health, healthMax, damageToArmorType, damage, projectileID, attackerID)
+			else
+				local explosionDefID = penetrator.params.explosionDefID
+				if explosionDefID then
+					spawnPenetratorExplosion(explosionDefID, projectileID, penetrator.ownerID)
+				end
+				consumedIDs[projectileID] = true
 			end
-			projectiles[projectileID] = nil
-			Spring.DeleteProjectile(projectileID)
+		else
+			Spring.Log(gadget:GetInfo().name, LOG.INFO, 'Prevented a double-impact from occurring.')
+			return 0, 0
 		end
 	end
 end
@@ -314,17 +320,21 @@ end
 function gadget:FeaturePreDamaged(featureID, featureDefID, featureTeam, damage, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeamID)
 	local penetrator = projectiles[projectileID]
 	if penetrator then
-		if damage > 0 then
-			local health, healthMax = Spring.GetFeatureHealth(featureID)
-			local damageToArmorType = penetrator.damages[untyped]
-			return getPenetratorDamage(featureID, false, health, healthMax, damageToArmorType, damage, projectileID, attackerID)
-		else
-			local explosionDefID = penetrator.params.explosionDefID
-			if explosionDefID then
-				spawnPenetratorExplosion(explosionDefID, projectileID, penetrator.ownerID)
+		if not consumedIDs[projectileID] then
+			if damage > 0 then
+				local health, healthMax = Spring.GetFeatureHealth(featureID)
+				local damageToArmorType = penetrator.damages[untyped]
+				return getPenetratorDamage(featureID, false, health, healthMax, damageToArmorType, damage, projectileID, attackerID)
+			else
+				local explosionDefID = penetrator.params.explosionDefID
+				if explosionDefID then
+					spawnPenetratorExplosion(explosionDefID, projectileID, penetrator.ownerID)
+				end
+				consumedIDs[projectileID] = true
 			end
-			projectiles[projectileID] = nil
-			Spring.DeleteProjectile(projectileID)
+		else
+			Spring.Log(gadget:GetInfo().name, LOG.INFO, 'Prevented a double-impact from occurring.')
+			return 0, 0
 		end
 	end
 end
