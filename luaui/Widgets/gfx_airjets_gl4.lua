@@ -185,14 +185,12 @@ local effectDefs = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 2, length = 8.5, piece = "leftMiniThrust", emitVector = { 0, 1, 0 }, light = 1 },
 	},
 	["legstronghold"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 13, length = 25, piece = "thrustrra", emitVector = { 0, 1, 0 }, light = 0.75 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 13, length = 25, piece = "thrustrla", emitVector = { 0, 1, 0 }, light = 0.75 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 25, piece = "thrustfra", emitVector = { 0, 1, 0 }, light = 0.75 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 25, piece = "thrustfla", emitVector = { 0, 1, 0 }, light = 0.75 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 13, length = 25, piece = "thrustrra2", emitVector = { 0, 1, 0 }, light = 0.75 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 13, length = 25, piece = "thrustrla2", emitVector = { 0, 1, 0 }, light = 0.75 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 25, piece = "thrustfra2", emitVector = { 0, 1, 0 }, light = 0.75 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 25, piece = "thrustfla2", emitVector = { 0, 1, 0 }, light = 0.75 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "bthrust1", emitVector = { 0, 1, 0 }, light = 0.6 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "bthrust2", emitVector = { 0, 1, 0 }, light = 0.6 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "lthrust1", emitVector = { 0, 1, 0 }, light = 0.6 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "lthrust2", emitVector = { 0, 1, 0 }, light = 0.6 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "rthrust1", emitVector = { 0, 1, 0 }, light = 0.6 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "rthrust2", emitVector = { 0, 1, 0 }, light = 0.6 },
 	},
 
 	-- gunships
