@@ -307,3 +307,7 @@ function widget:DrawInMiniMap(sx, sy)
   gl.ClipDistance ( 3, false)
   DrawMapMarksWorld(1)
 end
+
+function widget:ClearMapMarks()
+	ClearPoints()
+end
