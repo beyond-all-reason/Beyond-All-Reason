@@ -183,7 +183,7 @@ if not string.formatSI then
 	end
 end
 
-if not string.Levenshtein then
+if not string.levenshteinDistance then
 	-- reuseable tables
 	local Levenshtein0 = {}
 	local Levenshtein1 = {}
