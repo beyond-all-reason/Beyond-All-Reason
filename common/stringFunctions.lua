@@ -204,7 +204,6 @@ if not string.levenshteinDistance then
 			Levenshtein0[c+1] = c
 		end
 		for r = 1, lena do
-			--print(table.unpack(Levenshtein0))
 			for c = 0, lenb do -- 16 ns/loop wtf
 				if c == 0 then
 					Levenshtein1[1] = r
