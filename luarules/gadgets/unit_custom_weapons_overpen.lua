@@ -288,7 +288,13 @@ function gadget:GameFrame(frame)
 		local collisions = penetrator.collisions
 		local params = penetrator.params
 
-		if #collisions > 1 then
+		local exhausted = false
+		local speedRatio = 1
+
+		if #collisions == 0 then
+			exhausted = true
+			projectiles[projectileID] = nil
+		elseif #collisions > 1 then
 			for index = 1, #collisions do
 				local collision = collisions[index]
 				local sx, sy, sz = collision.collideX - penetrator.x, collision.collideY - penetrator.y, collision.collideZ - penetrator.z
@@ -296,9 +302,6 @@ function gadget:GameFrame(frame)
 			end
 			table.sort(collisions, sortPenetratorCollisions)
 		end
-
-		local exhausted = false
-		local speedRatio = 1
 
 		for index = 1, #collisions do
 			local collision = collisions[index]
@@ -402,12 +405,12 @@ function gadget:ProjectileDestroyed(projectileID)
 				local dx, dy, dz = spGetProjectileDirection(projectileID)
 				local collisions = penetrator.collisions
 				collisions[#collisions+1] = {
-					collideX  = px,
-					collideY  = py,
-					collideZ  = pz,
-					headingX  = dx,
-					headingY  = dy,
-					headingZ  = dz,
+					collideX = px,
+					collideY = py,
+					collideZ = pz,
+					headingX = dx,
+					headingY = dy,
+					headingZ = dz,
 				}
 			end
 		end
