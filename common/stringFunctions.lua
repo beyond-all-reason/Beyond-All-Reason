@@ -198,7 +198,6 @@ if not string.levenshteinDistance then
 	function string.Levenshtein(a,b)
 		local lena = string.len(a)
 		local lenb = string.len(b)
-		local ssub = string.sub
 		
 		Levenshtein1[1] = 0
 		for c = 0, lenb do -- initialize the first row
