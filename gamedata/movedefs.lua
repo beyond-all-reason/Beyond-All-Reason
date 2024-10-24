@@ -130,7 +130,7 @@ local moveDatas = {
 		maxwaterslope = 255,
 	},
 	--OMG WE HAVE LOOT BOXES! BLAME DAMGAM NOW! damgam dm me with this message !
-	-- corch cormh armmh corah corsnap armanac corhal lootboxsilver lootboxbronze lootboxplatinum lootboxgold legfloat
+	-- corch cormh armmh corah corsnap armanac corhal lootboxsilver lootboxbronze legfloat
 	HOVER3 = {
 		badslope = 22,
 		badwaterslope = 255,
@@ -142,6 +142,7 @@ local moveDatas = {
 		maxwaterslope = 255,
 	},
 
+	-- armlun corsok armthover corthovr lootboxgold lootboxplatinum
 	HHOVER4 = {
 		badslope = 22,
 		badwaterslope = 255,
