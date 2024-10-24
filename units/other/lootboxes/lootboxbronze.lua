@@ -50,7 +50,6 @@ return {
 		unitname = "lootboxbronze",
 		upright = true,
 		usebuildinggrounddecal = false,
-		yardmap = "ooo ooo ooo",
 		reclaimable = false,
 		customparams = {
 			fall_damage_multiplier = 0,
