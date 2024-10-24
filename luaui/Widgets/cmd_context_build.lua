@@ -60,9 +60,7 @@ local unitlist = {
 	{'armmoho','armuwmme'},
 	{'cormoho','coruwmme'},
 	{'armsolar','armtide'},
-	{'armwin','armtide'},
 	{'corsolar','cortide'},
-	{'corwin','cortide'},
 	{'armlab','armsy'},
 	{'corlab','corsy'},
 	{'armllt','armtl'},
@@ -100,7 +98,6 @@ local legionUnitlist = {
 	--{'corflak','corenaa'},
 	--{'cormoho','coruwmme'},--does this combo actually manifest on anything...?
 	{'legsolar','legtide'},
-	{'legwin','legtide'},
 	--{'leglab','corsy'},--soon(tm)
 	{'leglht','legtl'},
 	{'leglht', 'legptl'},--this may need more hookery in 2 places below
