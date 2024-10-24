@@ -240,7 +240,4 @@ if not string.levenshteinDistance then
 		end
 		return bestresult, bestscore
 	end
-
-	-- print(string.Levenshtein(string.rep("asdfasdfasdfasdf", 1000), string.rep("asdfasdfasdfasda", 1000))) -- 5 seconds
-	-- print(string.FindClosest("apple", {"pear", "popple","bear","ple"}))
 end 
