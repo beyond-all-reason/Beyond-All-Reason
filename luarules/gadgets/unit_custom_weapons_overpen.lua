@@ -75,9 +75,14 @@ local slowdownPerType = { -- Whether the projectile loses velocity, as well.
 -- Locals ----------------------------------------------------------------------
 
 local min  = math.min
+local sqrt = math.sqrt
 
+local spGetProjectileDirection = Spring.GetProjectileDirection
+local spGetProjectilePosition  = Spring.GetProjectilePosition
 local spGetProjectileVelocity  = Spring.GetProjectileVelocity
 local spGetUnitHealth          = Spring.GetUnitHealth
+local spGetUnitPosition        = Spring.GetUnitPosition
+local spGetUnitRadius          = Spring.GetUnitRadius
 local spSetProjectileVelocity  = Spring.SetProjectileVelocity
 local spDeleteProjectile       = Spring.DeleteProjectile
 local spSpawnExplosion         = Spring.SpawnExplosion
@@ -99,7 +104,7 @@ local unitArmorType = {}
 -- Track projectiles and their remaining damage and prevent re-collisions.
 
 local projectiles = {}
-local consumedIDs = {}
+local collisions = {}
 
 --------------------------------------------------------------------------------
 -- Local functions -------------------------------------------------------------
@@ -190,96 +195,42 @@ local function loadPenetratorWeaponDefs()
 	return (next(weaponParams) ~= nil)
 end
 
----Create an explosion around the impact point of a projectile (with an explode_def).
-local function spawnPenetratorExplosion(penetrator, projectileID, targetID, isUnit)
-	local px, py, pz = Spring.GetProjectilePosition(projectileID)
-	local dx, dy, dz = Spring.GetProjectileDirection(projectileID)
-
-	-- Projectiles with noExplode can move after colliding, so we infer an impact location.
-	-- The hit can be a glance, so find the nearest point, not a line/sphere intersection.
+---Projectiles with noexplode can move after colliding, so we infer an impact location.
+---The hit can be a glance, so find the nearest point, not a line/sphere intersection.
+local function getCollisionPosition(projectileID, targetID, isUnit)
+	local px, py, pz = spGetProjectilePosition(projectileID)
+	local dx, dy, dz = spGetProjectileDirection(projectileID)
+	local mx, my, mz, radius, _
 	if targetID then
-		local mx, my, mz, radius, _
 		if isUnit then
-			_, _, _, mx, my, mz = Spring.GetUnitPosition(targetID, true)
-			radius = Spring.GetUnitRadius(targetID)
+			_, _, _, mx, my, mz = spGetUnitPosition(targetID, true)
+			radius = spGetUnitRadius(targetID)
 		else
 			_, _, _, mx, my, mz = Spring.GetFeaturePosition(targetID, true)
 			radius = Spring.GetFeatureRadius(targetID)
 		end
-		if not mx then
-			-- Target is already collected. Just shift back a bit.
-			_, _, _, speed = spGetProjectileVelocity(projectileID)
-			px = px - dx * speed * 0.5
-			py = py - dy * speed * 0.5
-			pz = pz - dz * speed * 0.5
-		else
-			-- Nearest point on a line/ray to the surface of a sphere:
-			local t = math.min(0, dx * (mx - px) + dy * (my - py) + dz * (mz - pz))
-			local d = math.sqrt((px + t*dx - mx)^2 + (py + t*dy - my)^2 + (pz + t*dz - mz)^2) - radius
-			if radius + d ~= 0 then
-				px = mx + (px + t*dx - mx) * radius / (radius + d)
-				py = my + (py + t*dy - my) * radius / (radius + d)
-				pz = mz + (pz + t*dz - mz) * radius / (radius + d)
-			else
-				px = mx - dx * radius
-				py = mx - dy * radius
-				pz = mx - dz * radius
-			end
+	end
+	if mx then
+		-- Nearest point on a line/ray to the surface of a sphere:
+		local t = min(0, dx * (mx - px) + dy * (my - py) + dz * (mz - pz))
+		local d = sqrt((px + t*dx - mx)^2 + (py + t*dy - my)^2 + (pz + t*dz - mz)^2) - radius
+		if radius + d ~= 0 then
+			px = mx + (px + t*dx - mx) * radius / (radius + d)
+			py = my + (py + t*dy - my) * radius / (radius + d)
+			pz = mz + (pz + t*dz - mz) * radius / (radius + d)
+		else -- The ray passes through the midpoint.
+			px = mx - dx * radius
+			py = mx - dy * radius
+			pz = mx - dz * radius
 		end
 	end
-
-	local explosion = penetrator.explosion
-	explosion.owner = penetrator.ownerID
-	if explosion.impactOnly then
-		if isUnit then
-			explosion.hitFeature = nil
-			explosion.hitUnit = targetID
-		else
-			explosion.hitFeature = targetID
-			explosion.hitUnit = nil
-		end
-	end
-
-	spSpawnExplosion(px, py, pz, -dx, -dy, -dz, explosion)
+	return px, py, pz, dx, dy, dz
 end
 
----Diminish projectile damage/momentum until consumed and return the damage/impulse dealt.
----Slower projectiles that destroy a unit might hit the unit's wreck/heap immediately after, currently.
-local function getPenetratorDamage(targetID, isUnit, health, healthMax, damageToArmorType, damage, projectileID, attackerID)
-	local penetrator = projectiles[projectileID]
-	local weaponData = penetrator.params
-	local damageBase = min(damage, damageToArmorType)
-
-	local damageLeftBefore = penetrator.damageLeft
-	local damageLeftAfter
-	if weaponData.falloff then
-		damage = damage * damageLeftBefore
-		damageBase = damageBase * damageLeftBefore
-		damageLeftAfter = damageLeftBefore - health / damageBase - weaponData.penalty
-	else
-		damageLeftAfter = 1
-	end
-
-	if damageToArmorType * damageLeftAfter > 1 and healthMax * damageThreshold <= damageBase then
-		-- Projectile over-penetrates the target.
-		penetrator.damageLeft = damageLeftAfter
-		if weaponData.slowing then
-			local mod = hardStopIncrease
-			local speedRatio = (1 + mod * damageLeftAfter) / (1 + mod * damageLeftBefore)
-			local vx, vy, vz = spGetProjectileVelocity(projID)
-			spSetProjectileVelocity(projectileID, vx * speedRatio, vy * speedRatio, vz * speedRatio)
-		end
-		return damage
-	else
-		-- Projectile arrests on impact with the target.
-		if penetrator.explosion then
-			spawnPenetratorExplosion(penetrator, projectileID, targetID, isUnit)
-		end
-		consumedIDs[projectileID] = true
-		local mod = hardStopIncrease
-		local impulse = (1 + mod) / (1 + mod * min(1, damageBase / damageToArmorType))
-		return damage, impulse
-	end
+---Reorder stored PreDamaged events by their proximity to the start position.
+local function orderByTrajectory(a, b)
+	return a.sx ^ 2 + a.sy ^ 2 + a.sz ^ 2 <=
+	       b.sx ^ 2 + b.sy ^ 2 + b.sz ^ 2
 end
 
 --------------------------------------------------------------------------------
@@ -303,10 +254,97 @@ function gadget:Initialize()
 end
 
 function gadget:GameFrame(frame)
-	for projectileID in pairs(consumedIDs) do
-		consumedIDs[projectileID] = nil
-		projectiles[projectileID] = nil
-		spDeleteProjectile(projectileID)
+	local mod = hardStopIncrease
+	for projectileID, penetrator in pairs(collisions) do
+		local weaponData = penetrator.params
+		local x, y, z = penetrator.x, penetrator.y, penetrator.z
+
+		if #penetrator.impacts > 1 then
+			for index, impact in ipairs(penetrator.impacts) do
+				impact.sx = impact.collideX - x
+				impact.sy = impact.collideY - y
+				impact.sz = impact.collideZ - z
+			end
+	
+			if true then
+				-- check if the collisions had to be reordered (!) to process correctly
+				local first = penetrator.impacts[1]
+				table.sort(penetrator.impacts, orderByTrajectory)
+				if #penetrator.impacts > 1 and first.targetID ~= penetrator.impacts[1].targetID then
+					for index, impact in ipairs(penetrator.impacts) do
+						Spring.MarkerAddPoint(impact.collideX, impact.collideY, impact.collideZ, index)
+					end
+				end
+			else
+				table.sort(penetrator.impacts, orderByTrajectory)
+			end
+		end
+
+		local exhausted = false
+		local speedRatio = 1
+
+		for index, impact in ipairs(penetrator.impacts) do
+			if impact.isDestroy then				
+				exhausted = true
+			else
+				local damage = impact.damage
+				local damageToArmorType = penetrator.damages[impact.armorType]
+				local damageBase = min(damage, damageToArmorType)
+	
+				local damageLeftBefore = penetrator.damageLeft
+				local damageLeftAfter
+				if weaponData.falloff then
+					damage = damage * damageLeftBefore
+					damageBase = damageBase * damageLeftBefore
+					damageLeftAfter = damageLeftBefore - impact.health / damageBase - weaponData.penalty
+				else
+					damageLeftAfter = 1
+				end
+	
+				local impulse = 1
+				if damageToArmorType * damageLeftAfter > 1 and impact.healthMax * damageThreshold <= damageBase then
+					penetrator.damageLeft = damageLeftAfter
+					if weaponData.slowing then
+						speedRatio = speedRatio * (1 + mod * damageLeftAfter) / (1 + mod * damageLeftBefore)
+					end
+				else
+					exhausted = true
+					impulse = (1 + mod) / (1 + mod * min(1, damageBase / damageToArmorType))
+				end
+	
+				if impact.isUnit then
+					Spring.AddUnitDamage(impact.targetID, damage, 0, penetrator.ownerID, penetrator.weaponDefID, impulse * impact.headingX, impulse * impact.headingY, impulse * impact.headingZ)
+				else
+					Spring.SetFeatureHealth(impact.targetID, impact.health - damage)
+				end
+			end
+
+			if exhausted then
+				collisions[projectileID] = nil
+				projectiles[projectileID] = nil
+				spDeleteProjectile(projectileID)
+				if penetrator.explosion then
+					local explosion = penetrator.explosion
+					explosion.owner = penetrator.ownerID
+					if explosion.impactOnly then
+						if impact.isUnit then
+							explosion.hitFeature = nil
+							explosion.hitUnit = impact.targetID
+						else
+							explosion.hitFeature = impact.targetID
+							explosion.hitUnit = nil
+						end
+					end
+					spSpawnExplosion(impact.collideX, impact.collideY, impact.collideZ, -impact.headingX, -impact.headingY, -impact.headingZ, explosion)
+				end
+				break
+			end
+		end
+
+		if not exhausted and speedRatio < 1 then
+			local vx, vy, vz = spGetProjectileVelocity(projectileID)
+			spSetProjectileVelocity(projectileID, vx * speedRatio, vy * speedRatio, vz * speedRatio)
+		end
 	end
 end
 
@@ -315,13 +353,21 @@ function gadget:ProjectileCreated(projectileID, ownerID, weaponDefID)
 	if params then
 		local explosionDefID = params.explosionDefID
 		local explosion = explosionDefID and explosionParams[explosionDefID] or nil
-		consumedIDs[projectileID] = nil
+		local x, y, z = Spring.GetProjectilePosition(projectileID)
+		collisions[projectileID] = nil
 		projectiles[projectileID] = {
-			damageLeft = 1,
-			damages    = params.damages,
-			explosion  = explosion,
-			ownerID    = ownerID,
-			params     = params,
+			damageLeft  = 1,
+			damages     = params.damages,
+			explosion   = explosion,
+			ownerID     = ownerID,
+			params      = params,
+			weaponDefID = weaponDefID,
+			-- {Unit,Feature}PreDamaged events can occur out of logical order.
+			-- So we record them, sort by their positions, and replay them.
+			impacts     = {},
+			x           = x,
+			y           = y,
+			z           = z,
 		}
 	end
 end
@@ -329,52 +375,73 @@ end
 function gadget:ProjectileDestroyed(projectileID)
 	local penetrator = projectiles[projectileID]
 	if penetrator then
-		projectiles[projectileID] = nil
-		if penetrator.explosion and not consumedIDs[projectileID] then
-			consumedIDs[projectileID] = nil
-			spawnPenetratorExplosion(penetrator, projectileID)
-		else
-			consumedIDs[projectileID] = nil
+		if penetrator.explosion then
+			local px, py, pz = spGetProjectilePosition(projectileID)
+			if px then
+				local dx, dy, dz = spGetProjectileDirection(projectileID)
+				local impacts = penetrator.impacts
+				impacts[#impacts+1] = {
+					isDestroy = true,
+					collideX  = px,
+					collideY  = py,
+					collideZ  = pz,
+					headingX  = dx,
+					headingY  = dy,
+					headingZ  = dz,
+				}
+			end
+			projectiles[projectileID] = nil
 		end
 	end
+end
+
+local function eventData(targetID, isUnit, health, healthMax, armorType, damage, collideX, collideY, collideZ, headingX, headingY, headingZ)
+	return {
+		targetID  = targetID,
+		isUnit    = isUnit,
+		health    = health,
+		healthMax = healthMax,
+		armorType = armorType,
+		damage    = damage,
+		collideX  = collideX,
+		collideY  = collideY,
+		collideZ  = collideZ,
+		headingX  = headingX,
+		headingY  = headingY,
+		headingZ  = headingZ,
+	}
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeamID)
 	local penetrator = projectiles[projectileID]
 	if penetrator then
-		if not consumedIDs[projectileID] then
-			if damage > 1 then
-				local health, healthMax = spGetUnitHealth(unitID)
-				local damageToArmorType = penetrator.damages[unitArmorType[unitDefID]]
-				return getPenetratorDamage(unitID, true, health, healthMax, damageToArmorType, damage, projectileID, attackerID)
-			else
-				consumedIDs[projectileID] = true
-				if penetrator.explosion then
-					spawnPenetratorExplosion(penetrator, projectileID, unitID, true)
-				end
-			end
-		else
-			return 0, 0
+		if damage > 1 then
+			collisions[projectileID] = penetrator
+			local health, healthMax = spGetUnitHealth(unitID)
+			local cx, cy, cz, dx, dy, dz = getCollisionPosition(projectileID, unitID, true)
+			local impacts = penetrator.impacts
+			impacts[#impacts+1] = eventData(
+				unitID, true, health, healthMax, unitArmorType[unitDefID],
+				damage, cx, cy, cz, dx, dy, dz
+			)
 		end
+		return 0, 0
 	end
 end
 
 function gadget:FeaturePreDamaged(featureID, featureDefID, featureTeam, damage, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeamID)
 	local penetrator = projectiles[projectileID]
 	if penetrator then
-		if not consumedIDs[projectileID] then
-			if damage > 1 then
-				local health, healthMax = Spring.GetFeatureHealth(featureID)
-				local damageToArmorType = penetrator.damages[untyped]
-				return getPenetratorDamage(featureID, false, health, healthMax, damageToArmorType, damage, projectileID, attackerID)
-			else
-				consumedIDs[projectileID] = true
-				if penetrator.explosion then
-					spawnPenetratorExplosion(penetrator, projectileID, featureID, false)
-				end
-			end
-		else
-			return 0, 0
+		if damage > 1 then
+			collisions[projectileID] = penetrator
+			local health, healthMax = Spring.GetFeatureHealth(featureID)
+			local cx, cy, cz, dx, dy, dz = getCollisionPosition(projectileID, featureID, false)
+			local impacts = penetrator.impacts
+			impacts[#impacts+1] = eventData (
+				featureID, false, health, healthMax, untyped,
+				damage, cx, cy, cz, dx, dy, dz
+			)
 		end
+		return 0, 0
 	end
 end
