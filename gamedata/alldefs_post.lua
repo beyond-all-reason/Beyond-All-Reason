@@ -207,18 +207,7 @@ function UnitDef_Post(name, uDef)
 				uDef.maxthisunit = 0
 			elseif uDef.canfly then
 				uDef.maxthisunit = 0
-			end
-			local DroneCarriers = {
-				armdronecarry = true,
-				--armtrident = true,  --This has a depth charge launcher as well
-				cordronecarry = true,
-				--corsentinel = true, --This has a depth charge launcher as well
-				leghive = true,
-				legfhive = true,
-				--legtriariusdrone = true, --This has a heat ray as well, although it is still in development
-				legvcarry = true
-			}
-			if DroneCarriers[name] then
+			elseif uDef.customparams.childreninheritxp == "DRONE" then
 				uDef.maxthisunit = 0
 			end
 			local AircraftFactories = {
