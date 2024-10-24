@@ -216,7 +216,7 @@ if not string.levenshteinDistance then
 			end
 			Levenshtein0, Levenshtein1 = Levenshtein1, Levenshtein0 -- swap rows
 		end
-		return Levenshtein1[lenb]
+		return Levenshtein0[lenb + 1]
 	end
 
 	--- Finds string that is closest to a in a table
