@@ -104,3 +104,13 @@ function gadget:GameFrame(n)
 		end
 	end
 end
+
+function gadget:Initialize()
+	for _, unitID in pairs(Spring.GetAllUnits()) do
+		local unitDefID = Spring.GetUnitDefID(unitID)
+		local unitTeam = Spring.GetUnitTeam(unitID)
+		if minesweeperRanges[unitDefID] then
+			minesweepers[unitTeam][unitID] = unitDefID
+		end
+	end
+end
