@@ -115,14 +115,14 @@ return {
 		},
 		weapondefs = {
 			arm_triton = {
-				areaofeffect = 64,
+				areaofeffect = 32,
 				avoidfeature = false,
-				craterareaofeffect = 64,
+				craterareaofeffect = 32,
 				craterboost = 0,
 				cratermult = 0,
 				cylindertargeting = 1,
 				edgeeffectiveness = 0.15,
-				explosiongenerator = "custom:genericshellexplosion-medium",
+				explosiongenerator = "custom:genericshellexplosion-small",
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				name = "Medium g2g gauss-cannon",
@@ -138,8 +138,8 @@ return {
 				weaponvelocity = 450,
 				damage = {
 					default = 225,
-					subs = 100,
-					vtol = 40,
+					subs    = 100,
+					vtol    = 40,
 				},
 			},
 			armcl_missile = {
