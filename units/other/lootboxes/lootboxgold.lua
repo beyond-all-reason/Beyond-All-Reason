@@ -52,6 +52,7 @@ return {
 		yardmap = "oooo oooo oooo oooo",
 		reclaimable = false,
 		customparams = {
+			fall_damage_multiplier = 0,
 			unitgroup = 'energy',
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "other/lootboxes",

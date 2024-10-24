@@ -29,7 +29,7 @@ return {
 		idleautoheal = 10,
 		idletime = 1800,
 		levelground = false,
-		mass = 4000,
+		mass = 749,
 		health = 33500,
 		maxslope = 10,
 		speed = 0.03,
@@ -53,6 +53,7 @@ return {
 		yardmap = "oo oo",
 		reclaimable = false,
 		customparams = {
+			fall_damage_multiplier = 0,
 			unitgroup = 'energy',
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "other/lootboxes",
