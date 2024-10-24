@@ -35,7 +35,7 @@ return {
 		speed = 0.03,
 		maxwaterdepth = 0,
 		metalmake = 20,
-		movementclass = "HOVER3",
+		movementclass = "HOVER2",
 		movestate = 0,
 		noautofire = false,
 		objectname = "lootboxes/lootboxv2_bronze.s3o",
