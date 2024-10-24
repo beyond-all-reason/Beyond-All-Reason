@@ -9,7 +9,7 @@ function widget:GetInfo()
 		"[v" .. string.format("%s", versionNumber ) .. "] Displays attack ranges of selected units. Alt+, and alt+. (alt comma and alt period) to cycle backward and forward through display config of current unit (saved through games!). Custom keybind to toggle cursor unit range on and off.",
 		author  = "Errrrrrr, Beherith",
 		date    = "July 20, 2023",
-		license = "Lua: GPLv2, GLSL: (c) Beherith (mysterme@gmail.com)",
+		license = "GNU GPL v2",
 		layer   = -99,
 		enabled = true,
 	}
