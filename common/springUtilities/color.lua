@@ -1,9 +1,9 @@
-local floor = math.floor
-local schar = string.char
-
 if not Game then
 	return -- some parser environments such as modrules don't have it, but they don't need colored text either
 end
+
+local floor = math.floor
+local schar = string.char
 
 local colorIndicator = Game.textColorCodes.Color
 local colorAndOutlineIndicator = Game.textColorCodes.ColorAndOutline
