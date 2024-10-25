@@ -5,14 +5,14 @@ local function ColorArray(R, G, B)
 	local R255 = floor(R * 255)
 	local G255 = floor(G * 255)
 	local B255 = floor(B * 255)
-	if R255 % 10 == 0 then
-		R255 = R255 + 1
+	if R255 < 1 then
+		R255 = 1
 	end
-	if G255 % 10 == 0 then
-		G255 = G255 + 1
+	if G255 < 1 then
+		G255 = 1
 	end
-	if B255 % 10 == 0 then
-		B255 = B255 + 1
+	if B255 < 1 then
+		B255 = 1
 	end
 
 	return R255, G255, B255
