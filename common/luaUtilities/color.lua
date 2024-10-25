@@ -1,9 +1,16 @@
 local floor = math.floor
 local schar = string.char
 
+if not Game then
+	return -- some parser environments such as modrules don't have it, but they don't need colored text either
+end
+
+local colorIndicator = Game.textColorCodes.Color
+local colorAndOutlineIndicator = Game.textColorCodes.ColorAndOutline
+
 local function ColorStringEx(R, G, B, A, oR, oG, oB, oA)
 	-- Formats alpha and also outline color.
-	return Game.textColorCodes.ColorAndOutline .. schar(floor(R * 255)) .. schar(floor(G * 255)) ..
+	return colorAndOutlineIndicator .. schar(floor(R * 255)) .. schar(floor(G * 255)) ..
 		schar(floor(B * 255)) .. schar(floor(A * 255)) ..
 		schar(floor(oR * 255)) .. schar(floor(oG * 255)) ..
 		schar(floor(oB * 255)) .. schar(floor(oA * 255))
@@ -18,7 +25,7 @@ end
 
 local function ColorString(R, G, B)
 	-- Standard R, G, B color code.
-	return Game.textColorCodes.Color .. schar(floor(R * 255)) .. schar(floor(G * 255)) .. schar(floor(B * 255))
+	return colorIndicator .. schar(floor(R * 255)) .. schar(floor(G * 255)) .. schar(floor(B * 255))
 end
 
 return {
