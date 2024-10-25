@@ -18,9 +18,7 @@ end
 
 local function ColorString(R, G, B)
 	-- Standard R, G, B color code.
-	local R255, G255, B255 = ColorArray(R, G, B)
-
-	return Game.textColorCodes.Color .. schar(R255) .. schar(G255) .. schar(B255)
+	return Game.textColorCodes.Color .. schar(floor(R * 255)) .. schar(floor(G * 255)) .. schar(floor(B * 255))
 end
 
 return {
