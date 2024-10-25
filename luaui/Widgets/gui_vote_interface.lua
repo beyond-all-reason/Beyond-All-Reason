@@ -33,7 +33,7 @@ local myPlayerName, _, mySpec, myTeamID, myAllyTeamID = Spring.GetPlayerInfo(myP
 
 local isreplay = Spring.IsReplay()
 
-local ColorString = Spring.Color.ToString
+local ColorString = Spring.Utilities.Color.ToString
 local math_isInRect = math.isInRect
 local sfind = string.find
 local ssub = string.sub

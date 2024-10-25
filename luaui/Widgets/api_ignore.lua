@@ -20,7 +20,7 @@ local pID_table = {}
 local ignoredPlayers = {}
 local myName, _ = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
 local isSpec = Spring.GetSpectatingState()
-local ColorString = Spring.Color.ToString
+local ColorString = Spring.Utilities.Color.ToString
 
 local specColStr = "\255\255\255\1"
 local whiteStr = "\255\255\255\1"

@@ -52,7 +52,7 @@ local function colourNames(teamID)
 		return ""
 	end
 	local nameColourR, nameColourG, nameColourB, nameColourA = Spring.GetTeamColor(teamID)
-	return Spring.Color.ToString(nameColourR, nameColourG, nameColourB)
+	return Spring.Utilities.Color.ToString(nameColourR, nameColourG, nameColourB)
 end
 
 local function round(num, idp)

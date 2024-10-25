@@ -159,7 +159,7 @@ local spGetTeamColor = Spring.GetTeamColor
 local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
 local spPlaySoundFile = Spring.PlaySoundFile
 local spGetGameFrame = Spring.GetGameFrame
-local ColorString = Spring.Color.ToString
+local ColorString = Spring.Utilities.Color.ToString
 
 local soundErrors = {}
 

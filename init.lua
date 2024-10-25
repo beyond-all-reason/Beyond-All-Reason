@@ -6,7 +6,6 @@ VFS.Include('common/numberfunctions.lua')
 VFS.Include('common/stringFunctions.lua')
 VFS.Include('common/tablefunctions.lua')
 Json = Json or VFS.Include('common/luaUtilities/json.lua')
-Spring.Color = Spring.Color or VFS.Include('common/luaUtilities/color.lua')
 
 VFS.Include('common/springOverrides.lua')
 

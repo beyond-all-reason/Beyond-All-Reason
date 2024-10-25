@@ -336,7 +336,7 @@ local totals_colour = "\255\200\200\255"
 
 local exp = math.exp
 
-local ColorString = Spring.Color.ToString
+local ColorString = Spring.Utilities.Color.ToString
 
 local function CalcLoad(old_load, new_load, t)
 	if t and t > 0 then

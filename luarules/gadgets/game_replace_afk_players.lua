@@ -242,7 +242,7 @@ else
 	local myPlayerID = Spring.GetMyPlayerID()
 	local spec, _ = Spring.GetSpectatingState()
 	local isReplay = Spring.IsReplay()
-	local ColorString = Spring.Color.ToString
+	local ColorString = Spring.Utilities.Color.ToString
 
 	local revealed = false
 

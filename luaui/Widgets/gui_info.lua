@@ -91,7 +91,7 @@ local spGetUnitStates = Spring.GetUnitStates
 local spGetUnitStockpile = Spring.GetUnitStockpile
 local spGetUnitWeaponState = Spring.GetUnitWeaponState
 local spGetUnitRulesParam = Spring.GetUnitRulesParam
-local spColorString = Spring.Color.ToString
+local spColorString = Spring.Utilities.Color.ToString
 
 
 local math_floor = math.floor

@@ -102,8 +102,8 @@ local Spring_AreTeamsAllied = Spring.AreTeamsAllied
 local GetCameraState = Spring.GetCameraState
 local SetCameraState = Spring.SetCameraState
 
-local ColorString = Spring.Color.ToString
-local ColorArray = Spring.Color.ToIntArray
+local ColorString = Spring.Utilities.Color.ToString
+local ColorArray = Spring.Utilities.Color.ToIntArray
 
 local gl_Texture = gl.Texture
 local gl_Color = gl.Color

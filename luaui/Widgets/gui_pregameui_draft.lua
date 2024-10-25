@@ -237,7 +237,7 @@ local function colourNames(teamID, blink)
 	if anonymousMode ~= "disabled" and teamID ~= myTeamID then
 		nameColourR, nameColourG, nameColourB = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
 	end
-	return Spring.Color.ToString(nameColourR * mult, nameColourG * mult, nameColourB * mult)
+	return Spring.Utilities.Color.ToString(nameColourR * mult, nameColourG * mult, nameColourB * mult)
 end
 
 local function canPlayerPlaceNow(playerID)
