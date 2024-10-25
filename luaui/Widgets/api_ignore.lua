@@ -20,6 +20,7 @@ local pID_table = {}
 local ignoredPlayers = {}
 local myName, _ = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
 local isSpec = Spring.GetSpectatingState()
+local ColorString = Spring.Color.ToString
 
 local specColStr = "\255\255\255\1"
 local whiteStr = "\255\255\255\1"
@@ -58,7 +59,7 @@ function colourPlayer(playerName)
 	if (not isSpec) and anonymousMode ~= "disabled" then
 		nameColourR, nameColourG, nameColourB = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
 	end
-	return Spring.Color.ToString(nameColourR, nameColourG, nameColourB)
+	return ColorString(nameColourR, nameColourG, nameColourB)
 end
 
 --ignore--

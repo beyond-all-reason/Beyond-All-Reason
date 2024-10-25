@@ -33,6 +33,7 @@ local myPlayerName, _, mySpec, myTeamID, myAllyTeamID = Spring.GetPlayerInfo(myP
 
 local isreplay = Spring.IsReplay()
 
+local ColorString = Spring.Color.ToString
 local math_isInRect = math.isInRect
 local sfind = string.find
 local ssub = string.sub
@@ -369,7 +370,7 @@ local function colourNames(teamID)
 	--if (not mySpecStatus) and anonymousMode ~= "disabled" and teamID ~= myTeamID then
 	--	nameColourR, nameColourG, nameColourB = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
 	--end
-	return Spring.Color.ToString(nameColourR, nameColourG, nameColourB)
+	return ColorString(nameColourR, nameColourG, nameColourB)
 end
 
 function widget:AddConsoleLine(lines, priority)

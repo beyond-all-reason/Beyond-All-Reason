@@ -242,12 +242,13 @@ else
 	local myPlayerID = Spring.GetMyPlayerID()
 	local spec, _ = Spring.GetSpectatingState()
 	local isReplay = Spring.IsReplay()
+	local ColorString = Spring.Color.ToString
 
 	local revealed = false
 
 	local function colourNames(teamID)
 		local nameColourR, nameColourG, nameColourB, nameColourA = Spring.GetTeamColor(teamID)
-		return Spring.Color.ToString(nameColourR, nameColourG, nameColourB)
+		return ColorString(nameColourR, nameColourG, nameColourB)
 	end
 
 	local function MarkStartPoint(_, x, y, z, name, teamID)

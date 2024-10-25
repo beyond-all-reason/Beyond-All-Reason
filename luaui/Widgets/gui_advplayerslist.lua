@@ -102,6 +102,9 @@ local Spring_AreTeamsAllied = Spring.AreTeamsAllied
 local GetCameraState = Spring.GetCameraState
 local SetCameraState = Spring.SetCameraState
 
+local ColorString = Spring.Color.ToString
+local ColorArray = Spring.Color.ToArray
+
 local gl_Texture = gl.Texture
 local gl_Color = gl.Color
 local gl_CreateList = gl.CreateList
@@ -2518,9 +2521,9 @@ function colourNames(teamID, returnRgb)
 		nameColourR, nameColourG, nameColourB = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
 	end
     if returnRgb then
-        return Spring.Color.ToArray(nameColourR, nameColourG, nameColourB)
+        return ColorArray(nameColourR, nameColourG, nameColourB)
     else
-        return Spring.Color.ToString(nameColourR, nameColourG, nameColourB)
+        return ColorString(nameColourR, nameColourG, nameColourB)
     end
 end
 

@@ -159,6 +159,7 @@ local spGetTeamColor = Spring.GetTeamColor
 local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
 local spPlaySoundFile = Spring.PlaySoundFile
 local spGetGameFrame = Spring.GetGameFrame
+local ColorString = Spring.Color.ToString
 
 local soundErrors = {}
 
@@ -526,7 +527,7 @@ local function colourNames(teamID)
 	if (not isSpec) and anonymousMode ~= "disabled" then
 		nameColourR, nameColourG, nameColourB = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
 	end
-	return Spring.Color.ToString(nameColourR, nameColourG, nameColourB)
+	return ColorString(nameColourR, nameColourG, nameColourB)
 end
 
 local function teamcolorPlayername(playername)
