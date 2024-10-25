@@ -17,5 +17,5 @@ end
 
 return {
 	ToString = ColorString,
-	ToArray = ColorArray,
+	ToIntArray = ColorArray,
 }

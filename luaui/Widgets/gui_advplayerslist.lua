@@ -103,7 +103,7 @@ local GetCameraState = Spring.GetCameraState
 local SetCameraState = Spring.SetCameraState
 
 local ColorString = Spring.Color.ToString
-local ColorArray = Spring.Color.ToArray
+local ColorArray = Spring.Color.ToIntArray
 
 local gl_Texture = gl.Texture
 local gl_Color = gl.Color
