@@ -46,7 +46,7 @@ local falloffPerType  = { -- Whether the projectile loses damage per hit.
 	AircraftBomb      = true  ,
 }
 
-local slowdownPerType = { -- Whether the projectile loses velocity, as well.
+local slowingPerType = { -- Whether the projectile loses velocity, as well.
 	DGun              = false ,
 	Cannon            = true  ,
 	LaserCannon       = false ,
@@ -90,9 +90,8 @@ local spDeleteProjectile       = Spring.DeleteProjectile
 local spSpawnExplosion         = Spring.SpawnExplosion
 local spValidFeatureID         = Spring.ValidFeatureID
 
-local gameSpeed  = Game.gameSpeed
-local mapGravity = Game.gravity / (gameSpeed * gameSpeed) * (-1)
-local untyped    = Game.armorTypes.default
+local armorDefault = Game.armorTypes.default
+local armorShields = Game.armorTypes.shields
 
 --------------------------------------------------------------------------------
 -- Setup -----------------------------------------------------------------------
@@ -132,8 +131,8 @@ local function loadPenetratorWeaponDefs()
 		if weaponDef.noExplode and tobool(custom.overpenetrate) then
 			local params = {
 				damages = toSafeDamageArray(weaponDef.damages),
-				falloff = tobool(custom.overpenetrate_falloff == nil and falloffPerType [weaponDef.type] or custom.overpenetrate_falloff),
-				slowing = tobool(custom.overpenetrate_slowing == nil and slowdownPerType[weaponDef.type] or custom.overpenetrate_slowing),
+				falloff = tobool(custom.overpenetrate_falloff == nil and falloffPerType[weaponDef.type] or custom.overpenetrate_falloff),
+				slowing = tobool(custom.overpenetrate_slowing == nil and slowingPerType[weaponDef.type] or custom.overpenetrate_slowing),
 				penalty = math.max(0, tonumber(custom.overpenetrate_penalty or penaltyDefault)),
 				weapon  = weaponDefID,
 			}
@@ -145,6 +144,14 @@ local function loadPenetratorWeaponDefs()
 			if custom.overpenetrate_explode_def then
 				local explosionDef = WeaponDefNames[custom.overpenetrate_explode_def]
 				params.explosionDefID = explosionDef and explosionDef.id or nil
+			end
+
+			if custom.shield_damage then
+				params.damages[armorShields] = custom.shield_damage
+				local multiplier = custom.beamtime_damage_reduction_multiplier
+				if multiplier then
+					params.damages[armorShields] = params.damages[armorShields] * multiplier
+				end
 			end
 
 			weaponParams[weaponDefID] = params
@@ -307,12 +314,24 @@ function gadget:GameFrame(frame)
 			local collision = collisions[index]
 			local targetID = collision.targetID
 
+			local case
 			if not targetID then
-				exhausted = true
-			elseif
-				(collision.isUnit and spGetUnitIsDead(targetID) == false) or
-				(not collision.isUnit and spValidFeatureID(targetID))
-			then
+				case = "HIT_TERRAIN_OR_DELETED"
+			elseif collision.shieldID then
+				if spGetUnitIsDead(targetID) == false then
+					case = "HIT_SHIELD"
+				end
+			else
+				if collision.isUnit then
+					if spGetUnitIsDead(targetID) == false then
+						case = "HIT_UNIT_FEATURE"
+					end
+				elseif spValidFeatureID(targetID) then
+					case = "HIT_UNIT_FEATURE"
+				end
+			end
+
+			if case == "HIT_UNIT_FEATURE" then
 				local damage = collision.damage
 				local damageToArmorType = params.damages[collision.armorType]
 				local damageBase = min(damage, damageToArmorType)
@@ -343,6 +362,30 @@ function gadget:GameFrame(frame)
 				else
 					Spring.SetFeatureHealth(targetID, collision.health - damage)
 				end
+			elseif case == "HIT_SHIELD" then
+				local shieldOn, shieldHealth = Spring.GetUnitShieldState(targetID)
+				if shieldOn and shieldHealth > 0 then
+					local damageToShields = collision.damage
+					local damageLeftBefore = penetrator.damageLeft
+					local damageLeftAfter
+					if params.falloff then
+						damageToShields = damageToShields * damageLeftBefore
+						damageLeftAfter = damageLeftBefore - shieldHealth / damageToShields
+					else
+						damageLeftAfter = 1
+					end
+					if damageToShields * damageLeftAfter > 1 then
+						penetrator.damageLeft = damageLeftAfter
+						if params.slowing then
+							speedRatio = speedRatio * (1 + hardStopIncrease * damageLeftAfter) / (1 + hardStopIncrease * damageLeftBefore)
+						end
+					else
+						exhausted = true
+					end
+					Spring.SetUnitShieldState(targetID, collision.shieldID, true, shieldHealth - damageToShields)
+				end
+			elseif case == "HIT_TERRAIN_OR_DELETED" then
+				exhausted = true
 			end
 
 			if exhausted then
@@ -383,14 +426,14 @@ function gadget:ProjectileCreated(projectileID, ownerID, weaponDefID)
 		local explosion = explosionDefID and explosionParams[explosionDefID] or nil
 		local x, y, z = spGetProjectilePosition(projectileID)
 		projectiles[projectileID] = {
-			collisions  = {},
-			damageLeft  = 1,
-			explosion   = explosion,
-			ownerID     = ownerID,
-			params      = params,
-			x           = x,
-			y           = y,
-			z           = z,
+			collisions = {},
+			damageLeft = 1,
+			explosion  = explosion,
+			ownerID    = ownerID,
+			params     = params,
+			x          = x,
+			y          = y,
+			z          = z,
 		}
 	end
 end
@@ -431,7 +474,34 @@ function gadget:FeaturePreDamaged(featureID, featureDefID, featureTeam, damage, 
 	local penetrator = projectiles[projectileID]
 	if penetrator then
 		if damage > 1 then
-			addPenetratorCollision(featureID, false, untyped, damage, projectileID, penetrator)
+			addPenetratorCollision(featureID, false, armorDefault, damage, projectileID, penetrator)
+		end
+		return 0, 0
+	end
+end
+
+function gadget:ShieldPreDamaged(projectileID, attackerID, shieldWeaponIndex, shieldUnitID, bounceProjectile, beamWeaponIndex, beamUnitID, startX, startY, startZ, hitX, hitY, hitZ)
+	local penetrator = projectiles[projectileID]
+	if penetrator then
+		local damage = penetrator.params.damages[armorShields]
+		if damage > 1 then
+			local shieldOn, shieldHealth = Spring.GetUnitShieldState(shieldUnitID)
+			if shieldOn and shieldHealth > 0 then
+				projectileHits[projectileID] = penetrator
+				local dx, dy, dz = spGetProjectileDirection(projectileID)
+				local collisions = penetrator.collisions
+				collisions[#collisions+1] = {
+					targetID = shieldUnitID,
+					shieldID = shieldWeaponIndex,
+					damage   = damage,
+					collideX = hitX,
+					collideY = hitY,
+					collideZ = hitZ,
+					headingX = dx,
+					headingY = dy,
+					headingZ = dz,
+				}
+			end
 		end
 		return 0, 0
 	end
