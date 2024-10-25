@@ -8,24 +8,21 @@ local schar = string.char
 local colorIndicator = Game.textColorCodes.Color
 local colorAndOutlineIndicator = Game.textColorCodes.ColorAndOutline
 
-local function ColorStringEx(R, G, B, A, oR, oG, oB, oA)
+local function ColorStringEx(r, g, b, a, oR, oG, oB, oA)
 	-- Formats alpha and also outline color.
-	return colorAndOutlineIndicator .. schar(floor(R * 255)) .. schar(floor(G * 255)) ..
-		schar(floor(B * 255)) .. schar(floor(A * 255)) ..
+	return colorAndOutlineIndicator .. schar(floor(r * 255)) .. schar(floor(g * 255)) ..
+		schar(floor(b * 255)) .. schar(floor(a * 255)) ..
 		schar(floor(oR * 255)) .. schar(floor(oG * 255)) ..
 		schar(floor(oB * 255)) .. schar(floor(oA * 255))
 end
 
-local function ColorArray(R, G, B)
-	local R255 = floor(R * 255)
-	local G255 = floor(G * 255)
-	local B255 = floor(B * 255)
-	return R255, G255, B255
+local function ColorArray(r, g, b)
+	return floor(r * 255), floor(g * 255), floor(b * 255)
 end
 
-local function ColorString(R, G, B)
+local function ColorString(r, g, b)
 	-- Standard R, G, B color code.
-	return colorIndicator .. schar(floor(R * 255)) .. schar(floor(G * 255)) .. schar(floor(B * 255))
+	return colorIndicator .. schar(floor(r * 255)) .. schar(floor(g * 255)) .. schar(floor(b * 255))
 end
 
 return {
