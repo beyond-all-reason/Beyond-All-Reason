@@ -423,17 +423,6 @@ function widget:UnitSold(unitID, price, old_ownerID, msgFromTeamID)
     unitSold(unitID, price, old_ownerID, msgFromTeamID)
 end
 
-local function colourNames(teamID)
-	local nameColourR, nameColourG, nameColourB = 0.9, 0.9, 0.9
-	if teamID ~= nil then
-	    nameColourR, nameColourG, nameColourB = spGetTeamColor(teamID)
-    end
-	if anonymousMode ~= "disabled" and teamID ~= myTeamID then
-		nameColourR, nameColourG, nameColourB = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
-	end
-	return Spring.Color.ToString(nameColourR, nameColourG, nameColourB)
-end
-
 local function OfferToBuy(unitID)
     spSendLuaRulesMsg("unitTryToBuy " .. unitID) -- Tell gadget we are buying (or trying to)
     triedToBuyTime = os.clock()+0.3
