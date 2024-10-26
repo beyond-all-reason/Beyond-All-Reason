@@ -19,7 +19,6 @@ return {
 		footprintz = 0,
 		idleautoheal = 10,
 		idletime = 90,
-		impulseboost = 0,
 		impulsefactor = 0,
 		levelground = false,
 		mass = 10,
