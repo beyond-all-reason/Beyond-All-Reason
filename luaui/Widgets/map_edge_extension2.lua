@@ -14,6 +14,7 @@ end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+-- fix seams?
 
 local brightness = 0.3
 local nightFactor = 1.0
@@ -88,6 +89,7 @@ layout (location = 0) in vec4 aMirrorParams;
 //__ENGINEUNIFORMBUFFERDEFS__
 
 uniform vec4 shaderParams;
+
 #define gridSize shaderParams.x
 
 out DataVS {
@@ -95,20 +97,23 @@ out DataVS {
 };
 
 void main() {
-	float vID = float(gl_VertexID);
 
-	float X = mapSize.x / gridSize;
+		float vID = float(gl_VertexID);
 
-	float modX = mod(vID, X);
-	//this is sometimes true in the magic land of amd drivers!
-	if (modX >= X) 	modX=0;
+		float X = mapSize.x / gridSize;
 
-	float x = (  modX          )* gridSize;
-	float y = ((vID - modX) / X)* gridSize;
+		float modX = mod(vID, X); 
+		//this is sometimes true in the magic land of amd drivers!
+		if (modX >= X) 	modX=0;
 
-	gl_Position = vec4(x, 0.0, y, 1.0);
+		// Position the vertex in world XZ space of actual map dimensions, flipping will be done later
+		float x = (  modX          )* gridSize;
+		float y = ((vID - modX) / X)* gridSize;
 
-	vMirrorParams = aMirrorParams;
+		gl_Position = vec4(x, 0.0, y, 1.0);
+
+		vMirrorParams = aMirrorParams;
+	
 }
 ]]
 
@@ -120,7 +125,7 @@ local gsSrc = [[
 #extension GL_ARB_shading_language_420pack: require
 
 layout (points) in;
-layout (triangle_strip, max_vertices = 4) out;
+layout (triangle_strip, max_vertices = 12) out;
 
 #line 20090
 
@@ -152,21 +157,21 @@ out DataGS {
 
 #define NORM2SNORM(value) (value * 2.0 - 1.0)
 #define SNORM2NORM(value) (value * 0.5 + 0.5)
-
-bool MyEmitTestVertex(vec2 xzVec, bool testme) {
-	vec4 worldPos = gl_in[0].gl_Position + vec4(xzVec.x, 0.0, xzVec.y, 0.0);
+#line 21160
+bool MyEmitTestVertex(vec3 vertexOffset, bool testme) {
+	vec4 worldPos = gl_in[0].gl_Position + vec4(vertexOffset.x, vertexOffset.y, vertexOffset.z, 0.0);
 	uv = worldPos.xz / mapSize.xy;
 	mirrorParams.xy = dataIn[0].vMirrorParams.xy;
 	//uv = uv + abs(dataIn[0].vMirrorParams.xy); // So negative UVs mean flipping
 	//uv = dataIn[0].vMirrorParams.xy;
 	vec2 UVHM =  heightmapUVatWorldPos(worldPos.xz);
-	worldPos.y = textureLod(heightTex, UVHM, 0.0).x;
+	worldPos.y = textureLod(heightTex, UVHM, 0.0).x + vertexOffset.y;
 	
 	#ifdef DEFERRED_MODE
 		//normalxz = textureLod(mapNormalTex, UVHM, 0.0).ra;
 	#endif
 
-	const vec2 edgeTightening = vec2(0.5); // to tighten edges a little better
+	const vec2 edgeTightening = vec2(0.0); // to tighten edges a little better
 	worldPos.xz = abs(dataIn[0].vMirrorParams.xy * mapSize.xy - worldPos.xz);
 	worldPos.xz += dataIn[0].vMirrorParams.zw * (mapSize.xy - edgeTightening);
 
@@ -216,18 +221,64 @@ bool MyEmitTestVertex(vec2 xzVec, bool testme) {
 }
 
 void main() {
-	if ( all(equal(dataIn[0].vMirrorParams.xy, vec2(1.0))) ) {
-		if (MyEmitTestVertex(vec2(gridSize,      0.0), true)) return;; //TR
-		MyEmitTestVertex(vec2(0.0     ,      0.0),false); //TL
-		MyEmitTestVertex(vec2(gridSize, gridSize),false); //BR
-		MyEmitTestVertex(vec2(0.0     , gridSize),false); //BL
-	} else {
-		if (MyEmitTestVertex(vec2(0.0     , gridSize),true)) return; //BL
-		MyEmitTestVertex(vec2(0.0     ,      0.0),false); //TL
-		MyEmitTestVertex(vec2(gridSize, gridSize),false); //BR
-		MyEmitTestVertex(vec2(gridSize,      0.0),false); //TR
-	}
+	if (all(equal(dataIn[0].vMirrorParams, vec4(0.0)))){ 
+		// No mirror params, so just draw the seam quad
+		// Note that this is a terrible hack, and I should feel bad for doing it
 
+		vec3 localPos = gl_in[0].gl_Position.xyz;
+		// Isolate the edge positions
+		vec2 mapCenterHPG = (mapSize.xy - vec2(gridSize)) * 0.5;
+		vec2 disttoMapCenter = abs(localPos.xz - mapCenterHPG) + vec2(gridSize) * 0.5;	
+		if (all(lessThan(disttoMapCenter, mapCenterHPG))) return;
+		//if (localPos.z > (mapSize.z - 1.0-gridSize)) return;
+
+		#define WF 0.0
+		#define SEAMHEIGHT -128.0
+		vec4 edgePos = vec4(0.0);
+		if (localPos.x == 0){
+			if (MyEmitTestVertex(vec3(WF,       0, gridSize),true)) return; //TL
+				MyEmitTestVertex(vec3(WF,  SEAMHEIGHT, gridSize),false); //BL
+				MyEmitTestVertex(vec3(WF,       0, 0),false); //TR
+				MyEmitTestVertex(vec3(WF,  SEAMHEIGHT, 0),false); //BR
+			EndPrimitive();
+			return;
+		}else if (localPos.z == 0){
+			if (MyEmitTestVertex(vec3(gridSize,       0, WF),true)) return; //TL
+				MyEmitTestVertex(vec3(00,       0, WF),false); //TR
+				MyEmitTestVertex(vec3(gridSize,  SEAMHEIGHT, WF),false); //BL
+				MyEmitTestVertex(vec3(00,  SEAMHEIGHT, WF),false); //BR
+			EndPrimitive();
+			return;
+		}else if (localPos.x >= mapSize.x - gridSize){
+			if (MyEmitTestVertex(vec3(gridSize - WF,       0, gridSize),true)) return; //TL
+				MyEmitTestVertex(vec3(gridSize - WF,       0, 0),false); //TR
+				MyEmitTestVertex(vec3(gridSize - WF,  SEAMHEIGHT, gridSize),false); //BL
+				MyEmitTestVertex(vec3(gridSize - WF,  SEAMHEIGHT, 0),false); //BR
+			EndPrimitive();
+			return;
+		}else {	
+		
+			if (MyEmitTestVertex(vec3(gridSize,       0, gridSize - WF ),true)) return; //TL
+				MyEmitTestVertex(vec3(gridSize,  SEAMHEIGHT, gridSize - WF),false); //BL
+				MyEmitTestVertex(vec3(00,       0, gridSize - WF),false); //TR
+				MyEmitTestVertex(vec3(00,  SEAMHEIGHT, gridSize - WF),false); //BR
+			EndPrimitive();
+			return;
+	
+		}
+	}else{
+		if ( all(equal(dataIn[0].vMirrorParams.xy, vec2(1.0))) ) {
+			if (MyEmitTestVertex(vec3(gridSize, 0.0,      0.0), true)) return;; //TR
+				MyEmitTestVertex(vec3(0.0     , 0.0,      0.0),false); //TL
+				MyEmitTestVertex(vec3(gridSize, 0.0, gridSize),false); //BR
+				MyEmitTestVertex(vec3(0.0     , 0.0, gridSize),false); //BL
+		} else {
+			if (MyEmitTestVertex(vec3(0.0     , 0.0, gridSize),true)) return; //BL
+				MyEmitTestVertex(vec3(0.0     , 0.0,      0.0),false); //TL
+				MyEmitTestVertex(vec3(gridSize, 0.0, gridSize),false); //BR
+				MyEmitTestVertex(vec3(gridSize, 0.0,      0.0),false); //TR
+		}
+	}
 	EndPrimitive();
 }
 ]]
@@ -319,7 +370,7 @@ void main() {
 		mapNormal.y = sqrt(1.0 - dot(mapNormal.xz, mapNormal.xz));
 		mapNormal = normalize(mapNormal);
 	#else
-		mapNormal = normalize(texture(mapNormalTex,uv).rbg * 2.0 - 1.0);
+		mapNormal = normalize(texture(mapNormalTex,clamp(uv, MINIMAP_HALF_TEXEL / 4.0, 1.0 - (MINIMAP_HALF_TEXEL/4.0))).rbg * 2.0 - 1.0);
 	#endif
 
 	// Flip normals if the mirror is flipped
@@ -519,7 +570,7 @@ function widget:Initialize()
 
 	numPoints = (mapSizeX / gridSize) * (mapSizeZ / gridSize)
 
-	terrainInstanceVBO:Define(8, {
+	terrainInstanceVBO:Define(9, {
 		{id = 0, name = "mirrorParams", size = 4},
 	})
 
@@ -529,7 +580,7 @@ function widget:Initialize()
 	
 	terrainInstanceVBODeferred = gl.GetVBO(GL.ARRAY_BUFFER, true)
 	
-	terrainInstanceVBODeferred:Define(8, {
+	terrainInstanceVBODeferred:Define(9, {
 		{id = 1, name = "mirrorParams", size = 4},
 	})
 	
@@ -650,7 +701,8 @@ local function UpdateMirrorParams()
 	end
 
 	local minY, maxY = Spring.GetGroundExtremes()
-	mirrorParams = {}
+
+	mirrorParams = {} 
 	-- spIsAABBInView params are copied from map_edge_extension.lua
 	if spIsAABBInView(-Game.mapSizeX, minY, -Game.mapSizeZ, borderMargin, maxY, borderMargin) then
 		--TL {1, 1, -1, -1}
@@ -716,8 +768,16 @@ local function UpdateMirrorParams()
 		mirrorParams[#mirrorParams + 1] =  1
 	end
 	if #mirrorParams > 0 then
-		terrainInstanceVBO:Upload(mirrorParams)
+		
 		terrainInstanceVBODeferred:Upload(mirrorParams)
+		
+		-- EXTREMELY IMPORTANT: 
+		-- Add a blank, non-mirrored or offset one to the forward pass for the edge seams
+		mirrorParams[#mirrorParams + 1] = 0
+		mirrorParams[#mirrorParams + 1] = 0
+		mirrorParams[#mirrorParams + 1] = 0
+		mirrorParams[#mirrorParams + 1] = 0
+		terrainInstanceVBO:Upload(mirrorParams)
 	end
 end
 
@@ -770,7 +830,8 @@ function widget:DrawGroundDeferred()
 	--gl.RunQuery(q, function()
 		--terrainVAO:DrawArrays(GL.POINTS, numPoints, 0, #mirrorParams / 4)
 		--planeVAO:DrawElements(GL.TRIANGLES, 1000, 0, 8 ,0)
-		planeVAO:DrawElements(GL.TRIANGLES, nil, 0, #mirrorParams / 4)
+		-- draw one less element as that is unmirrored one for the seam
+		planeVAO:DrawElements(GL.TRIANGLES, nil, 0, math.max(0, (#mirrorParams / 4)-1) )
 	--end)
 	mapExtensionShaderDeferred:Deactivate()
 	gl.Texture(0, false)
