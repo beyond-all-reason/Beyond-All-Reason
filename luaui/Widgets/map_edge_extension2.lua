@@ -145,7 +145,8 @@ in DataVS {
 
 out DataGS {
 	vec2 alphaFog;
-	vec2 uv;
+	vec2 uv; // uvs are [0.0,2.0]  for flipping, where > 1.0 means flip
+	vec2 mirrorParams;
 };
 
 
@@ -155,7 +156,9 @@ out DataGS {
 bool MyEmitTestVertex(vec2 xzVec, bool testme) {
 	vec4 worldPos = gl_in[0].gl_Position + vec4(xzVec.x, 0.0, xzVec.y, 0.0);
 	uv = worldPos.xz / mapSize.xy;
-	//uv = uv - dataIn[0].vMirrorParams.xy; // So negative UVs mean flipping
+	mirrorParams.xy = dataIn[0].vMirrorParams.xy;
+	//uv = uv + abs(dataIn[0].vMirrorParams.xy); // So negative UVs mean flipping
+	//uv = dataIn[0].vMirrorParams.xy;
 	vec2 UVHM =  heightmapUVatWorldPos(worldPos.xz);
 	worldPos.y = textureLod(heightTex, UVHM, 0.0).x;
 	
@@ -270,7 +273,8 @@ uniform vec4 shaderParams;
 
 in DataGS {
 	vec2 alphaFog;
-	vec2 uv;	
+	vec2 uv;
+	vec2 mirrorParams;
 };
 
 #ifdef DEFERRED_MODE
@@ -280,6 +284,7 @@ in DataGS {
 #else
 	out vec4 fragColor;
 #endif
+
 const mat3 RGB2YCBCR = mat3(
 	0.2126, -0.114572, 0.5,
 	0.7152, -0.385428, -0.454153,
@@ -291,8 +296,12 @@ const mat3 YCBCR2RGB = mat3(
 	1.5748, -0.468124, -5.55112e-17);
 
 void main() {
+	vec2 fractUV = uv;
+
+	#define MINIMAP_HALF_TEXEL (0.5/1024.0)
+
 	// remove tiling seams from minimap texel edges
-	vec2 clampeduv = clamp(uv, 0.5/1024.0,1.0 - 0.5/1024.0); 
+	vec2 clampeduv = clamp(uv, MINIMAP_HALF_TEXEL, 1.0 - MINIMAP_HALF_TEXEL); 
 	
 	vec4 finalColor = texture(colorTex, clampeduv);
 	#if 1
@@ -303,24 +312,29 @@ void main() {
 		finalColor.rgb *= brightness;
 	#endif
 	
+	// Note that normals are Z up in textures, but Y up in the world
 	vec3 mapNormal = vec3(0);
-	
 	#ifdef DEFERRED_MODE
-		mapNormal.xz = texture(mapNormalTex,uv).ra;
+		mapNormal.xz = texture(mapNormalTex,clampeduv).ra;
 		mapNormal.y = sqrt(1.0 - dot(mapNormal.xz, mapNormal.xz));
 		mapNormal = normalize(mapNormal);
 	#else
-		mapNormal = normalize(texture(mapNormalTex,uv).rgb * 2.0 - 1.0);
+		mapNormal = normalize(texture(mapNormalTex,uv).rbg * 2.0 - 1.0);
 	#endif
-	if (uv.x < 0) mapNormal.x *= -1.0; // because negative UVs mean flipping
-	if (uv.y < 0) mapNormal.y *= -1.0;
-	finalColor.rgb = finalColor.rgb * (dot(mapNormal, sunDir.xzy) * 0.5 + 1.0);
+
+	// Flip normals if the mirror is flipped
+	if (abs(mirrorParams.x) > 0.5) mapNormal.x *= -1.0; 
+	if (abs(mirrorParams.y) > 0.5)  mapNormal.z *= -1.0;
+
+	// Apply some lighting based on the normal vector
+	finalColor.rgb = finalColor.rgb * (dot(mapNormal, sunDir.xyz) * 0.5 + 1.0);
 
 	finalColor.rgb = mix(fogColor.rgb, finalColor.rgb, alphaFog.y);
 	finalColor.a = alphaFog.x; 
 	//finalColor.rg = uv;
+	//finalColor.rgba = vec4(mapNormal.rgb * 0.5 + 0.5, 1.0);
+
 	#ifdef DEFERRED_MODE
-		// TODO: normals arent correct, they are mirrored :/ 
 		#if GBUFFER_COUNT > 0
 			fragData[GBUFFER_NORMTEX_IDX] = vec4(mapNormal * 0.5 + 0.5, 1);
 		#endif
@@ -337,6 +351,7 @@ void main() {
 			fragData[GBUFFER_MISCTEX_IDX] = vec4(0);
 		#endif
 	#else
+		// Forward pass
 		fragColor = finalColor;
 	#endif
 	
@@ -376,6 +391,7 @@ uniform vec4 shaderParams;
 out DataGS {
 	vec2 alphaFog;
 	vec2 uv;
+	vec2 mirrorParams;
 };
 #line 11000
 void main() {
@@ -392,14 +408,15 @@ void main() {
 	worldPos.xz *= mapSize.xy;
 	
 	uv = mix(uv, 1.0 - uv, flip);
+
+	mirrorParams = aMirrorParams.xy;
 	
 	worldPos.y = textureLod(heightTex, heightmapUVatWorldPos(uv * mapSize.xy), 0.0).x;
 	
 	const vec2 edgeTightening = vec2(0.5); // to tighten edges a little better
-	//worldPos.xz = abs(flip * mapSize.xy - worldPos.xz);
+
 	worldPos.xz -= offset * edgeTightening;
 	
-
 	float alpha = 1.0;
 
 	if (curvature == 1.0) {
