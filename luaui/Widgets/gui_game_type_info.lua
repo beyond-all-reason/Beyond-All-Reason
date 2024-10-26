@@ -63,7 +63,8 @@ end
 
 function widget:Initialize()
 	if Spring.GetModOptions().deathmode == "neverend" then
-		WidgetHandler:RemoveWidget() return
+		widgetHandler:RemoveWidget()
+		return
 	end
 
 	messages[1] = {}
