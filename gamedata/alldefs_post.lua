@@ -1398,15 +1398,15 @@ function WeaponDef_Post(name, wDef)
 				wDef.impulsefactor = 0.8
 			end
 			if name == 'corsktlSelfd' then
-				wDef.damage.hvyboats = wDef.damage.default
-				wDef.damage.lboats = wDef.damage.default
+				--wDef.damage.hvyboats = wDef.damage.default
+				--wDef.damage.lboats = wDef.damage.default
 				wDef.damage.crawlingbombs = 400
 			end
 			if name == 'crawl_blast' then
 				wDef.damage.default = 2700
 				wDef.damage.commanders = 1000
-				wDef.damage.hvyboats = wDef.damage.default
-				wDef.damage.lboats = wDef.damage.default
+				--wDef.damage.hvyboats = wDef.damage.default
+				--wDef.damage.lboats = wDef.damage.default
 				wDef.damage.crawlingbombs = 400
 				wDef.edgeeffectiveness = 0.35
 				wDef.areaofeffect = 410
