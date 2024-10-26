@@ -883,6 +883,7 @@ if not Spring.GetModOptions().unit_restrictions_noair then
 		["armca_scav"] = 2,
 		["corca_scav"] = 2,
 		["legca_scav"] = 2,
+		["armfify_scav"] = 2,
 	}
 	local t2landairconstructors = {
 		["armaca_scav"] = 2,
@@ -1459,6 +1460,7 @@ scavBehaviours = {
 		[UnitDefNames["cornecro_scav"].id] = true,--Cortex Rezzer
 		[UnitDefNames["armca_scav"].id] = true,
 		[UnitDefNames["armaca_scav"].id] = true,
+		[UnitDefNames["armfify_scav"].id] = true,
 		[UnitDefNames["armcsa_scav"].id] = true,
 		[UnitDefNames["corca_scav"].id] = true,
 		[UnitDefNames["coraca_scav"].id] = true,
