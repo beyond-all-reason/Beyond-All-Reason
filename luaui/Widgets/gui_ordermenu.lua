@@ -611,16 +611,18 @@ local function drawCell(cell, zoom)
 						break
 					end
 				end
-				local commandQueue
-				if isFactory[Spring.GetUnitDefID(referenceUnit)] then
-					commandQueue = Spring.GetFactoryCommands(referenceUnit, 1)
-				else
-					commandQueue = Spring.GetCommandQueue(referenceUnit, 1)
-				end
-				if commandQueue[1] and commandQueue[1].id == CMD.WAIT then
-					curstate = 2
-				else
-					curstate = 1
+				if referenceUnit then
+					local commandQueue
+					if isFactory[Spring.GetUnitDefID(referenceUnit)] then
+						commandQueue = Spring.GetFactoryCommands(referenceUnit, 1)
+					else
+						commandQueue = Spring.GetCommandQueue(referenceUnit, 1)
+					end
+					if commandQueue and commandQueue[1] and commandQueue[1].id == CMD.WAIT then
+						curstate = 2
+					else
+						curstate = 1
+					end
 				end
 			end
 			local desiredState = nil

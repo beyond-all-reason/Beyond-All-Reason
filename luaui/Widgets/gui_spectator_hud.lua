@@ -1838,7 +1838,6 @@ local function showEcostats()
 end
 
 local function init()
-	hideEcostats()
 	font = WG['fonts'].getFont()
 
 	viewScreenWidth, viewScreenHeight = Spring.GetViewGeometry()
@@ -1894,7 +1893,6 @@ local function deInit()
 	deleteMetricDisplayLists()
 	deleteKnobVAO()
 	deleteTextures()
-	showEcostats()
 end
 
 local function reInit()
@@ -1953,11 +1951,13 @@ function widget:Initialize()
 
 	checkAndUpdateHaveFullView()
 
+	hideEcostats()
 	init()
 end
 
 function widget:Shutdown()
 	deInit()
+	showEcostats()
 
 	if shader then
 		shader:Finalize()

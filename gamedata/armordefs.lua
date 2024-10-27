@@ -75,6 +75,7 @@ local armorDefs = {
 		"xmasball2_6",
 		"armstone",
 		"corstone",
+		"legstone",
 		"dice",
 		"chip",
 	},
