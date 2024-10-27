@@ -2391,7 +2391,7 @@ function widget:MousePress(x, y, button)
 					then
 						local alt, ctrl, meta, shift = Spring.GetModKeyState()
 						if button ~= 3 then
-							if WG.Quotas and WG.Quotas.isOnQuotaMode(activeBuilderID) and builderIsFactory then
+							if builderIsFactory and WG.Quotas and WG.Quotas.isOnQuotaMode(activeBuilderID) then
 								local amount = 1
 								if ctrl then
 									amount = amount * modKeyMultiplier.click.ctrl

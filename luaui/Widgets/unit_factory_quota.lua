@@ -133,7 +133,8 @@ end
 
 ----- handle toggle
 local function isOnQuotaBuildMode(unitID)
-	return spGetUnitCmdDescs(unitID)[spFindUnitCmdDesc(unitID, CMD_QUOTA_BUILD_TOGGLE)].params[1]+0 == 1
+    local cmdDescIndex = spFindUnitCmdDesc(unitID, CMD_QUOTA_BUILD_TOGGLE)
+	return cmdDescIndex and spGetUnitCmdDescs(unitID)[cmdDescIndex].params[1]+0 == 1
 end
 
 function widget:SelectionChanged(newSelection)
