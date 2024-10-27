@@ -982,6 +982,7 @@ local AirUnitsList = {
 			["legmineb_scav"] = 3,
 			["legphoenix_scav"] = 3,
 			["legfort_scav"] = 2,
+			["legmost3_scav"] = 1,
 		},
 		[6] = {
 			--Armada
@@ -1003,6 +1004,7 @@ local AirUnitsList = {
 			["corcrwt4_scav"] = 2,
 			--Legion
 			["legfort_scav"] = 3,
+			["legmost3_scav"] = 2,
 			["legfortt4_scav"] = 1,
 
 		},
@@ -1079,6 +1081,7 @@ local AirUnitsList = {
 			--Legion
 			["legfort_scav"] = 3,
 			["legfortt4_scav"] = 3,
+			["legmost3_scav"] = 2,
 		},
 	}
 }

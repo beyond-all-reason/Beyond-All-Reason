@@ -1,6 +1,5 @@
 return {
 	armpship = {
-		airsightdistance = 470,
 		autoheal = 1.5,
 		blocking = true,
 		buildpic = "ARMPSHIP.DDS",

@@ -8,7 +8,7 @@ return {
 		energycost = 790000,
 		metalcost = 56000,
 		buildpic = "LEGFORT.DDS",
-		buildtime = 90000,
+		buildtime = 900000,
 		canfly = true,
 		canmove = true,
 		category = "ALL WEAPON VTOL NOTSUB NOTHOVER",
