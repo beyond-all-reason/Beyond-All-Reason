@@ -2535,6 +2535,10 @@ local icontypes = {
 		bitmap = "icons/air_hover_rocket.png",
 		size = 1.25999999
 	},
+	legmost3 = {
+		bitmap = "icons/air_hover_rocket.png",
+		size = 2
+	},
 	legmrv = {
 		bitmap = "icons/vehicle_t2_raid.png",
 		size = 1.45000005
