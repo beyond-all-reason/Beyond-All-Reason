@@ -713,7 +713,7 @@ local definitions = {
 
   -- CEGs for revision of unit_area_timed_damage -------------------------------
 
-  -- Effects now trigger on an interval after the first impact, so the inital
+  -- Effects trigger on a fixed interval after the first impact, so the inital
   -- explosion has to add fire fx to look different from a normal arty explo.
   ["fire-explosion-small"] = {
     usedefaultexplosions = false,
@@ -1222,19 +1222,20 @@ local definitions = {
         emitrotspread       = 30,
         emitvector          = [[-0.4 r0.2, -0.4, -0.4 r0.2]],
         gravity             = [[0, 0.03 r0.04, 0]],
-        numparticles        = [[0.29 r1]],
-        particlelife        = 44,
-        particlelifespread  = 88,
-        particlesize        = 35,
-        particlesizespread  = 57,
+        numparticles        = [[0.18 r1]],
+        particlelife        = 54,
+        particlelifespread  = 110,
+        particlesize        = 32,
+        particlesizespread  = 64,
         particlespeed       = 1,
         particlespeedspread = 1.3,
         animParams          = [[8,8,90 r50]],
         rotParams           = [[-3 r6, -3 r6, -180 r360]],
-        pos                 = [[-4 r8, -5 r15, -4 r8]],
+        pos                 = [[-4 r8, -5 r35, -4 r8]],
         sizegrowth          = [[1.6 r0.6]],
         sizemod             = 0.98,
         texture             = [[FireBall02-anim]],
+        castShadow          = false,
         drawOrder           = 0,
       },
     },
@@ -1245,98 +1246,31 @@ local definitions = {
       ground     = true,
       water      = true,
       properties = {
-        airdrag             = 0.78,
+        airdrag             = 0.8,
         colormap            =
-        [[0.01 0.01 0.01 0.01   0.025 0.02 0.01 0.4   0.15 0.14 0.12 0.68   0.11 0.10 0.09 0.17    0.01 0.01 0.00 0.01]],
+        [[0.01 0.01 0.01 0.01   0.03 0.03 0.01 0.2   0.01 0.01 0.01 0.32   0.1 0.1 0.1 0.64   0.04 0.04 0.04 0.32    0.02 0.02 0.02 0.17   0.01 0.01 0.01 0.01]],
         directional         = false,
         emitrot             = 90,
         emitrotspread       = 70,
         emitvector          = [[r0.2 -0.4, 1, r0.2 -0.4]],
         gravity             = [[-0.03 r0.06, 0.24 r0.3, -0.03 r0.06]],
-        numparticles        = [[0.12 r1]],
+        numparticles        = [[0.08 r1]],
         particlelife        = 180,
         particlelifespread  = 60,
-        particlesize        = 45,
-        particlesizespread  = 60,
-        particlespeed       = 3,
-        particlespeedspread = 2,
-        rotParams           = [[-15 r30, -2 r4, -180 r360]],
-        pos                 = [[0.0, 180, 0.0]],
-        sizegrowth          = [[0.55 r0.85]],
-        sizemod             = 1,
-        texture             = [[smoke-ice-anim]],
-        animParams          = [[8,8,150 r80]],
-        useairlos           = true,
-        alwaysvisible       = true,
-        castShadow          = true,
-        drawOrder           = 0,
-      },
-    },
-  },
-  ["fire-flames-large-repeat"] = {
-    usedefaultexplosions = false,
-    flame1 = {
-      air        = true,
-      class      = [[CSimpleParticleSystem]],
-      count      = 1,
-      ground     = true,
-      properties = {
-        airdrag             = 0.88,
-        colormap            =
-        [[0 0 0 0.01   0.9 0.87 0.87 0.4  0.65 0.65 0.4 0.2   0.65 0.65 0.4 0.2   0.13 0.13 0.02 0.10   0.08 0.08 0.02 0.07   0.025 0.02 0.01 0.02   0 0 0 0.01]],
-        directional         = false,
-        emitrot             = 40,
-        emitrotspread       = 30,
-        emitvector          = [[-0.4 r0.2, -0.4, -0.4 r0.2]],
-        gravity             = [[0, 0.03 r0.04, 0]],
-        numparticles        = [[0.29 r1]],
-        particlelife        = 44,
-        particlelifespread  = 88,
-        particlesize        = 84,
-        particlesizespread  = 84,
-        particlespeed       = 1,
-        particlespeedspread = 1.3,
-        animParams          = [[8,8,90 r50]],
-        rotParams           = [[-3 r6, -3 r6, -180 r360]],
-        pos                 = [[-4 r8, -5 r15, -4 r8]],
-        sizegrowth          = [[1.6 r0.6]],
-        sizemod             = 0.98,
-        texture             = [[FireBall02-anim]],
-        drawOrder           = 0,
-      },
-    },
-    blacksmoke = {
-      air        = true,
-      class      = [[CSimpleParticleSystem]],
-      count      = 1,
-      ground     = true,
-      water      = true,
-      properties = {
-        airdrag             = 0.78,
-        colormap            =
-        [[0.01 0.01 0.01 0.01   0.02 0.02 0.01 0.4   0.15 0.14 0.12 0.68   0.11 0.10 0.09 0.17    0.01 0.01 0.01 0.01]],
-        directional         = false,
-        emitrot             = 90,
-        emitrotspread       = 70,
-        emitvector          = [[r0.2 -0.4, 1, r0.2 -0.4]],
-        gravity             = [[-0.03 r0.06, 0.24 r0.3, -0.03 r0.06]],
-        numparticles        = [[0.12 r1]],
-        particlelife        = 180,
-        particlelifespread  = 60,
-        particlesize        = 84,
+        particlesize        = 54,
         particlesizespread  = 84,
         particlespeed       = 3,
         particlespeedspread = 2,
-        rotParams           = [[-15 r30, -2 r4, -180 r360]],
-        pos                 = [[0.0, 180, 0.0]],
+        rotParams           = [[-10 r20, -1 r2, -180 r360]],
+        pos                 = [[0.0, 0, 0.0]],
         sizegrowth          = [[0.55 r0.85]],
         sizemod             = 1,
         texture             = [[smoke-ice-anim]],
-        animParams          = [[8,8,150 r80]],
+        animParams          = [[8,8,200 r200]],
         useairlos           = true,
         alwaysvisible       = true,
         castShadow          = true,
-        drawOrder           = 0,
+        drawOrder           = 1,
       },
     },
   },
@@ -1345,61 +1279,63 @@ local definitions = {
     usedefaultexplosions = false,
     flamemattalways = {
       class      = [[CSimpleParticleSystem]],
-      count      = 2,
+      count      = 1,
       air        = true,
       ground     = true,
       properties = {
         airdrag             = 0.9,
         colormap            =
-        [[0.25 0.22 0.18 0.6   0.75 0.77 0.40 0.8   0.72 0.51 0.39 1    0.67 0.47 0.34 0.9   0.63 0.41 0.27 0.8   0.58 0.33 0.29 0.7   0.48 0.29 0.22 0.6    0.11 0.08 0.12 0.50   0.016 0.011 0.07 0.4   0 0 0 0.01]],
+        [[0.25 0.22 0.18 0.6   0.75 0.77 0.40 0.8   0.72 0.58 0.39 1    0.67 0.54 0.34 0.9   0.63 0.49 0.27 0.8   0.58 0.39 0.29 0.7   0.48 0.29 0.22 0.6    0.11 0.06 0.12 0.50   0.016 0.009 0.07 0.4   0 0 0 0.01]],
         directional         = false,
         emitrot             = 90,
         emitrotspread       = 5,
         emitvector          = [[0, 0.7, 0]],
         gravity             = [[-0.025 r0.05, 0.03 r0.11, -0.025 r0.05]],
-        numparticles        = 1,
-        particlelife        = 30,
-        particlelifespread  = 45,
+        numparticles        = 1, -- always one, a little larger, try to guarantee the area is covered basically
+        particlelife        = 44,
+        particlelifespread  = 44,
         particlesize        = 64,
         particlesizespread  = 100,
         particlespeed       = 3.20,
         particlespeedspread = 5.20,
         rotParams           = [[-5 r10, -20 r40, -180 r360]],
         animParams          = [[16,6,88 r55]],
-        pos                 = [[-3 r6, -25 r12, -3 r6]],
+        pos                 = [[-3 r6, -12 r25, -3 r6]],
         sizegrowth          = [[1.10 r1.05]],
         sizemod             = 0.98,
         texture             = [[BARFlame02]],
+        castShadow         = false,
         drawOrder           = 2,
       },
     },
     flamemattrandom = {
       class      = [[CSimpleParticleSystem]],
-      count      = 2,
+      count      = 1,
       air        = true,
       ground     = true,
       properties = {
         airdrag             = 0.92,
         colormap            =
-        [[0.25 0.22 0.18 0.6   0.75 0.77 0.40 0.8   0.72 0.51 0.39 1    0.67 0.47 0.34 0.9   0.63 0.41 0.27 0.8   0.58 0.33 0.29 0.7   0.48 0.29 0.22 0.6    0.11 0.08 0.12 0.50   0.016 0.011 0.07 0.4   0 0 0 0.01]],
+        [[0.25 0.22 0.18 0.6   0.75 0.77 0.40 0.8   0.72 0.58 0.39 1    0.67 0.54 0.34 0.9   0.63 0.49 0.27 0.8   0.58 0.39 0.29 0.7   0.48 0.29 0.22 0.6    0.11 0.06 0.12 0.50   0.016 0.009 0.07 0.4   0 0 0 0.01]],
         directional         = false,
         emitrot             = 90,
         emitrotspread       = 5,
         emitvector          = [[0, 0.7, 0]],
         gravity             = [[-0.025 r0.05, 0.03 r0.11, -0.025 r0.05]],
-        numparticles        = [[0.1 r1]],
-        particlelife        = 45,
-        particlelifespread  = 45,
+        numparticles        = [[0.1 r1]], -- less often, spawn smaller fires to give a more natural look
+        particlelife        = 44,
+        particlelifespread  = 66,
         particlesize        = 46,
         particlesizespread  = 130,
         particlespeed       = 3.20,
         particlespeedspread = 5.20,
         rotParams           = [[-5 r10, -20 r40, -180 r360]],
         animParams          = [[16,6,88 r55]],
-        pos                 = [[-32 r16, -25 r12, -32 r16]],
+        pos                 = [[-32 r16, -12 r44, -32 r16]],
         sizegrowth          = [[1.10 r1.05]],
         sizemod             = 0.98,
         texture             = [[BARFlame02]],
+        castShadow         = false,
         drawOrder           = 2,
       },
     },
@@ -1411,17 +1347,17 @@ local definitions = {
       properties = {
         airdrag             = 0.93,
         colormap            =
-        [[0.26 0.29 0.21 0.1   0.36 0.27 0.29 0.90   0.34 0.43 0.40 0.88   0.33 0.29 0.20 0.85    0.33 0.27 0.18 0.83   0.29 0.22 0.14 0.80   0.29 0.20 0.13 0.75   0.22 0.16 0.11 0.55    0.05 0.06 0.09 0.35   0.021 0.022 0.023 0.2   0 0 0 0.01]],
+        [[0.01 0.01 0.01 0.01   0.02 0.02 0.01 0.2   0.26 0.2 0.18 0.333   0.36 0.27 0.29 0.72   0.34 0.28 0.40 0.88   0.33 0.29 0.20 0.7    0.33 0.27 0.18 0.83   0.29 0.22 0.14 0.80   0.29 0.20 0.13 0.75   0.22 0.16 0.11 0.55    0.05 0.06 0.09 0.35   0.021 0.022 0.023 0.2   0.01 0.01 0.01 0.01   0 0 0 0.01]],
         directional         = false,
         emitrot             = 85,
         emitrotspread       = 25,
         emitvector          = [[r0.28 0.56, 0.9, r0.28 0.56]],
         gravity             = [[-0.02 r0.04, 0.015 r0.032, -0.02 r0.04]],
-        numparticles        = [[0.32 r0.68]],
-        particlelife        = 30,
-        particlelifespread  = 45,
-        particlesize        = 72,
-        particlesizespread  = 100,
+        numparticles        = [[0.3 r0.5]],
+        particlelife        = 44,
+        particlelifespread  = 44,
+        particlesize        = 44,
+        particlesizespread  = 88,
         particlespeed       = 0.10,
         particlespeedspread = 0.16,
         rotParams           = [[-5 r10, 0, -180 r360]],
@@ -1430,6 +1366,7 @@ local definitions = {
         sizegrowth          = [[1.3 r1.1]],
         sizemod             = 0.99,
         texture             = [[BARFlame02]],
+        castShadow          = false,
         drawOrder           = 3,
       },
     },
@@ -1464,129 +1401,6 @@ local definitions = {
       },
     },
   },
-  ["fire-burnground-large-repeat"] = {
-    usedefaultexplosions = false,
-    flamemattalways = {
-      class      = [[CSimpleParticleSystem]],
-      count      = 2,
-      air        = true,
-      ground     = true,
-      properties = {
-        airdrag             = 0.92,
-        colormap            =
-        [[0.25 0.22 0.18 0.6   0.75 0.77 0.40 0.8   0.72 0.51 0.39 1    0.67 0.47 0.34 0.9   0.63 0.41 0.27 0.8   0.58 0.33 0.29 0.7   0.48 0.29 0.22 0.6    0.11 0.08 0.12 0.50   0.016 0.011 0.07 0.4   0 0 0 0.01]],
-        directional         = false,
-        emitrot             = 90,
-        emitrotspread       = 5,
-        emitvector          = [[0.32, 0.7, 0.32]],
-        gravity             = [[-0.025 r0.05, 0.03 r0.11, -0.025 r0.05]],
-        numparticles        = 1,
-        particlelife        = 45,
-        particlelifespread  = 45,
-        particlesize        = 84,
-        particlesizespread  = 140,
-        particlespeed       = 3.20,
-        particlespeedspread = 5.20,
-        rotParams           = [[-5 r10, -20 r40, -180 r360]],
-        animParams          = [[16,6,88 r55]],
-        pos                 = [[-3 r6, -25 r12, -3 r6]],
-        sizegrowth          = [[1.10 r1.05]],
-        sizemod             = 0.98,
-        texture             = [[BARFlame02]],
-        drawOrder           = 2,
-      },
-    },
-    flamemattrandom = {
-      class      = [[CSimpleParticleSystem]],
-      count      = 2,
-      air        = true,
-      ground     = true,
-      properties = {
-        airdrag             = 0.92,
-        colormap            =
-        [[0.25 0.22 0.18 0.6   0.75 0.77 0.40 0.8   0.72 0.51 0.39 1    0.67 0.47 0.34 0.9   0.63 0.41 0.27 0.8   0.58 0.33 0.29 0.7   0.48 0.29 0.22 0.6    0.11 0.08 0.12 0.50   0.016 0.011 0.07 0.4   0 0 0 0.01]],
-        directional         = false,
-        emitrot             = 90,
-        emitrotspread       = 5,
-        emitvector          = [[0.32, 0.7, 0.32]],
-        gravity             = [[-0.025 r0.05, 0.03 r0.11, -0.025 r0.05]],
-        numparticles        = [[0.1 r1]],
-        particlelife        = 60,
-        particlelifespread  = 45,
-        particlesize        = 84,
-        particlesizespread  = 140,
-        particlespeed       = 3.20,
-        particlespeedspread = 5.20,
-        rotParams           = [[-5 r10, -20 r40, -180 r360]],
-        animParams          = [[16,6,88 r55]],
-        pos                 = [[-3 r6, -25 r12, -3 r6]],
-        sizegrowth          = [[1.10 r1.05]],
-        sizemod             = 0.98,
-        texture             = [[BARFlame02]],
-        drawOrder           = 2,
-      },
-    },
-    flamedark = {
-      class      = [[CSimpleParticleSystem]],
-      count      = 1,
-      air        = true,
-      ground     = true,
-      properties = {
-        airdrag             = 0.93,
-        colormap            =
-        [[0.26 0.29 0.21 0.1   0.36 0.27 0.29 0.90   0.34 0.43 0.40 0.88   0.33 0.29 0.20 0.85    0.33 0.27 0.18 0.83   0.29 0.22 0.14 0.80   0.29 0.20 0.13 0.75   0.22 0.16 0.11 0.55    0.05 0.06 0.09 0.35   0.021 0.022 0.023 0.2   0 0 0 0.01]],
-        directional         = false,
-        emitrot             = 85,
-        emitrotspread       = 25,
-        emitvector          = [[0.28, 0.9, 0.28]],
-        gravity             = [[-0.02 r0.04, 0.015 r0.032, -0.02 r0.04]],
-        numparticles        = [[0.32 r0.68]],
-        particlelife        = 60,
-        particlelifespread  = 60,
-        particlesize        = 100,
-        particlesizespread  = 120,
-        particlespeed       = 0.10,
-        particlespeedspread = 0.16,
-        rotParams           = [[-5 r10, 0, -180 r360]],
-        animParams          = [[16,6,80 r55]],
-        pos                 = [[0, 60 r25, 0]],
-        sizegrowth          = [[1.3 r1.1]],
-        sizemod             = 0.99,
-        texture             = [[BARFlame02]],
-        drawOrder           = 3,
-      },
-    },
-    sparks = {
-      class      = [[CSimpleParticleSystem]],
-      count      = 1,
-      air        = true,
-      ground     = true,
-      water      = true,
-      underwater = true,
-      properties = {
-        airdrag             = 0.92,
-        colormap            = [[0 0 0 0.01   0 0 0 0.01  1 0.88 0.77 0.030   0.8 0.55 0.3 0.015   0 0 0 0]],
-        directional         = true,
-        emitrot             = 35,
-        emitrotspread       = 22,
-        emitvector          = [[0, 1, 0]],
-        gravity             = [[-0.4 r0.8, -0.1 r0.3, -0.4 r0.8]],
-        numparticles        = [[0.23 r2]],
-        particlelife        = 11,
-        particlelifespread  = 11,
-        particlesize        = -24,
-        particlesizespread  = -8,
-        particlespeed       = 9,
-        particlespeedspread = 4,
-        pos                 = [[-7 r14, 17 r15, -7 r14]],
-        sizegrowth          = 0.04,
-        sizemod             = 0.91,
-        texture             = [[gunshotxl2]],
-        useairlos           = false,
-        drawOrder           = 2,
-      },
-    },
-  },
 
   ["fire-area-repeat"] = {
     usedefaultexplosions = false,
@@ -1598,18 +1412,18 @@ local definitions = {
       underwater         = true,
       water              = true,
       properties = {
-        colormap           = [[0 0 0 0.01   0.5 0.43 0.23 0.33  0.65 0.65 0.4 0.2   0.3 0.2 0.1 0.28   0.08 0.05 0.07 0.12   0 0 0 0.01]],
+        colormap           = [[0 0 0 0.01   0.5 0.43 0.2 0.18  0.65 0.65 0.3 0.4   0.3 0.2 0.1 0.28   0.08 0.05 0.07 0.12   0.08 0.05 0.07 0.08   0 0 0 0.01]],
         dir                = [[dir]],
         frontoffset        = 0,
         fronttexture       = [[FireBall02-anim]],
-        animParams         = [[8,8,80 r50]],
+        animParams         = [[8,8,90 r60]],
         length             = 0,
         sidetexture        = [[none]],
         size               = 75,
         sizegrowth         = [[-0.5 r1.2]],
-        ttl                = 22 * 2,
-        pos                = [[0, 4, 0]],
-        rotParams          = [[-2 r4, -2 r4, -180 r360]],
+        ttl                = 22 * 2.5,
+        pos                = [[0, 5, 0]],
+        rotParams          = [[-4 r8, -4 r8, -180 r360]],
         drawOrder          = -2,
         castShadow         = false,
       },
@@ -1625,7 +1439,7 @@ local definitions = {
         delay              = [[r9]],
         dir                = [[dir]],
         explosiongenerator = [[custom:fire-flames-repeat]],
-        pos                = [[-18 r36, 0 r10, -18 r36]],
+        pos                = [[-18 r36, 4 r28, -18 r36]],
       },
     },
     fireflameground = {
@@ -1639,7 +1453,7 @@ local definitions = {
           delay              = [[r9]],
           dir                = [[dir]],
           explosiongenerator = [[custom:fire-burnground-repeat]],
-          pos                = [[-15 r30, 0 r5, -15 r30]],
+          pos                = [[-15 r30, 4 r12, -15 r30]],
       },
     },
   },
@@ -1657,13 +1471,13 @@ local debugCircle = {
   underwater = true,
   water      = true,
   properties = {
-    colormap     = [[0 0 0.1 0.05   0 0 0.1 0.01   0 0 0 0]],
-    dir          = [[0, 1, 0]],
-    drawOrder    = 2,
+    colormap     = [[0 0 0 0.1   0 0 0 1   0 0 0 0.1]],
+    dir          = [[dir]],
+    drawOrder    = 0,
     frontoffset  = 0,
     fronttexture = [[blastwave]],
     length       = 0,
-    pos          = [[0, 0, 0]],
+    pos          = [[0, 8, 0]],
     rotParams    = [[0, 0, 0]],
     sidetexture  = [[none]],
     size         = 75,
@@ -1681,35 +1495,54 @@ local function circularAreaOfEffect(radius, ypos)
   return angle..distance..xpos..", "..ypos..", "..zpos
 end
 
+-- At higher particle counts in a CEG, swap in a larger fireball texture.
+local radiusFlame = 56
+local radiusFlameLarge = 84
+definitions["fire-flames-large-repeat"] = table.copy(definitions["fire-flames-repeat"])
+definitions["fire-flames-large-repeat"].flame1.properties.particlesize = radiusFlameLarge
+definitions["fire-flames-large-repeat"].flame1.properties.particlesizespread = radiusFlameLarge * 0.8
+definitions["fire-flames-large-repeat"].blacksmoke.properties.particlesize = radiusFlameLarge
+definitions["fire-flames-large-repeat"].blacksmoke.properties.particlesizespread = radiusFlameLarge
+definitions["fire-burnground-large-repeat"] = table.copy(definitions["fire-burnground-repeat"])
+definitions["fire-burnground-large-repeat"].flamemattalways.properties.airdrag = 0.92
+definitions["fire-burnground-large-repeat"].flamemattalways.properties.particlesize = radiusFlameLarge
+definitions["fire-burnground-large-repeat"].flamemattalways.properties.particlesizespread = radiusFlameLarge * 1.4 -- this is starting to be too large for the texture
+definitions["fire-burnground-large-repeat"].flamemattrandom.properties.particlesize = radiusFlame
+definitions["fire-burnground-large-repeat"].flamemattrandom.properties.particlesizespread = radiusFlameLarge * 1.4
+
 for ii = 1, #areaCegSizes do
   local expgen = table.copy(definitions['fire-area-repeat'])
-
   local radius = areaCegSizes[ii]
-  local radiusFlame = 64
+
+  local radiusFlame = 56
   local inset = radiusFlame * 0.5
 
-  local count, delay, pos
-  count = math.ceil((radius ^ 2 / radiusFlame ^ 2) * (1/5)) -- longer particle life => decrease this fraction
+  local count, delay, posArea, posGround
+  count = math.ceil((1/5) * (radius / radiusFlame) ^ 2) -- longer particle life => decrease this fraction
   if count > 4 then
+    -- Reduce the total particle count by spawning larger fire particles
     expgen.fireflamearea.properties.explosiongenerator = [[custom:fire-flames-large-repeat]]
     expgen.fireflameground.properties.explosiongenerator = [[custom:fire-burnground-large-repeat]]
     radiusFlame = 84
     inset = radiusFlame * 0.5
-    count = math.ceil((radius ^ 2 / radiusFlame ^ 2) * (2/3))
+    count = math.ceil((1/5) * (radius / radiusFlame) ^ 2) -- longer particle life => decrease this fraction
   end
-  delay = "r"..(4 * math.floor(math.sqrt(count)))
-  if count == 1 then
-    pos = string.format([[%f r%f, r%f, %f r%f]], -radius / 4, radius / 2, 20, -radius / 4, radius / 2)
-  else
-    pos = circularAreaOfEffect(radius - inset, ypos)
-  end
+
+  local framesDelayMax = math.floor(math.sqrt(2 * count * math.sqrt(22)))
+  delay = framesDelayMax > 4 and ("r"..framesDelayMax) or nil
+
+  posArea = circularAreaOfEffect(radius - inset, [[8 r]]..radiusFlame/2)
+  posGround = circularAreaOfEffect(radius - inset, [[-8 r]]..radiusFlame/3)
 
   expgen.fireflamearea.count = count
   expgen.fireflameground.count = count
+
   expgen.fireflamearea.properties.delay = delay
   expgen.fireflameground.properties.delay = delay
-  expgen.fireflamearea.properties.pos = pos
-  expgen.fireflameground.properties.pos = pos
+
+  expgen.fireflamearea.properties.pos = posArea
+  expgen.fireflameground.properties.pos = posGround
+
   expgen.under.properties.size = (radius + radiusFlame) * 0.5
 
   if debugEffects == true then
@@ -1717,7 +1550,7 @@ for ii = 1, #areaCegSizes do
     expgen.debugcircle.properties.size = radius
   end
 
-  local name = 'fire-area-' .. math.floor(radius) .. '-repeat'
+  local name = 'fire-area-'..math.floor(radius)..'-repeat'
   definitions[name] = expgen
 end
 
