@@ -44,16 +44,17 @@ local damage, time, range, resistance = 30, 10, 75, "none"
 --------------------------------------------------------------------------------
 -- Local variables -------------------------------------------------------------
 
-local timedDamageWeapons
-local unitDamageImmunity
+local frameInterval = math.round(Game.gameSpeed * damageInterval)
+local frameCegShift = math.round(Game.gameSpeed * damageInterval * 0.5)
 
-local aliveExplosions
-local frameExplosions
-local gameFrame
-local frameIndex
+local timedDamageWeapons = {}
+local unitDamageImmunity = {}
 
-local cegOffset = math.round(Game.gameSpeed * damageInterval * 0.5)
-damageInterval = math.round(Game.gameSpeed * damageInterval)
+local aliveExplosions = {}
+local frameExplosions = {}
+local frameNumber = 0
+
+local explosionCount = 0
 
 --------------------------------------------------------------------------------
 -- Local functions -------------------------------------------------------------
@@ -67,9 +68,9 @@ local function getExplosionParams(def, prefix)
         frames     = def.customParams[ prefix.."time"       ] or time,
         range      = def.customParams[ prefix.."range"      ] or range,
     }
-    params.damage = tonumber(params.damage) * (damageInterval/Game.gameSpeed)
+    params.damage = tonumber(params.damage) * (frameInterval/Game.gameSpeed)
     params.frames = tonumber(params.frames) * Game.gameSpeed
-    params.frames = math.round(params.frames / damageInterval) * damageInterval
+    params.frames = math.round(params.frames / frameInterval) * frameInterval
     params.range = tonumber(params.range)
     params.resistance = string.lower(params.resistance)
     return params
@@ -101,13 +102,84 @@ local function getNearestCEG(params)
     end
 end
 
+local spGetGroundHeight = Spring.GetGroundHeight
+local spGetGroundNormal = Spring.GetGroundNormal
+local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectileID)
+    local explosion = timedDamageWeapons[weaponDefID]
+    local elevation = math.max(spGetGroundHeight(px, pz), 0)
+    if py <= elevation + explosion.range then
+        local dx, dy, dz
+        if elevation > 0 then
+            dx, dy, dz = spGetGroundNormal(px, pz, true)
+        end
+        frameExplosions[#frameExplosions + 1] = {
+            weapon     = weaponDefID,
+            owner      = attackerID,
+            x          = px,
+            y          = elevation,
+            z          = pz,
+            dx         = dx,
+            dy         = dy,
+            dz         = dz,
+            ceg        = explosion.ceg,
+            range      = explosion.range,
+            resistance = explosion.resistance,
+            damage     = explosion.damage,
+            damageCeg  = explosion.damageCeg,
+            endFrame   = explosion.frames + frameNumber,
+        }
+        explosionCount = explosionCount + 1
+    end
+end
+
+local spSpawnCEG = Spring.SpawnCEG
+
+local function spawnAreaCEGs(loopIndex)
+    for index, area in pairs(aliveExplosions[loopIndex]) do
+        spSpawnCEG(area.ceg, area.x, area.y, area.z, area.dx, area.dy, area.dz)
+    end
+end
+
+local spGetUnitsInSphere = Spring.GetUnitsInSphere
+local spGetFeaturesInSphere = Spring.GetFeaturesInSphere
+local spGetUnitDefID = Spring.GetUnitDefID
+
+local function damageTargetsInAreas(timedAreas, gameFrame)
+    for index, area in pairs(timedAreas) do
+        local unitsInRange = spGetUnitsInSphere(area.x, area.y, area.z, area.range)
+        for j = 1, #unitsInRange do
+            local unitID = unitsInRange[j]
+            if not unitDamageImmunity[spGetUnitDefID(unitID)][area.resistance] then
+                local ux, uy, uz = Spring.GetUnitPosition(unitID)
+                spSpawnCEG(area.damageCeg, ux, uy, uz)
+                Spring.AddUnitDamage(unitID, area.damage, nil, area.owner, area.weapon)
+            end
+        end
+
+        local featuresInRange = spGetFeaturesInSphere(area.x, area.y, area.z, area.range)
+        for j = 1, #featuresInRange do
+            local featureID = featuresInRange[j]
+            local fx, fy, fz = Spring.GetFeaturePosition(featureID)
+            spSpawnCEG(area.damageCeg, fx, fy, fz)
+            local health = Spring.GetFeatureHealth(featureID) - area.damage
+            if health > 1 then
+                Spring.SetFeatureHealth(featureID, health)
+            else
+                Spring.DestroyFeature(featureID)
+            end
+        end
+
+        if area.endFrame <= gameFrame then
+            timedAreas[index] = nil
+        end
+    end
+end
+
 --------------------------------------------------------------------------------
 -- Gadget callins --------------------------------------------------------------
 
 function gadget:Initialize()
     timedDamageWeapons = {}
-    unitDamageImmunity = {}
-
     local weaponDefBaseIndex = 0
     for weaponDefID = weaponDefBaseIndex, #WeaponDefs do
         local weaponDef = WeaponDefs[weaponDefID]
@@ -123,6 +195,8 @@ function gadget:Initialize()
         end
     end
 
+    -- This simplifies writing tweakdefs to modify area_on[x]_range for balance,
+    -- e.g. setting all ranges to 80% their original amount will work correctly.
     for weaponDefID, params in pairs(timedDamageWeapons) do
         if  string.find(params.ceg, pattern, nil, false) and not
             string.find(params.ceg, sub1..math.floor(params.range)..sub2)
@@ -140,6 +214,7 @@ function gadget:Initialize()
         end
     end
 
+    unitDamageImmunity = {}
     local areaDamageTypes = {}
     for weaponDefID, params in pairs(timedDamageWeapons) do
         if params.resistance == nil then
@@ -180,12 +255,11 @@ function gadget:Initialize()
             Script.SetWatchExplosion(weaponDefID, true)
         end
         aliveExplosions = {}
-        for ii = 1, damageInterval do
+        for ii = 1, frameInterval do
             aliveExplosions[ii] = {}
         end
-        gameFrame = Spring.GetGameFrame()
-        frameIndex = 1 + (gameFrame % damageInterval)
-        frameExplosions = aliveExplosions[frameIndex]
+        frameNumber = Spring.GetGameFrame()
+        frameExplosions = aliveExplosions[1 + (frameNumber % frameInterval)]
     else
         Spring.Log(gadget:GetInfo().name, LOG.INFO, "No timed areas found. Removing gadget.")
         gadgetHandler:RemoveGadget(self)
@@ -193,78 +267,20 @@ function gadget:Initialize()
 end
 
 function gadget:Explosion(weaponDefID, px, py, pz, attackerID, projectileID)
-    if timedDamageWeapons[weaponDefID] ~= nil then
-        local explosion = timedDamageWeapons[weaponDefID]
-        local elevation = math.max(Spring.GetGroundHeight(px, pz), 0)
-        if py <= elevation + explosion.range then
-            local dx, dy, dz
-            if elevation > 0 then
-                dx, dy, dz = Spring.GetGroundNormal(px, pz, true)
-            end
-
-            frameExplosions[#frameExplosions+1] = {
-                x = px,
-                y = elevation,
-                z = pz,
-                dx = dx,
-                dy = dy,
-                dz = dz,
-                endFrame = gameFrame + explosion.frames,
-                damage = explosion.damage,
-                range = explosion.range,
-                ceg = explosion.ceg,
-                damageCeg = explosion.damageCeg,
-                resistance = explosion.resistance,
-                owner = attackerID,
-                weapon = weaponDefID,
-            }
-        end
+    if timedDamageWeapons[weaponDefID] then
+        addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectileID)
     end
 end
 
 function gadget:GameFrame(frame)
-    local offset = 1 + ((frame + cegOffset) % damageInterval)
-    for _, explosionStats in pairs(aliveExplosions[offset]) do
-        Spring.SpawnCEG(explosionStats.ceg, explosionStats.x, explosionStats.y + 8, explosionStats.z, explosionStats.dx, explosionStats.dy, explosionStats.dz)
-    end
+    local indexDamage = 1 + (frame % frameInterval)
+    local indexExpGen = 1 + ((frame + frameCegShift) % frameInterval)
 
-    offset = 1 + (frame % damageInterval)
-    local explosions = aliveExplosions[offset]
-    for explosionID, explosionStats in pairs(explosions) do
-        local damage = explosionStats.damage
-        local resistance = explosionStats.resistance
-        local ownerID = explosionStats.owner
-        local weaponID = explosionStats.weapon
+    spawnAreaCEGs(indexExpGen)
 
-        local unitsInRange = Spring.GetUnitsInSphere(explosionStats.x, explosionStats.y, explosionStats.z, explosionStats.range)
-        for j = 1,#unitsInRange do
-            local unitID = unitsInRange[j]
-            if not unitDamageImmunity[Spring.GetUnitDefID(unitID)][resistance] then
-                Spring.AddUnitDamage(unitID, damage, 0, ownerID, weaponID)
-                local ux, uy, uz = Spring.GetUnitPosition(unitID)
-                Spring.SpawnCEG(explosionStats.damageCeg, ux, uy + 8, uz)
-            end
-        end
+    local frameAreas = aliveExplosions[indexDamage]
+    damageTargetsInAreas(frameAreas, frame)
 
-        local featuresInRange = Spring.GetFeaturesInSphere(explosionStats.x, explosionStats.y, explosionStats.z, explosionStats.range)
-        for j = 1,#featuresInRange do
-            local featureID = featuresInRange[j]
-            local health = Spring.GetFeatureHealth(featureID)
-            if health > damage then
-                Spring.SetFeatureHealth(featureID, health - damage)
-            else
-                Spring.DestroyFeature(featureID)
-            end
-            local ux, uy, uz = Spring.GetFeaturePosition(featureID)
-            Spring.SpawnCEG(explosionStats.damageCeg, ux, uy + 8, uz)
-        end
-
-        if explosionStats.endFrame <= frame then
-            explosions[explosionID] = nil
-        end
-    end
-
-    gameFrame = frame
-    frameIndex = offset
-    frameExplosions = explosions
+    frameExplosions = frameAreas
+    frameNumber = frame
 end
