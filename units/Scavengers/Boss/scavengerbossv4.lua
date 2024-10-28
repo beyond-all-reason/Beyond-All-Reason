@@ -603,10 +603,10 @@ for difficulty, stats in pairs(difficultyParams) do
 				customparams = {
 					area_onhit_ceg = "fire-area-75-repeat",
 					area_onhit_damageCeg = "burnflamexl-gen",
-					area_onhit_time = 12,
+					area_onhit_resistance = "fire",
 					area_onhit_damage = 20,
 					area_onhit_range = 150,
-					area_onhit_resistance = "test",
+					area_onhit_time = 12,
 				},
 				damage = {
 					default = stats.shotgunDamage/3,
