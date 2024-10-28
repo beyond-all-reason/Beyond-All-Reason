@@ -8042,7 +8042,7 @@ local unitLights = {
 			lightType = 'point',
 			pieceName = 'base',
 			lightConfig = { posx = 4.5, posy = 6, posz = -13, radius = 8,
-							color2r = 1, color2g = 1, color2b = 1, colortime = 0,
+							color2r = -1, color2g = 1, color2b = 1, colortime = 45,
 							r = -1, g = 1, b = 1, a = 0.8,
 							modelfactor = 0.3, specular = 0.5, scattering = 0.97, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
