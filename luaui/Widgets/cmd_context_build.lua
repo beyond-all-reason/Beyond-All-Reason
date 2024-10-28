@@ -260,6 +260,8 @@ function widget:DrawWorld()
 		}
 		name = amphibBuildings[name] or name
 	end
+	
+	--local cacheunitDefID = 0 --Need to somehow assign some value before it is first used, unless it is going to be skipped on first run
 
 	-- Water level is always 0, but there's minor inaccuracy in the chain, so fuzz it a bit
 	if pos[2] < 0.01 then
@@ -267,6 +269,10 @@ function widget:DrawWorld()
 			if isPregame then
 				setPreGamestartDefID(alt)
 			else
+				--[[ if cacheunitDefID is in waterbuilding table then
+				find index and SetActiveCommand build its pair
+			else
+				]]
 				SetActiveCommand('buildunit_'..name)
 			end
 		end
@@ -275,12 +281,18 @@ function widget:DrawWorld()
 			if isPregame then
 				setPreGamestartDefID(alt)
 			else
+				--[[ if cacheunitDefID is in groundbuilding table then
+				find index and SetActiveCommand build its pair 
+			else
+				]]
 				SetActiveCommand('buildunit_'..unitName[alt])
 			end
 		end
 	end
 	lastUpdateTime = currentTime()
 end
+
+--local cacheunitDefID = unitDefID --I am guessing to "cache" the ID you would assign it here
 
 function widget:GameStart()
 	isPregame = false
