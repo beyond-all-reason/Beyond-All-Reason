@@ -335,7 +335,7 @@ local function AssignLightsToAllWeapons()
 		-- end
 
 		if weaponDef.type == 'BeamLaser' then
-			muzzleFlash = false
+			--muzzleFlash = true
 
 
 			if not weaponDef.paralyzer then
@@ -343,7 +343,7 @@ local function AssignLightsToAllWeapons()
 				t.color2r, t.color2g, t.color2b = r, g, b
 			end
 
-			radius = (3.5 * (weaponDef.size * weaponDef.size * weaponDef.size)) + (5 * radius * orgMult)
+			radius = (4.2 * (weaponDef.size * weaponDef.size * weaponDef.size)) + (5 * radius * orgMult)
 			t.a = (orgMult * 0.1) / (0.2 + weaponDef.beamtime)
 			--projectileDefLights[weaponID].yOffset = 64
 
@@ -386,7 +386,7 @@ local function AssignLightsToAllWeapons()
 
 		elseif weaponDef.type == 'Cannon' then
 			t.a = orgMult*0.17
-			radius = (radius + (weaponDef.size * 35)) * 0.44
+			radius = (radius + (weaponDef.size * 35)) * 0.48
 			sizeclass = GetClosestSizeClass(radius)
 			projectileDefLights[weaponID] = GetLightClass("CannonProjectile", "Plasma", sizeclass, t)
 			radius = ((weaponDef.damageAreaOfEffect*2) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
@@ -424,11 +424,18 @@ local function AssignLightsToAllWeapons()
 			if scavenger then
 				t.r, t.g, t.b = 0.99, 0.9, 1
 			end
-			t.a = orgMult*1.15
+			t.a = orgMult*1.6
 			t.colortime = 2
-			muzzleFlashLights[weaponID] = GetLightClass("MuzzleFlash", "White", GetClosestSizeClass(radius*0.6), t)
+		
+			local adjusted_radius = radius * 0.6
+		
+			if damage < 150 then -- increase muzzleflash for low-damage units to remain visible
+				adjusted_radius = adjusted_radius * 2.8  -- Increase for low-damage weapons
+			end
+		
+			muzzleFlashLights[weaponID] = GetLightClass("MuzzleFlash", "White", GetClosestSizeClass(adjusted_radius), t)
 			muzzleFlashLights[weaponID].yOffset = muzzleFlashLights[weaponID].lightConfig.radius / 5
-		end
+		end 
 
 		if explosionLight then
 			if aa then
@@ -538,7 +545,7 @@ explosionLightsNames["cortrem_tremor_focus_fire"] =
 GetLightClass("Explosion", nil, "Tiny", {colortime = 3.5, sustain = 1, lifetime = 1, scattering = 0.7})
 
 explosionLightsNames["cortrem_tremor_spread_fire"] =
-GetLightClass("Explosion", nil, "Tiny", {colortime = 3.5, sustain = 1, lifetime = 1, scattering = 0.7})
+GetLightClass("Explosion", nil, "Large", {colortime = 3.5, sustain = 1, lifetime = 1, scattering = 0.7})
 
 --corforge
 projectileDefLightsNames["corforge_flamethrower_ce"] =
@@ -589,8 +596,8 @@ muzzleFlashLightsNames["armvulc_rflrpc"] =
 GetLightClass("MuzzleFlash", nil, "Medium", {posx = 0, posy = 0, posz = 0,
 											 r = 1.2, g = 1.1, b = 1.0, a = 0.5,
 											 color2r = 0.3, color2g = 0.12, color2b = 0.05, colortime = 4,
-											 modelfactor = 0.5, specular = 0.3, scattering = 2.8, lensflare = 4,
-											 lifetime = 20, sustain = 2})
+											 modelfactor = 0.5, specular = 0.3, scattering = 0.8, lensflare = 14,
+											 lifetime = 17, sustain = 2})
 muzzleFlashLightsNames["armvulc_rflrpc"].yOffset = 4
 explosionLightsNames["armvulc_rflrpc"] =
 GetLightClass("Explosion", nil, "Large", {colortime = 3.5, sustain = 14, lifetime = 26, scattering = 0.7})
@@ -756,22 +763,29 @@ GetLightClass("MissileProjectile", "Warm", "Small", {a = 0.60,
 											modelfactor = 0.1, specular = 0.01, scattering = 0.5, lensflare = 8})
 
 --corkorg
+explosionLightsNames["corkorg_corkorg_laser"] =
+GetLightClass("Explosion", "Fire", "SmallMedium", {r = 0.54, g = 0.45, b = 0.12, a = 0.25,
+										 color2r = 1.2, color2g = 0.5, color2b = 0.2, colortime = 0.3,
+										 sustain = 2, lifetime = 3,
+										 modelfactor = -0.3, specular = -0.1, scattering = 1.95, lensflare = 0})
+
+
 projectileDefLightsNames["corkorg_corkorg_laser"] =
-GetLightClass("LaserProjectile", nil, "Medium", {a = 0.08,
-											r = 1.0, g = 0.65, b = 0.1,
-											color2r = 0.3, color2g = 0.1, color2b = 0.03, colortime = 10,
+GetLightClass("LaserProjectile", nil, "Medium", {a = 0.10,
+											r = 1.0, g = 0.65, b = 0.1, radius = 240,
+											color2r = 0.33, color2g = 0.05, color2b = 0.03, colortime = 3,
 											pos2x = 0, pos2y = 100, pos2z = 0,
 											modelfactor = 0.5, specular = 0.05, scattering = 0.05, lensflare = 16,
-											lifetime = 60, sustain = 4})
+											lifetime = 6, sustain = 2})
 
 muzzleFlashLightsNames["corkorg_corkorg_laser"] =
-GetLightClass("MuzzleFlash", nil, "Large", {posx = 0, posy = 48, posz = 0,
+GetLightClass("MuzzleFlash", "Fire", "Mega", {posx = 120, posy = 82, posz = 0,
 											 r = 1.2, g = 1.1, b = 0.5, a = 0.9,
-											 color2r = 0.3, color2g = 0.12, color2b = 0.05, colortime = 10,
+											 color2r = 0.3, color2g = 0.12, color2b = 0.05, colortime = 20,
 											 modelfactor = 0.5, specular = 0.3, scattering = 2.8, lensflare = 9,
 											 lifetime = 120, sustain = 4})
 
-muzzleFlashLightsNames["corkorg_corkorg_laser"].yOffset = 32
+-- muzzleFlashLightsNames["corkorg_corkorg_laser"].yOffset = 32
 
 --corkorg_shotgun
 projectileDefLightsNames["corkorg_corkorg_fire"] =
@@ -780,7 +794,7 @@ GetLightClass("CannonProjectile", "Plasma", "Smaller", {a = 0.04,
 
 --corkorg_rocket
 projectileDefLightsNames["corkorg_corkorg_rocket"] =
-GetLightClass("MissileProjectile", "Warm", "SmallMedium", {a = 0.60,
+GetLightClass("MissileProjectile", "Warm", "SmallMedium", {a = 0.40,
 											modelfactor = 0.5, specular = 0.05, scattering = 0.45, lensflare = 5})
 
 --corkorg_scav
@@ -839,6 +853,13 @@ GetLightClass("Explosion", "Green", "Largest", {a = 0.6,
 	 										color2r = 0.32, color2g = 0.5, color2b = 0.12, colortime = 50,
 											sustain = 10, lifetime = 400,
     										modelfactor = 0.1, specular = 0.2, scattering = 0.3, lensflare = 6})
+
+muzzleFlashLightsNames["armpw_emg"] =
+GetLightClass("MuzzleFlash", "Warm", "Medium", {posx = 1, posy = 1, posz = 1, radius = 50,
+											r = 1.2, g = 1.1, b = 1.0, a = 0.5,
+											color2r = 0.3, color2g = 0.12, color2b = 0.05, colortime = 4,
+											modelfactor = 0.5, specular = 0.3, scattering = 0.8, lensflare = 14,
+											lifetime = 17, sustain = 2})
 
 --corjuno SCAV
 projectileDefLightsNames["corjuno_scav_juno_pulse"] =
