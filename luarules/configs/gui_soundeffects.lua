@@ -2953,6 +2953,11 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-tnk-huge-ok",
 		BaseSoundWeaponType = "plasma-large",
 	},
+	leggobt3 = {
+		BaseSoundSelectType = "cor-bot-huge-sel",
+		BaseSoundMovementType = "cor-bot-large-ok",
+		BaseSoundWeaponType = "plasma-large",
+	},
 
 	-- LEGION T1 VEHICLES
 	legcv = {
@@ -3088,6 +3093,11 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-air-gunship-alt-sel",
 		BaseSoundMovementType = "arm-air-gunship-alt-ok",
 		BaseSoundWeaponType = "fastemg-small",
+	},
+	legmost3 = {
+		BaseSoundSelectType = "cor-air-gunship-large-sel",
+		BaseSoundMovementType = "cor-air-gunship-large-ok",
+		BaseSoundWeaponType = "rocketalt-large",
 	},
 	legkam = {
 		BaseSoundSelectType = "arm-air-bomber-sel",

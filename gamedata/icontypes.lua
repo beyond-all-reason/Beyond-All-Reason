@@ -2391,6 +2391,10 @@ local icontypes = {
 		bitmap = "icons/bot_t1_raid_0.7.png",
 		size = 0.60000002
 	},
+	leggobt3 = {
+		bitmap = "icons/leggobt3.png",
+		size = 2
+	},
 	babyleggob = {
 		bitmap = "icons/bot_t1_raid_0.7.png",
 		size = 0.60000002
@@ -2534,6 +2538,10 @@ local icontypes = {
 	legmos = {
 		bitmap = "icons/air_hover_rocket.png",
 		size = 1.25999999
+	},
+	legmost3 = {
+		bitmap = "icons/air_hover_rocket.png",
+		size = 2
 	},
 	legmrv = {
 		bitmap = "icons/vehicle_t2_raid.png",
