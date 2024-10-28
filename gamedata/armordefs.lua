@@ -573,6 +573,7 @@ local armorDefs = {
 		"legstronghold",
 		"legwhisper",
 		"critter_gull",
+		"armfify",
 	},
 	shields = {
 		-- Intentionally left blank. To be used in shield weapondefs only!
