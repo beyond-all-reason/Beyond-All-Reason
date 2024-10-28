@@ -295,6 +295,7 @@ local LandUnitsList = {
 			--Cortex
 			["corakt4_scav"] = 3,
 			--Legion
+			["leggobt3_scav"] = 3,
 			--N/A
 		},
 		[7] = {
