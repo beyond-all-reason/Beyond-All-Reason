@@ -541,6 +541,7 @@ function UnitDef_Post(name, uDef)
 		elseif name == "leggant" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "legsrailt4"
+			uDef.buildoptions[numBuildoptions + 2] = "leggobt3"
 		elseif name == "armca" or name == "armck" or name == "armcv" then
 			--local numBuildoptions = #uDef.buildoptions
 		elseif name == "corca" or name == "corck" or name == "corcv" then
