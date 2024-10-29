@@ -46,6 +46,7 @@ struct SUniformsBuffer {
 layout(std140, binding=1) readonly buffer UniformsBuffer {
 	SUniformsBuffer uni[];
 };
+#define UNITID (uni[instData.y].composite >> 16)
 
 #line 10000
 
@@ -122,6 +123,8 @@ void main()
 	// we need to go from light-space to world-space
 	vec3 lightCenterPosition =  v_worldPosRad.xyz;
 	v_lightcolor = lightcolor;
+        float selfIllumMod = 1.0;
+	
 	if (attachedtounitID > 0){
 		mat4 worldMatrix = mat[instData.x];
 		placeInWorldMatrix = worldMatrix;
@@ -138,6 +141,8 @@ void main()
 		uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
 		vec4 teamCol = teamColor[teamIndex];
 		if (any(lessThan(lightcolor.rgb, vec3(-0.01)))) v_lightcolor.rgb = teamCol.rgb;
+                
+        selfIllumMod = max(-0.2, sin(time * 2.0/30.0 + float(UNITID) * 0.1)) + 0.2;
 	}
 	float elapsedframes = time - otherparams.x;
 	float lifetime = otherparams.y;
@@ -179,8 +184,11 @@ void main()
 		if  (attachedtounitID > 0.5) {
 			// for point lights, if the colortime is anything sane (>0), then modulate the light with it.
 			if (colortime >0.5){
-				v_lightcolor.rgb = mix( color2.rgb, v_lightcolor.rgb, cos((elapsedframes * 6.2831853) / colortime ) * 0.5 + 0.5); }
-				
+				v_lightcolor.rgb = mix( color2.rgb, v_lightcolor.rgb, cos((elapsedframes * 6.2831853) / colortime ) * 0.5 + 0.5);
+            } else if (colortime <= -1.0){
+                v_lightcolor.a *= mix(1.0, selfIllumMod, -1.0 / colortime) ;
+			}
+			
 		}else{
 			if (colortime >0.0){
 				

@@ -1499,12 +1499,28 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		local alt, ctrl = Spring.GetModKeyState()
 		local devui = (Spring.GetConfigInt('DevUI', 0) == 1)
 
-		if autoupdate and ctrl and (isSinglePlayer or spec) and devui then
+		if autoupdate and alt and ctrl and (isSinglePlayer or spec) and devui then
+			-- draw a full-screen black quad first!
+			local camX, camY, camZ = Spring.GetCameraPosition()
+			local camDirX,camDirY,camDirZ = Spring.GetCameraDirection()
+			glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+			gl.Culling(GL.BACK)
+			gl.DepthTest(false)
+			gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove
+			gl.Color(0,0,0,1)
+			gl.PushMatrix()
+			gl.Color(0,0,0,1.0)
+			gl.Translate(camX+(camDirX*360),camY+(camDirY*360),camZ+(camDirZ*360))
+			gl.Billboard()
+			gl.Rect(-5000, -5000, 5000, 5000)
+			gl.PopMatrix()
+		end
+		if autoupdate and ctrl and (not alt) and (isSinglePlayer or spec) and devui then
 			glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		else
 			glBlending(GL.SRC_ALPHA, GL.ONE)
 		end
-		if autoupdate and alt and (isSinglePlayer or spec) and devui then return end
+		if autoupdate and alt and (not ctrl) and (isSinglePlayer or spec) and devui then return end
 
 		gl.Culling(GL.BACK)
 		gl.DepthTest(false)
