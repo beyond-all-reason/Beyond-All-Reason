@@ -186,7 +186,7 @@ void main()
 			if (colortime >0.5){
 				v_lightcolor.rgb = mix( color2.rgb, v_lightcolor.rgb, cos((elapsedframes * 6.2831853) / colortime ) * 0.5 + 0.5);
             } else if (colortime <= -1.0){
-                v_lightcolor.a *= selfIllumMod;
+                v_lightcolor.a *= mix(1.0, selfIllumMod, -1.0 / colortime) ;
 			}
 			
 		}else{
