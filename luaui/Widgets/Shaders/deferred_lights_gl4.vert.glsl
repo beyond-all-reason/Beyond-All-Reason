@@ -142,7 +142,7 @@ void main()
 		vec4 teamCol = teamColor[teamIndex];
 		if (any(lessThan(lightcolor.rgb, vec3(-0.01)))) v_lightcolor.rgb = teamCol.rgb;
                 
-                selfIllumMod = max(-0.2, sin(simFrame * 2.0/30.0 + float(UNITID) * 0.1)) + 0.2;
+        selfIllumMod = max(-0.2, sin(time * 2.0/30.0 + float(UNITID) * 0.1)) + 0.2;
 	}
 	float elapsedframes = time - otherparams.x;
 	float lifetime = otherparams.y;
@@ -185,8 +185,8 @@ void main()
 			// for point lights, if the colortime is anything sane (>0), then modulate the light with it.
 			if (colortime >0.5){
 				v_lightcolor.rgb = mix( color2.rgb, v_lightcolor.rgb, cos((elapsedframes * 6.2831853) / colortime ) * 0.5 + 0.5);
-                        } else if (colortime >= -1.0){
-                                v_lightcolor.a *= selfIllumMod;
+            } else if (colortime < 1.0){
+                v_lightcolor.a *= selfIllumMod;
 			}
 			
 		}else{
