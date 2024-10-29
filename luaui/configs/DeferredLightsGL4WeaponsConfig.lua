@@ -424,13 +424,13 @@ local function AssignLightsToAllWeapons()
 			if scavenger then
 				t.r, t.g, t.b = 0.99, 0.9, 1
 			end
-			t.a = orgMult*1.6
-			t.colortime = 2
+			t.a = orgMult*2.9
+			t.colortime = 2.3
 		
 			local adjusted_radius = radius * 0.6
 		
 			if damage < 150 then -- increase muzzleflash for low-damage units to remain visible
-				adjusted_radius = adjusted_radius * 2.8  -- Increase for low-damage weapons
+				adjusted_radius = adjusted_radius * 2.4  -- Increase for low-damage weapons
 			end
 		
 			muzzleFlashLights[weaponID] = GetLightClass("MuzzleFlash", "White", GetClosestSizeClass(adjusted_radius), t)
@@ -445,8 +445,8 @@ local function AssignLightsToAllWeapons()
 				t.r, t.g, t.b = 0.99, 0.9, 1
 			end
 			t.lifetime = life
-			t.colortime = 25 / life --t.colortime = life * 0.17
-			t.a = orgMult
+			t.colortime = 40 / life --t.colortime = life * 0.17
+			t.a = orgMult * 1.2
 
 			if weaponDef.type == 'DGun' then
 				t.a = orgMult*0.17
@@ -515,12 +515,12 @@ local function AssignLightsToAllWeapons()
 					--t.colortime = 8
 				else
 					-- make more white
-					t.r = (1.4 + t.r) / 2.3
-					t.g = (1.4 + t.g) / 2.3
-					t.b = (1.4 + t.b) / 2.3
-					t.a = orgMult*1.6
+					t.r = (1.4 + t.r) / 1.3
+					t.g = (1.4 + t.g) / 1.3
+					t.b = (1.4 + t.b) / 1.3
+					t.a = orgMult*2.0
 				end
-				local mult = 0.55
+				local mult = 0.8
 				t.color2r, t.color2g, t.color2b = r*mult, g*mult, b*mult
 				sizeclass = GetClosestSizeClass(radius)
 			end
