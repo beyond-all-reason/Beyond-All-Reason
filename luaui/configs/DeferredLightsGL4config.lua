@@ -20110,7 +20110,7 @@ local unitLights = {
 			lightType = 'point',
 			pieceName = 'base',
 			lightConfig = { posx = 0, posy = 13, posz = 13.5, radius = 8,
-							color2r = 0.3, color2g = 0.3, color2b = 0.3, colortime = 90,
+							color2r = 0.3, color2g = 0.3, color2b = 0.3, colortime = 0,
 							r = -1, g = 0.15, b = 0.15, a = 0.4 ,
 							modelfactor = 0.5, specular = 0.3, scattering = 0.8, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
