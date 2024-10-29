@@ -513,6 +513,7 @@
 		"gametypeInfo": {
 			"killAllUnits": "Kill all enemy units",
 			"killAllCommanders": "Kill all enemy Commanders",
+			"killAllBuilders": "Kill all enemy builders",
 			"commandersSurviveDgun": "Commanders survive D-Guns and commander explosions",
 			"victoryCondition": "Victory condition",
 			"owncomends": "Losing your commander = losing control of your units / resigning"
