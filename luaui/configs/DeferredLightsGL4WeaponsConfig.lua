@@ -120,6 +120,7 @@ local BaseClasses = {
 		yOffset = 0, -- Y offsets are only ever used for explosions!
 		lightConfig = {
 			posx = 0, posy = 0, posz = 0, radius = 240,
+			dirx = 0, diry = 10, dirz = 0, theta = 0.93, -- Give explosions a bit of a vertical bounce component
 			r = 2, g = 2, b = 2, a = 0.6,
 			color2r = 0.7, color2g = 0.55, color2b = 0.28, colortime = 0.1, -- point lights only, colortime in seconds for unit-attached
 			modelfactor = 0.15, specular = 0.15, scattering = 0.4, lensflare = 1,
