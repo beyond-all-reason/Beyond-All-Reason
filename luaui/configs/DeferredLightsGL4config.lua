@@ -14855,7 +14855,7 @@ local unitLights = {
 			pieceName = 'torso',
 			lightConfig = { posx = 0, posy = 12, posz = 0, radius = 300,
 							dirx = 0, diry = 0.5, dirz = 1, theta = 0.16,
-							r = 1, g = 1, b = 1, a = 0.38,
+							r = 1, g = 1, b = 1, a = 0.32,
 							modelfactor = 0, specular = 1, scattering = 2, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
