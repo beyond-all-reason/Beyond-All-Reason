@@ -204,6 +204,30 @@ void main()
        
         // this is centered around the target positional offset, and scaled locally
         vec3 lightVertexPosition = lightCenterPosition + -1 * position.xyz * lightRadius * 1.1;
+
+		// Add animations
+		if (worldposrad2.w == 0.0) { // Why was this 1.0 and not 0.0?
+			// This allows deferred projectile lights to 'track' with frameOffset fractional times.
+			lightCenterPosition += timeInfo.w * worldposrad2.xyz;
+			lightVertexPosition += timeInfo.w * worldposrad2.xyz;
+		} else {
+			vec3 lightWorldMovement = vec3(0.0);
+
+
+			// Negative thetas mean orbit, positive means linear movement
+			if (worldposrad2.w < 0.0){
+			// Note: worldposrad2.w is an excellent place to add orbit-style world-placement light animations
+			    float zphaseoffset =  1.570796326; // half pi
+				if (worldposrad2.z == 0.0) zphaseoffset = 0.0; // dont offset Z phase no motion is expected on it
+				lightWorldMovement = sin(elapsedframes * 0.2094395 * worldposrad2.xyz + vec3(0.0, 0.0, zphaseoffset)) * (-1 * worldposrad2.w);
+			}else{
+			// for positive numbers, we can do linear movement, with acceleration in w
+			// its pretty nasty, but hey, it works
+				lightWorldMovement = worldposrad2.xyz * ( elapsedframes  +  elapsedframes * elapsedframes * (worldposrad2.w - 1.0) );
+			}
+			lightCenterPosition += lightWorldMovement;
+			lightVertexPosition += lightWorldMovement;
+		}  
        
         // tranform the vertices to world-space
         lightVertexPosition = (placeInWorldMatrix * vec4(lightVertexPosition, 1.0)).xyz;
@@ -240,26 +264,6 @@ void main()
            
  
         }
-                  if (worldposrad2.w == 0.0) { // Why was this 1.0 and not 0.0?
-                // This allows deferred projectile lights to 'track' with frameOffset fractional times.
-                lightCenterPosition += timeInfo.w * worldposrad2.xyz;
-                lightVertexPosition += timeInfo.w * worldposrad2.xyz;
-            } else {
-                vec3 lightWorldMovement = vec3(0.0);
-
-
-                // Negative thetas mean orbit, positive means linear movement
-                if (worldposrad2.w < 0.0){
-                // Note: worldposrad2.w is an excellent place to add orbit-style world-placement light animations
-                    lightWorldMovement = sin(elapsedframes * 0.2094395 * worldposrad2.xyz) * (-1 * worldposrad2.w);
-                }else{
-                // for positive numbers, we can do linear movement, with acceleration in w
-                // its pretty nasty, but hey, it works
-                    lightWorldMovement = worldposrad2.xyz * ( elapsedframes  +  elapsedframes * elapsedframes * (worldposrad2.w - 1.0) );
-                }
-                lightCenterPosition += lightWorldMovement;
-                lightVertexPosition += lightWorldMovement;
-            }  
 
 
         v_worldPosRad.xyz = lightCenterPosition;
