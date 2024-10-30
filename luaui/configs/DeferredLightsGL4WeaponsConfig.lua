@@ -53,7 +53,7 @@ local BaseClasses = {
 			posx = 0, posy = 10, posz = 0, radius = 100,
 			r = 1, g = 1, b = 1, a = 0.075,
 			pos2x = 100, pos2y = 1000, pos2z = 100, -- beam lights only, specifies the endpoint of the beam
-			modelfactor = 1, specular = 0.5, scattering = 0.1, lensflare = 1,
+			modelfactor = 1, specular = 0.5, scattering = 1.1, lensflare = 1,
 			lifetime = 0, sustain = 1, 	aninmtype = 0, -- unused
 		},
 	},
