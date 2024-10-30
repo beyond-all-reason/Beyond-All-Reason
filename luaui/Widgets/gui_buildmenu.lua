@@ -1035,7 +1035,7 @@ local function isOnQuotaBuildMode(targetDefID)
 	for _, unitID in ipairs(spGetSelectedUnits()) do
 		local uDefID = spGetUnitDefID(unitID)
 		if units.isFactory[uDefID] and table.contains(unitBuildOptions[uDefID], targetDefID) then
-			return WG.Quotas.isOnQuotaMode(unitID)
+			return WG.Quotas and WG.Quotas.isOnQuotaMode(unitID) 
 		end
 	end
 	return false
