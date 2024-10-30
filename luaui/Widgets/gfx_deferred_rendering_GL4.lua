@@ -1681,6 +1681,10 @@ function widget:Initialize()
 
 	WG['lightsgl4'].ShowPlayerCursorLight = function(value)
 		showPlayerCursorLight = value
+		-- Remove the player's cursor light on disabling this feature
+		if not showPlayerCursorLight and cursorPointLightVBO.instanceIDtoIndex["PLAYERCURSOR"] then
+			popElementInstance(cursorPointLightVBO, "PLAYERCURSOR")
+		end
 	end
 	WG['lightsgl4'].PlayerCursorLightRadius = function(value)
 		playerCursorLightRadius = value
