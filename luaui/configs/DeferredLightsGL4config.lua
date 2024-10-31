@@ -7314,6 +7314,18 @@ local unitLights = {
 							modelfactor = 0.3, specular = 0.4, scattering = 0.8, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
+
+		-- build orbit light that moves on the Z axis, and changes color
+		buildanimlight = {
+			lightType = 'point',
+			pieceName = 'body',
+			lightConfig = { posx = 0, posy = 29, posz = -16, radius = 38,
+							dirx = -0.2, diry = 0, dirz = 0.2, theta = -20,
+							color2r = 0.3, color2g = 0.3, color2b = 0.3, colortime = -1,
+							r = -1, g = 1, b = 0.3, a = 0.3,
+							modelfactor = 0.3, specular = 0.4, scattering = 0.8, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
 	},
 	['leglab'] = {
 		nanolight1 = {
@@ -12710,7 +12722,8 @@ local unitLights = {
 			pieceName = 'light',
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 950,
 							dirx = 0, diry = 0, dirz = 1, theta = 0.07,
-							r = 1, g = 1, b = 1, a = 0.45,
+							color2r = 0.8, color2g = 0.8, color2b = 0.8, colortime = -1.0, -- whiten with texture anim pulsing
+							r = 1, g = 1, b = 0.8, a = 0.45,
 							modelfactor = 0, specular = 1, scattering = 2, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
@@ -14417,10 +14430,22 @@ local unitLights = {
 			pieceName = 'emit',
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 60,
 							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
-							r = -1, g = 1, b = 1, a = 0.5,
+							r = -1, g = 1, b = 1, a = 0.2,
 							modelfactor = 0.1, specular = 1.6, scattering = 1.5, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
+		
+		fusionglow1 = {
+			lightType = 'point',
+			pieceName = 'emit',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 96,
+							color2r = 0.2, color2g = 0.2, color2b = 0.2, colortime = -1.0, -- Negative colortime means modulate it
+							dirx = 0.1, diry = 0.11, dirz = 0.12, theta = -12.0, -- Orbit at a radius of 16 elmos with a period of ~0.1Hz
+							r = -1, g = 1, b = 1, a = 0.6,
+							modelfactor = .1, specular = 1.6, scattering = 0.5, lensflare = 3,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		
 		-- fusionorb = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'emit',

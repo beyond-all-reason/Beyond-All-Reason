@@ -1515,6 +1515,7 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 			gl.Rect(-5000, -5000, 5000, 5000)
 			gl.PopMatrix()
 		end
+
 		if autoupdate and ctrl and (not alt) and (isSinglePlayer or spec) and devui then
 			glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		else
@@ -1678,6 +1679,10 @@ function widget:Initialize()
 
 	WG['lightsgl4'].ShowPlayerCursorLight = function(value)
 		showPlayerCursorLight = value
+		-- Remove the player's cursor light on disabling this feature
+		if not showPlayerCursorLight and cursorPointLightVBO.instanceIDtoIndex["PLAYERCURSOR"] then
+			popElementInstance(cursorPointLightVBO, "PLAYERCURSOR")
+		end
 	end
 	WG['lightsgl4'].PlayerCursorLightRadius = function(value)
 		playerCursorLightRadius = value
