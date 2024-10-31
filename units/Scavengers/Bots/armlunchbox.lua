@@ -117,7 +117,6 @@ return {
 				firetolerance = 5000,
 				gravityaffected = "true",
 				heightboostfactor = 2.8,
-				impulseboost = 0.5,
 				impulsefactor = 0.5,
 				name = "Heavy long-range g2g plasma cannon",
 				noselfdamage = true,

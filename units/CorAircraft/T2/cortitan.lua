@@ -96,7 +96,6 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-large-uw",
 				flighttime = 4,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "cortorpedo.s3o",
 				name = "Light homing torpedo launcher",

@@ -133,7 +133,6 @@ return {
 				explosiongenerator = "custom:laserhit-medium",
 				firestarter = 90,
 				firetolerance = 4400,
-				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 5,
 				name = "Medium g2g Heat Ray",

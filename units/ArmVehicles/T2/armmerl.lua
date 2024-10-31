@@ -116,7 +116,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-large-bomb",
 				firestarter = 100,
 				flighttime = 10,
-				impulseboost = 0.2,
 				impulsefactor = 0.2,
 				metalpershot = 0,
 				model = "corshiprocket.s3o",

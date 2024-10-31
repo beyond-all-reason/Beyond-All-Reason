@@ -131,12 +131,10 @@ return {
 				explosiongenerator = "custom:burnfirecom-xl",
 				gravityaffected = true,
 				hightrajectory = 1,
-				impulseboost = 0.123,
 				impulsefactor = 2,
 
 				flamegfxtime = 1,
 				interceptedByShieldType = 0,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				metalpershot = 500,
 				model = "legbomb.s3o",
