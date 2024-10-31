@@ -375,6 +375,10 @@ local icontypes = {
 		bitmap = "icons/air.png",
 		size = 0.86099994
 	},
+	armfify = {
+		bitmap = "icons/air_t1_rez.png",
+		size = 1.25999999
+	},
 	armflak = {
 		bitmap = "icons/aa_flak_t2.png",
 		size = 1.5
@@ -2387,6 +2391,10 @@ local icontypes = {
 		bitmap = "icons/bot_t1_raid_0.7.png",
 		size = 0.60000002
 	},
+	leggobt3 = {
+		bitmap = "icons/leggobt3.png",
+		size = 2
+	},
 	babyleggob = {
 		bitmap = "icons/bot_t1_raid_0.7.png",
 		size = 0.60000002
@@ -2530,6 +2538,10 @@ local icontypes = {
 	legmos = {
 		bitmap = "icons/air_hover_rocket.png",
 		size = 1.25999999
+	},
+	legmost3 = {
+		bitmap = "icons/air_hover_rocket.png",
+		size = 2
 	},
 	legmrv = {
 		bitmap = "icons/vehicle_t2_raid.png",
