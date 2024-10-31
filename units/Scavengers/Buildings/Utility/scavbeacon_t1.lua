@@ -71,7 +71,6 @@ return {
 				edgeeffectiveness = 0.15,
 				energypershot = 1200,
 				explosiongenerator = "custom:genericshellexplosion-medium-beam",
-				impulseboost = 0,
 				impulsefactor = 0,
 				largebeamlaser = true,
 				laserflaresize = 8.8,

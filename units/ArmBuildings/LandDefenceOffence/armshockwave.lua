@@ -135,7 +135,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-small-lightning",
 				firestarter = 100,
 				impactonly = 0,
-				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 7.7,
 				name = "Medium EMP turret",

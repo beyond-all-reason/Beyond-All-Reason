@@ -125,7 +125,6 @@ return {
 				explosiongenerator = "custom:heatray-large",
 				firestarter = 30,
 				firetolerance = 5000,
-				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 6,
 				name = "Heavy g2g Cleansing Heat Ray",

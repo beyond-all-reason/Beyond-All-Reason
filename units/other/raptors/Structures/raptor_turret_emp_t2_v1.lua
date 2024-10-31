@@ -88,7 +88,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-large-lightning",
 				firesubmersed = true,
 				gravityaffected = "true",
-				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 0.8,
 				interceptedbyshieldtype = 1,

@@ -101,7 +101,6 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.3,
 				explosiongenerator = "custom:acid-explosion-xl",
-				impulseboost = 0,
 				impulsefactor = 0,
 				interceptedbyshieldtype = 0,
 				model = "Raptors/raptoregg_l_green.s3o",

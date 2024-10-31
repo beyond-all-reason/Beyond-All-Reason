@@ -508,6 +508,7 @@ local armorDefs = {
 		"corassistdrone",
 		"legassistdrone",
 		"legmos",
+		"legmost3",
 		"legfort",
 		"legfortt4",
 		"legca",
@@ -572,6 +573,7 @@ local armorDefs = {
 		"legstronghold",
 		"legwhisper",
 		"critter_gull",
+		"armfify",
 	},
 	shields = {
 		-- Intentionally left blank. To be used in shield weapondefs only!

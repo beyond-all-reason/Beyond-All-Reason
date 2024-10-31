@@ -124,7 +124,6 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:laserhit-emp",
 				impactonly = 1,
-				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 6.6,
 				name = "Light EMP laser",

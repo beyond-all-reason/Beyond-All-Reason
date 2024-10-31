@@ -99,7 +99,6 @@ return {
 				edgeeffectiveness = 0.15,
 				energypershot = 1000,
 				explosiongenerator = "custom:laserhit-emp",
-				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 6.05,
 				name = "Heavy a2g EMP beam",

@@ -118,7 +118,6 @@ return {
 				flighttime = 1.75,
 				gravityaffected = "true",
 				groundbounce = true,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "cordepthcharge.s3o",
 				mygravity = 0.2,

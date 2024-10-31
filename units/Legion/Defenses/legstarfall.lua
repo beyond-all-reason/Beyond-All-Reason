@@ -122,7 +122,6 @@ return {
 
 				explosiongenerator = "custom:starfire-explosion",
 				gravityaffected = "true",
-				impulseboost = 0.5,
 				impulsefactor = 0.5,
 				name = "Starfire Barrage Launcher",
 				noselfdamage = true,

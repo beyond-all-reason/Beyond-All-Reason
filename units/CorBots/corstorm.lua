@@ -112,7 +112,6 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-small",
 				firestarter = 70,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				intensity = 1,
 				metalpershot = 0,

@@ -112,7 +112,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-large-bomb",
 				firestarter = 99,
 				gravityaffected = "true",
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				name = "Heavy g2g barrage plasma battery",
 				noselfdamage = true,

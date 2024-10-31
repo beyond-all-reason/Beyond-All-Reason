@@ -112,7 +112,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-large-aoe",
 				firestarter = 100,
 				gravityaffected = "true",
-				impulseboost = 0.025,
 				impulsefactor = 0.18,
 				leadlimit = 64,
 				name = "Huge g2g plasma cannon",

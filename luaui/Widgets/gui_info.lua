@@ -91,6 +91,8 @@ local spGetUnitStates = Spring.GetUnitStates
 local spGetUnitStockpile = Spring.GetUnitStockpile
 local spGetUnitWeaponState = Spring.GetUnitWeaponState
 local spGetUnitRulesParam = Spring.GetUnitRulesParam
+local spColorString = Spring.Utilities.Color.ToString
+
 
 local math_floor = math.floor
 local math_ceil = math.ceil
@@ -1014,22 +1016,6 @@ local function drawSelection()
 	glColor(1, 1, 1, 1)
 end
 
-local function ColourString(R, G, B)
-	local R255 = math.floor(R * 255)
-	local G255 = math.floor(G * 255)
-	local B255 = math.floor(B * 255)
-	if R255 % 10 == 0 then
-		R255 = R255 + 1
-	end
-	if G255 % 10 == 0 then
-		G255 = G255 + 1
-	end
-	if B255 % 10 == 0 then
-		B255 = B255 + 1
-	end
-	return "\255" .. string.char(R255) .. string.char(G255) .. string.char(B255)
-end
-
 local function GetAIName(teamID)
 	local _, _, _, name, _, options = Spring.GetAIInfo(teamID)
 	local niceName = Spring.GetGameRulesParam('ainame_' .. teamID)
@@ -1204,7 +1190,7 @@ local function drawUnitInfo()
 				--if not mySpec and Spring.GetModOptions().teamcolors_anonymous_mode ~= 'disabled' then
 				--	name = ColourString(Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255) .. name
 				--else
-				name = ColourString(Spring.GetTeamColor(teamID)) .. name
+				name = spColorString(Spring.GetTeamColor(teamID)) .. name
 				--end
 				font2:Print(name, backgroundRect[3] - bgpadding - bgpadding, backgroundRect[2] + (fontSizeOwner * 0.44), fontSizeOwner, "or")
 			end
