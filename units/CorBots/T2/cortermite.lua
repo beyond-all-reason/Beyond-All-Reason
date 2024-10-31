@@ -114,7 +114,6 @@ return {
 				energypershot = 60,
 				explosiongenerator = "custom:laserhit-medium-yellow",
 				firestarter = 90,
-				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 4.95,
 				name = "HeatRay",

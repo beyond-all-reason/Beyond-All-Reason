@@ -4,7 +4,6 @@ return {
 		craterboost = 0,
 		cratermult = 0,
 		explosiongenerator = "custom:raptorunitexplosion-mega-red",
-		impulseboost = 0,
 		impulsefactor = 0.4,
 		name = "megabug_death",
 		range = 450,

@@ -115,7 +115,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-huge-lightning",
 				firestarter = 0,
 				flighttime = 400,
-				impulseboost = 0,
 				impulsefactor = 0,
 				metalpershot = 500,
 				model = "cortronmissile.s3o",

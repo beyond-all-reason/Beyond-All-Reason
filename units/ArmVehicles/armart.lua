@@ -123,7 +123,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-small-bomb",
 				gravityaffected = "true",
 				hightrajectory = 1,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				mygravity = 0.276,
 				name = "Long-range high-trajectory g2g plasma cannon",

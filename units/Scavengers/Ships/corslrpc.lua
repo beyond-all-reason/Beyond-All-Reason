@@ -118,7 +118,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-huge",
 				gravityaffected = "true",
 				heightboostfactor = 6,
-				impulseboost = 0.5,
 				impulsefactor = 0.5,
 				leadbonus = 0,
 				model = "artshell-large.s3o",

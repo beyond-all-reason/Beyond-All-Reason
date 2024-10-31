@@ -87,7 +87,6 @@ return {
 				duration = 0.025,
 				edgeeffectiveness = 0.5,
 				explosiongenerator = "custom:laserhit-small-yellow",
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				intensity = 0.8,
 				name = "Rapid-fire a2g machine guns",

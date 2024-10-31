@@ -88,7 +88,6 @@ return {
 				collidefriendly = false,
 				edgeeffectiveness = 0.65,
 				explosiongenerator = "custom:genericshellexplosion-small",
-				impulseboost = 0.2,
 				impulsefactor = 0.2,
 				intensity = 3,
 				name = "Birdshot Cannon",

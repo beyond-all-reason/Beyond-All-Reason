@@ -124,7 +124,6 @@ return {
 				duration = 0.1,
 				edgeeffectiveness = 1,
 				gravityaffected = "true",
-				impulseboost = 0,
 				impulsefactor = 0,
 				mygravity = 0.01,
 				name = "Heavy Anti-Air Gatling Gun",

@@ -84,7 +84,6 @@ return {
 				duration = 0.035,
 				edgeeffectiveness = 0.5,
 				explosiongenerator = "blank",
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				intensity = 0.8,
 				name = "Rapid-fire a2g machine guns",

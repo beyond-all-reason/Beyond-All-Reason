@@ -369,7 +369,7 @@ SetStunned(State)
 RestoreAfterDelay()
 {
 	set-signal-mask SIGNAL_AIM;
-	sleep 8000;
+	sleep 15000;
 	start-script ExecuteRestoreAfterDelay();
 }
 

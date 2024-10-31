@@ -5,7 +5,6 @@ return {
 		cratermult = 1.25,
 		edgeeffectiveness = 0.30000001192093,
 		explosiongenerator = "custom:newnuketac",
-		impulseboost = 0.12300000339746,
 		impulsefactor = 0.12300000339746,
 		name = "Skuttle",
 		noselfdamage = 1,
