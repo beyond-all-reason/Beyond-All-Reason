@@ -139,7 +139,8 @@ void main()
     float lightRadius = worldposrad.w * radiusMultiplier;
     v_worldPosRad = worldposrad ;
     v_worldPosRad.w = lightRadius;
-   
+    
+    vec4 v_color2 = color2;
    
     mat4 placeInWorldMatrix = mat4(1.0); // this is unity for non-unitID tied stuff
    
@@ -169,7 +170,13 @@ void main()
 
         uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
         vec4 teamCol = teamColor[teamIndex];
-        if (any(lessThan(lightcolor.rgb, vec3(-0.01)))) v_lightcolor.rgb = teamCol.rgb;
+        if (any(lessThan(lightcolor.rgb, vec3(-0.01)))) 
+            v_lightcolor.rgb = teamCol.rgb;
+        
+        // WARNING: TEAMCOLOR AS COLOR2 REQUIRES AT LEAST -100
+        if (any(lessThan(v_color2.rgb, vec3(-99.00)))) 
+            v_color2.rgb = teamCol.rgb;
+
                
         selfIllumMod = max(-0.2, sin(time * 2.0/30.0 + float(UNITID) * 0.1)) + 0.2;
     }
@@ -216,9 +223,9 @@ void main()
 			// Negative thetas mean orbit, positive means linear movement
 			if (worldposrad2.w < 0.0){
 			// Note: worldposrad2.w is an excellent place to add orbit-style world-placement light animations
-			    float zphaseoffset =  1.570796326; // half pi
-				if (worldposrad2.z == 0.0) zphaseoffset = 0.0; // dont offset Z phase no motion is expected on it
-				lightWorldMovement = sin(elapsedframes * 0.2094395 * worldposrad2.xyz + vec3(0.0, 0.0, zphaseoffset)) * (-1 * worldposrad2.w);
+			    float xphaseoffset =  1.570796326; // half pi
+				if (worldposrad2.x == 0.0) xphaseoffset = 0.0; // dont offset Z phase no motion is expected on it
+				lightWorldMovement = sin(elapsedframes * 0.2094395 * worldposrad2.xyz + vec3(xphaseoffset, 0.0, 0.0 )) * (-1 * worldposrad2.w);
 
 			}else{
 			// for positive numbers, we can do linear movement, with acceleration in w
@@ -236,30 +243,30 @@ void main()
         lightCenterPosition = (placeInWorldMatrix * vec4(lightCenterPosition, 1.0)).xyz;
        
        
-        float colortime = color2.a; // Matches colortime in lightConf for point lights
+        float colortime = v_color2.a; // Matches colortime in lightConf for point lights
         if  (attachedtounitID > 0.5) { // unit-attached point lights
             // for point lights, if the colortime is anything sane (>0), then modulate the light with it.
             if (colortime >0.5){
-                v_lightcolor.rgb = mix( color2.rgb, v_lightcolor.rgb, cos((elapsedframes * 6.2831853) / colortime ) * 0.5 + 0.5);
+                v_lightcolor.rgb = mix( v_color2.rgb, v_lightcolor.rgb, cos((elapsedframes * 6.2831853) / colortime ) * 0.5 + 0.5);
             } else if (colortime <= -1.0){
                 // for point lights, if the colortime is negative, then modulate the light with it
                 // Increasing the colortime will make it so that the pulsing effect is lessened
                 selfIllumMod = mix(1.0, selfIllumMod, -1.0 / colortime);
-                // Pulse the light into the color2 via selfIllumMod
-                v_lightcolor.rgb = mix(color2.rgb, v_lightcolor.rgb, selfIllumMod);
+                // Pulse the light into the v_color2 via selfIllumMod
+                v_lightcolor.rgb = mix(v_color2.rgb, v_lightcolor.rgb, selfIllumMod);
             }
            
         }else{ // World-space point lights
             if (colortime > 0.0){ // For positive colortime
                 float colormod = 0;
-                // If colortime > 1, then the color will gradually change to color2 in colortime number of frames  
+                // If colortime > 1, then the color will gradually change to v_color2 in colortime number of frames  
                 if (colortime > 1.0) {
                     colormod = clamp(elapsedframes/colortime , 0.0, 1.0);
-                // If 0 < colortime < 1, then the color will pulsate between original color and color2 at a rate of cos( lifetime * 2 * pi * colortime.
+                // If 0 < colortime < 1, then the color will pulsate between original color and v_color2 at a rate of cos( lifetime * 2 * pi * colortime.
                 } else {
                     colormod =  cos(elapsedframes * 6.2831853 * colortime ) * 0.5 + 0.5;
                 }
-                v_lightcolor.rgb = mix(v_lightcolor.rgb, color2.rgb, colormod);
+                v_lightcolor.rgb = mix(v_lightcolor.rgb, v_color2.rgb, colormod);
             }
            
  
@@ -303,32 +310,32 @@ void main()
         // or where the lightcenterpos tells us to
        
                
-        float colortime = color2.a; // Matches colortime in lightConf for point lights
+        float colortime = v_color2.a; // Matches colortime in lightConf for point lights
         // if the cone is not attached to the unit, exploit that direction allows us to smoothen anim
         if (attachedtounitID < 0.5){ // World Space Light
 
 
             if (colortime > 0.0){ // For positive colortime
                 float colormod = 0;
-                // If colortime > 1, then the color will gradually change to color2 in colortime number of frames  
+                // If colortime > 1, then the color will gradually change to v_color2 in colortime number of frames  
                 if (colortime > 1.0) {
                     colormod = clamp(elapsedframes/colortime , 0.0, 1.0);
-                // If 0 < colortime < 1, then the color will pulsate between original color and color2 at a rate of cos( lifetime * 2 * pi * colortime.
+                // If 0 < colortime < 1, then the color will pulsate between original color and v_color2 at a rate of cos( lifetime * 2 * pi * colortime.
                 } else {
                     colormod =  cos(elapsedframes * 6.2831853 * colortime ) * 0.5 + 0.5;
                 }
-                v_lightcolor.rgb = mix(v_lightcolor.rgb, color2.rgb, colormod);
+                v_lightcolor.rgb = mix(v_lightcolor.rgb, v_color2.rgb, colormod);
             }
         }else{  // unit-attached point lights
             // for point lights, if the colortime is anything sane (>0), then modulate the light with it.
             if (colortime >0.5){
-                v_lightcolor.rgb = mix( color2.rgb, v_lightcolor.rgb, cos((elapsedframes * 6.2831853) / colortime ) * 0.5 + 0.5);
+                v_lightcolor.rgb = mix( v_color2.rgb, v_lightcolor.rgb, cos((elapsedframes * 6.2831853) / colortime ) * 0.5 + 0.5);
             } else if (colortime <= -1.0){
                 // for point lights, if the colortime is negative, then modulate the light with it
                 // Increasing the colortime will make it so that the pulsing effect is lessened
                 selfIllumMod = mix(1.0, selfIllumMod, -1.0 / colortime);
-                // Pulse the light into the color2 via selfIllumMod
-                v_lightcolor.rgb = mix(color2.rgb, v_lightcolor.rgb, selfIllumMod);
+                // Pulse the light into the v_color2 via selfIllumMod
+                v_lightcolor.rgb = mix(v_color2.rgb, v_lightcolor.rgb, selfIllumMod);
             }
         }
 
@@ -368,7 +375,7 @@ void main()
             );
            
        
-        float colortime = color2.a; // Matches colortime in lightConf for point lights
+        float colortime = v_color2.a; // Matches colortime in lightConf for point lights
         // if the cone is not attached to the unit, exploit that direction allows us to smoothen anim
         if (attachedtounitID < 0.5){ // World Space Light
             lightCenterPosition += worldposrad2.xyz * timeInfo.w;
@@ -376,25 +383,25 @@ void main()
 
             if (colortime > 0.0){ // For positive colortime
                 float colormod = 0;
-                // If colortime > 1, then the color will gradually change to color2 in colortime number of frames  
+                // If colortime > 1, then the color will gradually change to v_color2 in colortime number of frames  
                 if (colortime > 1.0) {
                     colormod = clamp(elapsedframes/colortime , 0.0, 1.0);
-                // If 0 < colortime < 1, then the color will pulsate between original color and color2 at a rate of cos( lifetime * 2 * pi * colortime.
+                // If 0 < colortime < 1, then the color will pulsate between original color and v_color2 at a rate of cos( lifetime * 2 * pi * colortime.
                 } else {
                     colormod =  cos(elapsedframes * 6.2831853 * colortime ) * 0.5 + 0.5;
                 }
-                v_lightcolor.rgb = mix(v_lightcolor.rgb, color2.rgb, colormod);
+                v_lightcolor.rgb = mix(v_lightcolor.rgb, v_color2.rgb, colormod);
             }
         }else{  // unit-attached point lights
             // for point lights, if the colortime is anything sane (>0), then modulate the light with it.
             if (colortime >0.5){
-                v_lightcolor.rgb = mix( color2.rgb, v_lightcolor.rgb, cos((elapsedframes * 6.2831853) / colortime ) * 0.5 + 0.5);
+                v_lightcolor.rgb = mix( v_color2.rgb, v_lightcolor.rgb, cos((elapsedframes * 6.2831853) / colortime ) * 0.5 + 0.5);
             } else if (colortime <= -1.0){
                 // for point lights, if the colortime is negative, then modulate the light with it
                 // Increasing the colortime will make it so that the pulsing effect is lessened
                 selfIllumMod = mix(1.0, selfIllumMod, -1.0 / colortime);
-                // Pulse the light into the color2 via selfIllumMod
-                v_lightcolor.rgb = mix(color2.rgb, v_lightcolor.rgb, selfIllumMod);
+                // Pulse the light into the v_color2 via selfIllumMod
+                v_lightcolor.rgb = mix(v_color2.rgb, v_lightcolor.rgb, selfIllumMod);
             }
         }
        
