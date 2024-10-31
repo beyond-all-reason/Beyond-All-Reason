@@ -207,6 +207,8 @@ function UnitDef_Post(name, uDef)
 				uDef.maxthisunit = 0
 			elseif uDef.canfly then
 				uDef.maxthisunit = 0
+			elseif uDef.customparams.disable_when_no_air then --used to remove drone carriers with no other purpose (ex. leghive but not rampart)
+				uDef.maxthisunit = 0
 			end
 			local AircraftFactories = {
 				armap = true,
