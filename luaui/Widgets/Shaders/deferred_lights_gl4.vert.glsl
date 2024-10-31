@@ -173,7 +173,7 @@ void main()
         if (any(lessThan(lightcolor.rgb, vec3(-0.01)))) 
             v_lightcolor.rgb = teamCol.rgb;
         
-        // WARNING: TEAMCOLOR AS COLOR2 REQUIRES AT LEAST -100
+        // WARNING: TEAMCOLOR AS COLOR2 REQUIRES AT LEAST -100 
         if (any(lessThan(v_color2.rgb, vec3(-99.00)))) 
             v_color2.rgb = teamCol.rgb;
 
