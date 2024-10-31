@@ -90,7 +90,7 @@ local function isFactoryUsable(factoryID)
     if not commandQueue then
         return true
     end
-    return commandQueue and( #commandQueue == 0 or not (commandQueue[1].options.alt or (commandQueue[2] and commandQueue[2].options.alt) or (commandQueue[1].id == CMD.WAIT)))
+    return commandQueue and( #commandQueue == 0 or not (commandQueue[1].options.alt or (commandQueue[2] and (commandQueue[2].options.alt or (commandQueue[2].id == CMD.WAIT))) or (commandQueue[1].id == CMD.WAIT)))
 end
 
 local function appendToFactoryQueue(factoryID, unitDefID)
