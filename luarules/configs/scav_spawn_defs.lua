@@ -184,7 +184,7 @@ local tierConfiguration = { -- Double maxSquadSize for special squads
 	[4] = {minAnger = 35, maxAnger = 200, 	maxSquadSize = 10},
 	[5] = {minAnger = 45, maxAnger = 350, 	maxSquadSize = 8},
 	[6] = {minAnger = 60, maxAnger = 500, 	maxSquadSize = 5},
-	[7] = {minAnger = 80, maxAnger = 1000, 	maxSquadSize = 3},
+	[7] = {minAnger = 70, maxAnger = 1000, 	maxSquadSize = 3},
 }
 
 --local teamAngerEasementFB = 16
@@ -295,7 +295,7 @@ local LandUnitsList = {
 			--Cortex
 			["corakt4_scav"] = 3,
 			--Legion
-			["leggobt3_scav"] = 3,
+			
 			--N/A
 		},
 		[7] = {
@@ -482,6 +482,7 @@ local LandUnitsList = {
 			["corcat_scav"] = 2,
 			["cormabm_scav"] = 2,
 			--Legion
+			["leggobt3_scav"] = 3,
 		},
 		[7] = {
 			--Armada
