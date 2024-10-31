@@ -58,7 +58,6 @@ layout(std140, binding=1) readonly buffer UniformsBuffer {
 };
 #define UNITID (uni[instData.y].composite >> 16)
 
-
 #line 10000
 
 
@@ -220,6 +219,7 @@ void main()
 			    float zphaseoffset =  1.570796326; // half pi
 				if (worldposrad2.z == 0.0) zphaseoffset = 0.0; // dont offset Z phase no motion is expected on it
 				lightWorldMovement = sin(elapsedframes * 0.2094395 * worldposrad2.xyz + vec3(0.0, 0.0, zphaseoffset)) * (-1 * worldposrad2.w);
+
 			}else{
 			// for positive numbers, we can do linear movement, with acceleration in w
 			// its pretty nasty, but hey, it works
