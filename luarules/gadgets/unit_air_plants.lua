@@ -103,8 +103,13 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	end
 end
 
+function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(34569) -- LandAt
+	gadgetHandler:RegisterAllowCommand(34570) -- AirRepair
+end
+
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-	if (cmdID == 34569 or cmdID == 34570) and isAirplant[unitDefID] and plantList[unitID] then
+	if isAirplant[unitDefID] and plantList[unitID] then
 		if cmdID == 34569 then
 			local cmdDescID = FindUnitCmdDesc(unitID, 34569)
 			landCmd.params[1] = cmdParams[1]

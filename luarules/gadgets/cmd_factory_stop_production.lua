@@ -115,6 +115,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:Initialize()
 		gadgetHandler:RegisterCMDID(CMD_STOP_PRODUCTION)
+		gadgetHandler:RegisterAllowCommand(CMD_STOP_PRODUCTION)
 		for _, unitID in pairs(Spring.GetAllUnits()) do
 			gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
 		end

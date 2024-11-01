@@ -328,6 +328,10 @@ function gadget:UnitGiven(unitID, unitDefID, unitTeam)
 	end
 end
 
+function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD.ANY)
+end
+
 -- prevents area targetting xmasballs
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	if decorationUdefIDs[unitDefID] then
