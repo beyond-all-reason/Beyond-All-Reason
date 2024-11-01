@@ -129,4 +129,5 @@ if (System == nil) then
 	}
 
 	System.CMD.ANY = 'a'
+	System.CMD.NIL = 'n'
 end
