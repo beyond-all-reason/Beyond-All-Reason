@@ -139,6 +139,7 @@ local flexCallIns = {
 	'StockpileChanged',
 	'SelectionChanged',
 	'DrawGenesis',
+	'DrawGroundDeferred',
 	'DrawWorld',
 	'DrawWorldPreUnit',
 	'DrawPreDecals',
@@ -1332,6 +1333,15 @@ function widgetHandler:DrawGenesis()
 	tracy.ZoneBeginN("W:DrawGenesis")
 	for _, w in r_ipairs(self.DrawGenesisList) do
 		w:DrawGenesis()
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:DrawGroundDeferred()
+	tracy.ZoneBeginN("W:DrawGroundDeferred")
+	for _, w in r_ipairs(self.DrawGroundDeferredList) do
+		w:DrawGroundDeferred()
 	end
 	tracy.ZoneEnd()
 	return
