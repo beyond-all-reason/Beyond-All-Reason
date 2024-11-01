@@ -899,6 +899,7 @@ function gadgetHandler:RaiseGadget(gadget)
 	for _, listname in ipairs(callInLists) do
 		Raise(self[listname .. 'List'], gadget[listname], gadget)
 	end
+	self:ReorderAllowCommands(gadget, Raise)
 end
 
 local function FindHighestIndex(t, i, layer)
@@ -933,6 +934,7 @@ function gadgetHandler:LowerGadget(gadget)
 	for _, listname in ipairs(callInLists) do
 		Lower(self[listname .. 'List'], gadget[listname], gadget)
 	end
+	self:ReorderAllowCommands(gadget, Lower)
 end
 
 function gadgetHandler:FindGadget(name)
@@ -1260,6 +1262,12 @@ end
 local CMD_ANY = CMD.ANY
 local CMD_NIL = CMD.NIL
 local allowCommandList = {[CMD_ANY] = {}}
+
+function gadgetHandler:ReorderAllowCommands(gadget, f)
+	for _, list in pairs(allowCommandList) do
+		f(list, true, gadget)
+	end
+end
 
 function gadgetHandler:HasAllowCommands(gadget)
 	for _, list in pairs(allowCommandList) do
