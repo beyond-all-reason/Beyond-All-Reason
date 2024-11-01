@@ -37,6 +37,7 @@ local spGetUnitsInSphere = Spring.GetUnitsInSphere
 local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
 local spGetUnitIsStunned = Spring.GetUnitIsStunned
 local spAreTeamsAllied = Spring.AreTeamsAllied
+local spGetUnitIsActive = Spring.GetUnitIsActive
 
 local shieldUnitDefs = {}
 local shieldUnitsData = {}
@@ -216,6 +217,9 @@ function gadget:GameFrame(frame)
 		end
 
 		if frame % 10 == 0 then
+			if not spGetUnitIsActive(shieldUnitID) then
+				spSetUnitShieldState(shieldUnitID, shieldData.shieldWeaponNumber, 0)
+			end
 			if not shieldData.shieldEnabled and shieldData.downtimeReset ~= 0 and shieldData.downtimeReset <= gameSeconds then
 				shieldData.downtimeReset = 0
 				shieldData.shieldEnabled = true
