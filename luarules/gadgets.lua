@@ -1264,6 +1264,7 @@ local CMD_NIL = CMD.NIL
 local allowCommandList = {[CMD_ANY] = {}}
 
 function gadgetHandler:ReorderAllowCommands(gadget, f)
+	if not gadget.AllowCommand then return true end
 	for _, list in pairs(allowCommandList) do
 		f(list, true, gadget)
 	end
