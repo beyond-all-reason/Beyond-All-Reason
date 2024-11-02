@@ -258,15 +258,13 @@ local function SetupUnitDef(unitDefID, unitDef)
 				if weaponDef.canAttackGround
 					and not (weaponDef.type == "Shield")
 					and not ToBool(weaponDef.interceptor)
+					and (weaponDef.damageAreaOfEffect > maxSpread or weaponDef.range * (weaponDef.accuracy + weaponDef.sprayAngle) > maxSpread)
 					and not string.find(weaponDef.name, "flak", nil, true) then
-					if (weaponDef.damageAreaOfEffect > maxSpread or weaponDef.range * (weaponDef.accuracy + weaponDef.sprayAngle) > maxSpread) then
 
-						maxSpread = max(weaponDef.damageAreaOfEffect, weaponDef.range * (weaponDef.accuracy + weaponDef.sprayAngle))
-						maxWeaponDef = weaponDef
+					maxSpread = max(weaponDef.damageAreaOfEffect, weaponDef.range * (weaponDef.accuracy + weaponDef.sprayAngle))
+					maxWeaponDef = weaponDef
 
-						weaponTable = (weaponDef.manualFire and unitDef.canManualFire) and manualWeaponInfo or weaponInfo
-
-					end
+					weaponTable = (weaponDef.manualFire and unitDef.canManualFire) and manualWeaponInfo or weaponInfo
 				end
 			end
 		end
@@ -283,7 +281,6 @@ local function SetupUnitDef(unitDefID, unitDef)
 	local mobile = unitDef.speed > 0
 	local waterWeapon = maxWeaponDef.waterWeapon
 	local ee = maxWeaponDef.edgeEffectiveness
-
 
 	if weaponType == "DGun" then
 		weaponTable[unitDefID] = { type = "dgun", range = maxWeaponDef.range, unitname = unitDef.name, requiredEnergy = maxWeaponDef.energyCost }
@@ -331,7 +328,6 @@ local function SetupUnitDef(unitDefID, unitDef)
 	if maxWeaponDef.energyCost > 0 then
 		weaponTable[unitDefID].requiredEnergy = maxWeaponDef.energyCost
 	end
-
 
 	weaponTable[unitDefID].aoe = aoe
 	weaponTable[unitDefID].cost = cost

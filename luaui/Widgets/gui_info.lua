@@ -345,7 +345,7 @@ local function refreshUnitInfo()
 
 						if weaponDef.type == "BeamLaser" then
 							calculateLaserDPS(weaponDef, weaponDef.damages[0])
-						elseif weaponDef.customParams.cluster then -- Bullets that shoot other, smaller bullets
+						elseif weaponDef.customParams and weaponDef.customParams.cluster then -- Bullets that shoot other, smaller bullets
 							calculateClusterDPS(weaponDef, weaponDef.damages[0])
 						elseif weapons[i].onlyTargets['vtol'] ~= nil then
 							calculateWeaponDPS(weaponDef, weaponDef.damages[armorIndex.vtol]) --Damage to air category
@@ -372,27 +372,27 @@ local function refreshUnitInfo()
 					end
 
 				elseif weaponDef.customParams then
-					-- Handle weaponDefs that spawn extra projectiles or explosions.
-					if weaponDef.customParams.cluster then
+					if weaponDef.customParams.cluster then -- Bullets that explode into other, smaller bullets
 						unitExempt = true
 						calculateClusterDPS(weaponDef, weaponDef.damages[0])
-					elseif weaponDef.customParams.speceffect == "split" then
+					elseif weaponDef.customParams.speceffect == "split" then -- Bullets that split into other, smaller bullets
 						unitExempt = true
 						local splitd = WeaponDefNames[weaponDef.customParams.def].damages[0]
 						local splitn = weaponDef.customParams.number or 1
-						calculateWeaponDPS(weaponDef, weaponDef.damages[0] * splitd * splitn)
+						calculateWeaponDPS(weaponDef, splitd * splitn)
+					--end
+
 					elseif weaponDef.customParams.spark_basedamage then -- Lightning
 						unitExempt = true
 						local forkd = weaponDef.customParams.spark_forkdamage
 						local forkn = weaponDef.customParams.spark_maxunits or 1
 						calculateWeaponDPS(weaponDef, weaponDef.damages[0] * (1 + forkd * forkn))
-					end
-
-					if unitExempt and weaponDef.paralyzer then -- DPS => EMP
-						unitDefInfo[unitDefID].minemp = unitDefInfo[unitDefID].mindps
-						unitDefInfo[unitDefID].maxemp = unitDefInfo[unitDefID].maxdps
-						unitDefInfo[unitDefID].mindps = nil
-						unitDefInfo[unitDefID].maxdps = nil
+						if unitExempt and weaponDef.paralyzer then -- DPS => EMP
+							unitDefInfo[unitDefID].minemp = unitDefInfo[unitDefID].mindps
+							unitDefInfo[unitDefID].maxemp = unitDefInfo[unitDefID].maxdps
+							unitDefInfo[unitDefID].mindps = nil
+							unitDefInfo[unitDefID].maxdps = nil
+						end
 					end
 				end
 
