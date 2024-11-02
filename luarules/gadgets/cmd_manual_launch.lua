@@ -36,7 +36,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 		cmdParams[2] = CMD.MANUALFIRE
 		Spring.GiveOrderToUnit(unitID, CMD.INSERT, cmdParams, cmdOptions.coded)
 		return false
-	else
+	elseif cmdID == CMD_MANUAL_LAUNCH then
 		Spring.GiveOrderToUnit(unitID, CMD.MANUALFIRE, cmdParams, cmdOptions.coded)
 		return false
 	end
