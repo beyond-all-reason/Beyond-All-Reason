@@ -20,10 +20,10 @@ if not gadgetHandler:IsSyncedCode() then
 		-- only do something if it is a replay or spectating
 		allowForwarding = Spring.IsReplay() or Spring.GetSpectatingState()
 		if hooked and not allowForwarding then
-			g.RemoveCallIn("UnitDamaged")
+			gadgetHandler:RemoveCallIn("UnitDamaged")
 			hooked = false
 		elseif not hooked and allowForwarding then
-			g.UpdateCallIn("UnitDamaged")
+			gadgetHandler:UpdateCallIn("UnitDamaged")
 			hooked = true
 		end
 	end
