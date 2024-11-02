@@ -12,12 +12,11 @@ end
 
 -- put gadget in unsynced space
 if not gadgetHandler:IsSyncedCode() then
-	-- check if game is a replay or spectating
 	local hooked = true
 	local allowForwarding
 
-	local function hookCallIn(g)
-		-- only do something if it is a replay or spectating
+	local function hookCallIn()
+		-- check if game is a replay or spectating
 		allowForwarding = Spring.IsReplay() or Spring.GetSpectatingState()
 		if hooked and not allowForwarding then
 			gadgetHandler:RemoveCallIn("UnitDamaged")
@@ -29,11 +28,11 @@ if not gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:PlayerChanged(playerID)
-		hookCallIn(self)
+		hookCallIn()
 	end
 
 	function gadget:Initialize()
-		hookCallIn(self)
+		hookCallIn()
 	end
 
 	-- handle the UnitDamaged callin
