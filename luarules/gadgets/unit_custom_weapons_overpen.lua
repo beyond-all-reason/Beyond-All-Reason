@@ -84,7 +84,6 @@ local spSetProjectileVelocity  = Spring.SetProjectileVelocity
 
 local spAddUnitDamage          = Spring.AddUnitDamage
 local spDeleteProjectile       = Spring.DeleteProjectile
-local spSpawnExplosion         = Spring.SpawnExplosion
 local spValidFeatureID         = Spring.ValidFeatureID
 
 local armorDefault = Game.armorTypes.default
@@ -93,17 +92,12 @@ local armorShields = Game.armorTypes.shields
 --------------------------------------------------------------------------------
 -- Setup -----------------------------------------------------------------------
 
-local HIT_TERRAIN_OR_DELETED = 0
-local HIT_UNIT_FEATURE       = 1
-local HIT_SHIELD             = 2
-
 -- Find all weapons with an over-penetration behavior.
 
 local weaponParams = {}
-local explosionParams = {}
 local unitArmorType = {}
 
--- Track projectiles and their remaining damage and prevent re-collisions.
+-- Track projectiles and their remaining damage and sequence their collisions.
 
 local projectiles = {}
 local projectileHits = {}
