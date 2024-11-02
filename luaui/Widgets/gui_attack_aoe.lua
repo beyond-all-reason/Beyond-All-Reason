@@ -266,15 +266,6 @@ local function SetupUnitDef(unitDefID, unitDef)
 
 						weaponTable = (weaponDef.manualFire and unitDef.canManualFire) and manualWeaponInfo or weaponInfo
 
-					-- Handle projectiles that split or spawn other projectiles or explosions.
-					end
-					if weaponDef.customParams and weaponDef.customParams.overpenetrate_explode_def then
-						local expDef = WeaponDefNames[weaponDef.customParams.overpenetrate_explode_def]
-						if expDef.damageAreaOfEffect > maxSpread then
-							maxSpread = expDef.damageAreaOfEffect
-							maxWeaponDef = weaponDef
-							weaponTable = (weaponDef.manualFire and unitDef.canManualFire) and manualWeaponInfo or weaponInfo
-						end
 					end
 				end
 			end
@@ -293,9 +284,6 @@ local function SetupUnitDef(unitDefID, unitDef)
 	local waterWeapon = maxWeaponDef.waterWeapon
 	local ee = maxWeaponDef.edgeEffectiveness
 
-	if maxWeaponDef.customParams and maxWeaponDef.customParams.overpenetrate_explode_def then
-		aoe = max(aoe, WeaponDefNames[maxWeaponDef.customParams.overpenetrate_explode_def].damageAreaOfEffect)
-	end
 
 	if weaponType == "DGun" then
 		weaponTable[unitDefID] = { type = "dgun", range = maxWeaponDef.range, unitname = unitDef.name, requiredEnergy = maxWeaponDef.energyCost }

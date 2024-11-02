@@ -590,9 +590,6 @@ local function drawStats(uDefID, uID, mx, my)
 				local cmNumber = uWep.customParams.number or 5 -- note: keep in sync with cluster defaults
 				local cmDamage = WeaponDefNames[munition].damages[0]
 				defaultDamage = defaultDamage + cmDamage * cmNumber
-			elseif uWep.customParams.overpenetrate and uWep.customParams.overpenetrate_explode_def then
-				local explosion = WeaponDefNames[uWep.customParams.overpenetrate_explode_def].damages
-				defaultDamage = defaultDamage + (explosion and explosion[0] or 0)
 			end
 		end
 

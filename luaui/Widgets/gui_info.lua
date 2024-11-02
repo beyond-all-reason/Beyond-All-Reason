@@ -386,13 +386,6 @@ local function refreshUnitInfo()
 						local forkd = weaponDef.customParams.spark_forkdamage
 						local forkn = weaponDef.customParams.spark_maxunits or 1
 						calculateWeaponDPS(weaponDef, weaponDef.damages[0] * (1 + forkd * forkn))
-					elseif weaponDef.customParams.overpenetrate_explode_def then
-						local wepDamage = weaponDef.damages[0]
-						local expDamage = WeaponDefNames[weaponDef.customParams.overpenetrate_explode_def].damages[0]
-						
-						local projectilesPerSec = (weaponDef.salvoSize * weaponDef.projectiles) / weaponDef.reload
-						unitDefInfo[unitDefID].mindps = (unitDefInfo[unitDefID].mindps or 0) + projectilesPerSec * wepDamage
-						unitDefInfo[unitDefID].maxdps = (unitDefInfo[unitDefID].maxdps or 0) + projectilesPerSec * (wepDamage + expDamage)
 					end
 
 					if unitExempt and weaponDef.paralyzer then -- DPS => EMP
