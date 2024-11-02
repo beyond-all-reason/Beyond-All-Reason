@@ -167,7 +167,7 @@ local function getCollisionPosition(projectileID, targetID, isUnit)
 			radius = Spring.GetFeatureRadius(targetID)
 		end
 	end
-	if mx then -- Nearest point on a line/ray to the surface of a sphere:
+	if px and mx then -- Nearest point on a line/ray to the surface of a sphere:
 		local t = min(0, dx * (mx - px) + dy * (my - py) + dz * (mz - pz))
 		local d = sqrt((px + t*dx - mx)^2 + (py + t*dy - my)^2 + (pz + t*dz - mz)^2) - radius
 		if radius + d ~= 0 then
@@ -265,19 +265,18 @@ function gadget:GameFrame(gameFrame)
 		if #collisions > 1 then
 			for index = 1, #collisions do
 				local collision = collisions[index]
+				collision.distanceSquared = math.huge
 				if collision.targetID then
-					local sx, sy, sz
-					if not collision.collideX then
-						local cx, cy, cz
-						cx, cy, cz = getCollisionPosition(projectileID, collision.targetID, collision.isUnit)
-						sx, sy, sz = cx - penetrator.x, cy - penetrator.y, cz - penetrator.z
+					local cx, cy, cz
+					if collision.collideX then
+						cx, cy, cz = collision.collideX, collision.collideY, collision.collideZ
 					else
-						local px, py, pz = penetrator.x, penetrator.y, penetrator.z
-						sx, sy, sz = collision.collideX - px, collision.collideY - py, collision.collideZ - pz
+						cx, cy, cz = getCollisionPosition(projectileID, collision.targetID, collision.isUnit)
 					end
-					collision.distanceSquared = sx * sx + sy * sy + sz * sz
-				else
-					collision.distanceSquared = math.huge -- terrain collisions and direct deletes will process last
+					if cx then
+						local sx, sy, sz = cx - penetrator.x, cy - penetrator.y, cz - penetrator.z
+						collision.distanceSquared = sx * sx + sy * sy + sz * sz
+					end
 				end
 			end
 			table.sort(collisions, sortPenetratorCollisions)

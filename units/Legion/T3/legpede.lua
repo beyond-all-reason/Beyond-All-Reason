@@ -204,6 +204,7 @@ return {
 				explosiongenerator = "custom:plasmahit-sparkonly",
 				firestarter = 0,
 				hardstop = true,
+				impactonly = true,
 				impulseboost = 0.4,
 				impulsefactor = 1,
 				intensity = 0.8,
