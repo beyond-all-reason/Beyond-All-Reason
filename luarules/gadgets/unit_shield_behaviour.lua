@@ -41,7 +41,7 @@ local spAreTeamsAllied = Spring.AreTeamsAllied
 local shieldUnitDefs = {}
 local shieldUnitsData = {}
 local originalShieldDamages = {}
-local flameWeapons = {}
+local forceDeleteWeapons = {}
 local unitDefIDCache = {}
 local projectileDefIDCache = {}
 local shieldedUnits = {}
@@ -62,8 +62,8 @@ for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 		originalShieldDamages[weaponDefID] = weaponDef.customParams.shield_damage or fallbackShieldDamage
 	end
 
-	if weaponDef.type == 'Flame' then
-		flameWeapons[weaponDefID] = weaponDef
+	if weaponDef.type == 'Flame' or weaponDef.customParams.overpenetrate then
+		forceDeleteWeapons[weaponDefID] = weaponDef
 	end
 end
 
@@ -304,7 +304,7 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitI
 		local newShieldDamage = originalShieldDamages[weaponDefID] or fallbackShieldDamage
 		shieldData.shieldDamage = shieldData.shieldDamage + newShieldDamage
 
-		if flameWeapons[weaponDefID] then
+		if forceDeleteWeapons[weaponDefID] then
 			-- Flames aren't destroyed when they hit shields, so need to delete manually
 			spDeleteProjectile(proID)
 		end
@@ -328,4 +328,64 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitI
 	else
 		removeCoveredUnits(shieldUnitID)
 	end
+end
+
+do
+	---Shield controller API to bridge the compatibility gap before the shield rework is mandatory
+	local function addShieldDamage(shieldUnitID, shieldWeaponIndex, damage, weaponDefID, projectileID)
+		local projectileDestroyed, damageMitigated = false, 0
+
+		local shieldData = shieldUnitsData[shieldUnitID]
+		if not shieldData or not shieldData.shieldEnabled then
+			return projectileDestroyed, damageMitigated
+		end
+
+		if shieldData.shieldWeaponNumber == -1 then
+			local weapons = UnitDefs[unitDefIDCache[shieldUnitID]].weapons
+			if shieldWeaponIndex and WeaponDefs[weapons[shieldWeaponIndex].weaponDef].shieldPower then
+				shieldData.shieldWeaponNumber = shieldWeaponIndex
+			else
+				for index, weapon in ipairs(weapons) do
+					if WeaponDefs[weapon.weaponDef].shieldPower then
+						shieldData.shieldWeaponNumber = index ; break
+					end
+				end
+			end
+			if not shieldData.shieldWeaponNumber then
+				return projectileDestroyed, damageMitigated
+			end
+		end
+
+		if weaponDefID and forceDeleteWeapons[weaponDefID] and projectileID and projectileID > -1 then
+			spDeleteProjectile(projectileID)
+			projectileDestroyed = true
+		end
+
+		if not damage then
+			damage = weaponDefID and originalShieldDamages[weaponDefID] or fallbackShieldDamage
+		end
+		damageMitigated = damage
+
+		shieldData.shieldDamage = shieldData.shieldDamage + damage
+		shieldCheckFlags[shieldUnitID] = true
+		if not shieldData.shieldCoverageChecked and AOEWeaponDefIDs[weaponDefID] then
+			setCoveredUnits(shieldUnitID)
+		end
+
+		return projectileDestroyed, damageMitigated
+	end
+
+	function gadget:Initialize()
+		GG.AddShieldDamage = addShieldDamage
+
+		for _, unitID in ipairs(Spring.GetAllUnits()) do
+			local unitDefID = Spring.GetUnitDefID(unitID)
+			local unitTeam = Spring.GetUnitTeam(unitID)
+			gadget:UnitFinished(unitID, unitDefID, unitTeam)
+		end
+	end
+end
+
+function gadget:ShutDown()
+	GG.AddShieldDamage = nil
 end
