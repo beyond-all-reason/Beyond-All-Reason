@@ -12,18 +12,37 @@ end
 
 -- put gadget in unsynced space
 if not gadgetHandler:IsSyncedCode() then
-	-- check if game is a replay
-	local IsGameReplay = Spring.IsReplay()
+	-- check if game is a replay or spectating
+	local hooked = true
+	local allowForwarding
+
+	local function hookCallIn(g)
+		-- only do something if it is a replay or spectating
+		allowForwarding = Spring.IsReplay() or Spring.GetSpectatingState()
+		if hooked and not allowForwarding then
+			g.RemoveCallIn("UnitDamaged")
+			hooked = false
+		elseif not hooked and allowForwarding then
+			g.UpdateCallIn("UnitDamaged")
+			hooked = true
+		end
+	end
+
+	function gadget:PlayerChanged(playerID)
+		hookCallIn(self)
+	end
+
+	function gadget:Initialize()
+		hookCallIn(self)
+	end
+
 	-- handle the UnitDamaged callin
 	function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-		-- only do something if it is a replay
-		if IsGameReplay then	
-			-- send to LuaUI, widget space, the UnitDamaged information
-			if Script.LuaUI("UnitDamagedReplay") then
-				Script.LuaUI.UnitDamagedReplay(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-			end
-		end	
-	end	
+		-- send to LuaUI, widget space, the UnitDamaged information
+		if Script.LuaUI("UnitDamagedReplay") then
+			Script.LuaUI.UnitDamagedReplay(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
+		end
+	end
 end
 
 --[[
