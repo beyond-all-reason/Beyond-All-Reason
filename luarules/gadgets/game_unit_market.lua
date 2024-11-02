@@ -321,11 +321,11 @@ end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	-- accepts: CMD_SELL_UNIT
-        local unitDef = UnitDefs[unitDefID]
-        if unitDef then
-            local price = unitDef.metalCost
-            setUnitOnSale(unitID, price, true)
-        end
+	local unitDef = UnitDefs[unitDefID]
+	if unitDef then
+		local price = unitDef.metalCost
+		setUnitOnSale(unitID, price, true)
+	end
 	return true
 end
 
