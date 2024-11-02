@@ -121,7 +121,6 @@ return {
 				explosiongenerator = "custom:burnfire-xs",
 				flamegfxtime = 1,
 				gravityaffected = "true",
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				mygravity = 0.08,
 				name = "HeavyCannon",

@@ -27,7 +27,7 @@ return {
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 630,
 		waterline = 3,
-		yardmap = "wwwwwwwww",
+		yardmap = "wwwwwwwwwwwwwwww",
 		customparams = {
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
@@ -95,7 +95,6 @@ return {
 				explosiongenerator = "custom:laserhit-medium-green",
 				firestarter = 90,
 				impactonly = 1,
-				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 7.7,
 				name = "High energy g2g laser",

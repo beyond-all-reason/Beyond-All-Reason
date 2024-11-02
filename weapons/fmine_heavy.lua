@@ -5,7 +5,6 @@ return {
 		cratermult = 0,
 		edgeeffectiveness = 0.50,
 		explosiongenerator = "custom:genericunitexplosion-large",
-		impulseboost = 0,
 		impulsefactor = 0,
 		name = "HeavyFloatingMine",
 		range = 480,

@@ -113,7 +113,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-huge-aa",
 				firestarter = 90,
 				flighttime = 2.2,
-				impulseboost = 0,
 				impulsefactor = 0,
 				metalpershot = 0,
 				model = "corscreamermissile.s3o",

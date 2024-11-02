@@ -124,7 +124,6 @@ return {
 				edgeeffectiveness = 1,
 				explosiongenerator = "custom:flak",
 				gravityaffected = "true",
-				impulseboost = 0,
 				impulsefactor = 0,
 				mygravity = 0.01,
 				name = "Medium g2a Flak Blunderbuss",
