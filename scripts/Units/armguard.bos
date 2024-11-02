@@ -8,7 +8,7 @@ piece  flare1, flare2, base, turret, barrel1, barrel2, sleeves;
 static-var  nextBarrel, trajectoryMode, lastHeading, aimingState, switchAimModeFrame, queueLowFrame, errorTriggerFrame, weaponToCheck, debugGameFrame;
 
 #define SIGNAL_AIM						1
-#define RESET_LOW_DELAY_FRAMES			30
+#define RESET_LOW_DELAY_FRAMES			10
 #define RESET_HIGH_DELAY_FRAMES			450
 #define RESET_ERROR_DELAY_FRAMES		1350
 #define AIMING_NEITHER					0
