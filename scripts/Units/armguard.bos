@@ -5,12 +5,12 @@
 
 piece  flare1, flare2, base, turret, barrel1, barrel2, sleeves;
 
-static-var  nextBarrel, trajectoryMode, lastHeading, aimingState, switchAimModeFrame, queueLowFrame, errorTriggerFrame, weaponToCheck, debugGameFrame;
+//smasel remove debugGameFrame
+static-var  nextBarrel, trajectoryMode, lastHeading, aimingState, switchAimModeFrame, queueLowFrame, errorTriggerFrame, debugGameFrame;
 
 #define SIGNAL_AIM						1
 #define RESET_LOW_DELAY_FRAMES			10
 #define RESET_HIGH_DELAY_FRAMES			450
-#define RESET_ERROR_DELAY_FRAMES		1350
 #define AIMING_NEITHER					0
 #define AIMING_LOW						1
 #define AIMING_HIGH						2
@@ -35,12 +35,6 @@ Create()
 	dont-shade sleeves;
 	dont-shade turret;
 	nextBarrel = 0;
-	weaponToCheck = AIMING_LOW;
-	//start-script debugTimer();
-
-	//smasel declare default values for smart select
-	aimingState = AIMING_NEITHER;
-	switchAimModeFrame = 302;
 }
 
 #define SMOKEPIECE base
@@ -57,12 +51,6 @@ Create()
 
 smartAimSelect(weaponNumber)
 {
-	if (weaponToCheck == AIMING_HIGH){
-		weaponToCheck = AIMING_LOW;
-	} else{
-		weaponToCheck = AIMING_HIGH;
-	}
-
 	var gameFrame; 
 	gameFrame = (get GAME_FRAME);
 
