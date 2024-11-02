@@ -875,7 +875,13 @@ local function RemoveLight(lightshape, instanceID, unitID, noUpload)
 			Spring.Echo("RemoveLight tried to remove a non-existing unitlight", lightshape, instanceID, unitID)
 		end
 	elseif lightshape then
-		return popElementInstance(lightVBOMap[lightshape], instanceID)
+		if not unitID then 
+			if lightVBOMap[lightshape].instanceIDtoIndex[instanceID] then
+				return popElementInstance(lightVBOMap[lightshape], instanceID)
+			end
+		else
+			return popElementInstance(lightVBOMap[lightshape], instanceID)
+		end
 	else
 		Spring.Echo("RemoveLight tried to remove a non-existing light", lightshape, instanceID, unitID)
 	end
@@ -1238,6 +1244,7 @@ end
 
 function widget:FeatureCreated(featureID,allyteam)
 	-- TODO: Allow team-colored feature lights by getting teamcolor and putting it into lightCacheTable
+	--Spring.Echo("FeatureCreated", featureID, allyteam, featureDefLights[featureDefID])
 	local featureDefID = Spring.GetFeatureDefID(featureID)
 	if featureDefLights[featureDefID] then
 		for lightname, lightTable in pairs(featureDefLights[featureDefID]) do
@@ -1405,6 +1412,10 @@ local function checkConfigUpdates()
 			LoadLightConfig()
 			if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 				widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
+			end
+			for _, featureID in ipairs(Spring.GetAllFeatures()) do
+				widget:FeatureDestroyed(featureID)
+				widget:FeatureCreated(featureID)
 			end
 			configCache.confa = newconfa
 			configCache.confb = newconfb

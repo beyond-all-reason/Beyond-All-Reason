@@ -23575,8 +23575,38 @@ end
 unitDefLights = table.merge(unitDefLights, scavUnitDefLights)
 scavUnitDefLights = nil
 
+
+
+-------------------- Feature Lights
+
 local featureDefLights = {
 }
+
+local WreckBaseLight = { 
+	lightType = 'point',
+	lightConfig = { posx = 0, posy = -3 , posz = 0, radius = 10, -- underground relative to unit, radius will be overwritten
+		r = 1, g = 0.3, b = 0, a = 0.5, 		-- start at orange
+		color2r = 0.5, color2g = 0, color2b = 0, colortime = 60, -- in 450 frames, transition to dull red
+		modelfactor = 0.2, specular = 0.3, scattering = 0.6, lensflare = 0, -- no scatterin
+		lifetime = 300, sustain = 0.00015, animtype = 0},  -- remove at 300 frames, sustain is exp alpha fade 
+}
+
+for featureDefID, featureDef in pairs(FeatureDefs) do 
+	local name = featureDef.name
+	if string.sub(name, string.len(name)-4) == "_dead" then
+		local featureSize = math.sqrt((featureDef.xsize or 1) * (featureDef.zsize or 1)) / 2.0
+		--Spring.Echo(name, featureDef.xsize , featureDef.zsize)
+		local featureDefLight = table.copy(WreckBaseLight)
+		featureDefLight.lightConfig.radius = featureSize * 20
+		featureDefLight.lightConfig.lifetime = featureDefLight.lightConfig.lifetime * featureSize
+		featureDefLight.lightConfig.colortime = featureDefLight.lightConfig.colortime * featureSize
+		featureDefLight.lightConfig.sustain = featureDefLight.lightConfig.sustain / featureSize
+		featureDefLights[featureDefID] = {FeatureCreated = featureDefLight} 
+	end
+end
+
+
+
 
 local crystalLightBase =  {
 			lightType = 'point',
