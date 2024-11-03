@@ -107,7 +107,8 @@ local effectDefs = {
 		{ color = { 0.2, 0.4, 0.5 }, width = 3.5, length = 30, piece = "thrusta", limit = true },
 	},
 	["legvenator"] = {
-		{ color = { 0.3, 0.4, 0.6 }, width = 5.5, length = 55, piece = "thrusta", limit = true },
+		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "lthrust", limit = true },
+		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "rthrust", limit = true },
 	},
 	-- radar
 	["armawac"] = {
