@@ -18,8 +18,6 @@ local isWaterUnit = {}
 local isGeothermal = {}
 local unitMaxWeaponRange = {}
 
-local showWaterUnits = false
-
 for unitDefID, unitDef in pairs(UnitDefs) do
 
 	unitGroup[unitDefID] = unitDef.customParams.unitgroup
@@ -171,8 +169,6 @@ return {
 
 	minWaterUnitDepth = minWaterUnitDepth,
 	unitOrder = unitOrder,
-
-	showWaterUnits = showWaterUnits,
 
 	checkGeothermalFeatures = checkGeothermalFeatures,
 	restrictGeothermalUnits = restrictGeothermalUnits,
