@@ -860,7 +860,8 @@
 			"legnanotct2plat": "T2 Naval Construction Turret",
 			"legnanotcbase": "Base Builder",
 			"legrampart": "Rampart",
-			"legabm": "Aegis"
+			"legabm": "Aegis",
+			"legrwall": "Dragon's Constitution"
 		},
 		"descriptions": {
 			"armaak": "Advanced Amphibious Anti-Air Bot",
@@ -1715,7 +1716,8 @@
 			"legnanotct2plat": "Assist & Repair in larger radius",
 			"legnanotcbase": "Assist & Repair in massive radius",
 			"legrampart": "Geothermal Antinuke, Jammer, Radar and Drone Platform",
-			"legabm": "Anti-Nuke System"
+			"legabm": "Anti-Nuke System",
+			"legrwall": "Railgun Defense Wall"
 		}
 	}
 }

@@ -163,7 +163,6 @@ Walk() {// For C:\Users\logst\Downloads\BAR\legcom walk.blend Created by https:/
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:20
-			emit-sfx 1024 + 2 from ltoes;
 			turn head to x-axis <-1.115640> speed <98.411364> / animSpeed; 
 			turn head to y-axis <5.715235> speed <39.892305> / animSpeed; 
 			turn lfoot to x-axis <24.195911> speed <193.551493> / animSpeed; 
@@ -202,6 +201,10 @@ Walk() {// For C:\Users\logst\Downloads\BAR\legcom walk.blend Created by https:/
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:24
+			if (!get CLOAKED)
+			{
+				emit-sfx 1024 + 2 from rtoes;
+			}
 			turn head to x-axis <-2.854236> speed <52.157898> / animSpeed; 
 			turn head to y-axis <4.861961> speed <25.598213> / animSpeed; 
 			turn lfoot to x-axis <13.326829> speed <326.072471> / animSpeed; 
@@ -385,7 +388,10 @@ Walk() {// For C:\Users\logst\Downloads\BAR\legcom walk.blend Created by https:/
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:44
-			emit-sfx 1024 + 2 from ltoes;
+			if (!get CLOAKED)
+			{
+				emit-sfx 1024 + 2 from ltoes;
+			}
 			turn head to x-axis <-2.854240> speed <52.156895> / animSpeed; 
 			turn head to y-axis <-4.861931> speed <25.598456> / animSpeed; 
 			turn lfoot to x-axis <-2.982684> speed <633.919869> / animSpeed; 
@@ -433,7 +439,7 @@ UnitSpeed(){
 	while(TRUE){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
-		animSpeed = (maxSpeed * 5) / animSpeed; 
+		animSpeed = (maxSpeed * 6) / animSpeed; 
 		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<2) animSpeed=2;
 		if (animspeed>8) animSpeed = 8;
@@ -684,7 +690,7 @@ lua_UnitScriptLight(lightIndex, count)
 FireWeapon1()
 {
 	emit-sfx 1024 + 3 from flare;
-	spin barrelchainplasma around z-axis speed <400> accelerate <60>;
+	spin barrelchainplasma around z-axis speed <800> accelerate <60>;
 	++shotcount;
 	call-script lua_UnitScriptLight(1, shotcount);
 	return (0);

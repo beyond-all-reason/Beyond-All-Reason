@@ -337,6 +337,7 @@ local function scavUnitDef_Post(name, uDef)
 		uDef.buildoptions[numBuildoptions + 2] = "legministarfall_scav"
 		uDef.buildoptions[numBuildoptions + 3] = "legwint2_scav"
 		uDef.buildoptions[numBuildoptions + 4] = "legnanotct2_scav"
+		uDef.buildoptions[numBuildoptions + 5] = "legrwall_scav"
 	elseif name == "armasy_scav" then
 		local numBuildoptions = #uDef.buildoptions
 		uDef.buildoptions[numBuildoptions + 1] = "armptt2_scav"
