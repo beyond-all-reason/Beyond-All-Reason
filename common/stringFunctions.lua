@@ -195,7 +195,7 @@ if not string.levenshteinDistance then
 	---@param b string
 	---@return number 
 
-	function string.Levenshtein(a,b)
+	function string.levenshteinDistance(a,b)
 		local lena = string.len(a)
 		local lenb = string.len(b)
 		
