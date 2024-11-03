@@ -148,12 +148,6 @@ table.sort(unitOrder, function(aID, bID)
 			return aOrder < bOrder
 		end)
 
-local voidWater = false
-local success, mapinfo = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua confs
-if success and mapinfo then
-	voidWater = mapinfo.voidwater
-end
-
 local minWaterUnitDepth = -11
 
 
