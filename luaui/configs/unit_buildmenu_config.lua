@@ -136,14 +136,14 @@ maxOrder = maxOrder + 1
 -- For units who have the same order value we compare the unit's IDs.
 -- This sort is always stable, as no two units should have the same ID.
 table.sort(unitOrder, function(aID, bID)
-			local aOrder = unitOrderManualOverrideTable[aID] or maxOrder
-			local bOrder = unitOrderManualOverrideTable[bID] or maxOrder
+	local aOrder = unitOrderManualOverrideTable[aID] or maxOrder
+	local bOrder = unitOrderManualOverrideTable[bID] or maxOrder
 
-			if (aOrder == bOrder) then
-			  return aID < bID
-			end
-			return aOrder < bOrder
-		end)
+	if (aOrder == bOrder) then
+		return aID < bID
+	end
+	return aOrder < bOrder
+end)
 
 local minWaterUnitDepth = -11
 
@@ -153,7 +153,6 @@ local minWaterUnitDepth = -11
 ------------------------------------
 
 return {
-
 	unitName = unitName,
 	unitEnergyCost = unitEnergyCost,
 	unitMetalCost = unitMetalCost,
