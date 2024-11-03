@@ -230,7 +230,7 @@ if not string.levenshteinDistance then
 		for k,v in pairs(t) do 
 			local b = (type(v) == 'string' and v) or (type(k) == 'string' and k) or "" -- whichever is string, or empty
 			if math.abs(string.len(b) - lena) < bestscore then -- heuristics
-				local distance = string.Levenshtein(a, b)
+				local distance = string.levenshteinDistance(a, b)
 				if distance < bestscore then
 					bestscore = distance
 					bestresult = b
