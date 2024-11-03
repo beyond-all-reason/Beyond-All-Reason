@@ -36,7 +36,7 @@ if Spring.GetModOptions().unit_restrictions_noextractorDefs then
 	return
 end
 
-local needsInit			= false
+local needsInit			= true
 local showValue			= false
 local metalViewOnly		= false
 
