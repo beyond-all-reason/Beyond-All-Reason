@@ -71,20 +71,18 @@ smartAimSelect(weaponNumber)
 
 	//smasel if aimingState is neither, set aimingState and its expiration
 	if (aimingState == AIMING_NEITHER){
-
-		//stop bonus shots
-		var lowReloadState, highReloadState;
-		lowReloadState = (get WEAPON_RELOADSTATE(AIMING_LOW));
-		highReloadState = (get WEAPON_RELOADSTATE(AIMING_HIGH));
-
 		if (weaponNumber == AIMING_LOW){
 			switchAimModeFrame = (gameFrame + RESET_LOW_DELAY_FRAMES);
 			aimingState = AIMING_LOW;
+			var highReloadState;
+			highReloadState = (get WEAPON_RELOADSTATE(AIMING_HIGH));
 			if (switchAimModeFrame < highReloadState){
 				switchAimModeFrame = highReloadState;
 			}
 		} else if ((weaponNumber == AIMING_HIGH) && (queueLowFrame < gameFrame)){
 			switchAimModeFrame = (gameFrame + RESET_HIGH_DELAY_FRAMES);
+			var lowReloadState;
+			lowReloadState = (get WEAPON_RELOADSTATE(AIMING_LOW));
 			if (switchAimModeFrame < lowReloadState){
 				switchAimModeFrame = lowReloadState;
 			}
