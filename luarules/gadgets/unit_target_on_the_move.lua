@@ -46,10 +46,9 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 
-	-- Unseen targets will be removed after at least UNSEEN_TIMEOUT*USEEN_UPDATE_FREQUENCY frames
-	-- and at most (UNSEEN_TIMEOUT+1)*USEEN_UPDATE_FREQUENCY frames/
-	local USEEN_UPDATE_FREQUENCY = 150
-	local UNSEEN_TIMEOUT = 2
+	-- Unseen targets will be removed after max USEEN_UPDATE_FREQUENCY frames.
+	-- Should be small enough to not be evident, and big enough to save perf.
+	local USEEN_UPDATE_FREQUENCY = 15
 
 	local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
 	local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
@@ -218,18 +217,10 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function removeUnseenTarget(targetData, attackerAllyTeam)
-		if tonumber(targetData.target) and not targetData.alwaysSeen and spValidUnitID(targetData.target) then
+		if not targetData.alwaysSeen and tonumber(targetData.target) and spValidUnitID(targetData.target) then
 			local los = spGetUnitLosState(targetData.target, attackerAllyTeam, true)
 			if not los or (los % 4 == 0) then
-				if targetData.unseenTargetTimer == UNSEEN_TIMEOUT then
-					return true
-				elseif not targetData.unseenTargetTimer then
-					targetData.unseenTargetTimer = 1
-				else
-					targetData.unseenTargetTimer = targetData.unseenTargetTimer + 1
-				end
-			elseif targetData.unseenTargetTimer then
-				targetData.unseenTargetTimer = nil
+				return true
 			end
 		end
 		return false
@@ -761,6 +752,14 @@ else	-- UNSYNCED
 			unitIconsDrawn[cacheKey] = true
 		end
 	end
+	local function getPrevLos(los)
+		-- los is bitmask: 1 inlos, 2 inradar, 4 prevlos, 8 contradar.
+		-- No bitmask operations, so extract prevlos & (inlos and/or inradar)
+		-- with divisions, can be solved better with more recent lua version.
+		if los / 12 > 1 or (los < 8 and los / 4 > 1) then
+			return true
+		end
+	end
 	local function drawTargetCommand(targetData, myTeam, myAllyTeam)
 
 		if targetData and targetData.userTarget then
@@ -773,14 +772,18 @@ else	-- UNSYNCED
 					drawUnitTarget(target, x2, y2, z2)
 				else
 					local los = spGetUnitLosState(target, myAllyTeam, true)
-					if not los then
+					if not los or los % 4 == 0 then
+						-- We could handle the case where los % 4 == 0 for 'alwaysSeen'
+						-- buildings, but seems like attack command doesn't allow targeting them,
+						-- so do the same for consistency.
 						return
 					end
+
 					local _, _, _, _, _, _, x2, y2, z2 = spGetUnitPosition(target, true, true)
-					if los % 2 == 1 then
-						-- in los
+					if los % 2 == 1 or (targetData.alwaysSeen and getPrevLos(los)) then
+						-- in los, or static and previously seen
 						drawUnitTarget(target, x2, y2, z2)
-					elseif los == 14 then
+					else
 						-- in radar   spIsUnitInRadar(target, myAllyTeam)
 						local dx, dy, dz = spGetUnitPosErrorParams(target)
 						local size = spGetRadarErrorParams(myAllyTeam)
@@ -789,7 +792,7 @@ else	-- UNSYNCED
 				end
 			elseif target and not tonumber(target) then
 				-- 3d coordinate target
-				local x2, y2, z2 = unpack(targetData.target)
+				local x2, y2, z2 = unpack(target)
 				drawUnitTarget(x2+y2+z2, x2, y2, z2)
 			end
 		end
