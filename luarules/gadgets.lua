@@ -681,6 +681,7 @@ end
 local reorderQueue = {}
 local reorderNeeded = false
 local reorderFuncs = {}
+local callinDepth = 0
 
 function gadgetHandler:CreateQueuedReorderFuncs()
 	-- This will create an array with linked Raw methods so we can find them by index.
@@ -800,10 +801,15 @@ function gadgetHandler:UpdateCallIn(name)
 
 		if selffunc ~= nil then
 			_G[name] = function(...)
+				callinDepth = callinDepth + 1
+
 				local res = selffunc(self, ...)
-				if reorderNeeded then
+
+				callinDepth = callinDepth - 1
+				if reorderNeeded and callinDepth == 0 then
 					self:PerformReorders()
 				end
+
 				return res
 			end
 		else
@@ -1123,6 +1129,9 @@ function gadgetHandler:Shutdown()
 end
 
 function gadgetHandler:GameFrame(frameNum)
+	-- Since GameGrame should never be called nested ensure here the callinDepth
+	-- is ok. We set it to 1 so after the run it will be set to 0 again.
+	callinDepth = 1
 	tracy.ZoneBeginN("G:GameFrame")
 	for _, g in ipairs(self.GameFrameList) do
 		tracy.ZoneBeginN("G:GameFrame:" .. g.ghInfo.name)
