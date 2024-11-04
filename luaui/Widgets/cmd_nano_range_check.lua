@@ -1,5 +1,5 @@
 local WIDGET_NAME = "Construction Turrets Range Check"
-local WIDGET_VERSION = "1.5"
+local WIDGET_VERSION = "1.5c"
 --[[
 ### VERSIONS ###
 1.0 - initial release, basic
@@ -15,6 +15,7 @@ local WIDGET_VERSION = "1.5"
 1.4g - refactored the code, added more comments, better readability.
 1.5 - fixed edge case that allows to skip the script the execution of the script by switching selection.
 1.5b - main branch integration. Removal of hello Echo.
+1.5c - Added guard clauses, changed license to main branch.
 ]]--
 
 function widget:GetInfo()
@@ -23,7 +24,7 @@ function widget:GetInfo()
         desc = "Stops construction turrets from being assigned to constructions out of reach.",
         author = "Nehroz",
         date = "2024.11.01", -- update date.
-        license = "GPL v3",
+        license = "GNU GPL, v2 or later",
         layer = 0,
         version = WIDGET_VERSION
     }
@@ -64,16 +65,17 @@ function LRUCache:put(uID, value)
         -- If uID already exists, just update and mark it as recently used (should never be the case)
         self.cache[uID] = value
         self:moveToEnd(uID)
-    else
-        -- Add new uID-value pair
-        if #self.order >= self.max_size then
-            -- Cache is full, remove the least recently used item
-            local lru = table.remove(self.order, 1)
-            self.cache[lru] = nil
-        end
-        table.insert(self.order, uID)
-        self.cache[uID] = value
     end
+
+    -- Check if cache is full, remove oldest item (least recently used)
+    if #self.order >= self.max_size then
+        local lru = table.remove(self.order, 1)
+        self.cache[lru] = nil
+    end
+
+    -- Insert the new uID and its value
+    table.insert(self.order, uID)
+    self.cache[uID] = value
 end
 
 -- Helper function to move uID to the end of the order list
@@ -178,22 +180,20 @@ end
 
 -- Applies all stop orders to units in the `to_be_cleared` stack.
 local function applyStopOrders()
-    if #to_be_cleared > 0 then
-        Spring.GiveOrderToUnitArray(to_be_cleared, CMD.STOP, {}, {})
-        command_budget = command_budget - #to_be_cleared
-        to_be_cleared = {}
-    end
+    if #to_be_cleared <= 0 then return end
+    Spring.GiveOrderToUnitArray(to_be_cleared, CMD.STOP, {}, {})
+    command_budget = command_budget - #to_be_cleared
+    to_be_cleared = {}
 end
 
 -- Processes new orders that have been scheduled for execution in the `new_orders` stack.
 local function processNewOrders()
-    if #new_orders > 0 and #to_be_cleared == 0 then
-        for i = #new_orders, 1, -1 do
-            if command_budget <= 0 then break end
-            Spring.GiveOrderArrayToUnit(new_orders[i][1], new_orders[i][2])
-            table.remove(new_orders, i) -- pop
-            command_budget = command_budget - 1
-        end
+    if #new_orders == 0 and #to_be_cleared > 0 then return end
+    for i = #new_orders, 1, -1 do
+        if command_budget <= 0 then break end
+        Spring.GiveOrderArrayToUnit(new_orders[i][1], new_orders[i][2])
+        table.remove(new_orders, i) -- pop
+        command_budget = command_budget - 1
     end
 end
 
