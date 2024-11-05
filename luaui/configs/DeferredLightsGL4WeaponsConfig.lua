@@ -766,7 +766,7 @@ GetLightClass("MissileProjectile", "Warm", "Small", {a = 0.60,
 
 --corkorg
 explosionLightsNames["corkorg_corkorg_laser"] =
-GetLightClass("Explosion", "Fire", "SmallMedium", {r = 0.54, g = 0.45, b = 0.12, a = 0.25,
+GetLightClass("Explosion", "Fire", "Smallish", {r = 0.54, g = 0.45, b = 0.12, a = 0.33, 
 										 color2r = 1.2, color2g = 0.5, color2b = 0.2, colortime = 0.3,
 										 sustain = 2, lifetime = 3,
 										 modelfactor = -0.3, specular = -0.1, scattering = 1.95, lensflare = 0})
@@ -791,13 +791,30 @@ GetLightClass("MuzzleFlash", "Fire", "Mega", {posx = 120, posy = 82, posz = 0,
 
 --corkorg_shotgun
 projectileDefLightsNames["corkorg_corkorg_fire"] =
-GetLightClass("CannonProjectile", "Plasma", "Smaller", {a = 0.04,
+GetLightClass("CannonProjectile", "Plasma", "Smaller", {a = 0.04, radius = 80,
 											modelfactor = 0.2, specular = 0.05, scattering = 0.3, lensflare = 3})
+
+explosionLightsNames["corkorg_corkorg_fire"] =
+GetLightClass("Explosion", "Fire", "Medium", {r = 0.5, g = 0.3, b = 0.08, a = 0.4,
+											color2r = 1.2, color2g = 0.6, color2b = 0.4, colortime = 0.6,
+											sustain = 2, lifetime = 6,
+											modelfactor = -0.3, specular = -0.1, scattering = 1.95, lensflare = 0
+										})
+   
 
 --corkorg_rocket
 projectileDefLightsNames["corkorg_corkorg_rocket"] =
 GetLightClass("MissileProjectile", "Warm", "SmallMedium", {a = 0.40,
+											r = 1.2, g = 0.65, b = 0.1, radius = 80,
+											color2r = 1.2, color2g = 0.7, color2b = 0.4,
 											modelfactor = 0.5, specular = 0.05, scattering = 0.45, lensflare = 5})
+
+explosionLightsNames["corkorg_corkorg_rocket"] =
+GetLightClass("Explosion", "Fire", "Medium", {r = 0.4, g = 0.2, b = 0.08, a = 0.5, radius = 240,
+											color2r = 1.2, color2g = 0.9, color2b = 0.4,
+											sustain = 4, lifetime = 10,
+											--modelfactor = -0.3, specular = -0.1, scattering = 1.95, lensflare = 0
+											})
 
 --corkorg_scav
 projectileDefLightsNames["corkorg_scav_corkorg_laser"] =
