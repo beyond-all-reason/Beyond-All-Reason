@@ -11,27 +11,17 @@ function gadget:GetInfo()
     }
 end
 
---TODO remvoe
-function dump(o)
-    if type(o) == 'table' then
-       local s = '{ '
-       for k,v in pairs(o) do
-          if type(k) ~= 'number' then k = '"'..k..'"' end
-          s = s .. '['..k..'] = ' .. dump(v) .. ','
-       end
-       return s .. '} '
-    else
-       return tostring(o)
-    end
- end
-
-
 local function isNano(unitDef)
     return unitDef.isImmobile and unitDef.isBuilder
 end
 
 local function isValidCommandID(commandID)
-    return commandID == CMD.REPAIR or commandID == CMD.GUARD or commandID == CMD.RECLAIM or commandID == CMD.ATTACK
+    return (
+        commandID == CMD.REPAIR
+        or commandID == CMD.GUARD
+        or commandID == CMD.RECLAIM
+        or commandID == CMD.ATTACK
+    )
 end
 
 function gadget:AllowCommand(unitID, unitDefID, _teamID, cmdID, cmdParams, _cmdOptions)
