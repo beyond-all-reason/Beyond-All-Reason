@@ -24149,24 +24149,30 @@ local featureDefLights = {
 
 local WreckBaseLight = { 
 	lightType = 'point',
-	lightConfig = { posx = 0, posy = -3 , posz = 0, radius = 9, -- underground relative to unit, radius will be overwritten
-		r = 1.1, g = 0.3, b = 0, a = 0.5, 		-- start at orange
-		dirx = 0, diry = 0.0027, dirz = 0, theta = 0.5,
-		color2r = 0.6, color2g = 0.2, color2b = -0.5, colortime = 45, -- in 450 frames, transition to dull red
-		modelfactor = 0.5, specular = 1.46, scattering = 1.6, lensflare = 0, -- no scatterin
-		lifetime = 300, sustain = 0.00008, animtype = 0},  -- remove at 300 frames, sustain is exp alpha fade 
+	lightConfig = { posx = 1, posy = -2.5 , posz = 1, radius = 9, -- underground relative to unit, radius will be overwritten
+		dirx = 0.003, diry = 0.0035, dirz = 0.003, theta = 0.9,
+		r = 1.2, g = 0.38, b = 0, a = 0.7, 		-- start at orange
+		color2r = 0.5, color2g = 0.12, color2b = -0.5, colortime = 30, -- in 450 frames, transition to dull red
+		modelfactor = 3.0, specular = -0.3, scattering = 1.6, lensflare = 0, -- no scatterin
+		lifetime = 200, sustain = 0.00012, animtype = 0},  -- remove at 300 frames, sustain is exp alpha fade 
 }
 
 for featureDefID, featureDef in pairs(FeatureDefs) do 
 	local name = featureDef.name
 	if string.sub(name, string.len(name)-4) == "_dead" then
+		local wreckRng = math.random() * 2 - 1
 		local featureSize = math.sqrt((featureDef.xsize or 1) * (featureDef.zsize or 1)) / 2.0
 		--Spring.Echo(name, featureDef.xsize , featureDef.zsize)
 		local featureDefLight = table.copy(WreckBaseLight)
-		featureDefLight.lightConfig.radius = featureSize * 20
-		featureDefLight.lightConfig.lifetime = featureDefLight.lightConfig.lifetime * featureSize * 0.8
-		featureDefLight.lightConfig.colortime = featureDefLight.lightConfig.colortime * featureSize * 0.8
-		featureDefLight.lightConfig.sustain = featureDefLight.lightConfig.sustain / featureSize
+		featureDefLight.lightConfig.radius = featureSize * 18
+		featureDefLight.lightConfig.lifetime = featureDefLight.lightConfig.lifetime * featureSize * 0.6
+		featureDefLight.lightConfig.colortime = featureDefLight.lightConfig.colortime * featureSize * 1.4
+		featureDefLight.lightConfig.sustain = featureDefLight.lightConfig.sustain / (featureSize * 1.4)
+		featureDefLight.lightConfig.posx = featureDefLight.lightConfig.posx * (wreckRng * featureSize * 7)
+		featureDefLight.lightConfig.posz = featureDefLight.lightConfig.posz * (wreckRng * featureSize * 7)
+		--featureDefLight.lightConfig.posy = featureDefLight.lightConfig.posy * (featureSize / 3)
+		featureDefLight.lightConfig.dirx = featureDefLight.lightConfig.dirx * (wreckRng * (featureSize / 3))
+		featureDefLight.lightConfig.dirz = featureDefLight.lightConfig.dirz * (wreckRng * (featureSize / 3))
 		featureDefLights[featureDefID] = {FeatureCreated = featureDefLight} 
 	end
 end
