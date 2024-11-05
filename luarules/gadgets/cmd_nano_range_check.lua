@@ -11,6 +11,21 @@ function gadget:GetInfo()
     }
 end
 
+--TODO remvoe
+function dump(o)
+    if type(o) == 'table' then
+       local s = '{ '
+       for k,v in pairs(o) do
+          if type(k) ~= 'number' then k = '"'..k..'"' end
+          s = s .. '['..k..'] = ' .. dump(v) .. ','
+       end
+       return s .. '} '
+    else
+       return tostring(o)
+    end
+ end
+
+
 local function isNano(unitDef)
     return unitDef.isImmobile and unitDef.isBuilder
 end
@@ -24,6 +39,7 @@ function gadget:AllowCommand(unitID, unitDefID, _teamID, cmdID, cmdParams, _cmdO
     if not isNano(unitDef) then return true end
     if not isValidCommandID(cmdID) then return true end
     if #cmdParams ~= 1 then return true end -- only handle ID targets, fallthrough for area select; let the intended scripts handle those first.
+    if not UnitDefs[Spring.GetUnitDefID(cmdParams[1])].isImmobile then return true end
 
     local range = unitDef.buildDistance
     local x, y, z = Spring.GetUnitPosition(unitID)
