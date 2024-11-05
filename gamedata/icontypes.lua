@@ -375,6 +375,10 @@ local icontypes = {
 		bitmap = "icons/air.png",
 		size = 0.86099994
 	},
+	armfify = {
+		bitmap = "icons/air_t1_rez.png",
+		size = 1.25999999
+	},
 	armflak = {
 		bitmap = "icons/aa_flak_t2.png",
 		size = 1.5
@@ -2335,6 +2339,10 @@ local icontypes = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
 	},
+	legrwall = {
+		bitmap = "icons/wall_0.4.png",
+		size = 0.41999999
+	},
 	leghive = {
 		bitmap = "icons/defence_t15_dronecarry.png",
 		size = 1.65999997
@@ -2386,6 +2394,10 @@ local icontypes = {
 	leggob = {
 		bitmap = "icons/bot_t1_raid_0.7.png",
 		size = 0.60000002
+	},
+	leggobt3 = {
+		bitmap = "icons/leggobt3.png",
+		size = 2
 	},
 	babyleggob = {
 		bitmap = "icons/bot_t1_raid_0.7.png",
@@ -2531,6 +2543,10 @@ local icontypes = {
 		bitmap = "icons/air_hover_rocket.png",
 		size = 1.25999999
 	},
+	legmost3 = {
+		bitmap = "icons/air_hover_rocket.png",
+		size = 2
+	},
 	legmrv = {
 		bitmap = "icons/vehicle_t2_raid.png",
 		size = 1.45000005
@@ -2618,6 +2634,10 @@ local icontypes = {
 	legsrail = {
 		bitmap = "icons/allterrain_t2_rail.png",
 		size = 1.85000002
+	},
+	legsrailt4 = {
+		bitmap = "icons/allterrain_t2_rail.png",
+		size = 4
 	},
 	legstarfall = {
 		bitmap = "icons/armvulc.png",

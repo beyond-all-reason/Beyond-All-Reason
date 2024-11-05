@@ -51,6 +51,7 @@ return {
 			inheritxpratemultiplier = 1,
 			childreninheritxp = "DRONE",
 			parentsinheritxp = "DRONE",
+			disable_when_no_air = true,
 		},
 		featuredefs = {
 			dead = {
@@ -125,7 +126,6 @@ return {
 				explosiongenerator = "",
 				gravityaffected = "true",
 				hightrajectory = 1,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				name = "HeavyCannon",
 				noselfdamage = true,
@@ -177,7 +177,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-medium-air",
 				firestarter = 70,
 				flighttime = 1.75,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				metalpershot = 0,
 				model = "cormissile.s3o",

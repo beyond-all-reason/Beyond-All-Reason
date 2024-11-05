@@ -121,7 +121,6 @@ return {
 				explosiongenerator = "custom:laserhit-small",
 				firestarter = 30,
 				impactonly = 1,
-				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 5,
 				name = "Light Close-Quarters g2g Heat Ray",

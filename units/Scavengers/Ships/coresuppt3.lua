@@ -111,7 +111,6 @@ return {
 				energypershot = 350,
 				explosiongenerator = "custom:genericshellexplosion-medium-beam",
 				firestarter = 90,
-				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 8.25,
 				name = "KrogHeatRay",

@@ -129,7 +129,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-small",
 				flamegfxtime = 1,
 				gravityaffected = "true",
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				mygravity = 0.1,
 				name = "HeavyCannon",

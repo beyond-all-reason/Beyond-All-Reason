@@ -121,7 +121,6 @@ return {
 				edgeeffectiveness = 0.15,
 				energypershot = 1000,
 				explosiongenerator = "custom:laserhit-large-blue",
-				impulseboost = 0,
 				impulsefactor = 0,
 				largebeamlaser = true,
 				laserflaresize = 6.05,

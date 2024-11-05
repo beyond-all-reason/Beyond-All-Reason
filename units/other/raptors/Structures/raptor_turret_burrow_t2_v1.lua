@@ -85,7 +85,6 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.63,
 				explosiongenerator = "custom:genericshellexplosion-huge",
-				impulseboost = 0,
 				impulsefactor = 0.4,
 				intensity = 0.7,
 				interceptedbyshieldtype = 1,
