@@ -7,7 +7,7 @@ function widget:GetInfo()
 		name = "RML Examples",
 		desc = "Test Cases / Examples for RmlUi",
 		author = "ChrisFloofyKitsune",
-		date = "June 2024",
+		date = "2024",
 		license = "https://unlicense.org/",
 		layer = -828888,
 		handler = true,
@@ -65,6 +65,7 @@ local function createSection(name, content, code_only)
 end
 
 local function createStylesSection(name, rcss_code)
+	rcss_code = '/* Style code added dynamically using document:AppendToStyleSheet(rcss_code) */\n\n' .. rcss_code:trim()
 	document:AppendToStyleSheet(rcss_code)
 	return createSection(name, rcss_code, true)
 end
@@ -75,7 +76,6 @@ function widget:Initialize()
 		widget.rmlContext = RmlUi.CreateContext(widget.whInfo.name)
 	end
 
-	widget.rmlContext:RemoveDataModel("data_model_test")
 	data_handle = widget.rmlContext:OpenDataModel("data_model_test", {
 		tab_name = '',
 	});
@@ -101,26 +101,30 @@ function widget:Initialize()
 	createInputElementsPage()
 	createBasicStylesPage()
 	createAnimationPage()
-
+	
+	-- Refresh the active_tab to trigger the tabchange event
 	tabset.active_tab = -1
 	tabset.active_tab = 0
-	RmlUi.SetDebugContext(widget.rmlContext)
+	
+	-- uncomment to enable RmlUi debugging by default
+	--RmlUi.SetDebugContext(widget.rmlContext)
 end
 
 function widget:Shutdown()
-	RmlUi.SetDebugContext(nil)
+	--RmlUi.SetDebugContext(nil)
 
 	if document then
 		document:Close()
 	end
 
 	if widget.rmlContext then
+		widget.rmlContext:RemoveDataModel("data_model_test")
 		RmlUi.RemoveContext(widget.whInfo.name)
+		widget.rmlContext = nil
 	end
 end
 
 function widget:OnReloadClick()
-	widget.rmlContext = nil
 	widgetHandler:DisableWidget(widget:GetInfo().name)
 	widgetHandler:EnableWidget(widget:GetInfo().name)
 end
@@ -251,7 +255,7 @@ function createLayoutElementsPage()
 	</div>
 </div>
 ]])
-	
+
 	local wrappingFlexBoxSection = createSection('Wrapping Flex Box', [[
 <div style="display: flex; flex-wrap: wrap; gap: 2em 2dp; justify-content: center;">
 	<div class="container" style="min-width: 40%">div</div>
@@ -545,7 +549,6 @@ end
 
 function createAnimationPage()
 	local keyframesSection = createStylesSection('.rcss Keyframes', [[
-		/* Code inserted into <style> element in document <head> */
 		@keyframes spin {
 			0% { transform: rotate(0deg); }
 			100% { transform: rotate(360deg); }
@@ -577,7 +580,6 @@ function createAnimationPage()
 	]])
 
 	local transitionClassesSection = createStylesSection('.rcss Transition Classes', [[
-		/* Code inserted into <style> element in document <head> */
 		.transition-ex-1, .transition-ex-2, .transition-ex-3 {
 			width: 100dp; 
 			height: 100dp; 
@@ -624,9 +626,9 @@ function createAnimationPage()
 
 	addPage(
 		'Animation .rcss Styling',
-		--keyframesSection ..
-		--	transformAnimationsSection ..
+		keyframesSection ..
+			transformAnimationsSection ..
 			transitionClassesSection ..
 			transitionSection
 	)
-end 
+end
