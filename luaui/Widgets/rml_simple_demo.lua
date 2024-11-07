@@ -10,8 +10,8 @@ function widget:GetInfo()
 		date      = "2024-03-17",
 		license   = "https://unlicense.org/",
 		layer     = -828888,
-		handler   = true,
-		enabled   = true
+		handler   = false,
+		enabled   = false
 	}
 end
 
