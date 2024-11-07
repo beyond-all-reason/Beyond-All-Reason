@@ -459,6 +459,12 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "arm-bld-wall-t2",
 	},
 
+	armlwall = {
+		BaseSoundSelectType = "arm-bld-select-large",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "lightning",
+	},
+
 	armflak = {
 		BaseSoundSelectType = "arm-bld-defense-action-t2",
 		--BaseSoundMovementType = "",
@@ -1519,6 +1525,12 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "flame-alt",
 	},
 
+	cormaw = {
+		BaseSoundSelectType = "arm-bld-defense-action-t1",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "flame-alt",
+	},
+
 	cormadsam = {
 		BaseSoundSelectType = "arm-bld-defense-action-t1",
 		--BaseSoundMovementType = "",
@@ -1672,6 +1684,12 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-bld-select-large",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-wall-t2",
+	},
+
+	cormwall = {
+		BaseSoundSelectType = "arm-bld-select-large",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "laser-large",
 	},
 
 	corflak = {
@@ -2573,11 +2591,6 @@ GUIUnitSoundEffects = {
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "rocketalt-large",
 	},
-	legforti = {
-		BaseSoundSelectType = "arm-bld-select-large",
-		--BaseSoundMovementType = "",
-		BaseSoundWeaponType = "arm-bld-wall-t2",
-	},
 
 	legnanotc = {
 		BaseSoundSelectType = "arm-bld-select-small",
@@ -2784,6 +2797,18 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-bld-defense-action-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "aarocket-large",
+	},
+
+	legrwall = {
+		BaseSoundSelectType = "arm-bld-select-large",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "sniper",
+	},
+
+	legforti = {
+		BaseSoundSelectType = "arm-bld-select-large",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-wall-t2",
 	},
 
 
