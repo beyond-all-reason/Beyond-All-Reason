@@ -8,41 +8,43 @@ Through the metatable, local variables within the loaded file will now be access
 
 local localsDetectorString = [[
 
-local __locals = {}
-local __i = 1
-while true do
-  local name, _ = debug.getlocal(1, __i)
-  if not name then break end
+do
+	local __locals = {}
+	local __i = 1
+	while true do
+		local name, _ = debug.getlocal(1, __i)
+		if not name then break end
 
-  if name ~= "__i" and name ~= "__locals" then
-    table.insert(__locals, name)
-  end
+		if name ~= "__i" and name ~= "__locals" then
+			table.insert(__locals, name)
+		end
 
-  __i = __i + 1
+		__i = __i + 1
+	end
+	return __locals
 end
-return __locals
 ]]
 
 local function generateLocalsAccessStr(localsNames)
 	local content = "\n__localsAccess = {\n"
 
-	content = content .. "  getters = {\n"
+	content = content .. "\tgetters = {\n"
 	for _, name in ipairs(localsNames) do
-		content = content .. "    " .. name .. " = function() return " .. name .. " end,\n"
+		content = content .. "\t\t" .. name .. " = function() return " .. name .. " end,\n"
 	end
-	content = content .. "  },\n"
+	content = content .. "\t},\n"
 
-	content = content .. "  setters = {\n"
+	content = content .. "\tsetters = {\n"
 	for _, name in ipairs(localsNames) do
-		content = content .. "    " .. name .. " = function(__value) " .. name .. " = __value end,\n"
+		content = content .. "\t\t" .. name .. " = function(__value) " .. name .. " = __value end,\n"
 	end
-	content = content .. "  },\n"
+	content = content .. "\t},\n"
 
-	content = content .. "  getAllLocals = function() return {\n"
+	content = content .. "\tgetAllLocals = function() return {\n"
 	for _, name in ipairs(localsNames) do
-		content = content .. "    \"" .. name .. "\",\n"
+		content = content .. "\t\t\"" .. name .. "\",\n"
 	end
-	content = content .. "  } end,\n"
+	content = content .. "\t} end,\n"
 
 	content = content .. "}\n"
 	return content

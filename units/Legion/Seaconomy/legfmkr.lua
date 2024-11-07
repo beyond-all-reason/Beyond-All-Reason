@@ -9,7 +9,6 @@ return {
 		buildpic = "CORFMKR.DDS",
 		buildtime = 2680,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		explodeas = "largeBuildingExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -33,7 +32,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "corbuildings/seaeconomy",
+			subfolder = "CorBuildings/SeaEconomy",
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {

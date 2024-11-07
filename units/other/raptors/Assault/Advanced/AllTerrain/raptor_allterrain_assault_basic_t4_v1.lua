@@ -15,7 +15,7 @@ return {
 		canpatrol = true,
 		canstop = "1",
 		capturable = false,
-		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE RAPTOR EMPABLE",
+		category = "RAPTOR",
 		collisionvolumeoffsets = "0 10 2",
 		collisionvolumescales = "37 55 90",
 		collisionvolumetype = "box",
@@ -32,7 +32,7 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "RAPTORALLTERRAINBIG2HOVER",
 		noautofire = false,
-		nochasecategory = "VTOL SPACE",
+		nochasecategory = "VTOL",
 		objectname = "Raptors/raptorapexallterrainassault.s3o",
 		script = "Raptors/raptorapexallterraina.cob",
 		seismicsignature = 0,
@@ -156,7 +156,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL SPACE",
+				badtargetcategory = "VTOL",
 				def = "WEAPON",
 				maindir = "0 0 1",
 				maxangledif = 125,

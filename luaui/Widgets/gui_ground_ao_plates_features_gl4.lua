@@ -212,7 +212,6 @@ function widget:Initialize()
 			
 		elseif FD.customParams then 
 			if  FD.customParams.decalinfo_texfile then 
-				--Spring.Debug.TableEcho(FD.customParams)
 				featureDefIDtoDecalInfo[id] = {
 					texfile = atlassedImages[FD.customParams.decalinfo_texfile],
 					sizex = (tonumber(FD.customParams.decalinfo_sizex) or 5) * 16,

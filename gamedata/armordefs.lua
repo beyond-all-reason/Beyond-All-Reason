@@ -121,6 +121,7 @@ local armorDefs = {
 		"armfatf",
 		"armfav",
 		"armfdrag",
+		"armfgate",
 		"armfhlt",
 		"armfhp",
 		"armfido",
@@ -129,6 +130,7 @@ local armorDefs = {
 		"armfmkr",
 		--"armfort",
 		"armfrt",
+		"armgate",
 		"armgeo",
 		"armgmm",
 		"armgremlin",
@@ -185,6 +187,7 @@ local armorDefs = {
 		"armamsub",
 		"corjuno",
 		"corageo",
+		"legageo",
 		"armconsul",
 		"coraak",
 		"corack",
@@ -196,6 +199,7 @@ local armorDefs = {
 		"corasp",
 		"corfasp",
 		"corbhmth",
+		"legrampart",
 		"corbuzz",
 		"corcan",
 		"corch",
@@ -208,6 +212,7 @@ local armorDefs = {
 		"corfatf",
 		"corfav",
 		"corfdrag",
+		"corfgate",
 		"corfhlt",
 		"corfhp",
 		"corfmkr",
@@ -216,6 +221,7 @@ local armorDefs = {
 		--"corfort",
 		"corfrt",
 		"corftiger",
+		"corgate",
 		"corgator",
 		"corgeo",
 		"corhlt",
@@ -238,6 +244,7 @@ local armorDefs = {
 		"cormwall",
 		"cornecro",
 		"corplat",
+		"corphantom",
 		"corprinter",
 		"corvac",
 		"corvacct",
@@ -402,6 +409,7 @@ local armorDefs = {
 
 		"armapt3",
 		"corapt3",
+		"legapt3",
 		"legjam",
 		"legrad",
 		"leglht",
@@ -429,7 +437,7 @@ local armorDefs = {
 		"legotter",
 		"legacv",
 		"legack",
-		
+
 		"legah",
 		"legmh",
 		"legner",
@@ -437,10 +445,7 @@ local armorDefs = {
 		"leghp",
 		"legfhp",
 		"legch",
-	},
-
-	space = {
-		"armsat",
+		"legeyes",
 	},
 	mines = {
 		"armfmine3",
@@ -458,8 +463,12 @@ local armorDefs = {
 		"cornanotc",
 		"armnanotcplat",
 		"cornanotcplat",
+		"legnanotc",
+		"legnanotcplat",
 	},
 	vtol = {
+		"armhvytrans",
+		"corhvytrans",
 		"raptors3",
 		"armaca",
 		"armca",
@@ -499,6 +508,7 @@ local armorDefs = {
 		"legassistdrone",
 		"legmos",
 		"legfort",
+		"legfortt4",
 		"legca",
 		"legaca",
 		"armdrone",
@@ -508,6 +518,7 @@ local armorDefs = {
 		"armdroneold",
 		"cordroneold",
 		"legdrone",
+		"legheavydrone",
 		"raptor_air_bomber_basic_t1_v1",
 		"raptor_air_bomber_basic_t2_v1",
 		"raptor_air_bomber_basic_t2_v2",
@@ -562,10 +573,7 @@ local armorDefs = {
 		"critter_gull",
 	},
 	shields = {
-		"armgate",
-		"corgate",
-		--"armfgate", Not currently used
-		--"corfgate", Not currently used
+		-- Intentionally left blank. To be used in shield weapondefs only!
 	},
 	lboats = {
 		"corpt",

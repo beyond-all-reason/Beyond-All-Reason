@@ -8,7 +8,6 @@ return {
 		buildpic = "ARMMINIVULC.DDS",
 		buildtime = 65000,
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -6 0",
 		collisionvolumescales = "32 64 32",
 		collisionvolumetype = "CylY",
@@ -38,7 +37,7 @@ return {
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
 			removewait = true,
-			subfolder = "armbuildings/landdefenceoffence",
+			subfolder = "ArmBuildings/LandDefenceOffence",
 			techlevel = 2,
 		},
 		featuredefs = {

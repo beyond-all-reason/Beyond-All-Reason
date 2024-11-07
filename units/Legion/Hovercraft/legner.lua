@@ -7,7 +7,6 @@ return {
 		buildpic = "LEGNER.DDS",
 		buildtime = 2400,
 		canmove = true,
-		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "34 12 34",
 		collisionvolumetype = "Cyly",

@@ -8,7 +8,7 @@ return {
 		buildtime = 150000,
 		canfly = true,
 		canmove = true,
-		category = "ALL MOBILE WEAPON NOTLAND NOTSUB VTOL NOTSHIP NOTHOVER T4AIR",
+		category = "T4AIR",
 		collide = false,
 		cruisealtitude = 190,
 		explodeas = "explosiont3xl",
@@ -43,7 +43,7 @@ return {
 			unitgroup = 'weapon',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armaircraft",
+			subfolder = "ArmAircraft",
 			techlevel = 3,
 		},
 		sfxtypes = {

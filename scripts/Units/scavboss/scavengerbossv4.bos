@@ -540,7 +540,7 @@ UnitTimer()
 		cycle = cycle+1;
 		currentHealth = (get HEALTH);
 		oldEaterBeamIncrement = eaterBeamIncrement;
-		eaterBeamAggro = eaterBeamAggro+rand(100000, 150000);
+		eaterBeamAggro = eaterBeamAggro+rand(50000, 75000);
 		turboOffTime = 10+currentHealth/5; //this defines the portion of the turboWeaponChangeIncriment timer that turbo weapons are off.
 		
 		

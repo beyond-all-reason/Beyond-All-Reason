@@ -4,7 +4,7 @@ return {
   ["nukedatbewmsmall"] = {
     centerflare = {
       air                = true,
-      class              = [[heatcloud]],
+      class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
       water              = true,
@@ -523,7 +523,7 @@ return {
   ["nukedatbewmsmall-old"] = {
     centerflare = {
       air                = true,
-      class              = [[heatcloud]],
+      class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
       water              = true,
@@ -964,7 +964,7 @@ return {
     },
     outerflash = {
       air                = true,
-      class              = [[heatcloud]],
+      class              = [[CHeatCloudProjectile]],
       count              = 2,
       ground             = true,
       water              = true,

@@ -7,7 +7,6 @@ return {
 		buildpic = "scavengers/armsptkt4.DDS",
 		buildtime = 75000,
 		canmove = true,
-		category = "ALL BOT MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -4 0",
 		collisionvolumescales = "75 50 75",
 		collisionvolumetype = "CylY",
@@ -38,7 +37,7 @@ return {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.125,
-			subfolder = "armbots/t2",
+			subfolder = "ArmBots/T2",
 			techlevel = 3,
 		},
 		featuredefs = {

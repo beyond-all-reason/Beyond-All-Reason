@@ -9,7 +9,6 @@ return {
 		buildtime = 7500,
 		canrepeat = false,
 		canmove = true,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -7 0",
 		collisionvolumescales = "44 23 44",
 		collisionvolumetype = "Box",
@@ -42,7 +41,7 @@ return {
 			model_author = "Zephyr",
 			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
-			subfolder = "corbuildings/landdefenceoffence",
+			subfolder = "CorBuildings/LandDefenceOffence",
 			legacyname = "Gaat Gun",
 			inheritxpratemultiplier = 1,
 			childreninheritxp = "DRONE",
@@ -152,9 +151,7 @@ return {
 					docktohealthreshold = 66,
 					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					dockingHelperSpeed = 5,
-					dockingpiecestart = 4,		--First model piece to be used for docking.
-					dockingpieceinterval = 1,	--Number of pieces to skip when docking the next unit.
-					dockingpieceend = 9,		--Last model piece used for docking. Will loop back to first when exceeded.
+					dockingpieces = "4 5 6 7 8 9",
 					dockingradius = 80,			--The range at which the units snap to the carrier unit when docking.
 				}
 			},

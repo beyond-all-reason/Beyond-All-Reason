@@ -1,5 +1,6 @@
 return {
 	armapt3 = {
+		activatewhenbuilt = true,
 		maxacc = 0,
 		maxdec = 0,
 		energycost = 60000,
@@ -8,7 +9,6 @@ return {
 		buildpic = "ARMAP.DDS",
 		buildtime = 72400,
 		canmove = true,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 8 1",
 		collisionvolumescales = "268 98 164",
 		collisionvolumetype = "Box",
@@ -48,7 +48,7 @@ return {
 			unitgroup = 'buildert3',
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armbuildings/landfactories",
+			subfolder = "ArmBuildings/LandFactories",
 			techlevel = 3,
 		},
 		featuredefs = {

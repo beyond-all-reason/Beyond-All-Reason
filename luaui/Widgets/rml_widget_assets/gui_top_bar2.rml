@@ -1,0 +1,442 @@
+<rml>
+
+	<head>
+		<title>Top Bar</title>
+		<link type="text/rcss" href="/LuaUI/rml_common/styles.rcss" />
+		<style>
+			body {
+				top: 100px;
+				/* width: 1000dp;
+				height: 400dp; */
+				/* background-color: red; */
+				width: 40%;
+				margin: auto;
+				font-family: Exo 2;
+				font-weight: normal;
+				font-style: normal;
+				font-size: 1.5em;
+				color: white;
+				cursor: default;
+			}
+
+			input.range slidertrack {
+				margin: auto;
+				height: 40%;
+				/* decorator: horizontal-gradient(#5c5c5c #c0c0c0); */
+				background-color: #A9A9A8;
+				border-radius: 4px;
+				/* image-color: #ecc; */
+			}
+
+			input.range sliderbar {
+				margin-left: -8dp;
+				margin-right: -7dp;
+				margin-top: -3dp;
+				/* width: 34dp;
+				height: 23dp; */
+				width: 7%;
+				border-radius: 2px;
+				height: 60%;
+				margin: auto;
+				margin-left: 0px;
+				margin-right: 0px;
+			}
+
+			div {
+				/* display: block;
+				margin: auto; */
+			}
+
+			.rbox {
+				background-color: rgba(0, 0, 0, 200);
+				width: 40%;
+				height: 70dp;
+				padding: 0px;
+				margin: 0px;
+				border-bottom-left-radius: 16px;
+				border-bottom-right-radius: 16px;
+				display: flex;
+				flex-wrap: wrap;
+				overflow: hidden;
+			}
+
+			.stripes {
+				position: absolute;
+				width: 100%;
+				height: 100%;
+				decorator: image("/luaui/images/flowui_gl4/backgroundtile_pretransformed.png" none repeat left top);
+				image-color: rgba(85, 85, 85, 80);
+			}
+
+			.windbox {
+				decorator: image("/luaui/images/flowui_gl4/backgroundtile_pretransformed.png" none repeat left top);
+				image-color: rgba(85, 85, 85, 80);
+				background-color: rgba(0, 0, 0, 200);
+				height: 70dp;
+				width: 15%;
+				padding: 0px;
+				margin: 0px;
+				border-bottom-left-radius: 16px;
+				border-bottom-right-radius: 16px;
+			}
+
+			.flex {
+				display: flex;
+				flex-direction: row;
+			}
+
+			.flex-c {
+				display: flex;
+				flex-direction: column;
+			}
+
+			.flex>div {
+				padding: 10px;
+				flex: 1;
+			}
+
+			.flex>.double-width {
+				flex: 2;
+			}
+
+			input.range {
+				width: 100%;
+				height: 100%;
+				position: absolute;
+				padding: 0px;
+				margin: 0px;
+				top: 0;
+				left: 0;
+			}
+
+			.barwrap {
+				position: relative;
+				/* width: 80% */
+			}
+
+			.resourcetrack {
+				position: absolute;
+			}
+
+			.hiddenresourcetrack {
+				position: absolute;
+				top: 0;
+				left: 0;
+				bottom: 0;
+				right: 0;
+				pointer-events: none;
+			}
+
+			.hiddenresourcetrack.range slidertrack {
+				display: none;
+			}
+
+			.shareslider.range sliderbar {
+				background-color: red;
+			}
+
+			.metaltrack.range slidertrack {
+				image-color: white;
+				/* decorator: ninepatch(range-track, range-track-inner, 1.0); */
+				border-radius: 1px;
+			}
+
+			.energytrack.range slidertrack {
+				background-color: yellow;
+				/* decorator: ninepatch(range-track, range-track-inner, 1.0); */
+			}
+
+			.energytrack.range sliderbar {
+				decorator: vertical-gradient(#b4b4b4 #9b9b9b);
+				/* decorator: ninepatch(range-track, range-track-inner, 1.0); */
+			}
+
+			.hiddenresourcetrack.range sliderbar {
+				image-color: blue;
+				pointer-events: auto;
+				/* margin-left: -8dp;
+				margin-right: -7dp;
+				margin-top: -3dp;
+				width: 34dp;
+				height: 23dp;
+				decorator: image(range-bar); */
+			}
+
+			.flex>.double-width {
+				flex: 2;
+			}
+
+			.resourcetrack.range sliderarrowdec {
+				display: none
+			}
+
+			.resourcetrack.range sliderarrowinc {
+				display: none
+			}
+
+			.hiddenresourcetrack.range sliderarrowdec {
+				display: none
+			}
+
+			.hiddenresourcetrack.range sliderarrowinc {
+				display: none
+			}
+
+			input.range sliderbar:hover {
+				transform: scale3d(1.3, 1.3, 1)
+			}
+
+			tooltip>p {
+				/* background-color: blue; */
+				/* padding: 10px; */
+				margin: 3px;
+				/* height: 2px; */
+				flex: 1;
+				font-effect: outline(1px black);
+			}
+
+			#blades {
+				opacity: .3;
+				/* animation: 6s linear infinite spin; */
+				position: absolute;
+
+			}
+
+			@keyframes spin {
+				0% {
+					transform: rotate(360deg);
+				}
+
+				100% {
+					transform: rotate(0deg);
+				}
+			}
+
+			#waves {
+				width: 100%;
+				height: 100%;
+				opacity: .3;
+				animation: 10s linear infinite bob;
+
+			}
+
+			@keyframes bob {
+				0% {
+					transform: translateY(-10dp)
+				}
+
+				50% {
+					transform: translateY(5dp)
+				}
+
+				100% {
+					transform: translateY(-10dp);
+				}
+			}
+
+			tooltiptext {
+				background-color: #333;
+				border-radius: 4px;
+				padding: 10px 15px;
+				position: fixed;
+				margin: 15px;
+				text-align: center;
+				display: none;
+				z-index: 999;
+				font-effect: outline(1px black);
+			}
+
+			#metal sliderbar:hover+#metaltooltip {
+				display: block;
+			}
+
+			#energy:hover+#energytooltip {
+				display: block;
+			}
+
+			#energyshare:hover+#energysharetooltip {
+				display: block;
+			}
+
+			tooltip:hover>tooltiptext {
+				/* transition: display 1.5s; */
+				display: block;
+			}
+
+			.showtooltip {
+				display: block;
+			}
+
+			.ontop {
+				z-index: 3;
+				font-effect: outline(1px black);
+				/* font-size: 1.45em; */
+				padding: 0px;
+			}
+
+			.slidertooltip {
+				margin-left: 30%;
+				margin-top: 40px;
+				width: 155dp;
+			}
+
+			.redc {
+				background-color: red;
+			}
+
+			p {
+				padding: 6dp;
+			}
+
+			#metalstorage {
+				background-color: rgb(83, 83, 83);
+				border-radius: 2px;
+				width: 100%;
+				transform: rotate(180deg)
+			}
+
+
+			#metalstorage fill {
+				background-color: rgb(196, 196, 196);
+				border-radius: 2px;
+			}
+
+			#energystorage {
+				background-color: rgb(83, 83, 83);
+				border-radius: 2px;
+				width: 100%;
+			}
+
+			#energystorage fill {
+				background-color: rgb(204, 204, 0);
+				border-radius: 2px;
+			}
+		</style>
+		<!-- Lua script can be included directly in the document -->
+		<script>
+			function mouseovertooltip(element, show)
+				return function ()
+					element:SetClass("showtooltip", show)
+				end
+			end
+
+			function loaded(document)
+				local f = document:GetElementById("metal"): GetChild(1)
+				f:AddEventListener("mouseover", mouseovertooltip(document: GetElementById('metaltooltip'), true))
+				f:AddEventListener("mouseout", mouseovertooltip(document: GetElementById('metaltooltip'), false))
+
+				f = document:GetElementById("energy"): GetChild(1)
+				f:AddEventListener("mouseover", mouseovertooltip(document: GetElementById('energytooltip'), true))
+				f:AddEventListener("mouseout", mouseovertooltip(document: GetElementById('energytooltip'), false))
+
+				f = document:GetElementById("energyshare"): GetChild(1)
+				f:AddEventListener("mouseover", mouseovertooltip(document: GetElementById('energysharetooltip'), true))
+				f:AddEventListener("mouseout", mouseovertooltip(document: GetElementById('energysharetooltip'), false))
+			end
+		</script>
+	</head>
+
+	<body onload="loaded(document)">
+		<div id="wrap" data-model="top_bar_data">
+			<div class="flex">
+				<div class="rbox" style="margin-right:8px; flex:5">
+					<div class="" style="width: 10%;">
+						<img src="/luaui/images/metal.png" width="50" height="50" />
+					</div>
+					<div class="" style="width: 90%;">
+						<div class=" flex" style="width: 100%; flex:1">
+							<tooltip style="flex:1">
+								<p style="text-align:center; color:#f07d7d">-{{resources.metal.pull}}</p>
+								<tooltiptext>%%ui.topbar.pullTooltip</tooltiptext>
+							</tooltip>
+							<tooltip style="flex:1">
+								<p style="text-align:center; color:rgb(240,180,145)">-{{resources.metal.expense}}</p>
+								<tooltiptext>tooltip text here</tooltiptext>
+							</tooltip>
+							<tooltip style="flex:3">
+								<p style="text-align:center" id="frametext">{{resources.metal.current}}金属</p>
+								<tooltiptext>tooltip text here</tooltiptext>
+							</tooltip>
+							<tooltip style="flex:1">
+								<p style="text-align:right; color:rgb(140,140,140)">{{resources.metal.storage}}</p>
+								<tooltiptext>metal storage</tooltiptext>
+							</tooltip>
+						</div>
+						<div class="flex" style="width: 100%; flex:1;">
+							<tooltip style="flex:1">
+								<p style="text-align:center; color:rgb(120,235,120)">+{{resources.metal.income}}</p>
+								<tooltiptext>The quick brown fox jumps over the lazy dog</tooltiptext>
+							</tooltip>
+							<div style=" flex:4" class="barwrap">
+								<progress id="metalstorage" value="400" max="1000"/>
+								<input type='range' id="metal" class="hiddenresourcetrack resourcetrack metaltrack shareslider"
+									value="100" />
+								<tooltiptext id="metaltooltip" class="slidertooltip">metal slider</tooltiptext>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="rbox " style="margin-right:8px; flex:5">
+					<div class="" style="width: 10%;">
+						<img src="/luaui/images/energy.png" width="50" height="50" />
+					</div>
+					<div class="" style="width: 90%;">
+						<div class=" flex" style="width: 100%; flex:1">
+							<tooltip style="flex:1">
+								<p style="text-align:center; color:#f07d7d">-{{resources.energy.pull}}</p>
+								<tooltiptext>tooltip text here</tooltiptext>
+							</tooltip>
+							<tooltip style="flex:1">
+								<p style="text-align:center; color:rgb(240,180,145)">-{{resources.energy.expense}}</p>
+								<tooltiptext>tooltip text here</tooltiptext>
+							</tooltip>
+							<tooltip style="flex:3">
+								<p style="text-align:center; color:rgb(255,255,0)" id="frametext">{{resources.energy.current}}</p>
+								<tooltiptext>tooltip text here</tooltiptext>
+							</tooltip>
+							<tooltip style="flex:1">
+								<p style="text-align:right; color:rgb(140,140,140)">{{resources.energy.storage}}</p>
+								<tooltiptext>metal storage</tooltiptext>
+							</tooltip>
+						</div>
+						<div class="flex" style="width: 100%; flex:1;">
+							<tooltip style="flex:1">
+								<p style="text-align:center; color:rgb(120,235,120)">+{{resources.energy.income}}</p>
+								<tooltiptext>metal income</tooltiptext>
+							</tooltip>
+							<div style=" flex:4" class="barwrap">
+								<progress id="energystorage" value="800" max="1000"/>
+								<input type='range' id="energy" class="hiddenresourcetrack resourcetrack energytrack" value="80"
+									onchange="widget:adjustConversion(element,event)" />
+								<input type='range' id="energyshare" class="hiddenresourcetrack shareslider" value="100" />
+								<tooltiptext id="energytooltip" class="slidertooltip">energy slider</tooltiptext>
+								<tooltiptext id="energysharetooltip" class="slidertooltip">energy share slider</tooltiptext>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div id="windbox" class="windbox" style="margin-right:8px; flex:1; height:70dp">
+					<tooltip style="width:100%; height:100%;">
+						<img id="blades" src="/luaui/images/wind-blades.png" width="75" height="75" />
+						<div style="padding-right:4dp">
+							<p class="ontop" style="text-align: right;">{{resources.wind.min}}</p>
+							<p class="ontop" style="text-align: center;">{{resources.wind.current}}</p>
+							<p class="ontop" style="text-align: right;">{{resources.wind.max}}</p>
+						</div>
+						<tooltiptext>wind</tooltiptext>
+					</tooltip>
+				</div>
+				<div id="tidebox" class="windbox" style="margin-right:8px; flex:1; height:70dp">
+					<tooltip style="width:100%; height:100%;">
+						<div style="width:100%; height:100%;position:relative">
+							<img id="waves" src="/luaui/images/tidal-waves.png" />
+							<p class="ontop" style="position: absolute;  top: 50%;  left: 50%;  transform: translate(-50%, -50%);">
+								{{resources.tidal.current}}</p>
+						</div>
+						<tooltiptext>tidal</tooltiptext>
+					</tooltip>
+				</div>
+			</div>
+		</div>
+	</body>
+</rml>

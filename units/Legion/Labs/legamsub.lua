@@ -8,7 +8,6 @@ return {
 		buildpic = "LEGAMSUB.DDS",
 		buildtime = 11400,
 		canmove = true,
-		category = "ALL NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER UNDERWATER EMPABLE",
 		collisionvolumeoffsets = "0 0 -2",
 		collisionvolumescales = "115 36 112",
 		collisionvolumetype = "Box",
@@ -47,7 +46,7 @@ return {
 			unitgroup = 'builder',
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corbuildings/seafactories",
+			subfolder = "CorBuildings/SeaFactories",
 		},
 		featuredefs = {
 			dead = {

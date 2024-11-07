@@ -113,25 +113,36 @@ function gadget:GameFrame(f)
 				
 				local minerTeam = Spring.GetUnitTeam(miner)
 				local x, y, z = Spring.GetUnitPosition(miner)
-				local nearUnits = Spring.GetUnitsInCylinder(x, z, minesweeperRanges[minerdef])
 
-				--Spring.Echo('hornet minerTeam', minerTeam)
-				--Spring.Echo('hornet minerdef minesweeperRanges[minerdef]', minerdef, minesweeperRanges[minerdef])
-
-				--Spring.Echo('hornet nearUnits')
-				--Spring.Debug.TableEcho(nearUnits)
-				for _, nearUnit in ipairs(nearUnits) do
-					--Spring.Echo('hornet poi Spring.GetUnitTeam(nearUnit)', Spring.GetUnitTeam(nearUnit))
-					--local mineTeam = Spring.GetUnitTeam(nearUnit)
-					if minerTeam ~= Spring.GetUnitTeam(nearUnit) then
-						local nearUnitDefID = Spring.GetUnitDefID(nearUnit)
+				if x ~= nil and z ~= nil then
+					--bypass 'impossible' bug causing logspam 'sometimes'
 					
-						if mineIDs[nearUnitDefID] then
-							--Spring.Echo('hornet adding  minesToReveal[minerTeam][nearUnit] = nearUnit', minerTeam, nearUnit)
-							minesToReveal[minerTeam][nearUnit] = nearUnit
-						end
+
+
+					local nearUnits = Spring.GetUnitsInCylinder(x, z, minesweeperRanges[minerdef])
+
+					--Spring.Echo('hornet minerTeam', minerTeam)
+					--Spring.Echo('hornet minerdef minesweeperRanges[minerdef]', minerdef, minesweeperRanges[minerdef])
+
+					--Spring.Echo('hornet nearUnits')
+					--Spring.Debug.TableEcho(nearUnits)
+					for _, nearUnit in ipairs(nearUnits) do
+						--Spring.Echo('hornet poi Spring.GetUnitTeam(nearUnit)', Spring.GetUnitTeam(nearUnit))
+						--local mineTeam = Spring.GetUnitTeam(nearUnit)
+						if minerTeam ~= Spring.GetUnitTeam(nearUnit) then
+							local nearUnitDefID = Spring.GetUnitDefID(nearUnit)
 						
+							if mineIDs[nearUnitDefID] then
+								--Spring.Echo('hornet adding  minesToReveal[minerTeam][nearUnit] = nearUnit', minerTeam, nearUnit)
+								minesToReveal[minerTeam][nearUnit] = nearUnit
+							end
+							
+						end
+
 					end
+				else
+					minesweepers[teamouter][miner] = nil
+					--unset , errant entry somehow
 
 				end
 			end

@@ -7,7 +7,6 @@ return {
 		buildpic = "LEGAMCLUSTER.DDS",
 		buildtime = 8000,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 -2",
 		collisionvolumescales = "36 20 38",
 		collisionvolumetype = "Box",

@@ -65,20 +65,12 @@ end
 
 local spGetUnitHealth = Spring.GetUnitHealth
 
-
---Spring.Echo('hornet debug emp loaded')
---Spring.Debug.TableEcho(unitOhms)
 function gadget:UnitPreDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, projID, aID, aDefID, aTeam)
 
 
     if paralyzer then
---Spring.Debug.TableEcho(isBuilding)
---Spring.Echo('hornet debug here2')
         -- restrict the max paralysis time of mobile units
         if aDefID and uDefID and weaponID and not isBuilding[uDefID] and not excluded[uDefID] then
-		--Spring.Echo('hornet debug emp')
-			
-			
 			local hp, maxHP, currentEmp = spGetUnitHealth(uID)
 			local effectiveHP = Game.paralyzeOnMaxHealth and maxHP or hp
 			local paralyzeDeclineRate = Game.paralyzeDeclineRate
@@ -125,10 +117,7 @@ function gadget:UnitPreDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, 
 			newdamage = math.max(0, math.min(damage, maxEmpDamage - currentEmp))
 			--Spring.Echo('h mh ph wpt old new',hp,maxHP, currentEmp, thismaxtime, damage, newdamage)
 
-			--Spring.Echo(Game.paralyzeDeclineRate)
-			--Spring.Echo(Game.paralyzeOnMaxHealth)
 			damage = newdamage
-			--Spring.Debug.TableEcho(Game)
 			--damage = mh +6 
 			--Spring.Echo('new',h,mh, ph, max_para_damage, max_para_time, damage)
 				

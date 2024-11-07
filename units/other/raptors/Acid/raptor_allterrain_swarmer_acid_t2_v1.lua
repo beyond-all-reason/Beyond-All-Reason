@@ -1,5 +1,6 @@
 return {
 	raptor_allterrain_swarmer_acid_t2_v1 = {
+		activatewhenbuilt = true,
 		maxacc = 1.4375,
 		maxdec = 2.3,
 		energycost = 5280,
@@ -13,7 +14,7 @@ return {
 		canpatrol = true,
 		canstop = "1",
 		capturable = false,
-		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE RAPTOR EMPABLE",
+		category = "RAPTOR",
 		collisionvolumeoffsets = "0 -3 -3",
 		collisionvolumescales = "18 28 40",
 		collisionvolumetype = "box",
@@ -31,7 +32,7 @@ return {
 		maxwaterdepth = 15,
 		movementclass = "RAPTORALLTERRAINHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL SPACE",
+		nochasecategory = "VTOL",
 		objectname = "Raptors/raptoracidallterrain.s3o",
 		script = "Raptors/raptorc3.cob",
 		seismicsignature = 0,

@@ -34,6 +34,13 @@ VFS.Include('common/wav.lua')
 local language = Spring.GetConfigString('language', 'en')
 
 local voiceSet = Spring.GetConfigString('voiceset', defaultVoiceSet)
+
+-- fix old config
+if not string.find(voiceSet, '/', nil, true)	then
+	Spring.SetConfigString("voiceset", defaultVoiceSet)
+	voiceSet = defaultVoiceSet
+end
+
 if string.sub(voiceSet, 1, 2) ~= language then
 	local languageDirs = VFS.SubDirs('sounds/voice', '*')
 	for k, f in ipairs(languageDirs) do
@@ -46,6 +53,7 @@ if string.sub(voiceSet, 1, 2) ~= language then
 		end
 	end
 end
+
 
 local LastPlay = {}
 local notification = {}
@@ -130,7 +138,6 @@ local unitsOfInterestNames = {
 	armbanth = 'TitanDetected',
 	armepoch = 'FlagshipDetected',
 	corblackhy = 'FlagshipDetected',
-	cormando = 'CommandoDetected',
 	armthovr = 'TransportDetected',
 	corthovr = 'TransportDetected',
 	corintr = 'TransportDetected',
@@ -434,7 +441,7 @@ function widget:GameFrame(gf)
 				queueTutorialNotification('BuildEnergy')
 			end
 			if e_income >= 50 and m_income >= 4 then
-				queueTutorialNotification('MakeFactory')
+				queueTutorialNotification('BuildFactory')
 			end
 			if not hasMadeT2 and e_income >= 600 and m_income >= 12 then
 				queueTutorialNotification('ReadyForTech2')

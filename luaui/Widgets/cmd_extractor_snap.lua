@@ -101,6 +101,9 @@ local function clashesWithBuildQueue(uid, pos)
 	end
 
 	local function DoBuildingsClash(buildData1, buildData2)
+		if not buildData1[5] or not buildData2[5] then
+			return false
+		end
 		local w1, h1 = GetBuildingDimensions(buildData1[1], buildData1[5])
 		local w2, h2 = GetBuildingDimensions(buildData2[1], buildData2[5])
 

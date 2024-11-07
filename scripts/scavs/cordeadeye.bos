@@ -1,0 +1,353 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  body, turrethead, cannonbarrel, rfhip, rfhigh, rfleg, rffoot, lbhip, lbhigh, lbleg,
+		lbfoot, lfhip, lfhigh, lfleg, lffoot, rbhip, rbhigh, rbleg, rbfoot,
+		flare, aimy1, aimx1;
+
+static-var  bMoving, bAiming, animSpeed, maxSpeed, animFramesPerKeyframe, gun_1, wpnheading;
+
+// Signal definitions
+#define SIG_AIM				2
+#define SIG_WALK		4
+#define SIG_AIM_2		8
+
+
+Walk() {// For OOO:\Users\nothingtoseehereLOL\BAR screenshots\3d objects blender\cordeadeye animtion bones working test 1 names fixed.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2)) 
+	set-signal-mask SIG_WALK;
+	if (bMoving) { //Frame:7
+			move body to y-axis [-3.000000] speed [90.000000] / animSpeed; //Failed to find previous position for bonebodyaxislocation1
+			turn lbfoot to x-axis <-25.000000> speed <750.000004> / animSpeed; 
+			turn lbhip to y-axis <-79.000003> speed <1020.000063> / animSpeed; 
+			turn lbleg to x-axis <16.999999> speed <509.999980> / animSpeed; 
+			turn lffoot to x-axis <25.000000> speed <750.000004> / animSpeed; 
+			turn lfhip to y-axis <84.000002> speed <1170.000033> / animSpeed; 
+			turn lfleg to x-axis <-16.000000> speed <479.999996> / animSpeed; 
+			turn rbfoot to x-axis <25.000000> speed <750.000004> / animSpeed; 
+			turn rbhip to y-axis <22.000002> speed <689.999985> / animSpeed; 
+			turn rbleg to x-axis <4.000000> speed <119.999999> / animSpeed; 
+			turn rffoot to x-axis <-25.000000> speed <750.000004> / animSpeed; 
+			turn rfhip to y-axis <-14.000003> speed <929.999958> / animSpeed; 
+			turn rfleg to x-axis <-5.000000> speed <149.999996> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+	}
+	while(bMoving) {
+		if (bMoving) { //Frame:14
+			move body to y-axis [0.440000] speed [103.200002] / animSpeed; 
+			turn body to y-axis <2.000000> speed <60.000000> / animSpeed; 
+			turn body to z-axis <0.800000> speed <24.000000> / animSpeed; 
+			turn lbfoot to x-axis <0.000000> speed <750.000004> / animSpeed; 
+			turn lbhip to y-axis <-50.500001> speed <855.000075> / animSpeed; 
+			turn lbleg to x-axis <0.000000> speed <509.999980> / animSpeed; 
+			turn lffoot to x-axis <45.999999> speed <629.999966> / animSpeed; 
+			turn lfhigh to x-axis <-30.000001> speed <900.000025> / animSpeed; 
+			turn lfhip to y-axis <49.000003> speed <1049.999995> / animSpeed; 
+			turn lfleg to x-axis <-10.000000> speed <180.000005> / animSpeed; 
+			turn rbfoot to x-axis <-28.000000> speed <1590.000010> / animSpeed; 
+			turn rbhigh to x-axis <21.000001> speed <630.000018> / animSpeed; 
+			turn rbhip to y-axis <50.500001> speed <854.999973> / animSpeed; 
+			turn rbleg to x-axis <7.000000> speed <90.000003> / animSpeed; 
+			turn rffoot to x-axis <0.000000> speed <750.000004> / animSpeed; 
+			turn rfhip to y-axis <-49.000006> speed <1050.000098> / animSpeed; 
+			turn rfleg to x-axis <0.000000> speed <149.999996> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (bMoving) { //Frame:21
+			move body to y-axis [-3.000000] speed [103.200002] / animSpeed; 
+			turn body to y-axis <0.000000> speed <60.000000> / animSpeed; 
+			turn body to z-axis <-0.000000> speed <24.000000> / animSpeed; 
+			turn lbfoot to x-axis <25.000000> speed <750.000004> / animSpeed; 
+			turn lbhip to y-axis <-22.000000> speed <855.000024> / animSpeed; 
+			turn lbleg to x-axis <4.000000> speed <120.000012> / animSpeed; 
+			turn lffoot to x-axis <-25.000000> speed <2129.999974> / animSpeed; 
+			turn lfhigh to x-axis <0.000000> speed <900.000025> / animSpeed; 
+			turn lfhip to y-axis <14.000000> speed <1050.000072> / animSpeed; 
+			turn lfleg to x-axis <-5.000000> speed <149.999996> / animSpeed; 
+			turn rbfoot to x-axis <-25.000000> speed <90.000003> / animSpeed; 
+			turn rbhigh to x-axis <0.000000> speed <630.000018> / animSpeed; 
+			turn rbhip to y-axis <79.000003> speed <855.000075> / animSpeed; 
+			turn rbleg to x-axis <15.000000> speed <240.000011> / animSpeed; 
+			turn rffoot to x-axis <25.000000> speed <750.000004> / animSpeed; 
+			turn rfhip to y-axis <-84.000002> speed <1049.999893> / animSpeed; 
+			turn rfleg to x-axis <-17.000001> speed <510.000031> / animSpeed;  
+		sleep ((33*animSpeed) -1);
+		}
+		if (bMoving) { //Frame:28
+			move body to y-axis [0.530000] speed [105.900003] / animSpeed; 
+			turn body to y-axis <-2.000000> speed <60.000000> / animSpeed; 
+			turn body to z-axis <-0.800000> speed <24.000000> / animSpeed; 
+			turn lbfoot to x-axis <-28.000000> speed <1590.000010> / animSpeed; 
+			turn lbhigh to x-axis <39.999999> speed <1199.999965> / animSpeed; 
+			turn lbhip to y-axis <-50.500001> speed <855.000024> / animSpeed; 
+			turn lbleg to x-axis <-13.000000> speed <510.000006> / animSpeed; 
+			turn lffoot to x-axis <0.000000> speed <750.000004> / animSpeed; 
+			turn lfhip to y-axis <48.999999> speed <1049.999969> / animSpeed; 
+			turn lfleg to x-axis <2.500000> speed <224.999981> / animSpeed; 
+			turn rbfoot to x-axis <2.249999> speed <817.499980> / animSpeed; 
+			turn rbhip to y-axis <50.500001> speed <855.000075> / animSpeed; 
+			turn rbleg to x-axis <-0.500000> speed <465.000004> / animSpeed; 
+			turn rffoot to x-axis <19.999999> speed <150.000021> / animSpeed; 
+			turn rfhigh to x-axis <-56.999998> speed <1709.999945> / animSpeed; 
+			turn rfhip to y-axis <-49.000003> speed <1049.999995> / animSpeed; 
+			turn rfleg to x-axis <33.999999> speed <1529.999991> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (bMoving) { //Frame:35
+			move body to y-axis [-3.000000] speed [105.900003] / animSpeed; 
+			turn body to y-axis <0.000000> speed <60.000000> / animSpeed; 
+			turn body to z-axis <-0.000000> speed <24.000000> / animSpeed; 
+			turn lbfoot to x-axis <-25.000002> speed <89.999951> / animSpeed; 
+			turn lbhigh to x-axis <0.000000> speed <1199.999965> / animSpeed; 
+			turn lbhip to y-axis <-79.000003> speed <855.000075> / animSpeed; 
+			turn lbleg to x-axis <16.999999> speed <899.999974> / animSpeed; 
+			turn lffoot to x-axis <25.000000> speed <750.000004> / animSpeed; 
+			turn lfhip to y-axis <84.000002> speed <1050.000098> / animSpeed; 
+			turn lfleg to x-axis <-16.000000> speed <554.999981> / animSpeed; 
+			turn rbfoot to x-axis <25.000000> speed <682.500028> / animSpeed; 
+			turn rbhip to y-axis <22.000002> speed <854.999973> / animSpeed; 
+			turn rbleg to x-axis <4.000000> speed <134.999991> / animSpeed; 
+			turn rffoot to x-axis <-25.000002> speed <1350.000038> / animSpeed; 
+			turn rfhigh to x-axis <0.000000> speed <1709.999945> / animSpeed; 
+			turn rfhip to y-axis <-14.000003> speed <1049.999995> / animSpeed; 
+			turn rfleg to x-axis <-5.000000> speed <1169.999956> / animSpeed;  
+		sleep ((33*animSpeed) -1);
+		}
+	}
+}
+// Call this from StopMoving()!
+StopWalking() {
+	animSpeed = 10; // tune restore speed here, higher values are slower restore speeds
+	move body to y-axis [0.000000] speed [60.000000] / animSpeed;
+	turn body to y-axis <0.000000> speed <85.714285> / animSpeed;
+	turn body to z-axis <0.000000> speed <48.000000> / animSpeed;
+	turn lbfoot to x-axis <0.000000> speed <1680.000013> / animSpeed;
+	turn lbhigh to x-axis <0.000000> speed <2399.999930> / animSpeed;
+	turn lbhip to y-axis <-45.000001> speed <2550.000156> / animSpeed;
+	turn lbleg to x-axis <0.000000> speed <779.999988> / animSpeed;
+	turn lffoot to x-axis <0.000000> speed <2759.999940> / animSpeed;
+	turn lfhigh to x-axis <0.000000> speed <1800.000050> / animSpeed;
+	turn lfhip to y-axis <45.000001> speed <2925.000081> / animSpeed;
+	turn lfleg to x-axis <0.000000> speed <599.999983> / animSpeed;
+	turn rbfoot to x-axis <0.000000> speed <1680.000013> / animSpeed;
+	turn rbhigh to x-axis <0.000000> speed <1260.000035> / animSpeed;
+	turn rbhip to y-axis <45.000001> speed <1724.999963> / animSpeed;
+	turn rbleg to x-axis <0.000000> speed <420.000003> / animSpeed;
+	turn rffoot to x-axis <0.000000> speed <1199.999965> / animSpeed;
+	turn rfhigh to x-axis <0.000000> speed <3419.999890> / animSpeed;
+	turn rfhip to y-axis <-45.000001> speed <2324.999894> / animSpeed;
+	turn rfleg to x-axis <0.000000> speed <2039.999920> / animSpeed;
+	turn turrethead to y-axis <0.000000> speed <6.000000> / animSpeed;
+}
+// REMEMBER TO animspeed = 5 in Create() !!
+UnitSpeed(){
+	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
+	animFramesPerKeyframe = 5; //we need to calc the frames per keyframe value, from the known animtime
+	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
+	while(TRUE){
+		animSpeed = (get CURRENT_SPEED);
+		if (animSpeed<1) animSpeed=1;
+		animSpeed = (maxSpeed * 5) / animSpeed; 
+		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
+		if (animSpeed<2) animSpeed=2;
+		if (animspeed>10) animSpeed = 10;
+		sleep 164;
+	}
+}
+StartMoving(){
+	signal SIG_WALK;
+	bMoving=TRUE;
+	start-script Walk();
+}
+StopMoving(){
+	signal SIG_WALK;
+	bMoving=FALSE;
+	call-script StopWalking();
+}
+
+
+#define BASEPIECE body
+#define HITSPEED <55.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 7
+#define MAXTILT 100
+
+
+//#include "unit_hitbyweaponid_and_smoke.h"
+
+
+Create()
+{
+	hide flare;
+	hide aimx1;
+	hide aimy1;
+	gun_1 = 1;
+	bMoving = FALSE;
+	bAiming = FALSE;
+	animSpeed = 5;
+	wpnheading  = 0;
+	return (0);
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = body;
+	return (0);
+}
+
+QueryPrimary(piecenum)
+{
+	
+	piecenum = flare;
+	return(piecenum);
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = turrethead;
+	return (0);
+}
+
+
+
+RestoreAfterDelay()
+{
+	set-signal-mask SIG_AIM;
+	sleep 3000;
+	turn aimx1 to x-axis <0> speed <80>;
+	turn aimy1 to y-axis <0> speed <80>;
+	wait-for-turn aimy1 around y-axis;
+	wait-for-turn aimx1 around x-axis;
+	bAiming = FALSE;
+	wpnheading  = 0;
+}
+
+
+AimPrimary(heading, pitch)
+{
+	signal SIG_AIM;
+	if (bAiming == 1) return;
+	turn aimy1 to y-axis heading speed <80.00000>;
+	turn aimx1 to x-axis <0.000000> - pitch speed <80.000000>;
+	//needed for luarules\gadgets\unit_continuous_aim.lua
+	if ((get ABS(wpnheading - heading)) > 2000){
+		bAiming = 1;
+		wait-for-turn aimy1 around y-axis;
+		wait-for-turn aimx1 around x-axis;
+		bAiming = 0;
+	}
+	wpnheading = heading;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FirePrimary()
+{
+	move cannonbarrel to z-axis [-0.4] speed [4];
+	sleep(100);
+	move cannonbarrel to z-axis [-0.3] speed [0.25];
+	sleep(400);
+	move cannonbarrel to z-axis [-0.7] speed [4];
+	sleep(100);
+	move cannonbarrel to z-axis [-0.6] speed [0.25];
+	sleep(400);
+	move cannonbarrel to z-axis [-1] speed [4];
+	sleep(100);
+	move cannonbarrel to z-axis [0] speed [0.2];
+	return (1);
+}
+
+
+Killed(severity, corpsetype)
+{
+	turn aimy1 to y-axis <0> speed <50>;
+	turn aimx1 to x-axis <0> speed <50>;
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode body type BITMAPONLY | NOHEATCLOUD;
+		explode rfhip type BITMAPONLY | NOHEATCLOUD;
+		explode rfleg type BITMAPONLY | NOHEATCLOUD;
+		explode rffoot type BITMAPONLY | NOHEATCLOUD;
+		explode lbhip type BITMAPONLY | NOHEATCLOUD;
+		explode lbleg type BITMAPONLY | NOHEATCLOUD;
+		explode lbfoot type BITMAPONLY | NOHEATCLOUD;
+		explode lfhip type BITMAPONLY | NOHEATCLOUD;
+		explode lfleg type BITMAPONLY | NOHEATCLOUD;
+		explode lffoot type BITMAPONLY | NOHEATCLOUD;
+		explode rbhip type BITMAPONLY | NOHEATCLOUD;
+		explode rbleg type BITMAPONLY | NOHEATCLOUD;
+		explode rbfoot type BITMAPONLY | NOHEATCLOUD;
+		explode aimy1 type BITMAPONLY | NOHEATCLOUD;
+		explode turrethead type BITMAPONLY | NOHEATCLOUD;
+		explode aimx1 type BITMAPONLY | NOHEATCLOUD;
+		explode flare type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode body type BITMAPONLY | NOHEATCLOUD;
+		explode rfhip type FALL | NOHEATCLOUD;
+		explode rfleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rffoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lbhip type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lbleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lbfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lfhip type FALL | NOHEATCLOUD;
+		explode lfleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lffoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rbhip type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rbleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rbfoot type FALL | NOHEATCLOUD;
+		explode aimy1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode aimx1 type FALL | NOHEATCLOUD;
+		explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode cannonbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode body type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rfhip type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rfleg type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode rffoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lbhip type SMOKE | FALL | NOHEATCLOUD;
+		explode lbleg type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode lbfoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lfhip type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lfleg type SMOKE | FALL | NOHEATCLOUD;
+		explode lffoot type SMOKE | FALL | NOHEATCLOUD;
+		explode rbhip type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode rbleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rbfoot type SMOKE | FALL | NOHEATCLOUD;
+		explode aimy1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode turrethead type BITMAPONLY | NOHEATCLOUD;
+		explode aimx1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode cannonbarrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flare type SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode body type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rfhip type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rfleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode rffoot type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode lbhip type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lbleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode lbfoot type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode lfhip type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lfleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lffoot type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode rbhip type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rbleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode rbfoot type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode aimy1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode turrethead type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode aimx1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode cannonbarrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+}

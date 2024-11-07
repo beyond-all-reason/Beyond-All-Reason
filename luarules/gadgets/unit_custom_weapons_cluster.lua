@@ -189,16 +189,6 @@ for udid, _ in pairs(UnitDefs) do
     end
 end
 
--- Spring.Debug.TableEcho(
---     {
---         ['Tick bulk']     = unitBulk[ UnitDefNames["armflea"].id  ],
---         ['Pawn bulk']     = unitBulk[ UnitDefNames["armpw"].id    ],
---         ['Gauntlet bulk'] = unitBulk[ UnitDefNames["armguard"].id ],
---         ['Pulsar bulk']   = unitBulk[ UnitDefNames["armanni"].id  ],
---         ['Thor bulk']     = unitBulk[ UnitDefNames["armthor"].id  ],
---     }
--- )
-
 -- Reusable table for reducing garbage
 
 local spawnCache  = {

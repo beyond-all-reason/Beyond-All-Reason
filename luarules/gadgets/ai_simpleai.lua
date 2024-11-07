@@ -168,7 +168,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
---Spring.Debug.TableEcho(BuildOptions)
 -------- functions
 
 local function SimpleGetClosestMexSpot(x, z)

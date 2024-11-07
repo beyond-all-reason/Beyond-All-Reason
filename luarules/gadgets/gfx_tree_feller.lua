@@ -3,7 +3,7 @@ function gadget:GetInfo()
 		name = "Tree feller",
 		desc = "Destroys features that have 0 m and >0 energy",
 		author = "Beherith",
-		date = "march 201",
+		date = "march 201",--ye olde code
 		license   = "GNU GPL, v2 or later",
 		layer = 0,
 		enabled = true,
@@ -101,7 +101,13 @@ if gadgetHandler:IsSyncedCode() then
 	local treeMass = {}
 	local treeScaleY = {}
 	local treeName = {}
+	local geothermals = {}
 	for featureDefID, featureDef in pairs(FeatureDefs) do
+
+		if featureDef.geoThermal then
+			geothermals[featureDefID] = featureDefID
+		end
+
 		if featureDef.name:find('treetype') == nil then
 			treeName[featureDefID] = featureDef.name
 			treeMass[featureDefID] = math.max(1, featureDef.mass)
@@ -116,9 +122,79 @@ if gadgetHandler:IsSyncedCode() then
 		unitMass[unitDefID] = unitDef.mass
 	end
 
+
+
+	local function ComSpawnDefoliate(spawnx,spawny,spawnz)
+		
+
+		local blasted_trees = Spring.GetFeaturesInCylinder ( spawnx, spawnz, 125)
+
+		for i, tree in pairs(blasted_trees) do
+
+			local featureDefID = Spring.GetFeatureDefID(tree)
+
+			if geothermals[featureDefID] then
+				return 0
+			end
+
+
+			local fx, fy, fz = GetFeaturePosition(tree)
+			local dx, dy, dz = GetFeatureDirection(tree)
+			if true and fx ~= nil then
+
+				local ppx, ppy, ppz
+
+
+					local fire = false
+					local remainingMetal, maxMetal, remainingEnergy, maxEnergy, reclaimLeft = GetFeatureResources(tree)
+					local dissapearSpeed = 1.7
+					local size = 'medium'
+					if treeScaleY[featureDefID] then
+						if treeScaleY[featureDefID] < 40 then
+							size = 'tiny'
+						elseif treeScaleY[featureDefID] < 50 then
+							size = 'small'
+						elseif treeScaleY[featureDefID] > 65 then
+							size = 'large'
+						end
+						dissapearSpeed = 0.15 + Spring.GetFeatureHeight(tree) / math_random(3700, 4700)
+					end
+		
+					local destroyFrame = GetGameFrame() + falltime + 150 + (dissapearSpeed * 4000)
+
+				local dmg = treeMass[featureDefID] * 2
+				local name = treeName[featureDefID]
+				Spring.SetFeatureResources(0,0,0,0)
+				Spring.SetFeatureNoSelect(tree, true)
+				Spring.PlaySoundFile("treefall", 2, fx, fy, fz, 'sfx')
+				treesdying[tree] = {
+					frame = GetGameFrame(),
+					posx = fx, posy = fy, posz = fz,
+					fDefID = featureDefID,
+					dirx = dx, diry = dy, dirz = dz,
+					px = spawnx, py = spawny, pz = spawnz,
+					strength = math.max(1, treeMass[featureDefID] / dmg),
+					fire = false,
+					size = size,
+					dissapearSpeed = dissapearSpeed,
+					destroyFrame = destroyFrame
+				}
+				--Spring.Debug.TableEcho(treesdying[tree])
+		end
+	end
+
+	end
+
+	
+
+	GG.ComSpawnDefoliate = ComSpawnDefoliate
+	
+
 	function gadget:Initialize()
 		return
 	end
+
+
 
 	function gadget:FeaturePreDamaged(featureID, featureDefID, featureTeam, Damage, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 		if not treeMass[featureDefID] then
@@ -140,6 +216,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		local ppx, ppy, ppz
 		if fx ~= nil then
+
 			local health, maxhealth, _ = GetFeatureHealth(featureID)
 			if dmg >= health then
 				local fire
@@ -235,6 +312,8 @@ if gadgetHandler:IsSyncedCode() then
 						dissapearSpeed = dissapearSpeed,
 						destroyFrame = destroyFrame
 					}
+					--Spring.Echo('Hornet poi treesdying')
+					--Spring.Debug.TableEcho(treesdying[featureID])
 				end
 			end
 		end
@@ -257,7 +336,8 @@ if gadgetHandler:IsSyncedCode() then
 
 				-- FALLING
 				if featureinfo.frame + thisfeaturefalltime > gf then
-					local factor = math.max(1, (gf - featureinfo.frame) / thisfeaturefallspeed)
+					--Spring.Echo('hornet poi: falling')
+					local factor = math.max(1, ((gf - featureinfo.frame) / thisfeaturefallspeed))
 					local fx, fy, fz = GetFeaturePosition(featureID)
 					local px, py, pz = featureinfo.px, featureinfo.py, featureinfo.pz
 					if fy ~= nil then
@@ -297,6 +377,7 @@ if gadgetHandler:IsSyncedCode() then
 
 				-- FALLEN
 				elseif featureinfo.frame + thisfeaturefalltime <= gf then
+					--Spring.Echo('hornet poi: fallen')
 					local fx, fy, fz = GetFeaturePosition(featureID)
 					if fy ~= nil then
 						if featureinfo.fire then
@@ -332,7 +413,8 @@ if gadgetHandler:IsSyncedCode() then
 
 							-- NOTE: this can create twitchy tree movement
               -- Note 2: disabling this because I saw no reset issue, but this does fix gimbal induced twitch.
-							--SetFeatureDirection(featureID, dx, dy, dz)		-- gets reset so we re-apply
+			  -- note 3 (Hornet): enabling this because 'some trees' absolutely do need it. Eg, Tangerine is fine, but Isthmus trees are not. Might be map feature setting issue in some way?
+							SetFeatureDirection(featureID, dx, dy, dz)		-- gets reset so we re-apply
 						end
 					end
 				end

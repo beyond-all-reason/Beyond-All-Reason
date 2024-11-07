@@ -9,7 +9,6 @@ return {
 		buildpic = "LEGRHAPSIS.DDS",
 		buildtime = 4700,
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "28 40 28",
 		collisionvolumetype = "CylY",

@@ -1,5 +1,6 @@
 return {
 	legaap = {
+		activatewhenbuilt = true,
 		maxacc = 0,
 		maxdec = 0,
 		energycost = 28000,
@@ -8,7 +9,6 @@ return {
 		buildpic = "LEGAAP.DDS",
 		buildtime = 20700,
 		canmove = true,
-		category = "ALL NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 10 -2",
 		collisionvolumescales = "113 43 89",
 		collisionvolumetype = "Box",
@@ -55,7 +55,7 @@ return {
 			airfactory = true,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corbuildings/landfactories",
+			subfolder = "CorBuildings/LandFactories",
 			techlevel = 2,
 		},
 		featuredefs = {

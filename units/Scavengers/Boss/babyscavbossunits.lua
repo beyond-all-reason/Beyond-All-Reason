@@ -46,9 +46,7 @@ unitsTable['squadarmpwt4'].weapondefs.dronespawner = {
         dockinghealrate = 1000,
         docktohealthreshold = 0,
         dockingHelperSpeed = 5,
-        dockingpiecestart = 5,
-        dockingpieceinterval = 2,
-        dockingpieceend = 11,	
+        dockingpieces = "5 7 9 11",
         dockingradius = 120,	
         holdfireradius = 300
     }
@@ -117,9 +115,7 @@ unitsTable['squadarmsptkt4'].weapondefs.dronespawner = {
         dockinghealrate = 100,
         docktohealthreshold = 0,
         dockingHelperSpeed = 5,
-        dockingpiecestart = 5,
-        dockingpieceinterval = 2,
-        dockingpieceend = 11,
+        dockingpieces = "5 7 9 11",
         dockingradius = 120,
         holdfireradius = 300
     }
@@ -188,9 +184,7 @@ unitsTable['squadcorakt4'].weapondefs.dronespawner = {
         dockinghealrate = 1000,
         docktohealthreshold = 0,
         dockingHelperSpeed = 5,
-        dockingpiecestart = 5,
-        dockingpieceinterval = 2,
-        dockingpieceend = 11,	
+        dockingpieces = "5 7 9 11",
         dockingradius = 120,	
         holdfireradius = 300
     }
@@ -259,9 +253,7 @@ unitsTable['squadcorkarganetht4'].weapondefs.dronespawner = {
         dockinghealrate = 100,
         docktohealthreshold = 0,
         dockingHelperSpeed = 5,
-        dockingpiecestart = 5,
-        dockingpieceinterval = 2,
-        dockingpieceend = 11,
+        dockingpieces = "5 7 9 11",
         dockingradius = 120,
         holdfireradius = 300
     }

@@ -1,0 +1,27 @@
+<rml>
+    <head>
+        <!-- The default styling for html elements, must be imported to be used -->
+        <link type="text/rcss" href="/LuaUI/rml_common/styles.rcss"/>
+        <link type="text/rcss" href="rml_gui_examples.rcss"/>
+        
+    </head>
+    <body data-model="data_model_test">
+    <handle move_target="#document">
+        <div class="container flex-row title-bar">
+            <h3 style="margin: 0.25em">
+                RmlUi Examples :
+                <span>{{tab_name}}</span>
+            </h3>
+            <div class="flex-row">
+                <button onclick="widget:OnReloadClick()">
+                    Reload Widget
+                </button>
+                <button onclick="document:ReloadStyleSheet()">
+                    Reload Styles
+                </button>
+            </div>
+        </div>
+    </handle>
+    <tabset/>
+    </body>
+</rml>

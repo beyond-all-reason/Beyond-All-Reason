@@ -155,8 +155,7 @@ if not gadgetHandler:IsSyncedCode() then
 			sunDir = {gl.GetSun("pos")},
 			nightFactor = {red = 1, green = 1, blue = 1, shadow = 1, altitude = 1},
 		}
-		--Spring.Echo("GetLightingAndAtmosphere")
-		--Spring.Debug.TableEcho(res)
+
 		return res
 	end	
 	
@@ -352,7 +351,6 @@ if not gadgetHandler:IsSyncedCode() then
 		end
 		
 		Spring.Echo("Expecting /luarules NightMode nightR nightG nightB azimuth altitude shadowfactor")
-		--Spring.Debug.TableEcho(words)
 		local nightR = (words[1] and tonumber(words[1])) or 1
 		local nightG = (words[2] and tonumber(words[2])) or 1
 		local nightB = (words[3] and tonumber(words[3])) or 1
@@ -361,7 +359,7 @@ if not gadgetHandler:IsSyncedCode() then
 		local shadowfactor = (words[6] and tonumber(words[6])) or 1
 		
 		local newNightLight = GetNightLight(nil, { nightR, nightG,nightB,shadowfactor}, azimuth, altitude)
-		Spring.Debug.TableEcho(newNightLight)
+		Spring.Echo(newNightLight)
 		-- If this command is recieved, immediately stop any existing nightModeConfig
 		transitionenabled = false
 		SetLightingAndAtmosphere(newNightLight)
@@ -419,8 +417,6 @@ if not gadgetHandler:IsSyncedCode() then
 		local df = Spring.GetDrawFrame()
 		if df == lastSunChanged then return end
 		lastSunChanged = df
-		--Spring.Echo("gadget:SunChanged",Spring.GetGameFrame())
-		--Spring.Debug.TableEcho(GG.NightFactor)
 	end
 
 	function gadget:Initialize()

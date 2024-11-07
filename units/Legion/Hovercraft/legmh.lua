@@ -7,7 +7,6 @@ return {
 		buildpic = "legmh.DDS",
 		buildtime = 3300,
 		canmove = true,
-		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "33 18 44",
 		collisionvolumetype = "Box",
@@ -36,7 +35,7 @@ return {
 			unitgroup = 'weapon',
 			model_author = "EnderRobo",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "corhovercraft",
+			subfolder = "CorHovercraft",
 		},
 		featuredefs = {
 			dead = {

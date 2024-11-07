@@ -163,6 +163,7 @@ if gadgetHandler:IsSyncedCode() then
 		"sversuge",
 		"svrachmaninoff",
 		"thepanther67",
+		"TIMBO",
 		"Titan",
 		"TopHatButcher",
 		"Woody",

@@ -214,6 +214,20 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		attached_builders[nano_id] = unitID
 		attached_builder_def[nano_id] = SpGetUnitDefID(nano_id)
 	end
+	if unitDef.name == "legmohobp" then
+		local xx,yy,zz = SpGetUnitPosition(unitID)
+		nano_id = Spring.CreateUnit("legmohobpct",xx,yy,zz,0,Spring.GetUnitTeam(unitID) )
+		if not nano_id then
+			-- unit limit hit or invalid spawn surface
+			return
+		end
+		Spring.UnitAttach(unitID,nano_id,3)
+		-- makes the attached con turret as non-interacting as possible 
+		Spring.SetUnitBlocking(nano_id, false, false, false)
+        Spring.SetUnitNoSelect(nano_id,false)
+		attached_builders[nano_id] = unitID
+		attached_builder_def[nano_id] = SpGetUnitDefID(nano_id)
+	end
 
 end
 

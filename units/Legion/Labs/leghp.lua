@@ -8,7 +8,6 @@ return {
 		buildpic = "leghp.DDS",
 		buildtime = 11000,
 		canmove = true,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumescales = "120 32 108",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
@@ -47,7 +46,7 @@ return {
 			unitgroup = 'builder',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corbuildings/landfactories",
+			subfolder = "CorBuildings/LandFactories",
 		},
 		featuredefs = {
 			dead = {
