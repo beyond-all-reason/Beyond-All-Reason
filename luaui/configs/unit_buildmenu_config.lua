@@ -3,19 +3,18 @@
 --- DateTime: 4/26/2023 8:48 PM
 ---
 
-
-local unitEnergyCost = {}
-local unitMetalCost = {}
-local unitGroup = {}
-local unitRestricted = {}
-local isBuilder = {}
-local isFactory = {}
-local unitIconType = {}
-local isMex = {}
-local isWind = {}
-local isWaterUnit = {}
-local isGeothermal = {}
-local unitMaxWeaponRange = {}
+local unitGroup = {} ---@type table<number, number>
+local unitEnergyCost = {} ---@type table<number, number>
+local unitMetalCost = {} ---@type table<number, number>
+local unitRestricted = {} ---@type table<number, boolean>
+local unitIconType = {} ---@type table<number, number>
+local unitMaxWeaponRange = {} ---@type table<number, number>
+local isFactory = {} ---@type table<number, true>
+local isBuilder = {} ---@type table<number, true>
+local isMex = {} ---@type table<number, true>
+local isWind = {} ---@type table<number, true>
+local isWaterUnit = {} ---@type table<number, true>
+local isGeothermal = {} ---@type table<number, true>
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 
@@ -62,25 +61,29 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
-
+---@param disable boolean
 local function restrictWindUnits(disable)
 	for unitDefID,_ in pairs(isWind) do
 		unitRestricted[unitDefID] = disable
 	end
 end
 
+---@param disable boolean
 local function restrictGeothermalUnits(disable)
 	for unitDefID,_ in pairs(isGeothermal) do
 		unitRestricted[unitDefID] = disable
 	end
 end
 
+---@param disable boolean
 local function restrictWaterUnits(disable)
 	for unitDefID,_ in pairs(isWaterUnit) do
 		unitRestricted[unitDefID] = disable
 	end
 end
 
+---Sets geothermal unit restriction based on the presence of geothermal
+---features.
 local function checkGeothermalFeatures()
 	local hideGeoUnits = true
 	local geoThermalFeatures = {}
@@ -104,10 +107,12 @@ end
 -- UNIT ORDER ----------------------
 ------------------------------------
 
--- At the end of this 'UNIT ORDER' section, unitOrder is an array with unitIDs
--- sorted by their value specified in unitOrderManualOverrideTable. If no
--- value is specified, the unit will be placed at the end of the array.
+---At the end of this 'UNIT ORDER' section, unitOrder is an array with unitIDs
+---sorted by their value specified in unitOrderManualOverrideTable. If no
+---value is specified, the unit will be placed at the end of the array.
+---@type number[]
 local unitOrder = {}
+
 local unitOrderManualOverrideTable = VFS.Include("luaui/configs/buildmenu_sorting.lua")
 
 -- Populate unitOrder with unit IDs.
@@ -144,28 +149,30 @@ table.sort(unitOrder, function(aID, bID)
 	return aOrder < bOrder
 end)
 
-local minWaterUnitDepth = -11
 
-
-------------------------------------
--- /UNIT ORDER ----------------------
-------------------------------------
-
-return {
+local units = {
 	unitEnergyCost = unitEnergyCost,
 	unitMetalCost = unitMetalCost,
 	unitGroup = unitGroup,
 	unitRestricted = unitRestricted,
-	isBuilder = isBuilder,
-	isFactory = isFactory,
 	unitIconType = unitIconType,
-	isMex = isMex,
-	isWind = isWind,
-	isWaterUnit = isWaterUnit,
-	isGeothermal = isGeothermal,
 	unitMaxWeaponRange = unitMaxWeaponRange,
-
-	minWaterUnitDepth = minWaterUnitDepth,
+	---Set of unit IDs that are factories.
+	isFactory = isFactory,
+	---Set of unit IDs that have build options.
+	isBuilder = isBuilder,
+	---Set of unit IDs that require metal.
+	isMex = isMex,
+	---Set of unit IDs that require wind.
+	isWind = isWind,
+	---Set of unit IDs that require water.
+	isWaterUnit = isWaterUnit,
+	---Set of unit IDs that require geothermal.
+	isGeothermal = isGeothermal,
+	minWaterUnitDepth = -11,
+	---An array with unitIDs sorted by their value specified in
+	---`unitOrderManualOverrideTable`. If no value is specified, the unit will be
+	---placed at the end of the array.
 	unitOrder = unitOrder,
 
 	checkGeothermalFeatures = checkGeothermalFeatures,
@@ -173,3 +180,5 @@ return {
 	restrictWindUnits = restrictWindUnits,
 	restrictWaterUnits = restrictWaterUnits,
 }
+
+return units
