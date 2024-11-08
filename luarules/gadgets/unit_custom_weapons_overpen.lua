@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		version = '1.0',
 		date    = '2024-10',
 		license = 'GNU GPL, v2 or later',
-		layer   = -999991, -- before api_damage_stats, unit_collision_damage_behavior
+		layer   = -1, -- before unit_collision_damage_behavior, unit_shield_behaviour
 		enabled = true,
 	}
 end
