@@ -210,8 +210,33 @@ local function addPenetratorCollision(targetID, isUnit, armorType, damage, proje
 	}
 end
 
-local function sortPenetratorCollisions(a, b)
-	return a.distanceSquared <= b.distanceSquared
+local sortPenetratorCollisions
+do
+	local function sortByDistanceSquared(a, b)
+		return a.distanceSquared < b.distanceSquared
+	end
+
+	sortPenetratorCollisions = function (collisions, projectileID, penetrator)
+		for index = 1, #collisions do
+			local collision = collisions[index]
+			local distanceSquared, cx, cy, cz
+			if collision.targetID then
+				if collision.hitX then
+					cx, cy, cz = collision.hitX, collision.hitY, collision.hitZ
+				else
+					cx, cy, cz = getCollisionPosition(projectileID, collision.targetID, collision.isUnit)
+				end
+			end
+			if cx then
+				cx, cy, cz = cx - penetrator.posX, cy - penetrator.posY, cz - penetrator.posZ
+				distanceSquared = cx * cx + cy * cy + cz * cz
+			else
+				distanceSquared = math.huge
+			end
+			collision.distanceSquared = distanceSquared
+		end
+		table.sort(collisions, sortByDistanceSquared)
+	end
 end
 
 ---Generic damage against shields using the default engine shields.
@@ -265,23 +290,7 @@ function gadget:GameFrame(gameFrame)
 		local collisions = penetrator.collisions
 
 		if #collisions > 1 then
-			for index = 1, #collisions do
-				local collision = collisions[index]
-				collision.distanceSquared = math.huge
-				if collision.targetID then
-					local cx, cy, cz
-					if collision.hitX then
-						cx, cy, cz = collision.hitX, collision.hitY, collision.hitZ
-					else
-						cx, cy, cz = getCollisionPosition(projectileID, collision.targetID, collision.isUnit)
-					end
-					if cx then
-						local sx, sy, sz = cx - penetrator.posX, cy - penetrator.posY, cz - penetrator.posZ
-						collision.distanceSquared = sx * sx + sy * sy + sz * sz
-					end
-				end
-			end
-			table.sort(collisions, sortPenetratorCollisions)
+			sortPenetratorCollisions(collisions, projectileID, penetrator)
 		end
 
 		local exhausted = false
