@@ -167,8 +167,8 @@ local function getCollisionPosition(projectileID, targetID, isUnit)
 			pz = mz + (pz + t*dz - mz) * radiusNorm
 		else -- The ray passes through the midpoint.
 			px = mx - dx * radius
-			py = mx - dy * radius
-			pz = mx - dz * radius
+			py = my - dy * radius
+			pz = mz - dz * radius
 		end
 	end
 	return px, py, pz
