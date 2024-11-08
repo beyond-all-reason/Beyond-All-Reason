@@ -25,7 +25,10 @@
 			// "corageo": [0, 1, 35, 1000, 3.0], //eff 3.0
 			"corfus": [4, 6, 50, 600, 2.06],  // efficiency=2.057844
 			"corafus": [50, 100, 60, 4000, 6.44],
-			"coruwfus": [6, 12, 35, 600, 2.8] // efficiency=6.443299
+			"coruwfus": [6, 12, 35, 600, 2.8], // efficiency=6.443299
+			"legsolar": [9, 12, 0, 0, 0.060], // efficiency=0.026667
+			"legadvsol": [20, 30, 12, 220, 0.220], //efficiency=0.237542
+			"legwin": [30, 60]
 		},
 		"water": {
 			"armtide": [45, 60],
@@ -72,11 +75,13 @@
 
 	"geo": {
 		"armada": "armgeo",
-		"cortex": "corgeo"
+		"cortex": "corgeo",
+		"legion": "leggeo"
 	},
 	"mex": {
 		"armada": "armmex",
-		"cortex": "cormex"
+		"cortex": "cormex",
+		"legion": "legmex"
 	},
 // buildpower -  Mobile buildpower to metal income ratio,
 // works but with regard to behaviour->UnitDef->build_speed. With 1.25 and m-income=100 means AI will try to build at max 125 mobile build_speed in total.
@@ -121,13 +126,15 @@
 	//"terra": "armsy",
 	"assist": {
 		"armada": "armnanotc",
-		"cortex": "cornanotc"
+		"cortex": "cornanotc",
+		"legion": "legnanotc"
 	},
 
 	// Unknown UnitDef replacer
 	"default": {
 		"armada": "armwin",
-		"cortex": "corwin"
+		"cortex": "corwin",
+		"legion": "legwin"
 	}
 }
 }
