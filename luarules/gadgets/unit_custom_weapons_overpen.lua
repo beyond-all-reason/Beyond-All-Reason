@@ -6,18 +6,13 @@ function gadget:GetInfo()
 		version = '1.0',
 		date    = '2024-10',
 		license = 'GNU GPL, v2 or later',
-		layer   = -999991, -- Damage otherwise inflated in api_damage_stats.lua
+		layer   = -999991, -- before api_damage_stats, unit_collision_damage_behavior
 		enabled = true,
 	}
 end
 
 if not gadgetHandler:IsSyncedCode() then return false end
 
--- Current issues
--- 1. When a penetrator leaves behind a wreck, it can damage the wreck, also.
--- 2. Projectile visuals overshoot the target somewhat, even when not piercing.
--- 3. Collisions trigger events without order; distant units are damaged first.
--- 4. No visual feedback for a weaker projectile vs. one at its full strength.
 
 --------------------------------------------------------------------------------
 -- Configuration ---------------------------------------------------------------
@@ -27,7 +22,7 @@ local inertiaModifier = 2.0 -- Gradually reduces velocity with loss of damage.
 
 -- Default customparam values
 
-local penaltyDefault   = 0.01 -- Additional damage% loss per hit.
+local penaltyDefault = 0.01 -- Additional damage% loss per hit.
 
 local falloffPerType  = { -- Whether the projectile loses damage per hit.
 	DGun              = false ,
@@ -121,13 +116,14 @@ local function loadPenetratorWeaponDefs()
 
 	for weaponDefID, weaponDef in pairs(WeaponDefs) do
 		local custom = weaponDef.customParams
-		if weaponDef.noExplode and tobool(custom.overpenetrate) then
+		if weaponDef.impactOnly and weaponDef.noExplode and tobool(custom.overpenetrate) then
 			local params = {
-				damages = toSafeDamageArray(weaponDef.damages),
-				falloff = tobool(custom.overpenetrate_falloff == nil and falloffPerType[weaponDef.type] or custom.overpenetrate_falloff),
-				slowing = tobool(custom.overpenetrate_slowing == nil and slowingPerType[weaponDef.type] or custom.overpenetrate_slowing),
-				penalty = math.max(0, tonumber(custom.overpenetrate_penalty or penaltyDefault)),
-				weapon  = weaponDefID,
+				damages  = toSafeDamageArray(weaponDef.damages),
+				falloff  = tobool(custom.overpenetrate_falloff == nil and falloffPerType[weaponDef.type] or custom.overpenetrate_falloff),
+				slowing  = tobool(custom.overpenetrate_slowing == nil and slowingPerType[weaponDef.type] or custom.overpenetrate_slowing),
+				penalty  = math.max(0, tonumber(custom.overpenetrate_penalty or penaltyDefault)),
+				weaponID = weaponDefID,
+				impulse  = weaponDef.damages.impulseFactor,
 			}
 
 			if params.slowing and not params.falloff then
@@ -142,12 +138,12 @@ local function loadPenetratorWeaponDefs()
 			weaponParams[weaponDefID] = params
 		end
 	end
-
 	return (table.count(weaponParams) > 0)
 end
 
 ---Projectiles with noexplode can move after colliding, so we infer an impact location.
 ---The hit can be a glance, so find the nearest point, not a line/sphere intersection.
+---Slow explosion speeds can delay us until after position and direction are knowable.
 local function getCollisionPosition(projectileID, targetID, isUnit)
 	local px, py, pz = spGetProjectilePosition(projectileID)
 	local dx, dy, dz = spGetProjectileDirection(projectileID)
@@ -178,6 +174,23 @@ local function getCollisionPosition(projectileID, targetID, isUnit)
 	return px, py, pz
 end
 
+local function addPenetratorProjectile(projectileID, ownerID, params)
+	local dx, dy, dz = spGetProjectileDirection(projectileID)
+	local px, py, pz = spGetProjectilePosition(projectileID)
+	projectiles[projectileID] = {
+		collisions = {},
+		damageLeft = 1,
+		ownerID    = ownerID,
+		params     = params,
+		posX       = px,
+		posY       = py,
+		posZ       = pz,
+		dirX       = dx,
+		dirY       = dy,
+		dirZ       = dz,
+	}
+end
+
 local function addPenetratorCollision(targetID, isUnit, armorType, damage, projectileID, penetrator)
 	local health, healthMax
 	if isUnit then
@@ -185,9 +198,7 @@ local function addPenetratorCollision(targetID, isUnit, armorType, damage, proje
 	else
 		health, healthMax = spGetFeatureHealth(targetID)
 	end
-
 	projectileHits[projectileID] = penetrator
-
 	local collisions = penetrator.collisions
 	collisions[#collisions+1] = {
 		targetID  = targetID,
@@ -246,15 +257,12 @@ end
 function gadget:GameFrame(gameFrame)
 	-- stopgap until no longer handling multiple different shield behaviors
 	local addShieldDamage = GG.AddShieldDamage or addShieldDamage
+	local setVelocityControl = GG.SetVelocityControl
 
 	for projectileID, penetrator in pairs(projectileHits) do
 		projectileHits[projectileID] = nil
 
 		local collisions = penetrator.collisions
-		local params = penetrator.params
-
-		local exhausted = false
-		local speedRatio = 1
 
 		if #collisions > 1 then
 			for index = 1, #collisions do
@@ -262,13 +270,13 @@ function gadget:GameFrame(gameFrame)
 				collision.distanceSquared = math.huge
 				if collision.targetID then
 					local cx, cy, cz
-					if collision.collideX then
-						cx, cy, cz = collision.collideX, collision.collideY, collision.collideZ
+					if collision.hitX then
+						cx, cy, cz = collision.hitX, collision.hitY, collision.hitZ
 					else
 						cx, cy, cz = getCollisionPosition(projectileID, collision.targetID, collision.isUnit)
 					end
 					if cx then
-						local sx, sy, sz = cx - penetrator.x, cy - penetrator.y, cz - penetrator.z
+						local sx, sy, sz = cx - penetrator.posX, cy - penetrator.posY, cz - penetrator.posZ
 						collision.distanceSquared = sx * sx + sy * sy + sz * sz
 					end
 				end
@@ -276,60 +284,79 @@ function gadget:GameFrame(gameFrame)
 			table.sort(collisions, sortPenetratorCollisions)
 		end
 
+		local exhausted = false
+		local speedRatio = 1
+
 		for index = 1, #collisions do
 			local collision = collisions[index]
 			local targetID = collision.targetID
 
-			if targetID and not collision.shieldID then
+			if not targetID then
+				exhausted = true
+			elseif collision.shieldID then
+				if spGetUnitIsDead(targetID) == false then
+					local weapon = penetrator.params
+					local damageLeftBefore = penetrator.damageLeft
+					local damageToShields = collision.damage
+					local deleted, damage = addShieldDamage(targetID, collision.shieldID, damageToShields * damageLeftBefore, weapon.weaponID, projectileID)
+					local damageLeftAfter = damageLeftBefore - damage / damageToShields - weapon.penalty
+					if deleted or damageToShields * damageLeftAfter < 1 then
+						exhausted = true
+					elseif weapon.falloff then
+						if weapon.slowing then
+							speedRatio = speedRatio * (1 + inertiaModifier * damageLeftAfter) / (1 + inertiaModifier * damageLeftBefore)
+						end
+						penetrator.damageLeft = damageLeftAfter
+					end
+				end
+			else
 				local targetIsValid
 				if collision.isUnit then
 					targetIsValid = spGetUnitIsDead(targetID) == false
 				else
 					targetIsValid = spValidFeatureID(targetID)
 				end
+
 				if targetIsValid then
+					local weapon = penetrator.params
 					local damage = collision.damage
-					local damageToArmorType = params.damages[collision.armorType]
+					local damageToArmorType = weapon.damages[collision.armorType]
 
 					local damageLeftBefore = penetrator.damageLeft
 					local damageBase = min(damage, damageToArmorType) * damageLeftBefore
-					local damageLeftAfter = damageLeftBefore - collision.health / damageBase - params.penalty
+					local damageLeftAfter = damageLeftBefore - collision.health / damageBase - weapon.penalty
 					damage = damage * damageLeftBefore
 
+					local impulse = weapon.impulse
 					if damageToArmorType * damageLeftAfter > 1 and collision.healthMax * damageThreshold <= damageBase then
-						if params.falloff then
-							penetrator.damageLeft = damageLeftAfter
-							if params.slowing then
+						if weapon.falloff then
+							if weapon.slowing then
 								speedRatio = speedRatio * (1 + inertiaModifier * damageLeftAfter) / (1 + inertiaModifier * damageLeftBefore)
 							end
+							penetrator.damageLeft = damageLeftAfter
 						end
 					else
+						impulse = impulse * (1 + inertiaModifier) / (1 + inertiaModifier * damageLeftBefore)
 						exhausted = true
 					end
 
 					if collision.isUnit then
-						spAddUnitDamage(targetID, damage, 0, penetrator.ownerID, params.weapon)
+						if setVelocityControl and impulse > 1 then
+							setVelocityControl(targetID, true)
+						end
+						impulse = impulse * damageBase
+						spAddUnitDamage(
+							targetID, damage, nil,
+							penetrator.ownerID, weapon.weaponID,
+							penetrator.dirX * impulse,
+							penetrator.dirY * impulse,
+							penetrator.dirZ * impulse
+						)
 					else
+						-- Features are not velocity-monitored so do not receive impulse.
 						Spring.SetFeatureHealth(targetID, collision.health - damage)
 					end
 				end
-			elseif collision.shieldID then
-				if spGetUnitIsDead(targetID) == false then
-					local damageLeftBefore = penetrator.damageLeft
-					local damageToShields = collision.damage
-					local deleted, damage = addShieldDamage(targetID, collision.shieldID, damageToShields * damageLeftBefore, params.weapon, projectileID)
-					local damageLeftAfter = damageLeftBefore - damage / damageToShields - params.penalty
-					if deleted or damageToShields * damageLeftAfter < 1 then
-						exhausted = true
-					elseif params.falloff then
-						penetrator.damageLeft = damageLeftAfter
-						if params.slowing then
-							speedRatio = speedRatio * (1 + inertiaModifier * damageLeftAfter) / (1 + inertiaModifier * damageLeftBefore)
-						end
-					end
-				end
-			elseif not targetID then
-				exhausted = true
 			end
 
 			if exhausted then
@@ -353,27 +380,7 @@ end
 function gadget:ProjectileCreated(projectileID, ownerID, weaponDefID)
 	local params = weaponParams[weaponDefID]
 	if params then
-		local x, y, z = spGetProjectilePosition(projectileID)
-		projectiles[projectileID] = {
-			collisions = {},
-			damageLeft = 1,
-			ownerID    = ownerID,
-			params     = params,
-			x          = x,
-			y          = y,
-			z          = z,
-		}
-	end
-end
-
-local exhaustionEvent = {}
-
-function gadget:ProjectileDestroyed(projectileID)
-	local penetrator = projectiles[projectileID]
-	if penetrator then
-		projectileHits[projectileID] = penetrator
-		local collisions = penetrator.collisions
-		collisions[#collisions+1] = exhaustionEvent
+		addPenetratorProjectile(projectileID, ownerID, params)
 	end
 end
 
@@ -408,9 +415,9 @@ function gadget:ShieldPreDamaged(projectileID, attackerID, shieldWeaponIndex, sh
 				targetID = shieldUnitID,
 				shieldID = shieldWeaponIndex,
 				damage   = damage,
-				collideX = hitX,
-				collideY = hitY,
-				collideZ = hitZ,
+				hitX     = hitX,
+				hitY     = hitY,
+				hitZ     = hitZ,
 			}
 		end
 		return true
