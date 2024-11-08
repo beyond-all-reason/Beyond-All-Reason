@@ -45,15 +45,22 @@ if gadgetHandler:IsSyncedCode() then
 			if modOptions.map_waterlevel ~= 0 then
 				waterlevel = modOptions.map_waterlevel
 				adjustWaterlevel()
+
+				-- adjust tidal strength if previosuly not present and applicable
 				if (modOptions.map_tidal == nil or modOptions.map_tidal == "unchanged") and Spring.GetTidal() == 0 then
-					Spring.SetTidal(
-						math.max(
-							(math.min(Game.windMax, 27) +
-							math.max(Game.windMin, 0) ) / 2,
-							10
+					local initalMinHeight = Spring.GetGroundExtremes()
+					if initalMinHeight > 0 then
+						-- avrage between capped wind speed or 10 if greater (half of basic solar)
+						Spring.SetTidal(
+							math.max(
+								(math.min(Game.windMax, 27) +
+								math.max(Game.windMin, 0) ) / 2,
+								10
+							)
 						)
-					)
+					end
 				end
+
 			end
 		end
 	end
