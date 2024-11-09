@@ -223,7 +223,7 @@ void main()
 			// Negative thetas mean orbit, positive means linear movement
 			if (worldposrad2.w < 0.0){
 			// Note: worldposrad2.w is an excellent place to add orbit-style world-placement light animations
-			    float xphaseoffset =  1.570796326; // half pi
+			    float xphaseoffset =  0.0; // half pi 1.570796326 
 				if (worldposrad2.x == 0.0) xphaseoffset = 0.0; // dont offset Z phase no motion is expected on it
 				lightWorldMovement = sin(elapsedframes * 0.2094395 * worldposrad2.xyz + vec3(xphaseoffset, 0.0, 0.0 )) * (-1 * worldposrad2.w);
 
