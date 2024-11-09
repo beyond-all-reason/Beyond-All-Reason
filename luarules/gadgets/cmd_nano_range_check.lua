@@ -29,14 +29,11 @@ function gadget:AllowCommand(unitID, unitDefID, _teamID, cmdID, cmdParams, _cmdO
 	if not isNano(unitDef) then return true end
 	if not isValidCommandID(cmdID) then return true end
 	if #cmdParams ~= 1 then return true end -- only handle ID targets, fallthrough for area selects; Let the intended scripts handle, catch resulting commands on ID.
-	local cmdX, cmdY, cmdZ = Spring.GetUnitPosition(cmdParams[1])
-	if cmdX == nil then return true end -- in case of feature; Already distanced checked by respective scripts.
-	if UnitDefs[Spring.GetUnitDefID(cmdParams[1])].canMove then return true end -- ignore movable targets
-
-	local range = unitDef.buildDistance
-	local x, y, z = Spring.GetUnitPosition(unitID)
-	local distance = math.sqrt((cmdX - x)^2 + (cmdY - y)^2 + (cmdZ - z)^2)
-	if distance > (range + unitDef.radius) then
+	local targetDef = UnitDefs[Spring.GetUnitDefID(cmdParams[1])]
+	if targetDef == nil then return true end -- ignore Features / non units
+	if targetDef.canMove then return true end -- ignore movable targets
+	local distance = Spring.GetUnitSeparation(unitID, cmdParams[1], false, false)
+	if distance > (unitDef.buildDistance + unitDef.radius) then
 		return false
 	end
 	return true
