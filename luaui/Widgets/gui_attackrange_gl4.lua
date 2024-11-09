@@ -15,6 +15,9 @@ function widget:GetInfo()
 	}
 end
 
+-------------------------------------
+local autoReload = true
+
 ---------------------------------------------------------------------------------------------------------------------------
 -- Bindable action:   cursor_range_toggle
 -- The widget's individual unit type's display setup is saved in LuaUI/config/AttackRangeConfig2.lua
@@ -354,6 +357,11 @@ local GetActiveCommand      = Spring.GetActiveCommand
 local GetSelectedUnits      = Spring.GetSelectedUnits
 local chobbyInterface
 
+local CMD_ATTACK 		  = CMD.ATTACK
+local CMD_FIGHT 		  = CMD.FIGHT
+local CMD_AREA_ATTACK 	  = CMD.AREA_ATTACK
+local CMD_MANUALFIRE	  = CMD.MANUALFIRE
+
 function widget:TextCommand(command)
 	local mycommand = false --buttonConfig["enemy"][tag]
 
@@ -412,12 +420,16 @@ local attackRangeShader = nil
 
 local shaderSourceCache = {
 	shaderName = 'Attack Range GL4',
-	vssrcpath = "LuaUI/Widgets/Shaders/attack_range_gl4.vert.glsl",
-	fssrcpath = "LuaUI/Widgets/Shaders/attack_range_gl4.frag.glsl",
-	shaderConfig = {MYGRAVITY = Game.gravity + 0.1,},
+	vssrcpath = "LuaUI/Widgets/Shaders/weapon_range_rings_unified_gl4.vert.glsl",
+	fssrcpath = "LuaUI/Widgets/Shaders/weapon_range_rings_unified_gl4.frag.glsl",
+	shaderConfig = {
+		MYGRAVITY = Game.gravity + 0.1,
+		STATICUNITS = 0,
+	},
 	uniformInt = {
 		heightmapTex = 0,
 		losTex = 1,
+		mapNormalTex = 2,
 	},
 	uniformFloat = {
 		lineAlphaUniform = 1,
@@ -435,38 +447,11 @@ local function goodbye(reason)
 	widgetHandler:RemoveWidget()
 end
 
-local function makeCircleVBO(circleSegments)
-	circleSegments  = circleSegments - 1 -- for po2 buffers
-	local circleVBO = gl.GetVBO(GL.ARRAY_BUFFER, true)
-	if circleVBO == nil then goodbye("Failed to create circleVBO") end
-
-	local VBOLayout = {
-		{ id = 0, name = "position", size = 4 },
-	}
-
-	local VBOData = {}
-
-	for i = 0, circleSegments do -- this is +1
-		VBOData[#VBOData + 1] = math.sin(math.pi * 2 * i / circleSegments) -- X
-		VBOData[#VBOData + 1] = math.cos(math.pi * 2 * i / circleSegments) -- Y
-		VBOData[#VBOData + 1] = i / circleSegments -- circumference [0-1]
-		VBOData[#VBOData + 1] = 0
-	end
-
-	circleVBO:Define(
-		circleSegments + 1,
-		VBOLayout
-	)
-	circleVBO:Upload(VBOData)
-	return circleVBO
-end
-
 local cacheTable = {}
 for i = 1, 24 do cacheTable[i] = 0 end
 
 
 -- code for selected units start here
-
 local selectedUnits = {}
 local selUnits = {}
 local updateSelection = false
@@ -537,7 +522,15 @@ local function AddSelectedUnit(unitID, mouseover)
 	end
 
 
+	-- TODO:
+	-- Weapons aim from their WPY positions, but that can change for e.g. popups!
+	-- This is quite important to pass in as posscale.y!
+	-- Need to cache weaponID of the respective weapon for this to work
+	-- also assumes that weapons are centered onto drawpos
 	local x, y, z, mpx, mpy, mpz, apx, apy, apz = spGetUnitPosition(unitID, true, true)
+	local wpx, wpy, wpz, wdx, wdy, wdz = Spring.GetUnitWeaponVectors(unitID, 1)
+	--Spring.Echo("unitID", unitID, y, mpy, wpy)
+	local turretHeight = (wpy or y ) - y
 
 	--for weaponNum = 1, #weapons do
 	local addedRings = 0
@@ -574,7 +567,7 @@ local function AddSelectedUnit(unitID, mouseover)
 		local ringParams = unitDefRings[unitDefID]['rings'][j]
 		if drawIt and ringParams[1] > 0 then
 			cacheTable[1] = mpx
-			cacheTable[2] = mpy
+			cacheTable[2] = turretHeight
 			cacheTable[3] = mpz
 			local vaokey = allystring .. weaponTypeToString[weaponType]
 
@@ -954,7 +947,7 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 end
 
-local drawcounts = {}
+local drawcounts = {} 
 
 local cameraHeightFactor = 0
 
@@ -1008,11 +1001,17 @@ local function DRAWRINGS(primitiveType, linethickness)
 end
 
 function widget:DrawWorldPreUnit(inMiniMap)
+
+	if autoReload then
+		attackRangeShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or attackRangeShader
+	end
+
 	if chobbyInterface then return end
 	if not Spring.IsGUIHidden() and (not WG['topbar'] or not WG['topbar'].showingQuit()) then
 		cameraHeightFactor = GetCameraHeightFactor() * 0.5 + 0.5
 		glTexture(0, "$heightmap")
 		glTexture(1, "$info")
+		glTexture(2, '$normals')
  
 		-- Stencil Setup
 		-- 	-- https://learnopengl.com/Advanced-OpenGL/Stencil-testing
