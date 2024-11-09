@@ -28,7 +28,9 @@
 			"coruwfus": [6, 12, 35, 600, 2.8], // efficiency=6.443299
 			"legsolar": [9, 12, 0, 0, 0.060], // efficiency=0.026667
 			"legadvsol": [20, 30, 12, 220, 0.220], //efficiency=0.237542
-			"legwin": [30, 60]
+			"legwin": [30, 60],
+			"legtide": [45, 60],
+			"legmex": [9, 12, 0, 0, 0.035]
 		},
 		"water": {
 			"armtide": [45, 60],
@@ -50,7 +52,10 @@
 			//"corageo": [0, 1, 16, 1000, 3.0],
 			"corfus": [4, 6, 35, 600, 2.06],  // efficiency=2.057844
 			"corafus": [50, 100, 60, 4000, 6.44], // efficiency=6.443299
-			"coruwfus": [50, 100, 35, 600, 2.8]  // efficiency=2.756296
+			"coruwfus": [50, 100, 35, 600, 2.8],  // efficiency=2.756296
+			"legwin": [30, 60],
+			"legtide": [45, 60],
+			"legmex": [9, 12, 0, 0, 0.035]
 		},
 
 		"factor": [[6.0, 1], [20, 300], [30, 420], [60.0, 3600]], //desired energy factor at a certain time

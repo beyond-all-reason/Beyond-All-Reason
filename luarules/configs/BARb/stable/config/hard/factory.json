@@ -806,7 +806,7 @@
 
 	"income_tier": [30, 60],
 
-	"unit":      ["legacv",	"legskirmtank",	"legheattank",	"legamcluster",	"corsent",	"legavroc",	"legmed",	"leginf",	"cormabm",	"corvrad",	"coreter",	"legvcarry",	"legfloat"], // To be replaced: cormabm, coreter, corvrad, corsent
+	"unit":      ["legacv",	"legskirmtank",	"legaheattank",	"legamcluster",	"corsent",	"legavroc",	"legmed",	"leginf",	"cormabm",	"corvrad",	"coreter",	"legvcarry",	"legfloat"], // To be replaced: cormabm, coreter, corvrad, corsent
 
 	"land": {
 		"tier0": [ 0.30,	0.35,			0.01,			0.20,			0.00,		0.04,		0.10,		0.00,		0.00,		0.03,		0.00,		0.00,			0.00],
