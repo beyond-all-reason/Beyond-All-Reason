@@ -137,14 +137,6 @@ local function isOnQuotaBuildMode(unitID)
 	return cmdDescIndex and spGetUnitCmdDescs(unitID)[cmdDescIndex].params[1]+0 == 1
 end
 
-function widget:SelectionChanged(newSelection)
-    for _, unitID in ipairs(newSelection) do
-        if factoryDefIDs[spGetUnitDefID(unitID)] and isOnQuotaBuildMode(unitID) then
-            spGiveOrderToUnit(unitID, CMD_QUOTA_BUILD_TOGGLE, {0}, {})
-        end
-    end
-end
-
 ----- handle unit tracking
 function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
     if builderID and unitTeam == myTeam and factoryDefIDs[spGetUnitDefID(builderID)] then
