@@ -671,6 +671,22 @@
 			"since": 240,
 			"limit": 1
 		},
+		"armmakr": {
+			"role": ["static"],
+			"since": 300
+		},
+		"armfmakr": {
+			"role": ["static"],
+			"since": 300
+		},
+		"cormakr": {
+			"role": ["static"],
+			"since": 300
+		},
+		"corfmakr": {
+			"role": ["static"],
+			"since": 300
+		},
 
 
 // ignore
@@ -1856,18 +1872,16 @@
 			}
 		},
 		"leglob": {
-			"role": ["skirmish"],
+			"role": ["skirmish", "raider"],
 			"attribute": ["scout"],
 			"threat": {"air": 0.0, "water": 0.0,
 				"vs": {"artillery": 2.0, "anti_air": 2.0}
 			}
 		},
 		"legkark": {
-			"role": ["riot"],
-			"attribute": ["melee"],
-			"threat":{"air": 0.1, "water": 0.0,
-					"vs":{"artillery": 2.0, "anti_air": 2.0}
-			}
+			"role": ["riot", "Skirmish"],
+			"threat": {"surf": 1.2, "vs":{"raider": 2.0}},
+			"retreat": 0.5
 		},
 		"leggob": {
 			"role": ["scout"],
@@ -1887,20 +1901,22 @@
 		"legstr": {
 			"role": ["raider"],
 			"attribute":["melee"],
-			"threat":{"vs":{"artillery": 4.0}}
+			"threat":{"vs":{"artillery": 4.0}},
+            "retreat": 0.4
 		},
 		"leginc": {
-			"role": ["heavy"],
+			"role": ["heavy", "assault"],
 			"attribute": ["support"],
-			"threat":{"air":0.5}
+			"threat":{"air":0.5, "scout":0.1},
+            "retreat": 0.4
 		},
 		"legshot": {
 			"role": ["assault"],
 			"attribute": ["support"],
-			"retreat": 0.4
+			"retreat": 0.3
 		},
 		"legbart": {
-			"role": ["assault"],
+			"role": ["assault", "Skirmish"],
 			"attribute":["support"],  //was siege too - but evtl not working correct
 			"retreat": 0.5
 		},
@@ -1914,6 +1930,12 @@
 			"attribute": ["melee"],
 			"retreat": 0,
 			"limit": 2
+		},
+		"legsrail": {
+			"role": ["anti_heavy_ass"],
+			"attribute": ["siege"],
+			"threat": {"air": 0.0, "water": 0.0,"vs": {"scout":0.3, "raider":0.5}},
+            "retreat": 0.4
 		},
 	
 
@@ -1986,9 +2008,9 @@
 			"role": ["skirmish"]
 		},
 		"legmrv": {
-			"role": ["skirmish"]
+			"role": ["raider"]
 		},
-		"legheattank": {
+		"legaheattank": {
 			"role": ["heavy"],
 			"attribute":["siege"],
 			"threat": {"surf": 1.5}
@@ -2009,7 +2031,7 @@
 			"retreat": 0.5
 		},
 		"legvcarry": {
-			"role":	["assault"], 
+			"role":	["riot"], 
 			"attribute": ["siege"],  
 			"retreat": 0.7
 		},
@@ -2046,7 +2068,7 @@
 		"legfig": {
 			"role": ["anti_air", "air"],
 			"power": 0.5,
-			"retreat": 0
+			"retreat": 0.25
 		},
 		"legkam": {
 			"role": ["bomber", "air"],
@@ -2189,14 +2211,6 @@
 	"since": 240,
 	"limit": 1
 },
-"armmakr": {
-	"role": ["static"],
-	"since": 300
-},
-"cormakr": {
-	"role": ["static"],
-	"since": 300
-},
 
 // FACTORIES AND ECONOMY - Legion
 "legnanotc": {
@@ -2211,9 +2225,9 @@
 	"role": ["static"],
 	"since": 300
 },
-"legmoho" : {
+"legfmakr": {
 	"role": ["static"],
-	"build_mod": 200
+	"since": 300
 },
 "legmex" : {
 	"role": ["static"],
@@ -2222,6 +2236,10 @@
 "legmext15" : {
 	"role": ["static"],
 	"since": 300,
+	"build_mod": 200
+},
+"legmoho" : {
+	"role": ["static"],
 	"build_mod": 200
 },
 "legsolar" : {
@@ -2240,9 +2258,9 @@
 
 // DEFENSE - Legion
 "leglht": {
-"role": ["static"],
-"since": 70,
-"threat": {
+	"role": ["static"],
+	"since": 70,
+	"threat": {
 		"air": 0.2,  //air units see llt as 0.2 or llt is considered as 0.2 threat for aircrafts
 		"surf": 1.0,  // surface, even on water
 		"water": 0.1,  // underwater
@@ -2269,8 +2287,8 @@
 },
 "legbastion": {
 	"role": ["static"],
-	"threat": {"air":0.0, "surf":0.5, "water":0.1, 
-		"vs": {"scout":0.1, "raider":0.1, "heavy": 2.0, "super":2.0}
+	"threat": {"air":0.5, "surf":0.4, "water":0.1, 
+		"vs": {"scout":0.2, "raider":0.3, "heavy": 2.0, "super":2.0}
 	}
 },
 "leglrpc": {
@@ -2279,31 +2297,30 @@
 "legsilo":{
 	"role":	["super", "static"],
 	"threat":{"air": 0.0, "water": 0.0, "surf": 0.1},
-	"limit": 1
+	"limit": 2
 },
 "legrl": {
 	"role": ["anti_air"],
-	"threat":{"air":3.0, "surf":0.0, "water":0.0}
+	"threat":{"air":2.0, "surf":0.0, "water":0.0}
 },
 "legrhapsis": {
 	"role": ["anti_air"],
-	"threat": {"air":3.0, "surf":0.0, "water":0.0}
+	"threat": {"air":2.0, "surf":0.0, "water":0.0}
 },
 "leglupara": {
 	"role": ["anti_air"],
-	"threat": {"air":3.0, "surf":0.0, "water":0.0}
+	"threat": {"air":2.0, "surf":0.0, "water":0.0}
 },
 "legflak": {
 	"role": ["anti_air"],
-	"threat": {"air":4.0, "surf":0.0, "water":0.0}
+	"threat": {"air":2.0, "surf":0.0, "water":0.0}
 },
 "leglraa": {
 	"role": ["anti_air"],
 	"threat": {"air":2.0, "surf":0.0, "water":0.0}
 },
 "legdtr": {
-	"role": ["static"],
-	"ignore": true
+	"role": ["static"]
 },
 "legjam":{
 	"role":["static"],
@@ -2315,7 +2332,7 @@
 },
 "legperdition":{
 	"role":	["super", "static"],
-	"limit":1
+	"limit":2
 },
 
 // FACTORIES LEGION
@@ -2333,9 +2350,8 @@
 		"leggant": {
 			"role": ["static"],
 			"attribute": ["support"],
-			"midposoffset": [0, 0, 21],
 			"limit": 1,
-			"build_speed": 1.0 // bp 600
+			"build_speed": 1.0 //bp 300
 		},
 		"legvp": {
 			"role": ["static"],
