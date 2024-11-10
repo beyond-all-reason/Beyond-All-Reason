@@ -880,6 +880,21 @@ GetLightClass("MuzzleFlash", "Warm", "Medium", {posx = 1, posy = 1, posz = 1, ra
 											modelfactor = 0.5, specular = 0.3, scattering = 0.8, lensflare = 14,
 											lifetime = 17, sustain = 2})
 
+--armmanni
+projectileDefLightsNames["armmanni_atam"] =
+GetLightClass("LaserProjectile", "Blue", "Smaller", {a = 0.09,
+					color2r = 0.6, color2g = 0.6, color2b = 0.6, colortime = 10,
+					modelfactor = 0.5, specular = 0.1, scattering = 0.7, lensflare = 0,
+					lifetime = 0, sustain = 0})
+
+-- --armanni
+projectileDefLightsNames["armanni_ata"] =
+GetLightClass("LaserProjectile", "Blue", "Medium", {a = 0.09,
+					color2r = 0.5, color2g = 0.5, color2b = 0.6, colortime = 10,
+					modelfactor = 0.5, specular = 0.1, scattering = 0.1, lensflare = 0,
+					lifetime = 0, sustain = 0})
+
+
 --corjuno SCAV
 projectileDefLightsNames["corjuno_scav_juno_pulse"] =
 GetLightClass("MissileProjectile", "Green", "Medium", {r = 0.8, g = 0.4, b = 1.5, a = 0.45,
@@ -898,18 +913,16 @@ GetLightClass("Explosion", "Fire", "SmallMedium", {r = 0.54, g = 0.45, b = 0.12,
 										 color2r = 1.2, color2g = 0.5, color2b = 0.2, colortime = 0.03,
 										 sustain = 40, lifetime = 150,
 										 modelfactor = 0.3, specular = 0.8, scattering = 1.5, lensflare = 0})
---duplicate lights from scavengerbossv4_normal_turbo_napalm for all scavengerbossv4 variants, including _scav
+
+
+
+										 --duplicate lights from scavengerbossv4_normal_turbo_napalm for all scavengerbossv4 variants, including _scav
 local scavengerBossV4Table = {'scavengerbossv4_veryeasy_turbo_napalm', 'scavengerbossv4_easy_turbo_napalm', 'scavengerbossv4_hard_turbo_napalm', 'scavengerbossv4_veryhard_turbo_napalm', 'scavengerbossv4_epic_turbo_napalm',
  'scavengerbossv4_veryeasy_scav_turbo_napalm', 'scavengerbossv4_easy_scav_turbo_napalm', 'scavengerbossv4_normal_scav_turbo_napalm', 'scavengerbossv4_hard_scav_turbo_napalm', 'scavengerbossv4_veryhard_scav_turbo_napalm', 'scavengerbossv4_epic_scav_turbo_napalm'}
 for _, name in pairs(scavengerBossV4Table) do
 	explosionLightsNames[name] = table.copy(explosionLightsNames['scavengerbossv4_normal_turbo_napalm'])
 end
--- --armanni
--- projectileDefLightsNames["armanni_ata"] =
--- GetLightClass("LaserProjectile", "Blue", "Medium", {a = 0.09,
--- 											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
--- 											modelfactor = 0.5, specular = 0.1, scattering = 0.1, lensflare = 0,
--- 											lifetime = 0, sustain = 0})
+
 
 -- --armannit3
 -- projectileDefLightsNames["armannit3_ata"] =
