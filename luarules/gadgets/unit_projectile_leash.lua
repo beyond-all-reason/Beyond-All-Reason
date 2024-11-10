@@ -29,8 +29,6 @@ for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 		defLeashTable[weaponDefID].leashRange = tonumber(weaponDef.customParams.projectile_leash_range)
 		defLeashTable[weaponDefID].weaponRange = weaponDef.range
 		Script.SetWatchWeapon(weaponDefID, true)
-		
-		--Spring.Echo("leashRange", defLeashTable[weaponDefID].leashRange, defLeashTable[weaponDefID].weaponRange)
 	end
 end
 
@@ -63,15 +61,9 @@ end
 
 function gadget:ProjectileDestroyed(proID)
 	if not projectilesOwnersTable[proID] then return end
-	--Spring.Echo("projectile Destroyed", projectileOwnersWatchTable[projectilesOwnersTable[proID]])
 	projectileOwnersWatchTable[projectilesOwnersTable[proID]][proID] = nil
 	projectilesOwnersTable[proID] = nil
 end
-
--- function gadget:UnitDestroyed(unitID)
-
--- end
-
 
 function gadget:GameFrame(frame)
 	if frame % 10 == 4 then
@@ -79,13 +71,11 @@ function gadget:GameFrame(frame)
 			local hasProjectiles = false
 			for proID, proData in pairs (proIDs) do
 				hasProjectiles = true
-				--Spring.Echo("check", proID)
 				local projectileX, projectileY, projectileZ = shouldProjectileBeDestroyed(proID, proOwnerID, proData.originCoordinates, proData.weaponRange, proData.leashRange)
 				if projectileX then
 					spDeleteProjectile(proID)
 					spSpawnExplosion(projectileX, projectileY, projectileZ, 0, 0, 0, {weaponDef = proData.weaponDefID} )
 					projectileOwnersWatchTable[proOwnerID][proID] = nil
-					--Spring.Echo("kill", proID)
 				end
 			end
 			if hasProjectiles == false then
@@ -93,5 +83,4 @@ function gadget:GameFrame(frame)
 			end
 		end
 	end
-	--if not next then null the proownerID
 end
