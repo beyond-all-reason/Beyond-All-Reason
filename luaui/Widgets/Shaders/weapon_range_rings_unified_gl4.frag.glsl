@@ -4,7 +4,7 @@
 #extension GL_ARB_shading_language_420pack: require
 // This shader is (c) Beherith (mysterme@gmail.com), released under the MIT license
 
-//_DEFINES__
+//__DEFINES__
 
 #line 20000
 
@@ -25,8 +25,15 @@ void main() {
 
 	fragColor = v_blendedcolor;
 	// For testing:
-	if (fract(gl_FragCoord.x * 0.25) < 0.4) {
-		fragColor.rgb *= 0.0;
-	}
-	//fragColor.rgb *= (fract(gl_FragCoord.x * 0.25 ) * 4.0);
+	#if (DEBUG == 1)
+		if (fract(gl_FragCoord.x * 0.125) < 0.4) {
+			#if (STATICUNITS == 0)
+				fragColor.rgba *= 0.0;
+			#endif
+		}else{
+			#if(STATICUNITS == 1)
+				fragColor.rgba *= 0.0;
+			#endif
+		}
+	#endif
 }

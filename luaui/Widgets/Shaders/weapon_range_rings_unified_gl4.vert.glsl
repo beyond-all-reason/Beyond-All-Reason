@@ -234,25 +234,28 @@ void main() {
 			mainDirDegrees = MAXANGLEDIF - maxAngleDif;// Is the offset in degrees. 
 		}
 		circleprogress.xy = rotate2D(circleprogress.xy, (3.141592 -1.0*unitHeading + mainDirDegrees * 3.141592 / 180.0));
-		
+		if (ISDGUN > 0.5) {
+			circleWorldPos.xz = circleprogress.xy * RANGE * 1.05 + modelWorldPos.xz;
+		} else {
+			circleWorldPos.xz = circleprogress.xy * RANGE +  modelWorldPos.xz;
+		}
 	#endif
 
-	if (ISDGUN > 0.5) {
-		circleWorldPos.xz = circleprogress.xy * RANGE * 1.05 + modelWorldPos.xz;
-	} else {
-		circleWorldPos.xz = circleprogress.xy * RANGE +  modelWorldPos.xz;
-	}
+
+
 	circleprogress.w = circlepointposition.z;
 	v_blendedcolor = color1;
 
-
+	#if (STATICUNITS == 1)
+		//gl_Position = cameraViewProj * vec4(circleWorldPos.xyz, 1.0); return;
+	#endif
 
 	vec4 alphaControl = vec4(1.0);
 
 	// get heightmap
 	circleWorldPos.y = heightAtWorldPos(circleWorldPos.xz);
 
-
+	
 	if (cannonmode > 0.5){
 
 		// BAR only has 3 distinct ballistic projectiles, heightBoostFactor is only a handful from -1 to 2.8 and 6 and 8
