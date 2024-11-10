@@ -324,7 +324,7 @@ void main() {
 		OUTOFBOUNDSALPHA = 1.0;
 	}
 	
-	circleWorldPos.y += 2; // lift it from the ground
+	circleWorldPos.y += 4; // lift it from the ground
 
 
 	//--- DISTANCE FADE ---
@@ -391,10 +391,8 @@ void main() {
 
 	if (inMiniMap < 0.5) {
 		gl_Position = cameraViewProj * vec4(circleWorldPos.xyz, 1.0);
-
 		//pull 16 elmos forward in Z:
-		gl_Position.z = (gl_Position.z) - 256.0 / (gl_Position.w); // send 16 elmos forward in Z
-
+		gl_Position.z = (gl_Position.z) - 128.0 / (gl_Position.w); // send 16 elmos forward in Z
 	} else {
 		gl_Position = mmDrawViewProj * vec4(circleWorldPos.xyz, 1.0);
 	}
