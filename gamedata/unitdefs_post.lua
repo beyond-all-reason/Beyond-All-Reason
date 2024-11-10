@@ -228,20 +228,24 @@ local function preProcessTweakOptions()
 	do
 		local append = false
 		local name = "tweakdefs"
-		while modOptions[name] and modOptions[name] ~= "" do
-			local postsFuncStr = string.base64Decode(modOptions[name])
-			local postfunc, err = loadstring(postsFuncStr)
-			if err then
-				Spring.Echo("Error parsing modoption", name, "from string", postsFuncStr, "Error: " .. err)
-			else
-				Spring.Echo("Loading tweakdefs modoption", append or 0)
-				Spring.Echo(postsFuncStr)
-				if postfunc then
-					local success, result = pcall(postfunc)
-					if not success then
-						Spring.Echo("Error executing tweakdef", name, postsFuncStr, "Error :" .. result)
+		while modOptions[name] and string.len(modOptions[name]) > 1 do
+			local decodeSucess, postsFuncStr = pcall(string.base64Decode, modOptions[name])
+			if decodeSucess then
+				local postfunc, err = loadstring(postsFuncStr)
+				if err then
+					Spring.Echo("Error parsing modoption", name, "from string", postsFuncStr, "Error: " .. err)
+				else
+					Spring.Echo("Loading tweakdefs modoption", append or 0)
+					Spring.Echo(postsFuncStr)
+					if postfunc then
+						local success, result = pcall(postfunc)
+						if not success then
+							Spring.Echo("Error executing tweakdef", name, postsFuncStr, "Error :" .. result)
+						end
 					end
 				end
+			else
+				Spring.Echo("Error parsing and decoding tweakdef", name, modOptions[name], "Error :" .. postsFuncStr)
 			end
 
 			append = (append or 0) + 1

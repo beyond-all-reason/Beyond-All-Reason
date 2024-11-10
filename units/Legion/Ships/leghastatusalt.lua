@@ -119,7 +119,6 @@ return {
 				firestarter = 90,
 				fireTolerance = 1820,
 				tolerance = 1820,
-				impulseboost = 0,
 				impulsefactor = 0,
 				name = "HeatRay",
 				noselfdamage = true,

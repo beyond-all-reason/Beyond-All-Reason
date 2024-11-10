@@ -121,7 +121,6 @@ return {
 				firestarter = 100,
 				firesubmersed = true,
 				flighttime = 10,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				metalpershot = 0,
 				model = "leglargerocket.s3o",

@@ -102,7 +102,6 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.3,
 				explosiongenerator = "custom:genericshellexplosion-huge-lightning",
-				impulseboost = 0,
 				impulsefactor = 0,
 				interceptedbyshieldtype = 0,
 				model = "Raptors/raptoregg_l_blue.s3o",

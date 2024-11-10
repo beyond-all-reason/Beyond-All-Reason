@@ -108,7 +108,6 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				firestarter = 5,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				name = "Rapid-fire gauss cannon",
 				noselfdamage = true,

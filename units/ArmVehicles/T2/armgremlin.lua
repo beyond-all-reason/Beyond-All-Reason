@@ -124,7 +124,6 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-medium",
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				name = "Light close-quarters gauss cannon",
 				noselfdamage = true,

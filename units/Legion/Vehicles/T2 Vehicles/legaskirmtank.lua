@@ -129,7 +129,6 @@ return {
 				tolerance = 7000,
 				gravityaffected = "true",
 				predictboost = 0.5,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				name = "Heavy Rotary Plasma Cannon",
 				noselfdamage = true,

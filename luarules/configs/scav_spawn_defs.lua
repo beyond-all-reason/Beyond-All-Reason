@@ -184,7 +184,7 @@ local tierConfiguration = { -- Double maxSquadSize for special squads
 	[4] = {minAnger = 35, maxAnger = 200, 	maxSquadSize = 10},
 	[5] = {minAnger = 45, maxAnger = 350, 	maxSquadSize = 8},
 	[6] = {minAnger = 60, maxAnger = 500, 	maxSquadSize = 5},
-	[7] = {minAnger = 80, maxAnger = 1000, 	maxSquadSize = 3},
+	[7] = {minAnger = 70, maxAnger = 1000, 	maxSquadSize = 3},
 }
 
 --local teamAngerEasementFB = 16
@@ -295,6 +295,7 @@ local LandUnitsList = {
 			--Cortex
 			["corakt4_scav"] = 3,
 			--Legion
+			
 			--N/A
 		},
 		[7] = {
@@ -452,6 +453,7 @@ local LandUnitsList = {
 			["legamcluster_scav"] = 2,
 			["legvcarry_scav"] = 2,
 			["legbart_scav"] = 2,
+			["legsrail_scav"] = 2,
 
 		},
 		[5] = {
@@ -480,6 +482,7 @@ local LandUnitsList = {
 			["corcat_scav"] = 2,
 			["cormabm_scav"] = 2,
 			--Legion
+			["leggobt3_scav"] = 3,
 		},
 		[7] = {
 			--Armada
@@ -487,7 +490,7 @@ local LandUnitsList = {
 			--Cortex
 
 			--Legion
-			--N/A
+			["legsrailt4_scav"] = 2,
 		},
 	},
 	Healer = {
@@ -882,6 +885,7 @@ if not Spring.GetModOptions().unit_restrictions_noair then
 		["armca_scav"] = 2,
 		["corca_scav"] = 2,
 		["legca_scav"] = 2,
+		["armfify_scav"] = 2,
 	}
 	local t2landairconstructors = {
 		["armaca_scav"] = 2,
@@ -980,6 +984,7 @@ local AirUnitsList = {
 			["legmineb_scav"] = 3,
 			["legphoenix_scav"] = 3,
 			["legfort_scav"] = 2,
+			["legmost3_scav"] = 1,
 		},
 		[6] = {
 			--Armada
@@ -1001,6 +1006,7 @@ local AirUnitsList = {
 			["corcrwt4_scav"] = 2,
 			--Legion
 			["legfort_scav"] = 3,
+			["legmost3_scav"] = 2,
 			["legfortt4_scav"] = 1,
 
 		},
@@ -1077,6 +1083,7 @@ local AirUnitsList = {
 			--Legion
 			["legfort_scav"] = 3,
 			["legfortt4_scav"] = 3,
+			["legmost3_scav"] = 2,
 		},
 	}
 }
@@ -1201,6 +1208,7 @@ local Turrets = {
 		--T2 Popups
 		["armlwall_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},
 		["cormwall_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},
+		["legrwall_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},
 		["armpb_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},
 		["corvipe_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},
 		["legbombard_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},
@@ -1458,6 +1466,7 @@ scavBehaviours = {
 		[UnitDefNames["cornecro_scav"].id] = true,--Cortex Rezzer
 		[UnitDefNames["armca_scav"].id] = true,
 		[UnitDefNames["armaca_scav"].id] = true,
+		[UnitDefNames["armfify_scav"].id] = true,
 		[UnitDefNames["armcsa_scav"].id] = true,
 		[UnitDefNames["corca_scav"].id] = true,
 		[UnitDefNames["coraca_scav"].id] = true,

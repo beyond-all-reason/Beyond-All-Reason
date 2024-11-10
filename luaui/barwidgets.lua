@@ -139,6 +139,7 @@ local flexCallIns = {
 	'StockpileChanged',
 	'SelectionChanged',
 	'DrawGenesis',
+	'DrawGroundDeferred',
 	'DrawWorld',
 	'DrawWorldPreUnit',
 	'DrawPreDecals',
@@ -207,6 +208,7 @@ local callInLists = {
 	'VisibleExplosion',
 	'Barrelfire',
 	'CrashingAircraft',
+	'ClearMapMarks',
 
 	-- these use mouseOwner instead of lists
 	--  'MouseMove',
@@ -1336,6 +1338,15 @@ function widgetHandler:DrawGenesis()
 	return
 end
 
+function widgetHandler:DrawGroundDeferred()
+	tracy.ZoneBeginN("W:DrawGroundDeferred")
+	for _, w in r_ipairs(self.DrawGroundDeferredList) do
+		w:DrawGroundDeferred()
+	end
+	tracy.ZoneEnd()
+	return
+end
+
 function widgetHandler:DrawWorld()
 	tracy.ZoneBeginN("W:DrawWorld")
 	if not self.chobbyInterface  then
@@ -2010,6 +2021,15 @@ function widgetHandler:MapDrawCmd(playerID, cmdType, px, py, pz, ...)
 	return retval
 end
 
+function widgetHandler:ClearMapMarks()
+	tracy.ZoneBeginN("W:ClearMapMarks")
+	for _, w in ipairs(self.ClearMapMarksList) do
+		w:ClearMapMarks()
+	end
+	tracy.ZoneEnd()
+	return
+end
+
 function widgetHandler:GameSetup(state, ready, playerStates)
 	tracy.ZoneBeginN("W:GameSetup")
 	for _, w in ipairs(self.GameSetupList) do
@@ -2435,6 +2455,7 @@ function widgetHandler:CrashingAircraft(unitID, unitDefID, unitTeam)
 	tracy.ZoneEnd()
 	return
 end
+
 
 --------------------------------------------------------------------------------
 --

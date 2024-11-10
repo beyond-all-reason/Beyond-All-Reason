@@ -113,7 +113,6 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-large-uw",
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "torpedo.s3o",
 				name = "Heavy guided torpedo launcher",

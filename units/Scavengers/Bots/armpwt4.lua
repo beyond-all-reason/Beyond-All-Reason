@@ -98,7 +98,6 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:plasmahit-huge",
 				firestarter = 100,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				intensity = 1.4,
 				name = "Rapid-fire huge g2g plasma guns",

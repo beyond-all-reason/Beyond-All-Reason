@@ -101,7 +101,6 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.45,
 				explosiongenerator = "custom:dirt",
-				impulseboost = 1,
 				impulsefactor = 1,
 				interceptedbyshieldtype = 0,
 				model = "Raptors/s_raptorboss2_white.s3o",

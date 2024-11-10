@@ -91,7 +91,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-medium-lightning2",
 				firestarter = 50,
 				impactonly = 0,
-				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 12,
 				laserFlareSize = 2,
