@@ -16,7 +16,7 @@ function widget:GetInfo()
 end
 
 -------------------------------------
-local autoReload = true
+local autoReload = false
 
 ---------------------------------------------------------------------------------------------------------------------------
 -- Bindable action:   cursor_range_toggle
@@ -405,11 +405,11 @@ local attackRangeClasses = { 'enemyground', 'enemyAA', 'enemynano', 'allyground'
 local attackRangeVAOs = {}
 
 local circleInstanceVBOLayout = {
-	{ id = 1, name = 'posscale',         size = 4 }, -- a vec4 for pos + scale
+	{ id = 1, name = 'posscale',         size = 4 }, -- abs pos for static units, offset for dynamic units, scale is actual range, Y is turretheight
 	{ id = 2, name = 'color1',           size = 4 }, --  vec4 the color of this new
-	{ id = 3, name = 'visibility',       size = 4 }, --- vec4 heightdrawstart, heightdrawend, fadefactorin, fadefactorout
+	{ id = 3, name = 'visibility',       size = 4 }, --- vec4 FadeStart, FadeEnd, StartAlpha, EndAlpha
 	{ id = 4, name = 'projectileParams', size = 4 }, --- heightboost gradient
-	{ id = 5, name = 'additionalParams', size = 4 }, --- groupselectionfadescale, +3 additional reserved
+	{ id = 5, name = 'additionalParams', size = 4 }, --- groupselectionfadescale, weaponType, ISDGUN, MAXANGLEDIF
 	{ id = 6, name = 'instData',         size = 4, type = GL.UNSIGNED_INT },
 }
 
@@ -425,6 +425,7 @@ local shaderSourceCache = {
 	shaderConfig = {
 		MYGRAVITY = Game.gravity + 0.1,
 		STATICUNITS = 0,
+		DEBUG = autoReload and 1 or 0,
 	},
 	uniformInt = {
 		heightmapTex = 0,
