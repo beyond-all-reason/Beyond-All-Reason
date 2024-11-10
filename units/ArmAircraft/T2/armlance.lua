@@ -97,6 +97,7 @@ return {
 				flighttime = 4,
 				impulsefactor = 0.123,
 				model = "cortorpedo.s3o",
+				mygravity = 0.1445,
 				name = "Light homing torpedo launcher",
 				noselfdamage = true,
 				range = 650,

@@ -100,6 +100,7 @@ return {
 				model = "cortorpedo.s3o",
 				name = "Light homing torpedo launcher",
 				noselfdamage = true,
+				mygravity = 0.1445,
 				range = 650,
 				reloadtime = 8,
 				soundhit = "xplodep2",
