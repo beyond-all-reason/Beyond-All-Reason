@@ -161,6 +161,11 @@ vec2 rotate2D(vec2 v, float a) {
 #define ISDGUN 					additionalParams.z
 #define MAXANGLEDIF 			additionalParams.w
 
+#define FADESTART				visibility.x
+#define FADEEND					visibility.y
+#define STARTALPHA				visibility.z
+#define ENDALPHA				visibility.w
+
 #define UNUSEDALPHA				alphaControl.x
 #define OUTOFBOUNDSALPHA		alphaControl.y
 #define FADEALPHA				alphaControl.z
@@ -311,6 +316,7 @@ void main() {
 		circleWorldPos.y = max(1, circleWorldPos.y);
 	}
 	
+
 	
 	// -- HANDLE MAXANGLEDIFF
 	// If the unit cant fire in that direction due to maxanglediff constraints, then put the point back to modelWorldPos
@@ -331,36 +337,63 @@ void main() {
 	vec4 camPos = cameraViewInv[3];
 
 	// Note that this is not the same as the distance from the unit to the camera, but the distance from the circle to the camera
-	float distToCam = length(modelWorldPos.xyz - camPos.xyz); //dist from cam
+	float distToCam = length(modelWorldPos.xyz - camPos.xyz) ; //dist from cam
 	// FadeStart, FadeEnd, StartAlpha, EndAlpha
-	float fadeDist = visibility.y - visibility.x;
+	float fadeDist = FADEEND - FADESTART;
 																							 
 	// TODO VALIDATE
 	if (ISDGUN > 0.5) {
-		FADEALPHA  = clamp((visibility.y + fadeDistOffset + 1000 - distToCam)/(fadeDist),visibility.w,visibility.z);
+		FADEALPHA  = clamp((FADEEND + fadeDistOffset + 1000 - distToCam)/(fadeDist), ENDALPHA, STARTALPHA);
 	} else {
-		FADEALPHA  = clamp((visibility.y + fadeDistOffset - distToCam)/(fadeDist),visibility.w,visibility.z);
+		FADEALPHA  = clamp((FADEEND + fadeDistOffset - distToCam)/(fadeDist), ENDALPHA, STARTALPHA);
 	}
+		// -- IN-SHADER MOUSE-POS BASED HIGHLIGHTING
+	float disttomousefromunit = 1.0 - smoothstep(48, 64, length(modelWorldPos.xz - mouseWorldPos.xz));
+	// this will be positive if in mouse, negative else
+	float highlightme = clamp( (disttomousefromunit ) + 0.0, 0.0, 1.0);
+	// Note that this doesnt really work well with boundary-only stenciling, due to random draw order. 
+	MOUSEALPHA = (0.1  + 0.5 * step(0.5,drawMode)) * highlightme;
+
 
 	if (inMiniMap> 0.5){
+		// No extra fade control when on the minimap
 		FADEALPHA = 1.0;
-	}
-	
-	//FADEALPHA  = clamp((visibility.y + fadeDistOffset - distToCam)/(fadeDist),visibility.w,visibility.z);
+	}else{
+		// TODO if the sphere were to be completely faded out, dont draw it at all:
+		if (highlightme < 0.0 ){
+			if (FADESTART < FADEEND) { 
+				// Rings that fade out on distance
+				if ((distToCam + RANGE) > FADEEND) {
+					FADEALPHA = 0.0;
+					circleWorldPos.xz = modelWorldPos.xz;
+				}
+			}else {
+				// Rings that fade out when close to the camera 
+				// TODO ANTINUKES!
+				if ((distToCam - RANGE) < FADEEND) {
+					FADEALPHA = 0.0;
+					//circleWorldPos.xz = modelWorldPos.xz;
+				}
+			}
 
-	//--- Optimize by anything faded out getting transformed back to origin with 0 range?
-	//seems pretty ok!
-	
-	//if a sphere at modelworldpos.xyz, with range poscale.w is out of the viewport, set visible to false:
-	if (isSphereVisibleXY(vec4(modelWorldPos.xyz, 1.0), posscale.w * 3.0 )){
-		circleWorldPos.xy = modelWorldPos.xy;
-	}
+			//--- Optimize by anything faded out getting transformed back to origin with 0 range?
+			//seems pretty ok!
+			
+			//if a sphere at modelworldpos.xyz, with range poscale.w is out of the viewport, set visible to false:
+			if (isSphereVisibleXY(vec4(modelWorldPos.xyz, 1.0), posscale.w * 3.0 )){
+				//circleWorldPos.xz = modelWorldPos.xz;
+			}
+		}
+	}	
+
+	//FADEALPHA  = clamp((FADEEND + fadeDistOffset - distToCam)/(fadeDist), ENDALPHA, STARTALPHA);
+
 
 	if (cannonmode > 0.5){
-	// cannons should fade distance based on their range
-		//float cvmin = max(visibility.x+fadeDistOffset, 2* RANGE);
-		//float cvmax = max(visibility.y+fadeDistOffset, 4* RANGE);
-		//FADEALPHA = clamp((cvmin - distToCam)/(cvmax - cvmin + 1.0),visibility.z,visibility.w);
+		// cannons should fade distance based on their range
+		//float cvmin = max(FADESTART + fadeDistOffset, 2* RANGE);
+		//float cvmax = max(FADEEND + fadeDistOffset, 4* RANGE);
+		//FADEALPHA = clamp((cvmin - distToCam)/(cvmax - cvmin + 1.0),STARTALPHA , ENDALPHA);
 	}
 
 	v_blendedcolor = color1;
@@ -377,12 +410,7 @@ void main() {
 	v_blendedcolor.rgb = mix(fogColor.rgb, vec3(v_blendedcolor), fogFactor);
 
 
-	// -- IN-SHADER MOUSE-POS BASED HIGHLIGHTING
-	float disttomousefromunit = 1.0 - smoothstep(48, 64, length(modelWorldPos.xz - mouseWorldPos.xz));
-	// this will be positive if in mouse, negative else
-	float highlightme = clamp( (disttomousefromunit ) + 0.0, 0.0, 1.0);
-	// Note that this doesnt really work well with boundary-only stenciling, due to random draw order. 
-	MOUSEALPHA = (0.1  + 0.5 * step(0.5,drawMode)) * highlightme;
+ 
 
 
 	// ------------ dump the stuff for FS --------------------
