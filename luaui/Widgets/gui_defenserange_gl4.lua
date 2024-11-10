@@ -397,6 +397,10 @@ function widget:TextCommand(command)
 end
 
 ------ GL4 THINGS  -----
+---
+
+local autoReload = false
+
 -- nukes and cannons:
 local largeCircleVBO = nil
 local largeCircleSegments = 512
@@ -411,10 +415,12 @@ local defenseRangeClasses = {'enemyair','enemyground','enemynuke','allyair','all
 local defenseRangeVAOs = {}
 
 local circleInstanceVBOLayout = {
-		  {id = 1, name = 'posscale', size = 4}, -- a vec4 for pos + scale
+		  {id = 1, name = 'posscale', size = 4}, -- abs pos for static units, offset for dynamic units, scale is actual range, Y is turretheight
 		  {id = 2, name = 'color1', size = 4}, --  vec4 the color of this new
-		  {id = 3, name = 'visibility', size = 4}, --- vec4 heightdrawstart, heightdrawend, fadefactorin, fadefactorout
+		  {id = 3, name = 'visibility', size = 4}, --- vec4 FadeStart, FadeEnd, StartAlpha, EndAlpha
 		  {id = 4, name = 'projectileParams', size = 4}, --- heightboost gradient
+		  {id = 5, name = 'additionalParams', size = 4 }, --- groupselectionfadescale, weaponType, ISDGUN, MAXANGLEDIF
+		  {id = 6, name = 'instData',         size = 4, type = GL.UNSIGNED_INT }, -- Currently unused within defense ranges, as they are forced-static
 		}
 
 local luaShaderDir = "LuaUI/Widgets/Include/"
@@ -422,290 +428,40 @@ local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 local defenseRangeShader = nil
 
+local shaderSourceCache = {
+	shaderName = 'Defense Range GL4',
+	vssrcpath = "LuaUI/Widgets/Shaders/weapon_range_rings_unified_gl4.vert.glsl",
+	fssrcpath = "LuaUI/Widgets/Shaders/weapon_range_rings_unified_gl4.frag.glsl",
+	shaderConfig = {
+		MYGRAVITY = Game.gravity + 0.1,
+		STATICUNITS = 1,
+		DEBUG = autoReload and 1 or 0,
+	},
+	uniformInt = {
+		heightmapTex = 0,
+		losTex = 1,
+		mapNormalTex = 2,
+	},
+	uniformFloat = {
+		lineAlphaUniform = 1,
+		cannonmode = 0,
+		fadeDistOffset = 0,
+		drawMode = 0,
+		selBuilderCount = 1.0,
+		selUnitCount = 1.0,
+		inMiniMap = 0.0, 
+	},
+}
+
 
 local function goodbye(reason)
   Spring.Echo("DefenseRange GL4 widget exiting with reason: "..reason)
   widgetHandler:RemoveWidget()
 end
 
-local function makeCircleVBO(circleSegments)
-	circleSegments  = circleSegments -1 -- for po2 buffers
-	local circleVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
-	if circleVBO == nil then goodbye("Failed to create circleVBO") end
-
-	local VBOLayout = {
-	 {id = 0, name = "position", size = 4},
-	}
-
-	local VBOData = {}
-
-	for i = 0, circleSegments  do -- this is +1
-		VBOData[#VBOData+1] = math.sin(math.pi*2* i / circleSegments) -- X
-		VBOData[#VBOData+1] = math.cos(math.pi*2* i / circleSegments) -- Y
-		VBOData[#VBOData+1] = i / circleSegments -- circumference [0-1]
-		VBOData[#VBOData+1] = 0
-	end
-
-	circleVBO:Define(
-		circleSegments + 1,
-		VBOLayout
-	)
-	circleVBO:Upload(VBOData)
-	return circleVBO
-end
-
-local vsSrc = [[
-#version 420
-#line 10000
-
-//__DEFINES__
-
-layout (location = 0) in vec4 circlepointposition;
-layout (location = 1) in vec4 posscale;
-layout (location = 2) in vec4 color1;
-layout (location = 3) in vec4 visibility; // FadeStart, FadeEnd, StartAlpha, EndAlpha
-layout (location = 4) in vec4 projectileParams; // projectileSpeed, iscylinder!!!! , heightBoostFactor , heightMod
-
-uniform float lineAlphaUniform = 1.0;
-uniform float cannonmode = 0.0;
-
-uniform sampler2D heightmapTex;
-uniform sampler2D losTex; // hmm maybe?
-
-out DataVS {
-	flat vec4 blendedcolor;
-};
-
-//__ENGINEUNIFORMBUFFERDEFS__
-
-#line 11000
-
-float heightAtWorldPos(vec2 w){
-	vec2 uvhm =  heightmapUVatWorldPos(w);
-	return textureLod(heightmapTex, uvhm, 0.0).x;
-}
-
-float GetRangeFactor(float projectileSpeed) { // returns >0 if weapon can shoot here, <0 if it cannot, 0 if just right
-	// on first run, with yDiff = 0, what do we get?
-	float speed2d = projectileSpeed * 0.707106;
-	float gravity =  120.0 	* (0.001111111);
-	return ((speed2d * speed2d) * 2.0 ) / (gravity);
-}
-
-float GetRange2DCannon(float yDiff,float projectileSpeed,float rangeFactor,float heightBoostFactor) { // returns >0 if weapon can shoot here, <0 if it cannot, 0 if just right
-	// on first run, with yDiff = 0, what do we get?
-
-	//float factor = 0.707106;
-	float smoothHeight = 100.0;
-	float speed2d = projectileSpeed*0.707106;
-	float speed2dSq = speed2d * speed2d;
-	float gravity = -1.0*  (120.0 /900);
-
-	if (heightBoostFactor < 0){
-		heightBoostFactor = (2.0 - rangeFactor) / sqrt(rangeFactor);
-	}
-
-	if (yDiff < -100.0){
-		yDiff = yDiff * heightBoostFactor;
-	}else {
-		if (yDiff < 0.0) {
-			yDiff = yDiff * (1.0 + (heightBoostFactor - 1.0 ) * (-1.0 * yDiff) * 0.01);
-		}
-	}
-
-	float root1 = speed2dSq + 2 * gravity *yDiff;
-	if (root1 < 0.0 ){
-		return 0.0;
-	}else{
-		return rangeFactor * ( speed2dSq + speed2d * sqrt( root1 ) ) / (-1.0 * gravity);
-	}
-}
-
-//float heightMod  default: 0.2 (0.8 for #Cannon, 1.0 for #BeamLaser and #LightningCannon)
-//Changes the spherical weapon range into an ellipsoid. Values above 1.0 mean the weapon cannot target as high as it can far, values below 1.0 mean it can target higher than it can far. For example 0.5 would allow the weapon to target twice as high as far.
-
-//float heightBoostFactor default: -1.0
-//Controls the boost given to range by high terrain. Values > 1.0 result in increased range, 0.0 means the cannon has fixed range regardless of height difference to target. Any value < 0.0 (i.e. the default value) result in an automatically calculated value based on range and theoretical maximum range.
-
-#define RANGE posscale.w
-#define PROJECTILESPEED projectileParams.x
-#define ISCYLINDER projectileParams.y
-#define HEIGHTBOOSTFACTOR projectileParams.z
-#define HEIGHTMOD projectileParams.w
-#define YGROUND posscale.y
-
-#define OUTOFBOUNDSALPHA alphaControl.y
-#define FADEALPHA alphaControl.z
-#define MOUSEALPHA alphaControl.w
-
-
-void main() {
-	// translate to world pos:
-	vec4 circleWorldPos = vec4(1.0);
-	circleWorldPos.xz = circlepointposition.xy * RANGE +  posscale.xz;
-
-	vec4 alphaControl = vec4(1.0);
-
-	// get heightmap
-	circleWorldPos.y = heightAtWorldPos(circleWorldPos.xz);
-
-
-	if (cannonmode > 0.5){
-
-		// BAR only has 3 distinct ballistic projectiles, heightBoostFactor is only a handful from -1 to 2.8 and 6 and 8
-		// gravity we can assume to be linear
-
-		float heightDiff = (circleWorldPos.y - YGROUND) * 0.5;
-
-		float rangeFactor = RANGE /  GetRangeFactor(PROJECTILESPEED); //correct
-		if (rangeFactor > 1.0 ) rangeFactor = 1.0;
-		if (rangeFactor <= 0.0 ) rangeFactor = 1.0;
-		float radius = RANGE;// - heightDiff;
-		float adjRadius = GetRange2DCannon(heightDiff * HEIGHTMOD, PROJECTILESPEED, rangeFactor, HEIGHTBOOSTFACTOR);
-		float adjustment = radius * 0.5;
-		float yDiff = 0;
-		float adds = 0;
-		//for (int i = 0; i < mod(timeInfo.x/8,16); i ++){ //i am a debugging god
-		for (int i = 0; i < 16; i ++){
-				if (adjRadius > radius){
-					radius = radius + adjustment;
-					adds = adds + 1;
-				}else{
-					radius = radius - adjustment;
-					adds = adds - 1;
-				}
-				adjustment = adjustment * 0.5;
-				circleWorldPos.xz = circlepointposition.xy * radius + posscale.xz;
-				float newY = heightAtWorldPos(circleWorldPos.xz );
-				yDiff = abs(circleWorldPos.y - newY);
-				circleWorldPos.y = max(0, newY);
-				heightDiff = circleWorldPos.y - posscale.y;
-				adjRadius = GetRange2DCannon(heightDiff * HEIGHTMOD, PROJECTILESPEED, rangeFactor, HEIGHTBOOSTFACTOR);
-		}
-	}else{
-		if (ISCYLINDER < 0.5){ // isCylinder
-			//simple implementation, 4 samples per point
-			//for (int i = 0; i<mod(timeInfo.x/4,30); i++){
-			for (int i = 0; i<8; i++){
-				// draw vector from centerpoint to new height point and normalize it to range length
-				vec3 tonew = circleWorldPos.xyz - posscale.xyz;
-				tonew.y *= HEIGHTMOD;
-				tonew = normalize(tonew) * RANGE;
-				circleWorldPos.xz = posscale.xz + tonew.xz;
-				circleWorldPos.y = heightAtWorldPos(circleWorldPos.xz);
-			}
-		}
-	}
-
-	circleWorldPos.y += 6; // lift it from the ground
-
-	// -- MAP OUT OF BOUNDS
-	vec2 mymin = min(circleWorldPos.xz,mapSize.xy - circleWorldPos.xz);
-	float inboundsness = min(mymin.x, mymin.y);
-	OUTOFBOUNDSALPHA = 1.0 - clamp(inboundsness*(-0.02),0.0,1.0);
-
-
-	//--- DISTANCE FADE ---
-	vec4 camPos = cameraViewInv[3];
-	float distToCam = length(posscale.xyz - camPos.xyz); //dist from cam
-	// FadeStart, FadeEnd, StartAlpha, EndAlpha
-	float fadeDist = visibility.y - visibility.x;
-	FADEALPHA  = clamp((visibility.y - distToCam)/(fadeDist),0,1);//,visibility.z,visibility.w);
-
-	//--- Optimize by anything faded out getting transformed back to origin with 0 range?
-	//seems pretty ok!
-	if (FADEALPHA < 0.001) {
-		circleWorldPos.xyz = posscale.xyz;
-	}
-
-	if (cannonmode > 0.5){
-	// cannons should fade distance based on their range
-		float cvmin = max(visibility.x, 2* RANGE);
-		float cvmax = max(visibility.y, 4* RANGE);
-		//FADEALPHA = clamp((cvmin - distToCam)/(cvmax - cvmin + 1.0),visibility.z,visibility.w);
-	}
-
-	blendedcolor = color1;
-
-	// -- DARKEN OUT OF LOS
-	vec4 losTexSample = texture(losTex, vec2(circleWorldPos.x / mapSize.z, circleWorldPos.z / mapSize.w)); // lostex is PO2
-	float inlos = dot(losTexSample.rgb,vec3(0.33));
-	inlos = clamp(inlos*5 -1.4	, 0.5,1.0); // fuck if i know why, but change this if LOSCOLORS are changed!
-	blendedcolor.rgb *= inlos;
-
-	// --- YES FOG
-	float fogDist = length((cameraView * vec4(circleWorldPos.xyz,1.0)).xyz);
-	float fogFactor = clamp((fogParams.y - fogDist) * fogParams.w, 0, 1);
-	blendedcolor.rgb = mix(fogColor.rgb, vec3(blendedcolor), fogFactor);
-
-
-	// -- IN-SHADER MOUSE-POS BASED HIGHLIGHTING
-	float disttomousefromunit = 1.0 - smoothstep(32, 64, length(posscale.xz - mouseWorldPos.xz));
-	// this will be positive if in mouse, negative else
-	float highlightme = clamp( (disttomousefromunit ) + 0.0, 0.0, 1.0);
-	MOUSEALPHA = highlightme;
-
-	// ------------ dump the stuff for FS --------------------
-	//worldPos = circleWorldPos;
-	//worldPos.a = RANGE;
-	alphaControl.x = circlepointposition.z; // save circle progress here
-	gl_Position = cameraViewProj * vec4(circleWorldPos.xyz, 1.0);
-
-
-	//lets blend the alpha here, and save work in FS:
-	float outalpha = OUTOFBOUNDSALPHA * (MOUSEALPHA + FADEALPHA *  lineAlphaUniform);
-	blendedcolor.a *= outalpha ;
-	//blendedcolor.rgb = vec3(fract(distToCam/100));
-}
-]]
-
-local fsSrc =  [[
-#version 330
-
-#extension GL_ARB_uniform_buffer_object : require
-#extension GL_ARB_shading_language_420pack: require
-
-//_DEFINES__
-
-#line 20000
-
-
-//_ENGINEUNIFORMBUFFERDEFS__
-
-in DataVS {
-	flat vec4 blendedcolor;
-};
-
-out vec4 fragColor;
-
-void main() {
-	fragColor = blendedcolor; // now pared down to only this, all work is done in vertex shader now
-}
-]]
-
-
 local function makeShaders()
-	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
-	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-	fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-	defenseRangeShader =  LuaShader(
-	{
-		vertex = vsSrc:gsub("//__DEFINES__", "#define MYGRAVITY "..tostring(Game.gravity+0.1)),
-		fragment = fsSrc,
-		--geometry = gsSrc, no geom shader for now
-		uniformInt = {
-			heightmapTex = 0,
-			losTex = 1,
-		},
-		uniformFloat = {
-			lineAlphaUniform = 1,
-			cannonmode = 0,
-		},
-	},
-	"defenseRangeShader GL4"
-	)
-	shaderCompiled = defenseRangeShader:Initialize()
-	if not shaderCompiled then
+	defenseRangeShader = LuaShader.CheckShaderUpdates(shaderSourceCache, 0)
+	if not defenseRangeShader then
 		goodbye("Failed to compile defenseRangeShader GL4 ")
 		return false
 	end
@@ -768,7 +524,7 @@ local function hashPos(x,z)
 end
 
 local cacheTable = {}
-for i=1,16 do cacheTable[i] = 0 end
+for i=1,24 do cacheTable[i] = 0 end
 
 local function UnitDetected(unitID, unitDefID, unitTeam, noUpload)
 	if unitDefRings[unitDefID] == nil then return end -- no rings for this
@@ -787,12 +543,24 @@ local function UnitDetected(unitID, unitDefID, unitTeam, noUpload)
 		local allystring = alliedUnit and "ally" or "enemy"
 		if buttonConfig[allystring][buttonconfigmap[weaponType]] then
 			--local weaponType = unitDefRings[unitDefID]['weapons'][weaponNum]
+			
+			local weaponID = i
+			local ringParams = unitDefRings[unitDefID]['rings'][i]
+			local x, y, z, mpx, mpy, mpz, apx, apy, apz = spGetUnitPosition(unitID, true, true)
+			local wpx, wpy, wpz, wdx, wdy, wdz = Spring.GetUnitWeaponVectors(unitID, weaponID)
+			--Spring.Echo("Defranges: unitID", unitID,x,y,z,"weaponID", weaponID, "y", y, "mpy",  mpy,"wpy", wpy)
+			
+			-- Now this is a truly terrible hack, we cache each unitDefID's max weapon turret height at position 18 in the table
+			-- so it only goes up with popups
+			local turretHeight = math.max(ringParams[18] or 0, (wpy or mpy ) - y)
+			ringParams[18] = turretHeight
+
+
 			cacheTable[1] = mpx
-			cacheTable[2] = mpy
+			cacheTable[2] = turretHeight
 			cacheTable[3] = mpz
 			local vaokey = allystring .. weaponTypeToString[weaponType]
 
-			local ringParams = unitDefRings[unitDefID]['rings'][i]
 			for i = 1,13 do
 				cacheTable[i+3] = ringParams[i]
 			end
@@ -1101,6 +869,12 @@ function widget:DrawWorldPreUnit()
 	--if fullview and not enabledAsSpec then
 	--	return
 	--end
+
+	if autoReload then
+		defenseRangeShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or defenseRangeShader
+	end
+
+
 	if chobbyInterface then return end
 	if not Spring.IsGUIHidden() and (not WG['topbar'] or not WG['topbar'].showingQuit()) then
 		cameraHeightFactor = GetCameraHeightFactor() * 0.5 + 0.5
@@ -1113,6 +887,7 @@ function widget:DrawWorldPreUnit()
 			glClear(GL.STENCIL_BUFFER_BIT) -- clear prev stencil
 			glDepthTest(false) -- always draw
 			glColorMask(false, false, false, false) -- disable color drawing
+			
 			glStencilTest(true) -- enable stencil test
 			glStencilMask(255) -- all 8 bits
 			glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon
@@ -1157,7 +932,6 @@ end
 -- LINEWIDTH
 -- internalrings
 -- nostencil mode
-
 
 
 
