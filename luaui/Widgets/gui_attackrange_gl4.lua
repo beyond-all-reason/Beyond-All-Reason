@@ -522,15 +522,7 @@ local function AddSelectedUnit(unitID, mouseover)
 	end
 
 
-	-- TODO:
-	-- Weapons aim from their WPY positions, but that can change for e.g. popups!
-	-- This is quite important to pass in as posscale.y!
-	-- Need to cache weaponID of the respective weapon for this to work
-	-- also assumes that weapons are centered onto drawpos
-	local x, y, z, mpx, mpy, mpz, apx, apy, apz = spGetUnitPosition(unitID, true, true)
-	local wpx, wpy, wpz, wdx, wdy, wdz = Spring.GetUnitWeaponVectors(unitID, 1)
-	--Spring.Echo("unitID", unitID, y, mpy, wpy)
-	local turretHeight = (wpy or y ) - y
+
 
 	--for weaponNum = 1, #weapons do
 	local addedRings = 0
@@ -566,6 +558,23 @@ local function AddSelectedUnit(unitID, mouseover)
 
 		local ringParams = unitDefRings[unitDefID]['rings'][j]
 		if drawIt and ringParams[1] > 0 then
+
+			local weaponID = j 
+			-- TODO:
+			-- Weapons aim from their WPY positions, but that can change for e.g. popups!
+			-- This is quite important to pass in as posscale.y!
+			-- Need to cache weaponID of the respective weapon for this to work
+			-- also assumes that weapons are centered onto drawpos
+			local x, y, z, mpx, mpy, mpz, apx, apy, apz = spGetUnitPosition(unitID, true, true)
+			local wpx, wpy, wpz, wdx, wdy, wdz = Spring.GetUnitWeaponVectors(unitID, weaponID)
+			Spring.Echo("unitID", unitID,"weaponID", weaponID, "y", y, "mpy",  mpy,"wpy", wpy)
+			
+			-- Now this is a truly terrible hack, we cache each unitDefID's max weapon turret height at position 18 in the table
+			-- so it only goes up with popups
+			local turretHeight = math.max(ringParams[18] or 0, (wpy or mpy ) - y)
+			ringParams[18] = turretHeight
+
+
 			cacheTable[1] = mpx
 			cacheTable[2] = turretHeight
 			cacheTable[3] = mpz
@@ -1000,7 +1009,7 @@ local function DRAWRINGS(primitiveType, linethickness)
 	end
 end
 
-function widget:DrawWorldPreUnit(inMiniMap)
+function widget:DrawWorld(inMiniMap)
 
 	if autoReload then
 		attackRangeShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or attackRangeShader
@@ -1069,7 +1078,7 @@ end
 function widget:DrawInMiniMap()
 	-- TODO:
 	-- do a sanity check and dont draw here if there are too many units selected...
-	widget:DrawWorldPreUnit(true) 
+	widget:DrawWorld(true) 
 end
 
 
