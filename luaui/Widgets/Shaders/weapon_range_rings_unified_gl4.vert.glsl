@@ -9,7 +9,7 @@
 //__DEFINES__
 
 layout (location = 0) in vec4 circlepointposition; // x,y in range [-1,1], progress in range [0,1]
-layout (location = 1) in vec4 posscale; // abs pos for static units, offset for dynamic units, scale is actual range
+layout (location = 1) in vec4 posscale; // abs pos for static units, offset for dynamic units, scale is actual range, Y is turretheight
 layout (location = 2) in vec4 color1; // Base color for the circle
 layout (location = 3) in vec4 visibility; // FadeStart, FadeEnd, StartAlpha, EndAlpha
 layout (location = 4) in vec4 projectileParams; // projectileSpeed, iscylinder!!!! , heightBoostFactor , heightMod
