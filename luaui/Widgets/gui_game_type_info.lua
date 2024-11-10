@@ -63,7 +63,8 @@ end
 
 function widget:Initialize()
 	if Spring.GetModOptions().deathmode == "neverend" then
-		WidgetHandler:RemoveWidget() return
+		widgetHandler:RemoveWidget()
+		return
 	end
 
 	messages[1] = {}
@@ -78,13 +79,20 @@ function widget:Initialize()
 end
 
 function widget:LanguageChanged()
-	if Spring.GetModOptions().deathmode == "killall" then
-		messages[1].str = "\255\255\255\255" .. Spring.I18N('ui.gametypeInfo.victoryCondition') .. ": " .. Spring.I18N('ui.gametypeInfo.killAllUnits')
+	local key
+	local deathmode = Spring.GetModOptions().deathmode
+
+	if deathmode == "killall" then
+		key = 'killAllUnits'
+	elseif deathmode == "builders" then
+		key = 'killAllBuilders'
 	else
-		messages[1].str = "\255\255\255\255" .. Spring.I18N('ui.gametypeInfo.victoryCondition') .. ": " .. Spring.I18N('ui.gametypeInfo.killAllCommanders')
+		key = 'killAllCommanders'
 	end
 
-	if Spring.GetModOptions().deathmode == "own_com" then
+	messages[1].str = "\255\255\255\255" .. Spring.I18N('ui.gametypeInfo.victoryCondition') .. ": " .. Spring.I18N('ui.gametypeInfo.' .. key)
+
+	if deathmode == "own_com" then
 		messages[3].str = "\255\255\150\150" .. Spring.I18N('ui.gametypeInfo.owncomends')
 	end
 end

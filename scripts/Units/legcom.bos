@@ -6,11 +6,11 @@
 piece	pelvis, torso, head, Pack, aaturret, aabarrel, packdecor, lshoulder, larm, lhand, barrelheatray, rshoulder, rarm, rhand, barreldgun, lthigh, lleg, lfoot, ltoes, rthigh, rleg, rfoot, rtoes,
 		aimxl, aimxr, aimy1, hatpoint, misflare, tankpivot, nano, flare, flaredgun, teleport;
 
-static-var isAiming, isBuilding, isAimingDgun, buildHeading, buildPitch, leftArm, rightArm, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, torsoRot, isDancing, idleTime, shotcount;
+static-var isAiming, isBuilding, isAimingDgun, buildHeading, buildPitch, leftArm, rightArm, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, torsoRot, isDancing, idleTime, shotcount, isCloaked;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
-#define SIGNAL_move 512
+#define SIGNAL_MOVE 512
 #define SIGNAL_AIM2 1024
 #define SIGNAL_BUILD 2048
 
@@ -162,7 +162,6 @@ Walk() {// For C:\Users\logst\Downloads\BAR\legcom walk.blend Created by https:/
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:20
-			emit-sfx 1024 + 2 from ltoes;
 			turn head to x-axis <-1.115640> speed <98.411364> / animSpeed; 
 			turn head to y-axis <5.715235> speed <39.892305> / animSpeed; 
 			turn lfoot to x-axis <24.195911> speed <193.551493> / animSpeed; 
@@ -201,6 +200,10 @@ Walk() {// For C:\Users\logst\Downloads\BAR\legcom walk.blend Created by https:/
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:24
+			if (!get CLOAKED)
+			{
+				emit-sfx 1024 + 2 from rtoes;
+			}
 			turn head to x-axis <-2.854236> speed <52.157898> / animSpeed; 
 			turn head to y-axis <4.861961> speed <25.598213> / animSpeed; 
 			turn lfoot to x-axis <13.326829> speed <326.072471> / animSpeed; 
@@ -384,7 +387,10 @@ Walk() {// For C:\Users\logst\Downloads\BAR\legcom walk.blend Created by https:/
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:44
-			emit-sfx 1024 + 2 from ltoes;
+			if (!get CLOAKED)
+			{
+				emit-sfx 1024 + 2 from ltoes;
+			}
 			turn head to x-axis <-2.854240> speed <52.156895> / animSpeed; 
 			turn head to y-axis <-4.861931> speed <25.598456> / animSpeed; 
 			turn lfoot to x-axis <-2.982684> speed <633.919869> / animSpeed; 
@@ -462,17 +468,21 @@ UnitSpeed(){
 
 StartMoving(reversing)
 {
-	turn ltoes to z-axis <0> speed <2000>;
-	turn rtoes to z-axis <0> speed <2000>;
-	turn ltoes to z-axis <0> speed <2000>;
-	turn rtoes to z-axis <0> speed <2000>;
-	turn lthigh to y-axis <0> speed <200>; 
-	turn rthigh to y-axis <0> speed <200>; 
-	
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
 	isMoving = TRUE;
-	call-script StopDance();
+	
+	turn ltoes to z-axis <0> speed <2000>;
+	turn rtoes to z-axis <0> speed <2000>;
+	turn ltoes to z-axis <0> speed <2000>;
+	turn rtoes to z-axis <0> speed <2000>;
+	turn lthigh to y-axis <0> speed <600>; 
+	turn rthigh to y-axis <0> speed <600>; 
+	
+	if (isDancing)
+	{
+		call-script StopDance();
+	}
 	start-script walk();
 }
 

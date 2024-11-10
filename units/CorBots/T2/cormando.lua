@@ -111,7 +111,6 @@ return {
 				explosiongenerator = "custom:laserhit-small-red",
 				firestarter = 100,
 				gravityaffected = "true",
-				impulseboost = 0,
 				impulsefactor = 0,
 				name = "CommandoBlaster",
 				noselfdamage = true,

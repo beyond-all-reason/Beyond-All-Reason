@@ -75,6 +75,7 @@ local armorDefs = {
 		"xmasball2_6",
 		"armstone",
 		"corstone",
+		"legstone",
 		"dice",
 		"chip",
 	},
@@ -245,6 +246,7 @@ local armorDefs = {
 		"cormort",
 		"cormstor",
 		"cormwall",
+		"legrwall",
 		"cornecro",
 		"corplat",
 		"corphantom",
@@ -510,6 +512,7 @@ local armorDefs = {
 		"corassistdrone",
 		"legassistdrone",
 		"legmos",
+		"legmost3",
 		"legfort",
 		"legfortt4",
 		"legca",
@@ -574,6 +577,7 @@ local armorDefs = {
 		"legstronghold",
 		"legwhisper",
 		"critter_gull",
+		"armfify",
 	},
 	shields = {
 		-- Intentionally left blank. To be used in shield weapondefs only!

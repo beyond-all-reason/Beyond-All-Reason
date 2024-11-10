@@ -117,7 +117,6 @@ return {
 				energypershot = 1000,
 				explosiongenerator = "custom:genericshellexplosion-medium-bomb",
 				gravityaffected = "true",
-				impulseboost = 0.1,
 				impulsefactor = 0.1,
 				name = "Mini Rapid-fire long-range plasma cannon",
 				noselfdamage = true,

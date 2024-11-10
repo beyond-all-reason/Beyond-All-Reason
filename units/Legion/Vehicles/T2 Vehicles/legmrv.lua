@@ -124,7 +124,6 @@ return {
 				gravityaffected = "true",
 				fireTolerance = 3640,
 				tolerance = 3640,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				name = "Two-Round Burst Fire Plasma Cannon",
 				noselfdamage = true,

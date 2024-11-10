@@ -96,7 +96,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-large-lightning",
 				firestarter = 90,
 				gravityaffected = "true",
-				impulseboost = 0,
 				impulsefactor = 0,
 				model = "airbomb.s3o",
 				mygravity = 0.4,

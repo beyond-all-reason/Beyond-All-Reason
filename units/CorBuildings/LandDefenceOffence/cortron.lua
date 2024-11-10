@@ -115,7 +115,6 @@ return {
 				explosiongenerator = "custom:newnuketac",
 				firestarter = 0,
 				flighttime = 400,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				metalpershot = 550,
 				model = "cortronmissile.s3o",

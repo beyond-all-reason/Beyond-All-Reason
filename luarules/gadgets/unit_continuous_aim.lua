@@ -122,6 +122,7 @@ local convertedUnitsNames = {
 	['legvenator'] = 5,
     ['legmed'] = 5,
 	['legaheattank'] = 3,
+	['legrwall'] = 4,
 }
 --add entries for scavboss
 local scavengerBossV4Table = {'scavengerbossv4_veryeasy', 'scavengerbossv4_easy', 'scavengerbossv4_normal', 'scavengerbossv4_hard', 'scavengerbossv4_veryhard', 'scavengerbossv4_epic',

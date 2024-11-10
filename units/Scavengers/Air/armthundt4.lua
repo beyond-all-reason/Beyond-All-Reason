@@ -96,7 +96,6 @@ return {
 				edgeeffectiveness = 0.75,
 				explosiongenerator = "custom:genericshellexplosion-huge-bomb",
 				gravityaffected = "true",
-				impulseboost = 2.5,
 				impulsefactor = 2.5,
 				model = "units/armvader.s3o",
 				name = "Ultra Heavy Bombs",

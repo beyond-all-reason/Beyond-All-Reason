@@ -26,7 +26,9 @@ if gadgetHandler:IsSyncedCode() then
 		['armthor'] = 2,
 
 		['legmos'] = 8,
+		['legmost3'] = 8,
 		['legmineb'] = 1,
+		['legsrailt4'] = 3,
 
 		['armsilo'] = 10,
 		['corsilo'] = 10,
