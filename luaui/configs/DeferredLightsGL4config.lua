@@ -13781,11 +13781,11 @@ local unitLights = {
 		zoomlight2 = {
 			lightType = 'point',
 			pieceName = 'barrel',
-			lightConfig = { posx = 0, posy = 2.5, posz = -4, radius = 8,
-							dirx = 0, diry = 0, dirz = 0.5, theta = -20,
-							color2r = -1.0, color2g = -1.0, color2b = -1.0, colortime = 60,
-							r = 0.9, g = 1.1, b = 1.2, a = 2.5,
-							modelfactor = 1.7, specular = 0.8, scattering = 0, lensflare = 0,
+			lightConfig = { posx = 0, posy = 1.5, posz = -4, radius = 4,
+							dirx = 0, diry = 0, dirz = 0.5, theta = -18,
+							color2r = -1, color2g = -1, color2b = -1, colortime = 60,
+							r = 1, g = 1, b = 2, a = 6,
+							modelfactor = 1.7, specular = 0.8, scattering = 0.4, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
 },
 		base1 = {
@@ -15697,6 +15697,16 @@ local unitLights = {
 							color2r = -1.0, color2g = -1.0, color2b = -1.0, colortime = 60,
 							r = 0.1, g = 0.3, b = 1.2, a = 2.5,
 							modelfactor = 1.7, specular = 0.8, scattering = 0.4, lensflare = 10,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		zoomlightglow = {
+			lightType = 'point',
+			pieceName = 'sleeve',
+			lightConfig = { posx = 0, posy = 8.5, posz = 19, radius = 4,
+							dirx = 0, diry = 0, dirz = 0.5, theta = -10,
+							color2r = -1, color2g = -1, color2b = -1, colortime = 60,
+							r = 1, g = 1, b = 2, a = 3,
+							modelfactor = 1.7, specular = 0.8, scattering = 0.4, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 		top = {
