@@ -865,7 +865,7 @@ local function DRAWRINGS(primitiveType, linethickness)
 	end
 end
 
-function widget:DrawWorldPreUnit()
+function widget:DrawWorld()
 	--if fullview and not enabledAsSpec then
 	--	return
 	--end
