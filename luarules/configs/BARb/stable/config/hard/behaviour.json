@@ -1795,6 +1795,10 @@
 			"role": ["raider", "air"],
 			"retreat": 0.8
 		},
+		"corcrw": {
+			"role": ["heavy", "air"],
+			"retreat": 0.4
+		},
 		"corcrwh": {
 			"role": ["heavy", "air"],
 			"retreat": 0.4
