@@ -758,44 +758,15 @@ else	-- UNSYNCED
 			unitIconsDrawn[cacheKey] = true
 		end
 	end
-	local function getPrevLos(los)
-		-- los is bitmask: 1 inlos, 2 inradar, 4 prevlos, 8 contradar.
-		-- No bitmask operations, so extract prevlos & (inlos and/or inradar)
-		-- with divisions, can be solved better with more recent lua version.
-		if los / 12 > 1 or (los < 8 and los / 4 > 1) then
-			return true
-		end
-	end
+
 	local function drawTargetCommand(targetData, myTeam, myAllyTeam)
 
 		if targetData and targetData.userTarget then
 			local target = targetData.target
 
 			if tonumber(target) and spValidUnitID(target) then
-				--single unit target
-				if fullview then
-					local _, _, _, _, _, _, x2, y2, z2 = spGetUnitPosition(target, true, true)
-					drawUnitTarget(target, x2, y2, z2)
-				else
-					local los = spGetUnitLosState(target, myAllyTeam, true)
-					if not los or los % 4 == 0 then
-						-- We could handle the case where los % 4 == 0 for 'alwaysSeen'
-						-- buildings, but seems like attack command doesn't allow targeting them,
-						-- so do the same for consistency.
-						return
-					end
-
-					local _, _, _, _, _, _, x2, y2, z2 = spGetUnitPosition(target, true, true)
-					if los % 2 == 1 or (targetData.alwaysSeen and getPrevLos(los)) then
-						-- in los, or static and previously seen
-						drawUnitTarget(target, x2, y2, z2)
-					else
-						-- in radar   spIsUnitInRadar(target, myAllyTeam)
-						local dx, dy, dz = spGetUnitPosErrorParams(target)
-						local size = spGetRadarErrorParams(myAllyTeam)
-						drawUnitTarget(target, x2 + dx * size, y2 + dy * size, z2 + dz * size)
-					end
-				end
+				local _, _, _, x2, y2, z2 = spGetUnitPosition(target, false, true)
+				drawUnitTarget(target, x2, y2, z2)
 			elseif target and not tonumber(target) then
 				-- 3d coordinate target
 				local x2, y2, z2 = unpack(target)
@@ -818,8 +789,7 @@ else	-- UNSYNCED
 		end
 	end
 
-	function gadget:DrawWorld()
-		_, fullview = spGetSpectatingState()
+	local function drawDecorations()
 		local init = false
 		for unitID, unitData in pairs(targetList) do
 			if drawTarget[unitID] or drawAllTargets[spGetUnitTeam(unitID)] or spIsUnitSelected(unitID) then
@@ -847,6 +817,14 @@ else	-- UNSYNCED
 		end
 		drawTarget = {}
 		unitIconsDrawn = {}
+	end
+
+	function gadget:DrawWorld()
+		if fullview then
+			drawDecoratons()
+		else
+			CallAsTeam(myAllyTeam, drawDecorations)
+		end
 	end
 
 end
