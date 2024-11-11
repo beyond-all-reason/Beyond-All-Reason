@@ -652,8 +652,6 @@ else	-- UNSYNCED
 	local spGetSpectatingState = Spring.GetSpectatingState
 	local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 	local spGetUnitTeam = Spring.GetUnitTeam
-	local spGetUnitPosErrorParams = Spring.GetUnitPosErrorParams
-	local spGetRadarErrorParams = Spring.GetRadarErrorParams
 
 	local myAllyTeam = spGetMyAllyTeamID()
 	local myTeam = spGetMyTeamID()
