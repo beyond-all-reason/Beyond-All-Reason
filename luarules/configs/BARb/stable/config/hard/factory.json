@@ -570,7 +570,7 @@
 
 		"income_tier": [50],
 
-		"unit":      ["coraca", "corvamp", "corawac", "corhurc", "corape", "corcrw"],
+		"unit":      ["coraca", "corvamp", "corawac", "corhurc", "corape", "corcrwh"],
 
 		"land": {
 			"tier0": [ 0.10,     0.20,       0.15,      0.05,       0.40,      0.00],
