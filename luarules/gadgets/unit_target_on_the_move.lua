@@ -682,6 +682,12 @@ else	-- UNSYNCED
 
 	end
 
+	function gadget:PlayerChanged(playerID)
+		myAllyTeam = spGetMyAllyTeamID()
+		myTeam = spGetMyTeamID()
+		_, fullview = spGetSpectatingState()
+	end
+
 	function gadget:Shutdown()
 		gadgetHandler:RemoveChatAction("targetdrawteam")
 		gadgetHandler:RemoveChatAction("targetdrawunit")
