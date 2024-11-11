@@ -100,7 +100,7 @@ return {
 				mygravity = 0.1,
 				name = "Light homing torpedo launcher",
 				noselfdamage = true,
-				range = 425,
+				range = 400,
 				reloadtime = 6,
 				soundhit = "xplodep3",
 				soundhitvolume = 3.5,
