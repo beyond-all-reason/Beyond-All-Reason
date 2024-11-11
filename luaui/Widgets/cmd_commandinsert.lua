@@ -176,7 +176,7 @@ function widget:CommandNotify(id, params, options)
       end
     end
     -- check for insert at end of queue if its shortest walk.
-    local dlen = math_sqrt(((px-cx)*(px-cx)) + ((py-cy)*(py-cy)) + ((pz-cz)*(py-cy)))
+    local dlen = math_sqrt(((px-cx)*(px-cx)) + ((py-cy)*(py-cy)) + ((pz-cz)*(pz-cz)))
     if dlen < min_dlen then
       --options.meta=nil
       --options.shift=true
