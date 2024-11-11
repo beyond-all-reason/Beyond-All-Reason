@@ -7,6 +7,8 @@
       "?.lua"
   ],
   "runtime.special": {
-      "VFS.Include": "require"
+      "VFS.Include": "require",
+      "include": "require",
+      "shard_include": "require"
   }
 }
