@@ -134,7 +134,7 @@ return {
 				weaponvelocity = 450,
 				customparams = {
 					cluster = true,
-					number = 6,
+					cluster_number = 6,
 				},
 				damage = {
 					default = 200,
