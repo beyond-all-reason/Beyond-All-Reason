@@ -10,10 +10,12 @@ uniform float distortionStrength = 1.0;
 void main(void) {
     vec4 distortion = texture2D(distortionTexture, gl_TexCoord[0].st);
     distortion.rgb = distortion.rgb * 2.0 - 1.0;
-    vec4 screen = texture2D(screenCopyTexture, gl_TexCoord[0].st + distortionStrength * distortion.rg * 0.02);
+    vec4 screen = texture2D(screenCopyTexture, gl_TexCoord[0].st + distortionStrength * distortion.rg * 0.01);
     if (gl_TexCoord[0].x > 0.5){ // right half?
         if (gl_TexCoord[0].y > 0.5){ // top right
-            gl_FragColor = vec4(distortion.rgb * 0.5 + 0.5, 1.0);
+            if (distortion.b < -0.01 )
+            gl_FragColor = vec4(vec3(distortion.rg, 0.0) * 0.5 + 0.5, 1.0);
+            else gl_FragColor = vec4(screen.rgb, 0.0);
         }else{ // bottom right
         }
     }else{ // left half

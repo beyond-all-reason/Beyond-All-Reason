@@ -69,11 +69,7 @@ out DataVS {
 	flat vec4 v_worldPosRad;
 	flat vec4 v_worldPosRad2;
 	flat vec4 v_lightcolor;
-	flat vec4 v_modelfactor_specular_scattering_lensflare;
-	vec4 v_depths_center_map_model_min;
 	vec4 v_otherparams; 
-	vec4 v_lightcenter_gradient_height;
-	vec4 v_position;
 	vec4 v_noiseoffset;
 	noperspective vec2 v_screenUV;
 };
@@ -110,7 +106,7 @@ void main()
 	float lightRadius = worldposrad.w * radiusMultiplier;
 	v_worldPosRad = worldposrad ;
 	v_worldPosRad.w = lightRadius;
-	
+	vec4 vertexPosition = vec4(0.0);
 	
 	mat4 placeInWorldMatrix = mat4(1.0); // this is unity for non-unitID tied stuff
 	
@@ -154,8 +150,6 @@ void main()
 	
 	v_worldPosRad2 = worldposrad2;
 
-	v_modelfactor_specular_scattering_lensflare = modelfactor_specular_scattering_lensflare;
-	v_depths_center_map_model_min = vec4(1.0); // just a sanity init
 	v_otherparams = otherparams;
 	
 	vec4 worldPos = vec4(1.0);
@@ -205,8 +199,7 @@ void main()
 		
 
 		v_worldPosRad.xyz = lightCenterPosition;
-		v_depths_center_map_model_min = depthAtWorldPos(vec4(lightCenterPosition,1.0)); // 
-		v_position = vec4( lightVertexPosition, 1.0);
+		vertexPosition = vec4( lightVertexPosition, 1.0);
 	}
 	#line 12000
 	else if (pointbeamcone < 1.5){ // beam
@@ -244,12 +237,11 @@ void main()
 		// Place the box in the world
 		worldPos.xyz += lightCenterPosition;
 		
-		v_depths_center_map_model_min = depthAtWorldPos(vec4(lightCenterPosition,1.0));
 		
 		v_worldPosRad2.xyz = (placeInWorldMatrix * vec4(v_worldPosRad2.xyz, 1.0)).xyz;;
 		v_worldPosRad.xyz = (placeInWorldMatrix * vec4(lightCenterPosition.xyz, 1.0)).xyz;
 		v_worldPosRad.xyz += (v_worldPosRad2.xyz - v_worldPosRad.xyz) * 0.5;
-		v_position.xyz = (placeInWorldMatrix * vec4(worldPos.xyz, 1.0)).xyz;
+		vertexPosition.xyz = (placeInWorldMatrix * vec4(worldPos.xyz, 1.0)).xyz;
 	}
 	#line 12000
 	else if (pointbeamcone > 1.5){ // cone
@@ -290,30 +282,27 @@ void main()
 		worldPos.xyz = (placeInWorldMatrix * vec4(worldPos.xyz, 1.0)).xyz;
 		
 		// set the center pos of the light:
-		v_worldPosRad.xyz = (placeInWorldMatrix * vec4(lightCenterPosition.xyz, 1.0)).xyz;;
-		v_depths_center_map_model_min = depthAtWorldPos(vec4(v_worldPosRad.xyz,1.0));
+		v_worldPosRad.xyz = (placeInWorldMatrix * vec4(lightCenterPosition.xyz, 1.0)).xyz;
 		
 		// Clear out the translation from the cone direction, and turn the cone according to the piece matrix
 		v_worldPosRad2.xyz = mat3(placeInWorldMatrix) * v_worldPosRad2.xyz;
 		
-		v_position =  worldPos;
+		vertexPosition =  worldPos;
 	}
 	#line 13000
 	// Get the heightmap and the normal map at the center position of the light in v_worldPosRad.xyz
 	
 	vec2 uvhm = heightmapUVatWorldPos(v_worldPosRad.xz);
-	v_lightcenter_gradient_height.w = textureLod(heightmapTex, uvhm, 0.0).x;
 	
 	vec4 mapnormals = textureLod(mapnormalsTex, uvhm, 0.0);
 	mapnormals.g = sqrt( 1.0 - mapnormals.r * mapnormals.r - mapnormals.a * mapnormals.a);
-	v_lightcenter_gradient_height.xyz = mapnormals.rga;
 	
 	//	vec4 windInfo; // windx, windy, windz, windStrength
 	v_noiseoffset = vec4(windX, 0, windZ,0) * (-0.0156);
 	//v_noiseoffset = vec4(0.0);
 	//v_noiseoffset.y = windX + windZ;
 	
-	gl_Position = cameraViewProj * v_position;
+	gl_Position = cameraViewProj * vertexPosition;
 	v_screenUV = SNORM2NORM(gl_Position.xy / gl_Position.w);
 	
 	// pass everything on to fragment shader:
