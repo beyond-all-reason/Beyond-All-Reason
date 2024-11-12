@@ -1860,11 +1860,11 @@
 		// LEGION BOTLAB (leglab)
 		"legcen": {
 			"role": ["raider"],
-			"attribute": ["scout"],
+            "since": 240,
 			"threat": {"air": 0.0, "water": 0.0,
 				"vs": {"artillery":3.0, "anti_air": 2.0, "riot":0.5, "anti_heavy": 3.0, "anti_heavy_ass":3.0}	
 			},
-			"limit": 5
+			"limit": 8
 		},
 		"legbal": {
 			"role": ["assault"],
@@ -1888,7 +1888,8 @@
 			"retreat": 0.5
 		},
 		"leggob": {
-			"role": ["scout"],
+			"role": ["skirmish"],
+			"attribute": ["scout"],
 			"threat":{"air": 0.0, "water": 0.0,
 					"vs":{"artillery": 2.0, "anti_air": 2.0}
 			}
@@ -1910,7 +1911,7 @@
 		},
 		"leginc": {
 			"role": ["heavy", "assault"],
-			"attribute": ["support"],
+			"attribute": ["siege"],
 			"threat":{"air":0.5, "scout":0.1},
             "retreat": 0.4
 		},
@@ -1921,7 +1922,6 @@
 		},
 		"legbart": {
 			"role": ["assault", "Skirmish"],
-			"attribute":["support"],  //was siege too - but evtl not working correct
 			"retreat": 0.5
 		},
 		"legdecom": {
@@ -1997,7 +1997,7 @@
 			"threat": {"surf": 0.2, "vs":{"static":5.0, "artillery":5.0}}
 		},
 		"legrail": {
-			"role": ["anti_air"],
+			"role": ["artillery"],
 			"attribute": ["support", "siege"]
 		},
 	
@@ -2322,6 +2322,23 @@
 "leglraa": {
 	"role": ["anti_air"],
 	"threat": {"air":2.0, "surf":0.0, "water":0.0}
+},
+"legcluster": {
+	"role": ["static"],
+	"on": false,
+	"threat": {"air": 0.0, "water": 0.2,"surf": 1.0}
+},
+"legacluster": {
+	"role": ["static"],
+	"on": false,
+	"threat": {"air": 0.0, "water": 0.1,"surf": 1.0}
+},
+"leghive": {
+	"role": ["static"],
+	"threat": {"air": 0.1, "water": 0.5,"surf": 1.0}
+},
+"legbombard": {
+	"role": ["static"]
 },
 "legdtr": {
 	"role": ["static"]
