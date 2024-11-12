@@ -85,7 +85,7 @@ local noisetex3dcube =  "LuaUI/images/noisetextures/noise64_cube_3.dds"
 
 
 ------------------------------ Debug switches ------------------------------
-local autoupdate = false
+local autoupdate = true
 local debugproj = false
 local addrandomdistortions = false
 local skipdraw = false
@@ -201,8 +201,10 @@ local screenDistortionShaderSourceCache = {
 	fssrcpath = "LuaUI/Widgets/Shaders/screen_distortion_combine_gl4.frag.glsl",
 	shaderConfig = shaderConfig,
 	uniformInt = {
-		screenCopyTexture = 0,
-		distortionTexture = 1,
+		mapDepths = 0,
+		modelDepths = 1,
+		screenCopyTexture = 2,
+		distortionTexture = 3,
 		},
 	uniformFloat = {
 		distortionStrength = 1.0,
@@ -1331,7 +1333,7 @@ local function DrawDistortionFunction2(gf) -- For render-to-texture
 		end
 		if autoupdate and alt and (isSinglePlayer or spec) and devui then return end
 
-		glBlending(GL.ONE, GL.ONE)
+		glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		gl.Culling(false)
 		gl.DepthTest(false)
 		gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove
@@ -1414,8 +1416,10 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		screenDistortionShader = LuaShader.CheckShaderUpdates(screenDistortionShaderSourceCache, 0) or screenDistortionShader
 	end
 
-	gl.Texture(0, ScreenCopy)
-	gl.Texture(1, DistortionTexture)
+	gl.Texture(0, "$map_gbuffer_zvaltex")
+	gl.Texture(1, "$model_gbuffer_zvaltex")
+	gl.Texture(2, ScreenCopy)
+	gl.Texture(3, DistortionTexture)
 	glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	gl.Culling(false) -- ffs
 	gl.DepthTest(false)
@@ -1427,6 +1431,7 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 	fullScreenQuadVAO:DrawArrays(GL.TRIANGLES)
 	screenDistortionShader:Deactivate()
 	
+	for i = 0,3 do gl.Texture(i, false) end
 	tracy.ZoneEnd()
 
 	

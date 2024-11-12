@@ -555,6 +555,49 @@ vec3 WorldToScreen(vec3 worldCoords){ // returns screen UV and depth position
 // Additional notes and reading:
 //https://andrew-pham.blog/2019/10/03/volumetric-lighting/ ???
 
+
+//
+//  Value Noise 3D Deriv
+//  Return value range of 0.0->1.0, with format vec4( value, xderiv, yderiv, zderiv )
+//
+vec4 Value3D_Deriv( vec3 P )
+{
+    //  https://github.com/BrianSharpe/Wombat/blob/master/Value3D_Deriv.glsl
+
+    // establish our grid cell and unit position
+    vec3 Pi = floor(P);
+    vec3 Pf = P - Pi;
+    vec3 Pf_min1 = Pf - 1.0;
+
+    // clamp the domain
+    Pi.xyz = Pi.xyz - floor(Pi.xyz * ( 1.0 / 69.0 )) * 69.0;
+    vec3 Pi_inc1 = step( Pi, vec3( 69.0 - 1.5 ) ) * ( Pi + 1.0 );
+
+    // calculate the hash
+    vec4 Pt = vec4( Pi.xy, Pi_inc1.xy ) + vec2( 50.0, 161.0 ).xyxy;
+    Pt *= Pt;
+    Pt = Pt.xzxz * Pt.yyww;
+    vec2 hash_mod = vec2( 1.0 / ( 635.298681 + vec2( Pi.z, Pi_inc1.z ) * 48.500388 ) );
+    vec4 hash_lowz = fract( Pt * hash_mod.xxxx );
+    vec4 hash_highz = fract( Pt * hash_mod.yyyy );
+
+    //	blend the results and return
+    vec3 blend = Pf * Pf * Pf * (Pf * (Pf * 6.0 - 15.0) + 10.0);
+    vec3 blendDeriv = Pf * Pf * (Pf * (Pf * 30.0 - 60.0) + 30.0);
+    vec4 res0 = mix( hash_lowz, hash_highz, blend.z );
+    vec4 res1 = mix( res0.xyxz, res0.zwyw, blend.yyxx );
+    vec4 res3 = mix( vec4( hash_lowz.xy, hash_highz.xy ), vec4( hash_lowz.zw, hash_highz.zw ), blend.y );
+    vec2 res4 = mix( res3.xz, res3.yw, blend.x );
+    return vec4( res1.x, 0.0, 0.0, 0.0 ) + ( vec4( res1.yyw, res4.y ) - vec4( res1.xxz, res4.x ) ) * vec4( blend.x, blendDeriv );
+}
+
+vec4 curl3d( vec3 P )
+{
+	vec4 n1 =  Value3D_Deriv( P );
+	vec4 n2 =  Value3D_Deriv( P * 1.72198 );
+	return vec4( n1.x + n2.x, cross(n1.yzw, n2.yzw) );
+}
+
 #line 31000
 void main(void)
 {
@@ -747,26 +790,6 @@ void main(void)
 			
 			miescattersum += (max(0, 0.1 - relativeclosenesstobeam) * noise  * 10.0);
 		}
-		/*
-		// LIGHTNING TESTER
-		// march the worley noise in 128 steps and add it in!
-		rayleighScatterSum = 0;
-		miescattersum = 0;
-		for (int i = 1; i < 128; i++){
-			vec3 marchPos = stepVec * i + EntryPoint;
-
-			float noise = textureLod(noise3DCube, fract(marchPos * 0.02 + i / RAYMARCHSTEPS + v_noiseoffset.xyz - vec3(0,timeInfo.x * 0.01,0)), 0.0).r * 2.0 ; 
-			
-			noise = 1000 * clamp(0.1 - abs(noise-1.0), 0, 1);
-			
-			float relativeclosenesstobeam = clamp(distToCapsuleSqr(marchPos, beamstart, beamend, lightRadius) * lightRadiusInv * lightRadiusInv, 0.0, 1.0) ;
-			
-			rayleighScatterSum +=  (1.0 - relativeclosenesstobeam) * noise;
-			
-			miescattersum += (max(0, 0.1 - relativeclosenesstobeam) * noise  * 10.0);
-		
-		}
-		*/
 		
 		// Simplest occlusion calculation just integrates scatter in between fragment distance and eye distance
 		// cone close distance is negative if rayorigin is inside it
@@ -791,73 +814,45 @@ void main(void)
 	specular = dot(reflection, viewDirection);
 	specular = v_modelfactor_specular_scattering_lensflare.y * pow(max(0.0, specular), 8.0 * ( 1.0 + ismodel * v_modelfactor_specular_scattering_lensflare.x) ) * (1.0 + ismodel * v_modelfactor_specular_scattering_lensflare.x);
 	attenuation = pow(attenuation, 1.0);
-	
-	
-	
-	fragColor.rgb = vec3(
-			(diffuse) * attenuation + lensFlare,
-			//relativedistancetolight * relativedistancetolight * selfglowfalloff * sourceVisible + 
-			scatteringMie + 
-			(specular) * attenuation,
-			 scatteringRayleigh
-			);
-			
-	fragColor.rgb = targetcolor.rgb;
-	
-	// light mixdown:
-	targetcolor.rgb = max(vec3(0.2), targetcolor.rgb); // we shouldnt let the targetcolor be fully black, or else we will have a bad time blending onto it.
-	
-	float mintarg = 0.4;
-	float targetbrightness =dot(targetcolor.rgb, vec3(0.375,0.5,0.125));
-	
-	targetcolor *= (1.0 -  step(mintarg,targetbrightness) * (targetbrightness -mintarg));
-	// if brightness is > 0.5, start reducing it?
-	
-	
-	// Sum up the additives of Rayleigh, Mie and LensFlare, colorize and alpha control them
-	vec3 additivelights = ((scatteringRayleigh + scatteringMie) * v_modelfactor_specular_scattering_lensflare.z + lensFlare) * v_lightcolor.rgb * v_lightcolor.w * 0.4  ;
+	//-------------------------
+	// DISTORTION
 
-	// Sum up diffuse+specular and colorize the light
-	vec3 blendedlights = (v_lightcolor.rgb * v_lightcolor.w) * (diffuse + specular);
+	// dont handle beams and cones yet:
+	if (pointbeamcone > 0.5){
+		fragColor.rgba = vec4(0.0);
+		return;
+	}
 
-	// Modulate color with target color of the surface. 
-	blendedlights = mix(blendedlights, blendedlights * targetcolor.rgb * 2.0, SURFACECOLORMODULATION);
-	#if (VOIDWATER == 1) 
-		if (fragWorldPos.y < 0) 
-			blendedlights.rgb = vec3(0.0);
-	#endif
-	// Calculate attenuation and blend more lights onto models
-	blendedlights *= attenuation * 2.0 * (1.0 + 2.0 * ismodel * v_modelfactor_specular_scattering_lensflare.x);
-	
-	// Estimate how 'lit' our target fragment is going to be, once we additively blend all light factors and the target surface color
-	vec3 outlight_unclamped = targetcolor.rgb + blendedlights + additivelights;
-	
-	// The amount of light that will 'bleed', or overflow from that pixel is the sum of each channel that is over 1.0 according to our estimate
-	float bleed = dot(max(vec3(0.0), outlight_unclamped - vec3(1.0)), vec3(1.0));
-	
-	// Square the bleed because why not
-	bleed = bleed * bleed;
-	
-	// bleeding makes the other channels brighter when we 'overflow' with lighting
-	fragColor.rgb = (blendedlights*0.9  + additivelights*0.5) + vec3(bleed)* BLEEDFACTOR; 
-	
-	fragColor.rgb *= intensityMultiplier;
-	//fragColor.rgb *= v_lightcolor.a;
-	//fragColor.rgb = vec3(bleed);
-	//fragColor.rgb = vec3(targetcolor.rgb + blendedlights + additivelights);
-	//fragColor.rgb = outlight_unclamped;
-	//fragColor.rgb = vec3(scatteringRayleigh);
-	//fragColor.rgb = vec3(dot(fragColor.rgb, vec3(1.0, 0.5, 0.5)));
-	//fragColor.rgb += 0.5;
-	//fragColor.rgb += clamp(0.25* vec3(pow(1.0-rcdsqr / (v_worldPosRad.w * v_worldPosRad.w),16)), 0.0, 1.0);
-	//fragColor.rgb = vec3(rcdsqr / (v_worldPosRad.w * v_worldPosRad.w));
-	//fragColor.rgb = vec3(abs(fract(v_depths_center_map_model_min.w*10)));
-	//fragColor.rgb = vec3(pow(v_depths_center_map_model_min.z,8), pow(worlddepth, 8), 0);
-	//fragColor.rgb = vec3((worlddepth - v_depths_center_map_model_min.z)* 100 + 0.5);
-	//fragColor.rgb = (fract(lightEmitPosition*0.02));
-	fragColor.a = 1.0;
-	//fragColor.rgb = vec3(targetcolor);
-	//fragColor.rgb = vec3(attenuation);
-	//fragColor.rgb = fract(v_lightcenter_gradient_height.www*0.1);
+	// Check if point would be occluded
+	float distortionRange = lightRadius;
+
+	// if the fragment is closer to the camera than the light source plus its radius, we can skip the distortion
+	if (length(fragWorldPos.xyz - camPos) < ( length(lightPosition - camPos) -lightRadius)){
+		fragColor.rgba = vec4(0.0);
+		return;
+	}
+
+	if (length(closestpoint_dist.xyz - fragWorldPos.xyz) > lightRadius) {
+		fragColor.rgba = vec4(0.0);
+		//return;
+
+	}
+
+	vec4 noiseSample = textureLod(noise3DCube, closestpoint_dist.xyz * 0.1 - vec3(0,timeInfo.x * 0.01,0), 0.0);
+
+	// norm2snorm
+	noiseSample.xyz = noiseSample.xyz * 2.0 - 1.0;
+
+	// modulate the effect strength with the distance to the heat source:
+	noiseSample.xyz *= clamp(100.0/ fragDistance, 0.0, 1.0);
+
+	// snorm2norm
+	noiseSample.xyz = noiseSample.xyz * 0.5 + 0.5;
+
+	//modulate alpha part with the 
+	float strength  = clamp(1.0 - length(closestpoint_dist.xyz - lightPosition)/ lightRadius, 0.0, 1.0);
+	fragColor.rgba = vec4(noiseSample.xyz * 1.0 , strength);
+	return;
+	//-------------------------
 	
 }
