@@ -40,10 +40,9 @@ local spherePackings = {
 --------------------------------------------------------------------------------------------------------------
 -- Randomly distributed arrays -------------------------------------------------------------------------------
 
---- Produces a array of unrolled float3 vectors representing directions.
--- This function uses rejection sampling which is efficient but inappropriate for constant-time operations.
--- @tparam[opt] number n count of directions to produce
--- @treturn {float,...} array with length equal to 3n
+---Produces an array of unrolled float3 vectors representing directions.
+---@param n number count of vectors to produce
+---@return table vector3s
 DirectionsUtil.GetRandomDirections = function(n)
     n = n > 1 and n or 1
     local vecs = {}
@@ -65,12 +64,10 @@ end
 --------------------------------------------------------------------------------------------------------------
 -- Combined distribution arrays ------------------------------------------------------------------------------
 
---- Fetches a premade direction set from DistributedDirections; otherwise, generates random directions.
--- @tparam[opt] number n count of (unrolled) float3 directions to retrieve
--- @treturn[1] {float,...} array with length equal to 3n
--- @treturn[1] boolean true if the result is random
--- @treturn[2] nil
--- @see DirectionsUtil.GetRandomDirections
+---Fetches a premade direction set from DistributedDirections; otherwise, generates random directions.
+---@param n number count of vectors to retrieve
+---@return table vector3s
+---@return boolean randomized
 DirectionsUtil.GetDirections = function(n)
     if not n or n < 1 then return end
     local distributed = DirectionsUtil.Directions[n]
@@ -84,9 +81,9 @@ DirectionsUtil.GetDirections = function(n)
     end
 end
 
---- Pad the size of an insufficient direction set by adding randomly generated directions.
--- @tparam number n maximum solution size to add to Directions
--- @treturn boolean whether provisioning succeeded
+---Pad the size of an insufficient direction set by adding randomly generated directions.
+---@param n number max solution size to add to Directions
+---@return boolean success
 DirectionsUtil.ProvisionDirections = function(n)
     if n < 2 or n > DIRECTION_SET_SIZE_MAX then return false end
     local directions = DirectionsUtil.Directions
