@@ -5,7 +5,7 @@ function widget:GetInfo()
 		author = "SuperKitowiec",
 		date = "2024",
 		license = "GNU GPL, v2 or later",
-		version = 3.1,
+		version = 3.2,
 		layer = 0,
 		enabled = true,
 		handler = true,
@@ -140,12 +140,12 @@ local function GetMouseTargetPosition()
 		if mouseTargetType == "ground" then
 			return mouseTarget[1], mouseTarget[2], mouseTarget[3]
 		elseif mouseTargetType == "unit" then
-			local mx, my, mz = GetUnitPosition(mouseTarget)
-			return mx, my, mz, mouseTarget
+			local _, coordinates = TraceScreenRay(mx, my, true)
+			return coordinates[1], coordinates[2], coordinates[3], mouseTarget
 		elseif mouseTargetType == "feature" then
-			local _, mouseTarget = TraceScreenRay(mx, my, true)
-			if mouseTarget then
-				return mouseTarget[1], mouseTarget[2], mouseTarget[3]
+			local _, coordinates = TraceScreenRay(mx, my, true)
+			if coordinates then
+				return coordinates[1], coordinates[2], coordinates[3]
 			end
 		else
 			return nil
@@ -153,6 +153,10 @@ local function GetMouseTargetPosition()
 	else
 		return nil
 	end
+end
+
+local function IsAlly(unitTeamId)
+	return unitTeamId ~= myTeamID and GetTeamAllyTeamID(unitTeamId) == myAllyTeamID
 end
 
 local function FindTeam(mx, my)
@@ -167,7 +171,7 @@ local function FindTeam(mx, my)
 
 	for _, unitId in ipairs(foundUnits) do
 		local unitTeamId = GetUnitTeam(unitId)
-		if unitTeamId ~= myTeamID and GetTeamAllyTeamID(unitTeamId) == myAllyTeamID then
+		if IsAlly(unitTeamId) then
 			unitTeamId = tostring(unitTeamId)
 			if unitTeamCounters[unitTeamId] == nil then
 				unitTeamCounters[unitTeamId] = 1
@@ -220,7 +224,10 @@ function widget:DrawWorld()
 	mouseDistance = GetMouseDistance() or 1000
 	local selectedTeam
 	if targetUnitID then
-		selectedTeam = GetUnitTeam(targetUnitID)
+		local targetUnitTeamID = GetUnitTeam(targetUnitID)
+		if IsAlly(targetUnitTeamID) then
+			selectedTeam = targetUnitTeamID
+		end
 	else
 		local mouseX, mouseY = WorldToScreenCoords(tx, ty, tz)
 		selectedTeam = FindTeam(mouseX, mouseY)
