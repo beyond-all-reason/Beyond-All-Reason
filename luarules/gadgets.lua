@@ -1399,7 +1399,7 @@ end
 
 function gadgetHandler:AllowCommand(unitID, unitDefID, unitTeam,
 									cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-	local cmdKey = cmdID and cmdID or CMD_NIL
+	local cmdKey = cmdID or CMD_NIL
 	if not allowCommandList[cmdKey] then cmdKey = CMD_ANY end
 
 	tracy.ZoneBeginN("G:AllowCommand")
