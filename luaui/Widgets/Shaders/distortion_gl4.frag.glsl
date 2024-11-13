@@ -34,7 +34,7 @@ out vec4 fragColor;
 // RED is the fractional part of the input
 // GREEN is the square root of the floor of the input divided by 256
 // Blue is for negative numbers
-#define DEBUG(x) fragColor.rgba = vec4( fract(x), sqrt(floor(x) / 1024.0),(x < 0,1,0),1.0); return;
+#define DEBUG(x) fragColor.rgba = vec4( fract(x), sqrt(floor(x) / 256.0),(x < 0,1,0),1.0); return;
 
 // Given a beam between beamStart and beamEnd, returns the pos on the beam closest to desired Point
 vec3 closestbeam(vec3 point, vec3 beamStart, vec3 beamEnd){
@@ -53,6 +53,15 @@ vec4 closestlightlp_distance (vec3 ro, vec3 rd, vec3 P){
 	float t0 = dot(rd, P - ro) / dot(rd, rd);
 	vec3 intersectPoint = ro + t0 * rd;
 	return vec4(intersectPoint, length(P - intersectPoint));
+}
+
+// Given two rays, returns the minimum distance between them 
+//https://math.stackexchange.com/questions/2213165/find-shortest-distance-between-lines-in-3d
+float distancebetweenlines(vec3 r1, vec3 e1, vec3 r2, vec3 e2){ // point1, dir1, point2, dir2
+	//todo handle the case where e1 == e2
+	vec3 n = cross(e1, e2); // n is the normal of the line connecting them
+	float distance = dot ( n, r1-r2) / length(n);
+	return distance;
 }
 
 
@@ -129,6 +138,8 @@ vec4 ray_to_plane_intersection_point( vec3 ro, vec3 rd, vec3 planeNormal, vec3 p
 	return vec4(ro + t * rd, t);
 }
 //http://www.realtimerendering.com/intersections.html
+
+
 
 //https://iquilezles.org/articles/intersectors/
 // capsule defined by extremes pa and pb, and radious ra
@@ -231,6 +242,7 @@ void main(void)
 	fragWorldPos.xyz = fragWorldPos.xyz / fragWorldPos.w; // YAAAY this works!
 	
 	vec3 camPos = cameraViewInv[3].xyz;
+	vec3 cameraDir = -1.0 * vec3(cameraView[0].z,cameraView[1].z,cameraView[2].z);
 
 	float fragDistance = length(camPos - fragWorldPos.xyz);
 	vec3 viewDirection = (camPos - fragWorldPos.xyz) / fragDistance; // vector pointing in the direction of the eye ray
@@ -270,6 +282,7 @@ void main(void)
 			volumetricFraction =1.0 -  clamp(0.5*abs(sphereDistances.y - fragDistance) / abs(sphereDistances.y - sphereDistances.x), .0, 1.0);
 		}
 		//fragColor.rgba = vec4(volumetricFraction,volumetricFraction,0, 1.0); return;
+		//DEBUG(volumetricFraction)
 
 	#line 33000
 	}else if (pointbeamcone > 1.5){ // cone
@@ -277,7 +290,7 @@ void main(void)
 		
 		lightToWorld = fragWorldPos.xyz - lightPosition;
 		lightDirection = normalize(lightToWorld);
-		vec3 coneDirection = v_worldPosRad2.xyz;
+		vec3 coneDirection = normalize(v_worldPosRad2.xyz);
 	
 		float lightandworldangle = dot(lightDirection, coneDirection);
 
@@ -289,10 +302,12 @@ void main(void)
 		vec4 rayconedist = ray_to_capsule_distance_squared(camPos, viewDirection, lightPosition + coneDirection * lightRadius,lightPosition); // this now contains the point on ConeDirection 
 		//closestpoint_dist.w = sqrt(rayconedist.w);
 
-		vec3 conePlaneNormal = plane_point_dir_to_normal(lightPosition, coneDirection, viewDirection);
+		vec3 conePlaneNormal = plane_point_dir_to_normal(lightPosition, coneDirection, viewDirection); // no boeno as view dir changes!
 		vec4 raytoconedist = ray_to_plane_intersection_point(camPos, viewDirection, conePlaneNormal, lightPosition);
 		closestpoint_dist.xyz = raytoconedist.xyz;
-		
+		//DEBUG(conePlaneNormal.y)
+		//float coneCenterToViewRayDistance = distancebetweenlines(lightPosition, normalize(coneDirection), camPos, viewDirection);
+		//closestpoint_dist.xyz = camPos + coneCenterToViewRayDistance * viewDirection; 
 			
 	#line 34000
 	}else if (pointbeamcone < 1.5){ // beam 
