@@ -246,9 +246,9 @@ local function SpawnClusterProjectiles(data, projectileID, attackerID, ex, ey, e
     local projectileSpeed = data.weaponSpeed
 
     local px, py, pz = spGetProjectileVelocity(projectileID)
-    px = px / projectileSpeed * 0.05
+    px = px / projectileSpeed * 0.1
     py = py / projectileSpeed * 0.05
-    pz = pz / projectileSpeed * 0.05
+    pz = pz / projectileSpeed * 0.1
 
     spawnCache.owner = attackerID or -1
     spawnCache.ttl = data.weaponTtl
@@ -272,7 +272,7 @@ local function SpawnClusterProjectiles(data, projectileID, attackerID, ex, ey, e
         vy = vy + (rand() - 0.5) * spread + py
         vx = vx + (rand() - 0.5) * spread + pz
 
-        local normalization = projectileSpeed / sqrt(vx*vx + vy*vy + vz*vz)
+        local normalization = (projectileSpeed * 0.5 * (1 + rand())) / sqrt(vx*vx + vy*vy + vz*vz)
         vx = vx * normalization
         vy = vy * normalization
         vz = vz * normalization
