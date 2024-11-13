@@ -276,9 +276,6 @@
 			"menus": {
 				"title": "Menus",
 				"settings": "Paramètres",
-				"widgetsKey": "F11",
-				"widgets": "Liste des Widget",
-				"share": "Partager des unités / ressources"
 			},
 			"camera": {
 				"title": "Mouvements de caméra",
@@ -328,7 +325,6 @@
 				"title": "Raccourcis d'ordres",
 				"defaultKey": "(rien)",
 				"default": "ordre par défaut (généralement déplacer)",
-				"move": "Avancer",
 				"attack": "Attaquer",
 				"stop": "Stop (efface la file d'attente des commandes)",
 				"repair": "Réparer",
@@ -357,20 +353,19 @@
 				"append": "Ajoute un ordre à la fin de la file",
 				"appendKey": "SHIFT + (Ordre)",
 				"prependKey": "Espace + (ordre)",
-				"prepend": "Ajoute un ordre au début de la file"
+				"prepend": "Ajoute un ordre au début de la file",
+				"commandSkipCurrent": "Cancel current order",
+				"commandCancelLast": "Cancel last order"
 			},
 			"buildOrders": {
 				"title": "Parcourir les entités",
 				"selectTileKey": "(souris)",
 				"selectTile": "Sélectionner depuis menu de construction",
-				"metalKey": "z",
-				"metal": "Parcourir extracteurs de métal",
-				"energyKey": "x",
-				"energy": "Parcourir générateurs d'énergie",
-				"intelKey": "c",
-				"intel": "Parcourir radars/défenses/...",
-				"factoriesKey": "v",
-				"factories": "Parcourir les usines",
+				"categorySelectorKey": "TranslateMe",
+				"categorySelector": "TranslateMe",
+				"buildingSelectorKey": "TranslateMe",
+				"buildingSelector": "TranslateMe",
+				"switchPage": "TranslateMe",
 				"rotateKey": "^ et $",
 				"rotate": "Changer le sens du bâtiment"
 			},
@@ -403,8 +398,10 @@
 				"removeAutoGroup": "Supprimer du groupe automatique",
 				"groupKey": "(1,2,3...)",
 				"group": "Sélectionner les unités du groupe",
-				"sameTypeKey": "CTRL + Z",
-				"sameType": "Sélectionne toute unité du même type"
+				"sameTypeAllKey": "CTRL + Z",
+				"sameTypeAll": "Sélectionne toute unité du même type",
+				"sameTypeVisibleKey": "TranslateMe",
+				"sameTypeVisible": "TranslateMe"
 			},
 			"drawing": {
 				"title": "Dessin",
