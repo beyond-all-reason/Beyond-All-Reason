@@ -819,7 +819,7 @@ else	-- UNSYNCED
 
 	function gadget:DrawWorld()
 		if fullview then
-			drawDecoratons()
+			drawDecorations()
 		else
 			CallAsTeam(myAllyTeam, drawDecorations)
 		end
