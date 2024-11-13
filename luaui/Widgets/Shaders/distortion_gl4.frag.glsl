@@ -30,6 +30,11 @@ uniform float intensityMultiplier = 1.0;
 
 out vec4 fragColor;
 
+// Kinda useful debug macro:
+// RED is the fractional part of the input
+// GREEN is the square root of the floor of the input divided by 256
+// Blue is for negative numbers
+#define DEBUG(x) fragColor.rgba = vec4( fract(x), sqrt(floor(x) / 256.0),(x < 0,1,0),1.0); return;
 
 // Given a beam between beamStart and beamEnd, returns the pos on the beam closest to desired Point
 vec3 closestbeam(vec3 point, vec3 beamStart, vec3 beamEnd){
@@ -356,7 +361,7 @@ void main(void)
 
 	// snorm2norm
 	noiseSample = noiseSample * 0.5 + 0.5;
-
+	//DEBUG(closestpoint_dist.w);
 	//modulate alpha part with the 
 	float strength  = clamp(1.0 - length(closestpoint_dist.xyz - lightPosition)/ lightRadius, 0.0, 1.0) * (distortionAttenuation);
 	fragColor.rgba = vec4(vec3(noiseSample.ra, 0.0) * 1.0 , strength);
