@@ -151,7 +151,7 @@ return {
 				impulsefactor = 0.5,
 				name = "Cluster Munitions",
 				noselfdamage = true,
-				range = 180,
+				range = 120,
 				rgbcolor = "0.7 0.7 1.0",
 				soundhit = "xplomed2",
 				soundhitwet = "splsmed",

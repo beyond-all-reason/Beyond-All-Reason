@@ -156,7 +156,7 @@ return {
 				name = "Pop-up Long-Range Heavy g2g Cluster Plasma Cannon",
 				noselfdamage = true,
 				maxvelocity = 480,
-				range = 250,
+				range = 190,
 				rgbcolor = "0.7 0.7 1.0",
 				soundhit = "xplomed2",
 				soundhitwet = "splsmed",

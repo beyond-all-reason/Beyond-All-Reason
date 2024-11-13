@@ -106,7 +106,6 @@ for weaponDefID, weaponDef in pairs(WeaponDefs) do
                 local clusterSpeed = clusterDef.projectilespeed / gameSpeed
                 if clusterDef.range > 10 then
                     local ranged = sqrt(clusterDef.range * math.abs(mapGravity)) -- velocity @ 45deg to hit range
-                    Spring.Echo('[cluster] ranged, weapon = '..ranged, clusterDef.projectilespeed / gameSpeed)
                     clusterSpeed = ((clusterSpeed or ranged) + ranged * 3) / 4 -- really preferring the range stat tbh
                 end
 
