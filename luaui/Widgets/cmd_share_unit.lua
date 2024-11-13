@@ -41,7 +41,6 @@ local GetActiveCommand = Spring.GetActiveCommand
 local GetCameraPosition = Spring.GetCameraPosition
 local GetMouseState = Spring.GetMouseState
 local TraceScreenRay = Spring.TraceScreenRay
-local GetGaiaTeamID = Spring.GetGaiaTeamID
 local GetPlayerList = Spring.GetPlayerList
 local GetPlayerInfo = Spring.GetPlayerInfo
 local GetGameRulesParam = Spring.GetGameRulesParam
@@ -362,7 +361,7 @@ function widget:CommandsChanged()
 end
 
 function widget:Initialize()
-	defaultColor = GetTeamColorWithAlpha(GetGaiaTeamID())
+	defaultColor = { 0.88, 0.88, 0.88, 1}
 	SetupDisplayLists()
 	I18N.load({
 		en = {
