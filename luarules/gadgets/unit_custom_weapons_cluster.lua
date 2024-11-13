@@ -270,7 +270,7 @@ local function SpawnClusterProjectiles(data, projectileID, attackerID, ex, ey, e
 
         vx = vx + (rand() - 0.5) * randomness + px
         vy = vy + (rand() - 0.5) * randomness + py
-        vx = vx + (rand() - 0.5) * randomness + pz
+        vz = vz + (rand() - 0.5) * randomness + pz
 
         local normalization = (projectileSpeed * 0.5 * (1 + rand())) / sqrt(vx*vx + vy*vy + vz*vz)
         vx = vx * normalization
