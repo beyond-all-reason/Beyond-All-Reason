@@ -159,7 +159,7 @@ return {
 				name = "Plasma Burst",
 				noselfdamage = true,
 				maxvelocity = 720,
-				range = 300,
+				range = 350,
 				rgbcolor = "0.7 0.7 1.0",
 				soundhit = "xplomed2",
 				soundhitwet = "splsmed",
