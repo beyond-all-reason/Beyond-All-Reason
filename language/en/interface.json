@@ -1668,9 +1668,9 @@
 				"description": "%{role1}\n\nand/or\n\n%{role2}"
 			}
 		},
-		"quicksharetotarget": {
+		"quickShareToTarget": {
 			"noTarget": "No target selected",
-			"shareTo": "Share to:"
+			"shareTo": "Share to: %{playerColor}%{player}"
 		}
 	}
 }
