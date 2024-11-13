@@ -90,7 +90,7 @@ local CMD_SHARE_UNIT_TO_TARGET_DEFINITION = {
 	type = CMDTYPE.ICON_UNIT_OR_MAP,
 	name = 'Share Unit To Target',
 	cursor = 'settarget',
-	action = 'quick_share_to_target',
+	action = 'quicksharetotarget',
 }
 
 local myTeamID = GetMyTeamID()
@@ -216,14 +216,14 @@ local function DrawName(teamId)
 		font:Begin()
 		font:SetTextColor(GetTeamColorWithAlpha(teamId))
 		font:SetOutlineColor({0,0,0,1})
-		font:Print(I18N("ui.orderMenu.quick_share_to_target_share_to"), mouseX, textY+30, 24, "con")
+		font:Print(I18N("ui.quicksharetotarget.shareTo"), mouseX, textY+30, 24, "con")
 		font:Print(FindPlayerName(teamId), mouseX, textY, 24, "con")
 		font:End()
 	else
 		font:Begin()
 		font:SetTextColor(defaultColor)
 		font:SetOutlineColor({0,0,0,1})
-		font:Print(I18N("ui.orderMenu.quick_share_to_target_no_target"), mouseX, textY, 24, "con")
+		font:Print(I18N("ui.quicksharetotarget.noTarget"), mouseX, textY, 24, "con")
 		font:End()
 	end
 
@@ -363,14 +363,6 @@ end
 function widget:Initialize()
 	defaultColor = { 0.88, 0.88, 0.88, 1}
 	SetupDisplayLists()
-	I18N.load({
-		en = {
-			["ui.orderMenu.quick_share_to_target"] = "Share Unit",
-			["ui.orderMenu.quick_share_to_target_tooltip"] = "Share unit to target player.",
-			["ui.orderMenu.quick_share_to_target_no_target"] = "No target selected",
-			["ui.orderMenu.quick_share_to_target_share_to"] = "Share to:"
-		}
-	})
 end
 
 function widget:Shutdown()
