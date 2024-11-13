@@ -5,7 +5,7 @@ function widget:GetInfo()
 		author = "SuperKitowiec",
 		date = "2024",
 		license = "GNU GPL, v2 or later",
-		version = 3.2,
+		version = 3.3,
 		layer = 0,
 		enabled = true,
 		handler = true,
@@ -15,7 +15,6 @@ end
 --------------------------------------------------------------------------------
 --vars
 --------------------------------------------------------------------------------
-local aoeColor = { 0.7, 0.7, 0.7, 1 }
 local aoeLineWidthMult = 100
 local circleDivs = 96
 local numAoECircles = 5
@@ -41,8 +40,12 @@ local GetTeamColor = Spring.GetTeamColor
 local GetActiveCommand = Spring.GetActiveCommand
 local GetCameraPosition = Spring.GetCameraPosition
 local GetMouseState = Spring.GetMouseState
-local GetUnitPosition = Spring.GetUnitPosition
 local TraceScreenRay = Spring.TraceScreenRay
+local GetGaiaTeamID = Spring.GetGaiaTeamID
+local GetPlayerList = Spring.GetPlayerList
+local GetPlayerInfo = Spring.GetPlayerInfo
+local GetGameRulesParam = Spring.GetGameRulesParam
+local GetViewGeometry = Spring.GetViewGeometry
 
 local glBeginEnd = gl.BeginEnd
 local glCallList = gl.CallList
@@ -63,6 +66,16 @@ local sin = math.sin
 local floor = math.floor
 local sqrt = math.sqrt
 local max = math.max
+
+local defaultColor
+
+local vsx, vsy = GetViewGeometry()
+local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+local fontfileScale = (0.5 + (vsx * vsy / 5700000))
+local fontfileSize = 50
+local fontfileOutlineSize = 8.5
+local fontfileOutlineStrength = 10
+local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 
 local function tablelength(T)
 	local count = 0
@@ -118,21 +131,6 @@ local function DrawCircle(x, y, z, radius)
 	glPopMatrix()
 end
 
-local function DrawAoE(tx, ty, tz, color)
-	glLineWidth(max(aoeLineWidthMult * range / mouseDistance, 0.5))
-
-	for i = 1, numAoECircles do
-		local proportion = i / (numAoECircles + 1)
-		local radius = range * proportion
-		local alpha = color[4] * (1 - proportion) / (1 - proportion) * (1 - GetSecondPart(0))
-		glColor(color[1], color[2], color[3], alpha)
-		DrawCircle(tx, ty, tz, radius)
-	end
-
-	glColor(1, 1, 1, 1)
-	glLineWidth(1)
-end
-
 local function GetMouseTargetPosition()
 	local mx, my = GetMouseState()
 	local mouseTargetType, mouseTarget = TraceScreenRay(mx, my)
@@ -155,12 +153,94 @@ local function GetMouseTargetPosition()
 	end
 end
 
+local function GetMouseDistance()
+	local cx, cy, cz = GetCameraPosition()
+	local mx, my, mz = GetMouseTargetPosition()
+	if not mz then
+		return nil
+	end
+	local dx = cx - mx
+	local dy = cy - my
+	local dz = cz - mz
+	return sqrt(dx * dx + dy * dy + dz * dz)
+end
+
+local function GetTeamColorWithAlpha(teamId)
+	local tred, tgreen, tblue = GetTeamColor(teamId)
+	return { tred, tgreen, tblue, 1 }
+end
+
+local function DrawAoE(tx, ty, tz, selectedTeam)
+	local color = selectedTeam and GetTeamColorWithAlpha(selectedTeam) or defaultColor
+
+	mouseDistance = GetMouseDistance() or 1000
+	glLineWidth(max(aoeLineWidthMult * range / mouseDistance, 0.5))
+
+	for i = 1, numAoECircles do
+		local proportion = i / (numAoECircles + 1)
+		local radius = range * proportion
+		local alpha = color[4] * (1 - proportion) / (1 - proportion) * (1 - GetSecondPart(0))
+		glColor(color[1], color[2], color[3], alpha)
+		DrawCircle(tx, ty, tz, radius)
+	end
+
+	glColor(1, 1, 1, 1)
+	glLineWidth(1)
+end
+
+local function FindPlayerName(teamId)
+	local name = ''
+	if GetGameRulesParam('ainame_' .. teamId) then
+		name = I18N('ui.playersList.aiName', { name = GetGameRulesParam('ainame_' .. teamId) })
+	else
+		local players = GetPlayerList(teamId)
+		name = (#players > 0) and GetPlayerInfo(players[1], false) or '------'
+
+		for _, pID in ipairs(players) do
+			local pname, active, isspec = GetPlayerInfo(pID, false)
+			if active and not isspec then
+				name = pname
+				break
+			end
+		end
+	end
+	return name
+end
+
+local function DrawName(teamId)
+	local mouseX, mouseY = GetMouseState()
+	local textY = mouseY + 40
+	local color = defaultColor
+
+	if teamId then
+		color = GetTeamColorWithAlpha(teamId)
+		font:Begin()
+		font:SetTextColor(GetTeamColorWithAlpha(teamId))
+		font:SetOutlineColor({0,0,0,1})
+		font:Print(I18N("ui.orderMenu.quick_share_to_target_share_to"), mouseX, textY+30, 24, "con")
+		font:Print(FindPlayerName(teamId), mouseX, textY, 24, "con")
+		font:End()
+	else
+		font:Begin()
+		font:SetTextColor(defaultColor)
+		font:SetOutlineColor({0,0,0,1})
+		font:Print(I18N("ui.orderMenu.quick_share_to_target_no_target"), mouseX, textY, 24, "con")
+		font:End()
+	end
+
+end
+
 local function IsAlly(unitTeamId)
 	return unitTeamId ~= myTeamID and GetTeamAllyTeamID(unitTeamId) == myAllyTeamID
 end
 
-local function FindTeam(mx, my)
+local function FindTeamInArea(mx, my)
 	local _, cUnitID = TraceScreenRay(mx, my, true)
+
+	if cUnitID == nil then
+		return nil
+	end
+
 	local foundUnits = GetUnitsInCylinder(cUnitID[1], cUnitID[3], range)
 
 	if #foundUnits < 1 then
@@ -196,32 +276,19 @@ local function FindTeam(mx, my)
 	return selectedTeam
 end
 
-local function GetMouseDistance()
-	local cx, cy, cz = GetCameraPosition()
-	local mx, my, mz = GetMouseTargetPosition()
-	if not mz then
-		return nil
-	end
-	local dx = cx - mx
-	local dy = cy - my
-	local dz = cz - mz
-	return sqrt(dx * dx + dy * dy + dz * dz)
-end
-
-function widget:DrawWorld()
+local function GetSelectedTeam()
 	local _, cmd, _ = GetActiveCommand()
 
 	if cmd ~= CMD_SHARE_UNIT_TO_TARGET then
-		return
+		return nil
 	end
 
 	local tx, ty, tz, targetUnitID = GetMouseTargetPosition()
 
 	if (not tx) then
-		return
+		return nil
 	end
 
-	mouseDistance = GetMouseDistance() or 1000
 	local selectedTeam
 	if targetUnitID then
 		local targetUnitTeamID = GetUnitTeam(targetUnitID)
@@ -230,15 +297,30 @@ function widget:DrawWorld()
 		end
 	else
 		local mouseX, mouseY = WorldToScreenCoords(tx, ty, tz)
-		selectedTeam = FindTeam(mouseX, mouseY)
+		selectedTeam = FindTeamInArea(mouseX, mouseY)
 	end
 
-	local selectedColor = aoeColor
-	if selectedTeam then
-		local tred, tgreen, tblue = GetTeamColor(selectedTeam)
-		selectedColor = { tred, tgreen, tblue, 1 }
+	return tx, ty, tz, selectedTeam
+end
+
+function widget:DrawWorld()
+	local targetX, targetY, targetZ, selectedTeam = GetSelectedTeam()
+
+	if (not targetX) then
+		return
 	end
-	DrawAoE(tx, ty, tz, selectedColor)
+
+	DrawAoE(targetX, targetY, targetZ, selectedTeam)
+end
+
+function widget:DrawScreen()
+	local targetX, _, _, selectedTeam = GetSelectedTeam()
+
+	if (not targetX) then
+		return
+	end
+
+	DrawName(selectedTeam)
 end
 
 function widget:CommandNotify(cmdID, cmdParams, _)
@@ -253,7 +335,7 @@ function widget:CommandNotify(cmdID, cmdParams, _)
 		elseif #cmdParams == 3 then
 			-- click on the ground
 			local mouseX, mouseY = WorldToScreenCoords(cmdParams[1], cmdParams[2], cmdParams[3])
-			targetTeamID = FindTeam(mouseX, mouseY)
+			targetTeamID = FindTeamInArea(mouseX, mouseY)
 		end
 
 		if targetTeamID == nil or targetTeamID == myTeamID or GetTeamAllyTeamID(targetTeamID) ~= myAllyTeamID then
@@ -280,15 +362,22 @@ function widget:CommandsChanged()
 end
 
 function widget:Initialize()
+	defaultColor = GetTeamColorWithAlpha(GetGaiaTeamID())
 	SetupDisplayLists()
 	I18N.load({
 		en = {
 			["ui.orderMenu.quick_share_to_target"] = "Share Unit",
 			["ui.orderMenu.quick_share_to_target_tooltip"] = "Share unit to target player.",
+			["ui.orderMenu.quick_share_to_target_no_target"] = "No target selected",
+			["ui.orderMenu.quick_share_to_target_share_to"] = "Share to:"
 		}
 	})
 end
 
 function widget:Shutdown()
 	DeleteDisplayLists()
+end
+
+function widget:ViewResize()
+	vsx, vsy = Spring.GetViewGeometry()
 end
