@@ -701,7 +701,8 @@ function gadgetHandler:InsertGadget(gadget)
 	self:UpdateCallIns()
 
 	if gadget.AllowCommand and not self:HasAllowCommands(gadget) then
-		Spring.Log('AllowCommand', LOG.WARNING, "<" .. gadget.ghInfo.basename .. "> AllowCommand defined but didn't register any commands!")
+		Spring.Log('AllowCommand', LOG.WARNING, "<" .. gadget.ghInfo.basename .. "> AllowCommand defined but didn't register any commands. Autoregistering for all commands!")
+		self:RegisterAllowCommand(gadget, CMD.ANY)
 	end
 
 	if kbytes then
