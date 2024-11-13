@@ -1,35 +1,35 @@
 function gadget:GetInfo()
     return {
         name    = 'Cluster Munitions',
-        desc    = 'Custom behavior for projectiles that explode and split on impact.',
+        desc    = 'Projectiles split and scatter on impact.',
         author  = 'efrec',
         version = '1.1',
         date    = '2024-06-07',
         license = 'GNU GPL, v2 or later',
-        layer   = 10, -- preempt :Explosion handlers like fx_watersplash.lua that return `true` (not pure fx)
+        layer   = 10, -- before fx_watersplash; Explosion is reverse iterated
         enabled = true
     }
 end
 
 if not gadgetHandler:IsSyncedCode() then return false end
 
---------------------------------------------------------------------------------------------------------------
--- Configuration ---------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- Configuration ---------------------------------------------------------------
 
--- Default settings ------------------------------------------------------------------------------------------
+-- Default settings ------------------------------------------------------------
 
-local defaultSpawnDef = "cluster_munition"         -- short def name used, by default
-local defaultSpawnNum = 5                          -- number of spawned projectiles, by default
-local defaultSpawnTtl = 5                          -- detonate projectiles after time = ttl, by default
+local defaultSpawnDef = "cluster_munition" -- short def name used, by default
+local defaultSpawnNum = 5                  -- number of spawned projectiles, by default
+local defaultSpawnTtl = 5                  -- detonate projectiles after time = ttl, by default
 
--- General settings ------------------------------------------------------------------------------------------
+-- General settings ------------------------------------------------------------
 
-local maxSpawnNumber  = 24                         -- protect game performance against stupid ideas
-local minUnitBounces  = "armpw"                    -- smallest unit (name) that bounces projectiles at all
-local minBulkReflect  = 64000                      -- smallest unit bulk that causes reflection as if terrain
-local deepWaterDepth  = -40                        -- used for the surface deflection on water, lava, ...
+local maxSpawnNumber  = 24                 -- protect game performance against stupid ideas
+local minUnitBounces  = "armpw"            -- smallest unit (name) that bounces projectiles at all
+local minBulkReflect  = 64000              -- smallest unit bulk that causes reflection as if terrain
+local deepWaterDepth  = -40                -- used for the surface deflection on water, lava, ...
 
--- CustomParams setup ----------------------------------------------------------------------------------------
+-- CustomParams setup ----------------------------------------------------------
 --
 --    weapon = {
 --        type := "Cannon" | "EMGCannon"
@@ -44,8 +44,8 @@ local deepWaterDepth  = -40                        -- used for the surface defle
 --       range          := <number> -- of the cluster munitions.
 --    }
 
---------------------------------------------------------------------------------------------------------------
--- Localize --------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- Localize --------------------------------------------------------------------
 
 local DirectionsUtil = VFS.Include("LuaRules/Gadgets/Include/DirectionsUtil.lua")
 
@@ -69,8 +69,8 @@ local spSpawnProjectile       = Spring.SpawnProjectile
 local gameSpeed  = Game.gameSpeed
 local mapGravity = Game.gravity / (gameSpeed * gameSpeed) * -1
 
---------------------------------------------------------------------------------------------------------------
--- Initialize ------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- Initialize ------------------------------------------------------------------
 
 defaultSpawnDef = string.lower(defaultSpawnDef)
 defaultSpawnTtl = defaultSpawnTtl * gameSpeed
@@ -106,7 +106,8 @@ for weaponDefID, weaponDef in pairs(WeaponDefs) do
                 local clusterSpeed = clusterDef.projectilespeed / gameSpeed
                 if clusterDef.range > 10 then
                     local ranged = sqrt(clusterDef.range * math.abs(mapGravity)) -- velocity @ 45deg to hit range
-                    clusterSpeed = ((clusterSpeed or ranged) + ranged) / 2
+                    Spring.Echo('[cluster] ranged, weapon = '..ranged, clusterDef.projectilespeed / gameSpeed)
+                    clusterSpeed = ((clusterSpeed or ranged) + ranged * 3) / 4 -- really preferring the range stat tbh
                 end
 
                 dataTable[weaponDefID] = {
@@ -176,8 +177,8 @@ for _, data in pairs(dataTable) do
 end
 DirectionsUtil.ProvisionDirections(maxDataNum)
 
---------------------------------------------------------------------------------------------------------------
--- Functions -------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- Functions -------------------------------------------------------------------
 
 local function GetSurfaceDeflection(ex, ey, ez)
     -- Deflection from deep water, shallow water, and solid terrain.
@@ -289,8 +290,8 @@ local function SpawnClusterProjectiles(data, projectileID, attackerID, ex, ey, e
     end
 end
 
---------------------------------------------------------------------------------------------------------------
--- Gadget callins --------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- Gadget callins --------------------------------------------------------------
 
 function gadget:Initialize()
     if not next(dataTable) then
