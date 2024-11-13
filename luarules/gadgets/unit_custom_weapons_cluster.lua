@@ -257,7 +257,7 @@ local function SpawnClusterProjectiles(data, projectileID, attackerID, ex, ey, e
 
     local directions = directions[projectileCount]
     local deflection = GetSurfaceDeflection(ex, ey, ez)
-    local spread = projectileSpeed / sqrt(projectileCount)
+    local randomness = projectileSpeed / sqrt(projectileCount - 1)
 
     for ii = 0, (projectileCount-1) do
         local vx = directions[3*ii+1]
@@ -268,9 +268,9 @@ local function SpawnClusterProjectiles(data, projectileID, attackerID, ex, ey, e
         vy = vy + deflection[2]
         vz = vz + deflection[3]
 
-        vx = vx + (rand() - 0.5) * spread + px
-        vy = vy + (rand() - 0.5) * spread + py
-        vx = vx + (rand() - 0.5) * spread + pz
+        vx = vx + (rand() - 0.5) * randomness + px
+        vy = vy + (rand() - 0.5) * randomness + py
+        vx = vx + (rand() - 0.5) * randomness + pz
 
         local normalization = (projectileSpeed * 0.5 * (1 + rand())) / sqrt(vx*vx + vy*vy + vz*vz)
         vx = vx * normalization
