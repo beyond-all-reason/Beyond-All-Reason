@@ -216,7 +216,7 @@ local function GetSurfaceDeflection(ex, ey, ez)
 
     -- Additional deflection from units, from none to solid-terrain-like.
     local unitsNearby = spGetUnitsInSphere(ex, ey, ez, 270/2) -- gettin yuge (air repair pad size)
-    local bounce, ux, uy, uz, uw, radius
+    local bounce, ux, uy, uz, radius
     for _, unitID in ipairs(unitsNearby) do
         bounce = unitBulks[spGetUnitDefID(unitID)]
         if bounce then
