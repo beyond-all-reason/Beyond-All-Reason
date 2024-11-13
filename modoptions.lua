@@ -1329,7 +1329,7 @@ local options = {
         name 	= "Proposed Unit Reworks",
         desc 	= "Modoption used to test and balance unit reworks that are being considered for the base game.",
         type 	= "bool",
-        hidden 	= true,
+        --hidden 	= true,
         section = "options_experimental",
         def 	= false,
     },
@@ -1426,6 +1426,14 @@ local options = {
         key     = "animationcleanup",
         name    = "Animation Cleanup",
         desc    = "Use animations from the BOSCleanup branch", -- example: debugcommands=150:cheat 1|200:luarules fightertest|600:quitforce;
+        section = "dev",
+        type    = "bool",
+        def     =  false,
+    },
+    {
+        key     = "pushresistant",
+        name    = "Pushresistance",
+        desc    = "Enable to do desync test by the use of pushresistance",
         section = "dev",
         type    = "bool",
         def     =  false,

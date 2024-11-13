@@ -125,7 +125,7 @@ return {
 				proximitypriority = 1,
 				range = 850,
 				reloadtime = 6,
-				rgbcolor = "0.74 0.64 0.94",
+				rgbcolor = "0.34 0.64 0.94",
 				soundhit = "mavgun3",
 				soundhitwet = "splshbig",
 				soundstart = "heavyrailgun",

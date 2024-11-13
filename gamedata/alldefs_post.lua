@@ -590,6 +590,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 2] = "legministarfall"
 			uDef.buildoptions[numBuildoptions + 3] = "legwint2"
 			uDef.buildoptions[numBuildoptions + 4] = "legnanotct2"
+			uDef.buildoptions[numBuildoptions + 5] = "legrwall"
 		elseif name == "armasy" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "armptt2"
@@ -820,7 +821,7 @@ function UnitDef_Post(name, uDef)
 	categories["SURFACE"] = function(uDef) return not (categories.UNDERWATER(uDef) and categories.MOBILE(uDef)) and not categories.VTOL(uDef) end
 	categories["MINE"] = function(uDef) return uDef.weapondefs and uDef.weapondefs.minerange end
 	categories["COMMANDER"] = function(uDef) return commanderList[uDef.movementclass] end
-	categories["EMPABLE"] = function(uDef) return uDef.customparams and uDef.customparams.paralyzemultiplier ~= 0 end
+	categories["EMPABLE"] = function(uDef) return categories.SURFACE(uDef) and uDef.customparams and uDef.customparams.paralyzemultiplier ~= 0 end
 	
 	uDef.category = uDef.category or ""
 	if not string.find(uDef.category, "OBJECT") then -- objects should not be targetable and therefore are not assigned any other category
@@ -1395,6 +1396,38 @@ function WeaponDef_Post(name, wDef)
 				wDef.targetmoveerror = nil
 			end
 		end
+
+		if modOptions.proposed_unit_reworks then
+			if name == 'mine_heavy' then
+				wDef.damage.default = 3000
+				wDef.edgeeffectiveness = 0.5
+				wDef.impulsefactor = 0.8
+			end
+			if name == 'mine_medium' then
+				wDef.edgeeffectiveness = 0.5
+				wDef.impulsefactor = 0.8
+			end
+			if name == 'corsktlSelfd' then
+				--wDef.damage.hvyboats = wDef.damage.default
+				--wDef.damage.lboats = wDef.damage.default
+				wDef.damage.crawlingbombs = 400
+			end
+			if name == 'crawl_blast' then
+				wDef.damage.default = 2700
+				wDef.damage.commanders = 1000
+				--wDef.damage.hvyboats = wDef.damage.default
+				--wDef.damage.lboats = wDef.damage.default
+				wDef.damage.crawlingbombs = 400
+				wDef.edgeeffectiveness = 0.35
+				wDef.areaofeffect = 410
+			end
+			if name == 'crawl_blastsml' then
+				wDef.damage.crawlingbombs = 400
+				wDef.edgeeffectiveness = 0.35
+			end
+
+		end
+
 
 		----EMP rework
 

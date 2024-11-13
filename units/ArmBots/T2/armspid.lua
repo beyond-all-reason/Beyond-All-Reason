@@ -150,7 +150,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "SPIDER",
-				onlytargetcategory = "SURFACE",
+				onlytargetcategory = "EMPABLE",
 			},
 		},
 	},

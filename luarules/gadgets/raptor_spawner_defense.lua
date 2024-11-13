@@ -1649,7 +1649,7 @@ if gadgetHandler:IsSyncedCode() then
 				spawnQueue = {}
 				raptorEvent("queen") -- notify unsynced about queen spawn
 				_, queenMaxHP = GetUnitHealth(queenID)
-				Spring.SetUnitHealth(queenID, queenMaxHP*(techAnger*0.01))
+				Spring.SetUnitHealth(queenID, math.max(queenMaxHP*(techAnger*0.01), queenMaxHP*0.2))
 				SetUnitExperience(queenID, 0)
 				timeOfLastWave = t
 				for burrowID, _ in pairs(burrows) do
