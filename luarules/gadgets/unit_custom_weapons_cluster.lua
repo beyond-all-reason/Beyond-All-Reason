@@ -185,7 +185,7 @@ local function GetSurfaceDeflection(ex, ey, ez)
     local separation
     local dx, dy, dz
     if elevation < deepWaterDepth then
-        separation = ey - deepWaterDepth / 3
+        separation = ey - deepWaterDepth * (1/2.4)
         dx = 0
         dy = 1
         dz = 0
@@ -203,10 +203,10 @@ local function GetSurfaceDeflection(ex, ey, ez)
             dx, dy, dz = spGetGroundNormal(sx, sz, true)
         end
         if elevation <= 0 then
-            separation = ey - max(elevation / 2, deepWaterDepth / 3)
-            dx = dx * 0.9
-            dz = dz * 0.9
-            dy = dy < 0.9 and dy / sqrt(dx*dx + dz*dz) * (1/0.9) or 0.9
+            separation = ey - max(elevation * (1/1.8), deepWaterDepth * (1/2.4))
+            dx = dx * 0.94
+            dz = dz * 0.94
+            dy = dy < 0.94 and dy / sqrt(dx*dx + dz*dz) * (1/0.94) or 0.94
         end
     end
     separation = 1.3 / sqrt(max(1, separation))
