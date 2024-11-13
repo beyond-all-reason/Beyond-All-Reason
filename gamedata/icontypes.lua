@@ -2339,6 +2339,10 @@ local icontypes = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
 	},
+	legrwall = {
+		bitmap = "icons/wall_0.4.png",
+		size = 0.41999999
+	},
 	leghive = {
 		bitmap = "icons/defence_t15_dronecarry.png",
 		size = 1.65999997

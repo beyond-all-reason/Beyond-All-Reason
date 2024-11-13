@@ -125,7 +125,6 @@ return {
 				firestarter = 50,
 				hardstop = true,
 				impactonly = 1,
-				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 3.85,
 				name = "Light Close-Quarters g2g Laser",

@@ -86,7 +86,6 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-small",
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				name = "RiotCannon",
 				noselfdamage = true,

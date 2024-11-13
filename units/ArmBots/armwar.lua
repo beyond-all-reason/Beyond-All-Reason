@@ -115,7 +115,6 @@ return {
 				firestarter = 30,
 				firetolerance = 4500,
 				impactonly = 1,
-				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 7.7,
 				name = "Dual close-quarters g2g laser",

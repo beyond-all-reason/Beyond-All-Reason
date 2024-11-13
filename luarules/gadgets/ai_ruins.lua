@@ -313,8 +313,8 @@ local function SpawnMexes(mexSpots)
 	for i = 1,#mexSpots do
 		if math.random(0,2) == 0 then
 			local spot = mexSpots[i]
-			local posx = spot.x
-			local posz = spot.z
+			local posx = math.ceil(spot.x/16)*16
+			local posz = math.ceil(spot.z/16)*16
 			local posy = Spring.GetGroundHeight(posx, posz)
 			local mexesList
 			if posy > 0 then
@@ -353,8 +353,8 @@ local function SpawnGeos(geoSpots)
 	for i = 1,#geoSpots do
 		if math.random(0,1) == 0 then
 			local spot = geoSpots[i]
-			local posx = spot.x
-			local posz = spot.z
+			local posx = math.ceil(spot.x/16)*16
+			local posz = math.ceil(spot.z/16)*16
 			local posy = Spring.GetGroundHeight(posx, posz)
 			local geosList
 			if posy > 0 then
@@ -395,8 +395,8 @@ local function SpawnMexGeoRandomStructures()
 			if SpawnedMexes[i] then
 				local spot = mexSpots[i]
 				for j = 1,SpawnedMexes[i] do
-					local posx2 = spot.x+math.random(-512,512)
-					local posz2 = spot.z+math.random(-512,512)
+					local posx2 = math.ceil((spot.x+math.random(-512,512))/16)*16
+					local posz2 = math.ceil((spot.z+math.random(-512,512))/16)*16
 					local posy2 = Spring.GetGroundHeight(posx2, posz2)
 					local defencesList
 					if posy2 > 0 then
@@ -440,8 +440,8 @@ local function SpawnMexGeoRandomStructures()
 			if SpawnedGeos[i] then
 				local spot = geoSpots[i]
 				for j = 1,SpawnedGeos[i] do
-					local posx2 = spot.x+math.random(-1024,1024)
-					local posz2 = spot.z+math.random(-1024,1024)
+					local posx2 = math.ceil((spot.x+math.random(-1024,1024))/16)*16
+					local posz2 = math.ceil((spot.z+math.random(-1024,1024))/16)*16
 					local posy2 = Spring.GetGroundHeight(posx2, posz2)
 					local defencesList
 					if posy2 > 0 then
@@ -483,8 +483,8 @@ end
 local function SpawnRandomStructures()
 	for i = 1,math.ceil(spawnCutoffFrame/10) do
 		for j = 1,20 do
-			local posx = math.random(196,Game.mapSizeX-196)
-			local posz = math.random(196,Game.mapSizeZ-196)
+			local posx = math.ceil(math.random(196,Game.mapSizeX-196)/16)*16
+			local posz = math.ceil(math.random(196,Game.mapSizeZ-196)/16)*16
 			local posy = Spring.GetGroundHeight(posx, posz)
 			local defencesList
 			if posy > 0 then

@@ -32,7 +32,7 @@ return {
 		customparams = {
 			unitgroup = 'energy',
 			model_author = "EnderRobo",
-			normaltex = "unittextures/cor_normal.dds",
+			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
 			removewait = true,
 			solar = true,

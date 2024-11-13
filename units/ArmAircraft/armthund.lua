@@ -92,7 +92,6 @@ return {
 				edgeeffectiveness = 0.55,
 				explosiongenerator = "custom:genericshellexplosion-medium-bomb",
 				gravityaffected = "true",
-				impulseboost = 0.5,
 				impulsefactor = 0.5,
 				model = "airbomb.s3o",
 				name = "Light a2g impulse warheads",

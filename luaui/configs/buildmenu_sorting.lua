@@ -586,6 +586,7 @@ local unitOrderTable = {
    ['legdtl']         = 104706, --exscavengers
    ['cormaw']         = 104800,
    ['cormwall']       = 104850,
+   ['legrwall']       = 104875,
    ['corscavdtf']     = 104905, --scavengers
    ['legdtf']         = 104906, --exscavengers
    ['corscavdtm']     = 104915, --scavengers

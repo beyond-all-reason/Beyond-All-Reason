@@ -94,7 +94,6 @@ return {
 				explosiongenerator = "custom:plasmahit-sparkonly",
 				fallOffRate = 0.2,
 				firestarter = 0,
-				impulseboost = 0.4,
 				impulsefactor = 1.5,
 				intensity = 0.8,
 				name = "Rapid-fire a2a machine guns",
