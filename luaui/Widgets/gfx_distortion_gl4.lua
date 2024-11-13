@@ -1316,7 +1316,7 @@ end
 
 local function DrawDistortionFunction2(gf) -- For render-to-texture
 	--Spring.Echo("DrawDistortionFunction2 HELLO", gf)
-	gl.Clear(GL.COLOR_BUFFER_BIT, 0.5, 0.5, 0.5, 0)
+	gl.Clear(GL.COLOR_BUFFER_BIT, 0.5, 0.5, 0.5, 1.0)
 	if pointDistortionVBO.usedElements > 0 or
 		unitPointDistortionVBO.usedElements > 0 or
 		beamDistortionVBO.usedElements > 0 or
@@ -1447,7 +1447,7 @@ end
 -- Register /luaui distortionGL4stats to dump distortion statistics
 function widget:TextCommand(command)
 	if string.find(command, "distortionGL4stats", nil, true) then
-		Spring.Echo(string.format("DLGLStats Total = %d , (PBC=%d,%d,%d), (unitPBC=%d,%d,%d), (projPBC=%d,%d,%d)",
+		Spring.Echo(string.format("distortionGL4Stats Total = %d , (PBC=%d,%d,%d), (unitPBC=%d,%d,%d), (projPBC=%d,%d,%d)",
 				numAddDistortions,
 				pointDistortionVBO.usedElements, beamDistortionVBO.usedElements, coneDistortionVBO.usedElements,
 				unitPointDistortionVBO.usedElements, unitBeamDistortionVBO.usedElements, unitConeDistortionVBO.usedElements,

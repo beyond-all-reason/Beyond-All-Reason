@@ -8905,10 +8905,10 @@ local unitDistortions = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 		hip1 = {
-			distortionType = 'point',
+			distortionType = 'beam',
 			pieceName = 'lthigh',
-			distortionConfig = { posx = -14, posy = 6, posz = -4, radius = 9,
-							color2r = 1, color2g = 1, color2b = 0, colortime = 0,
+			distortionConfig = { posx = -14, posy = 6, posz = -4, radius = 10,
+							pos2x = 100, pos2y = 100, pos2z = 100,		
 							r = 1, g = 0.95, b = 0.55, a = 0.065,
 							modelfactor = 0.15, specular = 0, scattering = 0.7, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},

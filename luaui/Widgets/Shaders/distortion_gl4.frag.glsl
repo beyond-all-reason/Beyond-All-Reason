@@ -50,6 +50,28 @@ vec4 closestlightlp_distance (vec3 ro, vec3 rd, vec3 P){
 	return vec4(intersectPoint, length(P - intersectPoint));
 }
 
+
+// https://gist.github.com/wwwtyro/beecc31d65d1004f5a9d
+vec2 raySphereIntersect(vec3 rayOrigin, vec3 rayDirection, vec3 sphereCenter, float sphereRadius) {
+    // - r0: ray origin
+    // - rd: normalized ray direction
+    // - s0: sphere center
+    // - sr: sphere radius
+    // - Returns distance from r0 to first intersection with sphere in X, and the distance to the second intersection in Y
+    //   or -1.0 if no intersection.
+    float a = dot(rayDirection, rayDirection);
+    vec3 sphereCenter_to_rayOrigin = rayOrigin - sphereCenter;
+    float b = 2.0 * dot(rayDirection, sphereCenter_to_rayOrigin);
+    float c = dot(sphereCenter_to_rayOrigin, sphereCenter_to_rayOrigin) - (sphereRadius * sphereRadius);
+	float disc = b * b - 4.0 * a* c;
+    if (disc < 0.0) {
+        return vec2(-1.0, -1.0);
+    }else{
+		disc = sqrt(disc);
+		return vec2(-b - disc, -b + disc) / (2.0 * a);
+	}
+}
+
 // Given a ray origin and a direction, returns the closes point on the ray in xyz and the distance in w
 // marginally faster, about the cost as a single octave of perlin
 vec4 ray_to_capsule_distance_squared(vec3 rayOrigin, vec3 rayDirection, vec3 cap1, vec3 cap2){ // point1, dir1, beamstart, beamend
@@ -170,7 +192,7 @@ vec4 curl3d( vec3 P )
 #line 31000
 void main(void)
 {
-	fragColor.rgba = vec4(fract(gl_FragCoord.zzz * 1.0),1.0);
+	//fragColor.rgba = vec4(fract(gl_FragCoord.zzz * 1.0),1.0); return;
 	
 	
 	float mapdepth = texture(mapDepths, v_screenUV).x;
@@ -209,6 +231,7 @@ void main(void)
 	// Lighting components we wish to collect along the way:
 	float attenuation = 0; // Just the distance from the light source (multiplied with falloff for cones
 
+	float volumetricFraction = 1.0; // The fraction of the ray that passes through the volume. 
 	
 	//fragColor.rgba = vec4(fract(fragWorldPos.xyz * 0.1),1.0); return; // Debug fragment world position
 	
@@ -221,6 +244,16 @@ void main(void)
 		lightDirection = normalize(lightToWorld);
 		attenuation = clamp( 1.0 - length (lightToWorld) * lightRadiusInv, 0,1);
 		closestpoint_dist = closestlightlp_distance(camPos, viewDirection, lightPosition);
+
+		// Need to invert view direction as we need ray pointing from camera to sphere
+		vec2 sphereDistances = raySphereIntersect(camPos, -1 * viewDirection, lightPosition, lightRadius);
+
+		// If the fragment is inside the sphere, we need to calculate the volumetric fraction
+		if (fragDistance < sphereDistances.y){
+			// FUCK WHY THE 0.5? 
+			volumetricFraction =1.0 -  clamp(0.5*abs(sphereDistances.y - fragDistance) / abs(sphereDistances.y - sphereDistances.x), .0, 1.0);
+		}
+		//fragColor.rgba = vec4(volumetricFraction,volumetricFraction,0, 1.0); return;
 
 	#line 33000
 	}else if (pointbeamcone > 1.5){ // cone
@@ -238,6 +271,9 @@ void main(void)
 		closestpoint_dist = closestlightlp_distance(camPos, viewDirection, lightPosition);
 		
 		vec4 rayconedist = ray_to_capsule_distance_squared(camPos, viewDirection, lightPosition + coneDirection * lightRadius,lightPosition); // this now contains the point on ConeDirection 
+		//closestpoint_dist.w = sqrt(rayconedist.w);
+	
+		
 			
 	#line 34000
 	}else if (pointbeamcone < 1.5){ // beam 
@@ -249,7 +285,7 @@ void main(void)
 		lightToWorld = fragWorldPos.xyz - lightPosition;
 		
 		lightDirection = normalize(lightToWorld);
-		attenuation = clamp( 1.0 - length (lightToWorld) *lightRadiusInv, 0,1);
+		attenuation =  clamp( 1.0 - length (lightToWorld) *lightRadiusInv, 0,1);
 		
 		float dtobeam = 0;
 		dtobeam = capIntersect( camPos, viewDirection, beamstart, beamend, lightRadius);
@@ -267,20 +303,31 @@ void main(void)
 		
 		vec3 EntryPoint = (-viewDirection) * closedist + camPos;
 		vec3 ExitPoint =  (-viewDirection) * fardist + camPos;
+
+		//NOTE THAT CLOSESTPOINT_DIST IS COMPLETELY INCORRECT!
 	}
 	#line 35000
-	float relativedistancetolight = clamp(1.0 - 10* closestpoint_dist.w/lightRadius, 0.0, 1.0);
+	//float relativedistancetolight = clamp(1.0 - 10* closestpoint_dist.w/lightRadius, 0.0, 1.0);
 	
 	attenuation = pow(attenuation, 1.0);
 	
 	//-------------------------
 	// DISTORTION
 
-	// dont handle beams and cones yet:
-	if (pointbeamcone > 3.5){
-		fragColor.rgba = vec4(0.0);
-		return;
-	}
+	// Debugging check attenuations for each light source type:
+	// Draw attenuation as a color Green
+	float distortionAttenuation = 1.0; // start at max
+
+	// Take into account relative distance of ray point closest to light source to the light source
+	
+	float lightRange = lightRadius;
+	
+	distortionAttenuation *=  closestpoint_dist.w / lightRange;
+
+	distortionAttenuation *= volumetricFraction;
+
+
+	//fragColor.rgba = vec4(0.6, distortionAttenuation, 0.0, 1.0); return;
 
 	// Check if point would be occluded
 	float distortionRange = lightRadius;
@@ -297,6 +344,8 @@ void main(void)
 
 	}
 
+	// TODO: Ensure that the distortion is proportionate to the amount of "Hot" volume the ray passes through. 
+
 	vec4 noiseSample = textureLod(noise3DCube, closestpoint_dist.xyz * 0.03 - vec3(0,timeInfo.x * 0.01,0), 0.0);
 
 	// norm2snorm
@@ -309,8 +358,9 @@ void main(void)
 	noiseSample = noiseSample * 0.5 + 0.5;
 
 	//modulate alpha part with the 
-	float strength  = clamp(1.0 - length(closestpoint_dist.xyz - lightPosition)/ lightRadius, 0.0, 1.0) * (1.0 - attenuation);
+	float strength  = clamp(1.0 - length(closestpoint_dist.xyz - lightPosition)/ lightRadius, 0.0, 1.0) * (distortionAttenuation);
 	fragColor.rgba = vec4(vec3(noiseSample.ra, 0.0) * 1.0 , strength);
+	//fragColor.rgba = vec4(0,0,0,1.0);
 	return;
 	//-------------------------
 	

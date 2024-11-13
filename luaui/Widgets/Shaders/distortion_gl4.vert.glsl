@@ -106,7 +106,7 @@ void main()
 	float lightRadius = worldposrad.w * radiusMultiplier;
 	v_worldPosRad = worldposrad ;
 	v_worldPosRad.w = lightRadius;
-	vec4 vertexPosition = vec4(0.0);
+	vec4 vertexPosition = vec4(1.0);
 	
 	mat4 placeInWorldMatrix = mat4(1.0); // this is unity for non-unitID tied stuff
 	
@@ -242,6 +242,7 @@ void main()
 		v_worldPosRad.xyz = (placeInWorldMatrix * vec4(lightCenterPosition.xyz, 1.0)).xyz;
 		v_worldPosRad.xyz += (v_worldPosRad2.xyz - v_worldPosRad.xyz) * 0.5;
 		vertexPosition.xyz = (placeInWorldMatrix * vec4(worldPos.xyz, 1.0)).xyz;
+
 	}
 	#line 12000
 	else if (pointbeamcone > 1.5){ // cone
