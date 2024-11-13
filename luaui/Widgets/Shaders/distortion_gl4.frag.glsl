@@ -34,7 +34,7 @@ out vec4 fragColor;
 // RED is the fractional part of the input
 // GREEN is the square root of the floor of the input divided by 256
 // Blue is for negative numbers
-#define DEBUG(x) fragColor.rgba = vec4( fract(x), sqrt(floor(x) / 256.0),(x < 0,1,0),1.0); return;
+#define DEBUG(x) fragColor.rgba = vec4( fract(x), sqrt(floor(x) / 1024.0),(x < 0,1,0),1.0); return;
 
 // Given a beam between beamStart and beamEnd, returns the pos on the beam closest to desired Point
 vec3 closestbeam(vec3 point, vec3 beamStart, vec3 beamEnd){
@@ -116,6 +116,17 @@ vec4 ray_to_capsule_distance_squared(vec3 rayOrigin, vec3 rayDirection, vec3 cap
 	}
 	finalposanddist.w = sqrt(finalposanddist.w);
 	return finalposanddist;
+}
+
+vec3 plane_point_dir_to_normal(vec3 point, vec3 planeDir, vec3 viewDirection){
+	vec3 planeTangent = normalize(cross(planeDir, viewDirection)); // this is now tangential to the plane
+	return normalize(cross(planeTangent, planeDir));
+}
+
+vec4 ray_to_plane_intersection_point( vec3 ro, vec3 rd, vec3 planeNormal, vec3 planePoint){
+	float d = dot(planeNormal, planePoint);
+	float t = (d - dot(planeNormal, ro)) / dot(planeNormal, rd);
+	return vec4(ro + t * rd, t);
 }
 //http://www.realtimerendering.com/intersections.html
 
@@ -277,7 +288,10 @@ void main(void)
 		
 		vec4 rayconedist = ray_to_capsule_distance_squared(camPos, viewDirection, lightPosition + coneDirection * lightRadius,lightPosition); // this now contains the point on ConeDirection 
 		//closestpoint_dist.w = sqrt(rayconedist.w);
-	
+
+		vec3 conePlaneNormal = plane_point_dir_to_normal(lightPosition, coneDirection, viewDirection);
+		vec4 raytoconedist = ray_to_plane_intersection_point(camPos, viewDirection, conePlaneNormal, lightPosition);
+		closestpoint_dist.xyz = raytoconedist.xyz;
 		
 			
 	#line 34000
@@ -310,6 +324,10 @@ void main(void)
 		vec3 ExitPoint =  (-viewDirection) * fardist + camPos;
 
 		//NOTE THAT CLOSESTPOINT_DIST IS COMPLETELY INCORRECT!
+		
+		vec3 beamPlaneNormal = plane_point_dir_to_normal(lightPosition, beamend - beamstart, viewDirection);
+		vec4 raytobeamdist = ray_to_plane_intersection_point(camPos, viewDirection, beamPlaneNormal, lightPosition);
+		closestpoint_dist.xyz = raytobeamdist.xyz;
 	}
 	#line 35000
 	//float relativedistancetolight = clamp(1.0 - 10* closestpoint_dist.w/lightRadius, 0.0, 1.0);
@@ -361,9 +379,10 @@ void main(void)
 
 	// snorm2norm
 	noiseSample = noiseSample * 0.5 + 0.5;
-	//DEBUG(closestpoint_dist.w);
+	//DEBUG(closestpoint_dist.y);
 	//modulate alpha part with the 
-	float strength  = clamp(1.0 - length(closestpoint_dist.xyz - lightPosition)/ lightRadius, 0.0, 1.0) * (distortionAttenuation);
+	float strength  = 1.0; //clamp(1.0 - length(closestpoint_dist.xyz - lightPosition)/ lightRadius, 0.0, 1.0) * (distortionAttenuation);
+
 	fragColor.rgba = vec4(vec3(noiseSample.ra, 0.0) * 1.0 , strength);
 	//fragColor.rgba = vec4(0,0,0,1.0);
 	return;
