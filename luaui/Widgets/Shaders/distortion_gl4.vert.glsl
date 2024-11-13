@@ -74,30 +74,8 @@ out DataVS {
 	noperspective vec2 v_screenUV;
 };
 
-uniform sampler2D mapDepths;
-uniform sampler2D modelDepths;
-uniform sampler2D heightmapTex;
-uniform sampler2D mapnormalsTex;
 
 #define SNORM2NORM(value) (value * 0.5 + 0.5)
-
-vec4 depthAtWorldPos(vec4 worldPosition){ 
-	// takes a point, transforms it to worldspace, and checks for occlusion against map, model buffer, and returns all the depths
-	// x: light pos depth, y: map depth, z: model depth, w: min(map, model)
-	vec4 screenPosition = cameraViewProj * worldPosition;
-	screenPosition.xyz = screenPosition.xyz / screenPosition.w;
-	// Transform from [-1,1] screen space into [0, 1] UV space
-	vec2 screenUV = clamp(SNORM2NORM(screenPosition.xy), 0.001, 0.999);
-	vec4 depths;
-	
-	depths.x = screenPosition.z ;
-	float mapdepth = texture(mapDepths, screenUV).x;
-	float modeldepth = texture(modelDepths, screenUV).x;
-	depths.y = mapdepth;
-	depths.z = modeldepth;
-	depths.w = min(mapdepth, modeldepth);
-	return depths; 
-}
 
 void main()
 {
@@ -293,10 +271,6 @@ void main()
 	#line 13000
 	// Get the heightmap and the normal map at the center position of the light in v_worldPosRad.xyz
 	
-	vec2 uvhm = heightmapUVatWorldPos(v_worldPosRad.xz);
-	
-	vec4 mapnormals = textureLod(mapnormalsTex, uvhm, 0.0);
-	mapnormals.g = sqrt( 1.0 - mapnormals.r * mapnormals.r - mapnormals.a * mapnormals.a);
 	
 	//	vec4 windInfo; // windx, windy, windz, windStrength
 	v_noiseoffset = vec4(windX, 0, windZ,0) * (-0.0156);
