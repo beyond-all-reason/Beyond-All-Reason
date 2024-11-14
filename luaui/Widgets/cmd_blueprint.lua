@@ -206,6 +206,8 @@ local selectedBlueprintIndex = nil
 
 local blueprintPlacementActive = false
 
+local lastExplicitlySelectedBlueprintIndex = nil
+
 local state = {
 	---@type Point|nil
 	---non-nil implies that we are dragging
@@ -270,6 +272,30 @@ local function setSelectedBlueprintIndex(index)
 	if blueprintPlacementActive and index ~= nil and index > 0 then
 		Spring.Echo("[Blueprint] selected blueprint #" .. selectedBlueprintIndex)
 	end
+end
+
+local function getNextFilteredBlueprintIndex(startIndex)
+	local newIndex = startIndex or selectedBlueprintIndex
+	for _ = 1, #blueprints do
+		newIndex = nextIndex(newIndex, #blueprints)
+		local buildable = WG["api_blueprint"].getBuildableUnits(blueprints[newIndex])
+		if buildable > 0 then
+			break
+		end
+	end
+	return newIndex
+end
+
+local function getPrevFilteredBlueprintIndex(startIndex)
+	local newIndex = startIndex or selectedBlueprintIndex
+	for _ = 1, #blueprints do
+		newIndex = prevIndex(newIndex, #blueprints)
+		local buildable = WG["api_blueprint"].getBuildableUnits(blueprints[newIndex])
+		if buildable > 0 then
+			break
+		end
+	end
+	return newIndex
 end
 
 local function getMouseWorldPosition(blueprint, x, y)
@@ -470,6 +496,22 @@ local function setBlueprintPlacementActive(active)
 
 	if active then
 		widget:SelectionChanged(Spring.GetSelectedUnits())
+
+		local selectedBlueprint = getSelectedBlueprint()
+		if selectedBlueprint then
+			local buildable = WG["api_blueprint"].getBuildableUnits(selectedBlueprint)
+			if buildable == 0 then
+				local startIndex = nil
+				if lastExplicitlySelectedBlueprintIndex ~= nil then
+					-- this prevents cycling through all blueprints if you
+					-- select different faction constructors repeatedly
+					startIndex = lastExplicitlySelectedBlueprintIndex - 1
+				end
+				setSelectedBlueprintIndex(
+					getNextFilteredBlueprintIndex(startIndex)
+				)
+			end
+		end
 
 		Spring.PlaySoundFile(sounds.activateBlueprint, 0.75, "ui")
 	else
@@ -753,7 +795,8 @@ local function handleBlueprintNextAction()
 		return
 	end
 
-	setSelectedBlueprintIndex(nextIndex(selectedBlueprintIndex, #blueprints))
+	setSelectedBlueprintIndex(getNextFilteredBlueprintIndex())
+	lastExplicitlySelectedBlueprintIndex = selectedBlueprintIndex
 
 	Spring.PlaySoundFile(sounds.selectBlueprint, 0.75, "ui")
 
@@ -770,7 +813,8 @@ local function handleBlueprintPrevAction()
 		return
 	end
 
-	setSelectedBlueprintIndex(prevIndex(selectedBlueprintIndex, #blueprints))
+	setSelectedBlueprintIndex(getPrevFilteredBlueprintIndex())
+	lastExplicitlySelectedBlueprintIndex = selectedBlueprintIndex
 
 	Spring.PlaySoundFile(sounds.selectBlueprint, 0.75, "ui")
 
