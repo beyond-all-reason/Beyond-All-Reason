@@ -341,8 +341,9 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitI
 end
 
 do
-	---Shield controller API to bridge the compatibility gap before the shield rework is mandatory
-	local function addShieldDamage(shieldUnitID, shieldWeaponNumber, damage, weaponDefID, projectileID)
+	---Shield controller API for other gadgets to generate and process their own shield damage events.
+	---
+	local function addShieldDamage(shieldUnitID, shieldWeaponNumber, damage, weaponDefID, projectileID, beamEmitterWeaponNum, beamEmitterUnitID)
 		local projectileDestroyed, damageMitigated = false, 0
 		if not beamEmitterUnitID and beamEmitterWeapons[weaponDefID] then
 			beamEmitterUnitID, beamEmitterWeaponNum = unpack(beamEmitterWeapons[weaponDefID])

@@ -240,6 +240,8 @@ do
 end
 
 ---Generic damage against shields using the default engine shields.
+-- TODO: Remove this function when shieldsrework modoption is made mandatory. However:
+-- TODO: If future modoptions might override the rework, then keep this function.
 local function addShieldDamage(shieldUnitID, shieldWeaponIndex, damageToShields, weaponDefID, projectileID)
 	local exhausted, damageDone = false, 0
 	local state, health = Spring.GetUnitShieldState(shieldUnitID)
@@ -280,7 +282,7 @@ function gadget:Initialize()
 end
 
 function gadget:GameFrame(gameFrame)
-	-- stopgap until no longer handling multiple different shield behaviors
+	-- Remove `or addShieldDamage` when shieldsrework is adopted.
 	local addShieldDamage = GG.AddShieldDamage or addShieldDamage
 	local setVelocityControl = GG.SetVelocityControl
 
