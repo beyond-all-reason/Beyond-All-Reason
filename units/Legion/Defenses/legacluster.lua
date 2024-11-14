@@ -135,6 +135,8 @@ return {
 				customparams = {
 					cluster = true,
 					cluster_number = 6,
+					cluster_range = 200,
+					cluster_speed_ratio = 0.02,
 				},
 				damage = {
 					default = 200,
@@ -155,14 +157,11 @@ return {
 				impulsefactor = 0.5,
 				name = "Pop-up Long-Range Heavy g2g Cluster Plasma Cannon",
 				noselfdamage = true,
-				maxvelocity = 480,
-				range = 225,
 				rgbcolor = "0.7 0.7 1.0",
 				soundhit = "xplomed2",
 				soundhitwet = "splsmed",
 				soundstart = "cannhvy5",
 				weapontype = "Cannon",
-				weaponvelocity = 450,
 				damage = {
 					default = 100,
 					lboats = 100,

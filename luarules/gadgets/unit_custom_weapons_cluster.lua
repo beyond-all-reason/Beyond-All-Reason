@@ -37,11 +37,13 @@ local deepWaterDepth  = -40                -- used for the surface deflection on
 --            cluster        := true
 --            cluster_def    := <string> | nil (see defaults)
 --            cluster_number := <number> | nil (see defaults)
+--            cluster_range  := <number> | nil (see cluster_def)
+--            cluster_speed_ratio := <number> | nil
 --        },
 --    },
 --    <cluster_def> = {
---       weaponvelocity := <number> -- Each determines the scatter
---       range          := <number> -- of the cluster munitions.
+--       weaponvelocity := <number> -- Will be ignored in favor of range if possible.
+--       range          := <number> -- Preferred over and replaces weaponvelocity.
 --    }
 
 --------------------------------------------------------------------------------
@@ -85,35 +87,46 @@ local dataTable = {}
 for weaponDefID, weaponDef in pairs(WeaponDefs) do
     local custom = weaponDef.customParams
     if custom.cluster then
-        local number = max(3, min(maxSpawnNumber, tonumber(custom.cluster_number or defaultSpawnNum)))
+        local clusterCount = max(3, min(maxSpawnNumber, tonumber(custom.cluster_number or defaultSpawnNum)))
+        local clusterRange = max(0, tonumber(custom.cluster_range or 0))
+        local speedRatio = min(1, tonumber(custom.cluster_speed_ratio or -1))
 
-        local weaponDefName = custom.cluster_def
-        if not weaponDefName or not WeaponDefNames[weaponDefName] then
+        local clusterDefName = custom.cluster_def
+        if not clusterDefName or not WeaponDefNames[clusterDefName] then
             local unitName -- Every weapon name contains its unit's name, per weapondefs_post.
             for word in string.gmatch(weaponDef.name, '([^_]+)') do
                 unitName = not unitName and word or unitName..'_'..word
                 if UnitDefNames[unitName] and WeaponDefNames[unitName..'_'..defaultSpawnDef] then
-                    weaponDefName = unitName..'_'..defaultSpawnDef
+                    clusterDefName = unitName..'_'..defaultSpawnDef
                     break
                 end
             end
         end
 
-        if weaponDefName then
-            local clusterDef = WeaponDefNames[weaponDefName]
+        if clusterDefName then
+            local clusterDef = WeaponDefNames[clusterDefName]
             if spawnableTypes[clusterDef.type] then
-                -- This is an awkward compromise, but since map gravity can vary and etc., what can you do.
-                local clusterSpeed = clusterDef.projectilespeed / gameSpeed
-                if clusterDef.range > 10 then
-                    local ranged = sqrt(clusterDef.range * math.abs(mapGravity)) -- velocity @ 45deg to hit range
-                    clusterSpeed = ((clusterSpeed or ranged) + ranged * 3) / 4 -- really preferring the range stat tbh
+                local clusterSpeed
+                if clusterRange > 0 or clusterDef.range > 10 then
+                    clusterRange = clusterRange ~= 0 and clusterRange or clusterDef.range
+                    clusterSpeed = sqrt(clusterRange * math.abs(mapGravity)) -- velocity @ 45deg to hit range
+                else
+                    clusterSpeed = clusterDef.projectilespeed
+                end
+
+                if speedRatio < 0 then
+                    -- Give a reasonable default, assuming clusters are spread by the parent projectile's explosion.
+                    local scatterSpeed = (clusterSpeed + weaponDef.explosionSpeed) / 2
+                    local scatterScale = 0.5 -- Keep this closer to a game mechanic than an immsim behavior.
+                    speedRatio = min(1, scatterSpeed / (weaponDef.projectilespeed ^ 2) * scatterScale)
                 end
 
                 dataTable[weaponDefID] = {
-                    number      = number,
+                    number      = clusterCount,
                     weaponID    = clusterDef.id,
                     weaponSpeed = clusterSpeed,
                     weaponTtl   = clusterDef.flighttime or defaultSpawnTtl,
+                    speedRatio  = speedRatio,
                 }
             else
                 Spring.Log(gadget:GetInfo().name, LOG.ERROR, 'Invalid weapon spawn type ('..clusterDef.type..')')
@@ -179,7 +192,7 @@ DirectionsUtil.ProvisionDirections(maxDataNum)
 --------------------------------------------------------------------------------
 -- Functions -------------------------------------------------------------------
 
-local function GetSurfaceDeflection(ex, ey, ez)
+local function GetSurfaceDeflection(data, projectileID, ex, ey, ez)
     -- Deflection from deep water, shallow water, and solid terrain.
     local elevation = spGetGroundHeight(ex, ez)
     local separation
@@ -237,7 +250,17 @@ local function GetSurfaceDeflection(ex, ey, ez)
             end
         end
     end
-    return { dx, dy, dz }
+
+    -- Inherited speed adds to deflection, which is unitless, by treating it as a ratio.
+    local speedRatio = data.speedRatio
+    if speedRatio > 0 then
+        local vx, vy, vz = spGetProjectileVelocity(projectileID)
+        dx = dx + vx * speedRatio
+        dy = dy + vy * speedRatio
+        dz = dz + vz * speedRatio
+    end
+
+    return dx, dy, dz
 end
 
 local function SpawnClusterProjectiles(data, projectileID, attackerID, ex, ey, ez)
@@ -245,34 +268,27 @@ local function SpawnClusterProjectiles(data, projectileID, attackerID, ex, ey, e
     local projectileCount = data.number
     local projectileSpeed = data.weaponSpeed
 
-    local px, py, pz = spGetProjectileVelocity(projectileID)
-    px = px / projectileSpeed * 0.1
-    py = py / projectileSpeed * 0.05
-    pz = pz / projectileSpeed * 0.1
-
     spawnCache.owner = attackerID or -1
     spawnCache.ttl = data.weaponTtl
     local speed = spawnCache.speed
     local pos = spawnCache.pos
 
     local directions = directions[projectileCount]
-    local deflection = GetSurfaceDeflection(ex, ey, ez)
-    local randomness = projectileSpeed / sqrt(projectileCount - 1)
+    local deflectX, deflectY, deflectZ = GetSurfaceDeflection(data, projectileID, ex, ey, ez)
+    local randomness = 1 / sqrt(projectileCount - 2)
 
-    for ii = 0, (projectileCount-1) do
-        local vx = directions[3*ii+1]
-        local vy = directions[3*ii+2]
-        local vz = directions[3*ii+3]
+    for ii = 0, projectileCount - 1 do
+        local vx = directions[3*ii+1] + deflectX
+        local vy = directions[3*ii+2] + deflectY
+        local vz = directions[3*ii+3] + deflectZ
 
-        vx = vx + deflection[1]
-        vy = vy + deflection[2]
-        vz = vz + deflection[3]
+        vx = vx + (rand() - 0.5) * randomness * 2
+        vy = vy + (rand() - 0.5) * randomness * 2
+        vz = vz + (rand() - 0.5) * randomness * 2
 
-        vx = vx + (rand() - 0.5) * randomness + px
-        vy = vy + (rand() - 0.5) * randomness + py
-        vz = vz + (rand() - 0.5) * randomness + pz
-
-        local normalization = (projectileSpeed * 0.5 * (1 + rand())) / sqrt(vx*vx + vy*vy + vz*vz)
+        -- Higher projectile counts will have less variation in projectile speed.
+        local normalization = (1 + rand() * randomness) / (1 + randomness)
+        normalization = normalization * projectileSpeed / sqrt(vx*vx + vy*vy + vz*vz)
         vx = vx * normalization
         vy = vy * normalization
         vz = vz * normalization
