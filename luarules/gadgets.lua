@@ -537,6 +537,12 @@ function gadgetHandler:NewGadget()
 	gh.RemoveChatAction = function(_, cmd)
 		return actionHandler.RemoveChatAction(gadget, cmd)
 	end
+	gh.RegisterAllowCommand = function(_, cmdID)
+		return self:RegisterAllowCommand(gadget, cmdID)
+	end
+	gh.DeregisterAllowCommands = function(_)
+		return self:DeregisterAllowCommands(gadget)
+	end
 
 	if not IsSyncedCode() then
 		gh.AddSyncAction = function(_, cmd, func, help)
@@ -694,6 +700,11 @@ function gadgetHandler:InsertGadget(gadget)
 	end
 	self:UpdateCallIns()
 
+	if gadget.AllowCommand and not self:HasAllowCommands(gadget) then
+		Spring.Log('AllowCommand', LOG.WARNING, "<" .. gadget.ghInfo.basename .. "> AllowCommand defined but didn't register any commands. Autoregistering for all commands!")
+		self:RegisterAllowCommand(gadget, CMD.ANY)
+	end
+
 	if kbytes then
 		collectgarbage("collect")
 		collectgarbage("collect")
@@ -718,6 +729,7 @@ function gadgetHandler:RemoveGadget(gadget)
 	for _, listname in ipairs(callInLists) do
 		ArrayRemove(self[listname .. 'List'], gadget)
 	end
+	self:DeregisterAllowCommands(gadget)
 
 	for id, g in pairs(self.CMDIDs) do
 		if g == gadget then
@@ -888,6 +900,7 @@ function gadgetHandler:RaiseGadget(gadget)
 	for _, listname in ipairs(callInLists) do
 		Raise(self[listname .. 'List'], gadget[listname], gadget)
 	end
+	self:ReorderAllowCommands(gadget, Raise)
 end
 
 local function FindHighestIndex(t, i, layer)
@@ -922,6 +935,7 @@ function gadgetHandler:LowerGadget(gadget)
 	for _, listname in ipairs(callInLists) do
 		Lower(self[listname .. 'List'], gadget[listname], gadget)
 	end
+	self:ReorderAllowCommands(gadget, Lower)
 end
 
 function gadgetHandler:FindGadget(name)
@@ -1241,6 +1255,72 @@ function gadgetHandler:PlayerRemoved(playerID, reason)
 	return
 end
 
+--------------------------------------------------------------------------------
+--
+--  AllowCommand subscription
+--
+
+local CMD_ANY = CMD.ANY
+local CMD_NIL = CMD.NIL
+local allowCommandList = {[CMD_ANY] = {}}
+
+function gadgetHandler:ReorderAllowCommands(gadget, f)
+	if not gadget.AllowCommand then return true end
+	for _, list in pairs(allowCommandList) do
+		f(list, true, gadget)
+	end
+end
+
+function gadgetHandler:HasAllowCommands(gadget)
+	for _, list in pairs(allowCommandList) do
+		for _, g in ipairs(list) do
+			if g == gadget then
+				return true
+			end
+		end
+	end
+end
+
+function gadgetHandler:DeregisterAllowCommands(gadget)
+	for _, list in pairs(allowCommandList) do
+		ArrayRemove(list, gadget)
+	end
+end
+
+function gadgetHandler:RegisterAllowCommand(gadget, cmdID)
+	-- cmdID accepts CMD.ANY and CMD.NIL in addition to usual cmdIDs
+	-- CMD.ANY subscribes to any command
+	Spring.Log('AllowCommand', LOG.INFO, "<" .. gadget.ghInfo.basename .. "> Register "..tostring(cmdID))
+	if cmdID == nil then
+		-- use CMD.NIL instead
+		Spring.Log('AllowCommand', LOG.ERROR, "<" .. gadget.ghInfo.basename .. "> Invalid cmdID "..tostring(cmdID))
+		return
+	end
+	if not gadget.AllowCommand then
+		Spring.Log('AllowCommand', LOG.ERROR, "<" .. gadget.ghInfo.basename .. "> No callin method")
+		return
+	end
+	cmdList = allowCommandList[cmdID]
+	-- create list if needed
+	if not cmdList then
+		cmdList = {}
+		allowCommandList[cmdID] = cmdList
+		-- on a new list, register all known CMD.ANY commands
+		if cmdID ~= CMD_ANY then
+			for _, g in ipairs(allowCommandList[CMD_ANY]) do
+				ArrayInsert(cmdList, true, g)
+			end
+		end
+	end
+	-- insert into the list
+	ArrayInsert(cmdList, true, gadget)
+	-- if it's a CMD.ANY registration, insert into all lists
+	if cmdID == CMD_ANY then
+		for _, list in pairs(allowCommandList) do
+			ArrayInsert(list, true, gadget)
+		end
+	end
+end
 
 --------------------------------------------------------------------------------
 --
@@ -1319,13 +1399,18 @@ end
 
 function gadgetHandler:AllowCommand(unitID, unitDefID, unitTeam,
 									cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+	local cmdKey = cmdID or CMD_NIL
+	if not allowCommandList[cmdKey] then cmdKey = CMD_ANY end
 
 	tracy.ZoneBeginN("G:AllowCommand")
-	for _, g in ipairs(self.AllowCommandList) do
+	for _, g in ipairs(allowCommandList[cmdKey]) do
+		--tracy.ZoneBeginN("G:AllowCommand:"..g.ghInfo.name)
 		if not g:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua) then
+			--tracy.ZoneEnd()
 			tracy.ZoneEnd()
 			return false
 		end
+		--tracy.ZoneEnd()
 	end
 	tracy.ZoneEnd()
 	return true
