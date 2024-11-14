@@ -282,11 +282,7 @@ end
 --
 --  array-table reverse iterator
 --
---  all callin handlers use this so that gadgets can
---  RemoveGadget() themselves (during iteration over
---  a callin list) without causing a miscount
---
---  c.f. Array{Insert,Remove}
+--  used to invert layer ordering so draw and events will have inverse ordering
 --
 local function r_ipairs(tbl)
 	local function r_iter(tbl, key)
@@ -328,6 +324,7 @@ local VFSMODE_OVERRIDE = {
 	}
 
 function gadgetHandler:Initialize()
+	gadgetHandler:CreateQueuedReorderFuncs()
 	local syncedHandler = Script.GetSynced()
 
 	local unsortedGadgets = {}
@@ -374,7 +371,7 @@ function gadgetHandler:Initialize()
 
 	-- add the gadgets
 	for _, g in ipairs(unsortedGadgets) do
-		gadgetHandler:InsertGadget(g)
+		gadgetHandler:InsertGadgetRaw(g)
 
 		local gtype = ((syncedHandler and "synced") or "unsynced")
 		local gname = g.ghInfo.name
@@ -382,6 +379,9 @@ function gadgetHandler:Initialize()
 
 		Spring.Log(LOG_SECTION, LOG.INFO, string.format("Loaded %s gadget:  %-18s  <%s>", gtype, gname, gbasename))
 	end
+	-- Since Initialize is run out of the normal callin wrapper, we
+	-- need to reorder explicitly here.
+	gadgetHandler:PerformReorders()
 end
 
 function gadgetHandler:LoadGadget(filename, overridevfsmode)
@@ -675,7 +675,66 @@ local function ArrayRemove(t, g)
 	end
 end
 
-function gadgetHandler:InsertGadget(gadget)
+--------------------------------------------------------------------------------
+--- Safe reordering
+
+-- Since we are traversing lists, some of the gadgetHandler api would be dangerous to use.
+--
+-- We will queue all the dangerous methods to process after callin loop finishes iterating.
+-- The 'real' methods have 'Raw' appended to them, and are unsafe to use unless you know what
+-- you are doing.
+
+local reorderQueue = {}
+local reorderNeeded = false
+local reorderFuncs = {}
+local callinDepth = 0
+
+function gadgetHandler:CreateQueuedReorderFuncs()
+	-- This will create an array with linked Raw methods so we can find them by index.
+	-- It will also create the gadgetHandler usual api queing the calls.
+	local reorderFuncNames = {'InsertGadget', 'RemoveGadget', 'EnableGadget', 'DisableGadget',
+		'LowerGadget', 'RaiseGadget', 'UpdateGadgetCallIn', 'RemoveGadgetCallIn'}
+	local queueReorder = gadgetHandler.QueueReorder
+
+	for idx, name in ipairs(reorderFuncNames) do
+		-- linked method index
+		reorderFuncs[#reorderFuncs + 1] = gadgetHandler[name .. 'Raw']
+
+		-- gadgetHandler api
+		gadgetHandler[name] = function(s, ...)
+			queueReorder(s, idx, ...)
+		end
+	end
+end
+
+function gadgetHandler:QueueReorder(methodIndex, ...)
+	reorderQueue[#reorderQueue + 1] = {methodIndex, ...}
+	reorderNeeded = true
+end
+
+function gadgetHandler:PerformReorder(methodIndex, ...)
+	reorderFuncs[methodIndex](self, ...)
+end
+
+function gadgetHandler:PerformReorders()
+	-- Reset and store the list so we can support nested reorderings
+	reorderNeeded = false
+	local nextReorder = reorderQueue
+	reorderQueue = {}
+	-- Process the reorder queue
+	for _, elmts in ipairs(nextReorder) do
+		self:PerformReorder(unpack(elmts))
+	end
+	-- Check for further reordering
+	if reorderNeeded then
+		self:PerformReorders()
+	end
+end
+
+--------------------------------------------------------------------------------
+--- Unsafe insert/remove
+
+function gadgetHandler:InsertGadgetRaw(gadget)
 	if gadget == nil then
 		return
 	end
@@ -712,7 +771,7 @@ function gadgetHandler:InsertGadget(gadget)
 	end
 end
 
-function gadgetHandler:RemoveGadget(gadget)
+function gadgetHandler:RemoveGadgetRaw(gadget)
 	if gadget == nil then
 		return
 	end
@@ -754,7 +813,16 @@ function gadgetHandler:UpdateCallIn(name)
 
 		if selffunc ~= nil then
 			_G[name] = function(...)
-				return selffunc(self, ...)
+				callinDepth = callinDepth + 1
+
+				local res = selffunc(self, ...)
+
+				callinDepth = callinDepth - 1
+				if reorderNeeded and callinDepth == 0 then
+					self:PerformReorders()
+				end
+
+				return res
 			end
 		else
 			Spring.Log(LOG_SECTION, LOG.ERROR, "UpdateCallIn: " .. name .. " is not implemented")
@@ -764,7 +832,7 @@ function gadgetHandler:UpdateCallIn(name)
 	Script.UpdateCallIn(name)
 end
 
-function gadgetHandler:UpdateGadgetCallIn(name, g)
+function gadgetHandler:UpdateGadgetCallInRaw(name, g)
 	local listName = name .. 'List'
 	local ciList = self[listName]
 	if ciList then
@@ -780,7 +848,7 @@ function gadgetHandler:UpdateGadgetCallIn(name, g)
 	end
 end
 
-function gadgetHandler:RemoveGadgetCallIn(name, g)
+function gadgetHandler:RemoveGadgetCallInRaw(name, g)
 	local listName = name .. 'List'
 	local ciList = self[listName]
 	if ciList then
@@ -801,7 +869,7 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-function gadgetHandler:EnableGadget(name)
+function gadgetHandler:EnableGadgetRaw(name)
 	local ki = self.knownGadgets[name]
 	if not ki then
 		Spring.Log(LOG_SECTION, LOG.ERROR, "EnableGadget(), could not find gadget: " .. tostring(name))
@@ -817,12 +885,12 @@ function gadgetHandler:EnableGadget(name)
 		if not w then
 			return false
 		end
-		self:InsertGadget(w)
+		self:InsertGadgetRaw(w)
 	end
 	return true
 end
 
-function gadgetHandler:DisableGadget(name)
+function gadgetHandler:DisableGadgetRaw(name)
 	local ki = self.knownGadgets[name]
 	if not ki then
 		Spring.Log(LOG_SECTION, LOG.ERROR, "DisableGadget(), could not find gadget: " .. tostring(name))
@@ -834,7 +902,7 @@ function gadgetHandler:DisableGadget(name)
 			return false
 		end
 		Spring.Log(LOG_SECTION, LOG.INFO, 'Removed:  ' .. ki.filename)
-		self:RemoveGadget(w)     -- deactivate
+		self:RemoveGadgetRaw(w)     -- deactivate
 		self.orderList[name] = 0 -- disable
 	end
 	return true
@@ -878,7 +946,7 @@ local function FindLowestIndex(t, i, layer)
 	return 1
 end
 
-function gadgetHandler:RaiseGadget(gadget)
+function gadgetHandler:RaiseGadgetRaw(gadget)
 	if gadget == nil then
 		return
 	end
@@ -913,7 +981,7 @@ local function FindHighestIndex(t, i, layer)
 	return ts
 end
 
-function gadgetHandler:LowerGadget(gadget)
+function gadgetHandler:LowerGadgetRaw(gadget)
 	if gadget == nil then
 		return
 	end
@@ -1075,6 +1143,9 @@ function gadgetHandler:Shutdown()
 end
 
 function gadgetHandler:GameFrame(frameNum)
+	-- Since GameGrame should never be called nested ensure here the callinDepth
+	-- is ok. We set it to 1 so after the run it will be set to 0 again.
+	callinDepth = 1
 	tracy.ZoneBeginN("G:GameFrame")
 	for _, g in ipairs(self.GameFrameList) do
 		tracy.ZoneBeginN("G:GameFrame:" .. g.ghInfo.name)
