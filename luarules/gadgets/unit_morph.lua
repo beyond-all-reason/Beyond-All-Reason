@@ -716,6 +716,19 @@ end
     -- end
   end
 
+local function RegisterAllowCommands()
+  -- CMD_EZ_MORPH, CMD.STOP, CMD.ONOFF, CMD.SELFD, CMD_MORPH->CMD_MORPH+MAX_MORPH-1, CMD_STOP_MORPH+MAX_MORPH-1
+  -- careful MAX_MORPH increases during Initialize
+  gadgetHandler:RegisterAllowCommand(CMD_EZ_MORPH)
+  gadgetHandler:RegisterAllowCommand(CMD.STOP)
+  gadgetHandler:RegisterAllowCommand(CMD.ONOFF)
+  gadgetHandler:RegisterAllowCommand(CMD.SELFD)
+  for number = 0, MAX_MORPH-1 do
+    gadgetHandler:RegisterAllowCommand(CMD_MORPH+number)
+    gadgetHandler:RegisterAllowCommand(CMD_STOP_MORPH+number)
+  end
+
+end
 
 function gadget:Initialize()
   --// RankApi linking
@@ -754,6 +767,7 @@ function gadget:Initialize()
     gadgetHandler:RegisterCMDID(CMD_MORPH + number)
     gadgetHandler:RegisterCMDID(CMD_MORPH_STOP + number)
   end
+  RegisterAllowCommands()
 
   local allUnits = Spring.GetAllUnits()
   for i = 1, #allUnits do

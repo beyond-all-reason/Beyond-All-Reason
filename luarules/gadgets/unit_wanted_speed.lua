@@ -160,6 +160,10 @@ local function MaintainWantedSpeed(unitID)
 	end
 end
 
+function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD.ANY)
+end
+
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
 -- Command Handling

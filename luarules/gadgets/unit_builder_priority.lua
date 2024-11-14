@@ -110,6 +110,7 @@ end
 local isTeamSavingMetal = function(_) return false end
 
 function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD_PRIORITY)
 	updateTeamList()
 
 	for _, teamID in ipairs(teamList) do
@@ -193,8 +194,9 @@ end
 
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+    -- accepts CMD_PRIORITY
     -- track which cons are set to passive
-    if cmdID == CMD_PRIORITY and canPassive[unitDefID] then
+    if canPassive[unitDefID] then
         local cmdIdx = spFindUnitCmdDesc(unitID, CMD_PRIORITY)
         if cmdIdx then
             local cmdDesc = spGetUnitCmdDescs(unitID, cmdIdx, cmdIdx)[1]

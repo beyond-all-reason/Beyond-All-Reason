@@ -860,6 +860,15 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
+	-- Shield Rework
+	if modOptions.shieldsrework == true and uDef.weapondefs then
+		for _, weapon in pairs(uDef.weapondefs) do
+			if weapon.shield and weapon.shield.repulser then
+				uDef.onoffable = true
+			end
+		end
+	end
+
 	--- EMP rework
 	if modOptions.emprework == true then
 		if name == "armstil" then

@@ -228,6 +228,12 @@ local function UpdateVisibility(unitID, unitData, unitVisible, forceUpdate)
 		unitVisible = GetVisibleSearch(ux, uz, unitData.search)
 	end
 
+	local unitIsActive = Spring.GetUnitIsActive(unitID) 
+	if unitIsActive ~= unitData.isActive then
+		forceUpdate = true
+		unitData.isActive = unitIsActive
+	end
+
 	if unitVisible == unitData.unitVisible and not forceUpdate then
 		return
 	end
@@ -237,7 +243,7 @@ local function UpdateVisibility(unitID, unitData, unitVisible, forceUpdate)
 		local fxID = unitData.fxTable[i]
 		local fx = Lups.GetParticles(fxID)
 		if fx then
-			fx.visibleToMyAllyTeam = unitVisible
+			fx.visibleToMyAllyTeam = unitIsActive and unitVisible
 		end
 	end
 end

@@ -81,7 +81,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions)
-		if (cmdID ~= CMD_STOP_PRODUCTION) or not isFactory[unitDefID] then
+		if not isFactory[unitDefID] then
 			return true
 		end
 
@@ -115,6 +115,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:Initialize()
 		gadgetHandler:RegisterCMDID(CMD_STOP_PRODUCTION)
+		gadgetHandler:RegisterAllowCommand(CMD_STOP_PRODUCTION)
 		for _, unitID in pairs(Spring.GetAllUnits()) do
 			gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
 		end
