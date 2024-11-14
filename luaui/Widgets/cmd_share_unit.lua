@@ -378,4 +378,9 @@ end
 
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
+	local newFontfileScale = (0.5 + (vsx * vsy / 5700000))
+	if fontfileScale ~= newFontfileScale then
+		fontfileScale = newFontfileScale
+		font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
+	end
 end
