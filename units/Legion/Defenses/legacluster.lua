@@ -135,7 +135,7 @@ return {
 				customparams = {
 					cluster = true,
 					cluster_number = 6,
-					cluster_range = 200,
+					cluster_range = 150,
 					cluster_speed_ratio = 0.02,
 				},
 				damage = {
