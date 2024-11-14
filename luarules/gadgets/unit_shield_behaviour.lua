@@ -41,6 +41,7 @@ local spAreTeamsAllied = Spring.AreTeamsAllied
 local shieldUnitDefs = {}
 local shieldUnitsData = {}
 local originalShieldDamages = {}
+local beamEmitterWeapons = {}
 local forceDeleteWeapons = {}
 local unitDefIDCache = {}
 local projectileDefIDCache = {}
@@ -67,9 +68,18 @@ for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 	end
 end
 
-for id, data in pairs(UnitDefs) do
-	if data.customParams.shield_radius then
-		shieldUnitDefs[id] = data
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.customParams.shield_radius then
+		shieldUnitDefs[unitDefID] = unitDef
+	end
+
+	if unitDef.weapons then
+		for index, weapon in ipairs(unitDef.weapons) do
+			local weaponDef = WeaponDefs[weapon.weaponDef]
+			if weaponDef.type == 'BeamLaser' or weaponDef.type == 'LightningCannon' then
+				beamEmitterWeapons[weaponDef.id] = { unitDefID, index }
+			end
+		end
 	end
 end
 
@@ -332,46 +342,28 @@ end
 
 do
 	---Shield controller API to bridge the compatibility gap before the shield rework is mandatory
-	local function addShieldDamage(shieldUnitID, shieldWeaponIndex, damage, weaponDefID, projectileID)
+	local function addShieldDamage(shieldUnitID, shieldWeaponNumber, damage, weaponDefID, projectileID)
 		local projectileDestroyed, damageMitigated = false, 0
-
-		local shieldData = shieldUnitsData[shieldUnitID]
-		if not shieldData or not shieldData.shieldEnabled then
-			return projectileDestroyed, damageMitigated
+		if not beamEmitterUnitID and beamEmitterWeapons[weaponDefID] then
+			beamEmitterUnitID, beamEmitterWeaponNum = unpack(beamEmitterWeapons[weaponDefID])
 		end
-
-		if shieldData.shieldWeaponNumber == -1 then
-			local weapons = UnitDefs[unitDefIDCache[shieldUnitID]].weapons
-			if shieldWeaponIndex and WeaponDefs[weapons[shieldWeaponIndex].weaponDef].shieldPower then
-				shieldData.shieldWeaponNumber = shieldWeaponIndex
-			else
-				for index, weapon in ipairs(weapons) do
-					if WeaponDefs[weapon.weaponDef].shieldPower then
-						shieldData.shieldWeaponNumber = index ; break
-					end
+		local shieldData = shieldUnitsData[shieldUnitID]
+		if shieldData and shieldData.shieldEnabled then
+			if shieldData.shieldWeaponNumber == -1 and not shieldWeaponNumber then
+				return
+			end
+			local shieldDamage = shieldData.shieldDamage
+			local result = gadget:ShieldPreDamaged(projectileID, nil, shieldWeaponNumber, shieldUnitID, nil, beamEmitterWeaponNum, beamEmitterUnitID)
+			if result == nil then
+				projectileDestroyed = true
+				if damage then
+					shieldData.shieldDamage = shieldDamage + damage
+					damageMitigated = damage
+				else
+					damageMitigated = shieldData.shieldDamage - shieldDamage
 				end
 			end
-			if not shieldData.shieldWeaponNumber then
-				return projectileDestroyed, damageMitigated
-			end
 		end
-
-		if weaponDefID and forceDeleteWeapons[weaponDefID] and projectileID and projectileID > -1 then
-			spDeleteProjectile(projectileID)
-			projectileDestroyed = true
-		end
-
-		if not damage then
-			damage = weaponDefID and originalShieldDamages[weaponDefID] or fallbackShieldDamage
-		end
-		damageMitigated = damage
-
-		shieldData.shieldDamage = shieldData.shieldDamage + damage
-		shieldCheckFlags[shieldUnitID] = true
-		if not shieldData.shieldCoverageChecked and AOEWeaponDefIDs[weaponDefID] then
-			setCoveredUnits(shieldUnitID)
-		end
-
 		return projectileDestroyed, damageMitigated
 	end
 
