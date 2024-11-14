@@ -5,7 +5,7 @@ function widget:GetInfo()
 		author = "SuperKitowiec",
 		date = "2024",
 		license = "GNU GPL, v2 or later",
-		version = 3.2,
+		version = 1.0,
 		layer = 0,
 		enabled = true,
 		handler = true,
@@ -15,7 +15,6 @@ end
 --------------------------------------------------------------------------------
 --vars
 --------------------------------------------------------------------------------
-local aoeColor = { 0.7, 0.7, 0.7, 1 }
 local aoeLineWidthMult = 100
 local circleDivs = 96
 local numAoECircles = 5
@@ -41,8 +40,11 @@ local GetTeamColor = Spring.GetTeamColor
 local GetActiveCommand = Spring.GetActiveCommand
 local GetCameraPosition = Spring.GetCameraPosition
 local GetMouseState = Spring.GetMouseState
-local GetUnitPosition = Spring.GetUnitPosition
 local TraceScreenRay = Spring.TraceScreenRay
+local GetPlayerList = Spring.GetPlayerList
+local GetPlayerInfo = Spring.GetPlayerInfo
+local GetGameRulesParam = Spring.GetGameRulesParam
+local GetViewGeometry = Spring.GetViewGeometry
 
 local glBeginEnd = gl.BeginEnd
 local glCallList = gl.CallList
@@ -64,6 +66,20 @@ local floor = math.floor
 local sqrt = math.sqrt
 local max = math.max
 
+local defaultColor
+
+local vsx, vsy = GetViewGeometry()
+local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+local fontfileScale = (0.5 + (vsx * vsy / 5700000))
+local fontfileSize = 50
+local fontfileOutlineSize = 8.5
+local fontfileOutlineStrength = 10
+local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
+
+local cmdQuickShareToTargetId = 455624
+local myTeamID = GetMyTeamID()
+local myAllyTeamID = GetTeamAllyTeamID(myTeamID)
+
 local function tablelength(T)
 	local count = 0
 	for _ in pairs(T) do
@@ -72,43 +88,31 @@ local function tablelength(T)
 	return count
 end
 
-local CMD_SHARE_UNIT_TO_TARGET = 455624
-local CMD_SHARE_UNIT_TO_TARGET_DEFINITION = {
-	id = CMD_SHARE_UNIT_TO_TARGET,
-	type = CMDTYPE.ICON_UNIT_OR_MAP,
-	name = 'Share Unit To Target',
-	cursor = 'settarget',
-	action = 'quick_share_to_target',
-}
-
-local myTeamID = GetMyTeamID()
-local myAllyTeamID = GetTeamAllyTeamID(myTeamID)
-
-local function GetSecondPart(offset)
+local function getSecondPart(offset)
 	local result = secondPart + (offset or 0)
 	return result - floor(result)
 end
 
-local function UnitCircleVertices()
+local function unitCircleVertices()
 	for i = 1, circleDivs do
 		local theta = 2 * PI * i / circleDivs
 		glVertex(cos(theta), 0, sin(theta))
 	end
 end
 
-local function DrawUnitCircle()
-	glBeginEnd(GL_LINE_LOOP, UnitCircleVertices)
+local function drawUnitCircle()
+	glBeginEnd(GL_LINE_LOOP, unitCircleVertices)
 end
 
-local function SetupDisplayLists()
-	circleList = glCreateList(DrawUnitCircle)
+local function setupDisplayLists()
+	circleList = glCreateList(drawUnitCircle)
 end
 
-local function DeleteDisplayLists()
+local function deleteDisplayLists()
 	glDeleteList(circleList)
 end
 
-local function DrawCircle(x, y, z, radius)
+local function drawCircle(x, y, z, radius)
 	glPushMatrix()
 	glTranslate(x, y, z)
 	glScale(radius, radius, radius)
@@ -118,22 +122,7 @@ local function DrawCircle(x, y, z, radius)
 	glPopMatrix()
 end
 
-local function DrawAoE(tx, ty, tz, color)
-	glLineWidth(max(aoeLineWidthMult * range / mouseDistance, 0.5))
-
-	for i = 1, numAoECircles do
-		local proportion = i / (numAoECircles + 1)
-		local radius = range * proportion
-		local alpha = color[4] * (1 - proportion) / (1 - proportion) * (1 - GetSecondPart(0))
-		glColor(color[1], color[2], color[3], alpha)
-		DrawCircle(tx, ty, tz, radius)
-	end
-
-	glColor(1, 1, 1, 1)
-	glLineWidth(1)
-end
-
-local function GetMouseTargetPosition()
+local function getMouseTargetPosition()
 	local mx, my = GetMouseState()
 	local mouseTargetType, mouseTarget = TraceScreenRay(mx, my)
 	if mouseTarget and mouseTargetType then
@@ -155,12 +144,103 @@ local function GetMouseTargetPosition()
 	end
 end
 
-local function IsAlly(unitTeamId)
+local function getMouseDistance()
+	local cx, cy, cz = GetCameraPosition()
+	local mx, my, mz = getMouseTargetPosition()
+	if not mz then
+		return nil
+	end
+	local dx = cx - mx
+	local dy = cy - my
+	local dz = cz - mz
+	return sqrt(dx * dx + dy * dy + dz * dz)
+end
+
+local function getTeamColorWithAlpha(teamId)
+	local tred, tgreen, tblue = GetTeamColor(teamId)
+	return { tred, tgreen, tblue, 1 }
+end
+
+local function drawAoE(tx, ty, tz, selectedTeam)
+	--local color = selectedTeam and getTeamColorWithAlpha(selectedTeam) or defaultColor
+	local color = defaultColor
+
+	mouseDistance = getMouseDistance() or 1000
+	glLineWidth(max(aoeLineWidthMult * range / mouseDistance, 0.5))
+
+	for i = 1, numAoECircles do
+		local proportion = i / (numAoECircles + 1)
+		local radius = range * proportion
+		local alpha = color[4] * (1 - proportion) / (1 - proportion) * (1 - getSecondPart(0))
+		glColor(color[1], color[2], color[3], alpha)
+		drawCircle(tx, ty, tz, radius)
+	end
+
+	glColor(1, 1, 1, 1)
+	glLineWidth(1)
+end
+
+local function findPlayerName(teamId)
+	local name = ''
+	if GetGameRulesParam('ainame_' .. teamId) then
+		name = I18N('ui.playersList.aiName', { name = GetGameRulesParam('ainame_' .. teamId) })
+	else
+		local players = GetPlayerList(teamId)
+		name = (#players > 0) and GetPlayerInfo(players[1], false) or '------'
+
+		for _, pID in ipairs(players) do
+			local pname, active, isspec = GetPlayerInfo(pID, false)
+			if active and not isspec then
+				name = pname
+				break
+			end
+		end
+	end
+	return name
+end
+
+local function colourNames(teamId)
+	if tonumber(teamId) < 0 then
+		return ""
+	end
+	local nameColourR, nameColourG, nameColourB, nameColourA = Spring.GetTeamColor(teamId)
+	return Spring.Utilities.Color.ToString(nameColourR, nameColourG, nameColourB)
+end
+
+local function drawName(teamId)
+	local mouseX, mouseY = GetMouseState()
+	local textY = mouseY + 40
+
+	if teamId then
+		font:Begin()
+		font:SetTextColor(defaultColor)
+		font:SetOutlineColor({ 0, 0, 0, 1 })
+		font:Print(I18N("ui.quickShareToTarget.shareTo", {
+			playerColor = colourNames(teamId),
+			player = findPlayerName(teamId)
+		}), mouseX, textY, 24, "con")
+		font:End()
+	else
+		font:Begin()
+		font:SetTextColor(defaultColor)
+		font:SetOutlineColor({ 0, 0, 0, 1 })
+		font:Print(I18N("ui.quickShareToTarget.noTarget"), mouseX, textY, 24, "con")
+		font:End()
+	end
+
+end
+
+local function isAlly(unitTeamId)
 	return unitTeamId ~= myTeamID and GetTeamAllyTeamID(unitTeamId) == myAllyTeamID
 end
 
-local function FindTeam(mx, my)
+local function findTeamInArea(mx, my)
 	local _, cUnitID = TraceScreenRay(mx, my, true)
+
+	if cUnitID == nil then
+		return nil
+	end
+
 	local foundUnits = GetUnitsInCylinder(cUnitID[1], cUnitID[3], range)
 
 	if #foundUnits < 1 then
@@ -171,7 +251,7 @@ local function FindTeam(mx, my)
 
 	for _, unitId in ipairs(foundUnits) do
 		local unitTeamId = GetUnitTeam(unitId)
-		if IsAlly(unitTeamId) then
+		if isAlly(unitTeamId) then
 			unitTeamId = tostring(unitTeamId)
 			if unitTeamCounters[unitTeamId] == nil then
 				unitTeamCounters[unitTeamId] = 1
@@ -196,53 +276,55 @@ local function FindTeam(mx, my)
 	return selectedTeam
 end
 
-local function GetMouseDistance()
-	local cx, cy, cz = GetCameraPosition()
-	local mx, my, mz = GetMouseTargetPosition()
-	if not mz then
-		return nil
-	end
-	local dx = cx - mx
-	local dy = cy - my
-	local dz = cz - mz
-	return sqrt(dx * dx + dy * dy + dz * dz)
-end
-
-function widget:DrawWorld()
+local function getSelectedTeam()
 	local _, cmd, _ = GetActiveCommand()
 
-	if cmd ~= CMD_SHARE_UNIT_TO_TARGET then
-		return
+	if cmd ~= cmdQuickShareToTargetId then
+		return nil
 	end
 
-	local tx, ty, tz, targetUnitID = GetMouseTargetPosition()
+	local tx, ty, tz, targetUnitID = getMouseTargetPosition()
 
 	if (not tx) then
-		return
+		return nil
 	end
 
-	mouseDistance = GetMouseDistance() or 1000
 	local selectedTeam
 	if targetUnitID then
 		local targetUnitTeamID = GetUnitTeam(targetUnitID)
-		if IsAlly(targetUnitTeamID) then
+		if isAlly(targetUnitTeamID) then
 			selectedTeam = targetUnitTeamID
 		end
 	else
 		local mouseX, mouseY = WorldToScreenCoords(tx, ty, tz)
-		selectedTeam = FindTeam(mouseX, mouseY)
+		selectedTeam = findTeamInArea(mouseX, mouseY)
 	end
 
-	local selectedColor = aoeColor
-	if selectedTeam then
-		local tred, tgreen, tblue = GetTeamColor(selectedTeam)
-		selectedColor = { tred, tgreen, tblue, 1 }
+	return tx, ty, tz, selectedTeam
+end
+
+function widget:DrawWorld()
+	local targetX, targetY, targetZ, selectedTeam = getSelectedTeam()
+
+	if (not targetX) then
+		return
 	end
-	DrawAoE(tx, ty, tz, selectedColor)
+
+	drawAoE(targetX, targetY+10, targetZ, selectedTeam)
+end
+
+function widget:DrawScreen()
+	local targetX, _, _, selectedTeam = getSelectedTeam()
+
+	if (not targetX) then
+		return
+	end
+
+	drawName(selectedTeam)
 end
 
 function widget:CommandNotify(cmdID, cmdParams, _)
-	if cmdID == CMD_SHARE_UNIT_TO_TARGET then
+	if cmdID == cmdQuickShareToTargetId then
 		local targetTeamID
 		if #cmdParams ~= 1 and #cmdParams ~= 3 then
 			return true
@@ -253,7 +335,7 @@ function widget:CommandNotify(cmdID, cmdParams, _)
 		elseif #cmdParams == 3 then
 			-- click on the ground
 			local mouseX, mouseY = WorldToScreenCoords(cmdParams[1], cmdParams[2], cmdParams[3])
-			targetTeamID = FindTeam(mouseX, mouseY)
+			targetTeamID = findTeamInArea(mouseX, mouseY)
 		end
 
 		if targetTeamID == nil or targetTeamID == myTeamID or GetTeamAllyTeamID(targetTeamID) ~= myAllyTeamID then
@@ -275,20 +357,30 @@ function widget:CommandsChanged()
 	local selectedUnits = GetSelectedUnits()
 	if #selectedUnits > 0 then
 		local customCommands = widgetHandler.customCommands
-		customCommands[#customCommands + 1] = CMD_SHARE_UNIT_TO_TARGET_DEFINITION
+		customCommands[#customCommands + 1] = {
+			id = cmdQuickShareToTargetId,
+			type = CMDTYPE.ICON_UNIT_OR_MAP,
+			name = 'Share Unit To Target',
+			cursor = 'settarget',
+			action = 'quicksharetotarget',
+		}
 	end
 end
 
 function widget:Initialize()
-	SetupDisplayLists()
-	I18N.load({
-		en = {
-			["ui.orderMenu.quick_share_to_target"] = "Share Unit",
-			["ui.orderMenu.quick_share_to_target_tooltip"] = "Share unit to target player.",
-		}
-	})
+	defaultColor = { 0.88, 0.88, 0.88, 1 }
+	setupDisplayLists()
 end
 
 function widget:Shutdown()
-	DeleteDisplayLists()
+	deleteDisplayLists()
+end
+
+function widget:ViewResize()
+	vsx, vsy = Spring.GetViewGeometry()
+	local newFontfileScale = (0.5 + (vsx * vsy / 5700000))
+	if fontfileScale ~= newFontfileScale then
+		fontfileScale = newFontfileScale
+		font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
+	end
 end
