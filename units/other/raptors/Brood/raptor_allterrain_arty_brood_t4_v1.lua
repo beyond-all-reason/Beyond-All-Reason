@@ -89,7 +89,6 @@ return {
 				cratermult = 0.2,
 				edgeeffectiveness = 0.63,
 				explosiongenerator = "custom:dirt",
-				impulseboost = 0,
 				impulsefactor = 0.4,
 				intensity = 0.7,
 				interceptedbyshieldtype = 0,

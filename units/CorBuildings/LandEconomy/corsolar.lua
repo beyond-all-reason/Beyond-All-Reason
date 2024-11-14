@@ -30,7 +30,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "smallBuildingExplosionGenericSelfd",
 		sightdistance = 273,
-		yardmap = "ooooo ooooo ooooo ooooo ooooo",
+		yardmap = "yoooy ooooo ooooo ooooo yoooy",
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
 			buildinggrounddecalsizex = 8,

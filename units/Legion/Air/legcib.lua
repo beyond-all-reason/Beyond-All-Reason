@@ -93,7 +93,6 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 1,
 				explosiongenerator = "custom:juno-explo-mini",
-				impulseboost = 0,
 				impulsefactor = 0,
 				model = "epulse_mini.s3o",
 				model = "legmediumrocket.s3o",

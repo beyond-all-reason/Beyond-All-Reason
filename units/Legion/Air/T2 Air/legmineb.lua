@@ -101,7 +101,6 @@ return {
 				energypershot = 1620,
 				explosiongenerator = "custom:dirtpopup",
 				gravityaffected = "true",
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				intensity = 0.01,
 				model = "cormine1.s3o",

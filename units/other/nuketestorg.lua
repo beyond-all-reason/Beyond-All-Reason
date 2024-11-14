@@ -60,7 +60,6 @@ return {
 				explosiongenerator = "custom:armnuke",
 				firestarter = 0,
 				flighttime = 100,
-				impulseboost = 0.5,
 				impulsefactor = 0.5,
 				interceptedbyshieldtype = 4,
 				metalpershot = 0,

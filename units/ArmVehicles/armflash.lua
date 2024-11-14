@@ -121,7 +121,6 @@ return {
 				cylindertargeting = 1,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:plasmahit-small",
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				intensity = 0.7,
 				name = "Rapid-fire close-quarters plasma gun",

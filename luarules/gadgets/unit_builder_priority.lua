@@ -271,8 +271,8 @@ local function UpdatePassiveBuilders(teamID, interval)
 			local newPullMetal = teamStallingMetal - passivePullMetal
 			local newPullEnergy = teamStallingEnergy - passivePullEnergy
 			if passivePullMetal > 0 or passivePullEnergy > 0 then
-				-- Changed: Stalling in one resource stalls in the other.
-				if newPullMetal <= 0 or newPullEnergy <= 0 then
+				-- Stalling in one resource stalls in the other (if both resource types are used)
+				if (newPullMetal <= 0 and passivePullMetal > 0) or (newPullEnergy <= 0 and passivePullEnergy > 0) then
 					wouldStall = true
 				else
 					teamStallingMetal = newPullMetal

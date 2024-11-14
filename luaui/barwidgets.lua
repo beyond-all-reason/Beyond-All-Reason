@@ -139,6 +139,7 @@ local flexCallIns = {
 	'StockpileChanged',
 	'SelectionChanged',
 	'DrawGenesis',
+	'DrawGroundDeferred',
 	'DrawWorld',
 	'DrawWorldPreUnit',
 	'DrawPreDecals',
@@ -207,6 +208,7 @@ local callInLists = {
 	'VisibleExplosion',
 	'Barrelfire',
 	'CrashingAircraft',
+	'ClearMapMarks',
 
 	-- these use mouseOwner instead of lists
 	--  'MouseMove',
@@ -1018,7 +1020,7 @@ local function FindHighestIndex(t, i, layer)
 			return (x - 1)
 		end
 	end
-	return (ts + 1)
+	return ts
 end
 
 function widgetHandler:LowerWidget(widget)
@@ -1035,7 +1037,7 @@ function widgetHandler:LowerWidget(widget)
 		end
 		local n = FindHighestIndex(t, i, w.whInfo.layer)
 		if n and n > i then
-			table.insert(t, n, w)
+			table.insert(t, n+1, w)
 			table.remove(t, i)
 		end
 	end
@@ -1331,6 +1333,15 @@ function widgetHandler:DrawGenesis()
 	tracy.ZoneBeginN("W:DrawGenesis")
 	for _, w in r_ipairs(self.DrawGenesisList) do
 		w:DrawGenesis()
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:DrawGroundDeferred()
+	tracy.ZoneBeginN("W:DrawGroundDeferred")
+	for _, w in r_ipairs(self.DrawGroundDeferredList) do
+		w:DrawGroundDeferred()
 	end
 	tracy.ZoneEnd()
 	return
@@ -2010,6 +2021,15 @@ function widgetHandler:MapDrawCmd(playerID, cmdType, px, py, pz, ...)
 	return retval
 end
 
+function widgetHandler:ClearMapMarks()
+	tracy.ZoneBeginN("W:ClearMapMarks")
+	for _, w in ipairs(self.ClearMapMarksList) do
+		w:ClearMapMarks()
+	end
+	tracy.ZoneEnd()
+	return
+end
+
 function widgetHandler:GameSetup(state, ready, playerStates)
 	tracy.ZoneBeginN("W:GameSetup")
 	for _, w in ipairs(self.GameSetupList) do
@@ -2435,6 +2455,7 @@ function widgetHandler:CrashingAircraft(unitID, unitDefID, unitTeam)
 	tracy.ZoneEnd()
 	return
 end
+
 
 --------------------------------------------------------------------------------
 --

@@ -897,7 +897,7 @@ local function FindHighestIndex(t, i, layer)
 			return (x - 1)
 		end
 	end
-	return (ts + 1)
+	return ts
 end
 
 function gadgetHandler:LowerGadget(gadget)
@@ -914,7 +914,7 @@ function gadgetHandler:LowerGadget(gadget)
 		end
 		local n = FindHighestIndex(t, i, w.ghInfo.layer)
 		if n and n > i then
-			table.insert(t, n, w)
+			table.insert(t, n+1, w)
 			table.remove(t, i)
 		end
 	end

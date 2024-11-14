@@ -83,7 +83,6 @@ return {
 				fireTolerance = 4400,
 				tolerance = 4400,
 				impactonly = 1,
-				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 10,
 				name = "a2g Heat Ray",

@@ -1,6 +1,5 @@
 return {
 	armpship = {
-		airsightdistance = 470,
 		autoheal = 1.5,
 		blocking = true,
 		buildpic = "ARMPSHIP.DDS",
@@ -111,7 +110,6 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-small",
 				gravityaffected = "true",
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				name = "Light long-range plasma cannon",
 				noselfdamage = true,

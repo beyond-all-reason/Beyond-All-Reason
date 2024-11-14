@@ -5,7 +5,6 @@ return {
 		cratermult = 0,
 		edgeeffectiveness = 0,
 		explosiongenerator = "custom:blood_explode",
-		impulseboost = 1,
 		impulsefactor = 1,
 		name = "burrow_spew",
 		range = 60,

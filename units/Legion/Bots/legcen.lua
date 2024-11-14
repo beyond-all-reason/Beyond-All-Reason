@@ -113,7 +113,6 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-small",
 				impactonly = 1,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				name = "Close-quarters g2g gauss-cannon",
 				noselfdamage = true,
