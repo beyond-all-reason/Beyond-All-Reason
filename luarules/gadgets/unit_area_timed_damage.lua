@@ -76,9 +76,9 @@ local function getExplosionParams(def, prefix)
     return params
 end
 
--- Change (eg) fire-area-150-repeating to fire-area-<range>-repeating for tweakdefs:
-local sub1, sub2 = '-area-', '-repeating'
-local pattern = sub1..'\d+'..sub2
+-- Change (eg) fire-area-150-repeat to fire-area-<range>-repeat for tweakdefs:
+local sub1, sub2 = '-area-', '-repeat'
+local pattern = sub1..[[\d+]]..sub2
 local midX, midZ = Game.mapSizeX / 2, Game.mapSizeZ / 2
 local lowY = Spring.GetGroundHeight(midX, midZ) - 10000
 local function getNearestCEG(params)
@@ -97,7 +97,7 @@ local function getNearestCEG(params)
         end
     end
     if sizeBest < math.huge then
-        ceg = string.gsub(ceg, '\d+', sizeBest, 1)
+        ceg = string.gsub(ceg, [[\d+]], sizeBest, 1)
         return ceg, sizeBest
     end
 end
