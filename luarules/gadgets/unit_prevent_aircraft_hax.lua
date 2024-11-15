@@ -26,6 +26,7 @@ local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitDefID = Spring.GetUnitDefID
 local spValidUnitID = Spring.ValidUnitID
+local spIsPosInMap = Spring.IsPosInMap
 local CMD_STOP = CMD.STOP
 local CMD_GUARD = CMD.GUARD
 
@@ -86,10 +87,7 @@ end
 
 local function isInsideMap(unitID)
 	local x,_,z = spGetUnitPosition(unitID)
-	if z < 0 or x < 0 or z > mapZ or x > mapX then
-		return false
-	end
-	return true
+	return spIsPosInMap(x, z)
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, fromSynced, fromLua)
