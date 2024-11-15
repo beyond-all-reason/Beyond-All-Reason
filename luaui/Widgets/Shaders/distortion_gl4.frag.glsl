@@ -308,6 +308,7 @@ void main(void)
 		//DEBUG(conePlaneNormal.y)
 		//float coneCenterToViewRayDistance = distancebetweenlines(lightPosition, normalize(coneDirection), camPos, viewDirection);
 		//closestpoint_dist.xyz = camPos + coneCenterToViewRayDistance * viewDirection; 
+		//printf(closestlightlp_distance);
 			
 	#line 34000
 	}else if (pointbeamcone < 1.5){ // beam 

@@ -309,20 +309,60 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 			shadersourcecache.updateFlag = true
 			local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 			local shaderDefines = LuaShader.CreateShaderDefinesString(shadersourcecache.shaderConfig)
+
+			local printfpattern =  "^[^/]*printf%(([%w_]+)%)"
+			local printf = nil
+			fsSrcNewLines = string.lines(fsSrcNew)
+			for i, line in ipairs(fsSrcNewLines) do 
+				--Spring.Echo(i,line)
+				local glslvariable = line:match(printfpattern)
+				if glslvariable then 
+					Spring.Echo("printf in fragment shader",i,  glslvariable, line)
+					-- init our printf table
+					if not printf then printf = {} end 
+					
+					-- Replace uncommented printf's with the function stub to set the SSBO data for that field
+
+					-- Figure out wether the glsl variable is a float, vec2-4
+					
+				end
+			end
+
+			if printf then 
+				printf.SSBO = gl.GetVBO(GL.SHADER_STORAGE_BUFFER)
+				printf.SSBO:Define(128, {{id = 0, name = "printfData", size = 4}})
+				local initZeros = {}
+				for i=1, 4*128  do initZeros[i] = 0 end
+				printf.SSBO:Upload(initZeros, nil, 0)
+
+				printf.SSBODefinition = [[
+					
+					#version 430 core
+					#extension GL_ARB_uniform_buffer_object : require
+					#extension GL_ARB_shader_storage_buffer_object : require
+					#extension GL_ARB_shading_language_420pack: require
+					layout (std430, binding = 7) buffer printfBuffer {
+						vec4 printfData[];
+					};
+
+				]]
+			end
+
 			if vsSrcNew then 
 				vsSrcNew = vsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 				vsSrcNew = vsSrcNew:gsub("//__DEFINES__", shaderDefines)
 				shadersourcecache.vsSrcComplete = vsSrcNew
 			end
-			if fsSrcNew then 
-				fsSrcNew = fsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-				fsSrcNew = fsSrcNew:gsub("//__DEFINES__", shaderDefines)
-				shadersourcecache.fsSrcComplete = fsSrcNew
-			end
 			if gsSrcNew then 
 				gsSrcNew = gsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 				gsSrcNew = gsSrcNew:gsub("//__DEFINES__", shaderDefines)
 				shadersourcecache.gsSrcComplete = gsSrcNew
+			end
+		
+			if fsSrcNew then 
+				fsSrcNew = fsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", (printf and (engineUniformBufferDefs .. printf.SSBODefinition) or engineUniformBufferDefs))
+				fsSrcNew = fsSrcNew:gsub("//__DEFINES__", shaderDefines)
+				shadersourcecache.fsSrcComplete = fsSrcNew
 			end
 			local reinitshader =  LuaShader(
 				{
