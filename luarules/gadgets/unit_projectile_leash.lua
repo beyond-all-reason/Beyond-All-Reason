@@ -26,17 +26,18 @@ local projectilesOwnersTable = {}
 local slowUpdateFrames = Game.gameSpeed
 local fastUpdateFrames = Game.gameSpeed / 10
 
-for weaponDefID, weaponDef in ipairs(WeaponDefs) do
+for weaponDefID, weaponDef in pairs(WeaponDefs) do
+	Spring.Echo("fart", weaponDef.name, weaponDef.projectilespeed)
 	if weaponDef.customParams.projectile_leash_range or weaponDef.customParams.projectile_overrange_distance then
 		defWatchTable[weaponDefID] = {}
 
 		defWatchTable[weaponDefID].weaponRange = weaponDef.range
-		defWatchTable[weaponDefID].rangeThreshold = math.max((weaponDef.maxVelocity / slowUpdateFrames) - weaponDef.range, 0)
+		defWatchTable[weaponDefID].rangeThreshold = math.max(((weaponDef.projectilespeed * Game.gameSpeed) / slowUpdateFrames) - weaponDef.range, 0)
 		Script.SetWatchWeapon(weaponDefID, true)
 	end
 	if weaponDef.customParams.projectile_leash_range then
 		defWatchTable[weaponDefID].leashRange = tonumber(weaponDef.customParams.projectile_leash_range)
-		defWatchTable[weaponDefID].leashThreshold = math.max((weaponDef.maxVelocity / slowUpdateFrames) - defWatchTable[weaponDefID].leashRange, 0)
+		defWatchTable[weaponDefID].leashThreshold = math.max(((weaponDef.projectilespeed * Game.gameSpeed) / slowUpdateFrames) - defWatchTable[weaponDefID].leashRange, 0)
 	end
 end
 
