@@ -10,6 +10,8 @@ uniform float distortionStrength = 1.0;
 void main(void) {
     vec4 distortion = texture2D(distortionTexture, gl_TexCoord[0].st);
     distortion.rgb = distortion.rgb * 2.0 - 1.0;
+    // TODO CLAMP distortion to some reasonable range
+
     vec4 screen = texture2D(screenCopyTexture, gl_TexCoord[0].st + distortionStrength * distortion.rg * 0.01);
     if (gl_TexCoord[0].x > 0.66){ // right half?
         if (gl_TexCoord[0].y > 0.5){ // top right

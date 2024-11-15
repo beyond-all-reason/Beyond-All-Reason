@@ -1444,6 +1444,13 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 	--end
 end
 
+if autoupdate then
+	function widget:DrawScreen()
+		--Spring.Echo("DrawScreen", deferredDistortionShader.DrawPrintf)
+		if deferredDistortionShader.DrawPrintf then deferredDistortionShader.DrawPrintf(0) end
+	end
+end
+
 -- Register /luaui distortionGL4stats to dump distortion statistics
 function widget:TextCommand(command)
 	if string.find(command, "distortionGL4stats", nil, true) then

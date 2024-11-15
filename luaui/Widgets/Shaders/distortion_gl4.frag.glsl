@@ -377,12 +377,23 @@ void main(void)
 		return;
 	}
 
+	
+	
+	printf(fragWorldPos.xyz);
+
+	printf(closestpoint_dist.xyzw);
+	printf(camPos.xyz);
+
+	if (all(lessThan(abs(mouseScreenPos.xy- (gl_FragCoord.xy + vec2(0.5, -1.5))),vec2(0.25) ))){
+		fragColor.rgba = vec4(1.0);
+		return;
+
+	}
 	if (length(closestpoint_dist.xyz - fragWorldPos.xyz) > lightRadius) {
 		fragColor.rgba = vec4(0.0);
 		//return;
 
 	}
-
 	// TODO: Ensure that the distortion is proportionate to the amount of "Hot" volume the ray passes through. 
 
 	vec4 noiseSample = textureLod(noise3DCube, closestpoint_dist.xyz * 0.03 - vec3(0,timeInfo.x * 0.01,0), 0.0);
