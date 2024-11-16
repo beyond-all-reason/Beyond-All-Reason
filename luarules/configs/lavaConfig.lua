@@ -463,7 +463,9 @@ elseif Game.waterDamage > 0 and (not voidWaterMap) then -- Waterdamagemaps - kee
 elseif Spring.GetModOptions().map_waterislava and (not voidWaterMap) then
 	lavaMap = true
 	lavaLevel = 4 
-	addTideRhym (4, 0.05, 5*6000)
+	if isLavaGadget and isLavaGadget == "synced" then
+		addTideRhym (4, 0.05, 5*6000)
+	end
 end
 
 
