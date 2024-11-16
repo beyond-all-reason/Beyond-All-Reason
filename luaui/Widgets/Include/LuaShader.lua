@@ -317,9 +317,8 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 				--Spring.Echo(i,line)
 				local glslvariable = line:match(printfpattern)
 				if glslvariable then 
-					Spring.Echo("printf in fragment shader",i,  glslvariable, line)
+					--Spring.Echo("printf in fragment shader",i,  glslvariable, line)
 					-- init our printf table
-					if not printf then printf = {} end 
 					
 					-- Replace uncommented printf's with the function stub to set the SSBO data for that field
 
@@ -331,13 +330,17 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 						swizzle = string.sub(glslvariable, dotposition+1)
 						glslvarcount = string.len(swizzle)
 					end
+					if glslvarcount>4 then 
+						glslvarcount = 4
+					end
+					if not printf then printf = {} end 
 					printf["vars"] = printf["vars"] or {}
 					local vardata =  {name = glslvariable, count = glslvarcount, line = i, index = #printf["vars"], swizzle = swizzle, shaderstage = 'f'}
 					table.insert(printf["vars"], vardata)   
 					local replacementstring = string.format('if (all(lessThan(abs(mouseScreenPos.xy- (gl_FragCoord.xy + vec2(0.5, -1.5))),vec2(0.25) ))) {	printfData[%i].%s = %s;}	//printfData[INDEX] = vertexPos.xyzw;',
 							vardata.index, string.sub('xyzw', 1, vardata.count), vardata.name
 					)
-					Spring.Echo("Replacing", line, 'with', replacementstring)   
+					Spring.Echo(string.format("Replacing f:%d %s", i, line))   
 					fsSrcNewLines[i] = replacementstring
 				end
 			end
@@ -346,7 +349,7 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 			if printf then 
 				-- Define the shader storage buffer object, with at most SSBOSize entries
 				printf.SSBOSize = math.max(#printf['vars'], 16)
-				Spring.Echo("SSBOSize", printf.SSBOSize)
+				--Spring.Echo("SSBOSize", printf.SSBOSize)
 				printf.SSBO = gl.GetVBO(GL.SHADER_STORAGE_BUFFER)
 				printf.SSBO:Define(printf.SSBOSize, {{id = 0, name = "printfData", size = 4}})
 				local initZeros = {}
@@ -748,31 +751,40 @@ function LuaShader:Deactivate()
 
 		if not self.DrawPrintf then 
 			--Spring.Echo("creating DrawPrintf")
+			local fontfile3 = "fonts/monospaced/" .. Spring.GetConfigString("bar_font3", "SourceCodePro-Semibold.otf")
+			local fontSize = 16
+			local font3 = WG['fonts'].getFont(fontfile3, 1 , 0.5, 1.0)
+			
 			local function DrawPrintf(xoffset)
 				--Spring.Echo("attempting to draw printf",xoffset)
 				xoffset = xoffset or 0
 				local mx,my = Spring.GetMouseState()
 				mx = mx + xoffset
 				my = my - 32
+
+				font3:Begin()
 				gl.PushMatrix()
 				-- Todo: could really use a monospaced font!
-				gl.Color(1,1,1,1)
+				--gl.Color(1,1,1,1)
+				gl.Blending(GL.ONE, GL.ZERO)
 				for i, vardata in ipairs(self.printf.vars) do 
 					local message 
 					if vardata.count == 1 then 
-						message = string.format("%s:%d %s = (%.3f)", vardata.shaderstage, vardata.line, vardata.name, self.printf.bufferData[1 + vardata.index * 4])
+						message = string.format("%s:%d %s = %.3f", vardata.shaderstage, vardata.line, vardata.name, self.printf.bufferData[1 + vardata.index * 4])
 					elseif vardata.count == 2 then 
-						message = string.format("%s:%d %s = (%.3f, %.3f)", vardata.shaderstage, vardata.line, vardata.name, self.printf.bufferData[1 + vardata.index * 4], self.printf.bufferData[2 + vardata.index * 4])
+						message = string.format("%s:%d %s = [%.3f, %.3f]", vardata.shaderstage, vardata.line, vardata.name, self.printf.bufferData[1 + vardata.index * 4], self.printf.bufferData[2 + vardata.index * 4])
 					elseif vardata.count == 3 then
-						message = string.format("%s:%d %s = (%.3f, %.3f, %.3f)", vardata.shaderstage, vardata.line, vardata.name, self.printf.bufferData[1 + vardata.index * 4], self.printf.bufferData[2 + vardata.index * 4], self.printf.bufferData[3 + vardata.index * 4])
+						message = string.format("%s:%d %s = [%10.3f, %10.3f, %10.3f]", vardata.shaderstage, vardata.line, vardata.name, self.printf.bufferData[1 + vardata.index * 4], self.printf.bufferData[2 + vardata.index * 4], self.printf.bufferData[3 + vardata.index * 4])
 					elseif vardata.count == 4 then
-						message = string.format("%s:%d %s = (%.3f, %.3f, %.3f, %.3f)", vardata.shaderstage, vardata.line, vardata.name, self.printf.bufferData[1 + vardata.index * 4], self.printf.bufferData[2 + vardata.index * 4], self.printf.bufferData[3 + vardata.index * 4], self.printf.bufferData[4 + vardata.index * 4])
+						message = string.format("%s:%d %s = [%.3f, %.3f, %.3f, %.3f]", vardata.shaderstage, vardata.line, vardata.name, self.printf.bufferData[1 + vardata.index * 4], self.printf.bufferData[2 + vardata.index * 4], self.printf.bufferData[3 + vardata.index * 4], self.printf.bufferData[4 + vardata.index * 4])
 					end
 
-					my = my - 16
-					gl.Text(message, mx, my, 16,"d")
+					my = my - fontSize
+					font3:Print(message, math.floor(mx), math.floor(my), fontSize,"o")
 				end
 				gl.PopMatrix()
+				
+				font3:End()
 			end
 			self.DrawPrintf = DrawPrintf
 		end

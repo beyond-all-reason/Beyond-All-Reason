@@ -215,7 +215,6 @@ local fullScreenQuadVAO = nil
 ---------------------- INITIALIZATION FUNCTIONS ----------------------------------
 
 
-
 local function goodbye(reason)
 	Spring.Echo('Deferred Distortions GL4 exiting:', reason)
 	widgetHandler:RemoveWidget()
