@@ -38,6 +38,7 @@ return {
 			subfolder = "CorBuildings/LandDefenceOffence",
 			unitgroup = "weapon",
 			usebuildinggrounddecal = true,
+			smart_weapon_select_priority = 1,
 		},
 		featuredefs = {
 			dead = {

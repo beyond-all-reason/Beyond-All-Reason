@@ -78,10 +78,8 @@ smartAimSelect(weaponNumber)
 		//check if the low weapon aimed but didn't fire.
 		if (((lowReloadState + RESET_LOW_DELAY_FRAMES) < gameFrame) && (queueLowFrame > switchAimModeFrame)){
 			firedLowFailed = TRUE;
-			get PRINT(1111);
 		} else{
 			firedLowFailed = FALSE;
-			get PRINT(2222);
 		}
 		aimingState = AIMING_NEITHER;
 	}
