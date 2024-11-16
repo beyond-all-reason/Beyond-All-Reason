@@ -76,10 +76,12 @@ smartAimSelect(weaponNumber)
 		}
 
 		//check if the low weapon aimed but didn't fire.
-		if (((lowReloadState + RESET_LOW_DELAY_FRAMES) < switchAimModeFrame) && (queueLowFrame > switchAimModeFrame)){
+		if (((lowReloadState + RESET_LOW_DELAY_FRAMES) < gameFrame) && (queueLowFrame > switchAimModeFrame)){
 			firedLowFailed = TRUE;
+			get PRINT(1111);
 		} else{
 			firedLowFailed = FALSE;
+			get PRINT(2222);
 		}
 		aimingState = AIMING_NEITHER;
 	}
@@ -90,6 +92,7 @@ smartAimSelect(weaponNumber)
 			aimingState = AIMING_LOW;
 		} else if ((weaponNumber == AIMING_HIGH) && (queueLowFrame < gameFrame)){
 			if (firedLowFailed == TRUE){
+				get PRINT(3333);
 				//if low aimed but failed to fire, aim high for longer.
 				switchAimModeFrame = (gameFrame + RESET_HIGH_ERRORSTATE_FRAMES);
 			} else{
