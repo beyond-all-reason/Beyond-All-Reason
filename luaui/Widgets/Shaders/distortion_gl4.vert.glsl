@@ -234,11 +234,19 @@ void main()
 		worldPos.xz *= tan(worldposrad2.w); // Scale the flat of the cone by the half-angle of its opening
 		v_worldPosRad2.w = cos(worldposrad2.w); // pass through the cosine to avoid this calc later on
 		v_worldPosRad2.xyz = normalize(worldposrad2.xyz); // normalize this here for sanity
+
+		// if the cone is not attached to the unit, exploit that direction allows us to smoothen anim
+		if (attachedtounitID < 0.5){
+			lightCenterPosition += worldposrad2.xyz * timeInfo.w;
+			// if its projectile slaved, then flip its direction
+			v_worldPosRad2.xyz *= -1.0;
+		}
+		
 		worldPos.xyz *= lightRadius * 1.05; // scale it all by the height of the cone, and a bit of extra 
 		
 		// Now our cone is opening forward towards  -y, but we want it to point into the worldposrad2.xyz
 		vec3 oldfw = vec3(0, -1,0); // The old forward direction is -y
-		vec3 newfw = normalize(worldposrad2.xyz); // the new forward direction shall be the normal that we want
+		vec3 newfw = normalize(v_worldPosRad2.xyz); // the new forward direction shall be the normal that we want
 		vec3 newright = normalize(cross(newfw, oldfw)); // the new right direction shall be the vector perpendicular to old and new forward
 		vec3 newup = normalize(cross(newright, newfw)); // the new up direction shall be the vector perpendicular to new right and new forward
 		// TODO: handle the two edge cases where newfw == (oldfw or -1*oldfw)
@@ -248,10 +256,7 @@ void main()
 				newright 
 			);
 			
-		// if the cone is not attached to the unit, exploit that direction allows us to smoothen anim
-		if (attachedtounitID < 0.5){
-			lightCenterPosition += worldposrad2.xyz * timeInfo.w;
-		}
+	
 		
 		// rotate the cone, and place it into local space
 		worldPos.xyz = rotmat * worldPos.xyz + lightCenterPosition;

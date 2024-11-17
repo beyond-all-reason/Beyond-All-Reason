@@ -69,6 +69,18 @@ local BaseClasses = {
 		},
 	},
 
+	
+	PlasmaTrailProjectile = {
+		distortionType = 'cone',
+		distortionConfig = { posx = 0, posy = 0, posz = 00, radius = 100,
+						dirx =  0, diry = 1, dirz = 1.0, theta = 0.1,
+						--color2r = 1, color2g = 1, color2b = 1, colortime = 0,
+						r = 0.45, g = 0.7, b = 1, a = 0.33,
+						modelfactor = 0.4, specular = 0, scattering = 0.3, lensflare = 0,
+						lifetime = 0, sustain = 0, animtype = 0},
+	},
+
+	
 
 	MissileProjectile = {
 		distortionType = 'point', -- or cone or beam
@@ -1008,6 +1020,8 @@ GetDistortionClass("Explosion", nil, "Small", {r = 1.3, g = 1.1, b = 0.8, a = 0.
 --projectileDefDistortionsNames["armrock_arm_bot_rocket"] = GetDistortionClass("LaserAimProjectile", "Red", "Large")
 --projectileDefDistortionsNames["corstorm_cor_bot_rocket"] = GetDistortionClass("LaserAimProjectile", "Red", "Large")
 
+
+projectileDefDistortionsNames["cormort_cor_mort"] = GetDistortionClass("PlasmaTrailProjectile", "Red", "Small")
 
 
 -- convert weaponname -> weaponDefID

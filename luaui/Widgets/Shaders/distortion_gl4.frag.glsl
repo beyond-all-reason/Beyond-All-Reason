@@ -395,8 +395,8 @@ void main(void)
 	// Lighting components we wish to collect along the way:
 	float distance_attenuation = 0; // Just the distance from the light source (multiplied with falloff for cones
 
-	float volumetricFraction = 1.0; // The fraction of the ray that passes through the volume. 
 	
+	float relativeDensity = 1.0;
 	//fragColor.rgba = vec4(fract(fragWorldPos.xyz * 0.1),1.0); return; // Debug fragment world position
 	
 	#line 32000
@@ -413,15 +413,8 @@ void main(void)
 		EntryPoint = camPos + nearFarDistances.x * -viewDirection;
 		ExitPoint = camPos + nearFarDistances.y * -viewDirection;
 		MidPoint = (EntryPoint + ExitPoint) * 0.5;
-		distance_attenuation = clamp( 1.0 - length (lightPosition - MidPoint) * lightRadiusInv, 0, 1);
-	
-		// If the fragment is inside the sphere, we need to calculate the volumetric fraction
-		if (fragDistance < nearFarDistances.y){
-			// FUCK WHY THE 0.5? 
-			volumetricFraction =1.0 -  clamp(0.5*abs(nearFarDistances.y - fragDistance) / abs(nearFarDistances.y - nearFarDistances.x), .0, 1.0);
-		}
-		//fragColor.rgba = vec4(volumetricFraction,volumetricFraction,0, 1.0); return;
-
+		distance_attenuation = clamp( 1.0 - length (lightPosition - MidPoint) * lightRadiusInv, 0, 1);	
+		relativeDensity = clamp(length(EntryPoint- ExitPoint) / (2*lightRadius), 0.0, 1.0);
 
 	#line 33000
 	}else if (pointbeamcone < 1.5){ // beam 
@@ -445,15 +438,12 @@ void main(void)
 		ExitPoint =  (-viewDirection) * nearFarDistances.y + camPos;
 		MidPoint = (EntryPoint + ExitPoint) * 0.5;
 		distance_attenuation =  clamp( 1.0 - closestpoint_dist.w *lightRadiusInv, 0,1);
+		relativeDensity = clamp(length(EntryPoint- ExitPoint) / (2*lightRadius), 0.0, 1.0);
 
-		if (fragDistance < nearFarDistances.y) {
-			volumetricFraction = 1.0 - clamp(0.5 * abs(nearFarDistances.y - fragDistance) / abs(nearFarDistances.y - nearFarDistances.x), 0.0, 1.0);
-		}
 
-	}
 
 	#line 34000
-	else if (pointbeamcone > 1.5){ // cone
+	}else if (pointbeamcone > 1.5){ // cone
 		lightPosition = v_worldPosRad.xyz;
 		lightEmitPosition = lightPosition;
 		
@@ -461,9 +451,6 @@ void main(void)
 		lightDirection = normalize(lightToWorld);
 
 		vec3 coneDirection = normalize(v_worldPosRad2.xyz);
-	
-		float lightandworldangle = dot(lightDirection, coneDirection);
-		
 	
 		float coneAngleCosine = v_worldPosRad2.w;
 		float coneHalfAngleSine = sqrt(1.0 - coneAngleCosine * coneAngleCosine);
@@ -474,28 +461,33 @@ void main(void)
 		float coneSideLengthInv = inversesqrt(coneHeight * coneHeight + coneWidth * coneWidth);
 		float biggestradius = coneHeight * coneWidth * coneSideLengthInv / ( 1 + coneWidth * coneSideLengthInv);
 		vec3 endPoint = lightPosition  + coneDirection * (lightRadius - biggestradius);
-		vec2 nearFarDistances = intersectRoundedCone(camPos, -viewDirection, lightPosition, endPoint , biggestradius * 0.1, biggestradius) ;
+		vec2 nearFarDistances = intersectRoundedCone(camPos, -viewDirection, lightPosition, endPoint , biggestradius * 0.11, biggestradius) ;
 		EntryPoint = camPos + nearFarDistances.x * -viewDirection;
 		ExitPoint = camPos + nearFarDistances.y * -viewDirection;
 		MidPoint = (EntryPoint + ExitPoint) * 0.5;
 
-		if (fragDistance < nearFarDistances.y) {
-			volumetricFraction = 1.0 - clamp(0.5 * abs(nearFarDistances.y - fragDistance) / abs(nearFarDistances.y - nearFarDistances.x), 0.0, 1.0);
-		}
-	
 		closestpoint_dist = ray_to_capsule_distance_squared(camPos, viewDirection, lightPosition, endPoint );
 
-		distance_attenuation = clamp( 1.0 - closestpoint_dist.w / biggestradius, 0,1) * 1.0;
-		distance_attenuation *= clamp(dot(coneDirection, normalize(MidPoint - lightPosition)) * coneAngleCosine ,0.0, 1.0) * 10;		
+		distance_attenuation = clamp( 1.0 - length(MidPoint - lightPosition)  / coneHeight, 0,1) * 1.0;
+		float lightAngleCosine  = dot(coneDirection, normalize(MidPoint - lightPosition));
+		float coneEdgeFactor = clamp((lightAngleCosine - coneAngleCosine) / (1.0 - coneAngleCosine), 0.0, 1.0);
+		coneEdgeFactor = sqrt(	coneEdgeFactor) * 4;
+		relativeDensity = clamp(length(EntryPoint- ExitPoint) / (2*biggestradius), 0.0, 1.0);
+		//distance_attenuation *= coneEdgeFactor;
+		//printf(distance_attenuation);
+		//printf(coneEdgeFactor);
+	}
+	float relativeDensityXdistance_attenuation = relativeDensity * distance_attenuation;
+	//printf(relativeDensityXdistance_attenuation);
+	//DEBUG(relativeDensity*distance_attenuation);
+	#line 35000
+	
+	// If the fragment is inside the volume, we need to calculate the volumetric fraction
+	float volumetricFraction = 1.0; // The fraction of the ray that passes through the volume. 
+	if (fragDistance < nearFarDistances.y) {
+		volumetricFraction = 1.0 - clamp(0.5 * abs(nearFarDistances.y - fragDistance) / abs(nearFarDistances.y - nearFarDistances.x), 0.0, 1.0);
 	}
 
-	#line 35000
-
-	printf(volumetricFraction)
-	float relativeDensity = clamp(length(EntryPoint- ExitPoint) / (2*lightRadius), 0.0, 1.0);
-	printf(relativeDensity);
-	distance_attenuation = pow(distance_attenuation, 1.0);
-	
 	
 	//-------------------------
 	// DISTORTION
@@ -504,19 +496,19 @@ void main(void)
 	// Draw attenuation as a color Green
 	float distortionAttenuation = 1.0; // start at max for the center
 
+	// Multiply the relative volume density:
+	distortionAttenuation *= relativeDensity;
+
+	// Attenuate with distance:
+	distortionAttenuation *= distance_attenuation;
+	
+	distortionAttenuation = pow(distortionAttenuation, 0.75);
+
 	// Take into account relative distance of ray point closest to light source to the light source
-	
-	float lightRange = lightRadius;
-	
-	//distortionAttenuation *=  closestpoint_dist.w / lightRange;
-
 	distortionAttenuation *= volumetricFraction;
-
 
 	//fragColor.rgba = vec4(0.6, distortionAttenuation, 0.0, 1.0); return;
 
-	// Check if point would be occluded
-	float distortionRange = lightRadius;
 
 	// if the fragment is closer to the camera than the light source plus its radius, we can skip the distortion
 	if (length(fragWorldPos.xyz - camPos) < ( length(lightPosition - camPos) -lightRadius)){
@@ -524,7 +516,6 @@ void main(void)
 		return;
 	}
 
-	printf(distortionAttenuation);
 	
 
 	// Show which fragment is being printf'd:
@@ -547,10 +538,9 @@ void main(void)
 	//DEBUG(closestpoint_dist.y);
 	//modulate alpha part with the 
 	float strength  = 1.0; //clamp(1.0 - length(closestpoint_dist.xyz - lightPosition)/ lightRadius, 0.0, 1.0) * (distortionAttenuation);
-	strength *= distortionAttenuation * relativeDensity * distance_attenuation;
+	strength *= distortionAttenuation  ;
 	printf(strength);
 	//DEBUG(strength);
-	printf(noiseSample.rgba);
 	fragColor.rgba = vec4(vec3(noiseSample.ra, 0.0) * 1.0 , strength);
 	//fragColor.rgba = vec4(0,0,0,1.0);
 	return;

@@ -14768,7 +14768,9 @@ local unitDistortions = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
+	--[[
 	['cormort'] = {
+	
 		eyes = {
 			distortionType = 'point',
 			pieceName = 'head',
@@ -14824,6 +14826,7 @@ local unitDistortions = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
+	]]--
 	['corthud'] = {
 		eyes = {
 			distortionType = 'point',
