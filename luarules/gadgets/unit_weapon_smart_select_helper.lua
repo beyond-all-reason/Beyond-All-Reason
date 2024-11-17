@@ -5,7 +5,7 @@ function gadget:GetInfo()
 		author = "SethDGamre",
 		date = "2024.11.16",
 		license = "GNU GPL, v2 or later",
-		layer = 1100,
+		layer = 1,
 		enabled = true
 	}
 end
