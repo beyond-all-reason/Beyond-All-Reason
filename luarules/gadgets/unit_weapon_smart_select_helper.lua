@@ -22,7 +22,7 @@ for unitDefID, def in ipairs(UnitDefs) do
 	if def.customParams.smart_weapon_select_priority then
 		smartWeaponsWatch[unitDefID] = def.customParams.smart_weapon_select_priority
 		for weaponNumber, weaponData in ipairs(def.weapons) do
-			Spring.Echo("Shitshit", weaponNumber, weaponData, weaponData.name)
+			Spring.Echo("smart_weapon_select_priority", weaponData.name, weaponNumber, weaponData)
 			Script.SetWatchWeapon(weaponData.weaponDef, true)
 		end
 	end
