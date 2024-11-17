@@ -5,7 +5,7 @@ function gadget:GetInfo()
 		author = "SethDGamre",
 		date = "2024.11.16",
 		license = "GNU GPL, v2 or later",
-		layer = 0,
+		layer = 1100,
 		enabled = true
 	}
 end
@@ -55,6 +55,6 @@ end
 -- end
 
 function gadget:AllowWeaponTargetCheck(attackerID, attackerWeaponNum, attackerWeaponDefID)
-	Spring.Echo("AllowWeaponTargetCheck", attackerID, attackerWeaponNum, attackerWeaponDefID)
-	return 1, 0
+	Spring.Echo("AllowWeaponTargetCheck", attackerID, attackerWeaponNum, attackerWeaponDefID, Spring.GetGameFrame())
+	return false, true
 end
