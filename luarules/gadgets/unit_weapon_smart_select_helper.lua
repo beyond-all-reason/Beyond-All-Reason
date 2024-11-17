@@ -28,6 +28,12 @@ for unitDefID, def in ipairs(UnitDefs) do
 	end
 end
 
+function gadget:AllowWeaponTargetCheck(attackerID, attackerWeaponNum, attackerWeaponDefID)
+	Spring.Echo("AllowWeaponTargetCheck", attackerID, attackerWeaponNum, attackerWeaponDefID, Spring.GetGameFrame())
+	return false, true
+end
+
+
 -- function gadget:GameFrame(frame)
 	
 -- end
@@ -36,8 +42,3 @@ end
 -- 	Spring.Echo("AllowCommand", unitID, unitDefID, unitTeam, cmdID)
 -- 	return true
 -- end
-
-function gadget:AllowWeaponTargetCheck(attackerID, attackerWeaponNum, attackerWeaponDefID)
-	Spring.Echo("AllowWeaponTargetCheck", attackerID, attackerWeaponNum, attackerWeaponDefID, Spring.GetGameFrame())
-	return false, true
-end
