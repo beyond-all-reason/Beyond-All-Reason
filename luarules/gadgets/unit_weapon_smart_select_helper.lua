@@ -14,19 +14,6 @@ if not gadgetHandler:IsSyncedCode() then return end
 
 --use customparams.smart_weapon_select_priority to define which weapon number is preferred over the other(s) and enable auto-targetting override.
 
---functions
-local spGetUnitIsDead = Spring.GetUnitIsDead
-local spValidUnitID = Spring.ValidUnitID
-local spAddUnitDamage = Spring.AddUnitDamage
-local spGetUnitVelocity = Spring.GetUnitVelocity
-local spGetUnitBasePosition = Spring.GetUnitBasePosition
-local spGetUnitPosition = Spring.GetUnitPosition
-local spSpawnCEG = Spring.SpawnCEG
-local spPlaySoundFile = Spring.PlaySoundFile
-local spTestMoveOrder = Spring.TestMoveOrder
-local spGetUnitHealth = Spring.GetUnitHealth
-local spDestroyUnit = Spring.DestroyUnit
-
 --tables
 local smartWeaponsWatch = {}
 local unitDefsWithSmartWeapons = {}
@@ -41,13 +28,9 @@ for unitDefID, def in ipairs(UnitDefs) do
 	end
 end
 
-for weaponDefID, weaponDef in ipairs(WeaponDefs) do
-
-end
-
-function gadget:GameFrame(frame)
+-- function gadget:GameFrame(frame)
 	
-end
+-- end
 
 -- function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
 -- 	Spring.Echo("AllowCommand", unitID, unitDefID, unitTeam, cmdID)
