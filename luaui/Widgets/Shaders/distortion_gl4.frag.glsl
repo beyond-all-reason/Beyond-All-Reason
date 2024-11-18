@@ -67,7 +67,28 @@ float distancebetweenlines(vec3 r1, vec3 e1, vec3 r2, vec3 e2){ // point1, dir1,
 	return distance;
 }
 
+// Given a ray origin and direction,  and a line segment start and end point, which point on the ray is closest to the line segment?
+vec3 ray_linesegment_closestpoint(vec3 rayOrigin, vec3 rayDirection, vec3 lineStart, vec3 lineEnd){
 
+	vec3 lineDir = lineEnd - lineStart;
+	vec3 rayToLineStart = lineStart - rayOrigin;
+	vec3 rayToLineEnd = lineEnd - rayOrigin;
+
+	float t1 = dot(rayToLineStart, rayDirection);
+	float t2 = dot(rayToLineEnd, rayDirection);
+
+	vec3 closestPointOnRayToLineStart = rayOrigin + t1 * rayDirection;
+	vec3 closestPointOnRayToLineEnd = rayOrigin + t2 * rayDirection;
+
+	float distToLineStart = length(closestPointOnRayToLineStart - lineStart);
+	float distToLineEnd = length(closestPointOnRayToLineEnd - lineEnd);
+
+	if (distToLineStart < distToLineEnd) {
+		return closestPointOnRayToLineStart;
+	} else {
+		return closestPointOnRayToLineEnd;
+	}
+}
 // https://gist.github.com/wwwtyro/beecc31d65d1004f5a9d
 vec2 raySphereIntersect(vec3 rayOrigin, vec3 rayDirection, vec3 sphereCenter, float sphereRadius) {
     // - r0: ray origin
@@ -429,6 +450,7 @@ void main(void)
 		
 		closestpoint_dist = ray_to_capsule_distance_squared(camPos, viewDirection, beamstart, beamend);
 		lightEmitPosition = closestpoint_dist.xyz;
+		closestpoint_dist.xyz = ray_linesegment_closestpoint(camPos, viewDirection, beamstart, beamend);
 		
 		// Find the close and far distances to the beam
 		nearFarDistances.x =  capIntersect( camPos, -viewDirection, beamstart, beamend, lightRadius);
@@ -439,7 +461,7 @@ void main(void)
 		MidPoint = (EntryPoint + ExitPoint) * 0.5;
 		distance_attenuation =  clamp( 1.0 - closestpoint_dist.w *lightRadiusInv, 0,1);
 		relativeDensity = clamp(length(EntryPoint- ExitPoint) / (2*lightRadius), 0.0, 1.0);
-
+		DEBUGPOS(closestpoint_dist.xyz);
 
 
 	#line 34000
