@@ -313,6 +313,7 @@ local zipOnly = {
 }
 
 function widgetHandler:Initialize()
+	widgetHandler:CreateQueuedReorderFuncs()
 	self:LoadConfigData()
 
 	-- do we allow userland widgets?
@@ -387,8 +388,12 @@ function widgetHandler:Initialize()
 		local source = self.knownWidgets[name].fromZip and "mod: " or "user:"
 		Spring.Echo(string.format("Loading widget from %s  %-18s  <%s> ...", source, name, basename))
 		Yield()
-		widgetHandler:InsertWidget(w)
+		widgetHandler:InsertWidgetRaw(w)
 	end
+
+	-- Since Initialize is run out of the normal callin wrapper by InsertWidget,
+	-- we, need to reorder explicitly here.
+	widgetHandler:PerformReorders()
 
 	-- save the active widgets, and their ordering
 	self:SaveConfigData()
@@ -804,7 +809,63 @@ local function ArrayRemove(t, w)
 	end
 end
 
-function widgetHandler:InsertWidget(widget)
+--------------------------------------------------------------------------------
+--- Safe reordering
+
+-- Since we are traversing lists, some of the widgetHandler api would be dangerous to use.
+--
+-- We will queue all the dangerous methods to process after callin loop finishes iterating.
+-- The 'real' methods have 'Raw' appended to them, and are unsafe to use unless you know what
+-- you are doing.
+
+local reorderQueue = {}
+local reorderNeeded = false
+local reorderFuncs = {}
+local callinDepth = 0
+
+function widgetHandler:CreateQueuedReorderFuncs()
+	-- This will create an array with linked Raw methods so we can find them by index.
+	-- It will also create the widgetHandler usual api queing the calls.
+	local reorderFuncNames = {'InsertWidget', 'RemoveWidget', 'EnableWidget', 'DisableWidget',
+		'ToggleWidget', 'LowerWidget', 'RaiseWidget', 'UpdateWidgetCallIn', 'RemoveWidgetCallIn'}
+	local queueReorder = widgetHandler.QueueReorder
+
+	for idx, name in ipairs(reorderFuncNames) do
+		-- linked method index
+		reorderFuncs[#reorderFuncs + 1] = widgetHandler[name .. 'Raw']
+
+		-- widgetHandler api
+		widgetHandler[name] = function(s, ...)
+			queueReorder(s, idx, ...)
+		end
+	end
+end
+
+function widgetHandler:QueueReorder(methodIndex, ...)
+	reorderQueue[#reorderQueue + 1] = {methodIndex, ...}
+	reorderNeeded = true
+end
+
+function widgetHandler:PerformReorder(methodIndex, ...)
+	reorderFuncs[methodIndex](self, ...)
+end
+
+function widgetHandler:PerformReorders()
+	-- Reset and store the list so we can support nested reorderings
+	reorderNeeded = false
+	local nextReorder = reorderQueue
+	reorderQueue = {}
+	-- Process the reorder queue
+	for _, elmts in ipairs(nextReorder) do
+		self:PerformReorder(unpack(elmts))
+	end
+end
+
+--------------------------------------------------------------------------------
+--- Unsafe insert/remove
+
+
+function widgetHandler:InsertWidgetRaw(widget)
 	if widget == nil then
 		return
 	end
@@ -825,7 +886,7 @@ function widgetHandler:InsertWidget(widget)
 	end
 end
 
-function widgetHandler:RemoveWidget(widget)
+function widgetHandler:RemoveWidgetRaw(widget)
 	if widget == nil or widget.whInfo == nil then
 		return
 	end
@@ -862,7 +923,16 @@ function widgetHandler:UpdateCallIn(name)
 		-- always assign these call-ins
 		local selffunc = self[name]
 		_G[name] = function(...)
-			return selffunc(self, ...)
+			callinDepth = callinDepth + 1
+
+			local res = selffunc(self, ...)
+
+			callinDepth = callinDepth - 1
+
+			if reorderNeeded and callinDepth == 0 then
+				self:PerformReorders()
+			end
+			return res
 		end
 	else
 		_G[name] = nil
@@ -870,7 +940,7 @@ function widgetHandler:UpdateCallIn(name)
 	Script.UpdateCallIn(name)
 end
 
-function widgetHandler:UpdateWidgetCallIn(name, w)
+function widgetHandler:UpdateWidgetCallInRaw(name, w)
 	local listName = name .. 'List'
 	local ciList = self[listName]
 	if ciList then
@@ -886,7 +956,7 @@ function widgetHandler:UpdateWidgetCallIn(name, w)
 	end
 end
 
-function widgetHandler:RemoveWidgetCallIn(name, w)
+function widgetHandler:RemoveWidgetCallInRaw(name, w)
 	local listName = name .. 'List'
 	local ciList = self[listName]
 	if ciList then
@@ -909,7 +979,7 @@ function widgetHandler:IsWidgetKnown(name)
 	return self.knownWidgets[name] and true or false
 end
 
-function widgetHandler:EnableWidget(name, enableLocalsAccess)
+function widgetHandler:EnableWidgetRaw(name, enableLocalsAccess)
 	local ki = self.knownWidgets[name]
 	if not ki then
 		Spring.Echo("EnableWidget(), could not find widget: " .. tostring(name))
@@ -925,13 +995,13 @@ function widgetHandler:EnableWidget(name, enableLocalsAccess)
 		if not w then
 			return false
 		end
-		self:InsertWidget(w)
+		self:InsertWidgetRaw(w)
 		self:SaveConfigData()
 	end
 	return true
 end
 
-function widgetHandler:DisableWidget(name)
+function widgetHandler:DisableWidgetRaw(name)
 	local ki = self.knownWidgets[name]
 	if not ki then
 		Spring.Echo("DisableWidget(), could not find widget: " .. tostring(name))
@@ -943,23 +1013,23 @@ function widgetHandler:DisableWidget(name)
 			return false
 		end
 		Spring.Echo('Removed:  ' .. ki.filename)
-		self:RemoveWidget(w)     -- deactivate
+		self:RemoveWidgetRaw(w)     -- deactivate
 		self.orderList[name] = 0 -- disable
 		self:SaveConfigData()
 	end
 	return true
 end
 
-function widgetHandler:ToggleWidget(name)
+function widgetHandler:ToggleWidgetRaw(name)
 	local ki = self.knownWidgets[name]
 	if not ki then
 		Spring.Echo("ToggleWidget(), could not find widget: " .. tostring(name))
 		return
 	end
 	if ki.active then
-		return self:DisableWidget(name)
+		return self:DisableWidgetRaw(name)
 	elseif self.orderList[name] <= 0 then
-		return self:EnableWidget(name)
+		return self:EnableWidgetRaw(name)
 	else
 		-- the widget is not active, but enabled; disable it
 		self.orderList[name] = 0
@@ -989,7 +1059,7 @@ local function FindLowestIndex(t, i, layer)
 	return 1
 end
 
-function widgetHandler:RaiseWidget(widget)
+function widgetHandler:RaiseWidgetRaw(widget)
 	if widget == nil then
 		return
 	end
@@ -1023,7 +1093,7 @@ local function FindHighestIndex(t, i, layer)
 	return ts
 end
 
-function widgetHandler:LowerWidget(widget)
+function widgetHandler:LowerWidgetRaw(widget)
 	if widget == nil then
 		return
 	end
@@ -1160,6 +1230,8 @@ end
 
 function widgetHandler:Update()
 
+	-- always top level so just set callinDepth to 1
+	callinDepth = 1
 	if collectgarbage("count") > 1200000 then
 		Spring.Echo("Warning: Emergency garbage collection due to exceeding 1.2GB LuaRAM")
 		collectgarbage("collect")
@@ -1174,11 +1246,16 @@ function widgetHandler:Update()
 		w:Update(deltaTime)
 		tracy.ZoneEnd()
 	end
+	-- Update is not wrapped through UpdateCallIn, so needs manual calling
+	-- of PerformReorders, also since it should never be called nested
+	-- we reset callinDepth here as a consistency measure.
+	callinDepth = 0
+	self:PerformReorders()
 	tracy.ZoneEnd()
 	return
 end
 
-function widgetHandler:ConfigureLayout(command)
+function widgetHandler:ConfigureLayoutRaw(command)
 
 	if command == 'reconf' then
 		self:SendConfigData()
@@ -1190,17 +1267,17 @@ function widgetHandler:ConfigureLayout(command)
 			end
 		end
 		local sw = self:LoadWidget(LUAUI_DIRNAME .. SELECTOR_BASENAME, true) -- load the game's included widget_selector.lua, instead of the default selector.lua
-		self:InsertWidget(sw)
-		self:RaiseWidget(sw)
+		self:InsertWidgetRaw(sw)
+		self:RaiseWidgetRaw(sw)
 		return true
 	elseif string.find(command, 'togglewidget') == 1 then
-		self:ToggleWidget(string.sub(command, 14))
+		self:ToggleWidgetRaw(string.sub(command, 14))
 		return true
 	elseif string.find(command, 'enablewidget') == 1 then
-		self:EnableWidget(string.sub(command, 14))
+		self:EnableWidgetRaw(string.sub(command, 14))
 		return true
 	elseif string.find(command, 'disablewidget') == 1 then
-		self:DisableWidget(string.sub(command, 15))
+		self:DisableWidgetRaw(string.sub(command, 15))
 		return true
 	end
 
@@ -1214,6 +1291,14 @@ function widgetHandler:ConfigureLayout(command)
 		end
 	end
 	return false
+end
+
+function widgetHandler:ConfigureLayout(command)
+	res = self:ConfigureLayoutRaw(command)
+	if reorderNeeded then
+		self:PerformReorders()
+	end
+	return res
 end
 
 function widgetHandler:CommandNotify(id, params, options)
@@ -1308,6 +1393,8 @@ end
 
 
 function widgetHandler:DrawScreen()
+	-- always top level so just set callinDepth to 1
+	callinDepth = 1
 	if (not Spring.GetSpectatingState()) and anonymousMode ~= "disabled" then
 		Spring.SendCommands("info 0")
 	end
@@ -1325,6 +1412,11 @@ function widgetHandler:DrawScreen()
 			tracy.ZoneEnd()
 		end
 	end
+	-- DrawScreen is not wrapped through UpdateCallIn, so needs manual calling
+	-- of PerformReorders, also since it should never be called nested
+	-- we reset callinDepth here as a consistency measure.
+	callinDepth = 0
+	self:PerformReorders()
 	tracy.ZoneEnd()
 	return
 end
