@@ -10,6 +10,10 @@ function gadget:GetInfo()
 	}
 end
 
+function gadget:CommandNotify(cmdID, params, options)
+	Spring.Echo("CommandNotify", cmdID)
+ end
+
 if not gadgetHandler:IsSyncedCode() then return end
 
 --use customparams.smart_weapon_select_priority to define which weapon number is preferred over the other(s) and enable auto-targetting override.
@@ -17,6 +21,11 @@ if not gadgetHandler:IsSyncedCode() then return end
 --tables
 local smartWeaponsWatch = {}
 local unitDefsWithSmartWeapons = {}
+local cmdSuspensionTable = { 
+		[CMD.ATTACK] = true, 
+		[CMD.AREA_ATTACK] = true,
+		[CMD.CMD_UNIT_SET_TARGET] = true
+}
 
 for unitDefID, def in ipairs(UnitDefs) do
 	if def.customParams.smart_weapon_select_priority then
@@ -29,16 +38,28 @@ for unitDefID, def in ipairs(UnitDefs) do
 end
 
 function gadget:AllowWeaponTargetCheck(attackerID, attackerWeaponNum, attackerWeaponDefID)
-	Spring.Echo("AllowWeaponTargetCheck", attackerID, attackerWeaponNum, attackerWeaponDefID, Spring.GetGameFrame())
+	--Spring.Echo("AllowWeaponTargetCheck", attackerID, attackerWeaponNum, attackerWeaponDefID, Spring.GetGameFrame())
 	return false, true
+	end
+
+
+function gadget:GameFrame(frame)
+	
 end
 
+function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
+	 if cmdSuspensionTable[cmdID] then 
+		-- Custom logic when the command is in the suspension table 
+		Spring.Echo("Command suspended:", cmdID)
+		
+		-- Your additional logic here 
+		return false -- Disallow the command if it's in the suspension table 
 
--- function gadget:GameFrame(frame)
-	
--- end
+		end 
+	return true 
+		-- Allow all other commands
+ end
 
--- function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
--- 	Spring.Echo("AllowCommand", unitID, unitDefID, unitTeam, cmdID)
--- 	return true
--- end
+--  function gadget:CommandFallback(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag)
+-- 	Spring.Echo("commandFallback", cmdID)
+--  end
