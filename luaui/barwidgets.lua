@@ -1250,7 +1250,9 @@ function widgetHandler:Update()
 	-- of PerformReorders, also since it should never be called nested
 	-- we reset callinDepth here as a consistency measure.
 	callinDepth = 0
-	self:PerformReorders()
+	if reordersNeeded then
+		self:PerformReorders()
+	end
 	tracy.ZoneEnd()
 	return
 end
@@ -1416,7 +1418,9 @@ function widgetHandler:DrawScreen()
 	-- of PerformReorders, also since it should never be called nested
 	-- we reset callinDepth here as a consistency measure.
 	callinDepth = 0
-	self:PerformReorders()
+	if reordersNeeded then
+		self:PerformReorders()
+	end
 	tracy.ZoneEnd()
 	return
 end
@@ -1747,16 +1751,26 @@ end
 
 function widgetHandler:MouseMove(x, y, dx, dy, button)
 	tracy.ZoneBeginN("W:MouseMove")
+	-- not wrapped through UpdateCallIn, so update callinDepth and do reorders manually
+	callinDepth = callinDepth + 1
+	local res
 	local mo = self.mouseOwner
 	if mo and mo.MouseMove then
-		tracy.ZoneEnd()
-		return mo:MouseMove(x, y, dx, dy, button)
+		res = mo:MouseMove(x, y, dx, dy, button)
+	end
+	callinDepth = callinDepth - 1
+	if reordersNeeded and callinDepth == 0 then
+		self:PerformReorders()
 	end
 	tracy.ZoneEnd()
+	return res
 end
 
 function widgetHandler:MouseRelease(x, y, button)
 	tracy.ZoneBeginN("W:MouseRelease")
+	-- not wrapped through UpdateCallIn, so update callinDepth and do reorders manually
+	callinDepth = callinDepth + 1
+	local res = false
 	local mo = self.mouseOwner
 	local _, _, lmb, mmb, rmb = Spring.GetMouseState()
 	if not (lmb or mmb or rmb) then
@@ -1764,11 +1778,14 @@ function widgetHandler:MouseRelease(x, y, button)
 	end
 
 	if mo and mo.MouseRelease then
-		tracy.ZoneEnd()
-		return mo:MouseRelease(x, y, button)
+		res = mo:MouseRelease(x, y, button)
+	end
+	callinDepth = callinDepth - 1
+	if reordersNeeded and callinDepth == 0 then
+		self:PerformReorders()
 	end
 	tracy.ZoneEnd()
-	return false
+	return res
 end
 
 function widgetHandler:MouseWheel(up, value)
