@@ -477,9 +477,7 @@ void main(void)
 		//printf(distance_attenuation);
 		//printf(coneEdgeFactor);
 	}
-	float relativeDensityXdistance_attenuation = relativeDensity * distance_attenuation;
-	//printf(relativeDensityXdistance_attenuation);
-	//DEBUG(relativeDensity*distance_attenuation);
+
 	#line 35000
 	
 	// If the fragment is inside the volume, we need to calculate the volumetric fraction
@@ -507,17 +505,19 @@ void main(void)
 	// Take into account relative distance of ray point closest to light source to the light source
 	distortionAttenuation *= volumetricFraction;
 
-	//fragColor.rgba = vec4(0.6, distortionAttenuation, 0.0, 1.0); return;
-
-
 	// if the fragment is closer to the camera than the light source plus its radius, we can skip the distortion
 	if (length(fragWorldPos.xyz - camPos) < ( length(lightPosition - camPos) -lightRadius)){
 		fragColor.rgba = vec4(0.0);
 		return;
 	}
 
-	
+	vec3 lightToClosest = closestpoint_dist.xyz - lightPosition.xyz;
+	printf(lightRadius);
+	printf(lightToClosest.xyz);
 
+	printf(closestpoint_dist.xyzw);
+	
+	//DEBUGPOS(closestpoint_dist.xyz);
 	// Show which fragment is being printf'd:
 	//if (all(lessThan(abs(mouseScreenPos.xy- (gl_FragCoord.xy + vec2(0.5, -1.5))),vec2(0.25) ))){fragColor.rgba = vec4(1.0);	return;	}
 	
