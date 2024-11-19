@@ -1,9 +1,8 @@
-#version 420
+#version 430
 
 //__DEFINES__
 
 //__ENGINEUNIFORMBUFFERDEFS__
-
 
 layout (location = 0) in vec4 position; // [-1,1], [0,1] , xyuv
 
