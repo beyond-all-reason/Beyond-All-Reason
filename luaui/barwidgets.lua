@@ -314,7 +314,7 @@ local zipOnly = {
 
 function widgetHandler:Initialize()
 	widgetHandler:CreateQueuedReorderFuncs()
-	widgetHandler:HookReorderPostMethods()
+	widgetHandler:HookReorderSpecialFuncs()
 	self:LoadConfigData()
 
 	-- do we allow userland widgets?
@@ -824,7 +824,7 @@ local reorderNeeded = false
 local reorderFuncs = {}
 local callinDepth = 0
 
-function widgetHandler:HookReorderPostMethods()
+function widgetHandler:HookReorderSpecialFuncs()
 	-- Methods that need manual PerformReorders calls because of not
 	-- being wrapped by UpdateCallIns.
 	self:HookReorderPost('DrawScreen', true)
@@ -837,6 +837,8 @@ end
 function widgetHandler:HookReorderPost(name, topMethod)
 	-- Add callinDepth updating and PerformReorders to methods not getting it through UpdateCallIns.
 	-- Can only be used for methods returning just one result.
+	-- We define some methods to be topMethod, those will hard set the callinDepth as a consistency
+	-- measure.
 	local func = self[name]
 	if not func or not type(func) == 'function' then
 		Spring.Log("barwidgets.lua", LOG.WARNING, name .. " does not exist or isn't a function")
