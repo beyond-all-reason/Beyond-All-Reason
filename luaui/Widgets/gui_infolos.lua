@@ -45,6 +45,8 @@ local GL_RGBA32F_ARB = 0x8814
 	-- Read miplevels from modrules?
 
 local autoreload = false
+
+local drawLosTexture = false -- for drawing the los texture on screenCopyTex
 ---- CONFIGURABLE PARAMETERS: -----------------------------------------
 
 local shaderConfig = {
@@ -75,24 +77,44 @@ local fsSrcPath = "LuaUI/Widgets/Shaders/infolos.frag.glsl"
 local miplevels = {2^3, 2^4, 2^3, 1} -- los, airlos and radar mip levels
 
 local shaderSourceCache = {
-		vssrcpath = vsSrcPath,
-		fssrcpath = fsSrcPath,
+	vssrcpath = vsSrcPath,
+	fssrcpath = fsSrcPath,
+	uniformFloat = {
+		outputAlpha = outputAlpha,
+		time = 1.0,
+	},
+	uniformInt = {
+		tex0 = 0,
+		tex1 = 1,
+		tex2 = 2,
+		tex3 = 3,
+	},
+	textures = {
+		[0] = "$info:los",
+		[1] = "$info:airlos",
+		[2] = "$info:radar",
+	},
+	shaderName = "InfoLOS GL4",
+	shaderConfig = shaderConfig
+}
+
+local ScreenCopyTexture = nil
+local vsx, vsy, vpx, vpy
+local losViewShader = nl
+local fullScreenQuadVAO = nil
+local losViewShaderSourceCache = {
+		vssrcpath = "LuaUI/Widgets/Shaders/infolos_view.vert.glsl",
+		fssrcpath = "LuaUI/Widgets/Shaders/infolos_view.frag.glsl",
 		uniformFloat = {
-			outputAlpha = outputAlpha,
-			time = 1.0,
+			blendfactors = {1,1,1,1},
 		},
 		uniformInt = {
-			tex0 = 0,
-			tex1 = 1,
-			tex2 = 2,
-			tex3 = 3,
+			mapDepths = 0,
+			modelDepths = 1,
+			screenCopyTex = 2,
+			losTex = 3,
 		},
-		textures = {
-			[0] = "$info:los",
-			[1] = "$info:airlos",
-			[2] = "$info:radar",
-		},
-		shaderName = "InfoLOS GL4",
+		shaderName = "LosViewShader GL4",
 		shaderConfig = shaderConfig
 	}
 
@@ -154,6 +176,19 @@ function widget:PlayerChanged(playerID)
 	end
 end
 
+
+function widget:ViewResize()
+	vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
+	if ScreenCopyTexture then gl.DeleteTexture(ScreenCopyTexture) end
+	ScreenCopyTexture = gl.CreateTexture(vsx  , vsy, {
+		border = false,
+		min_filter = GL.LINEAR,
+		mag_filter = GL.LINEAR,
+		wrap_s = GL.CLAMP,
+		wrap_t = GL.CLAMP,
+		format = GL.RGBA8, -- more than enough
+	})
+end
 function widget:Initialize()
 	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
 		widgetHandler:RemoveWidget()
@@ -184,10 +219,19 @@ function widget:Initialize()
 	WG['infolosapi'] = {}
 	WG['infolosapi'].GetInfoLOSTexture = GetInfoLOSTexture
 	widgetHandler:RegisterGlobal('GetInfoLOSTexture', WG['infolosapi'].GetInfoLOSTexture)
+
+	if drawLosTexture then 
+		widget:ViewResize()
+		losViewShader = LuaShader.CheckShaderUpdates(losViewShaderSourceCache)
+		fullScreenQuadVAO = MakeTexRectVAO()--  -1, -1, 1, 0,   0,0,1, 0.5)
+		losViewShader:Initialize()
+		if not losViewShader then Spring.Echo("Failed to compile losViewShader GL4") end
+	end
 end
 
 function widget:Shutdown()
 	if infoTexture then gl.DeleteTexture(infoTexture) end
+	if ScreenCopyTexture then gl.DeleteTexture(ScreenCopyTexture) end
 	WG['infolosapi'] = nil
 	widgetHandler:DeregisterGlobal('GetInfoLOSTexture')
 end
@@ -220,10 +264,34 @@ function widget:DrawWorldPreUnit()
 			delay = 0
 		end
 	end
+
+	if drawLosTexture and true then 
+		if autoreload then
+			losViewShader = LuaShader.CheckShaderUpdates(losViewShaderSourceCache) or losViewShader
+		end
+		
+		gl.CopyToTexture(ScreenCopyTexture, 0, 0, vpx, vpy, vsx, vsy)
+		gl.Texture(0, "$map_gbuffer_zvaltex")
+		gl.Texture(1, "$model_gbuffer_zvaltex")
+		gl.Texture(2, ScreenCopyTexture)
+		gl.Texture(3, GetInfoLOSTexture(currentAllyTeam))
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+		gl.Culling(false) -- ffs
+		gl.DepthTest(false)
+		gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove
+		Spring.Echo("Drawing LOSVIEW")
+		losViewShader:Activate()
+		losViewShader:SetUniformFloat("blendfactors", {1,1,1,1})
+		fullScreenQuadVAO:DrawArrays(GL.TRIANGLES)
+		losViewShader:Deactivate()
+		gl.DepthTest(true)
+		for i = 0,3 do gl.Texture(i, false) end
+	end
 end
 
+
 function widget:DrawScreen() -- the debug display output
-	if autoreload then
+	if autoreload  then
 		infoShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or infoShader
 		gl.Color(1,1,1,1) -- use this to show individual channels of the texture!
 		gl.Texture(0, infoTextures[currentAllyTeam])
@@ -232,7 +300,9 @@ function widget:DrawScreen() -- the debug display output
 
 		gl.Text(tostring(currentAllyTeam), texX, texY,16)
 		gl.Texture(0,"$info:los")
-		gl.TexRect(texX, 0, texX + shaderConfig['LOSXSIZE'], shaderConfig['LOSYSIZE'], 0, 1, 1, 0)
+		--gl.TexRect(texX, 0, texX + shaderConfig['LOSXSIZE'], shaderConfig['LOSYSIZE'], 0, 1, 1, 0)
 		gl.Texture(0,false)
+		
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	end
 end
