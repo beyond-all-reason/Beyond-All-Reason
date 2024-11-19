@@ -755,15 +755,22 @@ function LuaShader:Deactivate()
 			local fontSize = 16
 			local font3 = WG['fonts'].getFont(fontfile3, 1 , 0.5, 1.0)
 			
-			local function DrawPrintf(xoffset)
+			local function DrawPrintf(sometimesself, xoffset)
 				--Spring.Echo("attempting to draw printf",xoffset)
+				
 				xoffset = xoffset or 0
+				if type(sometimesself) == 'table' then 
+					xoffset = xoffset or 0
+				elseif type(sometimesself) == 'number' then 
+					xoffset = sometimesself
+				end
+
 				local mx,my = Spring.GetMouseState()
 				mx = mx + xoffset
 				my = my - 32
 
-				font3:Begin()
 				gl.PushMatrix()
+				font3:Begin()
 				-- Todo: could really use a monospaced font!
 				--gl.Color(1,1,1,1)
 				gl.Blending(GL.ONE, GL.ZERO)
@@ -782,6 +789,8 @@ function LuaShader:Deactivate()
 					my = my - fontSize
 					font3:Print(message, math.floor(mx), math.floor(my), fontSize,"o")
 				end
+				
+				gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 				gl.PopMatrix()
 				
 				font3:End()
