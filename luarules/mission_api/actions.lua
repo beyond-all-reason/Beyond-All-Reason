@@ -1,6 +1,5 @@
 --============================================================--
 
-local unpack = unpack or table.unpack -- lua 5.2 compat
 local trackedUnits = GG['MissionAPI'].TrackedUnits
 local triggers = GG['MissionAPI'].Triggers
 local actionsDefs = VFS.Include('luarules/mission_api/types.lua')
@@ -104,31 +103,31 @@ end
 
 --============================================================--
 
-local function getAllyTeamsHavingPlayers()
-	local allyTeamsHavingPlayers = {}
+local function getHumanAllyTeams()
+	local humanAllyTeams = {}
 	for _, playerID in pairs(Spring.GetPlayerList()) do
 		local _, _, spec, _, allyTeamID = Spring.GetPlayerInfo(playerID, false)
-		if not spec and not allyTeamsHavingPlayers[allyTeamID] then
-			allyTeamsHavingPlayers[allyTeamID] = allyTeamID
+		if not spec and not humanAllyTeams[allyTeamID] then
+			humanAllyTeams[allyTeamID] = allyTeamID
 		end
 	end
-	return allyTeamsHavingPlayers
+	return humanAllyTeams
 end
 
 ----------------------------------------------------------------
 
 local function victory()
-	Spring.GameOver({ unpack(getAllyTeamsHavingPlayers()) })
+	Spring.GameOver({ unpack(getHumanAllyTeams()) })
 end
 
 ----------------------------------------------------------------
 
 local function defeat()
-	local allyTeamsHavingPlayers = getAllyTeamsHavingPlayers()
+	local allyTeamsWithPlayers = getHumanAllyTeams()
 	local allAllyTeamIDs = Spring.GetAllyTeamList()
 	local allyTeamsWithoutPlayers = {}
 	for _, allyTeamID in pairs(allAllyTeamIDs) do
-		if not allyTeamsHavingPlayers[allyTeamID] then
+		if not allyTeamsWithPlayers[allyTeamID] then
 			allyTeamsWithoutPlayers[allyTeamID] = allyTeamID
 		end
 	end

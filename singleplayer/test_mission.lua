@@ -40,9 +40,6 @@ local triggers = {
 
 	gameEnd = {
 		type = triggerTypes.TimeElapsed,
-		settings = {
-			repeating = false,
-		},
 		parameters = {
 			gameFrame = 210,
 		},
