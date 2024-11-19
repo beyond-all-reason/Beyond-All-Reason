@@ -48,7 +48,7 @@ local function spawnUnits(name, unitDefName, quantity, position, facing, constru
 	--if not trackedUnits[name] then trackedUnits[name] = {} end
 
 	for i = 1, quantity do
-	local	unitID = Spring.CreateUnit(unitDefName, position.x, position.y, position.z, facing.value, 0, construction)
+		local unitID = Spring.CreateUnit(unitDefName, position.x, position.y, position.z, facing.value, 0, construction)
 
 		--if unitID and name then
 		--	trackedUnits[name][#trackedUnits[name] + 1] = unitID
@@ -99,6 +99,43 @@ end
 
 --============================================================--
 
+-- Win Condition
+
+--============================================================--
+
+local function getHumanAllyTeams()
+	local humanAllyTeams = {}
+	for _, playerID in pairs(Spring.GetPlayerList()) do
+		local _, _, spec, _, allyTeamID = Spring.GetPlayerInfo(playerID, false)
+		if not spec and not humanAllyTeams[allyTeamID] then
+			humanAllyTeams[allyTeamID] = allyTeamID
+		end
+	end
+	return humanAllyTeams
+end
+
+----------------------------------------------------------------
+
+local function victory()
+	Spring.GameOver({ unpack(getHumanAllyTeams()) })
+end
+
+----------------------------------------------------------------
+
+local function defeat()
+	local allyTeamsWithPlayers = getHumanAllyTeams()
+	local allAllyTeamIDs = Spring.GetAllyTeamList()
+	local allyTeamsWithoutPlayers = {}
+	for _, allyTeamID in pairs(allAllyTeamIDs) do
+		if not allyTeamsWithPlayers[allyTeamID] then
+			allyTeamsWithoutPlayers[allyTeamID] = allyTeamID
+		end
+	end
+	Spring.GameOver({ unpack(allyTeamsWithoutPlayers) })
+end
+
+--============================================================--
+
 -- Custom
 
 --============================================================--
@@ -133,6 +170,8 @@ return {
 	SendMessage = sendMessage,
 
 	-- Win Condition
+	Victory = victory,
+	Defeat = defeat,
 
 	-- Custom
 	Custom = custom,
