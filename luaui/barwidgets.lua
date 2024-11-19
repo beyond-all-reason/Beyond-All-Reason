@@ -314,6 +314,7 @@ local zipOnly = {
 
 function widgetHandler:Initialize()
 	widgetHandler:CreateQueuedReorderFuncs()
+	widgetHandler:HookReorderPostMethods()
 	self:LoadConfigData()
 
 	-- do we allow userland widgets?
@@ -823,6 +824,41 @@ local reorderNeeded = false
 local reorderFuncs = {}
 local callinDepth = 0
 
+function widgetHandler:HookReorderPostMethods()
+	-- Methods that need manual PerformReorders calls because of not
+	-- being wrapped by UpdateCallIns.
+	self:HookReorderPost('DrawScreen', true)
+	self:HookReorderPost('Update', true)
+	self:HookReorderPost('MouseMove')
+	self:HookReorderPost('MouseRelease')
+	self:HookReorderPost('ConfigureLayout')
+end
+
+function widgetHandler:HookReorderPost(name, topMethod)
+	-- Add callinDepth updating and PerformReorders to methods not getting it through UpdateCallIns.
+	-- Can only be used for methods returning just one result.
+	local func = self[name]
+	if not func or not type(func) == 'function' then
+		Spring.Log("barwidgets.lua", LOG.WARNING, name .. " does not exist or isn't a function")
+		return
+	end
+	if self[name .. 'Raw'] then
+		Spring.Log("barwidgets.lua", LOG.WARNING, name .. "Raw already exists")
+		return
+	end
+	self[name .. 'Raw'] = func
+	self[name] = function(...)
+		callinDepth = topMethod and 1 or callinDepth + 1
+		res = func(...)
+		callinDepth = topMethod and 0 or callinDepth - 1
+
+		if reorderNeeded and callinDepth == 0 then
+			self:PerformReorders()
+		end
+		return res
+	end
+end
+
 function widgetHandler:CreateQueuedReorderFuncs()
 	-- This will create an array with linked Raw methods so we can find them by index.
 	-- It will also create the widgetHandler usual api queing the calls.
@@ -1230,8 +1266,6 @@ end
 
 function widgetHandler:Update()
 
-	-- always top level so just set callinDepth to 1
-	callinDepth = 1
 	if collectgarbage("count") > 1200000 then
 		Spring.Echo("Warning: Emergency garbage collection due to exceeding 1.2GB LuaRAM")
 		collectgarbage("collect")
@@ -1246,18 +1280,11 @@ function widgetHandler:Update()
 		w:Update(deltaTime)
 		tracy.ZoneEnd()
 	end
-	-- Update is not wrapped through UpdateCallIn, so needs manual calling
-	-- of PerformReorders, also since it should never be called nested
-	-- we reset callinDepth here as a consistency measure.
-	callinDepth = 0
-	if reordersNeeded then
-		self:PerformReorders()
-	end
 	tracy.ZoneEnd()
 	return
 end
 
-function widgetHandler:ConfigureLayoutRaw(command)
+function widgetHandler:ConfigureLayout(command)
 
 	if command == 'reconf' then
 		self:SendConfigData()
@@ -1293,14 +1320,6 @@ function widgetHandler:ConfigureLayoutRaw(command)
 		end
 	end
 	return false
-end
-
-function widgetHandler:ConfigureLayout(command)
-	res = self:ConfigureLayoutRaw(command)
-	if reorderNeeded then
-		self:PerformReorders()
-	end
-	return res
 end
 
 function widgetHandler:CommandNotify(id, params, options)
@@ -1395,8 +1414,6 @@ end
 
 
 function widgetHandler:DrawScreen()
-	-- always top level so just set callinDepth to 1
-	callinDepth = 1
 	if (not Spring.GetSpectatingState()) and anonymousMode ~= "disabled" then
 		Spring.SendCommands("info 0")
 	end
@@ -1413,13 +1430,6 @@ function widgetHandler:DrawScreen()
 			widgetHandler.WG.guishader.DrawScreen()
 			tracy.ZoneEnd()
 		end
-	end
-	-- DrawScreen is not wrapped through UpdateCallIn, so needs manual calling
-	-- of PerformReorders, also since it should never be called nested
-	-- we reset callinDepth here as a consistency measure.
-	callinDepth = 0
-	if reordersNeeded then
-		self:PerformReorders()
 	end
 	tracy.ZoneEnd()
 	return
@@ -1751,26 +1761,16 @@ end
 
 function widgetHandler:MouseMove(x, y, dx, dy, button)
 	tracy.ZoneBeginN("W:MouseMove")
-	-- not wrapped through UpdateCallIn, so update callinDepth and do reorders manually
-	callinDepth = callinDepth + 1
-	local res
 	local mo = self.mouseOwner
 	if mo and mo.MouseMove then
-		res = mo:MouseMove(x, y, dx, dy, button)
-	end
-	callinDepth = callinDepth - 1
-	if reordersNeeded and callinDepth == 0 then
-		self:PerformReorders()
+		tracy.ZoneEnd()
+		return mo:MouseMove(x, y, dx, dy, button)
 	end
 	tracy.ZoneEnd()
-	return res
 end
 
 function widgetHandler:MouseRelease(x, y, button)
 	tracy.ZoneBeginN("W:MouseRelease")
-	-- not wrapped through UpdateCallIn, so update callinDepth and do reorders manually
-	callinDepth = callinDepth + 1
-	local res = false
 	local mo = self.mouseOwner
 	local _, _, lmb, mmb, rmb = Spring.GetMouseState()
 	if not (lmb or mmb or rmb) then
@@ -1778,14 +1778,11 @@ function widgetHandler:MouseRelease(x, y, button)
 	end
 
 	if mo and mo.MouseRelease then
-		res = mo:MouseRelease(x, y, button)
-	end
-	callinDepth = callinDepth - 1
-	if reordersNeeded and callinDepth == 0 then
-		self:PerformReorders()
+		tracy.ZoneEnd()
+		return mo:MouseRelease(x, y, button)
 	end
 	tracy.ZoneEnd()
-	return res
+	return false
 end
 
 function widgetHandler:MouseWheel(up, value)
