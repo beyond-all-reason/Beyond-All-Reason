@@ -895,6 +895,10 @@ function widgetHandler:PerformReorders()
 	for _, elmts in ipairs(nextReorder) do
 		self:PerformReorder(unpack(elmts))
 	end
+	-- Check for further reordering
+	if reorderNeeded then
+		self:PerformReorders()
+	end
 end
 
 --------------------------------------------------------------------------------
