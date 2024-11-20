@@ -68,6 +68,9 @@ local unitDefCanWearHats = {
 	unitDefCanWearHats[UnitDefNames.legcomlvl3.id] = true
 	unitDefCanWearHats[UnitDefNames.legcomlvl4.id] = true
  end
+ local halloween - { -- Halloween Fight Night winner
+ 	[139750] = true, ---Sashkorin
+ }
  local legchamps = { -- Legion Fight Night winner(s)
 	[144092] = true, -- [DmE]Wraxell
 	[42178] = true,  -- [pretor]
@@ -142,6 +145,12 @@ function gadget:GameFrame(gf)
 					local unitPosX, unitPosY, unitPosZ = Spring.GetUnitPosition(unitID)
 
 					if unitDefCanWearHats[unitDefID] then
+
+						if MatchPlayer(halloween, playerName, accountID) and UnitDefNames['cor_hat_hw'] then
+							local hatDefID = UnitDefNames['cor_hat_hw'].id
+							local unitID = Spring.CreateUnit(hatDefID, unitPosX, unitPosY, unitPosZ, 0, teamID)
+							gadget:UnitGiven(unitID, hatDefID, teamID)
+						end
 
 						if MatchPlayer(legchamps, playerName, accountID) and UnitDefNames['cor_hat_legfn'] then
 							local hatDefID = UnitDefNames['cor_hat_legfn'].id
