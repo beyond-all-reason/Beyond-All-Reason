@@ -810,6 +810,13 @@ end
 
 --------------------------------------------------------------------------------
 
+local wrapPostOps = function()
+	callinDepth = callinDepth - 1
+	if reorderNeeded and callinDepth == 0 then
+		self:PerformReorders()
+	end
+end
+
 function gadgetHandler:UpdateCallIn(name)
 	local listName = name .. 'List'
 	local forceUpdate = (name == 'GotChatMsg' or name == 'RecvFromSynced') -- redundant?
@@ -825,19 +832,12 @@ function gadgetHandler:UpdateCallIn(name)
 				noUnpack = false
 			end
 
-			local postOps = function()
-				callinDepth = callinDepth - 1
-				if reorderNeeded and callinDepth == 0 then
-					self:PerformReorders()
-				end
-			end
-
 			if noUnpack then
 				_G[name] = function(...)
 					callinDepth = callinDepth + 1
 
 					local res = selffunc(self, ...)
-					postOps()
+					wrapPostOps()
 					return res
 				end
 			else
@@ -846,7 +846,7 @@ function gadgetHandler:UpdateCallIn(name)
 					callinDepth = callinDepth + 1
 
 					local res = {selffunc(self, ...)}
-					postOps()
+					wrapPostOps()
 					return unpack(res)
 				end
 			end
