@@ -11,17 +11,17 @@ function setup()
 
 	initialWidgetActive = widgetHandler.knownWidgets[widgetName].active
 	if initialWidgetActive then
-		widgetHandler:DisableWidget(widgetName)
+		widgetHandler:DisableWidgetRaw(widgetName)
 	end
-	widgetHandler:EnableWidget(widgetName, true)
+	widgetHandler:EnableWidgetRaw(widgetName, true)
 end
 
 function cleanup()
 	Test.clearMap()
 
-	widgetHandler:DisableWidget(widgetName)
+	widgetHandler:DisableWidgetRaw(widgetName)
 	if initialWidgetActive then
-		widgetHandler:EnableWidget(widgetName, false)
+		widgetHandler:EnableWidgetRaw(widgetName, false)
 	end
 end
 

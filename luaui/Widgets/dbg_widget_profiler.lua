@@ -213,8 +213,8 @@ local function StartHook()
 	Spring.Echo("hooked all callins")
 
 	--// hook the UpdateCallin function
-	oldUpdateWidgetCallIn = wh.UpdateWidgetCallIn
-	wh.UpdateWidgetCallIn = function(self, name, w)
+	oldUpdateWidgetCallIn = wh.UpdateWidgetCallInRaw
+	wh.UpdateWidgetCallInRaw = function(self, name, w)
 		local listName = name .. 'List'
 		local ciList = self[listName]
 		if ciList then
@@ -236,8 +236,8 @@ local function StartHook()
 	Spring.Echo("hooked UpdateCallin")
 
 	--// hook the InsertWidget function
-	oldInsertWidget = wh.InsertWidget
-	widgetHandler.InsertWidget = function(self, widget)
+	oldInsertWidget = wh.InsertWidgetRaw
+	widgetHandler.InsertWidgetRaw = function(self, widget)
 		if widget == nil then
 			return
 		end
@@ -283,9 +283,9 @@ local function StopHook()
 	Spring.Echo("unhooked all callins")
 
 	--// unhook the UpdateCallin and InsertWidget functions
-	wh.UpdateWidgetCallIn = oldUpdateWidgetCallIn
+	wh.UpdateWidgetCallInRaw = oldUpdateWidgetCallIn
 	Spring.Echo("unhooked UpdateCallin")
-	wh.InsertWidget = oldInsertWidget
+	wh.InsertWidgetRaw = oldInsertWidget
 	Spring.Echo("unhooked InsertWidget")
 end
 
