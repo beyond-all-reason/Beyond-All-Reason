@@ -9,7 +9,7 @@ function widget:GetInfo()
 		date = "2024.11.19",
 		license = "GPL V2",
 		layer = -10000, -- lol this isnt even a number
-		enabled = true
+		enabled = false
 	}
 end
 

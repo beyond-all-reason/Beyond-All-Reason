@@ -201,6 +201,10 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     fragColor = vec4( col, 1.0 );
 }
 */
+
+float gradientStep(float x, float width){
+    return smoothstep(0.0,  1.0, (0.5 - width * abs(x-0.5)) * 2.0);
+}
 void main(void) {
     
     vec4 screenColor = texture2D(screenCopyTex, texCoord.xy);
@@ -263,9 +267,9 @@ void main(void) {
 
     vec3 scanlineColor = screenColor.rgb * 0.75;
     screenColor.rgb = mix(screenColor.rgb, scanlineColor,  (1.0 - current_losairradar.b) *step(0.5, fract(gl_FragCoord.y/4.0)));
-
+    screenColor.rgb *= (1.0 - 0.3 * gradientStep(current_losairradar.b, 3.4));
     fragColor.rgb = screenColor.rgb;
-    #if 0 // GRID DEBUGGING
+    #if 1 // GRID DEBUGGING
         vec2 gridpos = (fragWorldPos.xz + vec2(0.5)) /64.0 ;
         float grid = 1.0 - filteredGrid( gridpos.xy, dFdx(gridpos.xy), dFdy(gridpos.xy) , 64.0);
         gridpos = (fragWorldPos.xz  + vec2(0.5) ) /8.0;
