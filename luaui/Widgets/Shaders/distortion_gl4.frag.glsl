@@ -430,13 +430,76 @@ vec4 curl3d( vec3 P )
 	return vec4( n1.x + n2.x, cross(n1.yzw, n2.yzw) );
 }
 
+// shockwave UV Displacement
+// Calculate how much the UV coordinates should be displaced at currentpos in world space of the screen copy texture to simulate a shockwave starting from position centerpos, with the camera looking at viewdirections. 
+// The maximum radius of the shockwave is given in shockwaveRadius, and the timeFraction goes from 0 to 1 to simulate the shockwave expanding over time.
+// Ensure that the UV displacement is correctly rotated given the angle between the viewDirection and the direction of the shockwave starting from centerpos
+
+vec3 shockWaveDisplacement2(vec3 centerpos, vec3 currentpos, vec3 viewDirection, float shockwaveRadius, float timeFraction) {
+	vec3 displacement = vec3(0.0);
+	vec3 toCenter = currentpos - centerpos;
+	float distance = length(toCenter);
+	float normalizedDistance = distance / shockwaveRadius;
+
+	if (normalizedDistance < 1.0) {
+		float wave = sin(normalizedDistance * 3.14159 * 2.0 - timeFraction * 3.14159 * 2.0);
+		float attenuation = 1.0 - normalizedDistance;
+		displacement = viewDirection * wave * attenuation;
+	}
+
+	return displacement;
+}
+
+vec3 shockWaveDisplacement(vec3 centerpos, vec3 currentpos, vec3 viewDirection, float shockwaveRadius, float timeFraction) {
+    // Calculate direction vector from center to current position
+    vec3 dir = currentpos - centerpos;
+
+    // Define the up vector (assuming Y-up coordinate system)
+    vec3 up = vec3(0.0, 1.0, 0.0);
+
+    // Calculate the camera's right and up vectors
+    vec3 right = normalize(cross(viewDirection, up));
+    vec3 cameraUp = normalize(cross(right, viewDirection));
+
+    // Transform the direction vector into the camera's coordinate space
+    vec3 dirInCameraSpace;
+    dirInCameraSpace.x = dot(dir, right);
+    dirInCameraSpace.y = dot(dir, cameraUp);
+    dirInCameraSpace.z = dot(dir, -viewDirection);
+
+    // Compute the 2D distance from the center in camera space
+    float distance = length(dirInCameraSpace.xy);
+    // Calculate the current radius of the shockwave
+    float currentRadius = shockwaveRadius * timeFraction;
+	//printf(dirInCameraSpace.xyz);
+    // Compute the difference between the distance and the shockwave's current radius
+    float diff = distance - currentRadius;
+
+    // Define the width and amplitude of the shockwave effect
+    float width = 100.1;    // Controls the width of the shockwave ring
+    float amplitude = 0.1; // Maximum displacement amount
+
+    // Calculate the displacement amount using a Gaussian function
+    float displacementAmount = amplitude * exp(-diff * diff / (2.0 * width * width));
+
+	//printf(diff);
+    // Normalize the direction in camera space
+    vec2 dirNormalized = dirInCameraSpace.xy / distance;
+
+    // Compute the displacement vector in 2D
+    vec2 displacement = dirNormalized * displacementAmount;
+
+    // Return the displacement vector with zero z-component
+    return vec3(displacement * 10, 0.0);
+}
+
 #line 31000
 void main(void)
 {
 	//-------------------------- BEGIN SHARED SECTION ---------------------
-	int effectType = int(v_otherparams.w);
+	int effectType = int(round(v_otherparams.w));
 	
-	// TODO: Get the view vector before fetching texels for speedups
+	// TODO: Get the view vector before fetching texels for speedups, we cant really bail on all that many fragments...
 	
 	float mapdepth = texture(mapDepths, v_screenUV).x;
 	float modeldepth = texture(modelDepths, v_screenUV).x;
@@ -445,12 +508,13 @@ void main(void)
 	float ismodel = 0;
 	
 	// Only query the textures if the backface of the volume is further than the world fragment
-	if (gl_FragCoord.z > worlddepth) {
+
+	//if (gl_FragCoord.z > worlddepth) {
 		if (modeldepth < mapdepth) { // We are processing a model fragment
 			ismodel = 1;
 		}else{
 		}
-	}
+	//}
 	
 	vec4 fragWorldPos =  vec4( vec3(v_screenUV.xy * 2.0 - 1.0, worlddepth),  1.0);
 
@@ -466,13 +530,13 @@ void main(void)
 	vec3 viewDirection = (camPos - fragWorldPos.xyz) / fragDistance; // vector pointing in the direction of the eye ray
 
 	vec3 viewDirFromDepth = viewDirection;
-	printf(viewDirFromDepth.xyz);
+	//printf(viewDirFromDepth.xyz);
 	
 	vec4 viewDirWithoutDepth = vec4( vec3(v_screenUV.xy * 2.0 - 1.0, 0.0),  1.0);
 	viewDirWithoutDepth = cameraViewProjInv * viewDirWithoutDepth;
 	viewDirWithoutDepth.xyz = viewDirWithoutDepth.xyz/viewDirWithoutDepth.w;
 	viewDirWithoutDepth.xyz = normalize(camPos - viewDirWithoutDepth.xyz);
-	printf(viewDirWithoutDepth.xyz);
+	//printf(viewDirWithoutDepth.xyz);
 	
 	float lightRadius = v_worldPosRad.w;
 	float lightRadiusInv = 1.0 / lightRadius;
@@ -523,8 +587,8 @@ void main(void)
 
 		closestPointOnRay = ray_line_segment_closestpoint_on_ray_and_segment2(camPos, -viewDirection, beamStart, beamEnd, lightEmitPosition);
 	
-		printf(closestPointOnRay.xyzw);
-		printf(lightEmitPosition.xyzw);
+		//printf(closestPointOnRay.xyzw);
+		//printf(lightEmitPosition.xyzw);
 		// Find the close and far distances to the beam volume
 		nearFarDistances.x =  capIntersect( camPos, -viewDirection, beamStart, beamEnd, lightRadius);
 		nearFarDistances.y = - capIntersect( camPos, viewDirection, beamStart, beamEnd, lightRadius);
@@ -585,16 +649,7 @@ void main(void)
 
 	// ------------------------ BEGIN AIR SHOCKWAVE ---------------- 
 	if (effectType == 1){
-		// Create a ground shockwave displacement based on the distance to the light source:
-		float shockwaveDisplacement = 0.0;
-		float shockwaveRadius = 0.5;
-		float shockwaveSpeed = 0.5;
-		float shockwaveAttenuation = 0.5;
-		float shockwaveAttenuationDistance = 0.5;
-		float shockwaveAttenuationDistanceInv = 1.0 / shockwaveAttenuationDistance;
-		float shockwaveAttenuationFactor = 1.0 - clamp((fragDistance - nearFarDistances.x) * shockwaveAttenuationDistanceInv, 0.0, 1.0);
-		shockwaveDisplacement = shockwaveAttenuationFactor * shockwaveAttenuation * sin((fragDistance - nearFarDistances.x) * shockwaveSpeed) * shockwaveRadius;
-		//fragWorldPos.xyz += lightDirection * shockwaveDisplacement;
+		// Create an air shockwave displacement based on the distance to the light source:
 
 	}
 
@@ -612,10 +667,28 @@ void main(void)
 		float shockwaveAttenuationFactor = 1.0 - clamp((fragDistance - nearFarDistances.x) * shockwaveAttenuationDistanceInv, 0.0, 1.0);
 		shockwaveDisplacement = shockwaveAttenuationFactor * shockwaveAttenuation * sin((fragDistance - nearFarDistances.x) * shockwaveSpeed) * shockwaveRadius;
 		//fragWorldPos.xyz += lightDirection * shockwaveDisplacement;
-		if (ismodel > 0.5){
-			fragColor.rgba = vec4(0.0);
+		if (ismodel < 0.5){
+			////vec3 shockWaveDisplacement(vec3 centerpos, vec3 currentpos, vec3 viewDirection, float shockwaveRadius, float timeFraction ){
+			float dt = fract(timeInfo.x * 0.1);
+			vec3 displacement = shockWaveDisplacement(lightPosition.xyz, fragWorldPos.xyz, viewDirection, lightRadius, dt);
+			//printf(displacement.xyz);
+			float distanceToCameraFactor =  clamp(300.0/ fragDistance, 0.0, 1.0);
+
+			vec2 xzcenterdist = fragWorldPos.xz - lightPosition.xz;
+			float dist = length(xzcenterdist);
+			float time = fract(timeInfo.x * 0.1);
+			float falloff = clamp(1.0 - dist / lightRadius, 0,1);
+			vec2 disp = vec2(clamp(1.0 - abs((dist / lightRadius) - time), 0.0, 1.0));
+			vec2 normxz = normalize(displacement.xz);
+			disp = disp * normxz.xy * falloff * distanceToCameraFactor;
+			//printf(normxz.xy);	
+			fragColor.rgba = vec4(displacement.xz * 0.5 + 0.5, 0.5, 1.0);
 			return;
-		}	
+		}else{
+			fragColor.rgba = vec4(0.5,0.5,0.5,1.0);
+			
+
+		}
 
 	}
 
@@ -648,7 +721,26 @@ void main(void)
 	
 	//------------------------- BEGIN MAGNIFIER -------------------------
 	else if (effectType == 8){
+		// Calculate the view-space vector that points from from light center to the view ray
+		vec3 magnifierDir = normalize(MidPoint - lightPosition);
+		vec3 magnifierNormal = normalize(magnifierDir);
 
+		vec4 LightScreenPosition = cameraViewProj * vec4(lightEmitPosition.xyz, 1.0);
+		LightScreenPosition.xyz = LightScreenPosition.xyz / LightScreenPosition.w;
+
+		vec4 MagnifierScreenPosition = cameraViewProj * vec4(MidPoint, 1.0);
+		MagnifierScreenPosition.xyz = MagnifierScreenPosition.xyz / MagnifierScreenPosition.w;
+
+		vec3 dirInCameraSpace2 = normalize(MagnifierScreenPosition.xyz - LightScreenPosition.xyz);
+		float relativeDistance = clamp(1.0 - length(MidPoint - lightEmitPosition.xyz) / lightRadius, 0.0, 1.0);
+		//printf(dirInCameraSpace2.xyz);
+		dirInCameraSpace2 *= 1.0 - sqrt(relativeDistance);
+		dirInCameraSpace2 *= -3.0;
+		
+		float distanceToCameraFactor =  clamp(300.0/ length(camPos - lightEmitPosition.xyz), 0.0, 1.0);
+		dirInCameraSpace2 *= distanceToCameraFactor;
+		//printf(dirInCameraSpace2.xyz);
+		fragColor.rgba = vec4(dirInCameraSpace2.xy * 0.5 + 0.5, 0.0, 1.0);
 	}
 
 	//------------------------- BEGIN HEAT DISTORTION -------------------------

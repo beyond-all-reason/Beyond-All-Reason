@@ -30,8 +30,13 @@ void main(void) {
         }
     }else{ // left half
         //if (gl_TexCoord[0].y > 0.5){ // top left
+        if (gl_TexCoord[0].y < 0.75){ // top right
             gl_FragColor = vec4(screen.rgb, 1.0);
 
+        }else{
+            
+            gl_FragColor = vec4(0.0);
+        }
     }
 
     //gl_FragColor = vec4(distortion.stt,1.99);

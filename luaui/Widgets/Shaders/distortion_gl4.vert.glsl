@@ -138,7 +138,7 @@ void main()
 		// the -1 is for inverting it so we always see the back faces (great for occlusion testing!) (this should be exploited later on!
 		
 		// this is centered around the target positional offset, and scaled locally
-		vec3 lightVertexPosition = lightCenterPosition + -1 * position.xyz * lightRadius * 1.1; 
+		vec3 lightVertexPosition = lightCenterPosition + -1 * position.xyz * lightRadius * 1.15; 
 		
 		// tranform the vertices to world-space
 		lightVertexPosition = (placeInWorldMatrix * vec4(lightVertexPosition, 1.0)).xyz; 
