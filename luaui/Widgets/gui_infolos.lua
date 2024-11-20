@@ -47,7 +47,7 @@ local GL_RGBA32F_ARB = 0x8814
 -- TODO 2024.11.19
 	-- Make the shader have exact visibility per 8 elmo square (hmap - 1)
 
-local autoreload = true
+local autoreload = false
 
 
 local shaderConfig = {

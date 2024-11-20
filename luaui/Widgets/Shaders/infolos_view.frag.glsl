@@ -73,6 +73,27 @@ float filteredGrid( in vec2 p, in vec2 dpdx, in vec2 dpdy, float resolution)
     return (1.0-i.x)*(1.0-i.y);
 }
 
+// This function allows you to threshold a value at a fixed screen resolution
+float filteredStep( in float p, in float resolution)
+{
+    resolution *= 1.1;
+    float dpdx = dFdx(p);
+    float dpdy = dFdy(p);
+    float dpddiag =  dFdy(dpdx) ;
+    float w = max(max(abs(dpdx), abs(dpdy)), abs(dpddiag));
+    float w1k = w * 1000.0;
+    printf(p);
+    printf(w1k);
+    if (w < 1e-6) return 0.0; // dont divide by zero later on
+    float a = p + 0.5*w;                        
+    float b = p - 0.5*w;           
+    float i = (floor(a)+min(fract(a)*resolution,10.1)-
+              floor(b)-min(fract(b)*resolution,10.1))/(resolution*w);
+    
+    return clamp(i-1, 0, 1);
+
+}
+
  /*
 -- About:
 	-- This API presents an easy -to-use smoothed LOS texture for other widgets to do their shading based on
@@ -267,7 +288,25 @@ void main(void) {
 
     vec3 scanlineColor = screenColor.rgb * 0.75;
     screenColor.rgb = mix(screenColor.rgb, scanlineColor,  (1.0 - current_losairradar.b) *step(0.5, fract(gl_FragCoord.y/4.0)));
+    
+    
+    // Gradient step
+    #if 0
     screenColor.rgb *= (1.0 - 0.3 * gradientStep(current_losairradar.b, 3.4));
+    #endif
+
+    // fixed-width gradient step:
+    #if 1
+        float timeCorrection = timeInfo.w;
+        if (timeCorrection < 0.0) timeCorrection = 0;
+        if (timeCorrection > 1.0) timeCorrection = 0;
+        float losEdge = filteredStep(current_losairradar.b - 0.5 - (timeCorrection * 0.00), 0.5);
+        printf(timeCorrection);
+        printf(losEdge);
+        screenColor.g += 0.2 * losEdge;
+    #endif
+
+
     fragColor.rgb = screenColor.rgb;
     #if 1 // GRID DEBUGGING
         vec2 gridpos = (fragWorldPos.xz + vec2(0.5)) /64.0 ;
