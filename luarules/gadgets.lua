@@ -813,7 +813,7 @@ end
 local wrapPostOps = function()
 	callinDepth = callinDepth - 1
 	if reorderNeeded and callinDepth == 0 then
-		self:PerformReorders()
+		gadgetHandler:PerformReorders()
 	end
 end
 
