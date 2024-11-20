@@ -85,7 +85,7 @@ function widget:Shutdown()
 	if ScreenCopyTexture then gl.DeleteTexture(ScreenCopyTexture) end
 end
 
-function widget:DrawWorldPreUnit()
+function widget:DrawWorld()
     if autoreload then
         losViewShader = LuaShader.CheckShaderUpdates(losViewShaderSourceCache) or losViewShader
     end

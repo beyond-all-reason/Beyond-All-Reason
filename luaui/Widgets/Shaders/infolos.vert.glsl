@@ -1,8 +1,16 @@
-#version 130
+#version 430
 
+//__DEFINES__
 
-varying vec2 texCoord;
-void main() {
-	texCoord = gl_MultiTexCoord0.st;
-	gl_Position = vec4(gl_Vertex.xyz, 1.0);
+//__ENGINEUNIFORMBUFFERDEFS__
+
+layout (location = 0) in vec4 position; // [-1,1], [0,1] , xyuv
+
+out DataVS {
+    vec4 texCoord;
+};
+
+void main(void)	{
+    texCoord = position.zwzw;
+    gl_Position    = vec4(position.xy * 1.0, 0.00, 1);	
 }

@@ -62,6 +62,17 @@ vec3 rgb2hsv(vec3 c){
 	float e=1e-10;
 	return vec3(abs(q.z+(q.w-q.y)/(6.*d+e)),d/(q.x+e),q.x);
 }
+float filteredGrid( in vec2 p, in vec2 dpdx, in vec2 dpdy, float resolution)
+{
+
+    vec2 w = max(abs(dpdx), abs(dpdy));
+    vec2 a = p + 0.5*w;                        
+    vec2 b = p - 0.5*w;           
+    vec2 i = (floor(a)+min(fract(a)*resolution,1.0)-
+              floor(b)-min(fract(b)*resolution,1.0))/(resolution*w);
+    return (1.0-i.x)*(1.0-i.y);
+}
+
  /*
 -- About:
 	-- This API presents an easy -to-use smoothed LOS texture for other widgets to do their shading based on
@@ -212,31 +223,55 @@ void main(void) {
     vec2 infolosUV = clamp(fragWorldPos.xz / mapSize.xy, 0, 1);
     vec4 infolosSample = texture2D(losTex, infolosUV);
 
-    float losvalue = infolosSample.r;
+    printf(infolosSample.xyzw);
+
+    // Known constants:
+    vec3 current_losairradar = smoothstep(0.227, 0.973, infolosSample.rgb);
+    vec3 hasbeen_losairradar = step(0.2, infolosSample.rgb);
+    printf(current_losairradar.rgb);
+    printf(hasbeen_losairradar.rgb);
+    float isjammed = (infolosSample.b < 0.5 ? 1.0 : 0.0);
+
     
     // Find the HSV value of the screen color
     vec3 screenHSV = rgb2hsv(screenColor.rgb);
+    printf(screenHSV.rgb);
+    // Darken unsaturated areas
+    // Everything from now on will be done via mix!
 
-    screenHSV.y = screenHSV.y * losvalue;
+    
+    screenHSV = mix( screenHSV * vec3(1,0.5,1), screenHSV, current_losairradar.g);
+    screenHSV = mix( screenHSV * vec3(1,0,1), screenHSV, current_losairradar.r);
+
+    float unsaturation = 1.0 - screenHSV.y;
+    //screenHSV.z *= (screenHSV.y ) * (1.0 - current_losairradar.r);
+    //screenHSV.y = screenHSV.y * current_losairradar.r;
 
     screenColor.rgb = hsv2rgb(screenHSV);
 
     // Darken by airlosvalue:
-    float airlosvalue = (infolosSample.g );
 
-    screenColor.rgb *= airlosvalue;
+    //screenColor.rgb *= airlosvalue;
 
     // Add noise by lack of radar:
 
-    float radarvalue = infolosSample.b;
-    vec4 radarNoise = Value3D_Deriv(fragWorldPos.xyz * 0.1 + vec3(0,timeInfo.x * 0.1,0));
-    if (radarvalue < 0.5){
-        screenColor.rgb *= radarNoise.w;
-        //screenColor.r = 1.0;
-    }
-
-    fragColor.rgb = fract( infolosUV.xxy);
-    fragColor.a = 1.0;
-    fragColor.rgb = screenColor.rgb;
+    vec4 radarNoise = Value3D_Deriv(fragWorldPos.xyz * 0.125 + vec3(0,timeInfo.x * 0.1,0));
     
+    screenColor.rgb = mix(screenColor.rgb, radarNoise.rgb, (1.0 - current_losairradar.b) * 0.1);
+
+    // Scanlines?
+
+    vec3 scanlineColor = screenColor.rgb * 0.75;
+    screenColor.rgb = mix(screenColor.rgb, scanlineColor,  (1.0 - current_losairradar.b) *step(0.5, fract(gl_FragCoord.y/4.0)));
+
+    fragColor.rgb = screenColor.rgb;
+    #if 0 // GRID DEBUGGING
+        vec2 gridpos = (fragWorldPos.xz + vec2(0.5)) /64.0 ;
+        float grid = 1.0 - filteredGrid( gridpos.xy, dFdx(gridpos.xy), dFdy(gridpos.xy) , 64.0);
+        gridpos = (fragWorldPos.xz  + vec2(0.5) ) /8.0;
+        grid += filteredGrid( gridpos.xy, dFdx(gridpos.xy), dFdy(gridpos.xy) , 64.0);
+        fragColor.rgb += 0.2 * (1.0 - grid);
+    #endif
+    fragColor.a = 1.0;
+    //fragColor.rgba = vec4(infolosSample.rrr, 1.0);
 }

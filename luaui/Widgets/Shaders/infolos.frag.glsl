@@ -1,6 +1,7 @@
-#version 130
+#version 430 core
 //__DEFINES__
 
+//__ENGINEUNIFORMBUFFERDEFS__
 uniform float time;
 uniform float outputAlpha;
 uniform vec2 losTexSize;
@@ -10,7 +11,10 @@ uniform vec2 radarTexSize;
 uniform sampler2D tex0;
 uniform sampler2D tex1;
 uniform sampler2D tex2;
-in vec2 texCoord;
+
+in DataVS {
+    vec4 texCoord;
+};
 out vec4 fragColor;
 /*
 // from http://www.java-gaming.org/index.php?topic=35123.0
@@ -108,20 +112,91 @@ float getTexelF(in sampler2D tex, in vec2 p, in vec2 sizes)
 	return smoothstep(0.0, 1.0, c);
 }
 
+// This is the fake cubic blending function, which is extremely useful for upsizing without bilinear artifacts
+// Could be done ass-backwards if needed
+float gatherBlend(vec4 samples, vec2 coords, vec2 sizes)
+{
+	vec2 fracCoords = fract(coords * sizes + vec2(0.5));
+	fracCoords = smoothstep(0.0, 1.0, fracCoords);	
+	//fracCoords = smoothstep(0.0, 1.0, fracCoords);	
+
+	vec2 mixx = mix(samples.ra, samples.gb, fracCoords.x);
+	float mixy = mix(mixx.y, mixx.x, fracCoords.y);
+	
+	//printf(fracCoords.xy);
+	#define THRESHOLD 0.2
+	return smoothstep(THRESHOLD, 1.0 - THRESHOLD, mixy);
+	//return smoothstep(0.0,1.00, mixy);
+	/*
+	return mixy;
+	if (sum == 0.0)
+		return 0;
+	else if (sum == 1.0)
+		return 1;
+	else if (sum == 0.25){
+		// 1 of 4
+	}else if (sum == 0.5){
+		// 2 of 4
+		if (samples.r == samples.b) // diagonal
+			return 1;
+		if (samples.r == samples.g) // horizontal
+			return 1;
+		if (samples.r == samples.a) // vertical 
+			return 1;
+	}else if (sum == 0.75){
+		// 3 of 4
+	}	
+	return 1;
+	*/
+}	
 
 
 void main() {
 	fragColor  = vec4(0.0);
+	#if (EXACT == 0)
+		float los = getTexelF(tex0, texCoord.xy, vec2(LOSXSIZE,LOSYSIZE) * 2.);
+		float airlos = getTexelF(tex1, texCoord.xy, vec2(AIRLOSXSIZE,AIRLOSYSIZE) * 2.5);
+		vec2 radarJammer = getTexel(tex2, texCoord.xy, vec2(RADARXSIZE,RADARYSIZE) * 2.5).rg;
+		fragColor.r = 0.2 + 0.8 * los; // 0.4
+		fragColor.g += 0.2 + 0.8 * airlos;
+		
+		fragColor.b = 0.2 + 0.8 * clamp(0.75 * radarJammer.r - 0.5 * (radarJammer.g - 0.5),0,1);
+		//gl_FragColor.b += radarJammer.r;
+		//gl_FragColor.b -= 2*radarJammer.g;
+		fragColor.a = outputAlpha;
+	#else
+		// textureGather returns in rgba order, TL, TR, BR, BL
+		vec4 los_samples = textureGather(tex0, texCoord.xy, 0);
+		vec4 airlos_samples = textureGather(tex1, texCoord.xy, 0);
+		vec4 radar_samples = textureGather(tex2, texCoord.xy, 0);
+		vec4 jammer_samples = textureGather(tex2, texCoord.xy, 1);
+		
+		/*
+		vec2 texCoordPixel = texCoord.xy * vec2(TEXX,TEXY);
+		//printf(gl_FragCoord.xy);
+		//printf(mouseScreenPos.xy);
+		//printf(texCoordPixel.xy);
+		//printf(los_samples.rgba);
+		float los = texture(tex0, texCoord.xy).r;
+		float airlos = texture(tex1, texCoord.xy).r;
+		float radarJammer = texture(tex2, texCoord.xy).r;
+		*/
 
-	float los = getTexelF(tex0, texCoord, vec2(LOSXSIZE,LOSYSIZE) * 2.5);
-	float airlos = getTexelF(tex1, texCoord, vec2(AIRLOSXSIZE,AIRLOSYSIZE) * 2.5);
-	vec2 radarJammer = getTexel(tex2, texCoord, vec2(RADARXSIZE,RADARYSIZE) * 2.5).rg;
+		float smooth_los = gatherBlend(los_samples, texCoord.xy, vec2(LOSXSIZE,LOSYSIZE));
+		float smooth_airlos = gatherBlend(airlos_samples, texCoord.xy, vec2(AIRLOSXSIZE,AIRLOSYSIZE));
+		float smooth_radar = gatherBlend(radar_samples, texCoord.xy, vec2(RADARXSIZE,RADARYSIZE));
+		float smooth_jammer = gatherBlend(jammer_samples, texCoord.xy, vec2(RADARXSIZE,RADARYSIZE));
+		//fragColor.rgb = fract(texCoord.xyz * 10.0);
+		//fragColor.rgb = vec3(smooth_los);
+
+		fragColor.r = 0.2 + 0.8 * smooth_los; // 0.4
+		fragColor.g += 0.2 + 0.8 * smooth_airlos;
+		fragColor.b = 0.2 + 0.8 * clamp(0.75 * smooth_radar - 0.5 * (smooth_jammer - 0.5),0,1);
+		fragColor.a = outputAlpha;
+		return;
+
+	#endif
+		//fragColor.rgb = fract(texCoord.xyz * 10.0);
+		//fragColor.a = 1.0;
 	
-	fragColor.r = 0.2 + 0.8 * los; // 0.4
-	fragColor.g += 0.2 + 0.8 * airlos;
-	
-	fragColor.b = 0.2 + 0.8 * clamp(0.75 * radarJammer.r - 0.5 * (radarJammer.g - 0.5),0,1);
-	//gl_FragColor.b += radarJammer.r;
-	//gl_FragColor.b -= 2*radarJammer.g;
-	fragColor.a = outputAlpha;
 }

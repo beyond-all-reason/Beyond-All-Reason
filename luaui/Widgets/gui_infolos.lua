@@ -36,20 +36,26 @@ local GL_RGBA32F_ARB = 0x8814
 
 
 -- TODO: 2022.12.12
-	-- make it work?
-	-- make api share?
-	-- a clever thing might be to have 1 texture per allyteam?
+	-- [x] make it work?
+	-- [x] make api share?
+	-- [x] a clever thing might be to have 1 texture per allyteam?
 	-- some bugginess with jammer range?
 
 -- TODO 2022.12.20
 	-- Read miplevels from modrules?
+
+-- TODO 2024.11.19
+	-- Make the shader have exact visibility per 8 elmo square (hmap - 1)
 
 local autoreload = true
 
 
 local shaderConfig = {
 	SAMPLES = 4, -- quality setting
-	RESOLUTION = 2, -- Number of times to downsample (fraction of heightmap rez!)
+	TEXX = (Game.mapSizeX/8),
+	TEXY = (Game.mapSizeZ/8),
+	RESOLUTION = 2,
+	EXACT = 1, -- 1 = exact visibility per 8 elmo square (hmap - 1)
 }
 ---------------------------------------------------------------------------
 
@@ -68,6 +74,8 @@ local texX, texY
 local luaShaderDir = "LuaUI/Widgets/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
+
+local fullScreenQuadVAO = nil
 
 local vsSrcPath = "LuaUI/Widgets/Shaders/infolos.vert.glsl"
 local fsSrcPath = "LuaUI/Widgets/Shaders/infolos.frag.glsl"
@@ -102,7 +110,7 @@ local function GetInfoLOSTexture(allyTeam)
 end
 
 local function CreateLosTexture()
-	return gl.CreateTexture(texX, texY, {
+	return gl.CreateTexture(shaderConfig.TEXX, shaderConfig.TEXY, {
 		min_filter = GL.LINEAR,
 		mag_filter = GL.LINEAR,
 		wrap_s = GL.CLAMP_TO_EDGE,
@@ -118,7 +126,9 @@ local function renderToTextureFunc() -- this draws the fogspheres onto the textu
 	gl.Texture(1, "$info:airlos")
 	gl.Texture(2, "$info:radar") --$info:los
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-	gl.TexRect(-1, -1, 1, 1, 0, 0, 1, 1)
+	
+	fullScreenQuadVAO:DrawArrays(GL.TRIANGLES)
+	--gl.TexRect(-1, -1, 1, 1, 0, 0, 1, 1)
 	gl.Texture(0, false)
 	gl.Texture(1, false)
 	gl.Texture(2, false)
@@ -161,8 +171,6 @@ function widget:Initialize()
 		return
 	end
 	--local alwaysColor, losColor, radarColor, jamColor, radarColor2 = Spring.GetLosViewColors()
-	texX = (Game.mapSizeX/8)/shaderConfig.RESOLUTION
-	texY = (Game.mapSizeZ/8)/shaderConfig.RESOLUTION
 
 	for name, tex in pairs({LOS = "$info:los", AIRLOS = "$info:airlos", RADAR = "$info:radar" }) do
 		local texInfo = gl.TextureInfo(tex)
@@ -181,6 +189,7 @@ function widget:Initialize()
 	if not shaderCompiled then Spring.Echo("Failed to compile InfoLOS GL4") end
 
 
+	fullScreenQuadVAO = MakeTexRectVAO()--  -1, -1, 1, 0,   0,0,1, 0.5
 
 	WG['infolosapi'] = {}
 	WG['infolosapi'].GetInfoLOSTexture = GetInfoLOSTexture
@@ -231,13 +240,15 @@ function widget:DrawScreen() -- the debug display output
 		gl.Color(1,1,1,1) -- use this to show individual channels of the texture!
 		gl.Texture(0, infoTextures[currentAllyTeam])
 		gl.Blending(GL.ONE, GL.ZERO)
-		gl.TexRect(0, 0, texX, texY, 0, 1, 1, 0)
+		gl.Culling(false)
+		gl.TexRect(0, 0, shaderConfig.TEXX, shaderConfig.TEXY, 0, 0, 1, 1) -- REMEMBER THAT THIS UPSIDE DOWN!
 
-		gl.Text(tostring(currentAllyTeam), texX, texY,16)
+		gl.Text(tostring(currentAllyTeam), shaderConfig.TEXX, shaderConfig.TEXY,16)
 		gl.Texture(0,"$info:los")
 		--gl.TexRect(texX, 0, texX + shaderConfig['LOSXSIZE'], shaderConfig['LOSYSIZE'], 0, 1, 1, 0)
 		gl.Texture(0,false)
 		
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+		if infoShader.DrawPrintf then infoShader.DrawPrintf() end
 	end
 end
