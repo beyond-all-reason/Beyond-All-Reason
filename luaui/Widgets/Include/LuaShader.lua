@@ -787,7 +787,11 @@ function LuaShader:Deactivate()
 					end
 
 					my = my - fontSize
-					font3:Print(message, math.floor(mx), math.floor(my), fontSize,"o")
+					local vsx, vsy = Spring.GetViewGeometry()
+					local alignment = ''
+					if mx > (vsx - 400) then alignment = 'r' end
+					--Spring.Echo(my,vsy) 
+					font3:Print(message, math.floor(mx), math.floor(my), fontSize,alignment .."o"  )
 				end
 				
 				gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
