@@ -1,5 +1,5 @@
 return {
-	cor_hat_fightnight = {
+	cor_hat_hw = {
 		maxacc = 0,
 		blocking = false,
 		maxdec = 0,
@@ -37,7 +37,7 @@ return {
 		upright = false,
 		customparams = {
 			nohealthbars = true,
-			model_author = "Taken from corcom_hw"
+			model_author = "Taken from corcom_hw",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "other/hats",
 			decoration = 1,
