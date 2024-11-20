@@ -1371,7 +1371,7 @@ function gadgetHandler:RegisterAllowCommand(gadget, cmdID)
 		Spring.Log('AllowCommand', LOG.ERROR, "<" .. gadget.ghInfo.basename .. "> No callin method")
 		return
 	end
-	cmdList = allowCommandList[cmdID]
+	local cmdList = allowCommandList[cmdID]
 	-- create list if needed
 	if not cmdList then
 		cmdList = {}
