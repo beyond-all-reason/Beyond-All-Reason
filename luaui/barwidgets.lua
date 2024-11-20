@@ -89,11 +89,6 @@ widgetHandler = {
 	yViewSizeOld = 1,
 }
 
--- top level callins returning several values need to be wrapped
--- in a special way.
-local multiReturnTopCallins = {
-	"GameSetup",
-}
 
 -- these call-ins are set to 'nil' if not used
 -- they are setup in UpdateCallIns()
@@ -966,39 +961,23 @@ function widgetHandler:UpdateCallIn(name)
 	if name == 'Update' or	name == 'DrawScreen' then
 		return
 	end
-	local noUnpack = true
-	if table.contains(multiReturnTopCallins, name) then
-		noUnpack = false
-	end
 	if #self[listName] > 0 or not flexCallInMap[name] or (name == 'GotChatMsg' and actionHandler.HaveChatAction()) or (name == 'RecvFromSynced' and actionHandler.HaveSyncAction()) then
 		-- always assign these call-ins
 		local selffunc = self[name]
-		local postOps = function()
+
+		-- max two return parameters for top level callins!
+		_G[name] = function(...)
+			callinDepth = callinDepth + 1
+
+			local res1, res2 = selffunc(self, ...)
+
 			callinDepth = callinDepth - 1
 
 			if reorderNeeded and callinDepth == 0 then
 				self:PerformReorders()
 			end
-		end
-		if noUnpack then
-			_G[name] = function(...)
-				callinDepth = callinDepth + 1
 
-				local res = selffunc(self, ...)
-
-				postOps()
-				return res
-			end
-		else
-			-- methods returning several values need them unpacked
-			_G[name] = function(...)
-				callinDepth = callinDepth + 1
-
-				local res = {selffunc(self, ...)}
-
-				postOps()
-				return unpack(res)
-			end
+			return res1, res2
 		end
 	else
 		_G[name] = nil
