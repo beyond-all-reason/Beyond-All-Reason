@@ -13,7 +13,7 @@ in DataVS {
 	flat vec4 v_worldPosRad;
 	flat vec4 v_worldPosRad2;
 	flat vec4 v_lightcolor;
-	vec4 v_otherparams;
+	vec4 v_otherparams;  // hopefully containst effectType in .w
 	vec4 v_noiseoffset; // contains wind data, very useful!
 	noperspective vec2 v_screenUV; // i have no fucking memory as to why this is set as noperspective
 };
@@ -67,7 +67,7 @@ float distancebetweenlines(vec3 r1, vec3 e1, vec3 r2, vec3 e2){ // point1, dir1,
 	return distance;
 }
 
-// Given a ray origin and direction,  and a line segment start and end point, which point on the ray is closest to the line segment?
+// Given a ray origin and direction, and a line segment start and end point, which point on the ray is closest to the line segment?
 vec3 ray_linesegment_closestpoint(vec3 rayOrigin, vec3 rayDirection, vec3 lineStart, vec3 lineEnd){
 
 	vec3 lineDir = lineEnd - lineStart;
@@ -89,6 +89,9 @@ vec3 ray_linesegment_closestpoint(vec3 rayOrigin, vec3 rayDirection, vec3 lineSt
 		return closestPointOnRayToLineEnd;
 	}
 }
+
+
+
 // https://gist.github.com/wwwtyro/beecc31d65d1004f5a9d
 vec2 raySphereIntersect(vec3 rayOrigin, vec3 rayDirection, vec3 sphereCenter, float sphereRadius) {
     // - r0: ray origin
@@ -112,7 +115,7 @@ vec2 raySphereIntersect(vec3 rayOrigin, vec3 rayDirection, vec3 sphereCenter, fl
 
 // Given a ray origin and a direction, returns the closes point on the ray in xyz and the distance in w
 // marginally faster, about the cost as a single octave of perlin
-vec4 ray_to_capsule_distance_squared(vec3 rayOrigin, vec3 rayDirection, vec3 cap1, vec3 cap2){ // point1, dir1, beamstart, beamend
+vec4 ray_to_capsule_distance_squared(vec3 rayOrigin, vec3 rayDirection, vec3 cap1, vec3 cap2){ // point1, dir1, beamStart, beamEnd
 	// returns the squared distance of the ray and the line segment in w
 	// returns the closest point on beam in xyz
 	float rd_dot_rd_inv = 1.0 / dot(rayDirection, rayDirection);
@@ -151,6 +154,7 @@ vec4 ray_to_capsule_distance_squared(vec3 rayOrigin, vec3 rayDirection, vec3 cap
 	return finalposanddist;
 }
 
+
 vec3 plane_point_dir_to_normal(vec3 point, vec3 planeDir, vec3 viewDirection){
 	vec3 planeTangent = normalize(cross(planeDir, viewDirection)); // this is now tangential to the plane
 	return normalize(cross(planeTangent, planeDir));
@@ -164,6 +168,63 @@ vec4 ray_to_plane_intersection_point( vec3 ro, vec3 rd, vec3 planeNormal, vec3 p
 //http://www.realtimerendering.com/intersections.html
 
 
+// The neat thing about this approach is that its quite generic in the sense of trivially being identical for spheres and beams
+// Given a ray defined by rayOrigin and rayDirection, and a line segment defined with lineStart and lineEnd,
+// Which point on the ray is closest to the line segment, and which point on the line segment is closest to the ray?
+// Returns the closest point on the ray in XYZ and the distance to the line segment in W
+// Also places the closest point on the line segment in the XYZ and the distance in W of out vec4 lineClosestPoint
+// Write a GLSL function to solve the above problem by continuing the GLSL function definition below:
+// THIS IS THE ONLY CORRECT IMLPEMENTATION!!!!!!!
+vec4 ray_line_segment_closestpoint_on_ray_and_segment2(in vec3 rayOrigin, in vec3 rayDirection,
+                                  in vec3 lineStart, in vec3 lineEnd,
+                                  out vec4 closestPointOnSegment) {
+    vec3 lineStartToEnd = lineEnd - lineStart;       // Direction vector of segment
+    vec3 originToStart = lineStart - rayOrigin;
+
+    float lineLenSQR = dot(lineStartToEnd, lineStartToEnd);                // Squared length of segment
+    float dotRayLine = dot(rayDirection, lineStartToEnd);
+    float d = dot(rayDirection, originToStart);
+    float e = dot(lineStartToEnd, originToStart);
+
+    float D = lineLenSQR - dotRayLine * dotRayLine;            // Denominator for s and t parameters
+    float sc, sN, sD = D;
+    float tc, tN, tD = D;
+
+    // Check if lines are almost parallel
+    if (abs(D) < 1e-8) {
+        sN = 0.0;                       // Force s to zero
+        sD = 1.0;                       // Prevent division by zero
+        tN = d;
+        tD = 1.0;
+    } else {
+        sN = (dotRayLine * d - e);
+        tN = (lineLenSQR * d - dotRayLine * e);
+    }
+
+    // Compute the closest point parameter s on the segment [0,1]
+    float s = sN / sD;
+    s = clamp(s, 0.0, 1.0);
+	float t;
+    // Recompute t for the closest point on the ray
+    if (abs(D) < 1e-8) {
+        t = 0.0;
+    } else {
+        t = (dotRayLine * s + d) ;
+    }
+
+    // Ensure t is non-negative (since the ray extends from the origin in the positive direction)
+    t = max(t, 0.0);
+
+    // Compute the closest points on the segment and the ray
+    closestPointOnSegment.xyz = lineStart + s * lineStartToEnd;
+    vec3 closestPointOnRay = rayOrigin + t * rayDirection;
+
+    // Compute the distance between the closest points
+    float distance = length(closestPointOnSegment.xyz - closestPointOnRay);
+	closestPointOnSegment.w = distance; 
+
+    return vec4(closestPointOnRay, distance);
+}
 
 //https://iquilezles.org/articles/intersectors/
 // capsule defined by extremes pa and pb, and radious ra
@@ -372,8 +433,10 @@ vec4 curl3d( vec3 P )
 #line 31000
 void main(void)
 {
-	//fragColor.rgba = vec4(fract(gl_FragCoord.zzz * 1.0),1.0); return;
+	//-------------------------- BEGIN SHARED SECTION ---------------------
+	int effectType = int(v_otherparams.w);
 	
+	// TODO: Get the view vector before fetching texels for speedups
 	
 	float mapdepth = texture(mapDepths, v_screenUV).x;
 	float modeldepth = texture(modelDepths, v_screenUV).x;
@@ -385,12 +448,14 @@ void main(void)
 	if (gl_FragCoord.z > worlddepth) {
 		if (modeldepth < mapdepth) { // We are processing a model fragment
 			ismodel = 1;
-			
 		}else{
 		}
 	}
 	
 	vec4 fragWorldPos =  vec4( vec3(v_screenUV.xy * 2.0 - 1.0, worlddepth),  1.0);
+
+	// reconstruct view po
+
 	fragWorldPos = cameraViewProjInv * fragWorldPos;
 	fragWorldPos.xyz = fragWorldPos.xyz / fragWorldPos.w; // YAAAY this works!
 	
@@ -399,19 +464,29 @@ void main(void)
 
 	float fragDistance = length(camPos - fragWorldPos.xyz);
 	vec3 viewDirection = (camPos - fragWorldPos.xyz) / fragDistance; // vector pointing in the direction of the eye ray
+
+	vec3 viewDirFromDepth = viewDirection;
+	printf(viewDirFromDepth.xyz);
+	
+	vec4 viewDirWithoutDepth = vec4( vec3(v_screenUV.xy * 2.0 - 1.0, 0.0),  1.0);
+	viewDirWithoutDepth = cameraViewProjInv * viewDirWithoutDepth;
+	viewDirWithoutDepth.xyz = viewDirWithoutDepth.xyz/viewDirWithoutDepth.w;
+	viewDirWithoutDepth.xyz = normalize(camPos - viewDirWithoutDepth.xyz);
+	printf(viewDirWithoutDepth.xyz);
 	
 	float lightRadius = v_worldPosRad.w;
 	float lightRadiusInv = 1.0 / lightRadius;
-	vec3 lightDirection = vec3(0); // the normalized vector from the light source to the fragment
+
 	vec3 lightToWorld = vec3(0); // The vector pointing from light source to fragment world pos
 	vec3 lightPosition = vec3(0); // This is the position of the light illuminating the fragment
-	vec3 lightEmitPosition = vec3(0); // == lightPosition, except for beams, where the lightEmitPosition for a ray is different than for a world fragment
+	vec4 lightEmitPosition = vec4(0); // == lightPosition, except for beams, where the lightEmitPosition for a ray is different than for a world fragment
 	vec3 EntryPoint = vec3(0); // Point of entry into the light volume from the camera
 	vec3 ExitPoint =  vec3(0); // point of exit from the light volume away from the camera
 	vec3 MidPoint = vec3(0); // midpoint between entry and exit points
 	vec2 nearFarDistances = vec2(0); // the distances to the nearest and farthest points on the light source
 
-	vec4 closestpoint_dist = vec4(0); // the point that is closest to the light source (xyz) and the distance to it (w)
+	vec4 closestPointOnRay = vec4(0); // the point on the ray that is closest to the light source (xyz) and the distance to it (w)
+	
 	
 	// Lighting components we wish to collect along the way:
 	float distance_attenuation = 0; // Just the distance from the light source (multiplied with falloff for cones
@@ -419,15 +494,15 @@ void main(void)
 	
 	float relativeDensity = 1.0;
 	//fragColor.rgba = vec4(fract(fragWorldPos.xyz * 0.1),1.0); return; // Debug fragment world position
-	
+
 	#line 32000
 	if (pointbeamcone < 0.5){ //point
 		lightPosition = v_worldPosRad.xyz;
-		lightEmitPosition = lightPosition;
+		lightEmitPosition.xyz = lightPosition;
 		
 		lightToWorld = fragWorldPos.xyz - lightPosition;
-		lightDirection = normalize(lightToWorld);
-		closestpoint_dist = closestlightlp_distance(camPos, viewDirection, lightPosition);
+		closestPointOnRay = closestlightlp_distance(camPos, viewDirection, lightPosition);
+		lightEmitPosition.w = closestPointOnRay.w;
 
 		// Need to invert view direction as we need ray pointing from camera to sphere
 		nearFarDistances = raySphereIntersect(camPos, -1 * viewDirection, lightPosition, lightRadius);
@@ -439,38 +514,32 @@ void main(void)
 
 	#line 33000
 	}else if (pointbeamcone < 1.5){ // beam 
-		vec3 beamhalflength = v_worldPosRad2.xyz - v_worldPosRad.xyz; 
-		vec3 beamstart = v_worldPosRad.xyz - beamhalflength;
-		vec3 beamend = v_worldPosRad.xyz + beamhalflength;
-		lightPosition = closestbeam(fragWorldPos.xyz, beamstart, beamend);
+		vec3 beamHalfLength = v_worldPosRad2.xyz - v_worldPosRad.xyz; 
+		vec3 beamStart = v_worldPosRad.xyz - beamHalfLength;
+		vec3 beamEnd = v_worldPosRad.xyz + beamHalfLength;
+		lightPosition = closestbeam(fragWorldPos.xyz, beamStart, beamEnd);
 		
 		lightToWorld = fragWorldPos.xyz - lightPosition;
-		
-		lightDirection = normalize(lightToWorld);
-		
-		closestpoint_dist = ray_to_capsule_distance_squared(camPos, viewDirection, beamstart, beamend);
-		lightEmitPosition = closestpoint_dist.xyz;
-		closestpoint_dist.xyz = ray_linesegment_closestpoint(camPos, viewDirection, beamstart, beamend);
-		
-		// Find the close and far distances to the beam
-		nearFarDistances.x =  capIntersect( camPos, -viewDirection, beamstart, beamend, lightRadius);
-		nearFarDistances.y = - capIntersect( camPos, viewDirection, beamstart, beamend, lightRadius);
+
+		closestPointOnRay = ray_line_segment_closestpoint_on_ray_and_segment2(camPos, -viewDirection, beamStart, beamEnd, lightEmitPosition);
+	
+		printf(closestPointOnRay.xyzw);
+		printf(lightEmitPosition.xyzw);
+		// Find the close and far distances to the beam volume
+		nearFarDistances.x =  capIntersect( camPos, -viewDirection, beamStart, beamEnd, lightRadius);
+		nearFarDistances.y = - capIntersect( camPos, viewDirection, beamStart, beamEnd, lightRadius);
 		
 		EntryPoint = (-viewDirection) * nearFarDistances.x + camPos;
 		ExitPoint =  (-viewDirection) * nearFarDistances.y + camPos;
 		MidPoint = (EntryPoint + ExitPoint) * 0.5;
-		distance_attenuation =  clamp( 1.0 - closestpoint_dist.w *lightRadiusInv, 0,1);
+		distance_attenuation =  clamp( 1.0 - closestPointOnRay.w *lightRadiusInv, 0,1);
 		relativeDensity = clamp(length(EntryPoint- ExitPoint) / (2*lightRadius), 0.0, 1.0);
-		DEBUGPOS(closestpoint_dist.xyz);
-
 
 	#line 34000
 	}else if (pointbeamcone > 1.5){ // cone
 		lightPosition = v_worldPosRad.xyz;
-		lightEmitPosition = lightPosition;
 		
 		lightToWorld = fragWorldPos.xyz - lightPosition;
-		lightDirection = normalize(lightToWorld);
 
 		vec3 coneDirection = normalize(v_worldPosRad2.xyz);
 	
@@ -488,84 +557,143 @@ void main(void)
 		ExitPoint = camPos + nearFarDistances.y * -viewDirection;
 		MidPoint = (EntryPoint + ExitPoint) * 0.5;
 
-		closestpoint_dist = ray_to_capsule_distance_squared(camPos, viewDirection, lightPosition, endPoint );
 
+		// Calculate the closest point on the view ray to the cone
+		closestPointOnRay = ray_line_segment_closestpoint_on_ray_and_segment2(camPos, -viewDirection, lightPosition, endPoint, lightEmitPosition);
+	
 		distance_attenuation = clamp( 1.0 - length(MidPoint - lightPosition)  / coneHeight, 0,1) * 1.0;
 		float lightAngleCosine  = dot(coneDirection, normalize(MidPoint - lightPosition));
 		float coneEdgeFactor = clamp((lightAngleCosine - coneAngleCosine) / (1.0 - coneAngleCosine), 0.0, 1.0);
 		coneEdgeFactor = sqrt(	coneEdgeFactor) * 4;
 		relativeDensity = clamp(length(EntryPoint- ExitPoint) / (2*biggestradius), 0.0, 1.0);
-		//distance_attenuation *= coneEdgeFactor;
-		//printf(distance_attenuation);
-		//printf(coneEdgeFactor);
 	}
 
 	#line 35000
 	
+
 	// If the fragment is inside the volume, we need to calculate the volumetric fraction
 	float volumetricFraction = 1.0; // The fraction of the ray that passes through the volume. 
 	if (fragDistance < nearFarDistances.y) {
 		volumetricFraction = 1.0 - clamp(0.5 * abs(nearFarDistances.y - fragDistance) / abs(nearFarDistances.y - nearFarDistances.x), 0.0, 1.0);
 	}
 
-	
-	//-------------------------
-	// DISTORTION
 
-	// Debugging check attenuations for each light source type:
-	// Draw attenuation as a color Green
-	float distortionAttenuation = 1.0; // start at max for the center
+	// Check if the volume is occluded, bail if yes!
+	//if ((fragDistance < nearFarDistances.x) || (nearFarDistances.y - nearFarDistances.x < 1e-6)){ fragColor.rgba = vec4(0.0); return; }
+	//-------------------------- END SHARED SECTION ---------------------
 
-	// Multiply the relative volume density:
-	distortionAttenuation *= relativeDensity;
 
-	// Attenuate with distance:
-	distortionAttenuation *= distance_attenuation;
-	
-	distortionAttenuation = pow(distortionAttenuation, 0.75);
+	// ------------------------ BEGIN AIR SHOCKWAVE ---------------- 
+	if (effectType == 1){
+		// Create a ground shockwave displacement based on the distance to the light source:
+		float shockwaveDisplacement = 0.0;
+		float shockwaveRadius = 0.5;
+		float shockwaveSpeed = 0.5;
+		float shockwaveAttenuation = 0.5;
+		float shockwaveAttenuationDistance = 0.5;
+		float shockwaveAttenuationDistanceInv = 1.0 / shockwaveAttenuationDistance;
+		float shockwaveAttenuationFactor = 1.0 - clamp((fragDistance - nearFarDistances.x) * shockwaveAttenuationDistanceInv, 0.0, 1.0);
+		shockwaveDisplacement = shockwaveAttenuationFactor * shockwaveAttenuation * sin((fragDistance - nearFarDistances.x) * shockwaveSpeed) * shockwaveRadius;
+		//fragWorldPos.xyz += lightDirection * shockwaveDisplacement;
 
-	// Take into account relative distance of ray point closest to light source to the light source
-	distortionAttenuation *= volumetricFraction;
-
-	// if the fragment is closer to the camera than the light source plus its radius, we can skip the distortion
-	if (length(fragWorldPos.xyz - camPos) < ( length(lightPosition - camPos) -lightRadius)){
-		fragColor.rgba = vec4(0.0);
-		return;
 	}
 
-	vec3 lightToClosest = closestpoint_dist.xyz - lightPosition.xyz;
-	printf(lightRadius);
-	printf(lightToClosest.xyz);
-
-	printf(closestpoint_dist.xyzw);
 	
-	//DEBUGPOS(closestpoint_dist.xyz);
-	// Show which fragment is being printf'd:
-	//if (all(lessThan(abs(mouseScreenPos.xy- (gl_FragCoord.xy + vec2(0.5, -1.5))),vec2(0.25) ))){fragColor.rgba = vec4(1.0);	return;	}
-	
-	// TODO: Ensure that the distortion is proportionate to the amount of "Hot" volume the ray passes through. 
-	// Get the noise sample:
-	vec3 noisePosition = MidPoint.xyz;
-	//noisePosition = EntryPoint;
-	vec4 noiseSample = textureLod(noise3DCube, noisePosition * 0.03 - vec3(0,(timeInfo.x + timeInfo.w) * 0.01,0), 0.0);
-	// norm2snorm to [-1,1]
-	noiseSample = noiseSample * 2.0 - 1.0;
+	//------------------------- BEGIN GROUND SHOCKWAVE -------------------------
 
-	// modulate the effect strength with the distance to the heat source:
-	float distanceToCameraFactor =  clamp(300.0/ fragDistance, 0.0, 1.0);
-	noiseSample *= distanceToCameraFactor;
+	else if (effectType == 2){
+		// Create a ground shockwave displacement based on the distance to the light source:
+		float shockwaveDisplacement = 0.0;
+		float shockwaveRadius = 0.5;
+		float shockwaveSpeed = 0.5;
+		float shockwaveAttenuation = 0.5;
+		float shockwaveAttenuationDistance = 0.5;
+		float shockwaveAttenuationDistanceInv = 1.0 / shockwaveAttenuationDistance;
+		float shockwaveAttenuationFactor = 1.0 - clamp((fragDistance - nearFarDistances.x) * shockwaveAttenuationDistanceInv, 0.0, 1.0);
+		shockwaveDisplacement = shockwaveAttenuationFactor * shockwaveAttenuation * sin((fragDistance - nearFarDistances.x) * shockwaveSpeed) * shockwaveRadius;
+		//fragWorldPos.xyz += lightDirection * shockwaveDisplacement;
+		if (ismodel > 0.5){
+			fragColor.rgba = vec4(0.0);
+			return;
+		}	
 
-	// snorm2norm to [0,1] for outputting into distortion texture:
-	noiseSample = noiseSample * 0.5 + 0.5;
-	//DEBUG(closestpoint_dist.y);
-	//modulate alpha part with the 
-	float strength  = 1.0; //clamp(1.0 - length(closestpoint_dist.xyz - lightPosition)/ lightRadius, 0.0, 1.0) * (distortionAttenuation);
-	strength *= distortionAttenuation  ;
-	printf(strength);
-	//DEBUG(strength);
-	fragColor.rgba = vec4(vec3(noiseSample.ra, 0.0) * 1.0 , strength);
-	//fragColor.rgba = vec4(0,0,0,1.0);
-	return;
-	//-------------------------
+	}
+
 	
+	//------------------------- BEGIN AIRJET -------------------------
+	
+	else if (effectType == 3){
+
+	}
+
+	//------------------------- BEGIN GRAVITYLENS -------------------------
+	else if (effectType == 4){
+
+	}
+
+	//------------------------- BEGIN FUSIONSPHERE -------------------------
+	else if (effectType == 5){
+
+	}
+	
+	//------------------------- BEGIN CLOAKDISTORTION -------------------------
+	else if (effectType == 6){
+
+	}
+
+	//------------------------- BEGIN SHIELDSPHERE -------------------------
+	else if (effectType == 7){
+
+	}
+	
+	//------------------------- BEGIN MAGNIFIER -------------------------
+	else if (effectType == 8){
+
+	}
+
+	//------------------------- BEGIN HEAT DISTORTION -------------------------
+	// Debugging check attenuations for each light source type:
+	// Draw attenuation as a color Green
+
+	else if (effectType == 0){
+
+		float distortionAttenuation = 1.0; // start at max for the center
+
+		// Multiply the relative volume density:
+		distortionAttenuation *= relativeDensity;
+
+		// Attenuate with distance:
+		distortionAttenuation *= distance_attenuation;
+		
+		// TODO: plug in custom distoriton falloff power
+		distortionAttenuation = pow(distortionAttenuation, 0.75); 
+
+		// Take into account relative distance of ray point closest to light source to the light source
+		distortionAttenuation *= volumetricFraction;
+
+		// if the fragment is closer to the camera than the light source plus its radius, we can completely skip the distortion
+		if (length(fragWorldPos.xyz - camPos) < ( length(lightPosition - camPos) -lightRadius)){
+			fragColor.rgba = vec4(0.0);
+			return;
+		}
+
+		//printf(closestPointOnRay.xyzw);
+		
+		// TODO: Ensure that the distortion is proportionate to the amount of "Hot" volume the ray passes through. 
+		// Get the noise sample:
+		vec3 noisePosition = MidPoint.xyz;
+		
+		// Normalized noise sample
+		vec4 noiseSampleNorm = (textureLod(noise3DCube, noisePosition * 0.03 - vec3(0,(timeInfo.x + timeInfo.w) * 0.01, 0), 0.0) )* 2.0 - 1.0;
+
+
+		// modulate the effect strength with the distance to the heat source:
+		float distanceToCameraFactor =  clamp(300.0/ fragDistance, 0.0, 1.0);
+		noiseSampleNorm *= distanceToCameraFactor;
+
+		// Modulate alpha with the distortionAttenuation
+		fragColor.rgba = vec4(vec3(noiseSampleNorm.ra * 0.5 + 0.5, 0.0) * 1.0 , distortionAttenuation);
+		return;
+
+	}
 }
