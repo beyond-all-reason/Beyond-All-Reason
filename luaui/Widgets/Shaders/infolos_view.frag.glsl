@@ -82,8 +82,7 @@ float filteredStep( in float p, in float resolution)
     float dpddiag =  dFdy(dpdx) ;
     float w = max(max(abs(dpdx), abs(dpdy)), abs(dpddiag));
     float w1k = w * 1000.0;
-    printf(p);
-    printf(w1k);
+
     if (w < 1e-6) return 0.0; // dont divide by zero later on
     float a = p + 0.5*w;                        
     float b = p - 0.5*w;           
@@ -301,8 +300,6 @@ void main(void) {
         if (timeCorrection < 0.0) timeCorrection = 0;
         if (timeCorrection > 1.0) timeCorrection = 0;
         float losEdge = filteredStep(current_losairradar.b - 0.5 - (timeCorrection * 0.00), 0.5);
-        printf(timeCorrection);
-        printf(losEdge);
         screenColor.g += 0.2 * losEdge;
     #endif
 
