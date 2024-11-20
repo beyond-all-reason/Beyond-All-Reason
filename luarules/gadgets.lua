@@ -99,16 +99,6 @@ gadgetHandler = {
 }
 
 
--- top level callins returning several values need to be wrapped
--- in a special way.
--- only support 2 return parameters for now.
-local multiReturnTopCallins = {
-	"GameSetup",
-	"AllowWeaponTarget",
-	"UnitPreDamaged",
-	"FeaturePreDamaged",
-}
-
 -- these call-ins are set to 'nil' if not used
 -- they are setup in UpdateCallIns()
 local callInLists = {
@@ -811,13 +801,6 @@ end
 
 --------------------------------------------------------------------------------
 
-local wrapPostOps = function()
-	callinDepth = callinDepth - 1
-	if reorderNeeded and callinDepth == 0 then
-		gadgetHandler:PerformReorders()
-	end
-end
-
 function gadgetHandler:UpdateCallIn(name)
 	local listName = name .. 'List'
 	local forceUpdate = (name == 'GotChatMsg' or name == 'RecvFromSynced') -- redundant?
@@ -828,29 +811,18 @@ function gadgetHandler:UpdateCallIn(name)
 		local selffunc = self[name]
 
 		if selffunc ~= nil then
-			local noUnpack = true
-			if table.contains(multiReturnTopCallins, name) then
-				noUnpack = false
-			end
+			-- max 2 return parameters for top level callins!
+			_G[name] = function(...)
+				callinDepth = callinDepth + 1
 
-			if noUnpack then
-				_G[name] = function(...)
-					callinDepth = callinDepth + 1
+				local res1, res2 = selffunc(self, ...)
 
-					local res = selffunc(self, ...)
-					wrapPostOps()
-					return res
+				callinDepth = callinDepth - 1
+				if reorderNeeded and callinDepth == 0 then
+					self:PerformReorders()
 				end
-			else
-				-- methods returning several values need them unpacked
-				-- only supporting two return values for now
-				_G[name] = function(...)
-					callinDepth = callinDepth + 1
 
-					local res1, res2 = selffunc(self, ...)
-					wrapPostOps()
-					return res1, res2
-				end
+				return res1, res2
 			end
 		else
 			Spring.Log(LOG_SECTION, LOG.ERROR, "UpdateCallIn: " .. name .. " is not implemented")
