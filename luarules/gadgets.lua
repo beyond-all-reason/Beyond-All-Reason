@@ -101,6 +101,7 @@ gadgetHandler = {
 
 -- top level callins returning several values need to be wrapped
 -- in a special way.
+-- only support 2 return parameters for now.
 local multiReturnTopCallins = {
 	"GameSetup",
 	"AllowWeaponTarget",
@@ -842,12 +843,13 @@ function gadgetHandler:UpdateCallIn(name)
 				end
 			else
 				-- methods returning several values need them unpacked
+				-- only supporting two return values for now
 				_G[name] = function(...)
 					callinDepth = callinDepth + 1
 
-					local res = {selffunc(self, ...)}
+					local res1, res2 = selffunc(self, ...)
 					wrapPostOps()
-					return unpack(res)
+					return res1, res2
 				end
 			end
 		else
