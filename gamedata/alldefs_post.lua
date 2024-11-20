@@ -1259,14 +1259,6 @@ function UnitDef_Post(name, uDef)
 			uDef.energystorage = uDef.energystorage * x
 		end
 	end
-	if name == "armsolar" or name == "corsolar" or name == "legsolar" then
-		-- special case (but why?)
-		local x = modOptions.multiplier_energyproduction * modOptions.multiplier_resourceincome
-		uDef.energyupkeep = uDef.energyupkeep * x
-		if uDef.energystorage then
-			uDef.energystorage = uDef.energystorage * x
-		end
-	end
 
 	-- Energy Conversion Multiplier
 	if uDef.customparams.energyconv_capacity and uDef.customparams.energyconv_efficiency then
