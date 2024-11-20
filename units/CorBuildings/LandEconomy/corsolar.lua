@@ -12,7 +12,7 @@ return {
 		damagemodifier = 0.5,
 		energycost = 0,
 		energystorage = 50,
-		energymake = 20,
+		energyupkeep = -20,
 		explodeas = "smallBuildingexplosiongeneric",
 		footprintx = 5,
 		footprintz = 5,
