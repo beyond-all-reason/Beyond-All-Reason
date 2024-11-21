@@ -4,6 +4,7 @@
 ---
 
 
+local unitName = {}
 local unitEnergyCost = {}
 local unitMetalCost = {}
 local unitGroup = {}
@@ -17,6 +18,8 @@ local isWind = {}
 local isWaterUnit = {}
 local isGeothermal = {}
 local unitMaxWeaponRange = {}
+
+local showWaterUnits = false
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 
@@ -137,14 +140,20 @@ maxOrder = maxOrder + 1
 -- For units who have the same order value we compare the unit's IDs.
 -- This sort is always stable, as no two units should have the same ID.
 table.sort(unitOrder, function(aID, bID)
-	local aOrder = unitOrderManualOverrideTable[aID] or maxOrder
-	local bOrder = unitOrderManualOverrideTable[bID] or maxOrder
+			local aOrder = unitOrderManualOverrideTable[aID] or maxOrder
+			local bOrder = unitOrderManualOverrideTable[bID] or maxOrder
 
-	if (aOrder == bOrder) then
-		return aID < bID
-	end
-	return aOrder < bOrder
-end)
+			if (aOrder == bOrder) then
+			  return aID < bID
+			end
+			return aOrder < bOrder
+		end)
+
+local voidWater = false
+local success, mapinfo = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua confs
+if success and mapinfo then
+	voidWater = mapinfo.voidwater
+end
 
 local minWaterUnitDepth = -11
 
@@ -154,6 +163,8 @@ local minWaterUnitDepth = -11
 ------------------------------------
 
 return {
+
+	unitName = unitName,
 	unitEnergyCost = unitEnergyCost,
 	unitMetalCost = unitMetalCost,
 	unitGroup = unitGroup,
@@ -169,6 +180,8 @@ return {
 
 	minWaterUnitDepth = minWaterUnitDepth,
 	unitOrder = unitOrder,
+
+	showWaterUnits = showWaterUnits,
 
 	checkGeothermalFeatures = checkGeothermalFeatures,
 	restrictGeothermalUnits = restrictGeothermalUnits,
