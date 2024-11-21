@@ -253,3 +253,23 @@ function gadget:GameFrame(frame)
 	end
 	gameFrame = frame
 end
+
+local function setVelocityControl(unitID, enabled)
+	if enabled == false then
+		launchedUnits[unitID] = nil
+		unitInertiaCheckFlags[unitID] = nil
+	elseif not unitInertiaCheckFlags[unitID] then
+		unitInertiaCheckFlags[unitID] = {
+			expirationFrame = gameFrame + velocityWatchFrames,
+			velocityCap     = unitDefData[Spring.GetUnitDefID(unitID)].velocityCap,
+		}
+	end
+end
+
+function gadget:Initialize()
+	GG.SetVelocityControl = setVelocityControl
+end
+
+function gadget:ShutDown()
+	GG.SetVelocityControl = nil
+end

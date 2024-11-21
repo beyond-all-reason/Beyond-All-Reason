@@ -186,7 +186,7 @@ return {
 			railgunt3 = {
 				areaofeffect = 24,
 				avoidfeature = false,
-				burnblow = false,
+				burnblow = true,
 				cegtag = "railgun",
 				craterareaofeffect = 0,
 				craterboost = 0,
@@ -195,11 +195,13 @@ return {
 				edgeeffectiveness = 0.85,
 				energypershot = 1000,
 				explosiongenerator = "custom:plasmahit-sparkonly",
-				fallOffRate = 0.2,
 				firestarter = 0,
+				hardstop = true,
+				impactonly = true,
 				impulsefactor = 1,
 				intensity = 0.8,
 				name = "Railgun",
+				noexplode = true,
 				noselfdamage = true,
 				ownerExpAccWeight = 4.0,
 				proximitypriority = 1,
@@ -215,6 +217,9 @@ return {
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 3180,
+				customparams = {
+					overpenetrate = true,
+				},
 				damage = {
 					commanders = 250,
 					default = 500,
