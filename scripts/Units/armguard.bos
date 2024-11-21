@@ -6,7 +6,7 @@
 piece  flare1, flare2, base, turret, barrel1, barrel2, sleeves;
 
 //smasel remove debugGameFrame
-static-var  nextBarrel, trajectoryMode, lastHeading, aimingState, switchAimModeFrame, queueLowFrame, firedLowFailed, debugGameFrame;
+static-var  nextBarrel, trajectoryMode, lastHeading, aimingState, switchAimModeFrame, queueLowFrame, firedLowFailed, gameFrame;
 
 #define SIGNAL_AIM							1
 #define RESET_LOW_DELAY_FRAMES				15
@@ -42,9 +42,25 @@ Create()
 #define SMOKEPIECE base
 #include "smokeunit_thread_nohit.h"
 
+setAimingState(weaponNumber)
+{
+	if (weaponNumber == AIMING_LOW){
+			switchAimModeFrame = (gameFrame + RESET_LOW_DELAY_FRAMES);
+			aimingState = AIMING_LOW;
+	} else if ((weaponNumber == AIMING_HIGH) && (queueLowFrame < gameFrame)){
+		if (firedLowFailed == TRUE){
+			//if low aimed but failed to fire, aim high for longer.
+			switchAimModeFrame = (gameFrame + RESET_HIGH_ERRORSTATE_FRAMES);
+		} else{
+			switchAimModeFrame = (gameFrame + RESET_HIGH_DELAY_FRAMES);
+		}
+		aimingState = AIMING_HIGH;
+	}
+}
+
 smartAimSelect(weaponNumber)
 {
-	var gameFrame, highReloadState, lowReloadState, greatestReloadState;; 
+	var highReloadState, lowReloadState, greatestReloadState;; 
 	gameFrame = (get GAME_FRAME);
 
 	//define a period where low is given priority to steal.
@@ -76,18 +92,7 @@ smartAimSelect(weaponNumber)
 	}
 	
 	if (aimingState == AIMING_NEITHER){
-		if (weaponNumber == AIMING_LOW){
-			switchAimModeFrame = (gameFrame + RESET_LOW_DELAY_FRAMES);
-			aimingState = AIMING_LOW;
-		} else if ((weaponNumber == AIMING_HIGH) && (queueLowFrame < gameFrame)){
-			if (firedLowFailed == TRUE){
-				//if low aimed but failed to fire, aim high for longer.
-				switchAimModeFrame = (gameFrame + RESET_HIGH_ERRORSTATE_FRAMES);
-			} else{
-				switchAimModeFrame = (gameFrame + RESET_HIGH_DELAY_FRAMES);
-			}
-			aimingState = AIMING_HIGH;
-		}
+		call-script setAimingState(weaponNumber);
 		return (0);
 	}	
 }

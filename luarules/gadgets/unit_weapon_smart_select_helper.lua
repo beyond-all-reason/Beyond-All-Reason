@@ -23,7 +23,7 @@ local gameFrame = 0
 
 --functions
 local ggGetUnitTargetIndex = GG.getUnitTargetIndex
-local spGetUnitCommands = Spring.GetUnitCommands
+local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 
 --tables
 local unitSuspendAutoAiming = {}
@@ -33,21 +33,15 @@ for unitDefID, def in ipairs(UnitDefs) do
 	if def.customParams.smart_weapon_select_priority then
 		unitDefsWithSmartWeapons[unitDefID] = def.customParams.smart_weapon_select_priority
 		for weaponNumber, weaponData in ipairs(def.weapons) do
-			--Spring.Echo("smart_weapon_select_priority", def.name, weaponNumber, weaponData)
 			Script.SetWatchWeapon(weaponData.weaponDef, true)
 		end
 	end
 end
 
 local function manualCommandIssued(attackerID)
-	local firstCommand = spGetUnitCommands(attackerID, 1)
-	if next(firstCommand) then
-		if (firstCommand[1].id) == cmdAttack then
-			--Spring.Echo("firstCommand", attackerID)
-			return true
-		end
+	if spGetUnitCurrentCommand(attackerID) == cmdAttack then
+		return true
 	elseif ggGetUnitTargetIndex(attackerID) then
-		--Spring.Echo("ggGetUnitTargetIndex", attackerID, ggGetUnitTargetIndex(attackerID))
 		return true
 	else
 		return false
@@ -57,35 +51,30 @@ end
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	if unitDefsWithSmartWeapons[unitDefID] then
 		unitSuspendAutoAiming[unitID] = false
-		--Spring.Echo("unit Added!", unitID)
 	end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	unitSuspendAutoAiming[unitID] = nil
-	--Spring.Echo("unit destroyed!", unitID)
 end
 
 function gadget:AllowWeaponTargetCheck(attackerID, attackerWeaponNum, attackerWeaponDefID)
 	if unitSuspendAutoAiming[attackerID] == true then
-		--Spring.Echo("no autotarget!!", attackerID)
 		return false, false
 	else
-		--Spring.Echo("yes autotarget!!", attackerID)
 		return false, true
 	end
 end
 
+
+
 function gadget:GameFrame(frame)
 	if frame % frameCheckModulo == 3 then
 		for attackerID in pairs(unitSuspendAutoAiming) do
-			--Spring.Echo("gameFrame Check!!!", attackerID)
 			if manualCommandIssued(attackerID) == true then
 				unitSuspendAutoAiming[attackerID] = true
-				--Spring.Echo("true")
 			else
 				unitSuspendAutoAiming[attackerID] = false
-				--Spring.Echo("false")
 			end
 		end
 	end
