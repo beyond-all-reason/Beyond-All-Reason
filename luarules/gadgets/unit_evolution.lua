@@ -135,7 +135,7 @@ if gadgetHandler:IsSyncedCode() then
 		for _,unitID in pairs(allUnits) do
 			--local unitID = allUnits[i]
 			
-			if GG.GetUnitTarget(unitID) == oldUnit then
+			if GG.GetUnitTarget(unitID) == oldUnit and newUnit then
 				GG.SetUnitTarget(unitID, newUnit)
 			end
 			

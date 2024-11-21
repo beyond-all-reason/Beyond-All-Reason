@@ -9,7 +9,6 @@ return {
 		buildtime = 2450,--2720
 		canrepeat = false,
 		cantbetransported = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -7 0",
 		collisionvolumescales = "32 61 32",
 		collisionvolumetype = "CylY",
@@ -46,7 +45,7 @@ return {
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
-			subfolder = "corbuildings/landdefenceoffence",
+			subfolder = "CorBuildings/LandDefenceOffence",
 		},
 		featuredefs = {
 			dead = {
@@ -121,7 +120,6 @@ return {
 				explosiongenerator = "custom:laserhit-small",
 				firestarter = 30,
 				impactonly = 1,
-				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 7,
 				name = "Light g2g Heat Ray",

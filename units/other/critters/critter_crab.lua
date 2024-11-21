@@ -15,7 +15,7 @@ return {
 		canstop = "1",
 		cantbetransported = false,
 		capturable = false,
-		category = "MOBILE NOWEAPON NOTAIR NOTSUB",
+		category = "OBJECT",
 		defaultmissiontype = "Standby",
 		explodeas = "SMALLBUG_DEATH",
 		footprintx = 1,

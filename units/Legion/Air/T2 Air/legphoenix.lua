@@ -10,7 +10,6 @@ return {
 		canfly = true,
 		canattack = true,
 		canmove = true,
-		category = "ALL NOTLAND MOBILE WEAPON VTOL NOTSUB NOTSHIP NOTHOVER",
 		collisionvolumeoffsets = "0 0 5",
 		collisionvolumescales = "110 20 60",--yes this is unconventional but needs to be this way (passes the Drivver Test)
 		collisionvolumetype = "Box",
@@ -48,7 +47,7 @@ return {
 			unitgroup = 'weapon',
 			model_author = "Hornet",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "legionaircraft/t2",
+			subfolder = "Legionaircraft/T2",
 			techlevel = 2,
 		},
 		featuredefs = {
@@ -135,7 +134,6 @@ return {
 				explosiongenerator = "custom:heatray-huge",
 				firestarter = 90,
 				firetolerance = 300,
-				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 6,
 				name = "Heavy a2g Phoenix Flame Heat Ray",
@@ -175,7 +173,6 @@ return {
 				edgeeffectiveness = -0.99,
 				explosiongenerator = "custom:noexplosion",
 				gravityaffected = "true",
-				impulseboost = 0,
 				impulsefactor = 0,
 				model = "empty.s3o",
 				mygravity = 0.4,

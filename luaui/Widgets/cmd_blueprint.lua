@@ -3,7 +3,7 @@ function widget:GetInfo()
 		name = "Blueprint",
 		desc = "Saves and queues groups of unit blueprints",
 		license = "GNU GPL, v2 or later",
-		layer = 0,
+		layer = 1, -- after gridmenu(0), to let factories use alt+xyz hotkeys
 		enabled = true,
 		handler = true,
 	}
@@ -239,6 +239,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		blueprintBuildableUnitDefs[unitDefID] = true
 	elseif unitDef.isBuilder and not unitDef.canMove and not unitDef.isFactory then
 		-- nanos
+		blueprintBuildableUnitDefs[unitDefID] = true
+	elseif unitDef.customParams.mine then
+		-- mines
 		blueprintBuildableUnitDefs[unitDefID] = true
 	end
 end
@@ -904,8 +907,8 @@ end
 
 local function createBuildingComparator(sortSpec)
 	return function(a, b)
-		a = pack(Spring.Pos2BuildPos(a.unitDefID, a.position[1], a.position[2], a.position[3]))
-		b = pack(Spring.Pos2BuildPos(b.unitDefID, b.position[1], b.position[2], b.position[3]))
+		a = pack(Spring.Pos2BuildPos(a.unitDefID, a.position[1], a.position[2], a.position[3], a.facing))
+		b = pack(Spring.Pos2BuildPos(b.unitDefID, b.position[1], b.position[2], b.position[3], b.facing))
 		for _, index in ipairs(sortSpec) do
 			local ascending = index > 0
 			index = math.abs(index)
@@ -983,7 +986,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 				local z = pos[3] + bpu.position[3]
 				local y = Spring.GetGroundHeight(x, z)
 
-				local sx, sy, sz = Spring.Pos2BuildPos(bpu.unitDefID, x, y, z)
+				local sx, sy, sz = Spring.Pos2BuildPos(bpu.unitDefID, x, y, z, bpu.facing)
 
 				return {
 					blueprintUnitID = bpu.blueprintUnitID,
@@ -1024,40 +1027,36 @@ end
 -- saving/loading
 -- ==============
 
----@param bp Blueprint
+---@param blueprint Blueprint
 ---@return SerializedBlueprint
-local function serializeBlueprint(bp)
+local function serializeBlueprint(blueprint)
 	return {
-		name = bp.name,
-		spacing = bp.spacing,
-		facing = bp.facing,
-		ordered = bp.ordered,
-		units = table.map(bp.units, function(bpu)
+		name = blueprint.name,
+		spacing = blueprint.spacing,
+		facing = blueprint.facing,
+		ordered = blueprint.ordered,
+		units = table.map(blueprint.units, function(blueprintUnit)
 			return {
-				unitName = UnitDefs[bpu.unitDefID].name,
-				position = bpu.position,
-				facing = bpu.facing
+				unitName = UnitDefs[blueprintUnit.unitDefID].name,
+				position = blueprintUnit.position,
+				facing = blueprintUnit.facing
 			}
 		end),
 	}
 end
 
----@param sbp SerializedBlueprint
+---@param serializedBlueprint SerializedBlueprint
 ---@return Blueprint
-local function deserializeBlueprint(sbp)
-	local result = table.merge(
-		sbp,
-		{
-			units = table.map(sbp.units, function(sbpu)
-				return {
-					blueprintUnitID = nextBlueprintUnitID(),
-					unitDefID = UnitDefNames[sbpu.unitName].id,
-					position = sbpu.position,
-					facing = sbpu.facing
-				}
-			end)
+local function deserializeBlueprint(serializedBlueprint)
+	local result = table.copy(serializedBlueprint)
+	result.units = table.map(serializedBlueprint.units, function(serializedBlueprintUnit)
+		return {
+			blueprintUnitID = nextBlueprintUnitID(),
+			unitDefID = UnitDefNames[serializedBlueprintUnit.unitName].id,
+			position = serializedBlueprintUnit.position,
+			facing = serializedBlueprintUnit.facing
 		}
-	)
+	end)
 
 	postProcessBlueprint(result)
 

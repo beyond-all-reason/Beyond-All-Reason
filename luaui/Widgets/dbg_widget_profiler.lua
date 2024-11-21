@@ -213,8 +213,8 @@ local function StartHook()
 	Spring.Echo("hooked all callins")
 
 	--// hook the UpdateCallin function
-	oldUpdateWidgetCallIn = wh.UpdateWidgetCallIn
-	wh.UpdateWidgetCallIn = function(self, name, w)
+	oldUpdateWidgetCallIn = wh.UpdateWidgetCallInRaw
+	wh.UpdateWidgetCallInRaw = function(self, name, w)
 		local listName = name .. 'List'
 		local ciList = self[listName]
 		if ciList then
@@ -236,8 +236,8 @@ local function StartHook()
 	Spring.Echo("hooked UpdateCallin")
 
 	--// hook the InsertWidget function
-	oldInsertWidget = wh.InsertWidget
-	widgetHandler.InsertWidget = function(self, widget)
+	oldInsertWidget = wh.InsertWidgetRaw
+	widgetHandler.InsertWidgetRaw = function(self, widget)
 		if widget == nil then
 			return
 		end
@@ -283,9 +283,9 @@ local function StopHook()
 	Spring.Echo("unhooked all callins")
 
 	--// unhook the UpdateCallin and InsertWidget functions
-	wh.UpdateWidgetCallIn = oldUpdateWidgetCallIn
+	wh.UpdateWidgetCallInRaw = oldUpdateWidgetCallIn
 	Spring.Echo("unhooked UpdateCallin")
-	wh.InsertWidget = oldInsertWidget
+	wh.InsertWidgetRaw = oldInsertWidget
 	Spring.Echo("unhooked InsertWidget")
 end
 
@@ -316,7 +316,11 @@ local totalSpace = {}
 
 local sortedList = {}
 local function SortFunc(a, b)
-	return a.plainname < b.plainname
+	if Spring.GetConfigInt("profiler_sort_by_load", 1) == 1 then
+		return a.tLoad > b.tLoad
+	else
+		return a.plainname < b.plainname
+	end
 end
 
 local deltaTime
@@ -332,6 +336,8 @@ local totals_colour = "\255\200\200\255"
 
 local exp = math.exp
 
+local ColorString = Spring.Utilities.Color.ToString
+
 local function CalcLoad(old_load, new_load, t)
 	if t and t > 0 then
 		local exptick = exp(-tick / t)
@@ -339,22 +345,6 @@ local function CalcLoad(old_load, new_load, t)
 	else
 		return new_load
 	end
-end
-
-function ColourString(R, G, B)
-	local R255 = math.floor(R * 255)
-	local G255 = math.floor(G * 255)
-	local B255 = math.floor(B * 255)
-	if R255 % 10 == 0 then
-		R255 = R255 + 1
-	end
-	if G255 % 10 == 0 then
-		G255 = G255 + 1
-	end
-	if B255 % 10 == 0 then
-		B255 = B255 + 1
-	end
-	return "\255" .. string.char(R255) .. string.char(G255) .. string.char(B255)
 end
 
 function GetRedColourStrings(v)
@@ -376,7 +366,7 @@ function GetRedColourStrings(v)
 	redStrength[name .. '_time'] = redStrength[name .. '_time'] or 0
 	redStrength[name .. '_time'] = u * redStrength[name .. '_time'] + (1 - u) * new_r
 	local r, g, b = 1, 1 - redStrength[name .. "_time"] * ((255 - 64) / 255), 1 - redStrength[name .. "_time"] * ((255 - 64) / 255)
-	v.timeColourString = ColourString(r, g, b)
+	v.timeColourString = ColorString(r, g, b)
 
 	-- space
 	new_r = (sLoad - minSpace) / (maxSpace - minSpace)
@@ -389,7 +379,7 @@ function GetRedColourStrings(v)
 	redStrength[name .. '_space'] = u * redStrength[name .. '_space'] + (1 - u) * new_r
 	g = 1 - redStrength[name .. "_space"] * ((255 - 64) / 255)
 	b = g
-	v.spaceColourString = ColourString(r, g, b)
+	v.spaceColourString = ColorString(r, g, b)
 end
 
 function DrawWidgetList(list, name, x, y, j, fontSize, lineSpace, maxLines, colWidth, dataColWidth)
@@ -477,13 +467,15 @@ function widget:DrawScreen()
 
 			local tLoad = timeLoadAverages[wname]
 			local sLoad = spaceLoadAverages[wname]
-			sortedList[n] = { plainname = wname, fullname = wname .. ' \255\200\200\200(' .. cmaxname_t .. ',' .. cmaxname_space .. ')', tLoad = tLoad, sLoad = sLoad, tTime = t / deltaTime }
+			if tLoad >= Spring.GetConfigFloat("profiler_min_time", 0.05) or sLoad >= Spring.GetConfigFloat("profiler_min_memory", 5) then -- Only show heavy widgets
+				sortedList[n] = { plainname = wname, fullname = wname .. ' \255\200\200\200(' .. cmaxname_t .. ',' .. cmaxname_space .. ')', tLoad = tLoad, sLoad = sLoad, tTime = t / deltaTime }
+				n = n + 1
+			end
 			allOverTime = allOverTime + tLoad
 			allOverSpace = allOverSpace + sLoad
 
-			n = n + 1
+			
 		end
-
 		table.sort(sortedList, SortFunc)
 
 		for i = 1, #sortedList do

@@ -983,7 +983,7 @@ if gadgetHandler:IsSyncedCode() then
 				canSpawnBurrow = false
 			end
 
-			if (canSpawnBurrow and GetGameSeconds() < config.gracePeriod) then -- Don't spawn new burrows in existing creep during grace period - Force them to spread as much as they can..... AT LEAST THAT'S HOW IT'S SUPPOSED TO WORK, lol.
+			if (canSpawnBurrow and GetGameSeconds() < config.gracePeriod*0.9) then -- Don't spawn new burrows in existing creep during grace period - Force them to spread as much as they can..... AT LEAST THAT'S HOW IT'S SUPPOSED TO WORK, lol.
 				canSpawnBurrow = not GG.IsPosInRaptorScum(spawnPosX, spawnPosY, spawnPosZ)
 			end
 
@@ -1522,8 +1522,8 @@ if gadgetHandler:IsSyncedCode() then
 			Spring.SetUnitHealth(unitID, maxH)
 			local x,y,z = Spring.GetUnitPosition(unitID)
 			if (not UnitDefs[unitDefID].isscavenger) and UnitDefs[unitDefID] and UnitDefs[unitDefID].name and UnitDefNames[UnitDefs[unitDefID].name .. "_scav"] then
+				createUnitQueue[#createUnitQueue+1] = {UnitDefs[unitDefID].name .. "_scav", x, y, z, Spring.GetUnitBuildFacing(unitID) or 0, scavTeamID}
 				Spring.DestroyUnit(unitID, true, true)
-				createUnitQueue[#createUnitQueue+1] = {UnitDefs[unitDefID].name .. "_scav", x, y, z, 0, scavTeamID}
 			end
 			Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{config.defaultScavFirestate},0)
 			Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)
@@ -1564,17 +1564,18 @@ if gadgetHandler:IsSyncedCode() then
 		if unitTeam == scavTeamID then
 			damage = damage / config.healthMod
 
-			if math.random(0,600) == 0 and math.random() <= config.spawnChance and attackerTeam ~= gaiaTeamID and waveParameters.lastBackupSquadSpawnFrame+300 < Spring.GetGameFrame() and attackerID then
+			if math.random(0,600) == 0 and math.random() <= config.spawnChance and attackerTeam ~= gaiaTeamID and waveParameters.lastBackupSquadSpawnFrame+300 < Spring.GetGameFrame() and attackerID and UnitDefs[unitDefID].canMove then
 				local ux, uy, uz = Spring.GetUnitPosition(attackerID)
 				local burrow, distance = getNearestScavBeacon(ux, uy, uz)
 				--Spring.Echo("Nearest Beacon Distance", distance)
 				if ux and burrow and distance and distance < 2500 then
 					waveParameters.lastBackupSquadSpawnFrame = Spring.GetGameFrame()
 					--Spring.Echo("Spawning Backup Squad - Unit Damaged", Spring.GetGameFrame())
-					local burrowID = getNearestScavBeacon(ux, uy, uz)
-					burrows[burrowID].lastBackupSpawn = Spring.GetGameFrame() + math.random(-300,1800)
 					for i = 1, SetCount(humanTeams) do
-						SpawnRandomOffWaveSquad(burrowID, true)
+						if mRandom() <= config.spawnChance then
+							SpawnRandomOffWaveSquad(burrow, true)
+							burrows[burrow].lastBackupSpawn = Spring.GetGameFrame() + math.random(-300,1800)
+						end
 					end
 				end
 			end
@@ -1841,6 +1842,7 @@ if gadgetHandler:IsSyncedCode() then
 				spawnQueue = {}
 				scavEvent("boss") -- notify unsynced about boss spawn
 				_, bossMaxHP = GetUnitHealth(bossID)
+				Spring.SetUnitHealth(bossID, math.max(bossMaxHP*(techAnger*0.01), bossMaxHP*0.2))
 				SetUnitExperience(bossID, 0)
 				timeOfLastWave = t
 				burrows[bossID] = {
@@ -1862,10 +1864,10 @@ if gadgetHandler:IsSyncedCode() then
 
 	function updateScavSpawnBox()
 		if config.burrowSpawnType == "initialbox_post" or config.burrowSpawnType == "initialbox" then
-			lsx1 = math.max(ScavStartboxXMin - ((MAPSIZEX*0.01) * (techAnger+30)), 0)
-			lsz1 = math.max(ScavStartboxZMin - ((MAPSIZEZ*0.01) * (techAnger+30)), 0)
-			lsx2 = math.min(ScavStartboxXMax + ((MAPSIZEX*0.01) * (techAnger+30)), MAPSIZEX)
-			lsz2 = math.min(ScavStartboxZMax + ((MAPSIZEZ*0.01) * (techAnger+30)), MAPSIZEZ)
+			lsx1 = math.max(ScavStartboxXMin - ((MAPSIZEX*0.01) * (techAnger+15)), 0)
+			lsz1 = math.max(ScavStartboxZMin - ((MAPSIZEZ*0.01) * (techAnger+15)), 0)
+			lsx2 = math.min(ScavStartboxXMax + ((MAPSIZEX*0.01) * (techAnger+15)), MAPSIZEX)
+			lsz2 = math.min(ScavStartboxZMax + ((MAPSIZEZ*0.01) * (techAnger+15)), MAPSIZEZ)
 			--Spring.Echo("lsx1", lsx1, "lsx2", lsx2, "lsz1", lsz1, "lsz2", lsz2)
 		end
 	end
@@ -1927,17 +1929,18 @@ if gadgetHandler:IsSyncedCode() then
 			techAnger = math.ceil(techAnger*((config.economyScale*0.5)+0.5))
 			if t < config.gracePeriod then
 				bossAnger = 0
-				minBurrows = 8*(t/config.gracePeriod)
+				minBurrows = math.ceil(math.max(4, 2*SetCount(humanTeams))*(t/config.gracePeriod))
 			else
 				if not bossID then
 					bossAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (bossTime - config.gracePeriod) * 100) + bossAngerAggressionLevel, 100), 0)
-					minBurrows = 8
-					if burrowCount <= 2 then
-						playerAggression = playerAggression + 1
-					end
+					minBurrows = 1
 				else
 					bossAnger = 100
-					minBurrows = 8
+					if Spring.GetModOptions().scav_endless then
+						minBurrows = 4
+					else
+						minBurrows = 1
+					end
 				end
 				bossAngerAggressionLevel = bossAngerAggressionLevel + ((playerAggression*0.01)/(config.bossTime/3600)) + playerAggressionEcoValue
 				SetGameRulesParam("ScavBossAngerGain_Aggression", (playerAggression*0.01)/(config.bossTime/3600))
@@ -1946,7 +1949,7 @@ if gadgetHandler:IsSyncedCode() then
 			SetGameRulesParam("scavBossAnger", bossAnger)
 			SetGameRulesParam("scavTechAnger", techAnger)
 
-			if bossAnger >= 100 then
+			if bossAnger >= 100 or (burrowCount <= 1 and t > config.gracePeriod) then
 				-- check if the boss should be alive
 				updateSpawnBoss()
 				updateBossLife()
@@ -2076,7 +2079,7 @@ if gadgetHandler:IsSyncedCode() then
 						end
 						captureProgress = math.min(0.05, captureProgress)
 						if Spring.GetUnitTeam(unitID) ~= scavTeamID and GG.IsPosInRaptorScum(ux, uy, uz) then
-							if captureLevel+captureProgress >= 0.99 or Spring.GetUnitTeam(unitID) == gaiaTeamID then
+							if captureLevel+captureProgress >= 0.99 then
 								Spring.TransferUnit(unitID, scavTeamID, false)
 								Spring.SetUnitHealth(unitID, {capture = 0.95})
 								Spring.SetUnitHealth(unitID, {health = maxHealth})
@@ -2091,18 +2094,20 @@ if gadgetHandler:IsSyncedCode() then
 								Spring.SetUnitHealth(unitID, {capture = math.min(captureLevel+captureProgress, 1)})
 								SendToUnsynced("unitCaptureFrame", unitID, math.min(captureLevel+captureProgress, 1))
 								Spring.SpawnCEG("scaspawn-trail", ux, uy, uz, 0,0,0)
+								Spring.SpawnCEG("scav-spawnexplo", ux, uy, uz, 0,0,0)
 								if math.random() <= 0.1 then
 									Spring.SpawnCEG("scavmist", ux, uy+100, uz, 0,0,0)
 								end
 								if math.random(0,60) == 0 and math.random() <= config.spawnChance and Spring.GetUnitTeam(unitID) ~= gaiaTeamID and waveParameters.lastBackupSquadSpawnFrame+300 < Spring.GetGameFrame() then
 									local burrow, distance = getNearestScavBeacon(ux, uy, uz)
 									--Spring.Echo("Nearest Beacon Distance", distance)
-									if ux and burrow and distance and distance < 5000 then
+									if ux and burrow and distance and distance < 2500 then
 										--Spring.Echo("Spawning Backup Squad - Unit Cloud Capture", Spring.GetGameFrame())
-										local burrowID = getNearestScavBeacon(ux, uy, uz)
-										burrows[burrowID].lastBackupSpawn = Spring.GetGameFrame() + math.random(-300,1800)
 										for i = 1, SetCount(humanTeams) do
-											SpawnRandomOffWaveSquad(burrowID, true)
+											if mRandom() <= config.spawnChance then
+												SpawnRandomOffWaveSquad(burrow, true)
+												burrows[burrow].lastBackupSpawn = Spring.GetGameFrame() + math.random(-300,1800)
+											end
 										end
 									end
 								end
@@ -2144,8 +2149,8 @@ if gadgetHandler:IsSyncedCode() then
 
 			local x,y,z = Spring.GetUnitPosition(unitID)
 			if (not UnitDefs[unitDefID].isscavenger) and UnitDefs[unitDefID] and UnitDefs[unitDefID].name and UnitDefNames[UnitDefs[unitDefID].name .. "_scav"] then
+				createUnitQueue[#createUnitQueue+1] = {UnitDefs[unitDefID].name .. "_scav", x, y, z, Spring.GetUnitBuildFacing(unitID) or 0, scavTeamID}
 				Spring.DestroyUnit(unitID, true, true)
-				createUnitQueue[#createUnitQueue+1] = {UnitDefs[unitDefID].name .. "_scav", x, y, z, 0, scavTeamID}
 			end
 			Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{config.defaultScavFirestate},0)
 			Spring.SpawnCEG("scav-spawnexplo", x, y, z, 0,0,0)

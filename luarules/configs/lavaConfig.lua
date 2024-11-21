@@ -335,6 +335,25 @@ elseif string.find(mapName, "sector") then
 		addTideRhym (4, 0.05, 5*6000)
 	end
 
+elseif string.find(mapName, "claymore") then
+	lavaMap = true
+	lavaGrow = 0
+	nolavaburstcegs = true
+	lavaDiffuseEmitTex = "LuaUI/images/lava/lava2_diffuseemitblue.dds"
+	lavaColorCorrection = "vec3(0.4, 0.5, 0.4)"
+	lavaCoastColor = "vec3(0.24, 0.46, 0.5)"
+	lavaCoastLightBoost = 0.3
+	lavaFogColor = "vec3(0.24, 0.46, 0.5)"
+	lavaFogFactor = 0.01
+	lavaFogHeight = 15
+	lavaFogAbove = 4.0
+	lavaFogDistortion = 2.0
+	lavaTideamplitude = 0.3
+	lavaTideperiod = 1000
+    if isLavaGadget and isLavaGadget == "synced" then
+		addTideRhym (-1, 0.05, 5*6000)
+    end
+
 elseif string.find(mapName, "hyperion shale") then
 	lavaMap = true
 	lavaGrow = 0
@@ -444,7 +463,9 @@ elseif Game.waterDamage > 0 and (not voidWaterMap) then -- Waterdamagemaps - kee
 elseif Spring.GetModOptions().map_waterislava and (not voidWaterMap) then
 	lavaMap = true
 	lavaLevel = 4 
-	addTideRhym (4, 0.05, 5*6000)
+	if isLavaGadget and isLavaGadget == "synced" then
+		addTideRhym (4, 0.05, 5*6000)
+	end
 end
 
 

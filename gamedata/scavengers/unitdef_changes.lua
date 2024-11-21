@@ -122,13 +122,13 @@ customDefs.legcomlvl3 = {
 	weapondefs = {
 		botcannon = {
 			energypershot = 5000,
-			projectiles = 6,
 			range = 600,
-			model = "Units/CORMINE2.s3o",
+			burst = 6,
+			projectiles = 1,
 			customparams = {
 				spawns_name = legionLobberUnitsT1,
 				spawns_mode = "random_locked",
-				spawns_expire = 999999,
+				spawns_expire = 60,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
 			}
 		}
@@ -139,13 +139,13 @@ customDefs.legdecomlvl3 = {
 	weapondefs = {
 		botcannon = {
 			energypershot = 5000,
-			projectiles = 6,
 			range = 600,
-			model = "Units/CORMINE2.s3o",
+			burst = 3,
+			projectiles = 1,
 			customparams = {
 				spawns_name = legionLobberUnitsT1,
 				spawns_mode = "random_locked",
-				spawns_expire = 999999,
+				spawns_expire = 60,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
 			}
 		}
@@ -156,13 +156,13 @@ customDefs.legcomlvl4 = {
 	weapondefs = {
 		botcannon = {
 			energypershot = 5000,
-			projectiles = 4,
 			range = 600,
-			model = "Units/CORMINE2.s3o",
+			burst = 4,
+			projectiles = 1,
 			customparams = {
 				spawns_name = legionLobberUnitsT2,
 				spawns_mode = "random_locked",
-				spawns_expire = 999999,
+				spawns_expire = 60,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
 			}
 		}
@@ -173,13 +173,13 @@ customDefs.legcomlvl5 = {
 	weapondefs = {
 		botcannon = {
 			energypershot = 5000,
-			projectiles = 5,
 			range = 650,
-			model = "Units/CORMINE2.s3o",
+			burst = 5,
+			projectiles = 1,
 			customparams = {
 				spawns_name = legionLobberUnitsT2,
 				spawns_mode = "random_locked",
-				spawns_expire = 999999,
+				spawns_expire = 60,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
 			}
 		}
@@ -190,13 +190,13 @@ customDefs.legcomlvl6 = {
 	weapondefs = {
 		botcannon = {
 			energypershot = 6000,
-			projectiles = 6,
 			range = 700,
-			model = "Units/CORMINE2.s3o",
+			burst = 6,
+			projectiles = 1,
 			customparams = {
 				spawns_name = legionLobberUnitsT2,
 				spawns_mode = "random_locked",
-				spawns_expire = 999999,
+				spawns_expire = 60,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
 			}
 		}
@@ -207,13 +207,13 @@ customDefs.legdecomlvl6 = {
 	weapondefs = {
 		botcannon = {
 			energypershot = 6000,
-			projectiles = 6,
 			range = 700,
-			model = "Units/CORMINE2.s3o",
+			burst = 3,
+			projectiles = 1,
 			customparams = {
 				spawns_name = legionLobberUnitsT2,
 				spawns_mode = "random_locked",
-				spawns_expire = 999999,
+				spawns_expire = 60,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
 			}
 		}
@@ -224,13 +224,13 @@ customDefs.legcomlvl7 = {
 	weapondefs = {
 		botcannon = {
 			energypershot = 7000,
-			projectiles = 3,
 			range = 750,
-			model = "Units/CORMINE2.s3o",
+			burst = 3,
+			projectiles = 1,
 			customparams = {
 				spawns_name = legionLobberUnitsT3,
 				spawns_mode = "random_locked",
-				spawns_expire = 999999,
+				spawns_expire = 60,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
 			}
 		}
@@ -241,13 +241,13 @@ customDefs.legcomlvl8 = {
 	weapondefs = {
 		botcannon = {
 			energypershot = 8000,
-			projectiles = 5,
 			range = 800,
-			model = "Units/CORMINE2.s3o",
+			burst = 5,
+			projectiles = 1,
 			customparams = {
 				spawns_name = legionLobberUnitsT3,
 				spawns_mode = "random_locked",
-				spawns_expire = 999999,
+				spawns_expire = 60,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
 			}
 		}
@@ -258,13 +258,13 @@ customDefs.legcomlvl9 = {
 	weapondefs = {
 		botcannon = {
 			energypershot = 9000,
-			projectiles = 1,
 			range = 850,
-			model = "Units/CORMINE2.s3o",
+			burst = 1,
+			projectiles = 1,
 			customparams = {
 				spawns_name = legionLobberUnitsT4,
 				spawns_mode = "random_locked",
-				spawns_expire = 999999,
+				spawns_expire = 60,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
 			}
 		}
@@ -275,13 +275,13 @@ customDefs.legcomlvl10 = {
 	weapondefs = {
 		botcannon = {
 			energypershot = 10000,
-			projectiles = 2,
 			range = 900,
-			model = "Units/CORMINE2.s3o",
+			burst = 2,
+			projectiles = 1,
 			customparams = {
 				spawns_name = legionLobberUnitsT4,
 				spawns_mode = "random_locked",
-				spawns_expire = 999999,
+				spawns_expire = 60,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
 			}
 		}
@@ -292,14 +292,42 @@ customDefs.legdecomlvl10 = {
 	weapondefs = {
 		botcannon = {
 			energypershot = 10000,
-			projectiles = 2,
 			range = 900,
-			model = "Units/CORMINE2.s3o",
+			burst = 1,
+			projectiles = 1,
 			customparams = {
 				spawns_name = legionLobberUnitsT4,
 				spawns_mode = "random_locked",
-				spawns_expire = 999999,
+				spawns_expire = 60,
 				spawns_surface = "LAND", -- Available: "LAND SEA"
+			}
+		}
+	}
+}
+
+customDefs.armrectr = {
+	workertime = 800,
+}
+
+customDefs.cornecro = {
+	workertime = 800,
+}
+
+customDefs.armrecl = {
+	workertime = 600,
+}
+
+customDefs.correcl = {
+	workertime = 600,
+}
+
+customDefs.legkam = {
+	weapondefs = {
+		martyrbomb = {
+			customparams = {
+				spawns_name = "cormine1_scav",
+				spawns_surface = "LAND",
+				spawns_expire = 99999,
 			}
 		}
 	}

@@ -62,6 +62,7 @@ local gaiaID = Spring.GetGaiaTeamID()
 local gaiaAllyID = select(6, Spring.GetTeamInfo(gaiaID, false))
 
 local widgetEnabled = nil
+local ecostatsWidget = nil
 
 local haveFullView = false
 
@@ -150,7 +151,8 @@ local constants = {
 		basic = 1,
 		advanced = 2,
 		expert = 3,
-		unavailable = 4,
+		custom = 4,
+		unavailable = 5,
 	},
 }
 
@@ -195,7 +197,11 @@ local settings = {
 	statsUpdateFrequency = 2,		 -- every 2nd frame
 
 	widgetScale = 0.8,
-	widgetConfig = 3,
+	widgetConfig = constants.configLevel.basic,
+
+	-- this table is used only when widgetConfig is set to custom
+	metricsEnabled = {},
+	oneTimeEcostatsEnableDone = false,
 }
 
 local metricKeys = {
@@ -219,7 +225,7 @@ local metricKeys = {
 local metricsAvailable = {
 	{ key="metalIncome", configLevel=constants.configLevel.basic, text="M/s" },
 	{ key="reclaimMetalIncome", configLevel=constants.configLevel.unavailable, text="MR" },
-	{ key="energyConversionMetalIncome", configLevel=constants.configLevel.expert, text="EC" },
+	{ key="energyConversionMetalIncome", configLevel=constants.configLevel.unavailable, text="EC" },
 	{ key="energyIncome", configLevel=constants.configLevel.basic, text="E/s" },
 	{ key="reclaimEnergyIncome", configLevel=constants.configLevel.unavailable, text="ER" },
 	{ key="buildPower", configLevel=constants.configLevel.expert, text="BP" },
@@ -236,6 +242,11 @@ local metricsAvailable = {
 	{ key="damageEfficiency", configLevel=constants.configLevel.unavailable, text="D%" },
 }
 local metricsEnabled = {}
+
+-- set defaults before loading values from config
+for _,metric in ipairs(metricsAvailable) do
+	settings.metricsEnabled[metric.key] = metric.configLevel == constants.configLevel.basic
+end
 
 local allyTeamTable = nil
 
@@ -661,7 +672,16 @@ local function buildMetricsEnabled()
 	metricsEnabled = {}
 	local index = 1
 	for _,metric in ipairs(metricsAvailable) do
-		if settings.widgetConfig >= metric.configLevel then
+		local addMetric = false
+		if settings.widgetConfig == constants.configLevel.custom then
+			if settings.metricsEnabled[metric.key] then
+				addMetric = true
+			end
+		elseif settings.widgetConfig >= metric.configLevel then
+			addMetric = true
+		end
+
+		if addMetric then
 			local metricEnabled = table.copy(metric)
 			metricEnabled.id = index
 			metricsEnabled[index] = metricEnabled
@@ -1802,6 +1822,21 @@ local function initGL4()
 	return shaderCompiled
 end
 
+local function hideEcostats()
+	if widgetEnabled and widgetHandler:IsWidgetKnown("Ecostats") then
+		ecostatsWidget = widgetHandler:FindWidget("Ecostats")
+		if (not ecostatsWidget) then return end
+		widgetHandler:RemoveWidget(ecostatsWidget)
+	end
+end
+
+local function showEcostats()
+	if ecostatsWidget then
+		widgetHandler:InsertWidget(ecostatsWidget)
+		ecostatsWidget = nil
+	end
+end
+
 local function init()
 	font = WG['fonts'].getFont()
 
@@ -1820,6 +1855,10 @@ local function init()
 		settings.statsUpdateFrequency = 2  -- 15 times a second, same as engine slowUpdate
 		settings.useMovingAverage = true
 		settings.movingAverageWindowSize = 16  -- approx 1 sec
+	elseif settings.widgetConfig == constants.configLevel.custom then
+		settings.statsUpdateFrequency = 2
+		settings.useMovingAverage = true
+		settings.movingAverageWindowSize = 16
 	end
 
 	calculateDimensions()
@@ -1862,21 +1901,16 @@ local function reInit()
 end
 
 function widget:Initialize()
-	-- Note: Widget is logically enabled only if there are exactly two teams
-	-- If yes, we disable ecostats
-	-- If no, we enable ecostats
-	-- TODO: What if user doesn't want to have Ecostats?
-	widgetEnabled = getAmountOfAllyTeams() == 2
-	if widgetEnabled then
-		if widgetHandler:IsWidgetKnown("Ecostats") then
-			widgetHandler:DisableWidget("Ecostats")
-		end
-	else
-		if widgetHandler:IsWidgetKnown("Ecostats") then
-			widgetHandler:EnableWidget("Ecostats")
-		end
-		return
+	-- One time enabling of ecostats since old spectator hud versions would disable ecostats
+	-- and we don't want people not being able to enable it again easily.
+	if not settings.oneTimeEcostatsEnableDone and widgetHandler:IsWidgetKnown("Ecostats") then
+		widgetHandler:EnableWidget("Ecostats")
 	end
+	-- Note: Widget is logically enabled only if there are exactly two teams
+	-- If yes, we will hide ecostats (hide at init() and show at deInit())
+	-- If no, we will do nothing since user might or might not be using ecostats
+	widgetEnabled = getAmountOfAllyTeams() == 2
+	if not widgetEnabled then return end
 
 	WG["spectator_hud"] = {}
 
@@ -1896,6 +1930,14 @@ function widget:Initialize()
 		reInit()
 	end
 
+	WG["spectator_hud"].getMetricEnabled = function(metric)
+		return settings.metricsEnabled[metric]
+	end
+	WG["spectator_hud"].setMetricEnabled = function(args)
+		settings.metricsEnabled[args[1]] = args[2]
+		reInit()
+	end
+
 	if not gl.CreateShader then
 		-- no shader support, so just remove the widget itself, especially for headless
 		widgetHandler:RemoveWidget()
@@ -1909,11 +1951,13 @@ function widget:Initialize()
 
 	checkAndUpdateHaveFullView()
 
+	hideEcostats()
 	init()
 end
 
 function widget:Shutdown()
 	deInit()
+	showEcostats()
 
 	if shader then
 		shader:Finalize()
@@ -2071,7 +2115,13 @@ function widget:GetConfigData()
 	local result = {
 		widgetScale = settings.widgetScale,
 		widgetConfig = settings.widgetConfig,
+		oneTimeEcostatsEnableDone = true,
 	}
+
+	result.metricsEnabled = {}
+	for _,metric in pairs(metricKeys) do
+		result.metricsEnabled[metric] = settings.metricsEnabled[metric]
+	end
 
 	return result
 end
@@ -2082,5 +2132,16 @@ function widget:SetConfigData(data)
 	end
 	if data.widgetConfig then
 		settings.widgetConfig = data.widgetConfig
+	end
+	if data.oneTimeEcostatsEnableDone then
+		settings.oneTimeEcostatsEnableDone = data.oneTimeEcostatsEnableDone
+	end
+
+	if data["metricsEnabled"] then
+		for _,metric in pairs(metricKeys) do
+			if data["metricsEnabled"][metric] then
+				settings.metricsEnabled[metric] = data["metricsEnabled"][metric]
+			end
+		end
 	end
 end
