@@ -669,20 +669,50 @@ void main(void)
 		//fragWorldPos.xyz += lightDirection * shockwaveDisplacement;
 		if (ismodel < 0.5){
 			////vec3 shockWaveDisplacement(vec3 centerpos, vec3 currentpos, vec3 viewDirection, float shockwaveRadius, float timeFraction ){
-			float dt = fract(timeInfo.x * 0.1);
-			vec3 displacement = shockWaveDisplacement(lightPosition.xyz, fragWorldPos.xyz, viewDirection, lightRadius, dt);
-			//printf(displacement.xyz);
+			
+
+			// Lifetime goes from 0 to 1
+			float lifeTime = fract((timeInfo.x + timeInfo.w) * 0.05);
+
+			float currentDist = lightRadius * lifeTime;
+			// TODO : Parameterize out width in elmos
+			float width = 3;
+			printf(currentDist);
+			float groundDistanceToShockCenter = length(fragWorldPos.xyz - lightPosition.xyz);
+			//Effect strength and direction should be abs width'd
+			// But it should be wider on the rarefaction side than the compression side
+			// First term is the compression factor, second term is the rarefaction factor
+			#define COMPRESSION 0.9
+			float compressionFactor = max((groundDistanceToShockCenter - currentDist) * COMPRESSION, (currentDist - groundDistanceToShockCenter) * (1.0 - COMPRESSION));
+
+			float effectStrength =  clamp( 1.0 - abs(compressionFactor/ width), 0.0, 1.0);
+			printf(effectStrength);
+			effectStrength = pow(effectStrength, 3.0);
+
+			// which direction is the effect going in in world coords?
+			vec3 shockDirection = normalize(fragWorldPos.xyz - lightPosition.xyz);
+
+			// Parabolic mapping of 0-1 to [0-1-0] with a parabola on lifeTime
+
+			float parabolicStrength = pow( 4.0*lifeTime*(1.0-lifeTime), 2 ) * 0.5;
+			
+
+			// Falloff due to distance from camera
 			float distanceToCameraFactor =  clamp(300.0/ fragDistance, 0.0, 1.0);
 
-			vec2 xzcenterdist = fragWorldPos.xz - lightPosition.xz;
-			float dist = length(xzcenterdist);
-			float time = fract(timeInfo.x * 0.1);
-			float falloff = clamp(1.0 - dist / lightRadius, 0,1);
-			vec2 disp = vec2(clamp(1.0 - abs((dist / lightRadius) - time), 0.0, 1.0));
-			vec2 normxz = normalize(displacement.xz);
-			disp = disp * normxz.xy * falloff * distanceToCameraFactor;
-			//printf(normxz.xy);	
-			fragColor.rgba = vec4(displacement.xz * 0.5 + 0.5, 0.5, 1.0);
+			// Screen-space position of the center of the shockwave:
+			
+			vec4 LightScreenPosition = cameraViewProj * vec4(lightEmitPosition.xyz, 1.0);
+			LightScreenPosition.xyz = LightScreenPosition.xyz / LightScreenPosition.w;
+
+
+			// screen-space direction of the shockwave
+			vec2 displacementScreen = normalize((LightScreenPosition.xy * 0.5 + 0.5) - v_screenUV);
+			printf(displacementScreen.xy);
+
+			vec2 displacementAmount = displacementScreen * effectStrength * distanceToCameraFactor * parabolicStrength;
+			printf(displacementAmount.xy);	
+			fragColor.rgba = vec4(displacementAmount * 0.5 + 0.5, 0.0, 1.0);
 			return;
 		}else{
 			fragColor.rgba = vec4(0.5,0.5,0.5,1.0);
