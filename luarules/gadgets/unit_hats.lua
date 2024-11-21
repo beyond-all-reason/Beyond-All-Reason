@@ -68,7 +68,7 @@ local unitDefCanWearHats = {
 	unitDefCanWearHats[UnitDefNames.legcomlvl3.id] = true
 	unitDefCanWearHats[UnitDefNames.legcomlvl4.id] = true
  end
- local halloween - { -- Halloween Fight Night winner
+ local halloween = { -- Halloween Fight Night winner
  	[139750] = true, ---Sashkorin
  }
  local legchamps = { -- Legion Fight Night winner(s)
