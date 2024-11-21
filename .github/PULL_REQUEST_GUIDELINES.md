@@ -10,6 +10,7 @@ Each PR should address a single feature or bug.
 Small PRs are much easier to review and merge, large PRs are time consuming to review.
 When a change needs to be reverted, if the PR also includes other changes, they will be reverted too, even though we want to keep them.
 > Example: A balance change that changes only unit stats in 100+ files is perfectly fine to bundle into a single PR.
+
 > Example: A single PR that includes balance changes to a unit stats in a single file, and a change to unrelated widget behaviour, is not fine.
 
 When multiple features need to be added to the game at the same time, merge individual feature PRs into a staging branch, then merge that branch into master when ready.
