@@ -99,7 +99,6 @@ gadgetHandler = {
 }
 
 
-
 -- these call-ins are set to 'nil' if not used
 -- they are setup in UpdateCallIns()
 local callInLists = {
@@ -812,17 +811,18 @@ function gadgetHandler:UpdateCallIn(name)
 		local selffunc = self[name]
 
 		if selffunc ~= nil then
+			-- max 2 return parameters for top level callins!
 			_G[name] = function(...)
 				callinDepth = callinDepth + 1
 
-				local res = selffunc(self, ...)
+				local res1, res2 = selffunc(self, ...)
 
 				callinDepth = callinDepth - 1
 				if reorderNeeded and callinDepth == 0 then
 					self:PerformReorders()
 				end
 
-				return res
+				return res1, res2
 			end
 		else
 			Spring.Log(LOG_SECTION, LOG.ERROR, "UpdateCallIn: " .. name .. " is not implemented")
