@@ -9,7 +9,7 @@ piece  flare1, flare2, base, turret, barrel1, barrel2, sleeves;
 static-var  nextBarrel, trajectoryMode, lastHeading, aimingState, switchAimModeFrame, queueLowFrame, firedLowFailed, debugGameFrame;
 
 #define SIGNAL_AIM							1
-#define RESET_LOW_DELAY_FRAMES				20
+#define RESET_LOW_DELAY_FRAMES				15
 #define RESET_HIGH_DELAY_FRAMES				450
 #define RESET_HIGH_ERRORSTATE_FRAMES		900
 #define AIMING_NEITHER						0
@@ -41,15 +41,6 @@ Create()
 
 #define SMOKEPIECE base
 #include "smokeunit_thread_nohit.h"
-
-//smasel WATCH THE FORT, I'll remove this when debugging is complete.
-debugTimer(){
-	while (TRUE){
-		debugGameFrame = get GAME_FRAME;
-		get PRINT(debugGameFrame, switchAimModeFrame, aimingState, queueLowFrame);
-		sleep 500;
-	}
-}
 
 smartAimSelect(weaponNumber)
 {
@@ -90,7 +81,6 @@ smartAimSelect(weaponNumber)
 			aimingState = AIMING_LOW;
 		} else if ((weaponNumber == AIMING_HIGH) && (queueLowFrame < gameFrame)){
 			if (firedLowFailed == TRUE){
-				get PRINT(3333);
 				//if low aimed but failed to fire, aim high for longer.
 				switchAimModeFrame = (gameFrame + RESET_HIGH_ERRORSTATE_FRAMES);
 			} else{
