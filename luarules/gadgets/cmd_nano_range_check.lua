@@ -37,12 +37,8 @@ function gadget:AllowCommand(unitID, unitDefID, _teamID, cmdID,
 		if targetDef.canMove then return true end -- ignore movable targets
 		distance = Spring.GetUnitSeparation(unitID, cmdParams[1], false, false)
 	else -- when undefined
-		if not Spring.ValidFeatureID(cmdParams[1]) then
-			Spring.Log(gadget:GetInfo().name, LOG.WARNING, "Supposed Feature has no valid ID.")
-			return true
-		end
 		-- NOTE Not properly docummented under Recoil as of 22/11/24, view SpringRTS Lua SyncedRead instead.
-		distance = Spring.GetUnitFeatureSeparation(unitID, cmdParams[1], true)
+		distance = Spring.GetUnitFeatureSeparation(unitID, cmdParams[1] - 32000, true) -- Magic Number is offset to unit max
 	end
 	if distance > (unitDef.buildDistance + unitDef.radius) then
 		return false
