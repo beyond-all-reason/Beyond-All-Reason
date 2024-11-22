@@ -17,6 +17,7 @@ if not gadgetHandler:IsSyncedCode() then return end
 --static
 local frameCheckModulo = Game.gameSpeed
 local cmdAttack = CMD.ATTACK
+local innitializeExpirationFrames = Game.gameSpeed * 10
 
 --variables
 local gameFrame = 0
@@ -46,15 +47,22 @@ end
 local function weaponTargettingCheck(attackerID, targetData)
 	if not attackerID or not targetData then return false end
 	if #targetData == 1 then
-		if not spGetUnitWeaponHaveFreeLineOfFire(attackerID, unitSuspendAutoAiming[attackerID].preferredWeapon, targetData[1]) then
-			spCallCOBScript ( attackerID, unitSuspendAutoAiming[attackerID].overrideScriptID, 0, unitSuspendAutoAiming[attackerID].deferredWeapon)
+		local canShoot = spGetUnitWeaponHaveFreeLineOfFire(attackerID, unitSuspendAutoAiming[attackerID].preferredWeapon, targetData[1])
+		if not canShoot then
+			spCallCOBScript(attackerID, unitSuspendAutoAiming[attackerID].overrideScriptID, 0, unitSuspendAutoAiming[attackerID].deferredWeapon)
 			return false
+		elseif canShoot and gameFrame > unitSuspendAutoAiming[attackerID].overrideExpirationFrame then
+			spCallCOBScript(attackerID, unitSuspendAutoAiming[attackerID].overrideScriptID, 0, unitSuspendAutoAiming[attackerID].preferredWeapon)
+			unitSuspendAutoAiming[attackerID].overrideExpirationFrame = gameFrame + innitializeExpirationFrames
+			return true
 		end
 	elseif #targetData > 1 then
-		if not spGetUnitWeaponHaveFreeLineOfFire(attackerID, unitSuspendAutoAiming[attackerID].preferredWeapon, _, _, _, targetData[1], targetData[2], targetData[3]) then
-			spCallCOBScript ( attackerID, unitSuspendAutoAiming[attackerID].overrideScriptID, 0, unitSuspendAutoAiming[attackerID].deferredWeapon)
+		local canShoot = spGetUnitWeaponHaveFreeLineOfFire(attackerID, unitSuspendAutoAiming[attackerID].preferredWeapon, _, _, _, targetData[1], targetData[2], targetData[3])
+		if not canShoot then
+			spCallCOBScript(attackerID, unitSuspendAutoAiming[attackerID].overrideScriptID, 0, unitSuspendAutoAiming[attackerID].deferredWeapon)
 			return true
-		else
+		elseif canShoot then
+			spCallCOBScript(attackerID, unitSuspendAutoAiming[attackerID].overrideScriptID, 0, unitSuspendAutoAiming[attackerID].preferredWeapon)
 			return false
 		end
 	end
@@ -68,11 +76,12 @@ local function manualCommandIssued(attackerID)
 		return returnTargetTable
 	end
 	local setTargetData = ggGetUnitTarget(attackerID) or {}
-	if type(setTargetData) ~= "number" and setTargetData[1] then
-		returnTargetTable = setTargetData
+	if type(setTargetData) == "number" then
+		returnTargetTable[1] = setTargetData
 		return returnTargetTable
+	else
+		return setTargetData
 	end
-	return {}
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
@@ -81,7 +90,8 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 			unitDefID = unitDefID,
 			preferredWeapon = unitDefsWithSmartWeapons[unitDefID].preferredWeapon,
 			deferredWeapon = unitDefsWithSmartWeapons[unitDefID].deferredWeapon,
-			overrideScriptID = Spring.GetCOBScriptID(unitID, "overrideAimingState")
+			overrideScriptID = Spring.GetCOBScriptID(unitID, "overrideAimingState"),
+			overrideExpirationFrame = gameFrame + innitializeExpirationFrames
 		}
 	end
 end
@@ -92,6 +102,7 @@ end
 
 function gadget:GameFrame(frame)
 	if frame % frameCheckModulo == 3 then
+		gameFrame = frame
 		for attackerID in pairs(unitSuspendAutoAiming) do
 			local targetData = manualCommandIssued(attackerID)
 			weaponTargettingCheck(attackerID, targetData)
