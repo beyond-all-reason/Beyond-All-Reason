@@ -493,6 +493,38 @@ vec3 shockWaveDisplacement(vec3 centerpos, vec3 currentpos, vec3 viewDirection, 
     return vec3(displacement * 10, 0.0);
 }
 
+// returns the Screen UV coordinates [0-1] and estimated depth of a given world position
+vec3 worldToScreenUVZ(vec3 worldPosition){
+	vec4 screenPos = cameraViewProj * vec4(worldPosition, 1.0);
+	screenPos.xyz = screenPos.xyz / screenPos.w;
+	screenPos.xyz = screenPos.xyz * 0.5 + 0.5;
+	return screenPos.xyz;
+
+}		
+
+// Parabola (try it in graphtoy.com) A nice choice to remap the 0..1 interval into 0..1, such that the corners are mapped to 0 and the center to 1. You can then rise the parabolar to a power k to control its shape.
+// https://iquilezles.org/articles/functions/
+float parabola( float x, float k )
+{
+    return pow( 4.0*x*(1.0-x), k );
+}
+
+// Power Curve This is a generalization of the Parabola() above. It also maps the 0..1 interval into 0..1 by keeping the corners mapped to 0. But in this generalziation you can control the shape one either side of the curve, which comes handy when creating leaves, eyes, and many other interesting shapes.
+// https://iquilezles.org/articles/functions/
+// Play with it here: https://www.desmos.com/calculator/2gecekm83w
+float pcurve( float x, float a, float b )
+{
+    float k = pow(a+b,a+b)/(pow(a,a)*pow(b,b));
+    return k*pow(x,a)*pow(1.0-x,b);
+}
+
+// The precomputed scaling factor version
+// Precompute K with the calculator here: https://www.desmos.com/calculator/2gecekm83w
+float pcurve_k( float x, float a, float b, float k )
+{
+    return k*pow(x,a)*pow(1.0-x,b);
+}
+
 #line 31000
 void main(void)
 {
@@ -655,26 +687,21 @@ void main(void)
 
 	
 	//------------------------- BEGIN GROUND SHOCKWAVE -------------------------
-
+	printf(effectType);
 	else if (effectType == 2){
-		// Create a ground shockwave displacement based on the distance to the light source:
-		float shockwaveDisplacement = 0.0;
-		float shockwaveRadius = 0.5;
-		float shockwaveSpeed = 0.5;
-		float shockwaveAttenuation = 0.5;
-		float shockwaveAttenuationDistance = 0.5;
-		float shockwaveAttenuationDistanceInv = 1.0 / shockwaveAttenuationDistance;
-		float shockwaveAttenuationFactor = 1.0 - clamp((fragDistance - nearFarDistances.x) * shockwaveAttenuationDistanceInv, 0.0, 1.0);
-		shockwaveDisplacement = shockwaveAttenuationFactor * shockwaveAttenuation * sin((fragDistance - nearFarDistances.x) * shockwaveSpeed) * shockwaveRadius;
-		//fragWorldPos.xyz += lightDirection * shockwaveDisplacement;
+		// Create a ground shockwave displacement that only displaces ground fragments based on the distance to the light source:
+		// TODO: instead of using radius here, adjust radius in the vertex shader!
 		if (ismodel < 0.5){
 			////vec3 shockWaveDisplacement(vec3 centerpos, vec3 currentpos, vec3 viewDirection, float shockwaveRadius, float timeFraction ){
 			
 
 			// Lifetime goes from 0 to 1
-			float lifeTime = fract((timeInfo.x + timeInfo.w) * 0.05);
+			float lifeStart = v_otherparams.x;
+			float lifeTime = v_otherparams.y;
+			float currentTime = timeInfo.x + timeInfo.w;
+			float timeFraction = clamp((currentTime - lifeStart) / lifeTime, 0.0, 1.0);
 
-			float currentDist = lightRadius * lifeTime;
+			float currentDist = lightRadius * timeFraction;
 			// TODO : Parameterize out width in elmos
 			float width = 3;
 			printf(currentDist);
@@ -692,9 +719,9 @@ void main(void)
 			// which direction is the effect going in in world coords?
 			vec3 shockDirection = normalize(fragWorldPos.xyz - lightPosition.xyz);
 
-			// Parabolic mapping of 0-1 to [0-1-0] with a parabola on lifeTime
+			// Parabolic mapping of 0-1 to [0-1-0] with a parabola on timeFraction
 
-			float parabolicStrength = pow( 4.0*lifeTime*(1.0-lifeTime), 2 ) * 0.5;
+			float parabolicStrength = pcurve_k(timeFraction, 0.5, 2.0, 3.5);
 			
 
 			// Falloff due to distance from camera
@@ -712,7 +739,7 @@ void main(void)
 
 			vec2 displacementAmount = displacementScreen * effectStrength * distanceToCameraFactor * parabolicStrength;
 			printf(displacementAmount.xy);	
-			fragColor.rgba = vec4(displacementAmount * 0.5 + 0.5, 0.0, 1.0);
+			fragColor.rgba = vec4(displacementAmount * 0.5 + 0.5, 0.0, 0.5);
 			return;
 		}else{
 			fragColor.rgba = vec4(0.5,0.5,0.5,1.0);
@@ -751,6 +778,27 @@ void main(void)
 	
 	//------------------------- BEGIN MAGNIFIER -------------------------
 	else if (effectType == 8){
+		// Calculate the view-space vector that points from from light center to the view ray
+		vec3 magnifierDir = normalize(MidPoint - lightPosition);
+		vec3 magnifierNormal = normalize(magnifierDir);
+
+		vec3 LightScreenPosition = worldToScreenUVZ(lightEmitPosition.xyz); 
+
+		vec3 MagnifierScreenPosition = worldToScreenUVZ(MidPoint);
+
+		vec3 dirInCameraSpace2 = normalize(MagnifierScreenPosition - LightScreenPosition);
+		float relativeDistance = clamp(1.0 - length(MidPoint - lightEmitPosition.xyz) / lightRadius, 0.0, 1.0);
+		//printf(dirInCameraSpace2.xyz);
+		dirInCameraSpace2 *= 1.0 - sqrt(relativeDistance);
+		dirInCameraSpace2 *= -3.0;
+		
+		float distanceToCameraFactor =  clamp(300.0/ length(camPos - lightEmitPosition.xyz), 0.0, 1.0);
+		dirInCameraSpace2 *= distanceToCameraFactor;
+		//printf(dirInCameraSpace2.xyz);
+		fragColor.rgba = vec4(dirInCameraSpace2.xy * 0.5 + 0.5, 0.0, 1.0);
+	}
+		//------------------------- BEGIN MAGNIFIER Plano-convex -------------------------
+	else if (effectType == 9){
 		// Calculate the view-space vector that points from from light center to the view ray
 		vec3 magnifierDir = normalize(MidPoint - lightPosition);
 		vec3 magnifierNormal = normalize(magnifierDir);
