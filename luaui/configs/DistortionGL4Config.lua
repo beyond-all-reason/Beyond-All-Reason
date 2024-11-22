@@ -8748,6 +8748,8 @@ local unitDistortions = {
 		},
 	},
 	['corkorg'] = {
+		-- Moved to UnitScriptDistortions!
+		--[[
 		footshockwave = {
 			distortionType = 'point',
 			pieceName = 'none',
@@ -8757,6 +8759,7 @@ local unitDistortions = {
 							modelfactor = 0.2, specular = 0.2, scattering = 0, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 2},
 		},
+		]]--
 	},
 	['armcom'] = {
 		headdistortionarmcom = {
@@ -17609,14 +17612,14 @@ local unitDistortions = {
 		},
 	},
 	['coradvsol'] = {
-		glow = {
+		magnifierplanoconvex = {
 			distortionType = 'point',
-			pieceName = 'emit',
-			distortionConfig = { posx = 0, posy = 5, posz = 0, radius = 32,
+			pieceName = 'base',
+			distortionConfig = { posx = 0, posy = 100, posz = 0, radius = 50,
 							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
-							r = 1, g = 1, b = 0.7, a = 0.09,
-							modelfactor = 0.2, specular = 0.35, scattering = 1.8, lensflare = 0,
-							lifetime = 0, sustain = 0, animtype = 0},
+							r = 1, g = 1, b = 0.4, a = 0.04,
+							modelfactor = 0.33, specular = 1.5, scattering = 0.5, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 9},
 		},
 	},
 
@@ -20978,6 +20981,22 @@ local unitEventDistortionsNames = {
 					r = 1, g = 0.3, b = 0, a = 0.55,
 					modelfactor = 2, specular = 1, scattering = 0, lensflare = 0,
 					lifetime = 200, sustain = 2},
+			},
+		},
+
+		['corkorg'] = {
+			[1] = {
+				-- Footstep shockwave
+				alwaysVisible = false,
+				distortionType = 'point',
+				distortionName = 'corkorgfootstep',
+				pieceName = 'none',
+				distortionConfig = { posx = 0, posy = 0, posz = 8, radius = 200,
+								color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0,
+								r = 1, g = 0.2, b = 0, a = 0.2,
+								modelfactor = 0.2, specular = 0.2, scattering = 0, lensflare = 0,
+								lifetime = 25, sustain = 0, animtype = 2},
+	
 			},
 		},
 
