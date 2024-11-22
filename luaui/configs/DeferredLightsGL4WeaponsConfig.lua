@@ -666,30 +666,38 @@ GetLightClass("Explosion", nil, "Large", {r = 3, g = 2.5, b = 2.0, a = 0.25,
 
 --legbart
 explosionLightsNames["legbart_clusternapalm"] =
-GetLightClass("Explosion", "Fire", "SmallMedium", {r = 0.54, g = 0.45, b = 0.12, a = 0.29,
-										 color2r = 1.2, color2g = 0.5, color2b = 0.2, colortime = 0.03,
-										 sustain = 40, lifetime = 150,
-										 modelfactor = 0.3, specular = 0.8, scattering = 1.5, lensflare = 0})
+GetLightClass("Explosion", "Fire", "SmallMedium", {r = 0.32, g = 0.24, b = 0.1, a = 0.1,
+										 color2r = 0.8, color2g = 0.4, color2b = 0.1, colortime = 44,
+										 sustain = 120, lifetime = 180,
+										 modelfactor = -0.3, specular = -0.3, scattering = 0.3, lensflare = 0})
 
 --legbar
 explosionLightsNames["legbar_clusternapalm"] =
-GetLightClass("Explosion", "Fire", "Small", {r = 0.52, g = 0.46, b = 0.18, a = 0.24,
-										 color2r = 1.2, color2g = 0.5, color2b = 0.2, colortime = 0.12,
-										 sustain = 30, lifetime = 125,
-										 modelfactor = -0.3, specular = -0.3, scattering = 0.15, lensflare = 0})
+GetLightClass("Explosion", "Fire", "Small", {r = 0.32, g = 0.24, b = 0.1, a = 0.005,
+										 color2r = 0.8, color2g = 0.4, color2b = 0.1, colortime = 44,
+										 sustain = 120, lifetime = 180,
+										 modelfactor = -0.3, specular = -0.3, scattering = 0.3, lensflare = 0})
+
+--leginf
+explosionLightsNames["leginf_rapidnapalm"] =
+GetLightClass("Explosion", "Fire", "Small", {r = 0.32, g = 0.24, b = 0.1, a = 0.001,
+										 color2r = 0.8, color2g = 0.4, color2b = 0.1, colortime = 180,
+										 sustain = 30, lifetime = 180,
+										 modelfactor = -0.3, specular = -0.3, scattering = 0.3, lensflare = 0})
 
 --legnap
 explosionLightsNames["legnap_napalmbombs"] =
-GetLightClass("Explosion", "Fire", "Small", {r = 0.54, g = 0.45, b = 0.12, a = 0.28,
-										 color2r = 1.2, color2g = 0.5, color2b = 0.2, colortime = 0.12,
-										 sustain = 30, lifetime = 125,
-										 modelfactor = -0.3, specular = -0.3, scattering = 0.15, lensflare = 0})
+GetLightClass("Explosion", "Fire", "Small", {r = 0.32, g = 0.24, b = 0.1, a = 0.1,
+										 color2r = 0.8, color2g = 0.4, color2b = 0.1, colortime = 44,
+										 sustain = 120, lifetime = 180,
+										 modelfactor = -0.3, specular = -0.3, scattering = 0.3, lensflare = 0})
+
 --legperdition
 explosionLightsNames["legperdition_napalmmissile"] =
-GetLightClass("Explosion", "Fire", "Large", {r = 0.54, g = 0.45, b = 0.12, a = 0.28,
-										 color2r = 1.2, color2g = 0.5, color2b = 0.2, colortime = 0.12,
-										 sustain = 30, lifetime = 1250,
-										 modelfactor = -0.3, specular = -0.3, scattering = 0.15, lensflare = 0})
+GetLightClass("Explosion", "Fire", "Large", {r = 0.32, g = 0.24, b = 0.1, a = 0.1,
+										 color2r = 0.8, color2g = 0.4, color2b = 0.1, colortime = 44,
+										 sustain = 120, lifetime = 180,
+										 modelfactor = -0.3, specular = -0.3, scattering = 0.3, lensflare = 0})
 
 --legphoenix
 explosionLightsNames["legphoenix_skybeam"] =

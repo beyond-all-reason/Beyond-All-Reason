@@ -12,7 +12,6 @@ return {
 		energycost = 9000,
 		energymake = 30,
 		energystorage = 150,
-		energyupkeep = 30,
 		explodeas = "smallExplosionGeneric-uw",
 		footprintx = 4,
 		footprintz = 4,

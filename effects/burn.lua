@@ -1248,7 +1248,21 @@ return {
       },
     },
   },
-  
+  ["burnflamexl-gen"] = {
+    burnrandom = {
+      class              = [[CExpGenSpawner]],
+      count              = 1,
+      air                = true,
+      ground             = true,
+      water              = true,
+      underwater         = true,
+      properties = {
+          delay              = [[r12]],
+          explosiongenerator = [[custom:burnflamexl]],
+          pos                = [[-10 r20, 0 r20, -10 r20]],
+      },
+    },
+  },
   
    ["demonflame"] = {
     extrafire = {
