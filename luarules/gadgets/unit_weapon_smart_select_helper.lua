@@ -37,25 +37,22 @@ for unitDefID, def in ipairs(UnitDefs) do
 		unitDefsWithSmartWeapons[unitDefID] = {preferredWeapon = tonumber(def.customParams.smart_weapon_select_priority)}
 		for weaponNumber, weaponData in ipairs(def.weapons) do
 			if weaponNumber ~= unitDefsWithSmartWeapons[unitDefID].preferredWeapon then
-				unitDefsWithSmartWeapons[unitDefID].otherWeapon = tonumber(weaponNumber)
+				unitDefsWithSmartWeapons[unitDefID].deferredWeapon = tonumber(weaponNumber)
 			end
-			Script.SetWatchWeapon(weaponData.weaponDef, true)
 		end
 	end
 end
 
 local function weaponTargettingCheck(attackerID, targetData)
-	if type(targetData) == "number" then
-	end
 	if not attackerID or not targetData then return false end
 	if #targetData == 1 then
 		if not spGetUnitWeaponHaveFreeLineOfFire(attackerID, unitSuspendAutoAiming[attackerID].preferredWeapon, targetData[1]) then
-			spCallCOBScript ( attackerID, unitSuspendAutoAiming[attackerID].overrideScriptID, 0, unitSuspendAutoAiming[attackerID].otherWeapon)
+			spCallCOBScript ( attackerID, unitSuspendAutoAiming[attackerID].overrideScriptID, 0, unitSuspendAutoAiming[attackerID].deferredWeapon)
 			return false
 		end
 	elseif #targetData > 1 then
-		if not spGetUnitWeaponHaveFreeLineOfFire(attackerID, unitSuspendAutoAiming[attackerID].preferredWeapon, targetData[1], targetData[2], targetData[3]) then
-			spCallCOBScript ( attackerID, unitSuspendAutoAiming[attackerID].overrideScriptID, 0, unitSuspendAutoAiming[attackerID].otherWeapon)
+		if not spGetUnitWeaponHaveFreeLineOfFire(attackerID, unitSuspendAutoAiming[attackerID].preferredWeapon, _, _, _, targetData[1], targetData[2], targetData[3]) then
+			spCallCOBScript ( attackerID, unitSuspendAutoAiming[attackerID].overrideScriptID, 0, unitSuspendAutoAiming[attackerID].deferredWeapon)
 			return true
 		else
 			return false
@@ -71,7 +68,6 @@ local function manualCommandIssued(attackerID)
 		return returnTargetTable
 	end
 	local setTargetData = ggGetUnitTarget(attackerID) or {}
-	--Spring.Echo("setTargetData type", type(setTargetData))
 	if type(setTargetData) ~= "number" and setTargetData[1] then
 		returnTargetTable = setTargetData
 		return returnTargetTable
@@ -84,7 +80,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		unitSuspendAutoAiming[unitID] = {
 			unitDefID = unitDefID,
 			preferredWeapon = unitDefsWithSmartWeapons[unitDefID].preferredWeapon,
-			otherWeapon = unitDefsWithSmartWeapons[unitDefID].otherWeapon,
+			deferredWeapon = unitDefsWithSmartWeapons[unitDefID].deferredWeapon,
 			overrideScriptID = Spring.GetCOBScriptID(unitID, "overrideAimingState")
 		}
 	end
