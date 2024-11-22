@@ -19,7 +19,6 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "31 32 31",
 		collisionvolumetype = "CylY",
-		energyupkeep = 30,
 		explodeas = "nanoboom",
 		footprintx = 3,
 		footprintz = 3,

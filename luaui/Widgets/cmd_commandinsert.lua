@@ -166,7 +166,7 @@ function widget:CommandNotify(id, params, options)
       --Spring.Echo("cmd:"..table.tostring(command))
       local px2,py2,pz2 = GetCommandPos(command)
       if px2 and px2>-1 then
-        local dlen = math_sqrt(((px2-cx)*(px2-cx)) + ((py2-cy)*(py2-cy)) + ((pz2-cz)*(pz2-cz))) + math_sqrt(((px-cx)*(px-cx)) + ((py-cy)*(py-cy)) + ((pz-cz)*(pz-cz))) - math_sqrt((((px2-px)*(px2-px)) + ((py2-py)*(py2-py)) + ((py2-py)*(py2-py))))
+        local dlen = math_sqrt(((px2-cx)*(px2-cx)) + ((py2-cy)*(py2-cy)) + ((pz2-cz)*(pz2-cz))) + math_sqrt(((px-cx)*(px-cx)) + ((py-cy)*(py-cy)) + ((pz-cz)*(pz-cz))) - math_sqrt((((px2-px)*(px2-px)) + ((py2-py)*(py2-py)) + ((pz2-pz)*(pz2-pz))))
         --Spring.Echo("dlen "..dlen)
         if dlen < min_dlen then
           min_dlen = dlen
