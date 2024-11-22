@@ -1056,6 +1056,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	visibleUnits = {}
 
 	for unitID, unitDefID in pairs(extVisibleUnits) do
+		visibleUnits[unitID] = unitDefID
 		AddStaticLightsForUnit(unitID, unitDefID, true, "VisibleUnitsChanged") -- add them with noUpload = true
 	end
 	uploadAllElements(unitPointLightVBO) -- upload them all

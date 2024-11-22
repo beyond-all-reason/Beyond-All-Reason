@@ -915,6 +915,7 @@ function widget:Barrelfire(px, py, pz, weaponID, ownerID)
 end
 
 local function UnitScriptDistortion(unitID, unitDefID, distortionIndex, param)
+	--Spring.Echo("UnitSCriptDistortion", unitID, unitDefID, distortionIndex, param, visibleUnits[unitID] )
 	if spValidUnitID(unitID) and spGetUnitIsDead(unitID) == false and visibleUnits[unitID] and unitEventDistortions.UnitScriptDistortions[unitDefID] and unitEventDistortions.UnitScriptDistortions[unitDefID][distortionIndex] then
 		local distortionTable = unitEventDistortions.UnitScriptDistortions[unitDefID][distortionIndex]
 		if not distortionTable.alwaysVisible then
@@ -946,6 +947,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	visibleUnits = {}
 
 	for unitID, unitDefID in pairs(extVisibleUnits) do
+		visibleUnits[unitID] = unitDefID
 		AddStaticDistortionsForUnit(unitID, unitDefID, true, "VisibleUnitsChanged") -- add them with noUpload = true
 	end
 	uploadAllElements(unitPointDistortionVBO) -- upload them all
