@@ -22,8 +22,11 @@ local cmdAttack = CMD.ATTACK
 local gameFrame = 0
 
 --functions
-local ggGetUnitTargetIndex = GG.getUnitTargetIndex
+local ggGetUnitTarget = GG.GetUnitTarget
 local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
+local spCallCOBScript = Spring.CallCOBScript
+local spGetUnitWeaponHaveFreeLineOfFire = Spring.GetUnitWeaponHaveFreeLineOfFire
+local spGetUnitCommands = Spring.GetUnitCommands
 
 --tables
 local unitSuspendAutoAiming = {}
@@ -31,26 +34,59 @@ local unitDefsWithSmartWeapons = {}
 
 for unitDefID, def in ipairs(UnitDefs) do
 	if def.customParams.smart_weapon_select_priority then
-		unitDefsWithSmartWeapons[unitDefID] = def.customParams.smart_weapon_select_priority
+		unitDefsWithSmartWeapons[unitDefID] = {preferredWeapon = tonumber(def.customParams.smart_weapon_select_priority)}
 		for weaponNumber, weaponData in ipairs(def.weapons) do
+			if weaponNumber ~= unitDefsWithSmartWeapons[unitDefID].preferredWeapon then
+				unitDefsWithSmartWeapons[unitDefID].otherWeapon = tonumber(weaponNumber)
+			end
 			Script.SetWatchWeapon(weaponData.weaponDef, true)
 		end
 	end
 end
 
-local function manualCommandIssued(attackerID)
-	if spGetUnitCurrentCommand(attackerID) == cmdAttack then
-		return true
-	elseif ggGetUnitTargetIndex(attackerID) then
-		return true
-	else
-		return false
+local function weaponTargettingCheck(attackerID, targetData)
+	if type(targetData) == "number" then
 	end
+	if not attackerID or not targetData then return false end
+	if #targetData == 1 then
+		if not spGetUnitWeaponHaveFreeLineOfFire(attackerID, unitSuspendAutoAiming[attackerID].preferredWeapon, targetData[1]) then
+			spCallCOBScript ( attackerID, unitSuspendAutoAiming[attackerID].overrideScriptID, 0, unitSuspendAutoAiming[attackerID].otherWeapon)
+			return false
+		end
+	elseif #targetData > 1 then
+		if not spGetUnitWeaponHaveFreeLineOfFire(attackerID, unitSuspendAutoAiming[attackerID].preferredWeapon, targetData[1], targetData[2], targetData[3]) then
+			spCallCOBScript ( attackerID, unitSuspendAutoAiming[attackerID].overrideScriptID, 0, unitSuspendAutoAiming[attackerID].otherWeapon)
+			return true
+		else
+			return false
+		end
+	end
+end
+
+local function manualCommandIssued(attackerID)
+	local returnTargetTable = {}
+	if spGetUnitCurrentCommand(attackerID) == cmdAttack then
+		local attackTarget = spGetUnitCommands(attackerID, 1)
+		returnTargetTable = attackTarget[1].params
+		return returnTargetTable
+	end
+	local setTargetData = ggGetUnitTarget(attackerID) or {}
+	--Spring.Echo("setTargetData type", type(setTargetData))
+	if type(setTargetData) ~= "number" and setTargetData[1] then
+		returnTargetTable = setTargetData
+		return returnTargetTable
+	end
+	return {}
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	if unitDefsWithSmartWeapons[unitDefID] then
-		unitSuspendAutoAiming[unitID] = false
+		unitSuspendAutoAiming[unitID] = {
+			unitDefID = unitDefID,
+			preferredWeapon = unitDefsWithSmartWeapons[unitDefID].preferredWeapon,
+			otherWeapon = unitDefsWithSmartWeapons[unitDefID].otherWeapon,
+			overrideScriptID = Spring.GetCOBScriptID(unitID, "overrideAimingState")
+		}
 	end
 end
 
@@ -58,24 +94,11 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	unitSuspendAutoAiming[unitID] = nil
 end
 
-function gadget:AllowWeaponTargetCheck(attackerID, attackerWeaponNum, attackerWeaponDefID)
-	if unitSuspendAutoAiming[attackerID] == true then
-		return false, false
-	else
-		return false, true
-	end
-end
-
-
-
 function gadget:GameFrame(frame)
 	if frame % frameCheckModulo == 3 then
 		for attackerID in pairs(unitSuspendAutoAiming) do
-			if manualCommandIssued(attackerID) == true then
-				unitSuspendAutoAiming[attackerID] = true
-			else
-				unitSuspendAutoAiming[attackerID] = false
-			end
+			local targetData = manualCommandIssued(attackerID)
+			weaponTargettingCheck(attackerID, targetData)
 		end
 	end
 end

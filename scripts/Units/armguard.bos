@@ -42,6 +42,17 @@ Create()
 #define SMOKEPIECE base
 #include "smokeunit_thread_nohit.h"
 
+overrideAimingState(weaponNumber)
+{
+	if (weaponNumber == AIMING_LOW){
+			switchAimModeFrame = (gameFrame + RESET_LOW_DELAY_FRAMES);
+			aimingState = AIMING_LOW;
+	} else if ((weaponNumber == AIMING_HIGH)){
+		switchAimModeFrame = (gameFrame + RESET_HIGH_DELAY_FRAMES);
+		aimingState = AIMING_HIGH;
+	}
+}
+
 setAimingState(weaponNumber)
 {
 	if (weaponNumber == AIMING_LOW){
