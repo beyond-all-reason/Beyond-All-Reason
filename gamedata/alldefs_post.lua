@@ -1259,8 +1259,8 @@ function UnitDef_Post(name, uDef)
 			uDef.energystorage = uDef.energystorage * x
 		end
 	end
-	if name == "armsolar" or name == "corsolar" or name == "legsolar" then
-		-- special case (but why?)
+	if uDef.energyupkeep and uDef.energyupkeep < 0 then
+		-- units with negative upkeep means they produce energy when "on".
 		local x = modOptions.multiplier_energyproduction * modOptions.multiplier_resourceincome
 		uDef.energyupkeep = uDef.energyupkeep * x
 		if uDef.energystorage then

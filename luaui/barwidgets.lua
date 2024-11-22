@@ -851,7 +851,7 @@ function widgetHandler:HookReorderPost(name, topMethod)
 	self[name .. 'Raw'] = func
 	self[name] = function(...)
 		callinDepth = topMethod and 1 or callinDepth + 1
-		res = func(...)
+		local res = func(...)
 		callinDepth = topMethod and 0 or callinDepth - 1
 
 		if reorderNeeded and callinDepth == 0 then

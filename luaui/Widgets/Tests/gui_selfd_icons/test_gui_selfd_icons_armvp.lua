@@ -7,20 +7,11 @@ end
 function setup()
 	Test.clearMap()
 
-	initialWidgetActive = widgetHandler.knownWidgets[widgetName].active
-	if initialWidgetActive then
-		widgetHandler:DisableWidgetRaw(widgetName)
-	end
-	widgetHandler:EnableWidgetRaw(widgetName, true)
+	Test.prepareWidget(widgetName)
 end
 
 function cleanup()
 	Test.clearMap()
-
-	widgetHandler:DisableWidgetRaw(widgetName)
-	if initialWidgetActive then
-		widgetHandler:EnableWidgetRaw(widgetName, false)
-	end
 end
 
 function test()
