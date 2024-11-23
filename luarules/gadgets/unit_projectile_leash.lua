@@ -45,9 +45,7 @@ for weaponDefID, weaponDef in pairs(WeaponDefs) do
         defWatchTable[weaponDefID].rangeThreshold = math.max((defWatchTable[weaponDefID].overRange - weaponDef.projectilespeed * lazyUpdateFrames), minimumThresholdRange)
         defWatchTable[weaponDefID].weaponDefID = weaponDefID
         Script.SetWatchWeapon(weaponDefID, true)
-
-        Spring.Echo("WeaponDefID:", weaponDefID, "Weapon Range:", weaponDef.range, "Over Range:", defWatchTable[weaponDefID].overRange, "Projectile Speed:", weaponDef.projectilespeed, "Game Speed:", Game.gameSpeed, "Slow Update Frames:", lazyUpdateFrames, "Range Threshold:", defWatchTable[weaponDefID].rangeThreshold, "Minimum Threshold Range:", minimumThresholdRange)
-    end
+	end
 end
 
 
