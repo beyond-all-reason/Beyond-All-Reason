@@ -10,11 +10,8 @@ function gadget:GetInfo()
 	}
 end
 
-tideRhym = {}
-tideIndex = 1
-tideContinueFrame = 0
-lavaGrow = 0
-gameframe = 0
+local lava = Spring.Lava
+local lavaMap = lava.isLavaMap
 
 voidWaterMap = false
 local success, mapinfo = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua confs
@@ -25,29 +22,29 @@ end
 --_G.Game.mapSizeX = Game.mapSizeX
 --_G.Game.mapSizeY = Game.mapSizeY
 
-function gadget:Initialize()
-	if lavaMap == false then
-		gadgetHandler:RemoveGadget(self)
-		return
-	end
-	_G.frame = 0
-	_G.lavaLevel = lavaLevel
-	_G.lavaGrow = lavaGrow
-	Spring.SetGameRulesParam("lavaLevel", -99999)
-end
-
-function addTideRhym (targetLevel, speed, remainTime)
-	local newTide = {}
-	newTide.targetLevel = targetLevel
-	newTide.speed = speed
-	newTide.remainTime = remainTime
-	table.insert (tideRhym, newTide)
-end
-
 if gadgetHandler:IsSyncedCode() then
 
-	isLavaGadget = "synced"
-	VFS.Include("luarules/configs/lavaConfig.lua")
+	local tideIndex = 1
+	local tideContinueFrame = 0
+	local gameframe = 0
+	local tideRhym = {}
+
+	local lavaLevel = lava.level
+	local lavaGrow = lava.grow
+	local lavaDamage = lava.damage
+	local nolavaburstcegs = lava.nolavaburstcegs
+
+	local function addTideRhym (targetLevel, speed, remainTime)
+		local newTide = {}
+		newTide.targetLevel = targetLevel
+		newTide.speed = speed
+		newTide.remainTime = remainTime
+		table.insert (tideRhym, newTide)
+	end
+
+	for _, rhym in ipairs(lava.tideRhym) do
+		addTideRhym(unpack(rhym))
+	end
 
 	function updateLava()
 		if (lavaGrow < 0 and lavaLevel < tideRhym[tideIndex].targetLevel)
@@ -76,11 +73,20 @@ if gadgetHandler:IsSyncedCode() then
 		return math.min(math.max(x, low), high)
 	end
 
+	function gadget:Initialize()
+		if lavaMap == false then
+			gadgetHandler:RemoveGadget(self)
+			return
+		end
+		_G.lavaLevel = lavaLevel
+		_G.lavaGrow = lavaGrow
+		Spring.SetGameRulesParam("lavaLevel", -99999)
+	end
+
 	function gadget:GameFrame (f)
 		gameframe = f
 		_G.lavaLevel = lavaLevel+math.sin(f/30)*0.5
 		--_G.lavaLevel = lavaLevel + clamp(-0.95, math.sin(f / 30), 0.95) * 0.5 --clamp to avoid jittering when sin(x) is around +-1
-		_G.frame = f
 
 		if f % 10 == 0 then
 			lavaDeathCheck()
@@ -211,29 +217,23 @@ if gadgetHandler:IsSyncedCode() then
 
 else  -- UNSYCNED
 
-	isLavaGadget = "unsynced"
-	VFS.Include("luarules/configs/lavaConfig.lua")
-
 	local texturesamplingmode = '' -- ':l:' causes MASSIVE load on zoom out and downsampling textures!
-	local lavaDiffuseEmit = texturesamplingmode .. lavaDiffuseEmitTex -- pack emissiveness into alpha channel (this is also used as heat for distortion)
-	local lavaNormalHeight = texturesamplingmode .. lavaNormalHeightTex -- pack height into normals alpha
+	local lavaDiffuseEmit = texturesamplingmode .. lava.diffuseEmitTex -- pack emissiveness into alpha channel (this is also used as heat for distortion)
+	local lavaNormalHeight = texturesamplingmode .. lava.normalHeightTex -- pack height into normals alpha
 	local lavaDistortion = texturesamplingmode .. "LuaUI/images/lavadistortion.png"
 
 	local lavaShader
 	local lavaPlaneVAO
-	local lavalevel = lavaLevel
 
 	local foglightShader
-	local foglightVAO
-	local numfoglightVerts
 
-	local foglightenabled = lavaFogEnabled
-	local fogheightabovelava = lavaFogHeight
+	local foglightenabled = lava.fogEnabled
+	local fogheightabovelava = lava.fogHeight
 	local allowDeferredMapRendering =  (Spring.GetConfigInt("AllowDeferredMapRendering") == 1) -- map depth buffer is required for the foglight shader pass
 
-	local tideamplitude = lavaTideamplitude
-	local tideperiod = lavaTideperiod
-	local lavatidelevel = lavaLevel
+	local tideamplitude = lava.tideAmplitude
+	local tideperiod = lava.tidePeriod
+	local lavatidelevel = lava.level
 
 	local heatdistortx = 0
 	local heatdistortz = 0
@@ -248,31 +248,31 @@ else  -- UNSYCNED
 	local unifiedShaderConfig = {
 		-- for lavaplane
 		HEIGHTOFFSET = 2.0,  -- how many elmos above the 'actual' lava height we should render, to avoid ROAM clipping artifacts
-		COASTWIDTH = lavaCoastWidth, -- how wide the coast of the lava should be
-		WORLDUVSCALE = lavaUVscale, -- How many times to tile the lava texture across the entire map
-		COASTCOLOR = lavaCoastColor, -- the color of the lava coast
-		SPECULAREXPONENT = lavaSpecularExp,  -- the specular exponent of the lava plane
+		COASTWIDTH = lava.coastWidth, -- how wide the coast of the lava should be
+		WORLDUVSCALE = lava.uvScale, -- How many times to tile the lava texture across the entire map
+		COASTCOLOR = lava.coastColor, -- the color of the lava coast
+		SPECULAREXPONENT = lava.specularExp,  -- the specular exponent of the lava plane
 		SPECULARSTRENGTH = 1.0, -- The peak brightness of specular highlights
-		LOSDARKNESS = lavaLOSdarkness, -- how much to darken the out-of-los areas of the lava plane
-		SHADOWSTRENGTH = lavaShadowStrength, -- how much light a shadowed fragment can recieve
+		LOSDARKNESS = lava.losDarkness, -- how much to darken the out-of-los areas of the lava plane
+		SHADOWSTRENGTH = lava.shadowStrength, -- how much light a shadowed fragment can recieve
 		OUTOFMAPHEIGHT = -100, -- what value to use when we are sampling the heightmap outside of the true bounds
-		SWIRLFREQUENCY = lavaSwirlFreq, -- How fast the main lava texture swirls around default 0.025
-		SWIRLAMPLITUDE = lavaSwirlAmp, -- How much the main lava texture is swirled around default 0.003
-		PARALLAXDEPTH = lavaParallaxDepth, -- set to >0 to enable
-		PARALLAXOFFSET = lavaParallaxOffset, -- center of the parallax plane, from 0.0 (up) to 1.0 (down)
+		SWIRLFREQUENCY = lava.swirlFreq, -- How fast the main lava texture swirls around default 0.025
+		SWIRLAMPLITUDE = lava.swirlAmp, -- How much the main lava texture is swirled around default 0.003
+		PARALLAXDEPTH = lava.parallaxDepth, -- set to >0 to enable
+		PARALLAXOFFSET = lava.parallaxOffset, -- center of the parallax plane, from 0.0 (up) to 1.0 (down)
 		GLOBALROTATEFREQUENCY = 0.0001, -- how fast the whole lava plane shifts around
 		GLOBALROTATEAMPLIDUE = 0.05, -- how big the radius of the circle we rotate around is
 
 		-- for foglight:
 		FOGHEIGHTABOVELAVA = fogheightabovelava, -- how much higher above the lava the fog light plane is
-		FOGCOLOR = lavaFogColor, -- the color of the fog light
-		FOGFACTOR = lavaFogFactor, -- how dense the fog is
-		EXTRALIGHTCOAST = lavaCoastLightBoost, -- how much extra brightness should coastal areas get
-		FOGLIGHTDISTORTION = lavaFogDistortion, -- lower numbers are higher distortion amounts
-		FOGABOVELAVA = lavaFogAbove, -- the multiplier for how much fog should be above lava fragments, ~0.2 means the lava itself gets hardly any fog, while 2.0 would mean the lava gets a lot of extra fog
+		FOGCOLOR = lava.fogColor, -- the color of the fog light
+		FOGFACTOR = lava.fogFactor, -- how dense the fog is
+		EXTRALIGHTCOAST = lava.coastLightBoost, -- how much extra brightness should coastal areas get
+		FOGLIGHTDISTORTION = lava.fogDistortion, -- lower numbers are higher distortion amounts
+		FOGABOVELAVA = lava.fogAbove, -- the multiplier for how much fog should be above lava fragments, ~0.2 means the lava itself gets hardly any fog, while 2.0 would mean the lava gets a lot of extra fog
 
 		-- for both:
-		SWIZZLECOLORS = 'fragColor.rgb = (fragColor.rgb * '..lavaColorCorrection..').rgb;', -- yes you can swap around and weight color channels, right after final color, default is 'rgb'
+		SWIZZLECOLORS = 'fragColor.rgb = (fragColor.rgb * '..lava.colorCorrection..').rgb;', -- yes you can swap around and weight color channels, right after final color, default is 'rgb'
 	}
 
 

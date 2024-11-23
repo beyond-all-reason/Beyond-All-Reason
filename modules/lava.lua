@@ -1,471 +1,457 @@
 local mapName = Game.mapName:lower()
 Spring.Echo("Lava Mapname", mapName)
-lavaMap = false
+local isLavaMap = false
 
 -- defaults:
-nolavaburstcegs = false
-lavaDiffuseEmitTex = "LuaUI/images/lava/lava2_diffuseemit.dds"
-lavaNormalHeightTex = "LuaUI/images/lava/lava2_normalheight.dds"
+local nolavaburstcegs = false
+local diffuseEmitTex = "LuaUI/images/lava/lava2_diffuseemit.dds"
+local normalHeightTex = "LuaUI/images/lava/lava2_normalheight.dds"
 
-lavaLevel = 1 -- pre-game lava level
-lavaGrow = 0.25 -- initial lavaGrow speed
-lavaDamage = 100 -- damage per second
-lavaUVscale = 2.0 -- How many times to tile the lava texture across the entire map
-lavaColorCorrection = "vec3(1.0, 1.0, 1.0)" -- final colorcorrection on all lava + shore coloring
-lavaLOSdarkness = 0.5 -- how much to darken the out-of-los areas of the lava plane
-lavaSwirlFreq = 0.025 -- How fast the main lava texture swirls around default 0.025
-lavaSwirlAmp = 0.003 -- How much the main lava texture is swirled around default 0.003
-lavaSpecularExp = 64.0 -- the specular exponent of the lava plane
-lavaShadowStrength = 0.4 -- how much light a shadowed fragment can recieve
-lavaCoastWidth = 25.0 -- how wide the coast of the lava should be
-lavaCoastColor = "vec3(2.0, 0.5, 0.0)" -- the color of the lava coast
-lavaCoastLightBoost = 0.6 -- how much extra brightness should coastal areas get
+local level = 1 -- pre-game lava level
+local grow = 0.25 -- initial lava grow speed
+local damage = 100 -- damage per second
+local uvScale = 2.0 -- How many times to tile the lava texture across the entire map
+local colorCorrection = "vec3(1.0, 1.0, 1.0)" -- final colorcorrection on all lava + shore coloring
+local losDarkness = 0.5 -- how much to darken the out-of-los areas of the lava plane
+local swirlFreq = 0.025 -- How fast the main lava texture swirls around default 0.025
+local swirlAmp = 0.003 -- How much the main lava texture is swirled around default 0.003
+local specularExp = 64.0 -- the specular exponent of the lava plane
+local shadowStrength = 0.4 -- how much light a shadowed fragment can recieve
+local coastWidth = 25.0 -- how wide the coast of the lava should be
+local coastColor = "vec3(2.0, 0.5, 0.0)" -- the color of the lava coast
+local coastLightBoost = 0.6 -- how much extra brightness should coastal areas get
 
-lavaParallaxDepth = 16.0 -- set to >0 to enable, how deep the parallax effect is
-lavaParallaxOffset = 0.5 -- center of the parallax plane, from 0.0 (up) to 1.0 (down)
+local parallaxDepth = 16.0 -- set to >0 to enable, how deep the parallax effect is
+local parallaxOffset = 0.5 -- center of the parallax plane, from 0.0 (up) to 1.0 (down)
 
-lavaFogColor = "vec3(2.0, 0.5, 0.0)" -- the color of the fog light
-lavaFogFactor = 0.06 -- how dense the fog is
-lavaFogHeight = 20 -- how high the fog is above the lava plane
-lavaFogAbove = 1.0 -- the multiplier for how much fog should be above lava fragments, ~0.2 means the lava itself gets hardly any fog, while 2.0 would mean the lava gets a lot of extra fog
-lavaFogEnabled = true --if fog above lava adds light / is enabled
-lavaFogDistortion = 4.0 -- lower numbers are higher distortion amounts
+local fogColor = "vec3(2.0, 0.5, 0.0)" -- the color of the fog light
+local fogFactor = 0.06 -- how dense the fog is
+local fogHeight = 20 -- how high the fog is above the lava plane
+local fogAbove = 1.0 -- the multiplier for how much fog should be above lava fragments, ~0.2 means the lava itself gets hardly any fog, while 2.0 would mean the lava gets a lot of extra fog
+local fogEnabled = true --if fog above lava adds light / is enabled
+local fogDistortion = 4.0 -- lower numbers are higher distortion amounts
 
-lavaTideamplitude = 2 -- how much lava should rise up-down on static level
-lavaTideperiod = 200 -- how much time between live rise up-down
+local tideAmplitude = 2 -- how much lava should rise up-down on static level
+local tidePeriod = 200 -- how much time between live rise up-down
 
+local tideRhym = {}
 
 --[[ EXAMPLE
 
-addTideRhym(HeightLevel, Speed, Delay for next TideRhym in seconds)
+-- tidyRhym rows will be consumed by:
+--  addTideRhym(HeightLevel, Speed, Delay for next TideRhym in seconds)
 
 if string.find(mapName, "quicksilver") then
-    lavaMap = true
-    lavaMinHeight = 137 -- minheight of map smf - otherwise will use 0
-    lavaLevel = 220
-    lavaGrow = 0.25
-    lavaDamage = 100
-    if (gadgetHandler:IsSyncedCode()) then
-        addTideRhym (-21, 0.25, 5*10)
-        addTideRhym (150, 0.25, 3)
-        addTideRhym (-20, 0.25, 5*10)
-        addTideRhym (150, 0.25, 5)
-        addTideRhym (-20, 1, 5*60)
-        addTideRhym (180, 0.5, 60)
-        addTideRhym (240, 0.2, 10)
-    end
+	isLavaMap = true
+	level = 220
+	grow = 0.25
+	damage = 100
+	tideRhym = { { -21, 0.25, 5*10 },
+		     { 150, 0.25, 3    },
+		     { -20, 0.25, 5*10 },
+		     { 150, 0.25, 5    },
+		     { -20, 1.00, 5*60 },
+		     { 180, 0.50, 60   },
+		     { 240, 0.20, 10   } }
 end
 
 ]]
 
 if string.find(mapName, "stronghold") then
-	lavaMap = true
-	lavaLevel = 20
-	lavaGrow = 0
-	
-	lavaDamage = 25 -- damage per second
-	lavaTideamplitude = 3
-	lavaTideperiod = 95
-	lavaDiffuseEmitTex = "LuaUI/images/lava/lava7_diffuseemit.dds"
-	lavaNormalHeightTex = "LuaUI/images/lava/lava7_normalheight.dds"
-	lavaLOSdarkness = 0.7
-	lavaColorCorrection = "vec3(1.1, 1.0, 0.88)"
-	lavaShadowStrength = 1.0 -- how much light a shadowed fragment can recieve
-	lavaCoastColor = "vec3(2.2, 0.4, 0.0)"
-	lavaCoastLightBoost = 0.7
-	lavaCoastWidth = 36.0
-	lavaFogFactor = 0.08 -- how dense the fog is
-	lavaFogColor = "vec3(2.0, 0.31, 0.0)"
-	lavaFogHeight = 85
-	lavaFogAbove = 0.18
-	lavaUVscale = 0.5
-	lavaSwirlFreq = 0.017
-	lavaSwirlAmp = 0.0024
+	isLavaMap = true
+	level = 20
+	grow = 0
 
-	if isLavaGadget and isLavaGadget == "synced" then
-		addTideRhym (19, 0.3, 5*6000)
-	end
+	damage = 25 -- damage per second
+	tideAmplitude = 3
+	tidePeriod = 95
+	diffuseEmitTex = "LuaUI/images/lava/lava7_diffuseemit.dds"
+	normalHeightTex = "LuaUI/images/lava/lava7_normalheight.dds"
+	losDarkness = 0.7
+	colorCorrection = "vec3(1.1, 1.0, 0.88)"
+	shadowStrength = 1.0 -- how much light a shadowed fragment can recieve
+	coastColor = "vec3(2.2, 0.4, 0.0)"
+	coastLightBoost = 0.7
+	coastWidth = 36.0
+	fogFactor = 0.08 -- how dense the fog is
+	fogColor = "vec3(2.0, 0.31, 0.0)"
+	fogHeight = 85
+	fogAbove = 0.18
+	uvScale = 0.5
+	swirlFreq = 0.017
+	swirlAmp = 0.0024
+
+	tideRhym = { { 19, 0.3, 5*6000 } }
 
 elseif string.find(mapName, "incandescence") then
-	lavaMap = true
-	lavaLevel = 207
-	lavaDamage = 150 -- damage per second
-	lavaTideamplitude = 3
-	lavaTideperiod = 95
-	lavaDiffuseEmitTex = "LuaUI/images/lava/lava7_diffuseemit.dds"
-	lavaNormalHeightTex = "LuaUI/images/lava/lava7_normalheight.dds"
-	lavaLOSdarkness = 0.7
-	lavaColorCorrection = "vec3(1.1, 1.0, 0.88)"
-	lavaShadowStrength = 1.0 -- how much light a shadowed fragment can recieve
-	lavaCoastColor = "vec3(2.2, 0.4, 0.0)"
-	lavaCoastLightBoost = 0.7
-	lavaCoastWidth = 36.0
-	lavaFogFactor = 0.08 -- how dense the fog is
-	lavaFogColor = "vec3(2.0, 0.31, 0.0)"
-	lavaFogHeight = 85
-	lavaFogAbove = 0.18
+	isLavaMap = true
+	level = 207
+	damage = 150 -- damage per second
+	tideAmplitude = 3
+	tidePeriod = 95
+	diffuseEmitTex = "LuaUI/images/lava/lava7_diffuseemit.dds"
+	normalHeightTex = "LuaUI/images/lava/lava7_normalheight.dds"
+	losDarkness = 0.7
+	colorCorrection = "vec3(1.1, 1.0, 0.88)"
+	shadowStrength = 1.0 -- how much light a shadowed fragment can recieve
+	coastColor = "vec3(2.2, 0.4, 0.0)"
+	coastLightBoost = 0.7
+	coastWidth = 36.0
+	fogFactor = 0.08 -- how dense the fog is
+	fogColor = "vec3(2.0, 0.31, 0.0)"
+	fogHeight = 85
+	fogAbove = 0.18
 
-
-	if isLavaGadget and isLavaGadget == "synced" then
-		addTideRhym (206, 0.25, 5*6000) -- needs to be -1 than pre-game lava level
-	end
+	tideRhym = { { 206, 0.25, 5*6000 } } -- needs to be -1 than pre-game lava level
 
 elseif string.find(mapName, "seths ravine") then
-	lavaMap = false
-	if isLavaGadget and isLavaGadget == "synced" then
-		addTideRhym (208, 0.25, 5*6000) -- needs to be -1 than pre-game lava level
-	end
+	isLavaMap = false
+	tideRhym = { { 208, 0.25, 5*6000 } } -- needs to be -1 than pre-game lava level
 
 elseif string.find(mapName, "moonq20xr2") then
-	lavaMap = false
-	if isLavaGadget and isLavaGadget == "synced" then
-		addTideRhym (208, 0.25, 5*6000) -- needs to be -1 than pre-game lava level
-	end
+	isLavaMap = false
+	tideRhym = { { 208, 0.25, 5*6000 } } -- needs to be -1 than pre-game lava level
 
 elseif string.find(mapName, "ghenna") then
-	lavaMap = true
-	lavaLevel = 251 -- pre-game lava level
-	lavaDamage = 750 -- damage per second
-	lavaColorCorrection = "vec3(0.7, 0.7, 0.7)"
-	lavaSwirlFreq = 0.017
-	lavaSwirlAmp = 0.0024
-	lavaTideamplitude = 3
-	lavaSpecularExp = 4.0
-	lavaShadowStrength = 0.9
-	lavaCoastLightBoost = 0.8
-	lavaUVscale = 1.5
-	if isLavaGadget and isLavaGadget == "synced" then
-		addTideRhym (250, 0.10, 15) -- needs to be -1 than pre-game lava level
-		addTideRhym (415, 0.05, 30)
-		addTideRhym (250, 0.10, 5*60)
-		addTideRhym (415, 0.05, 30)
-		addTideRhym (250, 0.10, 5*60)
-		addTideRhym (415, 0.05, 3*30)
-		addTideRhym (250, 0.10, 10*60)
-	end
+	isLavaMap = true
+	level = 251 -- pre-game lava level
+	damage = 750 -- damage per second
+	colorCorrection = "vec3(0.7, 0.7, 0.7)"
+	swirlFreq = 0.017
+	swirlAmp = 0.0024
+	tideAmplitude = 3
+	specularExp = 4.0
+	shadowStrength = 0.9
+	coastLightBoost = 0.8
+	uvScale = 1.5
+	tideRhym = { { 250, 0.10, 15    }, -- needs to be -1 than pre-game lava level
+		     { 415, 0.05, 30    },
+		     { 250, 0.10, 5*60  },
+		     { 415, 0.05, 30    },
+		     { 250, 0.10, 5*60  },
+		     { 415, 0.05, 3*30  },
+		     { 250, 0.10, 10*60 } }
 
 elseif string.find(mapName, "hotstepper") then
-	lavaMap = true
-	lavaLevel = 100 -- pre-game lava level
-	lavaDamage = 130 -- damage per second
-	if isLavaGadget and isLavaGadget == "synced" then
-		addTideRhym (90, 0.25, 5*60) -- needs to be -1 than pre-game lava level
-		addTideRhym (215, 0.10, 5)
-		addTideRhym (90, 0.25, 5*60)
-		addTideRhym (290, 0.15, 5)
-		addTideRhym (90, 0.25, 4*60)
-		addTideRhym (355, 0.20, 5)
-		addTideRhym (90, 0.25, 4*60)
-		addTideRhym (390, 0.20, 5)
-		addTideRhym (90, 0.25, 2*60)
-		addTideRhym (440, 0.04, 2*60)
-	end
+	isLavaMap = true
+	level = 100 -- pre-game lava level
+	damage = 130 -- damage per second
+	tideRhym = { { 90,  0.25, 5*60 }, -- needs to be -1 than pre-game lava level
+		     { 215, 0.10, 5    },
+		     { 90,  0.25, 5*60 },
+		     { 290, 0.15, 5    },
+		     { 90,  0.25, 4*60 },
+		     { 355, 0.20, 5    },
+		     { 90,  0.25, 4*60 },
+		     { 390, 0.20, 5    },
+		     { 90,  0.25, 2*60 },
+		     { 440, 0.04, 2*60 } }
 
 elseif string.find(mapName, "zed remake") then
-	lavaMap = true
-	lavaGrow = 0
-	lavaLevel = 1 -- pre-game lava level
-	lavaDamage = 75 -- damage per second
-	lavaUVscale = 1.5
-	lavaColorCorrection = "vec3(0.4, 0.09, 1.2)"
-	lavaLOSdarkness = 0.8
-	lavaCoastColor = "vec3(0.8, 0.03, 1.1)"
-	lavaFogColor = "vec3(0.60, 0.10, 1.1)"
-	lavaCoastLightBoost = 1.3
-	lavaTideamplitude = 1.5 -- how much lava should rise up-down on static level
-	lavaTideperiod = 150 -- how much time between live rise up-down
-	if isLavaGadget and isLavaGadget == "synced" then
-		addTideRhym (0, 0.3, 5*6000)
-	end
+	isLavaMap = true
+	grow = 0
+	level = 1 -- pre-game lava level
+	damage = 75 -- damage per second
+	uvScale = 1.5
+	colorCorrection = "vec3(0.4, 0.09, 1.2)"
+	losDarkness = 0.8
+	coastColor = "vec3(0.8, 0.03, 1.1)"
+	fogColor = "vec3(0.60, 0.10, 1.1)"
+	coastLightBoost = 1.3
+	tideAmplitude = 1.5 -- how much lava should rise up-down on static level
+	tidePeriod = 150 -- how much time between live rise up-down
+	tideRhym = { { 0, 0.3, 5*6000 } }
 
 
 elseif string.find(mapName, "acidicquarry") then
-	lavaMap = true
-	lavaGrow = 0
+	isLavaMap = true
+	grow = 0
 	nolavaburstcegs = true
-	lavaLevel = 5
-	lavaColorCorrection = "vec3(0.26, 1.0, 0.03)"
-	--lavaCoastColor = "vec3(0.6, 0.7, 0.03)"
-	lavaCoastLightBoost = 1.2
-	lavaCoastWidth = 10.0 -- how wide the coast of the lava should be
-	lavaFogColor = "vec3(1.60, 0.8, 0.3)"
-	--lavaCoastWidth = 30.0
+	level = 5
+	colorCorrection = "vec3(0.26, 1.0, 0.03)"
+	--coastColor = "vec3(0.6, 0.7, 0.03)"
+	coastLightBoost = 1.2
+	coastWidth = 10.0 -- how wide the coast of the lava should be
+	fogColor = "vec3(1.60, 0.8, 0.3)"
+	--coastWidth = 30.0
 	lavaParallaxDepth = 32.0 -- set to >0 to enable, how deep the parallax effect is
 	lavaParallaxOffset = 0.2 -- center of the parallax plane, from 0.0 (up) to 1.0 (down)
-	lavaSwirlFreq = 0.008
-	lavaSwirlAmp = 0.017
-	lavaUVscale = 2.2
-	lavaSpecularExp = 12.0
-	lavaTideamplitude = 3
-	lavaTideperiod = 40
-	lavaFogFactor = 0.13
-	lavaFogHeight = 36
-	lavaFogAbove = 0.1
-	lavaFogDistortion = 2.0
-	if isLavaGadget and isLavaGadget == "synced" then
-		addTideRhym (4, 0.05, 5*6000)
-	end
+	swirlFreq = 0.008
+	swirlAmp = 0.017
+	uvScale = 2.2
+	specularExp = 12.0
+	tideAmplitude = 3
+	tidePeriod = 40
+	fogFactor = 0.13
+	fogHeight = 36
+	fogAbove = 0.1
+	fogDistortion = 2.0
+	tideRhym = { { 4, 0.05, 5*6000 } }
 
 
 elseif string.find(mapName, "speedmetal") then
-	lavaMap = true
-	lavaGrow = 0
+	isLavaMap = true
+	grow = 0
 	nolavaburstcegs = true
-	lavaLevel = 1 -- pre-game lava level
-	lavaColorCorrection = "vec3(0.3, 0.1, 1.5)"
-	--lavaCoastWidth = 40.0
-	--lavaCoastColor = "vec3(1.7, 0.02, 1.4)"
-	lavaFogColor = "vec3(0.60, 0.02, 1)"
-	lavaSwirlFreq = 0.025
-	lavaSwirlAmp = 0.003
-	lavaTideamplitude = 3
-	lavaTideperiod = 50
-	if isLavaGadget and isLavaGadget == "synced" then
-		addTideRhym (1, 0.05, 5*6000)
-	end
+	level = 1 -- pre-game lava level
+	colorCorrection = "vec3(0.3, 0.1, 1.5)"
+	--coastWidth = 40.0
+	--coastColor = "vec3(1.7, 0.02, 1.4)"
+	fogColor = "vec3(0.60, 0.02, 1)"
+	swirlFreq = 0.025
+	swirlAmp = 0.003
+	tideAmplitude = 3
+	tidePeriod = 50
+	tideRhym = { { 1, 0.05, 5*6000 } }
 
 elseif string.find(mapName, "thermal shock") then
-	lavaMap = true
-	lavaGrow = 0
-	lavaColorCorrection = "vec3(1.0, 1.0, 1.0)"
-	lavaCoastColor = "vec3(1.0, 0.25, 0.0)"
-	lavaCoastLightBoost = 0.3
-	lavaFogColor = "vec3(1.5, 0.1, 0.0)" 
-	lavaFogFactor = 0.01
-	lavaFogHeight = 15 
-	lavaFogAbove = 4.0
-	lavaFogDistortion = 2.0
-	lavaTideamplitude = 0.3 
-	lavaTideperiod = 1000 
-    if isLavaGadget and isLavaGadget == "synced" then
-		addTideRhym (-1, 0.05, 5*6000)
-    end
+	isLavaMap = true
+	grow = 0
+	colorCorrection = "vec3(1.0, 1.0, 1.0)"
+	coastColor = "vec3(1.0, 0.25, 0.0)"
+	coastLightBoost = 0.3
+	fogColor = "vec3(1.5, 0.1, 0.0)"
+	fogFactor = 0.01
+	fogHeight = 15
+	fogAbove = 4.0
+	fogDistortion = 2.0
+	tideAmplitude = 0.3
+	tidePeriod = 1000
+	tideRhym = { { -1, 0.05, 5*6000 } }
 
 elseif string.find(mapName, "kill the middle") then
-	lavaMap = true
-	lavaLevel = 0
-	lavaDamage = 150 -- damage per second
-	lavaTideamplitude = 3
-	lavaTideperiod = 95
-	lavaDiffuseEmitTex = "LuaUI/images/lava/lava7_diffuseemit.dds"
-	lavaNormalHeightTex = "LuaUI/images/lava/lava7_normalheight.dds"
-	lavaLOSdarkness = 0.7
-	lavaColorCorrection = "vec3(1.1, 1.0, 0.88)"
-	lavaShadowStrength = 1.0 -- how much light a shadowed fragment can recieve
-	lavaCoastColor = "vec3(2.2, 0.4, 0.0)"
-	lavaCoastLightBoost = 0.7
-	lavaCoastWidth = 36.0
-	lavaFogFactor = 0.08 -- how dense the fog is
-	lavaFogColor = "vec3(2.0, 0.31, 0.0)"
-	lavaFogHeight = 85
-	lavaFogAbove = 0.18
+	isLavaMap = true
+	level = 0
+	damage = 150 -- damage per second
+	tideAmplitude = 3
+	tidePeriod = 95
+	diffuseEmitTex = "LuaUI/images/lava/lava7_diffuseemit.dds"
+	normalHeightTex = "LuaUI/images/lava/lava7_normalheight.dds"
+	losDarkness = 0.7
+	colorCorrection = "vec3(1.1, 1.0, 0.88)"
+	shadowStrength = 1.0 -- how much light a shadowed fragment can recieve
+	coastColor = "vec3(2.2, 0.4, 0.0)"
+	coastLightBoost = 0.7
+	coastWidth = 36.0
+	fogFactor = 0.08 -- how dense the fog is
+	fogColor = "vec3(2.0, 0.31, 0.0)"
+	fogHeight = 85
+	fogAbove = 0.18
 
-
-	if isLavaGadget and isLavaGadget == "synced" then
-		addTideRhym (-1, 0.25, 5*6000) -- needs to be -1 than pre-game lava level
-	end
+	tideRhym = { { -1, 0.25, 5*6000 } } -- needs to be -1 than pre-game lava level
 
 elseif string.find(mapName, "kings") then
-	lavaMap = true
-	lavaGrow = 0
-	lavaColorCorrection = "vec3(1.0, 1.0, 1.0)"
-	lavaCoastColor = "vec3(1.0, 0.25, 0.0)"
-	lavaCoastLightBoost = 0.3
-	lavaFogColor = "vec3(1.5, 0.1, 0.0)" 
-	lavaFogFactor = 0.01
-	lavaFogHeight = 15 
-	lavaFogAbove = 4.0
-	lavaFogDistortion = 2.0
-	lavaTideamplitude = 0.3 
-	lavaTideperiod = 1000 
-    if isLavaGadget and isLavaGadget == "synced" then
-		addTideRhym (-1, 0.05, 5*6000)
-    end
+	isLavaMap = true
+	grow = 0
+	colorCorrection = "vec3(1.0, 1.0, 1.0)"
+	coastColor = "vec3(1.0, 0.25, 0.0)"
+	coastLightBoost = 0.3
+	fogColor = "vec3(1.5, 0.1, 0.0)"
+	fogFactor = 0.01
+	fogHeight = 15
+	fogAbove = 4.0
+	fogDistortion = 2.0
+	tideAmplitude = 0.3
+	tidePeriod = 1000
+	tideRhym = { { -1, 0.05, 5*6000 } }
 
 elseif string.find(mapName, "forge") then
-	lavaMap = true
-	lavaLevel = 0
-	lavaDamage = 150 -- damage per second
-	lavaTideamplitude = 3
-	lavaTideperiod = 95
-	lavaDiffuseEmitTex = "LuaUI/images/lava/lava7_diffuseemit.dds"
-	lavaNormalHeightTex = "LuaUI/images/lava/lava7_normalheight.dds"
-	lavaLOSdarkness = 0.7
-	lavaColorCorrection = "vec3(1.1, 1.0, 0.88)"
-	lavaShadowStrength = 1.0 -- how much light a shadowed fragment can recieve
-	lavaCoastColor = "vec3(2.2, 0.4, 0.0)"
-	lavaCoastLightBoost = 0.7
-	lavaCoastWidth = 36.0
-	lavaFogFactor = 0.02 -- how dense the fog is
-	lavaFogColor = "vec3(2.0, 0.31, 0.0)"
-	lavaFogHeight = 35
-	lavaFogAbove = 0.18
+	isLavaMap = true
+	level = 0
+	damage = 150 -- damage per second
+	tideAmplitude = 3
+	tidePeriod = 95
+	diffuseEmitTex = "LuaUI/images/lava/lava7_diffuseemit.dds"
+	normalHeightTex = "LuaUI/images/lava/lava7_normalheight.dds"
+	losDarkness = 0.7
+	colorCorrection = "vec3(1.1, 1.0, 0.88)"
+	shadowStrength = 1.0 -- how much light a shadowed fragment can recieve
+	coastColor = "vec3(2.2, 0.4, 0.0)"
+	coastLightBoost = 0.7
+	coastWidth = 36.0
+	fogFactor = 0.02 -- how dense the fog is
+	fogColor = "vec3(2.0, 0.31, 0.0)"
+	fogHeight = 35
+	fogAbove = 0.18
 
-
-	if isLavaGadget and isLavaGadget == "synced" then
-		addTideRhym (-1, 0.25, 5*6000) -- needs to be -1 than pre-game lava level
-	end
+	tideRhym = { { -1, 0.25, 5*6000 } } -- needs to be -1 than pre-game lava level
 
 elseif string.find(mapName, "sector") then
-	lavaMap = true
-	lavaGrow = 0
+	isLavaMap = true
+	grow = 0
 	nolavaburstcegs = true
-	lavaLevel = 5
-	lavaDiffuseEmitTex = "LuaUI/images/lava/lava7_diffuseemit.dds"
-	lavaNormalHeightTex = "LuaUI/images/lava/lava7_normalheight.dds"
-	lavaColorCorrection = "vec3(0.2, 0.65, 0.03)"
-	--lavaCoastColor = "vec3(0.6, 0.7, 0.03)"
-	lavaCoastLightBoost = 0.6
-	lavaCoastWidth = 60.0 -- how wide the coast of the lava should be
-	lavaFogColor = "vec3(1.60, 0.8, 0.3)"
-	--lavaCoastWidth = 30.0
+	level = 5
+	diffuseEmitTex = "LuaUI/images/lava/lava7_diffuseemit.dds"
+	normalHeightTex = "LuaUI/images/lava/lava7_normalheight.dds"
+	colorCorrection = "vec3(0.2, 0.65, 0.03)"
+	--coastColor = "vec3(0.6, 0.7, 0.03)"
+	coastLightBoost = 0.6
+	coastWidth = 60.0 -- how wide the coast of the lava should be
+	fogColor = "vec3(1.60, 0.8, 0.3)"
+	--coastWidth = 30.0
 	lavaParallaxDepth = 8.0 -- set to >0 to enable, how deep the parallax effect is
 	lavaParallaxOffset = 0.2 -- center of the parallax plane, from 0.0 (up) to 1.0 (down)
-	lavaSwirlFreq = 0.008
-	lavaSwirlAmp = 0.017
-	lavaUVscale = 2.2
-	lavaSpecularExp = 12.0
-	lavaTideamplitude = 3
-	lavaTideperiod = 40
-	lavaFogFactor = 0.13
-	lavaFogHeight = 36
-	lavaFogAbove = 0.1
-	lavaFogDistortion = 2.0
-	if isLavaGadget and isLavaGadget == "synced" then
-		addTideRhym (4, 0.05, 5*6000)
-	end
+	swirlFreq = 0.008
+	swirlAmp = 0.017
+	uvScale = 2.2
+	specularExp = 12.0
+	tideAmplitude = 3
+	tidePeriod = 40
+	fogFactor = 0.13
+	fogHeight = 36
+	fogAbove = 0.1
+	fogDistortion = 2.0
+	tideRhym = { { 4, 0.05, 5*6000 } }
 
 elseif string.find(mapName, "claymore") then
-	lavaMap = true
-	lavaGrow = 0
+	isLavaMap = true
+	grow = 0
 	nolavaburstcegs = true
-	lavaDiffuseEmitTex = "LuaUI/images/lava/lava2_diffuseemitblue.dds"
-	lavaColorCorrection = "vec3(0.4, 0.5, 0.4)"
-	lavaCoastColor = "vec3(0.24, 0.46, 0.5)"
-	lavaCoastLightBoost = 0.3
-	lavaFogColor = "vec3(0.24, 0.46, 0.5)"
-	lavaFogFactor = 0.01
-	lavaFogHeight = 15
-	lavaFogAbove = 4.0
-	lavaFogDistortion = 2.0
-	lavaTideamplitude = 0.3
-	lavaTideperiod = 1000
-    if isLavaGadget and isLavaGadget == "synced" then
-		addTideRhym (-1, 0.05, 5*6000)
-    end
+	diffuseEmitTex = "LuaUI/images/lava/lava2_diffuseemitblue.dds"
+	colorCorrection = "vec3(0.4, 0.5, 0.4)"
+	coastColor = "vec3(0.24, 0.46, 0.5)"
+	coastLightBoost = 0.3
+	fogColor = "vec3(0.24, 0.46, 0.5)"
+	fogFactor = 0.01
+	fogHeight = 15
+	fogAbove = 4.0
+	fogDistortion = 2.0
+	tideAmplitude = 0.3
+	tidePeriod = 1000
+	tideRhym = { { -1, 0.05, 5*6000 } }
 
 elseif string.find(mapName, "hyperion shale") then
-	lavaMap = true
-	lavaGrow = 0
+	isLavaMap = true
+	grow = 0
 	nolavaburstcegs = true
-	lavaDiffuseEmitTex = "LuaUI/images/lava/lava2_diffuseemitblue.dds"
-	lavaColorCorrection = "vec3(1.0, 1.0, 1.0)"
-	lavaCoastColor = "vec3(0.0, 0.35, 0.9)"
-	lavaCoastLightBoost = 0.3
-	lavaFogColor = "vec3(0.0, 0.3, 1.0)"
-	lavaFogFactor = 0.01
-	lavaFogHeight = 15
-	lavaFogAbove = 4.0
-	lavaFogDistortion = 2.0
-	lavaTideamplitude = 0.3
-	lavaTideperiod = 1000
-    if isLavaGadget and isLavaGadget == "synced" then
-		addTideRhym (-1, 0.05, 5*6000)
-    end
+	diffuseEmitTex = "LuaUI/images/lava/lava2_diffuseemitblue.dds"
+	colorCorrection = "vec3(1.0, 1.0, 1.0)"
+	coastColor = "vec3(0.0, 0.35, 0.9)"
+	coastLightBoost = 0.3
+	fogColor = "vec3(0.0, 0.3, 1.0)"
+	fogFactor = 0.01
+	fogHeight = 15
+	fogAbove = 4.0
+	fogDistortion = 2.0
+	tideAmplitude = 0.3
+	tidePeriod = 1000
+	tideRhym = { { -1, 0.05, 5*6000 } }
 
 elseif string.find(mapName, "azar") then
-	lavaMap = true
-	lavaLevel = 0
-	lavaDamage = 150 -- damage per second
-	lavaTideamplitude = 3
-	lavaTideperiod = 95
-	lavaDiffuseEmitTex = "LuaUI/images/lava/lava7_diffuseemit.dds"
-	lavaNormalHeightTex = "LuaUI/images/lava/lava7_normalheight.dds"
-	lavaLOSdarkness = 0.7
-	lavaColorCorrection = "vec3(1.1, 1.0, 0.88)"
-	lavaShadowStrength = 1.0 -- how much light a shadowed fragment can recieve
-	lavaCoastColor = "vec3(2.2, 0.4, 0.0)"
-	lavaCoastLightBoost = 0.7
-	lavaCoastWidth = 36.0
-	lavaFogFactor = 0.02 -- how dense the fog is
-	lavaFogColor = "vec3(2.0, 0.31, 0.0)"
-	lavaFogHeight = 35
-	lavaFogAbove = 0.18
-	lavaFogDistortion = 2.0
-	lavaUVscale = 10.0
-	if isLavaGadget and isLavaGadget == "synced" then
-		addTideRhym (-1, 0.25, 5*6000) -- needs to be -1 than pre-game lava level
-	end
+	isLavaMap = true
+	level = 0
+	damage = 150 -- damage per second
+	tideAmplitude = 3
+	tidePeriod = 95
+	diffuseEmitTex = "LuaUI/images/lava/lava7_diffuseemit.dds"
+	normalHeightTex = "LuaUI/images/lava/lava7_normalheight.dds"
+	losDarkness = 0.7
+	colorCorrection = "vec3(1.1, 1.0, 0.88)"
+	shadowStrength = 1.0 -- how much light a shadowed fragment can recieve
+	coastColor = "vec3(2.2, 0.4, 0.0)"
+	coastLightBoost = 0.7
+	coastWidth = 36.0
+	fogFactor = 0.02 -- how dense the fog is
+	fogColor = "vec3(2.0, 0.31, 0.0)"
+	fogHeight = 35
+	fogAbove = 0.18
+	fogDistortion = 2.0
+	uvScale = 10.0
+	tideRhym = { { -1, 0.25, 5*6000 } } -- needs to be -1 than pre-game lava level
 
 elseif string.find(mapName, "stronghold") then
-	lavaMap = true
-	lavaGrow = 0
+	isLavaMap = true
+	grow = 0
 	nolavaburstcegs = true
-	lavaLevel = 5
-	lavaDiffuseEmitTex = "LuaUI/images/lava/lava7_diffuseemit.dds"
-	lavaNormalHeightTex = "LuaUI/images/lava/lava7_normalheight.dds"
-	lavaColorCorrection = "vec3(0.2, 0.65, 0.03)"
-	--lavaCoastColor = "vec3(0.6, 0.7, 0.03)"
-	lavaCoastLightBoost = 0.6
-	lavaCoastWidth = 60.0 -- how wide the coast of the lava should be
-	lavaFogColor = "vec3(1.60, 0.8, 0.3)"
-	--lavaCoastWidth = 30.0
+	level = 5
+	diffuseEmitTex = "LuaUI/images/lava/lava7_diffuseemit.dds"
+	normalHeightTex = "LuaUI/images/lava/lava7_normalheight.dds"
+	colorCorrection = "vec3(0.2, 0.65, 0.03)"
+	--coastColor = "vec3(0.6, 0.7, 0.03)"
+	coastLightBoost = 0.6
+	coastWidth = 60.0 -- how wide the coast of the lava should be
+	fogColor = "vec3(1.60, 0.8, 0.3)"
+	--coastWidth = 30.0
 	lavaParallaxDepth = 8.0 -- set to >0 to enable, how deep the parallax effect is
 	lavaParallaxOffset = 0.2 -- center of the parallax plane, from 0.0 (up) to 1.0 (down)
-	lavaSwirlFreq = 0.008
-	lavaSwirlAmp = 0.017
-	lavaUVscale = 2.2
-	lavaSpecularExp = 12.0
-	lavaTideamplitude = 3
-	lavaTideperiod = 40
-	lavaFogFactor = 0.13
-	lavaFogHeight = 36
-	lavaFogAbove = 0.1
-	lavaFogDistortion = 2.0
-	if isLavaGadget and isLavaGadget == "synced" then
-		addTideRhym (4, 0.05, 5*6000)
-	end
+	swirlFreq = 0.008
+	swirlAmp = 0.017
+	uvScale = 2.2
+	specularExp = 12.0
+	tideAmplitude = 3
+	tidePeriod = 40
+	fogFactor = 0.13
+	fogHeight = 36
+	fogAbove = 0.1
+	fogDistortion = 2.0
+	tideRhym = { { 4, 0.05, 5*6000 } }
 
 elseif Game.waterDamage > 0 and (not voidWaterMap) then -- Waterdamagemaps - keep at the very bottom
-	--lavaMap = true
-	--lavaGrow = 0
-	--lavaLevel = 1
-	--if isLavaGadget and isLavaGadget == "synced" then
-	--	addTideRhym (1, 0.25, 5*6000)
-	--end
-
-	lavaMap = true
-	lavaGrow = 0
+	isLavaMap = true
+	grow = 0
 	nolavaburstcegs = true
-	lavaLevel = 1
-	lavaColorCorrection = "vec3(0.15, 1.0, 0.45)"
-	--lavaCoastColor = "vec3(0.6, 0.7, 0.03)"
-	lavaCoastLightBoost = 0.5
-	lavaCoastWidth = 16.0 -- how wide the coast of the lava should be
-	lavaFogColor = "vec3(1.60, 0.8, 0.3)"
-	--lavaCoastWidth = 30.0
+	level = 1
+	colorCorrection = "vec3(0.15, 1.0, 0.45)"
+	--coastColor = "vec3(0.6, 0.7, 0.03)"
+	coastLightBoost = 0.5
+	coastWidth = 16.0 -- how wide the coast of the lava should be
+	fogColor = "vec3(1.60, 0.8, 0.3)"
+	--coastWidth = 30.0
 	lavaParallaxDepth = 24.0 -- set to >0 to enable, how deep the parallax effect is
 	lavaParallaxOffset = 0.15 -- center of the parallax plane, from 0.0 (up) to 1.0 (down)
-	lavaSwirlFreq = 0.008
-	lavaSwirlAmp = 0.01
-	lavaUVscale = 3
-	lavaSpecularExp = 12.0
-	lavaTideamplitude = 3
-	lavaTideperiod = 40
-	lavaFogFactor = 0.1
-	lavaFogHeight = 20
-	lavaFogAbove = 0.1
-	lavaFogDistortion = 1
-	if isLavaGadget and isLavaGadget == "synced" then
-		addTideRhym (4, 0.05, 5*6000)
-	end
+	swirlFreq = 0.008
+	swirlAmp = 0.01
+	uvScale = 3
+	specularExp = 12.0
+	tideAmplitude = 3
+	tidePeriod = 40
+	fogFactor = 0.1
+	fogHeight = 20
+	fogAbove = 0.1
+	fogDistortion = 1
+	tideRhym = { { 4, 0.05, 5*6000 } }
+	--tideRhym = { { 1, 0.25, 5*6000 } }
 
 elseif Spring.GetModOptions().map_waterislava and (not voidWaterMap) then
-	lavaMap = true
-	lavaLevel = 4 
-	if isLavaGadget and isLavaGadget == "synced" then
-		addTideRhym (4, 0.05, 5*6000)
-	end
+	isLavaMap = true
+	level = 4
+	tideRhym = { { 4, 0.05, 5*6000 } }
 end
 
 
+return {
+	isLavaMap = isLavaMap,
+
+	nolavaburstcegs = nolavaburstcegs,
+	diffuseEmitTex = diffuseEmitTex,
+	normalHeightTex = normalHeightTex,
+
+	level = level,
+	grow = grow,
+	damage = damage,
+	uvScale = uvScale,
+	colorCorrection = colorCorrection,
+	losDarkness = losDarkness,
+	swirlFreq = swirlFreq,
+	swirlAmp = swirlAmp,
+	specularExp = specularExp,
+	shadowStrength = shadowStrength,
+	coastWidth = coastWidth,
+	coastColor = coastColor,
+	coastLightBoost = coastLightBoost,
+
+	lavaParallaxDepth = lavaParallaxDepth,
+	lavaParallaxOffset = lavaParallaxOffset,
+
+	fogColor = fogColor,
+	fogFactor = fogFactor,
+	fogHeight = fogHeight,
+	fogAbove = fogAbove,
+	fogEnabled = fogEnabled,
+	fogDistortion = fogDistortion,
+
+	tideAmplitude = tideAmplitude,
+	tidePeriod = tidePeriod,
+
+	tideRhym = tideRhym,
+}
