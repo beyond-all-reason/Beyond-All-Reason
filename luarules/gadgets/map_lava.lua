@@ -54,7 +54,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitBasePosition = Spring.GetUnitBasePosition
 	local spGetUnitDefID = Spring.GetUnitDefID
 	local spGetUnitHealth = Spring.GetUnitHealth
-	local spSetFeatureReclaim = Spring.SetFeatureReclaim
+	local spSetFeatureResources = Spring.SetFeatureResources
 	local spSpawnCEG = Spring.SpawnCEG
 	local random = math.random
 	local min = math.min
@@ -245,12 +245,12 @@ if gadgetHandler:IsSyncedCode() then
 				if not FeatureDefs[FeatureDefID].geoThermal then
 					x,y,z = spGetFeaturePosition(featureID)
 					if (y and y < lavaLevel) then
-						local reclaimLeft = select(5, spGetFeatureResources (featureID))
+						local _, maxMetal, _, maxEnergy, reclaimLeft = spGetFeatureResources (featureID)
 						reclaimLeft = reclaimLeft - lavaDamageFeatures
 						if reclaimLeft <= 0 then
 							spDestroyFeature(featureID)
 						else
-							spSetFeatureReclaim(featureID, reclaimLeft)
+							spSetFeatureResources(featureID, maxMetal*reclaimLeft, maxEnergy*reclaimLeft, nil, reclaimLeft)
 						end
 						spSpawnCEG(lavaEffectDamage, x, y+5, z)
 					end
