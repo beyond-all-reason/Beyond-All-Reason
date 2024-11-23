@@ -13,7 +13,6 @@ end
 local isLavaMap = false
 
 -- defaults:
-local nolavaburstcegs = false
 local diffuseEmitTex = "LuaUI/images/lava/lava2_diffuseemit.dds"
 local normalHeightTex = "LuaUI/images/lava/lava2_normalheight.dds"
 
@@ -51,6 +50,16 @@ local fogDistortion = 4.0 -- lower numbers are higher distortion amounts
 local tideAmplitude = 2 -- how much lava should rise up-down on static level
 local tidePeriod = 200 -- how much time between live rise up-down
 
+local effectDamage = "lavadamage" -- damage ceg effect
+local effectBurst = "lavasplash" -- burst ceg effect, set to false to disable
+-- sound arrays: always rows with {soundid, minVolume, maxVolume}
+local effectBurstSounds = { {"lavaburst1", 80, 100}, {"lavaburst2", 80, 100} } -- array of sounds to use for bursts, false or empty array will disable sounds
+local effectAmbientSounds =  { {"lavabubbleshort1", 25, 65}, -- ambient sounds, set effectAmbientSounds = nil to disable
+			       {"lavabubbleshort2", 25, 65},
+			       {"lavarumbleshort1", 20, 40},
+			       {"lavarumbleshort2", 20, 40},
+			       {"lavarumbleshort3", 20, 40} }
+
 local tideRhym = {}
 
 --[[ EXAMPLE
@@ -77,9 +86,6 @@ end
 if mapLavaConfig and not voidWaterMap then
 	isLavaMap = true
 
-	if mapLavaConfig.nolavaburstcegs ~= nil then
-		nolavaburstcegs = mapLavaConfig.nolavaburstcegs
-	end
 	diffuseEmitTex = mapLavaConfig.diffuseEmitTex or diffuseEmitTex
 	normalHeightTex = mapLavaConfig.normalHeightTex or normalHeightTex
 
@@ -116,6 +122,14 @@ if mapLavaConfig and not voidWaterMap then
 	tideAmplitude = mapLavaConfig.tideAmplitude or tideAmplitude
 	tidePeriod = mapLavaConfig.tidePeriod or tidePeriod
 	tideRhym = mapLavaConfig.tideRhym or tideRhym
+	effectDamage = mapLavaConfig.effectDamage or effectDamage
+	if mapLavaConfig.effectBurst ~= nil then
+		effectBurst = mapLavaConfig.effectBurst
+	end
+	effectBurstSounds = mapLavaConfig.effectBurstSounds or effectBurstSounds
+	if mapLavaConfig.effectAmbientSounds ~= nil then
+		effectAmbientSounds = mapLavaConfig.effectAmbientSounds
+	end
 
 elseif string.find(mapName, "stronghold") then
 	isLavaMap = true
@@ -226,7 +240,7 @@ elseif string.find(mapName, "zed remake") then
 elseif string.find(mapName, "acidicquarry") then
 	isLavaMap = true
 	grow = 0
-	nolavaburstcegs = true
+	effectBurst = false
 	level = 5
 	colorCorrection = "vec3(0.26, 1.0, 0.03)"
 	--coastColor = "vec3(0.6, 0.7, 0.03)"
@@ -252,7 +266,7 @@ elseif string.find(mapName, "acidicquarry") then
 elseif string.find(mapName, "speedmetal") then
 	isLavaMap = true
 	grow = 0
-	nolavaburstcegs = true
+	effectBurst = false
 	level = 1 -- pre-game lava level
 	colorCorrection = "vec3(0.3, 0.1, 1.5)"
 	--coastWidth = 40.0
@@ -339,7 +353,7 @@ elseif string.find(mapName, "forge") then
 elseif string.find(mapName, "sector") then
 	isLavaMap = true
 	grow = 0
-	nolavaburstcegs = true
+	effectBurst = false
 	level = 5
 	diffuseEmitTex = "LuaUI/images/lava/lava7_diffuseemit.dds"
 	normalHeightTex = "LuaUI/images/lava/lava7_normalheight.dds"
@@ -366,7 +380,7 @@ elseif string.find(mapName, "sector") then
 elseif string.find(mapName, "claymore") then
 	isLavaMap = true
 	grow = 0
-	nolavaburstcegs = true
+	effectBurst = false
 	diffuseEmitTex = "LuaUI/images/lava/lava2_diffuseemitblue.dds"
 	colorCorrection = "vec3(0.4, 0.5, 0.4)"
 	coastColor = "vec3(0.24, 0.46, 0.5)"
@@ -383,7 +397,7 @@ elseif string.find(mapName, "claymore") then
 elseif string.find(mapName, "hyperion shale") then
 	isLavaMap = true
 	grow = 0
-	nolavaburstcegs = true
+	effectBurst = false
 	diffuseEmitTex = "LuaUI/images/lava/lava2_diffuseemitblue.dds"
 	colorCorrection = "vec3(1.0, 1.0, 1.0)"
 	coastColor = "vec3(0.0, 0.35, 0.9)"
@@ -422,7 +436,7 @@ elseif string.find(mapName, "azar") then
 elseif string.find(mapName, "stronghold") then
 	isLavaMap = true
 	grow = 0
-	nolavaburstcegs = true
+	effectBurst = false
 	level = 5
 	diffuseEmitTex = "LuaUI/images/lava/lava7_diffuseemit.dds"
 	normalHeightTex = "LuaUI/images/lava/lava7_normalheight.dds"
@@ -449,7 +463,7 @@ elseif string.find(mapName, "stronghold") then
 elseif Game.waterDamage > 0 and (not voidWaterMap) then -- Waterdamagemaps - keep at the very bottom
 	isLavaMap = true
 	grow = 0
-	nolavaburstcegs = true
+	effectBurst = false
 	level = 1
 	colorCorrection = "vec3(0.15, 1.0, 0.45)"
 	--coastColor = "vec3(0.6, 0.7, 0.03)"
@@ -482,7 +496,6 @@ end
 return {
 	isLavaMap = isLavaMap,
 
-	nolavaburstcegs = nolavaburstcegs,
 	diffuseEmitTex = diffuseEmitTex,
 	normalHeightTex = normalHeightTex,
 
@@ -516,4 +529,9 @@ return {
 	tidePeriod = tidePeriod,
 
 	tideRhym = tideRhym,
+
+	effectDamage = effectDamage,
+	effectBurst = effectBurst,
+	effectBurstSounds = effectBurstSounds,
+	effectAmbientSounds = effectAmbientSounds,
 }

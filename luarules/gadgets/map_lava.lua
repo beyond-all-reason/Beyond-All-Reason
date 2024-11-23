@@ -33,8 +33,11 @@ if gadgetHandler:IsSyncedCode() then
 		lavaDamage = lavaDamage/3
 	end
 
-	local nolavaburstcegs = lava.nolavaburstcegs
+	-- ceg effects
+	local lavaEffectBurst = lava.effectBurst
+	local lavaEffectDamage = lava.effectDamage
 
+	-- speedups
 	local spAddUnitDamage = Spring.AddUnitDamage
 	local spDestroyFeature = Spring.DestroyFeature
 	local spDestroyUnit = Spring.DestroyUnit
@@ -47,6 +50,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitHealth = Spring.GetUnitHealth
 	local spSetFeatureReclaim = Spring.SetFeatureReclaim
 	local spSpawnCEG = Spring.SpawnCEG
+	local random = math.random
 
 	local function addTideRhym (targetLevel, speed, remainTime)
 		local newTide = {}
@@ -140,45 +144,45 @@ if gadgetHandler:IsSyncedCode() then
 		lavaLevel = lavaLevel+lavaGrow
 		Spring.SetGameRulesParam("lavaLevel", lavaLevel)
 
-		local x = math.random(1,Game.mapX*512)
-		local z = math.random(1,Game.mapY*512)
-		local y = Spring.GetGroundHeight(x,z)
-		if nolavaburstcegs == false then
-			if y < lavaLevel then
-				--This should be in config file to customize effects on lava plane
-				if f % 5 == 0 then
-					Spring.SpawnCEG("lavasplash", x, lavaLevel+5, z)
-					local r = math.random(1,2)
-					if r == 1 then
-						Spring.PlaySoundFile("lavaburst1", math.random(80,100)/100, x, y, z, 'sfx')
-					elseif r == 2 then
-						Spring.PlaySoundFile("lavaburst2", math.random(80,100)/100, x, y, z, 'sfx')
+		-- burst and sound effects
+		if f % 5 == 0 then
+			local mapSizeX = Game.mapX * 512
+			local mapSizeY = Game.mapY * 512
+			-- bursts
+			if lavaEffectBurst then
+				local x = random(1, mapSizeX)
+				local z = random(1, mapSizeY)
+				local y = Spring.GetGroundHeight(x, z)
+
+				if y < lavaLevel then
+					spSpawnCEG(lavaEffectBurst, x, lavaLevel+5, z)
+
+					local lavaEffectBurstSounds = lava.effectBurstSounds
+					if lavaEffectBurstSounds and #lavaEffectBurstSounds > 0 then
+						local soundIndex = random(1, #lavaEffectBurstSounds)
+						local sound = lavaEffectBurstSounds[soundIndex]
+						Spring.PlaySoundFile(sound[1], random(sound[2], sound[3])/100, x, y, z, 'sfx')
+					end
+				end
+			end
+			-- ambient sounds
+			local lavaEffectAmbientSounds = lava.effectAmbientSounds
+			if lavaEffectAmbientSounds and #lavaEffectAmbientSounds > 0 then
+				for i = 1,10 do
+					if random(1, 3) == 1 then
+						local x = random(1, mapSizeX)
+						local z = random(1, mapSizeY)
+						local y = Spring.GetGroundHeight(x,z)
+						if y < lavaLevel then
+							local soundIndex = random(1, #lavaEffectAmbientSounds)
+							local sound = lavaEffectAmbientSounds[soundIndex]
+							Spring.PlaySoundFile(sound[1], random(sound[2], sound[3])/100, x, y, z, 'sfx')
+							break
+						end
 					end
 				end
 			end
 		end
-			if f % 5 == 0 then
-				for i = 1,10 do
-					local x = math.random(1,Game.mapX*512)
-					local z = math.random(1,Game.mapY*512)
-					local y = Spring.GetGroundHeight(x,z)
-					if math.random(1,3) == 1 and y < lavaLevel then
-						local r = math.random(1,5)
-						if r == 1 then
-							Spring.PlaySoundFile("lavabubbleshort1", math.random(25,65)/100, x, y, z, 'sfx')
-						elseif r == 2 then
-							Spring.PlaySoundFile("lavabubbleshort2", math.random(25,65)/100, x, y, z, 'sfx')
-						elseif r == 3 then
-							Spring.PlaySoundFile("lavarumbleshort1", math.random(20,40)/100, x, y, z, 'sfx')
-						elseif r == 4 then
-							Spring.PlaySoundFile("lavarumbleshort2", math.random(20,40)/100, x, y, z, 'sfx')
-						elseif r == 5 then
-							Spring.PlaySoundFile("lavarumbleshort3", math.random(20,40)/100, x, y, z, 'sfx')
-						end
-						break
-					end
-				end
-			end
 
 	-- new to use notif system
 	-- if lavaGrow then
@@ -210,8 +214,7 @@ if gadgetHandler:IsSyncedCode() then
 				x,y,z = spGetUnitBasePosition(unitID)
 				if y and y < lavaLevel then
 					lavaDamageFunction(unitID, gaiaTeamID)
-					--This should be in config file to change effects/cegs
-					spSpawnCEG("lavadamage", x, y+5, z)
+					spSpawnCEG(lavaEffectDamage, x, y+5, z)
 				end
 			end
 		end
@@ -225,12 +228,11 @@ if gadgetHandler:IsSyncedCode() then
 						local reclaimLeft = select(5, spGetFeatureResources (featureID))
 						if reclaimLeft <= 0 then
 							spDestroyFeature(featureID)
-							spSpawnCEG("lavadamage", x, y+5, z)
 						else
 							local newReclaimLeft = reclaimLeft - 0.033
 							spSetFeatureReclaim(featureID, newReclaimLeft)
-							spSpawnCEG("lavadamage", x, y+5, z)
 						end
+						spSpawnCEG(lavaEffectDamage, x, y+5, z)
 					end
 				end
 			end
