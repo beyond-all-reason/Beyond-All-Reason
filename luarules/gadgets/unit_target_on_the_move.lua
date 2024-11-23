@@ -829,7 +829,7 @@ else	-- UNSYNCED
 		if fullview then
 			drawDecorations()
 		else
-			CallAsTeam(myAllyTeam, drawDecorations)
+			CallAsTeam(myTeam, drawDecorations)
 		end
 	end
 
