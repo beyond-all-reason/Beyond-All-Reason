@@ -32,10 +32,11 @@ if gadgetHandler:IsSyncedCode() then
 		-- these modes specify damage per second, damage is applied every 10 frames
 		lavaDamage = lavaDamage/3
 	end
-	if lavaDamageFeatures and tonumber(lavaDamageFeatures) then
+	if lavaDamageFeatures then
+		if not tonumber(lavaDamageFeatures) then
+			lavaDamageFeatures = 0.1
+		end
 		lavaDamageFeatures = lavaDamageFeatures/3
-	else
-		lavaDamageFeatures = false
 	end
 
 	-- ceg effects
