@@ -27,6 +27,7 @@ if gadgetHandler:IsSyncedCode() then
 	local lavaGrow = lava.grow
 	local lavaDamage = lava.damage
 	local lavaDamageMode = lava.damageMode
+	local lavaDamagesFeatures = lava.damageFeatures
 	if lavaDamageMode == "direct" or lavaDamageMode == "proportional" then
 		-- these modes specify damage per second, damage is applied every 10 frames
 		lavaDamage = lavaDamage/3
@@ -35,11 +36,16 @@ if gadgetHandler:IsSyncedCode() then
 	local nolavaburstcegs = lava.nolavaburstcegs
 
 	local spAddUnitDamage = Spring.AddUnitDamage
+	local spDestroyFeature = Spring.DestroyFeature
 	local spDestroyUnit = Spring.DestroyUnit
 	local spGetAllUnits = Spring.GetAllUnits
+	local spGetFeatureDefID = Spring.GetFeatureDefID
+	local spGetFeaturePosition = Spring.GetFeaturePosition
+	local spGetFeatureResources = Spring.GetFeatureResources
 	local spGetUnitBasePosition = Spring.GetUnitBasePosition
 	local spGetUnitDefID = Spring.GetUnitDefID
 	local spGetUnitHealth = Spring.GetUnitHealth
+	local spSetFeatureReclaim = Spring.SetFeatureReclaim
 	local spSpawnCEG = Spring.SpawnCEG
 
 	local function addTideRhym (targetLevel, speed, remainTime)
@@ -209,27 +215,26 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-		-- Below is custom reclaim/damage module for wrecks/features
-		-- local all_features = Spring.GetAllFeatures()
-		-- for i in pairs(all_features) do
-		-- 	local FeatureDefID = Spring.GetFeatureDefID(all_features[i])
-		-- 	if not FeatureDefs[FeatureDefID].geoThermal then
-		-- 		x,y,z = Spring.GetFeaturePosition(all_features[i])
-		-- 		if (y ~= nil) then
-		-- 			if (y and y < lavaLevel) then
-		-- 				local reclaimLeft = select(5, Spring.GetFeatureResources (all_features[i]))
-		-- 				if reclaimLeft <= 0 then
-		-- 					Spring.DestroyFeature(all_features[i])
-		-- 					Spring.SpawnCEG("lavadamage", x, y+5, z)
-		-- 				else
-		-- 					local newReclaimLeft = reclaimLeft - 0.033
-		-- 					Spring.SetFeatureReclaim (all_features[i], newReclaimLeft)
-		-- 					Spring.SpawnCEG("lavadamage", x, y+5, z)
-		-- 				end
-		-- 			end
-		-- 		end
-		-- 	end
-		-- end
+		if lavaDamagesFeatures then
+			local all_features = Spring.GetAllFeatures()
+			for _, featureID in ipairs(all_features) do
+				local FeatureDefID = spGetFeatureDefID(featureID)
+				if not FeatureDefs[FeatureDefID].geoThermal then
+					x,y,z = spGetFeaturePosition(featureID)
+					if (y and y < lavaLevel) then
+						local reclaimLeft = select(5, spGetFeatureResources (featureID))
+						if reclaimLeft <= 0 then
+							spDestroyFeature(featureID)
+							spSpawnCEG("lavadamage", x, y+5, z)
+						else
+							local newReclaimLeft = reclaimLeft - 0.033
+							spSetFeatureReclaim(featureID, newReclaimLeft)
+							spSpawnCEG("lavadamage", x, y+5, z)
+						end
+					end
+				end
+			end
+		end
 	end
 
 	local DAMAGE_EXTSOURCE_WATER = -5
