@@ -24,7 +24,7 @@ local damage = 100 -- damage per second or health proportion (0-1), check damage
 --    proportional: proportional damage (damage will be unitHealth*damage per second)
 --    destroy: direct kill
 local damageMode = "direct"
-local damageFeatures = false -- Lava also damages features when set, if set to float, it's damage per second, if set to true sets default of 0.1
+local damageFeatures = false -- Lava also damages features when set, if set to float, it's proportional damage per second (0 to 1), if set to true sets default of 0.1
 local damageMinHealth = false -- Lava damage doesn't kill completely, set to 0.0-1.0 proportion of health
 local uvScale = 2.0 -- How many times to tile the lava texture across the entire map
 local colorCorrection = "vec3(1.0, 1.0, 1.0)" -- final colorcorrection on all lava + shore coloring
