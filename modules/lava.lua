@@ -54,7 +54,7 @@ local effectDamage = "lavadamage" -- damage ceg effect
 local effectBurst = "lavasplash" -- burst ceg effect, set to false to disable
 -- sound arrays: always rows with {soundid, minVolume, maxVolume}
 local effectBurstSounds = { {"lavaburst1", 80, 100}, {"lavaburst2", 80, 100} } -- array of sounds to use for bursts, false or empty array will disable sounds
-local ambientSounds =  { {"lavabubbleshort1", 25, 65}, -- ambient sounds, set effectAmbientSounds = nil to disable
+local ambientSounds =  { {"lavabubbleshort1", 25, 65}, -- ambient sounds, set ambientSounds = false to disable
 			 {"lavabubbleshort2", 25, 65},
 			 {"lavarumbleshort1", 20, 40},
 			 {"lavarumbleshort2", 20, 40},
