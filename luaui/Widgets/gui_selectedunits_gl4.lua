@@ -20,7 +20,8 @@ local selectionHighlight = true
 local mouseoverHighlight = true
 
 ---- GL4 Backend Stuff----
-local selectionVBO = nil
+local selectionVBOGround = nil
+local selectionVBOAir = nil
 local selectShader = nil
 local luaShaderDir = "LuaUI/Widgets/Include/"
 
@@ -103,7 +104,7 @@ local function AddPrimitiveAtUnit(unitID)
 	end
 	--Spring.Echo(unitID,radius,radius, Spring.GetUnitTeam(unitID), numvertices, 1, gf)
 	pushElementInstance(
-		selectionVBO, -- push into this Instance VBO Table
+		(unitCanFly[unitDefID] and selectionVBOAir) or selectionVBOGround, -- push into this Instance VBO Table
 		{
 			length, width, cornersize, additionalheight,  -- lengthwidthcornerheight
 			unitTeam[unitID], -- teamID
@@ -119,9 +120,8 @@ local function AddPrimitiveAtUnit(unitID)
 	)
 end
 
-local drawFrame = 0
-function widget:DrawWorldPreUnit()
-	drawFrame = drawFrame + 1
+
+local function DrawSelections(selectionVBO, isAir)
 	if selectionVBO.usedElements > 0 then
 		if hasBadCulling then
 			gl.Culling(false)
@@ -131,7 +131,7 @@ function widget:DrawWorldPreUnit()
 		selectShader:Activate()
 		selectShader:SetUniform("iconDistance", 99999) -- pass
 		glStencilTest(true) --https://learnopengl.com/Advanced-OpenGL/Stencil-testing
-		glDepthTest(true)
+		glDepthTest(true) -- One really interesting thing is that the depth test does not seem to be obeyed within DrawWorldPreUnit
 		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon		this to the shader
 		glClear(GL_STENCIL_BUFFER_BIT ) -- set stencil buffer to 0
 
@@ -165,7 +165,19 @@ function widget:DrawWorldPreUnit()
 	end
 end
 
+function widget:DrawWorld()
+	DrawSelections(selectionVBOAir, true)
+end
+
+function widget:DrawWorldPreUnit()
+	DrawSelections(selectionVBOGround, false)
+end
+
 local function RemovePrimitive(unitID)
+	local selectionVBO
+	if selectionVBOGround.instanceIDtoIndex[unitID] then selectionVBO =  selectionVBOGround end
+	if selectionVBOAir.instanceIDtoIndex[unitID] then selectionVBO =  selectionVBOAir end
+
 	if selectionVBO.instanceIDtoIndex[unitID] then
 		if selectionHighlight then
 			unitBufferUniformCache[1] = 0
@@ -287,9 +299,14 @@ local function init()
 	shaderConfig.TEAMCOLORIZATION = teamcolorOpacity	-- not implemented, doing it via POST_SHADING below instead
 	shaderConfig.HEIGHTOFFSET = 4
 	shaderConfig.POST_SHADING = "fragColor.rgba = vec4(mix(g_color.rgb * texcolor.rgb + addRadius, vec3(1.0), "..(1-teamcolorOpacity)..") , texcolor.a * TRANSPARENCY + addRadius);"
-	selectionVBO, selectShader = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnits")
+	selectionVBOGround, selectShader = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnitsGround")
+	selectionVBOAir = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnitsAir")
 	ClearLastMouseOver()
-	if selectionVBO == nil then
+	if selectionVBOGround == nil then
+		widgetHandler:RemoveWidget()
+		return false
+	end
+	if selectionVBOAir == nil then
 		widgetHandler:RemoveWidget()
 		return false
 	end

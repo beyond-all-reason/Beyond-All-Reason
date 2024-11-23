@@ -64,7 +64,7 @@ local function InitDrawPrimitiveAtUnit(shaderConfig, DPATname)
 	
 	shaderSourceCache.shaderName = DPATname .. "Shader GL4"
 	
-	DrawPrimitiveAtUnitShader =  LuaShader.CheckShaderUpdates(shaderSourceCache)
+	DrawPrimitiveAtUnitShader =  LuaShader.CheckShaderUpdates(shaderSourceCache) or DrawPrimitiveAtUnitShader
 
 	if not DrawPrimitiveAtUnitShader then 
 		Spring.Echo("Failed to compile shader for ", DPATname)
