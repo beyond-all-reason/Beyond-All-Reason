@@ -1239,6 +1239,10 @@ local function cycleBuilder()
 end
 
 function widget:Initialize()
+	if widgetHandler:IsWidgetKnown("Build menu") then
+		widgetHandler:DisableWidgetRaw("Build menu")
+	end
+
 	myTeamID = Spring.GetMyTeamID()
 	isSpec = Spring.GetSpectatingState()
 	isPregame = Spring.GetGameFrame() == 0 and not isSpec
@@ -1247,10 +1251,6 @@ function widget:Initialize()
 	WG["buildmenu"] = {}
 
 	doUpdateClock = os.clock()
-
-	if widgetHandler:IsWidgetKnown("Build menu") then
-		widgetHandler:DisableWidget("Build menu")
-	end
 
 	units.checkGeothermalFeatures()
 

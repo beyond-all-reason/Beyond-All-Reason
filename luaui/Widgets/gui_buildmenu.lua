@@ -1247,7 +1247,7 @@ end
 
 function widget:Initialize()
 	if widgetHandler:IsWidgetKnown("Grid menu") then
-		widgetHandler:DisableWidget("Grid menu")
+		widgetHandler:DisableWidgetRaw("Grid menu")
 	end
 
 	units.checkGeothermalFeatures()
