@@ -13923,7 +13923,7 @@ local unitDistortions = {
 		fusionglow = {
 			distortionType = 'point',
 			pieceName = 'emit',
-			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 60,
+			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 26,
 							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
 							r = -1, g = 1, b = 1, a = 0.5,
 							modelfactor = 0.1, specular = 1.6, scattering = 1.5, lensflare = 0,
@@ -13938,16 +13938,16 @@ local unitDistortions = {
 		-- 					modelfactor = 0.1, specular = 0.66, scattering = 6, lensflare = 5,
 		-- 					lifetime = 0, sustain = 0, animtype = 0},
 		-- },
-	},
+	}, 
 	['corafus'] = {
 		fusionglow = {
 			distortionType = 'point',
 			pieceName = 'emit',
-			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 82,
+			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
 							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
 							r = -1, g = 1, b = 1, a = 0.66,
 							modelfactor = 0.1, specular = 1.2, scattering = 2, lensflare = 0,
-							lifetime = 0, sustain = 0, animtype = 0},
+							lifetime = 0, sustain = 0, animtype = 1},
 		},
 		-- fusionorb = {
 		-- 	distortionType = 'point',
@@ -15907,6 +15907,7 @@ local unitDistortions = {
 		},
 	},
 	['corcrwh'] = {
+		--[[
 		eyes1 = {
 			distortionType = 'point',
 			pieceName = 'base',
@@ -16042,6 +16043,7 @@ local unitDistortions = {
 							modelfactor = 0.3, specular = 0.5, scattering = 0.35, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
+		]]--
 		thrust1 = {
 			distortionType = 'cone',
 			pieceName = 'thrustrra',
@@ -16051,6 +16053,7 @@ local unitDistortions = {
 							modelfactor = 0.4, specular = 1, scattering = 0.5, lensflare = 2,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
+
 		thrust2 = {
 			distortionType = 'cone',
 			pieceName = 'thrustrla',

@@ -75,6 +75,7 @@ local shaderConfig = {
 	SURFACECOLORMODULATION = 0.05, -- This specifies how much the lit surfaces color affects direct light blending, 0 is does not effect it, 1.0 is full effect
 	BLEEDFACTOR = 0.15, -- How much oversaturated color channels will bleed into other color channels.
 	VOIDWATER = gl.GetMapRendering("voidWater") and 1 or 0,
+	CHROMATIC_ABERRATION = 1.25, -- How much chromatic aberration to apply to the distortion, set to nil to disable
 }
 
 local radiusMultiplier = 1.0

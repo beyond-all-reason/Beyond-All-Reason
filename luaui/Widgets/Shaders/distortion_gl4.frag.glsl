@@ -12,8 +12,8 @@
 in DataVS {
 	flat vec4 v_worldPosRad;
 	flat vec4 v_worldPosRad2;
-	flat vec4 v_lightcolor;
-	vec4 v_otherparams;  // hopefully containst effectType in .w
+	flat vec4 v_baseparams;
+	flat vec4 v_otherparams;  // hopefully containst effectType in .w
 	vec4 v_noiseoffset; // contains wind data, very useful!
 	noperspective vec2 v_screenUV; // i have no fucking memory as to why this is set as noperspective
 };
@@ -648,12 +648,14 @@ void main(void)
 		float coneSideLengthInv = inversesqrt(coneHeight * coneHeight + coneWidth * coneWidth);
 		float biggestradius = coneHeight * coneWidth * coneSideLengthInv / ( 1 + coneWidth * coneSideLengthInv);
 		vec3 endPoint = lightPosition  + coneDirection * (lightRadius - biggestradius);
-		vec2 nearFarDistances = intersectRoundedCone(camPos, -viewDirection, lightPosition, endPoint , biggestradius * 0.11, biggestradius) ;
+		nearFarDistances = intersectRoundedCone(camPos, -viewDirection, lightPosition, endPoint , biggestradius * 0.11, biggestradius) ;
+		printf(nearFarDistances.xy);
+		printf(fragDistance);
 		EntryPoint = camPos + nearFarDistances.x * -viewDirection;
 		ExitPoint = camPos + nearFarDistances.y * -viewDirection;
 		MidPoint = (EntryPoint + ExitPoint) * 0.5;
 
-
+		//DEBUGPOS(EntryPoint.xyz);
 		// Calculate the closest point on the view ray to the cone
 		closestPointOnRay = ray_line_segment_closestpoint_on_ray_and_segment2(camPos, -viewDirection, lightPosition, endPoint, lightEmitPosition);
 	
@@ -665,14 +667,20 @@ void main(void)
 	}
 
 	#line 35000
-	
-
+	printf(nearFarDistances.xy);
+	printf(fragDistance);
+	//fragColor.rgba = vec4(1.0); return;
 	// If the fragment is inside the volume, we need to calculate the volumetric fraction
 	float volumetricFraction = 1.0; // The fraction of the ray that passes through the volume. 
 	if (fragDistance < nearFarDistances.y) {
-		volumetricFraction = 1.0 - clamp(0.5 * abs(nearFarDistances.y - fragDistance) / abs(nearFarDistances.y - nearFarDistances.x), 0.0, 1.0);
+		volumetricFraction = 1.0 - clamp( abs(nearFarDistances.y - fragDistance) / abs(nearFarDistances.y - nearFarDistances.x), 0.0, 1.0);
 	}
-
+	if (fragDistance < nearFarDistances.x || nearFarDistances.x < 0.0) {
+		fragColor.rgba = vec4(0.0);
+		return;
+	}
+	//printf(nearFarDistances.xy);
+	//printf(volumetricFraction);
 
 	// Check if the volume is occluded, bail if yes!
 	//if ((fragDistance < nearFarDistances.x) || (nearFarDistances.y - nearFarDistances.x < 1e-6)){ fragColor.rgba = vec4(0.0); return; }
@@ -682,6 +690,84 @@ void main(void)
 	// ------------------------ BEGIN AIR SHOCKWAVE ---------------- 
 	if (effectType == 1){
 		// Create an air shockwave displacement based on the distance to the light source:
+		// Bend the light beam as many times as it goes through the sphere!
+			// Lifetime goes from 0 to 1
+			float lifeStart = v_otherparams.x;
+			float lifeTime = v_otherparams.y;
+			float currentTime = timeInfo.x + timeInfo.w;
+			//float timeFraction = clamp((currentTime - lifeStart) / lifeTime, 0.0, 1.0);
+		
+			float timeFraction = fract((currentTime - lifeStart) / 100); // for debugging
+			printf(timeFraction);
+			float currentDist = lightRadius * timeFraction;
+			// TODO : Parameterize out width in elmos
+			float width = 3;
+			float groundDistanceToShockCenter = length(fragWorldPos.xyz - lightPosition.xyz);
+			//Effect strength and direction should be abs width'd
+			// But it should be wider on the rarefaction side than the compression side
+			// First term is the compression factor, second term is the rarefaction factor
+			#define COMPRESSION 0.9
+			float compressionFactor = max((groundDistanceToShockCenter - currentDist) * COMPRESSION, (currentDist - groundDistanceToShockCenter) * (1.0 - COMPRESSION));
+
+			float effectStrength =  clamp( 1.0 - abs(compressionFactor/ width), 0.0, 1.0);
+			effectStrength = pow(effectStrength, 3.0);
+
+			// which direction is the effect going in in world coords?, always points towards us!
+			vec3 shockDirection = normalize(EntryPoint.xyz - lightPosition.xyz);
+
+			// Parabolic mapping of 0-1 to [0-1-0] with a parabola on timeFraction
+
+			float parabolicStrength = pcurve_k(timeFraction, 0.5, 2.0, 3.5);
+			
+
+			// Falloff due to distance from camera
+			
+			float distanceToCameraFactor =  clamp(300.0/ fragDistance, 0.0, 1.0);
+
+			// Screen-space position of the center of the shockwave:
+			
+			vec4 LightScreenPosition = cameraViewProj * vec4(lightEmitPosition.xyz, 1.0);
+			LightScreenPosition.xyz = LightScreenPosition.xyz / LightScreenPosition.w;
+
+			// the normal of the shockwave sphere
+			float refractiveIndex = 1.1;
+			// sin(theta1) = n2*sin(theta2)
+			// sin(theta2) = sin(theta1) / n2
+
+			float cosTheta1 = dot(-viewDirection, shockDirection);
+			float sinTheta1 = sqrt(1.0 - cosTheta1 * cosTheta1);
+			float sinTheta2 = sinTheta1 / refractiveIndex;
+			float cosTheta2 = sqrt(1.0 - sinTheta2 * sinTheta2);
+
+			float rayBendElmos = 0;
+			rayBendElmos = sin(asin(sinTheta1) - asin(sinTheta2));
+
+			// fragment we are checking is occluding the sphere
+			if (fragDistance < nearFarDistances.x){
+				fragColor.rgba = vec4(0.0 );
+				return;
+			}
+
+			// fragment is behind the sphere
+			if (fragDistance > nearFarDistances.y){
+				rayBendElmos *= 2.0;
+			}
+
+
+			// The displacement is proportional to the distance of the fragment from the intersections of the sphere
+
+
+
+
+
+			// screen-space direction of the shockwave
+			vec2 displacementScreen = normalize((LightScreenPosition.xy * 0.5 + 0.5) - v_screenUV);
+			printf(displacementScreen.xy);
+			float overallStrength = 10 * rayBendElmos *  distanceToCameraFactor * parabolicStrength * v_baseparams.a;
+			vec2 displacementAmount = displacementScreen * overallStrength;
+			printf(displacementAmount.xy);	
+			fragColor.rgba = vec4(displacementAmount * 0.5 + 0.5, 0.0, 1.5 );
+			return;
 
 	}
 
@@ -704,7 +790,6 @@ void main(void)
 			float currentDist = lightRadius * timeFraction;
 			// TODO : Parameterize out width in elmos
 			float width = 3;
-			printf(currentDist);
 			float groundDistanceToShockCenter = length(fragWorldPos.xyz - lightPosition.xyz);
 			//Effect strength and direction should be abs width'd
 			// But it should be wider on the rarefaction side than the compression side
@@ -713,11 +798,7 @@ void main(void)
 			float compressionFactor = max((groundDistanceToShockCenter - currentDist) * COMPRESSION, (currentDist - groundDistanceToShockCenter) * (1.0 - COMPRESSION));
 
 			float effectStrength =  clamp( 1.0 - abs(compressionFactor/ width), 0.0, 1.0);
-			printf(effectStrength);
 			effectStrength = pow(effectStrength, 3.0);
-
-			// which direction is the effect going in in world coords?
-			vec3 shockDirection = normalize(fragWorldPos.xyz - lightPosition.xyz);
 
 			// Parabolic mapping of 0-1 to [0-1-0] with a parabola on timeFraction
 
@@ -725,6 +806,7 @@ void main(void)
 			
 
 			// Falloff due to distance from camera
+			// TODO: this should really not be based on fragDistance, but on the distance to the light source
 			float distanceToCameraFactor =  clamp(300.0/ fragDistance, 0.0, 1.0);
 
 			// Screen-space position of the center of the shockwave:
@@ -735,14 +817,12 @@ void main(void)
 
 			// screen-space direction of the shockwave
 			vec2 displacementScreen = normalize((LightScreenPosition.xy * 0.5 + 0.5) - v_screenUV);
-			printf(displacementScreen.xy);
-
-			vec2 displacementAmount = displacementScreen * effectStrength * distanceToCameraFactor * parabolicStrength;
-			printf(displacementAmount.xy);	
-			fragColor.rgba = vec4(displacementAmount * 0.5 + 0.5, 0.0, 0.5);
+			float overallStrength = effectStrength * distanceToCameraFactor * parabolicStrength * v_baseparams.a;
+			vec2 displacementAmount = displacementScreen * overallStrength;
+			fragColor.rgba = vec4(displacementAmount * 0.5 + 0.5, 0.0, 0.5 * step(0.005,overallStrength) );
 			return;
 		}else{
-			fragColor.rgba = vec4(0.5,0.5,0.5,1.0);
+			fragColor.rgba = vec4(0.5,0.5,0.5,0.0);
 			
 
 		}
@@ -831,12 +911,13 @@ void main(void)
 
 		// Multiply the relative volume density:
 		distortionAttenuation *= relativeDensity;
+		printf(relativeDensity);
 
 		// Attenuate with distance:
 		distortionAttenuation *= distance_attenuation;
 		
 		// TODO: plug in custom distoriton falloff power
-		distortionAttenuation = pow(distortionAttenuation, 0.75); 
+		distortionAttenuation = pow(distortionAttenuation, .5); 
 
 		// Take into account relative distance of ray point closest to light source to the light source
 		distortionAttenuation *= volumetricFraction;
@@ -846,6 +927,8 @@ void main(void)
 			fragColor.rgba = vec4(0.0);
 			return;
 		}
+
+		//DEBUG(relativeDensity);
 
 		//printf(closestPointOnRay.xyzw);
 		
@@ -862,7 +945,8 @@ void main(void)
 		noiseSampleNorm *= distanceToCameraFactor;
 
 		// Modulate alpha with the distortionAttenuation
-		fragColor.rgba = vec4(vec3(noiseSampleNorm.ra * 0.5 + 0.5, 0.0) * 1.0 , distortionAttenuation);
+		fragColor.rgba = vec4(vec3(noiseSampleNorm.ra * 0.5 + 0.5, 0.0) * 1.0 ,  distortionAttenuation);
+		//if (ismodel < 0.5) {	fragColor.rgba = vec4(0.5,0.5,0.5,1.0);	}
 		return;
 
 	}

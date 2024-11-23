@@ -15,9 +15,26 @@ void main(void) {
 
     // hard clamp near the edges of the screen
     vec2 halfTexelSize = vec2(0.5 / 1024.0, 0.5 / 768.0);
-    distortedUVs = clamp(distortedUVs, halfTexelSize, 1.0-halfTexelSize);
-    
-    vec4 screen = texture2D(screenCopyTexture, distortedUVs);
+
+    #ifndef CHROMATIC_ABERRATION
+        distortedUVs = clamp(distortedUVs, halfTexelSize, 1.0-halfTexelSize);
+        vec4 screen = texture2D(screenCopyTexture, distortedUVs);
+    #else
+        // Chromatic aberration.
+        //Scale the UVs by distortion strenth, and generate 3 new UV coordinates to sample the screen texture.
+        vec4 screen = vec4(0);
+        distortedUVs  = gl_TexCoord[0].st + distortionStrength * distortion.rg * (0.01 ) ;
+        distortedUVs = clamp(distortedUVs, halfTexelSize, 1.0-halfTexelSize);
+        screen.ga = texture2D(screenCopyTexture, distortedUVs).ga;
+
+        distortedUVs  = gl_TexCoord[0].st + distortionStrength * distortion.rg * (0.01 / CHROMATIC_ABERRATION);
+        distortedUVs = clamp(distortedUVs, halfTexelSize, 1.0-halfTexelSize);
+        screen.r = texture2D(screenCopyTexture, distortedUVs).r;
+
+        distortedUVs  = gl_TexCoord[0].st + distortionStrength * distortion.rg * (0.01 * CHROMATIC_ABERRATION);
+        distortedUVs = clamp(distortedUVs, halfTexelSize, 1.0-halfTexelSize);
+        screen.b = texture2D(screenCopyTexture, distortedUVs).b;
+    #endif
     if (gl_TexCoord[0].x > 0.66){ // right half?
         if (gl_TexCoord[0].y > 0.75){ // top right
             if (distortion.b < -0.01 )

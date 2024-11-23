@@ -36,6 +36,19 @@ local exampleDistortion = {
 }
 
 
+local exampleDistortionBeamShockwave = {
+	distortionType = 'point', -- or cone or beam
+	pieceName = nil, -- optional
+	distortionConfig = {
+			posx = 0, posy = 10, posz = 0, radius = 150,
+			r = 1, g = 1, b = 1, a = 0.075,
+			pos2x = 100, pos2y = 1000, pos2z = 100, -- beam distortions only, specifies the endpoint of the beam
+			modelfactor = 1, specular = 0.5, scattering = 0.1, lensflare = 1,
+			lifetime = 10, sustain = 1, 	aninmtype = 2, -- unused
+	},
+}
+
+
 -- Local Variables
 
 --------------------------------------------------------------------------------
@@ -80,7 +93,16 @@ local BaseClasses = {
 						lifetime = 0, sustain = 0, animtype = 0},
 	},
 
-	
+	LaserBeamShockWaveProjectile = {
+		distortionType = 'beam', -- or cone or beam
+		distortionConfig = {
+				posx = 0, posy = 10, posz = 0, radius = 150,
+				r = 1, g = 1, b = 1, a = 0.075,
+				pos2x = 100, pos2y = 1000, pos2z = 100, -- beam distortions only, specifies the endpoint of the beam
+				modelfactor = 1, specular = 0.5, scattering = 0.1, lensflare = 1,
+				lifetime = 10, sustain = 1, 	aninmtype = 2, -- unused
+		},
+	},
 
 	MissileProjectile = {
 		distortionType = 'point', -- or cone or beam
@@ -785,6 +807,11 @@ GetDistortionClass("MuzzleFlash", nil, "Large", {posx = 0, posy = 48, posz = 0,
 
 muzzleFlashDistortionsNames["corkorg_corkorg_laser"].yOffset = 32
 
+muzzleFlashDistortionsNames["armllt_arm_lightlaser"] =
+GetDistortionClass("LaserBeamShockWaveProjectile", nil, "Large")
+
+muzzleFlashDistortionsNames["corkorg_corkorg_laser"].yOffset = 32
+
 --corkorg_shotgun
 projectileDefDistortionsNames["corkorg_corkorg_fire"] =
 GetDistortionClass("CannonProjectile", "Plasma", "Smaller", {a = 0.04,
@@ -876,149 +903,6 @@ local scavengerBossV4Table = {'scavengerbossv4_veryeasy_turbo_napalm', 'scavenge
 for _, name in pairs(scavengerBossV4Table) do
 	explosionDistortionsNames[name] = table.copy(explosionDistortionsNames['scavengerbossv4_normal_turbo_napalm'])
 end
--- --armanni
--- projectileDefDistortionsNames["armanni_ata"] =
--- GetDistortionClass("LaserProjectile", "Blue", "Medium", {a = 0.09,
--- 											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
--- 											modelfactor = 0.5, specular = 0.1, scattering = 0.1, lensflare = 0,
--- 											lifetime = 0, sustain = 0})
-
--- --armannit3
--- projectileDefDistortionsNames["armannit3_ata"] =
--- GetDistortionClass("LaserProjectile", "Blue", "Mediumer", {a = 0.09,
--- 											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
--- 											modelfactor = 0.4, specular = 0.1, scattering = 0.1, lensflare = 0,
--- 											lifetime = 0, sustain = 0})
-
--- --armannit3_scav
--- projectileDefDistortionsNames["armannit3_scav_ata"] =
--- GetDistortionClass("LaserProjectile", "Purple", "Mediumer", {a = 0.09,
--- 											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
--- 											modelfactor = 0.4, specular = 0.1, scattering = 0.1, lensflare = 0,
--- 											lifetime = 0, sustain = 0})
-
---[[
---armpw
-explosionDistortionsNames["armpw_emg"] =
-GetDistortionClass("Explosion", nil, "Micro", {r = 2.4, g = 1.8, b = 1.0, a = 0.12, colortime = 2.4,
-											sustain = 8, lifetime = 14,
-											modelfactor = 0.2, specular = 0.2, scattering = 0.4})
-projectileDefDistortionsNames["armpw_emg"] =
-GetDistortionClass("CannonProjectile", "Emg", "Tiny", {a = 0.1, radius = 25,
-											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 2,
-											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
-											lifetime = 3, sustain = 0})
-
---armfast
-explosionDistortionsNames["armfast_arm_fast"] =
-GetDistortionClass("Explosion", nil, "Micro", {r = 2.8, g = 2.2, b = 1.2, a = 0.14, colortime = 2.8,
-											sustain = 8, lifetime = 22, scattering = 0.7})
-projectileDefDistortionsNames["armfast_arm_fast"] =
-GetDistortionClass("CannonProjectile", "Emg", "Tiny", {a = 0.1, radius = 25,
-											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 2,
-											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
-											lifetime = 3, sustain = 0})
-
---armanni_scav
--- could use a custom script that replaces color for all _scav units with "purple"
-projectileDefDistortionsNames["armanni_scav_ata"] =
-GetDistortionClass("LaserProjectile", "Purple", "Larger", {a = 0.12,
-											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
-											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
-											lifetime = 0, sustain = 0})
-
-
---cordoom
-projectileDefDistortionsNames["cordoom_atadr"] =
-GetDistortionClass("LaserProjectile", "Blue", "Large", {a = 0.14,
-											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
-											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
-											lifetime = 0, sustain = 0})
-
---cordoom_scav
-projectileDefDistortionsNames["cordoom_scav_atadr"] =
-GetDistortionClass("LaserProjectile", "Purple", "Large", {a = 0.14,
-											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
-											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
-											lifetime = 0, sustain = 0})
-
---cordoomt3
-projectileDefDistortionsNames["cordoomt3_armagmheat"] =
-GetDistortionClass("LaserProjectile", "HeatRay", "Larger", {a = 0.14,
-											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
-											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
-											lifetime = 0, sustain = 0})
-
---cordoomt3_scav
-projectileDefDistortionsNames["cordoomt3_scav_armagmheat"] =
-GetDistortionClass("LaserProjectile", "Purple", "Larger", {a = 0.14,
-											color2r = 0.5, color2g = 0.5, color2b = 0.5, colortime = 4,
-											modelfactor = 0.5, specular = 0.2, scattering = 0.1, lensflare = 0,
-											lifetime = 0, sustain = 0})
---armcom
-muzzleFlashDistortionsNames["armcom_disintegrator"] =
-GetDistortionClass("MuzzleFlash", nil, "Medium", {posx = 0, posy = 0, posz = 0,
-											color2r = 0.3, color2g = 0.1, color2b = 0.05, colortime = 13,
-											r = 1.2, g = 1.1, b = 1.0, a = 0.6,
-											modelfactor = 0.5, specular = 0.3, scattering = 0.3, lensflare = 0,
-											lifetime = 20, sustain = 2})
-
---armmg
-muzzleFlashDistortionsNames["armmg_armmg_weapon"] =
-GetDistortionClass("MuzzleFlash", nil, "SmallMedium", {r = 0.4, g = 0.4, b = 0.4,
-											lifetime = 3, colortime = 4,
-											scattering = 0.1, specular = 0.4,})
-explosionDistortionsNames["armmg_armmg_weapon"] =
-GetDistortionClass("Explosion", nil, "Micro", {	r = 1.8, g = 1.8, b = 1.8, a = 0.2,
-											color2r = 0.6, color2g = 0.6, color2b = 0.6, colortime = 4.8,
-											sustain = 8, lifetime = 20, scattering = 0.4})
-projectileDefDistortionsNames["armmg_armmg_weapon"] =
-GetDistortionClass("CannonProjectile", "Warm", "Micro", {r = 1, g = 1, b = 1, a = 0.1,
-											modelfactor = 0.1, specular = 0.1, scattering = 0.2, lensflare = 0})
-
---leggat
-muzzleFlashDistortionsNames["leggat_armmg_weapon"] =
-GetDistortionClass("MuzzleFlash", nil, "SmallMedium", {r = 0.4, g = 0.4, b = 0.4, scattering = 0.1, specular = 0.4, lensflare = 3,})
-explosionDistortionsNames["leggat_armmg_weapon"] =
-GetDistortionClass("Explosion", nil, "Micro", {	r = 3.8, g = 3.2, b = 2.2, colortime = 2.8, sustain = 14, lifetime = 22, scattering = 0.4})
-
---armkam
-explosionDistortionsNames["armkam_med_emg"] =
-GetDistortionClass("Explosion", nil, "Micro", {	r = 1.8, g = 1.8, b = 1.8, a = 0.2,
-											colortime = 2.8,
-											sustain = 12, lifetime = 20, scattering = 0.4})
-projectileDefDistortionsNames["armkam_med_emg"] =
-GetDistortionClass("CannonProjectile", "Warm", "Micro", {r = 1, g = 1, b = 1, a = 0.1,
-											modelfactor = 0.1, specular = 0.1, scattering = 0.2, lensflare = 0})
-
---corcat
-explosionDistortionsNames["corcat_exp_heavyrocket"] =
-GetDistortionClass("Explosion", nil, "Mediumer", {r = 3, g = 2.5, b = 2.0, a = 0.25,
-										color2r = 0.8, color2g = 0.43, color2b = 0.11, colortime = 5,
-										sustain = 10, lifetime = 38,
-										modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
-
---armrl engine
-projectileDefDistortionsNames["armrl_armrl_missile"] =
-GetDistortionClass("MissileProjectile", "Purple", "Tiny", {a = 0.7,
-										color2r = 0.5, color2g = 0.2, color2b = 0.8, colortime = 1.6,
-										modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 2})
-
---cordemon
-projectileDefDistortionsNames["cordemont4_dmaw"] =
-GetDistortionClass("FlameProjectile", nil, "SmallMedium", {posy = 80, a = 0.08, colortime = 15, lifetime = 40})
-
---corjugg
-explosionDistortionsNames["corjugg_juggernaut_fire"] =
-GetDistortionClass("Explosion", nil, "Small", {r = 1.3, g = 1.1, b = 0.8, a = 0.75,
-										color2r = 0.35, color2g = 0.20, color2b = 0.05, colortime = 7,
-										sustain = 8, lifetime = 26, scattering = 0.7})
-]]
-
-
--- hue hue turning these on will completely break the game...
---projectileDefDistortionsNames["armrock_arm_bot_rocket"] = GetDistortionClass("LaserAimProjectile", "Red", "Large")
---projectileDefDistortionsNames["corstorm_cor_bot_rocket"] = GetDistortionClass("LaserAimProjectile", "Red", "Large")
 
 
 projectileDefDistortionsNames["cormort_cor_mort"] = GetDistortionClass("PlasmaTrailProjectile", "Red", "Small")
