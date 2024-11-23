@@ -1,5 +1,15 @@
 local mapName = Game.mapName:lower()
 Spring.Echo("Lava Mapname", mapName)
+
+local voidWaterMap = false
+local mapLavaConfig = false
+
+local success, mapinfo = pcall(VFS.Include, "mapinfo.lua") -- load mapinfo.lua confs
+if success or mapinfo ~= nil then
+	voidWaterMap = mapinfo.voidwater
+	mapLavaConfig = mapinfo.lava
+end
+
 local isLavaMap = false
 
 -- defaults:
@@ -63,7 +73,47 @@ end
 
 ]]
 
-if string.find(mapName, "stronghold") then
+if mapLavaConfig and not voidWaterMap then
+	isLavaMap = true
+
+	if mapLavaConfig.nolavaburstcegs ~= nil then
+		nolavaburstcegs = mapLavaConfig.nolavaburstcegs
+	end
+	diffuseEmitTex = mapLavaConfig.diffuseEmitTex or diffuseEmitTex
+	normalHeightTex = mapLavaConfig.normalHeightTex or normalHeightTex
+
+	level = mapLavaConfig.level or level
+	grow = mapLavaConfig.grow or grow
+	damage = mapLavaConfig.damage or damage
+	damageMode = mapLavaConfig.damageMode or damageMode
+	uvScale = mapLavaConfig.uvScale or uvScale
+	colorCorrection = mapLavaConfig.colorCorrection or colorCorrection
+	losDarkness = mapLavaConfig.losDarkness or losDarkness
+	swirlFreq = mapLavaConfig.swirlFreq or swirlFreq
+	swirlAmp = mapLavaConfig.swirlAmp or swirlAmp
+	specularExp = mapLavaConfig.specularExp or specularExp
+	shadowStrength = mapLavaConfig.shadowStrength or shadowStrength
+	coastWidth = mapLavaConfig.coastWidth or coastWidth
+	coastColor = mapLavaConfig.coastColor or coastColor
+	coastLightBoost = mapLavaConfig.coastLightBoost or coastLightBoost
+
+	parallaxDepth = mapLavaConfig.parallaxDepth or parallaxDepth
+	parallaxOffset = mapLavaConfig.parallaxOffset or parallaxOffset
+
+	fogColor = mapLavaConfig.fogColor or fogColor
+	fogFactor = mapLavaConfig.forFactor or fogFactor
+	fogHeight = mapLavaConfig.fogHeight or fogHeight
+	fogAbove = mapLavaConfig.fogAbove or fogAbove
+	if mapLavaConfig.fogEnabled ~= nil then
+		fogEnabled = mapLavaConfig.fogEnabled
+	end
+	fogDistortion = mapLavaConfig.fogDistortion or fogDistortion
+
+	tideAmplitude = mapLavaConfig.tideAmplitude or tideAmplitude
+	tidePeriod = mapLavaConfig.tidePeriod or tidePeriod
+	tideRhym = mapLavaConfig.tideRhym or tideRhym
+
+elseif string.find(mapName, "stronghold") then
 	isLavaMap = true
 	level = 20
 	grow = 0

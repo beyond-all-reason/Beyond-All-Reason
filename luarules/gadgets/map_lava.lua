@@ -13,12 +13,6 @@ end
 local lava = Spring.Lava
 local lavaMap = lava.isLavaMap
 
-voidWaterMap = false
-local success, mapinfo = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua confs
-if success or mapinfo ~= nil then
-	voidWaterMap = mapinfo.voidwater
-end
-
 --_G.Game.mapSizeX = Game.mapSizeX
 --_G.Game.mapSizeY = Game.mapSizeY
 
