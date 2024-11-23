@@ -34,6 +34,12 @@ if gadgetHandler:IsSyncedCode() then
 	local lavaDamage = lava.damage
 	local nolavaburstcegs = lava.nolavaburstcegs
 
+	local spAddUnitDamage = Spring.AddUnitDamage
+	local spGetAllUnits = Spring.GetAllUnits
+	local spGetUnitBasePosition = Spring.GetUnitBasePosition
+	local spGetUnitDefID = Spring.GetUnitDefID
+	local spSpawnCEG = Spring.SpawnCEG
+
 	local function addTideRhym (targetLevel, speed, remainTime)
 		local newTide = {}
 		newTide.targetLevel = targetLevel
@@ -158,20 +164,19 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function lavaDeathCheck ()
-		local all_units = Spring.GetAllUnits()
-		for i in pairs(all_units) do
-			local UnitDefID = Spring.GetUnitDefID(all_units[i])
+		local gaiaTeamID = Spring.GetGaiaTeamID()
+		local all_units = spGetAllUnits()
+		for _, unitID in ipairs(all_units) do
+			local UnitDefID = spGetUnitDefID(unitID)
 			if not UnitDefs[UnitDefID].canFly then
-				x,y,z = Spring.GetUnitBasePosition(all_units[i])
-				if y ~= nil then
-					if y and y < lavaLevel then
-						--This should be in config file to change damage + effects/cegs
-						-- local health, maxhealth = Spring.GetUnitHealth(all_units[i])
-						-- Spring.AddUnitDamage (all_units[i], health - maxhealth*0.033, 0, Spring.GetGaiaTeamID(), 1)
-						Spring.AddUnitDamage (all_units[i], lavaDamage/3, 0, Spring.GetGaiaTeamID(), 1)
-						--Spring.DestroyUnit (all_units[i], true, false, Spring.GetGaiaTeamID())
-						Spring.SpawnCEG("lavadamage", x, y+5, z)
-					end
+				x,y,z = spGetUnitBasePosition(unitID)
+				if y and y < lavaLevel then
+					--This should be in config file to change damage + effects/cegs
+					-- local health, maxhealth = Spring.GetUnitHealth(unitID)
+					-- spAddUnitDamage (unitID, health - maxhealth*0.033, 0, gaiaTeamID, 1)
+					spAddUnitDamage (unitID, lavaDamage/3, 0, gaiaTeamID, 1)
+					--Spring.DestroyUnit (unitID, true, false, gaiaTeamID)
+					spSpawnCEG("lavadamage", x, y+5, z)
 				end
 			end
 		end
