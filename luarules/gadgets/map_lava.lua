@@ -60,7 +60,7 @@ if gadgetHandler:IsSyncedCode() then
 		addTideRhym(unpack(rhym))
 	end
 
-	local getLavaDamageFunction()
+	local function getLavaDamageFunction()
 		if lavaDamageMode == "direct" then
 			-- direct lava damage
 			return function(unitID, gaiaTeamID)
