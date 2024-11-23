@@ -54,11 +54,11 @@ local effectDamage = "lavadamage" -- damage ceg effect
 local effectBurst = "lavasplash" -- burst ceg effect, set to false to disable
 -- sound arrays: always rows with {soundid, minVolume, maxVolume}
 local effectBurstSounds = { {"lavaburst1", 80, 100}, {"lavaburst2", 80, 100} } -- array of sounds to use for bursts, false or empty array will disable sounds
-local effectAmbientSounds =  { {"lavabubbleshort1", 25, 65}, -- ambient sounds, set effectAmbientSounds = nil to disable
-			       {"lavabubbleshort2", 25, 65},
-			       {"lavarumbleshort1", 20, 40},
-			       {"lavarumbleshort2", 20, 40},
-			       {"lavarumbleshort3", 20, 40} }
+local ambientSounds =  { {"lavabubbleshort1", 25, 65}, -- ambient sounds, set effectAmbientSounds = nil to disable
+			 {"lavabubbleshort2", 25, 65},
+			 {"lavarumbleshort1", 20, 40},
+			 {"lavarumbleshort2", 20, 40},
+			 {"lavarumbleshort3", 20, 40} }
 
 local tideRhym = {}
 
@@ -128,8 +128,8 @@ if mapLavaConfig and not voidWaterMap then
 		effectBurst = mapLavaConfig.effectBurst
 	end
 	effectBurstSounds = mapLavaConfig.effectBurstSounds or effectBurstSounds
-	if mapLavaConfig.effectAmbientSounds ~= nil then
-		effectAmbientSounds = mapLavaConfig.effectAmbientSounds
+	if mapLavaConfig.ambientSounds ~= nil then
+		ambientSounds = mapLavaConfig.ambientSounds
 	end
 
 elseif string.find(mapName, "stronghold") then
@@ -535,5 +535,5 @@ return {
 	effectDamage = effectDamage,
 	effectBurst = effectBurst,
 	effectBurstSounds = effectBurstSounds,
-	effectAmbientSounds = effectAmbientSounds,
+	ambientSounds = ambientSounds,
 }

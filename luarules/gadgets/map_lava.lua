@@ -186,16 +186,16 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 			-- ambient sounds
-			local lavaEffectAmbientSounds = lava.effectAmbientSounds
-			if lavaEffectAmbientSounds and #lavaEffectAmbientSounds > 0 then
+			local lavaAmbientSounds = lava.ambientSounds
+			if lavaAmbientSounds and #lavaAmbientSounds > 0 then
 				for i = 1,10 do
 					if random(1, 3) == 1 then
 						local x = random(1, mapSizeX)
 						local z = random(1, mapSizeY)
 						local y = Spring.GetGroundHeight(x,z)
 						if y < lavaLevel then
-							local soundIndex = random(1, #lavaEffectAmbientSounds)
-							local sound = lavaEffectAmbientSounds[soundIndex]
+							local soundIndex = random(1, #lavaAmbientSounds)
+							local sound = lavaAmbientSounds[soundIndex]
 							Spring.PlaySoundFile(sound[1], random(sound[2], sound[3])/100, x, y, z, 'sfx')
 							break
 						end
