@@ -245,10 +245,10 @@ if gadgetHandler:IsSyncedCode() then
 					x,y,z = spGetFeaturePosition(featureID)
 					if (y and y < lavaLevel) then
 						local reclaimLeft = select(5, spGetFeatureResources (featureID))
+						reclaimLeft = reclaimLeft - lavaDamageFeatures
 						if reclaimLeft <= 0 then
 							spDestroyFeature(featureID)
 						else
-							local newReclaimLeft = reclaimLeft - lavaDamageFeatures
 							spSetFeatureReclaim(featureID, newReclaimLeft)
 						end
 						spSpawnCEG(lavaEffectDamage, x, y+5, z)
