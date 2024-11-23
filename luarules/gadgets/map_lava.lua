@@ -27,10 +27,15 @@ if gadgetHandler:IsSyncedCode() then
 	local lavaGrow = lava.grow
 	local lavaDamage = lava.damage
 	local lavaDamageMode = lava.damageMode
-	local lavaDamagesFeatures = lava.damageFeatures
+	local lavaDamageFeatures = lava.damageFeatures
 	if lavaDamageMode == "direct" or lavaDamageMode == "proportional" then
 		-- these modes specify damage per second, damage is applied every 10 frames
 		lavaDamage = lavaDamage/3
+	end
+	if lavaDamageFeatures and tonumber(lavaDamageFeatures) then
+		lavaDamageFeatures = lavaDamageFeatures/3
+	else
+		lavaDamageFeatures = false
 	end
 
 	-- ceg effects
@@ -232,7 +237,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-		if lavaDamagesFeatures then
+		if lavaDamageFeatures then
 			local all_features = Spring.GetAllFeatures()
 			for _, featureID in ipairs(all_features) do
 				local FeatureDefID = spGetFeatureDefID(featureID)
@@ -243,7 +248,7 @@ if gadgetHandler:IsSyncedCode() then
 						if reclaimLeft <= 0 then
 							spDestroyFeature(featureID)
 						else
-							local newReclaimLeft = reclaimLeft - 0.033
+							local newReclaimLeft = reclaimLeft - lavaDamageFeatures
 							spSetFeatureReclaim(featureID, newReclaimLeft)
 						end
 						spSpawnCEG(lavaEffectDamage, x, y+5, z)
