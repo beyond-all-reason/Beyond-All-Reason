@@ -51,6 +51,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spSetFeatureReclaim = Spring.SetFeatureReclaim
 	local spSpawnCEG = Spring.SpawnCEG
 	local random = math.random
+	local min = math.min
 
 	local function addTideRhym (targetLevel, speed, remainTime)
 		local newTide = {}
@@ -65,22 +66,35 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function getLavaDamageFunction()
-		if lavaDamageMode == "direct" then
+		local minHealthProportion = lava.damageMinHealth
+		if lavaDamageMode == "direct" and minHealthProportion and minHealthProportion > 0 then
+			-- direct lava damage, but leave unit with maxhealth*minHealthProportion health remaining
+			return function(unitID, gaiaTeamID)
+				local health, maxhealth = spGetUnitHealth(unitID)
+				local damage = min(lavaDamage, health-maxhealth*minHealthProportion)
+				if damage > 0 then
+					spAddUnitDamage (unitID, damage, 0, gaiaTeamID, 1)
+				end
+			end
+		elseif lavaDamageMode == "direct" then
 			-- direct lava damage
 			return function(unitID, gaiaTeamID)
 				spAddUnitDamage (unitID, lavaDamage, 0, gaiaTeamID, 1)
+			end
+		elseif lavaDamageMode == "proportional" and minHealthProportion and minHealthProportion > 0 then
+			-- proportional damage, but leave unit with maxhealth*minHealthProportion health remaining
+			return function(unitID, gaiaTeamID)
+				local health, maxhealth = spGetUnitHealth(unitID)
+				local damage = min(maxhealth*lavaDamage, health-maxhealth*minHealthProportion)
+				if damage > 0 then
+					spAddUnitDamage (unitID, damage, 0, gaiaTeamID, 1)
+				end
 			end
 		elseif lavaDamageMode == "proportional" then
 			-- proportional damage
 			return function(unitID, gaiaTeamID)
 				local health, maxhealth = spGetUnitHealth(unitID)
 				spAddUnitDamage (unitID, maxhealth*lavaDamage, 0, gaiaTeamID, 1)
-			end
-		elseif lavaDamageMode == "dontdie" then
-			-- leave unit with maxhealth*lavaDamage health remaining
-			return function(unitID, gaiaTeamID)
-				local health, maxhealth = spGetUnitHealth(unitID)
-				spAddUnitDamage (unitID, health - maxhealth*lavaDamage, 0, gaiaTeamID, 1)
 			end
 		elseif lavaDamageMode == "destroy" then
 			-- directly destroy unit

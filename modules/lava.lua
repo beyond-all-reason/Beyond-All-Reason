@@ -22,10 +22,10 @@ local damage = 100 -- damage per second or health proportion (0-1), check damage
 -- damageMode:
 --    direct:  direct damage (damage is damage per second)
 --    proportional: proportional damage (damage will be unitHealth*damage per second)
---    dontdie: unit will be left with damage*maxHealth remaining as soon as entering into lava (damage in this case is the proportion of health remaining)
 --    destroy: direct kill
 local damageMode = "direct"
 local damageFeatures = false -- Lava also damages features when true
+local damageMinHealth = false -- Lava damage doesn't kill completely, set to 0.0-1.0 proportion of health
 local uvScale = 2.0 -- How many times to tile the lava texture across the entire map
 local colorCorrection = "vec3(1.0, 1.0, 1.0)" -- final colorcorrection on all lava + shore coloring
 local losDarkness = 0.5 -- how much to darken the out-of-los areas of the lava plane
@@ -93,6 +93,7 @@ if mapLavaConfig and not voidWaterMap then
 	grow = mapLavaConfig.grow or grow
 	damage = mapLavaConfig.damage or damage
 	damageMode = mapLavaConfig.damageMode or damageMode
+	damageMinHealth = mapLavaConfig.damageMinHealth or damageMinHealth
 	if mapLavaConfig.damageFeatures ~= nil then
 		damageFeatures = mapLavaConfig.damageFeatures
 	end
@@ -503,6 +504,7 @@ return {
 	grow = grow,
 	damage = damage,
 	damageMode = damageMode,
+	damageMinHealth = damageMinHealth,
 	damageFeatures = damageFeatures,
 	uvScale = uvScale,
 	colorCorrection = colorCorrection,
