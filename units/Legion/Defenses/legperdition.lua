@@ -128,15 +128,13 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.75,
-				explosiongenerator = "custom:burnfirecom-xl",
+				explosiongenerator = "custom:fire-explosion-large",
 				gravityaffected = true,
 				hightrajectory = 1,
-				impulseboost = 0.123,
 				impulsefactor = 2,
 
 				flamegfxtime = 1,
 				interceptedByShieldType = 0,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				metalpershot = 500,
 				model = "legbomb.s3o",
@@ -174,11 +172,19 @@ return {
 				weapontimer = 5,
 				weapontype = "Cannon",
 				--weaponvelocity = 650,
+				customparams = {
+					area_onhit_ceg = "fire-area-150-repeat",
+					area_onhit_damageCeg = "burnflamexl-gen",
+					area_onhit_resistance = "fire",
+					area_onhit_damage = 175,
+					area_onhit_range = 150,
+					area_onhit_time = 15,
+				},
 				damage = {
 					commanders = 700,
 					default = 2000,--plus 150*15 within 150 area
 				},
-			},			
+			},
 			
 		},
 		weapons = {

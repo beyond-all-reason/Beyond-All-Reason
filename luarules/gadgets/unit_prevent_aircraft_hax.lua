@@ -34,6 +34,7 @@ for unitDefID, udef in pairs(UnitDefs) do
 end
 
 function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD_STOP)
 	for _, unitID in pairs(Spring.GetAllUnits()) do
 		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID), spGetUnitTeam(unitID))
 	end
@@ -76,7 +77,8 @@ function gadget:GameFrame(f)
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, fromSynced, fromLua)
-	if cmdID == CMD_STOP and isMobileUnit[unitDefID] then
+	-- accepts: CMD_STOP
+	if isMobileUnit[unitDefID] then
 		local x,_,z = Spring.GetUnitPosition(unitID)
 		if z < 0 or x < 0 or z > mapZ or x > mapX then
 			return false

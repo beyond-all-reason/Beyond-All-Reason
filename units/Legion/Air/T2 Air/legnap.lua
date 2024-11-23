@@ -96,7 +96,6 @@ return {
 				edgeeffectiveness = 0.85,
 				explosiongenerator = "custom:burnfire-bomb",
 				gravityaffected = "true",
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "legbomb.s3o",
 				mygravity = 0.4,
@@ -108,6 +107,14 @@ return {
 				soundhitwet = "splslrg",
 				soundstart = "bombrelxl",
 				weapontype = "AircraftBomb",
+				customparams = {
+					area_onhit_ceg = "fire-area-150-repeat",
+					area_onhit_damageCeg = "burnflamexl-gen",
+					area_onhit_resistance = "fire",
+					area_onhit_damage = 30,
+					area_onhit_range = 150,
+					area_onhit_time = 15,
+				},
 				damage = {
 					default = 50,
 					subs = 20,

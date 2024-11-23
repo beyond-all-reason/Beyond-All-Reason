@@ -132,7 +132,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-medium-lightning2",
 				firestarter = 50,
 				impactonly = 1,
-				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 28, --was 24
 				name = "Medium Lightning Cannon",

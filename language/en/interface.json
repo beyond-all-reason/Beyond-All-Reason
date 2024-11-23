@@ -220,7 +220,7 @@
 			"stockpile": "Stockpile %{stockpileStatus}",
 			"stockpile_tooltip": "[ stockpiled number ] / [ target stockpile number ]",
 			"stopproduction": "Clear Queue",
-			"stopproduction_tooltip": "Clear build queue for all units on selected factories",
+			"stopproduction_tooltip": "Clear build queue and quotas for all units on selected factories",
 			"morph": "Upgrade",
 			"morph_tooltip": "Upgrade to next Tech-level (second click to cancel)",
 			"Spawning Disabled": "Spawning disabled",
@@ -271,12 +271,17 @@
 			"blueprint_place_tooltip": "Place a saved blueprint",
 			"blueprint_create": "Save Blueprint",
 			"blueprint_create_tooltip": "Save the selected units into a new blueprint, in the order they were selected",
+			"factoryqueuemode_normal": "Queue Mode",
+			"factoryqueuemode_quota": "Quota Mode",
+			"factoryqueuemode_tooltip": "Queue: Build each queued unit once\nQuota: Maintain a minimum quota of each unit on the battlefield",
 			"customOnOff": {
 				"lowTrajectory": "Low Trajectory",
 				"highTrajectory": "High Trajectory",
 				"trajectory_tooltip": "Switch artillery firing angle between low and high trajectory",
 				"gauss_tooltip": "Switches between Gauss Cannon and Heavy Plasma Cannon"
-			}
+			},
+			"quicksharetotarget": "Share Unit",
+			"quicksharetotarget_tooltip": "Share unit to target player."
 		},
 		"idleBuilders": {
 			"name": "Idle Builders",
@@ -513,6 +518,7 @@
 		"gametypeInfo": {
 			"killAllUnits": "Kill all enemy units",
 			"killAllCommanders": "Kill all enemy Commanders",
+			"killAllBuilders": "Kill all enemy builders",
 			"commandersSurviveDgun": "Commanders survive D-Guns and commander explosions",
 			"victoryCondition": "Victory condition",
 			"owncomends": "Losing your commander = losing control of your units / resigning"
@@ -1661,6 +1667,10 @@
 				"title": "%{role1}/%{role2}",
 				"description": "%{role1}\n\nand/or\n\n%{role2}"
 			}
+		},
+		"quickShareToTarget": {
+			"noTarget": "No target selected",
+			"shareTo": "Share to: %{playerColor}%{player}"
 		}
 	}
 }

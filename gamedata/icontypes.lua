@@ -2335,7 +2335,15 @@ local icontypes = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
 	},
+	legeyes = {
+		bitmap = "icons/eye.png",
+		size = 0.89249998
+	},
 	legforti = {
+		bitmap = "icons/wall_0.4.png",
+		size = 0.41999999
+	},
+	legrwall = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
 	},

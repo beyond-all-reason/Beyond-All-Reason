@@ -15,21 +15,7 @@ end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-
-if not gadgetHandler:IsSyncedCode() then
-	return false --  no unsynced code
-end
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-local spGetRealBuildQueue = Spring.GetRealBuildQueue
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
-
-local CMD_WAIT = CMD.WAIT
-local EMPTY = {}
-local DEQUEUE_OPTS = { "right", "ctrl", "shift" } -- right: dequeue, ctrl+shift: 100
+local identifier = "StopProduction"
 
 include("luarules/configs/customcmds.h.lua")
 
@@ -41,85 +27,114 @@ for udid = 1, #UnitDefs do
 	end
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
+if gadgetHandler:IsSyncedCode() then
+	local spGetRealBuildQueue = Spring.GetRealBuildQueue
+	local spGiveOrderToUnit = Spring.GiveOrderToUnit
+	local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
 
-local stopProductionCmdDesc = {
-	id = CMD_STOP_PRODUCTION,
-	type = CMDTYPE.ICON,
-	name = "Stop Production",
-	action = "stopproduction",
-	cursor = "Stop", -- Probably does nothing
-	tooltip = "Stop Production: Clear factory production queue.",
-}
+	local CMD_WAIT = CMD.WAIT
+	local EMPTY = {}
+	local DEQUEUE_OPTS = { "right", "ctrl", "shift" } -- right: dequeue, ctrl+shift: 100
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
--- Handle the command
+	--------------------------------------------------------------------------------
+	--------------------------------------------------------------------------------
 
-function gadget:AllowCommand_GetWantedCommand()
-	return { [CMD_STOP_PRODUCTION] = true }
-end
+	local stopProductionCmdDesc = {
+		id = CMD_STOP_PRODUCTION,
+		type = CMDTYPE.ICON,
+		name = "Stop Production",
+		action = "stopproduction",
+		cursor = "Stop", -- Probably does nothing
+		tooltip = "Stop Production: Clear factory production queue.",
+	}
 
-function gadget:AllowCommand_GetWantedUnitDefID()
-	return isFactory
-end
+	--------------------------------------------------------------------------------
+	--------------------------------------------------------------------------------
+	-- Handle the command
 
-local function orderDequeue(unitID, buildDefID, count)
-	while count > 0 do
-		-- The commented code below might still be useful in some circumstance we need 'perfect' dequeue
-		--
-		-- if count >= 100 then
-		count = count - 100
-		-- elseif count >= 20 then
-		-- 	opts = { "ctrl" }
-		-- 	count = count - 20
-		-- elseif count >= 5 then
-		-- 	opts = { "shift" }
-		-- 	count = count - 5
-		-- else
-		-- 	count = count - 1
-		-- end
-
-		spGiveOrderToUnit(unitID, -buildDefID, EMPTY, DEQUEUE_OPTS)
-	end
-end
-
-function gadget:AllowCommand(unitID, unitDefID, _, cmdID)
-	if (cmdID ~= CMD_STOP_PRODUCTION) or not isFactory[unitDefID] then
-		return true
+	function gadget:AllowCommand_GetWantedCommand()
+		return { [CMD_STOP_PRODUCTION] = true }
 	end
 
-	-- Dequeue build order by sending build command to factory to minimize number of commands sent
-	-- As opposed to removing each build command individually
-	local queue = spGetRealBuildQueue(unitID)
+	function gadget:AllowCommand_GetWantedUnitDefID()
+		return isFactory
+	end
 
-	if queue ~= nil then
-		for _, buildPair in ipairs(queue) do
-			local buildUnitDefID, count = next(buildPair, nil)
+	local function orderDequeue(unitID, buildDefID, count)
+		while count > 0 do
+			-- The commented code below might still be useful in some circumstance we need 'perfect' dequeue
+			--
+			-- if count >= 100 then
+			count = count - 100
+			-- elseif count >= 20 then
+			-- 	opts = { "ctrl" }
+			-- 	count = count - 20
+			-- elseif count >= 5 then
+			-- 	opts = { "shift" }
+			-- 	count = count - 5
+			-- else
+			-- 	count = count - 1
+			-- end
 
-			orderDequeue(unitID, buildUnitDefID, count)
+			spGiveOrderToUnit(unitID, -buildDefID, EMPTY, DEQUEUE_OPTS)
 		end
 	end
 
-	spGiveOrderToUnit(unitID, CMD_WAIT, EMPTY, 0) -- Removes wait if there is a wait but doesn't readd it.
-	spGiveOrderToUnit(unitID, CMD_WAIT, EMPTY, 0) -- If a factory is waiting, it will not clear the current build command, even if the cmd is removed.
-	-- See: http://zero-k.info/Forum/Post/237176#237176 for details.
-end
+	function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions)
+		if not isFactory[unitDefID] then
+			return true
+		end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
--- Add the command to factories
+		-- Dequeue build order by sending build command to factory to minimize number of commands sent
+		-- As opposed to removing each build command individually
+		local queue = spGetRealBuildQueue(unitID)
 
-function gadget:UnitCreated(unitID, unitDefID)
-	if isFactory[unitDefID] then
-		spInsertUnitCmdDesc(unitID, stopProductionCmdDesc)
+		if queue ~= nil then
+			for _, buildPair in ipairs(queue) do
+				local buildUnitDefID, count = next(buildPair, nil)
+
+				orderDequeue(unitID, buildUnitDefID, count)
+			end
+		end
+
+		spGiveOrderToUnit(unitID, CMD_WAIT, EMPTY, 0) -- Removes wait if there is a wait but doesn't readd it.
+		spGiveOrderToUnit(unitID, CMD_WAIT, EMPTY, 0) -- If a factory is waiting, it will not clear the current build command, even if the cmd is removed.
+		-- See: http://zero-k.info/Forum/Post/237176#237176 for details.
+		SendToUnsynced(identifier, unitID, unitDefID, unitTeam, cmdID)
 	end
-end
 
-function gadget:Initialize()
-	gadgetHandler:RegisterCMDID(CMD_STOP_PRODUCTION)
-	for _, unitID in pairs(Spring.GetAllUnits()) do
-		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
+	--------------------------------------------------------------------------------
+	--------------------------------------------------------------------------------
+	-- Add the command to factories
+
+	function gadget:UnitCreated(unitID, unitDefID)
+		if isFactory[unitDefID] then
+			spInsertUnitCmdDesc(unitID, stopProductionCmdDesc)
+		end
+	end
+
+	function gadget:Initialize()
+		gadgetHandler:RegisterCMDID(CMD_STOP_PRODUCTION)
+		gadgetHandler:RegisterAllowCommand(CMD_STOP_PRODUCTION)
+		for _, unitID in pairs(Spring.GetAllUnits()) do
+			gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
+		end
+	end
+else
+	local myTeamID, isSpec
+
+	function gadget:PlayerChanged()
+		myTeamID = Spring.GetMyTeamID()
+		isSpec = Spring.GetSpectatingState()
+	end
+
+	function gadget:Initialize()
+		gadget:PlayerChanged()
+	end
+
+	function gadget:RecvFromSynced(messageID, unitID, unitDefID, unitTeam, cmdID)
+		if messageID == identifier and (Spring.AreTeamsAllied(unitTeam, myTeamID) or isSpec) then
+			Script.LuaUI.UnitCommand(unitID, unitDefID, unitTeam, cmdID, {}, {coded = 0})
+		end
 	end
 end

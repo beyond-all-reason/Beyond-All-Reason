@@ -125,7 +125,6 @@ return {
 				explosiongenerator = "custom:laserhit-small-red",
 				firestarter = 100,
 				impactonly = 1,
-				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 7.7,
 				name = "Light close-quarters g2g laser turret",

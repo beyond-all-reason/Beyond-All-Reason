@@ -112,7 +112,6 @@ return {
 				explosiongenerator = "custom:laserhit-tiny-yellow",
 				firestarter = 50,
 				impactonly = 1,
-				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 1.65,
 				name = "Light Close-Quarters Fast-Firing g2g Laser",

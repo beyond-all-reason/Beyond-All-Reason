@@ -114,7 +114,6 @@ return {
 				explosiongenerator = "custom:laserhit-medium-green",
 				firestarter = 90,
 				impactonly = 1,
-				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 9.9,
 				name = "Heavy g2g high energy laser",

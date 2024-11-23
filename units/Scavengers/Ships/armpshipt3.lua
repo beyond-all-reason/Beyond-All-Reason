@@ -119,7 +119,6 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:laserhit-medium-red",
 				firestarter = 10,
-				impulseboost = 0,
 				impulsefactor = 0,
 				largebeamlaser = true,
 				laserflaresize = 8.8,

@@ -114,7 +114,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-small-bomb",
 				firestarter = 70,
 				flighttime = 4,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "cormissile2.s3o",
 				name = "Parabolic trajectory g2g multi-rocket launcher",

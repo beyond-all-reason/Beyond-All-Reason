@@ -116,7 +116,6 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-medium-uw",
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "torpedo.s3o",
 				name = "Rapid armor-piercing torpedoes",

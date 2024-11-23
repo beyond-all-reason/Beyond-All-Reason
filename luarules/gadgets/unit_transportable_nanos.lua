@@ -64,6 +64,11 @@ end
 
 local watchList = {}
 
+function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD_LOAD_UNITS)
+	gadgetHandler:RegisterAllowCommand(CMD_UNLOAD_UNITS)
+end
+
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	if cmdID == CMD_LOAD_UNITS then
 		if #cmdParams==1 then -- if unit is target
@@ -73,8 +78,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 		end
 		--if Spring.ValidUnit(cmdParams[1]) then
 		--end
-	end
-	if cmdID == CMD_UNLOAD_UNITS then
+	else -- CMD_UNLOAD_UNITS
 		if GetUnitIsTransporting(unitID) then
 			local intrans=GetUnitIsTransporting(unitID)
 			if #intrans>=1 then

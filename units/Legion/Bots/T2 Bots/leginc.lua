@@ -114,7 +114,6 @@ return {
 				explosiongenerator = "custom:heatray-large",
 				firestarter = 90,
 				firetolerance = 300,
-				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 5,
 				laserflaresize = 6,
