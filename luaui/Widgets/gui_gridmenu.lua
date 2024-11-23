@@ -1240,6 +1240,8 @@ end
 
 function widget:Initialize()
 	if widgetHandler:IsWidgetKnown("Build menu") then
+		-- Build menu needs to be disabled right now and before we recreate
+		-- WG['buildmenu'] since it's Shutdown will destroy it.
 		widgetHandler:DisableWidgetRaw("Build menu")
 	end
 
