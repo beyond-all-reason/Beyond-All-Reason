@@ -250,7 +250,7 @@ if gadgetHandler:IsSyncedCode() then
 						if reclaimLeft <= 0 then
 							spDestroyFeature(featureID)
 						else
-							spSetFeatureReclaim(featureID, newReclaimLeft)
+							spSetFeatureReclaim(featureID, reclaimLeft)
 						end
 						spSpawnCEG(lavaEffectDamage, x, y+5, z)
 					end
