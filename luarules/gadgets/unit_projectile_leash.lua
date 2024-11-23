@@ -37,13 +37,9 @@ for weaponDefID, weaponDef in pairs(WeaponDefs) do
     if weaponDef.customParams.projectile_leash_range then
         defWatchTable[weaponDefID] = defWatchTable[weaponDefID] or {}
         defWatchTable[weaponDefID].leashRange = tonumber(weaponDef.customParams.projectile_leash_range)
-
-        -- Echo the leash range and leash threshold
-        Spring.Echo("WeaponDefID:", weaponDefID, "Leash Range:", defWatchTable[weaponDefID].leashRange, "Projectile Speed:", weaponDef.projectilespeed, "Game Speed:", Game.gameSpeed, "Slow Update Frames:", slowUpdateFrames, "Leash Threshold:", defWatchTable[weaponDefID].leashThreshold, "Minimum Threshold Range:", minimumThresholdRange)
     end
     if weaponDef.customParams.projectile_leash_range or weaponDef.customParams.projectile_overrange_distance then
         defWatchTable[weaponDefID] = defWatchTable[weaponDefID] or {}
-
         defWatchTable[weaponDefID].weaponRange = weaponDef.range
         defWatchTable[weaponDefID].overRange = tonumber(weaponDef.customParams.projectile_overrange_distance) or weaponDef.range
         defWatchTable[weaponDefID].rangeThreshold = math.max((defWatchTable[weaponDefID].overRange - weaponDef.projectilespeed * slowUpdateFrames), minimumThresholdRange)
@@ -85,7 +81,7 @@ local function projectileIsCloseToEdge(projectileOrigin, rangeThreshold, project
     local dz1 = projectileOrigin.z - projectileZ
     local distanceToOrigin = mathSqrt(dx1 * dx1 + dz1 * dz1)
 	if distanceToOrigin > rangeThreshold then
-		return true --zzz need to test this change
+		return true
 	else
 		return false
 	end
@@ -112,13 +108,10 @@ function gadget:GameFrame(frame)
 			for proID, proData in pairs(proIDs) do
 				hasProjectiles = true
 				local projectileX, projectileY, projectileZ = spGetProjectilePosition(proID)
-				Spring.Echo("coordinates", projectileX, projectileY, projectileZ)
 				if projectileOverRangeCheck(proOwnerID, proData.originCoordinates, proData.overRange, proData.leashRange, projectileX, projectileZ) then
-					Spring.Echo("yes projectileX", frame)
 					spDeleteProjectile(proID)
 					spSpawnExplosion(projectileX, projectileY, projectileZ, 0, 0, 0, {weaponDef = proData.weaponDefID} )
 				elseif not projectileX then
-					Spring.Echo("no projectileX", frame)
 					fastProjectileWatch[proOwnerID][proID] = nil
 				end
 			end
