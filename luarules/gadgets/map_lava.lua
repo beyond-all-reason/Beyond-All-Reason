@@ -1,6 +1,6 @@
 function gadget:GetInfo()
 	return {
-		name      = "Map Lava Gadget 2.4",
+		name      = "Map Lava Gadget 2.5",
 		desc      = "lava",
 		author    = "knorke, Beherith, The_Yak, Anarchid, Kloot, Gajop, ivand, Damgam",
 		date      = "Feb 2011, Nov 2013, 2022!",
