@@ -11,24 +11,26 @@ end
 if not gadgetHandler:IsSyncedCode() then return end
 
 ---- Optional unit customParams ----
--- use projectile_leash_range to destroy projectiles when they exceed its value.
--- projectile_overrange_distance
+
+-- use weaponDef customparams.projectile_overrange_distance to destroy projectiles exceeding its limit.
+-- use weaponDef customparams.projectile_leash_range to destroy projectiles when they exceed range/projectile_overrange_distance and projectile_leash_range relative to unit position.
 
 --static values
 local slowUpdateFrames = Game.gameSpeed / 3 * 2
 local fastUpdateFrames = Game.gameSpeed / 10
-local minimumThresholdRange = 10
+local minimumThresholdRange = 10 --so that starburst missiles don't trigger fastWatch until
 
+--functions
 local spGetUnitPosition = Spring.GetUnitPosition
 local mathSqrt = math.sqrt
 local spGetProjectilePosition = Spring.GetProjectilePosition
 local spDeleteProjectile = Spring.DeleteProjectile
 local spSpawnExplosion = Spring.SpawnExplosion
 
+--tables
 local defWatchTable = {}
 local slowProjectileWatch = {}
 local fastProjectileWatch = {}
-local projectilesOwnersTable = {}
 
 
 for weaponDefID, weaponDef in pairs(WeaponDefs) do
@@ -77,7 +79,7 @@ local function projectileOverRangeCheck(proOwnerID, projectileOrigin, weaponRang
 	end
 end
 
-local function isProjectileCloseToEdge(projectileOrigin, rangeThreshold, projectileX, projectileZ)
+local function projectileIsCloseToEdge(projectileOrigin, rangeThreshold, projectileX, projectileZ)
 	if not projectileX then return false end
     local dx1 = projectileOrigin.x - projectileX
     local dz1 = projectileOrigin.z - projectileZ
@@ -100,18 +102,7 @@ function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
 			slowProjectileWatch[proOwnerID][proID] = defWatchTable[weaponDefID]
 			slowProjectileWatch[proOwnerID][proID].originCoordinates = {x = projectileX, z = projectileZ}
 		end
-		projectilesOwnersTable[proID] = proOwnerID
 	end
-end
-
-function gadget:ProjectileDestroyed(proID)
-	if not projectilesOwnersTable[proID] then return end
-	slowProjectileWatch[projectilesOwnersTable[proID]] = nil
-	projectilesOwnersTable[proID] = nil
-end
-
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-	--zzz gonna need to queue unitID removal? no, i belirve they're removed if they have no table elements
 end
 
 function gadget:GameFrame(frame)
@@ -136,15 +127,14 @@ function gadget:GameFrame(frame)
 			end
 		end
 	end
-	--slow update
+
 	if frame % slowUpdateFrames == 2 then
-		--Spring.Echo(slowProjectileWatch, fastProjectileWatch)
 		for proOwnerID, proIDs in pairs(slowProjectileWatch) do
 			local hasProjectiles = false
 			for proID, proData in pairs (proIDs) do
 				hasProjectiles = true
 				local projectileX, projectileY, projectileZ = spGetProjectilePosition(proID)
-				if isProjectileCloseToEdge(proData.originCoordinates, proData.rangeThreshold, projectileX, projectileZ) then
+				if projectileIsCloseToEdge(proData.originCoordinates, proData.rangeThreshold, projectileX, projectileZ) then
 					fastProjectileWatch[proOwnerID] = fastProjectileWatch[proOwnerID] or {}
 					fastProjectileWatch[proOwnerID][proID] = proData
 					slowProjectileWatch[proOwnerID][proID] = nil
