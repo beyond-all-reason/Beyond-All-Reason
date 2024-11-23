@@ -1,7 +1,7 @@
 function gadget:GetInfo()
 	return {
-		name = "Projectile Leash",
-		desc = "Destroys projectiles if they exceed defined leash range",
+		name = "Projectile Over-Range and Leashing",
+		desc = "Destroys projectiles if they exceed defined ranges",
 		author = "SethDGamre",
 		layer = 1,
 		enabled = true
@@ -16,21 +16,21 @@ if not gadgetHandler:IsSyncedCode() then return end
 -- use weaponDef customparams.projectile_leash_range to destroy projectiles when they exceed range/projectile_overrange_distance and projectile_leash_range relative to unit position.
 
 --static values
-local slowUpdateFrames = Game.gameSpeed / 3 * 2
-local fastUpdateFrames = Game.gameSpeed / 10
-local minimumThresholdRange = 10 --so that starburst missiles don't trigger fastWatch until
+local lazyUpdateFrames = math.ceil(Game.gameSpeed / 3 * 2)
+local edgyUpdateFrames = math.ceil(Game.gameSpeed / 6)
+local minimumThresholdRange = 10 --so that starburst missiles don't trigger edgyWatch during ascent
 
 --functions
 local spGetUnitPosition = Spring.GetUnitPosition
 local mathSqrt = math.sqrt
+local tableCopy = table.copy
 local spGetProjectilePosition = Spring.GetProjectilePosition
-local spDeleteProjectile = Spring.DeleteProjectile
-local spSpawnExplosion = Spring.SpawnExplosion
+local spSetProjectileCollision = Spring.SetProjectileCollision
 
 --tables
 local defWatchTable = {}
-local slowProjectileWatch = {}
-local fastProjectileWatch = {}
+local lazyProjectileWatch = {}
+local edgyProjectileWatch = {}
 
 
 for weaponDefID, weaponDef in pairs(WeaponDefs) do
@@ -42,11 +42,11 @@ for weaponDefID, weaponDef in pairs(WeaponDefs) do
         defWatchTable[weaponDefID] = defWatchTable[weaponDefID] or {}
         defWatchTable[weaponDefID].weaponRange = weaponDef.range
         defWatchTable[weaponDefID].overRange = tonumber(weaponDef.customParams.projectile_overrange_distance) or weaponDef.range
-        defWatchTable[weaponDefID].rangeThreshold = math.max((defWatchTable[weaponDefID].overRange - weaponDef.projectilespeed * slowUpdateFrames), minimumThresholdRange)
+        defWatchTable[weaponDefID].rangeThreshold = math.max((defWatchTable[weaponDefID].overRange - weaponDef.projectilespeed * lazyUpdateFrames), minimumThresholdRange)
         defWatchTable[weaponDefID].weaponDefID = weaponDefID
         Script.SetWatchWeapon(weaponDefID, true)
 
-        Spring.Echo("WeaponDefID:", weaponDefID, "Weapon Range:", weaponDef.range, "Over Range:", defWatchTable[weaponDefID].overRange, "Projectile Speed:", weaponDef.projectilespeed, "Game Speed:", Game.gameSpeed, "Slow Update Frames:", slowUpdateFrames, "Range Threshold:", defWatchTable[weaponDefID].rangeThreshold, "Minimum Threshold Range:", minimumThresholdRange)
+        Spring.Echo("WeaponDefID:", weaponDefID, "Weapon Range:", weaponDef.range, "Over Range:", defWatchTable[weaponDefID].overRange, "Projectile Speed:", weaponDef.projectilespeed, "Game Speed:", Game.gameSpeed, "Slow Update Frames:", lazyUpdateFrames, "Range Threshold:", defWatchTable[weaponDefID].rangeThreshold, "Minimum Threshold Range:", minimumThresholdRange)
     end
 end
 
@@ -73,6 +73,7 @@ local function projectileOverRangeCheck(proOwnerID, projectileOrigin, weaponRang
 			return true
 		end
 	end
+	return false
 end
 
 local function projectileIsCloseToEdge(projectileOrigin, rangeThreshold, projectileX, projectileZ)
@@ -90,51 +91,49 @@ end
 
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
 	if defWatchTable[weaponDefID] then
-		local projectileX, projectileY, projectileZ = spGetProjectilePosition(proID)
-		slowProjectileWatch[proOwnerID] = slowProjectileWatch[proOwnerID] or {}
-
-		if defWatchTable[weaponDefID] then
-			slowProjectileWatch[proOwnerID] = slowProjectileWatch[proOwnerID] or {}
-			slowProjectileWatch[proOwnerID][proID] = defWatchTable[weaponDefID]
-			slowProjectileWatch[proOwnerID][proID].originCoordinates = {x = projectileX, z = projectileZ}
-		end
+		local originX, originy, originZ = spGetUnitPosition(proOwnerID)
+		lazyProjectileWatch[proOwnerID] = lazyProjectileWatch[proOwnerID] or {}
+		lazyProjectileWatch[proOwnerID][proID] = tableCopy(defWatchTable[weaponDefID])
+		lazyProjectileWatch[proOwnerID][proID].origin = {x = originX, z = originZ}
 	end
 end
 
 function gadget:GameFrame(frame)
-	if frame % fastUpdateFrames == 2 then
-		for proOwnerID, proIDs in pairs(fastProjectileWatch) do
+	if frame % edgyUpdateFrames == 2 then
+		for proOwnerID, proIDs in pairs(edgyProjectileWatch) do
 			local hasProjectiles = false
 			for proID, proData in pairs(proIDs) do
 				hasProjectiles = true
 				local projectileX, projectileY, projectileZ = spGetProjectilePosition(proID)
-				if projectileOverRangeCheck(proOwnerID, proData.originCoordinates, proData.overRange, proData.leashRange, projectileX, projectileZ) then
-					spDeleteProjectile(proID)
-					spSpawnExplosion(projectileX, projectileY, projectileZ, 0, 0, 0, {weaponDef = proData.weaponDefID} )
-				elseif not projectileX then
-					fastProjectileWatch[proOwnerID][proID] = nil
+				if not projectileX then
+					edgyProjectileWatch[proOwnerID][proID] = nil
+				elseif projectileOverRangeCheck(proOwnerID, proData.origin, proData.overRange, proData.leashRange, projectileX, projectileZ) then
+					spSetProjectileCollision(proID)
+					edgyProjectileWatch[proOwnerID][proID] = nil
 				end
 			end
 			if hasProjectiles == false then
-				fastProjectileWatch[proOwnerID] = nil
+				edgyProjectileWatch[proOwnerID] = nil
 			end
 		end
 	end
 
-	if frame % slowUpdateFrames == 2 then
-		for proOwnerID, proIDs in pairs(slowProjectileWatch) do
+	if frame % lazyUpdateFrames == 2 then
+		for proOwnerID, proIDs in pairs(lazyProjectileWatch) do
 			local hasProjectiles = false
 			for proID, proData in pairs (proIDs) do
 				hasProjectiles = true
 				local projectileX, projectileY, projectileZ = spGetProjectilePosition(proID)
-				if projectileIsCloseToEdge(proData.originCoordinates, proData.rangeThreshold, projectileX, projectileZ) then
-					fastProjectileWatch[proOwnerID] = fastProjectileWatch[proOwnerID] or {}
-					fastProjectileWatch[proOwnerID][proID] = proData
-					slowProjectileWatch[proOwnerID][proID] = nil
+				if not projectileX then
+					lazyProjectileWatch[proOwnerID][proID] = nil
+				elseif projectileIsCloseToEdge(proData.origin, proData.rangeThreshold, projectileX, projectileZ) then
+					edgyProjectileWatch[proOwnerID] = edgyProjectileWatch[proOwnerID] or {}
+					edgyProjectileWatch[proOwnerID][proID] = proData
+					lazyProjectileWatch[proOwnerID][proID] = nil
 				end
 			end
 			if hasProjectiles == false then
-				slowProjectileWatch[proOwnerID] = nil
+				lazyProjectileWatch[proOwnerID] = nil
 			end
 		end
 	end
