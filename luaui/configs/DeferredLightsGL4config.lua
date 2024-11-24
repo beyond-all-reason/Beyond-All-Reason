@@ -10893,6 +10893,15 @@ local unitLights = {
 							modelfactor = 0.5, specular = 0.5, scattering = 1.5, lensflare = 10,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
+		greenblob = {
+			lightType = 'point',
+			pieceName = 'turret',
+			lightConfig = { posx = -8, posy = 10, posz = -3, radius = 5,
+							color2r = 0, color2g = 0.2, color2b = 0, colortime = 60,
+							r = 0, g = 1, b = 0, a = 0.88,
+							modelfactor = 0.6, specular = 0.6, scattering = 1, lensflare = 10,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
 		body = {
 			lightType = 'point',
 			pieceName = 'torso',
@@ -16388,7 +16397,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = -1.4, posz = 15, radius = 14,
 				color2r = 0.9, color2g = 0.5, color2b = 0.05, colortime = 5,
 				r = 0.95, g = 0.66, b = 0.07, a = 0.5,
-				modelfactor = 0.4, specular = 0.4, scattering = 0.5, lensflare = 0,
+				modelfactor = 0.4, specular = 0.9, scattering = 0.5, lensflare = 0,
 				lifetime = 0, sustain = 0, animtype = 0},
 		},
 		flamebright = {
@@ -16397,7 +16406,7 @@ local unitLights = {
 			lightConfig = { posx = 0, posy = -1.4, posz = 14, radius = 4,
 				color2r = 0.9, color2g = 0.5, color2b = 0.05, colortime = 7,
 				r = 0.95, g = 0.66, b = 0.07, a = 1.9,
-				modelfactor = 0.4, specular = 0.4, scattering = 0.5, lensflare = 0,
+				modelfactor = 0.4, specular = 0.9, scattering = 0.5, lensflare = 0,
 				lifetime = 0, sustain = 0, animtype = 0},
 		},
 		eyes = {
