@@ -1207,9 +1207,9 @@ local unitLights = {
 		teamtopfrontleft = {
 			lightType = 'point',
 			pieceName = 'turret',
-			lightConfig = { posx = 3.8, posy = 27, posz = -11, radius = 3.8,
-							dirx = 0, diry = 0, dirz = 0.6666667, theta = -1.8,	
-							color2r = -1, color2g = -1, color2b = -1, colortime = 45,
+			lightConfig = { posx = 3.8, posy = 27, posz = -11, radius = 3.5,
+							dirx = 0, diry = 0, dirz = 1, theta = -1.8,	
+							color2r = -1, color2g = -1, color2b = -1, colortime = 30,
 							r = -1, g = 1, b = 1, a = 2,
 							modelfactor = 0.6, specular = 0.1, scattering = 0.2, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
@@ -1217,9 +1217,9 @@ local unitLights = {
 		teamtopfrontright = {
 			lightType = 'point',
 			pieceName = 'turret',
-			lightConfig = { posx = -3.8, posy = 27, posz = -11, radius = 3.8,
-							dirx = 0, diry = 0, dirz = 0.6666667, theta = -1.8,
-							color2r = -1, color2g = -1, color2b = -1, colortime = 45,
+			lightConfig = { posx = -3.8, posy = 27, posz = -11, radius = 3.5,
+							dirx = 0, diry = 0, dirz = 1, theta = -1.8,
+							color2r = -1, color2g = -1, color2b = -1, colortime = 30,
 							r = -1, g = 1, b = 1, a = 2,
 							modelfactor = 0.6, specular = 0.1, scattering = 0.2, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
@@ -2531,7 +2531,7 @@ local unitLights = {
 			lightConfig = { posx = 4.3, posy = 1, posz = -1, radius = 8,
 							color2r = 0.3, color2g = 0.22, color2b = 0.04, colortime = -1,
 							r = 1.2, g = 1, b = 0.3, a = 0.8,
-							modelfactor = 0.4, specular = 0.4, scattering = 0.7, lensflare = 0,
+							modelfactor = 0.4, specular = 0.4, scattering = 0.2, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 		hinge2 = {
@@ -2540,7 +2540,7 @@ local unitLights = {
 			lightConfig = { posx = -7, posy = 1, posz = 0, radius = 6,
 							color2r = 0.6, color2g = 0.5, color2b = 0.2, colortime = -1,
 							r = 1.2, g = 1, b = 0.3, a = 0.7,
-							modelfactor = 0.4, specular = 0.4, scattering = 0.7, lensflare = 0,
+							modelfactor = 0.4, specular = 0.4, scattering = 0.2, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 		-- nanolight1bright = {
@@ -15544,21 +15544,21 @@ local unitLights = {
 		fusionglow = {
 			lightType = 'point',
 			pieceName = 'emit',
-			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 60,
-							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
-							r = -1, g = 1, b = 1, a = 0.2,
-							modelfactor = 0.1, specular = 1.6, scattering = 1.5, lensflare = 0,
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 24,
+							color2r = 0, color2g = 0, color2b = 0, colortime = -2.5,
+							r = -1, g = 1, b = 1, a = 2.2,
+							modelfactor = 0.4, specular = 0.6, scattering = 4.5, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 		
 		fusionglow1 = {
 			lightType = 'point',
 			pieceName = 'emit',
-			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 96,
-							color2r = 0.2, color2g = 0.2, color2b = 0.2, colortime = -1.0, -- Negative colortime means modulate it
-							dirx = 0.1, diry = 0.11, dirz = 0.12, theta = -12.0, -- Orbit at a radius of 16 elmos with a period of ~0.1Hz
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 57,
+							color2r = 0, color2g = 0, color2b = 0, colortime = -2.5, -- Negative colortime means modulate it
+							--dirx = 0.1, diry = 0.11, dirz = 0.12, theta = -12.0, -- Orbit at a radius of 16 elmos with a period of ~0.1Hz
 							r = -1, g = 1, b = 1, a = 0.6,
-							modelfactor = .1, specular = 1.6, scattering = 0.5, lensflare = 3,
+							modelfactor = 0.1, specular = 1.6, scattering = 0.5, lensflare = 3,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 		
