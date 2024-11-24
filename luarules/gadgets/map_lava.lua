@@ -298,9 +298,12 @@ else  -- UNSYCNED
 
 	local heatdistortx = 0
 	local heatdistortz = 0
+	local smoothFPS = 15
 
 	local elmosPerSquare = 256 -- The resolution of the lava
 
+
+	local autoreload = false -- set to true to reload the shader every time it is edited
 	local luaShaderDir = "LuaUI/Widgets/Include/"
 	local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 	VFS.Include(luaShaderDir.."instancevbotable.lua") -- we are only gonna use the plane maker func of this
@@ -337,10 +340,47 @@ else  -- UNSYCNED
 	}
 
 
-	local lavaVSSrc = VFS.LoadFile("shaders/GLSL/lava/lava.vert.glsl")
-	local lavaFSSrc = VFS.LoadFile("shaders/GLSL/lava/lava.frag.glsl")
-	local fogLightVSSrc = VFS.LoadFile("shaders/GLSL/lava/lava_fog_light.vert.glsl")
-	local fogLightFSSrc = VFS.LoadFile("shaders/GLSL/lava/lava_fog_light.frag.glsl")
+	local lavaVSSrcPath = "shaders/GLSL/lava/lava.vert.glsl"
+	local lavaFSSrcPath = "shaders/GLSL/lava/lava.frag.glsl"
+	local fogLightVSSrcPath = "shaders/GLSL/lava/lava_fog_light.vert.glsl"
+	local fogLightFSSrcPath = "shaders/GLSL/lava/lava_fog_light.frag.glsl"
+
+	local lavaShaderSourceCache = {
+		vssrcpath = lavaVSSrcPath,
+		fssrcpath = lavaFSSrcPath,
+		shaderName = "Lava Surface Shader GL4",
+		uniformInt = {
+			heightmapTex = 0,
+			lavaDiffuseEmit = 1,
+			lavaNormalHeight = 2,
+			lavaDistortion = 3,
+			shadowTex = 4,
+			infoTex = 5,
+		},
+		uniformFloat = {
+			lavaHeight = 1,
+			heatdistortx = 1,
+			heatdistortz = 1,
+		  },
+		shaderConfig = unifiedShaderConfig,	  
+	}
+
+	local fogLightShaderSourceCache = {
+		vssrcpath = fogLightVSSrcPath,
+		fssrcpath = fogLightFSSrcPath,
+		shaderName = "Lava Light Shader GL4",
+		uniformInt = {
+			mapDepths = 0,
+			modelDepths = 1,
+			lavaDistortion = 2,
+		},
+		uniformFloat = {
+			lavaHeight = 1,
+			heatdistortx = 1,
+			heatdistortz = 1,
+		  },
+		shaderConfig = unifiedShaderConfig,		  
+	}
 
 	local myPlayerID = tostring(Spring.GetMyPlayerID())
 	function gadget:GameFrame(f)
@@ -392,54 +432,17 @@ else  -- UNSYCNED
 		lavaPlaneVAO:AttachIndexBuffer(indexBuffer)
 
 
-		local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
-		lavaVSSrc = lavaVSSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-		lavaFSSrc = lavaFSSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-
-		lavaShader = LuaShader({
-			vertex = lavaVSSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(unifiedShaderConfig)),
-			fragment = lavaFSSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(unifiedShaderConfig)),
-			uniformInt = {
-				heightmapTex = 0,
-				lavaDiffuseEmit = 1,
-				lavaNormalHeight = 2,
-				lavaDistortion = 3,
-				shadowTex = 4,
-				infoTex = 5,
-			},
-			uniformFloat = {
-				lavaHeight = 1,
-				heatdistortx = 1,
-				heatdistortz = 1,
-			  },
-		}, "Lava Shader")
-
-
-		fogLightVSSrc = fogLightVSSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-		fogLightFSSrc = fogLightFSSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-		foglightShader = LuaShader({
-			vertex = fogLightVSSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(unifiedShaderConfig)),
-			fragment = fogLightFSSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(unifiedShaderConfig)),
-			uniformInt = {
-				mapDepths = 0,
-				modelDepths = 1,
-				lavaDistortion = 2,
-			},
-			uniformFloat = {
-				lavaHeight = 1,
-				heatdistortx = 1,
-				heatdistortz = 1,
-			  },
-		}, "FogLight shader ")
-		local shaderCompiled = lavaShader:Initialize()
-		if not shaderCompiled then
+		lavaShader = LuaShader.CheckShaderUpdates(lavaShaderSourceCache)
+		
+		if not lavaShader then
 			Spring.Echo("Failed to compile Lava Shader")
 			gadgetHandler:RemoveGadget()
 			return
 		end
 
-		shaderCompiled = foglightShader:Initialize()
-		if not shaderCompiled then
+		foglightShader = LuaShader.CheckShaderUpdates(fogLightShaderSourceCache)
+
+		if not foglightShader then
 			Spring.Echo("Failed to compile foglightShader")
 			gadgetHandler:RemoveGadget()
 			return
@@ -452,11 +455,16 @@ else  -- UNSYCNED
 			if not isPaused then
 				local camX, camY, camZ = Spring.GetCameraDirection()
 				local camvlength = math.sqrt(camX*camX + camZ *camZ + 0.01)
-				local fps = math.max(Spring.GetFPS(), 15)
-				heatdistortx = heatdistortx - camX / (camvlength * fps)
-				heatdistortz = heatdistortz - camZ / (camvlength * fps)
+				smoothFPS = 0.9 * smoothFPS + 0.1 * math.max(Spring.GetFPS(), 15)
+				heatdistortx = heatdistortx - camX / (camvlength * smoothFPS)
+				heatdistortz = heatdistortz - camZ / (camvlength * smoothFPS)
 			end
 			--Spring.Echo(camX, camZ, heatdistortx, heatdistortz,gameSpeed, isPaused)
+
+			if autoreload then 
+				lavaShader = LuaShader.CheckShaderUpdates(lavaShaderSourceCache) or lavaShader
+				foglightShader = LuaShader.CheckShaderUpdates(fogLightShaderSourceCache) or foglightShader
+			end
 
 			lavaShader:Activate()
 			lavaShader:SetUniform("lavaHeight",lavatidelevel)
