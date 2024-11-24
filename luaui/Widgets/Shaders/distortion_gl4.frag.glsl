@@ -52,7 +52,7 @@ vec3 closestbeam(vec3 point, vec3 beamStart, vec3 beamEnd){
 //https://iquilezles.org/articles/distfunctions/
 
 // Given a ray origin and a direction, returns the closes point on the ray in xyz and the distance in w
-vec4 closestlightlp_distance (vec3 ro, vec3 rd, vec3 P){
+vec4 closestdistortionlp_distance (vec3 ro, vec3 rd, vec3 P){
 	float t0 = dot(rd, P - ro) / dot(rd, rd);
 	vec3 intersectPoint = ro + t0 * rd;
 	return vec4(intersectPoint, length(P - intersectPoint));
@@ -570,22 +570,22 @@ void main(void)
 	viewDirWithoutDepth.xyz = normalize(camPos - viewDirWithoutDepth.xyz);
 	//printf(viewDirWithoutDepth.xyz);
 	
-	float lightRadius = v_worldPosRad.w;
-	float lightRadiusInv = 1.0 / lightRadius;
+	float distortionRadius = v_worldPosRad.w;
+	float distortionRadiusInv = 1.0 / distortionRadius;
 
-	vec3 lightToWorld = vec3(0); // The vector pointing from light source to fragment world pos
-	vec3 lightPosition = vec3(0); // This is the position of the light illuminating the fragment
-	vec4 lightEmitPosition = vec4(0); // == lightPosition, except for beams, where the lightEmitPosition for a ray is different than for a world fragment
-	vec3 EntryPoint = vec3(0); // Point of entry into the light volume from the camera
-	vec3 ExitPoint =  vec3(0); // point of exit from the light volume away from the camera
+	vec3 distortionToWorld = vec3(0); // The vector pointing from distortion source to fragment world pos
+	vec3 distortionPosition = vec3(0); // This is the position of the distortion illuminating the fragment
+	vec4 distortionEmitPosition = vec4(0); // == distortionPosition, except for beams, where the distortionEmitPosition for a ray is different than for a world fragment
+	vec3 EntryPoint = vec3(0); // Point of entry into the distortion volume from the camera
+	vec3 ExitPoint =  vec3(0); // point of exit from the distortion volume away from the camera
 	vec3 MidPoint = vec3(0); // midpoint between entry and exit points
-	vec2 nearFarDistances = vec2(0); // the distances to the nearest and farthest points on the light source
+	vec2 nearFarDistances = vec2(0); // the distances to the nearest and farthest points on the distortion source
 
-	vec4 closestPointOnRay = vec4(0); // the point on the ray that is closest to the light source (xyz) and the distance to it (w)
+	vec4 closestPointOnRay = vec4(0); // the point on the ray that is closest to the distortion source (xyz) and the distance to it (w)
 	
 	
-	// Lighting components we wish to collect along the way:
-	float distance_attenuation = 0; // Just the distance from the light source (multiplied with falloff for cones
+	// Distortioning components we wish to collect along the way:
+	float distance_attenuation = 0; // Just the distance from the distortion source (multiplied with falloff for cones
 
 	
 	float relativeDensity = 1.0;
@@ -593,49 +593,49 @@ void main(void)
 
 	#line 32000
 	if (pointbeamcone < 0.5){ //point
-		lightPosition = v_worldPosRad.xyz;
-		lightEmitPosition.xyz = lightPosition;
+		distortionPosition = v_worldPosRad.xyz;
+		distortionEmitPosition.xyz = distortionPosition;
 		
-		lightToWorld = fragWorldPos.xyz - lightPosition;
-		closestPointOnRay = closestlightlp_distance(camPos, viewDirection, lightPosition);
-		lightEmitPosition.w = closestPointOnRay.w;
+		distortionToWorld = fragWorldPos.xyz - distortionPosition;
+		closestPointOnRay = closestdistortionlp_distance(camPos, viewDirection, distortionPosition);
+		distortionEmitPosition.w = closestPointOnRay.w;
 
 		// Need to invert view direction as we need ray pointing from camera to sphere
-		nearFarDistances = raySphereIntersect(camPos, -1 * viewDirection, lightPosition, lightRadius);
+		nearFarDistances = raySphereIntersect(camPos, -1 * viewDirection, distortionPosition, distortionRadius);
 		EntryPoint = camPos + nearFarDistances.x * -viewDirection;
 		ExitPoint = camPos + nearFarDistances.y * -viewDirection;
 		MidPoint = (EntryPoint + ExitPoint) * 0.5;
-		distance_attenuation = clamp( 1.0 - length (lightPosition - MidPoint) * lightRadiusInv, 0, 1);	
-		relativeDensity = clamp(length(EntryPoint- ExitPoint) / (2*lightRadius), 0.0, 1.0);
+		distance_attenuation = clamp( 1.0 - length (distortionPosition - MidPoint) * distortionRadiusInv, 0, 1);	
+		relativeDensity = clamp(length(EntryPoint- ExitPoint) / (2*distortionRadius), 0.0, 1.0);
 
 	#line 33000
 	}else if (pointbeamcone < 1.5){ // beam 
 		vec3 beamHalfLength = v_worldPosRad2.xyz - v_worldPosRad.xyz; 
 		vec3 beamStart = v_worldPosRad.xyz - beamHalfLength;
 		vec3 beamEnd = v_worldPosRad.xyz + beamHalfLength;
-		lightPosition = closestbeam(fragWorldPos.xyz, beamStart, beamEnd);
+		distortionPosition = closestbeam(fragWorldPos.xyz, beamStart, beamEnd);
 		
-		lightToWorld = fragWorldPos.xyz - lightPosition;
+		distortionToWorld = fragWorldPos.xyz - distortionPosition;
 
-		closestPointOnRay = ray_line_segment_closestpoint_on_ray_and_segment2(camPos, -viewDirection, beamStart, beamEnd, lightEmitPosition);
+		closestPointOnRay = ray_line_segment_closestpoint_on_ray_and_segment2(camPos, -viewDirection, beamStart, beamEnd, distortionEmitPosition);
 	
 		//printf(closestPointOnRay.xyzw);
-		//printf(lightEmitPosition.xyzw);
+		//printf(distortionEmitPosition.xyzw);
 		// Find the close and far distances to the beam volume
-		nearFarDistances.x =  capIntersect( camPos, -viewDirection, beamStart, beamEnd, lightRadius);
-		nearFarDistances.y = - capIntersect( camPos, viewDirection, beamStart, beamEnd, lightRadius);
+		nearFarDistances.x =  capIntersect( camPos, -viewDirection, beamStart, beamEnd, distortionRadius);
+		nearFarDistances.y = - capIntersect( camPos, viewDirection, beamStart, beamEnd, distortionRadius);
 		
 		EntryPoint = (-viewDirection) * nearFarDistances.x + camPos;
 		ExitPoint =  (-viewDirection) * nearFarDistances.y + camPos;
 		MidPoint = (EntryPoint + ExitPoint) * 0.5;
-		distance_attenuation =  clamp( 1.0 - closestPointOnRay.w *lightRadiusInv, 0,1);
-		relativeDensity = clamp(length(EntryPoint- ExitPoint) / (2*lightRadius), 0.0, 1.0);
+		distance_attenuation =  clamp( 1.0 - closestPointOnRay.w *distortionRadiusInv, 0,1);
+		relativeDensity = clamp(length(EntryPoint- ExitPoint) / (2*distortionRadius), 0.0, 1.0);
 
 	#line 34000
 	}else if (pointbeamcone > 1.5){ // cone
-		lightPosition = v_worldPosRad.xyz;
+		distortionPosition = v_worldPosRad.xyz;
 		
-		lightToWorld = fragWorldPos.xyz - lightPosition;
+		distortionToWorld = fragWorldPos.xyz - distortionPosition;
 
 		vec3 coneDirection = normalize(v_worldPosRad2.xyz);
 	
@@ -643,12 +643,12 @@ void main(void)
 		float coneHalfAngleSine = sqrt(1.0 - coneAngleCosine * coneAngleCosine);
 
 		//Cone maximizing sphere: http://mathcentral.uregina.ca/QQ/database/QQ.09.07/s/juan1.html
-		float coneHeight = lightRadius;
-		float coneWidth = lightRadius * coneHalfAngleSine;
+		float coneHeight = distortionRadius;
+		float coneWidth = distortionRadius * coneHalfAngleSine;
 		float coneSideLengthInv = inversesqrt(coneHeight * coneHeight + coneWidth * coneWidth);
 		float biggestradius = coneHeight * coneWidth * coneSideLengthInv / ( 1 + coneWidth * coneSideLengthInv);
-		vec3 endPoint = lightPosition  + coneDirection * (lightRadius - biggestradius);
-		nearFarDistances = intersectRoundedCone(camPos, -viewDirection, lightPosition, endPoint , biggestradius * 0.11, biggestradius) ;
+		vec3 endPoint = distortionPosition  + coneDirection * (distortionRadius - biggestradius);
+		nearFarDistances = intersectRoundedCone(camPos, -viewDirection, distortionPosition, endPoint , biggestradius * 0.11, biggestradius) ;
 		printf(nearFarDistances.xy);
 		printf(fragDistance);
 		EntryPoint = camPos + nearFarDistances.x * -viewDirection;
@@ -657,11 +657,11 @@ void main(void)
 
 		//DEBUGPOS(EntryPoint.xyz);
 		// Calculate the closest point on the view ray to the cone
-		closestPointOnRay = ray_line_segment_closestpoint_on_ray_and_segment2(camPos, -viewDirection, lightPosition, endPoint, lightEmitPosition);
+		closestPointOnRay = ray_line_segment_closestpoint_on_ray_and_segment2(camPos, -viewDirection, distortionPosition, endPoint, distortionEmitPosition);
 	
-		distance_attenuation = clamp( 1.0 - length(MidPoint - lightPosition)  / coneHeight, 0,1) * 1.0;
-		float lightAngleCosine  = dot(coneDirection, normalize(MidPoint - lightPosition));
-		float coneEdgeFactor = clamp((lightAngleCosine - coneAngleCosine) / (1.0 - coneAngleCosine), 0.0, 1.0);
+		distance_attenuation = clamp( 1.0 - length(MidPoint - distortionPosition)  / coneHeight, 0,1) * 1.0;
+		float distortionAngleCosine  = dot(coneDirection, normalize(MidPoint - distortionPosition));
+		float coneEdgeFactor = clamp((distortionAngleCosine - coneAngleCosine) / (1.0 - coneAngleCosine), 0.0, 1.0);
 		coneEdgeFactor = sqrt(	coneEdgeFactor) * 4;
 		relativeDensity = clamp(length(EntryPoint- ExitPoint) / (2*biggestradius), 0.0, 1.0);
 	}
@@ -689,8 +689,8 @@ void main(void)
 
 	// ------------------------ BEGIN AIR SHOCKWAVE ---------------- 
 	if (effectType == 1){
-		// Create an air shockwave displacement based on the distance to the light source:
-		// Bend the light beam as many times as it goes through the sphere!
+		// Create an air shockwave displacement based on the distance to the distortion source:
+		// Bend the distortion beam as many times as it goes through the sphere!
 			// Lifetime goes from 0 to 1
 			float lifeStart = v_otherparams.x;
 			float lifeTime = v_otherparams.y;
@@ -699,10 +699,10 @@ void main(void)
 		
 			float timeFraction = fract((currentTime - lifeStart) / 100); // for debugging
 			printf(timeFraction);
-			float currentDist = lightRadius * timeFraction;
+			float currentDist = distortionRadius * timeFraction;
 			// TODO : Parameterize out width in elmos
 			float width = 3;
-			float groundDistanceToShockCenter = length(fragWorldPos.xyz - lightPosition.xyz);
+			float groundDistanceToShockCenter = length(fragWorldPos.xyz - distortionPosition.xyz);
 			//Effect strength and direction should be abs width'd
 			// But it should be wider on the rarefaction side than the compression side
 			// First term is the compression factor, second term is the rarefaction factor
@@ -713,7 +713,7 @@ void main(void)
 			effectStrength = pow(effectStrength, 3.0);
 
 			// which direction is the effect going in in world coords?, always points towards us!
-			vec3 shockDirection = normalize(EntryPoint.xyz - lightPosition.xyz);
+			vec3 shockDirection = normalize(EntryPoint.xyz - distortionPosition.xyz);
 
 			// Parabolic mapping of 0-1 to [0-1-0] with a parabola on timeFraction
 
@@ -726,8 +726,8 @@ void main(void)
 
 			// Screen-space position of the center of the shockwave:
 			
-			vec4 LightScreenPosition = cameraViewProj * vec4(lightEmitPosition.xyz, 1.0);
-			LightScreenPosition.xyz = LightScreenPosition.xyz / LightScreenPosition.w;
+			vec4 DistortionScreenPosition = cameraViewProj * vec4(distortionEmitPosition.xyz, 1.0);
+			DistortionScreenPosition.xyz = DistortionScreenPosition.xyz / DistortionScreenPosition.w;
 
 			// the normal of the shockwave sphere
 			float refractiveIndex = 1.1;
@@ -761,7 +761,7 @@ void main(void)
 
 
 			// screen-space direction of the shockwave
-			vec2 displacementScreen = normalize((LightScreenPosition.xy * 0.5 + 0.5) - v_screenUV);
+			vec2 displacementScreen = normalize((DistortionScreenPosition.xy * 0.5 + 0.5) - v_screenUV);
 			printf(displacementScreen.xy);
 			float overallStrength = 10 * rayBendElmos *  distanceToCameraFactor * parabolicStrength * v_baseparams.a;
 			vec2 displacementAmount = displacementScreen * overallStrength;
@@ -775,7 +775,7 @@ void main(void)
 	//------------------------- BEGIN GROUND SHOCKWAVE -------------------------
 	printf(effectType);
 	else if (effectType == 2){
-		// Create a ground shockwave displacement that only displaces ground fragments based on the distance to the light source:
+		// Create a ground shockwave displacement that only displaces ground fragments based on the distance to the distortion source:
 		// TODO: instead of using radius here, adjust radius in the vertex shader!
 		if (ismodel < 0.5){
 			////vec3 shockWaveDisplacement(vec3 centerpos, vec3 currentpos, vec3 viewDirection, float shockwaveRadius, float timeFraction ){
@@ -787,10 +787,10 @@ void main(void)
 			float currentTime = timeInfo.x + timeInfo.w;
 			float timeFraction = clamp((currentTime - lifeStart) / lifeTime, 0.0, 1.0);
 
-			float currentDist = lightRadius * timeFraction;
+			float currentDist = distortionRadius * timeFraction;
 			// TODO : Parameterize out width in elmos
 			float width = 3;
-			float groundDistanceToShockCenter = length(fragWorldPos.xyz - lightPosition.xyz);
+			float groundDistanceToShockCenter = length(fragWorldPos.xyz - distortionPosition.xyz);
 			//Effect strength and direction should be abs width'd
 			// But it should be wider on the rarefaction side than the compression side
 			// First term is the compression factor, second term is the rarefaction factor
@@ -806,17 +806,17 @@ void main(void)
 			
 
 			// Falloff due to distance from camera
-			// TODO: this should really not be based on fragDistance, but on the distance to the light source
+			// TODO: this should really not be based on fragDistance, but on the distance to the distortion source
 			float distanceToCameraFactor =  clamp(300.0/ fragDistance, 0.0, 1.0);
 
 			// Screen-space position of the center of the shockwave:
 			
-			vec4 LightScreenPosition = cameraViewProj * vec4(lightEmitPosition.xyz, 1.0);
-			LightScreenPosition.xyz = LightScreenPosition.xyz / LightScreenPosition.w;
+			vec4 DistortionScreenPosition = cameraViewProj * vec4(distortionEmitPosition.xyz, 1.0);
+			DistortionScreenPosition.xyz = DistortionScreenPosition.xyz / DistortionScreenPosition.w;
 
 
 			// screen-space direction of the shockwave
-			vec2 displacementScreen = normalize((LightScreenPosition.xy * 0.5 + 0.5) - v_screenUV);
+			vec2 displacementScreen = normalize((DistortionScreenPosition.xy * 0.5 + 0.5) - v_screenUV);
 			float overallStrength = effectStrength * distanceToCameraFactor * parabolicStrength * v_baseparams.a;
 			vec2 displacementAmount = displacementScreen * overallStrength;
 			fragColor.rgba = vec4(displacementAmount * 0.5 + 0.5, 0.0, 0.5 * step(0.005,overallStrength) );
@@ -858,51 +858,51 @@ void main(void)
 	
 	//------------------------- BEGIN MAGNIFIER -------------------------
 	else if (effectType == 8){
-		// Calculate the view-space vector that points from from light center to the view ray
-		vec3 magnifierDir = normalize(MidPoint - lightPosition);
+		// Calculate the view-space vector that points from from distortion center to the view ray
+		vec3 magnifierDir = normalize(MidPoint - distortionPosition);
 		vec3 magnifierNormal = normalize(magnifierDir);
 
-		vec3 LightScreenPosition = worldToScreenUVZ(lightEmitPosition.xyz); 
+		vec3 DistortionScreenPosition = worldToScreenUVZ(distortionEmitPosition.xyz); 
 
 		vec3 MagnifierScreenPosition = worldToScreenUVZ(MidPoint);
 
-		vec3 dirInCameraSpace2 = normalize(MagnifierScreenPosition - LightScreenPosition);
-		float relativeDistance = clamp(1.0 - length(MidPoint - lightEmitPosition.xyz) / lightRadius, 0.0, 1.0);
+		vec3 dirInCameraSpace2 = normalize(MagnifierScreenPosition - DistortionScreenPosition);
+		float relativeDistance = clamp(1.0 - length(MidPoint - distortionEmitPosition.xyz) / distortionRadius, 0.0, 1.0);
 		//printf(dirInCameraSpace2.xyz);
 		dirInCameraSpace2 *= 1.0 - sqrt(relativeDistance);
 		dirInCameraSpace2 *= -3.0;
 		
-		float distanceToCameraFactor =  clamp(300.0/ length(camPos - lightEmitPosition.xyz), 0.0, 1.0);
+		float distanceToCameraFactor =  clamp(300.0/ length(camPos - distortionEmitPosition.xyz), 0.0, 1.0);
 		dirInCameraSpace2 *= distanceToCameraFactor;
 		//printf(dirInCameraSpace2.xyz);
 		fragColor.rgba = vec4(dirInCameraSpace2.xy * 0.5 + 0.5, 0.0, 1.0);
 	}
 		//------------------------- BEGIN MAGNIFIER Plano-convex -------------------------
 	else if (effectType == 9){
-		// Calculate the view-space vector that points from from light center to the view ray
-		vec3 magnifierDir = normalize(MidPoint - lightPosition);
+		// Calculate the view-space vector that points from from distortion center to the view ray
+		vec3 magnifierDir = normalize(MidPoint - distortionPosition);
 		vec3 magnifierNormal = normalize(magnifierDir);
 
-		vec4 LightScreenPosition = cameraViewProj * vec4(lightEmitPosition.xyz, 1.0);
-		LightScreenPosition.xyz = LightScreenPosition.xyz / LightScreenPosition.w;
+		vec4 DistortionScreenPosition = cameraViewProj * vec4(distortionEmitPosition.xyz, 1.0);
+		DistortionScreenPosition.xyz = DistortionScreenPosition.xyz / DistortionScreenPosition.w;
 
 		vec4 MagnifierScreenPosition = cameraViewProj * vec4(MidPoint, 1.0);
 		MagnifierScreenPosition.xyz = MagnifierScreenPosition.xyz / MagnifierScreenPosition.w;
 
-		vec3 dirInCameraSpace2 = normalize(MagnifierScreenPosition.xyz - LightScreenPosition.xyz);
-		float relativeDistance = clamp(1.0 - length(MidPoint - lightEmitPosition.xyz) / lightRadius, 0.0, 1.0);
+		vec3 dirInCameraSpace2 = normalize(MagnifierScreenPosition.xyz - DistortionScreenPosition.xyz);
+		float relativeDistance = clamp(1.0 - length(MidPoint - distortionEmitPosition.xyz) / distortionRadius, 0.0, 1.0);
 		//printf(dirInCameraSpace2.xyz);
 		dirInCameraSpace2 *= 1.0 - sqrt(relativeDistance);
 		dirInCameraSpace2 *= -3.0;
 		
-		float distanceToCameraFactor =  clamp(300.0/ length(camPos - lightEmitPosition.xyz), 0.0, 1.0);
+		float distanceToCameraFactor =  clamp(300.0/ length(camPos - distortionEmitPosition.xyz), 0.0, 1.0);
 		dirInCameraSpace2 *= distanceToCameraFactor;
 		//printf(dirInCameraSpace2.xyz);
 		fragColor.rgba = vec4(dirInCameraSpace2.xy * 0.5 + 0.5, 0.0, 1.0);
 	}
 
 	//------------------------- BEGIN HEAT DISTORTION -------------------------
-	// Debugging check attenuations for each light source type:
+	// Debugging check attenuations for each distortion source type:
 	// Draw attenuation as a color Green
 
 	else if (effectType == 0){
@@ -919,11 +919,11 @@ void main(void)
 		// TODO: plug in custom distoriton falloff power
 		distortionAttenuation = pow(distortionAttenuation, .5); 
 
-		// Take into account relative distance of ray point closest to light source to the light source
+		// Take into account relative distance of ray point closest to distortion source to the distortion source
 		distortionAttenuation *= volumetricFraction;
 
-		// if the fragment is closer to the camera than the light source plus its radius, we can completely skip the distortion
-		if (length(fragWorldPos.xyz - camPos) < ( length(lightPosition - camPos) -lightRadius)){
+		// if the fragment is closer to the camera than the distortion source plus its radius, we can completely skip the distortion
+		if (length(fragWorldPos.xyz - camPos) < ( length(distortionPosition - camPos) -distortionRadius)){
 			fragColor.rgba = vec4(0.0);
 			return;
 		}

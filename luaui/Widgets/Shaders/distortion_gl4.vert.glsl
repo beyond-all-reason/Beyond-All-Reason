@@ -15,7 +15,7 @@ layout (location = 5) in vec4 baseparams;  // alpha contains overall strength mu
 layout (location = 6) in vec4 modelfactor_specular_scattering_lensflare; // These are 100% not required for distortion
 layout (location = 7) in vec4 otherparams; // spawnframe, lifetime, sustain, animtype
 layout (location = 8) in vec4 color2; // 
-layout (location = 9) in uint pieceIndex; // for piece type lights
+layout (location = 9) in uint pieceIndex; // for piece type distortions
 layout (location = 10) in uvec4 instData; // matoffset, uniformoffset, teamIndex, drawFlags {id = 5, name = 'instData', size = 4, type = GL.UNSIGNED_INT},
 
 			
@@ -81,9 +81,9 @@ void main()
 {
 	float time = timeInfo.x + timeInfo.w;
 	
-	float lightRadius = worldposrad.w * radiusMultiplier;
+	float distortionRadius = worldposrad.w * radiusMultiplier;
 	v_worldPosRad = worldposrad ;
-	v_worldPosRad.w = lightRadius;
+	v_worldPosRad.w = distortionRadius;
 	vec4 vertexPosition = vec4(1.0);
 	
 	mat4 placeInWorldMatrix = mat4(1.0); // this is unity for non-unitID tied stuff
@@ -91,10 +91,10 @@ void main()
 	// Ok so here comes the fun part, where we if we have a unitID then fun things happen
 	// v_worldposrad contains the incoming piece-level offset
 	// v_worldPosRad should be after changing to unit-space
-	// we have to transform BOTH the center of the light to piece-space
-	// and the vertices of the light volume to piece-space
-	// we need to go from light-space to world-space
-	vec3 lightCenterPosition =  v_worldPosRad.xyz;
+	// we have to transform BOTH the center of the distortion to piece-space
+	// and the vertices of the distortion volume to piece-space
+	// we need to go from distortion-space to world-space
+	vec3 distortionCenterPosition =  v_worldPosRad.xyz;
 	v_baseparams = baseparams;
 	if (attachedtounitID > 0){
 		mat4 worldMatrix = mat[instData.x];
@@ -137,18 +137,18 @@ void main()
 		// the -1 is for inverting it so we always see the back faces (great for occlusion testing!) (this should be exploited later on!
 		
 		// this is centered around the target positional offset, and scaled locally
-		vec3 lightVertexPosition = lightCenterPosition + -1 * position.xyz * lightRadius * 1.15; 
+		vec3 distortionVertexPosition = distortionCenterPosition + -1 * position.xyz * distortionRadius * 1.15; 
 		
 		// tranform the vertices to world-space
-		lightVertexPosition = (placeInWorldMatrix * vec4(lightVertexPosition, 1.0)).xyz; 
+		distortionVertexPosition = (placeInWorldMatrix * vec4(distortionVertexPosition, 1.0)).xyz; 
 		
 		// tranform the center to world-space
-		lightCenterPosition = (placeInWorldMatrix * vec4(lightCenterPosition, 1.0)).xyz; 
+		distortionCenterPosition = (placeInWorldMatrix * vec4(distortionCenterPosition, 1.0)).xyz; 
 		
 		
-		float colortime = color2.a; // Matches colortime in lightConf for point lights
+		float colortime = color2.a; // Matches colortime in distortionConf for point distortions
 		if  (attachedtounitID > 0.5) {
-			// for point lights, if the colortime is anything sane (>0), then modulate the light with it.
+			// for point distortions, if the colortime is anything sane (>0), then modulate the distortion with it.
 			if (colortime >0.5){
 				v_baseparams.a = mix( color2.a, v_baseparams.a, cos((elapsedframes * 6.2831853) / colortime ) * 0.5 + 0.5); }
 				
@@ -165,32 +165,32 @@ void main()
 				v_baseparams.a = mix(v_baseparams.a, color2.a, colormod); 
 			}
 			if (worldposrad2.w < 1.0) {
-				lightCenterPosition += timeInfo.w * worldposrad2.xyz;
-				lightVertexPosition += timeInfo.w * worldposrad2.xyz;
+				distortionCenterPosition += timeInfo.w * worldposrad2.xyz;
+				distortionVertexPosition += timeInfo.w * worldposrad2.xyz;
 			}else{
-				// Note: worldposrad2.w is an excellent place to add orbit-style world-placement light animations
-				//vec3 lightWorldMovement = sin(time * 0.017453292 * worldposrad2.xyz) * worldposrad2.w;
-				//lightCenterPosition += lightWorldMovement;
+				// Note: worldposrad2.w is an excellent place to add orbit-style world-placement distortion animations
+				//vec3 distortionWorldMovement = sin(time * 0.017453292 * worldposrad2.xyz) * worldposrad2.w;
+				//distortionCenterPosition += distortionWorldMovement;
 			}
 		}
 		
 
-		v_worldPosRad.xyz = lightCenterPosition;
-		vertexPosition = vec4( lightVertexPosition, 1.0);
+		v_worldPosRad.xyz = distortionCenterPosition;
+		vertexPosition = vec4( distortionVertexPosition, 1.0);
 	}
 	#line 12000
 	else if (pointbeamcone < 1.5){ // beam
 		// we will tranform along this vector, where Y shall be the upvector
 		// our null vector is +X
-		vec3 centertoend = lightCenterPosition - worldposrad2.xyz;
+		vec3 centertoend = distortionCenterPosition - worldposrad2.xyz;
 		float halfbeamlength = length(centertoend);
 		// Scale the box to correct size (along beam is Y dir)
 		//if (attachedtounitID > 0){
-			worldPos.xyz = position.xyz * vec3( lightRadius , step(position.y, 0) *halfbeamlength + lightRadius, lightRadius );
+			worldPos.xyz = position.xyz * vec3( distortionRadius , step(position.y, 0) *halfbeamlength + distortionRadius, distortionRadius );
 			//}
 		//else{
-			worldPos.xyz = position.xyz * vec3( lightRadius ,  step(position.y, 0) * halfbeamlength + lightRadius, lightRadius );
-			//worldPos.xyz = position.xyz * vec3( lightRadius , halfbeamlength + lightRadius, lightRadius );
+			worldPos.xyz = position.xyz * vec3( distortionRadius ,  step(position.y, 0) * halfbeamlength + distortionRadius, distortionRadius );
+			//worldPos.xyz = position.xyz * vec3( distortionRadius , halfbeamlength + distortionRadius, distortionRadius );
 			//worldPos.xyz += vec3(50);
 			//}
 		
@@ -208,15 +208,15 @@ void main()
 		worldPos.xyz = rotmat * worldPos.xyz;
 		
 		// so we now have our rotated box, we need to place it not at the center, but where the piece matrix tells us to
-		// or where the lightcenterpos tells us to
+		// or where the distortioncenterpos tells us to
 		
 
 		// Place the box in the world
-		worldPos.xyz += lightCenterPosition;
+		worldPos.xyz += distortionCenterPosition;
 		
 		
 		v_worldPosRad2.xyz = (placeInWorldMatrix * vec4(v_worldPosRad2.xyz, 1.0)).xyz;;
-		v_worldPosRad.xyz = (placeInWorldMatrix * vec4(lightCenterPosition.xyz, 1.0)).xyz;
+		v_worldPosRad.xyz = (placeInWorldMatrix * vec4(distortionCenterPosition.xyz, 1.0)).xyz;
 		v_worldPosRad.xyz += (v_worldPosRad2.xyz - v_worldPosRad.xyz) * 0.5;
 		vertexPosition.xyz = (placeInWorldMatrix * vec4(worldPos.xyz, 1.0)).xyz;
 
@@ -236,12 +236,12 @@ void main()
 
 		// if the cone is not attached to the unit, exploit that direction allows us to smoothen anim
 		if (attachedtounitID < 0.5){
-			lightCenterPosition += worldposrad2.xyz * timeInfo.w;
+			distortionCenterPosition += worldposrad2.xyz * timeInfo.w;
 			// if its projectile slaved, then flip its direction
 			v_worldPosRad2.xyz *= -1.0;
 		}
 		
-		worldPos.xyz *= lightRadius * 1.05; // scale it all by the height of the cone, and a bit of extra 
+		worldPos.xyz *= distortionRadius * 1.05; // scale it all by the height of the cone, and a bit of extra 
 		
 		// Now our cone is opening forward towards  -y, but we want it to point into the worldposrad2.xyz
 		vec3 oldfw = vec3(0, -1,0); // The old forward direction is -y
@@ -258,14 +258,14 @@ void main()
 	
 		
 		// rotate the cone, and place it into local space
-		worldPos.xyz = rotmat * worldPos.xyz + lightCenterPosition;
+		worldPos.xyz = rotmat * worldPos.xyz + distortionCenterPosition;
 
 		
 		// move the cone into piece or world space:
 		worldPos.xyz = (placeInWorldMatrix * vec4(worldPos.xyz, 1.0)).xyz;
 		
-		// set the center pos of the light:
-		v_worldPosRad.xyz = (placeInWorldMatrix * vec4(lightCenterPosition.xyz, 1.0)).xyz;
+		// set the center pos of the distortion:
+		v_worldPosRad.xyz = (placeInWorldMatrix * vec4(distortionCenterPosition.xyz, 1.0)).xyz;
 		
 		// Clear out the translation from the cone direction, and turn the cone according to the piece matrix
 		v_worldPosRad2.xyz = mat3(placeInWorldMatrix) * v_worldPosRad2.xyz;
@@ -273,7 +273,7 @@ void main()
 		vertexPosition =  worldPos;
 	}
 	#line 13000
-	// Get the heightmap and the normal map at the center position of the light in v_worldPosRad.xyz
+	// Get the heightmap and the normal map at the center position of the distortion in v_worldPosRad.xyz
 	
 	
 	//	vec4 windInfo; // windx, windy, windz, windStrength
