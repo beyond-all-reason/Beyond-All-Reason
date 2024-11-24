@@ -111,7 +111,6 @@ function gadget:AllowCommand(unitID, unitDefID, _teamID, cmdID,
 		distance = Spring.GetUnitFeatureSeparation(unitID, targetId, false)
 	end
 
-	Spring.Echo(type(distance) .. " / " .. type(unitDef))
 	if distance > (unitDef.buildDistance + unitDef.radius) then
 		return false
 	end
