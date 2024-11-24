@@ -31,11 +31,11 @@ local function isValidCommandID(commandID)
 end
 
 local function reindexArray(tbl)
-    local newTbl = {}
-    for _, value in pairs(tbl) do
-        table.insert(newTbl, value)
-    end
-    return newTbl
+	local newTbl = {}
+	for _, value in pairs(tbl) do
+		table.insert(newTbl, value)
+	end
+	return newTbl
 end
 
 local function cmdToCmdSpec(tbl)
@@ -47,42 +47,42 @@ local function cmdToCmdSpec(tbl)
 end
 
 function gadget:GameFrame(frame)
-    if frame % frequency ~= 0 then return end
-    for nanoID in pairs(trackingTable) do
-        if not Spring.ValidUnitID(nanoID) then
-            trackingTable[nanoID] = nil
-        else
-            local nanoDef = UnitDefs[Spring.GetUnitDefID(nanoID)]
-            local maxDistance = nanoDef.buildDistance + nanoDef.radius
-            local cmds = Spring.GetUnitCommands(nanoID, -1)
-            local isChanged = false
+	if frame % frequency ~= 0 then return end
+	for nanoID in pairs(trackingTable) do
+		if not Spring.ValidUnitID(nanoID) then
+			trackingTable[nanoID] = nil
+		else
+			local nanoDef = UnitDefs[Spring.GetUnitDefID(nanoID)]
+			local maxDistance = nanoDef.buildDistance + nanoDef.radius
+			local cmds = Spring.GetUnitCommands(nanoID, -1)
+			local isChanged = false
 
-            for i = #cmds, 1, -1 do
-                local cmd = cmds[i]
-                local uID = cmd.params[1]
-                if Spring.ValidUnitID(uID) then
-                    local distance = Spring.GetUnitSeparation(nanoID, uID, false, false)
-                    if distance < maxDistance then -- Inside range
-                        trackingTable[nanoID][uID] = true
-                    elseif trackingTable[nanoID][uID] then -- Outside range
-                        trackingTable[nanoID][uID] = nil
-                        cmds[i] = nil
-                        isChanged = true
-                    end
-                end
-            end
+			for i, cmd in pairs(cmds) do
+				local uID = cmd.params[1]
+				if Spring.ValidUnitID(uID) then
+					local distance = Spring.GetUnitSeparation(nanoID, uID, nanoDef.buildRange3D, false)
+					if distance < maxDistance then -- Inside range
+						trackingTable[nanoID][uID] = true
+					elseif trackingTable[nanoID][uID] then -- Outside range
+						trackingTable[nanoID][uID] = nil
+						cmds[i] = nil
+						isChanged = true
+					end
+				end
+			end
 
-            if isChanged then
-                if #cmds > 0 then
+			if isChanged then
+				if #cmds > 0 then
 					cmds = reindexArray(cmds)
-                    cmds[1].options.shift = false -- Ensure proper command behavior
+					cmds[1].options.shift = false -- Ensure proper command behavior
 					Spring.GiveOrderArrayToUnit(nanoID, cmdToCmdSpec(cmds))
 				else
+					trackingTable[nanoID] = nil
 					Spring.GiveOrderToUnit(nanoID, CMD.STOP, {}, {})
-                end
-            end
-        end
-    end
+				end
+			end
+		end
+	end
 end
 
 function gadget:AllowCommand(unitID, unitDefID, _teamID, cmdID,
@@ -104,7 +104,7 @@ function gadget:AllowCommand(unitID, unitDefID, _teamID, cmdID,
 			end
 			return true
 		end
-		distance = Spring.GetUnitSeparation(unitID, targetId, false, false)
+		distance = Spring.GetUnitSeparation(unitID, targetId, unitDef.buildRange3D, false)
 	else
 		targetId = targetId - Game.maxUnits
 		if not Spring.ValidFeatureID(targetId) then return end
@@ -119,9 +119,13 @@ end
 
 function gadget:UnitDestroyed(unitID)
 	for nanoID in pairs(trackingTable) do
-		trackingTable[nanoID] = nil
+		if nanoID == unitID then
+			trackingTable[nanoID] = nil
+		end
 	end
 	for nanoID, v in pairs(trackingTable) do
-		trackingTable[nanoID][unitID] = nil
+		if v == unitID then
+			trackingTable[nanoID][unitID] = nil
+		end
 	end
 end
