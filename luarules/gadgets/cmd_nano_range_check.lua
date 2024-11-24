@@ -92,20 +92,26 @@ function gadget:AllowCommand(unitID, unitDefID, _teamID, cmdID,
 	if not isNano(unitDef) then return true end
 	if not isValidCommandID(cmdID) then return true end
 	if #cmdParams ~= 1 then return true end -- only handle ID targets, fallthrough for area selects; Let the intended scripts handle, catch resulting commands on ID.
-	local distance = 1/0 -- INF
-	local targetDef = UnitDefs[Spring.GetUnitDefID(cmdParams[1])]
-	if targetDef ~= nil then --when in definitions (unit)
-		if targetDef.canMove then -- ignore movable targets, add nano to tracking
+	local distance = math.huge
+	local targetId = cmdParams[1]
+
+	if targetId < Game.maxUnits then
+		if not Spring.ValidUnitID(targetId) then return end
+		local targetUnitDef = UnitDefs[Spring.GetUnitDefID(targetId)]
+		if targetUnitDef.canMove then
 			if not trackingTable[unitID] then
 				trackingTable[unitID] = {}
 			end
 			return true
 		end
-		distance = Spring.GetUnitSeparation(unitID, cmdParams[1], false, false)
-	else -- when undefined
-		-- NOTE Not properly docummented under Recoil as of 22/11/24, view SpringRTS Lua SyncedRead instead.
-		distance = Spring.GetUnitFeatureSeparation(unitID, cmdParams[1] - 32000, true) -- Magic Number is offset to unit max
+		distance = Spring.GetUnitSeparation(unitID, targetId, false, false)
+	else
+		targetId = targetId - Game.maxUnits
+		if not Spring.ValidFeatureID(targetId) then return end
+		distance = Spring.GetUnitFeatureSeparation(unitID, targetId, false)
 	end
+
+	Spring.Echo(type(distance) .. " / " .. type(unitDef))
 	if distance > (unitDef.buildDistance + unitDef.radius) then
 		return false
 	end
