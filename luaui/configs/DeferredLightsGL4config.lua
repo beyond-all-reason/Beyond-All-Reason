@@ -15541,17 +15541,17 @@ local unitLights = {
 		-- },
 	},
 	['corfus'] = {
-		fusionglow = {
+		fusionglowcore = {
 			lightType = 'point',
 			pieceName = 'emit',
-			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 24,
-							color2r = 0, color2g = 0, color2b = 0, colortime = -2.5,
-							r = -1, g = 1, b = 1, a = 2.2,
-							modelfactor = 0.4, specular = 0.6, scattering = 4.5, lensflare = 0,
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 44,
+							color2r = -4, color2g = -4, color2b = -4, colortime = -1,
+							r = 1, g = 1, b = 1, a = 0.3,
+							modelfactor = 0.1, specular = 0.6, scattering = 0.5, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 		
-		fusionglow1 = {
+		fusionglow = {
 			lightType = 'point',
 			pieceName = 'emit',
 			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 57,
