@@ -24,6 +24,73 @@ local function isValidCommandID(commandID)
 	)
 end
 
+local function reindexArray(tbl)
+    local newTbl = {}
+    for _, value in pairs(tbl) do
+        table.insert(newTbl, value)
+    end
+    return newTbl
+end
+
+local function cmdToCmdSpec(tbl)
+	local newTbl = {}
+	for _, cmd in pairs(tbl) do
+		table.insert(newTbl, {cmd.id, cmd.params, cmd.options})
+	end
+	return newTbl
+end
+
+local frequency = 5
+--- key is the nano's ID, followed by a lists with the unitID of target currently inside; when they leave they get removed.
+---@type {[number] : {number : boolean}}
+local trackingTable = {}
+
+function gadget:GameFrame(frame)
+	if frame % frequency ~= 0 then return end
+	for nanoID, v in pairs(trackingTable) do
+		if not Spring.ValidUnitID(nanoID) then
+			trackingTable[nanoID] = nil
+		else
+			local nanoDef = UnitDefs[Spring.GetUnitDefID(nanoID)]
+			local maxDistance = nanoDef.buildDistance + nanoDef.radius
+			local cmds = Spring.GetUnitCommands(nanoID, -1)
+			local isChanged = false
+
+			for i = #cmds, 1, -1 do
+				local cmd = cmds[i]
+				for j = #cmd["params"], 1, -1 do
+					local uID = cmd["params"][j]
+					if Spring.ValidUnitID(uID) then
+						local distance = Spring.GetUnitSeparation(nanoID, uID, false, false)
+						if distance < maxDistance then -- Are inside.
+							trackingTable[nanoID][uID] = true
+						end
+
+						if trackingTable[nanoID][uID] then
+							if distance > maxDistance then -- outside
+								cmd["params"][j] = nil
+								trackingTable[nanoID][uID] = nil
+								isChanged = true
+							end
+						end
+
+						if #cmd["params"] == 0 then
+							trackingTable[nanoID] = nil
+							cmds[i] = nil
+						end
+					end
+				end
+			end
+			if isChanged then
+				cmds = reindexArray(cmds)
+				cmds[1].options.shift = false
+				Spring.GiveOrderArrayToUnit(nanoID, cmdToCmdSpec(cmds))
+			end
+		end
+	end
+end
+
+
 function gadget:AllowCommand(unitID, unitDefID, _teamID, cmdID,
 	cmdParams, _cmdOptions, _cmdTag, _synced, _fromLua)
 
@@ -34,7 +101,12 @@ function gadget:AllowCommand(unitID, unitDefID, _teamID, cmdID,
 	local distance = 1/0 -- INF
 	local targetDef = UnitDefs[Spring.GetUnitDefID(cmdParams[1])]
 	if targetDef ~= nil then --when in definitions (unit)
-		if targetDef.canMove then return true end -- ignore movable targets
+		if targetDef.canMove then -- ignore movable targets, add to tracking
+			if not trackingTable[unitID] then
+				trackingTable[unitID] = {}
+			end
+			return true
+		end
 		distance = Spring.GetUnitSeparation(unitID, cmdParams[1], false, false)
 	else -- when undefined
 		-- NOTE Not properly docummented under Recoil as of 22/11/24, view SpringRTS Lua SyncedRead instead.
@@ -44,4 +116,13 @@ function gadget:AllowCommand(unitID, unitDefID, _teamID, cmdID,
 		return false
 	end
 	return true
+end
+
+function gadget:UnitDestroyed(unitID)
+	for nanoID in pairs(trackingTable) do
+		trackingTable[nanoID] = nil
+	end
+	for nanoID, v in pairs(trackingTable) do
+		trackingTable[nanoID][unitID] = nil
+	end
 end
