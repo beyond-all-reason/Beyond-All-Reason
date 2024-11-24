@@ -991,10 +991,6 @@ local icontypes = {
 		bitmap = "icons/armvader_0.9.png",
 		size = 0.94499993
 	},
-	babyarmvader = {
-		bitmap = "icons/armvader_0.9.png",
-		size = 0.94499993
-	},
 	armvadert4 = {
 		bitmap = "icons/armvadert4.png",
 		size = 2.625
