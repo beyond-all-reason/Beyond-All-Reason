@@ -22,6 +22,9 @@ local mouseoverHighlight = true
 ---- GL4 Backend Stuff----
 local selectionVBOGround = nil
 local selectionVBOAir = nil
+
+local mapHasWater = (Spring.GetGroundExtremes() < 0)
+
 local selectShader = nil
 local luaShaderDir = "LuaUI/Widgets/Include/"
 
@@ -165,8 +168,10 @@ local function DrawSelections(selectionVBO, isAir)
 	end
 end
 
-function widget:DrawWorld()
-	DrawSelections(selectionVBOAir, true)
+if mapHasWater then
+	function widget:DrawWorld()
+		DrawSelections(selectionVBOAir, true)
+	end
 end
 
 function widget:DrawWorldPreUnit()
@@ -300,7 +305,11 @@ local function init()
 	shaderConfig.HEIGHTOFFSET = 4
 	shaderConfig.POST_SHADING = "fragColor.rgba = vec4(mix(g_color.rgb * texcolor.rgb + addRadius, vec3(1.0), "..(1-teamcolorOpacity)..") , texcolor.a * TRANSPARENCY + addRadius);"
 	selectionVBOGround, selectShader = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnitsGround")
-	selectionVBOAir = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnitsAir")
+	if mapHasWater then 
+		selectionVBOAir = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnitsAir")
+	else
+		selectionVBOAir = selectionVBOGround
+	end
 	ClearLastMouseOver()
 	if selectionVBOGround == nil then
 		widgetHandler:RemoveWidget()
