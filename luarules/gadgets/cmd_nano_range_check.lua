@@ -11,6 +11,12 @@ function gadget:GetInfo()
 	}
 end
 
+local frequency = 10 -- only applies to movable units under tracked nanos.
+--- key is the nano's ID, followed by a Set-like with the unitID of target currently inside the nano's range.
+--- Used for CommandArray manipulation
+---@type {[number] : {number : boolean}}
+local trackingTable = {}
+
 local function isNano(unitDef)
 	return unitDef.isFactory == false and unitDef.isStaticBuilder
 end
@@ -40,56 +46,44 @@ local function cmdToCmdSpec(tbl)
 	return newTbl
 end
 
-local frequency = 5
---- key is the nano's ID, followed by a lists with the unitID of target currently inside; when they leave they get removed.
----@type {[number] : {number : boolean}}
-local trackingTable = {}
-
 function gadget:GameFrame(frame)
-	if frame % frequency ~= 0 then return end
-	for nanoID, v in pairs(trackingTable) do
-		if not Spring.ValidUnitID(nanoID) then
-			trackingTable[nanoID] = nil
-		else
-			local nanoDef = UnitDefs[Spring.GetUnitDefID(nanoID)]
-			local maxDistance = nanoDef.buildDistance + nanoDef.radius
-			local cmds = Spring.GetUnitCommands(nanoID, -1)
-			local isChanged = false
+    if frame % frequency ~= 0 then return end
+    for nanoID in pairs(trackingTable) do
+        if not Spring.ValidUnitID(nanoID) then
+            trackingTable[nanoID] = nil
+        else
+            local nanoDef = UnitDefs[Spring.GetUnitDefID(nanoID)]
+            local maxDistance = nanoDef.buildDistance + nanoDef.radius
+            local cmds = Spring.GetUnitCommands(nanoID, -1)
+            local isChanged = false
 
-			for i = #cmds, 1, -1 do
-				local cmd = cmds[i]
-				for j = #cmd["params"], 1, -1 do
-					local uID = cmd["params"][j]
-					if Spring.ValidUnitID(uID) then
-						local distance = Spring.GetUnitSeparation(nanoID, uID, false, false)
-						if distance < maxDistance then -- Are inside.
-							trackingTable[nanoID][uID] = true
-						end
+            for i = #cmds, 1, -1 do
+                local cmd = cmds[i]
+                local uID = cmd.params[1]
+                if Spring.ValidUnitID(uID) then
+                    local distance = Spring.GetUnitSeparation(nanoID, uID, false, false)
+                    if distance < maxDistance then -- Inside range
+                        trackingTable[nanoID][uID] = true
+                    elseif trackingTable[nanoID][uID] then -- Outside range
+                        trackingTable[nanoID][uID] = nil
+                        cmds[i] = nil
+                        isChanged = true
+                    end
+                end
+            end
 
-						if trackingTable[nanoID][uID] then
-							if distance > maxDistance then -- outside
-								cmd["params"][j] = nil
-								trackingTable[nanoID][uID] = nil
-								isChanged = true
-							end
-						end
-
-						if #cmd["params"] == 0 then
-							trackingTable[nanoID] = nil
-							cmds[i] = nil
-						end
-					end
-				end
-			end
-			if isChanged then
-				cmds = reindexArray(cmds)
-				cmds[1].options.shift = false
-				Spring.GiveOrderArrayToUnit(nanoID, cmdToCmdSpec(cmds))
-			end
-		end
-	end
+            if isChanged then
+                if #cmds > 0 then
+					cmds = reindexArray(cmds)
+                    cmds[1].options.shift = false -- Ensure proper command behavior
+					Spring.GiveOrderArrayToUnit(nanoID, cmdToCmdSpec(cmds))
+				else
+					Spring.GiveOrderToUnit(nanoID, CMD.STOP, {}, {})
+                end
+            end
+        end
+    end
 end
-
 
 function gadget:AllowCommand(unitID, unitDefID, _teamID, cmdID,
 	cmdParams, _cmdOptions, _cmdTag, _synced, _fromLua)
@@ -101,7 +95,7 @@ function gadget:AllowCommand(unitID, unitDefID, _teamID, cmdID,
 	local distance = 1/0 -- INF
 	local targetDef = UnitDefs[Spring.GetUnitDefID(cmdParams[1])]
 	if targetDef ~= nil then --when in definitions (unit)
-		if targetDef.canMove then -- ignore movable targets, add to tracking
+		if targetDef.canMove then -- ignore movable targets, add nano to tracking
 			if not trackingTable[unitID] then
 				trackingTable[unitID] = {}
 			end
