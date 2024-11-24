@@ -2,6 +2,9 @@
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shader_storage_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
+
+// This shader is Copyright (c) 2024 Beherith (mysterme@gmail.com) and licensed under the MIT License
+
 #line 10000
 layout (location = 0) in vec2 planePos;
 
