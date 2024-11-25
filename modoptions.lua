@@ -1249,6 +1249,7 @@ local options = {
         name   	= "Shields Rework",
         desc   	= "Shields block all projectiles. Overkill damage is blocked once before reaching 0% charge. Shields are disabled for a few seconds upon reaching 0%.",
         type   	= "bool",
+        hidden 	= true,
         section = "options_experimental",
         def  	= false,
     },
