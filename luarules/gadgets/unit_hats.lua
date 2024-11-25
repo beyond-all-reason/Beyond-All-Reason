@@ -82,14 +82,13 @@ local champion = { --   Fight Night 1v1 winner
 	[975] = true, -- StarDoM 
 	[2377] = true, -- Therxyy
 }
- local vikings = {
-	[59340] = true,  -- [HELO]Austin
-	[3913] = true,   -- [teh]Teddy
-	[7137] = true,	-- MightySheep
-	[54088] = true,  -- Lostdeadman
-	[123900] = true, -- Narnuk
-	[38971] = true,  -- Yanami
-	[5467] = true,   -- HellsHound
+ local vikings = { -- Omega Series 3: Winners
+	[59340] = true,  -- Austin
+	[1830] = true,   -- Zow
+	[59916] = true,	 -- Kuchy
+	[24665] = true,  -- Shoty
+	[38971] = true,  -- Chisato
+	[87571] = true,  -- Nezah
 }
 local kings = {
 	[38971] = true,  -- Yanami
