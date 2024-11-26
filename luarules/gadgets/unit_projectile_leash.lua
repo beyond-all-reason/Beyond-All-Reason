@@ -18,7 +18,6 @@ if not gadgetHandler:IsSyncedCode() then return end
 ---- optional customParams ----
 -- use weaponDef customparams.weaponDef.customParams.projectile_destruction_method = "string" to change how projectiles are destroyed.
 -- "explode" (default if undefined) detonates the projectile.
--- "targetground" retargets the ground at its last heading at the edge of its overrange/leash range after exceeding weaponDef.range.
 -- "descend" moves the projectile downward until it is destroyed by collision event.
 
 --static values
@@ -26,17 +25,15 @@ local lazyUpdateFrames = math.ceil(Game.gameSpeed / 3 * 2)
 local edgyUpdateFrames = math.ceil(Game.gameSpeed / 6)
 local forcedDescentUpdateFrames = math.ceil(Game.gameSpeed / 5)
 local minimumThresholdRange = 10 --so that starburst missiles don't trigger edgyWatch during ascent
-local descentMultiplier = 1.1 --compounding multiplier that influences the arc at which projectiles are forced to descend
+local compoundingMultiplier = 1.1 --compounding multiplier that influences the arc at which projectiles are forced to descend
 local descentSpeedStartingMultiplier = 0.1
 
 --functions
 local spGetUnitPosition = Spring.GetUnitPosition
 local mathSqrt = math.sqrt
-local tableCopy = table.copy
 local mathMax = math.max
 local spGetProjectilePosition = Spring.GetProjectilePosition
 local spSetProjectileCollision = Spring.SetProjectileCollision
-local spGetProjectileDirection = Spring.GetProjectileDirection
 local spGetProjectileVelocity = Spring.GetProjectileVelocity
 local spSetProjectileVelocity = Spring.SetProjectileVelocity
 
@@ -61,11 +58,8 @@ for weaponDefID, weaponDef in pairs(WeaponDefs) do
         defWatchTable[weaponDefID].weaponDefID = weaponDefID
 
 		local destructionMethod = weaponDef.customParams.projectile_destruction_method or "explode"
-		if destructionMethod == "targetground" then
-			defWatchTable[weaponDefID].targetGroundMethod = true
-		elseif destructionMethod == "descend" then
+		if destructionMethod == "descend" then
 			defWatchTable[weaponDefID].descentMethod = true
-			defWatchTable[weaponDefID].maxDescentSpeed = weaponDef.projectilespeed
 		else
 			defWatchTable[weaponDefID].explodeMethod = true
 		end
@@ -116,8 +110,7 @@ function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
 	if defWatchTable[weaponDefID] then
 		local originX, originy, originZ = spGetUnitPosition(proOwnerID)
 		lazyProjectileWatch[proOwnerID] = lazyProjectileWatch[proOwnerID] or {}
-		lazyProjectileWatch[proOwnerID][proID] = tableCopy(defWatchTable[weaponDefID])
-		lazyProjectileWatch[proOwnerID][proID].origin = {x = originX, z = originZ}
+		lazyProjectileWatch[proOwnerID][proID] = {weaponDefID = weaponDefID, origin = {x = originX, z = originZ}}
 	end
 end
 
@@ -128,19 +121,21 @@ function gadget:GameFrame(frame)
 			for proID, proData in pairs(proIDs) do
 				hasProjectiles = true
 				local projectileX, projectileY, projectileZ = spGetProjectilePosition(proID)
-				if not projectileX then
-					edgyProjectileWatch[proOwnerID][proID] = nil
-				elseif projectileOverRangeCheck(proOwnerID, proData.origin, proData.overRange, proData.leashRange, projectileX, projectileZ) then
-					if proData.explodeMethod then
-						spSetProjectileCollision(proID)
-						edgyProjectileWatch[proOwnerID][proID] = nil
-					elseif proData.descentMethod then
-						forcedDescentTable[proID] = {[1] = -proData.maxDescentSpeed, [2] = descentSpeedStartingMultiplier}
-						edgyProjectileWatch[proOwnerID][proID] = nil
-					else
-						Spring.Echo("invalid destruction method")
+				if projectileX then
+					local defData = defWatchTable[proData.weaponDefID]
+					if projectileOverRangeCheck(proOwnerID, proData.origin, defData.overRange, defData.leashRange, projectileX, projectileZ) then
+						if defData.explodeMethod then
+							spSetProjectileCollision(proID)
+							edgyProjectileWatch[proOwnerID][proID] = nil
+						elseif defData.descentMethod then
+							forcedDescentTable[proID] = descentSpeedStartingMultiplier
+							edgyProjectileWatch[proOwnerID][proID] = nil
+						else
+							Spring.Echo("invalid destruction method")
+						end
 					end
-
+				else
+					edgyProjectileWatch[proOwnerID][proID] = nil
 				end
 			end
 			if hasProjectiles == false then
@@ -155,12 +150,15 @@ function gadget:GameFrame(frame)
 			for proID, proData in pairs(proIDs) do
 				hasProjectiles = true
 				local projectileX, projectileY, projectileZ = spGetProjectilePosition(proID)
-				if not projectileX then
-					lazyProjectileWatch[proOwnerID][proID] = nil -- remove destroyed projectiles
-				elseif projectileIsCloseToEdge(proData.origin, proData.rangeThreshold, projectileX, projectileZ) then
+				if projectileX then
+					local defData = defWatchTable[proData.weaponDefID]
+					if projectileIsCloseToEdge(proData.origin, defData.rangeThreshold, projectileX, projectileZ) then
 					edgyProjectileWatch[proOwnerID] = edgyProjectileWatch[proOwnerID] or {}
 					edgyProjectileWatch[proOwnerID][proID] = proData
 					lazyProjectileWatch[proOwnerID][proID] = nil
+					end
+				else
+					lazyProjectileWatch[proOwnerID][proID] = nil -- remove destroyed projectiles
 				end
 			end
 			if hasProjectiles == false then
@@ -170,14 +168,12 @@ function gadget:GameFrame(frame)
 	end
 
 	if frame % forcedDescentUpdateFrames == 4 then
-		for proID, proData in pairs(forcedDescentTable) do
-			local velocityX, velocityY, velocityZ = spGetProjectileVelocity(proID)
+		for proID, descentMultiplier in pairs(forcedDescentTable) do
+			local velocityX, velocityY, velocityZ, velocityW = spGetProjectileVelocity(proID)
 			if velocityY then
-				--[1] is maxDescentSpeed
-				--[2] is descentSpeedMultiplier
-				local newVelocityY = mathMax(velocityY + proData[1] * proData[2], proData[1])
+				local newVelocityY = mathMax(velocityY - velocityW * descentMultiplier, -velocityW)
 				spSetProjectileVelocity(proID, velocityX, newVelocityY, velocityZ)
-				proData[2] = proData[2] * descentMultiplier
+				descentMultiplier = descentMultiplier * compoundingMultiplier
 			else
 				forcedDescentTable[proID] = nil
 			end
