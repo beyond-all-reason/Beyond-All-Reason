@@ -24,14 +24,16 @@ if not gadgetHandler:IsSyncedCode() then return end
 --static values
 local lazyUpdateFrames = math.ceil(Game.gameSpeed / 3 * 2)
 local edgyUpdateFrames = math.ceil(Game.gameSpeed / 6)
+local forcedDescentUpdateFrames = math.ceil(Game.gameSpeed / 5)
 local minimumThresholdRange = 10 --so that starburst missiles don't trigger edgyWatch during ascent
-local descentMultiplier = 1.05 --compounding multiplier that influences the arc at which projectiles are forced to descend
-local descentAngleDivisor = 1.5-- angle at which the forced descent is cancelled for performance reasons
+local descentMultiplier = 1.1 --compounding multiplier that influences the arc at which projectiles are forced to descend
+local descentSpeedStartingMultiplier = 0.1
 
 --functions
 local spGetUnitPosition = Spring.GetUnitPosition
 local mathSqrt = math.sqrt
 local tableCopy = table.copy
+local mathMax = math.max
 local spGetProjectilePosition = Spring.GetProjectilePosition
 local spSetProjectileCollision = Spring.SetProjectileCollision
 local spGetProjectileDirection = Spring.GetProjectileDirection
@@ -133,10 +135,8 @@ function gadget:GameFrame(frame)
 						spSetProjectileCollision(proID)
 						edgyProjectileWatch[proOwnerID][proID] = nil
 					elseif proData.descentMethod then
-						forcedDescentTable[proID] = {maxDescentSpeed = -proData.maxDescentSpeed, descentAngleThreshold = -(proData.maxDescentSpeed / descentAngleDivisor), descentSpeedMultiplier = 0.05}
+						forcedDescentTable[proID] = {[1] = -proData.maxDescentSpeed, [2] = descentSpeedStartingMultiplier}
 						edgyProjectileWatch[proOwnerID][proID] = nil
-					elseif proData.targetGroundMethod then
-						--zzz try Spring.SetProjectileTarget(projectileID[, arg1=0[, arg2=0[, posZ=0]]]) on non-guided rockets and see what happen.
 					else
 						Spring.Echo("invalid destruction method")
 					end
@@ -149,10 +149,10 @@ function gadget:GameFrame(frame)
 		end
 	end
 
-	if frame % lazyUpdateFrames == 2 then
+	if frame % lazyUpdateFrames == 3 then
 		for proOwnerID, proIDs in pairs(lazyProjectileWatch) do
 			local hasProjectiles = false
-			for proID, proData in pairs (proIDs) do
+			for proID, proData in pairs(proIDs) do
 				hasProjectiles = true
 				local projectileX, projectileY, projectileZ = spGetProjectilePosition(proID)
 				if not projectileX then
@@ -168,24 +168,20 @@ function gadget:GameFrame(frame)
 			end
 		end
 	end
-	if frame % 3 == 2 then
-		for proID, proData in pairs(forcedDescentTable) do
-			local velocityX, velocityY, velocityZ, velocityW = spGetProjectileVelocity(proID)
-			if not velocityX then 
-				forcedDescentTable[proID] = nil
-			else
-				local newVelocityY = velocityY + proData.maxDescentSpeed * proData.descentSpeedMultiplier
-				if newVelocityY < proData.descentAngleThreshold then
-					newVelocityY = proData.descentAngleThreshold
-					spSetProjectileVelocity(proID, velocityX, newVelocityY, velocityZ)
-					proData.descentSpeedMultiplier = proData.descentSpeedMultiplier * descentMultiplier
-					forcedDescentTable[proID] = nil
-				else
-					spSetProjectileVelocity(proID, velocityX, newVelocityY, velocityZ)
-					proData.descentSpeedMultiplier = proData.descentSpeedMultiplier * descentMultiplier
-				end
 
+	if frame % forcedDescentUpdateFrames == 4 then
+		for proID, proData in pairs(forcedDescentTable) do
+			local velocityX, velocityY, velocityZ = spGetProjectileVelocity(proID)
+			if velocityY then
+				--[1] is maxDescentSpeed
+				--[2] is descentSpeedMultiplier
+				local newVelocityY = mathMax(velocityY + proData[1] * proData[2], proData[1])
+				spSetProjectileVelocity(proID, velocityX, newVelocityY, velocityZ)
+				proData[2] = proData[2] * descentMultiplier
+			else
+				forcedDescentTable[proID] = nil
 			end
+
 		end
 	end
 end
