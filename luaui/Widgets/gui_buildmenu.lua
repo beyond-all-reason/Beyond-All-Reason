@@ -1246,7 +1246,9 @@ end
 
 function widget:Initialize()
 	if widgetHandler:IsWidgetKnown("Grid menu") then
-		widgetHandler:DisableWidget("Grid menu")
+		-- Grid menu needs to be disabled right now and before we recreate
+		-- WG['buildmenu'] since its Shutdown will destroy it.
+		widgetHandler:DisableWidgetRaw("Grid menu")
 	end
 
 	units.checkGeothermalFeatures()

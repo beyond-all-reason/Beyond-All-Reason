@@ -1239,6 +1239,12 @@ local function cycleBuilder()
 end
 
 function widget:Initialize()
+	if widgetHandler:IsWidgetKnown("Build menu") then
+		-- Build menu needs to be disabled right now and before we recreate
+		-- WG['buildmenu'] since its Shutdown will destroy it.
+		widgetHandler:DisableWidgetRaw("Build menu")
+	end
+
 	myTeamID = Spring.GetMyTeamID()
 	isSpec = Spring.GetSpectatingState()
 	isPregame = Spring.GetGameFrame() == 0 and not isSpec
@@ -1247,10 +1253,6 @@ function widget:Initialize()
 	WG["buildmenu"] = {}
 
 	doUpdateClock = os.clock()
-
-	if widgetHandler:IsWidgetKnown("Build menu") then
-		widgetHandler:DisableWidget("Build menu")
-	end
 
 	units.checkGeothermalFeatures()
 
