@@ -102,10 +102,10 @@ end
 --]]
 
 local function GetUnitOrFeaturePosition(id)
-	if id <= Game.maxUnits then
+	if id < Game.maxUnits then
 		return Spring.GetUnitPosition(id)
 	else
-		return Spring.GetFeaturePosition(id-Game.maxUnits)
+		return Spring.GetFeaturePosition(id - Game.maxUnits)
 	end
 end
 
