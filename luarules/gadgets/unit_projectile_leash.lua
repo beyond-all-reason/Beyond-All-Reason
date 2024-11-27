@@ -69,35 +69,33 @@ for weaponDefID, weaponDef in pairs(WeaponDefs) do
 end
 
 
-local function projectileOverRangeCheck(proOwnerID, projectileOrigin, weaponRange,  leashRange, projectileX, projectileZ)
-	if not projectileX then return false end
-	
-    local dx1 = projectileOrigin.x - projectileX
-    local dz1 = projectileOrigin.z - projectileZ
+local function projectileOverRangeCheck(proOwnerID, weaponRange,  leashRange, originX, originZ, projectileX, projectileZ)
+    local dx1 = originX - projectileX
+    local dz1 = originZ - projectileZ
     local distanceToOrigin = mathSqrt(dx1 * dx1 + dz1 * dz1)
 
-	local distanceToOwner
-	if leashRange then
-		local ownerX, ownerY, ownerZ = spGetUnitPosition(proOwnerID)
-		local dx2 = ownerX - projectileX
-		local dz2 = ownerZ - projectileZ
-		distanceToOwner = mathSqrt(dx2 * dx2 + dz2 * dz2)
-
-		if distanceToOrigin > weaponRange and distanceToOwner > leashRange then
-			return true
+	if distanceToOrigin > weaponRange then
+		if leashRange then
+			local distanceToOwner
+			local ownerX, ownerY, ownerZ = spGetUnitPosition(proOwnerID)
+			if ownerX then
+				local dx2 = ownerX - projectileX
+				local dz2 = ownerZ - projectileZ
+				distanceToOwner = mathSqrt(dx2 * dx2 + dz2 * dz2)
+				if distanceToOwner > leashRange then
+					return true
+				end
+			end
+			return false
 		end
-	else
-		if distanceToOrigin > weaponRange then
-			return true
-		end
+		return true
 	end
 	return false
 end
 
-local function projectileIsCloseToEdge(projectileOrigin, rangeThreshold, projectileX, projectileZ)
-	if not projectileX then return false end
-    local dx1 = projectileOrigin.x - projectileX
-    local dz1 = projectileOrigin.z - projectileZ
+local function projectileIsCloseToEdge(rangeThreshold, originX, originZ, projectileX, projectileZ)
+    local dx1 = originX - projectileX
+    local dz1 = originZ - projectileZ
     local distanceToOrigin = mathSqrt(dx1 * dx1 + dz1 * dz1)
 	if distanceToOrigin > rangeThreshold then
 		return true
@@ -109,60 +107,44 @@ end
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
 	if defWatchTable[weaponDefID] then
 		local originX, originy, originZ = spGetUnitPosition(proOwnerID)
-		lazyProjectileWatch[proOwnerID] = lazyProjectileWatch[proOwnerID] or {}
-		lazyProjectileWatch[proOwnerID][proID] = {weaponDefID = weaponDefID, origin = {x = originX, z = originZ}}
+		lazyProjectileWatch[proID] = {weaponDefID = weaponDefID, proOwnerID = proOwnerID, originX = originX, originZ = originZ}
 	end
 end
 
 function gadget:GameFrame(frame)
 	if frame % edgyUpdateFrames == 2 then
-		for proOwnerID, proIDs in pairs(edgyProjectileWatch) do
-			local hasProjectiles = false
-			for proID, proData in pairs(proIDs) do
-				hasProjectiles = true
-				local projectileX, projectileY, projectileZ = spGetProjectilePosition(proID)
-				if projectileX then
-					local defData = defWatchTable[proData.weaponDefID]
-					if projectileOverRangeCheck(proOwnerID, proData.origin, defData.overRange, defData.leashRange, projectileX, projectileZ) then
-						if defData.explodeMethod then
-							spSetProjectileCollision(proID)
-							edgyProjectileWatch[proOwnerID][proID] = nil
-						elseif defData.descentMethod then
-							forcedDescentTable[proID] = descentSpeedStartingMultiplier
-							edgyProjectileWatch[proOwnerID][proID] = nil
-						else
-							Spring.Echo("invalid destruction method")
-						end
+		for proID, proData in pairs(edgyProjectileWatch) do
+			local projectileX, projectileY, projectileZ = spGetProjectilePosition(proID)
+			if projectileX then
+				local defData = defWatchTable[proData.weaponDefID]
+				if projectileOverRangeCheck(proData.proOwnerID, defData.overRange, defData.leashRange, proData.originX, proData.originZ, projectileX, projectileZ) then
+					if defData.explodeMethod then
+						spSetProjectileCollision(proID)
+						edgyProjectileWatch[proID] = nil
+					elseif defData.descentMethod then
+						forcedDescentTable[proID] = descentSpeedStartingMultiplier
+						edgyProjectileWatch[proID] = nil
+					else
+						Spring.Echo("invalid destruction method")
 					end
-				else
-					edgyProjectileWatch[proOwnerID][proID] = nil
 				end
-			end
-			if hasProjectiles == false then
-				edgyProjectileWatch[proOwnerID] = nil
+			else
+				edgyProjectileWatch[proID] = nil -- remove destroyed projectiles
 			end
 		end
 	end
 
 	if frame % lazyUpdateFrames == 3 then
-		for proOwnerID, proIDs in pairs(lazyProjectileWatch) do
-			local hasProjectiles = false
-			for proID, proData in pairs(proIDs) do
-				hasProjectiles = true
-				local projectileX, projectileY, projectileZ = spGetProjectilePosition(proID)
-				if projectileX then
-					local defData = defWatchTable[proData.weaponDefID]
-					if projectileIsCloseToEdge(proData.origin, defData.rangeThreshold, projectileX, projectileZ) then
-					edgyProjectileWatch[proOwnerID] = edgyProjectileWatch[proOwnerID] or {}
-					edgyProjectileWatch[proOwnerID][proID] = proData
-					lazyProjectileWatch[proOwnerID][proID] = nil
-					end
-				else
-					lazyProjectileWatch[proOwnerID][proID] = nil -- remove destroyed projectiles
+		for proID, proData in pairs(lazyProjectileWatch) do
+			local projectileX, projectileY, projectileZ = spGetProjectilePosition(proID)
+			if projectileX then
+				local defData = defWatchTable[proData.weaponDefID]
+				if projectileIsCloseToEdge(defData.rangeThreshold, proData.originX, proData.originZ, projectileX, projectileZ) then
+				edgyProjectileWatch[proID] = proData
+				lazyProjectileWatch[proID] = nil
 				end
-			end
-			if hasProjectiles == false then
-				lazyProjectileWatch[proOwnerID] = nil
+			else
+				lazyProjectileWatch[proID] = nil -- remove destroyed projectiles
 			end
 		end
 	end
@@ -177,7 +159,6 @@ function gadget:GameFrame(frame)
 			else
 				forcedDescentTable[proID] = nil
 			end
-
 		end
 	end
 end
