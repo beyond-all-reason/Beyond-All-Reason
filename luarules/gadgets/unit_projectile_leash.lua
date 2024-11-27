@@ -11,7 +11,6 @@ end
 if not gadgetHandler:IsSyncedCode() then return end
 
 ---- unit customParams ----
-
 -- use weaponDef customparams.projectile_overrange_distance to destroy projectiles exceeding its limit.
 -- use weaponDef customparams.projectile_leash_range to destroy projectiles when they exceed range/projectile_overrange_distance and projectile_leash_range relative to unit position.
 
@@ -46,7 +45,7 @@ local forcedDescentTable = {}
 
 for weaponDefID, weaponDef in pairs(WeaponDefs) do
     if weaponDef.customParams.projectile_leash_range then
-        defWatchTable[weaponDefID] = defWatchTable[weaponDefID] or {}
+        defWatchTable[weaponDefID] = {}
         defWatchTable[weaponDefID].leashRange = tonumber(weaponDef.customParams.projectile_leash_range)
     end
     if weaponDef.customParams.projectile_leash_range or weaponDef.customParams.projectile_overrange_distance then
