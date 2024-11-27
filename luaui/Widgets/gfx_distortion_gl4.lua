@@ -241,7 +241,7 @@ function widget:ViewResize()
 		wrap_s = GL.CLAMP,
 		wrap_t = GL.CLAMP,
 	})
-
+	local GL_RGBA16F_ARB = 0x881A
 	--local GL_DEPTH_COMPONENT32 = 0x81A7
 	if DistortionTexture then gl.DeleteTexture(DistortionTexture) end
 	DistortionTexture = gl.CreateTexture(vsx , vsy, {
@@ -1402,15 +1402,17 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 	if autoupdate then
 		deferredDistortionShader = LuaShader.CheckShaderUpdates(distortionShaderSourceCache, 0) or deferredDistortionShader
 	end
-	--tracy.ZoneBeginN("DrawDistortionFunction")
-	--Spring.Echo("RenderToTexture(DistortionTexture, DrawDistortionFunction2")
-	gl.RenderToTexture(DistortionTexture, DrawDistortionFunction2, Spring.GetGameFrame())
-	--tracy.ZoneEnd()
 	
 	tracy.ZoneBeginN("CopyToTexture")
 	-- Blend the distortion:
 	gl.CopyToTexture(ScreenCopy, 0, 0, vpx, vpy, vsx, vsy)
 	tracy.ZoneEnd()
+
+	--tracy.ZoneBeginN("DrawDistortionFunction")
+	--Spring.Echo("RenderToTexture(DistortionTexture, DrawDistortionFunction2")
+	gl.RenderToTexture(DistortionTexture, DrawDistortionFunction2, Spring.GetGameFrame())
+	--tracy.ZoneEnd()
+	
 
 	tracy.ZoneBeginN("CombineDistortion")
 	-- Combine the distortion with the scene:
