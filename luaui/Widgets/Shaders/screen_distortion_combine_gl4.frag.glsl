@@ -10,11 +10,14 @@ uniform float distortionStrength = 1.0;
 void main(void) {
     vec4 distortion = texture2D(distortionTexture, gl_TexCoord[0].st);
     distortion.rgb = distortion.rgb * 2.0 - 1.0;
-
+    if (length(distortion.rg) < 0.01) {
+        gl_FragColor = vec4(0.0);
+        return;
+    }
     vec2 distortedUVs  = gl_TexCoord[0].st + distortionStrength * distortion.rg * 0.01;
 
     // hard clamp near the edges of the screen
-    vec2 halfTexelSize = vec2(0.5 / 1024.0, 0.5 / 768.0);
+    vec2 halfTexelSize = vec2(0.5 / 1920, 0.5 / 1080);
 
     #ifndef CHROMATIC_ABERRATION
         distortedUVs = clamp(distortedUVs, halfTexelSize, 1.0-halfTexelSize);
@@ -34,6 +37,17 @@ void main(void) {
         distortedUVs  = gl_TexCoord[0].st + distortionStrength * distortion.rg * (0.01 * CHROMATIC_ABERRATION);
         distortedUVs = clamp(distortedUVs, halfTexelSize, 1.0-halfTexelSize);
         screen.b = texture2D(screenCopyTexture, distortedUVs).b;
+    #endif
+    #if 0 
+        //NEAT!
+        //Motion Blur
+        //screen = texture2D(screenCopyTexture, gl_TexCoord[0].st);
+        screen = texture2D(screenCopyTexture, gl_TexCoord[0].st - 2*halfTexelSize);
+        screen += texture2D(screenCopyTexture, gl_TexCoord[0].st - 4*halfTexelSize);
+        screen += texture2D(screenCopyTexture, gl_TexCoord[0].st - 6*halfTexelSize);
+        screen /= 3.0;
+        gl_FragColor.rgba = vec4(screen.rgb, 0.65);
+        return;
     #endif
     if (gl_TexCoord[0].x > 0.66){ // right half?
         if (gl_TexCoord[0].y > 0.75){ // top right
