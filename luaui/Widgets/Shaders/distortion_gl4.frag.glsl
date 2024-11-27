@@ -471,7 +471,6 @@ vec3 shockWaveDisplacement(vec3 centerpos, vec3 currentpos, vec3 viewDirection, 
     float distance = length(dirInCameraSpace.xy);
     // Calculate the current radius of the shockwave
     float currentRadius = shockwaveRadius * timeFraction;
-	//printf(dirInCameraSpace.xyz);
     // Compute the difference between the distance and the shockwave's current radius
     float diff = distance - currentRadius;
 
@@ -482,7 +481,6 @@ vec3 shockWaveDisplacement(vec3 centerpos, vec3 currentpos, vec3 viewDirection, 
     // Calculate the displacement amount using a Gaussian function
     float displacementAmount = amplitude * exp(-diff * diff / (2.0 * width * width));
 
-	//printf(diff);
     // Normalize the direction in camera space
     vec2 dirNormalized = dirInCameraSpace.xy / distance;
 
@@ -562,13 +560,11 @@ void main(void)
 	vec3 viewDirection = (camPos - fragWorldPos.xyz) / fragDistance; // vector pointing in the direction of the eye ray
 
 	vec3 viewDirFromDepth = viewDirection;
-	//printf(viewDirFromDepth.xyz);
 	
 	vec4 viewDirWithoutDepth = vec4( vec3(v_screenUV.xy * 2.0 - 1.0, 0.0),  1.0);
 	viewDirWithoutDepth = cameraViewProjInv * viewDirWithoutDepth;
 	viewDirWithoutDepth.xyz = viewDirWithoutDepth.xyz/viewDirWithoutDepth.w;
 	viewDirWithoutDepth.xyz = normalize(camPos - viewDirWithoutDepth.xyz);
-	//printf(viewDirWithoutDepth.xyz);
 	
 	float distortionRadius = v_worldPosRad.w;
 	float distortionRadiusInv = 1.0 / distortionRadius;
@@ -619,8 +615,6 @@ void main(void)
 
 		closestPointOnRay = ray_line_segment_closestpoint_on_ray_and_segment2(camPos, -viewDirection, beamStart, beamEnd, distortionEmitPosition);
 	
-		//printf(closestPointOnRay.xyzw);
-		//printf(distortionEmitPosition.xyzw);
 		// Find the close and far distances to the beam volume
 		nearFarDistances.x =  capIntersect( camPos, -viewDirection, beamStart, beamEnd, distortionRadius);
 		nearFarDistances.y = - capIntersect( camPos, viewDirection, beamStart, beamEnd, distortionRadius);
@@ -649,8 +643,7 @@ void main(void)
 		float biggestradius = coneHeight * coneWidth * coneSideLengthInv / ( 1 + coneWidth * coneSideLengthInv);
 		vec3 endPoint = distortionPosition  + coneDirection * (distortionRadius - biggestradius);
 		nearFarDistances = intersectRoundedCone(camPos, -viewDirection, distortionPosition, endPoint , biggestradius * 0.11, biggestradius) ;
-		printf(nearFarDistances.xy);
-		printf(fragDistance);
+
 		EntryPoint = camPos + nearFarDistances.x * -viewDirection;
 		ExitPoint = camPos + nearFarDistances.y * -viewDirection;
 		MidPoint = (EntryPoint + ExitPoint) * 0.5;
@@ -667,8 +660,7 @@ void main(void)
 	}
 
 	#line 35000
-	printf(nearFarDistances.xy);
-	printf(fragDistance);
+
 	//fragColor.rgba = vec4(1.0); return;
 	// If the fragment is inside the volume, we need to calculate the volumetric fraction
 	float volumetricFraction = 1.0; // The fraction of the ray that passes through the volume. 
@@ -679,8 +671,7 @@ void main(void)
 		fragColor.rgba = vec4(0.0);
 		return;
 	}
-	//printf(nearFarDistances.xy);
-	//printf(volumetricFraction);
+
 
 	// Check if the volume is occluded, bail if yes!
 	//if ((fragDistance < nearFarDistances.x) || (nearFarDistances.y - nearFarDistances.x < 1e-6)){ fragColor.rgba = vec4(0.0); return; }
@@ -698,7 +689,6 @@ void main(void)
 			//float timeFraction = clamp((currentTime - lifeStart) / lifeTime, 0.0, 1.0);
 		
 			float timeFraction = fract((currentTime - lifeStart) / 100); // for debugging
-			printf(timeFraction);
 			float currentDist = distortionRadius * timeFraction;
 			// TODO : Parameterize out width in elmos
 			float width = 3;
@@ -762,10 +752,8 @@ void main(void)
 
 			// screen-space direction of the shockwave
 			vec2 displacementScreen = normalize((DistortionScreenPosition.xy * 0.5 + 0.5) - v_screenUV);
-			printf(displacementScreen.xy);
 			float overallStrength = 10 * rayBendElmos *  distanceToCameraFactor * parabolicStrength * v_baseparams.a;
 			vec2 displacementAmount = displacementScreen * overallStrength;
-			printf(displacementAmount.xy);	
 			fragColor.rgba = vec4(displacementAmount * 0.5 + 0.5, 0.0, 1.5 );
 			return;
 
@@ -773,7 +761,6 @@ void main(void)
 
 	
 	//------------------------- BEGIN GROUND SHOCKWAVE -------------------------
-	printf(effectType);
 	else if (effectType == 2){
 		// Create a ground shockwave displacement that only displaces ground fragments based on the distance to the distortion source:
 		// TODO: instead of using radius here, adjust radius in the vertex shader!
@@ -868,13 +855,11 @@ void main(void)
 
 		vec3 dirInCameraSpace2 = normalize(MagnifierScreenPosition - DistortionScreenPosition);
 		float relativeDistance = clamp(1.0 - length(MidPoint - distortionEmitPosition.xyz) / distortionRadius, 0.0, 1.0);
-		//printf(dirInCameraSpace2.xyz);
 		dirInCameraSpace2 *= 1.0 - sqrt(relativeDistance);
 		dirInCameraSpace2 *= -3.0;
 		
 		float distanceToCameraFactor =  clamp(300.0/ length(camPos - distortionEmitPosition.xyz), 0.0, 1.0);
 		dirInCameraSpace2 *= distanceToCameraFactor;
-		//printf(dirInCameraSpace2.xyz);
 		fragColor.rgba = vec4(dirInCameraSpace2.xy * 0.5 + 0.5, 0.0, 1.0);
 	}
 		//------------------------- BEGIN MAGNIFIER Plano-convex -------------------------
@@ -891,13 +876,11 @@ void main(void)
 
 		vec3 dirInCameraSpace2 = normalize(MagnifierScreenPosition.xyz - DistortionScreenPosition.xyz);
 		float relativeDistance = clamp(1.0 - length(MidPoint - distortionEmitPosition.xyz) / distortionRadius, 0.0, 1.0);
-		//printf(dirInCameraSpace2.xyz);
 		dirInCameraSpace2 *= 1.0 - sqrt(relativeDistance);
 		dirInCameraSpace2 *= -3.0;
 		
 		float distanceToCameraFactor =  clamp(300.0/ length(camPos - distortionEmitPosition.xyz), 0.0, 1.0);
 		dirInCameraSpace2 *= distanceToCameraFactor;
-		//printf(dirInCameraSpace2.xyz);
 		fragColor.rgba = vec4(dirInCameraSpace2.xy * 0.5 + 0.5, 0.0, 1.0);
 	}
 
@@ -911,7 +894,6 @@ void main(void)
 
 		// Multiply the relative volume density:
 		distortionAttenuation *= relativeDensity;
-		printf(relativeDensity);
 
 		// Attenuate with distance:
 		distortionAttenuation *= distance_attenuation;
