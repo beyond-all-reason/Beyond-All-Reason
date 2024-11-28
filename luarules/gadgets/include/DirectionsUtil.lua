@@ -24,7 +24,9 @@ local spherePackings = {
     { 1,                         0,                         0,                         -0.5,                      0,                         0.866025403784439,         -0.5,                      0,                         -0.866025403784438 },
     { -0.577350269072,           0.577350269072,            -0.577350269072,           0.577350269072,            0.577350269072,            0.577350269072,            -0.577350269072,           -0.577350269072,           0.577350269072,            0.577350269072,            -0.577350269072,           -0.577350269072 },
     { -1.478255937088018300e-01, 8.557801392177640800e-01,  4.957700547280610200e-01,  9.298520676823500700e-01,  -3.330452755499895800e-01, -1.563840677968503200e-01, -7.820264758448114400e-01, -5.227348665222011400e-01, -3.393859902820995400e-01, -3.612306945786420600e-02, -5.056147808319168000e-01, 8.620027942282061400e-01,  3.612306958303366400e-02,  5.056147801034870400e-01,  -8.620027946502272200e-01 },
-    { 0.212548255920,            -0.977150570601,           0.000000000000,            -0.977150570601,           -0.212548255920,           0.000000000000,            -0.212548255920,           0.977150570601,            0.000000000000,            0.977150570601,            0.212548255920,            0.000000000000,            0.000000000000,            0.000000000000,            1.000000000000,            0.000000000000,            0.000000000000,            -1.000000000000 },
+    -- This set is too axis-aligned, so I'm rotating it. The main issue is the vertical y-down, which tends to shoot into the ground.
+ -- { 0.212548255920,            -0.977150570601,           0.000000000000,            -0.977150570601,           -0.212548255920,           0.000000000000,            -0.212548255920,           0.977150570601,            0.000000000000,            0.977150570601,            0.212548255920,            0.000000000000,            0.000000000000,            0.000000000000,            1.000000000000,            0.000000000000,            0.000000000000,            -1.000000000000 },
+    { 0.2125482559,              -0.819507424,              0.5321943438,              -0.9771505706,             -0.1782579665,             0.115762077,               -0.2125482559,             0.819507424,               -0.5321943438,             0.9771505706,              0.1782579665,              -0.115762077,              0,                         0.544639035,               0.8386705679,              0,                         -0.544639035,              -0.8386705679 },
     { -9.476914051796328000e-01, -2.052179514558175300e-01, 2.444720698749264500e-01,  8.503710682661692600e-01,  4.830848344829018500e-01,  2.085619547004717300e-01,  -4.995609516538522300e-01, 3.276811928816584800e-01,  -8.019126457503652500e-01, -3.344875986220292000e-01, 8.899589445240678700e-01,  3.099856826204648300e-01,  2.420381484495352800e-02,  -9.924430055046316000e-01, 1.202957030483007100e-01,  5.426485704335360500e-02,  -8.987314180840469400e-02, 9.944738024058507000e-01,  5.948684088498340500e-01,  -2.881863468134767100e-01, -7.503867040818149600e-01 },
     { -7.941044876934105800e-01, 3.289288487526511000e-01,  5.110810846464987100e-01,  3.289288487526511000e-01,  -7.941044876934105800e-01, -5.110810846464987100e-01, 7.941044876934105800e-01,  3.289288487526511000e-01,  -5.110810846464987100e-01, -3.289288487526511000e-01, -7.941044876934105800e-01, 5.110810846464987100e-01,  -7.941044876934105800e-01, -3.289288487526511000e-01, -5.110810846464987100e-01, 3.289288487526511000e-01,  7.941044876934105800e-01,  5.110810846464987100e-01,  7.941044876934105800e-01,  -3.289288487526511000e-01, 5.110810846464987100e-01,  -3.289288487526511000e-01, 7.941044876934105800e-01,  -5.110810846464987100e-01 },
     { -8.643506667047617900e-01, 5.383237842631424800e-02,  -5.000000000000000000e-01, -5.299022434190759900e-01, 7.798028605204248000e-01,  3.333333333820566700e-01,  -6.225653123557293200e-01, -7.080263559415142000e-01, 3.333333333820566700e-01,  -4.633153446832672500e-02, -7.439146082309695500e-01, -6.666666667641134600e-01, -1.814158190933165000e-20, -3.736015732192668700e-20, 1.000000000000000000e+00,  8.643506667047617900e-01,  -5.383237842631424800e-02, -5.000000000000000000e-01, 5.299022434190759900e-01,  -7.798028605204248000e-01, 3.333333333820566700e-01,  6.225653123557293200e-01,  7.080263559415142000e-01,  3.333333333820566700e-01,  4.633153446832672500e-02,  7.439146082309695500e-01,  -6.666666667641134600e-01 },
@@ -40,10 +42,9 @@ local spherePackings = {
 --------------------------------------------------------------------------------------------------------------
 -- Randomly distributed arrays -------------------------------------------------------------------------------
 
---- Produces a array of unrolled float3 vectors representing directions.
--- This function uses rejection sampling which is efficient but inappropriate for constant-time operations.
--- @tparam[opt] number n count of directions to produce
--- @treturn {float,...} array with length equal to 3n
+---Produces an array of unrolled float3 vectors representing directions.
+---@param n number count of vectors to produce
+---@return table vector3s
 DirectionsUtil.GetRandomDirections = function(n)
     n = n > 1 and n or 1
     local vecs = {}
@@ -65,12 +66,10 @@ end
 --------------------------------------------------------------------------------------------------------------
 -- Combined distribution arrays ------------------------------------------------------------------------------
 
---- Fetches a premade direction set from DistributedDirections; otherwise, generates random directions.
--- @tparam[opt] number n count of (unrolled) float3 directions to retrieve
--- @treturn[1] {float,...} array with length equal to 3n
--- @treturn[1] boolean true if the result is random
--- @treturn[2] nil
--- @see DirectionsUtil.GetRandomDirections
+---Fetches a premade direction set from DistributedDirections; otherwise, generates random directions.
+---@param n number count of vectors to retrieve
+---@return table vector3s
+---@return boolean randomized
 DirectionsUtil.GetDirections = function(n)
     if not n or n < 1 then return end
     local distributed = DirectionsUtil.Directions[n]
@@ -84,9 +83,9 @@ DirectionsUtil.GetDirections = function(n)
     end
 end
 
---- Pad the size of an insufficient direction set by adding randomly generated directions.
--- @tparam number n maximum solution size to add to Directions
--- @treturn boolean whether provisioning succeeded
+---Pad the size of an insufficient direction set by adding randomly generated directions.
+---@param n number max solution size to add to Directions
+---@return boolean success
 DirectionsUtil.ProvisionDirections = function(n)
     if n < 2 or n > DIRECTION_SET_SIZE_MAX then return false end
     local directions = DirectionsUtil.Directions
