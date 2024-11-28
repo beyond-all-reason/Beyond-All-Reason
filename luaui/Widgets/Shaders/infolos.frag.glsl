@@ -1,4 +1,8 @@
 #version 130
+
+// (C) 2022 Beherith (mysterme@gmail.com) and others (sources marked inline below)
+// Licenced under the MIT licence
+
 //__DEFINES__
 
 uniform float time;

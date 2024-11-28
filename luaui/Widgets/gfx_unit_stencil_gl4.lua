@@ -40,6 +40,9 @@ local vsSrc =  [[
 #extension GL_ARB_shader_storage_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
 
+// (C) 2022 Beherith (mysterme@gmail.com)
+// Licenced under the MIT licence
+
 #line 5000
 
 layout (location = 0) in vec4 unitModelMinXYZ;
@@ -104,6 +107,10 @@ local gsSrc = [[
 #version 330
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
+
+// (C) 2022 Beherith (mysterme@gmail.com)
+// Licenced under the MIT licence
+
 //__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
 layout(points) in;
@@ -176,6 +183,9 @@ void main(){
 local fsSrc =
 [[
 #version 150 compatibility
+
+// (C) 2022 Beherith (mysterme@gmail.com)
+// Licenced under the MIT licence
 
 uniform float stencilColor = 1.0; // 1 if we are stenciling
 

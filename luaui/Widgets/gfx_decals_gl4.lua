@@ -4,7 +4,7 @@ function widget:GetInfo()
 		desc = "Try to draw some nice normalmapped decals",
 		author = "Beherith",
 		date = "2021.11.02",
-		license = "Lua code: GNU GPL, v2 or later, Shader GLSL code: (c) Beherith (mysterme@gmail.com)",
+		license = "GNU GPL, v2 or later",
 		layer = 999,
 		enabled = true,
 	}
