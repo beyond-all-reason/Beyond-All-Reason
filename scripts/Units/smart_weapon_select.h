@@ -2,7 +2,7 @@
 
 #ifndef __SMARTSELECT_H_
 
-static-var switchAimModeFrame, queueLowFrame, firedLowFailed, gameFrame;
+static-var switchAimModeFrame, queueLowFrame, firedLowFailed, gameFrame, overrideAimingState;
 
 #define __SMARTSELECT_H_
 
@@ -16,12 +16,15 @@ static-var switchAimModeFrame, queueLowFrame, firedLowFailed, gameFrame;
 OverrideAimingState(weaponNumber)
 {
 	if (weaponNumber == AIMING_LOW){
-			switchAimModeFrame = (gameFrame + RESET_LOW_DELAY_FRAMES);
-			aimingState = AIMING_LOW;
+			overrideAimingState = AIMING_LOW;
 	} else if ((weaponNumber == AIMING_HIGH)){
-		switchAimModeFrame = (gameFrame + RESET_HIGH_DELAY_FRAMES);
-		aimingState = AIMING_HIGH;
+		overrideAimingState = AIMING_HIGH;
 	}
+}
+
+ClearOverrideAimingState()
+{
+	overrideAimingState = AIMING_NEITHER;
 }
 
 SetAimingState(weaponNumber)
@@ -44,7 +47,7 @@ SmartAimSelect(weaponNumber)
 {
 	var highReloadState, lowReloadState, greatestReloadState;
 	gameFrame = (get GAME_FRAME);
-
+	
 	//define a period where low is given priority to steal.
 	if (weaponNumber == AIMING_LOW){
 		queueLowFrame = (switchAimModeFrame + RESET_LOW_DELAY_FRAMES);
@@ -74,8 +77,11 @@ SmartAimSelect(weaponNumber)
 	}
 	
 	if (aimingState == AIMING_NEITHER){
-		call-script setAimingState(weaponNumber);
-	}	
-	return (aimingState);
+		if (overrideAimingState != AIMING_NEITHER){
+			call-script setAimingState(overrideAimingState);
+		} else {
+			call-script setAimingState(weaponNumber);
+		}
+	}
 }
 #endif
