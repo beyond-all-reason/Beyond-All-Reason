@@ -1,7 +1,16 @@
 #define TA			// This is a TA script
 
 #include "sfxtype.h"
-#include "exptype.h"zRAMES				450
+#include "exptype.h"
+
+piece  flare1, flare2, base, turret, barrel1, barrel2, sleeves;
+
+//smasel remove debugGameFrame
+static-var  nextBarrel, trajectoryMode, lastHeading, aimingState;
+
+#define SIGNAL_AIM							1
+// #define RESET_LOW_DELAY_FRAMES				15
+// #define RESET_HIGH_DELAY_FRAMES				450
 // #define RESET_HIGH_ERRORSTATE_FRAMES		900
 // #define AIMING_NEITHER						0
 // #define AIMING_LOW							1
@@ -138,9 +147,8 @@ aimCommon(heading, pitch)
 
 AimPrimary(heading, pitch)
 {
-	var weaponSelect;
-	weaponSelect = SmartAimSelect(AIMING_LOW);
-	if (weaponSelect != AIMING_LOW){
+	call-script SmartAimSelect(AIMING_LOW);
+	if (aimingState != AIMING_LOW){
 		return(0);
 	}
 
@@ -154,10 +162,8 @@ AimPrimary(heading, pitch)
 
 AimSecondary(heading, pitch)
 {
-	var weaponSelect;
-	weaponSelect = SmartAimSelect(AIMING_HIGH);
-	if (weaponSelect != weaponSelect;
-	weaponSelect =  AIMING_HIGH){
+	call-script SmartAimSelect(AIMING_HIGH);
+	if (aimingState != AIMING_HIGH){
 		return (0);
 	}
 	signal SIGNAL_AIM;

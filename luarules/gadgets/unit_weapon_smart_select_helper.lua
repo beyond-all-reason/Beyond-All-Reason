@@ -90,7 +90,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 			unitDefID = unitDefID,
 			preferredWeapon = unitDefsWithSmartWeapons[unitDefID].preferredWeapon,
 			deferredWeapon = unitDefsWithSmartWeapons[unitDefID].deferredWeapon,
-			overrideScriptID = Spring.GetCOBScriptID(unitID, "overrideAimingState"),
+			overrideScriptID = Spring.GetCOBScriptID(unitID, "OverrideAimingState"),
 			overrideExpirationFrame = gameFrame + innitializeExpirationFrames
 		}
 	end

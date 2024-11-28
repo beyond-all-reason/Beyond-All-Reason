@@ -2,7 +2,7 @@
 
 #ifndef __SMARTSELECT_H_
 
-static-var aimingState, switchAimModeFrame, queueLowFrame, firedLowFailed, gameFrame;
+static-var switchAimModeFrame, queueLowFrame, firedLowFailed, gameFrame;
 
 #define __SMARTSELECT_H_
 
