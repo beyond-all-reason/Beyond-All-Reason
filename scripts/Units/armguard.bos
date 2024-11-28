@@ -1,16 +1,7 @@
 #define TA			// This is a TA script
 
 #include "sfxtype.h"
-#include "exptype.h"
-
-piece  flare1, flare2, base, turret, barrel1, barrel2, sleeves;
-
-//smasel remove debugGameFrame
-static-var  nextBarrel, trajectoryMode, lastHeading;
-
-#define SIGNAL_AIM							1
-// #define RESET_LOW_DELAY_FRAMES				15
-// #define RESET_HIGH_DELAY_FRAMES				450
+#include "exptype.h"zRAMES				450
 // #define RESET_HIGH_ERRORSTATE_FRAMES		900
 // #define AIMING_NEITHER						0
 // #define AIMING_LOW							1

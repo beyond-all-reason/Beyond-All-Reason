@@ -1,8 +1,7 @@
 /* Rockunit.h -- Rock the unit when it fire a heavy weapon with lots of recoil */
 
 #ifndef __SMARTSELECT_H_
-#include "sfxtype.h"
-#include "exptype.h"
+
 static-var aimingState, switchAimModeFrame, queueLowFrame, firedLowFailed, gameFrame;
 
 #define __SMARTSELECT_H_
@@ -13,7 +12,6 @@ static-var aimingState, switchAimModeFrame, queueLowFrame, firedLowFailed, gameF
 #define AIMING_NEITHER						0
 #define AIMING_LOW							1
 #define AIMING_HIGH							2
-#define GAME_FRAME							134
 
 OverrideAimingState(weaponNumber)
 {
