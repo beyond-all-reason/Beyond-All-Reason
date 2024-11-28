@@ -28,8 +28,8 @@ do
 end
 
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.waterline and unitDef.waterline >= 30 then
-		subDefIDs[unitDefID] = unitDef.waterline / 16
+	if unitDef.waterline and unitDef.minWaterDepth and unitDef.waterline >= 30 then
+		subDefIDs[unitDefID] = (unitDef.waterline - unitDef.minWaterDepth) / 16
 	end
 end
 

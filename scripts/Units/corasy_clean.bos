@@ -95,7 +95,7 @@ Deactivate()
 
 QueryBuildInfo(pieceIndex)
 {
-	pieceIndex = base;
+	pieceIndex = pad;
 }
 
 
