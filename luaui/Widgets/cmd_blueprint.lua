@@ -267,7 +267,7 @@ local function setSelectedBlueprintIndex(index)
 		WG["api_blueprint"].setActiveBlueprint(nil)
 	end
 
-	if blueprintPlacementActive and index ~= nil and index > 0 then
+	if index ~= nil and index > 0 then
 		Spring.Echo("[Blueprint] selected blueprint #" .. selectedBlueprintIndex)
 	end
 end
@@ -864,6 +864,45 @@ local function handleSpacingAction(_, _, args)
 	end
 end
 
+local function handleBlueprintSelectAction(cmd, optLine, optWords, data, isRepeat, release, actions)
+	local targetIndex = tonumber(optLine)
+
+	local function selectIndex(index)
+		setSelectedBlueprintIndex(index)
+		Spring.SetActiveCommand(
+			Spring.GetCmdDescIndex(CMD_BLUEPRINT_PLACE),
+			1,
+			true,
+			false,
+			false,
+			false,
+			false,
+			false
+		)
+	end
+
+	if targetIndex ~= nil then
+		if targetIndex <= #blueprints then
+			selectIndex(targetIndex)
+			return true
+		else
+			return false
+		end
+	end
+
+	local targetName = optLine
+	if targetName ~= nil then
+		for blueprintIndex, blueprint in ipairs(blueprints) do
+			if blueprint.name == targetName then
+				selectIndex(blueprintIndex)
+				return true
+			end
+		end
+
+		return false
+	end
+end
+
 function widget:MousePress(x, y, button)
 	if button ~= 1 or not blueprintPlacementActive or not getSelectedBlueprint() then
 		return
@@ -1145,6 +1184,7 @@ function widget:Initialize()
 	widgetHandler.actionHandler:AddAction(self, "blueprint_next", handleBlueprintNextAction, nil, "p")
 	widgetHandler.actionHandler:AddAction(self, "blueprint_prev", handleBlueprintPrevAction, nil, "p")
 	widgetHandler.actionHandler:AddAction(self, "blueprint_delete", handleBlueprintDeleteAction, nil, "p")
+	widgetHandler.actionHandler:AddAction(self, "blueprint_select", handleBlueprintSelectAction, nil, "p")
 	widgetHandler.actionHandler:AddAction(self, "buildfacing", handleFacingAction, nil, "p")
 	widgetHandler.actionHandler:AddAction(self, "buildspacing", handleSpacingAction, nil, "p")
 
@@ -1171,6 +1211,7 @@ function widget:Shutdown()
 	widgetHandler.actionHandler:RemoveAction(self, "blueprint_next", "p")
 	widgetHandler.actionHandler:RemoveAction(self, "blueprint_prev", "p")
 	widgetHandler.actionHandler:RemoveAction(self, "blueprint_delete", "p")
+	widgetHandler.actionHandler:RemoveAction(self, "blueprint_select", "p")
 	widgetHandler.actionHandler:RemoveAction(self, "buildfacing", "p")
 	widgetHandler.actionHandler:RemoveAction(self, "buildspacing", "p")
 end
