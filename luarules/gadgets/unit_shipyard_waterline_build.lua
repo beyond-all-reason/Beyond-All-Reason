@@ -12,6 +12,7 @@ if not gadgetHandler:IsSyncedCode() then return false end
 
 
 local shipyardsDefIDPads	= {}
+local shipyardsDefIDWaterlines	= {}
 local subDefIDs		= {}
 do
 	local shipyardsNamesToPads = {
@@ -23,13 +24,14 @@ do
 	for name, pad in pairs(shipyardsNamesToPads) do
 		if UnitDefNames[name] then
 			shipyardsDefIDPads[UnitDefNames[name].id] = pad
+			shipyardsDefIDWaterlines[UnitDefNames[name].id] = UnitDefNames[name].waterline
 		end
 	end
 end
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.waterline and unitDef.minWaterDepth and unitDef.waterline >= 30 then
-		subDefIDs[unitDefID] = (unitDef.waterline - unitDef.minWaterDepth) / 16
+		subDefIDs[unitDefID] = (unitDef.waterline)
 	end
 end
 
@@ -39,7 +41,13 @@ function gadget:AllowUnitCreation(unitDefID, builderID, builderTeam, x, y, z, fa
 	local builderDefID = Spring.GetUnitDefID(builderID)
 	if shipyardsDefIDPads[builderDefID] then
 		local piece = shipyardsDefIDPads[builderDefID]
-		local waterDebth = subDefIDs[unitDefID] or 0
+		local waterDebth = subDefIDs[unitDefID]
+		if waterDebth then
+			waterDebth = waterDebth + shipyardsDefIDWaterlines[builderDefID]
+			waterDebth = waterDebth / 8
+		else
+			waterDebth = 0
+		end
 		Spring.SetUnitPieceMatrix(builderID, piece, {
 			1,0,0,0,
 			0,1,0,0,
