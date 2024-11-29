@@ -211,7 +211,7 @@ function widget:TextCommand(msg)
 		SaveGame(savefilename, savefilename, true)
 
 		if Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), 'chobby') ~= nil then
-			Spring.SendLuaMenuMsg("addNewSaveGame")
+			Spring.SendLuaMenuMsg("gameSaved")
 		end
 	end
 end
