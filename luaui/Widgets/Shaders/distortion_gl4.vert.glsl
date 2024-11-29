@@ -14,7 +14,7 @@ layout (location = 4) in vec4 worldposrad2; // velocity for points, beam end for
 layout (location = 5) in vec4 baseparams;  // alpha contains overall strength multiplier
 layout (location = 6) in vec4 universalParams; // noiseStrength, noiseScaleSpace, distanceFalloff, onlyModelMap
 layout (location = 7) in vec4 lifeParams; // spawnFrame, lifeTime, rampUp, decay
-layout (location = 8) in vec4 color2; // 
+layout (location = 8) in vec4 effectParams; // effectparam1, effectparam2, windAffected, effectType
 layout (location = 9) in uint pieceIndex; // for piece type distortions
 layout (location = 10) in uvec4 instData; // matoffset, uniformoffset, teamIndex, drawFlags {id = 5, name = 'instData', size = 4, type = GL.UNSIGNED_INT},
 
@@ -70,8 +70,9 @@ out DataVS {
 	flat vec4 v_worldPosRad;
 	flat vec4 v_worldPosRad2;
 	flat vec4 v_baseparams;
-	flat vec4 v_universalParams; // 
+	flat vec4 v_universalParams; // noiseStrength, noiseScaleSpace, distanceFalloff, onlyModelMap
 	flat vec4 v_lifeParams; // spawnFrame, lifeTime, rampUp, decay
+	flat vec4 v_effectParams; // effectparam1, effectparam2, windAffected, effectType
 	vec4 v_noiseoffset;
 	noperspective vec2 v_screenUV;
 };
@@ -149,11 +150,11 @@ void main()
 		distortionCenterPosition = (placeInWorldMatrix * vec4(distortionCenterPosition, 1.0)).xyz; 
 		
 		
-		float colortime = color2.a; // Matches colortime in distortionConf for point distortions
+		float colortime = 0.0;// Matches colortime in distortionConf for point distortions
 		if  (attachedtounitID > 0.5) {
 			// for point distortions, if the colortime is anything sane (>0), then modulate the distortion with it.
-			if (colortime >0.5){
-				v_baseparams.a = mix( color2.a, v_baseparams.a, cos((elapsedframes * 6.2831853) / colortime ) * 0.5 + 0.5); }
+			//if (colortime >0.5){
+			//	v_baseparams.a = mix( color2.a, v_baseparams.a, cos((elapsedframes * 6.2831853) / colortime ) * 0.5 + 0.5); }
 				
 		}else{
 			if (colortime >0.0){
@@ -165,7 +166,7 @@ void main()
 				else {
 					colormod =  cos(elapsedframes * 6.2831853 * colortime ) * 0.5 + 0.5;
 				}
-				v_baseparams.a = mix(v_baseparams.a, color2.a, colormod); 
+				//v_baseparams.a = mix(v_baseparams.a, color2.a, colormod); 
 			}
 			if (worldposrad2.w < 1.0) {
 				distortionCenterPosition += timeInfo.w * worldposrad2.xyz;
@@ -279,7 +280,7 @@ void main()
 	// Get the heightmap and the normal map at the center position of the distortion in v_worldPosRad.xyz
 	
 	//-------------------------- BEGIN SHARED SECTION ---------------------
-	int effectType = int(round(lifeParams.w));
+	int effectType = int(round(effectParams.w));
 	if (effectType == 11){
 		v_worldPosRad2 = uni[instData.y].speed;
 	}
@@ -288,6 +289,7 @@ void main()
 	//v_noiseoffset = vec4(0.0);
 	//v_noiseoffset.y = windX + windZ;
 	v_universalParams = universalParams;
+	v_effectParams = effectParams;
 	gl_Position = cameraViewProj * vertexPosition;
 	v_screenUV = SNORM2NORM(gl_Position.xy / gl_Position.w);
 	

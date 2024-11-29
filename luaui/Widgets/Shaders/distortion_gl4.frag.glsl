@@ -15,6 +15,7 @@ in DataVS {
 	flat vec4 v_baseparams;
 	flat vec4 v_universalParams; // noiseStrength, noiseScaleSpace, distanceFalloff, onlyModelMap
 	flat vec4 v_lifeParams;  // spawnFrame, lifeTime, rampUp, decay
+	flat vec4 v_effectParams; // effectparam1, effectparam2, windAffected, effectType
 	vec4 v_noiseoffset; // contains wind data, very useful!
 	noperspective vec2 v_screenUV; // i have no fucking memory as to why this is set as noperspective
 };
@@ -534,7 +535,7 @@ float pcurve_k( float x, float a, float b, float k )
 void main(void)
 {
 	//-------------------------- BEGIN SHARED SECTION ---------------------
-	int effectType = int(round(v_lifeParams.w));
+	int effectType = int(round(v_effectParams.w));
 	
 	// TODO: Get the view vector before fetching texels for speedups, we cant really bail on all that many fragments...
 	
@@ -755,11 +756,9 @@ void main(void)
 
 
 
-
-
 			// screen-space direction of the shockwave
 			vec2 displacementScreen = normalize((DistortionScreenPosition.xy * 0.5 + 0.5) - v_screenUV);
-			float overallStrength = 10 * rayBendElmos *  distanceToCameraFactor * parabolicStrength * v_baseparams.a;
+			float overallStrength = 10 * rayBendElmos *  distanceToCameraFactor * parabolicStrength;// * v_baseparams.a;
 			vec2 displacementAmount = displacementScreen * overallStrength;
 			fragColor.rgba = vec4(displacementAmount * 0.5 + 0.5, 0.0, 1.5 );
 			return;
@@ -894,7 +893,9 @@ void main(void)
 	//------------------------- BEGIN Motion Blur -------------------------
 	else if (effectType == 11){
 		vec3 unittravelDirection = normalize(v_worldPosRad.xyz - v_worldPosRad2.xyz);
-
+		printf(v_worldPosRad2.xyzw);
+		//DEBUGPOS(v_worldPosRad2.xyz);
+		fragColor = vec4(v_worldPosRad2.xyz, 1.0);
 
 	}
 
