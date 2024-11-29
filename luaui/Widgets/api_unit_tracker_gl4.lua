@@ -726,13 +726,13 @@ function widget:GameStart()
 
 		local client=socket.tcp()
 		local res, err = client:connect("server4.beyondallreason.info", 8200)
-		if not res and not res=="timeout" then
+		if not res and err ~= "timeout" then
 			--Spring.Echo("Failure",res,err)
 		else
 			local message = "c.telemetry.log_client_event lobby:info " .. string.base64Encode(Json.encode(pnl)).." ZGVhZGJlZWZkZWFkYmVlZmRlYWRiZWVmZGVhZGJlZWY=\n"
 			client:send(message)
 		end
-		if client ~= nil then client:close() end
+		client:close()
 	end
 	--local succes, res = pcall(LobbyInfo)
 end
