@@ -214,8 +214,12 @@ local options = {
 
     {
         key    	= "norushtimer",
-        name   	= "No Rush Time",
-        desc   	= "Set timer in which players cannot get out of their startbox, so you have time to prepare before fighting. PLEASE NOTE: For this to work, the game needs to have set startboxes. It won't work in FFA mode without boxes. Also, it does not affect Scavengers and Raptors.",
+        name   	= "No Rush Time".."\255\128\128\128".." [minutes]",
+        desc   	= "Set timer in which players cannot get out of their startbox, so you have time to prepare before fighting.\n"..
+			"PLEASE NOTE: For this to work, the game needs to have set startboxes.\n"..
+			-- tabs don't do much in chobby
+			"                          It won't work in FFA mode without boxes.\n"..
+			"                          Also, it does not affect Scavengers and Raptors.",
         type   	= "number",
         section	= "options_main",
         def    	= 0,
