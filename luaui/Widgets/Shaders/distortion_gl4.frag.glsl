@@ -13,10 +13,17 @@ in DataVS {
 	flat vec4 v_worldPosRad;
 	flat vec4 v_worldPosRad2;
 	flat vec4 v_baseparams;
-	flat vec4 v_otherparams;  // hopefully containst effectType in .w
+	flat vec4 v_universalParams; // noiseStrength, noiseScaleSpace, distanceFalloff, onlyModelMap
+	flat vec4 v_lifeParams;  // spawnFrame, lifeTime, rampUp, decay
 	vec4 v_noiseoffset; // contains wind data, very useful!
 	noperspective vec2 v_screenUV; // i have no fucking memory as to why this is set as noperspective
 };
+
+#define NOISESTRENGTH v_universalParams.x
+#define NOISESCALESPACE v_universalParams.y
+#define DISTANCEFALLOFF v_universalParams.z
+#define ONLYMODELMAP v_universalParams.w
+
 
 uniform sampler2D mapDepths;
 uniform sampler2D modelDepths;
@@ -187,8 +194,8 @@ vec4 ray_line_segment_closestpoint_on_ray_and_segment2(in vec3 rayOrigin, in vec
     float e = dot(lineStartToEnd, originToStart);
 
     float D = lineLenSQR - dotRayLine * dotRayLine;            // Denominator for s and t parameters
-    float sc, sN, sD = D;
-    float tc, tN, tD = D;
+    float sN, sD = D;
+    float tN, tD = D;
 
     // Check if lines are almost parallel
     if (abs(D) < 1e-8) {
@@ -527,7 +534,7 @@ float pcurve_k( float x, float a, float b, float k )
 void main(void)
 {
 	//-------------------------- BEGIN SHARED SECTION ---------------------
-	int effectType = int(round(v_otherparams.w));
+	int effectType = int(round(v_lifeParams.w));
 	
 	// TODO: Get the view vector before fetching texels for speedups, we cant really bail on all that many fragments...
 	
@@ -660,7 +667,7 @@ void main(void)
 	}
 
 	#line 35000
-
+	//printf(MidPoint.xyz);
 	//fragColor.rgba = vec4(1.0); return;
 	// If the fragment is inside the volume, we need to calculate the volumetric fraction
 	float volumetricFraction = 1.0; // The fraction of the ray that passes through the volume. 
@@ -683,8 +690,8 @@ void main(void)
 		// Create an air shockwave displacement based on the distance to the distortion source:
 		// Bend the distortion beam as many times as it goes through the sphere!
 			// Lifetime goes from 0 to 1
-			float lifeStart = v_otherparams.x;
-			float lifeTime = v_otherparams.y;
+			float lifeStart = v_lifeParams.x;
+			float lifeTime = v_lifeParams.y;
 			float currentTime = timeInfo.x + timeInfo.w;
 			//float timeFraction = clamp((currentTime - lifeStart) / lifeTime, 0.0, 1.0);
 		
@@ -769,8 +776,8 @@ void main(void)
 			
 
 			// Lifetime goes from 0 to 1
-			float lifeStart = v_otherparams.x;
-			float lifeTime = v_otherparams.y;
+			float lifeStart = v_lifeParams.x;
+			float lifeTime = v_lifeParams.y;
 			float currentTime = timeInfo.x + timeInfo.w;
 			float timeFraction = clamp((currentTime - lifeStart) / lifeTime, 0.0, 1.0);
 
@@ -883,6 +890,13 @@ void main(void)
 		dirInCameraSpace2 *= distanceToCameraFactor;
 		fragColor.rgba = vec4(dirInCameraSpace2.xy * 0.5 + 0.5, 0.0, 1.0);
 	}
+	
+	//------------------------- BEGIN Motion Blur -------------------------
+	else if (effectType == 11){
+		vec3 unittravelDirection = normalize(v_worldPosRad.xyz - v_worldPosRad2.xyz);
+
+
+	}
 
 	//------------------------- BEGIN HEAT DISTORTION -------------------------
 	// Debugging check attenuations for each distortion source type:
@@ -899,7 +913,7 @@ void main(void)
 		distortionAttenuation *= distance_attenuation;
 		
 		// TODO: plug in custom distoriton falloff power
-		distortionAttenuation = pow(distortionAttenuation, .5); 
+		distortionAttenuation = pow(distortionAttenuation, DISTANCEFALLOFF); 
 
 		// Take into account relative distance of ray point closest to distortion source to the distortion source
 		distortionAttenuation *= volumetricFraction;
@@ -918,8 +932,12 @@ void main(void)
 		// Get the noise sample:
 		vec3 noisePosition = MidPoint.xyz;
 		
+		if (NOISESCALESPACE < 0.0){
+			noisePosition -= v_worldPosRad.xyz;
+		}
+
 		// Normalized noise sample
-		vec4 noiseSampleNorm = (textureLod(noise3DCube, noisePosition * 0.03 - vec3(0,(timeInfo.x + timeInfo.w) * 0.01, 0), 0.0) )* 2.0 - 1.0;
+		vec4 noiseSampleNorm = (textureLod(noise3DCube, (abs(NOISESCALESPACE)*noisePosition) * 0.03 - vec3(0,(timeInfo.x + timeInfo.w) * 0.01, 0), 0.0) )* 2.0 - 1.0;
 
 
 		// modulate the effect strength with the distance to the heat source:
@@ -927,9 +945,20 @@ void main(void)
 		noiseSampleNorm *= distanceToCameraFactor;
 
 		// Modulate alpha with the distortionAttenuation
-		fragColor.rgba = vec4(vec3(noiseSampleNorm.ra * 0.5 + 0.5, 0.0) * 1.0 ,  distortionAttenuation);
-		//if (ismodel < 0.5) {	fragColor.rgba = vec4(0.5,0.5,0.5,1.0);	}
-		return;
 
+		noiseSampleNorm *= NOISESTRENGTH;
+		fragColor.rgba = vec4(vec3(noiseSampleNorm.ra * 0.5 + 0.5, 0.0) * 1.0 ,  distortionAttenuation);
+		//if (ismodel > 0.5) {fragColor.rgba = vec4(0.5,0.5,0.5,1.0);	}
+		//return;
+
+	}else{
+		fragColor.rgba = vec4(1.0);// default fallthrough, should never appear
 	}
+	
+	// is a model fragment and we only want to affect map
+	if ((ismodel > 0.5) && (ONLYMODELMAP > 0.5)) fragColor.a = 0.0; 
+
+	 // is map fragment and we only want to to affect models
+	if ((ismodel < 0.5) && (ONLYMODELMAP < -0.5)) fragColor.a = 0.0;
+	// final scaling:
 }

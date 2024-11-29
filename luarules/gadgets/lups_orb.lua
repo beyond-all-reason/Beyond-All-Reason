@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		date = "2020",
 		license = "GNU GPL, v2 or later",
 		layer = 1500,
-		enabled = true,
+		enabled = false, -- deprecated by Distortion GL4
 	}
 end
 
@@ -76,7 +76,7 @@ local armgateShieldSphere = table.merge(defaults, {
 local UnitEffects = {
 	["armjuno"] = {
 --		{ class = 'ShieldSphere', options = armjunoShieldSphere },
-		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 72, 0 }, size = 15.5, precision = 22, repeatEffect = true } },
+--		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 72, 0 }, size = 15.5, precision = 22, repeatEffect = true } },
 	},
 	["corjuno"] = {
 --		{ class = 'ShieldSphere', options = corjunoShieldSphere },

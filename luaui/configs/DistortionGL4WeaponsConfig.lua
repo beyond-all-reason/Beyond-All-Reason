@@ -31,7 +31,7 @@ local exampleDistortion = {
 		dirx = 0, diry = 0, dirz = 1, theta = 0.5,  -- cone distortions only, specify direction and half-angle in radians
 		pos2x = 100, pos2y = 100, pos2z = 100, -- beam distortions only, specifies the endpoint of the beam
 		modelfactor = 1, specular = 1, scattering = 1, lensflare = 1,
-		lifetime = 0, sustain = 1, 	aninmtype = 0, -- unused
+		lifeTime = 0, sustain = 1, 	effectType = 0, -- unused
 	},
 }
 
@@ -44,7 +44,7 @@ local exampleDistortionBeamShockwave = {
 			r = 1, g = 1, b = 1, a = 0.075,
 			pos2x = 100, pos2y = 1000, pos2z = 100, -- beam distortions only, specifies the endpoint of the beam
 			modelfactor = 1, specular = 0.5, scattering = 0.1, lensflare = 1,
-			lifetime = 10, sustain = 1, 	aninmtype = 2, -- unused
+			lifeTime = 10, sustain = 1, 	effectType = 2, -- unused
 	},
 }
 
@@ -64,10 +64,8 @@ local BaseClasses = {
 		distortionType = 'beam', -- or cone or beam
 		distortionConfig = {
 			posx = 0, posy = 10, posz = 0, radius = 100,
-			r = 1, g = 1, b = 1, a = 0.075,
 			pos2x = 100, pos2y = 1000, pos2z = 100, -- beam distortions only, specifies the endpoint of the beam
-			modelfactor = 1, specular = 0.5, scattering = 0.1, lensflare = 1,
-			lifetime = 0, sustain = 1, 	aninmtype = 0, -- unused
+			lifeTime = 0, sustain = 1, 	effectType = 0, -- unused
 		},
 	},
 
@@ -75,10 +73,7 @@ local BaseClasses = {
 		distortionType = 'point', -- or cone or beam
 		distortionConfig = {
 			posx = 0, posy = 10, posz = 0, radius = 125,
-			r = 1, g = 0.8, b = 0.45, a = 0.11,
-			--color2r = 0.5, color2g = 0.4, color2b = 0.23, colortime = 1.5, -- point distortions only, colortime in seconds for unit-attached
-			modelfactor = 0.5, specular = 0.6, scattering = 0.5, lensflare = 0,
-			lifetime = 0, sustain = 0, 	aninmtype = 0, -- unused
+			lifeTime = 0, sustain = 0, 	effectType = 0, -- unused
 		},
 	},
 
@@ -87,20 +82,15 @@ local BaseClasses = {
 		distortionType = 'cone',
 		distortionConfig = { posx = 0, posy = 0, posz = 00, radius = 100,
 						dirx =  0, diry = 1, dirz = 1.0, theta = 0.1,
-						--color2r = 1, color2g = 1, color2b = 1, colortime = 0,
-						r = 0.45, g = 0.7, b = 1, a = 0.33,
-						modelfactor = 0.4, specular = 0, scattering = 0.3, lensflare = 0,
-						lifetime = 0, sustain = 0, animtype = 0},
+						lifeTime = 0, sustain = 0, effectType = 0},
 	},
 
 	LaserBeamShockWaveProjectile = {
 		distortionType = 'beam', -- or cone or beam
 		distortionConfig = {
 				posx = 0, posy = 10, posz = 0, radius = 150,
-				r = 1, g = 1, b = 1, a = 0.075,
 				pos2x = 100, pos2y = 1000, pos2z = 100, -- beam distortions only, specifies the endpoint of the beam
-				modelfactor = 1, specular = 0.5, scattering = 0.1, lensflare = 1,
-				lifetime = 10, sustain = 1, 	aninmtype = 2, -- unused
+				lifeTime = 10, sustain = 1, 	effectType = 2, -- unused
 		},
 	},
 
@@ -108,10 +98,7 @@ local BaseClasses = {
 		distortionType = 'point', -- or cone or beam
 		distortionConfig = {
 			posx = 0, posy = 0, posz = 0, radius = 150,
-			r = 1, g = 0.7, b = 0.2, a = 0.15,
-			color2r = 0.6, color2g = 0.4, color2b = 0.10, colortime = 1.6, -- point distortions only, colortime in seconds for unit-attached
-			modelfactor = 0.3, specular = 0.1, scattering = 0.6, lensflare = 8,
-			lifetime = 0, sustain = 0, 	aninmtype = 0, -- unused
+			lifeTime = 0, sustain = 0, 	effectType = 0, -- unused
 		},
 	},
 
@@ -119,10 +106,8 @@ local BaseClasses = {
 		distortionType = 'cone', -- or cone or beam
 		distortionConfig = {
 			posx = 0, posy = 0, posz = 0, radius = 500,
-			r = 5, g = 0, b = 0, a = 1,
 			dirx = 1, diry = 0, dirz = 1, theta = 0.02,  -- cone distortions only, specify direction and half-angle in radians
-			modelfactor = 10, specular = 0.5, scattering = 1, lensflare = 1,
-			lifetime = 0, sustain = 1, 	aninmtype = 0, -- unused
+			lifeTime = 0, sustain = 1, 	effectType = 0, -- unused
 		},
 	},
 
@@ -130,10 +115,8 @@ local BaseClasses = {
 		distortionType = 'cone', -- or cone or beam
 		distortionConfig = {
 			posx = 0, posy = 0, posz = 0, radius = 100,
-			r = 1, g = 1, b = 1, a = 1,
 			dirx = 1, diry = 0, dirz = 1, theta = 0.15,  -- cone distortions only, specify direction and half-angle in radians
-			modelfactor = 1, specular = 0, scattering = 1, lensflare = 1,
-			lifetime = 0, sustain = 1, 	aninmtype = 0, -- unused
+			lifeTime = 0, sustain = 1, 	effectType = 0, -- unused
 		},
 	},
 
@@ -145,7 +128,7 @@ local BaseClasses = {
 			r = 1.0, g = 0.9, b = 0.6, a = 0.086,
 			color2r = 0.75, color2g = 0.45, color2b = 0.22, colortime = 15, -- point distortions only, colortime in seconds for unit-attached
 			modelfactor = 0.2, specular = 0.5, scattering = 0.8, lensflare = 0,
-			lifetime = 23, sustain = 0, aninmtype = 0, -- unused
+			lifeTime = 23, sustain = 0, effectType = 0, -- unused
 		},
 	},
 
@@ -154,10 +137,7 @@ local BaseClasses = {
 		yOffset = 0, -- Y offsets are only ever used for explosions!
 		distortionConfig = {
 			posx = 0, posy = 0, posz = 0, radius = 240,
-			r = 2, g = 2, b = 2, a = 0.6,
-			color2r = 0.7, color2g = 0.55, color2b = 0.28, colortime = 0.1, -- point distortions only, colortime in seconds for unit-attached
-			modelfactor = 0.15, specular = 0.15, scattering = 0.4, lensflare = 1,
-			lifetime = 12, sustain = 3, aninmtype = 0, -- unused
+			lifeTime = 12, sustain = 3, effectType = 0, -- unused
 		},
 	},
 
@@ -165,10 +145,7 @@ local BaseClasses = {
 		distortionType = 'point', -- or cone or beam
 		distortionConfig = {
 			posx = 0, posy = 0, posz = 0, radius = 150,
-			r = 2, g = 2, b = 2, a = 0.7,
-			color2r = 0.75, color2g = 0.72, color2b = 0.6, colortime = 0, -- point distortions only, colortime in seconds for unit-attached
-			modelfactor = 0.8, specular = 0.5, scattering = 0.6, lensflare = 8,
-			lifetime = 6, sustain = 0.0035, aninmtype = 0, -- unused
+			lifeTime = 6, sustain = 0.0035, effectType = 0, -- unused
 		},
 	},
 }
@@ -214,7 +191,7 @@ local function GetClosestSizeClass(desiredsize)
 	return best, SizeRadius[best]
 end
 
-local Lifetimes = {Fast = 5, Quick = 10, Moderate = 30, Long = 90, Glacial = 270}
+local lifeTimes = {Fast = 5, Quick = 10, Moderate = 30, Long = 90, Glacial = 270}
 
 local distortionClasses = {}
 
@@ -268,10 +245,7 @@ local gibDistortion = {
 	pieceName = nil, -- optional
 	distortionConfig = {
 		posx = 0, posy = 0, posz = 0, radius = 36,
-		r = 1, g = 0.9, b = 0.5, a = 0.08,
-		color2r = 0.9, color2g = 0.75, color2b = 0.25, colortime = 0.3, -- point distortions only, colortime in seconds for unit-attache
-		modelfactor = 0.4, specular = 0.5, scattering = 0.5, lensflare = 0,
-		lifetime = 300, sustain = 3, aninmtype = 0 -- unused
+		lifeTime = 300, sustain = 3, effectType = 0 -- unused
 	},
 }
 
@@ -283,10 +257,7 @@ local projectileDefDistortions  = {
 	['default'] = {
 		distortionType = 'point',
 		distortionConfig = { posx = 0, posy = 16, posz = 0, radius = 420,
-			color2r = 1, color2g = 1, color2b = 1, colortime = 15,
-			r = -1, g = 1, b = 1, a = 1,
-			modelfactor = 0.2, specular = 1, scattering = 1, lensflare = 1,
-			lifetime = 50, sustain = 20, animtype = 0},
+			lifeTime = 50, sustain = 20, effectType = 0},
 	}
 }
 
@@ -447,7 +418,7 @@ local function AssignDistortionsToAllWeapons()
 			if scavenger then
 				t.r, t.g, t.b = 0.99, 0.9, 1
 			end
-			t.lifetime = life
+			t.lifeTime = life
 			t.colortime = 25 / life --t.colortime = life * 0.17
 			t.a = orgMult
 
@@ -459,7 +430,7 @@ local function AssignDistortionsToAllWeapons()
 				local mult = 0.85
 				t.color2r, t.color2g, t.color2b = r*mult, g*mult, b*mult
 				t.colortime = 2
-				t.lifetime = life * 0.5
+				t.lifeTime = life * 0.5
 				t.a = 0.02 + ((orgMult*0.055) / weaponDef.beamtime) + (weaponDef.range*0.000035)
 				radius = 1.2 * ((weaponDef.damageAreaOfEffect*4) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.1)) + (weaponDef.range*0.08)
 				sizeclass = GetClosestSizeClass(radius)
@@ -485,7 +456,7 @@ local function AssignDistortionsToAllWeapons()
 						life = life * 1.2
 						t.colortime = 19 / life
 					end
-					t.lifetime = life
+					t.lifeTime = life
 
 				end
 				radius = ((weaponDef.damageAreaOfEffect*1.9) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
@@ -499,7 +470,7 @@ local function AssignDistortionsToAllWeapons()
 					t.color2g = 0.5
 					t.color2b = 0.12
 					t.colortime = 200
-					t.lifetime = 500
+					t.lifeTime = 500
 				end
 				if weaponDef.customParams.unitexplosion then
 					radius = radius * 1.25
@@ -514,7 +485,7 @@ local function AssignDistortionsToAllWeapons()
 					-- t.color2g = (1.5 + t.color2g) / 2.3
 					-- t.color2b = (1.5 + t.color2b) / 2.3
 					t.a = orgMult*2.8
-					t.lifetime = life * 1.15
+					t.lifeTime = life * 1.15
 					--t.colortime = 8
 				else
 					-- make more white

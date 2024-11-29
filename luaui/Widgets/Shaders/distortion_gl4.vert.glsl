@@ -12,11 +12,12 @@ layout (location = 0) in vec4 position; // xyz and etc garbage
 layout (location = 3) in vec4 worldposrad;  // Centerpos
 layout (location = 4) in vec4 worldposrad2; // velocity for points, beam end for beams, dir and theta for cones
 layout (location = 5) in vec4 baseparams;  // alpha contains overall strength multiplier
-layout (location = 6) in vec4 modelfactor_specular_scattering_lensflare; // These are 100% not required for distortion
-layout (location = 7) in vec4 otherparams; // spawnframe, lifetime, sustain, animtype
+layout (location = 6) in vec4 universalParams; // noiseStrength, noiseScaleSpace, distanceFalloff, onlyModelMap
+layout (location = 7) in vec4 lifeParams; // spawnFrame, lifeTime, rampUp, decay
 layout (location = 8) in vec4 color2; // 
 layout (location = 9) in uint pieceIndex; // for piece type distortions
 layout (location = 10) in uvec4 instData; // matoffset, uniformoffset, teamIndex, drawFlags {id = 5, name = 'instData', size = 4, type = GL.UNSIGNED_INT},
+
 
 			
 //__ENGINEUNIFORMBUFFERDEFS__
@@ -69,11 +70,13 @@ out DataVS {
 	flat vec4 v_worldPosRad;
 	flat vec4 v_worldPosRad2;
 	flat vec4 v_baseparams;
-	flat vec4 v_otherparams; // spawnframe, lifetime, sustain, animtype
+	flat vec4 v_universalParams; // 
+	flat vec4 v_lifeParams; // spawnFrame, lifeTime, rampUp, decay
 	vec4 v_noiseoffset;
 	noperspective vec2 v_screenUV;
 };
 
+#define NOISESTRENGTH v_universalParams.x;
 
 #define SNORM2NORM(value) (value * 0.5 + 0.5)
 
@@ -112,9 +115,9 @@ void main()
 		uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
 		vec4 teamCol = teamColor[teamIndex];
 	}
-	float elapsedframes = time - otherparams.x;
-	float lifetime = otherparams.y;
-	float sustain = otherparams.z;
+	float elapsedframes = time - lifeParams.x;
+	float lifetime = lifeParams.y;
+	float sustain = lifeParams.z;
 	if (lifetime > 0 ){ //lifetime alpha control
 		if (sustain >1 ){ // sustain is positive, keep it up for sustain frames, then ramp it down
 			v_baseparams.a = clamp( v_baseparams.a * ( lifetime - elapsedframes)/(lifetime - sustain ) , 0.0, v_baseparams.a);
@@ -127,7 +130,7 @@ void main()
 	
 	v_worldPosRad2 = worldposrad2;
 
-	v_otherparams = otherparams;
+	v_lifeParams = lifeParams;
 	
 	vec4 worldPos = vec4(1.0);
 	#line 11000
@@ -137,7 +140,7 @@ void main()
 		// the -1 is for inverting it so we always see the back faces (great for occlusion testing!) (this should be exploited later on!
 		
 		// this is centered around the target positional offset, and scaled locally
-		vec3 distortionVertexPosition = distortionCenterPosition + -1 * position.xyz * distortionRadius * 1.15; 
+		vec3 distortionVertexPosition = distortionCenterPosition + -1 * position.xyz * distortionRadius * 1.15; // 1.15 is a magic number that makes the sphere actually fit inside the sphere-ish geometry
 		
 		// tranform the vertices to world-space
 		distortionVertexPosition = (placeInWorldMatrix * vec4(distortionVertexPosition, 1.0)).xyz; 
@@ -275,12 +278,16 @@ void main()
 	#line 13000
 	// Get the heightmap and the normal map at the center position of the distortion in v_worldPosRad.xyz
 	
-	
+	//-------------------------- BEGIN SHARED SECTION ---------------------
+	int effectType = int(round(lifeParams.w));
+	if (effectType == 11){
+		v_worldPosRad2 = uni[instData.y].speed;
+	}
 	//	vec4 windInfo; // windx, windy, windz, windStrength
 	v_noiseoffset = vec4(windX, 0, windZ,0) * (-0.0156);
 	//v_noiseoffset = vec4(0.0);
 	//v_noiseoffset.y = windX + windZ;
-	
+	v_universalParams = universalParams;
 	gl_Position = cameraViewProj * vertexPosition;
 	v_screenUV = SNORM2NORM(gl_Position.xy / gl_Position.w);
 	

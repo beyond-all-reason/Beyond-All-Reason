@@ -18,18 +18,14 @@ local exampleDistortion = {
 	alwaysVisible = nil,
 	distortionConfig = {
 		posx = 0, posy = 0, posz = 0, radius = 100,
-		r = 1, g = 1, b = 1, a = 1,
-		-- point distortions only, colortime in seconds for unit-attached:
-			color2r = 1, color2g = 1, color2b = 1, colortime = 15,
 		-- cone distortions only, specify direction and half-angle in radians:
 			dirx = 0, diry = 0, dirz = 1, theta = 0.5,
 		-- beam distortions only, specifies the endpoint of the beam:
 			pos2x = 100, pos2y = 100, pos2z = 100,
-		modelfactor = 1, specular = 1, scattering = 1, lensflare = 1,
-		lifetime = 0, sustain = 1, 	aninmtype = 0 -- unused
+		lifeTime = 0, sustain = 1, 	aninmtype = 0 -- unused
 	},
 }
-
+ 
 -- multiple distortions per unitdef/piece are possible, as the distortions are keyed by distortionname
 
 local unitDistortions = {
@@ -38,10 +34,7 @@ local unitDistortions = {
 			distortionType = 'point',
 			pieceName = 'emit',
 			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
-							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
-							r = -1, g = 1, b = 1, a = 0.66,
-							modelfactor = 0.1, specular = 1.2, scattering = 2, lensflare = 0,
-							lifetime = 0, sustain = 0, animtype = 1},
+							lifeTime = 0,  effectType = 1},
 		},
 	},
 	['armsolar'] = {
@@ -49,10 +42,18 @@ local unitDistortions = {
 			distortionType = 'point',
 			pieceName = 'emit',
 			distortionConfig = { posx = 0, posy = 2, posz = 0, radius = 33,
-							color2r = 1, color2g = 1, color2b = 0, colortime = 0,
-							r = 1, g = 1, b = 0.3, a = 0.55,
-							modelfactor = 0.3, specular = 0.5, scattering = 0.35, lensflare = 0,
-							lifetime = 0, sustain = 0, animtype = 0},
+							noiseStrength = 0.5, noiseScaleSpace = 1.5, distanceFalloff = 2.0,
+							lifeTime = 0,  effectType = 0},
+		},
+	},
+	
+	['armbull'] = {
+		distortion = {
+			distortionType = 'point',
+			pieceName = 'base',
+			distortionConfig = { posx = 0, posy = 20, posz = -10, radius = 20,
+							noiseStrength = 0.3, noiseScaleSpace = -3.1, distanceFalloff = 1.5,
+							lifeTime = 0,  effectType = 'heatDistortion'},
 		},
 	},
 	['armadvsol'] = {
@@ -60,10 +61,7 @@ local unitDistortions = {
 			distortionType = 'point',
 			pieceName = 'base',
 			distortionConfig = { posx = 0, posy = 100, posz = 0, radius = 50,
-							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
-							r = 1, g = 1, b = 0.4, a = 0.04,
-							modelfactor = 0.33, specular = 1.5, scattering = 0.5, lensflare = 0,
-							lifetime = 0, sustain = 0, animtype = 8},
+							lifeTime = 0,  effectType = "magnifier"}, 
 		},
 	},
 
@@ -73,12 +71,22 @@ local unitDistortions = {
 			pieceName = 'thrust',
 			distortionConfig = { posx = 0, posy = 0, posz = 20, radius = 100,
 							dirx =  0, diry = -0, dirz = -1.0, theta = 0.2,
-							--color2r = 1, color2g = 1, color2b = 1, colortime = 0,
-							r = 0.45, g = 0.7, b = 1, a = 0.33,
-							modelfactor = 0.4, specular = 0, scattering = 0.3, lensflare = 0,
-							lifetime = 0, sustain = 0, animtype = 0},
+							noiseStrength = 1, noiseScaleSpace = 1,
+							lifeTime = 0,  effectType = 0},
 		},
 	},
+
+	['corvamp'] = {
+		thrust = {
+			distortionType = 'cone',
+			pieceName = 'thrust',
+			distortionConfig = { posx = 0, posy = 0, posz = 20, radius = 100,
+							dirx =  0, diry = -0, dirz = -1.0, theta = 0.2,
+							noiseStrength = 1, noiseScaleSpace = -1,
+							lifeTime = 0,  effectType = 0},
+		},
+	},
+
 
 	['armck'] = {
 		beamDistortion = {
@@ -86,9 +94,18 @@ local unitDistortions = {
 			pieceName = 'base',
 			distortionConfig = { posx = 0, posy = 7.5, posz = 0.01, radius = 23,
 							pos2x = 0, pos2y = 100, pos2z = 0, radius2 = 23, 
-							r = 1, g = 1, b = 0.4, a = 0.12,
-							modelfactor = 0.22, specular = 0.4, scattering = 0.9, lensflare = 0,
-							lifetime = 0, sustain = 0, animtype = 0},
+							noiseScaleSpace = 1,
+							lifeTime = 0,  effectType = 0},
+		},
+	},
+	['corck'] = {
+		beamDistortion = {
+			distortionType = 'beam',
+			pieceName = 'base',
+			distortionConfig = { posx = 0, posy = 7.5, posz = 0.01, radius = 23,
+							pos2x = 0, pos2y = 100, pos2z = 0, radius2 = 23, 
+							noiseScaleSpace = -1,
+							lifeTime = 0,  effectType = 0},
 		},
 	},
 
@@ -98,9 +115,32 @@ local unitDistortions = {
 			pieceName = 'base',
 			distortionConfig = { posx = 0, posy = 7.5, posz = 0.01, radius = 15,
 							pos2x = 0, pos2y = 30, pos2z = 0, radius2 = 15, 
-							r = 1, g = 1, b = 0.4, a = 0.12,
-							modelfactor = 0.22, specular = 0.4, scattering = 0.9, lensflare = 0,
-							lifetime = 0, sustain = 0, animtype = 0},
+							
+							noiseStrength = 1, noiseScaleSpace = -1.5, distanceFalloff = 0.25, onlyModelMap = -1,
+							lifeTime = 0,  effectType = 0},
+		},
+	},
+
+	['armspy'] = {
+		spycloakbeam = {
+			distortionType = 'beam',
+			pieceName = 'base',
+			distortionConfig = { posx = 0, posy = 2.5, posz = 0.01, radius = 15,
+							pos2x = 0, pos2y = 30, pos2z = 0, radius2 = 15, 
+							
+							noiseStrength = 1, noiseScaleSpace = 1.5, distanceFalloff = 0.25, onlyModelMap = -1,
+							lifeTime = 0,  effectType = 0},
+		},
+	},
+
+	
+	['corfus'] = {
+		distortion = {
+			distortionType = 'point',
+			pieceName = 'emit',
+			distortionConfig = { posx = 0, posy = 2, posz = 0, radius = 30,
+							noiseStrength = 1, noiseScaleSpace = 1.5, distanceFalloff = 0.5,
+							lifeTime = 0,  effectType = 0},
 		},
 	},
 
@@ -112,9 +152,8 @@ local unitDistortions = {
 			pieceName = 'thrustrra',
 			distortionConfig = { posx = -2, posy = 0, posz = -2, radius = 120,
 							dirx = 0, diry = 0, dirz = -1, theta = 0.74,
-							r = 0.45, g = 0.7, b = 1, a = 0.24,
-							modelfactor = 0.4, specular = 1, scattering = 0.5, lensflare = 2,
-							lifetime = 0, sustain = 0, animtype = 0},
+							noiseStrength = 1,
+							lifeTime = 0,  effectType = 0},
 		},
 
 		thrust2 = {
@@ -122,27 +161,24 @@ local unitDistortions = {
 			pieceName = 'thrustrla',
 			distortionConfig = { posx = -2, posy = 0, posz = -2, radius = 120,
 							dirx = 0, diry = 0, dirz = -1, theta = 0.74,
-							r = 0.45, g = 0.7, b = 1, a = 0.24,
-							modelfactor = 0.4, specular = 1, scattering = 0.5, lensflare = 2,
-							lifetime = 0, sustain = 0, animtype = 0},
+							noiseStrength = 1,
+							lifeTime = 0,  effectType = 0},
 		},
 		thrust3 = {
 			distortionType = 'cone',
 			pieceName = 'thrustfla',
 			distortionConfig = { posx = -2, posy = 0, posz = -2, radius = 120,
 							dirx = 0, diry = 0, dirz = -1, theta = 0.74,
-							r = 0.45, g = 0.7, b = 1, a = 0.24,
-							modelfactor = 0.4, specular = 1, scattering = 0.5, lensflare = 2,
-							lifetime = 0, sustain = 0, animtype = 0},
+							noiseStrength = 1,
+							lifeTime = 0,  effectType = 0},
 		},
 		thrust4 = {
 			distortionType = 'cone',
 			pieceName = 'thrustfra',
 			distortionConfig = { posx = -2, posy = 0, posz = -2, radius = 120,
 							dirx = 0, diry = 0, dirz = -1, theta = 0.74,
-							r = 0.45, g = 0.7, b = 1, a = 0.24,
-							modelfactor = 0.4, specular = 1, scattering = 0.5, lensflare = 2,
-							lifetime = 0, sustain = 0, animtype = 0},
+							noiseStrength = 1,
+							lifeTime = 0,  effectType = 0},
 		},
 	},
 }
@@ -162,7 +198,7 @@ local unitEventDistortionsNames = {
 	-- 				color2r = 0, color2g = 0, color2b = 0, colortime = 300,
 	-- 				r = 1, g = 1, b = 1, a = 0.69999999,
 	-- 				modelfactor = 2, specular = 1, scattering = 0, lensflare = 0,
-	-- 				lifetime = 300, sustain = 1, animtype = 0},
+	-- 				lifeTime = 300, sustain = 1, effectType = 0},
 	-- 		},
 	-- 	},
 	-- 	['corint'] = {
@@ -173,14 +209,14 @@ local unitEventDistortionsNames = {
 	-- 				color2r = 0, color2g = 0, color2b = 0, colortime = 300,
 	-- 				r = 1, g = 1, b = 1, a = 0.69999999,
 	-- 				modelfactor = 2, specular = 1, scattering = 0, lensflare = 0,
-	-- 				lifetime = 300, sustain = 1, animtype = 0},
+	-- 				lifeTime = 300, sustain = 1, effectType = 0},
 	-- 		},
 	-- 	},
 	-- },
 	--------------------------------- Put distortions that are spawned from COB/LUS here ! ---------------------------------
 	-- These distortions _must_ be indexed by numbers! As these will be the ones triggered by the
 	-- The COB lua_UnitScriptDistortion(distortionIndex, count) call does this job!
-	-- to make the distortion EXACTLY color2 at the end of the lifetime, make colortime = 2 * lifetime
+	-- to make the distortion EXACTLY color2 at the end of the lifeTime, make colortime = 2 * lifeTime
 
 	--corint disabled for now since it has static positioning - now only 'working' when shooting to east:
 
@@ -194,10 +230,7 @@ local unitEventDistortionsNames = {
 				distortionName = 'corkorgfootstep',
 				pieceName = 'none',
 				distortionConfig = { posx = 0, posy = 0, posz = 8, radius = 200,
-								color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0,
-								r = 1, g = 0.2, b = 0, a = 0.2,
-								modelfactor = 0.2, specular = 0.2, scattering = 0, lensflare = 0,
-								lifetime = 25, sustain = 0, animtype = 2},
+								lifeTime = 25,  effectType = 2},
 	
 			},
 		},
@@ -213,10 +246,7 @@ local unitEventDistortionsNames = {
 				distortionType = 'point',
 				pieceName = 'head',
 				distortionConfig = { posx = 0, posy = 22, posz = 12, radius = 90,
-					color2r = 0, color2g = 0, color2b = 0, colortime = 24,
-					r = -1, g = 1, b = 1, a = 0.7,
-					modelfactor = 0.4, specular = 0.6, scattering = 0.7, lensflare = 0,
-					lifetime = 12, sustain = 0, animtype = 0},
+					lifeTime = 12,  effectType = 0},
 			},
 		},
 	},
@@ -229,9 +259,7 @@ local unitEventDistortionsNames = {
 				aboveUnit = 100,
 				distortionConfig = { posx = 0, posy = 32, posz = 0, radius = 160,
 					dirx = 0, diry = -0.99, dirz = 0.02, theta = 0.4,
-					r = -1, g = 1, b = 1, a = 0.18,
-					modelfactor = 0.2, specular = 1, scattering = 0.7, lensflare = 0,
-					lifetime = 20, sustain = 2, animtype = 0},
+					lifeTime = 20, sustain = 2, effectType = 0},
 			},
 		},
 	},
@@ -244,9 +272,7 @@ local unitEventDistortionsNames = {
 				aboveUnit = 100,
 				distortionConfig = { posx = 0, posy = 32, posz = 0, radius = 200,
 					dirx = 0, diry = -0.99, dirz = 0.02, theta = 0.4,
-					r = -1, g = 1, b = 1, a = 0.16,
-					modelfactor = 0.2, specular = 1, scattering = 0.7, lensflare = 0,
-					lifetime = 15, sustain = 2, animtype = 0},
+					lifeTime = 15, sustain = 2, effectType = 0},
 			},
 		},
 	},
@@ -257,10 +283,7 @@ local unitEventDistortionsNames = {
 				distortionType = 'point',
 				pieceName = 'head',
 				distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 100,
-					color2r = 0, color2g = 0, color2b = 0, colortime = 60,
-					r = -1, g = 1, b = 1, a = 0.45,
-					modelfactor = 0.2, specular = 0.3, scattering = 1.5, lensflare = 10,
-					lifetime = 30, sustain = 0, animtype = 0},
+					lifeTime = 30,  effectType = 0},
 			},
 			-- cloakFlash = {
 			-- 	distortionType = 'point',
@@ -269,7 +292,7 @@ local unitEventDistortionsNames = {
 			-- 		color2r = 1, color2g = 1, color2b = 1, colortime = 5,
 			-- 		r = 0, g = 0, b = 0, a = 0.45,
 			-- 		modelfactor = 0.2, specular = 0.4, scattering = 1.5, lensflare = 0,
-			-- 		lifetime = 5, sustain = 0, animtype = 0},
+			-- 		lifeTime = 5,  effectType = 0},
 			-- },
 		},
 		default = {
@@ -279,9 +302,7 @@ local unitEventDistortionsNames = {
 				aboveUnit = 100,
 				distortionConfig = { posx = 0, posy = 32, posz = 0, radius = 200,
 					dirx = 0, diry = -0.99, dirz = 0.02, theta = 0.4,
-					r = -1, g = 1, b = 1, a = 0.16,
-					modelfactor = 0.2, specular = 1, scattering = 0.7, lensflare = 0,
-					lifetime = 15, sustain = 2, animtype = 0},
+					lifeTime = 15, sustain = 2, effectType = 0},
 			},
 		},
 	},
@@ -292,10 +313,7 @@ local unitEventDistortionsNames = {
 				distortionType = 'point',
 				pieceName = 'head',
 				distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 100,
-					color2r = 0, color2g = 0, color2b = 0, colortime = 60,
-					r = -1, g = 1, b = 1, a = 0.45,
-					modelfactor = 0.2, specular = 0.3, scattering = 1.5, lensflare = 10,
-					lifetime = 30, sustain = 0, animtype = 0},
+					lifeTime = 30,  effectType = 0},
 			},
 		},
 		default = {
@@ -305,9 +323,7 @@ local unitEventDistortionsNames = {
 				aboveUnit = 100,
 				distortionConfig = { posx = 0, posy = 32, posz = 0, radius = 200,
 					dirx = 0, diry = -0.99, dirz = 0.02, theta = 0.4,
-					r = -1, g = 1, b = 1, a = 0.16,
-					modelfactor = 0.2, specular = 1, scattering = 0.7, lensflare = 0,
-					lifetime = 15, sustain = 2, animtype = 0},
+					lifeTime = 15, sustain = 2, effectType = 0},
 			},
 		},
 	},
@@ -329,9 +345,7 @@ local unitEventDistortionsNames = {
 				aboveUnit = 100,
 				distortionConfig = { posx = 0, posy = 32, posz = 0, radius = 200,
 					dirx = 0, diry = -0.99, dirz = 0.02, theta = 0.4,
-					r = 1, g = 0, b = 0, a = 0.26,
-					modelfactor = 0.2, specular = 1, scattering = 0.7, lensflare = 0,
-					lifetime = 15, sustain = 2, animtype = 0},
+					lifeTime = 15, sustain = 2, effectType = 0},
 			},
 		},
 	},
@@ -439,10 +453,7 @@ local featureDefDistortions = {
 local crystalDistortionBase =  {
 			distortionType = 'point',
 			distortionConfig = { posx = 0, posy = 12, posz = 0, radius = 72,
-							color2r = 0, color2g = 0, color2b = 0, colortime = 0.1,
-							r = -1, g = 1, b = 1, a = 0.66,
-							modelfactor = 1.1, specular = 0.9, scattering = 0.8, lensflare = 0,
-							lifetime = 0, sustain = 0, animtype = 0},
+							lifeTime = 0,  effectType = 0},
 		}
 
 local crystalColors = { -- note that the underscores are needed here
@@ -481,7 +492,7 @@ for colorname, colorvalues in pairs(crystalColors) do
 		end
 	end
 end
-
+ 
 
 local allDistortions = {unitEventDistortions = unitEventDistortions, unitDefDistortions = unitDefDistortions, featureDefDistortions = featureDefDistortions}
 
@@ -493,7 +504,7 @@ local distortionParamKeyOrder = {	posx = 1, posy = 2, posz = 3, radius = 4,
 	dirx = 5, diry = 6, dirz = 7, theta = 8,  -- cone distortions only, specify direction and half-angle in radians
 	pos2x = 5, pos2y = 6, pos2z = 7, -- beam distortions only, specifies the endpoint of the beam
 	modelfactor = 13, specular = 14, scattering = 15, lensflare = 16,
-	lifetime = 18, sustain = 19, animtype = 20 -- unused
+	lifeTime = 18, sustain = 19, effectType = 20 -- unused
 }
 
 for typename, typetable in pairs(allDistortions) do
@@ -519,7 +530,7 @@ for typename, typetable in pairs(allDistortions) do
 			end
 			Spring.Echo(string.format("				r = %f, g = %f, b = %f, a = %f,", distortioninfo.distortionParamTable[9], distortionParamTable[10],distortionParamTable[11],distortionParamTable[12] ))
 			Spring.Echo(string.format("				modelfactor = %f, specular = %f, scattering = %f, lensflare = %f,", distortioninfo.distortionParamTable[13], distortionParamTable[14],distortionParamTable[15],distortionParamTable[16] ))
-			Spring.Echo(string.format("				lifetime = %f, sustain = %f, animtype = %f},", distortioninfo.distortionParamTable[18], distortionParamTable[19],distortionParamTable[20]))
+			Spring.Echo(string.format("				lifeTime = %f, sustain = %f, effectType = %f},", distortioninfo.distortionParamTable[18], distortionParamTable[19],distortionParamTable[20]))
 
 		end
 	end

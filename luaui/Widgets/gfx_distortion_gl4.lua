@@ -23,6 +23,7 @@ do
 -- 2. Perform the distortion pass, 
 	-- inputs are DistortionTexture, Depth Buffers, ScreenCopy
 	-- Output is the final screen
+-- Perform a compression pass on distortionParams, culling idents
 end
 
 ----------------------------- Localize for optmization ------------------------------------
@@ -128,16 +129,37 @@ distortionCacheTable[14] = 1
 distortionCacheTable[15] = 1
 distortionCacheTable[16] = 1
 
-local distortionParamKeyOrder = { -- This table is a 'quick-ish' way of building the lua array from human-readable distortion parameters
-	posx = 1, posy = 2, posz = 3, radius = 4,
-	r = 9, g = 10, b = 11, a = 12,
-	dirx = 5, diry = 6, dirz = 7, theta = 8,  -- specify direction and half-angle in radians
-	pos2x = 5, pos2y = 6, pos2z = 7, -- beam distortions only, specifies the endpoint of the beam
-	modelfactor = 13, specular = 14, scattering = 15, lensflare = 16,
-	lifetime = 18, sustain = 19, animtype = 20, -- animtype unused
+local distortionEffectTypes = {
+	heatDistortion = 0,
+	airShockwave = 1,
+	groundShockwave = 2,
+	airJet = 3,
+	gravityLens = 4,
+	fusionSphere = 5, 
+	cloakDistortion = 6, 
+	shieldSphere = 7, 
+	magnifier = 8,
+	twirl = 10,
+	motionBlur = 11,
+}
 
-	-- NOTE THERE ARE 4 MORE UNUSED SLOTS HERE RESERVED FOR FUTURE USE! -- Nope, beherith ate these like a greedy boy
-	color2r = 21, color2g = 22, color2b = 23, colortime = 24, -- point distortions only, colortime in seconds for unit-attached
+local distortionParamKeyOrder = { -- This table is a 'quick-ish' way of building the lua array from human-readable distortion parameters
+	-- worldposrad:
+	posx = 1, posy = 2, posz = 3, radius = 4,
+
+	-- worldposrad2:
+	dirx = 5, diry = 6, dirz = 7, theta = 8,  -- cones: specify direction and half-angle in radians
+	pos2x = 5, pos2y = 6, pos2z = 7, -- beam distortions only, specifies the endpoint of the beam
+	
+	-- universalParams
+	noiseStrength = 13, noiseScaleSpace = 14, distanceFalloff = 15, onlyModelMap = 16, 
+
+	-- lifeParams:
+	--spawnFrame = 17, is reserved! 
+	lifeTime = 18, sustain = 19, effectType = 20, -- effectType unused
+
+
+	--color2r = 21, color2g = 22, color2b = 23, colortime = 24, -- point distortions only, colortime in seconds for unit-attached
 }
 
 local autoDistortionInstanceID = 128000 -- as MAX_PROJECTILES = 128000, so they get unique ones
@@ -166,13 +188,9 @@ local distortionShaderSourceCache = {
 		modelDepths = 1,
 		mapNormals = 2,
 		modelNormals = 3,
-		--mapExtra = 4,
-		--modelExtra = 5,
-		mapDiffuse = 6,
-		modelDiffuse = 7,
-		noise3DCube = 8,
-		--heightmapTex = 9,
-		--mapnormalsTex = 10,
+		mapDiffuse = 4,
+		modelDiffuse = 5,
+		noise3DCube = 6,
 		},
 	uniformFloat = {
 		pointbeamcone = 0,
@@ -246,7 +264,7 @@ function widget:ViewResize()
 	if DistortionTexture then gl.DeleteTexture(DistortionTexture) end
 	DistortionTexture = gl.CreateTexture(vsx , vsy, {
 		border = false,
-		--format = GL_DEPTH_COMPONENT32,
+		format = GL_RGBA16F_ARB,
 		min_filter = GL.NEAREST,
 		mag_filter = GL.NEAREST,
 		wrap_s = GL.CLAMP,
@@ -289,15 +307,15 @@ local function initGL4()
 				-- for beam this is end.xyz and radiusright
 			{id = 5, name = 'distortioncolor', size = 4},
 				-- this is distortion color rgba for all
-			{id = 6, name = 'modelfactor_specular_scattering_lensflare', size = 4},
-			{id = 7, name = 'otherparams', size = 4},
-				-- Otherparams must be spawnframe, dieframe
-			{id = 8, name = 'color2', size = 4},
+			{id = 6, name = 'universalParams', size = 4}, -- noiseStrength, noiseScaleSpace, distanceFalloff, onlyModelMap
+			{id = 7, name = 'lifeParams', 			size = 4},	-- spawnFrame, lifeTime, rampUp, decay
+			{id = 8, name = 'effectParams', size = 4}, -- , windAffectd, effectSpecific, effectType
 			{id = 9, name = 'pieceIndex', size = 1, type = GL.UNSIGNED_INT},
 			{id = 10, name = 'instData', size = 4, type = GL.UNSIGNED_INT},
 	}
 
-	local pointVBO, _, pointIndexVBO, _ = makeSphereVBO(8, 4, 1)
+	local pointVBO, numVerts, pointIndexVBO, numIndices = makeSphereVBO(8, 4, 1) -- could use an icosahedron (v12/i60/f20) maybe?
+	--Spring.Echo('numVerts', numVerts, numIndices) -- (v45, i144, f45) for a sphere
 	pointDistortionVBO 			= createDistortionInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Point Distortion VBO")
 	unitPointDistortionVBO 		= createDistortionInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Unit Point Distortion VBO", 10)
 	projectilePointDistortionVBO = createDistortionInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Projectile Point Distortion VBO")
@@ -331,11 +349,19 @@ local function InitializeDistortion(distortionTable, unitID)
 			for i = 1, distortionParamTableSize do distortionparams[i] = 0 end
 			if distortionTable.distortionConfig == nil then Spring.Debug.TraceFullEcho() end
 			for paramname, tablepos in pairs(distortionParamKeyOrder) do
-				distortionparams[tablepos] = distortionTable.distortionConfig[paramname] or distortionparams[tablepos]
+				if paramname == "effectType" and type(distortionTable.distortionConfig[paramname]) == 'string' then
+					distortionparams[tablepos] = distortionEffectTypes[distortionTable.distortionConfig[paramname]] or distortionparams[tablepos]
+				else
+					distortionparams[tablepos] = distortionTable.distortionConfig[paramname] or distortionparams[tablepos]
+				end
 			end
-			distortionparams[distortionParamKeyOrder.radius] = distortionparams[distortionParamKeyOrder.radius]
-			distortionparams[distortionParamKeyOrder.a] =  distortionparams[distortionParamKeyOrder.a]
-			distortionparams[distortionParamKeyOrder.lifetime] = math.floor( distortionparams[distortionParamKeyOrder.lifetime] )
+			--distortionparams[distortionParamKeyOrder.radius] = distortionparams[distortionParamKeyOrder.radius]
+			--distortionparams[distortionParamKeyOrder.a] =  distortionparams[distortionParamKeyOrder.a] or 1
+			distortionparams[distortionParamKeyOrder.lifeTime] = math.floor( distortionparams[distortionParamKeyOrder.lifeTime] ) or 0
+			distortionparams[distortionParamKeyOrder.noiseStrength] = distortionTable.distortionConfig.noiseStrength or 1
+			distortionparams[distortionParamKeyOrder.noiseScaleSpace] = distortionTable.distortionConfig.noiseScaleSpace or 1
+			distortionparams[distortionParamKeyOrder.distanceFalloff] = distortionTable.distortionConfig.distanceFalloff or 1
+
 			distortionTable.distortionParamTable = distortionparams
 			distortionTable.distortionConfig = nil -- never used again after initialization
 		end
@@ -369,7 +395,7 @@ end
 ---calcDistortionExpiry(targetVBO, distortionParamTable, instanceID)
 ---Calculates the gameframe that a distortion might expire at, and if it will, then it places it into the removal queue
 local function calcDistortionExpiry(targetVBO, distortionParamTable, instanceID)
-	if distortionParamTable[18] <= 0 then -- LifeTime less than 0 means never expires
+	if distortionParamTable[18] <= 0 then -- lifeTime less than 0 means never expires
 		return nil
 	end
 	local deathtime = math_ceil(distortionParamTable[17] + distortionParamTable[18])
@@ -382,7 +408,7 @@ end
 
 ---AddDistortion(instanceID, unitID, pieceIndex, targetVBO, distortionparams, noUpload)
 ---Note that instanceID can be nil if an auto-generated one is OK.
----If the distortion is not attached to a unit, and its lifetime is > 0, then it will be automatically added to the removal queue
+---If the distortion is not attached to a unit, and its lifeTime is > 0, then it will be automatically added to the removal queue
 ---TODO: is spawnframe even a good idea here, as it might fuck with updates, and is the only thing that doesnt have to be changed
 ---@param instanceID any usually nil, supply an existing instance ID if you want to update an existing distortion,
 ---@param unitID nil if worldpos, supply valid unitID if you want to attach it to something
@@ -402,7 +428,7 @@ local function AddDistortion(instanceID, unitID, pieceIndex, targetVBO, distorti
 	instanceID = pushElementInstance(targetVBO, distortionparams, instanceID, true, noUpload, unitID)
 	--tracy.ZoneEnd()
 	if distortionparams[18] > 0 then
-		calcDistortionExpiry(targetVBO, distortionparams, instanceID) -- This will add distortions that have >0 lifetime to the removal queue
+		calcDistortionExpiry(targetVBO, distortionparams, instanceID) -- This will add distortions that have >0 lifeTime to the removal queue
 	end
 	if unitID then
 		if unitAttachedDistortions[unitID] == nil then
@@ -417,7 +443,7 @@ end
 
 ---AddPointDistortion
 ---DEPRECTATED Note that instanceID can be nil if an auto-generated one is OK.
----If the distortion is not attached to a unit, and its lifetime is > 0, then it will be automatically added to the removal queue
+---If the distortion is not attached to a unit, and its lifeTime is > 0, then it will be automatically added to the removal queue
 ---TODO: is spawnframe even a good idea here, as it might fuck with updates, and is the only thing that doesnt have to be changed
 ---@param instanceID any usually nil, supply an existing instance ID if you want to update an existing distortion,
 ---@param unitID nil if worldpos, supply valid unitID if you want to attach it to something
@@ -440,12 +466,12 @@ end
 ---@param scattering float how strong the atmospheric scattering effect is (default 1)
 ---@param lensflare float intensity of the lens flare effect( default 1)
 ---@param spawnframe float the gameframe the distortion was spawned in (for anims, in frames, default current game frame)
----@param lifetime float how many frames the distortion will live, with decreasing brightness
+---@param lifeTime float how many frames the distortion will live, with decreasing brightness
 ---@param sustain float how much sustain time the distortion will have at its original brightness (in game frames)
----@param animtype int what further type of animation will be used
+---@param effectType int what further type of animation will be used
 ---@return instanceID for future reuse
 local function AddPointDistortion(instanceID, unitID, pieceIndex, targetVBO, px_or_table, py, pz, radius, r,g,b,a, r2,g2,b2, colortime,
-	modelfactor, specular, scattering, lensflare, spawnframe, lifetime, sustain, animtype)
+	modelfactor, specular, scattering, lensflare, spawnframe, lifeTime, sustain, effectType)
 
 	if instanceID == nil then
 		autoDistortionInstanceID = autoDistortionInstanceID + 1
@@ -476,9 +502,9 @@ local function AddPointDistortion(instanceID, unitID, pieceIndex, targetVBO, px_
 		distortionparams[16] = lensflare or 1
 
 		distortionparams[spawnFramePos] = spawnframe or gameFrame
-		distortionparams[18] = lifetime or 0
+		distortionparams[18] = lifeTime or 0
 		distortionparams[19] = sustain or 1
-		distortionparams[20] = animtype or 0
+		distortionparams[20] = effectType or 0
 		distortionparams[21] = r2 or 0
 		distortionparams[22] = g2 or 0
 		distortionparams[23] = b2 or 0
@@ -492,7 +518,7 @@ local function AddPointDistortion(instanceID, unitID, pieceIndex, targetVBO, px_
 	if targetVBO == nil then targetVBO = pointDistortionVBO end
 	if unitID then targetVBO = unitPointDistortionVBO end
 	instanceID = pushElementInstance(targetVBO, distortionparams, instanceID, true, noUpload, unitID)
-	calcDistortionExpiry(targetVBO, distortionparams, instanceID) -- This will add distortions that have >0 lifetime to the removal queue
+	calcDistortionExpiry(targetVBO, distortionparams, instanceID) -- This will add distortions that have >0 lifeTime to the removal queue
 	return instanceID
 end
 
@@ -533,7 +559,7 @@ end
 
 ---AddBeamDistortion
 ---DEPRECTATED Note that instanceID can be nil if an auto-generated one is OK.
----If the distortion is not attached to a unit, and its lifetime is > 0, then it will be automatically added to the removal queue
+---If the distortion is not attached to a unit, and its lifeTime is > 0, then it will be automatically added to the removal queue
 ---TODO: is spawnframe even a good idea here, as it might fuck with updates, and is the only thing that doesnt have to be changed
 ---@param instanceID any usually nil, supply an existing instance ID if you want to update an existing distortion,
 ---@param unitID nil if worldpos, supply valid unitID if you want to attach it to something
@@ -556,12 +582,12 @@ end
 ---@param scattering float how strong the atmospheric scattering effect is (default 1)
 ---@param lensflare float intensity of the lens flare effect( default 1)
 ---@param spawnframe float the gameframe the distortion was spawned in (for anims, in frames, default current game frame)
----@param lifetime float how many frames the distortion will live, with decreasing brightness
+---@param lifeTime float how many frames the distortion will live, with decreasing brightness
 ---@param sustain float how much sustain time the distortion will have at its original brightness (in game frames)
----@param animtype int what further type of animation will be used
+---@param effectType int what further type of animation will be used
 ---@return instanceID for future reuse
 local function AddBeamDistortion(instanceID, unitID, pieceIndex, targetVBO, px_or_table, py, pz, radius, r,g,b,a, sx, sy, sz, r2, colortime,
-	modelfactor, specular, scattering, lensflare, spawnframe, lifetime, sustain, animtype)
+	modelfactor, specular, scattering, lensflare, spawnframe, lifeTime, sustain, effectType)
 
 	if instanceID == nil then
 		autoDistortionInstanceID = autoDistortionInstanceID + 1
@@ -592,9 +618,9 @@ local function AddBeamDistortion(instanceID, unitID, pieceIndex, targetVBO, px_o
 		distortionparams[16] = lensflare or 1
 
 		distortionparams[spawnFramePos] = spawnframe or gameFrame
-		distortionparams[18] = lifetime or 0
+		distortionparams[18] = lifeTime or 0
 		distortionparams[19] = sustain or 1
-		distortionparams[20] = animtype or 0
+		distortionparams[20] = effectType or 0
 		distortionparams[21] = 0 --unused
 		distortionparams[22] = 0 --unused
 		distortionparams[23] = 0 --unused
@@ -609,13 +635,13 @@ local function AddBeamDistortion(instanceID, unitID, pieceIndex, targetVBO, px_o
 	if targetVBO == nil then targetVBO = beamDistortionVBO end
 	if unitID then targetVBO = unitBeamDistortionVBO end
 	instanceID = pushElementInstance(targetVBO, distortionparams, instanceID, true, noUpload, unitID)
-	calcDistortionExpiry(targetVBO, distortionparams, instanceID) -- This will add distortions that have >0 lifetime to the removal queue
+	calcDistortionExpiry(targetVBO, distortionparams, instanceID) -- This will add distortions that have >0 lifeTime to the removal queue
 	return instanceID
 end
 
 ---AddConeDistortion
 ---DEPRECATED! Note that instanceID can be nil if an auto-generated one is OK.
----If the distortion is not attached to a unit, and its lifetime is > 0, then it will be automatically added to the removal queue
+---If the distortion is not attached to a unit, and its lifeTime is > 0, then it will be automatically added to the removal queue
 ---TODO: is spawnframe even a good idea here, as it might fuck with updates, and is the only thing that doesnt have to be changed
 ---@param instanceID any usually nil, supply an existing instance ID if you want to update an existing distortion,
 ---@param unitID nil if worldpos, supply valid unitID if you want to attach it to something
@@ -638,12 +664,12 @@ end
 ---@param scattering float how strong the atmospheric scattering effect is (default 1)
 ---@param lensflare float intensity of the lens flare effect( default 1)
 ---@param spawnframe float the gameframe the distortion was spawned in (for anims, in frames, default current game frame)
----@param lifetime float how many frames the distortion will live, with decreasing brightness
+---@param lifeTime float how many frames the distortion will live, with decreasing brightness
 ---@param sustain float how much sustain time the distortion will have at its original brightness (in game frames)
----@param animtype int what further type of animation will be used
+---@param effectType int what further type of animation will be used
 ---@return instanceID for future reuse
 local function AddConeDistortion(instanceID, unitID, pieceIndex, targetVBO, px_or_table, py, pz, radius, r,g,b,a, dx,dy,dz,theta, colortime,
-	modelfactor, specular, scattering, lensflare, spawnframe, lifetime, sustain, animtype)
+	modelfactor, specular, scattering, lensflare, spawnframe, lifeTime, sustain, effectType)
 
 	if instanceID == nil then
 		autoDistortionInstanceID = autoDistortionInstanceID + 1
@@ -673,9 +699,9 @@ local function AddConeDistortion(instanceID, unitID, pieceIndex, targetVBO, px_o
 		distortionparams[16] = lensflare or 1
 
 		distortionparams[spawnFramePos] = spawnframe or gameFrame
-		distortionparams[18] = lifetime or 0
+		distortionparams[18] = lifeTime or 0
 		distortionparams[19] = sustain or 1
-		distortionparams[20] = animtype or 0
+		distortionparams[20] = effectType or 0
 		distortionparams[21] = 0 -- unused
 		distortionparams[22] = 0 --unused
 		distortionparams[23] = 0 --unused
@@ -690,7 +716,7 @@ local function AddConeDistortion(instanceID, unitID, pieceIndex, targetVBO, px_o
 	if targetVBO == nil then targetVBO = coneDistortionVBO end
 	if unitID then targetVBO = unitConeDistortionVBO end
 	instanceID = pushElementInstance(targetVBO, distortionparams, instanceID, true, noUpload, unitID)
-	calcDistortionExpiry(targetVBO, distortionparams, instanceID) -- This will add distortions that have >0 lifetime to the removal queue
+	calcDistortionExpiry(targetVBO, distortionparams, instanceID) -- This will add distortions that have >0 lifeTime to the removal queue
 	return instanceID
 end
 
@@ -1181,7 +1207,7 @@ local function updateProjectileDistortions(newgameframe)
 	lastGameFrame = gameFrame
 	-- turn off uploading vbo
 	-- one known issue regarding to every gameframe respawning distortions is to actually get them to update existing dead distortion candidates, this is very very hard to do sanely
-	-- BUG: having a lifetime associated with each projectile kind of bugs out updates
+	-- BUG: having a lifeTime associated with each projectile kind of bugs out updates
 	local numadded = 0
 	local noUpload = true
 	for i= 1, #nowprojectiles do
@@ -1301,6 +1327,7 @@ local function checkConfigUpdates()
 			end
 			configCache.confa = newconfa
 			configCache.confb = newconfb
+			Spring.Echo("DistortionGL4: Config updated")
 		end
 		configCache.lastUpdate = Spring.GetTimer()
 	end
@@ -1343,11 +1370,9 @@ local function DrawDistortionFunction2(gf) -- For render-to-texture
 		glTexture(1, "$model_gbuffer_zvaltex")
 		glTexture(2, "$map_gbuffer_normtex")
 		glTexture(3, "$model_gbuffer_normtex")
-		--glTexture(4, "$map_gbuffer_spectex")
-		--glTexture(5, "$model_gbuffer_spectex")
-		glTexture(6, "$map_gbuffer_difftex")
-		glTexture(7, "$model_gbuffer_difftex")
-		glTexture(8, noisetex3dcube)
+		glTexture(4, "$map_gbuffer_difftex")
+		glTexture(5, "$model_gbuffer_difftex")
+		glTexture(6, noisetex3dcube)
 
 		deferredDistortionShader:Activate()
 		deferredDistortionShader:SetUniformFloat("nightFactor", nightFactor)
@@ -1386,7 +1411,7 @@ local function DrawDistortionFunction2(gf) -- For render-to-texture
 
 		deferredDistortionShader:Deactivate()
 
-		for i = 0, 8 do glTexture(i, false) end
+		for i = 0, 6 do glTexture(i, false) end
 		gl.Culling(GL.BACK)
 		gl.DepthTest(true)
 		--gl.DepthMask(true) --"BK OpenGL state resets", was true but now commented out (redundant set of false states)
