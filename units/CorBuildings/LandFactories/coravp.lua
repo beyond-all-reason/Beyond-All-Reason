@@ -13,7 +13,7 @@ return {
 		energystorage = 200,
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 9,
-		footprintz = 7,
+		footprintz = 9,
 		health = 5100,
 		idleautoheal = 5,
 		idletime = 1800,
@@ -31,7 +31,7 @@ return {
 		sightdistance = 286,
 		terraformspeed = 1000,
 		workertime = 300,
-		yardmap = "oooooooooooooooooooocccccoooocccccoooocccccoooocccccoooocccccoo",
+		yardmap = "ooooooooo ooooooooo ooooooooo oocccccoo oocccccoo oocccccoo oocccccoo oocccccoo oocccccoo",
 		buildoptions = {
 			[1] = "coracv",
 			[2] = "corsala",

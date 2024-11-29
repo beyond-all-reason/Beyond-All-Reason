@@ -12,7 +12,7 @@ return {
 		energycost = 1350,
 		energystorage = 100,
 		explodeas = "largeBuildingexplosiongeneric",
-		footprintx = 8,
+		footprintx = 9,
 		footprintz = 6,
 		health = 2150,
 		idleautoheal = 5,
@@ -33,7 +33,7 @@ return {
 		sightemitheight = 40,
 		terraformspeed = 500,
 		workertime = 100,
-		yardmap = "oooooooooooooooooooooooooooooooooooooooooooooooo",
+		yardmap = "coooooooc ooooooooo ooooooooo ooooooooo ooooooooo coooooooc",
 		buildoptions = {
 			[1] = "corca",
 			[2] = "corfink",

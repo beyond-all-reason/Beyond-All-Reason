@@ -2,7 +2,7 @@
 #include "../recoil_common_includes.h"
 #include "../factories_common.h"
 
-piece  base,pad,arm1,arm2,arm3,door1,door2,nano1,nano2,nano3,nano4,nano5,nano6,n1,n2,n3,n4,n5,n6,n7,n8,n9,n10,n11,n12, cagelight, cagelight_emit, cagelight2, cagelight_emit2, cagelight3, cagelight_emit3;
+piece  base,pad,arm1,arm2,arm3,gatel1,gatel2,gater1,gater2,nano1,nano2,nano3,nano4,nano5,nano6,n1,n2,n3,n4,n5,n6,n7,n8,n9,n10,n11,n12, cagelight, cagelight_emit, cagelight2, cagelight_emit2, cagelight3, cagelight_emit3;
 static-var  buildAnimPiece;
 
 // Signal definitions
@@ -46,12 +46,15 @@ Activate()
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
 	
-	move door1 to x-axis [-33] speed [33];
-	move door2 to x-axis [33] speed [33];
-	wait-for-move door1 along x-axis;
+	move gatel2 to x-axis [-40] speed [40];
+	move gater2 to x-axis [40] speed [40];
+	wait-for-move gatel1 along x-axis;
 
 	turn arm1 to x-axis <-90> speed <90>;
+	
 	wait-for-turn arm1 around x-axis;
+	move gatel1 to x-axis [-14] speed [30];
+	move gater1 to x-axis [14] speed [30];
 	
 
 	move arm2 to z-axis [14] speed [14.0];
@@ -62,6 +65,8 @@ Activate()
 	turn nano2 to y-axis <60> speed <60.0>;
 	turn nano3 to y-axis <-60> speed <60.0>;
 	turn nano4 to y-axis <60> speed <60.0>;
+	turn nano5 to x-axis <45> speed <60.0>;
+	turn nano6 to x-axis <45> speed <60.0>;
 	wait-for-turn nano1 around y-axis;
 	
 	FACTORY_OPEN_BUILD;	
@@ -84,11 +89,16 @@ Deactivate()
 	turn nano2 to y-axis <0> speed <60.0>;
 	turn nano3 to y-axis <0> speed <60.0>;
 	turn nano4 to y-axis <0> speed <60.0>;
+	turn nano5 to x-axis <0> speed <60.0>;
+	turn nano6 to x-axis <0> speed <60.0>;
+
+	move gatel1 to x-axis [0] speed [30];
+	move gater1 to x-axis [0] speed [30];
 	wait-for-turn nano1 around y-axis;
 
-	move door1 to x-axis [0] speed [33];
-	move door2 to x-axis [0] speed [33];
-	wait-for-move door1 along x-axis;
+	move gatel2 to x-axis [0] speed [40];
+	move gater2 to x-axis [0] speed [40];
+	wait-for-move gatel1 along x-axis;
 	
 	FACTORY_CLOSE_BUILD;
 }
@@ -159,8 +169,8 @@ Killed(severity, corpsetype)
 		explode nano3 type BITMAPONLY | NOHEATCLOUD;
 		explode n5 type BITMAPONLY | NOHEATCLOUD;
 		explode n6 type BITMAPONLY | NOHEATCLOUD;
-		explode door1 type BITMAPONLY | NOHEATCLOUD;
-		explode door2 type BITMAPONLY | NOHEATCLOUD;
+		explode gatel1 type BITMAPONLY | NOHEATCLOUD;
+		explode gater1 type BITMAPONLY | NOHEATCLOUD;
 		explode arm1 type BITMAPONLY | NOHEATCLOUD;
 		explode arm2 type BITMAPONLY | NOHEATCLOUD;
 		explode arm3 type BITMAPONLY | NOHEATCLOUD;
@@ -222,8 +232,8 @@ Killed(severity, corpsetype)
 		explode nano3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode n5 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode n6 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode door1 type BITMAPONLY | NOHEATCLOUD;
-		explode door2 type BITMAPONLY | NOHEATCLOUD;
+		explode gatel1 type BITMAPONLY | NOHEATCLOUD;
+		explode gater1 type BITMAPONLY | NOHEATCLOUD;
 		explode arm1 type BITMAPONLY | NOHEATCLOUD;
 		explode arm2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode arm3 type SMOKE | FALL | NOHEATCLOUD;
@@ -253,8 +263,8 @@ Killed(severity, corpsetype)
 		explode nano3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode n5 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode n6 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode door1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode door2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode gatel1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode gater1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode arm1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode arm2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode arm3 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
