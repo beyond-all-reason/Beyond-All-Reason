@@ -5,10 +5,9 @@
 
 piece  flare1, flare2, base, turret, barrel1, barrel2, sleeves;
 
-//smasel remove debugGameFrame
 static-var  nextBarrel, trajectoryMode, lastHeading, aimingState;
 
-#define SIGNAL_AIM							1
+#define SIGNAL_AIM		1
 
 
 Create()
@@ -90,9 +89,9 @@ AimPrimary(heading, pitch)
 AimSecondary(heading, pitch)
 {
 	call-script SmartAimSelect(AIMING_HIGH);
-		if (aimingState != AIMING_HIGH){
-			return(0);
-		}
+	if (aimingState != AIMING_HIGH){
+		return(0);
+	}
 	
 	signal SIGNAL_AIM;
 	set-signal-mask SIGNAL_AIM;

@@ -32,10 +32,10 @@ ClearOverrideAimingState()
 
 SetAimingState(weaponNumber)
 {
-	if (weaponNumber == AIMING_LOW){
+	if (weaponNumber == AIMING_LOW && firedLowFailed == FALSE){
 		switchAimModeFrame = (gameFrame + RESET_LOW_DELAY_FRAMES);
 		aimingState = AIMING_LOW;
-	} else if ((weaponNumber == AIMING_HIGH) && (queueLowFrame < gameFrame)){
+	} else if (queueLowFrame < gameFrame){
 		if (firedLowFailed == TRUE){
 			//if low aimed but failed to fire, aim high for longer.
 			switchAimModeFrame = (gameFrame + RESET_HIGH_ERRORSTATE_FRAMES);
@@ -71,7 +71,7 @@ SmartAimSelect(weaponNumber)
 		highReloadState = (get WEAPON_RELOADSTATE(AIMING_HIGH));
 		lowReloadState = (get WEAPON_RELOADSTATE(AIMING_LOW));
 
-		//prevent bonus shots, prevent unintentional
+		//prevent bonus shots
 		if (highReloadState > lowReloadState ){
 			greatestReloadState = highReloadState;
 		} else{
@@ -82,7 +82,7 @@ SmartAimSelect(weaponNumber)
 		}
 
 		//check if the low weapon aimed but didn't fire.
-		if (((lowReloadState + RESET_LOW_DELAY_FRAMES) < gameFrame) && (queueLowFrame > switchAimModeFrame)){
+		if (((lowReloadState + RESET_LOW_DELAY_FRAMES * 2) <= gameFrame) && (queueLowFrame > switchAimModeFrame)){ //doubled to ensure the error is a firm error
 			firedLowFailed = TRUE;
 		} else{
 			firedLowFailed = FALSE;
