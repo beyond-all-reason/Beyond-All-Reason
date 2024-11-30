@@ -10,7 +10,7 @@ script is required to work in conjunction with a gadget unit_weapon_smart_select
 to this script the manual targetting events.
 
 .bos script integration checklist:
-
+#include "smart_weapon_select.h"
 1. somewhere before Create() function:
 #include "smart_weapon_select.h"
 
@@ -121,7 +121,6 @@ SmartAimSelect(weaponNumber)
 		if (greatestReloadState > switchAimModeFrame){
 			switchAimModeFrame = greatestReloadState;
 		}
-		get PRINT(gameFrame, queueLowFrame, switchAimModeFrame, greatestReloadState);
 		//check if the low weapon aimed but didn't fire.
 		if ((DisableLowAimFailureWatch == FALSE) && //allows moving units to optionally suspend errorstate to prevent slow turret turn-rates from producing undesired errorstates
 		(queueLowFrame > switchAimModeFrame) &&  //the low aim is actively trying to target something
