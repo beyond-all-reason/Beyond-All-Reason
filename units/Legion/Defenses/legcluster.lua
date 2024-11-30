@@ -38,6 +38,7 @@ return {
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "CorBuildings/LandDefenceOffence",
+			smart_weapon_select_priority = 1,
 		},
 		featuredefs = {
 			dead = {
