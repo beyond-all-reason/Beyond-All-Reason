@@ -2,6 +2,7 @@
 
 #include "sfxtype.h"
 #include "exptype.h"
+#include "smart_weapon_select.h"
 
 piece  base, flare, turret, door1, door2, door3, door4, barrel, stand, aimpoint;
 
@@ -131,7 +132,6 @@ Create()
 
 #define SMOKEPIECE base
 #include "smokeunit_thread_nohit.h"
-#include "smart_weapon_select.h"
 
 aimCommon(heading, pitch)
 {
@@ -152,6 +152,7 @@ AimPrimary(heading, pitch)
 	if (AimingState != AIMING_LOW){
 		return(0);
 	}
+
 	start-script Go();
 
 	signal SIGNAL_AIM;
@@ -169,6 +170,7 @@ AimSecondary(heading, pitch)
 	if (AimingState != AIMING_HIGH){
 		return(0);
 	}
+	
 	start-script Go();
 
 	signal SIGNAL_AIM;

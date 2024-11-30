@@ -2,6 +2,7 @@
 
 #include "sfxtype.h"
 #include "exptype.h"
+#include "smart_weapon_select.h"
 
 
 //piece base, turret, sleeve, barrel, flare;
@@ -29,7 +30,6 @@ static-var  turretOpen, nextBarrel, lastHeading, stunned, restoreDelay;
 
 #define SMOKEPIECE base
 #include "smokeunit_thread_nohit.h"
-#include "smart_weapon_select.h"
 
 Create()
 {

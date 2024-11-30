@@ -3,6 +3,7 @@
 
 #include "sfxtype.h"
 #include "exptype.h"
+#include "smart_weapon_select.h"
 
 piece  base, flare, turret, door1, door2, barrel, bore, aimpoint;
 
@@ -119,7 +120,6 @@ Create()
 
 #define SMOKEPIECE base
 #include "smokeunit_thread_nohit.h"
-#include "smart_weapon_select.h"
 
 aimCommon(heading, pitch)
 {

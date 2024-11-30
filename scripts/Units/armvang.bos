@@ -2,6 +2,7 @@
 
 #include "sfxtype.h"
 #include "exptype.h"
+#include "smart_weapon_select.h"
 
 piece  base, turret, flare, barrel, sleeve, rfhip, rfthigh, rfleg, rffoot, lfhip, lfthigh, lfleg, lffoot, lbhip, lbthigh, lbleg, lbankle, rbhip, rbthigh, rbleg, rbankle, aimx1, aimy1;
 
@@ -511,7 +512,6 @@ Steering(heading)
 #define MAXTILT 100
 
 #include "unit_hitbyweaponid_and_smoke.h"
-#include "smart_weapon_select.h"
 
 RockUnit(anglex, anglez)
 {
@@ -605,6 +605,7 @@ AimPrimary(heading, pitch)
 	if (AimingState != AIMING_LOW){
 		return(0);
 	}
+
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	// values in <> are degrees per second
@@ -642,7 +643,7 @@ QuerySecondary(piecenum)
 
 AimSecondary(heading, pitch)
 {
-	if (bMoving == TRUE){ // to prevent fake low aim errorstates while moving
+	if (bMoving == TRUE){ // to prevent fake low aim errorstates from movement turn speed exceeding or preventing turret turn speed
 		DisableLowAimFailureWatch = TRUE;
 	} else if (DisableLowAimFailureWatch == TRUE){
 		DisableLowAimFailureWatch = FALSE;
@@ -651,6 +652,7 @@ AimSecondary(heading, pitch)
 	if (AimingState != AIMING_HIGH){
 		return(0);
 	}
+	
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	// values in <> are degrees per second
