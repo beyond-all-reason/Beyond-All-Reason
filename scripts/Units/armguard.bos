@@ -10,7 +10,6 @@ static-var  nextBarrel, lastHeading;
 
 #define SIGNAL_AIM		1
 
-
 Create()
 {
 	hide flare1;
