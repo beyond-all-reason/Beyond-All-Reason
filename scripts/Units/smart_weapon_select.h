@@ -1,7 +1,6 @@
-/* Rockunit.h -- Rock the unit when it fire a heavy weapon with lots of recoil
+/*
 .bos script integration checklist:
 1. just before Create() function, #include "smart_weapon_select.h"
-2. in Create(), call-script ExecuteOverrideAimingState(AIMING_LOW);
 3. in low AimWeapon function, call-script SmartAimSelect(AIMING_LOW);
 4. in low weapon, if (AimingState != AIMING_LOW){ return 0; }
 5. in high AimWeapon function, call-script SmartAimSelect(AIMING_HIGH);
@@ -18,6 +17,7 @@ static-var switchAimModeFrame, queueLowFrame, DisableLowAimFailureWatch, gameFra
 #define RESET_HIGH_DELAY_FRAMES				450
 #define RESET_HIGH_ERRORSTATE_FRAMES		900
 #define ERROR_BUFFER_FRAMES					75
+#define ERROR_COOLDOWN_FRAMES				150
 #define AIMING_NEITHER						0
 #define AIMING_LOW							1
 #define AIMING_HIGH							2
@@ -98,9 +98,11 @@ SmartAimSelect(weaponNumber)
 		if (greatestReloadState > switchAimModeFrame){
 			switchAimModeFrame = greatestReloadState;
 		}
-
+		get PRINT(gameFrame, queueLowFrame, switchAimModeFrame, greatestReloadState);
 		//check if the low weapon aimed but didn't fire.
-		if ((DisableLowAimFailureWatch == FALSE) && ((lowReloadState + ERROR_BUFFER_FRAMES) <= gameFrame) && (queueLowFrame > switchAimModeFrame)){ //doubled to ensure the error is a firm error
+		if ((DisableLowAimFailureWatch == FALSE) && //allows moving units to optionally suspend errorstate to prevent slow turret turn-rates from producing undesired errorstates
+		(queueLowFrame > switchAimModeFrame) &&  //the low aim is actively trying to target something
+		((gameFrame - greatestReloadState) < ERROR_COOLDOWN_FRAMES)){ //this isn't the first shot made within the last ERROR_COOLDOWN_FRAMES 1000 - 1000 = 50 < 150 = false
 			DisableLowAimFailureWatch = ERROR_DETECTED;
 		} else{
 			DisableLowAimFailureWatch = FALSE;
