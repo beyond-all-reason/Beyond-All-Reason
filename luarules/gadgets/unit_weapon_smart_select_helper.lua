@@ -17,7 +17,7 @@ if not gadgetHandler:IsSyncedCode() then return end
 --static
 local frameCheckModulo = Game.gameSpeed
 local cmdAttack = CMD.ATTACK
-local deferredRetentionFrames = Game.gameSpeed * 10
+local deferredRetentionFrames = Game.gameSpeed * 7.5
 
 --variables
 local gameFrame = 0
