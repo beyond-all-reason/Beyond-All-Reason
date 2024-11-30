@@ -39,6 +39,7 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "CorBuildings/LandDefenceOffence",
 			smart_weapon_select_priority = 1,
+			exclude_preaim = true,
 		},
 		featuredefs = {
 			dead = {

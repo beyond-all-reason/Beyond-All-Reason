@@ -42,6 +42,7 @@ return {
 			techlevel = 3,
 			unitgroup = "weapon",
 			smart_weapon_select_priority = 1,
+			exclude_preaim = true,
 		},
 		featuredefs = {
 			dead = {

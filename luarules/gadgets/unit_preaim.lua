@@ -14,21 +14,29 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
+--use customparams.exclude_preaim = true, to exclude units from being able to pre-aim at targets almost within firing range.
+--this is a good idea for pop-up turrets so they don't prematurely reveal themselves.
+--also when proximityPriority is heavily biased toward far targets
+
 local weaponRange = {}
 local isPreaimUnit = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if not unitDef.canFly then
+	if not unitDef.canFly and not unitDef.customParams.exclude_preaim then
 		local weapons = unitDef.weapons
 		if #weapons > 0 then
 			for i=1, #weapons do
-				if not isPreaimUnit[unitDefID] then
-					isPreaimUnit[unitDefID] = {}
+				if not WeaponDefs[weapons[i].weaponDef].customParams.exclude_preaim then
+					if not isPreaimUnit[unitDefID] then
+						isPreaimUnit[unitDefID] = {}
+					end
+					local weaponDefID = weapons[i].weaponDef
+					isPreaimUnit[unitDefID][i] = weaponDefID
+					weaponRange[weaponDefID] = WeaponDefs[weaponDefID].range
 				end
-				local weaponDefID = weapons[i].weaponDef
-				isPreaimUnit[unitDefID][i] = weaponDefID
-				weaponRange[weaponDefID] = WeaponDefs[weaponDefID].range
 			end
 		end
+	else
+		Spring.Echo(unitDef.name, "exempt because canfly or exclude_preaim")
 	end
 end
 
@@ -48,6 +56,7 @@ local exludedUnitsNames = {    -- exclude auto target range boost for popup unit
 -- convert unitname -> unitDefID + add scavengers
 local exludedUnits = {}
 for name, params in pairs(exludedUnitsNames) do
+	Spring.Echo(name, "pre-aim exempt because in table")
 	if UnitDefNames[name] then
 		exludedUnits[UnitDefNames[name].id] = params
 		if UnitDefNames[name..'_scav'] then
