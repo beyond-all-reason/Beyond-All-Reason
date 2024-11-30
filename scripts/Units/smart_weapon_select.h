@@ -1,6 +1,6 @@
 /*
 Header Name: Smart Weapon Select
-Purpose: Automatically switch between a preferred and backup weapo (E.G high/low trajectory)
+Purpose: Automatically switch between a preferred and backup weapon (E.G high/low trajectory)
 Author: SethDGamre SethDGamre@Gmail.com
 License: GPL V2.0
 
@@ -10,7 +10,7 @@ script is required to work in conjunction with a gadget unit_weapon_smart_select
 to this script the manual targetting events.
 
 .bos script integration checklist:
-#include "smart_weapon_select.h"
+
 1. somewhere before Create() function:
 #include "smart_weapon_select.h"
 
@@ -34,17 +34,28 @@ if (bMoving == TRUE){
 }
   */
 
+// **OPTIONAL**
+//if turret turn speeds cause shots not to fire in time to prevent lengthy errorstate high trajectory, define these before the #include. Both these conditions must be met to trigger.
+//the maximum age of a reload frame to be allowed to trigger an error state
+#ifndef ERROR_RECENCY_FRAMES
+#define ERROR_RECENCY_FRAMES				300
+#endif
+
+//how long it takes for an attempt to aim and fire times out triggering error state
+#ifndef ERROR_MISFIRE_FRAMES
+#define ERROR_MISFIRE_FRAMES				120
+#endif
+//**END OPTIONAL**
+
 #ifndef __SMARTSELECT_H_
 
-static-var switchAimModeFrame, queueLowFrame, gameFrame, OverrideAimingState, AimingState, DisableLowAimFailureWatch;
+static-var switchAimModeFrame, gameFrame, forceAimingState, queueLowFrame, AimingState, DisableLowAimFailureWatch;
 
 #define __SMARTSELECT_H_
 
-#define RESET_LOW_DELAY_FRAMES				15
+#define RESET_LOW_DELAY_FRAMES				30
 #define RESET_HIGH_DELAY_FRAMES				450
 #define RESET_HIGH_ERRORSTATE_FRAMES		900
-#define ERROR_BUFFER_FRAMES					75
-#define ERROR_COOLDOWN_FRAMES				150
 #define AIMING_NEITHER						0
 #define AIMING_LOW							1
 #define AIMING_HIGH							2
@@ -53,9 +64,9 @@ static-var switchAimModeFrame, queueLowFrame, gameFrame, OverrideAimingState, Ai
 OverrideAimingState(weaponNumber)
 {
 	if (weaponNumber == AIMING_LOW){
-		OverrideAimingState = AIMING_LOW;
+		forceAimingState = AIMING_LOW;
 	} else{
-		OverrideAimingState = AIMING_HIGH;
+		forceAimingState = AIMING_HIGH;
 	}
 
 	//to prevent bonus shots from switching weapons shortly after firing the other fired.
@@ -73,23 +84,22 @@ OverrideAimingState(weaponNumber)
 
 SetAimingState(weaponNumber)
 {
-	if (weaponNumber == AIMING_LOW && DisableLowAimFailureWatch != ERROR_DETECTED){
+	if (DisableLowAimFailureWatch == ERROR_DETECTED){
+			//if low aimed but failed to fire, aim high for longer because the target is probably in a limbo space between low and high.
+			switchAimModeFrame = (gameFrame + RESET_HIGH_ERRORSTATE_FRAMES);
+			AimingState = AIMING_HIGH;
+	} else if (weaponNumber == AIMING_LOW){
 		switchAimModeFrame = (gameFrame + RESET_LOW_DELAY_FRAMES);
 		AimingState = AIMING_LOW;
 	} else if (queueLowFrame < gameFrame){
-		if (DisableLowAimFailureWatch == ERROR_DETECTED){
-			//if low aimed but failed to fire, aim high for longer because the target is probably in a limbo space between low and high.
-			switchAimModeFrame = (gameFrame + RESET_HIGH_ERRORSTATE_FRAMES);
-		} else{
 			switchAimModeFrame = (gameFrame + RESET_HIGH_DELAY_FRAMES);
-		}
-		AimingState = AIMING_HIGH;
+			AimingState = AIMING_HIGH;
 	}
 }
 
-ExecuteOverrideAimingState(weaponNumber)
+ExecuteforceAimingState(weaponNumber)
 {
-	if (weaponNumber == AIMING_LOW && DisableLowAimFailureWatch == FALSE){
+	if (weaponNumber == AIMING_LOW){
 		switchAimModeFrame = (gameFrame + RESET_LOW_DELAY_FRAMES);
 		AimingState = AIMING_LOW;
 	} else{
@@ -123,8 +133,9 @@ SmartAimSelect(weaponNumber)
 		}
 		//check if the low weapon aimed but didn't fire.
 		if ((DisableLowAimFailureWatch == FALSE) && //allows moving units to optionally suspend errorstate to prevent slow turret turn-rates from producing undesired errorstates
-		(queueLowFrame > switchAimModeFrame) &&  //the low aim is actively trying to target something
-		((gameFrame - greatestReloadState) < ERROR_COOLDOWN_FRAMES)){ //this isn't the first shot made within the last ERROR_COOLDOWN_FRAMES 1000 - 1000 = 50 < 150 = false
+		(weaponNumber == AIMING_LOW) &&  //the low aim is actively trying to target something
+		(greatestReloadState > gameFrame - ERROR_RECENCY_FRAMES) && //this isn't the first shot made within the last ERROR_COOLDOWN_FRAMES
+		(greatestReloadState < gameFrame - ERROR_MISFIRE_FRAMES)){  //it hasn't fired within the last 
 			DisableLowAimFailureWatch = ERROR_DETECTED;
 		} else{
 			DisableLowAimFailureWatch = FALSE;
@@ -133,9 +144,9 @@ SmartAimSelect(weaponNumber)
 	}
 	
 	if (AimingState == AIMING_NEITHER){
-		if (OverrideAimingState != AIMING_NEITHER){
-			call-script ExecuteOverrideAimingState(OverrideAimingState);
-			OverrideAimingState = AIMING_NEITHER;
+		if (forceAimingState != AIMING_NEITHER){
+			call-script ExecuteforceAimingState(forceAimingState);
+			forceAimingState = AIMING_NEITHER;
 		} else {
 			call-script SetAimingState(weaponNumber);
 		}
