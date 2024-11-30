@@ -51,7 +51,7 @@ local function weaponTargettingCheck(attackerID, targetData)
 		if not canShoot then
 			spCallCOBScript(attackerID, unitSuspendAutoAiming[attackerID].overrideScriptID, 0, unitSuspendAutoAiming[attackerID].deferredWeapon)
 			return false
-		elseif canShoot and gameFrame > unitSuspendAutoAiming[attackerID].overrideExpirationFrame then
+		elseif canShoot and gameFrame > unitSuspendAutoAiming[attackerID].overrideExpirationFrame then -- to prevent the enemy from moving their units in and out of high/low LOS to stop firing due to constant readjustment
 			spCallCOBScript(attackerID, unitSuspendAutoAiming[attackerID].overrideScriptID, 0, unitSuspendAutoAiming[attackerID].preferredWeapon)
 			unitSuspendAutoAiming[attackerID].overrideExpirationFrame = gameFrame + deferredRetentionFrames
 			return true
