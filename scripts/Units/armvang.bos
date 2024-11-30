@@ -5,13 +5,10 @@
 
 piece  base, turret, flare, barrel, sleeve, rfhip, rfthigh, rfleg, rffoot, lfhip, lfthigh, lfleg, lffoot, lbhip, lbthigh, lbleg, lbankle, rbhip, rbthigh, rbleg, rbankle, aimx1, aimy1;
 
-static-var  bMoving, oldHeading, bSteering, wpn1_lasthead, last_primary_heading, last_primary_pitch, speedmult, trajectoryMode;
+static-var  bMoving, oldHeading, bSteering, wpn1_lasthead, last_primary_heading, last_primary_pitch, speedmult;
 
 #define SIG_WALK			2
 #define SIG_AIM				4
-
-#define LOW_TRAJECTORY		0
-#define HIGH_TRAJECTORY		1
 
 // Generated for N:\animations\armvang_anim_walk_2legs_v2.blend
 // Using https://github.com/Beherith/Skeletor_S3O
@@ -514,6 +511,7 @@ Steering(heading)
 #define MAXTILT 100
 
 #include "unit_hitbyweaponid_and_smoke.h"
+#include "smart_weapon_select.h"
 
 RockUnit(anglex, anglez)
 {
@@ -537,25 +535,6 @@ Create()
 	turn lbhip to y-axis <-54> now;
 	turn rbhip to y-axis <54> now;
 	speedmult = 70;
-	// set last heading values to large negative, ensure first aim waits for the turn
-	last_primary_heading = -1000000;
-	last_primary_pitch = -1000000;
-	trajectoryMode = LOW_TRAJECTORY;
-}
-
-Activate()
-{
-	signal SIG_AIM;
-	trajectoryMode = HIGH_TRAJECTORY;
-	// set last heading values to large negative, ensure first aim waits for the turn
-	last_primary_heading = -1000000;
-	last_primary_pitch = -1000000;
-}
-
-Deactivate()
-{
-	signal SIG_AIM;
-	trajectoryMode = LOW_TRAJECTORY;
 	// set last heading values to large negative, ensure first aim waits for the turn
 	last_primary_heading = -1000000;
 	last_primary_pitch = -1000000;
@@ -622,11 +601,10 @@ QueryPrimary(piecenum)
 
 AimPrimary(heading, pitch)
 {
-	if (trajectoryMode == HIGH_TRAJECTORY)
-	{
+	call-script SmartAimSelect(AIMING_LOW);
+	if (AimingState != AIMING_LOW){
 		return(0);
 	}
-
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	// values in <> are degrees per second
@@ -643,14 +621,6 @@ AimPrimary(heading, pitch)
 	last_primary_heading=heading;
 	last_primary_pitch=pitch;
 	start-script RestoreAfterDelay();
-
-	// Prevent low-trajectory "bonus shots" while high-trajectory is reloading
-	var reloading;
-	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(2));
-	if( reloading )
-	{
-		return(0);
-	}
 
 	return (1);
 }
@@ -672,11 +642,15 @@ QuerySecondary(piecenum)
 
 AimSecondary(heading, pitch)
 {
-	if (trajectoryMode == LOW_TRAJECTORY)
-	{
+	if (bMoving == TRUE){ // to prevent fake low aim errorstates while moving
+		DisableLowAimFailureWatch = TRUE;
+	} else if (DisableLowAimFailureWatch == TRUE){
+		DisableLowAimFailureWatch = FALSE;
+	}
+	call-script SmartAimSelect(AIMING_HIGH);
+	if (AimingState != AIMING_HIGH){
 		return(0);
 	}
-
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	// values in <> are degrees per second
@@ -693,14 +667,6 @@ AimSecondary(heading, pitch)
 	last_primary_heading=heading;
 	last_primary_pitch=pitch;
 	start-script RestoreAfterDelay();
-
-	// Prevent high-trajectory "bonus shots" while low-trajectory is reloading
-	var reloading;
-	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(1));
-	if( reloading )
-	{
-		return(0);
-	}
 
 	return (1);
 }

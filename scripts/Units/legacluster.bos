@@ -23,14 +23,13 @@ door5,
 door6,
 mainStrut, supportStrut, housingStrut, sleeveHousing, sleeveBottom, sleeveTop, barrelBottom, barrelTop, flareBottom, flareTop;
 
-static-var  turretOpen, nextBarrel, trajectoryMode, lastHeading, stunned, restoreDelay;
+static-var  turretOpen, nextBarrel, lastHeading, stunned, restoreDelay;
 
 #define SIGNAL_AIM			1
-#define LOW_TRAJECTORY		0
-#define HIGH_TRAJECTORY		1
 
 #define SMOKEPIECE base
 #include "smokeunit_thread_nohit.h"
+#include "smart_weapon_select.h"
 
 Create()
 {
@@ -69,7 +68,6 @@ Create()
 	{
 		sleep 1000;
 	}
-
 	start-script RestoreAfterDelay();
 	return (0);
 	
@@ -148,23 +146,6 @@ Stop(){
 	return (0);	
 }
 
-RequestState(requestedState)
-{
-	trajectoryMode = requestedstate;
-}
-
-Activate()
-{
-	signal SIGNAL_AIM;
-	start-script RequestState(HIGH_TRAJECTORY);
-}
-
-Deactivate()
-{
-	signal SIGNAL_AIM;
-	start-script RequestState(LOW_TRAJECTORY);
-}
-
 ExecuteRestoreAfterDelay()
 {
     if (stunned)
@@ -229,25 +210,17 @@ aimCommonHigh(heading, pitch)
 AimPrimary(heading, pitch)
 {
 	start-script Go();
-
-	if(trajectoryMode != LOW_TRAJECTORY)
-	 {
-	 	return(0);
-	 }
 	
+	call-script SmartAimSelect(AIMING_LOW);
+	if (AimingState != AIMING_LOW){
+		return(0);
+	}
+
 	signal SIGNAL_AIM;
 	set-signal-mask SIGNAL_AIM;
 	call-script aimCommon(heading, pitch);
 	start-script RestoreAfterDelay();
 
-	// Prevent low-trajectory "bonus shots" while high-trajectory is reloading
-	var reloading;
-	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(2));
-	if( reloading )
-	{
-		return(0);
-	}
-	
 	return (1);
 }
 
@@ -255,8 +228,8 @@ AimSecondary(heading, pitch)
 {
 	start-script Go();
 
-	if(trajectoryMode != HIGH_TRAJECTORY)
-	{
+	call-script SmartAimSelect(AIMING_HIGH);
+	if (AimingState != AIMING_HIGH){
 		return(0);
 	}
 

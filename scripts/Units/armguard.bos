@@ -2,10 +2,11 @@
 
 #include "sfxtype.h"
 #include "exptype.h"
+#include "smart_weapon_select.h"
 
 piece  flare1, flare2, base, turret, barrel1, barrel2, sleeves;
 
-static-var  nextBarrel, trajectoryMode, lastHeading, aimingState;
+static-var  nextBarrel, lastHeading;
 
 #define SIGNAL_AIM		1
 
@@ -33,7 +34,6 @@ Create()
 
 #define SMOKEPIECE base
 #include "smokeunit_thread_nohit.h"
-#include "smart_weapon_select.h"
 
 restoreAfterDelay()
 {
@@ -75,7 +75,7 @@ aimCommon(heading, pitch)
 AimPrimary(heading, pitch)
 {
 	call-script SmartAimSelect(AIMING_LOW);
-	if (aimingState != AIMING_LOW){
+	if (AimingState != AIMING_LOW){
 		return(0);
 	}
 
@@ -89,7 +89,7 @@ AimPrimary(heading, pitch)
 AimSecondary(heading, pitch)
 {
 	call-script SmartAimSelect(AIMING_HIGH);
-	if (aimingState != AIMING_HIGH){
+	if (AimingState != AIMING_HIGH){
 		return(0);
 	}
 	

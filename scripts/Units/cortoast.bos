@@ -6,7 +6,7 @@
 
 piece  base, flare, turret, door1, door2, barrel, bore, aimpoint;
 
-static-var  turretOpen, restoreDelay, stunned, aimingState;
+static-var  turretOpen, restoreDelay, stunned;
 #define SIGNAL_AIM			1
 
 openTurret()
@@ -137,7 +137,7 @@ aimCommon(heading, pitch)
 AimPrimary(heading, pitch)
 {
 	call-script SmartAimSelect(AIMING_LOW);
-	if (aimingState != AIMING_LOW){
+	if (AimingState != AIMING_LOW){
 		return(0);
 	}
 
@@ -154,7 +154,7 @@ AimPrimary(heading, pitch)
 AimSecondary(heading, pitch)
 {
 	call-script SmartAimSelect(AIMING_HIGH);
-	if (aimingState != AIMING_HIGH){
+	if (AimingState != AIMING_HIGH){
 		return(0);
 	}
 

@@ -26,7 +26,6 @@ return {
 		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMVANG.s3o",
-		onoffable = true,
 		script = "Units/ARMVANG.cob",
 		seismicsignature = 0,
 		selfdestructas = "explosiont3xl",
@@ -39,10 +38,10 @@ return {
 		customparams = {
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
-			onoffname = "trajectory",
 			subfolder = "ArmGantry",
 			techlevel = 3,
 			unitgroup = "weapon",
+			smart_weapon_select_priority = 1,
 		},
 		featuredefs = {
 			dead = {
