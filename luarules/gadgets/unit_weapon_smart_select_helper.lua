@@ -89,7 +89,7 @@ local function manualCommandIssued(attackerID)
 end
 
 
-function gadget:UnitFinished(unitID, unitDefID, unitTeam)
+function gadget:UnitCreated(unitID, unitDefID)
 	if unitDefsWithSmartWeapons[unitDefID] then
 		unitSuspendAutoAiming[unitID] = {
 			unitDefID = unitDefID,
