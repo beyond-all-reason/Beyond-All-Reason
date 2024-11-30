@@ -1,15 +1,42 @@
 /*
+Header Name: Smart Weapon Select
+Purpose: Automatically switch between a preferred and backup weapo (E.G high/low trajectory)
+Author: SethDGamre SethDGamre@Gmail.com
+License: GPL V2.0
+
+By including this header file, you can have two weapons dynamically selected. AIMING_LOW trajectory is preferred
+and if it fails AIMING_HIGH is allowed to steal for a period of time outlined in the #defines below. This aiming
+script is required to work in conjunction with a gadget unit_weapon_smart_select_helper.lua which handles and feeds
+to this script the manual targetting events.
+
 .bos script integration checklist:
-1. just before Create() function, #include "smart_weapon_select.h"
-3. in low AimWeapon function, call-script SmartAimSelect(AIMING_LOW);
-4. in low weapon, if (AimingState != AIMING_LOW){ return 0; }
-5. in high AimWeapon function, call-script SmartAimSelect(AIMING_HIGH);
-6. in high weapon, if (AimingState != AIMING_LOW){ return 0; }
+
+1. somewhere before Create() function:
+#include "smart_weapon_select.h"
+
+2. in beginning of low AimWeapon function:
+call-script SmartAimSelect(AIMING_LOW);
+if (AimingState != AIMING_LOW){ 
+	return 0;
+}
+
+3. in beginning of high AimWeapon function:
+call-script SmartAimSelect(AIMING_LOW);
+if (AimingState != AIMING_LOW){ 
+	return 0;
+}
+
+4. OPTIONAL: if unit's movement turn speed can exceed its turret turn speed, place this before call-script SmartAimSelect(AIMING_LOW);
+if (bMoving == TRUE){
+	DisableLowAimFailureWatch = TRUE;
+} else if (DisableLowAimFailureWatch == TRUE){
+	DisableLowAimFailureWatch = FALSE;
+}
   */
 
 #ifndef __SMARTSELECT_H_
 
-static-var switchAimModeFrame, queueLowFrame, DisableLowAimFailureWatch, gameFrame, OverrideAimingState, AimingState;
+static-var switchAimModeFrame, queueLowFrame, gameFrame, OverrideAimingState, AimingState, DisableLowAimFailureWatch;
 
 #define __SMARTSELECT_H_
 
@@ -27,25 +54,21 @@ OverrideAimingState(weaponNumber)
 {
 	if (weaponNumber == AIMING_LOW){
 		OverrideAimingState = AIMING_LOW;
-	} else if ((weaponNumber == AIMING_HIGH)){
+	} else{
 		OverrideAimingState = AIMING_HIGH;
 	}
+
+	//to prevent bonus shots from switching weapons shortly after firing the other fired.
 	var highReloadState, lowReloadState, greatestReloadState;
 	highReloadState = (get WEAPON_RELOADSTATE(AIMING_HIGH));
 	lowReloadState = (get WEAPON_RELOADSTATE(AIMING_LOW));
 
-	//prevent bonus shots
 	if (highReloadState > lowReloadState ){
 		greatestReloadState = highReloadState;
 	} else{
 		greatestReloadState = lowReloadState;
 	}
 	switchAimModeFrame = greatestReloadState;
-}
-
-ClearOverrideAimingState()
-{
-	OverrideAimingState = AIMING_NEITHER;
 }
 
 SetAimingState(weaponNumber)
@@ -55,7 +78,7 @@ SetAimingState(weaponNumber)
 		AimingState = AIMING_LOW;
 	} else if (queueLowFrame < gameFrame){
 		if (DisableLowAimFailureWatch == ERROR_DETECTED){
-			//if low aimed but failed to fire, aim high for longer.
+			//if low aimed but failed to fire, aim high for longer because the target is probably in a limbo space between low and high.
 			switchAimModeFrame = (gameFrame + RESET_HIGH_ERRORSTATE_FRAMES);
 		} else{
 			switchAimModeFrame = (gameFrame + RESET_HIGH_DELAY_FRAMES);
