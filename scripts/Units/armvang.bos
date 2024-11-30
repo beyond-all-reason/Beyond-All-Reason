@@ -10,8 +10,8 @@ static-var  bMoving, oldHeading, bSteering, wpn1_lasthead, last_primary_heading,
 
 #define SIG_WALK				2
 #define SIG_AIM					4
-#define ERROR_MISFIRE_FRAMES	390
-#define ERROR_RECENCY_FRAMES	180
+#define ERROR_MISFIRE_FRAMES	180
+#define ERROR_RECENCY_FRAMES	390
 #include "smart_weapon_select.h"
 
 // Generated for N:\animations\armvang_anim_walk_2legs_v2.blend
