@@ -25,6 +25,10 @@ in DataVS {
 #define DISTANCEFALLOFF v_universalParams.z
 #define ONLYMODELMAP v_universalParams.w
 
+#define EFFECTPARAM1 v_effectParams.x
+#define EFFECTPARAM2 v_effectParams.y
+
+
 
 uniform sampler2D mapDepths;
 uniform sampler2D modelDepths;
@@ -505,7 +509,6 @@ vec3 worldToScreenUVZ(vec3 worldPosition){
 	screenPos.xyz = screenPos.xyz / screenPos.w;
 	screenPos.xyz = screenPos.xyz * 0.5 + 0.5;
 	return screenPos.xyz;
-
 }		
 
 // Parabola (try it in graphtoy.com) A nice choice to remap the 0..1 interval into 0..1, such that the corners are mapped to 0 and the center to 1. You can then rise the parabolar to a power k to control its shape.
@@ -892,10 +895,28 @@ void main(void)
 	
 	//------------------------- BEGIN Motion Blur -------------------------
 	else if (effectType == 11){
-		vec3 unittravelDirection = normalize(v_worldPosRad.xyz - v_worldPosRad2.xyz);
-		printf(v_worldPosRad2.xyzw);
-		//DEBUGPOS(v_worldPosRad2.xyz);
-		fragColor = vec4(v_worldPosRad2.xyz, 1.0);
+		vec3 unittravelDirection = normalize(v_worldPosRad2.xyz);
+
+		vec3 unitUV = worldToScreenUVZ(v_worldPosRad.xyz);
+		vec3 unitUV2 = worldToScreenUVZ(v_worldPosRad.xyz + v_worldPosRad2.xyz);
+		vec3 travelDirectionScreen = unitUV2 - unitUV;
+		if (length(travelDirectionScreen) < 0.001) {fragColor.rgba = vec4(0.0); return;}
+		travelDirectionScreen = normalize(travelDirectionScreen);
+
+		float travelSpeedMult = clamp((v_worldPosRad2.w - EFFECTPARAM1) * EFFECTPARAM2, 0.0, 1.0);
+
+		fragColor.rgba = vec4(travelDirectionScreen.xy * 0.5 + 0.5, -10.0, 1.0);
+		 
+		// convert the unittravelDirection to screen-space:
+		//vec4 travelDirectionScreen = cameraViewProj * vec4(unittravelDirection, 1.0);
+		//travelDirectionScreen.xyz = travelDirectionScreen.xyz / travelDirectionScreen.w;
+		//travelDirectionScreen.xyz = travelDirectionScreen.xyz * 0.5 + 0.5;
+
+			// fragment is behind the sphere
+			if (fragDistance > nearFarDistances.y){
+				fragColor.rgba = vec4(0.0);
+			}
+		//fragColor = vec4(v_worldPosRad2.xyz, 1.0);
 
 	}
 

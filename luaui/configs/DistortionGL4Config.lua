@@ -93,7 +93,7 @@ local unitDistortions = {
 			pieceName = 'base',
 			distortionConfig = { posx = 0, posy = 7.5, posz = 0.01, radius = 23,
 							pos2x = 0, pos2y = 100, pos2z = 0, radius2 = 23, 
-							noiseScaleSpace = 1,
+							noiseScaleSpace = 1,onlyModelMap = -1,
 							lifeTime = 0,  effectType = 11},
 		},
 	},

@@ -230,7 +230,7 @@ local screenDistortionShaderSourceCache = {
 		},
 	uniformFloat = {
 		distortionStrength = 1.0,
-	},
+		},
 }
 
 local fullScreenQuadVAO = nil
@@ -1179,6 +1179,8 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 	gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove
 	--Spring.Echo("Drawing Distortion")
 	screenDistortionShader:Activate()
+	
+	screenDistortionShader:SetUniformFloat("inverseScreenResolution", 1/vsx, 1/vsy)
 	screenDistortionShader:SetUniformFloat("distortionIntensity", 1)
 	screenDistortionShader:SetUniformFloat("distortionRadius", 1)
 	fullScreenQuadVAO:DrawArrays(GL.TRIANGLES)
