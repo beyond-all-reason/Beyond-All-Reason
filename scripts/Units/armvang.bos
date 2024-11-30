@@ -2,14 +2,17 @@
 
 #include "sfxtype.h"
 #include "exptype.h"
-#include "smart_weapon_select.h"
+
 
 piece  base, turret, flare, barrel, sleeve, rfhip, rfthigh, rfleg, rffoot, lfhip, lfthigh, lfleg, lffoot, lbhip, lbthigh, lbleg, lbankle, rbhip, rbthigh, rbleg, rbankle, aimx1, aimy1;
 
 static-var  bMoving, oldHeading, bSteering, wpn1_lasthead, last_primary_heading, last_primary_pitch, speedmult;
 
-#define SIG_WALK			2
-#define SIG_AIM				4
+#define SIG_WALK				2
+#define SIG_AIM					4
+#define ERROR_MISFIRE_FRAMES	390
+#define ERROR_RECENCY_FRAMES	180
+#include "smart_weapon_select.h"
 
 // Generated for N:\animations\armvang_anim_walk_2legs_v2.blend
 // Using https://github.com/Beherith/Skeletor_S3O
