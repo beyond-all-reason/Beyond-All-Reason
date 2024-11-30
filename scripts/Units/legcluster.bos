@@ -7,11 +7,9 @@
 piece base, turret, sleeve, barrel, flare;
 //piece  flare1, flare2, base, turret, barrel1, barrel2, sleeves;
 
-static-var trajectoryMode, lastHeading;
+static-var lastHeading;
 
 #define SIGNAL_AIM			1
-#define LOW_TRAJECTORY		0
-#define HIGH_TRAJECTORY		1
 
 
 Create()
@@ -22,22 +20,6 @@ Create()
 #define SMOKEPIECE base
 #include "smokeunit_thread_nohit.h"
 
-RequestState(requestedState)
-{
-	trajectoryMode = requestedstate;
-}
-
-Activate()
-{
-	signal SIGNAL_AIM;
-	start-script RequestState(HIGH_TRAJECTORY);
-}
-
-Deactivate()
-{
-	signal SIGNAL_AIM;
-	start-script RequestState(LOW_TRAJECTORY);
-}
 
 restoreAfterDelay()
 {
