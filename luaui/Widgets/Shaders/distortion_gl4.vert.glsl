@@ -47,6 +47,7 @@ struct SUniformsBuffer {
 layout(std140, binding=1) readonly buffer UniformsBuffer {
 	SUniformsBuffer uni[];
 };
+#define UNITID (uni[instData.y].composite >> 16)
 
 #line 10000
 
@@ -288,6 +289,24 @@ void main()
 	v_noiseoffset = vec4(windX, 0, windZ,0) * (-0.0156);
 	//v_noiseoffset = vec4(0.0);
 	//v_noiseoffset.y = windX + windZ;
+
+	// if the distortion is attached to a unit, and the lifeTime is 0, and the decay is nonzero, then modulate the strength with the units selfillummod
+	if (attachedtounitID > 0.5 && lifeParams.y == 0 && lifeParams.w < 0){
+		selfIllumMod = max(-0.2, sin(time * 2.0/30.0 + float(UNITID) * 0.1)) + 0.2;
+    	selfIllumMod = mix(1.0, selfIllumMod, -1.0 / lifeParams.w);
+		v_baseparams.r *= selfIllumMod;
+	}
+
+	// If a lifeParams.z rampup is specified, then 
+	// >1 : how many frames to linearly ramp up to full power
+	// 0< z <1: use a power curve with exponent Z to ramp up
+
+	if (lifeParams.z > 0.0){
+		if (lifeParams.z > 1)
+			v_baseparams.r *= clamp(elapsedframes / lifeParams.z, 0.0, 1.0);
+		else 
+			v_baseparams.r *= pow(clamp(elapsedframes / lifeParams.z, 0.0, 1.0), lifeParams.z);
+	}
 	v_universalParams = universalParams;
 	v_effectParams = effectParams;
 	gl_Position = cameraViewProj * vertexPosition;

@@ -156,7 +156,7 @@ local distortionParamKeyOrder = { -- This table is a 'quick-ish' way of building
 
 	-- lifeParams:
 	--spawnFrame = 17, is reserved! 
-	lifeTime = 18, sustain = 19, 
+	lifeTime = 18, rampUp = 19, decay = 20,
 	
 	-- effectParams
 	effectParam1 = 21, effectParam2 = 22, windAffected = 23,  effectType = 24, -- effectType unused
