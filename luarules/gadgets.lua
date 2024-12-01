@@ -1662,20 +1662,13 @@ function gadgetHandler:TerraformComplete(unitID, unitDefID, unitTeam,
 end
 
 function gadgetHandler:AllowWeaponTargetCheck(attackerID, attackerWeaponNum, attackerWeaponDefID)
-local ignore = true
-for _, g in ipairs(self.AllowWeaponTargetCheckList) do
-	local allowCheck, ignoreCheck = g:AllowWeaponTargetCheck(attackerID, attackerWeaponNum, attackerWeaponDefID)
-	if not ignoreCheck then
-		ignore = false
-		if not allowCheck then
-			return 0
+	for _, g in ipairs(self.AllowWeaponTargetCheckList) do
+		if not g:AllowWeaponTargetCheck(attackerID, attackerWeaponNum, attackerWeaponDefID) then
+			return false
 		end
 	end
+	return true
 end
-
-return ((ignore and -1) or 1)
-end
-
 
 function gadgetHandler:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
 	local allowed = true
