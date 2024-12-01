@@ -746,9 +746,8 @@ function widget:DrawScreen()
 
 	if Spring.GetGameFrame() == 0 and WG['pregame-build'] then
 		activeCmd = WG["pregame-build"] and WG["pregame-build"].getPreGameDefID()
-		activeCmd = activeCmd and -activeCmd
 		if activeCmd then
-			activeCmd = units.unitName[activeCmd]
+			activeCmd = unitName[activeCmd]
 		end
 	else
 		activeCmd = select(4, spGetActiveCommand())
@@ -1247,7 +1246,9 @@ end
 
 function widget:Initialize()
 	if widgetHandler:IsWidgetKnown("Grid menu") then
-		widgetHandler:DisableWidget("Grid menu")
+		-- Grid menu needs to be disabled right now and before we recreate
+		-- WG['buildmenu'] since its Shutdown will destroy it.
+		widgetHandler:DisableWidgetRaw("Grid menu")
 	end
 
 	units.checkGeothermalFeatures()
