@@ -90,7 +90,7 @@ local function isFactoryUsable(factoryID)
     if not commandQueue then
         return true
     end
-    return commandQueue and( #commandQueue == 0 or not (commandQueue[1].options.alt or (commandQueue[2] and commandQueue[2].options.alt) or (commandQueue[1].id == CMD.WAIT)))
+    return commandQueue and( #commandQueue == 0 or not (commandQueue[1].options.alt or (commandQueue[2] and (commandQueue[2].options.alt or (commandQueue[2].id == CMD.WAIT))) or (commandQueue[1].id == CMD.WAIT)))
 end
 
 local function appendToFactoryQueue(factoryID, unitDefID)
@@ -135,14 +135,6 @@ end
 local function isOnQuotaBuildMode(unitID)
     local cmdDescIndex = spFindUnitCmdDesc(unitID, CMD_QUOTA_BUILD_TOGGLE)
 	return cmdDescIndex and spGetUnitCmdDescs(unitID)[cmdDescIndex].params[1]+0 == 1
-end
-
-function widget:SelectionChanged(newSelection)
-    for _, unitID in ipairs(newSelection) do
-        if factoryDefIDs[spGetUnitDefID(unitID)] and isOnQuotaBuildMode(unitID) then
-            spGiveOrderToUnit(unitID, CMD_QUOTA_BUILD_TOGGLE, {0}, {})
-        end
-    end
 end
 
 ----- handle unit tracking

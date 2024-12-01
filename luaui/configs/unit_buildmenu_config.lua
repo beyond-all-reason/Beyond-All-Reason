@@ -4,11 +4,11 @@
 ---
 
 
-local unitName = {}
 local unitEnergyCost = {}
 local unitMetalCost = {}
 local unitGroup = {}
 local unitRestricted = {}
+local manualUnitRestricted = {}
 local isBuilder = {}
 local isFactory = {}
 local unitIconType = {}
@@ -46,6 +46,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 
 	if unitDef.maxThisUnit == 0 then
 		unitRestricted[unitDefID] = true
+		manualUnitRestricted[unitDefID] = true
 	end
 
 	if unitDef.buildSpeed > 0 and unitDef.buildOptions[1] then
@@ -68,19 +69,19 @@ end
 
 local function restrictWindUnits(disable)
 	for unitDefID,_ in pairs(isWind) do
-		unitRestricted[unitDefID] = disable
+		unitRestricted[unitDefID] = manualUnitRestricted[unitDefID] or disable
 	end
 end
 
 local function restrictGeothermalUnits(disable)
 	for unitDefID,_ in pairs(isGeothermal) do
-		unitRestricted[unitDefID] = disable
+		unitRestricted[unitDefID] = manualUnitRestricted[unitDefID] or disable
 	end
 end
 
 local function restrictWaterUnits(disable)
 	for unitDefID,_ in pairs(isWaterUnit) do
-		unitRestricted[unitDefID] = disable
+		unitRestricted[unitDefID] = manualUnitRestricted[unitDefID] or disable
 	end
 end
 
@@ -161,8 +162,6 @@ local minWaterUnitDepth = -11
 ------------------------------------
 
 return {
-
-	unitName = unitName,
 	unitEnergyCost = unitEnergyCost,
 	unitMetalCost = unitMetalCost,
 	unitGroup = unitGroup,

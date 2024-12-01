@@ -20,6 +20,7 @@ local largeradarrange = 3500	-- updates to 'armarad' value
 
 local cmdidtoradarsize = {}
 local radaremitheight = {}
+local radarYOffset = 50			-- amount added to vertical height of overlay to more closely reflect engine radarLOS
 
 -- Globals
 local mousepos = { 0, 0, 0 }
@@ -44,40 +45,15 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		smallradarrange = unitDef.radarDistance
 	end
 
-	if unitDef.name == 'armrad' then
-		cmdidtoradarsize[-1 * unitDefID] = "small"
-		radaremitheight[-1 * unitDefID] = 66
-		--[[Spring.Echo(unitDef.radarHeight) -- DOES NOT WORK NEITHER OF THEM
-		Spring.Echo(unitDef.radarEmitHeight)
-		Spring.Echo(unitDef.radaremitheight)
-		Spring.Echo(unitDef.radarDistance)
-		for k,v in pairs(unitDef) do
-			Spring.Echo(k,v)
-		end]]--
-	end
-	if unitDef.name == 'armfrad' then
-		cmdidtoradarsize[-1 * unitDefID] = "small"
-		radaremitheight[-1 * unitDefID] = 52
-	end
-	if unitDef.name == 'corrad' then
-		cmdidtoradarsize[-1 * unitDefID] = "small"
-		radaremitheight[-1 * unitDefID] = 72
-	end
-	if unitDef.name == 'legrad' then
-		cmdidtoradarsize[-1 * unitDefID] = "small"
-		radaremitheight[-1 * unitDefID] = 72
-	end
-	if unitDef.name == 'corfrad' then
-		cmdidtoradarsize[-1 * unitDefID] = "small"
-		radaremitheight[-1 * unitDefID] = 72
-	end
-	if unitDef.name == 'corarad' then
-		cmdidtoradarsize[-1 * unitDefID] = "large"
-		radaremitheight[-1 * unitDefID] = 87
-	end
-	if unitDef.name == 'armarad' then
-		cmdidtoradarsize[-1 * unitDefID] = "large"
-		radaremitheight[-1 * unitDefID] = 66
+	if unitDef.radarDistance > 2000 then
+		radaremitheight[-1 * unitDefID] = unitDef.radarEmitHeight + radarYOffset
+
+		if unitDef.radarDistance == smallradarrange then
+			cmdidtoradarsize[-1 * unitDefID] = "small"
+		end
+		if unitDef.radarDistance == largeradarrange then
+			cmdidtoradarsize[-1 * unitDefID] = "large"
+		end
 	end
 end
 
@@ -94,7 +70,7 @@ local shaderSourceCache = {
 			},
 		uniformFloat = {
 			radarcenter_range = { 2000, 100, 2000, 2000 },
-			resolution = { 64 },
+			resolution = { 128 },
 		  },
 		shaderConfig = shaderConfig,
 	}
@@ -203,4 +179,3 @@ function widget:DrawWorld()
 	gl.Culling(false)
 	gl.DepthTest(true)
 end
-

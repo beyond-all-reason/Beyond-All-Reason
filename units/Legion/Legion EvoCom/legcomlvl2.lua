@@ -43,6 +43,7 @@ return {
 		movementclass = "COMMANDERBOT",
 		nochasecategory = "ALL",
 		objectname = "Units/legevocom1.s3o",
+		pushresistant = Spring.GetModOptions().pushresistant,
 		radardistance = 800,
 		radaremitheight = 44,
 		reclaimable = false,

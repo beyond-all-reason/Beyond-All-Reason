@@ -347,7 +347,7 @@ local function refreshUnitInfo()
 
 						if weaponDef.type == "BeamLaser" then
 							calculateLaserDPS(weaponDef, weaponDef.damages[0])
-						elseif weaponDef.customParams and weaponDef.customParams.cluster then -- Bullets that shoot other, smaller bullets
+						elseif weaponDef.customParams.cluster then -- Bullets that shoot other, smaller bullets
 							calculateClusterDPS(weaponDef, weaponDef.damages[0])
 						elseif weapons[i].onlyTargets['vtol'] ~= nil then
 							calculateWeaponDPS(weaponDef, weaponDef.damages[armorIndex.vtol]) --Damage to air category
@@ -382,8 +382,6 @@ local function refreshUnitInfo()
 						local splitd = WeaponDefNames[weaponDef.customParams.def].damages[0]
 						local splitn = weaponDef.customParams.number or 1
 						calculateWeaponDPS(weaponDef, splitd * splitn)
-					--end
-
 					elseif weaponDef.customParams.spark_basedamage then -- Lightning
 						unitExempt = true
 						local forkd = weaponDef.customParams.spark_forkdamage
