@@ -205,7 +205,7 @@ local function GetUnitFinalPosition(uID)
 						local pID = params[1]
 						local px, py, pz
 
-						if pID > maxUnits then
+						if pID >= maxUnits then
 							px, py, pz = spGetFeaturePosition(pID - maxUnits)
 						else
 							px, py, pz = spGetUnitPosition(pID)

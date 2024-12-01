@@ -4,7 +4,6 @@
 ---
 
 
-local unitName = {}
 local unitEnergyCost = {}
 local unitMetalCost = {}
 local unitGroup = {}
@@ -163,8 +162,6 @@ local minWaterUnitDepth = -11
 ------------------------------------
 
 return {
-
-	unitName = unitName,
 	unitEnergyCost = unitEnergyCost,
 	unitMetalCost = unitMetalCost,
 	unitGroup = unitGroup,
