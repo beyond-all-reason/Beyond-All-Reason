@@ -35,8 +35,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 				end
 			end
 		end
-	else
-		Spring.Echo(unitDef.name, "exempt because canfly or exclude_preaim")
 	end
 end
 
@@ -56,7 +54,6 @@ local exludedUnitsNames = {    -- exclude auto target range boost for popup unit
 -- convert unitname -> unitDefID + add scavengers
 local exludedUnits = {}
 for name, params in pairs(exludedUnitsNames) do
-	Spring.Echo(name, "pre-aim exempt because in table")
 	if UnitDefNames[name] then
 		exludedUnits[UnitDefNames[name].id] = params
 		if UnitDefNames[name..'_scav'] then
