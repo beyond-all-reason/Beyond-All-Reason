@@ -40,6 +40,7 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			onoffname = "trajectory",
 			subfolder = "CorBuildings/LandDefenceOffence",
+			smart_weapon_select_priority = 1,
 		},
 		featuredefs = {
 			dead = {
@@ -130,6 +131,7 @@ return {
 				weaponvelocity = 450,
 				customparams = {
 					cluster = true,
+					exclude_preaim = true,
 					number = 3,
 				},
 				damage = {
@@ -191,7 +193,8 @@ return {
 				weaponvelocity = 450,
 				customparams = {
 					cluster = true,
-					number = 6,
+					exclude_preaim = true,
+					number = 3,
 				},
 				damage = {
 					default = 200,
