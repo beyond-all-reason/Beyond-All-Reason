@@ -43,18 +43,18 @@ local unitDistortions = {
 			pieceName = 'emit',
 			distortionConfig = { posx = 0, posy = 2, posz = 0, radius = 33,
 							noiseStrength = 0.5, noiseScaleSpace = 1.5, distanceFalloff = 2.0,
-							lifeTime = 0,  rampUp = 30, 
+							lifeTime = 0,  rampUp = 300, decay = -2.0,
 							effectType = 0},
 		},
 	},
 
 	
-	['armmmkr'] = {
+	['armmakr'] = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'base',
-			distortionConfig = { posx = 0, posy = 2, posz = 0, radius = 50,
-							noiseStrength = 0.5, noiseScaleSpace = 1.5, distanceFalloff = 2.0,
+			distortionConfig = { posx = 0, posy = 2, posz = 0, radius = 20,
+							noiseStrength = 0.5, noiseScaleSpace = 1.5, distanceFalloff = 0.5,
 							lifeTime = 0, rampUp = 30, decay = -1.0,
 							effectType = 0},
 		},

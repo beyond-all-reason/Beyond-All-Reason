@@ -813,7 +813,7 @@ void main(void)
 
 			// screen-space direction of the shockwave
 			vec2 displacementScreen = normalize((DistortionScreenPosition.xy * 0.5 + 0.5) - v_screenUV);
-			float overallStrength = effectStrength * distanceToCameraFactor * parabolicStrength * v_baseparams.a;
+			float overallStrength = effectStrength * distanceToCameraFactor * parabolicStrength * v_baseparams.r;
 			vec2 displacementAmount = displacementScreen * overallStrength;
 			fragColor.rgba = vec4(displacementAmount * 0.5 + 0.5, 0.0, 0.5 * step(0.005,overallStrength) );
 			return;
@@ -964,7 +964,7 @@ void main(void)
 
 		// modulate the effect strength with the distance to the heat source:
 		float distanceToCameraFactor =  clamp(300.0/ fragDistance, 0.0, 1.0);
-		noiseSampleNorm *= distanceToCameraFactor;
+		noiseSampleNorm *= distanceToCameraFactor * v_baseparams.r;
 
 		// Modulate alpha with the distortionAttenuation
 

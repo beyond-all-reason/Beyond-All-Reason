@@ -40,7 +40,7 @@ void main(void) {
         screen.b = texture2D(screenCopyTexture, distortedUVs).b;
     #endif
     #if 1
-    if (distortion.b < -0.1){
+    if (distortion.b < -1.0){
         //NEAT!
         //Motion Blur
         //screen = texture2D(screenCopyTexture, gl_TexCoord[0].st);
