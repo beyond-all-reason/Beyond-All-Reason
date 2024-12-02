@@ -193,7 +193,7 @@ return {
 				customparams = {
 					cluster = true,
 					exclude_preaim = true,
-					number = 3,
+					number = 6,
 				},
 				damage = {
 					default = 200,
