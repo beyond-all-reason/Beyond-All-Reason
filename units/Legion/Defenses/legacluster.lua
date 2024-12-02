@@ -41,7 +41,6 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			onoffname = "trajectory",
 			subfolder = "Legion/Defenses",
-			smart_weapon_select_priority = 1,
 		},
 		featuredefs = {
 			dead = {

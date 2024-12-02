@@ -43,7 +43,6 @@ return {
 			subfolder = "ArmGantry",
 			techlevel = 3,
 			unitgroup = "weapon",
-			smart_weapon_select_priority = 1,
 		},
 		featuredefs = {
 			dead = {
