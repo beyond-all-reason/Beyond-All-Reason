@@ -21,7 +21,7 @@ end
 local weaponRange = {}
 local isPreaimUnit = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if not unitDef.canFly and not unitDef.customParams.exclude_preaim then
+	if not unitDef.canFly then
 		local weapons = unitDef.weapons
 		if #weapons > 0 then
 			for i=1, #weapons do
