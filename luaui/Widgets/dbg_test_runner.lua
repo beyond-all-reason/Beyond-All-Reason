@@ -686,37 +686,42 @@ local function runTestInternal()
 	end
 
 	local setupOk, setupResult
-	if setup ~= nil then
-		log(LOG.DEBUG, "[runTestInternal.setup]")
-		setupOk, setupResult = Util.yieldable_pcall(setup)
-		log(LOG.DEBUG, "[runTestInternal.setup.done] " .. table.toString({
-			setupOk, setupResult
-		}))
-	else
-		log(LOG.DEBUG, "[runTestInternal.setup.skipped]")
-		setupOk = true
-	end
-
 	local testOk, testResult
-	if setupOk then
-		log(LOG.DEBUG, "[runTestInternal.test]")
-		testOk, testResult = Util.yieldable_pcall(test)
-		log(LOG.DEBUG, "[runTestInternal.test.done] " .. table.toString({
-			testOk, testResult
-		}))
-	end
-
-	-- always try to run cleanup
 	local cleanupOk, cleanupResult
-	if cleanup ~= nil then
-		log(LOG.DEBUG, "[runTestInternal.cleanup]")
-		cleanupOk, cleanupResult = Util.yieldable_pcall(cleanup)
-		log(LOG.DEBUG, "[runTestInternal.cleanup.done] " .. table.toString({
-			cleanupOk, cleanupResult
-		}))
-	else
-		log(LOG.DEBUG, "[runTestInternal.cleanup.skipped]")
-		cleanupOk = true
+	for _,testFunction in ipairs(testFunctions) do
+		local name = testFunction[1]
+		local test = testFunction[2]
+
+		if setup ~= nil then
+			log(LOG.DEBUG, "[runTestInternal.setup]")
+			setupOk, setupResult = Util.yieldable_pcall(setup)
+			log(LOG.DEBUG, "[runTestInternal.setup.done] " .. table.toString({
+				setupOk, setupResult
+			}))
+		else
+			log(LOG.DEBUG, "[runTestInternal.setup.skipped]")
+			setupOk = true
+		end
+
+		if setupOk then
+			log(LOG.DEBUG, "[runTestInternal.test]")
+			testOk, testResult = Util.yieldable_pcall(test)
+			log(LOG.DEBUG, "[runTestInternal.test.done] " .. table.toString({
+				testOk, testResult
+			}))
+		end
+
+		-- always try to run cleanup
+		if cleanup ~= nil then
+			log(LOG.DEBUG, "[runTestInternal.cleanup]")
+			cleanupOk, cleanupResult = Util.yieldable_pcall(cleanup)
+			log(LOG.DEBUG, "[runTestInternal.cleanup.done] " .. table.toString({
+				cleanupOk, cleanupResult
+			}))
+		else
+			log(LOG.DEBUG, "[runTestInternal.cleanup.skipped]")
+			cleanupOk = true
+		end
 	end
 
 	if #initialWidgetActive > 0 then
@@ -753,6 +758,7 @@ local function initializeTestEnvironment()
 		SyncedProxy = SyncedProxy,
 		SyncedRun = SyncedRun,
 		__runTestInternal = runTestInternal,
+		testFunctions = {},
 		yieldable_pcall = Util.yieldable_pcall,
 		TEST_RESULT = TestResults.TEST_RESULT,
 
@@ -813,7 +819,7 @@ local function initializeTestEnvironment()
 	return env
 end
 
-local function loadTestFromFile(filename)
+local function loadTestsFromFile(filename)
 	if not VFS.FileExists(filename) then
 		return false, "missing file: " .. filename
 	end
@@ -838,8 +844,16 @@ local function loadTestFromFile(filename)
 		return false, err
 	end
 
-	if testEnvironment.test == nil then
-		return false, "no test() function"
+	for name,value in pairs(testEnvironment) do
+		if type(value) == "function" then
+			if string.find(name, "test") == 1 then
+				log(LOG.INFO, "[loadTestsFromFile] Found " .. name)
+				table.insert(testEnvironment.testFunctions, {name, value})
+			end
+		end
+	end
+	if #testEnvironment.testFunctions == 0 then
+		return false, "no test*() function(s)"
 	end
 
 	setfenv(testEnvironment.__runTestInternal, testEnvironment)
@@ -975,7 +989,7 @@ local function step()
 		activeTestState.label = testRunState.files[testRunState.index].label
 		activeTestState.filename = testRunState.files[testRunState.index].filename
 
-		local success, envOrError = loadTestFromFile(activeTestState.filename)
+		local success, envOrError = loadTestsFromFile(activeTestState.filename)
 
 		if success then
 			log(LOG.DEBUG, "Initializing test: " .. activeTestState.label)
