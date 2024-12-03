@@ -137,9 +137,6 @@ return {
 					default = 75,
 					vtol = 5,
 				},
-				customparams = {
-					exclude_preaim = true
-				}
 			},
 			hllt_top = {
 				areaofeffect = 12,
@@ -177,9 +174,6 @@ return {
 					default = 75,
 					vtol = 5,
 				},
-				customparams = {
-					exclude_preaim = true
-				}
 			},
 		},
 		weapons = {

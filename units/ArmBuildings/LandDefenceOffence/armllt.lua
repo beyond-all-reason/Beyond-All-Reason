@@ -138,9 +138,6 @@ return {
 					subs = 5,
 					vtol = 5,
 				},
-				customparams = {
-					exclude_preaim = true
-				}
 			},
 		},
 		weapons = {
