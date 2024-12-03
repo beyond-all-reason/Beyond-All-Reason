@@ -161,7 +161,7 @@ local distortionParamKeyOrder = { -- This table is a 'quick-ish' way of building
 	
 	-- effectParams
 	effectParam1 = 21, effectParam2 = 22, windAffected = 23,  effectType = 24, -- effectType unused
-
+	riseRate = 21, -- note how riseRate is identical to effectParam1 for clarity
 
 	--color2r = 21, color2g = 22, color2b = 23, colortime = 24, -- point distortions only, colortime in seconds for unit-attached
 }
@@ -201,8 +201,7 @@ local distortionShaderSourceCache = {
 		--fadeDistance = 3000,
 		attachedtounitID = 0,
 		nightFactor = 1.0,
-		windX = 0.0,
-		windZ = 0.0,
+		windXZ = {0,0},
 		radiusMultiplier = 1.0,
 		intensityMultiplier = 1.0,
 	  },
@@ -763,7 +762,7 @@ function widget:GameFrame(n)
 	local windDirX, _, windDirZ, windStrength = Spring.GetWind()
 	--windStrength = math.min(20, math.max(3, windStrength))
 	--Spring.Echo(windDirX,windDirZ,windStrength)
-	windX = windX + windDirX * 0.016
+	windX = windX + windDirX * 0.016 -- this is not smooth, should be smoothed on update with timeOffset!
 	windZ = windZ + windDirZ * 0.016
 	if distortionRemoveQueue[n] then
 		for instanceID, targetVBO in pairs(distortionRemoveQueue[n]) do
@@ -1107,6 +1106,7 @@ local function DrawDistortionFunction2(gf) -- For render-to-texture
 
 		deferredDistortionShader:SetUniformFloat("intensityMultiplier", intensityMultiplier)
 		deferredDistortionShader:SetUniformFloat("radiusMultiplier", radiusMultiplier)
+		deferredDistortionShader:SetUniformFloat("windXZ", windX, windZ)
 	
 
 		-- Fixed worldpos distortions, cursors, projectiles, world distortions

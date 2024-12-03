@@ -71,6 +71,19 @@ local unitDistortions = {
 
 		},
 	},
+	['armgate'] = {
+		distortion = {
+			distortionType = 'beam',
+			pieceName = 'base',
+			distortionConfig = { posx = 0, posy = -6.5, posz = 0.01, radius = 552,
+								pos2x = 0, pos2y = 20, pos2z = 0, radius2 = 23, 
+								noiseStrength = 1.5, noiseScaleSpace = 0.4, distanceFalloff = 0.05,
+								rampUp = 30, decay = 0,
+								lifeTime = 0, windAffected = -1, riseRate = 0,
+								effectType = 7},
+
+		},
+	},
 
 	['armbull'] = {
 		distortion = {

@@ -32,8 +32,8 @@ in DataVS {
 
 #define EFFECTPARAM1 v_effectParams.x
 #define EFFECTPARAM2 v_effectParams.y
-
-
+#define WINDAFFECTED v_effectParams.z
+#define EFFECTTYPE   v_effectParams.w
 
 
 uniform sampler2D mapDepths;
@@ -45,6 +45,8 @@ uniform float pointbeamcone = 0;
 // = 0; // 0 = point, 1 = beam, 2 = cone
 uniform float radiusMultiplier = 1.0;
 uniform float intensityMultiplier = 1.0;
+
+uniform vec2 windXZ = vec2(0.0, 0.0);
 
 out vec4 fragColor;
 
@@ -544,7 +546,7 @@ float pcurve_k( float x, float a, float b, float k )
 void main(void)
 {
 	//-------------------------- BEGIN SHARED SECTION ---------------------
-	int effectType = int(round(v_effectParams.w));
+	int effectType = int(round(EFFECTTYPE));
 	
 	// TODO: Get the view vector before fetching texels for speedups, we cant really bail on all that many fragments...
 	
@@ -596,6 +598,8 @@ void main(void)
 
 	vec4 closestPointOnRay = vec4(0); // the point on the ray that is closest to the distortion source (xyz) and the distance to it (w)
 	
+	// In frames of course, plus timeOffset
+	float currentTime = timeInfo.x + timeInfo.w;
 	
 	// Distortioning components we wish to collect along the way:
 	float distance_attenuation = 0; // Just the distance from the distortion source (multiplied with falloff for cones
@@ -700,9 +704,8 @@ void main(void)
 		// Create an air shockwave displacement based on the distance to the distortion source:
 		// Bend the distortion beam as many times as it goes through the sphere!
 			// Lifetime goes from 0 to 1
-			float lifeStart = v_lifeParams.x;
-			float lifeTime = v_lifeParams.y;
-			float currentTime = timeInfo.x + timeInfo.w;
+			float lifeStart = SPAWNFRAME;
+			float lifeTime = LIFETIME;
 			//float timeFraction = clamp((currentTime - lifeStart) / lifeTime, 0.0, 1.0);
 		
 			float timeFraction = fract((currentTime - lifeStart) / 100); // for debugging
@@ -784,10 +787,7 @@ void main(void)
 			
 
 			// Lifetime goes from 0 to 1
-			float lifeStart = v_lifeParams.x;
-			float lifeTime = v_lifeParams.y;
-			float currentTime = timeInfo.x + timeInfo.w;
-			float timeFraction = clamp((currentTime - lifeStart) / lifeTime, 0.0, 1.0);
+			float timeFraction = clamp((currentTime - SPAWNFRAME) / LIFETIME, 0.0, 1.0);
 
 			float currentDist = distortionRadius * timeFraction;
 			// TODO : Parameterize out width in elmos
@@ -855,7 +855,50 @@ void main(void)
 
 	//------------------------- BEGIN SHIELDSPHERE -------------------------
 	else if (effectType == 7){
+		float distortionAttenuation = 1.0; // start at max for the center
 
+		
+		// This should only highlight the very edge of the shield sphere
+
+		float shieldEdgeFactor = clamp(1.0 - abs(length(distortionEmitPosition.xyz - closestPointOnRay.xyz) - distortionRadius +10) * 0.1, 0.0, 1.0);
+		//shieldEdgeFactor = pcurve_k(shieldEdgeFactor, 0.7, 100.0, 17.0);
+		shieldEdgeFactor = smoothstep(0.0, 1.0, shieldEdgeFactor);
+		if (fragDistance < ( length(distortionPosition - camPos) -distortionRadius)){
+			fragColor.rgba = vec4(0.0);
+			return;
+		}
+
+		//D
+		distortionAttenuation *= shieldEdgeFactor;
+		// 
+
+		// TODO: Ensure that the distortion is proportionate to the amount of "Hot" volume the ray passes through. 
+		// Get the noise sample:
+		vec3 noisePosition = MidPoint.xyz;
+		
+		if (NOISESCALESPACE < 0.0){
+			noisePosition -= v_worldPosRad.xyz;
+		}
+
+		// Scale the noise position with the noise scale
+		noisePosition *= abs(NOISESCALESPACE) * 0.03;
+		
+		// Add the time offset and wind offsets to the noise position
+		vec3 noiseOffset = vec3(windXZ.x * 0.1, currentTime * 0.01, windXZ.y * 0.1 ) * (1.0 + vec3(WINDAFFECTED, EFFECTPARAM1, WINDAFFECTED));
+		
+		// Normalize the noise sample at noisePosition - noiseOffset
+		vec4 noiseSampleNorm = (textureLod(noise3DCube, noisePosition - noiseOffset, 0.0) )* 2.0 - 1.0;
+
+
+		// modulate the effect strength with the distance to the heat source:
+		float distanceToCameraFactor =  clamp(300.0/ length(camPos.xyz - MidPoint.xyz), 0.0, 1.0);
+		noiseSampleNorm *= distanceToCameraFactor * v_baseparams.r;
+
+		// Modulate alpha with the distortionAttenuation
+		noiseSampleNorm *= NOISESTRENGTH;
+		fragColor.rgba = vec4(vec3(noiseSampleNorm.ra * 0.5 + 0.5, 0.0) * 1.0 ,  distortionAttenuation);
+		//if (ismodel > 0.5) {fragColor.rgba = vec4(0.5,0.5,0.5,1.0);	}
+		//return;
 	}
 	
 	//------------------------- BEGIN MAGNIFIER -------------------------
@@ -947,7 +990,7 @@ void main(void)
 		distortionAttenuation *= volumetricFraction;
 
 		// if the fragment is closer to the camera than the distortion source plus its radius, we can completely skip the distortion
-		if (length(fragWorldPos.xyz - camPos) < ( length(distortionPosition - camPos) -distortionRadius)){
+		if (fragDistance < ( length(distortionPosition - camPos) -distortionRadius)){
 			fragColor.rgba = vec4(0.0);
 			return;
 		}
@@ -964,8 +1007,14 @@ void main(void)
 			noisePosition -= v_worldPosRad.xyz;
 		}
 
-		// Normalized noise sample
-		vec4 noiseSampleNorm = (textureLod(noise3DCube, (abs(NOISESCALESPACE)*noisePosition) * 0.03 - vec3(0,(timeInfo.x + timeInfo.w) * 0.01, 0), 0.0) )* 2.0 - 1.0;
+		// Scale the noise position with the noise scale
+		noisePosition *= abs(NOISESCALESPACE) * 0.03;
+		
+		// Add the time offset and wind offsets to the noise position
+		vec3 noiseOffset = vec3(windXZ.x * 0.1, currentTime * 0.01, windXZ.y * 0.1 ) * (1.0 + vec3(WINDAFFECTED, EFFECTPARAM1, WINDAFFECTED));
+		
+		// Normalize the noise sample at noisePosition - noiseOffset
+		vec4 noiseSampleNorm = (textureLod(noise3DCube, noisePosition - noiseOffset, 0.0) )* 2.0 - 1.0;
 
 
 		// modulate the effect strength with the distance to the heat source:
@@ -973,10 +1022,6 @@ void main(void)
 		noiseSampleNorm *= distanceToCameraFactor * v_baseparams.r;
 
 		// Modulate alpha with the distortionAttenuation
-		printf(relativeDensity);
-		printf(distortionAttenuation);
-		printf(distanceToCameraFactor);
-
 		noiseSampleNorm *= NOISESTRENGTH;
 		fragColor.rgba = vec4(vec3(noiseSampleNorm.ra * 0.5 + 0.5, 0.0) * 1.0 ,  distortionAttenuation);
 		//if (ismodel > 0.5) {fragColor.rgba = vec4(0.5,0.5,0.5,1.0);	}
