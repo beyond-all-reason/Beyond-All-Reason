@@ -25,8 +25,14 @@ in DataVS {
 #define DISTANCEFALLOFF v_universalParams.z
 #define ONLYMODELMAP v_universalParams.w
 
+#define SPAWNFRAME v_lifeParams.x
+#define LIFETIME   v_lifeParams.y
+#define RAMPUP     v_lifeParams.z
+#define DECAY      v_lifeParams.w	
+
 #define EFFECTPARAM1 v_effectParams.x
 #define EFFECTPARAM2 v_effectParams.y
+
 
 
 
@@ -963,10 +969,13 @@ void main(void)
 
 
 		// modulate the effect strength with the distance to the heat source:
-		float distanceToCameraFactor =  clamp(300.0/ fragDistance, 0.0, 1.0);
+		float distanceToCameraFactor =  clamp(300.0/ length(camPos.xyz - MidPoint.xyz), 0.0, 1.0);
 		noiseSampleNorm *= distanceToCameraFactor * v_baseparams.r;
 
 		// Modulate alpha with the distortionAttenuation
+		printf(relativeDensity);
+		printf(distortionAttenuation);
+		printf(distanceToCameraFactor);
 
 		noiseSampleNorm *= NOISESTRENGTH;
 		fragColor.rgba = vec4(vec3(noiseSampleNorm.ra * 0.5 + 0.5, 0.0) * 1.0 ,  distortionAttenuation);

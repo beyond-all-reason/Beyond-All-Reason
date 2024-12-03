@@ -55,11 +55,23 @@ local unitDistortions = {
 			pieceName = 'base',
 			distortionConfig = { posx = 0, posy = 2, posz = 0, radius = 20,
 							noiseStrength = 0.5, noiseScaleSpace = 1.5, distanceFalloff = 0.5,
-							lifeTime = 0, rampUp = 30, decay = -1.0,
+							lifeTime = 0, rampUp = 30, decay = -2.0,
 							effectType = 0},
 		},
 	},
-	
+	['armestor'] = {
+		distortion = {
+			distortionType = 'beam',
+			pieceName = 'base',
+			distortionConfig = { posx = 0, posy = -6.5, posz = 0.01, radius = 23,
+								pos2x = 0, pos2y = 20, pos2z = 0, radius2 = 23, 
+								noiseStrength = 0.5, noiseScaleSpace = -1, distanceFalloff = 0.5,
+								rampUp = 30, decay = -1.3,
+								lifeTime = 0,  effectType = 0},
+
+		},
+	},
+
 	['armbull'] = {
 		distortion = {
 			distortionType = 'point',

@@ -18,7 +18,10 @@ layout (location = 8) in vec4 effectParams; // effectparam1, effectparam2, windA
 layout (location = 9) in uint pieceIndex; // for piece type distortions
 layout (location = 10) in uvec4 instData; // matoffset, uniformoffset, teamIndex, drawFlags {id = 5, name = 'instData', size = 4, type = GL.UNSIGNED_INT},
 
-
+#define SPAWNFRAME lifeParams.x
+#define LIFETIME   lifeParams.y
+#define RAMPUP     lifeParams.z
+#define DECAY      lifeParams.w
 			
 //__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
@@ -117,9 +120,9 @@ void main()
 		uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
 		vec4 teamCol = teamColor[teamIndex];
 	}
-	float elapsedframes = time - lifeParams.x;
-	float lifetime = lifeParams.y;
-	float sustain = lifeParams.z;
+	float elapsedframes = time - SPAWNFRAME;
+	float lifetime = LIFETIME;
+	float sustain = RAMPUP;
 	if (lifetime > 0 ){ //lifetime alpha control
 		if (sustain >1 ){ // sustain is positive, keep it up for sustain frames, then ramp it down
 			v_baseparams.a = clamp( v_baseparams.a * ( lifetime - elapsedframes)/(lifetime - sustain ) , 0.0, v_baseparams.a);
@@ -293,9 +296,11 @@ void main()
 	// Initialze the distortion strength multiplier
 	v_baseparams.r = 1.0;
 	// if the distortion is attached to a unit, and the lifeTime is 0, and the decay is nonzero, then modulate the strength with the units selfillummod
-	if ((attachedtounitID > 0.5) && (lifeParams.y == 0) && (lifeParams.w < 0)){
-		float selfIllumMod = max(-0.2, sin(time * 2.0/30.0 + float(UNITID) * 0.1)) + 0.2;
-    	selfIllumMod = mix(1.0, selfIllumMod, -1.0 / lifeParams.w);
+	if ((attachedtounitID > 0.5) && (LIFETIME == 0) && (DECAY < 0)){
+		float selfIllumMod = max(-0.2, sin(time * 2.0/30.0 + float(UNITID) * 0.1 - 0.5)) + 0.2;
+		selfIllumMod *= selfIllumMod * (2.0 - selfIllumMod); //Almost Unit Identity 
+		// Almost 
+    	selfIllumMod = mix(1.0, selfIllumMod, -1.0 / DECAY);
 		v_baseparams.r *= selfIllumMod;
 	}
 
@@ -303,9 +308,18 @@ void main()
 	// >1 : how many frames to linearly ramp up to full power
 	// 0< z <1: use a power curve with exponent Z to ramp up
 
-	if (lifeParams.z > 0.0){
-		if (lifeParams.z > 1) v_baseparams.r *= clamp(elapsedframes / lifeParams.z, 0.0, 1.0);
-		else v_baseparams.r *= pow(clamp(elapsedframes / lifeParams.z, 0.0, 1.0), lifeParams.z);
+	if (RAMPUP > 0.0){
+		//if (RAMPUP > 1) v_baseparams.r *= clamp(elapsedframes / RAMPUP, 0.0, 1.0);
+		//else v_baseparams.r *= pow(clamp(elapsedframes / RAMPUP, 0.0, 1.0), RAMPUP);
+	}
+	if (LIFETIME > 1){ // Decay only makes sense if lifetime is > 1
+		// If a lifeParams.w decay is specified, then 
+		// >1 : how many frames to linearly decay to zero
+		// 0< z <1: use a power curve with exponent Z to decay
+		if (DECAY > 1) v_baseparams.r *= clamp((lifetime - elapsedframes) / DECAY, 0.0, 1.0);
+		//else v_baseparams.r *= pow(clamp((lifetime - elapsedframes) / DECAY, 0.0, 1.0), DECAY);
+
+
 	}
 	v_universalParams = universalParams;
 	v_effectParams = effectParams;

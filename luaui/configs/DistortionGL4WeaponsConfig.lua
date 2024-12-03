@@ -82,6 +82,8 @@ local BaseClasses = {
 		distortionType = 'cone',
 		distortionConfig = { posx = 0, posy = 0, posz = 00, radius = 100,
 						dirx =  0, diry = 1, dirz = 1.0, theta = 0.1,
+						noiseStrength = 0.5, noiseScaleSpace = 0.75, distanceFalloff = 1.0, onlyModelMap = 0,
+						rampUp = 30, 
 						lifeTime = 0, sustain = 0, effectType = 0},
 	},
 
@@ -94,12 +96,14 @@ local BaseClasses = {
 		},
 	},
 
-	MissileProjectile = {
-		distortionType = 'point', -- or cone or beam
-		distortionConfig = {
-			posx = 0, posy = 0, posz = 0, radius = 150,
-			lifeTime = 0, sustain = 0, 	effectType = 0, -- unused
-		},
+	MissileProjectile = { 
+		distortionType = 'cone',
+		distortionConfig = { posx = 0, posy = 0, posz = 00, radius = 100,
+						dirx =  0, diry = 1, dirz = 1.0, theta = 0.1,
+						
+						noiseStrength = 1.25, noiseScaleSpace = 0.75, distanceFalloff = 1.0, onlyModelMap = 0,
+						rampUp = 30,
+						lifeTime = 0, sustain = 0, effectType = 0},
 	},
 
 	LaserAimProjectile = {
@@ -125,10 +129,8 @@ local BaseClasses = {
 		fraction = 2, -- only spawn every nth distortion
 		distortionConfig = {
 			posx = 0, posy = 15, posz = 0, radius = 25,
-			r = 1.0, g = 0.9, b = 0.6, a = 0.086,
-			color2r = 0.75, color2g = 0.45, color2b = 0.22, colortime = 15, -- point distortions only, colortime in seconds for unit-attached
-			modelfactor = 0.2, specular = 0.5, scattering = 0.8, lensflare = 0,
-			lifeTime = 23, sustain = 0, effectType = 0, -- unused
+			noiseStrength = 0.5, noiseScaleSpace = 0.75, distanceFalloff = 0.5, onlyModelMap = 0,
+			lifeTime = 150, rampUp = 10, decay = 100, effectType = 0, -- unused
 		},
 	},
 
@@ -136,8 +138,9 @@ local BaseClasses = {
 		distortionType = 'point', -- or cone or beam
 		yOffset = 0, -- Y offsets are only ever used for explosions!
 		distortionConfig = {
-			posx = 0, posy = 0, posz = 0, radius = 240,
-			lifeTime = 12, sustain = 3, effectType = 0, -- unused
+			posx = 0, posy = 0, posz = 0, radius = 10, 
+			noiseStrength = 1, noiseScaleSpace = 0.75, distanceFalloff = 0.5, onlyModelMap = 0,
+			lifeTime = 150, rampUp = 15, decay = 100, effectType = 0, -- unused
 		},
 	},
 
@@ -210,8 +213,8 @@ local function deepcopy(orig)
 	return copy
 end
 local usedclasses = 0
-local function GetDistortionClass(baseClassname, colorkey, sizekey, additionaloverrides)
-	local distortionClassKey = baseClassname .. (colorkey or "") .. (sizekey or "")
+local function GetDistortionClass(baseClassname, sizekey, additionaloverrides)
+	local distortionClassKey = baseClassname  .. (sizekey or "")
 	if additionaloverrides and type(additionaloverrides) == 'table' then
 		for k,v in pairs(additionaloverrides) do
 			distortionClassKey = distortionClassKey .. "_" .. tostring(k) .. "=" .. tostring(v)
@@ -332,7 +335,7 @@ local function AssignDistortionsToAllWeapons()
 				radius = radius * 0.5
 			end
 			sizeclass = GetClosestSizeClass(radius)
-			projectileDefDistortions[weaponID] = GetDistortionClass("LaserProjectile", nil, sizeclass, t)
+			projectileDefDistortions[weaponID] = GetDistortionClass("LaserProjectile", sizeclass, t)
 
 			if not weaponDef.paralyzer then
 				radius = ((orgMult * 2500) + radius) * 0.2
@@ -344,7 +347,7 @@ local function AssignDistortionsToAllWeapons()
 			t.a = (orgMult * 0.1) + weaponDef.duration
 
 			sizeclass = GetClosestSizeClass(radius)
-			projectileDefDistortions[weaponID] = GetDistortionClass("CannonProjectile", "Warm", sizeclass, t)
+			projectileDefDistortions[weaponID] = GetDistortionClass("CannonProjectile", sizeclass, t)
 
 		elseif weaponDef.type == 'DistortionningCannon' then
 			if not scavenger then
@@ -352,15 +355,15 @@ local function AssignDistortionsToAllWeapons()
 			end
 			t.a = 0.13 + (orgMult * 0.5)
 			sizeclass = GetClosestSizeClass(33 + (radius*2.5))
-			projectileDefDistortions[weaponID] = GetDistortionClass("LaserProjectile", "Cold", sizeclass, t)
+			projectileDefDistortions[weaponID] = GetDistortionClass("LaserProjectile", sizeclass, t)
 
 		elseif weaponDef.type == 'MissileLauncher'then
 			t.a = orgMult * 0.33
-			projectileDefDistortions[weaponID] = GetDistortionClass("MissileProjectile", "Warm", sizeclass, t)
+			projectileDefDistortions[weaponID] = GetDistortionClass("MissileProjectile", sizeclass, t)
 
 		elseif weaponDef.type == 'StarburstLauncher' then
 			t.a = orgMult * 0.44
-			projectileDefDistortions[weaponID] = GetDistortionClass("MissileProjectile", "Warm", sizeclass, t)
+			projectileDefDistortions[weaponID] = GetDistortionClass("MissileProjectile", sizeclass, t)
 			sizeclass = GetClosestSizeClass(radius)
 			radius = ((orgMult * 75) + (radius * 4)) * 0.4
 			life = 8 + (5*(radius/2000)+(orgMult * 5))
@@ -369,23 +372,23 @@ local function AssignDistortionsToAllWeapons()
 			t.a = orgMult*0.17
 			radius = (radius + (weaponDef.size * 35)) * 0.44
 			sizeclass = GetClosestSizeClass(radius)
-			projectileDefDistortions[weaponID] = GetDistortionClass("CannonProjectile", "Plasma", sizeclass, t)
+			projectileDefDistortions[weaponID] = GetDistortionClass("CannonProjectile", sizeclass, t)
 			radius = ((weaponDef.damageAreaOfEffect*2) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
 
 		elseif weaponDef.type == 'DGun' then
 			muzzleFlash = true --doesnt work
 			sizeclass = "Medium"
 			t.a = orgMult*0.66
-			projectileDefDistortions[weaponID] = GetDistortionClass("CannonProjectile", "Warm", sizeclass, t)
+			projectileDefDistortions[weaponID] = GetDistortionClass("CannonProjectile", sizeclass, t)
 			projectileDefDistortions[weaponID].yOffset = 32
 
 		elseif weaponDef.type == 'TorpedoLauncher' then
 			sizeclass = "Small"
-			projectileDefDistortions[weaponID] = GetDistortionClass("TorpedoProjectile", "Cold", sizeclass, t)
+			projectileDefDistortions[weaponID] = GetDistortionClass("TorpedoProjectile", sizeclass, t)
 
 		elseif weaponDef.type == 'Shield' then
 			sizeclass = "Large"
-			projectileDefDistortions[weaponID] = GetDistortionClass("CannonProjectile", "Cold", sizeclass, t)
+			projectileDefDistortions[weaponID] = GetDistortionClass("CannonProjectile", sizeclass, t)
 
 		-- elseif weaponDef.type == 'AircraftBomb' then
 		-- 	t.a = life * 1.8
@@ -395,7 +398,7 @@ local function AssignDistortionsToAllWeapons()
 			--sizeclass = "Small"
 			sizeclass = GetClosestSizeClass(radius*3)
 			t.a = orgMult*0.17 * 2
-			projectileDefDistortions[weaponID] = GetDistortionClass("FlameProjectile", "Fire", sizeclass, t)
+			projectileDefDistortions[weaponID] = GetDistortionClass("FlameProjectile", sizeclass, t)
 		end
 
 		if muzzleFlash then
@@ -407,7 +410,7 @@ local function AssignDistortionsToAllWeapons()
 			end
 			t.a = orgMult*1.15
 			t.colortime = 2
-			muzzleFlashDistortions[weaponID] = GetDistortionClass("MuzzleFlash", "White", GetClosestSizeClass(radius*0.6), t)
+			muzzleFlashDistortions[weaponID] = GetDistortionClass("MuzzleFlash", GetClosestSizeClass(radius*0.6), t)
 			muzzleFlashDistortions[weaponID].yOffset = muzzleFlashDistortions[weaponID].distortionConfig.radius / 5
 		end
 
@@ -499,7 +502,7 @@ local function AssignDistortionsToAllWeapons()
 				sizeclass = GetClosestSizeClass(radius)
 			end
 			if not weaponDef.customParams.noexplosiondistortion then
-				explosionDistortions[weaponID] = GetDistortionClass("Explosion", nil, sizeclass, t)
+				explosionDistortions[weaponID] = GetDistortionClass("Explosion", sizeclass, t)
 				explosionDistortions[weaponID].yOffset = explosionDistortions[weaponID].distortionConfig.radius / 5
 			end
 		end
@@ -515,9 +518,13 @@ local muzzleFlashDistortionsNames = {}
 local projectileDefDistortionsNames = {}
 
 
-projectileDefDistortionsNames["cormort_cor_mort"] = GetDistortionClass("PlasmaTrailProjectile", "Red", "Small")
+projectileDefDistortionsNames["cormort_cor_mort"] = GetDistortionClass("PlasmaTrailProjectile", "Smallest")
+projectileDefDistortionsNames["cormaw_dmaw"] = GetDistortionClass("FlameProjectile", "Nano")
+projectileDefDistortionsNames["corstorm_cor_bot_rocket"] = GetDistortionClass("MissileProjectile", "Smallest")
+projectileDefDistortionsNames["corban_banisher"] = GetDistortionClass("MissileProjectile", "Medium")
 
 
+explosionDistortions[WeaponDefNames["corgol_cor_gol"].id] = GetDistortionClass("Explosion", "Smallest")
 -- convert weaponname -> weaponDefID
 for name, params in pairs(explosionDistortionsNames) do
 	if WeaponDefNames[name] then

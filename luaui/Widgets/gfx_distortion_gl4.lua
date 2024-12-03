@@ -56,9 +56,13 @@ for udid, ud in pairs(UnitDefs) do
 end
 
 ---------------------------------------------------------------------------------
+------------------------------ Debug switches ------------------------------
+local autoupdate = true
+local debugproj = false
+local addrandomdistortions = false
+local skipdraw = false
 
 ------------------------------ Distortion and Shader configurations ------------------
-
 local unitDefDistortions
 local featureDefDistortions
 local unitEventDistortions -- Table of distortions per unitDefID
@@ -77,6 +81,7 @@ local shaderConfig = {
 	BLEEDFACTOR = 0.15, -- How much oversaturated color channels will bleed into other color channels.
 	VOIDWATER = gl.GetMapRendering("voidWater") and 1 or 0,
 	CHROMATIC_ABERRATION = 1.25, -- How much chromatic aberration to apply to the distortion, set to nil to disable
+	DEBUGCOMBINER = autoupdate and 1 or 0, -- 1 is debug mode, 0 is normal mode
 }
 
 local radiusMultiplier = 1.0
@@ -86,11 +91,7 @@ local intensityMultiplier = 1.0
 local noisetex3dcube =  "LuaUI/images/noisetextures/noise64_cube_3.dds"
 
 
------------------------------- Debug switches ------------------------------
-local autoupdate = true
-local debugproj = false
-local addrandomdistortions = false
-local skipdraw = false
+
 ------------------------------ Data structures and management variables ------------
 
 -- These will contain 'global' type distortions, ones that dont get updated every frame
@@ -1074,7 +1075,10 @@ local function DrawDistortionFunction2(gf) -- For render-to-texture
 		unitPointDistortionVBO.usedElements > 0 or
 		beamDistortionVBO.usedElements > 0 or
 		unitConeDistortionVBO.usedElements > 0 or
-		coneDistortionVBO.usedElements > 0 then
+		coneDistortionVBO.usedElements > 0 or
+		projectilePointDistortionVBO.usedElements > 0 or 
+		projectileBeamDistortionVBO.usedElements > 0 or 
+		projectileConeDistortionVBO.usedElements > 0 then
 
 		local alt, ctrl = Spring.GetModKeyState()
 		local devui = (Spring.GetConfigInt('DevUI', 0) == 1)
