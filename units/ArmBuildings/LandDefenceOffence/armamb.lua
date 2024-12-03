@@ -138,6 +138,9 @@ return {
 					subs = 150,
 					vtol = 90,
 				},
+				customparams = {
+					exclude_preaim = true
+				}
 			},
 			armamb_gun_high = {
 				accuracy = 400,
@@ -167,6 +170,9 @@ return {
 					subs = 150,
 					vtol = 90,
 				},
+				customparams = {
+					exclude_preaim = true
+				}
 			},
 		},
 		weapons = {
