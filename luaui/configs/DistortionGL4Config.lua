@@ -34,7 +34,7 @@ local unitDistortions = {
 			distortionType = 'point',
 			pieceName = 'emit',
 			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
-							lifeTime = 0,  effectType = 1},
+							lifeTime = 00,  effectType = 1},
 		},
 	},
 	['armsolar'] = {

@@ -77,7 +77,6 @@ out DataVS {
 	flat vec4 v_universalParams; // noiseStrength, noiseScaleSpace, distanceFalloff, onlyModelMap
 	flat vec4 v_lifeParams; // spawnFrame, lifeTime, rampUp, decay
 	flat vec4 v_effectParams; // effectparam1, effectparam2, windAffected, effectType
-	vec4 v_noiseoffset;
 	noperspective vec2 v_screenUV;
 };
 
@@ -88,8 +87,15 @@ out DataVS {
 void main()
 {
 	float time = timeInfo.x + timeInfo.w;
+	int effectType = int(round(effectParams.w));
 	
 	float distortionRadius = worldposrad.w * radiusMultiplier;
+
+	if (effectType == 1){ // air Shockwave
+		distortionRadius *= fract((time - SPAWNFRAME)/ 10 );
+		v_lifeParams.y = 10; // disable lifetime 
+	}
+
 	v_worldPosRad = worldposrad ;
 	v_worldPosRad.w = distortionRadius;
 	vec4 vertexPosition = vec4(1.0);
@@ -132,6 +138,7 @@ void main()
 			
 		}
 	}
+	
 	
 	v_worldPosRad2 = worldposrad2;
 
@@ -284,14 +291,9 @@ void main()
 	// Get the heightmap and the normal map at the center position of the distortion in v_worldPosRad.xyz
 	
 	//-------------------------- BEGIN SHARED SECTION ---------------------
-	int effectType = int(round(effectParams.w));
 	if (effectType == 11){
 		v_worldPosRad2 = uni[instData.y].speed;
 	}
-	//	vec4 windInfo; // windx, windy, windz, windStrength
-	v_noiseoffset = vec4(windX, 0, windZ,0) * (-0.0156);
-	//v_noiseoffset = vec4(0.0);
-	//v_noiseoffset.y = windX + windZ;
 
 	// Initialze the distortion strength multiplier
 	v_baseparams.r = 1.0;

@@ -16,7 +16,6 @@ in DataVS {
 	flat vec4 v_universalParams; // noiseStrength, noiseScaleSpace, distanceFalloff, onlyModelMap
 	flat vec4 v_lifeParams;  // spawnFrame, lifeTime, rampUp, decay
 	flat vec4 v_effectParams; // effectparam1, effectparam2, windAffected, effectType
-	vec4 v_noiseoffset; // contains wind data, very useful!
 	noperspective vec2 v_screenUV; // i have no fucking memory as to why this is set as noperspective
 };
 
