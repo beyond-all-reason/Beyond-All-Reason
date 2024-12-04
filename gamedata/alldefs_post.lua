@@ -17,7 +17,7 @@
 -- Switch for when we want to save defs into customparams as strings (so as a widget can then write them to file)
 -- The widget to do so is included in the game and detects these customparams auto-enables itself
 -- and writes them to Spring/baked_defs
-SaveDefsToCustomParams = false
+SaveDefsToCustomParams = true
 
 -------------------------
 -- DEFS PRE-BAKING
@@ -34,6 +34,34 @@ SaveDefsToCustomParams = false
 function PrebakeUnitDefs()
 	for name, unitDef in pairs(UnitDefs) do
 		-- UnitDef changes go here
+		if unitDef.weapons then
+			for weaponName, wDef in pairs(unitDef.weapondefs) do
+				if (wDef.weapontype == "MissileLauncher" or wDef.weapontype == "StarburstLauncher")
+				and wDef.range 
+				and not wDef.commandfire == true 
+				and wDef.damage and wDef.damage.default and wDef.damage.default > 5
+				and not unitDef.canfly == true
+				and not wDef.interceptor
+				and not wDef.targetable
+				and not string.find(name, "loot")
+				and not (wDef.canattackground and wDef.canattackground == false)
+				and not string.find(name, "corkarg")
+				and not string.find(name, "raptor")
+				and not string.find(name, "scavenger")
+				and not string.find(name, "nuketest")
+				and not string.find(name, "scavempspawner")
+				and not string.find(name, "scavtacnukespawner")
+				and not wDef.waterweapon == true
+				and not wDef.canattackground == false
+				and not unitDef.customparams.iscommander
+				and not unitDef.decoyfor
+				then
+					wDef.customparams = wDef.customparams or {}
+					wDef.customparams.projectile_overrange_distance = math.ceil(wDef.range * 1.15)
+					Spring.Echo("prebake unit name: "..name.." "..weaponName, "range: "..wDef.range, "overrange: "..wDef.customparams.projectile_overrange_distance)
+				end
+			end
+		end
 	end
 end
 
@@ -76,6 +104,11 @@ local function processWeapons(unitDefName, unitDef)
 end
 
 function UnitDef_Post(name, uDef)
+	if uDef.weapons then
+		for weaponNumber, wDef in pairs(uDef.weapons) do
+			Spring.Echo("weapondef unitdef", name, wDef.range, wDef.customparams)
+		end
+	end
 	local modOptions = Spring.GetModOptions()
 
 	local isScav = string.sub(name, -5, -1) == "_scav"
@@ -590,7 +623,6 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 2] = "legministarfall"
 			uDef.buildoptions[numBuildoptions + 3] = "legwint2"
 			uDef.buildoptions[numBuildoptions + 4] = "legnanotct2"
-			uDef.buildoptions[numBuildoptions + 5] = "legrwall"
 		elseif name == "armasy" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "armptt2"
@@ -821,7 +853,7 @@ function UnitDef_Post(name, uDef)
 	categories["SURFACE"] = function(uDef) return not (categories.UNDERWATER(uDef) and categories.MOBILE(uDef)) and not categories.VTOL(uDef) end
 	categories["MINE"] = function(uDef) return uDef.weapondefs and uDef.weapondefs.minerange end
 	categories["COMMANDER"] = function(uDef) return commanderList[uDef.movementclass] end
-	categories["EMPABLE"] = function(uDef) return categories.SURFACE(uDef) and uDef.customparams and uDef.customparams.paralyzemultiplier ~= 0 end
+	categories["EMPABLE"] = function(uDef) return uDef.customparams and uDef.customparams.paralyzemultiplier ~= 0 end
 	
 	uDef.category = uDef.category or ""
 	if not string.find(uDef.category, "OBJECT") then -- objects should not be targetable and therefore are not assigned any other category
@@ -857,15 +889,6 @@ function UnitDef_Post(name, uDef)
 			uDef.buildtime = 15000
 			uDef.weapondefs.juno_pulse.energypershot = 7000
 			uDef.weapondefs.juno_pulse.metalpershot = 100
-		end
-	end
-
-	-- Shield Rework
-	if modOptions.shieldsrework == true and uDef.weapondefs then
-		for _, weapon in pairs(uDef.weapondefs) do
-			if weapon.shield and weapon.shield.repulser then
-				uDef.onoffable = true
-			end
 		end
 	end
 
@@ -1259,8 +1282,8 @@ function UnitDef_Post(name, uDef)
 			uDef.energystorage = uDef.energystorage * x
 		end
 	end
-	if uDef.energyupkeep and uDef.energyupkeep < 0 then
-		-- units with negative upkeep means they produce energy when "on".
+	if name == "armsolar" or name == "corsolar" or name == "legsolar" then
+		-- special case (but why?)
 		local x = modOptions.multiplier_energyproduction * modOptions.multiplier_resourceincome
 		uDef.energyupkeep = uDef.energyupkeep * x
 		if uDef.energystorage then
@@ -1380,7 +1403,7 @@ function WeaponDef_Post(name, wDef)
 
 	if not SaveDefsToCustomParams then
 		-------------- EXPERIMENTAL MODOPTIONS
-		
+
 		-- Standard Gravity
 		local gravityOverwriteExemptions = { --add the name of the weapons (or just the name of the unit followed by _ ) to this table to exempt from gravity standardization.
 			'cormship_', 'armmship_'
@@ -1405,38 +1428,6 @@ function WeaponDef_Post(name, wDef)
 				wDef.targetmoveerror = nil
 			end
 		end
-
-		if modOptions.proposed_unit_reworks then
-			if name == 'mine_heavy' then
-				wDef.damage.default = 3000
-				wDef.edgeeffectiveness = 0.5
-				wDef.impulsefactor = 0.8
-			end
-			if name == 'mine_medium' then
-				wDef.edgeeffectiveness = 0.5
-				wDef.impulsefactor = 0.8
-			end
-			if name == 'corsktlSelfd' then
-				--wDef.damage.hvyboats = wDef.damage.default
-				--wDef.damage.lboats = wDef.damage.default
-				wDef.damage.crawlingbombs = 400
-			end
-			if name == 'crawl_blast' then
-				wDef.damage.default = 2700
-				wDef.damage.commanders = 1000
-				--wDef.damage.hvyboats = wDef.damage.default
-				--wDef.damage.lboats = wDef.damage.default
-				wDef.damage.crawlingbombs = 400
-				wDef.edgeeffectiveness = 0.35
-				wDef.areaofeffect = 410
-			end
-			if name == 'crawl_blastsml' then
-				wDef.damage.crawlingbombs = 400
-				wDef.edgeeffectiveness = 0.35
-			end
-
-		end
-
 
 		----EMP rework
 
