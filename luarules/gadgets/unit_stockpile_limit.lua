@@ -19,14 +19,7 @@ if gadgetHandler:IsSyncedCode() then
 	local StockpileDesiredTarget = {}
 
 	local defaultStockpileLimit = 99
-	local isStockpilingUnitNames = { -- number represents maximum stockpile. Use stockpileLimit customParam which overwrites whatever is set in this table
-		['armdecomlvl3'] = 1,
-		['armdecomlvl6'] = 2,
-		['armdecomlvl10'] = 2,
-		['legdecomlvl3'] = 1,
-		['legdecomlvl6'] = 2,
-		['legdecomlvl10'] = 3,
-	}
+	local isStockpilingUnitNames = {} -- number represents maximum stockpile. Use stockpileLimit customParam instead as this overwrites whatever is set in this table
 	-- convert unitname -> unitDefID + add scavengers
 	local isStockpilingUnit = {}
 	for name, params in pairs(isStockpilingUnitNames) do
