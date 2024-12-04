@@ -59,41 +59,41 @@ end
 local function SetupUnit(unitID)
 	local x, y, z = spGetUnitPosition(unitID)
 	if x and y and z then
-	    if (x > hmsx) then -- avoid to issue commands outside map
-	      x = x - 50
-	    else
-	      x = x + 50
-	    end
-	    if (z > hmsz) then
-	      z = z - 50
-	    else
-	      z = z + 50
-	    end
+		if (x > hmsx) then -- avoid to issue commands outside map
+		  x = x - 50
+		else
+		  x = x + 50
+		end
+		if (z > hmsz) then
+		  z = z - 50
+		else
+		  z = z + 50
+		end
 		-- meta enables reclaim enemy units, alt autoresurrect ( if available )
 		spGiveOrderToUnit(unitID, CMD_FIGHT, { x, y, z }, {"meta"})
 	end
 end
 
 function maybeRemoveSelf()
-    if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
-        widgetHandler:RemoveWidget()
-    end
+	if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
+		widgetHandler:RemoveWidget()
+	end
 end
 
 function widget:GameStart()
-    gameStarted = true
-    maybeRemoveSelf()
+	gameStarted = true
+	maybeRemoveSelf()
 end
 
 function widget:PlayerChanged(playerID)
-    maybeRemoveSelf()
+	maybeRemoveSelf()
 	myTeamID = spGetMyTeamID()
 end
 
 function widget:Initialize()
-    if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
-        maybeRemoveSelf()
-    end
+	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
+		maybeRemoveSelf()
+	end
 	for _,unitID in ipairs(spGetTeamUnits(spGetMyTeamID())) do
 		local unitDefID = spGetUnitDefID(unitID)
 		if isImmobileBuilder[unitDefID] then
@@ -132,10 +132,14 @@ end
 
 function widget:UnitCommand(unitID, unitDefID, _, cmdID, _, cmdOpts)
 	if isImmobileBuilder[unitDefID] and cmdOpts.shift and cmdID ~= CMD_FIGHT then
-		local commandQueue = spGetCommandQueue(unitID, -1)
-		local lastCommand = commandQueue[#commandQueue]
+		local lastCommand = spGetCommandQueue(unitID, 1)[1]
 		if lastCommand and lastCommand.id == CMD_FIGHT then
-			spGiveOrderToUnit(unitID, CMD.REMOVE, { lastCommand.tag }, 0)
+			local commandQueue = spGetCommandQueue(unitID, -1)
+			for _, cmd in pairs(commandQueue) do
+				if cmd.id == CMD_FIGHT then
+					spGiveOrderToUnit(unitID, CMD.REMOVE, { cmd.tag }, 0)
+				end
+			end
 		end
 	end
 end
