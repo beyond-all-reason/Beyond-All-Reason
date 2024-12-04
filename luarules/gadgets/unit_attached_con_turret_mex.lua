@@ -51,6 +51,13 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	end
 end
 
+function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
+	local unitDef = UnitDefs[unitDefID]
+	if unitDef.name == "legmohoconct" then
+		Spring.TransferUnit(Spring.GetUnitTransporter(unitID), newTeam)
+	end
+end
+
 function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 
 	local unitDef = UnitDefs[unitDefID]
