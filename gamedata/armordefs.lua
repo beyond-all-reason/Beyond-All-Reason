@@ -78,6 +78,7 @@ local armorDefs = {
 		"legstone",
 		"dice",
 		"chip",
+		"legmohoconin",
 	},
 	crawlingbombs = {
 		"armvader",
