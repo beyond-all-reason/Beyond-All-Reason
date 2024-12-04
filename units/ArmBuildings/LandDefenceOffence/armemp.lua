@@ -38,6 +38,7 @@ return {
 			unitgroup = "emp",
 			usebuildinggrounddecal = true,
 			yardmap = "ooooooo ooooooo ooooooo ooooooo ooooooo ooooooo",
+			stockpileLimit = 10,
 		},
 		featuredefs = {
 			dead = {

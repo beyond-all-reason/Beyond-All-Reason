@@ -38,6 +38,7 @@ return {
 			removewait = true,
 			subfolder = "CorBuildings/LandDefenceOffence",
 			techlevel = 2,
+			stockpileLimit = 10,
 		},
 		featuredefs = {
 			dead = {

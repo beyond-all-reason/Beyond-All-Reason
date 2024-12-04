@@ -39,6 +39,7 @@ return {
 			techlevel = 2,
 			unitgroup = "aa",
 			usebuildinggrounddecal = true,
+			stockpileLimit = 5,
 		},
 		featuredefs = {
 			dead = {

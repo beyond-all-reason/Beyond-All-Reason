@@ -38,6 +38,7 @@ return {
 			techlevel = 2,
 			unitgroup = "nuke",
 			usebuildinggrounddecal = true,
+			stockpileLimit = 10,
 		},
 		featuredefs = {
 			dead = {

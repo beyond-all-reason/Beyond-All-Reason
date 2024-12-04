@@ -37,6 +37,7 @@ return {
 			techlevel = 2,
 			unitgroup = "weapon",
 			usebuildinggrounddecal = true,
+			stockpileLimit = 10,
 		},
 		featuredefs = {
 			dead = {

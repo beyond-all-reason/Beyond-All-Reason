@@ -44,6 +44,7 @@ return {
 			inheritxpratemultiplier = 1,
 			childreninheritxp = "BOTCANNON",
 			parentsinheritxp = "BOTCANNON",
+			stockpileLimit = 50,
 		},
 		featuredefs = {
 			dead = {

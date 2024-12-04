@@ -44,6 +44,7 @@ return {
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorSeaplanes",
+			stockpileLimit = 1,
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {

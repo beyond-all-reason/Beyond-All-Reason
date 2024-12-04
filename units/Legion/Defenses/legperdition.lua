@@ -38,6 +38,7 @@ return {
 			removewait = true,
 			subfolder = "CorBuildings/LandDefenceOffence",
 			techlevel = 2,
+			stockpileLimit = 10,
 		},
 		featuredefs = {
 			dead = {
@@ -185,7 +186,7 @@ return {
 					default = 2000,--plus 150*15 within 150 area
 				},
 			},
-			
+
 		},
 		weapons = {
 			[1] = {
