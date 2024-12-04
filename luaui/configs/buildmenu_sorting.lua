@@ -447,7 +447,6 @@ local unitOrderTable = {
    ['legmoho']       = 100260,
    ['armshockwave']   = 100290,
    ['cormexp']        = 100300,
-   ['legmohocon']     = 100310,
 
    --ECO ENERGY CONVERTERS
    ['armmakr']        = 100500,

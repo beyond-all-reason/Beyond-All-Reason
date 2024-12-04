@@ -42,7 +42,7 @@ return {
 			"coruwageo",
 			"legrampart",
 			"legmoho",
-			"legmohocon",
+			"cormexp",
 			"cormmkr",
 			"coruwadves",
 			"legamstor",
