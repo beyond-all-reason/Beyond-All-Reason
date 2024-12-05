@@ -49,7 +49,7 @@ return {						--costs should be same as legmohocon and legmohoconin
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'builder',
-			model_author = "Tharsis",
+			model_author = "Tharsis and Protar",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "CorBuildings/LandUtil",
 		},

@@ -32,10 +32,15 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		local health
 		local facing
 		local xx,yy,zz
+		local bt,mc,ec
+		local em
 		xx,yy,zz = SpGetUnitPosition(unitID)
 		facing = SpGetUnitBuildFacing(unitID)
-		health = SpGetUnitHealth(unitID)																-- saves location, rotation and health of mex
-		imex_id = Spring.CreateUnit("legmohoconin",xx,yy,zz,facing,Spring.GetUnitTeam(unitID) )			-- creates imex on mex
+		bt,mc,ec = Spring.GetUnitCosts(unitID)
+		health = SpGetUnitHealth(unitID)																-- saves location, rotation, cost and health of mex
+		Spring.DestroyUnit(unitID, false, true)															-- removes mex
+		imex_id = Spring.CreateUnit("legmohoconin",xx,yy,zz,facing,Spring.GetUnitTeam(unitID) )			-- creates imex on where mex was
+		Spring.UseTeamResource(unitTeam, "metal", mc)													-- creating imex reclaims mex, even though there is the destroy command before it. this removes the metal that would give.
 		if not imex_id then
 			return
 		end
@@ -47,7 +52,9 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		end
 		Spring.UnitAttach(imex_id,nano_id,6)															-- attaches con to imex
 		Spring.SetUnitHealth(nano_id, health)															-- sets con health to be the same as mex
-		Spring.DestroyUnit(unitID, false, true)															-- removes mex
+		em = Spring.GetUnitMetalExtraction(unitID)
+		Spring.SetUnitResourcing(nano_id, "umm", em)
+		Spring.SetUnitResourcing(imex_id, "umm", (-em))
 	end
 end
 
@@ -105,3 +112,32 @@ To do:
 if damaged during construction cons continue to repair 
 on off switch for mex via turret
 make turret display metal income and energy upkeep of mex
+
+
+if health < max health
+check for nearby builders
+check if any nearby builders were building this unit
+give command to those builders to repair new unit to front of queue
+
+--[[		while( true )
+		do
+			local firestate, movestate, repeata, cloak, active = SpGetUnitStates(nano_id)
+			if active =/= activeold
+			do
+				Spring.GiveOrderToUnit(imex_id, onoff)
+			end
+			Sleep(5000)
+		end]]--
+		
+		
+--Spring.GetUnitMetalExtraction(unitID)
+--Spring.SetUnitResourcing(unitID, c, m, m, 80)
+--[[
+Spring.SetUnitResourcing(unitID, res, amount)
+Parameters:
+
+    "unitID" number
+    "res" {[string]=number,...} keys are: "[u|c][u|m][m|e]" unconditional | conditional, use | make, metal | energy. Values are amounts
+    "amount" number
+	
+]]--
