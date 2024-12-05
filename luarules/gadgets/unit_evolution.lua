@@ -349,7 +349,8 @@ if gadgetHandler:IsSyncedCode() then
 						Evolve(unitID, evolutionMetaList[unitID].evolution_target)
 					end
 				end
-				if evolutionMetaList[unitID].evolution_condition == "timer_global" and currentTime >= evolutionMetaList[unitID].evolution_timer then
+				-- evolutionMetaList[unitID] might have been invalidated if Evolve() was called before this, since that will destroy the unit.
+				if evolutionMetaList[unitID] and evolutionMetaList[unitID].evolution_condition == "timer_global" and currentTime >= evolutionMetaList[unitID].evolution_timer then
 					local enemyNearby = spGetUnitNearestEnemy(unitID, evolutionMetaList[unitID].combatRadius)
 					local inCombat = false
 					if enemyNearby then
