@@ -32,7 +32,7 @@ return {
 		sightdistance = 312,
 		terraformspeed = 1000,
 		workertime = 200,
-		yardmap = "ooooooooy ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo yoooooooy",
+		yardmap = "yyyoooyyy yoooooooy yoooooooy ooooooooo ooooooooo ooooooooo ooooooooo yoooooooy yyoooooyy",
 		buildoptions = {
 			[1] = "armaca",
 			[2] = "armbrawl",
