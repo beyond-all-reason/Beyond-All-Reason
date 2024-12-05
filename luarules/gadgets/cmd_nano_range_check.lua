@@ -9,8 +9,10 @@ function gadget:GetInfo()
 	}
 end
 
-
 if not gadgetHandler:IsSyncedCode() then return end
+Spring.SetLogSectionFilterLevel(gadget:GetInfo().name, LOG.INFO) -- WARN Remove in final version.
+Spring.Log(gadget:GetInfo().name, LOG.INFO,"Unsync Load.")
+
 
 --- key is the nano's ID, followed by a Set-like with the unitID of target currently inside the nano's range.
 --- Used for CommandArray manipulation
@@ -27,31 +29,83 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 	end
 end
 
+local function isEmptyTable(tbl)
+	for _ in pairs(tbl) do
+		return false
+	end
+	return true
+end
+
+-- only used for Logging; remove with it.
+local function getTableSize(tbl)
+	local i = 0
+	for _ in pairs(tbl) do
+		i = i + 1
+	end
+	return i
+end
 
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD.REPAIR)
 	gadgetHandler:RegisterAllowCommand(CMD.GUARD)
 	gadgetHandler:RegisterAllowCommand(CMD.RECLAIM)
-	gadgetHandler:RegisterAllowCommand(CMD.ATTACK)
 end
 
+local gate = false
 function gadget:GameFrame(frame)
-	for nanoID in pairs(trackingTable) do
-		local nanoDefID = Spring.GetUnitDefID(nanoID)
-		local maxDistance = constructionTurretsDefs[nanoDefID].maxBuildDistance
-		local commands = Spring.GetUnitCommands(nanoID, -1)
+	local removes = 0
+	local inside = 0
+	local nanosRun = 0
+	local unitsCalced = 0
 
-		for i=#commands, 1, -1 do
-			local unitID = commands[i].params[1]
-			if Spring.ValidUnitID(unitID) then
-				local distance = Spring.GetUnitSeparation(nanoID, unitID, constructionTurretsDefs[nanoDefID].buildRange3D, false)
-				if distance < maxDistance then -- Inside range
-					trackingTable[nanoID][unitID] = true
-				elseif trackingTable[nanoID][unitID] then -- Outside range
-					trackingTable[nanoID][unitID] = nil
-					Spring.GiveOrderToUnit(nanoID, CMD.REMOVE, commands[i].tag, 0)
+	if frame % 60 > 10 then return end -- run 10 frames, skip 50; allow LuaUser.cpp to catch up. running full every 1s
+	local pointer = frame % 10
+	for nanoID in pairs(trackingTable) do
+		if pointer % 10 == 0 then
+			local nanoDefID = Spring.GetUnitDefID(nanoID)
+			local maxDistance = constructionTurretsDefs[nanoDefID].maxBuildDistance
+			local commands = Spring.GetUnitCommands(nanoID, -1)
+
+			for i=#commands, 1, -1 do
+				local unitID = commands[i].params[1]
+				if Spring.ValidUnitID(unitID) then
+					local distance = Spring.GetUnitSeparation(nanoID, unitID, constructionTurretsDefs[nanoDefID].buildRange3D, false)
+					if distance < maxDistance then -- Inside range
+						trackingTable[nanoID][unitID] = true
+						inside = inside +1
+					elseif trackingTable[nanoID][unitID] then -- Outside range
+						trackingTable[nanoID][unitID] = nil
+						Spring.GiveOrderToUnit(nanoID, CMD.REMOVE, commands[i].tag, 0)
+						removes = removes +1
+					end
+					unitsCalced = unitsCalced +1
 				end
 			end
+			-- clear nano when chaining commands
+			if #commands == 1  then
+				if commands[1].id == CMD.FIGHT then --expected idle
+					trackingTable[nanoID] = nil
+				end
+			end
+			nanosRun = nanosRun +1
+		end
+		pointer = pointer + 1
+	end
+
+	if not isEmptyTable(trackingTable) or gate then
+		Spring.Log(gadget:GetInfo().name, LOG.INFO,
+			string.format("Tracking: %s, NanoRuns: %s, uProc: %s, dropped: %s, inside: %s.",
+				tostring(getTableSize(trackingTable)),
+				tostring(nanosRun),
+				tostring(unitsCalced),
+				tostring(removes),
+				tostring(inside)
+			)
+		)
+		gate = true
+		if isEmptyTable(trackingTable) then
+			Spring.Log(gadget:GetInfo().name, LOG.INFO, "Tracking stopped.")
+			gate = false
 		end
 	end
 end
