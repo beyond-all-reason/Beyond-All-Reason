@@ -29,7 +29,7 @@ return {
 		sightdistance = 273,
 		terraformspeed = 3000,
 		workertime = 600,
-		yardmap = "oooooooooooo oooooooooooo oooooooooooo ooccccccccoo ooccccccccoo ooccccccccoo ooccccccccoo ooccccccccoo ooccccccccoo ooccccccccoo ooccccccccoo ooccccccccoo",
+		yardmap = "yyooooooooyy oooooooooooo oooooooooooo ooccccccccoo ooccccccccoo ooccccccccoo ooccccccccoo ooccccccccoo ooccccccccoo ooccccccccoo ooccccccccoo yoccccccccoy",
 		buildoptions = {
 			[1] = "corkorg",
 			[2] = "corkarg",

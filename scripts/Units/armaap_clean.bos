@@ -2,7 +2,7 @@
 #include "../recoil_common_includes.h"
 #include "../factories_common.h"
 
-piece  base, pad, nano1, nano2, nano3, nano4, dish, blink, blinka, blinkb;
+piece  base, pad, flare1, flare2, pivot1, arm1, end1, pivot2, arm2, end2, dish, blink, blinka, blinkb, cagelight1, cagelight2, cagelight_emit1, cagelight_emit2;
 
 static-var  spray;
 static-var  Stunned;
@@ -52,10 +52,10 @@ SetStunned(State)
 
 Create()
 {
-	hide nano1;
-	hide nano2;
-	hide nano3;
-	hide nano4;
+	hide flare1;
+	hide flare2;
+	hide cagelight_emit1;
+	hide cagelight_emit2;
 	hide pad;
 	spray = 0;
 	SLEEP_UNTIL_UNITFINISHED;
@@ -72,15 +72,23 @@ Create()
 
 QueryNanoPiece(pieceIndex)
 {
-	spray = (spray + 1) % 4;
-	pieceIndex = nano1 + spray;
+	spray = (spray + 1) % 2;
+	pieceIndex = flare1 + spray;
 }
 
 Activate()
 {
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
-
+	
+	turn arm1 to x-axis <135> speed <120>;
+	turn arm2 to x-axis <135> speed <120>;
+	sleep (300);
+	turn pivot1 to y-axis <-135> speed <90>;
+	turn pivot2 to y-axis <135> speed <90>;
+	turn end1 to x-axis <70> speed <90>;
+	turn end2 to x-axis <70> speed <90>;
+	wait-for-turn arm1 around x-axis;
 	FACTORY_OPEN_BUILD;
 }
 
@@ -89,26 +97,41 @@ Deactivate()
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
     sleep 5000;
+	
+	turn pivot1 to y-axis <0> speed <120>;
+	turn pivot2 to y-axis <0> speed <120>;
+	turn arm1 to x-axis <0> speed <30>;
+	turn arm2 to x-axis <0> speed <30>;
+	turn end1 to x-axis <0> speed <90>;
+	turn end2 to x-axis <0> speed <90>;
 
 	FACTORY_CLOSE_BUILD;
 }
 
 StartBuilding()
 {
-	show nano1;
-	show nano2;
-	show nano3;
-	show nano4;
-	spin pad around y-axis speed <30.005495> accelerate <1>;
+	show flare1;
+	show flare2;
+	spin pad around y-axis speed <30> accelerate <1>;
+	
+	show cagelight_emit1;
+	show cagelight_emit2;
+	
+	spin cagelight_emit1 around y-axis speed <200> accelerate <1>;
+	spin cagelight_emit2 around y-axis speed <-200> accelerate <1>;
 }
 
 StopBuilding()
 {
-	hide nano1;
-	hide nano2;
-	hide nano3;
-	hide nano4;
+	hide flare1;
+	hide flare2;
 	stop-spin pad around y-axis;
+	
+	hide cagelight_emit1;
+	hide cagelight_emit2;
+	
+	stop-spin cagelight_emit1 around y-axis decelerate <1>;
+	stop-spin cagelight_emit2 around y-axis decelerate <1>;
 }
 
 QueryBuildInfo(pieceIndex)
@@ -126,10 +149,8 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode dish type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode pad type BITMAPONLY | NOHEATCLOUD;
-		explode nano1 type BITMAPONLY | NOHEATCLOUD;
-		explode nano2 type BITMAPONLY | NOHEATCLOUD;
-		explode nano3 type BITMAPONLY | NOHEATCLOUD;
-		explode nano4 type BITMAPONLY | NOHEATCLOUD;
+		explode flare1 type BITMAPONLY | NOHEATCLOUD;
+		explode flare2 type BITMAPONLY | NOHEATCLOUD;
 		explode blinka type BITMAPONLY | NOHEATCLOUD;
 		explode blinkb type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
@@ -140,10 +161,8 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode dish type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode pad type FALL | NOHEATCLOUD;
-		explode nano1 type FALL | NOHEATCLOUD;
-		explode nano2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode nano3 type FALL | NOHEATCLOUD;
-		explode nano4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flare1 type FALL | NOHEATCLOUD;
+		explode flare2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode blinka type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode blinkb type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
@@ -154,10 +173,8 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode dish type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode pad type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode nano1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode nano2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode nano3 type SMOKE | FALL | NOHEATCLOUD;
-		explode nano4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flare1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flare2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode blinka type SMOKE | FALL | NOHEATCLOUD;
 		explode blinkb type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
@@ -166,10 +183,8 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode dish type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode pad type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode nano1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode nano2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode nano3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode nano4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flare1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode flare2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode blinka type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode blinkb type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;

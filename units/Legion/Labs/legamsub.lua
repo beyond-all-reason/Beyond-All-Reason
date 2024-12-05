@@ -28,7 +28,7 @@ return {
 		sightdistance = 240,
 		terraformspeed = 750,
 		workertime = 150,
-		yardmap = "oooooooooCCCCCCooCCCCCCooCCCCCCooCCCCCCooCCCCCCooCCCCCCooCCCCCCo",
+		yardmap = "oooooo oooooo oCCCCo oCCCCo oCCCCo oCCCCo",
 		buildoptions = {
 			[1] = "legotter",
 			[2] = "legamphtank",

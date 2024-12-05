@@ -14,8 +14,8 @@ return {
 		corpse = "DEAD",
 		energystorage = 100,
 		explodeas = "largeBuildingexplosiongeneric",
-		footprintx = 8,
-		footprintz = 8,
+		footprintx = 6,
+		footprintz = 6,
 		idleautoheal = 5,
 		idletime = 1800,
 		health = 4300,
@@ -29,7 +29,7 @@ return {
 		terraformspeed = 500,
 		waterline = 1,
 		workertime = 165,
-		yardmap = "oyyyyyyoyccccccyyccccccyyccccccyyccccccyyccccccyyccccccyoyyyyyyo",
+		yardmap = "oyyyyo yccccy yccccy yccccy yccccy oyyyyo",
 		buildoptions = {
 			[1] = "legcs",
 

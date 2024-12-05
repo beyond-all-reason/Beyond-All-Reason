@@ -16,7 +16,7 @@ return {
 		energystorage = 200,
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 9,
-		footprintz = 7,
+		footprintz = 9,
 		idleautoheal = 5,
 		idletime = 1800,
 		levelground = false,
@@ -32,7 +32,7 @@ return {
 		sightdistance = 286,
 		terraformspeed = 1000,
 		workertime = 300,
-		yardmap = "oooooooooooooooooooocccccoooocccccoooocccccoooocccccoooocccccoo",
+		yardmap = "yoooooooy ooooooooo ooooooooo oocccccoo oocccccoo oocccccoo oocccccoo oocccccoo oocccccoo",
 		buildoptions = {
 			"legacv",
 			"legmrv",

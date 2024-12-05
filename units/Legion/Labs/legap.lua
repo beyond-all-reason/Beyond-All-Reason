@@ -16,7 +16,7 @@ return {
 		energystorage = 100,
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 6,
-		footprintz = 5,
+		footprintz = 6,
 		idleautoheal = 5,
 		idletime = 1800,
 		sightemitheight = 40,
@@ -33,7 +33,7 @@ return {
 		sightdistance = 273,
 		terraformspeed = 500,
 		workertime = 100,
-		yardmap = "oooooooooooooooooooooooooooooo",
+		yardmap = "oooooo oooooo oooooo oooooo oooooo oooooo",
 		buildoptions = {
 			[1] = "legca",
 			[2] = "legfig",
