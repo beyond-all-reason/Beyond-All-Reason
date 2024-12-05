@@ -19,18 +19,7 @@ if gadgetHandler:IsSyncedCode() then
 	local StockpileDesiredTarget = {}
 
 	local defaultStockpileLimit = 99
-	local isStockpilingUnitNames = {} -- number represents maximum stockpile. Use stockpileLimit customParam instead as this overwrites whatever is set in this table
-	-- convert unitname -> unitDefID + add scavengers
 	local isStockpilingUnit = {}
-	for name, params in pairs(isStockpilingUnitNames) do
-		if UnitDefNames[name] then
-			isStockpilingUnit[UnitDefNames[name].id] = params
-			if UnitDefNames[name..'_scav'] then
-				isStockpilingUnit[UnitDefNames[name..'_scav'].id] = params
-			end
-		end
-	end
-	isStockpilingUnitNames = nil
 
 	----------------------------------------------------------------------------
 	----------------------------------------------------------------------------
@@ -43,9 +32,9 @@ if gadgetHandler:IsSyncedCode() then
 		if ud.canStockpile then
 			canStockpile[udid] = true
 		end
-		if ud.customParams and ud.customParams.stockpileLimit then
+		if ud.customParams.stockpileLimit then
 			isStockpilingUnit[udid] = tonumber(ud.customParams.stockpileLimit)
-		elseif ud.customParams and ud.customParams.stockpilelimit then
+		elseif ud.customParams.stockpilelimit then
 			isStockpilingUnit[udid] = tonumber(ud.customParams.stockpilelimit)
 		end
 	end
