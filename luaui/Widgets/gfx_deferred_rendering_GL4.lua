@@ -418,8 +418,6 @@ local function InitializeLight(lightTable, unitID)
 			for paramname, tablepos in pairs(lightParamKeyOrder) do
 				lightparams[tablepos] = lightTable.lightConfig[paramname] or lightparams[tablepos]
 			end
-			lightparams[lightParamKeyOrder.radius] = lightparams[lightParamKeyOrder.radius]
-			lightparams[lightParamKeyOrder.a] =  lightparams[lightParamKeyOrder.a]
 			lightparams[lightParamKeyOrder.lifetime] = math.floor( lightparams[lightParamKeyOrder.lifetime] )
 			lightTable.lightParamTable = lightparams
 			lightTable.lightConfig = nil -- never used again after initialization
