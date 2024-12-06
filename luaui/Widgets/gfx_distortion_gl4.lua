@@ -74,11 +74,6 @@ local gibDistortion  -- one distortion for all pieceprojectiles
 local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 
 local shaderConfig = {
-	MIERAYLEIGHRATIO = 0.1, -- The ratio of Rayleigh scattering to Mie scattering
-	RAYMARCHSTEPS = 4, -- must be at least one, this one one of the main quality parameters
-	USE3DNOISE = 1, -- dont touch this
-	SURFACECOLORMODULATION = 0.05, -- This specifies how much the lit surfaces color affects direct light blending, 0 is does not effect it, 1.0 is full effect
-	BLEEDFACTOR = 0.15, -- How much oversaturated color channels will bleed into other color channels.
 	VOIDWATER = gl.GetMapRendering("voidWater") and 1 or 0,
 	CHROMATIC_ABERRATION = 1.25, -- How much chromatic aberration to apply to the distortion, set to nil to disable
 	DEBUGCOMBINER = autoupdate and 1 or 0, -- 1 is debug mode, 0 is normal mode
@@ -89,8 +84,6 @@ local intensityMultiplier = 1.0
 
 -- the 3d noise texture used for this shader
 local noisetex3dcube =  "LuaUI/images/noisetextures/noise64_cube_3.dds"
-
-
 
 ------------------------------ Data structures and management variables ------------
 
@@ -1100,6 +1093,14 @@ local function DrawDistortionFunction2(gf) -- For render-to-texture
 		glTexture(4, "$map_gbuffer_difftex")
 		glTexture(5, "$model_gbuffer_difftex")
 		glTexture(6, noisetex3dcube)
+
+		local UniformsBufferCopy = WG['api_unitbufferuniform_copy'].GetUnitUniformBufferCopy()
+		if not UniformsBufferCopy then
+			Spring.Echo("DistortionGL4: UniformsBufferCopy not found")
+			return
+		end
+		
+		UniformsBufferCopy:BindBufferRange(4)
 
 		deferredDistortionShader:Activate()
 		deferredDistortionShader:SetUniformFloat("nightFactor", nightFactor)

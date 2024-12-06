@@ -16,6 +16,7 @@ in DataVS {
 	flat vec4 v_universalParams; // noiseStrength, noiseScaleSpace, distanceFalloff, onlyModelMap
 	flat vec4 v_lifeParams;  // spawnFrame, lifeTime, rampUp, decay
 	flat vec4 v_effectParams; // effectparam1, effectparam2, windAffected, effectType
+	flat vec4 v_unibuffercopy;
 	noperspective vec2 v_screenUV; // i have no fucking memory as to why this is set as noperspective
 };
 
@@ -563,6 +564,8 @@ void main(void)
 		}else{
 		}
 	//}
+	float acceleration = v_unibuffercopy.w * 30;
+	printf(acceleration);
 	
 	vec4 fragWorldPos =  vec4( vec3(v_screenUV.xy * 2.0 - 1.0, worlddepth),  1.0);
 

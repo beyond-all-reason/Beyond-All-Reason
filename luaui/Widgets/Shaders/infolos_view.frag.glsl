@@ -247,19 +247,19 @@ void main(void) {
     vec2 infolosUV = clamp(fragWorldPos.xz / mapSize.xy, 0, 1);
     vec4 infolosSample = texture2D(losTex, infolosUV);
 
-    printf(infolosSample.xyzw);
+    //printf(infolosSample.xyzw);
 
     // Known constants:
     vec3 current_losairradar = smoothstep(0.227, 0.973, infolosSample.rgb);
     vec3 hasbeen_losairradar = step(0.2, infolosSample.rgb);
-    printf(current_losairradar.rgb);
-    printf(hasbeen_losairradar.rgb);
+    //printf(current_losairradar.rgb);
+    //printf(hasbeen_losairradar.rgb);
     float isjammed = (infolosSample.b < 0.5 ? 1.0 : 0.0);
 
     
     // Find the HSV value of the screen color
     vec3 screenHSV = rgb2hsv(screenColor.rgb);
-    printf(screenHSV.rgb);
+    //printf(screenHSV.rgb);
     // Darken unsaturated areas
     // Everything from now on will be done via mix!
 

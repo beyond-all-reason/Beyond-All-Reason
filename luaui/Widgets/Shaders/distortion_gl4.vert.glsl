@@ -50,7 +50,14 @@ struct SUniformsBuffer {
 layout(std140, binding=1) readonly buffer UniformsBuffer {
 	SUniformsBuffer uni[];
 };
+
 #define UNITID (uni[instData.y].composite >> 16)
+
+
+layout(std140, binding=4) buffer UniformsBufferCopy {
+	SUniformsBuffer uniCopy[];
+};
+
 
 #line 10000
 
@@ -77,6 +84,7 @@ out DataVS {
 	flat vec4 v_universalParams; // noiseStrength, noiseScaleSpace, distanceFalloff, onlyModelMap
 	flat vec4 v_lifeParams; // spawnFrame, lifeTime, rampUp, decay
 	flat vec4 v_effectParams; // effectparam1, effectparam2, windAffected, effectType
+	flat vec4 v_unibuffercopy;
 	noperspective vec2 v_screenUV;
 };
 
@@ -122,6 +130,10 @@ void main()
 		// disable if drawflag is set to 0, note that we are exploiting the fact that these should be drawn even if unit is transparent, or if unit only has its shadows drawn. 
 		// This is good because the tolerance for distant shadows is much greater
 		if ((uni[instData.y].composite & 0x00001fu) == 0u )  placeInWorldMatrix = mat4(0.0); 
+		
+		//v_unibuffercopy.xy = uni[instData.y].drawPos.xz;
+		//v_unibuffercopy.zw = uniCopy[instData.y].drawPos.xz;
+		v_unibuffercopy = uni[instData.y].speed - uniCopy[instData.y].speed;
 
 		uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
 		vec4 teamCol = teamColor[teamIndex];
