@@ -118,7 +118,6 @@ float gatherBlend(vec4 samples, vec2 coords, vec2 sizes)
 {
 	vec2 fracCoords = fract(coords * sizes + vec2(0.5));
 	fracCoords = smoothstep(0.0, 1.0, fracCoords);	
-	//fracCoords = smoothstep(0.0, 1.0, fracCoords);	
 
 	vec2 mixx = mix(samples.ra, samples.gb, fracCoords.x);
 	float mixy = mix(mixx.y, mixx.x, fracCoords.y);
@@ -126,30 +125,35 @@ float gatherBlend(vec4 samples, vec2 coords, vec2 sizes)
 	//printf(fracCoords.xy);
 	#define THRESHOLD 0.2
 	return smoothstep(THRESHOLD, 1.0 - THRESHOLD, mixy);
-	//return smoothstep(0.0,1.00, mixy);
-	/*
-	return mixy;
-	if (sum == 0.0)
-		return 0;
-	else if (sum == 1.0)
-		return 1;
-	else if (sum == 0.25){
-		// 1 of 4
-	}else if (sum == 0.5){
-		// 2 of 4
-		if (samples.r == samples.b) // diagonal
-			return 1;
-		if (samples.r == samples.g) // horizontal
-			return 1;
-		if (samples.r == samples.a) // vertical 
-			return 1;
-	}else if (sum == 0.75){
-		// 3 of 4
-	}	
-	return 1;
-	*/
 }	
 
+
+// These sampler functions are for smooth magnification via cubic blending, and are better than the gatherBlend approach, cause its way less samples
+
+vec2 CubicSampler(vec2 uvsin, vec2 texdims){
+    vec2 r = uvsin * texdims - 0.5;
+    vec2 tf = fract(r);
+    vec2 ti = r - tf;
+    tf = tf * tf * (3.0 - 2.0 * tf);
+    return (tf + ti + 0.5)/texdims;
+}
+
+vec2 QuinticSampler(vec2 uvsin, vec2 texdims){
+    vec2 r = uvsin * texdims - 0.5;
+    vec2 tf = fract(r);
+    vec2 ti = r - tf;
+    tf = tf * tf * tf * (tf * (6.0 * tf - 15.0) + 10.0);
+    return (tf + ti + 0.5)/texdims;
+}
+
+vec2 OctalSampler(vec2 uvsin, vec2 texdims){
+    vec2 r = uvsin * texdims - 0.5;
+    vec2 tf = fract(r);
+    vec2 ti = r - tf;
+    tf = tf * tf * (3.0 - 2.0 * tf);
+    tf = tf * tf * tf * (tf * (6.0 * tf - 15.0) + 10.0);
+    return (tf + ti + 0.5)/texdims;
+}
 
 void main() {
 	fragColor  = vec4(0.0);
@@ -166,32 +170,31 @@ void main() {
 		fragColor.a = outputAlpha;
 	#else
 		// textureGather returns in rgba order, TL, TR, BR, BL
+		/*
 		vec4 los_samples = textureGather(tex0, texCoord.xy, 0);
 		vec4 airlos_samples = textureGather(tex1, texCoord.xy, 0);
 		vec4 radar_samples = textureGather(tex2, texCoord.xy, 0);
 		vec4 jammer_samples = textureGather(tex2, texCoord.xy, 1);
-		
-		/*
-		vec2 texCoordPixel = texCoord.xy * vec2(TEXX,TEXY);
-		//printf(gl_FragCoord.xy);
-		//printf(mouseScreenPos.xy);
-		//printf(texCoordPixel.xy);
-		//printf(los_samples.rgba);
-		float los = texture(tex0, texCoord.xy).r;
-		float airlos = texture(tex1, texCoord.xy).r;
-		float radarJammer = texture(tex2, texCoord.xy).r;
-		*/
+
 
 		float smooth_los = gatherBlend(los_samples, texCoord.xy, vec2(LOSXSIZE,LOSYSIZE));
 		float smooth_airlos = gatherBlend(airlos_samples, texCoord.xy, vec2(AIRLOSXSIZE,AIRLOSYSIZE));
 		float smooth_radar = gatherBlend(radar_samples, texCoord.xy, vec2(RADARXSIZE,RADARYSIZE));
 		float smooth_jammer = gatherBlend(jammer_samples, texCoord.xy, vec2(RADARXSIZE,RADARYSIZE));
+		*/
+
+		float smooth_los = textureLOD(tex0, QuinticSampler(texCoord.xy, vec2(LOSXSIZE, LOSYSIZE)), 0).r;
+		smooth_los = smoothstep(0.0, 1.0, smooth_los);
+		float smooth_airlos = textureLOD(tex1, QuinticSampler(texCoord.xy, vec2(AIRLOSXSIZE, AIRLOSYSIZE)), 0).r;
+		smooth_los = smoothstep(0.0, 1.0, smooth_los);
+		vec2 smooth_radars = textureLOD(tex2, QuinticSampler(texCoord.xy, vec2(RADARXSIZE, RADARYSIZE)), 0).rg;
+		smooth_radars = smoothstep(0.0, 1.0, smooth_radars);
 		//fragColor.rgb = fract(texCoord.xyz * 10.0);
 		//fragColor.rgb = vec3(smooth_los);
 
 		fragColor.r = 0.2 + 0.8 * smooth_los; // 0.4
 		fragColor.g += 0.2 + 0.8 * smooth_airlos;
-		fragColor.b = 0.2 + 0.8 * clamp(0.75 * smooth_radar - 0.5 * (smooth_jammer - 0.5),0,1);
+		fragColor.b = 0.2 + 0.8 * clamp(0.75 * smooth_radar.r - 0.5 * (smooth_jammer.g - 0.5),0,1);
 		fragColor.a = outputAlpha;
 		return;
 
