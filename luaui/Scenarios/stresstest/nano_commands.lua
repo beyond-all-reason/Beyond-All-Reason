@@ -52,7 +52,6 @@ function synced_nano_setup(locals)
 	for _, unitID in pairs(nanoturrets) do
 		Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
 	end
-
 	return nanoturrets, targets
 end
 
@@ -62,16 +61,15 @@ function synced_nano_commands(locals)
 	local shiftOpts = {"shift"}
 	local currOpt
 	local CMD_RECLAIM = CMD.RECLAIM
-	local spGiveOrderArrayToUnit = Spring.GiveOrderArrayToUnit
+	local spGiveOrderToUnit = Spring.GiveOrderToUnit
 
-	local orders = {}
-	for idx, targetID in pairs(targets) do
-		currOpt = (idx == 1) and 0 or shiftOpts
-		orders[#orders+1] = {CMD_RECLAIM, {targetID}, currOpt}
-	end
-
+	local arr = {}
 	for _, unitID in pairs(nanoturrets) do
-		spGiveOrderArrayToUnit(unitID, orders)
+		for idx, targetID in pairs(targets) do
+			currOpt = (idx == 1) and opts or shiftOpts
+			arr[1] = targetID
+			spGiveOrderToUnit(unitID, CMD_RECLAIM, arr, currOpt)
+		end
 	end
 end
 
@@ -91,4 +89,5 @@ function test()
 
 	Spring.Echo("total time:", os.clock()-t0)
 end
+
 

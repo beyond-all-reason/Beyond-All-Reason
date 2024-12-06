@@ -64,16 +64,15 @@ function synced_commands(locals)
 	local shiftOpts = {"shift"}
 	local currOpt
 	local CMD_ATTACK = CMD.ATTACK
-	local spGiveOrderArrayToUnit = Spring.GiveOrderArrayToUnit
+	local spGiveOrderToUnit = Spring.GiveOrderToUnit
 
-	local orders = {}
-	for idx, targetID in pairs(targets) do
-		currOpt = (idx == 1) and 0 or shiftOpts
-		orders[#orders+1] = {CMD_ATTACK, {targetID}, currOpt}
-	end
-
+	local arr = {}
 	for _, unitID in pairs(attackers) do
-		spGiveOrderArrayToUnit(unitID, orders)
+		for idx, targetID in pairs(targets) do
+			currOpt = (idx == 1) and opts or shiftOpts
+			arr[1] = targetID
+			spGiveOrderToUnit(unitID, CMD_ATTACK, arr, currOpt)
+		end
 	end
 end
 
