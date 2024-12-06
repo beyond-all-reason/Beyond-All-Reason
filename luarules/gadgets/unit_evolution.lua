@@ -337,19 +337,8 @@ if gadgetHandler:IsSyncedCode() then
 			lastTimerCheck = f	
 			for unitID, _ in pairs(evolutionMetaList) do
 				local currentTime =  spGetGameSeconds()
-				if evolutionMetaList[unitID].evolution_condition == "timer" and (currentTime-evolutionMetaList[unitID].timeCreated) >= evolutionMetaList[unitID].evolution_timer then
-					local enemyNearby = spGetUnitNearestEnemy(unitID, evolutionMetaList[unitID].combatRadius)
-					local inCombat = false
-					if enemyNearby then
-						inCombat = true
-						evolutionMetaList[unitID].combatTimer = spGetGameSeconds()
-					end
-
-					if not inCombat and (currentTime-evolutionMetaList[unitID].combatTimer) >= 5 then
-						Evolve(unitID, evolutionMetaList[unitID].evolution_target)
-					end
-				end
-				if evolutionMetaList[unitID].evolution_condition == "timer_global" and currentTime >= evolutionMetaList[unitID].evolution_timer then
+				if (evolutionMetaList[unitID].evolution_condition == "timer" and (currentTime-evolutionMetaList[unitID].timeCreated) >= evolutionMetaList[unitID].evolution_timer) or
+				   (evolutionMetaList[unitID].evolution_condition == "timer_global" and currentTime >= evolutionMetaList[unitID].evolution_timer) then
 					local enemyNearby = spGetUnitNearestEnemy(unitID, evolutionMetaList[unitID].combatRadius)
 					local inCombat = false
 					if enemyNearby then
