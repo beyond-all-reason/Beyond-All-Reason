@@ -50,7 +50,7 @@ function synced_nano_setup(locals)
 	end
 	-- make sure the turrets don't have other orders
 	for _, unitID in pairs(nanoturrets) do
-		Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
+		Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
 	end
 	return nanoturrets, targets
 end

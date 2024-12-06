@@ -52,7 +52,7 @@ function synced_setup(locals)
 	end
 	-- make sure the attackers don't have other orders
 	for _, unitID in pairs(attackers) do
-		Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
+		Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
 	end
 
 	return attackers, targets
