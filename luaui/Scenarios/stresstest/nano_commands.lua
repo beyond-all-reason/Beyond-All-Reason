@@ -71,7 +71,6 @@ function synced_nano_commands(locals)
 	end
 
 	for _, unitID in pairs(nanoturrets) do
-		currOpt = (idx == 1) and opts or shiftOpts
 		spGiveOrderArrayToUnit(unitID, orders)
 	end
 end
