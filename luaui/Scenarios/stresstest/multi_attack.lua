@@ -20,6 +20,7 @@ function synced_setup(locals)
 		return Spring.CreateUnit(unitdefname, x, y, z, 1, teamID)
 	end
 
+	local doCircle = locals.doCircle
 	local colattackers = 10
 	local coltargets = 20
 	local rowattackers = math.floor(locals.nattackers/colattackers)
@@ -36,7 +37,17 @@ function synced_setup(locals)
 	local currunit
 	local attackers = {}
 	local targets = {}
+	if doCircle then
+		-- when circle requested just return the targets center and radius
+		local maxX = (coltargets*sep)/2.0
+		local maxZ = (rowtargets*sep)/2.0
+		local targetsCenter = {x-1500+maxX, z-maxZ}
+		local radius = math.sqrt(maxX*maxX + maxZ*maxZ)
+		targets = {targetsCenter[1], targetsCenter[2], radius}
+	end
+
 	createUnitAt(locals.radarDef, x-1000, z+300, team1)
+
 	for i=0, colattackers-1 do
 		for j=0, rowattackers-1 do
 			currunit = createUnitAt(attackerDef, x+i*sep, z-j*sep, team1)
@@ -47,7 +58,9 @@ function synced_setup(locals)
 	for i=0, coltargets-1 do
 		for j=0, rowtargets-1 do
 			currunit = createUnitAt(targetDef, x-1500+i*sep, z-j*sep, team2)
-			targets[#targets+1] = currunit
+			if not doCircle then
+				targets[#targets+1] = currunit
+			end
 		end
 	end
 	-- make sure the attackers don't have other orders

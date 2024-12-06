@@ -19,6 +19,7 @@ function test()
 	local attackerDef = Scenario.attackerDef
 	local targetDef = Scenario.targetDef
 	local radarDef = Scenario.radarDef
+	local doCircle = true
 
 	local attackers, targetsCenter = SyncedRun(synced_setup)
 
