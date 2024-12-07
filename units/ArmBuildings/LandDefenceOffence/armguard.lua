@@ -38,7 +38,6 @@ return {
 			subfolder = "ArmBuildings/LandDefenceOffence",
 			unitgroup = "weapon",
 			usebuildinggrounddecal = true,
-			smart_weapon_select_priority = 1,
 		},
 		featuredefs = {
 			dead = {
@@ -132,7 +131,8 @@ return {
 					vtol = 90,
 				},
 				customparams = {
-					exclude_preaim = true
+					exclude_preaim = true,
+					smart_preferred_weapon = true,
 				}
 			},
 			plasma_high = {
@@ -164,7 +164,8 @@ return {
 					vtol = 90,
 				},
 				customparams = {
-					exclude_preaim = true
+					exclude_preaim = true,
+					smart_deferred_weapon = true,
 				}
 			},
 		},

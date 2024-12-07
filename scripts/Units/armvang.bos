@@ -2,7 +2,7 @@
 
 #include "sfxtype.h"
 #include "exptype.h"
-
+#include "smart_weapon_select.h"
 
 piece  base, turret, flare, barrel, sleeve, rfhip, rfthigh, rfleg, rffoot, lfhip, lfthigh, lfleg, lffoot, lbhip, lbthigh, lbleg, lbankle, rbhip, rbthigh, rbleg, rbankle, aimx1, aimy1;
 
@@ -10,9 +10,6 @@ static-var  bMoving, oldHeading, bSteering, wpn1_lasthead, last_primary_heading,
 
 #define SIG_WALK				2
 #define SIG_AIM					4
-#define ERROR_MISFIRE_FRAMES	180
-#define ERROR_RECENCY_FRAMES	390
-#include "smart_weapon_select.h"
 
 // Generated for N:\animations\armvang_anim_walk_2legs_v2.blend
 // Using https://github.com/Beherith/Skeletor_S3O
@@ -604,8 +601,7 @@ QueryPrimary(piecenum)
 
 AimPrimary(heading, pitch)
 {
-	call-script SmartAimSelect(AIMING_LOW);
-	if (AimingState != AIMING_LOW){
+	if (AimingState != AIMING_PREFERRED){
 		return(0);
 	}
 
@@ -625,6 +621,14 @@ AimPrimary(heading, pitch)
 	last_primary_heading=heading;
 	last_primary_pitch=pitch;
 	start-script RestoreAfterDelay();
+
+	// Prevent "bonus shots" while alternative weapon is reloading
+	var reloading;
+	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(2));
+	if( reloading )
+	{
+		return(0);
+	}
 
 	return (1);
 }
@@ -646,13 +650,7 @@ QuerySecondary(piecenum)
 
 AimSecondary(heading, pitch)
 {
-	if (bMoving == TRUE){ // to prevent fake low aim errorstates from movement turn speed exceeding or preventing turret turn speed
-		DisableLowAimFailureWatch = TRUE;
-	} else if (DisableLowAimFailureWatch == TRUE){
-		DisableLowAimFailureWatch = FALSE;
-	}
-	call-script SmartAimSelect(AIMING_HIGH);
-	if (AimingState != AIMING_HIGH){
+	if (AimingState != AIMING_DEFERRED){
 		return(0);
 	}
 	
@@ -673,6 +671,13 @@ AimSecondary(heading, pitch)
 	last_primary_pitch=pitch;
 	start-script RestoreAfterDelay();
 
+	// Prevent "bonus shots" while alternative weapon is reloading
+	var reloading;
+	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(1));
+	if( reloading )
+	{
+		return(0);
+	}
 	return (1);
 }
 

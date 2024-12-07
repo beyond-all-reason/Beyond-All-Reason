@@ -136,8 +136,7 @@ aimCommon(heading, pitch)
 
 AimPrimary(heading, pitch)
 {
-	call-script SmartAimSelect(AIMING_LOW);
-	if (AimingState != AIMING_LOW){
+	if (AimingState != AIMING_PREFERRED){
 		return(0);
 	}
 
@@ -148,13 +147,21 @@ AimPrimary(heading, pitch)
 
 	call-script aimCommon(heading, pitch);
 	start-script RestoreAfterDelay();
+
+	// Prevent "bonus shots" while alternative weapon is reloading
+	var reloading;
+	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(2));
+	if( reloading )
+	{
+		return(0);
+	}
+
 	return (1);
 }
 
 AimSecondary(heading, pitch)
 {
-	call-script SmartAimSelect(AIMING_HIGH);
-	if (AimingState != AIMING_HIGH){
+	if (AimingState != AIMING_DEFERRED){
 		return(0);
 	}
 
@@ -165,6 +172,15 @@ AimSecondary(heading, pitch)
 
 	call-script aimCommon(heading, pitch);
 	start-script RestoreAfterDelay();
+
+	// Prevent "bonus shots" while alternative weapon is reloading
+	var reloading;
+	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(1));
+	if( reloading )
+	{
+		return(0);
+	}
+
 	return (1);
 }
 

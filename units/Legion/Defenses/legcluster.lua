@@ -132,6 +132,7 @@ return {
 					cluster = true,
 					exclude_preaim = true,
 					number = 3,
+					smart_preferred_weapon = true,
 				},
 				damage = {
 					default = 150,
@@ -193,6 +194,7 @@ return {
 					cluster = true,
 					exclude_preaim = true,
 					number = 3,
+					smart_deferred_weapon = true,
 				},
 				damage = {
 					default = 150,

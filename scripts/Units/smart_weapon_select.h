@@ -15,22 +15,13 @@ to this script the manual targetting events.
 #include "smart_weapon_select.h"
 
 2. in beginning of low AimWeapon function:
-call-script SmartAimSelect(AIMING_LOW);
-if (AimingState != AIMING_LOW){ 
+if (AimingState != AIMING_PREFERRED){ 
 	return 0;
 }
 
 3. in beginning of high AimWeapon function:
-call-script SmartAimSelect(AIMING_LOW);
-if (AimingState != AIMING_LOW){ 
+if (AimingState != AIMING_DEFERRED){ 
 	return 0;
-}
-
-4. OPTIONAL: if unit's movement turn speed can exceed its turret turn speed, place this before call-script SmartAimSelect(AIMING_LOW);
-if (bMoving == TRUE){
-	DisableLowAimFailureWatch = TRUE;
-} else if (DisableLowAimFailureWatch == TRUE){
-	DisableLowAimFailureWatch = FALSE;
 }
   */
 
@@ -40,15 +31,15 @@ static-var AimingState;
 
 #define __SMARTSELECT_H_
 
-#define AIMING_LOW							1
-#define AIMING_HIGH							2
+#define AIMING_PREFERRED	1
+#define AIMING_DEFERRED		2
 
-OverrideAimingState(weaponNumber)
+SetAimingState(weaponNumber)
 {
-	if (weaponNumber == AIMING_LOW){
-		aimingState = AIMING_LOW;
+	if (weaponNumber == AIMING_PREFERRED){
+		AimingState = AIMING_PREFERRED;
 	} else{
-		aimingState = AIMING_HIGH;
+		AimingState = AIMING_DEFERRED;
 	}
 }
 

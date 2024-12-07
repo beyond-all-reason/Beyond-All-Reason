@@ -41,7 +41,6 @@ return {
 			subfolder = "ArmGantry",
 			techlevel = 3,
 			unitgroup = "weapon",
-			smart_weapon_select_priority = 1,
 		},
 		featuredefs = {
 			dead = {
@@ -141,7 +140,8 @@ return {
 					subs = 500,
 				},
 				customparams = {
-					exclude_preaim = true
+					exclude_preaim = true,
+					smart_deferred_weapon = true,
 				}
 			},
 			shocker_low = {
@@ -178,7 +178,8 @@ return {
 					subs = 500,
 				},
 				customparams = {
-					exclude_preaim = true
+					exclude_preaim = true,
+					smart_preferred_weapon = true,
 				}
 			},
 		},
