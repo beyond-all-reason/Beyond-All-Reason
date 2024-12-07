@@ -101,6 +101,11 @@ AimSecondary(heading, pitch)
 	return (1);
 }
 
+AimTertiary(piecenum)
+{
+	return (0);
+}
+
 AimFromPrimary(piecenum)
 {
 	piecenum = sleeve;
@@ -137,6 +142,11 @@ QueryPrimary(piecenum)
 QuerySecondary(piecenum)
 {
 	piecenum = flare;
+}
+
+QueryTertiary(piecenum)
+{
+	piecenum = base;
 }
 
 SweetSpot(piecenum)

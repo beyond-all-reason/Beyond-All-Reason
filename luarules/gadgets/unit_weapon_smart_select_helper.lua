@@ -18,10 +18,17 @@ if not gadgetHandler:IsSyncedCode() then return end
 Integration Checklist:
 1. use customparams.smart_preferred_weapon = true for the higher priority smart select weapon.
 2. use customparams.smart_deferred_weapon = true for the fallback weapon when smart_preferred_weapon doesn't have a target, or cannot shoot the manually selected target.
+3. use customparams.smart_trajectory_checker = true for the weapon that should be used for trajectory checks for the preferredWeapon. Ideally this is a static point slightly lower than preferred_weapon
 3. in the unit's .bos animation script, #include "smart_weapon_select.h"  ideally at the beginning of the file.
 4. in the preferred AimWeaponX() function, add the following at the beginning:
-
-
+	if (AimingState != AIMING_PREFERRED){
+		return(0);
+	}
+5. in the deferred AimWeaponX() function, add the following at the beginning:
+	if (AimingState != AIMING_DEFERRED){
+		return(0);
+	}
+6. If using a dummy weapon, return (0); in its AimWeaponX() function and QueryWeaponX(piecenum) should be set to static piece lower than the turret.
 ]]
 
 --static
@@ -30,13 +37,14 @@ local failedToFireMultiplier = Game.gameSpeed * 1.25
 local aggroDecayRate = 0.85
 local tallyDecayRate = 0.98
 local pManualAggro = 11
-local pAutoAggro = 5
+local pAutoAggro = 4
 local dManualAggro = 9
 local dAutoAggro = 3
-local dErrorAggro = -300
+local dErrorAggro = -1000
 local errorRecencyThreshold = Game.gameSpeed * 15
 local errorTallyMultiplierCap = 4
-
+local switchDeferredThreshold = -pAutoAggro * 4
+local switchPreferredThreshold = -1
 --variables
 local gameFrame = 0
 
@@ -51,7 +59,7 @@ local mathMax = math.max
 
 --tables
 local smartUnits = {}
-local smartWeaponDefs = {}
+local smartUnitDefWeaponNumbers = {}
 
 function gadget:Initialize()
     local units = Spring.GetAllUnits()
@@ -63,7 +71,7 @@ end
 
 
 function gadget:UnitCreated(unitID, unitDefID)
-	if smartWeaponDefs[unitDefID] then
+	if smartUnitDefWeaponNumbers[unitDefID] then
 		smartUnits[unitID] = {
 			unitDefID = unitDefID,
 			setStateScriptID = Spring.GetCOBScriptID(unitID, "SetAimingState"),
@@ -80,16 +88,23 @@ for unitDefID, def in ipairs(UnitDefs) do
 		local weapons = def.weapons
 		for weaponNumber, weaponData in pairs(weapons) do
 			local weaponDefID = weapons[weaponNumber].weaponDef
-			if WeaponDefs[weaponDefID].customParams.smart_preferred_weapon then
-				smartWeaponDefs[unitDefID] = {}
-				smartWeaponDefs[unitDefID].preferredWeapon = weaponNumber
-				smartWeaponDefs[unitDefID].failedToFireFrameThreshold = WeaponDefs[weaponDefID].reload * failedToFireMultiplier --zzz this is gonna be problematic for moving slow turn units like vanguard
-				if def.speed and def.speed ~= 0 then
-					smartWeaponDefs[unitDefID].canMove = true
+			if WeaponDefs[weaponDefID] and WeaponDefs[weaponDefID].customParams then
+				if WeaponDefs[weaponDefID].customParams.smart_preferred_weapon then
+					smartUnitDefWeaponNumbers[unitDefID] = smartUnitDefWeaponNumbers[unitDefID] or {}
+					smartUnitDefWeaponNumbers[unitDefID].preferredWeapon = weaponNumber
+					smartUnitDefWeaponNumbers[unitDefID].failedToFireFrameThreshold = WeaponDefs[weaponDefID].reload * failedToFireMultiplier
+					if def.speed and def.speed ~= 0 then
+						smartUnitDefWeaponNumbers[unitDefID].canMove = true
+					end
 				end
-			end
-			if WeaponDefs[weaponDefID].customParams.smart_deferred_weapon then
-				smartWeaponDefs[unitDefID].deferredWeapon = weaponNumber
+				if WeaponDefs[weaponDefID].customParams.smart_deferred_weapon then
+					smartUnitDefWeaponNumbers[unitDefID] = smartUnitDefWeaponNumbers[unitDefID] or {}
+					smartUnitDefWeaponNumbers[unitDefID].deferredWeapon = weaponNumber
+				end
+				if WeaponDefs[weaponDefID].customParams.smart_trajectory_checker then
+					smartUnitDefWeaponNumbers[unitDefID] = smartUnitDefWeaponNumbers[unitDefID] or {}
+					smartUnitDefWeaponNumbers[unitDefID].trajectoryCheckWeapon = weaponNumber
+				end
 			end
 		end
 	end
@@ -115,7 +130,7 @@ end
 
 local function updateAimingState(attackerID)
     local attackerData = smartUnits[attackerID]
-    local defData = smartWeaponDefs[attackerData.unitDefID]
+    local defData = smartUnitDefWeaponNumbers[attackerData.unitDefID]
 
     local pTargetType, pIsUserTarget, pTarget = spGetUnitWeaponTarget(attackerID, defData.preferredWeapon)
     local dIsUserTarget = select(2, spGetUnitWeaponTarget(attackerID, defData.deferredWeapon))
@@ -125,9 +140,9 @@ local function updateAimingState(attackerID)
     
     local preferredCanShoot = false
     if pTargetType == 1 then
-        preferredCanShoot = spGetUnitWeaponHaveFreeLineOfFire(attackerID, defData.preferredWeapon, pTarget)
+        preferredCanShoot = spGetUnitWeaponHaveFreeLineOfFire(attackerID, defData.trajectoryCheckWeapon, pTarget)
     elseif pTargetType == 2 then
-        preferredCanShoot = spGetUnitWeaponHaveFreeLineOfFire(attackerID, defData.preferredWeapon, nil, nil, nil, pTarget[1], pTarget[2], pTarget[3])
+        preferredCanShoot = spGetUnitWeaponHaveFreeLineOfFire(attackerID, defData.trajectoryCheckWeapon, nil, nil, nil, pTarget[1], pTarget[2], pTarget[3])
     end
 
 	local failureToFire = false
@@ -154,15 +169,15 @@ local function updateAimingState(attackerID)
 			attackerData.aggroBias = dErrorAggro * attackerData.errorTallyMultiplier ^ attackerData.errorTallyMultiplier
         elseif preferredCanShoot then
             attackerData.aggroBias = attackerData.aggroBias + pAutoAggro
-        elseif dIsUserTarget ~= nil then
+        elseif dIsUserTarget ~= nil then --deferred has a target
             attackerData.aggroBias = attackerData.aggroBias - dAutoAggro
         end
     end
 
-    if attackerData.aggroBias >= 0 then
-        spCallCOBScript(attackerID, attackerData.setStateScriptID, 0, defData.preferredWeapon)
-    else
-        spCallCOBScript(attackerID, attackerData.setStateScriptID, 0, defData.deferredWeapon)
+    if attackerData.aggroBias >= switchPreferredThreshold then
+		spCallCOBScript(attackerID, attackerData.setStateScriptID, 0, defData.preferredWeapon)
+	elseif attackerData.aggroBias < switchDeferredThreshold then
+		spCallCOBScript(attackerID, attackerData.setStateScriptID, 0, defData.deferredWeapon)
     end
 end
 

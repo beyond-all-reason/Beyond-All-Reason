@@ -176,6 +176,36 @@ return {
 					smart_deferred_weapon = true,
 				}
 			},
+			smart_trajectory_dummy = {
+				accuracy = 450,
+				areaofeffect = 164,
+				avoidfeature = false,
+				cegtag = "arty-heavy",
+				craterboost = 0,
+				cratermult = 0,
+				edgeeffectiveness = 0.4,
+				explosiongenerator = "custom:genericshellexplosion-medium-aoe",
+				gravityaffected = "true",
+				impulsefactor = 0.5,
+				name = "Pop-up long-range heavy g2g plasma cannon",
+				noselfdamage = true,
+				predictboost = 0.2,
+				range = 1390,
+				reloadtime = 2.1,
+				soundhit = "xplomed2",
+				soundhitwet = "splslrg",
+				soundstart = "cannhvy5",
+				turret = true,
+				weapontype = "Cannon",
+				weaponvelocity = 450,
+				damage = {
+					default = 0,
+				},
+				customparams = {
+					exclude_preaim = true,
+					smart_trajectory_checker = true,
+				}
+			},
 		},
 		weapons = {
 			[1] = {
@@ -188,6 +218,13 @@ return {
 			[2] = {
 				badtargetcategory = "VTOL GROUNDSCOUT",
 				def = "CORTOAST_GUN_HIGH",
+				onlytargetcategory = "SURFACE",
+			},
+			[3] = {
+				badtargetcategory = "VTOL GROUNDSCOUT",
+				def = "smart_trajectory_dummy",
+				maindir = "0 1 0",
+				maxangledif = 230,
 				onlytargetcategory = "SURFACE",
 			},
 		},

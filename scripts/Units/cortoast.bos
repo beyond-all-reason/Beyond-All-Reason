@@ -184,6 +184,11 @@ AimSecondary(heading, pitch)
 	return (1);
 }
 
+AimTertiary(piecenum)
+{
+	return (0);
+}
+
 fireCommon()
 {
 	emit-sfx 1024 + 0 from flare;
@@ -222,6 +227,11 @@ QueryPrimary(piecenum)
 QuerySecondary(piecenum)
 {
 	piecenum = flare;
+}
+
+QueryTertiary(piecenum)
+{
+	piecenum = base;
 }
 
 SweetSpot(piecenum)

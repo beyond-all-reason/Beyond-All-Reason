@@ -255,6 +255,11 @@ AimSecondary(heading, pitch)
 	return (1);
 }
 
+AimTertiary(piecenum)
+{
+	return (0);
+}
+
 AimFromPrimary(piecenum)
 {
 	piecenum = sleeveHousing;
@@ -316,6 +321,11 @@ QuerySecondary(piecenum)
 	{
 		piecenum = flareBottom;
 	}
+}
+
+QueryTertiary(piecenum)
+{
+	piecenum = base;
 }
 
 SweetSpot(piecenum)

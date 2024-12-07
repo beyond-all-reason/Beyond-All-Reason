@@ -153,15 +153,11 @@ FireSecondary()
 
 QueryPrimary(piecenum)
 {
-    if (AimingState == AIMING_DEFERRED) { //until Spring.GetUnitWeaponHaveFreeLineOfFire accepts arbitrary sourceXYZ coordinates as an input, we need to use a lower static aimpoint to check trajectories from.
-        piecenum = turret;
-    } else {
-        if (nextBarrel == 0) {
-            piecenum = flare1;
-        } else {
-            piecenum = flare2;
-        }
-    }
+	if (nextBarrel == 0) {
+		piecenum = flare1;
+	} else {
+		piecenum = flare2;
+	}
 }
 QuerySecondary(piecenum)
 {
@@ -173,6 +169,16 @@ QuerySecondary(piecenum)
 	{
 		piecenum = flare2;
 	}
+}
+
+QueryTertiary(piecenum)
+{
+	piecenum = base;
+}
+
+AimTertiary(piecenum)
+{
+	return (0);
 }
 
 SweetSpot(piecenum)

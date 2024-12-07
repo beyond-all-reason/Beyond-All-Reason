@@ -686,6 +686,16 @@ FireSecondary()
 	call-script fireCommon();
 }
 
+QueryTertiary(piecenum)
+{
+	piecenum = base;
+}
+
+AimTertiary(piecenum)
+{
+	return (0);
+}
+
 Killed(severity, corpsetype)
 {
 	if( severity <= 25 )

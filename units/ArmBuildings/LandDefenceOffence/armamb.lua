@@ -175,6 +175,36 @@ return {
 					smart_deferred_weapon = true,
 				}
 			},
+			smart_trajectory_dummy = {
+				accuracy = 400,
+				areaofeffect = 152,
+				avoidfeature = false,
+				cegtag = "arty-heavy",
+				craterboost = 0,
+				cratermult = 0,
+				edgeeffectiveness = 0.4,
+				explosiongenerator = "custom:genericshellexplosion-medium-aoe",
+				gravityaffected = "true",
+				impulsefactor = 0.5,
+				name = "Pop-up heavy  long range g2g plasna cannon",
+				noselfdamage = true,
+				predictboost = 0.2,
+				range = 1380,
+				reloadtime = 1.8,
+				soundhit = "xplomed2",
+				soundhitwet = "splslrg",
+				soundstart = "cannhvy5",
+				turret = true,
+				weapontype = "Cannon",
+				weaponvelocity = 450,
+				damage = {
+					default = 0,
+				},
+				customparams = {
+					exclude_preaim = true,
+					smart_trajectory_checker = true,
+				}
+			},
 		},
 		weapons = {
 			[1] = {
@@ -187,6 +217,13 @@ return {
 			[2] = {
 				badtargetcategory = "VTOL GROUNDSCOUT",
 				def = "ARMAMB_GUN_HIGH",
+				onlytargetcategory = "SURFACE",
+			},
+			[3] = {
+				badtargetcategory = "VTOL GROUNDSCOUT",
+				def = "smart_trajectory_dummy",
+				maindir = "0 1 0",
+				maxangledif = 230,
 				onlytargetcategory = "SURFACE",
 			},
 		},
