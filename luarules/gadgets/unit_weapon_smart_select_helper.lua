@@ -36,14 +36,14 @@ local frameCheckModulo = Game.gameSpeed
 local failedToFireMultiplier = Game.gameSpeed * 1.25
 local aggroDecayRate = 0.85
 local tallyDecayRate = 0.98
-local pManualAggro = 11
-local pAutoAggro = 4
-local dManualAggro = 9
+local pAutoAggro = 5
+local pManualAggro = pAutoAggro * 4
 local dAutoAggro = 3
-local dErrorAggro = -1000
+local dManualAggro = dAutoAggro * 4
+local dErrorAggro = -300
 local errorRecencyThreshold = Game.gameSpeed * 15
 local errorTallyMultiplierCap = 4
-local switchDeferredThreshold = -pAutoAggro * 4
+local switchDeferredThreshold = -dAutoAggro * 3
 local switchPreferredThreshold = -1
 --variables
 local gameFrame = 0
@@ -59,7 +59,7 @@ local mathMax = math.max
 
 --tables
 local smartUnits = {}
-local smartUnitDefWeaponNumbers = {}
+local unitDefData = {}
 
 function gadget:Initialize()
     local units = Spring.GetAllUnits()
@@ -70,19 +70,6 @@ function gadget:Initialize()
 end
 
 
-function gadget:UnitCreated(unitID, unitDefID)
-	if smartUnitDefWeaponNumbers[unitDefID] then
-		smartUnits[unitID] = {
-			unitDefID = unitDefID,
-			setStateScriptID = Spring.GetCOBScriptID(unitID, "SetAimingState"),
-			aggroBias = 0,
-			preferredReloadFrame = 0,
-			errorTallyMultiplier = 0,
-		}
-	end
-end
-
-
 for unitDefID, def in ipairs(UnitDefs) do
 	if def.weapons then
 		local weapons = def.weapons
@@ -90,23 +77,37 @@ for unitDefID, def in ipairs(UnitDefs) do
 			local weaponDefID = weapons[weaponNumber].weaponDef
 			if WeaponDefs[weaponDefID] and WeaponDefs[weaponDefID].customParams then
 				if WeaponDefs[weaponDefID].customParams.smart_preferred_weapon then
-					smartUnitDefWeaponNumbers[unitDefID] = smartUnitDefWeaponNumbers[unitDefID] or {}
-					smartUnitDefWeaponNumbers[unitDefID].preferredWeapon = weaponNumber
-					smartUnitDefWeaponNumbers[unitDefID].failedToFireFrameThreshold = WeaponDefs[weaponDefID].reload * failedToFireMultiplier
+					unitDefData[unitDefID] = unitDefData[unitDefID] or {}
+					unitDefData[unitDefID].preferredWeapon = weaponNumber
+					unitDefData[unitDefID].failedToFireFrameThreshold = WeaponDefs[weaponDefID].reload * failedToFireMultiplier
 					if def.speed and def.speed ~= 0 then
-						smartUnitDefWeaponNumbers[unitDefID].canMove = true
+						unitDefData[unitDefID].canMove = true
 					end
 				end
 				if WeaponDefs[weaponDefID].customParams.smart_deferred_weapon then
-					smartUnitDefWeaponNumbers[unitDefID] = smartUnitDefWeaponNumbers[unitDefID] or {}
-					smartUnitDefWeaponNumbers[unitDefID].deferredWeapon = weaponNumber
+					unitDefData[unitDefID] = unitDefData[unitDefID] or {}
+					unitDefData[unitDefID].deferredWeapon = weaponNumber
 				end
 				if WeaponDefs[weaponDefID].customParams.smart_trajectory_checker then
-					smartUnitDefWeaponNumbers[unitDefID] = smartUnitDefWeaponNumbers[unitDefID] or {}
-					smartUnitDefWeaponNumbers[unitDefID].trajectoryCheckWeapon = weaponNumber
+					unitDefData[unitDefID] = unitDefData[unitDefID] or {}
+					unitDefData[unitDefID].trajectoryCheckWeapon = weaponNumber
 				end
 			end
 		end
+	end
+end
+
+
+function gadget:UnitCreated(unitID, unitDefID)
+	if unitDefData[unitDefID] then
+		smartUnits[unitID] = {
+			unitDefID = unitDefID,
+			setStateScriptID = Spring.GetCOBScriptID(unitID, "SetAimingState"),
+			aggroBias = 0,
+			preferredReloadFrame = 0,
+			errorTallyMultiplier = 0,
+		}
+		spCallCOBScript(unitID, smartUnits[unitID].setStateScriptID, 0, unitDefData[unitDefID].preferredWeapon)
 	end
 end
 
@@ -130,7 +131,7 @@ end
 
 local function updateAimingState(attackerID)
     local attackerData = smartUnits[attackerID]
-    local defData = smartUnitDefWeaponNumbers[attackerData.unitDefID]
+    local defData = unitDefData[attackerData.unitDefID]
 
     local pTargetType, pIsUserTarget, pTarget = spGetUnitWeaponTarget(attackerID, defData.preferredWeapon)
     local dIsUserTarget = select(2, spGetUnitWeaponTarget(attackerID, defData.deferredWeapon))
