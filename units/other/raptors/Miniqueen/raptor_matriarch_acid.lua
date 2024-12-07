@@ -107,6 +107,14 @@ return {
 				turret = true,
 				weapontimer = 0.2,
 				weaponvelocity = 520,
+				customparams = {
+					area_onhit_ceg = "acid-area-75-repeat",
+					area_onhit_damageCeg = "acid-damage-gen",
+					area_onhit_time = 10,
+					area_onhit_damage = 40,
+					area_onhit_range = 75,
+					area_onhit_resistance = "_RAPTORACID_",
+				},
 				damage = {
 					default = 1,
 					shields = 800,
@@ -174,6 +182,14 @@ return {
 				turret = true,
 				weapontimer = 0.2,
 				weaponvelocity = 520,
+				customparams = {
+					area_onhit_ceg = "acid-area-75-repeat",
+					area_onhit_damageCeg = "acid-damage-gen",
+					area_onhit_time = 10,
+					area_onhit_damage = 40,
+					area_onhit_range = 75,
+					area_onhit_resistance = "_RAPTORACID_",
+				},
 				damage = {
 					default = 1,
 					shields = 800,

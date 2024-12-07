@@ -52,7 +52,8 @@ local function setHoundWeaponState(unitID, state)
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
-	if cmdID == CMD_HOUND_WEAPON_TOGGLE and isHound[unitDefID] then
+	-- accepts: CMD_HOUND_WEAPON_TOGGLE
+	if isHound[unitDefID] then
 		setHoundWeaponState(unitID, cmdParams[1])
 		return false  -- command was used
 	end
@@ -72,6 +73,7 @@ function gadget:UnitCreated(unitID, unitDefID)
 end
 
 function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD_HOUND_WEAPON_TOGGLE)
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
 	end

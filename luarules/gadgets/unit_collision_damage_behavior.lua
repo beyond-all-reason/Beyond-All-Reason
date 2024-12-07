@@ -27,7 +27,7 @@ local validCollisionAngleMultiplier = math.cos(math.rad(20)) --degrees
 local maxImpulseMultiplier = 5.5
 
 --to save performance and reduce unit hesitation from nominal impulse, impulse values below (minImpulseMultiplier * mass) returns 0 impulse.
-local minImpulseMultiplier = 1
+local minImpulseMultiplier = 0.01
 
 -- elmo/s, converted to elmo/frame. If a unit is launched via explosion faster than this, it is instantly slowed. If unit speed/gameSpeed is greater or canFly = true, speed/gameSpeed is used instead.
 local velocityCap = 330 / Game.gameSpeed
@@ -252,4 +252,24 @@ function gadget:GameFrame(frame)
 		fallingKillQueue[unitID] = nil
 	end
 	gameFrame = frame
+end
+
+local function setVelocityControl(unitID, enabled)
+	if enabled == false then
+		launchedUnits[unitID] = nil
+		unitInertiaCheckFlags[unitID] = nil
+	elseif not unitInertiaCheckFlags[unitID] then
+		unitInertiaCheckFlags[unitID] = {
+			expirationFrame = gameFrame + velocityWatchFrames,
+			velocityCap     = unitDefData[Spring.GetUnitDefID(unitID)].velocityCap,
+		}
+	end
+end
+
+function gadget:Initialize()
+	GG.SetVelocityControl = setVelocityControl
+end
+
+function gadget:ShutDown()
+	GG.SetVelocityControl = nil
 end

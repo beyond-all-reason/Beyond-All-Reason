@@ -114,6 +114,14 @@ return {
 				soundstart = "alien_bombrel",
 				sprayangle = 20000,
 				weapontype = "AircraftBomb",
+				customparams = {
+					area_onhit_ceg = "acid-area-150-repeat",
+					area_onhit_damageCeg = "acid-damage-gen",
+					area_onhit_time = 10,
+					area_onhit_damage = 100,
+					area_onhit_range = 150,
+					area_onhit_resistance = "_RAPTORACID_",
+				},
 				damage = {
 					default = 1,
 				},

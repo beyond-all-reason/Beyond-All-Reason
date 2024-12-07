@@ -860,6 +860,15 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
+	-- Shield Rework
+	if modOptions.shieldsrework == true and uDef.weapondefs then
+		for _, weapon in pairs(uDef.weapondefs) do
+			if weapon.shield and weapon.shield.repulser then
+				uDef.onoffable = true
+			end
+		end
+	end
+
 	--- EMP rework
 	if modOptions.emprework == true then
 		if name == "armstil" then
@@ -1250,8 +1259,8 @@ function UnitDef_Post(name, uDef)
 			uDef.energystorage = uDef.energystorage * x
 		end
 	end
-	if name == "armsolar" or name == "corsolar" or name == "legsolar" then
-		-- special case (but why?)
+	if uDef.energyupkeep and uDef.energyupkeep < 0 then
+		-- units with negative upkeep means they produce energy when "on".
 		local x = modOptions.multiplier_energyproduction * modOptions.multiplier_resourceincome
 		uDef.energyupkeep = uDef.energyupkeep * x
 		if uDef.energystorage then
@@ -1396,6 +1405,38 @@ function WeaponDef_Post(name, wDef)
 				wDef.targetmoveerror = nil
 			end
 		end
+
+		if modOptions.proposed_unit_reworks then
+			if name == 'mine_heavy' then
+				wDef.damage.default = 3000
+				wDef.edgeeffectiveness = 0.5
+				wDef.impulsefactor = 0.8
+			end
+			if name == 'mine_medium' then
+				wDef.edgeeffectiveness = 0.5
+				wDef.impulsefactor = 0.8
+			end
+			if name == 'corsktlSelfd' then
+				--wDef.damage.hvyboats = wDef.damage.default
+				--wDef.damage.lboats = wDef.damage.default
+				wDef.damage.crawlingbombs = 400
+			end
+			if name == 'crawl_blast' then
+				wDef.damage.default = 2700
+				wDef.damage.commanders = 1000
+				--wDef.damage.hvyboats = wDef.damage.default
+				--wDef.damage.lboats = wDef.damage.default
+				wDef.damage.crawlingbombs = 400
+				wDef.edgeeffectiveness = 0.35
+				wDef.areaofeffect = 410
+			end
+			if name == 'crawl_blastsml' then
+				wDef.damage.crawlingbombs = 400
+				wDef.edgeeffectiveness = 0.35
+			end
+
+		end
+
 
 		----EMP rework
 

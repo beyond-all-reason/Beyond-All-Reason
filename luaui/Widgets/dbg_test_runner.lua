@@ -24,6 +24,8 @@ local rpc = VFS.Include('common/testing/rpc.lua'):new()
 
 local LOG_LEVEL = LOG.INFO
 
+local initialWidgetActive = {}
+
 local config = {
 	returnTimeout = 30,
 	waitTimeout = 5 * 30,
@@ -588,6 +590,50 @@ Test = {
 			callinState.buffer = {}
 		end
 	end,
+	prepareWidget = function(widgetName)
+		-- Enable widget with locals access and store state for later restoring
+		-- through restoreWidget(s).
+		assert(widgetHandler.knownWidgets[widgetName] ~= nil)
+
+		initialWidgetActive[widgetName] = widgetHandler.knownWidgets[widgetName].active or false
+		if initialWidgetActive[widgetName] then
+			widgetHandler:DisableWidgetRaw(widgetName)
+		end
+		widgetHandler:EnableWidgetRaw(widgetName, true)
+
+		local widget = widgetHandler:FindWidget(widgetName)
+		assert(widget)
+		return widget
+	end,
+	restoreWidget = function(widgetName)
+		-- Restore a widget enabled status, can be run manually inside test.
+		-- Otherwise testrunner will run it automatically through restoreWidgets.
+		local wasActive = initialWidgetActive[widgetName]
+		initialWidgetActive[widgetName] = nil
+		assert(wasActive ~= nil)
+
+		widgetHandler:DisableWidgetRaw(widgetName)
+		if wasActive then
+			widgetHandler:EnableWidgetRaw(widgetName, false)
+		end
+	end,
+	restoreWidgets = function()
+		-- Restore all widgets enabled through prepareWidget.
+		-- Can be run manually or just let testrunner call it automatically.
+		local allOk = true
+		local failed = {}
+		for widgetName, _ in pairs(initialWidgetActive) do
+			local restoreOk, restoreResult = pcall(Test.restoreWidget, widgetName)
+			if not restoreOk then
+				allOk = false
+				failed[#failed+1] = widgetName
+				log(LOG.DEBUG, "[restoreWidgets.error] " .. widgetName .. " " .. tostring(restoreResult))
+			end
+		end
+		if not allOk then
+			error("Some widgets failed restoring: " .. table.concat(failed, ", "), 3)
+		end
+	end,
 }
 
 function widget:RecvLuaMsg(msg)
@@ -671,6 +717,15 @@ local function runTestInternal()
 	else
 		log(LOG.DEBUG, "[runTestInternal.cleanup.skipped]")
 		cleanupOk = true
+	end
+
+	if #initialWidgetActive > 0 then
+		log(LOG.DEBUG, "[runTestInternal.restoreWidgets]")
+		local restoreOk, restoreResult = pcall(Test.restoreWidgets)
+		if not restoreOk then
+			log(LOG.DEBUG, "[runTestInternal.restoreWidgets.error]")
+			error(restoreResult, 2)
+		end
 	end
 
 	if not cleanupOk then

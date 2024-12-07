@@ -279,7 +279,9 @@
 				"highTrajectory": "High Trajectory",
 				"trajectory_tooltip": "Switch artillery firing angle between low and high trajectory",
 				"gauss_tooltip": "Switches between Gauss Cannon and Heavy Plasma Cannon"
-			}
+			},
+			"quicksharetotarget": "Share Unit",
+			"quicksharetotarget_tooltip": "Share unit to target player."
 		},
 		"idleBuilders": {
 			"name": "Idle Builders",
@@ -1665,6 +1667,10 @@
 				"title": "%{role1}/%{role2}",
 				"description": "%{role1}\n\nand/or\n\n%{role2}"
 			}
+		},
+		"quickShareToTarget": {
+			"noTarget": "No target selected",
+			"shareTo": "Share to: %{playerColor}%{player}"
 		}
 	}
 }
