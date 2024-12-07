@@ -33,13 +33,16 @@ local areaSizePresets = {
 local prefixes = { unit = 'area_ondeath_', weapon = 'area_onhit_' }
 local damage, time, range, resistance = 30, 10, 75, "none"
 
--- Customparams are named like <prefix>_<paramName>, for ex. "area_onhit_ceg".
--- ceg - ceg to spawn when explosion happens
--- damageCeg - ceg to spawn when damage is dealt
--- time - how long the effect should stay
--- damage - damage per second
--- range - from center to edge, in elmos
--- resistance - defines which units are resistant to this type of damage when it matches with 'areadamageresistance' customparameter in a unit.
+--[[
+    customparams = {
+        <prefix>_damage     := <number>    The damage done per second
+        <prefix>_time       := <number>    Duration of the timed area
+        <prefix>_range      := <number>    The radius of the timed area
+        <prefix>_damageCeg  := <ceg_name>  Spawns repeatedly for duration
+        <prefix>_resistance := <string>    Matched against areadamageresistance
+    }
+    prefix := area_ondeath | area_onhit  Units use ondeath; weapons use onhit.
+]]--
 
 --------------------------------------------------------------------------------
 -- Local variables -------------------------------------------------------------
