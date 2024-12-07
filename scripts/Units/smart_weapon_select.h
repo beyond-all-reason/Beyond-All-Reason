@@ -152,4 +152,5 @@ SmartAimSelect(weaponNumber)
 		}
 	}
 }
+
 #endif
