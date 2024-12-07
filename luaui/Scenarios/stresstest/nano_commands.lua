@@ -33,38 +33,59 @@ function synced_nano_setup(locals)
 	local team1 = 0
 	local sep = 50
 	local currunit
-	local nanoturrets = {}
-	local targets = {}
+	local turrets = {}
 	for i=0, colturrets-1 do
 		for j=0, rowturrets-1 do
 			currunit = createUnitAt(turretDef, x+i*sep-100, z-j*sep, team1)
-			nanoturrets[#nanoturrets+1] = currunit
+			turrets[#turrets+1] = currunit
 		end
 	end
 
 	for i=0, coltargets-1 do
 		for j=0, rowtargets-1 do
-			currunit = createUnitAt(targetDef, x+350+i*sep, z-j*sep, team1)
-			targets[#targets+1] = currunit
+			createUnitAt(targetDef, x+350+i*sep, z-j*sep, team1)
 		end
 	end
 	-- make sure the turrets don't have other orders
-	for _, unitID in pairs(nanoturrets) do
+	for _, unitID in pairs(turrets) do
 		Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
 	end
-	return nanoturrets, targets
 end
 
-function synced_nano_commands(locals)
-	local nanoturrets = locals.nanoturrets
-	local targets = locals.targets
+function run_nano_commands(nturrets, ntargets, turretDef, targetDef)
+	if type(nturrets) == 'table' then
+		local locals = nturrets
+		ntargets = locals.ntargets
+		turretDef = locals.turretDef
+		targetDef = locals.targetDef
+		nturrets = locals.nturrets
+	end
 	local shiftOpts = {"shift"}
 	local currOpt
 	local CMD_RECLAIM = CMD.RECLAIM
 	local spGiveOrderToUnit = Spring.GiveOrderToUnit
 
+	-- get units
+	local spGetUnitDefID = Spring.GetUnitDefID
+
+	local turrets = table.new and table.new(nturrets) or {}
+	local targets = table.new and table.new(ntargets) or {}
+	local turretDefID = UnitDefNames[turretDef].id
+	local targetDefID = UnitDefNames[targetDef].id
+
+	local all_units = Spring.GetAllUnits()
+	for _, unitID in ipairs(all_units) do
+		local unitDefID = spGetUnitDefID(unitID)
+		if unitDefID == turretDefID then
+			turrets[#turrets+1] = unitID
+		elseif unitDefID == targetDefID then
+			targets[#targets+1] = unitID
+		end
+	end
+
+	-- give orders
 	local arr = {}
-	for _, unitID in pairs(nanoturrets) do
+	for _, unitID in pairs(turrets) do
 		for idx, targetID in pairs(targets) do
 			currOpt = (idx == 1) and opts or shiftOpts
 			arr[1] = targetID
@@ -81,11 +102,12 @@ function test()
 	local turretDef = Scenario.builderDef
 	local targetDef = Scenario.targetDef
 
-	local nanoturrets, targets = SyncedRun(synced_nano_setup)
+	SyncedRun(synced_nano_setup)
+	Spring.Echo("init time preinit:", os.clock()-t0)
 
 	Test.waitFrames(1)
 
-	SyncedRun(synced_nano_commands)
+	SyncedRun(run_nano_commands)
 
 	Spring.Echo("total time:", os.clock()-t0)
 end

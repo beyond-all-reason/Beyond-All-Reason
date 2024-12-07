@@ -36,14 +36,14 @@ function synced_setup(locals)
 	local sep = 40
 	local currunit
 	local attackers = {}
-	local targets = {}
+	local circle
 	if doCircle then
 		-- when circle requested just return the targets center and radius
 		local maxX = (coltargets*sep)/2.0
 		local maxZ = (rowtargets*sep)/2.0
 		local targetsCenter = {x-1500+maxX, z-maxZ}
 		local radius = math.sqrt(maxX*maxX + maxZ*maxZ)
-		targets = {targetsCenter[1], targetsCenter[2], radius}
+		circle = {targetsCenter[1], targetsCenter[2], radius}
 	end
 
 	createUnitAt(locals.radarDef, x-1000, z+300, team1)
@@ -57,28 +57,49 @@ function synced_setup(locals)
 
 	for i=0, coltargets-1 do
 		for j=0, rowtargets-1 do
-			currunit = createUnitAt(targetDef, x-1500+i*sep, z-j*sep, team2)
-			if not doCircle then
-				targets[#targets+1] = currunit
-			end
+			createUnitAt(targetDef, x-1500+i*sep, z-j*sep, team2)
 		end
 	end
 	-- make sure the attackers don't have other orders
 	for _, unitID in pairs(attackers) do
 		Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
 	end
-
-	return attackers, targets
+	return circle
 end
 
-function synced_commands(locals)
-	local attackers = locals.attackers
-	local targets = locals.targets
+function run_commands(nattackers, ntargets, attackerDef, targetDef)
+	if type(nattackers) == 'table' then
+		-- comes from SyncedRun
+		locals = nattackers
+		ntargets = locals.ntargets
+		attackerDef = locals.attackerDef
+		targetDef = locals.targetDef
+		nattackers = locals.nattackers
+	end
 	local shiftOpts = {"shift"}
 	local currOpt
 	local CMD_ATTACK = CMD.ATTACK
 	local spGiveOrderToUnit = Spring.GiveOrderToUnit
 
+	-- get units
+	local spGetUnitDefID = Spring.GetUnitDefID
+
+	local attackers = table.new and table.new(nattackers) or {}
+	local targets = table.new and table.new(ntargets) or {}
+	local attackerDefID = UnitDefNames[attackerDef].id
+	local targetDefID = UnitDefNames[targetDef].id
+
+	local all_units = Spring.GetAllUnits()
+	for _, unitID in ipairs(all_units) do
+		local unitDefID = spGetUnitDefID(unitID)
+		if unitDefID == attackerDefID then
+			attackers[#attackers+1] = unitID
+		elseif unitDefID == targetDefID then
+			targets[#targets+1] = unitID
+		end
+	end
+
+	-- give orders
 	local arr = {}
 	for _, unitID in pairs(attackers) do
 		for idx, targetID in pairs(targets) do
@@ -98,11 +119,12 @@ function test()
 	local targetDef = Scenario.targetDef
 	local radarDef = Scenario.radarDef
 
-	local attackers, targets = SyncedRun(synced_setup)
+	SyncedRun(synced_setup)
+	Spring.Echo("init time preinit:", os.clock()-t0)
 
 	Test.waitFrames(1)
 
-	SyncedRun(synced_commands)
+	SyncedRun(run_commands)
 
 	Spring.Echo("total time:", os.clock()-t0)
 end
