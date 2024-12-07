@@ -16,9 +16,9 @@ if not gadgetHandler:IsSyncedCode() then return end
 
 --[[
 Integration Checklist:
-1. use customparams.smart_preferred_weapon = true for the higher priority smart select weapon.
-2. use customparams.smart_deferred_weapon = true for the fallback weapon when smart_preferred_weapon doesn't have a target, or cannot shoot the manually selected target.
-3. use customparams.smart_trajectory_checker = true for the weapon that should be used for trajectory checks for the preferredWeapon. Ideally this is a static point slightly lower than preferred_weapon
+1. use weapondef.customparams.smart_preferred_weapon = true for the higher priority smart select weapon.
+2. use weapondef.customparams.smart_deferred_weapon = true for the fallback weapon when smart_preferred_weapon doesn't have a target, or cannot shoot the manually selected target.
+3. use weapondef.customparams.smart_trajectory_checker = true for the weapon that should be used for trajectory checks for the preferredWeapon. Ideally this is a static point slightly lower than preferred_weapon
 3. in the unit's .bos animation script, #include "smart_weapon_select.h"  ideally at the beginning of the file.
 4. in the preferred AimWeaponX() function, add the following at the beginning:
 	if (AimingState != AIMING_PREFERRED){
@@ -29,6 +29,9 @@ Integration Checklist:
 		return(0);
 	}
 6. If using a dummy weapon, return (0); in its AimWeaponX() function and QueryWeaponX(piecenum) should be set to static piece lower than the turret.
+
+****OPTIONAL*****
+use weapondef.customparams.smart_error_frames to override the default reloadtime derivitive frames error threshold
 ]]
 
 --static
@@ -45,6 +48,9 @@ local errorRecencyThreshold = Game.gameSpeed * 15
 local errorTallyMultiplierCap = 4
 local switchDeferredThreshold = -dAutoAggro * 3
 local switchPreferredThreshold = -1
+local AimingState_Preferred = 1
+local AimingState_Deferred = 2
+
 --variables
 local gameFrame = 0
 
@@ -79,7 +85,8 @@ for unitDefID, def in ipairs(UnitDefs) do
 				if WeaponDefs[weaponDefID].customParams.smart_preferred_weapon then
 					unitDefData[unitDefID] = unitDefData[unitDefID] or {}
 					unitDefData[unitDefID].preferredWeapon = weaponNumber
-					unitDefData[unitDefID].failedToFireFrameThreshold = WeaponDefs[weaponDefID].reload * failedToFireMultiplier
+					unitDefData[unitDefID].failedToFireFrameThreshold = WeaponDefs[weaponDefID].customParams.smart_error_frames or
+																		WeaponDefs[weaponDefID].reload * failedToFireMultiplier
 					if def.speed and def.speed ~= 0 then
 						unitDefData[unitDefID].canMove = true
 					end
@@ -176,9 +183,9 @@ local function updateAimingState(attackerID)
     end
 
     if attackerData.aggroBias >= switchPreferredThreshold then
-		spCallCOBScript(attackerID, attackerData.setStateScriptID, 0, defData.preferredWeapon)
+		spCallCOBScript(attackerID, attackerData.setStateScriptID, 0, AimingState_Preferred)
 	elseif attackerData.aggroBias < switchDeferredThreshold then
-		spCallCOBScript(attackerID, attackerData.setStateScriptID, 0, defData.deferredWeapon)
+		spCallCOBScript(attackerID, attackerData.setStateScriptID, 0, AimingState_Deferred)
     end
 end
 
