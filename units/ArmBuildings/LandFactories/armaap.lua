@@ -48,8 +48,8 @@ return {
 		customparams = {
 			airfactory = true,
 			buildinggrounddecaldecayspeed = 30,
-			buildinggrounddecalsizex = 9,
-			buildinggrounddecalsizey = 9,
+			buildinggrounddecalsizex = 12,
+			buildinggrounddecalsizey = 12,
 			buildinggrounddecaltype = "decals/armaap_aoplane.dds",
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",

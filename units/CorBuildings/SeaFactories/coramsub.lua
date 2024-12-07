@@ -40,8 +40,8 @@ return {
 		},
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
-			buildinggrounddecalsizex = 11,
-			buildinggrounddecalsizey = 11,
+			buildinggrounddecalsizex = 9,
+			buildinggrounddecalsizey = 9,
 			buildinggrounddecaltype = "decals/coramsub_aoplane.dds",
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",

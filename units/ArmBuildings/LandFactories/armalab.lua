@@ -52,8 +52,8 @@ return {
 		},
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
-			buildinggrounddecalsizex = 8.6,
-			buildinggrounddecalsizey = 8.6,
+			buildinggrounddecalsizex = 12,
+			buildinggrounddecalsizey = 12,
 			buildinggrounddecaltype = "decals/armalab_aoplane.dds",
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",
