@@ -85,7 +85,6 @@ StartBuilding()
 	
 	show cagelight_emit1;
 	show cagelight_emit2;
-	
 	spin cagelight1 around y-axis speed <200> accelerate <1>;
 	spin cagelight2 around y-axis speed <-200> accelerate <1>;
 }
@@ -100,7 +99,6 @@ StopBuilding()
 	
 	hide cagelight_emit1;
 	hide cagelight_emit2;
-	
 	stop-spin cagelight1 around y-axis decelerate <1>;
 	stop-spin cagelight2 around y-axis decelerate <1>;
 }
