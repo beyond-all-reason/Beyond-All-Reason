@@ -45,6 +45,17 @@ local damage, time, range, resistance = 30, 10, 75, "none"
 ]]--
 
 --------------------------------------------------------------------------------
+-- Cached globals --------------------------------------------------------------
+
+local max                   = math.max
+local spGetFeaturesInSphere = Spring.GetFeaturesInSphere
+local spGetGroundHeight     = Spring.GetGroundHeight
+local spGetGroundNormal     = Spring.GetGroundNormal
+local spGetUnitDefID        = Spring.GetUnitDefID
+local spGetUnitsInSphere    = Spring.GetUnitsInSphere
+local spSpawnCEG            = Spring.SpawnCEG
+
+--------------------------------------------------------------------------------
 -- Local variables -------------------------------------------------------------
 
 local frameInterval = math.round(Game.gameSpeed * damageInterval)
@@ -56,8 +67,11 @@ local unitDamageImmunity = {}
 local aliveExplosions = {}
 local frameExplosions = {}
 local frameNumber = 0
-
 local explosionCount = 0
+
+local regexArea, regexRepeat = '%-area%-', '%-repeat'
+local regexDigits = "%d+"
+local regexCegRadius = regexArea..regexDigits..regexRepeat
 
 --------------------------------------------------------------------------------
 -- Local functions -------------------------------------------------------------
@@ -79,37 +93,40 @@ local function getExplosionParams(def, prefix)
     return params
 end
 
--- Change (eg) fire-area-150-repeat to fire-area-<range>-repeat for tweakdefs:
-local sub1, sub2 = '-area-', '-repeat'
-local pattern = sub1..[[\d+]]..sub2
-local midX, midZ = Game.mapSizeX / 2, Game.mapSizeZ / 2
-local lowY = Spring.GetGroundHeight(midX, midZ) - 10000
 local function getNearestCEG(params)
-    local ceg, range = params.ceg, params.range
-    local sizeBest, diffBest = math.huge, math.huge
-    for ii = 1, #areaSizePresets do
-        local size = areaSizePresets[ii]
-        local diff = math.abs(range / size - size / range)
-        if diff < diffBest then
-            local cegTest = string.gsub(ceg, pattern, sub1..math.floor(sizeBest)..sub2)
-            local success, cegID = Spring.SpawnCEG(cegTest, midX, lowY, midZ) -- hidden-ish
-            if success and cegID then
-                diffBest = diff
-                sizeBest = size
+        local ceg, range = params.ceg, params.range
+        local midX, midZ = Game.mapSizeX / 2, Game.mapSizeZ / 2
+        local hiddenY = spGetGroundHeight(midX, midZ) - 1e6
+
+        -- We can't check properties of the ceg, so use the name to compare 'size'. Yes, "that is bad".
+        if string.find(ceg, "-"..range.."-", nil, true) and Spring.SpawnCEG(ceg, midX, hiddenY, midZ) then
+            return ceg, range
+        end
+
+        -- User tweaks have modified the ceg and/or range; update both to the best-fitting preset.
+        local sizeBest, diffBest = math.huge, math.huge
+        for ii = 1, #areaSizePresets do
+            local size = areaSizePresets[ii]
+            local diff = math.abs(range / size - size / range)
+            if diff < diffBest then
+                local cegTest = string.gsub(ceg, regexCegRadius, regexArea..math.floor(sizeBest)..regexRepeat)
+                local success, cegID = Spring.SpawnCEG(cegTest, midX, hiddenY, midZ)
+                if success and cegID then
+                    diffBest = diff
+                    sizeBest = size
+                end
             end
         end
-    end
-    if sizeBest < math.huge then
-        ceg = string.gsub(ceg, [[\d+]], sizeBest, 1)
-        return ceg, sizeBest
+        if sizeBest < math.huge then
+            ceg = string.gsub(ceg, regexDigits, sizeBest, 1)
+            return ceg, sizeBest
+        end
     end
 end
 
-local spGetGroundHeight = Spring.GetGroundHeight
-local spGetGroundNormal = Spring.GetGroundNormal
 local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectileID)
     local explosion = timedDamageWeapons[weaponDefID]
-    local elevation = math.max(spGetGroundHeight(px, pz), 0)
+    local elevation = max(spGetGroundHeight(px, pz), 0)
     if py <= elevation + explosion.range then
         local dx, dy, dz
         if elevation > 0 then
@@ -135,17 +152,11 @@ local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectile
     end
 end
 
-local spSpawnCEG = Spring.SpawnCEG
-
 local function spawnAreaCEGs(loopIndex)
     for index, area in pairs(aliveExplosions[loopIndex]) do
         spSpawnCEG(area.ceg, area.x, area.y, area.z, area.dx, area.dy, area.dz)
     end
 end
-
-local spGetUnitsInSphere = Spring.GetUnitsInSphere
-local spGetFeaturesInSphere = Spring.GetFeaturesInSphere
-local spGetUnitDefID = Spring.GetUnitDefID
 
 local function damageTargetsInAreas(timedAreas, gameFrame)
     for index, area in pairs(timedAreas) do
@@ -201,15 +212,15 @@ function gadget:Initialize()
     -- This simplifies writing tweakdefs to modify area_on[x]_range for balance,
     -- e.g. setting all ranges to 80% their original amount will work correctly.
     for weaponDefID, params in pairs(timedDamageWeapons) do
-        if  string.find(params.ceg, pattern, nil, false) and not
-            string.find(params.ceg, sub1..math.floor(params.range)..sub2)
-        then
+        if string.find(params.ceg, regexCegRadius, nil, false) then
             local ceg, range = getNearestCEG(params)
             local name = WeaponDefs[weaponDefID].name
             if ceg and range then
-                params.ceg = ceg
-                params.range = range
-                Spring.Log(gadget:GetInfo().name, LOG.INFO, 'Set '..name..' to range, ceg = '..params.range..', '..params.ceg)
+                if params.ceg ~= ceg or params.range ~= range then
+                    params.ceg = ceg
+                    params.range = range
+                    Spring.Log(gadget:GetInfo().name, LOG.INFO, 'Set '..name..' to range, ceg = '..range..', '..ceg)
+                end
             else
                 timedDamageWeapons[weaponDefID] = nil
                 Spring.Log(gadget:GetInfo().name, LOG.WARN, 'Removed '..name..' from area timed damage weapons.')
@@ -278,10 +289,9 @@ end
 function gadget:GameFrame(frame)
     local indexDamage = 1 + (frame % frameInterval)
     local indexExpGen = 1 + ((frame + frameCegShift) % frameInterval)
+    local frameAreas = aliveExplosions[indexDamage]
 
     spawnAreaCEGs(indexExpGen)
-
-    local frameAreas = aliveExplosions[indexDamage]
     damageTargetsInAreas(frameAreas, frame)
 
     frameExplosions = frameAreas
