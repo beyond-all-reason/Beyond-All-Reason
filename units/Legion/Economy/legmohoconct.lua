@@ -2,12 +2,12 @@ return {						--costs should be same as legmohocon and legmohoconin
 	legmohoconct = {
 		maxacc = 0,
 		maxdec = 4.5,
-		energycost = 8100,
-		metalcost = 640,
+		energycost = 14500,
+		metalcost = 1060,
 		builddistance = 400,
 		builder = true,
 		buildpic = "LEGMOHOCON.DDS",
-		buildtime = 14100,
+		buildtime = 19400,
 		canassist = true,
 		canfight = true,
 		canguard = true,
@@ -51,7 +51,7 @@ return {						--costs should be same as legmohocon and legmohoconin
 			unitgroup = 'builder',
 			model_author = "Tharsis and Protar",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "CorBuildings/LandUtil",
+			techlevel = 2,
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {
