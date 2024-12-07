@@ -100,8 +100,9 @@ void main()
 	float distortionRadius = worldposrad.w * radiusMultiplier;
 
 	if (effectType == 1){ // air Shockwave
-		distortionRadius *= fract((time - SPAWNFRAME)/ 10 );
-		v_lifeParams.y = 10; // disable lifetime 
+	// TODO: JUST FOR TESTING ITS SET TO 15!!!!
+		distortionRadius *= fract((time - SPAWNFRAME)/ 15 );
+		v_lifeParams.y = 15; // disable lifetime 
 	}
 
 	v_worldPosRad = worldposrad ;
@@ -201,7 +202,6 @@ void main()
 			}
 		}
 		
-
 		v_worldPosRad.xyz = distortionCenterPosition;
 		vertexPosition = vec4( distortionVertexPosition, 1.0);
 	}

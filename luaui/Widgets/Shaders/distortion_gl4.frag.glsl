@@ -564,8 +564,8 @@ void main(void)
 		}else{
 		}
 	//}
-	float acceleration = v_unibuffercopy.w * 30;
-	printf(acceleration);
+	//float acceleration = v_unibuffercopy.w * 30;
+	//printf(acceleration);
 	
 	vec4 fragWorldPos =  vec4( vec3(v_screenUV.xy * 2.0 - 1.0, worlddepth),  1.0);
 
@@ -698,6 +698,9 @@ void main(void)
 
 	// Check if the volume is occluded, bail if yes!
 	//if ((fragDistance < nearFarDistances.x) || (nearFarDistances.y - nearFarDistances.x < 1e-6)){ fragColor.rgba = vec4(0.0); return; }
+	// TODO: sample noise here, as most effects need the noise sample, and it should be a shared path along the branches
+
+
 	//-------------------------- END SHARED SECTION ---------------------
 
 
@@ -709,25 +712,20 @@ void main(void)
 			float lifeStart = SPAWNFRAME;
 			float lifeTime = LIFETIME;
 			//float timeFraction = clamp((currentTime - lifeStart) / lifeTime, 0.0, 1.0);
-		
-			float timeFraction = fract((currentTime - lifeStart) / 100); // for debugging
-			float currentDist = distortionRadius * timeFraction;
-			// TODO : Parameterize out width in elmos
-			float width = 3;
-			float groundDistanceToShockCenter = length(fragWorldPos.xyz - distortionPosition.xyz);
-			//Effect strength and direction should be abs width'd
-			// But it should be wider on the rarefaction side than the compression side
-			// First term is the compression factor, second term is the rarefaction factor
-			#define COMPRESSION 0.9
-			float compressionFactor = max((groundDistanceToShockCenter - currentDist) * COMPRESSION, (currentDist - groundDistanceToShockCenter) * (1.0 - COMPRESSION));
+			float elapsedframes = currentTime - lifeStart;
 
-			float effectStrength =  clamp( 1.0 - abs(compressionFactor/ width), 0.0, 1.0);
-			effectStrength = pow(effectStrength, 3.0);
+
+			float timeFraction = fract((currentTime - lifeStart) / 15); // for debugging
+
+			// TODO : Parameterize out width in elmos
+			float width = EFFECTPARAM1;
 
 			// which direction is the effect going in in world coords?, always points towards us!
-			vec3 shockDirection = normalize(EntryPoint.xyz - distortionPosition.xyz);
-
+			vec3 shockDirection = normalize(EntryPoint.xyz - distortionEmitPosition.xyz);
+			
 			// Parabolic mapping of 0-1 to [0-1-0] with a parabola on timeFraction
+
+	
 
 			float parabolicStrength = pcurve_k(timeFraction, 0.5, 2.0, 3.5);
 			
@@ -742,14 +740,30 @@ void main(void)
 			DistortionScreenPosition.xyz = DistortionScreenPosition.xyz / DistortionScreenPosition.w;
 
 			// the normal of the shockwave sphere
-			float refractiveIndex = 1.1;
+			// Get the noise sample:
+			vec3 noisePosition = fragWorldPos.xyz;
+			
+			if (NOISESCALESPACE < 0.0){
+				noisePosition -= v_worldPosRad.xyz;
+			}
+
+			// Scale the noise position with the noise scale
+			noisePosition *= abs(NOISESCALESPACE) * 0.03;
+			
+			// Add the time offset and wind offsets to the noise position
+			vec3 noiseOffset = vec3(0.0); //vec3(windXZ.x * 0.1, currentTime * 0.01, windXZ.y * 0.1 ) * (1.0 + vec3(WINDAFFECTED, EFFECTPARAM1, WINDAFFECTED));
+			
+			// Normalize the noise sample at noisePosition - noiseOffset
+			vec4 noiseSampleNorm = (textureLod(noise3DCube, noisePosition - noiseOffset, 0.0) )* 2.0 - 1.0;
+
+
+			float refractiveIndex = EFFECTPARAM2 + (noiseSampleNorm.r + 0.5) * NOISESTRENGTH * 0.25 ;
 			// sin(theta1) = n2*sin(theta2)
 			// sin(theta2) = sin(theta1) / n2
 
 			float cosTheta1 = dot(-viewDirection, shockDirection);
 			float sinTheta1 = sqrt(1.0 - cosTheta1 * cosTheta1);
 			float sinTheta2 = sinTheta1 / refractiveIndex;
-			float cosTheta2 = sqrt(1.0 - sinTheta2 * sinTheta2);
 
 			float rayBendElmos = 0;
 			rayBendElmos = sin(asin(sinTheta1) - asin(sinTheta2));
@@ -768,15 +782,12 @@ void main(void)
 
 			// The displacement is proportional to the distance of the fragment from the intersections of the sphere
 
-
-
 			// screen-space direction of the shockwave
 			vec2 displacementScreen = normalize((DistortionScreenPosition.xy * 0.5 + 0.5) - v_screenUV);
 			float overallStrength = 10 * rayBendElmos *  distanceToCameraFactor * parabolicStrength;// * v_baseparams.a;
 			vec2 displacementAmount = displacementScreen * overallStrength;
+			//printf(displacementAmount.xy);
 			fragColor.rgba = vec4(displacementAmount * 0.5 + 0.5, 0.0, 1.5 );
-			return;
-
 	}
 
 	
@@ -784,52 +795,65 @@ void main(void)
 	else if (effectType == 2){
 		// Create a ground shockwave displacement that only displaces ground fragments based on the distance to the distortion source:
 		// TODO: instead of using radius here, adjust radius in the vertex shader!
-		if (ismodel < 0.5){
-			////vec3 shockWaveDisplacement(vec3 centerpos, vec3 currentpos, vec3 viewDirection, float shockwaveRadius, float timeFraction ){
-			
 
-			// Lifetime goes from 0 to 1
-			float timeFraction = clamp((currentTime - SPAWNFRAME) / LIFETIME, 0.0, 1.0);
-
-			float currentDist = distortionRadius * timeFraction;
-			// TODO : Parameterize out width in elmos
-			float width = 3;
-			float groundDistanceToShockCenter = length(fragWorldPos.xyz - distortionPosition.xyz);
-			//Effect strength and direction should be abs width'd
-			// But it should be wider on the rarefaction side than the compression side
-			// First term is the compression factor, second term is the rarefaction factor
-			#define COMPRESSION 0.9
-			float compressionFactor = max((groundDistanceToShockCenter - currentDist) * COMPRESSION, (currentDist - groundDistanceToShockCenter) * (1.0 - COMPRESSION));
-
-			float effectStrength =  clamp( 1.0 - abs(compressionFactor/ width), 0.0, 1.0);
-			effectStrength = pow(effectStrength, 3.0);
-
-			// Parabolic mapping of 0-1 to [0-1-0] with a parabola on timeFraction
-
-			float parabolicStrength = pcurve_k(timeFraction, 0.5, 2.0, 3.5);
-			
-
-			// Falloff due to distance from camera
-			// TODO: this should really not be based on fragDistance, but on the distance to the distortion source
-			float distanceToCameraFactor =  clamp(300.0/ fragDistance, 0.0, 1.0);
-
-			// Screen-space position of the center of the shockwave:
-			
-			vec4 DistortionScreenPosition = cameraViewProj * vec4(distortionEmitPosition.xyz, 1.0);
-			DistortionScreenPosition.xyz = DistortionScreenPosition.xyz / DistortionScreenPosition.w;
-
-
-			// screen-space direction of the shockwave
-			vec2 displacementScreen = normalize((DistortionScreenPosition.xy * 0.5 + 0.5) - v_screenUV);
-			float overallStrength = effectStrength * distanceToCameraFactor * parabolicStrength * v_baseparams.r;
-			vec2 displacementAmount = displacementScreen * overallStrength;
-			fragColor.rgba = vec4(displacementAmount * 0.5 + 0.5, 0.0, 0.5 * step(0.005,overallStrength) );
-			return;
-		}else{
-			fragColor.rgba = vec4(0.5,0.5,0.5,0.0);
-			
-
+		////vec3 shockWaveDisplacement(vec3 centerpos, vec3 currentpos, vec3 viewDirection, float shockwaveRadius, float timeFraction ){
+				// Get the noise sample:
+		vec3 noisePosition = fragWorldPos.xyz;
+		
+		if (NOISESCALESPACE < 0.0){
+			noisePosition -= v_worldPosRad.xyz;
 		}
+
+		// Scale the noise position with the noise scale
+		noisePosition *= abs(NOISESCALESPACE) * 0.03;
+		
+		// Add the time offset and wind offsets to the noise position
+		vec3 noiseOffset = vec3(0.0); //vec3(windXZ.x * 0.1, currentTime * 0.01, windXZ.y * 0.1 ) * (1.0 + vec3(WINDAFFECTED, EFFECTPARAM1, WINDAFFECTED));
+		
+		// Normalize the noise sample at noisePosition - noiseOffset
+		vec4 noiseSampleNorm = (textureLod(noise3DCube, noisePosition - noiseOffset, 0.0) )* 2.0 - 1.0;
+
+
+		// Lifetime goes from 0 to 1
+		float timeFraction = clamp((currentTime - SPAWNFRAME) / LIFETIME, 0.0, 1.0);
+
+		float currentDist = distortionRadius * timeFraction + 10 * NOISESTRENGTH * noiseSampleNorm.r;
+		// TODO : Parameterize out width in elmos
+		float width = EFFECTPARAM1;
+
+		//printf(width);
+		float groundDistanceToShockCenter = length(fragWorldPos.xyz - distortionPosition.xyz);
+		//Effect strength and direction should be abs width'd
+		// But it should be wider on the rarefaction side than the compression side
+		// First term is the compression factor, second term is the rarefaction factor
+		#define COMPRESSION 0.9
+		float compressionFactor = max((groundDistanceToShockCenter - currentDist) * COMPRESSION, (currentDist - groundDistanceToShockCenter) * (1.0 - COMPRESSION));
+
+		float effectStrength =  clamp( 1.0 - abs(compressionFactor/ width), 0.0, 1.0);
+		effectStrength = pow(effectStrength, 3.0);
+
+		// Parabolic mapping of 0-1 to [0-1-0] with a parabola on timeFraction
+
+		float parabolicStrength = pcurve_k(timeFraction, 0.5, 2.0, 3.5);
+		
+
+		// Falloff due to distance from camera
+		// TODO: this should really not be based on fragDistance, but on the distance to the distortion source
+		float distanceToCameraFactor =  clamp(300.0/ fragDistance, 0.0, 1.0);
+
+		// Screen-space position of the center of the shockwave:
+		
+		vec4 DistortionScreenPosition = cameraViewProj * vec4(distortionEmitPosition.xyz, 1.0);
+		DistortionScreenPosition.xyz = DistortionScreenPosition.xyz / DistortionScreenPosition.w;
+
+
+		// screen-space direction of the shockwave
+		vec2 displacementScreen = normalize((DistortionScreenPosition.xy * 0.5 + 0.5) - v_screenUV);
+		float overallStrength = effectStrength * distanceToCameraFactor * parabolicStrength * v_baseparams.r;
+		vec2 displacementAmount = displacementScreen * overallStrength;
+		fragColor.rgba = vec4(displacementAmount * 0.5 + 0.5, 0.0, 0.5 * step(0.005,overallStrength) );
+
+		//fragColor.rgba = vec4(1.0);
 
 	}
 
@@ -919,28 +943,8 @@ void main(void)
 		dirInCameraSpace2 *= -3.0;
 		
 		float distanceToCameraFactor =  clamp(300.0/ length(camPos - distortionEmitPosition.xyz), 0.0, 1.0);
-		dirInCameraSpace2 *= distanceToCameraFactor;
-		fragColor.rgba = vec4(dirInCameraSpace2.xy * 0.5 + 0.5, 0.0, 1.0);
-	}
-		//------------------------- BEGIN MAGNIFIER Plano-convex -------------------------
-	else if (effectType == 9){
-		// Calculate the view-space vector that points from from distortion center to the view ray
-		vec3 magnifierDir = normalize(MidPoint - distortionPosition);
-		vec3 magnifierNormal = normalize(magnifierDir);
-
-		vec4 DistortionScreenPosition = cameraViewProj * vec4(distortionEmitPosition.xyz, 1.0);
-		DistortionScreenPosition.xyz = DistortionScreenPosition.xyz / DistortionScreenPosition.w;
-
-		vec4 MagnifierScreenPosition = cameraViewProj * vec4(MidPoint, 1.0);
-		MagnifierScreenPosition.xyz = MagnifierScreenPosition.xyz / MagnifierScreenPosition.w;
-
-		vec3 dirInCameraSpace2 = normalize(MagnifierScreenPosition.xyz - DistortionScreenPosition.xyz);
-		float relativeDistance = clamp(1.0 - length(MidPoint - distortionEmitPosition.xyz) / distortionRadius, 0.0, 1.0);
-		dirInCameraSpace2 *= 1.0 - sqrt(relativeDistance);
-		dirInCameraSpace2 *= -3.0;
-		
-		float distanceToCameraFactor =  clamp(300.0/ length(camPos - distortionEmitPosition.xyz), 0.0, 1.0);
-		dirInCameraSpace2 *= distanceToCameraFactor;
+		dirInCameraSpace2 *= distanceToCameraFactor * EFFECTPARAM1;
+		//printf(EFFECTPARAM1);
 		fragColor.rgba = vec4(dirInCameraSpace2.xy * 0.5 + 0.5, 0.0, 1.0);
 	}
 	
@@ -957,7 +961,7 @@ void main(void)
 		float travelSpeedMult = clamp((v_worldPosRad2.w - EFFECTPARAM1) * EFFECTPARAM2, 0.0, 1.0);
 
 		fragColor.rgba = vec4(travelDirectionScreen.xy * 0.5 + 0.5, -10.0, 1.0);
-		 
+		//printf(travelDirectionScreen.xyz);
 		// convert the unittravelDirection to screen-space:
 		//vec4 travelDirectionScreen = cameraViewProj * vec4(unittravelDirection, 1.0);
 		//travelDirectionScreen.xyz = travelDirectionScreen.xyz / travelDirectionScreen.w;
@@ -1013,8 +1017,9 @@ void main(void)
 		noisePosition *= abs(NOISESCALESPACE) * 0.03;
 		
 		// Add the time offset and wind offsets to the noise position
+		//printf(EFFECTPARAM1);
 		vec3 noiseOffset = vec3(windXZ.x * 0.1, currentTime * 0.01, windXZ.y * 0.1 ) * (1.0 + vec3(WINDAFFECTED, EFFECTPARAM1, WINDAFFECTED));
-		
+		//printf(noiseOffset.xyz);
 		// Normalize the noise sample at noisePosition - noiseOffset
 		vec4 noiseSampleNorm = (textureLod(noise3DCube, noisePosition - noiseOffset, 0.0) )* 2.0 - 1.0;
 

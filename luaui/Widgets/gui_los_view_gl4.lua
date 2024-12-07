@@ -13,11 +13,25 @@ function widget:GetInfo()
 	}
 end
 
+--------------------------------------------------------------------------------
+--- TODO:
+---	- [ ] Customize grid
+--- - [ ] Ensure draw order is correct after decals_gl4
+--- - [ ] Mark los edge with white line
+--- - [ ] Mark radar edge with stippled green line 
+--- - [ ] Find a nice noise approach
+--- - [ ] Implement desat-darken approach
+--- - [ ] scanlines dont work underwater if drawn preunit :'( 
+--- - [ ] If drawn postunit, then ghosts are shaded incorrectly
+---
+---
+--------------------------------------------------------------------------------
 
 local autoreload = true
 
 local shaderConfig = {
     DEBUG = autoreload and 1 or 0,
+	PREUNIT = 1, -- 1 for preunit, 0 for postunit
 }
 
 local luaShaderDir = "LuaUI/Widgets/Include/"
@@ -85,7 +99,7 @@ function widget:Shutdown()
 	if ScreenCopyTexture then gl.DeleteTexture(ScreenCopyTexture) end
 end
 
-function widget:DrawWorld()
+function widget:DrawPreDecals()
     if autoreload then
         losViewShader = LuaShader.CheckShaderUpdates(losViewShaderSourceCache) or losViewShader
     end

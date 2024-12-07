@@ -29,14 +29,7 @@ local exampleDistortion = {
 -- multiple distortions per unitdef/piece are possible, as the distortions are keyed by distortionname
 
 local unitDistortions = {
-	['corafus'] = {
-		fusionglow = {
-			distortionType = 'point',
-			pieceName = 'emit',
-			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
-							lifeTime = 00,  effectType = 1},
-		},
-	},
+
 	['armsolar'] = {
 		distortion = {
 			distortionType = 'point',
@@ -99,7 +92,8 @@ local unitDistortions = {
 			distortionType = 'point',
 			pieceName = 'base',
 			distortionConfig = { posx = 0, posy = 100, posz = 0, radius = 50,
-							lifeTime = 0,  effectType = "magnifier"}, 
+							lifeTime = 0,  
+							magnificationRate = 4.0, effectType = "magnifier"}, 
 		},
 	},
 
@@ -278,7 +272,28 @@ local unitEventDistortionsNames = {
 				distortionName = 'corkorgfootstep',
 				pieceName = 'none',
 				distortionConfig = { posx = 0, posy = 0, posz = 8, radius = 200,
+								shockWidth = 3, onlyModelMap = 1,
 								lifeTime = 25,  effectType = 2},
+	
+			},
+		},
+
+				
+		['armbrtha'] = {
+			[1] = {
+				-- Footstep shockwave
+				alwaysVisible = false,
+				distortionType = 'beam',
+				distortionName = 'armbrthabarrelheat',
+				pieceName = 'flare',
+				distortionConfig = { posx = 0, posy = 4, posz = 4, radius = 10,
+									pos2x = 0, pos2y = 4, pos2z = -16,
+								onlyModelMap = 0,
+								riseRate = 0.5, windAffected = -0.5,
+								
+								noiseStrength = 0.3, noiseScaleSpace = 1.0, distanceFalloff = 1.0,
+								rampUp = 5, decay = 200, 
+								lifeTime = 240,  effectType = 0},
 	
 			},
 		},

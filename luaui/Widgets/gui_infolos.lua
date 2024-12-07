@@ -45,7 +45,16 @@ local GL_RGBA32F_ARB = 0x8814
 	-- Read miplevels from modrules?
 
 -- TODO 2024.11.19
-	-- Make the shader have exact visibility per 8 elmo square (hmap - 1)
+	-- [x] Make the shader have exact visibility per 8 elmo square (hmap - 1)
+	-- [ ] Make the shader update at updaterate for true smoothness. 
+		-- [ ] When does the LOS texture actually get updated though? 
+		-- [ ] Would need to double-buffer the texture, and perform a swap every (15) gameframes
+		-- [ ] API must then expose the new and the old texture, and the progress factor between them. 
+		-- [ ] The default 30hz smootheness is far from enough
+	-- [ ] The delayed approach is fucking stupid. 
+	-- [ ] The mip level should be the 'smallest' mip level possible, and save a fused texture
+	-- [ ] Note that we must retain the 'never been seen'/ 'never been in radar' functionality
+
 
 local autoreload = false
 
@@ -214,7 +223,7 @@ end
 
 --local lastUpdate = Spring.GetTimer()
 
-function widget:DrawWorldPreUnit()
+function widget:DrawGenesis()
 	-- local nowtime = Spring.GetTimer()
 	-- local deltat = Spring.DiffTimers(nowtime, lastUpdate)
 	-- keeping outputAlpha identical is a very important trick for never-before-seen areas!

@@ -230,11 +230,16 @@ void main(void) {
     vec4 screenColor = texture2D(screenCopyTex, texCoord.xy);
 
     float mapdepth = texture(mapDepths, texCoord.xy).x;
-	float modeldepth = texture(modelDepths, texCoord.xy).x;
-	float worlddepth = min(mapdepth, modeldepth);
-
-    // We might need to use information that we are processing a model fragment and need to shade differently
-	float ismodel = (modeldepth < mapdepth? 1.0: 0.0) ;
+    #if (PREUNIT == 0)
+        float modeldepth = texture(modelDepths, texCoord.xy).x;
+        float worlddepth = min(mapdepth, modeldepth);
+        // We might need to use information that we are processing a model fragment and need to shade differently
+        float ismodel = (modeldepth < mapdepth? 1.0: 0.0) ;
+    #else
+        float worlddepth = mapdepth;
+        // We might need to use information that we are processing a model fragment and need to shade differently
+        float ismodel = 0.0 ;
+    #endif
 	vec4 fragWorldPos =  vec4( vec3(texCoord.xy * 2.0 - 1.0, worlddepth),  1.0);
 
 	// reconstruct view pos:
@@ -279,10 +284,10 @@ void main(void) {
 
     // Add noise by lack of radar:
 
-    vec4 radarNoise = Value3D_Deriv(fragWorldPos.xyz * 0.125 + vec3(0,timeInfo.x * 0.1,0));
-    
-    screenColor.rgb = mix(screenColor.rgb, radarNoise.rgb, (1.0 - current_losairradar.b) * 0.1);
-
+    #if 0
+        vec4 radarNoise = Value3D_Deriv(fragWorldPos.xyz * 0.125 + vec3(0,timeInfo.x * 0.1,0));
+        screenColor.rgb = mix(screenColor.rgb, radarNoise.rgb, (1.0 - current_losairradar.b) * 0.1);
+    #endif
     // Scanlines?
 
     vec3 scanlineColor = screenColor.rgb * 0.75;

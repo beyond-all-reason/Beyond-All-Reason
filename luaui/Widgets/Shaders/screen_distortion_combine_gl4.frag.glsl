@@ -24,7 +24,6 @@ void main(void) {
         gl_FragColor = vec4(0.0);
         return;
     }
-
     // Declare the UV sets and final screen color
     vec2 offsetUV1;
     vec2 offsetUV2;
@@ -41,9 +40,9 @@ void main(void) {
     }else{
     // Motion blur
         vec2 blurdirection = distortion.rg * 0.8;
-        offsetUV1 = softClampScreen(gl_TexCoord[0].st - 1 * inverseScreenResolution * blurdirection);
-        offsetUV1 = softClampScreen(gl_TexCoord[0].st + 1 * inverseScreenResolution * blurdirection);
-        offsetUV1 = softClampScreen(gl_TexCoord[0].st + 2 * inverseScreenResolution * blurdirection);
+        offsetUV1 = softClampScreen(gl_TexCoord[0].st - 2 * inverseScreenResolution * blurdirection);
+        offsetUV2 = softClampScreen(gl_TexCoord[0].st + 2 * inverseScreenResolution * blurdirection);
+        offsetUV3 = softClampScreen(gl_TexCoord[0].st + 4 * inverseScreenResolution * blurdirection);
     }
     
     
@@ -52,14 +51,16 @@ void main(void) {
     vec3 sample3 = texture2D(screenCopyTexture, offsetUV3).rgb;
 
 
-    if (distortion.b > -1.0 ) {
+    if (distortion.b > -1.0 ) { // Regular distortion
         outputRGBA.g = sample1.g;
         outputRGBA.r = sample2.r;
         outputRGBA.b = sample3.b;
         outputRGBA.a = 1.0;
-    }else{
+    }else{ // Motion Blur
         outputRGBA.rgb = (sample1.rgb + sample2.rgb + sample3.rgb) / 3.0;
         outputRGBA.a = 0.7;
+        //outputRGBA = vec4( sample1, 1.0);
+ 
     }
 
     #if (DEBUGCOMBINER == 0)

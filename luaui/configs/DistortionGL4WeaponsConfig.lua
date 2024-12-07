@@ -96,6 +96,15 @@ local BaseClasses = {
 		},
 	},
 
+	LaserBeamHeat = {
+		distortionType = 'beam', -- or cone or beam
+		distortionConfig = {
+				posx = 0, posy = 10, posz = 0, radius = 10,
+				pos2x = 100, pos2y = 1000, pos2z = 100, -- beam distortions only, specifies the endpoint of the beam
+				lifeTime = 3, rampUp = 2, decay = 3, effectType = 0, -- unused
+		},
+	},
+
 	MissileProjectile = { 
 		distortionType = 'cone',
 		distortionConfig = { posx = 0, posy = 0, posz = 00, radius = 100,
@@ -113,6 +122,42 @@ local BaseClasses = {
 			dirx = 1, diry = 0, dirz = 1, theta = 0.02,  -- cone distortions only, specify direction and half-angle in radians
 			lifeTime = 0, sustain = 1, 	effectType = 0, -- unused
 		},
+	},
+
+	GroundShockWave = {
+		distortionType = 'point', -- or cone or beam
+		alwaysVisible = false,
+		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 200,
+						lifeTime = 25,  
+						shockWidth = 3,
+						effectType = 2},
+	},
+	
+	GroundShockWaveFuzzy = {
+		distortionType = 'point', -- or cone or beam
+		alwaysVisible = false,
+		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 200,
+						noiseStrength = 1.25, noiseScaleSpace = 0.75, distanceFalloff = 1.0, onlyModelMap = 0,
+						shockWidth = 3,
+						lifeTime = 25,  effectType = 2},
+	},
+
+	AirShockWave = {
+		distortionType = 'point', -- or cone or beam
+		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
+			noiseScaleSpace = 0.5, noiseStrength = 1.0,  
+			lifeTime = 15,  refractiveIndex = 1.2, 
+			effectType = 1, },
+
+	},
+
+	AirShockWaveBeam = {
+		distortionType = 'beam', -- or cone or beam
+		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
+			noiseScaleSpace = 0.5, noiseStrength = 1.0,  
+			lifeTime = 15,  refractiveIndex = 1.05, 
+			effectType = 1, },
+
 	},
 
 	TorpedoProjectile = {
@@ -155,6 +200,10 @@ local BaseClasses = {
 
 
 local SizeRadius = {
+	Quaco = 		2.5,
+	Zetto = 		5, 
+	Atto =			10, 
+	Femto = 		16, 
 	Pico = 			26,
 	Nano = 			34,
 	Micro = 		44,
@@ -247,8 +296,8 @@ local gibDistortion = {
 	distortionType = 'point', -- or cone or beam
 	pieceName = nil, -- optional
 	distortionConfig = {
-		posx = 0, posy = 0, posz = 0, radius = 36,
-		lifeTime = 300, sustain = 3, effectType = 0 -- unused
+		posx = 0, posy = 0, posz = 0, radius = 16,
+		lifeTime = 100, decay = 100, effectType = 0 -- unused
 	},
 }
 
@@ -522,6 +571,17 @@ projectileDefDistortionsNames["cormort_cor_mort"] = GetDistortionClass("PlasmaTr
 projectileDefDistortionsNames["cormaw_dmaw"] = GetDistortionClass("FlameProjectile", "Nano")
 projectileDefDistortionsNames["corstorm_cor_bot_rocket"] = GetDistortionClass("MissileProjectile", "Smallest")
 projectileDefDistortionsNames["corban_banisher"] = GetDistortionClass("MissileProjectile", "Medium")
+
+projectileDefDistortionsNames["corhlt_cor_laserh1"] = GetDistortionClass("LaserBeamHeat", "Atto")
+
+explosionDistortionsNames['armfboy_arm_fatboy_notalaser'] = GetDistortionClass("GroundShockWave", "Medium")
+
+
+explosionDistortionsNames['corshiva_shiva_gun'] = GetDistortionClass("AirShockWave", "Small")
+projectileDefDistortionsNames['armmanni_atam'] = GetDistortionClass("AirShockWaveBeam", "Small")
+
+
+muzzleFlashDistortionsNames['corint_lrpc'] = GetDistortionClass("GroundShockWave", "Medium")
 
 
 explosionDistortions[WeaponDefNames["corgol_cor_gol"].id] = GetDistortionClass("Explosion", "Smallest")

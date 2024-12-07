@@ -153,9 +153,15 @@ local distortionParamKeyOrder = { -- This table is a 'quick-ish' way of building
 	lifeTime = 18, rampUp = 19, decay = 20,
 	
 	-- effectParams
-	effectParam1 = 21, effectParam2 = 22, windAffected = 23,  effectType = 24, -- effectType unused
+	effectParam1 = 21, 
 	riseRate = 21, -- note how riseRate is identical to effectParam1 for clarity
+	shockWidth = 21,    -- note how width is identical to effectParam1 for clarity
+	magnificationRate = 21,
 
+	effectParam2 = 22,  --note how refractiveIndex is identical to effectParam2 for clarity
+	refractiveIndex = 22, -- note how refractiveIndex is identical to effectParam2 for clarity
+	
+	windAffected = 23,  effectType = 24, 
 	--color2r = 21, color2g = 22, color2b = 23, colortime = 24, -- point distortions only, colortime in seconds for unit-attached
 }
 
