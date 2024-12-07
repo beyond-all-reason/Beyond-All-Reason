@@ -2842,6 +2842,24 @@ local unitLights = {
 		},
 	},
 	['coraap'] = {
+		buildlight = {
+			lightType = 'cone',
+			pieceName = 'cagelight_emit1',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 24,
+							dirx = 1, diry = 0, dirz = 0, theta = 0.7,
+							r = 1.29999995, g = 0.89999998, b = 0.1, a = 2,
+							modelfactor = 0.1, specular = 0.2, scattering = 1.2, lensflare = 6,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		buildlight2 = {
+			lightType = 'cone',
+			pieceName = 'cagelight_emit2',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 24,
+							dirx = -1, diry = 0, dirz = 0, theta = 0.7,
+							r = 1.29999995, g = 0.89999998, b = 0.1, a = 2,
+							modelfactor = 0.1, specular = 0.2, scattering = 1.2, lensflare = 6,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
 		greenblob1 = {
 			lightType = 'point',
 			pieceName = 'blink1',
@@ -5931,6 +5949,24 @@ local unitLights = {
 		},
 	},
 	['corplat'] = {
+		buildlight = {
+			lightType = 'cone',
+			pieceName = 'cagelight_emit1',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 24,
+							dirx = 1, diry = 0, dirz = 0, theta = 0.7,
+							r = 1.29999995, g = 0.89999998, b = 0.1, a = 2,
+							modelfactor = 0.1, specular = 0.2, scattering = 1.2, lensflare = 6,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		buildlight2 = {
+			lightType = 'cone',
+			pieceName = 'cagelight_emit2',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 24,
+							dirx = -1, diry = 0, dirz = 0, theta = 0.7,
+							r = 1.29999995, g = 0.89999998, b = 0.1, a = 2,
+							modelfactor = 0.1, specular = 0.2, scattering = 1.2, lensflare = 6,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
 		nanolight1 = {
 			lightType = 'point',
 			pieceName = 'nano1',

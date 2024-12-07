@@ -145,8 +145,8 @@ unitCollisionVolume['armpb'] = {
 	off={40,40,40,0,-8,0,3,1,1},
 }
 unitCollisionVolume['armplat'] = {
-	on={105,66,105,0,33,0,2,1,0},
-	off={105,44,105,0,0,0,2,1,0},
+	on={105,66,105,0,33,0,1,1,1},
+	off={105,44,105,0,0,0,1,1,1},
 }
 unitCollisionVolume['armsolar'] = {
 	on={73,76,73,0,-18,1,0,1,0},
@@ -163,7 +163,7 @@ unitCollisionVolume['cordoom'] = {
 
 unitCollisionVolume['corplat'] = {
 	on={112,60,112,0,28,0,1,1,1},
-	off={112,35,112,0,0,0,1,1,1},
+	off={112,42,112,0,-20,0,1,1,1},
 }
 unitCollisionVolume['legsolar'] = {
 

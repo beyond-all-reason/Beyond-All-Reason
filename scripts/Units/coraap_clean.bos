@@ -2,7 +2,7 @@
 #include "../recoil_common_includes.h"
 #include "../factories_common.h"
 
-piece  base, pad, dishbase1, dishbase2, dish1, dish2, nano1, nano2, nano3, nano4, nano5, nano6, nano7, nano8, none, blink1, blink2;
+piece  base, pad, dishbase1, dishbase2, dish1, dish2, nano1, nano2, nano3, nano4, nano5, nano6, nano7, nano8, blink1, blink2, cagelight1, cagelight_emit1, cagelight2, cagelight_emit2;
 
 static-var  spray;
 static-var  Stunned;
@@ -62,7 +62,8 @@ Create()
 	hide nano8;
 	hide dishbase2;
 	hide dishbase1;
-	hide none;
+	hide cagelight_emit1;
+	hide cagelight_emit2;
 
 	spray = 0;
 	
@@ -115,6 +116,12 @@ StartBuilding()
 	show nano7;
 	show nano8;
 	spin pad around y-axis speed <10> accelerate <1>;
+	
+	show cagelight_emit1;
+	show cagelight_emit2;
+	
+	spin cagelight1 around y-axis speed <200> accelerate <1>;
+	spin cagelight2 around y-axis speed <-200> accelerate <1>;
 }
 
 StopBuilding()
@@ -128,6 +135,12 @@ StopBuilding()
 	hide nano7;
 	hide nano8;
 	stop-spin pad around y-axis decelerate <1>;
+	
+	hide cagelight_emit1;
+	hide cagelight_emit2;
+	
+	stop-spin cagelight1 around y-axis decelerate <1>;
+	stop-spin cagelight2 around y-axis decelerate <1>;
 }
 
 QueryBuildInfo(pieceIndex)

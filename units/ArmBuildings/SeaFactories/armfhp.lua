@@ -4,7 +4,7 @@ return {
 		buildpic = "ARMFHP.DDS",
 		buildtime = 11000,
 		canmove = true,
-		collisionvolumescales = "120 32 106",
+		collisionvolumescales = "100 40 90",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		energycost = 3000,

@@ -92,6 +92,8 @@ Activate()
 	turn nc4 to z-axis <-90> speed <90>;
 	wait-for-turn nc4 around z-axis;
 	
+	set ARMORED to 0;
+	
 	FACTORY_OPEN_BUILD;
 }
 
@@ -126,6 +128,8 @@ Deactivate()
 	move nc2 to z-axis [0] speed [7.5];
 	move nanotower3 to y-axis [0] speed [4.5];
 	move nanotower4 to y-axis [0] speed [4.5];
+	
+	set ARMORED to 1;
 	
 	FACTORY_CLOSE_BUILD;
 }
