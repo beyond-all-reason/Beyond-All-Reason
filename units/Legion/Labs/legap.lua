@@ -47,7 +47,7 @@ return {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/corap_aoplane.dds",
 			buildinggrounddecalsizey = 9,
-			buildinggrounddecalsizex = 11,
+			buildinggrounddecalsizex = 12,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'builder',
 			airfactory = true,

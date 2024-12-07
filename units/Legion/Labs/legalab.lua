@@ -55,8 +55,8 @@ return {
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/coralab_aoplane.dds",
-			buildinggrounddecalsizey = 9,
-			buildinggrounddecalsizex = 10,
+			buildinggrounddecalsizey = 12,
+			buildinggrounddecalsizex = 12,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'buildert2',
 			model_author = "Mr Bob",

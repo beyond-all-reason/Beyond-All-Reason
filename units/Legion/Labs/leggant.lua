@@ -47,8 +47,8 @@ return {
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/corgant_aoplane.dds",
-			buildinggrounddecalsizey = 12,
-			buildinggrounddecalsizex = 12,
+			buildinggrounddecalsizey = 15,
+			buildinggrounddecalsizex = 15,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'buildert3',
 			model_author = "Mr Bob",

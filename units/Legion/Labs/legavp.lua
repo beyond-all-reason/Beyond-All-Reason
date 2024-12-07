@@ -52,8 +52,8 @@ return {
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/coravp_aoplane.dds",
-			buildinggrounddecalsizey = 10,
-			buildinggrounddecalsizex = 10,
+			buildinggrounddecalsizey = 12,
+			buildinggrounddecalsizex = 12,
 			buildinggrounddecaldecayspeed = 0.01,
 			unitgroup = 'buildert2',
 			model_author = "Mr Bob",

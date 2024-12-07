@@ -48,8 +48,8 @@ return {
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/coraap_aoplane.dds",
-			buildinggrounddecalsizey = 9,
-			buildinggrounddecalsizex = 9,
+			buildinggrounddecalsizey = 12,
+			buildinggrounddecalsizex = 12,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'buildert2',
 			airfactory = true,
