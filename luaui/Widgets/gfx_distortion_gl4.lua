@@ -144,6 +144,8 @@ local distortionParamKeyOrder = { -- This table is a 'quick-ish' way of building
 	-- worldposrad2:
 	dirx = 5, diry = 6, dirz = 7, theta = 8,  -- cones: specify direction and half-angle in radians
 	pos2x = 5, pos2y = 6, pos2z = 7, -- beam distortions only, specifies the endpoint of the beam
+
+	motionx = 9, motiony = 10, motionz = 11, motionw = 12,
 	
 	-- universalParams
 	noiseStrength = 13, noiseScaleSpace = 14, distanceFalloff = 15, onlyModelMap = 16, 
@@ -603,13 +605,17 @@ local function LoadDistortionConfig()
 		InitializeDistortion(gibDistortion)
 
 		muzzleFlashDistortions = result2.muzzleFlashDistortions
-		for weaponID, distortionTable in pairs(muzzleFlashDistortions) do
-			InitializeDistortion(distortionTable)
+		for weaponID, distortionList in pairs(muzzleFlashDistortions) do
+			for i, distortionTable in pairs(distortionList) do
+				InitializeDistortion(distortionTable)
+			end
 		end
 
 		explosionDistortions = result2.explosionDistortions
-		for weaponID, distortionTable in pairs(explosionDistortions) do
-			InitializeDistortion(distortionTable)
+		for weaponID, distortionList in pairs(explosionDistortions) do
+			for i, distortionTable in pairs(distortionList) do
+				InitializeDistortion(distortionTable)
+			end
 		end
 
 		projectileDefDistortions = result2.projectileDefDistortions
@@ -639,27 +645,31 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 		return
 	end
 	if explosionDistortions[weaponID] then
-		local distortionParamTable = explosionDistortions[weaponID].distortionParamTable
-		if explosionDistortions[weaponID].alwaysVisible or spIsSphereInView(px,py,pz, distortionParamTable[4]) then
-			local groundHeight = spGetGroundHeight(px,pz) or 1
-			py = math_max(groundHeight + (explosionDistortions[weaponID].yOffset or 0), py)
-			distortionParamTable[1] = px
-			distortionParamTable[2] = py
-			distortionParamTable[3] = pz
-			AddDistortion(nil, nil, nil, pointDistortionVBO, distortionParamTable) --(instanceID, unitID, pieceIndex, targetVBO, distortionparams, noUpload)
+		for i, distortion in pairs(explosionDistortions[weaponID]) do
+			local distortionParamTable = distortion.distortionParamTable
+			if distortion.alwaysVisible or spIsSphereInView(px,py,pz, distortionParamTable[4]) then
+				local groundHeight = spGetGroundHeight(px,pz) or 1
+				py = math_max(groundHeight + (distortion.yOffset or 0), py)
+				distortionParamTable[1] = px
+				distortionParamTable[2] = py
+				distortionParamTable[3] = pz
+				AddDistortion(nil, nil, nil, pointDistortionVBO, distortionParamTable) --(instanceID, unitID, pieceIndex, targetVBO, distortionparams, noUpload)
+			end
 		end
 	end
 end
 
 function widget:Barrelfire(px, py, pz, weaponID, ownerID)
 	if muzzleFlashDistortions[weaponID] then
-		local distortionParamTable = muzzleFlashDistortions[weaponID].distortionParamTable
-		if muzzleFlashDistortions[weaponID].alwaysVisible or spIsSphereInView(px,py,pz, distortionParamTable[4]) then
-			local groundHeight = spGetGroundHeight(px,pz) or 1
-			distortionParamTable[1] = px
-			distortionParamTable[2] = py
-			distortionParamTable[3] = pz
-			AddDistortion(nil, nil, nil, pointDistortionVBO, distortionParamTable) --(instanceID, unitID, pieceIndex, targetVBO, distortionparams, noUpload)
+		for i, distortion in pairs(muzzleFlashDistortions[weaponID]) do
+			local distortionParamTable = distortion.distortionParamTable
+			if distortion.alwaysVisible or spIsSphereInView(px,py,pz, distortionParamTable[4]) then
+				local groundHeight = spGetGroundHeight(px,pz) or 1
+				distortionParamTable[1] = px
+				distortionParamTable[2] = py
+				distortionParamTable[3] = pz
+				AddDistortion(nil, nil, nil, pointDistortionVBO, distortionParamTable) --(instanceID, unitID, pieceIndex, targetVBO, distortionparams, noUpload)
+			end
 		end
 	end
 end

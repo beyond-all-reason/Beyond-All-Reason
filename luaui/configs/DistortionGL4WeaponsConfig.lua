@@ -179,7 +179,7 @@ local BaseClasses = {
 		},
 	},
 
-	Explosion = { -- spawned on explosions
+	ExplosionHeat = { -- spawned on explosions
 		distortionType = 'point', -- or cone or beam
 		yOffset = 0, -- Y offsets are only ever used for explosions!
 		distortionConfig = {
@@ -571,31 +571,32 @@ projectileDefDistortionsNames["cormort_cor_mort"] = GetDistortionClass("PlasmaTr
 projectileDefDistortionsNames["cormaw_dmaw"] = GetDistortionClass("FlameProjectile", "Nano")
 projectileDefDistortionsNames["corstorm_cor_bot_rocket"] = GetDistortionClass("MissileProjectile", "Smallest")
 projectileDefDistortionsNames["corban_banisher"] = GetDistortionClass("MissileProjectile", "Medium")
-
+projectileDefDistortionsNames['armmanni_atam'] = GetDistortionClass("AirShockWaveBeam", "Small")
 projectileDefDistortionsNames["corhlt_cor_laserh1"] = GetDistortionClass("LaserBeamHeat", "Atto")
 
-explosionDistortionsNames['armfboy_arm_fatboy_notalaser'] = GetDistortionClass("GroundShockWave", "Medium")
+explosionDistortionsNames['armfboy_arm_fatboy_notalaser'] = {
+	GetDistortionClass("GroundShockWave", "Medium"),
+	GetDistortionClass("AirShockWave", "Small"),
+	GetDistortionClass("ExplosionHeat", "Smallest"),
+}
+explosionDistortionsNames['corshiva_shiva_gun'] = {GetDistortionClass("AirShockWave", "Small")}
+explosionDistortionsNames["corgol_cor_gol"] = {GetDistortionClass("ExplosionHeat", "Smallest")}
 
 
-explosionDistortionsNames['corshiva_shiva_gun'] = GetDistortionClass("AirShockWave", "Small")
-projectileDefDistortionsNames['armmanni_atam'] = GetDistortionClass("AirShockWaveBeam", "Small")
+muzzleFlashDistortionsNames['corint_lrpc'] = {GetDistortionClass("GroundShockWave", "Medium")}
 
 
-muzzleFlashDistortionsNames['corint_lrpc'] = GetDistortionClass("GroundShockWave", "Medium")
-
-
-explosionDistortions[WeaponDefNames["corgol_cor_gol"].id] = GetDistortionClass("Explosion", "Smallest")
 -- convert weaponname -> weaponDefID
-for name, params in pairs(explosionDistortionsNames) do
+for name, distortionList in pairs(explosionDistortionsNames) do
 	if WeaponDefNames[name] then
-		explosionDistortions[WeaponDefNames[name].id] = params
+		explosionDistortions[WeaponDefNames[name].id] = distortionList
 	end
 end
 explosionDistortionsNames = nil
 -- convert weaponname -> weaponDefID
-for name, params in pairs(muzzleFlashDistortionsNames) do
+for name, distortionList in pairs(muzzleFlashDistortionsNames) do
 	if WeaponDefNames[name] then
-		muzzleFlashDistortions[WeaponDefNames[name].id] = params
+		muzzleFlashDistortions[WeaponDefNames[name].id] = distortionList
 	end
 end
 muzzleFlashDistortionsNames = nil
