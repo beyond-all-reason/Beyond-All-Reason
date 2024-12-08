@@ -6,7 +6,7 @@ function widget:GetInfo()
 		date = "2024.08.16",
 		license = "GNU GPL, v2 or later",
 		layer = -1,
-		enabled = true,
+		enabled = false,
 	}
 end
 
@@ -33,8 +33,8 @@ local getMiniMapFlipped = VFS.Include("luaui/Widgets/Include/minimap_utils.lua")
 
 local scavengerAITeamID = 999
 local raptorsAITeamID = 999
-local scavengerAIAllyTeamID = 999
-local raptorsAIAllyTeamID = 999
+local scavengerAIAllyTeamID
+local raptorsAIAllyTeamID
 local teams = Spring.GetTeamList()
 
 for i = 1, #teams do
@@ -74,8 +74,9 @@ local shaderSourceCache = {
 			isMiniMap = 0,
 			flipMiniMap = 0,
 			mapNormals = 1,
-			scavTexture = 2,
-			raptorTexture = 3,
+			heightMapTex = 2, 
+			scavTexture = 3,
+			raptorTexture = 4,
 		},
 		uniformFloat = {
 			pingData = {0,0,0,-10000}, -- x,y,z, time
@@ -83,33 +84,19 @@ local shaderSourceCache = {
 		shaderName = "Start Polygons GL4",
 		shaderConfig = {
 			ALPHA = 0.5,
-			NUM_POLYGONS = NUM_POLYGONS,
+			NUM_POLYGONS = 0,
 			NUM_POINTS = 0,
 			MINY = minY - 10,
 			MAXY = maxY + 100,
 			MAX_STEEPNESS = 0.5877, -- 45 degrees yay (cos is 0.7071? (54 degrees, so cos of that is 0.5877	)
-			SCAV_ALLYTEAM_ID = scavengerAIAllyTeamID,
+			SCAV_ALLYTEAM_ID = scavengerAIAllyTeamID, -- these neatly become undefined if not present
 			RAPTOR_ALLYTEAM_ID = raptorsAIAllyTeamID,
 		},
 	}
 
 local fullScreenRectVAO
 local startPolygonShader
-
--- Locals for speedups
-local glTexture = gl.Texture
-local glCulling = gl.Culling
-local glDepthTest = gl.DepthTest
-local spIsGUIHidden			= Spring.IsGUIHidden
-
 local startPolygonBuffer = nil -- GL.SHADER_STORAGE_BUFFER for polygon
-
-function widget:RecvLuaMsg(msg, playerID)
-	--Spring.Echo("widget:RecvLuaMsg",msg)
-	if msg:sub(1,18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
-	end
-end
 
 local function DrawStartPolygons(inminimap)	
 	local advUnitShading, advMapShading = Spring.HaveAdvShading()
@@ -119,34 +106,35 @@ local function DrawStartPolygons(inminimap)
 	else
 		if WG['screencopymanager'] and WG['screencopymanager'].GetDepthCopy() then
 			gl.Texture(0, WG['screencopymanager'].GetDepthCopy())
-		else return	end
+		else 
+			Spring.Echo("Start Polygons: Adv map shading not available, and no depth copy available")
+			return
+		end
 	end
 	
 	gl.Texture(1, "$normals")
-	gl.Texture(2, scavengerStartBoxTexture)
-	gl.Texture(3, raptorStartBoxTexture)
+	gl.Texture(2, "$heightmap")-- Texture file
+	gl.Texture(3, scavengerStartBoxTexture)
+	gl.Texture(4, raptorStartBoxTexture)
 
 	startPolygonBuffer:BindBufferRange(4)
 
-	glCulling(GL.FRONT)
-	glDepthTest(false)
+	gl.Culling(GL.FRONT)
+	gl.DepthTest(false)
 	gl.DepthMask(false)
 
 	startPolygonShader:Activate()
-	for i, startBox in ipairs(StartPolygons) do
-		--Spring.Echo("StartPolygons["..i.."]", startBox[1],startBox[2],startBox[3],startBox[4])
-		startPolygonShader:SetUniform("StartPolygons["..( i-1) .."]", startBox[1],startBox[2],startBox[3],startBox[4])
-	end
+
 	startPolygonShader:SetUniform("noRushTimer", noRushTime)
 	startPolygonShader:SetUniformInt("isMiniMap", inminimap and 1 or 0)
 	startPolygonShader:SetUniformInt("flipMiniMap", getMiniMapFlipped() and 1 or 0)
 	startPolygonShader:SetUniformInt("myAllyTeamID", Spring.GetMyAllyTeamID() or -1) 
-	--Spring.Echo("myAllyTeamID", Spring.GetMyAllyTeamID())
+
 	fullScreenRectVAO:DrawArrays(GL.TRIANGLES)
 	startPolygonShader:Deactivate()
-	glTexture(0, false)
-	glCulling(false)
-	glDepthTest(false)
+	gl.Texture(0, false)
+	gl.Culling(false)
+	gl.DepthTest(false)
 end
 
 function widget:DrawInMiniMap(sx, sz)
@@ -157,11 +145,7 @@ function widget:DrawWorldPreUnit()
 	if autoReload then
 		startPolygonShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or startPolygonShader
 	end
-
-	--if chobbyInterface or spIsGUIHidden() then return end
-	
 	DrawStartPolygons(false)
-
 end
 
 function widget:GameFrame(n)
@@ -169,7 +153,6 @@ function widget:GameFrame(n)
 end
 
 function widget:Initialize()
-	Spring.Echo("Norush Timer GL4: HELLO	", numtriangles)
 	local gaiaAllyTeamID
 	if Spring.GetGaiaTeamID() then 
 		gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID() , false))
@@ -178,7 +161,7 @@ function widget:Initialize()
 		if teamID ~= gaiaAllyTeamID then 
 			--and teamID ~= scavengerAIAllyTeamID and teamID ~= raptorsAIAllyTeamID then
 			local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(teamID)
-			Spring.Echo("Allyteam",teamID,"startbox",xn, zn, xp, zp)	
+			--Spring.Echo("Allyteam",teamID,"startbox",xn, zn, xp, zp)	
 			StartPolygons[teamID] = {{xn, zn}, {xp, zn}, {xp, zp}, {xn, zp}}
 		end
 	end
@@ -204,14 +187,13 @@ function widget:Initialize()
 	shaderSourceCache.shaderConfig.NUM_BOXES = #StartPolygons
 
 	local numvertices = 0
-	local numtriangles = 0
 	local bufferdata = {}
 	local numPolygons = 0
 	for teamID, polygon in pairs(StartPolygons) do
 		numPolygons = numPolygons + 1
 		local numPoints = #polygon
 		local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(teamID)
-		Spring.Echo("teamID", teamID, "at " ,xn, zn, xp, zp)
+		--Spring.Echo("teamID", teamID, "at " ,xn, zn, xp, zp)
 		for vertexID, vertex in ipairs(polygon) do
 			local x, z = vertex[1], vertex[2]
 			bufferdata[#bufferdata+1] = teamID
@@ -223,16 +205,14 @@ function widget:Initialize()
 	end
 
 	-- SHADER_STORAGE_BUFFER MUST HAVE 64 byte aligned data 
-	Spring.Echo("what", numvertices, ' - ',(4 - (numvertices % 4)) * 4 , #bufferdata)
 	if numvertices % 4 ~= 0 then 
 		for i=1, ((4 - (numvertices % 4)) * 4) do bufferdata[#bufferdata+1] = -1 end
 		numvertices = numvertices + (4 - numvertices % 4)
 	end
 
-	Spring.Echo('startPolygonBuffer', numvertices, numPolygons, #bufferdata)
-	startPolygonBuffer = gl.GetVBO(GL.SHADER_STORAGE_BUFFER)
+	startPolygonBuffer = gl.GetVBO(GL.SHADER_STORAGE_BUFFER, false) -- not updated a lot
 	startPolygonBuffer:Define(numvertices, {{id = 0, name = 'starttriangles', size = 4}})
-	local success = startPolygonBuffer:Upload(bufferdata)--, -1, 0, 0, numvertices-1)
+	startPolygonBuffer:Upload(bufferdata)--, -1, 0, 0, numvertices-1)
 
 	shaderSourceCache.shaderConfig.NUM_POLYGONS = numPolygons
 	shaderSourceCache.shaderConfig.NUM_POINTS = numvertices

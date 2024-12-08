@@ -30,8 +30,13 @@ in DataVS {
 
 uniform sampler2D mapDepths;
 uniform sampler2D mapNormals;
-uniform sampler2D scavTexture;
-uniform sampler2D raptorTexture;
+uniform sampler2D heightMapTex;
+#ifdef SCAV_ALLYTEAM_ID
+	uniform sampler2D scavTexture;
+#endif
+#ifdef RAPTOR_ALLYTEAM_ID
+	uniform sampler2D raptorTexture;
+#endif
 
 out vec4 fragColor;
 
@@ -165,7 +170,14 @@ float expSustainedImpulse( float x, float f, float k )
     return min( x*x/(f*f), 1.0+(2.0/f)*s*exp(-k*s));
 }
 
-
+// This sampler is great for upscaling operations, as it uses cubic interpolation instead of linear
+vec2 CubicSampler(vec2 uvsin, vec2 texdims){
+    vec2 r = uvsin * texdims - 0.5;
+    vec2 tf = fract(r);
+    vec2 ti = r - tf;
+    tf = tf * tf * (3.0 - 2.0 * tf);
+    return (tf + ti + 0.5)/texdims;
+}
 #line 21129
 void main(void)
 {
@@ -207,8 +219,13 @@ void main(void)
 
 	int numEnemyBoxes = 0;
 	int inAllyBox = 0;
-	int inScavBox = 0;
-	int inRaptorBox = 0;
+	
+	#ifdef SCAV_ALLYTEAM_ID
+		int inScavBox = 0;
+	#endif
+	#ifdef RAPTOR_ALLYTEAM_ID
+		int inRaptorBox = 0;
+	#endif
 	bool isPassable = false;
 	vec3 mycolor = vec3(0,0,0);
 	#if 0
@@ -249,13 +266,17 @@ void main(void)
 					numEnemyBoxes = numEnemyBoxes + 1;
 					mycolor.r = 1.0;
 				}
-
-				if (teamID == SCAV_ALLYTEAM_ID){
-					inScavBox = 1;
-				}
-				if (teamID == RAPTOR_ALLYTEAM_ID){
-					inRaptorBox = 1;
-				}
+				
+				#ifdef SCAV_ALLYTEAM_ID
+					if (teamID == SCAV_ALLYTEAM_ID){
+						inScavBox = 1;
+					}
+				#endif
+				#ifdef RAPTOR_ALLYTEAM_ID
+					if (teamID == RAPTOR_ALLYTEAM_ID){
+						inRaptorBox = 1;
+					}
+				#endif
 			}else{
 				smoothDistance = smin(smoothDistance, signedDistance, 50.0);
 
@@ -277,21 +298,32 @@ void main(void)
 	}else{ // not my box
 		if (numEnemyBoxes <= 1){ // solo enemy box
 			mycolor = vec3(1.0, 0.0, 0.0);
-			if (inRaptorBox == 1){
-				mycolor = vec3(1.0, 0.45, 0.0);
-			}
-			if (inScavBox == 1){
-				mycolor = vec3(0.6, 0.0, 1.0);
-			}
+			#ifdef RAPTOR_ALLYTEAM_ID
+				if (inRaptorBox == 1){
+					mycolor = vec3(1.0, 0.45, 0.0);
+				}
+			#endif
+				
+			#ifdef SCAV_ALLYTEAM_ID
+				if (inScavBox == 1){
+					mycolor = vec3(0.6, 0.0, 1.0);
+				}
+			#endif
 
 		}else{ // shared enemy box
 			mycolor = vec3(1.0, 0.2, 0.0);
-			if (inRaptorBox == 1){
-				mycolor = vec3(1.0, 0.4, 0.0);
-			}
-			if (inScavBox == 1){
-				mycolor = vec3(1.0, 0.3, 1.0);
-			}
+			
+			#ifdef RAPTOR_ALLYTEAM_ID
+				if (inRaptorBox == 1){
+					mycolor = vec3(1.0, 0.4, 0.0);
+				}
+			#endif
+			
+			#ifdef SCAV_ALLYTEAM_ID
+				if (inScavBox == 1){
+					mycolor = vec3(1.0, 0.3, 1.0);
+				}
+			#endif
 		}
 	}
 
@@ -310,6 +342,7 @@ void main(void)
 	}
 	// But if we are within a box, then we set the alpha to 0
 	vec2 uvhm = heightmapUVatWorldPos(mapWorldPos.xz);
+	//uvhm = CubicSampler(uvhm, (mapSize.xy * 0.125) + 1.0);
 	vec3 mapnormal = textureLod(mapNormals, uvhm, 0.0).raa; // seems to be in the [-1, 1] range!, raaa is its true return
 	mapnormal.g = sqrt( 1.0 - dot( mapnormal.rb, mapnormal.rb)); // reconstruct Y from it
 
@@ -378,25 +411,28 @@ void main(void)
 			fragColor = mix(fragColor, impassableColor, 
 			smoothstep(-1 * impassablewidth,impassablewidth, MAX_STEEPNESS - mapnormal.y) * 0.5);
 		}
-
-		if (inScavBox == 1 && inAllyBox == 0){
-			vec4 scavTex = texture(scavTexture, mapWorldPos.xz / 1024.0);
-			float whiteness = dot(vec3(1.0/3.0), scavTex.rgb);
-			float scavalpha = 1.0 - whiteness;
-			fragColor.rgba = vec4(vec3(1.0, 0.1, 0.7), scavalpha);
-			//fragColor.rgba = scavTex;
-			fragColor.a += cellNoise;
-		}
-
 		
-		if (inRaptorBox == 1 && inAllyBox == 0){
-			vec4 raptorTex = texture(raptorTexture, mapWorldPos.xz / 1024.0);
-			float whiteness = dot(vec3(1.0/3.0), raptorTex.rgb);
-			float raptoralpha = 1.0 - whiteness;
-			fragColor.rgba = vec4(vec3(1.0, 0.68, 0.12), raptoralpha);
-			//fragColor.rgba = raptorTex;
-			fragColor.a += cellNoise;
-		}
+		#ifdef SCAV_ALLYTEAM_ID
+			if (inScavBox == 1 && inAllyBox == 0){
+				vec4 scavTex = texture(scavTexture, mapWorldPos.xz / 1024.0);
+				float whiteness = dot(vec3(1.0/3.0), scavTex.rgb);
+				float scavalpha = 1.0 - whiteness;
+				fragColor.rgba = vec4(vec3(1.0, 0.1, 0.7), scavalpha);
+				//fragColor.rgba = scavTex;
+				fragColor.a += cellNoise;
+			}
+		#endif
+
+		#ifdef RAPTOR_ALLYTEAM_ID
+			if (inRaptorBox == 1 && inAllyBox == 0){
+				vec4 raptorTex = texture(raptorTexture, mapWorldPos.xz / 1024.0);
+				float whiteness = dot(vec3(1.0/3.0), raptorTex.rgb);
+				float raptoralpha = 1.0 - whiteness;
+				fragColor.rgba = vec4(vec3(1.0, 0.68, 0.12), raptoralpha);
+				//fragColor.rgba = raptorTex;
+				fragColor.a += cellNoise;
+			}
+		#endif
 
 		//fragColor.a = sin( closestbox * 0.02 + timeInfo.y * 0.1);
 		//fragColor.a *= Cellular3D(0.01* vec3(mapWorldPos.xz, timeInfo.y));
