@@ -36,6 +36,7 @@ return {
 			subfolder = "CorBuildings/LandDefenceOffence",
 			unitgroup = "weapon",
 			usebuildinggrounddecal = true,
+			stockpileLimit = 20,
 		},
 		featuredefs = {
 			dead = {

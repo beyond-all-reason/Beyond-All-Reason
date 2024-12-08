@@ -11,6 +11,7 @@ unitsTable['armdecomlvl3'].customparams.i18nfromunit = "armcomlvl3"
 unitsTable['armdecomlvl3'].decoyfor = "armcomlvl3"
 unitsTable['armdecomlvl3'].customparams.decoyfor = "armcomlvl3"
 unitsTable['armdecomlvl3'].customparams.isdecoycommander = true
+unitsTable['armdecomlvl3'].customparams.stockpileLimit = 1
 unitsTable['armdecomlvl3'].health = math.ceil(unitsTable['armdecomlvl3'].health*0.5)
 unitsTable['armdecomlvl3'].weapondefs.disintegrator.damage.default = 40
 
@@ -25,6 +26,7 @@ unitsTable['armdecomlvl6'].customparams.i18nfromunit = "armcomlvl6"
 unitsTable['armdecomlvl6'].decoyfor = "armcomlvl6"
 unitsTable['armdecomlvl6'].customparams.decoyfor = "armcomlvl6"
 unitsTable['armdecomlvl6'].customparams.isdecoycommander = true
+unitsTable['armdecomlvl6'].customparams.stockpileLimit = 2
 unitsTable['armdecomlvl6'].health = math.ceil(unitsTable['armdecomlvl6'].health*0.5)
 unitsTable['armdecomlvl6'].weapondefs.disintegrator.damage.default = 40
 
@@ -39,6 +41,7 @@ unitsTable['armdecomlvl10'].customparams.i18nfromunit = "armcomlvl10"
 unitsTable['armdecomlvl10'].decoyfor = "armcomlvl10"
 unitsTable['armdecomlvl10'].customparams.decoyfor = "armcomlvl10"
 unitsTable['armdecomlvl10'].customparams.isdecoycommander = true
+unitsTable['armdecomlvl10'].customparams.stockpileLimit = 2
 unitsTable['armdecomlvl10'].health = math.ceil(unitsTable['armdecomlvl10'].health*0.5)
 unitsTable['armdecomlvl10'].weapondefs.disintegrator.damage.default = 40
 

@@ -56,6 +56,7 @@ return {
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_m_normals.png",
 			treeshader = "yes",
+			stockpileLimit = 10,
 		},
 		sfxtypes = {
 			explosiongenerators = {

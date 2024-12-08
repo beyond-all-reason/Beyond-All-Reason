@@ -39,6 +39,7 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/gantry",
 			techlevel = 3,
+			stockpileLimit = 3,
 		},
 		featuredefs = {
 			dead = {

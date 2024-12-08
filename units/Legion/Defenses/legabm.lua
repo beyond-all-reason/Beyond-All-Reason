@@ -42,6 +42,7 @@ return {
 			removewait = true,
 			subfolder = "CorBuildings/LandDefenceOffence",
 			techlevel = 2,
+			stockpileLimit = 20,
 		},
 		featuredefs = {
 			dead = {
@@ -99,7 +100,7 @@ return {
 			select = {
 				[1] = "loadwtr1",
 			},
-		},		
+		},
 		weapondefs = {
 			fmd_rocket = {
 					areaofeffect = 420,

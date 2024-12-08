@@ -103,6 +103,7 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "",
+			stockpileLimit = 2,
 		},
 		featuredefs = {
 			dead = {

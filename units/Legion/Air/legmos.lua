@@ -34,6 +34,7 @@ return {
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "ArmAircraft",
+			stockpileLimit = 8,
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {
