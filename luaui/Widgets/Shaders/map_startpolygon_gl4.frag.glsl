@@ -331,15 +331,9 @@ void main(void)
 	// Note that now we have the distance to the closest box in closestbox
 	// and the distance to the most distant box in furthestbox
 
-	// First we color based on their distance
-	fragColor.rgba = vec4(mycolor * sin(closestbox*3 / (40/3.14)), 0.5);
-	//fragColor.rgba = vec4(mycolor*0.5, 0.5);
-	if (timeInfo.x < 150) {
-		fragColor.a = (timeInfo.x/150) - clamp(1 - exp(-closestbox/400.0) * sin(closestbox*3 / (40/3.14)), 0, 1);
-	}
-	if (timeInfo.x >= 150) {
-		fragColor.a = noRushFramesLeft - clamp(1 - exp(-closestbox/400.0) * sin(closestbox*3 / (40/3.14)), 0, 1);
-	}
+	// Debug color based on their distance from the closest box
+	// fragColor.rgba = vec4(mycolor * sin(closestbox*3 / (40/3.14)), 0.5);
+
 	// But if we are within a box, then we set the alpha to 0
 	vec2 uvhm = heightmapUVatWorldPos(mapWorldPos.xz);
 	//uvhm = CubicSampler(uvhm, (mapSize.xy * 0.125) + 1.0);
