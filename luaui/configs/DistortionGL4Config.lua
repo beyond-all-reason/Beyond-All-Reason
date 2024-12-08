@@ -516,7 +516,11 @@ local featureDefDistortions = {
 
 local crystalDistortionBase =  {
 			distortionType = 'point',
-			distortionConfig = { posx = 0, posy = 12, posz = 0, radius = 72,
+			distortionConfig = { posx = 0, posy = 8, posz = 0, radius = 25,
+							onlyModelMap = 0,
+							riseRate = 0.5, windAffected = -0.5,
+							
+							noiseStrength = 0.7, noiseScaleSpace = 1.0, distanceFalloff = 1.2,
 							lifeTime = 0,  effectType = 0},
 		}
 

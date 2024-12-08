@@ -1202,8 +1202,7 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 	screenDistortionShader:Activate()
 	
 	screenDistortionShader:SetUniformFloat("inverseScreenResolution", 1/vsx, 1/vsy)
-	screenDistortionShader:SetUniformFloat("distortionIntensity", 1)
-	screenDistortionShader:SetUniformFloat("distortionRadius", 1)
+	screenDistortionShader:SetUniformFloat("distortionOverallStrength", 1)
 	fullScreenQuadVAO:DrawArrays(GL.TRIANGLES)
 	screenDistortionShader:Deactivate()
 	

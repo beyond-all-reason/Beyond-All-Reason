@@ -4,7 +4,7 @@ uniform sampler2D mapDepths;
 uniform sampler2D modelDepths;
 uniform sampler2D screenCopyTexture;
 uniform sampler2D distortionTexture;
-uniform float distortionStrength = 1.0;
+uniform float distortionOverallStrength = 1.0;
 uniform vec2 inverseScreenResolution = vec2(1.0/1920.0, 1.0/1080.0);
 
 
@@ -33,7 +33,7 @@ void main(void) {
   
     // Regular distortion
     if (distortion.b > -1.0 ) {
-        vec2 distortionXY = distortion.rg * distortionStrength * 0.01;
+        vec2 distortionXY = distortion.rg * distortionOverallStrength * 0.01;
         offsetUV1 = softClampScreen(gl_TexCoord[0].st + distortionXY);
         offsetUV2 = softClampScreen(gl_TexCoord[0].st + distortionXY / CHROMATIC_ABERRATION);
         offsetUV3 = softClampScreen(gl_TexCoord[0].st + distortionXY * CHROMATIC_ABERRATION);
