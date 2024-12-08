@@ -132,6 +132,9 @@ return {
 					subs = 150,
 					vtol = 90,
 				},
+				customparams = {
+					exclude_preaim = true
+				}
 			},
 			plasma_high = {
 				accuracy = 75,
@@ -162,6 +165,9 @@ return {
 					subs = 150,
 					vtol = 90,
 				},
+				customparams = {
+					exclude_preaim = true
+				}
 			},
 		},
 		weapons = {

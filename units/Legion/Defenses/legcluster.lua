@@ -130,6 +130,7 @@ return {
 				weaponvelocity = 450,
 				customparams = {
 					cluster = true,
+					exclude_preaim = true,
 					number = 3,
 				},
 				damage = {
@@ -191,6 +192,7 @@ return {
 				weaponvelocity = 450,
 				customparams = {
 					cluster = true,
+					exclude_preaim = true,
 					number = 6,
 				},
 				damage = {

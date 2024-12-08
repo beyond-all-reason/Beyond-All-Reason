@@ -138,6 +138,9 @@ return {
 					subs = 90,
 					vtol = 90,
 				},
+				customparams = {
+					exclude_preaim = true
+				}
 			},
 			cortoast_gun_high = {
 				accuracy = 450,
@@ -170,6 +173,9 @@ return {
 					subs = 90,
 					vtol = 90,
 				},
+				customparams = {
+					exclude_preaim = true
+				}
 			},
 		},
 		weapons = {
