@@ -2,7 +2,7 @@
 #include "../recoil_common_includes.h"
 #include "../factories_common.h"
 
-piece  base, pad, head1, head2, head3, head4,nano1,nano2,nano3,nano4;
+piece  base, pad, head1, head2, head3, head4, nano1, nano2, nano3, nano4, cagelight1, cagelight_emit1, cagelight2, cagelight_emit2;
 
 static-var  spray;
 
@@ -15,6 +15,8 @@ Create()
 	hide nano2;
 	hide nano3;
 	hide nano4;
+	hide cagelight_emit1;
+	hide cagelight_emit2;
 	hide pad;
 	spray = 0;
 }
@@ -36,6 +38,11 @@ StartBuilding()
 	show nano2;
 	show nano3;
 	show nano4;
+	
+	show cagelight_emit1;
+	show cagelight_emit2;
+	spin cagelight1 around y-axis speed <200> accelerate <1>;
+	spin cagelight2 around y-axis speed <-200> accelerate <1>;
 }
 
 StopBuilding()
@@ -44,6 +51,11 @@ StopBuilding()
 	hide nano2;
 	hide nano3;
 	hide nano4;
+	
+	hide cagelight_emit1;
+	hide cagelight_emit2;
+	stop-spin cagelight1 around y-axis decelerate <1>;
+	stop-spin cagelight2 around y-axis decelerate <1>;
 }
 
 Activate()
@@ -51,10 +63,20 @@ Activate()
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
 	
+	move head1 to y-axis [6] speed [15];
+	move head2 to y-axis [6] speed [15];
+	move head3 to y-axis [6] speed [15];
+	move head4 to y-axis [6] speed [15];
+	
+	turn head1 to x-axis <-15> speed <15>;
+	turn head2 to x-axis <-15> speed <15>;
+	turn head3 to x-axis <15> speed <15>;
+	turn head4 to x-axis <15> speed <15>;
 	turn head1 to y-axis <45> speed <45>;
 	turn head2 to y-axis <-45> speed <45>;
 	turn head3 to y-axis <45> speed <45>;
 	turn head4 to y-axis <-45> speed <45>;
+	
 	wait-for-turn head1 around y-axis;
 	
 	FACTORY_OPEN_BUILD;
@@ -66,10 +88,20 @@ Deactivate()
 	set-signal-mask SIGNAL_TURNON;
 	sleep 5000;
 	
+	turn head1 to x-axis <0> speed <15>;
+	turn head2 to x-axis <0> speed <15>;
+	turn head3 to x-axis <0> speed <15>;
+	turn head4 to x-axis <0> speed <15>;
 	turn head1 to y-axis [0] speed <45>;
 	turn head2 to y-axis [0] speed <45>;
 	turn head3 to y-axis [0] speed <45>;
 	turn head4 to y-axis [0] speed <45>;
+	wait-for-turn head1 around x-axis;
+	move head1 to y-axis [0] speed [15];
+	move head2 to y-axis [0] speed [15];
+	move head3 to y-axis [0] speed [15];
+	move head4 to y-axis [0] speed [15];
+	
 	wait-for-turn head1 around y-axis;
 	
 	FACTORY_CLOSE_BUILD;

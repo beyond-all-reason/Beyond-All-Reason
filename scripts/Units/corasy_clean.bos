@@ -3,7 +3,7 @@
 #include "../factories_common.h"
 
 
-piece  base, head1,head2,head3,head4,nano1,nano2,nano3,nano4,nano5,nano6,nano7,nano8,pad;
+piece  base, head1, head2, head3, head4, nano1, nano2, nano3, nano4, nano5, nano6, nano7, nano8, pad, platform, cagelight1, cagelight_emit1, cagelight2, cagelight_emit2, cagelight3, cagelight_emit3, cagelight4, cagelight_emit4;
 
 static-var  spray;
 
@@ -29,9 +29,16 @@ Create()
 	hide nano6;
 	hide nano7;
 	hide nano8;
+	hide cagelight_emit1;
+	hide cagelight_emit2;
+	hide cagelight_emit3;
+	hide cagelight_emit4;
 	hide pad;
 	
 	spray = 0;
+	
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script Deactivate();
 }
 
 QueryNanoPiece(pieceIndex)
@@ -50,6 +57,14 @@ StartBuilding()
 	show nano6;
 	show nano7;
 	show nano8;
+	spin cagelight1 around y-axis speed <200> accelerate <1>;
+	spin cagelight2 around y-axis speed <-200> accelerate <1>;
+	spin cagelight3 around y-axis speed <200> accelerate <1>;
+	spin cagelight4 around y-axis speed <-200> accelerate <1>;
+	show cagelight_emit1;
+	show cagelight_emit2;
+	show cagelight_emit3;
+	show cagelight_emit4;
 }
 
 StopBuilding()
@@ -62,6 +77,14 @@ StopBuilding()
 	hide nano6;
 	hide nano7;
 	hide nano8;
+	hide cagelight_emit1;
+	hide cagelight_emit2;
+	hide cagelight_emit3;
+	hide cagelight_emit4;
+	stop-spin cagelight1 around y-axis decelerate <1>;
+	stop-spin cagelight2 around y-axis decelerate <1>;
+	stop-spin cagelight3 around y-axis decelerate <1>;
+	stop-spin cagelight4 around y-axis decelerate <1>;
 }
 
 Activate()
@@ -69,10 +92,19 @@ Activate()
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
 	
-	turn head1 to y-axis <-45.0> speed <45>;
-	turn head2 to y-axis <45.0> speed <45>;
-	turn head3 to y-axis <-45.0> speed <45>;
-	turn head4 to y-axis <45.0> speed <45>;
+	move head1 to y-axis [5] speed [9];
+	move head2 to y-axis [5] speed [9];
+	move head3 to y-axis [5] speed [9];
+	move head4 to y-axis [5] speed [9];
+	wait-for-move head1 along y-axis;
+	
+	turn head1 to y-axis <-45.0> speed <90>;
+	turn head2 to y-axis <45.0> speed <90>;
+	turn head3 to y-axis <-45.0> speed <90>;
+	turn head4 to y-axis <45.0> speed <90>;
+	
+	move platform to y-axis [-15] speed [30];
+	
 	wait-for-turn head4 around y-axis;
 	
 	FACTORY_OPEN_BUILD;
@@ -84,11 +116,20 @@ Deactivate()
 	set-signal-mask SIGNAL_TURNON;
 	sleep 5000;
 	
-	turn head1 to y-axis <0.0> speed <45>;
-	turn head2 to y-axis <0.0> speed <45>;
-	turn head3 to y-axis <0.0> speed <45>;
-	turn head4 to y-axis <0.0> speed <45>;
+	turn head1 to y-axis <45.0> speed <90>;
+	turn head2 to y-axis <-45.0> speed <90>;
+	turn head3 to y-axis <45.0> speed <90>;
+	turn head4 to y-axis <-45.0> speed <90>;
+	
 	wait-for-turn head4 around y-axis;
+	
+	move head1 to y-axis [-4] speed [9];
+	move head2 to y-axis [-4] speed [9];
+	move head3 to y-axis [-4] speed [9];
+	move head4 to y-axis [-4] speed [9];
+	wait-for-move head1 along y-axis;
+	
+	move platform to y-axis [0] speed [15];
 	
 	FACTORY_CLOSE_BUILD;
 }
