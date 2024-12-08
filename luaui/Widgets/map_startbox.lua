@@ -235,8 +235,7 @@ local raptorStartBoxTexture = "LuaUI/Images/rapt-tileable_v002_small.tga"
 
 local getMiniMapFlipped = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").getMiniMapFlipped
 
-local scavengerAITeamID = 999
-local raptorsAITeamID = 999
+
 local scavengerAIAllyTeamID
 local raptorsAIAllyTeamID
 local teams = Spring.GetTeamList()
@@ -244,7 +243,7 @@ local teams = Spring.GetTeamList()
 for i = 1, #teams do
 	local luaAI = Spring.GetTeamLuaAI(teams[i])
 	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
-		scavengerAITeamID = i - 1
+		local scavengerAITeamID = i - 1
 		scavengerAIAllyTeamID = select(6, Spring.GetTeamInfo(scavengerAITeamID))
 		break
 	end
@@ -252,7 +251,7 @@ end
 for i = 1, #teams do
 	local luaAI = Spring.GetTeamLuaAI(teams[i])
 	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'RaptorsAI' then
-		raptorsAITeamID = i - 1
+		local raptorsAITeamID = i - 1
 		raptorsAIAllyTeamID = select(6, Spring.GetTeamInfo(raptorsAITeamID))
 		break
 	end
