@@ -1460,7 +1460,7 @@ local definitions = {
 }
 
 -- Keep array in sync with values in unit_area_timed_damage:
-local areaCegSizes = { 37.5, 46, 54, 62.5, 75, 87.5, 100, 125, 150, 175, 200, 225, 250, 275, 300 }
+local areaSizePresets = { 37.5, 46, 54, 63, 75, 88, 100, 125, 150, 175, 200, 225, 250, 275, 300 }
 
 local debugEffects = false
 local debugCircle = {
@@ -1510,9 +1510,9 @@ definitions["fire-burnground-large-repeat"].flamemattalways.properties.particles
 definitions["fire-burnground-large-repeat"].flamemattrandom.properties.particlesize = radiusFlame
 definitions["fire-burnground-large-repeat"].flamemattrandom.properties.particlesizespread = radiusFlameLarge * 1.4
 
-for ii = 1, #areaCegSizes do
+for ii = 1, #areaSizePresets do
   local expgen = table.copy(definitions['fire-area-repeat'])
-  local radius = areaCegSizes[ii]
+  local radius = areaSizePresets[ii]
 
   local radiusFlame = 56
   local inset = radiusFlame * 0.5
