@@ -179,12 +179,12 @@ local difficultyParameters = {
 
 local tierConfiguration = { -- Double maxSquadSize for special squads
 	[1] = {minAnger = 0,  maxAnger = 20, 	maxSquadSize = 1},
-	[2] = {minAnger = 10, maxAnger = 65, 	maxSquadSize = 12},
+	[2] = {minAnger = 10, maxAnger = 65, 	maxSquadSize = 10},
 	[3] = {minAnger = 20, maxAnger = 100, 	maxSquadSize = 10},
-	[4] = {minAnger = 35, maxAnger = 200, 	maxSquadSize = 8},
-	[5] = {minAnger = 45, maxAnger = 350, 	maxSquadSize = 6},
-	[6] = {minAnger = 60, maxAnger = 500, 	maxSquadSize = 4},
-	[7] = {minAnger = 80, maxAnger = 1000, 	maxSquadSize = 2},
+	[4] = {minAnger = 35, maxAnger = 200, 	maxSquadSize = 10},
+	[5] = {minAnger = 45, maxAnger = 350, 	maxSquadSize = 8},
+	[6] = {minAnger = 60, maxAnger = 500, 	maxSquadSize = 5},
+	[7] = {minAnger = 70, maxAnger = 1000, 	maxSquadSize = 3},
 }
 
 --local teamAngerEasementFB = 16
@@ -207,19 +207,16 @@ local tierConfiguration = { -- Double maxSquadSize for special squads
 --	[6] = {minAnger = 61 + teamAngerEasementFB, maxAnger = 70 + teamAngerEasementFB},
 --	[7] = {minAnger = 71 + teamAngerEasementFB, maxAnger = 80 + teamAngerEasementFB},
 --}
--- for index, entry in pairs(fBusterConfig) do
---     Spring.Echo("Entry " .. index .. ": minAnger = " .. entry.minAnger .. ", maxAnger = " .. entry.maxAnger)
--- end
 
 ----------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------
 
 local BurrowUnitsList = {
-	['scavbeacon_t1_scav'] = {minAnger = tierConfiguration[1].minAnger, maxAnger = tierConfiguration[3].maxAnger},
-	['scavbeacon_t2_scav'] = {minAnger = tierConfiguration[3].minAnger, maxAnger = tierConfiguration[5].maxAnger},
-	['scavbeacon_t3_scav'] = {minAnger = tierConfiguration[5].minAnger, maxAnger = tierConfiguration[7].maxAnger},
-	['scavbeacon_t4_scav'] = {minAnger = tierConfiguration[7].minAnger, maxAnger = tierConfiguration[7].maxAnger},
+	['scavbeacon_t1_scav'] = {minAnger = tierConfiguration[1].minAnger, maxAnger = tierConfiguration[2].maxAnger},
+	['scavbeacon_t2_scav'] = {minAnger = tierConfiguration[2].minAnger, maxAnger = tierConfiguration[3].maxAnger},
+	['scavbeacon_t3_scav'] = {minAnger = tierConfiguration[3].minAnger, maxAnger = tierConfiguration[5].maxAnger},
+	['scavbeacon_t4_scav'] = {minAnger = tierConfiguration[4].minAnger, maxAnger = tierConfiguration[7].maxAnger},
 }
 
 ----------------------------------------------------------------------------------------------
@@ -298,6 +295,7 @@ local LandUnitsList = {
 			--Cortex
 			["corakt4_scav"] = 3,
 			--Legion
+			
 			--N/A
 		},
 		[7] = {
@@ -455,6 +453,7 @@ local LandUnitsList = {
 			["legamcluster_scav"] = 2,
 			["legvcarry_scav"] = 2,
 			["legbart_scav"] = 2,
+			["legsrail_scav"] = 2,
 
 		},
 		[5] = {
@@ -483,6 +482,7 @@ local LandUnitsList = {
 			["corcat_scav"] = 2,
 			["cormabm_scav"] = 2,
 			--Legion
+			["leggobt3_scav"] = 3,
 		},
 		[7] = {
 			--Armada
@@ -490,7 +490,7 @@ local LandUnitsList = {
 			--Cortex
 
 			--Legion
-			--N/A
+			["legsrailt4_scav"] = 2,
 		},
 	},
 	Healer = {
@@ -885,6 +885,7 @@ if not Spring.GetModOptions().unit_restrictions_noair then
 		["armca_scav"] = 2,
 		["corca_scav"] = 2,
 		["legca_scav"] = 2,
+		["armfify_scav"] = 2,
 	}
 	local t2landairconstructors = {
 		["armaca_scav"] = 2,
@@ -983,6 +984,7 @@ local AirUnitsList = {
 			["legmineb_scav"] = 3,
 			["legphoenix_scav"] = 3,
 			["legfort_scav"] = 2,
+			["legmost3_scav"] = 1,
 		},
 		[6] = {
 			--Armada
@@ -1004,6 +1006,8 @@ local AirUnitsList = {
 			["corcrwt4_scav"] = 2,
 			--Legion
 			["legfort_scav"] = 3,
+			["legmost3_scav"] = 2,
+			["legfortt4_scav"] = 1,
 
 		},
 	},
@@ -1078,6 +1082,8 @@ local AirUnitsList = {
 			["corcrwh_scav"] = 3,
 			--Legion
 			["legfort_scav"] = 3,
+			["legfortt4_scav"] = 3,
+			["legmost3_scav"] = 2,
 		},
 	}
 }
@@ -1151,7 +1157,7 @@ local Turrets = {
 		["corfhp_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1},
 		["corsy_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1},
 		["legfhp_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1},
-		["legsy_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1},
+		--["legsy_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1},
 	},
 	[3] = {
 		["armbeamer_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 5},
@@ -1202,6 +1208,7 @@ local Turrets = {
 		--T2 Popups
 		["armlwall_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},
 		["cormwall_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},
+		["legrwall_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},
 		["armpb_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},
 		["corvipe_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},
 		["legbombard_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 3},
@@ -1248,7 +1255,7 @@ local Turrets = {
 		["corasy_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1},
 		["corplat_scav"] = {type = "antiair", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1},
 		["legamsub_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1},
-		["legasy_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1},
+		--["legasy_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.05, maxExisting = 1},
 	},
 	[5] = {
 		-- T2 popup arty
@@ -1317,9 +1324,6 @@ for tier, _ in pairs(Turrets) do
 		(not ( Spring.GetModOptions().unit_restrictions_noair and turretInfo.type == "antiair")) and
 		(not ( Spring.GetModOptions().unit_restrictions_nonukes and turretInfo.type == "nuke")) and
 		(not (Spring.GetModOptions().unit_restrictions_nolrpc and turretInfo.type == "lrpc")) then
-			-- Spring.Echo("---")
-			-- Spring.Echo(turret)
-			-- Spring.Echo(UnitDefs[UnitDefNames[turret].id].name)
 			scavTurrets[turret] = {
 				minBossAnger = tierConfiguration[tier].minAnger,
 				spawnedPerWave = turretInfo.spawnedPerWave or 1,
@@ -1462,6 +1466,7 @@ scavBehaviours = {
 		[UnitDefNames["cornecro_scav"].id] = true,--Cortex Rezzer
 		[UnitDefNames["armca_scav"].id] = true,
 		[UnitDefNames["armaca_scav"].id] = true,
+		[UnitDefNames["armfify_scav"].id] = true,
 		[UnitDefNames["armcsa_scav"].id] = true,
 		[UnitDefNames["corca_scav"].id] = true,
 		[UnitDefNames["coraca_scav"].id] = true,
@@ -1528,6 +1533,7 @@ scavBehaviours = {
 		[UnitDefNames["scavmist_scav"].id]			= true,
 		[UnitDefNames["scavmistxl_scav"].id]		= true,
 		[UnitDefNames["scavmistxxl_scav"].id]		= true,
+		[UnitDefNames["armvadert4_scav"].id]		= true,
 	},
 	ALWAYSMOVE = { -- Always use Move command, no matter what category this unit is in
 		[UnitDefNames["cormandot4_scav"].id]		= true,
@@ -1727,7 +1733,6 @@ local function addNewSquad(squadParams) -- params: {type = "basic", minAnger = 0
 		if not squadParams.maxAnger then squadParams.maxAnger = squadParams.minAnger + 100 end -- Eliminate squads 100% after they're introduced by default, can be overwritten
 		if squadParams.maxAnger >= 1000 then squadParams.maxAnger = 1000 end -- basically infinite, anger caps at 999
 		if not squadParams.weight then squadParams.weight = 1 end
-		Spring.Echo(squadParams)
 		for _ = 1,squadParams.weight do
 			table.insert(squadSpawnOptionsTable[squadParams.type], {minAnger = squadParams.minAnger, maxAnger = squadParams.maxAnger, units = squadParams.units, weight = squadParams.weight})
 		end
@@ -1742,7 +1747,6 @@ for tier, _ in pairs(LandUnitsList.Raid) do
 	for unitName, _ in pairs(LandUnitsList.Raid[tier]) do
 		if UnitDefNames[unitName] then
 			local unitWeight = LandUnitsList.Raid[tier][unitName]
-			-- Spring.Echo(unitName)
 			addNewSquad({ type = "basicLand", minAnger = tierConfiguration[tier].minAnger, units = { tierConfiguration[tier].maxSquadSize .. " " .. unitName}, weight = unitWeight, maxAnger = tierConfiguration[tier].maxAnger })
 			addNewSquad({ type = "specialLand", minAnger = tierConfiguration[tier].minAnger, units = { tierConfiguration[tier].maxSquadSize*2 .. " " .. unitName}, weight = unitWeight, maxAnger = tierConfiguration[tier].maxAnger })
 		end
@@ -1753,7 +1757,6 @@ for tier, _ in pairs(LandUnitsList.Assault) do
 	for unitName, _ in pairs(LandUnitsList.Assault[tier]) do
 		if UnitDefNames[unitName] then
 			local unitWeight = LandUnitsList.Assault[tier][unitName]
-			-- Spring.Echo(unitName)
 			if not scavBehaviours.BERSERK[UnitDefNames[unitName].id] then
 				scavBehaviours.BERSERK[UnitDefNames[unitName].id] = {distance = 2000, chance = 0.01}
 			end
@@ -1767,7 +1770,6 @@ for tier, _ in pairs(LandUnitsList.Support) do
 	for unitName, _ in pairs(LandUnitsList.Support[tier]) do
 		if UnitDefNames[unitName] then
 			local unitWeight = LandUnitsList.Support[tier][unitName]
-			-- Spring.Echo(unitName)
 			if not scavBehaviours.SKIRMISH[UnitDefNames[unitName].id] then
 				scavBehaviours.SKIRMISH[UnitDefNames[unitName].id] = {distance = 500, chance = 0.1}
 				scavBehaviours.COWARD[UnitDefNames[unitName].id] = {distance = 500, chance = 0.75}
@@ -1783,7 +1785,6 @@ for tier, _ in pairs(LandUnitsList.Healer) do
 	for unitName, _ in pairs(LandUnitsList.Healer[tier]) do
 		if UnitDefNames[unitName] then
 			local unitWeight = LandUnitsList.Healer[tier][unitName]
-			-- Spring.Echo(unitName)
 			if not scavBehaviours.HEALER[UnitDefNames[unitName].id] then
 				scavBehaviours.HEALER[UnitDefNames[unitName].id] = true
 				if not scavBehaviours.SKIRMISH[UnitDefNames[unitName].id] then
@@ -1804,7 +1805,6 @@ for tier, _ in pairs(SeaUnitsList.Raid) do
 	for unitName, _ in pairs(SeaUnitsList.Raid[tier]) do
 		if UnitDefNames[unitName] then
 			local unitWeight = SeaUnitsList.Raid[tier][unitName]
-			-- Spring.Echo(unitName)
 			addNewSquad({ type = "basicSea", minAnger = tierConfiguration[tier].minAnger, units = { math.ceil(tierConfiguration[tier].maxSquadSize*0.25) .. " " .. unitName}, weight = unitWeight, maxAnger = tierConfiguration[tier].maxAnger })
 			addNewSquad({ type = "specialSea", minAnger = tierConfiguration[tier].minAnger, units = { math.ceil(tierConfiguration[tier].maxSquadSize*0.5) .. " " .. unitName}, weight = unitWeight, maxAnger = tierConfiguration[tier].maxAnger })
 		end
@@ -1815,7 +1815,6 @@ for tier, _ in pairs(SeaUnitsList.Assault) do
 	for unitName, _ in pairs(SeaUnitsList.Assault[tier]) do
 		if UnitDefNames[unitName] then
 			local unitWeight = SeaUnitsList.Assault[tier][unitName]
-			-- Spring.Echo(unitName)
 			if not scavBehaviours.BERSERK[UnitDefNames[unitName].id] then
 				scavBehaviours.BERSERK[UnitDefNames[unitName].id] = {distance = 2000, chance = 0.01}
 			end
@@ -1829,7 +1828,6 @@ for tier, _ in pairs(SeaUnitsList.Support) do
 	for unitName, _ in pairs(SeaUnitsList.Support[tier]) do
 		if UnitDefNames[unitName] then
 			local unitWeight = SeaUnitsList.Support[tier][unitName]
-			-- Spring.Echo(unitName)
 			if not scavBehaviours.SKIRMISH[UnitDefNames[unitName].id] then
 				scavBehaviours.SKIRMISH[UnitDefNames[unitName].id] = {distance = 500, chance = 0.1}
 				scavBehaviours.COWARD[UnitDefNames[unitName].id] = {distance = 500, chance = 0.75}
@@ -1845,7 +1843,6 @@ for tier, _ in pairs(SeaUnitsList.Healer) do
 	for unitName, _ in pairs(SeaUnitsList.Healer[tier]) do
 		if UnitDefNames[unitName] then
 			local unitWeight = SeaUnitsList.Healer[tier][unitName]
-			-- Spring.Echo(unitName)
 			if not scavBehaviours.HEALER[UnitDefNames[unitName].id] then
 				scavBehaviours.HEALER[UnitDefNames[unitName].id] = true
 				if not scavBehaviours.SKIRMISH[UnitDefNames[unitName].id] then
@@ -1866,7 +1863,6 @@ for tier, _ in pairs(AirUnitsList.Land) do
 	for unitName, _ in pairs(AirUnitsList.Land[tier]) do
 		if UnitDefNames[unitName] then
 			local unitWeight = AirUnitsList.Land[tier][unitName]
-			-- Spring.Echo(unitName)
 			addNewSquad({ type = "basicAirLand", minAnger = tierConfiguration[tier].minAnger, units = { tierConfiguration[tier].maxSquadSize .. " " .. unitName}, weight = unitWeight, maxAnger = 1000 })
 			addNewSquad({ type = "specialAirLand", minAnger = tierConfiguration[tier].minAnger, units = { tierConfiguration[tier].maxSquadSize*2 .. " " .. unitName}, weight = unitWeight, maxAnger = 1000 })
 		end
@@ -1877,7 +1873,6 @@ for tier, _ in pairs(AirUnitsList.Sea) do
 	for unitName, _ in pairs(AirUnitsList.Sea[tier]) do
 		if UnitDefNames[unitName] then
 			local unitWeight = AirUnitsList.Sea[tier][unitName]
-			-- Spring.Echo(unitName)
 			addNewSquad({ type = "basicAirSea", minAnger = tierConfiguration[tier].minAnger, units = { tierConfiguration[tier].maxSquadSize .. " " .. unitName}, weight = unitWeight, maxAnger = 1000 })
 			addNewSquad({ type = "specialAirSea", minAnger = tierConfiguration[tier].minAnger, units = { tierConfiguration[tier].maxSquadSize*2 .. " " .. unitName}, weight = unitWeight, maxAnger = 1000 })
 		end
@@ -1904,7 +1899,7 @@ addNewSquad({ type = "specialAirLand", minAnger = tierConfiguration[3].minAnger,
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[4].minAnger, units = { "10 armfav_scav","10 corfav_scav","25 armzapper_scav",}, weight = 6, maxAnger = tierConfiguration[4].maxAnger}) --Rover and EMP Rover/Whole Tier Length
 --Land
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[4].minAnger, units = { "6 armlatnk_scav","6 cortorch_scav","6 legmrv_scav",}, weight = 4, maxAnger = tierConfiguration[4].maxAnger}) --T2 Veh Raid
-addNewSquad({ type = "specialLand", minAnger = tierConfiguration[4].minAnger, units = { "6 armbull_scav","6 correap_scav","1 corgol_scav","5 legaheattank_scav","2 armyork_scav","2 corsent_scav",}, weight = 4, maxAnger = tierConfiguration[4].maxAnger}) --T2 Veh Assault/AA
+addNewSquad({ type = "specialLand", minAnger = tierConfiguration[4].minAnger, units = { "6 armbull_scav","6 correap_scav","1 corgol_scav","2 legaheattank_scav","2 armyork_scav","2 corsent_scav",}, weight = 4, maxAnger = tierConfiguration[4].maxAnger}) --T2 Veh Assault/AA
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[5].minAnger, units = { "2 armmanni_scav","2 corban_scav","1 legvcarry_scav",}, weight = 4, maxAnger = tierConfiguration[5].maxAnger}) --T2 Veh Unique
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[5].minAnger, units = { "3 armmart_scav","1 armmerl_scav","1 armyork_scav","3 cormart_scav","1 corvroc_scav","1 corsent_scav","1 leginf_scav",}, weight = 4, maxAnger = tierConfiguration[5].maxAnger}) --T2 Arty/AA
 --air
@@ -1922,18 +1917,23 @@ addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, un
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "6 armmeatball_scav","6 armassimilator_scav","2 armyork_scav","2 corsent_scav",}, weight = 4, maxAnger = tierConfiguration[6].maxAnger}) --T3 Assault/AA
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "6 corshiva_scav","2 armraz_scav","1 legpede_scav","1 armyork_scav","1 corsent_scav",}, weight = 4, maxAnger = tierConfiguration[6].maxAnger}) --T3 Assault/AA
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "2 armvang_scav","2 corcat_scav","1 armyork_scav","1 corsent_scav",}, weight = 4, maxAnger = tierConfiguration[6].maxAnger}) --T3 Arty/AA
+addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "5 armvadert4_scav",}, weight = 3, maxAnger = 1000}) --Epic Tumbleweeds
+addNewSquad({ type = "specialSea", minAnger = tierConfiguration[6].minAnger, units = { "5 armvadert4_scav",}, weight = 3, maxAnger = 1000}) --Epic Tumbleweeds
 --air
 addNewSquad({ type = "specialAirLand", minAnger = tierConfiguration[6].minAnger, units = { "40 armfig_scav","40 corveng_scav",}, weight = 4, maxAnger = 1000}) --T2 Fighters
 addNewSquad({ type = "specialAirSea", minAnger = tierConfiguration[6].minAnger, units = { "40 armsfig_scav","40 corsfix_scav",}, weight = 5, maxAnger = 1000}) --T2 Fighters
 addNewSquad({ type = "specialAirLand", minAnger = tierConfiguration[6].minAnger, units = { "15 armblade_scav","15 armbrawl_scav","1 legfort_scav","1 corcrw_scav", "1 corcrwh_scav","15 corape_scav"}, weight = 2, maxAnger = 1000}) --T2 Gunships
 ------Tier 4 80%+
-
+addNewSquad({ type = "specialLand", minAnger = tierConfiguration[7].minAnger, units = { "10 armvadert4_scav",}, weight = 3, maxAnger = 1000}) --Epic Tumbleweeds
+addNewSquad({ type = "specialSea", minAnger = tierConfiguration[7].minAnger, units = { "10 armvadert4_scav",}, weight = 3, maxAnger = 1000}) --Epic Tumbleweeds
 addNewSquad({ type = "specialAirLand", minAnger = tierConfiguration[7].minAnger, units = { "80 armfig_scav","80 corveng_scav",}, weight = 5, maxAnger = 1000}) --T2 Fighters
 addNewSquad({ type = "specialAirLand", minAnger = tierConfiguration[7].minAnger, units = { "10 armfepocht4_scav",}, weight = 1, maxAnger = 1000}) --Armada Flying Flagships
 addNewSquad({ type = "specialAirLand", minAnger = tierConfiguration[7].minAnger, units = { "10 corfblackhyt4_scav",}, weight = 1, maxAnger = 1000}) --Cortex Flying Flagships
 addNewSquad({ type = "specialAirSea", minAnger = tierConfiguration[7].minAnger, units = { "80 armsfig_scav","80 corsfix_scav",}, weight = 5, maxAnger = 1000}) --T2 Fighters
 addNewSquad({ type = "specialAirSea", minAnger = tierConfiguration[7].minAnger, units = { "10 armfepocht4_scav",}, weight = 1, maxAnger = 1000}) --Armada Flying Flagships
 addNewSquad({ type = "specialAirSea", minAnger = tierConfiguration[7].minAnger, units = { "10 corfblackhyt4_scav",}, weight = 1, maxAnger = 1000}) --Cortex Flying Flagships
+
+
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Settings -- Adjust these
@@ -2039,6 +2039,7 @@ local config = { -- Don't touch this! ------------------------------------------
 	spawnSquare            	= spawnSquare,
 	spawnSquareIncrement   	= spawnSquareIncrement,
 	scavTurrets				= table.copy(scavTurrets),
+	unprocessedScavTurrets  = table.copy(Turrets),
 	scavMinions				= scavMinions,
 	scavBehaviours 			= scavBehaviours,
 	difficultyParameters   	= difficultyParameters,

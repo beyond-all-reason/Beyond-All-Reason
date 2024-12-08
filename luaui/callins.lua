@@ -142,6 +142,7 @@ CallInsList = {
 	"VisibleExplosion",
 	"Barrelfire",
 	"CrashingAircraft",
+	"ClearMapMarks",
 }
 
 CallInsMap = {}

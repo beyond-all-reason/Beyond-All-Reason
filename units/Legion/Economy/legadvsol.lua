@@ -9,7 +9,6 @@ return {
 		buildpic = "LEGADVSOL.DDS",
 		buildtime = 14000,
 		canrepeat = false,
-		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "60 44 60",
 		collisionvolumetype = "CylY",
@@ -33,11 +32,11 @@ return {
 		customparams = {
 			unitgroup = 'energy',
 			model_author = "EnderRobo",
-			normaltex = "unittextures/cor_normal.dds",
+			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
 			removewait = true,
 			solar = true,
-			subfolder = "legion/economy",
+			subfolder = "Legion/economy",
 		},
 		featuredefs = {
 			dead = {

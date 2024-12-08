@@ -36,7 +36,7 @@ if Spring.GetModOptions().unit_restrictions_noextractorDefs then
 	return
 end
 
-
+local needsInit			= true
 local showValue			= false
 local metalViewOnly		= false
 
@@ -527,8 +527,9 @@ function widget:DrawWorldPreUnit()
 	drawInstanceVBO(spotInstanceVBO)
 	spotShader:Deactivate()
 
-	if Spring.GetGameFrame() == 0 then
+	if needsInit and Spring.GetGameFrame() == 0 then
 		checkMetalspots()
+		needsInit = false
 	end
 
 	gl.Texture(0, false)

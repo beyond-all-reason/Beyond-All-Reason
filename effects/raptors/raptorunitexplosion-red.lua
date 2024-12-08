@@ -6,7 +6,7 @@ return {
   ["raptorunitexplosion-tiny-red"] = {
     centerflare = {
       air                = true,
-      class              = [[heatcloud]],
+      class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
       water              = true,
@@ -157,7 +157,7 @@ return {
     },
     outerflash = {
       air                = true,
-      class              = [[heatcloud]],
+      class              = [[CHeatCloudProjectile]],
       count              = 2,
       ground             = true,
       water              = true,
@@ -179,7 +179,7 @@ return {
   ["raptorunitexplosion-small-red"] = {
     centerflare = {
       air                = true,
-      class              = [[heatcloud]],
+      class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
       water              = true,
@@ -330,7 +330,7 @@ return {
     },
     outerflash = {
       air                = true,
-      class              = [[heatcloud]],
+      class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
       water              = true,
@@ -353,7 +353,7 @@ return {
   ["raptorunitexplosion-medium-red"] = {
     centerflare = {
       air                = true,
-      class              = [[heatcloud]],
+      class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
       water              = true,
@@ -535,7 +535,7 @@ return {
     },
     outerflash = {
       air                = true,
-      class              = [[heatcloud]],
+      class              = [[CHeatCloudProjectile]],
       count              = 2,
       ground             = true,
       water              = true,
@@ -589,7 +589,7 @@ return {
   ["raptorunitexplosion-large-red"] = {
     centerflare = {
       air                = true,
-      class              = [[heatcloud]],
+      class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
       water              = true,
@@ -771,7 +771,7 @@ return {
     },
     outerflash = {
       air                = true,
-      class              = [[heatcloud]],
+      class              = [[CHeatCloudProjectile]],
       count              = 2,
       ground             = true,
       water              = true,
@@ -793,7 +793,7 @@ return {
   ["raptorunitexplosion-huge-red"] = {
     centerflare = {
       air                = true,
-      class              = [[heatcloud]],
+      class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
       water              = true,
@@ -847,7 +847,7 @@ splashes = {
 
     centersplatsh = {
       air                = true,
-      class              = [[heatcloud]],
+      class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
       water              = true, 
@@ -999,7 +999,7 @@ splashes = {
     },
     outerflash = {
       air                = true,
-      class              = [[heatcloud]],
+      class              = [[CHeatCloudProjectile]],
       count              = 4,
       ground             = true,
       water              = true,
@@ -1084,7 +1084,7 @@ splashes = {
   ["raptorunitexplosion-mega-red"] = {
     centerflare = {
       air                = true,
-      class              = [[heatcloud]],
+      class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
       water              = true,
@@ -1138,7 +1138,7 @@ splashes = {
 
     centersplatsh = {
       air                = true,
-      class              = [[heatcloud]],
+      class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
       water              = true, 
@@ -1290,7 +1290,7 @@ splashes = {
     },
     outerflash = {
       air                = true,
-      class              = [[heatcloud]],
+      class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
       water              = true,

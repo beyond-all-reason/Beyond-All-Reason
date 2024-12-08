@@ -208,6 +208,7 @@ end
 local mapConfig
 
 function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD.ATTACK)
 	local allUnits = Spring.GetAllUnits()
 	for _, unitID in pairs(allUnits) do
 		local unitDefID = GetUnitDefID(unitID)
@@ -577,11 +578,10 @@ end
 
 --http://springrts.com/phpbb/viewtopic.php?f=23&t=30109
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-	if cmdID and cmdID == CMD.ATTACK then
-		if cmdParams and #cmdParams == 1 then
-			if critterUnits[cmdParams[1]] ~= nil then
-				return false
-			end
+	-- accepts: CMD.ATTACK
+	if cmdParams and #cmdParams == 1 then
+		if critterUnits[cmdParams[1]] ~= nil then
+			return false
 		end
 	end
 	return true

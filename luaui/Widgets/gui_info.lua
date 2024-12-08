@@ -91,6 +91,8 @@ local spGetUnitStates = Spring.GetUnitStates
 local spGetUnitStockpile = Spring.GetUnitStockpile
 local spGetUnitWeaponState = Spring.GetUnitWeaponState
 local spGetUnitRulesParam = Spring.GetUnitRulesParam
+local spColorString = Spring.Utilities.Color.ToString
+
 
 local math_floor = math.floor
 local math_ceil = math.ceil
@@ -263,8 +265,9 @@ local function refreshUnitInfo()
 			local prevMinDps = unitDefInfo[unitDefID].mindps or 0
 			local prevMaxDps = unitDefInfo[unitDefID].maxdps or 0
 			local newDps = math_floor(damage * (def.salvoSize * def.projectiles) / def.reload)
-			unitDefInfo[unitDefID].mindps = newDps + prevMinDps
-			unitDefInfo[unitDefID].maxdps = newDps + prevMaxDps
+			local stockpileDps = math_floor(damage * (def.salvoSize * def.projectiles) / (def.stockpile and def.stockpileTime/30 or def.reload))
+			unitDefInfo[unitDefID].mindps = math_min(newDps, stockpileDps) + prevMinDps
+			unitDefInfo[unitDefID].maxdps = math_max(newDps, stockpileDps) + prevMaxDps
 		end
 
 
@@ -344,7 +347,7 @@ local function refreshUnitInfo()
 
 						if weaponDef.type == "BeamLaser" then
 							calculateLaserDPS(weaponDef, weaponDef.damages[0])
-						elseif weaponDef.customParams and weaponDef.customParams.cluster then -- Bullets that shoot other, smaller bullets
+						elseif weaponDef.customParams.cluster then -- Bullets that shoot other, smaller bullets
 							calculateClusterDPS(weaponDef, weaponDef.damages[0])
 						elseif weapons[i].onlyTargets['vtol'] ~= nil then
 							calculateWeaponDPS(weaponDef, weaponDef.damages[armorIndex.vtol]) --Damage to air category
@@ -379,8 +382,6 @@ local function refreshUnitInfo()
 						local splitd = WeaponDefNames[weaponDef.customParams.def].damages[0]
 						local splitn = weaponDef.customParams.number or 1
 						calculateWeaponDPS(weaponDef, splitd * splitn)
-					--end
-
 					elseif weaponDef.customParams.spark_basedamage then -- Lightning
 						unitExempt = true
 						local forkd = weaponDef.customParams.spark_forkdamage
@@ -1013,22 +1014,6 @@ local function drawSelection()
 	glColor(1, 1, 1, 1)
 end
 
-local function ColourString(R, G, B)
-	local R255 = math.floor(R * 255)
-	local G255 = math.floor(G * 255)
-	local B255 = math.floor(B * 255)
-	if R255 % 10 == 0 then
-		R255 = R255 + 1
-	end
-	if G255 % 10 == 0 then
-		G255 = G255 + 1
-	end
-	if B255 % 10 == 0 then
-		B255 = B255 + 1
-	end
-	return "\255" .. string.char(R255) .. string.char(G255) .. string.char(B255)
-end
-
 local function GetAIName(teamID)
 	local _, _, _, name, _, options = Spring.GetAIInfo(teamID)
 	local niceName = Spring.GetGameRulesParam('ainame_' .. teamID)
@@ -1118,7 +1103,7 @@ local function drawUnitInfo()
 
 	local unitNameColor = tooltipTitleColor
 	if SelectedUnitsCount > 0 then
-		if not displayMode == 'unitdef' or (WG['buildmenu'] and (activeCmdID and activeCmdID < 0 and (not WG['buildmenu'].hoverID or (-activeCmdID == WG['buildmenu'].hoverID)))) then
+		if displayMode ~= 'unitdef' or (WG['buildmenu'] and (activeCmdID and activeCmdID < 0 and (not WG['buildmenu'].hoverID or (-activeCmdID == WG['buildmenu'].hoverID)))) then
 			unitNameColor = '\255\125\255\125'
 		end
 	end
@@ -1158,7 +1143,7 @@ local function drawUnitInfo()
 	-- custom unit info area
 	customInfoArea = { math_floor(backgroundRect[3] - width - bgpadding), math_floor(backgroundRect[2]), math_floor(backgroundRect[3] - bgpadding), math_floor(backgroundRect[2] + height) }
 
-	if not displayMode == 'unitdef' or not showBuilderBuildlist or not unitDefInfo[displayUnitDefID].buildOptions or (not (WG['buildmenu'] and WG['buildmenu'].hoverID)) then
+	if displayMode ~= 'unitdef' or not showBuilderBuildlist or not unitDefInfo[displayUnitDefID].buildOptions or (not (WG['buildmenu'] and WG['buildmenu'].hoverID)) then
 		RectRound(customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4], elementCorner*0.66, 1, 0, 0, 0, { 0.8, 0.8, 0.8, 0.08 }, { 0.8, 0.8, 0.8, 0.15 })
 	end
 
@@ -1203,7 +1188,7 @@ local function drawUnitInfo()
 				--if not mySpec and Spring.GetModOptions().teamcolors_anonymous_mode ~= 'disabled' then
 				--	name = ColourString(Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255) .. name
 				--else
-				name = ColourString(Spring.GetTeamColor(teamID)) .. name
+				name = spColorString(Spring.GetTeamColor(teamID)) .. name
 				--end
 				font2:Print(name, backgroundRect[3] - bgpadding - bgpadding, backgroundRect[2] + (fontSizeOwner * 0.44), fontSizeOwner, "or")
 			end
@@ -1529,8 +1514,13 @@ local function drawUnitInfo()
 		end
 
 		if unitDefInfo[displayUnitDefID].transport then
-			addTextInfo(texts.transportmaxmass, unitDefInfo[displayUnitDefID].transport[1])
-			addTextInfo(texts.transportmaxsize, unitDefInfo[displayUnitDefID].transport[2])
+
+			if unitDefInfo[displayUnitDefID].transport[1] < 5001 then
+				addTextInfo(Spring.I18N('ui.info.transport_light', { highlightColor = valueColor }), nil)
+			end
+			if unitDefInfo[displayUnitDefID].transport[1] > 5000 then
+				addTextInfo(Spring.I18N('ui.info.transport_heavy', { highlightColor = valueColor }), nil)
+			end
 			addTextInfo(texts.transportcapacity, unitDefInfo[displayUnitDefID].transport[3])
 		end
 

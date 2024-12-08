@@ -26,7 +26,9 @@ if gadgetHandler:IsSyncedCode() then
 		['armthor'] = 2,
 
 		['legmos'] = 8,
+		['legmost3'] = 8,
 		['legmineb'] = 1,
+		['legsrailt4'] = 3,
 
 		['armsilo'] = 10,
 		['corsilo'] = 10,
@@ -36,6 +38,7 @@ if gadgetHandler:IsSyncedCode() then
 
 
 		['armamd'] = 20,
+		['legabm'] = 20,
 		['corfmd'] = 20,
 		['raptor_turret_antinuke_t2_v1'] = 5,
 		['raptor_turret_antinuke_t3_v1'] = 10,
@@ -57,27 +60,34 @@ if gadgetHandler:IsSyncedCode() then
 		['legperdition'] = 10,
 
 		['armbotrail'] = 50,
-		['armcomlvl2'] = 30,
-		['armcomlvl3'] = 30,
-		['armcomlvl4'] = 30,
-		['armcomlvl5'] = 30,
-		['armcomlvl6'] = 30,
-		['armcomlvl7'] = 30,
-		['armcomlvl8'] = 30,
-		['armcomlvl9'] = 30,
-		['armcomlvl10'] = 30,
+		['armcomlvl2'] = 3,
+		['armcomlvl3'] = 3,
+		['armdecomlvl3'] = 1,
+		['armcomlvl4'] = 3,
+		['armcomlvl5'] = 4,
+		['armcomlvl6'] = 4,
+		['armdecomlvl6'] = 2,
+		['armcomlvl7'] = 4,
+		['armcomlvl8'] = 5,
+		['armcomlvl9'] = 5,
+		['armcomlvl10'] = 5,
+		['armdecomlvl10'] = 2,
 		['legcom'] = 2,
-		['legcomlvl2'] = 5,
-		['legcomlvl3'] = 5,
-		['legcomlvl4'] = 5,
-		['legcomlvl5'] = 5,
-		['legcomlvl6'] = 5,
-		['legcomlvl7'] = 5,
+		['legcomlvl2'] = 3,
+		['legcomlvl3'] = 3,
+		['legdecomlvl3'] = 1,
+		['legcomlvl4'] = 3,
+		['legcomlvl5'] = 4,
+		['legcomlvl6'] = 4,
+		['legdecomlvl6'] = 2,
+		['legcomlvl7'] = 4,
 		['legcomlvl8'] = 5,
 		['legcomlvl9'] = 5,
 		['legcomlvl10'] = 5,
+		['legdecomlvl10'] = 3,
 
 		['legstarfall'] = 1,
+		['legrampart'] = 20,
 	}
 	-- convert unitname -> unitDefID + add scavengers
 	local isStockpilingUnit = {}
@@ -203,6 +213,8 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Initialize()
+		gadgetHandler:RegisterAllowCommand(CMD_STOCKPILE)
+		gadgetHandler:RegisterAllowCommand(CMD_INSERT)
 		local units = Spring.GetAllUnits()
 		for i = 1, #units do
 			local unitDefID = Spring.GetUnitDefID(units[i])

@@ -60,12 +60,6 @@
 				"defaultTooltip": "Shows how many of your energy converters are active and producing metal",
 				"tooManyConverters1Tooltip": "You have too many energy converters for your energy production.",
 				"tooManyConverters2Tooltip": "Stop building energy converters and increase your energy production."
-			},
-			"underflow": {
-				"generous": "generous",
-				"greedy": "greedy",
-				"tooltipText": "Being a generous ally - you will share and receieve energy underflow.\n10%% of energy income. Helps to prevent your allies from E-stalling.\nBeing greedy, however, will get you neither.",
-				"tooltipTitle": "Energy underflow toggle"
 			}
 		},
 		"unitMarket": {
@@ -226,7 +220,7 @@
 			"stockpile": "Stockpile %{stockpileStatus}",
 			"stockpile_tooltip": "[ stockpiled number ] / [ target stockpile number ]",
 			"stopproduction": "Clear Queue",
-			"stopproduction_tooltip": "Clear build queue for all units on selected factories",
+			"stopproduction_tooltip": "Clear build queue and quotas for all units on selected factories",
 			"morph": "Upgrade",
 			"morph_tooltip": "Upgrade to next Tech-level (second click to cancel)",
 			"Spawning Disabled": "Spawning disabled",
@@ -235,7 +229,7 @@
 			"sellunit_tooltip": "Toggle currently selected units for sale, allies will be able to buy them",
 			"For Sale": "For Sale",
 			"Not For Sale": "Not For Sale",
-			
+
 			"Fire at will": "Fire at will",
 			"Hold fire": "Hold fire",
 			"Return fire": "Return fire",
@@ -277,12 +271,17 @@
 			"blueprint_place_tooltip": "Place a saved blueprint",
 			"blueprint_create": "Save Blueprint",
 			"blueprint_create_tooltip": "Save the selected units into a new blueprint, in the order they were selected",
+			"factoryqueuemode_normal": "Queue Mode",
+			"factoryqueuemode_quota": "Quota Mode",
+			"factoryqueuemode_tooltip": "Queue: Build each queued unit once\nQuota: Maintain a minimum quota of each unit on the battlefield",
 			"customOnOff": {
 				"lowTrajectory": "Low Trajectory",
 				"highTrajectory": "High Trajectory",
 				"trajectory_tooltip": "Switch artillery firing angle between low and high trajectory",
-				"gauss_tooltip": "Switches between Gauss Cannon and Heavy Plasma Cannon",
-			}
+				"gauss_tooltip": "Switches between Gauss Cannon and Heavy Plasma Cannon"
+			},
+			"quicksharetotarget": "Share Unit",
+			"quicksharetotarget_tooltip": "Share unit to target player."
 		},
 		"idleBuilders": {
 			"name": "Idle Builders",
@@ -519,6 +518,7 @@
 		"gametypeInfo": {
 			"killAllUnits": "Kill all enemy units",
 			"killAllCommanders": "Kill all enemy Commanders",
+			"killAllBuilders": "Kill all enemy builders",
 			"commandersSurviveDgun": "Commanders survive D-Guns and commander explosions",
 			"victoryCondition": "Victory condition",
 			"owncomends": "Losing your commander = losing control of your units / resigning"
@@ -871,6 +871,8 @@
 			"transportmaxmass": "transport max mass",
 			"transportmaxsize": "transport max size",
 			"transportcapacity": "transport capacity",
+			"transport_heavy": "transport %{highlightColor}Heavy",
+			"transport_light": "transport %{highlightColor}Light",
 			"mass": "mass",
 			"footprint": "size",
 			"speed": "speed",
@@ -913,6 +915,8 @@
 			"armyValue_tooltip": "Army value in metal,\nincl. commander",
 			"defenseValue_title": "Defense Value",
 			"defenseValue_tooltip": "Defense value in metal",
+			"utilityValue_title": "Utility Value",
+			"utilityValue_tooltip": "Utility value in metal",
 			"economyValue_title": "Economy Value",
 			"economyValue_tooltip": "Economy value in metal",
 			"damageDealt_title": "Damage Dealt",
@@ -1563,6 +1567,9 @@
 				"customwidgets": "Allow custom widgets",
 				"customwidgets_descr": "enable loading of custom widgets (placed inside spring/luaui/widgets)",
 				"profiler": "Widget profiler",
+				"profiler_min_time": "Minimum Time",
+				"profiler_min_memory": "Minimum Memory",
+				"profiler_sort_by_load": "Sort By Load",
 				"framegrapher": "Frame grapher",
 				"autocheat": "Auto enable cheats for $VERSION",
 				"autocheat_descr": "does: /cheat, /globallos, /godmode",
@@ -1626,8 +1633,44 @@
 				"spectator_hud_config_descr": "Select Spectator HUD mode",
 				"spectator_hud_config_basic": "Basic",
 				"spectator_hud_config_advanced": "Advanced",
-				"spectator_hud_config_expert": "Expert"
+				"spectator_hud_config_expert": "Expert",
+				"spectator_hud_config_custom": "Custom",
+				"startpositionsuggestions": "Start Position Suggestions",
+				"startpositionsuggestions_descr": "Show expert recommended starting locations on the map"
 			}
+		},
+		"startPositionSuggestions": {
+			"tutorial": "Recommended start positions and roles are indicated within the circles.\n\nTo disable this, check the Settings window for \"Start Position Suggestions\".",
+			"roles": {
+				"front": {
+					"title": "Front",
+					"description": "Build ground units and bring your Commander forward to secure a strong central position, taking metal spots along the way."
+				},
+				"tech": {
+					"title": "Tech",
+					"description": "Focus on economy to support building a Tier 2 factory, then distribute Tier 2 constructors to the team, and attack with high tier units."
+				},
+				"air": {
+					"title": "Air",
+					"description": "Scout enemy players, distribute transports to allies, fight for air dominance, bomb enemy bases, and help defend against raids."
+				},
+				"sea": {
+					"title": "Sea",
+					"description": "Build navy units and secure a strong position on the map. Later, build amphibious or air units to invade enemies on land."
+				},
+				"baseCenter": {
+					"title": "Base Center",
+					"description": "Move your Commander here shortly after spawning. Build your first factory in this area."
+				}
+			},
+			"multiRole": {
+				"title": "%{role1}/%{role2}",
+				"description": "%{role1}\n\nand/or\n\n%{role2}"
+			}
+		},
+		"quickShareToTarget": {
+			"noTarget": "No target selected",
+			"shareTo": "Share to: %{playerColor}%{player}"
 		}
 	}
 }

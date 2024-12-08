@@ -9,7 +9,6 @@ return {
 		buildpic = "CORTL.DDS",
 		buildtime = 3750,
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSHIP NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "DEAD",
 		explodeas = "mediumBuildingExplosionGeneric",
 		footprintx = 3,
@@ -31,7 +30,7 @@ return {
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,
-			subfolder = "corbuildings/seadefence",
+			subfolder = "CorBuildings/SeaDefence",
 		},
 		featuredefs = {
 			dead = {
@@ -90,7 +89,6 @@ return {
 				edgeeffectiveness = 0.55,
 				explosiongenerator = "custom:genericshellexplosion-small-uw",
 				flighttime = 0.9,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "cortorpedo.s3o",
 				name = "Torpedo launcher",

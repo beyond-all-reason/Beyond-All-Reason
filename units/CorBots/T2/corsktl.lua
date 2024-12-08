@@ -1,28 +1,26 @@
 return {
 	corsktl = {
-		maxacc = 0.138,
-		maxdec = 0.6486,
-		energycost = 26000,
-		metalcost = 540,
 		buildpic = "CORSKTL.DDS",
 		buildtime = 17000,
 		canmove = true,
 		cantbetransported = true,
-		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		cloakcost = 150,
 		cloakcostmoving = 400,
 		collisionvolumeoffsets = "0.5 -1 0",
 		collisionvolumescales = "22 14 22",
 		collisionvolumetype = "CylY",
+		energycost = 26000,
 		explodeas = "crawl_blast",
 		footprintx = 2,
 		footprintz = 2,
+		health = 355,
 		idleautoheal = 5,
 		idletime = 1800,
-		health = 355,
+		maxacc = 0.138,
+		maxdec = 0.6486,
 		maxslope = 255,
-		speed = 84.0,
 		maxwaterdepth = 30,
+		metalcost = 540,
 		mincloakdistance = 60,
 		movementclass = "ABOTBOMB2",
 		nochasecategory = "VTOL",
@@ -32,18 +30,19 @@ return {
 		selfdestructas = "corsktlSelfd",
 		selfdestructcountdown = 0,
 		sightdistance = 260,
+		speed = 84,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.155,
 		turnrate = 1290.29993,
 		upright = true,
 		customparams = {
-			unitgroup = 'explo',
+			instantselfd = true,
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corbots/t2",
+			subfolder = "CorBots/T2",
 			techlevel = 2,
-			instantselfd = true,
+			unitgroup = "explo",
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {
@@ -84,7 +83,6 @@ return {
 				explosiongenerator = "",
 				firesubmersed = true,
 				gravityaffected = "true",
-				impulseboost = 0,
 				impulsefactor = 0,
 				name = "Mine Detonator",
 				range = 1,
@@ -92,13 +90,13 @@ return {
 				soundhitwet = "splshbig",
 				weapontype = "Cannon",
 				weaponvelocity = 1000,
+				customparams = {
+					bogus = 1,
+				},
 				damage = {
 					crawlingbombs = 1000,
 					default = 0,
 				},
-				customparams = {
-					bogus = 1
-				}
 			},
 			crawl_dummy = {
 				areaofeffect = 0,
@@ -110,7 +108,6 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "",
 				firesubmersed = true,
-				impulseboost = 0,
 				impulsefactor = 0,
 				name = "Crawlingbomb Dummy Weapon",
 				range = 80,
@@ -120,12 +117,12 @@ return {
 				waterweapon = true,
 				weapontype = "Melee",
 				weaponvelocity = 100000,
+				customparams = {
+					bogus = 1,
+				},
 				damage = {
 					default = 0,
 				},
-				customparams = {
-					bogus = 1
-				}
 			},
 		},
 		weapons = {

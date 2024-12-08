@@ -96,9 +96,9 @@ local function auto_repair_routine(unitID,unitDefID)
     end
     if (commandQueue[1] ~= nil and commandQueue[1]["id"] == CMD_REPAIR) then
         -- out of range repair command
-		if (commandQueue[1]["params"][1] > Game.maxUnits) then
-			tx,ty,tz = SpGetFeaturePosition(commandQueue[1]["params"][1]-Game.maxUnits)
-			object_radius = SpGetFeatureRadius(commandQueue[1]["params"][1]-Game.maxUnits)
+		if (commandQueue[1]["params"][1] >= Game.maxUnits) then
+			tx,ty,tz = SpGetFeaturePosition(commandQueue[1]["params"][1] - Game.maxUnits)
+			object_radius = SpGetFeatureRadius(commandQueue[1]["params"][1] - Game.maxUnits)
 		else
 			tx,ty,tz = SpGetUnitPosition(commandQueue[1]["params"][1])
 			object_radius = SpGetUnitRadius(commandQueue[1]["params"][1])
@@ -109,9 +109,9 @@ local function auto_repair_routine(unitID,unitDefID)
     end
 	if (commandQueue[1] ~= nil and commandQueue[1]["id"] == CMD_RECLAIM) then
 		-- out of range reclaim command
-		if (commandQueue[1]["params"][1] > Game.maxUnits) then
-			tx,ty,tz = SpGetFeaturePosition(commandQueue[1]["params"][1]-Game.maxUnits)
-			object_radius = SpGetFeatureRadius(commandQueue[1]["params"][1]-Game.maxUnits)
+		if (commandQueue[1]["params"][1] >= Game.maxUnits) then
+			tx,ty,tz = SpGetFeaturePosition(commandQueue[1]["params"][1] - Game.maxUnits)
+			object_radius = SpGetFeatureRadius(commandQueue[1]["params"][1] - Game.maxUnits)
 		else
 			tx,ty,tz = SpGetUnitPosition(commandQueue[1]["params"][1])
 			object_radius = SpGetUnitRadius(commandQueue[1]["params"][1])
@@ -211,6 +211,20 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		-- makes the attached con turret as non-interacting as possible
 		Spring.SetUnitBlocking(nano_id, false, false, false)
 		Spring.SetUnitNoSelect(nano_id,true)
+		attached_builders[nano_id] = unitID
+		attached_builder_def[nano_id] = SpGetUnitDefID(nano_id)
+	end
+	if unitDef.name == "legmohobp" then
+		local xx,yy,zz = SpGetUnitPosition(unitID)
+		nano_id = Spring.CreateUnit("legmohobpct",xx,yy,zz,0,Spring.GetUnitTeam(unitID) )
+		if not nano_id then
+			-- unit limit hit or invalid spawn surface
+			return
+		end
+		Spring.UnitAttach(unitID,nano_id,3)
+		-- makes the attached con turret as non-interacting as possible 
+		Spring.SetUnitBlocking(nano_id, false, false, false)
+        Spring.SetUnitNoSelect(nano_id,false)
 		attached_builders[nano_id] = unitID
 		attached_builder_def[nano_id] = SpGetUnitDefID(nano_id)
 	end

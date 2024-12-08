@@ -14,7 +14,7 @@ return {
 		canpatrol = true,
 		canstop = "1",
 		capturable = false,
-		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE RAPTOR EMPABLE",
+		category = "RAPTOR",
 		collisionvolumeoffsets = "0 2 0",
 		collisionvolumescales = "27 38 60",
 		collisionvolumetype = "box",
@@ -31,7 +31,7 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "RAPTORALLTERRAINBIGHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL SPACE",
+		nochasecategory = "VTOL",
 		objectname = "Raptors/raptoracidallterrainassault.s3o",
 		script = "Raptors/raptorallterraina1.cob",
 		seismicsignature = 0,
@@ -90,7 +90,6 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.63,
 				explosiongenerator = "custom:acid-explosion-xl",
-				impulseboost = 0,
 				impulsefactor = 0.4,
 				intensity = 0.7,
 				interceptedbyshieldtype = 1,
@@ -111,6 +110,14 @@ return {
 				turret = true,
 				weapontimer = 0.2,
 				weaponvelocity = 520,
+				customparams = {
+					area_onhit_ceg = "acid-area-150-repeat",
+					area_onhit_damageCeg = "acid-damage-gen",
+					area_onhit_time = 10,
+					area_onhit_damage = 100,
+					area_onhit_range = 150,
+					area_onhit_resistance = "_RAPTORACID_",
+				},
 				damage = {
 					default = 1, --damage done in unit_area_timed_damage.lua
 					shields = 160,
@@ -119,7 +126,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL SPACE",
+				badtargetcategory = "VTOL",
 				def = "acidspit",
 				maindir = "0 0 1",
 				maxangledif = 125,

@@ -26,7 +26,7 @@ end
 if damageStats and damageStats[gameName] and damageStats[gameName].team then
 	local rate = 0
 	for k, v in pairs (damageStats[gameName].team) do
-		if not v == damageStats[gameName].team.games and v.cost and v.killed_cost then
+		if k ~= "games" and v.cost and v.killed_cost then
 			local compRate = v.killed_cost/v.cost
 			if compRate > rate then
 				highestUnitDef = k
@@ -36,7 +36,7 @@ if damageStats and damageStats[gameName] and damageStats[gameName].team then
 	end
 	local scndRate = 0
 	for k, v in pairs (damageStats[gameName].team) do
-		if not v == damageStats[gameName].team.games and v.cost and v.killed_cost then
+		if k ~= "games" and v.cost and v.killed_cost then
 			local compRate = v.killed_cost/v.cost
 			if compRate > scndRate and k ~= highestUnitDef then
 				scndhighestUnitDef = k
@@ -47,7 +47,7 @@ if damageStats and damageStats[gameName] and damageStats[gameName].team then
 	local thirdRate = 0
 	--local thirdhighestUnitDef
 	for k, v in pairs (damageStats[gameName].team) do
-		if not v == damageStats[gameName].team.games and v.cost and v.killed_cost then
+		if k ~= "games" and v.cost and v.killed_cost then
 			local compRate = v.killed_cost/v.cost
 			if compRate > thirdRate and k ~= highestUnitDef and k ~= scndhighestUnitDef then
 				--thirdhighestUnitDef = k
@@ -496,13 +496,14 @@ local function drawStats(uDefID, uID)
 	-- Transportable
 	------------------------------------------------------------------------------------
 
-	if transportable and mass > 0 and size > 0 then
-		if mass < 5000 and size < 3 then -- 3 is t1 transport max size
-			DrawText(texts.transportable..':', blue .. texts.transportable_light)
-		elseif mass < 100000 and size < 4 then
-			DrawText(texts.transportable..':', yellow .. texts.transportable_heavy)
+		if transportable and mass > 0 and size > 0 then
+			if mass < 751 and size < 4 then -- 3 is t1 transport max size
+				DrawText(texts.transportable..':', blue .. texts.transportable_light)
+			elseif mass < 100000 and size < 5 then
+				DrawText(texts.transportable..':', yellow .. texts.transportable_heavy)
+			end
 		end
-	end
+
 	cY = cY - fontSize
 
 	------------------------------------------------------------------------------------
@@ -641,8 +642,8 @@ local function drawStats(uDefID, uID)
 			if uWep.damages.paralyzeDamageTime > 0 then
 				infoText = format("%s, %ds "..texts.paralyze, infoText, uWep.damages.paralyzeDamageTime)
 			end
-			if uWep.damages.impulseBoost > 0 then
-				infoText = format("%s, %d "..texts.impulse, infoText, uWep.damages.impulseBoost*100)
+			if uWep.damages.impulseFactor > 0.123 then
+				infoText = format("%s, %d "..texts.impulse, infoText, uWep.damages.impulseFactor*100)
 			end
 			if uWep.damages.craterBoost > 0 then
 				infoText = format("%s, %d "..texts.crater, infoText, uWep.damages.craterBoost*100)

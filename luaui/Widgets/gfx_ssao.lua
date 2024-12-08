@@ -77,6 +77,8 @@ local definesSlidersParamsList = {
 	{name = 'ENABLE', default = 1, min = 0, max = 1, digits = 0, tooltip = 'Disable the whole SSAO'},
 	{name = 'SLOWFUSE', default = 0, min = 0, max = 1, digits = 0, tooltip = 'Only fuse every 30 frames. DO NOT TOUCH!'},
 	{name = 'NOFUSE', default = 0, min = 0, max = 1, digits = 0, tooltip = 'Dont use the gbuf fuse texture'},
+
+	{name = 'SSAO_ALPHA_POW', default = 8, min = 1, max = 20, digits = 0, tooltip = 'Legacy setting'},
 }
 local function InitShaderDefines()
 	for i, shaderDefine in ipairs(definesSlidersParamsList) do 
@@ -745,7 +747,16 @@ local function DoDrawSSAO()
 	gl.DepthTest(true) --"BK OpenGL state resets", already commented out
 end
 
+local drawFrame = -1
+--function widget:DrawWorldPreParticles()
+-- NOTE THAT DrawWorldPreParticles is called multiple times per frame, and also has a bug where only the buttom half of the screen gets SSAO
 function widget:DrawWorld()
+	local df = Spring.GetDrawFrame()
+	if df == drawFrame then 
+		return 
+	else
+		drawFrame = df
+	end
 	if shaderConfig.ENABLE == 0 then return end
 	DoDrawSSAO(false)
 

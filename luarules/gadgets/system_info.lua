@@ -252,5 +252,12 @@ else
 		end
 	end
 
+	function gadget:GamePaused(playerID, isPaused)
+		if playerID == myPlayerID then
+			local msg = string.format("p@u$3:%s", tostring(isPaused))
+			SendLuaRulesMsg(msg)
+		end
+	end
+
 end
 

@@ -9,7 +9,6 @@ return {
 		buildpic = "CORTIDE.DDS",
 		buildtime = 2100,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "-3 2 -1",
 		collisionvolumescales = "28 30 33",
 		collisionvolumetype = "Box",
@@ -38,7 +37,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "corbuildings/seaeconomy",
+			subfolder = "CorBuildings/SeaEconomy",
 		},
 		featuredefs = {
 			dead = {
