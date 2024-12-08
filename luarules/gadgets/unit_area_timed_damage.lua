@@ -42,6 +42,10 @@ local damage, time, range, resistance = 30, 10, 75, "none"
         <prefix>_resistance := <string>    Matched against areadamageresistance
     }
     prefix := area_ondeath | area_onhit  Units use ondeath; weapons use onhit.
+
+    When adding timed areas to existing weapons, you should tweak the weapon's
+    explosion ceg, too. There's a short delay between the hit and the area ceg,
+    which you can mask/make look nice with an explosion lasting about 0.5 secs.
 ]]--
 
 --------------------------------------------------------------------------------
