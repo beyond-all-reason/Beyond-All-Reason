@@ -7049,6 +7049,15 @@ local unitLights = {
 		},
 	},
 	['armplat'] = {
+		buildlight = {
+			lightType = 'cone',
+			pieceName = 'cagelight_emit',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 32,
+							dirx = 1, diry = 0, dirz = 0, theta = 0.7,
+							r = 1.29999995, g = 0.89999998, b = 0.1, a = 2,
+							modelfactor = 0.1, specular = 0.2, scattering = 1.2, lensflare = 6,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
 		greenblob = {
 			lightType = 'point',
 			pieceName = 'blink',

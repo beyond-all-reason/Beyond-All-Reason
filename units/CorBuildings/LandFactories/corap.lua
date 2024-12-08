@@ -6,7 +6,7 @@ return {
 		buildtime = 7180,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "110 33 90",
+		collisionvolumescales = "128 33 96",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		energycost = 1350,
@@ -33,7 +33,7 @@ return {
 		sightemitheight = 40,
 		terraformspeed = 500,
 		workertime = 100,
-		yardmap = "yoooooooy ooooooooo ooooooooo ooooooooo ooooooooo yoooooooy",
+		yardmap = "ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo",
 		buildoptions = {
 			[1] = "corca",
 			[2] = "corfink",

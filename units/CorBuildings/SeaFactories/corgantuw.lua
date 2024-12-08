@@ -6,7 +6,7 @@ return {
 		canmove = true,
 		collisionvolumeoffsets = "0 12 0",
 		collisionvolumescales = "196 110 196",
-		collisionvolumetype = "CylY",
+		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		energycost = 62500,
 		energystorage = 1400,
@@ -28,7 +28,6 @@ return {
 		selfdestructas = "hugeBuildingExplosionGenericSelfd-uw",
 		sightdistance = 273,
 		terraformspeed = 3000,
-		usepiececollisionvolumes = 1,
 		workertime = 600,
 		yardmap = "oooooooooooo oooooooooooo oooooooooooo ooccccccccoo ooccccccccoo ooccccccccoo ooccccccccoo ooccccccccoo ooccccccccoo ooccccccccoo ooccccccccoo ooccccccccoo",
 		buildoptions = {
