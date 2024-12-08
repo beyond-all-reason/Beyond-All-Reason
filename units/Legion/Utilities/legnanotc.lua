@@ -40,7 +40,7 @@ return {
 		workertime = 200,
 		customparams = {
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/cornanotc_aoplane.dds",
+			buildinggrounddecaltype = "decals/legnanotc_aoplane.dds",
 			buildinggrounddecalsizey = 5,
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,

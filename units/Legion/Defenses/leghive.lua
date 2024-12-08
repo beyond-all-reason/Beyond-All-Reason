@@ -33,7 +33,7 @@ return {
 		upright = true,
 		customparams = {
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/armnanotc_aoplane.dds",
+			buildinggrounddecaltype = "decals/leghive_aoplane.dds",
 			buildinggrounddecalsizey = 5,
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,

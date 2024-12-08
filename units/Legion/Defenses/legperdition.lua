@@ -29,8 +29,8 @@ return {
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/legperdition_aoplane.dds",
-			buildinggrounddecalsizey = 7.5,
-			buildinggrounddecalsizex = 7.5,
+			buildinggrounddecalsizey = 8,
+			buildinggrounddecalsizex = 8,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'weapon',
 			model_author = "Hornet, Tharsis",

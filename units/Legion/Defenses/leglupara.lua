@@ -31,8 +31,8 @@ return {
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/leglupara_aoplane.dds",
-			buildinggrounddecalsizey = 1,
-			buildinggrounddecalsizex = 1,
+			buildinggrounddecalsizey = 5,
+			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'aa',
 			model_author = "ZephyrSkies",
