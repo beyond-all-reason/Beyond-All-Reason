@@ -291,7 +291,7 @@ local shaderSourceCache = {
 			NUM_POINTS = 0,
 			MINY = minY - 10,
 			MAXY = maxY + 100,
-			MAX_STEEPNESS = 0.5877, -- 45 degrees yay (cos is 0.7071? (54 degrees, so cos of that is 0.5877	)
+			MAX_STEEPNESS = math.cos(math.rad(54)),
 			SCAV_ALLYTEAM_ID = scavengerAIAllyTeamID, -- these neatly become undefined if not present
 			RAPTOR_ALLYTEAM_ID = raptorsAIAllyTeamID,
 		},
