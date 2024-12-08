@@ -72,6 +72,7 @@ local explosionCount = 0
 local regexArea, regexRepeat = '%-area%-', '%-repeat'
 local regexDigits = "%d+"
 local regexCegRadius = regexArea..regexDigits..regexRepeat
+local regexCegToRadius = regexArea.."("..regexDigits..")"..regexRepeat
 
 --------------------------------------------------------------------------------
 -- Local functions -------------------------------------------------------------
@@ -94,33 +95,29 @@ local function getExplosionParams(def, prefix)
 end
 
 local function getNearestCEG(params)
-        local ceg, range = params.ceg, params.range
-        local midX, midZ = Game.mapSizeX / 2, Game.mapSizeZ / 2
-        local hiddenY = spGetGroundHeight(midX, midZ) - 1e6
+    local ceg, range = params.ceg, params.range
 
-        -- We can't check properties of the ceg, so use the name to compare 'size'. Yes, "that is bad".
-        if string.find(ceg, "-"..range.."-", nil, true) and Spring.SpawnCEG(ceg, midX, hiddenY, midZ) then
+    -- We can't check properties of the ceg, so use the name to compare 'size'. Yes, "that is bad".
+    if string.find(ceg, "-"..math.floor(range).."-", nil, true) then
+        local _, _, _, namedRange = string.find(ceg, regexCegToRadius, nil, true)
+        if tonumber(namedRange) == math.floor(range) then
             return ceg, range
         end
+    end
 
-        -- User tweaks have modified the ceg and/or range; update both to the best-fitting preset.
-        local sizeBest, diffBest = math.huge, math.huge
-        for ii = 1, #areaSizePresets do
-            local size = areaSizePresets[ii]
-            local diff = math.abs(range / size - size / range)
-            if diff < diffBest then
-                local cegTest = string.gsub(ceg, regexCegRadius, regexArea..math.floor(sizeBest)..regexRepeat)
-                local success, cegID = Spring.SpawnCEG(cegTest, midX, hiddenY, midZ)
-                if success and cegID then
-                    diffBest = diff
-                    sizeBest = size
-                end
-            end
+    -- User tweaks have modified the ceg and/or range; update both to the best-fitting preset.
+    local sizeBest, diffBest = math.huge, math.huge
+    for ii = 1, #areaSizePresets do
+        local size = areaSizePresets[ii]
+        local diff = math.abs(range / size - size / range)
+        if diff < diffBest then
+            diffBest = diff
+            sizeBest = size
         end
-        if sizeBest < math.huge then
-            ceg = string.gsub(ceg, regexDigits, sizeBest, 1)
-            return ceg, sizeBest
-        end
+    end
+    if sizeBest < math.huge then
+        ceg = string.gsub(ceg, regexDigits, sizeBest, 1)
+        return ceg, sizeBest
     end
 end
 

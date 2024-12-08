@@ -1460,7 +1460,7 @@ local definitions = {
 }
 
 -- Keep array in sync with values in unit_area_timed_damage:
-local areaSizesUnitTimedDamage = { 37.5, 46, 54, 63, 75, 88, 100, 125, 150, 175, 200, 225, 250, 275, 300 }
+local areaSizePresets = { 37.5, 46, 54, 63, 75, 88, 100, 125, 150, 175, 200, 225, 250, 275, 300 }
 
 local debugEffects = false
 local debugCircle = {
