@@ -222,9 +222,6 @@ function widget:Update(dt)
 			end
 		end
 		removedUnitshapes = {}	-- in extreme cases the delayed widget:UnitCommand processing is slower than the actual UnitCreated/Finished, this table is to make sure a unitshape isnt created after
-
-	elseif sec > lastUpdate + 0.12 then
-
 	end
 
 	if Spring.IsGUIHidden() ~= prevGuiHidden then
