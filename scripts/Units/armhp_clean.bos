@@ -2,7 +2,7 @@
 #include "../recoil_common_includes.h"
 #include "../factories_common.h"
 
-piece  base, doorr1, doorr2, doorl1,doorl2, standr, standl, nanol, nanor, emitl, emitr;
+piece  base, doorr1, doorr2, doorl1,doorl2, standr, standl, nanol, nanor, emitl, emitr, cagelight1, cagelight_emit1, cagelight2, cagelight_emit2;
 static-var  spray;
 
 // Signal definitions
@@ -12,6 +12,8 @@ Create()
 {
 	hide emitr;
 	hide emitl;
+	hide cagelight_emit1;
+	hide cagelight_emit2;
 	spray = 0;
 }
 
@@ -76,6 +78,11 @@ StartBuilding()
 {
 	show emitr;
 	show emitl;
+	
+	show cagelight_emit1;
+	show cagelight_emit2;
+	spin cagelight1 around y-axis speed <200> accelerate <1>;
+	spin cagelight2 around y-axis speed <-200> accelerate <1>;
 	return (0);
 }
 
@@ -83,6 +90,11 @@ StopBuilding()
 {
 	hide emitr;
 	hide emitl;
+	
+	hide cagelight_emit1;
+	hide cagelight_emit2;
+	stop-spin cagelight1 around y-axis decelerate <1>;
+	stop-spin cagelight2 around y-axis decelerate <1>;
 	return (0);
 }
 

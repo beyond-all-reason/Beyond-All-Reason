@@ -2,7 +2,7 @@
 #include "../recoil_common_includes.h"
 #include "../factories_common.h"
 
-piece  base, pad, beam1, beam2, beam3, beam4, nano1,nano2,nano3,nano4;
+piece  base, pad, beam1, beam2, beam3, beam4, nano1, nano2, nano3, nano4, cagelight1, cagelight_emit1, cagelight2, cagelight_emit2;
 
 static-var  spray;
 
@@ -31,11 +31,11 @@ Create()
 	hide nano3;
 	hide nano1;
 	hide nano2;
-	spray = base;
-	set ARMORED to 1;
-	move base to y-axis [5.0] now;
+	hide cagelight_emit1;
+	hide cagelight_emit2;
+	start-script Deactivate();
+	spray = nano1;
 	SLEEP_UNTIL_UNITFINISHED;
-	move base to y-axis [0.0] speed [10.0];
 	start-script FloatMotion();
 }
 
@@ -51,8 +51,11 @@ Activate()
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
 	
-	move base to y-axis [28] speed [25.0];
+	move base to y-axis [35] speed [35.0];
 	wait-for-move base along y-axis;
+	
+	set ARMORED to 0;
+	set INBUILDSTANCE to 1;
 	
 	FACTORY_OPEN_BUILD;
 }
@@ -63,8 +66,11 @@ Deactivate()
 	set-signal-mask SIGNAL_TURNON;
 	sleep 5000;
 	
-	move base to y-axis [0.0] speed [25.0];
+	move base to y-axis [-15.0] speed [35.0];
 	wait-for-move base along y-axis;
+	
+	set ARMORED to 1;
+	set INBUILDSTANCE to 0;
 	
 	FACTORY_CLOSE_BUILD;
 }
@@ -75,7 +81,13 @@ StartBuilding()
 	show nano2;
 	show nano3;
 	show nano4;
-	spin pad around y-axis speed <30.005495>;
+	spin pad around y-axis speed <10>;
+	
+	show cagelight_emit1;
+	show cagelight_emit2;
+	
+	spin cagelight1 around y-axis speed <200> accelerate <1>;
+	spin cagelight2 around y-axis speed <-200> accelerate <1>;
 }
 
 StopBuilding()
@@ -85,6 +97,12 @@ StopBuilding()
 	hide nano3;
 	hide nano4;
 	stop-spin pad around y-axis;
+	
+	hide cagelight_emit1;
+	hide cagelight_emit2;
+	
+	stop-spin cagelight1 around y-axis decelerate <1>;
+	stop-spin cagelight2 around y-axis decelerate <1>;
 }
 
 QueryBuildInfo(pieceIndex)

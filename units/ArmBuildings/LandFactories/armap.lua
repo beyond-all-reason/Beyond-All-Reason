@@ -5,7 +5,7 @@ return {
 		buildpic = "ARMAP.DDS",
 		buildtime = 7250,
 		canmove = true,
-		collisionvolumeoffsets = "0 0 1",
+		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "134 49 82",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
@@ -32,7 +32,7 @@ return {
 		sightdistance = 292,
 		terraformspeed = 500,
 		workertime = 100,
-		yardmap = "ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo",
+		yardmap = "yoooooooy ooooooooo ooooooooo ooooooooo ooooooooo yoooooooy",
 		buildoptions = {
 			[1] = "armca",
 			[2] = "armpeep",

@@ -31,7 +31,7 @@ return {
 		sightdistance = 290,
 		terraformspeed = 500,
 		workertime = 100,
-		yardmap = "coooocoooooococcococcccooccccocccccc",
+		yardmap = "oooooo oooooo occcco occcco occcco occcco",
 		buildoptions = {
 			[1] = "legck",
 			[2] = "cornecro",
@@ -45,8 +45,8 @@ return {
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/leglab_aoplane.dds",
-			buildinggrounddecalsizey = 8,
-			buildinggrounddecalsizex = 8,
+			buildinggrounddecalsizey = 9,
+			buildinggrounddecalsizex = 9,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'builder',
 			model_author = "Tharsis",

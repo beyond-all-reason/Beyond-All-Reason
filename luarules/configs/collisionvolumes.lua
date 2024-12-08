@@ -145,16 +145,16 @@ unitCollisionVolume['armpb'] = {
 	off={40,40,40,0,-8,0,3,1,1},
 }
 unitCollisionVolume['armplat'] = {
-	on={105,66,105,0,33,0,2,1,0},
-	off={105,44,105,0,0,0,2,1,0},
+	on={96,66,96,0,33,0,1,1,1},
+	off={96,44,96,0,0,0,1,1,1},
 }
 unitCollisionVolume['armsolar'] = {
 	on={73,76,73,0,-18,1,0,1,0},
 	off={50,76,50,0,-18,1,0,1,0},
 }
 unitCollisionVolume['armvp'] = {
-	on={120,34,92,0,0,0,2,1,0},
-	off={90,34,92,0,0,0,2,1,0},
+	on={96,34,96,0,0,0,2,1,0},
+	off={96,34,96,0,0,0,2,1,0},
 }
 unitCollisionVolume['cordoom'] = {
 	on={63,112,63,0,0,0,1,1,1},
@@ -162,8 +162,8 @@ unitCollisionVolume['cordoom'] = {
 }
 
 unitCollisionVolume['corplat'] = {
-	on={112,60,112,0,28,0,1,1,1},
-	off={112,35,112,0,0,0,1,1,1},
+	on={96,60,96,0,28,0,1,1,1},
+	off={96,42,96,0,-20,0,1,1,1},
 }
 unitCollisionVolume['legsolar'] = {
 

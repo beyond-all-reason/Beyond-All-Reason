@@ -1,157 +1,24 @@
 
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
+#include "../factories_common.h"
 
-piece  base, pad, head1, head2, head3, head4, nano1, nano2, nano3, nano4;
+piece  base, pad, head1, head2, head3, head4, nano1, nano2, nano3, nano4, cagelight1, cagelight_emit1, cagelight2, cagelight_emit2;
 
-static-var  Static_Var_1, unitviewer, statechg_DesiredState, statechg_StateChanging;
+static-var  buildAnimPiece;
 
 // Signal definitions
-#define SIG_ACTIVATE			2
+#define SIGNAL_TURNON 4
 
-
-activatescr()
-{
-	if( TRUE )
-	{
-		turn head1 to y-axis <0.000000> now;
-				turn head1 to y-axis <-60.000000> speed <225.000000>;
-				turn head2 to y-axis <0.000000> now;
-				turn head2 to y-axis <60.000000> speed <225.000000>;
-				turn head3 to y-axis <0.000000> now;
-				turn head3 to y-axis <-60.000000> speed <225.000000>;
-				turn head4 to y-axis <0.000000> now;
-				turn head4 to y-axis <60.000000> speed <225.000000>;
-				wait-for-turn head1 around y-axis;
-	}
-	sleep 20;
-	return (0);
-	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
-}
-
-deactivatescr()
-{
-	if( TRUE )
-	{
-		turn head1 to y-axis <0.000000> speed <225.000000>;
-				turn head2 to y-axis <0.000000> speed <225.000000>;
-				turn head3 to y-axis <0.000000> speed <225.000000>;
-				turn head4 to y-axis <0.000000> speed <225.000000>;
-				wait-for-turn head1 around y-axis;
-	}
-	sleep 20;
-	return (0);
-}
+#define WATER_ROCK_UNITSIZE 22
+#include "../floatmotion.h"
 
 #define BASEPIECE base
 #define HITSPEED <15.0>
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 10
 #define MAXTILT 100
-
-#include "unit_hitbyweaponid_and_smoke.h"
-
-RockOnWaves()
-{
-	var rockDir, rockAng, rockSpeed;
-	rockDir = <-0.1>;
-	rockAng = <-0.1>;
-	while( TRUE )
-	{
-		while( get ABS(rockAng) < <1.31> )
-		{
-			rockSpeed = <1.45> - get ABS(rockAng);
-			turn base to x-axis rockAng speed rockSpeed*5;
-			turn base to z-axis rockAng speed rockSpeed*5;
-			wait-for-turn base around x-axis;
-			wait-for-turn base around z-axis;
-			rockAng = rockAng + rockDir;
-		}
-		rockDir = 0 - rockDir;
-		rockAng = rockAng + rockDir + rockDir;
-	}
-}
-
-
-
-OpenYard()
-{
-	set YARD_OPEN to 1;
-	while( !get YARD_OPEN )
-	{
-		set BUGGER_OFF to 1;
-		sleep 1500;
-		set YARD_OPEN to 1;
-	}
-	set BUGGER_OFF to 0;
-	return (0);
-}
-
-CloseYard()
-{
-	set YARD_OPEN to 0;
-	while( get YARD_OPEN )
-	{
-		set BUGGER_OFF to 1;
-		sleep 1500;
-		set YARD_OPEN to 0;
-	}
-	set BUGGER_OFF to 0;
-	return (0);
-}
-
-Go()
-{
-
-	call-script activatescr();
-	call-script OpenYard();
-	set INBUILDSTANCE to 1;
-	return (0);
-}
-
-Stop()
-{
-	set INBUILDSTANCE to 0;
-	call-script CloseYard();
-	call-script deactivatescr();
-	return (0);
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	return (0);
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-	return (0);
-}
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 
 
@@ -162,67 +29,47 @@ Create()
 	hide nano4;
 	hide nano3;
 	hide nano2;
+	hide cagelight_emit1;
+	hide cagelight_emit2;
 	hide pad;
-	unitviewer = FALSE;
-	Static_Var_1 = 0;
-	call-script InitState();
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	start-script RockOnWaves();
+	buildAnimPiece = 0;
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script FloatMotion();
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	if( Static_Var_1 == 0 )
-	{
-		piecenum = nano1;
-	}
-	if( Static_Var_1 == 1 )
-	{
-		piecenum = nano2;
-	}
-	if( Static_Var_1 == 2 )
-	{
-		piecenum = nano3;
-	}
-	if( Static_Var_1 == 3 )
-	{
-		piecenum = nano4;
-	}
-			Static_Var_1=Static_Var_1+1;
-			if( Static_Var_1 >3 )
-	{
-		Static_Var_1=0;
-	}
-	return (0);
-}
-
-Demo()
-{
-	unitviewer = TRUE;
-	return (0);
+	buildAnimPiece = (buildAnimPiece + 1) % 4;
+	pieceIndex = nano1 + buildAnimPiece;
 }
 
 Activate()
 {
-	signal SIG_ACTIVATE;
-	start-script RequestState(0);
-	return (0);
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	
+	turn head1 to y-axis <-60.0> speed <225.0>;
+	turn head2 to y-axis <60.0> speed <225.0>;
+	turn head3 to y-axis <-60.0> speed <225.0>;
+	turn head4 to y-axis <60.0> speed <225.0>;
+	wait-for-turn head1 around y-axis;
+	
+	FACTORY_OPEN_BUILD;
 }
 
 Deactivate()
 {
-	signal SIG_ACTIVATE;
-	set-signal-mask SIG_ACTIVATE;
-	if( !unitviewer )
-	{
-		sleep 5000;
-	}
-	set-signal-mask 0;
-	start-script RequestState(1);
-	return (0);
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	sleep 5000;
+	
+	turn head1 to y-axis <0.0> speed <225.0>;
+	turn head2 to y-axis <0.0> speed <225.0>;
+	turn head3 to y-axis <0.0> speed <225.0>;
+	turn head4 to y-axis <0.0> speed <225.0>;
+	wait-for-turn head1 around y-axis;
+				
+	FACTORY_CLOSE_BUILD;
 }
 
 StartBuilding()
@@ -231,6 +78,11 @@ StartBuilding()
 	show nano4;
 	show nano3;
 	show nano2;
+	
+	show cagelight_emit1;
+	show cagelight_emit2;
+	spin cagelight1 around y-axis speed <200> accelerate <1>;
+	spin cagelight2 around y-axis speed <-200> accelerate <1>;
 	sleep 150;
 	return (0);
 }
@@ -241,21 +93,22 @@ StopBuilding()
 	hide nano4;
 	hide nano3;
 	hide nano2;
+	
+	hide cagelight_emit1;
+	hide cagelight_emit2;
+	stop-spin cagelight1 around y-axis decelerate <1>;
+	stop-spin cagelight2 around y-axis decelerate <1>;
 	sleep 150;
 	return (0);
 }
 
-QueryBuildInfo(piecenum)
+QueryBuildInfo(pieceIndex)
 {
-	piecenum = pad;
+	pieceIndex = pad;
 	return (0);
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
-}
+
 
 Killed(severity, corpsetype)
 {
