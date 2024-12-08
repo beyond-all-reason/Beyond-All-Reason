@@ -129,6 +129,7 @@ function UnitDef_Post(name, uDef)
 				elseif name == "corthud" then
 					uDef.objectname = "apf/corthud.s3o"
 				end
+			elseif modOptions.unithats == "christmas" then
 			end
 		end
 	end

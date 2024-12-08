@@ -51,6 +51,7 @@ do
 				armham=5,
 				corthud=6,
 			},
+			},
 		}
 
 		hatCountsTemp = hatTable[hats]

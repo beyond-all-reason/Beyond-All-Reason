@@ -27,6 +27,7 @@
 --  unlock:   if type is bool: hides the table of keys when set to FALSE    <<< can not hide separators >>>
 --        |   if type is list: add under each item what it should HIDE when set to
 --  bitmask:  int (1|2|4|8...etc), for when multiple options can hide an item
+local r,g,b,w = "\255\255\128\128", "\255\128\255\128", "\255\128\128\255", "\255\255\255\255"
 
 local options = {
 
@@ -91,6 +92,142 @@ local options = {
         section = "options_main",
         type    = "separator",
     },
+
+	--[[HALLOWEEN START
+	--- TO ENABLE TURN ABOVE -- into ----
+	{
+		key		= "sub_header",
+		name	= "HALLOWEEN EXTRA",
+		type	= "subheader",
+		font	= 5,
+		section	= "options_main",
+		column	= -1.1,
+	},
+
+	{
+		key		= "unithats",
+		name	= "\255\240\190\90".."• Unit Hats",
+		desc	= "Unit Hats, for the current season",
+		type	= "list",
+		def = "halloween",
+		items	= {
+			{ key = "disabled",	name = "Disabled" },
+			{ key = "halloween",name = "\255\200\75\255".."Halloween", 		desc = "Trick or Treat your enemies to an assortment of horrors" },
+		},
+		section	= "options_main",
+	},
+	--{
+	--	key		= "zombies",
+	--	name	= "• Graveyard Feast",
+	--	desc	= "\255\200\75\255".."There is no Rest for the wicked, the living, nor the dead.\n".."\255\200\75\255".."  The dead will soon haunt the battlefield like the living.",
+	--	type	= "bool",
+	--	section	= "options_main",
+	--	column	= -1,
+	--	-- Excluding the default means it is always shown, brining attention to its temporary existance, only works for bools
+	--	-- optional
+	--	def = nil,
+	--},
+
+	{
+		key		= "separator",
+		section	= "options_main",
+		type	= "separator",
+	},
+	--HALLOWEEN END]]
+
+
+	----[[CHRISTMAS START
+	--- TO ENABLE TURN ABOVE -- into ----
+	{
+		key		= "sub_header",
+		name	= "                    CHRISTMAS EXTRA",
+		type	= "subheader",
+		font	= 5,
+		section	= "options_main",
+		column	= -0.9,
+	},
+	{
+		key		= "sub_header",
+		name	= r.."°"..w.."-"..g.."°"..w.."-"..r.."o"..w.."-"..g.."o"..w.."_"..r.."o                                                     o"..w.."_"..g.."o"..w.."-"..r.."o"..w.."-"..g.."°"..w.."-"..r.."°",
+		type	= "subheader",
+		font	= 0.5,
+		section	= "options_main",
+		column	= 0.99,
+	},
+
+	{
+		key		= "unithats",
+		name	= "\255\240\190\90".."• Unit Hats",
+		desc	= "Unit Hats, for the current season",
+		type	= "list",
+		def		= "christmas",
+		items	= {
+			{ key = r.."disabled",	name = r.."Disabled" },
+			{ key = "christmas",
+				name = r.."°"..w.."-"..g.."°"..w.."-"..r.."o"..w.."-"..g.."o"..w.."_"..r.."o"..g..
+				"Christmas"
+				..r.."o"..w.."_"..g.."o"..w.."-"..r.."o"..w.."-"..g.."°"..w.."-"..r.."°",
+				desc = "Delvier Gifts of WAR upon your enemies, in a happy way"
+			},
+		},
+		section	= "options_main",
+		column	= -1,
+	},
+	{
+		key		= "xmas",
+		name	= "\255\240\190\90".."• Holiday decorations",
+		desc	= "Various  holiday decorations",
+		type	= "bool",
+		def		= true,
+		section	= "options_main",
+	},
+
+	{
+		key		= "separator",
+		section	= "options_main",
+		type	= "separator",
+	},
+	--CHRISTMAS END]]
+
+	--[[APRIL FOOLS START
+	--- TO ENABLE TURN ABOVE -- into ----
+	{
+		key		= "sub_header",
+		name	= "APRIL FOOLS EXTRA",
+		type	= "subheader",
+		font	= 5,
+		section	= "options_main",
+		column	= -1.1,
+	},
+
+	{
+		key		= "unithats",
+		name	= "\255\240\190\90".."• Unit Hats",
+		desc	= "Unit Hats, for the current season",
+		type	= "list",
+		def		= "disabled",
+		items	= {
+			{ key = "disabled",	name = "Disabled" },
+			{ key = "april", 	name = "Silly", 		desc = "An assortment of foolish and silly hats >:3" },
+		},
+		section	= "options_main",
+	},
+	{
+		key		= "easter_egg_hunt",
+		name	= "\255\240\190\90".."• Easter Eggs Hunt",
+		desc	= "Easter Eggs are spawned around the map! Time to go on an Easter Egg hunt! (5 metal 50 energy per)",
+		type	= "bool",
+		-- DISABLED : META/BALANCE CHANGE in favour of bots / rez
+		def		= false,
+		section	= "options_main",
+	},
+
+	{
+		key		= "separator",
+		section	= "options_main",
+		type	= "separator",
+	},
+	--APRIL FOOLS]]
 
     {
         key     = "sub_header",
@@ -845,37 +982,6 @@ local options = {
         section = "options_extra",
         type    = "separator",
     },
-
-    --{
-    --	key    	= "xmas",
-    --	name   	= "Holiday decorations",
-    --	desc   	= "Various  holiday decorations",
-    --	type   	= "bool",
-    --	def    	= true,
-    --	section	= "options_extra",
-    --},
-
-	-- {
-	-- 	key		= "unithats",
-	-- 	name	= "Unit Hats",
-	-- 	desc	= "Unit Hats, for the current season",
-	-- 	type	= "list",
-	-- 	def		= "disabled",
-	-- 	items	= {
-	-- 		{ key = "disabled",	name = "Disabled" },
-	-- 		{ key = "april", 	name = "Silly", 		desc = "An assortment of foolish and silly hats >:3" },
-	-- 	},
-	-- 	section	= "options_extra",
-	-- },
-	--{
-	--	key		= "easter_egg_hunt",
-	--	name	= "Easter Eggs Hunt",
-	--	desc	= "Easter Eggs are spawned around the map! Time to go on an Easter Egg hunt! (5 metal 50 energy per)",
-	--	type	= "bool",
-	--	def		= false,
-	--	section	= "options_extra",
-	--},
-
 
     {
         key    	= "experimentalextraunits",
