@@ -138,22 +138,26 @@ local options = {
 
 	----[[CHRISTMAS START
 	--- TO ENABLE TURN ABOVE -- into ----
+	{	key		= "sub_header",	type	= "subheader", font	= 0.5, section	= "options_main",
+		name	= r.."o"..w.."_"..g.."o"..w.."-"..r.."o"..w.."-"..g.."°"..w.."-"..r.."°",
+		column	= 0.992, },
+	{	key		= "sub_header",	type	= "subheader", font	= 0.5, section	= "options_main",
+		name	= r.."°"..w.."-"..g.."°"..w.."-"..r.."o"..w.."-"..g.."o"..w.."_"..r.."o",
+		column	= 1.24, },
 	{
 		key		= "sub_header",
-		name	= "                    CHRISTMAS EXTRA",
+		name	= "CHRISTMAS EXTRA",
 		type	= "subheader",
 		font	= 5,
 		section	= "options_main",
-		column	= -0.9,
+		column	= 1.343,
 	},
-	{
-		key		= "sub_header",
-		name	= r.."°"..w.."-"..g.."°"..w.."-"..r.."o"..w.."-"..g.."o"..w.."_"..r.."o                                                     o"..w.."_"..g.."o"..w.."-"..r.."o"..w.."-"..g.."°"..w.."-"..r.."°",
-		type	= "subheader",
-		font	= 0.5,
-		section	= "options_main",
-		column	= 0.99,
-	},
+	{	key		= "sub_header",	type	= "subheader", font	= 0.5, section	= "options_main",
+		name	= r.."o"..w.."_"..g.."o"..w.."-"..r.."o"..w.."-"..g.."°"..w.."-"..r.."°",
+		column	= 1.68, },
+	{	key		= "sub_header",	type	= "subheader", font	= 0.5, section	= "options_main",
+		name	= r.."°"..w.."-"..g.."°"..w.."-"..r.."o"..w.."-"..g.."o"..w.."_"..r.."o",
+		column	= 1.928, },
 
 	{
 		key		= "unithats",
@@ -164,14 +168,23 @@ local options = {
 		items	= {
 			{ key = r.."disabled",	name = r.."Disabled" },
 			{ key = "christmas",
-				name = r.."°"..w.."-"..g.."°"..w.."-"..r.."o"..w.."-"..g.."o"..w.."_"..r.."o"..g..
+				name = r.."°"..w.."-"..g.."°"..w.."-"..r.."o"..w.."-"..g.."o"..w.."_"..r.."o"..w..
 				"Christmas"
 				..r.."o"..w.."_"..g.."o"..w.."-"..r.."o"..w.."-"..g.."°"..w.."-"..r.."°",
 				desc = "Delvier Gifts of WAR upon your enemies, in a happy way"
 			},
 		},
 		section	= "options_main",
-		column	= -1,
+		column	= -1.01,
+	},
+	{
+		key		= "xmascoms",
+		name	= "\255\240\190\90".."• Holiday Commanders",
+		desc	= "Commander Christmas Costumes",
+		type	= "bool",
+		def		= true,
+		section	= "options_main",
+		column	= -1.01,
 	},
 	{
 		key		= "xmas",
@@ -180,6 +193,7 @@ local options = {
 		type	= "bool",
 		def		= true,
 		section	= "options_main",
+		column	= -1.01,
 	},
 
 	{

@@ -130,6 +130,15 @@ function UnitDef_Post(name, uDef)
 					uDef.objectname = "apf/corthud.s3o"
 				end
 			elseif modOptions.unithats == "christmas" then
+				if name == "corak" then
+					uDef.objectname = "Christmas/CORAK.s3o"
+				elseif name == "corshad" then
+					uDef.objectname = "Christmas/CORshad.s3o"
+				elseif name == "armpw" then
+					uDef.objectname = "Christmas/armpw.s3o"
+				elseif name == "armthund" then
+					uDef.objectname = "Christmas/armthund.s3o"
+				end
 			end
 		end
 	end
@@ -1613,7 +1622,7 @@ function WeaponDef_Post(name, wDef)
 			end
 		end
 
-		if modOptions.xmas and wDef.weapontype == "StarburstLauncher" and wDef.model and VFS.FileExists('objects3d\\candycane_' .. wDef.model) then
+		if modOptions.xmascoms and wDef.weapontype == "StarburstLauncher" and wDef.model and VFS.FileExists('objects3d\\candycane_' .. wDef.model) then
 			wDef.model = 'candycane_' .. wDef.model
 		end
 
