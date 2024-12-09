@@ -22392,6 +22392,59 @@ for colorname, colorvalues in pairs(crystalColors) do
 	end
 end
 
+local xmaslightbase = {
+			lightType = 'point',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 25,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0.1,
+							r = 1, g = 1, b = 1, a = 0.2,
+							modelfactor = 1.1, specular = 0.9, scattering = 0.8, lensflare = 20,
+							lifetime = 0, sustain = 0, animtype = 0},
+}
+
+local snowy_tree_keys = {'tree_fir_tall_3'}
+for featureDefID , featureDef in pairs(FeatureDefs) do
+	local featureName = featureDef.name
+	-- Check if its a snowy tree:
+	-- estimate its height/ radius via model extrema
+	-- spawn lights in a cone shape around it
+	for _, key in pairs(snowy_tree_keys) do
+		if string.find(featureName, key, nil, true) then
+			--Spring.Echo("Found snowy tree: " .. featureName, key)
+
+			featureDefLights[featureDefID] = {}
+			local maxy = featureDef.model.maxy
+			local maxx = featureDef.model.maxx
+			local maxz = featureDef.model.maxz
+
+			for i= 1,20 do
+				local xmaslight = table.copy(xmaslightbase)
+				xmaslight.lightConfig.radius = 25
+
+
+	
+				local y = maxy * (math.random() * 0.75 +   0.2)
+				local rely = y / maxy
+				
+				local x = rely * maxx * (math.random() - 0.5) * 0.5 
+				local z = rely * maxz * (math.random() - 0.5) * 0.5
+				--Spring.Echo(maxx, maxy, maxz, x,y,z)
+				xmaslight.lightConfig.posy = y
+				xmaslight.lightConfig.posx = x
+				xmaslight.lightConfig.posz = z
+				
+				xmaslight.lightConfig.r = math.random() > 0.5 and 1 or 0
+				xmaslight.lightConfig.g = math.random()> 0.5 and 1 or 0
+				xmaslight.lightConfig.b = math.random()> 0.5 and 1 or 0
+
+				xmaslight.lightConfig.colortime = 0.01 + math.random()* 0.01 
+
+				featureDefLights[featureDefID]['xmaslight' .. tostring(i)] = xmaslight
+				
+			end
+			break
+		end
+	end
+end 
 
 local allLights = {unitEventLights = unitEventLights, unitDefLights = unitDefLights, featureDefLights = featureDefLights}
 

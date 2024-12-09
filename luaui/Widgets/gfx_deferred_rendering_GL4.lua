@@ -222,7 +222,7 @@ local examplePointLight = {
 ]]--
 
 ------------------------------ Debug switches ------------------------------
-local autoupdate = false
+local autoupdate = true
 local debugproj = false
 local addrandomlights = false
 local skipdraw = false
@@ -1247,9 +1247,9 @@ function widget:FeatureCreated(featureID,allyteam)
 
 				local lightParamTable = lightTable.lightParamTable
 				for i=1, lightParamTableSize do lightCacheTable[i] = lightParamTable[i] end
-				lightCacheTable[1] = lightCacheTable[1] + px
-				lightCacheTable[2] = lightCacheTable[2] + py
-				lightCacheTable[3] = lightCacheTable[3] + pz
+				lightCacheTable[1] = lightParamTable[1] + px
+				lightCacheTable[2] = lightParamTable[2] + py
+				lightCacheTable[3] = lightParamTable[3] + pz
 				AddLight(tostring(featureID) ..  lightname, nil, nil, lightVBOMap[lightTable.lightType], lightCacheTable)
 			end
 		end
