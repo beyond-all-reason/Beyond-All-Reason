@@ -22394,7 +22394,7 @@ end
 
 local xmaslightbase = {
 			lightType = 'point',
-			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 25,
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 8,
 							color2r = 0, color2g = 0, color2b = 0, colortime = 0.1,
 							r = 1, g = 1, b = 1, a = 0.2,
 							modelfactor = 1.1, specular = 0.9, scattering = 0.8, lensflare = 20,
@@ -22418,15 +22418,12 @@ for featureDefID , featureDef in pairs(FeatureDefs) do
 
 			for i= 1,20 do
 				local xmaslight = table.copy(xmaslightbase)
-				xmaslight.lightConfig.radius = 25
-
-
 	
-				local y = maxy * (math.random() * 0.75 +   0.2)
-				local rely = y / maxy
+				local y = maxy * (math.random() * 0.8 +   0.1)
+				local rely = 1.0 - y / maxy
 				
-				local x = rely * maxx * (math.random() - 0.5) * 0.5 
-				local z = rely * maxz * (math.random() - 0.5) * 0.5
+				local x = rely * maxx * (math.random() - 0.5) * 1.5 
+				local z = rely * maxz * (math.random() - 0.5) * 1.5
 				--Spring.Echo(maxx, maxy, maxz, x,y,z)
 				xmaslight.lightConfig.posy = y
 				xmaslight.lightConfig.posx = x
@@ -22435,8 +22432,12 @@ for featureDefID , featureDef in pairs(FeatureDefs) do
 				xmaslight.lightConfig.r = math.random() > 0.5 and 1 or 0
 				xmaslight.lightConfig.g = math.random()> 0.5 and 1 or 0
 				xmaslight.lightConfig.b = math.random()> 0.5 and 1 or 0
+				
+				xmaslight.lightConfig.color2r = math.random() > 0.5 and 1 or 0
+				xmaslight.lightConfig.color2g = math.random()> 0.5 and 1 or 0
+				xmaslight.lightConfig.color2b = math.random()> 0.5 and 1 or 0
 
-				xmaslight.lightConfig.colortime = 0.01 + math.random()* 0.01 
+				xmaslight.lightConfig.colortime = 0.005 + math.random()* 0.005 
 
 				featureDefLights[featureDefID]['xmaslight' .. tostring(i)] = xmaslight
 				

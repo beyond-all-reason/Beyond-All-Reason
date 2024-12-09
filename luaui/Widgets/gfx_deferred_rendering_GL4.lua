@@ -1406,6 +1406,12 @@ local function checkConfigUpdates()
 			if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 				widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
 			end
+			for i, featureID in pairs(Spring.GetAllFeatures()) do
+				widget:FeatureDestroyed(featureID)
+			end
+			for i, featureID in pairs(Spring.GetAllFeatures()) do
+				widget:FeatureCreated(featureID)
+			end
 			configCache.confa = newconfa
 			configCache.confb = newconfb
 		end
