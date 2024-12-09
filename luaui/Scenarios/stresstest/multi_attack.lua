@@ -80,9 +80,12 @@ function run_commands(nattackers, ntargets, attackerDef, targetDef)
 	local currOpt
 	local CMD_ATTACK = CMD.ATTACK
 	local spGiveOrderToUnit = Spring.GiveOrderToUnit
+	local attackerTeam = 0
+	local defenderTeam = 1
 
 	-- get units
 	local spGetUnitDefID = Spring.GetUnitDefID
+	local spGetUnitTeam = Spring.GetUnitTeam
 
 	local attackers = table.new and table.new(nattackers) or {}
 	local targets = table.new and table.new(ntargets) or {}
@@ -92,9 +95,10 @@ function run_commands(nattackers, ntargets, attackerDef, targetDef)
 	local all_units = Spring.GetAllUnits()
 	for _, unitID in ipairs(all_units) do
 		local unitDefID = spGetUnitDefID(unitID)
-		if unitDefID == attackerDefID then
+		local unitTeamID = spGetUnitTeam(unitID)
+		if unitDefID == attackerDefID and unitTeamID == attackerTeam then
 			attackers[#attackers+1] = unitID
-		elseif unitDefID == targetDefID then
+		elseif unitDefID == targetDefID and unitTeamID == defenderTeam then
 			targets[#targets+1] = unitID
 		end
 	end
