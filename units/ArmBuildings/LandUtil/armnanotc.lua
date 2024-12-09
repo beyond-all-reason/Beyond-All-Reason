@@ -48,6 +48,7 @@ return {
 			subfolder = "ArmBuildings/LandUtil",
 			unitgroup = "builder",
 			usebuildinggrounddecal = true,
+			isnanoturret = true,
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {
