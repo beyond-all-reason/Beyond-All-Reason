@@ -158,7 +158,7 @@ local function processScenarioArguments(args)
 		for index, pair in ipairs(args) do
 			for key, default in pairs(pair) do
 				local val = scenarioOpts[index+1]
-				if val and tonumber(val) then
+				if val and type(default) == 'number' then
 					val = tonumber(val)
 				end
 				scenarioConfig[key] = val or default
