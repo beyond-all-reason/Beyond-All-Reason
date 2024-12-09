@@ -41,7 +41,7 @@ return {						--costs should be same as legmohocon and legmohoconin
 		turnrate = 1,
 		upright = true,
 		workertime = 400,
-		icontype = "cormoho",
+		icontype = "legmohocon",
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/cornanotc_aoplane.dds",

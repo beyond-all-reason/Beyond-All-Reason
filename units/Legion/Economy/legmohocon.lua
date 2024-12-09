@@ -31,7 +31,6 @@ return {						--costs should be same as legmohoconct and legmohoconin
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 273,
-		icontype = "cormoho",
 		yardmap = "h oooooooo osssssso osssssso ossoosso ossoosso osssssso osssssso oooooooo",
 		customparams = {
 			usebuildinggrounddecal = true,
