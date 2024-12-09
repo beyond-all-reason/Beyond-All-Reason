@@ -54,6 +54,7 @@ return {
 			inheritxpratemultiplier = 1,
 			childreninheritxp = "DRONE",
 			parentsinheritxp = "DRONE",
+			stockpileLimit = 20,
         },
         sfxtypes = {
             pieceexplosiongenerators = {

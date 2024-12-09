@@ -49,6 +49,7 @@ return {
 			subfolder = "ArmGantry",
 			techlevel = 3,
 			unitgroup = "emp",
+			stockpileLimit = 2,
 		},
 		featuredefs = {
 			dead = {
