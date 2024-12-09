@@ -1037,19 +1037,31 @@ local icontypes = {
 	},
 	chip = {
 		bitmap = "icons/blank.png",
-		size = 1.04999995
+		size = 1
 	},
 	cor_hat_viking = {
 		bitmap = "icons/blank.png",
-		size = 1.04999995
+		size = 1
 	},
 	cor_hat_hornet = {
 		bitmap = "icons/blank.png",
-		size = 1.04999995
+		size = 1
 	},
 	cor_hat_ptaq = {
 		bitmap = "icons/blank.png",
-		size = 1.04999995
+		size = 1
+	},
+	cor_hat_fightnight = {
+		bitmap = "icons/blank.png",
+		size = 1
+	},
+	cor_hat_legfn = {
+		bitmap = "icons/blank.png",
+		size = 1
+	},
+	cor_hat_hw = {
+		bitmap = "icons/blank.png",
+		size = 1
 	},
 	coraak = {
 		bitmap = "icons/bot_amph_t2_aa.png",
