@@ -205,16 +205,17 @@ function registerCallin(name, predicate, target, depth)
 		error("[registerCallin:" .. name .. "] need to call Test.expectCallin(\"" .. name .. "\") first", depth)
 	end
 	local mode = predicate and REGISTER_FULL or REGISTER_COUNT
-	if not callinState.callins[name] then
+	local prevMode = callinState.callins[name]
+	if not prevMode then
 		callinState.buffer[name] = {}
 	        callinState.counts[name] = 0
-	elseif callinState.callins[name] == REGISTER_COUNT and callinState.callins[name] ~= mode then
+	elseif prevMode == REGISTER_COUNT and prevMode ~= mode then
 		error("[registerCallin:" .. name .. "] expecting countOnly but requesting full", depth)
 	end
 
 	local counts = callinState.counts
 	-- preload recorded data when we have full record but just need a count
-	if mode == REGISTER_COUNT and callinState.callins[name] == REGISTER_FULL then
+	if mode == REGISTER_COUNT and prevMode == REGISTER_FULL then
 		counts[name] = #callinState.buffer[name]
 		callinState.buffer[name] = {}
 	end
