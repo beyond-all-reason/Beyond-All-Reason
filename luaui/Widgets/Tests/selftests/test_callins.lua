@@ -40,12 +40,10 @@ function runBaseTests()
 
 end
 
-function runWaitUntil(unsafe, countOnly, reallyCountOnly)
+function runWaitUntil(countOnly, reallyCountOnly, wait, expect, clear)
 	-- test waitUntilCallinArgs with and without expectCallin preregister
 	local myTeamID = Spring.GetMyTeamID()
-	if unsafe then
-		Test.setUnsafeCallins(true)
-	else
+	if expect then
 		Test.expectCallin("UnitCommand", reallyCountOnly)
 	end
 
@@ -59,24 +57,45 @@ function runWaitUntil(unsafe, countOnly, reallyCountOnly)
 	Spring.GiveOrderToUnit(unitID, CMD.SELFD, {}, 0)
 
 	-- actual test
+	if wait > 0 then
+		Test.waitFrames(wait)
+	end
 	if countOnly then
-		Test.waitFrames(3)
 		Test.waitUntilCallin("UnitCommand")
 	else
 		Test.waitUntilCallinArgs("UnitCommand", { nil, nil, nil, CMD.SELFD, nil, nil, nil })
 	end
 	assert(Spring.GetUnitSelfDTime(unitID) > 0)
 
-	Test.clearCallins()
-	if unsafe then
-		Test.setUnsafeCallins(false)
+	if clear then
+		Test.clearCallins()
 	end
 end
 
 function test()
+	local FULL = false
+	local COUNT = true
+	local EXPECT = true
+	local CLEAR = true
+
 	runBaseTests()
-	runWaitUntil()
-	runWaitUntil(false, true)
-	runWaitUntil(false, true, true)
-	runWaitUntil(true)
+	-- normal run, try full register, then only count, then only count and expect count
+	runWaitUntil(FULL, FULL, 0, EXPECT, CLEAR) -- full, full, 0...
+	runWaitUntil(COUNT, FULL, 0, EXPECT, CLEAR)  -- count, full, 0...
+	runWaitUntil(COUNT, COUNT, 0, EXPECT, CLEAR)   -- count, count, 0...
+
+	-- same but now with wait before give order and waitUntilCallin
+	runWaitUntil(FULL, FULL, 3, EXPECT, CLEAR)
+	runWaitUntil(COUNT, FULL, 3, EXPECT, CLEAR)
+	runWaitUntil(COUNT, COUNT, 3, EXPECT, CLEAR)
+
+	-- same but now without cleaning callins
+	runWaitUntil(FULL, FULL, 3, EXPECT, not CLEAR)
+	runWaitUntil(COUNT, FULL, 3, not EXPECT, not CLEAR)
+	runWaitUntil(COUNT, COUNT, 3, not EXPECT, CLEAR)
+
+	-- test with unsafe call
+	Test.setUnsafeCallins(true)
+	runWaitUntil(FULL, FULL, 0, not EXPECT, CLEAR)
+	Test.setUnsafeCallins(false)
 end
