@@ -80,9 +80,9 @@ function test()
 
 	runBaseTests()
 	-- normal run, try full register, then only count, then only count and expect count
-	runWaitUntil(FULL, FULL, 0, EXPECT, CLEAR) -- full, full, 0...
-	runWaitUntil(COUNT, FULL, 0, EXPECT, CLEAR)  -- count, full, 0...
-	runWaitUntil(COUNT, COUNT, 0, EXPECT, CLEAR)   -- count, count, 0...
+	runWaitUntil(FULL, FULL, 0, EXPECT, CLEAR)
+	runWaitUntil(COUNT, FULL, 0, EXPECT, CLEAR)
+	runWaitUntil(COUNT, COUNT, 0, EXPECT, CLEAR)
 
 	-- same but now with wait before give order and waitUntilCallin
 	runWaitUntil(FULL, FULL, 3, EXPECT, CLEAR)
