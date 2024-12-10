@@ -33,7 +33,7 @@ function cleanup()
 	Spring.SetCameraState(initialCameraState)
 end
 
-function test()
+test("Test pregame mex snap", function ()
 	mexUnitDefId = UnitDefNames["armmex"].id
 	metalSpots = WG['resource_spot_finder'].metalSpotsList
 
@@ -85,4 +85,4 @@ function test()
 		snappedPosition.z,
 		0
 	}, 0.1)
-end
+end)

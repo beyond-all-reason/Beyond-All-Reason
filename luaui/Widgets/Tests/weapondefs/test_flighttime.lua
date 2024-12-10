@@ -83,8 +83,10 @@ function runDistanceTest(flightTime, shouldAlive)
 	assert(isAlive2 == shouldAlive)
 end
 
-function test()
+test("Test WeaponDef FlightTime Some Survive", function ()
 	runDistanceTest(30, true)
-	Test.clearMap()
+end)
+
+test("Test WeaponDef FlightTime All Die", function ()
 	runDistanceTest(0, false)
-end
+end)

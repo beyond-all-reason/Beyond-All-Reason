@@ -35,7 +35,7 @@ function cleanup()
 end
 
 -- tests both pregame mex snap behavior, as well as basic queue and blueprint handling
-function test()
+test("Test pregame mex queue", function ()
 	local mexUnitDefId = UnitDefNames["armmex"].id
 	local metalSpots = WG['resource_spot_finder'].metalSpotsList
 
@@ -107,4 +107,4 @@ function test()
 	-- Did the mex get de-queued?
 	local buildQueue = WG['pregame-build'].getBuildQueue()
 	assert(#buildQueue == 0, "Build queue should be empty")
-end
+end)
