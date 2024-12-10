@@ -28,7 +28,7 @@ function cleanup()
 end
 
 local delay = 5
-function test()
+test("Test Blueprint Line", function ()
 	VFS.Include("luarules/configs/customcmds.h.lua")
 
 	widget = widgetHandler:FindWidget(widgetName)
@@ -130,4 +130,4 @@ function test()
 
 	assert(#builderQueue == bpCount, #builderQueue)
 	assert(builderQueue[1].id == -blueprintUnitDefID)
-end
+end)

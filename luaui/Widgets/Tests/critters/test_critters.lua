@@ -14,7 +14,7 @@ function cleanup()
 	Test.clearMap()
 end
 
-function runCritterTest()
+test("Test Critters", function ()
 	local WAIT_FRAMES = 204 -- enough to trigger critter cleanup/restoring by gaia_critters
 	local unitName = 'armpw'
 	local critterName = 'critter_crab'
@@ -118,8 +118,4 @@ function runCritterTest()
 	Test.waitFrames(WAIT_FRAMES - (Spring.GetGameFrame() % WAIT_FRAMES))
 
 	assert(countAliveCritters() == 36)
-end
-
-function test()
-	runCritterTest()
-end
+end)

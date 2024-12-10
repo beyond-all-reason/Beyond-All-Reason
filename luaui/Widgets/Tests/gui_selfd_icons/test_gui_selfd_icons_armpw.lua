@@ -14,7 +14,7 @@ function cleanup()
 	Test.clearMap()
 end
 
-function test()
+test("Test Self-D armpw", function ()
 	widget = widgetHandler:FindWidget(widgetName)
 	assert(widget)
 
@@ -56,4 +56,4 @@ function test()
 	Test.waitFrames(1)
 	assert(table.count(widget.activeSelfD) == 1)
 	assert(table.count(widget.queuedSelfD) == 0)
-end
+end)

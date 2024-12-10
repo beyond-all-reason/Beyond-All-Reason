@@ -12,7 +12,7 @@ function cleanup()
 	Test.clearMap()
 end
 
-function test()
+test("Test Self-D Stop", function ()
 	widget = widgetHandler:FindWidget("Stop means Stop")
 	assert(widget)
 
@@ -44,4 +44,4 @@ function test()
 	Test.waitUntilCallinArgs("UnitCommand", { nil, nil, nil, CMD.STOP, nil, nil, nil })
 	assert(Spring.GetUnitSelfDTime(unitID) == 0)
 	assert(#(Spring.GetCommandQueue(unitID, 1)) == 0)
-end
+end)

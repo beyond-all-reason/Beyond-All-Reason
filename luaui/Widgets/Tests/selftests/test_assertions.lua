@@ -1,5 +1,5 @@
 
-function sanityChecks()
+test("SelfTest Sanity Checks", function ()
 	-- Just to make sure some standard methods used here work as expected.
 	Spring.GiveOrderToUnit(2, CMD.FIRE_STATE, {0}, {})
 	SyncedProxy.Spring.ValidUnitID(20)
@@ -7,8 +7,9 @@ function sanityChecks()
 		Spring.GiveOrderToUnit(2, CMD.FIRE_STATE, {0}, {})
 	end)
 	assert(err ~= "attempt to yield across metamethod/C-call boundary")
-end
+end)
 
+--test("SelfTest Failing Tests", function ()
 function failingTests()
 	-- All of these fail due to error "attempt to yield across metamethod/C-call boundary"
 	-- This is something to do with how the test system is structured.
@@ -60,9 +61,10 @@ function failingTests()
 	--	SyncedProxy.Spring.ValidUnitID(20)
 	--end, 1)
 	--
+--end)
 end
 
-function failingWhileSucceedingTests()
+test("SelfTest Failing While Succeeding", function ()
 	-- these ones are actually failing even when they don't throw exceptions,
 	-- it's because assertThrows is catching the exception, it's just not
 	-- the one we want.
@@ -75,15 +77,15 @@ function failingWhileSucceedingTests()
 		-- this actually throws an exception, but due to something else.
 		SyncedProxy.Spring.GiveOrderToUnit(2, CMD.FIRE_STATE, {0}, {})
 	end)
-end
+end)
 
-function testWaitUntil()
+test("SelfTest Wait Until", function ()
 	Test.waitUntil(function()
 		return true
 	end)
-end
+end)
 
-function testAssertSuccessBefore()
+test("SelfTest Assert Success Before", function ()
 	-- test the method succeeding
 	assertSuccessBefore(1, 10, function() return true end)
 	assertSuccessBefore(1, 10, function()
@@ -95,9 +97,9 @@ function testAssertSuccessBefore()
 	assertThrowsMessage(function()
 		assertSuccessBefore(1, 10, function() error("error") end)
 	end, "error")
-end
+end)
 
-function testAssertThrows()
+test("SelfTest Assert Throws", function ()
 	-- test detecting an exception
 	assertThrows(function()
 		error("error")
@@ -114,9 +116,9 @@ function testAssertThrows()
 		Spring.ValidUnitID(20)
 		error("error")
 	end)
-end
+end)
 
-function testAssertThrowsMessage()
+test("SelfTest Assert Throws Message", function ()
 	-- test throwing a specific message
 	assertThrowsMessage(function()
 		error("error")
@@ -146,14 +148,4 @@ function testAssertThrowsMessage()
 		Spring.ValidUnitID(20)
 		error("error")
 	end, "error")
-end
-
-function test()
-	sanityChecks()
-	testWaitUntil()
-	testAssertThrows()
-	testAssertSuccessBefore()
-	testAssertThrowsMessage()
-	--failingTests()
-	failingWhileSucceedingTests()
-end
+end)

@@ -14,7 +14,7 @@ function cleanup()
 	Test.clearMap()
 end
 
-function test()
+test("Test Self-D armsp", function ()
 	widget = widgetHandler:FindWidget(widgetName)
 	assert(widget)
 	local x, z = Game.mapSizeX / 2, Game.mapSizeZ / 2
@@ -50,4 +50,4 @@ function test()
 	--Test.waitFrames(1)
 	--assert(table.count(widget.activeSelfD) == 0)
 	--assert(table.count(widget.queuedSelfD) == 0)
-end
+end)

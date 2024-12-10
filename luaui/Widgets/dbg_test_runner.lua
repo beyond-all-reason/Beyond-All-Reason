@@ -410,6 +410,8 @@ local function resetActiveTestState()
 		startFrame = nil,
 		filename = nil,
 		label = nil,
+		testAmount = nil,
+		testIndex = nil,
 	}
 end
 
@@ -875,8 +877,18 @@ function widget:RecvLuaMsg(msg)
 	end
 end
 
-local function runTestInternal()
+local function runTestInternal(testIndex)
 	log(LOG.DEBUG, "[runTestInternal]")
+
+	-- read function arguments and yield
+	local amountOfTests = #globalTests
+	if testIndex > amountOfTests then
+		error("requested test index " .. tostring(testIndex) .. " but there are only " .. amountOfTests .. " tests available.")
+	end
+	local testData = globalTests[testIndex]
+	local testName = testData[1]
+	local testFunction = testData[2]
+	coroutine.yield()
 
 	if testRunState.filesIndex == 1 then
 		TestExtraUtils.startTests()
@@ -920,7 +932,8 @@ local function runTestInternal()
 	local testOk, testResult
 	if setupOk then
 		log(LOG.DEBUG, "[runTestInternal.test]")
-		testOk, testResult = Util.yieldable_pcall(test)
+		log(LOG.INFO, "Running test: " .. testName)
+		testOk, testResult = Util.yieldable_pcall(testFunction)
 		log(LOG.DEBUG, "[runTestInternal.test.done] " .. table.toString({
 			testOk, testResult
 		}))
@@ -971,10 +984,23 @@ local function runTestInternal()
 	return TestResults.TEST_RESULT.PASS
 end
 
+function test(testName, testFunction)
+	log(LOG.DEBUG, "[test]")
+
+	if not globalTests then
+		globalTests = {}
+	end
+
+	globalTests[#globalTests+1] = { testName, testFunction }
+
+	log(LOG.DEBUG, "[test] added test (id: " .. tostring(#globalTests) .. "): " .. tostring(testName))
+end
+
 local function initializeTestEnvironment()
 	local env = {
 		-- test framework
 		Test = Test,
+		test = test,
 		SyncedProxy = SyncedProxy,
 		SyncedRun = SyncedRun,
 		__runTestInternal = runTestInternal,
@@ -1015,7 +1041,7 @@ local function initializeTestEnvironment()
 		table = table,
 		string = string,
 		package = package,
-		--coroutine = coroutine,
+		coroutine = coroutine,
 		assert = assert,
 		error = error,
 		print = print,
@@ -1058,14 +1084,15 @@ local function loadTestFromFile(filename)
 	local testEnvironment = initializeTestEnvironment()
 
 	setfenv(chunk, testEnvironment)
+	setfenv(test, testEnvironment)
 
 	local success, err = pcall(chunk)
 	if not success then
 		return false, err
 	end
 
-	if testEnvironment.test == nil then
-		return false, "no test() function"
+	if testEnvironment.globalTests == nil then
+		return false, "no tests"
 	end
 
 	setfenv(testEnvironment.__runTestInternal, testEnvironment)
@@ -1196,27 +1223,47 @@ local function step()
 		return
 	end
 
-	-- is there a test set up? if not, create one
-	if activeTestState.coroutine == nil then
+	-- have we parsed the test file already?
+	if activeTestState.testAmount == nil then
 		activeTestState.label = testRunState.files[testRunState.filesIndex].label
 		activeTestState.filename = testRunState.files[testRunState.filesIndex].filename
 
 		local success, envOrError = loadTestFromFile(activeTestState.filename)
 
-		if success then
-			log(LOG.DEBUG, "Initializing test: " .. activeTestState.label)
-			activeTestState.environment = envOrError
-			activeTestState.coroutine = coroutine.create(activeTestState.environment.__runTestInternal)
-			activeTestState.startFrame = Spring.GetGameFrame()
-
-			testTimer = Spring.GetTimer()
-		else
+		if not success then
 			finishTest({
 				result = TestResults.TEST_RESULT.ERROR,
 				error = envOrError
 			})
 			return
 		end
+
+		activeTestState.environment = envOrError
+
+		activeTestState.testAmount = #activeTestState.environment.globalTests
+		activeTestState.testIndex = 1
+
+		log(LOG.DEBUG, "[step] testAmount: " .. activeTestState.testAmount)
+	end
+
+	-- is there a test set up? if not, create one
+	if activeTestState.coroutine == nil then
+		log(LOG.DEBUG, "[step] Initializing test (id: " .. tostring(activeTestState.testIndex) .. "): " .. activeTestState.label)
+		activeTestState.coroutine = coroutine.create(activeTestState.environment.__runTestInternal)
+
+		local success, nilOrError = coroutine.resume(activeTestState.coroutine, activeTestState.testIndex)
+		if not success then
+			-- test fail
+			finishTest({
+				result = TestResults.TEST_RESULT.ERROR,
+				error = nilOrError,
+			})
+			return
+		end
+
+		activeTestState.startFrame = Spring.GetGameFrame()
+
+		testTimer = Spring.GetTimer()
 	end
 
 	-- resume the test
@@ -1266,9 +1313,15 @@ local function step()
 
 	if coroutine.status(activeTestState.coroutine) == "dead" then
 		-- test did not fail or error, so may have been pass or skip
-		finishTest({
-			result = resumeResult or TestResults.TEST_RESULT.PASS,
-		})
+		activeTestState.testIndex = activeTestState.testIndex + 1
+		if activeTestState.testIndex > activeTestState.testAmount then
+			finishTest({
+				result = resumeResult or TestResults.TEST_RESULT.PASS,
+			})
+			return
+		end
+
+		activeTestState.coroutine = nil
 	end
 end
 

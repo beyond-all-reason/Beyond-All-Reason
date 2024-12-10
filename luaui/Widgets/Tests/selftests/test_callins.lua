@@ -72,7 +72,7 @@ function runWaitUntil(countOnly, reallyCountOnly, wait, expect, clear)
 	end
 end
 
-function test()
+test("SelfTest Callins", function ()
 	local FULL = false
 	local COUNT = true
 	local EXPECT = true
@@ -98,4 +98,4 @@ function test()
 	Test.setUnsafeCallins(true)
 	runWaitUntil(FULL, FULL, 0, not EXPECT, CLEAR)
 	Test.setUnsafeCallins(false)
-end
+end)
