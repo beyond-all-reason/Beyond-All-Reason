@@ -200,7 +200,7 @@ function registerCallin(name, predicate, target, depth)
 		target = widget
 	end
 	if not callinState.unsafe and not callinState.recording[name] then
-		error("[registerCallin:" .. name .. "] need to call expectCallin(\"" .. name .. "\") first", depth)
+		error("[registerCallin:" .. name .. "] need to call Test.expectCallin(\"" .. name .. "\") first", depth)
 	end
 	local mode = predicate and REGISTER_FULL or REGISTER_COUNT
 	if not callinState.callins[name] then
