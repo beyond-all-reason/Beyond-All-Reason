@@ -87,50 +87,6 @@ local function logTestResult(testResult)
 	)
 end
 
-local function registerCallins(target, callback, callins)
-	local callinNames = {
-		'UnitCreated',
-		'UnitFinished',
-		'UnitFromFactory',
-		'UnitReverseBuilt',
-		'UnitDestroyed',
-		'RenderUnitDestroyed',
-		'UnitTaken',
-		'UnitGiven',
-		'UnitIdle',
-		'UnitCommand',
-		'UnitCmdDone',
-		'UnitDamaged',
-		--'UnitStunned',
-		'UnitEnteredRadar',
-		'UnitEnteredLos',
-		'UnitLeftRadar',
-		'UnitLeftLos',
-		'UnitEnteredUnderwater',
-		'UnitEnteredWater',
-		'UnitEnteredAir',
-		'UnitLeftUnderwater',
-		'UnitLeftWater',
-		'UnitLeftAir',
-		'UnitSeismicPing',
-		'UnitLoaded',
-		'UnitUnloaded',
-		'UnitCloaked',
-		'UnitDecloaked',
-		'UnitMoveFailed',
-		'UnitHarvestStorageFull',
-	}
-
-	for _, callinName in ipairs(callinNames) do
-		if callins == nil or table.contains(callins, callinName) then
-			target[callinName] = function(...)
-				local args = { ... }
-				table.remove(args, 1)
-				callback(callinName, args)
-			end
-		end
-	end
-end
 
 local function matchesPatterns(str, patterns)
 	for _, p in ipairs(patterns) do
@@ -221,8 +177,117 @@ local testRunState
 local activeTestState
 local resumeState
 local returnState
-local callinState
+local callinState = {callins = {}, recording = {}}
 local spyControls
+
+
+-- callin tracking
+-- =========
+
+-- Hook callin
+-- Will register to count either predicate success or execution counts.
+-- predicate will be passed the callin arguments.
+-- @string name Callin name
+-- @func predicate Test function or false to just count callin calls
+-- @param target Object registering the callin, default: test_runner widget
+-- @number depth stack depth (normally for internal use)
+function registerCallin(name, predicate, target, depth)
+	local REGISTER_COUNT = 0
+	local REGISTER_FULL = 1
+	local depth = depth + 1
+	if not target then
+		target = widget
+	end
+	local mode = predicate and REGISTER_FULL or REGISTER_COUNT
+	if not callinState.callins[name] then
+		callinState.buffer[name] = {}
+	        callinState.counts[name] = 0
+	elseif callinState.recording[name] and callinState.callins[name] ~= mode then
+		error("[registerCallin:" .. name .. "] expecting a different mode", depth)
+	end
+	local countFunc
+	local counts = callinState.counts
+	if predicate then
+		countFunc = function(_, ...)
+			local res = predicate(...)
+			if res then
+				counts[name] = counts[name] + 1
+			end
+		end
+		for _, args in pairs(callinState.buffer[name]) do
+			countFunc(target, unpack(args))
+		end
+		callinState.buffer[name] = {}
+	else
+		countFunc = function()
+			counts[name] = counts[name] + 1
+		end
+	end
+	target[name] = countFunc
+	widgetHandler:UpdateWidgetCallInRaw(name, widget)
+	callinState.callins[name] = mode
+end
+
+-- Pre-Hook callin
+-- Will start prerecording so registerCallin will have access to previous callin executions
+-- @string name Callin name
+-- @func full Buffer all call arguments when true or just count number of executions
+-- @param target Object registering the callin, default: test_runner widget
+-- @number depth stack depth (normally for internal use)
+function preRegisterCallin(name, full, target, depth)
+	local depth = depth + 1
+	if callinState.recording[name] then
+		error("[preRegisterCallin:" ..  name .. "] already pre-registered", depth)
+	elseif callinState.callins[name] then
+		error("[preRegisterCallin:" .. name .. "] already registered", depth)
+	end
+	local predicate = false
+	if full then
+		local buffers = callinState.buffer
+		predicate = function(...)
+			local buffer = buffers[name]
+			local args = {...}
+			buffer[#buffer+1] = args
+		end
+	end
+	registerCallin(name, predicate, target, depth)
+	callinState.recording[name] = true --need to set this after registerCallin
+end
+
+-- Unhook callin
+-- @string name Callin name
+-- @param target Object removing the callin, default: test_runner widget
+-- @bool iterating don't clear top level tables, for when calling method will do it itself and/or could be iterating them
+-- @todo target not really supported yet (no per-target callinState yet), needs to be nil
+local function removeCallin(name, target, iterating)
+	if not target then
+		target = widget
+	end
+	widgetHandler:RemoveWidgetCallInRaw(name, target)
+	if not iterating then
+		callinState.buffer[name] = nil
+		callinState.counts[name] = nil
+		callinState.callins[name] = nil
+		callinState.recording[name] = nil
+	end
+end
+
+-- Unhook all callins
+-- @param target Object removing all callins, default: test_runner widget
+-- @todo target not really supported yet (no per-target callinState yet), needs to be nil
+local function removeAllCallins(target)
+	for name, _ in pairs(callinState.callins) do
+		removeCallin(name, target, true)
+	end
+	callinState.callins = {}
+	callinState.recording = {}
+	callinState.buffer = {}
+	callinState.counts = {}
+end
+
+
+-- state reset
+-- =========
 
 local function resetTestRunState()
 	log(LOG.DEBUG, "[resetTestRunState]")
@@ -265,9 +330,7 @@ end
 
 local function resetCallinState()
 	log(LOG.DEBUG, "[resetCallinState]")
-	callinState = {
-		buffer = {},
-	}
+	removeAllCallins()
 end
 
 local function resetSpyCtrls()
@@ -287,16 +350,6 @@ end
 
 resetState()
 
-registerCallins(widget, function(name, args)
-	if not testRunState.runningTests then
-		return
-	end
-
-	if callinState.buffer[name] == nil then
-		callinState.buffer[name] = {}
-	end
-	callinState.buffer[name][#(callinState.buffer[name]) + 1] = args
-end)
 
 local MAX_START_TESTS_ATTEMPTS = 10
 local queuedStartTests = false
@@ -535,33 +588,41 @@ Test = {
 		)
 		log(LOG.DEBUG, "[waitTime.done]")
 	end,
-	waitUntilCallin = function(name, predicate, timeout)
+	expectCallin = function(name, full, depth)
+		local depth = depth and (depth + 1) or 2
+		-- start buffering callin executions
+		preRegisterCallin(name, full, nil, depth)
+	end,
+	unexpectCallin = function(name)
+		-- stop buffering callin executions
+		removeCallin(name)
+	end,
+	waitUntilCallin = function(name, predicate, timeout, depth)
+		local depth = depth and (depth + 1) or 2
 		log(LOG.DEBUG, "[waitUntilCallin] " .. name)
-		Test.waitUntil(
-			function()
-				for _, args in ipairs(callinState.buffer[name] or {}) do
-					if predicate == nil or predicate(unpack(args)) then
-						return true
-					end
-				end
-				return false
-			end,
-			timeout,
-			1
-		)
-		callinState.buffer[name] = {}
+		registerCallin(name, predicate, nil, depth)
+
+		local counts = callinState.counts
+		Test.waitUntil(function() return counts[name] > 0 end,
+			       timeout,
+			       1)
+
+		if not callinState.recording[name] then
+			removeCallin(name)
+		end
 		log(LOG.DEBUG, "[waitUntilCallin.done]")
 	end,
-	waitUntilCallinArgs = function(name, expectedArgs)
+	waitUntilCallinArgs = function(name, expectedArgs, timeout, depth)
+		local depth = depth and (depth + 1) or 2
 		Test.waitUntilCallin(name, function(...)
 			local currentArgs = { ... }
 			for k, v in pairs(expectedArgs) do
-				if currentArgs[k] == nil or currentArgs[k] ~= v then
+				if currentArgs[k] ~= v then
 					return false
 				end
 			end
 			return true
-		end)
+		end, timeout, depth)
 	end,
 	spy = function(...)
 		local spyCtrl = Mock.spy(...)
@@ -583,11 +644,18 @@ Test = {
 			end
 		end)
 	end,
+	clearCallins = function()
+		removeAllCallins()
+	end,
 	clearCallinBuffer = function(name)
-		if name ~= nil then
+		if name then
 			callinState.buffer[name] = {}
+			callinState.counts[name] = 0
 		else
-			callinState.buffer = {}
+			for callin, _ in pairs(callinState.counts) do
+				callinState.buffer[callin] = {}
+				callinState.counts[callin] = 0
+			end
 		end
 	end,
 	prepareWidget = function(widgetName)
