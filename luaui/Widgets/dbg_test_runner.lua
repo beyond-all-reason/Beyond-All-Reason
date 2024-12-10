@@ -199,6 +199,8 @@ function registerCallin(name, predicate, target, depth)
 	if not target then
 		target = widget
 	end
+
+	-- checks and init
 	if not callinState.unsafe and not callinState.recording[name] then
 		error("[registerCallin:" .. name .. "] need to call Test.expectCallin(\"" .. name .. "\") first", depth)
 	end
@@ -209,12 +211,16 @@ function registerCallin(name, predicate, target, depth)
 	elseif callinState.callins[name] == REGISTER_COUNT and callinState.callins[name] ~= mode then
 		error("[registerCallin:" .. name .. "] expecting countOnly but requesting full", depth)
 	end
-	local countFunc
+
 	local counts = callinState.counts
+	-- preload recorded data when we have full record but just need a count
 	if mode == REGISTER_COUNT and callinState.callins[name] == REGISTER_FULL then
 		counts[name] = #callinState.buffer[name]
 		callinState.buffer[name] = {}
 	end
+
+	-- create the count functions
+	local countFunc
 	if predicate then
 		countFunc = function(_, ...)
 			local res = predicate(...)
@@ -222,6 +228,7 @@ function registerCallin(name, predicate, target, depth)
 				counts[name] = counts[name] + 1
 			end
 		end
+		-- load previously recorded data
 		for _, args in pairs(callinState.buffer[name]) do
 			countFunc(target, unpack(args))
 		end
@@ -231,6 +238,8 @@ function registerCallin(name, predicate, target, depth)
 			counts[name] = counts[name] + 1
 		end
 	end
+
+	-- register
 	target[name] = countFunc
 	widgetHandler:UpdateWidgetCallInRaw(name, widget)
 	callinState.callins[name] = mode
