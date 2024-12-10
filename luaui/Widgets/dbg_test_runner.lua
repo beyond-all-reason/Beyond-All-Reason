@@ -184,6 +184,9 @@ local spyControls
 -- callin tracking
 -- =========
 
+local REGISTER_COUNT = 0
+local REGISTER_FULL = 1
+
 -- Hook callin
 -- Will register to count either predicate success or execution counts.
 -- predicate will be passed the callin arguments.
@@ -192,9 +195,6 @@ local spyControls
 -- @param target Object registering the callin, default: test_runner widget
 -- @number depth stack depth (normally for internal use)
 function registerCallin(name, predicate, target, depth)
-	local REGISTER_COUNT = 0
-	local REGISTER_FULL = 1
-
 	local depth = depth + 1
 	if not target then
 		target = widget
@@ -252,7 +252,7 @@ end
 -- @func full Buffer all call arguments when true or just count number of executions
 -- @param target Object registering the callin, default: test_runner widget
 -- @number depth stack depth (normally for internal use)
-function preRegisterCallin(name, full, target, depth)
+function startRecordingCallin(name, full, target, depth)
 	local depth = depth + 1
 	if callinState.recording[name] then
 		error("[preRegisterCallin:" ..  name .. "] already pre-registered", depth)
@@ -269,8 +269,15 @@ function preRegisterCallin(name, full, target, depth)
 			buffer[#buffer+1] = args
 		end
 	end
-	callinState.recording[name] = true --need to set this before registerCallin
+	callinState.recording[name] = full and REGISTER_FULL or REGISTER_COUNT --need to set this before registerCallin
 	registerCallin(name, recorderFunc, target, depth)
+end
+
+function resumeRecordingCallin(name, target, depth)
+	local full = callinState.recording[name] == REGISTER_FULL
+	callinState.recording[name] = nil
+	callinState.callins[name] = nil
+	startRecordingCallin(name, full, target, depth)
 end
 
 -- Unhook callin
@@ -611,7 +618,7 @@ Test = {
 	expectCallin = function(name, countOnly, depth)
 		local depth = depth and (depth + 1) or 2
 		-- start buffering callin executions
-		preRegisterCallin(name, not countOnly, nil, depth)
+		startRecordingCallin(name, not countOnly, nil, depth)
 	end,
 	unexpectCallin = function(name)
 		-- stop buffering callin executions
@@ -627,7 +634,9 @@ Test = {
 			       timeout,
 			       1)
 
-		if not callinState.recording[name] then
+		if callinState.recording[name] then
+			resumeRecordingCallin(name, nil, depth)
+		else
 			removeCallin(name)
 		end
 		log(LOG.DEBUG, "[waitUntilCallin.done]")
