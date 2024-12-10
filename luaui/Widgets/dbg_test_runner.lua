@@ -177,7 +177,7 @@ local testRunState
 local activeTestState
 local resumeState
 local returnState
-local callinState = {callins = {}, recording = {}}
+local callinState = {callins = {}, recording = {}, unsafe = false}
 local spyControls
 
 
@@ -339,6 +339,7 @@ end
 local function resetCallinState()
 	log(LOG.DEBUG, "[resetCallinState]")
 	removeAllCallins()
+	callinState.unsafe = false
 end
 
 local function resetSpyCtrls()
