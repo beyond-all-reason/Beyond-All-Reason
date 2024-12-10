@@ -4,6 +4,8 @@ end
 
 function setup()
 	Test.clearMap()
+	-- Enable UnitCommand callin for tests
+	Test.expectCallin("UnitCommand")
 end
 
 function cleanup()
