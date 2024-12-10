@@ -258,17 +258,18 @@ function preRegisterCallin(name, full, target, depth)
 	elseif callinState.callins[name] then
 		error("[preRegisterCallin:" .. name .. "] already registered", depth)
 	end
-	local predicate = false
+	local recorderFunc = false
 	if full then
+		-- create a fake 'predicate' to accumulate data until a real predicate is set.
 		local buffers = callinState.buffer
-		predicate = function(...)
+		recorderFunc = function(...)
 			local buffer = buffers[name]
 			local args = {...}
 			buffer[#buffer+1] = args
 		end
 	end
 	callinState.recording[name] = true --need to set this before registerCallin
-	registerCallin(name, predicate, target, depth)
+	registerCallin(name, recorderFunc, target, depth)
 end
 
 -- Unhook callin
