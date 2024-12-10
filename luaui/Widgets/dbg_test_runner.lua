@@ -194,19 +194,27 @@ local spyControls
 function registerCallin(name, predicate, target, depth)
 	local REGISTER_COUNT = 0
 	local REGISTER_FULL = 1
+
 	local depth = depth + 1
 	if not target then
 		target = widget
+	end
+	if not callinState.unsafe and not callinState.recording[name] then
+		error("[registerCallin:" .. name .. "] need to call expectCallin(\"" .. name .. "\") first", depth)
 	end
 	local mode = predicate and REGISTER_FULL or REGISTER_COUNT
 	if not callinState.callins[name] then
 		callinState.buffer[name] = {}
 	        callinState.counts[name] = 0
-	elseif callinState.recording[name] and callinState.callins[name] ~= mode then
-		error("[registerCallin:" .. name .. "] expecting a different mode", depth)
+	elseif callinState.callins[name] == REGISTER_COUNT and callinState.callins[name] ~= mode then
+		error("[registerCallin:" .. name .. "] expecting countOnly but requesting full", depth)
 	end
 	local countFunc
 	local counts = callinState.counts
+	if mode == REGISTER_COUNT and callinState.callins[name] == REGISTER_FULL then
+		counts[name] = #callinState.buffer[name]
+		callinState.buffer[name] = {}
+	end
 	if predicate then
 		countFunc = function(_, ...)
 			local res = predicate(...)
@@ -250,8 +258,8 @@ function preRegisterCallin(name, full, target, depth)
 			buffer[#buffer+1] = args
 		end
 	end
+	callinState.recording[name] = true --need to set this before registerCallin
 	registerCallin(name, predicate, target, depth)
-	callinState.recording[name] = true --need to set this after registerCallin
 end
 
 -- Unhook callin
@@ -588,10 +596,10 @@ Test = {
 		)
 		log(LOG.DEBUG, "[waitTime.done]")
 	end,
-	expectCallin = function(name, full, depth)
+	expectCallin = function(name, countOnly, depth)
 		local depth = depth and (depth + 1) or 2
 		-- start buffering callin executions
-		preRegisterCallin(name, full, nil, depth)
+		preRegisterCallin(name, not countOnly, nil, depth)
 	end,
 	unexpectCallin = function(name)
 		-- stop buffering callin executions
@@ -643,6 +651,9 @@ Test = {
 				Spring.DestroyFeature(featureID)
 			end
 		end)
+	end,
+	setUnsafeCallins = function(unsafe)
+		callinState.unsafe = unsafe
 	end,
 	clearCallins = function()
 		removeAllCallins()

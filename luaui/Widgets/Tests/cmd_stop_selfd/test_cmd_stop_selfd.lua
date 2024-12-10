@@ -4,6 +4,8 @@ end
 
 function setup()
 	Test.clearMap()
+	-- Enable UnitCommand callin for tests
+	Test.expectCallin("UnitCommand")
 end
 
 function cleanup()
@@ -13,10 +15,6 @@ end
 function test()
 	widget = widgetHandler:FindWidget("Stop means Stop")
 	assert(widget)
-
-	-- Make the test_runner start prerecording UnitCommand calls,
-	-- not really needed here, but recommended for new tests.
-	Test.expectCallin("UnitCommand", true)
 
 	local myTeamID = Spring.GetMyTeamID()
 

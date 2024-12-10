@@ -21,31 +21,32 @@ function runBaseTests()
 	Test.clearCallins()
 
 	-- mismatching expect and wait
-	Test.expectCallin("UnitCommand")
+	Test.expectCallin("UnitCommand", true)
 
 	assertThrowsMessage(function()
 		Test.waitUntilCallin("UnitCommand", function()
 			return true
 		end)
-	end, "[registerCallin:UnitCommand] expecting a different mode")
+	end, "[registerCallin:UnitCommand] expecting countOnly but requesting full")
 
 	Test.clearCallins()
 
-	-- mismatching expect and wait
-	Test.expectCallin("UnitCommand", true)
-
+	-- not calling expect first
 	assertThrowsMessage(function()
 		Test.waitUntilCallin("UnitCommand")
-	end, "[registerCallin:UnitCommand] expecting a different mode")
+	end, "[registerCallin:UnitCommand] need to call expectCallin(\"UnitCommand\") first")
 
 	Test.clearCallins()
+
 end
 
-function runWaitUntil(expect)
+function runWaitUntil(unsafe, countOnly, reallyCountOnly)
 	-- test waitUntilCallinArgs with and without expectCallin preregister
 	local myTeamID = Spring.GetMyTeamID()
-	if expect then
-		Test.expectCallin("UnitCommand", true)
+	if unsafe then
+		Test.setUnsafeCallins(true)
+	else
+		Test.expectCallin("UnitCommand", reallyCountOnly)
 	end
 
 	local unitID = SyncedRun(function(locals)
@@ -58,14 +59,24 @@ function runWaitUntil(expect)
 	Spring.GiveOrderToUnit(unitID, CMD.SELFD, {}, 0)
 
 	-- actual test
-	Test.waitUntilCallinArgs("UnitCommand", { nil, nil, nil, CMD.SELFD, nil, nil, nil })
+	if countOnly then
+		Test.waitFrames(3)
+		Test.waitUntilCallin("UnitCommand")
+	else
+		Test.waitUntilCallinArgs("UnitCommand", { nil, nil, nil, CMD.SELFD, nil, nil, nil })
+	end
 	assert(Spring.GetUnitSelfDTime(unitID) > 0)
 
 	Test.clearCallins()
+	if unsafe then
+		Test.setUnsafeCallins(false)
+	end
 end
 
 function test()
 	runBaseTests()
 	runWaitUntil()
+	runWaitUntil(false, true)
+	runWaitUntil(false, true, true)
 	runWaitUntil(true)
 end
