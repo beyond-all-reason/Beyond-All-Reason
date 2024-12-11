@@ -149,7 +149,7 @@ local function offerUnitForSale(unitID, sale_price, msgFromTeamID)
     end
 end
 
-local t2conNames = {"armack", "armacv", "armaca", "armacsub", "corack", "coracv", "coraca", "coracsub"}
+local t2conNames = {"armack", "armacv", "armaca", "armacsub", "corack", "coracv", "coraca", "coracsub", "legack", "legacv", "legaca", "legacsub"}
 local isT2Con = {}
 for _, name in ipairs(t2conNames) do
     if UnitDefNames[name] then
