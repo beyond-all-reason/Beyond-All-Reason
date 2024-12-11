@@ -22393,21 +22393,43 @@ for colorname, colorvalues in pairs(crystalColors) do
 end
 
 local xmaslightbase = {
+			fraction = 10,
 			lightType = 'point',
-			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 8,
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 16,
 							color2r = 0, color2g = 0, color2b = 0, colortime = 0.1,
-							r = 1, g = 1, b = 1, a = 0.2,
+							r = 1, g = 1, b = 1, a = 0.1,
 							modelfactor = 1.1, specular = 0.9, scattering = 0.8, lensflare = 20,
 							lifetime = 0, sustain = 0, animtype = 0},
 }
 
-local snowy_tree_keys = {'tree_fir_tall_3'}
+
+-- Supreme Isthmus Winter 1.8.2
+-- Ascendancy 2.2
+-- Avalanche 3.4 
+-- blindside remake
+-- Frozen Ford v2
+-- Glacier pass 1.2 
+-- Nuclear Winter BAR 1.4 
+-- The cold place BAR v 1.1
+-- White Fire Remake 1.3
+-- Ice Scream v2.5.1
+
+local snowy_tree_keys = {}-- { __tree_fir_tall_3 = 20, __tree_fir_tall_4 = 20, allpinesb_ad0_snow = 20}
+local snowy_tree_keys = {allpinesb_ad0 = 20, __tree_fir_tall_3 = 20, __tree_fir_ = 20}
+local xmasColors = {
+	[1] = {234,13,13}, -- red
+	[2] = {251,11,36}, -- orange
+	[3] = {251,242,26}, -- yellow
+	[4] = {36, 208, 36}, -- green
+	[5] = {10,83, 222}, -- blue
+}
+
 for featureDefID , featureDef in pairs(FeatureDefs) do
 	local featureName = featureDef.name
 	-- Check if its a snowy tree:
 	-- estimate its height/ radius via model extrema
 	-- spawn lights in a cone shape around it
-	for _, key in pairs(snowy_tree_keys) do
+	for key, count in pairs(snowy_tree_keys) do
 		if string.find(featureName, key, nil, true) then
 			--Spring.Echo("Found snowy tree: " .. featureName, key)
 
@@ -22416,7 +22438,7 @@ for featureDefID , featureDef in pairs(FeatureDefs) do
 			local maxx = featureDef.model.maxx
 			local maxz = featureDef.model.maxz
 
-			for i= 1,20 do
+			for i= 1, count do
 				local xmaslight = table.copy(xmaslightbase)
 	
 				local y = maxy * (math.random() * 0.8 +   0.1)
@@ -22428,6 +22450,19 @@ for featureDefID , featureDef in pairs(FeatureDefs) do
 				xmaslight.lightConfig.posy = y
 				xmaslight.lightConfig.posx = x
 				xmaslight.lightConfig.posz = z
+
+				local color = math.ceil(math.random() * 4)
+
+				xmaslight.lightConfig.r = xmasColors[color][1] / 255
+				xmaslight.lightConfig.g = xmasColors[color][2] / 255
+				xmaslight.lightConfig.b = xmasColors[color][3] / 255
+
+				xmaslight.lightConfig.color2r = xmasColors[color+1][1] /255
+				xmaslight.lightConfig.color2g = xmasColors[color+1][2] /255
+				xmaslight.lightConfig.color2b = xmasColors[color+1][3] /255
+
+				
+				--[[
 				
 				xmaslight.lightConfig.r = math.random() > 0.5 and 1 or 0
 				xmaslight.lightConfig.g = math.random()> 0.5 and 1 or 0
@@ -22436,6 +22471,7 @@ for featureDefID , featureDef in pairs(FeatureDefs) do
 				xmaslight.lightConfig.color2r = math.random() > 0.5 and 1 or 0
 				xmaslight.lightConfig.color2g = math.random()> 0.5 and 1 or 0
 				xmaslight.lightConfig.color2b = math.random()> 0.5 and 1 or 0
+				]]--
 
 				xmaslight.lightConfig.colortime = 0.005 + math.random()* 0.005 
 
