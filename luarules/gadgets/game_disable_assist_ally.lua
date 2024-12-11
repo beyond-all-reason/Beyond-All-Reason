@@ -87,6 +87,7 @@ function gadget:AllowUnitCreation(unitDefID, builderID, builderTeam, x, y, z)
 			return false
 		end
 	end
+	return true
 end
 
 

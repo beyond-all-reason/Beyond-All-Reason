@@ -149,6 +149,15 @@ local function offerUnitForSale(unitID, sale_price, msgFromTeamID)
     end
 end
 
+local t2cons = {"armack", "armacv", "armaca", "armacsub", "corack", "coracv", "coraca", "coracsub"}
+function contains(table, value)
+    for _, v in pairs(table) do
+        if v == value then return true end
+    end
+    return false
+end
+
+-- Override unit sharing block from other modoptions
 local disable_unit_sharing = (
     Spring.GetModOptions().disable_unit_sharing
  or (Spring.GetModOptions().tax_resource_sharing_amount or 0) ~= 0)
@@ -156,12 +165,21 @@ and Spring.GetModOptions().unit_market
 local saleWhitelist = {}
 
 local function tryToBuyUnit(unitID, msgFromTeamID)
+
     if not unitID or unitsForSale[unitID] == nil or unitsForSale[unitID] == 0 then return end
     local unitDefID = spGetUnitDefID(unitID)
     if not unitDefID then return end
     local unitDef = UnitDefs[unitDefID]
     if not unitDef then return end
 
+    
+    -- Only allow selling t2 cons when unit sharing is disabled
+
+    --Spring.Echo("unitDefID", unitDefID, UnitDefs[unitDefID].name)
+    if(disable_unit_sharing) then
+        if not contains(t2cons, UnitDefs[unitDefID].name) then return end
+    end
+    
     local old_ownerTeamID = spGetUnitTeam(unitID)
     local _, _, _, isAiTeam = spGetTeamInfo(old_ownerTeamID)
     if not spAreTeamsAllied(old_ownerTeamID, msgFromTeamID) then return end
