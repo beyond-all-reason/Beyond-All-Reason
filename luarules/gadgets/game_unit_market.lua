@@ -202,6 +202,12 @@ local function tryToBuyUnit(unitID, msgFromTeamID)
     TransferUnit(unitID, msgFromTeamID)
     if msgFromTeamID ~= old_ownerTeamID and price > 0 then -- don't send resources to yourself
         ShareTeamResource(msgFromTeamID, old_ownerTeamID, "metal", price)
+        -- if tax resource sharing is on, refund tax to the seller
+        if(Spring.GetModOptions().tax_resource_sharing_amount>0) then
+            local taxRate = Spring.GetModOptions().tax_resource_sharing_amount
+            local taxAmount = price * taxRate
+            Spring.AddTeamResource(old_ownerTeamID, "metal", taxAmount)
+        end
     end
     setNotForSale(unitID)
     UnitSoldBroadcast(unitID, price, old_ownerTeamID, msgFromTeamID)
