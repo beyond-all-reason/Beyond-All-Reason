@@ -149,13 +149,15 @@ local function offerUnitForSale(unitID, sale_price, msgFromTeamID)
     end
 end
 
-local t2cons = {"armack", "armacv", "armaca", "armacsub", "corack", "coracv", "coraca", "coracsub"}
-function contains(table, value)
-    for _, v in pairs(table) do
-        if v == value then return true end
+local t2conNames = {"armack", "armacv", "armaca", "armacsub", "corack", "coracv", "coraca", "coracsub"}
+local isT2Con = {}
+for _, name in ipairs(t2conNames) do
+    if UnitDefNames[name] then
+        isT2Con[UnitDefNames[name].id] = true
     end
-    return false
 end
+
+
 
 -- Override unit sharing block from other modoptions
 local disable_unit_sharing = (
@@ -173,11 +175,10 @@ local function tryToBuyUnit(unitID, msgFromTeamID)
     if not unitDef then return end
 
     
-    -- Only allow selling t2 cons when unit sharing is disabled
-
-    --Spring.Echo("unitDefID", unitDefID, UnitDefs[unitDefID].name)
-    if(disable_unit_sharing) then
-        if not contains(t2cons, UnitDefs[unitDefID].name) then return end
+    -- When tax resource sharing is on, only allow selling t2 cons through unit market
+    Spring.Echo("unitDefID", unitDefID, UnitDefs[unitDefID].name)
+    if((Spring.GetModOptions().tax_resource_sharing_amount or 0) ~= 0) then
+        if not isT2Con[unitDefID] then return end
     end
     
     local old_ownerTeamID = spGetUnitTeam(unitID)
