@@ -32,6 +32,64 @@ local function isComplete(u)
 end
 
 
+
+-- table of all mex unitDefIDs
+local isMex = {} 
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.extractsMetal > 0 then
+		isMex[unitDefID] = true
+	end
+end
+
+local function existsNonOwnedMex(myTeam, x, y, z)
+    local units = Spring.GetUnitsInCylinder(x, z, 10)
+    for k, unitID in ipairs(units) do
+        if isMex[Spring.GetUnitDefID(unitID)] then
+            if Spring.GetUnitTeam(unitID) ~= myTeam then
+                return unitID
+            end
+        end
+    end
+    return false
+end
+
+-- table of all geo unitDefIDs
+local isGeo = {} 
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.customParams.geothermal then
+		isGeo[unitDefID] = true
+	end
+end
+
+
+local function existsNonOwnedGeo(myTeam, x, y, z)
+    local units = Spring.GetUnitsInCylinder(x, z, 10)
+    for k, unitID in ipairs(units) do
+        if isGeo[Spring.GetUnitDefID(unitID)] then
+            if Spring.GetUnitTeam(unitID) ~= myTeam then
+                return unitID
+            end
+        end
+    end
+    return false
+end
+
+function gadget:AllowUnitCreation(unitDefID, builderID, builderTeam, x, y, z)
+	-- Disallow upgrading allied mexes
+	if isMex[unitDefID] then
+		if existsNonOwnedMex(builderTeam, x, y, z) then
+			return false
+		end
+	end
+	-- Disallow upgrading allied geos
+	if isGeo[unitDefID] then
+		if existsNonOwnedGeo(builderTeam, x, y, z) then
+			return false
+		end
+	end
+end
+
+
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
 
 	-- Disallow guard commands onto labs, units that have buildOptions or can assist
