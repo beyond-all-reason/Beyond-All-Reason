@@ -35,18 +35,20 @@ use weapondef.customparams.smart_error_frames to override the default reloadtime
 ]]
 
 --static
-local frameCheckModulo = Game.gameSpeed
+local frameCheckModulo = (Game.gameSpeed / 3) * 2
 local failedToFireMultiplier = Game.gameSpeed * 1.25
-local aggroDecayRate = 0.85
+local minimumFailedToFireFrames = Game.gameSpeed * 13
+local aggroDecayRate = 0.65
 local tallyDecayRate = 0.98
-local pAutoAggro = 5
-local pManualAggro = pAutoAggro * 4
-local dAutoAggro = 3
-local dManualAggro = dAutoAggro * 4
+local pAutoAggro = 9
+local pManualAggro = pAutoAggro * 1.5
+local dAutoAggro = 4
+local dManualAggro = pAutoAggro * 1.25
 local dErrorAggro = -300
 local errorRecencyThreshold = Game.gameSpeed * 15
-local errorTallyMultiplierCap = 4
-local switchDeferredThreshold = -dAutoAggro * 3
+local errorTallyMultiplierCap = 4.5
+local errorMultiplierAddition = 1.5
+local switchDeferredThreshold = -dAutoAggro * 1.5
 local switchPreferredThreshold = -1
 local AimingState_Preferred = 1
 local AimingState_Deferred = 2
@@ -86,7 +88,7 @@ for unitDefID, def in ipairs(UnitDefs) do
 					unitDefData[unitDefID] = unitDefData[unitDefID] or {}
 					unitDefData[unitDefID].preferredWeapon = weaponNumber
 					unitDefData[unitDefID].failedToFireFrameThreshold = WeaponDefs[weaponDefID].customParams.smart_error_frames or
-																		WeaponDefs[weaponDefID].reload * failedToFireMultiplier
+																		mathMax(WeaponDefs[weaponDefID].reload * failedToFireMultiplier, minimumFailedToFireFrames)
 					if def.speed and def.speed ~= 0 then
 						unitDefData[unitDefID].canMove = true
 					end
@@ -164,7 +166,7 @@ local function updateAimingState(attackerID)
 
     if pIsUserTarget and preferredCanShoot then
         if failureToFire then
-            attackerData.errorTallyMultiplier = mathMin(attackerData.errorTallyMultiplier + 1, errorTallyMultiplierCap)
+            attackerData.errorTallyMultiplier = mathMin(attackerData.errorTallyMultiplier + errorMultiplierAddition, errorTallyMultiplierCap)
             attackerData.aggroBias = dErrorAggro * attackerData.errorTallyMultiplier ^ attackerData.errorTallyMultiplier
         else
             attackerData.aggroBias = attackerData.aggroBias + pManualAggro
@@ -173,7 +175,7 @@ local function updateAimingState(attackerID)
         attackerData.aggroBias = attackerData.aggroBias - dManualAggro
     else
 		if failureToFire then
-			attackerData.errorTallyMultiplier = mathMin(attackerData.errorTallyMultiplier + 1, errorTallyMultiplierCap)
+			attackerData.errorTallyMultiplier = mathMin(attackerData.errorTallyMultiplier + errorMultiplierAddition, errorTallyMultiplierCap)
 			attackerData.aggroBias = dErrorAggro * attackerData.errorTallyMultiplier ^ attackerData.errorTallyMultiplier
         elseif preferredCanShoot then
             attackerData.aggroBias = attackerData.aggroBias + pAutoAggro
