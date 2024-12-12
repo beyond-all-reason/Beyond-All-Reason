@@ -143,6 +143,9 @@ return {
 					default = 260,
 					vtol = 45,
 				},
+				customparams = {
+					exclude_preaim = true
+				}
 			},
 			corsumo_weapon = {
 				areaofeffect = 12,
@@ -178,6 +181,9 @@ return {
 					default = 215,
 					vtol = 50,
 				},
+				customparams = {
+					exclude_preaim = true
+				}
 			},
 		},
 		weapons = {
