@@ -157,13 +157,17 @@ for _, name in ipairs(t2conNames) do
     end
 end
 
-
+local tax_resource_sharing_enabled = Spring.GetModOptions().tax_resource_sharing_amount ~= nil and Spring.GetModOptions().tax_resource_sharing_amount > 0
+local disable_share_econ_and_lab = Spring.GetModOptions().disable_unit_sharing_economy_and_production or tax_resource_sharing_enabled
+local disable_share_combat_units = Spring.GetModOptions().disable_unit_sharing_combat_units
+local disable_share_all = Spring.GetModOptions().disable_unit_sharing_all
 
 -- Override unit sharing block from other modoptions
-local disable_unit_sharing = (
-    Spring.GetModOptions().disable_unit_sharing
- or (Spring.GetModOptions().tax_resource_sharing_amount or 0) ~= 0)
-and Spring.GetModOptions().unit_market
+local disable_unit_sharing_enabled = (
+    Spring.GetModOptions().disable_unit_sharing_economy_and_production
+    or Spring.GetModOptions().disable_unit_sharing_combat_units
+    or Spring.GetModOptions().disable_unit_sharing_all
+    or (Spring.GetModOptions().tax_resource_sharing_amount or 0) ~= 0)
 local saleWhitelist = {}
 
 local function tryToBuyUnit(unitID, msgFromTeamID)
@@ -196,7 +200,7 @@ local function tryToBuyUnit(unitID, msgFromTeamID)
 
     if (current < price) then return end
 
-    if disable_unit_sharing then
+    if disable_unit_sharing_enabled then
         saleWhitelist[unitID] = true
     end
 
@@ -214,7 +218,7 @@ local function tryToBuyUnit(unitID, msgFromTeamID)
     UnitSoldBroadcast(unitID, price, old_ownerTeamID, msgFromTeamID)
 end
 
-if disable_unit_sharing then
+if disable_unit_sharing_enabled then
     function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, capture)
         if(capture) then
             return true
@@ -223,7 +227,11 @@ if disable_unit_sharing then
             saleWhitelist[unitID] = nil
             return true
         end
-        return false
+        if(GG.disable_unit_sharing_unitTypeAllowedToBeShared) then
+            return GG.disable_unit_sharing_unitTypeAllowedToBeShared(unitDefID)
+        else
+            return true
+        end
     end
 end
 

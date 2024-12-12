@@ -17,21 +17,35 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-if not (Spring.GetModOptions().disable_unit_sharing
-	-- tax force enables this
-	or (Spring.GetModOptions().tax_resource_sharing_amount or 0) ~= 0)
-	-- unit market handles the restriction instead if enabled so that selling still works
-	or Spring.GetModOptions().unit_market then
+local tax_resource_sharing_enabled = Spring.GetModOptions().tax_resource_sharing_amount ~= nil and Spring.GetModOptions().tax_resource_sharing_amount > 0
+local disable_share_econ_and_lab = Spring.GetModOptions().disable_unit_sharing_economy_and_production or tax_resource_sharing_enabled
+local disable_share_combat_units = Spring.GetModOptions().disable_unit_sharing_combat_units
+local disable_share_all = Spring.GetModOptions().disable_unit_sharing_all
+
+
+if not disable_share_econ_and_lab and not disable_share_combat_units and not disable_share_all then 
+	return false
+end
+
+-- Returns whether the unit is allowed to be shared according to the unit sharing restrictions.
+local function unitTypeAllowedToBeShared(unitDefID)
+	Spring.Echo("hi unitTypeAllowedToBeShared")
+	--TODO implement this
+	return true
+end
+GG.disable_unit_sharing_unitTypeAllowedToBeShared = unitTypeAllowedToBeShared
+
+if Spring.GetModOptions().unit_market then
+	-- let unit market handle unit sharing so that buying units will still work. 
 	return false
 end
 
 
 function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, capture)
-
 	if(capture) then
 		return true
 	end
-	return false
+	return allowedToBeShared(unitDefID)
 end
 
 
