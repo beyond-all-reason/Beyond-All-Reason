@@ -227,12 +227,12 @@ Deactivate()
 
 QueryBuildInfo(piecenum)
 {
-	piecenum = base;
+	piecenum = pad;
 }
 
 SweetSpot(piecenum)
 {
-	piecenum = pad;
+	piecenum = base;
 }
 
 Killed(severity, corpsetype)
