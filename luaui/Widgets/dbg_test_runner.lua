@@ -184,8 +184,73 @@ local spyControls
 -- callin tracking
 -- =========
 
-local REGISTER_COUNT = 0
-local REGISTER_FULL = 1
+local REGISTER_FULL = 0
+local REGISTER_COUNT = 1
+
+local function getRecordMode(hasPredicate)
+	return hasPredicate and REGISTER_FULL or REGISTER_COUNT
+end
+
+local function initCallCountFunction(name, prevMode)
+	-- create a function to count executions
+	local counts = callinState.counts
+
+	local countFunc = function()
+		counts[name] = counts[name] + 1
+	end
+
+	-- load recorded data when we have full record but just need a count
+	if prevMode == REGISTER_FULL then
+		counts[name] = #callinState.buffer[name]
+		callinState.buffer[name] = {}
+	end
+	return countFunc
+end
+
+local function initPredicateCountFunction(name, predicate)
+	-- create a function to count predicate successes
+	local counts = callinState.counts
+
+	local countFunc = function(_, ...)
+		local res = predicate(...)
+		if res then
+			counts[name] = counts[name] + 1
+		end
+	end
+
+	-- load recorded data
+	for _, args in pairs(callinState.buffer[name]) do
+		countFunc(nil, unpack(args))
+	end
+	callinState.buffer[name] = {}
+	return countFunc
+end
+
+local function initCallinCounters(name)
+	callinState.buffer[name] = {}
+	callinState.counts[name] = 0
+end
+
+local function initRecorderFunction(name)
+	-- create a fake 'predicate' to accumulate data until a real predicate is set.
+	local buffers = callinState.buffer
+	local recorderFunc = function(_, ...)
+		local buffer = buffers[name]
+		buffer[#buffer+1] = {...}
+	end
+	return recorderFunc
+end
+
+
+local function trackCallin(target, name, callback, mode)
+	if not target then
+		target = widget
+	end
+	target[name] = callback
+	widgetHandler:UpdateWidgetCallInRaw(name, target)
+	callinState.callins[name] = mode
+end
+
 
 -- Hook callin
 -- Will register to count either predicate success or execution counts.
@@ -196,54 +261,29 @@ local REGISTER_FULL = 1
 -- @number depth stack depth (normally for internal use)
 function registerCallin(name, predicate, target, depth)
 	local depth = depth + 1
-	if not target then
-		target = widget
-	end
 
 	-- checks and init
 	if not callinState.unsafe and not callinState.recording[name] then
 		error("[registerCallin:" .. name .. "] need to call Test.expectCallin(\"" .. name .. "\") first", depth)
 	end
-	local mode = predicate and REGISTER_FULL or REGISTER_COUNT
+	local mode = getRecordMode(predicate)
 	local prevMode = callinState.callins[name]
 	if not prevMode then
-		callinState.buffer[name] = {}
-	        callinState.counts[name] = 0
+		initCallinCounters(name)
 	elseif prevMode == REGISTER_COUNT and prevMode ~= mode then
 		error("[registerCallin:" .. name .. "] expecting countOnly but requesting full", depth)
-	end
-
-	local counts = callinState.counts
-	-- preload recorded data when we have full record but just need a count
-	if mode == REGISTER_COUNT and prevMode == REGISTER_FULL then
-		counts[name] = #callinState.buffer[name]
-		callinState.buffer[name] = {}
 	end
 
 	-- create the count functions
 	local countFunc
 	if predicate then
-		countFunc = function(_, ...)
-			local res = predicate(...)
-			if res then
-				counts[name] = counts[name] + 1
-			end
-		end
-		-- load previously recorded data
-		for _, args in pairs(callinState.buffer[name]) do
-			countFunc(target, unpack(args))
-		end
-		callinState.buffer[name] = {}
+		countFunc = initPredicateCountFunction(name, predicate)
 	else
-		countFunc = function()
-			counts[name] = counts[name] + 1
-		end
+		countFunc = initCallCountFunction(name, prevMode)
 	end
 
 	-- register
-	target[name] = countFunc
-	widgetHandler:UpdateWidgetCallInRaw(name, widget)
-	callinState.callins[name] = mode
+	trackCallin(target, name, countFunc, mode)
 end
 
 -- Pre-Hook callin
@@ -259,25 +299,27 @@ function startRecordingCallin(name, full, target, depth)
 	elseif callinState.callins[name] then
 		error("[preRegisterCallin:" .. name .. "] already registered", depth)
 	end
-	local recorderFunc = false
+
+	initCallinCounters(name)
+
+	local recorderFunc
 	if full then
-		-- create a fake 'predicate' to accumulate data until a real predicate is set.
-		local buffers = callinState.buffer
-		recorderFunc = function(...)
-			local buffer = buffers[name]
-			local args = {...}
-			buffer[#buffer+1] = args
-		end
+		recorderFunc = initRecorderFunction(name)
+	else
+		recorderFunc = initCallCountFunction(name)
 	end
-	callinState.recording[name] = full and REGISTER_FULL or REGISTER_COUNT --need to set this before registerCallin
-	registerCallin(name, recorderFunc, target, depth)
+
+	-- register
+	local mode = getRecordMode(full)
+	callinState.recording[name] = mode
+	trackCallin(target, name, recorderFunc, mode)
 end
 
 function resumeRecordingCallin(name, target, depth)
 	local full = callinState.recording[name] == REGISTER_FULL
 	callinState.recording[name] = nil
 	callinState.callins[name] = nil
-	startRecordingCallin(name, full, target, depth)
+	startRecordingCallin(name, full, target, depth + 1)
 end
 
 -- Unhook callin
