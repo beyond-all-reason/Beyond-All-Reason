@@ -35,9 +35,9 @@ return {
 		yardmap = "h cbbbbbbc bssssssb bssobssb bsbbbosb bsobbbsb bssbossb bssssssb cbbbbbbc",
 		customparams = {
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/cormex_aoplane.dds",
-			buildinggrounddecalsizey = 2,
-			buildinggrounddecalsizex = 2,
+			buildinggrounddecaltype = "decals/legmext15_aoplane.dds",
+			buildinggrounddecalsizey = 5,
+			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'metal',
 			cvbuildable = true,
