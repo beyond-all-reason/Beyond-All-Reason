@@ -17,7 +17,7 @@ return {
 		capturespeed = 900,
 		cloakcost = 30,
 		cloakcostmoving = 180,
-		collisionvolumeoffsets = "0 3 0",
+		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "34 60 34",
 		collisionvolumetype = "CylY",
 		decoyfor = "legcom",
