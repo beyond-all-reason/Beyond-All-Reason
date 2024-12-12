@@ -7,7 +7,7 @@ return {
 		canmove = true,
 		collisionvolumeoffsets = "0 4 0",
 		collisionvolumescales = "144 70 144",
-		collisionvolumetype = "CylY",
+		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		energycost = 29000,
 		energystorage = 200,
@@ -32,7 +32,7 @@ return {
 		sightdistance = 312,
 		terraformspeed = 1000,
 		workertime = 200,
-		yardmap = "yyyoooyyy yoooooooy yoooooooy ooooooooo ooooooooo ooooooooo ooooooooo yoooooooy yyoooooyy",
+		yardmap = "ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo",
 		buildoptions = {
 			[1] = "armaca",
 			[2] = "armbrawl",
