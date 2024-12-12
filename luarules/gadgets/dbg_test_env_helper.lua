@@ -40,7 +40,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		local playerList = Spring.GetPlayerList()
 		for _, playerID in pairs(playerList) do
-			Spring.SetGameRulesParam("player_" .. playerID .. "_readyState", initState)
+			Spring.SetGameRulesParam("player_" .. playerID .. "_readyState", 1)
 		end
 	end
 
