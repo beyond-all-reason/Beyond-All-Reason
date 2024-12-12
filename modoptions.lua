@@ -846,14 +846,14 @@ local options = {
         type    = "separator",
     },
 
-    --{
-    --	key    	= "xmas",
-    --	name   	= "Holiday decorations",
-    --	desc   	= "Various  holiday decorations",
-    --	type   	= "bool",
-    --	def    	= true,
-    --	section	= "options_extra",
-    --},
+    {
+    	key    	= "xmas",
+    	name   	= "Holiday decorations",
+    	desc   	= "Various  holiday decorations",
+    	type   	= "bool",
+    	def    	= true,
+    	section	= "options_extra",
+    },
 
 	-- {
 	-- 	key		= "unithats",
