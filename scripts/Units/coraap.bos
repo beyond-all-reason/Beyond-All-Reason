@@ -1,16 +1,14 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
+#include "../factories_common.h"
 
-piece  base, pad, dishbase1,dishbase2, dish1, dish2, nano1, nano2, nano3, nano4, nano5, nano6, nano7, nano8, none, blink1, blink2;
+piece  base, pad, dishbase1, dishbase2, dish1, dish2, nano1, nano2, nano3, nano4, nano5, nano6, nano7, nano8, blink1, blink2, cagelight1, cagelight_emit1, cagelight2, cagelight_emit2;
 
-static-var  spray, unitviewer, statechg_DesiredState, statechg_StateChanging;
+static-var  spray;
 static-var  Stunned;
 
 // Signal definitions
-#define SIG_ACTIVATE			2
-
+#define SIGNAL_TURNON 4
 
 Lights()
 {
@@ -26,56 +24,6 @@ Lights()
 	start-script Lights();
 }
 
-activatescr()
-{
-	sleep 26;
-}
-
-deactivatescr()
-{
-	//sleep 25;
-}
-
-OpenYard()
-{
-	set YARD_OPEN to 1;
-	while( !get YARD_OPEN )
-	{
-		set BUGGER_OFF to 1;
-		sleep 1500;
-		set YARD_OPEN to 1;
-	}
-}
-
-CloseYard()
-{
-	set YARD_OPEN to 0;
-	while( get YARD_OPEN )
-	{
-		set BUGGER_OFF to 1;
-		sleep 1500;
-		set YARD_OPEN to 0;
-	}
-}
-
-Go()
-{
-	call-script activatescr();
-	call-script OpenYard();
-	//spin dish1 around z-axis speed <150.0>;
-	//spin dish2 around z-axis speed <150.0>;
-	set INBUILDSTANCE to 1;
-}
-
-Stop()
-{
-	set INBUILDSTANCE to 0;
-	call-script CloseYard();
-	//spin dish1 around z-axis speed <0.0>;
-	//spin dish2 around z-axis speed <0.0>;
-	call-script deactivatescr();
-}
-
 DishSpin()
 {
 	show blink1;
@@ -83,6 +31,7 @@ DishSpin()
 	spin dish1 around z-axis speed <150>;
 	spin dish2 around z-axis speed <150>;
 }
+
 DishStopSpin()
 {
 	hide blink1;
@@ -93,46 +42,12 @@ DishStopSpin()
 
 SetStunned(State)
 {
-    Stunned = State;
+	Stunned = State;
 	if (Stunned) {
 		call-script DishStopSpin();
-	    //call-script Stop();
 	} else {
 		call-script DishSpin();
-	    //call-script Go();
 	}
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
 }
 
 Create()
@@ -147,15 +62,12 @@ Create()
 	hide nano8;
 	hide dishbase2;
 	hide dishbase1;
-	hide none;
+	hide cagelight_emit1;
+	hide cagelight_emit2;
 
-	unitviewer = FALSE;
-	spray = base;
-	call-script InitState();
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 1000;
-	}
+	spray = 0;
+	
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script Lights();
 	turn dishbase1 to x-axis <45> speed <100>;
 	turn dishbase2 to x-axis <-45> speed <100>;
@@ -165,76 +77,32 @@ Create()
 	spin dish2 around z-axis speed <150.0>;
 }
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
 
-QueryNanoPiece(piecenum)
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+QueryNanoPiece(pieceIndex)
 {
-	if( spray == 0 )
-	{
-		piecenum = nano1;
-		
-	}
-	if( spray == 1 )
-	{
-		piecenum = nano2;
-		
-	}
-		if( spray == 2 )
-	{
-		piecenum = nano3;
-		
-	}
-		if( spray == 3 )
-	{
-		piecenum = nano4;
-		
-	}
-		if( spray == 4 )
-	{
-		piecenum = nano5;
-		
-	}
-		if( spray == 5 )
-	{
-		piecenum = nano6;
-		
-	}
-		if( spray == 6 )
-	{
-		piecenum = nano7;
-		
-	}
-		if( spray == 7 )
-	{
-		piecenum = nano8;
-		
-	}
-
-	spray = spray+1;
-	if( spray==8){
-		spray=0;
-	}
-}
-
-Demo()
-{
-	unitviewer = TRUE;
+	spray = (spray + 1) % 8;
+	pieceIndex = nano1 + spray;
 }
 
 Activate()
 {
-	signal SIG_ACTIVATE;
-	start-script RequestState(0);
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	
+	FACTORY_OPEN_BUILD;
 }
 
 Deactivate()
 {
-	signal SIG_ACTIVATE;
-	set-signal-mask SIG_ACTIVATE;
-  sleep 5000;
-	set-signal-mask 0;
-	start-script RequestState(1);
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	sleep 5000;
+	
+	FACTORY_CLOSE_BUILD;
 }
 
 StartBuilding()
@@ -247,7 +115,13 @@ StartBuilding()
 	show nano6;
 	show nano7;
 	show nano8;
-	spin pad around y-axis speed <10.005495>;
+	spin pad around y-axis speed <10> accelerate <1>;
+	
+	show cagelight_emit1;
+	show cagelight_emit2;
+	
+	spin cagelight1 around y-axis speed <200> accelerate <1>;
+	spin cagelight2 around y-axis speed <-200> accelerate <1>;
 }
 
 StopBuilding()
@@ -260,17 +134,18 @@ StopBuilding()
 	hide nano6;
 	hide nano7;
 	hide nano8;
-	stop-spin pad around y-axis;
+	stop-spin pad around y-axis decelerate <1>;
+	
+	hide cagelight_emit1;
+	hide cagelight_emit2;
+	
+	stop-spin cagelight1 around y-axis decelerate <1>;
+	stop-spin cagelight2 around y-axis decelerate <1>;
 }
 
-QueryBuildInfo(piecenum)
+QueryBuildInfo(pieceIndex)
 {
-	piecenum = pad;
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
+	pieceIndex = pad;
 }
 
 Killed(severity, corpsetype)
