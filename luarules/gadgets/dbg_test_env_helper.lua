@@ -47,6 +47,9 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:Initialize()
 		gadgetHandler.actionHandler.AddChatAction(gadget, 'setTestEndConditions', SetTestEndConditionsCmd)
 		gadgetHandler.actionHandler.AddChatAction(gadget, 'setTestReadyPlayers', SetTestReadyPlayersCmd)
+		if Spring.GetGameRulesParam("testEndConditionsOverride") then
+			SetTestEndConditionsCmd()
+		end
 	end
 
 	function gadget:Shutdown()
