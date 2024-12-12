@@ -349,7 +349,7 @@ local function startTests(patterns)
 	if #neededActions > 0 then
 		if not queuedStartTests then
 			-- enable required actions, then wait for them to go through
-			for _, action in pairs(neededActions) do
+			for _, action in ipairs(neededActions) do
 				log(LOG.INFO, action[2])
 				Spring.SendCommands(action[1])
 			end
@@ -361,7 +361,7 @@ local function startTests(patterns)
 			return
 		else
 			-- ran out of retries, so fail
-			for _, action in pairs(neededActions) do
+			for _, action in ipairs(neededActions) do
 				log(LOG.ERROR, action[3])
 			end
 			queuedStartTests = false
