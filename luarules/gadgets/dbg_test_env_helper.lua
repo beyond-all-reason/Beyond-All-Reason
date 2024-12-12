@@ -62,8 +62,6 @@ if gadgetHandler:IsSyncedCode() then
 		if msg == 'testEnvironmentStarting' then
 			Spring.SetGameRulesParam('testEnvironmentStarting', true)
 			gadgetHandler:RemoveGadgetCallIn('RecvLuaMsg', self)
-		elseif Spring.GetGameFrame() > 0 then
-			gadgetHandler:RemoveGadgetCallIn('RecvLuaMsg', self)
 		end
 	end
 else
