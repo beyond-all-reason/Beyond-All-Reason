@@ -36,9 +36,9 @@ return {
 		customparams = {
 			neutral_when_closed = true,
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/corfort_aoplane.dds",
-			buildinggrounddecalsizey = 4,
-			buildinggrounddecalsizex = 4,
+			buildinggrounddecaltype = "decals/legforti_aoplane.dds",
+			buildinggrounddecalsizey = 5,
+			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'weapon',
 			decoyfor = "armfort",
