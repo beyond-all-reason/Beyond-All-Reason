@@ -666,13 +666,14 @@ Test = {
 		-- stop buffering callin executions
 		removeCallin(name)
 	end,
-	waitUntilCallin = function(name, predicate, timeout, depth)
+	waitUntilCallin = function(name, predicate, timeout, count, depth)
 		local depth = depth and (depth + 1) or 2
 		log(LOG.DEBUG, "[waitUntilCallin] " .. name)
 		registerCallin(name, predicate, nil, depth)
 
+		local count = count or 1
 		local counts = callinState.counts
-		Test.waitUntil(function() return counts[name] > 0 end,
+		Test.waitUntil(function() return counts[name] >= count end,
 			       timeout,
 			       1)
 
@@ -683,7 +684,7 @@ Test = {
 		end
 		log(LOG.DEBUG, "[waitUntilCallin.done]")
 	end,
-	waitUntilCallinArgs = function(name, expectedArgs, timeout, depth)
+	waitUntilCallinArgs = function(name, expectedArgs, timeout, count, depth)
 		local depth = depth and (depth + 1) or 2
 		Test.waitUntilCallin(name, function(...)
 			local currentArgs = { ... }
@@ -693,7 +694,7 @@ Test = {
 				end
 			end
 			return true
-		end, timeout, depth)
+		end, timeout, count, depth)
 	end,
 	spy = function(...)
 		local spyCtrl = Mock.spy(...)
