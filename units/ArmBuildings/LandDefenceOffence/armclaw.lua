@@ -159,7 +159,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				burstControlWhenOutOfArc = 2,
+				burstcontrolwhenoutofarc = 2,
 				def = "DCLAW",
 				fastautoretargeting = true,
 				onlytargetcategory = "SURFACE",
