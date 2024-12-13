@@ -183,7 +183,7 @@ local function RemovePrimitive(unitID)
 	if selectionVBOGround.instanceIDtoIndex[unitID] then selectionVBO =  selectionVBOGround end
 	if selectionVBOAir.instanceIDtoIndex[unitID] then selectionVBO =  selectionVBOAir end
 
-	if selectionVBO.instanceIDtoIndex[unitID] then
+	if selectionVBO and selectionVBO.instanceIDtoIndex[unitID] then
 		if selectionHighlight then
 			unitBufferUniformCache[1] = 0
 			if Spring.ValidUnitID(unitID) then
