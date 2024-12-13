@@ -353,10 +353,10 @@ void main(void)
 	vec2 buildGrid16 = abs(fract(mapWorldPos.xz/16.0 - 0.5) - 0.5) * (16)/fragSize;
 	float grid16 = 0.25* clamp(1.0 - min(buildGrid16.x, buildGrid16.y), 0.0, 1.0);
 
-	vec2 buildGrid32 = abs(fract(mapWorldPos.xz/64.0 - 0.5) - 0.5) * (32)/fragSize;
+	vec2 buildGrid32 = abs(fract(mapWorldPos.xz/48.0 - 0.5) - 0.5) * (32)/fragSize;
 	float grid32 = 0.5*clamp(1.0 - min(buildGrid32.x, buildGrid32.y), 0.0, 1.0);
 
-	vec2 buildGrid64 = abs(fract(mapWorldPos.xz/256.0 - 0.5) - 0.5) * (256)/fragSize;
+	vec2 buildGrid64 = abs(fract(mapWorldPos.xz/192.0 - 0.5) - 0.5) * (192)/fragSize;
 	float grid64 = clamp(1.0 - min(buildGrid64.x, buildGrid64.y), 0.0, 1.0);
 
 	float gridmerge = fragSizeFactor * dot(vec3(grid16, grid32, grid64), vec3(0.5, 0.75, 2.0));
