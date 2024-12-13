@@ -291,7 +291,7 @@ local options = {
     {
         key     = "disable_unit_sharing_combat_units",
         name    = "Disable Combat Unit Sharing",
-        desc    = "Disable sharing combat units",
+        desc    = "Disable sharing combat units and tactical structures (e.g static defense, jammers, LRPC's)",
         type    = "bool",
         section = "options_main",
         def     = false,
