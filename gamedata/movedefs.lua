@@ -342,10 +342,10 @@ local moveDatas = {
 		maxwaterslope = 30,
 	},
 	-- corjugg
-	HBOT5 = {
+	HBOT7 = {
 		crushstrength = 1400,
-		footprintx = 5,
-		footprintz = 5,
+		footprintx = 7,
+		footprintz = 7,
 		maxslope = 36,
 		maxwaterdepth = 30,
 		depthModParams = {
