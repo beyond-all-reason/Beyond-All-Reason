@@ -44,17 +44,17 @@ local forcedDescentTable = {}
 
 
 for weaponDefID, weaponDef in pairs(WeaponDefs) do
-    if weaponDef.customParams.projectile_leash_range then
-        defWatchTable[weaponDefID] = {}
-        defWatchTable[weaponDefID].leashRange = tonumber(weaponDef.customParams.projectile_leash_range)
-    end
-    if weaponDef.customParams.projectile_leash_range or weaponDef.customParams.projectile_overrange_distance then
-        defWatchTable[weaponDefID] = defWatchTable[weaponDefID] or {}
+	if weaponDef.customParams.projectile_leash_range then
+		defWatchTable[weaponDefID] = {}
+		defWatchTable[weaponDefID].leashRange = tonumber(weaponDef.customParams.projectile_leash_range)
+	end
+	if weaponDef.customParams.projectile_leash_range or weaponDef.customParams.projectile_overrange_distance then
+		defWatchTable[weaponDefID] = defWatchTable[weaponDefID] or {}
 		defWatchTable[weaponDefID].range = weaponDef.range
-        defWatchTable[weaponDefID].weaponRange = weaponDef.range
-        defWatchTable[weaponDefID].overRange = tonumber(weaponDef.customParams.projectile_overrange_distance) or weaponDef.range
-        defWatchTable[weaponDefID].rangeThreshold = math.max((defWatchTable[weaponDefID].overRange - weaponDef.projectilespeed * lazyUpdateFrames), minimumThresholdRange)
-        defWatchTable[weaponDefID].weaponDefID = weaponDefID
+		defWatchTable[weaponDefID].weaponRange = weaponDef.range
+		defWatchTable[weaponDefID].overRange = tonumber(weaponDef.customParams.projectile_overrange_distance) or weaponDef.range
+		defWatchTable[weaponDefID].rangeThreshold = math.max((defWatchTable[weaponDefID].overRange - weaponDef.projectilespeed * lazyUpdateFrames), minimumThresholdRange)
+		defWatchTable[weaponDefID].weaponDefID = weaponDefID
 
 		local destructionMethod = weaponDef.customParams.projectile_destruction_method or "explode"
 		if destructionMethod == "descend" then
@@ -63,15 +63,15 @@ for weaponDefID, weaponDef in pairs(WeaponDefs) do
 			defWatchTable[weaponDefID].explodeMethod = true
 		end
 
-        Script.SetWatchWeapon(weaponDefID, true)
+		Script.SetWatchWeapon(weaponDefID, true)
 	end
 end
 
 
 local function projectileOverRangeCheck(proOwnerID, weaponRange,  leashRange, originX, originZ, projectileX, projectileZ)
-    local dx1 = originX - projectileX
-    local dz1 = originZ - projectileZ
-    local distanceToOrigin = mathSqrt(dx1 * dx1 + dz1 * dz1)
+	local dx1 = originX - projectileX
+	local dz1 = originZ - projectileZ
+	local distanceToOrigin = mathSqrt(dx1 * dx1 + dz1 * dz1)
 
 	if distanceToOrigin > weaponRange then
 		if leashRange then
@@ -93,9 +93,9 @@ local function projectileOverRangeCheck(proOwnerID, weaponRange,  leashRange, or
 end
 
 local function projectileIsCloseToEdge(rangeThreshold, originX, originZ, projectileX, projectileZ)
-    local dx1 = originX - projectileX
-    local dz1 = originZ - projectileZ
-    local distanceToOrigin = mathSqrt(dx1 * dx1 + dz1 * dz1)
+	local dx1 = originX - projectileX
+	local dz1 = originZ - projectileZ
+	local distanceToOrigin = mathSqrt(dx1 * dx1 + dz1 * dz1)
 	if distanceToOrigin > rangeThreshold then
 		return true
 	else
@@ -139,8 +139,8 @@ function gadget:GameFrame(frame)
 			if projectileX then
 				local defData = defWatchTable[proData.weaponDefID]
 				if projectileIsCloseToEdge(defData.rangeThreshold, proData.originX, proData.originZ, projectileX, projectileZ) then
-				edgyProjectileWatch[proID] = proData
-				lazyProjectileWatch[proID] = nil
+					edgyProjectileWatch[proID] = proData
+					lazyProjectileWatch[proID] = nil
 				end
 			else
 				lazyProjectileWatch[proID] = nil -- remove destroyed projectiles
