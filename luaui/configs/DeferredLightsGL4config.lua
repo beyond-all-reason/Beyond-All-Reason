@@ -22392,30 +22392,37 @@ for colorname, colorvalues in pairs(crystalColors) do
 	end
 end
 
+local fraction = 5
+local day = tonumber(os.date("%d"))
+if day <= 25 then
+	fraction = fraction + (25 - day)
+else
+	fraction = fraction + ((day - 25) * 5)
+end
 local xmaslightbase = {
-			fraction = 10,
+			fraction = fraction,
 			lightType = 'point',
-			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 16,
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 5,
 							color2r = 0, color2g = 0, color2b = 0, colortime = 0.1,
-							r = 1, g = 1, b = 1, a = 0.1,
-							modelfactor = 1.1, specular = 0.9, scattering = 0.8, lensflare = 20,
+							r = 1, g = 1, b = 1, a = 0.12,
+							modelfactor = 1.1, specular = 0.9, scattering = 4.5, lensflare = 20,
 							lifetime = 0, sustain = 0, animtype = 0},
 }
 
 
 -- Supreme Isthmus Winter 1.8.2
 -- Ascendancy 2.2
--- Avalanche 3.4 
+-- Avalanche 3.4
 -- blindside remake
 -- Frozen Ford v2
--- Glacier pass 1.2 
--- Nuclear Winter BAR 1.4 
+-- Glacier pass 1.2
+-- Nuclear Winter BAR 1.4
 -- The cold place BAR v 1.1
 -- White Fire Remake 1.3
 -- Ice Scream v2.5.1
 
 local snowy_tree_keys = {}-- { __tree_fir_tall_3 = 20, __tree_fir_tall_4 = 20, allpinesb_ad0_snow = 20}
-local snowy_tree_keys = {allpinesb_ad0 = 20, __tree_fir_tall_3 = 20, __tree_fir_ = 20}
+local snowy_tree_keys = {allpinesb_ad0 = 60, __tree_fir_tall_3 = 60, __tree_fir_ = 60}
 local xmasColors = {
 	[1] = {234,13,13}, -- red
 	[2] = {251,11,36}, -- orange
@@ -22440,11 +22447,11 @@ for featureDefID , featureDef in pairs(FeatureDefs) do
 
 			for i= 1, count do
 				local xmaslight = table.copy(xmaslightbase)
-	
+
 				local y = maxy * (math.random() * 0.8 +   0.1)
 				local rely = 1.0 - y / maxy
-				
-				local x = rely * maxx * (math.random() - 0.5) * 1.5 
+
+				local x = rely * maxx * (math.random() - 0.5) * 1.5
 				local z = rely * maxz * (math.random() - 0.5) * 1.5
 				--Spring.Echo(maxx, maxy, maxz, x,y,z)
 				xmaslight.lightConfig.posy = y
@@ -22461,27 +22468,27 @@ for featureDefID , featureDef in pairs(FeatureDefs) do
 				xmaslight.lightConfig.color2g = xmasColors[color+1][2] /255
 				xmaslight.lightConfig.color2b = xmasColors[color+1][3] /255
 
-				
+
 				--[[
-				
+
 				xmaslight.lightConfig.r = math.random() > 0.5 and 1 or 0
 				xmaslight.lightConfig.g = math.random()> 0.5 and 1 or 0
 				xmaslight.lightConfig.b = math.random()> 0.5 and 1 or 0
-				
+
 				xmaslight.lightConfig.color2r = math.random() > 0.5 and 1 or 0
 				xmaslight.lightConfig.color2g = math.random()> 0.5 and 1 or 0
 				xmaslight.lightConfig.color2b = math.random()> 0.5 and 1 or 0
 				]]--
 
-				xmaslight.lightConfig.colortime = 0.005 + math.random()* 0.005 
+				xmaslight.lightConfig.colortime = 0.005 + math.random()* 0.005
 
 				featureDefLights[featureDefID]['xmaslight' .. tostring(i)] = xmaslight
-				
+
 			end
 			break
 		end
 	end
-end 
+end
 
 local allLights = {unitEventLights = unitEventLights, unitDefLights = unitDefLights, featureDefLights = featureDefLights}
 
