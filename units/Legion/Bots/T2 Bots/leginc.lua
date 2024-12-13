@@ -7,7 +7,6 @@ return {
 		buildpic = "LEGINC.DDS",
 		buildtime = 55000,
 		canmove = true,
-		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 2 0",
 		collisionvolumescales = "60 40 60",
 		collisionvolumetype = "Box",
@@ -25,7 +24,6 @@ return {
 		movementclass = "HBOT4",
 		nochasecategory = "VTOL",
 		objectname = "Units/leginc.s3o",
-		pushresistant = true,
 		script = "Units/leginc_clean.cob",
 		seismicsignature = 0,
 		selfdestructas = "penetrator",
@@ -38,7 +36,7 @@ return {
 			unitgroup = 'weapon',
 			model_author = "Protar, Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "corbots/t2",
+			subfolder = "CorBots/T2",
 			techlevel = 2,
 		},
 		featuredefs = {
@@ -116,7 +114,6 @@ return {
 				explosiongenerator = "custom:heatray-large",
 				firestarter = 90,
 				firetolerance = 300,
-				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 5,
 				laserflaresize = 6,
@@ -144,6 +141,7 @@ return {
 					vtol = 11,
 				},
 				customparams = {
+					exclude_preaim = true,
 					--sweepfire=0.4,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
 				}
 

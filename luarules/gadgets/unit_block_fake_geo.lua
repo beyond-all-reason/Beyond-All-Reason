@@ -27,6 +27,10 @@ local function isNearGeo(x, z)
 	return false
 end
 
+function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD.ANY)
+end
+
 local CMD_INSERT = CMD.INSERT
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
 	if cmdID == CMD_INSERT then

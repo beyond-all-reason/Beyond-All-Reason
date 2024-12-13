@@ -11,7 +11,6 @@ return {
 		canmove = true,
 		canreclaim = false,
 		canrepair = false,
-		category = "ALL NOTLAND MOBILE NOTSUB NOWEAPON SHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "-1 5 2",
 		collisionvolumescales = "48 48 136",
 		collisionvolumetype = "CylZ",
@@ -47,11 +46,12 @@ return {
 		customparams = {
 			model_author = "Odin",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corships/t2",
+			subfolder = "CorShips/T2",
 			techlevel = 2,
 			inheritxpratemultiplier = 1,
 			childreninheritxp = "DRONE",
 			parentsinheritxp = "DRONE",
+			disable_when_no_air = true,
 		},
 		featuredefs = {
 			dead = {
@@ -126,7 +126,6 @@ return {
 				explosiongenerator = "",
 				gravityaffected = "true",
 				hightrajectory = 1,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				name = "HeavyCannon",
 				noselfdamage = true,
@@ -178,7 +177,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-medium-air",
 				firestarter = 70,
 				flighttime = 1.75,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				metalpershot = 0,
 				model = "cormissile.s3o",

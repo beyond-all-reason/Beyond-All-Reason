@@ -1,0 +1,96 @@
+#define TA			// This is a TA script
+#define SIGNAL_BUILD 2
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, nano, armhexla, armhexlb, armhexla_emit, armhexlb_emit;
+
+#define SIG_AIM				2
+
+#define IDLEHOVERSCALE 32
+#define IDLEHOVERSPEED 60
+#define IDLEBASEPIECE base
+#include "idlehover.h"
+
+#define BASEPIECE base
+#define HITSPEED <105.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 5
+#define MAXTILT 100
+
+Create()
+{
+    hide nano;
+    hide armhexla_emit;
+    hide armhexlb_emit;
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	start-script IdleHover();
+}
+
+Activate()
+{
+}
+
+Deactivate()
+{
+}
+
+StartBuilding(heading, pitch)
+{
+	show nano;
+	signal SIGNAL_BUILD;
+	set-signal-mask SIGNAL_BUILD;
+	//turn aimy1 to y-axis heading speed <260.0>;
+	//wait-for-turn aimy1 around y-axis;
+	set INBUILDSTANCE to 1;
+	show armhexla_emit;
+    show armhexlb_emit;
+}
+
+StopBuilding()
+{
+	hide nano;
+	signal SIGNAL_BUILD;	
+	set INBUILDSTANCE to 0;
+	hide armhexla_emit;
+    hide armhexlb_emit;
+	//turn aimy1 to y-axis <0> speed <260.0>;
+}
+
+QueryNanoPiece(pieceIndex)
+{
+	pieceIndex = nano;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode nano type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode nano type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode nano type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode nano type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}

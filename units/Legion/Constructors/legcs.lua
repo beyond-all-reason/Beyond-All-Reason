@@ -9,7 +9,6 @@ return {
 		buildpic = "CORCS.DDS",
 		buildtime = 3700,
 		canmove = true,
-		category = "ALL NOTLAND MOBILE NOTSUB SHIP NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -1 1",
 		collisionvolumescales = "26 26 47",
 		collisionvolumetype = "CylZ",
@@ -43,7 +42,7 @@ return {
 			"legvp",
 			"legap",
 			"leglab",
-			"coreyes",
+			"legeyes",
 			"cordl",
 			"cordrag",
 			"cormaw",
@@ -71,7 +70,7 @@ return {
 			unitgroup = 'builder',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corships",
+			subfolder = "CorShips",
 		},
 		featuredefs = {
 			dead = {

@@ -1,3 +1,4 @@
+---@type table<string, number>
 local unitOrderTable = {
 -- UNITS
 	--CONSTRUCTORS
@@ -240,8 +241,9 @@ local unitOrderTable = {
 
 	['armsptk']        = 006600, --ALL-TERRAIN
 	['cortermite']     = 006610,
-	['leginfestor']   = 006614,
+	['leginfestor']    = 006614,
 	['legsrail']       = 006615,
+	['legsrailt4']     = 006616,
 
 	['armfboy']        = 006700, --STRONK
 	['corcan']         = 006710,
@@ -294,7 +296,8 @@ local unitOrderTable = {
 	['armassimilator'] = 007220,
 
 	['armpwt4']        = 007300,
-   ['corakt4']        = 007310,
+    ['corakt4']        = 007310,
+    ['leggobt3']       = 007315,
 	['armsptkt4']      = 007320,
 	['cordemon']     = 007330,
 	['corkarganetht4'] = 007340,
@@ -307,7 +310,9 @@ local unitOrderTable = {
 	['armthundt4']     = 007500,
 	['armfepocht4']    = 007510,
 	['corfblackhyt4']  = 007520,
+	['legmost3']       = 007525,
 	['corcrwt4']       = 007530,
+	['legfortt4']       = 007540,
 
 	-- LAND AA
 	['armjeth']        = 008000,
@@ -582,6 +587,7 @@ local unitOrderTable = {
    ['legdtl']         = 104706, --exscavengers
    ['cormaw']         = 104800,
    ['cormwall']       = 104850,
+   ['legrwall']       = 104875,
    ['corscavdtf']     = 104905, --scavengers
    ['legdtf']         = 104906, --exscavengers
    ['corscavdtm']     = 104915, --scavengers
@@ -764,6 +770,7 @@ local unitOrderTable = {
    ['coratl']         = 260600,
 }
 
+---@type table<string, number>
 local newUnitOrder = {}
 for id, value in pairs(unitOrderTable) do
 	if UnitDefNames[id] then
@@ -771,7 +778,6 @@ for id, value in pairs(unitOrderTable) do
 	end
 end
 unitOrderTable = newUnitOrder
-newUnitOrder = nil
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams.isscavenger then

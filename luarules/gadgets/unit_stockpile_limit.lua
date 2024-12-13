@@ -26,7 +26,9 @@ if gadgetHandler:IsSyncedCode() then
 		['armthor'] = 2,
 
 		['legmos'] = 8,
+		['legmost3'] = 8,
 		['legmineb'] = 1,
+		['legsrailt4'] = 3,
 
 		['armsilo'] = 10,
 		['corsilo'] = 10,
@@ -211,6 +213,8 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Initialize()
+		gadgetHandler:RegisterAllowCommand(CMD_STOCKPILE)
+		gadgetHandler:RegisterAllowCommand(CMD_INSERT)
 		local units = Spring.GetAllUnits()
 		for i = 1, #units do
 			local unitDefID = Spring.GetUnitDefID(units[i])

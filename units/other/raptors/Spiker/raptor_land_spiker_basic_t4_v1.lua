@@ -1,5 +1,6 @@
 return {
 	raptor_land_spiker_basic_t4_v1 = {
+		activatewhenbuilt = true,
 		maxacc = 3.45,
 		maxdec = 3.45,
 		energycost = 174,
@@ -13,7 +14,7 @@ return {
 		canpatrol = true,
 		canstop = "1",
 		capturable = false,
-		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE RAPTOR EMPABLE",
+		category = "RAPTOR",
 		cloakable = 1,
 		cloakcost = 0,
 		cloakcostmoving = 0,
@@ -38,7 +39,7 @@ return {
 		mincloakdistance = 200,
 		movementclass = "RAPTORSMALLHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL SPACE",
+		nochasecategory = "VTOL",
 		objectname = "Raptors/raptors2.s3o",
 		script = "Raptors/raptors2.cob",
 		seismicsignature = 0,
@@ -92,7 +93,6 @@ return {
 				edgeeffectiveness = 0.3,
 				explosiongenerator = "custom:raptorspike-huge-sparks-burn",
 				firesubmersed = true,
-				impulseboost = 0,
 				impulsefactor = 0.4,
 				interceptedbyshieldtype = 0,
 				model = "Raptors/spike.s3o",
@@ -116,7 +116,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL SPACE",
+				badtargetcategory = "VTOL",
 				def = "WEAPON",
 				maindir = "0 0 1",
 				maxangledif = 180,

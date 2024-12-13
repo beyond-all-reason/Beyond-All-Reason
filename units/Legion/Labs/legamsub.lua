@@ -8,9 +8,8 @@ return {
 		buildpic = "LEGAMSUB.DDS",
 		buildtime = 11400,
 		canmove = true,
-		category = "ALL NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER UNDERWATER EMPABLE",
-		collisionvolumeoffsets = "0 0 -2",
-		collisionvolumescales = "115 36 112",
+		collisionvolumeoffsets = "0 0 -6",
+		collisionvolumescales = "96 30 96",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		energystorage = 160,
@@ -29,7 +28,7 @@ return {
 		sightdistance = 240,
 		terraformspeed = 750,
 		workertime = 150,
-		yardmap = "oooooooooCCCCCCooCCCCCCooCCCCCCooCCCCCCooCCCCCCooCCCCCCooCCCCCCo",
+		yardmap = "oooooo oooooo oCCCCo oCCCCo oCCCCo oCCCCo",
 		buildoptions = {
 			[1] = "legotter",
 			[2] = "legamphtank",
@@ -41,13 +40,13 @@ return {
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/coramsub_aoplane.dds",
-			buildinggrounddecalsizey = 11,
-			buildinggrounddecalsizex = 11,
+			buildinggrounddecalsizey = 9,
+			buildinggrounddecalsizex = 9,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'builder',
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corbuildings/seafactories",
+			subfolder = "CorBuildings/SeaFactories",
 		},
 		featuredefs = {
 			dead = {

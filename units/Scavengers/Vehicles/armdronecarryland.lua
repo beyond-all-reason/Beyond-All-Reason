@@ -11,7 +11,6 @@ return {
 		canmove = true,
 		canreclaim = false,
 		canrepair = false,
-		category = "ALL TANK MOBILE NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE T4AIR",
 		collisionvolumeoffsets = "0 25 -3",
 		collisionvolumescales = "48 57 142",
 		collisionvolumetype = "Box",
@@ -45,11 +44,12 @@ return {
 		customparams = {
 			model_author = "Odin",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "scavengers/vehicles",
+			subfolder = "Scavengers/vehicles",
 			techlevel = 3,
 			inheritxpratemultiplier = 1,
 			childreninheritxp = "DRONE",
 			parentsinheritxp = "DRONE",
+			disable_when_no_air = true,
 		},
 		featuredefs = {
 			dead = {
@@ -124,7 +124,6 @@ return {
 				explosiongenerator = "",--"custom:genericshellexplosion-medium",
 				gravityaffected = "true",
 				hightrajectory = 1,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				name = "HeavyCannon",
 				noselfdamage = true,

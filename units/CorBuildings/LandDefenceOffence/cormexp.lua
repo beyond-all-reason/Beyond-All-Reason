@@ -1,33 +1,31 @@
 return {
 	cormexp = {
-		maxacc = 0,
 		activatewhenbuilt = true,
-		maxdec = 0,
 		buildangle = 2048,
-		energycost = 12000,
-		metalcost = 2400,
 		buildingmask = 0,
 		buildpic = "CORMEXP.DDS",
 		buildtime = 32500,
 		canattack = true,
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -3 0",
 		collisionvolumescales = "75 44 75",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		damagemodifier = 0.5,
 		decoyfor = "cormoho",
+		energycost = 12000,
 		energyupkeep = 20,
 		explodeas = "hugeBuildingexplosiongeneric",
 		extractsmetal = 0.004,
 		footprintx = 4,
 		footprintz = 4,
+		health = 7800,
 		idleautoheal = 5,
 		idletime = 1800,
-		health = 7800,
+		maxacc = 0,
+		maxdec = 0,
 		maxslope = 30,
 		maxwaterdepth = 20,
+		metalcost = 2400,
 		metalstorage = 600,
 		nochasecategory = "MOBILE",
 		objectname = "Units/CORMEXP.s3o",
@@ -38,19 +36,19 @@ return {
 		sightdistance = 676,
 		yardmap = "h oooooooo osssssso osssssso ossoosso ossoosso osssssso osssssso oooooooo",
 		customparams = {
-			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/cormoho_aoplane.dds",
-			buildinggrounddecalsizey = 7.6,
-			buildinggrounddecalsizex = 7.6,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'metal',
+			buildinggrounddecalsizex = 7.6,
+			buildinggrounddecalsizey = 7.6,
+			buildinggrounddecaltype = "decals/cormoho_aoplane.dds",
 			cvbuildable = true,
 			metal_extractor = 4,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,
-			subfolder = "corbuildings/landdefenceoffence",
+			subfolder = "CorBuildings/LandDefenceOffence",
 			techlevel = 2,
+			unitgroup = "metal",
+			usebuildinggrounddecal = true,
 		},
 		featuredefs = {
 			dead = {
@@ -124,7 +122,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				firestarter = 70,
 				flighttime = 1.3,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "cormissile.s3o",
 				name = "Heavy g2g/g2a barrage missile launcher",
@@ -146,6 +143,9 @@ return {
 					default = 260,
 					vtol = 45,
 				},
+				customparams = {
+					exclude_preaim = true
+				}
 			},
 			corsumo_weapon = {
 				areaofeffect = 12,
@@ -160,7 +160,6 @@ return {
 				explosiongenerator = "custom:laserhit-medium-green",
 				firestarter = 90,
 				impactonly = 1,
-				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 7.7,
 				name = "High energy g2g laser",
@@ -182,13 +181,16 @@ return {
 					default = 215,
 					vtol = 50,
 				},
+				customparams = {
+					exclude_preaim = true
+				}
 			},
 		},
 		weapons = {
 			[1] = {
 				def = "CORSUMO_WEAPON",
-				onlytargetcategory = "NOTSUB",
 				fastautoretargeting = true,
+				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
 				def = "CORMEXP_ROCKET",

@@ -36,12 +36,20 @@ local math_floor = math.floor
 local math_ceil = math.ceil
 local math_max = math.max
 local math_min = math.min
+local math_bit_and = math.bit_and
 
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 local GL_ONE_MINUS_SRC_COLOR = GL.ONE_MINUS_SRC_COLOR
 
+local CMD_INSERT = CMD.INSERT
+local CMD_OPT_ALT = CMD.OPT_ALT
+local CMD_OPT_CTRL = CMD.OPT_CTRL
+local CMD_OPT_SHIFT = CMD.OPT_SHIFT
+local CMD_OPT_RIGHT = CMD.OPT_RIGHT
+
+VFS.Include('luarules/configs/customcmds.h.lua')
 -------------------------------------------------------------------------------
 --- STATIC VALUES
 -------------------------------------------------------------------------------
@@ -100,6 +108,18 @@ local CONFIG = {
 		BUILDCAT_UTILITY,
 		BUILDCAT_PRODUCTION,
 	},
+}
+
+local modKeyMultiplier = {
+	click = {
+		ctrl = 20,
+		shift = 5,
+		right = -1
+	},
+	keyPress = {
+		ctrl = -1,
+		shift = 5
+	}
 }
 
 -------------------------------------------------------------------------------
@@ -503,20 +523,55 @@ local function updateHoverState()
 	end
 end
 
--- Retrieve from buildunit_ cmdParams on factories the number of de/enqueued units
--- Reference should be FactoryCAI GetCountMultiplierFromOptions in engine
-local function cmdParamsToFactoryQueueChange(cmdParams)
-	local count = cmdParams.right and -1 or 1
+local function getCodedOptState(cmdOptsCoded, cmdOpt)
+	return math_bit_and(cmdOptsCoded, cmdOpt) == cmdOpt
+end
 
-	if cmdParams.shift then
-		count = count * 5
+-- Retrieve from buildunit_ cmdOpts on factories the number of de/enqueued units
+-- Reference should be FactoryCAI GetCountMultiplierFromOptions in engine
+local function cmdOptsToFactoryQueueChange(cmdOpts)
+	local optTable = {}
+	if type(cmdOpts) == "number" then
+		optTable.ctrl = getCodedOptState(cmdOpts, CMD_OPT_CTRL)
+		optTable.shift = getCodedOptState(cmdOpts, CMD_OPT_SHIFT)
+		optTable.right = getCodedOptState(cmdOpts, CMD_OPT_RIGHT)
+	else
+		optTable = cmdOpts
+	end
+	local count = optTable.right and modKeyMultiplier.click.right or 1
+
+	if optTable.shift then
+		count = count * modKeyMultiplier.click.shift
 	end
 
-	if cmdParams.ctrl then
-		count = count * 20
+	if optTable.ctrl then
+		count = count * modKeyMultiplier.click.ctrl
 	end
 
 	return count
+end
+
+local function updateQuotaNumber(unitDefID, quantity)
+	local cellId = uDefCellIds[unitDefID]
+	if not cellId then
+		return
+	end
+	local cellRect = cellRects[cellId]
+	if WG.Quotas then
+		for _, builderID in ipairs(Spring.GetSelectedUnitsSorted()[activeBuilder]) do
+			local quotas = WG.Quotas.getQuotas()
+			quotas[builderID] = quotas[builderID] or {}
+			quotas[builderID][unitDefID] = quotas[builderID][unitDefID] or 0
+			quotas[builderID][unitDefID] = math.max(quotas[builderID][unitDefID] + (quantity or 0), 0)
+			cellRect.opts.quotanumber = quotas[builderID][unitDefID]
+		end
+		if quantity > 0 then
+			Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
+		else
+			Spring.PlaySoundFile(CONFIG.sound_queue_rem, 0.75, "ui")
+		end
+	end
+	redraw = true
 end
 
 local function updateQueueNr(unitDefID, count)
@@ -1060,30 +1115,43 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 
 	if builderIsFactory then
-		if args[3] and args[3] == "builder" then
-			return false
-		end
+		if WG.Quotas and WG.Quotas.isOnQuotaMode(activeBuilderID)  then
+			local quantity = 1
+			if shift then
+				quantity = modKeyMultiplier.keyPress.shift
+			end
 
-		local opts
-
-		if ctrl then
-			opts = { "right" }
-			Spring.PlaySoundFile(CONFIG.sound_queue_rem, 0.75, "ui")
+			if ctrl then
+				quantity = quantity * modKeyMultiplier.keyPress.ctrl
+			end
+			updateQuotaNumber(uDefID,quantity)
+			return true
 		else
-			opts = { "left" }
-			Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
-		end
+			if args[3] and args[3] == "builder" then
+				return false
+			end
 
-		if alt then
-			table.insert(opts, "alt")
-		end
-		if shift then
-			table.insert(opts, "shift")
-		end
+			local opts
 
-		queueUnit(uDefID, opts)
+			if ctrl then
+				opts = { "right" }
+				Spring.PlaySoundFile(CONFIG.sound_queue_rem, 0.75, "ui")
+			else
+				opts = { "left" }
+				Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
+			end
 
-		return true
+			if alt then
+				table.insert(opts, "alt")
+			end
+			if shift then
+				table.insert(opts, "shift")
+			end
+
+			queueUnit(uDefID, opts)
+
+			return true
+		end
 	elseif isPregame and currentCategory then
 		if alt or ctrl or meta then
 			return
@@ -1171,6 +1239,12 @@ local function cycleBuilder()
 end
 
 function widget:Initialize()
+	if widgetHandler:IsWidgetKnown("Build menu") then
+		-- Build menu needs to be disabled right now and before we recreate
+		-- WG['buildmenu'] since its Shutdown will destroy it.
+		widgetHandler:DisableWidgetRaw("Build menu")
+	end
+
 	myTeamID = Spring.GetMyTeamID()
 	isSpec = Spring.GetSpectatingState()
 	isPregame = Spring.GetGameFrame() == 0 and not isSpec
@@ -1179,10 +1253,6 @@ function widget:Initialize()
 	WG["buildmenu"] = {}
 
 	doUpdateClock = os.clock()
-
-	if widgetHandler:IsWidgetKnown("Build menu") then
-		widgetHandler:DisableWidget("Build menu")
-	end
 
 	units.checkGeothermalFeatures()
 
@@ -1706,6 +1776,10 @@ local function drawCell(rect)
 	local uid = rect.opts.uDefID
 	local disabled = rect.opts.disabled
 	local queuenr = rect.opts.queuenr
+	local quotaNumber
+	if WG.Quotas and WG.Quotas.getQuotas()[activeBuilderID] and WG.Quotas.getQuotas()[activeBuilderID][uid] then
+		quotaNumber = WG.Quotas.getQuotas()[activeBuilderID][uid]
+	end
 
 	local cellColor
 	local usedZoom = defaultCellZoom
@@ -1856,6 +1930,39 @@ local function drawCell(rect)
 			"\255\190\255\190" .. queuenr,
 			rect.x + cellPadding + textPad,
 			rect.y + cellPadding + math_floor(cellInnerSize * 0.735),
+			queueFontSize,
+			"o"
+		)
+	end
+
+	if quotaNumber and quotaNumber ~= 0 then
+		local quotaText = WG.Quotas.getUnitAmount(activeBuilderID, uid) .. "/" .. quotaNumber
+		local queueFontSize = cellInnerSize * 0.29
+		local textPad = math_floor(cellInnerSize * 0.1)
+		local textWidth = font2:GetTextWidth(quotaText) * queueFontSize
+		if textWidth > 0.75 * cellInnerSize then
+			local newFontSize = queueFontSize * 0.75 * cellInnerSize / textWidth
+			textPad = textPad * newFontSize/queueFontSize
+			textWidth = font2:GetTextWidth(quotaText) * newFontSize
+			queueFontSize = newFontSize
+		end
+		RectRound(
+			rect.x,
+			rect.y + cellPadding + iconPadding,
+			rect.x + textWidth + (textPad * 2), -- double pad, for a pad at the start and end
+			rect.y + cellPadding + iconPadding + math_floor(cellInnerSize * 0.365),
+			cornerSize * 3.3,
+			0,
+			1,
+			0,
+			0,
+			{ 0.15, 0.15, 0.15, 0.95 },
+			{ 0.25, 0.25, 0.25, 0.95 }
+		)
+		font2:Print(
+			"\255\255\130\190" .. quotaText,
+			rect.x + cellPadding + textPad,
+			rect.y + cellPadding + (math_floor(cellInnerSize * 0.365) - font2:GetTextHeight(quotaNumber)*queueFontSize)/2,
 			queueFontSize,
 			"o"
 		)
@@ -2190,8 +2297,7 @@ end
 --- INPUT HANDLING
 -------------------------------------------------------------------------------
 
--- function widget:KeyPress(key, modifier, isRepeat)
-function widget:KeyPress(key)
+function widget:KeyPress(key, modifier, isRepeat)
 	if key == KEYSYMS.ESCAPE then
 		if currentCategory then
 			clearCategory()
@@ -2285,7 +2391,19 @@ function widget:MousePress(x, y, button)
 						and cellRect:contains(x, y)
 						and not cellRect.opts.disabled
 					then
+						local alt, ctrl, meta, shift = Spring.GetModKeyState()
 						if button ~= 3 then
+							if builderIsFactory and WG.Quotas and WG.Quotas.isOnQuotaMode(activeBuilderID) then
+								local amount = 1
+								if ctrl then
+									amount = amount * modKeyMultiplier.click.ctrl
+								end
+								if shift then
+									amount = amount * modKeyMultiplier.click.shift
+								end
+								updateQuotaNumber(unitDefID, amount)
+								return true
+							end
 							Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
 
 							if isPregame then
@@ -2294,8 +2412,19 @@ function widget:MousePress(x, y, button)
 								pickBlueprint(unitDefID)
 							end
 						elseif builderIsFactory and spGetCmdDescIndex(-unitDefID) then
-							Spring.PlaySoundFile(CONFIG.sound_queue_rem, 0.75, "ui")
-							setActiveCommand(spGetCmdDescIndex(-unitDefID), 3, false, true)
+							if not (WG.Quotas and WG.Quotas.isOnQuotaMode(activeBuilderID)) then
+								Spring.PlaySoundFile(CONFIG.sound_queue_rem, 0.75, "ui")
+								setActiveCommand(spGetCmdDescIndex(-unitDefID), 3, false, true)
+							else
+								local amount = modKeyMultiplier.click.right
+								if ctrl then
+									amount = amount * modKeyMultiplier.click.ctrl
+								end
+								if shift then
+									amount = amount * modKeyMultiplier.click.shift
+								end
+								updateQuotaNumber(unitDefID, amount)
+							end
 						end
 
 						return true
@@ -2422,16 +2551,28 @@ function widget:CommandNotify(cmdID, _, cmdOpts)
 	end
 end
 
--- widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdTag, cmdParams, cmdOpts)
-function widget:UnitCommand(unitID, _, _, cmdID, _, cmdParams)
+function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
 	-- if theres no factory as active builder, cmd is not build return or cmd
 	-- is not to build a unit: nothing to do
+	if cmdID == CMD_STOP_PRODUCTION then
+		if WG.Quotas then
+			local quotas = WG.Quotas.getQuotas()
+			quotas[unitID] = nil
+			redraw = true
+		end
+	end
+	if cmdID == CMD_INSERT then
+		if cmdParams[2] then
+			cmdID = cmdParams[2]
+			cmdOpts = cmdParams[3]
+		end
+	end
+
 	if not builderIsFactory or cmdID >= 0 or activeBuilderID ~= unitID then
 		return
 	end
 
-	local queueCount = cmdParamsToFactoryQueueChange(cmdParams)
-
+	local queueCount = cmdOptsToFactoryQueueChange(cmdOpts)
 	updateQueueNr(-cmdID, queueCount)
 
 	-- the command queue of the factory hasn't updated yet
@@ -2441,9 +2582,17 @@ function widget:UnitCommand(unitID, _, _, cmdID, _, cmdParams)
 	-- Actually lets comment this and see if we really need it
 end
 
+function widget:UnitCreated(_, unitDefID, _, builderID) -- to handle insert commands with quotas
+	if builderID == activeBuilderID and WG.Quotas then
+		local quotas = WG.Quotas.getQuotas()
+		if quotas[builderID] and quotas[builderID][unitDefID] then
+			redraw = true
+		end
+	end
+end
+
 -- update queue number
--- UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, options, cmdTag)
-function widget:UnitCmdDone(unitID, _, _, cmdID, _, options)
+function widget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, options, cmdTag)
 	-- if factory is not current active builder return
 	if unitID ~= activeBuilderID then
 		return

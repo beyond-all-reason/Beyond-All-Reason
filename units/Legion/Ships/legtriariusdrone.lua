@@ -9,7 +9,6 @@ return {
 		buildpic = "legtriariusdrone.DDS",
 		buildtime = 11500,
 		canmove = true,
-		category = "ALL NOTLAND MOBILE WEAPON SHIP NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -5 1",
 		collisionvolumescales = "34 34 82",
 		collisionvolumetype = "CylZ",
@@ -41,7 +40,7 @@ return {
 			customrange = 700,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corships",
+			subfolder = "CorShips",
 		},
 		featuredefs = {
 			dead = {
@@ -123,7 +122,6 @@ return {
 				explosiongenerator = "custom:heatray-huge",
 				firestarter = 90,
 				firetolerance = 300,
-				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 5,
 				laserflaresize = 6,
@@ -164,7 +162,6 @@ return {
 				explosiongenerator = "",
 				gravityaffected = "true",
 				hightrajectory = 1,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				name = "Rangefinder",
 				noselfdamage = true,

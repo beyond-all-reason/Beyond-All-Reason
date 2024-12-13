@@ -9,7 +9,6 @@ return {
 		buildpic = "LEGAGEO.DDS",
 		buildtime = 32000,
 		canrepeat = false,
-		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "96 86 96",
 		collisionvolumetype = "cylY",
@@ -31,7 +30,7 @@ return {
 		yardmap = "h cbgybsyybc bsbssbbssb ysbsbssbbg ybsssbsssy sbsbsssbsb bsbsssbsbs ysssbsssby gbbssbsbsy bssbbssbsb cbyysbygbc",
 		customparams = {
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/LEGAGEO_aoplane.dds",
+			buildinggrounddecaltype = "decals/legageo_aoplane.dds",
 			buildinggrounddecalsizey = 8,
 			buildinggrounddecalsizex = 8,
 			buildinggrounddecaldecayspeed = 30,
@@ -42,7 +41,7 @@ return {
 			normaltex = "unittextures/LEG_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "corbuildings/landeconomy",
+			subfolder = "CorBuildings/LandEconomy",
 			techlevel = 2,
 		},
 		sfxtypes = {

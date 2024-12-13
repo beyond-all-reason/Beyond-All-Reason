@@ -102,6 +102,9 @@ local Spring_AreTeamsAllied = Spring.AreTeamsAllied
 local GetCameraState = Spring.GetCameraState
 local SetCameraState = Spring.SetCameraState
 
+local ColorString = Spring.Utilities.Color.ToString
+local ColorArray = Spring.Utilities.Color.ToIntArray
+
 local gl_Texture = gl.Texture
 local gl_Color = gl.Color
 local gl_CreateList = gl.CreateList
@@ -985,7 +988,7 @@ local function SetOriginalColourNames()
     -- Saves the original team colours associated to team teamID
     for playerID, _ in pairs(player) do
         if player[playerID].name and not player[playerID].spec and playerID < specOffset then
-            local colorstring, r, g, b = colourNames(player[playerID].team, true)
+            local r, g, b = colourNames(player[playerID].team, true)
             originalColourNames[playerID] = { r, g, b }
         end
     end
@@ -2512,27 +2515,15 @@ function DrawCamera(posY, active)
     DrawRect(m_indent.posX + widgetPosX - (1.5*playerScale), posY + (2*playerScale), m_indent.posX + widgetPosX + (9*playerScale), posY + (12.4*playerScale))
 end
 
-function colourNames(teamID, returnRgbToo)
+function colourNames(teamID, returnRgb)
     local nameColourR, nameColourG, nameColourB, nameColourA = Spring_GetTeamColor(teamID)
 	if (not mySpecStatus) and anonymousMode ~= "disabled" and teamID ~= myTeamID then
 		nameColourR, nameColourG, nameColourB = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
 	end
-    local R255 = math.floor(nameColourR * 255)  --the first \255 is just a tag (not colour setting) no part can end with a zero due to engine limitation (C)
-    local G255 = math.floor(nameColourG * 255)
-    local B255 = math.floor(nameColourB * 255)
-    if R255 % 10 == 0 then
-        R255 = R255 + 1
-    end
-    if G255 % 10 == 0 then
-        G255 = G255 + 1
-    end
-    if B255 % 10 == 0 then
-        B255 = B255 + 1
-    end
-    if returnRgbToo then
-        return "\255" .. string.char(R255) .. string.char(G255) .. string.char(B255), R255, G255, B255 --works thanks to zwzsg
+    if returnRgb then
+        return ColorArray(nameColourR, nameColourG, nameColourB)
     else
-        return "\255" .. string.char(R255) .. string.char(G255) .. string.char(B255) --works thanks to zwzsg
+        return ColorString(nameColourR, nameColourG, nameColourB)
     end
 end
 
@@ -3570,7 +3561,10 @@ function CheckPlayersChange()
                 updateTake(allyTeamID)
                 sorting = true
             end
-
+            if desynced ~= player[i].desynced then
+                forceMainListRefresh = true
+                sorting = true
+            end
             -- Update stall / cpu / ping info for each player
             if player[i].spec == false then
                 player[i].needm = GetNeed("metal", player[i].team)
