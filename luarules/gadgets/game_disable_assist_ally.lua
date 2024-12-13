@@ -70,12 +70,10 @@ local function existsNonOwnedGeo(myTeam, x, y, z)
 end
 
 function gadget:AllowUnitCreation(unitDefID, builderID, builderTeam, x, y, z)
-	-- Disallow upgrading allied mexes
+	-- Disallow upgrading allied mexes and allied geos
 	if isMex[unitDefID] then
 		return not existsNonOwnedMex(builderTeam, x, y, z)
-	end
-	-- Disallow upgrading allied geos
-	if isGeo[unitDefID] then
+	elseif isGeo[unitDefID] then
 		return not existsNonOwnedGeo(builderTeam, x, y, z)
 	end
 	return true
