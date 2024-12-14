@@ -9,7 +9,7 @@ return {
 		name = "WimpyCrawlingBomb",
 		range = 400,
 		reloadtime = 3.6,
-		soundhit = "xplonuk3",
+		soundhit = "xplolrg3",
 		soundstart = "largegun",
 		turret = 1,
 		weaponvelocity = 250,

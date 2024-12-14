@@ -10,7 +10,7 @@ return {
 		noselfdamage = 1,
 		range = 480,
 		reloadtime = 3.6,
-		soundhit = "xplonuk3",
+		soundhit = "xplomed4",
 		soundstart = "largegun",
 		weaponvelocity = 400,
 		damage = {
