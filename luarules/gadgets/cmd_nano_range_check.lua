@@ -16,11 +16,11 @@ local gMaxUnits = Game.maxUnits
 local updateInterval = Game.gameSpeed / 2
 
 local spValidUnitID = Spring.ValidUnitID
+local spValidFeatureID = Spring.ValidFeatureID
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitSeparation = Spring.GetUnitSeparation
 local spGetUnitFeatureSeparation = Spring.GetUnitFeatureSeparation
 local spGetUnitCommands = Spring.GetUnitCommands
-local spValidFeatureID = Spring.ValidFeatureID
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 
 --- Key is the nano's ID, followed by a set-like with the unitID of target currently inside the nano's range.
@@ -28,20 +28,25 @@ local spGiveOrderToUnit = Spring.GiveOrderToUnit
 ---@type {[integer] : {integer : {cmdTag : integer, status : integer}}}
 local trackingTable = {}
 local tagUpdateFrameMax = 1 -- Can be bigger than 1 if you want game freezes.
-local unitCanMoveCache = {} ---@type {integer:boolean} single frame cache.
 
 local statuses = {
 	outOfRange = 0,
 	inRange = 1,
 }
 
+local mobileUnits = {}
 local constructionTurretsDefs = {}
+
 for unitDefID, unitDef in ipairs(UnitDefs) do
 	if unitDef.isFactory == false and unitDef.isStaticBuilder then
 		constructionTurretsDefs[unitDefID] = {
 			maxBuildDistance = unitDef.buildDistance + unitDef.radius,
 			buildRange3D = unitDef.buildRange3D,
 		}
+	end
+
+	if unitDef.canMove then
+		mobileUnits[unitDefID] = true
 	end
 end
 
@@ -69,10 +74,12 @@ function gadget:GameFrame(frame)
 				if spValidUnitID(targetID) then
 					if commandData.cmdTag == -1 then
 						if tagUpdates >= tagUpdateFrameMax then break end
+
 						if not cmdCache[nanoID] then
 							cmdCache[nanoID] = spGetUnitCommands(nanoID, -1)
 							tagUpdates = tagUpdates +1
 						end
+
 						for _, cmd in ipairs(cmdCache[nanoID]) do
 							trackingTable[nanoID][cmd.params[1]].cmdTag = cmd.tag
 						end
@@ -85,8 +92,10 @@ function gadget:GameFrame(frame)
 							commandData.status = statuses.inRange
 						end
 					else
+						-- Do not blindly remove orders on out-of-range mobile units, as the player may have pre-emptively issued an order before the unit was in range
+						-- Instead, only remove the order once the unit has come into range then left again
 						if commandData.status == statuses.inRange then
-							spGiveOrderToUnit(nanoID, CMD.REMOVE, commandData.cmdTag, 0) ---@diagnostic disable-line: param-type-mismatch
+							spGiveOrderToUnit(nanoID, CMD.REMOVE, commandData.cmdTag, 0)
 							targets[targetID] = nil
 						end
 					end
@@ -96,8 +105,6 @@ function gadget:GameFrame(frame)
 			end
 		end
 	end
-
-	unitCanMoveCache = {}
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID,	cmdParams, cmdOptions, cmdTag, synced, fromLua)
@@ -105,28 +112,25 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID,	cmdParams, cmdOpt
 	if not constructionTurretDef then return true end
 
 	if cmdID == CMD_STOP then
-		if trackingTable[unitID] then
-			trackingTable[unitID] = nil
-		end
+		trackingTable[unitID] = nil
 	end
-	-- only handle ID targets, fallthrough for area selects; Let the intended scripts handle, catch resulting commands on ID.
+
+	-- Rather than trying to handle area commands, let them fallthrough, then catch the resulting list of single-target commands
 	if #cmdParams ~= 1 then return true end
+
 	local distance = math.huge
 	local targetId = cmdParams[1]
 
 	if targetId < gMaxUnits then
 		if not spValidUnitID(targetId) then return end
 		local defID = spGetUnitDefID(targetId)
-		if not unitCanMoveCache[defID] then
-			unitCanMoveCache[defID] = UnitDefs[spGetUnitDefID(targetId)].canMove
-		end
-		if unitCanMoveCache[defID] then
-			if not trackingTable[unitID] then
-				trackingTable[unitID] = {}
-			end
+
+		if mobileUnits[defID] then
+			trackingTable[unitID] = trackingTable[unitID] or {}
 			trackingTable[unitID][cmdParams[1]] = {cmdTag = -1, status = statuses.outOfRange}
 			return true
 		end
+
 		distance = spGetUnitSeparation(unitID, targetId, constructionTurretDef.buildRange3D, false)
 	else
 		targetId = targetId - gMaxUnits
@@ -137,6 +141,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID,	cmdParams, cmdOpt
 	if distance > constructionTurretDef.maxBuildDistance then
 		return false
 	end
+
 	return true
 end
 
