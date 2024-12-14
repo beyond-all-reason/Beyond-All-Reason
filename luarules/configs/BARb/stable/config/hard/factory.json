@@ -835,7 +835,7 @@
 
 	"income_tier": [100, 200],
 
-	"unit":      ["corsok", "corshiva", "corkarg", "corcat", "corkorg", "corjugg", "legkeres", "legpede", "leegmech"],  // All cortex to be replaced or removed
+	"unit":      ["corsok", "legjav", "corkarg", "corcat", "corkorg", "corjugg", "legkeres", "legpede", "leegmech"],  // All cortex to be replaced or removed
 
 	"land": {
 		"tier0": [ 1.00, 	0.50,       0.30,      0.20,     0.00,      0.00,		0.50,		0.20,	0.05],
