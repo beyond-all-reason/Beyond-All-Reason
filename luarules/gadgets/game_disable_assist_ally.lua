@@ -97,7 +97,7 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 		return true
 	end
 
-	-- Also disallow assisting building (caused by a repair command) units under construction 
+	-- Disallow assisting building (caused by a repair command) units under construction 
 	-- Area repair doesn't cause assisting, so it's fine that we can't properly filter it
 
 	if (cmdID == CMD.REPAIR and #cmdParams == 1) then
@@ -112,7 +112,17 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 		return true
 	end
 
-
-
+	-- Disallow changing the move_state value of builders to ROAM (move_state of roam causes builders to auto-assist ally construction)
+	if (cmdID == CMD.MOVE_STATE and cmdParams[1] == 2 and UnitDefs[unitDefID].isBuilder) then
+		Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, {0}, 0) -- make toggling still work between Hold and Maneuver
+		return false
+	end
 	return true
+end
+
+
+function gadget:UnitCreated(unitID, unitDefID, unitTeam)
+	if UnitDefs[unitDefID].isBuilder then
+		Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, {0}, 0)
+	end
 end
