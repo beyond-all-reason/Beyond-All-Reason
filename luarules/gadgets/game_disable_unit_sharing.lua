@@ -28,28 +28,16 @@ end
 
 
 
--- create a table of all mex and geo unitDefIDs
 local isEconOrLab = {} 
 local isCombatUnitOrTacticalBuilding = {} 
 
-
-	-- List storages manually (some units or buildings may provide e or m storage but they are not primarily econ)
-	local storageNames = {
-		"armestor", "corestor", "legestor", "armuwes", "coruwes", "leguwes", "armuwadves", "coruwadves", "leguwadves",
-		"armmstor", "cormstor", "legmstor", "armuwms", "coruwms", "leguwms", "armuwadvms", "coruwadvms", "leguwadvms",
-	}
-
-
 for unitDefID, unitDef in pairs(UnitDefs) do
 	-- Mark econ units
-	if unitDef.isBuilding and (unitDef.energyMake or unitDef.extractsMetal > 0) > 0 then
+	if unitDef.customParams.unitgroup == "energy" or unitDef.customParams.unitgroup == "metal" then
 		isEconOrLab[unitDefID] = true
 	elseif unitDef.canResurrect then
 		isEconOrLab[unitDefID] = true
-	elseif unitDef.customParams.energyconv_capacity then
-		isEconOrLab[unitDefID] = true
-	elseif table.contains(storageNames, unitDef.name) then
-		isEconOrLab[unitDefID] = true
+
 
 	-- Mark labs and mobile production
 	elseif unitDef.isFactory or unitDef.isBuilder then
