@@ -1,7 +1,7 @@
 function gadget:GetInfo()
 	return {
 		name = "Construction Turrets Range Check",
-		desc = "Stops construction turrets from getting assigned to guards, repair, reclaim and attacks out of reach.",
+		desc = "Stops construction turrets from getting stuck on orders out of reach.",
 		author = "Nehroz",
 		date = "2024.12.01",
 		layer = 0,
@@ -21,7 +21,7 @@ local spGetUnitCommands = Spring.GetUnitCommands
 local spValidFeatureID = Spring.ValidFeatureID
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 
---- key is the nano's ID, followed by a Set-like with the unitID of target currently inside the nano's range.
+--- Key is the nano's ID, followed by a set-like with the unitID of target currently inside the nano's range.
 --- Used for CommandArray manipulation
 ---@type {[integer] : {integer : {cmdTag : integer, status : integer}}}
 local trackingTable = {}
@@ -30,6 +30,11 @@ local chunkingFrameSize = 1
 local chunkingUpdateFrequency = 15
 local tagUpdateFrameMax = 1 -- Can be bigger than 1 if you want game freezes.
 local unitCanMoveCache = {} ---@type {integer:boolean} single frame cache.
+
+local statuses = {
+	outOfRange = 0,
+	inRange = 1,
+}
 
 local constructionTurretsDefs = {}
 for unitDefID, unitDef in ipairs(UnitDefs) do
@@ -49,7 +54,6 @@ function gadget:Initialize()
 end
 
 function gadget:GameFrame(frame)
-	-- update dynamic chunking size
 	if frame % chunkingUpdateFrequency then
 		if trackingTableSize <= 50 then
 			chunkingFrameSize = 1
@@ -64,10 +68,10 @@ function gadget:GameFrame(frame)
 
 	local tagUpdates = 0
 	local cmdCache = {}
-	local pointer = frame % chunkingFrameSize -- chunking offset
+	local pointer = frame % chunkingFrameSize
 	for nanoID, targets in pairs(trackingTable) do
 		if pointer % chunkingFrameSize == 0 then
-			if next(targets) == nil then -- Clean empty nanos.
+			if next(targets) == nil then
 				trackingTable[nanoID] = nil
 				trackingTableSize = trackingTableSize - 1
 			end
@@ -77,7 +81,6 @@ function gadget:GameFrame(frame)
 
 			for targetID, commandData in pairs(targets) do
 				if spValidUnitID(targetID) then
-					-- cmdTag gathering
 					if commandData.cmdTag == -1 then
 						if tagUpdates >= tagUpdateFrameMax then break end
 						if not cmdCache[nanoID] then
@@ -88,20 +91,21 @@ function gadget:GameFrame(frame)
 							trackingTable[nanoID][cmd.params[1]].cmdTag = cmd.tag
 						end
 					end
-					-- distance processing
+
 					local distance = spGetUnitSeparation(nanoID, targetID, constructionTurretsDefs[nanoDefID].buildRange3D, false)
+
 					if distance < maxDistance then
-						if commandData.status == 0 then -- Entering range.
-							commandData.status = 1
+						if commandData.status == statuses.outOfRange then
+							commandData.status = statuses.inRange
 						end
 					else
-						if commandData.status == 1 then -- Exiting range.
+						if commandData.status == statuses.inRange then
 							spGiveOrderToUnit(nanoID, CMD.REMOVE, commandData.cmdTag, 0) ---@diagnostic disable-line: param-type-mismatch
 							targets[targetID] = nil
 						end
 					end
 				else
-					targets[targetID] = nil -- Clean up invalid targets.
+					targets[targetID] = nil
 				end
 			end
 		end
@@ -111,9 +115,9 @@ function gadget:GameFrame(frame)
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID,	cmdParams, cmdOptions, cmdTag, synced, fromLua)
-	local constructionTurretsDef = constructionTurretsDefs[unitDefID]
-	if not constructionTurretsDef then return true end
-	-- Handle stops on nanos
+	local constructionTurretDef = constructionTurretsDefs[unitDefID]
+	if not constructionTurretDef then return true end
+
 	if cmdID == CMD_STOP then
 		if trackingTable[unitID] then
 			trackingTable[unitID] = nil
@@ -125,7 +129,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID,	cmdParams, cmdOpt
 	local distance = math.huge
 	local targetId = cmdParams[1]
 
-	if targetId < gMaxUnits then -- Feature handling
+	if targetId < gMaxUnits then
 		if not spValidUnitID(targetId) then return end
 		local defID = spGetUnitDefID(targetId)
 		if not unitCanMoveCache[defID] then
@@ -136,18 +140,17 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID,	cmdParams, cmdOpt
 				trackingTable[unitID] = {}
 				trackingTableSize = trackingTableSize + 1
 			end
-			trackingTable[unitID][cmdParams[1]] = {cmdTag = -1, status = 0} -- default to outside
+			trackingTable[unitID][cmdParams[1]] = {cmdTag = -1, status = statuses.outOfRange}
 			return true
 		end
-		distance = spGetUnitSeparation(unitID, targetId, constructionTurretsDef.buildRange3D, false)
+		distance = spGetUnitSeparation(unitID, targetId, constructionTurretDef.buildRange3D, false)
 	else
-		-- Handle Features
 		targetId = targetId - gMaxUnits
 		if not spValidFeatureID(targetId) then return end
 		distance = spGetUnitFeatureSeparation(unitID, targetId, false)
 	end
 
-	if distance > constructionTurretsDef.maxBuildDistance then
+	if distance > constructionTurretDef.maxBuildDistance then
 		return false
 	end
 	return true
