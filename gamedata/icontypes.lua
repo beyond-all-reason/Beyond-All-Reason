@@ -539,6 +539,10 @@ local icontypes = {
 		bitmap = "icons/armmar_t3.png",
 		size = 2
 	},
+	legjav = {
+		bitmap = "icons/legjav.png",
+		size = 2.1
+	},
 	armmark = {
 		bitmap = "icons/bot_t2_radar.png",
 		size = 1.34399986

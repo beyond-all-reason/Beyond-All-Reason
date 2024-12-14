@@ -191,7 +191,7 @@ local labGrids = {
 	},
 
 	corgant = {
-		"corcat", "corkarg", "corshiva", "corkorg",
+		"corcat", "corkarg", "legjav", "corkorg",
 		"corjugg", "corsok"
 	},
 	leggant = {

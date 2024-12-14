@@ -2983,6 +2983,11 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-bot-large-ok",
 		BaseSoundWeaponType = "plasma-large",
 	},
+	legjav = {
+		BaseSoundSelectType = "arm-bot-huge-sel",
+		BaseSoundMovementType = "arm-bot-huge-ok",
+		BaseSoundWeaponType = "fastemg-medium",
+	},
 
 	-- LEGION T1 VEHICLES
 	legcv = {
