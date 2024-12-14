@@ -13,6 +13,8 @@ if not gadgetHandler:IsSyncedCode() then return end
 
 local CMD_STOP = CMD.STOP
 local gMaxUnits = Game.maxUnits
+local updateInterval = Game.gameSpeed / 2
+
 local spValidUnitID = Spring.ValidUnitID
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitSeparation = Spring.GetUnitSeparation
@@ -25,9 +27,6 @@ local spGiveOrderToUnit = Spring.GiveOrderToUnit
 --- Used for CommandArray manipulation
 ---@type {[integer] : {integer : {cmdTag : integer, status : integer}}}
 local trackingTable = {}
-local trackingTableSize = 0
-local chunkingFrameSize = 1
-local chunkingUpdateFrequency = 15
 local tagUpdateFrameMax = 1 -- Can be bigger than 1 if you want game freezes.
 local unitCanMoveCache = {} ---@type {integer:boolean} single frame cache.
 
@@ -54,26 +53,13 @@ function gadget:Initialize()
 end
 
 function gadget:GameFrame(frame)
-	if frame % chunkingUpdateFrequency then
-		if trackingTableSize <= 50 then
-			chunkingFrameSize = 1
-		elseif trackingTableSize <= 100 then
-			-- linear from 50 to 100 nanos, from chunk size 1 to 10.
-			-- ratio: 1 = 9/50 * (50+b) -> b = -8
-			chunkingFrameSize = math.floor((9 / 50) * trackingTableSize - 8)
-		else
-			chunkingFrameSize = 10
-		end
-	end
-
 	local tagUpdates = 0
 	local cmdCache = {}
-	local pointer = frame % chunkingFrameSize
+
 	for nanoID, targets in pairs(trackingTable) do
-		if pointer % chunkingFrameSize == 0 then
+		if nanoID % updateInterval == frame % updateInterval then
 			if next(targets) == nil then
 				trackingTable[nanoID] = nil
-				trackingTableSize = trackingTableSize - 1
 			end
 
 			local nanoDefID = spGetUnitDefID(nanoID)
@@ -109,8 +95,8 @@ function gadget:GameFrame(frame)
 				end
 			end
 		end
-		pointer = pointer + 1
 	end
+
 	unitCanMoveCache = {}
 end
 
@@ -121,7 +107,6 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID,	cmdParams, cmdOpt
 	if cmdID == CMD_STOP then
 		if trackingTable[unitID] then
 			trackingTable[unitID] = nil
-			trackingTableSize = trackingTableSize - 1
 		end
 	end
 	-- only handle ID targets, fallthrough for area selects; Let the intended scripts handle, catch resulting commands on ID.
@@ -138,7 +123,6 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID,	cmdParams, cmdOpt
 		if unitCanMoveCache[defID] then
 			if not trackingTable[unitID] then
 				trackingTable[unitID] = {}
-				trackingTableSize = trackingTableSize + 1
 			end
 			trackingTable[unitID][cmdParams[1]] = {cmdTag = -1, status = statuses.outOfRange}
 			return true
@@ -159,7 +143,6 @@ end
 function gadget:UnitDestroyed(unitID)
 	if trackingTable[unitID] then
 		trackingTable[unitID] = nil
-		trackingTableSize = trackingTableSize - 1
 	end
 
 	for nanoID, _ in pairs(trackingTable) do
