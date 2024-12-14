@@ -97,13 +97,18 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 		return true
 	end
 
-	-- Disallow assisting building (caused by a repair command) units under construction 
+	-- Disallow assisting blueprints (caused by a repair command)
 	-- Area repair doesn't cause assisting, so it's fine that we can't properly filter it
 
 	if (cmdID == CMD.REPAIR and #cmdParams == 1) then
 		local targetID = cmdParams[1]
-		local targetTeam = Spring.GetUnitTeam(targetID)
 
+		if not targetID or Spring.GetUnitDefID(targetID) == nil then -- ignore ill-formed calls
+			return true
+		end
+
+		local targetTeam = Spring.GetUnitTeam(targetID)
+		
 		if (unitTeam ~= Spring.GetUnitTeam(targetID)) and Spring.AreTeamsAllied(unitTeam, targetTeam) then
 			if(not isComplete(targetID)) then
 				return false
