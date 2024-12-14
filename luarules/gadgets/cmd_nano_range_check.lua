@@ -27,7 +27,10 @@ local spGiveOrderToUnit = Spring.GiveOrderToUnit
 --- Used for CommandArray manipulation
 ---@type {[integer] : {integer : {cmdTag : integer, status : integer}}}
 local trackingTable = {}
-local tagUpdateFrameMax = 1 -- Can be bigger than 1 if you want game freezes.
+-- Limits how many GetUnitCommands are called inside a frame when required.
+-- higher values allow faster tagging synchronization after a new command;
+-- which can cause proportional lag when many units are targeted. (long tables returned)
+local tagUpdateFrameMax = 1
 
 local statuses = {
 	outOfRange = 0,
@@ -72,7 +75,7 @@ function gadget:GameFrame(frame)
 
 			for targetID, commandData in pairs(targets) do
 				if spValidUnitID(targetID) then
-					if commandData.cmdTag == -1 then
+					if not commandData.cmdTag then
 						if tagUpdates >= tagUpdateFrameMax then break end
 
 						if not cmdCache[nanoID] then
@@ -127,7 +130,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID,	cmdParams, cmdOpt
 
 		if mobileUnits[defID] then
 			trackingTable[unitID] = trackingTable[unitID] or {}
-			trackingTable[unitID][cmdParams[1]] = {cmdTag = -1, status = statuses.outOfRange}
+			trackingTable[unitID][targetId] = {status = statuses.outOfRange}
 			return true
 		end
 
@@ -145,12 +148,13 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID,	cmdParams, cmdOpt
 	return true
 end
 
-function gadget:UnitDestroyed(unitID)
-	if trackingTable[unitID] then
-		trackingTable[unitID] = nil
-	end
 
-	for nanoID, _ in pairs(trackingTable) do
-		trackingTable[nanoID][unitID] = nil
+function gadget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
+end
+
+function gadget:UnitDestroyed(unitID)
+	for _, targets in pairs(trackingTable) do
+		targets[unitID] = nil
 	end
+	trackingTable[unitID] = nil
 end
