@@ -11,6 +11,16 @@ end
 
 if not gadgetHandler:IsSyncedCode() then return end
 
+local CMD_STOP = CMD.STOP
+local gMaxUnits = Game.maxUnits
+local spValidUnitID = Spring.ValidUnitID
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitSeparation = Spring.GetUnitSeparation
+local spGetUnitFeatureSeparation = Spring.GetUnitFeatureSeparation
+local spGetUnitCommands = Spring.GetUnitCommands
+local spValidFeatureID = Spring.ValidFeatureID
+local spGiveOrderToUnit = Spring.GiveOrderToUnit
+
 --- key is the nano's ID, followed by a Set-like with the unitID of target currently inside the nano's range.
 --- Used for CommandArray manipulation
 ---@type {[integer] : {integer : {cmdTag : integer, status : integer}}}
@@ -62,16 +72,16 @@ function gadget:GameFrame(frame)
 				trackingTableSize = trackingTableSize - 1
 			end
 
-			local nanoDefID = Spring.GetUnitDefID(nanoID)
+			local nanoDefID = spGetUnitDefID(nanoID)
 			local maxDistance = constructionTurretsDefs[nanoDefID].maxBuildDistance
 
 			for targetID, commandData in pairs(targets) do
-				if Spring.ValidUnitID(targetID) then
+				if spValidUnitID(targetID) then
 					-- cmdTag gathering
 					if commandData.cmdTag == -1 then
 						if tagUpdates >= tagUpdateFrameMax then break end
 						if not cmdCache[nanoID] then
-							cmdCache[nanoID] = Spring.GetUnitCommands(nanoID, -1)
+							cmdCache[nanoID] = spGetUnitCommands(nanoID, -1)
 							tagUpdates = tagUpdates +1
 						end
 						for _, cmd in ipairs(cmdCache[nanoID]) do
@@ -79,14 +89,14 @@ function gadget:GameFrame(frame)
 						end
 					end
 					-- distance processing
-					local distance = Spring.GetUnitSeparation(nanoID, targetID, constructionTurretsDefs[nanoDefID].buildRange3D, false)
+					local distance = spGetUnitSeparation(nanoID, targetID, constructionTurretsDefs[nanoDefID].buildRange3D, false)
 					if distance < maxDistance then
 						if commandData.status == 0 then -- Entering range.
 							commandData.status = 1
 						end
 					else
 						if commandData.status == 1 then -- Exiting range.
-							Spring.GiveOrderToUnit(nanoID, CMD.REMOVE, commandData.cmdTag, 0) ---@diagnostic disable-line: param-type-mismatch
+							spGiveOrderToUnit(nanoID, CMD.REMOVE, commandData.cmdTag, 0) ---@diagnostic disable-line: param-type-mismatch
 							targets[targetID] = nil
 						end
 					end
@@ -104,7 +114,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID,	cmdParams, cmdOpt
 	local constructionTurretsDef = constructionTurretsDefs[unitDefID]
 	if not constructionTurretsDef then return true end
 	-- Handle stops on nanos
-	if cmdID == CMD.STOP then
+	if cmdID == CMD_STOP then
 		if trackingTable[unitID] then
 			trackingTable[unitID] = nil
 			trackingTableSize = trackingTableSize - 1
@@ -115,11 +125,11 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID,	cmdParams, cmdOpt
 	local distance = math.huge
 	local targetId = cmdParams[1]
 
-	if targetId < Game.maxUnits then -- Feature handling
-		if not Spring.ValidUnitID(targetId) then return end
-		local defID = Spring.GetUnitDefID(targetId)
+	if targetId < gMaxUnits then -- Feature handling
+		if not spValidUnitID(targetId) then return end
+		local defID = spGetUnitDefID(targetId)
 		if not unitCanMoveCache[defID] then
-			unitCanMoveCache[defID] = UnitDefs[Spring.GetUnitDefID(targetId)].canMove
+			unitCanMoveCache[defID] = UnitDefs[spGetUnitDefID(targetId)].canMove
 		end
 		if unitCanMoveCache[defID] then
 			if not trackingTable[unitID] then
@@ -129,12 +139,12 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID,	cmdParams, cmdOpt
 			trackingTable[unitID][cmdParams[1]] = {cmdTag = -1, status = 0} -- default to outside
 			return true
 		end
-		distance = Spring.GetUnitSeparation(unitID, targetId, constructionTurretsDef.buildRange3D, false)
+		distance = spGetUnitSeparation(unitID, targetId, constructionTurretsDef.buildRange3D, false)
 	else
 		-- Handle Features
-		targetId = targetId - Game.maxUnits
-		if not Spring.ValidFeatureID(targetId) then return end
-		distance = Spring.GetUnitFeatureSeparation(unitID, targetId, false)
+		targetId = targetId - gMaxUnits
+		if not spValidFeatureID(targetId) then return end
+		distance = spGetUnitFeatureSeparation(unitID, targetId, false)
 	end
 
 	if distance > constructionTurretsDef.maxBuildDistance then
