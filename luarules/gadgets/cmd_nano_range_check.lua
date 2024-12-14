@@ -10,15 +10,16 @@ function gadget:GetInfo()
 end
 
 if not gadgetHandler:IsSyncedCode() then return end
-Spring.SetLogSectionFilterLevel(gadget:GetInfo().name, LOG.INFO) -- WARN Remove in final version.
-Spring.Log(gadget:GetInfo().name, LOG.INFO,"Unsync Load.")
 
 --- key is the nano's ID, followed by a Set-like with the unitID of target currently inside the nano's range.
 --- Used for CommandArray manipulation
----@type {[number] : {number : {cmdTag : integer, status : integer}}}
+---@type {[integer] : {integer : {cmdTag : integer, status : integer}}}
 local trackingTable = {}
 local trackingTableSize = 0
 local chunkingFrameSize = 1
+local chunkingUpdateFrequency = 15
+local tagUpdateFrameMax = 1 -- Can be bigger than 1 if you want game freezes.
+local unitCanMoveCache = {} ---@type {integer:boolean} single frame cache.
 
 local constructionTurretsDefs = {}
 for unitDefID, unitDef in ipairs(UnitDefs) do
@@ -30,22 +31,6 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 	end
 end
 
-local function isEmptyTable(tbl)
-	for _ in pairs(tbl) do
-		return false
-	end
-	return true
-end
-
--- only used for Logging; remove with it.
-local function getTableSize(tbl)
-	local i = 0
-	for _ in pairs(tbl) do
-		i = i + 1
-	end
-	return i
-end
-
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD.REPAIR)
 	gadgetHandler:RegisterAllowCommand(CMD.GUARD)
@@ -53,14 +38,9 @@ function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD.STOP)
 end
 
-local gate = false
 function gadget:GameFrame(frame)
-	local removes = 0
-	local inside = 0
-	local nanosRun = 0
-	local unitsCalced = 0
-
-	if frame % 15 then -- update dynamic chunking size
+	-- update dynamic chunking size
+	if frame % chunkingUpdateFrequency then
 		if trackingTableSize <= 50 then
 			chunkingFrameSize = 1
 		elseif trackingTableSize <= 100 then
@@ -72,10 +52,16 @@ function gadget:GameFrame(frame)
 		end
 	end
 
+	local tagUpdates = 0
 	local cmdCache = {}
 	local pointer = frame % chunkingFrameSize -- chunking offset
 	for nanoID, targets in pairs(trackingTable) do
 		if pointer % chunkingFrameSize == 0 then
+			if next(targets) == nil then -- Clean empty nanos.
+				trackingTable[nanoID] = nil
+				trackingTableSize = trackingTableSize - 1
+			end
+
 			local nanoDefID = Spring.GetUnitDefID(nanoID)
 			local maxDistance = constructionTurretsDefs[nanoDefID].maxBuildDistance
 
@@ -83,14 +69,13 @@ function gadget:GameFrame(frame)
 				if Spring.ValidUnitID(targetID) then
 					-- cmdTag gathering
 					if commandData.cmdTag == -1 then
+						if tagUpdates >= tagUpdateFrameMax then break end
 						if not cmdCache[nanoID] then
-							-- REVISE Only way to obtain legit tag data; will create light lag.
 							cmdCache[nanoID] = Spring.GetUnitCommands(nanoID, -1)
+							tagUpdates = tagUpdates +1
 						end
 						for _, cmd in ipairs(cmdCache[nanoID]) do
-							if cmd.params[1] == targetID then
-								trackingTable[nanoID][targetID].cmdTag = cmd.tag
-							end
+							trackingTable[nanoID][cmd.params[1]].cmdTag = cmd.tag
 						end
 					end
 					-- distance processing
@@ -98,53 +83,31 @@ function gadget:GameFrame(frame)
 					if distance < maxDistance then
 						if commandData.status == 0 then -- Entering range.
 							commandData.status = 1
-							inside = inside +1
 						end
 					else
 						if commandData.status == 1 then -- Exiting range.
 							Spring.GiveOrderToUnit(nanoID, CMD.REMOVE, commandData.cmdTag, 0) ---@diagnostic disable-line: param-type-mismatch
 							targets[targetID] = nil
-							removes = removes +1
 						end
 					end
-					unitsCalced = unitsCalced +1
 				else
 					targets[targetID] = nil -- Clean up invalid targets.
 				end
 			end
 		end
 		pointer = pointer + 1
-
-		if next(targets) == nil then -- Clean empty nanos.
-			trackingTable[nanoID] = nil
-			trackingTableSize = trackingTableSize - 1
-		end
 	end
-
-	if not isEmptyTable(trackingTable) or gate then
-		Spring.Log(gadget:GetInfo().name, LOG.INFO,
-			string.format("Tracking: %s, NanoRuns: %s, uProc: %s, dropped: %s, inside: %s.",
-				tostring(getTableSize(trackingTable)),
-				tostring(nanosRun),
-				tostring(unitsCalced),
-				tostring(removes),
-				tostring(inside)
-			)
-		)
-		gate = true
-		if isEmptyTable(trackingTable) then
-			Spring.Log(gadget:GetInfo().name, LOG.INFO, "Tracking stopped.")
-			gate = false
-		end
-	end
+	unitCanMoveCache = {}
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID,	cmdParams, cmdOptions, cmdTag, synced, fromLua)
 	if not constructionTurretsDefs[unitDefID] then return true end
 	-- Handle stops on nanos
 	if cmdID == CMD.STOP then
-		trackingTable[unitID] = nil
-		trackingTableSize = trackingTableSize - 1
+		if trackingTable[unitID] then
+			trackingTable[unitID] = nil
+			trackingTableSize = trackingTableSize - 1
+		end
 	end
 	-- only handle ID targets, fallthrough for area selects; Let the intended scripts handle, catch resulting commands on ID.
 	if #cmdParams ~= 1 then return true end
@@ -153,8 +116,11 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID,	cmdParams, cmdOpt
 
 	if targetId < Game.maxUnits then -- Feature handling
 		if not Spring.ValidUnitID(targetId) then return end
-		local targetUnitDef = UnitDefs[Spring.GetUnitDefID(targetId)]
-		if targetUnitDef.canMove then
+		local defID = Spring.GetUnitDefID(targetId)
+		if not unitCanMoveCache[defID] then
+			unitCanMoveCache[defID] = UnitDefs[Spring.GetUnitDefID(targetId)].canMove
+		end
+		if unitCanMoveCache[defID] then
 			if not trackingTable[unitID] then
 				trackingTable[unitID] = {}
 				trackingTableSize = trackingTableSize + 1

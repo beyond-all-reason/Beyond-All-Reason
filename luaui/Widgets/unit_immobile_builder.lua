@@ -137,7 +137,7 @@ function widget:UnitCommand(unitID, unitDefID, _, cmdID, _, cmdOpts)
 			local commandQueue = spGetCommandQueue(unitID, -1)
 			for _, cmd in pairs(commandQueue) do
 				if cmd.id == CMD_FIGHT then
-					spGiveOrderToUnit(unitID, CMD.REMOVE, { cmd.tag }, 0)
+					spGiveOrderToUnit(unitID, CMD.REMOVE, cmd.tag, 0)
 				end
 			end
 		end
