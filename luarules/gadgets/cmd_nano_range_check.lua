@@ -101,7 +101,8 @@ function gadget:GameFrame(frame)
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID,	cmdParams, cmdOptions, cmdTag, synced, fromLua)
-	if not constructionTurretsDefs[unitDefID] then return true end
+	local constructionTurretsDef = constructionTurretsDefs[unitDefID]
+	if not constructionTurretsDef then return true end
 	-- Handle stops on nanos
 	if cmdID == CMD.STOP then
 		if trackingTable[unitID] then
@@ -128,7 +129,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID,	cmdParams, cmdOpt
 			trackingTable[unitID][cmdParams[1]] = {cmdTag = -1, status = 0} -- default to outside
 			return true
 		end
-		distance = Spring.GetUnitSeparation(unitID, targetId, constructionTurretsDefs[unitDefID].buildRange3D, false)
+		distance = Spring.GetUnitSeparation(unitID, targetId, constructionTurretsDef.buildRange3D, false)
 	else
 		-- Handle Features
 		targetId = targetId - Game.maxUnits
@@ -136,7 +137,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID,	cmdParams, cmdOpt
 		distance = Spring.GetUnitFeatureSeparation(unitID, targetId, false)
 	end
 
-	if distance > constructionTurretsDefs[unitDefID].maxBuildDistance then
+	if distance > constructionTurretsDef.maxBuildDistance then
 		return false
 	end
 	return true
