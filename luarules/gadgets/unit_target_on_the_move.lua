@@ -288,7 +288,7 @@ if gadgetHandler:IsSyncedCode() then
 		spSetUnitRulesParam(unitID, "targetCoordX", -1)
 		spSetUnitRulesParam(unitID, "targetCoordY", -1)
 		spSetUnitRulesParam(unitID, "targetCoordZ", -1)
-		if unitTargets[unitID] and not keeptrack == true then
+		if unitTargets[unitID] and not keeptrack then
 			SendToUnsynced("targetList", unitID, 0)
 		end
 		unitTargets[unitID] = nil
@@ -829,7 +829,7 @@ else	-- UNSYNCED
 		if fullview then
 			drawDecorations()
 		else
-			CallAsTeam(myAllyTeam, drawDecorations)
+			CallAsTeam(myTeam, drawDecorations)
 		end
 	end
 

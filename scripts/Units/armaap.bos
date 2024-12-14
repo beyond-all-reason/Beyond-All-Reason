@@ -1,23 +1,18 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
+#include "../factories_common.h"
 
-piece  base, pad, nano3, nano4, nano2, nano1, dish, blink, blinka, blinkb;
+piece  base, pad, flare1, flare2, pivot1, arm1, end1, pivot2, arm2, end2, dish, blink, blinka, blinkb, cagelight1, cagelight2, cagelight_emit1, cagelight_emit2;
 
-static-var  spray, unitviewer, statechg_DesiredState, statechg_StateChanging;
+static-var  spray;
 static-var  Stunned;
 
 // Signal definitions
-#define SIG_ACTIVATE			2
+#define SIGNAL_TURNON 4
 
 
 Standby()
 {
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 100;
-	}
 	while( TRUE )
 	{
 		hide blinkb;
@@ -29,8 +24,6 @@ Standby()
 		show blinkb;
 		sleep 1975;
 	}
-	sleep 50;
-	start-script Standby();
 }
 
 Lights()
@@ -42,204 +35,111 @@ Lights()
 		}
 		sleep 2500;
 	}
-	sleep 50;
-	start-script Lights();
 }
 
 
-activatescr()
-{
-	//start-script Lights();
-	sleep 26;
-}
-
-deactivatescr()
-{
-//	sleep 26;
-}
-
-OpenYard()
-{
-	set YARD_OPEN to 1;
-	while( !get YARD_OPEN )
-	{
-		sleep 1500;
-		set YARD_OPEN to 1;
-	}
-}
-
-CloseYard()
-{
-	set YARD_OPEN to 0;
-	while( get YARD_OPEN )
-	{
-		sleep 1500;
-		set YARD_OPEN to 0;
-	}
-  set BUGGER_OFF to 1;
-}
-
-Go()
-{
-	call-script activatescr();
-	call-script OpenYard();
-	set INBUILDSTANCE to 1;
-}
-Stop()
-{
-	set INBUILDSTANCE to 0;
-	call-script CloseYard();
-	call-script deactivatescr();
-}
-DishSpin()
-{
-	show blink;
-	spin dish around y-axis speed <60>;
-}
-DishStopSpin()
-{
-	hide blink;
-	spin dish around y-axis speed <0.000>;
-}
 SetStunned(State)
 {
     Stunned = State;
 	if (Stunned) {
 		hide blink;
-	    call-script DishStopSpin();
+		stop-spin dish around y-axis decelerate <1> ;
 	} else {
-	    call-script DishSpin();
+		show blink;
+		spin dish around y-axis speed <60> accelerate <1>;
 	}
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
 }
 
 Create()
 {
-	hide nano1;
-	hide nano2;
-	hide nano3;
-	hide nano4;
+	hide flare1;
+	hide flare2;
+	hide cagelight_emit1;
+	hide cagelight_emit2;
 	hide pad;
-	unitviewer = FALSE;
-	spray = nano1;
-	call-script InitState();
+	spray = 0;
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script Standby();
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 1000;
-	}
 	spin dish around y-axis speed <60>;
 	start-script Lights();
+	call-script SetStunned(0);
 }
 
 
-#define SMOKEPIECE base
-#include "smokeunit_thread_nohit.h"
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	if( spray == 0 )
-	{
-		piecenum = nano1;
-	}
-	if( spray == 1 )
-	{
-		piecenum = nano2;
-	}
-	if( spray == 2 )
-	{
-		piecenum = nano3;
-	}
-	if( spray == 3 )
-	{
-		piecenum = nano4;
-
-	}
-	spray=spray+1;
-	if (spray >3)
-	{
-		spray=0;
-	}
-}
-
-Demo()
-{
-	unitviewer = TRUE;
+	spray = (spray + 1) % 2;
+	pieceIndex = flare1 + spray;
 }
 
 Activate()
 {
-	signal SIG_ACTIVATE;
-	start-script RequestState(0);
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	
+	turn arm1 to x-axis <135> speed <120>;
+	turn arm2 to x-axis <135> speed <120>;
+	sleep (300);
+	turn pivot1 to y-axis <-135> speed <90>;
+	turn pivot2 to y-axis <135> speed <90>;
+	turn end1 to x-axis <70> speed <90>;
+	turn end2 to x-axis <70> speed <90>;
+	wait-for-turn arm1 around x-axis;
+	FACTORY_OPEN_BUILD;
 }
 
 Deactivate()
 {
-	signal SIG_ACTIVATE;
-	set-signal-mask SIG_ACTIVATE;
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
     sleep 5000;
-	set-signal-mask 0;
-	start-script RequestState(1);
+	
+	turn pivot1 to y-axis <0> speed <120>;
+	turn pivot2 to y-axis <0> speed <120>;
+	turn arm1 to x-axis <0> speed <30>;
+	turn arm2 to x-axis <0> speed <30>;
+	turn end1 to x-axis <0> speed <90>;
+	turn end2 to x-axis <0> speed <90>;
+
+	FACTORY_CLOSE_BUILD;
 }
 
 StartBuilding()
 {
-	show nano1;
-	show nano2;
-	show nano3;
-	show nano4;
-	spin pad around y-axis speed <30.005495>;
+	show flare1;
+	show flare2;
+	spin pad around y-axis speed <30> accelerate <1>;
+	
+	show cagelight_emit1;
+	show cagelight_emit2;
+	
+	spin cagelight_emit1 around y-axis speed <200> accelerate <1>;
+	spin cagelight_emit2 around y-axis speed <-200> accelerate <1>;
 }
 
 StopBuilding()
 {
-	hide nano1;
-	hide nano2;
-	hide nano3;
-	hide nano4;
+	hide flare1;
+	hide flare2;
 	stop-spin pad around y-axis;
+	
+	hide cagelight_emit1;
+	hide cagelight_emit2;
+	
+	stop-spin cagelight_emit1 around y-axis decelerate <1>;
+	stop-spin cagelight_emit2 around y-axis decelerate <1>;
 }
 
-QueryBuildInfo(piecenum)
+QueryBuildInfo(pieceIndex)
 {
-	piecenum = pad;
+	pieceIndex = pad;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {
@@ -249,10 +149,8 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode dish type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode pad type BITMAPONLY | NOHEATCLOUD;
-		explode nano1 type BITMAPONLY | NOHEATCLOUD;
-		explode nano2 type BITMAPONLY | NOHEATCLOUD;
-		explode nano3 type BITMAPONLY | NOHEATCLOUD;
-		explode nano4 type BITMAPONLY | NOHEATCLOUD;
+		explode flare1 type BITMAPONLY | NOHEATCLOUD;
+		explode flare2 type BITMAPONLY | NOHEATCLOUD;
 		explode blinka type BITMAPONLY | NOHEATCLOUD;
 		explode blinkb type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
@@ -263,10 +161,8 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode dish type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode pad type FALL | NOHEATCLOUD;
-		explode nano1 type FALL | NOHEATCLOUD;
-		explode nano2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode nano3 type FALL | NOHEATCLOUD;
-		explode nano4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flare1 type FALL | NOHEATCLOUD;
+		explode flare2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode blinka type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode blinkb type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
@@ -277,10 +173,8 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode dish type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode pad type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode nano1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode nano2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode nano3 type SMOKE | FALL | NOHEATCLOUD;
-		explode nano4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flare1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flare2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode blinka type SMOKE | FALL | NOHEATCLOUD;
 		explode blinkb type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
@@ -289,10 +183,8 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode dish type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode pad type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode nano1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode nano2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode nano3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode nano4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flare1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode flare2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode blinka type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode blinkb type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;

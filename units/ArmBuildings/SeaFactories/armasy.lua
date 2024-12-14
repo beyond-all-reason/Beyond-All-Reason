@@ -5,7 +5,7 @@ return {
 		buildtime = 16000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -9 -2",
-		collisionvolumescales = "160 60 160",
+		collisionvolumescales = "192 60 192",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		energycost = 9700,
@@ -29,7 +29,7 @@ return {
 		terraformspeed = 1000,
 		waterline = 1.5,
 		workertime = 300,
-		yardmap = "wCCCCCCCCCCwCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCwCCCCCCCCCCw",
+		yardmap = "wCCCCCCCCCCw CCCCCCCCCCCC CCCCCCCCCCCC CCCCCCCCCCCC CCCCCCCCCCCC CCCCCCCCCCCC CCCCCCCCCCCC CCCCCCCCCCCC CCCCCCCCCCCC CCCCCCCCCCCC CCCCCCCCCCCC wCCCCCCCCCCw",
 		buildoptions = {
 			[1] = "armacsub",
 			[2] = "armmls",
