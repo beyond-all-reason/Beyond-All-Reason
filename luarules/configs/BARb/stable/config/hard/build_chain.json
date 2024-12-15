@@ -299,7 +299,6 @@
 
 		"legalab": {
 			"hub": [
-					//[{"unit": "armarad", "category": "defence", "offset": {"back": 100}, "priority": "normal"}],
 					[{"unit": "legabm", "category": "defence", "offset": {"front": 100}, "priority": "low"}]
 		]
 		},
@@ -309,21 +308,10 @@
 			]
 		},
 
-		"legsy": {
+		"legjim": {
 			"hub": [
 				[
 				{"unit": "corfhlt", "category": "defence", "offset": {"front": 150}, "priority": "high"}
-				//{"unit": "corasy", "category": "factory", "offset": [100, 100], "priority": "low"}
-				],
-				[
-					{"unit": "coruwfus", "category": "factory", "offset": [-200, 50], "condition": {"chance":1.0}, "priority": "normal"},
-					{"unit": "coruwfus", "category": "factory", "offset": [-200, 50], "condition": {"chance":1.0}, "priority": "normal"}
-				],
-				[
-					{"unit": "coruwmmm", "category": "defence", "offset": {"back": 400}, "priority": "normal"},
-					{"unit": "coruwmmm", "category": "defence", "offset": {"back": 400}, "priority": "low"},
-					{"unit": "coruwmmm", "category": "defence", "offset": {"back": 400}, "priority": "low"},
-					{"unit": "coruwmmm", "category": "defence", "offset": {"back": 400}, "priority": "low"}
 				]
 			]
 		}
