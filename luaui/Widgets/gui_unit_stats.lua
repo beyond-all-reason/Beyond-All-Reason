@@ -26,7 +26,7 @@ end
 if damageStats and damageStats[gameName] and damageStats[gameName].team then
 	local rate = 0
 	for k, v in pairs (damageStats[gameName].team) do
-		if not v == damageStats[gameName].team.games and v.cost and v.killed_cost then
+		if k ~= "games" and v.cost and v.killed_cost then
 			local compRate = v.killed_cost/v.cost
 			if compRate > rate then
 				highestUnitDef = k
@@ -36,7 +36,7 @@ if damageStats and damageStats[gameName] and damageStats[gameName].team then
 	end
 	local scndRate = 0
 	for k, v in pairs (damageStats[gameName].team) do
-		if not v == damageStats[gameName].team.games and v.cost and v.killed_cost then
+		if k ~= "games" and v.cost and v.killed_cost then
 			local compRate = v.killed_cost/v.cost
 			if compRate > scndRate and k ~= highestUnitDef then
 				scndhighestUnitDef = k
@@ -47,7 +47,7 @@ if damageStats and damageStats[gameName] and damageStats[gameName].team then
 	local thirdRate = 0
 	--local thirdhighestUnitDef
 	for k, v in pairs (damageStats[gameName].team) do
-		if not v == damageStats[gameName].team.games and v.cost and v.killed_cost then
+		if k ~= "games" and v.cost and v.killed_cost then
 			local compRate = v.killed_cost/v.cost
 			if compRate > thirdRate and k ~= highestUnitDef and k ~= scndhighestUnitDef then
 				--thirdhighestUnitDef = k
