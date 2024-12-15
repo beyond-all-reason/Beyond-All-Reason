@@ -7,7 +7,11 @@
 		           "armflak", "armamb", "armanni", "armguard",  "armamd", "armtarg", "armgate", "armptl"],
 	//              0          1           2          3          4         5          6            7          8          9
 		"cortex": ["corllt",  "cortl",    "corrl",   "corhllt", "corhlt", "cormaw",  "cormadsam", "corerad", "corvipe", "coratl",
-		           "corflak", "cortoast", "cordoom", "corpun",  "corfmd", "cortarg", "corgate",   "corptl"]
+		           "corflak", "cortoast", "cordoom", "corpun",  "corfmd", "cortarg", "corgate",   "corptl"],
+	//             		 0          		1          		2          		3            	4           	5          		6				7				8				9
+		"legion":  	["leglht",		"cortl",   		"legrl",  		"leghive",   	"legmg",   		"legdtr",  		"legrhapsis",  	"leglupara",	"legbombard", 	"coratl", 
+					 "legflak",   	"legacluster", 	"legbastion", 	"legcluster",   "legabm",		"legrad",		"legjam",		"legestor",		"legmstor",		"legadvsol", 
+					 "legnanotc",	"corarad",		"cortarg",		"coruwadves",	"legperdition", "corshroud",	"corfus",       "legsolar",     "corgate",      "corfhlt"]
 	},
 	// Actual number of defences per cluster bounded by income - the order of defenses that should be build with numbers as above.
 	"land":  [0, 2, 3, 5, 6, 4, 7, 13, 8, 10, 11, 12],
@@ -29,7 +33,8 @@
 	"superweapon": {
 		"unit": {
 			"armada": ["armmercury",  "armemp",  "armbrtha", "armvulc", "armamd", "armsilo"],
-			"cortex": ["corscreamer", "cortron", "corint",   "corbuzz", "corfmd", "corsilo"]
+			"cortex": ["corscreamer", "cortron", "corint",   "corbuzz", "corfmd", "corsilo"],
+			"legion": ["leglraa", "legperdition", "leglrpc", "legstarfall", "legabm", "legsilo"]
 		},
 		"weight":     [ 0.25,          0.14,      0.25,       0.06,      0.15,     0.15],
 
@@ -38,17 +43,20 @@
 
 	"wall": {
 		"armada": ["armdrag", "armfdrag"],  // or armmine1
-		"cortex": ["cordrag", "corfdrag"]  // or cormine1
+		"cortex": ["cordrag", "corfdrag"],  // or cormine1
+		"legion": ["legfdrag", "corfdrag"] 
 	},
 	"choke": {
 		"armada": ["coreyes"],
-		"cortex": ["coreyes"]
+		"cortex": ["coreyes"],
+		"legion": ["legeyes"]
 	},
 
 	// Fallback defence
 	"default": {
 		"armada": "armllt",
-		"cortex": "corllt"
+		"cortex": "corllt",
+		"legion": "leglht"
 	}
 },
 
@@ -176,6 +184,13 @@
 					{"unit": "cormadsam", "category": "defence", "offset": {"front": 80}, "condition": {"air": true}}
 				]
 			]
+		},
+
+		"legadvsol": {
+			"hub": [
+				[{"unit": "leglht", "category": "defence", "offset": {"front": 100}, "condition": {"chance": 0.12}}],
+                [{"unit": "leglht", "category": "defence", "offset": {"back": 100}, "condition": {"chance": 0.12}}]  
+			]
 		}
 	},
 	"geo": {
@@ -184,6 +199,9 @@
 		},
 		"corgeo": {
 			"hub": [[{"unit": "corhllt", "category": "defence", "offset": {"front": 64}}]]
+		},
+		"leggeo": {
+			"hub": [[{"unit": "leghive", "category": "defence", "offset": {"front": 64}}]]
 		}
 	},
 	"defence": {
@@ -218,7 +236,37 @@
 		},
 		"corap": {
 			"hub": [[{"unit": "corllt", "category": "defence", "offset": {"front": 5}, "priority": "normal"}]]
+		},
+
+		// Legion Factories
+
+		"leglab": {
+			"hub": [[{"unit": "leglht", "category": "defence", "offset": {"back": 5}, "priority": "now"}]]
+		},
+		"legvp": {
+			"hub": [[{"unit": "leglht", "category": "defence", "offset": {"back": 5}, "priority": "now"}]]
+		},
+
+
+		"legalab": {
+			"hub": [
+					[{"unit": "legabm", "category": "defence", "offset": {"front": 100}, "priority": "low"}]
+		]
+		},
+		"legavp": {
+			"hub": [
+				[{"unit": "legabm", "category": "defence", "offset": {"front": 100}, "priority": "low"}]
+			]
+		},
+
+		"legjim": {
+			"hub": [
+				[
+				{"unit": "corfhlt", "category": "defence", "offset": {"front": 150}, "priority": "high"}
+				]
+			]
 		}
+		// Legasy doesn't exist yet...
 	},
 	"mex": {
 		"armmex": {
@@ -227,6 +275,10 @@
 			"porc": true
 		},
 		"cormex": {
+//			"energy": [200, true],
+			"porc": true
+		},
+		"legmex": {
 //			"energy": [200, true],
 			"porc": true
 		}
