@@ -23,11 +23,11 @@ local customFilterLookup = {}
 local customCommandLookup = {}
 
 local function isBuilder(udef)
-	return (udef.canReclaim and udef.reclaimSpeed > 0) or                         -- reclaim
-		(udef.canResurrect and udef.resurrectSpeed > 0) or                        -- resurrect
-		(udef.canRepair and udef.repairSpeed > 0) or                              -- repair
-		(udef.buildOptions and udef.buildOptions[1]) or                           -- build options
-		(udef.canStockpile and udef.modCategories.ship and udef.modCategories.noweapon) -- is carrier ship
+	return (udef.canReclaim and udef.reclaimSpeed > 0) or
+		(udef.canResurrect and udef.resurrectSpeed > 0) or
+		(udef.canRepair and udef.repairSpeed > 0) or
+		(udef.buildOptions and udef.buildOptions[1]) or
+		(udef.canStockpile and udef.modCategories.ship and udef.modCategories.noweapon) -- carrier ships
 end
 
 local function invertCurry(invert, filter, args)
@@ -137,7 +137,7 @@ local function parseFilter(filterDef)
 		elseif token == "Weapons" then
 			filters.weapons = notEmptyUdefFilter(invert, "weapons")
 
-			-- command queue filters
+		-- command queue filters
 		elseif token == "Idle" then
 			filters.idle = invertCurry(invert, isIdle)
 		elseif token == "Guarding" then
@@ -158,7 +158,7 @@ local function parseFilter(filterDef)
 				return false
 			end)
 
-			-- hotkey filters
+		-- hotkey filters
 		elseif token == "InHotkeyGroup" then
 			filters.inHotKeyGroup = invertCurry(invert, function(_, _, uid)
 				return spGetUnitGroup(uid) ~= nil
@@ -179,7 +179,7 @@ local function parseFilter(filterDef)
 				return isSelected
 			end)
 
-			-- number comparison
+		-- number comparison
 		elseif token == "AbsoluteHealth" then
 			local minHealth = tonumber(getNextToken())
 			if not minHealth then
@@ -234,7 +234,7 @@ local function parseFilter(filterDef)
 				return false
 			end, minRange)
 
-			-- string comparision
+		-- string comparison
 		elseif token == "Category" then
 			local category = getNextToken()
 			if not category then

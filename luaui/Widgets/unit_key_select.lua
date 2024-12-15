@@ -1,4 +1,3 @@
----@diagnostic disable-next-line: duplicate-set-field
 function widget:GetInfo()
 	return {
 		name = "KeySelect",
@@ -18,12 +17,10 @@ local function handleSetCommand(_, commandDef)
 	command()
 end
 
----@diagnostic disable-next-line: duplicate-set-field
 function widget:Initialize()
 	widgetHandler:AddAction("select", handleSetCommand, nil, "p")
 end
 
----@diagnostic disable-next-line: duplicate-set-field
 function widget:Shutdown()
 	WG['keyselect'] = nil
 end
