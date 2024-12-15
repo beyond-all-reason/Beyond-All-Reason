@@ -1268,7 +1268,9 @@ function widget:FeatureDestroyed(featureID, noUpload)
 	local featureDefID = Spring.GetFeatureDefID(featureID)
 	if featureDefLights[featureDefID] then
 		for lightname, lightTable in pairs(featureDefLights[featureDefID]) do
-			RemoveLight(lightTable.lightType, tostring(featureID) ..  lightname, nil, noUpload)
+			if featureID % (lightTable.fraction or 1 ) == 0 then
+				RemoveLight(lightTable.lightType, tostring(featureID) ..  lightname, nil, noUpload)
+			end
 		end
 	end
 end
