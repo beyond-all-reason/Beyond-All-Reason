@@ -22,6 +22,10 @@ local includeNanosAsMobile = true -- TODO
 local customFilterLookup = {}
 local customCommandLookup = {}
 
+local function logError(message)
+	Spring.Log("Select API", LOG.ERROR, message)
+end
+
 local function isBuilder(udef)
 	return (udef.canReclaim and udef.reclaimSpeed > 0) or
 		(udef.canResurrect and udef.resurrectSpeed > 0) or
@@ -287,7 +291,7 @@ local function parseFilter(filterDef)
 				return stringContains(udef.translatedHumanName, name)
 			end, name)
 		else
-			error(token .. " is not a valid filter")
+			logError(token .. " is not a valid filter")
 		end
 	end
 
@@ -416,7 +420,7 @@ local function parseNumber(input, fn)
 	local distance = tonumber(numStr)
 
 	if not distance then
-		error("Invalid input, expected a number after the underscore: " .. input)
+		logError("Invalid input, expected a number after the underscore: " .. input)
 	end
 
 	return function(args)
@@ -504,7 +508,7 @@ local function parseConclusion(conclusionDef)
 			Spring.SelectUnitArray(uids, appendSelected)
 		end)
 	else
-		error(conclusionDef .. " is not a valid conclusion")
+		logError(conclusionDef .. " is not a valid conclusion")
 	end
 end
 
@@ -542,12 +546,12 @@ local function parseSource(sourceDef)
 			end
 		end)
 	else
-		error(sourceDef .. " is not a valid source")
+		logError(sourceDef .. " is not a valid source")
 	end
 end
 
 local function commandFormatError(commandDef)
-	error("select command string " .. commandDef .. " does not match the expected format")
+	logError("Select command string does not match the expected format: "  .. commandDef)
 end
 
 local function parseCommand(commandDef)
