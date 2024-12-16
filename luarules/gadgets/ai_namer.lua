@@ -48,6 +48,7 @@ if gadgetHandler:IsSyncedCode() then
 		"hihoman23",
 		"Hobo Joe",
 		"hokomoko",
+		"Mr. Bob",
 		"Honkwaddle",
 		"Hornet",
 		"IceXuick",
@@ -170,6 +171,7 @@ if gadgetHandler:IsSyncedCode() then
 		"rous",
 		"Rikerss", --Merch $20+
 		"Sovgut", --Tourney prize $50
+		"Shadowisperke",
 		"Spanker",
 		"SuperMadmax",
 		"sversuge",
