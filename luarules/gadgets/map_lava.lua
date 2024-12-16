@@ -25,13 +25,10 @@ if gadgetHandler:IsSyncedCode() then
 
 	local lavaLevel = lava.level
 	local lavaGrow = lava.grow
-	local lavaDamage = lava.damage
-	local lavaDamageMode = lava.damageMode
+
+	-- damage is specified in health lost per second, damage is applied every 10 frames
+	local lavaDamage = lava.damage/3.0
 	local lavaDamageFeatures = lava.damageFeatures
-	if lavaDamageMode == "direct" or lavaDamageMode == "proportional" then
-		-- these modes specify damage per second, damage is applied every 10 frames
-		lavaDamage = lavaDamage/3
-	end
 	if lavaDamageFeatures then
 		if not tonumber(lavaDamageFeatures) then
 			lavaDamageFeatures = 0.1
@@ -46,14 +43,12 @@ if gadgetHandler:IsSyncedCode() then
 	-- speedups
 	local spAddUnitDamage = Spring.AddUnitDamage
 	local spDestroyFeature = Spring.DestroyFeature
-	local spDestroyUnit = Spring.DestroyUnit
 	local spGetAllUnits = Spring.GetAllUnits
 	local spGetFeatureDefID = Spring.GetFeatureDefID
 	local spGetFeaturePosition = Spring.GetFeaturePosition
 	local spGetFeatureResources = Spring.GetFeatureResources
 	local spGetUnitBasePosition = Spring.GetUnitBasePosition
 	local spGetUnitDefID = Spring.GetUnitDefID
-	local spGetUnitHealth = Spring.GetUnitHealth
 	local spSetFeatureResources = Spring.SetFeatureResources
 	local spSpawnCEG = Spring.SpawnCEG
 	local random = math.random
@@ -70,49 +65,6 @@ if gadgetHandler:IsSyncedCode() then
 	for _, rhym in ipairs(lava.tideRhym) do
 		addTideRhym(unpack(rhym))
 	end
-
-	local function getLavaDamageFunction()
-		local minHealthProportion = lava.damageMinHealth
-		if lavaDamageMode == "direct" and minHealthProportion and minHealthProportion > 0 then
-			-- direct lava damage, but leave unit with maxhealth*minHealthProportion health remaining
-			return function(unitID, gaiaTeamID)
-				local health, maxhealth = spGetUnitHealth(unitID)
-				local damage = min(lavaDamage, health-maxhealth*minHealthProportion)
-				if damage > 0 then
-					spAddUnitDamage (unitID, damage, 0, gaiaTeamID, 1)
-				end
-			end
-		elseif lavaDamageMode == "direct" then
-			-- direct lava damage
-			return function(unitID, gaiaTeamID)
-				spAddUnitDamage (unitID, lavaDamage, 0, gaiaTeamID, 1)
-			end
-		elseif lavaDamageMode == "proportional" and minHealthProportion and minHealthProportion > 0 then
-			-- proportional damage, but leave unit with maxhealth*minHealthProportion health remaining
-			return function(unitID, gaiaTeamID)
-				local health, maxhealth = spGetUnitHealth(unitID)
-				local damage = min(maxhealth*lavaDamage, health-maxhealth*minHealthProportion)
-				if damage > 0 then
-					spAddUnitDamage (unitID, damage, 0, gaiaTeamID, 1)
-				end
-			end
-		elseif lavaDamageMode == "proportional" then
-			-- proportional damage
-			return function(unitID, gaiaTeamID)
-				local health, maxhealth = spGetUnitHealth(unitID)
-				spAddUnitDamage (unitID, maxhealth*lavaDamage, 0, gaiaTeamID, 1)
-			end
-		elseif lavaDamageMode == "destroy" then
-			-- directly destroy unit
-			return function(unitID, gaiaTeamID)
-				spDestroyUnit (unitID, true, false, gaiaTeamID)
-			end
-		else
-			Spring.Log(gadget:GetInfo().name, LOG.ERROR, "Bad damage mode for lava: " .. tostring(lavaDamageMode))
-			return function() end
-		end
-	end
-	local lavaDamageFunction = getLavaDamageFunction()
 
 	function updateLava()
 		if (lavaGrow < 0 and lavaLevel < tideRhym[tideIndex].targetLevel)
@@ -233,7 +185,7 @@ if gadgetHandler:IsSyncedCode() then
 			if not UnitDefs[UnitDefID].canFly then
 				x,y,z = spGetUnitBasePosition(unitID)
 				if y and y < lavaLevel then
-					lavaDamageFunction(unitID, gaiaTeamID)
+					spAddUnitDamage (unitID, lavaDamage, 0, gaiaTeamID, 1)
 					spSpawnCEG(lavaEffectDamage, x, y+5, z)
 				end
 			end
