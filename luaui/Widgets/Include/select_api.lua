@@ -18,7 +18,6 @@ local spIsUnitSelected = Spring.IsUnitSelected
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetUnitPosition = Spring.GetUnitPosition
 
-local includeNanosAsMobile = true -- TODO
 local customFilterLookup = {}
 local customCommandLookup = {}
 
@@ -178,7 +177,7 @@ local function parseFilter(filterDef)
 				return unitGroup == selectGroup
 			end, group)
 		elseif token == "InPrevSel" or token == "InPreviousSelection" then
-			filters.inPrevSel = invertCurry(invert, function(udef, _, uid)
+			filters.inPreviousSelection = invertCurry(invert, function(udef, _, uid)
 				local isSelected = spIsUnitSelected(uid)
 				return isSelected
 			end)
