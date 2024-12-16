@@ -321,8 +321,8 @@ local moveDatas = {
 	-- armvang corkarg corthermite
 	HTBOT4 = {
 		crushstrength = 252,
-		footprintx = 4,
-		footprintz = 4,
+		footprintx = 6,
+		footprintz = 6,
 		maxslope = 80,
 		maxwaterdepth = 22,
 		depthModParams = {
