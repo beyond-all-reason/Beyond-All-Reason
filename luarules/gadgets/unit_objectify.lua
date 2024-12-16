@@ -97,23 +97,27 @@ if gadgetHandler:IsSyncedCode() then
     end
 
 	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-		-- prevents area targetting
-		if cmdID and cmdID == CMD.ATTACK then
-			if cmdParams and #cmdParams == 1 then
-				local uDefID = Spring.GetUnitDefID(cmdParams[1])
-				if isObject[uDefID] or isDecoration[uDefID] then
-					return false
+		if cmdID then
+			-- prevents area targetting
+			if cmdID == CMD.ATTACK then
+				if cmdParams and #cmdParams == 1 then
+					local uDefID = Spring.GetUnitDefID(cmdParams[1])
+					if isObject[uDefID] or isDecoration[uDefID] then
+						return false
+					end
 				end
-			end
-		end
-		-- remove any decoration that is blocking a queued build order
-		if cmdID < 0 and cmdParams[3] and isBuilder[Spring.GetUnitDefID(unitID)] then
-			local udefid = math.abs(cmdID)
-			local units = Spring.GetUnitsInBox(cmdParams[1]-unitSize[udefid][1],cmdParams[2]-200,cmdParams[3]-unitSize[udefid][2],cmdParams[1]+unitSize[udefid][1],cmdParams[2]+50,cmdParams[3]+unitSize[udefid][2])
-			for i=1, #units do
-				if isDecoration[Spring.GetUnitDefID(units[i])] then
-					if Spring.GetUnitIsDead(units[i]) == false then
-						Spring.DestroyUnit(units[i], false, true)
+
+			-- remove any decoration that is blocking a queued build order
+			elseif cmdID < 0 then
+				if cmdParams[3] and isBuilder[Spring.GetUnitDefID(unitID)] then
+					local udefid = math.abs(cmdID)
+					local units = Spring.GetUnitsInBox(cmdParams[1]-unitSize[udefid][1],cmdParams[2]-200,cmdParams[3]-unitSize[udefid][2],cmdParams[1]+unitSize[udefid][1],cmdParams[2]+50,cmdParams[3]+unitSize[udefid][2])
+					for i=1, #units do
+						if isDecoration[Spring.GetUnitDefID(units[i])] then
+							if Spring.GetUnitIsDead(units[i]) == false then
+								Spring.DestroyUnit(units[i], false, true)
+							end
+						end
 					end
 				end
 			end
