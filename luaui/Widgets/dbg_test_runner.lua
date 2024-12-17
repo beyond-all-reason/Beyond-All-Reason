@@ -246,6 +246,9 @@ local function trackCallin(target, name, callback, mode)
 	if not target then
 		target = widget
 	end
+	if name == 'GameFrame' or name == 'Shutdown' then
+		error("Can't track GameFrame or Shutdown callins")
+	end
 	target[name] = callback
 	widgetHandler:UpdateWidgetCallInRaw(name, target)
 	callinState.callins[name] = mode
