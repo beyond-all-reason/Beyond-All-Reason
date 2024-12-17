@@ -148,10 +148,6 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID,	cmdParams, cmdOpt
 	return true
 end
 
-
-function gadget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
-end
-
 function gadget:UnitDestroyed(unitID)
 	for _, targets in pairs(trackingTable) do
 		targets[unitID] = nil
