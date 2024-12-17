@@ -1058,6 +1058,8 @@ end
 function widget:Update(dt)
 	if Spring.GetGameFrame() <= 0 then
 		step()
+	else
+		widgetHandler:RemoveWidgetCallIn('Update', self)
 	end
 end
 
