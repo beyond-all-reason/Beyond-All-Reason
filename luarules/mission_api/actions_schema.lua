@@ -1,34 +1,65 @@
+--============================================================--
+
+-- Action Types
+
+--============================================================--
+
 local actionTypes = {
-	EnableTrigger = 1,
-	DisableTrigger = 2,
-	IssueOrders = 3,
-	AllowCommands = 4,
-	RestrictCommands = 5,
-	AlterBuildlist = 6,
-	EnableBuildOption = 7,
-	DisableBuildOption = 8,
-	SpawnUnits = 9,
-	SpawnConstruction = 10,
-	DespawnUnits = 11,
-	SpawnWeapons = 12,
-	SpawnEffects = 13,
-	RevealLOS = 14,
-	UnrevealLOS = 15,
-	AlterMapZones = 16,
-	TransferUnits = 17,
-	ControlCamera = 18,
-	Pause = 19,
-	Unpause = 20,
-	PlayMedia = 21,
-	SendMessage = 22,
-	Victory = 23,
-	Defeat = 24,
+	-- Triggers
+	EnableTrigger               = 100, --
+	DisableTrigger              = 101, --
+
+	-- Orders
+	IssueOrders                 = 200, --
+	AllowCommands               = 201,
+	RestrictCommands            = 202,
+
+	-- Build Options
+	AlterBuildlist              = 300,
+	EnableBuildOption           = 301,
+	DisableBuildOption          = 302,
+
+	-- Units
+	SpawnUnits                  = 400, --
+	DespawnUnits                = 401, --
+	TransferUnits               = 404, --
+
+	-- SFX
+	SpawnExplosion              = 500, --
+	SpawnWeapons                = 501,
+	SpawnEffects                = 502,
+
+	-- Map
+	RevealLOS                   = 600,
+	UnrevealLOS                 = 601,
+	AlterMapZones               = 602,
+
+	-- Media
+	ControlCamera               = 700,
+	Pause                       = 701,
+	Unpause                     = 702,
+	PlayMedia                   = 703,
+	SendMessage                 = 704,
+
+	-- Win Condition
+	Victory                     = 800,
+	Defeat                      = 801,
+
+	-- Custom
+	Custom                      = 900, --
 }
 
+--============================================================--
+
+-- Action Parameters
+
+--============================================================--
+
 local parameters = {
+	-- Triggers
 	[actionTypes.EnableTrigger] = {
 		[1] = {
-			name = 'triggerId',
+			name = 'triggerID',
 			required = true,
 			type = 'string',
 		},
@@ -36,19 +67,34 @@ local parameters = {
 
 	[actionTypes.DisableTrigger] = {
 		[1] = {
-			name = 'triggerId',
+			name = 'triggerID',
 			required = true,
 			type = 'string',
 		},
 	 },
 
-	[actionTypes.IssueOrders] = {  },
+	 -- Orders
+	[actionTypes.IssueOrders] = { 
+		[1] = {
+			name = 'unit',
+			required = true,
+			type = 'Unit'
+		},
+		[2] = {
+			name = 'orders',
+			required = true,
+			type = 'table'
+		}
+	 },
 	[actionTypes.AllowCommands] = {  },
 	[actionTypes.RestrictCommands] = {  },
+
+	-- Build Options
 	[actionTypes.AlterBuildlist] = {  },
 	[actionTypes.EnableBuildOption] = {  },
 	[actionTypes.DisableBuildOption] = {  },
 
+	-- Units
 	[actionTypes.SpawnUnits] = {
 		[1] = {
 			name = 'name',
@@ -66,36 +112,74 @@ local parameters = {
 			type = 'number',
 		},
 		[4] = {
-			name = 'x',
+			name = 'position',
 			required = true,
-			type = 'number',
+			type = 'Vec2'
 		},
 		[5] = {
-			name = 'y',
-			required = false,
-			type = 'number',
+			name = 'facing',
+			required = true,
+			type = 'Direction'
 		},
 		[6] = {
-			name = 'z',
-			required = true,
-			type = 'number',
-		},
+			name = 'construction',
+			required = false,
+			type = 'bool'
+		}
 	},
 
-	[actionTypes.SpawnConstruction] = {  },
 	[actionTypes.DespawnUnits] = {
 		[1] = {
-			name = 'name',
+			name = 'unit',
 			required = true,
-			type = 'string',
+			type = 'Unit',
 		},
 	 },
 	[actionTypes.SpawnWeapons] = {  },
 	[actionTypes.SpawnEffects] = {  },
+	[actionTypes.TransferUnits] = { 
+		[1] = {
+			name = 'unit',
+			required = true,
+			type = 'Unit'
+		},
+		[2] = {
+			name = 'newTeam',
+			required = true,
+			type = 'number'
+		},
+		[3] = {
+			name = 'given',
+			required = false,
+			type = 'bool'
+		}
+	 },
+
+	-- SFX
+	[actionTypes.SpawnExplosion] = { 
+		[1] = {
+			name = 'position',
+			required = true,
+			type = 'Vec3'
+		},
+		[2] = {
+			name = 'direction',
+			required = true,
+			type = 'Vec3'
+		},
+		[3] = {
+			name = 'params',
+			required = true,
+			type = 'table'
+		}
+	},
+
+	-- Map
 	[actionTypes.RevealLOS] = {  },
 	[actionTypes.UnrevealLOS] = {  },
 	[actionTypes.AlterMapZones] = {  },
-	[actionTypes.TransferUnits] = {  },
+
+	-- Media
 	[actionTypes.ControlCamera] = {  },
 	[actionTypes.Pause] = {  },
 	[actionTypes.Unpause] = {  },
@@ -109,11 +193,25 @@ local parameters = {
 		}
 	},
 
+	-- Win Condition
 	[actionTypes.Victory] = {  },
 	[actionTypes.Defeat] = {  },
+
+	-- Custom
+	[actionTypes.Custom] = {
+		[1] = {
+			name = 'function',
+			required = true,
+			type = 'function',
+		},
+	},
 }
+
+--============================================================--
 
 return {
 	Types = actionTypes,
 	Parameters = parameters
 }
+
+--============================================================--
