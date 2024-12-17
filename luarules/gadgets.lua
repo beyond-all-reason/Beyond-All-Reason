@@ -1755,7 +1755,7 @@ function gadgetHandler:UnitStunned(unitID, unitDefID, unitTeam, stunned)
 end
 
 function gadgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-	Spring.DeselectUnit(unitID)
+	Spring.SetUnitNoSelect(unitID, true) -- also deselects. Works around GL4 unit tracker (?) being unable or unwilling to use RenderUnitDestroyed
 	tracy.ZoneBeginN("G:UnitDestroyed")
 	gadgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 
