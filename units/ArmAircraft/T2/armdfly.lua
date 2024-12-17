@@ -45,6 +45,7 @@ return {
 			subfolder = "ArmAircraft/T2",
 			techlevel = 2,
 			unitgroup = "emp",
+			crashable = 0,
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {

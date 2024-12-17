@@ -39,6 +39,7 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0,
 			subfolder = "Legion/Air",
+			crashable = 0,
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {
