@@ -299,9 +299,11 @@ registerCallins(widget, function(name, args)
 end)
 
 local MAX_START_TESTS_ATTEMPTS = 10
+local MAX_START_WAIT_SECS = 10
 local queuedStartTests = false
 local queuedStartTestsPatterns = nil
 local startTestsAttempts = 0
+local startGameTime = 0
 local function queueStartTests(patterns)
 	queuedStartTests = true
 	queuedStartTestsPatterns = patterns
@@ -327,20 +329,30 @@ local function startTests(patterns)
 		return
 	end
 
-	if Spring.GetModOptions().deathmode ~= 'neverend' then
-		log(
-			LOG.ERROR,
-			"deathmode='neverend' game end mode is required in order to run tests, so that the game stays " ..
-				"active between tests"
-		)
-		return
-	end
-
+	local neededActions = {}
 	if not Spring.IsCheatingEnabled() then
+		neededActions[#neededActions+1] = {'cheat',
+						   'Cheats are disabled; attempting to enable them...',
+						   'Could not enable cheats; tests cannot be run.'}
+	end
+	if Spring.GetModOptions().deathmode ~= 'neverend' and not Spring.GetGameRulesParam('testEndConditionsOverride') then
+		neededActions[#neededActions+1] = {'luarules setTestEndConditions',
+						   "Disabling end conditions...",
+						   "Could not override game end condition. Please use deathmode='neverend' game end mode. " ..
+					           "This is required in order to run tests, so that the game stays active between tests."}
+	end
+	if Spring.GetGameFrame() < 1 and not Spring.GetGameRulesParam('testEnvironmentStarting') then
+		neededActions[#neededActions+1] = {'luarules setTestReadyPlayers',
+						   "Preparing players to start game...",
+						   'Could not prepare players. Please start game manually.'}
+	end
+	if #neededActions > 0 then
 		if not queuedStartTests then
-			-- enable cheats, then wait for it to go through
-			log(LOG.INFO, "Cheats are disabled; attempting to enable them...")
-			Spring.SendCommands("cheat")
+			-- enable required actions, then wait for them to go through
+			for _, action in ipairs(neededActions) do
+				log(LOG.INFO, action[2])
+				Spring.SendCommands(action[1])
+			end
 			queueStartTests(patterns)
 			return
 		elseif startTestsAttempts < MAX_START_TESTS_ATTEMPTS then
@@ -349,12 +361,28 @@ local function startTests(patterns)
 			return
 		else
 			-- ran out of retries, so fail
-			log(LOG.ERROR, "Could not enable cheats; tests cannot be run.")
+			for _, action in ipairs(neededActions) do
+				log(LOG.ERROR, action[3])
+			end
 			queuedStartTests = false
 			return
 		end
 	end
+	if Spring.GetGameFrame() < 1 then
+		if not queuedStartTests then
+			queueStartTests(patterns)
+		end
+		if startGameTime == 0 then
+			startGameTime = os.clock()
+		elseif os.clock() - startGameTime > MAX_START_WAIT_SECS then
+			startGameTime = 0
+			queuedStartTests = false
+			log(LOG.ERROR, "Game didn't start in time for tests", os.clock() - (startGameTime))
+		end
+		return
+	end
 
+	startGameTime = 0
 	queuedStartTests = false
 
 	logStartTests()
