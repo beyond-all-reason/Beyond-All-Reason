@@ -20,7 +20,7 @@ return {
 		},
 	},
 	crawl_blast = {
-		areaofeffect = 432,
+		areaofeffect = 400,
 		craterboost = 0,
 		cratermult = 0,
 		edgeeffectiveness = 0.35,
