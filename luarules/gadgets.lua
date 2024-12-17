@@ -1755,6 +1755,7 @@ function gadgetHandler:UnitStunned(unitID, unitDefID, unitTeam, stunned)
 end
 
 function gadgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+	Spring.DeselectUnit(unitID)
 	tracy.ZoneBeginN("G:UnitDestroyed")
 	gadgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 
