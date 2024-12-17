@@ -1876,21 +1876,21 @@
 			}
 		},
 		"leglob": {
-			"role": ["skirmish", "raider"],
+			"role": ["skirmish"],
 			"attribute": ["scout"],
 			"threat": {"air": 0.0, "water": 0.0,
 				"vs": {"artillery": 2.0, "anti_air": 2.0}
 			}
 		},
 		"legkark": {
-			"role": ["riot", "Skirmish"],
+			"role": ["riot", "siege"],
 			"threat": {"surf": 1.2, "vs":{"raider": 2.0}},
 			"retreat": 0.5
 		},
 		"leggob": {
 			"role": ["skirmish"],
 			"attribute": ["scout"],
-			"threat":{"air": 0.0, "water": 0.0,
+			"threat":{"air": 0.05, "water": 0.0,
 					"vs":{"artillery": 2.0, "anti_air": 2.0}
 			}
 		},
@@ -2243,7 +2243,7 @@
 },
 "legmext15" : {
 	"role": ["static"],
-	"since": 300,
+	"since": 500,
 	"build_mod": 200
 },
 "legmoho" : {
