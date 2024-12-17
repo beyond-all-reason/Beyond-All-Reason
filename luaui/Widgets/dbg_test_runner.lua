@@ -375,7 +375,7 @@ local function startTests(patterns)
 	end
 
 	testRunState.runningTests = true
-	testRunState.index = 1
+	testRunState.filesIndex = 1
 
 	log(LOG.NOTICE, "=====RUNNING TESTS=====")
 
@@ -387,7 +387,7 @@ local function finishTest(result)
 		control.remove()
 	end
 
-	result.index = result.index or testRunState.index
+	result.index = result.index or testRunState.filesIndex
 	result.label = result.label or activeTestState.label
 	result.filename = result.filename or activeTestState.filename
 	if activeTestState and activeTestState.startFrame and result.frames == nil then
@@ -406,11 +406,11 @@ local function finishTest(result)
 	resetReturnState()
 	resetCallinState()
 
-	if testRunState.index < #(testRunState.files) then
-		testRunState.index = testRunState.index + 1
+	if testRunState.filesIndex < #(testRunState.files) then
+		testRunState.filesIndex = testRunState.filesIndex + 1
 	else
 		-- done
-		testRunState.index = nil
+		testRunState.filesIndex = nil
 		testRunState.runningTests = false
 		if config.showAllResults then
 			displayTestResults(testRunState.results)
@@ -972,8 +972,8 @@ local function step()
 
 	-- is there a test set up? if not, create one
 	if activeTestState.coroutine == nil then
-		activeTestState.label = testRunState.files[testRunState.index].label
-		activeTestState.filename = testRunState.files[testRunState.index].filename
+		activeTestState.label = testRunState.files[testRunState.filesIndex].label
+		activeTestState.filename = testRunState.files[testRunState.filesIndex].filename
 
 		local success, envOrError = loadTestFromFile(activeTestState.filename)
 
