@@ -32,6 +32,9 @@ for udid, ud in pairs(UnitDefs) do
 	if string.find(ud.name, 'armflea') then
 		isStompedUnit[udid] = true
 	end
+	if string.find(ud.name, 'leggob') then
+		isStompedUnit[udid] = true
+	end
 end
 
 local krogkickWeapon = {}
