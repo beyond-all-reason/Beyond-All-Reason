@@ -12,7 +12,6 @@ end
 local ENABLED_RULES_PARAM = 'isTestEnvironmentHelperEnabled'
 
 if not Spring.Utilities.IsDevMode() or not Spring.Utilities.Gametype.IsSinglePlayer() then
-	Spring.SetGameRulesParam(ENABLED_RULES_PARAM, false)
 	return
 end
 
