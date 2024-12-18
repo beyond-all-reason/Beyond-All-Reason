@@ -12,6 +12,7 @@ function widget:GetInfo()
 		license = "Lua: GPLv2, GLSL: (c) Beherith (mysterme@gmail.com)",
 		layer   = -99,
 		enabled = true,
+		depends = {'gl4'},
 	}
 end
 
@@ -670,10 +671,6 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
-	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
-		widgetHandler:RemoveWidget(self)
-		return
-	end
 	initUnitList()
 
 	if initGL4() == false then
