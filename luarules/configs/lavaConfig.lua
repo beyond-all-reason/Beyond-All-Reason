@@ -462,9 +462,21 @@ elseif Game.waterDamage > 0 and (not voidWaterMap) then -- Waterdamagemaps - kee
 
 elseif Spring.GetModOptions().map_waterislava and (not voidWaterMap) then
 	lavaMap = true
-	lavaLevel = 4 
+	lavaLevel = 4
 	if isLavaGadget and isLavaGadget == "synced" then
-		addTideRhym (4, 0.05, 5*6000)
+		if Spring.GetModOptions() and Spring.GetModOptions().map_waterislava_config then
+			tidesList = {}
+			local tides = string.split(Spring.GetModOptions().map_waterislava_config, '|')
+			for i,tide in ipairs(tides) do
+				local tideSplit = string.split(tide,',')
+				if tideSplit[1] and tideSplit[2] and tideSplit[3] and tonumber(tideSplit[1]) and tonumber(tideSplit[2])and tonumber(tideSplit[3]) then
+					addTideRhym (tonumber(tideSplit[1]), tonumber(tideSplit[2]), tonumber(tideSplit[3]))
+					Spring.Echo("Adding tide ",tideSplit[1], tideSplit[2], tideSplit[3])
+				end
+			end
+		else
+			addTideRhym (4, 0.05, 5*6000)
+		end
 	end
 end
 

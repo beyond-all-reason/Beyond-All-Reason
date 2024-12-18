@@ -915,6 +915,15 @@ local options = {
     },
 
     {
+        key     = "map_waterislava_config",
+        name    = "Water Is Lava Config",
+        desc    = "A pipe separated list of tides for lava <newTideHeight>, <changeSpeed>, <timeAtThisHeight>", -- example: map_waterislava_config=1, 0.1, 60|1, 0.1, 60|1, 0.1, 60;
+        type    = "string",
+        def     = "",
+        section = "options_extra",
+    },
+
+    {
         key     = "sub_header",
         section = "options_extra",
         type    = "separator",
