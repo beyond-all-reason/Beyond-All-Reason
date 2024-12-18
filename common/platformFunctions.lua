@@ -9,7 +9,7 @@ local function determineCapabilities()
 	if not gl then
 		return
 	end
-	if gl.GetString(0x1F00) ~= "" then
+	if Platform.glVendor ~= "" then
 		hasGL = true
 	end
 	if gl.CreateShader and Platform.glHaveGLSL then
