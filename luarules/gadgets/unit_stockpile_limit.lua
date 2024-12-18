@@ -28,14 +28,19 @@ if gadgetHandler:IsSyncedCode() then
 	local GiveOrderToUnit	= Spring.GiveOrderToUnit
 
 	local canStockpile = {}
+	Spring.Log(gadget:GetInfo().name, LOG.WARNING, "Check all stockpiles "..#UnitDefs)
 	for udid, ud in pairs(UnitDefs) do
 		if ud.canStockpile then
 			canStockpile[udid] = true
 		end
-		if ud.customParams.stockpileLimit then
-			isStockpilingUnit[udid] = tonumber(ud.customParams.stockpileLimit)
-		elseif ud.customParams.stockpilelimit then
-			isStockpilingUnit[udid] = tonumber(ud.customParams.stockpilelimit)
+		if ud.weapons then
+			for i = 1, #ud.weapons do
+				local weaponDef = WeaponDefs[ud.weapons[i].weaponDef]
+				if weaponDef.stockpile and weaponDef.customParams and weaponDef.customParams.stockpilelimit then
+					Spring.Log(gadget:GetInfo().name, LOG.INFO, "Stockpile "..ud.name.." - "..weaponDef.name.." limit "..weaponDef.customParams.stockpilelimit)
+					isStockpilingUnit[udid] = tonumber(weaponDef.customParams.stockpilelimit)
+				end
+			end
 		end
 	end
 

@@ -39,7 +39,6 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/gantry",
 			techlevel = 3,
-			stockpileLimit = 3,
 		},
 		featuredefs = {
 			dead = {
@@ -138,6 +137,9 @@ return {
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 3180,
+				customparams = {
+					stockpilelimit = 3,
+				},
 				damage = {
 					commanders = 1000,
 					default = 6000,

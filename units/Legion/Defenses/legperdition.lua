@@ -38,7 +38,6 @@ return {
 			removewait = true,
 			subfolder = "CorBuildings/LandDefenceOffence",
 			techlevel = 2,
-			stockpileLimit = 10,
 		},
 		featuredefs = {
 			dead = {
@@ -180,6 +179,7 @@ return {
 					area_onhit_damage = 175,
 					area_onhit_range = 150,
 					area_onhit_time = 15,
+					stockpilelimit = 10,
 				},
 				damage = {
 					commanders = 700,

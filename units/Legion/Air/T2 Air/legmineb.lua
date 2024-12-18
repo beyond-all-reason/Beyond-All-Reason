@@ -44,7 +44,6 @@ return {
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorSeaplanes",
-			stockpileLimit = 1,
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {
@@ -126,6 +125,7 @@ return {
 					bogus = 1,
 					spawns_name = "cormine1",
 					spawns_surface = "LAND",
+					stockpilelimit = 1,
 				},
 				damage = {
 					default = 1,

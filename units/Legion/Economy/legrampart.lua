@@ -54,7 +54,6 @@ return {
 			inheritxpratemultiplier = 1,
 			childreninheritxp = "DRONE",
 			parentsinheritxp = "DRONE",
-			stockpileLimit = 20,
         },
         sfxtypes = {
             pieceexplosiongenerators = {
@@ -126,6 +125,9 @@ return {
 				weapontimer = 2.5,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 6000,
+				customparams = {
+					stockpilelimit = 20,
+				},
 				damage = {
 					default = 1500,
 				},

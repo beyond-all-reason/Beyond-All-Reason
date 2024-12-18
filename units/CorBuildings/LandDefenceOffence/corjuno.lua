@@ -36,7 +36,6 @@ return {
 			subfolder = "CorBuildings/LandDefenceOffence",
 			unitgroup = "weapon",
 			usebuildinggrounddecal = true,
-			stockpileLimit = 20,
 		},
 		featuredefs = {
 			dead = {
@@ -141,6 +140,9 @@ return {
 				weapontimer = 4,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 500,
+				customparams = {
+					stockpilelimit = 20,
+				},
 				customparams = {
 					lups_noshockwave = 1,
 					nofire = true,

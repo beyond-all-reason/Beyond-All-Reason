@@ -42,7 +42,6 @@ return {
 			techlevel = 2,
 			unitgroup = "antinuke",
 			usebuildinggrounddecal = true,
-			stockpileLimit = 20,
 		},
 		featuredefs = {
 			dead = {
@@ -149,6 +148,9 @@ return {
 				weapontimer = 3,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 6000,
+				customparams = {
+					stockpilelimit = 20,
+				},
 				damage = {
 					default = 1500,
 				},

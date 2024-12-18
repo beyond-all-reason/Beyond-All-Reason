@@ -142,7 +142,6 @@ return {
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,
 			fall_damage_multiplier = 5,--this ensures commander dies when it hits the ground so effigies can trigger respawn.
-			stockpileLimit = 4,
 		},
 		featuredefs = {
 			dead = {
@@ -430,6 +429,7 @@ return {
 					spawns_expire = 25,
 					spawns_surface = "LAND", -- Available: "LAND SEA"
 					spawns_mode = "random",
+					stockpilelimit = 4,
 				},
 				damage = {
 					default = 0,

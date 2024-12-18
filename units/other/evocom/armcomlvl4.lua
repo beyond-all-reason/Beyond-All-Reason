@@ -138,7 +138,6 @@ return {
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,
 			fall_damage_multiplier = 5,--this ensures commander dies when it hits the ground so effigies can trigger respawn.
-			stockpileLimit = 3,
 		},
 		featuredefs = {
 			dead = {
@@ -261,6 +260,9 @@ return {
 				weapontimer = 1.1,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 1000,
+				customparams = {
+					stockpilelimit = 3,
+				},
 				damage = {
 					default = 800,
 				},

@@ -38,7 +38,6 @@ return {
 			unitgroup = "emp",
 			usebuildinggrounddecal = true,
 			yardmap = "ooooooo ooooooo ooooooo ooooooo ooooooo ooooooo",
-			stockpileLimit = 10,
 		},
 		featuredefs = {
 			dead = {
@@ -144,6 +143,9 @@ return {
 				weapontimer = 3,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 1200,
+				customparams = {
+					stockpilelimit = 10,
+				},
 				damage = {
 					default = 50000,
 				},

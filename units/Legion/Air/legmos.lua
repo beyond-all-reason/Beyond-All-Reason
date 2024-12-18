@@ -34,7 +34,6 @@ return {
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "ArmAircraft",
-			stockpileLimit = 8,
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {
@@ -113,6 +112,9 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 400,
+				customparams = {
+					stockpilelimit = 8,
+				},
 				damage = {
 					default = 44,
 				},

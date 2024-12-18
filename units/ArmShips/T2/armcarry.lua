@@ -57,7 +57,6 @@ return {
 			subfolder = "ArmShips/T2",
 			techlevel = 2,
 			unitgroup = "antinuke",
-			stockpileLimit = 20,
 		},
 		featuredefs = {
 			dead = {
@@ -169,6 +168,9 @@ return {
 				weapontimer = 2.5,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 6000,
+				customparams = {
+					stockpilelimit = 20,
+				},
 				damage = {
 					default = 1500,
 				},

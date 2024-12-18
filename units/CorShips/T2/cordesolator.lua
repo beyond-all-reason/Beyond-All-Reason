@@ -47,7 +47,6 @@ return {
 			subfolder = "CorShips/T2",
 			techlevel = 2,
 			unitgroup = "nuke",
-			stockpileLimit = 10,
 		},
 		featuredefs = {
 			dead = {
@@ -169,6 +168,7 @@ return {
 				weaponvelocity = 1600,
 				customparams = {
 					place_target_on_ground = "true",
+					stockpilelimit = 10,
 				},
 				damage = {
 					commanders = 2500,

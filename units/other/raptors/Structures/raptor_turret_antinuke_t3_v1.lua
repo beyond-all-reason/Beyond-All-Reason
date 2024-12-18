@@ -56,7 +56,6 @@ return {
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_m_normals.png",
 			treeshader = "yes",
-			stockpileLimit = 10,
 		},
 		sfxtypes = {
 			explosiongenerators = {
@@ -120,6 +119,9 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 2000,
 				wobble = 32000,
+				customparams = {
+					stockpilelimit = 10,
+				},
 				damage = {
 					default = 1500,
 				},

@@ -42,7 +42,6 @@ return {
 			removewait = true,
 			subfolder = "CorBuildings/LandDefenceOffence",
 			techlevel = 2,
-			stockpileLimit = 20,
 		},
 		featuredefs = {
 			dead = {
@@ -149,6 +148,9 @@ return {
 					weapontimer = 2.5,
 					weapontype = "StarburstLauncher",
 					weaponvelocity = 6000,
+					customparams = {
+						stockpilelimit = 20,
+					},
 					damage = {
 						default = 1500,
 					},

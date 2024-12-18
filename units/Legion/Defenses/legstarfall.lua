@@ -40,7 +40,6 @@ return {
 			removewait = true,
 			subfolder = "CorBuildings/LandDefenceOffence",
 			techlevel = 2,
-			stockpileLimit = 1,
 		},
 		featuredefs = {
 			dead = {
@@ -137,6 +136,9 @@ return {
 				weapontimer = 14,
 				weapontype = "Cannon",
 				weaponvelocity = 900,
+				--customparams = {
+				--	stockpilelimit = 1,
+				--},
 				damage = {
 					default = 600,
 					shields = 375,

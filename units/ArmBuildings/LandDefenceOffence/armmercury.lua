@@ -39,7 +39,6 @@ return {
 			techlevel = 2,
 			unitgroup = "aa",
 			usebuildinggrounddecal = true,
-			stockpileLimit = 5,
 		},
 		featuredefs = {
 			dead = {
@@ -147,6 +146,9 @@ return {
 				weaponacceleration = 1000,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1850,
+				customparams = {
+					stockpilelimit = 5,
+				},
 				damage = {
 					vtol = 750,
 				},

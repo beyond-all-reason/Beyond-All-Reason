@@ -44,7 +44,6 @@ return {
 			inheritxpratemultiplier = 1,
 			childreninheritxp = "BOTCANNON",
 			parentsinheritxp = "BOTCANNON",
-			stockpileLimit = 50,
 		},
 		featuredefs = {
 			dead = {
@@ -152,6 +151,7 @@ return {
 				customparams = {
 					spawns_name = "armpw",
 					spawns_surface = "LAND", -- Available: "LAND SEA" blah
+					stockpilelimit = 50,
 				},
 				damage = {
 					default = 10,
