@@ -15,7 +15,12 @@
 			"corsolar": [80, 120],
 			"coradvsol": [80, 120],
 			"corfus": [30, 40],
-			"corafus": [200, 300]
+			"corafus": [200, 300],
+			"legsolar": [9, 12, 0, 0, 0.060],
+			"legadvsol": [20, 30, 12, 220, 0.220],
+			"legwin": [30, 60],
+			"legtide": [45, 60],
+			"legmex": [3, 12, 1, 7, 0.050]
 		},
 		"water": {
 			"armtide": [140, 250],
@@ -27,7 +32,12 @@
 			"corwin": [100, 200],
 			"corsolar": [10],
 			"coradvsol": [120, 160],
-			"coruwfus": [100, 200]
+			"coruwfus": [100, 200],
+			"legsolar": [9, 12, 0, 0, 0.060],
+			"legadvsol": [20, 30, 12, 220, 0.220],
+			"legwin": [30, 60],
+			"legtide": [45, 60],
+			"legmex": [3, 12, 1, 7, 0.050]
 		},
 		// income factor for energy, time is in seconds
 		// [[<start_factor>, <start_time>], [<end_factor>, <end_time>]]
@@ -47,11 +57,13 @@
 
 	"geo": {
 		"armada": "armgeo",
-		"cortex": "corgeo"
+		"cortex": "corgeo",
+		"legion": "leggeo"
 	},
 	"mex": {
 		"armada": "armmex",
-		"cortex": "cormex"
+		"cortex": "cormex",
+		"legion": "legmex"
 	},
 	"mex_up": 3,  // maximum number of simultaneous mex upgrades
 
@@ -92,13 +104,15 @@
 	//"terra": "armsy",
 	"assist": {
 		"armada": "armnanotc",
-		"cortex": "cornanotc"
+		"cortex": "cornanotc",
+		"legion": "legnanotc"
 	},
 
 	// Unknown UnitDef replacer
 	"default": {
 		"armada": "armwin",
-		"cortex": "corwin"
+		"cortex": "corwin",
+		"legion": "legwin"
 	}
 }
 }

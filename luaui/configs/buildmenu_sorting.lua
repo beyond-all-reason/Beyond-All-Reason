@@ -273,6 +273,7 @@ local unitOrderTable = {
 
 	--T3 LAND ATTACK
 	['armmar']         = 007000,
+	['legjav']         = 007005,
 	['corcat']         = 007010,
 	['armraz']         = 007020,
 	['corkarg']        = 007030,
