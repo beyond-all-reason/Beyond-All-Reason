@@ -78,7 +78,7 @@ function widget:Initialize()
 	for _,unitID in ipairs(spGetTeamUnits(spGetMyTeamID())) do
 		local unitDefID = spGetUnitDefID(unitID)
 		if isImmobileBuilder[unitDefID] then
-			spGiveOrderToUnit(unitID, CMD_MOVE_STATE, { 1 }, 0)
+			spGiveOrderToUnit(unitID, CMD_MOVE_STATE, 1, 0)
 			setupUnit(unitID)
 		end
 	end
@@ -89,7 +89,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 		return
 	end
 	if isImmobileBuilder[unitDefID] then
-		spGiveOrderToUnit(unitID, CMD_MOVE_STATE, { 1 }, 0)
+		spGiveOrderToUnit(unitID, CMD_MOVE_STATE, 1, 0)
 		setupUnit(unitID)
 	end
 end
@@ -115,7 +115,7 @@ function widget:UnitCommand(unitID, unitDefID, _, cmdID, _, cmdOpts)
 		end
 		local cmdID, opts, tag = spGetUnitCurrentCommand(unitID, count)
 		if cmdID and cmdID == CMD_FIGHT then
-			spGiveOrderToUnit(unitID, CMD.REMOVE, { tag }, 0)
+			spGiveOrderToUnit(unitID, CMD.REMOVE, tag, 0)
 		end
 	end
 end
