@@ -351,6 +351,9 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 650,
+				customparams = {
+					stockpilelimit = 3,
+				},
 				damage = {
 					default = 75,
 				},

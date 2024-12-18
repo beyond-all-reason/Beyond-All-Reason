@@ -333,7 +333,7 @@ return {
 					commanders = 1,
 				},
 			},
-			napalmmissile = { --unused, left here in case it replaces the Dgun again.
+			napalmmissile = { --unused, left here in case it replaces the Dgun again. However cannot yet have two stockpile weapons
 				areaofeffect = 300,
 				avoidfeature = false,
 				burnblow = true,
@@ -371,6 +371,9 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 650,
+				customparams = {
+					stockpilelimit = 3,
+				},
 				damage = {
 					default = 150,
 				},
@@ -421,6 +424,7 @@ return {
 					spawns_expire = 25,
 					spawns_surface = "LAND", -- Available: "LAND SEA"
 					spawns_mode = "random",
+					stockpilelimit = 3,
 				},
 				damage = {
 					default = 0,

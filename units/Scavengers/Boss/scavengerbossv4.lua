@@ -117,7 +117,6 @@ for difficulty, stats in pairs(difficultyParams) do
 			paralyzemultiplier = 0.025,
 			subfolder = "",
 			i18nfromunit = 'scavengerbossv4',
-			stockpileLimit = 1,
 		},
 		featuredefs = {
 			dead = {
@@ -738,6 +737,7 @@ for difficulty, stats in pairs(difficultyParams) do
 					spawns_name = "squadarmsptkt4 squadcorkarganetht4 squadcorakt4  squadcorakt4  squadcorakt4  squadcorakt4 squadcorakt4 squadarmpwt4 squadarmpwt4 squadarmpwt4 squadarmpwt4 squadarmpwt4",
 					spawns_surface = "LAND",
 					spawns_mode = "random",
+					stockpilelimit = 1,
 				},
 				damage = {
 					default = 0,
@@ -872,7 +872,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				name = "TurboWeaponGapDelay",
 				noselfdamage = true,
 				projectiles = math.floor((10/stats.turboWeaponOnTime*100) + 0.5), -- after delay, when 200-300 additional projectiles are fired, the turbo weapon is disabled.
-				range = 99999, 
+				range = 99999,
 				reloadtime = 1/stats.turboWeaponOffTime*100, --when 10+(health%/4) shots are fired, select a turbo weapon and enable it.
 				rgbcolor = "0.7 0.3 1.0",
 				rgbcolor2 = "0.8 0.6 1.0",

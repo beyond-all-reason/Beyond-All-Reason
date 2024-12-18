@@ -13,6 +13,7 @@ unitsTable['armdecomlvl3'].customparams.decoyfor = "armcomlvl3"
 unitsTable['armdecomlvl3'].customparams.isdecoycommander = true
 unitsTable['armdecomlvl3'].health = math.ceil(unitsTable['armdecomlvl3'].health*0.5)
 unitsTable['armdecomlvl3'].weapondefs.disintegrator.damage.default = 40
+unitsTable['armdecomlvl3'].weapondefs.backlauncher.customparams.stockpilelimit = 1
 
 unitsTable['armdecomlvl6'] = VFS.Include('units/other/evocom/armcomlvl6.lua').armcomlvl6 --if this filepath is changed, the unit will no longer work!
 unitsTable['armdecomlvl6'].selfdestructas = "decoycommander"
@@ -27,6 +28,7 @@ unitsTable['armdecomlvl6'].customparams.decoyfor = "armcomlvl6"
 unitsTable['armdecomlvl6'].customparams.isdecoycommander = true
 unitsTable['armdecomlvl6'].health = math.ceil(unitsTable['armdecomlvl6'].health*0.5)
 unitsTable['armdecomlvl6'].weapondefs.disintegrator.damage.default = 40
+unitsTable['armdecomlvl6'].weapondefs.backlauncher.customparams.stockpilelimit = 2
 
 unitsTable['armdecomlvl10'] = VFS.Include('units/other/evocom/armcomlvl10.lua').armcomlvl10 --if this filepath is changed, the unit will no longer work!
 unitsTable['armdecomlvl10'].selfdestructas = "decoycommander"
@@ -41,6 +43,7 @@ unitsTable['armdecomlvl10'].customparams.decoyfor = "armcomlvl10"
 unitsTable['armdecomlvl10'].customparams.isdecoycommander = true
 unitsTable['armdecomlvl10'].health = math.ceil(unitsTable['armdecomlvl10'].health*0.5)
 unitsTable['armdecomlvl10'].weapondefs.disintegrator.damage.default = 40
+unitsTable['armdecomlvl10'].weapondefs.backlauncher.customparams.stockpilelimit = 2
 
 unitsTable['cordecomlvl3'] = VFS.Include('units/other/evocom/corcomlvl3.lua').corcomlvl3 --if this filepath is changed, the unit will no longer work!
 unitsTable['cordecomlvl3'].selfdestructas = "decoycommander"
