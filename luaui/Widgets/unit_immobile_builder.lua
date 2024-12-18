@@ -1,15 +1,3 @@
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
---
---  brief:   sets immobile builders to MANEUVERING, and gives them a FIGHT order
---  author:  Dave Rodgers
---
---  Copyright (C) 2007.
---  Licensed under the terms of the GNU GPL, v2 or later.
---
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 function widget:GetInfo()
   return {
 	name		= "ImmobileBuilder",
@@ -22,9 +10,6 @@ function widget:GetInfo()
   }
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 local CMD_MOVE_STATE		= CMD.MOVE_STATE
 local CMD_FIGHT				= CMD.FIGHT
 local spGetMyTeamID			= Spring.GetMyTeamID
@@ -33,7 +18,6 @@ local spGetUnitDefID		= Spring.GetUnitDefID
 local spGetUnitPosition		= Spring.GetUnitPosition
 local spGiveOrderToUnit		= Spring.GiveOrderToUnit
 local spGetCommandQueue     = Spring.GetCommandQueue
-local spGetSpectatingState	= Spring.GetSpectatingState
 local spGetUnitCurrentCommand   = Spring.GetUnitCurrentCommand
 
 local hmsx = Game.mapSizeX/2
@@ -43,11 +27,8 @@ local myTeamID = spGetMyTeamID()
 
 local gameStarted
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
--- set immobile builders (nanotowers?) to the MANEUVER movestate,
--- and give them a FIGHT order, too close to the unit will drop the order so we add 50 distance
+-- Set immobile builders to the MANEUVER movestate, and give them a FIGHT order
+-- Too close to the unit will drop the order so we add 50 distance
 
 local isImmobileBuilder = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -56,11 +37,10 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
-
 local function SetupUnit(unitID)
 	local x, y, z = spGetUnitPosition(unitID)
 	if x and y and z then
-	    if (x > hmsx) then -- avoid to issue commands outside map
+	    if (x > hmsx) then -- Avoid issuing commands outside map
 	      x = x - 50
 	    else
 	      x = x + 50
@@ -70,7 +50,7 @@ local function SetupUnit(unitID)
 	    else
 	      z = z + 50
 	    end
-		-- meta enables reclaim enemy units, alt autoresurrect ( if available )
+		-- Meta enables reclaim enemy units, alt autoresurrect (if available)
 		spGiveOrderToUnit(unitID, CMD_FIGHT, { x, y, z }, {"meta"})
 	end
 end
@@ -104,7 +84,6 @@ function widget:Initialize()
 	end
 end
 
-
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
 	if unitTeam ~= spGetMyTeamID() then
 		return
@@ -115,12 +94,9 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 	end
 end
 
-
 function widget:UnitGiven(unitID, unitDefID, unitTeam)
 	widget:UnitCreated(unitID, unitDefID, unitTeam)
 end
-
-
 
 function widget:UnitIdle(unitID, unitDefID, unitTeam)
 	if unitTeam ~= myTeamID then
@@ -143,7 +119,3 @@ function widget:UnitCommand(unitID, unitDefID, _, cmdID, _, cmdOpts)
 		end
 	end
 end
-
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
