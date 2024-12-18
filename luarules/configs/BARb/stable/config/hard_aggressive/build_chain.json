@@ -47,7 +47,7 @@
 		"legion": ["legfdrag", "corfdrag"] 
 	},
 	"choke": {
-		"armada": ["coreyes"],
+		"armada": ["armeyes"],
 		"cortex": ["coreyes"],
 		"legion": ["legeyes"]
 	},
@@ -201,7 +201,7 @@
 			"hub": [[{"unit": "corhllt", "category": "defence", "offset": {"front": 64}}]]
 		},
 		"leggeo": {
-			"hub": [[{"unit": "leghive", "category": "defence", "offset": {"front": 64}}]]
+			"hub": [[{"unit": "legmg", "category": "defence", "offset": {"front": 64}}]]
 		}
 	},
 	"defence": {
