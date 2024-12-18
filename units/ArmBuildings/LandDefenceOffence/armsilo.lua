@@ -141,7 +141,7 @@ return {
 				explosiongenerator = "custom:newnuke",
 				firestarter = 100,
 				flighttime = 400,
-				impulsefactor = 0.5,
+				impulsefactor = 1.1,
 				metalpershot = 1000,
 				model = "crblmssl.s3o",
 				name = "Intercontinental ballistic nuclear warhead",

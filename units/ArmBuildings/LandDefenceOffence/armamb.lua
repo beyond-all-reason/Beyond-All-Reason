@@ -122,7 +122,7 @@ return {
 				edgeeffectiveness = 0.4,
 				explosiongenerator = "custom:genericshellexplosion-medium-aoe",
 				gravityaffected = "true",
-				impulsefactor = 0.5,
+				impulsefactor = 0.8,
 				name = "Pop-up heavy  long range g2g plasna cannon",
 				noselfdamage = true,
 				predictboost = 0.2,
