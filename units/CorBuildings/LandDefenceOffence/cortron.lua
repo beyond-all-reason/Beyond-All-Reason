@@ -116,7 +116,7 @@ return {
 				explosiongenerator = "custom:newnuketac",
 				firestarter = 0,
 				flighttime = 400,
-				impulsefactor = 0.123,
+				impulsefactor = 1.1,
 				metalpershot = 550,
 				model = "cortronmissile.s3o",
 				name = "Long range tactical g2g nuclear warheads",

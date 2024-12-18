@@ -841,6 +841,14 @@ function UnitDef_Post(name, uDef)
 			uDef.collide = false
 		end
 	end
+	
+	if uDef.metalcost and uDef.health and uDef.canmove == true and uDef.mass == nil then
+		local healthmass = math.ceil(uDef.health/6)
+		uDef.mass = math.max(uDef.metalcost, healthmass)
+		--if uDef.metalcost < healthmass then
+		--	Spring.Echo(name, uDef.mass, uDef.metalcost, uDef.mass - uDef.metalcost)
+		--end
+	end
 
 	--Juno Rework
 	if modOptions.junorework == true then
@@ -1405,38 +1413,6 @@ function WeaponDef_Post(name, wDef)
 				wDef.targetmoveerror = nil
 			end
 		end
-
-		if modOptions.proposed_unit_reworks then
-			if name == 'mine_heavy' then
-				wDef.damage.default = 3000
-				wDef.edgeeffectiveness = 0.5
-				wDef.impulsefactor = 0.8
-			end
-			if name == 'mine_medium' then
-				wDef.edgeeffectiveness = 0.5
-				wDef.impulsefactor = 0.8
-			end
-			if name == 'corsktlSelfd' then
-				--wDef.damage.hvyboats = wDef.damage.default
-				--wDef.damage.lboats = wDef.damage.default
-				wDef.damage.crawlingbombs = 400
-			end
-			if name == 'crawl_blast' then
-				wDef.damage.default = 2700
-				wDef.damage.commanders = 1000
-				--wDef.damage.hvyboats = wDef.damage.default
-				--wDef.damage.lboats = wDef.damage.default
-				wDef.damage.crawlingbombs = 400
-				wDef.edgeeffectiveness = 0.35
-				wDef.areaofeffect = 410
-			end
-			if name == 'crawl_blastsml' then
-				wDef.damage.crawlingbombs = 400
-				wDef.edgeeffectiveness = 0.35
-			end
-
-		end
-
 
 		----EMP rework
 

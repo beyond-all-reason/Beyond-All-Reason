@@ -12,7 +12,7 @@ return {
 		energystorage = 100,
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 6,
-		footprintz = 7,
+		footprintz = 6,
 		health = 3000,
 		idleautoheal = 5,
 		idletime = 1800,
@@ -30,7 +30,7 @@ return {
 		sightdistance = 273,
 		terraformspeed = 500,
 		workertime = 100,
-		yardmap = "oooooooooooooooooooooooooccccooccccoocccco",
+		yardmap = "oooooo oooooo oooooo occcco occcco occcco",
 		buildoptions = {
 			[1] = "armcv",
 			[2] = "armbeaver",

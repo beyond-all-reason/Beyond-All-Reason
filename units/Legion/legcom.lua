@@ -18,7 +18,7 @@ return {
 		capturespeed = 1800,
 		cloakcost = 100,
 		cloakcostmoving = 1000,
-		collisionvolumeoffsets = "0 3 0",
+		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "34 60 34",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",

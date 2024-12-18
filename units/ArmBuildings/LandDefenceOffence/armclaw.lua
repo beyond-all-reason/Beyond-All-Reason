@@ -145,6 +145,7 @@ return {
 				weapontype = "LightningCannon",
 				weaponvelocity = 450,
 				customparams = {
+					exclude_preaim = true,
 					spark_ceg = "genericshellexplosion-splash-lightning",
 					spark_forkdamage = "0.33",
 					spark_maxunits = "2",
@@ -159,7 +160,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				burstControlWhenOutOfArc = 2,
+				burstcontrolwhenoutofarc = 2,
 				def = "DCLAW",
 				fastautoretargeting = true,
 				onlytargetcategory = "SURFACE",
