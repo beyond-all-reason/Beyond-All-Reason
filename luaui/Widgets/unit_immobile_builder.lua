@@ -20,8 +20,8 @@ local spGiveOrderToUnit		= Spring.GiveOrderToUnit
 local spGetCommandQueue     = Spring.GetCommandQueue
 local spGetUnitCurrentCommand   = Spring.GetUnitCurrentCommand
 
-local hmsx = Game.mapSizeX/2
-local hmsz = Game.mapSizeZ/2
+local halfMapSizeX = Game.mapSizeX / 2
+local halfMapSizeZ = Game.mapSizeZ / 2
 
 local myTeamID = spGetMyTeamID()
 
@@ -37,15 +37,15 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
-local function SetupUnit(unitID)
+local function setupUnit(unitID)
 	local x, y, z = spGetUnitPosition(unitID)
 	if x and y and z then
-	    if (x > hmsx) then -- Avoid issuing commands outside map
+	    if (x > halfMapSizeX) then -- Avoid issuing commands outside map
 	      x = x - 50
 	    else
 	      x = x + 50
 	    end
-	    if (z > hmsz) then
+	    if (z > halfMapSizeZ) then
 	      z = z - 50
 	    else
 	      z = z + 50
@@ -55,7 +55,7 @@ local function SetupUnit(unitID)
 	end
 end
 
-function maybeRemoveSelf()
+local function maybeRemoveSelf()
     if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
         widgetHandler:RemoveWidget()
     end
@@ -79,7 +79,7 @@ function widget:Initialize()
 		local unitDefID = spGetUnitDefID(unitID)
 		if isImmobileBuilder[unitDefID] then
 			spGiveOrderToUnit(unitID, CMD_MOVE_STATE, { 1 }, 0)
-			SetupUnit(unitID)
+			setupUnit(unitID)
 		end
 	end
 end
@@ -90,7 +90,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 	end
 	if isImmobileBuilder[unitDefID] then
 		spGiveOrderToUnit(unitID, CMD_MOVE_STATE, { 1 }, 0)
-		SetupUnit(unitID)
+		setupUnit(unitID)
 	end
 end
 
@@ -103,7 +103,7 @@ function widget:UnitIdle(unitID, unitDefID, unitTeam)
 		return
 	end
 	if isImmobileBuilder[unitDefID] then
-		SetupUnit(unitID)
+		setupUnit(unitID)
 	end
 end
 
