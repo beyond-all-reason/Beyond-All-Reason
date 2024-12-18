@@ -2531,6 +2531,10 @@ local icontypes = {
 		bitmap = "icons/blank.png",
 		size = 1.0
 	},
+	legmohocon = {
+		bitmap = "icons/mex_t2_con.png",
+		size = 1.20749986
+	},
 	legamstor = {
 		bitmap = "icons/metalstorage_t2.png",
 		size = 1.3125
