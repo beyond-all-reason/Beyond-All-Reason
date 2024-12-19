@@ -13,7 +13,6 @@ unitsTable['legdecomlvl3'].decoyfor = "legcomlvl3"
 unitsTable['legdecomlvl3'].customparams.decoyfor = "legcomlvl3"
 unitsTable['legdecomlvl3'].health = math.ceil(unitsTable['legdecomlvl3'].health*0.5)
 unitsTable['legdecomlvl3'].weapondefs.disintegrator.damage.default = 40
---unitsTable['legdecomlvl3'].weapondefs.napalmmissile.customparams.stockpilelimit = 1
 unitsTable['legdecomlvl3'].weapondefs.botcannon.customparams.stockpilelimit = 1
 
 unitsTable['legdecomlvl6'] = VFS.Include('units/Legion/Legion EvoCom/legcomlvl6.lua').legcomlvl6 --if this filepath is changed, the unit will no longer work!
