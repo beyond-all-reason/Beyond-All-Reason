@@ -139,6 +139,9 @@ return {
 					hvyboats = 11,
 					vtol = 2,
 				},
+				customparams = {
+					noattackrangearc= 1,
+				},
 			},
 		},
 		weapons = {
