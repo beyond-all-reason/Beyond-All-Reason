@@ -17,30 +17,30 @@ end
 local losWithRadarEnabled = false
 local colorize = false
 local specDetected = false
-local opacity = 0.88
+local opacity = 1.0
 
 local losColorsWithRadarsGray = {
 	fog =    {0.20, 0.20, 0.20},
-	los =    {0.25, 0.25, 0.25},
-	radar =  {0.12, 0.12, 0.12},
-	jam =    {0.10, 0.02, 0.02},
+	los =    {0.60, 0.60, 0.60},
+	radar =  {0.00, 0.00, 0.00},
+	jam =    {0.08, -0.08, -0.08},
 	radar2 = {0.40, 0.40, 0.40},
 }
 
 local losColorsWithRadarsColor = {
-	fog =    {0.17, 0.17, 0.17},
-	los =    {0.30, 0.30, 0.30},
-	radar2 = {0.08, 0.16, 0.00},
-	jam =    {0.20, 0.00, 0.00},
-	radar =  {0.08, 0.16, 0.00},
+	fog =    {0.20, 0.20, 0.20},
+	los =    {0.60, 0.60, 0.60},
+	radar =  {0.00, 0.00, 0.00},
+	jam =    {0.08, -0.08, -0.08},
+	radar2 = {0.40, 0.50, 0.40},
 }
 
 local losColorsWithoutRadars = {
-	fog =    {0.30, 0.30, 0.30},
-	los =    {0.20, 0.20, 0.20},
-	radar =  {0.00, 0.00, 0.00},
-	jam =    {0.10, 0.02, 0.02},
-	radar2 = {0.00, 0.00, 0.00},
+	fog =    {0.40, 0.40, 0.40},
+	los =    {0.60, 0.60, 0.60},
+	radar =  {0.20, 0.20, 0.20},
+	jam =    {0.08, -0.08, -0.08},
+	radar2 = {0.42, 0.42, 0.42},
 }
 
 
@@ -58,7 +58,6 @@ local function applyOpacity(colors)
 end
 
 local function updateLOS(colors)
-	colors = applyOpacity(colors)
 	spSetLosViewColors(colors.fog, colors.los, colors.radar, colors.jam, colors.radar2)
 end
 
