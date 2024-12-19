@@ -520,8 +520,7 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
-	VFS.Include("luarules/configs/lavaConfig.lua")
-	if lavaMap == true then
+	if Spring.Lava.isLavaMap == true then
 		widgetHandler:RemoveWidget(self)
 	end
 
