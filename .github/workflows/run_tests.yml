@@ -1,0 +1,34 @@
+name: Run Tests
+
+on:
+#  pull_request
+  workflow_dispatch:
+
+jobs:
+  upload-event_file:
+    name: Upload Event File
+    runs-on: ubuntu-latest
+    steps:
+      - name: Upload Event File
+        uses: actions/upload-artifact@v4
+        with:
+          name: Event File
+          path: ${{ github.event_path }}
+
+  run-tests:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Run Tests
+        run: docker-compose -f tools/headless_testing/docker-compose.yml up
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Test Results
+          path: |
+            tools/headless_testing/testlog/results.json
