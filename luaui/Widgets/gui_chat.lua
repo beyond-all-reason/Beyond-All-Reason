@@ -2188,7 +2188,7 @@ function widget:KeyPress(key)
 						local badWord = findBadWords(inputText)
 						if badWord ~= nil and inputText ~= lastMessage then
 							addChat(Spring.GetGameFrame(), LineTypes.System, "\255\255\000\000Moderation:",
-							'Words such as "' .. badWord .. '" can be against the Code of Conduct if they are being used to abuse other players. Please take a moment to reevaluate your intentions. If your message was blocked in error you can send it again to bypass the filter.', true)
+							'Words such as "' .. badWord .. '" can be against the Code of Conduct if they are being used to abuse other players. Please take a moment to reevaluate your intentions. If your message was blocked in error, then you can send it again to bypass the filter.', true)
 						else
 							Spring.SendCommands("say "..inputMode..inputText)
 						end
