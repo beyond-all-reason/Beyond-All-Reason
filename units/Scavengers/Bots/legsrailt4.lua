@@ -137,6 +137,9 @@ return {
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 3180,
+				customparams = {
+					stockpilelimit = 3,
+				},
 				damage = {
 					commanders = 1000,
 					default = 6000,

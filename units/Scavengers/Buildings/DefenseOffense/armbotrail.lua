@@ -151,6 +151,7 @@ return {
 				customparams = {
 					spawns_name = "armpw",
 					spawns_surface = "LAND", -- Available: "LAND SEA" blah
+					stockpilelimit = 50,
 				},
 				damage = {
 					default = 10,
