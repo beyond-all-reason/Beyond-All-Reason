@@ -125,7 +125,7 @@ return {
 				turnrate = 5500,
 				weaponacceleration = 100,
 				weapontype = "MissileLauncher",
-				weapontimer = 2,
+				weapontimer = 5,
 				weapontype = "AircraftBomb",
 				weaponvelocity = 1600,
 				damage = {
