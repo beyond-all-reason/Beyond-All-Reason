@@ -6,7 +6,7 @@ function widget:GetInfo()
 		desc      = "Displays range of defenses (enemy and ally)",
 		author    = "Beherith", -- yeah this is now a rewrite from scratch
 		date      = "2021.04.26",
-		license   = "Lua: GPLv2, GLSL: (c) Beherith (mysterme@gmail.com)",
+		license   = "GNU GPL v2",
 		layer     = -100,
 		enabled   = false
 	}
@@ -445,6 +445,9 @@ local vsSrc = [[
 #version 420
 #line 10000
 
+// (C) 2021 Beherith (mysterme@gmail.com)
+// Licenced under the MIT licence
+
 //__DEFINES__
 
 layout (location = 0) in vec4 circlepointposition;
@@ -651,6 +654,9 @@ local fsSrc =  [[
 
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
+
+// (C) 2021 Beherith (mysterme@gmail.com)
+// Licenced under the MIT licence
 
 //_DEFINES__
 

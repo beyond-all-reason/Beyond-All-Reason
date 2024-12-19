@@ -3,7 +3,8 @@
 #extension GL_ARB_shader_storage_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
 
-// This shader is (c) Beherith (mysterme@gmail.com), Licensed under the MIT License
+// (C) 2024 Beherith (mysterme@gmail.com)
+// Licenced under the MIT licence
 
 layout (location = 0) in vec4 position; // .xy is [-1, +1], .zw is [0, 1]
 
