@@ -241,9 +241,6 @@ return {
 					default = 300,
 					subs = 30,
 				},
-				customparams = {
-					noattackrangearc= 1,
-				},
 			},
 		},
 		weapons = {

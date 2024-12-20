@@ -186,7 +186,6 @@ return {
 					subs = 300,
 				},
 				customparams = {
-					noattackrangearc= 1,
 					exclude_preaim = true
 				}
 			},
