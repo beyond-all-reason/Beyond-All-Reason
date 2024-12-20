@@ -35,7 +35,7 @@ local function checkRequires(allRequires)
 			return false
 		elseif req == 'shaders' and not hasShaders then
 			return false
-		elseif req == 'fbo' and not hasVBO then
+		elseif req == 'fbo' and not hasFBO then
 			return false
 		end
 	end
