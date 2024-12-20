@@ -26,14 +26,15 @@ if gadgetHandler:IsSyncedCode() then
 	local lavaLevel = lava.level
 	local lavaGrow = lava.grow
 
-	-- damage is specified in health lost per second, damage is applied every 10 frames
-	local lavaDamage = lava.damage/3.0
+	-- damage is specified in health lost per second, damage is applied every DAMAGE_RATE frames
+	local DAMAGE_RATE = 10 -- frames
+	local lavaDamage = lava.damage * (DAMAGE_RATE / Game.gameSpeed)
 	local lavaDamageFeatures = lava.damageFeatures
 	if lavaDamageFeatures then
 		if not tonumber(lavaDamageFeatures) then
 			lavaDamageFeatures = 0.1
 		end
-		lavaDamageFeatures = lavaDamageFeatures/3
+		lavaDamageFeatures = lavaDamageFeatures * (DAMAGE_RATE / Game.gameSpeed)
 	end
 
 	-- ceg effects
@@ -108,7 +109,7 @@ if gadgetHandler:IsSyncedCode() then
 		_G.lavaLevel = lavaLevel+math.sin(f/30)*0.5
 		--_G.lavaLevel = lavaLevel + clamp(-0.95, math.sin(f / 30), 0.95) * 0.5 --clamp to avoid jittering when sin(x) is around +-1
 
-		if f % 10 == 0 then
+		if f % DAMAGE_RATE == 0 then
 			lavaDeathCheck()
 		end
 
