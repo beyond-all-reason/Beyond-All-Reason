@@ -127,9 +127,6 @@ return {
 				damage = {
 					vtol = 76,
 				},
-				customparams = {
-					noattackrangearc= 1,
-				},
 			},
 			dragonmawh = {
 				accuracy = 700,
@@ -175,9 +172,6 @@ return {
 				damage = {
 					default = 6,
 					subs = 3,
-				},
-				customparams = {
-					noattackrangearc= 1,
 				},
 			},
 			krowlaser2 = {

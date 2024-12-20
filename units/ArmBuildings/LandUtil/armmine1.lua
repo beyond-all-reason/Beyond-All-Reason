@@ -78,8 +78,6 @@ return {
 		weapondefs = {
 			minerange = {
 				areaofeffect = 0,
-				avoidfeature = false,
-				avoidground = false,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
@@ -89,7 +87,7 @@ return {
 				impulsefactor = 0,
 				name = "Crawlingbomb Dummy Weapon",
 				range = 64,
-				reloadtime = 0.1,
+				reloadtime = 1,
 				soundhitwet = "",
 				soundhitwetvolume = 0,
 				tolerance = 1000000,
@@ -106,7 +104,6 @@ return {
 		weapons = {
 			[1] = {
 				def = "MINERANGE",
-				onlytargetcategory = "SURFACE",
 			},
 		},
 	},
