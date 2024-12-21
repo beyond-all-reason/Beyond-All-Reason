@@ -31,12 +31,12 @@ function MochaJSONReporter:endTests(duration)
 end
 
 function MochaJSONReporter:extractError(text)
-	local errorIndex = text:match'^%[string "[%p%a%s]*%"]:[%d]+:().*'
+	local errorIndex = text:match('^%[string "[%p%a%s]*%"]:[%d]+:().*')
 	if errorIndex and errorIndex > 0 then
 		text = text:sub(errorIndex + 1)
 		return text
 	end
-	errorIndex = text:match'^%[t=[%d%.:]*%]%[f=[%-%d]*%] ().*'
+	errorIndex = text:match('^%[t=[%d%.:]*%]%[f=[%-%d]*%] ().*')
 	if errorIndex and errorIndex > 0 then
 		text = text:sub(errorIndex)
 	end
