@@ -91,6 +91,7 @@ local function logTestResult(testResult)
 		testResult.label,
 		testResult.filename,
 		(testResult.result == TestResults.TEST_RESULT.PASS),
+		(testResult.result == TestResults.TEST_RESULT.SKIP),
 		testResult.milliseconds,
 		testResult.error
 	)
