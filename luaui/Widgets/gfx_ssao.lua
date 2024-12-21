@@ -448,7 +448,7 @@ local function InitGL()
 		uniformFloat = {},
 		silent = true, -- suppress compilation messages
 		shaderConfig = shaderConfig,
-		shaderName = widgetName..": G-buffer Fuse",
+		shaderName = widgetName.." G-buffer Fuse",
 	}
 
 	gbuffFuseShader = LuaShader.CheckShaderUpdates(gbuffFuseShaderCache)
@@ -472,7 +472,7 @@ local function InitGL()
 		},
 		silent = true, -- suppress compilation messages
 		shaderConfig = shaderConfig,
-		shaderName = widgetName..": SSAO",
+		shaderName = widgetName.." SSAO",
 	}
 
 	ssaoShader = LuaShader.CheckShaderUpdates(ssaoShaderCache)
@@ -501,7 +501,7 @@ local function InitGL()
 		},
 		silent = true, -- suppress compilation messages
 		shaderConfig = shaderConfig,
-		shaderName = widgetName..": gaussianBlur",
+		shaderName = widgetName.." gaussianBlur",
 	}
 
 	gaussianBlurShader = LuaShader.CheckShaderUpdates(gaussianBlurShaderCache)
@@ -758,8 +758,10 @@ function widget:DrawWorld()
 		drawFrame = df
 	end
 	if shaderConfig.ENABLE == 0 then return end
+	gl.PushDebugGroup(9999, "SSAO")
 	DoDrawSSAO(false)
 
+	gl.PopDebugGroup()
 	if delayedUpdateSun and os.clock() > delayedUpdateSun then
 		Spring.SendCommands("luarules updatesun")
 		delayedUpdateSun = nil
