@@ -75,7 +75,7 @@ function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, captu
 	if(capture) then
 		return true
 	end
-	return allowedToBeShared(unitDefID)
+	return unitTypeAllowedToBeShared(unitDefID)
 end
 
 

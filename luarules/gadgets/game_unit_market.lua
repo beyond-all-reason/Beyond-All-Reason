@@ -65,6 +65,7 @@ local sellCmd = {
     params = { '0', 'Not For Sale', 'For Sale' }
 }
 
+
 local buildPower = {}
 local realBuildSpeed = {}
 local unitBuildSpeed = {}
@@ -99,6 +100,19 @@ local function setNotForSale(unitID)
     unitsForSale[unitID] = nil
 end
 
+local tax_resource_sharing_enabled = Spring.GetModOptions().tax_resource_sharing_amount ~= nil and Spring.GetModOptions().tax_resource_sharing_amount > 0
+local tax_resource_amount = Spring.GetModOptions().tax_resource_sharing_amount or 0
+
+local disable_unit_sharing_enabled = (
+    Spring.GetModOptions().disable_unit_sharing_economy_and_production
+    or Spring.GetModOptions().disable_unit_sharing_combat_units
+    or Spring.GetModOptions().disable_unit_sharing_all
+    or tax_resource_sharing_enabled)
+local saleWhitelist = {}
+if tax_resource_sharing_enabled ~= 0 or Spring.GetModOptions().disable_assist_ally_construction then
+    AllowPlayersSellUnfinished = false -- needs to be off, otherwise the buyer can assist their unfinished blueprint after buying it
+end
+
 
 local t2conNames = {"armack", "armacv", "armaca", "armacsub", "corack", "coracv", "coraca", "coracsub", "legack", "legacv", "legaca", "legacsub"}
 local isT2Con = {}
@@ -107,6 +121,7 @@ for _, name in ipairs(t2conNames) do
         isT2Con[UnitDefNames[name].id] = true
     end
 end
+t2conNames = nil
 
 local function setUnitOnSale(unitID, specifiedPrice, toggle)
     if not spValidUnitID(unitID) then return false end
@@ -124,7 +139,7 @@ local function setUnitOnSale(unitID, specifiedPrice, toggle)
     end
 
     -- When tax resource sharing is on, only allow selling t2 cons through unit market
-    if (Spring.GetModOptions().tax_resource_sharing_amount or 0) ~= 0 then
+    if tax_resource_sharing_enabled then
         if not isT2Con[unitDefID] then return false end
     end
 
@@ -159,20 +174,7 @@ end
 
 
 
-local tax_resource_sharing_enabled = Spring.GetModOptions().tax_resource_sharing_amount ~= nil and Spring.GetModOptions().tax_resource_sharing_amount > 0
-local disable_share_econ_and_lab = Spring.GetModOptions().disable_unit_sharing_economy_and_production or tax_resource_sharing_enabled
-local disable_share_combat_units = Spring.GetModOptions().disable_unit_sharing_combat_units
-local disable_share_all = Spring.GetModOptions().disable_unit_sharing_all
 
-local disable_unit_sharing_enabled = (
-    Spring.GetModOptions().disable_unit_sharing_economy_and_production
-    or Spring.GetModOptions().disable_unit_sharing_combat_units
-    or Spring.GetModOptions().disable_unit_sharing_all
-    or (Spring.GetModOptions().tax_resource_sharing_amount or 0) ~= 0)
-local saleWhitelist = {}
-if (Spring.GetModOptions().tax_resource_sharing_amount or 0) ~= 0 or Spring.GetModOptions().disable_assist_ally_construction then
-    AllowPlayersSellUnfinished = false -- needs to be off, otherwise the buyer can assist their unfinished blueprint after buying it
-end
 
 local function tryToBuyUnit(unitID, msgFromTeamID)
 
@@ -205,9 +207,8 @@ local function tryToBuyUnit(unitID, msgFromTeamID)
     if msgFromTeamID ~= old_ownerTeamID and price > 0 then -- don't send resources to yourself
         ShareTeamResource(msgFromTeamID, old_ownerTeamID, "metal", price)
         -- if tax resource sharing is on, refund tax to the seller
-        if(Spring.GetModOptions().tax_resource_sharing_amount>0) then
-            local taxRate = Spring.GetModOptions().tax_resource_sharing_amount
-            local taxAmount = price * taxRate
+        if tax_resource_sharing_enabled then
+            local taxAmount = price * tax_resource_amount
             Spring.AddTeamResource(old_ownerTeamID, "metal", taxAmount)
         end
     end
