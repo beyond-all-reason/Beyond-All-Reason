@@ -409,8 +409,11 @@ end
 
 local combineShaderTriggers = {RESOLUTION = true, HALFSHIFT = true, OFFSETX = true, OFFSETY = true}
 local function shaderDefinesChangedCallback(name, value, index, oldvalue)
-	--Spring.Echo("shaderDefinesChangedCallback()", name, value, shaderConfig[name])
-	if value ~= oldvalue then 
+	Spring.Echo("shaderDefinesChangedCallback()", name, value, shaderConfig[name])
+	if oldvalue == nil or value ~= oldvalue then 
+		if shaderConfig[name] then 
+			shaderConfig[name] = value
+		end
 		shaderSourceCache.forceupdate = true
 		groundFogShader =  LuaShader.CheckShaderUpdates(shaderSourceCache) or groundFogShader
 		if combineShaderTriggers[name]  then 
@@ -506,12 +509,101 @@ function widget:Initialize()
 		end
 	end
 
-	if RMLUI then 
+	if RmlUi then 
 		widget.rmlContext = RmlUi.CreateContext(widget.whInfo.name)
 
-		
+				-- use the DataModel handle to set values
+		-- only keys declared at the DataModel's creation can be used
+		dm_handle = widget.rmlContext:OpenDataModel("data_model_test", {
+			exampleValue = 'Changes when clicked',
+			-- Functions inside a DataModel cannot be changed later
+			-- so instead a function variable external to the DataModel is called and _that_ can be changed
+			exampleEventHook = function(...) eventCallback(...) end,
+			button2Clicked = function()
+				local _target = document:GetElementById('target')
+				local _div = document:CreateElement('div')
+				_div:SetClass('element', true)
+				_div = _target:AppendChild(_div)
+				_div.style.width = '20px'
+				_div.style.height = '50px'
+
+				local _div_prepend = document:CreateElement('div')
+				_div_prepend.inner_rml = "p"
+				_div_prepend = _target:InsertBefore(_div_prepend, _div)
+
+				local _div_replace = document:CreateElement('div')
+				_div_replace.inner_rml = "r"
+
+				_div = _target:ReplaceChild(_div_replace, _div)
+				_div.inner_rml = 'asdf'
+				_div = _target:AppendChild(_div)
+				_div.style.width = nil
+				_div.style.height = ''
+			end,
+			callShaderDefinesChangedCallback = shaderDefinesChangedCallback,
+			my_rect = "",
+			context_name_list = "",
+		});
+
+
+		eventCallback = function (ev, ...)
+			Spring.Echo(ev.parameters.mouse_x, ev.parameters.mouse_y, ev.parameters.button, ...)
+			local options = {"ow", "oof!", "stop that!", "clicking go brrrr"}
+			dm_handle.exampleValue = options[math.random(1, 4)]
+
+			local textureElement = document:GetElementById('101')
+			textureElement.style.color = "red"
+
+			Spring.Echo(textureElement.style.pairs)
+
+			for k, v in textureElement.style:__pairs() do
+				Spring.Echo(k .. ': ' .. v)
+			end
+		end
+	end
+	
+	document = widget.rmlContext:LoadDocument("LuaUi/Widgets/rml_widget_assets/simple_demo.rml", widget)
+
+	
+	local slidersDiv = document:GetElementById('fogsliders')
+	for i, definesSlider in ipairs(definesSlidersParamsList) do 
+		--	{name = 'HALFSHIFT', default = 1, min = 0, max = 1, digits = 0, tooltip = 'If the resolution is half, perform a half-pixel shifting'},
+
+		--[[	
+		Range type
+
+		min = number (CN)
+			For the range type, defines the value at the lowest (left or top) end of the slider.
+		max = number (CN)
+			For the range type, defines the value at the highest (right or bottom) end of the slider.
+		step = number (CN)
+			For the range type, defines the increment that the slider will move by.
+		orientation = cdata (CI)
+			For the range type, specifies if it is a vertical or horizontal slider. Values can be horizontal or vertical. 
+		]]--
+
+		local sliderElement = document:CreateElement('label')
+
+		local sliderhtmlstring = string.format('<div> %s %f <input type="range" id="%s"  min="%f" max="%f" step="%f" value="%f" /> %f </div> ', 
+			definesSlider.name,definesSlider.min, definesSlider.name,  definesSlider.min, definesSlider.max, math.pow(10, -1 * definesSlider.digits) , definesSlider.default,definesSlider.max)
+		sliderElement.inner_rml = sliderhtmlstring
+		-- Add the lister:
+		sliderElement:AddEventListener('change', function(event)
+			Spring.Echo(event, event.target_element)
+			-- https://mikke89.github.io/RmlUiDoc/pages/lua_manual/api_reference.html#Element
+			local slider = event.target_element
+			local value = tonumber(slider.attributes.value)
+			Spring.Echo("slider changed", slider.id, slider.min, slider.max, slider.step, value)
+			local element = document:GetElementById(slider.id)
+			Spring.Echo("slider changed", element.id, element.min, element.max, element.step, element.value)
+			shaderDefinesChangedCallback(slider.id, value, nil, nil)
+		end) --data-event-onChange =" callshaderDefinesChangedCallback(\'%s\')"
+
+		slidersDiv:AppendChild(sliderElement)
 	end
 
+	document:ReloadStyleSheet()
+	document:Show()
 
 	
 	if vsx%4~=0 or vsy%4 ~= 0 then 
@@ -525,6 +617,15 @@ function widget:Shutdown()
 	WG.SetFogParams = nil
 	if fogUniformSliders and fogUniformSliders.Destroy then fogUniformSliders:Destroy() end
 	if shaderDefinedSlidersLayer and shaderDefinedSlidersLayer.Destroy then shaderDefinedSlidersLayer:Destroy() end 
+
+	if RmlUi then 
+		if document then
+			document:Close()
+		end
+		if widget.rmlContext then
+			RmlUi.RemoveContext(widget.whInfo.name)
+		end
+	end
 end
 --[[
 function widget:GameFrame(n) -- should be done every goddamned draw frame for ultimate smoothness!!!!!

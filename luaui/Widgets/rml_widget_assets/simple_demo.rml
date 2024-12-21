@@ -43,7 +43,20 @@
                     Click me for fun!
                 </button>
             </div>
+            
         </div>
+        <div class="element">
+            <h1> FOG SLIDERS</h1>
+            
+            <div id = "fogsliders", style="display: flex; flex-direction: column; gap: 0.1em;">
+            </div>
+        </div>  
+        <div class="element">
+            <h1> FOG BUTTONS</h1>
+            
+            <div id = "fogbuttons", style="display: flex">
+            </div>
+        </div>  
         <div id="target" style="display: flex;"></div>
 <!--         <div class="element">
             <h4 class="element" style="margin: 0.1em">Custom &lt;texture&gt; Element Demo</h4>
