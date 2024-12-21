@@ -1,0 +1,304 @@
+/*
+* Default styles for all the basic elements.
+*/
+
+body {
+    box-sizing: border-box;
+    font-family: "Exo 2";
+    font-weight: normal;
+    font-size: 20dp;
+}
+
+body * {
+    box-sizing: border-box;
+}
+
+dl, dt, dd, ol, ul, li,
+body, div, p, hr, pre,
+blockquote, address,
+h1, h2, h3, h4, h5, h6,
+p, pre, div, section,
+tabset tabs {
+    display: block;
+}
+
+h1 {
+    font-size: 2em;
+    margin: .5em 0;
+}
+
+h2 {
+    font-size: 1.5em;
+    margin: .5em 0;
+}
+
+h3 {
+    font-size: 1.17em;
+    margin: .5em 0;
+}
+
+h4 {
+    margin: .5em 0;
+}
+
+h5 {
+    font-size: .83em;
+    margin: .25em 0;
+}
+
+h6 {
+    font-size: .75em;
+    margin: .25em 0;
+}
+
+h1, h2, h3, h4,
+h5, h6, strong {
+    font-weight: bold;
+}
+
+b, strong {
+    font-weight: 600;
+}
+
+u {
+    text-decoration: underline;
+}
+
+s, strike {
+    text-decoration: line-through;
+}
+
+i, em {
+    font-style: italic;
+}
+
+code, pre {
+    font-family: "Source Code Pro";
+    white-space: pre;
+}
+
+/* Lists */
+ul, ol {
+    padding-left: 1em;
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+
+/* Table */
+table {
+    box-sizing: border-box;
+    display: table;
+}
+
+tr {
+    box-sizing: border-box;
+    display: table-row;
+}
+
+th {
+    box-sizing: border-box;
+    display: table-cell;
+    font-weight: bold;
+}
+
+td {
+    box-sizing: border-box;
+    display: table-cell;
+}
+
+col {
+    box-sizing: border-box;
+    display: table-column;
+}
+
+colgroup {
+    display: table-column-group;
+}
+
+thead, tbody, tfoot {
+    display: table-row-group;
+}
+
+/* Input Elements */
+
+input:disabled, textarea:disabled,
+button:disabled, select:disabled, option:disabled {
+    background-color: #000;
+    color: #666;
+    cursor: not-allowed;
+    focus: none;
+}
+
+input.button, input.submit, 
+button, select {
+    display: inline-block;
+    background-color: #222;
+    border: 2dp #666;
+    border-radius: 4dp;
+    padding: 4dp;
+    margin: 2dp;
+    cursor: pointer;
+}
+
+select {
+    display: flex;
+    flex-direction: row;
+    position: relative;
+    height: 1.8em;
+    padding-left: 6dp;
+}
+
+select selectvalue {
+    display: block;
+    flex-grow: 1;
+}
+
+select selectarrow {
+    display: block;
+    width: 1em;
+    height: 100%;
+    background-color: #666;
+}
+
+select selectbox option {
+    padding: 4dp;
+    background-color: #000;
+    border-width: 0 2dp 0 2dp;
+    border-color: #666;
+}
+
+select selectbox option:last-child {
+    border-bottom-width: 2dp;
+}
+
+select selectbox option:nth-child(even) {
+    background-color: #222;
+}
+
+select selectbox option:hover {
+    background-color: #444;
+}
+
+input.button:hover, input.submit:hover, 
+button:hover, select:hover {
+    background-color: #444;
+}
+
+input.button:active, input.submit:active,
+button:active, select:active {
+    background-color: #666;
+}
+
+input.radio, input.checkbox {
+    display: inline-block;
+    width: 0.7em;
+    height: 0.7em;
+    border: 2dp #666;
+    background: #000;
+    cursor: pointer;
+}
+
+input.radio {
+    border-radius: 2em;
+}
+
+input.radio:hover, input.checkbox:hover {
+    background: #444;
+}
+
+input.radio:active, input.checkbox:active {
+    background: #fff;
+}
+
+input.radio:checked, input.checkbox:checked {
+    background: #ddd;
+}
+
+input.radio:active, input.checkbox:active,
+input.radio:checked, input.checkbox:checked {
+    box-shadow: #000 inset 0 0 0 1dp;
+}
+
+input.text, input.password, textarea  {
+    background-color: #000;
+    color: #ccc;
+    border: 2dp #999;
+    padding: 5dp;
+    box-sizing: border-box;
+    cursor: text;
+    text-align: left;
+}
+
+input.range {
+    height: 0.8em;
+    cursor: pointer;
+}
+
+input.range sliderbar {
+    background-color: #888;
+    border-radius: 2em;
+    width: 0.8em;
+}
+
+input.range:hover sliderbar, input.range:active sliderbar {
+    background-color: #aaa;
+}
+
+input.range slidertrack {
+    background-color: #555;
+    border-radius: 0.4em;
+    height: 0.4em;
+    margin: 0.2em 0;
+}
+
+input:focus-visible, textarea:focus-visible,
+button:focus-visible, select:focus-visible {
+    box-shadow: #00ffe1 0 0 6dp 2dp;
+}
+
+/* RmlUi Elements */
+
+handle[size_target] {
+    cursor: nwse-resize;
+}
+
+handle[move_target] {
+    cursor: move;
+}
+
+scrollbarvertical,
+scrollbarhorizontal {
+    cursor: pointer;
+}
+
+scrollbarvertical {
+    width: 6dp;
+    margin: 4dp 2dp 4dp 0;
+    scrollbar-margin: 2dp;
+}
+
+scrollbarhoriztonal {
+    height: 6dp;
+    margin: 0 4dp 2dp 6dp;
+    scrollbar-margin: 2dp;
+}
+
+scrollbarvertical slidertrack,
+scrollbarhorizontal slidertrack {
+    background-color: #333;
+    border-radius: 2em;
+}
+
+scrollbarvertical sliderbar,
+scrollbarhorizontal sliderbar {
+    background-color: #888;
+    border-radius: 3dp;
+    margin: 0 1dp;
+}
+
+scrollbarvertical:hover sliderbar,
+scrollbarhorizontal:hover sliderbar,
+scrollbarvertical:hover sliderbar,
+scrollbarhorizontal:hover sliderbar {
+    background-color: #aaa;
+}
