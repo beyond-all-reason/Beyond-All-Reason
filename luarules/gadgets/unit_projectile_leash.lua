@@ -20,17 +20,17 @@ if not gadgetHandler:IsSyncedCode() then return end
 -- "descend" moves the projectile downward until it is destroyed by collision event.
 
 --static values
-local lazyUpdateFrames = math.ceil(Game.gameSpeed / 3 * 2)
-local edgyUpdateFrames = math.ceil(Game.gameSpeed / 6)
 local forcedDescentUpdateFrames = math.ceil(Game.gameSpeed / 5)
-local minimumThresholdRange = 10 --so that starburst missiles don't trigger edgyWatch during ascent
 local compoundingMultiplier = 1.1 --compounding multiplier that influences the arc at which projectiles are forced to descend
 local descentSpeedStartingMultiplier = 0.1
+local flightTimeSlopMultiplier = 0.9
+local projectileWatchModulus = math.ceil(Game.gameSpeed / 3)
 
 --functions
 local spGetUnitPosition = Spring.GetUnitPosition
-local mathSqrt = math.sqrt
 local mathMax = math.max
+local mathRandom = math.random
+local mathCeil = math.ceil
 local spGetProjectilePosition = Spring.GetProjectilePosition
 local spSetProjectileCollision = Spring.SetProjectileCollision
 local spGetProjectileVelocity = Spring.GetProjectileVelocity
@@ -38,29 +38,41 @@ local spSetProjectileVelocity = Spring.SetProjectileVelocity
 
 --tables
 local defWatchTable = {}
-local lazyProjectileWatch = {}
+local projectileMetaData = {}
+local flightTimeProjectileWatch = {}
 local edgyProjectileWatch = {}
 local forcedDescentTable = {}
+local randomDestructionBufferTable = {}
+
+--variables
+local gameFrame = 0
 
 
 for weaponDefID, weaponDef in pairs(WeaponDefs) do
 	if weaponDef.customParams.projectile_leash_range then
 		defWatchTable[weaponDefID] = {}
-		defWatchTable[weaponDefID].leashRange = tonumber(weaponDef.customParams.projectile_leash_range)
+		defWatchTable[weaponDefID].leashRangeSq = (tonumber(weaponDef.customParams.projectile_leash_range)) ^ 2
 	end
 	if weaponDef.customParams.projectile_leash_range or weaponDef.customParams.projectile_overrange_distance then
 		defWatchTable[weaponDefID] = defWatchTable[weaponDefID] or {}
-		defWatchTable[weaponDefID].range = weaponDef.range
-		defWatchTable[weaponDefID].weaponRange = weaponDef.range
-		defWatchTable[weaponDefID].overRange = tonumber(weaponDef.customParams.projectile_overrange_distance) or weaponDef.range
-		defWatchTable[weaponDefID].rangeThreshold = math.max((defWatchTable[weaponDefID].overRange - weaponDef.projectilespeed * lazyUpdateFrames), minimumThresholdRange)
+		
+		local overRange = tonumber(weaponDef.customParams.projectile_overrange_distance) or weaponDef.range
+		defWatchTable[weaponDefID].overRangeSq = overRange ^ 2
+
+		local ascentFrames = 0
+		if weaponDef.type == "StarburstLauncher" then
+			ascentFrames = weaponDef.uptime * Game.gameSpeed
+		end
+		defWatchTable[weaponDefID].flightTimeFrames = math.floor((overRange / weaponDef.projectilespeed) * flightTimeSlopMultiplier + ascentFrames)
+
+		Spring.Echo(weaponDef.name, "flightTimeFrames", defWatchTable[weaponDefID].flightTimeFrames)
+		--zzz gotta add the key-value frame table thing to iterate over only the projectiles in THIS flightTimeFrames... Bet I can also eliminate the table transference too
+
 		defWatchTable[weaponDefID].weaponDefID = weaponDefID
 
 		local destructionMethod = weaponDef.customParams.projectile_destruction_method or "explode"
 		if destructionMethod == "descend" then
 			defWatchTable[weaponDefID].descentMethod = true
-		else
-			defWatchTable[weaponDefID].explodeMethod = true
 		end
 
 		Script.SetWatchWeapon(weaponDefID, true)
@@ -68,64 +80,65 @@ for weaponDefID, weaponDef in pairs(WeaponDefs) do
 end
 
 
-local function projectileOverRangeCheck(proOwnerID, weaponRange,  leashRange, originX, originZ, projectileX, projectileZ)
-	local dx1 = originX - projectileX
-	local dz1 = originZ - projectileZ
-	local distanceToOrigin = mathSqrt(dx1 * dx1 + dz1 * dz1)
-
-	if distanceToOrigin > weaponRange then
-		if leashRange then
-			local distanceToOwner
-			local ownerX, ownerY, ownerZ = spGetUnitPosition(proOwnerID)
-			if ownerX then
-				local dx2 = ownerX - projectileX
-				local dz2 = ownerZ - projectileZ
-				distanceToOwner = mathSqrt(dx2 * dx2 + dz2 * dz2)
-				if distanceToOwner > leashRange then
-					return true
-				end
-			end
-			return false
-		end
-		return true
-	end
-	return false
+local function projectileOverRangeCheck(proOwnerID, weaponRangeSq, leashRangeSq, originX, originZ, projectileX, projectileZ)
+    local dx1, dz1 = originX - projectileX, originZ - projectileZ
+    if (dx1 * dx1 + dz1 * dz1) > weaponRangeSq then
+        if leashRangeSq then
+            local ownerX, _, ownerZ = spGetUnitPosition(proOwnerID)
+            if ownerX then
+                local ox2, oz2 = ownerX - projectileX, ownerZ - projectileZ
+                if (ox2 * ox2 + oz2 * oz2) > leashRangeSq then
+                    return true
+                end
+            end
+            return false
+        end
+        return true
+    end
+    return false
 end
 
-local function projectileIsCloseToEdge(rangeThreshold, originX, originZ, projectileX, projectileZ)
-	local dx1 = originX - projectileX
-	local dz1 = originZ - projectileZ
-	local distanceToOrigin = mathSqrt(dx1 * dx1 + dz1 * dz1)
-	if distanceToOrigin > rangeThreshold then
-		return true
-	else
-		return false
-	end
-end
+local populateOriginsQueue = {}
 
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
 	if defWatchTable[weaponDefID] then
+		local roundedFrame = 6
 		local originX, originy, originZ = spGetUnitPosition(proOwnerID)
-		lazyProjectileWatch[proID] = {weaponDefID = weaponDefID, proOwnerID = proOwnerID, originX = originX, originZ = originZ}
+		local triggerFrame = mathCeil(gameFrame + defWatchTable[weaponDefID].flightTimeFrames/ roundedFrame) * roundedFrame
+		flightTimeProjectileWatch[triggerFrame] = flightTimeProjectileWatch[triggerFrame] or {}
+		flightTimeProjectileWatch[triggerFrame][#flightTimeProjectileWatch[triggerFrame] + 1] = proID
+		populateOriginsQueue[proID] = true
+		projectileMetaData[proID] = {weaponDefID = weaponDefID, proOwnerID = proOwnerID}
+
 	end
 end
 
 function gadget:GameFrame(frame)
-	if frame % edgyUpdateFrames == 2 then
-		for proID, proData in pairs(edgyProjectileWatch) do
-			local projectileX, projectileY, projectileZ = spGetProjectilePosition(proID)
-			if projectileX then
+	gameFrame = frame
+
+	if flightTimeProjectileWatch[frame] then
+		for i, proID in ipairs(flightTimeProjectileWatch[frame]) do
+			edgyProjectileWatch[proID] = true
+		end
+		flightTimeProjectileWatch[frame] = nil
+	end
+
+
+	if frame % projectileWatchModulus == 3 then
+		local randomRoundedFrame = 6
+		local frameDelay = 3
+		for proID, bool in pairs(edgyProjectileWatch) do
+			local projectileX, _, projectileZ = spGetProjectilePosition(proID)
+			if projectileX  and not populateOriginsQueue[proID] then
+				local proData = projectileMetaData[proID]
 				local defData = defWatchTable[proData.weaponDefID]
-				if projectileOverRangeCheck(proData.proOwnerID, defData.overRange, defData.leashRange, proData.originX, proData.originZ, projectileX, projectileZ) then
-					if defData.explodeMethod then
-						spSetProjectileCollision(proID)
-						edgyProjectileWatch[proID] = nil
-					elseif defData.descentMethod then
-						forcedDescentTable[proID] = descentSpeedStartingMultiplier
-						edgyProjectileWatch[proID] = nil
-					else
-						Spring.Echo("invalid destruction method")
-					end
+				if projectileOverRangeCheck(proData.proOwnerID, defData.overRangeSq, defData.leashRangeSq, proData.originX, proData.originZ, projectileX, projectileZ) then
+
+					local triggerFrame = mathCeil((frame + mathRandom(projectileWatchModulus) / randomRoundedFrame) * randomRoundedFrame) + frameDelay
+
+					randomDestructionBufferTable[triggerFrame] = randomDestructionBufferTable[triggerFrame] or {}
+					randomDestructionBufferTable[triggerFrame][#randomDestructionBufferTable[triggerFrame] + 1] = proID
+					edgyProjectileWatch[proID] = nil
 				end
 			else
 				edgyProjectileWatch[proID] = nil -- remove destroyed projectiles
@@ -133,20 +146,20 @@ function gadget:GameFrame(frame)
 		end
 	end
 
-	if frame % lazyUpdateFrames == 3 then
-		for proID, proData in pairs(lazyProjectileWatch) do
-			local projectileX, projectileY, projectileZ = spGetProjectilePosition(proID)
-			if projectileX then
-				local defData = defWatchTable[proData.weaponDefID]
-				if projectileIsCloseToEdge(defData.rangeThreshold, proData.originX, proData.originZ, projectileX, projectileZ) then
-					edgyProjectileWatch[proID] = proData
-					lazyProjectileWatch[proID] = nil
-				end
+
+	if randomDestructionBufferTable[frame] then
+		local descentMultiplier = descentSpeedStartingMultiplier
+		for i, proID in ipairs(randomDestructionBufferTable[frame]) do
+			if defWatchTable[projectileMetaData[proID].weaponDefID].descentMethod then
+				forcedDescentTable[proID] = descentMultiplier
 			else
-				lazyProjectileWatch[proID] = nil -- remove destroyed projectiles
+				spSetProjectileCollision(proID)
 			end
+			projectileMetaData[proID] = nil
 		end
+		randomDestructionBufferTable[frame] = nil
 	end
+
 
 	if frame % forcedDescentUpdateFrames == 4 then
 		for proID, descentMultiplier in pairs(forcedDescentTable) do
@@ -158,6 +171,14 @@ function gadget:GameFrame(frame)
 			else
 				forcedDescentTable[proID] = nil
 			end
+		end
+	end
+
+	if frame % 15 == 3 then
+		for proID, bool in pairs(populateOriginsQueue) do
+			local proData = projectileMetaData[proID]
+			proData.originX, _, proData.originZ = spGetUnitPosition(projectileMetaData[proID].proOwnerID)
+			populateOriginsQueue[proID] = nil
 		end
 	end
 end
