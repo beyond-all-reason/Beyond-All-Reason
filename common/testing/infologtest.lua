@@ -14,7 +14,8 @@ local function infologTest()
 	if infolog then
 		local fileLines = string.lines(infolog)
 		for i, line in ipairs(fileLines) do
-			if string.find(line, 'Error:', nil, true) and not skipErrors(line) then
+			local errorIndex = line:match('^%[t=[%d%.:]*%]%[f=[%-%d]*%] Error().*')
+			if errorIndex and errorIndex > 0 and not skipErrors(line) then
 				errors[#errors+1] = line
 				if #errors > maxErrors then
 					return errors
