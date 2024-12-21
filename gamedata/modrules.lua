@@ -36,7 +36,7 @@ local modrules = {
 	},
 
 	resurrect = {
-		energyCostFactor = 0.5, -- How much of the original energy cost it requires to resurrect something.
+		energyCostFactor = Spring.GetModOptions().proposed_unit_reworks==true and 1.0 or 0.5, -- How much of the original energy cost it requires to resurrect something.
 	},
 
 	capture = {
