@@ -8,29 +8,33 @@
 			// limit = random(<lower limit>..<upper limit>)
 			//efficiency calculation: engy.cond.score = SQUARE(engy.make) / (cdef->GetCostM() * cdef->GetDef()->GetXSize() * cdef->GetDef()->GetZSize());
 			//higer value => more efficient | e-output * e-output / mcost*x*y
-			"armwin": [30, 60],
-			"armsolar": [12, 14, 0, 0, 0.030],  // efficiency=0.025806 --- increased eff to make it better against wind
-			"armadvsol": [20, 30, 12, 220, 0.200], 	// efficiency=0.237542
-			//"armgeo": [4, 8, 16, 300, 0.6], //eff 0.6
-			"armgmm":[4, 8, 25, 600, 2.2],
-			//"armageo":[0, 1, 35, 1000, 3.0], //eff 3.0
-			"armfus": [3, 4, 50, 900, 1.9],		// efficiency=1.937984
-			"armckfus": [1, 3, 50, 2000, 0.230], // efficiency=2.400266
-			"armafus": [50,100, 70, 4000, 6.44],
-			"armuwfus": [6, 12, 35, 600, 2.8],  // efficiency=6.443299
-			"corwin": [30, 60],
-			"corsolar": [9, 12, 0, 0, 0.060], // efficiency=0.026667
-			"coradvsol": [20, 30, 12, 220, 0.220], //efficiency=0.237542
-			//"corgeo": [4, 8, 16, 300, 0.6], //0.6
-			// "corageo": [0, 1, 35, 1000, 3.0], //eff 3.0
-			"corfus": [4, 6, 50, 600, 2.06],  // efficiency=2.057844
-			"corafus": [50, 100, 60, 4000, 6.44],
+			"armwin": 	[20,	30],
+			"armsolar": 	[3,	5, 	0, 	0],
+			"armadvsol":	[6,	8, 	10, 	220, 	0.23], 	// efficiency=0.237542
+			"armfus":  	[1,	2, 	25, 	800, 	2.06],		// efficiency=1.937984
+			"armafus": 	[5, 	25, 	70, 	2000, 	6.18],
+			
+			"corwin": 	[20,	30],
+			"corsolar": 	[5,	5, 	0, 	0], 
+			"coradvsol":	[6,	8, 	10, 	220, 	0.23], //efficiency=0.237542
+			"corfus": 	[1,	2, 	25, 	800, 	2.06],  // efficiency=2.057844
+			"corafus": 	[5, 	25, 	70, 	2000, 	6.18],
+			
+			"legwin":   	[20,	30],
+			"legsolar": 	[5,	5, 	0, 	0], // efficiency=0.026667
+			"legadvsol":	[6,	8, 	10, 	220, 	0.23], //efficiency=0.237542
+			
+			"legtide": 	[20, 	30],
+			"legmex": 	[6, 	30],
+			
+			"armgeo": [4, 8, 16, 300], //eff 0.6
+			"armgmm":[4, 8, 25, 600],
+			"armageo":[0, 1, 35, 1000], //eff 3.0
+			"corgeo": [4, 8, 16, 300, 0.6], //0.6
+			"corageo": [0, 1, 35, 1000, 3.0], //eff 3.0
 			"coruwfus": [6, 12, 35, 600, 2.8], // efficiency=6.443299
-			"legsolar": [9, 12, 0, 0, 0.060], // efficiency=0.026667
-			"legadvsol": [20, 30, 12, 220, 0.220], //efficiency=0.237542
-			"legwin": [30, 60],
-			"legtide": [45, 60],
-			"legmex": [3, 12, 1, 7, 0.050]
+			"armuwfus": [6, 12, 35, 600],  // efficiency=6.443299
+			"armckfus": [1, 3, 50, 2000]   // efficiency=2.400266
 		},
 		"water": {
 			"armtide": [45, 60],
