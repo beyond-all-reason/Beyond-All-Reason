@@ -57,9 +57,8 @@ end
 
 ---------------------------------------------------------------------------------
 ------------------------------ Debug switches ------------------------------
-local autoupdate = true
+local autoupdate = false
 local debugproj = false
-local addrandomdistortions = false
 local skipdraw = false
 
 ------------------------------ Distortion and Shader configurations ------------------
@@ -547,43 +546,6 @@ local function RemoveDistortion(distortionshape, instanceID, unitID, noUpload)
 end
 
 
-function AddRandomDistortion(which)
-	local gf = gameFrame
-	local radius = math.random() * 150 + 50
-	local posx = Game.mapSizeX * math.random() * 1.0
-	local posz = Game.mapSizeZ * math.random() * 1.0
-	local posy = Spring.GetGroundHeight(posx, posz) + math.random() * 0.5 * radius
-	-- randomize color
-	local r  = math.random() + 0.1 --r
-	local g = math.random() + 0.1 --g
-	local b = math.random() + 0.1 --b
-	local a = math.random() * 1.0 + 0.5 -- intensity or alpha
-
-	distortionCacheTable[13] = 1 -- modelfactor
-	distortionCacheTable[14] = 1 -- specular
-	distortionCacheTable[15] = 1 -- rayleigh-mie
-	distortionCacheTable[16] = 1 -- lensflare
-
-
-	if which < 0.33 then -- point
-		AddPointDistortion(nil, nil, nil, nil, posx, posy, posz, radius, r,g,b,a)
-	elseif which < 0.66 then -- beam
-		local s =  (math.random() - 0.5) * 500
-		local t =  (math.random() + 0.5) * 100
-		local u =  (math.random() - 0.5) * 500
-		AddBeamDistortion(nil,nil,nil,nil, posx, posy , posz, radius, r,g,b,a, posx + s, posy + t, posz + u)
-	else -- cone
-		local s =  (math.random() - 0.5) * 2
-		local t =  (math.random() + 0.0) * -1
-		local u =  (math.random() - 0.5) * 2
-		local lenstu = 1.0 / math.sqrt(s*s + t*t + u*u)
-		local theta = math.random() * 0.9
-		AddConeDistortion(nil,nil,nil,nil, posx, posy + radius, posz, 3* radius, r,g,b,a,s * lenstu, t * lenstu, u * lenstu, theta)
-	end
-
-end
-
-
 local function LoadDistortionConfig()
 	local success, result =	pcall(VFS.Include, 'luaui/configs/DistortionGL4Config.lua')
 	--Spring.Echo("Loading GL4 distortion config", success, result)
@@ -764,9 +726,6 @@ local windX = 0
 local windZ = 0
 
 function widget:GameFrame(n)
-	if addrandomdistortions and (n % 100 == 0) then
-		AddRandomDecayingPointDistortion()
-	end
 	gameFrame = n
 	local windDirX, _, windDirZ, windStrength = Spring.GetWind()
 	--windStrength = math.min(20, math.max(3, windStrength))
@@ -1261,11 +1220,6 @@ function widget:Initialize()
 	if initGL4() == false then return end
 
 	local success, mapinfo = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua confs
-
-	if addrandomdistortions then
-		math.randomseed(1)
-		for i=1, 1 do AddRandomDistortion(	math.random()) end
-	end
 
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
