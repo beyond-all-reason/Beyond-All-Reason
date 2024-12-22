@@ -47,11 +47,6 @@ static-var isMoving,maxSpeed, animFramesPerKeyframe, animSpeed,gun_1,isDying;
 #include "raptor_swim_2legged_v1.h"
 #include "raptor_create_move_swim.h"
 
-lua_FlameShot(weapon) //Distortion and lups flame effect
-{
-  return 0;
-}
-
 
 AimFromWeapon1(pieceIndex)
 	{	pieceIndex=head;	}
@@ -127,7 +122,6 @@ Shot2()
 	wait-for-turn lsack around y-axis;
 	turn lsack to y-axis <0> speed [0.3];
 	turn rsack to y-axis <0> speed [0.3];
-	//call-script lua_FlameShot(2);
 	return (head);
 	}
 Shot3()

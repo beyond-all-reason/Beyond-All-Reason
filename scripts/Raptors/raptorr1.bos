@@ -47,12 +47,6 @@ static-var aMoving, isMoving,maxSpeed, animFramesPerKeyframe, animSpeed, isDying
 #include "raptor_create_move_swim.h"
 
 
-
-lua_FlameShot(weapon) //Distortion and lups flame effect
-{
-  return 0;
-}
-
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 
 AimFromWeapon1(pieceIndex)

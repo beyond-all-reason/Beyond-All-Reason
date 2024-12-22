@@ -10,10 +10,6 @@ static-var  isOpen, restore_delay;
 
 #include "../opencloseanim.h"
 
-lua_FlameShot(weapon) //Distortion and lups flame effect
-{
-  return 0;
-}
 
 Open()
 {
@@ -109,7 +105,6 @@ AimWeapon1(heading, pitch)
 
 Shot1()
 {
-	call-script lua_FlameShot(1);
 	emit-sfx 1024 + 0 from firepoint;
 	return (TRUE);
 }
