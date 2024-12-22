@@ -214,8 +214,12 @@ local options = {
 
     {
         key    	= "norushtimer",
-        name   	= "No Rush Time",
-        desc   	= "Set timer in which players cannot get out of their startbox, so you have time to prepare before fighting. PLEASE NOTE: For this to work, the game needs to have set startboxes. It won't work in FFA mode without boxes. Also, it does not affect Scavengers and Raptors.",
+        name   	= "No Rush Time".."\255\128\128\128".." [minutes]",
+        desc   	= "Set timer in which players cannot get out of their startbox, so you have time to prepare before fighting.\n"..
+			"PLEASE NOTE: For this to work, the game needs to have set startboxes.\n"..
+			-- tabs don't do much in chobby
+			"                          It won't work in FFA mode without boxes.\n"..
+			"                          Also, it does not affect Scavengers and Raptors.",
         type   	= "number",
         section	= "options_main",
         def    	= 0,
@@ -842,14 +846,14 @@ local options = {
         type    = "separator",
     },
 
-    --{
-    --	key    	= "xmas",
-    --	name   	= "Holiday decorations",
-    --	desc   	= "Various  holiday decorations",
-    --	type   	= "bool",
-    --	def    	= true,
-    --	section	= "options_extra",
-    --},
+    {
+    	key    	= "xmas",
+    	name   	= "Holiday decorations",
+    	desc   	= "Various  holiday decorations",
+    	type   	= "bool",
+    	def    	= true,
+    	section	= "options_extra",
+    },
 
 	-- {
 	-- 	key		= "unithats",
@@ -1249,6 +1253,7 @@ local options = {
         name   	= "Shields Rework",
         desc   	= "Shields block all projectiles. Overkill damage is blocked once before reaching 0% charge. Shields are disabled for a few seconds upon reaching 0%.",
         type   	= "bool",
+        hidden 	= true,
         section = "options_experimental",
         def  	= false,
     },
@@ -1426,6 +1431,14 @@ local options = {
         key     = "animationcleanup",
         name    = "Animation Cleanup",
         desc    = "Use animations from the BOSCleanup branch", -- example: debugcommands=150:cheat 1|200:luarules fightertest|600:quitforce;
+        section = "dev",
+        type    = "bool",
+        def     =  false,
+    },
+    {
+        key     = "pushresistant",
+        name    = "Pushresistance",
+        desc    = "Enable to do desync test by the use of pushresistance",
         section = "dev",
         type    = "bool",
         def     =  false,

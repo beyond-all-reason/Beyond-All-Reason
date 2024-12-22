@@ -118,7 +118,8 @@ function widget:Initialize()
 	shaderConfig.ANIMATION = 0
 	-- MATCH CUS position as seed to sin, then pass it through geoshader into fragshader
 	shaderConfig.POST_VERTEX = "v_parameters.w = max(-0.2, sin((timeInfo.x + timeInfo.w) * 2.0/30.0 + float(UNITID) * 0.1)) + 0.2; // match CUS glow rate"
-	shaderConfig.POST_GEOMETRY = "g_uv.w = dataIn[0].v_parameters.w; gl_Position.z = (gl_Position.z) - 512.0 / (gl_Position.w); // send 16 elmos forward in depth buffer"
+	shaderConfig.ZPULL = 512.0 -- send 16 elmos forward in depth buffer"
+	shaderConfig.POST_GEOMETRY = "g_uv.w = dataIn[0].v_parameters.w;" -- pass the glow rate to the frag shader
 	shaderConfig.POST_SHADING = "fragColor.rgba = vec4(texcolor.rgb* (1.0 + g_uv.w), texcolor.a * g_uv.z);"
 	shaderConfig.MAXVERTICES = 4
 	shaderConfig.USE_CIRCLES = nil

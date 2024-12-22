@@ -841,6 +841,14 @@ function UnitDef_Post(name, uDef)
 			uDef.collide = false
 		end
 	end
+	
+	if uDef.metalcost and uDef.health and uDef.canmove == true and uDef.mass == nil then
+		local healthmass = math.ceil(uDef.health/6)
+		uDef.mass = math.max(uDef.metalcost, healthmass)
+		--if uDef.metalcost < healthmass then
+		--	Spring.Echo(name, uDef.mass, uDef.metalcost, uDef.mass - uDef.metalcost)
+		--end
+	end
 
 	--Juno Rework
 	if modOptions.junorework == true then
@@ -857,6 +865,15 @@ function UnitDef_Post(name, uDef)
 			uDef.buildtime = 15000
 			uDef.weapondefs.juno_pulse.energypershot = 7000
 			uDef.weapondefs.juno_pulse.metalpershot = 100
+		end
+	end
+
+	-- Shield Rework
+	if modOptions.shieldsrework == true and uDef.weapondefs then
+		for _, weapon in pairs(uDef.weapondefs) do
+			if weapon.shield and weapon.shield.repulser then
+				uDef.onoffable = true
+			end
 		end
 	end
 
@@ -1250,8 +1267,8 @@ function UnitDef_Post(name, uDef)
 			uDef.energystorage = uDef.energystorage * x
 		end
 	end
-	if name == "armsolar" or name == "corsolar" or name == "legsolar" then
-		-- special case (but why?)
+	if uDef.energyupkeep and uDef.energyupkeep < 0 then
+		-- units with negative upkeep means they produce energy when "on".
 		local x = modOptions.multiplier_energyproduction * modOptions.multiplier_resourceincome
 		uDef.energyupkeep = uDef.energyupkeep * x
 		if uDef.energystorage then

@@ -110,6 +110,7 @@ end
 local isTeamSavingMetal = function(_) return false end
 
 function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD_PRIORITY)
 	updateTeamList()
 
 	for _, teamID in ipairs(teamList) do
@@ -193,8 +194,9 @@ end
 
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+    -- accepts CMD_PRIORITY
     -- track which cons are set to passive
-    if cmdID == CMD_PRIORITY and canPassive[unitDefID] then
+    if canPassive[unitDefID] then
         local cmdIdx = spFindUnitCmdDesc(unitID, CMD_PRIORITY)
         if cmdIdx then
             local cmdDesc = spGetUnitCmdDescs(unitID, cmdIdx, cmdIdx)[1]
@@ -271,8 +273,8 @@ local function UpdatePassiveBuilders(teamID, interval)
 			local newPullMetal = teamStallingMetal - passivePullMetal
 			local newPullEnergy = teamStallingEnergy - passivePullEnergy
 			if passivePullMetal > 0 or passivePullEnergy > 0 then
-				-- Changed: Stalling in one resource stalls in the other.
-				if newPullMetal <= 0 or newPullEnergy <= 0 then
+				-- Stalling in one resource stalls in the other (if both resource types are used)
+				if (newPullMetal <= 0 and passivePullMetal > 0) or (newPullEnergy <= 0 and passivePullEnergy > 0) then
 					wouldStall = true
 				else
 					teamStallingMetal = newPullMetal

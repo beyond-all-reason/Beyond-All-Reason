@@ -738,7 +738,8 @@ end
 
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-	if (cmdID == 31200) and carrierMetaList[unitID] then
+	-- accepts: 31200 (spawning)
+	if carrierMetaList[unitID] then
 		local cmdDescID = FindUnitCmdDesc(unitID, 31200)
 		spawnCmd.params[1] = cmdParams[1]
 		EditUnitCmdDesc(unitID, cmdDescID, spawnCmd)
@@ -1487,6 +1488,7 @@ function gadget:GameFrame(f)
 end
 
 function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(31200) -- Spawning
 	local allUnits = Spring.GetAllUnits()
 	for i = 1, #allUnits do
 		local unitID = allUnits[i]
