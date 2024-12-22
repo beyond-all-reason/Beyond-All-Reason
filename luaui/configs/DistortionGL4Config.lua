@@ -434,6 +434,7 @@ local unitEventDistortionsNames = {
 
 	------------------------------- Put additional distortions tied to events here! --------------------------------
 	UnitIdle =  {
+		--[[
 		['armcom'] = {
 			idleBlink = {
 				distortionType = 'point',
@@ -442,9 +443,11 @@ local unitEventDistortionsNames = {
 					lifeTime = 12,  effectType = 0},
 			},
 		},
+		]]--
 	},
 
 	UnitFinished = {
+		--[[ 
 		default = {
 			default = {
 				distortionType = 'cone',
@@ -455,9 +458,11 @@ local unitEventDistortionsNames = {
 					lifeTime = 20, sustain = 2, effectType = 0},
 			},
 		},
+		]]--
 	},
 
 	UnitCreated = {
+		--[[
 		default = {
 			default = {
 				distortionType = 'cone',
@@ -468,9 +473,11 @@ local unitEventDistortionsNames = {
 					lifeTime = 15, sustain = 2, effectType = 0},
 			},
 		},
+		]]--
 	},
 
 	UnitCloaked = {
+		--[[
 		['armcom'] = {
 			cloakBlink = {
 				distortionType = 'point',
@@ -498,9 +505,11 @@ local unitEventDistortionsNames = {
 					lifeTime = 15,  effectType = 0},
 			},
 		},
+		]]--
 	},
 
 	UnitDecloaked = {
+		--[[
 		['armcom'] = {
 			cloakBlink = {
 				distortionType = 'point',
@@ -519,6 +528,7 @@ local unitEventDistortionsNames = {
 					lifeTime = 15,  effectType = 0},
 			},
 		},
+		]]--
 	},
 
 	StockpileChanged = {
@@ -531,6 +541,7 @@ local unitEventDistortionsNames = {
 	UnitTaken = {
 	},
 	UnitDestroyed = { -- note: dont do piece-attached distortions here!
+		--[[
 		default = {
 			default = {
 				distortionType = 'cone',
@@ -541,6 +552,7 @@ local unitEventDistortionsNames = {
 					lifeTime = 15, effectType = 0},
 			},
 		},
+		]]--
 	},
 }
 
