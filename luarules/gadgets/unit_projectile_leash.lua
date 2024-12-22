@@ -64,9 +64,10 @@ for weaponDefID, weaponDef in pairs(WeaponDefs) do
 		if weaponDef.type == "StarburstLauncher" then
 			ascentFrames = weaponDef.uptime * Game.gameSpeed
 		end
-		watchParams.flightTimeFrames = math.floor(((overRange / weaponDef.projectilespeed) * flightTimeSlop + ascentFrames) -
-		projectileWatchModulus)
+		watchParams.flightTimeFrames =
+		math.max(math.floor(((overRange / weaponDef.projectilespeed) * flightTimeSlop + ascentFrames) - projectileWatchModulus), 1)
 		watchParams.weaponDefID = weaponDefID
+		Spring.Echo("flightTimeFrames", watchParams.flightTimeFrames)
 
 		local destructionMethod = weaponDef.customParams.projectile_destruction_method or "explode"
 		if destructionMethod == "descend" then
@@ -98,7 +99,7 @@ end
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
 	local defData = defWatchTable[weaponDefID]
 	if not defData then return end
-	
+
 	local triggerFrame = gameFrame + defData.flightTimeFrames
 	local triggerFrameTable = flightTimeWatch[triggerFrame]
 	if not triggerFrameTable then
