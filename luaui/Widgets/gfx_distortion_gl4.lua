@@ -686,9 +686,6 @@ end
 function widget:Shutdown()
 	-- TODO: delete the VBOs and shaders like a good boy
 	WG['distortionsgl4'] = nil
-	widgetHandler:DeregisterGlobal('AddPointDistortion')
-	widgetHandler:DeregisterGlobal('AddBeamDistortion')
-	widgetHandler:DeregisterGlobal('AddConeDistortion')
 	widgetHandler:DeregisterGlobal('AddDistortion')
 	widgetHandler:DeregisterGlobal('RemoveDistortion')
 
@@ -1230,9 +1227,6 @@ function widget:Initialize()
 	end
 
 	WG['distortionsgl4'] = {}
-	WG['distortionsgl4'].AddPointDistortion = AddPointDistortion
-	WG['distortionsgl4'].AddBeamDistortion  = AddBeamDistortion
-	WG['distortionsgl4'].AddConeDistortion  = AddConeDistortion
 	WG['distortionsgl4'].AddDistortion  = AddDistortion
 	WG['distortionsgl4'].RemoveDistortion  = RemoveDistortion
 	WG['distortionsgl4'].GetDistortionVBO  = GetDistortionVBO
@@ -1244,9 +1238,6 @@ function widget:Initialize()
 		radiusMultiplier = value
 	end
 
-	widgetHandler:RegisterGlobal('AddPointDistortion', WG['distortionsgl4'].AddPointDistortion)
-	widgetHandler:RegisterGlobal('AddBeamDistortion', WG['distortionsgl4'].AddBeamDistortion)
-	widgetHandler:RegisterGlobal('AddConeDistortion', WG['distortionsgl4'].AddConeDistortion)
 	widgetHandler:RegisterGlobal('AddDistortion', WG['distortionsgl4'].AddDistortion)
 	widgetHandler:RegisterGlobal('RemoveDistortion', WG['distortionsgl4'].RemoveDistortion)
 	widgetHandler:RegisterGlobal('GetDistortionVBO', WG['distortionsgl4'].GetDistortionVBO)
