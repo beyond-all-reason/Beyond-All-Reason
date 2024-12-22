@@ -78,22 +78,12 @@ for weaponDefID, weaponDef in pairs(WeaponDefs) do
 	end
 end
 
-
-local function overRangeCheck(weaponRangeSq, originX, originZ, projectileX, projectileZ)
-	local dx1, dz1 = originX - projectileX, originZ - projectileZ
-	if (dx1 * dx1 + dz1 * dz1) > weaponRangeSq then
+local function distanceTooFar(maxRangeSq, x1, z1, x2, z2)
+	local dx = x2 - x1
+	local dz = z2 - z1
+	if (dx * dx + dz * dz) > maxRangeSq then
 		return true
 	end
-	return false
-end
-
-
-local function overLeashCheck(leashRangeSq, ownerX, ownerZ, projectileX, projectileZ)
-	local ox2, oz2 = ownerX - projectileX, ownerZ - projectileZ
-	if (ox2 * ox2 + oz2 * oz2) > leashRangeSq then
-		return true
-	end
-	return false
 end
 
 
@@ -133,19 +123,19 @@ function gadget:GameFrame(frame)
 		flightTimeProjectileWatch[frame] = nil
 	end
 
-	if frame % projectileWatchModulus == 3 then
+	if frame % projectileWatchModulus == 2 then
 		for proID, bool in pairs(edgyProjectileWatch) do
 			local projectileX, _, projectileZ = spGetProjectilePosition(proID)
 			if projectileX then
 				local proData = projectileMetaData[proID]
 				local defData = defWatchTable[proData.weaponDefID]
-				if overRangeCheck(defData.overRangeSq, proData.originX, proData.originZ, projectileX, projectileZ) then
+				if distanceTooFar(defData.overRangeSq, proData.originX, proData.originZ, projectileX, projectileZ) then
 					if defData.leashRangeSq then
 						local ownerX, _, ownerZ = spGetUnitPosition(proData.proOwnerID)
 						if not ownerX then
 							setDestructionFrame(proID)
 							edgyProjectileWatch[proID] = nil
-						elseif overLeashCheck(defData.leashRangeSq, ownerX, ownerZ, projectileX, projectileZ) then
+						elseif distanceTooFar(defData.leashRangeSq, ownerX, ownerZ, projectileX, projectileZ) then
 							setDestructionFrame(proID)
 							edgyProjectileWatch[proID] = nil
 						end
