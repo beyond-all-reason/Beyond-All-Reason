@@ -64,19 +64,6 @@ local unitDistortions = {
 
 		},
 	},
-	['armgate'] = {
-		distortion = {
-			distortionType = 'beam',
-			pieceName = 'base',
-			distortionConfig = { posx = 0, posy = -6.5, posz = 0.01, radius = 552,
-								pos2x = 0, pos2y = 20, pos2z = 0, radius2 = 23, 
-								noiseStrength = 1.5, noiseScaleSpace = 0.4, distanceFalloff = 0.05,
-								rampUp = 30, decay = 0,
-								lifeTime = 0, windAffected = -1, riseRate = 0,
-								effectType = 7},
-
-		},
-	},
 
 	['armbull'] = {
 		distortion = {
@@ -180,8 +167,150 @@ local unitDistortions = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'emit',
-			distortionConfig = { posx = 0, posy = 2, posz = 0, radius = 30,
+			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 30,
 							noiseStrength = 1, noiseScaleSpace = 1.5, distanceFalloff = 0.5,
+							lifeTime = 0,  effectType = 0},
+		},
+	},
+	
+	['corafus'] = {
+		distortion = {
+			distortionType = 'point',
+			pieceName = 'emit',
+			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 36,
+							noiseStrength = 1, noiseScaleSpace = 1.5, distanceFalloff = 0.5,
+							lifeTime = 0,  effectType = 0},
+		},
+	},
+	
+	['armafus'] = {
+		distortion = {
+			distortionType = 'point',
+			pieceName = 'emit',
+			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 36,
+							noiseStrength = 1, noiseScaleSpace = 1.5, distanceFalloff = 0.5,
+							lifeTime = 0,  effectType = 0},
+		},
+	},
+
+	['armgate'] = {
+		distortion = {
+			distortionType = 'point',
+			pieceName = 'none',
+			distortionConfig = { posx = 0, posy = 24, posz = -5, radius = 16,
+							noiseStrength = 1, noiseScaleSpace = 1.5, distanceFalloff = 0.5,
+							windAffected = -0.5,
+							lifeTime = 0,  effectType = 0},
+		},
+		sheilddistortion = {
+			distortionType = 'beam',
+			pieceName = 'base',
+			distortionConfig = { posx = 0, posy = -6.5, posz = 0.01, radius = 552,
+								pos2x = 0, pos2y = 20, pos2z = 0, radius2 = 23, 
+								noiseStrength = 1.5, noiseScaleSpace = 0.4, distanceFalloff = 0.05,
+								rampUp = 30, decay = 0,
+								lifeTime = 0, windAffected = -1, riseRate = 0,
+								effectType = 7},
+
+		},
+	},
+
+	['armfgate'] = {
+		distortion = {
+			distortionType = 'point',
+			pieceName = 'none',
+			distortionConfig = { posx = 0, posy = 25, posz = 0, radius = 16,
+							noiseStrength = 1, noiseScaleSpace = 1.5, distanceFalloff = 0.5,
+							windAffected = -0.5,
+							lifeTime = 0,  effectType = 0},
+		},
+	},
+
+	['corgate'] = {
+		distortion = {
+			distortionType = 'point',
+			pieceName = 'none',
+			distortionConfig = { posx = 0, posy = 40, posz = 0, radius = 16,
+							noiseStrength = 1, noiseScaleSpace = 1.5, distanceFalloff = 0.5,
+							windAffected = -0.5,
+							lifeTime = 0,  effectType = 0},
+		},
+	},
+
+	['corfgate'] = {
+		distortion = {
+			distortionType = 'point',
+			pieceName = 'none',
+			distortionConfig = { posx = 0, posy = 42, posz = 0, radius = 16,
+							noiseStrength = 1, noiseScaleSpace = 1.5, distanceFalloff = 0.5,
+							windAffected = -0.5,
+							lifeTime = 0,  effectType = 0},
+		},
+	},
+
+	['corjuno'] = {
+		distortion = {
+			distortionType = 'point',
+			pieceName = 'none',
+			distortionConfig = { posx = 0, posy = 72, posz = 0, radius = 16,
+							noiseStrength = 1, noiseScaleSpace = 1.5, distanceFalloff = 0.5,
+							windAffected = -0.5,
+							lifeTime = 0,  effectType = 0},
+		},
+	},
+
+	
+	['armjuno'] = {
+		distortion = {
+			distortionType = 'point',
+			pieceName = 'none',
+			distortionConfig = { posx = 0, posy = 72, posz = 0, radius = 16,
+							noiseStrength = 1, noiseScaleSpace = 1.5, distanceFalloff = 0.5,
+							windAffected = -0.5,
+							lifeTime = 0,  effectType = 0},
+		},
+	},
+	
+	['lootboxbronze'] = {
+		distortion = {
+			distortionType = 'point',
+			pieceName = 'none',
+			distortionConfig = { posx = 0, posy = 34, posz = 0, radius = 14,
+							noiseStrength = 1, noiseScaleSpace = 1.5, distanceFalloff = 0.5,
+							windAffected = -0.5,
+							lifeTime = 0,  effectType = 0},
+		},
+	},
+	
+	['lootboxsilver'] = {
+		distortion = {
+			distortionType = 'point',
+			pieceName = 'none',
+			distortionConfig = { posx = 0, posy = 52, posz = 0, radius = 18,
+							noiseStrength = 1, noiseScaleSpace = 1.5, distanceFalloff = 0.5,
+							windAffected = -0.5,
+							lifeTime = 0,  effectType = 0},
+		},
+	},
+	
+	['lootboxgold'] = {
+		distortion = {
+			distortionType = 'point',
+			pieceName = 'none',
+			distortionConfig = { posx = 0, posy = 69, posz = 0, radius = 23,
+							noiseStrength = 1, noiseScaleSpace = 1.5, distanceFalloff = 0.5,
+							windAffected = -0.5,
+							lifeTime = 0,  effectType = 0},
+		},
+	},
+	
+	['lootboxplatinum'] = {
+		distortion = {
+			distortionType = 'point',
+			pieceName = 'none',
+			distortionConfig = { posx = 0, posy = 87, posz = 0, radius = 30,
+							noiseStrength = 1, noiseScaleSpace = 1.5, distanceFalloff = 0.5,
+							windAffected = -0.5,
 							lifeTime = 0,  effectType = 0},
 		},
 	},
