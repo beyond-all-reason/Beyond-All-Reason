@@ -38,10 +38,10 @@ local spSetProjectileVelocity = Spring.SetProjectileVelocity
 --tables
 local defWatchTable = {}
 local projectileMetaData = {}
-local flightTimeProjectileWatch = {}
-local edgyProjectileWatch = {}
+local flightTimeWatch = {}
+local projectileWatch = {}
 local forcedDescentTable = {}
-local randomDestructionBufferTable = {}
+local killQueue = {}
 
 --variables
 local gameFrame = 0
@@ -90,18 +90,20 @@ end
 local function setDestructionFrame(proID)
 	local triggerFrame = mathCeil(gameFrame + mathRandom(projectileWatchModulus))
 
-	randomDestructionBufferTable[triggerFrame] = randomDestructionBufferTable[triggerFrame] or {}
-	randomDestructionBufferTable[triggerFrame][#randomDestructionBufferTable[triggerFrame] + 1] = proID
+	killQueue[triggerFrame] = killQueue[triggerFrame] or {}
+	killQueue[triggerFrame][#killQueue[triggerFrame] + 1] = proID
 end
 
 
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
 	local defData = defWatchTable[weaponDefID]
+	if not defData then return end
+	
 	local triggerFrame = gameFrame + defData.flightTimeFrames
-	local triggerFrameTable = flightTimeProjectileWatch[triggerFrame]
+	local triggerFrameTable = flightTimeWatch[triggerFrame]
 	if not triggerFrameTable then
 		triggerFrameTable = {}
-		flightTimeProjectileWatch[triggerFrame] = triggerFrameTable
+		flightTimeWatch[triggerFrame] = triggerFrameTable
 	end
 	triggerFrameTable[#triggerFrameTable + 1] = proID
 
@@ -116,15 +118,15 @@ end
 function gadget:GameFrame(frame)
 	gameFrame = frame
 
-	if flightTimeProjectileWatch[frame] then
-		for i, proID in ipairs(flightTimeProjectileWatch[frame]) do
-			edgyProjectileWatch[proID] = true
+	if flightTimeWatch[frame] then
+		for i, proID in ipairs(flightTimeWatch[frame]) do
+			projectileWatch[proID] = true
 		end
-		flightTimeProjectileWatch[frame] = nil
+		flightTimeWatch[frame] = nil
 	end
 
 	if frame % projectileWatchModulus == 2 then
-		for proID, bool in pairs(edgyProjectileWatch) do
+		for proID, bool in pairs(projectileWatch) do
 			local projectileX, _, projectileZ = spGetProjectilePosition(proID)
 			if projectileX then
 				local proData = projectileMetaData[proID]
@@ -134,26 +136,25 @@ function gadget:GameFrame(frame)
 						local ownerX, _, ownerZ = spGetUnitPosition(proData.proOwnerID)
 						if not ownerX then
 							setDestructionFrame(proID)
-							edgyProjectileWatch[proID] = nil
+							projectileWatch[proID] = nil
 						elseif distanceTooFar(defData.leashRangeSq, ownerX, ownerZ, projectileX, projectileZ) then
 							setDestructionFrame(proID)
-							edgyProjectileWatch[proID] = nil
+							projectileWatch[proID] = nil
 						end
 					else
 						setDestructionFrame(proID)
-						edgyProjectileWatch[proID] = nil
+						projectileWatch[proID] = nil
 					end
 				end
 			else
-				edgyProjectileWatch[proID] = nil -- remove destroyed projectiles
+				projectileWatch[proID] = nil -- remove destroyed projectiles
 			end
 		end
 	end
 
-
-	if randomDestructionBufferTable[frame] then
+	if killQueue[frame] then
 		local descentMultiplier = descentSpeedStartingMultiplier
-		for i, proID in ipairs(randomDestructionBufferTable[frame]) do
+		for i, proID in ipairs(killQueue[frame]) do
 			if defWatchTable[projectileMetaData[proID].weaponDefID].descentMethod then
 				forcedDescentTable[proID] = descentMultiplier
 			else
@@ -161,9 +162,8 @@ function gadget:GameFrame(frame)
 			end
 			projectileMetaData[proID] = nil
 		end
-		randomDestructionBufferTable[frame] = nil
+		killQueue[frame] = nil
 	end
-
 
 	if frame % forcedDescentUpdateFrames == 4 then
 		for proID, descentMultiplier in pairs(forcedDescentTable) do
