@@ -276,7 +276,6 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1650,
 				customparams = {
-					lups_noshockwave = true,
 					nofire = true,
 				},
 				damage = {
