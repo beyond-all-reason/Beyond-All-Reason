@@ -120,6 +120,7 @@ return {
 				customparams = {
 					speceffect = "torpwaterpen",
 					when = "ypos<0",
+					projectile_leash_range = 500
 				},
 				damage = {
 					default = 500,

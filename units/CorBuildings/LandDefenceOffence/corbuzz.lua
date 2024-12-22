@@ -134,6 +134,9 @@ return {
 					shields = 665,
 					subs = 400,
 				},
+				customparams = {
+					projectile_overrange_distance = 1000,
+				}
 			},
 		},
 		weapons = {
