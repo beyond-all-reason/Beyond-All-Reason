@@ -220,7 +220,7 @@
 			"stockpile": "Запас %{stockpileStatus}",
 			"stockpile_tooltip": "[ накоплено ] / [ макс. запас ]",
 			"stopproduction": "Очистить очередь",
-			"stopproduction_tooltip": "Очистить очередь строительства для всех юнитов в выбранных фабриках",
+			"stopproduction_tooltip": "Очистить очередь строительства и квоту для всех юнитов в выбранных фабриках",
 			"morph": "Улучшить",
 			"morph_tooltip": "Улучшить до следующего технического уровня (второе нажатие для отмены)",
 			"Spawning Disabled": "Спавн отключен",
@@ -271,12 +271,17 @@
 			"blueprint_place_tooltip": "Разместить сохраненный чертеж",
 			"blueprint_create": "Сохранить Чертеж",
 			"blueprint_create_tooltip": "Сохранить выбранные юниты в новый чертеж, в порядке их выделения",
+			"factoryqueuemode_normal": "Режим Очереди",
+			"factoryqueuemode_quota": "Режим Квоты",
+			"factoryqueuemode_tooltip": "Очередь: Построить каждого выбранного юнита единожды\nКвота: Поддерживать заданное количество юнитов на поле",
 			"customOnOff": {
 				"lowTrajectory": "Низк. траектория",
 				"highTrajectory": "Выс. траектория",
 				"trajectory_tooltip": "Переключить режим ведения огня: Навесная стрельба или Прямой наводкой",
 				"gauss_tooltip": "Переключает между Гаусс-пушкой и тяжёлой плазмо-пушкой"
-			}
+			},
+			"quicksharetotarget": "Передать Юнит",
+			"quicksharetotarget_tooltip": "Передать юнита выбранному игроку."
 		},
 		"idleBuilders": {
 			"name": "Незанятые строители",
@@ -513,6 +518,7 @@
 		"gametypeInfo": {
 			"killAllUnits": "Убить всех вражеских юнитов",
 			"killAllCommanders": "Убить всех вражеских Командиров",
+			"killAllBuilders": "Убить всех вражеских строителей",
 			"commandersSurviveDgun": "Командиры переживают Д-Пушку и взрыв командира",
 			"victoryCondition": "Условие победы",
 			"owncomends": "Потеря вашего командира = потеря контроля над вашими юнитами / капитуляция"
@@ -865,6 +871,8 @@
 			"transportmaxmass": " максимальная масса груза",
 			"transportmaxsize": "максимальный размер груза",
 			"transportcapacity": "вместимость",
+			"transport_heavy": "транспорт %{highlightColor}(Тяжелый)",
+			"transport_light": "транспорт %{highlightColor}(Лёгкий)",
 			"mass": "масса",
 			"footprint": "размер",
 			"speed": "скорость",
@@ -1659,6 +1667,10 @@
 				"title": "%{role1}/%{role2}",
 				"description": "%{role1}\n\nи/или\n\n%{role2}"
 			}
+		},
+		"quickShareToTarget": {
+			"noTarget": "Цель не выбрана",
+			"shareTo": "Передать: %{playerColor}%{player}"
 		}
 	}
 }
