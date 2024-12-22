@@ -39,6 +39,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0,
 			subfolder = "ArmAircraft",
+			crashable = 0,
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {

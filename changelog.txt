@@ -1,3 +1,16 @@
+# December 2024
+• [Impulse] Nukes + Plasma Cannons + Shiva + Catapult + Vanguard + Tzar + Fatboy + Banisher + Poison Arrow + Gunslinger + Ballistic Missile Launchers got impulse added to their weapon. High-HP units with low mass got a mass increase.
+• [Tremor] Impulse 140% -> 80%, EdgeEffectiveness 90% -> 15%
+• [Calamity + Raghnarok] +10% E/M cost, energycost and damage of individual shot increased, reloadtime increased (same dps as before), AoE lowered
+• [Light Mine] Cloakcost 0.5 -> 1e/s, metalcost 5 -> 7, buildtime 50 -> 100
+• [Medium Mine] Cloakcost 1 -> 2e/s, metalcost 16 -> 25, buildtime 100 -> 300, EdgeEffectiveness 0.7 -> 0.5, Impulse 1 -> 0.8
+• [Heavy Mine] Cloakcost 1.5 -> 6e/s, metalcost 21 -> 50, buildtime 125 -> 700, EdgeEffectiveness 0.7 -> 0.5, Impulse 1 -> 0.8, damage 1390 -> 3000, AoE 300 -> 330
+• [Crawling Bombs] Use bigger (self-d) explosion on attack command. Dying to enemy fire still results in small blast (including while being transported). Transportable.
+• [Crawling Bombs death explosions] AoE 432 -> 400, damage 3350 -> 2700, damage vs Crawlling Bombs 220 -> 400 (chain easier)
+• [Roach] Speed 81 -> 76
+• [Skuttle] Metalcost 540 -> 755, energycost 26 000 -> 27 000, cloakcost 150 -> 15, cloakcost moving 400 -> 40
+• [Destroyers] Depthcharge turnrate increased -> hits crawling bombs reliably
+
 # October 2024
 • [All units] EMP resist for units is standardized, and units that had low emp resists now take full emp damage.  Units that had between 50-95% emp resist now all have 80% emp resist.  Units that had 95+% emp resist are now fully emp immune.  
 • [New units] Heavy T1 air transport for arm (Osprey) and for cor (Hephastus) moved to the basegame.  These transports can carry the same weight as T2 transports but at a lower movespeed, and are able to transport the commander.  Osprey costs 190m 4000E, has 110 speed, and 630 health.  Hephaestus costs 190m 4000E, has 100 speed, and 800 health.  

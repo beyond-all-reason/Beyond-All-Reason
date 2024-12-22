@@ -875,7 +875,13 @@ local function RemoveLight(lightshape, instanceID, unitID, noUpload)
 			Spring.Echo("RemoveLight tried to remove a non-existing unitlight", lightshape, instanceID, unitID)
 		end
 	elseif lightshape then
-		return popElementInstance(lightVBOMap[lightshape], instanceID)
+		if lightVBOMap[lightshape].instanceIDtoIndex[instanceID] then
+			return popElementInstance(lightVBOMap[lightshape], instanceID)
+		else
+			if not noUpload then
+				Spring.Echo("RemoveLight tried to remove a non-existing light", lightshape, instanceID, unitID)
+			end
+		end
 	else
 		Spring.Echo("RemoveLight tried to remove a non-existing light", lightshape, instanceID, unitID)
 	end
@@ -1236,31 +1242,35 @@ function widget:StockpileChanged(unitID, unitDefID, teamID, weaponNum, oldCount,
 	end
 end
 
-function widget:FeatureCreated(featureID,allyteam)
+function widget:FeatureCreated(featureID, noUpload)
+	if type(noUpload) ~= 'boolean' then noUpload = nil end
 	-- TODO: Allow team-colored feature lights by getting teamcolor and putting it into lightCacheTable
 	local featureDefID = Spring.GetFeatureDefID(featureID)
 	if featureDefLights[featureDefID] then
 		for lightname, lightTable in pairs(featureDefLights[featureDefID]) do
 			if not lightTable.initComplete then InitializeLight(lightTable) end
 			local px, py, pz = Spring.GetFeaturePosition(featureID)
-			if px then
+			if px and featureID%(lightTable.fraction or 1 ) == 0 then
 
 				local lightParamTable = lightTable.lightParamTable
 				for i=1, lightParamTableSize do lightCacheTable[i] = lightParamTable[i] end
-				lightCacheTable[1] = lightCacheTable[1] + px
-				lightCacheTable[2] = lightCacheTable[2] + py
-				lightCacheTable[3] = lightCacheTable[3] + pz
-				AddLight(tostring(featureID) ..  lightname, nil, nil, lightVBOMap[lightTable.lightType], lightCacheTable)
+				lightCacheTable[1] = lightParamTable[1] + px
+				lightCacheTable[2] = lightParamTable[2] + py
+				lightCacheTable[3] = lightParamTable[3] + pz
+				AddLight(tostring(featureID) ..  lightname, nil, nil, lightVBOMap[lightTable.lightType], lightCacheTable, noUpload)
 			end
 		end
 	end
 end
 
-function widget:FeatureDestroyed(featureID)
+function widget:FeatureDestroyed(featureID, noUpload)
+	if type(noUpload) ~= 'boolean' then noUpload = nil end
 	local featureDefID = Spring.GetFeatureDefID(featureID)
 	if featureDefLights[featureDefID] then
 		for lightname, lightTable in pairs(featureDefLights[featureDefID]) do
-			RemoveLight(lightTable.lightType, tostring(featureID) ..  lightname)
+			if featureID % (lightTable.fraction or 1 ) == 0 then
+				RemoveLight(lightTable.lightType, tostring(featureID) ..  lightname, nil, noUpload)
+			end
 		end
 	end
 end
@@ -1406,6 +1416,13 @@ local function checkConfigUpdates()
 			if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 				widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
 			end
+			for i, featureID in pairs(Spring.GetAllFeatures()) do
+				widget:FeatureDestroyed(featureID, true)
+			end
+			for i, featureID in pairs(Spring.GetAllFeatures()) do
+				widget:FeatureCreated(featureID, true)
+			end
+			if pointLightVBO.dirty then uploadAllElements(pointLightVBO) end
 			configCache.confa = newconfa
 			configCache.confb = newconfb
 		end

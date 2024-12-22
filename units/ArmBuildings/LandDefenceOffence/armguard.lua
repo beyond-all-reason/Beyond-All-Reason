@@ -116,7 +116,7 @@ return {
 				edgeeffectiveness = 0.4,
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				gravityaffected = "true",
-				impulsefactor = 0.5,
+				impulsefactor = 0.8,
 				name = "Heavy g2g long range plasma cannon",
 				noselfdamage = true,
 				range = 1220,
