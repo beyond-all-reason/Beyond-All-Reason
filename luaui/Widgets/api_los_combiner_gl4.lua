@@ -9,7 +9,7 @@ function widget:GetInfo()
 		date = "2022.12.12",
 		license = "Lua code is GPL V2, GLSL is (c) Beherith",
 		layer = -10000, -- lol this isnt even a number
-		enabled = true
+		enabled = false -- disabled by default, its crazy!
 	}
 end
 
