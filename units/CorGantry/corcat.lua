@@ -150,7 +150,7 @@ return {
 					default = 450,
 				},
 				customparams = {
-					projectile_overrange_distance = 350,
+					projectile_overrange_distance = 150,
 					projectile_destruction_method = "descend"
 				}
 			},
