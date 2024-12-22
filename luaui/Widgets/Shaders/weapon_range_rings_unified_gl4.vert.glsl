@@ -80,7 +80,7 @@ float heightAtWorldPos(vec2 w){
 	vec2 uvhm = clamp(w, heightmaptexel, mapSize.xy - heightmaptexel);
 	uvhm = uvhm	* inverseMapSize;
 
-	return texture(heightmapTex, uvhm, 0.0).x;
+	return textureLod(heightmapTex, uvhm, 0.0).x;
 }
 
 vec4 normalsAndHeightAtWorldPos(vec2 w){
@@ -92,8 +92,8 @@ vec4 normalsAndHeightAtWorldPos(vec2 w){
 	vec2 uvhm = clamp(w, heightmaptexel, mapSize.xy - heightmaptexel);
 	uvhm = uvhm	* inverseMapSize;
 	vec4 heightAndNormal = vec4(0.0);
-	heightAndNormal.w = texture(mapNormalTex, uvhm, 0.0).x;
-	heightAndNormal.xz = texture(mapNormalTex, uvhm, 0.1).ra;
+	heightAndNormal.w = textureLod(mapNormalTex, uvhm, 0.0).x;
+	heightAndNormal.xz = textureLod(mapNormalTex, uvhm, 0.1).ra;
 	heightAndNormal.y = 1.0 - sqrt(1.0 - dot(heightAndNormal.xz, heightAndNormal.xz));
 	return heightAndNormal;
 }
