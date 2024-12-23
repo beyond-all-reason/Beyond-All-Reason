@@ -5,7 +5,6 @@ piece  base, lflare, rflare, lfin, rfin, rturret, lturret, thrusta, thrustb, eng
 
 // Signal definitions
 #define SIGNAL_MOVE 1
-#define SIGNAL_FIRE 2
 
 
 #define IDLEHOVERSCALE 32
@@ -128,44 +127,33 @@ AimWeapon1(heading, pitch)
 
 QueryWeapon1(pieceIndex)
 {
-	if (gun_1==0)
+	if (gun_1 == 0)
 	{
 		pieceIndex = lflare;
 	}
 	else 
 	{
-		pieceIndex=rflare;
+		pieceIndex = rflare;
 	}
 }
 
 Shot1(zero)
 {
-	signal SIGNAL_FIRE;
-	set-signal-mask SIGNAL_FIRE;
-	
 	if(gun_1 == 0)
 	{
 		emit-sfx 1024 + 0 from lflare;
 	}
-	if(gun_1 == 1)
+	else 
 	{
 		emit-sfx 1024 + 0 from rflare;
-	}
-	sleep 32;
-	++gun_1;
-	
-	if(gun_1>=2)
-	{
-		gun_1=0;
 	}
 	return(1);
 }
 
 FireWeapon1()
 {
-	signal SIGNAL_MOVE;
-	set-signal-mask SIGNAL_MOVE;
 	sleep 200;
+	gun_1 = !gun_1;
 	turn engines to x-axis <0> speed <90>;
 	
 	start-script RestoreAfterDelay();
