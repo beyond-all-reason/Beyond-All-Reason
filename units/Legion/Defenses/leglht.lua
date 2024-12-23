@@ -111,7 +111,10 @@ return {
 			heat_ray = {
 				areaofeffect = 8,
 				avoidfeature = false,
-				beamtime = 0.45,
+				beamburst = true,
+				beamtime = 0.5,
+				burst = 10,
+				burstrate = 0.03,
 				corethickness = 0.4,
 				craterareaofeffect = 0,
 				craterboost = 0,
@@ -140,9 +143,9 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 950,
 				damage = {
-					commanders = 270,
-					default = 200,
-					vtol = 25,
+					commanders = 24,
+					default = 16.0,
+					vtol = 1.5,
 				},
 				customparams = {
 					exclude_preaim = true
