@@ -1907,7 +1907,7 @@
 			"role": ["raider"],
 			"attribute":["melee"],
 			"threat":{"vs":{"artillery": 4.0}},
-            "retreat": 0.4
+            "retreat": 0.25
 		},
 		"leginc": {
 			"role": ["heavy", "assault"],
@@ -2071,12 +2071,12 @@
 		"legcib": {
 			"role": ["super", "air"],
 			"retreat": 0.8,
-			"limit": 5
+			"limit": 2
 		},
 		"legfig": {
 			"role": ["anti_air", "air"],
 			"power": 0.5,
-			"retreat": 0.25
+			"retreat": 0.33
 		},
 		"legkam": {
 			"role": ["bomber", "air"],
@@ -2086,7 +2086,7 @@
 			"role": ["skirmish", "air"], //skirmish with support doesnt work
             "threat": {"surf": 0.2},
 			"power": 0.1,
-			"retreat": 0.75
+			"retreat": 0.5
 		},
 	
 
