@@ -23,7 +23,7 @@ end
 
 local spGetGroundHeight     = Spring.GetGroundHeight
 local spGetUnitBuildFacing  = Spring.GetUnitBuildFacing
-local spGetUnitAllyTeam  = Spring.GetUnitAllyTeam
+local spGetUnitTeam  = Spring.GetUnitTeam
 local spGetUnitsInBox  = Spring.GetUnitsInBox
 local spSetUnitPosition  = Spring.SetUnitPosition
 local spGetUnitDefID = Spring.GetUnitDefID
