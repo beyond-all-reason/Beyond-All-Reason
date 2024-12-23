@@ -7,7 +7,7 @@ function widget:GetInfo()
 		desc = "Collects and renders cone, point and beam lights",
 		author = "Beherith",
 		date = "2022.06.10",
-		license = "Lua code is GPL V2, GLSL is (c) Beherith (mysterme@gmail.com)",
+		license = "GNU GPL v2",
 		layer = -99999990,
 		enabled = true
 	}

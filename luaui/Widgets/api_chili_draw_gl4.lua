@@ -4,7 +4,7 @@ function widget:GetInfo()
 		desc = "Draw a button (instanced)",
 		author = "Beherith",
 		date = "2022.02.07 - 2022.12.08", -- damn that took a while
-		license = "Lua: GNU GPL, v2 or later, GLSL: (c) Beherith (mysterme@gmail.com)",
+		license = "GNU GPL, v2 or later",
 		layer = -1,
 		enabled = false,
 	}
@@ -83,6 +83,9 @@ local vsSrc =  [[
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shader_storage_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
+
+// (C) 2022 Beherith (mysterme@gmail.com)
+// Licenced under the MIT licence
 
 #line 5000
 
@@ -194,6 +197,9 @@ local fsSrc =
 #extension GL_ARB_shading_language_420pack: require
 //__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
+
+// (C) 2022 Beherith (mysterme@gmail.com)
+// Licenced under the MIT licence
 
 #line 30000
 

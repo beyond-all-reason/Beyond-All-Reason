@@ -1,9 +1,11 @@
 #version 420
 
+// (C) 2019 Beherith (mysterme@gmail.com)
+// Licenced under the MIT licence
+
 uniform sampler2D heightMap;
 
 uniform vec4 visibilitycontrols;
-// This shader is (c) Beherith (mysterme@gmail.com)
 
 layout (location = 0) in vec4 localpos_dir_angle;
 layout (location = 1) in vec4 worldpos_radius;
