@@ -124,6 +124,7 @@ return {
 				size = 1.75,
 				soundhitwet = "splshbig",
 				soundstart = "flashemg",
+				soundtrigger = true,
 				sprayangle = 1180,
 				tolerance = 5000,
 				turret = true,
