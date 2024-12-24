@@ -15,7 +15,6 @@ local function levelHeightMap(level)
 	if prevLevel == level then return end
 	SyncedRun(function(locals)
 		local level = locals.level - locals.prevLevel
-		if level == 0 then return end
 		Spring.LevelHeightMap(0, 0, Game.mapSizeX, Game.mapSizeZ, level)
 		Spring.RebuildSmoothMesh(0, 0, Game.mapSizeX, Game.mapSizeZ)
 	end, levelTimeout)
