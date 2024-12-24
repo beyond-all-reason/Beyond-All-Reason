@@ -47,7 +47,9 @@ local function endTests()
 end
 
 local function endTest()
-	if not autoHeightMap then
+	if autoHeightMap then
+		levelHeightMap()
+	else
 		restoreHeightMap()
 	end
 end
