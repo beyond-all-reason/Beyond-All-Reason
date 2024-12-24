@@ -96,6 +96,7 @@ return {
 				size = 3,
 				soundhitwet = "splshbig",
 				soundstart = "brawlemg",
+				soundtrigger = true,
 				sprayangle = 1024,
 				tolerance = 6000,
 				turret = false,
