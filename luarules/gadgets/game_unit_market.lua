@@ -65,6 +65,7 @@ local sellCmd = {
     params = { '0', 'Not For Sale', 'For Sale' }
 }
 
+
 local buildPower = {}
 local realBuildSpeed = {}
 local unitBuildSpeed = {}
@@ -99,17 +100,59 @@ local function setNotForSale(unitID)
     unitsForSale[unitID] = nil
 end
 
-local function setUnitOnSale(unitID, price, toggle)
-    if unitsForSale[unitID] == nil or unitsForSale[unitID] == 0 or toggle == false then
-        unitsForSale[unitID] = price
-        spSetUnitRulesParam(unitID, "unitPrice", price, RPAccess)
-        UnitSaleBroadcast(unitID, price, spGetUnitTeam(unitID))
-        setForSaleState(unitID, 1)
-        return true
-    else
+local tax_resource_sharing_enabled = Spring.GetModOptions().tax_resource_sharing_amount ~= nil and Spring.GetModOptions().tax_resource_sharing_amount > 0
+local tax_resource_amount = Spring.GetModOptions().tax_resource_sharing_amount or 0
+
+local disable_unit_sharing_enabled = (
+    Spring.GetModOptions().disable_unit_sharing_economy_and_production
+    or Spring.GetModOptions().disable_unit_sharing_combat_units
+    or Spring.GetModOptions().disable_unit_sharing_all
+    or tax_resource_sharing_enabled)
+local saleWhitelist = {}
+if tax_resource_sharing_enabled ~= 0 or Spring.GetModOptions().disable_assist_ally_construction then
+    AllowPlayersSellUnfinished = false -- needs to be off, otherwise the buyer can assist their unfinished blueprint after buying it
+end
+
+
+local t2conNames = {"armack", "armacv", "armaca", "armacsub", "corack", "coracv", "coraca", "coracsub", "legack", "legacv", "legaca", "legacsub"}
+local isT2Con = {}
+for _, name in ipairs(t2conNames) do
+    if UnitDefNames[name] then
+        isT2Con[UnitDefNames[name].id] = true
+    end
+end
+t2conNames = nil
+
+local function setUnitOnSale(unitID, specifiedPrice, toggle)
+    if not spValidUnitID(unitID) then return false end
+    local unitDefID = spGetUnitDefID(unitID)
+    if not unitDefID then return false end
+    local unitDef = UnitDefs[unitDefID]
+    if not unitDef then return false end
+    local finished = (select(5,spGetUnitHealth(unitID))==1)
+    if not AllowPlayersSellUnfinished and not finished then return false end
+    local price
+    if not specifiedPrice or specifiedPrice <= 0 then
+        price = unitDef.metalCost or 1 -- in case the unit's metal cost is somehow 0 or nil
+    else 
+        price = specifiedPrice
+    end
+
+    -- When tax resource sharing is on, only allow selling t2 cons through unit market
+    if tax_resource_sharing_enabled then
+        if not isT2Con[unitDefID] then return false end
+    end
+
+    if toggle and not (unitsForSale[unitID] == nil or unitsForSale[unitID] == 0) then
         setNotForSale(unitID)
         return false
     end
+
+    unitsForSale[unitID] = price
+    spSetUnitRulesParam(unitID, "unitPrice", price, RPAccess)
+    UnitSaleBroadcast(unitID, price, spGetUnitTeam(unitID))
+    setForSaleState(unitID, 1)
+    return true
 end
 
 local function getAIdiscount(newTeamID, oldTeamID, price)
@@ -128,40 +171,19 @@ local function getAIdiscount(newTeamID, oldTeamID, price)
     end
 end
 
-local function offerUnitForSale(unitID, sale_price, msgFromTeamID)
-    if not spValidUnitID(unitID) then return end
-    local unitDefID = spGetUnitDefID(unitID)
-    if not unitDefID then return end
-    local unitDef = UnitDefs[unitDefID]
-    if not unitDef then return end
-    local unitTeamID = spGetUnitTeam(unitID)
-    if msgFromTeamID ~= unitTeamID and not spIsCheatingEnabled() then return end -- in cheat mode you can set other units for sale, not just your own
-    local finished = (select(5,spGetUnitHealth(unitID))==1)
-    if not AllowPlayersSellUnfinished and not finished then return end
-    local price
-    if sale_price > 0 then price = sale_price -- for now we only support fair price, but for future - 0 = set price automatically
-    else price = unitDef.metalCost
-    end
-    if price <= 0 then return end
-    local selling = setUnitOnSale(unitID, price, true)
-    if not selling then
-        price = 0
-    end
-end
 
-local disable_unit_sharing = (
-    Spring.GetModOptions().disable_unit_sharing
- or (Spring.GetModOptions().tax_resource_sharing_amount or 0) ~= 0)
-and Spring.GetModOptions().unit_market
-local saleWhitelist = {}
+
+
+
 
 local function tryToBuyUnit(unitID, msgFromTeamID)
+
     if not unitID or unitsForSale[unitID] == nil or unitsForSale[unitID] == 0 then return end
     local unitDefID = spGetUnitDefID(unitID)
     if not unitDefID then return end
     local unitDef = UnitDefs[unitDefID]
     if not unitDef then return end
-
+    
     local old_ownerTeamID = spGetUnitTeam(unitID)
     local _, _, _, isAiTeam = spGetTeamInfo(old_ownerTeamID)
     if not spAreTeamsAllied(old_ownerTeamID, msgFromTeamID) then return end
@@ -177,19 +199,24 @@ local function tryToBuyUnit(unitID, msgFromTeamID)
 
     if (current < price) then return end
 
-    if disable_unit_sharing then
+    if disable_unit_sharing_enabled then
         saleWhitelist[unitID] = true
     end
 
     TransferUnit(unitID, msgFromTeamID)
     if msgFromTeamID ~= old_ownerTeamID and price > 0 then -- don't send resources to yourself
         ShareTeamResource(msgFromTeamID, old_ownerTeamID, "metal", price)
+        -- if tax resource sharing is on, refund tax to the seller
+        if tax_resource_sharing_enabled then
+            local taxAmount = price * tax_resource_amount
+            Spring.AddTeamResource(old_ownerTeamID, "metal", taxAmount)
+        end
     end
     setNotForSale(unitID)
     UnitSoldBroadcast(unitID, price, old_ownerTeamID, msgFromTeamID)
 end
 
-if disable_unit_sharing then
+if disable_unit_sharing_enabled then
     function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, capture)
         if(capture) then
             return true
@@ -198,7 +225,11 @@ if disable_unit_sharing then
             saleWhitelist[unitID] = nil
             return true
         end
-        return false
+        if(GG.disable_unit_sharing_unitTypeAllowedToBeShared) then
+            return GG.disable_unit_sharing_unitTypeAllowedToBeShared(unitDefID)
+        else
+            return true
+        end
     end
 end
 
@@ -233,7 +264,9 @@ function gadget:RecvLuaMsg(msg, playerID)
         local unitID = tonumber(words[2])
         --local sale_price = tonumber(words[3])
         -- at the moment we only support "fair" price, but it is possible here to set unit price by client, for now we send 0 - set price automatically
-        offerUnitForSale(unitID, 0, msgFromTeamID)
+        local unitTeamID = spGetUnitTeam(unitID)
+        if msgFromTeamID ~= unitTeamID and not spIsCheatingEnabled() then return end -- in cheat mode you can set other units for sale, not just your own
+        setUnitOnSale(unitID, 0, false)
     elseif words[1] == "unitTryToBuy" then
         local unitID = tonumber(words[2])
         tryToBuyUnit(unitID, msgFromTeamID)
