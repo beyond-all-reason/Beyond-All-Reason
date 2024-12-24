@@ -437,7 +437,6 @@ local function queueStartTests(patterns)
 end
 
 local function startTests(patterns)
-	TestExtraUtils.startTests()
 	log(LOG.DEBUG, "[startTests] " .. table.toString({
 		patterns = patterns,
 	}))
@@ -572,8 +571,6 @@ local function finishTest(result)
 		end
 
 		logEndTests(getRunTestsTime())
-
-		TestExtraUtils.endTests()
 
 		if config.quitWhenDone then
 			Spring.SendCommands("quitforce")
