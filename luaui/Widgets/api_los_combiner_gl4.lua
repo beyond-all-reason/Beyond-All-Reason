@@ -2,23 +2,24 @@
 --------------------------------------------------------------------------------
 function widget:GetInfo()
 	return {
-		name = "Infolos API",
+		name = "API LOS Combiner GL4",
 		version = 3,
 		desc = "Draws the info texture needed for many shaders",
 		author = "Beherith",
 		date = "2022.12.12",
 		license = "Lua code is GPL V2, GLSL is (c) Beherith",
 		layer = -10000, -- lol this isnt even a number
-		enabled = true
+		enabled = false -- disabled by default, its crazy!
 	}
 end
 
-local GL_RGBA32F_ARB = 0x8814
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 -- About:
-	-- This API presents an easy -to-use smoothed LOS texture for other widgets to do their shading based on
-	-- It exploits truncation of values during blending to provide prevradar and prevlos values too!
+	-- This api provides the coarse, but merged LOS textures. 
+    -- It is recommended to use the CubicSampler(vec2 uvsin, vec2 texdims); sampler when sampling this texture!
+
+    -- It exploits truncation of values during blending to provide prevradar and prevlos values too!
 	-- The RED channel contains LOS level, where
 		-- 0.2-1.0 is LOS level
 		-- < 0.2 is _never_been_in_los!
@@ -40,12 +41,12 @@ local GL_RGBA32F_ARB = 0x8814
 	-- [x] make api share?
 	-- [x] a clever thing might be to have 1 texture per allyteam?
 	-- some bugginess with jammer range?
+    -- 
 
 -- TODO 2022.12.20
 	-- Read miplevels from modrules?
 
 -- TODO 2024.11.19
-	-- [x] Make the shader have exact visibility per 8 elmo square (hmap - 1)
 	-- [ ] Make the shader update at updaterate for true smoothness. 
 		-- [ ] When does the LOS texture actually get updated though? 
 		-- [ ] Would need to double-buffer the texture, and perform a swap every (15) gameframes
@@ -54,21 +55,21 @@ local GL_RGBA32F_ARB = 0x8814
 	-- [ ] The delayed approach is fucking stupid. 
 	-- [ ] The mip level should be the 'smallest' mip level possible, and save a fused texture
 	-- [ ] Note that we must retain the 'never been seen'/ 'never been in radar' functionality
+    -- [ ] Are we sure that is the best 
+    -- [ ] handle drawing onto the minimap?
 
 
-local autoreload = false
+local autoreload = true
 
+
+local miplevels = {2^3, 2^4, 2^3, 1} -- los, airlos and radar mip levels
 
 local shaderConfig = {
-	SAMPLES = 4, -- quality setting
-	TEXX = (Game.mapSizeX/8),
-	TEXY = (Game.mapSizeZ/8),
-	RESOLUTION = 2,
-	EXACT = 1, -- 1 = exact visibility per 8 elmo square (hmap - 1)
+	TEXX = (Game.mapSizeX/(8 * miplevels[1])),
+	TEXY = (Game.mapSizeZ/(8 * miplevels[1])),
 }
 ---------------------------------------------------------------------------
 
-local alwaysColor, losColor, radarColor, jamColor, radarColor2 = Spring.GetLosViewColors() --unused
 local outputAlpha = 0.07
 local numFastUpdates = 10	 -- how many quick updates to do on large-scale changes
 local updateRate = 2 -- on each Nth frame
@@ -86,10 +87,9 @@ VFS.Include(luaShaderDir.."instancevbotable.lua")
 
 local fullScreenQuadVAO = nil
 
-local vsSrcPath = "LuaUI/Widgets/Shaders/infolos.vert.glsl"
-local fsSrcPath = "LuaUI/Widgets/Shaders/infolos.frag.glsl"
+local vsSrcPath = "LuaUI/Widgets/Shaders/api_los_combiner.vert.glsl"
+local fsSrcPath = "LuaUI/Widgets/Shaders/api_los_combiner.frag.glsl"
 
-local miplevels = {2^3, 2^4, 2^3, 1} -- los, airlos and radar mip levels
 
 local shaderSourceCache = {
 	vssrcpath = vsSrcPath,
@@ -102,14 +102,13 @@ local shaderSourceCache = {
 		tex0 = 0,
 		tex1 = 1,
 		tex2 = 2,
-		tex3 = 3,
 	},
 	textures = {
 		[0] = "$info:los",
 		[1] = "$info:airlos",
 		[2] = "$info:radar",
 	},
-	shaderName = "InfoLOS GL4",
+	shaderName = "LOS Combiner GL4",
 	shaderConfig = shaderConfig
 }
 
@@ -129,19 +128,23 @@ local function CreateLosTexture()
 		})
 end
 
+local fuction InitLosTexture(allyTeam)
+    gl.RenderToTexture(infoTextures[allyTeam], function()
+        gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+    end)
+end
+
 local function renderToTextureFunc() -- this draws the fogspheres onto the texture
 	--gl.DepthMask(false)
 	gl.Texture(0, "$info:los")
 	gl.Texture(1, "$info:airlos")
-	gl.Texture(2, "$info:radar") --$info:los
+	gl.Texture(2, "$info:radar") 
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	
 	fullScreenQuadVAO:DrawArrays(GL.TRIANGLES)
-	--gl.TexRect(-1, -1, 1, 1, 0, 0, 1, 1)
 	gl.Texture(0, false)
 	gl.Texture(1, false)
 	gl.Texture(2, false)
-	gl.Texture(3, false)
 end
 
 local function UpdateInfoLOSTexture(count)
@@ -179,7 +182,6 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
-	--local alwaysColor, losColor, radarColor, jamColor, radarColor2 = Spring.GetLosViewColors()
 
 	for name, tex in pairs({LOS = "$info:los", AIRLOS = "$info:airlos", RADAR = "$info:radar" }) do
 		local texInfo = gl.TextureInfo(tex)
@@ -192,23 +194,22 @@ function widget:Initialize()
 		infoTextures[a] = CreateLosTexture()
 	end
 
-
 	infoShader =  LuaShader.CheckShaderUpdates(shaderSourceCache)
 	shaderCompiled = infoShader:Initialize()
 	if not shaderCompiled then Spring.Echo("Failed to compile InfoLOS GL4") end
 
-
 	fullScreenQuadVAO = MakeTexRectVAO()--  -1, -1, 1, 0,   0,0,1, 0.5
 
-	WG['infolosapi'] = {}
-	WG['infolosapi'].GetInfoLOSTexture = GetInfoLOSTexture
-	widgetHandler:RegisterGlobal('GetInfoLOSTexture', WG['infolosapi'].GetInfoLOSTexture)
-
+	WG['api_los_combiner'] = {}
+	WG['api_los_combiner'].GetInfoLOSTexture = GetInfoLOSTexture
+	widgetHandler:RegisterGlobal('GetInfoLOSTexture', WG['api_los_combiner'].GetInfoLOSTexture)
 end
 
 function widget:Shutdown()
-	if infoTexture then gl.DeleteTexture(infoTexture) end
-	WG['infolosapi'] = nil
+	for i, infoTexture in pairs(infoTextures) do 
+          gl.DeleteTexture(infoTexture) end
+    end
+	WG['api_los_combiner'] = nil
 	widgetHandler:DeregisterGlobal('GetInfoLOSTexture')
 end
 
@@ -217,11 +218,7 @@ function widget:GameFrame(n)
 		updateInfoLOSTexture = math.max(1,updateInfoLOSTexture)
 	end
 end
-
-function widget:Update()
-end
-
---local lastUpdate = Spring.GetTimer()
+local lastUpdate = Spring.GetTimer()
 
 function widget:DrawGenesis()
 	-- local nowtime = Spring.GetTimer()
@@ -242,22 +239,21 @@ function widget:DrawGenesis()
 	end
 end
 
+if autoreload  then
+    function widget:DrawScreen() -- the debug display output
+            infoShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or infoShader
+            gl.Color(1,1,1,1) -- use this to show individual channels of the texture!
+            gl.Texture(0, infoTextures[currentAllyTeam])
+            gl.Blending(GL.ONE, GL.ZERO)
+            gl.Culling(false)
+            gl.TexRect(0, 0, shaderConfig.TEXX, shaderConfig.TEXY, 0, 0, 1, 1) -- REMEMBER THAT THIS UPSIDE DOWN!
 
-function widget:DrawScreen() -- the debug display output
-	if autoreload  then
-		infoShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or infoShader
-		gl.Color(1,1,1,1) -- use this to show individual channels of the texture!
-		gl.Texture(0, infoTextures[currentAllyTeam])
-		gl.Blending(GL.ONE, GL.ZERO)
-		gl.Culling(false)
-		gl.TexRect(0, 0, shaderConfig.TEXX, shaderConfig.TEXY, 0, 0, 1, 1) -- REMEMBER THAT THIS UPSIDE DOWN!
-
-		gl.Text(tostring(currentAllyTeam), shaderConfig.TEXX, shaderConfig.TEXY,16)
-		gl.Texture(0,"$info:los")
-		--gl.TexRect(texX, 0, texX + shaderConfig['LOSXSIZE'], shaderConfig['LOSYSIZE'], 0, 1, 1, 0)
-		gl.Texture(0,false)
-		
-		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-		if infoShader.DrawPrintf then infoShader.DrawPrintf() end
-	end
+            gl.Text(tostring(currentAllyTeam), shaderConfig.TEXX, shaderConfig.TEXY,16)
+            gl.Texture(0,"$info:los")
+            gl.TexRect(texX, 0, texX + shaderConfig['LOSXSIZE'], shaderConfig['LOSYSIZE'], 0, 1, 1, 0)
+            gl.Texture(0,false)
+            
+            gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+            if infoShader.DrawPrintf then infoShader.DrawPrintf() end
+    end
 end

@@ -10,12 +10,16 @@ static-var shotcount;
 
 Create()
 {
-	hide flare;
-	hide flare;
 	shotcount = 0;
 }
 
 lua_UnitScriptLight(lightIndex, count)
+{
+	return 0;
+}
+
+
+lua_UnitScriptDistortion(lightIndex, count)
 {
 	return 0;
 }
@@ -44,6 +48,7 @@ FireWeapon1()
 	call-script lua_UnitScriptLight(1, shotcount);
 	call-script lua_UnitScriptLight(2, shotcount);
 	call-script lua_UnitScriptLight(3, shotcount);
+	call-script lua_UnitScriptDistortion(1, shotcount);
 	sleep 200;
 	wait-for-move barrel along z-axis;
 	move barrel to z-axis [0.0] speed [3.500000];

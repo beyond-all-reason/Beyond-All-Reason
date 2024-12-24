@@ -15,11 +15,6 @@ static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 #define SIGNAL_AIM2 512
 #define SIGNAL_SHOOT1 16
 
-lua_FlameShot(weapon) //Distortion and lups flame effect
-{
-  return 0;
-}
-
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corkarg_anim_walk.blend
 	set-signal-mask SIGNAL_MOVE;
@@ -1079,7 +1074,6 @@ Shot1()
 	signal SIGNAL_SHOOT1;
 	
 	set-signal-mask SIGNAL_SHOOT1;
-	call-script lua_FlameShot(1);
 	emit-sfx 1024 + 0 from lfflare2;
 	emit-sfx 1024 + 0 from rfflare1;
 	//start-script SmokeItUp();
