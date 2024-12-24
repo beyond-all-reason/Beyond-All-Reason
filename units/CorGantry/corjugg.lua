@@ -139,6 +139,9 @@ return {
 				damage = {
 					default = 75,
 				},
+				customparams = {
+					noattackrangearc= 1,
+				},
 			},
 			juggernaut_fire = {
 				areaofeffect = 65,
@@ -208,6 +211,9 @@ return {
 				weaponvelocity = 2250,
 				damage = {
 					default = 150,
+				},
+				customparams = {
+					noattackrangearc= 1,
 				},
 			},
 		},

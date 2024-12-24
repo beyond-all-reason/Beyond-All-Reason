@@ -192,6 +192,10 @@ return {
 				damage = {
 					vtol = 150,
 				},
+        
+				customparams = {
+					noattackrangearc= 1,
+				},
 			},
 			heavylaser = {
 				areaofeffect = 8,
@@ -226,6 +230,9 @@ return {
 				damage = {
 					default = 270,
 					vtol = 65,
+				},
+				customparams = {
+					noattackrangearc= 1,
 				},
 			},
 			heavyplasma = {
