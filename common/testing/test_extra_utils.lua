@@ -3,11 +3,11 @@ local levelTimeout = 100
 local heightMapChanged = false
 local noHeightMapRestore = false
 
-local function SetNoHeightmapRestore(noRestore)
+local function setHeightmapNoRestore(noRestore)
 	noHeightMapRestore = noRestore
 end
 
-local function LevelHeightmap(level)
+local function levelHeightmap(level)
 	if level == nil then level = 10 end
 	SyncedRun(function(locals)
 		local level = locals.level
@@ -17,7 +17,7 @@ local function LevelHeightmap(level)
 	heightMapChanged = true
 end
 
-local function RestoreHeightmap(force)
+local function restoreHeightmap(force)
 	if not force and not heightMapChanged then return end
 	SyncedRun(function()
 		Spring.RevertHeightMap(0, 0, Game.mapSizeX, Game.mapSizeZ, 1.0)
@@ -27,6 +27,7 @@ local function RestoreHeightmap(force)
 end
 
 return {
-	levelHeightmap = LevelHeightmap,
+	levelHeightmap = levelHeightmap,
 	restoreHeightmap = restoreHeightmap,
+	setHeightmapNoRestore = setHeightmapNoRestore,
 }
