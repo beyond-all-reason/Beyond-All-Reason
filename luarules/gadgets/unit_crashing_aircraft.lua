@@ -52,7 +52,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			-- make it crash
 			crashingCount = crashingCount + 1
-			crashing[unitID] = Spring.GetGameFrame() + 230
+			crashing[unitID] = Spring.GetGameFrame() + 450
 			Spring.SetUnitCOBValue(unitID, COB_CRASHING, 1)
 			Spring.SetUnitNoSelect(unitID,true)
 			Spring.SetUnitNoMinimap(unitID,true)
