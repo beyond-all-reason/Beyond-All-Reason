@@ -6,13 +6,15 @@ local currentLevel = 0
 
 local function setAutoHeightMap(enable)
 	autoHeightMap = enable
+	Spring.Echo("Set autoheightmap", enable)
 end
 
 local function levelHeightMap(level)
+	local prevLevel = currentLevel
 	if level == nil then level = 10 end
-	if currentLevel == level then return end
+	if prevLevel == level then return end
 	SyncedRun(function(locals)
-		local level = locals.level - locals.currentLevel
+		local level = locals.level - locals.prevLevel
 		if level == 0 then return end
 		Spring.LevelHeightMap(0, 0, Game.mapSizeX, Game.mapSizeZ, level)
 		Spring.RebuildSmoothMesh(0, 0, Game.mapSizeX, Game.mapSizeZ)
@@ -33,15 +35,21 @@ end
 
 -- Internal methods
 
-local function initTests()
+local function startTests()
 	if autoHeightMap then
-		levelTerrain()
+		levelHeightMap()
 	end
 end
 
 local function endTests()
 	if autoHeightMap then
-		restoreTerrain(true)
+		restoreHeightMap(true)
+	end
+end
+
+local function endTest()
+	if not autoHeightMap then
+		restoreHeightMap()
 	end
 end
 
@@ -69,7 +77,8 @@ return {
 		levelHeightMap = levelHeightMap,
 		restoreHeightMap = restoreHeightMap,
 	},
-	initTests = initTests,
+	endTest = endTest,
+	startTests = startTests,
 	endTests = endTests,
 	linkActions = linkActions,
 }

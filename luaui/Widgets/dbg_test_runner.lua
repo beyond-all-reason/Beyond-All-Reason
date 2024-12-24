@@ -850,6 +850,10 @@ end
 local function runTestInternal()
 	log(LOG.DEBUG, "[runTestInternal]")
 
+	if testRunState.filesIndex == 1 then
+		TestExtraUtils.startTests()
+	end
+
 	local skipOk, skipResult
 	if skip ~= nil then
 		log(LOG.DEBUG, "[runTestInternal.skip]")
@@ -909,6 +913,11 @@ local function runTestInternal()
 			log(LOG.DEBUG, "[runTestInternal.restoreWidgets.error]")
 			error(restoreResult, 2)
 		end
+	end
+
+	TestExtraUtils.endTest()
+	if testRunState.filesIndex == #testRunState.files then
+		TestExtraUtils.endTests()
 	end
 
 	if not cleanupOk then
@@ -1277,6 +1286,7 @@ function widget:Initialize()
 		"t"
 	)
 
+	TestExtraUtils.linkActions(self)
 	gameTimer = Spring.GetTimer()
 end
 
