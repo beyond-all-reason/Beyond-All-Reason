@@ -35,7 +35,7 @@ return {
 			[1] = "corkorg",
 			[2] = "corkarg",
 			[3] = "corjugg",
-			[4] = "corshiva",
+			[4] = "legjav",
 			[5] = "corcat",
 			[6] = "corsok",
 			[7] = "cordemon",

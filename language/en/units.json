@@ -862,7 +862,8 @@
 			"legnanotcbase": "Base Builder",
 			"legrampart": "Rampart",
 			"legabm": "Aegis",
-			"legrwall": "Dragon's Constitution"
+			"legrwall": "Dragon's Constitution",
+			"legjav": "Javelin"
 		},
 		"descriptions": {
 			"armaak": "Advanced Amphibious Anti-Air Bot",
@@ -1719,7 +1720,8 @@
 			"legnanotcbase": "Assist & Repair in massive radius",
 			"legrampart": "Geothermal Antinuke, Jammer, Radar and Drone Platform",
 			"legabm": "Anti-Nuke System",
-			"legrwall": "Railgun Defense Wall"
+			"legrwall": "Railgun Defense Wall",
+			"legjav": "Amphibious Raider"
 		}
 	}
 }
