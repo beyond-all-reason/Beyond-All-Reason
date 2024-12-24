@@ -418,6 +418,7 @@ return {
 					spawns_expire = 25,
 					spawns_surface = "LAND", -- Available: "LAND SEA"
 					spawns_mode = "random",
+					stockpilelimit = 4,
 				},
 				damage = {
 					default = 0,

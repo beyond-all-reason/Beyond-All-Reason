@@ -125,6 +125,7 @@ return {
 					bogus = 1,
 					spawns_name = "cormine1",
 					spawns_surface = "LAND",
+					stockpilelimit = 1,
 				},
 				damage = {
 					default = 1,
