@@ -145,8 +145,8 @@ return {
 					subs = 250,
 				},
 				customparams = {
-					projectile_overrange_distance = 350,
-					projectile_destruction_method = "descend"
+					overrange_distance = 350,
+					projectile_destruction_method = "gravity"
 				}
 			},
 		},
