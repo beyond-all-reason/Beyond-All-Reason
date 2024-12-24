@@ -19,6 +19,7 @@ local Assertions = VFS.Include('common/testing/assertions.lua')
 local TestResults = VFS.Include('common/testing/results.lua')
 local Util = VFS.Include('common/testing/util.lua')
 local Mock = VFS.Include('common/testing/mock.lua')
+local TestExtraUtils = VFS.Include('common/testing/test_extra_utils.lua')
 
 local rpc = VFS.Include('common/testing/rpc.lua'):new()
 
@@ -809,6 +810,11 @@ Test = {
 		end
 	end,
 }
+
+-- Add extra utils to Test
+for k, v in pairs(TestExtraUtils) do
+	Test[k] = v
+end
 
 function widget:RecvLuaMsg(msg)
 	if not returnState.waitingForReturnID then
