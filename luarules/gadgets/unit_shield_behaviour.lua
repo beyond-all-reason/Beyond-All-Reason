@@ -35,12 +35,11 @@ local spGetProjectileDefID = Spring.GetProjectileDefID
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitsInSphere = Spring.GetUnitsInSphere
 local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
-local spGetUnitIsStunned = Spring.GetUnitIsStunned
 local spAreTeamsAllied = Spring.AreTeamsAllied
 local spGetUnitIsActive = Spring.GetUnitIsActive
-local spGetTeamResources = Spring.GetTeamResources
-local spUseTeamResource = Spring.UseTeamResource
 local spUseUnitResource  = Spring.UseUnitResource
+local mathMax = math.max
+local mathCeil = math.ceil
 
 local shieldUnitDefs = {}
 local shieldUnitsData = {}
@@ -62,7 +61,7 @@ for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 	if weaponDef.customParams.beamtime_damage_reduction_multiplier then
 		local base = weaponDef.customParams.shield_damage or fallbackShieldDamage
 		local multiplier = weaponDef.customParams.beamtime_damage_reduction_multiplier
-		originalShieldDamages[weaponDefID] = math.ceil(base * multiplier)
+		originalShieldDamages[weaponDefID] = mathCeil(base * multiplier)
 	else
 		originalShieldDamages[weaponDefID] = weaponDef.customParams.shield_damage or fallbackShieldDamage
 	end
@@ -260,10 +259,13 @@ function gadget:GameFrame(frame)
 
 		if frame % shieldModulo == 0 then
 			if shieldActive and shieldData.overKillDamage ~= 0 then
-				--local availableEnergy = spGetTeamResources(shieldData.teamID, "energy")
-				local usedEnergy = spUseUnitResource(shieldUnitID, "e", shieldData.shieldPowerRegenEnergy)
+				local ratio = 1
+				if shieldData.overKillDamage < shieldData.shieldPowerRegen then
+					ratio = shieldData.overKillDamage / shieldData.shieldPowerRegen
+				end
+				local usedEnergy = spUseUnitResource(shieldUnitID, "e", shieldData.shieldPowerRegenEnergy * ratio)
 				if usedEnergy then
-					shieldData.overKillDamage = math.max(shieldData.overKillDamage - shieldData.shieldPowerRegen, 0)
+					shieldData.overKillDamage = mathMax(shieldData.overKillDamage - shieldData.shieldPowerRegen, 0)
 				end
 			end
 
@@ -288,7 +290,7 @@ function gadget:GameFrame(frame)
 			shieldUnitIndex[shieldUnitsTotalCount] = shieldUnitID
 		end
 
-		shieldCheckChunkSize = math.max(math.ceil(shieldUnitsTotalCount / 4), 1)
+		shieldCheckChunkSize = mathMax(mathCeil(shieldUnitsTotalCount / 4), 1)
 	end
 
 	if frame % 11 == 7 then
