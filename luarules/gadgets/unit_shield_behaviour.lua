@@ -15,8 +15,6 @@ if not gadgetHandler:IsSyncedCode() then return end
 -- shield_downtime = <number in seconds>, if not set defaults to defaultDowntime
 -- shield_aoe_penetration = bool, if true then AOE damage will hurt units within the shield radius
 
-local defaultDowntime = 1
-
 -- To save on performance, do not perform AoE damage mitigation checks below this threshold, value chosen empirically to negate laser AoE from a Mammoth
 local aoeIgnoreThreshold = 11
 
@@ -78,7 +76,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams.shield_radius then
 		local data = {}
 		data.shieldRadius = tonumber(unitDef.customParams.shield_radius)
-		data.downTime = tonumber(unitDef.customParams.shield_downtime) or defaultDowntime
 
 		for i, weaponsData in pairs(unitDef.weapons) do
 			local wDefData = WeaponDefs[weaponsData.weaponDef]
@@ -89,10 +86,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			end
 		end
 		shieldUnitDefs[unitDefID] = data
-		Spring.Echo(unitDef.name, "shield Data")
-		for key, value in pairs (shieldUnitDefs[unitDefID]) do
-			Spring.Echo(key, value)
-		end
 	end
 
 	if unitDef.weapons then
@@ -148,12 +141,9 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 			shieldPowerRegen = data.shieldPowerRegen,
 			shieldPowerRegenEnergy = data.shieldPowerRegenEnergy,
 			shieldWeaponNumber = data.shieldWeaponNumber,		-- This is replaced with the real shieldWeaponNumber as soon as the shield is damaged
-			downtime = data.downTime, -- Defined in unitdef.customparams with a default fallback value
 			radius = data.shieldRadius,
-			teamID = unitTeam,
 			shieldEnabled = true,			-- Virtualized enabled/disabled state until engine equivalent is changed
 			shieldDamage = 0,				-- This stores the value of damages populated in ShieldPreDamaged(), then applied in GameFrame() all at once
-			downtimeReset = 0,
 			shieldCoverageChecked = false,	-- Used to prevent expensive unit coverage checks being performed more than once per cycle
 			overKillDamage = 0
 		}
@@ -179,7 +169,7 @@ function gadget:ProjectileDestroyed(proID)
 	projectileShieldHitCache[proID] = nil
 end
 
-local function triggerDowntime(unitID, weaponNum)
+local function suspendShield(unitID, weaponNum)
 	local shieldData = shieldUnitsData[unitID]
 
 	-- Dummy disable recharge delay, as engine does not support downtime
@@ -255,7 +245,7 @@ function gadget:GameFrame(frame)
 				shieldData.shieldDamage = 0
 
 				if shieldPower <= 0 then
-					triggerDowntime(shieldUnitID, shieldData.shieldWeaponNumber)
+					suspendShield(shieldUnitID, shieldData.shieldWeaponNumber)
 					removeCoveredUnits(shieldUnitID)
 				end
 			else
@@ -273,7 +263,6 @@ function gadget:GameFrame(frame)
 				--local availableEnergy = spGetTeamResources(shieldData.teamID, "energy")
 				local usedEnergy = spUseUnitResource(shieldUnitID, "e", shieldData.shieldPowerRegenEnergy)
 				if usedEnergy then
-					Spring.Echo("energy sufficient!")
 					shieldData.overKillDamage = math.max(shieldData.overKillDamage - shieldData.shieldPowerRegen, 0)
 				end
 			end
