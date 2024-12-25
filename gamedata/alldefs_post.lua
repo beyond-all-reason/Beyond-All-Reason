@@ -264,6 +264,7 @@ function UnitDef_Post(name, uDef)
 				armsilo = true,
 				armscab = true,
 				armseadragon = true,
+				cordesolator = true,
 				corfmd = true,
 				corsilo = true,
 				cormabm = true,
