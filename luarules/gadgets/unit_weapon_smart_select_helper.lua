@@ -69,13 +69,12 @@ local smartUnits = {}
 local unitDefData = {}
 
 function gadget:Initialize()
-    local units = Spring.GetAllUnits()
-    local spGetUnitDefID = Spring.GetUnitDefID
-    for i = 1, #units do
-        gadget:UnitCreated(units[i], spGetUnitDefID(units[i]))
-    end
+	local units = Spring.GetAllUnits()
+	local spGetUnitDefID = Spring.GetUnitDefID
+	for i = 1, #units do
+		gadget:UnitCreated(units[i], spGetUnitDefID(units[i]))
+	end
 end
-
 
 for unitDefID, def in ipairs(UnitDefs) do
 	if def.weapons then
@@ -86,8 +85,9 @@ for unitDefID, def in ipairs(UnitDefs) do
 				if WeaponDefs[weaponDefID].customParams.smart_preferred_weapon then
 					unitDefData[unitDefID] = unitDefData[unitDefID] or {}
 					unitDefData[unitDefID].preferredWeapon = weaponNumber
-					unitDefData[unitDefID].failedToFireFrameThreshold = WeaponDefs[weaponDefID].customParams.smart_error_frames or
-																		mathMax(WeaponDefs[weaponDefID].reload * failedToFireMultiplier, minimumFailedToFireFrames)
+					unitDefData[unitDefID].failedToFireFrameThreshold = WeaponDefs[weaponDefID].customParams
+						.smart_error_frames or
+						mathMax(WeaponDefs[weaponDefID].reload * failedToFireMultiplier, minimumFailedToFireFrames)
 					if def.speed and def.speed ~= 0 then
 						unitDefData[unitDefID].canMove = true
 					end
@@ -119,40 +119,40 @@ function gadget:UnitCreated(unitID, unitDefID)
 	end
 end
 
-
 local function failureToFireCheck(attackerID, attackerData, defData)
 	if not attackerData.suspendErrorUntilFrame then return false end
 
-    if attackerData.failedShotFrame < gameFrame - defData.failedToFireFrameThreshold then
-        attackerData.failedShotFrame = mathMax(
-            spGetUnitWeaponState(attackerID, defData.preferredWeapon, 'reloadFrame'),
+	if attackerData.failedShotFrame < gameFrame - defData.failedToFireFrameThreshold then
+		attackerData.failedShotFrame = mathMax(
+			spGetUnitWeaponState(attackerID, defData.preferredWeapon, 'reloadFrame'),
 			spGetUnitWeaponState(attackerID, defData.deferredWeapon, 'reloadFrame')
-        )
-    end
+		)
+	end
 
-    if attackerData.failedShotFrame < gameFrame - defData.failedToFireFrameThreshold and
-	gameFrame > attackerData.suspendErrorUntilFrame then 
+	if attackerData.failedShotFrame < gameFrame - defData.failedToFireFrameThreshold and
+		gameFrame > attackerData.suspendErrorUntilFrame then
 		return true
-    else
+	else
 		return false
-    end
+	end
 end
 
 
 local function updateAimingState(attackerID)
-    local attackerData = smartUnits[attackerID]
-    local defData = unitDefData[attackerData.unitDefID]
+	local attackerData = smartUnits[attackerID]
+	local defData = unitDefData[attackerData.unitDefID]
 
-    local pTargetType, pIsUserTarget, pTarget = spGetUnitWeaponTarget(attackerID, defData.preferredWeapon)
-    local dIsUserTarget, dTarget = select(2, spGetUnitWeaponTarget(attackerID, defData.deferredWeapon))
-    
-    local preferredCanShoot = false
-    if pTargetType == 1 then
-        preferredCanShoot = spGetUnitWeaponHaveFreeLineOfFire(attackerID, defData.trajectoryCheckWeapon, pTarget)
-    elseif pTargetType == 2 then
-        preferredCanShoot = spGetUnitWeaponHaveFreeLineOfFire(attackerID, defData.trajectoryCheckWeapon, nil, nil, nil, pTarget[1], pTarget[2], pTarget[3])
-    end
-	
+	local pTargetType, pIsUserTarget, pTarget = spGetUnitWeaponTarget(attackerID, defData.preferredWeapon)
+	local dIsUserTarget, dTarget = select(2, spGetUnitWeaponTarget(attackerID, defData.deferredWeapon))
+
+	local preferredCanShoot = false
+	if pTargetType == 1 then
+		preferredCanShoot = spGetUnitWeaponHaveFreeLineOfFire(attackerID, defData.trajectoryCheckWeapon, pTarget)
+	elseif pTargetType == 2 then
+		preferredCanShoot = spGetUnitWeaponHaveFreeLineOfFire(attackerID, defData.trajectoryCheckWeapon, nil, nil, nil,
+			pTarget[1], pTarget[2], pTarget[3])
+	end
+
 	if not attackerData.suspendErrorUntilFrame and (dTarget or pTarget) then
 		attackerData.suspendErrorUntilFrame = gameFrame + defData.failedToFireFrameThreshold
 	elseif not dTarget and not pTarget then
@@ -168,45 +168,43 @@ local function updateAimingState(attackerID)
 		failureToFire = failureToFireCheck(attackerID, attackerData, defData)
 	end
 
-    if pIsUserTarget and preferredCanShoot then
-        if failureToFire then
-            attackerData.errorTallyMultiplier = attackerData.errorTallyMultiplier + errorMultiplierAddition
-            attackerData.aggroBias = dErrorAggro * attackerData.errorTallyMultiplier ^ attackerData.errorTallyMultiplier
-        else
-            attackerData.aggroBias = attackerData.aggroBias + pManualAggro
-        end
-    elseif dIsUserTarget then
-        attackerData.aggroBias = attackerData.aggroBias - dManualAggro
-    else
+	if pIsUserTarget and preferredCanShoot then
+		if failureToFire then
+			attackerData.errorTallyMultiplier = attackerData.errorTallyMultiplier + errorMultiplierAddition
+			attackerData.aggroBias = dErrorAggro * attackerData.errorTallyMultiplier ^ attackerData.errorTallyMultiplier
+		else
+			attackerData.aggroBias = attackerData.aggroBias + pManualAggro
+		end
+	elseif dIsUserTarget then
+		attackerData.aggroBias = attackerData.aggroBias - dManualAggro
+	else
 		if failureToFire then
 			attackerData.errorTallyMultiplier = attackerData.errorTallyMultiplier + errorMultiplierAddition
 			attackerData.aggroBias = dErrorAggro * attackerData.errorTallyMultiplier ^ attackerData.errorTallyMultiplier
 			attackerData.suspendErrorUntilFrame = gameFrame + defData.failedToFireFrameThreshold
-        elseif preferredCanShoot then
-            attackerData.aggroBias = attackerData.aggroBias + pAutoAggro
-        elseif dIsUserTarget ~= nil then --deferred has a target
-            attackerData.aggroBias = attackerData.aggroBias - dAutoAggro
-        end
-    end
+		elseif preferredCanShoot then
+			attackerData.aggroBias = attackerData.aggroBias + pAutoAggro
+		elseif dIsUserTarget ~= nil then --deferred has a target
+			attackerData.aggroBias = attackerData.aggroBias - dAutoAggro
+		end
+	end
 
 	attackerData.errorTallyMultiplier = attackerData.errorTallyMultiplier * tallyDecayRate
-    if attackerData.aggroBias >= switchPreferredThreshold then
+	if attackerData.aggroBias >= switchPreferredThreshold then
 		attackerData.aggroBias = mathMax(attackerData.aggroBias * aggroDecayRate, attackerData.aggroBias - aggroDecayCap)
 		spCallCOBScript(attackerID, attackerData.setStateScriptID, 0, AimingState_Preferred)
-
 	elseif attackerData.aggroBias < switchDeferredThreshold then
 		attackerData.aggroBias = mathMin(attackerData.aggroBias * aggroDecayRate, attackerData.aggroBias + aggroDecayCap)
 		spCallCOBScript(attackerID, attackerData.setStateScriptID, 0, AimingState_Deferred)
 	else
 		attackerData.aggroBias = attackerData.aggroBias * aggroDecayRate
-    end
+	end
 end
 
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	smartUnits[unitID] = nil
 end
-
 
 function gadget:GameFrame(frame)
 	if frame % frameCheckModulo == 3 then
