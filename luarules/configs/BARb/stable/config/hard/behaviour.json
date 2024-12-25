@@ -1961,6 +1961,10 @@
             "power": 0.5,
 			"retreat": 0.3
 		},
+		"legjav": {
+			"role": ["raider", "heavy"],
+			"threat": {"air": 0.5, "water": 0.0, "surf": 0.8}	
+		},
 	
 
 
