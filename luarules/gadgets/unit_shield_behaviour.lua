@@ -26,6 +26,8 @@ local radiusExclusionBuffer = 10
 -- If a unit doesn't have a defined shield damage or default damage, fallbackShieldDamage will be used as a fallback.
 local fallbackShieldDamage = 0
 
+local shieldModulo = Game.gameSpeed
+
 local spGetUnitShieldState = Spring.GetUnitShieldState
 local spSetUnitShieldState = Spring.SetUnitShieldState
 local spGetGameSeconds = Spring.GetGameSeconds
@@ -38,6 +40,9 @@ local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
 local spGetUnitIsStunned = Spring.GetUnitIsStunned
 local spAreTeamsAllied = Spring.AreTeamsAllied
 local spGetUnitIsActive = Spring.GetUnitIsActive
+local spGetTeamResources = Spring.GetTeamResources
+local spUseTeamResource = Spring.UseTeamResource
+local spUseUnitResource  = Spring.UseUnitResource
 
 local shieldUnitDefs = {}
 local shieldUnitsData = {}
@@ -71,7 +76,23 @@ end
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams.shield_radius then
-		shieldUnitDefs[unitDefID] = unitDef
+		local data = {}
+		data.shieldRadius = tonumber(unitDef.customParams.shield_radius)
+		data.downTime = tonumber(unitDef.customParams.shield_downtime) or defaultDowntime
+
+		for i, weaponsData in pairs(unitDef.weapons) do
+			local wDefData = WeaponDefs[weaponsData.weaponDef]
+			if wDefData.shieldPowerRegen then
+				data.shieldWeaponNumber = i
+				data.shieldPowerRegen = wDefData.shieldPowerRegen
+				data.shieldPowerRegenEnergy = wDefData.shieldPowerRegenEnergy
+			end
+		end
+		shieldUnitDefs[unitDefID] = data
+		Spring.Echo(unitDef.name, "shield Data")
+		for key, value in pairs (shieldUnitDefs[unitDefID]) do
+			Spring.Echo(key, value)
+		end
 	end
 
 	if unitDef.weapons then
@@ -83,6 +104,8 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		end
 	end
 end
+
+----local functions----
 
 local function removeCoveredUnits(shieldUnitID)
 	for unitID, shieldList in pairs(shieldedUnits) do
@@ -116,16 +139,23 @@ function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
 	end
 end
 
+----main logic----
+
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-	if shieldUnitDefs[unitDefID] then
+	local data = shieldUnitDefs[unitDefID]
+	if data then
 		shieldUnitsData[unitID] = {
+			shieldPowerRegen = data.shieldPowerRegen,
+			shieldPowerRegenEnergy = data.shieldPowerRegenEnergy,
+			shieldWeaponNumber = data.shieldWeaponNumber,		-- This is replaced with the real shieldWeaponNumber as soon as the shield is damaged
+			downtime = data.downTime, -- Defined in unitdef.customparams with a default fallback value
+			radius = data.shieldRadius,
+			teamID = unitTeam,
 			shieldEnabled = true,			-- Virtualized enabled/disabled state until engine equivalent is changed
 			shieldDamage = 0,				-- This stores the value of damages populated in ShieldPreDamaged(), then applied in GameFrame() all at once
-			shieldWeaponNumber = -1,		-- This is replaced with the real shieldWeaponNumber as soon as the shield is damaged
-			downtime = shieldUnitDefs[unitDefID].customParams.shield_downtime or defaultDowntime, -- Defined in unitdef.customparams with a default fallback value
 			downtimeReset = 0,
 			shieldCoverageChecked = false,	-- Used to prevent expensive unit coverage checks being performed more than once per cycle
-			radius = shieldUnitDefs[unitDefID].customParams.shield_radius
+			overKillDamage = 0
 		}
 	setCoveredUnits(unitID)
 	end
@@ -158,7 +188,6 @@ local function triggerDowntime(unitID, weaponNum)
 	spSetUnitShieldRechargeDelay(unitID, weaponNum, 3600)
 
 	spSetUnitShieldState(unitID, weaponNum, false)
-	shieldData.downtimeReset = gameSeconds + shieldData.downtime
 	shieldData.shieldEnabled = false
 end
 
@@ -182,6 +211,22 @@ local function shieldNegatesDamageCheck(unitID, unitTeam, attackerID, attackerTe
 	return false
 end
 
+local function setProjectilesAlreadyInsideShield(shieldUnitID, radius)
+	-- This section is to allow slower moving projectiles already inside the shield when it comes back online to damage units within the radius.
+	local x, y, z = spGetUnitPosition(shieldUnitID)
+	-- Engine has GetProjectilesInRectangle, but not GetProjectilesInCircle, so we have to square the circle
+	-- TODO: Change to GetProjectilesInCircle once it is added
+	local radius = radius * math.sqrt(math.pi) / 2
+	local xmin = x - radius
+	local xmax = x + radius
+	local zmin = z - radius
+	local zmax = z + radius
+	local projectiles = spGetProjectilesInRectangle(xmin, zmin, xmax, zmax)
+	for _, projectileID in ipairs(projectiles) do
+		projectileShieldHitCache[projectileID] = true
+	end
+end
+
 local shieldUnitsTotalCount = 0
 local shieldUnitIndex = {}
 local shieldCheckFlags = {}
@@ -195,59 +240,52 @@ function gadget:GameFrame(frame)
 	for shieldUnitID, _ in pairs(shieldCheckFlags) do
 		local shieldData = shieldUnitsData[shieldUnitID]
 
+		--apply shield damages
 		if shieldData then
-			if shieldData.shieldDamage > 0 and shieldData.shieldWeaponNumber > -1 then
+			if shieldData.shieldDamage > 0 then
 				local enabledState, shieldPower = spGetUnitShieldState(shieldUnitID)
 				shieldPower = shieldPower - shieldData.shieldDamage
 
 				if shieldPower < 0 then
+					shieldData.overKillDamage = -shieldPower --invert the negative value
 					shieldPower = 0
 				end
 
 				spSetUnitShieldState(shieldUnitID, shieldData.shieldWeaponNumber, shieldPower)
 				shieldData.shieldDamage = 0
 
-				if shieldData.downtimeReset < gameSeconds and shieldPower <= 0 then
+				if shieldPower <= 0 then
 					triggerDowntime(shieldUnitID, shieldData.shieldWeaponNumber)
 					removeCoveredUnits(shieldUnitID)
 				end
 			else
 				shieldData.shieldDamage = 0
 			end
-
 			shieldCheckFlags[shieldUnitID] = nil
 		end
-
 	end
-	for shieldUnitID, shieldData in pairs(shieldUnitsData) do
-		if frame % Game.gameSpeed == 0 then
-			if select(2, spGetUnitIsStunned(shieldUnitID)) and shieldData.downtimeReset ~= 0 then
-				shieldData.downtimeReset = shieldData.downtimeReset + 1
-			end
-		end
 
-		if frame % 10 == 0 then
-			if not spGetUnitIsActive(shieldUnitID) then
+	for shieldUnitID, shieldData in pairs(shieldUnitsData) do
+		local shieldActive = spGetUnitIsActive(shieldUnitID)
+
+		if frame % shieldModulo == 0 then
+			if shieldActive and shieldData.overKillDamage ~= 0 then
+				--local availableEnergy = spGetTeamResources(shieldData.teamID, "energy")
+				local usedEnergy = spUseUnitResource(shieldUnitID, "e", shieldData.shieldPowerRegenEnergy)
+				if usedEnergy then
+					Spring.Echo("energy sufficient!")
+					shieldData.overKillDamage = math.max(shieldData.overKillDamage - shieldData.shieldPowerRegen, 0)
+				end
+			end
+
+			if not shieldActive then
 				spSetUnitShieldState(shieldUnitID, shieldData.shieldWeaponNumber, 0)
 			end
-			if not shieldData.shieldEnabled and shieldData.downtimeReset ~= 0 and shieldData.downtimeReset <= gameSeconds then
-				shieldData.downtimeReset = 0
+			if not shieldData.shieldEnabled and shieldData.overKillDamage == 0 then
 				shieldData.shieldEnabled = true
 				spSetUnitShieldRechargeDelay(shieldUnitID, shieldData.shieldWeaponNumber, 0)
-
-				-- This section is to allow slower moving projectiles already inside the shield when it comes back online to damage units within the radius.
-				local x, y, z = spGetUnitPosition(shieldUnitID)
-				-- Engine has GetProjectilesInRectangle, but not GetProjectilesInCircle, so we have to square the circle
-				-- TODO: Change to GetProjectilesInCircle once it is added
-				local radius = shieldData.radius * math.sqrt(math.pi) / 2
-				local xmin = x - radius
-				local xmax = x + radius
-				local zmin = z - radius
-				local zmax = z + radius
-				local projectiles = spGetProjectilesInRectangle(xmin, zmin, xmax, zmax)
-				for _, projectileID in ipairs(projectiles) do
-					projectileShieldHitCache[projectileID] = true
-				end
+				
+				setProjectilesAlreadyInsideShield(shieldUnitID, shieldData.radius)
 			end
 		end
 	end
@@ -263,6 +301,7 @@ function gadget:GameFrame(frame)
 
 		shieldCheckChunkSize = math.max(math.ceil(shieldUnitsTotalCount / 4), 1)
 	end
+
 	if frame % 11 == 7 then
 		for i = lastShieldCheckedIndex, shieldCheckEndIndex do
 			local shieldUnitID = shieldUnitIndex[i]
@@ -310,8 +349,6 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitI
 		return true
 	end
 
-	shieldData.shieldWeaponNumber = shieldWeaponNum
-
 	-- proID isn't nil if hitscan weapons are used, it's actually -1.
 	if proID > -1 then
 		weaponDefID = projectileDefIDCache[proID] or spGetProjectileDefID(proID)
@@ -353,9 +390,6 @@ do
 		end
 		local shieldData = shieldUnitsData[shieldUnitID]
 		if shieldData and shieldData.shieldEnabled then
-			if shieldData.shieldWeaponNumber == -1 and not shieldWeaponNumber then
-				return
-			end
 			local shieldDamage = shieldData.shieldDamage
 			local result = gadget:ShieldPreDamaged(projectileID, nil, shieldWeaponNumber, shieldUnitID, nil, beamEmitterWeaponNum, beamEmitterUnitID)
 			if result == nil then
