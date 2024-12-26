@@ -25,6 +25,7 @@ local radiusExclusionBuffer = 10
 local fallbackShieldDamage = 0
 
 local shieldModulo = Game.gameSpeed
+local shieldOnUnitRulesParamIndex = 531313
 
 local spGetUnitShieldState = Spring.GetUnitShieldState
 local spSetUnitShieldState = Spring.SetUnitShieldState
@@ -176,7 +177,7 @@ local function suspendShield(unitID, weaponNum)
 
 	spSetUnitShieldState(unitID, weaponNum, false)
 	shieldData.shieldEnabled = false
-	Spring.SetUnitRulesParam(unitID, "shieldon", 0, {inlos = true})
+	Spring.SetUnitRulesParam(unitID, shieldOnUnitRulesParamIndex, 0, {inlos = true})
 end
 
 local function shieldNegatesDamageCheck(unitID, unitTeam, attackerID, attackerTeam)
@@ -271,9 +272,8 @@ function gadget:GameFrame(frame)
 				spSetUnitShieldState(shieldUnitID, shieldData.shieldWeaponNumber, 0)
 			end
 			if not shieldData.shieldEnabled and shieldData.overKillDamage == 0 then
-				Spring.Echo("set shield to enabled!!!")
 				shieldData.shieldEnabled = true
-				Spring.SetUnitRulesParam(shieldUnitID, "shieldon", 1, {inlos = true}) --zzz this is where I need to reference
+				Spring.SetUnitRulesParam(shieldUnitID, shieldOnUnitRulesParamIndex, 1, {inlos = true}) --zzz this is where I need to reference
 				spSetUnitShieldRechargeDelay(shieldUnitID, shieldData.shieldWeaponNumber, 0)
 				
 				setProjectilesAlreadyInsideShield(shieldUnitID, shieldData.radius)

@@ -23,6 +23,7 @@ end
 local GAMESPEED = Game.gameSpeed
 local SHIELDARMORID = 4
 local SHIELDARMORIDALT = 0
+local SHIELDONRULESPARAMINDEX = 531313
 
 -----------------------------------------------------------------
 -- Small vector math lib
@@ -234,11 +235,9 @@ local function UpdateVisibility(unitID, unitData, unitVisible, forceUpdate)
 		unitData.isActive = unitIsActive
 	end
 
-	if Spring.GetUnitRulesParam (unitID, "shieldon")  == 1 then
-		Spring.Echo("it's visible!!")
+	if Spring.GetUnitRulesParam (unitID, SHIELDONRULESPARAMINDEX)  == 1 then
 		unitVisible = true
 	else
-		Spring.Echo("its not visble!")
 		unitVisible = false
 	end
 
