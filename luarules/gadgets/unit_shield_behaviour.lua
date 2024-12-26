@@ -53,7 +53,7 @@ local AOEWeaponDefIDs = {}
 local projectileShieldHitCache = {}
 
 for weaponDefID, weaponDef in ipairs(WeaponDefs) do
-	if weaponDef.customParams.shield_aoe_penetration then
+	if not weaponDef.customParams.shield_aoe_penetration then
 		AOEWeaponDefIDs[weaponDefID] = true
 	end
 
@@ -223,7 +223,6 @@ local shieldCheckChunkSize = 10
 local shieldCheckEndIndex = 1
 
 function gadget:GameFrame(frame)
-	gameSeconds = spGetGameSeconds()
 
 	for shieldUnitID, _ in pairs(shieldCheckFlags) do
 		local shieldData = shieldUnitsData[shieldUnitID]

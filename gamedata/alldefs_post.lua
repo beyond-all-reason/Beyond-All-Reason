@@ -1488,7 +1488,7 @@ function WeaponDef_Post(name, wDef)
 
 			local shieldCollisionExemptions = { --add the name of the weapons (or just the name of the unit followed by _ ) to this table to exempt from shield collision. 
 			'corsilo_', 'armsilo_', 'armthor_empmissile', 'armemp_', 'cortron_', 'corjuno_', 'armjuno_'
-		}
+			}
 
 			if wDef.damage ~= nil then
 				-- Due to the engine not handling overkill damage, we have to store the original shield damage values as a customParam for unit_shield_behavior.lua to reference
@@ -1522,11 +1522,10 @@ function WeaponDef_Post(name, wDef)
 				wDef.shield.repulser = false
 				wDef.shield.exterior = true
 			end
-			
-			if (wDef.interceptedbyshieldtype and wDef.interceptedbyshieldtype ~= 1) or
-				(not wDef.interceptedbyshieldtype and not wDef.type == "Cannon")
-				then
-					wDef.customparams.shield_aoe_penetration = true
+
+			if ((not wDef.interceptedbyshieldtype or wDef.interceptedbyshieldtype ~= 1) and wDef.weapontype ~= "Cannon") then
+				wDef.customparams.shield_aoe_penetration = true
+				Spring.Echo("penetration exemption", wDef.name)
 			end
 
 			for _, exemption in ipairs(shieldCollisionExemptions) do
