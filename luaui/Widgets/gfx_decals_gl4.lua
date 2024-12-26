@@ -7,6 +7,7 @@ function widget:GetInfo()
 		license = "Lua code: GNU GPL, v2 or later, Shader GLSL code: (c) Beherith (mysterme@gmail.com)",
 		layer = 999,
 		enabled = true,
+		depends = {'gl4'},
 	}
 end
 
@@ -1925,10 +1926,6 @@ local function UnitScriptDecal(unitID, unitDefID, whichDecal, posx, posz, headin
 end
 
 function widget:Initialize()
-	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
-		widgetHandler:RemoveWidget()
-		return
-	end
 	local t0 = Spring.GetTimer()
 	--if makeAtlases() == false then
 	--	goodbye("Failed to init texture atlas for DecalsGL4")

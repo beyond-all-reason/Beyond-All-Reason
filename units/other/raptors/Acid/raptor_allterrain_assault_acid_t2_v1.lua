@@ -110,6 +110,14 @@ return {
 				turret = true,
 				weapontimer = 0.2,
 				weaponvelocity = 520,
+				customparams = {
+					area_onhit_ceg = "acid-area-150-repeat",
+					area_onhit_damageCeg = "acid-damage-gen",
+					area_onhit_time = 10,
+					area_onhit_damage = 100,
+					area_onhit_range = 150,
+					area_onhit_resistance = "_RAPTORACID_",
+				},
 				damage = {
 					default = 1, --damage done in unit_area_timed_damage.lua
 					shields = 160,
