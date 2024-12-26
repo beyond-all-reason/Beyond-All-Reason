@@ -1523,8 +1523,14 @@ function WeaponDef_Post(name, wDef)
 				wDef.shield.exterior = true
 			end
 			
+			if (wDef.interceptedbyshieldtype and wDef.interceptedbyshieldtype ~= 1) or
+				(not wDef.interceptedbyshieldtype and not wDef.type == "Cannon")
+				then
+					wDef.customparams.shield_aoe_penetration = true
+			end
+
 			for _, exemption in ipairs(shieldCollisionExemptions) do
-				if string.find(name, exemption)then
+				if string.find(name, exemption) then
 					wDef.interceptedbyshieldtype = 2
 					wDef.customparams.shield_aoe_penetration = true
 					break
