@@ -228,10 +228,18 @@ local function UpdateVisibility(unitID, unitData, unitVisible, forceUpdate)
 		unitVisible = GetVisibleSearch(ux, uz, unitData.search)
 	end
 
-	local unitIsActive = Spring.GetUnitIsActive(unitID) 
+	local unitIsActive = Spring.GetUnitIsActive(unitID) --zzz this somehow does what I need to change
 	if unitIsActive ~= unitData.isActive then
 		forceUpdate = true
 		unitData.isActive = unitIsActive
+	end
+
+	if Spring.GetUnitRulesParam (unitID, "shieldon")  == 1 then
+		Spring.Echo("it's visible!!")
+		unitVisible = true
+	else
+		Spring.Echo("its not visble!")
+		unitVisible = false
 	end
 
 	if unitVisible == unitData.unitVisible and not forceUpdate then

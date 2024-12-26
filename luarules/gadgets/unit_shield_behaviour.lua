@@ -28,7 +28,6 @@ local shieldModulo = Game.gameSpeed
 
 local spGetUnitShieldState = Spring.GetUnitShieldState
 local spSetUnitShieldState = Spring.SetUnitShieldState
-local spGetGameSeconds = Spring.GetGameSeconds
 local spSetUnitShieldRechargeDelay = Spring.SetUnitShieldRechargeDelay
 local spDeleteProjectile = Spring.DeleteProjectile
 local spGetProjectileDefID = Spring.GetProjectileDefID
@@ -140,7 +139,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 			shieldPowerRegenEnergy = data.shieldPowerRegenEnergy,
 			shieldWeaponNumber = data.shieldWeaponNumber,		-- This is replaced with the real shieldWeaponNumber as soon as the shield is damaged
 			radius = data.shieldRadius,
-			shieldEnabled = true,			-- Virtualized enabled/disabled state until engine equivalent is changed
+			shieldEnabled = false,			-- Virtualized enabled/disabled state until engine equivalent is changed
 			shieldDamage = 0,				-- This stores the value of damages populated in ShieldPreDamaged(), then applied in GameFrame() all at once
 			shieldCoverageChecked = false,	-- Used to prevent expensive unit coverage checks being performed more than once per cycle
 			overKillDamage = 0
@@ -177,6 +176,7 @@ local function suspendShield(unitID, weaponNum)
 
 	spSetUnitShieldState(unitID, weaponNum, false)
 	shieldData.shieldEnabled = false
+	Spring.SetUnitRulesParam(unitID, "shieldon", 0, {inlos = true})
 end
 
 local function shieldNegatesDamageCheck(unitID, unitTeam, attackerID, attackerTeam)
@@ -271,7 +271,9 @@ function gadget:GameFrame(frame)
 				spSetUnitShieldState(shieldUnitID, shieldData.shieldWeaponNumber, 0)
 			end
 			if not shieldData.shieldEnabled and shieldData.overKillDamage == 0 then
+				Spring.Echo("set shield to enabled!!!")
 				shieldData.shieldEnabled = true
+				Spring.SetUnitRulesParam(shieldUnitID, "shieldon", 1, {inlos = true}) --zzz this is where I need to reference
 				spSetUnitShieldRechargeDelay(shieldUnitID, shieldData.shieldWeaponNumber, 0)
 				
 				setProjectilesAlreadyInsideShield(shieldUnitID, shieldData.radius)
