@@ -15,9 +15,6 @@ if not gadgetHandler:IsSyncedCode() then return end
 -- shield_downtime = <number in seconds>, if not set defaults to defaultDowntime
 -- shield_aoe_penetration = bool, if true then AOE damage will hurt units within the shield radius
 
--- To save on performance, do not perform AoE damage mitigation checks below this threshold, value chosen empirically to negate laser AoE from a Mammoth
-local aoeIgnoreThreshold = 11
-
 -- Units half-in/half-out of a shield should not be protected, so need a buffer of non-coverage near the edge, value chosen empirically through testing to avoid having to look up collision volumes
 local radiusExclusionBuffer = 10
 
@@ -38,6 +35,7 @@ local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
 local spAreTeamsAllied = Spring.AreTeamsAllied
 local spGetUnitIsActive = Spring.GetUnitIsActive
 local spUseUnitResource  = Spring.UseUnitResource
+local spSetUnitRulesParam = Spring.SetUnitRulesParam
 local mathMax = math.max
 local mathCeil = math.ceil
 
@@ -177,7 +175,7 @@ local function suspendShield(unitID, weaponNum)
 
 	spSetUnitShieldState(unitID, weaponNum, false)
 	shieldData.shieldEnabled = false
-	Spring.SetUnitRulesParam(unitID, shieldOnUnitRulesParamIndex, 0, {inlos = true})
+	spSetUnitRulesParam(unitID, shieldOnUnitRulesParamIndex, 0, {inlos = true})
 end
 
 local function shieldNegatesDamageCheck(unitID, unitTeam, attackerID, attackerTeam)
@@ -273,7 +271,7 @@ function gadget:GameFrame(frame)
 			end
 			if not shieldData.shieldEnabled and shieldData.overKillDamage == 0 then
 				shieldData.shieldEnabled = true
-				Spring.SetUnitRulesParam(shieldUnitID, shieldOnUnitRulesParamIndex, 1, {inlos = true}) --zzz this is where I need to reference
+				spSetUnitRulesParam(shieldUnitID, shieldOnUnitRulesParamIndex, 1, {inlos = true}) --zzz this is where I need to reference
 				spSetUnitShieldRechargeDelay(shieldUnitID, shieldData.shieldWeaponNumber, 0)
 				
 				setProjectilesAlreadyInsideShield(shieldUnitID, shieldData.radius)
