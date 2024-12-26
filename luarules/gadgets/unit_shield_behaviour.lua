@@ -51,10 +51,9 @@ local projectileDefIDCache = {}
 local shieldedUnits = {}
 local AOEWeaponDefIDs = {}
 local projectileShieldHitCache = {}
-local gameSeconds = 0
 
 for weaponDefID, weaponDef in ipairs(WeaponDefs) do
-	if weaponDef.damageAreaOfEffect > aoeIgnoreThreshold and not weaponDef.customParams.shield_aoe_penetration then
+	if weaponDef.customParams.shield_aoe_penetration then
 		AOEWeaponDefIDs[weaponDefID] = true
 	end
 
