@@ -146,9 +146,9 @@ local function updateAimingState(attackerID)
 	local dIsUserTarget, dTarget = select(2, spGetUnitWeaponTarget(attackerID, defData.deferredWeapon))
 
 	local preferredCanShoot = false
-	if pTargetType == 1 then
+	if pTargetType == AimingState_Preferred then
 		preferredCanShoot = spGetUnitWeaponHaveFreeLineOfFire(attackerID, defData.trajectoryCheckWeapon, pTarget)
-	elseif pTargetType == 2 then
+	elseif pTargetType == AimingState_Deferred then
 		preferredCanShoot = spGetUnitWeaponHaveFreeLineOfFire(attackerID, defData.trajectoryCheckWeapon, nil, nil, nil,
 			pTarget[1], pTarget[2], pTarget[3])
 	end
