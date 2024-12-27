@@ -229,7 +229,7 @@ local function UpdateVisibility(unitID, unitData, unitVisible, forceUpdate)
 		unitVisible = GetVisibleSearch(ux, uz, unitData.search)
 	end
 
-	local unitIsActive = Spring.GetUnitIsActive(unitID) --zzz this somehow does what I need to change
+	local unitIsActive = Spring.GetUnitIsActive(unitID)
 	if unitIsActive ~= unitData.isActive then
 		forceUpdate = true
 		unitData.isActive = unitIsActive
