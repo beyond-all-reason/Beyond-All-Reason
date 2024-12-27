@@ -1,7 +1,7 @@
 function gadget:GetInfo()
 	return {
 		name = "Shield Behaviour",
-		desc = "Overrides default shield engine behavior. Defines downtime.",
+		desc = "Overrides default shield engine behavior.",
 		author = "SethDGamre",
 		layer = 1,
 		enabled = true
@@ -12,7 +12,6 @@ if not Spring.GetModOptions().shieldsrework then return false end
 if not gadgetHandler:IsSyncedCode() then return end
 
 ---- Optional unit customParams ----
--- shield_downtime = <number in seconds>, if not set defaults to defaultDowntime
 -- shield_aoe_penetration = bool, if true then AOE damage will hurt units within the shield radius
 
 -- If a unit doesn't have a defined shield damage or default damage, fallbackShieldDamage will be used as a fallback.
