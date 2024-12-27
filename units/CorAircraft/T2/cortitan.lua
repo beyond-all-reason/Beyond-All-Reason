@@ -121,6 +121,8 @@ return {
 				customparams = {
 					speceffect = "torpwaterpen",
 					when = "ypos<0",
+					leash_distance = 150,
+					overrange_distance = 150,
 				},
 				damage = {
 					default = 500,
