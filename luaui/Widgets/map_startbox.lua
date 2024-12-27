@@ -244,7 +244,6 @@ local fullScreenRectVAO
 local startPolygonShader
 local startPolygonBuffer = nil -- GL.SHADER_STORAGE_BUFFER for polygon
 
-
 local coneShaderSourceCache = {
 	vssrcpath = "LuaUI/Widgets/Shaders/map_startcone_gl4.vert.glsl",
 	fssrcpath = "LuaUI/Widgets/Shaders/map_startcone_gl4.frag.glsl",
@@ -265,9 +264,8 @@ local coneShaderSourceCache = {
 local startConeVBOTable = nil
 local startConeShader = nil
 
-
-
 local function DrawStartPolygons(inminimap)	
+
 	local advUnitShading, advMapShading = Spring.HaveAdvShading()
 
 	if advMapShading then 
@@ -288,7 +286,7 @@ local function DrawStartPolygons(inminimap)
 
 	startPolygonBuffer:BindBufferRange(4)
 
-	gl.Culling(GL.FRONT)
+	gl.Culling(true)
 	gl.DepthTest(false)
 	gl.DepthMask(false)
 
@@ -305,7 +303,7 @@ local function DrawStartPolygons(inminimap)
 	gl.Texture(2, false)
 	gl.Texture(3, false)
 	gl.Texture(4, false)
-	gl.Culling(GL.BACK)
+	gl.Culling(false)
 	gl.DepthTest(false)
 end
 

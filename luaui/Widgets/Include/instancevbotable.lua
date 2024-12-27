@@ -1283,11 +1283,11 @@ function MakeTexRectVAO(minX,minY, maxX, maxY, minU, minV, maxU, maxV)
 	rectVBO:Upload({
 			
 		minX,minY, minU, minV, --bl
-		minX,maxY, minU, maxV, --tr
 		maxX,maxY, maxU, maxV, --tr
+		minX,maxY, minU, maxV, --tl
 		maxX,maxY, maxU, maxV, --tr
-		maxX,minY, maxU, minV, --br
 		minX,minY, minU, minV, --bl
+		maxX,minY, maxU, minV, --br
 			})
 	
 	--[[rectVBO:Upload( {
