@@ -141,7 +141,7 @@ return {
 				},
 				customparams = {
 					exclude_preaim = true,
-					smart_deferred_weapon = true,
+					smart_backup = true,
 				}
 			},
 			shocker_low = {
@@ -179,7 +179,7 @@ return {
 				},
 				customparams = {
 					exclude_preaim = true,
-					smart_preferred_weapon = true,
+					smart_priority = true,
 				}
 			},
 			smart_trajectory_dummy = {

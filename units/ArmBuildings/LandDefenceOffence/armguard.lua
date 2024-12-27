@@ -132,7 +132,7 @@ return {
 				},
 				customparams = {
 					exclude_preaim = true,
-					smart_preferred_weapon = true,
+					smart_priority = true,
 				}
 			},
 			plasma_high = {
@@ -165,7 +165,7 @@ return {
 				},
 				customparams = {
 					exclude_preaim = true,
-					smart_deferred_weapon = true,
+					smart_backup = true,
 				}
 			},
 			smart_trajectory_dummy = {

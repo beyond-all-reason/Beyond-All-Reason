@@ -15,12 +15,12 @@ to this script the manual targetting events.
 #include "smart_weapon_select.h"
 
 2. in beginning of low AimWeapon function:
-if (AimingState != AIMING_PREFERRED){ 
+if (AimingState != AIMING_PRIORITY){ 
 	return 0;
 }
 
 3. in beginning of high AimWeapon function:
-if (AimingState != AIMING_DEFERRED){ 
+if (AimingState != AIMING_BACKUP){ 
 	return 0;
 }
   */
@@ -31,15 +31,15 @@ static-var AimingState;
 
 #define __SMARTSELECT_H_
 
-#define AIMING_PREFERRED	1
-#define AIMING_DEFERRED		2
+#define AIMING_PRIORITY		1
+#define AIMING_BACKUP		2
 
 SetAimingState(newState)
 {
-	if (newState == AIMING_PREFERRED){
-		AimingState = AIMING_PREFERRED;
+	if (newState == AIMING_PRIORITY){
+		AimingState = AIMING_PRIORITY;
 	} else{
-		AimingState = AIMING_DEFERRED;
+		AimingState = AIMING_BACKUP;
 	}
 }
 
