@@ -301,7 +301,7 @@ local fullScreenRectVAO
 local startPolygonShader
 local startPolygonBuffer = nil -- GL.SHADER_STORAGE_BUFFER for polygon
 
-local function DrawStartPolygons(inminimap)	
+local function DrawStartPolygons(inminimap)
 	local advUnitShading, advMapShading = Spring.HaveAdvShading()
 
 	if advMapShading then 
@@ -322,7 +322,7 @@ local function DrawStartPolygons(inminimap)
 
 	startPolygonBuffer:BindBufferRange(4)
 
-	gl.Culling(GL.FRONT)
+	gl.Culling(true)
 	gl.DepthTest(false)
 	gl.DepthMask(false)
 
@@ -339,7 +339,7 @@ local function DrawStartPolygons(inminimap)
 	gl.Texture(2, false)
 	gl.Texture(3, false)
 	gl.Texture(4, false)
-	gl.Culling(GL.BACK)
+	gl.Culling(false)
 	gl.DepthTest(false)
 end
 
@@ -504,7 +504,7 @@ local function DrawStartboxes3dWithStencil()
 
 	gl.CallList(startboxDListStencil)   --// draw
 
-	gl.Culling(GL.BACK)
+	gl.Culling(true)
 	gl.DepthTest(false)
 
 	gl.ColorMask(true, true, true, true)
