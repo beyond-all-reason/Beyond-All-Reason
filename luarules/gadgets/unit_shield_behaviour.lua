@@ -91,19 +91,16 @@ for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 		beamtimeReductionMultiplier = 1 / math.floor(weaponDef.beamtime * Game.gameSpeed)
    end
 
-   local minimumMinIntensity = 0.65
-   local damageFalloffUnitTypes = {
-	"BeamLaser",
-	"Flame",
-	"LaserCannon",
-	"LightningCannon"
-   }
-   local hasDamageFalloff = false
-   for _, exemption in ipairs(damageFalloffUnitTypes) do
-		if exemption == weaponDef.type then
-			hasDamageFalloff = true
-			break
-		end
+	local minimumMinIntensity = 0.65
+	local hasDamageFalloff = false
+	local damageFalloffUnitTypes = {
+		BeamLaser = true,
+		Flame = true,
+		LaserCannon = true,
+		LightningCannon = true,
+	}
+	if damageFalloffUnitTypes[weaponDef.type] then
+		hasDamageFalloff = true
 	end
    
    if weaponDef.minIntensity and hasDamageFalloff then
