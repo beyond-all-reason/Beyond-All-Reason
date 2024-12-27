@@ -228,13 +228,15 @@ end
 
 local function shieldNegatesDamageCheck(unitID, unitTeam, attackerID, attackerTeam)
 	-- It is possible for attackerID to be nil, e.g. damage from death explosion
-	if shieldedUnits[unitID] and next(shieldedUnits[unitID]) and attackerID and not spAreTeamsAllied(unitTeam, attackerTeam) then
-		if not shieldedUnits[attackerID] or (not next(shieldedUnits[attackerID]) and next(shieldedUnits[unitID])) then
+	local unitShields = shieldedUnits[unitID]
+	if unitShields and next(unitShields) and attackerID and not spAreTeamsAllied(unitTeam, attackerTeam) then
+		local attackerShields = shieldedUnits[attackerID]
+		if not attackerShields or not next(attackerShields) then
 			return true
 		end
 
-		for shieldUnitID, _ in pairs(shieldedUnits[unitID]) do
-			if shieldedUnits[attackerID][shieldUnitID] then
+		for shieldUnitID, _ in pairs(unitShields) do
+			if attackerShields[shieldUnitID] then
 				break
 			else
 				--The units have to share all of the same shield spaces. As soon as a mismatch is found, that means they don't occupy the same shield space and the shot should be blocked.
