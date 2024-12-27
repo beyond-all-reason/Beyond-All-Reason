@@ -23,7 +23,7 @@ end
 local GAMESPEED = Game.gameSpeed
 local SHIELDARMORID = 4
 local SHIELDARMORIDALT = 0
-local SHIELDONRULESPARAMINDEX = 531313
+local SHIELDONRULESPARAMINDEX = 531313 -- not a string due to perfmaxxing
 
 -----------------------------------------------------------------
 -- Small vector math lib
