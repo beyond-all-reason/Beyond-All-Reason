@@ -47,7 +47,7 @@ return {
 		buildoptions = {
 			[1] = "corvalk",
 			[2] = "corfink",
-			[3] = "cormine4",
+			[3] = "cormine2",
 			[4] = "cormaw",
 			[5] = "cordrag",
 			[6] = "coreyes",

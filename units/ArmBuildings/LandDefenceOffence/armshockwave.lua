@@ -159,6 +159,9 @@ return {
 					default = 800,
 					vtol = 0,
 				},
+				customparams = {
+					exclude_preaim = true
+				}
 			},
 		},
 		weapons = {
