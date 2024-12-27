@@ -34,9 +34,9 @@ static-var AimingState;
 #define AIMING_PREFERRED	1
 #define AIMING_DEFERRED		2
 
-SetAimingState(weaponNumber)
+SetAimingState(newState)
 {
-	if (weaponNumber == AIMING_PREFERRED){
+	if (newState == AIMING_PREFERRED){
 		AimingState = AIMING_PREFERRED;
 	} else{
 		AimingState = AIMING_DEFERRED;
