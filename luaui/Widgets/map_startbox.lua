@@ -6,7 +6,8 @@ function widget:GetInfo()
 		date = "2007-2009",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
+		depends = {'gl4'}
 	}
 end
 
@@ -42,21 +43,15 @@ local usedFontSize = fontSize
 
 local widgetScale = (1 + (vsx * vsy / 5500000))
 
-local msx = Game.mapSizeX
-local msz = Game.mapSizeZ
-
-
 local isSpec = Spring.GetSpectatingState() or Spring.IsReplay()
 local myTeamID = Spring.GetMyTeamID()
 
-local flipped = false
 
 local placeVoiceNotifTimer = false
 local playedChooseStartLoc = false
 local amPlaced = false
 
 local gaiaTeamID
-local gaiaAllyTeamID
 
 local startTimer = Spring.GetTimer()
 
@@ -161,16 +156,6 @@ function widget:LanguageChanged()
 	createInfotextList()
 end
 
-local function drawFormList()
-	gl.LoadIdentity()
-	if flipped then -- minimap is flipped
-		gl.Translate(1, 0, 0)
-		gl.Scale(-1 / msx, 1 / msz, 1)
-	else
-		gl.Translate(0, 1, 0)
-		gl.Scale(1 / msx, -1 / msz, 1)
-	end
-end
 
 ---------------------------------- StartPolygons ----------------------------------
 -- Note: this is now updated to support arbitrary start polygons via GL.SHADER_STORAGE_BUFFER
@@ -216,7 +201,7 @@ for i = 1, #teams do
 	end
 end
 ---- Config stuff ------------------
-local autoReload = true -- refresh shader code every second (disable in production!)
+local autoReload = false -- refresh shader code every second (disable in production!)
 
 local StartPolygons = {} -- list of points in clockwise order
 
@@ -224,12 +209,6 @@ local luaShaderDir = "LuaUI/Widgets/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 
-local minY, maxY = Spring.GetGroundExtremes()
-local waterlevel = (Spring.GetModOption and Spring.GetModOptions().map_waterlevel) or 0
-if waterlevel > 0 then
-	minY = minY - waterlevel
-	maxY = maxY - waterlevel
-end	
 -- Spring.Echo('Spring.GetGroundExtremes', minY, maxY, waterlevel)
 
 local shaderSourceCache = {
@@ -254,8 +233,6 @@ local shaderSourceCache = {
 			ALPHA = 0.5,
 			NUM_POLYGONS = 0,
 			NUM_POINTS = 0,
-			MINY = minY - 10,
-			MAXY = maxY + 100,
 			MAX_STEEPNESS = math.cos(math.rad(54)),
 			SCAV_ALLYTEAM_ID = scavengerAIAllyTeamID, -- these neatly become undefined if not present
 			RAPTOR_ALLYTEAM_ID = raptorsAIAllyTeamID,
@@ -375,6 +352,15 @@ local function InitStartPolygons()
 
 	shaderSourceCache.shaderConfig.NUM_BOXES = #StartPolygons
 
+	local minY, maxY = Spring.GetGroundExtremes()
+	local waterlevel = (Spring.GetModOption and Spring.GetModOptions().map_waterlevel) or 0
+	if waterlevel > 0 then
+		minY = minY - waterlevel
+		maxY = maxY - waterlevel
+	end	
+	shaderSourceCache.shaderConfig.MINY = minY - 1024
+	shaderSourceCache.shaderConfig.MAXY = maxY + 1024
+
 	local numvertices = 0
 	local bufferdata = {}
 	local numPolygons = 0
@@ -448,7 +434,6 @@ end
 --------------------------------------------------------------------------------
 
 function widget:Initialize()
-	Spring.Echo("StartBox init")
 	-- only show at the beginning
 	if Spring.GetGameFrame() > 1 then
 		widgetHandler:RemoveWidget()
@@ -460,15 +445,6 @@ function widget:Initialize()
 	assignTeamColors()
 
 	gaiaTeamID = Spring.GetGaiaTeamID()
-	if gaiaTeamID then
-		gaiaAllyTeamID = select(6, Spring.GetTeamInfo(gaiaTeamID, false))
-	end
-
-
-	local waterlevel = 0
-	if Spring.GetModOptions().map_waterlevel ~= 0 then
-		waterlevel = Spring.GetModOptions().map_waterlevel
-	end
 
 	createInfotextList()
 
@@ -578,17 +554,8 @@ function widget:DrawInMiniMap(sx, sz)
 		widgetHandler:RemoveWidget()
 	end
 
-	local gaiaAllyTeamID
-	local gaiaTeamID = Spring.GetGaiaTeamID()
-	if gaiaTeamID then
-		gaiaAllyTeamID = select(6, Spring.GetTeamInfo(gaiaTeamID, false))
-	end
-
-	-- show all start boxes
 	DrawStartPolygons(true)
-
 	DrawStartCones(true)
-
 end
 
 function widget:ViewResize(x, y)
@@ -609,14 +576,7 @@ function widget:ViewResize(x, y)
 end
 
 -- reset needed when waterlevel has changed by gadget (modoption)
-local resetsec = 0
-local resetted = false
-local doWaterLevelCheck = false
-if Spring.GetModOptions().map_waterlevel ~= 0 then
-	doWaterLevelCheck = true
-end
 
-local groundHeightPoint = Spring.GetGroundHeight(0, 0)
 local sec = 0
 function widget:Update(delta)
 	if Spring.GetGameFrame() > 1 then
@@ -624,16 +584,6 @@ function widget:Update(delta)
 	end
 	if not placeVoiceNotifTimer then
 		placeVoiceNotifTimer = os.clock() + 30
-	end
-
-	if (doWaterLevelCheck and not resetted) or (Spring.IsCheatingEnabled() and Spring.GetGroundHeight(0, 0) ~= groundHeightPoint) then
-		resetsec = resetsec + delta
-		if resetsec > 1 then
-			groundHeightPoint = Spring.GetGroundHeight(0, 0)
-			resetted = true
-			removeLists()
-			widget:Initialize()
-		end
 	end
 
 	if draftMode == nil or draftMode == "disabled" then -- otherwise draft mod will play it instead
@@ -656,11 +606,6 @@ function widget:Update(delta)
 			if oldTeamColors[teamID] ~= teamColors[teamID] then
 				detectedChanges = true
 			end
-		end
-
-		local newFlipped = getMiniMapFlipped()
-		if flipped ~= newFlipped then
-			flipped = newFlipped
 		end
 
 		if detectedChanges then

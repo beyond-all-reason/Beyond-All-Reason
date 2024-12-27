@@ -29,23 +29,23 @@ out DataVS {
 #line 11000
 void main()
 {
-    v_teamcolor = teamcolor;
-    vec4 worldPos = vec4(position.xyz, 1.0);
-    
-    if (isMinimap < 0.5) { // world
-        worldPos.xyz = worldPos.xyz + worldposrad.xyz;
-        v_worldposrad = vec4(worldPos.xyz, worldposrad.w);
-        gl_Position = cameraViewProj * worldPos;
-    }else{
-        //vec2 ndcxy = normalize(position.xz);//  * 100/256.0;
-        //if (length(position.xz) < 1e3) { ndcxy = vec2(0);}
-        vec2    ndcxy = position.xz * 0.0005;
-        ndcxy = (worldposrad.xz / mapSize.xy + ndcxy) * 2.0 - 1.0;
-        if (flipMiniMap < 1) {
-            ndcxy.y = - ndcxy.y;
-        }else{
-            ndcxy.x = -1* ndcxy.x;
-        }
-        gl_Position = vec4(ndcxy, 0.0, 1.0);
-    }
+	v_teamcolor = teamcolor;
+	vec4 worldPos = vec4(position.xyz, 1.0);
+	
+	if (isMinimap < 0.5) { // world
+		worldPos.xyz = worldPos.xyz + worldposrad.xyz;
+		v_worldposrad = vec4(worldPos.xyz, worldposrad.w);
+		gl_Position = cameraViewProj * worldPos;
+	}else{
+		//vec2 ndcxy = normalize(position.xz);//  * 100/256.0;
+		//if (length(position.xz) < 1e3) { ndcxy = vec2(0);}
+		vec2 ndcxy = position.xz * 0.0005;
+		ndcxy = (worldposrad.xz / mapSize.xy + ndcxy) * 2.0 - 1.0;
+		if (flipMiniMap < 1) {
+			ndcxy.y *= -1;
+		}else{
+			ndcxy.x *= -1;
+		}
+		gl_Position = vec4(ndcxy, 0.0, 1.0);
+	}
 }

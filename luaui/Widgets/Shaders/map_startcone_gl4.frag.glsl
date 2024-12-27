@@ -22,5 +22,5 @@ out vec4 fragColor;
 
 void main() {
 	fragColor.rgba = v_teamcolor;
-    //fragColor.rgba= vec4(1.0, 0.0, 0.0, 1.0);
+	//fragColor.rgba= vec4(1.0, 0.0, 0.0, 1.0);
 }
