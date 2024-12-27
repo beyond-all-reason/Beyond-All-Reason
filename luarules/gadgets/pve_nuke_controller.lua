@@ -47,7 +47,17 @@ for i = 1, #teams do
 end
 
 local nukeDefs = {}
-for _, unitDefName in ipairs({"raptor_turret_meteor_t4_v1", "corsilo_scav", "armsilo_scav", "legsilo_scav", "corjuno_scav", "armjuno_scav", "legstarfall_scav"}) do 
+for _, unitDefName in ipairs({
+        "raptor_turret_meteor_t4_v1",
+        "corsilo_scav",
+        "armsilo_scav",
+        "legsilo_scav",
+        "corjuno_scav",
+        "armjuno_scav",
+        "legstarfall_scav",
+        "armseadragon_scav",
+        "cordesolator_scav",
+    }) do 
 	if UnitDefNames[unitDefName] then 
 		nukeDefs[UnitDefNames[unitDefName].id] = true
 	end
