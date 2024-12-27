@@ -1525,7 +1525,6 @@ function WeaponDef_Post(name, wDef)
 
 			if ((not wDef.interceptedbyshieldtype or wDef.interceptedbyshieldtype ~= 1) and wDef.weapontype ~= "Cannon") then
 				wDef.customparams.shield_aoe_penetration = true
-				Spring.Echo("penetration exemption", wDef.name)
 			end
 
 			for _, exemption in ipairs(shieldCollisionExemptions) do
