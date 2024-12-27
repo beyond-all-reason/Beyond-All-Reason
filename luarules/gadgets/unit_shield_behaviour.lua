@@ -22,6 +22,7 @@ local directHitQualifyingMultiplier = 0.95
 
 local shieldModulo = Game.gameSpeed
 local shieldOnUnitRulesParamIndex = 531313
+local INLOS = {inlos = true}
 
 local spGetUnitShieldState = Spring.GetUnitShieldState
 local spSetUnitShieldState = Spring.SetUnitShieldState
@@ -223,7 +224,7 @@ local function suspendShield(unitID, weaponNum)
 
 	spSetUnitShieldState(unitID, weaponNum, false)
 	shieldData.shieldEnabled = false
-	spSetUnitRulesParam(unitID, shieldOnUnitRulesParamIndex, 0, {inlos = true})
+	spSetUnitRulesParam(unitID, shieldOnUnitRulesParamIndex, 0, INLOS)
 end
 
 local function shieldNegatesDamageCheck(unitID, unitTeam, attackerID, attackerTeam)
@@ -321,7 +322,7 @@ function gadget:GameFrame(frame)
 			end
 			if not shieldData.shieldEnabled and shieldData.overKillDamage == 0 then
 				shieldData.shieldEnabled = true
-				spSetUnitRulesParam(shieldUnitID, shieldOnUnitRulesParamIndex, 1, {inlos = true})
+				spSetUnitRulesParam(shieldUnitID, shieldOnUnitRulesParamIndex, 1, INLOS)
 				spSetUnitShieldRechargeDelay(shieldUnitID, shieldData.shieldWeaponNumber, 0)
 				
 				setProjectilesAlreadyInsideShield(shieldUnitID, shieldData.radius)
