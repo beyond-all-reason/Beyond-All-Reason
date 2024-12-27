@@ -38,21 +38,21 @@ use weapondef.customparams.smart_error_frames to override the default reloadtime
 local frameCheckModulo = Game.gameSpeed
 local failedToFireMultiplier = Game.gameSpeed * 1.25
 local minimumFailedToFireFrames = Game.gameSpeed * 4
-local aggroDecayRate = 0.65
-local aggroDecayCap = 10
-local tallyDecayRate = 0.99
-local errorMultiplierAddition = 1
+local aggroDecayRate = 0.65 --aggro is multiplied by this until it falls within priority aiming state range
+local aggroDecayCap = 10 -- this caps the aggro decay so that error state can last a significant amount of time
+local errorTallyDecayRate = 0.99  -- the error penalty that makes the error state last longer the more cumulative times it happens decays at this rate
+local errorMultiplierAddition = 1 -- every time the error happens, it increases by this number. The tally is squared to make each cumulative error exponentially more punishing
 local PRIORITY_AIMINGSTATE = 1
 local BACKUP_AIMINGSTATE = 2
 
-local priorityAutoAggro = 12
-local priorityManualAggro = priorityAutoAggro * 4
-local prioritySwitchThreshold = -1
+local priorityAutoAggro = 12 -- how much aggro is accumulated per frameCheckModulo that the priority weapon successfully aims
+local priorityManualAggro = priorityAutoAggro * 4 -- how much aggro is accumulated per frameCheckModulo that the priority weapon successfully aims with a manually assigned target
+local prioritySwitchThreshold = -1  --the aggro at which priority weapon switch is triggered. Aggro is decayed closer to 0 every frameCheckModulo
 
-local backupAutoAggro = 4
-local backupManualAggro = priorityAutoAggro * 3
-local backupErrorAggro = -300
-local backupSwitchThreshold = -backupAutoAggro * 1.5
+local backupAutoAggro = 4 -- how much aggro is accumulated per frameCheckModulo that the priority weapon fails to aim
+local backupManualAggro = priorityAutoAggro * 3 --how much aggro is accumulated per frameCheckModulo that the priority weapon fails to aim with a manually assigned target
+local backupErrorAggro = -300 --how much aggro is given multiplied by the errorTallyMultiplier^2 when priority weapon fails to fire.
+local backupSwitchThreshold = -backupAutoAggro * 1.5 --the aggro at which backup weapon switch is triggered. Aggro is decayed closer to 0 every frameCheckModulo
 
 --variables
 local gameFrame = 0
@@ -190,7 +190,7 @@ local function updateAimingState(attackerID)
 		end
 	end
 
-	data.errorTallyMultiplier = data.errorTallyMultiplier * tallyDecayRate
+	data.errorTallyMultiplier = data.errorTallyMultiplier * errorTallyDecayRate
 	if data.aggroBias >= prioritySwitchThreshold then
 		data.aggroBias = mathMax(data.aggroBias * aggroDecayRate, data.aggroBias - aggroDecayCap)
 		spCallCOBScript(attackerID, data.setStateScriptID, 0, PRIORITY_AIMINGSTATE)
