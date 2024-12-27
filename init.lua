@@ -32,6 +32,8 @@ if commonFunctions.spring[environment] then
 	local springFunctions = VFS.Include('common/springFunctions.lua')
 	Spring.Utilities = Spring.Utilities or springFunctions.Utilities
 	Spring.Debug = Spring.Debug or springFunctions.Debug
+	-- extend platform
+	VFS.Include('common/platformFunctions.lua')
 end
 
 if commonFunctions.i18n[environment] then
