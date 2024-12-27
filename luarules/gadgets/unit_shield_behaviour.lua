@@ -97,7 +97,7 @@ for weaponDefID, weaponDef in ipairs(WeaponDefs) do
    }
    local hasDamageFalloff = false
    for _, exemption in ipairs(damageFalloffUnitTypes) do
-		if string.find(weaponDef.type, exemption) then
+		if exemption == weaponDef.type then
 			hasDamageFalloff = true
 			break
 		end
@@ -105,7 +105,6 @@ for weaponDefID, weaponDef in ipairs(WeaponDefs) do
    
    if weaponDef.minIntensity and hasDamageFalloff then
 	minIntensity = math.max(minimumMinIntensity, weaponDef.minIntensity)
-	Spring.Echo("weaponDef.minIntensity", weaponDef.name, weaponDef.minIntensity)
    end
 
 	highestWeapDefDamages[weaponDefID] = math.floor(highestDamage * beamtimeReductionMultiplier * minIntensity)
