@@ -18,6 +18,9 @@ if not gadgetHandler:IsSyncedCode() then return end
 -- If a unit doesn't have a defined shield damage or default damage, fallbackShieldDamage will be used as a fallback.
 local fallbackShieldDamage = 0
 
+-- this defines what amount of the total damage a unit deals qualifies as a direct hit for units that are in the vague areas between covered and not covered by shields (typically on edges or sticking out partially)
+local directHitQualifyingMultiplier = 0.95
+
 local shieldModulo = Game.gameSpeed
 local shieldOnUnitRulesParamIndex = 531313
 
@@ -107,7 +110,7 @@ for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 	minIntensity = math.max(minimumMinIntensity, weaponDef.minIntensity)
    end
 
-	highestWeapDefDamages[weaponDefID] = math.floor(highestDamage * beamtimeReductionMultiplier * minIntensity)
+	highestWeapDefDamages[weaponDefID] = highestDamage * beamtimeReductionMultiplier * minIntensity * directHitQualifyingMultiplier
 end
 
 for unitDefID, unitDef in pairs(UnitDefs) do
