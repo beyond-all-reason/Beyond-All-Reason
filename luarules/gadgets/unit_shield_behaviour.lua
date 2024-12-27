@@ -15,9 +15,6 @@ if not gadgetHandler:IsSyncedCode() then return end
 -- shield_downtime = <number in seconds>, if not set defaults to defaultDowntime
 -- shield_aoe_penetration = bool, if true then AOE damage will hurt units within the shield radius
 
--- Units half-in/half-out of a shield should not be protected, so need a buffer of non-coverage near the edge, value chosen empirically through testing to avoid having to look up collision volumes
-local radiusExclusionBuffer = 10
-
 -- If a unit doesn't have a defined shield damage or default damage, fallbackShieldDamage will be used as a fallback.
 local fallbackShieldDamage = 0
 
@@ -36,6 +33,7 @@ local spAreTeamsAllied = Spring.AreTeamsAllied
 local spGetUnitIsActive = Spring.GetUnitIsActive
 local spUseUnitResource  = Spring.UseUnitResource
 local spSetUnitRulesParam = Spring.SetUnitRulesParam
+local spGetUnitArmored = Spring.GetUnitArmored
 local mathMax = math.max
 local mathCeil = math.ceil
 
@@ -49,6 +47,8 @@ local projectileDefIDCache = {}
 local shieldedUnits = {}
 local AOEWeaponDefIDs = {}
 local projectileShieldHitCache = {}
+local highestWeapDefDamages = {}
+local armoredUnitDefs = {}
 
 for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 	if not weaponDef.customParams.shield_aoe_penetration then
@@ -66,6 +66,49 @@ for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 	if weaponDef.type == 'Flame' or weaponDef.customParams.overpenetrate then
 		forceDeleteWeapons[weaponDefID] = weaponDef
 	end
+
+	local highestDamage = 0
+	if weaponDef.damages then
+		for type, damage in ipairs(weaponDef.damages) do
+			if damage > highestDamage then
+				highestDamage = damage
+			end
+		end
+	end
+
+	--this section calculates the rough amount of damage required to be considered a "direct hit", which assumes it didn't happen from AOE reaching inside shield.
+	local beamtimeReductionMultiplier = 1
+	local minIntensity = 1
+	if weaponDef.beamtime and weaponDef.beamtime < 1 then
+		local minimumMinIntensity = 0.5
+		local minIntensity = weaponDef.minIntensity or minimumMinIntensity
+		minIntensity = math.max(minIntensity, minimumMinIntensity)
+		-- This splits up the damage of hitscan weapons over the duration of beamtime, as each frame counts as a hit in ShieldPreDamaged() callin
+		-- Math.floor is used to sheer off the extra digits of the number of frames that the hits occur
+		beamtimeReductionMultiplier = 1 / math.floor(weaponDef.beamtime * Game.gameSpeed)
+   end
+
+   local minimumMinIntensity = 0.65
+   local damageFalloffUnitTypes = {
+	"BeamLaser",
+	"Flame",
+	"LaserCannon",
+	"LightningCannon"
+   }
+   local hasDamageFalloff = false
+   for _, exemption in ipairs(damageFalloffUnitTypes) do
+		if string.find(weaponDef.type, exemption) then
+			hasDamageFalloff = true
+			break
+		end
+	end
+   
+   if weaponDef.minIntensity and hasDamageFalloff then
+	minIntensity = math.max(minimumMinIntensity, weaponDef.minIntensity)
+	Spring.Echo("weaponDef.minIntensity", weaponDef.name, weaponDef.minIntensity)
+   end
+
+	highestWeapDefDamages[weaponDefID] = math.floor(highestDamage * beamtimeReductionMultiplier * minIntensity)
 end
 
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -92,6 +135,10 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			end
 		end
 	end
+
+	if unitDef.armoredMultiple and unitDef.armoredMultiple < 1 and unitDef.armoredMultiple > 0 then
+		armoredUnitDefs[unitDefID] = unitDef.armoredMultiple
+	end
 end
 
 ----local functions----
@@ -111,7 +158,7 @@ local function setCoveredUnits(shieldUnitID)
 	if not shieldData or not x then
 		return
 	else
-		local unitsTable = spGetUnitsInSphere(x, y, z, (shieldData.radius - radiusExclusionBuffer))
+		local unitsTable = spGetUnitsInSphere(x, y, z, shieldData.radius)
 
 		for _, unitID in ipairs(unitsTable) do
 			shieldedUnits[unitID] = shieldedUnits[unitID] or {}
@@ -271,7 +318,7 @@ function gadget:GameFrame(frame)
 			end
 			if not shieldData.shieldEnabled and shieldData.overKillDamage == 0 then
 				shieldData.shieldEnabled = true
-				spSetUnitRulesParam(shieldUnitID, shieldOnUnitRulesParamIndex, 1, {inlos = true}) --zzz this is where I need to reference
+				spSetUnitRulesParam(shieldUnitID, shieldOnUnitRulesParamIndex, 1, {inlos = true})
 				spSetUnitShieldRechargeDelay(shieldUnitID, shieldData.shieldWeaponNumber, 0)
 				
 				setProjectilesAlreadyInsideShield(shieldUnitID, shieldData.radius)
@@ -319,8 +366,23 @@ function gadget:GameFrame(frame)
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
+	
 	if not AOEWeaponDefIDs[weaponDefID] or projectileShieldHitCache[projectileID] then
 		return damage
+	end
+
+	local directHitThreshold = highestWeapDefDamages[weaponDefID]
+	if directHitThreshold then
+		local armoredMultiple = armoredUnitDefs[unitDefID]
+		if armoredMultiple then
+			local isArmored = spGetUnitArmored(unitID)
+			if isArmored and damage >= directHitThreshold * armoredMultiple then
+				return damage
+			end
+		end
+		if damage >= directHitThreshold then
+			return damage
+		end
 	end
 
 	if shieldNegatesDamageCheck(unitID, unitTeam, attackerID, attackerTeam) then
