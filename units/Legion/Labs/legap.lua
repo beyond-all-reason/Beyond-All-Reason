@@ -9,7 +9,7 @@ return {
 		buildpic = "LEGAP.DDS",
 		buildtime = 7180,
 		canmove = true,
-		collisionvolumeoffsets = "0 22 0",
+		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "96 45 96",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
@@ -59,7 +59,7 @@ return {
 			dead = {
 				blocking = true,
 				category = "corpses",
-				collisionvolumeoffsets = "0 22 0",
+				collisionvolumeoffsets = "0 0 0",
 				collisionvolumescales = "96 45 96",
 				collisionvolumetype = "Box",
 				damage = 1155,
