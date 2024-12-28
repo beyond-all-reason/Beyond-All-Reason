@@ -32,14 +32,16 @@ local function handleCaching(invert, tokenLower, filterFunction, optionalArg)
 		filterCache[tokenLower][optionalArg] = {}
 	end
 
+	local cache = filterCache[tokenLower][optionalArg]
+
 	return function(udef)
-		if filterCache[tokenLower][optionalArg][udef] == nil then
+		if cache[udef] == nil then
 			local result = filterFunction(udef, optionalArg)
 			-- handle invert explicitly here for caching
 			result = (result or false) ~= invert
-			filterCache[tokenLower][optionalArg][udef] = result
+			cache[udef] = result
 		end
-		return filterCache[tokenLower][optionalArg][udef]
+		return cache[udef]
 	end
 end
 
