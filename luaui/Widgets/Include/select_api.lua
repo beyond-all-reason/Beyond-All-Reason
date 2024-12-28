@@ -188,7 +188,7 @@ local function parseFilter(filterDef)
 			end)
 		elseif tokenLower == "patrolling" then
 			filters.patrolling = invertCurry(invert, function(_udef, _udefid, uid)
-				-- patrol is implemented using the queue
+				-- patrol is implemented using the command queue
 				-- so need to check the first four positions
 				for i = 1, 4, 1 do
 					if checkCmd(uid, CMD.PATROL, i) then
