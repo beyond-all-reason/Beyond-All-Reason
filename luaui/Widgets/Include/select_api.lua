@@ -517,21 +517,23 @@ local function parseConclusion(conclusionDef)
 end
 
 local function parseSource(sourceDef)
-	if sourceDef == "AllMap" then
+	local sourceDefLower = string.lower(sourceDef)
+
+	if sourceDefLower == "allmap" then
 		return function()
 			local myTeamId = Spring.GetMyTeamID()
 			return Spring.GetTeamUnits(myTeamId)
 		end
-	elseif sourceDef == "Visible" then
+	elseif sourceDefLower == "visible" then
 		return function()
 			local myTeamId = Spring.GetMyTeamID()
 			return Spring.GetVisibleUnits(myTeamId)
 		end
-	elseif sourceDef == "PrevSelection" or sourceDef == "PreviousSelection" then
+	elseif sourceDefLower == "prevselection" or sourceDefLower == "previousselection" then
 		return function()
 			return spGetSelectedUnits()
 		end
-	elseif startsWith(sourceDef, "FromMouse_") then
+	elseif startsWith(sourceDefLower, "frommouse_") then
 		return parseNumber(sourceDef, function(distance)
 			local x, y, z = getMouseWorldPos()
 			if x and y and z then
@@ -540,7 +542,7 @@ local function parseSource(sourceDef)
 				return {}
 			end
 		end)
-	elseif startsWith(sourceDef, "FromMouseC_") or startsWith(sourceDef, "FromMouseCylinder_") then
+	elseif startsWith(sourceDefLower, "frommousec_") or startsWith(sourceDefLower, "frommousecylinder_") then
 		return parseNumber(sourceDef, function(distance)
 			local x, y, z = getMouseWorldPos()
 			if x and z then
