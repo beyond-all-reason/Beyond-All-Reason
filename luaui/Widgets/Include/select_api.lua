@@ -21,6 +21,24 @@ local spGetUnitPosition = Spring.GetUnitPosition
 local customFilterLookup = {}
 local customCommandLookup = {}
 
+local filterCache = {}
+
+local function handleCaching(invert, tokenLower, filterFunction)
+	if not filterCache[tokenLower] then
+		filterCache[tokenLower] = {}
+	end
+
+	return function(udef)
+		if filterCache[tokenLower][udef] == nil then
+			local result = filterFunction(udef)
+			-- handle invert explicitly here for caching
+			result = (result or false) ~= invert
+			filterCache[tokenLower][udef] = result
+		end
+		return filterCache[tokenLower][udef]
+	end
+end
+
 local function logError(message)
 	Spring.Log("Select API", LOG.ERROR, message)
 end
@@ -110,7 +128,7 @@ local function parseFilter(filterDef)
 		if tokenLower == "aircraft" then
 			filters.aircraft = simpleUdefFilter(invert, "canFly")
 		elseif tokenLower == "builder" then
-			filters.builder = invertCurry(invert, function(udef)
+			filters.builder = handleCaching(invert, tokenLower, function(udef)
 				return isBuilder(udef)
 			end)
 		elseif tokenLower == "buildoptions" then
@@ -124,13 +142,13 @@ local function parseFilter(filterDef)
 				return udef.canCloak and spGetUnitIsCloaked(uid)
 			end)
 		elseif tokenLower == "jammer" then
-			filters.jammer = invertCurry(invert, function(udef)
+			filters.jammer = handleCaching(invert, tokenLower, function(udef)
 				return udef.jammerRadius > 0
 			end)
 		elseif tokenLower == "manualfireunit" then
 			filters.manualFire = simpleUdefFilter(invert, "canManualFire")
 		elseif tokenLower == "radar" then
-			filters.radar = invertCurry(invert, function(udef)
+			filters.radar = handleCaching(invert, tokenLower, function(udef)
 				return udef.radarRadius > 0 or udef.sonarRadius > 0
 			end)
 		elseif tokenLower == "resurrect" then
@@ -142,7 +160,7 @@ local function parseFilter(filterDef)
 		elseif tokenLower == "weapons" then
 			filters.weapons = notEmptyUdefFilter(invert, "weapons")
 
-		-- command queue filters
+			-- command queue filters
 		elseif tokenLower == "idle" then
 			filters.idle = invertCurry(invert, isIdle)
 		elseif tokenLower == "guarding" then
@@ -165,7 +183,7 @@ local function parseFilter(filterDef)
 				return false
 			end)
 
-		-- hotkey filters
+			-- hotkey filters
 		elseif tokenLower == "inhotkeygroup" then
 			filters.inHotKeyGroup = invertCurry(invert, function(_, _, uid)
 				return spGetUnitGroup(uid) ~= nil
@@ -186,7 +204,7 @@ local function parseFilter(filterDef)
 				return isSelected
 			end)
 
-		-- number comparison
+			-- number comparison
 		elseif tokenLower == "absolutehealth" then
 			local minHealth = tonumber(getNextToken())
 			if not minHealth then
@@ -210,7 +228,7 @@ local function parseFilter(filterDef)
 				return health > minHealth
 			end, minHealthPercent)
 		elseif tokenLower == "antiair" then
-			filters.antiAir = invertCurry(invert, function(udef)
+			filters.antiAir = handleCaching(invert, tokenLower, function(udef)
 				if udef.wDefs == nil or udef.canFly then
 					return false
 				end
@@ -241,7 +259,7 @@ local function parseFilter(filterDef)
 				return false
 			end, minRange)
 
-		-- string comparison
+			-- string comparison
 		elseif tokenLower == "category" then
 			local category = getNextToken()
 			if not category then
@@ -559,7 +577,7 @@ local function parseSource(sourceDef)
 end
 
 local function commandFormatError(commandDef)
-	logError("Select command string does not match the expected format: "  .. commandDef)
+	logError("Select command string does not match the expected format: " .. commandDef)
 end
 
 local function parseCommand(commandDef)
