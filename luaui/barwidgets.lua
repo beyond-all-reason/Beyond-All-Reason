@@ -1283,12 +1283,17 @@ function widgetHandler:BlankOut()
 	end
 end
 
-
+if tracy and tracy.LuaTracyPlotConfig then 
+	tracy.LuaTracyPlotConfig("LuaRAM", "memory")
+end
 function widgetHandler:Update()
 
 	if collectgarbage("count") > 1200000 then
 		Spring.Echo("Warning: Emergency garbage collection due to exceeding 1.2GB LuaRAM")
 		collectgarbage("collect")
+	end
+	if tracy and tracy.LuaTracyPlot then 
+		tracy.LuaTracyPlot("LuaRAM", collectgarbage("count") * 1000)
 	end
 
 	local deltaTime = Spring.GetLastUpdateSeconds()
@@ -1297,6 +1302,9 @@ function widgetHandler:Update()
 	tracy.ZoneBeginN("W:Update")
 	for _, w in ipairs(self.UpdateList) do
 		tracy.ZoneBeginN("W:Update:" .. w.whInfo.name)
+		if tracy and tracy.LuaTracyPlot then 
+			tracy.LuaTracyPlot("LuaRAM", collectgarbage("count") * 1000)
+		end
 		w:Update(deltaTime)
 		tracy.ZoneEnd()
 	end
