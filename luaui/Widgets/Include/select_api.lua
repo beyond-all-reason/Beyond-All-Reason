@@ -116,19 +116,19 @@ local function parseFilter(filterDef)
 	local idMatchesSet = {}
 
 	while true do
-		local token = getNextToken()
 		local invert = false
+		local token = getNextToken()
+		local tokenLower = string.lower(token)
 
-		if token == "Not" then
+		if tokenLower == "not" then
 			invert = true;
 			token = getNextToken()
+			tokenLower = string.lower(token)
 		end
 
 		if not token then
 			break
 		end
-
-		local tokenLower = string.lower(token)
 
 		-- simple filters
 		if tokenLower == "aircraft" then
