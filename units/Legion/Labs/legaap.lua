@@ -82,7 +82,7 @@ return {
 				footprintz = 9,
 				height = 4,
 				metal = 968,
-				object = "Units/cor6X6A.s3o",
+				object = "Units/cor7X7A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
 			},
