@@ -433,17 +433,20 @@ end
 local function parseConclusion(conclusionDef)
 	local appendSelected = true
 	local prefix = conclusionDef:sub(1, 15)
+	local prefixLower = string.lower(prefix)
 
-	if prefix == "ClearSelection_" then
+	if prefixLower == "clearselection_" then
 		appendSelected = false
 		conclusionDef = conclusionDef:sub(16)
 	end
 
-	if conclusionDef == "SelectAll" then
+	local conclusionDefLower = string.lower(prefix)
+
+	if conclusionDefLower == "selectall" then
 		return function(uids)
 			Spring.SelectUnitArray(uids, appendSelected)
 		end
-	elseif conclusionDef == "SelectOne" then
+	elseif conclusionDefLower == "selectone" then
 		return function(uids)
 			if #uids == 0 then
 				Spring.SelectUnitArray({}, appendSelected)
@@ -463,7 +466,7 @@ local function parseConclusion(conclusionDef)
 			Spring.SetCameraTarget(ux, uy, uz, 1)
 			Spring.SelectUnitArray(uids, appendSelected)
 		end
-	elseif conclusionDef == "SelectClosestToCursor" then
+	elseif conclusionDefLower == "selectclosesttocursor" then
 		return function(uids)
 			if #uids == 0 then
 				Spring.SelectUnitArray({}, appendSelected)
@@ -497,12 +500,12 @@ local function parseConclusion(conclusionDef)
 			local oneUid = { closest_uid }
 			Spring.SelectUnitArray(oneUid, appendSelected)
 		end
-	elseif startsWith(conclusionDef, "SelectNum_") or startsWith(conclusionDef, "SelectNumber_") then
+	elseif startsWith(conclusionDefLower, "selectnum_") or startsWith(conclusionDefLower, "selectnumber_") then
 		return parseNumber(conclusionDef, function(countUntil, uids)
 			uids = getCountUnits(uids, countUntil, appendSelected)
 			Spring.SelectUnitArray(uids, appendSelected)
 		end)
-	elseif startsWith(conclusionDef, "SelectPart_") then
+	elseif startsWith(conclusionDefLower, "selectpart_") then
 		return parseNumber(conclusionDef, function(percent, uids)
 			local countUntil = math.floor(#uids * percent / 100)
 			uids = getCountUnits(uids, countUntil, appendSelected)
