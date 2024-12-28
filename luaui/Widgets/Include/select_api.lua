@@ -246,7 +246,7 @@ local function parseFilter(filterDef)
 			end)
 		elseif tokenLower == "weaponrange" then
 			local minRange = tonumber(getNextToken())
-			if not minRange then
+			if minRange == nil then
 				break
 			end
 
@@ -444,7 +444,7 @@ local function parseNumber(input, fn)
 	local numStr = input:match("_([^_]+)")
 	local distance = tonumber(numStr)
 
-	if not distance then
+	if distance == nil then
 		logError("Invalid input, expected a number after the underscore: " .. input)
 	end
 
@@ -492,14 +492,13 @@ local function parseConclusion(conclusionDef)
 		end
 	elseif conclusionDefLower == "selectclosesttocursor" then
 		return function(uids)
-			if #uids == 0 then
+			if not uids or #uids == 0 then
 				Spring.SelectUnitArray({}, appendSelected)
 				return
 			end
 
 			local x, y, z = getMouseWorldPos()
-
-			if not x or not y or not z then
+			if x == nil or y == nil or z == nil then
 				Spring.SelectUnitArray({}, appendSelected)
 				return
 			end
@@ -515,7 +514,7 @@ local function parseConclusion(conclusionDef)
 
 				local distance = dx * dx + dy * dy + dz * dz
 
-				if not closest_distance or distance < closest_distance then
+				if closest_distance == nil or distance < closest_distance then
 					closest_uid = uid
 					closest_distance = distance
 				end
