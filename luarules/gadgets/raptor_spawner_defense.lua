@@ -828,8 +828,7 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 			end
-
-			if (canSpawnBurrow and GetGameSeconds() < config.gracePeriod) or (canSpawnBurrow and config.burrowSpawnType == "avoid") then -- Don't spawn new burrows in existing creep during grace period - Force them to spread as much as they can..... AT LEAST THAT'S HOW IT'S SUPPOSED TO WORK, lol.
+			if (canSpawnBurrow and GetGameSeconds() < config.gracePeriod*0.9) or (canSpawnBurrow and config.burrowSpawnType == "avoid") then -- Don't spawn new burrows in existing creep during grace period - Force them to spread as much as they can..... AT LEAST THAT'S HOW IT'S SUPPOSED TO WORK, lol.
 				canSpawnBurrow = not GG.IsPosInRaptorScum(spawnPosX, spawnPosY, spawnPosZ)
 			end
 
@@ -1650,6 +1649,7 @@ if gadgetHandler:IsSyncedCode() then
 				spawnQueue = {}
 				raptorEvent("queen") -- notify unsynced about queen spawn
 				_, queenMaxHP = GetUnitHealth(queenID)
+				Spring.SetUnitHealth(queenID, math.max(queenMaxHP*(techAnger*0.01), queenMaxHP*0.2))
 				SetUnitExperience(queenID, 0)
 				timeOfLastWave = t
 				for burrowID, _ in pairs(burrows) do
@@ -1798,17 +1798,18 @@ if gadgetHandler:IsSyncedCode() then
 
 			if t < config.gracePeriod then
 				queenAnger = 0
-				minBurrows = 8*(t/config.gracePeriod)
+				minBurrows = math.ceil(math.max(4, 2*SetCount(humanTeams))*(t/config.gracePeriod))
 			else
 				if not queenID then
 					queenAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (queenTime - config.gracePeriod) * 100) + queenAngerAggressionLevel, 100), 0)
-					minBurrows = 8
-					if burrowCount <= 2 then
-						playerAggression = playerAggression + 1
-					end
+					minBurrows = 1
 				else
 					queenAnger = 100
-					minBurrows = 8
+					if Spring.GetModOptions().raptor_endless then
+						minBurrows = 4
+					else
+						minBurrows = 1
+					end
 				end
 				queenAngerAggressionLevel = queenAngerAggressionLevel + ((playerAggression*0.01)/(config.queenTime/3600)) + playerAggressionEcoValue
 				SetGameRulesParam("RaptorQueenAngerGain_Aggression", (playerAggression*0.01)/(config.queenTime/3600))
@@ -1817,7 +1818,7 @@ if gadgetHandler:IsSyncedCode() then
 			SetGameRulesParam("raptorQueenAnger", queenAnger)
 			SetGameRulesParam("raptorTechAnger", techAnger)
 
-			if queenAnger >= 100 then
+			if queenAnger >= 100 or (burrowCount <= 1 and t > config.gracePeriod) then
 				-- check if the queen should be alive
 				updateSpawnQueen()
 				updateQueenLife()

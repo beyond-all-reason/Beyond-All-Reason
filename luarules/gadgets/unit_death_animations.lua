@@ -49,6 +49,10 @@ local MoveCtrlDisable 	= Spring.MoveCtrl.Disable
 local MoveCtrlSetVelocity = Spring.MoveCtrl.SetVelocity
 local CMD_STOP = CMD.STOP
 
+function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD.ANY)
+end
+
 function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
 	if hasDeathAnim[unitDefID] then
 		--Spring.Echo("gadget:UnitDestroyed",unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)

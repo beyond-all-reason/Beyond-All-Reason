@@ -6,7 +6,7 @@ function widget:GetInfo()
 		author = "Beherith",
 		date = "20211020",
 		license = "GNU GPL, v2 or later",
-		layer = 0,
+		layer = 20, -- below most GUI elements, which generally go up to 10
 		enabled = true
 	}
 end
@@ -306,4 +306,8 @@ function widget:DrawInMiniMap(sx, sy)
   gl.ClipDistance ( 1, false)
   gl.ClipDistance ( 3, false)
   DrawMapMarksWorld(1)
+end
+
+function widget:ClearMapMarks()
+	ClearPoints()
 end

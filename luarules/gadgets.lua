@@ -99,7 +99,6 @@ gadgetHandler = {
 }
 
 
-
 -- these call-ins are set to 'nil' if not used
 -- they are setup in UpdateCallIns()
 local callInLists = {
@@ -282,11 +281,7 @@ end
 --
 --  array-table reverse iterator
 --
---  all callin handlers use this so that gadgets can
---  RemoveGadget() themselves (during iteration over
---  a callin list) without causing a miscount
---
---  c.f. Array{Insert,Remove}
+--  used to invert layer ordering so draw and events will have inverse ordering
 --
 local function r_ipairs(tbl)
 	local function r_iter(tbl, key)
@@ -328,6 +323,7 @@ local VFSMODE_OVERRIDE = {
 	}
 
 function gadgetHandler:Initialize()
+	gadgetHandler:CreateQueuedReorderFuncs()
 	local syncedHandler = Script.GetSynced()
 
 	local unsortedGadgets = {}
@@ -374,7 +370,7 @@ function gadgetHandler:Initialize()
 
 	-- add the gadgets
 	for _, g in ipairs(unsortedGadgets) do
-		gadgetHandler:InsertGadget(g)
+		gadgetHandler:InsertGadgetRaw(g)
 
 		local gtype = ((syncedHandler and "synced") or "unsynced")
 		local gname = g.ghInfo.name
@@ -382,6 +378,9 @@ function gadgetHandler:Initialize()
 
 		Spring.Log(LOG_SECTION, LOG.INFO, string.format("Loaded %s gadget:  %-18s  <%s>", gtype, gname, gbasename))
 	end
+	-- Since Initialize is run out of the normal callin wrapper, we
+	-- need to reorder explicitly here.
+	gadgetHandler:PerformReorders()
 end
 
 function gadgetHandler:LoadGadget(filename, overridevfsmode)
@@ -414,6 +413,11 @@ function gadgetHandler:LoadGadget(filename, overridevfsmode)
 	end
 	if err == false then -- note that all "normal" gadgets return `nil` implicitly at EOF, so don't do "if not err"
 		return nil -- gadget asked for a quiet death
+	end
+
+	if gadget.GetInfo and (Platform and not Platform.check(gadget.GetInfo().depends)) then
+		Spring.Echo('Missing capabilities:  ' .. gadget:GetInfo().name .. '. Disabling.')
+		return nil
 	end
 
 	-- raw access to gadgetHandler
@@ -536,6 +540,12 @@ function gadgetHandler:NewGadget()
 	end
 	gh.RemoveChatAction = function(_, cmd)
 		return actionHandler.RemoveChatAction(gadget, cmd)
+	end
+	gh.RegisterAllowCommand = function(_, cmdID)
+		return self:RegisterAllowCommand(gadget, cmdID)
+	end
+	gh.DeregisterAllowCommands = function(_)
+		return self:DeregisterAllowCommands(gadget)
 	end
 
 	if not IsSyncedCode() then
@@ -669,7 +679,66 @@ local function ArrayRemove(t, g)
 	end
 end
 
-function gadgetHandler:InsertGadget(gadget)
+--------------------------------------------------------------------------------
+--- Safe reordering
+
+-- Since we are traversing lists, some of the gadgetHandler api would be dangerous to use.
+--
+-- We will queue all the dangerous methods to process after callin loop finishes iterating.
+-- The 'real' methods have 'Raw' appended to them, and are unsafe to use unless you know what
+-- you are doing.
+
+local reorderQueue = {}
+local reorderNeeded = false
+local reorderFuncs = {}
+local callinDepth = 0
+
+function gadgetHandler:CreateQueuedReorderFuncs()
+	-- This will create an array with linked Raw methods so we can find them by index.
+	-- It will also create the gadgetHandler usual api queing the calls.
+	local reorderFuncNames = {'InsertGadget', 'RemoveGadget', 'EnableGadget', 'DisableGadget',
+		'LowerGadget', 'RaiseGadget', 'UpdateGadgetCallIn', 'RemoveGadgetCallIn'}
+	local queueReorder = gadgetHandler.QueueReorder
+
+	for idx, name in ipairs(reorderFuncNames) do
+		-- linked method index
+		reorderFuncs[#reorderFuncs + 1] = gadgetHandler[name .. 'Raw']
+
+		-- gadgetHandler api
+		gadgetHandler[name] = function(s, ...)
+			queueReorder(s, idx, ...)
+		end
+	end
+end
+
+function gadgetHandler:QueueReorder(methodIndex, ...)
+	reorderQueue[#reorderQueue + 1] = {methodIndex, ...}
+	reorderNeeded = true
+end
+
+function gadgetHandler:PerformReorder(methodIndex, ...)
+	reorderFuncs[methodIndex](self, ...)
+end
+
+function gadgetHandler:PerformReorders()
+	-- Reset and store the list so we can support nested reorderings
+	reorderNeeded = false
+	local nextReorder = reorderQueue
+	reorderQueue = {}
+	-- Process the reorder queue
+	for _, elmts in ipairs(nextReorder) do
+		self:PerformReorder(unpack(elmts))
+	end
+	-- Check for further reordering
+	if reorderNeeded then
+		self:PerformReorders()
+	end
+end
+
+--------------------------------------------------------------------------------
+--- Unsafe insert/remove
+
+function gadgetHandler:InsertGadgetRaw(gadget)
 	if gadget == nil then
 		return
 	end
@@ -694,6 +763,11 @@ function gadgetHandler:InsertGadget(gadget)
 	end
 	self:UpdateCallIns()
 
+	if gadget.AllowCommand and not self:HasAllowCommands(gadget) then
+		Spring.Log('AllowCommand', LOG.WARNING, "<" .. gadget.ghInfo.basename .. "> AllowCommand defined but didn't register any commands. Autoregistering for all commands!")
+		self:RegisterAllowCommand(gadget, CMD.ANY)
+	end
+
 	if kbytes then
 		collectgarbage("collect")
 		collectgarbage("collect")
@@ -701,7 +775,7 @@ function gadgetHandler:InsertGadget(gadget)
 	end
 end
 
-function gadgetHandler:RemoveGadget(gadget)
+function gadgetHandler:RemoveGadgetRaw(gadget)
 	if gadget == nil then
 		return
 	end
@@ -718,6 +792,7 @@ function gadgetHandler:RemoveGadget(gadget)
 	for _, listname in ipairs(callInLists) do
 		ArrayRemove(self[listname .. 'List'], gadget)
 	end
+	self:DeregisterAllowCommands(gadget)
 
 	for id, g in pairs(self.CMDIDs) do
 		if g == gadget then
@@ -741,8 +816,18 @@ function gadgetHandler:UpdateCallIn(name)
 		local selffunc = self[name]
 
 		if selffunc ~= nil then
+			-- max 2 return parameters for top level callins!
 			_G[name] = function(...)
-				return selffunc(self, ...)
+				callinDepth = callinDepth + 1
+
+				local res1, res2 = selffunc(self, ...)
+
+				callinDepth = callinDepth - 1
+				if reorderNeeded and callinDepth == 0 then
+					self:PerformReorders()
+				end
+
+				return res1, res2
 			end
 		else
 			Spring.Log(LOG_SECTION, LOG.ERROR, "UpdateCallIn: " .. name .. " is not implemented")
@@ -752,7 +837,7 @@ function gadgetHandler:UpdateCallIn(name)
 	Script.UpdateCallIn(name)
 end
 
-function gadgetHandler:UpdateGadgetCallIn(name, g)
+function gadgetHandler:UpdateGadgetCallInRaw(name, g)
 	local listName = name .. 'List'
 	local ciList = self[listName]
 	if ciList then
@@ -768,7 +853,7 @@ function gadgetHandler:UpdateGadgetCallIn(name, g)
 	end
 end
 
-function gadgetHandler:RemoveGadgetCallIn(name, g)
+function gadgetHandler:RemoveGadgetCallInRaw(name, g)
 	local listName = name .. 'List'
 	local ciList = self[listName]
 	if ciList then
@@ -789,7 +874,7 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-function gadgetHandler:EnableGadget(name)
+function gadgetHandler:EnableGadgetRaw(name)
 	local ki = self.knownGadgets[name]
 	if not ki then
 		Spring.Log(LOG_SECTION, LOG.ERROR, "EnableGadget(), could not find gadget: " .. tostring(name))
@@ -805,12 +890,12 @@ function gadgetHandler:EnableGadget(name)
 		if not w then
 			return false
 		end
-		self:InsertGadget(w)
+		self:InsertGadgetRaw(w)
 	end
 	return true
 end
 
-function gadgetHandler:DisableGadget(name)
+function gadgetHandler:DisableGadgetRaw(name)
 	local ki = self.knownGadgets[name]
 	if not ki then
 		Spring.Log(LOG_SECTION, LOG.ERROR, "DisableGadget(), could not find gadget: " .. tostring(name))
@@ -822,7 +907,7 @@ function gadgetHandler:DisableGadget(name)
 			return false
 		end
 		Spring.Log(LOG_SECTION, LOG.INFO, 'Removed:  ' .. ki.filename)
-		self:RemoveGadget(w)     -- deactivate
+		self:RemoveGadgetRaw(w)     -- deactivate
 		self.orderList[name] = 0 -- disable
 	end
 	return true
@@ -866,7 +951,7 @@ local function FindLowestIndex(t, i, layer)
 	return 1
 end
 
-function gadgetHandler:RaiseGadget(gadget)
+function gadgetHandler:RaiseGadgetRaw(gadget)
 	if gadget == nil then
 		return
 	end
@@ -888,6 +973,7 @@ function gadgetHandler:RaiseGadget(gadget)
 	for _, listname in ipairs(callInLists) do
 		Raise(self[listname .. 'List'], gadget[listname], gadget)
 	end
+	self:ReorderAllowCommands(gadget, Raise)
 end
 
 local function FindHighestIndex(t, i, layer)
@@ -897,10 +983,10 @@ local function FindHighestIndex(t, i, layer)
 			return (x - 1)
 		end
 	end
-	return (ts + 1)
+	return ts
 end
 
-function gadgetHandler:LowerGadget(gadget)
+function gadgetHandler:LowerGadgetRaw(gadget)
 	if gadget == nil then
 		return
 	end
@@ -914,7 +1000,7 @@ function gadgetHandler:LowerGadget(gadget)
 		end
 		local n = FindHighestIndex(t, i, w.ghInfo.layer)
 		if n and n > i then
-			table.insert(t, n, w)
+			table.insert(t, n+1, w)
 			table.remove(t, i)
 		end
 	end
@@ -922,6 +1008,7 @@ function gadgetHandler:LowerGadget(gadget)
 	for _, listname in ipairs(callInLists) do
 		Lower(self[listname .. 'List'], gadget[listname], gadget)
 	end
+	self:ReorderAllowCommands(gadget, Lower)
 end
 
 function gadgetHandler:FindGadget(name)
@@ -1061,6 +1148,9 @@ function gadgetHandler:Shutdown()
 end
 
 function gadgetHandler:GameFrame(frameNum)
+	-- Since GameGrame should never be called nested ensure here the callinDepth
+	-- is ok. We set it to 1 so after the run it will be set to 0 again.
+	callinDepth = 1
 	tracy.ZoneBeginN("G:GameFrame")
 	for _, g in ipairs(self.GameFrameList) do
 		tracy.ZoneBeginN("G:GameFrame:" .. g.ghInfo.name)
@@ -1241,6 +1331,72 @@ function gadgetHandler:PlayerRemoved(playerID, reason)
 	return
 end
 
+--------------------------------------------------------------------------------
+--
+--  AllowCommand subscription
+--
+
+local CMD_ANY = CMD.ANY
+local CMD_NIL = CMD.NIL
+local allowCommandList = {[CMD_ANY] = {}}
+
+function gadgetHandler:ReorderAllowCommands(gadget, f)
+	if not gadget.AllowCommand then return true end
+	for _, list in pairs(allowCommandList) do
+		f(list, true, gadget)
+	end
+end
+
+function gadgetHandler:HasAllowCommands(gadget)
+	for _, list in pairs(allowCommandList) do
+		for _, g in ipairs(list) do
+			if g == gadget then
+				return true
+			end
+		end
+	end
+end
+
+function gadgetHandler:DeregisterAllowCommands(gadget)
+	for _, list in pairs(allowCommandList) do
+		ArrayRemove(list, gadget)
+	end
+end
+
+function gadgetHandler:RegisterAllowCommand(gadget, cmdID)
+	-- cmdID accepts CMD.ANY and CMD.NIL in addition to usual cmdIDs
+	-- CMD.ANY subscribes to any command
+	Spring.Log('AllowCommand', LOG.INFO, "<" .. gadget.ghInfo.basename .. "> Register "..tostring(cmdID))
+	if cmdID == nil then
+		-- use CMD.NIL instead
+		Spring.Log('AllowCommand', LOG.ERROR, "<" .. gadget.ghInfo.basename .. "> Invalid cmdID "..tostring(cmdID))
+		return
+	end
+	if not gadget.AllowCommand then
+		Spring.Log('AllowCommand', LOG.ERROR, "<" .. gadget.ghInfo.basename .. "> No callin method")
+		return
+	end
+	local cmdList = allowCommandList[cmdID]
+	-- create list if needed
+	if not cmdList then
+		cmdList = {}
+		allowCommandList[cmdID] = cmdList
+		-- on a new list, register all known CMD.ANY commands
+		if cmdID ~= CMD_ANY then
+			for _, g in ipairs(allowCommandList[CMD_ANY]) do
+				ArrayInsert(cmdList, true, g)
+			end
+		end
+	end
+	-- insert into the list
+	ArrayInsert(cmdList, true, gadget)
+	-- if it's a CMD.ANY registration, insert into all lists
+	if cmdID == CMD_ANY then
+		for _, list in pairs(allowCommandList) do
+			ArrayInsert(list, true, gadget)
+		end
+	end
+end
 
 --------------------------------------------------------------------------------
 --
@@ -1319,13 +1475,18 @@ end
 
 function gadgetHandler:AllowCommand(unitID, unitDefID, unitTeam,
 									cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+	local cmdKey = cmdID or CMD_NIL
+	if not allowCommandList[cmdKey] then cmdKey = CMD_ANY end
 
 	tracy.ZoneBeginN("G:AllowCommand")
-	for _, g in ipairs(self.AllowCommandList) do
+	for _, g in ipairs(allowCommandList[cmdKey]) do
+		--tracy.ZoneBeginN("G:AllowCommand:"..g.ghInfo.name)
 		if not g:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua) then
+			--tracy.ZoneEnd()
 			tracy.ZoneEnd()
 			return false
 		end
+		--tracy.ZoneEnd()
 	end
 	tracy.ZoneEnd()
 	return true
@@ -1506,13 +1667,20 @@ function gadgetHandler:TerraformComplete(unitID, unitDefID, unitTeam,
 end
 
 function gadgetHandler:AllowWeaponTargetCheck(attackerID, attackerWeaponNum, attackerWeaponDefID)
-	for _, g in ipairs(self.AllowWeaponTargetCheckList) do
-		if not g:AllowWeaponTargetCheck(attackerID, attackerWeaponNum, attackerWeaponDefID) then
-			return false
+local ignore = true
+for _, g in ipairs(self.AllowWeaponTargetCheckList) do
+	local allowCheck, ignoreCheck = g:AllowWeaponTargetCheck(attackerID, attackerWeaponNum, attackerWeaponDefID)
+	if not ignoreCheck then
+		ignore = false
+		if not allowCheck then
+			return 0
 		end
 	end
-	return true
 end
+
+return ((ignore and -1) or 1)
+end
+
 
 function gadgetHandler:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
 	local allowed = true
@@ -1580,6 +1748,13 @@ end
 function gadgetHandler:UnitReverseBuilt(unitID, unitDefID, unitTeam)
 	for _, g in r_ipairs(self.UnitReverseBuiltList) do
 		g:UnitReverseBuilt(unitID, unitDefID, unitTeam)
+	end
+	return
+end
+
+function gadgetHandler:UnitStunned(unitID, unitDefID, unitTeam, stunned)
+	for _,g in r_ipairs(self.UnitStunnedList) do
+		g:UnitStunned(unitID, unitDefID, unitTeam, stunned)
 	end
 	return
 end

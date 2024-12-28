@@ -48,6 +48,10 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	function gadget:Initialize()
+		gadgetHandler:RegisterAllowCommand(CMD_SELFD)
+	end
+
 	function gadget:GameFrame(n)
 		if n % 15 == 1 then
 			for teamID, _ in pairs(selfdCheckTeamUnits) do
@@ -95,7 +99,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-		if cmdID == CMD_SELFD and teamID ~= gaiaTeamID then
+		if teamID ~= gaiaTeamID then
 			selfdCheckTeamUnits[teamID] = true
 		end
 		return true

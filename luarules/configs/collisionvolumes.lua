@@ -145,16 +145,16 @@ unitCollisionVolume['armpb'] = {
 	off={40,40,40,0,-8,0,3,1,1},
 }
 unitCollisionVolume['armplat'] = {
-	on={105,66,105,0,33,0,2,1,0},
-	off={105,44,105,0,0,0,2,1,0},
+	on={96,66,96,0,33,0,1,1,1},
+	off={96,44,96,0,0,0,1,1,1},
 }
 unitCollisionVolume['armsolar'] = {
 	on={73,76,73,0,-18,1,0,1,0},
 	off={50,76,50,0,-18,1,0,1,0},
 }
 unitCollisionVolume['armvp'] = {
-	on={120,34,92,0,0,0,2,1,0},
-	off={90,34,92,0,0,0,2,1,0},
+	on={96,34,96,0,0,0,2,1,0},
+	off={96,34,96,0,0,0,2,1,0},
 }
 unitCollisionVolume['cordoom'] = {
 	on={63,112,63,0,0,0,1,1,1},
@@ -162,8 +162,8 @@ unitCollisionVolume['cordoom'] = {
 }
 
 unitCollisionVolume['corplat'] = {
-	on={112,60,112,0,28,0,1,1,1},
-	off={112,35,112,0,0,0,1,1,1},
+	on={96,60,96,0,28,0,1,1,1},
+	off={96,42,96,0,-20,0,1,1,1},
 }
 unitCollisionVolume['legsolar'] = {
 
@@ -200,6 +200,10 @@ pieceCollisionVolume['legsrail'] = {
 	['0']={55,24,55,0,12,0,1,1},
 	['7']={12,12,60,0,3,9,1,2},
 }
+---pieceCollisionVolume['legsrailt4'] = {
+---	['0']={121,53,121,0,26,0,2,2},
+---	['7']={26,26,132,0,7,20,2,4},
+---}
 pieceCollisionVolume['armrad'] = {
 	['1']={22,58,22,0,0,0,1,1},
 	['3']={60,13,13,11,0,0,1,0},
@@ -231,7 +235,7 @@ pieceCollisionVolume['armvulc'] = {
 }
 pieceCollisionVolume['corgator'] = {
 	['0']={23,14,33,0,0,0,2,1},
-	['1']={15,5,25,0,0,2,2,1},
+	['3']={15,5,25,0,0,2,2,1},
 }
 pieceCollisionVolume['corsala'] = {
 	['0']={34,20,34,0,3.5,0,2,1},
@@ -245,7 +249,7 @@ pieceCollisionVolume['cortermite'] = {
 
 pieceCollisionVolume['correap'] = {
 	['0']={36,20,46,0,3.5,0,2,1},
-	['1']={24,14,24,0,1.875,1.5,2,1},
+	['3']={24,14,24,0,1.875,1.5,2,1},
 }
 pieceCollisionVolume['corlevlr'] = {
 	['0']={31,17,31,0,3.5,0,2,1},
@@ -253,7 +257,7 @@ pieceCollisionVolume['corlevlr'] = {
 }
 pieceCollisionVolume['corraid'] = {
 	['0']={33,18,39,0,3.5,0,2,1},
-	['2']={16,7,15,0,0,1,2,1},
+	['4']={16,7,15,0,0,1,2,1},
 }
 pieceCollisionVolume['cormist'] = {
 	['0']={34,18,43,0,3.5,0,2,1},
@@ -324,8 +328,8 @@ pieceCollisionVolume['seal'] = {
 	['1']={12,16,12,0,0,0,2,1},
 }
 pieceCollisionVolume['corban'] = {
-	['0']={26,32,34,0,0,0,2,1},
-	['3']={24,16,24,0,0,0,2,1},
+	['0']={44,32,44,0,0,0,2,1},
+	['3']={24,16,24,0,8,0,2,1},
 }
 pieceCollisionVolume['cormart'] = {
 	['0']={30,28,34,0,0,0,2,1},

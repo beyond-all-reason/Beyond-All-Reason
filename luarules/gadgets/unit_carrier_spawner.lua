@@ -145,20 +145,20 @@ local DEFAULT_DOCK_CHECK_FREQUENCY = 15		-- Checks the docking queue. Increasing
 	-- carrierdeaththroe = "death",	Behaviour for the drones when the carrier dies. "death": destroy the drones. "control": gain manual control of the drones. "capture": same as "control", but if an enemy is within control range, they get control of the drones instead.
 	-- holdfireradius = 0,			Defines the wandering distance of drones from the carrier when "holdfire" command is issued. If it isn't defined, 0 default will dock drones on holdfire by default.
 	-- droneminimumidleradius = 0,	Defines the wandering distance of drones from the carrier when it otherwise would have docked the drones, but docking is not enabled.
-	
-	
-	
+
+
+
 	-- -- Experimental. Please ping Xehrath in the BAR discord if you encounter any issues while using any of these options, or would like some changes to any of them. These are all subject to change or removal depending on interest, and are not considered finished features.
 	-- dronetype = "default" 		Experimental types: nano, bomber, fighter, turret
 	-- dockingsections = strSplit(dockingpieces, ","),
 	-- dronebombingruns = 2,		Defines the number of bombing runs a bomber drone initiates before returning to the carrier..
-	-- dronebombingoffset,			Used to make bomber drones go off to the side before heading directly towards the target. Multiple bomber drones will alternate which side to move to. Given as a percentage of the distance to the target. 
-	-- dronebomberinterval,			Used to stagger the launch of multiple bomber drones. 
-	-- dronebomberminengagementrange = 200, Bomber drones will not launch to attack targets within this radius. 
+	-- dronebombingoffset,			Used to make bomber drones go off to the side before heading directly towards the target. Multiple bomber drones will alternate which side to move to. Given as a percentage of the distance to the target.
+	-- dronebomberinterval,			Used to stagger the launch of multiple bomber drones.
+	-- dronebomberminengagementrange = 200, Bomber drones will not launch to attack targets within this radius.
 	-- manualdrones					Allows manual control of drones within the control radius
-	
-	
-	
+
+
+
 	-- },
 
 
@@ -213,7 +213,7 @@ for weaponDefID = 1, #WeaponDefs do
 			dronebomberminengagementrange = wdcp.dronebomberminengagementrange,
 			manualDrones = wdcp.manualdrones
 		}
-		
+
 		if wdcp.spawn_blocked_by_shield then
 			shieldCollide[weaponDefID] = WeaponDefs[weaponDefID].damages[Game.armorTypes.shield]
 		end
@@ -448,7 +448,7 @@ local function SpawnUnit(spawnData)
 					local dockPointx
 					local dockPointy
 					local dockPointz
-					
+
 					local carrierx
 					local carriery
 					local carrierz
@@ -467,7 +467,7 @@ local function SpawnUnit(spawnData)
 					if not carrierMetaList[ownerID].manualDrones then
 						SetUnitNoSelect(subUnitID, true)
 					end
-					
+
 					carrierMetaList[ownerID].subUnitsList[subUnitID].docked = true
 					carrierMetaList[ownerID].subUnitsList[subUnitID].activeDocking = false
 					if carrierMetaList[ownerID].dockArmor then
@@ -569,7 +569,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 				local energyCost = spawnDef.energyPerUnit
 
 				local availableSections = {}
-				
+
 				for sectionIndex, dockingpieces in pairs(dockingsections) do
 					local availableSectionsData = {
 						availablePieces = {}
@@ -587,7 +587,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			       	availableSections[sectionIndex] = availableSectionsData
 
 				end
-			    
+
 			    --####### remove #######
 				-- for i = 1, maxunits do
 				-- 	availablePieces[i] = {
@@ -738,7 +738,8 @@ end
 
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-	if (cmdID == 31200) and carrierMetaList[unitID] then
+	-- accepts: 31200 (spawning)
+	if carrierMetaList[unitID] then
 		local cmdDescID = FindUnitCmdDesc(unitID, 31200)
 		spawnCmd.params[1] = cmdParams[1]
 		EditUnitCmdDesc(unitID, cmdDescID, spawnCmd)
@@ -825,13 +826,10 @@ function gadget:UnitDestroyed(unitID)
 							standalone = true
 						else
 							carrierMetaList[newCarrier] = carrierMetaList[unitID]
-
 							carrierMetaList[newCarrier].subUnitsList[subUnitID] = carrierMetaList[unitID].subUnitsList[subUnitID] -- list of subUnitIDs owned by this unit.
 							carrierMetaList[newCarrier].subUnitCount = 1
 							carrierMetaList[newCarrier].spawnRateFrames = 0
-
 							carrierMetaList[newCarrier].docking = false
-
 							carrierMetaList[newCarrier].activeRecall = false
 
 							spSetUnitRulesParam(subUnitID, "carrier_host_unit_id", newCarrier, PRIVATE)
@@ -889,7 +887,7 @@ local function UpdateStandaloneDrones(frame)
 			if not engaged and ((DEFAULT_UPDATE_ORDER_FREQUENCY + droneMetaList[unitID].lastOrderUpdate) < frame) then
 				local idleRadius = droneMetaList[unitID].idleRadius
 				droneMetaList[unitID].lastOrderUpdate = frame
-			
+
 				dronex, droney, dronez = spGetUnitPosition(unitID)
 				rx, rz = RandomPointInUnitCircle(5)
 				spGiveOrderToUnit(unitID, CMD.MOVE, {dronex + rx*idleRadius, droney, dronez + rz*idleRadius}, 0)
@@ -904,9 +902,14 @@ local function UpdateStandaloneDrones(frame)
 end
 
 local function UpdateCarrier(carrierID, carrierMetaData, frame)
+	local carrierx, carriery, carrierz = spGetUnitPosition(carrierID)
+	if not carrierx then
+		gadget:UnitDestroyed(carrierID)
+		--carrierMetaList[carrierID] = nil
+		return
+	end
 	local cmdID, _, _, cmdParam_1, cmdParam_2, cmdParam_3 = spGetUnitCurrentCommand(carrierID)
 	local droneSendDistance = nil
-	local carrierx, carriery, carrierz
 	local targetx, targety, targetz
 	local target
 	local idleTarget
@@ -916,8 +919,8 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 	local setTargetOrder = false
 	local agressiveDrones = false
 	local carrierStates = spGetUnitStates(carrierID)
-	local newOrder = true
-	
+	--local newOrder = true
+
 	--Spring.Echo("hornetdebug carrier:", carrierID, " command:", cmdID, " commandParam:", cmdParam_1)
 
 	--local activeSpawning = true
@@ -950,29 +953,27 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 	-- end
 	--carrierMetaList[carrierID].activeSpawning = activeSpawning
 
-	local minEngagementRadius = carrierMetaData.minRadius
-	if carrierMetaData.subUnitsCommand.cmdID then
-		local prevcmdID = cmdID
-		local prevcmdParam_1 = cmdParam_1
-		local prevcmdParam_2 = cmdParam_2
-		local prevcmdParam_3 = cmdParam_3
-
-		cmdID = carrierMetaData.subUnitsCommand.cmdID
-		cmdParam_1 = carrierMetaData.subUnitsCommand.cmdParams[1]
-		cmdParam_2 = carrierMetaData.subUnitsCommand.cmdParams[2]
-		cmdParam_3 = carrierMetaData.subUnitsCommand.cmdParams[3]
-
-		if cmdID == prevcmdID and cmdParam_1 == prevcmdParam_1 and cmdParam_2 == prevcmdParam_2 and cmdParam_3 == prevcmdParam_3 then
-			newOrder = false
-		end
-	end
+	--local minEngagementRadius = carrierMetaData.minRadius
+	--if carrierMetaData.subUnitsCommand.cmdID then
+	--	local prevcmdID = cmdID
+	--	local prevcmdParam_1 = cmdParam_1
+	--	local prevcmdParam_2 = cmdParam_2
+	--	local prevcmdParam_3 = cmdParam_3
+	--
+	--	cmdID = carrierMetaData.subUnitsCommand.cmdID
+	--	cmdParam_1 = carrierMetaData.subUnitsCommand.cmdParams[1]
+	--	cmdParam_2 = carrierMetaData.subUnitsCommand.cmdParams[2]
+	--	cmdParam_3 = carrierMetaData.subUnitsCommand.cmdParams[3]
+	--
+	--	if cmdID == prevcmdID and cmdParam_1 == prevcmdParam_1 and cmdParam_2 == prevcmdParam_2 and cmdParam_3 == prevcmdParam_3 then
+	--		newOrder = false
+	--	end
+	--end
 
 	local weapontargettype,_,weapontarget = Spring.GetUnitWeaponTarget(carrierID,carrierMetaData.weaponNr)
+
 	--Handles an attack order given to the carrier.
 	if not recallDrones and cmdID == CMD.ATTACK or weapontarget then
-
-		carrierx, carriery, carrierz = spGetUnitPosition(carrierID)
-		
 		if cmdID == CMD.ATTACK then
 			if cmdParam_1 and not cmdParam_2 then
 				target = cmdParam_1
@@ -996,7 +997,6 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 
 	--Handles a fight order given to the carrier.
 	if not recallDrones and cmdID == CMD.FIGHT then
-		carrierx, carriery, carrierz = spGetUnitPosition(carrierID)
 		targetx, targety, targetz = cmdParam_1, cmdParam_2, cmdParam_3
 		target = {cmdParam_1, cmdParam_2, cmdParam_3}
 		if targetx and carrierx then
@@ -1010,7 +1010,6 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 	if not recallDrones and not attackOrder then
 		local targetType,_,setTarget = spGetUnitWeaponTarget(carrierID, 1)
 		if targetType and targetType > 0 then
-			carrierx, carriery, carrierz = spGetUnitPosition(carrierID)
 			if targetType == 2 then --targeting ground
 				targetx = setTarget[1]
 				targety = setTarget[2]
@@ -1044,7 +1043,6 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 		targetvectorx, targetvectorz = carrierMetaData.attackFormationOffset*targetvectorx/100, carrierMetaData.attackFormationOffset*targetvectorz/100
 		perpendicularvectorx, perpendicularvectorz = -targetvectorz, targetvectorx
 	end
-	carrierx, carriery, carrierz = spGetUnitPosition(carrierID)
 	local orderUpdate = false
 	for subUnitID,value in pairs(carrierMetaData.subUnitsList) do
 		local sx, sy, sz = spGetUnitPosition(subUnitID)
@@ -1104,7 +1102,7 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 						-- attacking
 						if target then
 						    if cmdID == CMD.FIGHT and droneSendDistance < carrierMetaData.radius then
-						        
+
 						        carrierMetaData.ignorenextcommand = true
 						        spGiveOrderToUnit(carrierID, CMD.STOP, 0, 0)
 						    end
@@ -1404,7 +1402,7 @@ local function DockUnits(dockingqueue, queuestart, queueend)
 							end
 
 							Sleep()
-							
+
 							if not carrierMetaList[unitID] then
 								return
 							elseif not carrierMetaList[unitID].subUnitsList[subUnitID] then
@@ -1417,7 +1415,7 @@ local function DockUnits(dockingqueue, queuestart, queueend)
 									return
 								end
 							end
-							
+
 						end
 					end
 
@@ -1490,6 +1488,7 @@ function gadget:GameFrame(f)
 end
 
 function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(31200) -- Spawning
 	local allUnits = Spring.GetAllUnits()
 	for i = 1, #allUnits do
 		local unitID = allUnits[i]

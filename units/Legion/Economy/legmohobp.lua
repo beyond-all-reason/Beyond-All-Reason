@@ -11,7 +11,6 @@ return {
 		buildtime = 14100,
 		builder = true,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "70 40 70",
 		collisionvolumetype = "CylY",
@@ -38,8 +37,8 @@ return {
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/legmohobp_aoplane.dds",
-			buildinggrounddecalsizey = 7.6,
-			buildinggrounddecalsizex = 7.6,
+			buildinggrounddecalsizey = 8,
+			buildinggrounddecalsizex = 8,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'metal',
 			cvbuildable = true,
@@ -48,7 +47,7 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "corbuildings/landeconomy",
+			subfolder = "CorBuildings/LandEconomy",
 			techlevel = 2,
 		},
 		featuredefs = {

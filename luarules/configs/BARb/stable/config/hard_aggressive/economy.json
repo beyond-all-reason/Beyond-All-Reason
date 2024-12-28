@@ -1,0 +1,104 @@
+// Mono-space font required
+{
+"economy": {
+	"energy": {
+		// If land area >= 40% of the map then "land" config used, "water" otherwise
+		"land": {
+			// "<energy_def>": [<lower limit>, <upper limit>, <m-income>, <e-income>, <efficiency>]
+			// limit = random(<lower limit>..<upper limit>)
+			"armwin": [200, 300],
+			"armsolar": [80, 120],
+			"armadvsol": [80, 120],
+			"armfus": [30, 40],
+			"armafus": [200, 300],
+			"corwin": [200, 300],
+			"corsolar": [80, 120],
+			"coradvsol": [80, 120],
+			"corfus": [30, 40],
+			"corafus": [200, 300]
+		},
+		"water": {
+			"armtide": [140, 250],
+			"armwin": [100, 200],
+			"armsolar": [10],
+			"armadvsol": [120, 160],
+			"armuwfus": [100, 200],
+			"cortide": [140, 250],
+			"corwin": [100, 200],
+			"corsolar": [10],
+			"coradvsol": [120, 160],
+			"coruwfus": [100, 200]
+		},
+		// income factor for energy, time is in seconds
+		// [[<start_factor>, <start_time>], [<end_factor>, <end_time>]]
+		"factor": [[1.0, 300], [30.0, 7200]],
+
+		"min_income": 5,  // minimum energy income to filter out generators
+
+		"cost_ratio": 0.05,  // default condition, minimum energy income to cost ratio
+
+		"em_ratio": 0.08,  // energy to metal ratio, used with UnitDef.build_speed
+
+		"link_inc": 16.0,  // minimum metal-income for energy linking
+		"pylon": []
+	},
+
+	"cluster_range": 800.0,  // 950.0  // maximum distance between 2 points in hierarchical cluster
+
+	"geo": {
+		"armada": "armgeo",
+		"cortex": "corgeo"
+	},
+	"mex": {
+		"armada": "armmex",
+		"cortex": "cormex"
+	},
+	"mex_up": 3,  // maximum number of simultaneous mex upgrades
+
+	"calc_mex": false,  // always calculate mex spots (global)
+
+	"goal_exec": 42.0,  // targeted time to finish non-build task, in seconds
+	"build_mod": 1000.0,  // default build_mod for UnitDef, if it's not specified
+
+	// Scales metal income
+	// ecoFactor = teamSize*eps_step+(1-eps_step)
+	"eps_step": 0.2,
+
+	// Mobile buildpower to metal income ratio
+	"buildpower": 1.2,  // 1.25,
+
+	// Metal excess to income ratio, -1 to disable
+	"excess": -1.0,
+
+	// Mobile constructor to static constructor metal pull ratio
+	// [[<value>, <start_mex_percent>], [<value>, <end_mex_percent>]]
+	"ms_pull": [[0.57, 0.0], [0.66, 0.34]],
+
+	// Max percent of mexes circuit team allowed to take.
+	// If its <1.0 then expansion obeys ms_pull rule, if >=1.0 then ms_pull doesn't affect expansion (mex, pylon, energy).
+	// [<cap_percent>, <is_ally_cap>]
+	"mex_max": [2.0, false],  // 200%
+
+	// Construction order delay in seconds, -1 to disable
+	// [[<start_delay>, <start_time>], [<end_delay>, <end_time>]]
+	"build_delay": [[-1.0, 0], [-1.0, 0]],
+
+	// [0] - metal-expenditure multiplier for build condition of new factory or assistant 
+	// [1] - energy-expenditure multiplier for build condition of new factory or assistant
+	// [2] - multiplier for total factory metal-expenditure, used as condition for new factory or assistant
+	// [3] - multiplier for total factory energy-expenditure, used as condition for new factory or assistant
+	"production": [0.9, 0.7, 0.8, 0.8],
+
+	//"terra": "armsy",
+	"assist": {
+		"armada": "armnanotc",
+		"cortex": "cornanotc"
+	},
+
+	// Unknown UnitDef replacer
+	"default": {
+		"armada": "armwin",
+		"cortex": "corwin"
+	}
+}
+}

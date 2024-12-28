@@ -1,28 +1,26 @@
 return {
 	armyork = {
-		maxacc = 0.06111,
 		airsightdistance = 900,
-		maxdec = 0.12223,
-		energycost = 9100,
-		metalcost = 450,
 		buildpic = "ARMYORK.DDS",
 		buildtime = 9950,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -10 -2",
 		collisionvolumescales = "31 31 38",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
+		energycost = 9100,
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
+		health = 2600,
 		idleautoheal = 5,
 		idletime = 1800,
 		leavetracks = true,
-		health = 2600,
+		maxacc = 0.06111,
+		maxdec = 0.12223,
 		maxslope = 16,
-		speed = 70.5,
 		maxwaterdepth = 12,
+		metalcost = 450,
 		movementclass = "TANK3",
 		movestate = 0,
 		nochasecategory = "NOTAIR",
@@ -31,6 +29,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 390,
+		speed = 70.5,
 		trackoffset = 6,
 		trackstrength = 5,
 		tracktype = "armyork_tracks",
@@ -40,11 +39,11 @@ return {
 		turninplacespeedlimit = 1.63786,
 		turnrate = 618.20001,
 		customparams = {
-			unitgroup = 'aa',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armvehicles/t2",
+			subfolder = "ArmVehicles/T2",
 			techlevel = 2,
+			unitgroup = "aa",
 		},
 		featuredefs = {
 			dead = {
@@ -117,7 +116,6 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
-				impulseboost = 0,
 				impulsefactor = 0,
 				metalpershot = 0,
 				name = "Missiles",
@@ -132,12 +130,12 @@ return {
 				weapontimer = 0.1,
 				weapontype = "Cannon",
 				weaponvelocity = 650,
+				customparams = {
+					bogus = 1,
+				},
 				damage = {
 					default = 0,
 				},
-				customparams = {
-					bogus = 1
-				}
 			},
 			mobileflak = {
 				accuracy = 1000,
@@ -152,7 +150,6 @@ return {
 				cylindertargeting = 2,
 				edgeeffectiveness = 1,
 				explosiongenerator = "custom:flak",
-				impulseboost = 0,
 				impulsefactor = 0,
 				name = "Heavy g2a flak cannon",
 				noselfdamage = true,

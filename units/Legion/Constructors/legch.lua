@@ -9,7 +9,6 @@ return {
 		buildpic = "LEGCH.DDS",
 		buildtime = 4580,
 		canmove = true,
-		category = "ALL HOVER MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "27 18 38",
 		collisionvolumetype = "Box",
@@ -26,9 +25,9 @@ return {
 		speed = 60.899,
 		maxwaterdepth = 0,
 		movementclass = "HOVER3",
-		objectname = "Units/CORCH.s3o",
+		objectname = "Units/LEGCH.s3o",
 		radardistance = 50,
-		script = "Units/CORCH.cob",
+		script = "Units/LEGCH_CLEAN.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-builder",
 		sightdistance = 338,
@@ -88,9 +87,9 @@ return {
 		},
 		customparams = {
 			unitgroup = 'builder',
-			model_author = "Beherith",
-			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corhovercraft",
+			model_author = "EnderRobo",
+			normaltex = "unittextures/leg_normal.dds",
+			subfolder = "CorHovercraft",
 		},
 		featuredefs = {
 			dead = {
@@ -105,7 +104,7 @@ return {
 				footprintz = 3,
 				height = 20,
 				metal = 100,
-				object = "Units/corch_dead.s3o",
+				object = "Units/legch_dead.s3o",
 				reclaimable = true,
 			},
 			heap = {

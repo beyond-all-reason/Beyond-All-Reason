@@ -17,7 +17,6 @@ return {
 		canrepeat = false,
 		canstop = true,
 		cantbetransported = true,
-		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "31 50 31",
 		collisionvolumetype = "CylY",
@@ -46,13 +45,13 @@ return {
 		customparams = {
 			usebuildinggrounddecal = false,
 			buildinggrounddecaltype = "decals/legnanotcbase_aoplane.dds",
-			buildinggrounddecalsizey = 5,
-			buildinggrounddecalsizex = 5,
+			buildinggrounddecalsizey = 8,
+			buildinggrounddecalsizex = 8,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'builder',
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "corbuildings/seautil",
+			subfolder = "CorBuildings/SeaUtil",
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {

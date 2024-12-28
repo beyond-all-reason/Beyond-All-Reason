@@ -5,7 +5,6 @@ return {
 		cratermult = 0,
 		edgeeffectiveness = 0,
 		explosiongenerator = "custom:genericbuildingexplosion-small",
-		impulseboost = 1,
 		impulsefactor = 1,
 		name = "Smallbuilding",
 		range = 60,

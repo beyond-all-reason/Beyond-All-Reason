@@ -16,7 +16,6 @@ return {
 		canreclaim = false,
 		canrepair = false,
 		canrestore = false,
-		category = "ALL TANK MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 2 0",
 		collisionvolumescales = "19 15 29",
 		collisionvolumetype = "Box",
@@ -55,14 +54,14 @@ return {
 			[1] = "cormine1",
 			[2] = "cormine2",
 			[3] = "cormine3",
-			[4] = "cordrag",
+			[4] = "legdrag",
 			[5] = "legeyes",
 		},
 		customparams = {
 			unitgroup = 'builder',
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "legion/vehicles",
+			subfolder = "Legion/vehicles",
 		},
 		featuredefs = {
 			dead = {

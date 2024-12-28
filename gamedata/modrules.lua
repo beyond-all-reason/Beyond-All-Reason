@@ -68,7 +68,7 @@ local modrules = {
 	},
 
 	movement = {
-		allowUnitCollisionDamage = false,	-- default: true if using QTPFS pathfinder.  Do unit-unit (skidding) collisions cause damage?
+		allowUnitCollisionDamage = true,	-- default: true if using QTPFS pathfinder.  Do unit-unit (skidding) collisions cause damage?
 		allowUnitCollisionOverlap = false,	-- can mobile units collision volumes overlap one another? Allows unit movement like this (video http://www.youtube.com/watch?v=mRtePUdVk2o ) at the cost of more 'clumping'.
 		allowCrushingAlliedUnits = true,	-- default: false.  Can allied ground units crush each other during collisions? Units still have to be explicitly set as crushable using the crushable parameter of Spring.SetUnitBlocking.
 		allowGroundUnitGravity = false,		-- default: true.   Allows fast moving mobile units to 'catch air' as they move over terrain.
@@ -122,6 +122,10 @@ local modrules = {
 		powerScale = XPValues.powerScale,	-- Controls how gaining experience changes the relative power of the unit. The formula used is Power multiplier = powerScale * (1 + xp / (xp + 1)).
 		healthScale = XPValues.healthScale,	-- Controls how gaining experience increases the maxDamage (total hitpoints) of the unit. The formula used is Health multiplier = healthScale * (1 + xp / (xp + 1)).
 		reloadScale = XPValues.reloadScale,	-- Controls how gaining experience decreases the reloadTime of the unit's weapons. The formula used is Rate of fire multiplier = reloadScale * (1 + xp / (xp + 1)).
+	},
+
+	damage = {
+		debris = 0, -- body parts flying off dead units
 	},
 }
 
