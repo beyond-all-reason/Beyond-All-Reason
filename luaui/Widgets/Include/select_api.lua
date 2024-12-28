@@ -452,6 +452,13 @@ local function getCountUnits(uids, countUntil, appendSelected)
 end
 
 local function parseNumber(input, fn)
+	if input == nil then
+		logError("Invalid input, unexpected nil")
+		return function(args)
+			return fn(0, args)
+		end
+	end
+
 	local numStr = input:match("_([^_]+)")
 	local distance = tonumber(numStr)
 
@@ -460,7 +467,7 @@ local function parseNumber(input, fn)
 	end
 
 	return function(args)
-		return fn(distance, args)
+		return fn(distance or 0, args)
 	end
 end
 
