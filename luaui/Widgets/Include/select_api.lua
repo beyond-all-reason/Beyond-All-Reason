@@ -23,19 +23,23 @@ local customCommandLookup = {}
 
 local filterCache = {}
 
-local function handleCaching(invert, tokenLower, filterFunction)
+local function handleCaching(invert, tokenLower, filterFunction, optionalArg)
 	if not filterCache[tokenLower] then
 		filterCache[tokenLower] = {}
 	end
 
+	if not filterCache[tokenLower][optionalArg] then
+		filterCache[tokenLower][optionalArg] = {}
+	end
+
 	return function(udef)
-		if filterCache[tokenLower][udef] == nil then
-			local result = filterFunction(udef)
+		if filterCache[tokenLower][optionalArg][udef] == nil then
+			local result = filterFunction(udef, optionalArg)
 			-- handle invert explicitly here for caching
 			result = (result or false) ~= invert
-			filterCache[tokenLower][udef] = result
+			filterCache[tokenLower][optionalArg][udef] = result
 		end
-		return filterCache[tokenLower][udef]
+		return filterCache[tokenLower][optionalArg][udef]
 	end
 end
 
@@ -246,7 +250,7 @@ local function parseFilter(filterDef)
 				break
 			end
 
-			filters.weaponRange = invertCurry(invert, function(udef, _, _, minRange)
+			filters.weaponRange = handleCaching(invert, function(udef, minRange)
 				if udef.wDefs == nil then
 					return false
 				end
@@ -268,7 +272,7 @@ local function parseFilter(filterDef)
 
 			category = string.lower(category)
 
-			filters.category = invertCurry(invert, function(udef, _, _, category)
+			filters.category = handleCaching(invert, function(udef, category)
 				return udef.modCategories[category]
 			end, category)
 		elseif tokenLower == "idmatches" then
@@ -308,7 +312,7 @@ local function parseFilter(filterDef)
 				break
 			end
 
-			filters.name = invertCurry(invert, function(udef, _, _, name)
+			filters.name = handleCaching(invert, function(udef, name)
 				return stringContains(udef.name, name)
 			end, name)
 		else
