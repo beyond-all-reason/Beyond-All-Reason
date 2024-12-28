@@ -57,8 +57,8 @@ end
 
 ---------------------------------------------------------------------------------
 ------------------------------ Debug switches ------------------------------
-local autoupdate = false
-local debugproj = false
+local autoupdate = true
+local debugproj = true
 local skipdraw = false
 
 ------------------------------ Distortion and Shader configurations ------------------

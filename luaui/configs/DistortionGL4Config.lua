@@ -167,8 +167,8 @@ local unitDistortions = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'emit',
-			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 30,
-							noiseStrength = 1, noiseScaleSpace = 1.5, distanceFalloff = 0.5,
+			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 26,
+							noiseStrength = 0.5, noiseScaleSpace = 2.0, distanceFalloff = 0.5,
 							lifeTime = 0,  effectType = 0},
 		},
 	},
@@ -187,8 +187,10 @@ local unitDistortions = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'emit',
-			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 36,
-							noiseStrength = 1, noiseScaleSpace = 1.5, distanceFalloff = 0.5,
+			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 30,
+							noiseStrength = 0.7, noiseScaleSpace = 1.0, distanceFalloff = 0.5,
+							riseRate = -2,
+							--decay = 3.5,
 							lifeTime = 0,  effectType = 0},
 		},
 	},
@@ -197,12 +199,12 @@ local unitDistortions = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'none',
-			distortionConfig = { posx = 0, posy = 24, posz = -5, radius = 16,
-							noiseStrength = 1, noiseScaleSpace = 1.5, distanceFalloff = 0.5,
+			distortionConfig = { posx = 0, posy = 24, posz = -5, radius = 14,
+							noiseStrength = 1, noiseScaleSpace = 0.5, distanceFalloff = 0.3,
 							windAffected = -0.5,
 							lifeTime = 0,  effectType = 0},
 		},
-		sheilddistortion = {
+		shielddistortion = {
 			distortionType = 'beam',
 			pieceName = 'base',
 			distortionConfig = { posx = 0, posy = -6.5, posz = 0.01, radius = 552,
