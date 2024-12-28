@@ -24,6 +24,10 @@ local customCommandLookup = {}
 local filterCache = {}
 
 local function handleCaching(invert, tokenLower, filterFunction, optionalArg)
+	if optionalArg == nil then
+		optionalArg = false
+	end
+
 	if not filterCache[tokenLower] then
 		filterCache[tokenLower] = {}
 	end
@@ -118,6 +122,11 @@ local function parseFilter(filterDef)
 	while true do
 		local invert = false
 		local token = getNextToken()
+
+		if not token then
+			break
+		end
+
 		local tokenLower = string.lower(token)
 
 		if tokenLower == "not" then
@@ -252,7 +261,7 @@ local function parseFilter(filterDef)
 				break
 			end
 
-			filters.weaponRange = handleCaching(invert, function(udef, minRange)
+			filters.weaponRange = handleCaching(invert, tokenLower, function(udef, minRange)
 				if udef.wDefs == nil then
 					return false
 				end
@@ -274,7 +283,7 @@ local function parseFilter(filterDef)
 
 			category = string.lower(category)
 
-			filters.category = handleCaching(invert, function(udef, category)
+			filters.category = handleCaching(invert, tokenLower, function(udef, category)
 				return udef.modCategories[category]
 			end, category)
 		elseif tokenLower == "idmatches" then
@@ -314,7 +323,7 @@ local function parseFilter(filterDef)
 				break
 			end
 
-			filters.name = handleCaching(invert, function(udef, name)
+			filters.name = handleCaching(invert, tokenLower, function(udef, name)
 				return stringContains(udef.name, name)
 			end, name)
 		else
@@ -466,7 +475,7 @@ local function parseConclusion(conclusionDef)
 		conclusionDef = conclusionDef:sub(16)
 	end
 
-	local conclusionDefLower = string.lower(prefix)
+	local conclusionDefLower = string.lower(conclusionDef)
 
 	if conclusionDefLower == "selectall" then
 		return function(uids)
