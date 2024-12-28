@@ -104,54 +104,56 @@ local function parseFilter(filterDef)
 			break
 		end
 
+		local tokenLower = string.lower(token)
+
 		-- simple filters
-		if token == "Aircraft" then
+		if tokenLower == "aircraft" then
 			filters.aircraft = simpleUdefFilter(invert, "canFly")
-		elseif token == "Builder" then
+		elseif tokenLower == "builder" then
 			filters.builder = invertCurry(invert, function(udef)
 				return isBuilder(udef)
 			end)
-		elseif token == "Buildoptions" then
+		elseif tokenLower == "buildoptions" then
 			filters.buildOptions = notEmptyUdefFilter(invert, "buildOptions")
-		elseif token == "Building" then
+		elseif tokenLower == "building" then
 			filters.building = simpleUdefFilter(invert, "isBuilding")
-		elseif token == "Cloak" then
+		elseif tokenLower == "cloak" then
 			filters.cloak = simpleUdefFilter(invert, "canCloak")
-		elseif token == "Cloaked" then
+		elseif tokenLower == "cloaked" then
 			filters.cloaked = invertCurry(invert, function(udef, _, uid)
 				return udef.canCloak and spGetUnitIsCloaked(uid)
 			end)
-		elseif token == "Jammer" then
+		elseif tokenLower == "jammer" then
 			filters.jammer = invertCurry(invert, function(udef)
 				return udef.jammerRadius > 0
 			end)
-		elseif token == "ManualFireUnit" then
+		elseif tokenLower == "manualfireunit" then
 			filters.manualFire = simpleUdefFilter(invert, "canManualFire")
-		elseif token == "Radar" then
+		elseif tokenLower == "radar" then
 			filters.radar = invertCurry(invert, function(udef)
 				return udef.radarRadius > 0 or udef.sonarRadius > 0
 			end)
-		elseif token == "Resurrect" then
+		elseif tokenLower == "resurrect" then
 			filters.resurrect = simpleUdefFilter(invert, "canResurrect")
-		elseif token == "Stealth" then
+		elseif tokenLower == "stealth" then
 			filters.stealth = simpleUdefFilter(invert, "stealth")
-		elseif token == "Transport" then
+		elseif tokenLower == "transport" then
 			filters.transport = simpleUdefFilter(invert, "isTransport")
-		elseif token == "Weapons" then
+		elseif tokenLower == "weapons" then
 			filters.weapons = notEmptyUdefFilter(invert, "weapons")
 
 		-- command queue filters
-		elseif token == "Idle" then
+		elseif tokenLower == "idle" then
 			filters.idle = invertCurry(invert, isIdle)
-		elseif token == "Guarding" then
+		elseif tokenLower == "guarding" then
 			filters.guarding = invertCurry(invert, function(_udef, _udefid, uid)
 				return checkCmd(uid, CMD.GUARD)
 			end)
-		elseif token == "Waiting" then
+		elseif tokenLower == "waiting" then
 			filters.waiting = invertCurry(invert, function(_udef, _udefid, uid)
 				return checkCmd(uid, CMD.WAIT)
 			end)
-		elseif token == "Patrolling" then
+		elseif tokenLower == "patrolling" then
 			filters.patrolling = invertCurry(invert, function(_udef, _udefid, uid)
 				for i = 1, 4, 1 do
 					if checkCmd(uid, CMD.PATROL, i) then
@@ -162,11 +164,11 @@ local function parseFilter(filterDef)
 			end)
 
 		-- hotkey filters
-		elseif token == "InHotkeyGroup" then
+		elseif tokenLower == "inhotkeygroup" then
 			filters.inHotKeyGroup = invertCurry(invert, function(_, _, uid)
 				return spGetUnitGroup(uid) ~= nil
 			end)
-		elseif token == "InGroup" then
+		elseif tokenLower == "ingroup" then
 			local group = tonumber(getNextToken())
 			if not group then
 				break
@@ -176,14 +178,14 @@ local function parseFilter(filterDef)
 				local unitGroup = spGetUnitGroup(uid)
 				return unitGroup == selectGroup
 			end, group)
-		elseif token == "InPrevSel" or token == "InPreviousSelection" then
+		elseif tokenLower == "inprevsel" or tokenLower == "inpreviousselection" then
 			filters.inPreviousSelection = invertCurry(invert, function(udef, _, uid)
 				local isSelected = spIsUnitSelected(uid)
 				return isSelected
 			end)
 
 		-- number comparison
-		elseif token == "AbsoluteHealth" then
+		elseif tokenLower == "absolutehealth" then
 			local minHealth = tonumber(getNextToken())
 			if not minHealth then
 				break
@@ -193,7 +195,7 @@ local function parseFilter(filterDef)
 				local health = spGetUnitHealth(uid)
 				return health > minHealth
 			end, minHealth)
-		elseif token == "RelativeHealth" then
+		elseif tokenLower == "relativehealth" then
 			local minHealthPercent = tonumber(getNextToken())
 			if not minHealthPercent then
 				break
@@ -205,7 +207,7 @@ local function parseFilter(filterDef)
 				local health = spGetUnitHealth(uid)
 				return health > minHealth
 			end, minHealthPercent)
-		elseif token == "AntiAir" then
+		elseif tokenLower == "antiair" then
 			filters.antiAir = invertCurry(invert, function(udef)
 				if udef.wDefs == nil or udef.canFly then
 					return false
@@ -218,7 +220,7 @@ local function parseFilter(filterDef)
 				end
 				return false
 			end)
-		elseif token == "WeaponRange" then
+		elseif tokenLower == "weaponrange" then
 			local minRange = tonumber(getNextToken())
 			if not minRange then
 				break
@@ -238,7 +240,7 @@ local function parseFilter(filterDef)
 			end, minRange)
 
 		-- string comparison
-		elseif token == "Category" then
+		elseif tokenLower == "category" then
 			local category = getNextToken()
 			if not category then
 				break
@@ -249,7 +251,7 @@ local function parseFilter(filterDef)
 			filters.category = invertCurry(invert, function(udef, _, _, category)
 				return udef.modCategories[category]
 			end, category)
-		elseif token == "IdMatches" then
+		elseif tokenLower == "idmatches" then
 			local name = getNextToken()
 			if not name then
 				break
@@ -280,7 +282,7 @@ local function parseFilter(filterDef)
 					end, idMatchesSet)
 				end
 			end
-		elseif token == "NameContain" then
+		elseif tokenLower == "namecontain" then
 			local name = getNextToken()
 			if not name then
 				break
