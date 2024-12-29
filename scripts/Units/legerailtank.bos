@@ -8,13 +8,15 @@ piece  	base, 	leftATurretBase, leftATurret, leftAGun, leftAflare, //5
 				rightATurretBase, rightATurret, rightAGun, rightAflare, //13
 				rightBTurretBase, rightBTurret, rightBGun, rightBflare, //17
 		tracks,
-		turretBase, turretPivot, turret, 	leftBotRail, leftTopRail, leftFlare, //24
-											rightBotRail, rightTopRail, rightFlare, //27
-											midBotRail, midTopRail, midFlare; //30
+		turretBase, turretPivot, turret, 	leftBotRail, leftTopRail, rightFlare, //24
+											rightBotRail, rightTopRail, midFlare, //27
+											midBotRail, midTopRail, leftFlare; //30
 
 
 
-static-var  restore_delay, last_gun_heading, guncount;
+static-var  restore_delay, last_gun_heading, guncount,
+			wpn2_lasthead, wpn3_lasthead, wpn4_lasthead, wpn5_lasthead;
+
 
 // Signal definitions
 #define SIG_AIM				2
@@ -26,6 +28,7 @@ static-var  restore_delay, last_gun_heading, guncount;
 #define SIG_FIRE2 			128
 #define SIG_FIRE3 			256
 #define SIG_FIRE4 			512
+#define SIG_FIRE5			1024
 
 #define BASEPIECE base
 #define HITSPEED <85.0>
@@ -59,7 +62,11 @@ Create()
 	hide midFlare;
 	restore_delay = 3000;
 
-	guncount = 1;
+	turn rightATurretBase 	to y-axis <90>	now;
+	turn rightBTurretBase 	to y-axis <90> 	now;
+	turn leftATurretBase 	to y-axis <-90> now;
+	turn leftBTurretBase 	to y-axis <-90> now;
+	guncount = 24;
 }
 
 SetMaxReloadTime(Func_Var_1)
@@ -78,20 +85,26 @@ ExecuteRestoreAfterDelay()
 	turn turretBase to y-axis <0> speed <45>;
 	turn turretPivot to x-axis <0> speed <20>;
 
-	turn leftATurretBase to y-axis <0> speed <90>;
-	turn rightATurretBase to y-axis <0> speed <90>;
-	turn leftBTurretBase to y-axis <0> speed <90>;
-	turn rightBTurretBase to y-axis <0> speed <90>;
+	turn rightATurretBase 	to y-axis <90>	speed <90>;
+	turn rightBTurretBase 	to y-axis <90>  speed <90>;
+	turn leftATurretBase 	to y-axis <-90>	speed <90>;
+	turn leftBTurretBase 	to y-axis <-90> speed <90>;
 
-	turn leftATurret to x-axis <0> speed <45>;
-	turn rightATurret to x-axis <0> speed <45>;
-	turn leftBTurret to x-axis <0> speed <45>;
-	turn rightBTurret to x-axis <0> speed <45>;
+	turn leftATurret to z-axis <0> speed <45>;
+	turn rightATurret to z-axis <0> speed <45>;
+	turn leftBTurret to z-axis <0> speed <45>;
+	turn rightBTurret to z-axis <0> speed <45>;
 
-	stop-spin leftAGun around z-axis decelerate <10.000000>;
-	stop-spin leftBGun around z-axis decelerate <10.000000>;
-	stop-spin rightAGun around z-axis decelerate <10.000000>;
-	stop-spin rightBGun around z-axis decelerate <10.000000>;
+
+
+	stop-spin leftAGun around 	x-axis decelerate <10.000000>;
+	stop-spin leftBGun around 	x-axis decelerate <10.000000>;
+	stop-spin rightAGun around 	x-axis decelerate <10.000000>;
+	stop-spin rightBGun around 	x-axis decelerate <10.000000>;
+
+	
+
+	//guncount = 1;
 }
 SetStunned(State)
 {
@@ -106,6 +119,16 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
+RestoreAfterDelay2()
+{
+	sleep restore_delay;
+	stop-spin leftAGun around 	x-axis decelerate <10.000000>;
+	stop-spin leftBGun around 	x-axis decelerate <10.000000>;
+	stop-spin rightAGun around 	x-axis decelerate <10.000000>;
+	stop-spin rightBGun around 	x-axis decelerate <10.000000>;
+}
+
+
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
@@ -115,7 +138,7 @@ AimPrimary(heading, pitch)
 	wait-for-turn turretBase around y-axis;
 	wait-for-turn turretPivot around x-axis;
 	start-script RestoreAfterDelay();
-	last_gun_heading = heading;
+	//last_gun_heading = heading;
 	return (1);
 }
 
@@ -131,62 +154,43 @@ Rock_Main_Cannon()
 
 FirePrimary()
 {
-	//emit-sfx 1024 + 0 from rightFlare;
-	
-	if(guncount == 1){
-		//emit-sfx 1024 + 0 from rightFlare;
-		start-script Rock_Main_Cannon();
-		//sleep 10;
-		guncount = 2;
-	}
-	if(guncount == 2){
-		//emit-sfx 1024 + 0 from midFlare;
-		start-script Rock_Main_Cannon();
-		//sleep 10;
-		guncount = 3;
-	}
-	if(guncount == 3){
-		//emit-sfx 1024 + 0 from leftFlare;
-		start-script Rock_Main_Cannon();
-		//sleep 10;
-		guncount = 1;
-	}
+	call-script Rock_Main_Cannon();
+	return(0);
+
 }
 
-// Shot1(heading, pitch){
-// 	if(guncount == 24){
-// 		//emit-sfx 1024 + 0 from rightFlare;
-// 		sleep 10;
-// 		guncount = 27;
-// 	}
-// 	if(guncount == 27){
-// 		//emit-sfx 1024 + 0 from midFlare;
-// 		sleep 10;
-// 		guncount = 30;
-// 	}
-// 	if(guncount == 30){
-// 		//emit-sfx 1024 + 0 from leftFlare;
-// 		sleep 10;
-// 		guncount = 24;
-// 	}
-// }
+Shot1(zero){
+	signal SIG_FIRE5;
+	set-signal-mask SIG_FIRE5;
+	if(guncount == 24){
+		emit-sfx 1024 + 0 from rightFlare;
+		guncount = 27;
+		sleep 330;
+	}
+	if(guncount == 27){
+		emit-sfx 1024 + 0 from midFlare;
+		guncount = 30;
+		sleep 330;
+		
+	}
+	if(guncount == 30){
+		emit-sfx 1024 + 0 from leftFlare;
+		guncount = 24;
+		sleep 330;
+		
+	}
+}
 
 AimFromPrimary(piecenum)
 {
 	piecenum = midFlare;
+	return (0);
 }
 
 QueryPrimary(piecenum)
 {
-	if(guncount == 1){
-		piecenum = leftFlare;
-	}
-	if(guncount == 2){
-		piecenum = rightFlare;
-	}
-	if(guncount == 3){
-		piecenum = midFlare;
-	}
+	piecenum = guncount - 3;
+	return (0);
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -195,17 +199,22 @@ AimWeapon2(heading, pitch)
 {
 	signal SIG_AIM_2;
 	set-signal-mask SIG_AIM_2;
-	turn rightATurretBase to y-axis heading speed <100.000000>;
-	turn rightATurret to x-axis <0.000000> - pitch speed <50.000000>;
-	wait-for-turn rightATurret around x-axis;
-	wait-for-turn rightATurretBase around y-axis;
-	//start-script RestoreAfterDelay();
-	return (1);
+
+	if ((heading + <33.02>) > <-117.5> AND (heading + <33.02>) < <117.5>){
+		turn rightATurret to z-axis <0.000000> + pitch speed <50.000000>;
+		turn rightATurretBase to y-axis heading + <90> speed <100.000000>;
+		wait-for-turn rightATurret around x-axis;
+		wait-for-turn rightATurretBase around y-axis;
+		start-script RestoreAfterDelay2();
+		return (1);
+	}
+	else return(0);
+
 }
 
 FireWeapon2()
 {
-	spin rightAGun around z-axis speed <900.000000>;
+	spin rightAGun around x-axis speed <900.000000>;
 	return (1);
 }
 
@@ -219,7 +228,7 @@ Shot2(zero)
 
 AimFromWeapon2(piecenum)
 {
-	piecenum = rightAGun;
+	piecenum = rightATurret;
 }
 
 QueryWeapon2(piecenum)
@@ -231,17 +240,24 @@ AimWeapon3(heading, pitch)
 {
 	signal SIG_AIM_3;
 	set-signal-mask SIG_AIM_3;
-	turn rightBTurret to x-axis <0.000000> - pitch speed <50.000000>;
-	turn rightBTurretBase to y-axis heading speed <100.000000>;
-	wait-for-turn rightBTurret around x-axis;
-	wait-for-turn rightBTurretBase around y-axis;
-	//start-script RestoreAfterDelay();
-	return (1);
+
+	if ((heading + <73.3>) > <-100> AND (heading + <73.3>) < <100>){
+		turn rightBTurret to z-axis <0.000000> + pitch speed <50.000000>;
+		turn rightBTurretBase to y-axis heading + <90> speed <100.000000>;
+		wait-for-turn rightBTurret around x-axis;
+		wait-for-turn rightBTurretBase around y-axis;
+		start-script RestoreAfterDelay2();
+		return (1);
+	}
+	else return(0);
+
+
+
 }
 
 FireWeapon3()
 {
-	spin rightBGun around z-axis speed <-900.000000>;
+	spin rightBGun around x-axis speed <-900.000000>;
 	return (1);
 }
 
@@ -255,7 +271,7 @@ Shot3(zero)
 
 AimFromWeapon3(piecenum)
 {
-	piecenum = rightBGun;
+	piecenum = rightBTurret;
 }
 
 QueryWeapon3(piecenum)
@@ -268,17 +284,23 @@ AimWeapon4(heading, pitch)
 {
 	signal SIG_AIM_4;
 	set-signal-mask SIG_AIM_4;
-	turn leftATurret to x-axis <0.000000> - pitch speed <50.000000>;
-	turn leftATurretBase to y-axis heading speed <100.000000>;
-	wait-for-turn leftATurret around x-axis;
-	wait-for-turn leftATurretBase around y-axis;
-	//start-script RestoreAfterDelay();
-	return (1);
+
+	if ((heading - <33.02>) > <-117.5> AND (heading - <33.02>) < <117.5>){
+		turn leftATurret to z-axis <0.000000> + pitch speed <50.000000>;
+		turn leftATurretBase to y-axis heading - <90> speed <100.000000>;
+		wait-for-turn leftATurret around x-axis;
+		wait-for-turn leftATurretBase around y-axis;
+		start-script RestoreAfterDelay2();
+		return (1);
+	}
+	else return(0);
+
+
 }
 
 FireWeapon4()
 {
-	spin leftAGun around z-axis speed <-900.000000>;
+	spin leftAGun around x-axis speed <-900.000000>;
 	return (1);
 }
 
@@ -292,7 +314,7 @@ Shot4(zero)
 
 AimFromWeapon4(piecenum)
 {
-	piecenum = leftAGun;
+	piecenum = leftATurret;
 }
 
 QueryWeapon4(piecenum)
@@ -304,17 +326,21 @@ AimWeapon5(heading, pitch)
 {
 	signal SIG_AIM_5;
 	set-signal-mask SIG_AIM_5;
-	turn leftBTurret to x-axis <0.000000> - pitch speed <50.000000>;
-	turn leftBTurretBase to y-axis heading speed <100.000000>;
-	wait-for-turn leftBTurret around x-axis;
-	wait-for-turn leftBTurretBase around y-axis;
-	//start-script RestoreAfterDelay();
-	return (1);
+
+	if ((heading - <73.3>) > <-100> AND (heading - <73.3>) < <100>){
+		turn leftBTurret to z-axis <0.000000> + pitch speed <50.000000>;
+		turn leftBTurretBase to y-axis heading - <90> speed <100.000000>;
+		wait-for-turn leftBTurret around x-axis;
+		wait-for-turn leftBTurretBase around y-axis;
+		start-script RestoreAfterDelay2();
+		return (1);
+	}
+	else return(0);
 }
 
 FireWeapon5()
 {
-	spin leftBGun around z-axis speed <-900.000000>;
+	spin leftBGun around x-axis speed <-900.000000>;
 	return (1);
 }
 
@@ -328,13 +354,28 @@ Shot5(zero)
 
 AimFromWeapon5(piecenum)
 {
-	piecenum = leftBGun;
+	piecenum = leftBTurret;
 }
 
 QueryWeapon5(piecenum)
 {
 	piecenum = leftBflare;
 }
+
+// TargetCleared(Func_Var_1)
+// {
+// 	if( Func_Var_1 == 1 )
+// 	{
+// 		signal SIG_AIM_2;
+// 		signal SIG_AIM_3;
+// 		signal SIG_AIM_4;
+// 		signal SIG_AIM_5;
+// 		stop-spin leftAGun around z-axis decelerate <10.000000>;
+// 		stop-spin leftBGun around z-axis decelerate <10.000000>;
+// 		stop-spin rightAGun around z-axis decelerate <10.000000>;
+// 		stop-spin rightBGun around z-axis decelerate <10.000000>;
+// 	}
+// }
 
 SweetSpot(piecenum)
 {
