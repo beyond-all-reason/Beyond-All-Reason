@@ -222,7 +222,7 @@ local examplePointLight = {
 ]]--
 
 ------------------------------ Debug switches ------------------------------
-local autoupdate = false
+local autoupdate = true
 local debugproj = false
 local addrandomlights = false
 local skipdraw = false
@@ -418,8 +418,6 @@ local function InitializeLight(lightTable, unitID)
 			for paramname, tablepos in pairs(lightParamKeyOrder) do
 				lightparams[tablepos] = lightTable.lightConfig[paramname] or lightparams[tablepos]
 			end
-			lightparams[lightParamKeyOrder.radius] = lightparams[lightParamKeyOrder.radius]
-			lightparams[lightParamKeyOrder.a] =  lightparams[lightParamKeyOrder.a]
 			lightparams[lightParamKeyOrder.lifetime] = math.floor( lightparams[lightParamKeyOrder.lifetime] )
 			lightTable.lightParamTable = lightparams
 			lightTable.lightConfig = nil -- never used again after initialization
@@ -1056,6 +1054,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	visibleUnits = {}
 
 	for unitID, unitDefID in pairs(extVisibleUnits) do
+		visibleUnits[unitID] = unitDefID
 		AddStaticLightsForUnit(unitID, unitDefID, true, "VisibleUnitsChanged") -- add them with noUpload = true
 	end
 	uploadAllElements(unitPointLightVBO) -- upload them all
@@ -1245,6 +1244,7 @@ end
 function widget:FeatureCreated(featureID, noUpload)
 	if type(noUpload) ~= 'boolean' then noUpload = nil end
 	-- TODO: Allow team-colored feature lights by getting teamcolor and putting it into lightCacheTable
+	--Spring.Echo("FeatureCreated", featureID, allyteam, featureDefLights[featureDefID])
 	local featureDefID = Spring.GetFeatureDefID(featureID)
 	if featureDefLights[featureDefID] then
 		for lightname, lightTable in pairs(featureDefLights[featureDefID]) do
@@ -1516,12 +1516,29 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		local alt, ctrl = Spring.GetModKeyState()
 		local devui = (Spring.GetConfigInt('DevUI', 0) == 1)
 
-		if autoupdate and ctrl and (isSinglePlayer or spec) and devui then
+		if autoupdate and alt and ctrl and (isSinglePlayer or spec) and devui then
+			-- draw a full-screen black quad first!
+			local camX, camY, camZ = Spring.GetCameraPosition()
+			local camDirX,camDirY,camDirZ = Spring.GetCameraDirection()
+			glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+			gl.Culling(GL.BACK)
+			gl.DepthTest(false)
+			gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove
+			gl.Color(0,0,0,1)
+			gl.PushMatrix()
+			gl.Color(0,0,0,1.0)
+			gl.Translate(camX+(camDirX*360),camY+(camDirY*360),camZ+(camDirZ*360))
+			gl.Billboard()
+			gl.Rect(-5000, -5000, 5000, 5000)
+			gl.PopMatrix()
+		end
+
+		if autoupdate and ctrl and (not alt) and (isSinglePlayer or spec) and devui then
 			glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		else
 			glBlending(GL.SRC_ALPHA, GL.ONE)
 		end
-		if autoupdate and alt and (isSinglePlayer or spec) and devui then return end
+		if autoupdate and alt and (not ctrl) and (isSinglePlayer or spec) and devui then return end
 
 		gl.Culling(GL.BACK)
 		gl.DepthTest(false)
@@ -1679,6 +1696,10 @@ function widget:Initialize()
 
 	WG['lightsgl4'].ShowPlayerCursorLight = function(value)
 		showPlayerCursorLight = value
+		-- Remove the player's cursor light on disabling this feature
+		if not showPlayerCursorLight and cursorPointLightVBO.instanceIDtoIndex["PLAYERCURSOR"] then
+			popElementInstance(cursorPointLightVBO, "PLAYERCURSOR")
+		end
 	end
 	WG['lightsgl4'].PlayerCursorLightRadius = function(value)
 		playerCursorLightRadius = value
