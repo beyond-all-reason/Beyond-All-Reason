@@ -133,7 +133,7 @@ return {
 				name = "Siege Rail Accelerator",
 				noexplode = true,
 				noselfdamage = true,
-				range = 1200,
+				range = 1000,
 				reloadtime = 3,
 				rgbcolor = "0.34 0.64 0.94",
 				soundhit = "mavgun3",
