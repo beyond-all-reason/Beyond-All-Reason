@@ -16,9 +16,10 @@ if not gadgetHandler:IsSyncedCode() then return end
 
 --[[
 Integration Checklist:
-1. use weapondef.customparams.smart_priority = true for the higher priority smart select weapon.
-2. use weapondef.customparams.smart_backup = true for the fallback weapon when smart_backup doesn't have a target, or cannot shoot the manually selected target.
-3. use weapondef.customparams.smart_trajectory_checker = true for the weapon that should be used for trajectory checks for the priorityWeapon. Ideally this is a static point slightly lower than preferred_weapon
+1. Weapon def custom params
+	smart_priority | <boolean> true for the higher priority smart select weapon.
+	smart_backup   | <boolean>= true for the fallback smart select weapon, used when smart_backup cannot shoot a target.
+	smart_trajectory_checker | <boolean> true for the weapon that should be used for trajectory checks for the priorityWeapon. Ideally this is a static point slightly lower than preferred_weapon.
 3. in the unit's .bos animation script, #include "smart_weapon_select.h"  ideally at the beginning of the file.
 4. in the preferred AimWeaponX() function, add the following at the beginning:
 	if (AimingState != AIMING_PRIORITY){
