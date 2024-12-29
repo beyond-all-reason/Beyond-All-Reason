@@ -58,7 +58,7 @@ end
 ---------------------------------------------------------------------------------
 ------------------------------ Debug switches ------------------------------
 local autoupdate = true
-local debugproj = true
+local debugproj = false
 local skipdraw = false
 
 ------------------------------ Distortion and Shader configurations ------------------
@@ -74,7 +74,7 @@ local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 
 local shaderConfig = {
 	VOIDWATER = gl.GetMapRendering("voidWater") and 1 or 0,
-	CHROMATIC_ABERRATION = 1.25, -- How much chromatic aberration to apply to the distortion, set to nil to disable
+	CHROMATIC_ABERRATION = 1.1, -- How much chromatic aberration to apply to the distortion, set to nil to disable
 	DEBUGCOMBINER = autoupdate and 1 or 0, -- 1 is debug mode, 0 is normal mode
 }
 
