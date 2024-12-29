@@ -123,6 +123,10 @@ local modrules = {
 		healthScale = XPValues.healthScale,	-- Controls how gaining experience increases the maxDamage (total hitpoints) of the unit. The formula used is Health multiplier = healthScale * (1 + xp / (xp + 1)).
 		reloadScale = XPValues.reloadScale,	-- Controls how gaining experience decreases the reloadTime of the unit's weapons. The formula used is Rate of fire multiplier = reloadScale * (1 + xp / (xp + 1)).
 	},
+
+	damage = {
+		debris = 0, -- body parts flying off dead units
+	},
 }
 
 return modrules

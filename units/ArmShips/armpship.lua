@@ -128,10 +128,6 @@ return {
 					subs = 70,
 					vtol = 37,
 				},
-				customparams = {
-					noattackrangearc= 1,
-				},
-
 			},
 		},
 		weapons = {
