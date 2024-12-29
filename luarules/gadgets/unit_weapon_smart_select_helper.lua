@@ -66,7 +66,6 @@ local spGetUnitEstimatedPath = Spring.GetUnitEstimatedPath
 local mathMin = math.min
 local mathMax = math.max
 
---tables
 local smartUnits = {}
 local unitDefData = {}
 
