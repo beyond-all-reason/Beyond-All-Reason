@@ -141,7 +141,8 @@ return {
 				weapontype = "LaserCannon",
 				weaponvelocity = 3180,
 				customparams = {
-					overpenetrate = true,
+				overpenetrate = true,
+				stockpilelimit = 3,
 				},
 				damage = {
 					commanders = 1000,
