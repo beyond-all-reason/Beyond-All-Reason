@@ -96,7 +96,7 @@ customDefs.armjuno = {
 			commandfire = true,
 			customparams = {
 				scavforcecommandfire = true,
-				stockpileLimit = 1,
+				stockpilelimit = 1,
 			},
 		},
 	},
@@ -112,7 +112,7 @@ customDefs.corjuno = {
 			commandfire = true,
 			customparams = {
 				scavforcecommandfire = true,
-				stockpileLimit = 1,
+				stockpilelimit = 1,
 			},
 		},
 	},
