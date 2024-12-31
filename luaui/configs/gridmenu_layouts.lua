@@ -189,15 +189,14 @@ local labGrids = {
 		"armmar", "armraz", "armvang", "armthor",
 		"armbanth", "armlun"
 	},
-
 	corgant = {
-		"corcat", "corkarg", "legjav", "corkorg",
+		"corcat", "corkarg", "corshiva", "corkorg",
 		"corjugg", "corsok"
 	},
 	leggant = {
-		"corcat", "corkarg", "corshiva", "corkorg",
-		"corjugg", "corsok", "legpede", "leegmech",
-		"legkeres","",""
+		"corcat", "corkarg", "legjav", "corkorg", --catapult, kargneth, javelin, juggernaut
+		"corjugg", "corsok", "legpede", "leegmech", --behemoth, hovertank, mukade, praetorian
+		"legkeres","legerailtank","" -- keres, daedalus
 	}
 }
 local unitGrids = {

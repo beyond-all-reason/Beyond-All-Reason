@@ -3,16 +3,14 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  	base, 	leftATurretBase, leftATurret, leftAGun, leftAflare, //5
-				leftBTurretBase, leftBTurret, leftBGun, leftBflare, //9
-				rightATurretBase, rightATurret, rightAGun, rightAflare, //13
-				rightBTurretBase, rightBTurret, rightBGun, rightBflare, //17
-		tracks,
-		turretBase, turretPivot, turret, 	leftBotRail, leftTopRail, rightFlare, //24
-											rightBotRail, rightTopRail, midFlare, //27
-											midBotRail, midTopRail, leftFlare; //30
-
-
+piece  	base, 	leftATurretBase, leftATurret, leftAGun, leftAFlare, //5
+				leftBTurretBase, leftBTurret, leftBGun, leftBFlare, //9
+				rightATurretBase, rightATurret, rightAGun, rightAFlare, //13
+				rightBTurretBase, rightBTurret, rightBGun, rightBFlare, //17
+				tracks, trackGuards, railTurretBase, railTurret, //21
+				railBotLeft, railBotMid, rightRailFlare, //24
+				railBotRight, railTopLeft, midRailFlare, //27
+				railTopMid, railTopRight, leftRailFlare; //30
 
 static-var  restore_delay, last_gun_heading, guncount,
 			wpn2_lasthead, wpn3_lasthead, wpn4_lasthead, wpn5_lasthead;
@@ -52,20 +50,38 @@ StopMoving()
 
 Create()
 {
-	hide leftAflare;
-	hide leftBflare;
-	hide rightAflare;
-	hide rightBflare;
+	hide leftAFlare;
+	hide leftBFlare;
+	hide rightAFlare;
+	hide rightBFlare;
 
-	hide leftFlare;
-	hide rightFlare;
-	hide midFlare;
+	hide leftRailFlare;
+	hide rightRailFlare;
+	hide midRailFlare;
 	restore_delay = 3000;
 
 	turn rightATurretBase 	to y-axis <90>	now;
 	turn rightBTurretBase 	to y-axis <90> 	now;
 	turn leftATurretBase 	to y-axis <-90> now;
 	turn leftBTurretBase 	to y-axis <-90> now;
+
+	move railTopLeft	to z-axis [1] now;
+	move railTopRight	to z-axis [1] now;
+	move railTopMid		to z-axis [1] now;
+
+	move railTopLeft	to y-axis [-1] now;
+	move railTopRight	to y-axis [-1] now;
+	move railTopMid		to y-axis [-1] now;
+
+	move railBotLeft	to z-axis [1] now;
+	move railBotRight	to z-axis [1] now;
+	move railBotMid		to z-axis [1] now;
+
+	move railBotLeft	to y-axis [1] now;
+	move railBotRight	to y-axis [1] now;
+	move railBotMid		to y-axis [1] now;
+
+
 	guncount = 24;
 }
 
@@ -82,8 +98,8 @@ ExecuteRestoreAfterDelay()
     }
 	set-signal-mask 0;
 
-	turn turretBase to y-axis <0> speed <45>;
-	turn turretPivot to x-axis <0> speed <20>;
+	turn railTurretBase to y-axis <0> speed <45>;
+	turn railTurret to x-axis <0> speed <20>;
 
 	turn rightATurretBase 	to y-axis <90>	speed <90>;
 	turn rightBTurretBase 	to y-axis <90>  speed <90>;
@@ -101,6 +117,8 @@ ExecuteRestoreAfterDelay()
 	stop-spin leftBGun around 	x-axis decelerate <10.000000>;
 	stop-spin rightAGun around 	x-axis decelerate <10.000000>;
 	stop-spin rightBGun around 	x-axis decelerate <10.000000>;
+
+	guncount = 24;
 
 	
 
@@ -133,12 +151,12 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	turn turretBase to y-axis heading speed <30.000000>;
-	turn turretPivot to x-axis <0.000000> - pitch speed <15.000000>;
-	wait-for-turn turretBase around y-axis;
-	wait-for-turn turretPivot around x-axis;
+	turn railTurretBase to y-axis heading speed <30.000000>;
+	turn railTurret to x-axis <0.000000> - pitch speed <15.000000>;
+	wait-for-turn railTurretBase around y-axis;
+	wait-for-turn railTurret around x-axis;
 	start-script RestoreAfterDelay();
-	//last_gun_heading = heading;
+	last_gun_heading = heading;
 	return (1);
 }
 
@@ -154,8 +172,24 @@ Rock_Main_Cannon()
 
 FirePrimary()
 {
-	call-script Rock_Main_Cannon();
+	//call-script Rock_Main_Cannon();
 	return(0);
+
+	move railTopLeft	to z-axis [1] now;
+	
+	move railTopMid		to z-axis [1] now;
+
+	move railTopLeft	to y-axis [-1] now;
+	
+	move railTopMid		to y-axis [-1] now;
+
+	move railBotLeft	to z-axis [1] now;
+	move railBotRight	to z-axis [1] now;
+	move railBotMid		to z-axis [1] now;
+
+	move railBotLeft	to y-axis [1] now;
+	move railBotRight	to y-axis [1] now;
+	move railBotMid		to y-axis [1] now;
 
 }
 
@@ -163,19 +197,46 @@ Shot1(zero){
 	signal SIG_FIRE5;
 	set-signal-mask SIG_FIRE5;
 	if(guncount == 24){
-		emit-sfx 1024 + 0 from rightFlare;
+		emit-sfx 1024 + 0 from rightRailFlare;
+		move railTopRight	to y-axis [0] now;
+		move railTopRight	to z-axis [0] now;
+		move railBotRight	to y-axis [0] now;
+		move railBotRight	to z-axis [0] now;
 		guncount = 27;
+		call-script Rock_Main_Cannon();
+		move railTopRight	to y-axis [-1] 	speed [1];
+		move railTopRight	to z-axis [1] 	speed [1];
+		move railBotRight	to y-axis [1] 	speed [1];
+		move railBotRight	to z-axis [1] 	speed [1];
 		sleep 330;
 	}
 	if(guncount == 27){
-		emit-sfx 1024 + 0 from midFlare;
+		emit-sfx 1024 + 0 from midRailFlare;
+		move railTopMid	to y-axis [0] now;
+		move railTopMid	to z-axis [0] now;
+		move railBotMid	to y-axis [0] now;
+		move railBotMid	to z-axis [0] now;
 		guncount = 30;
+		call-script Rock_Main_Cannon();
+		move railTopMid	to y-axis [-1] 	speed [1];
+		move railTopMid	to z-axis [1] 	speed [1];
+		move railBotMid	to y-axis [1] 	speed [1];
+		move railBotMid	to z-axis [1] 	speed [1];
 		sleep 330;
 		
 	}
 	if(guncount == 30){
-		emit-sfx 1024 + 0 from leftFlare;
+		emit-sfx 1024 + 0 from leftRailFlare;
+		move railTopLeft	to y-axis [0] now;
+		move railTopLeft	to z-axis [0] now;
+		move railBotLeft	to y-axis [0] now;
+		move railBotLeft	to z-axis [0] now;
 		guncount = 24;
+		call-script Rock_Main_Cannon();
+		move railTopLeft	to y-axis [-1] 	speed [1];
+		move railTopLeft	to z-axis [1] 	speed [1];
+		move railBotLeft	to y-axis [1] 	speed [1];
+		move railBotLeft	to z-axis [1] 	speed [1];
 		sleep 330;
 		
 	}
@@ -183,14 +244,28 @@ Shot1(zero){
 
 AimFromPrimary(piecenum)
 {
-	piecenum = midFlare;
+	piecenum = midRailFlare;
 	return (0);
 }
 
 QueryPrimary(piecenum)
 {
-	piecenum = guncount - 3;
-	return (0);
+	// if(guncount == 27){
+	// 	piecenum = leftRailFlare;
+	// }
+	// else piecenum = guncount - 3;
+
+	if(guncount == 27){
+		piecenum = rightRailFlare;
+	}
+	else if (guncount ==  30){
+		piecenum = midRailFlare;
+	}
+	else if (guncount == 24){
+		piecenum = leftRailFlare;
+	}
+
+	//return (0);
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -214,7 +289,7 @@ AimWeapon2(heading, pitch)
 
 FireWeapon2()
 {
-	spin rightAGun around x-axis speed <900.000000>;
+	spin rightAGun around x-axis speed <-900.000000>;
 	return (1);
 }
 
@@ -222,7 +297,7 @@ Shot2(zero)
 {
 	signal SIG_FIRE1;
 	set-signal-mask SIG_FIRE1;
-	emit-sfx 1024 + 1 from rightAflare;
+	emit-sfx 1024 + 1 from rightAFlare;
 	return(1);
 }
 
@@ -233,7 +308,7 @@ AimFromWeapon2(piecenum)
 
 QueryWeapon2(piecenum)
 {
-	piecenum = rightAflare;
+	piecenum = rightAFlare;
 }
 
 AimWeapon3(heading, pitch)
@@ -265,7 +340,7 @@ Shot3(zero)
 {
 	signal SIG_FIRE2;
 	set-signal-mask SIG_FIRE2;
-	emit-sfx 1024 + 1 from rightBflare;
+	emit-sfx 1024 + 1 from rightBFlare;
 	return(1);
 }
 
@@ -276,7 +351,7 @@ AimFromWeapon3(piecenum)
 
 QueryWeapon3(piecenum)
 {
-	piecenum = rightBflare;
+	piecenum = rightBFlare;
 }
 ////////////////////////////////////////////////////
 
@@ -286,7 +361,7 @@ AimWeapon4(heading, pitch)
 	set-signal-mask SIG_AIM_4;
 
 	if ((heading - <33.02>) > <-117.5> AND (heading - <33.02>) < <117.5>){
-		turn leftATurret to z-axis <0.000000> + pitch speed <50.000000>;
+		turn leftATurret to z-axis <0.000000> - pitch speed <50.000000>;
 		turn leftATurretBase to y-axis heading - <90> speed <100.000000>;
 		wait-for-turn leftATurret around x-axis;
 		wait-for-turn leftATurretBase around y-axis;
@@ -308,7 +383,7 @@ Shot4(zero)
 {
 	signal SIG_FIRE3;
 	set-signal-mask SIG_FIRE3;
-	emit-sfx 1024 + 1 from leftAflare;
+	emit-sfx 1024 + 1 from leftAFlare;
 	return(1);
 }
 
@@ -319,7 +394,7 @@ AimFromWeapon4(piecenum)
 
 QueryWeapon4(piecenum)
 {
-	piecenum = leftAflare;
+	piecenum = leftAFlare;
 }
 
 AimWeapon5(heading, pitch)
@@ -328,7 +403,7 @@ AimWeapon5(heading, pitch)
 	set-signal-mask SIG_AIM_5;
 
 	if ((heading - <73.3>) > <-100> AND (heading - <73.3>) < <100>){
-		turn leftBTurret to z-axis <0.000000> + pitch speed <50.000000>;
+		turn leftBTurret to z-axis <0.000000> - pitch speed <50.000000>;
 		turn leftBTurretBase to y-axis heading - <90> speed <100.000000>;
 		wait-for-turn leftBTurret around x-axis;
 		wait-for-turn leftBTurretBase around y-axis;
@@ -348,7 +423,7 @@ Shot5(zero)
 {
 	signal SIG_FIRE4;
 	set-signal-mask SIG_FIRE4;
-	emit-sfx 1024 + 1 from leftBflare;
+	emit-sfx 1024 + 1 from leftBFlare;
 	return(1);
 }
 
@@ -359,7 +434,7 @@ AimFromWeapon5(piecenum)
 
 QueryWeapon5(piecenum)
 {
-	piecenum = leftBflare;
+	piecenum = leftBFlare;
 }
 
 // TargetCleared(Func_Var_1)
@@ -388,33 +463,41 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode turretBase type BITMAPONLY | NOHEATCLOUD;
-		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode railTurretBase type BITMAPONLY | NOHEATCLOUD;
+		explode railTurret type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode turretBase type FALL | NOHEATCLOUD;
-		explode turret type FALL | NOHEATCLOUD;
-		explode leftAGun type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode railTurretBase type FALL | NOHEATCLOUD;
+		explode railTurret type FALL | NOHEATCLOUD;
+		explode leftATurret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode leftBTurret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rightATurret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rightBTurret type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
 		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode turretBase type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode leftAGun type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-
+		explode railTurretBase type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode railTurret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode leftATurret 	type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode leftBTurret 	type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode rightATurret 	type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode rightBTurret 	type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode turretBase type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode leftAGun type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode railTurretBase type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode railTurret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode leftATurret  	type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode leftBTurret  	type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode rightATurret 	type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode rightBTurret 	type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }
