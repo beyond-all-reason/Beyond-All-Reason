@@ -38,7 +38,7 @@ return {
 			[4] = "legjav",
 			[5] = "corcat",
 			[6] = "corsok",
-			[7] = "cordemon",
+			[7] = "legerailtank",
 			[8] = "legpede",
 			[9] = "leegmech",
 			[10] = "legkeres",

@@ -2323,6 +2323,10 @@ local icontypes = {
 		bitmap = "icons/energystorage.png",
 		size = 1.10249984
 	},
+	legerailtank = {
+		bitmap = "icons/vehicle_t3_tank_rail_mgun.png",
+		size = 2.4000001
+	},
 	legcv = {
 		bitmap = "icons/vehicle_worker.png",
 		size = 0.99749994
