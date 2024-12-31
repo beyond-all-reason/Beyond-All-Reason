@@ -39,9 +39,6 @@ local misfireTallyDecayRate = 0.99  -- the misfire penalty that makes the misfir
 local misfireMultiplierAddition = 1 -- every time the misfire happens, it increases by this number. The tally is squared to make each cumulative misfire exponentially more punishing
 local backupMisfireAggro = -300 --how much aggro is given multiplied by the misfireTallyMultiplier^2 when priority weapon fails to fire.
 
-local PRIORITY_AIMINGSTATE = 1
-local BACKUP_AIMINGSTATE = 2
-
 local priorityAutoAggro = 12 -- how much aggro is accumulated per frameCheckModulo that the priority weapon successfully aims
 local priorityManualAggro = priorityAutoAggro * 4 -- how much aggro is accumulated per frameCheckModulo that the priority weapon successfully aims with a manually assigned target
 local prioritySwitchThreshold = -1  --the aggro at which priority weapon switch is triggered. Aggro is decayed closer to 0 every frameCheckModulo
@@ -50,6 +47,10 @@ local backupAutoAggro = 4 -- how much aggro is accumulated per frameCheckModulo 
 local backupManualAggro = priorityAutoAggro * 3 --how much aggro is accumulated per frameCheckModulo that the priority weapon fails to aim with a manually assigned target
 local backupSwitchThreshold = -backupAutoAggro * 1.5 --the aggro at which backup weapon switch is triggered. Aggro is decayed closer to 0 every frameCheckModulo
 
+local PRIORITY_AIMINGSTATE = 1
+local BACKUP_AIMINGSTATE = 2
+local UNIT_TARGET = 1
+local GROUND_TARGET = 2
 --variables
 local gameFrame = 0
 
@@ -142,11 +143,10 @@ local function updateAimingState(attackerID)
 	local backupIsUserTarget, backupTarget = select(2, spGetUnitWeaponTarget(attackerID, defData.backupWeapon))
 
 	local priorityCanShoot = false
-	if priorityTargetType == PRIORITY_AIMINGSTATE then
+	if priorityTargetType == UNIT_TARGET then
 		priorityCanShoot = spGetUnitWeaponHaveFreeLineOfFire(attackerID, defData.trajectoryCheckWeapon, priorityTarget)
-	elseif priorityTargetType == BACKUP_AIMINGSTATE then
-		priorityCanShoot = spGetUnitWeaponHaveFreeLineOfFire(attackerID, defData.trajectoryCheckWeapon, nil, nil, nil,
-			priorityTarget[1], priorityTarget[2], priorityTarget[3])
+	elseif priorityTargetType == GROUND_TARGET then
+		priorityCanShoot = spGetUnitWeaponHaveFreeLineOfFire(attackerID, defData.trajectoryCheckWeapon, nil, nil, nil, priorityTarget[1], priorityTarget[2], priorityTarget[3])
 	end
 
 	if not data.suspendMisfireUntilFrame and (backupTarget or priorityTarget) then
