@@ -15,8 +15,8 @@ return {
 		energystorage = 1000,
 		exemptcategory = "WEAPON",
 		explodeas = "hugeBuildingexplosiongeneric",
-		footprintx = 4,
-		footprintz = 4,
+		footprintx = 5,
+		footprintz = 6,
 		health = 3550,
 		idleautoheal = 5,
 		idletime = 1800,
@@ -32,7 +32,6 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "hugeBuildingExplosionGenericSelfd",
 		sightdistance = 273,
-		yardmap = "oooooooooooooooo",
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
 			buildinggrounddecalsizex = 9,
