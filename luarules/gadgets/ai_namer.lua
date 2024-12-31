@@ -173,7 +173,7 @@ if gadgetHandler:IsSyncedCode() then
 		"rous",
 		"Rikerss", --Merch $20+
 		"Sovgut", --Tourney prize $50
-		"Shadowisperke",
+		"Shadowisper",
 		"Spanker",
 		"SuperMadmax",
 		"sversuge",
