@@ -133,7 +133,7 @@ return {
 				name = "Siege Rail Accelerator",
 				noexplode = true,
 				noselfdamage = true,
-				range = 900,
+				range = 901,
 				reloadtime = 3,
 				rgbcolor = "0.34 0.64 0.94",
 				soundhit = "mavgun3",
@@ -145,7 +145,7 @@ return {
 				tolerance = 7000,
 				turret = true,
 				weapontype = "LaserCannon",
-				weaponvelocity = 3500,
+				weaponvelocity = 3000,
 				damage = {
 					commanders = 300,
 					default = 800,
