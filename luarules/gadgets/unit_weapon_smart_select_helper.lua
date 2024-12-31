@@ -23,18 +23,18 @@ Integration Checklist:
 3. This requires integration into the unit's animation .bos script to work. Follow the instructions in "smart_weapon_select.h" .bos header.
 
 ****OPTIONAL*****
-use weapondef.customparams.smart_misfire_frames | <number> to override the default reloadtime derivitive frames misfire threshold.
+use Weapon def custom param smart_misfire_frames | <number> to override the default reloadtime derivative frames misfire threshold.
 This may be necessary if the turret's turn speed is so slow it triggers false misfires.
 ]]
 
 --static
 local frameCheckModulo = Game.gameSpeed
-local failedToFireMultiplier = Game.gameSpeed * 1.25
-local minimumFailedToFireFrames = Game.gameSpeed * 4
 local aggroDecayRate = 0.65 --aggro is multiplied by this until it falls within priority aiming state range
 local aggroDecayCap = 10 -- this caps the aggro decay so that misfire state can last a significant amount of time
 
 --misfire occurs when the weapon thinks it can shoot a target due to faulty Spring.GetUnitWeaponHaveFreeLineOfFire return values. We must detect when this failure occurs and force high for a long duration.
+local misfireMultiplier = Game.gameSpeed * 1.25
+local minimumMisfireFrames = Game.gameSpeed * 4
 local misfireTallyDecayRate = 0.99  -- the misfire penalty that makes the misfire state last longer the more cumulative times it happens decays at this rate
 local misfireMultiplierAddition = 1 -- every time the misfire happens, it increases by this number. The tally is squared to make each cumulative misfire exponentially more punishing
 local backupMisfireAggro = -300 --how much aggro is given multiplied by the misfireTallyMultiplier^2 when priority weapon fails to fire.
@@ -63,7 +63,7 @@ local mathMin = math.min
 local mathMax = math.max
 
 local smartUnits = {}
-local unitDefData = {}
+local smartUnitDefs = {}
 
 function gadget:Initialize()
 	local units = Spring.GetAllUnits()
@@ -80,21 +80,21 @@ for unitDefID, def in ipairs(UnitDefs) do
 			local weaponDefID = weapons[weaponNumber].weaponDef
 			if WeaponDefs[weaponDefID] and WeaponDefs[weaponDefID].customParams then
 				if WeaponDefs[weaponDefID].customParams.smart_priority then
-					unitDefData[unitDefID] = unitDefData[unitDefID] or {}
-					unitDefData[unitDefID].priorityWeapon = weaponNumber
-					unitDefData[unitDefID].failedToFireFrameThreshold = WeaponDefs[weaponDefID].customParams.smart_misfire_frames or
-						mathMax(WeaponDefs[weaponDefID].reload * failedToFireMultiplier, minimumFailedToFireFrames)
+					smartUnitDefs[unitDefID] = smartUnitDefs[unitDefID] or {}
+					smartUnitDefs[unitDefID].priorityWeapon = weaponNumber
+					smartUnitDefs[unitDefID].failedToFireFrameThreshold = WeaponDefs[weaponDefID].customParams.smart_misfire_frames or
+						mathMax(WeaponDefs[weaponDefID].reload * misfireMultiplier, minimumMisfireFrames)
 					if def.speed and def.speed ~= 0 then
-						unitDefData[unitDefID].canMove = true
+						smartUnitDefs[unitDefID].canMove = true
 					end
 				end
 				if WeaponDefs[weaponDefID].customParams.smart_backup then
-					unitDefData[unitDefID] = unitDefData[unitDefID] or {}
-					unitDefData[unitDefID].backupWeapon = weaponNumber
+					smartUnitDefs[unitDefID] = smartUnitDefs[unitDefID] or {}
+					smartUnitDefs[unitDefID].backupWeapon = weaponNumber
 				end
 				if WeaponDefs[weaponDefID].customParams.smart_trajectory_checker then
-					unitDefData[unitDefID] = unitDefData[unitDefID] or {}
-					unitDefData[unitDefID].trajectoryCheckWeapon = weaponNumber
+					smartUnitDefs[unitDefID] = smartUnitDefs[unitDefID] or {}
+					smartUnitDefs[unitDefID].trajectoryCheckWeapon = weaponNumber
 				end
 			end
 		end
@@ -103,7 +103,7 @@ end
 
 
 function gadget:UnitCreated(unitID, unitDefID)
-	if unitDefData[unitDefID] then
+	if smartUnitDefs[unitDefID] then
 		smartUnits[unitID] = {
 			unitDefID = unitDefID,
 			setStateScriptID = Spring.GetCOBScriptID(unitID, "SetAimingState"),
@@ -111,7 +111,7 @@ function gadget:UnitCreated(unitID, unitDefID)
 			failedShotFrame = 0,
 			misfireTallyMultiplier = 0,
 		}
-		spCallCOBScript(unitID, smartUnits[unitID].setStateScriptID, 0, unitDefData[unitDefID].priorityWeapon)
+		spCallCOBScript(unitID, smartUnits[unitID].setStateScriptID, 0, smartUnitDefs[unitDefID].priorityWeapon)
 	end
 end
 
@@ -136,16 +136,16 @@ end
 
 local function updateAimingState(attackerID)
 	local data = smartUnits[attackerID]
-	local defData = unitDefData[data.unitDefID]
+	local defData = smartUnitDefs[data.unitDefID]
 
 	local priorityTargetType, priorityIsUserTarget, priorityTarget = spGetUnitWeaponTarget(attackerID, defData.priorityWeapon)
 	local backupIsUserTarget, backupTarget = select(2, spGetUnitWeaponTarget(attackerID, defData.backupWeapon))
 
-	local preferredCanShoot = false
+	local priorityCanShoot = false
 	if priorityTargetType == PRIORITY_AIMINGSTATE then
-		preferredCanShoot = spGetUnitWeaponHaveFreeLineOfFire(attackerID, defData.trajectoryCheckWeapon, priorityTarget)
+		priorityCanShoot = spGetUnitWeaponHaveFreeLineOfFire(attackerID, defData.trajectoryCheckWeapon, priorityTarget)
 	elseif priorityTargetType == BACKUP_AIMINGSTATE then
-		preferredCanShoot = spGetUnitWeaponHaveFreeLineOfFire(attackerID, defData.trajectoryCheckWeapon, nil, nil, nil,
+		priorityCanShoot = spGetUnitWeaponHaveFreeLineOfFire(attackerID, defData.trajectoryCheckWeapon, nil, nil, nil,
 			priorityTarget[1], priorityTarget[2], priorityTarget[3])
 	end
 
@@ -164,7 +164,7 @@ local function updateAimingState(attackerID)
 		failureToFire = failureToFireCheck(attackerID, data, defData)
 	end
 
-	if priorityIsUserTarget and preferredCanShoot then
+	if priorityIsUserTarget and priorityCanShoot then
 		if failureToFire then
 			data.misfireTallyMultiplier = data.misfireTallyMultiplier + misfireMultiplierAddition
 			data.aggroBias = backupMisfireAggro * data.misfireTallyMultiplier ^ data.misfireTallyMultiplier
@@ -178,7 +178,7 @@ local function updateAimingState(attackerID)
 			data.misfireTallyMultiplier = data.misfireTallyMultiplier + misfireMultiplierAddition
 			data.aggroBias = backupMisfireAggro * data.misfireTallyMultiplier ^ data.misfireTallyMultiplier
 			data.suspendMisfireUntilFrame = gameFrame + defData.failedToFireFrameThreshold
-		elseif preferredCanShoot then
+		elseif priorityCanShoot then
 			data.aggroBias = data.aggroBias + priorityAutoAggro
 		elseif backupIsUserTarget ~= nil then
 			data.aggroBias = data.aggroBias - backupAutoAggro
