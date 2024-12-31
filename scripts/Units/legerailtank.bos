@@ -437,21 +437,6 @@ QueryWeapon5(piecenum)
 	piecenum = leftBFlare;
 }
 
-// TargetCleared(Func_Var_1)
-// {
-// 	if( Func_Var_1 == 1 )
-// 	{
-// 		signal SIG_AIM_2;
-// 		signal SIG_AIM_3;
-// 		signal SIG_AIM_4;
-// 		signal SIG_AIM_5;
-// 		stop-spin leftAGun around z-axis decelerate <10.000000>;
-// 		stop-spin leftBGun around z-axis decelerate <10.000000>;
-// 		stop-spin rightAGun around z-axis decelerate <10.000000>;
-// 		stop-spin rightBGun around z-axis decelerate <10.000000>;
-// 	}
-// }
-
 SweetSpot(piecenum)
 {
 	piecenum = base;
