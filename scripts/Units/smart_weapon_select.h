@@ -4,8 +4,8 @@ Purpose: Automatically switch between a preferred and backup weapon (E.G high/lo
 Author: SethDGamre SethDGamre@Gmail.com
 License: GPL V2.0
 
-By including this header file, you can have two weapons dynamically selected. AIMING_LOW trajectory is preferred
-and if it fails AIMING_HIGH is allowed to steal for a period of time outlined in the #defines below. This aiming
+By including this header file, you can have two weapons dynamically selected. AIMING_PRIORITY trajectory is preferred
+and if it fails AIMING_BACKUP is allowed to steal for a period of time outlined in the #defines below. This aiming
 script is required to work in conjunction with a gadget unit_weapon_smart_select_helper.lua which handles and feeds
 to this script the manual targetting events.
 
@@ -14,12 +14,12 @@ to this script the manual targetting events.
 1. somewhere before Create() function:
 #include "smart_weapon_select.h"
 
-2. in beginning of low AimWeapon function:
+2. in beginning of priority AimWeapon function:
 if (AimingState != AIMING_PRIORITY){ 
 	return 0;
 }
 
-3. in beginning of high AimWeapon function:
+3. in beginning of backup AimWeapon function:
 if (AimingState != AIMING_BACKUP){ 
 	return 0;
 }
