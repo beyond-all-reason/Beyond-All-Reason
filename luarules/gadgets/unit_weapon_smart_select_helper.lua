@@ -30,18 +30,18 @@ This may be necessary if the turret's turn speed is so slow it triggers false mi
 --static
 local frameCheckModulo = Game.gameSpeed
 local aggroDecayRate = 0.65 --aggro is multiplied by this until it falls within priority aiming state range
-local aggroDecayCap = 10 -- this caps the aggro decay so that misfire state can last a significant amount of time
+local aggroDecayCap = 10  -- this caps the aggro decay so that misfire state can last a significant amount of time
 
 --misfire occurs when the weapon thinks it can shoot a target due to faulty Spring.GetUnitWeaponHaveFreeLineOfFire return values. We must detect when this failure occurs and force high for a long duration.
 local misfireMultiplier = Game.gameSpeed * 1.25
 local minimumMisfireFrames = Game.gameSpeed * 4
-local misfireTallyDecayRate = 0.99  -- the misfire penalty that makes the misfire state last longer the more cumulative times it happens decays at this rate
+local misfireTallyDecayRate = 0.99 -- the misfire penalty that makes the misfire state last longer the more cumulative times it happens decays at this rate
 local misfireMultiplierAddition = 1 -- every time the misfire happens, it increases by this number. The tally is squared to make each cumulative misfire exponentially more punishing
 local backupMisfireAggro = -300 --how much aggro is given multiplied by the misfireTallyMultiplier^2 when priority weapon fails to fire.
 
 local priorityAutoAggro = 12 -- how much aggro is accumulated per frameCheckModulo that the priority weapon successfully aims
-local priorityManualAggro = priorityAutoAggro * 4 -- how much aggro is accumulated per frameCheckModulo that the priority weapon successfully aims with a manually assigned target
-local prioritySwitchThreshold = -1  --the aggro at which priority weapon switch is triggered. Aggro is decayed closer to 0 every frameCheckModulo
+local priorityManualAggro = priorityAutoAggro * 3 -- how much aggro is accumulated per frameCheckModulo that the priority weapon successfully aims with a manually assigned target
+local prioritySwitchThreshold = -1 --the aggro at which priority weapon switch is triggered. Aggro is decayed closer to 0 every frameCheckModulo
 
 local backupAutoAggro = 4 -- how much aggro is accumulated per frameCheckModulo that the priority weapon fails to aim
 local backupManualAggro = priorityAutoAggro * 3 --how much aggro is accumulated per frameCheckModulo that the priority weapon fails to aim with a manually assigned target
@@ -51,6 +51,7 @@ local PRIORITY_AIMINGSTATE = 1
 local BACKUP_AIMINGSTATE = 2
 local UNIT_TARGET = 1
 local GROUND_TARGET = 2
+
 --variables
 local gameFrame = 0
 
@@ -83,8 +84,7 @@ for unitDefID, def in ipairs(UnitDefs) do
 				if WeaponDefs[weaponDefID].customParams.smart_priority then
 					smartUnitDefs[unitDefID] = smartUnitDefs[unitDefID] or {}
 					smartUnitDefs[unitDefID].priorityWeapon = weaponNumber
-					smartUnitDefs[unitDefID].failedToFireFrameThreshold = WeaponDefs[weaponDefID].customParams.smart_misfire_frames or
-						mathMax(WeaponDefs[weaponDefID].reload * misfireMultiplier, minimumMisfireFrames)
+					smartUnitDefs[unitDefID].failedToFireFrameThreshold = WeaponDefs[weaponDefID].customParams.smart_misfire_frames or mathMax(WeaponDefs[weaponDefID].reload * misfireMultiplier, minimumMisfireFrames)
 					if def.speed and def.speed ~= 0 then
 						smartUnitDefs[unitDefID].canMove = true
 					end
@@ -102,20 +102,7 @@ for unitDefID, def in ipairs(UnitDefs) do
 	end
 end
 
-
-function gadget:UnitCreated(unitID, unitDefID)
-	if smartUnitDefs[unitDefID] then
-		smartUnits[unitID] = {
-			unitDefID = unitDefID,
-			setStateScriptID = Spring.GetCOBScriptID(unitID, "SetAimingState"),
-			aggroBias = 0,
-			failedShotFrame = 0,
-			misfireTallyMultiplier = 0,
-		}
-		spCallCOBScript(unitID, smartUnits[unitID].setStateScriptID, 0, smartUnitDefs[unitDefID].priorityWeapon)
-	end
-end
-
+--custom functions
 local function failureToFireCheck(attackerID, data, defData)
 	if not data.suspendMisfireUntilFrame then return false end
 
@@ -134,14 +121,22 @@ local function failureToFireCheck(attackerID, data, defData)
 	end
 end
 
+local function handleMisfire(data, defData)
+	data.misfireTallyMultiplier = data.misfireTallyMultiplier + misfireMultiplierAddition
+	data.aggroBias = backupMisfireAggro * data.misfireTallyMultiplier ^ data.misfireTallyMultiplier
+	data.suspendMisfireUntilFrame = gameFrame + defData.failedToFireFrameThreshold
+end
 
 local function updateAimingState(attackerID)
 	local data = smartUnits[attackerID]
 	local defData = smartUnitDefs[data.unitDefID]
 
-	local priorityTargetType, priorityIsUserTarget, priorityTarget = spGetUnitWeaponTarget(attackerID, defData.priorityWeapon)
+	-- Get target information for the priority and backup weapons
+	local priorityTargetType, priorityIsUserTarget, priorityTarget = spGetUnitWeaponTarget(attackerID,
+		defData.priorityWeapon)
 	local backupIsUserTarget, backupTarget = select(2, spGetUnitWeaponTarget(attackerID, defData.backupWeapon))
 
+	-- Determine if the priority weapon can shoot the target
 	local priorityCanShoot = false
 	if priorityTargetType == UNIT_TARGET then
 		priorityCanShoot = spGetUnitWeaponHaveFreeLineOfFire(attackerID, defData.trajectoryCheckWeapon, priorityTarget)
@@ -149,25 +144,27 @@ local function updateAimingState(attackerID)
 		priorityCanShoot = spGetUnitWeaponHaveFreeLineOfFire(attackerID, defData.trajectoryCheckWeapon, nil, nil, nil, priorityTarget[1], priorityTarget[2], priorityTarget[3])
 	end
 
+	-- prevent misfire from triggering when a target is first acquired from idle state
 	if not data.suspendMisfireUntilFrame and (backupTarget or priorityTarget) then
 		data.suspendMisfireUntilFrame = gameFrame + defData.failedToFireFrameThreshold
 	elseif not backupTarget and not priorityTarget then
 		data.suspendMisfireUntilFrame = nil
 	end
 
+	-- check if priority weapon is stuck trying to aim but failing to fire when it should
 	local failureToFire = false
 	if defData.canMove then
-		if not spGetUnitEstimatedPath(attackerID) then --if it's moving, it'll probably fail to shoot from slow turn speed, or gain LOS from movement
+		if not spGetUnitEstimatedPath(attackerID) then -- If it's moving, it might fail to shoot or gain LOS from movement
 			failureToFire = failureToFireCheck(attackerID, data, defData)
 		end
 	else
 		failureToFire = failureToFireCheck(attackerID, data, defData)
 	end
 
+	-- add or subtract aggro based on weapon targetting conditions
 	if priorityIsUserTarget and priorityCanShoot then
 		if failureToFire then
-			data.misfireTallyMultiplier = data.misfireTallyMultiplier + misfireMultiplierAddition
-			data.aggroBias = backupMisfireAggro * data.misfireTallyMultiplier ^ data.misfireTallyMultiplier
+			handleMisfire(data, defData)
 		else
 			data.aggroBias = data.aggroBias + priorityManualAggro
 		end
@@ -175,9 +172,7 @@ local function updateAimingState(attackerID)
 		data.aggroBias = data.aggroBias - backupManualAggro
 	else
 		if failureToFire then
-			data.misfireTallyMultiplier = data.misfireTallyMultiplier + misfireMultiplierAddition
-			data.aggroBias = backupMisfireAggro * data.misfireTallyMultiplier ^ data.misfireTallyMultiplier
-			data.suspendMisfireUntilFrame = gameFrame + defData.failedToFireFrameThreshold
+			handleMisfire(data, defData)
 		elseif priorityCanShoot then
 			data.aggroBias = data.aggroBias + priorityAutoAggro
 		elseif backupIsUserTarget ~= nil then
@@ -185,7 +180,7 @@ local function updateAimingState(attackerID)
 		end
 	end
 
-	data.misfireTallyMultiplier = data.misfireTallyMultiplier * misfireTallyDecayRate
+	-- Switch aiming state based on aggro bias thresholds
 	if data.aggroBias >= prioritySwitchThreshold then
 		data.aggroBias = mathMax(data.aggroBias * aggroDecayRate, data.aggroBias - aggroDecayCap)
 		spCallCOBScript(attackerID, data.setStateScriptID, 0, PRIORITY_AIMINGSTATE)
@@ -195,8 +190,24 @@ local function updateAimingState(attackerID)
 	else
 		data.aggroBias = data.aggroBias * aggroDecayRate
 	end
+
+	-- Decay misfire tally multiplier, so that if the conditions change that caused the misfire it can revert to a normal state over time.
+	data.misfireTallyMultiplier = data.misfireTallyMultiplier * misfireTallyDecayRate
 end
 
+--call-ins
+function gadget:UnitCreated(unitID, unitDefID)
+	if smartUnitDefs[unitDefID] then
+		smartUnits[unitID] = {
+			unitDefID = unitDefID,
+			setStateScriptID = Spring.GetCOBScriptID(unitID, "SetAimingState"),
+			aggroBias = 0,
+			failedShotFrame = 0,
+			misfireTallyMultiplier = 0,
+		}
+		spCallCOBScript(unitID, smartUnits[unitID].setStateScriptID, 0, smartUnitDefs[unitDefID].priorityWeapon)
+	end
+end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	smartUnits[unitID] = nil
