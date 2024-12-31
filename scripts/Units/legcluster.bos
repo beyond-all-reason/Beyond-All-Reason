@@ -61,7 +61,8 @@ aimCommon(heading, pitch)
 
 AimPrimary(heading, pitch)
 {
-	if (AimingState != AIMING_PRIORITY){
+	if (AimingState != AIMING_PRIORITY)
+	{
 		return(0);
 	}
 
@@ -82,7 +83,8 @@ AimPrimary(heading, pitch)
 
 AimSecondary(heading, pitch)
 {
-	if (AimingState != AIMING_BACKUP){
+	if (AimingState != AIMING_BACKUP)
+	{
 		return(0);
 	}
 	

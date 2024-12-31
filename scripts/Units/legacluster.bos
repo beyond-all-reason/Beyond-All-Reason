@@ -210,7 +210,8 @@ AimPrimary(heading, pitch)
 {
 	start-script Go();
 	
-	if (AimingState != AIMING_PRIORITY){
+	if (AimingState != AIMING_PRIORITY)
+	{
 		return(0);
 	}
 
@@ -234,7 +235,8 @@ AimSecondary(heading, pitch)
 {
 	start-script Go();
 
-	if (AimingState != AIMING_BACKUP){
+	if (AimingState != AIMING_BACKUP)
+	{
 		return(0);
 	}
 

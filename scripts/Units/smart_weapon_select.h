@@ -15,14 +15,18 @@ to this script the manual targetting events.
 #include "smart_weapon_select.h"
 
 2. in the preferred AimWeaponX() function, add the following at the beginning:
-	if (AimingState != AIMING_PRIORITY){
+	if (AimingState != AIMING_PRIORITY)
+	{
 		return(0);
 	}
 3. in the deferred AimWeaponX() function, add the following at the beginning:
-	if (AimingState != AIMING_BACKUP){
+	if (AimingState != AIMING_BACKUP)
+	{
 		return(0);
 	}
 4. If using a dummy weapon, return (0); in its AimWeaponX() function and QueryWeaponX(piecenum) should be set to a static piece lower than the turret.
+	This is necessary until engine changes allow for abritrary XYZ source coordinates for cannon projectiles in Spring.GetWeaponHaveFreeLineOfFire. At which point,
+	dummy weapons should be removed and source position should be fed directly into the function via the gadget unit_weapon_smart_select_helper.lua
 
   */
 

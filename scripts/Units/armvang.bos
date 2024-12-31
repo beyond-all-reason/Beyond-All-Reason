@@ -601,7 +601,8 @@ QueryPrimary(piecenum)
 
 AimPrimary(heading, pitch)
 {
-	if (AimingState != AIMING_PRIORITY){
+	if (AimingState != AIMING_PRIORITY)
+	{
 		return(0);
 	}
 
@@ -650,7 +651,8 @@ QuerySecondary(piecenum)
 
 AimSecondary(heading, pitch)
 {
-	if (AimingState != AIMING_BACKUP){
+	if (AimingState != AIMING_BACKUP)
+	{
 		return(0);
 	}
 	
