@@ -20,19 +20,11 @@ Integration Checklist:
 	smart_priority | <boolean> true for the higher priority smart select weapon.
 	smart_backup   | <boolean>= true for the fallback smart select weapon, used when smart_backup cannot shoot a target.
 	smart_trajectory_checker | <boolean> true for the weapon that should be used for trajectory checks for the priorityWeapon. Ideally this is a static point slightly lower than preferred_weapon.
-3. in the unit's .bos animation script, #include "smart_weapon_select.h"  ideally at the beginning of the file.
-4. in the preferred AimWeaponX() function, add the following at the beginning:
-	if (AimingState != AIMING_PRIORITY){
-		return(0);
-	}
-5. in the deferred AimWeaponX() function, add the following at the beginning:
-	if (AimingState != AIMING_BACKUP){
-		return(0);
-	}
-6. If using a dummy weapon, return (0); in its AimWeaponX() function and QueryWeaponX(piecenum) should be set to static piece lower than the turret.
+3. This requires integration into the unit's animation .bos script to work. Follow the instructions in "smart_weapon_select.h" .bos header.
 
 ****OPTIONAL*****
-use weapondef.customparams.smart_error_frames to override the default reloadtime derivitive frames error threshold
+use weapondef.customparams.smart_misfire_frames | <number> to override the default reloadtime derivitive frames misfire threshold.
+This may be necessary if the turret's turn speed is so slow it triggers false misfires.
 ]]
 
 --static
@@ -40,9 +32,13 @@ local frameCheckModulo = Game.gameSpeed
 local failedToFireMultiplier = Game.gameSpeed * 1.25
 local minimumFailedToFireFrames = Game.gameSpeed * 4
 local aggroDecayRate = 0.65 --aggro is multiplied by this until it falls within priority aiming state range
-local aggroDecayCap = 10 -- this caps the aggro decay so that error state can last a significant amount of time
-local errorTallyDecayRate = 0.99  -- the error penalty that makes the error state last longer the more cumulative times it happens decays at this rate
-local errorMultiplierAddition = 1 -- every time the error happens, it increases by this number. The tally is squared to make each cumulative error exponentially more punishing
+local aggroDecayCap = 10 -- this caps the aggro decay so that misfire state can last a significant amount of time
+
+--misfire occurs when the weapon thinks it can shoot a target due to faulty Spring.GetUnitWeaponHaveFreeLineOfFire return values. We must detect when this failure occurs and force high for a long duration.
+local misfireTallyDecayRate = 0.99  -- the misfire penalty that makes the misfire state last longer the more cumulative times it happens decays at this rate
+local misfireMultiplierAddition = 1 -- every time the misfire happens, it increases by this number. The tally is squared to make each cumulative misfire exponentially more punishing
+local backupMisfireAggro = -300 --how much aggro is given multiplied by the misfireTallyMultiplier^2 when priority weapon fails to fire.
+
 local PRIORITY_AIMINGSTATE = 1
 local BACKUP_AIMINGSTATE = 2
 
@@ -52,7 +48,6 @@ local prioritySwitchThreshold = -1  --the aggro at which priority weapon switch 
 
 local backupAutoAggro = 4 -- how much aggro is accumulated per frameCheckModulo that the priority weapon fails to aim
 local backupManualAggro = priorityAutoAggro * 3 --how much aggro is accumulated per frameCheckModulo that the priority weapon fails to aim with a manually assigned target
-local backupErrorAggro = -300 --how much aggro is given multiplied by the errorTallyMultiplier^2 when priority weapon fails to fire.
 local backupSwitchThreshold = -backupAutoAggro * 1.5 --the aggro at which backup weapon switch is triggered. Aggro is decayed closer to 0 every frameCheckModulo
 
 --variables
@@ -87,7 +82,7 @@ for unitDefID, def in ipairs(UnitDefs) do
 				if WeaponDefs[weaponDefID].customParams.smart_priority then
 					unitDefData[unitDefID] = unitDefData[unitDefID] or {}
 					unitDefData[unitDefID].priorityWeapon = weaponNumber
-					unitDefData[unitDefID].failedToFireFrameThreshold = WeaponDefs[weaponDefID].customParams.smart_error_frames or
+					unitDefData[unitDefID].failedToFireFrameThreshold = WeaponDefs[weaponDefID].customParams.smart_misfire_frames or
 						mathMax(WeaponDefs[weaponDefID].reload * failedToFireMultiplier, minimumFailedToFireFrames)
 					if def.speed and def.speed ~= 0 then
 						unitDefData[unitDefID].canMove = true
@@ -114,14 +109,14 @@ function gadget:UnitCreated(unitID, unitDefID)
 			setStateScriptID = Spring.GetCOBScriptID(unitID, "SetAimingState"),
 			aggroBias = 0,
 			failedShotFrame = 0,
-			errorTallyMultiplier = 0,
+			misfireTallyMultiplier = 0,
 		}
 		spCallCOBScript(unitID, smartUnits[unitID].setStateScriptID, 0, unitDefData[unitDefID].priorityWeapon)
 	end
 end
 
 local function failureToFireCheck(attackerID, data, defData)
-	if not data.suspendErrorUntilFrame then return false end
+	if not data.suspendMisfireUntilFrame then return false end
 
 	if data.failedShotFrame < gameFrame - defData.failedToFireFrameThreshold then
 		data.failedShotFrame = mathMax(
@@ -131,7 +126,7 @@ local function failureToFireCheck(attackerID, data, defData)
 	end
 
 	if data.failedShotFrame < gameFrame - defData.failedToFireFrameThreshold and
-		gameFrame > data.suspendErrorUntilFrame then
+		gameFrame > data.suspendMisfireUntilFrame then
 		return true
 	else
 		return false
@@ -154,10 +149,10 @@ local function updateAimingState(attackerID)
 			priorityTarget[1], priorityTarget[2], priorityTarget[3])
 	end
 
-	if not data.suspendErrorUntilFrame and (backupTarget or priorityTarget) then
-		data.suspendErrorUntilFrame = gameFrame + defData.failedToFireFrameThreshold
+	if not data.suspendMisfireUntilFrame and (backupTarget or priorityTarget) then
+		data.suspendMisfireUntilFrame = gameFrame + defData.failedToFireFrameThreshold
 	elseif not backupTarget and not priorityTarget then
-		data.suspendErrorUntilFrame = nil
+		data.suspendMisfireUntilFrame = nil
 	end
 
 	local failureToFire = false
@@ -171,8 +166,8 @@ local function updateAimingState(attackerID)
 
 	if priorityIsUserTarget and preferredCanShoot then
 		if failureToFire then
-			data.errorTallyMultiplier = data.errorTallyMultiplier + errorMultiplierAddition
-			data.aggroBias = backupErrorAggro * data.errorTallyMultiplier ^ data.errorTallyMultiplier
+			data.misfireTallyMultiplier = data.misfireTallyMultiplier + misfireMultiplierAddition
+			data.aggroBias = backupMisfireAggro * data.misfireTallyMultiplier ^ data.misfireTallyMultiplier
 		else
 			data.aggroBias = data.aggroBias + priorityManualAggro
 		end
@@ -180,9 +175,9 @@ local function updateAimingState(attackerID)
 		data.aggroBias = data.aggroBias - backupManualAggro
 	else
 		if failureToFire then
-			data.errorTallyMultiplier = data.errorTallyMultiplier + errorMultiplierAddition
-			data.aggroBias = backupErrorAggro * data.errorTallyMultiplier ^ data.errorTallyMultiplier
-			data.suspendErrorUntilFrame = gameFrame + defData.failedToFireFrameThreshold
+			data.misfireTallyMultiplier = data.misfireTallyMultiplier + misfireMultiplierAddition
+			data.aggroBias = backupMisfireAggro * data.misfireTallyMultiplier ^ data.misfireTallyMultiplier
+			data.suspendMisfireUntilFrame = gameFrame + defData.failedToFireFrameThreshold
 		elseif preferredCanShoot then
 			data.aggroBias = data.aggroBias + priorityAutoAggro
 		elseif backupIsUserTarget ~= nil then
@@ -190,7 +185,7 @@ local function updateAimingState(attackerID)
 		end
 	end
 
-	data.errorTallyMultiplier = data.errorTallyMultiplier * errorTallyDecayRate
+	data.misfireTallyMultiplier = data.misfireTallyMultiplier * misfireTallyDecayRate
 	if data.aggroBias >= prioritySwitchThreshold then
 		data.aggroBias = mathMax(data.aggroBias * aggroDecayRate, data.aggroBias - aggroDecayCap)
 		spCallCOBScript(attackerID, data.setStateScriptID, 0, PRIORITY_AIMINGSTATE)

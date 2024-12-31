@@ -14,15 +14,16 @@ to this script the manual targetting events.
 1. somewhere before Create() function:
 #include "smart_weapon_select.h"
 
-2. in beginning of priority AimWeapon function:
-if (AimingState != AIMING_PRIORITY){ 
-	return 0;
-}
+2. in the preferred AimWeaponX() function, add the following at the beginning:
+	if (AimingState != AIMING_PRIORITY){
+		return(0);
+	}
+3. in the deferred AimWeaponX() function, add the following at the beginning:
+	if (AimingState != AIMING_BACKUP){
+		return(0);
+	}
+4. If using a dummy weapon, return (0); in its AimWeaponX() function and QueryWeaponX(piecenum) should be set to a static piece lower than the turret.
 
-3. in beginning of backup AimWeapon function:
-if (AimingState != AIMING_BACKUP){ 
-	return 0;
-}
   */
 
 #ifndef __SMARTSELECT_H_

@@ -892,7 +892,7 @@ function UnitDef_Post(name, uDef)
 			uDef.weapondefs.armdfly_paralyzer.beamdecay = 0.05--testing
 			uDef.weapondefs.armdfly_paralyzer.beamtime = 0.1--testing
 			uDef.weapondefs.armdfly_paralyzer.areaofeffect = 8--testing
-			uDef.weapondefs.armdfly_paralyzer.targetmoveerror = 0.05--testing
+			uDef.weapondefs.armdfly_paralyzer.targetmovemisfire = 0.05--testing
 
 
 
@@ -1402,7 +1402,7 @@ function WeaponDef_Post(name, wDef)
 		-- Accurate Lasers		
 		if modOptions.accuratelasers then
 			if wDef.weapontype and wDef.weapontype == 'BeamLaser' then
-				wDef.targetmoveerror = nil
+				wDef.targetmovemisfire = nil
 			end
 		end
 
