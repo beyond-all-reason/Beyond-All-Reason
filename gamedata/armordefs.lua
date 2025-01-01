@@ -448,6 +448,8 @@ local armorDefs = {
 		"legfhp",
 		"legch",
 		"legeyes",
+		"legjav",
+		"legerailtank",
 	},
 	mines = {
 		"armfmine3",

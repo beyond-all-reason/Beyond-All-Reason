@@ -22,6 +22,8 @@ end
 
 local isPregame = Spring.GetGameFrame() == 0 and not isSpec
 
+local uDefNames = UnitDefNames
+
 local GetActiveCommand		= Spring.GetActiveCommand
 local SetActiveCommand		= Spring.SetActiveCommand
 local spGetMouseState 		= Spring.GetMouseState
@@ -283,6 +285,28 @@ function widget:GameStart()
 	isPregame = false
 end
 
+local function addUnitDefPair(firstUnitName, lastUnitName)
+	local firstUnitDef = uDefNames[firstUnitName]
+	local lastUnitDef = uDefNames[lastUnitName]
+
+	if not (firstUnitDef and lastUnitDef and firstUnitDef.id and lastUnitDef.id) then
+		Spring.Echo(string.format("%s: can't add %s/%s pair", "cmd_context_build", firstUnitName, lastUnitName))
+		return
+	end
+
+	for i, unitDef in ipairs({firstUnitDef, lastUnitDef}) do
+		local unitDefID = unitDef.id
+		local isWater = i % 2 == 0
+
+		-- Break the unit list into two matching arrays
+		if isWater then
+			table.insert(waterBuildings, unitDefID)
+		else
+			table.insert(groundBuildings, unitDefID)
+		end
+	end
+end
+
 function widget:Initialize()
 	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
 		maybeRemoveSelf()
@@ -295,20 +319,7 @@ function widget:Initialize()
 	end
 
 	
-	local uDefNames = UnitDefNames
 	for _,unitNames in ipairs(unitlist) do
-		for i, unitName in ipairs(unitNames) do
-			local unitDefID = uDefNames[unitName].id
-			local isWater = i % 2 == 0
-
-			-- Break the unit list into two matching arrays
-			if unitDefID then
-				if isWater then
-					table.insert(waterBuildings, unitDefID)
-				else
-					table.insert(groundBuildings, unitDefID)
-				end
-			end
-		end
+		addUnitDefPair(unitNames[1], unitNames[2])
 	end
 end

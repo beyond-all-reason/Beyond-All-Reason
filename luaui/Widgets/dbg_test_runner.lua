@@ -615,14 +615,14 @@ end
 
 SyncedProxy = createNestedProxy(Proxy.PREFIX.CALL)
 
-SyncedRun = function(fn)
+SyncedRun = function(fn, timeout)
 	local serializedFn, returnID = rpc:serializeFunctionRun(fn, 3)
 
 	returnState = {
 		waitingForReturnID = returnID,
 		success = nil,
 		pendingValueOrError = nil,
-		timeoutExpireFrame = Spring.GetGameFrame() + config.returnTimeout,
+		timeoutExpireFrame = Spring.GetGameFrame() + (timeout or config.returnTimeout),
 	}
 
 	log(LOG.DEBUG, "[SyncedRun.send]")
