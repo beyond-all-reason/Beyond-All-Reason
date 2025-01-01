@@ -194,6 +194,8 @@ return {
 				weaponvelocity = 1600,
 				customparams = {
 					place_target_on_ground = "true",
+					scavforcecommandfire = true,
+					stockpilelimit = 10,
 				},
 				damage = {
 					commanders = 2500,

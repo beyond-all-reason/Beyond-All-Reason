@@ -215,14 +215,9 @@ AimWeapon1()
 	return (TRUE);
 }
 
-AimWeapon2()
-{
-	return (TRUE);
-}
-
 FireWeapon1()
 {
-	emit-sfx 4096 + 1 from base; //Weapon2 detonates the mine once weapon1 fires
+	get KILL_UNIT(get MY_ID,TRUE,FALSE);
 }
 
 QueryWeapon1(piecenum)
@@ -233,20 +228,6 @@ QueryWeapon1(piecenum)
 AimFromWeapon1(piecenum)
 {
 	piecenum = base;
-}
-
-QueryWeapon2(piecenum)
-{
-	piecenum = base;
-}
-
-AimFromWeapon2(piecenum)
-{
-	piecenum = base;
-}
-
-FireWeapon2()
-{
 }
 
 SweetSpot(piecenum)
