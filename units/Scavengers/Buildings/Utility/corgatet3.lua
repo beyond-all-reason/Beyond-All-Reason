@@ -30,7 +30,7 @@ return {
 		onoffable = false,
 		script = "Units/CORGATET3.cob",
 		seismicsignature = 0,
-		selfdestructas = "hugeBuildingExplosionGenericSelfd",
+		selfdestructas = "fusionExplosionSelfd",
 		sightdistance = 273,
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
