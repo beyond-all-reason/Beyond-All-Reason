@@ -784,7 +784,7 @@ void main(void)
 
 			// screen-space direction of the shockwave
 			vec2 displacementScreen = normalize((DistortionScreenPosition.xy * 0.5 + 0.5) - v_screenUV);
-			float overallStrength = 10 * rayBendElmos *  distanceToCameraFactor * parabolicStrength;// * v_baseparams.a;
+			float overallStrength = 10 * rayBendElmos *  distanceToCameraFactor * parabolicStrength * v_baseparams.a;
 			vec2 displacementAmount = displacementScreen * overallStrength;
 			//printf(displacementAmount.xy);
 			fragColor.rgba = vec4(displacementAmount * 0.5 + 0.5, 0.0, 1.5 );
