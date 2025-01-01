@@ -94,7 +94,7 @@ local corgateShieldSphere = table.merge(defaults, {
 })
 
 local corgatet3ShieldSphere = table.merge(defaults, {
-	pos = { 0, 75, 0 },
+	pos = { 0, 75, -1 },
 	size = 18,
 	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
 	colormap2 = { { 0.2, 0.6, 0.2, 0.4 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.4 } },
@@ -123,7 +123,7 @@ local armgateShieldSphere = table.merge(defaults, {
 	isShield = true, 
 })
 local armgatet3ShieldSphere = table.merge(defaults, {
-	pos = { 0, 42, -5 },
+	pos = { 0, 42, -6 },
 	size = 20,
 	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
 	colormap2 = { { 0.2, 0.6, 0.2, 0.4 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.4 } },
