@@ -158,6 +158,7 @@ if gadgetHandler:IsSyncedCode() then
 		"[Master_Conquest]",
 		"MelKaven",
 		"mordante",
+		"MoustacheG",
 		"nctr",
 		"Nexthazard",
 		"niftybeaks",
