@@ -714,8 +714,8 @@ void main(void)
 			//float timeFraction = clamp((currentTime - lifeStart) / lifeTime, 0.0, 1.0);
 			float elapsedframes = currentTime - lifeStart;
 
-
-			float timeFraction = fract((currentTime - lifeStart) / 15); // for debugging
+			// From 0 to 1 over the lifetime of the airshockwave
+			float timeFraction = fract((currentTime - lifeStart) / lifeTime);
 
 			// TODO : Parameterize out width in elmos
 			float width = EFFECTPARAM1;

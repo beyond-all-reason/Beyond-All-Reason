@@ -148,7 +148,7 @@ local BaseClasses = {
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
 			noiseScaleSpace = 1.1, noiseStrength = 0.01, onlyModelMap = 1,  
 			lifeTime = 8, refractiveIndex = 1.15, decay = 4, rampUp = 2,
-			effectType = 1, },
+			effectType = "airShockwave", },
 
 	},
 

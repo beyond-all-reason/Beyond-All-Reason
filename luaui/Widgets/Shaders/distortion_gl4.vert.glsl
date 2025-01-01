@@ -101,8 +101,8 @@ void main()
 
 	if (effectType == 1){ // air Shockwave
 	// TODO: JUST FOR TESTING ITS SET TO 15!!!!
-		distortionRadius *= fract((time - SPAWNFRAME)/ 15 );
-		v_lifeParams.y = 15; // disable lifetime 
+		distortionRadius *= fract((time - SPAWNFRAME)/ LIFETIME );
+		v_lifeParams.y = LIFETIME; // disable lifetime 
 	}
 
 	v_worldPosRad = worldposrad ;
