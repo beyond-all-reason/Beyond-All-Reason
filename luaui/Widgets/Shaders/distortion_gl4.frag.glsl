@@ -12,7 +12,7 @@
 in DataVS {
 	flat vec4 v_worldPosRad;
 	flat vec4 v_worldPosRad2;
-	flat vec4 v_baseparams;
+	flat vec4 v_baseparams; // overallstrength
 	flat vec4 v_universalParams; // noiseStrength, noiseScaleSpace, distanceFalloff, onlyModelMap
 	flat vec4 v_lifeParams;  // spawnFrame, lifeTime, rampUp, decay
 	flat vec4 v_effectParams; // effectparam1, effectparam2, windAffected, effectType
@@ -784,7 +784,7 @@ void main(void)
 
 			// screen-space direction of the shockwave
 			vec2 displacementScreen = normalize((DistortionScreenPosition.xy * 0.5 + 0.5) - v_screenUV);
-			float overallStrength = 10 * rayBendElmos *  distanceToCameraFactor * parabolicStrength * v_baseparams.a;
+			float overallStrength = 10 * rayBendElmos *  distanceToCameraFactor * parabolicStrength * v_baseparams.x;
 			vec2 displacementAmount = displacementScreen * overallStrength;
 			//printf(displacementAmount.xy);
 			fragColor.rgba = vec4(displacementAmount * 0.5 + 0.5, 0.0, 1.5 );
@@ -849,7 +849,7 @@ void main(void)
 
 		// screen-space direction of the shockwave
 		vec2 displacementScreen = normalize((DistortionScreenPosition.xy * 0.5 + 0.5) - v_screenUV);
-		float overallStrength = effectStrength * distanceToCameraFactor * parabolicStrength * v_baseparams.r;
+		float overallStrength = effectStrength * distanceToCameraFactor * parabolicStrength * v_baseparams.x;
 		vec2 displacementAmount = displacementScreen * overallStrength;
 		fragColor.rgba = vec4(displacementAmount * 0.5 + 0.5, 0.0, 0.5 * step(0.005,overallStrength) );
 
