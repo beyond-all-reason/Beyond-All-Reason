@@ -245,7 +245,7 @@ local function findTeamInArea(mx, my)
 		return nil
 	end
 
-	local foundUnits = GetUnitsInCylinder(cUnitID[1], cUnitID[3], range)
+	local foundUnits = GetUnitsInCylinder(cUnitID[1], cUnitID[3], range, -3)
 
 	if #foundUnits < 1 then
 		return nil
@@ -255,7 +255,7 @@ local function findTeamInArea(mx, my)
 
 	for _, unitId in ipairs(foundUnits) do
 		local unitTeamId = GetUnitTeam(unitId)
-		if isAlly(unitTeamId) then
+		if unitTeamId ~= myTeamID then
 			unitTeamId = tostring(unitTeamId)
 			if unitTeamCounters[unitTeamId] == nil then
 				unitTeamCounters[unitTeamId] = 1
