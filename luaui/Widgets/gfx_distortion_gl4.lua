@@ -158,6 +158,7 @@ local distortionParamKeyOrder = { -- This table is a 'quick-ish' way of building
 	riseRate = 21, -- note how riseRate is identical to effectParam1 for clarity
 	shockWidth = 21,    -- note how width is identical to effectParam1 for clarity
 	magnificationRate = 21,
+	airShockWaveMultiplier = 21,
 
 	effectParam2 = 22,  --note how refractiveIndex is identical to effectParam2 for clarity
 	refractiveIndex = 22,

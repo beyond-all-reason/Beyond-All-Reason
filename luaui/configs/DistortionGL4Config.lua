@@ -74,6 +74,22 @@ local unitDistortions = {
 							lifeTime = 0,  effectType = 'heatDistortion'},
 		},
 	},
+	['corkorg'] = {
+		engineheatr = {
+			distortionType = 'point',
+			pieceName = 'ruparm',
+			distortionConfig = { posx = -10, posy = -5, posz = -16, radius = 26,
+							noiseStrength = 0.3, noiseScaleSpace = -2, distanceFalloff = 1.4,
+							lifeTime = 0,  effectType = 'heatDistortion'},
+		},
+		engineheatl = {
+			distortionType = 'point',
+			pieceName = 'luparm',
+			distortionConfig = { posx = 10, posy = -5, posz = -16, radius = 26,
+							noiseStrength = 0.3, noiseScaleSpace = -2, distanceFalloff = 1.4,
+							lifeTime = 0,  effectType = 'heatDistortion'},
+		},
+	},
 	['armadvsol'] = {
 		magnifier = {
 			distortionType = 'point',
@@ -145,7 +161,7 @@ local unitDistortions = {
 			distortionConfig = { posx = 0, posy = 7.5, posz = 0.01, radius = 15,
 							pos2x = 0, pos2y = 30, pos2z = 0, radius2 = 15, 
 							
-							noiseStrength = 1, noiseScaleSpace = -1.5, distanceFalloff = 0.25, onlyModelMap = -1,
+							noiseStrength = 3, noiseScaleSpace = -1.5, distanceFalloff = 0.25, onlyModelMap = -1,
 							lifeTime = 0,  effectType = 0},
 		},
 	},
@@ -157,7 +173,7 @@ local unitDistortions = {
 			distortionConfig = { posx = 0, posy = 2.5, posz = 0.01, radius = 15,
 							pos2x = 0, pos2y = 30, pos2z = 0, radius2 = 15, 
 							
-							noiseStrength = 1, noiseScaleSpace = 1.5, distanceFalloff = 0.25, onlyModelMap = -1,
+							noiseStrength = 3, noiseScaleSpace = 1.5, distanceFalloff = 0.25, onlyModelMap = -1,
 							lifeTime = 0,  effectType = 0},
 		},
 	},
@@ -167,8 +183,9 @@ local unitDistortions = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'emit',
-			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 26,
-							noiseStrength = 0.5, noiseScaleSpace = 2.0, distanceFalloff = 0.5,
+			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 22,
+							noiseStrength = 1.5, noiseScaleSpace = 2.0, distanceFalloff = 0.5,
+							windAffected =0.21, riseRate = -2,
 							lifeTime = 0,  effectType = 0},
 		},
 	},
@@ -178,7 +195,7 @@ local unitDistortions = {
 			distortionType = 'point',
 			pieceName = 'emit',
 			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 36,
-							noiseStrength = 1, noiseScaleSpace = 1.5, distanceFalloff = 0.5,
+							noiseStrength = 1, noiseScaleSpace = 2.0, distanceFalloff = 0.5,
 							lifeTime = 0,  effectType = 0},
 		},
 	},
@@ -205,13 +222,14 @@ local unitDistortions = {
 							lifeTime = 0,  effectType = 0},
 		},
 		shielddistortion = {
-			distortionType = 'beam',
+			distortionType = 'point',
 			pieceName = 'base',
 			distortionConfig = { posx = 0, posy = -6.5, posz = 0.01, radius = 552,
-								pos2x = 0, pos2y = 20, pos2z = 0, radius2 = 23, 
-								noiseStrength = 1.5, noiseScaleSpace = 0.4, distanceFalloff = 0.05,
-								rampUp = 30, decay = 0,
-								lifeTime = 0, windAffected = -1, riseRate = 0,
+								pos2x = 0, pos2y = 40, pos2z = 0, radius2 = 20, 
+								noiseStrength = 5.5, noiseScaleSpace = 0.15, distanceFalloff = -0.5,
+								rampUp = 0, decay = 0,
+								--magnificationRate = -8.0,
+								lifeTime = 0, windAffected = -1, riseRate = -0.8,
 								effectType = 7},
 
 		},
@@ -402,9 +420,9 @@ local unitEventDistortionsNames = {
 				distortionType = 'point',
 				distortionName = 'corkorgfootstep',
 				pieceName = 'none',
-				distortionConfig = { posx = 0, posy = 0, posz = 8, radius = 100,
+				distortionConfig = { posx = 0, posy = 0, posz = 8, radius = 120,
 								noiseStrength = 1.2, noiseScaleSpace = 0.5, distanceFalloff = 0.2, onlyModelMap = 1, 
-								distortionMultiplier = 1.2, --needed for shockwave
+								distortionMultiplier = 1.0, --needed for shockwave
 								lifeTime = 25, rampUp = 0, decay = 15,
 								shockWidth = 5, effectType = 2},
 	

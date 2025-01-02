@@ -718,7 +718,7 @@ void main(void)
 			float timeFraction = fract((currentTime - lifeStart) / lifeTime);
 
 			// TODO : Parameterize out width in elmos
-			float width = EFFECTPARAM1;
+			//float width = EFFECTPARAM1;
 
 			// which direction is the effect going in in world coords?, always points towards us!
 			vec3 shockDirection = normalize(EntryPoint.xyz - distortionEmitPosition.xyz);
@@ -779,13 +779,14 @@ void main(void)
 				rayBendElmos *= 2.0;
 			}
 
+			float airShockWaveMultiplier = EFFECTPARAM1;
 
 			// The displacement is proportional to the distance of the fragment from the intersections of the sphere
 
 			// screen-space direction of the shockwave
 			vec2 displacementScreen = normalize((DistortionScreenPosition.xy * 0.5 + 0.5) - v_screenUV);
 			float overallStrength = 10 * rayBendElmos *  distanceToCameraFactor * parabolicStrength * v_baseparams.x;
-			vec2 displacementAmount = displacementScreen * overallStrength;
+			vec2 displacementAmount = displacementScreen * overallStrength * airShockWaveMultiplier;
 			//printf(displacementAmount.xy);
 			fragColor.rgba = vec4(displacementAmount * 0.5 + 0.5, 0.0, 1.5 );
 	}

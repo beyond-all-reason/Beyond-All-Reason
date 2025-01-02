@@ -130,11 +130,11 @@ local BaseClasses = {
 		distortionType = 'beam', -- or cone or beam
 		distortionConfig = {
 				posx = 0, posy = 10, posz = 0, radius = 10,
-				noiseStrength = 2.5, noiseScaleSpace = 0.10, distanceFalloff = 0.8, 
-				windAffected = 0.1, riseRate = 0.1, onlyModelMap = 1, 
+				noiseStrength = 5.5, noiseScaleSpace = 0.20, distanceFalloff = 0.9, 
+				windAffected = 0.2, riseRate = 0.5, onlyModelMap = 1, 
 				--refractiveIndex = 1.15,
 				pos2x = 100, pos2y = 1000, pos2z = 100, -- beam distortions only, specifies the endpoint of the beam
-				lifeTime = 3, rampUp = 3, decay = 3, effectType = 0, -- unused
+				lifeTime = 3, rampUp = 3, decay = 3, effectType = 7, -- unused
 		},
 	},
 
@@ -162,7 +162,7 @@ local BaseClasses = {
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 200,
 						distanceFalloff = 0.5, noiseStrength = 1.2, noiseScaleSpace = 0.3,
 						lifeTime = 36, decay = 6, rampUp = 20,
-						distortionMultiplier = 0.6, --needed for shockwave
+						distortionMultiplier = 0.6, --needed for shockwaves
 						shockWidth = 6,
 						effectType = 2},
 	},
@@ -172,7 +172,7 @@ local BaseClasses = {
 		alwaysVisible = false,
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 200,
 						noiseStrength = 2, noiseScaleSpace = 0.1,
-						distortionMultiplier = 3.5, --needed for shockwave
+						distortionMultiplier = 3.5, --needed for shockwaves
 						lifeTime = 40, decay = 4, rampUp = 0,  
 						shockWidth = 32, --refractiveIndex = 20,
 						effectType = 2},
@@ -183,7 +183,7 @@ local BaseClasses = {
 		alwaysVisible = false,
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 200,
 						distanceFalloff = 1.0, onlyModelMap = 0,
-						distortionMultiplier = 1.2, --needed for shockwave
+						distortionMultiplier = 1.2, --needed for shockwaves
 						shockWidth = 3,
 						lifeTime = 25,  effectType = 2},
 	},
@@ -192,31 +192,53 @@ local BaseClasses = {
 		distortionType = 'point', -- or cone or beam
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
 			noiseScaleSpace = 1.1, noiseStrength = 0.01, onlyModelMap = 1,  
-			lifeTime = 5, refractiveIndex = 4.15, decay = 3, rampUp = 2,
+			lifeTime = 7, refractiveIndex = -1.15, decay = 3, rampUp = 2,
+			airShockWaveMultiplier = 0.5, --needed for irshockwaves
 			effectType = "airShockwave", },
-
 	},
 	AirShockWave = {
 		distortionType = 'point', -- or cone or beam
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
 			noiseScaleSpace = 1.5, noiseStrength = 1.5, onlyModelMap = 1,  
-			lifeTime = 8, refractiveIndex = 3.1, decay = 4, rampUp = 4,
+			lifeTime = 8, refractiveIndex = -3.1, decay = 4, rampUp = 4,
+			airShockWaveMultiplier = 2.0, --needed for airshockwaves
 			effectType = "airShockwave", },
 
 	},
 	AirShockWaveNuke = {
 		distortionType = 'point', -- or cone or beam
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
-			noiseScaleSpace = 0.5, noiseStrength = 0.5, onlyModelMap = 0,  
-			lifeTime = 12, refractiveIndex = 20, decay = 4, rampUp = 1,
+			noiseScaleSpace = 0.5, noiseStrength = 5, onlyModelMap = 0,  
+			lifeTime = 16, refractiveIndex = 40, decay = 4, rampUp = 1,
+			airShockWaveMultiplier = 20.0, --needed for airshockwaves
 			effectType = "airShockwave", },
 
 	},
 	AirShockWaveNukeBlast = {
 		distortionType = 'point', -- or cone or beam
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 225,
-			noiseScaleSpace = 1.1, noiseStrength = 0.5, onlyModelMap = 1,  
-			lifeTime = 70, refractiveIndex = 20, decay = 30, rampUp = 40,
+			noiseScaleSpace = 2.1, noiseStrength = 5.5, onlyModelMap = 1,  
+			lifeTime = 100, refractiveIndex = 40, decay = 75, rampUp = 40,
+			airShockWaveMultiplier = 1.0, --needed for airshockwaves
+			effectType = "airShockwave", },
+
+	},
+
+	AirShockWaveShotXL = {
+		distortionType = 'point', -- or cone or beam
+		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
+			noiseScaleSpace = 1.0, noiseStrength = 1.5, onlyModelMap = 0,  
+			lifeTime = 14, refractiveIndex = 3.1, decay = 16, rampUp = 0,
+			airShockWaveMultiplier = 3.0, --needed for airshockwaves
+			effectType = "airShockwave", },
+
+	},
+	AirShockWaveShot = {
+		distortionType = 'point', -- or cone or beam
+		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
+			noiseScaleSpace = 1.0, noiseStrength = 1.5, onlyModelMap = 0,  
+			lifeTime = 10, refractiveIndex = 1.1, decay = 16, rampUp = 0,
+			airShockWaveMultiplier = 1.0, --needed for airshockwaves
 			effectType = "airShockwave", },
 
 	},
@@ -227,6 +249,7 @@ local BaseClasses = {
 			noiseScaleSpace = 0.5, noiseStrength = 1.0,  
 			lifeTime = 15,  refractiveIndex = 1.05, 
 			--windAffected = 0.5,  riseRate = 1,
+			airShockWaveMultiplier = 1.0, --needed for irshockwaves
 			effectType = 1, },
 
 	},
@@ -274,9 +297,19 @@ local BaseClasses = {
 		yOffset = 0, -- Y offsets are only ever used for explosions!
 		distortionConfig = {
 			posx = 0, posy = 0, posz = 0, radius = 10, 
-			noiseStrength = 5, noiseScaleSpace = 0.05, distanceFalloff = 0.7, onlyModelMap = 0,
-			windAffected = -1,  riseRate = 0.1,
-			lifeTime = 250, rampUp = 25, decay = 200, effectType = 0, -- unused
+			noiseStrength = 50, noiseScaleSpace = 0.04, distanceFalloff = 0.5, onlyModelMap = 0,
+			windAffected = -1,  riseRate = -0.5,
+			lifeTime = 80, rampUp = 10, decay = 80, effectType = 0, -- unused
+		},
+	},
+	ExplosionRadiationNuke = { -- spawned on explosions
+		distortionType = 'point', -- or cone or beam
+		yOffset = 0, -- Y offsets are only ever used for explosions!
+		distortionConfig = {
+			posx = 0, posy = 0, posz = 0, radius = 10, 
+			noiseStrength = 20, noiseScaleSpace = 0.1, distanceFalloff = 0.5, onlyModelMap = 0,
+			windAffected = -1,  riseRate = -0.5,
+			lifeTime = 200, rampUp = 100, decay = 100, effectType = 0, -- unused
 		},
 	},
 
@@ -707,29 +740,31 @@ explosionDistortionsNames['armbull_arm_bull'] = {
 -- }
 
 explosionDistortionsNames['corgol_cor_gol'] = {
-	GetDistortionClass("AirShockWave", "SmallMedium"),
+	GetDistortionClass("AirShockWave", "Small"),
 	GetDistortionClass("GroundShockWave", "SmallMedium"),
 	GetDistortionClass("ExplosionHeat", "Tiniest"),
 }
 
 explosionDistortionsNames['armfboy_arm_fatboy_notalaser'] = {
-	GetDistortionClass("GroundShockWave", "Medium"),
 	GetDistortionClass("AirShockWave", "Small"),
-	GetDistortionClass("ExplosionHeat", "Smallest"),	
+	GetDistortionClass("GroundShockWave", "SmallMedium"),
+	GetDistortionClass("ExplosionHeat", "Tiniest"),
 }
 
 explosionDistortionsNames['armsilo_nuclear_missile'] = {
-	--GetDistortionClass("GroundShockWaveNuke", "Giga"),
+	GetDistortionClass("GroundShockWaveNuke", "Giga"),
 	GetDistortionClass("AirShockWaveNukeBlast", "MegaXXL"),
-	GetDistortionClass("AirShockWaveNuke", "Armnuke"),
+	GetDistortionClass("AirShockWaveNuke", "MegaXL"),
 	GetDistortionClass("ExplosionHeatNuke", "Larger"),	
 }
 
 explosionDistortionsNames['armguardnuke_plasma'] = {
+	GetDistortionClass("ExplosionHeatNuke", "Larger"),
+	--GetDistortionClass("ExplosionRadiationNuke", "Larger"),
 	GetDistortionClass("GroundShockWaveNuke", "Giga"),
-	--GetDistortionClass("AirShockWaveNukeBlast", "MegaXXL"),
-	GetDistortionClass("AirShockWaveNuke", "Giga"),
-	GetDistortionClass("ExplosionHeatNuke", "Larger"),	
+	GetDistortionClass("AirShockWaveNukeBlast", "MegaXXL"),
+	GetDistortionClass("AirShockWaveNuke", "MegaXL"),
+		
 }
 
 explosionDistortionsNames['armguardnuke_plasma_high'] = {
@@ -752,7 +787,15 @@ muzzleFlashDistortionsNames['armclaw_dclaw'] = {
 }
 
 muzzleFlashDistortionsNames['corint_lrpc'] = {
-	GetDistortionClass("GroundShockWave", "Medium")
+	GetDistortionClass("AirShockWaveShotXL", "Tiny")
+}
+
+muzzleFlashDistortionsNames['corgol_cor_gol'] = {
+	GetDistortionClass("AirShockWaveShot", "Pico")
+}
+
+muzzleFlashDistortionsNames['armbull_arm_bull'] = {
+	GetDistortionClass("AirShockWaveShot", "Atto")
 }
 
 
