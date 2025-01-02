@@ -1641,7 +1641,7 @@ local function ExecuteDrawPass(drawPass)
 			local shaderTable = shaders[drawPass][shaderName]
 
 			if unitscountforthisshader > 0 then
-				gl.UseShader(shaderTable.shaderObj)
+				shaderTable:Activate()
 				shaderswaps = shaderswaps + 1
 				for uniformBinID, uniformBin in pairs(data) do
 
@@ -1672,7 +1672,7 @@ local function ExecuteDrawPass(drawPass)
 					end
 				end
 
-				gl.UseShader(0)
+				shaderTable:Deactivate()
 			end
 		end
 	end
