@@ -74,19 +74,44 @@ local unitDistortions = {
 							lifeTime = 0,  effectType = 'heatDistortion'},
 		},
 	},
+	['armgeo'] = {
+		fanheat = {
+			distortionType = 'point',
+			pieceName = 'base',
+			distortionConfig = { posx = 0, posy = 50, posz = -5, radius = 20,
+							noiseStrength = 0.5, noiseScaleSpace = -2, distanceFalloff = 1.4,
+							lifeTime = 0,  effectType = 'heatDistortion'},
+		},
+		barrell = {
+			distortionType = 'point',
+			pieceName = 'barrell',
+			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 6,
+							noiseStrength = 0.7, noiseScaleSpace = -1.5, distanceFalloff = 1.4,
+							lifeTime = 0,  effectType = 'heatDistortion'},
+		},
+		barrelr = {
+			distortionType = 'point',
+			pieceName = 'barrelr',
+			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 6,
+							noiseStrength = 0.7, noiseScaleSpace = -1.5, distanceFalloff = 1.4,
+							lifeTime = 0,  effectType = 'heatDistortion'},
+		},
+	},
 	['corkorg'] = {
 		engineheatr = {
 			distortionType = 'point',
 			pieceName = 'ruparm',
-			distortionConfig = { posx = -10, posy = -5, posz = -16, radius = 26,
-							noiseStrength = 0.3, noiseScaleSpace = -2, distanceFalloff = 1.4,
+			distortionConfig = { posx = -10, posy = -5, posz = -16, radius = 22,
+							noiseStrength = 0.5, noiseScaleSpace = 2, distanceFalloff = 0.8,
+							windAffected = -0.5, riseRate = -2,
 							lifeTime = 0,  effectType = 'heatDistortion'},
 		},
 		engineheatl = {
 			distortionType = 'point',
 			pieceName = 'luparm',
-			distortionConfig = { posx = 10, posy = -5, posz = -16, radius = 26,
-							noiseStrength = 0.3, noiseScaleSpace = -2, distanceFalloff = 1.4,
+			distortionConfig = { posx = 10, posy = -5, posz = -16, radius = 22,
+							noiseStrength = 0.5, noiseScaleSpace = 2, distanceFalloff = 0.8,
+							windAffected = -0.5, riseRate = -2,
 							lifeTime = 0,  effectType = 'heatDistortion'},
 		},
 	},
@@ -177,6 +202,16 @@ local unitDistortions = {
 							lifeTime = 0,  effectType = 0},
 		},
 	},
+
+	['armveil'] = {
+		magnifier = {
+			distortionType = 'point',
+			pieceName = 'base',
+			distortionConfig = { posx = 0, posy = 90, posz = 0, radius = 20,
+							lifeTime = 0,  
+							magnificationRate = 10.0, effectType = "magnifier"}, 
+		},
+	}, 
 
 	
 	['corfus'] = {
