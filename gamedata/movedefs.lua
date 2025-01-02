@@ -227,8 +227,8 @@ local moveDatas = {
 	-- armthor
 	HTANK5 = {
 		crushstrength = 1400,
-		footprintx = 5,
-		footprintz = 5,
+		footprintx = 7,
+		footprintz = 7,
 		maxslope = 22,
 		slopeMod = 42,
 		maxwaterdepth = 24,
