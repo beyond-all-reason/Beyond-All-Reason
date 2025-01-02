@@ -1410,9 +1410,9 @@ function WeaponDef_Post(name, wDef)
 				wDef.mygravity = 0.1445
 			end
 		end
-
-		-- Accurate Lasers
-		if modOptions.accuratelasers then
+      
+		-- Accurate Lasers		
+		if modOptions.proposed_unit_reworks then
 			if wDef.weapontype and wDef.weapontype == 'BeamLaser' then
 				wDef.targetmoveerror = nil
 			end
