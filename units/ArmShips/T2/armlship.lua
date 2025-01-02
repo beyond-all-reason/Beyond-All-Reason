@@ -188,7 +188,6 @@ return {
 					spark_forkdamage = "0.5",
 					spark_maxunits = "2",
 					spark_range = "100",
-					noattackrangearc= 1,
 				},
 				damage = {
 					default = 35,

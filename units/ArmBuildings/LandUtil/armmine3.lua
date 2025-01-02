@@ -104,7 +104,6 @@ return {
 		weapons = {
 			[1] = {
 				def = "MINERANGE",
-				onlytargetcategory = "SURFACE",
 			},
 		},
 	},

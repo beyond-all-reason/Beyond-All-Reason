@@ -127,9 +127,6 @@ return {
 					default = 55,
 					vtol = 30,
 				},
-				customparams = {
-					noattackrangearc= 1,
-				},
 
 			},
 		},

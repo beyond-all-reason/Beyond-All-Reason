@@ -117,9 +117,6 @@ return {
 				damage = {
 					default = 36,
 				},
-				customparams = {
-					noattackrangearc= 1,
-				},
 			},
 			plasma = {
 				accuracy = 960,
@@ -147,9 +144,6 @@ return {
 					default = 166,
 					subs = 50,
 					vtol = 30,
-				},
-				customparams = {
-					noattackrangearc= 1,
 				},
 			},
 			aa_missiles = {
