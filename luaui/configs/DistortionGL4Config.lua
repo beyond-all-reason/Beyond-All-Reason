@@ -403,7 +403,8 @@ local unitEventDistortionsNames = {
 				distortionName = 'corkorgfootstep',
 				pieceName = 'none',
 				distortionConfig = { posx = 0, posy = 0, posz = 8, radius = 100,
-								noiseStrength = 1.0, noiseScaleSpace = 0.5, distanceFalloff = 0.2, onlyModelMap = 1, 
+								noiseStrength = 1.2, noiseScaleSpace = 0.5, distanceFalloff = 0.2, onlyModelMap = 1, 
+								distortionMultiplier = 1.2, --needed for shockwave
 								lifeTime = 25, rampUp = 0, decay = 15,
 								shockWidth = 5, effectType = 2},
 	

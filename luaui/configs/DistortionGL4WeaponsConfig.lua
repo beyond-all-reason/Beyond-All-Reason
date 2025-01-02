@@ -83,8 +83,7 @@ local BaseClasses = {
 		distortionConfig = { posx = 0, posy = 0, posz = 00, radius = 100,
 						dirx =  0, diry = 1, dirz = 1.0, theta = 0.1,
 						noiseStrength = 0.5, noiseScaleSpace = 0.75, distanceFalloff = 1.0, onlyModelMap = 0,
-						rampUp = 30, 
-						lifeTime = 0, sustain = 0, effectType = 0},
+						lifeTime = 0, rampUp = 30, sustain = 0, effectType = 0},
 	},
 
 	LaserBeamShockWaveProjectile = {
@@ -106,13 +105,36 @@ local BaseClasses = {
 		},
 	},
 
+	TachyonBeam = {
+		distortionType = 'beam', -- or cone or beam
+		distortionConfig = {
+				posx = 0, posy = 0, posz = 0, radius = 10,
+				noiseStrength = 2.7, noiseScaleSpace = 0.16,
+				windAffected = -1, riseRate = 1.6, onlyModelMap = 1, 
+				pos2x = 100, pos2y = 500, pos2z = 100, -- beam distortions only, specifies the endpoint of the beam
+				lifeTime = 100, sustain = 1, rampUp = 0, decay = 0, effectType = 7, -- unused
+		},
+	},
+
 	HeatRayHeat = {
 		distortionType = 'beam', -- or cone or beam
 		distortionConfig = {
 				posx = 0, posy = 10, posz = 0, radius = 10,
-				noiseStrength = 1.5, noiseScaleSpace = 0.5,
+				noiseStrength = 1.15, noiseScaleSpace = 0.55, distanceFalloff = 1.5,
+				windAffected = -1, riseRate = 0.2,
 				pos2x = 100, pos2y = 1000, pos2z = 100, -- beam distortions only, specifies the endpoint of the beam
 				lifeTime = 3, rampUp = 3, decay = 0, effectType = 0, -- unused
+		},
+	},
+	HeatRayHeatXL = { --corkorg
+		distortionType = 'beam', -- or cone or beam
+		distortionConfig = {
+				posx = 0, posy = 10, posz = 0, radius = 10,
+				noiseStrength = 2.5, noiseScaleSpace = 0.10, distanceFalloff = 0.8, 
+				windAffected = 0.1, riseRate = 0.1, onlyModelMap = 1, 
+				--refractiveIndex = 1.15,
+				pos2x = 100, pos2y = 1000, pos2z = 100, -- beam distortions only, specifies the endpoint of the beam
+				lifeTime = 3, rampUp = 3, decay = 3, effectType = 0, -- unused
 		},
 	},
 
@@ -120,7 +142,6 @@ local BaseClasses = {
 		distortionType = 'cone',
 		distortionConfig = { posx = 0, posy = 0, posz = 00, radius = 100,
 						dirx =  0, diry = 1, dirz = 1.0, theta = 0.1,
-						
 						noiseStrength = 1.25, noiseScaleSpace = 0.75, distanceFalloff = 1.0, onlyModelMap = 0,
 						rampUp = 30,
 						lifeTime = 0, sustain = 0, effectType = 0},
@@ -139,8 +160,9 @@ local BaseClasses = {
 		distortionType = 'point', -- or cone or beam
 		alwaysVisible = false,
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 200,
-						distanceFalloff = 0.5, noiseStrength = 1, noiseScaleSpace = 0.2,
-						lifeTime = 25, decay = 2, 
+						distanceFalloff = 0.5, noiseStrength = 1.2, noiseScaleSpace = 0.3,
+						lifeTime = 36, decay = 6, rampUp = 20,
+						distortionMultiplier = 0.6, --needed for shockwave
 						shockWidth = 6,
 						effectType = 2},
 	},
@@ -149,9 +171,10 @@ local BaseClasses = {
 		distortionType = 'point', -- or cone or beam
 		alwaysVisible = false,
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 200,
-						noiseStrength = 2, noiseScaleSpace = 0.2,
-						lifeTime = 40, decay = 2, rampUp = 0,  
-						shockWidth = 16, refractiveIndex = 20,
+						noiseStrength = 2, noiseScaleSpace = 0.1,
+						distortionMultiplier = 3.5, --needed for shockwave
+						lifeTime = 40, decay = 4, rampUp = 0,  
+						shockWidth = 32, --refractiveIndex = 20,
 						effectType = 2},
 	},
 	
@@ -159,7 +182,8 @@ local BaseClasses = {
 		distortionType = 'point', -- or cone or beam
 		alwaysVisible = false,
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 200,
-						 distanceFalloff = 1.0, onlyModelMap = 0,
+						distanceFalloff = 1.0, onlyModelMap = 0,
+						distortionMultiplier = 1.2, --needed for shockwave
 						shockWidth = 3,
 						lifeTime = 25,  effectType = 2},
 	},
@@ -183,8 +207,8 @@ local BaseClasses = {
 	AirShockWaveNuke = {
 		distortionType = 'point', -- or cone or beam
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
-			noiseScaleSpace = 1.1, noiseStrength = 0.5, onlyModelMap = 0,  
-			lifeTime = 14, refractiveIndex = 40.5, decay = 3, rampUp = 3,
+			noiseScaleSpace = 0.5, noiseStrength = 0.5, onlyModelMap = 0,  
+			lifeTime = 12, refractiveIndex = 20, decay = 4, rampUp = 1,
 			effectType = "airShockwave", },
 
 	},
@@ -202,6 +226,7 @@ local BaseClasses = {
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
 			noiseScaleSpace = 0.5, noiseStrength = 1.0,  
 			lifeTime = 15,  refractiveIndex = 1.05, 
+			--windAffected = 0.5,  riseRate = 1,
 			effectType = 1, },
 
 	},
@@ -267,7 +292,7 @@ local BaseClasses = {
 
 local SizeRadius = {
 	Quaco = 		2.5,
-	Zetto = 		5, 
+	Zetto = 		5,
 	Atto =			10, 
 	Femto = 		16, 
 	Pico = 			26,
@@ -650,13 +675,21 @@ GetDistortionClass("MissileProjectile", "Medium")
 projectileDefDistortionsNames['armmanni_atam'] =
 GetDistortionClass("AirShockWaveBeam", "Small")
 
+projectileDefDistortionsNames['armanni_ata'] =
+GetDistortionClass("TachyonBeam", "Atto")
+
+projectileDefDistortionsNames['armbanth_tehlazerofdewm'] =
+GetDistortionClass("TachyonBeam", "Atto")
+
 projectileDefDistortionsNames["corhlt_cor_laserh1"] =
 GetDistortionClass("LaserBeamHeat", "Atto")
 
 -- Heatrays should all get this class
-
 projectileDefDistortionsNames["corsala_cor_heat_laser"] =
 GetDistortionClass("HeatRayHeat", "Atto")
+
+projectileDefDistortionsNames["corkorg_corkorg_laser"] =
+GetDistortionClass("HeatRayHeatXL", "Pico")
 
 projectileDefDistortionsNames["armclaw_dclaw"] = --doesnt work on lightning cannon
 GetDistortionClass("LaserBeamShockWaveProjectile", "Tiny")
@@ -667,11 +700,11 @@ explosionDistortionsNames['armbull_arm_bull'] = {
 	GetDistortionClass("ExplosionHeatXS", "Nano"),
 }
 
-explosionDistortionsNames['windboom'] = {
-	--GetDistortionClass("GroundShockWave", "Smallest"),
-	GetDistortionClass("AirShockWaveXS", "Tiny"),
-	GetDistortionClass("ExplosionHeatXS", "Nano"),
-}
+-- explosionDistortionsNames['unitDeaths_windboom'] = {
+-- 	--GetDistortionClass("GroundShockWave", "Smallest"),
+-- 	GetDistortionClass("AirShockWaveXS", "Tiny"),
+-- 	GetDistortionClass("ExplosionHeatXS", "Nano"),
+-- }
 
 explosionDistortionsNames['corgol_cor_gol'] = {
 	GetDistortionClass("AirShockWave", "SmallMedium"),
@@ -693,9 +726,9 @@ explosionDistortionsNames['armsilo_nuclear_missile'] = {
 }
 
 explosionDistortionsNames['armguardnuke_plasma'] = {
-	--GetDistortionClass("GroundShockWaveNuke", "Giga"),
-	GetDistortionClass("AirShockWaveNukeBlast", "MegaXXL"),
-	GetDistortionClass("AirShockWaveNuke", "Armnuke"),
+	GetDistortionClass("GroundShockWaveNuke", "Giga"),
+	--GetDistortionClass("AirShockWaveNukeBlast", "MegaXXL"),
+	GetDistortionClass("AirShockWaveNuke", "Giga"),
 	GetDistortionClass("ExplosionHeatNuke", "Larger"),	
 }
 

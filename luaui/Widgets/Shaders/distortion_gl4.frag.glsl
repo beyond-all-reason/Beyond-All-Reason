@@ -839,7 +839,7 @@ void main(void)
 
 		// Falloff due to distance from camera
 		// TODO: this should really not be based on fragDistance, but on the distance to the distortion source
-		float distanceToCameraFactor =  clamp(300.0/ fragDistance, 0.0, 1.0);
+		float distanceToCameraFactor =  clamp(1000.0/ fragDistance, 0.0, 1.0);
 
 		// Screen-space position of the center of the shockwave:
 		
@@ -850,7 +850,10 @@ void main(void)
 		// screen-space direction of the shockwave
 		vec2 displacementScreen = normalize((DistortionScreenPosition.xy * 0.5 + 0.5) - v_screenUV);
 		float overallStrength = effectStrength * distanceToCameraFactor * parabolicStrength * v_baseparams.x;
-		vec2 displacementAmount = displacementScreen * overallStrength;
+		
+		float distortionMultiplier = EFFECTPARAM2;
+		//printf(distortionMultiplier);
+		vec2 displacementAmount = displacementScreen * overallStrength * distortionMultiplier;
 		fragColor.rgba = vec4(displacementAmount * 0.5 + 0.5, 0.0, 0.5 * step(0.005,overallStrength) );
 
 		//fragColor.rgba = vec4(1.0);

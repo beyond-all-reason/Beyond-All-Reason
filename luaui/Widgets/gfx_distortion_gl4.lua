@@ -160,7 +160,8 @@ local distortionParamKeyOrder = { -- This table is a 'quick-ish' way of building
 	magnificationRate = 21,
 
 	effectParam2 = 22,  --note how refractiveIndex is identical to effectParam2 for clarity
-	refractiveIndex = 22, -- note how refractiveIndex is identical to effectParam2 for clarity
+	refractiveIndex = 22,
+	distortionMultiplier = 22, -- for groundshockwave intensity
 	
 	windAffected = 23,  effectType = 24, 
 	--color2r = 21, color2g = 22, color2b = 23, colortime = 24, -- point distortions only, colortime in seconds for unit-attached
@@ -171,7 +172,7 @@ local autoDistortionInstanceID = 128000 -- as MAX_PROJECTILES = 128000, so they 
 
 local gameFrame = 0
 
-local trackedProjectiles = {} -- used for finding out which projectiles can be culled {projectileID = updateFrame, ...}
+local trackedProjectiles = {} -- used or finding out which projectiles can be culled {projectileID = updateFrame, ...}
 local trackedProjectileTypes = {} -- we have to track the types [point, distortion, cone] of projectile distortions for efficient updates
 local lastGameFrame = -2
 
