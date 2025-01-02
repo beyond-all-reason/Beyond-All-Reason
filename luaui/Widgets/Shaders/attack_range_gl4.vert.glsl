@@ -19,6 +19,8 @@ uniform float lineAlphaUniform = 1.0;
 uniform float cannonmode = 0.0;
 uniform float fadeDistOffset = 0.0;
 uniform float drawMode = 0.0;
+uniform float inMiniMap = 0.0;
+
 
 uniform sampler2D heightmapTex;
 uniform sampler2D losTex; // hmm maybe?
@@ -143,7 +145,7 @@ void main() {
 	// rotate the circle into unit space, wierd that it has to be rotated on other direction
 	float maxAngleDif = 1;
 	float mainDirDegrees = 0; 
-	if (MAXANGLEDIF != 0) {
+	if (MAXANGLEDIF > 0.0) {
 		maxAngleDif = fract(MAXANGLEDIF);// goes from 0.0 to 1.0, where 0.25 would mean a 90 deg cone
 		mainDirDegrees = MAXANGLEDIF - maxAngleDif;// Is the offset in degrees. 
 	}
@@ -249,14 +251,22 @@ void main() {
 
 	//--- DISTANCE FADE ---
 	vec4 camPos = cameraViewInv[3];
+
+	// Note that this is not the same as the distance from the unit to the camera, but the distance from the circle to the camera
 	float distToCam = length(modelWorldPos.xyz - camPos.xyz); //dist from cam
 	// FadeStart, FadeEnd, StartAlpha, EndAlpha
 	float fadeDist = visibility.y - visibility.x;
+
 	if (ISDGUN > 0.5) {
 		FADEALPHA  = clamp((visibility.y + fadeDistOffset + 1000 - distToCam)/(fadeDist),visibility.w,visibility.z);
 	} else {
 		FADEALPHA  = clamp((visibility.y + fadeDistOffset - distToCam)/(fadeDist),visibility.w,visibility.z);
 	}
+
+	if (inMiniMap> 0.5){
+		FADEALPHA = 1.0;
+	}
+	
 	//FADEALPHA  = clamp((visibility.y + fadeDistOffset - distToCam)/(fadeDist),visibility.w,visibility.z);
 
 	//--- Optimize by anything faded out getting transformed back to origin with 0 range?
@@ -297,7 +307,12 @@ void main() {
 	//worldPos = circleWorldPos;
 	//worldPos.a = RANGE;
 	alphaControl.x = circlepointposition.z; // save circle progress here
-	gl_Position = cameraViewProj * vec4(circleWorldPos.xyz, 1.0);
+
+	if (inMiniMap < 0.5) {
+		gl_Position = cameraViewProj * vec4(circleWorldPos.xyz, 1.0);
+	} else {
+		gl_Position = mmDrawViewProj * vec4(circleWorldPos.xyz, 1.0);
+	}
 
 	//lets blend the alpha here, and save work in FS:
 	float outalpha = OUTOFBOUNDSALPHA * (MOUSEALPHA + FADEALPHA *  lineAlphaUniform);
