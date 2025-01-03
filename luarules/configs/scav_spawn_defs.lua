@@ -400,6 +400,7 @@ local LandUnitsList = {
 			["corgolt4_scav"] = 2,
 			--Legion
 			["leegmech_scav"] = 2,
+			["legerailtank_scav"] = 2,
 		},
 	},
 	Support = {
