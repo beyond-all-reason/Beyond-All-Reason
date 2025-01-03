@@ -1005,6 +1005,17 @@ void main(void)
 			return;
 		}
 
+		// --- ADD THE RAMPUP LOGIC HERE ---
+		float elapsed = currentTime - SPAWNFRAME; // how many frames (or time units) since spawn
+		// For safety, if RAMPUP <= 0, this means "immediate" or avoid dividing by zero
+		float rampFactor = 1.0;
+		if (RAMPUP > 0.0) {
+			rampFactor = clamp(elapsed / RAMPUP, 0.0, 1.0);
+		}
+
+		// Now multiply the distortionAttenuation by rampFactor for the fade-in
+		distortionAttenuation *= rampFactor;
+
 		//DEBUG(relativeDensity);
 
 		//printf(closestPointOnRay.xyzw);
