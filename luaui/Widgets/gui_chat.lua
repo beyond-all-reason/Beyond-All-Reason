@@ -1538,6 +1538,11 @@ local function drawChatInput()
 	end
 end
 
+function widget:FontsChanged()
+	clearDisplayLists()
+	textInputDlist = glDeleteList(textInputDlist)
+	processLines()
+end
 
 function widget:DrawScreen()
 	if chobbyInterface then return end

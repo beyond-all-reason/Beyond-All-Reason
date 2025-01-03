@@ -49,7 +49,7 @@ for _, file in ipairs(font_files) do
 	RmlUi.LoadFontFace(file, true)
 end
 
---RmlUi.LoadFontFace("fonts/SourceHanSans-Regular.ttc", true)
+--RmlUi.LoadFontFace("fonts/fallbacks/SourceHanSans-Regular.ttc", true)
 --RmlUi.LoadFontFace("fonts/monospaced/SourceCodePro-Medium.otf")
 
 -- Mouse Cursor Aliases

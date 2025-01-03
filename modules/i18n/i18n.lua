@@ -2,7 +2,7 @@ local currentDirectory = "modules/i18n/"
 I18N_PATH = currentDirectory .. "i18nlib/i18n/" -- I18N_PATH is expected to be global inside the i18n module
 local i18n = VFS.Include(I18N_PATH .. "init.lua", nil, VFS.ZIP)
 
-local asianFont = 'SourceHanSans-Regular.ttc'
+local asianFont = 'fallbacks/SourceHanSans-Regular.ttc'
 local translationDirs = VFS.SubDirs('language')
 
 -- Construct a map of
@@ -58,6 +58,8 @@ ensureLanguageLoaded('en')
 function i18n.setLanguage(language)
 	ensureLanguageLoaded(language)
 	i18n.setLocale(language)
+
+	if gl.AddFallbackFont then return end
 
 	-- Font substitution is handled at the OS level, meaning we cannot control which fallback font is used
 	-- Manually switching fonts is requred until Spring handles font substitution at the engine level
