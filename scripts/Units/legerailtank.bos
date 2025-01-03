@@ -10,7 +10,7 @@ piece  	base, 	leftATurretBase, leftATurret, leftAGun, leftAFlare, //5
 				tracks, trackGuards, railTurretBase, railTurret, //21
 				railBotLeft, railBotMid, rightRailFlare, //24
 				railBotRight, railTopLeft, midRailFlare, //27
-				railTopMid, railTopRight, leftRailFlare; //30
+				railTopMid, railTopRight, leftRailFlare, aimpoint; //30
 
 static-var  restore_delay, last_gun_heading, guncount,
 			wpn2_lasthead, wpn3_lasthead, wpn4_lasthead, wpn5_lasthead;
@@ -244,7 +244,7 @@ Shot1(zero){
 
 AimFromPrimary(piecenum)
 {
-	piecenum = midRailFlare;
+	piecenum = aimpoint;
 	return (0);
 }
 
