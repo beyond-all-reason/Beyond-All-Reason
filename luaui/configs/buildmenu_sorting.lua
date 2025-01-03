@@ -273,12 +273,14 @@ local unitOrderTable = {
 
 	--T3 LAND ATTACK
 	['armmar']         = 007000,
+	['legjav']         = 007005,
 	['corcat']         = 007010,
 	['armraz']         = 007020,
 	['corkarg']        = 007030,
 	['armvang']        = 007040,
 	['corshiva']       = 007050,
 	['legkeres']	   = 007051,
+	['legerailtank']   = 007052,
 	['legpede']        = 007055,
 	['armthor']        = 007060,
 	['leegmech']       = 007065,

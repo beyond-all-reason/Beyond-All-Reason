@@ -846,14 +846,14 @@ local options = {
         type    = "separator",
     },
 
-    {
-    	key    	= "xmas",
-    	name   	= "Holiday decorations",
-    	desc   	= "Various  holiday decorations",
-    	type   	= "bool",
-    	def    	= true,
-    	section	= "options_extra",
-    },
+    --{
+    --	key    	= "xmas",
+    --	name   	= "Holiday decorations",
+    --	desc   	= "Various  holiday decorations",
+    --	type   	= "bool",
+    --	def    	= true,
+    --	section	= "options_extra",
+    --},
 
 	-- {
 	-- 	key		= "unithats",
@@ -1334,7 +1334,7 @@ local options = {
         name 	= "Proposed Unit Reworks",
         desc 	= "Modoption used to test and balance unit reworks that are being considered for the base game.",
         type 	= "bool",
-        hidden 	= true,
+        --hidden 	= true,
         section = "options_experimental",
         def 	= false,
     },
