@@ -5,7 +5,7 @@ function gadget:GetInfo()
 		author = "SethDGamre",
 		date = "2024.12.7",
 		license = "GNU GPL, v2 or later",
-		layer = 2,
+		layer = 1, --must layer after unit_set_target_by_type.lua
 		enabled = true
 	}
 end
