@@ -41,7 +41,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,
 			removewait = true,
-			shield_color_mult = 10,
+			shield_color_mult = 50,
 			shield_power = 35000,
 			shield_radius = 825,
 			subfolder = "CorBuildings/LandUtil",
