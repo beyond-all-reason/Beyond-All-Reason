@@ -76,11 +76,10 @@ local BaseClasses = {
 			lifeTime = 0, sustain = 0, 	effectType = 0, -- unused
 		},
 	},
-
 	
 	PlasmaTrailProjectile = {
 		distortionType = 'cone',
-		distortionConfig = { posx = 0, posy = 0, posz = 00, radius = 100,
+		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 100,
 						dirx =  0, diry = 1, dirz = 1.0, theta = 0.09,
 						noiseStrength = 6, noiseScaleSpace = 0.25, distanceFalloff = 1.5, onlyModelMap = 1,
 						windAffected = -1, riseRate = 0,
@@ -737,13 +736,14 @@ projectileDefDistortionsNames["cormort_cor_mort"] =
 
 projectileDefDistortionsNames["armmav_armmav_weapon"] =
 	GetDistortionClass("PlasmaTrailProjectile", "Smaller", {
-	theta = 0.07, noiseStrength = 12, noiseScaleSpace = 0.15, radius = 100,
+	theta = 0.07, noiseStrength = 32, noiseScaleSpace = 0.35,
+	lifeTime = 100, rampUp = 30, decay = 0, radius = 120, 
 })
-
 -- corlevlr
 projectileDefDistortionsNames["corlevlr_corlevlr_weapon"] =
 GetDistortionClass("PlasmaTrailProjectile", "Smaller", {
-	theta = 0.07, noiseStrength = 12, radius = 100,
+	theta = 0.09, noiseStrength = 32, noiseScaleSpace = 0.35,
+	lifeTime = 60, rampUp = 20, decay = 0, radius = 100,
 })
 explosionDistortionsNames['corlevlr_corlevlr_weapon'] = {
 	GetDistortionClass("GroundShockWave", "Tiny", {
@@ -754,8 +754,12 @@ explosionDistortionsNames['corlevlr_corlevlr_weapon'] = {
 	}),
 	GetDistortionClass("ExplosionHeatXS", "Nano"),
 }
-muzzleFlashDistortionsNames['corlevlr_corlevlr_weapon '] = {
+muzzleFlashDistortionsNames['corlevlr_corlevlr_weapon'] = {
 	GetDistortionClass("MuzzleShockWave", "Atto")
+}
+
+muzzleFlashDistortionsNames['armguard_plasma'] = {
+	GetDistortionClass("MuzzleShockWave", "Nano")
 }
 
 projectileDefDistortionsNames["cormaw_dmaw"] =
