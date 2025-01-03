@@ -157,6 +157,7 @@ local callInLists = {
 	-- "UnitMoveFailed",
 	"StockpileChanged",
 
+	"ActiveCommandChanged",
 	"CommandNotify",
 
 	-- Feature CallIns
@@ -2147,6 +2148,12 @@ function gadgetHandler:DefaultCommand(type, id, cmd)
 		end
 	end
 	return
+end
+
+function gadgetHandler:ActiveCommandChanged(id, cmdType)
+	for _, g in ipairs(self.ActiveCommandChangedList) do
+		g:ActiveCommandChanged(id, cmdType)
+	end
 end
 
 function gadgetHandler:CommandNotify(id, params, options)
