@@ -1467,8 +1467,8 @@ function WeaponDef_Post(name, wDef)
 		local shieldModOption = modOptions.experimentalshields
 		if wDef.weapontype == "DGun" then
 			wDef.interceptedbyshieldtype = 512 --make dgun (like behemoth) interceptable by shields, optionally
-		elseif wDef.weapontype == "StarburstLauncher" then
-			wDef.interceptedbyshieldtype = 1024 --separate from combined MissileLauncher 
+		elseif wDef.weapontype == "StarburstLauncher" and not string.find(name, "raptor") then
+			wDef.interceptedbyshieldtype = 1024 --separate from combined MissileLauncher, except raptors
 		end
 
 		if shieldModOption == "absorbplasma" then
