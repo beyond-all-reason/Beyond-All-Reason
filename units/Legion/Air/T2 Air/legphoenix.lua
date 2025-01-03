@@ -45,8 +45,8 @@ return {
 		wingdrag = 0.125,
 		customparams = {
 			unitgroup = 'weapon',
-			model_author = "Hornet",
-			normaltex = "unittextures/cor_normal.dds",
+			model_author = "Protar/Hornet",
+			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legionaircraft/T2",
 			techlevel = 2,
 		},
