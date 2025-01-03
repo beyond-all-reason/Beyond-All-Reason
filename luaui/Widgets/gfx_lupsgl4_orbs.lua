@@ -153,10 +153,6 @@ local UnitEffects = {
 		{ class = 'ShieldSphere', options = armafusShieldSphere },
 		{ class = 'ShieldJitter', options = { layer = -16, life = math.huge, pos = { 0, 60, 0 }, size = 28.5, precision = 22, repeatEffect = true } },
 	},
-	["legafus"] = {
-		{ class = 'ShieldSphere', options = legafusShieldSphere },
-		{ class = 'ShieldJitter', options = { layer = -16, life = math.huge, pos = { 0, 40, 0 }, size = 28.5, precision = 22, repeatEffect = true } },
-	},
 	["resourcecheat"] = {
 		{ class = 'ShieldSphere', options = armafusShieldSphere },
 		{ class = 'ShieldJitter', options = { layer = -16, life = math.huge, pos = { 0, 60, 0 }, size = 28.5, precision = 22, repeatEffect = true } },
