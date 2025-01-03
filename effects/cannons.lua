@@ -83,6 +83,28 @@ local definitions = {
 	    },
 
 	},
+	["impulse-trail"] = {
+		flame = {
+            air                = true,
+            class              = [[CBitmapMuzzleFlame]],
+            count              = 1,
+            ground             = true,
+            underwater         = true,
+            water              = true,
+            properties = {
+                colormap           = [[0.9 0.75 0.4 0.006   0.8 0.70 0.3 0.005   0.8 0.5 0.1 0.005   0 0 0 0.01]],
+                dir                = [[dir]],
+                frontoffset        = 0,
+                fronttexture       = [[none]],
+                length             = -2.8,
+                sidetexture        = [[trail]],
+                size               = 5.5,
+                sizegrowth         = -0.09,
+                ttl                = 3,
+                useairlos          = true,
+            },
+        },
+	},
 	["arty-fast"] = {
 		flame = {
             air                = true,
@@ -96,11 +118,11 @@ local definitions = {
                 dir                = [[dir]],
                 frontoffset        = 0,
                 fronttexture       = [[none]],
-                length             = -2.1,
+                length             = -4.1,
                 sidetexture        = [[trail]],
-                size               = 4.4,
+                size               = 3.0,
                 sizegrowth         = -0.05,
-                ttl                = 2,
+                ttl                = 10,
                 useairlos          = true,
             },
         },
