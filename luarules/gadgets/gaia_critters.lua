@@ -48,6 +48,7 @@ local GaiaTeamID  = Spring.GetGaiaTeamID()
 
 local critterConfig = include("LuaRules/configs/critters.lua")
 local critterUnits = {}	--critter units that are currently alive
+local critterBackup = {} --critter units to restore
 local companionCritters = {}
 local sceduledOrders = {}
 local commanders = {}
@@ -201,7 +202,7 @@ end
 
 local function makeUnitCritter(unitID)
 	setGaiaUnitSpecifics(unitID)
-	critterUnits[unitID] = {alive=true}
+	critterUnits[unitID] = {}
 	totalCritters = totalCritters + 1
 	aliveCritters = aliveCritters + 1
 end
@@ -270,51 +271,55 @@ local function adjustCritters(newAliveCritters)
 
 	local critterDifference = newAliveCritters - aliveCritters
 	local add = false
+	local critterArrayFrom = critterUnits
+	local critterArrayTo = critterBackup
 	if critterDifference > 0 then
 		add = true
+		critterArrayFrom = critterBackup
+		critterArrayTo = critterUnits
 		if not addCrittersAgain then return end
 	end
 
-	local removeKeys = {}
-	local removeKeysCount = 0
-	ownCritterDestroy = true -- flag to skip UnitDestroyed callin
-	for unitID, critter in pairs(critterUnits) do
-		if add and not critter.alive  or  not add and critter.alive then
-			if add then
-				if critter.x ~= nil and critter.y ~= nil and critter.z ~= nil then	-- had nil error once so yeah...
-					removeKeysCount = removeKeysCount + 1
-					removeKeys[removeKeysCount] = unitID
-					local newUnitID = CreateUnit(critter.unitName, critter.x, critter.y, critter.z, 0, GaiaTeamID)
-					setGaiaUnitSpecifics(newUnitID)
-					critterDifference = critterDifference - 1
-				end
-			else
-				local x,y,z = GetUnitPosition(unitID,true,true)
-				aliveCritters = aliveCritters - 1
-				critterDifference = critterDifference + 1
-				critterUnits[unitID].alive = false
-				critterUnits[unitID].x = x
-				critterUnits[unitID].y = y
-				critterUnits[unitID].z = z
-				Spring.DestroyUnit(unitID, false, true)	-- reclaimed
-				if aliveCritters <= minCritters then break end
+	local changed = false
+	for unitID, critter in pairs(critterArrayFrom) do
+		if add then
+			if critter.x ~= nil and critter.y ~= nil and critter.z ~= nil then	-- had nil error once so yeah...
+				CreateUnit(critter.unitName, critter.x, critter.y, critter.z, 0, GaiaTeamID)
+				critterDifference = critterDifference - 1
+				critterArrayFrom[unitID] = nil
+				changed = true
 			end
-			if critterDifference > -1 and critterDifference < 1  then break end
+		else
+			local x,y,z = GetUnitPosition(unitID,true,true)
+			aliveCritters = aliveCritters - 1
+			critterDifference = critterDifference + 1
+
+			critterArrayTo[unitID] = critter
+			critterArrayTo[unitID].x = x
+			critterArrayTo[unitID].y = y
+			critterArrayTo[unitID].z = z
+
+			Spring.DestroyUnit(unitID, false, true)	-- reclaimed
+			totalCritters = totalCritters + 1 -- DestroyUnit callin substracts 1 here but we want to keep it constant, so re-adding
+
+			changed = true
+			if aliveCritters <= minCritters then break end
 		end
+		if critterDifference > -1 and critterDifference < 1  then break end
 	end
-	ownCritterDestroy = false
-	if add then
-		for i, unitID in ipairs(removeKeys) do
-			critterUnits[unitID] = nil		-- this however leaves these keys still being iterated
-		end
+	if changed then
 		--if totalCritters > 800 then		-- occasional cleanup (leaving this in will make ´critterDifference´ useless)
 		local newCritterUnits = {}
-		for unitID, critter in pairs(critterUnits) do
+		for unitID, critter in pairs(critterArrayFrom) do
 			if critter ~= nil then
 				newCritterUnits[unitID] = critter
 			end
 		end
-		critterUnits = newCritterUnits
+		if add then
+			critterBackup = newCritterUnits
+		else
+			critterUnits = newCritterUnits
+		end
 		--end
 	end
 end
@@ -352,7 +357,7 @@ end
 
 local function convertMapCrittersToCompanion()
 	for unitID, critter in pairs(critterUnits) do
-		if critter.alive and not companionCritters[unitID] then
+		if critter and not companionCritters[unitID] then
 			critterToCompanion(unitID)
 		end
 	end
@@ -574,7 +579,7 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
 	commanders[unitID] = nil
-	if not ownCritterDestroy and critterUnits[unitID] and critterUnits[unitID].alive then
+	if critterUnits[unitID] then
 		critterUnits[unitID] = nil
 		totalCritters = totalCritters - 1
 	end
@@ -585,7 +590,7 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 	-- accepts: CMD.ATTACK
 	if cmdParams and #cmdParams == 1 then
 		local critter = critterUnits[cmdParams[1]]
-		if critter and critter.alive then
+		if critter then
 			return false
 		end
 	end
