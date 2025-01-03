@@ -235,9 +235,10 @@ local function UpdateVisibility(unitID, unitData, unitVisible, forceUpdate)
 		unitData.isActive = unitIsActive
 	end
 
-	if Spring.GetUnitRulesParam (unitID, SHIELDONRULESPARAMINDEX)  == 1 then
+	local shieldEnabled = Spring.GetUnitRulesParam (unitID, SHIELDONRULESPARAMINDEX)
+	if shieldEnabled == 1 then
 		unitVisible = true
-	else
+	elseif shieldEnabled == 0 then
 		unitVisible = false
 	end
 
