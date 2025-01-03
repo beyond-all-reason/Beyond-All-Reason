@@ -1465,11 +1465,10 @@ function WeaponDef_Post(name, wDef)
 
 		---- SHIELD CHANGES
 		local shieldModOption = modOptions.experimentalshields
-
-		if wDef.weapontype == "StarburstLauncher" then
-			wDef.interceptedbyshieldtype = 512 --separate from combined MissileLauncher weapontype
-		elseif wDef.weapontype == "DGun" then
-			wDef.interceptedbyshieldtype = 1024 --make dgun interceptable
+		if wDef.weapontype == "DGun" then
+			wDef.interceptedbyshieldtype = 512 --make dgun (like behemoth) interceptable by shields, optionally
+		elseif wDef.weapontype == "StarburstLauncher" then
+			wDef.interceptedbyshieldtype = 1024 --separate from combined MissileLauncher 
 		end
 
 		if shieldModOption == "absorbplasma" then
