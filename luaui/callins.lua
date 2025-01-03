@@ -106,6 +106,8 @@ CallInsList = {
 	"DrawShadowUnitsLua",
 	"DrawShadowFeaturesLua",
 
+	"FontsChanged",
+
 	"SunChanged",
 
 	"ShockFront",

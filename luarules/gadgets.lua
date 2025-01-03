@@ -236,6 +236,8 @@ local callInLists = {
 	'DrawShadowUnitsLua',
 	'DrawShadowFeaturesLua',
 
+	'FontsChanged',
+
 	"RecvFromSynced",
 
 	-- moved from LuaUI
@@ -2420,6 +2422,18 @@ function gadgetHandler:Load(zip)
 	for _, g in ipairs(self.LoadList) do
 		g:Load(zip)
 	end
+	return
+end
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+function gadgetHandler:FontsChanged()
+	tracy.ZoneBeginN("FontsChanged")
+	for _, w in r_ipairs(self.FontsChangedList) do
+		w:FontsChanged()
+	end
+	tracy.ZoneEnd()
 	return
 end
 
