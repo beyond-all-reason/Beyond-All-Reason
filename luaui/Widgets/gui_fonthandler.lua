@@ -58,8 +58,15 @@ function widget:Update(dt)
 	--end
 end
 
+local function addFallbackFonts()
+	if not gl.AddFallbackFont then return end
+
+	gl.AddFallbackFont('fallbacks/NotoEmoji-VariableFont_wght.ttf')
+end
 
 function widget:Initialize()
+	addFallbackFonts()
+
 	widget:ViewResize()
 
 	WG['fonts'] = {}
