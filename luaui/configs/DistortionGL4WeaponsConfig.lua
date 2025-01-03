@@ -297,9 +297,9 @@ local BaseClasses = {
 		fraction = 3, -- only spawn every nth distortion
 		distortionConfig = {
 			posx = 0, posy = 15, posz = 0, radius = 25,
-			noiseStrength = 4, noiseScaleSpace = -0.30, distanceFalloff = 1.5, onlyModelMap = 0,
+			noiseStrength = 8, noiseScaleSpace = -0.30, distanceFalloff = 1.9, onlyModelMap = 0,
 			windAffected = 0.2, riseRate = -0.5,
-			lifeTime = 29, rampUp = 30, decay = 10, effectType = 0, -- unused
+			lifeTime = 29, rampUp = 15, decay = 15, effectType = 0, -- unused
 		},
 	},
 	FlameProjectileXL = {
@@ -309,7 +309,7 @@ local BaseClasses = {
 			posx = 0, posy = 45, posz = 0, radius = 25,
 			noiseStrength = 8, noiseScaleSpace = -0.35, distanceFalloff = 1.8, onlyModelMap = 0,
 			windAffected = 0.1, riseRate = -0.5,
-			lifeTime = 40, rampUp = 70, decay = 30, effectType = 0, -- unused
+			lifeTime = 40, rampUp = 30, decay = 30, effectType = 0, -- unused
 		},
 	},
 
