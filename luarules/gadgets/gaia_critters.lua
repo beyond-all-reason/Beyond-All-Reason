@@ -574,7 +574,7 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
 	commanders[unitID] = nil
-	if not ownCritterDestroy and critterUnits[unitID] ~= nil then
+	if not ownCritterDestroy and critterUnits[unitID] and critterUnits[unitID].alive then
 		critterUnits[unitID] = nil
 		totalCritters = totalCritters - 1
 	end
@@ -584,7 +584,8 @@ end
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	-- accepts: CMD.ATTACK
 	if cmdParams and #cmdParams == 1 then
-		if critterUnits[cmdParams[1]] ~= nil then
+		local critter = critterUnits[cmdParams[1]]
+		if critter and critter.alive then
 			return false
 		end
 	end
