@@ -570,7 +570,7 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
 	commanders[unitID] = nil
-	if critterUnits[unitID] ~= nil and attackerID ~= nil then
+	if critterUnits[unitID] ~= nil then
 		critterUnits[unitID] = nil
 		totalCritters = totalCritters - 1
 	end
