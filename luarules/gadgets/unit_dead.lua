@@ -1,7 +1,7 @@
 function gadget:GetInfo()
 	return {
-		name      = "Remove dead units",
-		desc      = "Remove dead units from engine lists where possible",
+		name      = "Dead Unit",
+		desc      = "Remove behaviours from dead units",
 		license   = "GNU GPL, v2 or later",
 		layer     = -1999999,
 		enabled   = true,
