@@ -31,7 +31,7 @@ return {
 		script = "Units/LEGFLOAT.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 400,
+		sightdistance = 500,
 		trackoffset = 6,
 		trackstrength = 5,
 		tracktype = "armacv_tracks",

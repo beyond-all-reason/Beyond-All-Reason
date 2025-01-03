@@ -25,9 +25,12 @@ local rpc = VFS.Include('common/testing/rpc.lua'):new()
 local LOG_LEVEL = LOG.INFO
 
 local initialWidgetActive = {}
+local testModeScenario = false
+local defaultTestTimeout = 30
+local defaultScenarioTimeout = 300
 
 local config = {
-	returnTimeout = 30,
+	returnTimeout = defaultTestTimeout,
 	waitTimeout = 5 * 30,
 	showAllResults = true,
 	noColorOutput = false,
@@ -37,6 +40,10 @@ local config = {
 	testRoots = {
 		"LuaUI/Widgets/tests",
 		"LuaUI/Tests",
+	},
+	scenarioRoots = {
+		"LuaUI/Widgets/scenarios",
+		"LuaUI/Scenarios",
 	},
 }
 
@@ -97,6 +104,29 @@ local function matchesPatterns(str, patterns)
 	return false
 end
 
+-- scenarios
+-- =========
+
+local scenarioConfig = {}
+local scenarioOpts = {}
+local function processScenarioArguments(args)
+	if args then
+		for index, pair in ipairs(args) do
+			for key, default in pairs(pair) do
+				local val = scenarioOpts[index+1]
+				if val and type(default) == 'number' then
+					val = tonumber(val)
+				end
+				scenarioConfig[key] = val or default
+			end
+		end
+	else
+		for idx=2, #scenarioOpts do
+			scenarioConfig[idx-1] = scenarioOpts[idx]
+		end
+	end
+end
+
 -- main code
 -- =========
 
@@ -136,7 +166,8 @@ local function findAllTestFiles(patterns)
 		patterns = patterns,
 	}))
 	local result = {}
-	for _, path in ipairs(config.testRoots) do
+	local roots = testModeScenario and config.scenarioRoots or config.testRoots
+	for _, path in ipairs(roots) do
 		for _, testFileInfo in ipairs(findTestFiles(path, patterns)) do
 			result[#result + 1] = testFileInfo
 		end
@@ -841,6 +872,11 @@ end
 local function runTestInternal()
 	log(LOG.DEBUG, "[runTestInternal]")
 
+	if testModeScenario then
+		local argsOk, argsResult = Util.yieldable_pcall(scenario_arguments)
+		processScenarioArguments(argsOk and argsResult or false)
+	end
+
 	local skipOk, skipResult
 	if skip ~= nil then
 		log(LOG.DEBUG, "[runTestInternal.skip]")
@@ -976,6 +1012,7 @@ local function initializeTestEnvironment()
 		type = type,
 		unpack = unpack,
 		select = select,
+		Scenario = scenarioConfig,
 
 		Json = Json,
 	}
@@ -1248,7 +1285,22 @@ function widget:Initialize()
 		self,
 		"runtests",
 		function(cmd, optLine, optWords, data, isRepeat, release, actions)
+			testModeScenario = false
+			config.returnTimeout = defaultTestTimeout
 			startTests(Util.splitPhrases(optLine))
+		end,
+		nil,
+		"t"
+	)
+	widgetHandler.actionHandler:AddAction(
+		self,
+		"runscenario",
+		function(cmd, optLine, optWords, data, isRepeat, release, actions)
+			testModeScenario = true
+			config.returnTimeout = defaultScenarioTimeout
+			scenarioConfig = {}
+			scenarioOpts = Util.splitPhrases(optLine)
+			startTests(scenarioOpts[1])
 		end,
 		nil,
 		"t"
