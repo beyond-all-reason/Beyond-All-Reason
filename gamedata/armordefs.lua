@@ -427,6 +427,7 @@ local armorDefs = {
 		"legadvsol",
 		"legrl",
 		"legrhapsis",
+		"legsilo",
 
 		"coruwgeo",
 		"coruwageo",
@@ -449,6 +450,7 @@ local armorDefs = {
 		"legch",
 		"legeyes",
 		"legjav",
+		"legerailtank",
 	},
 	mines = {
 		"armfmine3",
