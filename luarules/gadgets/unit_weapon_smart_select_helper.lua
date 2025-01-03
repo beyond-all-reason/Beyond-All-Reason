@@ -10,8 +10,6 @@ function gadget:GetInfo()
 	}
 end
 
---increment this counter for every hour of your life wasted on smart select: 56
-
 if not gadgetHandler:IsSyncedCode() then return end
 
 --[[
