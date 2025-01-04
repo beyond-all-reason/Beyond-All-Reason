@@ -539,6 +539,10 @@ local icontypes = {
 		bitmap = "icons/armmar_t3.png",
 		size = 2
 	},
+	legjav = {
+		bitmap = "icons/legjav.png",
+		size = 2.1
+	},
 	armmark = {
 		bitmap = "icons/bot_t2_radar.png",
 		size = 1.34399986
@@ -991,10 +995,6 @@ local icontypes = {
 		bitmap = "icons/armvader_0.9.png",
 		size = 0.94499993
 	},
-	babyarmvader = {
-		bitmap = "icons/armvader_0.9.png",
-		size = 0.94499993
-	},
 	armvadert4 = {
 		bitmap = "icons/armvadert4.png",
 		size = 2.625
@@ -1041,19 +1041,31 @@ local icontypes = {
 	},
 	chip = {
 		bitmap = "icons/blank.png",
-		size = 1.04999995
+		size = 1
 	},
 	cor_hat_viking = {
 		bitmap = "icons/blank.png",
-		size = 1.04999995
+		size = 1
 	},
 	cor_hat_hornet = {
 		bitmap = "icons/blank.png",
-		size = 1.04999995
+		size = 1
 	},
 	cor_hat_ptaq = {
 		bitmap = "icons/blank.png",
-		size = 1.04999995
+		size = 1
+	},
+	cor_hat_fightnight = {
+		bitmap = "icons/blank.png",
+		size = 1
+	},
+	cor_hat_legfn = {
+		bitmap = "icons/blank.png",
+		size = 1
+	},
+	cor_hat_hw = {
+		bitmap = "icons/blank.png",
+		size = 1
 	},
 	coraak = {
 		bitmap = "icons/bot_amph_t2_aa.png",
@@ -2311,6 +2323,10 @@ local icontypes = {
 		bitmap = "icons/energystorage.png",
 		size = 1.10249984
 	},
+	legerailtank = {
+		bitmap = "icons/vehicle_t3_tank_rail_mgun.png",
+		size = 2.4000001
+	},
 	legcv = {
 		bitmap = "icons/vehicle_worker.png",
 		size = 0.99749994
@@ -2335,7 +2351,15 @@ local icontypes = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
 	},
+	legeyes = {
+		bitmap = "icons/eye.png",
+		size = 0.89249998
+	},
 	legforti = {
+		bitmap = "icons/wall_0.4.png",
+		size = 0.41999999
+	},
+	legrwall = {
 		bitmap = "icons/wall_0.4.png",
 		size = 0.41999999
 	},

@@ -1,80 +1,83 @@
 local function proposed_unit_reworksTweaks(name, uDef)
-		if name == "corbw" then
-			uDef.weapondefs.bladewing_lyzer.damage.default = 600
-			uDef.weapons[1].onlytargetcategory = "SURFACE"
+
+		
+		if name == "armsolar" then
+			uDef.buildtime = 2600
 		end
-		if name == "armdfly" then
-			uDef.weapondefs.armdfly_paralyzer.damage.default = 10500
-			uDef.weapondefs.armdfly_paralyzer.paralyzetime = 6
-			uDef.weapondefs.armdfly_paralyzer.beamtime = 0.2
-			uDef.weapons[1].onlytargetcategory = "SURFACE"
+		if name == "armwin" then
+			uDef.metalcost = 40
 		end
-		if name == "armspid" then
-			uDef.weapons[1].onlytargetcategory = "SURFACE"
+		if name == "corwin" then
+			uDef.metalcost = 43
+			uDef.health = 220
 		end
+		if name == "armtide" then
+			uDef.energycost = 200
+		end
+		if name == "armadvsolar" then
+			uDef.metalcost = 350
+		end
+		if name == "corcv" then
+			uDef.workertime = 95
+		end
+		if name == "corca" then
+			uDef.workertime = 65
+		end
+		if name == "corck" then
+			uDef.workertime = 85
+		end
+		if name == "cormuskrat" then
+			uDef.workertime = 85
+		end
+		if name == "coracv" then
+			uDef.workertime = 265
+		end
+		if name == "corack" then
+			uDef.workertime = 190
+		end
+		if name == "coraca" then
+			uDef.workertime = 105
+		end
+		if name == "corch" then
+			uDef.workertime = 115
+		end
+		if name == "corexp" then
+			uDef.buildtime = 2900
+		end
+
+
+
 		if name == "corgator" then
-			uDef.weapondefs.gator_laserx.damage.vtol = 14
+			uDef.buildtime = 2200
+			uDef.sightdistance = 330
 		end
-		if name == "corak" then
-			uDef.weapondefs.gator_laser.damage.vtol = 7
+		if name == "armflash" then
+			uDef.sightdistance = 350
+			uDef.health = 725
+		end
+		if name == "armflea" then
+			uDef.metalcost = 20
+			uDef.energycost = 300
+			uDef.sightdistance = 500
 		end
 		if name == "armpw" then
-			uDef.weapondefs.emg.damage.vtol = 3
+			uDef.metalcost = 54
+			uDef.energycost = 870
+			uDef.health = 370
 		end
-		if name == "armsh" then
-			uDef.weapondefs.armsh_weapon.damage.vtol = 7
+		if name == "corak" then
+			uDef.metalcost = 45
+			uDef.energycost = 750
+			uDef.health = 300
 		end
-		if name == "corsh" then
-			uDef.weapondefs.armsh_weapon.damage.vtol = 7
+		if name == "corbw" then
+			uDef.weapondefs.bladewing_lyzer.reloadtime = 1.4
 		end
-		if uDef.customparams.paralyzemultiplier then
-			if uDef.customparams.paralyzemultiplier < 0.03 then
-				uDef.customparams.paralyzemultiplier = 0
-			elseif uDef.customparams.paralyzemultiplier < 0.5 then
-				uDef.customparams.paralyzemultiplier = 0.2
-			else
-				uDef.customparams.paralyzemultiplier = 1
-			end
-		end	
-
-		if uDef.mass == 200000 or  uDef.mass == 2000000 or uDef.mass == 100000 or uDef.mass == 999999995904 then
-			uDef.mass = uDef.metalcost
-			uDef.cantbetransported = true
+		if name == "armkam" then
+			uDef.health = 560
 		end
-		if uDef.mass then
-			if uDef.mass > 4899 and uDef.mass < 5002 then
-				uDef.mass = uDef.metalcost
-			end
-		end
-
-		if name == "armliche" then
-			uDef.weapondefs.arm_pidr.impulsefactor = 1
-		end
-
-		if name == "corvalk" then
-			uDef.transportmass = 750
-			uDef.energycost = 1450
-			uDef.buildtime = 4120
-		end
-		if name == "armatlas" then
-			uDef.transportmass = 750
-			uDef.energycost = 1300
-			uDef.buildtime = 3850
-		end
-		if name == "corseah" then
-			uDef.speed = 235
-		    uDef.sightdistance = 500
-			uDef.transportcapacity = 1
-			uDef.buildtime = 10000
-		end
-		if name == "armdfly" then
-			uDef.transportcapacity = 1
-		end
-        if name == "armap" then
-            uDef.buildoptions[7] = "armhvytrans"
-		end
-        if name == "corap" then
-            uDef.buildoptions[7] = "corhvytrans"
+		if name == "armthund" then
+			uDef.weapondefs.armbomb.burstrate = 0.25
 		end
 
 	return uDef

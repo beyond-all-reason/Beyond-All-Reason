@@ -143,6 +143,9 @@ return {
 				weapontimer = 3,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 1200,
+				customparams = {
+					stockpilelimit = 10,
+				},
 				damage = {
 					default = 50000,
 				},
@@ -152,7 +155,7 @@ return {
 			[1] = {
 				badtargetcategory = "MOBILE",
 				def = "ARMEMP_WEAPON",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "EMPABLE",
 			},
 		},
 	},

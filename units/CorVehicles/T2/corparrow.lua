@@ -123,7 +123,7 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				gravityaffected = "true",
-				impulsefactor = 0.123,
+				impulsefactor = 0.7,
 				name = "PoisonArrowCannon",
 				noselfdamage = true,
 				range = 575,

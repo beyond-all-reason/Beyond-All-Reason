@@ -127,7 +127,7 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-large-aoe",
 				gravityaffected = "true",
-				impulsefactor = 0.123,
+				impulsefactor = 0.9,
 				name = "HeavyCannon",
 				noselfdamage = true,
 				range = 650,

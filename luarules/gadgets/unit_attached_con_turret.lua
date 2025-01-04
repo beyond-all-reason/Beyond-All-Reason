@@ -96,9 +96,9 @@ local function auto_repair_routine(unitID,unitDefID)
     end
     if (commandQueue[1] ~= nil and commandQueue[1]["id"] == CMD_REPAIR) then
         -- out of range repair command
-		if (commandQueue[1]["params"][1] > Game.maxUnits) then
-			tx,ty,tz = SpGetFeaturePosition(commandQueue[1]["params"][1]-Game.maxUnits)
-			object_radius = SpGetFeatureRadius(commandQueue[1]["params"][1]-Game.maxUnits)
+		if (commandQueue[1]["params"][1] >= Game.maxUnits) then
+			tx,ty,tz = SpGetFeaturePosition(commandQueue[1]["params"][1] - Game.maxUnits)
+			object_radius = SpGetFeatureRadius(commandQueue[1]["params"][1] - Game.maxUnits)
 		else
 			tx,ty,tz = SpGetUnitPosition(commandQueue[1]["params"][1])
 			object_radius = SpGetUnitRadius(commandQueue[1]["params"][1])
@@ -109,9 +109,9 @@ local function auto_repair_routine(unitID,unitDefID)
     end
 	if (commandQueue[1] ~= nil and commandQueue[1]["id"] == CMD_RECLAIM) then
 		-- out of range reclaim command
-		if (commandQueue[1]["params"][1] > Game.maxUnits) then
-			tx,ty,tz = SpGetFeaturePosition(commandQueue[1]["params"][1]-Game.maxUnits)
-			object_radius = SpGetFeatureRadius(commandQueue[1]["params"][1]-Game.maxUnits)
+		if (commandQueue[1]["params"][1] >= Game.maxUnits) then
+			tx,ty,tz = SpGetFeaturePosition(commandQueue[1]["params"][1] - Game.maxUnits)
+			object_radius = SpGetFeatureRadius(commandQueue[1]["params"][1] - Game.maxUnits)
 		else
 			tx,ty,tz = SpGetUnitPosition(commandQueue[1]["params"][1])
 			object_radius = SpGetUnitRadius(commandQueue[1]["params"][1])

@@ -279,7 +279,9 @@
 				"highTrajectory": "High Trajectory",
 				"trajectory_tooltip": "Switch artillery firing angle between low and high trajectory",
 				"gauss_tooltip": "Switches between Gauss Cannon and Heavy Plasma Cannon"
-			}
+			},
+			"quicksharetotarget": "Share Unit",
+			"quicksharetotarget_tooltip": "Share unit to target player."
 		},
 		"idleBuilders": {
 			"name": "Idle Builders",
@@ -890,7 +892,11 @@
 			"eneededforconversion": "E needed for conversion",
 			"convertedm": "converted M",
 			"estorage": "E storage",
-			"mstorage": "M storage"
+			"mstorage": "M storage",
+			"shieldcapacity": "Shield capacity",
+			"shieldrange": "Shield range",
+			"shieldrechargerate": "Recharge rate",
+			"shieldrechargecost": "Recharge cost"
 		},
 		"spectator_hud": {
 			"metalIncome_title": "Metal Income",
@@ -1665,6 +1671,10 @@
 				"title": "%{role1}/%{role2}",
 				"description": "%{role1}\n\nand/or\n\n%{role2}"
 			}
+		},
+		"quickShareToTarget": {
+			"noTarget": "No target selected",
+			"shareTo": "Share to: %{playerColor}%{player}"
 		}
 	}
 }

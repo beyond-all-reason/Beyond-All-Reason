@@ -194,6 +194,9 @@ return {
 				weapontimer = 2.5,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 500,
+				customparams = {
+					stockpilelimit = 2,
+				},
 				damage = {
 					default = 80000,
 				},
@@ -257,13 +260,13 @@ return {
 				def = "EMP",
 				maindir = "-1 0 0",
 				maxangledif = 180,
-				onlytargetcategory = "SURFACE",
+				onlytargetcategory = "EMPABLE",
 			},
 			[4] = {
 				def = "EMP",
 				maindir = "1 0 0",
 				maxangledif = 180,
-				onlytargetcategory = "SURFACE",
+				onlytargetcategory = "EMPABLE",
 			},
 		},
 	},

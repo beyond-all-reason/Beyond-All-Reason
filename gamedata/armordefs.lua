@@ -243,6 +243,7 @@ local armorDefs = {
 		"cormort",
 		"cormstor",
 		"cormwall",
+		"legrwall",
 		"cornecro",
 		"corplat",
 		"corphantom",
@@ -426,6 +427,7 @@ local armorDefs = {
 		"legadvsol",
 		"legrl",
 		"legrhapsis",
+		"legsilo",
 
 		"coruwgeo",
 		"coruwageo",
@@ -447,6 +449,8 @@ local armorDefs = {
 		"legfhp",
 		"legch",
 		"legeyes",
+		"legjav",
+		"legerailtank",
 	},
 	mines = {
 		"armfmine3",

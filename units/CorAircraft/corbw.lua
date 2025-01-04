@@ -37,6 +37,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorAircraft",
 			unitgroup = "emp",
+			crashable = 0,
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {
@@ -111,7 +112,7 @@ return {
 				def = "BLADEWING_LYZER",
 				maindir = "0 0 1",
 				maxangledif = 90,
-				onlytargetcategory = "SURFACE",
+				onlytargetcategory = "EMPABLE",
 			},
 		},
 	},

@@ -45,6 +45,7 @@ return {
 			subfolder = "ArmAircraft/T2",
 			techlevel = 2,
 			unitgroup = "emp",
+			crashable = 0,
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {
@@ -127,7 +128,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "ARMDFLY_PARALYZER",
-				onlytargetcategory = "SURFACE",
+				onlytargetcategory = "EMPABLE",
 			},
 		},
 	},

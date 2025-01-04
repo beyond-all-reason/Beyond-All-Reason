@@ -29,8 +29,8 @@ return {
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/legperdition_aoplane.dds",
-			buildinggrounddecalsizey = 7.5,
-			buildinggrounddecalsizex = 7.5,
+			buildinggrounddecalsizey = 8,
+			buildinggrounddecalsizex = 8,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'weapon',
 			model_author = "Hornet, Tharsis",
@@ -128,7 +128,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.75,
-				explosiongenerator = "custom:burnfirecom-xl",
+				explosiongenerator = "custom:fire-explosion-large",
 				gravityaffected = true,
 				hightrajectory = 1,
 				impulsefactor = 2,
@@ -172,12 +172,21 @@ return {
 				weapontimer = 5,
 				weapontype = "Cannon",
 				--weaponvelocity = 650,
+				customparams = {
+					area_onhit_ceg = "fire-area-150-repeat",
+					area_onhit_damageCeg = "burnflamexl-gen",
+					area_onhit_resistance = "fire",
+					area_onhit_damage = 175,
+					area_onhit_range = 150,
+					area_onhit_time = 15,
+					stockpilelimit = 10,
+				},
 				damage = {
 					commanders = 700,
 					default = 2000,--plus 150*15 within 150 area
 				},
-			},			
-			
+			},
+
 		},
 		weapons = {
 			[1] = {

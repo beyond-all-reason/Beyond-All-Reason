@@ -1910,6 +1910,10 @@ assert(type(unitID) == "number","Argument unitID is of invalid type - expected n
 return  booleanMock
  end
 
+function Spring.GetUnitIsActive (unitID)
+assert(type(unitID) == "number","Argument unitID is of invalid type - expected number");
+return  booleanMock
+ end
 
 function Spring.SetLastMessagePosition (  x, y, z)
 assert(type(x) == "number","Argument x is of invalid type - expected number");

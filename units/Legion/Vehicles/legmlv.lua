@@ -54,7 +54,7 @@ return {
 			[1] = "cormine1",
 			[2] = "cormine2",
 			[3] = "cormine3",
-			[4] = "cordrag",
+			[4] = "legdrag",
 			[5] = "legeyes",
 		},
 		customparams = {

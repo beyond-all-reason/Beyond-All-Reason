@@ -9,20 +9,11 @@ function setup()
 
 	Test.clearMap()
 
-	initialWidgetActive = widgetHandler.knownWidgets[widgetName].active
-	if initialWidgetActive then
-		widgetHandler:DisableWidget(widgetName)
-	end
-	widgetHandler:EnableWidget(widgetName, true)
+	Test.prepareWidget(widgetName)
 end
 
 function cleanup()
 	Test.clearMap()
-
-	widgetHandler:DisableWidget(widgetName)
-	if initialWidgetActive then
-		widgetHandler:EnableWidget(widgetName, false)
-	end
 end
 
 function test()

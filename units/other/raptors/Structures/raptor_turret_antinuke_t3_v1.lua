@@ -119,6 +119,9 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 2000,
 				wobble = 32000,
+				customparams = {
+					stockpilelimit = 10,
+				},
 				damage = {
 					default = 1500,
 				},

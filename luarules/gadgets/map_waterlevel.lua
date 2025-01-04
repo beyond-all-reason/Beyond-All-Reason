@@ -40,9 +40,21 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Initialize()
-		if Spring.GetGameFrame() == 0 and Spring.GetModOptions().map_waterlevel ~= 0 then
-			waterlevel = Spring.GetModOptions().map_waterlevel
-			adjustWaterlevel()
+		if Spring.GetGameFrame() == 0 then
+			local modOptions = Spring.GetModOptions()
+			if modOptions.map_waterlevel ~= 0 then
+				waterlevel = modOptions.map_waterlevel
+
+				-- adjust tidal strength if previosuly not present and applicable
+				if (modOptions.map_tidal == nil or modOptions.map_tidal == "unchanged")
+					and Spring.GetTidal() == 0
+					and select(1, Spring.GetGroundExtremes()) > 0
+					then
+						Spring.SetTidal( 15 )
+				end
+
+				adjustWaterlevel()
+			end
 		end
 	end
 

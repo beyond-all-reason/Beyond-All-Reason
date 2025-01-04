@@ -46,10 +46,9 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 
-	-- Unseen targets will be removed after at least UNSEEN_TIMEOUT*USEEN_UPDATE_FREQUENCY frames
-	-- and at most (UNSEEN_TIMEOUT+1)*USEEN_UPDATE_FREQUENCY frames/
-	local USEEN_UPDATE_FREQUENCY = 150
-	local UNSEEN_TIMEOUT = 2
+	-- Unseen targets will be removed after max USEEN_UPDATE_FREQUENCY frames.
+	-- Should be small enough to not be evident, and big enough to save perf.
+	local USEEN_UPDATE_FREQUENCY = 15
 
 	local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
 	local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
@@ -64,7 +63,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spSetUnitRulesParam = Spring.SetUnitRulesParam
 	local spGetCommandQueue = Spring.GetCommandQueue
 	local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-	local spGiveOrderArrayToUnitArray = Spring.GiveOrderArrayToUnitArray
+	local spGiveOrderArrayToUnit = Spring.GiveOrderArrayToUnit
 	local spGetUnitWeaponTryTarget = Spring.GetUnitWeaponTryTarget
 	local spGetUnitWeaponTestTarget = Spring.GetUnitWeaponTestTarget
 	local spGetUnitWeaponTestRange = Spring.GetUnitWeaponTestRange
@@ -218,18 +217,10 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function removeUnseenTarget(targetData, attackerAllyTeam)
-		if tonumber(targetData.target) and not targetData.alwaysSeen and spValidUnitID(targetData.target) then
+		if not targetData.alwaysSeen and tonumber(targetData.target) and spValidUnitID(targetData.target) then
 			local los = spGetUnitLosState(targetData.target, attackerAllyTeam, true)
 			if not los or (los % 4 == 0) then
-				if targetData.unseenTargetTimer == UNSEEN_TIMEOUT then
-					return true
-				elseif not targetData.unseenTargetTimer then
-					targetData.unseenTargetTimer = 1
-				else
-					targetData.unseenTargetTimer = targetData.unseenTargetTimer + 1
-				end
-			elseif targetData.unseenTargetTimer then
-				targetData.unseenTargetTimer = nil
+				return true
 			end
 		end
 		return false
@@ -297,7 +288,7 @@ if gadgetHandler:IsSyncedCode() then
 		spSetUnitRulesParam(unitID, "targetCoordX", -1)
 		spSetUnitRulesParam(unitID, "targetCoordY", -1)
 		spSetUnitRulesParam(unitID, "targetCoordZ", -1)
-		if unitTargets[unitID] and not keeptrack == true then
+		if unitTargets[unitID] and not keeptrack then
 			SendToUnsynced("targetList", unitID, 0)
 		end
 		unitTargets[unitID] = nil
@@ -326,6 +317,14 @@ if gadgetHandler:IsSyncedCode() then
 		gadgetHandler:RegisterCMDID(CMD_UNIT_CANCEL_TARGET)
 		gadgetHandler:RegisterCMDID(CMD_UNIT_SET_TARGET_RECTANGLE)
 		gadgetHandler:RegisterCMDID(CMD_UNIT_SET_TARGET_NO_GROUND)
+		-- register allowcommand callin
+		gadgetHandler:RegisterAllowCommand(CMD_STOP)
+		gadgetHandler:RegisterAllowCommand(CMD_DGUN)
+		gadgetHandler:RegisterAllowCommand(CMD.INSERT)
+		gadgetHandler:RegisterAllowCommand(CMD_UNIT_SET_TARGET_NO_GROUND)
+		gadgetHandler:RegisterAllowCommand(CMD_UNIT_SET_TARGET)
+		gadgetHandler:RegisterAllowCommand(CMD_UNIT_SET_TARGET_RECTANGLE)
+		gadgetHandler:RegisterAllowCommand(CMD_UNIT_CANCEL_TARGET)
 
 		-- load active units
 		for _, unitID in pairs(Spring.GetAllUnits()) do
@@ -399,34 +398,35 @@ if gadgetHandler:IsSyncedCode() then
 						local orders = {}
 						local optionKeys = {}
 						local optionKeysCount = 0
-						local optionKeysWithShift = {}
-						local optionKeysWithShiftCount = 0
 						--re-insert back the command options
 						for optionName, optionValue in pairs(cmdOptions) do
-							if optionValue then
+							if optionName == 'shift' then
+								-- Always add shift to enforce chained commands, but clear orders at
+								-- the beginning of our order chain when not an append (shift).
 								optionKeysCount = optionKeysCount + 1
 								optionKeys[optionKeysCount] = optionName
-								optionKeysWithShiftCount = optionKeysWithShiftCount + 1
-								optionKeysWithShift[optionKeysWithShiftCount] = optionName
-							end
-							if optionName == "shift" then
-								--add a version with shift to swap between
-								optionKeysWithShiftCount = optionKeysWithShiftCount + 1
-								optionKeysWithShift[optionKeysWithShiftCount] = optionName
+							elseif optionValue then
+								optionKeysCount = optionKeysCount + 1
+								optionKeys[optionKeysCount] = optionName
 							end
 						end
+						if not cmdOptions["shift"] and unitTargets[unitID] then
+							-- Need to clear orders if not in shift, since just sending the first one
+							-- as not-shift would sometimes fail if that unit is in the end not valid.
+							orders[1] = {CMD_UNIT_CANCEL_TARGET, {}, {}}
+						end
+						local base = #orders
 						for i = 1, #targets do
 							local target = targets[i]
-							--if the order didn't have append (shift), we have to add for consequent area target inserts
-							orders[i] = {
+							orders[i+base] = {
 								CMD_UNIT_SET_TARGET,
 								{ target },
-								i == 1 and optionKeys or optionKeysWithShift
+								optionKeys
 							}
 
 						end
 						--re-insert in the queue as list of individual orders instead of processing directly, so that allowcommand etc can work
-						spGiveOrderArrayToUnitArray({ unitID }, orders)
+						spGiveOrderArrayToUnit(unitID, orders)
 					end
 				else
 					if #cmdParams == 3 or #cmdParams == 4 then
@@ -688,6 +688,12 @@ else	-- UNSYNCED
 
 	end
 
+	function gadget:PlayerChanged(playerID)
+		myAllyTeam = spGetMyAllyTeamID()
+		myTeam = spGetMyTeamID()
+		_, fullview = spGetSpectatingState()
+	end
+
 	function gadget:Shutdown()
 		gadgetHandler:RemoveChatAction("targetdrawteam")
 		gadgetHandler:RemoveChatAction("targetdrawunit")
@@ -749,35 +755,28 @@ else	-- UNSYNCED
 	--	end
 	--    return true
 	--end
+	local unitIconsDrawn = {}
+	local function drawUnitTarget(cacheKey, x, y, z)
+		glVertex(x, y, z)
+		if not unitIconsDrawn[cacheKey] then
+			-- avoid sending WorldIcons to engine at the same unit/location
+			Spring.AddWorldIcon(CMD_UNIT_SET_TARGET, x, y, z)
+			unitIconsDrawn[cacheKey] = true
+		end
+	end
 
 	local function drawTargetCommand(targetData, myTeam, myAllyTeam)
 
-		if targetData then
+		if targetData and targetData.userTarget then
+			local target = targetData.target
 
-			if targetData.userTarget and tonumber(targetData.target) and spValidUnitID(targetData.target) then
-				--single unit target
-				if fullview then
-					local _, _, _, _, _, _, x2, y2, z2 = spGetUnitPosition(targetData.target, true, true)
-					glVertex(x2, y2, z2)
-				else
-					local los = spGetUnitLosState(targetData.target, myAllyTeam, true)
-					if not los then
-						return
-					end
-					local _, _, _, _, _, _, x2, y2, z2 = spGetUnitPosition(targetData.target, true, true)
-					if los % 2 == 1 then
-						-- in los
-						glVertex(x2, y2, z2)
-					elseif los == 14 then
-						-- in radar   spIsUnitInRadar(targetData.target, myAllyTeam)
-						local dx, dy, dz = Spring.GetUnitPosErrorParams(targetData.target)
-						local size = Spring.GetRadarErrorParams(myAllyTeam)
-						glVertex(x2 + dx * size, y2 + dy * size, z2 + dz * size)
-					end
-				end
-			elseif targetData.userTarget and not tonumber(targetData.target) and targetData.target then
+			if tonumber(target) and spValidUnitID(target) then
+				local _, _, _, x2, y2, z2 = spGetUnitPosition(target, false, true)
+				drawUnitTarget(target, x2, y2, z2)
+			elseif target and not tonumber(target) then
 				-- 3d coordinate target
-				glVertex(targetData.target)
+				local x2, y2, z2 = unpack(target)
+				drawUnitTarget(x2+y2+z2, x2, y2, z2)
 			end
 		end
 	end
@@ -785,7 +784,6 @@ else	-- UNSYNCED
 	local function drawCurrentTarget(unitID, unitData, myTeam, myAllyTeam)
 		local _, _, _, x1, y1, z1 = spGetUnitPosition(unitID, true)
 		glVertex(x1, y1, z1)
-		--TODO: show cursor animation at target point
 		drawTargetCommand(unitData.targets[unitData.targetIndex], myTeam, myAllyTeam)
 	end
 
@@ -797,8 +795,7 @@ else	-- UNSYNCED
 		end
 	end
 
-	function gadget:DrawWorld()
-		_, fullview = spGetSpectatingState()
+	local function drawDecorations()
 		local init = false
 		for unitID, unitData in pairs(targetList) do
 			if drawTarget[unitID] or drawAllTargets[spGetUnitTeam(unitID)] or spIsUnitSelected(unitID) then
@@ -825,6 +822,15 @@ else	-- UNSYNCED
 			glPopAttrib()
 		end
 		drawTarget = {}
+		unitIconsDrawn = {}
+	end
+
+	function gadget:DrawWorld()
+		if fullview then
+			drawDecorations()
+		else
+			CallAsTeam(myTeam, drawDecorations)
+		end
 	end
 
 end
