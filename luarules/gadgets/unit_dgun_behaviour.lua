@@ -27,7 +27,7 @@ local spGetGameFrame = Spring.GetGameFrame
 local dgunData = {}
 local dgunDef = {}
 local dgunTimeouts = {}
-local dgunShieldPentrations = {}
+local dgunShieldPenetrations = {}
 
 for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 	if weaponDef.type == 'DGun' then
@@ -95,7 +95,7 @@ function gadget:ProjectileDestroyed(proID)
 	flyingDGuns[proID] = nil
 	groundedDGuns[proID] = nil
 	dgunTimeouts[proID] = nil
-	dgunShieldPentrations[proID] = nil
+	dgunShieldPenetrations[proID] = nil
 	dgunData[proID] = nil
 end
 
@@ -161,7 +161,7 @@ end
 function gadget:ShieldPreDamaged(proID, proOwnerID, shieldEmitterWeaponNum, shieldCarrierUnitID, bounceProjectile,
 								 beamEmitterWeaponNum, beamEmitterUnitID, startX, startY, startZ, hitX, hitY, hitZ)
 	if proID > -1 and dgunTimeouts[proID] then
-		if dgunShieldPentrations[proID] then return true end
+		if dgunShieldPenetrations[proID] then return true end
 		local proDefID = dgunData[proID].weaponDefID
 		local shieldEnabledState, shieldPower = spGetUnitShieldState(shieldCarrierUnitID)
 		local damage = WeaponDefs[proDefID].damages[Game.armorTypes.shields] or
@@ -169,15 +169,15 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldEmitterWeaponNum, shie
 
 		local weaponDefID = dgunData[proID].weaponDefID
 
-		if not dgunShieldPentrations[proID] then
+		if not dgunShieldPenetrations[proID] then
 			if shieldPower <= damage then
 				shieldPower = 0
-				dgunShieldPentrations[proID] = true
+				dgunShieldPenetrations[proID] = true
 			end
 		end
 		-- Engine does not provide a way for shields to stop DGun projectiles, they will impact once and carry on through,
 		-- need to manually move them back a bit so the next touchdown hits the shield
-		if not dgunShieldPentrations[proID] then
+		if not dgunShieldPenetrations[proID] then
 			-- Adjusting the projectile position based on setback
 			local dx, dy, dz = spGetProjectileVelocity(proID)
 			local magnitude = math.sqrt(dx ^ 2 + dy ^ 2 + dz ^ 2)
