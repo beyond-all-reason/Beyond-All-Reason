@@ -286,8 +286,9 @@ local BaseClasses = {
 	TorpedoProjectile = {
 		distortionType = 'cone', -- or cone or beam
 		distortionConfig = {
-			posx = 0, posy = 0, posz = 0, radius = 100,
-			dirx = 1, diry = 0, dirz = 1, theta = 0.15,  -- cone distortions only, specify direction and half-angle in radians
+			posx = 0, posy = 0, posz = 0, radius = 300,
+			dirx = 1, diry = 0, dirz = 1, theta = 0.10,  -- cone distortions only, specify direction and half-angle in radians
+			noiseStrength = 2, noiseScaleSpace = 0.90, distanceFalloff = 0.9, onlyModelMap = 0,
 			lifeTime = 0, sustain = 1, 	effectType = 0, -- unused
 		},
 	},
@@ -297,9 +298,9 @@ local BaseClasses = {
 		fraction = 3, -- only spawn every nth distortion
 		distortionConfig = {
 			posx = 0, posy = 15, posz = 0, radius = 25,
-			noiseStrength = 8, noiseScaleSpace = -0.30, distanceFalloff = 1.9, onlyModelMap = 0,
+			noiseStrength = 8, noiseScaleSpace = -0.30, distanceFalloff = 0.9, onlyModelMap = 0,
 			windAffected = 0.2, riseRate = -0.5,
-			lifeTime = 29, rampUp = 15, decay = 15, effectType = 0, -- unused
+			lifeTime = 29, rampUp = 15, decay = 10, effectType = 0, -- unused
 		},
 	},
 	FlameProjectileXL = {
@@ -855,9 +856,16 @@ projectileDefDistortionsNames["corfship_dmaw"] =
 -- 	lifeTime = 100, rampUp = 30, decay = 0, radius = 120, 
 -- })
 
+projectileDefDistortionsNames["armmship_rocket"] =
+	GetDistortionClass("MissileProjectile", "Medium", {
+		theta = 0.16, noiseStrength = 5, noiseScaleSpace = 0.35,
+		windAffected = -1, riseRate = -0.5,
+		lifeTime = 110, rampUp = 20, decay = 40, radius = 200,
+	})
+
 projectileDefDistortionsNames["corvipe_vipersabot"] =
 	GetDistortionClass("MissileProjectile", "Smaller", {
-	theta = 0.09, noiseStrength = 10, noiseScaleSpace = 0.35,
+	theta = 0.09, noiseStrength = 7, noiseScaleSpace = 0.35,
 	lifeTime = 27, rampUp = 15, decay = 10, radius = 150,
 })
 
@@ -887,6 +895,9 @@ projectileDefDistortionsNames["corstorm_cor_bot_rocket"] =
 projectileDefDistortionsNames["corban_banisher"] =
 	GetDistortionClass("MissileProjectile", "Medium")
 
+projectileDefDistortionsNames["armsubk_armsmart_torpedo"] =
+	GetDistortionClass("TorpedoProjectile", "SmallMedium")
+
 projectileDefDistortionsNames['armmanni_atam'] =
 	GetDistortionClass("AirShockWaveBeam", "Small")
 
@@ -912,6 +923,9 @@ projectileDefDistortionsNames["armclaw_dclaw"] = --doesnt work on lightning cann
 projectileDefDistortionsNames["armzeus_lightning"] = --doesnt work on lightning cannon
 	GetDistortionClass("LightningBeam", "Femto")
 
+projectileDefDistortionsNames["armlship_lightning"] = --doesnt work on lightning cannon
+	GetDistortionClass("LightningBeam", "Femto")
+
 projectileDefDistortionsNames["armthor_thunder"] = --doesnt work on lightning cannon
 	GetDistortionClass("LightningBeam", "Femto")
 
@@ -932,6 +946,14 @@ explosionDistortionsNames['armbull_arm_bull'] = {
 -- 	GetDistortionClass("AirShockWaveXS", "Tiny"),
 -- 	GetDistortionClass("ExplosionHeatXS", "Nano"),
 -- }
+
+explosionDistortionsNames['armthund_armbomb'] = {
+	GetDistortionClass("AirShockWave", "Nano", {
+		lifeTime = 11, airShockWaveMultiplier = 0.4, }),
+	GetDistortionClass("GroundShockWave", "Tiny", {
+		lifeTime = 12, }),
+	GetDistortionClass("ExplosionHeat", "Pico"),
+}
 
 explosionDistortionsNames['corgol_cor_gol'] = {
 	GetDistortionClass("AirShockWave", "Small"),

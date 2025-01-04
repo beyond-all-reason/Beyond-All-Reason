@@ -30,16 +30,16 @@ local exampleDistortion = {
 
 local unitDistortions = {
 
-	['armsolar'] = {
-		distortion = {
-			distortionType = 'point',
-			pieceName = 'emit',
-			distortionConfig = { posx = 0, posy = 2, posz = 0, radius = 33,
-							noiseStrength = 0.5, noiseScaleSpace = 1.5, distanceFalloff = 2.0,
-							lifeTime = 0,  rampUp = 300, decay = -2.0,
-							effectType = 0},
-		},
-	},
+	-- ['armsolar'] = {
+	-- 	distortion = {
+	-- 		distortionType = 'point',
+	-- 		pieceName = 'emit',
+	-- 		distortionConfig = { posx = 0, posy = 2, posz = 0, radius = 33,
+	-- 						noiseStrength = 0.5, noiseScaleSpace = 1.5, distanceFalloff = 2.0,
+	-- 						lifeTime = 0,  rampUp = 300, decay = -2.0,
+	-- 						effectType = 0},
+	-- 	},
+	-- },
 
 	
 	['armmakr'] = {
@@ -57,9 +57,9 @@ local unitDistortions = {
 			distortionType = 'beam',
 			pieceName = 'base',
 			distortionConfig = { posx = 0, posy = -6.5, posz = 0.01, radius = 23,
-								pos2x = 0, pos2y = 20, pos2z = 0, radius2 = 23, 
-								noiseStrength = 0.5, noiseScaleSpace = -1, distanceFalloff = 0.5,
-								rampUp = 30, decay = -1.3,
+								pos2x = 0, pos2y = 15, pos2z = 0, radius2 = 23, 
+								noiseStrength = 0.5, noiseScaleSpace = -1, distanceFalloff = 0.8,
+								rampUp = 30, decay = -1.2,
 								lifeTime = 0,  effectType = 0},
 
 		},
@@ -136,13 +136,27 @@ local unitDistortions = {
 		},
 	},
 
+	['armtide'] = {
+		waterflow = {
+			distortionType = 'beam',
+			pieceName = 'wheel',
+			distortionConfig = { posx = 0, posy = -2.2, posz = -18, radius = 12,
+								pos2x = 0, pos2y = -2.2, pos2z = 18, radius2 = 12, 
+								noiseStrength = 2.5, noiseScaleSpace = 0.7, distanceFalloff = 0.5,
+								rampUp = 0, decay = 0,
+								windAffected = -1, riseRate = 1,
+								lifeTime = 0,  effectType = 0},
+
+		},
+	},
+
 	['corvamp'] = {
 		thrust = {
 			distortionType = 'cone',
 			pieceName = 'thrust',
 			distortionConfig = { posx = 0, posy = 0, posz = 20, radius = 100,
-							dirx =  0, diry = -0, dirz = -1.0, theta = 0.2,
-							noiseStrength = 1, noiseScaleSpace = -1,
+							dirx =  0, diry = -0, dirz = -1.0, theta = 0.15,
+							noiseStrength = 2, noiseScaleSpace = 0.75,
 							lifeTime = 0,  effectType = 0},
 		},
 	},
@@ -158,26 +172,26 @@ local unitDistortions = {
 		},
 	},
 
-	['armck'] = {
-		beamDistortion = {
-			distortionType = 'beam',
-			pieceName = 'base',
-			distortionConfig = { posx = 0, posy = 7.5, posz = 0.01, radius = 23,
-							pos2x = 0, pos2y = 100, pos2z = 0, radius2 = 23, 
-							noiseScaleSpace = 1,
-							lifeTime = 0,  effectType = 0},
-		},
-	},
-	['corck'] = {
-		beamDistortion = {
-			distortionType = 'beam',
-			pieceName = 'base',
-			distortionConfig = { posx = 0, posy = 7.5, posz = 0.01, radius = 23,
-							pos2x = 0, pos2y = 100, pos2z = 0, radius2 = 23, 
-							noiseScaleSpace = -1,
-							lifeTime = 0,  effectType = 0},
-		},
-	},
+	-- ['armck'] = {
+	-- 	beamDistortion = {
+	-- 		distortionType = 'beam',
+	-- 		pieceName = 'base',
+	-- 		distortionConfig = { posx = 0, posy = 7.5, posz = 0.01, radius = 23,
+	-- 						pos2x = 0, pos2y = 100, pos2z = 0, radius2 = 23, 
+	-- 						noiseScaleSpace = 1,
+	-- 						lifeTime = 0,  effectType = 0},
+	-- 	},
+	-- },
+	-- ['corck'] = {
+	-- 	beamDistortion = {
+	-- 		distortionType = 'beam',
+	-- 		pieceName = 'base',
+	-- 		distortionConfig = { posx = 0, posy = 7.5, posz = 0.01, radius = 23,
+	-- 						pos2x = 0, pos2y = 100, pos2z = 0, radius2 = 23, 
+	-- 						noiseScaleSpace = -1,
+	-- 						lifeTime = 0,  effectType = 0},
+	-- 	},
+	-- },
 
 	['armsnipe'] = {
 		snipecloakbeam = {
@@ -376,35 +390,35 @@ local unitDistortions = {
 		thrust1 = {
 			distortionType = 'cone',
 			pieceName = 'thrustrra',
-			distortionConfig = { posx = -2, posy = 0, posz = -2, radius = 120,
-							dirx = 0, diry = 0, dirz = -1, theta = 0.74,
-							noiseStrength = 1,
-							lifeTime = 0,  effectType = 0},
+			distortionConfig = { posx = -2, posy = 0, posz = -2, radius = 80,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.4,
+							noiseStrength = 1, noiseScaleSpace = 0.95,
+							riseRate = -4, lifeTime = 0,  effectType = 0},
 		},
 
 		thrust2 = {
 			distortionType = 'cone',
 			pieceName = 'thrustrla',
-			distortionConfig = { posx = -2, posy = 0, posz = -2, radius = 120,
-							dirx = 0, diry = 0, dirz = -1, theta = 0.74,
-							noiseStrength = 1,
-							lifeTime = 0,  effectType = 0},
+			distortionConfig = { posx = -2, posy = 0, posz = -2, radius = 80,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.4,
+							noiseStrength = 1, noiseScaleSpace = 0.95,
+							riseRate = -4, lifeTime = 0,  effectType = 0},
 		},
 		thrust3 = {
 			distortionType = 'cone',
 			pieceName = 'thrustfla',
-			distortionConfig = { posx = -2, posy = 0, posz = -2, radius = 120,
-							dirx = 0, diry = 0, dirz = -1, theta = 0.74,
-							noiseStrength = 1,
-							lifeTime = 0,  effectType = 0},
+			distortionConfig = { posx = -2, posy = 0, posz = -2, radius = 80,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.4,
+							noiseStrength = 1, noiseScaleSpace = 0.95,
+							riseRate = -4, lifeTime = 0,  effectType = 0},
 		},
 		thrust4 = {
 			distortionType = 'cone',
 			pieceName = 'thrustfra',
-			distortionConfig = { posx = -2, posy = 0, posz = -2, radius = 120,
-							dirx = 0, diry = 0, dirz = -1, theta = 0.74,
-							noiseStrength = 1,
-							lifeTime = 0,  effectType = 0},
+			distortionConfig = { posx = -2, posy = 0, posz = -2, radius = 80,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.4,
+							noiseStrength = 1, noiseScaleSpace = 0.95,
+							riseRate = -4, lifeTime = 0,  effectType = 0},
 		},
 	},
 }
