@@ -214,7 +214,7 @@ function gadget:GameFrame(frame)
 			if velocityY then
 				local newVelocityY = velocityY - velocityOverall * descentMultiplier
 				spSetProjectileVelocity(proID, velocityX * lateralMultiplier, newVelocityY, velocityZ * lateralMultiplier)
-				descentTable[proID] = descentMultiplier * compoundingMultiplier --zzz need to test if the now working compounding multiplier improves leashing or if should be removed
+				descentTable[proID] = descentMultiplier * compoundingMultiplier
 			else
 				descentTable[proID] = nil
 			end
