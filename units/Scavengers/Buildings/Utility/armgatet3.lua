@@ -127,7 +127,7 @@ return {
 					armortype = "shields",
 					energyupkeep = 0,
 					force = 2.5,
-					intercepttype = 487,
+					intercepttype = 999,
 					power = 26000,
 					powerregen = 208,
 					powerregenenergy = 1968,
