@@ -426,7 +426,6 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitI
 			weaponDefID = projectileDefIDCache[proID] or spGetProjectileDefID(proID)
 			local newShieldDamage = originalShieldDamages[weaponDefID] or fallbackShieldDamage
 			shieldData.shieldDamage = shieldData.shieldDamage + newShieldDamage
-
 			if forceDeleteWeapons[weaponDefID] then
 				-- Flames and penetrating projectiles aren't destroyed when they hit shields, so need to delete manually
 				spDeleteProjectile(proID)
@@ -452,45 +451,41 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitI
 			removeCoveredUnits(shieldUnitID)
 		end
 	end
-
-	do
-		---Shield controller API for other gadgets to generate and process their own shield damage events.
-		local function addShieldDamage(shieldUnitID, shieldWeaponNumber, damage, weaponDefID, projectileID,
-									beamEmitterWeaponNum, beamEmitterUnitID)
-			local projectileDestroyed, damageMitigated = false, 0
-			if not beamEmitterUnitID and beamEmitterWeapons[weaponDefID] then
-				beamEmitterUnitID, beamEmitterWeaponNum = unpack(beamEmitterWeapons[weaponDefID])
-			end
-			local shieldData = shieldUnitsData[shieldUnitID]
-			if shieldData and shieldData.shieldEnabled then
-				local shieldDamage = shieldData.shieldDamage
-				local result = gadget:ShieldPreDamaged(projectileID, nil, shieldWeaponNumber, shieldUnitID, nil,
-					beamEmitterWeaponNum, beamEmitterUnitID)
-				if result == nil then
-					projectileDestroyed = true
-					if damage then
-						shieldData.shieldDamage = shieldDamage + damage
-						damageMitigated = damage
-					else
-						damageMitigated = shieldData.shieldDamage - shieldDamage
-					end
-				end
-			end
-			return projectileDestroyed, damageMitigated
-		end
-
-		function gadget:Initialize()
-			GG.AddShieldDamage = addShieldDamage
-
-			for _, unitID in ipairs(Spring.GetAllUnits()) do
-				local unitDefID = Spring.GetUnitDefID(unitID)
-				local unitTeam = Spring.GetUnitTeam(unitID)
-				gadget:UnitFinished(unitID, unitDefID, unitTeam)
+end
+---Shield controller API for other gadgets to generate and process their own shield damage events.
+local function addShieldDamage(shieldUnitID, damage, weaponDefID, projectileID, beamEmitterWeaponNum, beamEmitterUnitID)
+	local projectileDestroyed, damageMitigated = false, 0
+	if not beamEmitterUnitID and beamEmitterWeapons[weaponDefID] then
+		beamEmitterUnitID, beamEmitterWeaponNum = unpack(beamEmitterWeapons[weaponDefID])
+	end
+	local shieldData = shieldUnitsData[shieldUnitID]
+	if shieldData and shieldData.shieldEnabled then
+		local shieldDamage = shieldData.shieldDamage
+		local result = gadget:ShieldPreDamaged(projectileID, nil, shieldData.shieldWeaponNumber, shieldUnitID, nil,
+			beamEmitterWeaponNum, beamEmitterUnitID)
+		if result == nil then
+			projectileDestroyed = true
+			if damage then
+				shieldData.shieldDamage = shieldDamage + damage
+				damageMitigated = damage
+			else
+				damageMitigated = shieldData.shieldDamage - shieldDamage
 			end
 		end
 	end
+	return projectileDestroyed, damageMitigated
+end
 
-	function gadget:ShutDown()
-		GG.AddShieldDamage = nil
+function gadget:Initialize()
+	GG.AddShieldDamage = addShieldDamage
+
+	for _, unitID in ipairs(Spring.GetAllUnits()) do
+		local unitDefID = Spring.GetUnitDefID(unitID)
+		local unitTeam = Spring.GetUnitTeam(unitID)
+		gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	end
+end
+
+function gadget:ShutDown()
+	GG.AddShieldDamage = nil
 end
