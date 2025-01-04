@@ -11,11 +11,11 @@ end
 if not gadgetHandler:IsSyncedCode() then return end
 
 ---- unit customParams ----
--- use weaponDef customparams.overrange_distance to destroy projectiles exceeding its limit.
--- use weaponDef customparams.leash_distance to destroy projectiles when they exceed range/overrange_distance and leash_distance relative to unit position.
+-- use weaponDef customparams overrange_distance to destroy projectiles exceeding its limit.
+-- use weaponDef customparams leash_distance to destroy projectiles when they exceed range/overrange_distance and leash_distance relative to unit position.
 
 ---- optional customParams ----
--- use weaponDef customparams.weaponDef.customParams.projectile_destruction_method = "string" to change how projectiles are destroyed.
+-- use weaponDef customparams projectile_destruction_method = "string" to change how projectiles are destroyed.
 -- "explode" (default if undefined) detonates the projectile.
 -- "descend" moves the projectile downward until it is destroyed by collision event.
 
@@ -50,14 +50,14 @@ local gameFrame = 0
 
 
 for weaponDefID, weaponDef in pairs(WeaponDefs) do
-
-	if weaponDef.customParams.leash_distance or weaponDef.customParams.overrange_distance then
+	local customParams = weaponDef.customParams
+	if customParams.leash_distance or customParams.overrange_distance then
 		local watchParams = {}
-		if weaponDef.customParams.leash_distance then
-			watchParams.leashRangeSq = (tonumber(weaponDef.customParams.leash_distance)) ^ 2
+		if customParams.leash_distance then
+			watchParams.leashRangeSq = tonumber(customParams.leash_distance) ^ 2
 		end
 
-		local overRange = tonumber(weaponDef.customParams.overrange_distance) or weaponDef.range
+		local overRange = tonumber(customParams.overrange_distance) or weaponDef.range
 		watchParams.overRange = overRange
 
 		local ascentFrames = 0
@@ -68,7 +68,7 @@ for weaponDefID, weaponDef in pairs(WeaponDefs) do
 		math.max(math.floor(((overRange / weaponDef.projectilespeed) + ascentFrames)), 1)
 		watchParams.weaponDefID = weaponDefID
 
-		local destructionMethod = weaponDef.customParams.projectile_destruction_method or "explode"
+		local destructionMethod = customParams.projectile_destruction_method or "explode"
 		if destructionMethod == "descend" then
 			watchParams.descentMethod = true
 		end
@@ -79,11 +79,11 @@ for weaponDefID, weaponDef in pairs(WeaponDefs) do
 end
 
 
-local function leashCheck(maxRangeSq, proOwnerID, proX, proY)
+local function leashCheck(maxRangeSq, proOwnerID, proX, proZ)
 	local ownerX, _, ownerZ = spGetUnitPosition(proOwnerID)
 	if ownerX then
 		local dx = ownerX - proX
-		local dz = ownerZ - proY
+		local dz = ownerZ - proZ
 		if (dx * dx + dz * dz) > maxRangeSq then
 			return true
 		end
@@ -102,14 +102,10 @@ local function recalculateFlightTime(proID, maxRange, x1, z1, x2, z2)
     if distance < maxRange then
         local vx, _, vz = spGetProjectileVelocity(proID)
         if not vx then return false end
-        
+
+		local remainingDistance = maxRange - distance
+
         local proSpeed = mathSqrt(vx * vx + vz * vz)
-
-        local remainingDistance = maxRange - distance
-
-        if remainingDistance <= 0 then
-            return false
-        end
 
         local frames = mathCeil(remainingDistance / proSpeed)
 
@@ -157,7 +153,7 @@ function gadget:GameFrame(frame)
 	gameFrame = frame
 
 	if flightTimeWatch[frame] then
-		for i, proID in ipairs(flightTimeWatch[frame]) do
+		for _, proID in ipairs(flightTimeWatch[frame]) do
 			local projectileX, _, projectileZ = spGetProjectilePosition(proID)
 			if projectileX then
 				local proData = proMetaData[proID]
@@ -197,7 +193,7 @@ function gadget:GameFrame(frame)
 
 	if killQueue[frame] then
 		local descentMultiplier = descentSpeedStartingMultiplier
-		for i, proID in ipairs(killQueue[frame]) do
+		for _, proID in ipairs(killQueue[frame]) do
 			local proData = proMetaData[proID]
 			if proData then
 				local defData = defWatchTable[proData.weaponDefID]
@@ -218,7 +214,7 @@ function gadget:GameFrame(frame)
 			if velocityY then
 				local newVelocityY = velocityY - velocityOverall * descentMultiplier
 				spSetProjectileVelocity(proID, velocityX * lateralMultiplier, newVelocityY, velocityZ * lateralMultiplier)
-				descentMultiplier = descentMultiplier * compoundingMultiplier
+				descentTable[proID] = descentMultiplier * compoundingMultiplier --zzz need to test if the now working compounding multiplier improves leashing or if should be removed
 			else
 				descentTable[proID] = nil
 			end
