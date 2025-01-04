@@ -465,6 +465,22 @@ local function refreshUnitInfo()
 				unitDefInfo[unitDefID].isAaUnit = true
 			end
 
+			--shield params
+			if weaponDef.shieldRadius and weaponDef.shieldRadius > 0 then
+				if #weapons <= 1 then
+					unitDefInfo[unitDefID].weapons = {}
+					unitDefInfo[unitDefID].mindps = 0
+					unitDefInfo[unitDefID].maxdps = 0
+					unitDefInfo[unitDefID].range = 0
+					unitDefInfo[unitDefID].reloadTime = 0
+					unitDefInfo[unitDefID].mainWeapon = 1
+					unitDefInfo[unitDefID].shieldOnly = true
+				end
+				unitDefInfo[unitDefID].shieldRange = weaponDef.shieldRadius
+				unitDefInfo[unitDefID].shieldCapacity = weaponDef.shieldPower
+				unitDefInfo[unitDefID].shieldRechargeRate = weaponDef.shieldPowerRegen
+				unitDefInfo[unitDefID].shieldRechargeCost = weaponDef.shieldPowerRegenEnergy
+			end
 		end
 
 		if unitDef.customParams.unitgroup and unitDef.customParams.unitgroup == 'explo' and unitDef.deathExplosion and WeaponDefNames[unitDef.deathExplosion] then
@@ -1431,7 +1447,7 @@ local function drawUnitInfo()
 
 			if unitDefInfo[displayUnitDefID].maxCoverage then
 				addTextInfo(texts.coverrange, unitDefInfo[displayUnitDefID].maxCoverage)
-			elseif maxRange then
+			elseif maxRange and not unitDefInfo[displayUnitDefID].shieldOnly then
 				addTextInfo(texts.weaponrange, math_floor(maxRange))
 			end
 			if currentReloadTime and currentReloadTime > 0 then
@@ -1444,6 +1460,13 @@ local function drawUnitInfo()
 			if unitDefInfo[displayUnitDefID].metalPerShot then
 				addTextInfo(texts.metalshot, unitDefInfo[displayUnitDefID].metalPerShot)
 			end
+		end
+		-- shield display
+		if unitDefInfo[displayUnitDefID].shieldCapacity then
+			addTextInfo(texts.shieldcapacity, unitDefInfo[displayUnitDefID].shieldCapacity)
+			addTextInfo(texts.shieldrange, unitDefInfo[displayUnitDefID].shieldRange)
+			addTextInfo(texts.shieldrechargerate, unitDefInfo[displayUnitDefID].shieldRechargeRate)
+			addTextInfo(texts.shieldrechargecost, unitDefInfo[displayUnitDefID].shieldRechargeCost)
 		end
 
 		if unitDefInfo[displayUnitDefID].stealth then

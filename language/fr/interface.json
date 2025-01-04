@@ -831,7 +831,11 @@
 			"eneededforconversion": "É nécessaire à la conversion",
 			"convertedm": "M converti",
 			"estorage": "stockage d'É",
-			"mstorage": "stockage M"
+			"mstorage": "stockage M",
+			"shieldcapacity": "Capacité du bouclier",
+			"shieldrange": "Portée du bouclier",
+			"shieldrechargerate": "Taux de recharge",
+			"shieldrechargecost": "Coût de recharge"
 		},
 		"settings": {
 			"basic": "Basique",

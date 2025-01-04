@@ -779,7 +779,11 @@
 			"eneededforconversion": "Für Umwandlung benötigte E",
 			"convertedm": "Umgewandeltes M",
 			"estorage": "E Lager",
-			"mstorage": "M Lager"
+			"mstorage": "M Lager",
+			"shieldcapacity": "Schildkapazität",
+			"shieldrange": "Schildreichweite",
+			"shieldrechargerate": "Aufladerate",
+			"shieldrechargecost": "Aufladekosten"	
 		},
 		"settings": {
 			"basic": "Allgemein",
