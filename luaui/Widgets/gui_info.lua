@@ -27,8 +27,6 @@ local activeCmdID
 local emptyInfo = false
 local showEngineTooltip = false		-- straight up display old engine delivered text
 
-local texts = {}
-
 local iconTypes = VFS.Include("gamedata/icontypes.lua")
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
@@ -613,8 +611,6 @@ function widget:Initialize()
 
 	refreshUnitInfo()
 
-	texts = Spring.I18N('ui.info')
-
 	checkGeothermalFeatures()
 
 	widget:ViewResize()
@@ -899,7 +895,7 @@ local function drawSelection()
 	local height = 0
 	local heightStep = (fontSize * 1.36)
 	font2:Begin()
-	font2:Print(tooltipTextColor .. #selectedUnits .. tooltipLabelTextColor .. "  "..texts.unitsselected, backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 1.2) - height, (fontSize * 1.23), "o")
+	font2:Print(tooltipTextColor .. #selectedUnits .. tooltipLabelTextColor .. "  "..Spring.I18N('ui.info.unitsselected'), backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 1.2) - height, (fontSize * 1.23), "o")
 	font2:End()
 	font:Begin()
 	height = height + (fontSize * 0.85)
@@ -940,25 +936,25 @@ local function drawSelection()
 	local valueMinColor = '\255\255\180\180'
 	if totalMetalUse > 0 or totalMetalMake > 0 then
 		height = height + heightStep
-		font:Print( tooltipLabelTextColor .. texts.m.."   " .. (totalMetalMake > 0 and valuePlusColor .. '+' .. (totalMetalMake < 10 and round(totalMetalMake, 1) or round(totalMetalMake, 0)) .. '  ' or '') .. (totalMetalUse > 0 and valueMinColor .. '-' .. (totalMetalUse < 10 and round(totalMetalUse, 1) or round(totalMetalUse, 0)) or ''), backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
+		font:Print( tooltipLabelTextColor .. Spring.I18N('ui.info.m').."   " .. (totalMetalMake > 0 and valuePlusColor .. '+' .. (totalMetalMake < 10 and round(totalMetalMake, 1) or round(totalMetalMake, 0)) .. '  ' or '') .. (totalMetalUse > 0 and valueMinColor .. '-' .. (totalMetalUse < 10 and round(totalMetalUse, 1) or round(totalMetalUse, 0)) or ''), backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
 	end
 	if totalEnergyUse > 0 or totalEnergyMake > 0 then
 		height = height + heightStep
-		font:Print( tooltipLabelTextColor .. texts.e.."   " .. (totalEnergyMake > 0 and valuePlusColor .. '+' .. (totalEnergyMake < 10 and round(totalEnergyMake, 1) or round(totalEnergyMake, 0)) .. '  ' or '') .. (totalEnergyUse > 0 and valueMinColor .. '-' .. (totalEnergyUse < 10 and round(totalEnergyUse, 1) or round(totalEnergyUse, 0)) or ''), backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
+		font:Print( tooltipLabelTextColor .. Spring.I18N('ui.info.e').."   " .. (totalEnergyMake > 0 and valuePlusColor .. '+' .. (totalEnergyMake < 10 and round(totalEnergyMake, 1) or round(totalEnergyMake, 0)) .. '  ' or '') .. (totalEnergyUse > 0 and valueMinColor .. '-' .. (totalEnergyUse < 10 and round(totalEnergyUse, 1) or round(totalEnergyUse, 0)) or ''), backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
 	end
 
 	-- metal cost
 	height = height + heightStep
-	font:Print( tooltipLabelTextColor .. texts.costm.."   " .. tooltipValueWhiteColor .. totalMetalValue, backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
+	font:Print( tooltipLabelTextColor .. Spring.I18N('ui.info.costm').."   " .. tooltipValueWhiteColor .. totalMetalValue, backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
 
 	-- energy cost
 	height = height + heightStep
-	font:Print( tooltipLabelTextColor .. texts.coste.."\255\255\255\128   " .. totalEnergyValue, backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
+	font:Print( tooltipLabelTextColor .. Spring.I18N('ui.info.coste').."\255\255\255\128   " .. totalEnergyValue, backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
 
 	-- kills
 	if totalKills > 0 then
 		height = height + heightStep
-		font:Print( tooltipLabelTextColor .. texts.kills.."   " .. tooltipValueColor .. totalKills, backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
+		font:Print( tooltipLabelTextColor .. Spring.I18N('ui.info.kills').."   " .. tooltipValueColor .. totalKills, backgroundRect[1] + contentPadding, backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8) - height, fontSize, "o")
 	end
 	font:End()
 
@@ -1392,14 +1388,14 @@ local function drawUnitInfo()
 			local reloadTimeSpeedup = 1.0
 			local currentReloadTime = unitDefInfo[displayUnitDefID].reloadTime
 			if exp and exp > 0.009 then
-				addTextInfo(texts.xp, round(exp, 2))
-				addTextInfo(texts.maxhealth, '+' .. round((maxHealth / unitDefInfo[displayUnitDefID].health - 1) * 100, 0) .. '%')
+				addTextInfo(Spring.I18N('ui.info.xp'), round(exp, 2))
+				addTextInfo(Spring.I18N('ui.info.maxhealth'), '+' .. round((maxHealth / unitDefInfo[displayUnitDefID].health - 1) * 100, 0) .. '%')
 				currentReloadTime = spGetUnitWeaponState(displayUnitID, unitDefInfo[displayUnitDefID].mainWeapon, 'reloadTimeXP')
 				if unitDefInfo[displayUnitDefID].reloadTime then
 					reloadTimeSpeedup = currentReloadTime / unitDefInfo[displayUnitDefID].reloadTime
 					local reloadTimeSpeedupPercentage = tonumber(round((1 - reloadTimeSpeedup) * 100, 0))
 					if reloadTimeSpeedupPercentage > 0 then
-						addTextInfo(texts.reload, '-' .. reloadTimeSpeedupPercentage .. '%')
+						addTextInfo(Spring.I18N('ui.info.reload'), '-' .. reloadTimeSpeedupPercentage .. '%')
 					end
 				end
 			end
@@ -1407,7 +1403,7 @@ local function drawUnitInfo()
 			-- basic dps display
 			if mindps and mindps > 0 and mindps == maxdps then
 				local dps = round(mindps/ reloadTimeSpeedup, 0)
-				addTextInfo(texts.dps, dps)
+				addTextInfo(Spring.I18N('ui.info.dps'), dps)
 
 			-- dps range
 			elseif mindps and mindps > 0 and mindps ~= maxdps then
@@ -1430,46 +1426,46 @@ local function drawUnitInfo()
 			end
 
 			if unitDefInfo[displayUnitDefID].maxCoverage then
-				addTextInfo(texts.coverrange, unitDefInfo[displayUnitDefID].maxCoverage)
+				addTextInfo(Spring.I18N('ui.info.coverrange'), unitDefInfo[displayUnitDefID].maxCoverage)
 			elseif maxRange then
-				addTextInfo(texts.weaponrange, math_floor(maxRange))
+				addTextInfo(Spring.I18N('ui.info.weaponrange'), math_floor(maxRange))
 			end
 			if currentReloadTime and currentReloadTime > 0 then
-				addTextInfo(texts.reloadtime, round(currentReloadTime, 2))
+				addTextInfo(Spring.I18N('ui.info.reloadtime'), round(currentReloadTime, 2))
 			end
 
 			if unitDefInfo[displayUnitDefID].energyPerShot then
-				addTextInfo(texts.energyshot, unitDefInfo[displayUnitDefID].energyPerShot)
+				addTextInfo(Spring.I18N('ui.info.energyshot'), unitDefInfo[displayUnitDefID].energyPerShot)
 			end
 			if unitDefInfo[displayUnitDefID].metalPerShot then
-				addTextInfo(texts.metalshot, unitDefInfo[displayUnitDefID].metalPerShot)
+				addTextInfo(Spring.I18N('ui.info.metalshot'), unitDefInfo[displayUnitDefID].metalPerShot)
 			end
 		end
 
 		if unitDefInfo[displayUnitDefID].stealth then
-			addTextInfo(texts.stealthy, nil)
+			addTextInfo(Spring.I18N('ui.info.stealthy'), nil)
 		end
 
 		if unitDefInfo[displayUnitDefID].cloakCost then
 			if unitDefInfo[displayUnitDefID].cloakCostMoving then
-				addTextInfo(texts.cloakcost, unitDefInfo[displayUnitDefID].cloakCost .. "/" .. unitDefInfo[displayUnitDefID].cloakCostMoving)
+				addTextInfo(Spring.I18N('ui.info.cloakcost'), unitDefInfo[displayUnitDefID].cloakCost .. "/" .. unitDefInfo[displayUnitDefID].cloakCostMoving)
 			else
-				addTextInfo(texts.cloakcost, unitDefInfo[displayUnitDefID].cloakCost)
+				addTextInfo(Spring.I18N('ui.info.cloakcost'), unitDefInfo[displayUnitDefID].cloakCost)
 			end
 		end
 
 		if unitDefInfo[displayUnitDefID].speed then
-			addTextInfo(texts.speed, unitDefInfo[displayUnitDefID].speed)
+			addTextInfo(Spring.I18N('ui.info.speed'), unitDefInfo[displayUnitDefID].speed)
 		end
 		if unitDefInfo[displayUnitDefID].reverseSpeed then
-			addTextInfo(texts.reversespeed, unitDefInfo[displayUnitDefID].reverseSpeed)
+			addTextInfo(Spring.I18N('ui.info.reversespeed'), unitDefInfo[displayUnitDefID].reverseSpeed)
 		end
 
 		--if metalExtraction then
 		--  addTextInfo('metal extraction', round(metalExtraction, 2))
 		--end
 		if unitDefInfo[displayUnitDefID].buildSpeed then
-			addTextInfo(texts.buildpower, unitDefInfo[displayUnitDefID].buildSpeed)
+			addTextInfo(Spring.I18N('ui.info.buildpower'), unitDefInfo[displayUnitDefID].buildSpeed)
 		end
 
 		--if unitDefInfo[displayUnitDefID].armorType and unitDefInfo[displayUnitDefID].armorType ~= 'standard' then
@@ -1477,40 +1473,40 @@ local function drawUnitInfo()
 		--end
 
 		if unitDefInfo[displayUnitDefID].sightDistance then
-			addTextInfo(texts.los, round(unitDefInfo[displayUnitDefID].sightDistance, 0))
+			addTextInfo(Spring.I18N('ui.info.los'), round(unitDefInfo[displayUnitDefID].sightDistance, 0))
 		end
 		if unitDefInfo[displayUnitDefID].airSightDistance and (unitDefInfo[displayUnitDefID].airUnit or unitDefInfo[displayUnitDefID].isAaUnit) then
 
-			addTextInfo(texts.airlos, round(unitDefInfo[displayUnitDefID].airSightDistance, 0))
+			addTextInfo(Spring.I18N('ui.info.airlos'), round(unitDefInfo[displayUnitDefID].airSightDistance, 0))
 		end
 		if unitDefInfo[displayUnitDefID].radarDistance then
-			addTextInfo(texts.radar, round(unitDefInfo[displayUnitDefID].radarDistance, 0))
+			addTextInfo(Spring.I18N('ui.info.radar'), round(unitDefInfo[displayUnitDefID].radarDistance, 0))
 		end
 		if unitDefInfo[displayUnitDefID].sonarDistance then
-			addTextInfo(texts.sonar, round(unitDefInfo[displayUnitDefID].sonarDistance, 0))
+			addTextInfo(Spring.I18N('ui.info.sonar'), round(unitDefInfo[displayUnitDefID].sonarDistance, 0))
 		end
 		if unitDefInfo[displayUnitDefID].radarDistanceJam then
-			addTextInfo(texts.jamrange, round(unitDefInfo[displayUnitDefID].radarDistanceJam, 0))
+			addTextInfo(Spring.I18N('ui.info.jamrange'), round(unitDefInfo[displayUnitDefID].radarDistanceJam, 0))
 		end
 		if unitDefInfo[displayUnitDefID].sonarDistanceJam then
-			addTextInfo(texts.sonarjamrange, round(unitDefInfo[displayUnitDefID].sonarDistanceJam, 0))
+			addTextInfo(Spring.I18N('ui.info.sonarjamrange'), round(unitDefInfo[displayUnitDefID].sonarDistanceJam, 0))
 		end
 		if unitDefInfo[displayUnitDefID].seismicDistance then
-			addTextInfo(texts.seismic, unitDefInfo[displayUnitDefID].seismicDistance)
+			addTextInfo(Spring.I18N('ui.info.seismic'), unitDefInfo[displayUnitDefID].seismicDistance)
 		end
 		--addTextInfo('mass', round(Spring.GetUnitMass(displayUnitID),0))
 		--addTextInfo('radius', round(Spring.GetUnitRadius(displayUnitID),0))
 		--addTextInfo('height', round(Spring.GetUnitHeight(displayUnitID),0))
 
 		if unitDefInfo[displayUnitDefID].metalmaker then
-			addTextInfo(texts.eneededforconversion, unitDefInfo[displayUnitDefID].metalmaker[1])
-			addTextInfo(texts.convertedm, round(unitDefInfo[displayUnitDefID].metalmaker[1] / (1 / unitDefInfo[displayUnitDefID].metalmaker[2]), 1))
+			addTextInfo(Spring.I18N('ui.info.eneededforconversion'), unitDefInfo[displayUnitDefID].metalmaker[1])
+			addTextInfo(Spring.I18N('ui.info.convertedm'), round(unitDefInfo[displayUnitDefID].metalmaker[1] / (1 / unitDefInfo[displayUnitDefID].metalmaker[2]), 1))
 		end
 		if unitDefInfo[displayUnitDefID].energyStorage > 0 then
-			addTextInfo(texts.estorage, unitDefInfo[displayUnitDefID].energyStorage)
+			addTextInfo(Spring.I18N('ui.info.estorage'), unitDefInfo[displayUnitDefID].energyStorage)
 		end
 		if unitDefInfo[displayUnitDefID].metalStorage > 0 then
-			addTextInfo(texts.mstorage, unitDefInfo[displayUnitDefID].metalStorage)
+			addTextInfo(Spring.I18N('ui.info.mstorage'), unitDefInfo[displayUnitDefID].metalStorage)
 		end
 
 		if unitDefInfo[displayUnitDefID].transport then
@@ -1521,7 +1517,7 @@ local function drawUnitInfo()
 			if unitDefInfo[displayUnitDefID].transport[1] > 5000 then
 				addTextInfo(Spring.I18N('ui.info.transport_heavy', { highlightColor = valueColor }), nil)
 			end
-			addTextInfo(texts.transportcapacity, unitDefInfo[displayUnitDefID].transport[3])
+			addTextInfo(Spring.I18N('ui.info.transportcapacity'), unitDefInfo[displayUnitDefID].transport[3])
 		end
 
 		local text, _ = font:WrapText(text, ((backgroundRect[3] - bgpadding - bgpadding - bgpadding) - (backgroundRect[1] + contentPaddingLeft)) * (loadedFontSize / infoFontsize))
@@ -1944,7 +1940,7 @@ function widget:DrawScreen()
 				if cellHovered then
 					textTitle = unitDefInfo[selectionCells[cellHovered]].translatedHumanName .. tooltipLabelTextColor .. (selUnitsCounts[selectionCells[cellHovered]] > 1 and ' x ' .. tooltipTextColor .. selUnitsCounts[selectionCells[cellHovered]] or '')
 				else
-					--textTitle = texts.selectedunits..": " .. tooltipTextColor .. #selectedUnits
+					--textTitle = Spring.I18N('ui.info.selectedunits')..": " .. tooltipTextColor .. #selectedUnits
 					text = selectionHowto
 				end
 
