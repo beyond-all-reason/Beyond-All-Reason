@@ -1464,12 +1464,14 @@ function WeaponDef_Post(name, wDef)
 		end]]
 
 		---- SHIELD CHANGES
-		local shieldModOption = modOptions.experimentalshields
+
 		if wDef.weapontype == "DGun" then
 			wDef.interceptedbyshieldtype = 512 --make dgun (like behemoth) interceptable by shields, optionally
 		elseif wDef.weapontype == "StarburstLauncher" and not string.find(name, "raptor") then
 			wDef.interceptedbyshieldtype = 1024 --separate from combined MissileLauncher, except raptors
 		end
+
+		local shieldModOption = modOptions.experimentalshields
 
 		if shieldModOption == "absorbplasma" then
 			if wDef.shield and wDef.shield.repulser and wDef.shield.repulser ~= false then
@@ -1499,7 +1501,7 @@ function WeaponDef_Post(name, wDef)
 			local vtolShieldDamageMultiplier = 0
 
 			local shieldCollisionExemptions = { --add the name of the weapons (or just the name of the unit followed by _ ) to this table to exempt from shield collision.
-			'corsilo_', 'armsilo_', 'armthor_empmissile', 'armemp_', 'cortron_', 'corjuno_', 'armjuno_'
+			'corsilo_', 'armsilo_', 'armthor_empmissile', 'armemp_', 'cortron_', 'corjuno_', 'armjuno_',
 			}
 
 			if wDef.damage ~= nil then
@@ -1542,7 +1544,7 @@ function WeaponDef_Post(name, wDef)
 
 			for _, exemption in ipairs(shieldCollisionExemptions) do
 				if string.find(name, exemption) then
-					wDef.interceptedbyshieldtype = 2
+					wDef.interceptedbyshieldtype = 0
 					wDef.customparams.shield_aoe_penetration = true
 					break
 				end
