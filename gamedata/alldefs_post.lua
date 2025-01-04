@@ -1492,7 +1492,7 @@ function WeaponDef_Post(name, wDef)
 
 			local shieldCollisionExemptions = { --add the name of the weapons (or just the name of the unit followed by _ ) to this table to exempt from shield collision.
 			'corsilo_', 'armsilo_', 'armthor_empmissile', 'armemp_', 'cortron_', 'corjuno_', 'armjuno_'
-			}
+		}
 
 			if wDef.damage ~= nil then
 				-- Due to the engine not handling overkill damage, we have to store the original shield damage values as a customParam for unit_shield_behavior.lua to reference
@@ -1527,12 +1527,10 @@ function WeaponDef_Post(name, wDef)
 				wDef.shield.exterior = true
 			end
 
-			if ((not wDef.interceptedbyshieldtype or wDef.interceptedbyshieldtype ~= 1) and wDef.weapontype ~= "Cannon") then
-				wDef.customparams.shield_aoe_penetration = true
-			end
+			wDef.interceptedbyshieldtype = 1
 
 			for _, exemption in ipairs(shieldCollisionExemptions) do
-				if string.find(name, exemption) then
+				if string.find(name, exemption)then
 					wDef.interceptedbyshieldtype = 2
 					wDef.customparams.shield_aoe_penetration = true
 					break
