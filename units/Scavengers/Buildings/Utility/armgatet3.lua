@@ -41,7 +41,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,
 			removewait = true,
-			shield_color_mult = 50,
+			shield_color_mult = 25,
 			shield_power = 13000,
 			shield_radius = 710,
 			subfolder = "ArmBuildings/LandUtil",
