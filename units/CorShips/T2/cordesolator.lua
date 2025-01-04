@@ -201,6 +201,9 @@ return {
 				damage = {
 					default = 0,
 				},
+				customparams = {
+					scavforcecommandfire = true,
+				},
 			},
 			waterballon = {
 				areaofeffect = 16,
