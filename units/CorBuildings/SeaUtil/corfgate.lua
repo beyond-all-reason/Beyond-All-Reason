@@ -45,7 +45,6 @@ return {
 			removestop = true,
 			removewait = true,
 			shield_color_mult = 0.8,
-			shield_downtime = 8,
 			shield_power = 5000,
 			shield_radius = 600,
 			subfolder = "CorBuildings/SeaUtil",
