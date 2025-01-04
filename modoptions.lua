@@ -1782,6 +1782,7 @@ local options = {
         type   	= "list",
         section = "options_cheats",
         def  	= "unchanged",
+        hidden  = true,
         items	= {
             { key = "unchanged", 		name = "Unchanged", 			desc = "Unchanged" },
             { key = "absorbplasma", 	name = "Absorb Plasma", 		desc = "Collisions Disabled" },

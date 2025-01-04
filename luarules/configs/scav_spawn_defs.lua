@@ -1302,6 +1302,9 @@ local Turrets = {
 		["leggant_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},
 		["armshltxuw_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.1, maxExisting = 1},
 		["corgantuw_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.1, maxExisting = 1},
+		--misc
+		["armgatet3_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 2},
+		["corgatet3_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 2},
 	},
 	[7] = {
 		--Epic Bulwark and Pulsar/rag/cal
