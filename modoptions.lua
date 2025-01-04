@@ -1250,10 +1250,10 @@ local options = {
     -- Hidden Tests
     {
         key    	= "shieldsrework",
-        name   	= "Shields Rework",
-        desc   	= "Shields block all projectiles. Overkill damage is blocked once before reaching 0% charge. Shields are disabled for a few seconds upon reaching 0%.",
+        name   	= "Shields Rework v2.0",
+        desc   	= "Shields block plasma. Overkill damage is absorbed. Shield is down for the duration required to recharge the overkill damage at normal energy cost.",
         type   	= "bool",
-        hidden 	= true,
+        hidden 	= false,
         section = "options_experimental",
         def  	= false,
     },
