@@ -884,11 +884,7 @@
 			"eneededforconversion": "Э необходимая для преобразования",
 			"convertedm": "конвертируемая M",
 			"estorage": "вместимость Э",
-			"mstorage": "вместимость М",
-			"shieldcapacity": "Ёмкость щита",
-			"shieldrange": "Дальность щита",
-			"shieldrechargerate": "Скорость перезарядки",
-			"shieldrechargecost": "Стоимость перезарядки"
+			"mstorage": "вместимость М"
 		},
 		"spectator_hud": {
 			"metalIncome_title": "Доход Металла",
