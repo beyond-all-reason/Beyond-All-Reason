@@ -117,12 +117,8 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
 				name = "PlasmaRepulsor",
-				range = 550,
 				soundhitwet = "sizzle",
 				weapontype = "Shield",
-				damage = {
-					default = 100,
-				},
 				shield = {
 					alpha = 0.17,
 					armortype = "shields",
