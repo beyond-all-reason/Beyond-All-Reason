@@ -131,6 +131,7 @@ return {
 				craterareaofeffect = 1920,
 				craterboost = 2.4,
 				cratermult = 1.2,
+				commandfire = true,
 				edgeeffectiveness = 0.45,
 				energypershot = 187500,
 				explosiongenerator = "custom:newnukecor",
