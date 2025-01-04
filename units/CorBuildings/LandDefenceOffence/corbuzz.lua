@@ -134,10 +134,6 @@ return {
 					shields = 665,
 					subs = 400,
 				},
-				customparams = {
-					overrange_distance = 150,
-					projectile_destruction_method = "gravity"
-				}
 			},
 		},
 		weapons = {
