@@ -265,8 +265,8 @@ local BaseClasses = {
 	MuzzleShockWave = {
 		distortionType = 'point', -- or cone or beam
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
-			noiseScaleSpace = 0.5, noiseStrength = 1.0, onlyModelMap = 0,  
-			lifeTime = 10, refractiveIndex = 1.05, decay = 10, rampUp = 8,
+			noiseScaleSpace = 0.5, noiseStrength = 2.0, onlyModelMap = 1,  
+			lifeTime = 10, refractiveIndex = 1.03, decay = 10, rampUp = 8,
 			airShockWaveMultiplier = 1.0, --needed for airshockwaves
 			effectType = "airShockwave", },
 
@@ -811,7 +811,9 @@ muzzleFlashDistortionsNames['corlevlr_corlevlr_weapon'] = {
 }
 
 muzzleFlashDistortionsNames['armguard_plasma'] = {
-	GetDistortionClass("MuzzleShockWave", "Nano")
+	GetDistortionClass("MuzzleShockWave", "Nano", {
+		lifeTime = 8, airShockWaveMultiplier = 1.2,
+	}),
 }
 muzzleFlashDistortionsNames['armguard_plasma_high'] = {
 	GetDistortionClass("MuzzleShockWave", "Tiny")
