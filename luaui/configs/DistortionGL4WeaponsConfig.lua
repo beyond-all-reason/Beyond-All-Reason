@@ -180,10 +180,10 @@ local BaseClasses = {
 		distortionType = 'point', -- or cone or beam
 		alwaysVisible = false,
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 200,
-						distanceFalloff = 0.5, noiseStrength = 0.5, noiseScaleSpace = 0.2,
-						lifeTime = 34, decay = 8, rampUp = 26,
-						distortionMultiplier = 0.8, --needed for shockwaves
-						shockWidth = 2,
+						distanceFalloff = 0.5, noiseStrength = 0.5, noiseScaleSpace = 0.6,
+						lifeTime = 32, decay = 8, rampUp = 26,
+						distortionMultiplier = 1.8, --needed for shockwaves
+						shockWidth = 1,
 						effectType = 2},
 	},
 
@@ -219,8 +219,8 @@ local BaseClasses = {
 	AirShockWave = {
 		distortionType = 'point', -- or cone or beam
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
-			noiseScaleSpace = 0.5, noiseStrength = 1, onlyModelMap = 1,  
-			lifeTime = 8, refractiveIndex = 1.35, decay = 4, rampUp = 4,
+			noiseScaleSpace = 0.2, noiseStrength = 0.5, onlyModelMap = 1,  
+			lifeTime = 8, refractiveIndex = 1.05, decay = 4, rampUp = 20,
 			airShockWaveMultiplier = 2.0, --needed for airshockwaves
 			effectType = "airShockwave", },
 
@@ -266,8 +266,8 @@ local BaseClasses = {
 		distortionType = 'point', -- or cone or beam
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
 			noiseScaleSpace = 0.5, noiseStrength = 2.0, onlyModelMap = 1,  
-			lifeTime = 10, refractiveIndex = 1.03, decay = 10, rampUp = 8,
-			airShockWaveMultiplier = 1.0, --needed for airshockwaves
+			lifeTime = 10, refractiveIndex = 1.35, decay = 10, rampUp = 8,
+			airShockWaveMultiplier = 0.8, --needed for airshockwaves
 			effectType = "airShockwave", },
 
 	},
