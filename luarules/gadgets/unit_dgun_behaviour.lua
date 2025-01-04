@@ -1,7 +1,7 @@
 function gadget:GetInfo()
 	return {
 		name = "D-Gun Behaviour",
-		desc ="D-Gun projectiles hug ground, volumetric damage, deterministic damage against Commanders, override interactions with shields",
+		desc = "D-Gun projectiles hug ground, volumetric damage, deterministic damage against Commanders, override interactions with shields",
 		author = "Anarchid, Sprung, SethDGamre",
 		layer = 0,
 		enabled = true
