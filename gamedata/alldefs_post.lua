@@ -1535,7 +1535,7 @@ function WeaponDef_Post(name, wDef)
 				wDef.shield.exterior = true
 			end
 
-			if ((not wDef.interceptedbyshieldtype or wDef.interceptedbyshieldtype ~= 1) and wDef.weapontype ~= "Cannon") then
+			if wDef.customparams and ((not wDef.interceptedbyshieldtype or wDef.interceptedbyshieldtype ~= 1) and wDef.weapontype ~= "Cannon") then
 				wDef.customparams.shield_aoe_penetration = true
 			end
 
