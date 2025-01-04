@@ -1501,7 +1501,7 @@ function WeaponDef_Post(name, wDef)
 			local vtolShieldDamageMultiplier = 0
 
 			local shieldCollisionExemptions = { --add the name of the weapons (or just the name of the unit followed by _ ) to this table to exempt from shield collision.
-			'corsilo_', 'armsilo_', 'armthor_empmissile', 'armemp_', 'cortron_', 'corjuno_', 'armjuno_', 'cormship', 'armmship'
+			'corsilo_', 'armsilo_', 'armthor_empmissile', 'armemp_', 'cortron_', 'corjuno_', 'armjuno_',
 			}
 
 			if wDef.damage ~= nil then
