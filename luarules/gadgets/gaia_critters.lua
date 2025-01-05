@@ -32,9 +32,9 @@ end
 local removeCritters		= true		-- gradually remove critters when unitcont gets higher
 local addCrittersAgain		= true		-- re-add the removed critters again
 
-local minTotalUnits			= 1600					-- starting removing critters at this total unit count
-local maxTotalunits			= 3200				-- finished removing critters at this total unit count
-local minimumCritters		= 0.15					-- dont remove further than (0.1 == 10%) of critters
+local minTotalUnits			= 3000					-- starting removing critters at this total unit count
+local maxTotalunits			= 6000				-- finished removing critters at this total unit count
+local minimumCritters		= 0.2					-- dont remove further than (0.1 == 10%) of critters
 local minCritters				= math.ceil((Game.mapSizeX*Game.mapSizeZ)/6000000)				-- dont remove below this amount
 local companionRadiusStart		= 140					-- if mapcritter is spawned this close it will be converted to companion critter
 local companionRadiusAfterStart = 13
@@ -69,6 +69,8 @@ local aliveCritters = 0
 local companionRadius = companionRadiusStart
 local processOrders = true
 local addedInitialCritters
+
+local ownCritterDestroy = false
 
 local function randomPatrolInBox(unitID, box, minWaterDepth)	-- only define minWaterDepth if unit is a submarine
 	local ux,_,uz = GetUnitPosition(unitID,true,true)
@@ -275,6 +277,7 @@ local function adjustCritters(newAliveCritters)
 
 	local removeKeys = {}
 	local removeKeysCount = 0
+	ownCritterDestroy = true -- flag to skip UnitDestroyed callin
 	for unitID, critter in pairs(critterUnits) do
 		if add and not critter.alive  or  not add and critter.alive then
 			if add then
@@ -299,6 +302,7 @@ local function adjustCritters(newAliveCritters)
 			if critterDifference > -1 and critterDifference < 1  then break end
 		end
 	end
+	ownCritterDestroy = false
 	if add then
 		for i, unitID in ipairs(removeKeys) do
 			critterUnits[unitID] = nil		-- this however leaves these keys still being iterated
@@ -570,7 +574,7 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
 	commanders[unitID] = nil
-	if critterUnits[unitID] ~= nil and attackerID ~= nil then
+	if not ownCritterDestroy and critterUnits[unitID] and critterUnits[unitID].alive then
 		critterUnits[unitID] = nil
 		totalCritters = totalCritters - 1
 	end
@@ -580,7 +584,8 @@ end
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	-- accepts: CMD.ATTACK
 	if cmdParams and #cmdParams == 1 then
-		if critterUnits[cmdParams[1]] ~= nil then
+		local critter = critterUnits[cmdParams[1]]
+		if critter and critter.alive then
 			return false
 		end
 	end

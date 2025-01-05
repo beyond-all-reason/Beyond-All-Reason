@@ -43,6 +43,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmAircraft",
 			unitgroup = "util",
+			crashable = 0,
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {

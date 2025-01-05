@@ -2416,7 +2416,7 @@ local definitions = {
   },
 }
 
-local areaSizesUnitTimedDamage = { 37.5, 46, 54, 62.5, 75, 87.5, 100, 125, 150, 175, 200, 225, 250, 275, 300 }
+local areaSizesUnitTimedDamage = { 37.5, 46, 54, 63, 75, 88, 100, 125, 150, 175, 200, 225, 250, 275, 300 }
 local areaSizesUnitDefinitions = { 75, 150, 192 } -- from raptor defs
 
 local debugEffects = false
