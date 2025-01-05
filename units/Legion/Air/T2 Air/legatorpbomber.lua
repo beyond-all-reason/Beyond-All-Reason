@@ -102,7 +102,7 @@ return {
 				name = "Medium Homing Torpedo Launcher",
 				noselfdamage = true,
 				range = 400,
-				reloadtime = 8,
+				reloadtime = 7,
 				soundhit = "xplodep2",
 				soundhitvolume = 3.5,
 				soundhitwet = "splsmed",
@@ -123,7 +123,7 @@ return {
 					when = "ypos<0",
 				},
 				damage = {
-					default = 500,
+					default = 435,
 				},
 			},
 		},
