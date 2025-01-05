@@ -291,7 +291,6 @@ local function adjustCritters(newAliveCritters)
 			end
 		else
 			local x,y,z = GetUnitPosition(unitID,true,true)
-			aliveCritters = aliveCritters - 1
 			critterDifference = critterDifference + 1
 
 			critterArrayTo[unitID] = critter
@@ -582,6 +581,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 	if critterUnits[unitID] then
 		critterUnits[unitID] = nil
 		totalCritters = totalCritters - 1
+		aliveCritters = aliveCritters - 1
 	end
 end
 
