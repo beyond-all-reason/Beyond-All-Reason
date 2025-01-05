@@ -381,6 +381,25 @@ local unitDistortions = {
 							lifeTime = 0,  effectType = 0},
 		},
 	},
+
+	['armfus'] = {
+		distortion1 = {
+			distortionType = 'point',
+			pieceName = 'emit1',
+			distortionConfig = { posx = 0, posy = -2, posz = 0, radius = 15,
+							noiseStrength = 2, noiseScaleSpace = -1.2, distanceFalloff = 0.9,
+							windAffected = -0.5, riseRate = -2, decay = -1.3,
+							lifeTime = 0,  effectType = 0},
+		},
+		distortion2 = {
+			distortionType = 'point',
+			pieceName = 'emit2',
+			distortionConfig = { posx = 0, posy = -2, posz = 0, radius = 15,
+							noiseStrength = 2, noiseScaleSpace = -1.2, distanceFalloff = 0.9,
+							windAffected = -0.5, riseRate = -2, decay = -1.3,
+							lifeTime = 0,  effectType = 0},
+		},
+	},
 	
 	['armafus'] = {
 		distortion = {
