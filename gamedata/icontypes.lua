@@ -423,6 +423,10 @@ local icontypes = {
 		bitmap = "icons/shield.png",
 		size = 1.57499993
 	},
+	armgatet3 = {
+		bitmap = "icons/shield.png",
+		size = 1.9425
+	},
 	armgeo = {
 		bitmap = "icons/energy6_1.3.png",
 		size = 1.36499989
@@ -1486,6 +1490,10 @@ local icontypes = {
 	corgate = {
 		bitmap = "icons/shield.png",
 		size = 1.57499993
+	},
+	corgatet3 = {
+		bitmap = "icons/shield.png",
+		size = 1.9425
 	},
 	corgator = {
 		bitmap = "icons/vehicle_t1_raid.png",
