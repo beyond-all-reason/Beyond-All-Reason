@@ -146,6 +146,10 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 530,
 				wobble = 2000,
+				customparams = {
+					projectile_destruction_method = "descend",
+					projectile_overrange_distance = 1485,
+				},
 				damage = {
 					default = 450,
 				},
