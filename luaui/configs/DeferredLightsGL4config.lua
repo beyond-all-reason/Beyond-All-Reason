@@ -15539,6 +15539,44 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
+	['legatorpbomber'] = {
+		thrustrightAJet = {
+			lightType = 'cone',
+			pieceName = 'rightAJet',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 30,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.8,
+							r = 0.33, g = 1, b = 0.33, a = 0.1,
+							modelfactor = 0, specular = 1, scattering = 0.5, lensflare = 1,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		thrustrightBJet = {
+			lightType = 'cone',
+			pieceName = 'rightBJet',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 20,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.8,
+							r = 0.33, g = 1, b = 0.33, a = 0.1,
+							modelfactor = 0, specular = 1, scattering = 0.5, lensflare = 1,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		thrustleftAJet = {
+			lightType = 'cone',
+			pieceName = 'leftAJet',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 30,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.8,
+							r = 0.33, g = 1, b = 0.33, a = 0.1,
+							modelfactor = 0, specular = 1, scattering = 0.5, lensflare = 1,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		thrustleftBJet = {
+			lightType = 'cone',
+			pieceName = 'leftBJet',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 20,
+							dirx = 0, diry = 0, dirz = -1, theta = 0.8,
+							r = 0.33, g = 1, b = 0.33, a = 0.1,
+							modelfactor = 0, specular = 1, scattering = 0.5, lensflare = 1,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
 	['legaheattank'] = {
 
 		gunglow1 = {
