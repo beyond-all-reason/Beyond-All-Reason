@@ -131,6 +131,7 @@
 			"armfrt": "Naval Nettle",
 			"armfus": "Fusion Reactor",
 			"armgate": "Keeper",
+			"armgatet3": "Asylum",
 			"armgeo": "Geothermal Powerplant",
 			"armuwgeo": "Geothermal Powerplant",
 			"armgmm": "Prude",
@@ -486,6 +487,7 @@
 			"corgantuw": "Experimental Gantry",
 			"corgarp": "Garpike",
 			"corgate": "Overseer",
+			"corgatet3": "Sanctuary",
 			"corgator": "Incisor",
 			"corgatreap": "Laser Tiger",
 			"corgeo": "Geothermal Powerplant",
@@ -714,6 +716,7 @@
 			"legheavydrone": "Legion Heavy Drone",
 			"legdtr": "Dragon's Jaw",
 			"legeconv": "Energy Converter",
+			"legerailtank": "Daedalus",
 			"legfhp": "Naval Hovercraft Platform",
 			"legfig": "Noctua",
 			"legfhive": "Hive",
@@ -862,7 +865,8 @@
 			"legnanotcbase": "Base Builder",
 			"legrampart": "Rampart",
 			"legabm": "Aegis",
-			"legrwall": "Dragon's Constitution"
+			"legrwall": "Dragon's Constitution",
+			"legjav": "Javelin"
 		},
 		"descriptions": {
 			"armaak": "Advanced Amphibious Anti-Air Bot",
@@ -983,6 +987,7 @@
 			"armfrt": "Floating Anti-air Tower",
 			"armfus": "Produces 1000 Energy",
 			"armgate": "Plasma Deflector",
+			"armgatet3": "Intercepts small weaponry energy signatures of familiar types",
 			"armgeo": "Produces 300 Energy",
 			"armuwgeo": "Produces 300 Energy",
 			"armgmm": "Safe Geothermal Powerplant, produces 750 Energy",
@@ -1309,6 +1314,7 @@
 			"corerad": "Bomb-Resistant Medium-Range Anti-Air Missile Battery",
 			"corestor": "Increases Energy Storage (6000)",
 			"legestor": "Increases Energy Storage (6000)",
+			"legerailtank": "Experimental Kinetic Weapons Platform",
 			"coresupp": "Light Gun Boat",
 			"coresuppt3": "Super Heavy Assault Corvette",
 			"coreter": "Radar Jammer Vehicle",
@@ -1340,6 +1346,7 @@
 			"corgantuw": "Produces Large Amphibious Units",
 			"corgarp": "Light Amphibious Tank",
 			"corgate": "Plasma Deflector",
+			"corgatet3": "Intercepts small weaponry energy signatures of familiar types",
 			"corgator": "Light Tank",
 			"corgatreap": "Heavy Assault Tank",
 			"corgeo": "Produces 300 Energy",
@@ -1719,7 +1726,8 @@
 			"legnanotcbase": "Assist & Repair in massive radius",
 			"legrampart": "Geothermal Antinuke, Jammer, Radar and Drone Platform",
 			"legabm": "Anti-Nuke System",
-			"legrwall": "Railgun Defense Wall"
+			"legrwall": "Railgun Defense Wall",
+			"legjav": "Amphibious Raider"
 		}
 	}
 }

@@ -579,6 +579,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 6] = "armannit3"
 			uDef.buildoptions[numBuildoptions + 7] = "armnanotct2"
 			uDef.buildoptions[numBuildoptions + 8] = "armlwall"
+			uDef.buildoptions[numBuildoptions + 9] = "armgatet3"
 		elseif name == "coraca" or name == "corack" or name == "coracv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "corapt3"
@@ -588,6 +589,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 6] = "cordoomt3"
 			uDef.buildoptions[numBuildoptions + 7] = "cornanotct2"
 			uDef.buildoptions[numBuildoptions + 8] = "cormwall"
+			uDef.buildoptions[numBuildoptions + 9] = "corgatet3"
 		elseif name == "legaca" or name == "legack" or name == "legacv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "legapt3"
@@ -595,6 +597,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 3] = "legwint2"
 			uDef.buildoptions[numBuildoptions + 4] = "legnanotct2"
 			uDef.buildoptions[numBuildoptions + 5] = "legrwall"
+			uDef.buildoptions[numBuildoptions + 6] = "corgatet3"
 		elseif name == "armasy" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "armptt2"
@@ -1410,9 +1413,9 @@ function WeaponDef_Post(name, wDef)
 				wDef.mygravity = 0.1445
 			end
 		end
-
-		-- Accurate Lasers
-		if modOptions.accuratelasers then
+      
+		-- Accurate Lasers		
+		if modOptions.proposed_unit_reworks then
 			if wDef.weapontype and wDef.weapontype == 'BeamLaser' then
 				wDef.targetmoveerror = nil
 			end
@@ -1461,6 +1464,13 @@ function WeaponDef_Post(name, wDef)
 		end]]
 
 		---- SHIELD CHANGES
+
+		if wDef.weapontype == "DGun" then
+			wDef.interceptedbyshieldtype = 512 --make dgun (like behemoth) interceptable by shields, optionally
+		elseif wDef.weapontype == "StarburstLauncher" and not string.find(name, "raptor") then
+			wDef.interceptedbyshieldtype = 1024 --separate from combined MissileLauncher, except raptors
+		end
+
 		local shieldModOption = modOptions.experimentalshields
 
 		if shieldModOption == "absorbplasma" then
@@ -1491,8 +1501,8 @@ function WeaponDef_Post(name, wDef)
 			local vtolShieldDamageMultiplier = 0
 
 			local shieldCollisionExemptions = { --add the name of the weapons (or just the name of the unit followed by _ ) to this table to exempt from shield collision.
-			'corsilo_', 'armsilo_', 'armthor_empmissile', 'armemp_', 'cortron_', 'corjuno_', 'armjuno_'
-		}
+			'corsilo_', 'armsilo_', 'armthor_empmissile', 'armemp_', 'cortron_', 'corjuno_', 'armjuno_',
+			}
 
 			if wDef.damage ~= nil then
 				-- Due to the engine not handling overkill damage, we have to store the original shield damage values as a customParam for unit_shield_behavior.lua to reference
@@ -1527,11 +1537,14 @@ function WeaponDef_Post(name, wDef)
 				wDef.shield.exterior = true
 			end
 
-			wDef.interceptedbyshieldtype = 1
+			if ((not wDef.interceptedbyshieldtype or wDef.interceptedbyshieldtype ~= 1) and wDef.weapontype ~= "Cannon") then
+				wDef.customparams = wDef.customparams or {}
+				wDef.customparams.shield_aoe_penetration = true
+			end
 
 			for _, exemption in ipairs(shieldCollisionExemptions) do
-				if string.find(name, exemption)then
-					wDef.interceptedbyshieldtype = 2
+				if string.find(name, exemption) then
+					wDef.interceptedbyshieldtype = 0
 					wDef.customparams.shield_aoe_penetration = true
 					break
 				end

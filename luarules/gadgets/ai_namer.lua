@@ -158,6 +158,7 @@ if gadgetHandler:IsSyncedCode() then
 		"[Master_Conquest]",
 		"MelKaven",
 		"mordante",
+		"MoustacheG",
 		"nctr",
 		"Nexthazard",
 		"niftybeaks",
@@ -173,7 +174,7 @@ if gadgetHandler:IsSyncedCode() then
 		"rous",
 		"Rikerss", --Merch $20+
 		"Sovgut", --Tourney prize $50
-		"Shadowisperke",
+		"Shadowisper",
 		"Spanker",
 		"SuperMadmax",
 		"sversuge",

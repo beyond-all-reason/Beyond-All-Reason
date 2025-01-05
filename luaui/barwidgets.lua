@@ -105,6 +105,7 @@ local flexCallIns = {
 	'ShockFront',
 	'WorldTooltip',
 	'MapDrawCmd',
+	'ActiveCommandChanged',
 	'DefaultCommand',
 	'UnitCreated',
 	'UnitFinished',
@@ -1340,6 +1341,14 @@ function widgetHandler:ConfigureLayout(command)
 		end
 	end
 	return false
+end
+
+function widgetHandler:ActiveCommandChanged(id, cmdType)
+	tracy.ZoneBeginN("W:ActiveCommandChanged")
+	for _, w in ipairs(self.ActiveCommandChangedList) do
+		w:ActiveCommandChanged(id, cmdType)
+	end
+	tracy.ZoneEnd()
 end
 
 function widgetHandler:CommandNotify(id, params, options)
