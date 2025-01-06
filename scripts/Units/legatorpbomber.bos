@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece chassis, launcher, torpflare, leftAJet, leftBJet, rightAJet, rightBJet, mainWing, leftWing, rightWing, radarTilt, radar;
+piece chassis, launcher, torpflare, leftAJet, leftBJet, rightAJet, rightBJet, mainWing, leftWing, rightWing;
 
 //#define SIGNAL_TURNON 4
 
@@ -24,10 +24,7 @@ activatescr()
 	if( TRUE )
 	{
 		turn rightWing to y-axis <0> speed <45>;
-		//spin rightWing around y-axis speed <15>;
 		turn leftWing to y-axis <0> speed <45>;
-		//spin mainWing around y-axis speed <15>;
-		spin radar around y-axis speed <10> accelerate <1>;
 
 	}
 	sleep 12;
@@ -39,8 +36,6 @@ deactivatescr()
 	{
 		turn rightWing to y-axis <45> speed <45>;
 		turn leftWing to y-axis <-45> speed <45>;
-		//stop-spin mainWing around y-axis;
-		stop-spin radar around y-axis decelerate <1>;
 	}
 	sleep 33;
 }
@@ -88,7 +83,6 @@ Create()
 	call-script InitState();
 	turn rightWing to y-axis <45> now;
 	turn leftWing to y-axis <-45> now;
-	turn radarTilt to x-axis <-10> now;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 100;
@@ -141,7 +135,6 @@ Killed(severity, corpsetype)
 		explode mainWing	type BITMAPONLY | NOHEATCLOUD;
 		explode rightWing	type BITMAPONLY | NOHEATCLOUD;
 		explode leftWing 	type BITMAPONLY | NOHEATCLOUD;
-		explode radar 	type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -151,7 +144,6 @@ Killed(severity, corpsetype)
 		explode mainWing type FALL | NOHEATCLOUD;
 		explode rightWing type FALL | NOHEATCLOUD;
 		explode leftWing type BITMAPONLY | NOHEATCLOUD;
-		explode radar type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -161,7 +153,6 @@ Killed(severity, corpsetype)
 		explode mainWing type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode rightWing type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode leftWing type BITMAPONLY | NOHEATCLOUD;
-		explode radar type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
@@ -169,6 +160,5 @@ Killed(severity, corpsetype)
 		explode mainWing type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rightWing type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode leftWing type BITMAPONLY | NOHEATCLOUD;
-		explode radar type BITMAPONLY | NOHEATCLOUD;
 	return corpsetype;
 }

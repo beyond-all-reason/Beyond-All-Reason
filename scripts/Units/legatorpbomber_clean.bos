@@ -26,15 +26,10 @@ Create()
 	hide leftBJet;
 	hide rightAJet;
 	hide rightBjet;
-	//SLEEP_UNTIL_UNITFINISHED;
-	//start-script BarrelRoll();
-	//start-script Activate();
 }
 
 Activate()
 {
-	signal SIGNAL_TURNON;
-	set-signal-mask SIGNAL_TURNON;
 	turn rightWing to y-axis <0> speed <15>;
 	turn leftWing to y-axis <0> speed <15>;
 	spin radar around y-axis speed <10> accelerate <1>;
@@ -46,8 +41,6 @@ Activate()
 
 Deactivate()
 {
-	signal SIGNAL_TURNON;
-	set-signal-mask SIGNAL_TURNON;
 	turn rightWing to y-axis <45> speed <45>;
 	turn leftWing to y-axis <-45> speed <45>;
 	stop-spin radar around y-axis decelerate <1>;
