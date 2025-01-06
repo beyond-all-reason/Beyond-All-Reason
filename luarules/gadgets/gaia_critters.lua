@@ -243,7 +243,9 @@ function gadget:Initialize()
 end
 
 local function getUnitDefIdbyName(unitName)
-	return UnitDefNames[unitName]
+	for udid, unitDef in pairs(UnitDefs) do
+		if unitDef.name == unitName then return udid end
+	end
 end
 
 -- excluding gaia units
