@@ -148,7 +148,7 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1000,
 				damage = {
-					vtol = 150,
+					vtol = 215,
 				},
 			},
 			armaabot_missile2 = {
@@ -195,7 +195,7 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1000,
 				damage = {
-					vtol = 150,
+					vtol = 215,
 				},
 			},
 			bogus_missile = {
