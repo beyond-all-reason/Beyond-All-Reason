@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, turret, spinner1, spinner2;
+piece  base, turret, spinner1, spinner2, jam;
 
 static-var  statechg_DesiredState, statechg_StateChanging;
 static-var  Stunned;
@@ -19,6 +19,7 @@ static-var  Stunned;
 
 Go()
 {
+	show jam;
 	spin turret around y-axis speed <25.000000>;
 	spin spinner1 around y-axis speed <100.000000>;
 	spin spinner2 around y-axis speed <-100.000000>;
@@ -26,6 +27,7 @@ Go()
 }
 Stop()
 {
+	hide jam;
 	stop-spin turret around y-axis;
 	stop-spin spinner1 around y-axis;
 	stop-spin spinner2 around y-axis;

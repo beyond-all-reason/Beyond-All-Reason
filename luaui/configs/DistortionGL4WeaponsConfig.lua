@@ -808,14 +808,16 @@ explosionDistortionsNames['armjuno_juno_pulse'] = {
 	-- 	noiseStrength = 6.5, noiseScaleSpace = 0.5, distanceFalloff = -0.1,
 	-- 	lifeTime = 900, rampUp = 0, decay = 0, onlyModelMap = 0,
 	-- }),
-	GetDistortionClass("GroundShockWave", "Juno", {
-		noiseStrength = 6.2, noiseScaleSpace = 0.15, distanceFalloff = 0.1, onlyModelMap = 1, 
-		lifeTime = 65, distortionMultiplier = -30.5, 
-		rampUp = 30, decay = 5, shockWidth = 12,
+	GetDistortionClass("GroundShockWave", "Larger", {
+		noiseStrength = 5.0, noiseScaleSpace = 0.13, distanceFalloff = 0.1, onlyModelMap = 0, 
+		lifeTime = 65, distortionMultiplier = -20, 
+		rampUp = 30, decay = -10, shockWidth = 14,
 	}),
 	GetDistortionClass("ExplosionHeat", "Juno", {
-		noiseStrength = 2.5, noiseScaleSpace = 0.15, distanceFalloff = 0.05,
-		lifeTime = 900, rampUp = 100, decay = 500, onlyModelMap = 1,
+		noiseStrength = -1.5, noiseScaleSpace = 0.95, distanceFalloff = -0.05,
+		heatMultiplier = 1.0, -- don't use, doesn't fade out correct
+		windAffected = -1, riseRate = 9,
+		lifeTime = 900, rampUp = 100, decay = 150, onlyModelMap = 1,
 	}),
 	
 }
@@ -877,6 +879,12 @@ projectileDefDistortionsNames["corpyro_flamethrower"] =
 
 projectileDefDistortionsNames["cordemon_newdmaw"] =
 	GetDistortionClass("FlameProjectileXL", "Tiniest")
+
+projectileDefDistortionsNames["corcrwh_dragonmawh"] =
+	GetDistortionClass("FlameProjectileXL", "Tiniest", {
+		noiseStrength = 11, --noiseScaleSpace = -0.20,
+		lifeTime = 50, rampUp = 15, decay = 70,
+	})
 
 projectileDefDistortionsNames["corfship_dmaw"] =
 	GetDistortionClass("FlameProjectile", "Tiny")

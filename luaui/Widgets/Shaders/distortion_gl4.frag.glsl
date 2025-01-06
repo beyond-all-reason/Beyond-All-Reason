@@ -986,6 +986,12 @@ void main(void)
 	else if (effectType == 0){
 
 		float distortionAttenuation = 1.0; // start at max for the center
+		float fadeFactor = v_baseparams.r;  // includes DECAY fade-out from vertex shader
+		float finalAlpha = distortionAttenuation * fadeFactor;
+		float heatMultiplier = EFFECTPARAM2;
+		if (heatMultiplier <= 0.0) {
+    		heatMultiplier = 1.0;
+		}
 
 		// Multiply the relative volume density:
 		distortionAttenuation *= relativeDensity;
@@ -1045,7 +1051,8 @@ void main(void)
 
 		// Modulate alpha with the distortionAttenuation
 		noiseSampleNorm *= NOISESTRENGTH;
-		fragColor.rgba = vec4(vec3(noiseSampleNorm.ra * 0.5 + 0.5, 0.0) * 1.0 ,  distortionAttenuation);
+		
+		fragColor.rgba = vec4(vec3(noiseSampleNorm.ra * 0.5 + 0.5, 0.0) * 1.0 * heatMultiplier ,  distortionAttenuation);
 		//if (ismodel > 0.5) {fragColor.rgba = vec4(0.5,0.5,0.5,1.0);	}
 		//return;
 

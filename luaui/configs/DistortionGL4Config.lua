@@ -181,6 +181,75 @@ local unitDistortions = {
 		},
 	},
 
+	['corhal'] = {
+		heatventfront1 = {
+			distortionType = 'beam',
+			pieceName = 'base',
+			distortionConfig = { posx = -13,  posy = -3,  posz = 12, radius = 7,
+							    pos2x = -13, pos2y = 4, pos2z = 12.1,
+							noiseStrength = 0.4, noiseScaleSpace = -2, distanceFalloff = 1.4,
+							windAffected = -1, riseRate = 1,
+							lifeTime = 0, effectType = 'heatDistortion'},
+		},
+		heatventfront2 = {
+			distortionType = 'beam',
+			pieceName = 'base',
+			distortionConfig = { posx = 13,  posy = -3,  posz = 12, radius = 7,
+							    pos2x = 13, pos2y = 4, pos2z = 12.1,
+							noiseStrength = 0.4, noiseScaleSpace = -2, distanceFalloff = 1.4,
+							windAffected = -1, riseRate = 1,
+							lifeTime = 0, effectType = 'heatDistortion'},
+		},
+	},
+
+	['corvp'] = {
+		heatvent1 = {
+			distortionType = 'beam',
+			pieceName = 'base',
+			distortionConfig = { posx = -7,  posy = 30,  posz = -32.5, radius = 12,
+							    pos2x = 7, pos2y = 30, pos2z = -32.4,
+							noiseStrength = 0.5, noiseScaleSpace = -2, distanceFalloff = 1.4,
+							windAffected = -1, riseRate = 1,
+							lifeTime = 0, effectType = 'heatDistortion'},
+		},
+		heatventfront1 = {
+			distortionType = 'beam',
+			pieceName = 'base',
+			distortionConfig = { posx = -25.5,  posy = 15,  posz = 46.5, radius = 5,
+							    pos2x = -25.5, pos2y = 24, pos2z = 51.4,
+							noiseStrength = 0.4, noiseScaleSpace = -3, distanceFalloff = 1.4,
+							windAffected = -1, riseRate = 1,
+							lifeTime = 0, effectType = 'heatDistortion'},
+		},
+		heatventfront2 = {
+			distortionType = 'beam',
+			pieceName = 'base',
+			distortionConfig = { posx = 25.5,  posy = 15,  posz = 46.5, radius = 5,
+							    pos2x = 25.5, pos2y = 24, pos2z = 51.4,
+							noiseStrength = 0.4, noiseScaleSpace = -3, distanceFalloff = 1.4,
+							windAffected = -1, riseRate = 1,
+							lifeTime = 0, effectType = 'heatDistortion'},
+		},
+		-- heatvent3 = {
+		-- 	distortionType = 'beam',
+		-- 	pieceName = 'base',
+		-- 	distortionConfig = { posx = 32,  posy = 26,  posz = -11.5, radius = 5,
+		-- 					    pos2x = 32, pos2y = 32, pos2z = -11.4,
+		-- 					noiseStrength = 0.4, noiseScaleSpace = -3, distanceFalloff = 1.4,
+		-- 					windAffected = -1, riseRate = 1,
+		-- 					lifeTime = 0, effectType = 'heatDistortion'},
+		-- },
+		-- heatvent4 = {
+		-- 	distortionType = 'beam',
+		-- 	pieceName = 'base',
+		-- 	distortionConfig = { posx = 32,  posy = 26,  posz = -35.5, radius = 5,
+		-- 					    pos2x = 32, pos2y = 32, pos2z = -35.4,
+		-- 					noiseStrength = 0.4, noiseScaleSpace = -3, distanceFalloff = 1.4,
+		-- 					windAffected = -1, riseRate = 1,
+		-- 					lifeTime = 0, effectType = 'heatDistortion'},
+		-- },
+	},
+
 	['armsd'] = {
 		distortion = {
 			distortionType = 'point',
@@ -354,15 +423,36 @@ local unitDistortions = {
 	},
 
 	['armpeep'] = {
-		motionBlur = {
-			distortionType = 'point',
-			pieceName = 'base',
-			distortionConfig = { posx = 0, posy = 7.5, posz = 0.01, radius = 23,
-							pos2x = 0, pos2y = 100, pos2z = 0, radius2 = 23, 
-							noiseScaleSpace = 1, onlyModelMap = -1,
-							lifeTime = 0,  effectType = 11},
+		thrust1 = {
+			distortionType = 'cone',
+			pieceName = 'jet1',
+			distortionConfig = { posx = 0, posy = 0, posz = 5, radius = 130,
+							dirx =  0, diry = -0, dirz = -1.0, theta = 0.08,
+							noiseStrength = 3, noiseScaleSpace = 0.85, distanceFalloff = 1.9,
+							heatMultiplier = 3.0,
+							lifeTime = 0,  effectType = 0},
+		},
+		thrust2 = {
+			distortionType = 'cone',
+			pieceName = 'jet2',
+			distortionConfig = { posx = 0, posy = 0, posz = 5, radius = 130,
+							dirx =  0, diry = -0, dirz = -1.0, theta = 0.08,
+							noiseStrength = 3, noiseScaleSpace = 0.85, distanceFalloff = 1.9,
+							heatMultiplier = 3.0,
+							lifeTime = 0,  effectType = 0},
 		},
 	},
+
+	-- ['armpeep'] = {
+	-- 	motionBlur = {
+	-- 		distortionType = 'point',
+	-- 		pieceName = 'base',
+	-- 		distortionConfig = { posx = 0, posy = 7.5, posz = 0.01, radius = 23,
+	-- 						pos2x = 0, pos2y = 100, pos2z = 0,
+	-- 						noiseScaleSpace = 1, onlyModelMap = -1,
+	-- 						lifeTime = 0,  effectType = 11},
+	-- 	},
+	-- },
 
 	-- ['armck'] = {
 	-- 	beamDistortion = {
@@ -427,6 +517,103 @@ local unitDistortions = {
 		},
 	}, 
 
+	['corap'] = {
+		heatvent1 = {
+			distortionType = 'beam',
+			pieceName = 'base',
+			distortionConfig = { posx = -43,  posy = 28,  posz = 16.5, radius = 8,
+							    pos2x = -43, pos2y = 35, pos2z = 16.4,
+							noiseStrength = 0.5, noiseScaleSpace = -2, distanceFalloff = 1.4,
+							windAffected = -1, riseRate = 1,
+							lifeTime = 0, effectType = 'heatDistortion'},
+		},
+	},
+
+	['coravp'] = {
+		factoryheat = {
+			distortionType = 'point',
+			pieceName = 'base',
+			distortionConfig = { posx = -7, posy = 40, posz = -35, radius = 12,
+							noiseStrength = 0.5, noiseScaleSpace = -2, distanceFalloff = 1.4,
+							windAffected = -1,
+							lifeTime = 0,  effectType = 'heatDistortion'},
+		},
+		factoryheat2 = {
+			distortionType = 'point',
+			pieceName = 'base',
+			distortionConfig = { posx = 7, posy = 40, posz = -35, radius = 12,
+							noiseStrength = 0.6, noiseScaleSpace = -1.9, distanceFalloff = 1.4,
+							lifeTime = 0,  effectType = 'heatDistortion'},
+		},
+		factoryheatback1 = {
+			distortionType = 'point',
+			pieceName = 'base',
+			distortionConfig = { posx = -55, posy = 12, posz = -42, radius = 9,
+							noiseStrength = 0.9, noiseScaleSpace = -2.9, distanceFalloff = 1.4,
+							lifeTime = 0,  effectType = 'heatDistortion'},
+		},
+		factoryheatback2 = {
+			distortionType = 'point',
+			pieceName = 'base',
+			distortionConfig = { posx = 55, posy = 12, posz = -42, radius = 9,
+							noiseStrength = 0.9, noiseScaleSpace = -2.9, distanceFalloff = 1.4,
+							lifeTime = 0,  effectType = 'heatDistortion'},
+		},
+	},
+
+	['corgant'] = {
+		factoryheat1 = {
+			distortionType = 'point',
+			pieceName = 'base',
+			distortionConfig = { posx = -60, posy = 55, posz = -51, radius = 20,
+							noiseStrength = 0.6, noiseScaleSpace = -2, distanceFalloff = 1.4,
+							windAffected = -1,
+							lifeTime = 0,  effectType = 'heatDistortion'},
+		},
+		factoryheat2 = {
+			distortionType = 'point',
+			pieceName = 'base',
+			distortionConfig = { posx = 60, posy = 55, posz = -51, radius = 20,
+							noiseStrength = 0.6, noiseScaleSpace = -1.9, distanceFalloff = 1.4,
+							lifeTime = 0,  effectType = 'heatDistortion'},
+		},
+		heatventfront1 = {
+			distortionType = 'beam',
+			pieceName = 'base',
+			distortionConfig = { posx = 54,  posy = 60,  posz = 5.5, radius = 10,
+							    pos2x = 54, pos2y = 60, pos2z = 22.4,
+							noiseStrength = 0.5, noiseScaleSpace = -2, distanceFalloff = 1.4,
+							windAffected = -1, riseRate = 1,
+							lifeTime = 0, effectType = 'heatDistortion'},
+		},
+		heatventfront1B = {
+			distortionType = 'beam',
+			pieceName = 'base',
+			distortionConfig = { posx = 83,  posy = 60,  posz = 5.5, radius = 10,
+							    pos2x = 83, pos2y = 60, pos2z = 22.4,
+							noiseStrength = 0.5, noiseScaleSpace = -2, distanceFalloff = 1.4,
+							windAffected = -1, riseRate = 1,
+							lifeTime = 0, effectType = 'heatDistortion'},
+		},
+		heatventfront2 = {
+			distortionType = 'beam',
+			pieceName = 'base',
+			distortionConfig = { posx = -54,  posy = 60,  posz = 5.5, radius = 10,
+							    pos2x = -54, pos2y = 60, pos2z = 22.4,
+							noiseStrength = 0.5, noiseScaleSpace = -2, distanceFalloff = 1.4,
+							windAffected = -1, riseRate = 1,
+							lifeTime = 0, effectType = 'heatDistortion'},
+		},
+		heatventfront2B = {
+			distortionType = 'beam',
+			pieceName = 'base',
+			distortionConfig = { posx = -83,  posy = 60,  posz = 5.5, radius = 10,
+							    pos2x = -83, pos2y = 60, pos2z = 22.4,
+							noiseStrength = 0.5, noiseScaleSpace = -2, distanceFalloff = 1.4,
+							windAffected = -1, riseRate = 1,
+							lifeTime = 0, effectType = 'heatDistortion'},
+		},
+	},
 	
 	['corfus'] = {
 		distortion = {
@@ -550,10 +737,10 @@ local unitDistortions = {
 	['armjamt'] = {
 		jamdistortion = {
 			distortionType = 'point',
-			pieceName = 'none',
-			distortionConfig = { posx = 0, posy = 58, posz = 0, radius = 12,
+			pieceName = 'jam',
+			distortionConfig = { posx = 0, posy = 15, posz = 0, radius = 12,
 							noiseStrength = 10, noiseScaleSpace = 0.4, distanceFalloff = 1.5,
-							windAffected = -1,
+							windAffected = -1, riseRate = -0.5,
 							lifeTime = 0,  effectType = 0},
 		},
 	},
@@ -570,13 +757,22 @@ local unitDistortions = {
 	},
 
 	['armaser'] = {
-		jamdistortion = {
-			distortionType = 'point',
-			pieceName = 'none',
-			distortionConfig = { posx = 0, posy = 32, posz = 0, radius = 12,
-							noiseStrength = 10, noiseScaleSpace = 0.4, distanceFalloff = 1.5,
-							windAffected = -1,
-							lifeTime = 0,  effectType = 0},
+		-- jamdistortion = {
+		-- 	distortionType = 'point',
+		-- 	pieceName = 'none',
+		-- 	distortionConfig = { posx = 0, posy = 33, posz = 0, radius = 8,
+		-- 					noiseStrength = 10, noiseScaleSpace = 0.4, distanceFalloff = 1.5,
+		-- 					windAffected = -1,
+		-- 					lifeTime = 0,  effectType = 0},
+		-- },
+		distortionbeam = {
+			distortionType = 'beam',
+			pieceName = 'jam',
+			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 6.5,
+								pos2x = -9, pos2y = 0, pos2z = 0.1, 
+								noiseStrength = 10, noiseScaleSpace = 0.4, distanceFalloff = 1.5,
+								windAffected = -1,
+								lifeTime = 0,  effectType = 0},
 		},
 	},
 
@@ -584,8 +780,8 @@ local unitDistortions = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'none',
-			distortionConfig = { posx = 0, posy = 72, posz = 0, radius = 16,
-							noiseStrength = 1, noiseScaleSpace = 1.5, distanceFalloff = 0.5,
+			distortionConfig = { posx = 0, posy = 72, posz = 0, radius = 11,
+							noiseStrength = 3, noiseScaleSpace = -0.2, distanceFalloff = 0.5,
 							windAffected = -0.5,
 							lifeTime = 0,  effectType = 0},
 		},
@@ -596,9 +792,9 @@ local unitDistortions = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'none',
-			distortionConfig = { posx = 0, posy = 72, posz = 0, radius = 12,
-							noiseStrength = 3, noiseScaleSpace = 0.5, distanceFalloff = 0.5,
-							windAffected = -0.5,
+			distortionConfig = { posx = 0, posy = 72, posz = 0, radius = 11,
+							noiseStrength = 3, noiseScaleSpace = -0.2, distanceFalloff = 0.5,
+							windAffected = -0.5, --riseRate = -0.9,
 							lifeTime = 0,  effectType = 0},
 		},
 	},
@@ -656,7 +852,7 @@ local unitDistortions = {
 			distortionConfig = { posx = -2, posy = 0, posz = -2, radius = 80,
 							dirx = 0, diry = 0, dirz = -1, theta = 0.4,
 							noiseStrength = 1, noiseScaleSpace = 0.65,
-							riseRate = 4, lifeTime = 0,  effectType = 0},
+							riseRate = -8, lifeTime = 0,  effectType = 0},
 		},
 
 		thrust2 = {
@@ -665,7 +861,7 @@ local unitDistortions = {
 			distortionConfig = { posx = -2, posy = 0, posz = -2, radius = 80,
 							dirx = 0, diry = 0, dirz = -1, theta = 0.4,
 							noiseStrength = 1, noiseScaleSpace = 0.65,
-							riseRate = 4, lifeTime = 0,  effectType = 0},
+							riseRate = -8, lifeTime = 0,  effectType = 0},
 		},
 		thrust3 = {
 			distortionType = 'cone',
@@ -673,7 +869,7 @@ local unitDistortions = {
 			distortionConfig = { posx = -2, posy = 0, posz = -2, radius = 80,
 							dirx = 0, diry = 0, dirz = -1, theta = 0.4,
 							noiseStrength = 1, noiseScaleSpace = 0.65,
-							riseRate = 4, lifeTime = 0,  effectType = 0},
+							riseRate = -8, lifeTime = 0,  effectType = 0},
 		},
 		thrust4 = {
 			distortionType = 'cone',
@@ -681,7 +877,25 @@ local unitDistortions = {
 			distortionConfig = { posx = -2, posy = 0, posz = -2, radius = 80,
 							dirx = 0, diry = 0, dirz = -1, theta = 0.4,
 							noiseStrength = 1, noiseScaleSpace = 0.65,
-							riseRate = 4, lifeTime = 0,  effectType = 0},
+							riseRate = -8, lifeTime = 0,  effectType = 0},
+		},
+		distortionleft = {
+			distortionType = 'beam',
+			pieceName = 'base',
+			distortionConfig = { posx = 15, posy = 32, posz = -21, radius = 8,
+								pos2x = 15, pos2y = 32, pos2z = 7, radius2 = 28, 
+								noiseStrength = 0.2, noiseScaleSpace = -2.1, distanceFalloff = 0.8,
+								rampUp = 30, decay = -1.5,
+								lifeTime = 0,  effectType = 0},
+		},
+		distortionright = {
+			distortionType = 'beam',
+			pieceName = 'base',
+			distortionConfig = { posx = -15, posy = 32, posz = -21, radius = 8,
+								pos2x = -15, pos2y = 32, pos2z = 7, radius2 = 28, 
+								noiseStrength = 0.2, noiseScaleSpace = -2.1, distanceFalloff = 0.8,
+								rampUp = 30, decay = -1.5,
+								lifeTime = 0,  effectType = 0},
 		},
 	},
 }
@@ -753,8 +967,7 @@ local unitEventDistortionsNames = {
 								noiseStrength = 0.2, noiseScaleSpace = 0.8, distanceFalloff = 0.1, onlyModelMap = 1, 
 								distortionMultiplier = -1.5, --needed for shockwave
 								lifeTime = 60, rampUp = 20, decay = 15,
-								shockWidth = 
-								0.7, effectType = 2},
+								shockWidth = 0.7, effectType = 2},
 	
 			},
 		},

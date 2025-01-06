@@ -162,6 +162,7 @@ local distortionParamKeyOrder = { -- This table is a 'quick-ish' way of building
 
 	effectParam2 = 22,  --note how refractiveIndex is identical to effectParam2 for clarity
 	refractiveIndex = 22,
+	heatMultiplier = 22, -- for heatdistortion intensity
 	distortionMultiplier = 22, -- for groundshockwave intensity
 	
 	windAffected = 23,  effectType = 24, 
