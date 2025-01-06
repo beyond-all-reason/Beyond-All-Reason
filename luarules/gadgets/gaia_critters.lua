@@ -19,7 +19,7 @@ local isCritter = {}
 local isCommander = {}
 local gullDefID
 
-for unidDefID, unitDef in pairs(UnitDefs) do
+for unitDefID, unitDef in pairs(UnitDefs) do
 	if string.sub(unitDef.name, 1, 7) == "critter" then
 		isCritter[unitDefID] = true
 		if unitDef.name == 'critter_gull' then
