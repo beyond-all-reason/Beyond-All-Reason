@@ -75,32 +75,29 @@ local ownCritterDestroy = false
 
 local function randomPatrolInBox(unitID, box, minWaterDepth)	-- only define minWaterDepth if unit is a submarine
 	local ux,_,uz = GetUnitPosition(unitID,true,true)
-	local waterRadius = 1000		-- max distance a submarine unit will travel
 	local orders = 6
 	local attempts = orders
-	if minWaterDepth ~= nil then
-		attempts = 150
-	end
 	local ordersGiven = 0
 
 	local x,z
 	local modifiers = {}
+	local box_x1, box_x2, box_z1, box_z2 = box.x1, box.x2, box.z1, box.z2
+	if minWaterDepth ~= nil then
+		attempts = 150
+		local waterRadius = 1000		-- max distance a submarine unit will travel
+		local x1 = ux - waterRadius
+		if x1 < box_x1 then x1 = box_x1 end
+		local x2 = ux + waterRadius
+		if x2 > box_x2 then x2 = box_x2 end
+		local z1 = uz - waterRadius
+		if z1 < box_z1 then z1 = box_z1 end
+		local z2 = uz + waterRadius
+		if z2 > box_z2 then z2 = box_z2 end
+		box_x1, box_x2, box_z1, box_z2 = x1, x2, z1, z2
+	end
 	for i=1,attempts do
-		if minWaterDepth == nil then
-			x = random(box.x1, box.x2)
-			z = random(box.z1, box.z2)
-		else
-			local x1 = ux - waterRadius
-			if x1 < box.x1 then x1 = box.x1 end
-			local x2 = ux + waterRadius
-			if x2 > box.x2 then x2 = box.x2 end
-			local z1 = uz - waterRadius
-			if z1 < box.z1 then z1 = box.z1 end
-			local z2 = uz + waterRadius
-			if z2 > box.z2 then z2 = box.z2 end
-			x = random(x1, x2)
-			z = random(z1, z2)
-		end
+		x = random(box_x1, box_x2)
+		z = random(box_z1, box_z2)
 		if x > 0 and z > 0 and x < mapSizeX and z < mapSizeZ then
 			local y = GetGroundHeight(x, z)
 			if minWaterDepth == nil or y < minWaterDepth then
@@ -147,26 +144,25 @@ local function processSceduledOrders()
 	end
 end
 
-local function randomPatrolInCircle(unitID, circle, minWaterDepth)	-- only define minWaterDepth if unit is a submarine
+local function randomPatrolInCircle(unitID, ux, uz, ur, minWaterDepth)	-- only define minWaterDepth if unit is a submarine
 	local orders = 6
-	local waterRadius = 1000		-- max distance a submarine unit will travel
 	local attempts = orders
-	if minWaterDepth ~= nil then
-		attempts = 150
-	end
 	local ordersGiven = 0
-	local ux, uz, ur = circle.x, circle.z, circle.r
 	local modifiers = {}
-	for i=1,attempts do
-		if minWaterDepth ~= nil and waterRadius <= circle.r then
-			ux,_,uz = GetUnitPosition(unitID,true,true)
+	if minWaterDepth ~= nil then
+		local waterRadius = 1000		-- max distance a submarine unit will travel
+		attempts = 150
+		if waterRadius <= ur then
+			ux, _, uz = GetUnitPosition(unitID, true, true)
 			ur = waterRadius
 		end
+	end
+	for i=1,attempts do
 		local a = rad(random(0, 360))
 		local r = random(0, ur)
 		local x = ux + r*sin(a)
 		local z = uz + r*cos(a)
-		if x > 0 and z > 0 and x < mapSizeX and z < mapSizeZ and in_circle(circle.x, circle.z, circle.r, x, z) then
+		if x > 0 and z > 0 and x < mapSizeX and z < mapSizeZ and in_circle(ux, uz, ur, x, z) then
 			local y = GetGroundHeight(x, z)
 			if minWaterDepth == nil or y < minWaterDepth then
 				if sceduledOrders[unitID] == nil then
@@ -401,6 +397,7 @@ local function addMapCritters()
 				end
 			end
 		elseif cC.spawnCircle then
+			local spawnCircle = cC.spawnCircle
 			for unitName, unitAmount in pairs(cC.unitNames) do
 				local unitDefID = getUnitDefIdbyName(unitName)
 				if not UnitDefs[unitDefID] then
@@ -415,12 +412,12 @@ local function addMapCritters()
 				if amount > 0 and amount < 1 then amount = 1 end
 				amount = round(amount)
 
+				local unitID = nil
 				for i=1, amount do
-					local unitID = nil
 					local a = rad(random(0, 360))
-					local r = random(0, cC.spawnCircle.r)
-					local x = cC.spawnCircle.x + r*sin(a)
-					local z = cC.spawnCircle.z + r*cos(a)
+					local r = random(0, spawnCircle.r)
+					local x = spawnCircle.x + r*sin(a)
+					local z = spawnCircle.z + r*cos(a)
 					local y = GetGroundHeight(x, z)
 					if not waterunit or cC.nowatercheck ~= nil or y < minWaterDepth then
 						local supplyMinWaterDepth = nil
@@ -429,7 +426,7 @@ local function addMapCritters()
 						end
 						unitID = CreateUnit(unitName, x, y, z, 0, GaiaTeamID)
 						if unitID then
-							randomPatrolInCircle(unitID, cC.spawnCircle, supplyMinWaterDepth)
+							randomPatrolInCircle(unitID, spawnCircle.x, spawnCircle.z, spawnCircle.r, supplyMinWaterDepth)
 							--makeUnitCritter(unitID)
 							critterUnits[unitID].unitName = unitName
 						else
@@ -458,7 +455,6 @@ function gadget:GameFrame(gameFrame)
 			for unitID, critters in pairs(companionCritters) do
 				local x,y,z = GetUnitPosition(unitID)
 				local radius = companionPatrolRadius
-				local circle = {x=x, z=z, r=radius}
 				if not ValidUnitID(unitID) then
 					companionCritters[unitID] = nil
 				else
@@ -468,7 +464,7 @@ function gadget:GameFrame(gameFrame)
 						else
 							local cx,cy,cz = GetUnitPosition(critterID)
 							if abs(x-cx) > radius*1.1 or abs(z-cz) > radius*1.1 then
-								randomPatrolInCircle(critterID, circle, nil)
+								randomPatrolInCircle(critterID, x, z, radius)
 							end
 						end
 					end
@@ -515,8 +511,7 @@ function gadget:UnitIdle(unitID, unitDefID, unitTeam)
 		if UnitDefs[unitDefID].name == "critter_gull" then
 			radius = 750
 		end
-		local circle = {x=x, z=z, r=radius}
-		randomPatrolInCircle(unitID, circle)
+		randomPatrolInCircle(unitID, x, z, radius)
 	end
 end
 
@@ -544,8 +539,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		if UnitDefs[unitDefID].name == "critter_gull" then
 			radius = 1500
 		end
-		local circle = {x=x, z=z, r=radius}
-		randomPatrolInCircle(unitID, circle)
+		randomPatrolInCircle(unitID, x, z, radius)
 
 		-- make it a companion if close to a commander
 		companionRadius = companionRadiusStart
