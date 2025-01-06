@@ -360,6 +360,12 @@ local effectDefs = {
 	["legkam"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 25, piece = "thrust", light = 1 },
 	},
+	["legatorpbomber"] = {
+		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 25, piece = "rightAJet", light = 1 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 25, piece = "leftAJet", light = 1 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 19, piece = "rightBJet", light = 1 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 19, piece = "leftBJet", light = 1 },
+	},
 	["armsb"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 36, piece = "thrustc", light = 1 },
 		{ color = { 0.2, 0.8, 0.2 }, width = 2.2, length = 18, piece = "thrusta", light = 1 },

@@ -38,7 +38,7 @@ return {
 			[2] = "legstronghold",
 			[3] = "legnap",
 			[4] = "legmineb",
-			[5] = "cortitan",
+			[5] = "legatorpbomber",
 			[6] = "legionnaire",
 			[7] = "legwhisper",
 			[8] = "legfort",

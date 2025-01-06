@@ -1042,6 +1042,8 @@ local AirUnitsList = {
 			["corseap_scav"] = 2,
 			["corcut_scav"] = 2,
 			["cortitan_scav"] = 2,
+
+			["legatorpbomber"] = 2,
 		},
 		[5] = {
 			["armsfig_scav"] = 2,
@@ -1056,6 +1058,8 @@ local AirUnitsList = {
 			["corseap_scav"] = 2,
 			["corcut_scav"] = 2,
 			["cortitan_scav"] = 2,
+			
+			["legatorpbomber"] = 2,
 		},
 		[6] = {
 			["armsfig_scav"] = 2,
@@ -1070,6 +1074,8 @@ local AirUnitsList = {
 			["corseap_scav"] = 2,
 			["corcut_scav"] = 2,
 			["cortitan_scav"] = 2,
+			
+			["legatorpbomber"] = 2,
 		},
 		[7] = {
 			--Armada
