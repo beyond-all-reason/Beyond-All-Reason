@@ -17,10 +17,14 @@ end
 
 local isCritter = {}
 local isCommander = {}
+local gullDefID
 
 for unidDefID, unitDef in pairs(UnitDefs) do
 	if string.sub(unitDef.name, 1, 7) == "critter" then
 		isCritter[unitDefID] = true
+		if unitDef.name == 'critter_gull' then
+			gullDefID = unitDefID
+		end
 	elseif unitDef.customParams.iscommander then
 		isCommander[unitDefID] = true
 	end
@@ -504,7 +508,7 @@ function gadget:UnitIdle(unitID, unitDefID, unitTeam)
 	if isCritter[unitDefID] and not sceduledOrders[unitID] then
 		local x,y,z = GetUnitPosition(unitID,true,true)
 		local radius = 220
-		if UnitDefs[unitDefID].name == "critter_gull" then
+		if unitDefID == gullDefID then
 			radius = 750
 		end
 		randomPatrolInCircle(unitID, x, z, radius)
@@ -532,7 +536,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	elseif isCritter[unitDefID] then
 		local x,_,z = GetUnitPosition(unitID,true,true)
 		local radius = 300
-		if UnitDefs[unitDefID].name == "critter_gull" then
+		if unitDefID == gullDefID then
 			radius = 1500
 		end
 		randomPatrolInCircle(unitID, x, z, radius)
