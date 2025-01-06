@@ -16,15 +16,12 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local isCritter = {}
-for udid, unitDef in pairs(UnitDefs) do
-	if string.sub(unitDef.name, 1, 7) == "critter" then
-		isCritter[udid] = true
-	end
-end
-
 local isCommander = {}
-for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.customParams.iscommander then
+
+for unidDefID, unitDef in pairs(UnitDefs) do
+	if string.sub(unitDef.name, 1, 7) == "critter" then
+		isCritter[unitDefID] = true
+	elseif unitDef.customParams.iscommander then
 		isCommander[unitDefID] = true
 	end
 end
