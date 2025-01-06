@@ -23,7 +23,7 @@ return {
 		maxrudder = 0.00522,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		metalcost = 395,
+		metalcost = 480,
 		nochasecategory = "VTOL",
 		objectname = "Units/LEGATORPBOMBER.s3o",
 		radardistance = 800,
