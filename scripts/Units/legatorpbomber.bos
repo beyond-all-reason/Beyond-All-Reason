@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece chassis, launcher, torpflare, leftAJet, leftBJet, rightAJet, rightBJet, mainWing, leftWing, rightWing;
+piece chassis, launcher, launcher2, torpflare1, torpflare2, leftAJet, leftBJet, rightAJet, rightBJet, mainWing, leftWing, rightWing;
 
 //#define SIGNAL_TURNON 4
 
@@ -75,7 +75,8 @@ RequestState(requestedstate, currentstate)
 Create()
 {
 
-	hide torpflare;
+	hide torpflare1;
+	hide torpflare2;
 	hide leftAJet;
 	hide leftBJet;
 	hide rightAJet;
@@ -123,7 +124,20 @@ FireWeapon1()
 
 QueryWeapon1(pieceIndex)
 {
-	pieceIndex = torpflare;
+	pieceIndex = torpflare1;
+}
+
+FireWeapon2()
+{
+	turn launcher2 to x-axis <10> speed <10>;
+	sleep 1000;
+	turn launcher2 to x-axis <0> speed <10>;
+	return (1);
+}
+
+QueryWeapon2(pieceIndex)
+{
+	pieceIndex = torpflare2;
 }
 
 Killed(severity, corpsetype)

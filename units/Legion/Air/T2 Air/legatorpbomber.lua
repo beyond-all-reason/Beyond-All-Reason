@@ -86,8 +86,8 @@ return {
 				avoidfeature = false,
 				avoidfriendly = false,
 				burnblow = true,
-				burst = 3,
-				burstrate = 0.3,
+				-- burst = 3,
+				-- burstrate = 0.3,
 				cegtag = "torpedotrail-small",
 				collidefriendly = false,
 				craterareaofeffect = 0,
@@ -97,7 +97,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-large-uw",
 				flighttime = 4,
 				impulsefactor = 0.123,
-				model = "legtorpedo.s3o",
+				model = "legmediumtorpedo.s3o",
 				mygravity = 0.1,
 				name = "Medium Homing Torpedo Launcher",
 				noselfdamage = true,
@@ -123,12 +123,17 @@ return {
 					when = "ypos<0",
 				},
 				damage = {
-					default = 435,
+					default = 750,
 				},
 			},
 		},
 		weapons = {
 			[1] = {
+				badtargetcategory = "NOTSHIP",
+				def = "LEGAIR_TORP",
+				onlytargetcategory = "NOTHOVER",
+			},
+			[2] = {
 				badtargetcategory = "NOTSHIP",
 				def = "LEGAIR_TORP",
 				onlytargetcategory = "NOTHOVER",
