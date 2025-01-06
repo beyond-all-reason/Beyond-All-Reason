@@ -61,7 +61,27 @@ local unitDistortions = {
 								noiseStrength = 0.5, noiseScaleSpace = -1, distanceFalloff = 0.8,
 								rampUp = 30, decay = -1.2,
 								lifeTime = 0,  effectType = 0},
+		},
+	},
 
+	['armuwadves'] = {
+		distortion1 = {
+			distortionType = 'beam',
+			pieceName = 'emit1',
+			distortionConfig = { posx = 0, posy = -20, posz = 0.01, radius = 20,
+								pos2x = 0, pos2y = -5, pos2z = 0,
+								noiseStrength = 0.5, noiseScaleSpace = -1, distanceFalloff = 0.8,
+								rampUp = 30, decay = -1.2,
+								lifeTime = 0,  effectType = 0},
+		},
+		distortion2 = {
+			distortionType = 'beam',
+			pieceName = 'emit2',
+			distortionConfig = { posx = 0, posy = -20, posz = 0.01, radius = 20,
+								pos2x = 0, pos2y = -5, pos2z = 0,
+								noiseStrength = 0.5, noiseScaleSpace = -1, distanceFalloff = 0.8,
+								rampUp = 30, decay = -1.2,
+								lifeTime = 0,  effectType = 0},
 		},
 	},
 
@@ -390,12 +410,20 @@ local unitDistortions = {
 	},
 
 	['armveil'] = {
-		magnifier = {
+		-- magnifier = {
+		-- 	distortionType = 'point',
+		-- 	pieceName = 'base',
+		-- 	distortionConfig = { posx = 0, posy = 90, posz = 0, radius = 20,
+		-- 					lifeTime = 0,  
+		-- 					magnificationRate = 10.0, effectType = "magnifier"}, 
+		-- },
+		jamdistortion = {
 			distortionType = 'point',
-			pieceName = 'base',
-			distortionConfig = { posx = 0, posy = 90, posz = 0, radius = 20,
-							lifeTime = 0,  
-							magnificationRate = 10.0, effectType = "magnifier"}, 
+			pieceName = 'none',
+			distortionConfig = { posx = 0, posy = 80, posz = 0, radius = 18,
+							noiseStrength = 10, noiseScaleSpace = 0.4, distanceFalloff = 1.5,
+							windAffected = -1,
+							lifeTime = 0,  effectType = 0},
 		},
 	}, 
 
@@ -404,9 +432,9 @@ local unitDistortions = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'emit',
-			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 22,
-							noiseStrength = 1.5, noiseScaleSpace = 2.0, distanceFalloff = 0.5,
-							windAffected =0.21, riseRate = -2,
+			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 23,
+							noiseStrength = 1, noiseScaleSpace = 2.0, distanceFalloff = 1.5,
+							--windAffected = -1, riseRate = -1.1,
 							lifeTime = 0,  effectType = 0},
 		},
 	},
@@ -416,7 +444,7 @@ local unitDistortions = {
 			distortionType = 'point',
 			pieceName = 'emit',
 			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 36,
-							noiseStrength = 1, noiseScaleSpace = 2.0, distanceFalloff = 0.5,
+							noiseStrength = 1.5, noiseScaleSpace = 1.5, distanceFalloff = 2.0,
 							lifeTime = 0,  effectType = 0},
 		},
 	},
@@ -445,8 +473,8 @@ local unitDistortions = {
 			distortionType = 'point',
 			pieceName = 'emit',
 			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 30,
-							noiseStrength = 0.7, noiseScaleSpace = 1.0, distanceFalloff = 0.5,
-							riseRate = -2,
+			noiseStrength = 1, noiseScaleSpace = 2.0, distanceFalloff = 2.0,
+							--riseRate = -2,
 							--decay = 3.5,
 							lifeTime = 0,  effectType = 0},
 		},
@@ -520,10 +548,32 @@ local unitDistortions = {
 	},
 
 	['armjamt'] = {
-		distortion = {
+		jamdistortion = {
 			distortionType = 'point',
 			pieceName = 'none',
 			distortionConfig = { posx = 0, posy = 58, posz = 0, radius = 12,
+							noiseStrength = 10, noiseScaleSpace = 0.4, distanceFalloff = 1.5,
+							windAffected = -1,
+							lifeTime = 0,  effectType = 0},
+		},
+	},
+
+	['armmark'] = {
+		-- radarring = {
+		-- 	distortionType = 'point',
+		-- 	pieceName = 'none',
+		-- 	distortionConfig = { posx = 0, posy = 58, posz = 0, radius = 12,
+		-- 					noiseStrength = 10, noiseScaleSpace = 0.4, distanceFalloff = 1.5,
+		-- 					windAffected = -1,
+		-- 					lifeTime = 50,  effectType = 1},
+		-- },
+	},
+
+	['armaser'] = {
+		jamdistortion = {
+			distortionType = 'point',
+			pieceName = 'none',
+			distortionConfig = { posx = 0, posy = 32, posz = 0, radius = 12,
 							noiseStrength = 10, noiseScaleSpace = 0.4, distanceFalloff = 1.5,
 							windAffected = -1,
 							lifeTime = 0,  effectType = 0},
@@ -546,8 +596,8 @@ local unitDistortions = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'none',
-			distortionConfig = { posx = 0, posy = 72, posz = 0, radius = 16,
-							noiseStrength = 1, noiseScaleSpace = 1.5, distanceFalloff = 0.5,
+			distortionConfig = { posx = 0, posy = 72, posz = 0, radius = 12,
+							noiseStrength = 3, noiseScaleSpace = 0.5, distanceFalloff = 0.5,
 							windAffected = -0.5,
 							lifeTime = 0,  effectType = 0},
 		},
@@ -687,6 +737,24 @@ local unitEventDistortionsNames = {
 								distortionMultiplier = 1.0, --needed for shockwave
 								lifeTime = 25, rampUp = 0, decay = 15,
 								shockWidth = 5, effectType = 2},
+	
+			},
+		},
+
+
+		['armmark'] = {
+			[1] = {
+				-- radarwave
+				alwaysVisible = false,
+				distortionType = 'point',
+				distortionName = 'radarwave',
+				pieceName = 'none',
+				distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 60,
+								noiseStrength = 0.2, noiseScaleSpace = 0.8, distanceFalloff = 0.1, onlyModelMap = 1, 
+								distortionMultiplier = -1.5, --needed for shockwave
+								lifeTime = 60, rampUp = 20, decay = 15,
+								shockWidth = 
+								0.7, effectType = 2},
 	
 			},
 		},

@@ -363,6 +363,16 @@ local BaseClasses = {
 		},
 	},
 
+	JunoHeat = { -- spawned on explosions
+		distortionType = 'point', -- or cone or beam
+		yOffset = 0, -- Y offsets are only ever used for explosions!
+		distortionConfig = {
+			posx = 0, posy = 0, posz = 0, radius = 10, 
+			noiseStrength = 1, noiseScaleSpace = 0.75, distanceFalloff = 0.5, onlyModelMap = 0,
+			lifeTime = 60, rampUp = 30, decay = 30, effectType = 7, -- unused
+		},
+	},
+
 	ProjectileDgun = { -- spawned on explosions
 		distortionType = 'point', -- or cone or beam
 		yOffset = 0, -- Y offsets are only ever used for explosions!
@@ -404,6 +414,7 @@ local SizeRadius = {
 	Mediumer = 		260,
 	MediumLarge = 	300,
 	Large = 		400,
+	Juno =			450,
 	Larger = 		500,
 	Largest = 		650,
 	Mega = 			800,
@@ -789,6 +800,24 @@ explosionDistortionsNames['armmav_armmav_weapon'] = {
 	GetDistortionClass("GroundShockWave", "Micro", {
 		lifeTime = 19, airShockWaveMultiplier = 1.0,
 	}),
+}
+
+explosionDistortionsNames['armjuno_juno_pulse'] = {
+	-- GetDistortionClass("JunoHeat", "Juno", {
+	-- 	pos2x = 0, pos2y = 0, pos2z = 0,
+	-- 	noiseStrength = 6.5, noiseScaleSpace = 0.5, distanceFalloff = -0.1,
+	-- 	lifeTime = 900, rampUp = 0, decay = 0, onlyModelMap = 0,
+	-- }),
+	GetDistortionClass("GroundShockWave", "Juno", {
+		noiseStrength = 6.2, noiseScaleSpace = 0.15, distanceFalloff = 0.1, onlyModelMap = 1, 
+		lifeTime = 65, distortionMultiplier = -30.5, 
+		rampUp = 30, decay = 5, shockWidth = 12,
+	}),
+	GetDistortionClass("ExplosionHeat", "Juno", {
+		noiseStrength = 2.5, noiseScaleSpace = 0.15, distanceFalloff = 0.05,
+		lifeTime = 900, rampUp = 100, decay = 500, onlyModelMap = 1,
+	}),
+	
 }
 
 -- corlevlr
