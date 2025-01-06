@@ -272,11 +272,9 @@ local function adjustCritters(newAliveCritters)
 	local critterDifference = newAliveCritters - aliveCritters
 	local add = false
 	local critterArrayFrom = critterUnits
-	local critterArrayTo = critterBackup
 	if critterDifference > 0 then
 		add = true
 		critterArrayFrom = critterBackup
-		critterArrayTo = critterUnits
 		if not addCrittersAgain then return end
 	end
 
@@ -293,10 +291,10 @@ local function adjustCritters(newAliveCritters)
 			local x,y,z = GetUnitPosition(unitID,true,true)
 			critterDifference = critterDifference + 1
 
-			critterArrayTo[unitID] = critter
-			critterArrayTo[unitID].x = x
-			critterArrayTo[unitID].y = y
-			critterArrayTo[unitID].z = z
+			critterBackup[unitID] = critter
+			critterBackup[unitID].x = x
+			critterBackup[unitID].y = y
+			critterBackup[unitID].z = z
 
 			Spring.DestroyUnit(unitID, false, true)	-- reclaimed
 			totalCritters = totalCritters + 1 -- DestroyUnit callin substracts 1 here but we want to keep it constant, so re-adding
