@@ -283,6 +283,7 @@ local function adjustCritters(newAliveCritters)
 				CreateUnit(critter.unitName, critter.x, critter.y, critter.z, 0, GaiaTeamID)
 				critterDifference = critterDifference - 1
 				critterArrayFrom[unitID] = nil
+				totalCritters = totalCritters - 1 -- CreateUnit adds 1 here but we want to keep it constant
 				changed = true
 			end
 		else
