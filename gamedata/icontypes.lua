@@ -423,6 +423,10 @@ local icontypes = {
 		bitmap = "icons/shield.png",
 		size = 1.57499993
 	},
+	armgatet3 = {
+		bitmap = "icons/shield.png",
+		size = 1.9425
+	},
 	armgeo = {
 		bitmap = "icons/energy6_1.3.png",
 		size = 1.36499989
@@ -1107,6 +1111,10 @@ local icontypes = {
 		bitmap = "icons/hazardous.png",
 		size = 1.88999987
 	},
+	legatorpbomber = {
+		bitmap = "icons/air_t2_torpbomber.png",
+		size = 1.67999995
+	},
 	legrampart = {
 		bitmap = "icons/legion_rampart.png",
 		size = 1.88999987
@@ -1486,6 +1494,10 @@ local icontypes = {
 	corgate = {
 		bitmap = "icons/shield.png",
 		size = 1.57499993
+	},
+	corgatet3 = {
+		bitmap = "icons/shield.png",
+		size = 1.9425
 	},
 	corgator = {
 		bitmap = "icons/vehicle_t1_raid.png",
