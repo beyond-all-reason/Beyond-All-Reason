@@ -176,6 +176,7 @@ local function randomPatrolInCircle(unitID, ux, uz, ur, minWaterDepth)	-- only d
 				ordersGiven = ordersGiven + 1
 			end
 		end
+		if ordersGiven == orders then break end
 	end
 end
 
