@@ -159,6 +159,9 @@ return {
 					default = 145,
 					vtol = 5,
 				},
+				customparams = {
+					sweepfire=7, --multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
+				}
 			},
 			legphtarg = {--targetting only
 				areaofeffect = 121,

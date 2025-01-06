@@ -74,8 +74,7 @@ lua_UnitScriptLight(lightIndex, count)
 Create()
 {
 	call-script FakeUprightInit();
-	turn fireline to x-axis <50> speed <50>;
-	turn fireline to y-axis <0> speed <50>;
+	turn fireline to x-axis <115> now;
 	shotcount = 0;
 	timer = 0;
 	isfiring = 0;
@@ -215,7 +214,6 @@ Shot1(){
 }
 
 AimPrimary() {
-	turn fireline to x-axis <115> now;
 	return 0;
 }
 QueryPrimary(piecenum)
