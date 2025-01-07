@@ -197,7 +197,6 @@ FirePrimary() {
 	turn wingl to y-axis <0> speed <20>;
 	turn wingbl to y-axis <0> speed <20>;
 	wait-for-turn wingr around y-axis;
-	wait-for-turn wingl around y-axis;
 	turn wingbr to z-axis <0> speed <20>;
 	turn wingbl to z-axis <0> speed <20>;
 	
