@@ -1,3 +1,8 @@
+# January 2025
+• [Angler] The T2 Cortex torpedo bomber now drops 1 large torpedo instead of 3 small ones.  The large torpedo is slightly slower but has some aoe  
+• [Serpent] The Arm T2 battlesub now fires 2 medium torpedos at once instead of 1 large one, overall dps unchanged but some aoe is added
+• [Kraken] The Cor T2 battlesub's torpedo aoe increased
+
 # December 2024
 • [Impulse] Nukes + Plasma Cannons + Shiva + Catapult + Vanguard + Tzar + Fatboy + Banisher + Poison Arrow + Gunslinger + Ballistic Missile Launchers got impulse added to their weapon. High-HP units with low mass got a mass increase.
 • [Tremor] Impulse 140% -> 80%, EdgeEffectiveness 90% -> 15%

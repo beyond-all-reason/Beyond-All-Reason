@@ -397,6 +397,7 @@ local unitOrderTable = {
 
 	['armlance']       = 009900,
 	['cortitan']       = 009910,
+	['legatorpbomber'] = 009915,
 	['armsubk']        = 009920,
 	['corshark']       = 009930,
 	['armserp']        = 009940,

@@ -576,6 +576,7 @@ local armorDefs = {
 		"legphoenix",
 		"legstronghold",
 		"legwhisper",
+		"legatorpbomber",
 		"critter_gull",
 		"armfify",
 	},

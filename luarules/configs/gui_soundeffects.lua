@@ -533,6 +533,12 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "arm-bld-shield",
 	},
 
+	armgatet3 = {
+		BaseSoundSelectType = "arm-bld-defense-action-t2",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-shield",
+	},
+
 	armfgate = {
 		BaseSoundSelectType = "arm-bld-defense-action-water-t2",
 		--BaseSoundMovementType = "",
@@ -1755,6 +1761,12 @@ GUIUnitSoundEffects = {
 	},
 
 	corgate = {
+		BaseSoundSelectType = "arm-bld-defense-action-t2",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-shield",
+	},
+
+	corgatet3 = {
 		BaseSoundSelectType = "arm-bld-defense-action-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-shield",
