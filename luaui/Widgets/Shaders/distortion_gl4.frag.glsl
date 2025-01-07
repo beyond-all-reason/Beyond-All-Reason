@@ -20,6 +20,8 @@ in DataVS {
 	noperspective vec2 v_screenUV; // i have no fucking memory as to why this is set as noperspective
 };
 
+#define LIFESTRENGTH v_baseparams.x
+
 #define NOISESTRENGTH v_universalParams.x
 #define NOISESCALESPACE v_universalParams.y
 #define DISTANCEFALLOFF v_universalParams.z
@@ -569,7 +571,7 @@ void main(void)
 	
 	vec4 fragWorldPos =  vec4( vec3(v_screenUV.xy * 2.0 - 1.0, worlddepth),  1.0);
 
-	// reconstruct view po
+	// reconstruct view position from depth and camera view proj inv:
 
 	fragWorldPos = cameraViewProjInv * fragWorldPos;
 	fragWorldPos.xyz = fragWorldPos.xyz / fragWorldPos.w; // YAAAY this works!
@@ -606,7 +608,6 @@ void main(void)
 	// Distortioning components we wish to collect along the way:
 	float distance_attenuation = 0; // Just the distance from the distortion source (multiplied with falloff for cones
 
-	
 	float relativeDensity = 1.0;
 	//fragColor.rgba = vec4(fract(fragWorldPos.xyz * 0.1),1.0); return; // Debug fragment world position
 
@@ -671,7 +672,6 @@ void main(void)
 		ExitPoint = camPos + nearFarDistances.y * -viewDirection;
 		MidPoint = (EntryPoint + ExitPoint) * 0.5;
 
-		//DEBUGPOS(EntryPoint.xyz);
 		// Calculate the closest point on the view ray to the cone
 		closestPointOnRay = ray_line_segment_closestpoint_on_ray_and_segment2(camPos, -viewDirection, distortionPosition, endPoint, distortionEmitPosition);
 	
@@ -683,8 +683,6 @@ void main(void)
 	}
 
 	#line 35000
-	//printf(MidPoint.xyz);
-	//fragColor.rgba = vec4(1.0); return;
 	// If the fragment is inside the volume, we need to calculate the volumetric fraction
 	float volumetricFraction = 1.0; // The fraction of the ray that passes through the volume. 
 	if (fragDistance < nearFarDistances.y) {
@@ -695,9 +693,8 @@ void main(void)
 		return;
 	}
 
-
 	// Check if the volume is occluded, bail if yes!
-	//if ((fragDistance < nearFarDistances.x) || (nearFarDistances.y - nearFarDistances.x < 1e-6)){ fragColor.rgba = vec4(0.0); return; }
+	// if ((fragDistance < nearFarDistances.x) || (nearFarDistances.y - nearFarDistances.x < 1e-6)){ fragColor.rgba = vec4(0.0); return; }
 	// TODO: sample noise here, as most effects need the noise sample, and it should be a shared path along the branches
 
 
@@ -717,25 +714,16 @@ void main(void)
 			// From 0 to 1 over the lifetime of the airshockwave
 			float timeFraction = fract((currentTime - lifeStart) / lifeTime);
 
-			// TODO : Parameterize out width in elmos
-			//float width = EFFECTPARAM1;
-
 			// which direction is the effect going in in world coords?, always points towards us!
 			vec3 shockDirection = normalize(EntryPoint.xyz - distortionEmitPosition.xyz);
 			
 			// Parabolic mapping of 0-1 to [0-1-0] with a parabola on timeFraction
-
-	
-
 			float parabolicStrength = pcurve_k(timeFraction, 0.5, 2.0, 3.5);
 			
-
 			// Falloff due to distance from camera
-			
 			float distanceToCameraFactor =  clamp(300.0/ fragDistance, 0.0, 1.0);
 
 			// Screen-space position of the center of the shockwave:
-			
 			vec4 DistortionScreenPosition = cameraViewProj * vec4(distortionEmitPosition.xyz, 1.0);
 			DistortionScreenPosition.xyz = DistortionScreenPosition.xyz / DistortionScreenPosition.w;
 
@@ -758,9 +746,8 @@ void main(void)
 
 
 			float refractiveIndex = EFFECTPARAM2 + (noiseSampleNorm.r + 0.5) * NOISESTRENGTH * 0.25 ;
-			// sin(theta1) = n2*sin(theta2)
-			// sin(theta2) = sin(theta1) / n2
 
+			//Use Snell's law
 			float cosTheta1 = dot(-viewDirection, shockDirection);
 			float sinTheta1 = sqrt(1.0 - cosTheta1 * cosTheta1);
 			float sinTheta2 = sinTheta1 / refractiveIndex;
@@ -785,10 +772,10 @@ void main(void)
 
 			// screen-space direction of the shockwave
 			vec2 displacementScreen = normalize((DistortionScreenPosition.xy * 0.5 + 0.5) - v_screenUV);
-			float overallStrength = 10 * rayBendElmos *  distanceToCameraFactor * parabolicStrength * v_baseparams.x;
+			float overallStrength = 10 * rayBendElmos *  distanceToCameraFactor * parabolicStrength * LIFESTRENGTH;
 			vec2 displacementAmount = displacementScreen * overallStrength * airShockWaveMultiplier;
-			//printf(displacementAmount.xy);
-			fragColor.rgba = vec4(displacementAmount * 0.5 + 0.5, 0.0, 1.5 );
+
+			fragColor.rgba = vec4(displacementAmount, 0.0, 1.5 );
 	}
 
 	
@@ -797,8 +784,7 @@ void main(void)
 		// Create a ground shockwave displacement that only displaces ground fragments based on the distance to the distortion source:
 		// TODO: instead of using radius here, adjust radius in the vertex shader!
 
-		////vec3 shockWaveDisplacement(vec3 centerpos, vec3 currentpos, vec3 viewDirection, float shockwaveRadius, float timeFraction ){
-				// Get the noise sample:
+		// Get the noise sample:
 		vec3 noisePosition = fragWorldPos.xyz;
 		
 		if (NOISESCALESPACE < 0.0){
@@ -814,7 +800,6 @@ void main(void)
 		// Normalize the noise sample at noisePosition - noiseOffset
 		vec4 noiseSampleNorm = (textureLod(noise3DCube, noisePosition - noiseOffset, 0.0) )* 2.0 - 1.0;
 
-
 		// Lifetime goes from 0 to 1
 		float timeFraction = clamp((currentTime - SPAWNFRAME) / LIFETIME, 0.0, 1.0);
 
@@ -822,9 +807,9 @@ void main(void)
 		// TODO : Parameterize out width in elmos
 		float width = EFFECTPARAM1;
 
-		//printf(width);
 		float groundDistanceToShockCenter = length(fragWorldPos.xyz - distortionPosition.xyz);
-		//Effect strength and direction should be abs width'd
+		
+		// Effect strength and direction should be abs width'd
 		// But it should be wider on the rarefaction side than the compression side
 		// First term is the compression factor, second term is the rarefaction factor
 		#define COMPRESSION 0.9
@@ -834,7 +819,6 @@ void main(void)
 		effectStrength = pow(effectStrength, 3.0);
 
 		// Parabolic mapping of 0-1 to [0-1-0] with a parabola on timeFraction
-
 		float parabolicStrength = pcurve_k(timeFraction, 0.5, 2.0, 3.5);
 		
 
@@ -850,20 +834,16 @@ void main(void)
 
 		// screen-space direction of the shockwave
 		vec2 displacementScreen = normalize((DistortionScreenPosition.xy * 0.5 + 0.5) - v_screenUV);
-		float overallStrength = effectStrength * distanceToCameraFactor * parabolicStrength * v_baseparams.x;
+		float overallStrength = effectStrength * distanceToCameraFactor * parabolicStrength * LIFESTRENGTH;
 		
 		float distortionMultiplier = EFFECTPARAM2;
-		//printf(distortionMultiplier);
+
 		vec2 displacementAmount = displacementScreen * overallStrength * distortionMultiplier;
-		fragColor.rgba = vec4(displacementAmount * 0.5 + 0.5, 0.0, 0.5 * step(0.005,overallStrength) );
-
-		//fragColor.rgba = vec4(1.0);
-
+		fragColor.rgba = vec4(displacementAmount, 0.0, 0.5 * step(0.005,overallStrength) );
 	}
 
 	
 	//------------------------- BEGIN AIRJET -------------------------
-	
 	else if (effectType == 3){
 
 	}
@@ -922,13 +902,11 @@ void main(void)
 
 		// modulate the effect strength with the distance to the heat source:
 		float distanceToCameraFactor =  clamp(300.0/ length(camPos.xyz - MidPoint.xyz), 0.0, 1.0);
-		noiseSampleNorm *= distanceToCameraFactor * v_baseparams.r;
+		noiseSampleNorm *= distanceToCameraFactor * LIFESTRENGTH;
 
 		// Modulate alpha with the distortionAttenuation
 		noiseSampleNorm *= NOISESTRENGTH;
-		fragColor.rgba = vec4(vec3(noiseSampleNorm.ra * 0.5 + 0.5, 0.0) * 1.0 ,  distortionAttenuation);
-		//if (ismodel > 0.5) {fragColor.rgba = vec4(0.5,0.5,0.5,1.0);	}
-		//return;
+		fragColor.rgba = vec4(noiseSampleNorm.ra, 0.0,  distortionAttenuation);
 	}
 	
 	//------------------------- BEGIN MAGNIFIER -------------------------
@@ -949,7 +927,7 @@ void main(void)
 		float distanceToCameraFactor =  clamp(300.0/ length(camPos - distortionEmitPosition.xyz), 0.0, 1.0);
 		dirInCameraSpace2 *= distanceToCameraFactor * EFFECTPARAM1;
 		//printf(EFFECTPARAM1);
-		fragColor.rgba = vec4(dirInCameraSpace2.xy * 0.5 + 0.5, 0.0, 1.0);
+		fragColor.rgba = vec4(dirInCameraSpace2.xy, 0.0, 1.0);
 	}
 	
 	//------------------------- BEGIN Motion Blur -------------------------
@@ -964,19 +942,11 @@ void main(void)
 
 		float travelSpeedMult = clamp((v_worldPosRad2.w - EFFECTPARAM1) * EFFECTPARAM2, 0.0, 1.0);
 
-		fragColor.rgba = vec4(travelDirectionScreen.xy * 0.5 + 0.5, -10.0, 1.0);
-		//printf(travelDirectionScreen.xyz);
-		// convert the unittravelDirection to screen-space:
-		//vec4 travelDirectionScreen = cameraViewProj * vec4(unittravelDirection, 1.0);
-		//travelDirectionScreen.xyz = travelDirectionScreen.xyz / travelDirectionScreen.w;
-		//travelDirectionScreen.xyz = travelDirectionScreen.xyz * 0.5 + 0.5;
+		fragColor.rgba = vec4(travelDirectionScreen.xy, -10.0, 1.0);
 
-			// fragment is behind the sphere
-			if (fragDistance > nearFarDistances.y){
-				fragColor.rgba = vec4(0.0);
-			}
-		//fragColor = vec4(v_worldPosRad2.xyz, 1.0);
-
+		if (fragDistance > nearFarDistances.y){
+			fragColor.rgba = vec4(0.0);
+		}
 	}
 
 	//------------------------- BEGIN HEAT DISTORTION -------------------------
@@ -986,7 +956,7 @@ void main(void)
 	else if (effectType == 0){
 
 		float distortionAttenuation = 1.0; // start at max for the center
-		float fadeFactor = v_baseparams.r;  // includes DECAY fade-out from vertex shader
+		float fadeFactor = LIFESTRENGTH;  // includes DECAY fade-out from vertex shader
 		float finalAlpha = distortionAttenuation * fadeFactor;
 		float heatMultiplier = EFFECTPARAM2;
 		if (heatMultiplier <= 0.0) {
@@ -1021,10 +991,6 @@ void main(void)
 
 		// Now multiply the distortionAttenuation by rampFactor for the fade-in
 		distortionAttenuation *= rampFactor;
-
-		//DEBUG(relativeDensity);
-
-		//printf(closestPointOnRay.xyzw);
 		
 		// TODO: Ensure that the distortion is proportionate to the amount of "Hot" volume the ray passes through. 
 		// Get the noise sample:
@@ -1038,26 +1004,22 @@ void main(void)
 		noisePosition *= abs(NOISESCALESPACE) * 0.03;
 		
 		// Add the time offset and wind offsets to the noise position
-		//printf(EFFECTPARAM1);
 		vec3 noiseOffset = vec3(windXZ.x * 0.1, currentTime * 0.01, windXZ.y * 0.1 ) * (1.0 + vec3(WINDAFFECTED, EFFECTPARAM1, WINDAFFECTED));
-		//printf(noiseOffset.xyz);
+
 		// Normalize the noise sample at noisePosition - noiseOffset
 		vec4 noiseSampleNorm = (textureLod(noise3DCube, noisePosition - noiseOffset, 0.0) )* 2.0 - 1.0;
 
-
 		// modulate the effect strength with the distance to the heat source:
 		float distanceToCameraFactor =  clamp(300.0/ length(camPos.xyz - MidPoint.xyz), 0.0, 1.0);
-		noiseSampleNorm *= distanceToCameraFactor * v_baseparams.r;
+		noiseSampleNorm *= distanceToCameraFactor * LIFESTRENGTH;
 
 		// Modulate alpha with the distortionAttenuation
 		noiseSampleNorm *= NOISESTRENGTH;
 		
 		fragColor.rgba = vec4(vec3(noiseSampleNorm.ra * 0.5 + 0.5, 0.0) * 1.0 * heatMultiplier ,  distortionAttenuation);
-		//if (ismodel > 0.5) {fragColor.rgba = vec4(0.5,0.5,0.5,1.0);	}
-		//return;
 
 	}else{
-		fragColor.rgba = vec4(1.0);// default fallthrough, should never appear
+		fragColor.rgba = vec4(1.0);// default fallthrough, should never EVER appear
 	}
 	
 	// is a model fragment and we only want to affect map

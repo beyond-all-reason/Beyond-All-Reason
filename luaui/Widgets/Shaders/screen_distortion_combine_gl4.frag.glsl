@@ -17,7 +17,7 @@ void main(void) {
 
     // As of yet, distortion coords are still stored as centered around 0.5, so we need to shift them to 0.0
     vec4 distortion = texture2D(distortionTexture, gl_TexCoord[0].st);
-    distortion.rgb = distortion.rgb * 2.0 - 1.0;
+    distortion.rgb = distortion.rgb;
     distortion.rg = (1536.0 * distortion.rg) * inverseScreenResolution;
     if (length(distortion.rg) < 0.001) {
         // Bail early if no real distortion is present
@@ -73,7 +73,7 @@ void main(void) {
                 gl_FragColor = vec4(vec3(distortion.rg, 0.0) * 0.5 + 0.5, 0.7);
                 else gl_FragColor = vec4(outputRGBA.rgb, 0.0);
             }else{ // bottom right just straight up debug out the actual distortion RGB texture
-                gl_FragColor = vec4(distortion.rgb * 0.5 + 0.5, 1.0);
+                gl_FragColor = vec4(distortion.rg * 0.5 + 0.5, -1 * distortion.b, 1.0);
             }
         }else{ // left half
             gl_FragColor = outputRGBA;
