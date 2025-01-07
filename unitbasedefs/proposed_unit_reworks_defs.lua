@@ -66,10 +66,17 @@ local function proposed_unit_reworksTweaks(name, uDef)
 			uDef.health = 370
 		end
 		if name == "corak" then
-			uDef.metalcost = 45
-			uDef.energycost = 750
+			uDef.metalcost = 48
+			uDef.energycost = 800
 			uDef.health = 300
 		end
+		if name == "armfav" then
+			uDef.health = 103
+		end
+		if name == "corfav" then
+			uDef.health = 87
+		end
+
 		if name == "corbw" then
 			uDef.weapondefs.bladewing_lyzer.reloadtime = 1.4
 		end
