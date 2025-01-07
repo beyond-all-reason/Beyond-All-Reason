@@ -1016,7 +1016,7 @@ void main(void)
 		// Modulate alpha with the distortionAttenuation
 		noiseSampleNorm *= NOISESTRENGTH;
 		
-		fragColor.rgba = vec4(vec3(noiseSampleNorm.ra * 0.5 + 0.5, 0.0) * 1.0 * heatMultiplier ,  distortionAttenuation);
+		fragColor.rgba = vec4(vec3(noiseSampleNorm.ra, 0.0) * 1.0 * heatMultiplier ,  distortionAttenuation);
 
 	}else{
 		fragColor.rgba = vec4(1.0);// default fallthrough, should never EVER appear
