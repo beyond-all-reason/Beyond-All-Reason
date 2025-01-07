@@ -219,9 +219,18 @@ local BaseClasses = {
 	AirShockWave = {
 		distortionType = 'point', -- or cone or beam
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
-			noiseScaleSpace = 0.2, noiseStrength = 0.5, onlyModelMap = 1,  
+			noiseScaleSpace = 0.1, noiseStrength = 0.2, onlyModelMap = 1,  
 			lifeTime = 8, refractiveIndex = 1.05, decay = 4, rampUp = 20,
 			airShockWaveMultiplier = 2.0, --needed for airshockwaves
+			effectType = "airShockwave", },
+
+	},
+	AirShockWaveEMP = {
+		distortionType = 'point', -- or cone or beam
+		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
+			noiseScaleSpace = 0.1, noiseStrength = 0.1, onlyModelMap = 1,  
+			lifeTime = 10, refractiveIndex = 1.03, decay = 4, rampUp = 8,
+			airShockWaveMultiplier = 1.75, --needed for airshockwaves
 			effectType = "airShockwave", },
 
 	},
@@ -802,6 +811,52 @@ explosionDistortionsNames['armmav_armmav_weapon'] = {
 	}),
 }
 
+explosionDistortionsNames['armstil_stiletto_bomb'] = {
+	-- Electric Ground Decals - not perfect yet
+	-- GetDistortionClass("GroundShockWave", "Small", {
+	-- 	noiseStrength = 125.0, noiseScaleSpace = 0.13, distanceFalloff = 0.9, onlyModelMap = 1, 
+	-- 	lifeTime = 190, distortionMultiplier = 3, 
+	-- 	windAffected = -1, riseRate = 6,
+	-- 	rampUp = 50, decay = 0, shockWidth = 10,
+	-- }),
+
+	-- Heat Radiation
+	-- GetDistortionClass("ExplosionHeat", "Smallish", {
+	-- 	noiseStrength = -1.5, noiseScaleSpace = 0.25, distanceFalloff = -0.05,
+	-- 	--heatMultiplier = 1.0, -- don't use, doesn't fade out correct
+	-- 	windAffected = -1, riseRate = 1,
+	-- 	lifeTime = 140, rampUp = 50, decay = 90, onlyModelMap = 1,
+	-- }),
+
+	-- Noised/electric Shockwave
+	GetDistortionClass("GroundShockWave", "SmallMedium", {
+		noiseStrength = 6.0, noiseScaleSpace = 0.32, distanceFalloff = 0.1, onlyModelMap = 0, 
+		lifeTime = 59, distortionMultiplier = 6,
+		windAffected = -1, riseRate = -1,
+		rampUp = 70, decay = 3, shockWidth = 1.05,
+	}),
+	GetDistortionClass("AirShockWaveEMP", "Small", {
+	})
+	
+	--
+	-- GetDistortionClass("ExplosionHeat", "SmallMedium", {
+	-- 	noiseStrength = -1.5, noiseScaleSpace = 0.95, distanceFalloff = -0.05,
+	-- 	heatMultiplier = 1.0, -- don't use, doesn't fade out correct
+	-- 	windAffected = -1, riseRate = 9,
+	-- 	lifeTime = 200, rampUp = 50, decay = 50, onlyModelMap = 1,
+	-- }),
+	
+}
+
+explosionDistortionsNames['raptor_air_bomber_acid_t2_v1_acidbomb'] = {
+	GetDistortionClass("GroundShockWave", "Smallish", {
+		noiseStrength = 15.0, noiseScaleSpace = 0.20, distanceFalloff = 0.9, onlyModelMap = 1, 
+		lifeTime = 190, distortionMultiplier = 2, 
+		windAffected = -1, riseRate = 6,
+		rampUp = 20, decay = 15, shockWidth = 10,
+	}),
+}
+
 explosionDistortionsNames['armjuno_juno_pulse'] = {
 	-- GetDistortionClass("JunoHeat", "Juno", {
 	-- 	pos2x = 0, pos2y = 0, pos2z = 0,
@@ -908,6 +963,12 @@ projectileDefDistortionsNames["corvipe_vipersabot"] =
 	lifeTime = 27, rampUp = 15, decay = 10, radius = 150,
 })
 
+-- projectileDefDistortionsNames["armblade_vtol_sabot"] =
+-- 	GetDistortionClass("MissileProjectile", "Smaller", {
+-- 	theta = 0.07, noiseStrength = 3, noiseScaleSpace = 0.35,
+-- 	lifeTime = 27, rampUp = 10, decay = 10, radius = 150,
+-- })
+
 explosionDistortionsNames['corvipe_vipersabot'] = {
 	GetDistortionClass("GroundShockWave", "Micro", {
 		lifeTime = 24, }),
@@ -1004,6 +1065,22 @@ explosionDistortionsNames['armfboy_arm_fatboy_notalaser'] = {
 	GetDistortionClass("AirShockWave", "Small"),
 	GetDistortionClass("GroundShockWave", "SmallMedium"),
 	GetDistortionClass("ExplosionHeat", "Tiniest"),
+}
+
+explosionDistortionsNames['armliche_arm_pidr'] = {
+	GetDistortionClass("GroundShockWaveNuke", "Larger", {
+		shockWidth = 8,
+	}),
+	-- GetDistortionClass("AirShockWaveNukeBlast", "Mediumer", {
+	-- 	lifeTime = 25, airShockWaveMultiplier = 1.2, 
+	-- 	refractiveIndex = -1.03, }),
+	GetDistortionClass("AirShockWave", "Medium", {
+		lifeTime = 15, airShockWaveMultiplier = 16.0,
+		refractiveIndex = 1.1, }),
+	GetDistortionClass("ExplosionHeatNuke", "Medium", {
+		noiseScaleSpace = 0.1, noiseStrength = 9,
+		lifeTime = 80, decay = 25, rampUp = 50,
+		}),	
 }
 
 explosionDistortionsNames['armsilo_nuclear_missile'] = {

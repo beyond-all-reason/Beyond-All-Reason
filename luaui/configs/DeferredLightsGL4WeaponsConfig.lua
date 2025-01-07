@@ -128,6 +128,19 @@ local BaseClasses = {
 		},
 	},
 
+	ExplosionEMP = { -- spawned on explosions
+		lightType = 'point', -- or cone or beam
+		yOffset = 2, -- Y offsets are only ever used for explosions!
+		lightConfig = {
+			posx = 0, posy = 0, posz = 0, radius = 140,
+			dirx = 0, diry = 0.018, dirz = 0, theta = 0.93,
+			r = 2, g = 2, b = 4, a = 1.8,
+			color2r = 0.3, color2g = 0.3, color2b = 0.6, colortime = 1.4, -- point lights only, colortime in seconds for unit-attached
+			modelfactor = 0.15, specular = 0.15, scattering = 0.6, lensflare = 0,
+			lifetime = 90, sustain = 60, aninmtype = 0, -- unused
+		},
+	},
+
 	MuzzleFlash = { -- spawned on projectilecreated
 		lightType = 'point', -- or cone or beam
 		lightConfig = {
@@ -580,7 +593,10 @@ GetLightClass("Explosion", nil, "Large", {colortime = 4, sustain = 12, lifetime 
 -- 											lifetime = 17, sustain = 2})
 -- muzzleFlashLightsNames["corint_lrpc"].yOffset = 16
 
-
+--armstil
+explosionLightsNames["armstil_stiletto_bomb"] =
+GetLightClass("ExplosionEMP", nil, "Medium", {
+})
 
 --armbrtha
 muzzleFlashLightsNames["armbrtha_lrpc"] =
