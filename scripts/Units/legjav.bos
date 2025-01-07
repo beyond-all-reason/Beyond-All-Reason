@@ -487,7 +487,7 @@ Create()
 #define CATT1_MAX_VELOCITY <12.0>
 #define CATT1_ACCELERATION <2.0>
 #define CATT1_JERK <4>
-#define CATT1_PRECISION <1.0>
+#define CATT1_PRECISION <10.0>
 #define CATT1_PITCH_SPEED <85>
 #define CATT1_RESTORE_DELAY 3000
 #define CATT1_RESTORE_SPEED <3.0>
@@ -574,10 +574,10 @@ AimWeapon1(heading, pitch)
 	
 	call-script CATT1_Aim(heading,pitch);
 		
-	if (ABSOLUTE_GREATER_THAN(WRAPDELTA(wpnheading - heading), <11>)){
-		wait-for-turn aimy around y-axis;
-		wait-for-turn aimx around x-axis;
-	}
+	//if (ABSOLUTE_GREATER_THAN(WRAPDELTA(wpnheading - heading), <20>)){
+	//	wait-for-turn aimy around y-axis;
+	//	wait-for-turn aimx around x-axis;
+	//}
 	wpnheading = heading;
 	return (1);
 }
