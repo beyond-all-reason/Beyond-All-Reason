@@ -11,7 +11,7 @@ layout (location = 0) in vec4 position; // xyz and etc garbage
 
 layout (location = 3) in vec4 worldposrad;  // Centerpos
 layout (location = 4) in vec4 worldposrad2; // velocity for points, beam end for beams, dir and theta for cones
-layout (location = 5) in vec4 baseparams;  // alpha contains overall strength multiplier
+layout (location = 5) in vec4 baseparams;  // Unused and reserved for future animations
 layout (location = 6) in vec4 universalParams; // noiseStrength, noiseScaleSpace, distanceFalloff, onlyModelMap
 layout (location = 7) in vec4 lifeParams; // spawnFrame, lifeTime, rampUp, decay
 layout (location = 8) in vec4 effectParams; // effectparam1, effectparam2, windAffected, effectType
@@ -80,7 +80,7 @@ uniform float intensityMultiplier = 1.0;
 out DataVS {
 	flat vec4 v_worldPosRad;
 	flat vec4 v_worldPosRad2;
-	flat vec4 v_baseparams;
+	flat vec4 v_baseparams;   // lifeStrength
 	flat vec4 v_universalParams; // noiseStrength, noiseScaleSpace, distanceFalloff, onlyModelMap
 	flat vec4 v_lifeParams; // spawnFrame, lifeTime, rampUp, decay
 	flat vec4 v_effectParams; // effectparam1, effectparam2, windAffected, effectType
@@ -160,9 +160,9 @@ void main()
 	vec4 worldPos = vec4(1.0);
 	#line 11000
 	if (pointbeamcone < 0.5){ // point
-		//scale it and place it into the world
-		//Make it a tiny bit bigger *(1.1) cause the blocky sphere is smaller than the actual radius
-		// the -1 is for inverting it so we always see the back faces (great for occlusion testing!) (this should be exploited later on!
+		// Scale it and place it into the world
+		// Make it a tiny bit bigger *(1.1) cause the blocky sphere is smaller than the actual radius
+		// The -1 is for inverting it so we always see the back faces (great for occlusion testing!) (this should be exploited later on!
 		
 		// this is centered around the target positional offset, and scaled locally
 		vec3 distortionVertexPosition = distortionCenterPosition + -1 * position.xyz * distortionRadius * 1.15; // 1.15 is a magic number that makes the sphere actually fit inside the sphere-ish geometry
@@ -174,31 +174,16 @@ void main()
 		distortionCenterPosition = (placeInWorldMatrix * vec4(distortionCenterPosition, 1.0)).xyz; 
 		
 		
-		float colortime = 0.0;// Matches colortime in distortionConf for point distortions
+		// Projectile-attached distortions need their own positional smoothing based on the velocity of the projectile and timeOffset (timeInfo.w)
 		if  (attachedtounitID > 0.5) {
-			// for point distortions, if the colortime is anything sane (>0), then modulate the distortion with it.
-			//if (colortime >0.5){
-			//	v_baseparams.a = mix( color2.a, v_baseparams.a, cos((elapsedframes * 6.2831853) / colortime ) * 0.5 + 0.5); }
-				
+			// Distortions attached to unitID's need no positional correction
 		}else{
-			if (colortime >0.0){
-				
-				float colormod = 0;
-				if (colortime > 1.0) {
-					colormod = clamp(elapsedframes/colortime , 0.0, 1.0);
-				}
-				else {
-					colormod =  cos(elapsedframes * 6.2831853 * colortime ) * 0.5 + 0.5;
-				}
-				//v_baseparams.a = mix(v_baseparams.a, color2.a, colormod); 
-			}
-			if (worldposrad2.w < 1.0) {
+			// Distortions attached to projectiles need to be smoothed out
+			if (worldposrad2.w < 1.0) { // We indicate that this is a projectile by setting the w component of worldposrad2 to < 1
 				distortionCenterPosition += timeInfo.w * worldposrad2.xyz;
 				distortionVertexPosition += timeInfo.w * worldposrad2.xyz;
 			}else{
-				// Note: worldposrad2.w is an excellent place to add orbit-style world-placement distortion animations
-				//vec3 distortionWorldMovement = sin(time * 0.017453292 * worldposrad2.xyz) * worldposrad2.w;
-				//distortionCenterPosition += distortionWorldMovement;
+
 			}
 		}
 		
@@ -211,16 +196,10 @@ void main()
 		// our null vector is +X
 		vec3 centertoend = distortionCenterPosition - worldposrad2.xyz;
 		float halfbeamlength = length(centertoend);
+
 		// Scale the box to correct size (along beam is Y dir)
-		//if (attachedtounitID > 0){
-			worldPos.xyz = position.xyz * vec3( distortionRadius , step(position.y, 0) *halfbeamlength + distortionRadius, distortionRadius );
-			//}
-		//else{
-			worldPos.xyz = position.xyz * vec3( distortionRadius ,  step(position.y, 0) * halfbeamlength + distortionRadius, distortionRadius );
-			//worldPos.xyz = position.xyz * vec3( distortionRadius , halfbeamlength + distortionRadius, distortionRadius );
-			//worldPos.xyz += vec3(50);
-			//}
-		
+		worldPos.xyz = position.xyz * vec3( distortionRadius , step(position.y, 0) * halfbeamlength + distortionRadius, distortionRadius );
+
 		// TODO rotate this box
 		vec3 oldfw = vec3(0,1,0); // The old forward direction is -y
 		vec3 newfw = normalize(centertoend); // the new forward direction shall be the normal that we want
@@ -237,11 +216,10 @@ void main()
 		// so we now have our rotated box, we need to place it not at the center, but where the piece matrix tells us to
 		// or where the distortioncenterpos tells us to
 		
-
 		// Place the box in the world
 		worldPos.xyz += distortionCenterPosition;
 		
-		
+		// Copy the parameters to the fragment shader varyings and place the vertex
 		v_worldPosRad2.xyz = (placeInWorldMatrix * vec4(v_worldPosRad2.xyz, 1.0)).xyz;;
 		v_worldPosRad.xyz = (placeInWorldMatrix * vec4(distortionCenterPosition.xyz, 1.0)).xyz;
 		v_worldPosRad.xyz += (v_worldPosRad2.xyz - v_worldPosRad.xyz) * 0.5;
@@ -250,12 +228,11 @@ void main()
 	}
 	#line 12000
 	else if (pointbeamcone > 1.5){ // cone
-		// input cone that has pointy end up, (y = 1), with radius =1, flat on Y=0 plane
-		// make it so that cone tip is at 0 and the opening points to -y
+		// Input cone that has pointy end up, (y = 1), with radius =1, flat on Y=0 plane
+		// Make it so that cone tip is at 0 and the opening points to -y
 		worldPos.xyz = position.xyz;
 		worldPos.x *= -1.0; // flip the cone inside out
 		worldPos.y = (worldPos.y*1.1 - 1.) * -1;
-		//worldPos.y *= 1;
 	
 		worldPos.xz *= tan(worldposrad2.w); // Scale the flat of the cone by the half-angle of its opening
 		v_worldPosRad2.w = cos(worldposrad2.w); // pass through the cosine to avoid this calc later on
@@ -282,12 +259,9 @@ void main()
 				newright 
 			);
 			
-	
-		
 		// rotate the cone, and place it into local space
 		worldPos.xyz = rotmat * worldPos.xyz + distortionCenterPosition;
 
-		
 		// move the cone into piece or world space:
 		worldPos.xyz = (placeInWorldMatrix * vec4(worldPos.xyz, 1.0)).xyz;
 		
@@ -300,9 +274,10 @@ void main()
 		vertexPosition =  worldPos;
 	}
 	#line 13000
-	// Get the heightmap and the normal map at the center position of the distortion in v_worldPosRad.xyz
 	
 	//-------------------------- BEGIN SHARED SECTION ---------------------
+	// This section is shared between all distortion shapes
+
 	if (effectType == 11){
 		v_worldPosRad2 = uni[instData.y].speed;
 	}
@@ -330,17 +305,22 @@ void main()
 		// If a lifeParams.w decay is specified, then 
 		// >1 : how many frames to linearly decay to zero
 		// 0< z <1: use a power curve with exponent Z to decay
-		if (DECAY > 1) v_baseparams.r *= clamp((lifetime - elapsedframes) / DECAY, 0.0, 1.0);
-		//else v_baseparams.r *= pow(clamp((lifetime - elapsedframes) / DECAY, 0.0, 1.0), DECAY);
-
-
+		if (DECAY > 0.0){
+			if (DECAY > 1) {
+				// How much life it still has left:
+				float decayfraction = (lifetime - elapsedframes) / DECAY;
+				v_baseparams.r *= clamp(decayfraction, 0.0, 1.0);
+			}
+			else {
+				float lifeFraction = (lifetime - elapsedframes) / lifetime;
+				v_baseparams.r *= clamp(pow(lifeFraction, 10.0 * DECAY),0.0, 1.0);
+			}
+		}
 	}
+
+	// pass everything else on to fragment shader varyings
 	v_universalParams = universalParams;
 	v_effectParams = effectParams;
 	gl_Position = cameraViewProj * vertexPosition;
 	v_screenUV = SNORM2NORM(gl_Position.xy / gl_Position.w);
-	
-	// pass everything on to fragment shader:
-
-	
 }

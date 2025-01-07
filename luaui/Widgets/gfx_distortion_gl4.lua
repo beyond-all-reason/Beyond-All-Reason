@@ -1034,11 +1034,10 @@ end
 
 ------------------------------- Drawing all the distortions ---------------------------------
 
+local hasAtLeastOneDistortion = false
 
 local function DrawDistortionFunction2(gf) -- For render-to-texture
-	--Spring.Echo("DrawDistortionFunction2 HELLO", gf)
-	gl.Clear(GL.COLOR_BUFFER_BIT, 0.5, 0.5, 0.5, 1.0)
-	if pointDistortionVBO.usedElements > 0 or
+	if  pointDistortionVBO.usedElements > 0 or
 		unitPointDistortionVBO.usedElements > 0 or
 		beamDistortionVBO.usedElements > 0 or
 		unitConeDistortionVBO.usedElements > 0 or
@@ -1046,15 +1045,20 @@ local function DrawDistortionFunction2(gf) -- For render-to-texture
 		projectilePointDistortionVBO.usedElements > 0 or 
 		projectileBeamDistortionVBO.usedElements > 0 or 
 		projectileConeDistortionVBO.usedElements > 0 then
+		hasAtLeastOneDistortion = true
+		-- Set is as black with zero alpha
+		gl.Clear(GL.COLOR_BUFFER_BIT, 0.0, 0.0, 0.0, 0.0)
 
 		local alt, ctrl = Spring.GetModKeyState()
-		local devui = (Spring.GetConfigInt('DevUI', 0) == 1)
 
-		if autoupdate and ctrl and (isSinglePlayer or spec) and devui then
-			glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-		else
-			glBlending(GL.SRC_ALPHA, GL.ONE)
-		end
+		--if autoupdate and ctrl and (isSinglePlayer or spec) and (Spring.GetConfigInt('DevUI', 0) == 1) then
+		--	glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+		--else
+		--end
+		-- So we are gonna multiply each effect with its own alpha, and then add them together on the destination
+		-- This means we also will be ignoring the destination alpha channel. 
+		-- The default blending function is GL_FUNC_ADD
+		glBlending(GL.SRC_ALPHA, GL.ONE)
 		--if autoupdate and alt and (isSinglePlayer or spec) and devui then return end
 
 		glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
@@ -1120,6 +1124,8 @@ local function DrawDistortionFunction2(gf) -- For render-to-texture
 		gl.DepthTest(true)
 		--gl.DepthMask(true) --"BK OpenGL state resets", was true but now commented out (redundant set of false states)
 		glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	else
+		hasAtLeastOneDistortion = false
 	end
 end
 
@@ -1141,7 +1147,7 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 	--Spring.Echo("RenderToTexture(DistortionTexture, DrawDistortionFunction2")
 	gl.RenderToTexture(DistortionTexture, DrawDistortionFunction2, Spring.GetGameFrame())
 	--tracy.ZoneEnd()
-	
+	if not hasAtLeastOneDistortion then return end
 
 	tracy.ZoneBeginN("CombineDistortion")
 	-- Combine the distortion with the scene:
