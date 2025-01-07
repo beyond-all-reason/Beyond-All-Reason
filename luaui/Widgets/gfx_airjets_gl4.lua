@@ -386,9 +386,10 @@ local effectDefs = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 25, piece = "flarebr", emitVector = { 0, 1, 0 }, light = 0.6 },
 	},
 	["legphoenix"] = {
-		{ color = { 0.8, 0.7, 0.2 }, width = 4, length = 30, piece = "lthrust", light = 1 },
-		{ color = { 0.8, 0.7, 0.2 }, width = 5, length = 40, piece = "mthrust", light = 1 },
-		{ color = { 0.8, 0.7, 0.2 }, width = 4, length = 30, piece = "rthrust", light = 1 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 5, length = 36, piece = "rthrust", emitVector = { 0, 1, 0 }, light = 0.6 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 5, length = 36, piece = "rrthrust", emitVector = { 0, 1, 0 }, light = 0.6 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 5, length = 36, piece = "lthrust", emitVector = { 0, 1, 0 }, light = 0.6 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 5, length = 36, piece = "llthrust", emitVector = { 0, 1, 0 }, light = 0.6 },
 	},
 	-- construction
 	["armca"] = {
