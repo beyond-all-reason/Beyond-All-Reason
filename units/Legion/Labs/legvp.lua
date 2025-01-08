@@ -9,14 +9,14 @@ return {
 		buildpic = "LEGVP.DDS",
 		buildtime = 7200,
 		canmove = true,
-		collisionvolumeoffsets = "3 15 2",
+		collisionvolumeoffsets = "0 -5 0",
 		collisionvolumescales = "101 40 106",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		energystorage = 100,
 		explodeas = "largeBuildingexplosiongeneric",
-		footprintx = 7,
-		footprintz = 7,
+		footprintx = 6,
+		footprintz = 6,
 		idleautoheal = 5,
 		idletime = 1800,
 		levelground = false,
@@ -32,7 +32,20 @@ return {
 		sightdistance = 279,
 		terraformspeed = 500,
 		workertime = 100,
-		yardmap = "ooooooo ooooooo ooooooo oocccoo oocccoo oocccoo oocccoo",
+		yardmap = [[h
+    oo oo oo oo oo oo
+    oo oo oo oo oo oo
+    oo oo oo oo oo oo
+    oo oo oo oo oo oo
+    oc cc cc cc oo oo
+    oc cc cc cc oo oo
+    oc cc cc cc oo oo
+    oc cc cc cc oo oo
+    oc cc cc cc oo oo
+    oc cc cc cc oo oo
+    oc cc cc cc oo oo
+    oc cc cc cc oo oo
+    ]],
 		buildoptions = {
 			[1] = "legscout",
 			[2] = "legcv",
@@ -65,8 +78,8 @@ return {
 				collisionvolumetype = "BOX",
 				damage = 1590,
 				featuredead = "HEAP",
-				footprintx = 7,
-				footprintz = 7,
+				footprintx = 6,
+				footprintz = 6,
 				height = 20,
 				metal = 470,
 				object = "Units/legvp_dead.s3o",
@@ -76,8 +89,8 @@ return {
 				blocking = false,
 				category = "heaps",
 				damage = 795,
-				footprintx = 7,
-				footprintz = 7,
+				footprintx = 6,
+				footprintz = 6,
 				height = 4,
 				metal = 188,
 				object = "Units/cor7X7B.s3o",
