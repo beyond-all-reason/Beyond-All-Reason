@@ -5,7 +5,7 @@
 
 #define SIG_BUILD		4	
 
-piece  base,doorlf, doorlb, doorrf, doorrb, nano, turret, ground, wake1, wake2;
+piece  base,doorlf, doorlb, doorrf, doorrb, nano, turret, ground, wake1, wake2, cagelight, cagelight_emit;
 
 static-var  statechg_DesiredState, statechg_StateChanging,
 			notBuilding, oldHead;
@@ -191,6 +191,7 @@ Create()
 	hide wake1;
 	hide nano;
 	hide ground;
+	hide cagelight_emit;
 	notBuilding = 1;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
@@ -216,6 +217,8 @@ StartBuilding(heading, pitch)
 	turn turret to y-axis heading speed <160.000000>;
 	wait-for-turn turret around y-axis;
 	set INBUILDSTANCE to 1;
+	show cagelight_emit;
+	spin cagelight around y-axis speed <150> accelerate <3>;
 }
 
 StopBuilding()
@@ -223,7 +226,10 @@ StopBuilding()
 	hide nano;
 	signal SIG_BUILD;	
 	set-signal-mask SIG_BUILD;
-	sleep 6000;
+	stop-spin cagelight around y-axis decelerate <5>;
+	sleep 1000;
+	hide cagelight_emit;
+	sleep 5000;
 	set-signal-mask 0;
 	signal SIG_BUILD;	
 	start-script RequestState(1);
