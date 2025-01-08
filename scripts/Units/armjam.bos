@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, eye, blwheel, blthigh, blleg, flwheel, flthigh, flleg, brwheel, brthigh, brleg, frwheel, frthigh, frleg;
+piece  base, eye, blwheel, blthigh, blleg, flwheel, flthigh, flleg, brwheel, brthigh, brleg, frwheel, frthigh, frleg, jam;
 
 static-var  Static_Var_1, turnClock, turnCounter, wheelSpeed, currentSpeed, moveSpeed;
 
@@ -114,7 +114,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 Create()
 {
-
+	hide jam;
 	start-script SmokeUnit();
 	Static_Var_1 = 0;
 	recently_damaged = 0;
@@ -128,6 +128,7 @@ Activate()
 	signal SIG_ACTIVATE;
 	set-signal-mask SIG_ACTIVATE;
 	desired_activation = 1;
+	show jam;
 	// if we are in this function, the unit is already on
 	// implied set ACTIVATION to 1;
 	// turn off if unit is in the recently_damaged state
@@ -160,6 +161,7 @@ Deactivate()
 	// unit_paralyze_on_off deactivates this unit before it is 
 	// stunned, so it is actually turned off, but we need to wait to see if the
 	// unit is "damaged" by stun.
+	hide jam;
 	sleep 100;
 	if (recently_damaged == 0)
 	{

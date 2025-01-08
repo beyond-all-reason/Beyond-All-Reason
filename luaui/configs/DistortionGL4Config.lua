@@ -658,6 +658,18 @@ local unitDistortions = {
 		},
 	},
 
+	['armamex'] = {
+		cloakbeam = {
+			distortionType = 'beam',
+			pieceName = 'base',
+			distortionConfig = { posx = 0, posy = 34, posz = 0.01, radius = 20,
+							pos2x = 0, pos2y = 35, pos2z = 0,
+							windAffected = -1, riseRate = -0.5,
+							noiseStrength = 2, noiseScaleSpace = 1, distanceFalloff = 0.25, onlyModelMap = -1,
+							lifeTime = 0,  effectType = 0},
+		},
+	},
+
 	['armspy'] = {
 		spycloakbeam = {
 			distortionType = 'beam',
@@ -680,8 +692,41 @@ local unitDistortions = {
 		-- },
 		jamdistortion = {
 			distortionType = 'point',
-			pieceName = 'none',
-			distortionConfig = { posx = 0, posy = 80, posz = 0, radius = 18,
+			pieceName = 'jam',
+			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 18,
+							noiseStrength = 10, noiseScaleSpace = 0.4, distanceFalloff = 1.5,
+							windAffected = -1,
+							lifeTime = 0,  effectType = 0},
+		},
+	}, 
+
+	['armjam'] = {
+		jamdistortion = {
+			distortionType = 'point',
+			pieceName = 'jam',
+			distortionConfig = { posx = 0, posy = -12, posz = 0, radius = 10,
+							noiseStrength = 20, noiseScaleSpace = 0.4, distanceFalloff = 1.5,
+							windAffected = -1,
+							lifeTime = 0,  effectType = 0},
+		},
+	},
+
+	['coreter'] = {
+		jamdistortion = {
+			distortionType = 'point',
+			pieceName = 'jam',
+			distortionConfig = { posx = 0, posy = 0, posz = -3, radius = 11,
+							noiseStrength = 10, noiseScaleSpace = 0.4, distanceFalloff = 1.2,
+							windAffected = -1,
+							lifeTime = 0,  effectType = 0},
+		},
+	},
+
+	['corshroud'] = {
+		jamdistortion = {
+			distortionType = 'point',
+			pieceName = 'jam',
+			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 18,
 							noiseStrength = 10, noiseScaleSpace = 0.4, distanceFalloff = 1.5,
 							windAffected = -1,
 							lifeTime = 0,  effectType = 0},
@@ -830,8 +875,8 @@ local unitDistortions = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'emit',
-			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 30,
-			noiseStrength = 1, noiseScaleSpace = 2, distanceFalloff = 2.0,
+			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 37,
+			noiseStrength = 1, noiseScaleSpace = 2, distanceFalloff = 1.2,
 							--riseRate = 2, windAffected = -1,
 							--decay = 3.5,
 							lifeTime = 0,  effectType = 0},
@@ -854,6 +899,13 @@ local unitDistortions = {
 							windAffected = -0.5,
 							lifeTime = 0,  effectType = 0},
 		},
+		-- cloakblob = {
+		-- 	distortionType = 'point',
+		-- 	pieceName = 'turret',
+		-- 	distortionConfig = { posx = 0, posy = 24, posz = -5, radius = 14,
+		-- 					lifeTime = 0,  
+		-- 					magnificationRate = 1.5, effectType = "magnifier"}, 
+		-- },
 		shielddistortion = {
 			distortionType = 'point',
 			pieceName = 'base',
@@ -904,8 +956,8 @@ local unitDistortions = {
 	['corjamt'] = {
 		distortion = {
 			distortionType = 'point',
-			pieceName = 'none',
-			distortionConfig = { posx = 0, posy = 46, posz = 0, radius = 12,
+			pieceName = 'jam',
+			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 12,
 							noiseStrength = 10, noiseScaleSpace = 0.4, distanceFalloff = 1.5,
 							windAffected = -1,
 							lifeTime = 0,  effectType = 0},
@@ -920,6 +972,65 @@ local unitDistortions = {
 							noiseStrength = 10, noiseScaleSpace = 0.4, distanceFalloff = 1.5,
 							windAffected = -1, riseRate = -0.5,
 							lifeTime = 0,  effectType = 0},
+		},
+	},
+
+	['corsjam'] = {
+		distortionbeam = {
+			distortionType = 'beam',
+			pieceName = 'jam',
+			distortionConfig = { posx = 0, posy = 0, posz = -4, radius = 4.5,
+								pos2x = 0, pos2y = 0, pos2z = 4, 
+								noiseStrength = 10, noiseScaleSpace = 0.4, distanceFalloff = 1.5,
+								windAffected = -1,
+								lifeTime = 0,  effectType = 0},
+		},
+	},
+
+	['cormando'] = {
+		distortionbeam = {
+			distortionType = 'beam',
+			pieceName = 'turret',
+			distortionConfig = { posx = 0, posy = 7, posz = 0, radius = 3.5,
+								pos2x = 0, pos2y = 6, pos2z = 0.1, 
+								noiseStrength = 2, noiseScaleSpace = -1.8, distanceFalloff = 1.5,
+								windAffected = -1,
+								lifeTime = 0,  effectType = 0},
+		},
+		cloakblob = {
+			distortionType = 'point',
+			pieceName = 'turret',
+			distortionConfig = { posx = 0, posy = 6.5, posz = 0, radius = 3,
+							lifeTime = 0,  
+							magnificationRate = 1.2, effectType = "magnifier"}, 
+		},
+		-- magnifier = {
+		-- 	distortionType = 'point',
+		-- 	pieceName = 'turret',
+		-- 	distortionConfig = { posx = -8, posy = 10, posz = -3, radius = 4,
+		-- 					lifeTime = 0,  
+		-- 					magnificationRate = 4.0, effectType = "magnifier"}, 
+		-- },
+	},
+
+	['armsjam'] = {
+		distortionbeam1 = {
+			distortionType = 'beam',
+			pieceName = 'jam',
+			distortionConfig = { posx = 0, posy = 0, posz = -15, radius = 4.5,
+								pos2x = 0, pos2y = 0, pos2z = -22, 
+								noiseStrength = 10, noiseScaleSpace = 0.4, distanceFalloff = 1.5,
+								windAffected = -1,
+								lifeTime = 0,  effectType = 0},
+		},
+		distortionbeam2 = {
+			distortionType = 'beam',
+			pieceName = 'jam',
+			distortionConfig = { posx = 0, posy = 0, posz = 15, radius = 4.5,
+								pos2x = 0, pos2y = 0, pos2z = 22, 
+								noiseStrength = 10, noiseScaleSpace = 0.4, distanceFalloff = 1.5,
+								windAffected = -1,
+								lifeTime = 0,  effectType = 0},
 		},
 	},
 
