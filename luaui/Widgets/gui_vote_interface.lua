@@ -10,6 +10,8 @@ function widget:GetInfo()
 	}
 end
 
+local L_DEPRECATED = LOG.DEPRECATED
+
 local titlecolor = "\255\190\190\190"
 
 -- dont show vote buttons for specs when containing the following keywords (use lowercase)
@@ -374,7 +376,7 @@ local function colourNames(teamID)
 end
 
 function widget:AddConsoleLine(lines, priority)
-
+	if priority and priority == L_DEPRECATED then return end
 	if not WG['rejoin'] or not WG['rejoin'].showingRejoining() then
 
 		lines = lines:match('^%[f=[0-9]+%] (.*)$') or lines
