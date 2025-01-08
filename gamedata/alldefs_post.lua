@@ -1493,7 +1493,12 @@ function WeaponDef_Post(name, wDef)
 			end
 		end
 
+		--Shields Rework
 		if modOptions.shieldsrework == true then
+			-- To compensate for always taking full damage from projectiles in contrast to bounce-style only taking partial
+			local shieldRechargeRateMultiplier = 2.5
+			local shieldRechargeCostMultiplier = 1
+
 			-- For balance, paralyzers need to do reduced damage to shields, as their raw raw damage is outsized
 			local paralyzerShieldDamageMultiplier = 0.25
 
@@ -1533,8 +1538,12 @@ function WeaponDef_Post(name, wDef)
 			end
 
 			if wDef.shield then
-				wDef.shield.repulser = false
 				wDef.shield.exterior = true
+				if wDef.shield.repulser == true then --isn't an evocom
+					wDef.shield.powerregen = wDef.shield.powerregen * shieldRechargeRateMultiplier
+					wDef.shield.powerregenenergy = wDef.shield.powerregenenergy * shieldRechargeCostMultiplier
+				end
+				wDef.shield.repulser = false
 			end
 
 			if ((not wDef.interceptedbyshieldtype or wDef.interceptedbyshieldtype ~= 1) and wDef.weapontype ~= "Cannon") then
