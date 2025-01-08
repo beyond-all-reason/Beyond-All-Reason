@@ -57,7 +57,7 @@ return {
 			buildinggrounddecaldecayspeed = 0.01,
 			unitgroup = 'buildert2',
 			model_author = "ZephyrSkies",
-			normaltex = "unittextures/cor_normal.dds",
+			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Labs",
 			techlevel = 2,
 		},

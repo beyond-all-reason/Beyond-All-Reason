@@ -1,27 +1,98 @@
-
 #include "../recoil_common_includes.h"
 #include "../factories_common.h"
 
-piece  base, 
-		doorA, subdoorA, subdoorAA,
-		doorB, subdoorB, subdoorBB,
-		doorC,
-		gatebackR, nanoarmbackR, nanobackR,
-		gatebackL, nanoarmbackL, nanobackL,
-		gatefrontR, nanoarmfrontR, nanofrontR,
-		gatefrontL, nanoarmfrontL, nanofrontL, 
+piece 	base,
+		buildlightLBase, buildlightL, buildlightRBase, buildlightR, buildlightLPoint, buildlightRPoint,
+		cannisterLight, cannisterLight2, cannisterLight3, pipeLight1, pipeLight2, smokePoint,
+		doorA, platformA1, paltformA2,
+		doorB, platformB1, platformB2,
+		doorC, platformC1, platformC2,
+		doorD,
+		gateL1, nanoarmL1, nanoL1,
+		gateL2, nanoarmL2, nanoL2,
+		gateL3, nanoarmL3, nanoL3,
+		gateR1, nanoarmR1, nanoR1,
+		gateR2, nanoarmR2, nanoR2,
+		gateR3, nanoarmR3, nanoR3,
+		sprayL1A, sprayL2A, sprayL3A, sprayR1A, sprayR2A, sprayR3A,
+		sprayL1B, sprayL2B, sprayL3B, sprayR1B, sprayR2B, sprayR3B,
 		pad;
 
-static-var  spray;
+static-var  spray, issmoking;
 
 // Signal definitions
 #define SIGNAL_BUILD 2
 #define SIGNAL_TURNON 4
 
+SmokeItUp()
+{	while (TRUE) {
+		emit-sfx 258 from smokePoint;
+		sleep 45;
+		emit-sfx 258 from smokePoint;
+		sleep 500;
+}
+
+}
 
 Create()
 {
+	hide buildlightLPoint;
+	hide buildlightRPoint;
+	hide cannisterLight;
+	hide cannisterLight2;
+	hide cannisterLight3;
+	hide pipeLight1;
+	hide pipeLight2;
+	hide smokePoint;
+
+	hide sprayL1A;
+	hide sprayL1B;
+	hide sprayL2A;
+	hide sprayL2B;
+	hide sprayL3A;
+	hide sprayL3B;
+	hide sprayR1A;
+	hide sprayR1B;
+	hide sprayR2A;
+	hide sprayR2B;
+	hide sprayR3A;
+	hide sprayR3B;
+
+	issmoking = 0;
 	spray = 0;
+	
+	move gateL1 to y-axis [5] now;
+	move gateL2 to y-axis [5] now;
+	move gateL3 to y-axis [5] now;
+
+	move gateR1 to y-axis [5] now;
+	move gateR2 to y-axis [5] now;
+	move gateR3 to y-axis [5] now;
+
+	move doorA to y-axis [-10] now;
+	move doorB to y-axis [-10] now;
+	move doorC to y-axis [-10] now;
+	move doorD to y-axis [-10] now;
+
+	SLEEP_UNTIL_UNITFINISHED;
+
+	move gateR1 to y-axis [0] speed [2.5];
+	move gateL1 to y-axis [0] speed [2.5];
+	move doorA to y-axis [0] speed [5];
+	sleep 100;
+	move gateR2 to y-axis [0] speed [2.5];
+	move gateL2 to y-axis [0] speed [2.5];
+	move doorB to y-axis [0] speed [5];
+	sleep 100;
+	move gateR3 to y-axis [0] speed [2.5];
+	move gateL3 to y-axis [0] speed [2.5];
+	move doorC to y-axis [0] speed [5];
+	sleep 100;
+	move doorD to y-axis [0] speed [5];
+
+
+
+
 }
 
 
@@ -31,53 +102,66 @@ Create()
 
 QueryNanoPiece(pieceIndex)
 {
-	//spray = (spray + 1) % 8;
-	//pieceIndex = nano1 + spray;
+	spray = (spray + 1) % 12;
+	pieceIndex = sprayL1A + spray;
 }
 
 Activate()
 {
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
+
+	move gateL1 to y-axis [15] speed [75];
+	move gateL2 to y-axis [15] speed [75];
+	move gateL3 to y-axis [15] speed [75];
+
+	move gateR1 to y-axis [15] speed [75];
+	move gateR2 to y-axis [15] speed [75];
+	move gateR3 to y-axis [15] speed [75];
+
+	wait-for-move gateR3 along y-axis;
+
+	turn gateR1 to z-axis <-70> speed <200>;
+	turn gateL1 to z-axis <70> speed <200>;
+	sleep 50;
+	turn gateR2 to z-axis <-70> speed <200>;
+	turn gateL2 to z-axis <70> speed <200>;
+	sleep 50;
+	turn gateR3 to z-axis <-70> speed <200>;
+	turn gateL3 to z-axis <70> speed <200>;
+
+	sleep 50;
+
+	move doorA to y-axis [-31] speed [130];
+	sleep 50;
+	move doorB to y-axis [-31] speed [130];
+	sleep 50;
+	move doorC to y-axis [-31] speed [130];
+	sleep 50;
+	move doorD to y-axis [-31] speed [130];
 	
-	// move doorl to x-axis [-27.0] speed [27];
-	// move doorr to x-axis [27.0] speed [27];
-	// wait-for-move doorl along x-axis;
+	wait-for-move doorD along y-axis;
 
-	move gatebackR to y-axis [10] speed [35];
-	move gatebackL to y-axis [10] speed [35];
-	move gatefrontR to y-axis [10] speed [35];
-	move gatefrontL to y-axis [10] speed [35];
+	move platformA1 to z-axis [-6] speed [65];
+	move paltformA2 to z-axis [-6] speed [65];
+	sleep 50;
+	move platformB1 to z-axis [-6] speed [65];
+	move platformB2 to z-axis [-6] speed [65];
+	sleep 50;
+	move platformC1 to z-axis [-6] speed [65];
+	move platformC2 to z-axis [-6] speed [65];
 
-	move doorA to y-axis [-31] speed [93];
-	sleep 100;
-	move doorB to y-axis [-31] speed [93];
-	sleep 100;
-	move doorC to y-axis [-31] speed [93];
-
-	wait-for-move gatebackR along y-axis;
-
-	turn gatefrontR to z-axis <-70> speed <180>;
-	turn gatefrontL to z-axis <70> speed <180>;
-	sleep 100;
-	turn gatebackR to z-axis <-70> speed <180>;
-	turn gatebackL to z-axis <70> speed <180>;
+	wait-for-turn gateL3 around z-axis;
 	
-	wait-for-move doorC along y-axis;
-	move subdoorA to z-axis [-11] speed [55];
-	move subdoorAA to z-axis [-9] speed [45];
-	wait-for-move subdoorAA along z-axis;
-	//sleep 50;
-	move subdoorB to z-axis [-11] speed [55];
-	move subdoorBB to z-axis [-9] speed [45];
-
-	wait-for-turn gatebackL around z-axis;
-	
-	turn nanoarmfrontR to z-axis <120> speed <90>;
-	turn nanoarmbackR to z-axis <120> speed <90>;
-	turn nanoarmfrontL to z-axis <-120> speed <90>;
-	turn nanoarmbackL to z-axis <-120> speed <90>;
-	sleep 100;
+	turn nanoarmR1 to z-axis <60> speed <65>;
+	turn nanoarmL1 to z-axis <-60> speed <65>;
+	sleep 10;
+	turn nanoarmR2 to z-axis <60> speed <65>;
+	turn nanoarmL2 to z-axis <-60> speed <65>;
+	sleep 10;
+	turn nanoarmR3 to z-axis <60> speed <65>;
+	turn nanoarmL3 to z-axis <-60> speed <65>;
+	sleep 50;
 	FACTORY_OPEN_BUILD;
 
 	
@@ -89,10 +173,68 @@ Deactivate()
 	set-signal-mask SIGNAL_TURNON;
 	sleep 5000;
 	
-	// move doorl to x-axis [0.0] speed [24];
-	// move doorr to x-axis [0.0] speed [24];
-	// wait-for-move doorl along x-axis;
-	
+	turn nanoarmR3 to z-axis <0> speed <45>;
+	sleep 25;
+	turn nanoarmL3 to z-axis <0> speed <45>;
+	sleep 25;	
+	turn nanoarmR2 to z-axis <0> speed <45>;
+	sleep 25;
+	turn nanoarmL2 to z-axis <0> speed <45>;
+	sleep 25;
+	turn nanoarmR1 to z-axis <0> speed <45>;
+	sleep 25;
+	turn nanoarmL1 to z-axis <0> speed <45>;
+	sleep 25;
+	wait-for-turn nanoarmL1 around z-axis;
+
+	move platformC1 to z-axis [0] speed [25];
+	sleep 25;
+	move platformC2 to z-axis [0] speed [25];
+	sleep 25;
+	move platformB1 to z-axis [0] speed [25];
+	sleep 25;
+	move platformB2 to z-axis [0] speed [25];
+	sleep 25;
+	move platformA1 to z-axis [0] speed [25];
+	sleep 25;
+	move paltformA2 to z-axis [0] speed [25];
+	sleep 25;
+	wait-for-move paltformA2 along z-axis;
+
+	move doorD to y-axis [0] speed [40];
+	sleep 50;
+	move doorC to y-axis [0] speed [40];
+	sleep 50;
+	move doorB to y-axis [0] speed [40];
+	sleep 50;
+	move doorA to y-axis [0] speed [40];
+	//wait-for-move doorA along y-axis;
+
+	turn gateR1 to z-axis <0> speed <90>;
+	turn gateL1 to z-axis <0> speed <90>;
+	sleep 25;
+	turn gateR2 to z-axis <0> speed <90>;
+	turn gateL2 to z-axis <0> speed <90>;
+	sleep 25;
+	turn gateR3 to z-axis <0> speed <90>;
+	turn gateL3 to z-axis <0> speed <90>;
+	wait-for-turn gateL3 around z-axis;
+
+	move gateL1 to y-axis [0] speed [15];
+	sleep 25;
+	move gateL2 to y-axis [0] speed [15];
+	sleep 25;
+	move gateL3 to y-axis [0] speed [15];
+	sleep 25;
+	move gateR1 to y-axis [0] speed [15];
+	sleep 25;
+	move gateR2 to y-axis [0] speed [15];
+	sleep 25;
+	move gateR3 to y-axis [0] speed [15];
+	sleep 25;
+
+
+
 	FACTORY_CLOSE_BUILD;
 }
 
@@ -100,26 +242,30 @@ MoveCranes()
 {
 	while(TRUE)
 	{
-		// turn nanoarmfrontR to z-axis rand(<45>, <120>) speed <30>;
-		// turn nanoarmbackR to z-axis rand(<45>, <120>) speed <30>;
-		// turn nanoarmfrontL to z-axis rand(<-45>, <-120>) speed <30>;
-		// turn nanoarmbackL to z-axis rand(<-45>, <-120>) speed <30>;
-		turn nanoarmfrontR to z-axis <45> speed <30>;
+		turn nanoarmR1 to z-axis <15> speed <20>;
 		sleep 100;
-		turn nanoarmfrontL to z-axis <-45> speed <30>;
+		turn nanoarmL1 to z-axis <-15> speed <20>;
 		sleep 100;
-		turn nanoarmbackR to z-axis <45> speed <30>;
+		turn nanoarmR2 to z-axis <15> speed <20>;
 		sleep 100;
-		turn nanoarmbackL to z-axis <-45> speed <30>;
-		wait-for-turn nanoarmfrontR around z-axis;
-		turn nanoarmfrontR to z-axis <120> speed <30>;
+		turn nanoarmL2 to z-axis <-15> speed <20>;
 		sleep 100;
-		turn nanoarmfrontL to z-axis <-120> speed <30>;
+		turn nanoarmR3 to z-axis <15> speed <20>;
 		sleep 100;
-		turn nanoarmbackR to z-axis <120> speed <30>;
+		turn nanoarmL3 to z-axis <-15> speed <20>;
+		wait-for-turn nanoarmR1 around z-axis;
+		turn nanoarmR1 to z-axis <60> speed <20>;
 		sleep 100;
-		turn nanoarmbackL to z-axis <-120> speed <30>;
-		wait-for-turn nanoarmfrontR around z-axis;
+		turn nanoarmL1 to z-axis <-60> speed <20>;
+		sleep 100;
+		turn nanoarmR2 to z-axis <60> speed <20>;
+		sleep 100;
+		turn nanoarmL2 to z-axis <-60> speed <20>;
+		sleep 100;
+		turn nanoarmR3 to z-axis <60> speed <20>;
+		sleep 100;
+		turn nanoarmL3 to z-axis <-60> speed <20>;
+		wait-for-turn nanoarmR1 around z-axis;
 	}
 }
 
@@ -128,9 +274,10 @@ StartBuilding()
 {
 	signal SIGNAL_BUILD;
 	set-signal-mask SIGNAL_BUILD;
-	wait-for-turn nanoarmfrontR around z-axis;
-	sleep 500;
+	wait-for-turn nanoarmR1 around z-axis;
+	sleep 250;
 	start-script MoveCranes();
+	start-script SmokeItUp();
 }
 
 StopBuilding()
