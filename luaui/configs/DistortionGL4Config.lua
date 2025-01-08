@@ -380,9 +380,9 @@ local unitDistortions = {
 		magnifier = {
 			distortionType = 'point',
 			pieceName = 'base',
-			distortionConfig = { posx = 0, posy = 100, posz = 0, radius = 50,
+			distortionConfig = { posx = 0, posy = 100, posz = 0, radius = 20,
 							lifeTime = 0,  
-							magnificationRate = 4.0, effectType = "magnifier"}, 
+							magnificationRate = -10.0, effectType = "magnifier"}, 
 		},
 	},
 
@@ -414,8 +414,8 @@ local unitDistortions = {
 		thrustdown = {
 			distortionType = 'point',
 			pieceName = 'fan',
-			distortionConfig = { posx = 0, posy = -13, posz = 0, radius = 10,
-							noiseStrength = 0.7, noiseScaleSpace = -1.45, distanceFalloff = 0.5,
+			distortionConfig = { posx = 0, posy = -11, posz = 0, radius = 10,
+							noiseStrength = 0.7, noiseScaleSpace = -1.45, distanceFalloff = 1.2,
 							heatMultiplier = 1.5,
 							riseRate = -6, lifeTime = 0,  effectType = 0},
 		},
@@ -831,11 +831,18 @@ local unitDistortions = {
 			distortionType = 'point',
 			pieceName = 'emit',
 			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 30,
-			noiseStrength = 1, noiseScaleSpace = 2.0, distanceFalloff = 2.0,
-							--riseRate = -2,
+			noiseStrength = 1, noiseScaleSpace = 2, distanceFalloff = 2.0,
+							--riseRate = 2, windAffected = -1,
 							--decay = 3.5,
 							lifeTime = 0,  effectType = 0},
 		},
+		-- magnifier = {
+		-- 	distortionType = 'point',
+		-- 	pieceName = 'emit',
+		-- 	distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 32,
+		-- 					lifeTime = 0,  
+		-- 					magnificationRate = 1.5, effectType = "magnifier"}, 
+		-- },
 	},
 
 	['armgate'] = {

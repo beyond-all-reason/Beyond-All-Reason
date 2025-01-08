@@ -246,8 +246,8 @@ local BaseClasses = {
 	AirShockWaveNuke = {
 		distortionType = 'point', -- or cone or beam
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
-			noiseScaleSpace = 0.5, noiseStrength = 5, onlyModelMap = 0,  
-			lifeTime = 16, refractiveIndex = 40, decay = 4, rampUp = 1,
+			noiseScaleSpace = 0.5, noiseStrength = 2, onlyModelMap = 0,  
+			lifeTime = 16, refractiveIndex = 1.5, decay = 4, rampUp = 1,
 			airShockWaveMultiplier = 20.0, --needed for airshockwaves
 			effectType = "airShockwave", },
 
@@ -256,7 +256,7 @@ local BaseClasses = {
 		distortionType = 'point', -- or cone or beam
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 225,
 			noiseScaleSpace = 2.1, noiseStrength = 5.5, onlyModelMap = 1,  
-			lifeTime = 100, refractiveIndex = 40, decay = 75, rampUp = 40,
+			lifeTime = 100, refractiveIndex = 40, decay = 60, rampUp = 40,
 			airShockWaveMultiplier = 1.0, --needed for airshockwaves
 			effectType = "airShockwave", },
 
@@ -348,7 +348,7 @@ local BaseClasses = {
 			posx = 0, posy = 0, posz = 0, radius = 10, 
 			noiseStrength = 50, noiseScaleSpace = 0.04, distanceFalloff = 0.5, onlyModelMap = 0,
 			windAffected = -1,  riseRate = -0.5,
-			lifeTime = 80, rampUp = 10, decay = 80, effectType = 0, -- unused
+			lifeTime = 80, rampUp = 10, decay = 70, effectType = 0, -- unused
 		},
 	},
 	ExplosionRadiationNuke = { -- spawned on explosions
@@ -870,7 +870,7 @@ explosionDistortionsNames['armjuno_juno_pulse'] = {
 	}),
 	GetDistortionClass("ExplosionHeat", "Juno", {
 		noiseStrength = -1.5, noiseScaleSpace = 0.95, distanceFalloff = -0.05,
-		heatMultiplier = 1.0, -- don't use, doesn't fade out correct
+		heatMultiplier = 3.0, -- don't use, doesn't fade out correct
 		windAffected = -1, riseRate = 9,
 		lifeTime = 900, rampUp = 100, decay = 150, onlyModelMap = 1,
 	}),
@@ -1091,11 +1091,12 @@ explosionDistortionsNames['armsilo_nuclear_missile'] = {
 }
 
 explosionDistortionsNames['armguardnuke_plasma'] = {
-	GetDistortionClass("ExplosionHeatNuke", "Larger"),
+	--GetDistortionClass("ExplosionHeatNuke", "Larger"),
+	GetDistortionClass("AirShockWaveNuke", "MegaXL"),
 	--GetDistortionClass("ExplosionRadiationNuke", "Larger"),
 	GetDistortionClass("GroundShockWaveNuke", "Giga"),
 	GetDistortionClass("AirShockWaveNukeBlast", "MegaXXL"),
-	GetDistortionClass("AirShockWaveNuke", "MegaXL"),
+	
 }
 projectileDefDistortionsNames["armguardnuke_plasma"] =
 	GetDistortionClass("MissileNukeProjectile", "Large")

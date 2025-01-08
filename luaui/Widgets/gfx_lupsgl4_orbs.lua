@@ -554,11 +554,11 @@ vec3 LightningOrb2(vec2 vUv, vec3 color) {
     // From here on, continue as you did before:
     vec2 uv = NORM2SNORM(vUv);
 
-    float violence = (0.8 - modelPos_vs.w);
-    const float strength = 0.06 + 0.1 * violence;
-    const float dx = 0.325;
+    float violence = (1 - modelPos_vs.w);
+    const float strength = 0.08 + 0.4 * violence;
+    const float dx = 0.225;
 
-    float t = 0.0;
+    float t = 0.1;
     for (int k = -4; k < 3; ++k) {
         vec2 thisUV = uv;
         thisUV.x -= dx * float(k);
@@ -566,7 +566,7 @@ vec3 LightningOrb2(vec2 vUv, vec3 color) {
         vec2 fbmUV = vec2(thisUV.x * 1.0 + time, thisUV.y + 0.3 * time);
 
         // Your fract()-free or tiled/noise logic remains the same here:
-        t += abs(strength / (thisUV.x + (2.0 * Fbm12(fbmUV) - 0.9)));
+        t += abs(strength / (thisUV.x + (3.0 * Fbm12(fbmUV) - 1.9)));
     }
 
     return color * t;
