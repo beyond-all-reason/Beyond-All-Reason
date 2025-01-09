@@ -81,7 +81,7 @@ function widget:DrawScreen()
 	local screenmodeChanged = newScreenmode ~= screenmode
 	screenmode = newScreenmode
 
-	if (screenmode ~= 'normal' and screenmode ~= 'los') or st.name == 'ov' then
+	if WG.metalView or (screenmode ~= 'normal' and screenmode ~= 'los') or st.name == 'ov' then
 		if (screenmodeChanged) then updateKeys() end
 
 		local description, title = '', ''
@@ -98,7 +98,7 @@ function widget:DrawScreen()
 		elseif screenmode == 'pathTraversability' then
 			title = i18n('ui.screenMode.pathingTitle')
 			description = i18n('ui.screenMode.pathing', { keyset = pathKey })
-		elseif screenmode == 'metal' then
+		elseif WG.metalView then
 			title = i18n('ui.screenMode.resourcesTitle')
 			description = i18n('ui.screenMode.resources', { keyset = metalKey })
 		end
