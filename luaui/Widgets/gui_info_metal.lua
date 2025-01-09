@@ -61,7 +61,11 @@ local viewEnabled = false
 
 local function ShowInfoMetal(cmd, line, words, playerID)
 	if #words > 0 then
-		viewEnabled = (words[1] == '1')
+		local enabled = (words[1] == '1')
+
+		if enabled == viewEnabled then return end
+
+		viewEnabled = enabled
 	else
 		viewEnabled = not viewEnabled
 	end
@@ -72,9 +76,11 @@ local function ShowInfoMetal(cmd, line, words, playerID)
 			widgetHandler:RemoveCallIn(callinName)
 		end
 	end
+	WG.metalView = viewEnabled
 end
 
 function widget:Initialize()
+	WG.metalView = false
 	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
 		widgetHandler:RemoveWidget()
 		return
