@@ -172,30 +172,6 @@ function widget:CommandNotify(id, params, options)
 end
 
 
--- Adjust map view mode as needed
-function widget:Update(dt)
-	local _, cmd, _ = spGetActiveCommand()
-	if cmd == CMD_AREA_MEX then
-		if spGetMapDrawMode() ~= 'metal' then
-			if Spring.GetMapDrawMode() == "los" then
-				retoggleLos = true
-			end
-			spSendCommands('ShowMetalMap')
-			toggledMetal = true
-		end
-	else
-		if toggledMetal then
-			spSendCommands('ShowStandard')
-			if retoggleLos then
-				Spring.SendCommands("togglelos")
-				retoggleLos = nil
-			end
-			toggledMetal = false
-		end
-	end
-end
-
-
 function widget:SelectionChanged(sel)
 	selectedUnits = sel
 end
