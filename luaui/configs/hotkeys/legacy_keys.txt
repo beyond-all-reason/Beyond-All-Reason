@@ -92,7 +92,7 @@ bind Ctrl+f5 viewfree
 bind Any+f1 ShowElevation
 bind Any+f2 ShowPathTraversability
 bind Any+f3 LastMsgPos
-bind Any+f4 ShowMetalMap
+bind Any+f4 showinfometal
 bind Any+f5 HideInterface
 bind Any+f6 MuteSound
 bind Any+f7 DynamicSky

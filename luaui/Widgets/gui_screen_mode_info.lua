@@ -52,7 +52,7 @@ end
 local function updateKeys()
 	currentLayout = spGetConfigString("KeyboardLayout", "qwerty")
 	screenModeOverviewTable.keyset = getActionHotkey("toggleoverview")
-	metalKey = getActionHotkey("showmetalmap")
+	metalKey = getActionHotkey("showinfometal")
 	heightKey = getActionHotkey("showelevation")
 	pathKey = getActionHotkey("showpathtraversability")
 end
