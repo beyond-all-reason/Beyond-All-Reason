@@ -9,7 +9,7 @@ return {
 		buildpic = "LEGAVP.DDS",
 		buildtime = 18500,
 		canmove = true,
-		collisionvolumeoffsets = "0 8 0",
+		collisionvolumeoffsets = "0 0 5",
 		collisionvolumescales = "144 70 144",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
@@ -65,8 +65,8 @@ return {
 			dead = {
 				blocking = true,
 				category = "corpses",
-				collisionvolumeoffsets = "0 -6 0",
-				collisionvolumescales = "124 30 104",
+				collisionvolumeoffsets = "0 0 5",
+				collisionvolumescales = "144 70 144",
 				collisionvolumetype = "Box",
 				damage = 2777,
 				featuredead = "HEAP",
@@ -74,7 +74,7 @@ return {
 				footprintz = 6,
 				height = 20,
 				metal = 1721,
-				object = "Units/coravp_dead.s3o",
+				object = "Units/legavp_dead.s3o",
 				reclaimable = true,
 			},
 			heap = {
