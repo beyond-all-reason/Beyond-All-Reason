@@ -52,6 +52,22 @@ local shaderSourceCache =  {
     },
 }
 
+local callins = {'DrawWorldPreUnit', 'DrawInMiniMap'}
+if autoreload then
+	callins[#callins+1] = 'DrawScreen'
+end
+
+local function ShowInfoMetal(cmd, line, words, playerID)
+	local enable = (words[1] == '1')
+	for _, callinName in pairs(callins) do
+		if enable then
+			widgetHandler:UpdateCallIn(callinName)
+		else
+			widgetHandler:RemoveCallIn(callinName)
+		end
+	end
+end
+
 function widget:Initialize()
 	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
 		widgetHandler:RemoveWidget()
@@ -62,6 +78,13 @@ function widget:Initialize()
 	if not shaderCompiled then Spring.Echo("Failed to compile Info Metal View GL4") end
 
 	fullScreenQuadVAO = MakeTexRectVAO()--  -1, -1, 1, 0,   0,0,1, 0.5
+
+	widgetHandler:AddAction("showinfometal", ShowInfoMetal, nil, "tp")
+	ShowInfoMetal(nil, nil, "1")
+end
+
+function widget:Shutdown()
+	widgetHandler:RemoveAction("showinfometal")
 end
 
 function DrawInfoMetal(inminimap)
@@ -100,8 +123,6 @@ function widget:DrawInMiniMap()
     DrawInfoMetal(true)
 end
 
-if autoreload then
-    function widget:DrawScreen()
-        if infoMetalShader.DrawPrintf then infoMetalShader.DrawPrintf() end
-    end
+function widget:DrawScreen()
+    if infoMetalShader.DrawPrintf then infoMetalShader.DrawPrintf() end
 end
