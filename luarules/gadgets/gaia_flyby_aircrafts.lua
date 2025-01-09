@@ -151,6 +151,7 @@ local flyByUnits = {
     "corsb",
     "corseap",
     "corsfig",
+    "legatorpbomber",
 }
 
 function gadget:GameFrame(n)

@@ -19,6 +19,7 @@ local Assertions = VFS.Include('common/testing/assertions.lua')
 local TestResults = VFS.Include('common/testing/results.lua')
 local Util = VFS.Include('common/testing/util.lua')
 local Mock = VFS.Include('common/testing/mock.lua')
+local TestExtraUtils = VFS.Include('common/testing/test_extra_utils.lua')
 
 local rpc = VFS.Include('common/testing/rpc.lua'):new()
 
@@ -841,6 +842,11 @@ Test = {
 	end,
 }
 
+-- Add extra utils to Test
+for k, v in pairs(TestExtraUtils.exports) do
+	Test[k] = v
+end
+
 function widget:RecvLuaMsg(msg)
 	if not returnState.waitingForReturnID then
 		return
@@ -871,6 +877,10 @@ end
 
 local function runTestInternal()
 	log(LOG.DEBUG, "[runTestInternal]")
+
+	if testRunState.filesIndex == 1 then
+		TestExtraUtils.startTests()
+	end
 
 	if testModeScenario then
 		local argsOk, argsResult = Util.yieldable_pcall(scenario_arguments)
@@ -936,6 +946,11 @@ local function runTestInternal()
 			log(LOG.DEBUG, "[runTestInternal.restoreWidgets.error]")
 			error(restoreResult, 2)
 		end
+	end
+
+	TestExtraUtils.endTest()
+	if testRunState.filesIndex == #testRunState.files then
+		TestExtraUtils.endTests()
 	end
 
 	if not cleanupOk then
@@ -1320,6 +1335,7 @@ function widget:Initialize()
 		"t"
 	)
 
+	TestExtraUtils.linkActions(self)
 	gameTimer = Spring.GetTimer()
 end
 

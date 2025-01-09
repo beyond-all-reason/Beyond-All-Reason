@@ -144,6 +144,9 @@ return {
 				damage = {
 					default = 0,
 				},
+				customparams = {
+					scavforcecommandfire = true,
+				},
 			},
 			sdmssl = {
 				areaofeffect = 1280,

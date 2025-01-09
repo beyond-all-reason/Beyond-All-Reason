@@ -295,7 +295,7 @@ local LandUnitsList = {
 			--Cortex
 			["corakt4_scav"] = 3,
 			--Legion
-			
+			["legjav_scav"] = 3,
 			--N/A
 		},
 		[7] = {
@@ -400,6 +400,7 @@ local LandUnitsList = {
 			["corgolt4_scav"] = 2,
 			--Legion
 			["leegmech_scav"] = 2,
+			["legerailtank_scav"] = 2,
 		},
 	},
 	Support = {
@@ -1041,6 +1042,8 @@ local AirUnitsList = {
 			["corseap_scav"] = 2,
 			["corcut_scav"] = 2,
 			["cortitan_scav"] = 2,
+
+			["legatorpbomber"] = 2,
 		},
 		[5] = {
 			["armsfig_scav"] = 2,
@@ -1055,6 +1058,8 @@ local AirUnitsList = {
 			["corseap_scav"] = 2,
 			["corcut_scav"] = 2,
 			["cortitan_scav"] = 2,
+			
+			["legatorpbomber"] = 2,
 		},
 		[6] = {
 			["armsfig_scav"] = 2,
@@ -1069,6 +1074,8 @@ local AirUnitsList = {
 			["corseap_scav"] = 2,
 			["corcut_scav"] = 2,
 			["cortitan_scav"] = 2,
+			
+			["legatorpbomber"] = 2,
 		},
 		[7] = {
 			--Armada
@@ -1301,6 +1308,9 @@ local Turrets = {
 		["leggant_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},
 		["armshltxuw_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.1, maxExisting = 1},
 		["corgantuw_scav"] = {type = "normal", surface = "sea", spawnedPerWave = 0.1, maxExisting = 1},
+		--misc
+		["armgatet3_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 2},
+		["corgatet3_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 2},
 	},
 	[7] = {
 		--Epic Bulwark and Pulsar/rag/cal

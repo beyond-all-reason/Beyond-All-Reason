@@ -270,8 +270,7 @@ local function SimpleBuildOrder(cUnitID, building)
 				local refDefID = Spring.GetUnitDefID(buildnear)
 				local isBuilding = UnitDefs[refDefID].isBuilding
 				local isCommander = (UnitDefs[refDefID].name == "armcom" or UnitDefs[refDefID].name == "corcom")
-				local isExtractor = UnitDefs[refDefID].extractsMetal > 0
-				if (isBuilding or isCommander) then-- and not isExtractor then
+				if (isBuilding or isCommander) then
 					local refx, refy, refz = Spring.GetUnitPosition(buildnear)
 					local reffootx = UnitDefs[refDefID].xsize * 8
 					local reffootz = UnitDefs[refDefID].zsize * 8
@@ -314,7 +313,7 @@ local function SimpleBuildOrder(cUnitID, building)
 	--Spring.Echo("SBO",cUnitID, numtests, searchRange/300)
 end
 
-local function SimpleConstructionProjectSelection(unitID, unitDefID, unitName, unitTeam, allyTeamID, units, allunits, type)
+local function SimpleConstructionProjectSelection(unitID, unitDefID, unitTeam, units, type)
 
 	--tracy.ZoneBeginN("SimpleAI:SimpleConstructionProjectSelection")
 	local success = false
@@ -323,7 +322,6 @@ local function SimpleConstructionProjectSelection(unitID, unitDefID, unitName, u
 	local ecurrent, estorage, _, eincome, eexpense = Spring.GetTeamResources(unitTeam, "energy")
 	local unitposx, unitposy, unitposz = Spring.GetUnitPosition(unitID)
 
-	local unitCommands = Spring.GetCommandQueue(unitID, 0)
 	--local buildOptions = UnitDefs[unitDefID].buildOptions
 	local buildOptions = BuildOptions[unitDefID]
 	-- Builders
@@ -484,6 +482,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:GameFrame(n)
 		if n % 15 == 0 then
+			local allunits -- will lazy load later if needed
 			for i = 1, SimpleAITeamIDsCount do
 				if n%(15*SimpleAITeamIDsCount) == 15*(i-1) then
 					--tracy.ZoneBeginN("SimpleAI:GameFrame")
@@ -504,11 +503,9 @@ if gadgetHandler:IsSyncedCode() then
 					end
 
 					local units = Spring.GetTeamUnits(teamID)
-					local allunits = Spring.GetAllUnits()
 					for k = 1, #units do
 						local unitID = units[k]
 						local unitDefID = Spring.GetUnitDefID(unitID)
-						local unitName = UnitDefs[unitDefID].name
 						local unitTeam = teamID
 						local unitHealth, unitMaxHealth, _, _, _ = Spring.GetUnitHealth(unitID)
 						local unitCommands = Spring.GetCommandQueue(unitID, 0)
@@ -571,18 +568,17 @@ if gadgetHandler:IsSyncedCode() then
 						end
 
 						if unitCommands == 0 then
-
 							if SimpleConstructorDefs[unitDefID] then
-								SimpleConstructionProjectSelection(unitID, unitDefID, unitName, unitTeam, allyTeamID, units, allunits, "Builder")
+								SimpleConstructionProjectSelection(unitID, unitDefID, unitTeam, units, "Builder")
 							end
 
 
 							if SimpleCommanderDefs[unitDefID] then
-								SimpleConstructionProjectSelection(unitID, unitDefID, unitName, unitTeam, allyTeamID, units, allunits, "Commander")
+								SimpleConstructionProjectSelection(unitID, unitDefID, unitTeam, units, "Commander")
 							end
 
 							if SimpleFactoriesDefs[unitDefID] then
-								SimpleConstructionProjectSelection(unitID, unitDefID, unitName, unitTeam, allyTeamID, units, allunits, "Factory")
+								SimpleConstructionProjectSelection(unitID, unitDefID, unitTeam, units, "Factory")
 							end
 
 							-- army
@@ -590,6 +586,7 @@ if gadgetHandler:IsSyncedCode() then
 							if SimpleUndefinedUnitDefs[unitDefID] then
 								local luaAI = Spring.GetTeamLuaAI(teamID)
 								if string.sub(luaAI, 1, 16) == 'SimpleDefenderAI' then
+									allunits = allunits or Spring.GetAllUnits()
 									for t = 1,10 do
 										local targetUnit = allunits[random(1,#allunits)]
 										if Spring.GetUnitAllyTeam(targetUnit) == allyTeamID then
@@ -622,7 +619,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-		local unitName = UnitDefs[unitDefID].name
 		for i = 1, SimpleAITeamIDsCount do
 			if SimpleAITeamIDs[i] == unitTeam then
 				Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{2},0)
@@ -643,7 +639,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-		local unitName = UnitDefs[unitDefID].name
 		for i = 1, SimpleAITeamIDsCount do
 			if SimpleAITeamIDs[i] == unitTeam then
 				if SimpleFactoriesDefs[unitDefID] then
