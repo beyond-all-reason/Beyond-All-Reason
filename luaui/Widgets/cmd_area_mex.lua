@@ -14,7 +14,6 @@ end
 VFS.Include("luarules/configs/customcmds.h.lua")
 
 local spGetActiveCommand = Spring.GetActiveCommand
-local spGetMapDrawMode = Spring.GetMapDrawMode
 local spGetUnitPosition = Spring.GetUnitPosition
 local spSendCommands = Spring.SendCommands
 local taremove = table.remove
