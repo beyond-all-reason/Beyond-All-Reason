@@ -28,7 +28,6 @@ local GetMouseState = Spring.GetMouseState
 local TraceScreenRay = Spring.TraceScreenRay
 local GetGroundInfo = Spring.GetGroundInfo
 local GetGameFrame = Spring.GetGameFrame
-local GetMapDrawMode = Spring.GetMapDrawMode
 
 local glLineWidth = gl.LineWidth
 local glColor = gl.Color
@@ -208,8 +207,7 @@ function widget:DrawScreen()
 	local mexDefInfo
 
 	if GetGameFrame() < 1 then
-		local drawMode = GetMapDrawMode()
-		if drawMode == "metal" then
+		if WG.metalView then
 			mexDefInfo = mexDefInfos[defaultDefID]
 		end
 	else
