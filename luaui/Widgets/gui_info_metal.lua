@@ -62,7 +62,6 @@ local viewEnabled = false
 local function ShowInfoMetal(cmd, line, words, playerID)
 	if #words > 0 then
 		local enabled = (words[1] == '1')
-
 		if enabled == viewEnabled then return end
 
 		viewEnabled = enabled
