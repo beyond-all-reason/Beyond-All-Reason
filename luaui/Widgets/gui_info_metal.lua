@@ -57,10 +57,16 @@ if autoreload then
 	callins[#callins+1] = 'DrawScreen'
 end
 
+local viewEnabled = false
+
 local function ShowInfoMetal(cmd, line, words, playerID)
-	local enable = (words[1] == '1')
+	if #words > 0 then
+		viewEnabled = (words[1] == '1')
+	else
+		viewEnabled = not viewEnabled
+	end
 	for _, callinName in pairs(callins) do
-		if enable then
+		if viewEnabled then
 			widgetHandler:UpdateCallIn(callinName)
 		else
 			widgetHandler:RemoveCallIn(callinName)
@@ -79,7 +85,7 @@ function widget:Initialize()
 
 	fullScreenQuadVAO = MakeTexRectVAO()--  -1, -1, 1, 0,   0,0,1, 0.5
 
-	widgetHandler:AddAction("showinfometal", ShowInfoMetal, nil, "tp")
+	widgetHandler:AddAction("showinfometal", ShowInfoMetal, nil, "t") -- 'p' is coming from somewhere else
 	ShowInfoMetal(nil, nil, "1")
 end
 
