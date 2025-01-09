@@ -8,6 +8,7 @@ on:
 
 permissions: {}
 
+run-name: "Process Tests - ${{ github.event.workflow_run.display_title }}"
 jobs:
   process-test-results:
     name: Process Test Results
