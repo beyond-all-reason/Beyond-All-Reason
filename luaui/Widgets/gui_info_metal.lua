@@ -7,7 +7,8 @@ function widget:GetInfo()
 		date = "2024.12.22",
 		license = "GPL V2",
 		layer = 10001, 
-		enabled = true 
+		enabled = true,
+		depends = {"shaders"},
 	}
 end
 
@@ -80,10 +81,6 @@ end
 
 function widget:Initialize()
 	WG.metalView = false
-	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
-		widgetHandler:RemoveWidget()
-		return
-	end
 	infoMetalShader =  LuaShader.CheckShaderUpdates(shaderSourceCache)
 	shaderCompiled = infoMetalShader:Initialize()
 	if not shaderCompiled then Spring.Echo("Failed to compile Info Metal View GL4") end
