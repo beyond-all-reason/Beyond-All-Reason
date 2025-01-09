@@ -32,7 +32,26 @@ return {
 		sightdistance = 286,
 		terraformspeed = 1000,
 		workertime = 300,
-		yardmap = "ooooooooo ooooooooo ooooooooo oocccccoo oocccccoo oocccccoo oocccccoo oocccccoo oocccccoo",
+		yardmap = [[h
+        oo oo oo oo oo oo oo oo oo
+        oo oo oo oo oo oo oo oo oo
+        oo oo oo oo oo oo oo oo oo
+        oo oo oo oo oo oo oo oo oo
+        oo oo oo oo oo oo oo oo oo
+        oo oo oo oo oo oo oo oo oo
+        oo oo oo oo oo oo oo oo oo
+        oo oo oo oo oo oo oo oo oo
+        oo oo oo oo oo oo oo oo oo
+        oo oo oc cc cc cc co oo oo
+        oo oo oc cc cc cc co oo oo
+        oo oo oc cc cc cc co oo oo
+        oo oo oc cc cc cc co oo oo
+        oo oo oc cc cc cc co oo oo
+        oo oo oc cc cc cc co oo oo
+        oo oo oc cc cc cc co oo oo
+        oo oo oc cc cc cc co oo oo
+        oo oo oc cc cc cc co oo oo
+        ]], 
 		buildoptions = {
 			"legacv",
 			"legmrv",
