@@ -11,7 +11,7 @@ function widget:GetInfo()
 end
 
 local targetEnergy = 600
-local watchForTime = 5
+local watchForTime = 3
 
 ----------------------------------------------------------------
 -- Globals
@@ -23,7 +23,13 @@ local isFactory = {}
 
 local gameStarted
 
-local stallIds = {UnitDefNames['armcom'].id, UnitDefNames['corcom'].id, UnitDefNames['legcom'] and UnitDefNames['legcom'].id}
+--Don't wait these units - they don't build things
+local exceptions = {
+	["armspid"]=true,
+	["armspy"]=true, ["corspy"]=true,
+	["armantiship"]=true, ["corantiship"]=true,
+	["armcarry"]=true, ["corcarry"]=true
+}
 
 ----------------------------------------------------------------
 -- Speedups
@@ -69,7 +75,7 @@ function widget:Initialize()
     end
 
 	for uDefID, uDef in pairs(UnitDefs) do
-		if uDef.buildSpeed > 0 and uDef.canAssist and not uDef.canManualFire then
+		if uDef.buildSpeed > 0 and not uDef.canManualFire and not exceptions[uDef.name] then
 			shouldWait[uDefID] = true
 			if uDef.isFactory then
 				isFactory[uDefID] = true
@@ -85,8 +91,9 @@ function widget:Update(dt)
 		local selection = Spring.GetSelectedUnitsCounts()
 		local stallUnitSelected = false
 
-		for i = 1, #stallIds do
-			if selection[stallIds[i]] then
+		for id, _ in next, selection do
+			local unitdef = UnitDefs[id]
+			if unitdef and unitdef.canManualFire then
 				stallUnitSelected = true
 			end
 		end
