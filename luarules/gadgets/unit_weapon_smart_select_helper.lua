@@ -26,13 +26,15 @@ This may be necessary if the turret's turn speed is so slow it triggers false mi
 ]]
 
 --static
-local frameCheckModulo = Game.gameSpeed
+local frameCheckModulo = Game.gameSpeed -- once per second is sufficient
 local aggroDecayRate = 0.65 --aggro is multiplied by this until it falls within priority aiming state range
 local aggroDecayCap = 10  -- this caps the aggro decay so that misfire state can last a significant amount of time
+local aggroPriorityCap = 10 * aggroDecayCap --The maximum aggro that can be accumulated. This prevents manual targetting from getting stuck in a fire mode for too long.
+local aggroBackupCap = 10 * aggroDecayCap * -1 --Like above, but a negative value because backup is triggered with negative aggro.
 
 --misfire occurs when the weapon thinks it can shoot a target due to faulty Spring.GetUnitWeaponHaveFreeLineOfFire return values. We must detect when this failure occurs and force high for a long duration.
-local misfireMultiplier = Game.gameSpeed * 1.25
-local minimumMisfireFrames = Game.gameSpeed * 4
+local misfireMultiplier = Game.gameSpeed * 1.5
+local minimumMisfireFrames = Game.gameSpeed * 5
 local misfireTallyDecayRate = 0.99 -- the misfire penalty that makes the misfire state last longer the more cumulative times it happens decays at this rate
 local misfireMultiplierAddition = 1 -- every time the misfire happens, it increases by this number. The tally is squared to make each cumulative misfire exponentially more punishing
 local backupMisfireAggro = -300 --how much aggro is given multiplied by the misfireTallyMultiplier^2 when priority weapon fails to fire.
@@ -130,21 +132,30 @@ local function updateAimingState(attackerID)
 	local defData = smartUnitDefs[data.unitDefID]
 
 	-- Get target information for the priority and backup weapons
-	local priorityTargetType, priorityIsUserTarget, priorityTarget = spGetUnitWeaponTarget(attackerID,
-		defData.priorityWeapon)
+	local priorityTargetType, priorityIsUserTarget, priorityTarget = spGetUnitWeaponTarget(attackerID, defData.priorityWeapon)
 	local backupIsUserTarget, backupTarget = select(2, spGetUnitWeaponTarget(attackerID, defData.backupWeapon))
 
 	-- Determine if the priority weapon can shoot the target
 	local priorityCanShoot = false
+	--we store some aspect of the target number to see if it matches last check's target. Used to reset a misfire condition.
+	local newMatchTargetNumber = 0
+
 	if priorityTargetType == UNIT_TARGET then
 		priorityCanShoot = spGetUnitWeaponHaveFreeLineOfFire(attackerID, defData.trajectoryCheckWeapon, priorityTarget)
+		newMatchTargetNumber = priorityTarget
 	elseif priorityTargetType == GROUND_TARGET then
 		priorityCanShoot = spGetUnitWeaponHaveFreeLineOfFire(attackerID, defData.trajectoryCheckWeapon, nil, nil, nil, priorityTarget[1], priorityTarget[2], priorityTarget[3])
+		newMatchTargetNumber = priorityTarget[1]
 	end
 
 	-- prevent misfire from triggering when a target is first acquired from idle state
-	if not data.suspendMisfireUntilFrame and (backupTarget or priorityTarget) then
-		data.suspendMisfireUntilFrame = gameFrame + defData.failedToFireFrameThreshold
+	if backupTarget or priorityTarget then
+		if data.suspendMisfireUntilFrame and data.lastTargetMatchNumber ~= newMatchTargetNumber then
+			data.lastTargetMatchNumber = newMatchTargetNumber
+			data.suspendMisfireUntilFrame = gameFrame + defData.failedToFireFrameThreshold
+		elseif not data.suspendMisfireUntilFrame then
+			data.suspendMisfireUntilFrame = gameFrame + defData.failedToFireFrameThreshold
+		end
 	elseif not backupTarget and not priorityTarget then
 		data.suspendMisfireUntilFrame = nil
 	end
@@ -164,17 +175,17 @@ local function updateAimingState(attackerID)
 		if failureToFire then
 			handleMisfire(data, defData)
 		else
-			data.aggroBias = data.aggroBias + priorityManualAggro
+			data.aggroBias = mathMin(data.aggroBias + priorityManualAggro, aggroPriorityCap)
 		end
-	elseif backupIsUserTarget then
-		data.aggroBias = data.aggroBias - backupManualAggro
+	elseif backupIsUserTarget and data.aggroBias > aggroBackupCap then
+		data.aggroBias = mathMax(data.aggroBias - backupManualAggro, aggroBackupCap)
 	else
 		if failureToFire then
 			handleMisfire(data, defData)
 		elseif priorityCanShoot then
-			data.aggroBias = data.aggroBias + priorityAutoAggro
-		elseif backupIsUserTarget ~= nil then
-			data.aggroBias = data.aggroBias - backupAutoAggro
+			data.aggroBias = mathMin(data.aggroBias + priorityAutoAggro, aggroPriorityCap)
+		elseif backupIsUserTarget ~= nil and data.aggroBias > aggroBackupCap then
+			data.aggroBias = mathMax(data.aggroBias - backupAutoAggro, aggroBackupCap)
 		end
 	end
 
@@ -202,6 +213,7 @@ function gadget:UnitCreated(unitID, unitDefID)
 			aggroBias = 0,
 			failedShotFrame = 0,
 			misfireTallyMultiplier = 0,
+			lastTargetMatchNumber = 0, --this exists so that a player switching targets frequently doesn't trigger a faulty misfire.
 		}
 		spCallCOBScript(unitID, smartUnits[unitID].setStateScriptID, 0, smartUnitDefs[unitDefID].priorityWeapon)
 	end
