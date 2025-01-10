@@ -112,7 +112,7 @@ local BaseClasses = {
 				noiseStrength = 2.2, noiseScaleSpace = 0.12,
 				windAffected = -1, riseRate = 2.6, onlyModelMap = 1, 
 				pos2x = 100, pos2y = 500, pos2z = 100, -- beam distortions only, specifies the endpoint of the beam
-				lifeTime = 3, sustain = 1, rampUp = 0, decay = 3, effectType = 7, -- unused
+				lifeTime = 10, sustain = 1, rampUp = 0, decay = 3, effectType = 7, -- unused
 		},
 	},
 
@@ -143,8 +143,8 @@ local BaseClasses = {
 		distortionConfig = {
 				posx = 0, posy = 10, posz = 0, radius = 10,
 				pos2x = 0, pos2y = 0, pos2z = 0, radius2 = 1,
-				noiseStrength = 6, noiseScaleSpace = 0.18 distanceFalloff = 0.7, 
-				windAffected = 0.2, riseRate = 0.2, onlyModelMap = 1, 
+				noiseStrength = 6, noiseScaleSpace = 0.05, distanceFalloff = 1.9, 
+				windAffected = 0.1, riseRate = 0.2, onlyModelMap = 1, 
 				--refractiveIndex = 1.15,
 				lifeTime = 3, rampUp = 3, decay = 3, effectType = 7, -- unused
 		},
@@ -999,14 +999,27 @@ projectileDefDistortionsNames["corban_banisher"] =
 projectileDefDistortionsNames["armsubk_armsmart_torpedo"] =
 	GetDistortionClass("TorpedoProjectile", "SmallMedium")
 
+-- projectileDefDistortionsNames['armmanni_atam'] =
+-- 	GetDistortionClass("AirShockWaveBeam", "Small")
+
 projectileDefDistortionsNames['armmanni_atam'] =
-	GetDistortionClass("AirShockWaveBeam", "Small")
+	GetDistortionClass("TachyonBeam", "KorgLaser", {
+		noiseStrength = 2, noiseScaleSpace = 0.03,
+		windAffected = -0.8, riseRate = -0.2,
+	})
 
 projectileDefDistortionsNames['armanni_ata'] =
-	GetDistortionClass("TachyonBeam", "Atto")
+	GetDistortionClass("TachyonBeam", "KorgLaser", {
+		noiseStrength = 2.0, noiseScaleSpace = 0.020, 
+		windAffected = -0.9, riseRate = -0.2,
+		lifeTime = 30, rampUp = 20, decay = 15,
+	})
 
 projectileDefDistortionsNames['armbanth_tehlazerofdewm'] =
-	GetDistortionClass("TachyonBeam", "Atto")
+	GetDistortionClass("TachyonBeam", "KorgLaser", {
+		noiseStrength = 3, noiseScaleSpace = 0.025,
+		windAffected = -0.8, riseRate = -0.2,
+	})
 
 projectileDefDistortionsNames["corhlt_cor_laserh1"] =
 	GetDistortionClass("LaserBeamHeat", "Atto")
@@ -1057,6 +1070,12 @@ explosionDistortionsNames['armthund_armbomb'] = {
 }
 
 explosionDistortionsNames['corgol_cor_gol'] = {
+	GetDistortionClass("AirShockWave", "Small"),
+	GetDistortionClass("GroundShockWave", "Smallish"),
+	GetDistortionClass("ExplosionHeat", "Tiniest"),
+}
+
+explosionDistortionsNames['corshiva_shiva_gun'] = {
 	GetDistortionClass("AirShockWave", "Small"),
 	GetDistortionClass("GroundShockWave", "Smallish"),
 	GetDistortionClass("ExplosionHeat", "Tiniest"),

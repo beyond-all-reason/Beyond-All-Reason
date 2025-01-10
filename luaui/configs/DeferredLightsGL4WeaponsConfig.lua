@@ -427,7 +427,7 @@ local function AssignLightsToAllWeapons()
 		elseif weaponDef.type == 'Flame' then
 			--sizeclass = "Small"
 			sizeclass = GetClosestSizeClass(radius*3)
-			t.a = orgMult*0.17 * 2
+			t.a = orgMult * 0.17 * 2
 			projectileDefLights[weaponID] = GetLightClass("FlameProjectile", "Fire", sizeclass, t)
 		end
 
@@ -812,11 +812,11 @@ GetLightClass("MuzzleFlash", "Fire", "Mega", {posx = 120, posy = 82, posz = 0,
 											 lifetime = 120, sustain = 4})
 
 muzzleFlashLightsNames["corkorg_corkorg_fire"] =
-GetLightClass("MuzzleFlash", "Plasma", "Micro", {
-											 r = 1.2, g = 1.0, b = 0.5, a = 0.4,
-											 color2r = 0.3, color2g = 0.08, color2b = 0.03, colortime = 15,
-											 modelfactor = 0.3, specular = 0.3, scattering = 0.15, lensflare = 0,
-											 lifetime = 15, sustain = 4})
+GetLightClass("MuzzleFlash", "Plasma", "Tiny", {
+											 r = 1.0, g = 0.75, b = 0.2, a = 0.3,
+											 color2r = 0.3, color2g = 0.08, color2b = 0.03, colortime = 10,
+											 modelfactor = 0.3, specular = 0.3, scattering = 0.2, lensflare = 0,
+											 lifetime = 9, sustain = 2})
 
 --corkorg_shotgun
 projectileDefLightsNames["corkorg_corkorg_fire"] =

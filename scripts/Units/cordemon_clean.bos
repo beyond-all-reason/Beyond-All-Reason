@@ -1102,10 +1102,12 @@ Shot1()
 	if( gun_1 == 3 )
 
 	{
+			
+			
+		//get PRINT(lightcount1);
+		if (lightcount1 == 25) {
 			call-script lua_UnitScriptLight(1, shotcount);
 			call-script lua_UnitScriptDistortion(1, shotcount);
-		//get PRINT(lightcount1);
-		if (lightcount1 == 95) {
 			lightcount1 = 0;
 		} else {
 			lightcount1 = lightcount1 + 1;
@@ -1115,15 +1117,14 @@ Shot1()
 	}
 	if( gun_1 == 4 )
 	{
-		if (lightcount2 == 95) {
+		if (lightcount2 == 25) {
 			call-script lua_UnitScriptLight(2, shotcount);
 			call-script lua_UnitScriptDistortion(2, shotcount);
 			lightcount2 = 0;
 		} else {
 			lightcount2 = lightcount2 + 1;
 		}
-		call-script lua_UnitScriptLight(2, shotcount);
-		call-script lua_UnitScriptDistortion(2, shotcount);
+		//call-script lua_UnitScriptLight(2, shotcount);
 
 		gun_1 = 1;
 		return(1);
