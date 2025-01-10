@@ -1,4 +1,12 @@
 # January 2025
+• [Artillery] The High/Low Trajectory toggle has been removed and been automated. Both modes now share the same damage and AOE. Aiming low is preferred, but if there's
+	no low trajectory targets in range  or the manually selected target cannot be shot with low trajectory, high trajectory will be used instead for a short time.
+	The following units are affected:
+	- [Guardian] (T1 Plasma Artillery Turret)
+	- [Agitator] (T1 Plasma Artillery Turret)
+	- [Rattlesnake] (T2 Plasma Popup Artillery)
+	- [Persecutor] (T2 Plasma Popup Artillery)
+	- [Vanguard] (T3 Mobile All-Terrain Artillery)
 • [Angler] The T2 Cortex torpedo bomber now drops 1 large torpedo instead of 3 small ones.  The large torpedo is slightly slower but has some aoe  
 • [Serpent] The Arm T2 battlesub now fires 2 medium torpedos at once instead of 1 large one, overall dps unchanged but some aoe is added
 • [Kraken] The Cor T2 battlesub's torpedo aoe increased
