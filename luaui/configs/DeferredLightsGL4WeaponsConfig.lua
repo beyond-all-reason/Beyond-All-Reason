@@ -811,12 +811,13 @@ GetLightClass("MuzzleFlash", "Fire", "Mega", {posx = 120, posy = 82, posz = 0,
 											 modelfactor = 0.5, specular = 0.3, scattering = 2.8, lensflare = 9,
 											 lifetime = 120, sustain = 4})
 
-muzzleFlashLightsNames["corkorg_corkorg_fire"] =
-GetLightClass("MuzzleFlash", "Plasma", "Tiny", {
-											 r = 1.0, g = 0.75, b = 0.2, a = 0.3,
-											 color2r = 0.3, color2g = 0.08, color2b = 0.03, colortime = 10,
-											 modelfactor = 0.3, specular = 0.3, scattering = 0.2, lensflare = 0,
-											 lifetime = 9, sustain = 2})
+--muzzleflashes for corkorg broken??
+-- muzzleFlashLightsNames["corkorg_corkorg_fire"] =
+-- GetLightClass("MuzzleFlash", "Plasma", "Tiny", {
+-- 											 r = 1.0, g = 0.75, b = 0.2, a = 0.3,
+-- 											 color2r = 0.3, color2g = 0.08, color2b = 0.03, colortime = 10,
+-- 											 modelfactor = 0.3, specular = 0.3, scattering = 0.2, lensflare = 0,
+-- 											 lifetime = 9, sustain = 2})
 
 --corkorg_shotgun
 projectileDefLightsNames["corkorg_corkorg_fire"] =
@@ -824,7 +825,7 @@ GetLightClass("CannonProjectile", "Plasma", "Smaller", {a = 0.04, radius = 80,
 											modelfactor = 0.2, specular = 0.2, scattering = 0.3, lensflare = 3})
 
 explosionLightsNames["corkorg_corkorg_fire"] =
-GetLightClass("Explosion", "Fire", "Medium", {r = 0.5, g = 0.3, b = 0.08, a = 0.4,
+GetLightClass("Explosion", "Fire", "Tiny", {r = 0.5, g = 0.3, b = 0.08, a = 0.4,
 											color2r = 1.2, color2g = 0.6, color2b = 0.4, colortime = 0.6,
 											sustain = 2, lifetime = 6,
 											modelfactor = -0.3, specular = -0.1, scattering = 1.95, lensflare = 0
@@ -915,6 +916,12 @@ GetLightClass("LaserProjectile", "Blue", "Smaller", {a = 0.09,
 					color2r = 0.6, color2g = 0.6, color2b = 0.6, colortime = 10,
 					modelfactor = 0.5, specular = 0.1, scattering = 0.7, lensflare = 0,
 					lifetime = 0, sustain = 0})
+
+--corjugg
+explosionLightsNames["corjugg_juggernaut_fire"] =
+GetLightClass("Explosion", nil, "Small", {r = 1.3, g = 1.1, b = 0.8, a = 0.5,
+										color2r = 0.35, color2g = 0.20, color2b = 0.05, colortime = 3,
+										sustain = 8, lifetime = 26, scattering = 0.2})
 
 -- --armanni
 projectileDefLightsNames["armanni_ata"] =

@@ -317,7 +317,7 @@ local BaseClasses = {
 		fraction = 2, -- only spawn every nth distortion
 		distortionConfig = {
 			posx = 0, posy = 45, posz = 0, radius = 25,
-			noiseStrength = 8, noiseScaleSpace = -0.35, distanceFalloff = 1.8, onlyModelMap = 0,
+			noiseStrength = 4, noiseScaleSpace = -0.45, distanceFalloff = 1.8, onlyModelMap = 0,
 			windAffected = 0.1, riseRate = -0.5,
 			lifeTime = 40, rampUp = 30, decay = 30, effectType = 0, -- unused
 		},
@@ -368,7 +368,7 @@ local BaseClasses = {
 			posx = 0, posy = 0, posz = 0, radius = 10, 
 			noiseStrength = 6, noiseScaleSpace = 0.55, distanceFalloff = 1.2, onlyModelMap = 1,
 			windAffected = -1,  riseRate = -0.5,
-			lifeTime = 100, rampUp = 25, decay = 75, effectType = 0, -- unused
+			lifeTime = 50, rampUp = 20, decay = 25, effectType = 0, -- unused
 		},
 	},
 
@@ -783,8 +783,8 @@ projectileDefDistortionsNames["corjugg_juggernaut_fire"] =
 	GetDistortionClass("ProjectileDgun", "Pico")
 
 explosionDistortionsNames['corjugg_juggernaut_fire'] = {
-	GetDistortionClass("GroundShockWave", "Smaller", {
-		lifeTime = 24, }),
+	--GetDistortionClass("GroundShockWave", "Smaller", {
+	--	lifeTime = 24, }),
 	--GetDistortionClass("AirShockWaveDgun", "Smaller"),
 	GetDistortionClass("ExplosionRadiationDgun", "Micro"),
 }

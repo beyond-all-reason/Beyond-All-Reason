@@ -455,6 +455,24 @@ local unitDistortions = {
 								lifeTime = 0,  effectType = 0},
 		},
 	},
+	['corkarg'] = {
+		engineheatr = {
+			distortionType = 'point',
+			pieceName = 'turret',
+			distortionConfig = { posx = -24.4, posy = 13, posz = 10.5, radius = 4,
+							noiseStrength = 0.5, noiseScaleSpace = 2, distanceFalloff = 0.8,
+							windAffected = -0.5, riseRate = -2,
+							lifeTime = 0,  effectType = 'heatDistortion'},
+		},
+		engineheatl = {
+			distortionType = 'point',
+			pieceName = 'turret',
+			distortionConfig = { posx = 24.4, posy = 13, posz = 10.5, radius = 4,
+							noiseStrength = 0.5, noiseScaleSpace = 2, distanceFalloff = 0.8,
+							windAffected = -0.5, riseRate = -2,
+							lifeTime = 0,  effectType = 'heatDistortion'},
+		},
+	},
 
 	['corkorg'] = {
 		engineheatr = {
@@ -1174,6 +1192,24 @@ local unitDistortions = {
 		},
 	},
 
+	['corjugg'] = {
+		distortion = {
+			distortionType = 'point',
+			pieceName = 'mainbarrel',
+			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 3.6,
+							noiseStrength = 3, noiseScaleSpace = -1.6, distanceFalloff = 0.5,
+							windAffected = -0.5,
+							lifeTime = 0,  effectType = 0},
+		},
+		cloakblob = {
+			distortionType = 'point',
+			pieceName = 'mainbarrel',
+			distortionConfig = { posx = 0, posy = 0, posz = 2, radius = 4.5,
+							lifeTime = 0,  
+							magnificationRate = -0.2, effectType = "magnifier"}, 
+		},
+	},
+
 	
 	['armjuno'] = {
 		distortion = {
@@ -1342,6 +1378,61 @@ local unitEventDistortionsNames = {
 			},
 		},
 
+		['corjugg'] = {
+			[1] = {
+				-- Footstep shockwave
+				alwaysVisible = false,
+				distortionType = 'point',
+				distortionName = 'bigassfootstep',
+				pieceName = 'lfootstepf',
+				distortionConfig = { posx = 0, posy = 0, posz = 8, radius = 90,
+								noiseStrength = 1.2, noiseScaleSpace = 0.5, distanceFalloff = 0.2, onlyModelMap = 1, 
+								distortionMultiplier = 1.0, --needed for shockwave
+								lifeTime = 25, rampUp = 0, decay = 15,
+								shockWidth = 5, effectType = 2},
+	
+			},
+			[2] = {
+				-- Footstep shockwave
+				alwaysVisible = false,
+				distortionType = 'point',
+				distortionName = 'bigassfootstep2',
+				pieceName = 'rfootstepf',
+				distortionConfig = { posx = 0, posy = 0, posz = 8, radius = 90,
+								noiseStrength = 1.2, noiseScaleSpace = 0.5, distanceFalloff = 0.2, onlyModelMap = 1, 
+								distortionMultiplier = 1.0, --needed for shockwave
+								lifeTime = 25, rampUp = 0, decay = 15,
+								shockWidth = 5, effectType = 2},
+	
+			},
+			[3] = {
+				-- Footstep shockwave
+				alwaysVisible = false,
+				distortionType = 'point',
+				distortionName = 'bigassfootstep3',
+				pieceName = 'lfootstepb',
+				distortionConfig = { posx = 0, posy = 0, posz = 8, radius = 90,
+								noiseStrength = 1.2, noiseScaleSpace = 0.5, distanceFalloff = 0.2, onlyModelMap = 1, 
+								distortionMultiplier = 1.0, --needed for shockwave
+								lifeTime = 25, rampUp = 0, decay = 15,
+								shockWidth = 5, effectType = 2},
+	
+			},
+			[4] = {
+				-- Footstep shockwave
+				alwaysVisible = false,
+				distortionType = 'point',
+				distortionName = 'bigassfootstep4',
+				pieceName = 'rfootstepb',
+				distortionConfig = { posx = 0, posy = 0, posz = 8, radius = 90,
+								noiseStrength = 1.2, noiseScaleSpace = 0.5, distanceFalloff = 0.2, onlyModelMap = 1, 
+								distortionMultiplier = 1.0, --needed for shockwave
+								lifeTime = 25, rampUp = 0, decay = 15,
+								shockWidth = 5, effectType = 2},
+	
+			},
+		},
+
 
 		['armmark'] = {
 			[1] = {
@@ -1388,6 +1479,51 @@ local unitEventDistortionsNames = {
 								lifeTime = 250, rampUp = 40, decay = 120,
 								effectType = 0},
 			},
+			-- [3] = {
+			-- 	-- Flame distort
+			-- 	alwaysVisible = false,
+			-- 	distortionType = 'beam',
+			-- 	distortionName = 'flamedistort',
+			-- 	pieceName = 'rfbarrel2',
+			-- 	distortionConfig = { posx = 0, posy = 5, posz = 25, radius = 35,
+			-- 					pos2x = 0, pos2y = 5, pos2z = 185,
+			-- 					noiseStrength = 4, noiseScaleSpace = -0.3, distanceFalloff = 3.5,
+			-- 					onlyModelMap = 0, 
+			-- 					heatMultiplier = 3.0, --needed for heat
+			-- 					windAffected = 0.1, riseRate = -0.5,
+			-- 					lifeTime = 15, rampUp = 0, decay = 0,
+			-- 					effectType = 0},
+			-- },
+			[3] = {
+				-- Flame distort
+				alwaysVisible = false,
+				distortionType = 'cone',
+				distortionName = 'flamedistort',
+				pieceName = 'rfbarrel2',
+				distortionConfig = { posx = 0, posy = 5, posz = 0, radius = 350,
+								dirx =  0, diry = 0, dirz = 1.0, theta = 0.3,
+								noiseStrength = 4, noiseScaleSpace = -0.2, distanceFalloff = 3.5,
+								onlyModelMap = 0, 
+								heatMultiplier = 3.0, --needed for heat
+								windAffected = 0.1, riseRate = -0.5,
+								lifeTime = 15, rampUp = 25, decay = 0,
+								effectType = 0},
+			},
+			[4] = {
+				-- Flame distort
+				alwaysVisible = false,
+				distortionType = 'cone',
+				distortionName = 'flamedistort',
+				pieceName = 'lfbarrel2',
+				distortionConfig = { posx = 0, posy = 5, posz = 0, radius = 350,
+								dirx =  0, diry = 0, dirz = 1.0, theta = 0.4,
+								noiseStrength = 4, noiseScaleSpace = 0.12, distanceFalloff = 3.5,
+								onlyModelMap = 0, 
+								heatMultiplier = 2.0, --needed for heat
+								windAffected = 0.1, riseRate = -0.5,
+								lifeTime = 15, rampUp = 25, decay = 0,
+								effectType = 0},
+			},
 		},
 
 		['armraz'] = {
@@ -1398,10 +1534,11 @@ local unitEventDistortionsNames = {
 				distortionName = 'barrelheatl',
 				pieceName = 'lcannon',
 				distortionConfig = { posx = 0, posy = 7, posz = 23.5, radius = 8,
-								noiseStrength = 0.6, noiseScaleSpace = 1.4, distanceFalloff = 0.8,
+								noiseStrength = 0.6, noiseScaleSpace = -1.8, distanceFalloff = 0.8,
 								onlyModelMap = 0, 
 								heatMultiplier = 1.0, --needed for heat
-								lifeTime = 160, rampUp = 135, decay = 25,
+								lifeTime = 160, rampUp = 25, decay = 25,
+								riseRate = 0.2, windAffected = -0.3,
 								effectType = 0},
 			},
 			[2] = {
@@ -1411,10 +1548,11 @@ local unitEventDistortionsNames = {
 				distortionName = 'barrelheatr',
 				pieceName = 'rcannon',
 				distortionConfig = { posx = 0, posy = 7, posz = 23.5, radius = 8,
-								noiseStrength = 0.6, noiseScaleSpace = 1.45, distanceFalloff = 0.8,
+								noiseStrength = 0.6, noiseScaleSpace = -1.8, distanceFalloff = 0.8,
 								onlyModelMap = 0, 
 								heatMultiplier = 1.0, --needed for heat
-								lifeTime = 160, rampUp = 135, decay = 25,
+								lifeTime = 160, rampUp = 25, decay = 25,
+								riseRate = 0.2, windAffected = -0.3,
 								effectType = 0},
 			},
 		},
@@ -1431,7 +1569,6 @@ local unitEventDistortionsNames = {
 									pos2x = 0, pos2y = 4, pos2z = -16,
 								onlyModelMap = 0,
 								riseRate = 0.5, windAffected = -0.5,
-								
 								noiseStrength = 0.3, noiseScaleSpace = 1.0, distanceFalloff = 1.0,
 								rampUp = 5, decay = 200, 
 								lifeTime = 240,  effectType = 0},
