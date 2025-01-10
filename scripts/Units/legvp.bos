@@ -95,8 +95,8 @@ StartBuilding()
 	show cagelight2_emit;
 	move cagelight1 to x-axis [-1.7] speed [8];
 	move cagelight2 to x-axis [-1.7] speed [8];
-	spin cagelight1_emit around x-axis speed <200> accelerate <1>;
-	spin cagelight2_emit around x-axis speed <200> accelerate <1>;
+	spin cagelight1 around x-axis speed <200> accelerate <1>;
+	spin cagelight2 around x-axis speed <-200> accelerate <1>;
 	
 	signal SIGNAL_BUILD;
 	set-signal-mask SIGNAL_BUILD;
@@ -114,8 +114,8 @@ StopBuilding()
 	hide cagelight2_emit;
 	move cagelight1 to x-axis [0] speed [8];
 	move cagelight2 to x-axis [0] speed [8];
-	stop-spin cagelight1_emit around x-axis decelerate <1>;
-	stop-spin cagelight2_emit around x-axis decelerate <1>;
+	stop-spin cagelight1 around x-axis decelerate <1>;
+	stop-spin cagelight2 around x-axis decelerate <1>;
 	
 	signal SIGNAL_BUILD;
 }
