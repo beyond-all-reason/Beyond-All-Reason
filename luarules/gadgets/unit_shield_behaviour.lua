@@ -23,6 +23,7 @@ local reworkEnabled 				= Spring.GetModOptions().shieldsrework --remove when shi
 local shieldModulo                  = Game.gameSpeed
 local shieldOnUnitRulesParamIndex   = 531313
 local INLOS                         = { inlos = true }
+local minDownTime					= 1 * Game.gameSpeed -- measured in frames
 
 local spGetUnitShieldState          = Spring.GetUnitShieldState
 local spSetUnitShieldState          = Spring.SetUnitShieldState
@@ -52,6 +53,8 @@ local AOEWeaponDefIDs               = {}
 local projectileShieldHitCache      = {}
 local highestWeapDefDamages         = {}
 local armoredUnitDefs               = {}
+
+local gameFrame 					= 0
 
 for weaponDefID, weaponDef in ipairs(WeaponDefs) do
 
@@ -125,13 +128,14 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 
 		for i, weaponsData in pairs(unitDef.weapons) do
 			local wDefData = WeaponDefs[weaponsData.weaponDef]
-			if wDefData.shieldPowerRegen then
+			if wDefData.shieldPowerRegen and wDefData.shieldPowerRegen > 0 then
 				data.shieldWeaponNumber = i
 				data.shieldPowerRegen = wDefData.shieldPowerRegen
 				data.shieldPowerRegenEnergy = wDefData.shieldPowerRegenEnergy
 			end
 		end
 		shieldUnitDefs[unitDefID] = data
+		Spring.Echo(unitDef.name, data)
 	end
 
 	if unitDef.weapons then
@@ -196,7 +200,8 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 			shieldEnabled = false,               -- Virtualized enabled/disabled state until engine equivalent is changed
 			shieldDamage = 0,                    -- This stores the value of damages populated in ShieldPreDamaged(), then applied in GameFrame() all at once
 			shieldCoverageChecked = false,       -- Used to prevent expensive unit coverage checks being performed more than once per cycle
-			overKillDamage = 0
+			overKillDamage = 0,
+			shieldDownTime = 0
 		}
 		setCoveredUnits(unitID)
 	end
@@ -231,6 +236,7 @@ local function suspendShield(unitID, weaponNum)
 
 	spSetUnitShieldState(unitID, weaponNum, false)
 	shieldData.shieldEnabled = false
+	shieldData.shieldDownTime = gameFrame + minDownTime
 	spSetUnitRulesParam(unitID, shieldOnUnitRulesParamIndex, 0, INLOS)
 end
 
@@ -280,6 +286,8 @@ local shieldCheckChunkSize = 10
 local shieldCheckEndIndex = 1
 
 function gadget:GameFrame(frame)
+	gameFrame = frame
+
 	if not reworkEnabled then return end --remove when shield rework is permanent
 	for shieldUnitID, _ in pairs(shieldCheckFlags) do
 		local shieldData = shieldUnitsData[shieldUnitID]
@@ -291,7 +299,7 @@ function gadget:GameFrame(frame)
 				shieldPower = shieldPower - shieldData.shieldDamage
 
 				if shieldPower < 0 then
-					shieldData.overKillDamage = -shieldPower --invert the negative value
+					shieldData.overKillDamage = shieldPower --stored as a negative value
 					shieldPower = 0
 				end
 
@@ -313,21 +321,23 @@ function gadget:GameFrame(frame)
 		local shieldActive = spGetUnitIsActive(shieldUnitID)
 
 		if frame % shieldModulo == 0 then
-			if shieldActive and shieldData.overKillDamage ~= 0 then
-				local ratio = 1
-				if shieldData.overKillDamage < shieldData.shieldPowerRegen then
-					ratio = shieldData.overKillDamage / shieldData.shieldPowerRegen
+			if shieldActive then
+				if shieldData.overKillDamage ~= 0 then
+					local usedEnergy = spUseUnitResource(shieldUnitID, "e", shieldData.shieldPowerRegenEnergy)
+					if usedEnergy then
+						shieldData.overKillDamage = shieldData.overKillDamage + shieldData.shieldPowerRegen
+					end
 				end
-				local usedEnergy = spUseUnitResource(shieldUnitID, "e", shieldData.shieldPowerRegenEnergy * ratio)
-				if usedEnergy then
-					shieldData.overKillDamage = mathMax(shieldData.overKillDamage - shieldData.shieldPowerRegen, 0)
-				end
-			end
-
-			if not shieldActive then
+			else
+				--if shield is manually turned off, set shield charge to 0
 				spSetUnitShieldState(shieldUnitID, shieldData.shieldWeaponNumber, 0)
 			end
-			if not shieldData.shieldEnabled and shieldData.overKillDamage == 0 then
+
+			if not shieldData.shieldEnabled and shieldData.shieldDownTime < frame and shieldData.overKillDamage >= 0 then
+				if shieldData.overKillDamage ~= 0 then
+					spSetUnitShieldState(shieldUnitID, shieldData.shieldWeaponNumber, shieldData.overKillDamage)
+					shieldData.overKillDamage = 0
+				end
 				shieldData.shieldEnabled = true
 				spSetUnitRulesParam(shieldUnitID, shieldOnUnitRulesParamIndex, 1, INLOS)
 				spSetUnitShieldRechargeDelay(shieldUnitID, shieldData.shieldWeaponNumber, 0)
