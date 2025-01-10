@@ -1162,19 +1162,23 @@ local unitDistortions = {
 	},
 
 	['armaser'] = {
-		-- jamdistortion = {
-		-- 	distortionType = 'point',
-		-- 	pieceName = 'none',
-		-- 	distortionConfig = { posx = 0, posy = 33, posz = 0, radius = 8,
-		-- 					noiseStrength = 10, noiseScaleSpace = 0.4, distanceFalloff = 1.5,
-		-- 					windAffected = -1,
-		-- 					lifeTime = 0,  effectType = 0},
-		-- },
 		distortionbeam = {
 			distortionType = 'beam',
 			pieceName = 'jam',
 			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 6.5,
 								pos2x = -9, pos2y = 0, pos2z = 0.1, 
+								noiseStrength = 10, noiseScaleSpace = 0.4, distanceFalloff = 1.5,
+								windAffected = -1,
+								lifeTime = 0,  effectType = 0},
+		},
+	},
+
+	['corspec'] = {
+		distortionbeam = {
+			distortionType = 'beam',
+			pieceName = 'jam',
+			distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 6.5,
+								pos2x = 0, pos2y = 0, pos2z = 2, 
 								noiseStrength = 10, noiseScaleSpace = 0.4, distanceFalloff = 1.5,
 								windAffected = -1,
 								lifeTime = 0,  effectType = 0},

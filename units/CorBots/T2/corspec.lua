@@ -29,7 +29,7 @@ return {
 		onoffable = true,
 		radardistance = 0,
 		radardistancejam = 450,
-		script = "Units/CORSPEC.cob",
+		script = "Units/CORSPEC_CLEAN.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 250,

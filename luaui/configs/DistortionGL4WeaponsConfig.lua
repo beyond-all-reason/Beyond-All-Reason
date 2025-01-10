@@ -132,7 +132,7 @@ local BaseClasses = {
 		distortionType = 'beam', -- or cone or beam
 		distortionConfig = {
 				posx = 0, posy = 10, posz = 0, radius = 10,
-				noiseStrength = 1.15, noiseScaleSpace = 0.55, distanceFalloff = 1.5,
+				noiseStrength = 0.75, noiseScaleSpace = 0.15, distanceFalloff = 1.5,
 				windAffected = -1, riseRate = 0.2,
 				pos2x = 100, pos2y = 1000, pos2z = 100, -- beam distortions only, specifies the endpoint of the beam
 				lifeTime = 3, rampUp = 3, decay = 0, effectType = 0, -- unused
