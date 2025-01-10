@@ -19,11 +19,16 @@ local fallbackShieldDamage          = 0
 -- this defines what amount of the total damage a unit deals qualifies as a direct hit for units that are in the vague areas between covered and not covered by shields (typically on edges or sticking out partially)
 local directHitQualifyingMultiplier = 0.95
 
+-- the minimum number of frames before the shield is allowed to turn back on. Extra regenerated shield charge is applied to the shield when it comes back online.
+local minDownTime					= 1 * Game.gameSpeed
+
+-- The maximum number of frames a shield is allowed to be offline from overkill. This is to handle very, very high single-attack damage which would otherwise cripple the shield for multiple minutes.
+local maxDownTime					= 20 * Game.gameSpeed
+
 local reworkEnabled 				= Spring.GetModOptions().shieldsrework --remove when shield rework is permanent
 local shieldModulo                  = Game.gameSpeed
 local shieldOnUnitRulesParamIndex   = 531313
 local INLOS                         = { inlos = true }
-local minDownTime					= 1 * Game.gameSpeed -- measured in frames
 
 local spGetUnitShieldState          = Spring.GetUnitShieldState
 local spSetUnitShieldState          = Spring.SetUnitShieldState
@@ -135,7 +140,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			end
 		end
 		shieldUnitDefs[unitDefID] = data
-		Spring.Echo(unitDef.name, data)
 	end
 
 	if unitDef.weapons then
@@ -201,7 +205,8 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 			shieldDamage = 0,                    -- This stores the value of damages populated in ShieldPreDamaged(), then applied in GameFrame() all at once
 			shieldCoverageChecked = false,       -- Used to prevent expensive unit coverage checks being performed more than once per cycle
 			overKillDamage = 0,
-			shieldDownTime = 0
+			shieldDownTime = 0,
+			maxDownTime = 0
 		}
 		setCoveredUnits(unitID)
 	end
@@ -226,18 +231,44 @@ function gadget:ProjectileDestroyed(proID)
 	projectileShieldHitCache[proID] = nil
 end
 
-local function suspendShield(unitID, weaponNum)
+local function setProjectilesAlreadyInsideShield(shieldUnitID, radius)
+	-- This section is to allow slower moving projectiles already inside the shield when it comes back online to damage units within the radius.
+	local x, y, z = spGetUnitPosition(shieldUnitID)
+	-- Engine has GetProjectilesInRectangle, but not GetProjectilesInCircle, so we have to square the circle
+	-- TODO: Change to GetProjectilesInCircle once it is added
+	local radius = radius * math.sqrt(math.pi) / 2
+	local xmin = x - radius
+	local xmax = x + radius
+	local zmin = z - radius
+	local zmax = z + radius
+	local projectiles = spGetProjectilesInRectangle(xmin, zmin, xmax, zmax)
+	for _, projectileID in ipairs(projectiles) do
+		projectileShieldHitCache[projectileID] = true
+	end
+end
+
+local function suspendShield(unitID)
 	local shieldData = shieldUnitsData[unitID]
 
 	-- Dummy disable recharge delay, as engine does not support downtime
 	-- Arbitrary large value used to ensure shield does not reactivate before we want it to,
 	-- but using math.huge causes shield to instantly reactivate
-	spSetUnitShieldRechargeDelay(unitID, weaponNum, 3600)
+	spSetUnitShieldRechargeDelay(unitID, shieldData.shieldWeaponNumber, 3600)
 
-	spSetUnitShieldState(unitID, weaponNum, false)
+	spSetUnitShieldState(unitID, shieldData.shieldWeaponNumber, false)
 	shieldData.shieldEnabled = false
 	shieldData.shieldDownTime = gameFrame + minDownTime
+	shieldData.maxDownTime = gameFrame + maxDownTime
 	spSetUnitRulesParam(unitID, shieldOnUnitRulesParamIndex, 0, INLOS)
+end
+
+local function activateShield(unitID)
+	local shieldData = shieldUnitsData[unitID]
+	shieldData.shieldEnabled = true
+	spSetUnitRulesParam(unitID, shieldOnUnitRulesParamIndex, 1, INLOS)
+	spSetUnitShieldRechargeDelay(unitID, shieldData.shieldWeaponNumber, 0)
+
+	setProjectilesAlreadyInsideShield(unitID, shieldData.radius)
 end
 
 local function shieldNegatesDamageCheck(unitID, unitTeam, attackerID, attackerTeam)
@@ -262,22 +293,6 @@ local function shieldNegatesDamageCheck(unitID, unitTeam, attackerID, attackerTe
 	return false
 end
 
-local function setProjectilesAlreadyInsideShield(shieldUnitID, radius)
-	-- This section is to allow slower moving projectiles already inside the shield when it comes back online to damage units within the radius.
-	local x, y, z = spGetUnitPosition(shieldUnitID)
-	-- Engine has GetProjectilesInRectangle, but not GetProjectilesInCircle, so we have to square the circle
-	-- TODO: Change to GetProjectilesInCircle once it is added
-	local radius = radius * math.sqrt(math.pi) / 2
-	local xmin = x - radius
-	local xmax = x + radius
-	local zmin = z - radius
-	local zmax = z + radius
-	local projectiles = spGetProjectilesInRectangle(xmin, zmin, xmax, zmax)
-	for _, projectileID in ipairs(projectiles) do
-		projectileShieldHitCache[projectileID] = true
-	end
-end
-
 local shieldUnitsTotalCount = 0
 local shieldUnitIndex = {}
 local shieldCheckFlags = {}
@@ -290,7 +305,7 @@ function gadget:GameFrame(frame)
 
 	if not reworkEnabled then return end --remove when shield rework is permanent
 	for shieldUnitID, _ in pairs(shieldCheckFlags) do
-		local shieldData = shieldUnitsData[shieldUnitID]
+		local shieldData = shieldUnitsData[shieldUnitID] --zzz for some reason the shield orb isn't disappearing sometimes when big damage
 
 		--apply shield damages
 		if shieldData then
@@ -307,7 +322,7 @@ function gadget:GameFrame(frame)
 				shieldData.shieldDamage = 0
 
 				if shieldPower <= 0 then
-					suspendShield(shieldUnitID, shieldData.shieldWeaponNumber)
+					suspendShield(shieldUnitID)
 					removeCoveredUnits(shieldUnitID)
 				end
 			else
@@ -334,15 +349,15 @@ function gadget:GameFrame(frame)
 			end
 
 			if not shieldData.shieldEnabled and shieldData.shieldDownTime < frame and shieldData.overKillDamage >= 0 then
-				if shieldData.overKillDamage ~= 0 then
+				if shieldData.overKillDamage > 0 then
 					spSetUnitShieldState(shieldUnitID, shieldData.shieldWeaponNumber, shieldData.overKillDamage)
 					shieldData.overKillDamage = 0
 				end
-				shieldData.shieldEnabled = true
-				spSetUnitRulesParam(shieldUnitID, shieldOnUnitRulesParamIndex, 1, INLOS)
-				spSetUnitShieldRechargeDelay(shieldUnitID, shieldData.shieldWeaponNumber, 0)
+				activateShield(shieldUnitID)
 
-				setProjectilesAlreadyInsideShield(shieldUnitID, shieldData.radius)
+			elseif shieldData.maxDownTime < frame then
+				activateShield(shieldUnitID)
+				shieldData.overKillDamage = 0
 			end
 		end
 	end
