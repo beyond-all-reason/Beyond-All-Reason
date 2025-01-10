@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, ground, wake1, wake2, turret, sleeve, flare, turretmis, misbox, misflare;
+piece  base, ground, wake1, wake2, turret, sleeve, flare, turretmis, misbox, misflare, spark_emit;
 		
 static-var  restore_delay, Static_Var_7, Static_Var_8, aimDir, oldHead;
 
@@ -97,6 +97,7 @@ Create()
 	hide wake2;
 	hide wake1;
 	hide flare;
+	hide spark_emit;
 	hide ground;
 	restore_delay = 3000;
 	while( get BUILD_PERCENT_LEFT )
@@ -197,11 +198,21 @@ AimSecondary(heading, pitch)
 	return (1);
 }
 
+FireSparks()
+{
+		show spark_emit;
+		sleep 150;
+		hide spark_emit;
+		return (1);
+}
+
 FirePrimary()
 {
 	emit-sfx 1024 + 2 from flare;
+	start-script FireSparks();
 	sleep 100;
 	return (0);
+	
 }
 
 FireSecondary()

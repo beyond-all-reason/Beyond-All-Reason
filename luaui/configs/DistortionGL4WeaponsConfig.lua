@@ -120,11 +120,11 @@ local BaseClasses = {
 		distortionType = 'beam', -- or cone or beam
 		distortionConfig = {
 				posx = 0, posy = 10, posz = 0, radius = 10,
-				noiseStrength = 0.7, noiseScaleSpace = 0.4, distanceFalloff = 0.9,
+				noiseStrength = 4.5, noiseScaleSpace = -0.37, distanceFalloff = 1.0,
 				--windAffected = 2, riseRate = 2,
-				windAffected = -1, riseRate = -0.3,
+				windAffected = -1, riseRate = -0.6,
 				pos2x = 100, pos2y = 1000, pos2z = 100, -- beam distortions only, specifies the endpoint of the beam
-				lifeTime = 0, rampUp = 0, decay = 6, effectType = 0, -- unused
+				lifeTime = 10, rampUp = 2.5, decay = 2, effectType = 0, -- unused
 		},
 	},
 
@@ -138,13 +138,13 @@ local BaseClasses = {
 				lifeTime = 3, rampUp = 3, decay = 0, effectType = 0, -- unused
 		},
 	},
-	HeatRayHeatXL = { --corkorg
+	HeatRayHeatXL = { --heaviest laserbeam (corkorg)
 		distortionType = 'beam', -- or cone or beam
 		distortionConfig = {
 				posx = 0, posy = 10, posz = 0, radius = 10,
-				pos2x = 0, pos2y = 0, pos2z = 0, radius2 = 5,
-				noiseStrength = 5.5, noiseScaleSpace = 0.20, distanceFalloff = 0.9, 
-				windAffected = 0.2, riseRate = 0.5, onlyModelMap = 1, 
+				pos2x = 0, pos2y = 0, pos2z = 0, radius2 = 1,
+				noiseStrength = 6, noiseScaleSpace = 0.18 distanceFalloff = 0.7, 
+				windAffected = 0.2, riseRate = 0.2, onlyModelMap = 1, 
 				--refractiveIndex = 1.15,
 				lifeTime = 3, rampUp = 3, decay = 3, effectType = 7, -- unused
 		},
@@ -408,7 +408,8 @@ local SizeRadius = {
 	Quaco = 		2.5,
 	Zetto = 		5,
 	Atto =			10, 
-	Femto = 		16, 
+	Femto = 		16,
+	KorgLaser = 	20,  
 	Pico = 			26,
 	Nano = 			34,
 	Micro = 		44,
@@ -1015,7 +1016,7 @@ projectileDefDistortionsNames["corsala_cor_heat_laser"] =
 	GetDistortionClass("HeatRayHeat", "Atto")
 
 projectileDefDistortionsNames["corkorg_corkorg_laser"] =
-	GetDistortionClass("HeatRayHeatXL", "Pico")
+	GetDistortionClass("HeatRayHeatXL", "KorgLaser")
 
 projectileDefDistortionsNames["armclaw_dclaw"] = --doesnt work on lightning cannon
 	GetDistortionClass("LightningBeam", "Femto")

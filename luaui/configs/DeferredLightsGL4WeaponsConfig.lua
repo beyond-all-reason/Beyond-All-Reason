@@ -811,12 +811,17 @@ GetLightClass("MuzzleFlash", "Fire", "Mega", {posx = 120, posy = 82, posz = 0,
 											 modelfactor = 0.5, specular = 0.3, scattering = 2.8, lensflare = 9,
 											 lifetime = 120, sustain = 4})
 
--- muzzleFlashLightsNames["corkorg_corkorg_laser"].yOffset = 32
+muzzleFlashLightsNames["corkorg_corkorg_fire"] =
+GetLightClass("MuzzleFlash", "Plasma", "Micro", {
+											 r = 1.2, g = 1.0, b = 0.5, a = 0.4,
+											 color2r = 0.3, color2g = 0.08, color2b = 0.03, colortime = 15,
+											 modelfactor = 0.3, specular = 0.3, scattering = 0.15, lensflare = 0,
+											 lifetime = 15, sustain = 4})
 
 --corkorg_shotgun
 projectileDefLightsNames["corkorg_corkorg_fire"] =
 GetLightClass("CannonProjectile", "Plasma", "Smaller", {a = 0.04, radius = 80,
-											modelfactor = 0.2, specular = 0.05, scattering = 0.3, lensflare = 3})
+											modelfactor = 0.2, specular = 0.2, scattering = 0.3, lensflare = 3})
 
 explosionLightsNames["corkorg_corkorg_fire"] =
 GetLightClass("Explosion", "Fire", "Medium", {r = 0.5, g = 0.3, b = 0.08, a = 0.4,

@@ -63,6 +63,86 @@ local unitDistortions = {
 								lifeTime = 0,  effectType = 0},
 		},
 	},
+	['armvang'] = {
+		distortion = {
+			distortionType = 'beam',
+			pieceName = 'base',
+			distortionConfig = { posx = 2.5, posy = 4, posz = -12, radius = 4,
+								pos2x = -2.5, pos2y = 4, pos2z = -12, radius2 = 23, 
+								noiseStrength = 0.7, noiseScaleSpace = -2, distanceFalloff = 0.8,
+								rampUp = 30, decay = 0,
+								lifeTime = 0,  effectType = 0},
+		},
+	},
+	['armthor'] = {
+		distortionbackenergy = {
+			distortionType = 'beam',
+			pieceName = 'base',
+			distortionConfig = { posx = -4, posy = 14, posz = -25, radius = 9,
+								pos2x = 4, pos2y = 14, pos2z = -25,
+								noiseStrength = 0.5, noiseScaleSpace = -1.5, distanceFalloff = 0.8,
+								rampUp = 30, decay = 5,
+								lifeTime = 0,  effectType = 0},
+		},
+		distortionbarrell = {
+			distortionType = 'beam',
+			pieceName = 'ltbarrel',
+			distortionConfig = { posx = 0, posy = 0, posz = -8, radius = 6,
+								pos2x = 0, pos2y = 0, pos2z = -9,
+								noiseStrength = 0.7, noiseScaleSpace = -2.5, distanceFalloff = 0.8,
+								rampUp = 0, decay = 0,
+								lifeTime = 0,  effectType = 0},
+		},
+		distortionbarrelr = {
+			distortionType = 'beam',
+			pieceName = 'rtbarrel',
+			distortionConfig = { posx = 0, posy = 0, posz = -8, radius = 6,
+								pos2x = 0, pos2y = 0, pos2z = -9,
+								noiseStrength = 0.7, noiseScaleSpace = -2.5, distanceFalloff = 0.8,
+								rampUp = 0, decay = 0,
+								lifeTime = 0,  effectType = 0},
+		},
+	},
+	['armlship'] = {
+		distortion1 = {
+			distortionType = 'beam',
+			pieceName = 'turret',
+			distortionConfig = { posx = 3, posy = 9.0, posz = 0, radius = 2,4,
+								pos2x = 3, pos2y = 9.0, pos2z = -5,
+								noiseStrength = 0.5, noiseScaleSpace = -2, distanceFalloff = 0.8,
+								rampUp = 30, decay = -1.2,
+								lifeTime = 0,  effectType = 0},
+		},
+		distortion2 = {
+			distortionType = 'beam',
+			pieceName = 'turret',
+			distortionConfig = { posx = -3, posy = 9.0, posz = 0, radius = 2.4,
+								pos2x = -3, pos2y = 9.0, pos2z = -5,
+								noiseStrength = 0.5, noiseScaleSpace = -2, distanceFalloff = 0.8,
+								rampUp = 30, decay = -1.2,
+								lifeTime = 0,  effectType = 0},
+		},
+	},
+	['armantiship'] = {
+		distortionback1 = {
+			distortionType = 'beam',
+			pieceName = 'base',
+			distortionConfig = { posx = -10, posy = 10, posz = -50, radius = 13,
+								pos2x = 10, pos2y = 10, pos2z = -50.1, radius2 = 23, 
+								noiseStrength = 0.5, noiseScaleSpace = -1, distanceFalloff = 0.8,
+								rampUp = 30, decay = -1.2,
+								lifeTime = 0,  effectType = 0},
+		},
+		distortionback2 = {
+			distortionType = 'beam',
+			pieceName = 'base',
+			distortionConfig = { posx = -10, posy = 10, posz = -33, radius = 13,
+								pos2x = 10, pos2y = 10, pos2z = -33, radius2 = 23, 
+								noiseStrength = 0.5, noiseScaleSpace = -1, distanceFalloff = 0.8,
+								rampUp = 30, decay = -1.2,
+								lifeTime = 0,  effectType = 0},
+		},
+	},
 
 	['armuwadves'] = {
 		distortion1 = {
@@ -1261,10 +1341,68 @@ local unitEventDistortionsNames = {
 			},
 		},
 
+		['cordemon'] = {
+			[1] = {
+				-- Barrel Heat
+				alwaysVisible = false,
+				distortionType = 'point',
+				distortionName = 'flameheat',
+				pieceName = 'lfbarrel2',
+				distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 120,
+								noiseStrength = 1.2, noiseScaleSpace = 1.5, distanceFalloff = 0.2,
+								onlyModelMap = 1, 
+								heatMultiplier = 1.0, --needed for heat
+								lifeTime = 50, rampUp = 30, decay = 15,
+								effectType = 0},
+			},
+			[2] = {
+				-- Barrel Heat
+				alwaysVisible = false,
+				distortionType = 'point',
+				distortionName = 'flameheat',
+				pieceName = 'rfbarrel2',
+				distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 20,
+								noiseStrength = 1.2, noiseScaleSpace = 1.5, distanceFalloff = 0.2,
+								onlyModelMap = 1, 
+								heatMultiplier = 1.0, --needed for heat
+								lifeTime = 50, rampUp = 30, decay = 15,
+								effectType = 0},
+			},
+		},
+
+		['armraz'] = {
+			[1] = {
+				-- Barrel Heat
+				alwaysVisible = false,
+				distortionType = 'point',
+				distortionName = 'barrelheatl',
+				pieceName = 'lcannon',
+				distortionConfig = { posx = 0, posy = 7, posz = 23.5, radius = 8,
+								noiseStrength = 0.6, noiseScaleSpace = 1.4, distanceFalloff = 0.8,
+								onlyModelMap = 0, 
+								heatMultiplier = 1.0, --needed for heat
+								lifeTime = 160, rampUp = 135, decay = 25,
+								effectType = 0},
+			},
+			[2] = {
+				-- Barrel Heat
+				alwaysVisible = false,
+				distortionType = 'point',
+				distortionName = 'barrelheatr',
+				pieceName = 'rcannon',
+				distortionConfig = { posx = 0, posy = 7, posz = 23.5, radius = 8,
+								noiseStrength = 0.6, noiseScaleSpace = 1.45, distanceFalloff = 0.8,
+								onlyModelMap = 0, 
+								heatMultiplier = 1.0, --needed for heat
+								lifeTime = 160, rampUp = 135, decay = 25,
+								effectType = 0},
+			},
+		},
+
 				
 		['armbrtha'] = {
 			[1] = {
-				-- Footstep shockwave
+				-- Barrel Heat
 				alwaysVisible = false,
 				distortionType = 'beam',
 				distortionName = 'armbrthabarrelheat',
