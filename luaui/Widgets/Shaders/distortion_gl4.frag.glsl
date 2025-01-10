@@ -872,7 +872,7 @@ void main(void)
 
 		float shieldEdgeFactor = clamp(1.0 - abs(length(distortionEmitPosition.xyz - closestPointOnRay.xyz) - distortionRadius +10) * 0.1, 0.0, 1.0);
 		//shieldEdgeFactor = pcurve_k(shieldEdgeFactor, 0.7, 100.0, 17.0);
-		shieldEdgeFactor = smoothstep(0.0, 1.0, shieldEdgeFactor);
+		shieldEdgeFactor = smoothstep(0.1, 1.0, shieldEdgeFactor);
 		if (fragDistance < ( length(distortionPosition - camPos) -distortionRadius)){
 			fragColor.rgba = vec4(0.0);
 			return;
