@@ -952,6 +952,11 @@ lua_UnitScriptLight(lightIndex, count)
 	return 0;
 }
 
+lua_UnitScriptDistortion(lightIndex, count)
+{
+	return 0;
+}
+
 
 SmokeItUp()
 {	
@@ -1098,6 +1103,7 @@ Shot1()
 
 	{
 			call-script lua_UnitScriptLight(1, shotcount);
+			call-script lua_UnitScriptDistortion(1, shotcount);
 		//get PRINT(lightcount1);
 		if (lightcount1 == 95) {
 			lightcount1 = 0;
@@ -1111,11 +1117,13 @@ Shot1()
 	{
 		if (lightcount2 == 95) {
 			call-script lua_UnitScriptLight(2, shotcount);
+			call-script lua_UnitScriptDistortion(2, shotcount);
 			lightcount2 = 0;
 		} else {
 			lightcount2 = lightcount2 + 1;
 		}
 		call-script lua_UnitScriptLight(2, shotcount);
+		call-script lua_UnitScriptDistortion(2, shotcount);
 
 		gun_1 = 1;
 		return(1);
