@@ -635,7 +635,14 @@ void main(void)
 		
 		lightToWorld = fragWorldPos.xyz - lightPosition;
 		lightDirection = normalize(lightToWorld);
+		
 		attenuation = clamp( 1.0 - length (lightToWorld) * lightRadiusInv, 0,1);
+		
+		// example of exponential attenuation instead of clamped,
+		//Use a smoother distance-falloff formula such as an exponential or inverse-square:
+		//float dist = length(lightToWorld);
+		//attenuation = exp(-dist * 0.5);
+		
 		closestpoint_dist = closestlightlp_distance(camPos, viewDirection, lightPosition);
 		
 		// Both scattering components
