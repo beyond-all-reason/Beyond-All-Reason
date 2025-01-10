@@ -1560,10 +1560,6 @@ function WeaponDef_Post(name, wDef)
 			end
 		end
 
-		if modOptions.evocom == true and wDef.weapontype == "DGun" then
-			wDef.interceptedbyshieldtype = 1
-		end
-
 		if modOptions.multiplier_shieldpower then
 			if wDef.shield then
 				local multiplier = modOptions.multiplier_shieldpower
