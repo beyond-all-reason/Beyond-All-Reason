@@ -30,7 +30,7 @@ local frameCheckModulo = Game.gameSpeed -- once per second is sufficient
 local aggroDecayRate = 0.65 --aggro is multiplied by this until it falls within priority aiming state range
 local aggroDecayCap = 10  -- this caps the aggro decay so that misfire state can last a significant amount of time
 local aggroPriorityCap = 10 * aggroDecayCap --The maximum aggro that can be accumulated. This prevents manual targetting from getting stuck in a fire mode for too long.
-local aggroBackupCap = 30 * aggroDecayCap * -1 --Like above, but a negative value because backup is triggered with negative aggro.
+local aggroBackupCap = 10 * aggroDecayCap * -1 --Like above, but a negative value because backup is triggered with negative aggro.
 
 --misfire occurs when the weapon thinks it can shoot a target due to faulty Spring.GetUnitWeaponHaveFreeLineOfFire return values. We must detect when this failure occurs and force high for a long duration.
 local misfireMultiplier = Game.gameSpeed * 1.5
@@ -148,7 +148,6 @@ local function updateAimingState(attackerID)
 		newMatchTargetNumber = priorityTarget[1]
 	end
 
-	Spring.Echo(data.aggroBias, data.misfireTallyMultiplier, data.lastTargetMatchNumber, newMatchTargetNumber)
 	-- prevent misfire from triggering when a target is first acquired from idle state
 	if backupTarget or priorityTarget then
 		if data.suspendMisfireUntilFrame and data.lastTargetMatchNumber ~= newMatchTargetNumber then
