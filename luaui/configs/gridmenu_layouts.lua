@@ -1489,7 +1489,7 @@ local unitGrids = {
 
 	legack = {
 		{
-			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
+			{ "legmoho", "legfus", "corafus", },                -- moho, fusion, afus
 			{ "cormmkr", "legageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
 			{ "coruwadves", "legamstor", },                    -- hardened energy storage, hardened metal storage,
 		},
