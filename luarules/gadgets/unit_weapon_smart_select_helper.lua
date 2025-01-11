@@ -123,7 +123,6 @@ local function failureToFireCheck(attackerID, data, defData)
 end
 
 local function handleMisfire(data, defData)
-	Spring.Echo("Misfire detected!", gameFrame/30/60)
 	data.misfireTallyMultiplier = data.misfireTallyMultiplier + misfireMultiplierAddition
 
 	if data.misfireTallyMultiplier < minMisfireTally then
@@ -159,7 +158,6 @@ local function updateAimingState(attackerID)
 	-- prevent misfire from triggering when a target is first acquired from idle state
 	if backupTarget or priorityTarget then
 		if data.suspendMisfireUntilFrame and newMatchTargetNumber ~= 0 and newMatchTargetNumber ~= data.lastTargetMatchNumber then
-			--Spring.Echo("new target", newMatchTargetNumber, "old target",  data.lastTargetMatchNumber)
 			data.lastTargetMatchNumber = newMatchTargetNumber
 			data.suspendMisfireUntilFrame = gameFrame + defData.failedToFireFrameThreshold
 		elseif not data.suspendMisfireUntilFrame then
@@ -215,8 +213,6 @@ local function updateAimingState(attackerID)
 
 	-- Decay misfire tally multiplier, so that if the conditions change that caused the misfire it can revert to a normal state over time.
 	data.misfireTallyMultiplier = data.misfireTallyMultiplier * misfireTallyDecayRate
-
-	--Spring.Echo(data.aggroBias, data.misfireTallyMultiplier, data.suspendMisfireUntilFrame, gameFrame)
 end
 
 --call-ins
