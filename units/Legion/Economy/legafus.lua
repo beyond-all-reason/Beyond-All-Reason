@@ -4,7 +4,7 @@ return {
 		buildpic = "LEGAFUS.DDS",
 		buildtime = 312500,
 		canrepeat = false,
-		collisionvolumeoffsets = "0 48 0",
+		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "96 96 96",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
