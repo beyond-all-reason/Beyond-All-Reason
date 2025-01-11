@@ -1,11 +1,11 @@
 function widget:GetInfo()
 	return {
-		name = "Custom Unit Names",
-		desc = "Overrides i18n translations using custom params",
+		name = "Tweakdefs Custom Unit Names",
+		desc = "Allow tweakdefs to override I18N entries for units",
 		author = "Centrifugal",
 		date = "Dec 20, 2024",
 		license = "GNU GPL, v2 or later",
-		layer = -1000000,
+		layer = -1000000, -- must run before gui_language
 		enabled = true
 	}
 end
