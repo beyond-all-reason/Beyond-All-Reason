@@ -14599,6 +14599,7 @@ local unitLights = {
 							modelfactor = 0.1, specular = 1.6, scattering = 1.5, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
+	
 		-- fusionorb = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'emit',
@@ -14608,6 +14609,26 @@ local unitLights = {
 		-- 					modelfactor = 0.1, specular = 0.66, scattering = 6, lensflare = 5,
 		-- 					lifetime = 0, sustain = 0, animtype = 0},
 		-- },
+	},
+	['legfus'] = {
+		fusionglow = {
+			lightType = 'point',
+			pieceName = 'emit',
+			lightConfig = { posx = 0, posy = 5, posz = 0, radius = 45,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = -1, g = 1, b = 1, a = 0.5,
+							modelfactor = 0.2, specular = 1.2, scattering = 2, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		fusionglow2 = {
+			lightType = 'point',
+			pieceName = 'emit',
+			lightConfig = { posx = 0, posy = 5, posz = 0, radius = 55,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = -1, g = 1, b = 1, a = 0.5,
+							modelfactor = 0.1, specular = 1.2, scattering = 1.5, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
 	},
 	['corafus'] = {
 		fusionglow = {

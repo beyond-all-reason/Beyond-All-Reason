@@ -162,6 +162,8 @@ bind sc_x buildunit_armmmkr
 bind Shift+sc_x buildunit_armmmkr
 bind sc_x buildunit_corfus
 bind Shift+sc_x buildunit_corfus
+bind sc_x buildunit_legfus
+bind Shift+sc_x buildunit_legfus
 bind sc_x buildunit_cormmkr
 bind Shift+sc_x buildunit_cormmkr
 bind sc_x buildunit_armtide

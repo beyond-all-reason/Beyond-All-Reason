@@ -2703,6 +2703,10 @@ local icontypes = {
 		bitmap = "icons/metalmaker_t1.png",
 		size = 0.78749996
 	},
+	legfus = {
+		bitmap = "icons/fusion.png",
+		size = 1.46999991
+	},
 	legtriarius = {
 		bitmap = "icons/ship_destroyer.png",
 		size = 1.51199996

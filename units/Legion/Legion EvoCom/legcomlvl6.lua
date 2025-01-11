@@ -65,7 +65,7 @@ return {
 		workertime = 811,
 		buildoptions = {
 			[1] = "legmoho",
-			[2] = "corfus",
+			[2] = "legfus",
 			[3] = "legwin",
 			[5] = "cormmkr",
 			[6] = "legadvsol",

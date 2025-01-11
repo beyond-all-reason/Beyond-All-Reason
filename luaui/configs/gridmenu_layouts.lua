@@ -1489,7 +1489,7 @@ local unitGrids = {
 
 	legack = {
 		{
-			{ "legmoho", "corfus", "legafus", },                -- moho, fusion, afus
+			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
 			{ "cormmkr", "legageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
 			{ "coruwadves", "legamstor", },                    -- hardened energy storage, hardened metal storage,
 		},
@@ -1559,7 +1559,7 @@ local unitGrids = {
 
 	legacv = {
 		{
-			{ "legmoho", "corfus", "legafus", },                -- moho, fusion, afus
+			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
 			{ "cormmkr", "legageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
 			{ "coruwadves", "legamstor", },                    -- hardened energy storage, hardened metal storage,
 		},
@@ -1628,7 +1628,7 @@ local unitGrids = {
 	},
 	legaca = {
 		{
-			{ "legmoho", "corfus", "legafus", },                -- moho, fusion, afus
+			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
 			{ "cormmkr", "legageo", "cormexp","coruwageo", },               -- T2 converter, T2 geo, armed moho
 			{ "coruwadves", "legamstor", },                    -- hardened energy storage, hardened metal storage,
 		},

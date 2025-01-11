@@ -39,7 +39,7 @@ return {
 		upright = false,
 		workertime = 180,
 		buildoptions = {
-			"corfus",
+			"legfus",
 			"legafus",
 			"leggant",
 			"legageo",
