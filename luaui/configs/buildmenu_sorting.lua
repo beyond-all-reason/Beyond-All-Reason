@@ -501,6 +501,7 @@ local unitOrderTable = {
    ['corfus']         = 101600,
    ['armafus']        = 101700,
    ['corafus']        = 101750,
+   ['legafus'] 		  = 101775,
 
    --ECO NRG STORAGE
    ['armestor']       = 101800,
