@@ -44,7 +44,7 @@ local exampleDistortionBeamShockwave = {
 			r = 1, g = 1, b = 1, a = 0.075,
 			pos2x = 100, pos2y = 1000, pos2z = 100, -- beam distortions only, specifies the endpoint of the beam
 			modelfactor = 1, specular = 0.5, scattering = 0.1, lensflare = 1,
-			lifeTime = 10, sustain = 1, 	effectType = 2, -- unused
+			lifeTime = 10, sustain = 1, 	effectType = 'groundShockwave', -- unused
 	},
 }
 
@@ -91,7 +91,7 @@ local BaseClasses = {
 		distortionConfig = {
 				posx = 0, posy = 10, posz = 0, radius = 150,
 				pos2x = 100, pos2y = 1000, pos2z = 100, -- beam distortions only, specifies the endpoint of the beam
-				lifeTime = 10, sustain = 1, effectType = 2, -- unused
+				lifeTime = 10, sustain = 1, effectType = 'groundShockwave', -- unused
 		},
 	},
 
@@ -184,7 +184,7 @@ local BaseClasses = {
 						lifeTime = 32, decay = 8, rampUp = 26,
 						effectStrength = 1.8, --needed for shockwaves
 						shockWidth = 1,
-						effectType = 2},
+						effectType = 'groundShockwave'},
 	},
 
 	GroundShockWaveNuke = {
@@ -195,7 +195,7 @@ local BaseClasses = {
 						effectStrength = 3.5, --needed for shockwaves
 						lifeTime = 40, decay = 4, rampUp = 0,  
 						shockWidth = 32, --refractiveIndex = 20,
-						effectType = 2},
+						effectType = 'groundShockwave'},
 	},
 	
 	GroundShockWaveFuzzy = {
@@ -205,7 +205,7 @@ local BaseClasses = {
 						distanceFalloff = 1.0, onlyModelMap = 0,
 						effectStrength = 1.2, --needed for shockwaves
 						shockWidth = 3,
-						lifeTime = 25,  effectType = 2},
+						lifeTime = 25,  effectType = 'groundShockwave'},
 	},
 
 	AirShockWaveXS = {
@@ -288,7 +288,7 @@ local BaseClasses = {
 			lifeTime = 15,  refractiveIndex = 1.05, 
 			--windAffected = 0.5,  riseRate = 1,
 			effectStrength = 1.0, --needed for irshockwaves
-			effectType = 1, },
+			effectType = 'airShockwave', },
 
 	},
 

@@ -509,7 +509,7 @@ local unitDistortions = {
 			distortionConfig = { posx = 0, posy = -1, posz = 20, radius = 120,
 							dirx =  0, diry = -0, dirz = -1.0, theta = 0.05,
 							noiseStrength = 2, noiseScaleSpace = 0.85, distanceFalloff = 2.0,
-							effectStrength = 3.0,
+							heatMultiplier = 3.0,
 							lifeTime = 0,  effectType = 0},
 		},
 	},
@@ -521,7 +521,7 @@ local unitDistortions = {
 			distortionConfig = { posx = 0, posy = 4, posz = 4, radius = 40,
 							dirx = 0, diry = -1, dirz = 0.1, theta = 0.8,
 							noiseStrength = 0.7, noiseScaleSpace = 1.45, distanceFalloff = 1.0,
-							effectStrength = 1.5,
+							heatMultiplier = 1.5,
 							riseRate = -8, lifeTime = 0,  effectType = 0},
 		},
 	},
@@ -532,7 +532,7 @@ local unitDistortions = {
 			pieceName = 'fan',
 			distortionConfig = { posx = 0, posy = -11, posz = 0, radius = 10,
 							noiseStrength = 0.7, noiseScaleSpace = -1.45, distanceFalloff = 1.2,
-							effectStrength = 1.5,
+							heatMultiplier = 1.5,
 							riseRate = -6, lifeTime = 0,  effectType = 0},
 		},
 	},
@@ -544,7 +544,7 @@ local unitDistortions = {
 			distortionConfig = { posx = 0, posy = -1, posz = 20, radius = 120,
 							dirx =  0, diry = -0, dirz = -1.0, theta = 0.05,
 							noiseStrength = 2, noiseScaleSpace = 0.85, distanceFalloff = 2.0,
-							effectStrength = 3.0,
+							heatMultiplier = 3.0,
 							lifeTime = 0,  effectType = 0},
 		},
 		thrustb = {
@@ -553,7 +553,7 @@ local unitDistortions = {
 			distortionConfig = { posx = 0, posy = -1, posz = 20, radius = 120,
 							dirx =  0, diry = -0, dirz = -1.0, theta = 0.05,
 							noiseStrength = 2, noiseScaleSpace = 0.85, distanceFalloff = 2.0,
-							effectStrength = 3.0,
+							heatMultiplier = 3.0,
 							lifeTime = 0,  effectType = 0},
 		},
 	},
@@ -565,7 +565,7 @@ local unitDistortions = {
 			distortionConfig = { posx = -19.8, posy = 5, posz = 64.3, radius = 40,
 							dirx = 0, diry = -1, dirz = 0.1, theta = 0.8,
 							noiseStrength = 1, noiseScaleSpace = 0.65, distanceFalloff = 1.0,
-							effectStrength = 1.2,
+							heatMultiplier = 1.2,
 							riseRate = -8, lifeTime = 0,  effectType = 0},
 		},
 		thrust2 = {
@@ -574,7 +574,7 @@ local unitDistortions = {
 			distortionConfig = { posx = 19.8, posy = 5, posz = 64.3, radius = 40,
 							dirx = 0, diry = -1, dirz = 0.1, theta = 0.8,
 							noiseStrength = 1, noiseScaleSpace = 0.65, distanceFalloff = 1.0,
-							effectStrength = 1.2,
+							heatMultiplier = 1.2,
 							riseRate = -8, lifeTime = 0,  effectType = 0},
 		},
 		thrust3 = {
@@ -583,7 +583,7 @@ local unitDistortions = {
 			distortionConfig = { posx = -19.8, posy = 5, posz = 34, radius = 40,
 							dirx = 0, diry = -1, dirz = 0.1, theta = 0.8,
 							noiseStrength = 1, noiseScaleSpace = 0.65, distanceFalloff = 1.0,
-							effectStrength = 1.2,
+							heatMultiplier = 1.2,
 							riseRate = -8, lifeTime = 0,  effectType = 0},
 		},
 		thrust4 = {
@@ -592,7 +592,7 @@ local unitDistortions = {
 			distortionConfig = { posx = 19.8, posy = 5, posz = 34, radius = 40,
 							dirx = 0, diry = -1, dirz = 0.1, theta = 0.8,
 							noiseStrength = 1, noiseScaleSpace = 0.65, distanceFalloff = 1.0,
-							effectStrength = 1.2,
+							heatMultiplier = 1.2,
 							riseRate = -8, lifeTime = 0,  effectType = 0},
 		},
 	},
@@ -604,7 +604,7 @@ local unitDistortions = {
 			distortionConfig = { posx = 0, posy = -1, posz = 20, radius = 120,
 							dirx =  0, diry = -0, dirz = -1.0, theta = 0.05,
 							noiseStrength = 2, noiseScaleSpace = 0.85, distanceFalloff = 2.0,
-							effectStrength = 3.0,
+							heatMultiplier = 3.0,
 							lifeTime = 0,  effectType = 0},
 		},
 	},
@@ -616,7 +616,7 @@ local unitDistortions = {
 			distortionConfig = { posx = 0, posy = -1, posz = 20, radius = 130,
 							dirx =  0, diry = -0, dirz = -1.0, theta = 0.06,
 							noiseStrength = 2, noiseScaleSpace = 0.85, distanceFalloff = 2.0,
-							effectStrength = 3.0,
+							heatMultiplier = 3.0,
 							lifeTime = 0,  effectType = 0},
 		},
 		thrustb = {
@@ -625,7 +625,7 @@ local unitDistortions = {
 			distortionConfig = { posx = 0, posy = -1, posz = 20, radius = 130,
 							dirx =  0, diry = -0, dirz = -1.0, theta = 0.06,
 							noiseStrength = 2, noiseScaleSpace = 0.85, distanceFalloff = 2.0,
-							effectStrength = 3.0,
+							heatMultiplier = 3.0,
 							lifeTime = 0,  effectType = 0},
 		},
 	},
@@ -661,7 +661,7 @@ local unitDistortions = {
 			distortionConfig = { posx = 0, posy = -1, posz = -25, radius = 120,
 							dirx =  0, diry = -0, dirz = -1.0, theta = 0.09,
 							noiseStrength = 2, noiseScaleSpace = 0.85, distanceFalloff = 2.0,
-							effectStrength = 3.0,
+							heatMultiplier = 3.0,
 							lifeTime = 0,  effectType = 0},
 		},
 		thrustb = {
@@ -679,7 +679,7 @@ local unitDistortions = {
 			distortionConfig = { posx = 0, posy = -1, posz = 0, radius = 100,
 							dirx =  0, diry = -0, dirz = -1.0, theta = 0.09,
 							noiseStrength = 2, noiseScaleSpace = 0.85, distanceFalloff = 2.0,
-							effectStrength = 3.0,
+							heatMultiplier = 3.0,
 							lifeTime = 0,  effectType = 0},
 		},
 	},
@@ -716,7 +716,7 @@ local unitDistortions = {
 			distortionConfig = { posx = 0, posy = 0, posz = 5, radius = 130,
 							dirx =  0, diry = -0, dirz = -1.0, theta = 0.08,
 							noiseStrength = 3, noiseScaleSpace = 0.85, distanceFalloff = 1.9,
-							effectStrength = 3.0,
+							heatMultiplier = 3.0,
 							lifeTime = 0,  effectType = 0},
 		},
 		thrust2 = {
@@ -725,7 +725,7 @@ local unitDistortions = {
 			distortionConfig = { posx = 0, posy = 0, posz = 5, radius = 130,
 							dirx =  0, diry = -0, dirz = -1.0, theta = 0.08,
 							noiseStrength = 2, noiseScaleSpace = 0.85, distanceFalloff = 1.9,
-							effectStrength = 3.0,
+							heatMultiplier = 3.0,
 							lifeTime = 0,  effectType = 0},
 		},
 	},
@@ -1157,7 +1157,7 @@ local unitDistortions = {
 		-- 	distortionConfig = { posx = 0, posy = 58, posz = 0, radius = 12,
 		-- 					noiseStrength = 10, noiseScaleSpace = 0.4, distanceFalloff = 1.5,
 		-- 					windAffected = -1,
-		-- 					lifeTime = 50,  effectType = 1},
+		-- 					lifeTime = 50,  effectType = 'airShockwave'},
 		-- },
 	},
 
@@ -1377,7 +1377,7 @@ local unitEventDistortionsNames = {
 								noiseStrength = 1.2, noiseScaleSpace = 0.5, distanceFalloff = 0.2, onlyModelMap = 1, 
 								effectStrength = 1.0, --needed for shockwave
 								lifeTime = 25, rampUp = 0, decay = 15,
-								shockWidth = 5, effectType = 2},
+								shockWidth = 5, effectType = 'groundShockwave'},
 	
 			},
 		},
@@ -1393,7 +1393,7 @@ local unitEventDistortionsNames = {
 								noiseStrength = 1.2, noiseScaleSpace = 0.5, distanceFalloff = 0.2, onlyModelMap = 1, 
 								effectStrength = 1.0, --needed for shockwave
 								lifeTime = 25, rampUp = 0, decay = 15,
-								shockWidth = 5, effectType = 2},
+								shockWidth = 5, effectType = 'groundShockwave'},
 	
 			},
 			[2] = {
@@ -1406,7 +1406,7 @@ local unitEventDistortionsNames = {
 								noiseStrength = 1.2, noiseScaleSpace = 0.5, distanceFalloff = 0.2, onlyModelMap = 1, 
 								effectStrength = 1.0, --needed for shockwave
 								lifeTime = 25, rampUp = 0, decay = 15,
-								shockWidth = 5, effectType = 2},
+								shockWidth = 5, effectType = 'groundShockwave'},
 	
 			},
 			[3] = {
@@ -1419,7 +1419,7 @@ local unitEventDistortionsNames = {
 								noiseStrength = 1.2, noiseScaleSpace = 0.5, distanceFalloff = 0.2, onlyModelMap = 1, 
 								effectStrength = 1.0, --needed for shockwave
 								lifeTime = 25, rampUp = 0, decay = 15,
-								shockWidth = 5, effectType = 2},
+								shockWidth = 5, effectType = 'groundShockwave'},
 	
 			},
 			[4] = {
@@ -1432,7 +1432,7 @@ local unitEventDistortionsNames = {
 								noiseStrength = 1.2, noiseScaleSpace = 0.5, distanceFalloff = 0.2, onlyModelMap = 1, 
 								effectStrength = 1.0, --needed for shockwave
 								lifeTime = 25, rampUp = 0, decay = 15,
-								shockWidth = 5, effectType = 2},
+								shockWidth = 5, effectType = 'groundShockwave'},
 	
 			},
 		},
@@ -1449,7 +1449,7 @@ local unitEventDistortionsNames = {
 								noiseStrength = 0.2, noiseScaleSpace = 0.8, distanceFalloff = 0.1, onlyModelMap = 1, 
 								effectStrength = -1.5, --needed for shockwave
 								lifeTime = 60, rampUp = 20, decay = 15,
-								shockWidth = 0.7, effectType = 2},
+								shockWidth = 0.7, effectType = 'groundShockwave'},
 	
 			},
 		},
@@ -1464,7 +1464,7 @@ local unitEventDistortionsNames = {
 				distortionConfig = { posx = 0, posy = 5, posz = 0, radius = 11,
 								noiseStrength = 0.4, noiseScaleSpace = 1.8, distanceFalloff = 1.1,
 								onlyModelMap = 0, 
-								effectStrength = 1.0, --needed for heat
+								heatMultiplier = 1.0, --needed for heat
 								riseRate = 1.2, windAffected = 0.3,
 								lifeTime = 250, rampUp = 40, decay = 120,
 								effectType = 0},
@@ -1478,7 +1478,7 @@ local unitEventDistortionsNames = {
 				distortionConfig = { posx = 0, posy = 5, posz = 0, radius = 11,
 								noiseStrength = 0.4, noiseScaleSpace = 1.8, distanceFalloff = 1.1,
 								onlyModelMap = 0, 
-								effectStrength = 1.0, --needed for heat
+								heatMultiplier = 1.0, --needed for heat
 								riseRate = 1.2, windAffected = 0.3,
 								lifeTime = 250, rampUp = 40, decay = 120,
 								effectType = 0},
@@ -1493,7 +1493,7 @@ local unitEventDistortionsNames = {
 			-- 					pos2x = 0, pos2y = 5, pos2z = 185,
 			-- 					noiseStrength = 4, noiseScaleSpace = -0.3, distanceFalloff = 3.5,
 			-- 					onlyModelMap = 0, 
-			-- 					effectStrength = 3.0, --needed for heat
+			-- 					heatMultiplier = 3.0, --needed for heat
 			-- 					windAffected = 0.1, riseRate = -0.5,
 			-- 					lifeTime = 15, rampUp = 0, decay = 0,
 			-- 					effectType = 0},
@@ -1508,7 +1508,7 @@ local unitEventDistortionsNames = {
 								dirx =  0, diry = 0, dirz = 1.0, theta = 0.3,
 								noiseStrength = 4, noiseScaleSpace = -0.2, distanceFalloff = 3.5,
 								onlyModelMap = 0, 
-								effectStrength = 3.0, --needed for heat
+								heatMultiplier = 3.0, --needed for heat
 								windAffected = 0.1, riseRate = -0.5,
 								lifeTime = 15, rampUp = 25, decay = 0,
 								effectType = 0},
@@ -1523,7 +1523,7 @@ local unitEventDistortionsNames = {
 								dirx =  0, diry = 0, dirz = 1.0, theta = 0.4,
 								noiseStrength = 4, noiseScaleSpace = 0.12, distanceFalloff = 3.5,
 								onlyModelMap = 0, 
-								effectStrength = 2.0, --needed for heat
+								heatMultiplier = 2.0, --needed for heat
 								windAffected = 0.1, riseRate = -0.5,
 								lifeTime = 15, rampUp = 25, decay = 0,
 								effectType = 0},
@@ -1540,7 +1540,7 @@ local unitEventDistortionsNames = {
 				distortionConfig = { posx = 0, posy = 7, posz = 23.5, radius = 8,
 								noiseStrength = 0.6, noiseScaleSpace = -1.8, distanceFalloff = 0.8,
 								onlyModelMap = 0, 
-								effectStrength = 1.0, --needed for heat
+								heatMultiplier = 1.0, --needed for heat
 								lifeTime = 160, rampUp = 25, decay = 25,
 								riseRate = 0.2, windAffected = -0.3,
 								effectType = 0},
@@ -1554,7 +1554,7 @@ local unitEventDistortionsNames = {
 				distortionConfig = { posx = 0, posy = 7, posz = 23.5, radius = 8,
 								noiseStrength = 0.6, noiseScaleSpace = -1.8, distanceFalloff = 0.8,
 								onlyModelMap = 0, 
-								effectStrength = 1.0, --needed for heat
+								heatMultiplier = 1.0, --needed for heat
 								lifeTime = 160, rampUp = 25, decay = 25,
 								riseRate = 0.2, windAffected = -0.3,
 								effectType = 0},

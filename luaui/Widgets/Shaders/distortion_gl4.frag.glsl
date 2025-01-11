@@ -738,6 +738,7 @@ void main(void)
 
 			// Scale the noise position with the noise scale
 			noisePosition *= abs(NOISESCALESPACE) * 0.03;
+
 			
 			// Add the time offset and wind offsets to the noise position
 			vec3 noiseOffset = vec3(0.0); //vec3(windXZ.x * 0.1, currentTime * 0.01, windXZ.y * 0.1 ) * (1.0 + vec3(WINDAFFECTED, EFFECTPARAM1, WINDAFFECTED));
@@ -755,6 +756,10 @@ void main(void)
 
 			float rayBendElmos = 0;
 			rayBendElmos = sin(asin(sinTheta1) - asin(sinTheta2));
+
+			// At extremely oblique angles, the refraction can be so strong that the ray bends back towards the camera
+			// This can be avoided, by softening the refraction at the edges
+			float shockWidth = EFFECTPARAM1;
 
 			// fragment we are checking is occluding the sphere
 			if (fragDistance < nearFarDistances.x){
