@@ -1,0 +1,36 @@
+function widget:GetInfo()
+	return {
+		name = "Custom Unit Names",
+		desc = "Overrides i18n translations using custom params",
+		author = "Centrifugal",
+		date = "Dec 20, 2024",
+		license = "GNU GPL, v2 or later",
+		layer = -1000000,
+		enabled = true
+	}
+end
+
+local function getCurrentLanguage()
+	return Spring.GetConfigString("Language", "en")
+end
+
+function widget:Initialize()
+	local currentLanguage = getCurrentLanguage()
+
+	for unitDefName, unitDef in pairs(UnitDefNames) do
+		--Naming convention for language overrides
+		local nameKey = "i18n_" .. currentLanguage .. "_humanname"
+		local tooltipKey = "i18n_" .. currentLanguage .. "_tooltip"
+
+		local customHumanName = unitDef.customParams[nameKey]
+		local customTooltip = unitDef.customParams[tooltipKey]
+
+		if customHumanName then
+			Spring.I18N.set(currentLanguage .. '.units.names.' .. unitDefName, customHumanName)
+		end
+
+		if customTooltip then
+			Spring.I18N.set(currentLanguage .. '.units.descriptions.' .. unitDefName, customTooltip)
+		end
+	end
+end
