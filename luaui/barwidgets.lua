@@ -105,6 +105,7 @@ local flexCallIns = {
 	'ShockFront',
 	'WorldTooltip',
 	'MapDrawCmd',
+	'ActiveCommandChanged',
 	'DefaultCommand',
 	'UnitCreated',
 	'UnitFinished',
@@ -911,6 +912,14 @@ function widgetHandler:InsertWidgetRaw(widget)
 	if widget == nil then
 		return
 	end
+	if widget.GetInfo and not Platform.check(widget:GetInfo().depends) then
+		local name = widget.whInfo.name
+		if self.knownWidgets[name] then
+			self.knownWidgets[name].active = false
+		end
+		Spring.Echo('Missing capabilities:  ' .. name .. '. Disabling.')
+		return
+	end
 
 	SafeWrapWidget(widget)
 
@@ -930,6 +939,9 @@ end
 
 function widgetHandler:RemoveWidgetRaw(widget)
 	if widget == nil or widget.whInfo == nil then
+		return
+	end
+	if not Platform.check(widget.whInfo.depends) then
 		return
 	end
 
@@ -1329,6 +1341,14 @@ function widgetHandler:ConfigureLayout(command)
 		end
 	end
 	return false
+end
+
+function widgetHandler:ActiveCommandChanged(id, cmdType)
+	tracy.ZoneBeginN("W:ActiveCommandChanged")
+	for _, w in ipairs(self.ActiveCommandChangedList) do
+		w:ActiveCommandChanged(id, cmdType)
+	end
+	tracy.ZoneEnd()
 end
 
 function widgetHandler:CommandNotify(id, params, options)

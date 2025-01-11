@@ -3,12 +3,13 @@
 
 piece  lturret, rturret, base, lprop, rprop, bprop;
 
-static-var  gun_1, turnClock, turnCounter, wheelSpeed, currentSpeed, moveSpeed, pivotAngle;
+static-var  turnClock, turnCounter, wheelSpeed, currentSpeed, moveSpeed, pivotAngle;
 
 // Signal definitions
 #define SIGNAL_MOVE 1
 
 #define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
 
 
 #define BASEPIECE base
@@ -44,7 +45,6 @@ Propcontrol()
 
 Create()
 {
-	gun_1 = lturret;
 	call-script TB_Init();
 }
 
@@ -68,15 +68,23 @@ StopMoving()
 
 FireWeapon1()
 {
-	gun_1 = !gun_1;
+	sleep 200;
+}
+
+FireWeapon2()
+{
+	sleep 200;
 }
 
 QueryWeapon1(pieceIndex)
 {
-	pieceIndex = gun_1;
+	pieceIndex = lturret;
 }
 
-
+QueryWeapon2(pieceIndex)
+{
+	pieceIndex = rturret;
+}
 
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
@@ -106,9 +114,17 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	move rturret to x-axis [9] speed [30];
 	move lturret to x-axis [-9] speed [30];
-	
+	wait-for-move lturret along x-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+AimWeapon2(heading, pitch)
+{
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
+	move rturret to x-axis [9] speed [30];
 	wait-for-move rturret along x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
@@ -118,6 +134,12 @@ AimFromWeapon1(pieceIndex)
 {
 	pieceIndex = lturret;
 }
+
+AimFromWeapon2(pieceIndex)
+{
+	pieceIndex = lturret;
+}
+
 Killed(severity, corpsetype)
 {
 	if( severity <= 25 )

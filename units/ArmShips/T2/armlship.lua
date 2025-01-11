@@ -191,6 +191,7 @@ return {
 				},
 				damage = {
 					default = 35,
+					subs = 10,
 				},
 			},
 		},

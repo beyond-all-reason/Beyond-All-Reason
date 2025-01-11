@@ -157,6 +157,7 @@ local callInLists = {
 	-- "UnitMoveFailed",
 	"StockpileChanged",
 
+	"ActiveCommandChanged",
 	"CommandNotify",
 
 	-- Feature CallIns
@@ -413,6 +414,11 @@ function gadgetHandler:LoadGadget(filename, overridevfsmode)
 	end
 	if err == false then -- note that all "normal" gadgets return `nil` implicitly at EOF, so don't do "if not err"
 		return nil -- gadget asked for a quiet death
+	end
+
+	if gadget.GetInfo and (Platform and not Platform.check(gadget.GetInfo().depends)) then
+		Spring.Echo('Missing capabilities:  ' .. gadget:GetInfo().name .. '. Disabling.')
+		return nil
 	end
 
 	-- raw access to gadgetHandler
@@ -2142,6 +2148,12 @@ function gadgetHandler:DefaultCommand(type, id, cmd)
 		end
 	end
 	return
+end
+
+function gadgetHandler:ActiveCommandChanged(id, cmdType)
+	for _, g in ipairs(self.ActiveCommandChangedList) do
+		g:ActiveCommandChanged(id, cmdType)
+	end
 end
 
 function gadgetHandler:CommandNotify(id, params, options)

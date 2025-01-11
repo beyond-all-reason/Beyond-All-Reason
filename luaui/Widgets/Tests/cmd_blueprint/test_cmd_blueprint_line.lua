@@ -1,7 +1,7 @@
 local widgetName = "Blueprint"
 
 function skip()
-	return Spring.GetGameFrame() <= 0
+	return not Platform.gl
 end
 
 function setup()

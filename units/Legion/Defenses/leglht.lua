@@ -122,6 +122,7 @@ return {
 				impactonly = 1,
 				impulsefactor = 0,
 				laserflaresize = 7,
+				leadlimit = 0,
 				name = "Light g2g Heat Ray",
 				noselfdamage = true,
 				predictboost = 1,
