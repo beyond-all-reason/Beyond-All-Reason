@@ -10,12 +10,8 @@ function widget:GetInfo()
 	}
 end
 
-local function getCurrentLanguage()
-	return Spring.GetConfigString("Language", "en")
-end
-
-function widget:Initialize()
-	local currentLanguage = getCurrentLanguage()
+local function updateTranslations()
+	local currentLanguage = Spring.GetConfigString("language", "en")
 
 	for unitDefName, unitDef in pairs(UnitDefNames) do
 		--Naming convention for language overrides
@@ -33,4 +29,12 @@ function widget:Initialize()
 			Spring.I18N.set(currentLanguage .. '.units.descriptions.' .. unitDefName, customTooltip)
 		end
 	end
+end
+
+function widget:Initialize()
+	updateTranslations()
+end
+
+function widget:LanguageChanged()
+	updateTranslations()
 end
