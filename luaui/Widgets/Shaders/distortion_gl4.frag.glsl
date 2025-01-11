@@ -760,6 +760,7 @@ void main(void)
 			// At extremely oblique angles, the refraction can be so strong that the ray bends back towards the camera
 			// This can be avoided, by softening the refraction at the edges
 			// So shockWidth should reduce rayBendElmos when abs(cosTheta) is near 0
+			float shockWidth = EFFECTPARAM2;
 			float shockWaveEdgeSoften = pow(distance_attenuation, abs(shockWidth));
 			rayBendElmos *= shockWaveEdgeSoften;
 
