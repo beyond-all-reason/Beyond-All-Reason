@@ -29,15 +29,16 @@ This may be necessary if the turret's turn speed is so slow it triggers false mi
 local frameCheckModulo = Game.gameSpeed -- once per second is sufficient
 local aggroDecayRate = 0.65 --aggro is multiplied by this until it falls within priority aiming state range
 local aggroDecayCap = 10  -- this caps the aggro decay so that misfire state can last a significant amount of time
-local aggroPriorityCap = 10 * aggroDecayCap --The maximum aggro that can be accumulated. This prevents manual targetting from getting stuck in a fire mode for too long.
-local aggroBackupCap = 10 * aggroDecayCap * -1 --Like above, but a negative value because backup is triggered with negative aggro.
+local aggroPriorityCap = 8 * aggroDecayCap --The maximum aggro that can be accumulated. This prevents manual targetting from getting stuck in a fire mode for too long.
+local aggroBackupCap = 4 * aggroDecayCap * -1 --Like above, but a negative value because backup is triggered with negative aggro.
 
 --misfire occurs when the weapon thinks it can shoot a target due to faulty Spring.GetUnitWeaponHaveFreeLineOfFire return values. We must detect when this failure occurs and force high for a long duration.
 local misfireMultiplier = Game.gameSpeed * 1.5
-local minimumMisfireFrames = Game.gameSpeed * 5
-local misfireTallyDecayRate = 0.99 -- the misfire penalty that makes the misfire state last longer the more cumulative times it happens decays at this rate
+local minimumMisfireFrames = Game.gameSpeed * 7
+local misfireTallyDecayRate = 0.985 -- the misfire penalty that makes the misfire state last longer the more cumulative times it happens decays at this rate
 local misfireMultiplierAddition = 1 -- every time the misfire happens, it increases by this number. The tally is squared to make each cumulative misfire exponentially more punishing
-local backupMisfireAggro = -300 --how much aggro is given multiplied by the misfireTallyMultiplier^2 when priority weapon fails to fire.
+local minMisfireTally = 2 -- This is used to prevent misfire from being super punishing the first few times it triggers.
+local backupMisfireAggro = -200 --how much aggro is given multiplied by the misfireTallyMultiplier^2 when priority weapon fails to fire.
 
 local priorityAutoAggro = 12 -- how much aggro is accumulated per frameCheckModulo that the priority weapon successfully aims
 local priorityManualAggro = priorityAutoAggro * 3 -- how much aggro is accumulated per frameCheckModulo that the priority weapon successfully aims with a manually assigned target
@@ -45,7 +46,7 @@ local prioritySwitchThreshold = -1 --the aggro at which priority weapon switch i
 
 local backupAutoAggro = 4 -- how much aggro is accumulated per frameCheckModulo that the priority weapon fails to aim
 local backupManualAggro = priorityAutoAggro * 3 --how much aggro is accumulated per frameCheckModulo that the priority weapon fails to aim with a manually assigned target
-local backupSwitchThreshold = -backupAutoAggro * 1.5 --the aggro at which backup weapon switch is triggered. Aggro is decayed closer to 0 every frameCheckModulo
+local backupSwitchThreshold = backupAutoAggro * 2.4 * -1 --the aggro at which backup weapon switch is triggered. Aggro is decayed closer to 0 every frameCheckModulo
 
 local PRIORITY_AIMINGSTATE = 1
 local BACKUP_AIMINGSTATE = 2
@@ -104,7 +105,7 @@ end
 
 --custom functions
 local function failureToFireCheck(attackerID, data, defData)
-	if not data.suspendMisfireUntilFrame then return false end
+	if not data.suspendMisfireUntilFrame or data.aggroBias < prioritySwitchThreshold then return false end
 
 	if data.failedShotFrame < gameFrame - defData.failedToFireFrameThreshold then
 		data.failedShotFrame = mathMax(
@@ -123,7 +124,13 @@ end
 
 local function handleMisfire(data, defData)
 	data.misfireTallyMultiplier = data.misfireTallyMultiplier + misfireMultiplierAddition
-	data.aggroBias = backupMisfireAggro * data.misfireTallyMultiplier ^ data.misfireTallyMultiplier
+
+	if data.misfireTallyMultiplier < minMisfireTally then
+		data.aggroBias = aggroBackupCap
+	else
+		data.aggroBias = backupMisfireAggro * data.misfireTallyMultiplier ^ data.misfireTallyMultiplier
+	end
+
 	data.suspendMisfireUntilFrame = gameFrame + defData.failedToFireFrameThreshold
 end
 
@@ -138,7 +145,7 @@ local function updateAimingState(attackerID)
 	-- Determine if the priority weapon can shoot the target
 	local priorityCanShoot = false
 	--we store some aspect of the target number to see if it matches last check's target. Used to reset a misfire condition.
-	local newMatchTargetNumber = 0
+	local newMatchTargetNumber = 0 --the engine equivalent of nil is 0 here.
 
 	if priorityTargetType == UNIT_TARGET then
 		priorityCanShoot = spGetUnitWeaponHaveFreeLineOfFire(attackerID, defData.trajectoryCheckWeapon, priorityTarget)
@@ -150,7 +157,7 @@ local function updateAimingState(attackerID)
 
 	-- prevent misfire from triggering when a target is first acquired from idle state
 	if backupTarget or priorityTarget then
-		if data.suspendMisfireUntilFrame and data.lastTargetMatchNumber ~= newMatchTargetNumber then
+		if data.suspendMisfireUntilFrame and newMatchTargetNumber ~= 0 and newMatchTargetNumber ~= data.lastTargetMatchNumber then
 			data.lastTargetMatchNumber = newMatchTargetNumber
 			data.suspendMisfireUntilFrame = gameFrame + defData.failedToFireFrameThreshold
 		elseif not data.suspendMisfireUntilFrame then
@@ -175,7 +182,11 @@ local function updateAimingState(attackerID)
 		if failureToFire then
 			handleMisfire(data, defData)
 		else
-			data.aggroBias = mathMin(data.aggroBias + priorityManualAggro, aggroPriorityCap)
+			if data.aggroBias < aggroBackupCap then --if a misfire happened and a manual command is issued, we want to ensure it isn't stuck in backup mode.
+				data.aggroBias = aggroBackupCap
+			else
+				data.aggroBias = mathMin(data.aggroBias + priorityManualAggro, aggroPriorityCap)
+			end
 		end
 	elseif backupIsUserTarget and data.aggroBias > aggroBackupCap then
 		data.aggroBias = mathMax(data.aggroBias - backupManualAggro, aggroBackupCap)
