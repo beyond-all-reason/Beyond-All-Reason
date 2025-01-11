@@ -192,21 +192,7 @@ Deactivate()
 {
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
-	hide buildlightLPoint;
-	hide buildlightRPoint;
-	hide cannisterLight;
-	hide cannisterLight2;
-	hide cannisterLight3;
-	hide pipeLight1;
-	hide pipeLight2;
-	hide sprayL1A;
-	hide sprayL2A;
-	hide sprayL3A;
-	hide sprayR1A;
-	hide sprayR2A;
-	hide sprayR3A;
-	stop-spin buildLightL around y-axis decelerate <2>;
-	stop-spin buildLightR around y-axis decelerate <2>;
+
 	sleep 5000;
 	
 	turn nanoarmR3 to z-axis <0> speed <45>;
@@ -317,6 +303,23 @@ StartBuilding()
 
 StopBuilding()
 {
+
+	hide buildlightLPoint;
+	hide buildlightRPoint;
+	hide cannisterLight;
+	hide cannisterLight2;
+	hide cannisterLight3;
+	hide pipeLight1;
+	hide pipeLight2;
+	hide sprayL1A;
+	hide sprayL2A;
+	hide sprayL3A;
+	hide sprayR1A;
+	hide sprayR2A;
+	hide sprayR3A;
+
+	stop-spin buildLightL around y-axis decelerate <2>;
+	stop-spin buildLightR around y-axis decelerate <2>;
 
 	signal SIGNAL_BUILD;
 	
