@@ -781,7 +781,7 @@ void main(void)
 			vec2 displacementScreen = normalize((DistortionScreenPosition.xy * 0.5 + 0.5) - v_screenUV);
 			float overallStrength = 10 * rayBendElmos *  distanceToCameraFactor * parabolicStrength * LIFESTRENGTH;
 			vec2 displacementAmount = displacementScreen * overallStrength;
-			printf(displacementAmount.xy);
+			
 			fragColor.rgba = vec4(displacementAmount * EFFECTSTRENGTH, 0.0, 1.0 );
 	}
 
