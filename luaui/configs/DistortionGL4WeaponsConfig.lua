@@ -182,7 +182,7 @@ local BaseClasses = {
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 200,
 						distanceFalloff = 0.5, noiseStrength = 0.5, noiseScaleSpace = 0.6,
 						lifeTime = 32, decay = 8, rampUp = 26,
-						distortionMultiplier = 1.8, --needed for shockwaves
+						effectStrength = 1.8, --needed for shockwaves
 						shockWidth = 1,
 						effectType = 2},
 	},
@@ -192,7 +192,7 @@ local BaseClasses = {
 		alwaysVisible = false,
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 200,
 						noiseStrength = 2, noiseScaleSpace = 0.1,
-						distortionMultiplier = 3.5, --needed for shockwaves
+						effectStrength = 3.5, --needed for shockwaves
 						lifeTime = 40, decay = 4, rampUp = 0,  
 						shockWidth = 32, --refractiveIndex = 20,
 						effectType = 2},
@@ -203,7 +203,7 @@ local BaseClasses = {
 		alwaysVisible = false,
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 200,
 						distanceFalloff = 1.0, onlyModelMap = 0,
-						distortionMultiplier = 1.2, --needed for shockwaves
+						effectStrength = 1.2, --needed for shockwaves
 						shockWidth = 3,
 						lifeTime = 25,  effectType = 2},
 	},
@@ -213,7 +213,7 @@ local BaseClasses = {
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
 			noiseScaleSpace = 1.1, noiseStrength = 0.01, onlyModelMap = 1,  
 			lifeTime = 7, refractiveIndex = 1.15, decay = 3, rampUp = 4,
-			airShockWaveMultiplier = 0.5, --needed for irshockwaves
+			effectStrength = 0.5, --needed for irshockwaves
 			effectType = "airShockwave", },
 	},
 	AirShockWave = {
@@ -221,7 +221,7 @@ local BaseClasses = {
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
 			noiseScaleSpace = 0.1, noiseStrength = 0.2, onlyModelMap = 1,  
 			lifeTime = 8, refractiveIndex = 1.05, decay = 4, rampUp = 20,
-			airShockWaveMultiplier = 2.0, --needed for airshockwaves
+			effectStrength = 2.0, --needed for airshockwaves
 			effectType = "airShockwave", },
 
 	},
@@ -230,7 +230,7 @@ local BaseClasses = {
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
 			noiseScaleSpace = 0.1, noiseStrength = 0.1, onlyModelMap = 1,  
 			lifeTime = 10, refractiveIndex = 1.03, decay = 4, rampUp = 8,
-			airShockWaveMultiplier = 1.75, --needed for airshockwaves
+			effectStrength = 1.75, --needed for airshockwaves
 			effectType = "airShockwave", },
 
 	},
@@ -239,7 +239,7 @@ local BaseClasses = {
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
 			noiseScaleSpace = 0.5, noiseStrength = 1, onlyModelMap = 1,  
 			lifeTime = 15, refractiveIndex = 1.35, decay = 15, rampUp = 15,
-			airShockWaveMultiplier = 0.5, --needed for airshockwaves
+			effectStrength = 0.5, --needed for airshockwaves
 			effectType = "airShockwave", },
 
 	},
@@ -248,7 +248,7 @@ local BaseClasses = {
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
 			noiseScaleSpace = 0.5, noiseStrength = 2, onlyModelMap = 0,  
 			lifeTime = 16, refractiveIndex = 1.5, decay = 4, rampUp = 1,
-			airShockWaveMultiplier = 20.0, --needed for airshockwaves
+			effectStrength = 20.0, --needed for airshockwaves
 			effectType = "airShockwave", },
 
 	},
@@ -257,7 +257,7 @@ local BaseClasses = {
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 225,
 			noiseScaleSpace = 2.1, noiseStrength = 5.5, onlyModelMap = 1,  
 			lifeTime = 100, refractiveIndex = 40, decay = 60, rampUp = 40,
-			airShockWaveMultiplier = 1.0, --needed for airshockwaves
+			effectStrength = 1.0, --needed for airshockwaves
 			effectType = "airShockwave", },
 
 	},
@@ -267,7 +267,7 @@ local BaseClasses = {
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
 			noiseScaleSpace = 1.0, noiseStrength = 1.5, onlyModelMap = 0,  
 			lifeTime = 14, refractiveIndex = 3.1, decay = 12, rampUp = 2,
-			airShockWaveMultiplier = 3.0, --needed for airshockwaves
+			effectStrength = 3.0, --needed for airshockwaves
 			effectType = "airShockwave", },
 
 	},
@@ -276,7 +276,7 @@ local BaseClasses = {
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
 			noiseScaleSpace = 0.5, noiseStrength = 2.0, onlyModelMap = 1,  
 			lifeTime = 10, refractiveIndex = 1.35, decay = 10, rampUp = 8,
-			airShockWaveMultiplier = 0.8, --needed for airshockwaves
+			effectStrength = 0.8, --needed for airshockwaves
 			effectType = "airShockwave", },
 
 	},
@@ -287,7 +287,7 @@ local BaseClasses = {
 			noiseScaleSpace = 0.5, noiseStrength = 1.0,  
 			lifeTime = 15,  refractiveIndex = 1.05, 
 			--windAffected = 0.5,  riseRate = 1,
-			airShockWaveMultiplier = 1.0, --needed for irshockwaves
+			effectStrength = 1.0, --needed for irshockwaves
 			effectType = 1, },
 
 	},
@@ -798,7 +798,7 @@ explosionDistortionsNames['cormort_cor_mort'] = {
 	GetDistortionClass("GroundShockWave", "Pico", {
 		lifeTime = 18, }),
 	GetDistortionClass("AirShockWaveXS", "Femto", {
-		lifeTime = 9, airShockWaveMultiplier = 0.5, }),
+		lifeTime = 9, effectStrength = 0.5, }),
 }
 
 projectileDefDistortionsNames["armmav_armmav_weapon"] =
@@ -808,7 +808,7 @@ projectileDefDistortionsNames["armmav_armmav_weapon"] =
 })
 explosionDistortionsNames['armmav_armmav_weapon'] = {
 	GetDistortionClass("GroundShockWave", "Micro", {
-		lifeTime = 19, airShockWaveMultiplier = 1.0,
+		lifeTime = 19, effectStrength = 1.0,
 	}),
 }
 
@@ -816,7 +816,7 @@ explosionDistortionsNames['armstil_stiletto_bomb'] = {
 	-- Electric Ground Decals - not perfect yet
 	-- GetDistortionClass("GroundShockWave", "Small", {
 	-- 	noiseStrength = 125.0, noiseScaleSpace = 0.13, distanceFalloff = 0.9, onlyModelMap = 1, 
-	-- 	lifeTime = 190, distortionMultiplier = 3, 
+	-- 	lifeTime = 190, effectStrength = 3, 
 	-- 	windAffected = -1, riseRate = 6,
 	-- 	rampUp = 50, decay = 0, shockWidth = 10,
 	-- }),
@@ -824,7 +824,7 @@ explosionDistortionsNames['armstil_stiletto_bomb'] = {
 	-- Heat Radiation
 	-- GetDistortionClass("ExplosionHeat", "Smallish", {
 	-- 	noiseStrength = -1.5, noiseScaleSpace = 0.25, distanceFalloff = -0.05,
-	-- 	--heatMultiplier = 1.0, -- don't use, doesn't fade out correct
+	-- 	--effectStrength = 1.0, -- don't use, doesn't fade out correct
 	-- 	windAffected = -1, riseRate = 1,
 	-- 	lifeTime = 140, rampUp = 50, decay = 90, onlyModelMap = 1,
 	-- }),
@@ -832,7 +832,7 @@ explosionDistortionsNames['armstil_stiletto_bomb'] = {
 	-- Noised/electric Shockwave
 	GetDistortionClass("GroundShockWave", "SmallMedium", {
 		noiseStrength = 6.0, noiseScaleSpace = 0.32, distanceFalloff = 0.1, onlyModelMap = 0, 
-		lifeTime = 59, distortionMultiplier = 6,
+		lifeTime = 59, effectStrength = 6,
 		windAffected = -1, riseRate = -1,
 		rampUp = 70, decay = 3, shockWidth = 1.05,
 	}),
@@ -842,7 +842,7 @@ explosionDistortionsNames['armstil_stiletto_bomb'] = {
 	--
 	-- GetDistortionClass("ExplosionHeat", "SmallMedium", {
 	-- 	noiseStrength = -1.5, noiseScaleSpace = 0.95, distanceFalloff = -0.05,
-	-- 	heatMultiplier = 1.0, -- don't use, doesn't fade out correct
+	-- 	effectStrength = 1.0, -- don't use, doesn't fade out correct
 	-- 	windAffected = -1, riseRate = 9,
 	-- 	lifeTime = 200, rampUp = 50, decay = 50, onlyModelMap = 1,
 	-- }),
@@ -852,7 +852,7 @@ explosionDistortionsNames['armstil_stiletto_bomb'] = {
 explosionDistortionsNames['raptor_air_bomber_acid_t2_v1_acidbomb'] = {
 	GetDistortionClass("GroundShockWave", "Smallish", {
 		noiseStrength = 15.0, noiseScaleSpace = 0.20, distanceFalloff = 0.9, onlyModelMap = 1, 
-		lifeTime = 190, distortionMultiplier = 2, 
+		lifeTime = 190, effectStrength = 2, 
 		windAffected = -1, riseRate = 6,
 		rampUp = 20, decay = 15, shockWidth = 10,
 	}),
@@ -866,12 +866,12 @@ explosionDistortionsNames['armjuno_juno_pulse'] = {
 	-- }),
 	GetDistortionClass("GroundShockWave", "Larger", {
 		noiseStrength = 5.0, noiseScaleSpace = 0.13, distanceFalloff = 0.1, onlyModelMap = 0, 
-		lifeTime = 65, distortionMultiplier = -20, 
+		lifeTime = 65, effectStrength = -20, 
 		rampUp = 30, decay = -10, shockWidth = 14,
 	}),
 	GetDistortionClass("ExplosionHeat", "Juno", {
 		noiseStrength = -1.5, noiseScaleSpace = 0.95, distanceFalloff = -0.05,
-		heatMultiplier = 3.0, -- don't use, doesn't fade out correct
+		effectStrength = 3.0, -- don't use, doesn't fade out correct
 		windAffected = -1, riseRate = 9,
 		lifeTime = 900, rampUp = 100, decay = 150, onlyModelMap = 1,
 	}),
@@ -886,7 +886,7 @@ projectileDefDistortionsNames["corlevlr_corlevlr_weapon"] =
 })
 explosionDistortionsNames['corlevlr_corlevlr_weapon'] = {
 	GetDistortionClass("GroundShockWave", "Tiny", {
-		lifeTime = 24, airShockWaveMultiplier = 1.0,
+		lifeTime = 24, effectStrength = 1.0,
 	}),
 	GetDistortionClass("AirShockWaveXS", "Micro", {
 		lifeTime = 14,
@@ -899,7 +899,7 @@ muzzleFlashDistortionsNames['corlevlr_corlevlr_weapon'] = {
 
 muzzleFlashDistortionsNames['armguard_plasma'] = {
 	GetDistortionClass("MuzzleShockWave", "Nano", {
-		lifeTime = 8, airShockWaveMultiplier = 1.2,
+		lifeTime = 8, effectStrength = 1.2,
 	}),
 }
 muzzleFlashDistortionsNames['armguard_plasma_high'] = {
@@ -974,7 +974,7 @@ explosionDistortionsNames['corvipe_vipersabot'] = {
 	GetDistortionClass("GroundShockWave", "Micro", {
 		lifeTime = 24, }),
 	GetDistortionClass("AirShockWaveXS", "Pico", {
-		lifeTime = 11, airShockWaveMultiplier = 2.0, }),
+		lifeTime = 11, effectStrength = 2.0, }),
 	GetDistortionClass("ExplosionHeatXS", "Nano"),
 }
 
@@ -987,7 +987,7 @@ explosionDistortionsNames['corkarg_super_missile'] = {
 	GetDistortionClass("GroundShockWave", "Micro", {
 		lifeTime = 24, }),
 	GetDistortionClass("AirShockWaveXS", "Pico", {
-		lifeTime = 16, airShockWaveMultiplier = 0.5, }),
+		lifeTime = 16, effectStrength = 0.5, }),
 }
 
 projectileDefDistortionsNames["corstorm_cor_bot_rocket"] =
@@ -1063,7 +1063,7 @@ explosionDistortionsNames['armbull_arm_bull'] = {
 
 explosionDistortionsNames['armthund_armbomb'] = {
 	GetDistortionClass("AirShockWave", "Nano", {
-		lifeTime = 11, airShockWaveMultiplier = 0.4, }),
+		lifeTime = 11, effectStrength = 0.4, }),
 	GetDistortionClass("GroundShockWave", "Tiny", {
 		lifeTime = 12, }),
 	GetDistortionClass("ExplosionHeat", "Pico"),
@@ -1092,10 +1092,10 @@ explosionDistortionsNames['armliche_arm_pidr'] = {
 		shockWidth = 8,
 	}),
 	-- GetDistortionClass("AirShockWaveNukeBlast", "Mediumer", {
-	-- 	lifeTime = 25, airShockWaveMultiplier = 1.2, 
+	-- 	lifeTime = 25, effectStrength = 1.2, 
 	-- 	refractiveIndex = -1.03, }),
 	GetDistortionClass("AirShockWave", "Medium", {
-		lifeTime = 15, airShockWaveMultiplier = 16.0,
+		lifeTime = 15, effectStrength = 16.0,
 		refractiveIndex = 1.1, }),
 	GetDistortionClass("ExplosionHeatNuke", "Medium", {
 		noiseScaleSpace = 0.1, noiseStrength = 9,
@@ -1141,7 +1141,7 @@ explosionDistortionsNames['corshiva_shiva_gun'] = {
 
 explosionDistortionsNames['corcat_exp_heavyrocket'] = {
 	GetDistortionClass("AirShockWave", "Smallest", {
-		lifeTime = 6, airShockWaveMultiplier = 1.0,
+		lifeTime = 6, effectStrength = 1.0,
 	}),
 	GetDistortionClass("GroundShockWave", "Smaller"),
 	GetDistortionClass("ExplosionHeat", "Micro", {

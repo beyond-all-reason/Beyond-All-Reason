@@ -10,9 +10,9 @@
 
 
 in DataVS {
-	flat vec4 v_worldPosRad;
-	flat vec4 v_worldPosRad2;
-	flat vec4 v_baseparams; // overallstrength
+	flat vec4 v_worldPosRad; // center, radius
+	flat vec4 v_worldPosRad2; // direction, theta
+	flat vec4 v_baseparams; // lifeStrength, effectStrength, unused, unused
 	flat vec4 v_universalParams; // noiseStrength, noiseScaleSpace, distanceFalloff, onlyModelMap
 	flat vec4 v_lifeParams;  // spawnFrame, lifeTime, rampUp, decay
 	flat vec4 v_effectParams; // effectparam1, effectparam2, windAffected, effectType
@@ -21,6 +21,7 @@ in DataVS {
 };
 
 #define LIFESTRENGTH v_baseparams.x
+#define EFFECTSTRENGTH v_baseparams.y
 
 #define NOISESTRENGTH v_universalParams.x
 #define NOISESCALESPACE v_universalParams.y
@@ -766,16 +767,14 @@ void main(void)
 				rayBendElmos *= 2.0;
 			}
 
-			float airShockWaveMultiplier = EFFECTPARAM1;
-
 			// The displacement is proportional to the distance of the fragment from the intersections of the sphere
 
 			// screen-space direction of the shockwave
 			vec2 displacementScreen = normalize((DistortionScreenPosition.xy * 0.5 + 0.5) - v_screenUV);
 			float overallStrength = 10 * rayBendElmos *  distanceToCameraFactor * parabolicStrength * LIFESTRENGTH;
-			vec2 displacementAmount = displacementScreen * overallStrength * airShockWaveMultiplier;
+			vec2 displacementAmount = displacementScreen * overallStrength;
 
-			fragColor.rgba = vec4(displacementAmount, 0.0, 1.5 );
+			fragColor.rgba = vec4(displacementAmount * EFFECTSTRENGTH, 0.0, 1.5 );
 	}
 
 	
@@ -836,10 +835,8 @@ void main(void)
 		vec2 displacementScreen = normalize((DistortionScreenPosition.xy * 0.5 + 0.5) - v_screenUV);
 		float overallStrength = effectStrength * distanceToCameraFactor * parabolicStrength * LIFESTRENGTH;
 		
-		float distortionMultiplier = EFFECTPARAM2;
-
-		vec2 displacementAmount = displacementScreen * overallStrength * distortionMultiplier;
-		fragColor.rgba = vec4(displacementAmount, 0.0, 0.5 * step(0.005,overallStrength) );
+		vec2 displacementAmount = displacementScreen * overallStrength;
+		fragColor.rgba = vec4(displacementAmount * EFFECTSTRENGTH, 0.0, 0.5 * step(0.005,overallStrength) );
 	}
 
 	
@@ -906,7 +903,7 @@ void main(void)
 
 		// Modulate alpha with the distortionAttenuation
 		noiseSampleNorm *= NOISESTRENGTH;
-		fragColor.rgba = vec4(noiseSampleNorm.ra, 0.0,  distortionAttenuation);
+		fragColor.rgba = vec4(noiseSampleNorm.ra * EFFECTSTRENGTH, 0.0,  distortionAttenuation);
 	}
 	
 	//------------------------- BEGIN MAGNIFIER -------------------------
@@ -927,7 +924,7 @@ void main(void)
 		float distanceToCameraFactor =  clamp(300.0/ length(camPos - distortionEmitPosition.xyz), 0.0, 1.0);
 		dirInCameraSpace2 *= distanceToCameraFactor * EFFECTPARAM1;
 		//printf(EFFECTPARAM1);
-		fragColor.rgba = vec4(dirInCameraSpace2.xy, 0.0, 1.0);
+		fragColor.rgba = vec4(dirInCameraSpace2.xy * EFFECTSTRENGTH, 0.0, 1.0);
 	}
 	
 	//------------------------- BEGIN Motion Blur -------------------------
@@ -942,7 +939,7 @@ void main(void)
 
 		float travelSpeedMult = clamp((v_worldPosRad2.w - EFFECTPARAM1) * EFFECTPARAM2, 0.0, 1.0);
 
-		fragColor.rgba = vec4(travelDirectionScreen.xy, -10.0, 1.0);
+		fragColor.rgba = vec4(travelDirectionScreen.xy * EFFECTSTRENGTH, -10.0, 1.0);
 
 		if (fragDistance > nearFarDistances.y){
 			fragColor.rgba = vec4(0.0);
@@ -956,12 +953,6 @@ void main(void)
 	else if (effectType == 0){
 
 		float distortionAttenuation = 1.0; // start at max for the center
-		float fadeFactor = LIFESTRENGTH;  // includes DECAY fade-out from vertex shader
-		float finalAlpha = distortionAttenuation * fadeFactor;
-		float heatMultiplier = EFFECTPARAM2;
-		if (heatMultiplier <= 0.0) {
-    		heatMultiplier = 1.0;
-		}
 
 		// Multiply the relative volume density:
 		distortionAttenuation *= relativeDensity;
@@ -1016,7 +1007,7 @@ void main(void)
 		// Modulate alpha with the distortionAttenuation
 		noiseSampleNorm *= NOISESTRENGTH;
 		
-		fragColor.rgba = vec4(vec3(noiseSampleNorm.ra, 0.0) * 1.0 * heatMultiplier ,  distortionAttenuation);
+		fragColor.rgba = vec4(vec3(noiseSampleNorm.ra, 0.0) * EFFECTSTRENGTH ,  distortionAttenuation);
 
 	}else{
 		fragColor.rgba = vec4(1.0);// default fallthrough, should never EVER appear

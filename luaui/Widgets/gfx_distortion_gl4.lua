@@ -144,6 +144,8 @@ local distortionParamKeyOrder = { -- This table is a 'quick-ish' way of building
 	dirx = 5, diry = 6, dirz = 7, theta = 8,  -- cones: specify direction and half-angle in radians
 	pos2x = 5, pos2y = 6, pos2z = 7, -- beam distortions only, specifies the endpoint of the beam
 
+	-- baseparams
+	effectStrength = 10, -- Default 1, multiply with any effect's final strength
 	motionx = 9, motiony = 10, motionz = 11, motionw = 12,
 	
 	-- universalParams
@@ -158,12 +160,9 @@ local distortionParamKeyOrder = { -- This table is a 'quick-ish' way of building
 	riseRate = 21, -- note how riseRate is identical to effectParam1 for clarity
 	shockWidth = 21,    -- note how width is identical to effectParam1 for clarity
 	magnificationRate = 21,
-	airShockWaveMultiplier = 21,
 
 	effectParam2 = 22,  --note how refractiveIndex is identical to effectParam2 for clarity
 	refractiveIndex = 22,
-	heatMultiplier = 22, -- for heatdistortion intensity
-	distortionMultiplier = 22, -- for groundshockwave intensity
 	
 	windAffected = 23,  effectType = 24, 
 	--color2r = 21, color2g = 22, color2b = 23, colortime = 24, -- point distortions only, colortime in seconds for unit-attached
@@ -311,8 +310,7 @@ local function initGL4()
 				-- for spot, this is direction.xyz for unitattached, or world anim params
 				-- for cone, this is direction.xyz and angle in radians
 				-- for beam this is end.xyz and radiusright
-			{id = 5, name = 'baseparams', 		size = 4},
-				-- this is distortion color rgba for all
+			{id = 5, name = 'baseparams', 		size = 4}, -- unused, effectStrenth, 2 unused more unused so far
 			{id = 6, name = 'universalParams', 		size = 4}, -- noiseStrength, noiseScaleSpace, distanceFalloff, onlyModelMap
 			{id = 7, name = 'lifeParams', 			size = 4},	-- spawnFrame, lifeTime, rampUp, decay
 			{id = 8, name = 'effectParams', size = 4}, -- effectParam1, effectParam2, windAffectd, effectType
@@ -367,6 +365,7 @@ local function InitializeDistortion(distortionTable, unitID)
 			distortionparams[distortionParamKeyOrder.noiseStrength] = distortionTable.distortionConfig.noiseStrength or 1
 			distortionparams[distortionParamKeyOrder.noiseScaleSpace] = distortionTable.distortionConfig.noiseScaleSpace or 1
 			distortionparams[distortionParamKeyOrder.distanceFalloff] = distortionTable.distortionConfig.distanceFalloff or 1
+			distortionparams[distortionParamKeyOrder.effectStrength] = distortionTable.distortionConfig.effectStrength or 1
 
 			distortionTable.distortionParamTable = distortionparams
 			distortionTable.distortionConfig = nil -- never used again after initialization

@@ -11,7 +11,7 @@ layout (location = 0) in vec4 position; // xyz and etc garbage
 
 layout (location = 3) in vec4 worldposrad;  // Centerpos
 layout (location = 4) in vec4 worldposrad2; // velocity for points, beam end for beams, dir and theta for cones
-layout (location = 5) in vec4 baseparams;  // Unused and reserved for future animations
+layout (location = 5) in vec4 baseparams;  // lifeStrength, effectStrength, unused, unused
 layout (location = 6) in vec4 universalParams; // noiseStrength, noiseScaleSpace, distanceFalloff, onlyModelMap
 layout (location = 7) in vec4 lifeParams; // spawnFrame, lifeTime, rampUp, decay
 layout (location = 8) in vec4 effectParams; // effectparam1, effectparam2, windAffected, effectType
@@ -80,7 +80,7 @@ uniform float intensityMultiplier = 1.0;
 out DataVS {
 	flat vec4 v_worldPosRad;
 	flat vec4 v_worldPosRad2;
-	flat vec4 v_baseparams;   // lifeStrength
+	flat vec4 v_baseparams;   // lifeStrength, effectStrength, unused, unused
 	flat vec4 v_universalParams; // noiseStrength, noiseScaleSpace, distanceFalloff, onlyModelMap
 	flat vec4 v_lifeParams; // spawnFrame, lifeTime, rampUp, decay
 	flat vec4 v_effectParams; // effectparam1, effectparam2, windAffected, effectType
