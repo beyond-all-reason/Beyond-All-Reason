@@ -1060,7 +1060,6 @@ local function DrawDistortionFunction2(gf) -- For render-to-texture
 		glBlending(GL.SRC_ALPHA, GL.ONE)
 		--if autoupdate and alt and (isSinglePlayer or spec) and devui then return end
 
-		glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		gl.Culling(false)
 		gl.DepthTest(false)
 		gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove
