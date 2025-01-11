@@ -759,7 +759,9 @@ void main(void)
 
 			// At extremely oblique angles, the refraction can be so strong that the ray bends back towards the camera
 			// This can be avoided, by softening the refraction at the edges
-			float shockWidth = EFFECTPARAM1;
+			// So shockWidth should reduce rayBendElmos when abs(cosTheta) is near 0
+			float shockWaveEdgeSoften = pow(distance_attenuation, abs(shockWidth));
+			rayBendElmos *= shockWaveEdgeSoften;
 
 			// fragment we are checking is occluding the sphere
 			if (fragDistance < nearFarDistances.x){
@@ -768,7 +770,7 @@ void main(void)
 			}
 
 			// fragment is behind the sphere
-			if (fragDistance > nearFarDistances.y){
+			if ((fragDistance > nearFarDistances.y) && shockWidth > 0.0){
 				rayBendElmos *= 2.0;
 			}
 
@@ -778,7 +780,7 @@ void main(void)
 			vec2 displacementScreen = normalize((DistortionScreenPosition.xy * 0.5 + 0.5) - v_screenUV);
 			float overallStrength = 10 * rayBendElmos *  distanceToCameraFactor * parabolicStrength * LIFESTRENGTH;
 			vec2 displacementAmount = displacementScreen * overallStrength;
-
+			printf(displacementAmount.xy);
 			fragColor.rgba = vec4(displacementAmount * EFFECTSTRENGTH, 0.0, 1.5 );
 	}
 
