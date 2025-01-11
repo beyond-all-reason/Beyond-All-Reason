@@ -37,7 +37,7 @@ return {
 		workertime = 100,
 		buildoptions = {
 			"legfus",
-			"corafus",
+			"legafus",
 			"legageo",
 			"coruwageo",
 			"legrampart",
