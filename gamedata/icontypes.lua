@@ -1111,6 +1111,10 @@ local icontypes = {
 		bitmap = "icons/hazardous.png",
 		size = 1.88999987
 	},
+	legafus = {
+		bitmap = "icons/energy5_1.85.png",
+		size = 1.9425
+	},
 	legatorpbomber = {
 		bitmap = "icons/air_t2_torpbomber.png",
 		size = 1.67999995
