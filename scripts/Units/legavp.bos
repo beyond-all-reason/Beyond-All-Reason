@@ -293,6 +293,19 @@ MoveCranes()
 
 StartBuilding()
 {
+	show buildlightLPoint;
+	show buildlightRPoint;
+	show cannisterLight;
+	show cannisterLight2;
+	show cannisterLight3;
+	show pipeLight1;
+	show pipeLight2;
+	show sprayL1A;
+	show sprayL2A;
+	show sprayL3A;
+	show sprayR1A;
+	show sprayR2A;
+	show sprayR3A;	
 	signal SIGNAL_BUILD;
 	set-signal-mask SIGNAL_BUILD;
 	wait-for-turn nanoarmR1 around z-axis;
