@@ -36,8 +36,8 @@ return {
 		turnrate = 240,
 		workertime = 100,
 		buildoptions = {
-			"corfus",
-			"corafus",
+			"legfus",
+			"legafus",
 			"legageo",
 			"coruwageo",
 			"legrampart",
