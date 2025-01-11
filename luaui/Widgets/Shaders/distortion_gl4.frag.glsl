@@ -782,7 +782,7 @@ void main(void)
 			float overallStrength = 10 * rayBendElmos *  distanceToCameraFactor * parabolicStrength * LIFESTRENGTH;
 			vec2 displacementAmount = displacementScreen * overallStrength;
 			printf(displacementAmount.xy);
-			fragColor.rgba = vec4(displacementAmount * EFFECTSTRENGTH, 0.0, 1.5 );
+			fragColor.rgba = vec4(displacementAmount * EFFECTSTRENGTH, 0.0, 1.0 );
 	}
 
 	
