@@ -208,19 +208,19 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL GROUNDSCOUT",
+				badtargetcategory = "FASTSURFACE",
 				def = "ARMAMB_GUN",
 				maindir = "0 1 0",
 				maxangledif = 230,
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
-				badtargetcategory = "VTOL GROUNDSCOUT",
+				badtargetcategory = "FASTSURFACE",
 				def = "ARMAMB_GUN_HIGH",
 				onlytargetcategory = "SURFACE",
 			},
 			[3] = {
-				badtargetcategory = "VTOL GROUNDSCOUT",
+				badtargetcategory = "FASTSURFACE",
 				def = "smart_trajectory_dummy",
 				maindir = "0 1 0",
 				maxangledif = 230,

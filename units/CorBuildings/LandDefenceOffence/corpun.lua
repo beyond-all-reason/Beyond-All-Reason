@@ -202,18 +202,19 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL",
+				badtargetcategory = "FASTSURFACE",
 				def = "PLASMA",
 				maindir = "0 1 0",
 				maxangledif = 230,
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
+				badtargetcategory = "FASTSURFACE",
 				def = "PLASMA_HIGH",
 				onlytargetcategory = "SURFACE",
 			},
 			[3] = {
-				badtargetcategory = "VTOL",
+				badtargetcategory = "FASTSURFACE",
 				def = "smart_trajectory_dummy",
 				maindir = "0 1 0",
 				maxangledif = 230,

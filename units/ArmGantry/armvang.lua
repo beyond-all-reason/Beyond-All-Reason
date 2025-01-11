@@ -220,17 +220,17 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL GROUNDSCOUT",
+				badtargetcategory = "FASTSURFACE",
 				def = "SHOCKER_LOW",
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
-				badtargetcategory = "VTOL GROUNDSCOUT",
+				badtargetcategory = "FASTSURFACE",
 				def = "SHOCKER_HIGH",
 				onlytargetcategory = "SURFACE",
 			},
 			[3] = {
-				badtargetcategory = "VTOL GROUNDSCOUT",
+				badtargetcategory = "FASTSURFACE",
 				def = "smart_trajectory_dummy",
 				onlytargetcategory = "SURFACE",
 			},

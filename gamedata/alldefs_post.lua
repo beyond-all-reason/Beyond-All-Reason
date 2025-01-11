@@ -813,11 +813,12 @@ function UnitDef_Post(name, uDef)
 
 	categories["ALL"] = function() return true end
 	categories["MOBILE"] = function(uDef) return uDef.speed and uDef.speed > 0 end
+	categories["FASTSURFACE"] = function(uDef) return uDef.speed and uDef.speed > 78 end --78 is the speed of rezbots
 	categories["NOTMOBILE"] = function(uDef) return not categories.MOBILE(uDef) end
 	categories["WEAPON"] = function(uDef) return uDef.weapondefs ~= nil end
 	categories["NOWEAPON"] = function(uDef) return not categories.WEAPON(uDef) end
 	categories["VTOL"] = function(uDef) return uDef.canfly == true end
-	categories["NOTAIR"] = function(uDef) return not categories.VTOL(uDef) end
+	categories["NOTAIR"] = function(uDef) return not categories.VTOL(uDef) end 
 	categories["HOVER"] = function(uDef) return hoverList[uDef.movementclass] and (uDef.maxwaterdepth == nil or uDef.maxwaterdepth < 1) end -- convertible tank/boats have maxwaterdepth
 	categories["NOTHOVER"] = function(uDef) return not categories.HOVER(uDef) end
 	categories["SHIP"] = function(uDef) return shipList[uDef.movementclass] or (hoverList[uDef.movementclass] and uDef.maxwaterdepth and uDef.maxwaterdepth >=1) end
