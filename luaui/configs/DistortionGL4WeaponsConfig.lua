@@ -1075,11 +1075,6 @@ explosionDistortionsNames['corgol_cor_gol'] = {
 	GetDistortionClass("ExplosionHeat", "Tiniest"),
 }
 
-explosionDistortionsNames['corshiva_shiva_gun'] = {
-	GetDistortionClass("AirShockWave", "Small"),
-	GetDistortionClass("GroundShockWave", "Smallish"),
-	GetDistortionClass("ExplosionHeat", "Tiniest"),
-}
 
 explosionDistortionsNames['armfboy_arm_fatboy_notalaser'] = {
 	GetDistortionClass("AirShockWave", "Small"),
