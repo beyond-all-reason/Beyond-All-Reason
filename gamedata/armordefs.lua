@@ -441,6 +441,8 @@ local armorDefs = {
 		"legotter",
 		"legacv",
 		"legack",
+		"legavrad",
+		"legavjam",
 
 		"legah",
 		"legmh",
