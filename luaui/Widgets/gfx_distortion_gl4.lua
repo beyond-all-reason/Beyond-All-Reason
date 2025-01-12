@@ -367,7 +367,17 @@ local function InitializeDistortion(distortionTable, unitID)
 			distortionparams[distortionParamKeyOrder.noiseScaleSpace] = distortionTable.distortionConfig.noiseScaleSpace or 1
 			distortionparams[distortionParamKeyOrder.distanceFalloff] = distortionTable.distortionConfig.distanceFalloff or 1
 			distortionparams[distortionParamKeyOrder.effectStrength] = distortionTable.distortionConfig.effectStrength or 1
-			distortionparams[distortionParamKeyOrder.startRadius] = distortionTable.distortionConfig.startRadius or distortionTable.distortionConfig.radius or 1
+			local startRadius = distortionTable.distortionConfig.startRadius
+			if startRadius then
+				if (startRadius > 0) and (startRadius < 1 ) then
+					startRadius = startRadius * (distortionTable.distortionConfig.radius or 100)
+				end
+				distortionparams[distortionParamKeyOrder.startRadius] = startRadius
+			else
+				distortionparams[distortionParamKeyOrder.startRadius] = distortionTable.distortionConfig.radius or 100
+			end
+			
+			distortionparams[distortionParamKeyOrder.startRadius] = startRadius
 
 			distortionTable.distortionParamTable = distortionparams
 			distortionTable.distortionConfig = nil -- never used again after initialization
