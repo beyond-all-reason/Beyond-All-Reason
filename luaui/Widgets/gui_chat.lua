@@ -38,6 +38,7 @@ local LineTypes = {
 }
 
 local utf8 = VFS.Include('common/luaUtilities/utf8.lua')
+local badWords = VFS.Include('luaui/configs/badwords.lua')
 
 local L_DEPRECATED = LOG.DEPRECATED
 local isDevSingle = (Spring.Utilities.IsDevMode() and Spring.Utilities.Gametype.IsSinglePlayer())
@@ -566,10 +567,7 @@ local function getAIName(teamID)
 end
 
 local lastMessage
-local badWords = {
-	"^retard[s]?$",
-	"^retarded$",
-}
+
 local function findBadWords(str)
 	str = string.lower(str)
 	for w in str:gmatch("%w+") do
