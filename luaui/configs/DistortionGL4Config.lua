@@ -509,7 +509,7 @@ local unitDistortions = {
 			distortionConfig = { posx = 0, posy = -1, posz = 20, radius = 120,
 							dirx =  0, diry = -0, dirz = -1.0, theta = 0.05,
 							noiseStrength = 2, noiseScaleSpace = 0.85, distanceFalloff = 2.0,
-							effectStrength = 3.0,
+							effectStrength = 15.0,
 							lifeTime = 0,  effectType = 0},
 		},
 	},
@@ -616,7 +616,7 @@ local unitDistortions = {
 			distortionConfig = { posx = 0, posy = -1, posz = 20, radius = 130,
 							dirx =  0, diry = -0, dirz = -1.0, theta = 0.06,
 							noiseStrength = 2, noiseScaleSpace = 0.85, distanceFalloff = 2.0,
-							effectStrength = 3.0,
+							effectStrength = 10.0,
 							lifeTime = 0,  effectType = 0},
 		},
 		thrustb = {
@@ -625,7 +625,7 @@ local unitDistortions = {
 			distortionConfig = { posx = 0, posy = -1, posz = 20, radius = 130,
 							dirx =  0, diry = -0, dirz = -1.0, theta = 0.06,
 							noiseStrength = 2, noiseScaleSpace = 0.85, distanceFalloff = 2.0,
-							effectStrength = 3.0,
+							effectStrength = 10.0,
 							lifeTime = 0,  effectType = 0},
 		},
 	},
@@ -1389,11 +1389,11 @@ local unitEventDistortionsNames = {
 				distortionType = 'point',
 				distortionName = 'bigassfootstep',
 				pieceName = 'lfootstepf',
-				distortionConfig = { posx = 0, posy = 0, posz = 8, radius = 90,
-								noiseStrength = 1.2, noiseScaleSpace = 0.5, distanceFalloff = 0.2, onlyModelMap = 1, 
-								effectStrength = 1.0, --needed for shockwave
-								lifeTime = 25, rampUp = 0, decay = 15,
-								shockWidth = 5, effectType = 'groundShockwave'},
+				distortionConfig = { posx = 0, posy = 0, posz = 8, radius = 70,
+								noiseStrength = 0.7, noiseScaleSpace = 0.2, distanceFalloff = 0.2, onlyModelMap = 1, 
+								effectStrength = 1.3, --needed for shockwave
+								lifeTime = 25, rampUp = 8, decay = 3,
+								shockWidth = 10, effectType = 'groundShockwave'},
 	
 			},
 			[2] = {
@@ -1402,12 +1402,11 @@ local unitEventDistortionsNames = {
 				distortionType = 'point',
 				distortionName = 'bigassfootstep2',
 				pieceName = 'rfootstepf',
-				distortionConfig = { posx = 0, posy = 0, posz = 8, radius = 90,
-								noiseStrength = 1.2, noiseScaleSpace = 0.5, distanceFalloff = 0.2, onlyModelMap = 1, 
-								effectStrength = 1.0, --needed for shockwave
-								lifeTime = 25, rampUp = 0, decay = 15,
-								shockWidth = 5, effectType = 'groundShockwave'},
-	
+				distortionConfig = { posx = 0, posy = 0, posz = 8, radius = 70,
+								noiseStrength = 0.7, noiseScaleSpace = 0.2, distanceFalloff = 0.2, onlyModelMap = 1, 
+								effectStrength = 1.3, --needed for shockwave
+								lifeTime = 25, rampUp = 8, decay = 3,
+								shockWidth = 10, effectType = 'groundShockwave'},
 			},
 			[3] = {
 				-- Footstep shockwave
@@ -1416,10 +1415,10 @@ local unitEventDistortionsNames = {
 				distortionName = 'bigassfootstep3',
 				pieceName = 'lfootstepb',
 				distortionConfig = { posx = 0, posy = 0, posz = 8, radius = 90,
-								noiseStrength = 1.2, noiseScaleSpace = 0.5, distanceFalloff = 0.2, onlyModelMap = 1, 
-								effectStrength = 1.0, --needed for shockwave
-								lifeTime = 25, rampUp = 0, decay = 15,
-								shockWidth = 5, effectType = 'groundShockwave'},
+								noiseStrength = 0.7, noiseScaleSpace = 0.2, distanceFalloff = 0.2, onlyModelMap = 1, 
+								effectStrength = 1.3, --needed for shockwave
+								lifeTime = 25, rampUp = 8, decay = 3,
+								shockWidth = 10, effectType = 'groundShockwave'},
 	
 			},
 			[4] = {
@@ -1429,8 +1428,8 @@ local unitEventDistortionsNames = {
 				distortionName = 'bigassfootstep4',
 				pieceName = 'rfootstepb',
 				distortionConfig = { posx = 0, posy = 0, posz = 8, radius = 90,
-								noiseStrength = 1.2, noiseScaleSpace = 0.5, distanceFalloff = 0.2, onlyModelMap = 1, 
-								effectStrength = 1.0, --needed for shockwave
+								noiseStrength = 0.7, noiseScaleSpace = 0.2, distanceFalloff = 0.2, onlyModelMap = 1, 
+								effectStrength = 2.0, --needed for shockwave
 								lifeTime = 25, rampUp = 0, decay = 15,
 								shockWidth = 5, effectType = 'groundShockwave'},
 	

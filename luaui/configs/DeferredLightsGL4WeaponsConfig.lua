@@ -404,6 +404,7 @@ local function AssignLightsToAllWeapons()
 			sizeclass = GetClosestSizeClass(radius)
 			projectileDefLights[weaponID] = GetLightClass("CannonProjectile", "Plasma", sizeclass, t)
 			radius = ((weaponDef.damageAreaOfEffect*2) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
+			projectileDefLights[weaponID].lightConfig.animtype = 1 -- Screen Space Light Shadows
 
 		elseif weaponDef.type == 'DGun' then
 			muzzleFlash = true --doesnt work
@@ -411,7 +412,6 @@ local function AssignLightsToAllWeapons()
 			t.a = orgMult*0.66 * 1.5
 			projectileDefLights[weaponID] = GetLightClass("CannonProjectile", "Warm", sizeclass, t)
 			projectileDefLights[weaponID].yOffset = 32
-			projectileDefLights[weaponID].lightConfig.animtype = 1 -- Screen Space Light Shadows
 			projectileDefLights[weaponID].lightConfig.animtype = 1 -- Screen Space Light Shadows
 			Spring.Echo(WeaponDefNames[weaponID], weaponDef.type, weaponDef.name)
 
@@ -622,6 +622,11 @@ GetLightClass("MuzzleFlash", nil, "Medium", {posx = 0, posy = 0, posz = 0,
 muzzleFlashLightsNames["armvulc_rflrpc"].yOffset = 4
 explosionLightsNames["armvulc_rflrpc"] =
 GetLightClass("Explosion", nil, "Large", {colortime = 3.5, sustain = 14, lifetime = 26, scattering = 0.7})
+
+-- projectileDefLightsNames["armvulc_rflrpc"] =
+-- GetLightClass("MissileProjectile", "Warm", "Large", {a = 1.6,
+-- 										modelfactor = 0.1, specular = 0.1, scattering = 0.2, lensflare = 0})
+
 
 --corbuzz
 muzzleFlashLightsNames["corbuzz_rflrpc"] =
@@ -922,9 +927,15 @@ GetLightClass("LaserProjectile", "Blue", "Smaller", {a = 0.09,
 
 --corjugg
 explosionLightsNames["corjugg_juggernaut_fire"] =
-GetLightClass("Explosion", nil, "Small", {r = 1.3, g = 1.1, b = 0.8, a = 0.5,
+GetLightClass("Explosion", nil, "Small", {r = 1.3, g = 1.1, b = 0.8, a = 0.4,
 										color2r = 0.35, color2g = 0.20, color2b = 0.05, colortime = 3,
-										sustain = 8, lifetime = 26, scattering = 0.2})
+										sustain = 4, lifetime = 20, scattering = 0.2})
+
+projectileDefLightsNames["corjugg_juggernaut_fire"] =
+GetLightClass("CannonProjectile", nil, "Large", {a = 0.5,
+					color2r = 0.5, color2g = 0.5, color2b = 0.6, colortime = 10,
+					modelfactor = 0.5, specular = 0.1, scattering = 0.1, lensflare = 0,
+					lifetime = 26, sustain = 20})
 
 -- --armanni
 projectileDefLightsNames["armanni_ata"] =
