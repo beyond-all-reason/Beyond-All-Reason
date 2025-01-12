@@ -1129,7 +1129,7 @@ explosionDistortionsNames['corton_cortron_weapon'] = {
 }
 
 explosionDistortionsNames['corshiva_shiva_gun'] = {
-	GetDistortionClass("AirShockWave", "Medium", {lifeTime = 30, refractiveIndex = 1.5, decay = 3, shockWidth = -0.5, effectStrength =  1.0, startRadius = 50}),
+	GetDistortionClass("AirShockWave", "Medium", {lifeTime = 30, refractiveIndex = 1.5, decay = 3, shockWidth = 0.9, effectStrength =  1.0, startRadius = 50}),
 	--GetDistortionClass("GroundShockWave", "Smallest"),
 	GetDistortionClass("ExplosionHeat", "Smallest", {lifeTime = 40, decay = 10, rampup = 5, startRadius = 50}),
 }
