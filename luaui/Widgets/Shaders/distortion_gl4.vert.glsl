@@ -11,12 +11,16 @@ layout (location = 0) in vec4 position; // xyz and etc garbage
 
 layout (location = 3) in vec4 worldposrad;  // Centerpos
 layout (location = 4) in vec4 worldposrad2; // velocity for points, beam end for beams, dir and theta for cones
-layout (location = 5) in vec4 baseparams;  // lifeStrength, effectStrength, unused, unused
+layout (location = 5) in vec4 baseparams;  // lifeStrength, effectStrength, startRadius, unused
 layout (location = 6) in vec4 universalParams; // noiseStrength, noiseScaleSpace, distanceFalloff, onlyModelMap
 layout (location = 7) in vec4 lifeParams; // spawnFrame, lifeTime, rampUp, decay
 layout (location = 8) in vec4 effectParams; // effectparam1, effectparam2, windAffected, effectType
 layout (location = 9) in uint pieceIndex; // for piece type distortions
 layout (location = 10) in uvec4 instData; // matoffset, uniformoffset, teamIndex, drawFlags {id = 5, name = 'instData', size = 4, type = GL.UNSIGNED_INT},
+
+#define LIFESTRENGTH baseparams.x
+#define EFFECTSTRENGTH baseparams.y
+#define STARTRADIUS baseparams.z
 
 #define SPAWNFRAME lifeParams.x
 #define LIFETIME   lifeParams.y
@@ -53,21 +57,17 @@ layout(std140, binding=1) readonly buffer UniformsBuffer {
 
 #define UNITID (uni[instData.y].composite >> 16)
 
-
+// Note that this is an incorrect copy of the uniformsbuffer, and is computed via a compute shader, so its _HIGHLY EXPERIMENTAL_
 layout(std140, binding=4) buffer UniformsBufferCopy {
 	SUniformsBuffer uniCopy[];
 };
-
 
 #line 10000
 
 uniform float pointbeamcone = 0;// = 0; // 0 = point, 1 = beam, 2 = cone
 
-
 // this uniform needs some extra. If it is 1, then the primitives should point in the -Z direction, and be moved and rotated with the unit itself
 // If the unit is not being drawn, it must be switched off
-// One should still be able to specify an offset for this. 
-// our overdraw additional offsets become a problem possibly for this 
 
 uniform float attachedtounitID = 0;
 
@@ -96,23 +96,27 @@ void main()
 {
 	float time = timeInfo.x + timeInfo.w;
 	int effectType = int(round(effectParams.w));
-	
-	float distortionRadius = worldposrad.w * radiusMultiplier;
+	float elapsedframes = time - SPAWNFRAME;
+	float lifeFraction = 1.0;
+	if (LIFETIME > 1) lifeFraction = clamp(elapsedframes / LIFETIME, 0.0, 1.0);
 
-	if (effectType == 1){ // air Shockwave
-	// TODO: JUST FOR TESTING ITS SET TO 15!!!!
-		distortionRadius *= fract((time - SPAWNFRAME)/ LIFETIME );
-		v_lifeParams.y = LIFETIME; // disable lifetime 
-	}
+	float distortionRadius = worldposrad.w;
 
+	// Modulate distortion radius over the lifetime of the distortion
+	distortionRadius = STARTRADIUS + (distortionRadius - STARTRADIUS) * lifeFraction;
+
+	// Output to the fragment shader
 	v_worldPosRad = worldposrad ;
 	v_worldPosRad.w = distortionRadius;
+	v_worldPosRad2 = worldposrad2;
+	v_lifeParams = lifeParams;
+
 	vec4 vertexPosition = vec4(1.0);
 	
 	mat4 placeInWorldMatrix = mat4(1.0); // this is unity for non-unitID tied stuff
 	
 	// Ok so here comes the fun part, where we if we have a unitID then fun things happen
-	// v_worldposrad contains the incoming piece-level offset
+	// v_worldPosRad contains the incoming piece-level offset
 	// v_worldPosRad should be after changing to unit-space
 	// we have to transform BOTH the center of the distortion to piece-space
 	// and the vertices of the distortion volume to piece-space
@@ -139,23 +143,6 @@ void main()
 		uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
 		vec4 teamCol = teamColor[teamIndex];
 	}
-	float elapsedframes = time - SPAWNFRAME;
-	float lifetime = LIFETIME;
-	float sustain = RAMPUP;
-	if (lifetime > 0 ){ //lifetime alpha control
-		if (sustain >1 ){ // sustain is positive, keep it up for sustain frames, then ramp it down
-			v_baseparams.a = clamp( v_baseparams.a * ( lifetime - elapsedframes)/(lifetime - sustain ) , 0.0, v_baseparams.a);
-			
-		}else{ // sustain is <1, use exp falloff
-			v_baseparams.a = clamp( v_baseparams.a * exp( -sustain * (elapsedframes) * 100 ) , 0.0, v_baseparams.a);
-			
-		}
-	}
-	
-	
-	v_worldPosRad2 = worldposrad2;
-
-	v_lifeParams = lifeParams;
 	
 	vec4 worldPos = vec4(1.0);
 	#line 11000
@@ -283,24 +270,24 @@ void main()
 	}
 
 	// Initialze the distortion strength multiplier
-	v_baseparams.r = 1.0;
+	v_baseparams.x = 1.0;
 	// if the distortion is attached to a unit, and the lifeTime is 0, and the decay is nonzero, then modulate the strength with the units selfillummod
 	if ((attachedtounitID > 0.5) && (LIFETIME == 0) && (DECAY < 0)){
 		float selfIllumMod = max(-0.2, sin(time * 2.0/30.0 + float(UNITID) * 0.1 - 0.5)) + 0.2;
 		selfIllumMod *= selfIllumMod * (2.0 - selfIllumMod); //Almost Unit Identity 
 		// Almost 
     	selfIllumMod = mix(1.0, selfIllumMod, -1.0 / DECAY);
-		v_baseparams.r *= selfIllumMod;
+		v_baseparams.x *= selfIllumMod;
 	}
 
 	// If a lifeParams.z rampup is specified, then 
 	// >1 : how many frames to linearly ramp up to full power
 	// 0< z <1: use a power curve with exponent Z to ramp up
-
+	// Note that rampup can also be used for infinite lifetime distortions to ramp up the distortion strength
 	if (RAMPUP > 0.0){
-		//if (RAMPUP > 1) v_baseparams.r *= clamp(elapsedframes / RAMPUP, 0.0, 1.0);
-		//else v_baseparams.r *= pow(clamp(elapsedframes / RAMPUP, 0.0, 1.0), RAMPUP);
+		v_baseparams.x *= clamp(elapsedframes / RAMPUP, 0.0, 1.0);
 	}
+
 	if (LIFETIME > 1){ // Decay only makes sense if lifetime is > 1
 		// If a lifeParams.w decay is specified, then 
 		// >1 : how many frames to linearly decay to zero
@@ -308,12 +295,12 @@ void main()
 		if (DECAY > 0.0){
 			if (DECAY > 1) {
 				// How much life it still has left:
-				float decayfraction = (lifetime - elapsedframes) / DECAY;
-				v_baseparams.r *= clamp(decayfraction, 0.0, 1.0);
+				float decayfraction = (LIFETIME - elapsedframes) / DECAY;
+				v_baseparams.x *= clamp(decayfraction, 0.0, 1.0);
 			}
 			else {
-				float lifeFraction = (lifetime - elapsedframes) / lifetime;
-				v_baseparams.r *= clamp(pow(lifeFraction, 10.0 * DECAY),0.0, 1.0);
+				float lifeFraction = (LIFETIME - elapsedframes) / LIFETIME;
+				v_baseparams.x *= clamp(pow(lifeFraction, 10.0 * DECAY),0.0, 1.0);
 			}
 		}
 	}

@@ -219,7 +219,7 @@ local BaseClasses = {
 	AirShockWave = {
 		distortionType = 'point', -- or cone or beam
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
-			noiseScaleSpace = 0.1, noiseStrength = 0.2, onlyModelMap = 1,  
+			noiseScaleSpace = 0.1, noiseStrength = 0.2, onlyModelMap = 0,  
 			lifeTime = 8, refractiveIndex = 1.05, decay = 4, rampUp = 20,
 			effectStrength = 2.0, --needed for airshockwaves
 			effectType = "airShockwave", },
@@ -1129,9 +1129,9 @@ explosionDistortionsNames['corton_cortron_weapon'] = {
 }
 
 explosionDistortionsNames['corshiva_shiva_gun'] = {
-	GetDistortionClass("AirShockWave", "Medium", {lifeTime = 30, refractiveIndex = 1.5, decay = 3, shockWidth = -0.5}),
-	GetDistortionClass("GroundShockWave", "Smallest"),
-	GetDistortionClass("ExplosionHeat", "Micro"),
+	GetDistortionClass("AirShockWave", "Medium", {lifeTime = 30, refractiveIndex = 1.5, decay = 3, shockWidth = -0.5, effectStrength =  1.0, startRadius = 50}),
+	--GetDistortionClass("GroundShockWave", "Smallest"),
+	GetDistortionClass("ExplosionHeat", "Smallest", {lifeTime = 40, decay = 10, rampup = 5, startRadius = 50}),
 }
 
 explosionDistortionsNames['corcat_exp_heavyrocket'] = {

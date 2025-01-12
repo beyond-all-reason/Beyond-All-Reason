@@ -146,7 +146,8 @@ local distortionParamKeyOrder = { -- This table is a 'quick-ish' way of building
 
 	-- baseparams
 	effectStrength = 10, -- Default 1, multiply with any effect's final strength
-	motionx = 9, motiony = 10, motionz = 11, motionw = 12,
+	startRadius = 11, -- Defaults to match radius, multiply with any effect's final radius
+	--motionx = 9, motiony = 10, motionz = 11, motionw = 12,
 	
 	-- universalParams
 	noiseStrength = 13, noiseScaleSpace = 14, distanceFalloff = 15, onlyModelMap = 16, 
@@ -310,7 +311,7 @@ local function initGL4()
 				-- for spot, this is direction.xyz for unitattached, or world anim params
 				-- for cone, this is direction.xyz and angle in radians
 				-- for beam this is end.xyz and radiusright
-			{id = 5, name = 'baseparams', 		size = 4}, -- unused, effectStrenth, 2 unused more unused so far
+			{id = 5, name = 'baseparams', 		size = 4}, -- unused, effectStrength, startRadius,  unused 
 			{id = 6, name = 'universalParams', 		size = 4}, -- noiseStrength, noiseScaleSpace, distanceFalloff, onlyModelMap
 			{id = 7, name = 'lifeParams', 			size = 4},	-- spawnFrame, lifeTime, rampUp, decay
 			{id = 8, name = 'effectParams', size = 4}, -- effectParam1, effectParam2, windAffectd, effectType
@@ -366,11 +367,20 @@ local function InitializeDistortion(distortionTable, unitID)
 			distortionparams[distortionParamKeyOrder.noiseScaleSpace] = distortionTable.distortionConfig.noiseScaleSpace or 1
 			distortionparams[distortionParamKeyOrder.distanceFalloff] = distortionTable.distortionConfig.distanceFalloff or 1
 			distortionparams[distortionParamKeyOrder.effectStrength] = distortionTable.distortionConfig.effectStrength or 1
+			distortionparams[distortionParamKeyOrder.startRadius] = distortionTable.distortionConfig.startRadius or distortionTable.distortionConfig.radius or 1
 
 			distortionTable.distortionParamTable = distortionparams
 			distortionTable.distortionConfig = nil -- never used again after initialization
-		end
+			local cnt = 0
+			for k,v in pairs(distortionTable.distortionParamTable) do
+				cnt = cnt +1 
+			end
+			if cnt ~= distortionParamTableSize then
+				Spring.Echo("DistortionTable size mismatch", cnt, distortionParamTableSize)
+				Spring.Echo(distortionTable.distortionParamTable)
+			end
 
+		end
 		if unitID then
 			local unitDefID = Spring.GetUnitDefID(unitID)
 			if unitDefID and not unitDefPeiceMapCache[unitDefID] then

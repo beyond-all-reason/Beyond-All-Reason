@@ -22,6 +22,7 @@ in DataVS {
 
 #define LIFESTRENGTH v_baseparams.x
 #define EFFECTSTRENGTH v_baseparams.y
+#define STARTRADIUS	v_baseparams.z
 
 #define NOISESTRENGTH v_universalParams.x
 #define NOISESCALESPACE v_universalParams.y
@@ -556,7 +557,6 @@ void main(void)
 	float mapdepth = texture(mapDepths, v_screenUV).x;
 	float modeldepth = texture(modelDepths, v_screenUV).x;
 	float worlddepth = min(mapdepth, modeldepth);
-	vec4 targetcolor = vec4(0); // target color of the surface
 	float ismodel = 0;
 	
 	// Only query the textures if the backface of the volume is further than the world fragment
@@ -576,6 +576,7 @@ void main(void)
 
 	fragWorldPos = cameraViewProjInv * fragWorldPos;
 	fragWorldPos.xyz = fragWorldPos.xyz / fragWorldPos.w; // YAAAY this works!
+	//DEBUGPOS(fragWorldPos.xyz * 0.1); // Debug fragment world position
 	
 	vec3 camPos = cameraViewInv[3].xyz;
 	vec3 cameraDir = -1.0 * vec3(cameraView[0].z,cameraView[1].z,cameraView[2].z);
@@ -760,7 +761,7 @@ void main(void)
 			// At extremely oblique angles, the refraction can be so strong that the ray bends back towards the camera
 			// This can be avoided, by softening the refraction at the edges
 			// So shockWidth should reduce rayBendElmos when abs(cosTheta) is near 0
-			float shockWidth = EFFECTPARAM2;
+			float shockWidth = 0.25; //EFFECTPARAM2;
 			float shockWaveEdgeSoften = pow(distance_attenuation, abs(shockWidth));
 			rayBendElmos *= shockWaveEdgeSoften;
 
