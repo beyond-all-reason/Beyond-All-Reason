@@ -17,48 +17,6 @@ end
 ----Localize Functions----
 local spGetUnitDefID = Spring.GetUnitDefID
 
-local function findMatch(string, pattern)
-	if string.match(string,"%f[%a]"..pattern.."%f[%A]") then --ripped this off the internet somewhere. Checks whole string patterns parsed by spaces not part of greater whole.
-		return true
-	else
-		return false
-	end
-end
-
-----Unit Type Categorization Functions----
-local function unitIsSpam(uDef)
-	if (uDef.customParams.purpose and findMatch(uDef.customParams.purpose, "SPAM"))
-		or (uDef.health < 400
-		and uDef.weapons and next(uDef.weapons)
-		and uDef.metalcost < 55)
-	then
-		return true
-	else
-		return false
-	end
-end
-
-
-----Weapon Type Categorization Functions----
-local function weaponIsAlphastrike(wDef)
-	if wDef.customParams.purpose and wDef.customParams.purpose == "ALPHASTRIKE"
-		or wDef.reloadTime and wDef.reloadTime < 3
-	then
-		return true
-	else
-		return false
-	end
-end
-
-local function weaponIsAntispam(wDef)
-	if wDef.customParams.purpose and wDef.customParams.purpose == "ALPHASTRIKE"
-	then
-		return true
-	else
-		return false
-	end
-end
-
 ----Constants----
 local WEAPONTYPES = {
 	HIGHALPHA = 1,
@@ -92,6 +50,13 @@ local weaponDefTypes = {}
 for uDefID, uDef in ipairs(UnitDefs) do
 	if unitIsSpam(uDef) then
 		unitDefTypes[uDefID] = UNITTYPES.SPAM
+	end
+
+	if uDef.springCategories then
+		Spring.Echo("springCategories", uDef.name, uDef.springCategories)
+		for category, bool in pairs( uDef.springCategories) do
+			Spring.Echo(category, bool, type(bool))
+		end
 	end
 end
 
