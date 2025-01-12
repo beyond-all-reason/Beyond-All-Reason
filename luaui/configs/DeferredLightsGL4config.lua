@@ -7577,6 +7577,77 @@ local unitLights = {
 		},
 		
 	},
+	['legavrad'] ={
+		greenbloba = {
+			lightType = 'point',
+			pieceName = 'radarlight1',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 20,
+				color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+				r = 0, g = 1, b = 0, a = 0.15,
+				modelfactor = 0.4, specular = 0.9, scattering = 1, lensflare = 10,
+				lifetime = 0, sustain = 0, animtype = 0},
+		},
+		greenblobb = {
+			lightType = 'point',
+			pieceName = 'radarlight2',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 20,
+				color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+				r = 0, g = 1, b = 0, a = 0.15,
+				modelfactor = 0.4, specular = 0.9, scattering = 1, lensflare = 10,
+				lifetime = 0, sustain = 0, animtype = 0},
+		},
+		greenblobc = {
+			lightType = 'point',
+			pieceName = 'radarlight3',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 20,
+				color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+				r = 0, g = 1, b = 0, a = 0.15,
+				modelfactor = 0.4, specular = 0.9, scattering = 1, lensflare = 10,
+				lifetime = 0, sustain = 0, animtype = 0},
+		},
+		greenblobd = {
+			lightType = 'point',
+			pieceName = 'radarlight4',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 20,
+				color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+				r = 0, g = 1, b = 0, a = 0.15,
+				modelfactor = 0.4, specular = 0.9, scattering = 1, lensflare = 10,
+				lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
+	['legavjam'] ={
+		cloaklightred = {
+			lightType = 'point',
+			pieceName = 'cloaklight',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 24,
+							color2r = 0, color2g = 0, color2b = 1, colortime = 0,
+							r = 1, g = 0, b = 0, a = 0.6,
+							modelfactor = 0.5, specular = 0.5, scattering = 1.5, lensflare = 10,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		flashinglight1 = {
+			lightType = 'point',
+			pieceName = 'pointlight1',
+			alliedOnly = true,
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 2,
+				color2r = 0, color2g = 0, color2b = 0, colortime = 15,
+				r = 2, g = 0, b = 0, a = 1,
+				modelfactor = 0.1, specular = 0.5, scattering = 0.66, lensflare = 8,
+				lifetime = 0, sustain = 0, animtype = 0},
+
+		},
+		flashinglight2 = {
+			lightType = 'point',
+			pieceName = 'pointlight2',
+			alliedOnly = true,
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 2,
+				color2r = 0, color2g = 0, color2b = 0, colortime = 15,
+				r = 2, g = 0, b = 0, a = 1,
+				modelfactor = 0.1, specular = 0.5, scattering = 0.66, lensflare = 8,
+				lifetime = 0, sustain = 0, animtype = 0},
+
+		},
+	},
 	['corvp'] = {
 		nanolight1 = {
 			lightType = 'point',

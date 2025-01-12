@@ -98,6 +98,8 @@ local unitOrderTable = {
 	['corvrad']        = 004210,
 	['armjam']         = 004220,
 	['coreter']        = 004230,
+	['legavrad']       = 004221,
+	['legavjam']       = 004222,
 
 	['armsjam']        = 004250,
 	['corsjam']        = 004260,

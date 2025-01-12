@@ -51,7 +51,7 @@ return {
         oo oo oc cc cc cc co oo oo
         oo oo oc cc cc cc co oo oo
         oo oo oc cc cc cc co oo oo
-        ]], 
+        ]],
 		buildoptions = {
 			"legacv",
 			"legmrv",
@@ -65,8 +65,8 @@ return {
 			"leginf",
 			"corsent",
 			"cormabm",
-			"coreter",
-			"corvrad",
+			"legavjam",
+			"legavrad",
 		},
 		customparams = {
 			usebuildinggrounddecal = false,
