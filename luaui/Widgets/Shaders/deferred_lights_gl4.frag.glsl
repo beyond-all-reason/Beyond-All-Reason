@@ -538,7 +538,6 @@ float FastApproximateScattering(vec3 campos, vec3 viewdirection, vec3 lightposit
 }
 
 
-
 // UNTESTED
 vec3 ScreenToWorld(vec2 screen_uv, float depth){ // returns world XYZ from v_screenUV and depth
 	vec4 fragToScreen =  vec4( vec3(screen_uv * 2.0 - 1.0, depth),  1.0);
@@ -554,6 +553,77 @@ vec3 WorldToScreen(vec3 worldCoords){ // returns screen UV and depth position
 
 // Additional notes and reading:
 //https://andrew-pham.blog/2019/10/03/volumetric-lighting/ ???
+
+#ifdef SCREENSPACESHADOWS
+	// See Shader Amortization using Pixel Quad Message Passing
+	vec2 quadVector = vec2(0); // REQUIRED, contains the [-1,1] mappings
+	// one-hot encoding of thread ID
+	vec4 threadMask = vec4(0); // contains the thread ID in one-hot
+	#define selfWeightFactor 0.07
+	vec4 selfWeights = vec4(0.25) + vec4(selfWeightFactor, selfWeightFactor/ -3.0, selfWeightFactor/ -3.0, selfWeightFactor/-3.0);
+
+	vec4 quadGetThreadMask(vec2 qv){ 
+		vec4 threadMask =  step(vec4(qv.xy,0,0),vec4( 0,0,qv.xy));
+		return threadMask.xzxz * threadMask.yyww;
+	}
+
+	vec4 get_quad_vector_naive(vec4 output_pixel_num_wrt_uvxy)
+	{
+		//  Requires:   Two measures of the current fragment's output pixel number
+		//              in the range ([0, IN.output_size.x), [0, IN.output_size.y)):
+		//              1.) output_pixel_num_wrt_uvxy.xy increase with uv coords.
+		//              2.) output_pixel_num_wrt_uvxy.zw increase with screen xy.
+		//  Returns:    Two measures of the fragment's position in its 2x2 quad:
+		//              1.) The .xy components are its 2x2 placement with respect to
+		//                  uv direction (the origin (0, 0) is at the top-left):
+		//                  top-left     = (-1.0, -1.0) top-right    = ( 1.0, -1.0)
+		//                  bottom-left  = (-1.0,  1.0) bottom-right = ( 1.0,  1.0)
+		//                  You need this to arrange/weight shared texture samples.
+		//              2.) The .zw components are its 2x2 placement with respect to
+		//                  screen xy direction (IN.position); the origin varies.
+		//                  quad_gather needs this measure to work correctly.
+		//              Note: quad_vector.zw = quad_vector.xy * float2(
+		//                      ddx(output_pixel_num_wrt_uvxy.x),
+		//                      ddy(output_pixel_num_wrt_uvxy.y));
+		//  Caveats:    This function assumes the GPU driver always starts 2x2 pixel
+		//              quads at even pixel numbers.  This assumption can be wrong
+		//              for odd output resolutions (nondeterministically so).
+		vec4 pixel_odd = fract(output_pixel_num_wrt_uvxy * 0.5) * 2.0;
+		vec4 quad_vector = pixel_odd * 2.0 - vec4(1.0);
+		return quad_vector;
+	}
+
+	vec4 get_quad_vector(vec4 output_pixel_num_wrt_uvxy)
+	{
+		//  Requires:   Same as get_quad_vector_naive() (see that first).
+		//  Returns:    Same as get_quad_vector_naive() (see that first), but it's
+		//              correct even if the 2x2 pixel quad starts at an odd pixel,
+		//              which can occur at odd resolutions.
+		vec4 quad_vector_guess =
+			get_quad_vector_naive(output_pixel_num_wrt_uvxy);
+		//  If quad_vector_guess.zw doesn't increase with screen xy, we know
+		//  the 2x2 pixel quad starts at an odd pixel:
+		vec2 odd_start_mirror = 0.5 * vec2(dFdx(quad_vector_guess.z),
+													dFdy(quad_vector_guess.w));
+		return quad_vector_guess * odd_start_mirror.xyxy;
+	}
+
+	// [-1,1] quad vector as per get_quad_vector_naive
+	vec2 quadGetQuadVector(vec2 screenCoords){
+		vec2 quadVector =  fract(floor(screenCoords) * 0.5) * 4.0 - 1.0;
+		vec2 odd_start_mirror = 0.5 * vec2(dFdx(quadVector.x), dFdy(quadVector.y));
+		quadVector = quadVector * odd_start_mirror;
+		return sign(quadVector);
+	}
+
+	vec4 quadGather(float input){
+		float inputadjx = input - dFdx(input) * quadVector.x;
+		float inputadjy = input - dFdy(input) * quadVector.y;
+		float inputdiag = inputadjx - dFdy(inputadjx) * quadVector.y;
+		return vec4(input, inputadjx, inputadjy, inputdiag);
+	}
+
+#endif
 
 #line 31000
 void main(void)
@@ -798,9 +868,56 @@ void main(void)
 	specular = dot(reflection, viewDirection);
 	specular = v_modelfactor_specular_scattering_lensflare.y * pow(max(0.0, specular), 8.0 * ( 1.0 + ismodel * v_modelfactor_specular_scattering_lensflare.x) ) * (1.0 + ismodel * v_modelfactor_specular_scattering_lensflare.x);
 	attenuation = pow(attenuation, 1.0);
-	
-	
-	
+
+	// Do screen-space sampling for shadowing because you are a silly boy:
+	float unoccluded = 1.0;
+	#ifdef SCREENSPACESHADOWS
+		// But only for point and cone lights:
+		// also assume that only models will shadow
+		if (v_otherparams.w > 0.5) {
+			quadVector = get_quad_vector(vec4(v_screenUV.xy, floor(gl_FragCoord.xy))).zw;
+			threadMask = quadGetThreadMask(quadVector);
+
+			float occludedness = 0.0;
+			vec3 rayStart = lightPosition.xyz;
+			vec3 rayEnd = fragWorldPos.xyz;
+			vec3 rayFragRec = ScreenToWorld(v_screenUV.xy, worlddepth);
+
+			vec3 rayStep = (rayEnd - rayStart) / (SCREENSPACESHADOWS + 1);
+			vec4 threadOffset = vec4(0.125, 0.375, 0.625, 0.875);
+
+			for (int i = 1; i <= SCREENSPACESHADOWS; i++){
+				vec3 rayPos = rayStart + rayStep * (float(i) + dot(threadMask, threadOffset)); 
+				vec3 screenPos = WorldToScreen(rayPos);
+				screenPos.xy = screenPos.xy * 0.5 + 0.5;
+				float sampledepth = texture(modelDepths, screenPos.xy ).x;
+
+				// we need to soften this, based on the squared world-space distance between the ray point and the sampled depth:
+				
+				vec3 samplePos = ScreenToWorld(screenPos.xy, sampledepth);
+				vec3 sampleToRay = rayPos - samplePos;
+				float sampledistsqr = dot(sampleToRay, sampleToRay);
+
+				// if sampledistsqr is very small, consider it to be an occluder
+
+
+				// lol more distant points on the ray should be softer....
+				
+				float occluder = 0.0;
+				occluder = 1.0 - clamp(sampledistsqr / float((4 * SCREENSPACESHADOWS ) * ( SCREENSPACESHADOWS-i) ), 0.0, 1.0);
+				
+				if (sampledepth < 0.01) sampledepth = 1.0;
+				if (sampledepth < screenPos.z) occluder = 1.0;
+				occludedness += occluder;
+				
+			}
+			vec4 gatheredunoccluded = quadGather(occludedness);
+			float dotproduct = dot(gatheredunoccluded, vec4(0.25));
+			unoccluded = 1.0 - smoothstep(0.0, 1.0, dotproduct);
+		}	
+
+		
+	#endif
 	fragColor.rgb = vec3(
 			(diffuse) * attenuation + lensFlare,
 			//relativedistancetolight * relativedistancetolight * selfglowfalloff * sourceVisible + 
@@ -825,7 +942,7 @@ void main(void)
 	vec3 additivelights = ((scatteringRayleigh + scatteringMie) * v_modelfactor_specular_scattering_lensflare.z + lensFlare) * v_lightcolor.rgb * v_lightcolor.w * 0.4  ;
 
 	// Sum up diffuse+specular and colorize the light
-	vec3 blendedlights = (v_lightcolor.rgb * v_lightcolor.w) * (diffuse + specular);
+	vec3 blendedlights = (v_lightcolor.rgb * v_lightcolor.w) * (diffuse + specular) * unoccluded;
 
 	// Modulate color with target color of the surface. 
 	blendedlights = mix(blendedlights, blendedlights * targetcolor.rgb * 2.0, SURFACECOLORMODULATION);

@@ -198,6 +198,7 @@ local shaderConfig = {
 	SURFACECOLORMODULATION = 0.05, -- This specifies how much the lit surfaces color affects direct light blending, 0 is does not effect it, 1.0 is full effect
 	BLEEDFACTOR = 0.15, -- How much oversaturated color channels will bleed into other color channels.
 	VOIDWATER = gl.GetMapRendering("voidWater") and 1 or 0,
+	SCREENSPACESHADOWS = 16,
 }
 
 local radiusMultiplier = 1.0
@@ -527,7 +528,7 @@ end
 ---@param spawnframe float the gameframe the light was spawned in (for anims, in frames, default current game frame)
 ---@param lifetime float how many frames the light will live, with decreasing brightness
 ---@param sustain float how much sustain time the light will have at its original brightness (in game frames)
----@param animtype int what further type of animation will be used
+---@param animtype int what further type of animation will be used (0 is default 1 is for screen space shadow)
 ---@return instanceID for future reuse
 local function AddPointLight(instanceID, unitID, pieceIndex, targetVBO, px_or_table, py, pz, radius, r,g,b,a, r2,g2,b2, colortime,
 	modelfactor, specular, scattering, lensflare, spawnframe, lifetime, sustain, animtype)
@@ -1716,6 +1717,12 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal('GetLightVBO', WG['lightsgl4'].GetLightVBO)
 
 	widgetHandler:RegisterGlobal('UnitScriptLight', UnitScriptLight)
+end
+
+if autoupdate then 
+	function widget:DrawScreen()
+		if deferredLightShader.DrawPrintf then deferredLightShader.DrawPrintf() end
+	end
 end
 --------------------------- Ingame Configurables -------------------
 

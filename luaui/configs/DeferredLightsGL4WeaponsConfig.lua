@@ -408,9 +408,12 @@ local function AssignLightsToAllWeapons()
 		elseif weaponDef.type == 'DGun' then
 			muzzleFlash = true --doesnt work
 			sizeclass = "Medium"
-			t.a = orgMult*0.66
+			t.a = orgMult*0.66 * 1.5
 			projectileDefLights[weaponID] = GetLightClass("CannonProjectile", "Warm", sizeclass, t)
 			projectileDefLights[weaponID].yOffset = 32
+			projectileDefLights[weaponID].lightConfig.animtype = 1 -- Screen Space Light Shadows
+			projectileDefLights[weaponID].lightConfig.animtype = 1 -- Screen Space Light Shadows
+			Spring.Echo(WeaponDefNames[weaponID], weaponDef.type, weaponDef.name)
 
 		elseif weaponDef.type == 'TorpedoLauncher' then
 			sizeclass = "Small"
