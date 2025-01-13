@@ -811,9 +811,7 @@ void main(void)
 
 		// Lifetime goes from 0 to 1
 		float timeFraction = clamp((currentTime - SPAWNFRAME) / LIFETIME, 0.0, 1.0);
-		float radiusFraction = (distortionRadius - STARTRADIUS);
-		//radiusFraction = distortionRadiusl
-		
+
 		#define COMPRESSION 0.9
 		float currentDist =  COMPRESSION * distortionRadius + 10 * NOISESTRENGTH * noiseSampleNorm.r;
 		// TODO : Parameterize out width in elmos
@@ -833,11 +831,6 @@ void main(void)
 		float parabolicStrength = pcurve_k(timeFraction, 0.5, 2.0, 3.5);
 		parabolicStrength= 1.0;
 		
-		printf(parabolicStrength);
-		printf(timeFraction);
-		printf(currentDist);
-		printf(STARTRADIUS);
-		printf(distortionRadius);
 		// Falloff due to distance from camera
 		// TODO: this should really not be based on fragDistance, but on the distance to the distortion source
 		float distanceToCameraFactor =  clamp(1000.0/ fragDistance, 0.0, 1.0);
