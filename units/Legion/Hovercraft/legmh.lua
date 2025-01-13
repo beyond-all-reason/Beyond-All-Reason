@@ -4,7 +4,7 @@ return {
 		maxdec = 0.04415,
 		energycost = 3100,
 		metalcost = 190,
-		buildpic = "legmh.DDS",
+		buildpic = "LEGMH.DDS",
 		buildtime = 3300,
 		canmove = true,
 		collisionvolumeoffsets = "0 1 0",
