@@ -1376,7 +1376,7 @@ local unitEventDistortionsNames = {
 				distortionConfig = { posx = 0, posy = 0, posz = 8, radius = 120,
 								noiseStrength = 1.2, noiseScaleSpace = 0.5, distanceFalloff = 0.2, onlyModelMap = 1, 
 								effectStrength = 1.0, --needed for shockwave
-								lifeTime = 25, rampUp = 0, decay = 15,
+								lifeTime = 25, rampUp = 3, decay = 5, startRadius = 0.3,
 								shockWidth = 5, effectType = 'groundShockwave'},
 	
 			},

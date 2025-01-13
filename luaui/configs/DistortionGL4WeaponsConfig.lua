@@ -180,8 +180,8 @@ local BaseClasses = {
 		distortionType = 'point', -- or cone or beam
 		alwaysVisible = false,
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 200,
-						distanceFalloff = 0.5, noiseStrength = 0.5, noiseScaleSpace = 0.6,
-						lifeTime = 32, decay = 8, rampUp = 26,
+						distanceFalloff = 0.5, noiseStrength = 1.0, noiseScaleSpace = 0.6,
+						lifeTime = 25, decay = 8, rampUp = 26,
 						effectStrength = 1.8, --needed for shockwaves
 						shockWidth = 3, startRadius = 0.3,
 						effectType = 'groundShockwave'},
@@ -194,7 +194,7 @@ local BaseClasses = {
 						noiseStrength = 2, noiseScaleSpace = 0.10,
 						effectStrength = 3.5, --needed for shockwaves
 						lifeTime = 100, decay = 5, rampUp = 5,  
-						shockWidth = 32, refractiveIndex = -1.2,
+						shockWidth = 32, refractiveIndex = -1.2,startRadius = 0.3,
 						effectType = 'groundShockwave'},
 	},
 	
@@ -204,7 +204,7 @@ local BaseClasses = {
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 200,
 						distanceFalloff = 1.0, onlyModelMap = 0,
 						effectStrength = 1.2, --needed for shockwaves
-						shockWidth = 3,
+						shockWidth = 3,startRadius = 0.3,
 						lifeTime = 25,  effectType = 'groundShockwave'},
 	},
 

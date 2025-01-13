@@ -803,15 +803,19 @@ void main(void)
 		noisePosition *= abs(NOISESCALESPACE) * 0.03;
 		
 		// Add the time offset and wind offsets to the noise position
-		vec3 noiseOffset = vec3(0.0); //vec3(windXZ.x * 0.1, currentTime * 0.01, windXZ.y * 0.1 ) * (1.0 + vec3(WINDAFFECTED, EFFECTPARAM1, WINDAFFECTED));
+		//vec3 noiseOffset = vec3(0.0); //vec3(windXZ.x * 0.1, currentTime * 0.01, windXZ.y * 0.1 ) * (1.0 + vec3(WINDAFFECTED, EFFECTPARAM1, WINDAFFECTED));
+		vec3 noiseOffset = vec3(windXZ.x * 0.1, 0.1,  windXZ.y * 0.1 ) * ( vec3(WINDAFFECTED, 5,  WINDAFFECTED));
 		
 		// Normalize the noise sample at noisePosition - noiseOffset
 		vec4 noiseSampleNorm = (textureLod(noise3DCube, noisePosition - noiseOffset, 0.0) )* 2.0 - 1.0;
 
 		// Lifetime goes from 0 to 1
 		float timeFraction = clamp((currentTime - SPAWNFRAME) / LIFETIME, 0.0, 1.0);
-
-		float currentDist = distortionRadius * timeFraction + 10 * NOISESTRENGTH * noiseSampleNorm.r;
+		float radiusFraction = (distortionRadius - STARTRADIUS);
+		//radiusFraction = distortionRadiusl
+		
+		#define COMPRESSION 0.9
+		float currentDist =  COMPRESSION * distortionRadius + 10 * NOISESTRENGTH * noiseSampleNorm.r;
 		// TODO : Parameterize out width in elmos
 		float width = EFFECTPARAM1;
 
@@ -820,7 +824,6 @@ void main(void)
 		// Effect strength and direction should be abs width'd
 		// But it should be wider on the rarefaction side than the compression side
 		// First term is the compression factor, second term is the rarefaction factor
-		#define COMPRESSION 0.9
 		float compressionFactor = max((groundDistanceToShockCenter - currentDist) * COMPRESSION, (currentDist - groundDistanceToShockCenter) * (1.0 - COMPRESSION));
 
 		float effectStrength =  clamp( 1.0 - abs(compressionFactor/ width), 0.0, 1.0);
@@ -828,8 +831,13 @@ void main(void)
 
 		// Parabolic mapping of 0-1 to [0-1-0] with a parabola on timeFraction
 		float parabolicStrength = pcurve_k(timeFraction, 0.5, 2.0, 3.5);
+		parabolicStrength= 1.0;
 		
-
+		printf(parabolicStrength);
+		printf(timeFraction);
+		printf(currentDist);
+		printf(STARTRADIUS);
+		printf(distortionRadius);
 		// Falloff due to distance from camera
 		// TODO: this should really not be based on fragDistance, but on the distance to the distortion source
 		float distanceToCameraFactor =  clamp(1000.0/ fragDistance, 0.0, 1.0);
