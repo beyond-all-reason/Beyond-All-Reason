@@ -623,6 +623,10 @@ vec3 WorldToScreen(vec3 worldCoords){ // returns screen UV and depth position
 		return vec4(input, inputadjx, inputadjy, inputdiag);
 	}
 
+	float rand(vec2 co){
+		return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
+	}
+
 #endif
 
 #line 31000
@@ -879,15 +883,15 @@ void main(void)
 			threadMask = quadGetThreadMask(quadVector);
 
 			float occludedness = 0.0;
-			vec3 rayStart = lightPosition.xyz;
+			vec3 rayStart = lightEmitPosition.xyz;
 			vec3 rayEnd = fragWorldPos.xyz;
 			vec3 rayFragRec = ScreenToWorld(v_screenUV.xy, worlddepth);
 
-			vec3 rayStep = (rayEnd - rayStart) / (SCREENSPACESHADOWS + 1);
+			vec3 rayStep = (rayEnd - rayStart) / (SCREENSPACESHADOWS + 0.25);
 			vec4 threadOffset = vec4(0.125, 0.375, 0.625, 0.875);
-
-			for (int i = 1; i <= SCREENSPACESHADOWS; i++){
-				vec3 rayPos = rayStart + rayStep * (float(i) + dot(threadMask, threadOffset)); 
+			float randomOffset = rand(gl_FragCoord.xy * 0.00234567) * (- 0.25);
+			for (int i = 0; i < SCREENSPACESHADOWS; i++){
+				vec3 rayPos = rayStart + rayStep * (float(i) + dot(threadMask, threadOffset) + randomOffset); 
 				vec3 screenPos = WorldToScreen(rayPos);
 				screenPos.xy = screenPos.xy * 0.5 + 0.5;
 				float sampledepth = texture(modelDepths, screenPos.xy ).x;
