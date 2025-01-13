@@ -144,10 +144,12 @@ local distortionParamKeyOrder = { -- This table is a 'quick-ish' way of building
 	dirx = 5, diry = 6, dirz = 7, theta = 8,  -- cones: specify direction and half-angle in radians
 	pos2x = 5, pos2y = 6, pos2z = 7, -- beam distortions only, specifies the endpoint of the beam
 
+
 	-- baseparams
+	RESERVED = 9,
 	effectStrength = 10, -- Default 1, multiply with any effect's final strength
 	startRadius = 11, -- Defaults to match radius, multiply with any effect's final radius
-	--motionx = 9, motiony = 10, motionz = 11, motionw = 12,
+	unused = 12,
 	
 	-- universalParams
 	noiseStrength = 13, noiseScaleSpace = 14, distanceFalloff = 15, onlyModelMap = 16, 
@@ -377,17 +379,21 @@ local function InitializeDistortion(distortionTable, unitID)
 				distortionparams[distortionParamKeyOrder.startRadius] = distortionTable.distortionConfig.radius or 100
 			end
 			
-			distortionparams[distortionParamKeyOrder.startRadius] = startRadius
+			--distortionparams[distortionParamKeyOrder.startRadius] = startRadius
 
 			distortionTable.distortionParamTable = distortionparams
-			distortionTable.distortionConfig = nil -- never used again after initialization
+			--distortionTable.distortionConfig = nil -- never used again after initialization
 			local cnt = 0
 			for k,v in pairs(distortionTable.distortionParamTable) do
 				cnt = cnt +1 
 			end
 			if cnt ~= distortionParamTableSize then
+					
+				for k,v in pairs(distortionTable.distortionParamTable) do
+					Spring.Echo(k,v) 
+				end
 				Spring.Echo("DistortionTable size mismatch", cnt, distortionParamTableSize)
-				Spring.Echo(distortionTable.distortionParamTable)
+				Spring.Echo(distortionTable)
 			end
 
 		end
