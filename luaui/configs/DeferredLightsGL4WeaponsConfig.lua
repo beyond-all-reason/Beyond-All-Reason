@@ -413,7 +413,7 @@ local function AssignLightsToAllWeapons()
 			projectileDefLights[weaponID] = GetLightClass("CannonProjectile", "Warm", sizeclass, t)
 			projectileDefLights[weaponID].yOffset = 32
 			projectileDefLights[weaponID].lightConfig.animtype = 1 -- Screen Space Light Shadows
-			Spring.Echo(WeaponDefNames[weaponID], weaponDef.type, weaponDef.name)
+			--Spring.Echo(WeaponDefNames[weaponID], weaponDef.type, weaponDef.name)
 
 		elseif weaponDef.type == 'TorpedoLauncher' then
 			sizeclass = "Small"
