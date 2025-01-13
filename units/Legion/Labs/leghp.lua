@@ -5,7 +5,7 @@ return {
 		energycost = 3000,
 		metalcost = 900,
 		builder = true,
-		buildpic = "leghp.DDS",
+		buildpic = "LEGHP.DDS",
 		buildtime = 11000,
 		canmove = true,
 		collisionvolumeoffsets = "0 5 0",
@@ -62,7 +62,7 @@ return {
 				footprintz = 7,
 				height = 20,
 				metal = 662,
-				object = "Units/corhp_dead.s3o",
+				object = "Units/leghp_dead.s3o",
 				reclaimable = true,
 			},
 			heap = {
