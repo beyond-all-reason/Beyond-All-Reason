@@ -23,7 +23,6 @@ return {
 		maxwaterdepth = 0,
 		nochasecategory = "MOBILE",
 		objectname = "Units/LEGCLUSTER.s3o",
-		onoffable = true,
 		script = "Units/LEGCLUSTER.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
@@ -38,7 +37,6 @@ return {
 			unitgroup = 'weapon',
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
-			onoffname = "trajectory",
 			subfolder = "CorBuildings/LandDefenceOffence",
 		},
 		featuredefs = {
