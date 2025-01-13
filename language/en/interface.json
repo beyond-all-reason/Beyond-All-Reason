@@ -1077,6 +1077,8 @@
 				"lighteffects_brightness_descr": "Set the brightness of the lights",
 				"lighteffects_radius": "radius",
 				"lighteffects_radius_descr": "Set the radius of the lights\n\nWARNING: the bigger the radius, the heavier on the GPU",
+				"lighteffects_screenspaceshadows": "shadows",
+				"lighteffects_screenspaceshadows_descr": "Set the number of samples for shadowing\n\nWARNING: the more samples, the heavier on the GPU",
 				"lighteffects_headlights": "headlights",
 				"lighteffects_headlights_descr": "Adds headlights to units",
 				"lighteffects_buildlights": "construction lights",

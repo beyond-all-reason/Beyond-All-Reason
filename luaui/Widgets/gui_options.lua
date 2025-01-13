@@ -2443,6 +2443,15 @@ function init()
 		  end,
 		},
 
+		{ id = "lighteffects_screenspaceshadows", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.lighteffects_screenspaceshadows'), min = 0, max = 64, step = 4, type = "slider", value = 1, description = Spring.I18N('ui.settings.option.lighteffects_screenspaceshadows_descr'),
+		onload = function(i)
+			loadWidgetData("Deferred rendering GL4", "lighteffects_screenspaceshadows", { 'screenSpaceShadows' })
+		end,
+		onchange = function(i, value)
+			saveOptionValue('Deferred rendering GL4', 'lightsgl4', 'ScreenSpaceShadows', { 'screenSpaceShadows' }, value)
+		end,
+	  	},
+
 		{ id = "darkenmap", group = "gfx", category = types.advanced, name = Spring.I18N('ui.settings.option.darkenmap'), min = 0, max = 0.33, step = 0.01, type = "slider", value = 0, description = Spring.I18N('ui.settings.option.darkenmap_descr'),
 		  onload = function(i)
 			  loadWidgetData("Darken map", "darkenmap", { 'darknessvalue' })

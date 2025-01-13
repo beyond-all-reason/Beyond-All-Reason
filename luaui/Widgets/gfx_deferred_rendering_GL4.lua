@@ -202,10 +202,12 @@ local shaderConfig = {
 }
 
 local radiusMultiplier = 1.0
+local screenSpaceShadows = 16
 local intensityMultiplier = 1.0
 
 -- the 3d noise texture used for this shader
 local noisetex3dcube =  "LuaUI/images/noisetextures/noise64_cube_3.dds"
+local blueNoise2D =  "LuaUI/images/noisetextures/blue_noise_64.tga"
 
 --[[
 local examplePointLight = {
@@ -310,8 +312,10 @@ local shaderSourceCache = {
 		mapDiffuse = 6,
 		modelDiffuse = 7,
 		noise3DCube = 8,
+		blueNoise = 9,
 		--heightmapTex = 9,
 		--mapnormalsTex = 10,
+		screenSpaceShadows = 16,
 		},
 	uniformFloat = {
 		pointbeamcone = 0,
@@ -1553,12 +1557,14 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		glTexture(6, "$map_gbuffer_difftex")
 		glTexture(7, "$model_gbuffer_difftex")
 		glTexture(8, noisetex3dcube)
+		glTexture(9, blueNoise2D)
 
 		deferredLightShader:Activate()
 		deferredLightShader:SetUniformFloat("nightFactor", nightFactor)
 
 		deferredLightShader:SetUniformFloat("intensityMultiplier", intensityMultiplier)
 		deferredLightShader:SetUniformFloat("radiusMultiplier", radiusMultiplier)
+		deferredLightShader:SetUniformInt("screenSpaceShadows", screenSpaceShadows)
 		--Spring.Echo(windX, windZ)
 
 
@@ -1694,6 +1700,9 @@ function widget:Initialize()
 	WG['lightsgl4'].RadiusMultiplier = function(value)
 		radiusMultiplier = value
 	end
+	WG['lightsgl4'].ScreenSpaceShadows = function(value)
+		screenSpaceShadows = value
+	end
 
 	WG['lightsgl4'].ShowPlayerCursorLight = function(value)
 		showPlayerCursorLight = value
@@ -1730,6 +1739,7 @@ function widget:GetConfigData(_) -- Called by RemoveWidget
 	local savedTable = {
 		intensityMultiplier = intensityMultiplier,
 		radiusMultiplier = radiusMultiplier,
+		screenSpaceShadows = screenSpaceShadows,
 		showPlayerCursorLight = showPlayerCursorLight,
 		playerCursorLightRadius = playerCursorLightRadius,
 		playerCursorLightBrightness = playerCursorLightBrightness,
@@ -1743,6 +1753,9 @@ function widget:SetConfigData(data) -- Called on load (and config change), just 
 	end
 	if data.radiusMultiplier ~= nil then
 		radiusMultiplier = data.radiusMultiplier
+	end
+	if data.screenSpaceShadows ~= nil then
+		screenSpaceShadows = data.screenSpaceShadows
 	end
 	if data.showPlayerCursorLight ~= nil then
 		showPlayerCursorLight = data.showPlayerCursorLight

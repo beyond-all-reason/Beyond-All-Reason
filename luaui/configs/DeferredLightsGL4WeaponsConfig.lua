@@ -31,7 +31,7 @@ local exampleLight = {
 		dirx = 0, diry = 0, dirz = 1, theta = 0.5,  -- cone lights only, specify direction and half-angle in radians
 		pos2x = 100, pos2y = 100, pos2z = 100, -- beam lights only, specifies the endpoint of the beam
 		modelfactor = 1, specular = 1, scattering = 1, lensflare = 1,
-		lifetime = 0, sustain = 1, 	aninmtype = 0, -- unused
+		lifetime = 0, sustain = 1, 	animtype = 0, -- unused
 	},
 }
 
@@ -54,7 +54,7 @@ local BaseClasses = {
 			r = 1, g = 1, b = 1, a = 0.075,
 			pos2x = 100, pos2y = 1000, pos2z = 100, -- beam lights only, specifies the endpoint of the beam
 			modelfactor = 1, specular = 0.5, scattering = 1.1, lensflare = 1,
-			lifetime = 0, sustain = 1, 	aninmtype = 0, -- unused
+			lifetime = 0, sustain = 1, 	animtype = 0, -- unused
 		},
 	},
 
@@ -65,7 +65,7 @@ local BaseClasses = {
 			r = 1, g = 0.8, b = 0.45, a = 0.11,
 			--color2r = 0.5, color2g = 0.4, color2b = 0.23, colortime = 1.5, -- point lights only, colortime in seconds for unit-attached
 			modelfactor = 0.5, specular = 0.6, scattering = 0.5, lensflare = 0,
-			lifetime = 0, sustain = 0, 	aninmtype = 0, -- unused
+			lifetime = 0, sustain = 0, 	animtype = 0, -- unused
 		},
 	},
 
@@ -77,7 +77,7 @@ local BaseClasses = {
 			r = 1, g = 0.7, b = 0.2, a = 0.15,
 			color2r = 0.6, color2g = 0.4, color2b = 0.10, colortime = 1.6, -- point lights only, colortime in seconds for unit-attached
 			modelfactor = 0.3, specular = 0.1, scattering = 0.6, lensflare = 8,
-			lifetime = 0, sustain = 0, 	aninmtype = 0, -- unused
+			lifetime = 0, sustain = 0, 	animtype = 0, -- unused
 		},
 	},
 
@@ -88,7 +88,7 @@ local BaseClasses = {
 			r = 5, g = 0, b = 0, a = 1,
 			dirx = 1, diry = 0, dirz = 1, theta = 0.02,  -- cone lights only, specify direction and half-angle in radians
 			modelfactor = 10, specular = 0.5, scattering = 1, lensflare = 1,
-			lifetime = 0, sustain = 1, 	aninmtype = 0, -- unused
+			lifetime = 0, sustain = 1, 	animtype = 0, -- unused
 		},
 	},
 
@@ -99,7 +99,7 @@ local BaseClasses = {
 			r = 1, g = 1, b = 1, a = 1,
 			dirx = 1, diry = 0, dirz = 1, theta = 0.15,  -- cone lights only, specify direction and half-angle in radians
 			modelfactor = 1, specular = 0, scattering = 1, lensflare = 1,
-			lifetime = 0, sustain = 1, 	aninmtype = 0, -- unused
+			lifetime = 0, sustain = 1, 	animtype = 0, -- unused
 		},
 	},
 
@@ -111,7 +111,7 @@ local BaseClasses = {
 			r = 1.0, g = 0.9, b = 0.5, a = 0.086,
 			color2r = 0.75, color2g = 0.45, color2b = 0.22, colortime = 12, -- point lights only, colortime in seconds for unit-attached
 			modelfactor = 0.2, specular = 0.3, scattering = 0.6, lensflare = 0,
-			lifetime = 23, sustain = 0, aninmtype = 0, -- unused
+			lifetime = 23, sustain = 0, animtype = 0, -- unused
 		},
 	},
 
@@ -124,7 +124,7 @@ local BaseClasses = {
 			r = 2, g = 2, b = 2, a = 0.6,
 			color2r = 0.7, color2g = 0.55, color2b = 0.28, colortime = 0.1, -- point lights only, colortime in seconds for unit-attached
 			modelfactor = 0.15, specular = 0.15, scattering = 0.4, lensflare = 1,
-			lifetime = 12, sustain = 3, aninmtype = 0, -- unused
+			lifetime = 12, sustain = 3, animtype = 1, -- unused
 		},
 	},
 
@@ -137,7 +137,7 @@ local BaseClasses = {
 			r = 2, g = 2, b = 4, a = 1.8,
 			color2r = 0.3, color2g = 0.3, color2b = 0.6, colortime = 1.4, -- point lights only, colortime in seconds for unit-attached
 			modelfactor = 0.15, specular = 0.15, scattering = 0.6, lensflare = 0,
-			lifetime = 90, sustain = 60, aninmtype = 0, -- unused
+			lifetime = 90, sustain = 60, animtype = 0, -- unused
 		},
 	},
 
@@ -148,7 +148,7 @@ local BaseClasses = {
 			r = 2, g = 2, b = 2, a = 0.7,
 			color2r = 0.75, color2g = 0.72, color2b = 0.6, colortime = 0, -- point lights only, colortime in seconds for unit-attached
 			modelfactor = 0.8, specular = 0.5, scattering = 0.6, lensflare = 8,
-			lifetime = 6, sustain = 0.0035, aninmtype = 0, -- unused
+			lifetime = 6, sustain = 0.0035, animtype = 0, -- unused
 		},
 	},
 }
@@ -275,7 +275,7 @@ local gibLight = {
 		r = 1, g = 0.9, b = 0.5, a = 0.08,
 		color2r = 0.9, color2g = 0.75, color2b = 0.25, colortime = 0.3, -- point lights only, colortime in seconds for unit-attache
 		modelfactor = 0.4, specular = 0.5, scattering = 0.5, lensflare = 0,
-		lifetime = 300, sustain = 3, aninmtype = 0 -- unused
+		lifetime = 300, sustain = 3, animtype = 0 -- unused
 	},
 }
 

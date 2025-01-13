@@ -31,12 +31,14 @@ uniform sampler2D modelExtra;
 uniform sampler2D mapDiffuse;
 uniform sampler2D modelDiffuse;
 uniform sampler3D noise3DCube;
+uniform sampler2D blueNoise;
 
 uniform float pointbeamcone = 0;
 uniform float nightFactor = 1.0;
 // = 0; // 0 = point, 1 = beam, 2 = cone
 uniform float radiusMultiplier = 1.0;
 uniform float intensityMultiplier = 1.0;
+uniform int screenSpaceShadows = 0;
 
 out vec4 fragColor;
 
@@ -878,46 +880,74 @@ void main(void)
 	#ifdef SCREENSPACESHADOWS
 		// But only for point and cone lights:
 		// also assume that only models will shadow
-		if (v_otherparams.w > 0.5) {
+		if (v_otherparams.w > 0.01) {
+			const int sampleCount = screenSpaceShadows;
+			// Initialize the quad vectors, so we can do Pixel Quad Message Passing
 			quadVector = get_quad_vector(vec4(v_screenUV.xy, floor(gl_FragCoord.xy))).zw;
 			threadMask = quadGetThreadMask(quadVector);
 
+			// Split up a step evenly between the 4 threads in the quad
+			vec4 threadOffset = vec4(0.125, 0.375, 0.625, 0.875);
+			//vec4 threadOffset = vec4(0.5);
+
+			// Generate a small, random offset to jiggle the samples a little bit, this provides a bit of noise to the shadowing
+			//float randomOffset = rand(gl_FragCoord.xy * 0.013971639) * (- 0.25);
+			float blueNoiseSample = textureLod(blueNoise, gl_FragCoord.xy / 64.0, 0.0).r;
+			float randomOffset = blueNoiseSample * (-0.25);
+			// Collect occludedness in this variable
 			float occludedness = 0.0;
+			
+			// Set up the raytracing variables
 			vec3 rayStart = lightEmitPosition.xyz;
 			vec3 rayEnd = fragWorldPos.xyz;
-			vec3 rayFragRec = ScreenToWorld(v_screenUV.xy, worlddepth);
+			vec3 rayStep = (rayEnd - rayStart) / (sampleCount);
+			float rayStepLength = length(rayStep);
+			float distanceToLight = 0; // squared distance to the light
 
-			vec3 rayStep = (rayEnd - rayStart) / (SCREENSPACESHADOWS + 0.25);
-			vec4 threadOffset = vec4(0.125, 0.375, 0.625, 0.875);
-			float randomOffset = rand(gl_FragCoord.xy * 0.00234567) * (- 0.25);
-			for (int i = 0; i < SCREENSPACESHADOWS; i++){
-				vec3 rayPos = rayStart + rayStep * (float(i) + dot(threadMask, threadOffset) + randomOffset); 
-				vec3 screenPos = WorldToScreen(rayPos);
-				screenPos.xy = screenPos.xy * 0.5 + 0.5;
-				float sampledepth = texture(modelDepths, screenPos.xy ).x;
+			for (int i = 0; i < sampleCount; i++){
+				float stepSize =  (float(i) + dot(threadMask, threadOffset) + randomOffset);
+				distanceToLight = stepSize * rayStepLength;
+
+				// Calculate the current ray position in both world and screenspace
+				vec3 rayWorldPos = rayStart + rayStep * stepSize; 
+				vec3 rayScreenPos = WorldToScreen(rayWorldPos);
+				// Convert the NDC to UV space, and clamping is not needed because enabling it brings bad artifacts
+				rayScreenPos.xy = rayScreenPos.xy * 0.5 + 0.5;
+				
+				float rayScreenDepthSample = texture(modelDepths, rayScreenPos.xy ).x;
+
+				// Assume that any sample outside of the edges of the screen will not occlude
+				if (any(lessThan(rayScreenPos.xy, vec2(0.001))) || any(greaterThan(rayScreenPos.xy, vec2(1.0-0.001)))) rayScreenDepthSample = 1.0;
+				
+				// Since modeldepth is zero where there is no model, we need to convert this to 1.0
+				if (rayScreenDepthSample < 0.01) rayScreenDepthSample = 1.0;
 
 				// we need to soften this, based on the squared world-space distance between the ray point and the sampled depth:
 				
-				vec3 samplePos = ScreenToWorld(screenPos.xy, sampledepth);
-				vec3 sampleToRay = rayPos - samplePos;
-				float sampledistsqr = dot(sampleToRay, sampleToRay);
+				// Recover the world position of the sample from the depth buffer, and calculate the distance to the ray
+				vec3 sampleWorldPos = ScreenToWorld(rayScreenPos.xy, rayScreenDepthSample);
+				float sampleDistance = length(rayWorldPos - sampleWorldPos);
+				float sampleOcclusionStrength = 0.0;
 
-				// if sampledistsqr is very small, consider it to be an occluder
-
-
-				// lol more distant points on the ray should be softer....
-				
-				float occluder = 0.0;
-				occluder = 1.0 - clamp(sampledistsqr / float((4 * SCREENSPACESHADOWS ) * ( SCREENSPACESHADOWS-i) ), 0.0, 1.0);
-				
-				if (sampledepth < 0.01) sampledepth = 1.0;
-				if (sampledepth < screenPos.z) occluder = 1.0;
-				occludedness += occluder;
+				// Assume that a ray that hits exactly occludes 0.5
+				if (rayScreenDepthSample < rayScreenPos.z) {
+					// If the sample actually occludes, then softly occlude it based on the distance from the light
+					sampleOcclusionStrength = 0.5 + clamp(sampleDistance / (rayStepLength * 0.05), 0.0, 1.0) * 0.5;;
+				}else{
+					// if the sample does not occlude, but is close to doing so, then softly occlude it based on the distance from the light	
+					sampleOcclusionStrength = 0.5 - clamp(sampleDistance / (rayStepLength * 0.2), 0.0, 1.0) * 0.5;;
+				}
+			
+				occludedness += sampleOcclusionStrength;
 				
 			}
+			//printf(occludedness);
 			vec4 gatheredunoccluded = quadGather(occludedness);
-			float dotproduct = dot(gatheredunoccluded, vec4(0.25));
-			unoccluded = 1.0 - smoothstep(0.0, 1.0, dotproduct);
+			float dotproduct = dot(gatheredunoccluded, vec4(1.0));
+			//dotproduct = occludedness;
+			unoccluded = 1.0 - smoothstep(0.0, 0.25 * v_otherparams.w * float(screenSpaceShadows) , dotproduct);
+			
+			//printf(unoccluded);
 		}	
 
 		
