@@ -68,6 +68,9 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumeoffsets = "0 5 0",
+				collisionvolumescales = "96 12 96",
+				collisionvolumetype = "Box",
 				damage = 1007,
 				footprintx = 8,
 				footprintz = 7,
