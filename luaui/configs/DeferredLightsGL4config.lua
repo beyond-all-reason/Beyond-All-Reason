@@ -19722,7 +19722,7 @@ local unitLights = {
 							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
 							r = -1, g = 1, b = 1, a = 0.8,
 							modelfactor = 0.1, specular = 0.66, scattering = 1, lensflare = 5,
-							lifetime = 0, sustain = 0, animtype = 0},
+							lifetime = 0, sustain = 0, animtype = 1},
 		},
 		fusionorb = {
 			lightType = 'point',
@@ -19731,7 +19731,7 @@ local unitLights = {
 							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
 							r = 1, g = 1, b = 1, a = 0.2,
 							modelfactor = 0.1, specular = 1, scattering = 9, lensflare = 10,
-							lifetime = 0, sustain = 0, animtype = 0},
+							lifetime = 0, sustain = 0, animtype = 1},
 		},
 	},
 	['armzeus'] = {
