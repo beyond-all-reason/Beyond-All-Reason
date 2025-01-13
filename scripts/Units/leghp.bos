@@ -3,7 +3,8 @@
 #include "../factories_common.h"
 
 piece  base, pad, nano1, nano2, nano3, nano4, cyl1, cyl2, cyl3, cyl4, cov1_big, cov2_big, cov3_big, cov4_big, 
-cov1_small, cov2_small, cov3_small, cov4_small, cover_big1, cover_big2, cover_small1, cover_small2, flare1, flare2, flare3, flare4, fan1, fan2;
+cov1_small, cov2_small, cov3_small, cov4_small, cover_big1, cover_big2, cover_small1, cover_small2, flare1, flare2, flare3, flare4, 
+fan1, fan2, buildlight1, buildlight3, buildlight2, buildlight4, buildlight1Point, buildlight2Point, buildlight3Point, buildlight4Point;
 
 static-var  buildAnimPiece;
 
@@ -18,6 +19,10 @@ Create()
 	hide flare2;
 	hide flare3;
 	hide flare4;
+	hide buildlight1Point;
+	hide buildlight2Point;
+	hide buildlight3Point;
+	hide buildlight4Point;
 	hide pad;
 	buildAnimPiece = 0;
 }
@@ -146,15 +151,25 @@ StartBuilding()
 	show flare2;
 	show flare3;
 	show flare4;
+	show buildlight1Point;
+	show buildlight2Point;
+	show buildlight3Point;
+	show buildlight4Point;
 	signal SIGNAL_BUILD;
 	set-signal-mask SIGNAL_BUILD;
 	spin fan1 around y-axis speed <500> accelerate <1>;
 	spin fan2 around y-axis speed <500> accelerate <1>;
 	start-script MoveCranes();
-//	show cagelight_emit1;
-//	show cagelight_emit2;
-//	spin cagelight1 around y-axis speed <200> accelerate <1>;
-//	spin cagelight2 around y-axis speed <-200> accelerate <1>;
+	move buildlight1 to x-axis [1] speed [0.5];
+	move buildlight3 to x-axis [1] speed [0.5];
+	move buildlight2 to x-axis [-1] speed [0.5];
+	move buildlight4 to x-axis [-1] speed [0.5];
+	wait-for-move buildlight4 along x-axis;
+	spin buildlight1 around x-axis speed <-200> accelerate <1>;
+	spin buildlight3 around x-axis speed <-200> accelerate <1>;
+	spin buildlight2 around x-axis speed <200> accelerate <1>;
+	spin buildlight4 around x-axis speed <200> accelerate <1>;
+
 }
 
 StopBuilding()
@@ -163,9 +178,22 @@ StopBuilding()
 	hide flare2;
 	hide flare3;
 	hide flare4;
+	hide buildlight1Point;
+	hide buildlight2Point;
+	hide buildlight3Point;
+	hide buildlight4Point;
 	stop-spin fan1 around y-axis decelerate <2>;
 	stop-spin fan2 around y-axis decelerate <2>;
+	stop-spin buildlight1 around x-axis decelerate <1>;
+	stop-spin buildlight3 around x-axis decelerate <1>;
+	stop-spin buildlight2 around x-axis decelerate <1>;
+	stop-spin buildlight4 around x-axis decelerate <1>;
 	signal SIGNAL_BUILD;
+	wait-for-turn buildlight4 around x-axis;
+	move buildlight1 to x-axis [0] speed [0.5];
+	move buildlight3 to x-axis [0] speed [0.5];
+	move buildlight2 to x-axis [0] speed [0.5];
+	move buildlight4 to x-axis [0] speed [0.5]; 
 	
 	
 //	hide cagelight_emit1;
