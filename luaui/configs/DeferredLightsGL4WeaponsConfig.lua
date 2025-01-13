@@ -124,7 +124,7 @@ local BaseClasses = {
 			r = 2, g = 2, b = 2, a = 0.6,
 			color2r = 0.7, color2g = 0.55, color2b = 0.28, colortime = 0.1, -- point lights only, colortime in seconds for unit-attached
 			modelfactor = 0.15, specular = 0.15, scattering = 0.4, lensflare = 1,
-			lifetime = 12, sustain = 3, animtype = 1, -- unused
+			lifetime = 12, sustain = 3, animtype = 4, -- unused
 		},
 	},
 
