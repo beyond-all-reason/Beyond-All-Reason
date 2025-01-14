@@ -669,8 +669,22 @@ GetLightClass("MissileProjectile", nil, "Large", {r = 2, g = 1, b = 3, a = 0.4,
 explosionLightsNames["armsilo_nuclear_missile"] =
 GetLightClass("Explosion", nil, "Giga", {r = 3, g = 3, b = 2.8, a = 0.18,
 										 color2r = 1.0, color2g = 0.6, color2b = 0.18, colortime = 110,
-										 sustain = 25, lifetime = 180,
+										 sustain = 25, lifetime = 180, selfshadowing = 4,
 										 modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
+
+										 --armsilo
+explosionLightsNames["armguardnuke_plasma"] =
+GetLightClass("Explosion", nil, "Giga", {r = 3, g = 2.9, b = 2.8, a = 0.18,
+										 posx = 0, posy = 1, posz = 0,
+										 dirx = 0, diry = -0.12, dirz = 0,
+										 color2r = 1.0, color2g = 0.6, color2b = 0.18, colortime = 110,
+										 sustain = 25, lifetime = 155, selfshadowing = 2,
+										 modelfactor = 0.1, specular = 0.2, scattering = 0.1, lensflare = 4})
+
+projectileDefLightsNames["armguardnuke_plasma"] =
+GetLightClass("MissileProjectile", "Warm", "Medium", {a = 0.4,
+													 modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0})
+
 
 --armsilo engine
 projectileDefLightsNames["armsilo_nuclear_missile"] =

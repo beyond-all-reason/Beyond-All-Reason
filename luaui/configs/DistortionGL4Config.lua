@@ -1389,11 +1389,11 @@ local unitEventDistortionsNames = {
 				distortionType = 'point',
 				distortionName = 'bigassfootstep',
 				pieceName = 'lfootstepf',
-				distortionConfig = { posx = 0, posy = 0, posz = 8, radius = 70,
-								noiseStrength = 0.7, noiseScaleSpace = 0.2, distanceFalloff = 0.2, onlyModelMap = 1, 
-								effectStrength = 1.3, --needed for shockwave
-								lifeTime = 25, rampUp = 8, decay = 3,
-								shockWidth = 10, effectType = 'groundShockwave'},
+				distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 60,
+								noiseStrength = 1.1, noiseScaleSpace = 0.6, distanceFalloff = 0.4, onlyModelMap = 1, 
+								effectStrength = 1.2, --needed for shockwave
+								lifeTime = 18, rampUp = 10, decay = 10,
+								shockWidth = 1.5, startRadius = 0.1, effectType = 'groundShockwave'},
 	
 			},
 			[2] = {
@@ -1402,11 +1402,11 @@ local unitEventDistortionsNames = {
 				distortionType = 'point',
 				distortionName = 'bigassfootstep2',
 				pieceName = 'rfootstepf',
-				distortionConfig = { posx = 0, posy = 0, posz = 8, radius = 70,
-								noiseStrength = 0.7, noiseScaleSpace = 0.2, distanceFalloff = 0.2, onlyModelMap = 1, 
-								effectStrength = 1.3, --needed for shockwave
-								lifeTime = 25, rampUp = 8, decay = 3,
-								shockWidth = 10, effectType = 'groundShockwave'},
+				distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 60,
+								noiseStrength = 1.1, noiseScaleSpace = 0.6, distanceFalloff = 0.4, onlyModelMap = 1, 
+								effectStrength = 1.2, --needed for shockwave
+								lifeTime = 18, rampUp = 10, decay = 10,
+								shockWidth = 1.5, startRadius = 0.1, effectType = 'groundShockwave'},
 			},
 			[3] = {
 				-- Footstep shockwave
@@ -1414,11 +1414,11 @@ local unitEventDistortionsNames = {
 				distortionType = 'point',
 				distortionName = 'bigassfootstep3',
 				pieceName = 'lfootstepb',
-				distortionConfig = { posx = 0, posy = 0, posz = 8, radius = 90,
-								noiseStrength = 0.7, noiseScaleSpace = 0.2, distanceFalloff = 0.2, onlyModelMap = 1, 
-								effectStrength = 1.3, --needed for shockwave
-								lifeTime = 25, rampUp = 8, decay = 3,
-								shockWidth = 10, effectType = 'groundShockwave'},
+				distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 52,
+								noiseStrength = 1.1, noiseScaleSpace = 0.6, distanceFalloff = 0.4, onlyModelMap = 1, 
+								effectStrength = 1.2, --needed for shockwave
+								lifeTime = 18, rampUp = 10, decay = 10,
+								shockWidth = 1.5, startRadius = 0.1, effectType = 'groundShockwave'},
 	
 			},
 			[4] = {
@@ -1427,11 +1427,11 @@ local unitEventDistortionsNames = {
 				distortionType = 'point',
 				distortionName = 'bigassfootstep4',
 				pieceName = 'rfootstepb',
-				distortionConfig = { posx = 0, posy = 0, posz = 8, radius = 90,
-								noiseStrength = 0.7, noiseScaleSpace = 0.2, distanceFalloff = 0.2, onlyModelMap = 1, 
-								effectStrength = 2.0, --needed for shockwave
-								lifeTime = 25, rampUp = 0, decay = 15,
-								shockWidth = 5, effectType = 'groundShockwave'},
+				distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 52,
+								noiseStrength = 1.1, noiseScaleSpace = 0.6, distanceFalloff = 0.4, onlyModelMap = 1, 
+								effectStrength = 1.2, --needed for shockwave
+								lifeTime = 18, rampUp = 10, decay = 10,
+								shockWidth = 1.5, startRadius = 0.1, effectType = 'groundShockwave'},
 	
 			},
 		},
