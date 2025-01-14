@@ -22,4 +22,4 @@
 - Use git stash to store your unrelated or unwanted changes temporarily without committing them.
 
 ## Banned Procedures for making changes
-- You may not use Unitdef Baking to create changes in Unitdefs.
+- You may not use mass formatters to create changes in Unitdefs.
