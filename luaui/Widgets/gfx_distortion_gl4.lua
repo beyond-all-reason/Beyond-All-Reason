@@ -313,7 +313,7 @@ local function initGL4()
 				-- for spot, this is direction.xyz for unitattached, or world anim params
 				-- for cone, this is direction.xyz and angle in radians
 				-- for beam this is end.xyz and radiusright
-			{id = 5, name = 'baseparams', 		size = 4}, -- unused, effectStrength, startRadius,  unused 
+			{id = 5, name = 'baseparams', 		size = 4}, -- yoffset, effectStrength, startRadius,  unused 
 			{id = 6, name = 'universalParams', 		size = 4}, -- noiseStrength, noiseScaleSpace, distanceFalloff, onlyModelMap
 			{id = 7, name = 'lifeParams', 			size = 4},	-- spawnFrame, lifeTime, rampUp, decay
 			{id = 8, name = 'effectParams', size = 4}, -- effectParam1, effectParam2, windAffectd, effectType

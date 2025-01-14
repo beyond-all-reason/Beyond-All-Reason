@@ -22,7 +22,7 @@ local exampleDistortion = {
 			dirx = 0, diry = 0, dirz = 1, theta = 0.5,
 		-- beam distortions only, specifies the endpoint of the beam:
 			pos2x = 100, pos2y = 100, pos2z = 100,
-		lifeTime = 0, sustain = 1, 	aninmtype = 0 -- unused
+		lifeTime = 0, sustain = 1, 	selfshadowing = 0 
 	},
 }
  
@@ -1864,7 +1864,7 @@ local distortionParamKeyOrder = {	posx = 1, posy = 2, posz = 3, radius = 4,
 	dirx = 5, diry = 6, dirz = 7, theta = 8,  -- cone distortions only, specify direction and half-angle in radians
 	pos2x = 5, pos2y = 6, pos2z = 7, -- beam distortions only, specifies the endpoint of the beam
 	modelfactor = 13, specular = 14, scattering = 15, lensflare = 16,
-	lifeTime = 18, sustain = 19, effectType = 20 -- unused
+	lifeTime = 18, sustain = 19, effectType = 20 
 }
 
 for typename, typetable in pairs(allDistortions) do

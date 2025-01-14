@@ -16,7 +16,7 @@ layout (location = 3) in vec4 worldposrad;  // Centerpos
 layout (location = 4) in vec4 worldposrad2; // velocity for points, beam end for beams, dir and theta for cones
 layout (location = 5) in vec4 lightcolor;
 layout (location = 6) in vec4 modelfactor_specular_scattering_lensflare; //
-layout (location = 7) in vec4 otherparams; // spawnframe, lifetime, sustain, animtype
+layout (location = 7) in vec4 otherparams; // spawnframe, lifetime, sustain, selfshadowing
 layout (location = 8) in vec4 color2; //
 layout (location = 9) in uint pieceIndex; // for piece type lights
 layout (location = 10) in uvec4 instData; // matoffset, uniformoffset, teamIndex, drawFlags {id = 5, name = 'instData', size = 4, type = GL.UNSIGNED_INT},

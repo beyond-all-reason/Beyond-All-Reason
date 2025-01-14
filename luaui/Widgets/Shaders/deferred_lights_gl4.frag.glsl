@@ -880,7 +880,7 @@ void main(void)
 	#ifdef SCREENSPACESHADOWS
 		// But only for point and cone lights:
 		// also assume that only models will shadow
-		if (v_otherparams.w > 0.01) {
+		if ((v_otherparams.w) > 0.01 && (screenSpaceShadows > 0)) {
 			const int sampleCount = screenSpaceShadows;
 			// Initialize the quad vectors, so we can do Pixel Quad Message Passing
 			quadVector = get_quad_vector(vec4(v_screenUV.xy, floor(gl_FragCoord.xy))).zw;

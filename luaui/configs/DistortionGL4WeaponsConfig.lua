@@ -31,7 +31,7 @@ local exampleDistortion = {
 		dirx = 0, diry = 0, dirz = 1, theta = 0.5,  -- cone distortions only, specify direction and half-angle in radians
 		pos2x = 100, pos2y = 100, pos2z = 100, -- beam distortions only, specifies the endpoint of the beam
 		modelfactor = 1, specular = 1, scattering = 1, lensflare = 1,
-		lifeTime = 0, sustain = 1, 	effectType = 0, -- unused
+		lifeTime = 0, sustain = 1, 	effectType = 0, 
 	},
 }
 
@@ -44,7 +44,7 @@ local exampleDistortionBeamShockwave = {
 			r = 1, g = 1, b = 1, a = 0.075,
 			pos2x = 100, pos2y = 1000, pos2z = 100, -- beam distortions only, specifies the endpoint of the beam
 			modelfactor = 1, specular = 0.5, scattering = 0.1, lensflare = 1,
-			lifeTime = 10, sustain = 1, 	effectType = 'groundShockwave', -- unused
+			lifeTime = 10, sustain = 1, 	effectType = 'groundShockwave', 
 	},
 }
 
@@ -65,7 +65,7 @@ local BaseClasses = {
 		distortionConfig = {
 			posx = 0, posy = 10, posz = 0, radius = 100,
 			pos2x = 100, pos2y = 1000, pos2z = 100, -- beam distortions only, specifies the endpoint of the beam
-			lifeTime = 0, sustain = 1, 	effectType = 0, -- unused
+			lifeTime = 0, sustain = 1, 	effectType = 0, 
 		},
 	},
 
@@ -73,7 +73,7 @@ local BaseClasses = {
 		distortionType = 'point', -- or cone or beam
 		distortionConfig = {
 			posx = 0, posy = 10, posz = 0, radius = 125,
-			lifeTime = 0, sustain = 0, 	effectType = 0, -- unused
+			lifeTime = 0, sustain = 0, 	effectType = 0, 
 		},
 	},
 	
@@ -91,7 +91,7 @@ local BaseClasses = {
 		distortionConfig = {
 				posx = 0, posy = 10, posz = 0, radius = 150,
 				pos2x = 100, pos2y = 1000, pos2z = 100, -- beam distortions only, specifies the endpoint of the beam
-				lifeTime = 10, sustain = 1, effectType = 'groundShockwave', -- unused
+				lifeTime = 10, sustain = 1, effectType = 'groundShockwave', 
 		},
 	},
 
@@ -101,7 +101,7 @@ local BaseClasses = {
 				posx = 0, posy = 10, posz = 0, radius = 10,
 				noiseStrength = 0.5, noiseScaleSpace = 1.5,
 				pos2x = 100, pos2y = 1000, pos2z = 100, -- beam distortions only, specifies the endpoint of the beam
-				lifeTime = 3, rampUp = 2, decay = 3, effectType = 0, -- unused
+				lifeTime = 3, rampUp = 2, decay = 3, effectType = 0, 
 		},
 	},
 
@@ -112,7 +112,7 @@ local BaseClasses = {
 				noiseStrength = 2.2, noiseScaleSpace = 0.12,
 				windAffected = -1, riseRate = 2.6, onlyModelMap = 1, 
 				pos2x = 100, pos2y = 500, pos2z = 100, -- beam distortions only, specifies the endpoint of the beam
-				lifeTime = 10, sustain = 1, rampUp = 0, decay = 3, effectType = 7, -- unused
+				lifeTime = 10, sustain = 1, rampUp = 0, decay = 3, effectType = 7, 
 		},
 	},
 
@@ -124,7 +124,7 @@ local BaseClasses = {
 				--windAffected = 2, riseRate = 2,
 				windAffected = -1, riseRate = -0.6,
 				pos2x = 100, pos2y = 1000, pos2z = 100, -- beam distortions only, specifies the endpoint of the beam
-				lifeTime = 10, rampUp = 2.5, decay = 2, effectType = 0, -- unused
+				lifeTime = 10, rampUp = 2.5, decay = 2, effectType = 0, 
 		},
 	},
 
@@ -135,7 +135,7 @@ local BaseClasses = {
 				noiseStrength = 0.75, noiseScaleSpace = 0.15, distanceFalloff = 1.5,
 				windAffected = -1, riseRate = 0.2,
 				pos2x = 100, pos2y = 1000, pos2z = 100, -- beam distortions only, specifies the endpoint of the beam
-				lifeTime = 3, rampUp = 3, decay = 0, effectType = 0, -- unused
+				lifeTime = 3, rampUp = 3, decay = 0, effectType = 0, 
 		},
 	},
 	HeatRayHeatXL = { --heaviest laserbeam (corkorg)
@@ -146,7 +146,7 @@ local BaseClasses = {
 				noiseStrength = 6, noiseScaleSpace = 0.05, distanceFalloff = 1.9, 
 				windAffected = 0.1, riseRate = 0.2, onlyModelMap = 1, 
 				--refractiveIndex = 1.15,
-				lifeTime = 3, rampUp = 3, decay = 3, effectType = 7, -- unused
+				lifeTime = 3, rampUp = 3, decay = 3, effectType = 7, 
 		},
 	},
 
@@ -172,7 +172,7 @@ local BaseClasses = {
 		distortionConfig = {
 			posx = 0, posy = 0, posz = 0, radius = 500,
 			dirx = 1, diry = 0, dirz = 1, theta = 0.02,  -- cone distortions only, specify direction and half-angle in radians
-			lifeTime = 0, sustain = 1, 	effectType = 0, -- unused
+			lifeTime = 0, sustain = 1, 	effectType = 0, 
 		},
 	},
 
@@ -301,7 +301,7 @@ local BaseClasses = {
 			posx = 0, posy = 0, posz = 0, radius = 300,
 			dirx = 1, diry = 0, dirz = 1, theta = 0.10,  -- cone distortions only, specify direction and half-angle in radians
 			noiseStrength = 2, noiseScaleSpace = 0.90, distanceFalloff = 0.9, onlyModelMap = 0,
-			lifeTime = 0, sustain = 1, 	effectType = 0, -- unused
+			lifeTime = 0, sustain = 1, 	effectType = 0, 
 		},
 	},
 
@@ -312,7 +312,7 @@ local BaseClasses = {
 			posx = 0, posy = 15, posz = 0, radius = 25,
 			noiseStrength = 8, noiseScaleSpace = -0.30, distanceFalloff = 0.9, onlyModelMap = 0,
 			windAffected = 0.2, riseRate = -0.5,
-			lifeTime = 29, rampUp = 15, decay = 10, effectType = 0, -- unused
+			lifeTime = 29, rampUp = 15, decay = 10, effectType = 0, 
 		},
 	},
 	FlameProjectileXL = {
@@ -322,7 +322,7 @@ local BaseClasses = {
 			posx = 0, posy = 45, posz = 0, radius = 25,
 			noiseStrength = 4, noiseScaleSpace = -0.45, distanceFalloff = 1.8, onlyModelMap = 0,
 			windAffected = 0.1, riseRate = -0.5,
-			lifeTime = 40, rampUp = 30, decay = 30, effectType = 0, -- unused
+			lifeTime = 40, rampUp = 30, decay = 30, effectType = 0, 
 		},
 	},
 
@@ -332,7 +332,7 @@ local BaseClasses = {
 		distortionConfig = {
 			posx = 0, posy = 0, posz = 0, radius = 10, 
 			noiseStrength = 1, noiseScaleSpace = 0.75, distanceFalloff = 0.5, onlyModelMap = 0,
-			lifeTime = 30, rampUp = 15, decay = 20, effectType = 0, -- unused
+			lifeTime = 30, rampUp = 15, decay = 20, effectType = 0, 
 		},
 	},
 	ExplosionHeat = { -- spawned on explosions
@@ -342,7 +342,7 @@ local BaseClasses = {
 			posx = 0, posy = 0, posz = 0, radius = 10, 
 			noiseStrength = 1, noiseScaleSpace = 0.75, distanceFalloff = 0.5,
 			startRadius = 0.3, onlyModelMap = 0,
-			lifeTime = 60, rampUp = 30, decay = 30, effectType = 0, -- unused
+			lifeTime = 60, rampUp = 30, decay = 30, effectType = 0, 
 		},
 	},
 	ExplosionHeatNuke = { -- spawned on explosions
@@ -352,7 +352,7 @@ local BaseClasses = {
 			posx = 0, posy = 0, posz = 0, radius = 10, 
 			noiseStrength = 50, noiseScaleSpace = 0.04, distanceFalloff = 0.5, onlyModelMap = 0,
 			windAffected = -1,  riseRate = -0.5,
-			lifeTime = 80, rampUp = 10, decay = 70, effectType = 0, -- unused
+			lifeTime = 80, rampUp = 10, decay = 70, effectType = 0, 
 		},
 	},
 	ExplosionRadiationNuke = { -- spawned on explosions
@@ -362,7 +362,7 @@ local BaseClasses = {
 			posx = 0, posy = 0, posz = 0, radius = 10, 
 			noiseStrength = 20, noiseScaleSpace = 0.1, distanceFalloff = 0.5, onlyModelMap = 0,
 			windAffected = -1,  riseRate = -0.5,
-			lifeTime = 200, rampUp = 100, decay = 100, effectType = 0, -- unused
+			lifeTime = 200, rampUp = 100, decay = 100, effectType = 0, 
 		},
 	},
 	ExplosionRadiationDgun = { -- spawned on explosions
@@ -373,7 +373,7 @@ local BaseClasses = {
 			posx = 0, posy = 0, posz = 0, radius = 10, 
 			noiseStrength = 6, noiseScaleSpace = 0.55, distanceFalloff = 1.2, onlyModelMap = 1,
 			windAffected = -1,  riseRate = -0.5,
-			lifeTime = 50, rampUp = 20, decay = 25, effectType = 0, -- unused
+			lifeTime = 50, rampUp = 20, decay = 25, effectType = 0, 
 		},
 	},
 
@@ -383,7 +383,7 @@ local BaseClasses = {
 		distortionConfig = {
 			posx = 0, posy = 0, posz = 0, radius = 10, 
 			noiseStrength = 1, noiseScaleSpace = 0.75, distanceFalloff = 0.5, onlyModelMap = 0,
-			lifeTime = 60, rampUp = 30, decay = 30, effectType = 7, -- unused
+			lifeTime = 60, rampUp = 30, decay = 30, effectType = 7, 
 		},
 	},
 
@@ -395,7 +395,7 @@ local BaseClasses = {
 			noiseStrength = 20, noiseScaleSpace = -0.1, distanceFalloff = 0.5, onlyModelMap = 0,
 			windAffected = -1,  riseRate = 0,
 			--magnificationRate = 8.0,
-			lifeTime = 75, rampUp = 50, decay = 25, effectType = 0, -- unused
+			lifeTime = 75, rampUp = 50, decay = 25, effectType = 0, 
 		},
 	},
 
@@ -403,7 +403,7 @@ local BaseClasses = {
 		distortionType = 'point', -- or cone or beam
 		distortionConfig = {
 			posx = 0, posy = 0, posz = 0, radius = 150,
-			lifeTime = 6, sustain = 0.0035, effectType = 0, -- unused
+			lifeTime = 6, sustain = 0.0035, effectType = 0, 
 		},
 	},
 }
@@ -511,7 +511,7 @@ local gibDistortion = {
 	pieceName = nil, -- optional
 	distortionConfig = {
 		posx = 0, posy = 0, posz = 0, radius = 16,
-		lifeTime = 100, decay = 100, effectType = 0 -- unused
+		lifeTime = 100, decay = 100, effectType = 0 
 	},
 }
 
