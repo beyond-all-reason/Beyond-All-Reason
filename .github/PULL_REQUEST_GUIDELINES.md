@@ -20,3 +20,6 @@
 - The default merge message is all the individual commit names, delete these and provide a proper summary.
 - Only push code you want to merge.
 - Use git stash to store your unrelated or unwanted changes temporarily without committing them.
+
+## Banned Procedures for making changes
+- You may not use Unitdef Baking to create changes in Unitdefs.
