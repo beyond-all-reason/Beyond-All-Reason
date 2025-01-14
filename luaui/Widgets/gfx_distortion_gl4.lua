@@ -146,7 +146,7 @@ local distortionParamKeyOrder = { -- This table is a 'quick-ish' way of building
 
 
 	-- baseparams
-	RESERVED = 9,
+	yoffset = 9, -- the offset along the y axis for this effect
 	effectStrength = 10, -- Default 1, multiply with any effect's final strength
 	startRadius = 11, -- Defaults to match radius, multiply with any effect's final radius
 	unused = 12,

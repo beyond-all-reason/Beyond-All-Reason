@@ -11,14 +11,14 @@ layout (location = 0) in vec4 position; // xyz and etc garbage
 
 layout (location = 3) in vec4 worldposrad;  // Centerpos
 layout (location = 4) in vec4 worldposrad2; // velocity for points, beam end for beams, dir and theta for cones
-layout (location = 5) in vec4 baseparams;  // lifeStrength, effectStrength, startRadius, unused
+layout (location = 5) in vec4 baseparams;  // yoffset, effectStrength, startRadius, unused
 layout (location = 6) in vec4 universalParams; // noiseStrength, noiseScaleSpace, distanceFalloff, onlyModelMap
 layout (location = 7) in vec4 lifeParams; // spawnFrame, lifeTime, rampUp, decay
 layout (location = 8) in vec4 effectParams; // effectparam1, effectparam2, windAffected, effectType
 layout (location = 9) in uint pieceIndex; // for piece type distortions
 layout (location = 10) in uvec4 instData; // matoffset, uniformoffset, teamIndex, drawFlags {id = 5, name = 'instData', size = 4, type = GL.UNSIGNED_INT},
 
-#define LIFESTRENGTH baseparams.x
+#define YOFFSET baseparams.x
 #define EFFECTSTRENGTH baseparams.y
 #define STARTRADIUS baseparams.z
 
@@ -80,7 +80,7 @@ uniform float intensityMultiplier = 1.0;
 out DataVS {
 	flat vec4 v_worldPosRad;
 	flat vec4 v_worldPosRad2;
-	flat vec4 v_baseparams;   // lifeStrength, effectStrength, unused, unused
+	flat vec4 v_baseparams;   // lifeStrength, effectStrength, startRadius, unused
 	flat vec4 v_universalParams; // noiseStrength, noiseScaleSpace, distanceFalloff, onlyModelMap
 	flat vec4 v_lifeParams; // spawnFrame, lifeTime, rampUp, decay
 	flat vec4 v_effectParams; // effectparam1, effectparam2, windAffected, effectType
@@ -233,13 +233,17 @@ void main()
 		}
 		
 		worldPos.xyz *= distortionRadius * 1.05; // scale it all by the height of the cone, and a bit of extra 
+
+		// move the cone and its virtual center up along y-offset
+		worldPos.y += YOFFSET;
+		distortionCenterPosition.y += YOFFSET;
 		
 		// Now our cone is opening forward towards  -y, but we want it to point into the worldposrad2.xyz
-		vec3 oldfw = vec3(0, -1,0); // The old forward direction is -y
+		vec3 oldfw = vec3(0.001, -1, 0.001); // The old forward direction is -y, plus a tiny bit to avoid singularity in vector cross products
 		vec3 newfw = normalize(v_worldPosRad2.xyz); // the new forward direction shall be the normal that we want
 		vec3 newright = normalize(cross(newfw, oldfw)); // the new right direction shall be the vector perpendicular to old and new forward
 		vec3 newup = normalize(cross(newright, newfw)); // the new up direction shall be the vector perpendicular to new right and new forward
-		// TODO: handle the two edge cases where newfw == (oldfw or -1*oldfw)
+
 		mat3 rotmat = mat3( // assemble the rotation matrix
 				newup,
 				newfw, 
