@@ -99,9 +99,9 @@ local BaseClasses = {
 		distortionType = 'beam', -- or cone or beam
 		distortionConfig = {
 				posx = 0, posy = 10, posz = 0, radius = 10,
-				noiseStrength = 0.5, noiseScaleSpace = 1.5,
+				noiseStrength = 0.5, noiseScaleSpace = 1.3, effectStrength = 1.0,
 				pos2x = 100, pos2y = 1000, pos2z = 100, -- beam distortions only, specifies the endpoint of the beam
-				lifeTime = 3, rampUp = 2, decay = 3, effectType = 0, 
+				lifeTime = 3, rampUp = 3, decay = 0, effectType = 0, 
 		},
 	},
 
@@ -300,6 +300,15 @@ local BaseClasses = {
 			effectStrength = 3.0, startRadius = 0.25, shockWidth = -0.50,
 			effectType = "airShockwave", },
 	},
+	BuildingExploShockWaveXL = {
+		distortionType = 'point', -- or cone or beam
+		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
+			noiseScaleSpace = 0.1, noiseStrength = 0.2, onlyModelMap = 0,  
+			lifeTime = 13, refractiveIndex = 1.04, decay = 4, rampUp = 2,
+			effectStrength = 3.0, startRadius = 0.25, shockWidth = -0.50,
+			effectType = "airShockwave", },
+	},
+
 	BuildingGroundShockWave = {
 		distortionType = 'point', -- or cone or beam
 		alwaysVisible = false,
@@ -309,6 +318,27 @@ local BaseClasses = {
 						effectStrength = 1.5, --needed for shockwaves
 						shockWidth = 3, refractiveIndex = -1.2, startRadius = 0.24,
 						effectType = 'groundShockwave'},
+	},
+	BuildingGroundShockWaveXL = {
+		distortionType = 'point', -- or cone or beam
+		alwaysVisible = false,
+		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 200,
+						distanceFalloff = 0.5, noiseStrength = 0.5, noiseScaleSpace = 0.8,
+						lifeTime = 25, decay = 25, rampUp = 15,
+						effectStrength = 1.5, --needed for shockwaves
+						shockWidth = 3, refractiveIndex = -1.2, startRadius = 0.24,
+						effectType = 'groundShockwave'},
+	},
+
+	BuildingExploEnergy = {
+		distortionType = 'point', -- or cone or beam
+		yOffset = 0, -- Y offsets are only ever used for explosions!
+		distortionConfig = {
+			posx = 0, posy = 0, posz = 0, radius = 10, 
+			noiseStrength = 2, noiseScaleSpace = 0.95, distanceFalloff = 1.5,
+			onlyModelMap = 0, startRadius = 0.3,
+			lifeTime = 20, rampUp = 7, decay = 13, effectType = 0, 
+		},
 	},
 
 	MuzzleShockWaveXS = {
