@@ -1143,6 +1143,10 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 
 			if alt then
 				table.insert(opts, "alt")
+				if not ctrl then
+					Spring.SetActiveCommand(spGetCmdDescIndex(-uDefID), 1, true, false, alt, false, meta, shift)
+					return true
+				end
 			end
 			if shift then
 				table.insert(opts, "shift")
@@ -2601,7 +2605,7 @@ function widget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, optio
 	-- If factory is in repeat, queue does not change, except if it is alt-queued
 	local factoryRepeat = select(4, Spring.GetUnitStates(unitID, false, true))
 
-	if factoryRepeat and not options.alt then
+	if factoryRepeat and not options.internal then
 		return
 	end
 
