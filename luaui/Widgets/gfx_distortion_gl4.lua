@@ -74,7 +74,7 @@ local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 
 local shaderConfig = {
 	VOIDWATER = gl.GetMapRendering("voidWater") and 1 or 0,
-	CHROMATIC_ABERRATION = 1.05, -- How much chromatic aberration to apply to the distortion, set to nil to disable
+	CHROMATIC_ABERRATION = 1.02, -- How much chromatic aberration to apply to the distortion, set to nil to disable
 	DEBUGCOMBINER = autoupdate and 1 or 0, -- 1 is debug mode, 0 is normal mode
 	UNIFORMSBUFFERCOPY = nil, -- enable this for experimental unit uniforms buffer copy
 }
