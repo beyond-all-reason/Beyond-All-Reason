@@ -64,7 +64,7 @@ local labGrids = {
 	},
 	legavp = {
 		"legacv", "legmrv", "legaskirmtank", "legamcluster",   -- T2 con, Quickshot, scorpion, cleaver
-		"corvrad", "coreter", "legaheattank", "leginf",        -- radar, jammer, goli, inferno
+		"legavrad", "legavjam", "legaheattank", "leginf",        -- radar, jammer, goli, inferno
 		"legfloat", "legmed", "corsent", "legavroc",            -- the new and improved triton, medusa, AA, boreas
 	},
 	-- T1 air
@@ -1489,7 +1489,7 @@ local unitGrids = {
 
 	legack = {
 		{
-			{ "legmoho", "corfus", "corafus", },                -- moho, fusion, afus
+			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
 			{ "cormmkr", "legageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
 			{ "coruwadves", "legamstor", },                    -- hardened energy storage, hardened metal storage,
 		},
@@ -1559,7 +1559,7 @@ local unitGrids = {
 
 	legacv = {
 		{
-			{ "legmoho", "corfus", "corafus", },                -- moho, fusion, afus
+			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
 			{ "cormmkr", "legageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
 			{ "coruwadves", "legamstor", },                    -- hardened energy storage, hardened metal storage,
 		},
@@ -1628,7 +1628,7 @@ local unitGrids = {
 	},
 	legaca = {
 		{
-			{ "legmoho", "corfus", "corafus", },                -- moho, fusion, afus
+			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
 			{ "cormmkr", "legageo", "cormexp","coruwageo", },               -- T2 converter, T2 geo, armed moho
 			{ "coruwadves", "legamstor", },                    -- hardened energy storage, hardened metal storage,
 		},

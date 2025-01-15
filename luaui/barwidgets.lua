@@ -170,6 +170,7 @@ for _, ci in ipairs(flexCallIns) do
 end
 
 local callInLists = {
+	'FontsChanged',
 	'GamePreload',
 	'GameStart',
 	'Shutdown',
@@ -1667,6 +1668,14 @@ function widgetHandler:SunChanged()
 	return
 end
 
+function widgetHandler:FontsChanged()
+	tracy.ZoneBeginN("FontsChanged")
+	for _, w in r_ipairs(self.FontsChangedList) do
+		w:FontsChanged()
+	end
+	tracy.ZoneEnd()
+	return
+end
 
 --------------------------------------------------------------------------------
 --

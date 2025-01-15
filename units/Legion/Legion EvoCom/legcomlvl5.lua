@@ -67,7 +67,7 @@ return {
 			[1] = "legmoho",
 			[2] = "legadvsol",
 			[3] = "legwin",
-			[4] = "corfus",
+			[4] = "legfus",
 			[5] = "cormmkr",
 			[6] = "legsolar",
 			[7] = "leggeo",

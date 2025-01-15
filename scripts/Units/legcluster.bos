@@ -5,7 +5,7 @@
 #include "smart_weapon_select.h"
 
 
-piece base, turret, sleeve, barrel, flare;
+piece base, turret, sleeve, barrel, flare, turretmidpoint;
 //piece  flare1, flare2, base, turret, barrel1, barrel2, sleeves;
 
 static-var lastHeading;
@@ -148,7 +148,7 @@ QuerySecondary(piecenum)
 
 QueryTertiary(piecenum)
 {
-	piecenum = base;
+	piecenum = turretmidpoint;
 }
 
 SweetSpot(piecenum)

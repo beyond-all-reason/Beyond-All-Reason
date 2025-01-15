@@ -1,6 +1,5 @@
 # January 2025
-• [Artillery] The High/Low Trajectory toggle has been removed and been automated. Both modes now share the same damage and AOE. Aiming low is preferred, but if there's
-	no low trajectory targets in range  or the manually selected target cannot be shot with low trajectory, high trajectory will be used instead for a short time.
+• [Artillery] The High/Low Trajectory toggle has been removed and been automated. Both modes now share the same damage and AOE. Aiming low is preferred, but if there's no low trajectory targets in range  or the manually selected target cannot be shot with low trajectory, high trajectory will be used instead for a short time.
 	The following units are affected:
 	- [Guardian] (T1 Plasma Artillery Turret)
 	- [Agitator] (T1 Plasma Artillery Turret)

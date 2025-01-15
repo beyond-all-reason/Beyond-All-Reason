@@ -98,6 +98,8 @@ local unitOrderTable = {
 	['corvrad']        = 004210,
 	['armjam']         = 004220,
 	['coreter']        = 004230,
+	['legavrad']       = 004221,
+	['legavjam']       = 004222,
 
 	['armsjam']        = 004250,
 	['corsjam']        = 004260,
@@ -499,8 +501,10 @@ local unitOrderTable = {
    ['armfus']         = 101525,
    ['armckfus']       = 101550,
    ['corfus']         = 101600,
+   ['legfus']         = 101650,
    ['armafus']        = 101700,
    ['corafus']        = 101750,
+   ['legafus'] 		  = 101780,
 
    --ECO NRG STORAGE
    ['armestor']       = 101800,

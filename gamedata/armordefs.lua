@@ -428,6 +428,7 @@ local armorDefs = {
 		"legrl",
 		"legrhapsis",
 		"legsilo",
+		"legfus",
 
 		"coruwgeo",
 		"coruwageo",
@@ -440,6 +441,8 @@ local armorDefs = {
 		"legotter",
 		"legacv",
 		"legack",
+		"legavrad",
+		"legavjam",
 
 		"legah",
 		"legmh",
