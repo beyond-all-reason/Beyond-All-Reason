@@ -238,10 +238,6 @@ void main()
 		}
 		
 		worldPos.xyz *= distortionRadius * 1.05; // scale it all by the height of the cone, and a bit of extra 
-
-		// move the cone and its virtual center up along y-offset
-		worldPos.y += YOFFSET;
-		distortionCenterPosition.y += YOFFSET;
 		
 		// Now our cone is opening forward towards  -y, but we want it to point into the worldposrad2.xyz
 		vec3 oldfw = vec3(0.001, -1, 0.001); // The old forward direction is -y, plus a tiny bit to avoid singularity in vector cross products
@@ -255,6 +251,8 @@ void main()
 				newright 
 			);
 			
+		vec3 rotOffset = rotmat * vec3(0,YOFFSET,0);
+		distortionCenterPosition += rotOffset;
 		// rotate the cone, and place it into local space
 		worldPos.xyz = rotmat * worldPos.xyz + distortionCenterPosition;
 

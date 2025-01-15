@@ -965,13 +965,13 @@ projectileDefDistortionsNames["armmship_rocket"] =
 	GetDistortionClass("MissileProjectile", "Medium", {
 		theta = 0.16, noiseStrength = 5, noiseScaleSpace = 0.35,
 		windAffected = -1, riseRate = -0.5,
-		lifeTime = 110, rampUp = 20, decay = 40, radius = 200,
+		lifeTime = 110, rampUp = 20, decay = 40, radius = 200, yoffset = 4,
 	})
 
 projectileDefDistortionsNames["corvipe_vipersabot"] =
 	GetDistortionClass("MissileProjectile", "Smaller", {
-	theta = 0.09, noiseStrength = 7, noiseScaleSpace = 0.35,
-	lifeTime = 27, rampUp = 15, decay = 10, radius = 150,
+	theta = 0.39, noiseStrength = 7, noiseScaleSpace = 0.35,
+	lifeTime = 27, rampUp = 15, decay = 10, radius = 150, yoffset = 28,
 })
 
 -- projectileDefDistortionsNames["armblade_vtol_sabot"] =
