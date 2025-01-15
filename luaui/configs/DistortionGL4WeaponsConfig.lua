@@ -169,11 +169,24 @@ local BaseClasses = {
 		distortionType = 'cone',
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 100,
 						dirx =  0, diry = 1, dirz = 1.0, theta = 0.1,
+						startRadius = 0.5, onlyModelMap = 1,
 						noiseStrength = 1.45, noiseScaleSpace = 0.75, distanceFalloff = 1.8,
 						onlyModelMap = 0, yoffset = 8,
 						effectStrength = 1.0, windAffected = -1, riseRate = -0.3,
-						rampUp = 30, lifeTime = 0, sustain = 0, effectType = 0},
+						rampUp = 15, lifeTime = 0, sustain = 0, effectType = 0},
 	},
+
+	MissileProjectileXL = { 
+		distortionType = 'cone',
+		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 130,
+						startRadius = 0.5, onlyModelMap = 1,
+						dirx =  0, diry = 1, dirz = 1.0, theta = 0.08,
+						noiseStrength = 4, noiseScaleSpace = 0.37, distanceFalloff = 1.8,
+						onlyModelMap = 0, yoffset = 10, 
+						effectStrength = 1.2, windAffected = -1, riseRate = -0.3,
+						rampUp = 4, lifeTime = 0, sustain = 0, effectType = 0},
+	},
+
 	MissileNukeProjectile = { 
 		distortionType = 'cone',
 		distortionConfig = { posx = 0, posy = 0, posz = 00, radius = 200,
@@ -182,6 +195,7 @@ local BaseClasses = {
 						rampUp = 30, yoffset = 8,
 						lifeTime = 0, sustain = 0, effectType = 0},
 	},
+	
 
 	LaserAimProjectile = {
 		distortionType = 'cone', -- or cone or beam
@@ -292,6 +306,43 @@ local BaseClasses = {
 
 	},
 
+	UnitExploShockWave = {
+		distortionType = 'point', -- or cone or beam
+		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
+			noiseScaleSpace = 0.1, noiseStrength = 0.2, onlyModelMap = 0,  
+			lifeTime = 13, refractiveIndex = 1.04, decay = 4, rampUp = 2,
+			effectStrength = 3.0, startRadius = 0.25, shockWidth = -0.50,
+			effectType = "airShockwave", },
+	},
+	UnitExploShockWaveXL = {
+		distortionType = 'point', -- or cone or beam
+		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
+			noiseScaleSpace = 0.1, noiseStrength = 0.2, onlyModelMap = 0,  
+			lifeTime = 13, refractiveIndex = 1.04, decay = 4, rampUp = 2,
+			effectStrength = 3.0, startRadius = 0.25, shockWidth = -0.50,
+			effectType = "airShockwave", },
+	},
+	UnitGroundShockWave = {
+		distortionType = 'point', -- or cone or beam
+		alwaysVisible = false,
+		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 200,
+						distanceFalloff = 0.5, noiseStrength = 0.5, noiseScaleSpace = 0.8,
+						lifeTime = 25, decay = 25, rampUp = 15,
+						effectStrength = 1.5, --needed for shockwaves
+						shockWidth = 3, refractiveIndex = -1.2, startRadius = 0.24,
+						effectType = 'groundShockwave'},
+	},
+	UnitGroundShockWaveXL = {
+		distortionType = 'point', -- or cone or beam
+		alwaysVisible = false,
+		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 200,
+						distanceFalloff = 0.5, noiseStrength = 0.5, noiseScaleSpace = 0.8,
+						lifeTime = 25, decay = 25, rampUp = 15,
+						effectStrength = 1.5, --needed for shockwaves
+						shockWidth = 3, refractiveIndex = -1.2, startRadius = 0.24,
+						effectType = 'groundShockwave'},
+	},
+
 	BuildingExploShockWave = {
 		distortionType = 'point', -- or cone or beam
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
@@ -308,7 +359,6 @@ local BaseClasses = {
 			effectStrength = 3.0, startRadius = 0.25, shockWidth = -0.50,
 			effectType = "airShockwave", },
 	},
-
 	BuildingGroundShockWave = {
 		distortionType = 'point', -- or cone or beam
 		alwaysVisible = false,
@@ -329,7 +379,6 @@ local BaseClasses = {
 						shockWidth = 3, refractiveIndex = -1.2, startRadius = 0.24,
 						effectType = 'groundShockwave'},
 	},
-
 	BuildingExploEnergy = {
 		distortionType = 'point', -- or cone or beam
 		yOffset = 0, -- Y offsets are only ever used for explosions!
