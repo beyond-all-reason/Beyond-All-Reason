@@ -269,8 +269,8 @@ bind Any+space unit_stats //unit_stats
 bind Ctrl+Shift+sc_o cameraflip // CameraFlip
 
 //if not WG[ Set target default ] then
-bind Alt+sc_y settarget
-bind sc_y settargetnoground
+bind Alt+sc_y settargetnoground
+bind sc_y settarget
 
 bind Ctrl+sc_` group unset
 
