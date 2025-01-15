@@ -64,21 +64,6 @@ function failingTests()
 --end)
 end
 
-test("SelfTest Failing While Succeeding", function ()
-	-- these ones are actually failing even when they don't throw exceptions,
-	-- it's because assertThrows is catching the exception, it's just not
-	-- the one we want.
-
-	assertThrows(function()
-		-- this test should fail since ValidUnitID doesn't throw exceptions.
-		SyncedProxy.Spring.ValidUnitID(20)
-	end)
-	assertThrows(function()
-		-- this actually throws an exception, but due to something else.
-		SyncedProxy.Spring.GiveOrderToUnit(2, CMD.FIRE_STATE, {0}, {})
-	end)
-end)
-
 test("SelfTest Wait Until", function ()
 	Test.waitUntil(function()
 		return true
@@ -148,4 +133,19 @@ test("SelfTest Assert Throws Message", function ()
 		Spring.ValidUnitID(20)
 		error("error")
 	end, "error")
+end)
+
+test("SelfTest Failing While Succeeding", function ()
+	-- these ones are actually failing even when they don't throw exceptions,
+	-- it's because assertThrows is catching the exception, it's just not
+	-- the one we want.
+
+	assertThrows(function()
+		-- this test should fail since ValidUnitID doesn't throw exceptions.
+		SyncedProxy.Spring.ValidUnitID(20)
+	end)
+	assertThrows(function()
+		-- this actually throws an exception, but due to something else.
+		SyncedProxy.Spring.GiveOrderToUnit(2, CMD.FIRE_STATE, {0}, {})
+	end)
 end)
