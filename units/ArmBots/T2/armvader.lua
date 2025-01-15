@@ -10,6 +10,7 @@ return {
 		corpse = "CORPSE",
 		energycost = 5800,
 		explodeas = "crawl_blastsml",
+		firestate = 0,
 		footprintx = 2,
 		footprintz = 2,
 		health = 445,
