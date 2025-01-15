@@ -91,9 +91,9 @@ function widget:Update(dt)
 		local selection = Spring.GetSelectedUnitsCounts()
 		local stallUnitSelected = false
 
-		for id, _ in next, selection do
-			local unitdef = UnitDefs[id]
-			if unitdef and unitdef.canManualFire then
+		for uDefID, _ in next, selection do
+			local uDef = UnitDefs[uDefID]
+			if uDef and uDef.canManualFire then
 				stallUnitSelected = true
 			end
 		end
