@@ -16,7 +16,9 @@ in DataVS {
 	flat vec4 v_universalParams; // noiseStrength, noiseScaleSpace, distanceFalloff, onlyModelMap
 	flat vec4 v_lifeParams;  // spawnFrame, lifeTime, rampUp, decay
 	flat vec4 v_effectParams; // effectparam1, effectparam2, windAffected, effectType
-	flat vec4 v_unibuffercopy;
+	#ifdef UNIFORMSBUFFERCOPY
+		flat vec4 v_unibuffercopy;
+	#endif
 	noperspective vec2 v_screenUV; // i have no fucking memory as to why this is set as noperspective
 };
 
@@ -553,22 +555,19 @@ void main(void)
 	int effectType = int(round(EFFECTTYPE));
 	
 	// TODO: Get the view vector before fetching texels for speedups, we cant really bail on all that many fragments...
-	
 	float mapdepth = texture(mapDepths, v_screenUV).x;
 	float modeldepth = texture(modelDepths, v_screenUV).x;
+
 	float worlddepth = min(mapdepth, modeldepth);
+	// TODO: isnt modeldepth 0 where there is no model fucking up everything later on?
+
 	float ismodel = 0;
-	
 	// Only query the textures if the backface of the volume is further than the world fragment
 
-	//if (gl_FragCoord.z > worlddepth) {
-		if (modeldepth < mapdepth) { // We are processing a model fragment
-			ismodel = 1;
-		}else{
-		}
-	//}
-	//float acceleration = v_unibuffercopy.w * 30;
-	//printf(acceleration);
+	// We are processing a model fragment
+	if (modeldepth < mapdepth) { 
+		ismodel = 1;
+	}
 	
 	vec4 fragWorldPos =  vec4( vec3(v_screenUV.xy * 2.0 - 1.0, worlddepth),  1.0);
 

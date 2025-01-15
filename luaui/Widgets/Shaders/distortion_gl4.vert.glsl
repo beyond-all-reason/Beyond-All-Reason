@@ -57,10 +57,12 @@ layout(std140, binding=1) readonly buffer UniformsBuffer {
 
 #define UNITID (uni[instData.y].composite >> 16)
 
-// Note that this is an incorrect copy of the uniformsbuffer, and is computed via a compute shader, so its _HIGHLY EXPERIMENTAL_
-layout(std140, binding=4) buffer UniformsBufferCopy {
-	SUniformsBuffer uniCopy[];
-};
+#ifdef UNIFORMSBUFFERCOPY
+	// Note that this is an incorrect copy of the uniformsbuffer, and is computed via a compute shader, so its _HIGHLY EXPERIMENTAL_
+	layout(std140, binding=4) buffer UniformsBufferCopy {
+		SUniformsBuffer uniCopy[];
+	};
+#endif
 
 #line 10000
 
@@ -84,7 +86,9 @@ out DataVS {
 	flat vec4 v_universalParams; // noiseStrength, noiseScaleSpace, distanceFalloff, onlyModelMap
 	flat vec4 v_lifeParams; // spawnFrame, lifeTime, rampUp, decay
 	flat vec4 v_effectParams; // effectparam1, effectparam2, windAffected, effectType
-	flat vec4 v_unibuffercopy;
+	#ifdef UNIFORMSBUFFERCOPY
+		flat vec4 v_unibuffercopy;
+	#endif
 	noperspective vec2 v_screenUV;
 };
 
@@ -136,9 +140,10 @@ void main()
 		// This is good because the tolerance for distant shadows is much greater
 		if ((uni[instData.y].composite & 0x00001fu) == 0u )  placeInWorldMatrix = mat4(0.0); 
 		
-		//v_unibuffercopy.xy = uni[instData.y].drawPos.xz;
-		//v_unibuffercopy.zw = uniCopy[instData.y].drawPos.xz;
-		v_unibuffercopy = uni[instData.y].speed - uniCopy[instData.y].speed;
+
+		#ifdef UNIFORMSBUFFERCOPY
+			v_unibuffercopy = uni[instData.y].speed - uniCopy[instData.y].speed;
+		#endif
 
 		uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
 		vec4 teamCol = teamColor[teamIndex];

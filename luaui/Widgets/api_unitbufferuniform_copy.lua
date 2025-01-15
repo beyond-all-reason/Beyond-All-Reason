@@ -68,6 +68,7 @@ void main(void)
 local numEntries = 32768
 local structSize = 128
 
+local copyRequested = false
 
 local UniformsBufferCopy
 
@@ -101,7 +102,10 @@ function widget:Initialize()
 
 	Spring.Echo("Hello")
 	WG['api_unitbufferuniform_copy'] = {}
-	WG['api_unitbufferuniform_copy'].GetUnitUniformBufferCopy = function() return UniformsBufferCopy end
+	WG['api_unitbufferuniform_copy'].GetUnitUniformBufferCopy = function() 
+		copyRequested = true
+		return UniformsBufferCopy 	
+	end
 	widgetHandler:RegisterGlobal('GetUnitUniformBufferCopy', WG['api_unitbufferuniform_copy'].GetUnitUniformBufferCopy)
 end
 
@@ -114,6 +118,7 @@ end
 
 local lastUpdateFrame = 0
 function widget:DrawScreenPost()
+	if not copyRequested then return end
 	if Spring.GetGameFrame() == lastUpdateFrame then
 		return
 	else
