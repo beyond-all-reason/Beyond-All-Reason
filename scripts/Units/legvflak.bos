@@ -60,11 +60,7 @@ Create()
 	start-script Steering();
 	
 	gun_switch = 0;
-
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	
 	SLEEP_UNTIL_UNITFINISHED;
 
     turn radar to x-axis <-45> speed <25.0>;
@@ -174,17 +170,12 @@ Shot1(zero) //Barrel switcher so each minigun fires at the same time
 	{
 		emit-sfx 1024 + 0 from rflare;
 	}
-	if(gun_switch == 1)
+	else
 	{
 		emit-sfx 1024 + 0 from lflare;
 	}
-	sleep 32;
-	++gun_switch;
 	
-	if(gun_switch>=2)
-	{
-		gun_switch=0;
-	}
+	gun_switch = !gun_switch;
 	return(1);
 }
 
