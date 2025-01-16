@@ -35,7 +35,7 @@ Steering(heading, steery, currentSpeed)
 		turn wheelbr to y-axis 0 - steery speed <120>;
 		
 		currentSpeed = (get CURRENT_SPEED)*20/moveSpeed;
-		wheelSpeed = currentSpeed * 50; //original speed 7
+		wheelSpeed = currentSpeed * 50;
 		if (currentSpeed<1) currentSpeed=1;	// prevent infinite timing	
 		
 		spin wheelfl around x-axis speed  (<1> * wheelSpeed);
@@ -53,9 +53,11 @@ Create()
 {
 	hide lflare;
 	hide rflare;
+	restore_delay = 6000;
 	moveSpeed = get MAX_SPEED;
 	oldheading = get HEADING;
-	restore_delay = 6000;
+	call-script TB_Init();
+	start-script Steering();
 	
 	gun_switch = 0;
 
@@ -67,8 +69,6 @@ Create()
 
     turn radar to x-axis <-45> speed <25.0>;
     spin radar around z-axis speed <60.0>;
-	call-script TB_Init();
-	start-script Steering();
 	start-script ExecuteRestoreAfterDelay();
 }
 
