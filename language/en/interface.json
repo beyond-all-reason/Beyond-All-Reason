@@ -1183,7 +1183,7 @@
 				"camerashake": "shake",
 				"camerashake_descr": "Set the amount of camerashake on explosions",
 				"smoothingmode": "Smoothing Mode",
-				"smoothing_expdec": "Exponential Decay",
+				"smoothing_exponential": "Exponential Decay",
 				"smoothing_spring": "Spring Dampened",
 				"camerasmoothing": "smoothing",
 				"camerasmoothness": "smoothness",

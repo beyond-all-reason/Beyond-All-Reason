@@ -3125,7 +3125,7 @@ function init()
 		--	  end
 		--  end,
 		--},
-		{ id = "smoothingmode", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.smoothingmode'), type = "select", options = { Spring.I18N('ui.settings.option.smoothing_expdec'), Spring.I18N('ui.settings.option.smoothing_spring')}, value = (tonumber((Spring.GetConfigInt("CamTransitionMode", 1) + 1) or 1)),
+		{ id = "smoothingmode", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.smoothingmode'), type = "select", options = { Spring.I18N('ui.settings.option.smoothing_exponential'), Spring.I18N('ui.settings.option.smoothing_spring')}, value = (Spring.GetConfigInt("CamTransitionMode", 1) + 1),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("CamTransitionMode", (value - 1))
 		  end,
@@ -3135,13 +3135,13 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  cameraTransitionTime = value
-			  local hl = value
-			  if hl <= 1 then
-				hl = hl * 200
+			  local halfLife = value
+			  if halfLife <= 1 then
+				halfLife = halfLife * 200
 			  else
-				hl = hl * 600 - 400
+				halfLife = halfLife * 600 - 400
 			  end
-			  Spring.SetConfigFloat("CamSpringHalflife", hl)
+			  Spring.SetConfigFloat("CamSpringHalflife", halfLife)
 		  end,
 		},
 		{ id = "camerapanspeed", group = "control", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.camerapanspeed'), type = "slider", min = -0.01, max = -0.00195, step = 0.0001, value = Spring.GetConfigFloat("MiddleClickScrollSpeed", 0.0035), description = Spring.I18N('ui.settings.option.camerapanspeed_descr'),
