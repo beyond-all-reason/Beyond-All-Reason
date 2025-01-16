@@ -45,10 +45,40 @@ local unitDistortions = {
 	['armmakr'] = {
 		distortion = {
 			distortionType = 'point',
-			pieceName = 'base',
-			distortionConfig = { posx = 0, posy = 2, posz = 0, radius = 20,
+			pieceName = 'light',
+			distortionConfig = { posx = 0, posy = -2, posz = 0, radius = 18,
 							noiseStrength = 0.6, noiseScaleSpace = 1.5, distanceFalloff = 0.5,
-							lifeTime = 0, rampUp = 30, decay = -1.5,
+							lifeTime = 0, rampUp = 30, decay = -1.2,
+							effectType = 0},
+		},
+	},
+	['cormakr'] = {
+		distortion = {
+			distortionType = 'point',
+			pieceName = 'light',
+			distortionConfig = { posx = 0, posy = 3, posz = 0, radius = 16,
+							noiseStrength = 0.6, noiseScaleSpace = 1.5, distanceFalloff = 0.5,
+							lifeTime = 0, rampUp = 30, decay = -1.2,
+							effectType = 0},
+		},
+	},
+	['armmmkr'] = {
+		distortion = {
+			distortionType = 'point',
+			pieceName = 'light',
+			distortionConfig = { posx = 0, posy = -3, posz = 0, radius = 24,
+							noiseStrength = 0.5, noiseScaleSpace = 1.4, distanceFalloff = 0.5,
+							lifeTime = 0, rampUp = 30, decay = -1.2,
+							effectType = 0},
+		},
+	},
+	['cormmkr'] = {
+		distortion = {
+			distortionType = 'point',
+			pieceName = 'light',
+			distortionConfig = { posx = 0, posy = -1, posz = 0, radius = 18,
+							noiseStrength = 0.5, noiseScaleSpace = 1.4, distanceFalloff = 0.5,
+							lifeTime = 0, rampUp = 30, decay = -1.2,
 							effectType = 0},
 		},
 	},
@@ -138,6 +168,17 @@ local unitDistortions = {
 								pos2x = -3, pos2y = 9.0, pos2z = -5,
 								noiseStrength = 0.5, noiseScaleSpace = -2, distanceFalloff = 0.8,
 								rampUp = 30, decay = -1.2,
+								lifeTime = 0,  effectType = 0},
+		},
+	},
+	['corfship'] = {
+		distortionflame = {
+			distortionType = 'beam',
+			pieceName = 'sleeve',
+			distortionConfig = { posx = 0, posy = 0, posz = 22, radius = 4,
+								pos2x = 0, pos2y = 0, pos2z = 19,
+								noiseStrength = 0.5, noiseScaleSpace = -2, distanceFalloff = 0.8,
+								rampUp = 0, decay = -1.5,
 								lifeTime = 0,  effectType = 0},
 		},
 	},
@@ -1051,11 +1092,19 @@ local unitDistortions = {
 		distortion = {
 			distortionType = 'point',
 			pieceName = 'none',
-			distortionConfig = { posx = 0, posy = 40, posz = 0, radius = 16,
-							noiseStrength = 1, noiseScaleSpace = 1.5, distanceFalloff = 0.5,
+			distortionConfig = { posx = 0, posy = 40, posz = 0, radius = 12,
+							noiseStrength = 1, noiseScaleSpace = 0.5, distanceFalloff = 0.3,
 							windAffected = -0.5,
 							lifeTime = 0,  effectType = 0},
 		},
+		-- distortionold = {
+		-- 	distortionType = 'point',
+		-- 	pieceName = 'none',
+		-- 	distortionConfig = { posx = 0, posy = 40, posz = 0, radius = 16,
+		-- 					noiseStrength = 1, noiseScaleSpace = 1.5, distanceFalloff = 0.5,
+		-- 					windAffected = -0.5,
+		-- 					lifeTime = 0,  effectType = 0},
+		-- },
 	},
 
 	['corfgate'] = {
