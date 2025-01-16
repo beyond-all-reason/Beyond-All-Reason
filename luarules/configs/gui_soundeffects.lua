@@ -3099,6 +3099,11 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-tnk-medium-ok",
 		BaseSoundWeaponType = "arty-large",
 	},
+	legvflak = {
+		BaseSoundSelectType = "leg-veh-small-sel",
+		BaseSoundMovementType = "leg-veh-small-ok",
+		BaseSoundWeaponType = "flak",
+	},
 	legaskirmtank = {
 		BaseSoundSelectType = "cor-tnk-medium-sel",
 		BaseSoundMovementType = "cor-tnk-medium-ok",

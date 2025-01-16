@@ -63,7 +63,7 @@ return {
 			"legvcarry",
 			"legavroc",
 			"leginf",
-			"corsent",
+			"legvflak",
 			"cormabm",
 			"legavjam",
 			"legavrad",

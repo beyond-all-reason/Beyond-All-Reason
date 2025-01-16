@@ -65,7 +65,7 @@ local labGrids = {
 	legavp = {
 		"legacv", "legmrv", "legaskirmtank", "legamcluster",   -- T2 con, Quickshot, scorpion, cleaver
 		"legavrad", "legavjam", "legaheattank", "leginf",        -- radar, jammer, goli, inferno
-		"legfloat", "legmed", "corsent", "legavroc",            -- the new and improved triton, medusa, AA, boreas
+		"legfloat", "legmed", "legvflak", "legavroc",            -- the new and improved triton, medusa, AA, boreas
 	},
 	-- T1 air
 	armap = {
