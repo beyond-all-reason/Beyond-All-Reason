@@ -3090,9 +3090,8 @@ function init()
 			  Spring.SetConfigInt("CamSpringTrackMapHeightMode", value - 1)
 		  end,
 		},
-		{ id = "mincamheight", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.mincamheight'), type = "slider", min = 0, max = 1500, step = 1, value = Spring.GetConfigInt("MinimumCameraHeight", 300), description = Spring.I18N('ui.settings.option.mincamheight_descr'),
+		{ id = "mincamheight", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.mincamheight'), type = "slider", min = 0, max = 1500, step = 1, value = Spring.GetConfigInt("CamSpringMinZoomDistance", 0), description = Spring.I18N('ui.settings.option.mincamheight_descr'),
 		  onchange = function(i, value)
-			  Spring.SetConfigInt("MinimumCameraHeight", value)
 			  Spring.SetConfigInt("CamSpringMinZoomDistance", value)
 			  Spring.SetConfigInt("OverheadMinZoomDistance", value)
 		  end,
