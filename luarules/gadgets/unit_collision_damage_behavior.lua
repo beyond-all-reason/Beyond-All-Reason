@@ -219,7 +219,8 @@ function gadget:GameFrame(frame)
 					newVelYToOldVelYRatio = 1
 				end
 
-				local scale = data.velocityCap / mathMax(mathAbs(velX), mathAbs(newVelY), mathAbs(velZ))
+				local divisor = mathMax(mathAbs(velX), mathAbs(newVelY), mathAbs(velZ), 0.001)
+				local scale = data.velocityCap / divisor
 
 				velX = velX * scale * newVelYToOldVelYRatio
 				velZ = velZ * scale * newVelYToOldVelYRatio
