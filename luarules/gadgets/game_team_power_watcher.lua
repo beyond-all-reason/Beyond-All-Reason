@@ -34,6 +34,27 @@ local powerThresholds = {
     {techLevel = 4.5, threshold = 725000}
 }
 
+for _, teamID in ipairs(teamList) do
+    local teamLuaAI = Spring.GetTeamLuaAI(teamID)
+    if (teamLuaAI and string.find(teamLuaAI, "ScavengersAI")) then
+        scavengerTeam = teamID
+    elseif (teamLuaAI and string.find(teamLuaAI, "RaptorsAI")) then
+        raptorTeam = teamID
+    elseif select (4, Spring.GetTeamInfo(teamID, false)) then
+        aiTeams[teamID] = true
+    elseif teamID == tonumber(teamList[#teamList]) then
+        neutralTeam = teamID
+    else
+        humanTeams[teamID] = true
+    end
+end
+
+--assign team powers/peak powers to 0 to prevent nil
+for _, teamNumber in ipairs(teamList) do
+    teamPowers[teamNumber] = 0
+    peakTeamPowers[teamNumber] = 0
+end
+
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
     unitsWithPower[unitID] = { power = UnitDefs[unitDefID].power, team = unitTeam}
     teamPowers[unitTeam] = teamPowers[unitTeam] + UnitDefs[unitDefID].power
@@ -442,26 +463,6 @@ local function averageAlliedPeakPower(teamID)
 end
 
 function gadget:Initialize()
-    for _, teamID in ipairs(teamList) do
-        local teamLuaAI = Spring.GetTeamLuaAI(teamID)
-        if (teamLuaAI and string.find(teamLuaAI, "ScavengersAI")) then
-            scavengerTeam = teamID
-        elseif (teamLuaAI and string.find(teamLuaAI, "RaptorsAI")) then
-            raptorTeam = teamID
-        elseif select (4, Spring.GetTeamInfo(teamID, false)) then
-            aiTeams[teamID] = true
-        elseif teamID == tonumber(teamList[#teamList]) then
-            neutralTeam = teamID
-        else
-            humanTeams[teamID] = true
-        end
-    end
-    
-    --assign team powers/peak powers to 0 to prevent nil
-    for _, teamNumber in ipairs(teamList) do
-        teamPowers[teamNumber] = 0
-        peakTeamPowers[teamNumber] = 0
-    end
     GG.PowerLib = {}
     GG.PowerLib["ScavengerTeam"] = scavengerTeam
     GG.PowerLib["RaptorTeam"] = raptorTeam
