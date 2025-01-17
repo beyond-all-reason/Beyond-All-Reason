@@ -194,8 +194,8 @@ local function makeSpotVBO()
 		arrayAppend(VBOData, {billboardsize, billboardsize, 1, 2})
 		arrayAppend(VBOData, {-billboardsize, 0, 1, 2})
 		arrayAppend(VBOData, {billboardsize, billboardsize, 1, 2})
-		arrayAppend(VBOData, {-billboardsize, 0, 1, 2})
 		arrayAppend(VBOData, {-billboardsize, billboardsize, 1, 2})
+		arrayAppend(VBOData, {-billboardsize, 0, 1, 2})
 	end
 
 	spotVBO:Define(#VBOData/4, VBOLayout)
@@ -517,6 +517,7 @@ function widget:DrawWorldPreUnit()
 	local clockDifference = (os.clock() - previousOsClock)
 	previousOsClock = os.clock()
 
+	gl.Culling(true)
 	gl.Texture(0, "$heightmap")
 	gl.Texture(1, AtlasTextureID)
 	gl.DepthTest(false)
@@ -530,6 +531,7 @@ function widget:DrawWorldPreUnit()
 		needsInit = false
 	end
 
+	gl.Culling(false)
 	gl.Texture(0, false)
 	gl.Texture(1, false)
 end

@@ -259,11 +259,8 @@ function gadget:FeatureCreated(featureID, allyTeam)
 		if xmasFeatureID then
 			Spring.SetFeatureRotation(xmasFeatureID, rx,ry,rz)
 			Spring.SetFeatureDirection(xmasFeatureID, dx,dy,dz)
-			local comtype = 'armcom'
-			if string.find(FeatureDefs[Spring.GetFeatureDefID(featureID)].modelname:lower(), 'corcom', nil, true) then
-				comtype = 'corcom'
-			end
-			Spring.SetFeatureResurrect(xmasFeatureID, comtype, "s", 0)
+			local featureResurrect = Spring.GetFeatureResurrect(featureID)
+			Spring.SetFeatureResurrect(xmasFeatureID, featureResurrect, "s", 0)
 		end
 	end
 end

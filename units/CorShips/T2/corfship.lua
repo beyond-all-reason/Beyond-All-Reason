@@ -1,7 +1,6 @@
 return {
 	corfship = {
 		activatewhenbuilt = true,
-		airsightdistance = 470,
 		autoheal = 1.5,
 		blocking = true,
 		buildpic = "CORFSHIP.DDS",

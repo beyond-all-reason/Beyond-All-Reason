@@ -5,7 +5,7 @@ function widget:GetInfo()
 		author    = "Floris",
 		date      = "June 2020",
 		license   = "GNU GPL, v2 or later",
-		layer     = -999999,
+		layer     = -1000001,
 		enabled   = true
 	}
 end
@@ -58,8 +58,16 @@ function widget:Update(dt)
 	--end
 end
 
+local function addFallbackFonts()
+	if not gl.AddFallbackFont then return end
+
+	gl.AddFallbackFont('fallbacks/NotoEmoji-VariableFont_wght.ttf')
+	gl.AddFallbackFont('fallbacks/SourceHanSans-Regular.ttc')
+end
 
 function widget:Initialize()
+	addFallbackFonts()
+
 	widget:ViewResize()
 
 	WG['fonts'] = {}

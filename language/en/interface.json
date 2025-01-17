@@ -892,7 +892,11 @@
 			"eneededforconversion": "E needed for conversion",
 			"convertedm": "converted M",
 			"estorage": "E storage",
-			"mstorage": "M storage"
+			"mstorage": "M storage",
+			"shieldcapacity": "Shield capacity",
+			"shieldrange": "Shield range",
+			"shieldrechargerate": "Recharge rate",
+			"shieldrechargecost": "Recharge cost"
 		},
 		"spectator_hud": {
 			"metalIncome_title": "Metal Income",
@@ -1178,6 +1182,9 @@
 				"camera": "Camera",
 				"camerashake": "shake",
 				"camerashake_descr": "Set the amount of camerashake on explosions",
+				"smoothingmode": "Smoothing Mode",
+				"smoothing_exponential": "Exponential Decay",
+				"smoothing_spring": "Spring Dampened",
 				"camerasmoothing": "smoothing",
 				"camerasmoothness": "smoothness",
 				"camerasmoothness_descr": "How smooth should the transitions between camera movement be?",
