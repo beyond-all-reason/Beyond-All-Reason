@@ -817,13 +817,13 @@ local function eventDistortionSpawner(eventName, unitID, unitDefID, teamID)
 								distortionCacheTable[2] = distortionCacheTable[2] + distortionTable.aboveUnit + (unitHeight or 0)
 								distortionParamTable = distortionCacheTable
 							end
-							AddDistortion(nil, unitID, distortionTable.pieceIndex, unitDistortionVBOMap[distortionTable.distortionType], distortionParamTable)
+							AddDistortion(eventName .. tostring(unitID) ..  distortionname, unitID, distortionTable.pieceIndex, unitDistortionVBOMap[distortionTable.distortionType], distortionParamTable)
 						else
 							for i=1, distortionParamTableSize do distortionCacheTable[i] = distortionParamTable[i] end
 							distortionCacheTable[1] = distortionCacheTable[1] + px
 							distortionCacheTable[2] = distortionParamTable[2] + py + ((distortionTable.aboveUnit and Spring.GetUnitHeight(unitID)) or 0)
 							distortionCacheTable[3] = distortionCacheTable[3] + pz
-							AddDistortion(nil, nil, distortionTable.pieceIndex, distortionVBOMap[distortionTable.distortionType], distortionCacheTable)
+							AddDistortion(eventName .. tostring(unitID) ..  distortionname, nil, distortionTable.pieceIndex, distortionVBOMap[distortionTable.distortionType], distortionCacheTable)
 						end
 					end
 
