@@ -10,6 +10,7 @@ return {
 		collisionvolumetype = "CylY",
 		energycost = 27000,
 		explodeas = "crawl_blast",
+		firestate = 0,
 		footprintx = 2,
 		footprintz = 2,
 		health = 355,
