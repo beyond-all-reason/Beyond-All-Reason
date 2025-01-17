@@ -675,8 +675,8 @@ local function UnitScriptDistortion(unitID, unitDefID, distortionIndex, param)
 		end
 		if (not spec) and distortionTable.alliedOnly == true and Spring.IsUnitAllied(unitID) == false then return end
 		if distortionTable.initComplete == nil then InitializeDistortion(distortionTable, unitID) end
-		--local instanceID = tostring(unitID) .. "_" .. tostring(unitName[unitDefID]) .. "UnitScriptDistortion" .. tostring(distortionIndex) .. "_" .. tostring(param)
-		AddDistortion(nil, unitID, distortionTable.pieceIndex, unitDistortionVBOMap[distortionTable.distortionType], distortionTable.distortionParamTable)
+		local instanceID = tostring(unitID) .. "_" .. tostring(unitName[unitDefID]) .. "UnitScriptDistortion" .. tostring(distortionIndex) .. "_" .. tostring(param)
+		AddDistortion(instanceID, unitID, distortionTable.pieceIndex, unitDistortionVBOMap[distortionTable.distortionType], distortionTable.distortionParamTable)
 	end
 end
 
