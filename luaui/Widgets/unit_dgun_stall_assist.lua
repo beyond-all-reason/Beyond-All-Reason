@@ -23,14 +23,6 @@ local isFactory = {}
 
 local gameStarted
 
---Don't wait these units - they don't build things
-local exceptions = {
-	["armspid"]=true,
-	["armspy"]=true, ["corspy"]=true,
-	["armantiship"]=true, ["corantiship"]=true,
-	["armcarry"]=true, ["corcarry"]=true
-}
-
 ----------------------------------------------------------------
 -- Speedups
 ----------------------------------------------------------------
@@ -75,7 +67,7 @@ function widget:Initialize()
     end
 
 	for uDefID, uDef in pairs(UnitDefs) do
-		if uDef.buildSpeed > 0 and not uDef.canManualFire and not exceptions[uDef.name] then
+		if uDef.buildSpeed > 0 and not uDef.canManualFire and (uDef.canAssist or uDef.buildOptions[1]) then
 			shouldWait[uDefID] = true
 			if uDef.isFactory then
 				isFactory[uDefID] = true
