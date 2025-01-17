@@ -892,7 +892,11 @@
 			"eneededforconversion": "E needed for conversion",
 			"convertedm": "converted M",
 			"estorage": "E storage",
-			"mstorage": "M storage"
+			"mstorage": "M storage",
+			"shieldcapacity": "Shield capacity",
+			"shieldrange": "Shield range",
+			"shieldrechargerate": "Recharge rate",
+			"shieldrechargecost": "Recharge cost"
 		},
 		"spectator_hud": {
 			"metalIncome_title": "Metal Income",

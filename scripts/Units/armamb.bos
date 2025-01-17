@@ -2,14 +2,13 @@
 
 #include "sfxtype.h"
 #include "exptype.h"
+#include "smart_weapon_select.h"
 
-piece  base, flare, turret, door1, door2, door3, door4, barrel, stand, aimpoint;
+piece  base, flare, turret, door1, door2, door3, door4, barrel, stand, aimpoint, turretmidpoint;
 
-static-var  turretOpen, restoreDelay, trajectoryMode, stunned;
+static-var  turretOpen, restoreDelay, stunned;
 
 #define SIGNAL_AIM			1
-#define LOW_TRAJECTORY		0
-#define HIGH_TRAJECTORY		1
 
 openTurret()
 {
@@ -82,11 +81,6 @@ Stop()
 	return (0);
 }
 
-RequestState(requestedstate)
-{
-	trajectoryMode = requestedstate;
-}
-
 ExecuteRestoreAfterDelay()
 {
     if (stunned)
@@ -139,18 +133,6 @@ Create()
 #define SMOKEPIECE base
 #include "smokeunit_thread_nohit.h"
 
-Activate()
-{
-	signal SIGNAL_AIM;
-	start-script RequestState(HIGH_TRAJECTORY);
-}
-
-Deactivate()
-{
-	signal SIGNAL_AIM;
-	start-script RequestState(LOW_TRAJECTORY);
-}
-
 aimCommon(heading, pitch)
 {
 	while(!turretOpen)
@@ -166,12 +148,12 @@ aimCommon(heading, pitch)
 
 AimPrimary(heading, pitch)
 {
-	start-script Go();
-
-	if(trajectoryMode != LOW_TRAJECTORY)
+	if (AimingState != AIMING_PRIORITY)
 	{
 		return(0);
 	}
+
+	start-script Go();
 
 	signal SIGNAL_AIM;
 	set-signal-mask SIGNAL_AIM;
@@ -179,7 +161,7 @@ AimPrimary(heading, pitch)
 	call-script aimCommon(heading, pitch);
 	start-script RestoreAfterDelay();
 
-	// Prevent low-trajectory "bonus shots" while high-trajectory is reloading
+	// Prevent "bonus shots" while alternative weapon is reloading
 	var reloading;
 	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(2));
 	if( reloading )
@@ -192,19 +174,33 @@ AimPrimary(heading, pitch)
 
 AimSecondary(heading, pitch)
 {
-	start-script Go();
-
-	if(trajectoryMode != HIGH_TRAJECTORY)
+	if (AimingState != AIMING_BACKUP)
 	{
 		return(0);
 	}
+	
+	start-script Go();
 
 	signal SIGNAL_AIM;
 	set-signal-mask SIGNAL_AIM;
 
 	call-script aimCommon(heading, pitch);
 	start-script RestoreAfterDelay();
+
+	// Prevent "bonus shots" while alternative weapon is reloading
+	var reloading;
+	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(1));
+	if( reloading )
+	{
+		return(0);
+	}
+
 	return (1);
+}
+
+AimTertiary(piecenum)
+{
+	return (0);
 }
 
 fireCommon()
@@ -243,6 +239,11 @@ QueryPrimary(piecenum)
 QuerySecondary(piecenum)
 {
 	piecenum = flare;
+}
+
+QueryTertiary(piecenum)
+{
+	piecenum = turretmidpoint;
 }
 
 SweetSpot(piecenum)

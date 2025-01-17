@@ -2,16 +2,14 @@
 
 #include "sfxtype.h"
 #include "exptype.h"
+#include "smart_weapon_select.h"
 
-piece  base, turret, flare, barrel, sleeve, rfhip, rfthigh, rfleg, rffoot, lfhip, lfthigh, lfleg, lffoot, lbhip, lbthigh, lbleg, lbankle, rbhip, rbthigh, rbleg, rbankle, aimx1, aimy1;
+piece  base, turret, flare, barrel, sleeve, rfhip, rfthigh, rfleg, rffoot, lfhip, lfthigh, lfleg, lffoot, lbhip, lbthigh, lbleg, lbankle, rbhip, rbthigh, rbleg, rbankle, aimx1, aimy1, turretmidpoint;
 
-static-var  bMoving, oldHeading, bSteering, wpn1_lasthead, last_primary_heading, last_primary_pitch, speedmult, trajectoryMode;
+static-var  bMoving, oldHeading, bSteering, wpn1_lasthead, last_primary_heading, last_primary_pitch, speedmult;
 
-#define SIG_WALK			2
-#define SIG_AIM				4
-
-#define LOW_TRAJECTORY		0
-#define HIGH_TRAJECTORY		1
+#define SIG_WALK				2
+#define SIG_AIM					4
 
 // Generated for N:\animations\armvang_anim_walk_2legs_v2.blend
 // Using https://github.com/Beherith/Skeletor_S3O
@@ -540,25 +538,6 @@ Create()
 	// set last heading values to large negative, ensure first aim waits for the turn
 	last_primary_heading = -1000000;
 	last_primary_pitch = -1000000;
-	trajectoryMode = LOW_TRAJECTORY;
-}
-
-Activate()
-{
-	signal SIG_AIM;
-	trajectoryMode = HIGH_TRAJECTORY;
-	// set last heading values to large negative, ensure first aim waits for the turn
-	last_primary_heading = -1000000;
-	last_primary_pitch = -1000000;
-}
-
-Deactivate()
-{
-	signal SIG_AIM;
-	trajectoryMode = LOW_TRAJECTORY;
-	// set last heading values to large negative, ensure first aim waits for the turn
-	last_primary_heading = -1000000;
-	last_primary_pitch = -1000000;
 }
 
 SweetSpot(piecenum)
@@ -622,7 +601,7 @@ QueryPrimary(piecenum)
 
 AimPrimary(heading, pitch)
 {
-	if (trajectoryMode == HIGH_TRAJECTORY)
+	if (AimingState != AIMING_PRIORITY)
 	{
 		return(0);
 	}
@@ -644,7 +623,7 @@ AimPrimary(heading, pitch)
 	last_primary_pitch=pitch;
 	start-script RestoreAfterDelay();
 
-	// Prevent low-trajectory "bonus shots" while high-trajectory is reloading
+	// Prevent "bonus shots" while alternative weapon is reloading
 	var reloading;
 	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(2));
 	if( reloading )
@@ -672,11 +651,11 @@ QuerySecondary(piecenum)
 
 AimSecondary(heading, pitch)
 {
-	if (trajectoryMode == LOW_TRAJECTORY)
+	if (AimingState != AIMING_BACKUP)
 	{
 		return(0);
 	}
-
+	
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	// values in <> are degrees per second
@@ -694,20 +673,29 @@ AimSecondary(heading, pitch)
 	last_primary_pitch=pitch;
 	start-script RestoreAfterDelay();
 
-	// Prevent high-trajectory "bonus shots" while low-trajectory is reloading
+	// Prevent "bonus shots" while alternative weapon is reloading
 	var reloading;
 	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(1));
 	if( reloading )
 	{
 		return(0);
 	}
-
 	return (1);
 }
 
 FireSecondary()
 {	
 	call-script fireCommon();
+}
+
+QueryTertiary(piecenum)
+{
+	piecenum = turretmidpoint;
+}
+
+AimTertiary(piecenum)
+{
+	return (0);
 }
 
 Killed(severity, corpsetype)

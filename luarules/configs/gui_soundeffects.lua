@@ -533,6 +533,12 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "arm-bld-shield",
 	},
 
+	armgatet3 = {
+		BaseSoundSelectType = "arm-bld-defense-action-t2",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-shield",
+	},
+
 	armfgate = {
 		BaseSoundSelectType = "arm-bld-defense-action-water-t2",
 		--BaseSoundMovementType = "",
@@ -1755,6 +1761,12 @@ GUIUnitSoundEffects = {
 	},
 
 	corgate = {
+		BaseSoundSelectType = "arm-bld-defense-action-t2",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-shield",
+	},
+
+	corgatet3 = {
 		BaseSoundSelectType = "arm-bld-defense-action-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-shield",
@@ -2983,6 +2995,11 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-bot-large-ok",
 		BaseSoundWeaponType = "plasma-large",
 	},
+	legjav = {
+		BaseSoundSelectType = "arm-bot-huge-sel",
+		BaseSoundMovementType = "arm-bot-huge-ok",
+		BaseSoundWeaponType = "fastemg-medium",
+	},
 
 	-- LEGION T1 VEHICLES
 	legcv = {
@@ -3081,6 +3098,11 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "cor-tnk-medium-sel",
 		BaseSoundMovementType = "cor-tnk-medium-ok",
 		BaseSoundWeaponType = "arty-large",
+	},
+	legvflak = {
+		BaseSoundSelectType = "leg-veh-small-sel",
+		BaseSoundMovementType = "leg-veh-small-ok",
+		BaseSoundWeaponType = "flak",
 	},
 	legaskirmtank = {
 		BaseSoundSelectType = "cor-tnk-medium-sel",

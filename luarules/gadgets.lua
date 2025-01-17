@@ -157,6 +157,7 @@ local callInLists = {
 	-- "UnitMoveFailed",
 	"StockpileChanged",
 
+	"ActiveCommandChanged",
 	"CommandNotify",
 
 	-- Feature CallIns
@@ -235,6 +236,8 @@ local callInLists = {
 	'DrawAlphaFeaturesLua',
 	'DrawShadowUnitsLua',
 	'DrawShadowFeaturesLua',
+
+	'FontsChanged',
 
 	"RecvFromSynced",
 
@@ -2149,6 +2152,12 @@ function gadgetHandler:DefaultCommand(type, id, cmd)
 	return
 end
 
+function gadgetHandler:ActiveCommandChanged(id, cmdType)
+	for _, g in ipairs(self.ActiveCommandChangedList) do
+		g:ActiveCommandChanged(id, cmdType)
+	end
+end
+
 function gadgetHandler:CommandNotify(id, params, options)
 	for _, g in ipairs(self.CommandNotifyList) do
 		if g:CommandNotify(id, params, options) then
@@ -2420,6 +2429,18 @@ function gadgetHandler:Load(zip)
 	for _, g in ipairs(self.LoadList) do
 		g:Load(zip)
 	end
+	return
+end
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+function gadgetHandler:FontsChanged()
+	tracy.ZoneBeginN("FontsChanged")
+	for _, w in r_ipairs(self.FontsChangedList) do
+		w:FontsChanged()
+	end
+	tracy.ZoneEnd()
 	return
 end
 

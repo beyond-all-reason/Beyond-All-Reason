@@ -2,6 +2,7 @@
 
 #include "sfxtype.h"
 #include "exptype.h"
+#include "smart_weapon_select.h"
 
 
 //piece base, turret, sleeve, barrel, flare;
@@ -21,13 +22,11 @@ door3,
 door4,
 door5,
 door6,
-mainStrut, supportStrut, housingStrut, sleeveHousing, sleeveBottom, sleeveTop, barrelBottom, barrelTop, flareBottom, flareTop;
+mainStrut, supportStrut, housingStrut, sleeveHousing, sleeveBottom, sleeveTop, barrelBottom, barrelTop, flareBottom, flareTop, turretmidpoint;
 
-static-var  turretOpen, nextBarrel, trajectoryMode, lastHeading, stunned, restoreDelay;
+static-var  turretOpen, nextBarrel, lastHeading, stunned, restoreDelay;
 
 #define SIGNAL_AIM			1
-#define LOW_TRAJECTORY		0
-#define HIGH_TRAJECTORY		1
 
 #define SMOKEPIECE base
 #include "smokeunit_thread_nohit.h"
@@ -69,7 +68,6 @@ Create()
 	{
 		sleep 1000;
 	}
-
 	start-script RestoreAfterDelay();
 	return (0);
 	
@@ -148,30 +146,12 @@ Stop(){
 	return (0);	
 }
 
-RequestState(requestedState)
-{
-	trajectoryMode = requestedstate;
-}
-
-Activate()
-{
-	signal SIGNAL_AIM;
-	start-script RequestState(HIGH_TRAJECTORY);
-}
-
-Deactivate()
-{
-	signal SIGNAL_AIM;
-	start-script RequestState(LOW_TRAJECTORY);
-}
-
 ExecuteRestoreAfterDelay()
 {
     if (stunned)
 	{
         return (1);
     }
-
 	set-signal-mask 0;
 	turn mainStrut to y-axis <0.000000> speed <100.016484>;
 	turn sleeveHousing to x-axis <0.000000> speed <50.005495>;
@@ -229,25 +209,25 @@ aimCommonHigh(heading, pitch)
 AimPrimary(heading, pitch)
 {
 	start-script Go();
-
-	if(trajectoryMode != LOW_TRAJECTORY)
-	 {
-	 	return(0);
-	 }
 	
+	if (AimingState != AIMING_PRIORITY)
+	{
+		return(0);
+	}
+
 	signal SIGNAL_AIM;
 	set-signal-mask SIGNAL_AIM;
 	call-script aimCommon(heading, pitch);
 	start-script RestoreAfterDelay();
 
-	// Prevent low-trajectory "bonus shots" while high-trajectory is reloading
+	// Prevent "bonus shots" while alternative weapon is reloading
 	var reloading;
 	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(2));
 	if( reloading )
 	{
 		return(0);
 	}
-	
+
 	return (1);
 }
 
@@ -255,7 +235,7 @@ AimSecondary(heading, pitch)
 {
 	start-script Go();
 
-	if(trajectoryMode != HIGH_TRAJECTORY)
+	if (AimingState != AIMING_BACKUP)
 	{
 		return(0);
 	}
@@ -265,7 +245,21 @@ AimSecondary(heading, pitch)
 
 	call-script aimCommonHigh(heading, pitch);
 	start-script RestoreAfterDelay();
+
+	// Prevent "bonus shots" while alternative weapon is reloading
+	var reloading;
+	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(1));
+	if( reloading )
+	{
+		return(0);
+	}
+
 	return (1);
+}
+
+AimTertiary(piecenum)
+{
+	return (0);
 }
 
 AimFromPrimary(piecenum)
@@ -329,6 +323,11 @@ QuerySecondary(piecenum)
 	{
 		piecenum = flareBottom;
 	}
+}
+
+QueryTertiary(piecenum)
+{
+	piecenum = turretmidpoint;
 }
 
 SweetSpot(piecenum)

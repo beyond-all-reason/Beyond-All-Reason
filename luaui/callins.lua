@@ -15,6 +15,7 @@ CallInsList = {
 	"Shutdown",
 	"LayoutButtons",
 	"ConfigureLayout",
+	"ActiveCommandChanged",
 	"CommandNotify",
 
 	"KeyPress",
@@ -105,6 +106,8 @@ CallInsList = {
 	"DrawAlphaFeaturesLua",
 	"DrawShadowUnitsLua",
 	"DrawShadowFeaturesLua",
+
+	"FontsChanged",
 
 	"SunChanged",
 

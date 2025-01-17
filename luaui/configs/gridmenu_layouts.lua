@@ -64,8 +64,8 @@ local labGrids = {
 	},
 	legavp = {
 		"legacv", "legmrv", "legaskirmtank", "legamcluster",   -- T2 con, Quickshot, scorpion, cleaver
-		"corvrad", "coreter", "legaheattank", "leginf",        -- radar, jammer, goli, inferno
-		"legfloat", "legmed", "corsent", "legavroc",            -- the new and improved triton, medusa, AA, boreas
+		"legavrad", "legavjam", "legaheattank", "leginf",        -- radar, jammer, goli, inferno
+		"legfloat", "legmed", "legvflak", "legavroc",            -- the new and improved triton, medusa, AA, boreas
 	},
 	-- T1 air
 	armap = {
@@ -93,9 +93,9 @@ local labGrids = {
 		"corcrw","corcrwh",                                              -- krow
 	},
 	legaap = {
-	"legaca","legionnaire","legvenator","",					--T2 con, defensive fig, interceptor
-	"legmineb","legnap","legphoenix","cortitan",			--minebomber, napalmbomber, 'heavy bomber', torpedo
-	"legfort","legstronghold","legwhisper",	""			--knockoff krow, (well armed)transport, radar
+		"legaca", "legionnaire", "legvenator","",					--T2 con, defensive fig, interceptor
+		"legmineb", "legnap", "legphoenix", "legatorpbomber",			--minebomber, napalmbomber, 'heavy bomber', torpedo
+		"legfort", "legstronghold", "legwhisper",	""			--knockoff krow, (well armed)transport, radar
 	},
 	-- seaplanes
 	armplat = {
@@ -189,15 +189,14 @@ local labGrids = {
 		"armmar", "armraz", "armvang", "armthor",
 		"armbanth", "armlun"
 	},
-
 	corgant = {
 		"corcat", "corkarg", "corshiva", "corkorg",
 		"corjugg", "corsok"
 	},
 	leggant = {
-		"corcat", "corkarg", "corshiva", "corkorg",
-		"corjugg", "corsok", "legpede", "leegmech",
-		"legkeres","",""
+		"corcat", "corkarg", "legjav", "corkorg", --catapult, kargneth, javelin, juggernaut
+		"corjugg", "corsok", "legpede", "leegmech", --behemoth, hovertank, mukade, praetorian
+		"legkeres","legerailtank","" -- keres, daedalus
 	}
 }
 local unitGrids = {
@@ -1116,7 +1115,7 @@ local unitGrids = {
 		{
 			{ "corlab", "corvp", "corap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
 			{ "cornanotc", "coravp", },                       -- nano, T2 lab
-			{ "leghp", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
+			{ "corhp", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
     legcv = {
@@ -1490,7 +1489,7 @@ local unitGrids = {
 
 	legack = {
 		{
-			{ "legmoho", "corfus", "corafus", },                -- moho, fusion, afus
+			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
 			{ "cormmkr", "legageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
 			{ "coruwadves", "legamstor", },                    -- hardened energy storage, hardened metal storage,
 		},
@@ -1560,7 +1559,7 @@ local unitGrids = {
 
 	legacv = {
 		{
-			{ "legmoho", "corfus", "corafus", },                -- moho, fusion, afus
+			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
 			{ "cormmkr", "legageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
 			{ "coruwadves", "legamstor", },                    -- hardened energy storage, hardened metal storage,
 		},
@@ -1629,7 +1628,7 @@ local unitGrids = {
 	},
 	legaca = {
 		{
-			{ "legmoho", "corfus", "corafus", },                -- moho, fusion, afus
+			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
 			{ "cormmkr", "legageo", "cormexp","coruwageo", },               -- T2 converter, T2 geo, armed moho
 			{ "coruwadves", "legamstor", },                    -- hardened energy storage, hardened metal storage,
 		},
