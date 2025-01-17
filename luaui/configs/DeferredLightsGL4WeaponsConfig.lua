@@ -390,13 +390,22 @@ local function AssignLightsToAllWeapons()
 		elseif weaponDef.type == 'MissileLauncher'then
 			t.a = orgMult * 0.33
 			projectileDefLights[weaponID] = GetLightClass("MissileProjectile", "Warm", sizeclass, t)
-
+			
 		elseif weaponDef.type == 'StarburstLauncher' then
 			t.a = orgMult * 0.44
-			projectileDefLights[weaponID] = GetLightClass("MissileProjectile", "Warm", sizeclass, t)
+			
+			if weaponDef.interceptor == 1 then
+				--t.a = orgMult * 1.33
+				t.r, t.g, t.b = 0.5, 0.75, 1.0
+				t.color2r, t.color2g, t.color2b = 0.22, 0.37, 0.79
+				projectileDefLights[weaponID] = GetLightClass("MissileProjectile", "Cold", sizeclass, t)
+			else	
 			sizeclass = GetClosestSizeClass(radius)
 			radius = ((orgMult * 75) + (radius * 4)) * 0.4
 			life = 8 + (5*(radius/2000)+(orgMult * 5))
+			projectileDefLights[weaponID] = GetLightClass("MissileProjectile", "Warm", sizeclass, t)
+			end
+		
 
 		elseif weaponDef.type == 'Cannon' then
 			t.a = orgMult*0.17
@@ -638,6 +647,15 @@ GetLightClass("MuzzleFlash", nil, "Medium", {posx = 0, posy = 0, posz = 0,
 muzzleFlashLightsNames["corbuzz_rflrpc"].yOffset = 4
 explosionLightsNames["corbuzz_rflrpc"] =
 GetLightClass("Explosion", nil, "Large", {colortime = 3.5, sustain = 14, lifetime = 26, scattering = 0.7})
+
+
+-- --cortex anitnuke engine exhaust
+-- projectileDefLightsNames["corfmd_fmd_rocket"] =
+-- GetLightClass("MissileProjectile", "Cold", "MediumLarge", {a = 0.6,
+-- 										--r = 0.1, g = 0.5, b = 1.0, 
+-- 										modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0,
+-- 										color2r = 0.22, color2g = 0.37, color2b = 0.79, colortime = 5,
+-- 									})
 
 
 --corsilo

@@ -259,7 +259,7 @@ local function initializeUnitDefRing(unitDefID)
 				groupselectionfadescale,
 				weaponType,
 				isDgun,
-				maxangledif
+				--maxangledif
 			}
 			unitDefRings[unitDefID]['rings'][weaponNum] = ringParams
 		end

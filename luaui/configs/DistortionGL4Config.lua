@@ -902,6 +902,18 @@ local unitDistortions = {
 		},
 	},
 
+	['corint'] = {
+		heatvent1 = {
+			distortionType = 'beam',
+			pieceName = 'gun',
+			distortionConfig = { posx = 0,  posy = 20,  posz = -14.5, radius = 8,
+							    pos2x = 0, pos2y = 26, pos2z = -14.4,
+							noiseStrength = 0.5, noiseScaleSpace = -2, distanceFalloff = 1.4,
+							windAffected = -1, riseRate = 1,
+							lifeTime = 0, effectType = 'heatDistortion'},
+		},
+	},
+
 	['coravp'] = {
 		factoryheat = {
 			distortionType = 'point',
@@ -1379,6 +1391,7 @@ local unitDistortions = {
 
 -- Effect duplications:
 unitDistortions['armdecom'] = unitDistortions['armcom']
+unitDistortions['corgantuw'] = unitDistortions['corgant']
 
 local unitEventDistortionsNames = {
 	------------------------------------ Put distortions that are slaved to ProjectileCreated here! ---------------------------------
@@ -1423,9 +1436,9 @@ local unitEventDistortionsNames = {
 				distortionName = 'corkorgfootstep',
 				pieceName = 'none',
 				distortionConfig = { posx = 0, posy = 0, posz = 8, radius = 120,
-								noiseStrength = 1.2, noiseScaleSpace = 0.5, distanceFalloff = 0.2, onlyModelMap = 1, 
+								noiseStrength = 1.2, noiseScaleSpace = 0.5, distanceFalloff = 0.4, onlyModelMap = 1, 
 								effectStrength = 1.0, --needed for shockwave
-								lifeTime = 25, rampUp = 3, decay = 5, startRadius = 0.3,
+								lifeTime = 25, rampUp = 3, decay = 15, startRadius = 0.3,
 								shockWidth = 5, effectType = 'groundShockwave'},
 	
 			},
@@ -1612,11 +1625,29 @@ local unitEventDistortionsNames = {
 				
 		['armbrtha'] = {
 			[1] = {
-				-- Barrel Heat
+				-- Barrel Heat after shot
 				alwaysVisible = false,
 				distortionType = 'beam',
-				distortionName = 'armbrthabarrelheat',
+				distortionName = 'barrelheat',
 				pieceName = 'flare',
+				distortionConfig = { posx = 0, posy = 4, posz = 4, radius = 10,
+									pos2x = 0, pos2y = 4, pos2z = -16,
+								onlyModelMap = 0,
+								riseRate = 0.5, windAffected = -0.5,
+								noiseStrength = 0.3, noiseScaleSpace = 1.0, distanceFalloff = 1.0,
+								rampUp = 5, decay = 200, 
+								lifeTime = 240,  effectType = 0},
+	
+			},
+		},
+
+		['corint'] = {
+			[1] = {
+				-- Barrel Heat after shot
+				alwaysVisible = false,
+				distortionType = 'beam',
+				distortionName = 'barrelheat',
+				pieceName = 'heat',
 				distortionConfig = { posx = 0, posy = 4, posz = 4, radius = 10,
 									pos2x = 0, pos2y = 4, pos2z = -16,
 								onlyModelMap = 0,
