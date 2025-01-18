@@ -314,6 +314,7 @@ local function refreshUnitDefs()
 		unitBuildOptions[udid] = ud.buildOptions
 		unitTranslatedHumanName[udid] = ud.translatedHumanName
 		unitTranslatedTooltip[udid] = ud.translatedTooltip
+
 		if ud.customParams.metal_extractor then
 			unitMetal_extractor[udid] = ud.customParams.metal_extractor
 		end
@@ -322,8 +323,6 @@ local function refreshUnitDefs()
 		end
 	end
 end
-
-refreshUnitDefs()
 
 -- starting units
 local startUnits = { UnitDefNames.armcom.id, UnitDefNames.corcom.id }
@@ -1239,6 +1238,8 @@ local function cycleBuilder()
 end
 
 function widget:Initialize()
+	refreshUnitDefs()
+
 	if widgetHandler:IsWidgetKnown("Build menu") then
 		-- Build menu needs to be disabled right now and before we recreate
 		-- WG['buildmenu'] since its Shutdown will destroy it.
