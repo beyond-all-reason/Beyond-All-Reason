@@ -17,52 +17,43 @@ local modOptions = Spring.GetModOptions()
 
 if modOptions.nowasting == "default" or modOptions.nowasting == "disabled" then Spring.Echo("disabled/default") return false end
 
-
-local aiTeams
-local humanTeams
-local teams = {}
-
-
-function gadget:Initialize()
-	aiTeams = GG.PowerLib.AiTeams
-	Spring.Echo(aiTeams)
-	humanTeams = GG.PowerLib.HumanTeams
-end
-
---Spring.Echo("resultant teams 2", teams)
-
-if modOptions.nowasting == "ai" and not next(teams) then Spring.Echo("no AI teams") return false end
-
-Spring.Echo("test2", GG.PowerLib.AiTeams, GG.PowerLib.HumanTeams)
-
-Spring.Echo("the teams", aiTeams, humanTeams)
-for teamID, _ in pairs (aiTeams) do
-	teams[teamID] = true
-	--Spring.Echo("robo teamID", teamID)
-end
-if modOptions.nowasting == "all" then
-	for teamID, _ in pairs (humanTeams) do
-		teams[teamID] = true
-		--Spring.Echo("player teamID", teamID)
-	end
-end
+local aiTeams = {}
+local humanTeams = {}
+local boostableTeams = {}
 
 --set teams to boost
 local boostableAllies = {}
 local overflowingAllies = {}
 local teamBoostableUnits = {}
-
-for teamID, _ in pairs(teams) do
-	local alliedTeam = select(6, Spring.GetTeamInfo(teamID))
-	Spring.Echo("GetTeamInfo", Spring.GetTeamInfo(teamID))
-	Spring.Echo("alliedteam", alliedTeam, "boostableAllies[alliedTeam]", boostableAllies[alliedTeam])
-	boostableAllies[alliedTeam] = boostableAllies[alliedTeam] or {}
-	boostableAllies[alliedTeam][teamID] = true
-	overflowingAllies[alliedTeam] = 1
-	teamBoostableUnits[teamID] = {}
+local allAlliesList = Spring.GetAllyTeamList()
+for allyNumber, _ in pairs (alliesList) do
+	local teamIDs = Spring.GetTeamList (allyNumber)
+	allAlliesList[allyNumber] = teamIDs
 end
---Spring.Echo("Boostable Teams", boostableAllies)
+Spring.Echo("Allies and Teams", allAlliesList)
+local balancedAllies = {}
 
+function gadget:Initialize()
+	aiTeams = GG.PowerLib.AiTeams
+	for teamID, _ in pairs (aiTeams) do
+		boostableTeams[teamID] = true
+	end
+	humanTeams = GG.PowerLib.HumanTeams
+	if modOptions.nowasting == "all" then
+		for teamID, _ in pairs (humanTeams) do
+			boostableTeams[teamID] = true
+		end
+	end
+
+	for teamID, _ in pairs(boostableTeams) do
+		local alliedTeam = select(6, Spring.GetTeamInfo(teamID))
+		boostableAllies[alliedTeam] = boostableAllies[alliedTeam] or {}
+		boostableAllies[alliedTeam][teamID] = true
+		overflowingAllies[alliedTeam] = 1
+		teamBoostableUnits[teamID] = {}
+	end
+	Spring.Echo("Boostable Teams", boostableAllies)
+end
 
 
 --localized functions
@@ -74,44 +65,43 @@ local builderWatchDefs = {}
 local builderWatch = {}
 
 for id, def in pairs(UnitDefs) do
-	if def.buildSpeed then
+	if def.buildSpeed and def.buildSpeed > 0 then
 		builderWatchDefs[id] = def.buildSpeed
+		--Spring.Echo(def.name, "def.buildSpeed", def.buildSpeed)
 	end
 end
 
-local function updateTeamOverflowing(alliedTeam)
+local function updateTeamOverflowing(alliedTeam, oldMultiplier)
 	local teamIDs = boostableAllies[alliedTeam]
-	local allyteamOverflowingMetal = 1
-    local allyteamOverflowingEnergy = 1
 
-    local totalEnergy = 0
-    local totalEnergyStorage = 0
     local totalMetal = 0
     local totalMetalStorage = 0
-    local energyPercentile, metalPercentile
+	local totalMetalReceived = 0
+    local metalPercentile = 0
 
+	local wastingMetal = true
 	for teamID, _ in pairs(teamIDs) do
-		local energy, energyStorage, _, _, _, energyShare, energySent = spGetTeamResources(teamID, "energy")
-		totalEnergy = totalEnergy + energy
-		totalEnergyStorage = totalEnergyStorage + energyStorage
-		local metal, metalStorage, _, _, _, metalShare, metalSent = spGetTeamResources(teamID, "metal")
+		local metal, metalStorage, pull, metalIncome, metalExpense,share, metalSent, metalReceived = spGetTeamResources(teamID, "metal")
+		--Spring.Echo(alliedTeam.." returns",  metal, metalStorage, pull, metalIncome, metalExpense,share, metalSent, metalReceived)
+		--returns, 359.875702, 1500, 21.6683731, 22.6691532, 21.6683731, 0.99000001, 0, 1.24321938
 		totalMetal = totalMetal + metal
 		totalMetalStorage = totalMetalStorage + metalStorage
+		totalMetalReceived = totalMetalReceived + metalReceived
 
-		energyPercentile = totalEnergy / totalEnergyStorage
 		metalPercentile = totalMetal / totalMetalStorage
+		if metalPercentile < 0.975 then
+			wastingMetal = false
+		end
 	end    
-	energyPercentile = totalEnergy / totalEnergyStorage
-	metalPercentile = totalMetal / totalMetalStorage
-	if energyPercentile > 0.975 then
-		allyteamOverflowingEnergy = (energyPercentile - 0.975) * (1 / 0.025)
+	if totalMetalStorage > (totalMetal * 4) then
+		local newMultiplier = math.max(oldMultiplier / 1.5, 1)
+		return newMultiplier
+	elseif wastingMetal == true and (not modOptions.dynamiccheats or balancedAllies[alliedTeam] == true) then
+		local newMultiplier = math.min(oldMultiplier * 1.5, 100)
+		return newMultiplier
+	else
+		return oldMultiplier
 	end
-	if metalPercentile > 0.975 then
-		allyteamOverflowingMetal = (metalPercentile - 0.975) * (1 / 0.025)
-	end
-
-	local overflowMultiplier = math.max(allyteamOverflowingEnergy, allyteamOverflowingMetal, 1)
-	return overflowMultiplier
 end
 
 local function updateAllyUnitsBuildPowers(alliedTeam, boostMultiplier)
@@ -121,9 +111,33 @@ local function updateAllyUnitsBuildPowers(alliedTeam, boostMultiplier)
 		for unitID, buildPower in pairs(units) do
 			if builderWatch[unitID] then
 				spSetUnitBuildSpeed(unitID, buildPower * boostMultiplier)
+				--Spring.Echo(unitID, buildPower, boostMultiplier)
 			else
 				units[unitID] = nil
 			end
+		end
+	end
+end
+
+local function updateWinningTeams()
+	local allyPowersTable = {}
+	local totalPower = 0
+	local allyTeams = Spring.GetAllyTeamList()
+	for alliedTeamNumber, teams in pairs(allAlliesList) do
+		local totalAllyPower = 0
+		for teamID, _ in pairs(teams) do
+			local teamPower = GG.PowerLib.TeamPower(teamID)
+			totalAllyPower = totalAllyPower + teamPower
+		end
+		allyPowersTable[alliedTeamNumber] = totalAllyPower
+	end
+	local averageAllyPower = totalPower / #allyPowersTable
+
+	for alliedTeamNumber, power in pairs(allyPowersTable) do
+		if power < averageAllyPower * 1.25 then
+			balancedAllies[alliedTeamNumber] = true
+		else
+			balancedAllies[alliedTeamNumber] = false
 		end
 	end
 end
@@ -142,12 +156,16 @@ function gadget:UnitDestroyed(unitID)
 end
 
 function gadget:GameFrame(frame)
-	if frame % 90 == 0 then
+	if frame % 150 == 0 then
 		for alliedTeam, oldBuildPowerMultiplier in pairs(overflowingAllies) do
-		local newBuildPowerMultiplier = updateTeamOverflowing(alliedTeam)
+		local newBuildPowerMultiplier = updateTeamOverflowing(alliedTeam, oldBuildPowerMultiplier)
+		--Spring.Echo("AlliedTeam "..alliedTeam, newBuildPowerMultiplier, oldBuildPowerMultiplier)
 			if oldBuildPowerMultiplier ~= newBuildPowerMultiplier then
+				--Spring.Echo("BP change", newBuildPowerMultiplier)
 				updateAllyUnitsBuildPowers(alliedTeam, newBuildPowerMultiplier)
+				overflowingAllies[alliedTeam] = newBuildPowerMultiplier
 			end
+			updateWinningTeams(alliedTeam)
 		end
 	end
 end

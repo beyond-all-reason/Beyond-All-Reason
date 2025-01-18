@@ -1527,9 +1527,18 @@ local options = {
     },
 
     {
+        key 	= "dynamiccheats",
+        name 	= "Dynamic Cheats",
+        desc   	= "Cheats marked as [Dynamic] react to the game state and are suspended when the opposition is losing",
+        type 	= "bool",
+        def 	= true,
+        section = "options_cheats",
+    },
+
+    {
         key		= "nowasting",
         name	= "No Resource Wasting",
-        desc	= "Increases Buildpower for the affected team's builders and factories to prevent resource",
+        desc	= "[Dynamic] Increases Buildpower for the affected team's builders and factories to prevent resource",
         type	= "list",
         def		= "default",
         section	= "options_cheats",
