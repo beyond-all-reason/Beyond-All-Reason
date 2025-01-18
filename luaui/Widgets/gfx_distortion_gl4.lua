@@ -666,7 +666,7 @@ function widget:Barrelfire(px, py, pz, weaponID, ownerID)
 end
 
 local function UnitScriptDistortion(unitID, unitDefID, distortionIndex, param)
-	--Spring.Echo("UnitSCriptDistortion", unitID, unitDefID, distortionIndex, param, visibleUnits[unitID] )
+	Spring.Echo("UnitSCriptDistortion", unitID, unitDefID, distortionIndex, param, visibleUnits[unitID] )
 	if spValidUnitID(unitID) and spGetUnitIsDead(unitID) == false and visibleUnits[unitID] and unitEventDistortions.UnitScriptDistortions[unitDefID] and unitEventDistortions.UnitScriptDistortions[unitDefID][distortionIndex] then
 		local distortionTable = unitEventDistortions.UnitScriptDistortions[unitDefID][distortionIndex]
 		if not distortionTable.alwaysVisible then
@@ -1060,18 +1060,8 @@ end
 
 ------------------------------- Drawing all the distortions ---------------------------------
 
-local hasAtLeastOneDistortion = false
 
 local function DrawDistortionFunction2(gf) -- For render-to-texture
-	if  pointDistortionVBO.usedElements > 0 or
-		unitPointDistortionVBO.usedElements > 0 or
-		beamDistortionVBO.usedElements > 0 or
-		unitConeDistortionVBO.usedElements > 0 or
-		coneDistortionVBO.usedElements > 0 or
-		projectilePointDistortionVBO.usedElements > 0 or 
-		projectileBeamDistortionVBO.usedElements > 0 or 
-		projectileConeDistortionVBO.usedElements > 0 then
-		hasAtLeastOneDistortion = true
 		-- Set is as black with zero alpha
 		gl.Clear(GL.COLOR_BUFFER_BIT, 0.0, 0.0, 0.0, 0.0)
 
@@ -1149,9 +1139,6 @@ local function DrawDistortionFunction2(gf) -- For render-to-texture
 		gl.DepthTest(true)
 		--gl.DepthMask(true) --"BK OpenGL state resets", was true but now commented out (redundant set of false states)
 		glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-	else
-		hasAtLeastOneDistortion = false
-	end
 end
 
 -- local tf = Spring.GetTimerMicros()
@@ -1162,18 +1149,29 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 	if autoupdate then
 		deferredDistortionShader = LuaShader.CheckShaderUpdates(distortionShaderSourceCache, 0) or deferredDistortionShader
 	end
+
+	local hasAtLeastOneDistortion = 
+		pointDistortionVBO.usedElements > 0 or
+		beamDistortionVBO.usedElements > 0 or
+		coneDistortionVBO.usedElements > 0 or
+		unitPointDistortionVBO.usedElements > 0 or
+		unitBeamDistortionVBO.usedElements > 0 or
+		unitConeDistortionVBO.usedElements > 0 or
+		projectilePointDistortionVBO.usedElements > 0 or 
+		projectileBeamDistortionVBO.usedElements > 0 or 
+		projectileConeDistortionVBO.usedElements > 0
+
+	if (not hasAtLeastOneDistortion) then return end
 	
 	tracy.ZoneBeginN("CopyToTexture")
 	-- Blend the distortion:
 	gl.CopyToTexture(ScreenCopy, 0, 0, vpx, vpy, vsx, vsy)
-	tracy.ZoneEnd()
+	tracy.ZoneEnd() 
 
-	--tracy.ZoneBeginN("DrawDistortionFunction")
-	--Spring.Echo("RenderToTexture(DistortionTexture, DrawDistortionFunction2")
+
+
 	gl.RenderToTexture(DistortionTexture, DrawDistortionFunction2, Spring.GetGameFrame())
 	--tracy.ZoneEnd()
-	if not hasAtLeastOneDistortion then return end
-
 	tracy.ZoneBeginN("CombineDistortion")
 	-- Combine the distortion with the scene:
 	if autoupdate then
