@@ -63,3 +63,11 @@ do
 	end
 	WeaponDefNames = tbl
 end
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+-- Run I18N initialization here in case any widgets try to look up unit names/descriptions outside of callins
+-- as that will happen before the gui_language widget gets a chance to run.
+local i18nDefs = VFS.Include('luaui/i18nhelpers.lua')
+i18nDefs.RefreshDefs()
