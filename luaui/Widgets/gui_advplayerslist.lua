@@ -2300,6 +2300,7 @@ function DrawResources(energy, energyStorage, energyShare, energyConversion, met
         y2Offset = 8.6 * sizeMult
     end
     local maxStorage = (maxAllyTeamMetalStorage and maxAllyTeamMetalStorage or metalStorage)
+    if not maxStorage or maxStorage == 0 then return end -- protect from NaN
     --gl_Color(0,0,0, 0.05)
     --gl_Texture(false)
     --DrawRect(m_resources.posX + widgetPosX + paddingLeft-bordersize, posY + y1Offset+bordersize, m_resources.posX + widgetPosX + paddingLeft + (barWidth * (metalStorage/maxStorage))+bordersize, posY + y2Offset-bordersize)
