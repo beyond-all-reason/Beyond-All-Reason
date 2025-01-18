@@ -20462,7 +20462,7 @@ local unitLights = {
 							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
 							r = -1, g = 1, b = 1, a = 0.5,
 							modelfactor = 0.2, specular = 1.2, scattering = 2, lensflare = 5,
-							lifetime = 0, sustain = 0, selfshadowing = 0},
+							lifetime = 0, sustain = 0, selfshadowing = 8},
 		},
 		fusionglow2 = {
 			lightType = 'point',
@@ -20491,7 +20491,7 @@ local unitLights = {
 							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
 							r = -1, g = 1, b = 1, a = 0.8,
 							modelfactor = 0.1, specular = 0.66, scattering = 1, lensflare = 5,
-							lifetime = 0, sustain = 0, selfshadowing = 1},
+							lifetime = 0, sustain = 0, selfshadowing = 8},
 		},
 		fusionorb = {
 			lightType = 'point',
