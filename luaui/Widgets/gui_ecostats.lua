@@ -1065,6 +1065,10 @@ local function drawListStandard()
 		end
 	end
 
+	if maxMetal == 0 or maxEnergy == 0 then
+		return -- protect from NaN
+	end
+
 	for _, data in ipairs(allyData) do
 		local aID = data.aID
 		if aID ~= nil then
