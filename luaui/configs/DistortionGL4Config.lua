@@ -97,8 +97,8 @@ local unitDistortions = {
 		distortion = {
 			distortionType = 'beam',
 			pieceName = 'base',
-			distortionConfig = { posx = 2.5, posy = 4, posz = -12, radius = 4,
-								pos2x = -2.5, pos2y = 4, pos2z = -12, radius2 = 23, 
+			distortionConfig = { posx = 2.0, posy = 5, posz = -12, radius = 2.4,
+								pos2x = -2.0, pos2y = 5, pos2z = -12, radius2 = 23, 
 								noiseStrength = 0.7, noiseScaleSpace = -2, distanceFalloff = 0.8,
 								rampUp = 30, decay = 0,
 								lifeTime = 0,  effectType = 0},
@@ -902,6 +902,42 @@ local unitDistortions = {
 		},
 	},
 
+	['corpyro'] = {
+		flameheat = {
+			distortionType = 'beam',
+			pieceName = 'lloarm',
+			distortionConfig = { posx = 0,  posy = -0.4,  posz = 17, radius = 5.5,
+							    pos2x = 0, pos2y = -0.4, pos2z = 23,
+							noiseStrength = 1.0, noiseScaleSpace = -2.0, distanceFalloff = 1.5,
+							effectStrength = 1.0,
+							windAffected = 0.5, riseRate = 1.2,
+							lifeTime = 0, effectType = 'heatDistortion'},
+		},
+	},
+
+	['cordemon'] = {
+		flameheatl = {
+			distortionType = 'beam',
+			pieceName = 'lfbarrel1',
+			distortionConfig = { posx = -2,  posy = -0.4,  posz = 5, radius = 8.5,
+							    pos2x = -2, pos2y = -0.4, pos2z = 10,
+							noiseStrength = 1.0, noiseScaleSpace = -2.0, distanceFalloff = 1.5,
+							effectStrength = 1.0,
+							windAffected = 0.5, riseRate = 1.2,
+							lifeTime = 0, effectType = 'heatDistortion'},
+		},
+		flameheatr = {
+			distortionType = 'beam',
+			pieceName = 'rfbarrel1',
+			distortionConfig = { posx = -2,  posy = -0.4,  posz = 5, radius = 8.5,
+							    pos2x = -2, pos2y = -0.4, pos2z = 10,
+							noiseStrength = 1.0, noiseScaleSpace = -2.0, distanceFalloff = 1.5,
+							effectStrength = 1.0,
+							windAffected = 0.5, riseRate = 1.2,
+							lifeTime = 0, effectType = 'heatDistortion'},
+		},
+	},
+
 	['corint'] = {
 		heatvent1 = {
 			distortionType = 'beam',
@@ -1520,7 +1556,7 @@ local unitEventDistortionsNames = {
 				-- Barrel Heat
 				alwaysVisible = false,
 				distortionType = 'point',
-				distortionName = 'flameheat',
+				distortionName = 'flameheat1',
 				pieceName = 'lfbarrel2',
 				distortionConfig = { posx = 0, posy = 5, posz = 0, radius = 11,
 								noiseStrength = 0.4, noiseScaleSpace = 1.8, distanceFalloff = 1.1,
@@ -1534,7 +1570,7 @@ local unitEventDistortionsNames = {
 				-- Barrel Heat
 				alwaysVisible = false,
 				distortionType = 'point',
-				distortionName = 'flameheat',
+				distortionName = 'flameheat2',
 				pieceName = 'rfbarrel2',
 				distortionConfig = { posx = 0, posy = 5, posz = 0, radius = 11,
 								noiseStrength = 0.4, noiseScaleSpace = 1.8, distanceFalloff = 1.1,
@@ -1628,7 +1664,7 @@ local unitEventDistortionsNames = {
 				-- Barrel Heat after shot
 				alwaysVisible = false,
 				distortionType = 'beam',
-				distortionName = 'barrelheat',
+				distortionName = 'brthabarrelheat',
 				pieceName = 'flare',
 				distortionConfig = { posx = 0, posy = 4, posz = 4, radius = 10,
 									pos2x = 0, pos2y = 4, pos2z = -16,
@@ -1646,7 +1682,7 @@ local unitEventDistortionsNames = {
 				-- Barrel Heat after shot
 				alwaysVisible = false,
 				distortionType = 'beam',
-				distortionName = 'barrelheat',
+				distortionName = 'corintbarrelheat',
 				pieceName = 'heat',
 				distortionConfig = { posx = 0, posy = 4, posz = 4, radius = 10,
 									pos2x = 0, pos2y = 4, pos2z = -16,

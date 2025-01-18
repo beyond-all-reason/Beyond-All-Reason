@@ -842,6 +842,16 @@ StopMoving()
 
 #include "../unit_hitbyweaponid_and_smoke.h"
 
+PilotLight()
+{
+	while( TRUE )
+	{
+		emit-sfx 1024 + 1 from rfflare2;
+		emit-sfx 1024 + 1 from lfflare1;
+		sleep 50;
+	}
+}
+
 Create()
 {
 	hide rfflare1;
@@ -863,6 +873,7 @@ Create()
 	isMoving = FALSE;
 	isAiming = FALSE;
 	animSpeed = 6;
+	start-script PilotLight();
 	
 	turn rbflare to x-axis <-130> now;
 	turn lbflare to x-axis <-130> now;

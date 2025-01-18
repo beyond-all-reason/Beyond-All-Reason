@@ -76,6 +76,7 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:flamestreamxxl",
+				[2] = "custom:pilotlightxl",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",

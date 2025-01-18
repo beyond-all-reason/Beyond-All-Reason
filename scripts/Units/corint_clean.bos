@@ -54,7 +54,7 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
-	shotcount = shotcount + 1;
+	
 	//start-script HotBarrel();
 	move barrel to z-axis [-7.500000] speed [500.0];
 	move gun to z-axis [-4.0] speed [500.0];
@@ -63,9 +63,13 @@ FireWeapon1()
 	call-script lua_UnitScriptLight(1, shotcount);
 	call-script lua_UnitScriptLight(2, shotcount);
 	call-script lua_UnitScriptDistortion(1, shotcount);
+	shotcount = shotcount + 1;
+	//show heat;
 	sleep 200;
 	move barrel to z-axis [0.0] speed [3.500000];
 	move gun to z-axis [0.0] speed [3.500000];
+	//sleep 2000;
+	//hide heat;
 }
 
 AimFromWeapon1(pieceIndex)

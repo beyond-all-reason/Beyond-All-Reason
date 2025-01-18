@@ -842,6 +842,7 @@ GetLightClass("LaserProjectile", nil, "Medium", {a = 0.10,
 											color2r = 0.33, color2g = 0.05, color2b = 0.03, colortime = 3,
 											pos2x = 0, pos2y = 100, pos2z = 0,
 											modelfactor = 0.5, specular = 0.05, scattering = 0.05, lensflare = 16,
+											selfshadowing = 8,
 											lifetime = 6, sustain = 2})
 
 muzzleFlashLightsNames["corkorg_corkorg_laser"] =
@@ -861,7 +862,8 @@ GetLightClass("MuzzleFlash", "Fire", "Mega", {posx = 120, posy = 82, posz = 0,
 
 --corkorg_shotgun
 projectileDefLightsNames["corkorg_corkorg_fire"] =
-GetLightClass("CannonProjectile", "Plasma", "Smaller", {a = 0.04, radius = 80,
+GetLightClass("CannonProjectile", "Plasma", "Smaller", {a = 0.012, radius = 200,
+											selfshadowing = 4,
 											modelfactor = 0.2, specular = 0.2, scattering = 0.3, lensflare = 3})
 
 explosionLightsNames["corkorg_corkorg_fire"] =
@@ -952,9 +954,10 @@ GetLightClass("MuzzleFlash", "Warm", "Medium", {posx = 1, posy = 1, posz = 1, ra
 
 --armmanni
 projectileDefLightsNames["armmanni_atam"] =
-GetLightClass("LaserProjectile", "Blue", "Smaller", {a = 0.09,
+GetLightClass("LaserProjectile", "Blue", "SmallMedium", {a = 0.09,
 					color2r = 0.6, color2g = 0.6, color2b = 0.6, colortime = 10,
 					modelfactor = 0.5, specular = 0.1, scattering = 0.7, lensflare = 0,
+					selfshadowing = 8,
 					lifetime = 0, sustain = 0})
 
 --corjugg

@@ -105,12 +105,35 @@ local BaseClasses = {
 		},
 	},
 
+	HeatRayHeat = {
+		distortionType = 'beam', -- or cone or beam
+		distortionConfig = {
+				posx = 0, posy = 10, posz = 0, radius = 10,
+				noiseStrength = 0.75, noiseScaleSpace = 0.15, distanceFalloff = 1.5,
+				windAffected = -1, riseRate = 0.2,
+				pos2x = 100, pos2y = 1000, pos2z = 100, -- beam distortions only, specifies the endpoint of the beam
+				lifeTime = 3, rampUp = 3, decay = 0, effectType = 0, 
+		},
+	},
+	HeatRayHeatXL = { --heaviest laserbeam (corkorg)
+		distortionType = 'beam', -- or cone or beam
+		distortionConfig = {
+				posx = 0, posy = 10, posz = 0, radius = 10,
+				pos2x = 0, pos2y = 0, pos2z = 0, radius2 = 1,
+				noiseStrength = 4, noiseScaleSpace = 0.03, distanceFalloff = 0.2,
+				effectStrength = 2.0, 
+				windAffected = -1, riseRate = 2.2, onlyModelMap = 0, 
+				--refractiveIndex = 1.15,
+				lifeTime = 3, rampUp = 3, decay = 3, effectType = 7, 
+		},
+	},
+
 	TachyonBeam = {
 		distortionType = 'beam', -- or cone or beam
 		distortionConfig = {
 				posx = 0, posy = 0, posz = 0, radius = 10,
-				noiseStrength = 2.2, noiseScaleSpace = 0.12,
-				windAffected = -1, riseRate = 2.6, onlyModelMap = 1, 
+				noiseStrength = 2.2, noiseScaleSpace = 0.03,
+				windAffected = -1, riseRate = 2.6, onlyModelMap = 0, 
 				pos2x = 100, pos2y = 500, pos2z = 100, -- beam distortions only, specifies the endpoint of the beam
 				lifeTime = 10, sustain = 1, rampUp = 0, decay = 3, effectType = 7, 
 		},
@@ -140,28 +163,6 @@ local BaseClasses = {
 				windAffected = -1, riseRate = -3.2,
 				pos2x = 100, pos2y = 100, pos2z = 100, -- beam distortions only, specifies the endpoint of the beam
 				lifeTime = 0, rampUp = 0, decay = 2, effectType = 0, 
-		},
-	},
-
-	HeatRayHeat = {
-		distortionType = 'beam', -- or cone or beam
-		distortionConfig = {
-				posx = 0, posy = 10, posz = 0, radius = 10,
-				noiseStrength = 0.75, noiseScaleSpace = 0.15, distanceFalloff = 1.5,
-				windAffected = -1, riseRate = 0.2,
-				pos2x = 100, pos2y = 1000, pos2z = 100, -- beam distortions only, specifies the endpoint of the beam
-				lifeTime = 3, rampUp = 3, decay = 0, effectType = 0, 
-		},
-	},
-	HeatRayHeatXL = { --heaviest laserbeam (corkorg)
-		distortionType = 'beam', -- or cone or beam
-		distortionConfig = {
-				posx = 0, posy = 10, posz = 0, radius = 10,
-				pos2x = 0, pos2y = 0, pos2z = 0, radius2 = 1,
-				noiseStrength = 6, noiseScaleSpace = 0.05, distanceFalloff = 1.9, 
-				windAffected = 0.1, riseRate = 0.2, onlyModelMap = 1, 
-				--refractiveIndex = 1.15,
-				lifeTime = 3, rampUp = 3, decay = 3, effectType = 7, 
 		},
 	},
 
@@ -560,7 +561,7 @@ local SizeRadius = {
 	Zetto = 		5,
 	Atto =			10, 
 	Femto = 		16,
-	KorgLaser = 	20,  
+	KorgLaser = 	19,  
 	Pico = 			26,
 	Nano = 			34,
 	Micro = 		44,
@@ -1182,21 +1183,28 @@ projectileDefDistortionsNames["armsubk_armsmart_torpedo"] =
 -- 	GetDistortionClass("AirShockWaveBeam", "Small")
 
 projectileDefDistortionsNames['armmanni_atam'] =
-	GetDistortionClass("TachyonBeam", "KorgLaser", {
-		noiseStrength = 2, noiseScaleSpace = 0.03,
+	GetDistortionClass("TachyonBeam", "Femto", {
+		noiseStrength = 1, noiseScaleSpace = 0.03,
 		windAffected = -0.8, riseRate = -0.2,
 	})
 
 projectileDefDistortionsNames['armanni_ata'] =
-	GetDistortionClass("TachyonBeam", "KorgLaser", {
-		noiseStrength = 2.0, noiseScaleSpace = 0.020, 
+	GetDistortionClass("TachyonBeam", "Femto", {
+		noiseStrength = 1.0, noiseScaleSpace = 0.04, 
 		windAffected = -0.9, riseRate = -0.2,
-		lifeTime = 30, rampUp = 20, decay = 15,
+		--lifeTime = 0, rampUp = 20, decay = 0,
+	})
+
+projectileDefDistortionsNames['cordoom_atadr'] =
+	GetDistortionClass("TachyonBeam", "Femto", {
+		noiseStrength = 1.0, noiseScaleSpace = 0.04, 
+		windAffected = -0.9, riseRate = -0.2,
+		--lifeTime = 0, rampUp = 20, decay = 0,
 	})
 
 projectileDefDistortionsNames['armbanth_tehlazerofdewm'] =
-	GetDistortionClass("TachyonBeam", "KorgLaser", {
-		noiseStrength = 3, noiseScaleSpace = 0.025,
+	GetDistortionClass("TachyonBeam", "Femto", {
+		noiseStrength = 1.5, noiseScaleSpace = 0.025,
 		windAffected = -0.8, riseRate = -0.2,
 	})
 
