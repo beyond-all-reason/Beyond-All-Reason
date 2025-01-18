@@ -942,8 +942,13 @@ void main(void)
 				
 			}
 			//printf(occludedness);
+
+			float prob = 0.56;
+
+			//vec4 weights = vec4(prob*prob, prob*(1.0-prob), (1.0-prob)*prob, (1.0-prob)*(1.0-prob));
+			vec4 weights = vec4(prob, 1.0 - prob, 1.0 - prob, prob) * 0.5;
 			vec4 gatheredunoccluded = quadGather(occludedness);
-			float dotproduct = dot(gatheredunoccluded, vec4(1.0)); // This will multiply by 4, effectively
+			float dotproduct = dot(gatheredunoccluded, vec4(4* weights)); // This will multiply by 4, effectively
 			//dotproduct = occludedness;
 			unoccluded = 1.0 - smoothstep(0.0, 0.25 * v_otherparams.w * float(screenSpaceShadows) , dotproduct);
 			
