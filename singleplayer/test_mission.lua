@@ -75,6 +75,9 @@ local actions = {
 
 	gameEnd = {
 		type = actionTypes.Defeat,
+		parameters = {
+			allyTeamIDs = {0},
+		},
 	},
 }
 
