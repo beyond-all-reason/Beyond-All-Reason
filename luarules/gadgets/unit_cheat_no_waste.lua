@@ -5,7 +5,7 @@ function gadget:GetInfo()
 		author = "SethDGamre",
 		date = "January 2025",
 		license = "GPLv2",
-		layer = 0,
+		layer = 1,
 		enabled = true
 	}
 end
@@ -24,13 +24,8 @@ local boostableTeams = {}
 local boostableAllies = {}
 local overflowingAllies = {}
 local teamBoostableUnits = {}
-local allAlliesList = Spring.GetAllyTeamList()
 local builderWatchDefs = {}
 local builderWatch = {}
-for allyNumber, _ in pairs (allAlliesList) do
-	local teamIDs = Spring.GetTeamList (allyNumber)
-	allAlliesList[allyNumber] = teamIDs
-end
 local balancedAllies = {}
 
 function gadget:Initialize()
@@ -59,7 +54,7 @@ local spGetTeamResources = Spring.GetTeamResources
 local spSetUnitBuildSpeed = Spring.SetUnitBuildSpeed
 
 for id, def in pairs(UnitDefs) do
-	if def.buildSpeed and def.buildSpeed > 0 then
+	if def.buildSpeed and def.buildSpeed > 0 and def.speed and def.speed == 0 then
 		builderWatchDefs[id] = def.buildSpeed
 	end
 end
@@ -80,16 +75,16 @@ local function updateTeamOverflowing(alliedTeam, oldMultiplier)
 		totalMetalReceived = totalMetalReceived + metalReceived
 
 		metalPercentile = totalMetal / totalMetalStorage
-		if metalPercentile < 0.975 then
+		if metalPercentile < 0.95 then
 			wastingMetal = false
 		end
 	end    
-	if totalMetalStorage > (totalMetal * 4) then
+	if totalMetalStorage / 4 > totalMetal then
 		local newMultiplier = math.max(oldMultiplier / 1.5, 1)
 		return newMultiplier
-	elseif wastingMetal == true and (not modOptions.dynamiccheats or balancedAllies[alliedTeam] == true) then
+	elseif wastingMetal == true and (modOptions.dynamiccheats == false or balancedAllies[alliedTeam] == true) then
 		local newMultiplier = math.min(oldMultiplier * 1.5, 100)
-		Spring.Echo(alliedTeam, "WE GONNA BOOST", newMultiplier)
+		Spring.Echo(alliedTeam, "Increase BP", newMultiplier)
 		return newMultiplier
 	else
 		return oldMultiplier
@@ -106,35 +101,6 @@ local function updateAllyUnitsBuildPowers(alliedTeam, boostMultiplier)
 			else
 				units[unitID] = nil
 			end
-		end
-	end
-end
-
-local function updateWinningTeams()
-	local allyPowersTable = {}
-	local totalPower = 0
-	local allyTeamsCount = 0
-	for alliedTeamNumber, teams in pairs(allAlliesList) do
-		local totalAllyPower = 0
-		for teamID, _ in pairs(teams) do
-			local teamPower = GG.PowerLib.TeamPower(teamID)
-			totalAllyPower = totalAllyPower + teamPower
-		end
-		if totalAllyPower > 0 then --ignore dead teams
-			allyTeamsCount = allyTeamsCount + 1
-			allyPowersTable[alliedTeamNumber] = totalAllyPower
-			totalPower = totalPower + totalAllyPower
-		end
-	end
-
-	local averageAllyPower = totalPower / allyTeamsCount
-
-	for alliedTeamNumber, power in pairs(allyPowersTable) do
-		Spring.Echo(alliedTeamNumber, power, averageAllyPower, averageAllyPower * 1.25)
-		if power < averageAllyPower * 1.25 then
-			balancedAllies[alliedTeamNumber] = true
-		else
-			balancedAllies[alliedTeamNumber] = false
 		end
 	end
 end
@@ -160,8 +126,19 @@ function gadget:GameFrame(frame)
 				updateAllyUnitsBuildPowers(alliedTeam, newBuildPowerMultiplier)
 				overflowingAllies[alliedTeam] = newBuildPowerMultiplier
 			end
-			updateWinningTeams(alliedTeam)
-			Spring.Echo("BalancedAllies", balancedAllies)
+			if newBuildPowerMultiplier == 1 then
+				for teamID, _ in pairs(boostableAllies[alliedTeam]) do
+					Spring.SetTeamRulesParam(teamID, "suspendbuilderpriority", 0)
+				end
+			else
+				for teamID, _ in pairs(boostableAllies[alliedTeam]) do
+					Spring.SetTeamRulesParam(teamID, "suspendbuilderpriority", 1)
+				end
+			end
 		end
 	end
 end
+
+--need to add an entry in game_team_power_watcher for ally functions, and playerteam functions
+
+--other things are fighting with this gadget over what to set the buildpower to, it's unit_builder_priority.lua
