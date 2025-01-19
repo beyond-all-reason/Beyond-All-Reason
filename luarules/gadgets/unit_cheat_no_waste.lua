@@ -26,7 +26,9 @@ local overflowingAllies = {}
 local teamBoostableUnits = {}
 local builderWatchDefs = {}
 local builderWatch = {}
-local balancedAllies = {}
+
+local isAllyTeamWinning
+local averageAlliedTechGuesstimate
 
 function gadget:Initialize()
 	aiTeams = GG.PowerLib.AiTeams
@@ -47,6 +49,9 @@ function gadget:Initialize()
 		overflowingAllies[alliedTeam] = 1
 		teamBoostableUnits[teamID] = {}
 	end
+
+	isAllyTeamWinning = GG.PowerLib.IsAllyTeamWinning
+	averageAlliedTechGuesstimate = GG.PowerLib.AverageAlliedTechGuesstimate
 end
 
 --localized functions
@@ -78,12 +83,13 @@ local function updateTeamOverflowing(alliedTeam, oldMultiplier)
 		if metalPercentile < 0.95 then
 			wastingMetal = false
 		end
-	end    
+	end
 	if totalMetalStorage / 4 > totalMetal then
-		local newMultiplier = math.max(oldMultiplier / 1.5, 1)
+		local newMultiplier = math.max(oldMultiplier / 1.25, 1)
 		return newMultiplier
-	elseif wastingMetal == true and (modOptions.dynamiccheats == false or balancedAllies[alliedTeam] == true) then
-		local newMultiplier = math.min(oldMultiplier * 1.5, 100)
+	elseif wastingMetal == true and (modOptions.dynamiccheats == false or 
+									(isAllyTeamWinning(_, alliedTeam, 1.5) == false and averageAlliedTechGuesstimate(_, alliedTeam) >= 1)) then
+		local newMultiplier = math.min(oldMultiplier * 1.25, 100)
 		Spring.Echo(alliedTeam, "Increase BP", newMultiplier)
 		return newMultiplier
 	else
@@ -119,10 +125,10 @@ function gadget:UnitDestroyed(unitID)
 end
 
 function gadget:GameFrame(frame)
-	if frame % 150 == 0 then
+	if frame % 120 == 0 then
 		for alliedTeam, oldBuildPowerMultiplier in pairs(overflowingAllies) do
 		local newBuildPowerMultiplier = updateTeamOverflowing(alliedTeam, oldBuildPowerMultiplier)
-			if oldBuildPowerMultiplier ~= newBuildPowerMultiplier then
+			if newBuildPowerMultiplier ~= 1 then
 				updateAllyUnitsBuildPowers(alliedTeam, newBuildPowerMultiplier)
 				overflowingAllies[alliedTeam] = newBuildPowerMultiplier
 			end
@@ -138,7 +144,3 @@ function gadget:GameFrame(frame)
 		end
 	end
 end
-
---need to add an entry in game_team_power_watcher for ally functions, and playerteam functions
-
---other things are fighting with this gadget over what to set the buildpower to, it's unit_builder_priority.lua

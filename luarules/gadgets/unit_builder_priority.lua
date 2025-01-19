@@ -113,7 +113,7 @@ local isTeamSavingMetal = function(_) return false end
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_PRIORITY)
 	updateTeamList()
-
+	
 	for _, teamID in ipairs(teamList) do
 		-- Distribute initial update frames. They will drift on their own afterward.
 		local gameFrame = Spring.GetGameFrame()
@@ -123,6 +123,7 @@ function gadget:Initialize()
 		-- Reset team tracking for constructors and their build priority settings.
 		canBuild[teamID] = canBuild[teamID] or {}
 		passiveCons[teamID] = passiveCons[teamID] or {}
+		Spring.SetTeamRulesParam(teamID, "suspendbuilderpriority", 0)
 	end
 
 	for _,unitID in pairs(Spring.GetAllUnits()) do
@@ -199,7 +200,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
     -- track which cons are set to passive
     if canPassive[unitDefID] then
         local cmdIdx = spFindUnitCmdDesc(unitID, CMD_PRIORITY)
-        if cmdIdx and (not suspendBuilderPriority or suspendBuilderPriority == 0) then
+        if cmdIdx and suspendBuilderPriority == 0 then
             local cmdDesc = spGetUnitCmdDescs(unitID, cmdIdx, cmdIdx)[1]
             cmdDesc.params[1] = cmdParams[1]
             spEditUnitCmdDesc(unitID, cmdIdx, cmdDesc)
@@ -224,7 +225,7 @@ local function UpdatePassiveBuilders(teamID, interval)
 	local nonPassiveConsTotalExpenseMetal = 0
 	local passiveConsExpense = {}
 	local passiveTeamCons = passiveCons[teamID]
-	suspendBuilderPriority = Spring.GetTeamRulesParam (teamID, "suspendbuilderpriority") or 0
+	suspendBuilderPriority = Spring.GetTeamRulesParam(teamID, "suspendbuilderpriority")
 
 	for builderID in pairs(canBuild[teamID]) do
 		local builtUnit = spGetUnitIsBuilding(builderID)
@@ -323,7 +324,7 @@ function gadget:GameFrame(n)
     for builderID, builtUnit in pairs(buildTargetOwners) do
         if spValidUnitID(builderID) and spGetUnitIsBuilding(builderID) == builtUnit then
 			local teamID = spGetUnitTeam(builderID)
-			suspendBuilderPriority = Spring.GetTeamRulesParam (teamID, "suspendbuilderpriority") or 0
+			suspendBuilderPriority = Spring.GetTeamRulesParam (teamID, "suspendbuilderpriority")
 			if not isTeamSavingMetal(teamID) and suspendBuilderPriority == 0 then
             	spSetUnitBuildSpeed(builderID, currentBuildSpeed[builderID])
 			end
