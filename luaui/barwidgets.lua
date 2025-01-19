@@ -482,6 +482,10 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 		return nil -- widget asked for a silent death
 	end
 
+	-- wait until now so that a widget's "file scope" can't access WG
+	-- but its callins can
+	widget.WG = self.WG
+
 	if enableLocalsAccess then
 		setmetatable(widget, localsAccess.generateLocalsAccessMetatable(getmetatable(widget)))
 	end
@@ -587,7 +591,6 @@ function widgetHandler:NewWidget()
 			__metatable = true,
 		})
 	end
-	widget.WG = self.WG    -- the shared table
 	widget.widget = widget -- easy self referencing
 
 	-- wrapped calls (closures)
