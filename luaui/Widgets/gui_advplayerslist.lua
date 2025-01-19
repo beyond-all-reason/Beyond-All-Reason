@@ -320,7 +320,6 @@ local widgetScale = 0
 
 local expandDown = false
 local expandLeft = true
-local right = true
 
 local labelOffset = 18
 local separatorOffset = 4
@@ -654,11 +653,6 @@ function GeometryChange()
     if widgetRight > vsx - (backgroundMargin * widgetScale) then
         widgetRight = vsx - (backgroundMargin * widgetScale)
         widgetPosX = vsx - ((widgetWidth + backgroundMargin) * widgetScale) - widgetRelRight
-    end
-    if widgetRight > vsx / 2 then
-        right = true
-    else
-        right = false
     end
 end
 
@@ -1323,7 +1317,7 @@ function UpdatePlayerResources()
     local energyIncome, metalIncome
     local displayedPlayers = 0
     for playerID, _ in pairs(player) do
-        if (playerID < specOffset or player[playerID].ai) and player[playerID].name and not player[playerID].spec and player[playerID].team then
+        if (playerID < specOffset or player[playerID].ai) and player[playerID].name and not player[playerID].spec and player[playerID].team then        -- maybe not filter out specs cause resigned players can still hold storage
 			if aliveAllyTeams[player[playerID].allyteam] ~= nil and (mySpecStatus or myAllyTeamID == player[playerID].allyteam) then
 				if (mySpecStatus and enemyListShow) or player[playerID].allyteam == myAllyTeamID then	-- only keep track when its being displayed
                     displayedPlayers = displayedPlayers + 1
@@ -1346,11 +1340,13 @@ function UpdatePlayerResources()
 					player[playerID].energyIncome = energyIncome
 					player[playerID].energyStorage = energyStorage
 					player[playerID].energyShare = energyShare
-					player[playerID].energyConversion = Spring.GetTeamRulesParam(player[playerID].team, 'mmLevel')
 					player[playerID].metal = metal
 					player[playerID].metalIncome = metalIncome
 					player[playerID].metalStorage = metalStorage
 					player[playerID].metalShare = metalShare
+                    if not player[playerID].spec then
+                        player[playerID].energyConversion = Spring.GetTeamRulesParam(player[playerID].team, 'mmLevel')
+                    end
 					if not allyTeamMaxStorage[player[playerID].allyteam] then
 						allyTeamMaxStorage[player[playerID].allyteam] = {}
 					end
@@ -1509,6 +1505,7 @@ function SortTeams(allyTeamID, vOffset)
     -- (teams are not visible as such unless they are empty or AI)
     local teamsList = Spring_GetTeamList(allyTeamID)
     for _, teamID in ipairs(teamsList) do
+
         drawListOffset[#drawListOffset + 1] = vOffset
         drawList[#drawList + 1] = -1
         vOffset = SortPlayers(teamID, allyTeamID, vOffset) -- adds players form the team
@@ -2028,6 +2025,7 @@ end
 -- onlyMainList2 to only draw dynamic stuff like ping/alliances/buttons
 -- onlyMainList3 to only draw resources
 function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onlyMainList2, onlyMainList3)
+
     player[playerID].posY = vOffset
 
     tipY = nil
@@ -2236,22 +2234,12 @@ end
 function DrawTakeSignal(posY)
     if blink then
         -- Draws a blinking rectangle if the player of the same team left (/take option)
-        if right then
-            gl_Color(0.7, 0.7, 0.7)
-            gl_Texture(pics["arrowPic"])
-            DrawRect(widgetPosX - 14, posY, widgetPosX, posY + 16)
-            gl_Color(1, 1, 1)
-            gl_Texture(pics["takePic"])
-            DrawRect(widgetPosX - 57, posY - 15, widgetPosX - 12, posY + 32)
-        else
-            local leftPosX = widgetPosX + widgetWidth
-            gl_Color(0.7, 0.7, 0.7)
-            gl_Texture(pics["arrowPic"])
-            DrawRect(leftPosX + 14, posY, leftPosX, posY + 16)
-            gl_Color(1, 1, 1)
-            gl_Texture(pics["takePic"])
-            DrawRect(leftPosX + 12, posY - 15, leftPosX + 57, posY + 32)
-        end
+        gl_Color(0.7, 0.7, 0.7)
+        gl_Texture(pics["arrowPic"])
+        DrawRect(widgetPosX - 14, posY, widgetPosX, posY + 16)
+        gl_Color(1, 1, 1)
+        gl_Texture(pics["takePic"])
+        DrawRect(widgetPosX - 57, posY - 15, widgetPosX - 12, posY + 32)
     end
 end
 
@@ -2759,22 +2747,12 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu, fps)
 end
 
 function DrawPoint(posY, pointtime)
-    if right then
-        gl_Color(1, 0, 0, pointtime / pointDuration)
-        gl_Texture(pics["arrowPic"])
-        DrawRect(widgetPosX - (18*playerScale), posY, widgetPosX - (2*playerScale), posY + (14*playerScale))
-        gl_Color(1, 1, 1, pointtime / pointDuration)
-        gl_Texture(pics["pointPic"])
-        DrawRect(widgetPosX - (33*playerScale), posY - (1*playerScale), widgetPosX - (17*playerScale), posY + (15*playerScale))
-    else
-        leftPosX = widgetPosX + widgetWidth
-        gl_Color(1, 0, 0, pointtime / pointDuration)
-        gl_Texture(pics["arrowPic"])
-        DrawRect(leftPosX + (18*playerScale), posY, leftPosX + (2*playerScale), posY + (14*playerScale))
-        gl_Color(1, 1, 1, pointtime / pointDuration)
-        gl_Texture(pics["pointPic"])
-        DrawRect(leftPosX + (33*playerScale), posY - (1*playerScale), leftPosX + (17*playerScale), posY + (15*playerScale))
-    end
+    gl_Color(1, 0, 0, pointtime / pointDuration)
+    gl_Texture(pics["arrowPic"])
+    DrawRect(widgetPosX - (18*playerScale), posY, widgetPosX - (2*playerScale), posY + (14*playerScale))
+    gl_Color(1, 1, 1, pointtime / pointDuration)
+    gl_Texture(pics["pointPic"])
+    DrawRect(widgetPosX - (33*playerScale), posY - (1*playerScale), widgetPosX - (17*playerScale), posY + (15*playerScale))
     gl_Color(1, 1, 1, 1)
 end
 
@@ -2795,17 +2773,9 @@ function DrawEraser(posY, time)
 end
 
 function TakeTip(mouseX)
-    if right then
-        if mouseX >= widgetPosX - 57 * widgetScale and mouseX <= widgetPosX - 1 * widgetScale then
-            tipText = Spring.I18N('ui.playersList.takeUnits')
-            tipTextTime = os.clock()
-        end
-    else
-        local leftPosX = widgetPosX + widgetWidth
-        if mouseX >= leftPosX + 1 * widgetScale and mouseX <= leftPosX + 57 * widgetScale then
-            tipText = Spring.I18N('ui.playersList.takeUnits')
-            tipTextTime = os.clock()
-        end
+    if mouseX >= widgetPosX - 57 * widgetScale and mouseX <= widgetPosX - 1 * widgetScale then
+        tipText = Spring.I18N('ui.playersList.takeUnits')
+        tipTextTime = os.clock()
     end
 end
 
@@ -2947,17 +2917,9 @@ function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, system, name, teamID, 
 end
 
 function PointTip(mouseX)
-    if right then
-        if mouseX >= widgetPosX - 28 * widgetScale and mouseX <= widgetPosX - 1 * widgetScale then
-            tipText = Spring.I18N('ui.playersList.pointClickTooltip')
-            tipTextTime = os.clock()
-        end
-    else
-        local leftPosX = widgetPosX + widgetWidth
-        if mouseX >= leftPosX + 1 * widgetScale and mouseX <= leftPosX + 28 * widgetScale then
-            tipText = Spring.I18N('ui.playersList.pointClickTooltip')
-            tipTextTime = os.clock()
-        end
+    if mouseX >= widgetPosX - 28 * widgetScale and mouseX <= widgetPosX - 1 * widgetScale then
+        tipText = Spring.I18N('ui.playersList.pointClickTooltip')
+        tipTextTime = os.clock()
     end
 end
 
@@ -3073,17 +3035,10 @@ function widget:MousePress(x, y, button)
                     if m_point.active then
                         if i > -1 and i < specOffset then
                             if clickedPlayer.pointTime ~= nil then
-                                if right then
-                                    if IsOnRect(x, y, widgetPosX - 33, posY - 2, widgetPosX - 17, posY + (playerOffset*playerScale)) then
-                                        --point button
-                                        Spring.SetCameraTarget(clickedPlayer.pointX, clickedPlayer.pointY, clickedPlayer.pointZ, 1)
-                                        return true
-                                    end
-                                else
-                                    if IsOnRect(x, y, widgetPosX + widgetWidth + 17, posY - 2, widgetPosX + widgetWidth + 33, posY + (playerOffset*playerScale)) then
-                                        Spring.SetCameraTarget(clickedPlayer.pointX, clickedPlayer.pointY, clickedPlayer.pointZ, 1)
-                                        return true
-                                    end
+                                if IsOnRect(x, y, widgetPosX - 33, posY - 2, widgetPosX - 17, posY + (playerOffset*playerScale)) then
+                                    --point button
+                                    Spring.SetCameraTarget(clickedPlayer.pointX, clickedPlayer.pointY, clickedPlayer.pointZ, 1)
+                                    return true
                                 end
                             end
                         end
@@ -3120,17 +3075,10 @@ function widget:MousePress(x, y, button)
                     if clickedPlayer.allyteam == myAllyTeamID then
                         if m_take.active then
                             if clickedPlayer.totake then
-                                if right then
-                                    if IsOnRect(x, y, widgetPosX - 57, posY, widgetPosX - 12, posY + 17) then
-                                        --take button
-                                        Take(clickedPlayer.team, clickedPlayer.name, i)
-                                        return true
-                                    end
-                                else
-                                    if IsOnRect(x, y, widgetPosX + widgetWidth + 12, posY, widgetPosX + widgetWidth + 57, posY + 17) then
-                                        Take(clickedPlayer.team, clickedPlayer.name, i)
-                                        return true
-                                    end
+                                if IsOnRect(x, y, widgetPosX - 57, posY, widgetPosX - 12, posY + 17) then
+                                    --take button
+                                    Take(clickedPlayer.team, clickedPlayer.name, i)
+                                    return true
                                 end
                             end
                         end
@@ -3193,16 +3141,9 @@ function widget:MousePress(x, y, button)
                         if m_point.active then
                             if clickedPlayer.pointTime ~= nil then
                                 if clickedPlayer.allyteam == myAllyTeamID then
-                                    if right then
-                                        if IsOnRect(x, y, widgetPosX - 28, posY - 1, widgetPosX - 12, posY + 17) then
-                                            Spring.SetCameraTarget(clickedPlayer.pointX, clickedPlayer.pointY, clickedPlayer.pointZ, 1)
-                                            return true
-                                        end
-                                    else
-                                        if IsOnRect(x, y, widgetPosX + widgetWidth + 12, posY - 1, widgetPosX + widgetWidth + 28, posY + 17) then
-                                            Spring.SetCameraTarget(clickedPlayer.pointX, clickedPlayer.pointY, clickedPlayer.pointZ, 1)
-                                            return true
-                                        end
+                                    if IsOnRect(x, y, widgetPosX - 28, posY - 1, widgetPosX - 12, posY + 17) then
+                                        Spring.SetCameraTarget(clickedPlayer.pointX, clickedPlayer.pointY, clickedPlayer.pointZ, 1)
+                                        return true
                                     end
                                 end
                             end
