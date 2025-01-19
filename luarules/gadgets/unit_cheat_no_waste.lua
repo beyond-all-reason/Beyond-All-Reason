@@ -59,8 +59,8 @@ local function updateTeamOverflowing(allyID, oldMultiplier)
 	local metalToStorageRatioMultiplier = 0.25
 	local isWastingPercentileThreshold = 0.95
 
+	--variables
 	local teamIDs = boostableAllies[allyID]
-
     local totalMetal = 0
     local totalMetalStorage = 0
 	local totalMetalReceived = 0
@@ -78,11 +78,14 @@ local function updateTeamOverflowing(allyID, oldMultiplier)
 			wastingMetal = false
 		end
 	end
-	if totalMetalStorage * metalToStorageRatioMultiplier > totalMetal then
+
+	local alliesAreWinning = isAllyTeamWinning(_, allyID, dynamicModeAllyIsWinningRatio)
+
+	if totalMetalStorage * metalToStorageRatioMultiplier > totalMetal or (modOptions.dynamiccheats == false and alliesAreWinning == false) then
 		local newMultiplier = math.max(oldMultiplier / buildPowerCompounder, 1)
 		return newMultiplier
-	elseif wastingMetal == true and (modOptions.dynamiccheats == false or 
-									(isAllyTeamWinning(_, allyID, dynamicModeAllyIsWinningRatio) == false and averageAlliedTechGuesstimate(_, allyID) >= minimumTechLvlToCheat)) then
+	elseif wastingMetal == true and (modOptions.dynamiccheats == false or
+									(alliesAreWinning == false and averageAlliedTechGuesstimate(_, allyID) >= minimumTechLvlToCheat)) then
 		local newMultiplier = math.min(oldMultiplier * buildPowerCompounder, maxBuildPowerMultiplier)
 		return newMultiplier
 	else
