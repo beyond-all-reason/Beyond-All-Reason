@@ -1,7 +1,7 @@
 function gadget:GetInfo()
 	return {
 		name = "Cheat No Waste",
-		desc = "Increase buildpower to stop wasting resources",
+		desc = "Increase buildpower for human/AI player teams to stop wasting resources",
 		author = "SethDGamre",
 		date = "January 2025",
 		license = "GPLv2",
@@ -17,6 +17,20 @@ local modOptions = Spring.GetModOptions()
 
 if modOptions.nowasting == "default" or modOptions.nowasting == "disabled" then return false end
 
+--static variables
+
+--increasing this will magnify the rate at which buildpower is increased or decayed in a compounding fashion.
+local buildPowerCompounder = 1.25
+
+--the max compounded buildpower multiplier allowed
+local maxBuildPowerMultiplier = 20
+
+--(dynamic cheats only) while allied teams have a total power this many times greater than the average of all player teams, cheating is suspended
+local dynamicModeAllyIsWinningRatio = 1.5
+
+--(dynamic cheats only) if the allied teams' tech level is guesstimated below this number, cheating isn't allowed.
+local minimumTechLvlToCheat = 1
+
 --tables
 local aiTeams = {}
 local humanTeams = {}
@@ -30,42 +44,22 @@ local builderWatch = {}
 local isAllyTeamWinning
 local averageAlliedTechGuesstimate
 
-function gadget:Initialize()
-	aiTeams = GG.PowerLib.AiTeams
-	for teamID, _ in pairs (aiTeams) do
-		boostableTeams[teamID] = true
-	end
-	humanTeams = GG.PowerLib.HumanTeams
-	if modOptions.nowasting == "all" then
-		for teamID, _ in pairs (humanTeams) do
-			boostableTeams[teamID] = true
-		end
-	end
-
-	for teamID, _ in pairs(boostableTeams) do
-		local alliedTeam = select(6, Spring.GetTeamInfo(teamID))
-		boostableAllies[alliedTeam] = boostableAllies[alliedTeam] or {}
-		boostableAllies[alliedTeam][teamID] = true
-		overflowingAllies[alliedTeam] = 1
-		teamBoostableUnits[teamID] = {}
-	end
-
-	isAllyTeamWinning = GG.PowerLib.IsAllyTeamWinning
-	averageAlliedTechGuesstimate = GG.PowerLib.AverageAlliedTechGuesstimate
-end
-
 --localized functions
 local spGetTeamResources = Spring.GetTeamResources
 local spSetUnitBuildSpeed = Spring.SetUnitBuildSpeed
 
 for id, def in pairs(UnitDefs) do
-	if def.buildSpeed and def.buildSpeed > 0 and def.speed and def.speed == 0 then
+	if def.buildSpeed and def.buildSpeed > 0 and def.speed and def.speed == 0 then --we only want base factories and construction turrets to get boosted
 		builderWatchDefs[id] = def.buildSpeed
 	end
 end
 
-local function updateTeamOverflowing(alliedTeam, oldMultiplier)
-	local teamIDs = boostableAllies[alliedTeam]
+local function updateTeamOverflowing(allyID, oldMultiplier)
+	--static
+	local metalToStorageRatioMultiplier = 0.25
+	local isWastingPercentileThreshold = 0.95
+
+	local teamIDs = boostableAllies[allyID]
 
     local totalMetal = 0
     local totalMetalStorage = 0
@@ -80,25 +74,24 @@ local function updateTeamOverflowing(alliedTeam, oldMultiplier)
 		totalMetalReceived = totalMetalReceived + metalReceived
 
 		metalPercentile = totalMetal / totalMetalStorage
-		if metalPercentile < 0.95 then
+		if metalPercentile < isWastingPercentileThreshold then
 			wastingMetal = false
 		end
 	end
-	if totalMetalStorage / 4 > totalMetal then
-		local newMultiplier = math.max(oldMultiplier / 1.25, 1)
+	if totalMetalStorage * metalToStorageRatioMultiplier > totalMetal then
+		local newMultiplier = math.max(oldMultiplier / buildPowerCompounder, 1)
 		return newMultiplier
 	elseif wastingMetal == true and (modOptions.dynamiccheats == false or 
-									(isAllyTeamWinning(_, alliedTeam, 1.5) == false and averageAlliedTechGuesstimate(_, alliedTeam) >= 1)) then
-		local newMultiplier = math.min(oldMultiplier * 1.25, 100)
-		Spring.Echo(alliedTeam, "Increase BP", newMultiplier)
+									(isAllyTeamWinning(_, allyID, dynamicModeAllyIsWinningRatio) == false and averageAlliedTechGuesstimate(_, allyID) >= minimumTechLvlToCheat)) then
+		local newMultiplier = math.min(oldMultiplier * buildPowerCompounder, maxBuildPowerMultiplier)
 		return newMultiplier
 	else
 		return oldMultiplier
 	end
 end
 
-local function updateAllyUnitsBuildPowers(alliedTeam, boostMultiplier)
-	local teamIDs = boostableAllies[alliedTeam]
+local function updateAllyUnitsBuildPowers(allyID, boostMultiplier)
+	local teamIDs = boostableAllies[allyID]
 	for teamID, _ in pairs(teamIDs) do
 		local units = teamBoostableUnits[teamID]
 		for unitID, buildPower in pairs(units) do
@@ -125,22 +118,46 @@ function gadget:UnitDestroyed(unitID)
 end
 
 function gadget:GameFrame(frame)
-	if frame % 120 == 0 then
-		for alliedTeam, oldBuildPowerMultiplier in pairs(overflowingAllies) do
-		local newBuildPowerMultiplier = updateTeamOverflowing(alliedTeam, oldBuildPowerMultiplier)
+	if frame % 600 == 0 then
+		for allyID, oldBuildPowerMultiplier in pairs(overflowingAllies) do
+		local newBuildPowerMultiplier = updateTeamOverflowing(allyID, oldBuildPowerMultiplier)
 			if newBuildPowerMultiplier ~= 1 then
-				updateAllyUnitsBuildPowers(alliedTeam, newBuildPowerMultiplier)
-				overflowingAllies[alliedTeam] = newBuildPowerMultiplier
+				updateAllyUnitsBuildPowers(allyID, newBuildPowerMultiplier)
+				overflowingAllies[allyID] = newBuildPowerMultiplier
 			end
 			if newBuildPowerMultiplier == 1 then
-				for teamID, _ in pairs(boostableAllies[alliedTeam]) do
+				for teamID, _ in pairs(boostableAllies[allyID]) do
 					Spring.SetTeamRulesParam(teamID, "suspendbuilderpriority", 0)
 				end
 			else
-				for teamID, _ in pairs(boostableAllies[alliedTeam]) do
+				for teamID, _ in pairs(boostableAllies[allyID]) do
 					Spring.SetTeamRulesParam(teamID, "suspendbuilderpriority", 1)
 				end
 			end
 		end
 	end
+end
+
+function gadget:Initialize()
+	aiTeams = GG.PowerLib.AiTeams
+	for teamID, _ in pairs (aiTeams) do
+		boostableTeams[teamID] = true
+	end
+	humanTeams = GG.PowerLib.HumanTeams
+	if modOptions.nowasting == "all" then
+		for teamID, _ in pairs (humanTeams) do
+			boostableTeams[teamID] = true
+		end
+	end
+
+	for teamID, _ in pairs(boostableTeams) do
+		local allyID = select(6, Spring.GetTeamInfo(teamID))
+		boostableAllies[allyID] = boostableAllies[allyID] or {}
+		boostableAllies[allyID][teamID] = true
+		overflowingAllies[allyID] = 1
+		teamBoostableUnits[teamID] = {}
+	end
+
+	isAllyTeamWinning = GG.PowerLib.IsAllyTeamWinning
+	averageAlliedTechGuesstimate = GG.PowerLib.AverageAlliedTechGuesstimate
 end
