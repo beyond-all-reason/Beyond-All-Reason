@@ -81,7 +81,7 @@ local function updateTeamOverflowing(allyID, oldMultiplier)
 
 	local alliesAreWinning = isAllyTeamWinning(_, allyID, dynamicModeAllyIsWinningRatio)
 
-	if totalMetalStorage * metalToStorageRatioMultiplier > totalMetal or (modOptions.dynamiccheats == false and alliesAreWinning == false) then
+	if totalMetalStorage * metalToStorageRatioMultiplier > totalMetal or (modOptions.dynamiccheats == true and alliesAreWinning == true) then
 		local newMultiplier = math.max(oldMultiplier / buildPowerCompounder, 1)
 		return newMultiplier
 	elseif wastingMetal == true and (modOptions.dynamiccheats == false or
