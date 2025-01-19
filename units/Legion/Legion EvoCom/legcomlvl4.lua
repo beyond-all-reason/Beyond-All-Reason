@@ -82,7 +82,7 @@ return {
 			[18] = "legshot",
 			[19] = "legstr",
 			[20] = "leginfestor",
-			[21] = "corsent",
+			[21] = "legvflak",
 			[22] = "legflak",
 			[23] = "coratl",
 			[24] = "legmed",
