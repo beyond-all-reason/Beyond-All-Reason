@@ -442,7 +442,7 @@ PilotLight()
 	while( TRUE )
 	{
 		emit-sfx 1024 + 0 from flare;
-		sleep 40;
+		sleep 80;
 	}
 }
 

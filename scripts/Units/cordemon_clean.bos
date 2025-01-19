@@ -848,7 +848,7 @@ PilotLight()
 	{
 		emit-sfx 1024 + 1 from rfflare2;
 		emit-sfx 1024 + 1 from lfflare1;
-		sleep 50;
+		sleep 120;
 	}
 }
 

@@ -21283,9 +21283,9 @@ local unitLights = {
 		flamelight = {
 			lightType = 'point',
 			pieceName = 'lloarm',
-			lightConfig = { posx = 0, posy = -0.6, posz = 15, radius = 14,
+			lightConfig = { posx = 0, posy = -0.8, posz = 12, radius = 14,
 				color2r = 0.9, color2g = 0.5, color2b = 0.05, colortime = 5,
-				r = 0.95, g = 0.66, b = 0.07, a = 0.7,
+				r = 0.95, g = 0.66, b = 0.07, a = 0.6,
 				modelfactor = 0.4, specular = 0.9, scattering = 0.5, lensflare = 0,
 				lifetime = 0, sustain = 0, selfshadowing = 4},
 		},
@@ -28483,7 +28483,7 @@ local unitLights = {
 		flamelightlbig = {
 			lightType = 'point',
 			pieceName = 'lfbarrel1',
-			lightConfig = { posx = 0, posy = 1.6, posz = 4, radius = 18,
+			lightConfig = { posx = 0, posy = 1.6, posz = 2, radius = 14,
 				color2r = 0.9, color2g = 0.5, color2b = 0.05, colortime = 5,
 				r = 0.95, g = 0.66, b = 0.07, a = 0.7,
 				modelfactor = 0.4, specular = 0.9, scattering = 0.5, lensflare = 0,
@@ -28492,7 +28492,7 @@ local unitLights = {
 		flamelightrbig = {
 			lightType = 'point',
 			pieceName = 'rfbarrel1',
-			lightConfig = { posx = 0, posy = 1.6, posz = 4, radius = 18,
+			lightConfig = { posx = 0, posy = 1.6, posz = 2, radius = 14,
 				color2r = 0.9, color2g = 0.5, color2b = 0.05, colortime = 5,
 				r = 0.95, g = 0.66, b = 0.07, a = 0.7,
 				modelfactor = 0.4, specular = 0.9, scattering = 0.5, lensflare = 0,
