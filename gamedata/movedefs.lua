@@ -267,7 +267,7 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	--  armfido leggstr
+	--  armfido leggstr corhrk
 	BOT4 = {
 		crushstrength = 25,
 		footprintx = 3,

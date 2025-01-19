@@ -326,6 +326,7 @@ local unitOrderTable = {
 
 	['armyork']        = 008200,
 	['corsent']        = 008210,
+	['legvflak']        = 008220,
 
 	['armah']          = 008300,
 	['corah']          = 008310,
