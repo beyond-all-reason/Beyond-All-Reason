@@ -677,12 +677,11 @@ end
 
 local function UpdateRecentBroadcasters()
     recentBroadcasters = {}
-
     for playerID, info in pairs(lastBroadcasts) do
-        lastTime = info[1]
-        if totalTime - lastTime <= listTime or playerID == lockPlayerID then
-            if totalTime - lastTime <= listTime then
-                recentBroadcasters[playerID] = totalTime - lastTime
+        local prevTime = info[1]
+        if totalTime - prevTime <= listTime or playerID == lockPlayerID then
+            if totalTime - prevTime <= listTime then
+                recentBroadcasters[playerID] = totalTime - prevTime
             end
         end
     end
