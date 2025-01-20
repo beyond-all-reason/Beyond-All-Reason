@@ -1,8 +1,12 @@
 return {
 	legpontus = {
+		maxacc = 0.05,
 		activatewhenbuilt = true,
 		airsightdistance = 800,
 		autoheal = 1.5,
+		maxdec = 0.06473,
+		energycost = 1700,
+		metalcost = 250,
 		buildpic = "CORPT.DDS",
 		buildtime = 2900,
 		canmove = true,
@@ -10,17 +14,14 @@ return {
 		collisionvolumescales = "20 20 60",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
-		energycost = 1700,
 		explodeas = "smallExplosionGeneric",
 		floater = true,
 		footprintx = 3,
 		footprintz = 3,
-		health = 1050,
 		idleautoheal = 5,
 		idletime = 900,
-		maxacc = 0.05,
-		maxdec = 0.06473,
-		metalcost = 250,
+		health = 1050,
+		speed = 62.0,
 		minwaterdepth = 6,
 		movementclass = "BOAT3",
 		movestate = 0,
@@ -33,17 +34,16 @@ return {
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 670,
 		sonardistance = 500,
-		speed = 62,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 520.5,
 		waterline = 0,
 		customparams = {
+			unitgroup = 'weaponaa',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.5,
-			subfolder = "legion/ships",
-			unitgroup = "weaponaa",
+			subfolder = "CorShips",
 		},
 		featuredefs = {
 			dead = {
@@ -130,10 +130,10 @@ return {
 				range = 490,
 				reloadtime = 6,
 				soundhit = "xplodep1",
-				soundhitvolume = 3,
 				soundhitwet = "splsmed",
-				soundhitwetvolume = 12,
 				soundstart = "torpedo1",
+				soundhitvolume = 3,
+				soundhitwetvolume = 12,
 				startvelocity = 45,
 				tolerance = 12000,
 				tracks = true,
@@ -144,16 +144,17 @@ return {
 				weapontimer = 4,
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
-				customparams = {
-					speceffect = "torpwaterpen",
-					when = "ypos<0",
-				},
 				damage = {
 					commanders = 150,
 					default = 342,
 					vtol = 15,
 				},
+				customparams = {
+					speceffect = "torpwaterpen",
+					when = "ypos<0",
+				},
 			},
+
 			depthcharge = {
 				areaofeffect = 24,
 				avoidfeature = false,
@@ -185,10 +186,6 @@ return {
 				weapontimer = 3.25,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 250,
-				customparams = {
-					projectile_destruction_method = "descend",
-					projectile_overrange_distance = 440,
-				},
 				damage = {
 					default = 225,
 				},
@@ -196,9 +193,13 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "HOVER NOTSUB",
+
+				badtargetcategory = "HOVER NOTSUB",	
 				def = "armseap_weapon1",
+				--maindir = "0 -1 0",
+				--maxangledif = 179,
 				onlytargetcategory = "NOTHOVER",
+
 			},
 		},
 	},

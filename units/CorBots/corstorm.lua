@@ -137,10 +137,6 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 190,
-				customparams = {
-					projectile_destruction_method = "descend",
-					projectile_overrange_distance = 523,
-				},
 				damage = {
 					default = 157,
 				},
