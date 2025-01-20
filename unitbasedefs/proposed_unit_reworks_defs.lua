@@ -61,9 +61,12 @@ local function proposed_unit_reworksTweaks(name, uDef)
 			uDef.sightdistance = 500
 		end
 		if name == "armpw" then
-			uDef.metalcost = 54
-			uDef.energycost = 870
-			uDef.health = 370
+			uDef.metalcost = 48
+			uDef.energycost = 840
+			uDef.turnrate = 1200
+			uDef.maxacc = 0.4
+			uDef.maxdec = 0.7
+			--uDef.health = 300
 		end
 		if name == "corak" then
 			uDef.metalcost = 48
