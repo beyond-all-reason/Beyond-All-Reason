@@ -230,6 +230,10 @@ return {
 				craterareaofeffect = 70,
 				craterboost = 0,
 				cratermult = 0,
+				customparams = {
+					projectile_destruction_method = "descend",
+					projectile_overrange_distance = 501,
+				},
 				edgeeffectiveness = 0.61,
 				explosiongenerator = "custom:genericshellexplosion-large-bomb",
 				firestarter = 100,

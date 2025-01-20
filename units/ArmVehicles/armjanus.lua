@@ -111,6 +111,10 @@ return {
 				cegtag = "missiletrailsmall-red",
 				craterboost = 0,
 				cratermult = 0,
+				customparams = {
+					projectile_destruction_method = "descend",
+					projectile_overrange_distance = 437,
+				},
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-medium-aoe",
 				firestarter = 70,

@@ -111,6 +111,10 @@ return {
 			flame_thrower = {
 				--burst = 16,
 				--burstrate = 0.05,
+				customparams = {
+					projectile_destruction_method = "descend",
+					projectile_overrange_distance = 322,
+				},
 				--projectiles = 9,
 				--fixedLauncher = true,
 				areaofeffect = 8,
