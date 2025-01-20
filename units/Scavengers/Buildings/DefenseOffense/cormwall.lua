@@ -209,7 +209,7 @@ return {
 				},
 				customparams = {
 					exclude_preaim = true,
-					projectile_overrange_distance = 777,
+					overrange_distance = 777,
 
 					projectile_destruction_method = "descend",
 				}

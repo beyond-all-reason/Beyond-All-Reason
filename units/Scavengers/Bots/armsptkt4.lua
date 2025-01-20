@@ -111,7 +111,7 @@ return {
 				cratermult = 0,
 				customparams = {
 					projectile_destruction_method = "descend",
-					projectile_overrange_distance = 1150,
+					overrange_distance = 1150,
 				},
 				dance = 16,
 				edgeeffectiveness = 0.65,
