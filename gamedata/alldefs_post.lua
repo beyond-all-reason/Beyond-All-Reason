@@ -45,20 +45,19 @@ function PrebakeUnitDefs()
 				and not wDef.targetable
 				and not string.find(name, "loot")
 				and not (wDef.canattackground and wDef.canattackground == false)
-				-- and not string.find(name, "corkarg")
+				and not string.find(name, "corkarg")
 				and not string.find(name, "raptor")
 				and not string.find(name, "scavenger")
-				-- and not string.find(name, "nuketest")
-				-- and not string.find(name, "scavempspawner")
-				-- and not string.find(name, "scavtacnukespawner")
+				and not string.find(name, "nuketest")
+				and not string.find(name, "scavempspawner")
+				and not string.find(name, "scavtacnukespawner")
 				and not wDef.waterweapon == true
-				-- and not wDef.canattackground == false
-				-- and not unitDef.customparams.iscommander
-				-- and not unitDef.decoyfor
+				and not wDef.canattackground == false
+				and not unitDef.customparams.iscommander
+				and not unitDef.decoyfor
 				then
 					wDef.customparams = wDef.customparams or {}
 					wDef.customparams.projectile_overrange_distance = math.ceil(wDef.range * 1.15)
-					wDef.customparams.projectile_destruction_method = "descend"
 					Spring.Echo("prebake unit name: "..name.." "..weaponName, "range: "..wDef.range, "overrange: "..wDef.customparams.projectile_overrange_distance)
 				end
 			end
