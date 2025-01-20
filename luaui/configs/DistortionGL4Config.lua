@@ -458,6 +458,15 @@ local unitDistortions = {
 							lifeTime = 0,  effectType = 'heatDistortion'},
 		},
 	},
+	['armgmm'] = {
+		fanheat = {
+			distortionType = 'point',
+			pieceName = 'base',
+			distortionConfig = { posx = 0, posy = 30, posz = 0, radius = 16,
+							noiseStrength = 0.5, noiseScaleSpace = -2, distanceFalloff = 1.4,
+							lifeTime = 0,  effectType = 'heatDistortion'},
+		},
+	},
 	['armageo'] = {
 		storageheatcenter = {
 			distortionType = 'beam',
@@ -534,13 +543,13 @@ local unitDistortions = {
 		},
 	},
 	['armadvsol'] = {
-		magnifier = {
-			distortionType = 'point',
-			pieceName = 'base',
-			distortionConfig = { posx = 0, posy = 100, posz = 0, radius = 20,
-							lifeTime = 0,  
-							magnificationRate = -10.0, effectType = "magnifier"}, 
-		},
+		-- magnifier = {
+		-- 	distortionType = 'point',
+		-- 	pieceName = 'base',
+		-- 	distortionConfig = { posx = 0, posy = 25, posz = 0, radius = 20,
+		-- 					lifeTime = 0,  
+		-- 					magnificationRate = 4.0, effectType = "magnifier"}, 
+		-- },
 	},
 
 	['armhawk'] = {
