@@ -261,6 +261,8 @@ return {
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 1000,
 				customparams = {
+					projectile_overrange_distance = 501,
+					projectile_destruction_method = "descend",
 					stockpilelimit = 3,
 				},
 				damage = {
