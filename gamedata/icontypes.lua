@@ -671,10 +671,6 @@ local icontypes = {
 		bitmap = "icons/ship.png",
 		size = 1
 	},
-	armptl = {
-		bitmap = "icons/defence_1_naval.png",
-		size = 1.10249984
-	},
 	armptt2 = {
 		bitmap = "icons/ship_t3_pt.png",
 		size = 2.29999995
@@ -1778,10 +1774,6 @@ local icontypes = {
 	corpt = {
 		bitmap = "icons/ship.png",
 		size = 1.14999998
-	},
-	corptl = {
-		bitmap = "icons/defence_1_naval.png",
-		size = 1.10249984
 	},
 	corpun = {
 		bitmap = "icons/def_t1_arty.png",

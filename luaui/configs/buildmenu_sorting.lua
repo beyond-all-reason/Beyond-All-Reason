@@ -770,8 +770,6 @@ local unitOrderTable = {
    ['corenaa']        = 255400,
 
    --WATER DEFENSES NAVAL
-   ['armptl']         = 260100,
-   ['corptl']         = 260200,
    ['armtl']          = 260300,
    ['cortl']          = 260400,
    ['armatl']         = 260500,

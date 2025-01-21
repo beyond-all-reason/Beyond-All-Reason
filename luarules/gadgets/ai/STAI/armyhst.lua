@@ -535,8 +535,6 @@ function ArmyHST:Init()
 	self._torpedo1_ = {
 		cortl = true ,
 		armtl = true ,
-		armptl = true ,
-		corptl = true ,
 		}
 
 	self._torpedo2_ = {
