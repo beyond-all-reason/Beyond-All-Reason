@@ -57,7 +57,7 @@ function PrebakeUnitDefs()
 				-- and not unitDef.decoyfor
 				then
 					wDef.customparams = wDef.customparams or {}
-					wDef.customparams.projectile_overrange_distance = math.ceil(wDef.range * 1.15)
+					wDef.customparams.overrange_distance = math.ceil(wDef.range * 1.15)
 					wDef.customparams.projectile_destruction_method = "descend"
 					Spring.Echo("prebake unit name: "..name.." "..weaponName, "range: "..wDef.range, "overrange: "..wDef.customparams.projectile_overrange_distance)
 				end
