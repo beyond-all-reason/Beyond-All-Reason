@@ -1,7 +1,7 @@
 function gadget:GetInfo()
 	return {
 		name      = "TurnRadius",
-		desc      = "Fixes TurnRadius Dynamically for bombers (also sets attackSafetyDistance for fighters)",
+		desc      = "Fixes TurnRadius Dynamically for bombers",
 		author    = "Doo",
 		date      = "Sept 19th 2017",
 		license   = "GNU GPL, v2 or later",
@@ -25,13 +25,9 @@ local spMoveCtrlDisable = Spring.MoveCtrl.Disable
 local spMoveCtrlSetAirMoveTypeData = Spring.MoveCtrl.SetAirMoveTypeData
 
 local Bombers = {}
-local isFighter = {}
 local bomberTurnRadius = {}
 for udid, ud in pairs(UnitDefs) do
 	if ud.canFly then
-		if ud.customParams.fighter then
-			isFighter[udid] = true
-		end
 		if not ud.hoverAttack and ud.weapons and ud.weapons[1] then
 			for i = 1, #ud.weapons do
 				local wDef = WeaponDefs[ud.weapons[i].weaponDef]
@@ -54,16 +50,6 @@ end
 function gadget:UnitCreated(unitID, unitDefID)
 	if bomberTurnRadius[unitDefID] then
 		Bombers[unitID] = unitDefID
-	end
-	if isFighter[unitDefID] then
-		local curMoveCtrl = spMoveCtrlIsEnabled(unitID)
-		if curMoveCtrl then
-			spMoveCtrlDisable(unitID)
-		end
-		spMoveCtrlSetAirMoveTypeData(unitID, "attackSafetyDistance", 300)		-- Wiki about attackSafetyDistance: Fighters abort dive toward target if within attackSafetyDistance and try to climb back to normal altitude while still moving toward target. It's disabled by default. Set to half of the minimum weapon range to avoid collisions, enemy fire, AOE damage. If set to greater than the weapon range, the unit will fly over the target like a bomber.
-		if curMoveCtrl then
-			spMoveCtrlEnable(unitID)
-		end
 	end
 end
 
