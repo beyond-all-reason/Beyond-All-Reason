@@ -1,7 +1,7 @@
 function gadget:GetInfo()
 	return {
 		name      = "TurnRadius",
-		desc      = "Fixes TurnRadius Dynamically for bombers",
+		desc      = "Fixes TurnRadius Dynamically for bombers (also sets attackSafetyDistance for fighters)",
 		author    = "Doo",
 		date      = "Sept 19th 2017",
 		license   = "GNU GPL, v2 or later",
@@ -22,28 +22,25 @@ local spMoveCtrlIsEnabled = Spring.MoveCtrl.IsEnabled
 local spMoveCtrlDisable = Spring.MoveCtrl.Disable
 local spMoveCtrlSetAirMoveTypeData = Spring.MoveCtrl.SetAirMoveTypeData
 
-local unitTurnRadius = {}
 local Bombers = {}
 local isFighter = {}
-local isBomber = {}
-local isBomb = {}
-for id, wDef in pairs(WeaponDefs) do
-	if wDef.type == "AircraftBomb" then
-		isBomb[id] = true
-	end
-end
+local bomberTurnRadius = {}
 for udid, ud in pairs(UnitDefs) do
 	if ud.canFly then
 		if ud.customParams.fighter then
 			isFighter[udid] = true
 		end
-		if (ud["weapons"] and ud["weapons"][1] and isBomb[ud["weapons"][1].weaponDef] == true) or (string.find(ud.name, 'armlance') or string.find(ud.name, 'cortitan') or string.find(ud.name, 'legatorpbomber')) then
-			isBomber[udid] = true
+		if not ud.hoverAttack and ud.weapons and ud.weapons[1] then
+			for i = 1, #ud.weapons do
+				local wDef = WeaponDefs[ud.weapons[i].weaponDef]
+				if wDef.type == "AircraftBomb" or wDef.type == "TorpedoLauncher" then
+					bomberTurnRadius[udid] = ud.turnRadius
+					break
+				end
+			end
 		end
-		unitTurnRadius[udid] = ud.turnRadius
 	end
 end
-isBomb = nil
 
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD.ANY)
@@ -53,7 +50,7 @@ function gadget:Initialize()
 end
 
 function gadget:UnitCreated(unitID, unitDefID)
-	if isBomber[unitDefID] and spGetUnitMoveTypeData(unitID).turnRadius then
+	if bomberTurnRadius[unitDefID] then
 		Bombers[unitID] = unitDefID
 	end
 	if isFighter[unitDefID] then
@@ -61,7 +58,7 @@ function gadget:UnitCreated(unitID, unitDefID)
 		if curMoveCtrl then
 			spMoveCtrlDisable(unitID)
 		end
-		spMoveCtrlSetAirMoveTypeData(unitID, "attackSafetyDistance", 300)
+		spMoveCtrlSetAirMoveTypeData(unitID, "attackSafetyDistance", 300)		-- Wiki about attackSafetyDistance: Fighters abort dive toward target if within attackSafetyDistance and try to climb back to normal altitude while still moving toward target. It's disabled by default. Set to half of the minimum weapon range to avoid collisions, enemy fire, AOE damage. If set to greater than the weapon range, the unit will fly over the target like a bomber.
 		if curMoveCtrl then
 			spMoveCtrlEnable(unitID)
 		end
@@ -89,12 +86,12 @@ local function processNextCmd(unitID, unitDefID, cmdID)
 		if curMoveCtrl then
 			spMoveCtrlEnable(unitID)
 		end
-	else--if spGetUnitMoveTypeData(unitID).turnRadius then -- checking this on UnitCreated now, cause this is expensive
+	else
 		local curMoveCtrl = spMoveCtrlIsEnabled(unitID)
 		if curMoveCtrl then
 			spMoveCtrlDisable(unitID)
 		end
-		spMoveCtrlSetAirMoveTypeData(unitID, "turnRadius", unitTurnRadius[unitDefID])
+		spMoveCtrlSetAirMoveTypeData(unitID, "turnRadius", bomberTurnRadius[unitDefID])
 		if curMoveCtrl then
 			spMoveCtrlEnable(unitID)
 		end
