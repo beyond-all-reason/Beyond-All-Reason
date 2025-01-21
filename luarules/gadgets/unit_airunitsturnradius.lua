@@ -14,6 +14,8 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
+local attackTurnRadius = 500
+
 local CMD_ATTACK = CMD.ATTACK
 local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
@@ -77,24 +79,13 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 end
 
 local function processNextCmd(unitID, unitDefID, cmdID)
-	if not cmdID or cmdID == CMD_ATTACK then
-		local curMoveCtrl = spMoveCtrlIsEnabled(unitID)
-		if curMoveCtrl then
-			spMoveCtrlDisable(unitID)
-		end
-		spMoveCtrlSetAirMoveTypeData(unitID, "turnRadius", 500)
-		if curMoveCtrl then
-			spMoveCtrlEnable(unitID)
-		end
-	else
-		local curMoveCtrl = spMoveCtrlIsEnabled(unitID)
-		if curMoveCtrl then
-			spMoveCtrlDisable(unitID)
-		end
-		spMoveCtrlSetAirMoveTypeData(unitID, "turnRadius", bomberTurnRadius[unitDefID])
-		if curMoveCtrl then
-			spMoveCtrlEnable(unitID)
-		end
+	local curMoveCtrl = spMoveCtrlIsEnabled(unitID)
+	if curMoveCtrl then
+		spMoveCtrlDisable(unitID)
+	end
+	spMoveCtrlSetAirMoveTypeData(unitID, "turnRadius", (not cmdID or cmdID == CMD_ATTACK) and attackTurnRadius or bomberTurnRadius[unitDefID])
+	if curMoveCtrl then
+		spMoveCtrlEnable(unitID)
 	end
 end
 
