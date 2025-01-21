@@ -7575,7 +7575,7 @@ local unitLights = {
 							modelfactor = 0.5, specular = 0.5, scattering = 1, lensflare = 10,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
-		
+
 	},
 	['leghp'] = {
 		buildlight1 = {
@@ -8119,7 +8119,7 @@ local unitLights = {
 							modelfactor = 0.3, specular = 0.4, scattering = 0.8, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
-	},	
+	},
 	['legap'] = {
 		greenblob = {
 			lightType = 'point',
@@ -14745,7 +14745,7 @@ local unitLights = {
 							modelfactor = 0.1, specular = 1.6, scattering = 1.5, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
-	
+
 		-- fusionorb = {
 		-- 	lightType = 'point',
 		-- 	pieceName = 'emit',
@@ -17180,17 +17180,6 @@ local unitLights = {
 							color2r = 1, color2g = 0.7, color2b = 0.15, colortime = 75,
 							r = 1, g = 0.86, b = 0.25, a = 0.075,
 							modelfactor = 0.3, specular = 0, scattering = 0.6, lensflare = 0,
-							lifetime = 0, sustain = 0, animtype = 0},
-		},
-	},
-	['armuwmex'] = {
-		light = {
-			lightType = 'point',
-			pieceName = 'spinner',
-			lightConfig = { posx = 0, posy = 2, posz = 0, radius = 25,
-							color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0,
-							r = 1, g = 0.2, b = 0.2, a = 0.15,
-							modelfactor = 0.4, specular = 0, scattering = 0.7, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},

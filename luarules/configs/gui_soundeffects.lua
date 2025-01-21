@@ -3294,9 +3294,6 @@ GUIUnitSoundEffects = {
 	},
 
 
-
-	armuwmex = {},
-	coruwmex = {},
 	armgplat = {},
 	corgplat = {},
 	dbg_sphere = {},

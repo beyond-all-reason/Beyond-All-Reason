@@ -975,10 +975,6 @@ local icontypes = {
 		bitmap = "icons/energy6_1.3.png",
 		size = 1.36499989
 	},
-	armuwmex = {
-		bitmap = "icons/mex_t1.png",
-		size = 0.80849993
-	},
 	armuwmme = {
 		bitmap = "icons/mex_t2.png",
 		size = 1.20749986
@@ -2046,10 +2042,6 @@ local icontypes = {
 	coruwgeo = {
 		bitmap = "icons/energy6_1.3.png",
 		size = 1.36499989
-	},
-	coruwmex = {
-		bitmap = "icons/mex_t1.png",
-		size = 0.80849993
 	},
 	coruwmme = {
 		bitmap = "icons/mex_t2.png",
