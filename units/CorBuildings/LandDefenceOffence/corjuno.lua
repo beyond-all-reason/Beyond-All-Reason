@@ -142,6 +142,8 @@ return {
 				weaponvelocity = 500,
 				customparams = {
 					stockpilelimit = 20,
+				},
+				customparams = {
 					lups_noshockwave = 1,
 					nofire = true,
 				},

@@ -1,8 +1,7 @@
 
 #include "../recoil_common_includes.h"
 
-piece  base, dbl, dbr, dtr, dtl, dummy, turret,
-greendbr, greendtr, greendtl, greendbl, orangelight;
+piece  base, dbl, dbr, dtr, dtl, dummy, turret;
 
 // Signal definitions
 #define SIGNAL_MOVE 1

@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, dish, wake, jam;
+piece  base, dish, wake;
 
 static-var  Static_Var_1, oldHead;
 static-var recently_damaged, desired_activation;
@@ -66,7 +66,6 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 Create()
 {
 	hide wake;
-	hide jam;
 	start-script SmokeUnit();
 	recently_damaged = 0;
 	desired_activation = 1;
@@ -78,7 +77,6 @@ Activate()
 	signal SIG_ACTIVATE;
 	set-signal-mask SIG_ACTIVATE;
 	desired_activation = 1;
-	show jam;
 	// if we are in this function, the unit is already on
 	// implied set ACTIVATION to 1;
 	// turn off if unit is in the recently_damaged state
@@ -89,7 +87,7 @@ Activate()
 		return(0);
 	}
 
-	spin dish around z-axis speed <100.021978> accelerate <2>;
+	spin dish around z-axis speed <100.021978>;
 }
 
 Deactivate()
@@ -111,8 +109,8 @@ Deactivate()
 	}
 	signal SIG_ACTIVATE;
 	set-signal-mask SIG_ACTIVATE;
-	hide jam;
-	stop-spin dish around z-axis decelerate <2>;
+
+	spin dish around z-axis speed <0.000000>;
 }
 
 static-var  Stunned;
@@ -130,7 +128,6 @@ OffOnHit()
 {
 signal SIG_OFF;
 set-signal-mask SIG_OFF;
-hide jam;
 recently_damaged = 1;
 set ACTIVATION to 0; // turn off unit
 sleep 8000; //hardcoded time to stay off after being hit

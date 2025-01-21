@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, jam1, jam2, turret, jam, nojam;
+piece  base, jam1, jam2, turret;
 
 static-var  Static_Var_1;
 static-var recently_damaged, desired_activation;
@@ -43,8 +43,6 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 Create()
 {
-	hide jam;
-	show nojam;
 	start-script SmokeUnit();
 	Static_Var_1 = 0;
 	recently_damaged = 0;
@@ -57,8 +55,6 @@ Activate()
 	signal SIG_ACTIVATE;
 	set-signal-mask SIG_ACTIVATE;
 	desired_activation = 1;
-	show jam;
-	hide nojam;
 	// if we are in this function, the unit is already on
 	// implied set ACTIVATION to 1;
 	// turn off if unit is in the recently_damaged state
@@ -68,9 +64,9 @@ Activate()
 		set ACTIVATION to 0;
 		return(0);
 	}
-	spin turret around y-axis speed <25> accelerate <0.5>;
-	spin jam2 around x-axis speed <150> accelerate <1>;
-	spin jam1 around x-axis speed <-150> accelerate <1>;
+	spin turret around y-axis speed <25.021978>;
+	spin jam2 around x-axis speed <90.021978>;
+	spin jam1 around x-axis speed <-90.021978>;
 	
 	return (0);
 }
@@ -86,8 +82,6 @@ Deactivate()
 	// unit_paralyze_on_off deactivates this unit before it is 
 	// stunned, so it is actually turned off, but we need to wait to see if the
 	// unit is "damaged" by stun.
-	hide jam;
-	show nojam;
 	sleep 100;
 	if (recently_damaged == 0)
 	{
@@ -96,9 +90,9 @@ Deactivate()
 	}
 	signal SIG_ACTIVATE;
 	set-signal-mask SIG_ACTIVATE;
-	stop-spin turret around y-axis decelerate <1>;
-	stop-spin jam2 around x-axis decelerate <6>;
-	stop-spin jam1 around x-axis decelerate <6>;
+	spin turret around y-axis speed <0.000000>;
+	spin jam2 around x-axis speed <0>;
+	spin jam1 around x-axis speed <0>;
 	
 	return (0);
 }

@@ -112,6 +112,7 @@ return {
 				sprayangle = 300,
 				weapontype = "AircraftBomb",
 				customparams = {
+					lups_noshockwave = 1,
 					nofire = true,
 				},
 				damage = {
