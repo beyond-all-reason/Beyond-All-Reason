@@ -1643,10 +1643,10 @@ local unitEventDistortionsNames = {
 				distortionType = 'point',
 				distortionName = 'barrelheatl',
 				pieceName = 'lcannon',
-				distortionConfig = { posx = 0, posy = 7, posz = 23.5, radius = 8,
-								noiseStrength = 0.6, noiseScaleSpace = -1.8, distanceFalloff = 0.8,
+				distortionConfig = { posx = 0, posy = 5, posz = 23.5, radius = 8,
+								noiseStrength = 0.3, noiseScaleSpace = -1.8, distanceFalloff = 0.8,
 								onlyModelMap = 0, 
-								effectStrength = 1.0, --needed for heat
+								effectStrength = 0.5, --needed for heat
 								lifeTime = 160, rampUp = 25, decay = 25,
 								riseRate = 0.2, windAffected = -0.3,
 								effectType = 0},
@@ -1657,10 +1657,10 @@ local unitEventDistortionsNames = {
 				distortionType = 'point',
 				distortionName = 'barrelheatr',
 				pieceName = 'rcannon',
-				distortionConfig = { posx = 0, posy = 7, posz = 23.5, radius = 8,
-								noiseStrength = 0.6, noiseScaleSpace = -1.8, distanceFalloff = 0.8,
+				distortionConfig = { posx = 0, posy = 5, posz = 23.5, radius = 8,
+								noiseStrength = 0.3, noiseScaleSpace = -1.8, distanceFalloff = 0.8,
 								onlyModelMap = 0, 
-								effectStrength = 1.0, --needed for heat
+								effectStrength = 0.5, --needed for heat
 								lifeTime = 160, rampUp = 25, decay = 25,
 								riseRate = 0.2, windAffected = -0.3,
 								effectType = 0},
