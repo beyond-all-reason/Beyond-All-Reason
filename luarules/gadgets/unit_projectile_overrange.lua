@@ -36,6 +36,7 @@ local spGetProjectilePosition = Spring.GetProjectilePosition
 local spSetProjectileCollision = Spring.SetProjectileCollision
 local spGetProjectileVelocity = Spring.GetProjectileVelocity
 local spSetProjectileVelocity = Spring.SetProjectileVelocity
+local spSetProjectileTimeToLive = Spring.SetProjectileTimeToLive
 
 --tables
 local defWatchTable = {}
@@ -71,6 +72,8 @@ for weaponDefID, weaponDef in pairs(WeaponDefs) do
 		local destructionMethod = customParams.projectile_destruction_method or "explode"
 		if destructionMethod == "descend" then
 			watchParams.descentMethod = true
+		elseif destructionMethod == "expire" then
+			watchParams.expireMethod = true
 		end
 
 		defWatchTable[weaponDefID] = watchParams
@@ -199,6 +202,8 @@ function gadget:GameFrame(frame)
 				local defData = defWatchTable[proData.weaponDefID]
 				if defData.descentMethod then
 					descentTable[proID] = descentMultiplier
+				elseif defData.expiretMethod then
+					spSetProjectileTimeToLive(proID, frame)
 				else
 					spSetProjectileCollision(proID)
 				end
