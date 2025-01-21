@@ -1489,6 +1489,22 @@ local unitEventDistortionsNames = {
 			},
 		},
 
+		['corsumo'] = {
+			[1] = {
+				-- Footstep shockwave
+				alwaysVisible = false,
+				distortionType = 'point',
+				distortionName = 'corsumofootstep',
+				pieceName = 'none',
+				distortionConfig = { posx = 0, posy = 0, posz = 8, radius = 120,
+								noiseStrength = 1.2, noiseScaleSpace = 0.5, distanceFalloff = 0.4, onlyModelMap = 1, 
+								effectStrength = 1.0, --needed for shockwave
+								lifeTime = 25, rampUp = 3, decay = 15, startRadius = 0.3,
+								shockWidth = 5, effectType = 'groundShockwave'},
+	
+			},
+		},
+
 		['corjugg'] = {
 			[1] = {
 				-- Footstep shockwave
