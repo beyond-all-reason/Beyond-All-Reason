@@ -1043,17 +1043,6 @@ local function setPregameBlueprint(uDefID)
 	end
 end
 
-local function queueUnit(uDefID, opts)
-	local sel = spGetSelectedUnitsSorted()
-	for unitDefID, unitIds in pairs(sel) do
-		if units.isFactory[unitDefID] then
-			for _, uid in ipairs(unitIds) do
-				spGiveOrderToUnit(uid, -uDefID, {}, opts)
-			end
-		end
-	end
-end
-
 local function clearCategory()
 	setLabBuildMode(false)
 
@@ -1131,28 +1120,8 @@ local function gridmenuKeyHandler(_, _, args, _, isRepeat)
 				return false
 			end
 
-			local opts
-
-			if ctrl then
-				opts = { "right" }
-				Spring.PlaySoundFile(CONFIG.sound_queue_rem, 0.75, "ui")
-			else
-				opts = { "left" }
-				Spring.PlaySoundFile(CONFIG.sound_queue_add, 0.75, "ui")
-			end
-
-			if alt then
-				table.insert(opts, "alt")
-				if not ctrl then
-					Spring.SetActiveCommand(spGetCmdDescIndex(-uDefID), 1, true, false, alt, false, meta, shift)
-					return true
-				end
-			end
-			if shift then
-				table.insert(opts, "shift")
-			end
-
-			queueUnit(uDefID, opts)
+			-- using SetActiveCommand has the advantage of CommandNotify being called
+			Spring.SetActiveCommand(spGetCmdDescIndex(-uDefID), ctrl and 3 or 1, not ctrl, ctrl, alt, false, meta, shift)
 
 			return true
 		end
