@@ -29,11 +29,9 @@ end
 -- 'Speedups'
 --------------------------------------------------------------------------------
 
-local spGetUnitPieceInfo = Spring.GetUnitPieceInfo
 local spGetGameFrame = Spring.GetGameFrame
 local spGetUnitPieceMap = Spring.GetUnitPieceMap
 local spGetUnitIsActive = Spring.GetUnitIsActive
-local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
 local spGetUnitVelocity = Spring.GetUnitVelocity
 local spGetUnitTeam = Spring.GetUnitTeam
 local glBlending = gl.Blending
@@ -56,6 +54,9 @@ local spValidUnitID = Spring.ValidUnitID
 local enableLights = true
 local lightMult = 1.4
 
+local texture1 = "bitmaps/GPL/Lups/perlin_noise.jpg"    -- noise texture
+local texture2 = ":c:bitmaps/gpl/lups/jet2.bmp"        -- shape
+
 local effectDefs = {
 
 	-- land vechs
@@ -67,48 +68,48 @@ local effectDefs = {
 
 	-- scouts
 	["armpeep"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 20, piece = "jet1", limit = true },
-		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 20, piece = "jet2", limit = true },
+		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 20, piece = "jet1" },
+		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 20, piece = "jet2" },
 	},
 	["corfink"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 2.3, length = 18, piece = "thrusta", limit = true  },
-		{ color = { 0.7, 0.4, 0.1 }, width = 2.3, length = 18, piece = "thrustb", limit = true  },
+		{ color = { 0.7, 0.4, 0.1 }, width = 2.3, length = 18, piece = "thrusta" },
+		{ color = { 0.7, 0.4, 0.1 }, width = 2.3, length = 18, piece = "thrustb" },
 	},
 	-- fighters
 	["armfig"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 45, piece = "thrust", limit = true },
+		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 45, piece = "thrust" },
 	},
 	["corveng"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 3.3, length = 24, piece = "thrust1", limit = true  },
-		{ color = { 0.7, 0.4, 0.1 }, width = 3.3, length = 24, piece = "thrust2", limit = true  },
+		{ color = { 0.7, 0.4, 0.1 }, width = 3.3, length = 24, piece = "thrust1" },
+		{ color = { 0.7, 0.4, 0.1 }, width = 3.3, length = 24, piece = "thrust2" },
 	},
 	["armsfig"] = {
-		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 25, piece = "thrust", limit = true },
+		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 25, piece = "thrust" },
 	},
 	["armsfig2"] = {
-		{ color = { 0.2, 0.8, 0.2 }, width = 8, length = 45, piece = "thrust", limit = true },
+		{ color = { 0.2, 0.8, 0.2 }, width = 8, length = 45, piece = "thrust" },
 	},
 	["corsfig"] = {
-		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 32, piece = "thrust", limit = true },
+		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 32, piece = "thrust" },
 	},
 	["corsfig2"] = {
-		{ color = { 0.2, 0.8, 0.2 }, width = 8, length = 45, piece = "thrust", limit = true },
+		{ color = { 0.2, 0.8, 0.2 }, width = 8, length = 45, piece = "thrust" },
 	},
 	["armhawk"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 35, piece = "thrust", limit = true },
+		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 35, piece = "thrust" },
 	},
 	["corvamp"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 35, piece = "thrusta", limit = true },
+		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 35, piece = "thrusta" },
 	},
 	["legfig"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 2, length = 15, piece = "thrust", limit = true },
+		{ color = { 0.7, 0.4, 0.1 }, width = 2, length = 15, piece = "thrust" },
 	},
 	["legionnaire"] = {
-		{ color = { 0.2, 0.4, 0.5 }, width = 3.5, length = 30, piece = "thrusta", limit = true },
+		{ color = { 0.2, 0.4, 0.5 }, width = 3.5, length = 30, piece = "thrusta" },
 	},
 	["legvenator"] = {
-		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "lthrust", limit = true },
-		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "rthrust", limit = true },
+		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "lthrust" },
+		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "rthrust" },
 	},
 	-- radar
 	["armawac"] = {
@@ -248,7 +249,7 @@ local effectDefs = {
 		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "thrust2", emitVector = { 0, 1, 0 }, light = 0.6 },
 		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "thrust3", emitVector = { 0, 1, 0 }, light = 0.6 },
 		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "thrust4", emitVector = { 0, 1, 0 }, light = 0.6 },
-	
+
 		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "thrust5", emitVector = { 1, 1, 0 }, light = 0.6 },
 		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "thrust6", emitVector = { 1, 1, 0 }, light = 0.6 },
 		{ color = { 0.1, 0.6, 0.4 }, width = 3, length = 24, piece = "thrust7", emitVector = { 1, 1, 0 }, light = 0.6 },
@@ -261,7 +262,7 @@ local effectDefs = {
 		{ color = { 0.1, 0.6, 0.4 }, width = 6, length = 48, piece = "thrust2", emitVector = { 0, 1, 0 }, light = 0.6 },
 		{ color = { 0.1, 0.6, 0.4 }, width = 6, length = 48, piece = "thrust3", emitVector = { 0, 1, 0 }, light = 0.6 },
 		{ color = { 0.1, 0.6, 0.4 }, width = 6, length = 48, piece = "thrust4", emitVector = { 0, 1, 0 }, light = 0.6 },
-	
+
 		{ color = { 0.1, 0.6, 0.4 }, width = 6, length = 48, piece = "thrust5", emitVector = { 1, 1, 0 }, light = 0.6 },
 		{ color = { 0.1, 0.6, 0.4 }, width = 6, length = 48, piece = "thrust6", emitVector = { 1, 1, 0 }, light = 0.6 },
 		{ color = { 0.1, 0.6, 0.4 }, width = 6, length = 48, piece = "thrust7", emitVector = { 1, 1, 0 }, light = 0.6 },
@@ -280,20 +281,20 @@ local effectDefs = {
 
 	-- bladewing
 	["corbw"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 1.8, length = 7.5, piece = "thrusta", limit = true  },
-		{ color = { 0.1, 0.4, 0.6 }, width = 1.8, length = 7.5, piece = "thrustb", limit = true  },
+		{ color = { 0.1, 0.4, 0.6 }, width = 1.8, length = 7.5, piece = "thrusta" },
+		{ color = { 0.1, 0.4, 0.6 }, width = 1.8, length = 7.5, piece = "thrustb" },
 	},
 	["cordroneold"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 1.2, length = 5, piece = "thrusta", limit = true  },
-		{ color = { 0.1, 0.4, 0.6 }, width = 1.2, length = 5, piece = "thrustb", limit = true  },
+		{ color = { 0.1, 0.4, 0.6 }, width = 1.2, length = 5, piece = "thrusta" },
+		{ color = { 0.1, 0.4, 0.6 }, width = 1.2, length = 5, piece = "thrustb" },
 	},
 	["cordrone"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 1.2, length = 5, piece = "thrusta", limit = true  },
-		{ color = { 0.1, 0.4, 0.6 }, width = 1.2, length = 5, piece = "thrustb", limit = true  },
+		{ color = { 0.1, 0.4, 0.6 }, width = 1.2, length = 5, piece = "thrusta" },
+		{ color = { 0.1, 0.4, 0.6 }, width = 1.2, length = 5, piece = "thrustb" },
 	},
 	["cortdrone"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 1.2, length = 5, piece = "thrusta", limit = true  },
-		{ color = { 0.1, 0.4, 0.6 }, width = 1.2, length = 5, piece = "thrustb", limit = true  },
+		{ color = { 0.1, 0.4, 0.6 }, width = 1.2, length = 5, piece = "thrusta" },
+		{ color = { 0.1, 0.4, 0.6 }, width = 1.2, length = 5, piece = "thrustb" },
 	},
 
 	-- bombers
@@ -473,19 +474,8 @@ for name, effects in pairs(effectDefs) do
 	end
 end
 
-local distortion = 0.008
-local animSpeed = 3
-local jitterWidthScale = 3
-local jitterLengthScale = 3
-
-local texture1 = "bitmaps/GPL/Lups/perlin_noise.jpg"    -- noise texture
---local texture1 = "luaui/images/perlin_noise_rgba_512.png"    -- noise texture
-local texture2 = ":c:bitmaps/gpl/lups/jet2.bmp"        -- shape
-local texture3 = ":c:bitmaps/GPL/Lups/jet.bmp"        -- jitter shape
-
 local xzVelocityUnits = {}
 local defs = {}
-local limitDefs = {}
 for name, effects in pairs(effectDefs) do
 	if UnitDefNames[name] then
 		for fx, data in pairs(effects) do
@@ -495,9 +485,6 @@ for name, effects in pairs(effectDefs) do
 			if effectDefs[name][fx].xzVelocity then
 				xzVelocityUnits[UnitDefNames[name].id] = effectDefs[name][fx].xzVelocity
 			end
-			if effectDefs[name][fx].limit then
-				limitDefs[UnitDefNames[name].id] = true
-			end
 		end
 		defs[UnitDefNames[name].id] = effectDefs[name]
 	end
@@ -505,11 +492,9 @@ end
 effectDefs = defs
 defs = nil
 
-local lightDefs = {}
 for name, effects in pairs(effectDefs) do
 	for fx, data in pairs(effects) do
 		if data.light then
-			lightDefs[name] = true
 			effectDefs[name][fx].light = data.light * lightMult
 		end
 	end
@@ -522,13 +507,13 @@ end
 local activePlanes = {}
 local inactivePlanes = {}
 local lights = {}
-local unitPieceOffset = {}
 
 local shaders
 local lastGameFrame = Spring.GetGameFrame()
 local updateSec = 0
 
 local spec, fullview = Spring.GetSpectatingState()
+local myAllyTeamID = Spring.GetMyAllyTeamID()
 
 local enabled = true
 local lighteffectsEnabled = false -- TODO (enableLights and WG['lighteffects'] ~= nil and WG['lighteffects'].enableThrusters)
@@ -538,10 +523,8 @@ local lighteffectsEnabled = false -- TODO (enableLights and WG['lighteffects'] ~
 -- draw in refract/reflect too?
 -- GL4 Variables:
 
-local quadVBO = nil
 local jetInstanceVBO = nil
 local jetShader = nil
-local jitterShader = nil
 
 local luaShaderDir = "LuaUI/Widgets/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
@@ -811,9 +794,9 @@ local function DrawParticles(isReflection)
 	if not enabled then return false end
 	-- validate unitID buffer
 	drawframe = drawframe + 1
-	if drawframe %99 == 1 then
+	--if drawframe %99 == 1 then
 		--Spring.Echo("Numairjets", jetInstanceVBO.usedElements)
-	end
+	--end
 
 	if jetInstanceVBO.usedElements > 0 then
 		gl.Culling(false)
@@ -928,11 +911,6 @@ local function RemoveUnit(unitID, unitDefID, unitTeamID)
 		inactivePlanes[unitID] = nil
 		activePlanes[unitID] = nil
 		RemoveLights(unitID)
-		for i = 1, #effectDefs[unitDefID] do
-			if effectDefs[unitDefID][i].piecenum then
-				unitPieceOffset[unitID..'_'..effectDefs[unitDefID][i].piecenum] = nil
-			end
-		end
 	end
 end
 
@@ -941,14 +919,6 @@ local function AddUnit(unitID, unitDefID, unitTeamID)
 		return false
 	end
 	Activate(unitID, unitDefID, "addunit")
-
-	if lighteffectsEnabled and lightDefs[unitDefID] then
-		for i = 1, #effectDefs[unitDefID] do
-			if effectDefs[unitDefID][i].piecenum then
-				unitPieceOffset[unitID..'_'..effectDefs[unitDefID][i].piecenum] = spGetUnitPieceInfo(unitID, effectDefs[unitDefID][i].piecenum).offset
-			end
-		end
-	end
 end
 
 --------------------------------------------------------------------------------
@@ -962,7 +932,6 @@ function widget:Update(dt)
 	if gf ~= lastGameFrame and updateSec > 0.51 then		-- to limit the number of unit status checks
 		--[[
 		if Spring.GetGameFrame() > 0 then
-
 			ValidateUnitIDs(jetInstanceVBO.indextoUnitID)
 			local activecnt = 0
 			local inactivecnt = 0
@@ -1052,6 +1021,9 @@ function widget:RenderUnitDestroyed(unitID, unitDefID, unitTeam)
 	RemoveUnit(unitID, unitDefID, unitTeam)
 end
 
+function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
+	AddUnit(unitID, unitDefID, unitTeam)
+end
 function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeamId)
 	RemoveUnit(unitID, unitDefID, unitTeam)
 end
@@ -1073,7 +1045,6 @@ local function reInitialize()
 	activePlanes = {}
 	inactivePlanes = {}
 	lights = {}
-	unitPieceOffset = {}
 	clearInstanceTable(jetInstanceVBO)
 
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
@@ -1081,9 +1052,6 @@ local function reInitialize()
 		AddUnit(unitID, unitDefID, spGetUnitTeam(unitID))
 	end
 end
-
---local spec, fullview = Spring.GetSpectatingState() -- already defined
-local myAllyTeamID = Spring.GetMyAllyTeamID()
 
 function widget:PlayerChanged(playerID)
 	local currentspec, currentfullview = Spring.GetSpectatingState()
