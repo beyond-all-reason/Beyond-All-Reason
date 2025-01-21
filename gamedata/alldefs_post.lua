@@ -59,7 +59,7 @@ function PrebakeUnitDefs()
 					wDef.customparams = wDef.customparams or {}
 					wDef.customparams.overrange_distance = math.ceil(wDef.range * 1.15)
 					wDef.customparams.projectile_destruction_method = "descend"
-					Spring.Echo("prebake unit name: "..name.." "..weaponName, "range: "..wDef.range, "overrange: "..wDef.customparams.projectile_overrange_distance)
+					Spring.Echo("prebake unit name: "..name.." "..weaponName, "range: "..wDef.range, "overrange: "..wDef.customparams.overrange_distance)
 				end
 			end
 		end

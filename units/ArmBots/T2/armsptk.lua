@@ -140,7 +140,7 @@ return {
 				--weapontimer = 6,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 450,
-				wobble = 2500,
+				wobble = 1250,
 				customparams = {
 					cruise_max_height = "20",
 					cruise_min_height = "15",
