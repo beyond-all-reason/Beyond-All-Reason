@@ -26,7 +26,7 @@ return {
 		movementclass = "VBOT5",
 		nochasecategory = "VTOL GROUNDSCOUT",
 		objectname = "Units/corkorg.s3o",
-		script = "Units/corkorg.cob",
+		script = "Units/corkorg_clean.cob",
 		seismicsignature = 0,
 		selfdestructas = "korgExplosionSelfd",
 		selfdestructcountdown = 10,
@@ -276,7 +276,6 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1650,
 				customparams = {
-					lups_noshockwave = true,
 					nofire = true,
 				},
 				damage = {

@@ -111,7 +111,7 @@ local cursorLightParams = {
 		r = 1, g = 1, b = 1, a = 0.1,	-- (alpha is set elsewhere)
 		color2r = 0, color2g = 0, color2b = 0, colortime = 0, -- point lights only, colortime in seconds for unit-attache
 		modelfactor = 0.3, specular = 0.7, scattering = 0, lensflare = 0,
-		lifetime = 0, sustain = 0, aninmtype = 0 -- unused
+		lifetime = 0, sustain = 0, selfshadowing = 0 
 	}
 }
 
@@ -131,7 +131,7 @@ local playerCursorLightParams = {
 		r = 1, g = 0.8, b = 0.6, a = 0.1,	-- (alpha is set elsewhere)
 		color2r = 0, color2g = 0, color2b = 0, colortime = 0, -- point lights only, colortime in seconds for unit-attache
 		modelfactor = 0.3, specular = 0.4, scattering = 0, lensflare = 0,
-		lifetime = 0, sustain = 0, aninmtype = 0 -- unused
+		lifetime = 0, sustain = 0, selfshadowing = 8 
 	}
 }
 
@@ -199,13 +199,16 @@ local shaderConfig = {
 	SURFACECOLORMODULATION = 0.05, -- This specifies how much the lit surfaces color affects direct light blending, 0 is does not effect it, 1.0 is full effect
 	BLEEDFACTOR = 0.15, -- How much oversaturated color channels will bleed into other color channels.
 	VOIDWATER = gl.GetMapRendering("voidWater") and 1 or 0,
+	SCREENSPACESHADOWS = 1, -- set to nil to disable completely
 }
 
 local radiusMultiplier = 1.0
+local screenSpaceShadows = 2
 local intensityMultiplier = 1.0
 
 -- the 3d noise texture used for this shader
 local noisetex3dcube =  "LuaUI/images/noisetextures/noise64_cube_3.dds"
+local blueNoise2D =  "LuaUI/images/noisetextures/blue_noise_64.tga"
 
 --[[
 local examplePointLight = {
@@ -218,12 +221,12 @@ local examplePointLight = {
 	dirx = 0, diry = 0, dirz = 1, theta = 0.5,  -- cone lights only, specify direction and half-angle in radians
 	pos2x = 100, pos2y = 100, pos2z = 100, -- beam lights only, specifies the endpoint of the beam
 	modelfactor = 1, specular = 1, scattering = 1, lensflare = 1,
-	lifetime = 0, sustain = 1, 	aninmtype = 0 -- unused
+	lifetime = 0, sustain = 1, 	selfshadowing = 0 
 }
 ]]--
 
 ------------------------------ Debug switches ------------------------------
-local autoupdate = false
+local autoupdate = true
 local debugproj = false
 local addrandomlights = false
 local skipdraw = false
@@ -273,7 +276,7 @@ local lightParamKeyOrder = { -- This table is a 'quick-ish' way of building the 
 	dirx = 5, diry = 6, dirz = 7, theta = 8,  -- specify direction and half-angle in radians
 	pos2x = 5, pos2y = 6, pos2z = 7, -- beam lights only, specifies the endpoint of the beam
 	modelfactor = 13, specular = 14, scattering = 15, lensflare = 16,
-	lifetime = 18, sustain = 19, animtype = 20, -- animtype unused
+	lifetime = 18, sustain = 19, selfshadowing = 20, -- selfshadowing unused
 
 	-- NOTE THERE ARE 4 MORE UNUSED SLOTS HERE RESERVED FOR FUTURE USE! -- Nope, beherith ate these like a greedy boy
 	color2r = 21, color2g = 22, color2b = 23, colortime = 24, -- point lights only, colortime in seconds for unit-attached
@@ -310,8 +313,10 @@ local shaderSourceCache = {
 		mapDiffuse = 6,
 		modelDiffuse = 7,
 		noise3DCube = 8,
+		blueNoise = 9,
 		--heightmapTex = 9,
 		--mapnormalsTex = 10,
+		screenSpaceShadows = 16,
 		},
 	uniformFloat = {
 		pointbeamcone = 0,
@@ -328,7 +333,7 @@ local testprojlighttable = {0,16,0,200, --pos + radius
 								0.25, 0.25,0.125, 5, -- color2, colortime
 								1.0,1.0,0.5,0.5, -- RGBA
 								0.1,1,0.25,1, -- modelfactor_specular_scattering_lensflare
-								0,0,200,0, -- spawnframe, lifetime (frames), sustain (frames), animtype
+								0,0,200,0, -- spawnframe, lifetime (frames), sustain (frames), selfshadowing
 								0,0,0,0, -- color2
 								0, -- pieceIndex
 								0,0,0,0 -- instData always 0!
@@ -419,8 +424,6 @@ local function InitializeLight(lightTable, unitID)
 			for paramname, tablepos in pairs(lightParamKeyOrder) do
 				lightparams[tablepos] = lightTable.lightConfig[paramname] or lightparams[tablepos]
 			end
-			lightparams[lightParamKeyOrder.radius] = lightparams[lightParamKeyOrder.radius]
-			lightparams[lightParamKeyOrder.a] =  lightparams[lightParamKeyOrder.a]
 			lightparams[lightParamKeyOrder.lifetime] = math.floor( lightparams[lightParamKeyOrder.lifetime] )
 			lightTable.lightParamTable = lightparams
 			lightTable.lightConfig = nil -- never used again after initialization
@@ -530,10 +533,10 @@ end
 ---@param spawnframe float the gameframe the light was spawned in (for anims, in frames, default current game frame)
 ---@param lifetime float how many frames the light will live, with decreasing brightness
 ---@param sustain float how much sustain time the light will have at its original brightness (in game frames)
----@param animtype int what further type of animation will be used
+---@param selfshadowing int what further type of animation will be used (0 is default 1 is for screen space shadow)
 ---@return instanceID for future reuse
 local function AddPointLight(instanceID, unitID, pieceIndex, targetVBO, px_or_table, py, pz, radius, r,g,b,a, r2,g2,b2, colortime,
-	modelfactor, specular, scattering, lensflare, spawnframe, lifetime, sustain, animtype)
+	modelfactor, specular, scattering, lensflare, spawnframe, lifetime, sustain, selfshadowing)
 
 	if instanceID == nil then
 		autoLightInstanceID = autoLightInstanceID + 1
@@ -566,7 +569,7 @@ local function AddPointLight(instanceID, unitID, pieceIndex, targetVBO, px_or_ta
 		lightparams[spawnFramePos] = spawnframe or gameFrame
 		lightparams[18] = lifetime or 0
 		lightparams[19] = sustain or 1
-		lightparams[20] = animtype or 0
+		lightparams[20] = selfshadowing or 0
 		lightparams[21] = r2 or 0
 		lightparams[22] = g2 or 0
 		lightparams[23] = b2 or 0
@@ -646,10 +649,10 @@ end
 ---@param spawnframe float the gameframe the light was spawned in (for anims, in frames, default current game frame)
 ---@param lifetime float how many frames the light will live, with decreasing brightness
 ---@param sustain float how much sustain time the light will have at its original brightness (in game frames)
----@param animtype int what further type of animation will be used
+---@param selfshadowing int what further type of animation will be used
 ---@return instanceID for future reuse
 local function AddBeamLight(instanceID, unitID, pieceIndex, targetVBO, px_or_table, py, pz, radius, r,g,b,a, sx, sy, sz, r2, colortime,
-	modelfactor, specular, scattering, lensflare, spawnframe, lifetime, sustain, animtype)
+	modelfactor, specular, scattering, lensflare, spawnframe, lifetime, sustain, selfshadowing)
 
 	if instanceID == nil then
 		autoLightInstanceID = autoLightInstanceID + 1
@@ -682,7 +685,7 @@ local function AddBeamLight(instanceID, unitID, pieceIndex, targetVBO, px_or_tab
 		lightparams[spawnFramePos] = spawnframe or gameFrame
 		lightparams[18] = lifetime or 0
 		lightparams[19] = sustain or 1
-		lightparams[20] = animtype or 0
+		lightparams[20] = selfshadowing or 0
 		lightparams[21] = 0 --unused
 		lightparams[22] = 0 --unused
 		lightparams[23] = 0 --unused
@@ -728,10 +731,10 @@ end
 ---@param spawnframe float the gameframe the light was spawned in (for anims, in frames, default current game frame)
 ---@param lifetime float how many frames the light will live, with decreasing brightness
 ---@param sustain float how much sustain time the light will have at its original brightness (in game frames)
----@param animtype int what further type of animation will be used
+---@param selfshadowing int what further type of animation will be used
 ---@return instanceID for future reuse
 local function AddConeLight(instanceID, unitID, pieceIndex, targetVBO, px_or_table, py, pz, radius, r,g,b,a, dx,dy,dz,theta, colortime,
-	modelfactor, specular, scattering, lensflare, spawnframe, lifetime, sustain, animtype)
+	modelfactor, specular, scattering, lensflare, spawnframe, lifetime, sustain, selfshadowing)
 
 	if instanceID == nil then
 		autoLightInstanceID = autoLightInstanceID + 1
@@ -763,11 +766,11 @@ local function AddConeLight(instanceID, unitID, pieceIndex, targetVBO, px_or_tab
 		lightparams[spawnFramePos] = spawnframe or gameFrame
 		lightparams[18] = lifetime or 0
 		lightparams[19] = sustain or 1
-		lightparams[20] = animtype or 0
-		lightparams[21] = 0 -- unused
-		lightparams[22] = 0 --unused
-		lightparams[23] = 0 --unused
-		lightparams[24] = 0 --unused
+		lightparams[20] = selfshadowing or 0
+		lightparams[21] = 0 -- RESERVED
+		lightparams[22] = 0 --RESERVED
+		lightparams[23] = 0 --RESERVED
+		lightparams[24] = 0 --RESERVED
 		lightparams[pieceIndexPos] = pieceIndex or 0
 	else
 		lightparams = px_or_table
@@ -1057,6 +1060,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	visibleUnits = {}
 
 	for unitID, unitDefID in pairs(extVisibleUnits) do
+		visibleUnits[unitID] = unitDefID
 		AddStaticLightsForUnit(unitID, unitDefID, true, "VisibleUnitsChanged") -- add them with noUpload = true
 	end
 	uploadAllElements(unitPointLightVBO) -- upload them all
@@ -1246,6 +1250,7 @@ end
 function widget:FeatureCreated(featureID, noUpload)
 	if type(noUpload) ~= 'boolean' then noUpload = nil end
 	-- TODO: Allow team-colored feature lights by getting teamcolor and putting it into lightCacheTable
+	--Spring.Echo("FeatureCreated", featureID, allyteam, featureDefLights[featureDefID])
 	local featureDefID = Spring.GetFeatureDefID(featureID)
 	if featureDefLights[featureDefID] then
 		for lightname, lightTable in pairs(featureDefLights[featureDefID]) do
@@ -1517,12 +1522,29 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		local alt, ctrl = Spring.GetModKeyState()
 		local devui = (Spring.GetConfigInt('DevUI', 0) == 1)
 
-		if autoupdate and ctrl and (isSinglePlayer or spec) and devui then
+		if autoupdate and alt and ctrl and (isSinglePlayer or spec) and devui then
+			-- draw a full-screen black quad first!
+			local camX, camY, camZ = Spring.GetCameraPosition()
+			local camDirX,camDirY,camDirZ = Spring.GetCameraDirection()
+			glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+			gl.Culling(GL.BACK)
+			gl.DepthTest(false)
+			gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove
+			gl.Color(0,0,0,1)
+			gl.PushMatrix()
+			gl.Color(0,0,0,1.0)
+			gl.Translate(camX+(camDirX*360),camY+(camDirY*360),camZ+(camDirZ*360))
+			gl.Billboard()
+			gl.Rect(-5000, -5000, 5000, 5000)
+			gl.PopMatrix()
+		end
+
+		if autoupdate and ctrl and (not alt) and (isSinglePlayer or spec) and devui then
 			glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		else
 			glBlending(GL.SRC_ALPHA, GL.ONE)
 		end
-		if autoupdate and alt and (isSinglePlayer or spec) and devui then return end
+		--if autoupdate and alt and (not ctrl) and (isSinglePlayer or spec) and devui then return end
 
 		gl.Culling(GL.BACK)
 		gl.DepthTest(false)
@@ -1536,12 +1558,20 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		glTexture(6, "$map_gbuffer_difftex")
 		glTexture(7, "$model_gbuffer_difftex")
 		glTexture(8, noisetex3dcube)
+		glTexture(9, blueNoise2D)
 
 		deferredLightShader:Activate()
 		deferredLightShader:SetUniformFloat("nightFactor", nightFactor)
 
 		deferredLightShader:SetUniformFloat("intensityMultiplier", intensityMultiplier)
 		deferredLightShader:SetUniformFloat("radiusMultiplier", radiusMultiplier)
+
+		-- As the setting goes from 0 to 4, map to 0,8,16,32,64
+		local screenSpaceShadowSampleCount = 0
+		if screenSpaceShadows > 0 then 
+			screenSpaceShadowSampleCount = math.min(64, math.floor( math.pow(2, screenSpaceShadows) * 4) )
+		end
+		deferredLightShader:SetUniformInt("screenSpaceShadows",  screenSpaceShadowSampleCount)
 		--Spring.Echo(windX, windZ)
 
 
@@ -1677,9 +1707,16 @@ function widget:Initialize()
 	WG['lightsgl4'].RadiusMultiplier = function(value)
 		radiusMultiplier = value
 	end
+	WG['lightsgl4'].ScreenSpaceShadows = function(value)
+		screenSpaceShadows = value
+	end
 
 	WG['lightsgl4'].ShowPlayerCursorLight = function(value)
 		showPlayerCursorLight = value
+		-- Remove the player's cursor light on disabling this feature
+		if not showPlayerCursorLight and cursorPointLightVBO.instanceIDtoIndex["PLAYERCURSOR"] then
+			popElementInstance(cursorPointLightVBO, "PLAYERCURSOR")
+		end
 	end
 	WG['lightsgl4'].PlayerCursorLightRadius = function(value)
 		playerCursorLightRadius = value
@@ -1697,12 +1734,19 @@ function widget:Initialize()
 
 	widgetHandler:RegisterGlobal('UnitScriptLight', UnitScriptLight)
 end
+
+if autoupdate then 
+	function widget:DrawScreen()
+		if deferredLightShader.DrawPrintf then deferredLightShader.DrawPrintf() end
+	end
+end
 --------------------------- Ingame Configurables -------------------
 
 function widget:GetConfigData(_) -- Called by RemoveWidget
 	local savedTable = {
 		intensityMultiplier = intensityMultiplier,
 		radiusMultiplier = radiusMultiplier,
+		screenSpaceShadows = screenSpaceShadows,
 		showPlayerCursorLight = showPlayerCursorLight,
 		playerCursorLightRadius = playerCursorLightRadius,
 		playerCursorLightBrightness = playerCursorLightBrightness,
@@ -1716,6 +1760,9 @@ function widget:SetConfigData(data) -- Called on load (and config change), just 
 	end
 	if data.radiusMultiplier ~= nil then
 		radiusMultiplier = data.radiusMultiplier
+	end
+	if data.screenSpaceShadows ~= nil then
+		screenSpaceShadows = data.screenSpaceShadows
 	end
 	if data.showPlayerCursorLight ~= nil then
 		showPlayerCursorLight = data.showPlayerCursorLight

@@ -241,7 +241,7 @@ StopMoving()
 #define UNITSIZE 8
 #define MAXTILT 100
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
 Create()
 {
@@ -267,10 +267,6 @@ Create()
 	//start-script puff();
 }
 
-lua_FlameShot(weapon) //Distortion and lups flame effect
-{
-  return 0;
-}
 lua_UnitScriptLight(lightIndex, count)
 {
 	return 0;
@@ -486,8 +482,6 @@ QuerySecondary(piecenum)
 Shot2() {
 	shotcount2 = shotcount2 + 1;
 	call-script lua_UnitScriptLight(3, shotcount2);
-
-	call-script lua_FlameShot(2);
 	emit-sfx 1024 + 0 from flameflarer;
 }
 
