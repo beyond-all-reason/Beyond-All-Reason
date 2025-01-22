@@ -259,30 +259,13 @@ function UnitDef_Post(name, uDef)
 		end
 
 		if modOptions.unit_restrictions_nonukes then
-			local Nukes = {
-				armamd = true,
-				armsilo = true,
-				armscab = true,
-				armseadragon = true,
-				corfmd = true,
-				corsilo = true,
-				cormabm = true,
-				cordesolator = true,
-				legsilo =  true,
-				legabm = true,
-				armamd_scav = true,
-				armsilo_scav = true,
-				armscab_scav = true,
-				armseadragon_scav = true,
-				corfmd_scav = true,
-				corsilo_scav = true,
-				cormabm_scav = true,
-				cordesolator_scav = true,
-				legsilo_scav =  true,
-				legabm_scav = true,
-			}
-			if Nukes[name] then
-				uDef.maxthisunit = 0
+			if uDef.weapondefs then
+				for _, weapon in pairs(uDef.weapondefs) do
+					if (weapon.interceptor and weapon.interceptor == 1) or (weapon.targetable and weapon.targetable == 1) then
+						uDef.maxthisunit = 0
+						break
+					end
+				end
 			end
 		end
 
@@ -1413,8 +1396,8 @@ function WeaponDef_Post(name, wDef)
 				wDef.mygravity = 0.1445
 			end
 		end
-      
-		-- Accurate Lasers		
+
+		-- Accurate Lasers
 		if modOptions.proposed_unit_reworks then
 			if wDef.weapontype and wDef.weapontype == 'BeamLaser' then
 				wDef.targetmoveerror = nil
