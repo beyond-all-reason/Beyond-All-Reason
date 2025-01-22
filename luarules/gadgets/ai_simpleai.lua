@@ -9,8 +9,6 @@ local mapsizeZ = Game.mapSizeZ
 local random = math.random
 local debugmode = false
 
-local gameShortName = Game.gameShortName
-
 --Spring.Echo("tracy", tracy)
 
 local MakeHashedPosTable = VFS.Include("luarules/utilities/damgam_lib/hashpostable.lua")
@@ -51,43 +49,16 @@ function gadget:GetInfo()
 	}
 end
 
--------- lists
+-- manually appoint units to avoid making
+-- (note that transports, stockpilers and objects/walls are auto skipped)
 local BadUnitsList = {}
-if gameShortName == "BYAR" then
+if Game.gameShortName == "BYAR" then
 	BadUnitsList = {
-		-- transports
-		"armthovr",
-		"corthovr",
-		"armatlas",
-		"armtship",
-		"corvalk",
-		"cortship",
-		"armdfly",
-		"corseah",
-		"corint",
-
-		-- stockpilers
-		"armemp",
-		"armjuno",
-		"armsilo",
-		"corjuno",
-		"corsilo",
-		"cortron",
-
-		-- minelayers
-		"armmlv",
-		"cormlv",
-
-		-- depth charge launchers
+		-- some depth charge launchers
 		"armdl",
 		"cordl",
-
-		-- walls
-		"armdrag",
-		"cordrag",
 	}
 end
-
 local function RandomChoiceArray(t)
 	return t[random(1,#t)]
 end
@@ -130,16 +101,42 @@ local BuildOptions = {} -- {unitDefHasBuildOptions = {1= buildOpt0, RandomChoice
 
 
 for unitDefID, unitDef in pairs(UnitDefs) do
-	local BadUnitDef = false
-	for a = 1,#BadUnitsList do
+	local skip = false
+	for a = 1, #BadUnitsList do
 		if BadUnitsList[a] == unitDef.name then
-			BadUnitDef = true
+			skip = true
 			break
-		else
-			BadUnitDef = false
 		end
 	end
-	if BadUnitDef == false then
+
+	-- stockpilers
+	--if unitDef.canStockpile then
+	--	skip = true
+	--end
+	if unitDef.weapons then
+		for i = 1, #unitDef.weapons do
+			local wDef = WeaponDefs[unitDef.weapons[i].weaponDef]
+			-- stockpilers
+			if wDef.stockpile then
+				skip = true
+				break
+			end
+		end
+	end
+	-- minelayers
+	if unitDef.customParams.minesweeper then
+		skip = true
+	end
+	-- transports
+	if unitDef.transportCapacity > 0 then
+		skip = true
+	end
+	-- objects/walls
+	if unitDef.modCategories['object'] or unitDef.customParams.objectify then
+		skip = true
+	end
+
+	if not skip then
 		if unitDef.customParams.iscommander then
 			SimpleCommanderDefs[unitDefID] = 1
 		elseif unitDef.isFactory and #unitDef.buildOptions > 0 then
