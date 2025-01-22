@@ -932,10 +932,10 @@ void main(void)
 				// Assume that a ray that hits exactly occludes 0.5
 				if (rayScreenDepthSample < rayScreenPos.z) {
 					// If the sample actually occludes, then softly occlude it based on the distance from the light
-					if (sampleDistance > 64.0) // Very deep occluders dont occlude
-						sampleOcclusionStrength = 0.0;
+					if (sampleDistance > 48.0) // Very deep occluders dont occlude
+						sampleOcclusionStrength = 1.0 -  clamp((sampleDistance - 48.0) / (rayStepLength * 0.05), 0.0, 1.0);
 					else
-						sampleOcclusionStrength = 0.5 + clamp(sampleDistance / (rayStepLength * 0.05), 0.0, 1.0) * 0.5;;
+						sampleOcclusionStrength = 0.5 + clamp(sampleDistance / (rayStepLength * 0.05), 0.0, 1.0) * 0.5;
 
 				}else{
 					// if the sample does not occlude, but is close to doing so, then softly occlude it based on the distance from the light	
@@ -955,7 +955,7 @@ void main(void)
 			float dotproduct = dot(gatheredunoccluded, vec4(4* weights)); // This will multiply by 4, effectively
 			//dotproduct = occludedness;
 			unoccluded = 1.0 - smoothstep(0.0, 0.25 * v_otherparams.w * float(screenSpaceShadows) , dotproduct);
-			
+			//unoccluded = 1.0;
 			//printf(unoccluded);
 		}	
 
