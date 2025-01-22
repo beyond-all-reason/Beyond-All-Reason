@@ -99,9 +99,9 @@ local BaseClasses = {
 		distortionType = 'beam', -- or cone or beam
 		distortionConfig = {
 				posx = 0, posy = 10, posz = 0, radius = 10,
-				noiseStrength = 0.5, noiseScaleSpace = 1.3, effectStrength = 1.0,
+				noiseStrength = 0.3, noiseScaleSpace = 0.3, effectStrength = 0.5,
 				pos2x = 100, pos2y = 1000, pos2z = 100, -- beam distortions only, specifies the endpoint of the beam
-				lifeTime = 3, rampUp = 3, decay = 0, effectType = 0, 
+				lifeTime = 0, rampUp = 2, decay = 0, effectType = 0, 
 		},
 	},
 
@@ -919,7 +919,7 @@ local function AssignDistortionsToAllWeapons()
 	end
 	Spring.Echo(Spring.GetGameFrame(),"DLGL4 weapons conf using",usedclasses,"distortion types")
 end
--- AssignDistortionsToAllWeapons() -- disabled because entire thing above here needs re-configuring
+--AssignDistortionsToAllWeapons() -- disabled because entire thing above here needs re-configuring
 
 
 -----------------Manual Overrides--------------------

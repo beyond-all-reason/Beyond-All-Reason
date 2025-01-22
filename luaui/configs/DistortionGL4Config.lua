@@ -1494,13 +1494,52 @@ local unitEventDistortionsNames = {
 				-- Footstep shockwave
 				alwaysVisible = false,
 				distortionType = 'point',
-				distortionName = 'corsumofootstep',
-				pieceName = 'none',
-				distortionConfig = { posx = 0, posy = 0, posz = 8, radius = 120,
-								noiseStrength = 1.2, noiseScaleSpace = 0.5, distanceFalloff = 0.4, onlyModelMap = 1, 
+				distortionName = 'corsumofootstepfl',
+				pieceName = 'footfl',
+				distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 25,
+								noiseStrength = 0.5, noiseScaleSpace = 0.5, distanceFalloff = 0.4, onlyModelMap = 1, 
 								effectStrength = 1.0, --needed for shockwave
-								lifeTime = 25, rampUp = 3, decay = 15, startRadius = 0.3,
-								shockWidth = 5, effectType = 'groundShockwave'},
+								lifeTime = 18, rampUp = 3, decay = 15, startRadius = 0.3,
+								shockWidth = 1, effectType = 'groundShockwave'},
+	
+			},
+			[2] = {
+				-- Footstep shockwave
+				alwaysVisible = false,
+				distortionType = 'point',
+				distortionName = 'corsumofootstepbr',
+				pieceName = 'footbr',
+				distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 25,
+								noiseStrength = 0.5, noiseScaleSpace = 0.5, distanceFalloff = 0.4, onlyModelMap = 1, 
+								effectStrength = 1.0, --needed for shockwave
+								lifeTime = 18, rampUp = 3, decay = 15, startRadius = 0.3,
+								shockWidth = 1, effectType = 'groundShockwave'},
+	
+			},
+			[3] = {
+				-- Footstep shockwave
+				alwaysVisible = false,
+				distortionType = 'point',
+				distortionName = 'corsumofootstepfr',
+				pieceName = 'footfr',
+				distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 25,
+								noiseStrength = 0.5, noiseScaleSpace = 0.5, distanceFalloff = 0.4, onlyModelMap = 1, 
+								effectStrength = 1.0, --needed for shockwave
+								lifeTime = 18, rampUp = 3, decay = 15, startRadius = 0.3,
+								shockWidth = 1, effectType = 'groundShockwave'},
+	
+			},
+			[4] = {
+				-- Footstep shockwave
+				alwaysVisible = false,
+				distortionType = 'point',
+				distortionName = 'corsumofootstepbl',
+				pieceName = 'footbl',
+				distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 25,
+								noiseStrength = 0.5, noiseScaleSpace = 0.5, distanceFalloff = 0.4, onlyModelMap = 1, 
+								effectStrength = 1.0, --needed for shockwave
+								lifeTime = 18, rampUp = 3, decay = 15, startRadius = 0.3,
+								shockWidth = 1, effectType = 'groundShockwave'},
 	
 			},
 		},
