@@ -261,6 +261,15 @@ local BaseClasses = {
 						shockWidth = 3, startRadius = 0.24,
 						lifeTime = 25,  effectType = 'groundShockwave'},
 	},
+	ExploUnitAirShockWave = {
+		distortionType = 'point', -- or cone or beam
+		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
+			noiseScaleSpace = 0.15, noiseStrength = 0.3, onlyModelMap = 0,  
+			lifeTime = 16, refractiveIndex = 1.04, decay = 4, rampUp = 2,
+			effectStrength = 5.0, startRadius = 0.25, shockWidth = -0.70,
+			effectType = "airShockwave", },
+
+	},
 
 	AirShockWaveXS = {
 		distortionType = 'point', -- or cone or beam
@@ -279,6 +288,7 @@ local BaseClasses = {
 			effectType = "airShockwave", },
 
 	},
+	
 	AirShockWaveEMP = {
 		distortionType = 'point', -- or cone or beam
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
@@ -673,8 +683,8 @@ local gibDistortion = {
 	distortionType = 'point', -- or cone or beam
 	pieceName = nil, -- optional
 	distortionConfig = {
-		posx = 0, posy = 0, posz = 0, radius = 16,
-		lifeTime = 100, decay = 100, effectType = 0 
+		posx = 0, posy = 0, posz = 0, radius = 12,
+		lifeTime = 75, decay = 75, effectType = 0 
 	},
 }
 
@@ -876,13 +886,14 @@ local projectileDefDistortions  = {
 						end
 					end
 
-					radius = ((weaponDef.damageAreaOfEffect*1.9) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
+				radius = ((weaponDef.damageAreaOfEffect*1.9) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
 					if string.find(weaponDef.name, 'juno') then
 						radius = 675
 	
 						end
 					if weaponDef.customParams.unitexplosion then
-						explosionDistortions[weaponID] = {GetDistortionClass("AirShockWave", sizeclass, overrideTable)}
+						effectiveRangeExplo = effectiveRangeExplo * 1.5
+						explosionDistortions[weaponID] = {GetDistortionClass("ExploUnitAirShockWave", GetClosestSizeClass(effectiveRangeExplo), overrideTable)}
 						else
 	
 						end
