@@ -1,6 +1,3 @@
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 function gadget:GetInfo()
 	return {
 		name = "Factory Stop Production",
@@ -13,8 +10,6 @@ function gadget:GetInfo()
 	}
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 local identifier = "StopProduction"
 
 include("luarules/configs/customcmds.h.lua")
@@ -36,9 +31,6 @@ if gadgetHandler:IsSyncedCode() then
 	local EMPTY = {}
 	local DEQUEUE_OPTS = { "right", "ctrl", "shift" } -- right: dequeue, ctrl+shift: 100
 
-	--------------------------------------------------------------------------------
-	--------------------------------------------------------------------------------
-
 	local stopProductionCmdDesc = {
 		id = CMD_STOP_PRODUCTION,
 		type = CMDTYPE.ICON,
@@ -47,10 +39,6 @@ if gadgetHandler:IsSyncedCode() then
 		cursor = "Stop", -- Probably does nothing
 		tooltip = "Stop Production: Clear factory production queue.",
 	}
-
-	--------------------------------------------------------------------------------
-	--------------------------------------------------------------------------------
-	-- Handle the command
 
 	function gadget:AllowCommand_GetWantedCommand()
 		return { [CMD_STOP_PRODUCTION] = true }
@@ -88,11 +76,9 @@ if gadgetHandler:IsSyncedCode() then
 		-- Dequeue build order by sending build command to factory to minimize number of commands sent
 		-- As opposed to removing each build command individually
 		local queue = spGetRealBuildQueue(unitID)
-
 		if queue ~= nil then
 			for _, buildPair in ipairs(queue) do
 				local buildUnitDefID, count = next(buildPair, nil)
-
 				orderDequeue(unitID, buildUnitDefID, count)
 			end
 		end
@@ -100,13 +86,11 @@ if gadgetHandler:IsSyncedCode() then
 		spGiveOrderToUnit(unitID, CMD_WAIT, EMPTY, 0) -- Removes wait if there is a wait but doesn't readd it.
 		spGiveOrderToUnit(unitID, CMD_WAIT, EMPTY, 0) -- If a factory is waiting, it will not clear the current build command, even if the cmd is removed.
 		-- See: http://zero-k.info/Forum/Post/237176#237176 for details.
+
 		SendToUnsynced(identifier, unitID, unitDefID, unitTeam, cmdID)
 	end
 
-	--------------------------------------------------------------------------------
-	--------------------------------------------------------------------------------
 	-- Add the command to factories
-
 	function gadget:UnitCreated(unitID, unitDefID)
 		if isFactory[unitDefID] then
 			spInsertUnitCmdDesc(unitID, stopProductionCmdDesc)
@@ -120,8 +104,16 @@ if gadgetHandler:IsSyncedCode() then
 			gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
 		end
 	end
+
 else
+
 	local myTeamID, isSpec
+
+	local function stopProduction(_, unitID, unitDefID, unitTeam, cmdID)
+		if isSpec or Spring.AreTeamsAllied(unitTeam, myTeamID) then
+			Script.LuaUI.UnitCommand(unitID, unitDefID, unitTeam, cmdID, {}, {coded = 0})
+		end
+	end
 
 	function gadget:PlayerChanged()
 		myTeamID = Spring.GetMyTeamID()
@@ -130,11 +122,10 @@ else
 
 	function gadget:Initialize()
 		gadget:PlayerChanged()
+		gadgetHandler:AddSyncAction(identifier, stopProduction)
 	end
 
-	function gadget:RecvFromSynced(messageID, unitID, unitDefID, unitTeam, cmdID)
-		if messageID == identifier and (Spring.AreTeamsAllied(unitTeam, myTeamID) or isSpec) then
-			Script.LuaUI.UnitCommand(unitID, unitDefID, unitTeam, cmdID, {}, {coded = 0})
-		end
+	function gadget:Shutdown()
+		gadgetHandler:RemoveSyncAction(identifier)
 	end
 end
