@@ -84,7 +84,7 @@ function gadget:GamePreload()
 									additionalStorage[unit.team].energy  = additionalStorage[unit.team].energy + (UnitDefNames[unit.name].energyStorage or 0 )
 								end
 							end
-							if string.find(defs.name, "nanotc") then
+							if string.find(unit.name, "nanotc") then
 								nanoturretunitIDs[unitID] = true
 							end
 							if unit.neutral == true or unit.neutral == 'true' then
