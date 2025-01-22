@@ -932,7 +932,11 @@ void main(void)
 				// Assume that a ray that hits exactly occludes 0.5
 				if (rayScreenDepthSample < rayScreenPos.z) {
 					// If the sample actually occludes, then softly occlude it based on the distance from the light
-					sampleOcclusionStrength = 0.5 + clamp(sampleDistance / (rayStepLength * 0.05), 0.0, 1.0) * 0.5;;
+					if (sampleDistance > 64.0) // Very deep occluders dont occlude
+						sampleOcclusionStrength = 0.0;
+					else
+						sampleOcclusionStrength = 0.5 + clamp(sampleDistance / (rayStepLength * 0.05), 0.0, 1.0) * 0.5;;
+
 				}else{
 					// if the sample does not occlude, but is close to doing so, then softly occlude it based on the distance from the light	
 					sampleOcclusionStrength = 0.5 - clamp(sampleDistance / (rayStepLength * 0.2), 0.0, 1.0) * 0.5;;
