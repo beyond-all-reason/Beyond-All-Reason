@@ -4,6 +4,7 @@ local match = require('luassert.match')
 local util = require('luassert.util')
 
 local isatty, colors do
+  --[[
   local ok, term = pcall(require, 'term')
   isatty = io.type(io.stdout) == 'file' and ok and term.isatty(io.stdout)
   if not isatty then
@@ -12,6 +13,8 @@ local isatty, colors do
       isatty = true
     end
   end
+  ]]
+  isatty = false
 
   colors = setmetatable({
     none = function(c) return c end
