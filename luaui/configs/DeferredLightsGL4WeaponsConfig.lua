@@ -575,8 +575,8 @@ GetLightClass("Explosion", nil, "Tiny", {
 	colortime = 3.5, sustain = 1, lifetime = 1, scattering = 0.7})
 
 explosionLightsNames["cortrem_tremor_spread_fire"] =
-GetLightClass("Explosion", nil, "Large", {
-	colortime = 3.5, sustain = 1, lifetime = 1, scattering = 0.7})
+GetLightClass("Explosion", nil, "Smallish", {
+	colortime = 2.5, sustain = 2, lifetime = 6, scattering = 0.7})
 
 --corforge
 projectileDefLightsNames["corforge_flamethrower_ce"] =
