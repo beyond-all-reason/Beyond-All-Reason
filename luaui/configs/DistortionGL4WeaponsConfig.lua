@@ -676,250 +676,194 @@ local projectileDefDistortions  = {
 
 -----------------------------------
 
-local function AssignDistortionsToAllWeapons()
-	for weaponID=1, #WeaponDefs do
-		local weaponDef = WeaponDefs[weaponID]
-		local damage = 100
-		for cat=0, #weaponDef.damages do
-			if Game.armorTypes[cat] and Game.armorTypes[cat] == 'default' then
-				damage = weaponDef.damages[cat]
-				break
+-- This function automatically assigns distortions to weapons for their 3 main events:
+-- It first checks for various things among the different categories of weapons, which identify if the weapon 
+-- should have a muzzleFlash, projectileDistortion, or an explosionDistortion.
+-- See https://docs.google.com/document/d/16mvYJX8WJ8cNjGe_3zhrymTOzPoSkFprr78i_vpH7yA/edit?tab=overrideTable.0#heading=h.qx93abxpcjjo for details
+
+
+-- 1. explosionDistortion - Weapon explosions based on damage and type
+	-- Note that this must be a table of distortions, as an explosion can consist of multiple effects, e.g.:
+	-- explosionDistortions[weaponID] = {GetDistortionClass("ExplosionHeat"), GetDistortionClass("GroundShockWave"), GetDistortionClass("AirShockWave")}
+
+-- 2. muzzleFlash
+	-- Note that this must be a table of distortions, as a muzzle flash can consist of multiple effects, e.g.:
+	-- muzzleFlashDistortions[weaponID] = {GetDistortionClass("GroundShockWave"), GetDistortionClass("AirShockWave")}
+
+-- 3. Weapon Projectiles, projectileDistortion
+	-- NOTE THAT ONLY A SINGLE DISTORTION CAN BE ASSIGNED TO A FLYING PROJECTILE!, e.g.:
+	-- projectileDefDistortions[weaponID] = GetDistortionClass("CannonProjectile")
+
+-- 4-5. Unit/building Explosions, these also go into explosionDistortions, as tables. 
+	-- Note that the weapons that define these explosions are in weapons/Unit_Explosions.lua, 
+	-- and the weaponDef.customParams.unitexplosion is set to 1. 
+	-- Unit / building explosions are not differentiated, they could easily be, by adding a customParam to the weaponDef, such as 
+	-- weaponDef.customParams.buildingexplosion = 1 
+	-- In this case, also also edit DeferredLightsGL4Config to ensure that both unitexplosions and weaponexplosions are handled correctly.
+	-- (search for weaponDef.customParams.unitexplosion)
+
+
+
+	local function AssignDistortionsToAllWeapons()
+		for weaponID=1, #WeaponDefs do
+			local weaponDef = WeaponDefs[weaponID]
+			local damage = 100
+			for cat=0, #weaponDef.damages do
+				if Game.armorTypes[cat] and Game.armorTypes[cat] == 'default' then
+					damage = weaponDef.damages[cat]
+					break
+				end
 			end
-		end
+	
+			-- Start by collecting some common parameters of the weapon
+			damage = (damage / globalDamageMult) + ((damage * (globalDamageMult-1))*0.25)
+	
+			local radius = ((weaponDef.damageAreaOfEffect*2) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
+	
+			local life = 25
+			local areaofeffect = weaponDef.damageAreaOfEffect or 25
+	
+			local muzzleFlash = true -- by default add muzzleflash to weapon being fired 
+			local explosionDistortion = true -- by default, add explosion distortion to weapon on explosion
+			local sizeclass = GetClosestSizeClass(radius)
+			local t = {}
+			local overrideTable = {}
+			local antiair = string.find(weaponDef.cegTag, 'aa') or false
+			local paralyzer = (weaponDef.paralyzer) or false  
+			local scavenger = string.find(weaponDef.name, '_scav') or false
+			local juno = string.find(weaponDef.name, 'juno') or false
+			--local isBuilding = 
+			local isUnitExplosion = string.find(weaponDef.name, 'explosion') or false
+			local isBuildingExplosion = string.find(weaponDef.name, 'buildingexplosion') or false
+	
+			-- Assign projectileDistortions based on type, and decide weather muzzleflashes or explosiondistortions are needed
+			if weaponDef.type == 'BeamLaser' then
+				muzzleFlash = false
+	
+	
+				if not weaponDef.paralyzer then
 
-		-- correct damage multiplier modoption to more sane value
-		damage = (damage / globalDamageMult) + ((damage * (globalDamageMult-1))*0.25)
+				end
+	
+				radius = (3.5 * (weaponDef.size * weaponDef.size * weaponDef.size)) + (5 * radius * orgMult)
+				t.a = (orgMult * 0.1) / (0.2 + weaponDef.beamtime)
+				--projectileDefDistortions[weaponID].yOffset = 64
+	
+				if not weaponDef.paralyzer then
 
-		local radius = ((weaponDef.damageAreaOfEffect*2) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
-		local orgMult = math.max(0.1, math.min(damage/1600, 0.6)) + (radius/2800)
-		local life = 8 + (5*(radius/2000)+(orgMult * 5))
-		radius = ((orgMult * 75) + (radius * 2.4)) * 0.33
-
-		local r, g, b = 1, 0.8, 0.45
-		local weaponVisuals = weaponDef.visuals
-		if weaponVisuals ~= nil and weaponVisuals.colorR ~= nil then
-			r = weaponVisuals.colorR
-			g = weaponVisuals.colorG
-			b = weaponVisuals.colorB
-		end
-		local muzzleFlash = true
-		local explosionDistortion = true
-		local sizeclass = GetClosestSizeClass(radius)
-		local t = {}
-		local aa = string.find(weaponDef.cegTag, 'aa')
-		if aa then
-			r, g, b = 1, 0.5, 0.6
-			t.color2r, t.color2g, t.color2b = 1, 0.5, 0.6
-		end
-		if weaponDef.paralyzer then
-			r, g, b = 0.5, 0.5, 1
-			t.color2r, t.color2g, t.color2b = 0.25, 0.25, 1
-		end
-		local scavenger = string.find(weaponDef.name, '_scav')
-		if scavenger then
-			r, g, b = 0.96, 0.3, 1
-			t.color2r, t.color2g, t.color2b = 0.96, 0.3, 1
-		end
-		t.r, t.g, t.b = r, g, b
-
-		-- if string.find(weaponDef.name, 'juno') then
-		-- 	radius = 140
-		-- 	orgMult = 1
-		-- 	r, g, b = 0.45, 1, 0.45
-		-- end
-
-		if weaponDef.type == 'BeamLaser' then
-			muzzleFlash = false
-
-
-			if not weaponDef.paralyzer then
-				t.r, t.g, t.b = math.min(1, r+0.3), math.min(1, g+0.3), math.min(1, b+0.3)
-				t.color2r, t.color2g, t.color2b = r, g, b
-			end
-
-			radius = (3.5 * (weaponDef.size * weaponDef.size * weaponDef.size)) + (5 * radius * orgMult)
-			t.a = (orgMult * 0.1) / (0.2 + weaponDef.beamtime)
-			--projectileDefDistortions[weaponID].yOffset = 64
-
-			if weaponDef.paralyzer then
-				radius = radius * 0.5
-			end
-			sizeclass = GetClosestSizeClass(radius)
-			projectileDefDistortions[weaponID] = GetDistortionClass("LaserProjectile", sizeclass, t)
-
-			if not weaponDef.paralyzer then
-				radius = ((orgMult * 2500) + radius) * 0.2
+				end
+	
+				if weaponDef.paralyzer then
+					radius = radius * 0.5
+				end
 				sizeclass = GetClosestSizeClass(radius)
-			end
-
-		elseif weaponDef.type == 'LaserCannon' then
-			radius = (4 * (weaponDef.size * weaponDef.size * weaponDef.size)) + (3 * radius * orgMult)
-			t.a = (orgMult * 0.1) + weaponDef.duration
-
-			sizeclass = GetClosestSizeClass(radius)
-			projectileDefDistortions[weaponID] = GetDistortionClass("CannonProjectile", sizeclass, t)
-
-		elseif weaponDef.type == 'DistortionningCannon' then
-			if not scavenger then
-				t.r, t.g, t.b = 0.2, 0.45, 1
-			end
-			t.a = 0.13 + (orgMult * 0.5)
-			sizeclass = GetClosestSizeClass(33 + (radius*2.5))
-			projectileDefDistortions[weaponID] = GetDistortionClass("LaserProjectile", sizeclass, t)
-
-		elseif weaponDef.type == 'MissileLauncher'then
-			t.a = orgMult * 0.33
-			projectileDefDistortions[weaponID] = GetDistortionClass("MissileProjectile", sizeclass, t)
-
-		elseif weaponDef.type == 'StarburstLauncher' then
-			t.a = orgMult * 0.44
-			projectileDefDistortions[weaponID] = GetDistortionClass("MissileProjectile", sizeclass, t)
-			sizeclass = GetClosestSizeClass(radius)
-			radius = ((orgMult * 75) + (radius * 4)) * 0.4
-			life = 8 + (5*(radius/2000)+(orgMult * 5))
-
-		elseif weaponDef.type == 'Cannon' then
-			t.a = orgMult*0.17
-			radius = (radius + (weaponDef.size * 35)) * 0.44
-			sizeclass = GetClosestSizeClass(radius)
-			projectileDefDistortions[weaponID] = GetDistortionClass("CannonProjectile", sizeclass, t)
-			radius = ((weaponDef.damageAreaOfEffect*2) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
-
-		elseif weaponDef.type == 'DGun' then
-			muzzleFlash = true --doesnt work
-			sizeclass = "Medium"
-			t.a = orgMult*0.66
-			projectileDefDistortions[weaponID] = GetDistortionClass("CannonProjectile", sizeclass, t)
-			projectileDefDistortions[weaponID].yOffset = 32
-
-		elseif weaponDef.type == 'TorpedoLauncher' then
-			sizeclass = "Small"
-			projectileDefDistortions[weaponID] = GetDistortionClass("TorpedoProjectile", sizeclass, t)
-
-		elseif weaponDef.type == 'Shield' then
-			sizeclass = "Large"
-			projectileDefDistortions[weaponID] = GetDistortionClass("CannonProjectile", sizeclass, t)
-
-		-- elseif weaponDef.type == 'AircraftBomb' then
-		-- 	t.a = life * 1.8
-		-- 	projectileDefDistortions[weaponID] = GetDistortionClass("MissileProjectile", "Warm", sizeclass, t)
-
-		elseif weaponDef.type == 'Flame' then
-			--sizeclass = "Small"
-			sizeclass = GetClosestSizeClass(radius*3)
-			t.a = orgMult*0.17 * 2
-			projectileDefDistortions[weaponID] = GetDistortionClass("FlameProjectile", sizeclass, t)
-		end
-
-		if muzzleFlash then
-			if aa then
-				t.r, t.g, t.b = 1, 0.7, 0.85
-			end
-			if scavenger then
-				t.r, t.g, t.b = 0.99, 0.9, 1
-			end
-			t.a = orgMult*1.15
-			t.colortime = 2
-			muzzleFlashDistortions[weaponID] = GetDistortionClass("MuzzleFlash", GetClosestSizeClass(radius*0.6), t)
-			muzzleFlashDistortions[weaponID].yOffset = muzzleFlashDistortions[weaponID].distortionConfig.radius / 5
-		end
-
-		if explosionDistortion then
-			if aa then
-				t.r, t.g, t.b = 1, 0.7, 0.85
-			end
-			if scavenger then
-				t.r, t.g, t.b = 0.99, 0.9, 1
-			end
-			t.lifeTime = life
-			t.colortime = 25 / life --t.colortime = life * 0.17
-			t.a = orgMult
-
-			if weaponDef.type == 'DGun' then
-				t.a = orgMult*0.17
-			elseif weaponDef.type == 'Flame' then
-				t.a = orgMult*0.17
-			elseif weaponDef.type == 'BeamLaser' then
-				local mult = 0.85
-				t.color2r, t.color2g, t.color2b = r*mult, g*mult, b*mult
-				t.colortime = 2
-				t.lifeTime = life * 0.5
-				t.a = 0.02 + ((orgMult*0.055) / weaponDef.beamtime) + (weaponDef.range*0.000035)
-				radius = 1.2 * ((weaponDef.damageAreaOfEffect*4) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.1)) + (weaponDef.range*0.08)
+				projectileDefDistortions[weaponID] = GetDistortionClass("LaserProjectile", sizeclass, overrideTable)
+	
+				if not weaponDef.paralyzer then
+					sizeclass = GetClosestSizeClass(radius)
+				end
+	
+			elseif weaponDef.type == 'LaserCannon' then
+				
 				sizeclass = GetClosestSizeClass(radius)
+				projectileDefDistortions[weaponID] = GetDistortionClass("CannonProjectile", sizeclass, overrideTable)
+	
 			elseif weaponDef.type == 'DistortionningCannon' then
-				t.a = orgMult*1.25
-				t.color2r = 0.1
-				t.color2g = 0.3
-				t.color2b = 0.9
-				sizeclass = GetClosestSizeClass(radius*1.2)
-			else
-				if weaponDef.type == 'AircraftBomb' then
-					if weaponDef.paralyzer then
-						t.r = t.r * 1.7	-- make more red
-						t.g = t.g * 0.4	-- make more red
-						t.b = t.b * 0.4	-- make more red
-						life = life * 1.1	-- too high and it will flicker somehow!
-						orgMult = orgMult * 0.15
-						t.colortime = 31 / life
-					else
-						t.r = t.r * 1.7	-- make more red
-						t.g = t.g * 0.4	-- make more red
-						t.b = t.b * 0.4	-- make more red
-						life = life * 1.2
-						t.colortime = 19 / life
-					end
-					t.lifeTime = life
-
-				end
-				radius = ((weaponDef.damageAreaOfEffect*1.9) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
-				if string.find(weaponDef.name, 'juno') then
-					radius = 675
-					orgMult = 0.25
-					t.r = 1.05
-					t.g = 1.3
-					t.b = 0.6
-					t.color2r = 0.32
-					t.color2g = 0.5
-					t.color2b = 0.12
-					t.colortime = 200
-					t.lifeTime = 500
-				end
-				if weaponDef.customParams.unitexplosion then
-					radius = radius * 1.25
-					-- make more white
-					t.r = (1.7 + t.r) / 2.7
-					t.g = (1.7 + t.g) / 2.7
-					t.b = (1.7 + t.b) / 2.7
-					-- t.r = 3
-					-- t.g = 3
-					-- t.b = 3
-					-- t.color2r = (1.5 + t.color2r) / 2.3
-					-- t.color2g = (1.5 + t.color2g) / 2.3
-					-- t.color2b = (1.5 + t.color2b) / 2.3
-					t.a = orgMult*2.8
-					t.lifeTime = life * 1.15
-					--t.colortime = 8
-				else
-					-- make more white
-					t.r = (1.4 + t.r) / 2.3
-					t.g = (1.4 + t.g) / 2.3
-					t.b = (1.4 + t.b) / 2.3
-					t.a = orgMult*1.6
-				end
-				local mult = 0.55
-				t.color2r, t.color2g, t.color2b = r*mult, g*mult, b*mult
+				--sizeclass = GetClosestSizeClass(33 + (radius*2.5))
+				projectileDefDistortions[weaponID] = GetDistortionClass("LaserProjectile", sizeclass, overrideTable)
+	
+			elseif weaponDef.type == 'MissileLauncher'then
+				projectileDefDistortions[weaponID] = GetDistortionClass("MissileProjectile", sizeclass, overrideTable)
+	
+			elseif weaponDef.type == 'StarburstLauncher' then
+				projectileDefDistortions[weaponID] = GetDistortionClass("MissileProjectile", sizeclass, overrideTable)
 				sizeclass = GetClosestSizeClass(radius)
+	
+	
+			elseif weaponDef.type == 'Cannon' then
+				sizeclass = GetClosestSizeClass(radius)
+				projectileDefDistortions[weaponID] = GetDistortionClass("CannonProjectile", sizeclass, overrideTable)
+	
+	
+			elseif weaponDef.type == 'DGun' then
+				muzzleFlash = true --doesnt work
+				sizeclass = "Medium"
+				
+				projectileDefDistortions[weaponID] = GetDistortionClass("CannonProjectile", sizeclass, overrideTable)
+				projectileDefDistortions[weaponID].yOffset = 32
+	
+			elseif weaponDef.type == 'TorpedoLauncher' then
+				sizeclass = "Small"
+				projectileDefDistortions[weaponID] = GetDistortionClass("TorpedoProjectile", sizeclass, overrideTable)
+	
+			elseif weaponDef.type == 'Shield' then
+				sizeclass = "Large"
+				projectileDefDistortions[weaponID] = GetDistortionClass("CannonProjectile", sizeclass, overrideTable)
+	
+			elseif weaponDef.type == 'AircraftBomb' then
+				projectileDefDistortions[weaponID] = GetDistortionClass("MissileProjectile", "Warm", sizeclass, overrideTable)
+	
+			elseif weaponDef.type == 'Flame' then
+				--sizeclass = "Small"
+				--sizeclass = GetClosestSizeClass(radius*3)
+				projectileDefDistortions[weaponID] = GetDistortionClass("FlameProjectile", sizeclass, overrideTable)
 			end
-			if not weaponDef.customParams.noexplosiondistortion then
-				explosionDistortions[weaponID] = GetDistortionClass("Explosion", sizeclass, t)
-				explosionDistortions[weaponID].yOffset = explosionDistortions[weaponID].distortionConfig.radius / 5
+	
+			-- Add a muzzle flash if needed:
+			if muzzleFlash then
+				local mymuzzleflash =GetDistortionClass("MuzzleFlash", GetClosestSizeClass(radius*0.6), overrideTable)
+				mymuzzleflash.yOffset = 10
+				mymuzzleflash.distortionConfig.radius = radius * 0.6
+				muzzleFlashDistortions[weaponID] = { mymuzzleflash } -- note that multiple distortions can be added
+			end
+	
+			
+			-- Add explosiondistortions if needed:
+			if explosionDistortion then
+	
+				overrideTable.lifeTime = life
+	
+				if weaponDef.type == 'DGun' then
+			
+				elseif weaponDef.type == 'Flame' then
+	
+				elseif weaponDef.type == 'BeamLaser' then
+	
+					sizeclass = GetClosestSizeClass(radius)
+				elseif weaponDef.type == 'DistortionningCannon' then
+					sizeclass = GetClosestSizeClass(radius*1.2)
+				else
+					if weaponDef.type == 'AircraftBomb' then
+						if weaponDef.paralyzer then
+	
+						else
+	
+						end
+	
+	
+					end
+					radius = ((weaponDef.damageAreaOfEffect*1.9) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
+					if string.find(weaponDef.name, 'juno') then
+						radius = 675
+	
+					end
+					if weaponDef.customParams.unitexplosion then
+	
+					else
+	
+					end
+	
+					sizeclass = GetClosestSizeClass(radius)
+				end
+				if not weaponDef.customParams.noexplosiondistortion then
+					explosionDistortions[weaponID] = {GetDistortionClass("Explosion", sizeclass, overrideTable)}
+	
+				end
 			end
 		end
+		Spring.Echo(Spring.GetGameFrame(),"DLGL4 weapons conf using",usedclasses,"distortion types")
 	end
-	Spring.Echo(Spring.GetGameFrame(),"DLGL4 weapons conf using",usedclasses,"distortion types")
-end
---AssignDistortionsToAllWeapons() -- disabled because entire thing above here needs re-configuring
+	--AssignDistortionsToAllWeapons() -- disable this if it doest work
 
 
 -----------------Manual Overrides--------------------

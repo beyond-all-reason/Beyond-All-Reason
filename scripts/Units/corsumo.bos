@@ -527,11 +527,13 @@ FireWeapon1()
 	{
 		move rbarrel to z-axis [-4] now;
 		move rbarrel to z-axis [0] speed (reload*6);
+		emit-sfx 4096 + 1 from rbarrel;
 	}
 	else
 	{
 		move lbarrel to z-axis [-4] now;
 		move lbarrel to z-axis [0] speed (reload*6);
+		emit-sfx 4096 + 1 from lbarrel;
 	}
 	gun_1 = !gun_1;
 }

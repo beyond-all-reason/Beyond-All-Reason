@@ -357,8 +357,8 @@ local function AssignLightsToAllWeapons()
 				t.color2r, t.color2g, t.color2b = r, g, b
 			end
 
-			radius = (4.2 * (weaponDef.size * weaponDef.size * weaponDef.size)) + (5 * radius * orgMult)
-			t.a = (orgMult * 0.1) / (0.2 + weaponDef.beamtime)
+			radius = (6.2 * (weaponDef.size * weaponDef.size * weaponDef.size)) + (5 * radius * orgMult)
+			t.a = (orgMult * 0.12) / (0.2 + weaponDef.beamtime)
 			--projectileDefLights[weaponID].yOffset = 64
 
 			if weaponDef.paralyzer then
