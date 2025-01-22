@@ -135,6 +135,16 @@ test("SelfTest Assert Throws Message", function ()
 	end, "error")
 end)
 
+test("SelfTest luassert", function ()
+	assert.True(true)
+	assert.is.True(true)
+	assert.is_true(true)
+	assert.is_not.True(false)
+	assert.is.Not.True(false)
+	assert.is_not_true(false)
+	assert.are.equal(1, 1)
+end)
+
 test("SelfTest Failing While Succeeding", function ()
 	-- these ones are actually failing even when they don't throw exceptions,
 	-- it's because assertThrows is catching the exception, it's just not
