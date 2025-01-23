@@ -9,20 +9,18 @@ function gadget:GetInfo()
 		enabled = true,
 	}
 end
-
-local identifier = "StopProduction"
-
-include("luarules/configs/customcmds.h.lua")
-
-local isFactory = {}
-for udid = 1, #UnitDefs do
-	local ud = UnitDefs[udid]
-	if ud.isFactory then
-		isFactory[udid] = true
-	end
-end
-
 if gadgetHandler:IsSyncedCode() then
+
+	include("luarules/configs/customcmds.h.lua")
+
+	local isFactory = {}
+	for udid = 1, #UnitDefs do
+		local ud = UnitDefs[udid]
+		if ud.isFactory then
+			isFactory[udid] = true
+		end
+	end
+
 	local spGetRealBuildQueue = Spring.GetRealBuildQueue
 	local spGiveOrderToUnit = Spring.GiveOrderToUnit
 	local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
@@ -86,8 +84,6 @@ if gadgetHandler:IsSyncedCode() then
 		spGiveOrderToUnit(unitID, CMD_WAIT, EMPTY, 0) -- Removes wait if there is a wait but doesn't readd it.
 		spGiveOrderToUnit(unitID, CMD_WAIT, EMPTY, 0) -- If a factory is waiting, it will not clear the current build command, even if the cmd is removed.
 		-- See: http://zero-k.info/Forum/Post/237176#237176 for details.
-
-		SendToUnsynced(identifier, unitID, unitDefID, unitTeam, cmdID)
 	end
 
 	-- Add the command to factories
@@ -103,29 +99,5 @@ if gadgetHandler:IsSyncedCode() then
 		for _, unitID in pairs(Spring.GetAllUnits()) do
 			gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
 		end
-	end
-
-else
-
-	local myTeamID, isSpec
-
-	local function stopProduction(_, unitID, unitDefID, unitTeam, cmdID)
-		if isSpec or Spring.AreTeamsAllied(unitTeam, myTeamID) then
-			Script.LuaUI.UnitCommand(unitID, unitDefID, unitTeam, cmdID, {}, {coded = 0})
-		end
-	end
-
-	function gadget:PlayerChanged()
-		myTeamID = Spring.GetMyTeamID()
-		isSpec = Spring.GetSpectatingState()
-	end
-
-	function gadget:Initialize()
-		gadget:PlayerChanged()
-		gadgetHandler:AddSyncAction(identifier, stopProduction)
-	end
-
-	function gadget:Shutdown()
-		gadgetHandler:RemoveSyncAction(identifier)
 	end
 end
