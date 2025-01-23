@@ -496,12 +496,23 @@ local BaseClasses = {
 	},
 	FlameProjectileXL = {
 		distortionType = 'point', -- or cone or beam
-		fraction = 2, -- only spawn every nth distortion
+		fraction = 3, -- only spawn every nth distortion
 		distortionConfig = {
 			posx = 0, posy = 45, posz = 0, radius = 25,
-			noiseStrength = 4, noiseScaleSpace = -0.45, distanceFalloff = 1.8, onlyModelMap = 0,
+			noiseStrength = 4, noiseScaleSpace = -0.45, distanceFalloff = 1.6, onlyModelMap = 0,
 			windAffected = 0.1, riseRate = -0.5,
 			lifeTime = 40, rampUp = 30, decay = 30, effectType = 0, 
+		},
+	},
+	FireHeat = { -- spawned on explosions
+		distortionType = 'point', -- or cone or beam
+		yOffset = 0, -- Y offsets are only ever used for explosions!
+		distortionConfig = {
+			posx = 0, posy = 0, posz = 0, radius = 10, 
+			noiseStrength = 2, noiseScaleSpace = 0.75, distanceFalloff = 0.5,
+			startRadius = 0.3, onlyModelMap = 0,
+			windAffected = 1.3, riseRate = 1.5,
+			lifeTime = 20, rampUp = 10, decay = 10, effectType = 0, 
 		},
 	},
 
@@ -806,7 +817,7 @@ local projectileDefDistortions  = {
 				if weaponDef.paralyzer then
 					radius = radius * 0.5
 				end
-				
+
 				sizeclass = GetClosestSizeClass(radius)
 				--projectileDefDistortions[weaponID] = GetDistortionClass("LaserProjectile", sizeclass, overrideTable)
 	
@@ -894,10 +905,11 @@ local projectileDefDistortions  = {
 				if weaponDef.type == 'DGun' then
 			
 				elseif weaponDef.type == 'Flame' then
+					explosionDistortions[weaponID] = {GetDistortionClass("FireHeat", GetClosestSizeClass(radius), overrideTable)}
 	
 				elseif weaponDef.type == 'BeamLaser' then
 					sizeclass = GetClosestSizeClass(radius*0.15) -- works
-					overrideTable = {lifeTime = 2}
+					overrideTable = {lifeTime = 2} -- doesnt work
 
 				elseif weaponDef.type == 'DistortionningCannon' then
 					sizeclass = GetClosestSizeClass(radius*1.2)
@@ -924,10 +936,10 @@ local projectileDefDistortions  = {
 						end
 	
 					sizeclass = GetClosestSizeClass(radius*0.5)
-				end
-				if not weaponDef.customParams.noexplosiondistortion and areaofeffect > 15 then
-					explosionDistortions[weaponID] = {GetDistortionClass("AirShockWave", GetClosestSizeClass(effectiveRangeExplo), overrideTable)}
-	
+				
+					if not weaponDef.customParams.noexplosiondistortion and areaofeffect > 15 then
+						explosionDistortions[weaponID] = {GetDistortionClass("AirShockWave", GetClosestSizeClass(effectiveRangeExplo), overrideTable)}
+					end
 				end
 			end
 		end
@@ -1123,11 +1135,14 @@ projectileDefDistortionsNames["corpyro_flamethrower"] =
 	GetDistortionClass("FlameProjectile", "Micro")
 
 projectileDefDistortionsNames["cordemon_newdmaw"] =
-	GetDistortionClass("FlameProjectileXL", "Tiniest")
+	GetDistortionClass("FlameProjectileXL", "Smaller", {
+		noiseStrength = 11, startRadius = 0.4, --noiseScaleSpace = 0.20,
+		lifeTime = 55, rampUp = 15, decay = 60,
+	})
 
 projectileDefDistortionsNames["corcrwh_dragonmawh"] =
-	GetDistortionClass("FlameProjectileXL", "Tiniest", {
-		noiseStrength = 11, --noiseScaleSpace = -0.20,
+	GetDistortionClass("FlameProjectileXL", "Smaller", {
+		noiseStrength = 11, startRadius = 0.4, --noiseScaleSpace = -0.20,
 		lifeTime = 50, rampUp = 15, decay = 70,
 	})
 

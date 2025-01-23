@@ -103,15 +103,39 @@ local BaseClasses = {
 		},
 	},
 
+	FlameProjectileOld = {
+		lightType = 'point', -- or cone or beam
+		fraction = 2, -- only spawn every nth light
+		lightConfig = {
+			posx = 0, posy = 15, posz = 0, radius = 25,
+			r = 1.0, g = 0.9, b = 0.5, a = 0.6,
+			color2r = 0.75, color2g = 0.45, color2b = 0.22, colortime = 33, -- point lights only, colortime in seconds for unit-attached
+			modelfactor = -0.2, specular = -0.3, scattering = 0.3, lensflare = 0,
+			lifetime = 33, sustain = 15, selfshadowing = 4, 
+		},
+	},
+
 	FlameProjectile = {
 		lightType = 'point', -- or cone or beam
 		fraction = 2, -- only spawn every nth light
 		lightConfig = {
 			posx = 0, posy = 15, posz = 0, radius = 25,
-			r = 1.0, g = 0.9, b = 0.5, a = 0.086,
-			color2r = 0.75, color2g = 0.45, color2b = 0.22, colortime = 12, -- point lights only, colortime in seconds for unit-attached
-			modelfactor = 0.2, specular = 0.3, scattering = 0.6, lensflare = 0,
-			lifetime = 23, sustain = 0, selfshadowing = 0, 
+			r = 0.3, g = 0.2, b = 0.09, a = 0.048,
+			color2r = 1.0, color2g = 0.45, color2b = 0.22, colortime = 33, -- point lights only, colortime in seconds for unit-attached
+			modelfactor = -0.2, specular = -0.3, scattering = 0.05, lensflare = 0,
+			lifetime = 33, sustain = 10, selfshadowing = 5, 
+		},
+	},
+
+	FlameProjectileDragon = {
+		lightType = 'point', -- or cone or beam
+		fraction = 4, -- only spawn every nth light
+		lightConfig = {
+			posx = 0, posy = 15, posz = 0, radius = 25,
+			r = 0.3, g = 0.2, b = 0.09, a = 0.096,
+			color2r = 1.0, color2g = 0.45, color2b = 0.22, colortime = 33, -- point lights only, colortime in seconds for unit-attached
+			modelfactor = -0.2, specular = -0.3, scattering = 0.05, lensflare = 0,
+			lifetime = 33, sustain = 10, selfshadowing = 5, 
 		},
 	},
 
@@ -364,6 +388,7 @@ local function AssignLightsToAllWeapons()
 			if weaponDef.paralyzer then
 				radius = radius * 0.5
 			end
+			
 			sizeclass = GetClosestSizeClass(radius)
 			projectileDefLights[weaponID] = GetLightClass("LaserProjectile", nil, sizeclass, t)
 			projectileDefLights[weaponID].lightConfig.selfshadowing = 5 -- Screen Space Light Shadows
@@ -440,9 +465,9 @@ local function AssignLightsToAllWeapons()
 
 		elseif weaponDef.type == 'Flame' then
 			--sizeclass = "Small"
-			sizeclass = GetClosestSizeClass(radius*3)
-			t.a = orgMult * 0.17 * 2
-			projectileDefLights[weaponID] = GetLightClass("FlameProjectile", "Fire", sizeclass, t)
+			sizeclass = GetClosestSizeClass(radius*2.5)
+			--t.a = orgMult * 0.17
+			projectileDefLights[weaponID] = GetLightClass("FlameProjectile", nil, sizeclass, t)
 		end
 
 		if muzzleFlash then
@@ -479,7 +504,7 @@ local function AssignLightsToAllWeapons()
 			if weaponDef.type == 'DGun' then
 				t.a = orgMult*0.17
 			elseif weaponDef.type == 'Flame' then
-				t.a = orgMult*0.17
+				t.a = orgMult*0.22
 			elseif weaponDef.type == 'BeamLaser' then
 				local mult = 0.85
 				t.color2r, t.color2g, t.color2b = r*mult, g*mult, b*mult
@@ -895,7 +920,42 @@ GetLightClass("Explosion", "Fire", "Tiny", {r = 0.5, g = 0.3, b = 0.08, a = 0.4,
 											sustain = 2, lifetime = 6,
 											modelfactor = -0.3, specular = -0.1, scattering = 1.95, lensflare = 0
 										})
-   
+
+projectileDefLightsNames["corpyro_flamethrower"] =
+GetLightClass("FlameProjectile", nil, "Smallish", {
+						r = 0.7, g = 0.7, b = 0.65, a = 0.07, 
+						color2r = 1.0, color2g = 0.70, color2b = 0.4, colortime = 12,
+						lifetime = 40, sustain = 35,
+												})
+
+projectileDefLightsNames["cormaw_dmaw"] =
+GetLightClass("FlameProjectile", nil, "Smallish", {
+						r = 0.7, g = 0.7, b = 0.65, a = 0.03, 
+						color2r = 1.0, color2g = 0.70, color2b = 0.4, colortime = 12,
+						lifetime = 70, sustain = 30,
+												})
+
+projectileDefLightsNames["corfship_dmaw"] =
+GetLightClass("FlameProjectile", nil, "Smallish", {
+						r = 0.7, g = 0.7, b = 0.65, a = 0.05, 
+						color2r = 1.0, color2g = 0.70, color2b = 0.4, colortime = 12,
+						lifetime = 70, sustain = 30,
+												})
+											
+
+projectileDefLightsNames["corcrwh_dragonmawh"] =
+GetLightClass("FlameProjectileDragon", nil, "Medium", {
+						r = 0.7, g = 0.7, b = 0.65, a = 0.06, 
+						color2r = 1.0, color2g = 0.70, color2b = 0.4, colortime = 12,
+						lifetime = 70, sustain = 30,
+												})
+
+projectileDefLightsNames["cordemon_newdmaw"] =
+GetLightClass("FlameProjectile", nil, "Medium", {
+						r = 0.7, g = 0.7, b = 0.65, a = 0.05, 
+						color2r = 1.0, color2g = 0.70, color2b = 0.4, colortime = 12,
+						lifetime = 40, sustain = 30,
+												})
 
 --corkorg_rocket
 projectileDefLightsNames["corkorg_corkorg_rocket"] =
