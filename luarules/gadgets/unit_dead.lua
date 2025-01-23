@@ -14,9 +14,5 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	Spring.SetUnitNoSelect(unitID, true)
-	if Spring.SetUnitNoGroup then
-		Spring.SetUnitNoGroup(unitID, true)
-	else
-		Spring.SetUnitGroup(unitID, -1)
-	end
+	Spring.SetUnitNoGroup(unitID, true)
 end
