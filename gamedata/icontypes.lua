@@ -671,10 +671,6 @@ local icontypes = {
 		bitmap = "icons/ship.png",
 		size = 1
 	},
-	armptl = {
-		bitmap = "icons/defence_1_naval.png",
-		size = 1.10249984
-	},
 	armptt2 = {
 		bitmap = "icons/ship_t3_pt.png",
 		size = 2.29999995
@@ -979,10 +975,6 @@ local icontypes = {
 		bitmap = "icons/energy6_1.3.png",
 		size = 1.36499989
 	},
-	armuwmex = {
-		bitmap = "icons/mex_t1.png",
-		size = 0.80849993
-	},
 	armuwmme = {
 		bitmap = "icons/mex_t2.png",
 		size = 1.20749986
@@ -1110,6 +1102,10 @@ local icontypes = {
 	legageo = {
 		bitmap = "icons/hazardous.png",
 		size = 1.88999987
+	},
+	legafus = {
+		bitmap = "icons/energy5_1.85.png",
+		size = 1.9425
 	},
 	legatorpbomber = {
 		bitmap = "icons/air_t2_torpbomber.png",
@@ -1775,10 +1771,6 @@ local icontypes = {
 		bitmap = "icons/ship.png",
 		size = 1.14999998
 	},
-	corptl = {
-		bitmap = "icons/defence_1_naval.png",
-		size = 1.10249984
-	},
 	corpun = {
 		bitmap = "icons/def_t1_arty.png",
 		size = 1.36499989
@@ -1868,6 +1860,10 @@ local icontypes = {
 		size = 1.57499993
 	},
 	corsent = {
+		bitmap = "icons/vehicle_t2_aa_flak.png",
+		size = 1.36499989
+	},
+	legvflak = {
 		bitmap = "icons/vehicle_t2_aa_flak.png",
 		size = 1.36499989
 	},
@@ -2047,10 +2043,6 @@ local icontypes = {
 		bitmap = "icons/energy6_1.3.png",
 		size = 1.36499989
 	},
-	coruwmex = {
-		bitmap = "icons/mex_t1.png",
-		size = 0.80849993
-	},
 	coruwmme = {
 		bitmap = "icons/mex_t2.png",
 		size = 1.20749986
@@ -2218,6 +2210,14 @@ local icontypes = {
 	legavroc = {
 		bitmap = "icons/vehicle_t2_vroc.png",
 		size = 1.62749982
+	},
+	legavrad = {
+		bitmap = "icons/vehicle_t2_radar.png",
+		size = 1.36499989
+	},
+	legavjam = {
+		bitmap = "icons/vehicle_t2_jammer.png",
+		size = 1.36499989
 	},
 	legaheattank = {
 		bitmap = "icons/vehicle_t2_tank_heavylaser.png",
@@ -2698,6 +2698,10 @@ local icontypes = {
 	legfmkr = {
 		bitmap = "icons/metalmaker_t1.png",
 		size = 0.78749996
+	},
+	legfus = {
+		bitmap = "icons/fusion.png",
+		size = 1.46999991
 	},
 	legtriarius = {
 		bitmap = "icons/ship_destroyer.png",

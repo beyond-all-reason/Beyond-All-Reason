@@ -79,8 +79,6 @@ local unitlist = {
 	{'armageo','armuwageo'},
 	{'corgeo','coruwgeo'},
 	{'corageo','coruwageo'},
-	{'armllt', 'armptl'}, -- for the amphibious construction vehicles trying to build ptls on land
-	{'corllt', 'corptl'},
 }
 
 
@@ -102,7 +100,6 @@ local legionUnitlist = {
 	{'legsolar','legtide'},
 	--{'leglab','corsy'},--soon(tm)
 	{'leglht','legtl'},
-	{'leglht', 'legptl'},--this may need more hookery in 2 places below
 	{'leghive', 'legfhive'},
 	--{'cornanotc','cornanotcplat'},
 	{'legvp','legamsub'},
@@ -110,13 +107,6 @@ local legionUnitlist = {
 	--{'corasp','corfasp'},
 	--{'corgeo','coruwgeo'},
 	--{'corageo','coruwageo'},
-}
-
-
---this has to account for legotter too, later
-local ptlCons = {
-	['armbeaver'] = true,
-	['cormuskrat'] = true,
 }
 
 local groundBuildings = {}
@@ -243,23 +233,6 @@ function widget:DrawWorld()
 
 	local name = unitName[alt]
 
-	-- Check for amphibious constructors
-	local selectedUnits = GetSelectedUnits()
-	local amphibCons = 0
-	for _, unitID in ipairs(selectedUnits) do
-		if ptlCons[unitName[GetUnitDefID(unitID)]] then
-			amphibCons = amphibCons + 1
-		end
-	end
-
-	if amphibCons > 0 then
-		local amphibBuildings = {
-			['cortl'] = 'corptl',
-			['armtl'] = 'armptl',
-		}
-		name = amphibBuildings[name] or name
-	end
-
 	-- Water level is always 0, but there's minor inaccuracy in the chain, so fuzz it a bit
 	if pos[2] < 0.01 then
 		if isGround then
@@ -311,14 +284,14 @@ function widget:Initialize()
 	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
 		maybeRemoveSelf()
 	end
-	
-	if Spring.GetModOptions().experimentallegionfaction then	
-		for _,v in ipairs(legionUnitlist) do 
+
+	if Spring.GetModOptions().experimentallegionfaction then
+		for _,v in ipairs(legionUnitlist) do
 			table.insert(unitlist, v)
 		end
 	end
 
-	
+
 	for _,unitNames in ipairs(unitlist) do
 		addUnitDefPair(unitNames[1], unitNames[2])
 	end

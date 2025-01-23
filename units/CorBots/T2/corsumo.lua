@@ -33,7 +33,7 @@ return {
 		turnrate = 368,
 		usepiececollisionvolumes = 1,
 		customparams = {
-			model_author = "Beherith",
+			model_author = "Tharsis",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 1,
 			subfolder = "CorBots/T2",
@@ -44,8 +44,8 @@ return {
 			dead = {
 				blocking = true,
 				category = "corpses",
-				collisionvolumeoffsets = "-2.34260559082 -0.241825708008 -1.33148193359",
-				collisionvolumescales = "60.9344787598 36.418548584 64.3249511719",
+				collisionvolumeoffsets = "0.0 -8 1.8",
+				collisionvolumescales = "44.2 41.0 49.1",
 				collisionvolumetype = "Box",
 				damage = 8400,
 				featuredead = "HEAP",
@@ -72,6 +72,9 @@ return {
 			},
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:footstep-medium",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
 				[2] = "deathceg3",

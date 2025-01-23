@@ -41,11 +41,11 @@ local minMisfireTally = 2 -- This is used to prevent misfire from being super pu
 local backupMisfireAggro = -200 --how much aggro is given multiplied by the misfireTallyMultiplier^2 when priority weapon fails to fire.
 
 local priorityAutoAggro = 12 -- how much aggro is accumulated per frameCheckModulo that the priority weapon successfully aims
-local priorityManualAggro = priorityAutoAggro * 3 -- how much aggro is accumulated per frameCheckModulo that the priority weapon successfully aims with a manually assigned target
+local priorityManualAggro = 24 -- how much aggro is accumulated per frameCheckModulo that the priority weapon successfully aims with a manually assigned target
 local prioritySwitchThreshold = -1 --the aggro at which priority weapon switch is triggered. Aggro is decayed closer to 0 every frameCheckModulo
 
 local backupAutoAggro = 4 -- how much aggro is accumulated per frameCheckModulo that the priority weapon fails to aim
-local backupManualAggro = priorityAutoAggro * 3 --how much aggro is accumulated per frameCheckModulo that the priority weapon fails to aim with a manually assigned target
+local backupManualAggro = 16 --how much aggro is accumulated per frameCheckModulo that the priority weapon fails to aim with a manually assigned target
 local backupSwitchThreshold = backupAutoAggro * 2.4 * -1 --the aggro at which backup weapon switch is triggered. Aggro is decayed closer to 0 every frameCheckModulo
 
 local PRIORITY_AIMINGSTATE = 1
@@ -188,7 +188,7 @@ local function updateAimingState(attackerID)
 				data.aggroBias = mathMin(data.aggroBias + priorityManualAggro, aggroPriorityCap)
 			end
 		end
-	elseif backupIsUserTarget and data.aggroBias > aggroBackupCap then
+	elseif backupIsUserTarget then
 		data.aggroBias = mathMax(data.aggroBias - backupManualAggro, aggroBackupCap)
 	else
 		if failureToFire then

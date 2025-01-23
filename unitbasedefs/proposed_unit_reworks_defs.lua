@@ -67,8 +67,11 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		end
 		if name == "corak" then
 			uDef.metalcost = 48
-			uDef.energycost = 800
-			uDef.health = 300
+			uDef.energycost = 840
+			uDef.turnrate = 1200
+			uDef.maxacc = 0.4
+			uDef.maxdec = 0.7
+			--uDef.health = 300
 		end
 		if name == "armfav" then
 			uDef.health = 103

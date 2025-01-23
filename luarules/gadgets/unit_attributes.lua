@@ -381,7 +381,6 @@ local function UpdateMovementSpeed(unitID, unitDefID, speedFactor, turnAccelFact
 				maxAcc          = state.origMaxAcc      *maxAccelerationFactor, --(speedFactor > 0.001 and speedFactor or 0.001)
 			}
 			spSetAirMoveTypeData (unitID, attribute)
-			spSetAirMoveTypeData (unitID, attribute)
 		elseif state.movetype == 1 then
 			local attribute =  {
 				maxSpeed        = state.origSpeed       *speedFactor,

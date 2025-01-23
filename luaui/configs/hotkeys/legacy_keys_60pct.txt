@@ -130,10 +130,6 @@ bind sc_z buildunit_cormoho
 bind Shift+sc_z buildunit_cormoho
 bind sc_z buildunit_cormexp
 bind Shift+sc_z buildunit_cormexp
-bind sc_z buildunit_coruwmex
-bind Shift+sc_z buildunit_coruwmex
-bind sc_z buildunit_armuwmex
-bind Shift+sc_z buildunit_armuwmex
 bind sc_z buildunit_coruwmme
 bind Shift+sc_z buildunit_coruwmme
 bind sc_z buildunit_armuwmme
@@ -159,6 +155,8 @@ bind sc_x buildunit_armmmkr
 bind Shift+sc_x buildunit_armmmkr
 bind sc_x buildunit_corfus
 bind Shift+sc_x buildunit_corfus
+bind sc_x buildunit_legfus
+bind Shift+sc_x buildunit_legfus
 bind sc_x buildunit_cormmkr
 bind Shift+sc_x buildunit_cormmkr
 bind sc_x buildunit_armtide

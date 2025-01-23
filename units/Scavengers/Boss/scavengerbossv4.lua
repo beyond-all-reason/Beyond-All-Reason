@@ -710,7 +710,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				intensity = 0.9,
 				leadbonus = 0,
 				metalpershot = 96,
-				model = "Units/coruwmex.s3o",
+				model = "Units/cormex.s3o",
 				--mygravity = 0.22,
 				name = "SPECIAL Epic Squad Cannon",
 				noselfdamage = true,

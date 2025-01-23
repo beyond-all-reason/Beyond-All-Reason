@@ -192,21 +192,7 @@ Deactivate()
 {
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
-	hide buildlightLPoint;
-	hide buildlightRPoint;
-	hide cannisterLight;
-	hide cannisterLight2;
-	hide cannisterLight3;
-	hide pipeLight1;
-	hide pipeLight2;
-	hide sprayL1A;
-	hide sprayL2A;
-	hide sprayL3A;
-	hide sprayR1A;
-	hide sprayR2A;
-	hide sprayR3A;
-	stop-spin buildLightL around y-axis decelerate <2>;
-	stop-spin buildLightR around y-axis decelerate <2>;
+
 	sleep 5000;
 	
 	turn nanoarmR3 to z-axis <0> speed <45>;
@@ -307,6 +293,19 @@ MoveCranes()
 
 StartBuilding()
 {
+	show buildlightLPoint;
+	show buildlightRPoint;
+	show cannisterLight;
+	show cannisterLight2;
+	show cannisterLight3;
+	show pipeLight1;
+	show pipeLight2;
+	show sprayL1A;
+	show sprayL2A;
+	show sprayL3A;
+	show sprayR1A;
+	show sprayR2A;
+	show sprayR3A;	
 	signal SIGNAL_BUILD;
 	set-signal-mask SIGNAL_BUILD;
 	wait-for-turn nanoarmR1 around z-axis;
@@ -317,6 +316,23 @@ StartBuilding()
 
 StopBuilding()
 {
+
+	hide buildlightLPoint;
+	hide buildlightRPoint;
+	hide cannisterLight;
+	hide cannisterLight2;
+	hide cannisterLight3;
+	hide pipeLight1;
+	hide pipeLight2;
+	hide sprayL1A;
+	hide sprayL2A;
+	hide sprayL3A;
+	hide sprayR1A;
+	hide sprayR2A;
+	hide sprayR3A;
+
+	stop-spin buildLightL around y-axis decelerate <2>;
+	stop-spin buildLightR around y-axis decelerate <2>;
 
 	signal SIGNAL_BUILD;
 	

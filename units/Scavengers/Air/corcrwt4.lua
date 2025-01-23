@@ -80,7 +80,7 @@ return {
 			},
 		},
 		weapondefs = {
-		
+
 			kmaw = { -- fire based with trailing AoE on particles (or not, atm)
 				accuracy = 0,
 				areaofeffect = 128,
@@ -122,13 +122,12 @@ return {
 				weapontype = "Flame",
 				weaponvelocity = 500,
 				damage = {
-					default = 40,--100,
+					default = 40,
 					subs = 10,
-				}--,customparams = { single_hit_multi = 'true' },
+				}
 			},
-		
+
 			edragon_missile = {
-			
 				areaofeffect = 16,
 				avoidfeature = false,
 				burnblow = true,
@@ -173,7 +172,7 @@ return {
 					bombers = 400,
 					fighters = 400,
 					vtol = 400,
-				},			
+				},
 			},
 			krowbosslaser = {
 				areaofeffect = 8,

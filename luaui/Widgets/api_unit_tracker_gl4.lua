@@ -19,6 +19,7 @@ local debuglevel = 0
 -- debuglevel 3 is super verbose mode
 
 local debugdrawvisible = false
+local L_DEPRECATED = LOG.DEPRECATED
 -- This widget's job is to provide a common interface for GL4 drawing widgets, that rely on having visible units present
 -- Widget draw classes:
 -- widgets that draw stuff for all visible units (trivial case)
@@ -774,6 +775,7 @@ local iHaveDesynced = false
 local syncerrorpattern = "Sync error for ([%w%[%]_]+) in frame (%d+) %(got (%x+), correct is (%x+)%)"
 
 function widget:AddConsoleLine(lines, priority)
+	if priority and priority == L_DEPRECATED then return end
 	--Spring.Echo(lines)
 	if iHaveDesynced then return end
     local username, frameNumber, gotChecksum, correctChecksum = lines:match(syncerrorpattern)

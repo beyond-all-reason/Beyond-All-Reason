@@ -160,6 +160,14 @@ if gadgetHandler:IsSyncedCode() then
 		needsrefresh = true,
 	}
 
+
+	local isObject = {}
+	for udefID, def in ipairs(UnitDefs) do
+		if def.modCategories['object'] or def.customParams.objectify then
+			isObject[udefID] = true
+		end
+	end
+
 	--------------------------------------------------------------------------------
 	-- Teams
 	--------------------------------------------------------------------------------
@@ -1197,7 +1205,7 @@ if gadgetHandler:IsSyncedCode() then
 				SetUnitBlocking(structureUnitID, false, false)
 				tracy.ZoneEnd()
 				return structureUnitID, spawnPosX, spawnPosY, spawnPosZ
-			else 
+			else
 				if tracy then
 					tracy.Message(string.format("spawnCreepStructure: Failed to spawn %s at %d*%d*%d ", unitDefName, spawnPosX, spawnPosY, spawnPosZ ))
 				end
@@ -1221,7 +1229,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 				--Spring.Echo(uName,"MaxExisting",maxExisting,"MaxAllowed",maxAllowedToSpawn)
 				local currentCountOfTurretDef = Spring.GetTeamUnitDefCount(raptorTeamID, UnitDefNames[uName].id)
-				
+
 				if currentCountOfTurretDef < UnitDefNames[uName].maxThisUnit then  -- cause nutty raptors sets maxThisUnit which results in nil returns from Spring.CreateUnit!
 					for i = 1, math.ceil(numOfTurrets) do
 						if mRandom() < config.spawnChance*math.min((GetGameSeconds()/config.gracePeriod),1) and (currentCountOfTurretDef <= maxAllowedToSpawn) then
@@ -1263,15 +1271,6 @@ if gadgetHandler:IsSyncedCode() then
 	-- Call-ins
 	--------------------------------------------------------------------------------
 
-	local WALLS = {
-		"armdrag",
-		"armfort",
-		"cordrag",
-		"corfort",
-		"scavdrag",
-		"scavfort",
-	}
-
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 
 		local unitDef = UnitDefs[unitDefID]
@@ -1290,10 +1289,8 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		-- If a wall
-		for _, wallName in pairs(WALLS) do
-			if unitDef.name == wallName then
-				return
-			end
+		if isObject[unitDefID] then
+			return
 		end
 
 		if not unitDef.canMove or (unitDef.customParams and unitDef.customParams.iscommander) then
@@ -1824,7 +1821,7 @@ if gadgetHandler:IsSyncedCode() then
 				updateQueenLife()
 			end
 
-			
+
 			if burrowCount < minBurrows then
 				SpawnBurrow()
 				timeOfLastSpawn = t
