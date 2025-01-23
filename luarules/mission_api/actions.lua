@@ -103,35 +103,21 @@ end
 
 --============================================================--
 
-local function getHumanAllyTeams()
-	local humanAllyTeams = {}
-	for _, playerID in pairs(Spring.GetPlayerList()) do
-		local _, _, spec, _, allyTeamID = Spring.GetPlayerInfo(playerID, false)
-		if not spec and not humanAllyTeams[allyTeamID] then
-			humanAllyTeams[allyTeamID] = allyTeamID
-		end
-	end
-	return humanAllyTeams
+local function victory(winningAllyTeamIDs)
+	Spring.GameOver({ unpack(winningAllyTeamIDs) })
 end
 
 ----------------------------------------------------------------
 
-local function victory()
-	Spring.GameOver({ unpack(getHumanAllyTeams()) })
-end
-
-----------------------------------------------------------------
-
-local function defeat()
-	local allyTeamsWithPlayers = getHumanAllyTeams()
+local function defeat(losingAllyTeamIDs)
 	local allAllyTeamIDs = Spring.GetAllyTeamList()
-	local allyTeamsWithoutPlayers = {}
+	local winningAllyTeamIDs = { }
 	for _, allyTeamID in pairs(allAllyTeamIDs) do
-		if not allyTeamsWithPlayers[allyTeamID] then
-			allyTeamsWithoutPlayers[allyTeamID] = allyTeamID
+		if not table.contains(losingAllyTeamIDs, allyTeamID) then
+			table.insert(winningAllyTeamIDs, allyTeamID)
 		end
 	end
-	Spring.GameOver({ unpack(allyTeamsWithoutPlayers) })
+	Spring.GameOver({ unpack(winningAllyTeamIDs) })
 end
 
 --============================================================--
