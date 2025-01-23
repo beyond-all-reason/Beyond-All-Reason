@@ -795,12 +795,8 @@ local projectileDefDistortions  = {
 				muzzleFlash = false
 	
 	
-				if not weaponDef.paralyzer then
-
-				end
-	
 				radius = (1.5 * (weaponDef.size * weaponDef.size * weaponDef.size)) + (5 * radius)
-				t.a = (damage * 0.1) / (0.2 + weaponDef.beamtime)
+				--t.a = (damage * 0.1) / (0.2 + weaponDef.beamtime)
 				--projectileDefDistortions[weaponID].yOffset = 64
 	
 				if not weaponDef.paralyzer then
@@ -810,11 +806,17 @@ local projectileDefDistortions  = {
 				if weaponDef.paralyzer then
 					radius = radius * 0.5
 				end
+				
 				sizeclass = GetClosestSizeClass(radius)
 				--projectileDefDistortions[weaponID] = GetDistortionClass("LaserProjectile", sizeclass, overrideTable)
 	
 				if not weaponDef.paralyzer then
 					sizeclass = GetClosestSizeClass(radius)
+				end
+
+				if string.find(weaponDef.name, 'heat') then
+					sizeclass = GetClosestSizeClass(radius * 0.25)
+					projectileDefDistortions[weaponID] = GetDistortionClass("HeatRayHeat", sizeclass, overrideTable)
 				end
 	
 			elseif weaponDef.type == 'LaserCannon' then
