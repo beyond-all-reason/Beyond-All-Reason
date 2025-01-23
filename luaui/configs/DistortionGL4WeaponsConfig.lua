@@ -120,11 +120,11 @@ local BaseClasses = {
 		distortionConfig = {
 				posx = 0, posy = 10, posz = 0, radius = 10,
 				pos2x = 0, pos2y = 0, pos2z = 0, radius2 = 1,
-				noiseStrength = 4, noiseScaleSpace = 0.03, distanceFalloff = 0.2,
-				effectStrength = 2.0, 
-				windAffected = -1, riseRate = 2.2, onlyModelMap = 0, 
+				noiseStrength = 1.2, noiseScaleSpace = 0.022, distanceFalloff = 0.2,
+				effectStrength = 1.0, 
+				windAffected = -1, riseRate = 4.2, onlyModelMap = 0, 
 				--refractiveIndex = 1.15,
-				lifeTime = 3, rampUp = 3, decay = 3, effectType = 7, 
+				lifeTime = 0, rampUp = 0, decay = 0, effectType = 7, 
 		},
 	},
 

@@ -846,16 +846,27 @@ GetLightClass("Explosion", "Fire", "Smallish", {r = 0.54, g = 0.45, b = 0.12, a 
 										 sustain = 2, lifetime = 3,
 										 modelfactor = -0.3, specular = -0.1, scattering = 1.95, lensflare = 0})
 
-
+-- org korglaser
 projectileDefLightsNames["corkorg_corkorg_laser"] =
-GetLightClass("LaserProjectile", nil, "Medium", {a = 0.10,
+GetLightClass("LaserProjectile", nil, "Medium", {a = 0.09,
 											--r = 1.0, g = 0.65, b = 0.1, radius = 240,
-											r = 1.0, g = 0.85, b = 0.5, radius = 240,
+											r = 1.0, g = 0.75, b = 0.4, radius = 240,
 											color2r = 0.33, color2g = 0.05, color2b = 0.03, colortime = 3,
 											pos2x = 0, pos2y = 100, pos2z = 0,
 											modelfactor = 0.5, specular = 0.05, scattering = 0.05, lensflare = 16,
-											selfshadowing = 8,
+											selfshadowing = 5,
 											lifetime = 6, sustain = 2})
+
+-- custom sharp white center beam 
+-- projectileDefLightsNames["corkorg_corkorg_laser"] =
+-- GetLightClass("LaserProjectile", nil, "Medium", {a = 3.0,
+-- 											--r = 1.0, g = 0.65, b = 0.1, radius = 240,
+-- 											r = 1.0, g = 0.85, b = 0.5, radius = 1.3,
+-- 											color2r = 0.33, color2g = 0.05, color2b = 0.03, colortime = 3,
+-- 											pos2x = 0, pos2y = 100, pos2z = 0,
+-- 											modelfactor = 0.5, specular = 0.5, scattering = 5, lensflare = 16,
+-- 											selfshadowing = 8,
+-- 											lifetime = 23, sustain = 2})
 
 muzzleFlashLightsNames["corkorg_corkorg_laser"] =
 GetLightClass("MuzzleFlash", "Fire", "Mega", {posx = 120, posy = 82, posz = 0,

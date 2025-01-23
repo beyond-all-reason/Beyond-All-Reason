@@ -876,7 +876,7 @@ void main(void)
 		
 		// This should only highlight the very edge of the shield sphere
 
-		float shieldEdgeFactor = clamp(1.0 - abs(length(distortionEmitPosition.xyz - closestPointOnRay.xyz) - distortionRadius +10) * 0.1, 0.0, 1.0);
+		float shieldEdgeFactor = clamp(0.9 - abs(length(distortionEmitPosition.xyz - closestPointOnRay.xyz) - distortionRadius +10) * 0.10, 0.0, 1.0);
 		//shieldEdgeFactor = pcurve_k(shieldEdgeFactor, 0.7, 100.0, 17.0);
 		shieldEdgeFactor = smoothstep(0.1, 1.0, shieldEdgeFactor);
 		if (fragDistance < ( length(distortionPosition - camPos) -distortionRadius)){
