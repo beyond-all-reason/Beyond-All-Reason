@@ -128,7 +128,7 @@ local BaseClasses = {
 		},
 	},
 
-	TachyonBeam = {
+	TachyonBeam = { --original for armbanth
 		distortionType = 'beam', -- or cone or beam
 		distortionConfig = {
 				posx = 0, posy = 0, posz = 0, radius = 10,
@@ -136,6 +136,28 @@ local BaseClasses = {
 				windAffected = -1, riseRate = 2.6, onlyModelMap = 0, 
 				pos2x = 100, pos2y = 500, pos2z = 100, -- beam distortions only, specifies the endpoint of the beam
 				lifeTime = 10, sustain = 1, rampUp = 0, decay = 3, effectType = 7, 
+		},
+	},
+
+	TachyonBeam2 = {
+		distortionType = 'beam', -- or cone or beam
+		distortionConfig = {
+				posx = 0, posy = 0, posz = 0, radius = 10,
+				noiseStrength = 0.3, noiseScaleSpace = 0.025, distanceFalloff = -1,
+				windAffected = -0.8, riseRate = -0.2, effectStrength = 0.5,
+				pos2x = 100, pos2y = 500, pos2z = 100, -- beam distortions only, specifies the endpoint of the beam
+				lifeTime = 0, sustain = 0, rampUp = 0, decay = 3, effectType = 0, 
+		},
+	},
+
+	TachyonBeam3 = {
+		distortionType = 'beam', -- or cone or beam
+		distortionConfig = {
+				posx = 0, posy = 0, posz = 0, radius = 10,
+				noiseStrength = 1.0, noiseScaleSpace = 0.020,
+				windAffected = -0.5, riseRate = 0.3, effectStrength = 1,
+				pos2x = 0, pos2y = 0, pos2z = 0, -- beam distortions only, specifies the endpoint of the beam
+				lifeTime = 0, sustain = 0, rampUp = 0, decay = 0, effectType = 12, 
 		},
 	},
 
@@ -276,7 +298,7 @@ local BaseClasses = {
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
 			noiseScaleSpace = 1.1, noiseStrength = 0.01, onlyModelMap = 1,  
 			lifeTime = 7, refractiveIndex = 1.03, decay = 4, rampUp = 3,
-			effectStrength = 0.5, startRadius = 0.20, shockWidth = -0.50, --needed for all distortions
+			effectStrength = 0.5, startRadius = 0.20, shockWidth = -0.60, --needed for all distortions
 			effectType = "airShockwave", },
 	},
 	AirShockWave = {
@@ -284,7 +306,7 @@ local BaseClasses = {
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
 			noiseScaleSpace = 0.1, noiseStrength = 0.2, onlyModelMap = 0,  
 			lifeTime = 13, refractiveIndex = 1.04, decay = 4, rampUp = 2,
-			effectStrength = 3.0, startRadius = 0.25, shockWidth = -0.60,
+			effectStrength = 2.5, startRadius = 0.25, shockWidth = -0.70,
 			effectType = "airShockwave", },
 
 	},
@@ -581,6 +603,7 @@ local SizeRadius = {
 	Quaco = 		2.5,
 	Zetto = 		5,
 	Atto =			10, 
+	Banthlaser =	13,
 	Femto = 		16,
 	KorgLaser = 	19,  
 	Pico = 			26,
@@ -1194,11 +1217,21 @@ projectileDefDistortionsNames['cordoom_atadr'] =
 		--lifeTime = 0, rampUp = 20, decay = 0,
 	})
 
+-- original shield beam 
+	-- projectileDefDistortionsNames['armbanth_tehlazerofdewm'] =
+	-- GetDistortionClass("TachyonBeam", "Femto", {
+	-- 	noiseStrength = 1.5, noiseScaleSpace = 0.025,
+	-- 	windAffected = -0.8, riseRate = -0.2,
+	-- })
+
+-- new concept armbanth
+-- projectileDefDistortionsNames['armbanth_tehlazerofdewm'] =
+-- 	GetDistortionClass("TachyonBeam2", "Atto", {
+-- 	})
+
 projectileDefDistortionsNames['armbanth_tehlazerofdewm'] =
-	GetDistortionClass("TachyonBeam", "Femto", {
-		noiseStrength = 1.5, noiseScaleSpace = 0.025,
-		windAffected = -0.8, riseRate = -0.2,
-	})
+GetDistortionClass("TachyonBeam3", "Banthlaser", {
+})
 
 projectileDefDistortionsNames["corhlt_cor_laserh1"] =
 	GetDistortionClass("LaserBeamHeat", "Atto")

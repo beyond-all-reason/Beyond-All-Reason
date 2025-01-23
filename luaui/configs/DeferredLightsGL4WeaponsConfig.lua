@@ -849,7 +849,8 @@ GetLightClass("Explosion", "Fire", "Smallish", {r = 0.54, g = 0.45, b = 0.12, a 
 
 projectileDefLightsNames["corkorg_corkorg_laser"] =
 GetLightClass("LaserProjectile", nil, "Medium", {a = 0.10,
-											r = 1.0, g = 0.65, b = 0.1, radius = 240,
+											--r = 1.0, g = 0.65, b = 0.1, radius = 240,
+											r = 1.0, g = 0.85, b = 0.5, radius = 240,
 											color2r = 0.33, color2g = 0.05, color2b = 0.03, colortime = 3,
 											pos2x = 0, pos2y = 100, pos2z = 0,
 											modelfactor = 0.5, specular = 0.05, scattering = 0.05, lensflare = 16,

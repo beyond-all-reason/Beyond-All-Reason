@@ -955,6 +955,52 @@ void main(void)
 		}
 	}
 
+	//------------------------- BEGIN TACHYON BEAM -------------------------
+	else if (effectType == 12){
+		float distortionAttenuation = 1.0; // start at max for the center
+
+		
+		// This should only highlight the very edge of the shield sphere
+
+		float shieldEdgeFactor = clamp(1.0 - abs(length(distortionEmitPosition.xyz - closestPointOnRay.xyz) - distortionRadius +6) * 0.12, 0.0, 1.0);
+		//shieldEdgeFactor = pcurve_k(shieldEdgeFactor, 0.1, 100.0, 75.0);
+		shieldEdgeFactor = smoothstep(0.2, 1.5, shieldEdgeFactor);
+		if (fragDistance < ( length(distortionPosition - camPos) -distortionRadius)){
+			fragColor.rgba = vec4(0.0);
+			return;
+		}
+
+		//D
+		distortionAttenuation *= shieldEdgeFactor;
+		// 
+
+		// TODO: Ensure that the distortion is proportionate to the amount of "Hot" volume the ray passes through. 
+		// Get the noise sample:
+		vec3 noisePosition = MidPoint.xyz;
+		
+		if (NOISESCALESPACE < 0.0){
+			noisePosition -= v_worldPosRad.xyz;
+		}
+
+		// Scale the noise position with the noise scale
+		noisePosition *= abs(NOISESCALESPACE) * 0.035;
+		
+		// Add the time offset and wind offsets to the noise position
+		vec3 noiseOffset = vec3(windXZ.x * 0.1, currentTime * 0.01, windXZ.y * 0.1 ) * (1.0 + vec3(WINDAFFECTED, EFFECTPARAM1, WINDAFFECTED));
+		
+		// Normalize the noise sample at noisePosition - noiseOffset
+		vec4 noiseSampleNorm = (textureLod(noise3DCube, noisePosition - noiseOffset, 0.0) )* 2.0 - 1.0;
+
+
+		// modulate the effect strength with the distance to the heat source:
+		float distanceToCameraFactor =  clamp(300.0/ length(camPos.xyz - MidPoint.xyz), 0.0, 1.0);
+		noiseSampleNorm *= distanceToCameraFactor * LIFESTRENGTH;
+
+		// Modulate alpha with the distortionAttenuation
+		noiseSampleNorm *= NOISESTRENGTH;
+		fragColor.rgba = vec4(noiseSampleNorm.ra * EFFECTSTRENGTH, 0.0,  distortionAttenuation);
+	}
+
 	//------------------------- BEGIN HEAT DISTORTION -------------------------
 	// Debugging check attenuations for each distortion source type:
 	// Draw attenuation as a color Green
@@ -963,6 +1009,19 @@ void main(void)
 
 		float distortionAttenuation = 1.0; // start at max for the center
 
+		// Attenuate with distance, distance attenuation is inverse of distance
+        distortionAttenuation *= distance_attenuation;
+        
+        // plug in custom distortion falloff power
+        if (DISTANCEFALLOFF >= 0.0){
+            distortionAttenuation = pow(distortionAttenuation, DISTANCEFALLOFF); 
+        } else
+		{ // use a p-curve for negative values of DISTANCEFALLOFF to have no distortion at the center
+            float dist = 1.0 - distortionAttenuation;
+            // This is a parabolic curve that goes from 0 to 1 at the center
+            distortionAttenuation = pow(dist,-1 * DISTANCEFALLOFF)*(1.0-dist);
+        }
+		
 		// Multiply the relative volume density:
 		distortionAttenuation *= relativeDensity;
 
