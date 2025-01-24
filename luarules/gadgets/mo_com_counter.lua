@@ -17,8 +17,6 @@ end
 local teamComs = {} -- format is enemyComs[teamID] = total # of coms in enemy teams
 local countChanged  = true
 
-local spGetTeamUnitDefCount = Spring.GetTeamUnitDefCount
-
 local alliedTeamCombo = {}
 local teamList = Spring.GetTeamList()
 for _, teamID in ipairs(teamList) do
@@ -62,24 +60,7 @@ end
 -- BAR does not allow sharing to enemy, thus no need to check Given, Taken units
 
 
--- occasionally, recheck just to make sure...
-local function ReCheck()
-	for _,teamID in pairs(teamList) do
-		local newCount = 0
-		for unitDefID,_ in pairs(isCommander) do
-			newCount = newCount + spGetTeamUnitDefCount(teamID, unitDefID)
-		end
-		if newCount ~= teamComs[teamID] then
-			countChanged = true
-			teamComs[teamID] = newCount
-		end
-	end
-end
-
 function gadget:GameFrame(n)
-	if n % 30 == 0 then
-		ReCheck()
-	end
 	if countChanged then
 		UpdateCount()
 		countChanged = false
