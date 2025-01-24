@@ -10,15 +10,25 @@ function gadget:GetInfo()
 	}
 end
 
--------------------------------------------------------------------------------------------------------------------------
--------------------------------------------------------------------------------------------------------------------------
-
-if not (gadgetHandler:IsSyncedCode()) then --synced only
+if not gadgetHandler:IsSyncedCode() then --synced only
 	return false
 end
 
 local teamComs = {} -- format is enemyComs[teamID] = total # of coms in enemy teams
 local countChanged  = true
+
+local spGetTeamUnitDefCount = Spring.GetTeamUnitDefCount
+
+local alliedTeamCombo = {}
+local teamList = Spring.GetTeamList()
+for _, teamID in ipairs(teamList) do
+	for _, otherTeamID in ipairs(teamList) do
+		if select(6,Spring.GetTeamInfo(otherTeamID,false)) ~= select(6,Spring.GetTeamInfo(teamID,false)) then
+			alliedTeamCombo[teamID..'_'..otherTeamID] = true
+		end
+	end
+end
+
 
 local isCommander = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -29,7 +39,6 @@ end
 
 
 function gadget:UnitCreated(unitID, unitDefID, teamID)
-	-- record com creation
 	if isCommander[unitDefID] then
 		if not teamComs[teamID] then
 			teamComs[teamID] = 0
@@ -40,7 +49,6 @@ function gadget:UnitCreated(unitID, unitDefID, teamID)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, teamID)
-	-- record com death
 	if isCommander[unitDefID] then
 		if not teamComs[teamID] then
 			teamComs[teamID] = 0 --should never happen
@@ -50,15 +58,16 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID)
 	end
 end
 
--- BAR does not allow sharing to enemy, so no need to check Given, Taken, etc
 
+-- BAR does not allow sharing to enemy, thus no need to check Given, Taken units
+
+
+-- occasionally, recheck just to make sure...
 local function ReCheck()
-	-- occasionally, recheck just to make sure...
-	local teamList = Spring.GetTeamList()
 	for _,teamID in pairs(teamList) do
 		local newCount = 0
 		for unitDefID,_ in pairs(isCommander) do
-			newCount = newCount + Spring.GetTeamUnitDefCount(teamID, unitDefID)
+			newCount = newCount + spGetTeamUnitDefCount(teamID, unitDefID)
 		end
 		if newCount ~= teamComs[teamID] then
 			countChanged = true
@@ -68,10 +77,9 @@ local function ReCheck()
 end
 
 function gadget:GameFrame(n)
-	if n%30==0 then
+	if n % 30 == 0 then
 		ReCheck()
 	end
-
 	if countChanged then
 		UpdateCount()
 		countChanged = false
@@ -79,15 +87,15 @@ function gadget:GameFrame(n)
 end
 
 function UpdateCount()
-	-- for each teamID, set a TeamRulesParam containing the # of coms in enemy allyteams
 	for teamID,_ in pairs(teamComs) do
+		-- count all coms in enemy teams, to get enemy allyteam com count
 		local enemyComCount = 0
-		for otherTeamID,val in pairs(teamComs) do -- count all coms in enemy teams, to get enemy allyteam com count
-			if select(6,Spring.GetTeamInfo(otherTeamID,false)) ~= select(6,Spring.GetTeamInfo(teamID,false)) then
+		for otherTeamID,_ in pairs(teamComs) do
+			if alliedTeamCombo[teamID..'_'..otherTeamID] then
 				enemyComCount = enemyComCount + teamComs[otherTeamID]
 			end
 		end
-		--Spring.Echo(teamID, teamComs[teamID], enemyComCount)
+		-- for each teamID, set a TeamRulesParam containing the # of coms in enemy allyteams
 		Spring.SetTeamRulesParam(teamID, "enemyComCount", enemyComCount, {private=true, allied=false})
 	end
 end
