@@ -34,10 +34,20 @@ for udefID,def in ipairs(UnitDefs) do
 	unitSize[udefID] = { ((def.xsize*8)+8)/2, ((def.zsize*8)+8)/2 }
 end
 
+
 if gadgetHandler:IsSyncedCode() then
+
+	local numDecorations = 0
+	local numObjects = 0
+
+	local CMD_ATTACK = CMD.ATTACK
+	local spGetUnitDefID = Spring.GetUnitDefID
 
 	function gadget:Initialize()
 		gadgetHandler:RegisterAllowCommand(CMD.ANY)
+		for _, unitID in pairs(Spring.GetAllUnits()) do
+			gadget:UnitCreated(unitID, spGetUnitDefID(unitID))
+		end
 	end
 
 	local function objectifyUnit(unitID)
@@ -45,7 +55,7 @@ if gadgetHandler:IsSyncedCode() then
 		Spring.SetUnitStealth(unitID, true)
 		Spring.SetUnitSonarStealth(unitID, true)
 		Spring.SetUnitBlocking(unitID, true, true, true, true, true, true, false) -- set as crushable
-		--for weaponID, _ in pairs(UnitDefs[Spring.GetUnitDefID(unitID)].weapons) do
+		--for weaponID, _ in pairs(UnitDefs[spGetUnitDefID(unitID)].weapons) do
 		--	Spring.UnitWeaponHoldFire(unitID, weaponID)
 		--end
 	end
@@ -55,7 +65,7 @@ if gadgetHandler:IsSyncedCode() then
 		Spring.SetUnitStealth(unitID, true)
 		Spring.SetUnitSonarStealth(unitID, true)
 		Spring.SetUnitBlocking(unitID, true, true, false, false, true, false, false)
-		for weaponID, _ in pairs(UnitDefs[Spring.GetUnitDefID(unitID)].weapons) do
+		for weaponID, _ in pairs(UnitDefs[spGetUnitDefID(unitID)].weapons) do
 			Spring.UnitWeaponHoldFire(unitID, weaponID)
 		end
 		Spring.SetUnitNoSelect(unitID, true)
@@ -67,19 +77,28 @@ if gadgetHandler:IsSyncedCode() then
 		Spring.SetUnitSensorRadius(unitID, 'sonar', 0)
 	end
 
+	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+		if isDecoration[unitDefID] then
+			numDecorations = numDecorations - 1
+		end
+		if isObject[unitDefID] then
+			numObjects = numObjects - 1
+		end
+	end
+
     function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
-		if Spring.ValidUnitID(unitID) then
-			if isDecoration[unitDefID] then
-				decorationUnit(unitID)
-			end
-			if isObject[unitDefID] then
-				objectifyUnit(unitID)
-			end
+		if isDecoration[unitDefID] then
+			numDecorations = numDecorations + 1
+			decorationUnit(unitID)
+		end
+		if isObject[unitDefID] then
+			numObjects = numObjects + 1
+			objectifyUnit(unitID)
 		end
     end
 
     function gadget:UnitGiven(unitID, unitDefID, oldTeam, newTeam)
-        if isObject[unitDefID] and Spring.ValidUnitID(unitID) then
+        if isObject[unitDefID] then
             objectifyUnit(unitID)
         end
     end
@@ -97,23 +116,23 @@ if gadgetHandler:IsSyncedCode() then
     end
 
 	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-		if cmdID then
+		if cmdID and (numObjects > 0 or numDecorations > 0) then
 			-- prevents area targetting
-			if cmdID == CMD.ATTACK then
+			if cmdID == CMD_ATTACK then
 				if cmdParams and #cmdParams == 1 then
-					local uDefID = Spring.GetUnitDefID(cmdParams[1])
+					local uDefID = spGetUnitDefID(cmdParams[1])
 					if isObject[uDefID] or isDecoration[uDefID] then
 						return false
 					end
 				end
 
 			-- remove any decoration that is blocking a queued build order
-			elseif cmdID < 0 then
-				if cmdParams[3] and isBuilder[Spring.GetUnitDefID(unitID)] then
+			elseif cmdID < 0 and numDecorations > 0 then
+				if cmdParams[3] and isBuilder[spGetUnitDefID(unitID)] then
 					local udefid = math.abs(cmdID)
 					local units = Spring.GetUnitsInBox(cmdParams[1]-unitSize[udefid][1],cmdParams[2]-200,cmdParams[3]-unitSize[udefid][2],cmdParams[1]+unitSize[udefid][1],cmdParams[2]+50,cmdParams[3]+unitSize[udefid][2])
 					for i=1, #units do
-						if isDecoration[Spring.GetUnitDefID(units[i])] then
+						if isDecoration[spGetUnitDefID(units[i])] then
 							if Spring.GetUnitIsDead(units[i]) == false then
 								Spring.DestroyUnit(units[i], false, true)
 							end
@@ -142,7 +161,6 @@ else -- UNSYNCED
 				end
 			end
 		end
-		return
     end
 
 end
