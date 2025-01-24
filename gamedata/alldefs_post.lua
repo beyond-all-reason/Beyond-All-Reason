@@ -796,7 +796,7 @@ function UnitDef_Post(name, uDef)
 
 	categories["ALL"] = function() return true end
 	categories["MOBILE"] = function(uDef) return uDef.speed and uDef.speed > 0 end
-	categories["FASTSURFACE"] = function(uDef) return uDef.speed and uDef.speed > 78 end --78 is the speed of rezbots
+	categories["FASTSURFACE"] = function(uDef) return uDef.speed and uDef.speed > 78 and not (categories.UNDERWATER(uDef) and categories.MOBILE(uDef)) and not categories.VTOL(uDef) end --78 is the speed of rezbots, the fastest intentional exclusion.
 	categories["NOTMOBILE"] = function(uDef) return not categories.MOBILE(uDef) end
 	categories["WEAPON"] = function(uDef) return uDef.weapondefs ~= nil end
 	categories["NOWEAPON"] = function(uDef) return not categories.WEAPON(uDef) end
