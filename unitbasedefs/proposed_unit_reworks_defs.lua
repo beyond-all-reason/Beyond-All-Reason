@@ -14,7 +14,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		if name == "armtide" then
 			uDef.energycost = 200
 		end
-		if name == "armadvsolar" then
+		if name == "armadvsol" then
 			uDef.metalcost = 350
 		end
 		if name == "corcv" then
