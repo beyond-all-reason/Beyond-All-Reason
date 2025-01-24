@@ -73,21 +73,21 @@ local buttonConfig = {
 local colorConfig = { --An array of R, G, B, Alpha
     drawStencil = true, -- wether to draw the outer, merged rings (quite expensive!)
     drawInnerRings = true, -- wether to draw inner, per defense rings (very cheap)
-    externalalpha = 0.7, -- alpha of outer rings
+    externalalpha = 0.80, -- alpha of outer rings
     internalalpha = 0.17, -- alpha of inner rings
     distanceScaleStart = 2000, -- Linewidth is 100% up to this camera height
     distanceScaleEnd = 8000, -- Linewidth becomes 50% above this camera height
     ground = {
-        color = {1.3, 0.18, 0.04, 0.74},
+        color = {1.3, 0.18, 0.04, 0.5},
         fadeparams = { 2200, 5500, 1.0, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
-        externallinethickness = 6.0,
-        internallinethickness = 2.0,
+        externallinethickness = 6.0, -- can be 2 or 3 if we can distiquish its looks from attackranges
+        internallinethickness = 2.0, -- can be 1.8 if we can distiquish its looks from attackranges
     },
     air = {
         color = {0.8, 0.44, 1.6, 0.70},
         fadeparams = { 3200, 8000, 0.4, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
-        externallinethickness = 4.0,
-        internallinethickness = 2.0,
+        externallinethickness = 6.0,
+        internallinethickness = 1.8,
     },
     nuke = {
         color = {1.2, 1.0, 0.3, 0.8},
@@ -96,11 +96,17 @@ local colorConfig = { --An array of R, G, B, Alpha
         internallinethickness = 1.0,
     },
     cannon = {
-        color = {1.3, 0.18, 0.04, 0.5},
-        fadeparams = {7000, 6000, 0.8, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
-        externallinethickness = 10.0,
+        color = {1.3, 0.18, 0.04, 0.74},
+        fadeparams = {6000, 3000, 0.8, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+        externallinethickness = 6.0,
         internallinethickness = 1.0,
     },
+	-- lrpc = {
+    --     color = {1.3, 0.18, 0.04, 0.74},
+    --     fadeparams = {6000, 3000, 0.8, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+    --     externallinethickness = 10.0,
+    --     internallinethickness = 1.0,
+    -- },
 }
 
 
@@ -109,7 +115,7 @@ local colorConfig = { --An array of R, G, B, Alpha
 
 ----------------------------------
 
-local buttonconfigmap ={'ground','air','nuke','ground'}
+local buttonconfigmap ={'ground','air','nuke','cannon'}
 local DEBUG = false --generates debug message
 local weaponTypeMap = {'ground','air','nuke','cannon'}
 
@@ -192,7 +198,7 @@ local function initUnitList()
 		['armllt'] = { weapons = { 1 } },
 		['armbeamer'] = { weapons = { 1 } },
 		['armhlt'] = { weapons = { 1 } },
-		['armguard'] = { weapons = { 1 } }, --4
+		['armguard'] = { weapons = { 3 } }, --4
 		['armrl'] = { weapons = { 2 } }, --light aa
 		['armferret'] = { weapons = { 2 } },
 		['armcir'] = { weapons = { 2 } }, --chainsaw
@@ -204,7 +210,7 @@ local function initUnitList()
 		['armfflak'] = { weapons = { 2 } },  --floating flak AA
 		['armatl'] = { weapons = { 1 } },  --adv torpedo launcher
 
-		['armamb'] = { weapons = { 1 } }, --ambusher 4
+		['armamb'] = { weapons = { 4 } }, --ambusher 4
 		['armpb'] = { weapons = { 1 } }, --pitbull 4
 		['armanni'] = { weapons = { 1 } },
 		['armflak'] = { weapons = { 2 } },
@@ -212,8 +218,8 @@ local function initUnitList()
 		['armemp'] = { weapons = { 1 } },
 		['armamd'] = { weapons = { 3 } }, --antinuke
 
-		['armbrtha'] = { weapons = { 4 } }, 
-		['armvulc'] = { weapons = { 4 } }, 
+		--['armbrtha'] = { weapons = { 4 } }, --should be 5 (new lrpc)
+		--['armvulc'] = { weapons = { 4 } }, 
 
 		-- CORTEX
 		['cormaw'] = { weapons = { 1 } },
@@ -255,6 +261,8 @@ local function initUnitList()
 		-- LEGION
 		['legabm'] = { weapons = { 3 } }, --antinuke
 		['legrampart'] = { weapons = { 3, 1 } }, --rampart
+		['leglht'] = { weapons = { 0 } }, --llt
+		['legcluster'] = { weapons = { 0 } }, --short range arty T1
 		['legacluster'] = { weapons = { 1 } }, --T2 arty
 		['leghive'] = { weapons = { 1 } }, --Drone-defense
 		['legmg'] = { weapons = { 1 } }, --ground-AA MG defense
