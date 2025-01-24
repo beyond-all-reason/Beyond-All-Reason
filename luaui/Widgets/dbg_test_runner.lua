@@ -13,7 +13,8 @@ if not Spring.Utilities.IsDevMode() or not Spring.Utilities.Gametype.IsSinglePla
 	return
 end
 
-VFS.Include("contrib/include-luassert.lua")
+VFS.Include("common/luassert-include.lua")
+VFS.Include("common/luassert-custom-assertions.lua")
 
 local Proxy = VFS.Include('common/testing/synced_proxy.lua')
 local MochaJSONReporter = VFS.Include('common/testing/mocha_json_reporter.lua')
