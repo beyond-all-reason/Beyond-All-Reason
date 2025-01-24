@@ -10,21 +10,11 @@ function gadget:GetInfo()
 	}
 end
 
-if not gadgetHandler:IsSyncedCode() then --synced only
+if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
 local spSetTeamRulesParam = Spring.SetTeamRulesParam
-
-local alliedTeamCombo = {}
-local teamList = Spring.GetTeamList()
-for _, teamID in ipairs(teamList) do
-	for _, otherTeamID in ipairs(teamList) do
-		if select(6,Spring.GetTeamInfo(otherTeamID,false)) ~= select(6,Spring.GetTeamInfo(teamID,false)) then
-			alliedTeamCombo[teamID..'_'..otherTeamID] = true
-		end
-	end
-end
 
 local isCommander = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -34,27 +24,43 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 local teamComs = {}
+local teamAllyTeam = {}
+local teamList = Spring.GetTeamList()
 for _,teamID in pairs(teamList) do
+	teamAllyTeam[teamID] = select(6,Spring.GetTeamInfo(teamID,false))
 	local newCount = 0
 	for unitDefID,_ in pairs(isCommander) do
 		newCount = newCount + Spring.GetTeamUnitDefCount(teamID, unitDefID)
 	end
 	teamComs[teamID] = newCount
 end
+teamList = nil
 
-local countChanged = true
+local function updateEnemyComCount()
+	for teamID,_ in pairs(teamComs) do
+		-- count all coms in enemy teams, to get enemy allyteam com count
+		local enemyComCount = 0
+		for otherTeamID,_ in pairs(teamComs) do
+			if teamAllyTeam[teamID] ~= teamAllyTeam[otherTeamID] then
+				enemyComCount = enemyComCount + teamComs[otherTeamID]
+			end
+		end
+		-- for each teamID, set a TeamRulesParam containing the # of coms in enemy allyteams
+		spSetTeamRulesParam(teamID, "enemyComCount", enemyComCount, {private=true, allied=false})
+	end
+end
 
 function gadget:UnitCreated(unitID, unitDefID, teamID)
 	if isCommander[unitDefID] then
 		teamComs[teamID] = teamComs[teamID] + 1
-		countChanged = true
+		updateEnemyComCount()
 	end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, teamID)
 	if isCommander[unitDefID] then
 		teamComs[teamID] = teamComs[teamID] - 1
-		countChanged = true
+		updateEnemyComCount()
 	end
 end
 
@@ -62,23 +68,6 @@ function gadget:UnitTaken(unitID, unitDefID, teamID, newTeamID)
 	if isCommander[unitDefID] then
 		teamComs[teamID] = teamComs[teamID] - 1
 		teamComs[newTeamID] = teamComs[newTeamID] + 1
-		countChanged = true
-	end
-end
-
-function gadget:GameFrame(n)
-	if countChanged then
-		countChanged = false
-		for teamID,_ in pairs(teamComs) do
-			-- count all coms in enemy teams, to get enemy allyteam com count
-			local enemyComCount = 0
-			for otherTeamID,_ in pairs(teamComs) do
-				if alliedTeamCombo[teamID..'_'..otherTeamID] then
-					enemyComCount = enemyComCount + teamComs[otherTeamID]
-				end
-			end
-			-- for each teamID, set a TeamRulesParam containing the # of coms in enemy allyteams
-			spSetTeamRulesParam(teamID, "enemyComCount", enemyComCount, {private=true, allied=false})
-		end
+		updateEnemyComCount()
 	end
 end
