@@ -33,20 +33,16 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
-local teamComs = {} -- format is enemyComs[teamID] = total # of coms in enemy teams
+local teamComs = {}
 for _,teamID in pairs(teamList) do
 	local newCount = 0
-	teamComs[teamID] = newCount
 	for unitDefID,_ in pairs(isCommander) do
 		newCount = newCount + Spring.GetTeamUnitDefCount(teamID, unitDefID)
 	end
-	if newCount ~= teamComs[teamID] then
-		countChanged = true
-		teamComs[teamID] = newCount
-	end
+	teamComs[teamID] = newCount
 end
 
-local countChanged  = true
+local countChanged = true
 
 function gadget:UnitCreated(unitID, unitDefID, teamID)
 	if isCommander[unitDefID] then
