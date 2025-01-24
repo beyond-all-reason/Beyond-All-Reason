@@ -23307,6 +23307,7 @@ if day <= 25 then
 else
 	fraction = fraction + ((day - 25) * 5)
 end
+
 local xmaslightbase = {
 			fraction = fraction,
 			lightType = 'point',
@@ -23329,71 +23330,73 @@ local xmaslightbase = {
 -- White Fire Remake 1.3
 -- Ice Scream v2.5.1
 
-local snowy_tree_keys = {}-- { __tree_fir_tall_3 = 20, __tree_fir_tall_4 = 20, allpinesb_ad0_snow = 20}
-local snowy_tree_keys = {allpinesb_ad0 = 60, __tree_fir_tall_3 = 60, __tree_fir_ = 60}
-local xmasColors = {
-	[1] = {234,13,13}, -- red
-	[2] = {251,11,36}, -- orange
-	[3] = {251,242,26}, -- yellow
-	[4] = {36, 208, 36}, -- green
-	[5] = {10,83, 222}, -- blue
-}
+-- add colorful xmas lights to a percentage of certain snowy trees
+if os.date("%m") == "12" and os.date("%d") >= "12" then --and  os.date("%d") <= "26"
+	local snowy_tree_keys = {allpinesb_ad0 = 60, __tree_fir_tall_3 = 60, __tree_fir_ = 60}
+	local xmasColors = {
+		[1] = {234,13,13}, -- red
+		[2] = {251,11,36}, -- orange
+		[3] = {251,242,26}, -- yellow
+		[4] = {36, 208, 36}, -- green
+		[5] = {10,83, 222}, -- blue
+	}
 
-for featureDefID , featureDef in pairs(FeatureDefs) do
-	local featureName = featureDef.name
-	-- Check if its a snowy tree:
-	-- estimate its height/ radius via model extrema
-	-- spawn lights in a cone shape around it
-	for key, count in pairs(snowy_tree_keys) do
-		if string.find(featureName, key, nil, true) then
-			--Spring.Echo("Found snowy tree: " .. featureName, key)
+	for featureDefID , featureDef in pairs(FeatureDefs) do
+		local featureName = featureDef.name
+		-- Check if its a snowy tree:
+		-- estimate its height/ radius via model extrema
+		-- spawn lights in a cone shape around it
+		for key, count in pairs(snowy_tree_keys) do
+			if string.find(featureName, key, nil, true) then
+				--Spring.Echo("Found snowy tree: " .. featureName, key)
 
-			featureDefLights[featureDefID] = {}
-			local maxy = featureDef.model.maxy
-			local maxx = featureDef.model.maxx
-			local maxz = featureDef.model.maxz
+				featureDefLights[featureDefID] = {}
+				local maxy = featureDef.model.maxy
+				local maxx = featureDef.model.maxx
+				local maxz = featureDef.model.maxz
 
-			for i= 1, count do
-				local xmaslight = table.copy(xmaslightbase)
+				for i= 1, count do
+					local xmaslight = table.copy(xmaslightbase)
 
-				local y = maxy * (math.random() * 0.8 +   0.1)
-				local rely = 1.0 - y / maxy
+					local y = maxy * (math.random() * 0.8 +   0.1)
+					local rely = 1.0 - y / maxy
 
-				local x = rely * maxx * (math.random() - 0.5) * 1.5
-				local z = rely * maxz * (math.random() - 0.5) * 1.5
-				--Spring.Echo(maxx, maxy, maxz, x,y,z)
-				xmaslight.lightConfig.posy = y
-				xmaslight.lightConfig.posx = x
-				xmaslight.lightConfig.posz = z
+					local x = rely * maxx * (math.random() - 0.5) * 1.5
+					local z = rely * maxz * (math.random() - 0.5) * 1.5
+					--Spring.Echo(maxx, maxy, maxz, x,y,z)
+					xmaslight.lightConfig.posy = y
+					xmaslight.lightConfig.posx = x
+					xmaslight.lightConfig.posz = z
 
-				local color = math.ceil(math.random() * 4)
+					local color = math.ceil(math.random() * 4)
 
-				xmaslight.lightConfig.r = xmasColors[color][1] / 255
-				xmaslight.lightConfig.g = xmasColors[color][2] / 255
-				xmaslight.lightConfig.b = xmasColors[color][3] / 255
+					xmaslight.lightConfig.r = xmasColors[color][1] / 255
+					xmaslight.lightConfig.g = xmasColors[color][2] / 255
+					xmaslight.lightConfig.b = xmasColors[color][3] / 255
 
-				xmaslight.lightConfig.color2r = xmasColors[color+1][1] /255
-				xmaslight.lightConfig.color2g = xmasColors[color+1][2] /255
-				xmaslight.lightConfig.color2b = xmasColors[color+1][3] /255
+					xmaslight.lightConfig.color2r = xmasColors[color+1][1] /255
+					xmaslight.lightConfig.color2g = xmasColors[color+1][2] /255
+					xmaslight.lightConfig.color2b = xmasColors[color+1][3] /255
 
 
-				--[[
+					--[[
 
-				xmaslight.lightConfig.r = math.random() > 0.5 and 1 or 0
-				xmaslight.lightConfig.g = math.random()> 0.5 and 1 or 0
-				xmaslight.lightConfig.b = math.random()> 0.5 and 1 or 0
+					xmaslight.lightConfig.r = math.random() > 0.5 and 1 or 0
+					xmaslight.lightConfig.g = math.random()> 0.5 and 1 or 0
+					xmaslight.lightConfig.b = math.random()> 0.5 and 1 or 0
 
-				xmaslight.lightConfig.color2r = math.random() > 0.5 and 1 or 0
-				xmaslight.lightConfig.color2g = math.random()> 0.5 and 1 or 0
-				xmaslight.lightConfig.color2b = math.random()> 0.5 and 1 or 0
-				]]--
+					xmaslight.lightConfig.color2r = math.random() > 0.5 and 1 or 0
+					xmaslight.lightConfig.color2g = math.random()> 0.5 and 1 or 0
+					xmaslight.lightConfig.color2b = math.random()> 0.5 and 1 or 0
+					]]--
 
-				xmaslight.lightConfig.colortime = 0.005 + math.random()* 0.005
+					xmaslight.lightConfig.colortime = 0.005 + math.random()* 0.005
 
-				featureDefLights[featureDefID]['xmaslight' .. tostring(i)] = xmaslight
+					featureDefLights[featureDefID]['xmaslight' .. tostring(i)] = xmaslight
 
+				end
+				break
 			end
-			break
 		end
 	end
 end
