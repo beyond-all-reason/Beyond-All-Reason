@@ -160,7 +160,7 @@ return {
 				range = 900,
 				reloadtime = 4,
 				rgbcolor = "1 0.55 0",
-				rgbcolor2 = "0.9 1.0 0.5",
+				rgbcolor2 = "0.95 1.0 0.7",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
 				soundstart = "heatray2",

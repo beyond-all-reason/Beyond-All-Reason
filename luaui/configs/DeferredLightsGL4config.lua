@@ -15529,8 +15529,8 @@ local unitLights = {
 							modelfactor = 0.4, specular = 0, scattering = 1, lensflare = 0,
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
-		top = {
-			lightType = 'point',
+		headlightsourceleft = {
+			lightType = 'beam',
 			pieceName = 'torso',
 			lightConfig = { posx = 0, posy = 23.5, posz = -7, radius = 11,
 							color2r = 1, color2g = 0.2, color2b = 0.2, colortime = 0,

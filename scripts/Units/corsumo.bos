@@ -8,7 +8,12 @@ static-var  isMoving, isAiming,  restore_delay, gun_1, reload;
 // Signal definitions
 #define SIGNAL_AIM1 2
 
-lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
+lua_UnitScriptDecal(lightIndex, xpos, zpos, heading) 
+{
+	return 0;
+}
+
+lua_UnitScriptDistortion(lightIndex, xpos, zpos, heading)
 {
 	return 0;
 }
