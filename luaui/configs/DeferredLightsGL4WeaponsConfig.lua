@@ -103,18 +103,6 @@ local BaseClasses = {
 		},
 	},
 
-	FlameProjectileOld = {
-		lightType = 'point', -- or cone or beam
-		fraction = 2, -- only spawn every nth light
-		lightConfig = {
-			posx = 0, posy = 15, posz = 0, radius = 25,
-			r = 1.0, g = 0.9, b = 0.5, a = 0.6,
-			color2r = 0.75, color2g = 0.45, color2b = 0.22, colortime = 33, -- point lights only, colortime in seconds for unit-attached
-			modelfactor = -0.2, specular = -0.3, scattering = 0.3, lensflare = 0,
-			lifetime = 33, sustain = 15, selfshadowing = 4, 
-		},
-	},
-
 	FlameProjectile = {
 		lightType = 'point', -- or cone or beam
 		fraction = 2, -- only spawn every nth light
@@ -362,10 +350,8 @@ local function AssignLightsToAllWeapons()
 			if weaponDef.paralyzer then
 				radius = radius * 0.5
 			end
-			
 			sizeclass = GetClosestSizeClass(radius)
 			projectileDefLights[weaponID] = GetLightClass("LaserProjectile", nil, sizeclass, t)
-			projectileDefLights[weaponID].lightConfig.selfshadowing = 5 -- Screen Space Light Shadows
 
 			if not weaponDef.paralyzer then
 				radius = ((orgMult * 2500) + radius) * 0.2
@@ -378,7 +364,6 @@ local function AssignLightsToAllWeapons()
 
 			sizeclass = GetClosestSizeClass(radius)
 			projectileDefLights[weaponID] = GetLightClass("CannonProjectile", "Warm", sizeclass, t)
-			--projectileDefLights[weaponID].lightConfig.selfshadowing = 1 -- Screen Space Light Shadows
 
 		elseif weaponDef.type == 'LightningCannon' then
 			if not scavenger then
@@ -459,7 +444,7 @@ local function AssignLightsToAllWeapons()
 			if weaponDef.type == 'DGun' then
 				t.a = orgMult*0.17
 			elseif weaponDef.type == 'Flame' then
-				t.a = orgMult*0.22
+				t.a = orgMult*0.17
 			elseif weaponDef.type == 'BeamLaser' then
 				local mult = 0.85
 				t.color2r, t.color2g, t.color2b = r*mult, g*mult, b*mult
@@ -550,33 +535,29 @@ local projectileDefLightsNames = {}
 
 --cortrem
 explosionLightsNames["cortrem_tremor_focus_fire"] =
-GetLightClass("Explosion", nil, "Tiny", {
-	colortime = 3.5, sustain = 1, lifetime = 1, scattering = 0.7})
+GetLightClass("Explosion", nil, "Tiny", {colortime = 3.5, sustain = 1, lifetime = 1, scattering = 0.7})
 
 explosionLightsNames["cortrem_tremor_spread_fire"] =
 GetLightClass("Explosion", nil, "Tiny", {colortime = 3.5, sustain = 1, lifetime = 1, scattering = 0.7})
 
 --corforge
 projectileDefLightsNames["corforge_flamethrower_ce"] =
-GetLightClass("FlameProjectile", "Fire", "Micro", {
-	r = 1, a = 0.02791886, g = 0.94, b = 0.88})
+GetLightClass("FlameProjectile", "Fire", "Micro", {r = 1, a = 0.02791886, g = 0.94, b = 0.88})
 
 --armthor
 explosionLightsNames["armthor_thunder"] =
-GetLightClass("Explosion", nil, "Smallish", {
-	r = 1.5, g = 1.5, b = 1.5, a = 0.08, radius = 120,
-	color2r = 0.3, color2g = 0.3, color2b = 0.4, colortime = 5,
-	sustain = 1.5, lifetime = 5,
-	modelfactor = 0.1, specular = 0.4, scattering = 0.1, lensflare = 4})
+GetLightClass("Explosion", nil, "Smallish", {r = 1.5, g = 1.5, b = 1.5, a = 0.08, radius = 120,
+										 color2r = 0.3, color2g = 0.3, color2b = 0.4, colortime = 5,
+										 sustain = 1.5, lifetime = 5,
+										 modelfactor = 0.1, specular = 0.4, scattering = 0.1, lensflare = 4})
 
 --corint
 muzzleFlashLightsNames["corint_lrpc"] =
-GetLightClass("MuzzleFlash", nil, "Large", {
-	posx = 0, posy = 0, posz = 0, radius = 240,
-	color2r = 0.5, color2g = 0.1, color2b = 0, colortime = 50,
-	r = 1.2, g = 1.0, b = 0.9, a = 0.5,
-	modelfactor = 0.5, specular = 0.3, scattering = 0.3, lensflare = 0,
-	lifetime = 17, sustain = 2})
+GetLightClass("MuzzleFlash", nil, "Large", {posx = 0, posy = 0, posz = 0, radius = 240,
+											color2r = 0.5, color2g = 0.1, color2b = 0, colortime = 50,
+											r = 1.2, g = 1.0, b = 0.9, a = 0.5,
+											modelfactor = 0.5, specular = 0.3, scattering = 0.3, lensflare = 0,
+											lifetime = 17, sustain = 2})
 muzzleFlashLightsNames["corint_lrpc"].yOffset = 16
 
 explosionLightsNames["corint_lrpc"] =
@@ -594,18 +575,14 @@ GetLightClass("Explosion", nil, "Large", {colortime = 4, sustain = 12, lifetime 
 
 --armbrtha
 muzzleFlashLightsNames["armbrtha_lrpc"] =
-GetLightClass("MuzzleFlash", nil, "Medium", {
-	posx = 0, posy = 0, posz = 0,
-	color2r = 0.3, color2g = 0.1, color2b = 0.05, colortime = 13,
-	r = 1.2, g = 1.1, b = 1.0, a = 0.6,
-	modelfactor = 0.5, specular = 0.3, scattering = 0.3, lensflare = 0,
-	lifetime = 20, sustain = 2})
-
+GetLightClass("MuzzleFlash", nil, "Medium", {posx = 0, posy = 0, posz = 0,
+											 color2r = 0.3, color2g = 0.1, color2b = 0.05, colortime = 13,
+											 r = 1.2, g = 1.1, b = 1.0, a = 0.6,
+											 modelfactor = 0.5, specular = 0.3, scattering = 0.3, lensflare = 0,
+											 lifetime = 20, sustain = 2})
 muzzleFlashLightsNames["armbrtha_lrpc"].yOffset = 8
-
 explosionLightsNames["armbrtha_lrpc"] =
-GetLightClass("Explosion", nil, "Large", {
-	colortime = 4, sustain = 12, lifetime = 26, scattering = 0.7})
+GetLightClass("Explosion", nil, "Large", {colortime = 4, sustain = 12, lifetime = 26, scattering = 0.7})
 
 --armvulc
 muzzleFlashLightsNames["armvulc_rflrpc"] =
@@ -794,17 +771,6 @@ GetLightClass("LaserProjectile", nil, "Medium", {a = 0.08,
 											pos2x = 0, pos2y = 100, pos2z = 0,
 											modelfactor = 0.5, specular = 0.05, scattering = 0.05, lensflare = 16,
 											lifetime = 60, sustain = 4})
-
--- custom sharp white center beam 
--- projectileDefLightsNames["corkorg_corkorg_laser"] =
--- GetLightClass("LaserProjectile", nil, "Medium", {a = 3.0,
--- 											--r = 1.0, g = 0.65, b = 0.1, radius = 240,
--- 											r = 1.0, g = 0.85, b = 0.5, radius = 1.3,
--- 											color2r = 0.33, color2g = 0.05, color2b = 0.03, colortime = 3,
--- 											pos2x = 0, pos2y = 100, pos2z = 0,
--- 											modelfactor = 0.5, specular = 0.5, scattering = 5, lensflare = 16,
--- 											selfshadowing = 8,
--- 											lifetime = 23, sustain = 2})
 
 muzzleFlashLightsNames["corkorg_corkorg_laser"] =
 GetLightClass("MuzzleFlash", nil, "Large", {posx = 0, posy = 48, posz = 0,
