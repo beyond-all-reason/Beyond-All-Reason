@@ -1,26 +1,11 @@
 local enabled = false
-local teams = Spring.GetTeamList()
 local SimpleAITeamIDs = {}
 local SimpleAITeamIDsCount = 0
---local UDN = UnitDefNames
-local wind = Game.windMax
-local mapsizeX = Game.mapSizeX
-local mapsizeZ = Game.mapSizeZ
-local random = math.random
-
---Spring.Echo("tracy", tracy)
-
-local MakeHashedPosTable = VFS.Include("luarules/utilities/damgam_lib/hashpostable.lua")
-local HashPosTable = MakeHashedPosTable()
-
-local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
-
--- team locals
 local SimpleFactoriesCount = {}
 local SimpleFactories = {}
 local SimpleT1Mexes = {}
 local SimpleFactoryDelay = {}
-
+local teams = Spring.GetTeamList()
 for i = 1, #teams do
 	local teamID = teams[i]
 	local luaAI = Spring.GetTeamLuaAI(teamID)
@@ -28,13 +13,13 @@ for i = 1, #teams do
 		enabled = true
 		SimpleAITeamIDsCount = SimpleAITeamIDsCount + 1
 		SimpleAITeamIDs[SimpleAITeamIDsCount] = teamID
-
 		SimpleFactoriesCount[teamID] = 0
 		SimpleFactories[teamID] = {}
 		SimpleT1Mexes[teamID] = 0
 		SimpleFactoryDelay[teamID] = 0
 	end
 end
+teams = nil
 
 function gadget:GetInfo()
 	return {
@@ -47,6 +32,23 @@ function gadget:GetInfo()
 		enabled = enabled,
 	}
 end
+
+--Spring.Echo("tracy", tracy)
+
+local wind = Game.windMax
+local mapsizeX = Game.mapSizeX
+local mapsizeZ = Game.mapSizeZ
+local random = math.random
+local min = math.min
+local CMD_MOVE = CMD.MOVE
+local CMD_RECLAIM = CMD.RECLAIM
+local CMD_REPAIR = CMD.REPAIR
+local CMD_FIGHT = CMD.FIGHT
+
+local MakeHashedPosTable = VFS.Include("luarules/utilities/damgam_lib/hashpostable.lua")
+local HashPosTable = MakeHashedPosTable()
+
+local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
 
 -- manually appoint units to avoid making
 -- (note that transports, stockpilers and objects/walls are auto skipped)
@@ -100,6 +102,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.isBuilding then
 		isBuilding[unitDefID] = {unitDef.xsize, unitDef.zsize}
 	end
+	if unitDef.customParams.iscommander then
+		isCommander[unitDefID] = {unitDef.xsize, unitDef.zsize}
+	end
 
 	local skip = false
 	for a = 1, #BadUnitsList do
@@ -137,7 +142,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 
 	if not skip then
 		if unitDef.customParams.iscommander then
-			isCommander[unitDefID] = true
 			SimpleCommanderDefs[unitDefID] = 1
 		elseif unitDef.isFactory and #unitDef.buildOptions > 0 then
 			SimpleFactoriesDefs[unitDefID] = 1
@@ -240,14 +244,14 @@ local function SimpleBuildOrder(cUnitID, building)
 		local units = spGetUnitsInCylinder(cunitposx, cunitposz, searchRange, team)
 		if #units > 1 then
 			local gaveOrder = false
-			for k=1,math.min(#units, 5 + b2 * 2) do
+			for k=1,min(#units, 5 + b2 * 2) do
 				numtests = numtests+1
 				local buildnear = units[random(1, #units)]
 				local refDefID = spGetUnitDefID(buildnear)
 				if isBuilding[unitDefID] or isCommander[refDefID] then
 					local refx, _, refz = spGetUnitPosition(buildnear)
-					local reffootx = isBuilding[refDefID] and isBuilding[refDefID][1] * 8 or 16
-					local reffootz = isBuilding[refDefID] and isBuilding[refDefID][2] * 8 or 16
+					local reffootx = (isBuilding[refDefID] and isBuilding[refDefID][1] or isCommander[refDefID][1]) * 8
+					local reffootz = (isBuilding[refDefID] and isBuilding[refDefID][2] or isCommander[refDefID][2]) * 8
 					local spacing = random(64, 128)
 					local testspacing = spacing * 0.75
 					local buildingDefID = building
@@ -322,7 +326,7 @@ local function SimpleConstructionProjectSelection(unitID, unitDefID, unitTeam, u
 				-- 		local targetUnit = units[math.random(1,#units)]
 				-- 		if isBuilding[spGetUnitDefID(targetUnit)] then
 				-- 			local tUnitX, tUnitY, tUnitZ = spGetUnitPosition(targetUnit)
-				-- 			spGiveOrderToUnit(unitID, CMD.MOVE, { tUnitX + math.random(-100, 100), tUnitY, tUnitZ + math.random(-100, 100) }, { "shift", "alt", "ctrl" })
+				-- 			spGiveOrderToUnit(unitID, CMD_MOVE, { tUnitX + math.random(-100, 100), tUnitY, tUnitZ + math.random(-100, 100) }, { "shift", "alt", "ctrl" })
 				-- 			success = true
 				-- 			break
 				-- 		end
@@ -373,7 +377,7 @@ local function SimpleConstructionProjectSelection(unitID, unitDefID, unitTeam, u
 					local targetUnit = units[random(1,#units)]
 					if isBuilding[spGetUnitDefID(targetUnit)] then
 						local tUnitX, tUnitY, tUnitZ = spGetUnitPosition(targetUnit)
-						spGiveOrderToUnit(unitID, CMD.MOVE, { tUnitX + random(-100, 100), tUnitY, tUnitZ + random(-100, 100) }, { "shift", "alt", "ctrl" })
+						spGiveOrderToUnit(unitID, CMD_MOVE, { tUnitX + random(-100, 100), tUnitY, tUnitZ + random(-100, 100) }, { "shift", "alt", "ctrl" })
 						success = true
 						break
 					end
@@ -383,14 +387,14 @@ local function SimpleConstructionProjectSelection(unitID, unitDefID, unitTeam, u
 				local mapcenterZ = mapsizeZ/2
 				local mapcenterY = spGetGroundHeight(mapcenterX, mapcenterZ)
 				local mapdiagonal = math.ceil(math.sqrt((mapsizeX*mapsizeX)+(mapsizeZ*mapsizeZ)))
-				spGiveOrderToUnit(unitID, CMD.RECLAIM,{mapcenterX+random(-100,100),mapcenterY,mapcenterZ+random(-100,100),mapdiagonal}, 0)
+				spGiveOrderToUnit(unitID, CMD_RECLAIM,{mapcenterX+random(-100,100),mapcenterY,mapcenterZ+random(-100,100),mapdiagonal}, 0)
 				success = true
 			elseif r == 13 and type ~= "Commander" then
 				local mapcenterX = mapsizeX/2
 				local mapcenterZ = mapsizeZ/2
 				local mapcenterY = spGetGroundHeight(mapcenterX, mapcenterZ)
 				local mapdiagonal = math.ceil(math.sqrt((mapsizeX*mapsizeX)+(mapsizeZ*mapsizeZ)))
-				spGiveOrderToUnit(unitID, CMD.REPAIR,{mapcenterX+random(-100,100),mapcenterY,mapcenterZ+random(-100,100),mapdiagonal}, 0)
+				spGiveOrderToUnit(unitID, CMD_REPAIR,{mapcenterX+random(-100,100),mapcenterY,mapcenterZ+random(-100,100),mapdiagonal}, 0)
 				success = true
 			else
 				local r2 = random(0, 1)
@@ -506,13 +510,13 @@ if gadgetHandler:IsSyncedCode() then
 										spGiveOrderToUnit(unitID, CMD.DGUN, {enemy}, {"shift"})
 									end
 								end
-								spGiveOrderToUnit(unitID, CMD.MOVE, {unitposx, unitposy, unitposz}, {"shift"})
+								spGiveOrderToUnit(unitID, CMD_MOVE, {unitposx, unitposy, unitposz}, {"shift"})
 							elseif nearestEnemy then
 								for x = 1,10 do
 									local targetUnit = units[random(1,#units)]
 									if isBuilding[spGetUnitDefID(targetUnit)] then
 										local tUnitX, tUnitY, tUnitZ = spGetUnitPosition(targetUnit)
-										spGiveOrderToUnit(unitID, CMD.MOVE, { tUnitX + random(-100, 100), tUnitY, tUnitZ + random(-100, 100) }, 0)
+										spGiveOrderToUnit(unitID, CMD_MOVE, { tUnitX + random(-100, 100), tUnitY, tUnitZ + random(-100, 100) }, 0)
 										break
 									end
 								end
@@ -524,13 +528,13 @@ if gadgetHandler:IsSyncedCode() then
 							local unitHealthPercentage = (unitHealth/unitMaxHealth)*100
 							local nearestEnemy = spGetUnitNearestEnemy(unitID, 500, true)
 							if nearestEnemy and unitHealthPercentage > 90 then
-								spGiveOrderToUnit(unitID, CMD.RECLAIM, {nearestEnemy}, 0)
+								spGiveOrderToUnit(unitID, CMD_RECLAIM, {nearestEnemy}, 0)
 							elseif nearestEnemy then
 								for x = 1,100 do
 									local targetUnit = units[random(1,#units)]
 									if isBuilding[spGetUnitDefID(targetUnit)] then
 										local tUnitX, tUnitY, tUnitZ = spGetUnitPosition(targetUnit)
-										spGiveOrderToUnit(unitID, CMD.MOVE, { tUnitX + random(-100, 100), tUnitY, tUnitZ + random(-100, 100) }, 0)
+										spGiveOrderToUnit(unitID, CMD_MOVE, { tUnitX + random(-100, 100), tUnitY, tUnitZ + random(-100, 100) }, 0)
 										break
 									end
 								end
@@ -560,7 +564,7 @@ if gadgetHandler:IsSyncedCode() then
 										local targetUnit = allunits[random(1,#allunits)]
 										if spGetUnitAllyTeam(targetUnit) == allyTeamID then
 											local tUnitX, tUnitY, tUnitZ = spGetUnitPosition(targetUnit)
-											spGiveOrderToUnit(unitID, CMD.FIGHT, { tUnitX + random(-100, 100), tUnitY, tUnitZ + random(-100, 100) }, { "shift", "alt", "ctrl" })
+											spGiveOrderToUnit(unitID, CMD_FIGHT, { tUnitX + random(-100, 100), tUnitY, tUnitZ + random(-100, 100) }, { "shift", "alt", "ctrl" })
 											break
 										end
 									end
@@ -568,12 +572,12 @@ if gadgetHandler:IsSyncedCode() then
 									local targetUnitNear = spGetUnitNearestEnemy(unitID, 2000, false)
 									if targetUnitNear then
 										local tUnitX, tUnitY, tUnitZ = spGetUnitPosition(targetUnitNear)
-										spGiveOrderToUnit(unitID, CMD.FIGHT, { tUnitX + random(-100, 100), tUnitY, tUnitZ + random(-100, 100) }, { "shift", "alt", "ctrl" })
+										spGiveOrderToUnit(unitID, CMD_FIGHT, { tUnitX + random(-100, 100), tUnitY, tUnitZ + random(-100, 100) }, { "shift", "alt", "ctrl" })
 									elseif n%3600 <= 15*SimpleAITeamIDsCount then
 										local targetUnit = spGetUnitNearestEnemy(unitID, 999999, false)
 										if targetUnit then
 											local tUnitX, tUnitY, tUnitZ = spGetUnitPosition(targetUnit)
-											spGiveOrderToUnit(unitID, CMD.FIGHT, { tUnitX + random(-100, 100), tUnitY, tUnitZ + random(-100, 100) }, { "shift", "alt", "ctrl" })
+											spGiveOrderToUnit(unitID, CMD_FIGHT, { tUnitX + random(-100, 100), tUnitY, tUnitZ + random(-100, 100) }, { "shift", "alt", "ctrl" })
 										end
 									end
 								end
