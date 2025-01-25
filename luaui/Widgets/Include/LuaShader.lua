@@ -11,6 +11,8 @@ local glUniformInt = gl.UniformInt
 local glUniformMatrix = gl.UniformMatrix
 local glUniformArray = gl.UniformArray
 
+local gldebugannotations = (Spring.GetConfigInt("gldebugannotations") == 1)
+
 local function new(class, shaderParams, shaderName, logEntries)
 	local logEntriesSanitized
 	if type(logEntries) == "number" then
@@ -558,7 +560,7 @@ function LuaShader:Compile(suppresswarnings)
 		self:ShowWarning(shLog)
 	end
 
-	if gl_program_id and self.shaderName then 
+	if gldebugannotations and gl_program_id and self.shaderName then 
 		local GL_PROGRAM = 0x82E2
 		gl.ObjectLabel(GL_PROGRAM, gl_program_id, self.shaderName)
 	end
@@ -619,7 +621,9 @@ LuaShader.Finalize = LuaShader.Delete
 function LuaShader:Activate()
 	if self.shaderObj ~= nil then
 		self.active = true
-		gl.PushDebugGroup(self.gl_program_id * 1000, self.shaderName)
+		if gldebugannotations and self.gl_program_id then
+			gl.PushDebugGroup(self.gl_program_id * 1000, self.shaderName)
+		end
 		return glUseShader(self.shaderObj)
 	else
 		local funcName = (debug and debug.getinfo(1).name) or "UnknownFunction"
@@ -651,7 +655,7 @@ end
 function LuaShader:Deactivate()
 	self.active = false
 	glUseShader(0)
-	gl.PopDebugGroup()
+	if gldebugannotations then gl.PopDebugGroup() end
 end
 
 

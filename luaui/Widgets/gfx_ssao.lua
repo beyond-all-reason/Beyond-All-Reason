@@ -758,10 +758,8 @@ function widget:DrawWorld()
 		drawFrame = df
 	end
 	if shaderConfig.ENABLE == 0 then return end
-	gl.PushDebugGroup(9999, "SSAO")
 	DoDrawSSAO(false)
 
-	gl.PopDebugGroup()
 	if delayedUpdateSun and os.clock() > delayedUpdateSun then
 		Spring.SendCommands("luarules updatesun")
 		delayedUpdateSun = nil

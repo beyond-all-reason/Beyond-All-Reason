@@ -275,7 +275,6 @@ end
 function widget:DrawWorld()
 	--if spec and fullview then return end
 	local GL_DEBUG_SOURCE_APPLICATION = 0x824A
-	gl.PushDebugGroup(1000, "Sensor Ranges LOS")
 	if Spring.IsGUIHidden() or (WG['topbar'] and WG['topbar'].showingQuit()) then return end
 	if circleInstanceVBO.usedElements == 0 then return end
 	if opacity < 0.01 then return end
@@ -321,7 +320,6 @@ function widget:DrawWorld()
 	glLineWidth(1.0)
 	gl.Clear(GL.STENCIL_BUFFER_BIT)
 	
-	gl.PopDebugGroup()
 
 end
 

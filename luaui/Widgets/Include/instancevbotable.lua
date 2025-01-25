@@ -1,3 +1,6 @@
+local GL_BUFFER = 0x82E0
+local gldebugannotations = (Spring.GetConfigInt("gldebugannotations") == 1)
+Spring.Echo("gldebugannotations", gldebugannotations)
 function makeInstanceVBOTable(layout, maxElements, myName, unitIDattribID)
 	-- layout: this must be an array of tables with at least the following specified: {{id = 1, name = 'optional', size = 4}}
 	-- maxElements: will be dynamic anyway, but defaults to 64
@@ -167,8 +170,9 @@ function makeInstanceVBOTable(layout, maxElements, myName, unitIDattribID)
 	newInstanceVBO:Upload(instanceData)
 
 	-- I believe that the openGL spec doesnt guarantee that a buffer has an idea before data is uploaded to it, so we will fill it with zeros. 
-	local GL_BUFFER = 0x82E0
-	gl.ObjectLabel(GL_BUFFER, newInstanceVBO:GetID(), myName)
+	if gldebugannotations then 
+		gl.ObjectLabel(GL_BUFFER, newInstanceVBO:GetID(), myName)
+	end
 	
 
 	--register self in WG if possible
@@ -398,8 +402,9 @@ function resizeInstanceVBOTable(iT)
 
 	iT.instanceVBO:Upload(iT.instanceData,nil,0,1,iT.usedElements * iT.instanceStep)
 
-	local GL_BUFFER = 0x82E0
-	gl.ObjectLabel(GL_BUFFER, iT.instanceVBO:GetID(), iT.myName)
+	if gldebugannotations then
+		gl.ObjectLabel(GL_BUFFER, iT.instanceVBO:GetID(), iT.myName)
+	end
 
 	if iT.VAO then -- reattach new if updated :D
 		iT.VAO:Delete()
@@ -794,9 +799,9 @@ function makeCircleVBO(circleSegments, radius, name)
 		VBOLayout
 	)
 	circleVBO:Upload(VBOData)
-		
-	local GL_BUFFER = 0x82E0
-	gl.ObjectLabel(GL_BUFFER, circleVBO:GetID(), name or "CircleVBO")
+	if gldebugannotations then 
+		gl.ObjectLabel(GL_BUFFER, circleVBO:GetID(), name or "CircleVBO")
+	end
 	return circleVBO, #VBOData/4
 end
 
@@ -829,8 +834,9 @@ function makePlaneVBO(xsize, ysize, xresolution, yresolution, name) -- makes a p
 	)
 	planeVBO:Upload(VBOData)
 
-	local GL_BUFFER = 0x82E0
-	gl.ObjectLabel(GL_BUFFER, planeVBO:GetID(), name or "PlaneVBO")
+	if gldebugannotations then 
+		gl.ObjectLabel(GL_BUFFER, planeVBO:GetID(), name or "PlaneVBO")
+	end
 
 	--Spring.Echo("PlaneVBOData up:",#VBOData, "Down", #planeVBO:Download())
 	return planeVBO, #VBOData/2
@@ -877,8 +883,9 @@ function makePlaneIndexVBO(xresolution, yresolution, cutcircle, name)
 	)
 	planeIndexVBO:Upload(IndexVBOData)
 	
-	local GL_BUFFER = 0x82E0
-	gl.ObjectLabel(GL_BUFFER, planeIndexVBO:GetID(), name or "planeIndexVBO")
+	if gldebugannotations then 
+		gl.ObjectLabel(GL_BUFFER, planeIndexVBO:GetID(), name or "planeIndexVBO")
+	end
 	--Spring.Echo("PlaneIndexVBO up:",#IndexVBOData, "Down", #planeIndexVBO:Download())
 	return planeIndexVBO, IndexVBOData
 end
@@ -910,8 +917,9 @@ function makePointVBO(numPoints, randomFactor, name)
 	)
 	pointVBO:Upload(VBOData)
 	
-	local GL_BUFFER = 0x82E0
-	gl.ObjectLabel(GL_BUFFER, pointVBO:GetID(), name or "pointVBO")
+	if gldebugannotations then 
+		gl.ObjectLabel(GL_BUFFER, pointVBO:GetID(), name or "pointVBO")
+	end
 	return pointVBO, numPoints
 end
 
@@ -944,8 +952,9 @@ function makeRectVBO(minX,minY, maxX, maxY, minU, minV, maxU, maxV, name)
 	)
 	rectVBO:Upload(VBOData)
 	
-	local GL_BUFFER = 0x82E0
-	gl.ObjectLabel(GL_BUFFER, rectVBO:GetID(), name or "rectVBO")
+	if gldebugannotations then
+		gl.ObjectLabel(GL_BUFFER, rectVBO:GetID(), name or "rectVBO")
+	end
 	return rectVBO, 6
 end
 
@@ -957,8 +966,9 @@ function makeRectIndexVBO(name)
 		6
 	)
 	rectIndexVBO:Upload({0,1,2,3,4,5})
-	local GL_BUFFER = 0x82E0
-	gl.ObjectLabel(GL_BUFFER, rectIndexVBO:GetID(), name or "rectIndexVBO")
+	if gldebugannotations then 
+		gl.ObjectLabel(GL_BUFFER, rectIndexVBO:GetID(), name or "rectIndexVBO")
+	end
 	return rectIndexVBO,6
 end
 
@@ -1017,8 +1027,9 @@ function makeConeVBO(numSegments, height, radius, name)
 	coneVBO:Define(#VBOData/4,	{{id = 0, name = "localpos_progress", size = 4}})
 	coneVBO:Upload(VBOData)
 
-	local GL_BUFFER = 0x82E0
-	gl.ObjectLabel(GL_BUFFER, coneVBO:GetID(), name or "coneVBO")
+	if gldebugannotations then 
+		gl.ObjectLabel(GL_BUFFER, coneVBO:GetID(), name or "coneVBO")
+	end
 
 	return coneVBO, #VBOData/4
 end
@@ -1125,8 +1136,9 @@ function makeCylinderVBO(numSegments, height, radius, hastop, hasbottom, name)
 	cylinderVBO:Define(#VBOData/4,	{{id = 0, name = "localpos_progress", size = 4}})
 	cylinderVBO:Upload(VBOData)
 	
-	local GL_BUFFER = 0x82E0
-	gl.ObjectLabel(GL_BUFFER, cylinderVBO:GetID(), name or "cylinderVBO")
+	if gldebugannotations then 
+		gl.ObjectLabel(GL_BUFFER, cylinderVBO:GetID(), name or "cylinderVBO")
+	end
 
 	return cylinderVBO, #VBOData/4
 end
@@ -1179,8 +1191,9 @@ function makeBoxVBO(minX, minY, minZ, maxX, maxY, maxZ, name) -- make a box
 	boxVBO:Define(#VBOData/4,	{{id = 0, name = "localpos_progress", size = 4}})
 	boxVBO:Upload(VBOData)
 	
-	local GL_BUFFER = 0x82E0
-	gl.ObjectLabel(GL_BUFFER, boxVBO:GetID(), name or "boxVBO")
+	if gldebugannotations then 
+		gl.ObjectLabel(GL_BUFFER, boxVBO:GetID(), name or "boxVBO")
+	end
 
 	return boxVBO, #VBOData/4
 end
@@ -1259,8 +1272,9 @@ function makeSphereVBO(sectorCount, stackCount, radius, name) -- http://www.song
 	sphereVBO:Define(#VBOData/9, vertVBOLayout)
 	sphereVBO:Upload(VBOData)
 	
-	local GL_BUFFER = 0x82E0
-	gl.ObjectLabel(GL_BUFFER, sphereVBO:GetID(), name or "sphereVBO")
+	if gldebugannotations then 
+		gl.ObjectLabel(GL_BUFFER, sphereVBO:GetID(), name or "sphereVBO")
+	end
 
 	local numVerts = #VBOData/9
 
@@ -1307,8 +1321,9 @@ function makeSphereVBO(sectorCount, stackCount, radius, name) -- http://www.song
 	sphereIndexVBO:Define(#VBOData)
 	sphereIndexVBO:Upload(VBOData)
 		
-	local GL_BUFFER = 0x82E0
-	gl.ObjectLabel(GL_BUFFER, sphereIndexVBO:GetID(), name or "sphereIndexVBO")
+	if gldebugannotations then 
+		gl.ObjectLabel(GL_BUFFER, sphereIndexVBO:GetID(), name or "sphereIndexVBO")
+	end
 
 	return sphereVBO, numVerts, sphereIndexVBO, #VBOData
 end
@@ -1337,8 +1352,9 @@ function MakeTexRectVAO(minX,minY, maxX, maxY, minU, minV, maxU, maxV, name)
 			})
 	
 	
-	local GL_BUFFER = 0x82E0
-	gl.ObjectLabel(GL_BUFFER, rectVBO:GetID(), name or "rectVBO")
+	if gldebugannotations then 
+		gl.ObjectLabel(GL_BUFFER, rectVBO:GetID(), name or "rectVBO")
+	end
 			
 	myGL4TexRectVAO = gl.GetVAO()
 	if myGL4TexRectVAO == nil then return nil end
