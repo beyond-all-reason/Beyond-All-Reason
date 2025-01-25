@@ -9,8 +9,8 @@ return {
 		buildpic = "LEGVP.DDS",
 		buildtime = 7200,
 		canmove = true,
-		collisionvolumeoffsets = "0 19 0",
-		collisionvolumescales = "101 53 106",
+		collisionvolumeoffsets = "0 0 0",
+		collisionvolumescales = "96 40 96",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		energystorage = 100,
@@ -19,33 +19,20 @@ return {
 		footprintz = 6,
 		idleautoheal = 5,
 		idletime = 1800,
-		levelground = true,
+		levelground = false,
 		health = 3000,
 		maxslope = 15,
 		maxwaterdepth = 0,
 		metalstorage = 100,
-		objectname = "Units/LEGVP.s3o",
+		objectname = "Units/CORVP.s3o",
 		radardistance = 50,
-		script = "Units/LEGVP.cob",
+		script = "Units/CORVP.lua",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingexplosiongenericSelfd",
 		sightdistance = 279,
 		terraformspeed = 500,
 		workertime = 100,
-		yardmap = [[h
-    oo oo oo oo oo oo
-    oo oo oo oo oo oo
-    oo oo oo oo oo oo
-    oo oo oo oo oo oo
-    oc cc cc cc oo oo
-    oc cc cc cc oo oo
-    oc cc cc cc oo oo
-    oc cc cc cc oo oo
-    oc cc cc cc oo oo
-    oc cc cc cc oo oo
-    oc cc cc cc oo oo
-    oc cc cc cc oo oo
-    ]],
+		yardmap = "oooooo oooooo occcco occcco occcco occcco",
 		buildoptions = {
 			[1] = "legscout",
 			[2] = "legcv",
@@ -60,14 +47,14 @@ return {
 		},
 		customparams = {
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/legvp_aoplane.dds",
+			buildinggrounddecaltype = "decals/corvp_aoplane.dds",
 			buildinggrounddecalsizey = 9,
 			buildinggrounddecalsizex = 9,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'builder',
-			model_author = "Protar/Ghoulish",
-			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "Legion/Labs",
+			model_author = "Mr Bob",
+			normaltex = "unittextures/cor_normal.dds",
+			subfolder = "CorBuildings/LandFactories",
 		},
 		featuredefs = {
 			dead = {
@@ -78,19 +65,19 @@ return {
 				collisionvolumetype = "BOX",
 				damage = 1590,
 				featuredead = "HEAP",
-				footprintx = 6,
-				footprintz = 6,
+				footprintx = 7,
+				footprintz = 7,
 				height = 20,
 				metal = 470,
-				object = "Units/legvp_dead.s3o",
+				object = "Units/corvp_dead.s3o",
 				reclaimable = true,
 			},
 			heap = {
 				blocking = false,
 				category = "heaps",
 				damage = 795,
-				footprintx = 6,
-				footprintz = 6,
+				footprintx = 7,
+				footprintz = 7,
 				height = 4,
 				metal = 188,
 				object = "Units/cor7X7B.s3o",

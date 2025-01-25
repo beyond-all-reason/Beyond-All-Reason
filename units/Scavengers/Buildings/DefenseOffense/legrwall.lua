@@ -130,13 +130,10 @@ return {
 				explosiongenerator = "custom:plasmahit-sparkonly",
 				fallOffRate = 0.2,
 				firestarter = 0,
-				hardstop = true,
-				impactonly = true,
 				impulseboost = 0.4,
 				impulsefactor = 1,
 				intensity = 0.8,
 				name = "Compact Railgun",
-				noexplode = true,
 				noselfdamage = true,
 				ownerExpAccWeight = 4.0,
 				proximitypriority = 1,
@@ -152,9 +149,6 @@ return {
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 3000,
-				customparams = {
-					overpenetrate = true,
-				},
 				damage = {
 					commanders = 250,
 					default = 1000,

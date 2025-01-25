@@ -26,6 +26,7 @@ return {
 		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMVANG.s3o",
+		onoffable = true,
 		script = "Units/ARMVANG.cob",
 		seismicsignature = 0,
 		selfdestructas = "explosiont3xl",
@@ -38,6 +39,7 @@ return {
 		customparams = {
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
+			onoffname = "trajectory",
 			subfolder = "ArmGantry",
 			techlevel = 3,
 			unitgroup = "weapon",
@@ -120,7 +122,7 @@ return {
 				gravityaffected = "true",
 				heightboostfactor = 2.8,
 				hightrajectory = 1,
-				impulsefactor = 0.5,
+				impulsefactor = 0.9,
 				name = "Heavy long-range g2g plasma cannon",
 				noselfdamage = true,
 				predictboost = 0.25,
@@ -140,8 +142,7 @@ return {
 					subs = 500,
 				},
 				customparams = {
-					exclude_preaim = true,
-					smart_backup = true,
+					exclude_preaim = true
 				}
 			},
 			shocker_low = {
@@ -158,7 +159,7 @@ return {
 				firetolerance = 5000,
 				gravityaffected = "true",
 				heightboostfactor = 2.8,
-				impulsefactor = 0.5,
+				impulsefactor = 0.9,
 				name = "Heavy long-range g2g plasma cannon",
 				noselfdamage = true,
 				predictboost = 0.25,
@@ -178,43 +179,7 @@ return {
 					subs = 500,
 				},
 				customparams = {
-					exclude_preaim = true,
-					smart_priority = true,
-				}
-			},
-			smart_trajectory_dummy = {
-				areaofeffect = 192,
-				avoidfeature = false,
-				avoidfriendly = true,
-				cegtag = "arty-huge",
-				collidefriendly = false,
-				craterareaofeffect = 192,
-				craterboost = 0,
-				cratermult = 0,
-				edgeeffectiveness = 0.65,
-				explosiongenerator = "custom:genericshellexplosion-huge",
-				firetolerance = 5000,
-				gravityaffected = "true",
-				heightboostfactor = 2.8,
-				impulsefactor = 0.5,
-				name = "Heavy long-range g2g plasma cannon",
-				noselfdamage = true,
-				predictboost = 0.25,
-				range = 1450,
-				reloadtime = 8,
-				soundhit = "xplomed2",
-				soundhitwet = "splslrg",
-				soundstart = "cannhvy5",
-				targetborder = 1,
-				turret = true,
-				weapontype = "Cannon",
-				weaponvelocity = 500,
-				damage = {
-					default = 0,
-				},
-				customparams = {
-					exclude_preaim = true,
-					smart_trajectory_checker = true,
+					exclude_preaim = true
 				}
 			},
 		},
@@ -227,11 +192,6 @@ return {
 			[2] = {
 				badtargetcategory = "VTOL GROUNDSCOUT",
 				def = "SHOCKER_HIGH",
-				onlytargetcategory = "SURFACE",
-			},
-			[3] = {
-				badtargetcategory = "VTOL GROUNDSCOUT",
-				def = "smart_trajectory_dummy",
 				onlytargetcategory = "SURFACE",
 			},
 		},

@@ -100,7 +100,7 @@ function widget:DrawWorldPreUnit()
 		end
 	end
 	
-	glCulling(true)
+	glCulling(GL.FRONT)
 	glDepthTest(false)
 	gl.DepthMask(false)
 

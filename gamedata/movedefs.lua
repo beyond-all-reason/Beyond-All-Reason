@@ -227,8 +227,8 @@ local moveDatas = {
 	-- armthor
 	HTANK5 = {
 		crushstrength = 1400,
-		footprintx = 7,
-		footprintz = 7,
+		footprintx = 5,
+		footprintz = 5,
 		maxslope = 22,
 		slopeMod = 42,
 		maxwaterdepth = 24,
@@ -267,7 +267,7 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	--  armfido leggstr corhrk
+	--  armfido leggstr
 	BOT4 = {
 		crushstrength = 25,
 		footprintx = 3,
@@ -312,8 +312,8 @@ local moveDatas = {
 	HABOT4 = {
 		crushstrength = 252,
 		depthmod = 0,
-		footprintx = 5,
-		footprintz = 5,
+		footprintx = 4,
+		footprintz = 4,
 		maxslope = 36,
 		maxwaterdepth = 5000,
 		maxwaterslope = 80,

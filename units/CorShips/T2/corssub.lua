@@ -103,7 +103,7 @@ return {
 		},
 		weapondefs = {
 			armserp_weapon = {
-				areaofeffect = 160,
+				areaofeffect = 16,
 				avoidfeature = false,
 				avoidfriendly = false,
 				burnblow = true,

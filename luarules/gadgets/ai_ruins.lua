@@ -74,11 +74,13 @@ local landMexesList = {
 
 local seaMexesList = {
 	"armmex",
+	"armuwmex",
 	"armuwmme",
 	"armuwmme",
 	"armuwmme",
 	"armuwmme",
 	"cormex",
+	"coruwmex",
 	"coruwmme",
 	"coruwmme",
 	"coruwmme",
@@ -402,13 +404,13 @@ local function SpawnMexGeoRandomStructures()
 					else
 						defencesList = seaDefences
 					end
-
+				
 					local radius = 128
 					local canBuildHere = positionCheckLibrary.VisibilityCheckEnemy(posx2, posy2, posz2, radius, GaiaAllyTeamID, true, true, true)
 								and positionCheckLibrary.MapEdgeCheck(posx2, posy2, posz2, radius)
 								and positionCheckLibrary.OccupancyCheck(posx2, posy2, posz2, radius)
 								and positionCheckLibrary.FlatAreaCheck(posx2, posy2, posz2, radius)
-
+				
 					if posy2 > 0 then
 						canBuildHere = canBuildHere and positionCheckLibrary.SurfaceCheck(posx2, posy2, posz2, radius)
 					elseif posy2 <= 0 then
@@ -418,7 +420,7 @@ local function SpawnMexGeoRandomStructures()
 					if canBuildHere and getNearestBlocker(posx2, posz2) < radius then
 						canBuildHere = false
 					end
-
+				
 					if canBuildHere then
 						local defence = defencesList[math.random(1,#defencesList)]
 						local unit = Spring.CreateUnit(UnitDefNames[defence].id, posx2, posy2, posz2, math.random(0,3), GaiaTeamID)
@@ -447,23 +449,23 @@ local function SpawnMexGeoRandomStructures()
 					else
 						defencesList = seaDefences
 					end
-
+				
 					local radius = 128
 					local canBuildHere = positionCheckLibrary.VisibilityCheckEnemy(posx2, posy2, posz2, radius, GaiaAllyTeamID, true, true, true)
 								and positionCheckLibrary.MapEdgeCheck(posx2, posy2, posz2, radius)
 								and positionCheckLibrary.OccupancyCheck(posx2, posy2, posz2, radius)
 								and positionCheckLibrary.FlatAreaCheck(posx2, posy2, posz2, radius)
-
+				
 					if posy2 > 0 then
 						canBuildHere = canBuildHere and positionCheckLibrary.SurfaceCheck(posx2, posy2, posz2, radius)
 					elseif posy2 <= 0 then
 						canBuildHere = canBuildHere and positionCheckLibrary.SurfaceCheck(posx2, posy2, posz2, radius, true)
 					end
-
+					
 					if canBuildHere and getNearestBlocker(posx2, posz2) < radius then
 						canBuildHere = false
 					end
-
+				
 					if canBuildHere then
 						local defence = defencesList[math.random(1,#defencesList)]
 						local unit = Spring.CreateUnit(UnitDefNames[defence].id, posx2, posy2, posz2, math.random(0,3), GaiaTeamID)

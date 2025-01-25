@@ -1,6 +1,7 @@
 return {
 	corfship = {
 		activatewhenbuilt = true,
+		airsightdistance = 470,
 		autoheal = 1.5,
 		blocking = true,
 		buildpic = "CORFSHIP.DDS",
@@ -27,7 +28,7 @@ return {
 		objectname = "Units/CORFSHIP.s3o",
 		radardistance = 750,
 		radaremitheight = 52,
-		script = "Units/CORFSHIP.cob",
+		script = "Units/CORFSHIP_clean.cob",
 		seismicsignature = 0,
 		selfdestructas = "pyroselfd",
 		sightdistance = 500,

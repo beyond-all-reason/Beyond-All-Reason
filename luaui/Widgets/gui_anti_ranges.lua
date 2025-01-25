@@ -82,9 +82,9 @@ function identifyAntiNukeUnits()
         local weapons = unitDef.weapons
         for i=1, #weapons do
             local weaponDef = WeaponDefs[weapons[i].weaponDef]
-            if weaponDef and weaponDef.interceptor and weaponDef.interceptor == 1 then
+            if weaponDef and weaponDef.coverageRange and weaponDef.coverageRange > 0 then
                 antiNukeDefs[unitDefID] = weaponDef.coverageRange
-                break
+                break  -- No need to check further weapons for this unit
             end
         end
     end

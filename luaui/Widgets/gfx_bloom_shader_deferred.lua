@@ -572,7 +572,6 @@ local function Bloom()
 	df = df + 1
 	gl.DepthMask(false)
 	gl.Color(1, 1, 1, 1)
-	gl.Culling(true)
 
 	glUseShader(brightShader)
 		glUniform(   brightShaderIllumLoc, illumThreshold)
@@ -634,7 +633,6 @@ local function Bloom()
 
 	gl.Blending("reset")
 	gl.DepthMask(false) --"BK OpenGL state resets", was true
-	gl.Culling(false)
 end
 
 function widget:DrawWorld()

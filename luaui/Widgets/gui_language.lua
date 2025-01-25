@@ -27,8 +27,6 @@ function widget:LanguageChanged()
 end
 
 function widget:Initialize()
-	i18nHelper.RefreshDefs()
-
 	widgetHandler:RegisterGlobal('GadgetMessageProxy', getMessageProxy)
 
 	WG['language'] = {}

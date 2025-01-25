@@ -110,8 +110,8 @@ function widget:SelectionChanged(sel)
 	elseif selectedUnitsCount > 1 then
 		for i = 1, #selectedUnits do
 			local unitID = selectedUnits[i]
-			local unitDefID = Spring.GetUnitDefID(unitID)
-			if validTrans[unitDefID] then
+			local unitdefID = Spring.GetUnitDefID(unitID)
+			if validTrans[unitdefID] then
 				transID = unitID
 				transDefID = unitDefID
 				unitcount = unitcount + 1

@@ -73,7 +73,7 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:footstep-medium",
+				[1] = "custom:footstep-small",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",

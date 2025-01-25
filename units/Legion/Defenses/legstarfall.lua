@@ -136,9 +136,6 @@ return {
 				weapontimer = 14,
 				weapontype = "Cannon",
 				weaponvelocity = 900,
-				--customparams = {
-				--	stockpilelimit = 1,
-				--},
 				damage = {
 					default = 600,
 					shields = 375,

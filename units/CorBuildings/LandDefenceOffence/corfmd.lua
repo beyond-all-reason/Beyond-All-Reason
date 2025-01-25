@@ -24,7 +24,7 @@ return {
 		noautofire = true,
 		objectname = "Units/CORFMD.s3o",
 		radardistance = 50,
-		script = "Units/CORFMD.cob",
+		script = "Units/CORFMD_CLEAN.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 195,
@@ -148,9 +148,6 @@ return {
 				weapontimer = 2.5,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 6000,
-				customparams = {
-					stockpilelimit = 20,
-				},
 				damage = {
 					default = 1500,
 				},

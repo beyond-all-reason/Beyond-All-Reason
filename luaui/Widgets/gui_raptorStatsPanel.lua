@@ -184,10 +184,7 @@ local function CreatePanelDisplayList()
 
 			local totalSeconds = (100 - gameInfo.raptorQueenAnger) / gain
 			time = string.formatTime(totalSeconds)
-			if totalSeconds < 1800 or revealedQueenEta then
-				if not revealedQueenEta then revealedQueenEta = true end
-				font:Print(textColor .. Spring.I18N('ui.raptors.queenETA', { time = time }), panelMarginX+5, PanelRow(2), panelFontSize, "")
-			end
+			font:Print(textColor .. Spring.I18N('ui.raptors.queenETA', { time = time }), panelMarginX+5, PanelRow(2), panelFontSize, "")
 			if #currentlyResistantToNames > 0 then
 				currentlyResistantToNames = {}
 				currentlyResistantTo = {}

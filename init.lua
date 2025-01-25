@@ -26,11 +26,6 @@ local commonFunctions = {
 		LuaIntro  = true,
 		LuaUI     = true,
 	},
-
-	map = {
-		LuaRules  = true,
-		LuaUI     = true,
-	},
 }
 
 if commonFunctions.spring[environment] then
@@ -43,11 +38,6 @@ end
 
 if commonFunctions.i18n[environment] then
 	Spring.I18N = Spring.I18N or VFS.Include("modules/i18n/i18n.lua")
-end
-
-
-if commonFunctions.map[environment] then
-	Spring.Lava = VFS.Include("modules/lava.lua")
 end
 
 -- we don't want them to run these tests for end users

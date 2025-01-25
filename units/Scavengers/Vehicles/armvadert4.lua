@@ -12,7 +12,7 @@ return {
 		collisionvolumescales = "91 91 91",
 		collisionvolumetype = "sphere",
 		explodeas = "crawl_blastsmlscavboss",
-		firestate = 0,
+		firestate = 2,
 		footprintx = 4,
 		footprintz = 4,
 		idleautoheal = 5,

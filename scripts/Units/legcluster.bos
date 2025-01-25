@@ -2,15 +2,16 @@
 
 #include "sfxtype.h"
 #include "exptype.h"
-#include "smart_weapon_select.h"
 
 
-piece base, turret, sleeve, barrel, flare, turretmidpoint;
+piece base, turret, sleeve, barrel, flare;
 //piece  flare1, flare2, base, turret, barrel1, barrel2, sleeves;
 
-static-var lastHeading;
+static-var trajectoryMode, lastHeading;
 
 #define SIGNAL_AIM			1
+#define LOW_TRAJECTORY		0
+#define HIGH_TRAJECTORY		1
 
 
 Create()
@@ -21,6 +22,22 @@ Create()
 #define SMOKEPIECE base
 #include "smokeunit_thread_nohit.h"
 
+RequestState(requestedState)
+{
+	trajectoryMode = requestedstate;
+}
+
+Activate()
+{
+	signal SIGNAL_AIM;
+	start-script RequestState(HIGH_TRAJECTORY);
+}
+
+Deactivate()
+{
+	signal SIGNAL_AIM;
+	start-script RequestState(LOW_TRAJECTORY);
+}
 
 restoreAfterDelay()
 {
@@ -61,7 +78,7 @@ aimCommon(heading, pitch)
 
 AimPrimary(heading, pitch)
 {
-	if (AimingState != AIMING_PRIORITY)
+	if( trajectoryMode != LOW_TRAJECTORY )
 	{
 		return(0);
 	}
@@ -70,7 +87,7 @@ AimPrimary(heading, pitch)
 	set-signal-mask SIGNAL_AIM;
 	call-script aimCommon(heading, pitch);
 
-	// Prevent "bonus shots" while alternative weapon is reloading
+	// Prevent low-trajectory "bonus shots" while high-trajectory is reloading
 	var reloading;
 	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(2));
 	if( reloading )
@@ -83,29 +100,15 @@ AimPrimary(heading, pitch)
 
 AimSecondary(heading, pitch)
 {
-	if (AimingState != AIMING_BACKUP)
+	if( trajectoryMode != HIGH_TRAJECTORY )
 	{
 		return(0);
 	}
-	
+
 	signal SIGNAL_AIM;
 	set-signal-mask SIGNAL_AIM;
 	call-script aimCommon(heading, pitch);
-
-	// Prevent "bonus shots" while alternative weapon is reloading
-	var reloading;
-	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(1));
-	if( reloading )
-	{
-		return(0);
-	}
-
 	return (1);
-}
-
-AimTertiary(piecenum)
-{
-	return (0);
 }
 
 AimFromPrimary(piecenum)
@@ -144,11 +147,6 @@ QueryPrimary(piecenum)
 QuerySecondary(piecenum)
 {
 	piecenum = flare;
-}
-
-QueryTertiary(piecenum)
-{
-	piecenum = turretmidpoint;
 }
 
 SweetSpot(piecenum)

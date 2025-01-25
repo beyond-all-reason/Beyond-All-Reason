@@ -172,7 +172,6 @@ return {
 				weaponvelocity = 1600,
 				customparams = {
 					place_target_on_ground = "true",
-					stockpilelimit = 10,
 				},
 				damage = {
 					commanders = 2500,

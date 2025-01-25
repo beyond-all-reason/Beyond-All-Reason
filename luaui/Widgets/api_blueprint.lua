@@ -527,9 +527,7 @@ local BUILD_MODES_HANDLERS = {
 local instanceIDs = {}
 
 local function clearInstances()
-	if outlineInstanceVBO then
-		clearInstanceTable(outlineInstanceVBO)
-	end
+	clearInstanceTable(outlineInstanceVBO)
 
 	if WG.StopDrawUnitShapeGL4 then
 		WG.StopDrawAll(widget:GetInfo().name)

@@ -40,6 +40,7 @@ for udid, ud in pairs(UnitDefs) do --almost all raptors have dying anims
 	end
 end
 
+local SetUnitNoSelect	= Spring.SetUnitNoSelect
 local GiveOrderToUnit	= Spring.GiveOrderToUnit
 local SetUnitBlocking 	= Spring.SetUnitBlocking
 local UnitIconSetDraw   = Spring.UnitIconSetDraw
@@ -55,6 +56,7 @@ end
 function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
 	if hasDeathAnim[unitDefID] then
 		--Spring.Echo("gadget:UnitDestroyed",unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
+		SetUnitNoSelect(unitID,true)
     	SetUnitBlocking(unitID,false) -- non blocking while dying
 		Spring.UnitIconSetDraw(unitID, false) -- dont draw icons
 		GiveOrderToUnit(unitID, CMD_STOP, 0, 0)

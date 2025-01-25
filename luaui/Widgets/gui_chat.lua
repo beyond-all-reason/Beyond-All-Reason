@@ -21,9 +21,6 @@ local LineTypes = {
 
 local utf8 = VFS.Include('common/luaUtilities/utf8.lua')
 
-local L_DEPRECATED = LOG.DEPRECATED
-local isDevSingle = (Spring.Utilities.IsDevMode() and Spring.Utilities.Gametype.IsSinglePlayer())
-
 local showHistoryWhenChatInput = true
 
 local showHistoryWhenCtrlShift = true
@@ -1541,11 +1538,6 @@ local function drawChatInput()
 	end
 end
 
-function widget:FontsChanged()
-	clearDisplayLists()
-	textInputDlist = glDeleteList(textInputDlist)
-	processLines()
-end
 
 function widget:DrawScreen()
 	if chobbyInterface then return end
@@ -2096,7 +2088,6 @@ function widget:MapDrawCmd(playerID, cmdType, x, y, z, a, b, c)
 end
 
 function widget:AddConsoleLine(lines, priority)
-	if priority and priority == L_DEPRECATED and not isDevSingle then return end
 	lines = lines:match('^%[f=[0-9]+%] (.*)$') or lines
 	for line in lines:gmatch("[^\n]+") do
 		processAddConsoleLine(spGetGameFrame(), line, true)

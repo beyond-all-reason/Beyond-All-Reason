@@ -131,7 +131,6 @@ return {
 				craterareaofeffect = 1920,
 				craterboost = 2.4,
 				cratermult = 1.2,
-				commandfire = true,
 				edgeeffectiveness = 0.45,
 				energypershot = 187500,
 				explosiongenerator = "custom:newnukecor",
@@ -169,8 +168,6 @@ return {
 				weaponvelocity = 1600,
 				customparams = {
 					place_target_on_ground = "true",
-					scavforcecommandfire = true,
-					stockpilelimit = 10,
 				},
 				damage = {
 					commanders = 2500,
@@ -201,9 +198,6 @@ return {
 				weaponvelocity = 100,
 				damage = {
 					default = 0,
-				},
-				customparams = {
-					scavforcecommandfire = true,
 				},
 			},
 			waterballon = {
