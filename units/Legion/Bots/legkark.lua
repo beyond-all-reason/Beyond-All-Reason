@@ -101,7 +101,7 @@ return {
 			},
 		},
 		weapondefs = {
-			heat_ray = {
+			corwar_laser = {
 				areaofeffect = 8,
 				avoidfeature = false,
 				beamtime = 0.5,
@@ -170,7 +170,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				def = "HEAT_RAY",
+				def = "CORWAR_LASER",
 				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
