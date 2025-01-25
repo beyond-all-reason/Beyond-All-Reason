@@ -83,28 +83,6 @@ local definitions = {
 	    },
 
 	},
-	["impulse-trail"] = {
-		flame = {
-            air                = true,
-            class              = [[CBitmapMuzzleFlame]],
-            count              = 1,
-            ground             = true,
-            underwater         = true,
-            water              = true,
-            properties = {
-                colormap           = [[0.9 0.75 0.4 0.006   0.8 0.70 0.3 0.005   0.8 0.5 0.1 0.005   0 0 0 0.01]],
-                dir                = [[dir]],
-                frontoffset        = 0,
-                fronttexture       = [[none]],
-                length             = -2.8,
-                sidetexture        = [[trail]],
-                size               = 5.5,
-                sizegrowth         = -0.09,
-                ttl                = 3,
-                useairlos          = true,
-            },
-        },
-	},
 	["arty-fast"] = {
 		flame = {
             air                = true,
@@ -114,15 +92,15 @@ local definitions = {
             underwater         = true,
             water              = true,
             properties = {
-                colormap           = [[0.9 0.75 0.3 0.009   0.9 0.7 0.2 0.007   0.9 0.3 0.1 0.004   0 0 0 0.01]],
+                colormap           = [[0.9 0.65 0.3 0.006   0.9 0.6 0.2 0.005   0.9 0.3 0.1 0.004   0 0 0 0.01]],
                 dir                = [[dir]],
                 frontoffset        = 0,
                 fronttexture       = [[none]],
-                length             = -4.1,
+                length             = -3.7,
                 sidetexture        = [[trail]],
-                size               = 2.7,
+                size               = 2.4,
                 sizegrowth         = -0.05,
-                ttl                = 8,
+                ttl                = 2,
                 useairlos          = true,
             },
         },
@@ -279,12 +257,12 @@ local definitions = {
                 colormap           = [[0.9 0.65 0.3 0.01   0.9 0.6 0.2 0.01   0.9 0.3 0.1 0.01   0 0 0 0.01]],
                 dir                = [[dir]],
                 frontoffset        = 0, --0.04
-                fronttexture       = [[null]], --was glow before
-                length             = -6,
+                fronttexture       = [[glow]], --glow
+                length             = -10,
                 sidetexture        = [[shot]],
-                size               = 20.2,
-                sizegrowth         = -0.20,
-                ttl                = 2,
+                size               = 6.2,
+                sizegrowth         = -0.18,
+                ttl                = 4,
                 --rotParams          = [[0 , 0, -180 r360]],
                 useairlos          = true,
                 castShadow         = true,

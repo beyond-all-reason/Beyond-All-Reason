@@ -105,6 +105,7 @@ local flexCallIns = {
 	'ShockFront',
 	'WorldTooltip',
 	'MapDrawCmd',
+	'ActiveCommandChanged',
 	'DefaultCommand',
 	'UnitCreated',
 	'UnitFinished',
@@ -169,6 +170,7 @@ for _, ci in ipairs(flexCallIns) do
 end
 
 local callInLists = {
+	'FontsChanged',
 	'GamePreload',
 	'GameStart',
 	'Shutdown',
@@ -1342,6 +1344,14 @@ function widgetHandler:ConfigureLayout(command)
 	return false
 end
 
+function widgetHandler:ActiveCommandChanged(id, cmdType)
+	tracy.ZoneBeginN("W:ActiveCommandChanged")
+	for _, w in ipairs(self.ActiveCommandChangedList) do
+		w:ActiveCommandChanged(id, cmdType)
+	end
+	tracy.ZoneEnd()
+end
+
 function widgetHandler:CommandNotify(id, params, options)
 	tracy.ZoneBeginN("W:CommandNotify")
 	for _, w in ipairs(self.CommandNotifyList) do
@@ -1658,6 +1668,14 @@ function widgetHandler:SunChanged()
 	return
 end
 
+function widgetHandler:FontsChanged()
+	tracy.ZoneBeginN("FontsChanged")
+	for _, w in r_ipairs(self.FontsChangedList) do
+		w:FontsChanged()
+	end
+	tracy.ZoneEnd()
+	return
+end
 
 --------------------------------------------------------------------------------
 --

@@ -65,8 +65,8 @@ return {
 			"corfrt",
 			"corfrad",
 			-- Experimental:
-			"corhp",
-			"corfhp",
+			"leghp",
+			"legfhp",
 		},
 		customparams = {
 			unitgroup = 'builder',

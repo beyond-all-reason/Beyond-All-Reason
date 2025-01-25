@@ -141,7 +141,9 @@ return {
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 500,
 				customparams = {
+					lups_noshockwave = 1,
 					nofire = true,
+					stockpilelimit = 20,
 				},
 				damage = {
 					default = 1,

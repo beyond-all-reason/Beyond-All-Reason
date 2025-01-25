@@ -1,20 +1,13 @@
-#define TA			// This is a TA script
+#include "../recoil_common_includes.h"
 
-#include "sfxtype.h"
-#include "exptype.h"
 
-//piece  base, turret, flare, barrel;
+piece 		base, tracks, turret, barrel, flare;
 
-// piece base, basePlate, lTrack, rTrack, 
-// turretBase, turret, 
-// barrel, barrelPlateFrontL, barrelPlateFrontR, barrelPlateRearL, barrelPlateRearR, flare;
-
-piece base, tracks, turret, barrel, flare;
-
-static-var  restore_delay, shotcount;
+static-var  restore_delay, shotcount, lastpitch;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIGNAL_AIM		1
+#define SIGNAL_MOVE		2
 
 
 #define BASEPIECE base
@@ -23,28 +16,35 @@ static-var  restore_delay, shotcount;
 #define UNITSIZE 2
 #define MAXTILT 100
 
+#define TB_BASE base 
+#define TB_TURNRATE <15.0> 
+#define TB_TILT_X <0.1>
+#define TB_BANK_Z <0.1> // Do not define this if you dont want banking
+#include "../tilt_bank_mobileunit.h"
+
 Create()
 {
 	shotcount = 0;
-	// turn barrelPlateFrontL to y-axis <-15> now;
-	// turn barrelPlateRearL to y-axis <-15> now;
-
-	// turn barrelPlateFrontR to y-axis <15> now;
-	// turn BarrelPlateRearR to y-axis <15> now;
-
-	// move barrelPlateFrontR to z-axis [-1] now;
-	// move barrelPlateFrontL to z-axis [-1] now;
-
-	// move barrel to z-axis [-2] now;
-
+	lastpitch = 0;
 	hide flare;
-
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 200;
-	}
-	
 	restore_delay = 3000;
+	
+	call-script TB_Init();
+}
+
+StartMoving(reversing)
+{
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	
+	START_TILTBANK;
+}
+
+StopMoving()
+{
+	signal SIGNAL_MOVE;
+	
+	STOP_TILTBANK;
 }
 
 SetMaxReloadTime(Func_Var_1)
@@ -59,16 +59,6 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 	turn turret to y-axis <0.000000> speed <90.000000>;
-
-	// turn barrelPlateFrontL to y-axis <-15> speed <60>;
-	// turn barrelPlateRearL to y-axis <-15> speed <60>;
-	// turn barrelPlateFrontR to y-axis <15> speed <60>;
-	// turn barrelPlateRearR to y-axis <15> speed <60>;
-	// wait-for-turn barrelPlateFrontL around y-axis;
-
-	// move barrelPlateFrontR to z-axis [0] speed [4];
-	// move barrelPlateFrontL to z-axis [0] speed [4];
-	// move barrel to z-axis [-2] speed [8];
 	turn barrel to x-axis <0> speed <60>;
 }
 SetStunned(State)
@@ -86,25 +76,15 @@ RestoreAfterDelay()
 
 AimPrimary(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIGNAL_AIM;
+	set-signal-mask SIGNAL_AIM;
+	
+	lastpitch = pitch;
 
-
-	// move barrel to z-axis [0] speed [8];
-	// move barrelPlateFrontR to z-axis [0] speed [4];
-	// move barrelPlateFrontL to z-axis [0] speed [4];
-	// //wait-for-move barrelPlateFrontL along z-axis;
-
-	// turn barrelPlateFrontL to y-axis <0> speed <60>;
-	// turn barrelPlateRearL to y-axis <0> speed <60>;
-	// turn barrelPlateFrontR to y-axis <0> speed <60>;
-	// turn barrelPlateRearR to y-axis <0> speed <60>;
-
-	turn turret to y-axis heading speed <200.000000>;
-	turn barrel to x-axis <0.000000> - pitch speed <200.0>;
+	turn turret to y-axis heading speed <180.0>;
+	turn barrel to x-axis <0.0> - pitch speed <30.0>;
 	
 	wait-for-turn turret around y-axis;
-	wait-for-turn barrel around x-axis;
 
 	start-script RestoreAfterDelay();
 	return (1);
@@ -120,15 +100,17 @@ FirePrimary()
 	++shotcount;
 	emit-sfx 1024 + 0 from flare;
 	call-script lua_UnitScriptLight(1, shotcount);
-	move barrel to z-axis [-0.500000] now;
-	//wait-for-move barrel along z-axis;
-	move barrel to z-axis [0.000000] speed [0.250000];
-	//return (0);
+	
+	move barrel to z-axis [-1.5] now;
+	turn barrel to x-axis <-5> - lastpitch now;
+	
+	move barrel to z-axis [0.0] speed [6];
+	sleep 33;
 }
 
 AimFromPrimary(piecenum)
 {
-	piecenum = flare;
+	piecenum = barrel;
 }
 
 QueryPrimary(piecenum)
@@ -171,4 +153,5 @@ Killed(severity, corpsetype)
 		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
 		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
 		explode barrel type EXPLODE_ON_HIT | FIRE | FALL;
+		return(corpsetype);
 }

@@ -119,7 +119,7 @@ local function DrawStartPolygons(inminimap)
 
 	startPolygonBuffer:BindBufferRange(4)
 
-	gl.Culling(GL.FRONT)
+	gl.Culling(true)
 	gl.DepthTest(false)
 	gl.DepthMask(false)
 

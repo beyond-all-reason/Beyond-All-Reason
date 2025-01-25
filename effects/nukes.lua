@@ -1502,7 +1502,6 @@ definitions['newnuketac'].centerflare.properties.size = [[24 r4]]
 definitions['newnuketac'].centerflare.properties.heat = math.floor(definitions['newnuketac'].centerflare.properties.heat * size * 1.05)
 definitions['newnuketac'].centerflare.properties.maxheat = math.floor(definitions['newnuketac'].centerflare.properties.maxheat * size * 1.05)
 definitions['newnuketac'].groundflash_large.properties.size = math.floor(definitions['newnuketac'].groundflash_large.properties.size * size * 0.8)
-definitions['newnuketac'].groundflash_large.properties.ttl = math.floor(definitions['newnuketac'].groundflash_large.properties.ttl * size * 0.6)
 definitions['newnuketac'].groundflash_white.properties.size = math.floor(definitions['newnuketac'].groundflash_white.properties.size * size * 0.8)
 definitions['newnuketac'].groundflash_white.properties.ttl = math.floor(definitions['newnuketac'].groundflash_white.properties.ttl * size * 0.4)
 definitions['newnuketac'].groundflash_quick.properties.size = math.floor(definitions['newnuketac'].groundflash_quick.properties.size * size * 0.8)

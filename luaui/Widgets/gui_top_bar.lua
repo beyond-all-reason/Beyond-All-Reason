@@ -60,7 +60,7 @@ local xPos = math_floor(vsx * relXpos)
 local currentWind = 0
 local gameStarted = (Spring.GetGameFrame() > 0)
 local displayComCounter = false
-local displayTidalSpeed = not (Spring.GetModOptions().map_waterislava or Game.waterDamage > 0)
+local displayTidalSpeed = not Spring.Lava.isLavaMap
 local updateTextClock = os.clock()
 
 local glTranslate = gl.Translate

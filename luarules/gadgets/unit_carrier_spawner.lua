@@ -691,7 +691,7 @@ function gadget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdTag, cmdParam
 			if carrierMetaList[carrierUnitID].subUnitsList[unitID].dronetype == "bomber" and (cmdID == CMD.MOVE or cmdID == CMD.ATTACK) and carrierMetaList[carrierUnitID].subUnitsList[unitID].bomberStage > 0 then
 				if carrierMetaList[carrierUnitID].subUnitsList[unitID].bomberStage == 1 then
 					--Spring.Echo(carrierMetaList[carrierUnitID].subUnitsList[unitID].originalmaxrudder)
-					--Spring.MoveCtrl.SetAirMoveTypeData(unitID, {maxRudder = carrierMetaList[carrierUnitID].subUnitsList[unitID].originalmaxrudder})
+					--Spring.MoveCtrl.SetAirMoveTypeData(unitID, "maxRudder", carrierMetaList[carrierUnitID].subUnitsList[unitID].originalmaxrudder)
 				end
 				if (not carrierMetaList[carrierUnitID].docking) and carrierMetaList[carrierUnitID].subUnitsList[unitID].bomberStage >= 4 + carrierMetaList[carrierUnitID].dronebombingruns then
 					carrierMetaList[carrierUnitID].subUnitsList[unitID].bomberStage = 0
@@ -723,7 +723,7 @@ function gadget:ProjectileCreated(proID, proOwnerID, proWeaponDefID)
 			    if carrierMetaList[carrierUnitID].subUnitsList[proOwnerID].dronetype == "bomber" and carrierMetaList[carrierUnitID].subUnitsList[proOwnerID].bomberStage > 0 then
 				    local currentTime =  spGetGameSeconds()
 				    if ((currentTime - carrierMetaList[carrierUnitID].subUnitsList[proOwnerID].lastBombing) >= 4) then
-					    Spring.MoveCtrl.SetAirMoveTypeData(proOwnerID, {maxRudder = carrierMetaList[carrierUnitID].subUnitsList[proOwnerID].originalmaxrudder})
+					    Spring.MoveCtrl.SetAirMoveTypeData(proOwnerID, "maxRudder", carrierMetaList[carrierUnitID].subUnitsList[proOwnerID].originalmaxrudder)
 					    carrierMetaList[carrierUnitID].subUnitsList[proOwnerID].bomberStage = carrierMetaList[carrierUnitID].subUnitsList[proOwnerID].bomberStage + 1
 					    carrierMetaList[carrierUnitID].subUnitsList[proOwnerID].lastBombing = spGetGameSeconds()
 				    end
@@ -1125,7 +1125,7 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 										end
 										local mt = Spring.GetUnitMoveTypeData(subUnitID)
 										--Spring.Echo("movetype: ", mt.name)
-										Spring.MoveCtrl.SetAirMoveTypeData(subUnitID, {maxRudder = 0.05})
+										Spring.MoveCtrl.SetAirMoveTypeData(subUnitID, "maxRudder", 0.05)
 										carrierMetaData.dronebombertimer = spGetGameSeconds()
 										carrierMetaData.subUnitsList[subUnitID].bomberStage = 1
 									end

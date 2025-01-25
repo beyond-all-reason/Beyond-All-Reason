@@ -20,6 +20,7 @@ if not gadgetHandler:IsSyncedCode() then return false end
 
 local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
 local spGetUnitDefID = Spring.GetUnitDefID
+local spSetUnitRulesParam = Spring.SetUnitRulesParam
 local boostableUnits = {}
 local builderWatchDefs = {}
 local builderWatch = {}
@@ -75,9 +76,11 @@ function gadget:GameFrame(frame)
 					end
 					if enableBoost == true then
 						Spring.SetUnitBuildSpeed(id, data.boost)
+						spSetUnitRulesParam(id, "workertimeBoosted", data.boost)
 					else
 						Spring.SetUnitBuildSpeed(id, data.buildspeed)
 						data.timestamp = frame+60
+						spSetUnitRulesParam(id, "workertimeBoosted", 0)
 					end
 				else
 					Spring.SetUnitBuildSpeed(id, data.buildspeed)

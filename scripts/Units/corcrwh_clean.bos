@@ -75,6 +75,10 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
+lua_FlameShot(weapon) //Distortion and lups flame effect
+{
+  return 0;
+}
 
 Create()
 {
@@ -212,6 +216,7 @@ FireWeapon1()
 	return (1);
 }
 Shot1() {
+	call-script lua_FlameShot(1);
 	emit-sfx 1024 + 0 from flaref;
 }
 //aa

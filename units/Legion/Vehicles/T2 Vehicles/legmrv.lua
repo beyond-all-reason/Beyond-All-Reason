@@ -2,10 +2,10 @@ return {
 	legmrv = {
 		maxacc = 0.09,
 		maxdec = 0.14,
-		energycost = 4400,
-		metalcost = 270,
+		energycost = 4100,
+		metalcost = 250,
 		buildpic = "LEGMRV.DDS",
-		buildtime = 4900,
+		buildtime = 4500,
 		canmove = true,
 		collisionvolumeoffsets = "0 -6 0",
 		collisionvolumescales = "34 26 38",

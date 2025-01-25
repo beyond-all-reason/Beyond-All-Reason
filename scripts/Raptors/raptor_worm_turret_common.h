@@ -286,6 +286,7 @@ AimWeapon1(heading, pitch)
 
 Shot1()
 {
+	//call-script lua_FlameShot(1);
 	//emit-sfx 1024 + 0 from flare;
 	//segtarget = segtarget +  (Rand( 100, 200 ));
 	//aimy1target = aimy1target +  (Rand( 0, 400 ) - 200);

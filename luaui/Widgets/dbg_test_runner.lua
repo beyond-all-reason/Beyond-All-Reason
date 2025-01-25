@@ -19,15 +19,19 @@ local Assertions = VFS.Include('common/testing/assertions.lua')
 local TestResults = VFS.Include('common/testing/results.lua')
 local Util = VFS.Include('common/testing/util.lua')
 local Mock = VFS.Include('common/testing/mock.lua')
+local TestExtraUtils = VFS.Include('common/testing/test_extra_utils.lua')
 
 local rpc = VFS.Include('common/testing/rpc.lua'):new()
 
 local LOG_LEVEL = LOG.INFO
 
 local initialWidgetActive = {}
+local testModeScenario = false
+local defaultTestTimeout = 30
+local defaultScenarioTimeout = 300
 
 local config = {
-	returnTimeout = 30,
+	returnTimeout = defaultTestTimeout,
 	waitTimeout = 5 * 30,
 	showAllResults = true,
 	noColorOutput = false,
@@ -37,6 +41,10 @@ local config = {
 	testRoots = {
 		"LuaUI/Widgets/tests",
 		"LuaUI/Tests",
+	},
+	scenarioRoots = {
+		"LuaUI/Widgets/scenarios",
+		"LuaUI/Scenarios",
 	},
 }
 
@@ -97,6 +105,29 @@ local function matchesPatterns(str, patterns)
 	return false
 end
 
+-- scenarios
+-- =========
+
+local scenarioConfig = {}
+local scenarioOpts = {}
+local function processScenarioArguments(args)
+	if args then
+		for index, pair in ipairs(args) do
+			for key, default in pairs(pair) do
+				local val = scenarioOpts[index+1]
+				if val and type(default) == 'number' then
+					val = tonumber(val)
+				end
+				scenarioConfig[key] = val or default
+			end
+		end
+	else
+		for idx=2, #scenarioOpts do
+			scenarioConfig[idx-1] = scenarioOpts[idx]
+		end
+	end
+end
+
 -- main code
 -- =========
 
@@ -136,7 +167,8 @@ local function findAllTestFiles(patterns)
 		patterns = patterns,
 	}))
 	local result = {}
-	for _, path in ipairs(config.testRoots) do
+	local roots = testModeScenario and config.scenarioRoots or config.testRoots
+	for _, path in ipairs(roots) do
 		for _, testFileInfo in ipairs(findTestFiles(path, patterns)) do
 			result[#result + 1] = testFileInfo
 		end
@@ -615,14 +647,14 @@ end
 
 SyncedProxy = createNestedProxy(Proxy.PREFIX.CALL)
 
-SyncedRun = function(fn)
+SyncedRun = function(fn, timeout)
 	local serializedFn, returnID = rpc:serializeFunctionRun(fn, 3)
 
 	returnState = {
 		waitingForReturnID = returnID,
 		success = nil,
 		pendingValueOrError = nil,
-		timeoutExpireFrame = Spring.GetGameFrame() + config.returnTimeout,
+		timeoutExpireFrame = Spring.GetGameFrame() + (timeout or config.returnTimeout),
 	}
 
 	log(LOG.DEBUG, "[SyncedRun.send]")
@@ -810,6 +842,11 @@ Test = {
 	end,
 }
 
+-- Add extra utils to Test
+for k, v in pairs(TestExtraUtils.exports) do
+	Test[k] = v
+end
+
 function widget:RecvLuaMsg(msg)
 	if not returnState.waitingForReturnID then
 		return
@@ -840,6 +877,15 @@ end
 
 local function runTestInternal()
 	log(LOG.DEBUG, "[runTestInternal]")
+
+	if testRunState.filesIndex == 1 then
+		TestExtraUtils.startTests()
+	end
+
+	if testModeScenario then
+		local argsOk, argsResult = Util.yieldable_pcall(scenario_arguments)
+		processScenarioArguments(argsOk and argsResult or false)
+	end
 
 	local skipOk, skipResult
 	if skip ~= nil then
@@ -900,6 +946,11 @@ local function runTestInternal()
 			log(LOG.DEBUG, "[runTestInternal.restoreWidgets.error]")
 			error(restoreResult, 2)
 		end
+	end
+
+	TestExtraUtils.endTest()
+	if testRunState.filesIndex == #testRunState.files then
+		TestExtraUtils.endTests()
 	end
 
 	if not cleanupOk then
@@ -976,6 +1027,7 @@ local function initializeTestEnvironment()
 		type = type,
 		unpack = unpack,
 		select = select,
+		Scenario = scenarioConfig,
 
 		Json = Json,
 	}
@@ -1248,7 +1300,22 @@ function widget:Initialize()
 		self,
 		"runtests",
 		function(cmd, optLine, optWords, data, isRepeat, release, actions)
+			testModeScenario = false
+			config.returnTimeout = defaultTestTimeout
 			startTests(Util.splitPhrases(optLine))
+		end,
+		nil,
+		"t"
+	)
+	widgetHandler.actionHandler:AddAction(
+		self,
+		"runscenario",
+		function(cmd, optLine, optWords, data, isRepeat, release, actions)
+			testModeScenario = true
+			config.returnTimeout = defaultScenarioTimeout
+			scenarioConfig = {}
+			scenarioOpts = Util.splitPhrases(optLine)
+			startTests(scenarioOpts[1])
 		end,
 		nil,
 		"t"
@@ -1268,6 +1335,7 @@ function widget:Initialize()
 		"t"
 	)
 
+	TestExtraUtils.linkActions(self)
 	gameTimer = Spring.GetTimer()
 end
 
