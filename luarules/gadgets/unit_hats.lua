@@ -91,7 +91,7 @@ local champion = { --   Fight Night 1v1 winner
 	[87571] = true,  -- Nezah
 }
 local kings = {
-	[38971] = true,  -- Yanami
+	[64215] = true,  -- XFactorLive
 }
 local goldMedals = { -- Nation Wars 1st place
 	[59340] = true,  -- [HELO]Austin
