@@ -310,9 +310,8 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
-		local wDefID = Spring.GetProjectileDefID(proID)
-		if specialWeaponCustomDefs[wDefID] then
-			projectiles[proID] = specialWeaponCustomDefs[wDefID]
+		if specialWeaponCustomDefs[weaponDefID] then
+			projectiles[proID] = specialWeaponCustomDefs[weaponDefID]
 			active_projectiles[proID] = nil
 		end
 	end
