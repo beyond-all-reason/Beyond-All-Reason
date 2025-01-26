@@ -739,7 +739,7 @@ else -- UNSYNCED
 				not teamColors[allyTeamCount] or not teamColors[allyTeamCount][1][#Spring.GetTeamList(allyTeamCount-1)] --or #Spring.GetTeamList() > 30
 			then
 				local brightnessVariation = (0.7 - ((1.1 / #Spring.GetTeamList(allyTeamID)) * dimmingCount[allyTeamID])) * 255
-				local maxColorVariation = math.floor(12 + (110 / (allyTeamCount)))
+				local maxColorVariation = math.floor(11 + (90 / (allyTeamCount)))
 				local color = hex2RGB(ffaColors[allyTeamID+1] or '#333333')
 				if teamID == gaiaTeamID then
 					brightnessVariation = 0
@@ -753,7 +753,7 @@ else -- UNSYNCED
 					color[3] = color[3] + 210
 				elseif allyTeamID == myAllyTeamID then
 					brightnessVariation = brightnessVariation - 40
-					maxColorVariation = math.ceil(maxColorVariation * 1.3)
+					maxColorVariation = math.ceil(maxColorVariation * 1.2)
 				end
 				color[1] = math.min(color[1] + brightnessVariation, 255) + math.random(-maxColorVariation, maxColorVariation)
 				color[2] = math.min(color[2] + brightnessVariation, 255) + math.random(-maxColorVariation, maxColorVariation)
@@ -779,7 +779,7 @@ else -- UNSYNCED
 						end
 					end
 					brightnessVariation = (0.7 - ((1.1 / numEnemies) * totalEnemyDimmingCount)) * 255
-					maxColorVariation = math.floor(12 + (110 / (allyTeamCount)))
+					maxColorVariation = math.floor(11 + (90 / (allyTeamCount)))
 				end
 				local color = hex2RGB(ffaColors[allyTeamID+1] or '#333333')
 				if teamID == gaiaTeamID then
