@@ -736,57 +736,75 @@ else -- UNSYNCED
 				)
 
 			elseif
-				not teamColors[allyTeamCount] or not teamColors[allyTeamCount][1][#Spring.GetTeamList(allyTeamCount-1)] --or #Spring.GetTeamList() > 30
-			then
-				local color = hex2RGB(ffaColors[allyTeamID+1] or '#333333')
-				if teamID == gaiaTeamID then
-					color = hex2RGB(gaiaGrayColor)
-				else
-					local brightnessVariation = (0.55 - ((1 / #Spring.GetTeamList(allyTeamID)) * (dimmingCount[allyTeamID]))) * 255
-					local maxColorVariation = math.floor(10 + (70 / (allyTeamCount)))
-					color[1] = math.min(color[1] + brightnessVariation, 255) + math.random(-maxColorVariation, maxColorVariation)
-					color[2] = math.min(color[2] + brightnessVariation, 255) + math.random(-maxColorVariation, maxColorVariation)
-					color[3] = math.min(color[3] + brightnessVariation, 255) + math.random(-maxColorVariation, maxColorVariation)
-				end
-				Spring.SetTeamColor(
-					teamID,
-					(color[1] + (teamID == myTeamID and 0.3 or 0)) / 255,
-					(color[2] + (teamID == myTeamID and 0.3 or 0)) / 255,
-					(color[3] + (teamID == myTeamID and 0.3 or 0)) / 255
-				)
-
-			elseif
 				Spring.GetConfigInt("SimpleTeamColors", 0) == 1 or (anonymousMode == "allred" and not mySpecState)
 			then
-				if teamID == myTeamID then
-					Spring.SetTeamColor(
-						teamID,
-						Spring.GetConfigInt("SimpleTeamColorsPlayerR", 0) / 255,
-						Spring.GetConfigInt("SimpleTeamColorsPlayerG", 77) / 255,
-						Spring.GetConfigInt("SimpleTeamColorsPlayerB", 255) / 255
-					)
-				elseif allyTeamID == myAllyTeamID then
-					Spring.SetTeamColor(
-						teamID,
-						Spring.GetConfigInt("SimpleTeamColorsAllyR", 0) / 255,
-						Spring.GetConfigInt("SimpleTeamColorsAllyG", 255) / 255,
-						Spring.GetConfigInt("SimpleTeamColorsAllyB", 0) / 255
-					)
-				elseif allyTeamID ~= myAllyTeamID and teamID ~= gaiaTeamID then
-					Spring.SetTeamColor(
-						teamID,
-						Spring.GetConfigInt("SimpleTeamColorsEnemyR", 255) / 255,
-						Spring.GetConfigInt("SimpleTeamColorsEnemyG", 16) / 255,
-						Spring.GetConfigInt("SimpleTeamColorsEnemyB", 5) / 255
-					)
-				else
-					Spring.SetTeamColor(
-						teamID,
-						hex2RGB(gaiaGrayColor)[1] / 255,
-						hex2RGB(gaiaGrayColor)[2] / 255,
-						hex2RGB(gaiaGrayColor)[3] / 255
-					)
+				local brightnessVariation = 0
+				local maxColorVariation = 0
+				local numEnemies = #Spring.GetTeamList()-1 - #Spring.GetTeamList(myAllyTeamID)
+				if Spring.GetConfigInt("SimpleTeamColorsUseGradient", 0) == 1 then
+					local totalEnemyDimmingCount = 0
+					for allyTeamID, count in pairs(dimmingCount) do
+						if allyTeamID ~= myAllyTeamID then
+							totalEnemyDimmingCount = totalEnemyDimmingCount + count
+						end
+					end
+					brightnessVariation = (0.7 - ((1.1 / numEnemies) * totalEnemyDimmingCount)) * 255
+					maxColorVariation = math.floor(11 + (90 / (allyTeamCount)))
 				end
+				local color = hex2RGB(ffaColors[allyTeamID+1] or '#333333')
+				if teamID == gaiaTeamID then
+					brightnessVariation = 0
+					maxColorVariation = 0
+					color = hex2RGB(gaiaGrayColor)
+				elseif teamID == myTeamID then
+					brightnessVariation = 0
+					maxColorVariation = 0
+					color = {Spring.GetConfigInt("SimpleTeamColorsPlayerR", 0), Spring.GetConfigInt("SimpleTeamColorsPlayerG", 77), Spring.GetConfigInt("SimpleTeamColorsPlayerB", 255)}
+				elseif allyTeamID == myAllyTeamID then
+					color = {Spring.GetConfigInt("SimpleTeamColorsAllyR", 0), Spring.GetConfigInt("SimpleTeamColorsAllyG", 255), Spring.GetConfigInt("SimpleTeamColorsAllyB", 0)}
+				elseif allyTeamID ~= myAllyTeamID then
+					color = {Spring.GetConfigInt("SimpleTeamColorsEnemyR", 255), Spring.GetConfigInt("SimpleTeamColorsEnemyG", 16), Spring.GetConfigInt("SimpleTeamColorsEnemyB", 5)}
+				end
+				color[1] = math.min(color[1] + brightnessVariation, 255) + math.random(-maxColorVariation, maxColorVariation)
+				color[2] = math.min(color[2] + brightnessVariation, 255) + math.random(-maxColorVariation, maxColorVariation)
+				color[3] = math.min(color[3] + brightnessVariation, 255) + math.random(-maxColorVariation, maxColorVariation)
+				Spring.SetTeamColor(
+					teamID,
+					color[1] / 255,
+					color[2] / 255,
+					color[3] / 255
+				)
+
+			-- auto ffa gradient colored for huge player games
+			elseif
+				not teamColors[allyTeamCount] or not teamColors[allyTeamCount][1][#Spring.GetTeamList(allyTeamCount-1)] --or #Spring.GetTeamList() > 30
+			then
+				local brightnessVariation = (0.7 - ((1.1 / #Spring.GetTeamList(allyTeamID)) * dimmingCount[allyTeamID])) * 255
+				local maxColorVariation = math.floor(11 + (90 / (allyTeamCount)))
+				local color = hex2RGB(ffaColors[allyTeamID+1] or '#333333')
+				if teamID == gaiaTeamID then
+					brightnessVariation = 0
+					maxColorVariation = 0
+					color = hex2RGB(gaiaGrayColor)
+				elseif teamID == myTeamID then
+					brightnessVariation = 0
+					maxColorVariation = 0
+					color[1] = color[1] + 210
+					color[2] = color[2] + 210
+					color[3] = color[3] + 210
+				elseif allyTeamID == myAllyTeamID then
+					brightnessVariation = brightnessVariation - 40
+					maxColorVariation = math.ceil(maxColorVariation * 1.2)
+				end
+				color[1] = math.min(color[1] + brightnessVariation, 255) + math.random(-maxColorVariation, maxColorVariation)
+				color[2] = math.min(color[2] + brightnessVariation, 255) + math.random(-maxColorVariation, maxColorVariation)
+				color[3] = math.min(color[3] + brightnessVariation, 255) + math.random(-maxColorVariation, maxColorVariation)
+				Spring.SetTeamColor(
+					teamID,
+					color[1] / 255,
+					color[2] / 255,
+					color[3] / 255
+				)
 
 			else
 				Spring.SetTeamColor(teamID, r, g, b)
