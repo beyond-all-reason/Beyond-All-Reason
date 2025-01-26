@@ -489,9 +489,6 @@ if gadgetHandler:IsSyncedCode() then
 				and teamColors[allyTeamCount][teamSizes[allyTeamID][1]]
 			then -- And this team number exists in the color set
 				if not teamColors[allyTeamCount][teamSizes[allyTeamID][1]][teamSizes[allyTeamID][2]] then -- If we have no color for this player anymore
-					if Spring.GetModOptions().teamcolors_forcesimple == "bigteamsonly" then
-						Spring.SetGameRulesParam("ForcedSimpleColors", 1)
-					end
 					teamSizes[allyTeamID][2] = 1 -- Starting from the first color again..
 					teamSizes[allyTeamID][3] = teamSizes[allyTeamID][3] + colorVariationDelta -- ..but adding random color variations with increasing amplitude with every cycle
 				end
@@ -548,7 +545,6 @@ else -- UNSYNCED
 	local myPlayerID = Spring.GetLocalPlayerID()
 	local mySpecState = Spring.GetSpectatingState()
 	local teamColorsTable = {}
-	ForcedSimpleColors = Spring.GetModOptions().teamcolors_forcesimple == "alwaysenabled" or (Spring.GetGameRulesParam("ForcedSimpleColors") and Spring.GetGameRulesParam("ForcedSimpleColors") == 1)
 
 	local function setUpLocalTeamColor(teamID, allyTeamID, isAI)
 		if anonymousMode ~= "disabled" and anonymousMode ~= "global" then
@@ -713,9 +709,6 @@ else -- UNSYNCED
 			discoShuffle(myTeamID)
 		end
 
-		local next_team_brightness_offset = 1.0
-		local next_opponent_brightness_offset = 1.0
-
 		local dimmingCount = {}
         for _, allyTeamID in ipairs(Spring.GetAllyTeamList()) do
 			dimmingCount[allyTeamID] = 0
@@ -743,14 +736,14 @@ else -- UNSYNCED
 				)
 
 			elseif
-				Spring.GetModOptions().teamcolors_forcesimple == "bigteamsonly"
+				not teamColors[allyTeamCount] or not teamColors[allyTeamCount-1][1][#Spring.GetTeamList(allyTeamCount-1)]  -- or #Spring.GetTeamList() > 33
 			then
 				local color = hex2RGB(ffaColors[allyTeamID+1] or '#333333')
 				if teamID == gaiaTeamID then
 					color = hex2RGB(gaiaGrayColor)
 				else
 					local brightnessVariation = (0.55 - ((1 / #Spring.GetTeamList(allyTeamID)) * (dimmingCount[allyTeamID]))) * 255
-					local maxColorVariation = math.floor(10 + (70 / (#Spring.GetAllyTeamList()-1)))
+					local maxColorVariation = math.floor(10 + (70 / (allyTeamCount)))
 					color[1] = math.min(color[1] + brightnessVariation, 255) + math.random(-maxColorVariation, maxColorVariation)
 					color[2] = math.min(color[2] + brightnessVariation, 255) + math.random(-maxColorVariation, maxColorVariation)
 					color[3] = math.min(color[3] + brightnessVariation, 255) + math.random(-maxColorVariation, maxColorVariation)
@@ -763,7 +756,7 @@ else -- UNSYNCED
 				)
 
 			elseif
-				Spring.GetConfigInt("SimpleTeamColors", 0) == 1 or (anonymousMode == "allred" and not mySpecState) or ForcedSimpleColors == true
+				Spring.GetConfigInt("SimpleTeamColors", 0) == 1 or (anonymousMode == "allred" and not mySpecState)
 			then
 				if teamID == myTeamID then
 					Spring.SetTeamColor(
@@ -775,23 +768,17 @@ else -- UNSYNCED
 				elseif allyTeamID == myAllyTeamID then
 					Spring.SetTeamColor(
 						teamID,
-						next_team_brightness_offset * Spring.GetConfigInt("SimpleTeamColorsAllyR", 0) / 255,
-						next_team_brightness_offset * Spring.GetConfigInt("SimpleTeamColorsAllyG", 255) / 255,
-						next_team_brightness_offset * Spring.GetConfigInt("SimpleTeamColorsAllyB", 0) / 255
+						Spring.GetConfigInt("SimpleTeamColorsAllyR", 0) / 255,
+						Spring.GetConfigInt("SimpleTeamColorsAllyG", 255) / 255,
+						Spring.GetConfigInt("SimpleTeamColorsAllyB", 0) / 255
 					)
-					if (Spring.GetConfigInt("SimpleTeamColorsUseGradient", 0) == 1 or ForcedSimpleColors == true) and anonymousMode ~= "allred" then
-						next_team_brightness_offset = dimming_factor * next_team_brightness_offset
-					end
 				elseif allyTeamID ~= myAllyTeamID and teamID ~= gaiaTeamID then
 					Spring.SetTeamColor(
 						teamID,
-						next_opponent_brightness_offset * Spring.GetConfigInt("SimpleTeamColorsEnemyR", 255) / 255,
-						next_opponent_brightness_offset * Spring.GetConfigInt("SimpleTeamColorsEnemyG", 16) / 255,
-						next_opponent_brightness_offset * Spring.GetConfigInt("SimpleTeamColorsEnemyB", 5) / 255
+						Spring.GetConfigInt("SimpleTeamColorsEnemyR", 255) / 255,
+						Spring.GetConfigInt("SimpleTeamColorsEnemyG", 16) / 255,
+						Spring.GetConfigInt("SimpleTeamColorsEnemyB", 5) / 255
 					)
-					if (Spring.GetConfigInt("SimpleTeamColorsUseGradient", 0) == 1 or ForcedSimpleColors == true) and anonymousMode ~= "allred" then
-						next_opponent_brightness_offset = dimming_factor * next_opponent_brightness_offset
-					end
 				else
 					Spring.SetTeamColor(
 						teamID,
