@@ -1,0 +1,97 @@
+/*
+* Default styles for all the basic elements.
+*/
+
+* {
+    box-sizing: border-box;
+    font-family: "Exo 2";
+    font-size: 20px;
+}
+
+body, div, p, hr, pre,
+h1, h2, h3, h4, h5, h6,
+tabset tabs {
+    display: block;
+}
+
+h1 {
+    font-size: 2em;
+    margin: .5em 0;
+}
+
+h2 {
+    font-size: 1.5em;
+    margin: .5em 0;
+}
+
+h3 {
+    font-size: 1.17em;
+    margin: .5em 0;
+}
+
+h4 {
+    margin: .5em 0;
+}
+
+h5 {
+    font-size: .83em;
+    margin: .25em 0;
+}
+
+h6 {
+    font-size: .75em;
+    margin: .25em 0;
+}
+
+h1, h2, h3, h4,
+h5, h6, strong {
+    font-weight: bold;
+}
+
+em {
+    font-style: italic;
+}
+
+pre {
+    white-space: pre;
+}
+
+hr {
+    border-width: 1px;
+}
+
+table {
+    box-sizing: border-box;
+    display: table;
+}
+
+tr {
+    box-sizing: border-box;
+    display: table-row;
+}
+
+td {
+    box-sizing: border-box;
+    display: table-cell;
+}
+
+col {
+    box-sizing: border-box;
+    display: table-column;
+}
+
+colgroup {
+    display: table-column-group;
+}
+
+thead, tbody, tfoot {
+    display: table-row-group;
+}
+
+handle[size_target] {
+    cursor: nwse-resize;
+}
+
+handle[move_target] {
+    cursor: move;
+}
