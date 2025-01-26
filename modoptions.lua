@@ -162,6 +162,20 @@ local options = {
     },
 
     {
+        key     = "teamcolors_forcesimple",
+        name    = "Force Simple Teamcolors",
+        desc    = "Forces Simple Teamcolors for everyone in the match, to make it easier to tell who is in which team in bigger than normal matches.",
+        type    = "list",
+        section = "options_main",
+        def     = "bigteamsonly",
+        items 	= {
+            { key = "disabled",         name = "Always Disabled" },
+            { key = "alwaysenabled",    name = "Always Enabled"},
+            { key = "bigteamsonly",     name = "Enabled in Huge Matches",                desc = "Only Enabled when there's not enough colors in the palette" },
+        },
+    },
+
+    {
         key		= "transportenemy",
         name	= "Enemy Transporting",
         desc	= "Toggle which enemy units you can kidnap with an air transport",

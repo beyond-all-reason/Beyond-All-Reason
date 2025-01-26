@@ -432,6 +432,9 @@ if gadgetHandler:IsSyncedCode() then
 			Spring.SetTeamRulesParam(teamID, "AutoTeamColorBlue", hex2RGB(gaiaGrayColor)[3])
 		elseif isSurvival then
 			if not survivalColors[survivalColorNum] then -- If we have no color for this team anymore
+				if Spring.GetModOptions().teamcolors_forcesimple == "bigteamsonly" then
+					Spring.SetGameRulesParam("ForcedSimpleColors", 1) 
+				end
 				survivalColorNum = 1 -- Starting from the first color again..
 				survivalColorVariation = survivalColorVariation + colorVariationDelta -- ..but adding random color variations with increasing amplitude with every cycle
 			end
@@ -458,6 +461,9 @@ if gadgetHandler:IsSyncedCode() then
 			survivalColorNum = survivalColorNum + 1 -- Will start from the next color next time
 		elseif useFFAColors then
 			if not ffaColors[ffaColorNum] then -- If we have no color for this team anymore
+				if Spring.GetModOptions().teamcolors_forcesimple == "bigteamsonly" then
+					Spring.SetGameRulesParam("ForcedSimpleColors", 1) 
+				end
 				ffaColorNum = 1 -- Starting from the first color again..
 				ffaColorVariation = ffaColorVariation + colorVariationDelta -- ..but adding random color variations with increasing amplitude with every cycle
 			end
@@ -489,6 +495,9 @@ if gadgetHandler:IsSyncedCode() then
 				and teamColors[allyTeamCount][teamSizes[allyTeamID][1]]
 			then -- And this team number exists in the color set
 				if not teamColors[allyTeamCount][teamSizes[allyTeamID][1]][teamSizes[allyTeamID][2]] then -- If we have no color for this player anymore
+					if Spring.GetModOptions().teamcolors_forcesimple == "bigteamsonly" then
+						Spring.SetGameRulesParam("ForcedSimpleColors", 1) 
+					end
 					teamSizes[allyTeamID][2] = 1 -- Starting from the first color again..
 					teamSizes[allyTeamID][3] = teamSizes[allyTeamID][3] + colorVariationDelta -- ..but adding random color variations with increasing amplitude with every cycle
 				end
@@ -545,6 +554,7 @@ else -- UNSYNCED
 	local myPlayerID = Spring.GetLocalPlayerID()
 	local mySpecState = Spring.GetSpectatingState()
 	local teamColorsTable = {}
+	ForcedSimpleColors = Spring.GetModOptions().teamcolors_forcesimple == "alwaysenabled" or (Spring.GetGameRulesParam("ForcedSimpleColors") and Spring.GetGameRulesParam("ForcedSimpleColors") == 1)
 
 	local function setUpLocalTeamColor(teamID, allyTeamID, isAI)
 		if anonymousMode ~= "disabled" and anonymousMode ~= "global" then
@@ -732,7 +742,7 @@ else -- UNSYNCED
 					hex2RGB(iconDevModeColor)[3] / 255
 				)
 			elseif
-				Spring.GetConfigInt("SimpleTeamColors", 0) == 1 or (anonymousMode == "allred" and not mySpecState)
+				Spring.GetConfigInt("SimpleTeamColors", 0) == 1 or (anonymousMode == "allred" and not mySpecState) or ForcedSimpleColors == true
 			then
 				local allyTeamID = select(6, Spring.GetTeamInfo(teamID))
 				if teamID == myTeamID then
@@ -749,7 +759,7 @@ else -- UNSYNCED
 						next_team_brightness_offset * Spring.GetConfigInt("SimpleTeamColorsAllyG", 255) / 255,
 						next_team_brightness_offset * Spring.GetConfigInt("SimpleTeamColorsAllyB", 0) / 255
 					)
-					if Spring.GetConfigInt("SimpleTeamColorsUseGradient", 0) == 1 and anonymousMode ~= "allred" then
+					if (Spring.GetConfigInt("SimpleTeamColorsUseGradient", 0) == 1 or ForcedSimpleColors == true) and anonymousMode ~= "allred" then
 						next_team_brightness_offset = dimming_factor * next_team_brightness_offset
 					end
 				elseif allyTeamID ~= myAllyTeamID and teamID ~= gaiaTeamID then
@@ -759,7 +769,7 @@ else -- UNSYNCED
 						next_opponent_brightness_offset * Spring.GetConfigInt("SimpleTeamColorsEnemyG", 16) / 255,
 						next_opponent_brightness_offset * Spring.GetConfigInt("SimpleTeamColorsEnemyB", 5) / 255
 					)
-					if Spring.GetConfigInt("SimpleTeamColorsUseGradient", 0) == 1 and anonymousMode ~= "allred" then
+					if (Spring.GetConfigInt("SimpleTeamColorsUseGradient", 0) == 1 or ForcedSimpleColors == true) and anonymousMode ~= "allred" then
 						next_opponent_brightness_offset = dimming_factor * next_opponent_brightness_offset
 					end
 				else
