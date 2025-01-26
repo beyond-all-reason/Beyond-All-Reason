@@ -736,7 +736,7 @@ else -- UNSYNCED
 				)
 
 			elseif
-				not teamColors[allyTeamCount] or not teamColors[allyTeamCount-1][1][#Spring.GetTeamList(allyTeamCount-1)]  -- or #Spring.GetTeamList() > 33
+				not teamColors[allyTeamCount] or not teamColors[allyTeamCount][1][#Spring.GetTeamList(allyTeamCount-1)] --or #Spring.GetTeamList() > 30
 			then
 				local color = hex2RGB(ffaColors[allyTeamID+1] or '#333333')
 				if teamID == gaiaTeamID then
