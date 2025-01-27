@@ -748,8 +748,8 @@ else -- UNSYNCED
 							totalEnemyDimmingCount = totalEnemyDimmingCount + count
 						end
 					end
-					brightnessVariation = (0.7 - ((1.1 / numEnemies) * totalEnemyDimmingCount)) * 255
-					maxColorVariation = math.floor(11 + (90 / (allyTeamCount)))
+					brightnessVariation = (0.7 - ((1.2 / numEnemies) * totalEnemyDimmingCount)) * 255
+					maxColorVariation = 100
 				end
 				local color = hex2RGB(ffaColors[allyTeamID+1] or '#333333')
 				if teamID == gaiaTeamID then
@@ -779,8 +779,8 @@ else -- UNSYNCED
 			elseif
 				not teamColors[allyTeamCount] or not teamColors[allyTeamCount][1][#Spring.GetTeamList(allyTeamCount-1)] --or #Spring.GetTeamList() > 30
 			then
-				local brightnessVariation = (0.7 - ((1.1 / #Spring.GetTeamList(allyTeamID)) * dimmingCount[allyTeamID])) * 255
-				local maxColorVariation = math.floor(11 + (90 / (allyTeamCount)))
+				local brightnessVariation = (0.7 - ((1.05 / #Spring.GetTeamList(allyTeamID)) * dimmingCount[allyTeamID])) * 255
+				local maxColorVariation = (120 / (allyTeamCount-1))
 				local color = hex2RGB(ffaColors[allyTeamID+1] or '#333333')
 				if teamID == gaiaTeamID then
 					brightnessVariation = 0
