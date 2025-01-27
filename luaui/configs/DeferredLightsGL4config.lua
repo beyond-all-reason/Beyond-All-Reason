@@ -621,6 +621,15 @@ local unitLights = {
 							modelfactor = 0.4, specular = 0.3, scattering = 0.15, lensflare = 0,
 							lifetime = 0, sustain = 0, selfshadowing = 0},
 		},
+		searchlight = { -- this is the lightname
+			lightType = 'cone',
+			pieceName = 'xturret', -- invalid ones will attach to the worldpos of the unit
+			lightConfig = { posx = 0, posy = 9.5, posz = 11, radius = 475,
+							dirx = 0, diry = 0.4, dirz = 1, theta = 0.12,
+							r = 1, g = 1, b = 1, a = 0.45, colortime = -1.5,
+						 	modelfactor = 0, specular = 0.5, scattering = 2, lensflare = 0,
+							lifetime = 0, sustain = 0, selfshadowing = 0},
+		},
 		antennaaa = {
 			lightType = 'point',
 			pieceName = 'xturret',
