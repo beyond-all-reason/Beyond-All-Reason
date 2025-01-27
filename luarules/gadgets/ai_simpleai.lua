@@ -248,7 +248,7 @@ local function SimpleBuildOrder(cUnitID, building)
 				numtests = numtests+1
 				local buildnear = units[random(1, #units)]
 				local refDefID = spGetUnitDefID(buildnear)
-				if isBuilding[unitDefID] or isCommander[refDefID] then
+				if isBuilding[refDefID] or isCommander[refDefID] then
 					local refx, _, refz = spGetUnitPosition(buildnear)
 					local reffootx = (isBuilding[refDefID] and isBuilding[refDefID][1] or isCommander[refDefID][1]) * 8
 					local reffootz = (isBuilding[refDefID] and isBuilding[refDefID][2] or isCommander[refDefID][2]) * 8
