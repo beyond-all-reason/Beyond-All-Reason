@@ -27,8 +27,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 function gadget:Initialize()
-	Spring.SetExperienceGrade(0.1)
+	Spring.SetExperienceGrade(0.1) --without this, gadget:UnitExperience doesn't work at all.
 end
+
 function gadget:UnitExperience(unitID, unitDefID, unitTeam, xp, oldxp)
 	if gainsRangeFromXp[unitDefID] then
 		local rangeXPScale, originalRange = unpack(gainsRangeFromXp[unitDefID])
