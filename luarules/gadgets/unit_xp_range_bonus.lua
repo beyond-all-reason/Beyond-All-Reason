@@ -27,7 +27,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 function gadget:Initialize()
-	Spring.SetExperienceGrade(0.1) --without this, gadget:UnitExperience doesn't work at all.
+	Spring.SetExperienceGrade(0.01) --without this, gadget:UnitExperience doesn't work at all.
 end
 
 function gadget:UnitExperience(unitID, unitDefID, unitTeam, xp, oldxp)
