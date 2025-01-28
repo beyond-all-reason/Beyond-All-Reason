@@ -151,6 +151,18 @@ local BaseClasses = {
 			lifetime = 12, sustain = 3, selfshadowing = 4, 
 		},
 	},
+	ExplosionXL = { -- spawned on explosions
+		lightType = 'point', -- or cone or beam
+		yOffset = 0, -- Y offsets are only ever used for explosions!
+		lightConfig = {
+			posx = 0, posy = 0, posz = 0, radius = 240,
+			dirx = 0, diry = 5, dirz = 0, theta = 0.93, -- Give explosions a bit of a vertical bounce component
+			r = 2, g = 2, b = 2, a = 0.6,
+			color2r = 0.7, color2g = 0.55, color2b = 0.28, colortime = 0.1, -- point lights only, colortime in seconds for unit-attached
+			modelfactor = 0.15, specular = 0.15, scattering = 0.4, lensflare = 1,
+			lifetime = 12, sustain = 3, selfshadowing = 4, 
+		},
+	},
 
 	ExplosionEMP = { -- spawned on explosions
 		lightType = 'point', -- or cone or beam
@@ -627,7 +639,7 @@ GetLightClass("MuzzleFlash", nil, "Large", {
 muzzleFlashLightsNames["corint_lrpc"].yOffset = 16
 
 explosionLightsNames["corint_lrpc"] =
-GetLightClass("Explosion", nil, "Large", {colortime = 4, sustain = 12, lifetime = 26, scattering = 0.7})
+GetLightClass("ExplosionXL", nil, "Large", {colortime = 4, sustain = 12, lifetime = 26, scattering = 0.7})
 
 -- muzzleFlashLightsNames["corint_lrpc"] =
 -- GetLightClass("MuzzleFlash", nil, "Large", {posx = 0, posy = 0, posz = 0, radius = 240,
@@ -654,7 +666,7 @@ GetLightClass("MuzzleFlash", nil, "Medium", {
 muzzleFlashLightsNames["armbrtha_lrpc"].yOffset = 8
 
 explosionLightsNames["armbrtha_lrpc"] =
-GetLightClass("Explosion", nil, "Large", {
+GetLightClass("ExplosionXL", nil, "Large", {
 	colortime = 4, sustain = 12, lifetime = 26, scattering = 0.7})
 
 --armvulc
@@ -666,7 +678,7 @@ GetLightClass("MuzzleFlash", nil, "Medium", {posx = 0, posy = 0, posz = 0,
 											 lifetime = 17, sustain = 2})
 muzzleFlashLightsNames["armvulc_rflrpc"].yOffset = 4
 explosionLightsNames["armvulc_rflrpc"] =
-GetLightClass("Explosion", nil, "Large", {colortime = 3.5, sustain = 14, lifetime = 26, scattering = 0.7})
+GetLightClass("ExplosionXL", nil, "Large", {colortime = 3.5, sustain = 14, lifetime = 26, scattering = 0.7})
 
 -- projectileDefLightsNames["armvulc_rflrpc"] =
 -- GetLightClass("MissileProjectile", "Warm", "Large", {a = 1.6,
@@ -682,7 +694,7 @@ GetLightClass("MuzzleFlash", nil, "Medium", {posx = 0, posy = 0, posz = 0,
 											 lifetime = 20, sustain = 2})
 muzzleFlashLightsNames["corbuzz_rflrpc"].yOffset = 4
 explosionLightsNames["corbuzz_rflrpc"] =
-GetLightClass("Explosion", nil, "Large", {colortime = 3.5, sustain = 14, lifetime = 26, scattering = 0.7})
+GetLightClass("ExplosionXL", nil, "Large", {colortime = 3.5, sustain = 14, lifetime = 26, scattering = 0.7})
 
 
 -- --cortex anitnuke engine exhaust
@@ -737,13 +749,18 @@ GetLightClass("Explosion", nil, "Giga", {r = 3, g = 2.9, b = 2.8, a = 0.18,
 
 projectileDefLightsNames["armguardnuke_plasma"] =
 GetLightClass("MissileProjectile", "Warm", "Medium", {a = 0.4,
-													 modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0})
+										modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0})
+
+projectileDefLightsNames["armguardnuke_plasma_high"] =
+GetLightClass("MissileProjectile", "Warm", "Medium", {a = 0.4,
+										modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0})
+																				
 
 
 --armsilo engine
 projectileDefLightsNames["armsilo_nuclear_missile"] =
 GetLightClass("MissileProjectile", "Warm", "Large", {a = 0.6,
-													 modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0})
+										modelfactor = 0.1, specular = 0.1, scattering = 0.5, lensflare = 0})
 
 --armsilo SCAV
 explosionLightsNames["armsilo_scav_nuclear_missile"] =

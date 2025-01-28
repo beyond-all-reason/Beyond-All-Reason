@@ -165,12 +165,12 @@ local BaseClasses = {
 		distortionType = 'beam', -- or cone or beam
 		distortionConfig = {
 				posx = 0, posy = 10, posz = 0, radius = 10,
-				noiseStrength = 1.0, noiseScaleSpace = 0.17, distanceFalloff = 1.0,
-				effectStrength = 2.0,
+				noiseStrength = 0.7, noiseScaleSpace = 0.07, distanceFalloff = 2.5,
+				effectStrength = 4.0,
 				--windAffected = 2, riseRate = 2,
 				windAffected = -1, riseRate = -0.6,
 				pos2x = 100, pos2y = 1000, pos2z = 100, -- beam distortions only, specifies the endpoint of the beam
-				lifeTime = 0, rampUp = 1, decay = 1, effectType = 0, 
+				lifeTime = 0, rampUp = 0, decay = 0, effectType = 0, 
 		},
 	},
 
@@ -178,13 +178,26 @@ local BaseClasses = {
 		distortionType = 'beam', -- or cone or beam
 		distortionConfig = {
 				posx = 0, posy = 10, posz = 0, radius = 10,
-				noiseStrength = 1.0, noiseScaleSpace = 0.18, distanceFalloff = 1.0,
+				noiseStrength = 1.0, noiseScaleSpace = 0.16, distanceFalloff = 1.0,
 				effectStrength = 2.5,
 				--onlyModelMap = 1, 
 				--windAffected = 2, riseRate = 2,
 				windAffected = -1, riseRate = -3.2,
 				pos2x = 100, pos2y = 100, pos2z = 100, -- beam distortions only, specifies the endpoint of the beam
 				lifeTime = 0, rampUp = 0, decay = 2, effectType = 0, 
+		},
+	},
+	EMPBeamXL = {
+		distortionType = 'beam', -- or cone or beam
+		distortionConfig = {
+				posx = 0, posy = 10, posz = 0, radius = 10,
+				noiseStrength = 1.0, noiseScaleSpace = 0.12, distanceFalloff = 0.5,
+				effectStrength = 3.0,
+				--onlyModelMap = 1, 
+				--windAffected = 2, riseRate = 2,
+				windAffected = -1, riseRate = -2.2,
+				pos2x = 100, pos2y = 100, pos2z = 100, -- beam distortions only, specifies the endpoint of the beam
+				lifeTime = 0, rampUp = 0, decay = 1, effectType = 0, 
 		},
 	},
 
@@ -334,8 +347,8 @@ local BaseClasses = {
 		distortionType = 'point', -- or cone or beam
 		distortionConfig = { posx = 0, posy = 0, posz = 0, radius = 150,
 			noiseScaleSpace = 0.05, noiseStrength = 0.2, onlyModelMap = 0,  
-			lifeTime = 45, refractiveIndex = 1.1, decay = 4, rampUp = 1,
-			effectStrength = 20.0, startRadius = 0.2, shockWidth = -0.60,--needed for airshockwaves
+			lifeTime = 25, refractiveIndex = 1.1, decay = 20, rampUp = 1,
+			effectStrength = 20.0, startRadius = 0.2, shockWidth = -0.70,--needed for airshockwaves
 			effectType = "airShockwave", },
 
 	},
@@ -1263,11 +1276,17 @@ projectileDefDistortionsNames["corkorg_corkorg_laser"] =
 projectileDefDistortionsNames["armspid_spider"] = --doesnt work on lightning cannon
 	GetDistortionClass("EMPBeam", "Quaco")
 
+projectileDefDistortionsNames["armdfly_armdfly_paralyzer"] = --doesnt work on lightning cannon
+	GetDistortionClass("EMPBeamXL", "Zetto")
+
 projectileDefDistortionsNames["corbw_bladewing_lyzer"] = --doesnt work on lightning cannon
 	GetDistortionClass("EMPBeam", "Quaco")
 
 projectileDefDistortionsNames["armclaw_dclaw"] = --doesnt work on lightning cannon
 	GetDistortionClass("LightningBeam", "Femto")
+
+projectileDefDistortionsNames["armthor_emp"] = --doesnt work on lightning cannon
+	GetDistortionClass("EMPBeam", "Quaco")
 
 -- projectileDefDistortionsNames["armzeus_lightning"] = --doesnt work on lightning cannon
 -- 	GetDistortionClass("LightningBeam", "Atto")
@@ -1276,7 +1295,7 @@ projectileDefDistortionsNames["armclaw_dclaw"] = --doesnt work on lightning cann
 -- 	GetDistortionClass("LightningBeam", "Femto")
 
 projectileDefDistortionsNames["armthor_thunder"] = --doesnt work on lightning cannon
-	GetDistortionClass("LightningBeam", "Femto")
+	GetDistortionClass("LightningBeam", "Pico")
 
 muzzleFlashDistortionsNames['armthor_thunder'] = {
 	GetDistortionClass("MuzzleShockWave", "Micro")
@@ -1329,27 +1348,51 @@ explosionDistortionsNames['armliche_arm_pidr'] = {
 }
 
 explosionDistortionsNames['armsilo_nuclear_missile'] = {
-	GetDistortionClass("GroundShockWaveNuke", "Giga"),
-	GetDistortionClass("AirShockWaveNukeBlast", "MegaXXL"),
-	GetDistortionClass("AirShockWaveNuke", "MegaXL"),
-	GetDistortionClass("ExplosionHeatNuke", "Larger"),	
+	GetDistortionClass("ExplosionHeatNuke", "Larger"),
+	GetDistortionClass("AirShockWaveNuke", "Armnuke"),
+	GetDistortionClass("GroundShockWaveNuke", "Armnuke"),
+	-- GetDistortionClass("GroundShockWaveNuke", "Giga"),
+	-- GetDistortionClass("AirShockWaveNukeBlast", "MegaXXL"),
+	-- GetDistortionClass("AirShockWaveNuke", "MegaXL"),
+	-- GetDistortionClass("ExplosionHeatNuke", "Larger"),	
 }
+
+projectileDefDistortionsNames["armsilo_nuclear_missile"] = --armnuke
+	GetDistortionClass("MissileNukeProjectile", "Large")
+
+explosionDistortionsNames['corsilo_crblmssl'] = {
+	GetDistortionClass("ExplosionHeatNuke", "Mega"),
+	GetDistortionClass("AirShockWaveNuke", "Cornuke"),
+	GetDistortionClass("GroundShockWaveNuke", "Cornuke"),
+	-- GetDistortionClass("GroundShockWaveNuke", "Giga"),
+	-- GetDistortionClass("AirShockWaveNukeBlast", "MegaXXL"),
+	-- GetDistortionClass("AirShockWaveNuke", "MegaXL"),
+	-- GetDistortionClass("ExplosionHeatNuke", "Larger"),	
+}
+
+projectileDefDistortionsNames["corsilo_crblmssl"] = --armnuke
+	GetDistortionClass("MissileNukeProjectile", "Large")
 
 explosionDistortionsNames['armguardnuke_plasma'] = {
 	GetDistortionClass("ExplosionHeatNuke", "Larger"),
 	GetDistortionClass("AirShockWaveNuke", "Armnuke"),
-	--GetDistortionClass("ExplosionRadiationNuke", "Larger"), --no use yet
 	GetDistortionClass("GroundShockWaveNuke", "Armnuke"),
+	--GetDistortionClass("ExplosionRadiationNuke", "Larger"), --no use yet
 	--GetDistortionClass("AirShockWaveNukeBlast", "MegaXXL"),
 	
 }
-projectileDefDistortionsNames["armguardnuke_plasma"] =
+projectileDefDistortionsNames["armguardnuke_plasma"] = --armnuke
 	GetDistortionClass("MissileNukeProjectile", "Large")
 
-explosionDistortionsNames['armguardnuke_plasma_high'] = {
-	GetDistortionClass("GroundShockWave", "Medium"),
+projectileDefDistortionsNames["armguardnuke_plasma_high"] = --armnuke
+	GetDistortionClass("MissileNukeProjectile", "Large")
+
+explosionDistortionsNames['armguardnuke_plasma_high'] = { --cornuke
+	GetDistortionClass("ExplosionHeatNuke", "Mega"),
+	--GetDistortionClass("GroundShockWave", "Medium"),
 	GetDistortionClass("AirShockWaveNuke", "Cornuke"),
-	GetDistortionClass("ExplosionHeat", "Smallest"),	
+	GetDistortionClass("GroundShockWaveNuke", "Cornuke"),
+	--GetDistortionClass("ExplosionHeat", "Smallest"),	
 }
 
 explosionDistortionsNames['corton_cortron_weapon'] = {
