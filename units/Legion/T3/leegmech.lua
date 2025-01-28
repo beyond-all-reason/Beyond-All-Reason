@@ -154,7 +154,7 @@ return {
 					area_onhit_damage = 30,
 					area_onhit_range = 75,
 					area_onhit_time = 10,
-					projectile_overrange_distance = 805,
+					overrange_distance = 805,
 					projectile_destruction_method = "descend",
 				},
 				damage = {

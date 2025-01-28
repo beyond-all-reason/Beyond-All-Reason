@@ -113,7 +113,7 @@ return {
 				cratermult = 0,
 				customparams = {
 					projectile_destruction_method = "descend",
-					projectile_overrange_distance = 805,
+					overrange_distance = 805,
 				},
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-tiny-aa",
@@ -227,7 +227,7 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 600,
 				customparams = {
-					projectile_overrange_distance = 690,
+					overrange_distance = 690,
 					projectile_destruction_method = "descend",
 					speceffect = "retarget",
 					when = "always",
