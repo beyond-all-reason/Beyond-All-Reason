@@ -18,6 +18,7 @@ if not gadgetHandler:IsSyncedCode() then return end
 -- use weaponDef customparams projectile_destruction_method = "string" to change how projectiles are destroyed.
 -- "explode" (default if undefined) detonates the projectile.
 -- "descend" moves the projectile downward until it is destroyed by collision event.
+-- "expire" sets the TTL (time to live) of the projectile to 0. Awaiting pending engine addition 1/27/25
 
 --static values
 local lateralMultiplier = 0.85
@@ -26,6 +27,7 @@ local descentSpeedStartingMultiplier = 0.15
 
 local descentModulo = math.floor(Game.gameSpeed / 4)
 local leashModulo = math.ceil(Game.gameSpeed / 3)
+local radiansToReach90Degrees = math.rad(90) --the turning period is negated from uptime frames for StarburstMissiles
 
 --functions
 local spGetUnitPosition = Spring.GetUnitPosition
@@ -36,6 +38,7 @@ local spGetProjectilePosition = Spring.GetProjectilePosition
 local spSetProjectileCollision = Spring.SetProjectileCollision
 local spGetProjectileVelocity = Spring.GetProjectileVelocity
 local spSetProjectileVelocity = Spring.SetProjectileVelocity
+local spSetProjectileTimeToLive = Spring.SetProjectileTimeToLive
 
 --tables
 local defWatchTable = {}
@@ -48,29 +51,51 @@ local leashWatch = {}
 --variables
 local gameFrame = 0
 
+local function calculateFlightFrames(startVelocity, maxVelocity, acceleration, totalDistance)
+    local currentVelocity = startVelocity
+    local distanceCovered = 0
+    local frames = 0
+    
+    while distanceCovered < totalDistance do
+        frames = frames + 1
+        distanceCovered = distanceCovered + currentVelocity
+        currentVelocity = math.min(currentVelocity + acceleration, maxVelocity)
+    end
+    
+    return frames
+end
+
+local function uptimeTurnFrames(turnRate)
+    local framesRequired = math.floor(radiansToReach90Degrees / turnRate)
+    return framesRequired
+end
 
 for weaponDefID, weaponDef in pairs(WeaponDefs) do
 	local customParams = weaponDef.customParams
 	if customParams.leash_distance or customParams.overrange_distance then
+
+		--populate def watch tables
 		local watchParams = {}
 		if customParams.leash_distance then
 			watchParams.leashRangeSq = tonumber(customParams.leash_distance) ^ 2
 		end
-
 		local overRange = tonumber(customParams.overrange_distance) or weaponDef.range
 		watchParams.overRange = overRange
 
+		--accurately predict what frame the desired overrange will be reached
 		local ascentFrames = 0
 		if weaponDef.type == "StarburstLauncher" then
-			ascentFrames = weaponDef.uptime * Game.gameSpeed
+			ascentFrames = math.floor(weaponDef.uptime * Game.gameSpeed - uptimeTurnFrames(weaponDef.turnRate)) or 0
 		end
-		watchParams.flightTimeFrames =
-		math.max(math.floor(((overRange / weaponDef.projectilespeed) + ascentFrames)), 1)
+		watchParams.flightTimeFrames = calculateFlightFrames(weaponDef.startvelocity, weaponDef.projectilespeed, weaponDef.weaponAcceleration, overRange) + ascentFrames
 		watchParams.weaponDefID = weaponDefID
 
+		--destruction methods
 		local destructionMethod = customParams.projectile_destruction_method or "explode"
 		if destructionMethod == "descend" then
 			watchParams.descentMethod = true
+		elseif destructionMethod == "expire" then
+			watchParams.expireMethod = true
 		end
 
 		defWatchTable[weaponDefID] = watchParams
@@ -101,7 +126,7 @@ local function recalculateFlightTime(proID, maxRange, x1, z1, x2, z2)
     -- Check if the projectile is within the max range
     if distance < maxRange then
         local vx, _, vz = spGetProjectileVelocity(proID)
-        if not vx then return false end
+        if not vx then return false end --invalid projectile
 
 		local remainingDistance = maxRange - distance
 
@@ -116,7 +141,7 @@ local function recalculateFlightTime(proID, maxRange, x1, z1, x2, z2)
 end
 
 local function setDestructionFrame(proID, newFlightTime)
-	local triggerFrame = gameFrame + newFlightTime --mathCeil(gameFrame + mathRandom(projectileWatchModulus))
+	local triggerFrame = gameFrame + newFlightTime
 
 	killQueue[triggerFrame] = killQueue[triggerFrame] or {}
 	killQueue[triggerFrame][#killQueue[triggerFrame] + 1] = proID
@@ -199,6 +224,8 @@ function gadget:GameFrame(frame)
 				local defData = defWatchTable[proData.weaponDefID]
 				if defData.descentMethod then
 					descentTable[proID] = descentMultiplier
+				elseif defData.expireMethod then
+					spSetProjectileTimeToLive(proID, frame)
 				else
 					spSetProjectileCollision(proID)
 				end
