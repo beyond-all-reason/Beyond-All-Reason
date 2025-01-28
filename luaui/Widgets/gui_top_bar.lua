@@ -335,7 +335,7 @@ local function updateButtons()
 		if isSinglePlayer and allowSavegame and WG['savegame'] ~= nil then
 			addButton('save', Spring.I18N('ui.topbar.button.save'))
 		end
-
+		addButton('test', Spring.I18N('ui.topbar.button.test'))
 		buttonsArea['buttons'][lastbutton][1] = buttonsArea['buttons'][lastbutton][1] - sidePadding
 		offset = offset + sidePadding
 
@@ -1771,6 +1771,9 @@ local function applyButtonAction(button)
 			Spring.SendCommands('endgraph 2')
 			graphsWindowVisible = true
 		end
+	elseif button == 'test' then
+		hideWindows()
+		Spring.SendCommands('!stop')
 	end
 end
 
