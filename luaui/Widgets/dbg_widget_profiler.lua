@@ -19,31 +19,31 @@ local usePrefixedNames = true
 
 local tick = 0.1
 local averageTime = 0.5
+local retainSortTime = 7
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
 local spGetLuaMemUsage = Spring.GetLuaMemUsage
 
-
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 local prefixedWnames = {}
+local prefixColor = {
+	gui = '\255\100\222\100',
+	gfx = '\255\222\160\100',
+	game = '\255\166\166\255',
+	cmd = '\255\166\255\255',
+	unit = '\255\255\166\255',
+	map = '\255\122\122\122',
+	dbg = '\255\088\088\088',
+}
 local function ConstructPrefixedName (ghInfo)
 	local gadgetName = ghInfo.name
 	local baseName = ghInfo.basename
 	local _pos = baseName:find("_", 1, true)
-	local prefix = ((_pos and usePrefixedNames) and (baseName:sub(1, _pos - 1) .. ": ") or "")
-	local prefixedGadgetName = "\255\200\200\200" .. prefix .. "\255\255\255\255" .. gadgetName
-
-	prefixedWnames[gadgetName] = prefixedGadgetName
+	local prefix = ((_pos and usePrefixedNames) and ((prefixColor[baseName:sub(1, _pos - 1)] and prefixColor[baseName:sub(1, _pos - 1)] or "\255\166\166\166") .. baseName:sub(1, _pos - 1) .. "     ") or "")
+	prefixedWnames[gadgetName] = prefix .. string.char(255, math.random(100, 255), math.random(100, 255), math.random(100, 255)) .. gadgetName .. "   "
 	return prefixedWnames[gadgetName]
 end
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 local callinStats = {}
 local highres
@@ -58,9 +58,6 @@ Spring.Echo("Profiler using highres timers", highres, Spring.GetConfigInt("UseHi
 
 local spDiffTimers = Spring.DiffTimers
 local s
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 local function ArrayInsert(t, f, g)
 	if f then
@@ -87,12 +84,6 @@ local function ArrayRemove(t, g)
 	end
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
--- make a table of the names of user widgets
-
-
 
 function widget:TextCommand(s)
 	local token = {}
@@ -115,15 +106,13 @@ function widget:TextCommand(s)
 end
 
 
+-- make a table of the names of user widgets
 local userWidgets = {}
 function widget:Initialize()
 	for name, wData in pairs(widgetHandler.knownWidgets) do
 		userWidgets[name] = (not wData.fromZip)
 	end
 end
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 local oldUpdateWidgetCallIn
 local oldInsertWidget
@@ -145,7 +134,7 @@ local function Hook(w, name)
 	local realFunc = w[name]
 	w["_old" .. name] = realFunc
 
-	if (widgetName == "Widget Profiler") then
+	if widgetName == "Widget Profiler" then
 		return realFunc -- don't profile the profilers callins (it works, but it is better that our DrawScreen call is unoptimized and expensive anyway!)
 	end
 
@@ -312,12 +301,12 @@ local lm, _, gm, _, um, _, sm, _ = spGetLuaMemUsage()
 local allOverTime = 0
 local allOverTimeSec = 0 -- currently unused
 local allOverSpace = 0
-local totalSpace = {}
+local avgTLoad = {}
 
 local sortedList = {}
 local function SortFunc(a, b)
 	if Spring.GetConfigInt("profiler_sort_by_load", 1) == 1 then
-		return a.tLoad > b.tLoad
+		return a.avgTLoad > b.avgTLoad
 	else
 		return a.plainname < b.plainname
 	end
@@ -466,15 +455,17 @@ function widget:DrawScreen()
 			allOverTimeSec = allOverTimeSec + t
 
 			local tLoad = timeLoadAverages[wname]
+			if not avgTLoad[wname] then
+				avgTLoad[wname] = tLoad * 0.6
+			end
+			avgTLoad[wname] = avgTLoad[wname] + tLoad / (retainSortTime / tick)
 			local sLoad = spaceLoadAverages[wname]
-			if tLoad >= Spring.GetConfigFloat("profiler_min_time", 0.05) or sLoad >= Spring.GetConfigFloat("profiler_min_memory", 5) then -- Only show heavy widgets
-				sortedList[n] = { plainname = wname, fullname = wname .. ' \255\200\200\200(' .. cmaxname_t .. ',' .. cmaxname_space .. ')', tLoad = tLoad, sLoad = sLoad, tTime = t / deltaTime }
+			if avgTLoad[wname] >= Spring.GetConfigFloat("profiler_min_time", 0.06) or sLoad >= Spring.GetConfigFloat("profiler_min_memory", 5) then -- Only show heavy widgets
+				sortedList[n] = { plainname = wname, fullname = wname .. ' \255\166\166\166(' .. cmaxname_t .. ',' .. cmaxname_space .. ')', tLoad = tLoad, sLoad = sLoad, tTime = t / deltaTime, avgTLoad = avgTLoad[wname] }
 				n = n + 1
 			end
 			allOverTime = allOverTime + tLoad
 			allOverSpace = allOverSpace + sLoad
-
-			
 		end
 		table.sort(sortedList, SortFunc)
 
