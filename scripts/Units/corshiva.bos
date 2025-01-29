@@ -22,6 +22,7 @@ Walk() {// For C:\Users\logst\Downloads\BAR\corshiva anim.blend Created by https
 	set-signal-mask SIGNAL_MOVE;
 	while(isMoving) {
 		if (isMoving) { //Frame:3
+			emit-sfx 1024 + 2 from rfoot;
 			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(rfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rfoot) & 0x0000ffff),   get HEADING(0));
 			turn lankle to x-axis <-19.797870> speed <264.873524> / animSpeed; 
 			turn lankle to z-axis <-0.176029> speed <10.196835> / animSpeed; 
