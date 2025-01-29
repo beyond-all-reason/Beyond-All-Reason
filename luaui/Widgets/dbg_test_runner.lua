@@ -1045,6 +1045,7 @@ local function initializeTestEnvironment()
 		string = string,
 		package = package,
 		coroutine = coroutine,
+		require = require,
 		assert = assert,
 		error = error,
 		print = print,
