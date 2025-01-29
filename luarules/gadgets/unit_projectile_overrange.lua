@@ -63,8 +63,7 @@ local function calculateFlightFrames(initialVelocity, maximumVelocity, accelerat
 
 	if distanceAccelerating > totalDistance then
 		-- We already traveled too much, so just calculate time with accelerated movement + quadratic equation formula
-		totalFrames = (mathSqrt(initialVelocity * initialVelocity + 2 * totalDistance * accelerationRate) - initialVelocity) /
-		accelerationRate
+		totalFrames = (mathSqrt(initialVelocity * initialVelocity + 2 * totalDistance * accelerationRate) - initialVelocity) / accelerationRate
 	else
 		-- Linear movement after accelerating
 		totalFrames = framesToMaxVelocity + (totalDistance - distanceAccelerating) / maximumVelocity
