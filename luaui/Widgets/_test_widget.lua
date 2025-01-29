@@ -24,11 +24,10 @@ widget.rmlContext = nil
 -- this can be overwritten later to change what code exampleEventHook calls
 local eventCallback = function(ev, ...) Spring.Echo('orig function says', ...) end;
 
+local isVisible = false
 local dm_handle
 
-function widget:Initialize()
-	widget.rmlContext = RmlUi.CreateContext(widget.whInfo.name)
-
+function showDocument()
 	-- use the DataModel handle to set values
 	-- only keys declared at the DataModel's creation can be used
 	dm_handle = widget.rmlContext:OpenDataModel("data_model_test", {
@@ -47,6 +46,37 @@ function widget:Initialize()
 	document = widget.rmlContext:LoadDocument("LuaUi/Widgets/rml_assets/simple_demo.rml", widget)
 	document:ReloadStyleSheet()
 	document:Show()
+end
+
+function hideDocument()
+	if document then
+		document:Close()
+	end
+end
+
+function init()
+	if isVisible == true then
+		showDocument()
+	else
+		hideDocument()
+	end
+end
+
+function widget:Initialize()
+	widget.rmlContext = RmlUi.CreateContext(widget.whInfo.name)
+	WG['rml_ui_widget'] = {}
+	WG['rml_ui_widget'].toggle = function()
+		if isVisible == false then
+			showDocument()
+			isVisible = true
+		else
+			hideDocument()
+			isVisible = false
+		end
+	end
+	WG['rml_ui_widget'].isvisible = function()
+		return isVisible
+	end
 end
 
 function widget:Shutdown()
