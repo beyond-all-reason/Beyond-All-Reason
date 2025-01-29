@@ -13,11 +13,16 @@ static-var animSpeed, maxSpeed, animFramesPerKeyframe, curSpeed, doorOpen, rocke
 #define SIGNAL_AIM3 1024
 #define SIGNAL_MOVE 1
 
+lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
+{
+	return 0;
+}
+
 Walk() {// For C:\Users\logst\Downloads\BAR\corshiva anim.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2)) 
 	set-signal-mask SIGNAL_MOVE;
 	while(isMoving) {
 		if (isMoving) { //Frame:3
-			emit-sfx 1024 + 2 from rfoot;
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(rfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rfoot) & 0x0000ffff),   get HEADING(0));
 			turn lankle to x-axis <-19.797870> speed <264.873524> / animSpeed; 
 			turn lankle to z-axis <-0.176029> speed <10.196835> / animSpeed; 
 			move lfoot to y-axis [-0.797600] speed [12.030244] / animSpeed; 
@@ -187,6 +192,7 @@ Walk() {// For C:\Users\logst\Downloads\BAR\corshiva anim.blend Created by https
 		}
 		if (isMoving) { //Frame:24
 			emit-sfx 1024 + 2 from lfoot;
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lfoot) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lfoot) & 0x0000ffff),   get HEADING(0));
 			turn lankle to x-axis <20.216781> speed <163.595052> / animSpeed; 
 			turn lankle to z-axis <-0.268646> speed <3.093013> / animSpeed; 
 			turn lankle to y-axis <0.343849> speed <5.316805> / animSpeed; 
