@@ -51,29 +51,37 @@ local leashWatch = {}
 --variables
 local gameFrame = 0
 
-local function calculateFlightFrames(startVelocity, maxVelocity, acceleration, totalDistance)
-    local currentVelocity = startVelocity
-    local distanceCovered = 0
-    local frames = 0
-    
-    while distanceCovered < totalDistance do
-        frames = frames + 1
-        distanceCovered = distanceCovered + currentVelocity
-        currentVelocity = math.min(currentVelocity + acceleration, maxVelocity)
-    end
-    
-    return frames
+local function calculateFlightFrames(initialVelocity, maximumVelocity, accelerationRate, totalDistance)
+	local totalFrames = 0
+
+	-- Frames to reach maximum velocity
+	local framesToMaxVelocity = (maximumVelocity - initialVelocity) / accelerationRate
+
+	-- Distance traveled while accelerating
+	local distanceAccelerating = initialVelocity * framesToMaxVelocity +
+	0.5 * accelerationRate * framesToMaxVelocity * framesToMaxVelocity
+
+	if distanceAccelerating > totalDistance then
+		-- We already traveled too much, so just calculate time with accelerated movement + quadratic equation formula
+		totalFrames = (mathSqrt(initialVelocity * initialVelocity + 2 * totalDistance * accelerationRate) - initialVelocity) /
+		accelerationRate
+	else
+		-- Linear movement after accelerating
+		totalFrames = framesToMaxVelocity + (totalDistance - distanceAccelerating) / maximumVelocity
+	end
+
+	-- Return the floored value of total frames
+	return math.floor(totalFrames)
 end
 
 local function uptimeTurnFrames(turnRate)
-    local framesRequired = math.floor(radiansToReach90Degrees / turnRate)
-    return framesRequired
+	local framesRequired = math.floor(radiansToReach90Degrees / turnRate)
+	return framesRequired
 end
 
 for weaponDefID, weaponDef in pairs(WeaponDefs) do
 	local customParams = weaponDef.customParams
 	if customParams.leash_distance or customParams.overrange_distance then
-
 		--populate def watch tables
 		local watchParams = {}
 		if customParams.leash_distance then
@@ -87,7 +95,8 @@ for weaponDefID, weaponDef in pairs(WeaponDefs) do
 		if weaponDef.type == "StarburstLauncher" then
 			ascentFrames = math.floor(weaponDef.uptime * Game.gameSpeed - uptimeTurnFrames(weaponDef.turnRate)) or 0
 		end
-		watchParams.flightTimeFrames = calculateFlightFrames(weaponDef.startvelocity, weaponDef.projectilespeed, weaponDef.weaponAcceleration, overRange) + ascentFrames
+		watchParams.flightTimeFrames = calculateFlightFrames(weaponDef.startvelocity, weaponDef.projectilespeed,
+			weaponDef.weaponAcceleration, overRange) + ascentFrames
 		watchParams.weaponDefID = weaponDefID
 
 		--destruction methods
@@ -119,25 +128,25 @@ end
 
 
 local function recalculateFlightTime(proID, maxRange, x1, z1, x2, z2)
-    local dx = x2 - x1
-    local dz = z2 - z1
-    local distance = mathSqrt(dx * dx + dz * dz)
+	local dx = x2 - x1
+	local dz = z2 - z1
+	local distance = mathSqrt(dx * dx + dz * dz)
 
-    -- Check if the projectile is within the max range
-    if distance < maxRange then
-        local vx, _, vz = spGetProjectileVelocity(proID)
-        if not vx then return false end --invalid projectile
+	-- Check if the projectile is within the max range
+	if distance < maxRange then
+		local vx, _, vz = spGetProjectileVelocity(proID)
+		if not vx then return false end --invalid projectile
 
 		local remainingDistance = maxRange - distance
 
-        local proSpeed = mathSqrt(vx * vx + vz * vz)
+		local proSpeed = mathSqrt(vx * vx + vz * vz)
 
-        local frames = mathCeil(remainingDistance / proSpeed)
+		local frames = mathCeil(remainingDistance / proSpeed)
 
-        return frames
-    else
-        return false
-    end
+		return frames
+	else
+		return false
+	end
 end
 
 local function setDestructionFrame(proID, newFlightTime)
@@ -183,7 +192,8 @@ function gadget:GameFrame(frame)
 			if projectileX then
 				local proData = proMetaData[proID]
 				local defData = defWatchTable[proData.weaponDefID]
-				local newFlightTime = recalculateFlightTime(proID, defData.overRange, proData.originX, proData.originZ, projectileX, projectileZ)
+				local newFlightTime = recalculateFlightTime(proID, defData.overRange, proData.originX, proData.originZ,
+					projectileX, projectileZ)
 				if newFlightTime then
 					setFlightTimeFrame(proID, newFlightTime)
 				else
