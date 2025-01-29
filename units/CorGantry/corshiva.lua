@@ -76,6 +76,8 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-large",
+				[2] = "custom:subbubbles",
+				[3] = "custom:footstep-medium",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
