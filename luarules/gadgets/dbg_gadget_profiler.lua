@@ -55,7 +55,7 @@ local callinStatsSYNCED = {}
 local highres = false
 local tick = 0.2
 local averageTime = 2.0
-local retainSortTime = 7
+local retainSortTime = 10
 
 local spGetTimer = Spring.GetTimer
 
@@ -529,11 +529,12 @@ else
 			local tTime = t / deltaTime
 
 			if not avgTLoad[gname] then
-				avgTLoad[gname] = tLoad * 0.6
+				avgTLoad[gname] = tLoad * 0.7
 			end
-			avgTLoad[gname] = avgTLoad[gname] + tLoad / (retainSortTime / tick)
+			local frames = math.min(1 / tick, Spring.GetFPS()) * retainSortTime
+			avgTLoad[gname] = ((avgTLoad[gname]*(frames-1)) + tLoad) / frames
 			local tColourString, sColourString = GetRedColourStrings(tTime, sLoad, gname, redStr, deltaTime)
-			if avgTLoad[gname] >= Spring.GetConfigFloat("profiler_min_time", 0.06) or sLoad >= Spring.GetConfigFloat("profiler_min_memory", 5) then -- Only show heavy gadgets
+			if avgTLoad[gname] >= 0.05 or sLoad >= 5 then -- only show heavy ones
 				sorted[n] = { plainname = gname, fullname = gname .. ' \255\200\200\200(' .. cmaxname_t .. ',' .. cmaxname_space .. ')', tLoad = tLoad, sLoad = sLoad, tTime = tTime, tColourString = tColourString, sColourString = sColourString, avgTLoad = avgTLoad[gname] }
 				n = n + 1
 			end

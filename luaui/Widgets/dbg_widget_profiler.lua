@@ -19,7 +19,7 @@ local usePrefixedNames = true
 
 local tick = 0.1
 local averageTime = 0.5
-local retainSortTime = 7
+local retainSortTime = 10
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -396,7 +396,6 @@ function DrawWidgetList(list, name, x, y, j, fontSize, lineSpace, maxLines, colW
 		gl.Text(tColour .. ('%.3f%%'):format(tLoad), x, y - lineSpace * j, fontSize, "no")
 		gl.Text(sColour .. ('%.1f'):format(sLoad) .. 'kB/s', x + dataColWidth, y - lineSpace * j, fontSize, "no")
 		gl.Text(wname, x + dataColWidth * 2, y - lineSpace * j, fontSize, "no")
-
 		j = j + 1
 	end
 
@@ -456,11 +455,12 @@ function widget:DrawScreen()
 
 			local tLoad = timeLoadAverages[wname]
 			if not avgTLoad[wname] then
-				avgTLoad[wname] = tLoad * 0.6
+				avgTLoad[wname] = tLoad * 0.7
 			end
-			avgTLoad[wname] = avgTLoad[wname] + tLoad / (retainSortTime / tick)
+			local frames = math.min(1 / tick, Spring.GetFPS()) * retainSortTime
+			avgTLoad[wname] = ((avgTLoad[wname]*(frames-1)) + tLoad) / frames
 			local sLoad = spaceLoadAverages[wname]
-			if avgTLoad[wname] >= Spring.GetConfigFloat("profiler_min_time", 0.06) or sLoad >= Spring.GetConfigFloat("profiler_min_memory", 5) then -- Only show heavy widgets
+			if avgTLoad[wname] >= 0.05 or sLoad >= 5 then -- only show heavy ones
 				sortedList[n] = { plainname = wname, fullname = wname .. ' \255\166\166\166(' .. cmaxname_t .. ',' .. cmaxname_space .. ')', tLoad = tLoad, sLoad = sLoad, tTime = t / deltaTime, avgTLoad = avgTLoad[wname] }
 				n = n + 1
 			end
