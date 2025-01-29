@@ -1772,8 +1772,7 @@ local function applyButtonAction(button)
 			graphsWindowVisible = true
 		end
 	elseif button == 'test' then
-		hideWindows()
-		Spring.SendCommands('!stop')
+		WG['rml_ui_widget'].toggle()
 	end
 end
 
