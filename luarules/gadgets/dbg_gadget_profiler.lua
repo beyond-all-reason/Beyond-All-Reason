@@ -429,11 +429,8 @@ else
 	local sortedList = {}
 	local sortedListSYNCED = {}
 	local function SortFunc(a, b)
-		if Spring.GetConfigInt("profiler_sort_by_load", 1) == 1 then
-			return a.avgTLoad > b.avgTLoad
-		else
-			return a.plainname < b.plainname
-		end
+		return a.avgTLoad > b.avgTLoad
+		--return a.plainname < b.plainname
 	end
 
 	local minPerc = 0.0005 -- above this value, we fade in how red we mark a widget (/gadget)
@@ -562,7 +559,6 @@ else
 
 	local dataColWidth = 15
 	local nameColWidth = 55
-	local subColWidths
 	local colWidth = 200
 	local maxLines = 20
 
@@ -579,7 +575,6 @@ else
 
 		dataColWidth = fontSize * 5
 		nameColWidth = fontSize * 15
-		subColWidths = { dataColWidth, dataColWidth, nameColWidth }
 
 		colWidth = dataColWidth * 3 + nameColWidth * 2
 
