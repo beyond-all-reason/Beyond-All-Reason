@@ -294,6 +294,9 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 		local vsSrcNew = (shadersourcecache.vssrcpath and VFS.LoadFile(shadersourcecache.vssrcpath)) or shadersourcecache.vsSrc
 		local fsSrcNew = (shadersourcecache.fssrcpath and VFS.LoadFile(shadersourcecache.fssrcpath)) or shadersourcecache.fsSrc
 		local gsSrcNew = (shadersourcecache.gssrcpath and VFS.LoadFile(shadersourcecache.gssrcpath)) or shadersourcecache.gsSrc
+
+		if not shadersourcecache.vssrcpath then shadersourcecache.forceupdate = true end
+
 		if vsSrcNew == shadersourcecache.vsSrc and 
 			fsSrcNew == shadersourcecache.fsSrc and 
 			gsSrcNew == shadersourcecache.gsSrc and 
@@ -308,7 +311,7 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 			shadersourcecache.forceupdate = nil
 			shadersourcecache.updateFlag = true
 			local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
-			local shaderDefines = LuaShader.CreateShaderDefinesString(shadersourcecache.shaderConfig)
+			local shaderDefines = LuaShader.CreateShaderDefinesString(shadersourcecache.shaderConfig or {})
 
 			local printfpattern =  "^[^/]*printf%s*%(%s*([%w_%.]+)%s*%)"
 			local printf = nil
