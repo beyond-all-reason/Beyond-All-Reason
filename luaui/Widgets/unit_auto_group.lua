@@ -289,7 +289,7 @@ function widget:GameFrame(n)
 	if n % 10 == 0 then
 		for unitID, unitDefID in pairs(toBeAddedLater) do
 			local health = GetUnitHealth(unitID)
-			if health == prevHealth[unitID] then -- stopped healing
+			if health <= prevHealth[unitID] then -- stopped healing
 				local group = unit2group[unitDefID]
 				if group ~= nil and GetUnitGroup(unitID) == nil then
 					SetUnitGroup(unitID, group)
