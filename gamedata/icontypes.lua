@@ -671,10 +671,6 @@ local icontypes = {
 		bitmap = "icons/ship.png",
 		size = 1
 	},
-	armptl = {
-		bitmap = "icons/defence_1_naval.png",
-		size = 1.10249984
-	},
 	armptt2 = {
 		bitmap = "icons/ship_t3_pt.png",
 		size = 2.29999995
@@ -978,10 +974,6 @@ local icontypes = {
 	armuwgeo = {
 		bitmap = "icons/energy6_1.3.png",
 		size = 1.36499989
-	},
-	armuwmex = {
-		bitmap = "icons/mex_t1.png",
-		size = 0.80849993
 	},
 	armuwmme = {
 		bitmap = "icons/mex_t2.png",
@@ -1779,10 +1771,6 @@ local icontypes = {
 		bitmap = "icons/ship.png",
 		size = 1.14999998
 	},
-	corptl = {
-		bitmap = "icons/defence_1_naval.png",
-		size = 1.10249984
-	},
 	corpun = {
 		bitmap = "icons/def_t1_arty.png",
 		size = 1.36499989
@@ -2054,10 +2042,6 @@ local icontypes = {
 	coruwgeo = {
 		bitmap = "icons/energy6_1.3.png",
 		size = 1.36499989
-	},
-	coruwmex = {
-		bitmap = "icons/mex_t1.png",
-		size = 0.80849993
 	},
 	coruwmme = {
 		bitmap = "icons/mex_t2.png",

@@ -502,7 +502,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 end
 
 
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	if processChanges and not placementMode and buildingRadius[unitDefID] then
 		removeUnitGrassQueue[unitID] = nil
 		unitGrassRemovedHistory[unitID] = nil

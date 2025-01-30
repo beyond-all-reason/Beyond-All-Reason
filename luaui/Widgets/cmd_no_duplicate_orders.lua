@@ -68,7 +68,7 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
   buildList[locString] = nil
 end
 
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
   local locString = toLocString(GetUnitPosition(unitID))
   buildList[locString] = nil
 end

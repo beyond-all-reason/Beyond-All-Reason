@@ -83,7 +83,7 @@ return {
 			[40] = "corfrad",
 			[41] = "corfhlt",
 			[42] = "corfrt",
-			[43] = "corptl",
+			[43] = "cortl",
 			[44] = "coruwgeo",
 		},
 		customparams = {

@@ -45,9 +45,9 @@ end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	if liche[unitDefID] then
-		spMoveCtrlSetAirMoveTypeData(unitID, {attackSafetyDistance = 3000})
+		spMoveCtrlSetAirMoveTypeData(unitID, "attackSafetyDistance", 3000)
 	end
 	if epicliche[unitDefID] then
-		spMoveCtrlSetAirMoveTypeData(unitID, {attackSafetyDistance = 20000})
+		spMoveCtrlSetAirMoveTypeData(unitID, "attackSafetyDistance", 20000)
 	end
 end

@@ -52,25 +52,17 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 	end
-	local nukesNames = {
-		armsilo_nuclear_missile = true,
-		corsilo_crblmssl = true,
-		armsilo_scav_nuclear_missile = true,
-		corsilo_scav_crblmssl = true,
-		raptor_turret_meteor_t4_v1_weapon = true,
-		--raptor_allterrain_arty_basic_t4_v1_meteorlauncher = true,
-	}
-	-- convert weaponname -> weaponDefID
-	local nukes = {}
-	for name, params in pairs(nukesNames) do
-		if WeaponDefNames[name] then
-			nukes[WeaponDefNames[name].id] = params
+	local nukeWeapons = {}
+	for id, def in pairs(WeaponDefs) do
+		if def.targetable and def.targetable == 1 then
+			if def.name ~= "raptor_allterrain_arty_basic_t4_v1_meteorlauncher" then	-- to not drive them mad
+				nukeWeapons[id] = true
+			end
 		end
 	end
-	nukesNames = nil
 
 	function gadget:Initialize()
-		for k,v in pairs(nukes) do
+		for k,v in pairs(nukeWeapons) do
 			Script.SetWatchProjectile(k, true)
 		end
 	end
@@ -90,7 +82,7 @@ if gadgetHandler:IsSyncedCode() then
 	-- NUKE LAUNCH send to all but ally team
 	function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
 		local proDefID = Spring.GetProjectileDefID(proID)
-		if nukes[Spring.GetProjectileDefID(proID)] then
+		if nukeWeapons[Spring.GetProjectileDefID(proID)] then
 			local players = AllButAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(proOwnerID)))
 			for ct, player in pairs (players) do
 				if tostring(player) then

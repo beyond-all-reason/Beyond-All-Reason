@@ -1927,7 +1927,7 @@ addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, un
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "6 cortorch_scav","6 legmrv_scav",}, weight = 3, maxAnger = tierConfiguration[6].maxAnger}) --T2 Veh Raid
 --Land
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "12 armmar_scav",}, weight = 3, maxAnger = tierConfiguration[6].maxAnger}) --T3 Raid
-addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "6 armmeatball_scav","6 armassimilator_scav","2 armyork_scav","2 corsent_scav"," 2legvflak_scav",}, weight = 4, maxAnger = tierConfiguration[6].maxAnger}) --T3 Assault/AA
+addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "6 armmeatball_scav","6 armassimilator_scav","2 armyork_scav","2 corsent_scav"," 2 legvflak_scav",}, weight = 4, maxAnger = tierConfiguration[6].maxAnger}) --T3 Assault/AA
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "6 corshiva_scav","2 armraz_scav","1 legpede_scav","1 armyork_scav","1 corsent_scav","2 legvflak_scav",}, weight = 4, maxAnger = tierConfiguration[6].maxAnger}) --T3 Assault/AA
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "2 armvang_scav","2 corcat_scav","1 armyork_scav","1 corsent_scav","2 legvflak_scav",}, weight = 4, maxAnger = tierConfiguration[6].maxAnger}) --T3 Arty/AA
 addNewSquad({ type = "specialLand", minAnger = tierConfiguration[6].minAnger, units = { "5 armvadert4_scav",}, weight = 3, maxAnger = 1000}) --Epic Tumbleweeds

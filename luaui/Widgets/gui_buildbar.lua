@@ -313,7 +313,7 @@ function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 	widget:UnitCreated(unitID, unitDefID, unitTeam)
 end
 
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	if unitTeam ~= myTeamID then
 		return
 	end

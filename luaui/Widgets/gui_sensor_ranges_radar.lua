@@ -279,7 +279,7 @@ function widget:Shutdown()
 	WG.radarrange = nil
 end
 
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
   if 	unitList[unitID] then
     unitList[unitID] = nil
 	activeUnits[unitID] = nil

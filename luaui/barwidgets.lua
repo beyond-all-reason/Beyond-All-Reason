@@ -451,16 +451,16 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 
 		local widget = widgetHandler:NewWidget()
 		setfenv(chunk, widget)
-		local success, valOrErr = pcall(chunk)
+		local success, err = pcall(chunk)
 		if not success then
-			Spring.Echo('Failed to load: ' .. basename .. '  (' .. valOrErr .. ')')
+			Spring.Echo('Failed to load: ' .. basename .. '  (' .. err .. ')')
 			return nil
 		end
 		if err == false then
 			return nil -- widget asked for a silent death
 		end
 
-		local localsNames = valOrErr
+		local localsNames = err
 
 		text = text .. localsAccess.generateLocalsAccessStr(localsNames)
 	end
@@ -1573,7 +1573,7 @@ function widgetHandler:DrawPreDecals()
 end
 
 function widgetHandler:DrawWorldPreParticles()
-	-- NOTE: This is called TWICE per draw frame, once before water and once after, even if no water is present. The second is the refraction pass. 
+	-- NOTE: This is called TWICE per draw frame, once before water and once after, even if no water is present. The second is the refraction pass.
 	tracy.ZoneBeginN("W:DrawWorldPreParticles")
 	for _, w in r_ipairs(self.DrawWorldPreParticlesList) do
 		w:DrawWorldPreParticles()
@@ -2262,11 +2262,11 @@ function widgetHandler:UnitFromFactory(unitID, unitDefID, unitTeam, factID, fact
 	return
 end
 
-function widgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam)
+function widgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	widgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 	tracy.ZoneBeginN("W:UnitDestroyed")
 	for _, w in ipairs(self.UnitDestroyedList) do
-		w:UnitDestroyed(unitID, unitDefID, unitTeam)
+		w:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	end
 	tracy.ZoneEnd()
 	return
