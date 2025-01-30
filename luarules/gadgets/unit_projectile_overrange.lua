@@ -27,7 +27,6 @@ local descentSpeedStartingMultiplier = 0.15
 
 local descentModulo = math.floor(Game.gameSpeed / 4)
 local leashModulo = math.ceil(Game.gameSpeed / 3)
-local radiansToReach90Degrees = math.rad(90) --the turning period is negated from uptime frames for StarburstMissiles
 
 --functions
 local spGetUnitPosition = Spring.GetUnitPosition
@@ -74,7 +73,7 @@ local function calculateFlightFrames(initialVelocity, maximumVelocity, accelerat
 end
 
 local function uptimeTurnFrames(turnRate)
-	local framesRequired = math.floor(radiansToReach90Degrees / turnRate)
+	local framesRequired = math.floor(math.rad(90) / turnRate)--the turning period is negated from uptime frames for StarburstMissiles
 	return framesRequired
 end
 
