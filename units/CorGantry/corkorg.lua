@@ -184,10 +184,6 @@ return {
 				cegtag = "missiletrailmedium-starburst",
 				craterboost = 0,
 				cratermult = 0,
-				customparams = {
-					projectile_destruction_method = "descend",
-					overrange_distance = 1093,
-				},
 				edgeeffectiveness = 0.85,
 				explosiongenerator = "custom:genericshellexplosion-large-bomb",
 				firestarter = 70,
@@ -221,6 +217,10 @@ return {
 				weaponvelocity = 2600,
 				damage = {
 					default = 800,
+				},
+				customparams = {
+					projectile_destruction_method = "descend",
+					overrange_distance = 1093,
 				},
 			},
 			krogfootstep = {

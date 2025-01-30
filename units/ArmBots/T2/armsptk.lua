@@ -102,7 +102,6 @@ return {
 			adv_rocket = {
 				areaofeffect = 90,
 				avoidfeature = false,
-				burnblow = true,
 				burst = 3,
 				burstrate = 0.3,
 				castshadow = true,

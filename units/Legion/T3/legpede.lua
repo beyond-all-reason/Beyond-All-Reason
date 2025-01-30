@@ -110,10 +110,6 @@ return {
 				collidefriendly = false,
 				craterboost = 0,
 				cratermult = 0,
-				customparams = {
-					projectile_destruction_method = "descend",
-					overrange_distance = 690,
-				},
 				edgeeffectiveness = 0.65,
 				explosiongenerator = "custom:genericshellexplosion-small-bomb",
 				firestarter = 70,
@@ -150,6 +146,10 @@ return {
 				damage = {
 					default = 200,
 					subs = 100,
+				},
+				customparams = {
+					projectile_destruction_method = "descend",
+					overrange_distance = 690,
 				},
 			},
 			armmg_weapon = {

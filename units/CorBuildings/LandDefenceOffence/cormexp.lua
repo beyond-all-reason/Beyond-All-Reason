@@ -111,7 +111,6 @@ return {
 			cormexp_rocket = {
 				areaofeffect = 128,
 				avoidfeature = false,
-				burnblow = true,
 				burst = 5,
 				burstrate = 0.3,
 				cegtag = "missiletrailsmall",
@@ -146,7 +145,6 @@ return {
 				customparams = {
 					exclude_preaim = true,
 					overrange_distance = 748,
-
 					projectile_destruction_method = "descend",
 				}
 			},

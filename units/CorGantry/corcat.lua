@@ -112,10 +112,6 @@ return {
 				cegtag = "missiletrailsmall-red",
 				craterboost = 0,
 				cratermult = 0,
-				customparams = {
-					projectile_destruction_method = "descend",
-					overrange_distance = 1553,
-				},
 				dance = 24,
 				edgeeffectiveness = 0.65,
 				explosiongenerator = "custom:genericshellexplosion-catapult",
@@ -152,6 +148,10 @@ return {
 				wobble = 2000,
 				damage = {
 					default = 450,
+				},
+				customparams = {
+					projectile_destruction_method = "descend",
+					overrange_distance = 1553,
 				},
 			},
 		},

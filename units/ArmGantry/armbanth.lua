@@ -114,7 +114,6 @@ return {
 				areaofeffect = 64,
 				avoidfeature = false,
 				beamdecay = 12,
-				burnblow = true,
 				corethickness = 0.85,
 				craterareaofeffect = 0,
 				craterboost = 0,
@@ -153,10 +152,6 @@ return {
 				cegtag = "missiletrailsmall-starburst",
 				craterboost = 0,
 				cratermult = 0,
-				customparams = {
-					projectile_destruction_method = "descend",
-					overrange_distance = 989,
-				},
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-large",
 				firestarter = 70,
@@ -190,6 +185,10 @@ return {
 				damage = {
 					default = 900,
 					subs = 500,
+				},
+				customparams = {
+					projectile_destruction_method = "descend",
+					overrange_distance = 989,
 				},
 			},
 			banthfootstep = {

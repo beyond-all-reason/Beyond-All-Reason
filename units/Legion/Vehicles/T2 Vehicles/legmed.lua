@@ -107,10 +107,6 @@ return {
 				cegtag = "missiletrailmedium-starburst",
 				craterboost = 0,
 				cratermult = 0,
-				customparams = {
-					projectile_destruction_method = "descend",
-					overrange_distance = 1093,
-				},
 				edgeeffectiveness = 0.65,
 				explosiongenerator = "custom:genericshellexplosion-large-bomb",
 				firestarter = 100,
@@ -147,6 +143,10 @@ return {
 				damage = {
 					commanders = 200,
 					default = 500,
+				},
+				customparams = {
+					projectile_destruction_method = "descend",
+					overrange_distance = 1093,
 				},
 			},
 			laser = {

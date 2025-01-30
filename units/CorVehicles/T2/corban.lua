@@ -116,15 +116,10 @@ return {
 			banisher = {
 				areaofeffect = 128,
 				avoidfeature = false,
-				burnblow = true,
 				cegtag = "missiletraillarge-red",
 				craterareaofeffect = 128,
 				craterboost = 0,
 				cratermult = 0,
-				customparams = {
-					projectile_destruction_method = "descend",
-					overrange_distance = 920,
-				},
 				edgeeffectiveness = 0.55,
 				explosiongenerator = "custom:genericshellexplosion-large-bomb",
 				firestarter = 20,
@@ -159,6 +154,10 @@ return {
 				damage = {
 					default = 1000,
 					subs = 500,
+				},
+				customparams = {
+					projectile_destruction_method = "descend",
+					overrange_distance = 920,
 				},
 			},
 		},
