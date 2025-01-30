@@ -2262,11 +2262,11 @@ function widgetHandler:UnitFromFactory(unitID, unitDefID, unitTeam, factID, fact
 	return
 end
 
-function widgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam)
+function widgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	widgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 	tracy.ZoneBeginN("W:UnitDestroyed")
 	for _, w in ipairs(self.UnitDestroyedList) do
-		w:UnitDestroyed(unitID, unitDefID, unitTeam)
+		w:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	end
 	tracy.ZoneEnd()
 	return
