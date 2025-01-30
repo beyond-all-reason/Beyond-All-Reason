@@ -89,7 +89,7 @@ function widget:UnitGiven(unitID, unitDefID, unitTeam)
 end
 
 
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	if decloakFireState[unitID] then
 		decloakFireState[unitID] = nil
 	end

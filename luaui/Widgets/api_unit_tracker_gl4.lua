@@ -357,14 +357,14 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID, reason, sile
 	-- So, to prevent zero build progress from further turning into problematic things
 	-- we will suppress the createunit for any unit that is spawned at full health, and only fire its unitfinished version.
 	-- So we are relying on UnitFinished to be called right after this one
-	-- Sensibly enough, this is not a problem for players, as they see the units only after their LOS status is checked, later in the same gameframe. 
+	-- Sensibly enough, this is not a problem for players, as they see the units only after their LOS status is checked, later in the same gameframe.
 	-- So spectators, and 'own team' suffers this hit only
 	local health,maxhealth, paralyzeDamage,captureProgress,buildProgress = spGetUnitHealth(unitID)
-	if health == maxhealth and buildProgress == 0 then 
-		if debuglevel >= 3 then 
+	if health == maxhealth and buildProgress == 0 then
+		if debuglevel >= 3 then
 			Spring.Echo("Skipping visibleUnitsAdd for CreateUnit'ed unit", UnitDefs[unitDefID].name, unitID, unitDefID, unitTeam, builderID, reason, silent)
 		end
-		return 
+		return
 	end
 
 	-- alliedunits
@@ -378,10 +378,10 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID, reason, sile
 	end
 end
 
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam, reason)
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID, reason)
 	if debuglevel >= 3 then
 		unitDefID = unitDefID or spGetUnitDefID(unitID)
-		Spring.Echo("UnitDestroyed",unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, reason)
+		Spring.Echo("UnitDestroyed",unitID, unitDefID and UnitDefs[unitDefID].name, unitTeam, nil, nil, nil, nil, reason)
 	end
 	visibleUnitsRemove(unitID, reason or "destroyed")
 	alliedUnitsRemove(unitID, reason or "destroyed")
@@ -398,7 +398,7 @@ end
 --end
 
 function widget:UnitFinished(unitID, unitDefID, unitTeam) -- todo, this should probably add-remove a unit
-	widget:UnitDestroyed(unitID, unitDefID, unitTeam, "UnitFinished")
+	widget:UnitDestroyed(unitID, unitDefID, unitTeam, nil, nil, nil, nil, "UnitFinished")
 	widget:UnitCreated(unitID, unitDefID, unitTeam, nil, "UnitFinished")
 	if unitTeam == myTeamID and factoryUnitDefIDs[unitDefID] then
 		widgetHandler:AddSpadsMessage("UnitFinished:"..tostring(factoryUnitDefIDs[unitDefID]))
@@ -406,7 +406,7 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam) -- todo, this should p
 end
 
 function widget:UnitTaken(unitID, unitDefID, oldTeam, newTeam) --1.  this is only called when one if my units gets captured
-	widget:UnitDestroyed(unitID, unitDefID, oldTeam, "UnitTaken")
+	widget:UnitDestroyed(unitID, unitDefID, oldTeam, nil, nil, nil, nil, "UnitTaken")
 	-- not needed, as the unit will call enemyenteredlos, but what if we are spec?
 	if not fullview then
 		-- todo, look at this real closely if its even needed!
@@ -415,7 +415,7 @@ function widget:UnitTaken(unitID, unitDefID, oldTeam, newTeam) --1.  this is onl
 end
 
 function widget:UnitGiven(unitID, unitDefID, newTeam, oldTeam) --2.  this is only called when my team captures a unit
-	widget:UnitDestroyed(unitID, unitDefID, oldTeam, "UnitGiven") -- to ensure that team changes will trigger from this!
+	widget:UnitDestroyed(unitID, unitDefID, oldTeam, nil, nil, nil, nil, "UnitGiven") -- to ensure that team changes will trigger from this!
 	widget:UnitCreated(unitID, unitDefID, newTeam, nil, "UnitGiven")
 end
 
@@ -451,7 +451,7 @@ end
 
 function widget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
 	if not fullview then
-		widget:UnitDestroyed(unitID, unitDefID, unitTeam, "UnitLeftLos")
+		widget:UnitDestroyed(unitID, unitDefID, unitTeam, nil, nil, nil, nil, "UnitLeftLos")
 	end
 end
 
@@ -792,14 +792,14 @@ function widget:AddConsoleLine(lines, priority)
                 engineVersion = tostring(Engine.versionFull), -- full complete engine version string
                 mapName = tostring(Game.mapName), -- full map name
                 gameID = tostring(Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID")), -- gameID parameter, not the same as server_match_id, we will match that in teiserver
-                frame = frameNumber, -- the frame where it happened. 
+                frame = frameNumber, -- the frame where it happened.
                 gotChecksum = gotChecksum,
                 correctChecksum = correctChecksum,
             }
 			--Spring.Echo(jsondict)
-            
+
 			local complex_match_event = string.format("complex-match-event:%s", string.base64Encode(Json.encode(jsondict)))
-			
+
             -- We will be forwarding this as a complex event:
             -- sayPrivate  complex-match-event <Beherith> <desyncreport> <67> <eyJrZXkiOiJ2YWx1ZSJ9>
             -- !sendLobby SAYPRIVATE AutohostMonitor 'complex-match-event <[teh]Beherith> <desyncreport> <67> <eyJrZXkiOiJ2YWx1ZSJ9>'

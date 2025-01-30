@@ -498,7 +498,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID) -- THIS IS F
 	end
 end
 
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam) -- THIS IS RETARDED TOO
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID) -- THIS IS RETARDED TOO
 	if extractorDefs[unitDefID] then
 		sceduledCheckedSpotsFrame = Spring.GetGameFrame() + 3	-- delay needed, i don't know why
 	end
