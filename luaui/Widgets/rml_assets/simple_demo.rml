@@ -20,6 +20,9 @@
                 <div style="background-color: green; width: 250px; height: 50px">
                     Solid Color Block test
                 </div>
+                <div style="background-color: green; width: 250px; height: 50px">
+                    {{model.resourcesDestroyed.playerName}}
+                </div>
                 <div
                         class="element"
                         data-event-mousedown="exampleEventHook('event param example')"
