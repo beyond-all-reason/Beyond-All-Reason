@@ -309,6 +309,9 @@ else
 		if Script.LuaUI("GadgetReceiveAwards") then
 			Script.LuaUI.GadgetReceiveAwards(awards)
 		end
+		if Script.LuaUI("GadgetReceiveAwardsNew") then
+			Script.LuaUI.GadgetReceiveAwardsNew(awards)
+		end
 	end
 
 	function gadget:Initialize()
