@@ -193,7 +193,6 @@ local isSpec = Spring.GetSpectatingState()
 local isReplay = Spring.IsReplay()
 local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
-local myAllyTeamID = Spring.GetMyAllyTeamID()
 local myRank = select(9, Spring.GetPlayerInfo(myPlayerID))
 
 local spGetTeamResources = Spring.GetTeamResources
@@ -310,7 +309,6 @@ function widget:PlayerChanged(playerID)
 	isSpec = Spring.GetSpectatingState()
 	myTeamID = Spring.GetMyTeamID()
 	myPlayerID = Spring.GetMyPlayerID()
-	myAllyTeamID = Spring.GetMyAllyTeamID()
 	doTutorialMode = (not isReplay and not isSpec and tutorialMode)
 	updateCommanders()
 end
@@ -332,9 +330,7 @@ local function gadgetNotificationEvent(msg)
 end
 
 function widget:Initialize()
-	if isReplay or spGetGameFrame() > 0 then
-		widget:PlayerChanged()
-	end
+	widget:PlayerChanged()
 
 	widgetHandler:RegisterGlobal('NotificationEvent', gadgetNotificationEvent)
 
@@ -866,6 +862,7 @@ function widget:SetConfigData(data)
 	end
 	if data.tutorialMode ~= nil then
 		tutorialMode = data.tutorialMode
+		doTutorialMode = tutorialMode
 	end
 	if spGetGameFrame() > 0 then
 		if data.LastPlay then
