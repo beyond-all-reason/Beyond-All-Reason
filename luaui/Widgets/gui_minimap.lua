@@ -40,6 +40,7 @@ local leftclicked = false
 
 local RectRound, UiElement, elementCorner, elementPadding, elementMargin
 local dlistGuishader, dlistMinimap, dlistMapName, oldMinimapGeometry
+local font
 
 local dualscreenMode = ((Spring.GetConfigInt("DualScreenMode", 0) or 0) == 1)
 
