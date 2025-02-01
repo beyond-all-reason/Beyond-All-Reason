@@ -1,4 +1,5 @@
 .element {
+    display: block;
     padding: 4px;
     border-radius: 8px;
     border: 4px black;

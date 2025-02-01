@@ -14,35 +14,15 @@
                 <h3 style="margin: 0.25em">Window Top Bar (Click and Drag to Move. Checking Lolyy)</h3>
             </div>
         </handle>
-        <div class="element">
-            <span>Below me is a flexbox</span>
-            <div style="display: flex">
-                <div style="background-color: green; width: 250px; height: 50px">
-                    Solid Color Block test
-                </div>
-                <div style="background-color: green; width: 250px; height: 50px">
-                    {{model.resourcesDestroyed.playerName}}
-                </div>
-                <div
-                        class="element"
-                        data-event-mousedown="exampleEventHook('event param example')"
-                        style="cursor: pointer"
-                >
-                    Click me for log spam<br/>
-                    Inserted value: {{exampleValue}}
-                </div>
+        <div data-if="model.resourcesDestroyed.visible" class="element">
+            <div style="background-color: green; width: 250px; height: 50px">
+                {{model.resourcesDestroyed.playerName}} - {{model.resourcesDestroyed.score}}
             </div>
         </div>
-        <div class="element">
-            <h4 class="element" style="margin: 0.1em">Custom &lt;texture&gt; Element Demo</h4>
-            <div>&lt;texture src="^101"&gt;</div>
-            <texture src="^101"/>
-            <div>&lt;texture src="#101"&gt;</div>
-            <texture src="#101"/>
-            <div>&lt;texture src="luaui/images/backgroundtile.png"&gt;</div>
-            <texture style="width: 64px; height: 64px" src="luaui/images/backgroundtile.png"/>
-            <div>&lt;texture src=":imr256,256,t1,0,1:luaui/images/backgroundtile.png"&gt;</div>
-            <texture src=":imr256,256,t1,0,1:luaui/images/backgroundtile.png"/>
+        <div data-if="model.commanderSleep.visible" class="element">
+            <div style="background-color: red; width: 250px; height: 50px">
+                {{model.commanderSleep.playerName}} - {{model.commanderSleep.score}}
+            </div>
         </div>
     </body>
 </rml>
