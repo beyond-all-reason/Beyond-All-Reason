@@ -231,6 +231,10 @@ function widget:DrawScreen()
 	end
 
 	gl.DrawMiniMap()
+
+	-- draw the map's name in the bottom right corner
+	gl.Color(1, 1, 1, 0.1)
+	gl.Text(Game.mapName, backgroundRect[3] - elementPadding, backgroundRect[2] + elementPadding, 10, "rbo")
 end
 
 function widget:GetConfigData()
