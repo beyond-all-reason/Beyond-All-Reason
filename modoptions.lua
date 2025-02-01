@@ -1007,7 +1007,6 @@ local options = {
         type    = "separator",
     },
 
-
     {
         key 	= "evocom",
         name 	= "Evolving Commanders",
@@ -1199,7 +1198,65 @@ local options = {
         step   	= 1,
     },
 
+    {
+        key     = "sub_header",
+        section = "options_extra",
+        type    = "separator",
+    },
 
+    {
+        key     = 'zombies',
+        name    = 'Enable zombies',
+        desc    = "All features self-resurrect.",
+        type    = 'bool',
+        section = 'silly',
+        def     = false,
+    },
+
+    {
+        key     = 'zombies_delay',
+        name    = 'Zombie min spawn time',
+        desc    = "In seconds, unit will resurrection no faster than this.",
+        type    = 'number',
+        section = 'silly',
+        def     = 10,
+        min     = 1,
+        max     = 600,
+        step    = 1,
+    },
+
+    {
+        key     = 'zombies_rezspeed',
+        name    = 'Zombie resurrection speed',
+        desc    = "In metal per second.",
+        type    = 'number',
+        section = 'silly',
+        def     = 12,
+        min     = 1,
+        max     = 10000,
+        step    = 1,
+    },
+
+    {
+        key     = 'zombies_permaslow',
+        name    = 'Zombie permaslow modifier',
+        desc    = "If more than 0 zombies are permaslowed to half of that amount, so 1 means 50% slow.",
+        type    = 'number',
+        section = 'silly',
+        def     = 1,
+        min     = 0,
+        max     = 1,
+        step    = 0.01,
+    },
+
+    {
+        key     = 'zombies_partial_reclaim',
+        name    = 'Zombies partially reclaimable',
+        desc    = "Partially reclaimed zombies are partially damaged.",
+        type    = 'bool',
+        section = 'silly',
+        def     = false,
+    },
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     -- Experimental Options
