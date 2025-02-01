@@ -2592,6 +2592,12 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "rocketalt-large",
 	},
 
+	legeyes = {
+		BaseSoundSelectType = "arm-bld-select",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "cloak",
+	},
+
 	legnanotc = {
 		BaseSoundSelectType = "arm-bld-select-small",
 		--BaseSoundMovementType = "",

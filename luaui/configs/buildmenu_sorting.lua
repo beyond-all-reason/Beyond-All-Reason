@@ -558,6 +558,7 @@ local unitOrderTable = {
 
    ['armeyes']        = 103000,
    ['coreyes']        = 103050,
+   ['legeyes']        = 103075,
    ['armrad']         = 103100,
    ['corrad']         = 103150,
    ['legrad']         = 103160,
