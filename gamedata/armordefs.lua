@@ -461,6 +461,9 @@ local armorDefs = {
 		"cormine2",
 		"cormine3",
 		"cormine4",
+		"legmine1",
+		"legmine2",
+		"legmine3",
 	},
 	nanos = {
 		"armnanotc",

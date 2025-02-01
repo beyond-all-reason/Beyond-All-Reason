@@ -604,11 +604,14 @@ local unitOrderTable = {
    --MINES
    ['armmine1']       = 105100,
    ['cormine1']       = 105200,
+   ['legmine1']       = 105250,
    ['armmine2']       = 105300,
    ['cormine2']       = 105400,
+   ['legmine2']       = 105450,
    ['cormine4']       = 105500, --cormando
    ['armmine3']       = 105600,
    ['cormine3']       = 105700,
+   ['legmine3']       = 105750,
 
    --DEFENSES LAND T1
    ['armllt']         = 106100,

@@ -3241,6 +3241,26 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "fastemg-medium",
 	},
 
+	-- LEGION MINES
+
+	legmine1 = {
+		BaseSoundSelectType = "arm-mine-sel",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "mine-small",
+	},
+
+	legmine2 = {
+		BaseSoundSelectType = "arm-mine-sel",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "mine-medium",
+	},
+
+	legmine3 = {
+		BaseSoundSelectType = "arm-mine-sel",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "mine-large",
+	},
+
 
 
 	--Various Random Units
