@@ -2592,6 +2592,12 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "rocketalt-large",
 	},
 
+	legeyes = {
+		BaseSoundSelectType = "arm-bld-select",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "cloak",
+	},
+
 	legnanotc = {
 		BaseSoundSelectType = "arm-bld-select-small",
 		--BaseSoundMovementType = "",
@@ -3239,6 +3245,26 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-hov-large-sel",
 		BaseSoundMovementType = "arm-hov-large-ok",
 		BaseSoundWeaponType = "fastemg-medium",
+	},
+
+	-- LEGION MINES
+
+	legmine1 = {
+		BaseSoundSelectType = "arm-mine-sel",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "mine-small",
+	},
+
+	legmine2 = {
+		BaseSoundSelectType = "arm-mine-sel",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "mine-medium",
+	},
+
+	legmine3 = {
+		BaseSoundSelectType = "arm-mine-sel",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "mine-large",
 	},
 
 

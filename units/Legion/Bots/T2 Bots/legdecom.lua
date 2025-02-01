@@ -56,9 +56,9 @@ return {
 		upright = true,
 		workertime = 300,
 		buildoptions = {
-			[1] = "cormine1",
-			[2] = "cormine2",
-			[3] = "cormine3",
+			[1] = "legmine1",
+			[2] = "legmine2",
+			[3] = "legmine3",
 			[4] = "legsolar",
 			[5] = "legwin",
 			[6] = "legmstor",
