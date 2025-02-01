@@ -48,7 +48,7 @@ Deactivate()
 {
 	turn lthruster to x-axis <-90> speed <90>;
 	turn rthruster to x-axis <-90> speed <90>;
-	move base to y-axis [7] speed [21];
+	move base to y-axis [8] speed [21];
 	
 	sleep 150;
 	
@@ -84,22 +84,22 @@ Shot1(zero) // Animate mines droping one by one
 	++mineCounter;
 	if(mineCounter == 1)
 	{
-		move mine1 to z-axis [18] now;
+		move mine1 to z-axis [20] now;
 		hide mine1;
 	}
 	else if(mineCounter == 2)
 	{
-		move mine2 to z-axis [15] now;
+		move mine2 to z-axis [16.5] now;
 		hide mine2;
 	}
 	else if(mineCounter == 3)
 	{
-		move mine3 to z-axis [12] now;
+		move mine3 to z-axis [13] now;
 		hide mine3;
 	}
 	else if(mineCounter == 4)
 	{
-		move mine4 to z-axis [9] now;
+		move mine4 to z-axis [9.5] now;
 		hide mine4;
 	}
 	else if(mineCounter == 5)
@@ -109,7 +109,7 @@ Shot1(zero) // Animate mines droping one by one
 	}
 	else if(mineCounter == 6)
 	{
-		move mine6 to z-axis [3] now;
+		move mine6 to z-axis [2.5] now;
 		hide mine6;
 		
 		mineCounter = 0;
@@ -124,39 +124,39 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
-	move flare to z-axis [18] speed [10];
+	move flare to z-axis [20] speed [15];
 	start-script RebuildMines();
 	return (0);
 }
 
 RebuildMines()
 {
-	sleep 4000;
+	sleep 5000;
 	
 	// Animate mines reloading
 	move flare to z-axis [0] now;
 	
-	move mine1 to z-axis [0] speed [6];
+	move mine1 to z-axis [0] speed [9.5];
 	show mine1;
 	sleep 400;
 	
-	move mine2 to z-axis [0] speed [6];
+	move mine2 to z-axis [0] speed [9.5];
 	show mine2;
 	sleep 400;
 	
-	move mine3 to z-axis [0] speed [6];
+	move mine3 to z-axis [0] speed [9.5];
 	show mine3;
 	sleep 400;
 	
-	move mine4 to z-axis [0] speed [6];
+	move mine4 to z-axis [0] speed [9.5];
 	show mine4;
 	sleep 400;
 	
-	move mine5 to z-axis [0] speed [6];
+	move mine5 to z-axis [0] speed [9.5];
 	show mine5;
 	sleep 400;
 	
-	move mine6 to z-axis [0] speed [6];
+	move mine6 to z-axis [0] speed [9.5];
 	show mine6;
 	
 }

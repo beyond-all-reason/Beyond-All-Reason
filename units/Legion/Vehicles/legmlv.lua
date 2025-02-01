@@ -58,6 +58,7 @@ return {
 			[5] = "legeyes",
 		},
 		customparams = {
+			minesweeper = 450,
 			unitgroup = 'builder',
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
