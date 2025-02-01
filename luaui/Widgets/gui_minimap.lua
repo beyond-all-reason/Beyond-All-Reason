@@ -39,7 +39,7 @@ local wasOverview = false
 local leftclicked = false
 
 local RectRound, UiElement, elementCorner, elementPadding, elementMargin
-local dlistGuishader, dlistMinimap, oldMinimapGeometry
+local dlistGuishader, dlistMinimap, dlistMapName, oldMinimapGeometry
 
 local dualscreenMode = ((Spring.GetConfigInt("DualScreenMode", 0) or 0) == 1)
 
@@ -112,6 +112,8 @@ function widget:ViewResize()
 end
 
 function widget:Initialize()
+	font = WG['fonts'].getFont()
+
 	oldMinimapGeometry = Spring.GetMiniMapGeometry()
 	gl.SlaveMiniMap(true)
 
@@ -234,8 +236,15 @@ function widget:DrawScreen()
 
 	-- draw the map's name in the bottom right corner
 	if not minimized then
-		gl.Color(1, 1, 1, 0.1)
-		gl.Text(Game.mapName, backgroundRect[3] - elementPadding, backgroundRect[2] + elementPadding, 10, "rbo")
+		if not dlistMapName then
+			dlistMapName = gl.CreateList(function()
+				font:Begin()
+				font:SetTextColor(1,1,1, 0.5)
+				font:Print(Game.mapName, backgroundRect[3] - elementPadding, backgroundRect[2] + elementPadding, 12, "rbo")
+				font:End()
+			end)
+		end
+		gl.CallList(dlistMapName)
 	end
 end
 
