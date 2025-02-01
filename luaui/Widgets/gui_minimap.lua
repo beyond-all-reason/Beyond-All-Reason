@@ -109,7 +109,9 @@ function widget:ViewResize()
 		Spring.SendCommands(string.format("minimap geometry %i %i %i %i", 0, 0, usedWidth, usedHeight))
 		checkGuishader(true)
 	end
+
 	dlistMinimap = gl.DeleteList(dlistMinimap)
+	dlistMapName = gl.DeleteList(dlistMapName)
 end
 
 function widget:Initialize()
