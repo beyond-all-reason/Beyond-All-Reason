@@ -90,7 +90,7 @@ for weaponDefID, weaponDef in pairs(WeaponDefs) do
 		--accurately predict what frame the desired overrange will be reached
 		local ascentFrames = 0
 		if weaponDef.type == "StarburstLauncher" then
-			ascentFrames = math.floor(weaponDef.uptime * Game.gameSpeed - uptimeTurnFrames(weaponDef.turnRate))
+			ascentFrames = math.floor(weaponDef.uptime * Game.gameSpeed - uptimeTurnFrames(weaponDef.turnRate)) or 0
 		end
 		watchParams.flightTimeFrames = calculateFlightFrames(weaponDef.startvelocity, weaponDef.projectilespeed,
 			weaponDef.weaponAcceleration, overRange) + ascentFrames
@@ -189,8 +189,10 @@ function gadget:GameFrame(frame)
 			if projectileX then
 				local proData = proMetaData[proID]
 				local defData = defWatchTable[proData.weaponDefID]
-				local newFlightTime = recalculateFlightTime(proID, defData.overRange, proData.originX, proData.originZ, projectileX, projectileZ)
-				if newFlightTime then setFlightTimeFrame(proID, newFlightTime)
+				local newFlightTime = recalculateFlightTime(proID, defData.overRange, proData.originX, proData.originZ,
+					projectileX, projectileZ)
+				if newFlightTime then
+					setFlightTimeFrame(proID, newFlightTime)
 				else
 					if defData.leashRangeSq then
 						leashWatch[proID] = defData.leashRangeSq
