@@ -553,6 +553,7 @@ local function addConsoleLine(gameFrame, lineType, text, orgLineID, consoleLineI
 			--lineDisplayList = glCreateList(function() end),
 			--timeDisplayList = glCreateList(function() end),
 		}
+		consoleLineID = consoleLineID + 1
 	end
 
 	if historyMode ~= 'console' then
@@ -668,6 +669,7 @@ local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID,
 				lastLineUnitShare = nil
 			end
 		end
+		chatLineID = chatLineID + 1
 	end
 
 	if historyMode ~= 'chat' and not ignore then
@@ -1126,7 +1128,7 @@ local function createGameTimeDisplayList(gametime)
 end
 
 local function processConsoleLineGL(i)
-	if not consoleLines[i].lineDisplayList then
+	if consoleLines[i] and not consoleLines[i].lineDisplayList then
 		glDeleteList(consoleLines[i].lineDisplayList)
 		local fontHeightOffset = usedFontSize*0.3
 		consoleLines[i].lineDisplayList = glCreateList(function()
@@ -1136,14 +1138,14 @@ local function processConsoleLineGL(i)
 		end)
 	end
 	-- game time (for when viewing history)
-	if not consoleLines[i].timeDisplayList and consoleLines[i].gameFrame then
+	if consoleLines[i] and not consoleLines[i].timeDisplayList and consoleLines[i].gameFrame then
 		glDeleteList(consoleLines[i].timeDisplayList)
 		consoleLines[i].timeDisplayList = createGameTimeDisplayList(consoleLines[i].gameFrame)
 	end
 end
 
 local function processChatLineGL(i)
-	if not chatLines[i].lineDisplayList then
+	if chatLines[i] and not chatLines[i].lineDisplayList then
 		glDeleteList(chatLines[i].lineDisplayList)
 		local fontHeightOffset = usedFontSize*0.3
 		chatLines[i].lineDisplayList = glCreateList(function()
@@ -1176,7 +1178,7 @@ local function processChatLineGL(i)
 		end)
 	end
 	-- game time (for when viewing history)
-	if not chatLines[i].timeDisplayList and chatLines[i].gameFrame then
+	if chatLines[i] and not chatLines[i].timeDisplayList and chatLines[i].gameFrame then
 		glDeleteList(chatLines[i].timeDisplayList)
 		chatLines[i].timeDisplayList = createGameTimeDisplayList(chatLines[i].gameFrame)
 	end
@@ -1192,7 +1194,7 @@ function widget:Update(dt)
 	uiSec = uiSec + dt
 	if uiSec > 1 then
 		uiSec = 0
-		
+
 		-- restore pregame reconnection messages
 		--if prevOrgLines and Spring.GetGameRulesParam("GameID") then
 		--	if prevGameID == Spring.GetGameRulesParam("GameID") then
@@ -1200,7 +1202,7 @@ function widget:Update(dt)
 		--	end
 		--	prevOrgLines = nil
 		--	prevGameID = nil
-		--	
+		--
 		--	chatLines = {}
 		--	consoleLines = {}
 		--	for orgLineID, params in ipairs(orgLines) do
@@ -1682,11 +1684,11 @@ function widget:DrawScreen()
 					end
 					if historyMode or ctrlHover then
 						if historyMode == 'console' then
-							if consoleLines[i].timeDisplayList then
+							if consoleLines[i] and consoleLines[i].timeDisplayList then
 								glCallList(consoleLines[i].timeDisplayList)
 							end
 						else
-							if historyMode and chatLines[i].timeDisplayList then
+							if historyMode and chatLines[i] and chatLines[i].timeDisplayList then
 								glCallList(chatLines[i].timeDisplayList)
 							end
 
@@ -1718,7 +1720,15 @@ function widget:DrawScreen()
 							glTranslate(width, 0, 0)
 						end
 					end
-					glCallList(historyMode == 'console' and consoleLines[i].lineDisplayList or chatLines[i].lineDisplayList)
+					if historyMode == 'console' then
+						if consoleLines[i] and consoleLines[i].lineDisplayList then
+							glCallList(consoleLines[i].lineDisplayList)
+						end
+					else
+						if chatLines[i] and chatLines[i].lineDisplayList then
+							glCallList(chatLines[i].lineDisplayList)
+						end
+					end
 					if historyMode then
 						glTranslate(-width, 0, 0)
 					end
@@ -2310,7 +2320,7 @@ function widget:Initialize()
 		fontsizeMult = value
 		widget:ViewResize()
 	end
-	
+
 	for orgLineID, params in ipairs(orgLines) do
 		processAddConsoleLine(params[1], params[2], orgLineID)
 	end
