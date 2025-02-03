@@ -188,6 +188,11 @@ end
 local st = spGetCameraState()
 local stframe = 0
 function widget:DrawScreen()
+	local left = backgroundRect[1]
+	local bottom = backgroundRect[2]
+	local right = backgroundRect[3] 
+	local top = backgroundRect[4]
+	local pad = elementPadding
 
 	if dualscreenMode and not minimized then
 		gl.DrawMiniMap()
@@ -198,8 +203,8 @@ function widget:DrawScreen()
 		clear()
 	else
 		local x, y = Spring.GetMouseState()
-		if math_isInRect(x, y, backgroundRect[1], backgroundRect[2] - elementPadding, backgroundRect[3] + elementPadding, backgroundRect[4]) then
-			if not math_isInRect(x, y, backgroundRect[1], backgroundRect[2] + 1, backgroundRect[3] - 1, backgroundRect[4]) then
+		if math_isInRect(x, y, left, bottom - pad, right + pad, top) then
+			if not math_isInRect(x, y, left, bottom + 1, right - 1, top) then
 				Spring.SetMouseCursor('cursornormal')
 			end
 		end
@@ -229,26 +234,26 @@ function widget:DrawScreen()
 		end
 		if not dlistMinimap then
 			dlistMinimap = gl.CreateList(function()
-				UiElement(backgroundRect[1], backgroundRect[2] - elementPadding, backgroundRect[3] + elementPadding, backgroundRect[4], 0, 0, 1, 0)
+				local text = Game.mapName
+				local size = 12
+
+				-- caluclate space needed to display map name
+				local height = font:GetTextHeight(text) * size
+
+				-- create background element with padding on bottom and right, + padding for text height
+				UiElement(left, bottom - height - (2*pad), right + pad, top, 0, 0, 1, 0)
+
+				-- draw the map's name below the minimap
+				font:Begin()
+				font:SetTextColor(1,1,1)
+				font:Print(text, right, bottom, size, "rto")
+				font:End()
 			end)
 		end
 		gl.CallList(dlistMinimap)
 	end
 
 	gl.DrawMiniMap()
-
-	-- draw the map's name in the bottom right corner
-	if not minimized then
-		if not dlistMapName then
-			dlistMapName = gl.CreateList(function()
-				font:Begin()
-				font:SetTextColor(1,1,1, 0.5)
-				font:Print(Game.mapName, backgroundRect[3] - elementPadding, backgroundRect[2] + elementPadding, 12, "rbo")
-				font:End()
-			end)
-		end
-		gl.CallList(dlistMapName)
-	end
 end
 
 function widget:GetConfigData()
