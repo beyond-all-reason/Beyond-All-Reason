@@ -30,80 +30,12 @@ local modOptions = Spring.GetModOptions()
 VFS.Include("LuaRules/Configs/targetReachableTester.lua")
 
 -- configs
-local ZOMBIE_MAX_RESURRECTION_TIME = 90  -- Maximum time (in seconds) a unit can take to resurrect, regardless of cost
+local ZOMBIE_MAX_RESURRECTION_TIME = Game.gameSpeed * 3  -- Maximum time (in seconds) a unit can take to resurrect, regardless of cost
 local ZOMBIE_GUARD_RADIUS = 300           -- How far zombies look for allies to guard (in units)
-local ZOMBIE_ORDER_CHECK_INTERVAL = 640    -- How often (in frames) to check if zombies need new orders
 local ZOMBIE_ORDER_MIN = 10               -- Minimum number of random orders to give zombies
 local ZOMBIE_ORDER_MAX = 30               -- Maximum number of random orders to give zombies
 local ZOMBIE_GUARD_CHANCE = 0.6           -- Probability (0-1) that a zombie will guard nearby allies
-
-local spGetGroundHeight           = Spring.GetGroundHeight
-local spGetUnitPosition           = Spring.GetUnitPosition
-local spGetFeaturePosition        = Spring.GetFeaturePosition
-local spCreateUnit                = Spring.CreateUnit
-local spGetUnitDefID              = Spring.GetUnitDefID
-local spGetUnitTeam               = Spring.GetUnitTeam
-local spGetAllUnits               = Spring.GetAllUnits
-local spGetGameFrame              = Spring.GetGameFrame
-local spGetAllFeatures            = Spring.GetAllFeatures
-local spGiveOrderToUnit           = Spring.GiveOrderToUnit
-local spGetUnitCommandCount       = Spring.GetUnitCommandCount
-local spDestroyFeature            = Spring.DestroyFeature
-local spGetFeatureResurrect       = Spring.GetFeatureResurrect
-local spGetUnitIsDead             = Spring.GetUnitIsDead
-local spGiveOrderArrayToUnitArray = Spring.GiveOrderArrayToUnitArray
-local spGetUnitsInCylinder        = Spring.GetUnitsInCylinder
-local spSetTeamResource           = Spring.SetTeamResource
-local spGetUnitHealth             = Spring.GetUnitHealth
-local spSetUnitRulesParam         = Spring.SetUnitRulesParam
-
-local GaiaTeamID     = Spring.GetGaiaTeamID()
-local GaiaAllyTeamID = select(6, Spring.GetTeamInfo(GaiaTeamID, false))
-local GAME_SPEED = Game.gameSpeed
-
-local gameframe = 0
-local LOS_ACCESS = {inlos = true}
-local PRIVATE_ACCESS = {private = true}
-
-local random = math.random
-local floor = math.floor
-
-local mapWidth
-local mapHeight
-
-local reclaimed_data = {} -- holds initial gameframe, initial time in seconds, % of feature reclaimed
-local zombies_to_spawn = {}
-local zombiesToSpawnList = {}
-local zombiesToSpawnMap = {}
-local zombiesToSpawnCount = 0
-local zombies = {}
-local eligibleZombieCorpses = {}
-local zombieUnitDefs = {}
-
--- Populate zombieUnitDefs with units that have resurrectable _dead corpses
-for defID, unitDef in pairs(UnitDefs) do
-	local corpseDefName = unitDef.name .. "_dead"
-	Spring.Echo("Checking corpseDefName: " .. corpseDefName)
-	if FeatureDefNames[corpseDefName] then
-		Spring.Echo("Found resurrectable corpse: " .. corpseDefName)
-		zombieUnitDefs[defID] = true
-	end
-end
-
--- local ZOMBIE_SOUNDS = {
--- 	"sounds/misc/zombie_1.wav",
--- 	"sounds/misc/zombie_2.wav",
--- 	"sounds/misc/zombie_3.wav",
--- }
---local REZ_SOUND = "sounds/misc/resurrect.wav"
-
-local defined = false -- wordaround, because i meet some kind of racing condition, if any gadget spawns gaia BEFORE this gadget can process all the stuff...
-
-local NonZombies = {
-	["asteroid"] = true,
-}
-
-local WARNING_TIME = 5 -- seconds to start being scary before actual reanimation event
+local WARNING_TIME = 15 * Game.gameSpeed -- frames to start being scary before actual reanimation event
 local ZOMBIES_REZ_MIN = tonumber(modOptions.zombies_delay)
 if (tonumber(ZOMBIES_REZ_MIN) == nil) then
 	-- minimum of 10 seconds, max is determined by rez speed
@@ -130,39 +62,104 @@ end
 
 local ZOMBIES_PARTIAL_RECLAIM = (tonumber(modOptions.zombies_partial_reclaim) == 1)
 
+--localized functions
+local spGetGroundHeight           = Spring.GetGroundHeight
+local spGetUnitPosition           = Spring.GetUnitPosition
+local spGetFeaturePosition        = Spring.GetFeaturePosition
+local spCreateUnit                = Spring.CreateUnit
+local spGetUnitDefID              = Spring.GetUnitDefID
+local spGetUnitTeam               = Spring.GetUnitTeam
+local spGetAllUnits               = Spring.GetAllUnits
+local spGetGameFrame              = Spring.GetGameFrame
+local spGetAllFeatures            = Spring.GetAllFeatures
+local spGiveOrderToUnit           = Spring.GiveOrderToUnit
+local spGetUnitCommandCount       = Spring.GetUnitCommandCount
+local spDestroyFeature            = Spring.DestroyFeature
+local spGetFeatureResurrect       = Spring.GetFeatureResurrect
+local spGetUnitIsDead             = Spring.GetUnitIsDead
+local spGiveOrderArrayToUnitArray = Spring.GiveOrderArrayToUnitArray
+local spGetUnitsInCylinder        = Spring.GetUnitsInCylinder
+local spSetTeamResource           = Spring.SetTeamResource
+local spGetUnitHealth             = Spring.GetUnitHealth
+local spSetUnitRulesParam         = Spring.SetUnitRulesParam
+local spGetUnitRulesParam         = Spring.GetUnitRulesParam
+local spGetFeatureDefID           = Spring.GetFeatureDefID
+local spSpawnCEG 					= Spring.SpawnCEG
+local random = math.random
+local floor = math.floor
+local function disSQ(x1, y1, x2, y2) return (x1 - x2)^2 + (y1 - y2)^2 end
+
+--constants
+local GaiaTeamID     = Spring.GetGaiaTeamID()
+local GAME_SPEED = Game.gameSpeed
+local mapWidth
+local mapHeight
+local ZOMBIE_ORDER_CHECK_INTERVAL = Game.gameSpeed * 10    -- How often (in frames) to check if zombies need new orders
+local ZOMBIE_CHECK_INTERVAL = Game.gameSpeed    -- How often (in frames) everything else is checked
+
 local CMD_REPEAT = CMD.REPEAT
 local CMD_MOVE_STATE = CMD.MOVE_STATE
 local CMD_INSERT = CMD.INSERT
 local CMD_FIGHT = CMD.FIGHT
 local CMD_OPT_SHIFT = CMD.OPT_SHIFT
 local CMD_GUARD = CMD.GUARD
+local CMD_FIRE_STATE = CMD.FIRE_STATE
 
-local function disSQ(x1, y1, x2, y2)
-	return (x1 - x2)^2 + (y1 - y2)^2
-end
+local ISNT_ZOMBIE = 0
+local IS_ZOMBIE = 1
+local IS_NEUTRAL = 2
 
-local function SetZombieSlow(unitID, slowed)
-	spSetUnitRulesParam(unitID, "zombieSpeedMult", (slowed and 0.5) or 1, LOS_ACCESS)
-	--GG.UpdateUnitAttributes(unitID)
-end
 
-local function RemoveZombieToSpawn(featureID)
-	if not zombiesToSpawnMap[featureID] then
-		return false
+--variables
+local gameFrame = 0
+local initiationFrame = 0
+local LOS_ACCESS = {inlos = true}
+
+
+--tables
+local zombieCorpseDefs = {}
+local zombieUnitDefs = {}
+local zombieWatch = {}
+local corpseCheckFrames = {}
+local corpsesData = {}
+
+-- Populate zombieUnitDefs with units that have resurrectable _dead corpses
+for unitDefID, unitDef in pairs(UnitDefs) do
+	local corpseDefName = unitDef.name .. "_dead"
+	Spring.Echo("Checking corpseDefName: " .. corpseDefName)
+	if FeatureDefNames[corpseDefName] then
+		local featureDefID = FeatureDefNames[corpseDefName].id
+		local metalCost = unitDef.metalCost or 100 --fallback number chosen arbitrarily
+		local spawnSeconds = math.floor(metalCost / ZOMBIES_REZ_SPEED)
+		spawnSeconds = math.max(spawnSeconds, ZOMBIES_REZ_MIN)
+		spawnSeconds = math.min(spawnSeconds, ZOMBIE_MAX_RESURRECTION_TIME)
+		local spawnFrames = spawnSeconds * Game.gameSpeed
+
+		Spring.Echo("Found resurrectable corpse: " .. corpseDefName, FeatureDefNames[corpseDefName].id)
+		zombieCorpseDefs[featureDefID] = {unitDefID = unitDefID, spawnDelayFrames = spawnFrames}
+		zombieUnitDefs[unitDefID] = true
 	end
-	zombies_to_spawn[featureID] = nil
-	reclaimed_data[featureID] = nil
+end
+
+
+--custom functions
+local function executeInitialize()		
+	local units = spGetAllUnits()
+	for i = 1, #units do
+		local unitID = units[i]
+		local identifiedZombie = spGetUnitRulesParam(unitID, "zombie")
+		if identifiedZombie and identifiedZombie == IS_ZOMBIE then
+			zombieWatch[unitID] = spGetUnitDefID(unitID)
+			spGiveOrderToUnit(unitID, CMD_REPEAT, 1, 0)
+			spGiveOrderToUnit(unitID, CMD_MOVE_STATE, 2, 0)
+			spGiveOrderToUnit(unitID, CMD_FIRE_STATE, 3, 0)
+		end
+	end
 	
-	local index = zombiesToSpawnMap[featureID]
-	
-	zombiesToSpawnList[index] = zombiesToSpawnList[zombiesToSpawnCount]
-	zombiesToSpawnMap[zombiesToSpawnList[zombiesToSpawnCount]] = index
-	
-	zombiesToSpawnList[zombiesToSpawnCount] = nil
-	zombiesToSpawnMap[featureID] = nil
-	zombiesToSpawnCount = zombiesToSpawnCount - 1
-	
-	return true
+	local features = spGetAllFeatures()
+	for i = 1, #features do
+		gadget:FeatureCreated(features[i], 1)
+	end
 end
 
 local function GetUnitNearestAlly(unitID, range)
@@ -173,7 +170,7 @@ local function GetUnitNearestAlly(unitID, range)
 	for i = 1, #units do
 		local allyID = units[i]
 		local allyTeam = spGetUnitTeam(allyID)
-		local allyDefID = spGetUnitDefID(allyID)
+--		local allyDefID = spGetUnitDefID(allyID)
 		if (allyID ~= unitID) and (allyTeam == GaiaTeamID) then -- and (getMovetype(UnitDefs[allyDefID]) ~= false)
 			local ox, oy, oz = spGetUnitPosition(allyID)
 			local dist = disSQ(x, z, ox ,oz)
@@ -186,7 +183,7 @@ local function GetUnitNearestAlly(unitID, range)
 	return best_ally
 end
 
-local function OpenAllClownSlots(unitID, unitDefID) -- give factory something to do
+local function issueRandomFactoryBuildOrders(unitID, unitDefID) -- give factory something to do
 	local buildopts = UnitDefs[unitDefID].buildOptions
 	if (not buildopts) or #buildopts <= 0 then
 		return
@@ -203,278 +200,280 @@ local function OpenAllClownSlots(unitID, unitDefID) -- give factory something to
 	end
 end
 
--- reclaiming zombies 'causes delay in rez, basically you have to have about ZOMBIES_REZ_SPEED/2 or bigger BP to reclaim faster than it resurrects...
--- TODO do more math to figure out how to perform it better?
+local function spawnCEG(x, y, z, size)
+	spSpawnCEG("scav-spawnexplo", x, y, z, 0, 0, 0, size)
+end
+
+local function progressCEG(featureID, x, y, z)
+	local radius = Spring.GetFeatureRadius(featureID)
+
+	local effects = {
+		"scavmist",
+		"scavradiation-lightning"
+	}
+	local selectedEffect = effects[random(#effects)]
+	spSpawnCEG(selectedEffect, x, y, z, 0, 0, 0, 10 + radius, 10 + radius)
+end
+
+local function issueRandomOrders(unitID, unitDefID)
+	Spring.Echo("issueRandomOrders called for unitID:", unitID, "unitDefID:", unitDefID)
+	if spGetUnitIsDead(unitID) then
+		Spring.Echo("Unit is dead, exiting function.")
+		return
+	end
+	
+	local randomX, randomY, randomZ
+	local orders = {}
+	local nearAlly
+	if (UnitDefs[unitDefID].canAttack) then
+		nearAlly = GetUnitNearestAlly(unitID, ZOMBIE_GUARD_RADIUS)
+		if (nearAlly) then
+			if Spring.GetUnitCurrentCommand(nearAlly) == CMD_GUARD then
+				Spring.Echo("Nearby ally is guarding, setting nearAlly to nil.")
+				nearAlly = nil -- i dont want chain guards...
+			end
+		end
+	end
+	local unitX, unitY, unitZ = spGetUnitPosition(unitID)
+	Spring.Echo("Unit position:", unitX, unitY, unitZ)
+
+	if (nearAlly) and random() < ZOMBIE_GUARD_CHANCE then
+		orders[#orders + 1] = {CMD_GUARD, {nearAlly}, 0}
+		Spring.Echo("Added guard order for nearAlly:", nearAlly)
+	end
+
+	for i = 1, random(ZOMBIE_ORDER_MIN, ZOMBIE_ORDER_MAX) do
+		Spring.Echo("Generating random order:", i, mapWidth, mapHeight)
+		randomX = random(0, mapWidth)
+		Spring.Echo("Random X:", randomX)
+		randomZ = random(0, mapHeight)
+		Spring.Echo("Random Z:", randomZ)
+		randomY = spGetGroundHeight(randomX, randomZ)
+		Spring.Echo("Random Y:", randomY)
+		Spring.Echo("Generated random order:", i, "to position:", randomX, randomY, randomZ)
+
+		if IsTargetReallyReachable(unitID, randomX, randomY, randomZ, unitX, unitY, unitZ) then
+			orders[#orders+1] = {CMD_FIGHT, {randomX, randomY, randomZ}, CMD_OPT_SHIFT}
+			Spring.Echo("Adding fight order to position:", randomX, randomY, randomZ)
+			spGiveOrderToUnit(unitID, CMD_FIGHT, {randomX, randomY, randomZ}, {"shift", "alt", "ctrl"})
+			Spring.Echo("Added fight order to position:", randomX, randomY, randomZ)
+		else
+			Spring.Echo("Target not reachable:", randomX, randomY, randomZ)
+		end
+	end
+
+	if (#orders > 0) then
+		Spring.TransferUnit (unitID, 0)
+		--spGiveOrderArrayToUnitArray({unitID}, orders)
+		Spring.Echo("Issued orders to unitID:", unitID, "Orders count:", #orders)
+	else
+		Spring.Echo("No orders to issue for unitID:", unitID)
+	end
+
+	if (UnitDefs[unitDefID].isFactory) then
+		issueRandomFactoryBuildOrders(unitID, unitDefID) -- give factory something to do
+		zombieWatch[unitID] = nil -- no need to update factory orders anymore
+		Spring.Echo("Factory orders issued for unitID:", unitID)
+	end
+end
+
+--call-ins
 function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part)
-	if (zombies_to_spawn[featureID]) then
-		local base_time = reclaimed_data[featureID]
-		base_time[3] = base_time[3] - part
-		zombies_to_spawn[featureID] = base_time[1] + base_time[2] * (1+base_time[3]) * GAME_SPEED
+	local featureData = corpsesData[featureID]
+	if featureData then
+		featureData.tamperedFrame = gameFrame
 	end
 	return true
 end
 
--- in halloween gadget, sometimes giving order to unit would result in crash because unit happened to be dead at the time order was given
--- TODO probably same units in groups could get same orders...
-local function BringingDownTheHeavens(unitID)
-	local unitDefID = (not spGetUnitIsDead(unitID)) and spGetUnitDefID(unitID)
-	if not unitDefID then
-		return
+--zombieCorpseDefs[featureDefID] = {unitDefID = unitDefID, resurrectionDelayFrames = resurrectionFrames}
+-- corpsesData[featureID] = {featureDefID = number, resurrectionFrames = number}
+-- zombiesToSpawn = {unitDefID = number, featureID = number}
+-- local zombieWatch[frame] = [1] = featureID, [2] = featureID
+-- local zombieCorpseDefs = {}
+-- local zombieDefRezCounts = {}
+-- local zombieWatch = {}
+-- local corpseCheckFrames = {}
+-- local corpsesData = {}
+function gadget:GameFrame(frame)
+	gameFrame = frame
+
+	--spawn this frame's zombies
+	local corpsesToCheck = corpseCheckFrames[frame]
+	if corpsesToCheck then
+		for i = 1, #corpsesToCheck do
+			local featureID = corpsesToCheck[i]
+			local corpseData = corpsesData[featureID]
+			local featureX, featureY, featureZ
+			if corpseData then
+			featureX, featureY, featureZ = spGetFeaturePosition(featureID)
+			end
+			if not featureX then --feature is gone
+				corpsesData[featureID] = nil
+			else --feature is still there
+				local featureData = corpsesData[featureID]
+				local featureDefData = zombieCorpseDefs[featureData.featureDefID]
+				if featureData.tamperedFrame then --tampered means the corpse has been tampered with, so we need to reset the check frame
+					local newFrame = featureData.tamperedFrame + featureDefData.spawnDelayFrames
+					featureData.spawnFrame = newFrame
+					corpsesToCheck[newFrame] = corpsesToCheck[newFrame] or {}
+					corpsesToCheck[newFrame][#corpsesToCheck[newFrame] + 1] = featureID
+				else
+					local unitDefID = featureDefData.unitDefID
+					local unitID = spCreateUnit(unitDefID, featureX, featureY, featureZ, 0, GaiaTeamID)
+					spDestroyFeature(featureID)
+					spawnCEG(featureX, featureY, featureZ, UnitDefs[unitDefID].xsize)
+					corpsesData[featureID] = nil
+					if unitID then
+						zombieWatch[unitID] = unitDefID
+						spSetUnitRulesParam(unitID, "zombie", IS_ZOMBIE)
+					end
+				end
+			end
+			corpseCheckFrames[frame] = nil
+		end
 	end
-	
-	local rx,rz,ry
-	local orders = {}
-	local near_ally
-	if (UnitDefs[unitDefID].canAttack) then
-		near_ally = GetUnitNearestAlly(unitID, ZOMBIE_GUARD_RADIUS)
-		if (near_ally) then
-			if Spring.GetUnitCurrentCommand(near_ally) == CMD_GUARD then
-				near_ally = nil -- i dont want chain guards...
+
+	--progress CEGs
+	if frame % ZOMBIE_CHECK_INTERVAL == 0 then
+		for featureID, featureData in pairs(corpsesData) do
+			local featureX, featureY, featureZ = spGetFeaturePosition(featureID)
+			if not featureX then --doesn't exist anymore
+				corpsesData[featureID] = nil
+			elseif featureData.spawnFrame - frame < WARNING_TIME then
+				progressCEG(featureID, featureX, featureY, featureZ)
 			end
 		end
 	end
-	local x,y,z = spGetUnitPosition(unitID)
-	if (near_ally) and random() < ZOMBIE_GUARD_CHANCE then
-		orders[#orders + 1] = {CMD_GUARD, {near_ally}, 0}
-	end
-	for i = 1, random(ZOMBIE_ORDER_MIN, ZOMBIE_ORDER_MAX) do
-		rx = random(0, mapWidth)
-		rz = random(0, mapHeight)
-		ry = spGetGroundHeight(rx,rz)
-		if IsTargetReallyReachable(unitID, rx, ry, rz, x, y, z) then
-			orders[#orders+1] = {CMD_FIGHT, {rx, ry, rz}, CMD_OPT_SHIFT}
-		end
-	end
-	if (#orders > 0) then
-		if not spGetUnitIsDead(unitID) then
-			spGiveOrderArrayToUnitArray({unitID},orders)
-		end
-	end
-	if (UnitDefs[unitDefID].isFactory) then
-		OpenAllClownSlots(unitID, unitDefID) -- give factory something to do
-		zombies[unitID] = nil -- no need to update factory orders anymore
-	end
-end
 
-local function CheckZombieOrders()	-- i can't rely on Idle because if for example unit is unloaded it doesnt count as idle... weird
-	for unitID, _ in pairs(zombies) do
-		local queueSize = spGetUnitCommandCount(unitID)
-		if not (queueSize) or not (queueSize > 0) then -- oh
-			BringingDownTheHeavens(unitID)
-		end
-	end
-end
-
-local function myGetFeatureRessurect(fId)
-	local resName, face = spGetFeatureResurrect(fId)
-	if resName == "" then
-		local featureDef = FeatureDefs[Spring.GetFeatureDefID(fId)]
-		local featureName = featureDef.name or ""
-		if featureDef.resurrectable == 1 then
-			resName = featureName:gsub('(.*)_.*', '%1') --filter out _dead
-			face = face or 0
-		end
-	end
-	return resName, face
-end
-
-function gadget:GameFrame(f)
-	gameframe = f
-	if (f%GAME_SPEED) == 0 then
-		local spSpawnCEG = Spring.SpawnCEG -- putting the localization here because cannot localize in global scope since spring 97
-		local index = 1
-		while index <= zombiesToSpawnCount do
-			local featureID = zombiesToSpawnList[index]
-			local time_to_spawn = zombies_to_spawn[featureID]
-			local x, y, z = spGetFeaturePosition(featureID)
-
-			if time_to_spawn <= f then
-				if not RemoveZombieToSpawn(featureID) then
-					index = index + 1
-				end
-				local resName, face = myGetFeatureRessurect(featureID)
-				local partialReclaim = 1
-				if ZOMBIES_PARTIAL_RECLAIM then
-					local currentMetal, maxMetal = Spring.GetFeatureResources(featureID)
-					if currentMetal and maxMetal and (maxMetal > 0) then
-						partialReclaim = currentMetal/maxMetal
-					end
-				end
-				spDestroyFeature(featureID)
-				local unitID = spCreateUnit(resName, x, y, z, face, GaiaTeamID)
-				if (unitID) then
-					Spring.Echo("Zombie created: " .. resName .. " (ID: " .. unitID .. ")")
-					local size = UnitDefNames[resName].xsize
-					spSpawnCEG("scav-spawnexplo", x, y, z, 0, 0, 0, size)
-					Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, 3, 0)
-					if partialReclaim ~= 1 then
-						local health = Spring.GetUnitHealth(unitID)
-						if health then
-							Spring.SetUnitHealth(unitID, health*partialReclaim)
-							--spSetUnitRulesParam(unitID, "zombie_partialReclaim", partialReclaim, PRIVATE_ACCESS)
-						end
-					end
-				end
+	--check if any zombies need new orders
+	if frame % ZOMBIE_ORDER_CHECK_INTERVAL == 1 then
+		for unitID, unitDefID in pairs(zombieWatch) do
+			if spGetUnitIsDead(unitID) then
+				zombieWatch[unitID] = nil
 			else
-				local steps_to_spawn = floor((time_to_spawn - f) / GAME_SPEED)
-				local resName, face = myGetFeatureRessurect(featureID)
-				if steps_to_spawn <= WARNING_TIME then
-					local r = Spring.GetFeatureRadius(featureID)
-
-					local effects = {
-						"scavmist",
-						"scavradiation-lightning"
-					}
-					local selectedEffect = effects[random(#effects)]
-					spSpawnCEG(selectedEffect, x, y, z, 0, 0, 0, 10 + r, 10 + r)
-
-					if steps_to_spawn == WARNING_TIME then
-						-- local z_sound = ZOMBIE_SOUNDS[math.random(#ZOMBIE_SOUNDS)]
-					end
+				local queueSize = spGetUnitCommandCount(unitID)
+				if not (queueSize) or not (queueSize > 0) then
+					issueRandomOrders(unitID, unitDefID)
 				end
-				index = index + 1
 			end
 		end
 	end
-	if (f%ZOMBIE_ORDER_CHECK_INTERVAL) == 1 then
-		CheckZombieOrders()
+
+	if frame == initiationFrame then
+		executeInitialize()
 	end
-	-- if f == 1 then
-	-- 	spSetTeamResource(GaiaTeamID, "ms", 500)
-	-- 	spSetTeamResource(GaiaTeamID, "es", 10500)
-	-- end
-end
--- settings gaiastorage before frame 1 somehow doesnt work, well i can guess why...
-
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
-	if zombies[unitID] then
-		zombies[unitID] = nil
-	end
-end
-
-function gadget:UnitTaken(unitID, unitDefID, teamID, newTeamID)
-	if zombies[unitID] and newTeamID ~= GaiaTeamID then
-		zombies[unitID] = nil
-		-- taking away zombie from zombie team unpermaslows it
-		if ZOMBIES_PERMA_SLOW then
-			SetZombieSlow(unitID, false)
-		end
-	elseif newTeamID == GaiaTeamID then
-		gadget:UnitFinished(unitID, unitDefID, newTeamID)
-	end
-end
-
-function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
-	gadget:UnitFinished(unitID, unitDefID, teamID)
-end
-
--- Empty function to safely handle any calls before init
-local UnitFinished = function(_,_,_) end
-
--- Spring's hook - calls our swappable function
-function gadget:UnitFinished(unitID, unitDefID, teamID)
-	UnitFinished(unitID, unitDefID, teamID)
-end
-
--- Later, swap in real implementation after game state is ready
-if not (defined) then
-	UnitFinished = function(unitID, unitDefID, teamID)
-		-- Real implementation here
-	end
-	defined = true
 end
 
 function gadget:FeatureCreated(featureID, allyTeam)
-	local resName, face = myGetFeatureRessurect(featureID)
-	if resName and face and not zombies_to_spawn[featureID] then
-		local ud = resName and UnitDefNames[resName]
-		if ud and not NonZombies[resName] then
-			Spring.Echo("Zombie feature recognized: " .. resName)
-			local rez_time = ud.metalCost / ZOMBIES_REZ_SPEED
-			if (rez_time < ZOMBIES_REZ_MIN) then
-				rez_time = ZOMBIES_REZ_MIN
-			elseif (rez_time > ZOMBIE_MAX_RESURRECTION_TIME) then
-				rez_time = ZOMBIE_MAX_RESURRECTION_TIME
-			end
-			reclaimed_data[featureID] = {gameframe, rez_time, 0}
-			zombies_to_spawn[featureID] = gameframe + (rez_time*GAME_SPEED)
-			
-			zombiesToSpawnCount = zombiesToSpawnCount + 1
-			zombiesToSpawnList[zombiesToSpawnCount] = featureID
-			zombiesToSpawnMap[featureID] = zombiesToSpawnCount
-		end
+	local featureDefID = spGetFeatureDefID(featureID)
+	if zombieCorpseDefs[featureDefID] then
+		local spawnDelayFrames = zombieCorpseDefs[featureDefID].spawnDelayFrames
+		local spawnFrame = gameFrame + spawnDelayFrames
+		corpsesData[featureID] = {featureDefID = featureDefID, spawnDelayFrames = spawnDelayFrames, spawnFrame = spawnFrame}
+		corpseCheckFrames[spawnFrame] = corpseCheckFrames[spawnFrame] or {}
+		corpseCheckFrames[spawnFrame][#corpseCheckFrames[spawnFrame] + 1] = featureID
 	end
 end
+
 
 function gadget:FeatureDestroyed(featureID, allyTeam)
-	if (zombies_to_spawn[featureID]) then
-		RemoveZombieToSpawn(featureID)
+	corpsesData[featureID] = nil
+end
+
+function gadget:UnitFinished(unitID, unitDefID, unitTeam)
+	if unitTeam == GaiaTeamID then
+		local identifiedZombie = spGetUnitRulesParam(unitID, "zombie")
+		if identifiedZombie and identifiedZombie == IS_ZOMBIE then
+			zombieWatch[unitID] = unitDefID
+		else
+			spSetUnitRulesParam(unitID, "zombie", ISNT_ZOMBIE)
+		end
+	else
+		spSetUnitRulesParam(unitID, "zombie", ISNT_ZOMBIE)
 	end
 end
 
-local function ReInit(reinit)
-	mapWidth = Game.mapSizeX
-	mapHeight = Game.mapSizeZ
-	
-	if not (defined) then
-		UnitFinished = function(unitID, unitDefID, teamID, builderID)
-			if (teamID == GaiaTeamID) and not (zombies[unitID]) and zombieUnitDefs[spGetUnitDefID(unitID)] then
-				Spring.Echo("Reiniting zombie: " .. unitID)
-				spGiveOrderToUnit(unitID, CMD_REPEAT, 1, 0)
-				spGiveOrderToUnit(unitID, CMD_MOVE_STATE, 2, 0)
-				BringingDownTheHeavens(unitID)
-				zombies[unitID] = true
-				if ZOMBIES_PERMA_SLOW then
-					local maxHealth = select(2, spGetUnitHealth(unitID))
-					if maxHealth then
-						SetZombieSlow(unitID, true)
-					end
-				end
-			end
-		end
-		defined = true
-	end
-	
-	if (reinit) then
-		gameframe = spGetGameFrame()
-		
-		local units = spGetAllUnits()
-		for i = 1, #units do
-			local unitID = units[i]
-			local unitTeam = spGetUnitTeam(unitID)
-			if (unitTeam == GaiaTeamID) then
-				gadget:UnitFinished(unitID, spGetUnitDefID(unitID), unitTeam)
-			end
-		end
-		
-		local features = spGetAllFeatures()
-		for i = 1, #features do
-			gadget:FeatureCreated(features[i], 1)
-		end
-	end
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
+	zombieWatch[unitID] = nil
 end
 
 function gadget:Initialize()
-	if not GG.Zombies then
-		GG.Zombies = {}
-	end
-	
+	mapWidth = Game.mapSizeX
+	mapHeight = Game.mapSizeZ
 	GaiaTeamID = Spring.GetGaiaTeamID()
-	
-	zombies_to_spawn = {}
-	reclaimed_data = {}
-	zombiesToSpawnList = {}
-	zombiesToSpawnMap = {}
-	zombiesToSpawnCount = 0
-	
-	local allUnits = Spring.GetAllUnits()
-	for i = 1, #allUnits do
-		local unitID = allUnits[i]
-		local unitDefID = Spring.GetUnitDefID(unitID)
-		gadget:UnitFinished(unitID, unitDefID)
-	end
+	initiationFrame = spGetGameFrame() + 1 --to avoid race conditions
 end
+--zzz need to come up with a better way to handle zombie reloads. Maybe set customrulesparam that they're a zombie? 
+--upon reload, ask what units are zombies and continue treating them as such.
 
-function gadget:GameStart()
-	ReInit(true) -- anything it does doesnt mess with existing zombies
-end
+
+
+
+-- function gadget:GameFrame(f)
+-- 	gameframe = f
+-- 	if (f%GAME_SPEED) == 0 then
+-- 			local featureID = zombiesToSpawnList[index]
+-- 			local x, y, z = spGetFeaturePosition(featureID)
+
+-- 			if time_to_spawn <= f then
+-- 				if not RemoveZombieToSpawn(featureID) then
+-- 					index = index + 1
+-- 				end
+-- 				local resName, face = spGetFeatureResurrect(featureID)
+-- 				local partialReclaim = 1
+-- 				if ZOMBIES_PARTIAL_RECLAIM then
+-- 					local currentMetal, maxMetal = Spring.GetFeatureResources(featureID)
+-- 					if currentMetal and maxMetal and (maxMetal > 0) then
+-- 						partialReclaim = currentMetal/maxMetal
+-- 					end
+-- 				end
+-- 				spDestroyFeature(featureID)
+-- 				local unitID = spCreateUnit(resName, x, y, z, face, GaiaTeamID)
+-- 				if (unitID) then
+-- 					Spring.Echo("Zombie created: " .. resName .. " (ID: " .. unitID .. ")")
+-- 					local size = UnitDefNames[resName].xsize
+-- 					spSpawnCEG("scav-spawnexplo", x, y, z, 0, 0, 0, size)
+-- 					Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, 3, 0)
+-- 					if partialReclaim ~= 1 then
+-- 						local health = Spring.GetUnitHealth(unitID)
+-- 						if health then
+-- 							Spring.SetUnitHealth(unitID, health*partialReclaim)
+-- 							--spSetUnitRulesParam(unitID, "zombie_partialReclaim", partialReclaim, PRIVATE_ACCESS)
+-- 						end
+-- 					end
+-- 				end
+-- 			else
+-- 				local steps_to_spawn = floor((time_to_spawn - f) / GAME_SPEED)
+-- 				local resName, face = myGetFeatureRessurect(featureID)
+-- 				if steps_to_spawn <= WARNING_TIME then
+-- 					local r = Spring.GetFeatureRadius(featureID)
+
+-- 					local effects = {
+-- 						"scavmist",
+-- 						"scavradiation-lightning"
+-- 					}
+-- 					local selectedEffect = effects[random(#effects)]
+-- 					spSpawnCEG(selectedEffect, x, y, z, 0, 0, 0, 10 + r, 10 + r)
+
+-- 					if steps_to_spawn == WARNING_TIME then
+-- 						-- local z_sound = ZOMBIE_SOUNDS[math.random(#ZOMBIE_SOUNDS)]
+-- 					end
+-- 				end
+-- 				index = index + 1
+-- 			end
+-- 			iterations = iterations + 1  -- Increment iterations
+-- 		end
+-- 		if iterations >= maxIterations then
+-- 			Spring.Echo("Warning: Exiting zombie spawn loop after reaching maximum iterations.")
+-- 		end
+-- 	end
+-- 	if (f%ZOMBIE_ORDER_CHECK_INTERVAL) == 1 then
+-- 		CheckZombieOrders()
+-- 	end
+-- 	-- if f == 1 then
+-- 	-- 	spSetTeamResource(GaiaTeamID, "ms", 500)
+-- 	-- 	spSetTeamResource(GaiaTeamID, "es", 10500)
+-- 	-- end
+-- end
+-- -- settings gaiastorage before frame 1 somehow doesnt work, well i can guess why...

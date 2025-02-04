@@ -1,5 +1,6 @@
 --This function process result of Spring.PathRequest() to say whether target is reachable or not
 function Spring.Utilities.IsTargetReachable (moveID, ox,oy,oz,tx,ty,tz,radius)
+	Spring.Echo("IsTargetReachable ran")
 	local result,lastcoordinate, waypoints
 	local path = Spring.RequestPath( moveID,ox,oy,oz,tx,ty,tz, radius)
 	if path then
@@ -23,5 +24,6 @@ function Spring.Utilities.IsTargetReachable (moveID, ox,oy,oz,tx,ty,tz,radius)
 		lastcoordinate = nil
 		waypoints = nil
 	end
+	Spring.Echo("IsTargetReachable result:", result, lastcoordinate, waypoints)
 	return result, lastcoordinate, waypoints
 end
