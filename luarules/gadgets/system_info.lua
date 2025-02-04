@@ -69,6 +69,13 @@ else
 
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("systemBroadcast", handleSystemEvent)
+		Spring.Echo(string.format("infologVersionTags:engine=%s,game=%s,lobby=%s,map=%s",
+			Engine.version or "",
+			(Game.gameName or "") .. " " .. (Game.gameVersion or ""),
+			(VFS and VFS.GetNameFromRapidTag and VFS.GetNameFromRapidTag("byar-chobby:test") or ""),
+			Game.mapName or ""
+		))
+
 		local myvalidation = validation
 
 		local s_cpu, s_gpu, s_gpuVram, s_ram, s_os, s_resolution, s_displaymode, s_displays, s_config, s_configs_os, s_cpuCoresLogical, s_cpuCoresPhysical, ds, nl, configEnd
