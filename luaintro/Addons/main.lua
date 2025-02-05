@@ -63,7 +63,29 @@ if gameID then
 	end
 end
 
-local loadscreens = VFS.DirList("bitmaps/loadpictures/")
+local loadscreens = {}
+local loadscreenPath = "bitmaps/loadpictures/"
+
+local teamList = Spring.GetTeamList()
+for _, teamID in ipairs(teamList) do
+	local luaAI = Spring.GetTeamLuaAI(teamID)
+	if luaAI then
+		if luaAI:find("Raptors") then
+			loadscreens = VFS.DirList(loadscreenPath.."manual/raptors/")
+			if loadscreens[1] then
+				break
+			end
+		elseif luaAI:find("Scavengers") then
+			loadscreens = VFS.DirList(loadscreenPath.."manual/scavengers/")
+			if loadscreens[1] then
+				break
+			end
+		end
+	end
+end
+if not loadscreens[1] then
+	loadscreens = VFS.DirList(loadscreenPath)
+end
 local backgroundTexture = loadscreens[math.random(#loadscreens)]
 
 if math.random(1,15) == 1 then
@@ -154,6 +176,7 @@ end
 if showDonationTip then
 	randomTip = Spring.I18N('tips.loadscreen.donations')
 end
+
 
 -- for guishader
 local function CheckHardware()
