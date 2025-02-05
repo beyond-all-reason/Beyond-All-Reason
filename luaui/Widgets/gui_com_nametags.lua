@@ -29,9 +29,6 @@ local showSkillValue = true
 local playerRankSize = fontSize * 1.05
 local playerRankImages = "luaui\\images\\advplayerslist\\ranks\\"
 
-local comLevelSize = fontSize * 2.5
-local comLevelImages = "luaui\\images\\Ranks\\rank"
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -46,8 +43,6 @@ local IsUnitVisible = Spring.IsUnitVisible
 local IsUnitIcon = Spring.IsUnitIcon
 local GetCameraPosition = Spring.GetCameraPosition
 local GetUnitPosition = Spring.GetUnitPosition
-local GetUnitExperience = Spring.GetUnitExperience
-local GetUnitRulesParam = Spring.GetUnitRulesParam
 
 local glTexture = gl.Texture
 local glTexRect = gl.TexRect
@@ -68,8 +63,6 @@ local diag = math.diag
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-
-
 
 local vsx, vsy = Spring.GetViewGeometry()
 
@@ -111,7 +104,6 @@ local CheckedForSpec = false
 
 local spec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
-local myPlayerID = Spring.GetMyPlayerID()
 local GaiaTeam = Spring.GetGaiaTeamID()
 
 local comHeight = {}
@@ -157,7 +149,7 @@ local function GetCommAttributes(unitID, unitDefID)
 		else
 			name = Spring.I18N('ui.playersList.aiName', { name = Spring.GetGameRulesParam('ainame_' .. team) })
 		end
-		
+
 	else
 		if UnitDefs[unitDefID].customParams.decoyfor then
 			name = Spring.I18N('units.decoyCommanderNameTag')
@@ -342,7 +334,6 @@ function widget:Update(dt)
 			end
 			-- new
 			myTeamID = Spring.GetMyTeamID()
-			myPlayerID = Spring.GetMyPlayerID()
 			name = GetPlayerInfo(select(2, GetTeamInfo(myTeamID, false)), false)
 			if comnameList[name] ~= nil then
 				comnameList[name] = gl.DeleteList(comnameList[name])
@@ -499,15 +490,11 @@ function widget:Shutdown()
 end
 
 function widget:PlayerChanged(playerID)
-	local prevSpec = spec
 	spec = Spring.GetSpectatingState()
-	if spec and prevSpec ~= spec then
-		CheckTeamColors()
-		RemoveLists()
-	end
+	myTeamID = Spring.GetMyTeamID()
 	local name, _ = GetPlayerInfo(playerID, false)
 	comnameList[name] = nil
-	CheckAllComs() -- handle substitutions, etc
+	sec = 99
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
