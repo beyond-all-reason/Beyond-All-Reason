@@ -7,7 +7,7 @@ function gadget:GetInfo()
 		date	= 'June 2017',
 		license	= 'GNU GPL, v2 or later',
 		layer	= 1,
-		enabled	= true
+		enabled	= false
 	}
 end
 
@@ -195,7 +195,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
-		if dgunDef[weaponID] and undgunableUnits[unitDefID] and Spring.AreTeamsAllied(unitTeam, attackerTeam) then
+		if dgunDef[weaponID] and undgunableUnits[unitDefID] and attackerTeam and Spring.AreTeamsAllied(unitTeam, attackerTeam) then
 			return 0, 0
 		end
 		return damage, 1
