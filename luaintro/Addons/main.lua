@@ -49,7 +49,7 @@ if infolog then
 				usingIntelPotato = false
 			end
 		end
-		if string.find(line, 'GameID: ') then
+		if string.find(line, '001] GameID: ') then
 			gameID = string.sub(line, string.find(line, ': ')+2)
 		end
 	end
@@ -57,7 +57,10 @@ end
 
 -- use gameID so everyone launching the match will see the same loadscreen
 if gameID then
-	math.randomseed(tonumber(string.sub(gameID, 1, 4), 16))
+	local seed = tonumber(string.sub(gameID, 1, 4), 16)
+	if seed then
+		math.randomseed(seed)
+	end
 end
 
 local loadscreens = VFS.DirList("bitmaps/loadpictures/")
