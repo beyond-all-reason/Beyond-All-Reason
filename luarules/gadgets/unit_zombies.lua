@@ -27,7 +27,7 @@ end
 local modOptions = Spring.GetModOptions()
 
 -- Now to load utilities and/or configuration
-VFS.Include("LuaRules/Configs/targetReachableTester.lua")
+--VFS.Include("LuaRules/Configs/targetReachableTester.lua")
 
 -- configs
 local ZOMBIE_MAX_RESURRECTION_TIME = Game.gameSpeed * 3  -- Maximum time (in seconds) a unit can take to resurrect, regardless of cost
@@ -174,7 +174,7 @@ local function GetUnitNearestAlly(unitID, range)
 		if (allyID ~= unitID) and (allyTeam == GaiaTeamID) then -- and (getMovetype(UnitDefs[allyDefID]) ~= false)
 			local ox, oy, oz = spGetUnitPosition(allyID)
 			local dist = disSQ(x, z, ox ,oz)
-			if IsTargetReallyReachable(unitID, ox, oy, oz, x, y, z) and ((best_dist == nil) or (dist < best_dist)) then
+			if ((best_dist == nil) or (dist < best_dist)) then
 				best_ally = allyID
 				best_dist = dist
 			end
@@ -215,7 +215,7 @@ local function progressCEG(featureID, x, y, z)
 	spSpawnCEG(selectedEffect, x, y, z, 0, 0, 0, 10 + radius, 10 + radius)
 end
 
-local function issueRandomOrders(unitID, unitDefID)
+local function issueRandomOrders(unitID, unitDefID) --zzz need to estimate path and check if the final coordinate is close to the target location
 	Spring.Echo("issueRandomOrders called for unitID:", unitID, "unitDefID:", unitDefID)
 	if spGetUnitIsDead(unitID) then
 		Spring.Echo("Unit is dead, exiting function.")
@@ -252,7 +252,7 @@ local function issueRandomOrders(unitID, unitDefID)
 		Spring.Echo("Random Y:", randomY)
 		Spring.Echo("Generated random order:", i, "to position:", randomX, randomY, randomZ)
 
-		if IsTargetReallyReachable(unitID, randomX, randomY, randomZ, unitX, unitY, unitZ) then
+		if 1 == 1 then
 			orders[#orders+1] = {CMD_FIGHT, {randomX, randomY, randomZ}, CMD_OPT_SHIFT}
 			Spring.Echo("Adding fight order to position:", randomX, randomY, randomZ)
 			spGiveOrderToUnit(unitID, CMD_FIGHT, {randomX, randomY, randomZ}, {"shift", "alt", "ctrl"})
