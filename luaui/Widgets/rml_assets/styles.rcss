@@ -3,7 +3,6 @@
     font-size: 18px;
     color: white;
     vertical-align: middle;
-    line-height: normal;
 }
 
 table {
