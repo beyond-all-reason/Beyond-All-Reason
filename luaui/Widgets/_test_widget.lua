@@ -34,9 +34,24 @@ local threshold = 150000
 
 local modelForPresenter = {
 	resourcesDestroyed = {
-		playerName = "Test",
-		score = 12321,
-		visible = true,
+		visible = false,
+		firstLeader = {
+			playerName = "Test",
+			score = 123111,
+			playerColor = ""
+		},
+		otherOrderedLeaders = {
+			{
+				playerName = "Test-second",
+				score = 12133,
+				playerColor = ""
+			},
+			{
+				playerName = "Test-third",
+				score = 12130,
+				playerColor = ""
+			}
+		}
 	},
 	enemiesDestroyed = {},
 	resourcesEfficiency = {},
@@ -44,7 +59,11 @@ local modelForPresenter = {
 	goldenCow = {},
 	ecoAward = {},
 	damageRecieved = {},
-	commanderSleep = {},
+	commanderSleep = {
+		playerName = "SleepTest",
+		score = 123221,
+		visible = false,
+	}
 }
 
 local function initializeContext()
@@ -84,29 +103,35 @@ local function findPlayerName(teamID)
 	return name
 end
 
+local function putAwardIntoModel(award, num, winnersTable)
+	local teamID = winnersTable[num].teamID
+	local score = winnersTable[num].score
+
+	if teamID < 0 then
+		return
+	end
+
+	local name = findPlayerName(teamID)
+
+	if num == 1 then
+		modelForPresenter[award].firstLeader.score = score
+		modelForPresenter[award].firstLeader.playerName = name
+	else
+		modelForPresenter[award].otherOrderedLeaders[num].score = score
+		modelForPresenter[award].otherOrderedLeaders[num].playerName = name
+	end
+end
+
 local function createAward(award, winnersTable)
-	local winnerTeamID, secondTeamID, thirdTeamID =
-		winnersTable[1].teamID, winnersTable[2].teamID, winnersTable[3].teamID
-	local winnerScore, secondScore, thirdScore = winnersTable[1].score, winnersTable[2].score, winnersTable[3].score
-	local winnerName, secondName, thirdName
-
-	local notAwardedText = Spring.I18N("ui.awards.notAwarded")
-
-	winnerName = winnerTeamID >= 0 and findPlayerName(winnerTeamID) or notAwardedText
-	secondName = secondTeamID >= 0 and findPlayerName(secondTeamID) or notAwardedText
-	thirdName = thirdTeamID >= 0 and findPlayerName(thirdTeamID) or notAwardedText
-
-	modelForPresenter[award].score = winnerScore
-	modelForPresenter[award].playerName = winnerName
-	modelForPresenter[award].visible = true
+	putAwardIntoModel(award, 1, winnersTable)
+	putAwardIntoModel(award, 2, winnersTable)
+	putAwardIntoModel(award, 3, winnersTable)
 end
 
 local function ProcessAwards(awards)
 	if not awards then
-		Spring.Echo("i am here new")
 		return
 	end
-	Spring.Echo("proceeding new")
 	WG.awards = awards
 	local traitorWinner = awards.traitor[1]
 	local cowAwardWinner = awards.goldenCow[1].teamID
@@ -114,22 +139,23 @@ local function ProcessAwards(awards)
 	table.insert(compoundAwards, awards.eco[1])
 	table.insert(compoundAwards, awards.damageReceived[1])
 	table.insert(compoundAwards, awards.sleep[1])
-	if awards.ecoKill[1].teamID >= 0 then
-		createAward("resourcesDestroyed", awards.ecoKill)
-	end
-	if awards.eco[1].teamID >= 0 then
-		createAward("ecoAward", awards.ecoKill)
-	end
-	if awards.damageReceived[1].teamID >= 0 then
-		createAward("damageRecieved", awards.ecoKill)
-	end
-	if awards.sleep[1].teamID >= 0 then
-		createAward("sleep", awards.ecoKill)
-	end
+	-- if awards.ecoKill[1].teamID >= 0 then
+	-- 	createAward("resourcesDestroyed", awards.ecoKill)
+	-- end
+	-- if awards.eco[1].teamID >= 0 then
+	-- 	createAward("ecoAward", awards.ecoKill)
+	-- end
+	-- if awards.damageReceived[1].teamID >= 0 then
+	-- 	createAward("damageRecieved", awards.ecoKill)
+	-- end
+	-- if awards.sleep[1].teamID >= 0 then
+	-- 	createAward("sleep", awards.ecoKill)
+	-- end
+	dm_handle.model = modelForPresenter
 end
 
 function showDocument()
-	document = widget.rmlContext:LoadDocument("LuaUi/Widgets/rml_assets/simple_demo.rml", widget)
+	document = widget.rmlContext:LoadDocument("LuaUI/Widgets/rml_assets/simple_demo.rml", widget)
 	document:ReloadStyleSheet()
 	document:Show()
 end
@@ -186,7 +212,7 @@ function widget:Initialize()
 	registerGlobalFunctionForReceivingAwardsFromHandler()
 	initializeWidget()
 	initializeTeamList()
-	ProcessAwards(WG.awards)
+	-- ProcessAwards(WG.awards)
 end
 
 function widget:Shutdown()

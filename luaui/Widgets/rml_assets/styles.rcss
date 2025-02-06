@@ -1,11 +1,33 @@
-/*
-* Default styles for all the basic elements.
-*/
-
 * {
-    box-sizing: border-box;
     font-family: "Exo 2";
-    font-size: 20px;
+    font-size: 18px;
+    color: white;
+    vertical-align: middle;
+    line-height: normal;
+}
+
+table {
+  box-sizing: border-box;
+  display: table;
+}
+
+tr {
+  box-sizing: border-box;
+  display: table-row;
+}
+
+td {
+  box-sizing: border-box;
+  display: table-cell;
+  vertical-align: middle;
+  text-align: center; /* Center text in all cells */
+}
+
+span {
+}
+
+thead, tbody, tfoot {
+  display: table-row-group;
 }
 
 body, div, p, hr, pre,
@@ -14,84 +36,75 @@ tabset tabs {
     display: block;
 }
 
-h1 {
-    font-size: 2em;
-    margin: .5em 0;
+img {
+  vertical-align: top;
+  max-width: 100px;
 }
 
-h2 {
-    font-size: 1.5em;
-    margin: .5em 0;
+td.align-left {
+  text-align: left
 }
 
-h3 {
-    font-size: 1.17em;
-    margin: .5em 0;
+thead td {
+  padding: 0 35px;
 }
 
-h4 {
-    margin: .5em 0;
+.leader {
+  font-size: 1.1em;
 }
 
-h5 {
-    font-size: .83em;
-    margin: .25em 0;
+.first {
+  font-size: 1.3em;
+  font-weight: bold;
 }
 
-h6 {
-    font-size: .75em;
-    margin: .25em 0;
+.score {
+  font-size: 1.1em;
 }
 
-h1, h2, h3, h4,
-h5, h6, strong {
-    font-weight: bold;
+.first-leader-score {
+  font-weight: bold;
+  font-size: 1.4em;
 }
 
-em {
-    font-style: italic;
+td.emptySpacing {
+  padding-top: 25px;
 }
 
-pre {
-    white-space: pre;
+.buttons-area {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
 }
 
-hr {
-    border-width: 1px;
+.button {
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border-width: 0px;
+  border-radius: 5px;
+  color: white;
+  margin: 10px;
+  transition: background-color 0.2s;
 }
 
-table {
-    box-sizing: border-box;
-    display: table;
+.show-graph {
+  background-color: #007bff;
 }
 
-tr {
-    box-sizing: border-box;
-    display: table-row;
+.leave {
+  background-color: #dc3545;
+  color: white;
 }
 
-td {
-    box-sizing: border-box;
-    display: table-cell;
+.button:hover {
+    opacity: 0.8;
 }
 
-col {
-    box-sizing: border-box;
-    display: table-column;
+.button:active {
+    background-color: #0056b3;
 }
 
-colgroup {
-    display: table-column-group;
-}
-
-thead, tbody, tfoot {
-    display: table-row-group;
-}
-
-handle[size_target] {
-    cursor: nwse-resize;
-}
-
-handle[move_target] {
-    cursor: move;
+.leave:active {
+    background-color: #a71d2a;
 }

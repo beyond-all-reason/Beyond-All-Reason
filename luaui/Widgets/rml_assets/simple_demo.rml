@@ -1,28 +1,128 @@
 <rml>
     <head>
+    <meta charset="UTF-8" />
         <!-- The default styling for html elements, must be imported to be used -->
         <link type="text/rcss" href="/LuaUI/Widgets/rml_assets/styles.rcss"/>
         <!-- Style based on the flow_ui api -->
         <link type="text/rcss" href="/LuaUI/Widgets/rml_assets/flow_ui.rcss"/>
     </head>
     <body
-            data-model="data_model_test"
-            style="top: 10%; left: 20%; min-width: 300px; height: 70%;"
+            data-model="data_model_test" 
+            style="min-width: 700px; border-radius: 10px; padding: 8px; background-color: rgba(0%, 0%, 0%, 70%);"
     >
-        <handle move_target="#document">
-            <div class="element">
-                <h3 style="margin: 0.25em">Window Top Bar (Click and Drag to Move. Checking Lolyy)</h3>
-            </div>
-        </handle>
-        <div data-if="model.resourcesDestroyed.visible" class="element">
-            <div style="background-color: green; width: 250px; height: 50px">
-                {{model.resourcesDestroyed.playerName}} - {{model.resourcesDestroyed.score}}
-            </div>
-        </div>
-        <div data-if="model.commanderSleep.visible" class="element">
-            <div style="background-color: red; width: 250px; height: 50px">
-                {{model.commanderSleep.playerName}} - {{model.commanderSleep.score}}
-            </div>
+        <div>
+          <handle move_target="#document">
+              <div class="element">
+                  <h3 style="margin: 0.25em">Window Top Bar (Click and Drag to Move. Checking Lolyy)</h3>
+              </div>
+          </handle>
+          <table>
+              <thead>
+                  <tr>
+                      <td colspan="2">Award</td>
+                      <td>Leader</td>
+                      <td>Score</td>
+                  </tr>
+              </thead>
+              <tbody>
+
+    <!-- Resource Destroyed -->
+                  <tr><td style="padding-top:5px;"></td></tr>
+                  <tr>
+                      <td rowspan="3"> <img src="/luarules/images/fuscup.png" alt="" /> </td>
+                      <td class="align-left" rowspan="3"> <p>Destroying enemy resource production</p> </td>
+                      <td><span style="color: red" class="first leader">admos</span> </td>
+                      <td><span class="first-leader-score score">53910</span> </td>
+                  </tr>
+                  <tr>
+                      <td style="background-color: red;"><span style="color: yellow" class="leader">7511</span></td>
+                      <td><span class="score">23750</span></td>
+                  </tr>
+                  <tr>
+                      <td style="background-color: yellow;"><span style="color: green" class="leader">Jinete</span></td>
+                      <td><span class="score">22035</span></td>
+                  </tr>
+                  <tr><td class="emptySpacing"></td></tr>
+                  <!-- Units/Defences Destroyed -->
+                  <tr>
+                      <td rowspan="3"> <img src="/luarules/images/bullcup.png" alt="" /> </td>
+                      <td class="align-left" rowspan="3"> <p>Destroying enemy units and defences</p> </td>
+                      <td> <span style="color: red" class="first leader">admos</span> </td>
+                      <td> <span class="first-leader-score score">295710</span> </td>
+                  </tr>
+                  <tr>
+                      <td><span style="color: yellow" class="leader">7511</span></td>
+                      <td><span class="score">270950</span></td>
+                  </tr>
+                  <tr>
+                      <td><span style="color: green" class="leader">Jinete</span></td>
+                      <td><span class="score">259450</span></td>
+                  </tr>
+                  <tr><td class="emptySpacing"></td></tr>
+    <!-- Efficient use of resources-->
+                  <tr>
+                      <td rowspan="3"> <img src="/luarules/images/comwreath.png" alt="" /> </td>
+                      <td class="align-left" rowspan="3"> <p>Efficient use of resources</p> </td>
+                      <td> <span style="color: red" class="first leader">admos</span> </td>
+                      <td> <span class="first-leader-score score">2.05</span> </td>
+                  </tr>
+                  <tr>
+                      <td><span style="color: yellow" class="leader">7511</span></td>
+                      <td><span class="score">1.60</span></td>
+                  </tr>
+                  <tr>
+                      <td><span style="color: blue" class="leader">Nezah</span></td>
+                      <td><span class="score">0.78</span></td>
+                  </tr>
+                  <tr><td class="emptySpacing"></td></tr>
+    <!-- Traitor -->
+                  <tr>
+                      <td rowspan="3"> <img src="/luarules/images/traitor.png" alt="" /> </td>
+                      <td class="align-left" rowspan="3"> <p>Destroying enemy units and defences</p> </td>
+                      <td> <span style="color: red" class="first leader">admos</span></td>
+                      <td> <span class="first-leader-score score">295710</span> </td>
+                  </tr>
+                  <tr>
+                      <td><span style="color: yellow" class="leader">7511</span></td>
+                      <td><span class="score">270950</span></td>
+                  </tr>
+                  <tr>
+                      <td><span style="color: green" class="leader">Jinete</span></td>
+                      <td><span class="score">259450</span></td>
+                  </tr>
+                  <tr><td class="emptySpacing"></td></tr>
+    <!-- Golden cow-->
+                  <tr>
+                      <td> <img src="/luarules/images/cow.png" alt="" /> </td>
+                      <td class="align-left"> <p>Doing everything</p> </td>
+                      <td colspan="2"> <span style="color: red" class="first leader">admos</span> </td>
+                  </tr>
+        <!-- Other -->
+                <tr>
+                  <td colspan="4">
+                    <h2 style="margin:0 5px">Honorable mentions</h2>
+                  </td>
+                </tr>
+                <tr>
+                  <td colspan="4">
+                    <span style="color: red; font-weight: bold" class="leader">admons</span> produced the most resources - <span style="font-weight: bold">1231321</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td colspan="4">
+                    <span style="color: blue; font-weight: bold" class="leader">Nezala</span> longest sleep - <span style="font-weight: bold">2m</span>
+                  </td>
+                </tr>
+              </tbody>
+          </table>
+          <div class="buttons-area">
+              <button class="button leave">
+                <span>Leave</span>
+              </button>
+              <button class="button show-graph">
+                <span>Show graph</span>
+              </button>
+          </div>
         </div>
     </body>
 </rml>
