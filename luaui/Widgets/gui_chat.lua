@@ -413,29 +413,12 @@ local autocompleteCommands = {
 	'hidespecchat',
 	'speclist',
 }
-
-local function getAIName(teamID)
-	local _, _, _, name, _, options = Spring.GetAIInfo(teamID)
-	local niceName = Spring.GetGameRulesParam('ainame_' .. teamID)
-	if niceName then
-		name = niceName
-		if Spring.Utilities.ShowDevUI() and options.profile then
-			name = name .. " [" .. options.profile .. "]"
-		end
-	end
-	return Spring.I18N('ui.playersList.aiName', { name = name })
-end
-
 local autocompleteText
 local autocompletePlayernames = {}
 local playersList = Spring.GetPlayerList()
 local playernames = {}
 for _, playerID in ipairs(playersList) do
 	local name, _, isSpec, teamID, allyTeamID = Spring.GetPlayerInfo(playerID, false)
-	local _, _, _, isAiTeam = spGetTeamInfo(teamID, false)
-	if isAiTeam then
-		name = getAIName(teamID)
-	end
 	playernames[name] = { allyTeamID, isSpec, teamID, playerID }
 	autocompletePlayernames[#autocompletePlayernames+1] = name
 end
@@ -481,6 +464,18 @@ function widget:LanguageChanged()
 end
 widget:LanguageChanged()
 
+local function getAIName(teamID)
+	local _, _, _, name, _, options = Spring.GetAIInfo(teamID)
+	local niceName = Spring.GetGameRulesParam('ainame_' .. teamID)
+	if niceName then
+		name = niceName
+		if Spring.Utilities.ShowDevUI() and options.profile then
+			name = name .. " [" .. options.profile .. "]"
+		end
+	end
+	return Spring.I18N('ui.playersList.aiName', { name = name })
+end
+
 local teamColorKeys = {}
 local teamNames = {}
 local gaiaTeamID = Spring.GetGaiaTeamID()
@@ -488,13 +483,18 @@ local teams = Spring.GetTeamList()
 for i = 1, #teams do
 	local teamID = teams[i]
 	local r, g, b = spGetTeamColor(teamID)
-	local _, playerID, _, isAiTeam = spGetTeamInfo(teamID, false)
+	local _, playerID, _, isAiTeam, _, allyTeamID = spGetTeamInfo(teamID, false)
 	teamColorKeys[teamID] = r..'_'..g..'_'..b
+	local aiName
+	if isAiTeam then
+		aiName = getAIName(teamID)
+		playernames[aiName] = { allyTeamID, false, teamID, playerID }
+	end
 	if teamID == gaiaTeamID then
 		teamNames[teamID] = "Gaia"
 	else
 		if isAiTeam then
-			teamNames[teamID] = getAIName(teamID)
+			teamNames[teamID] = aiName
 		else
 			local name, _, spec, _ = Spring.GetPlayerInfo(playerID)
 			if not spec then
