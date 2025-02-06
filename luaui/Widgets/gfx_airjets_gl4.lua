@@ -377,8 +377,8 @@ local effectDefs = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 3.3, length = 40, piece = "thrustb", light = 1 },
 	},
 	["legmineb"] = {
-		{ color = { 0.2, 0.8, 0.2 }, width = 3.3, length = 40, piece = "thrusta", light = 1 },
-		{ color = { 0.2, 0.8, 0.2 }, width = 3.3, length = 40, piece = "thrustb", light = 1 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 3.3, length = 40, piece = "lthrusttrail", light = 1 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 3.3, length = 40, piece = "rthrusttrail", light = 1 },
 	},
 	["cords"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 25, piece = "flarefl", emitVector = { 0, 1, 0 }, light = 0.6 },
@@ -1007,7 +1007,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 	AddUnit(unitID, unitDefID, unitTeam)
 end
 
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	--Spring.Echo("UnitDestroyed(unitID, unitDefID, unitTeam)",unitID, unitDefID, unitTeam)
 	RemoveUnit(unitID, unitDefID, unitTeam)
 end

@@ -26,15 +26,22 @@ end
 
 local usePrefixedNames = true
 
+local prefixColor = {
+	gui = '\255\100\222\100',
+	gfx = '\255\222\160\100',
+	game = '\255\166\166\255',
+	cmd = '\255\166\255\255',
+	unit = '\255\255\166\255',
+	map = '\255\122\122\122',
+	dbg = '\255\088\088\088',
+}
 local prefixedGnames = {}
 local function ConstructPrefixedName (ghInfo)
 	local gadgetName = ghInfo.name
 	local baseName = ghInfo.basename
 	local _pos = baseName:find("_", 1, true)
-	local prefix = ((_pos and usePrefixedNames) and (baseName:sub(1, _pos - 1) .. ": ") or "")
-	local prefixedGadgetName = "\255\200\200\200" .. prefix .. "\255\255\255\255" .. gadgetName
-
-	prefixedGnames[gadgetName] = prefixedGadgetName
+	local prefix = ((_pos and usePrefixedNames) and ((prefixColor[baseName:sub(1, _pos - 1)] and prefixColor[baseName:sub(1, _pos - 1)] or "\255\166\166\166") .. baseName:sub(1, _pos - 1) .. "     ") or "")
+	prefixedGnames[gadgetName] = prefix .. string.char(255, math.random(100, 255), math.random(100, 255), math.random(100, 255)) .. gadgetName .. "   "
 	return prefixedGnames[gadgetName]
 end
 
@@ -48,6 +55,7 @@ local callinStatsSYNCED = {}
 local highres = false
 local tick = 0.2
 local averageTime = 2.0
+local retainSortTime = 10
 
 local spGetTimer = Spring.GetTimer
 
@@ -122,7 +130,7 @@ else
 		spGetTimer = Spring.GetTimerMicros
 		highres = true
 	end
-	if not highres then 
+	if not highres then
 		Spring.Echo("Profiler not using highres timers", highres, Spring.GetConfigInt("UseHighResTimer", 0))
 	end
 
@@ -168,7 +176,7 @@ Hook = function(gadget, callinName)
 		hookPreRealFunction(gname, callinName)
 
 		-- Use this to prevent allocating nearly empty tables every single time, instead of return unpack({realFunc(...)})
-		local r1, r2, r3, r4, r5, r6, r7, r8 = realFunc(...) 
+		local r1, r2, r3, r4, r5, r6, r7, r8 = realFunc(...)
 
 		hookPostRealFunction(gname, callinName)
 		inHook = false
@@ -416,14 +424,13 @@ else
 	-- Presentation
 	--------------------------------------------------------------------------------
 
+	local avgTLoad = {}
+
 	local sortedList = {}
 	local sortedListSYNCED = {}
 	local function SortFunc(a, b)
-		if Spring.GetConfigInt("profiler_sort_by_load", 1) == 1 then
-			return a.tLoad > b.tLoad
-		else
-			return a.plainname < b.plainname
-		end
+		return a.avgTLoad > b.avgTLoad
+		--return a.plainname < b.plainname
 	end
 
 	local minPerc = 0.0005 -- above this value, we fade in how red we mark a widget (/gadget)
@@ -518,15 +525,18 @@ else
 			local sLoad = spaceloadAvgs[gname]
 			local tTime = t / deltaTime
 
+			if not avgTLoad[gname] then
+				avgTLoad[gname] = tLoad * 0.7
+			end
+			local frames = math.min(1 / tick, Spring.GetFPS()) * retainSortTime
+			avgTLoad[gname] = ((avgTLoad[gname]*(frames-1)) + tLoad) / frames
 			local tColourString, sColourString = GetRedColourStrings(tTime, sLoad, gname, redStr, deltaTime)
-			if tLoad >= Spring.GetConfigFloat("profiler_min_time", 0.05) or sLoad >= Spring.GetConfigFloat("profiler_min_memory", 5) then -- Only show heavy gadgets
-				sorted[n] = { plainname = gname, fullname = gname .. ' \255\200\200\200(' .. cmaxname_t .. ',' .. cmaxname_space .. ')', tLoad = tLoad, sLoad = sLoad, tTime = tTime, tColourString = tColourString, sColourString = sColourString }
+			if avgTLoad[gname] >= 0.05 or sLoad >= 5 then -- only show heavy ones
+				sorted[n] = { plainname = gname, fullname = gname .. ' \255\200\200\200(' .. cmaxname_t .. ',' .. cmaxname_space .. ')', tLoad = tLoad, sLoad = sLoad, tTime = tTime, tColourString = tColourString, sColourString = sColourString, avgTLoad = avgTLoad[gname] }
 				n = n + 1
 			end
 			allOverTime = allOverTime + tLoad
 			allOverSpace = allOverSpace + sLoad
-
-			
 		end
 
 		table.sort(sorted, SortFunc)
@@ -549,7 +559,6 @@ else
 
 	local dataColWidth = 15
 	local nameColWidth = 55
-	local subColWidths
 	local colWidth = 200
 	local maxLines = 20
 
@@ -566,7 +575,6 @@ else
 
 		dataColWidth = fontSize * 5
 		nameColWidth = fontSize * 15
-		subColWidths = { dataColWidth, dataColWidth, nameColWidth }
 
 		colWidth = dataColWidth * 3 + nameColWidth * 2
 

@@ -1425,10 +1425,20 @@ function SortList()
             end
         end
     end
+    -- hide enemies when there are more than 40 teams on startup
+    if not initiated and Spring.GetGameFrame() == 0 then
+        initiated = true
+        if aliveTeams > 40 then
+            enemyListShow = false
+        end
+    end
     local deadTeamSize = 0.66
-    playerScale = math.max(0.4, math.min(1, 31 / (aliveTeams+(deadTeams*deadTeamSize))))
+    playerScale = math.min(1, 38 / (aliveTeams+(deadTeams*deadTeamSize)))
     if #Spring_GetAllyTeamList() > 24 then
-        playerScale = playerScale - (playerScale * ((#Spring_GetAllyTeamList()-2)/400))  -- reduce size some more when mega ffa
+        playerScale = playerScale - 0.05 - (playerScale * ((#Spring_GetAllyTeamList()-2)/200))  -- reduce size some more when mega ffa
+    end
+    if playerScale < 0.9 then
+        playerScale = playerScale - (playerScale * (Spring.GetConfigFloat("ui_scale", 1)-1))
     end
 
     -- calls the (cascade) sorting for players

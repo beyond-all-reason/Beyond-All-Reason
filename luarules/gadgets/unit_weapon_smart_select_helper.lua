@@ -44,7 +44,7 @@ local priorityAutoAggro = 12 -- how much aggro is accumulated per frameCheckModu
 local priorityManualAggro = 24 -- how much aggro is accumulated per frameCheckModulo that the priority weapon successfully aims with a manually assigned target
 local prioritySwitchThreshold = -1 --the aggro at which priority weapon switch is triggered. Aggro is decayed closer to 0 every frameCheckModulo
 
-local backupAutoAggro = 4 -- how much aggro is accumulated per frameCheckModulo that the priority weapon fails to aim
+local backupAutoAggro = 5.5 -- how much aggro is accumulated per frameCheckModulo that the priority weapon fails to aim
 local backupManualAggro = 16 --how much aggro is accumulated per frameCheckModulo that the priority weapon fails to aim with a manually assigned target
 local backupSwitchThreshold = backupAutoAggro * 2.4 * -1 --the aggro at which backup weapon switch is triggered. Aggro is decayed closer to 0 every frameCheckModulo
 
@@ -62,6 +62,7 @@ local spGetUnitWeaponHaveFreeLineOfFire = Spring.GetUnitWeaponHaveFreeLineOfFire
 local spGetUnitWeaponTarget = Spring.GetUnitWeaponTarget
 local spGetUnitWeaponState = Spring.GetUnitWeaponState
 local spGetUnitEstimatedPath = Spring.GetUnitEstimatedPath
+local spSetUnitTarget = Spring.SetUnitTarget
 local mathMin = math.min
 local mathMax = math.max
 
@@ -150,9 +151,15 @@ local function updateAimingState(attackerID)
 	if priorityTargetType == UNIT_TARGET then
 		priorityCanShoot = spGetUnitWeaponHaveFreeLineOfFire(attackerID, defData.trajectoryCheckWeapon, priorityTarget)
 		newMatchTargetNumber = priorityTarget
+		if data.aggroBias >= prioritySwitchThreshold then
+			spSetUnitTarget(attackerID, priorityTarget, false, priorityIsUserTarget, defData.backupWeapon)
+		end
 	elseif priorityTargetType == GROUND_TARGET then
 		priorityCanShoot = spGetUnitWeaponHaveFreeLineOfFire(attackerID, defData.trajectoryCheckWeapon, nil, nil, nil, priorityTarget[1], priorityTarget[2], priorityTarget[3])
 		newMatchTargetNumber = priorityTarget[1]
+		if data.aggroBias >= prioritySwitchThreshold then
+			spSetUnitTarget(attackerID, priorityTarget[1], priorityTarget[2], priorityTarget[3], false, priorityIsUserTarget, defData.backupWeapon)
+		end
 	end
 
 	-- prevent misfire from triggering when a target is first acquired from idle state

@@ -1742,6 +1742,29 @@ local unitGrids = {
 		}
 	},
 
+	legmlv = {
+		{
+			{ }, --
+			{ },            --
+			{ },          --
+		},
+		{
+			{ },                          --
+			{ },                          --
+			{ },                                    --
+		},
+		{
+			{ "", "legeyes", "legdrag", },                 -- camera, dragon's teeth
+			{ },                                       --
+			{ "legmine1", "legmine2", "legmine3", },   -- light mine, med mine, heavy mine
+		},
+		{
+			{ },        --
+			{ },                                             --
+			{ },                          --
+		}
+	},
+
 	--Decoy commanders
 	armdecom = {
 		{

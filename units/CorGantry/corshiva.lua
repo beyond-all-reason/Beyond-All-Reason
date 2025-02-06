@@ -36,7 +36,7 @@ return {
 		upright = true,
 		customparams = {
 			customrange = 650,
-			model_author = "FireStorm",
+			model_author = "Tharsis",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorGantry",
 			techlevel = 3,
@@ -76,6 +76,8 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-large",
+				[2] = "custom:subbubbles",
+				[3] = "custom:footstep-medium",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
