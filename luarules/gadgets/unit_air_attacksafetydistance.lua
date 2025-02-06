@@ -29,7 +29,6 @@ for udid, ud in pairs(UnitDefs) do
 end
 
 function gadget:Initialize()
-	gadgetHandler:RegisterAllowCommand(CMD.ANY)
 	for ct, unitID in pairs(Spring.GetAllUnits()) do
 		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
 	end
