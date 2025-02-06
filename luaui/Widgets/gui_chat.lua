@@ -2107,7 +2107,7 @@ function widget:WorldTooltip(ttType,data1,data2,data3)
 	local x,y,_ = Spring.GetMouseState()
 	local chatlogHeightDiff = historyMode and floor(vsy*(scrollingPosY-posY)) or 0
 	if #chatLines > 0 and math_isInRect(x, y, activationArea[1],activationArea[2]+chatlogHeightDiff,activationArea[3],activationArea[4]) then
-		return I18N.scoll
+		return I18N.scroll
 	end
 end
 
