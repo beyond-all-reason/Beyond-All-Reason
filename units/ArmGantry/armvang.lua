@@ -220,17 +220,15 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "FASTSURFACE",
 				def = "SHOCKER_LOW",
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
-				badtargetcategory = "FASTSURFACE",
+				badtargetcategory = "SURFACERAIDER",
 				def = "SHOCKER_HIGH",
 				onlytargetcategory = "SURFACE",
 			},
 			[3] = {
-				badtargetcategory = "FASTSURFACE",
 				def = "smart_trajectory_dummy",
 				onlytargetcategory = "SURFACE",
 			},
