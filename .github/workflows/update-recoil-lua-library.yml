@@ -16,9 +16,8 @@ jobs:
           sparse-checkout: recoil-lua-library
           submodules: 'true'
       - name: Pull latest submodule
-        working-directory:
         run: |
-          git submodule update --remote --merge
+          git submodule update --remote --merge recoil-lua-library
       - name: Push updated submodule
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
