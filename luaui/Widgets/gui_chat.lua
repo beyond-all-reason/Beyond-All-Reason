@@ -413,12 +413,29 @@ local autocompleteCommands = {
 	'hidespecchat',
 	'speclist',
 }
+
+local function getAIName(teamID)
+	local _, _, _, name, _, options = Spring.GetAIInfo(teamID)
+	local niceName = Spring.GetGameRulesParam('ainame_' .. teamID)
+	if niceName then
+		name = niceName
+		if Spring.Utilities.ShowDevUI() and options.profile then
+			name = name .. " [" .. options.profile .. "]"
+		end
+	end
+	return Spring.I18N('ui.playersList.aiName', { name = name })
+end
+
 local autocompleteText
 local autocompletePlayernames = {}
 local playersList = Spring.GetPlayerList()
 local playernames = {}
 for _, playerID in ipairs(playersList) do
 	local name, _, isSpec, teamID, allyTeamID = Spring.GetPlayerInfo(playerID, false)
+	local _, _, _, isAiTeam = spGetTeamInfo(teamID, false)
+	if isAiTeam then
+		name = getAIName(teamID)
+	end
 	playernames[name] = { allyTeamID, isSpec, teamID, playerID }
 	autocompletePlayernames[#autocompletePlayernames+1] = name
 end
@@ -458,22 +475,11 @@ function widget:LanguageChanged()
 		cmd = Spring.I18N('ui.chat.cmd'),
 		shortcut = Spring.I18N('ui.chat.shortcut'),
 		nohistory = Spring.I18N('ui.chat.nohistory'),
+		scroll = Spring.I18N('ui.chat.scroll', { textColor = "\255\255\255\255", highlightColor = "\255\255\255\001" }),
 	}
 	refreshUnitDefs()
 end
 widget:LanguageChanged()
-
-local function getAIName(teamID)
-	local _, _, _, name, _, options = Spring.GetAIInfo(teamID)
-	local niceName = Spring.GetGameRulesParam('ainame_' .. teamID)
-	if niceName then
-		name = niceName
-		if Spring.Utilities.ShowDevUI() and options.profile then
-			name = name .. " [" .. options.profile .. "]"
-		end
-	end
-	return Spring.I18N('ui.playersList.aiName', { name = name })
-end
 
 local teamColorKeys = {}
 local teamNames = {}
@@ -484,16 +490,11 @@ for i = 1, #teams do
 	local r, g, b = spGetTeamColor(teamID)
 	local _, playerID, _, isAiTeam = spGetTeamInfo(teamID, false)
 	teamColorKeys[teamID] = r..'_'..g..'_'..b
-	local aiName
-	if isAiTeam then
-		aiName = getAIName(teamID)
-		playernames[aiName] = true
-	end
 	if teamID == gaiaTeamID then
 		teamNames[teamID] = "Gaia"
 	else
 		if isAiTeam then
-			teamNames[teamID] = aiName
+			teamNames[teamID] = getAIName(teamID)
 		else
 			local name, _, spec, _ = Spring.GetPlayerInfo(playerID)
 			if not spec then
@@ -572,11 +573,6 @@ end
 local function teamcolorPlayername(playername)
 	if playernames[playername] then
 		return colourNames(playernames[playername][3])..playername
-	end
-	for i = 1, #teams do
-		if select(4, spGetTeamInfo(teams[i], false)) then
-			return colourNames(teams[i])..playername
-		end
 	end
 	return ColorString(0.7, 0.7, 0.7)..playername
 end
@@ -2111,7 +2107,7 @@ function widget:WorldTooltip(ttType,data1,data2,data3)
 	local x,y,_ = Spring.GetMouseState()
 	local chatlogHeightDiff = historyMode and floor(vsy*(scrollingPosY-posY)) or 0
 	if #chatLines > 0 and math_isInRect(x, y, activationArea[1],activationArea[2]+chatlogHeightDiff,activationArea[3],activationArea[4]) then
-		return Spring.I18N('ui.chat.scroll', { textColor = "\255\255\255\255", highlightColor = "\255\255\255\001" })
+		return I18N.scoll
 	end
 end
 
