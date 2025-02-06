@@ -15,6 +15,8 @@ jobs:
         with:
           sparse-checkout: recoil-lua-library
           submodules: 'true'
+          # https://stackoverflow.com/a/77212392/317135
+          fetch-depth: 0
       - name: Pull latest submodule
         run: |
           git submodule update --remote --merge recoil-lua-library
