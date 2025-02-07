@@ -18,8 +18,7 @@ end
 
 local modOptions = Spring.GetModOptions()
 
-local isScavengerGame = Spring.Utilities.Gametype.IsScavengers()
-if (modOptions.zombies == false and not isScavengerGame) or (isScavengerGame and not table.contains(exemptDifficultyLevels, modOptions.scav_difficulty)) then
+if modOptions.zombies == false then
 	return false
 end
 
@@ -81,7 +80,6 @@ if isScavengerGame then
 end
 
 local GaiaTeamID = Spring.GetGaiaTeamID()
-local GAME_SPEED = Game.gameSpeed
 local mapWidth
 local mapHeight
 local ZOMBIE_ORDER_CHECK_INTERVAL = Game.gameSpeed * 10    -- How often (in frames) to check if zombies need new orders
@@ -97,7 +95,6 @@ local CMD_FIRE_STATE = CMD.FIRE_STATE
 
 local ISNT_ZOMBIE = 0
 local IS_ZOMBIE = 1
-local IS_NEUTRAL = 2
 
 
 --variables
