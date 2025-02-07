@@ -293,7 +293,7 @@ if gadgetHandler:IsSyncedCode() then
 	--	end
 	--end
 
-	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
+	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 		if evolutionMetaList[unitID] then
 			evolutionMetaList[unitID] = nil
 		end

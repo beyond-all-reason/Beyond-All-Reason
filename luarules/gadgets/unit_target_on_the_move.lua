@@ -353,7 +353,7 @@ if gadgetHandler:IsSyncedCode() then
 		removeUnit(unitID)
 	end
 
-	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
+	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 		removeUnit(unitID)
 	end
 
