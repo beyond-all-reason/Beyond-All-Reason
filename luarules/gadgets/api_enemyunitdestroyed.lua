@@ -12,32 +12,26 @@ function gadget:GetInfo()
 end
 
 if not gadgetHandler:IsSyncedCode() then
-  local spGetUnitAllyTeam =  Spring.GetUnitAllyTeam
-  local myAllyTeamID = Spring.GetMyAllyTeamID()
-  local spec, fullView = Spring.GetSpectatingState()
+	local spGetUnitAllyTeam =  Spring.GetUnitAllyTeam
+	local myAllyTeamID = Spring.GetMyAllyTeamID()
+	local spec, fullView = Spring.GetSpectatingState()
 
-  function gadget:Initialize()
-    myAllyTeamID = Spring.GetMyAllyTeamID()
-    spec, fullView = Spring.GetSpectatingState()
-  end
+	function gadget:Initialize()
+		myAllyTeamID = Spring.GetMyAllyTeamID()
+		spec, fullView = Spring.GetSpectatingState()
+	end
 
-  function gadget:PlayerChanged(playerID)
-    gadget:Initialize()
-  end
+	function gadget:PlayerChanged(playerID)
+		gadget:Initialize()
+	end
 
-  function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
-      --Spring.Echo("unsynced gadget: UnitDestroyed(",unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
-      local allyTeam = spGetUnitAllyTeam(unitID)
-      if (spec and fullview) or (allyTeam and allyTeam ~= myAllyTeamID) then
-        local losstate = Spring.GetUnitLosState(unitID, myAllyTeamID)
-        --Spring.Echo("unsynced gadget: EnemyUnitDestroyed(",losstate, unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
-        if losstate and losstate["los"] and Script.LuaUI("EnemyUnitDestroyed") then
-          Script.LuaUI.EnemyUnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
-        end
-      end
-  end
-
+	function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID, weaponDefID)
+		local allyTeam = spGetUnitAllyTeam(unitID)
+		if (spec and fullview) or (allyTeam and allyTeam ~= myAllyTeamID) then
+			local losstate = Spring.GetUnitLosState(unitID, myAllyTeamID)
+			if losstate and losstate["los"] and Script.LuaUI("EnemyUnitDestroyed") then
+				Script.LuaUI.EnemyUnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID, weaponDefID)
+			end
+		end
+	end
 end
-
-
-
