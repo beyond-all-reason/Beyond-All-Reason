@@ -929,7 +929,7 @@ if gadgetHandler:IsSyncedCode() then
 						end
 					end
 				end
-				
+
 			else -- Avoid Players burrow setup. Spawns anywhere that isn't in player sensor range.
 
 				for _ = 1,100 do  -- Attempt #1 Avoid all sensors
@@ -1118,12 +1118,12 @@ if gadgetHandler:IsSyncedCode() then
 		elseif ratio <= lowerScavPowerRatio then
 			dynamicDifficulty = 1
 		else
-			dynamicDifficulty = (upperScavPowerRatio - ratio) / (upperScavPowerRatio - lowerScavPowerRatio) 
+			dynamicDifficulty = (upperScavPowerRatio - ratio) / (upperScavPowerRatio - lowerScavPowerRatio)
 		end
-	
+
 		dynamicDifficultyClamped = minDynamicDifficulty + (dynamicDifficulty * (maxDynamicDifficulty - minDynamicDifficulty))
 	end
-	
+
 	function Wave()
 
 		if gameOver then
@@ -1548,7 +1548,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			return
 		end
-		
+
 		capturableUnits[unitID] = true
 		if squadPotentialTarget[unitID] or squadPotentialHighValueTarget[unitID] then
 			squadPotentialTarget[unitID] = nil
@@ -2232,7 +2232,7 @@ if gadgetHandler:IsSyncedCode() then
 					local scavengersFoundAlive = false
 					for _, teamID in ipairs(Spring.GetTeamList(scavAllyTeamID)) do
 						local luaAI = Spring.GetTeamLuaAI(teamID)
-						if luaAI and (luaAI:find("Scavengers") or luaAI:find("ScavReduxAI")) and not select(3, Spring.GetTeamInfo(teamID, false)) then
+						if luaAI and luaAI:find("Scavengers") and not select(3, Spring.GetTeamInfo(teamID, false)) then
 							scavengersFoundAlive = true
 						end
 					end
