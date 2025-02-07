@@ -93,9 +93,9 @@ local labGrids = {
 		"corcrw","corcrwh",                                              -- krow
 	},
 	legaap = {
-		"legaca", "legionnaire", "legvenator","",					--T2 con, defensive fig, interceptor
-		"legmineb", "legnap", "legphoenix", "legatorpbomber",			--minebomber, napalmbomber, 'heavy bomber', torpedo
-		"legfort", "legstronghold", "legwhisper",	""			--knockoff krow, (well armed)transport, radar
+		"legaca", "legionnaire", "", "legphoenix",					--T2 con, defensive fig, phoenix
+		"legwhisper", "legstronghold", "legatorpbomber", "legvenator",			--radar, transport(gunship), torpedo, interceptor
+		"legfort", "legnap", "legmineb", ""			--flying fort, napalmbomber, minebomber
 	},
 	-- seaplanes
 	armplat = {
