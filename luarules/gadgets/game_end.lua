@@ -35,7 +35,7 @@ if gadgetHandler:IsSyncedCode() then
 	local teamList = Spring.GetTeamList()
 	for i = 1, #teamList do
 		local luaAI = Spring.GetTeamLuaAI(teamList[i])
-		if (luaAI and (luaAI:find("Raptors") or luaAI:find("Scavengers") or luaAI:find("ScavReduxAI"))) then
+		if luaAI and (luaAI:find("Raptors") or luaAI:find("Scavengers")) then
 			ignoredTeams[teamList[i]] = true
 
 			-- ignore all other teams in this allyteam as well
