@@ -1833,7 +1833,7 @@ local unitGrids = {
 		{
 			{ "legrad", },                                   -- radar
 			{ },                                             --
-			{ "cormine1", "cormine2", "cormine3", },         -- light mine, med mine, heavy mine
+			{ "legmine1", "legmine2", "legmine3", },         -- light mine, med mine, heavy mine
 		},
 		{
 			{ },                                             --
