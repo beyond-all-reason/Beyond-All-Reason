@@ -63,9 +63,12 @@ local labGrids = {
 		"corseal", "corparrow", "corsent", "corvroc",          -- croc, poison arrow, AA, diplomat
 	},
 	legavp = {
-		"legacv", "legmrv", "legaskirmtank", "legamcluster",   -- T2 con, Quickshot, scorpion, cleaver
-		"legavrad", "legavjam", "legaheattank", "leginf",        -- radar, jammer, goli, inferno
-		"legfloat", "legmed", "legvflak", "legavroc",            -- the new and improved triton, medusa, AA, boreas
+		-- page1
+		"legacv", "legmed", "legaskirmtank", "legamcluster",	-- T2 con, medusa, gladiator, cleaver
+		"legavrad", "legavjam", "legaheattank", "leginf",        -- radar, jammer, prometheus, inferno
+		"legmrv", "legfloat", "legvflak", "legavroc",            -- Quickshot, new triton, AA, boreas
+		-- page2
+		"legvcarry", "cormabm",					-- mantis, veh antinuke
 	},
 	-- T1 air
 	armap = {
