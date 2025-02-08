@@ -1470,15 +1470,13 @@ function SortAllyTeams(vOffset)
     -- (labels and separators are drawn)
     local allyTeamID
     local allyTeamList = Spring_GetAllyTeamList()
-	local selfOnTop = true
 	if WG.allyTeamRanking then
 		allyTeamList = WG.allyTeamRanking
-		--selfOnTop = false
 	end
 
 	-- find own ally team
 	vOffset = 12 / 2.66
-	if selfOnTop then
+	if not WG.allyTeamRanking or not enemyListShow then
 		vOffset = vOffset + (labelOffset*playerScale) - 3
 		if drawAlliesLabel then
 			drawListOffset[#drawListOffset + 1] = vOffset
@@ -1492,7 +1490,9 @@ function SortAllyTeams(vOffset)
 	if numberOfEnemies > 0 then
 
 		-- "Enemies" label
-		vOffset = vOffset + 13
+		if not WG.allyTeamRanking or not enemyListShow then
+			vOffset = vOffset + 13
+		end
 		vOffset = vOffset + labelOffset - 3
 		drawListOffset[#drawListOffset + 1] = vOffset
 		drawList[#drawList + 1] = -3 -- "Enemies" label
@@ -1501,7 +1501,7 @@ function SortAllyTeams(vOffset)
 		if enemyListShow then
 			local firstenemy = true
 			for _, allyTeamID in ipairs(allyTeamList) do
-				if (not selfOnTop or allyTeamID ~= myAllyTeamID) and (not hideDeadAllyTeams or aliveAllyTeams[allyTeamID]) then
+				if (WG.allyTeamRanking or allyTeamID ~= myAllyTeamID) and (not hideDeadAllyTeams or aliveAllyTeams[allyTeamID]) then
 					if firstenemy then
 						firstenemy = false
 					else
@@ -1940,8 +1940,11 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
                         if numberOfEnemies == 0 or enemyListShow then
                             enemyAmount = ""
                         end
-                        DrawLabel(" "..Spring.I18N('ui.playersList.enemies', { amount = enemyAmount }), drawListOffset[i], true)
-                        DrawLabel(" "..Spring.I18N('ui.playersList.enemies', { amount = enemyAmount }), drawListOffset[i], true)
+						if WG.allyTeamRanking and enemyListShow then
+                        	DrawLabel(" "..Spring.I18N('ui.playersList.hide_enemies'), drawListOffset[i], true)
+						else
+                        	DrawLabel(" "..Spring.I18N('ui.playersList.enemies', { amount = enemyAmount }), drawListOffset[i], true)
+						end
                         if Spring.GetGameFrame() <= 0 then
                             if enemyListShow then
                                 DrawLabelTip( Spring.I18N('ui.playersList.hideEnemies'), drawListOffset[i], 95)
