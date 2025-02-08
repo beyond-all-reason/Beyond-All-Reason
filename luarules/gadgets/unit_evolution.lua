@@ -103,13 +103,13 @@ if gadgetHandler:IsSyncedCode() then
 		-- evolution_health_threshold = 0,			-- threshold for triggering the "health" evolution condition.
 		-- evolution_power_threshold = 600,			-- threshold for triggering the "power" evolution condition.
 		-- evolution_power_enemy_multiplier = 1,	-- Scales the power calculated based on the average enemy combined power.
-		-- evolution_power_multiplier = 1,			-- Scales the power calculated based on your own combined power. 
+		-- evolution_power_multiplier = 1,			-- Scales the power calculated based on your own combined power.
 		-- combatradius = 1000,						-- Range for setting in-combat status if enemies are within range, and disabling evolution while in-combat.
 		-- evolution_health_transfer = "flat",		-- "flat", "percentage", or "full"
 
 
 		-- },
-  
+
 
 
 
@@ -134,11 +134,11 @@ if gadgetHandler:IsSyncedCode() then
 		local allUnits = Spring.GetAllUnits(newUnit)
 		for _,unitID in pairs(allUnits) do
 			--local unitID = allUnits[i]
-			
+
 			if GG.GetUnitTarget(unitID) == oldUnit and newUnit then
 				GG.SetUnitTarget(unitID, newUnit)
 			end
-			
+
 			local cmds = Spring.GetCommandQueue(unitID, -1)
 			for j = 1, #cmds do
 				local cmd = cmds[j]
@@ -156,7 +156,7 @@ if gadgetHandler:IsSyncedCode() then
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-	
+
 
 
 
@@ -190,7 +190,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			spSetUnitRulesParam(unitID, "unit_evolved", newUnitID, PRIVATE)
-			
+
 			SendToUnsynced("unit_evolve_finished", unitID, newUnitID, announcement,announcementSize)
 			if evolutionMetaList[unitID].evolution_health_transfer == "full" then
 			elseif evolutionMetaList[unitID].evolution_health_transfer == "percentage" then
@@ -205,7 +205,7 @@ if gadgetHandler:IsSyncedCode() then
 			spSetUnitExperience(newUnitID, experience)
 			spSetUnitStockpile(newUnitID, stockpile, stockpilebuildpercent)
 			spSetUnitDirection(newUnitID, dx, dy, dz)
-			
+
 
 			spGiveOrderToUnit(newUnitID, CMD.FIRE_STATE, { states.firestate },             { })
 			spGiveOrderToUnit(newUnitID, CMD.MOVE_STATE, { states.movestate },             { })
@@ -213,7 +213,7 @@ if gadgetHandler:IsSyncedCode() then
 			spGiveOrderToUnit(newUnitID, CMD_WANT_CLOAK,      {states.cloak and 1 or 0 },  { })
 			spGiveOrderToUnit(newUnitID, CMD.ONOFF,      { 1 },                            { })
 			spGiveOrderToUnit(newUnitID, CMD.TRAJECTORY, { states.trajectory and 1 or 0 }, { })
-			
+
 			ReAssignAssists(newUnitID,unitID)
 
 
@@ -265,8 +265,8 @@ if gadgetHandler:IsSyncedCode() then
 				evolution_announcement_size = tonumber(udcp.evolution_announcement_size),
 				combatRadius = tonumber(udcp.combatradius) or 1000,
 				evolution_health_transfer =  udcp.evolution_health_transfer or "flat",
-				
-				
+
+
 				timeCreated = spGetGameSeconds(),
 				combatTimer = spGetGameSeconds(),
 				inCombat = false,
@@ -312,7 +312,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 	end
-	
+
 	function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 		if evolutionMetaList[unitID] then
 			if evolutionMetaList[unitID].evolution_condition == "health" then
@@ -325,7 +325,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 	end
-	
+
 
 	function gadget:GameFrame(f)
 		if f % GAME_SPEED ~= 0 then
@@ -334,7 +334,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		--if f % TIMER_CHECK_FREQUENCY == 0 then
 		if ((TIMER_CHECK_FREQUENCY + lastTimerCheck) < f) then
-			lastTimerCheck = f	
+			lastTimerCheck = f
 			for unitID, _ in pairs(evolutionMetaList) do
 				local currentTime =  spGetGameSeconds()
 				if (evolutionMetaList[unitID].evolution_condition == "timer" and (currentTime-evolutionMetaList[unitID].timeCreated) >= evolutionMetaList[unitID].evolution_timer) or
@@ -355,7 +355,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		if ((POWER_CHECK_FREQUENCY + lastPowerCheck) < f) then
 			lastPowerCheck = f
-			
+
 			for unitID, _ in pairs(evolutionMetaList) do
 				local currentTime =  spGetGameSeconds()
 				local teamID = spGetUnitTeam(unitID)
