@@ -18,6 +18,7 @@ if not Spring.Utilities.Gametype.IsFFA() then
 	return
 end
 
+local prevRanking = {}
 local allyteamCost = {}
 local teamAllyteam = {}
 local teamList = Spring.GetTeamList()
@@ -69,7 +70,7 @@ function gadget:Initialize()
 end
 
 function gadget:GameFrame(gf)
-	if gf % 300 == 1 then
+	if gf % 150 == 1 then
 		if Script.LuaUI("rankingEvent") then
 			local temp = {}
 			for allyTeamID, totalCost in ipairs(allyteamCost) do
@@ -78,11 +79,18 @@ function gadget:GameFrame(gf)
 			table.sort(temp, function(m1, m2)
 				return m1.totalCost > m2.totalCost
 			end)
-			local sorted = {}
+			local rankingChanged = false
+			local ranking = {}
 			for i, params in ipairs(temp) do
-				sorted[i] = params.allyTeamID
+				ranking[i] = params.allyTeamID
+				if not prevRanking[i] or ranking[i] ~= prevRanking[i] then
+					rankingChanged = true
+				end
 			end
-			Script.LuaUI.rankingEvent(sorted)
+			if rankingChanged then
+				prevRanking = ranking
+				Script.LuaUI.rankingEvent(ranking)
+			end
 		end
 	end
 end
