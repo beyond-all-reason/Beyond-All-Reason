@@ -339,7 +339,6 @@ function gadget:GameFrame(frame)
 			end
 		end
 		adjustedRezSpeed = ZOMBIES_REZ_SPEED * GG.PowerLib.AveragePlayerTechGuesstimate()
-		Spring.Echo("adjustedRezSpeed: " .. adjustedRezSpeed, "averageTechGuesstimate: " .. GG.PowerLib.AveragePlayerTechGuesstimate(), "ZOMBIES_REZ_SPEED: " .. ZOMBIES_REZ_SPEED)
 	end
 
 	if frame == initiationFrame then
