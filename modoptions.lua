@@ -1205,18 +1205,19 @@ local options = {
     },
 
     {
-        key     = 'zombies',
-        name    = 'Enable zombies',
-        desc    = "All features self-resurrect.",
+        key     = 'revival',
+        name    = 'Reviving Corpses',
+        desc    = "All unit corpses resurrect themselves over time with allegience to the Scavengers. They attack everything else.",
         type    = 'bool',
         section = 'options_extra',
         def     = false,
+        unlock  = {"revival_min_delay","revival_rezspeed","revival_partial_reclaim", "revival_max_delay"},
     },
 
     {
-        key     = 'zombies_delay',
-        name    = 'Zombie min spawn time',
-        desc    = "In seconds, unit will resurrection no faster than this.",
+        key     = 'revival_min_delay',
+        name    = 'Minimum Revival Time',
+        desc    = "In seconds, corpse will resurrect no faster than this.",
         type    = 'number',
         section = 'options_extra',
         def     = 20,
@@ -1226,9 +1227,21 @@ local options = {
     },
 
     {
-        key     = 'zombies_rezspeed',
-        name    = 'Zombie resurrection speed',
-        desc    = "In metal per second.",
+        key     = 'revival_max_delay',
+        name    = 'Minimum Revival Time',
+        desc    = "In seconds, corpse will resurrect no slower than this.",
+        type    = 'number',
+        section = 'options_extra',
+        def     = 120,
+        min     = 1,
+        max     = 1200,
+        step    = 1,
+    },
+
+    {
+        key     = 'revival_rezspeed',
+        name    = 'Base Revival Speed',
+        desc    = "In metal per second. This changes over the course of the game based on player progression.",
         type    = 'number',
         section = 'options_extra',
         def     = 16,
@@ -1238,12 +1251,12 @@ local options = {
     },
 
     {
-        key     = 'zombies_partial_reclaim',
+        key     = 'revival_partial_reclaim',
         name    = 'Zombies partially reclaimable',
-        desc    = "Partially reclaimed zombies are partially damaged.",
+        desc    = "Corpses that are partially reclaimed or damaged will revive with less health.",
         type    = 'bool',
         section = 'options_extra',
-        def     = false,
+        def     = true,
     },
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
