@@ -81,6 +81,7 @@ local spSpawnExplosion 			  = Spring.SpawnExplosion
 local spPlaySoundFile 			  = Spring.PlaySoundFile
 local spGetFeatureRadius		  = Spring.GetFeatureRadius
 local spGetUnitCurrentCommand	  = Spring.GetUnitCurrentCommand
+local spSetUnitExperience		  = Spring.SetUnitExperience
 local random = math.random
 local function disSQ(x1, y1, x2, y2) return (x1 - x2)^2 + (y1 - y2)^2 end
 
@@ -296,6 +297,7 @@ function gadget:GameFrame(frame)
 					if unitID then
 						spDestroyFeature(featureID)
 						local unitHealth = spGetUnitHealth(unitID)
+						spSetUnitExperience(unitID, math.min(random(), random())) --this skews the xp results to lower values
 						spSpawnCEG("scav-spawnexplo", featureX, featureY, featureZ, 0, 0, 0, UnitDefs[unitDefID].xsize)
 						playSpawnSound(featureX, featureY, featureZ)
 						corpsesData[featureID] = nil
