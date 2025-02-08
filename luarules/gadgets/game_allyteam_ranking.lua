@@ -78,13 +78,13 @@ function gadget:GameFrame(gf)
 			local temp = {}
 			for allyTeamID, totalCost in ipairs(allyteamCost) do
 				local totalResCost = 0
-				local teamList = spGetTeamList(myAllyTeamID)
+				local teamList = spGetTeamList(allyTeamID)
 				for _, teamID in ipairs(teamList) do
 					local availableMetal = spGetTeamResources(teamID, "metal")
 					local availableEnergy = spGetTeamResources(teamID, "energy")
 					totalResCost = math.floor(totalResCost + availableMetal + (availableEnergy / 65))
 				end
-				temp[allyTeamID] = { allyTeamID = allyTeamID, totalCost = totalCost + availableRes }
+				temp[allyTeamID] = { allyTeamID = allyTeamID, totalCost = totalCost + totalResCost }
 			end
 			table.sort(temp, function(m1, m2)
 				return m1.totalCost > m2.totalCost
