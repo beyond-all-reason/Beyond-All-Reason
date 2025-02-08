@@ -80,6 +80,7 @@ local spCreateFeature			  = Spring.CreateFeature
 local spSpawnExplosion 			  = Spring.SpawnExplosion
 local spPlaySoundFile 			  = Spring.PlaySoundFile
 local spGetFeatureRadius		  = Spring.GetFeatureRadius
+local spGetUnitCurrentCommand	  = Spring.GetUnitCurrentCommand
 local random = math.random
 local function disSQ(x1, y1, x2, y2) return (x1 - x2)^2 + (y1 - y2)^2 end
 
@@ -217,7 +218,7 @@ local function issueRandomOrders(unitID, unitDefID)
 	
 	local orders = {}
 	local nearAlly = (UnitDefs[unitDefID].canAttack) and GetUnitNearestAlly(unitID, unitDefID, ZOMBIE_GUARD_RADIUS) or nil
-	if nearAlly and Spring.GetUnitCurrentCommand(nearAlly) ~= CMD_GUARD then
+	if nearAlly and spGetUnitCurrentCommand(nearAlly) ~= CMD_GUARD then
 		if random() < ZOMBIE_GUARD_CHANCE then
 			orders[#orders + 1] = {CMD_GUARD, {nearAlly}, 0}
 		end
@@ -396,6 +397,5 @@ end
 function gadget:Initialize()
 	mapWidth = Game.mapSizeX
 	mapHeight = Game.mapSizeZ
-	GaiaTeamID = Spring.GetGaiaTeamID()
 	initiationFrame = spGetGameFrame() + 1 --to avoid race conditions
 end
