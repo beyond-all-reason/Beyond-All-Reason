@@ -11,7 +11,7 @@ function gadget:GetInfo()
 end
 
 local teamList = Spring.GetTeamList()
-for i = 1, #teams do
+for i = 1, #teamList do
 	local luaAI = Spring.GetTeamLuaAI(teamList[i])
 	if luaAI ~= "" then
 		if type(luaAI) == "string" and (VFS.FileExists("luarules/gadgets/ai/" .. luaAI .. "/boot.lua")) then
