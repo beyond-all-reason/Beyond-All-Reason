@@ -1228,7 +1228,7 @@ local options = {
 
     {
         key     = 'revival_max_delay',
-        name    = 'Minimum Revival Time',
+        name    = 'Maximum Revival Time',
         desc    = "In seconds, corpse will resurrect no slower than this.",
         type    = 'number',
         section = 'options_extra',
