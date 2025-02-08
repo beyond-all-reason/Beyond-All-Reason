@@ -32,6 +32,9 @@ for i = 1, #teamList do
 	end
 end
 
+local spGetTeamResources = Spring.GetTeamResources
+local spGetTeamList = Spring.GetTeamList
+
 local unitCost = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	unitCost[unitDefID] = math.floor(unitDef.metalCost + (unitDef.energyCost / 65))
@@ -74,7 +77,14 @@ function gadget:GameFrame(gf)
 		if Script.LuaUI("rankingEvent") then
 			local temp = {}
 			for allyTeamID, totalCost in ipairs(allyteamCost) do
-				temp[allyTeamID] = { allyTeamID = allyTeamID, totalCost = totalCost }
+				local totalResCost = 0
+				local teamList = spGetTeamList(allyTeamID)
+				for _, teamID in ipairs(teamList) do
+					local availableMetal = spGetTeamResources(teamID, "metal")
+					local availableEnergy = spGetTeamResources(teamID, "energy")
+					totalResCost = math.floor(totalResCost + availableMetal + (availableEnergy / 65))
+				end
+				temp[allyTeamID] = { allyTeamID = allyTeamID, totalCost = totalCost + totalResCost }
 			end
 			table.sort(temp, function(m1, m2)
 				return m1.totalCost > m2.totalCost
