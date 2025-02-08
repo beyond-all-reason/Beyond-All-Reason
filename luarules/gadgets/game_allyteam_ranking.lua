@@ -74,7 +74,6 @@ end
 
 function gadget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 	if unitTeam ~= GaiaTeamID then
-		Spring.Echo('unit given')
 		local allyTeamID = teamAllyteam[unitTeam]
 		allyteamCost[allyTeamID] = allyteamCost[allyTeamID] + unitCost[unitDefID]
 		if spGetUnitIsBeingBuilt(unitID) then
@@ -115,7 +114,6 @@ function gadget:GameFrame(gf)
 				for unitID, unitDefID in pairs(unfinishedUnits[allyTeamID]) do
 					totalConstructionCost = totalConstructionCost + math.floor(unitCost[unitDefID] * select(2, spGetUnitIsBeingBuilt(unitID)))
 				end
-				Spring.Echo(allyTeamID, totalCost, totalResCost, totalConstructionCost, totalCost + totalResCost + totalConstructionCost)
 				temp[#temp+1] = { allyTeamID = allyTeamID, totalCost = totalCost + totalResCost + totalConstructionCost }
 			end
 			table.sort(temp, function(m1, m2)
