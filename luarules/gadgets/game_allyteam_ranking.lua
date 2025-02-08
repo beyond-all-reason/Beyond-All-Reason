@@ -76,7 +76,7 @@ function gadget:GameFrame(gf)
 	if gf % 150 == 1 then
 		if Script.LuaUI("rankingEvent") then
 			local temp = {}
-			for allyTeamID, totalCost in ipairs(allyteamCost) do
+			for allyTeamID, totalCost in pairs(allyteamCost) do
 				local totalResCost = 0
 				local teamList = spGetTeamList(allyTeamID)
 				for _, teamID in ipairs(teamList) do
@@ -84,7 +84,7 @@ function gadget:GameFrame(gf)
 					local availableEnergy = spGetTeamResources(teamID, "energy")
 					totalResCost = math.floor(totalResCost + availableMetal + (availableEnergy / 65))
 				end
-				temp[allyTeamID] = { allyTeamID = allyTeamID, totalCost = totalCost + totalResCost }
+				temp[#temp+1] = { allyTeamID = allyTeamID, totalCost = totalCost + totalResCost }
 			end
 			table.sort(temp, function(m1, m2)
 				return m1.totalCost > m2.totalCost
