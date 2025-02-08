@@ -2,9 +2,9 @@ local version = "0.1.3"
 
 function gadget:GetInfo()
 	return {
-		name      = "Zombie Resurrection",
-		desc      = "Resurrects dead units as zombies",
-		author    = "Rafal",
+		name      = "Corpse Revival",
+		desc      = "Resurrects corpses as Scavengers or hostile Gaia",
+		author    = "SethDGamre, code snippets/inspiration from Rafal",
 		date      = "March 2024",
 		license   = "GNU GPL, v2 or later",
 		layer     = 0,
