@@ -131,7 +131,7 @@ if gadgetHandler:IsSyncedCode() then
 
 
 
-	local function evolutionSkipNames(unitID, evolutionMetaOld, newUnitName)
+	local function EvolutionSkipNames(evolutionMetaOld, newUnitName)
 		local delayedSeconds = spGetGameSeconds() - evolutionMetaOld.timeCreated - evolutionMetaOld.evolution_timer
 		local evolutionMetaNew = UnitDefNames[newUnitName].customParams
 
@@ -181,7 +181,7 @@ if gadgetHandler:IsSyncedCode() then
 		local evolutionMetaOld = evolutionMetaList[unitID]
 
 		local delayedSeconds
-		newUnitName, delayedSeconds = evolutionSkipNames(unitID, evolutionMetaOld, newUnitName)
+		newUnitName, delayedSeconds = EvolutionSkipNames(evolutionMetaOld, newUnitName)
 		local newUnitID = spCreateUnit(newUnitName, x,y,z, face, team)
 
 		evolutionMetaList[unitID] = nil
@@ -342,7 +342,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local function fillToCheckUnitIDs()
+	local function FillToCheckUnitIDs()
 		if lastCheckIndex <= nToCheckUnitIDs then
 			return
 		end
@@ -364,7 +364,7 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 
-		fillToCheckUnitIDs()
+		FillToCheckUnitIDs()
 
 		local checkCount = 0
 		local currentTime = spGetGameSeconds()
