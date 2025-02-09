@@ -131,31 +131,29 @@ if gadgetHandler:IsSyncedCode() then
 
 
 	local function SkipEvolutions(evolutionMetaOld, newUnitName)
-		local delayedSeconds = spGetGameSeconds() - evolutionMetaOld.timeCreated - evolutionMetaOld.evolution_timer
 		local evolutionMetaNew = UnitDefNames[newUnitName].customParams
 
 		if not evolutionMetaNew or
-				not (
-					not evolutionMetaNew.evolution_condition
-					or evolutionMetaNew.evolution_condition == 'timer'
-					or evolutionMetaNew.evolution_condition == 'timer_global') then
-				return newUnitName, delayedSeconds
-		end
-
-		local evolutionMetaNewTimer
-		delayedSeconds = spGetGameSeconds() - evolutionMetaOld.timeCreated - evolutionMetaOld.evolution_timer
-		repeat
-			evolutionMetaNewTimer = tonumber(evolutionMetaNew.evolution_timer) or 600
-
-			if delayedSeconds > evolutionMetaNewTimer
-				and evolutionMetaNew.evolution_target
-				and UnitDefNames[evolutionMetaNew.evolution_target].customParams then
-				newUnitName = evolutionMetaNew.evolution_target
-				evolutionMetaNew = UnitDefNames[newUnitName].customParams
-				delayedSeconds = delayedSeconds - evolutionMetaNewTimer
+		not (
+			not evolutionMetaNew.evolution_condition
+			or evolutionMetaNew.evolution_condition == 'timer'
+			or evolutionMetaNew.evolution_condition == 'timer_global') then
+				return newUnitName, 0
 			end
 
-		until delayedSeconds < evolutionMetaNewTimer or not evolutionMetaNew or not evolutionMetaNew.evolution_target
+		local evolutionMetaNewTimer = tonumber(evolutionMetaNew.evolution_timer) or 600
+		local delayedSeconds = spGetGameSeconds() - evolutionMetaOld.timeCreated - (tonumber(evolutionMetaOld.evolution_timer) or 600)
+
+		while delayedSeconds > evolutionMetaNewTimer
+			and evolutionMetaNew
+			and evolutionMetaNew.evolution_target
+			and UnitDefNames[evolutionMetaNew.evolution_target].customParams do
+
+			evolutionMetaNewTimer = tonumber(evolutionMetaNew.evolution_timer) or 600
+			newUnitName = evolutionMetaNew.evolution_target
+			evolutionMetaNew = UnitDefNames[newUnitName].customParams
+			delayedSeconds = delayedSeconds - evolutionMetaNewTimer
+		end
 
 		return newUnitName, delayedSeconds
 	end
@@ -412,7 +410,7 @@ if gadgetHandler:IsSyncedCode() then
 					local inCombat = false
 					if enemyNearby then
 						inCombat = true
-						evolution.combatTimer = spGetGameSeconds()
+						evolution.combatTimer = currentTime
 					end
 					if not inCombat and (currentTime-evolution.combatTimer) >= 5 then
 						Evolve(unitID, evolution.evolution_target)
