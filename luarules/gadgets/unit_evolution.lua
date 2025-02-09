@@ -49,7 +49,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local evolutionCheckGameframeModulo = 25
 	local jitter = 5
-	local gameframeUnitEvolveLimit = 40
+	local gameframeUnitEvolveLimit = 30
 	local lastCheckIndex = 1
 	local toCheckUnitIDs = {}
 	local nToCheckUnitIDs = 0
@@ -131,9 +131,37 @@ if gadgetHandler:IsSyncedCode() then
 
 
 
+	local function evolutionSkipNames(unitID, evolutionMetaOld, newUnitName)
+		local delayedSeconds = spGetGameSeconds() - evolutionMetaOld.timeCreated - evolutionMetaOld.evolution_timer
+		local evolutionMetaNew = UnitDefNames[newUnitName].customParams
 
+		if not evolutionMetaNew or
+				not (
+					not evolutionMetaNew.evolution_condition
+					or evolutionMetaNew.evolution_condition == 'timer'
+					or evolutionMetaNew.evolution_condition == 'timer_global') then
+				return newUnitName, delayedSeconds
+		end
 
-	function Evolve(unitID, newUnit)
+		local evolutionMetaNewTimer
+		repeat
+			delayedSeconds = spGetGameSeconds() - evolutionMetaOld.timeCreated - evolutionMetaOld.evolution_timer
+			evolutionMetaNewTimer = tonumber(evolutionMetaNew.evolution_timer) or 600
+
+			if delayedSeconds > evolutionMetaNewTimer
+				and evolutionMetaNew.evolution_target
+				and UnitDefNames[evolutionMetaNew.evolution_target].customParams then
+				newUnitName = evolutionMetaNew.evolution_target
+				evolutionMetaNew = UnitDefNames[newUnitName].customParams
+				delayedSeconds = delayedSeconds - evolutionMetaNewTimer
+			end
+
+		until delayedSeconds < evolutionMetaNewTimer or not evolutionMetaNew or not evolutionMetaNew.evolution_target
+
+		return newUnitName, delayedSeconds
+	end
+
+	function Evolve(unitID, newUnitName)
 		local x,y,z = spGetUnitPosition(unitID)
 		if not z then
 			evolutionMetaList[unitID] = nil
@@ -150,17 +178,23 @@ if gadgetHandler:IsSyncedCode() then
 		local commandQueue = Spring.GetCommandQueue(unitID, -1)
 		local transporter = Spring.GetUnitTransporter(unitID)
 
-		local newUnitID = spCreateUnit(newUnit, x,y,z, face, team)
-
 		local evolutionMetaOld = evolutionMetaList[unitID]
+
+		local delayedSeconds
+		newUnitName, delayedSeconds = evolutionSkipNames(unitID, evolutionMetaOld, newUnitName)
+		local newUnitID = spCreateUnit(newUnitName, x,y,z, face, team)
+
 		evolutionMetaList[unitID] = nil
 
 		if not newUnitID or not evolutionMetaOld then
 			return
 		end
 
-		local delayedSeconds = spGetGameSeconds() - evolutionMetaOld.timeCreated - evolutionMetaOld.evolution_timer
-		if delayedSeconds > 0 and evolutionMetaList[newUnitID] then
+		-- Spring.Echo("Evolution delayed by", delayedSeconds, "seconds", 'created:', evolutionMetaList[newUnitID] and evolutionMetaList[newUnitID].timeCreated)
+		if (not evolutionMetaOld.evolution_condition
+			or evolutionMetaOld.evolution_condition == 'timer'
+			or evolutionMetaOld.evolution_condition == 'timer_global')
+			and evolutionMetaList[newUnitID] and evolutionMetaList[newUnitID].timeCreated then
 			evolutionMetaList[newUnitID].timeCreated = spGetGameSeconds() - delayedSeconds
 		end
 
