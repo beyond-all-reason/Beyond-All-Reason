@@ -122,13 +122,13 @@ StartMoving()
 	}
 }
 
-boatposition(_speed, maxspeed)
+boatposition(speedCurrent, maxSpeed)
 {
-	_speed = (get CURRENT_SPEED);
-	maxspeed = (get MAX_SPEED);
-	_speed = _speed * 100 /maxspeed;
-	if (_speed > 50) turn base to x-axis <45> speed <30>;
-	if (_speed < 50) turn base to x-axis <0> speed <30>;
+	speedCurrent = (get CURRENT_SPEED);
+	maxSpeed = (get MAX_SPEED);
+	speedCurrent = speedCurrent * 100 / maxSpeed;
+	if (speedCurrent > 50) turn base to x-axis <45> speed <30>;
+	if (speedCurrent < 50) turn base to x-axis <0> speed <30>;
 }
 
 
