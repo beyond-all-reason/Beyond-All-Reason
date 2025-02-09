@@ -17,6 +17,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spCreateUnit            = Spring.CreateUnit
 	local spDestroyUnit           = Spring.DestroyUnit
 	local spGiveOrderToUnit       = Spring.GiveOrderToUnit
+	local spGiveOrderArrayToUnit  = Spring.GiveOrderArrayToUnit
 	local spSetUnitRulesParam     = Spring.SetUnitRulesParam
 	local spGetUnitPosition       = Spring.GetUnitPosition
 	local spGetUnitStates = Spring.GetUnitStates
@@ -37,6 +38,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
 
 	local GAME_SPEED = Game.gameSpeed
+	local mathRandom = math.random
 	local PRIVATE = { private = true }
 
 	local evolutionMetaList = {}
@@ -45,13 +47,13 @@ if gadgetHandler:IsSyncedCode() then
 	local teamPowerList = {}
 	local highestTeamPower = 0
 
-	local lastTimerCheck = 0
-	local lastPowerCheck = 0
+	local evolutionCheckGameframeModulo = 25
+	local jitter = 5
+	local gameframeUnitEvolveLimit = 40
+	local lastCheckIndex = 1
+	local toCheckUnitIDs = {}
+	local nToCheckUnitIDs = 0
 
-	local TIMER_CHECK_FREQUENCY = 30 -- gameframes
-	local POWER_CHECK_FREQUENCY = 45 -- gameframes
-
-	local lastDeferredUnitID
 
 	include("luarules/configs/customcmds.h.lua")
 	--messages[1] = textColor .. Spring.I18N('ui.raptors.wave1', {waveNumber = raptorEventArgs.waveCount})
@@ -187,13 +189,15 @@ if gadgetHandler:IsSyncedCode() then
 		spSetUnitStockpile(newUnitID, stockpile, stockpilebuildpercent)
 		spSetUnitDirection(newUnitID, dx, dy, dz)
 
-
-		spGiveOrderToUnit(newUnitID, CMD.FIRE_STATE, { states.firestate },             { })
-		spGiveOrderToUnit(newUnitID, CMD.MOVE_STATE, { states.movestate },             { })
-		spGiveOrderToUnit(newUnitID, CMD.REPEAT,     { states["repeat"] and 1 or 0 },  { })
-		spGiveOrderToUnit(newUnitID, CMD_WANT_CLOAK,      {states.cloak and 1 or 0 },  { })
-		spGiveOrderToUnit(newUnitID, CMD.ONOFF,      { 1 },                            { })
-		spGiveOrderToUnit(newUnitID, CMD.TRAJECTORY, { states.trajectory and 1 or 0 }, { })
+		-- FIXME TODO, this only works for MOVE_STATE on (for example) evocom
+		spGiveOrderArrayToUnit(newUnitID, {
+			{ CMD.FIRE_STATE, { states.firestate },             { } },
+			{ CMD.MOVE_STATE, { states.movestate },             { } },
+			{ CMD.REPEAT,     { states["repeat"] and 1 or 0 },  { } },
+			{ CMD_WANT_CLOAK, { states.cloak and 1 or 0 },  		{ } },
+			{ CMD.ONOFF,      { 1 },                            { } },
+			{ CMD.TRAJECTORY, { states.trajectory and 1 or 0 }, { } },
+		})
 
 		ReAssignAssists(newUnitID,unitID)
 
@@ -305,72 +309,77 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-
-	function gadget:GameFrame(f)
-		if f % GAME_SPEED ~= 0 then
+	local function fillToCheckUnitIDs()
+		if lastCheckIndex <= nToCheckUnitIDs then
 			return
 		end
 
-		local evolveLimit = 100
+		toCheckUnitIDs = {}
+		local i = 0
+		for unitID, _ in pairs(evolutionMetaList) do
+			i =  i + 1
+			toCheckUnitIDs[i] = unitID
+		end
 
-		--if f % TIMER_CHECK_FREQUENCY == 0 then
-		if ((TIMER_CHECK_FREQUENCY + lastTimerCheck) < f) then
-			lastTimerCheck = f
-			local count = 0
+		lastCheckIndex = 1
+		nToCheckUnitIDs = i
+	end
 
-			local unitID = lastDeferredUnitID or next(evolutionMetaList)
-			while unitID and count < evolveLimit do
-				local evolution = evolutionMetaList[unitID]
-				count = count + 1
-				local currentTime = spGetGameSeconds()
-				if
-					(evolution.evolution_condition == 'timer' and (currentTime - evolution.timeCreated) >= evolution.evolution_timer) or
-						(evolution.evolution_condition == 'timer_global' and currentTime >= evolution.evolution_timer)
-				 then
+
+	function gadget:GameFrame(f)
+		if f % GAME_SPEED ~= 0 or f % (evolutionCheckGameframeModulo + mathRandom(-jitter, jitter)) == 0 then
+			return
+		end
+
+		fillToCheckUnitIDs()
+
+		local checkCount = 0
+		local currentTime = spGetGameSeconds()
+
+		while lastCheckIndex <= nToCheckUnitIDs and checkCount <= gameframeUnitEvolveLimit do
+			local unitID = toCheckUnitIDs[lastCheckIndex]
+
+			local evolution = evolutionMetaList[unitID]
+			if evolution then
+				if (evolution.evolution_condition == 'timer' and (currentTime - evolution.timeCreated) >= evolution.evolution_timer) or
+				(evolution.evolution_condition == 'timer_global' and currentTime >= evolution.evolution_timer)
+				then
 					local enemyNearby = spGetUnitNearestEnemy(unitID, evolution.combatRadius)
 					local inCombat = false
 					if enemyNearby then
 						inCombat = true
-						evolution.combatTimer = spGetGameSeconds()
+						evolution.combatTimer = currentTime
 					end
 
 					if not inCombat and (currentTime - evolution.combatTimer) >= 5 then
 						Evolve(unitID, evolution.evolution_target)
 					end
 				end
-				unitID = next(evolutionMetaList, unitID)
-			end
 
-			lastDeferredUnitID = unitID or nil
-		end
-
-		if ((POWER_CHECK_FREQUENCY + lastPowerCheck) < f) then
-			lastPowerCheck = f
-
-			for unitID, _ in pairs(evolutionMetaList) do
-				local currentTime =  spGetGameSeconds()
 				local teamID = spGetUnitTeam(unitID)
-				local transporterID = Spring.GetUnitTransporter(unitID)
-					for team, power in pairs(teamPowerList) do
-						if team and teamID and power then
-							if highestTeamPower < power then
-								highestTeamPower = power * evolutionMetaList[unitID].evolution_power_multiplier
-							end
+				for team, power in pairs(teamPowerList) do
+					if team and teamID and power then
+						if highestTeamPower < power then
+							highestTeamPower = power * evolution.evolution_power_multiplier
 						end
 					end
-				if transporterID then
-				elseif evolutionMetaList[unitID].evolution_condition == "power" and highestTeamPower > evolutionMetaList[unitID].evolution_power_threshold then
-					local enemyNearby = spGetUnitNearestEnemy(unitID, evolutionMetaList[unitID].combatRadius)
+				end
+
+				if evolution.evolution_condition == "power" and not Spring.GetUnitTransporter(unitID) and highestTeamPower > evolution.evolution_power_threshold then
+					local enemyNearby = spGetUnitNearestEnemy(unitID, evolution.combatRadius)
 					local inCombat = false
 					if enemyNearby then
 						inCombat = true
-						evolutionMetaList[unitID].combatTimer = spGetGameSeconds()
+						evolution.combatTimer = spGetGameSeconds()
 					end
-					if not inCombat and (currentTime-evolutionMetaList[unitID].combatTimer) >= 5 then
-						Evolve(unitID, evolutionMetaList[unitID].evolution_target)
+					if not inCombat and (currentTime-evolution.combatTimer) >= 5 then
+						Evolve(unitID, evolution.evolution_target)
 					end
 				end
 			end
+
+			lastCheckIndex = lastCheckIndex + 1
+			checkCount = checkCount + 1
 		end
 	end
 
