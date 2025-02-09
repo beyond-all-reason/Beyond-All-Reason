@@ -1941,7 +1941,7 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
                             enemyAmount = ""
                         end
 						if WG.allyTeamRanking and enemyListShow then
-                        	DrawLabel(" "..Spring.I18N('ui.playersList.hide_enemies'), drawListOffset[i], true)
+                        	DrawLabel(" "..Spring.I18N('ui.playersList.leaderboard'), drawListOffset[i], true)
 						else
                         	DrawLabel(" "..Spring.I18N('ui.playersList.enemies', { amount = enemyAmount }), drawListOffset[i], true)
 						end
