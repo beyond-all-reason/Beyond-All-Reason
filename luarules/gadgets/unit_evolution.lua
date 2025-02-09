@@ -193,7 +193,8 @@ if gadgetHandler:IsSyncedCode() then
 		if (not evolutionMetaOld.evolution_condition
 			or evolutionMetaOld.evolution_condition == 'timer'
 			or evolutionMetaOld.evolution_condition == 'timer_global')
-			and evolutionMetaList[newUnitID] and evolutionMetaList[newUnitID].timeCreated then
+			and evolutionMetaList[newUnitID] and evolutionMetaList[newUnitID].timeCreated
+			and delayedSeconds > 0 then
 			evolutionMetaList[newUnitID].timeCreated = spGetGameSeconds() - delayedSeconds
 		end
 
@@ -360,7 +361,7 @@ if gadgetHandler:IsSyncedCode() then
 
 
 	function gadget:GameFrame(f)
-		if f % GAME_SPEED ~= 0 or f % (evolutionCheckGameframeModulo + mathRandom(-jitter, jitter)) == 0 then
+		if f % GAME_SPEED ~= 0 or f % (evolutionCheckGameframeModulo + mathRandom(-jitter, jitter)) ~= 0 then
 			return
 		end
 
