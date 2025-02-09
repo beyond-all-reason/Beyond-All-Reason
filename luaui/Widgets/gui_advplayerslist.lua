@@ -4,7 +4,7 @@ function widget:GetInfo()
         desc = "List of players and spectators",
         author = "Marmoth. (spiced up by Floris)",
         date = "2008",
-        version = 41,
+        version = 42,
         license = "GNU GPL, v2 or later",
         layer = -4,
         enabled = true,
@@ -50,6 +50,7 @@ end
 	v39   (Floris): auto compress when large amount (33+) of players are participating (same is separately applied for spectator list)
 	v40   (Floris): draw a faint pencil/eraser when player is drawing/erasing
 	v41   (Floris): added APM info to cpu/ping tooltip
+	v42   (Floris): support FFA allyteam ranking leaderboard style
 ]]
 --------------------------------------------------------------------------------
 -- Config
