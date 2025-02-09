@@ -17,7 +17,7 @@ static-var  Static_Var_1, Static_Var_2, Static_Var_3, Static_Var_4, oldHead, Sta
 #define UNITSIZE 9
 #define MAXTILT 200
 
-#include "unit_hitbyweaponid_and_smoke.h
+#include "unit_hitbyweaponid_and_smoke.h"
 
 SetDirection(heading)
 {
