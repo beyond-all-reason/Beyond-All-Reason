@@ -49,7 +49,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	local evolutionCheckGameframeModulo = 25
 	local jitter = 5
-	local gameframeUnitEvolveLimit = 200
 	local lastCheckIndex = 1
 	local toCheckUnitIDs = {}
 	local nToCheckUnitIDs = 0
@@ -284,7 +283,6 @@ if gadgetHandler:IsSyncedCode() then
 				combatRadius = tonumber(udcp.combatradius) or 1000,
 				evolution_health_transfer =  udcp.evolution_health_transfer or "flat",
 
-
 				timeCreated = spGetGameSeconds(),
 				combatTimer = spGetGameSeconds(),
 				inCombat = false,
@@ -350,15 +348,24 @@ if gadgetHandler:IsSyncedCode() then
 
 		toCheckUnitIDs = {}
 		local i = 0
-		for unitID, _ in pairs(evolutionMetaList) do
+		for unitID, evolution in pairs(evolutionMetaList) do
 			i =  i + 1
-			toCheckUnitIDs[i] = unitID
+			toCheckUnitIDs[i] = {
+				id = unitID,
+				timeCreated = evolution.timeCreated
+			}
 		end
+
+		table.sort(toCheckUnitIDs, function(a,b) return a.timeCreated < b.timeCreated end)
 
 		lastCheckIndex = 1
 		nToCheckUnitIDs = i
 	end
 
+	function InverseExponentialInterpolate(x, inMin, inMax, outMin, outMax)
+  	local t = (x - inMin) / (inMax - inMin)
+  	return outMin * ((outMax / outMin) ^ (t^0.1))
+	end
 
 	function gadget:GameFrame(f)
 		if f % GAME_SPEED ~= 0 or f % (evolutionCheckGameframeModulo + mathRandom(-jitter, jitter)) ~= 0 then
@@ -369,9 +376,10 @@ if gadgetHandler:IsSyncedCode() then
 
 		local checkCount = 0
 		local currentTime = spGetGameSeconds()
+		local gameframeUnitEvolveLimit = InverseExponentialInterpolate(#Spring.GetAllUnits(), 600, 4000, 200, 30)
 
 		while lastCheckIndex <= nToCheckUnitIDs and checkCount <= gameframeUnitEvolveLimit do
-			local unitID = toCheckUnitIDs[lastCheckIndex]
+			local unitID = toCheckUnitIDs[lastCheckIndex].id
 
 			local evolution = evolutionMetaList[unitID]
 			if evolution then
