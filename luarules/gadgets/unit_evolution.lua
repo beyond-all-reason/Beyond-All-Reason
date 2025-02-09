@@ -14,29 +14,12 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 
-	local spCreateFeature         = Spring.CreateFeature
 	local spCreateUnit            = Spring.CreateUnit
 	local spDestroyUnit           = Spring.DestroyUnit
-	local spGetGameFrame          = Spring.GetGameFrame
-	local spGetProjectileDefID    = Spring.GetProjectileDefID
-	local spGetProjectileTeamID   = Spring.GetProjectileTeamID
-	local spGetUnitShieldState    = Spring.GetUnitShieldState
 	local spGiveOrderToUnit       = Spring.GiveOrderToUnit
-	local spSetFeatureDirection   = Spring.SetFeatureDirection
 	local spSetUnitRulesParam     = Spring.SetUnitRulesParam
 	local spGetUnitPosition       = Spring.GetUnitPosition
-	local SetUnitNoSelect         = Spring.SetUnitNoSelect
-	local spGetUnitRulesParam = Spring.GetUnitRulesParam
-	local spUseTeamResource = Spring.UseTeamResource --(teamID, "metal"|"energy", amount) return nil | bool hadEnough
-	local spGetTeamResources = Spring.GetTeamResources --(teamID, "metal"|"energy") return nil | currentLevel
-	local GetCommandQueue     = Spring.GetCommandQueue
-	local spSetUnitArmored = Spring.SetUnitArmored
 	local spGetUnitStates = Spring.GetUnitStates
-	local spGetUnitBasePosition = Spring.GetUnitBasePosition
-	local spGetUnitDefID        = Spring.GetUnitDefID
-	local spSetUnitVelocity     = Spring.SetUnitVelocity
-	local spGetUnitHeading      = Spring.GetUnitHeading
-	local spGetUnitVelocity     = Spring.GetUnitVelocity
 	local spGetUnitHealth 		= Spring.GetUnitHealth
 
 	local spGetTeamList			= Spring.GetTeamList
@@ -44,7 +27,6 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitTeam 		= Spring.GetUnitTeam
 	local spGetUnitDirection 	= Spring.GetUnitDirection
 	local spGetUnitStockpile 	= Spring.GetUnitStockpile
-	local spGetUnitCommands = Spring.GetUnitCommands
 	local spEcho = Spring.Echo
 	local spSetUnitHealth = Spring.SetUnitHealth
 
@@ -54,22 +36,8 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetGameSeconds = Spring.GetGameSeconds
 	local spGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
 
-	local mcSetVelocity         = Spring.MoveCtrl.SetVelocity
-	local mcSetPosition         = Spring.MoveCtrl.SetPosition
-
-	local mapsizeX 				  = Game.mapSizeX
-	local mapsizeZ 				  = Game.mapSizeZ
-
-	local random = math.random
-	local math_min = math.min
-	local sin    = math.sin
-	local cos    = math.cos
-
 	local GAME_SPEED = Game.gameSpeed
-	local TAU = 2 * math.pi
 	local PRIVATE = { private = true }
-	local CMD_WAIT = CMD.WAIT
-	local EMPTY_TABLE = {}
 
 	local evolutionMetaList = {}
 	local teamList = spGetTeamList()
@@ -173,7 +141,6 @@ if gadgetHandler:IsSyncedCode() then
 		local experience = spGetUnitExperience(unitID)
 		local team = spGetUnitTeam(unitID)
 		local states = spGetUnitStates(unitID)
-		local wantCloakState = Spring.GetUnitRulesParam(unitID, "wantcloak")
 		local dx, dy, dz = spGetUnitDirection(unitID)
 		local heading = Spring.GetUnitHeading(unitID)
 		local face = Spring.GetFacingFromHeading(heading)
@@ -330,7 +297,6 @@ if gadgetHandler:IsSyncedCode() then
 		if evolutionMetaList[unitID] then
 			if evolutionMetaList[unitID].evolution_condition == "health" then
 				local h, mh = spGetUnitHealth(unitID)
-				local currentTime =  spGetGameSeconds()
 				if (h-damage) <= evolutionMetaList[unitID].evolution_health_threshold then
 						Evolve(unitID, evolutionMetaList[unitID].evolution_target)
 						return 0, 0
