@@ -17,6 +17,7 @@ if  not gadgetHandler:IsSyncedCode() then return false end
 local debugmode = false
 local MAX_PROGRESS = 100 --how much progress a square can have
 local PROGRESS_INCREMENT = 3 --how much progress a square gains per frame
+local STATIC_POWER_MULTIPLIER = 3 --how much more conquest-power static units have over mobile units
 
 --localized functions
 local sqrt = math.sqrt
@@ -86,10 +87,11 @@ for defID, def in pairs(UnitDefs) do
 	if def.power then
 		defData = {power = def.power}
 		if def.speed == 0 then
-			defData.isStatic = true
+			defData.power = defData.power * STATIC_POWER_MULTIPLIER
 		end
 	end
 	unitWatchDefs[defID] = defData
+
 end
 
 --custom functions
@@ -127,7 +129,6 @@ function gadget:GameFrame(frame)
 		for i, origin in ipairs(captureGrid) do
 			local units = spGetUnitsInRectangle(origin.x, origin.z, origin.x + GRID_SIZE, origin.z + GRID_SIZE)
 			local allyPowers = {} 
-			local allyProgressBlockers = {}-- Track power per ally team
 
 			for _, unitID in ipairs(units) do
 				local isFinishedBuilding = select(5, spGetUnitHealth(unitID)) == FINISHED_BUILDING
@@ -140,7 +141,6 @@ function gadget:GameFrame(frame)
 						-- Accumulate power for the unit's ally team
 						allyPowers[allyTeam] = (allyPowers[allyTeam] or 0) + unitData.power
 						if unitWatchDefs[unitDefID].isStatic then
-							allyProgressBlockers[allyTeam] = true
 							Spring.Echo("allyProgressBlockers: ", allyTeam, UnitDefs[unitDefID].name)
 						end
 					end
@@ -165,18 +165,8 @@ function gadget:GameFrame(frame)
 				Spring.Echo("custom Calc powerRatio: ", powerRatio)
 			end
 			local currentOwner = captureGrid[i].allyOwner
-			
-			local blockProgress --the winningAllyTeam is blocked from making progress by enemy static units
-			if next(allyProgressBlockers) then
-				for allyBlockerID, _ in pairs(allyProgressBlockers) do
-					if allyBlockerID ~= winningAllyTeam then
-						blockProgress = true
-						break
-					end
-				end
-			end
 
-			if winningAllyTeam and not blockProgress then
+			if winningAllyTeam then
 				if currentOwner == winningAllyTeam then
 
 					-- Increment progress for current owner
