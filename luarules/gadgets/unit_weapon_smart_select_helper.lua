@@ -265,17 +265,20 @@ end
 --call-ins
 function gadget:UnitCreated(unitID, unitDefID)
 	if smartUnitDefs[unitDefID] then
-		smartUnits[unitID] = {
-			unitDefID = unitDefID,
-			setStateScriptID = Spring.GetCOBScriptID(unitID, "SetAimingState"),
-			aggroBias = 0,
-			predictedShotFrame = 0,
-			misfireTallyMultiplier = 0,
-			lastTargetMatchNumber = 0, --this exists so that a player switching targets frequently doesn't trigger a faulty misfire.
-			switchCooldownFrame = 0,
-			state = PRIORITY_AIMINGSTATE
-		}
-		spCallCOBScript(unitID, smartUnits[unitID].setStateScriptID, 0, smartUnitDefs[unitDefID].priorityWeapon)
+		local scriptID = Spring.GetCOBScriptID(unitID, "SetAimingState")
+		if scriptID then
+			smartUnits[unitID] = {
+				unitDefID = unitDefID,
+				setStateScriptID = scriptID,
+				aggroBias = 0,
+				predictedShotFrame = 0,
+				misfireTallyMultiplier = 0,
+				lastTargetMatchNumber = 0, --this exists so that a player switching targets frequently doesn't trigger a faulty misfire.
+				switchCooldownFrame = 0,
+				state = PRIORITY_AIMINGSTATE
+			}
+			spCallCOBScript(unitID, smartUnits[unitID].setStateScriptID, 0, smartUnitDefs[unitDefID].priorityWeapon)
+		end
 	end
 
 end
