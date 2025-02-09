@@ -112,7 +112,12 @@ function gadget:GameFrame(gf)
 				-- get unfinished units worth
 				local totalConstructionCost = 0
 				for unitID, unitDefID in pairs(unfinishedUnits[allyTeamID]) do
-					totalConstructionCost = totalConstructionCost + math.floor(unitCost[unitDefID] * select(2, spGetUnitIsBeingBuilt(unitID)))
+					local beingBuilt, buildProgress = spGetUnitIsBeingBuilt(unitID)
+					if not beingBuilt then
+						unfinishedUnits[allyTeamID][unitID] = nil
+					elseif unitCost[unitDefID] then
+						totalConstructionCost = totalConstructionCost + math.floor(unitCost[unitDefID] * buildProgress)
+					end
 				end
 				temp[#temp+1] = { allyTeamID = allyTeamID, totalCost = totalCost + totalResCost + totalConstructionCost }
 			end
