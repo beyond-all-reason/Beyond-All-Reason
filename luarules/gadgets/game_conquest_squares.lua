@@ -141,13 +141,11 @@ function gadget:GameFrame(frame)
 						allyPowers[allyTeam] = (allyPowers[allyTeam] or 0) + unitData.power
 						if unitWatchDefs[unitDefID].isStatic then
 							allyProgressBlockers[allyTeam] = true
+							Spring.Echo("allyProgressBlockers: ", allyTeam, UnitDefs[unitDefID].name)
 						end
 					end
 				end
 			end
-
-
-
 
 			-- Find which ally team has the highest power in this square
 			local winningAllyTeam
@@ -157,19 +155,30 @@ function gadget:GameFrame(frame)
 				table.insert(sortedTeams, {team = team, power = power})
 			end
 			table.sort(sortedTeams, function(a,b) return a.power > b.power end)
-			
 			winningAllyTeam = sortedTeams[1] and sortedTeams[1].team
 			secondPlaceAllyTeam = sortedTeams[2] and sortedTeams[2].team
 
 			local powerRatio = 1
 			if winningAllyTeam and secondPlaceAllyTeam then
+
 				powerRatio = math.abs(allyPowers[secondPlaceAllyTeam] / allyPowers[winningAllyTeam] - 1) --need a value between 0 and 1
 				Spring.Echo("custom Calc powerRatio: ", powerRatio)
 			end
 			local currentOwner = captureGrid[i].allyOwner
 			
-			if winningAllyTeam then
+			local blockProgress --the winningAllyTeam is blocked from making progress by enemy static units
+			if next(allyProgressBlockers) then
+				for allyBlockerID, _ in pairs(allyProgressBlockers) do
+					if allyBlockerID ~= winningAllyTeam then
+						blockProgress = true
+						break
+					end
+				end
+			end
+
+			if winningAllyTeam and not blockProgress then
 				if currentOwner == winningAllyTeam then
+
 					-- Increment progress for current owner
 					captureGrid[i].progress = math.min(captureGrid[i].progress + PROGRESS_INCREMENT * powerRatio, MAX_PROGRESS)
 				else
