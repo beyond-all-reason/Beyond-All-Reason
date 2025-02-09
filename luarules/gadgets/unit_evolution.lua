@@ -190,7 +190,6 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 
-		-- Spring.Echo("Evolution delayed by", delayedSeconds, "seconds", 'created:', evolutionMetaList[newUnitID] and evolutionMetaList[newUnitID].timeCreated)
 		if (not evolutionMetaOld.evolution_condition
 			or evolutionMetaOld.evolution_condition == 'timer'
 			or evolutionMetaOld.evolution_condition == 'timer_global')
