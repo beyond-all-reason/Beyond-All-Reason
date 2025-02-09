@@ -202,6 +202,9 @@ local BLUEPRINT_FILE_PATH = "LuaUI/Config/blueprints.json"
 ---@type Blueprint[]
 local blueprints = {}
 
+---@type Blueprint[]
+local blueprintsFactionSwapped = {}
+
 local selectedBlueprintIndex = nil
 
 local blueprintPlacementActive = false
@@ -256,8 +259,20 @@ for builderUnitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
+local trySwapFaction = nil
+
 local function getSelectedBlueprint()
 	return blueprints[selectedBlueprintIndex]
+end
+
+local function getEffectiveBlueprint()
+	local bp = getSelectedBlueprint()
+	local swapped = false
+	if trySwapFaction and blueprintsFactionSwapped[bp][trySwapFaction] then
+		bp = blueprintsFactionSwapped[bp][trySwapFaction]
+		swapped = true
+	end
+	return bp, swapped
 end
 
 local function setSelectedBlueprintIndex(index)
@@ -319,6 +334,61 @@ local function determineBuildModeArgs(mode, startPosition, endPosition, targetID
 	end
 end
 
+local function createFactionSwaps(bp)
+	if not WG["api_unit_swap"] then
+		return {}
+	end
+
+	local swap = WG["api_unit_swap"]
+	local result = {}
+
+	local function trySwap(unitDefID, faction)
+		local swapUnitDefID = swap.swapFaction(unitDefID, faction)
+
+		if swapUnitDefID then
+			local xSizeOld, zSizeOld = WG["api_blueprint"].getBuildingDimensions(unitDefID, 0)
+			local xSizeNew, zSizeNew = WG["api_blueprint"].getBuildingDimensions(swapUnitDefID, 0)
+
+			if xSizeOld == xSizeNew and zSizeOld == zSizeNew then
+				return swapUnitDefID
+			end
+		end
+
+		return nil
+	end
+
+	for faction in pairs(swap.getEnabledFactions()) do
+		local swapped = {}
+		local atLeastOneSwap = false
+		for i, u in ipairs(bp.units) do
+			if swap.isUnitBuildableByFaction(u.unitDefID, faction) then
+				swapped[i] = u
+			else
+				local swapUnitDefID = trySwap(u.unitDefID, faction)
+
+				if swapUnitDefID then
+					swapped[i] = table.copy(u)
+					swapped[i].unitDefID = swapUnitDefID
+					if swapUnitDefID ~= u.unitDefID then
+						atLeastOneSwap = true
+					end
+				else
+					swapped = nil
+					break
+				end
+			end
+		end
+
+		if swapped and atLeastOneSwap then
+			local newBP = table.copy(bp)
+			newBP.units = swapped
+			result[faction] = newBP
+		end
+	end
+
+	return result
+end
+
 local function postProcessBlueprint(bp)
 	-- precompute some useful information
 	bp.dimensions = pack(WG["api_blueprint"].getBlueprintDimensions(bp))
@@ -336,6 +406,8 @@ local function postProcessBlueprint(bp)
 			return math.min(w, h)
 		end
 	end, nil)
+
+	blueprintsFactionSwapped[bp] = {}
 end
 
 local function createBlueprint(unitIDs, ordered)
@@ -570,9 +642,10 @@ function widget:Update(dt)
 	if blueprint ~= state.blueprint or blueprint.dirty then
 		blueprintChanged = true
 		state.blueprint = blueprint
+		blueprintsFactionSwapped[blueprint] = createFactionSwaps(blueprint)
 		blueprint.dirty = false
 
-		WG["api_blueprint"].setActiveBlueprint(blueprint)
+		WG["api_blueprint"].setActiveBlueprint(getEffectiveBlueprint())
 		updateBuildingGridState(true, blueprint)
 	end
 
@@ -628,10 +701,14 @@ function widget:Update(dt)
 	end
 end
 
-local drawCursorText = glListCache(function(index)
+local drawCursorText = glListCache(function(index, faction)
 	local text
 	if index then
 		text = "\255\220\220\240Blueprint #" .. tostring(index)
+
+		if faction then
+			text = text .. " (" .. Spring.I18N("units.factions." .. faction) .. ")"
+		end
 	else
 		text = "\255\240\220\220No Blueprints"
 	end
@@ -688,9 +765,21 @@ function widget:DrawScreenEffects()
 	gl.PushMatrix()
 
 	gl.Translate(x, y, 0)
-	drawCursorText(selectedBlueprintIndex)
+
+	local faction
+	local _, drawFaction = getEffectiveBlueprint()
+	if drawFaction then
+		faction = trySwapFaction
+	end
+
+	drawCursorText(selectedBlueprintIndex, faction)
 
 	gl.PopMatrix()
+end
+
+local function getUnitFactionByUnitID(unitID)
+	local unitDefName = UnitDefs[Spring.GetUnitDefID(unitID)].name
+	return string.sub(unitDefName, 1, 3)
 end
 
 function widget:SelectionChanged(selection)
@@ -702,6 +791,18 @@ function widget:SelectionChanged(selection)
 				return blueprintCommandableUnitDefs[Spring.GetUnitDefID(unitID)]
 			end
 		)
+
+		local builderFactions = table.reduce(builders, function(acc, unitID)
+			acc[getUnitFactionByUnitID(unitID)] = true
+			return acc
+		end, {})
+
+		if table.count(builderFactions) == 1 then
+			local faction = next(builderFactions)
+			trySwapFaction = faction
+		else
+			trySwapFaction = nil
+		end
 
 		WG["api_blueprint"].setActiveBuilders(builders)
 	end
@@ -924,7 +1025,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	if cmdID == CMD_BLUEPRINT_CREATE then
 		handleBlueprintCreateAction()
 	elseif cmdID == CMD_BLUEPRINT_PLACE then
-		local selectedBlueprint = getSelectedBlueprint()
+		local selectedBlueprint = getEffectiveBlueprint()
 
 		if not selectedBlueprint then
 			Spring.Echo("[Blueprint] no active blueprints")
