@@ -15,9 +15,12 @@ if  not gadgetHandler:IsSyncedCode() then return false end
 
 --configs
 local debugmode = false
+local MINUTES_TO_MAX = 25 --how many minutes until the threshold reaches max threshold
+local MAX_TERRITORY_PERCENTAGE = 100 --how much territory/# of allies is factored in to bombardment threshold.
 local MAX_PROGRESS = 100 --how much progress a square can have
 local PROGRESS_INCREMENT = 3 --how much progress a square gains per frame
 local STATIC_POWER_MULTIPLIER = 3 --how much more conquest-power static units have over mobile units
+
 
 --localized functions
 local sqrt = math.sqrt
@@ -30,8 +33,10 @@ local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
+local spGetGameSeconds = Spring.GetGameSeconds
 local mapSizeX = Game.mapSizeX
 local mapSizeZ = Game.mapSizeZ
+
 
 
 -- constants
@@ -48,9 +53,11 @@ local scavengerTeamID = 999
 local raptorsTeamID = 999
 local gaiaTeamID = Spring.GetGaiaTeamID()
 local teams = Spring.GetTeamList()
-local allyTeamsWatch = {}
+local allyTeamsCount = 0
+local defeatThreshold = 0
 
 --tables
+local allyTeamsWatch = {}
 local exemptTeams = {}
 local unitWatchDefs = {}
 local captureGrid = {}
@@ -71,15 +78,26 @@ for _, teamID in ipairs(teams) do --first figure out which teams are exempt
 		end
 	end
 end
-for _, teamID in ipairs(teams) do --then figure out what all teams should be watched
-	if not exemptTeams[teamID] then
-		Spring.Echo("not exempt Team: " , teamID)
-		local allyTeam = select(6, Spring.GetTeamInfo(teamID))
-		Spring.Echo("not exemptAlly team: ", allyTeam, " team: ", teamID)
-		allyTeamsWatch[allyTeam] = allyTeamsWatch[allyTeam] or {}
-		allyTeamsWatch[allyTeam][teamID] = true
+
+local function updateAllyTeamsWatch()
+    allyTeamsCount = 0  -- Reset count first
+    allyTeamsWatch = {}  -- Clear existing watch list
+    
+    -- Rebuild list with living teams and count allies
+    for _, teamID in ipairs(teams) do
+        if not exemptTeams[teamID] then
+            local _, _, isDead, _, _, allyTeam = Spring.GetTeamInfo(teamID)
+            if not isDead and allyTeam then
+                allyTeamsWatch[allyTeam] = allyTeamsWatch[allyTeam] or {}
+                allyTeamsWatch[allyTeam][teamID] = 0
+            end
+        end
+    end
+	for allyTeamID, teamIDs in pairs(allyTeamsWatch) do
+		allyTeamsCount = allyTeamsCount + 1
 	end
 end
+updateAllyTeamsWatch()
 
 for defID, def in pairs(UnitDefs) do
 	local defData
@@ -112,6 +130,12 @@ local function generateCaptureGrid()
 
 end
 
+local function updateCurrentThreshold()
+	local seconds = spGetGameSeconds()
+	local totalMinutes = seconds / 60  -- Convert seconds to minutes
+	local progressRatio = math.min(totalMinutes / MINUTES_TO_MAX, 1)
+	defeatThreshold = math.floor((progressRatio * MAX_TERRITORY_PERCENTAGE) / allyTeamsCount)
+end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 end
@@ -122,13 +146,16 @@ end
 
 function gadget:GameFrame(frame)
 	if frame % 60 == 0 then
-		--Spring.Echo("Map Size X: " .. mapSizeX)
-		--Spring.Echo("Map Size Z: " .. mapSizeZ)
-		
+		updateAllyTeamsWatch()
+		updateCurrentThreshold()
+		checkForDefeat()
+		Spring.Echo("defeatThreshold: ", defeatThreshold .. "%")
 
 		for i, origin in ipairs(captureGrid) do
 			local units = spGetUnitsInRectangle(origin.x, origin.z, origin.x + GRID_SIZE, origin.z + GRID_SIZE)
 			local allyPowers = {} 
+
+			
 
 			for _, unitID in ipairs(units) do
 				local isFinishedBuilding = select(5, spGetUnitHealth(unitID)) == FINISHED_BUILDING
@@ -186,11 +213,16 @@ function gadget:GameFrame(frame)
 				origin.x, origin.z, captureGrid[i].progress))
 			end
 
-			Spring.SpawnCEG("scaspawn-trail", origin.x, Spring.GetGroundHeight(origin.x, origin.z), origin.z, 0,0,0)
-			Spring.SpawnCEG("scav-spawnexplo", origin.x, Spring.GetGroundHeight(origin.x, origin.z), origin.z, 0,0,0)
+			if debugmode then --to show origins of each square
+				Spring.SpawnCEG("scaspawn-trail", origin.x, Spring.GetGroundHeight(origin.x, origin.z), origin.z, 0,0,0)
+				Spring.SpawnCEG("scav-spawnexplo", origin.x, Spring.GetGroundHeight(origin.x, origin.z), origin.z, 0,0,0)
+			end
+
+
 		end
 	end
 end
+
 
 function gadget:Initialize()
 	captureGrid = generateCaptureGrid()
