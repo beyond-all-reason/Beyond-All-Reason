@@ -143,14 +143,14 @@ if gadgetHandler:IsSyncedCode() then
 
 		local defaultTimer = 20 * Game.gameSpeed
 		local evolutionMetaNewTimer = tonumber(evolutionMetaNew.evolution_timer) or defaultTimer
-		local delayedSeconds = spGetGameSeconds() - evolutionMetaOld.timeCreated - (tonumber(evolutionMetaOld.evolution_timer) or 600)
+		local delayedSeconds = spGetGameSeconds() - evolutionMetaOld.timeCreated - (tonumber(evolutionMetaOld.evolution_timer) or defaultTimer)
 
 		while delayedSeconds > evolutionMetaNewTimer
 			and evolutionMetaNew
 			and evolutionMetaNew.evolution_target
 			and UnitDefNames[evolutionMetaNew.evolution_target].customParams do
 
-			evolutionMetaNewTimer = tonumber(evolutionMetaNew.evolution_timer) or 600
+			evolutionMetaNewTimer = tonumber(evolutionMetaNew.evolution_timer) or defaultTimer
 			newUnitName = evolutionMetaNew.evolution_target
 			evolutionMetaNew = UnitDefNames[newUnitName].customParams
 			delayedSeconds = delayedSeconds - evolutionMetaNewTimer
@@ -266,13 +266,14 @@ if gadgetHandler:IsSyncedCode() then
 
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
+		local defaultTimer = 20 * Game.gameSpeed
 		local udcp = UnitDefs[unitDefID].customParams
 		if udcp.evolution_target then
 			evolutionMetaList[unitID] = {
 				evolution_target = udcp.evolution_target,
 				evolution_condition = udcp.evolution_condition or "timer",
-				evolution_timer = tonumber(udcp.evolution_timer) or 600,
-				evolution_power_threshold = tonumber(udcp.evolution_power_threshold) or 600,
+				evolution_timer = tonumber(udcp.evolution_timer) or defaultTimer,
+				evolution_power_threshold = tonumber(udcp.evolution_power_threshold) or defaultTimer,
 				evolution_power_enemy_multiplier = tonumber(udcp.evolution_power_enemy_multiplier) or 1,
 				evolution_power_multiplier = tonumber(udcp.evolution_power_multiplier) or 1,
 				evolution_health_threshold = tonumber(udcp.evolution_health_threshold) or 0,
