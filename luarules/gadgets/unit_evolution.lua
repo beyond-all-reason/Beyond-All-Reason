@@ -362,7 +362,7 @@ if gadgetHandler:IsSyncedCode() then
 		return nToCheckUnitIDs == 0
 	end
 
-	function InverseExponentialInterpolate(x, inMin, inMax, outMin, outMax)
+	function UnitsToBatchSizeInterpolation(x, inMin, inMax, outMin, outMax)
   	local t = (x - inMin) / (inMax - inMin)
   	return outMin * ((outMax / outMin) ^ (t^0.1))
 	end
@@ -376,7 +376,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		local checkCount = 0
 		local currentTime = spGetGameSeconds()
-		local evolutionsBatchSize = InverseExponentialInterpolate(#Spring.GetAllUnits(), 0, 4000, 200, 30)
+		local evolutionsBatchSize = UnitsToBatchSizeInterpolation(#Spring.GetAllUnits(), 600, 4000, 200, 30)
 
 		while lastCheckIndex <= nToCheckUnitIDs and checkCount <= evolutionsBatchSize do
 			local unitID = toCheckUnitIDs[lastCheckIndex].id
