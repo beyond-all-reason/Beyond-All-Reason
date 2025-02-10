@@ -46,6 +46,7 @@ local GRID_SIZE = 1024 -- the size of the squares in elmos
 local FINISHED_BUILDING = 1
 local NO_OWNER = -1
 local FRAME_MODULO = Game.gameSpeed * 3
+local STARTING_PROGRESS = 50
 
 
 --variables
@@ -113,10 +114,6 @@ for defID, def in pairs(UnitDefs) do
 		end
 	end
 	unitWatchDefs[defID] = defData
-
-	if def.customParams.iscommander then
-		commanderDefs[defID] = true
-	end
 end
 
 --custom functions
@@ -130,7 +127,7 @@ local function generateCaptureGrid()
 		for z = 0, numSquaresZ - 1 do
 			local originX = x * GRID_SIZE
 			local originZ = z * GRID_SIZE
-			points[#points + 1] = {x = originX, z = originZ, allyOwner = NO_OWNER, progress = 50}
+			points[#points + 1] = {x = originX, z = originZ, allyOwner = NO_OWNER, progress = STARTING_PROGRESS}
 		end
 	end
 	return points
@@ -169,7 +166,7 @@ local function triggerAllyDefeat(allyID)
 	end
 end
 
-local function razeSquare(squareID)
+local function razeSquare(squareID, data)
 	local attempts = 3
 	local margin = GRID_SIZE * 0.1
 	local chance = 0.5
@@ -182,8 +179,6 @@ local function razeSquare(squareID)
 			Spring.Echo("Razing square ", squareID, " at ", targetX, targetZ)
 		end
 	end
-
-
 end
 
 --call-ins
@@ -205,6 +200,12 @@ function gadget:GameFrame(frame)
 		allyScores = {} -- 
 		for i, data in ipairs(captureGrid) do
 			local units = spGetUnitsInRectangle(data.x, data.z, data.x + GRID_SIZE, data.z + GRID_SIZE)
+			if next(units) then
+				data.hasUnits = true
+			else
+				data.hasUnits = false
+			end
+
 			local allyPowers = {}
 
 			
@@ -281,8 +282,19 @@ function gadget:GameFrame(frame)
 	end
 
 	if frame % 30 == oscillatingRemainder then
+		local shouldContinue = false
 		for id, _ in pairs(squaresToRaze) do
-			razeSquare(id) --zzz what happens when that team is wiped out? the razing needs to stop in case there's 3 teams or more
+			local data = captureGrid[id]
+			if data.hasUnits then
+				razeSquare(id, data)
+				shouldContinue = true
+			else
+				data.allyOwner = NO_OWNER
+				data.progress = STARTING_PROGRESS
+			end
+		end
+		if not shouldContinue then
+			squaresToRaze = {}
 		end
 		oscillatingRemainder = random(0, 15)
 	end
@@ -294,3 +306,5 @@ function gadget:Initialize()
 	captureGrid = generateCaptureGrid()
 end
 
+--zzz need to spawn projectiles in the raze function to fall from the sky and destroy squares, or some other method of razing
+--zzz need to extract the complicated logic in gameframe into functions
