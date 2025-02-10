@@ -218,15 +218,17 @@ if gadgetHandler:IsSyncedCode() then
 		spSetUnitStockpile(newUnitID, stockpile, stockpilebuildpercent)
 		spSetUnitDirection(newUnitID, dx, dy, dz)
 
-		-- FIXME TODO, this only works for MOVE_STATE on (for example) evocom
+		-- FIXME TODO, this only works for MOVE_STATE and FIRE_STATE on (for example) evocom
 		spGiveOrderArrayToUnit(newUnitID, {
-			{ CMD.FIRE_STATE, { states.firestate },             { } },
-			{ CMD.MOVE_STATE, { states.movestate },             { } },
-			{ CMD.REPEAT,     { states["repeat"] and 1 or 0 },  { } },
-			{ CMD_WANT_CLOAK, { states.cloak and 1 or 0 },  		{ } },
-			{ CMD.ONOFF,      { 1 },                            { } },
-			{ CMD.TRAJECTORY, { states.trajectory and 1 or 0 }, { } },
+			{ CMD.MOVE_STATE, states.movestate,             0 },
+			{ CMD.FIRE_STATE, states.firestate,            	0 },
 		})
+		-- spGiveOrderArrayToUnit(newUnitID, {
+		-- 	{ CMD.REPEAT,   	states["repeat"] and 1 or 0,  0 },
+		-- 	{ CMD_WANT_CLOAK, states.cloak and 1 or 0,  		0 },
+		-- 	{ CMD.ONOFF,      1,                            0 },
+		-- 	{ CMD.TRAJECTORY, states.trajectory and 1 or 0, 0 },
+		-- })
 
 		ReAssignAssists(newUnitID,unitID)
 
