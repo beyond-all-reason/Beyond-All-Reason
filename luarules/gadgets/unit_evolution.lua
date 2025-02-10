@@ -141,7 +141,8 @@ if gadgetHandler:IsSyncedCode() then
 				return newUnitName, 0
 			end
 
-		local evolutionMetaNewTimer = tonumber(evolutionMetaNew.evolution_timer) or 600
+		local defaultTimer = 20 * Game.gameSpeed
+		local evolutionMetaNewTimer = tonumber(evolutionMetaNew.evolution_timer) or defaultTimer
 		local delayedSeconds = spGetGameSeconds() - evolutionMetaOld.timeCreated - (tonumber(evolutionMetaOld.evolution_timer) or 600)
 
 		while delayedSeconds > evolutionMetaNewTimer
