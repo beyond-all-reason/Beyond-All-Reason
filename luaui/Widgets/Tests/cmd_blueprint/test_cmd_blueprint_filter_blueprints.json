@@ -1,0 +1,61 @@
+{
+  "savedBlueprints": [
+    {
+      "ordered": true,
+      "name": "",
+      "spacing": 0,
+      "facing": 0,
+      "units": [
+        {
+          "unitName": "INVALID",
+          "facing": 0,
+          "position": [0, 0, 0]
+        }
+      ]
+    },
+    {
+      "ordered": true,
+      "name": "",
+      "spacing": 0,
+      "facing": 0,
+      "units": [
+        {
+          "unitName": "armwin",
+          "facing": 0,
+          "position": [0, 0, 0]
+        }
+      ]
+    },
+    {
+      "ordered": true,
+      "name": "",
+      "spacing": 0,
+      "facing": 0,
+      "units": [
+        {
+          "unitName": "corwin",
+          "facing": 0,
+          "position": [0, 0, 0]
+        }
+      ]
+    },
+    {
+      "ordered": true,
+      "name": "",
+      "spacing": 0,
+      "facing": 0,
+      "units": [
+        {
+          "unitName": "armwin",
+          "facing": 0,
+          "position": [-24, 0, 0]
+        },
+        {
+          "unitName": "corwin",
+          "facing": 0,
+          "position": [24, 0, 0]
+        }
+      ]
+    }
+  ]
+}
