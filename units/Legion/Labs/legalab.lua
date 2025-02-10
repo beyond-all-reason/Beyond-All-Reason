@@ -31,7 +31,7 @@ return {
 		sightdistance = 288.60001,
 		terraformspeed = 1000,
 		workertime = 300,
-		yardmap = "ooooooooo ooooooooo ooocccooo ooocccooo oocccccoo oocccccoo oocccccoo oocccccoo oocccccoo",
+		yardmap = "ooooooooo ooooooooo oooeeeooo oooeeeooo ooeeeeeoo ooeeeeeoo ooeeeeeoo ooeeeeeoo ooeeeeeoo",
 		buildoptions = {
 			[1] = "legack",
 			[2] = "legaceb",

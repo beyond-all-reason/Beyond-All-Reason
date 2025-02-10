@@ -375,12 +375,13 @@ local teamColors = {
 	},
 }
 
+local r = math.random()
 math.randomseed(1)	-- make sure the next sequence of randoms can be reproduced
 local teamRandoms = {}
 for i = 1, #teamList do
 	teamRandoms[teamList[i]] = { math.random(), math.random(), math.random() }
 end
-math.randomseed(math.random())
+math.randomseed(r)
 
 local function shuffleTable(Table)
 	local originalTable = {}

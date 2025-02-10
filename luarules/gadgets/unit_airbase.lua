@@ -321,7 +321,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
+	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 		if not planes[unitID] and not airbases[unitID] then
 			return
 		end

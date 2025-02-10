@@ -611,7 +611,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 		for i = 1, SimpleAITeamIDsCount do
 			if SimpleAITeamIDs[i] == unitTeam then
 				if SimpleFactoriesDefs[unitDefID] then

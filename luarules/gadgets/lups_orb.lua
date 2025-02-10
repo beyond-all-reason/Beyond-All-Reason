@@ -144,7 +144,7 @@ local UnitEffects = {
 local scavEffects = {}
 if UnitDefNames['armcom_scav'] then
 	for k, effect in pairs(UnitEffects) do
-		if UnitDefNames[k .. '_scav'] then 
+		if UnitDefNames[k .. '_scav'] then
 			scavEffects[k .. '_scav'] = effect
 			if scavEffects[k .. '_scav'].options then
 				if scavEffects[k .. '_scav'].options.color then
@@ -238,7 +238,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	end
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	if UnitEffects[unitDefID] then
 		ClearFxs(unitID)
 	end

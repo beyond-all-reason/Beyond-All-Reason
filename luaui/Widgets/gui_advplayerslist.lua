@@ -4,7 +4,7 @@ function widget:GetInfo()
         desc = "List of players and spectators",
         author = "Marmoth. (spiced up by Floris)",
         date = "2008",
-        version = 41,
+        version = 42,
         license = "GNU GPL, v2 or later",
         layer = -4,
         enabled = true,
@@ -50,6 +50,7 @@ end
 	v39   (Floris): auto compress when large amount (33+) of players are participating (same is separately applied for spectator list)
 	v40   (Floris): draw a faint pencil/eraser when player is drawing/erasing
 	v41   (Floris): added APM info to cpu/ping tooltip
+	v42   (Floris): support FFA allyteam ranking leaderboard style
 ]]
 --------------------------------------------------------------------------------
 -- Config
@@ -751,6 +752,12 @@ function FpsEvent(playerID, fps)
 	WG.playerFPS[playerID] = fps
 end
 
+function RankingEvent(allyTeamRanking)
+	WG.allyTeamRanking = allyTeamRanking
+	SortList()
+	CreateLists()
+end
+
 function ApmEvent(teamID, fps)
 	lastApmData[teamID] = fps
 	WG.teamAPM = WG.teamAPM or {}
@@ -847,6 +854,7 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal('ApmEvent', ApmEvent)
 	widgetHandler:RegisterGlobal('GpuMemEvent', GpuMemEvent)
 	widgetHandler:RegisterGlobal('SystemEvent', SystemEvent)
+	widgetHandler:RegisterGlobal('rankingEvent', RankingEvent)
 	UpdateRecentBroadcasters()
 
 	mySpecStatus, fullView, _ = Spring.GetSpectatingState()
@@ -1015,6 +1023,7 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('ApmEvent')
     widgetHandler:DeregisterGlobal('GpuMemEvent')
     widgetHandler:DeregisterGlobal('SystemEvent')
+    widgetHandler:DeregisterGlobal('RankingEvent')
     if ShareSlider then
         gl_DeleteList(ShareSlider)
     end
@@ -1462,49 +1471,50 @@ function SortAllyTeams(vOffset)
     -- (labels and separators are drawn)
     local allyTeamID
     local allyTeamList = Spring_GetAllyTeamList()
-    local allyTeamsCount = table.maxn(allyTeamList) - 1
+	if WG.allyTeamRanking then
+		allyTeamList = WG.allyTeamRanking
+	end
 
-    -- find own ally team
-    vOffset = 12 / 2.66
-    for allyTeamID = 0, allyTeamsCount - 1 do
-        if allyTeamID == myAllyTeamID then
-            vOffset = vOffset + (labelOffset*playerScale) - 3
-            if drawAlliesLabel then
-                drawListOffset[#drawListOffset + 1] = vOffset
-                drawList[#drawList + 1] = -2  -- "Allies" label
-                vOffset = SortTeams(allyTeamID, vOffset) + 2    -- Add the teams from the allyTeam
-            else
-                vOffset = SortTeams(allyTeamID, vOffset - (labelOffset*playerScale))
-            end
-            break
-        end
-    end
+	-- find own ally team
+	vOffset = 12 / 2.66
+	if not WG.allyTeamRanking or not enemyListShow then
+		vOffset = vOffset + (labelOffset*playerScale) - 3
+		if drawAlliesLabel then
+			drawListOffset[#drawListOffset + 1] = vOffset
+			drawList[#drawList + 1] = -2  -- "Allies" label
+			vOffset = SortTeams(myAllyTeamID, vOffset) + 2    -- Add the teams from the allyTeam
+		else
+			vOffset = SortTeams(myAllyTeamID, vOffset - (labelOffset*playerScale))
+		end
+	end
 
-    if numberOfEnemies > 0 then
+	if numberOfEnemies > 0 then
 
-        -- "Enemies" label
-        vOffset = vOffset + 13
-        vOffset = vOffset + labelOffset - 3
-        drawListOffset[#drawListOffset + 1] = vOffset
-        drawList[#drawList + 1] = -3 -- "Enemies" label
+		-- "Enemies" label
+		if not WG.allyTeamRanking or not enemyListShow then
+			vOffset = vOffset + 13
+		end
+		vOffset = vOffset + labelOffset - 3
+		drawListOffset[#drawListOffset + 1] = vOffset
+		drawList[#drawList + 1] = -3 -- "Enemies" label
 
-        -- add the others
-        if enemyListShow then
-            local firstenemy = true
-            for allyTeamID = 0, allyTeamsCount - 1 do
-                if allyTeamID ~= myAllyTeamID and (not hideDeadAllyTeams or aliveAllyTeams[allyTeamID]) then
-                    if firstenemy then
-                        firstenemy = false
-                    else
-                        vOffset = vOffset + (separatorOffset*playerScale)
-                        drawListOffset[#drawListOffset + 1] = vOffset
-                        drawList[#drawList + 1] = -4 -- Enemy teams separator
-                    end
-                    vOffset = SortTeams(allyTeamID, vOffset) + 2 -- Add the teams from the allyTeam
-                end
-            end
-        end
-    end
+		-- add the others
+		if enemyListShow then
+			local firstenemy = true
+			for _, allyTeamID in ipairs(allyTeamList) do
+				if (WG.allyTeamRanking or allyTeamID ~= myAllyTeamID) and (not hideDeadAllyTeams or aliveAllyTeams[allyTeamID]) then
+					if firstenemy then
+						firstenemy = false
+					else
+						vOffset = vOffset + (separatorOffset*playerScale)
+						drawListOffset[#drawListOffset + 1] = vOffset
+						drawList[#drawList + 1] = -4 -- Enemy teams separator
+					end
+					vOffset = SortTeams(allyTeamID, vOffset) + 2 -- Add the teams from the allyTeam
+				end
+			end
+		end
+	end
 
     return vOffset
 end
@@ -1514,13 +1524,13 @@ function SortTeams(allyTeamID, vOffset)
     -- (teams are not visible as such unless they are empty or AI)
     local teamsList = Spring_GetTeamList(allyTeamID)
     for _, teamID in ipairs(teamsList) do
-
         drawListOffset[#drawListOffset + 1] = vOffset
         drawList[#drawList + 1] = -1
         vOffset = SortPlayers(teamID, allyTeamID, vOffset) -- adds players form the team
     end
     return vOffset
 end
+
 
 function SortPlayers(teamID, allyTeamID, vOffset)
     -- Adds players to the draw list (self first)
@@ -1931,8 +1941,11 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
                         if numberOfEnemies == 0 or enemyListShow then
                             enemyAmount = ""
                         end
-                        DrawLabel(" "..Spring.I18N('ui.playersList.enemies', { amount = enemyAmount }), drawListOffset[i], true)
-                        DrawLabel(" "..Spring.I18N('ui.playersList.enemies', { amount = enemyAmount }), drawListOffset[i], true)
+						if WG.allyTeamRanking and enemyListShow then
+                        	DrawLabel(" "..Spring.I18N('ui.playersList.leaderboard'), drawListOffset[i], true)
+						else
+                        	DrawLabel(" "..Spring.I18N('ui.playersList.enemies', { amount = enemyAmount }), drawListOffset[i], true)
+						end
                         if Spring.GetGameFrame() <= 0 then
                             if enemyListShow then
                                 DrawLabelTip( Spring.I18N('ui.playersList.hideEnemies'), drawListOffset[i], 95)
