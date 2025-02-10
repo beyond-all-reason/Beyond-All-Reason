@@ -42,15 +42,15 @@ return {
         oo oo oo oo oo oo oo oo oo
         oo oo oo oo oo oo oo oo oo
         oo oo oo oo oo oo oo oo oo
-        oo oo oc cc cc cc co oo oo
-        oo oo oc cc cc cc co oo oo
-        oo oo oc cc cc cc co oo oo
-        oo oo oc cc cc cc co oo oo
-        oo oo oc cc cc cc co oo oo
-        oo oo oc cc cc cc co oo oo
-        oo oo oc cc cc cc co oo oo
-        oo oo oc cc cc cc co oo oo
-        oo oo oc cc cc cc co oo oo
+        oo oo oe ee ee ee eo oo oo
+        oo oo oe ee ee ee eo oo oo
+        oo oo oe ee ee ee eo oo oo
+        oo oo oe ee ee ee eo oo oo
+        oo oo oe ee ee ee eo oo oo
+        oo oo oe ee ee ee eo oo oo
+        oo oo oe ee ee ee eo oo oo
+        oo oo oe ee ee ee eo oo oo
+        oo oo oe ee ee ee eo oo oo
         ]],
 		buildoptions = {
 			"legacv",
