@@ -38,7 +38,6 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
 
 	local GAME_SPEED = Game.gameSpeed
-	local mathRandom = math.random
 	local PRIVATE = { private = true }
 
 	local evolutionMetaList = {}
@@ -48,7 +47,6 @@ if gadgetHandler:IsSyncedCode() then
 	local highestTeamPower = 0
 
 	local evolutionCheckGameframeModulo = 25
-	local jitter = 5
 	local lastCheckIndex = 1
 	local toCheckUnitIDs = {}
 	local nToCheckUnitIDs = 0
@@ -371,7 +369,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:GameFrame(f)
 		if f % GAME_SPEED ~= 0
-			or f % (evolutionCheckGameframeModulo + mathRandom(-jitter, jitter)) ~= 0
+			or f % evolutionCheckGameframeModulo ~= 0
 			or FillToCheckUnitIDs() then
 			return
 		end
