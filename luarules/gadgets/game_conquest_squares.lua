@@ -15,7 +15,8 @@ if  not gadgetHandler:IsSyncedCode() then return false end
 
 --configs
 local debugmode = false
-local MINUTES_TO_MAX = 25 --how many minutes until the threshold reaches max threshold
+local MINUTES_TO_MAX = 20 --how many minutes until the threshold reaches max threshold from start time
+local MINUTES_TO_START = 5 --how many minutes until threshold can start to increment
 local MAX_TERRITORY_PERCENTAGE = 100 --how much territory/# of allies is factored in to bombardment threshold.
 local MAX_PROGRESS = 100 --how much progress a square can have
 local PROGRESS_INCREMENT = 3 --how much progress a square gains per frame
@@ -61,11 +62,14 @@ local allyTeamsWatch = {}
 local exemptTeams = {}
 local unitWatchDefs = {}
 local captureGrid = {}
+local allyScores = {}
+local squaresToRaze = {}
 
 exemptTeams[gaiaTeamID] = true
 
 --start-up
 for _, teamID in ipairs(teams) do --first figure out which teams are exempt
+
 	Spring.Echo("A Team: ", teamID)
 	local luaAI = Spring.GetTeamLuaAI(teamID)
 	if luaAI and luaAI ~= "" then
@@ -89,7 +93,7 @@ local function updateAllyTeamsWatch()
             local _, _, isDead, _, _, allyTeam = Spring.GetTeamInfo(teamID)
             if not isDead and allyTeam then
                 allyTeamsWatch[allyTeam] = allyTeamsWatch[allyTeam] or {}
-                allyTeamsWatch[allyTeam][teamID] = 0
+                allyTeamsWatch[allyTeam][teamID] = true
             end
         end
     end
@@ -110,6 +114,9 @@ for defID, def in pairs(UnitDefs) do
 	end
 	unitWatchDefs[defID] = defData
 
+	if def.customParams.iscommander then
+		commanderDefs[defID] = true
+	end
 end
 
 --custom functions
@@ -133,27 +140,72 @@ end
 local function updateCurrentThreshold()
 	local seconds = spGetGameSeconds()
 	local totalMinutes = seconds / 60  -- Convert seconds to minutes
-	local progressRatio = math.min(totalMinutes / MINUTES_TO_MAX, 1)
-	defeatThreshold = math.floor((progressRatio * MAX_TERRITORY_PERCENTAGE) / allyTeamsCount)
+	if totalMinutes < MINUTES_TO_START then return end
+
+	local progressRatio = math.min(totalMinutes - MINUTES_TO_START / MINUTES_TO_MAX, 1)
+	local wantedThreshold = math.floor((progressRatio * MAX_TERRITORY_PERCENTAGE) / allyTeamsCount) -- do not want the threshold to be unobtainable in an exaact tie situation
+	if wantedThreshold > defeatThreshold then
+		defeatThreshold = defeatThreshold + 1
+	end
 end
 
+local function updateAlliesScores()
+    local totalSquares = #captureGrid
+    if totalSquares == 0 then return end  -- Prevent division by zero
+    
+    -- Convert tallies to percentages
+    for allyTeam, tally in pairs(allyScores) do
+        local percentage = math.floor((tally / totalSquares) * 100)
+        allyScores[allyTeam] = percentage
+    end
+end
+
+local function triggerAllyDefeat(allyID)
+	Spring.Echo("AllyTeam ", allyID, " has lost the game")
+	for i, data in ipairs(captureGrid) do
+		if data.allyOwner == allyID then
+			squaresToRaze[i] = true
+		end
+	end
+end
+
+local function razeSquare(squareID)
+	local attempts = 3
+	local margin = GRID_SIZE * 0.1
+	local chance = 0.5
+
+
+	local data = captureGrid[squareID]
+	local targetX, targetZ = random(data.x + margin, data.x + GRID_SIZE - margin), random(data.z + margin, data.z + GRID_SIZE - margin)
+	for i = 1, attempts do
+		if random() > chance then
+			Spring.Echo("Razing square ", squareID, " at ", targetX, targetZ)
+		end
+	end
+
+
+end
+
+--call-ins
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 end
+
 
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 end
 
+local oscillatingRemainder = 0
 function gadget:GameFrame(frame)
 	if frame % 60 == 0 then
 		updateAllyTeamsWatch()
 		updateCurrentThreshold()
-		checkForDefeat()
 		Spring.Echo("defeatThreshold: ", defeatThreshold .. "%")
 
-		for i, origin in ipairs(captureGrid) do
-			local units = spGetUnitsInRectangle(origin.x, origin.z, origin.x + GRID_SIZE, origin.z + GRID_SIZE)
-			local allyPowers = {} 
+		allyScores = {} -- 
+		for i, data in ipairs(captureGrid) do
+			local units = spGetUnitsInRectangle(data.x, data.z, data.x + GRID_SIZE, data.z + GRID_SIZE)
+			local allyPowers = {}
 
 			
 
@@ -210,18 +262,32 @@ function gadget:GameFrame(frame)
 			
 				Spring.Echo(string.format("AllyTeam %d dominates square %d,%d with %d progress", 
 				captureGrid[i].allyOwner,
-				origin.x, origin.z, captureGrid[i].progress))
+				data.x, data.z, captureGrid[i].progress))
 			end
 
 			if debugmode then --to show origins of each square
-				Spring.SpawnCEG("scaspawn-trail", origin.x, Spring.GetGroundHeight(origin.x, origin.z), origin.z, 0,0,0)
-				Spring.SpawnCEG("scav-spawnexplo", origin.x, Spring.GetGroundHeight(origin.x, origin.z), origin.z, 0,0,0)
+				Spring.SpawnCEG("scaspawn-trail", data.x, Spring.GetGroundHeight(data.x, data.z), data.z, 0,0,0)
+				Spring.SpawnCEG("scav-spawnexplo", data.x, Spring.GetGroundHeight(data.x, data.z), data.z, 0,0,0)
 			end
 
-
+			allyScores[data.allyOwner] = (allyScores[data.allyOwner] or 0) + 1
+		end
+		updateAlliesScores()
+		for allyTeam, score in pairs(allyScores) do
+			if score >= defeatThreshold then
+				triggerAllyDefeat(allyTeam)
+			end
 		end
 	end
+
+	if frame % 30 == oscillatingRemainder then
+		for id, _ in pairs(squaresToRaze) do
+			razeSquare(id) --zzz what happens when that team is wiped out? the razing needs to stop in case there's 3 teams or more
+		end
+		oscillatingRemainder = random(0, 15)
+	end
 end
+
 
 
 function gadget:Initialize()
