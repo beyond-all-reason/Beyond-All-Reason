@@ -358,6 +358,8 @@ if gadgetHandler:IsSyncedCode() then
 
 		lastCheckIndex = 1
 		nToCheckUnitIDs = i
+
+		return nToCheckUnitIDs == 0
 	end
 
 	function InverseExponentialInterpolate(x, inMin, inMax, outMin, outMax)
@@ -366,11 +368,11 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:GameFrame(f)
-		if f % GAME_SPEED ~= 0 or f % (evolutionCheckGameframeModulo + mathRandom(-jitter, jitter)) ~= 0 then
+		if f % GAME_SPEED ~= 0
+			or f % (evolutionCheckGameframeModulo + mathRandom(-jitter, jitter)) ~= 0
+			or FillToCheckUnitIDs() then
 			return
 		end
-
-		FillToCheckUnitIDs()
 
 		local checkCount = 0
 		local currentTime = spGetGameSeconds()
