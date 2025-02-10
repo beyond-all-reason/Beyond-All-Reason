@@ -46,7 +46,6 @@ if gadgetHandler:IsSyncedCode() then
 	local teamPowerList = {}
 	local highestTeamPower = 0
 
-	local evolutionCheckGameframeModulo = 25
 	local lastCheckIndex = 1
 	local toCheckUnitIDs = {}
 	local nToCheckUnitIDs = 0
@@ -362,21 +361,20 @@ if gadgetHandler:IsSyncedCode() then
 		return nToCheckUnitIDs == 0
 	end
 
-	function UnitsToBatchSizeInterpolation(x, inMin, inMax, outMin, outMax)
-  	local t = (x - inMin) / (inMax - inMin)
+	function UnitsToBatchSizeInterpolation(value, inMin, inMax, outMin, outMax)
+		value = (value < inMin) and inMin or ((value > inMax) and inMax or value)
+  	local t = (value - inMin) / (inMax - inMin)
   	return outMin * ((outMax / outMin) ^ (t^0.1))
 	end
 
 	function gadget:GameFrame(f)
-		if f % GAME_SPEED ~= 0
-			or f % evolutionCheckGameframeModulo ~= 0
-			or FillToCheckUnitIDs() then
+		if f % GAME_SPEED ~= 0 or FillToCheckUnitIDs() then
 			return
 		end
 
 		local checkCount = 0
 		local currentTime = spGetGameSeconds()
-		local evolutionsBatchSize = UnitsToBatchSizeInterpolation(#Spring.GetAllUnits(), 600, 4000, 200, 30)
+		local evolutionsBatchSize = UnitsToBatchSizeInterpolation(#Spring.GetAllUnits(), 600, 4000, 200, 15)
 
 		while lastCheckIndex <= nToCheckUnitIDs and checkCount <= evolutionsBatchSize do
 			local unitID = toCheckUnitIDs[lastCheckIndex].id
