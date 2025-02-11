@@ -37,7 +37,6 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetGameSeconds = Spring.GetGameSeconds
 	local spGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
 
-	local GAME_SPEED = Game.gameSpeed
 	local PRIVATE = { private = true }
 
 	local evolutionMetaList = {}
@@ -46,6 +45,8 @@ if gadgetHandler:IsSyncedCode() then
 	local teamPowerList = {}
 	local highestTeamPower = 0
 
+	local evolutionBatchTimer = Spring.GetTimer()
+	local evolutionBatchIntervalMs = 1000 / Game.gameSpeed
 	local lastCheckIndex = 1
 	local toCheckUnitIDs = {}
 	local nToCheckUnitIDs = 0
@@ -363,16 +364,18 @@ if gadgetHandler:IsSyncedCode() then
 		return nToCheckUnitIDs == 0
 	end
 
-	function UnitsToBatchSizeInterpolation(value, inMin, inMax, outMin, outMax)
-		value = (value < inMin) and inMin or ((value > inMax) and inMax or value)
-  	local t = (value - inMin) / (inMax - inMin)
-  	return outMin * ((outMax / outMin) ^ (t^0.1))
+	function UnitsToBatchSizeInterpolation(value, minLoadUnits, maxLoadUnits, minLoadBatchSize, maxLoadBatchSize)
+		value = (value < minLoadUnits) and minLoadUnits or ((value > maxLoadUnits) and maxLoadUnits or value)
+  	local t = (value - minLoadUnits) / (maxLoadUnits - minLoadUnits)
+  	return minLoadBatchSize * ((maxLoadBatchSize / minLoadBatchSize) ^ (t^0.1))
 	end
 
 	function gadget:GameFrame(f)
-		if f % GAME_SPEED ~= 0 or FillToCheckUnitIDs() then
+		if Spring.DiffTimers(Spring.GetTimer(), evolutionBatchTimer, true) < evolutionBatchIntervalMs or FillToCheckUnitIDs() then
 			return
 		end
+
+		evolutionBatchTimer = Spring.GetTimer()
 
 		local checkCount = 0
 		local currentTime = spGetGameSeconds()
