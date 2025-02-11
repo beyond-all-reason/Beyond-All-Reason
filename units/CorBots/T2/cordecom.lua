@@ -81,6 +81,7 @@ return {
 			subfolder = "CorBots/T2",
 			techlevel = 2,
 			unitgroup = "buildert2",
+			disableunitsharing_treatascombatunit = 1,
 		},
 		sfxtypes = {
 			explosiongenerators = {
