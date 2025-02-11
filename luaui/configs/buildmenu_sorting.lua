@@ -195,6 +195,7 @@ local unitOrderTable = {
 
 	['armwar']         = 005600, --STRONK
 	['legkark']        = 005610,
+	['corkark']        = 005620,
 
 	['armsam']         = 005800, --LAND + AA
 	['cormist']        = 005810,
