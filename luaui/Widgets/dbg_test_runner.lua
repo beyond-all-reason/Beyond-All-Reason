@@ -100,12 +100,18 @@ end
 
 
 local function matchesPatterns(str, patterns)
-	for _, p in ipairs(patterns) do
-		if string.match(str, p) then
-			return true
+	for _, pattern in ipairs(patterns) do
+		local filepattern = pattern
+		local testpattern = nil
+		if string.find(pattern, ":") then
+			filepattern = string.match(pattern, "(.*):")
+			testpattern = string.match(pattern, ":(.*)")
+		end
+		if string.match(str, filepattern) then
+			return true, testpattern
 		end
 	end
-	return false
+	return false, nil
 end
 
 -- scenarios
@@ -149,11 +155,13 @@ local function findTestFiles(directory, patterns, rootDirectory, result)
 	for _, filename in ipairs(VFS.DirList(directory, "*", VFS.RAW_FIRST)) do
 		local relativePath = string.sub(filename, string.len(rootDirectory) + 1)
 		local withoutExtension = Util.removeFileExtension(relativePath)
-		if patterns == nil or #patterns == 0 or matchesPatterns(withoutExtension, patterns) then
+		local patternMatch, testpattern = matchesPatterns(withoutExtension, patterns)
+		if patterns == nil or #patterns == 0 or patternMatch then
 			log(LOG.INFO, "Found test file: " .. relativePath)
 			result[#result + 1] = {
 				filename = filename,
 				label = relativePath,
+				testpattern = testpattern,
 			}
 		end
 	end
@@ -1069,7 +1077,7 @@ local function initializeTestEnvironment()
 	return env
 end
 
-local function loadTestFromFile(filename)
+local function loadTestFromFile(filename, testPattern)
 	if not VFS.FileExists(filename) then
 		return false, "missing file: " .. filename
 	end
@@ -1097,6 +1105,22 @@ local function loadTestFromFile(filename)
 
 	if testEnvironment.globalTests == nil then
 		return false, "no tests"
+	end
+
+	if testPattern ~= nil then
+		local i = #testEnvironment.globalTests
+		while i >= 1 do
+			local testStruct = testEnvironment.globalTests[i]
+			local testName = testStruct[1]
+			if not string.match(testName, testPattern) then
+				table.remove(testEnvironment.globalTests, i)
+			end
+			i = i - 1
+		end
+	end
+
+	if #testEnvironment.globalTests == 0 then
+		return false, "all tests skipped"
 	end
 
 	setfenv(testEnvironment.__runTestInternal, testEnvironment)
@@ -1231,8 +1255,9 @@ local function step()
 	if activeTestState.testAmount == nil then
 		activeTestState.label = testRunState.files[testRunState.filesIndex].label
 		activeTestState.filename = testRunState.files[testRunState.filesIndex].filename
+		activeTestState.testpattern = testRunState.files[testRunState.filesIndex].testpattern
 
-		local success, envOrError = loadTestFromFile(activeTestState.filename)
+		local success, envOrError = loadTestFromFile(activeTestState.filename, activeTestState.testpattern)
 
 		if not success then
 			finishTest({
