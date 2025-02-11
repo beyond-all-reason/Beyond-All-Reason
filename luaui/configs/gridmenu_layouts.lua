@@ -29,9 +29,13 @@ local labGrids = {
 		"cormort", "corroach", "coraak", "corsumo",             -- morty, skuttle, AA bot, sumo
 	},
 	legalab = {
-		"legack", "legaceb", "legstr", "corspy",               -- T2 con, freaker, strider, spy
-		"corvoyr", "corspec", "leginfestor", "legsrail",              -- radar bot, jammer bot, infestor, dominator
-		"legbart", "corroach", "legshot", "leginc",             -- belcher, skuttle, shotgun, sumo
+		-- page1
+		"legack", "legaceb", "legstr", "corspy",               -- T2 con, proteus, strider, spy
+		"corvoyr", "corspec", "legshot", "leginfestor",              -- radar bot, jammer bot, shotgun, infestor
+		"legbart", "legsrail", "coraak", "leginc",             -- belcher, railgun, AA bot, incinerator
+		-- page2
+		"coramph", "corhrk", "legsnapper", "corsktl",				-- amphbious bot, dominator, snapper, skuttle
+		"legdecom",					-- decoycom
 	},
 	-- T1 vehicle
 	armvp = {
@@ -63,9 +67,12 @@ local labGrids = {
 		"corseal", "corparrow", "corsent", "corvroc",          -- croc, poison arrow, AA, diplomat
 	},
 	legavp = {
-		"legacv", "legmrv", "legaskirmtank", "legamcluster",   -- T2 con, Quickshot, scorpion, cleaver
-		"legavrad", "legavjam", "legaheattank", "leginf",        -- radar, jammer, goli, inferno
-		"legfloat", "legmed", "legvflak", "legavroc",            -- the new and improved triton, medusa, AA, boreas
+		-- page1
+		"legacv", "legmed", "legaskirmtank", "legamcluster",	-- T2 con, medusa, gladiator, cleaver
+		"legavrad", "legavjam", "legaheattank", "leginf",        -- radar, jammer, prometheus, inferno
+		"legmrv", "legfloat", "legvflak", "legavroc",            -- Quickshot, new triton, AA, boreas
+		-- page2
+		"legvcarry", "cormabm",					-- mantis, veh antinuke
 	},
 	-- T1 air
 	armap = {
@@ -93,9 +100,9 @@ local labGrids = {
 		"corcrw","corcrwh",                                              -- krow
 	},
 	legaap = {
-		"legaca", "legionnaire", "legvenator","",					--T2 con, defensive fig, interceptor
-		"legmineb", "legnap", "legphoenix", "legatorpbomber",			--minebomber, napalmbomber, 'heavy bomber', torpedo
-		"legfort", "legstronghold", "legwhisper",	""			--knockoff krow, (well armed)transport, radar
+		"legaca", "legionnaire", "legvenator", "legphoenix",					--T2 con, defensive fig, interceptor, phoenix
+		"legwhisper", "legstronghold", "legatorpbomber", "",			--radar, transport(gunship), torpedo,
+		"legfort", "legnap", "legmineb", ""			--flying fort, napalmbomber, minebomber
 	},
 	-- seaplanes
 	armplat = {
@@ -1307,9 +1314,9 @@ local unitGrids = {
 			{ "legestor", "legmstor", "coruwes", "legfmkr", },  -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "leglht", "legmg", "corhlt", "legdtr", },     -- LLT, machine gun, HLT, flame turret
-			{ "corrl", "cormadsam", "leglupara", "corfrt" },             -- basic AA, SAM, eradicator, floating AA
-			{ "cordl", "legcluster", "cortl", "corfhlt", },       -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
+			{ "leglht", "legmg", "leghive", "legdtr", },     	-- LLT, machine gun, hive, riot turret
+			{ "legrl", "legrhapsis", "leglupara", "corfrt" },             -- basic AA, rhapsis, t1.5 flak, floating AA
+			{ "cordl", "legcluster", "cortl", "corfhlt", },       -- coastal torp launcher, amputator, offshore torp launcher, floating HLT
 		},
 		{
 			{ "legrad", "legeyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
@@ -1826,7 +1833,7 @@ local unitGrids = {
 		{
 			{ "legrad", },                                   -- radar
 			{ },                                             --
-			{ "cormine1", "cormine2", "cormine3", },         -- light mine, med mine, heavy mine
+			{ "legmine1", "legmine2", "legmine3", },         -- light mine, med mine, heavy mine
 		},
 		{
 			{ },                                             --
