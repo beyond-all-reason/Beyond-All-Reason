@@ -161,7 +161,7 @@ return {
 				noselfdamage = true,
 				ownerExpAccWeight = 4.0,
 				proximitypriority = 1,
-				range = 220,
+				range = 221,
 				reloadtime = 4,
 				rgbcolor = "1 0.95 0.4",
 				soundhit = "bimpact3",
@@ -176,7 +176,7 @@ return {
 				turret = true,
 				cylindertargeting=true,
 				weapontype = "LaserCannon",
-				weaponvelocity = 800,
+				weaponvelocity = 825,
 				damage = {
 					default = 20,
 					vtol = 6,
