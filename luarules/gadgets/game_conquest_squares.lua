@@ -181,6 +181,27 @@ local function razeSquare(squareID, data)
 	end
 end
 
+local function attributeUnitPowersToAllies(units)
+    local allyPowers = {}
+    for _, unitID in ipairs(units) do
+        local isFinishedBuilding = select(5, spGetUnitHealth(unitID)) == FINISHED_BUILDING
+        if isFinishedBuilding then
+            local unitDefID = spGetUnitDefID(unitID)
+            local unitData = unitWatchDefs[unitDefID]
+            local allyTeam = spGetUnitAllyTeam(unitID)
+            
+            if unitData and unitData.power and allyTeamsWatch[allyTeam] then
+                -- Accumulate power for the unit's ally team
+                allyPowers[allyTeam] = (allyPowers[allyTeam] or 0) + unitData.power
+                if unitWatchDefs[unitDefID].isStatic then
+                    Spring.Echo("allyProgressBlockers: ", allyTeam, UnitDefs[unitDefID].name)
+                end
+            end
+        end
+    end
+    return allyPowers
+end
+
 --call-ins
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 end
@@ -206,29 +227,10 @@ function gadget:GameFrame(frame)
 				data.hasUnits = false
 			end
 
-			local allyPowers = {}
-
-			
-
-			for _, unitID in ipairs(units) do
-				local isFinishedBuilding = select(5, spGetUnitHealth(unitID)) == FINISHED_BUILDING
-				if isFinishedBuilding then
-					local unitDefID = spGetUnitDefID(unitID)
-					local unitData = unitWatchDefs[unitDefID]
-					local allyTeam = spGetUnitAllyTeam(unitID)
-					
-					if unitData and unitData.power and allyTeamsWatch[allyTeam] then
-						-- Accumulate power for the unit's ally team
-						allyPowers[allyTeam] = (allyPowers[allyTeam] or 0) + unitData.power
-						if unitWatchDefs[unitDefID].isStatic then
-							Spring.Echo("allyProgressBlockers: ", allyTeam, UnitDefs[unitDefID].name)
-						end
-					end
-				end
-			end
+			local allyPowers = attributeUnitPowersToAllies(units)
 
 			-- Find which ally team has the highest power in this square
-			local winningAllyTeam
+			local winningAllyTeam --zzz i think i can make winningAllyTeam a variable from a return value from a function, then later I can make a function that executes if the return value exists
 			local secondPlaceAllyTeam
 			local sortedTeams = {}
 			for team, power in pairs(allyPowers) do
@@ -273,6 +275,7 @@ function gadget:GameFrame(frame)
 
 			allyScores[data.allyOwner] = (allyScores[data.allyOwner] or 0) + 1
 		end
+		
 		updateAlliesScores()
 		for allyTeam, score in pairs(allyScores) do
 			if score >= defeatThreshold then
