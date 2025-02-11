@@ -129,7 +129,7 @@ local function setUnitOnSale(unitID, specifiedPrice, toggle)
     if not unitDefID then return false end
     local unitDef = UnitDefs[unitDefID]
     if not unitDef then return false end
-    local finished = (select(5,spGetUnitHealth(unitID))==1)
+    local finished = not Spring.GetUnitIsBeingBuilt(unitID)
     if not AllowPlayersSellUnfinished and not finished then return false end
     local price
     if not specifiedPrice or specifiedPrice <= 0 then
