@@ -29,8 +29,8 @@ return {
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/legperdition_aoplane.dds",
-			buildinggrounddecalsizey = 7.5,
-			buildinggrounddecalsizex = 7.5,
+			buildinggrounddecalsizey = 8,
+			buildinggrounddecalsizex = 8,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'weapon',
 			model_author = "Hornet, Tharsis",
@@ -179,13 +179,14 @@ return {
 					area_onhit_damage = 175,
 					area_onhit_range = 150,
 					area_onhit_time = 15,
+					stockpilelimit = 10,
 				},
 				damage = {
 					commanders = 700,
 					default = 2000,--plus 150*15 within 150 area
 				},
 			},
-			
+
 		},
 		weapons = {
 			[1] = {

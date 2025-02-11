@@ -37,6 +37,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorAircraft",
 			unitgroup = "emp",
+			crashable = 0,
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {

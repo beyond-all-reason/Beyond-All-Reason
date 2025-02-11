@@ -105,6 +105,7 @@ local flexCallIns = {
 	'ShockFront',
 	'WorldTooltip',
 	'MapDrawCmd',
+	'ActiveCommandChanged',
 	'DefaultCommand',
 	'UnitCreated',
 	'UnitFinished',
@@ -169,6 +170,7 @@ for _, ci in ipairs(flexCallIns) do
 end
 
 local callInLists = {
+	'FontsChanged',
 	'GamePreload',
 	'GameStart',
 	'Shutdown',
@@ -449,16 +451,16 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 
 		local widget = widgetHandler:NewWidget()
 		setfenv(chunk, widget)
-		local success, valOrErr = pcall(chunk)
+		local success, err = pcall(chunk)
 		if not success then
-			Spring.Echo('Failed to load: ' .. basename .. '  (' .. valOrErr .. ')')
+			Spring.Echo('Failed to load: ' .. basename .. '  (' .. err .. ')')
 			return nil
 		end
 		if err == false then
 			return nil -- widget asked for a silent death
 		end
 
-		local localsNames = valOrErr
+		local localsNames = err
 
 		text = text .. localsAccess.generateLocalsAccessStr(localsNames)
 	end
@@ -911,6 +913,14 @@ function widgetHandler:InsertWidgetRaw(widget)
 	if widget == nil then
 		return
 	end
+	if widget.GetInfo and not Platform.check(widget:GetInfo().depends) then
+		local name = widget.whInfo.name
+		if self.knownWidgets[name] then
+			self.knownWidgets[name].active = false
+		end
+		Spring.Echo('Missing capabilities:  ' .. name .. '. Disabling.')
+		return
+	end
 
 	SafeWrapWidget(widget)
 
@@ -930,6 +940,9 @@ end
 
 function widgetHandler:RemoveWidgetRaw(widget)
 	if widget == nil or widget.whInfo == nil then
+		return
+	end
+	if not Platform.check(widget.whInfo.depends) then
 		return
 	end
 
@@ -1331,6 +1344,14 @@ function widgetHandler:ConfigureLayout(command)
 	return false
 end
 
+function widgetHandler:ActiveCommandChanged(id, cmdType)
+	tracy.ZoneBeginN("W:ActiveCommandChanged")
+	for _, w in ipairs(self.ActiveCommandChangedList) do
+		w:ActiveCommandChanged(id, cmdType)
+	end
+	tracy.ZoneEnd()
+end
+
 function widgetHandler:CommandNotify(id, params, options)
 	tracy.ZoneBeginN("W:CommandNotify")
 	for _, w in ipairs(self.CommandNotifyList) do
@@ -1552,7 +1573,7 @@ function widgetHandler:DrawPreDecals()
 end
 
 function widgetHandler:DrawWorldPreParticles()
-	-- NOTE: This is called TWICE per draw frame, once before water and once after, even if no water is present. The second is the refraction pass. 
+	-- NOTE: This is called TWICE per draw frame, once before water and once after, even if no water is present. The second is the refraction pass.
 	tracy.ZoneBeginN("W:DrawWorldPreParticles")
 	for _, w in r_ipairs(self.DrawWorldPreParticlesList) do
 		w:DrawWorldPreParticles()
@@ -1647,6 +1668,14 @@ function widgetHandler:SunChanged()
 	return
 end
 
+function widgetHandler:FontsChanged()
+	tracy.ZoneBeginN("FontsChanged")
+	for _, w in r_ipairs(self.FontsChangedList) do
+		w:FontsChanged()
+	end
+	tracy.ZoneEnd()
+	return
+end
 
 --------------------------------------------------------------------------------
 --
@@ -2233,11 +2262,11 @@ function widgetHandler:UnitFromFactory(unitID, unitDefID, unitTeam, factID, fact
 	return
 end
 
-function widgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam)
+function widgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	widgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 	tracy.ZoneBeginN("W:UnitDestroyed")
 	for _, w in ipairs(self.UnitDestroyedList) do
-		w:UnitDestroyed(unitID, unitDefID, unitTeam)
+		w:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	end
 	tracy.ZoneEnd()
 	return

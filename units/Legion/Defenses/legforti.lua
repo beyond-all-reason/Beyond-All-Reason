@@ -35,9 +35,9 @@ return {
 		yardmap = "ffff",
 		customparams = {
 			usebuildinggrounddecal = false,
-			buildinggrounddecaltype = "decals/corscavfort_aoplane.dds",
-			buildinggrounddecalsizey = 4,
-			buildinggrounddecalsizex = 4,
+			buildinggrounddecaltype = "decals/legforti_aoplane.dds",
+			buildinggrounddecalsizey = 5,
+			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",

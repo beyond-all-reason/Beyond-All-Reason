@@ -117,7 +117,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-catapult",
 				firestarter = 70,
 				flighttime = 3.2,
-				impulsefactor = 0.123,
+				impulsefactor = 0.6,
 				metalpershot = 0,
 				model = "catapultmissile.s3o",
 				movingaccuracy = 600,

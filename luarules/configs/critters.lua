@@ -192,6 +192,19 @@ local critterConfig = {
 		{ spawnCircle = { x = 4300, z = 8000, r = 2000 }, unitNames = { ["critter_ant"] = rnd(3, 10) } },
 	},
 
+	["supreme isthmus winter"] = {
+		{ spawnCircle = { x = 3500, z = 8500, r = 400 }, unitNames = { ["critter_penguin"] = rnd(2, 4) } },
+		{ spawnCircle = { x = 8800, z = 3800, r = 400 }, unitNames = { ["critter_penguin"] = rnd(2, 4) } },
+		{ spawnCircle = { x = 990, z = 1900, r = 400 }, unitNames = { ["critter_penguin"] = rnd(3, 5) } },
+		{ spawnCircle = { x = 11000, z = 10000, r = 400 }, unitNames = { ["critter_penguin"] = rnd(3, 5) } },
+		{ spawnCircle = { x = 6200, z = 300, r = 400 }, unitNames = { ["critter_penguin"] = rnd(2, 4) } },
+		{ spawnCircle = { x = 6000, z = 12000, r = 400 }, unitNames = { ["critter_penguin"] = rnd(2, 4) } },
+		{ spawnCircle = { x = 5500, z = 6400, r = 400 }, unitNames = { ["critter_penguin"] = rnd(2, 4) } },
+		{ spawnCircle = { x = 6600, z = 6200, r = 400 }, unitNames = { ["critter_penguin"] = rnd(2, 4) } },
+		{ spawnCircle = { x = 4000, z = 4800, r = 400 }, unitNames = { ["critter_penguin"] = rnd(2, 4) } },
+		{ spawnCircle = { x = 11800, z = 7300, r = 400 }, unitNames = { ["critter_penguin"] = rnd(2, 4) } },
+	},
+
 	["supreme battlefield"] = {
 		{ spawnCircle = { x = 11500, z = 12500, r = 2700 }, unitNames = { ["critter_goldfish"] = rnd(3, 10) } },
 		{ spawnCircle = { x = 15000, z = 10500, r = 300 }, unitNames = { ["critter_goldfish"] = rnd(0, 3) } },

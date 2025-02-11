@@ -235,7 +235,7 @@ local function SetupUnitDef(unitDefID, unitDef)
 						weaponInfo[unitDefID].type = "sector"
 						weaponInfo[unitDefID].sector_angle_active = tonumber(weaponDef.customParams.spread_angle)
 						weaponInfo[unitDefID].sector_shortfall_active = tonumber(weaponDef.customParams.max_range_reduction)
-	
+
 					end
 				end
 			end
@@ -773,7 +773,7 @@ function widget:Shutdown()
 	DeleteDisplayLists()
 end
 
-function widget:DrawWorld()
+function widget:DrawWorldPreUnit()
 	if not hasSelection then
 		return
 	end

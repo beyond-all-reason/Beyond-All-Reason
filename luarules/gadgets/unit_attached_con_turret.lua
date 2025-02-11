@@ -191,7 +191,7 @@ end
 
 attached_builders = {}
 attached_builder_def = {}
-function gadget:UnitDestroyed(unitID)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	attached_builders[unitID] = nil
 	attached_builder_def[unitID] = nil
 end

@@ -75,7 +75,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	end
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	-- make mex below selectable again
 	if isMex[unitDefID] then
 		local mex = hasMexBeneath(unitID)

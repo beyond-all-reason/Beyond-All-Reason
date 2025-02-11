@@ -116,7 +116,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-large-bomb",
 				firestarter = 100,
 				flighttime = 10,
-				impulsefactor = 0.2,
+				impulsefactor = 0.8,
 				metalpershot = 0,
 				model = "corshiprocket.s3o",
 				name = "Heavy long-range g2g high-trajectory starburst rocket launcher",

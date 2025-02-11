@@ -144,6 +144,9 @@ return {
 				damage = {
 					default = 0,
 				},
+				customparams = {
+					scavforcecommandfire = true,
+				},
 			},
 			sdmssl = {
 				areaofeffect = 1280,
@@ -194,6 +197,8 @@ return {
 				weaponvelocity = 1600,
 				customparams = {
 					place_target_on_ground = "true",
+					scavforcecommandfire = true,
+					stockpilelimit = 10,
 				},
 				damage = {
 					commanders = 2500,

@@ -131,7 +131,7 @@ function gadget:UnitCreated(unitID, unitDefID)
   end
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
   if lab[unitID] then
     lab[unitID] = nil
   end

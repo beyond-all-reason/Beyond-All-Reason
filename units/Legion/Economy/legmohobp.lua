@@ -37,8 +37,8 @@ return {
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/legmohobp_aoplane.dds",
-			buildinggrounddecalsizey = 7.6,
-			buildinggrounddecalsizex = 7.6,
+			buildinggrounddecalsizey = 8,
+			buildinggrounddecalsizex = 8,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'metal',
 			cvbuildable = true,

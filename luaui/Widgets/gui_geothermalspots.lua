@@ -355,7 +355,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	end
 end
 
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	if extractors[unitDefID] then
 		sceduledCheckedSpotsFrame = Spring.GetGameFrame() + 3	-- delay needed, i don't know why
 	end

@@ -41,8 +41,8 @@ return {
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/legnanotct2_aoplane.dds",
-			buildinggrounddecalsizey = 5,
-			buildinggrounddecalsizex = 5,
+			buildinggrounddecalsizey = 6,
+			buildinggrounddecalsizex = 6,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'builder',
 			model_author = "Tharsis",

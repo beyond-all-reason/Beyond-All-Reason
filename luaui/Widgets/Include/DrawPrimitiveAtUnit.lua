@@ -19,7 +19,8 @@ local shaderConfig = {
 	BILLBOARD = 0, -- 1 if you want camera facing billboards, 0 is flat on ground
 	POST_ANIM = " ", -- what you want to do in the animation post function (glsl snippet, see shader source)
 	POST_VERTEX = "v_color = v_color;", -- noop
-	POST_GEOMETRY = "gl_Position.z = (gl_Position.z) - 256.0 / (gl_Position.w);",	--"g_uv.zw = dataIn[0].v_parameters.xy;", -- noop
+	ZPULL = 256.0, -- how much to pull the z (depth) value towards the camera , 256 is about 16 elmos
+	POST_GEOMETRY = "",	--"g_uv.zw = dataIn[0].v_parameters.xy;", -- noop
 	POST_SHADING = "fragColor.rgba = fragColor.rgba;", -- noop
 	MAXVERTICES = 64, -- The max number of vertices we can emit, make sure this is consistent with what you are trying to draw (tris 3, quads 4, corneredrect 8, circle 64
 	USE_CIRCLES = 1, -- set to nil if you dont want circles
@@ -64,7 +65,7 @@ local function InitDrawPrimitiveAtUnit(shaderConfig, DPATname)
 	
 	shaderSourceCache.shaderName = DPATname .. "Shader GL4"
 	
-	DrawPrimitiveAtUnitShader =  LuaShader.CheckShaderUpdates(shaderSourceCache)
+	DrawPrimitiveAtUnitShader =  LuaShader.CheckShaderUpdates(shaderSourceCache) or DrawPrimitiveAtUnitShader
 
 	if not DrawPrimitiveAtUnitShader then 
 		Spring.Echo("Failed to compile shader for ", DPATname)

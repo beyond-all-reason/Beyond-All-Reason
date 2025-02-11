@@ -195,7 +195,7 @@ end
 -------------------------------------------------------------------------------------
 -- Cleanup
 
-function gadget:UnitDestroyed(unitID)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	units[unitID] = nil
 end
 
