@@ -145,16 +145,16 @@ unitCollisionVolume['armpb'] = {
 	off={40,40,40,0,-8,0,3,1,1},
 }
 unitCollisionVolume['armplat'] = {
-	on={105,66,105,0,33,0,2,1,0},
-	off={105,44,105,0,0,0,2,1,0},
+	on={96,66,96,0,33,0,1,1,1},
+	off={96,44,96,0,0,0,1,1,1},
 }
 unitCollisionVolume['armsolar'] = {
 	on={73,76,73,0,-18,1,0,1,0},
 	off={50,76,50,0,-18,1,0,1,0},
 }
 unitCollisionVolume['armvp'] = {
-	on={120,34,92,0,0,0,2,1,0},
-	off={90,34,92,0,0,0,2,1,0},
+	on={96,34,96,0,0,0,2,1,0},
+	off={96,34,96,0,0,0,2,1,0},
 }
 unitCollisionVolume['cordoom'] = {
 	on={63,112,63,0,0,0,1,1,1},
@@ -162,8 +162,8 @@ unitCollisionVolume['cordoom'] = {
 }
 
 unitCollisionVolume['corplat'] = {
-	on={112,60,112,0,28,0,1,1,1},
-	off={112,35,112,0,0,0,1,1,1},
+	on={96,60,96,0,28,0,1,1,1},
+	off={96,42,96,0,-20,0,1,1,1},
 }
 unitCollisionVolume['legsolar'] = {
 
@@ -199,6 +199,11 @@ pieceCollisionVolume['legpede'] = {
 pieceCollisionVolume['legsrail'] = {
 	['0']={55,24,55,0,12,0,1,1},
 	['7']={12,12,60,0,3,9,1,2},
+}
+pieceCollisionVolume['legerailtank'] = {
+	['0']={65,28.3,90.6, 0,1,-10, 2,1},
+	['10']={31,21,36, 0,6.4,2.3, 2,1},
+	--['10']={50,50,50,0,0,0,2,1},
 }
 ---pieceCollisionVolume['legsrailt4'] = {
 ---	['0']={121,53,121,0,26,0,2,2},
@@ -304,8 +309,8 @@ pieceCollisionVolume['corsnap'] = {
 	['3']={12,10,12,0,0,0,2,1},
 }
 pieceCollisionVolume['corsumo'] = {
-	['0']={38,34,36,0,0,0,2,1},
-	['2']={24,16,25,0,0,0,2,1},
+	['0']={42,32,45,0,0,0,2,1},
+	['2']={22,10,22,0,0,0,1,1},
 }
 pieceCollisionVolume['armfboy'] = {
 	['0']={34,40,42,0,-5,0,2,1},

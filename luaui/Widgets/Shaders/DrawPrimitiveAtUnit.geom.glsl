@@ -49,6 +49,12 @@ void offsetVertex4(float x, float y, float z, float u, float v, float addRadiusC
 	vec3 vecnorm = normalize(primitiveCoords);
 	PRE_OFFSET
 	gl_Position = cameraViewProj * vec4(centerpos.xyz + rotY * (addRadius * addRadiusCorr * vecnorm + primitiveCoords ), 1.0);
+	#ifdef ZPULL
+		// Note that this is a hack that can be used to make sure that the geometry is drawn in front of the unit
+		// or behind the unit. Positive values will draw the geometry in front of the unit, negative values will draw
+		// the value is approximately elmos squared, so 512 is 16 elmos
+		gl_Position.z = (gl_Position.z) - ZPULL / (gl_Position.w); // send 16 elmos forward in depth buffer
+	#endif 
 	g_uv.zw = dataIn[0].v_parameters.zw;
 	POST_GEOMETRY
 	EmitVertex();

@@ -19,12 +19,10 @@ function gadget:GetInfo()
     }
 end
 
-local spGetTeamList = Spring.GetTeamList
 local spGetAllyTeamList= Spring.GetAllyTeamList
 
 function gadget:GameFrame(n)
     if n%1800 == 10 then
-        local teams = spGetTeamList()
         local allyteams = spGetAllyTeamList()
         for i = 1,#allyteams do
             local allyTeamID = allyteams[i]

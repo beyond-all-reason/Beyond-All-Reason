@@ -130,7 +130,11 @@ local function getMouseTargetPosition()
 			return mouseTarget[1], mouseTarget[2], mouseTarget[3]
 		elseif mouseTargetType == "unit" then
 			local _, coordinates = TraceScreenRay(mx, my, true)
-			return coordinates[1], coordinates[2], coordinates[3], mouseTarget
+			if coordinates then
+				return coordinates[1], coordinates[2], coordinates[3], mouseTarget
+			else
+				return nil, nil, nil, mouseTarget
+			end
 		elseif mouseTargetType == "feature" then
 			local _, coordinates = TraceScreenRay(mx, my, true)
 			if coordinates then
@@ -285,7 +289,7 @@ local function getSelectedTeam()
 
 	local tx, ty, tz, targetUnitID = getMouseTargetPosition()
 
-	if (not tx) then
+	if (not tx and not targetUnitID) then
 		return nil
 	end
 

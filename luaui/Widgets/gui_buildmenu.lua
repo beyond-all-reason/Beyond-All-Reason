@@ -142,7 +142,6 @@ local function refreshUnitDefs()
 		end
 	end
 end
-refreshUnitDefs()
 
 local spIsUnitSelected = Spring.IsUnitSelected
 local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
@@ -556,7 +555,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
 		)
 	end
 
-	
+
 	local quotaNumber, builderID
 	for _, factoryID in ipairs(spGetSelectedUnits()) do
 		if WG.Quotas and WG.Quotas.getQuotas()[factoryID] and WG.Quotas.getQuotas()[factoryID][uDefID] then
@@ -1034,7 +1033,7 @@ local function isOnQuotaBuildMode(targetDefID)
 	for _, unitID in ipairs(spGetSelectedUnits()) do
 		local uDefID = spGetUnitDefID(unitID)
 		if units.isFactory[uDefID] and table.contains(unitBuildOptions[uDefID], targetDefID) then
-			return WG.Quotas and WG.Quotas.isOnQuotaMode(unitID) 
+			return WG.Quotas and WG.Quotas.isOnQuotaMode(unitID)
 		end
 	end
 	return false
@@ -1245,6 +1244,8 @@ local function bindBuildUnits(widget)
 end
 
 function widget:Initialize()
+	refreshUnitDefs()
+
 	if widgetHandler:IsWidgetKnown("Grid menu") then
 		-- Grid menu needs to be disabled right now and before we recreate
 		-- WG['buildmenu'] since its Shutdown will destroy it.

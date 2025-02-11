@@ -159,7 +159,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 	end
 end
 
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	etaTable[unitID] = nil
 end
 

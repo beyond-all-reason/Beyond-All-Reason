@@ -61,6 +61,7 @@ return {
 			subfolder = "CorBots/T2",
 			techlevel = 2,
             paratrooper = true,
+			water_fall_damage_multiplier = 0,
 			fall_damage_multiplier = 0,
 			nopvebuilder = true,
 		},

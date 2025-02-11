@@ -104,7 +104,7 @@ if gadgetHandler:IsSyncedCode() then
 				scavbeacon_t3_scav = {radius = 1000, growthrate = 1},
 				scavbeacon_t4_scav = {radius = 1360, growthrate = 1.36},
 			}
-		for unitDefName, scumParams in pairs(scumGenerators) do 
+		for unitDefName, scumParams in pairs(scumGenerators) do
 			if UnitDefNames[unitDefName] then
 				scumSpawnerIDs[UnitDefNames[unitDefName].id] = scumParams
 			end
@@ -157,18 +157,18 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	GG.IsPosInRaptorScum = IsPosInScum --(x,y,z)
-	
+
 	local function GetRandomScumID(startID)
 		if numscums < 1 then return end
 		local scumID = startID or next(scums) -- so we can start iterating from anywhere
 		if not scumID then return end -- return nil on no scums
 		local randomindex = math.random(1, numscums)
-		for i = 1, randomindex do 
+		for i = 1, randomindex do
 			scumID = next(scums)
 		end
 		return scumID
 	end
-	
+
 	GG.GetRandomScumID =  GetRandomScumID -- Returns nil or scumID
 
 	local function GetRandomPositionInScum()
@@ -180,21 +180,21 @@ if gadgetHandler:IsSyncedCode() then
 		local radius = GetScumCurrentRadius(scum)
 		local attempts = 0
 		repeat
-			attempts = attempts + 1 
+			attempts = attempts + 1
 			local randAngle = math.random() * math.pi
-			
+
 			local r = radius * math.sqrt(math.random())
 			local theta = math.random() * 2 * math.pi
 
 			local x = scum.posx + r * math.cos(theta)
 			local z = scum.posz + r * math.sin(theta)
-			if x > 128 and x < Game.mapSizeX - 128 and z > 128 and z < Game.mapSizeZ - 128 and r > 32 then 
+			if x > 128 and x < Game.mapSizeX - 128 and z > 128 and z < Game.mapSizeZ - 128 and r > 32 then
 				px,pz = x,z
 			end
 		until (px and pz) and (attempts < 10)
 		return px,pz
 	end
-	
+
 	GG.GetRandomPositionInScum = GetRandomPositionInScum -- Returns nil or (X, Z)
 
 	local function UpdateBins(scumID, removeScum)
@@ -203,16 +203,16 @@ if gadgetHandler:IsSyncedCode() then
 			--Spring.Echo("Tried to update a scumID",scumID,"that no longer exists because it probably shrank to death, remove = ", removeScum)
 			return nil
 		end
-	
+
 		local posx = scumTable.posx
 		local posz = scumTable.posz
 		local radius = scumTable.radius
-	
+
 		if removeScum then
 			scumTable = nil
 			scums[scumID] = nil
 		end
-	
+
 		local step = radius / 3
 		for dx = -radius, radius, step do
 			for dz = -radius, radius, step do
@@ -259,7 +259,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			scum.growthrate = growthrate
-			
+
 
 			if debugmode then Spring.Echo("Updated scum", scumID, "it was", currentradius,"/", scum.radius, "sized, growing at", growthrate) end
 		end
@@ -289,7 +289,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 
-	function gadget:UnitDestroyed(unitID, unitDefID)
+	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 		if scumSpawnerIDs[unitDefID] and scums[unitID] then
 			AddOrUpdateScum(nil,nil,nil,nil, -10*math.abs(scums[unitID].growthrate), unitID)
 			SendToUnsynced("ScumRemoved", unitID)
@@ -317,7 +317,7 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then
 
 
 	local texcolorheight = "LuaUI/images/raptor_scum/alien_guts_colorheight.dds"
-	
+
 	local textureresolution = "low" -- low or high
 	local textures = {
 		low = {
@@ -331,8 +331,8 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then
 			texdistortion =  "LuaUI/images/lavadistortion.png"
 			},
 		}
-	
-	
+
+
 	local resolution = 32
 	local gameFrame = -1
 
@@ -370,9 +370,9 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then
 		SHADOWSTRENGTH = 0.4, -- how much light a shadowed fragment can recieve
 		CREEPTEXREZ = 0.003,
 		JIGGLEAMPLITUDE = 0.2,
-		VOIDWATER = (gl.GetMapRendering("voidWater") and 1 or 0), 
+		VOIDWATER = (gl.GetMapRendering("voidWater") and 1 or 0),
 	}
-	
+
 	local nightFactor = {1,1,1,1}
 
 	---- GL4 Backend Stuff----
@@ -451,7 +451,7 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then
 		if (lifeparams.z > 0.5){
 			// Place overlapped circles outside of NDC space
 			gl_Position = vec4(2.0,2.0,2.0,1.0);
-		} 
+		}
 	}
 	]]
 
@@ -508,7 +508,7 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then
 		#if (VOIDWATER == 1)
 			if (v_worldUV.y < 0) discard;
 		#endif
-		
+
 		float time = timeInfo.x+timeInfo.w;
 
 		float internalradius = length (v_localxz.xy) ; //dot(v_localxz.xy, v_localxz.xy);
@@ -554,12 +554,12 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then
 		outcolor = outcolor * (  loslevel * (lightamount ) * 0.5) + outcolor * specular * shadow;
 		fragColor.rgba = vec4(outcolor, 1.0 );
 
-		
+
 		// darken outside
 
 		fragColor.a = 1.0 - radialScum*3;
 		fragColor.rgb *= ((fragColor.a  -0.3)*2.0) ;
-		
+
 		// emulate linear fog
 		// vec4 fogParams; //fog {start, end, 0.0, scale}
 		float fogFactor = 1.0;
@@ -568,7 +568,7 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then
 		fogFactor = clamp(fogFactor, 0.0, 1.0);
 		fragColor.rgb = mix( fogColor.rgb, fragColor.rgb,fogFactor);
 
-		
+
 		fragColor.rgb *= nightFactor.rgb;
 
 	}
@@ -580,11 +580,11 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then
 	end
 
 	local function initGL4(shaderConfig, DPATname)
-		if gl.CreateShader == nil then 
+		if gl.CreateShader == nil then
 			headless = true
 			return
 		end
-		
+
 		local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 		vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 		fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
@@ -738,7 +738,7 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then
 	local function AddOrUpdateScum(posx, posy, posz, radius, growthrate, scumID)
 		if debugmode then Spring.Echo("AddOrUpdateScum",posx, posy, posz, radius, growthrate, scumID) end
 		-- if scumID is supplied, we are updateing an existing scum instance!
-		
+
 		local gf = Spring.GetGameFrame()
 		local deathtime
 		local scum
@@ -774,7 +774,7 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then
 		end
 
 		--Spring.Echo(scumID, growthrate, radius, gf)
-		if not headless then 
+		if not headless then
 			pushElementInstance(
 				scumVBO, -- push into this Instance VBO Table
 					{scum.posx, scum.posy, scum.posz, scum.radius ,  --
@@ -799,49 +799,49 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then
 	local function UpdateScumOverlaps()
 		local overlapped = {} -- keys are scumID, value is that its either overlapped or not.
 		local scumRadii = {} -- keys are scumID, value is current radius
-		
-		
-		for scumID, scum in pairs(scums) do 
-			overlapped[scumID] = false 
+
+
+		for scumID, scum in pairs(scums) do
+			overlapped[scumID] = false
 			scumRadii[scumID] = GetScumCurrentRadius(scum)
-		end 
+		end
 		local comparisons = 0
 		local diag = math.diag
-		
-		for binID, scumBin in pairs(scumBins) do 
-			for bigScumID, bigScum in pairs(scumBin) do -- for each of the scums in the bin 
+
+		for binID, scumBin in pairs(scumBins) do
+			for bigScumID, bigScum in pairs(scumBin) do -- for each of the scums in the bin
 				local bigRadius = scumRadii[bigScumID]
-				
-				if not overlapped[bigScumID] and bigRadius > 512 then  
-					for smallScumID, smallScum in pairs(scumBin) do 
-						if not overlapped[smallScumID] and scumRadii[smallScumID] < bigRadius then 
+
+				if not overlapped[bigScumID] and bigRadius > 512 then
+					for smallScumID, smallScum in pairs(scumBin) do
+						if not overlapped[smallScumID] and scumRadii[smallScumID] < bigRadius then
 							comparisons = comparisons + 1
-							if diag(bigScum.posx - smallScum.posx, bigScum.posz - smallScum.posz)  < (bigRadius - scumRadii[smallScumID] - 128) then 
+							if diag(bigScum.posx - smallScum.posx, bigScum.posz - smallScum.posz)  < (bigRadius - scumRadii[smallScumID] - 128) then
 								overlapped[smallScumID] = true
 							end
 						end
 					end
-				end				
+				end
 			end
 		end
-		
+
 		local overlapcount = 0
 		for scumID, overlaps in pairs(overlapped) do
 			if overlaps then overlapcount = overlapcount + 1 end
 		end
-		if debugmode then 
+		if debugmode then
 			Spring.Echo(string.format("Of %d scums, %d overlaps found in %d comparisons", numscums, overlapcount, comparisons))
 		end
-		
+
 		-- update the VBO
-		for i = 0, scumVBO.usedElements -1 do 
+		for i = 0, scumVBO.usedElements -1 do
 			local scumID = scumVBO.indextoInstanceID[i + 1]
 			scumVBO.instanceData[(i * scumVBO.instanceStep) + 7] = (overlapped[scumID] and optimizeoverlaps) and 1 or 0
 		end
 		uploadAllElements(scumVBO)
 		return overlapcount, comparisons
 	end
-	
+
 
 	local usestencil = false
 
@@ -858,13 +858,13 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then
 				Spring.Echo("Inscum", numscums, IsPosInScum(coords[1], coords[2],coords[3]))
 			end
 		end
-		
+
 		if drawScum and scumVBO.usedElements > 0 then
-			if optimizeoverlaps and gameFrame%63 == 0 and lastoverlapframe ~= gameFrame then 
+			if optimizeoverlaps and gameFrame%63 == 0 and lastoverlapframe ~= gameFrame then
 				lastoverlapframe = gameFrame
 				UpdateScumOverlaps()
 			end
-				
+
 			local disticon = 27 * Spring.GetConfigInt("UnitIconDist", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
 			--Spring.Echo(scumVBO.usedElements)
 			--glCulling(GL_BACK)
@@ -908,20 +908,20 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then
 		end
 	end
 
-	local lastSunChanged = -1 
+	local lastSunChanged = -1
 	function gadget:SunChanged() -- Note that map_nightmode.lua gadget has to change sun twice in a single draw frame to update all
 		local df = Spring.GetDrawFrame()
 		if df == lastSunChanged then return end
 		lastSunChanged = df
-		if GG['NightFactor'] then 
+		if GG['NightFactor'] then
 			local altitudefactor = 1.0 --+ (1.0 - WG['NightFactor'].altitude) * 0.5
-			nightFactor[1] = GG['NightFactor'].red 
-			nightFactor[2] = GG['NightFactor'].green 
+			nightFactor[1] = GG['NightFactor'].red
+			nightFactor[2] = GG['NightFactor'].green
 			nightFactor[3] = GG['NightFactor'].blue
 			nightFactor[4] = GG['NightFactor'].shadow
 		end
 	end
-	
+
 	local function RemoveScum(instanceID)
 		if debugmode then Spring.Echo("Removing scum", instanceID) end
 		if scums[instanceID] then
@@ -973,7 +973,7 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then
 						if debugmode then Spring.Echo("Scum ID", scumID, "reached max size", currentRadius, '>=', scum.radius) end
 						scum.atmaxsize = true
 					end
-					
+
 				end
 			end
 		end
@@ -1005,18 +1005,18 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then
 	local function HandleScumRemoved(cmd, scumID )
 		AddOrUpdateScum(nil,nil,nil,nil, -10 * math.abs( scums[scumID].growthrate), scumID)
 	end
-	
+
 	local function ScumTextures()
 		textureresolution = ((textureresolution == 'low') and 'high') or 'low'
 		Spring.Echo("Scum textureresolution set to ", textureresolution)
 	end
-	
+
 	local function ScumStats()
 		for x= 0, math.ceil(mapSizeX/1024) do
 			for z = 0, math.ceil(mapSizeZ/1024) do
-				local scumBin = scumBins[GetMapSquareKey(x*1024, z * 1024)] 
-				local scumCount = 0 
-				for _ in pairs(scumBin) do scumCount = scumCount + 1 end 
+				local scumBin = scumBins[GetMapSquareKey(x*1024, z * 1024)]
+				local scumCount = 0
+				for _ in pairs(scumBin) do scumCount = scumCount + 1 end
 				Spring.Echo(string.format("%d scums are in bin %d x %d", scumCount, x, z))
 			end
 		end
@@ -1024,28 +1024,28 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then
 		local overlapcount, comparisons = UpdateScumOverlaps()
 		Spring.Echo("overlapcount", overlapcount, "comparisons=", comparisons)
 	end
-	
+
 	local function ScumReloadShader()
 		Spring.Echo("ScumReloadShader not implemented")
 	end
-	
+
 	local function ScumDrawToggle()
 		drawScum = not drawScum
 		Spring.Echo("Scum drawing toggled to", drawScum)
-	end	
+	end
 	local function ScumOptimizeOverlap()
 		optimizeoverlaps = not optimizeoverlaps
 		Spring.Echo("Scum optimizeoverlaps toggled to", optimizeoverlaps)
 		UpdateScumOverlaps()
 	end
-	
+
 
 	function gadget:Initialize()
 		initGL4(shaderConfig, "scum")
 
 		gadgetHandler:AddSyncAction("ScumCreated", HandleScumCreated)
 		gadgetHandler:AddSyncAction("ScumRemoved", HandleScumRemoved)
-		
+
 		gadgetHandler:AddChatAction("scumtextures", ScumTextures, "Toggle between texture resolutions")
 		gadgetHandler:AddChatAction("scumreloadshader"   , ScumReloadShader, "Reload the Scum Shader")
 		gadgetHandler:AddChatAction("scumstats"   	, ScumStats, "Print statistics about scum" )
@@ -1056,7 +1056,7 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then
 	function gadget:ShutDown()
 		gadgetHandler:RemoveSyncAction("ScumCreated")
 		gadgetHandler:RemoveSyncAction("ScumRemoved")
-		
+
 		gadgetHandler:RemoveChatAction("scumhighrestextures", ScumTextures)
 		gadgetHandler:RemoveChatAction("scumreloadshader"   , ScumReloadShader  )
 		gadgetHandler:RemoveChatAction("scumstats"   	, ScumStats )

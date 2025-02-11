@@ -31,7 +31,7 @@ return {
 		yardmap = "ooooooooo",
 		customparams = {
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/armmg_aoplane.dds",
+			buildinggrounddecaltype = "decals/legmg_aoplane.dds",
 			buildinggrounddecalsizey = 5,
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,

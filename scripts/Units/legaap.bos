@@ -1,0 +1,224 @@
+
+#include "../recoil_common_includes.h"	
+#include "../factories_common.h"
+
+piece  flare1, flare2, flare3, flare4, flare5, flare6, flare7, flare8, blink, pad, base, nanorod_l, nano_l, nanorod_r, nano_r, radar, cagelights, cagelight1_emit, cagelight2_emit;
+
+static-var  spray, Stunned;
+
+// Signal definitions
+#define SIGNAL_BUILD 2
+#define SIGNAL_TURNON 4
+
+
+Create()
+{
+	hide pad;
+	hide flare1;
+	hide flare2;
+	hide flare3;
+	hide flare4;
+	hide flare5;
+	hide flare6;
+	hide flare7;
+	hide flare8;
+	hide blink;
+	hide cagelight1_emit;
+	hide cagelight2_emit;
+	
+	spray = 0;
+	
+	SLEEP_UNTIL_UNITFINISHED;
+	spin radar around y-axis speed <120> accelerate <1>;
+	start-script Lights();
+	call-script DishSpin();
+}
+
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+QueryNanoPiece(pieceIndex)
+{
+	spray = spray + 1;
+	if (spray >= 8) 
+	{
+		spray = 0;
+	}
+	pieceIndex = flare1 + spray;
+}
+
+DishSpin()
+{
+	show blink;
+	spin radar around y-axis speed <150>;
+}
+
+DishStopSpin()
+{
+	hide blink;
+	spin radar around y-axis speed <0.0>;
+}
+
+SetStunned(State)
+{
+    Stunned = State;
+	if (Stunned) {
+		hide blink;
+		call-script DishStopSpin();
+	} else {
+		call-script DishSpin();
+	}
+}
+
+Activate()
+{
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	FACTORY_OPEN_BUILD;
+}
+
+Activate()
+{
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	FACTORY_OPEN_BUILD;
+	
+	
+}
+
+Deactivate()
+{
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	sleep 5000;
+	
+	turn nanorod_l to y-axis 0 speed <30>;
+	turn nanorod_r to y-axis 0 speed <30>;
+	
+	turn nano_l to z-axis 0 speed <30>;
+	turn nano_r to z-axis 0 speed <30>;
+	wait-for-turn nano_l around z-axis;
+	
+	FACTORY_CLOSE_BUILD;
+}
+
+MoveCranes()
+{
+	while(TRUE)
+	{
+		turn nano_l to z-axis rand(-2500, 2500) speed <45>;
+		turn nanorod_l to y-axis rand(-8000, 1500) speed <45>;
+		
+		sleep(800);
+		
+		turn nano_r to z-axis rand(-2500, 2500) speed <45>;
+		turn nanorod_r to y-axis rand(-1500, 8000) speed <45>;
+		sleep(800);
+	}
+}
+
+Lights()
+{
+	while( TRUE )
+	{
+	    if (!Stunned) {
+		    emit-sfx 1024 + 1 from blink;
+		}
+		sleep 2500;
+	}
+	sleep 50;
+	start-script Lights();
+}
+
+
+StartBuilding()
+{
+	show flare1;
+	show flare2;
+	show flare3;
+	show flare4;
+	show flare5;
+	show flare6;
+	show flare7;
+	show flare8;
+	
+	show cagelight1_emit;
+	show cagelight2_emit;
+	move cagelights to y-axis [2] speed [8];
+	spin cagelight1_emit around y-axis speed <200> accelerate <1>;
+	spin cagelight2_emit around y-axis speed <200> accelerate <1>;
+	
+	
+	signal SIGNAL_BUILD;
+	set-signal-mask SIGNAL_BUILD;
+	start-script MoveCranes();
+}
+
+StopBuilding()
+{
+	hide flare1;
+	hide flare2;
+	hide flare3;
+	hide flare4;
+	hide flare5;
+	hide flare6;
+	hide flare7;
+	hide flare8;
+	
+	hide cagelight1_emit;
+	hide cagelight2_emit;
+	move cagelights to y-axis [0] speed [8];
+	stop-spin cagelight1_emit around y-axis decelerate <1>;
+	stop-spin cagelight2_emit around y-axis decelerate <1>;
+	
+	signal SIGNAL_BUILD;
+}
+
+QueryBuildInfo(pieceIndex)
+{
+	pieceIndex = pad;
+}
+
+
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode radar type BITMAPONLY | NOHEATCLOUD;
+		explode nanorod_r type BITMAPONLY | NOHEATCLOUD;
+		explode nano_l type BITMAPONLY | NOHEATCLOUD;
+		explode nano_r type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode radar type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nanorod_r type FALL | NOHEATCLOUD;
+		explode nano_l type FALL | NOHEATCLOUD;
+		explode nano_r type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode radar type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode nanorod_r type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode nano_l type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nano_r type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode radar type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nanorod_r type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode nano_l type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode nano_r type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}

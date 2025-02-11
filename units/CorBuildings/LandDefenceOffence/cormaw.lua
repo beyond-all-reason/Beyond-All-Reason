@@ -157,6 +157,9 @@ return {
 					default = 22,
 					subs = 5.5,
 				},
+				customparams = {
+					exclude_preaim = true
+				}
 			},
 		},
 		weapons = {

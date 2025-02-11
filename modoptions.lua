@@ -1265,10 +1265,10 @@ local options = {
     -- Hidden Tests
     {
         key    	= "shieldsrework",
-        name   	= "Shields Rework",
-        desc   	= "Shields block all projectiles. Overkill damage is blocked once before reaching 0% charge. Shields are disabled for a few seconds upon reaching 0%.",
+        name   	= "Shields Rework v2.0",
+        desc   	= "Shields block plasma. Overkill damage is absorbed. Shield is down for the duration required to recharge the overkill damage at normal energy cost.",
         type   	= "bool",
-        hidden 	= true,
+        hidden 	= false,
         section = "options_experimental",
         def  	= false,
     },
@@ -1524,6 +1524,45 @@ local options = {
         section = "options_cheats",
         type    = "subheader",
         def     =  true,
+    },
+
+    {
+        key     = "sub_header",
+        section = "options_cheats",
+        type    = "separator",
+    },
+
+    {
+        key     = "sub_header",
+        name    = "-- AI Cheats",
+        desc    = "",
+        section = "options_cheats",
+        type    = "subheader",
+        def     =  true,
+    },
+
+    {
+        key 	= "dynamiccheats",
+        name 	= "Dynamic Cheats",
+        desc   	= "Cheats marked as [Dynamic] react to the game state and are suspended when the opposition is losing",
+        type 	= "bool",
+        def 	= true,
+        section = "options_cheats",
+    },
+
+    {
+        key		= "nowasting",
+        name	= "No Resource Wasting",
+        desc	= "[Dynamic] Increases Buildpower for the affected team's builders and factories to prevent resource",
+        type	= "list",
+        def		= "default",
+        section	= "options_cheats",
+        items	= {
+            { key= "default", 	name= "Default", 		desc="Disabled, unless other features use it"},
+            { key= "disabled", 	name= "Disabled", 		desc="Disabled"},
+            { key= "ai", 		name= "AI Only", 	    desc="All AI except Scavengers and Raptors"},
+            { key= "all", 	    name= "All",			desc="AI and Player Teams both excluding Scavengers and Raptors" },
+        }
     },
 
     {
@@ -1797,6 +1836,7 @@ local options = {
         type   	= "list",
         section = "options_cheats",
         def  	= "unchanged",
+        hidden  = true,
         items	= {
             { key = "unchanged", 		name = "Unchanged", 			desc = "Unchanged" },
             { key = "absorbplasma", 	name = "Absorb Plasma", 		desc = "Collisions Disabled" },

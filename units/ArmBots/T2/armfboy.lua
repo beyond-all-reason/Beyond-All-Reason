@@ -111,7 +111,7 @@ return {
 				energypershot = 0,
 				explosiongenerator = "custom:genericshellexplosion-large-aoe",
 				gravityaffected = "true",
-				impulsefactor = 0.4,
+				impulsefactor = 0.9,
 				name = "Heavy AoE g2g plasma cannon",
 				noselfdamage = true,
 				range = 700,
