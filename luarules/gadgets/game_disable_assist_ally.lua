@@ -117,8 +117,9 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 		return true
 	end
 
-	-- Disallow changing the move_state value of builders to ROAM (move_state of roam causes builders to auto-assist ally construction)
-	if (cmdID == CMD.MOVE_STATE and cmdParams[1] == 2 and UnitDefs[unitDefID].isBuilder) then
+	-- Disallow changing the move_state value of non-factory builders to ROAM (move_state of roam causes builders to auto-assist ally construction)
+	local unitDef = UnitDefs[unitDefID]
+	if (cmdID == CMD.MOVE_STATE and cmdParams[1] == 2 and unitDef.isBuilder and not unitDef.isFactory) then
 		Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, {0}, 0) -- make toggling still work between Hold and Maneuver
 		return false
 	end
@@ -127,7 +128,8 @@ end
 
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-	if UnitDefs[unitDefID].isBuilder then
+	local unitDef = UnitDefs[unitDefID]
+	if unitDef.isBuilder and not unitDef.isFactory and Spring.GetUnitStates(unitID).movestate == 2 then -- prevent non-factory builders from being created with move_state ROAM
 		Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, {0}, 0)
 	end
 end
