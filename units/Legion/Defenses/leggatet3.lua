@@ -16,7 +16,7 @@ return {
 		exemptcategory = "WEAPON",
 		explodeas = "hugeBuildingexplosiongeneric",
 		footprintx = 5,
-		footprintz = 5,
+		footprintz = 6,
 		health = 3550,
 		idleautoheal = 5,
 		idletime = 1800,
