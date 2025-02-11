@@ -124,6 +124,8 @@ end
 t2conNames = nil
 
 local function setUnitOnSale(unitID, specifiedPrice, toggle)
+
+    
     if not spValidUnitID(unitID) then return false end
     local unitDefID = spGetUnitDefID(unitID)
     if not unitDefID then return false end
@@ -131,21 +133,21 @@ local function setUnitOnSale(unitID, specifiedPrice, toggle)
     if not unitDef then return false end
     local finished = not Spring.GetUnitIsBeingBuilt(unitID)
     if not AllowPlayersSellUnfinished and not finished then return false end
-    local price
-    if not specifiedPrice or specifiedPrice <= 0 then
-        price = unitDef.metalCost or 1 -- in case the unit's metal cost is somehow 0 or nil
-    else 
-        price = specifiedPrice
-    end
 
     -- When tax resource sharing is on, only allow selling t2 cons through unit market
     if tax_resource_sharing_enabled then
         if not isT2Con[unitDefID] then return false end
     end
-
     if toggle and not (unitsForSale[unitID] == nil or unitsForSale[unitID] == 0) then
         setNotForSale(unitID)
         return false
+    end
+    
+    local price
+    if not specifiedPrice or specifiedPrice <= 0 then
+        price = unitDef.metalCost
+    else 
+        price = specifiedPrice
     end
 
     unitsForSale[unitID] = price
@@ -176,7 +178,7 @@ end
 
 
 
-local function tryToBuyUnit(unitID, msgFromTeamID)
+local function tryToBuyUnit(unitID, buyerTeamID)
 
     if not unitID or unitsForSale[unitID] == nil or unitsForSale[unitID] == 0 then return end
     local unitDefID = spGetUnitDefID(unitID)
@@ -184,15 +186,15 @@ local function tryToBuyUnit(unitID, msgFromTeamID)
     local unitDef = UnitDefs[unitDefID]
     if not unitDef then return end
     
-    local old_ownerTeamID = spGetUnitTeam(unitID)
-    local _, _, _, isAiTeam = spGetTeamInfo(old_ownerTeamID)
-    if not spAreTeamsAllied(old_ownerTeamID, msgFromTeamID) then return end
+    local sellerTeamID = spGetUnitTeam(unitID)
+    local _, _, _, isAiTeam = spGetTeamInfo(sellerTeamID)
+    if not spAreTeamsAllied(sellerTeamID, buyerTeamID) then return end
 
-    local current = select(1,spGetTeamResources(msgFromTeamID, "metal"))
+    local current = select(1,spGetTeamResources(buyerTeamID, "metal"))
     local price = unitsForSale[unitID]
 
     if isAiTeam then
-        local discount = getAIdiscount(msgFromTeamID, old_ownerTeamID, price) -- if AI ally owes you metal, you can discount
+        local discount = getAIdiscount(buyerTeamID, sellerTeamID, price) -- if AI ally owes you metal, you can discount
         price = price - discount
         --Spring.Echo("debug discount: "..discount) -- debug: if AI owes you money...
     end
@@ -203,17 +205,15 @@ local function tryToBuyUnit(unitID, msgFromTeamID)
         saleWhitelist[unitID] = true
     end
 
-    TransferUnit(unitID, msgFromTeamID)
-    if msgFromTeamID ~= old_ownerTeamID and price > 0 then -- don't send resources to yourself
-        ShareTeamResource(msgFromTeamID, old_ownerTeamID, "metal", price)
-        -- if tax resource sharing is on, refund tax to the seller
-        if tax_resource_sharing_enabled then
-            local taxAmount = price * tax_resource_amount
-            Spring.AddTeamResource(old_ownerTeamID, "metal", taxAmount)
-        end
+    TransferUnit(unitID, buyerTeamID)
+    if buyerTeamID ~= sellerTeamID and price > 0 then -- don't send resources to yourself
+        
+        Spring.AddTeamResource(sellerTeamID, "metal", price) -- adjust metal manually to avoid resource share tax
+        local curMetal, _, _, _, _, _ = Spring.GetTeamResources(buyerTeamID, "metal")
+        Spring.SetTeamResource(buyerTeamID, "metal", curMetal-price)
     end
     setNotForSale(unitID)
-    UnitSoldBroadcast(unitID, price, old_ownerTeamID, msgFromTeamID)
+    UnitSoldBroadcast(unitID, price, sellerTeamID, buyerTeamID)
 end
 
 if disable_unit_sharing_enabled then
