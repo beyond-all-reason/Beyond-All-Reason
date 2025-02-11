@@ -32,28 +32,26 @@ local isEconOrLab = {}
 local isCombatUnitOrTacticalBuilding = {} 
 
 for unitDefID, unitDef in pairs(UnitDefs) do
-	-- Mark econ units
-	if unitDef.customParams.unitgroup == "energy" or unitDef.customParams.unitgroup == "metal" then
-		isEconOrLab[unitDefID] = true
-	elseif unitDef.canResurrect then
-		isEconOrLab[unitDefID] = true
-
-
 	-- Mark labs and mobile production
-	elseif unitDef.isFactory or unitDef.isBuilder then
-		isEconOrLab[unitDefID] = true
+	-- Mark econ units
+	local treatAsCombatUnit = unitDef.customParams.disableunitsharing_treatascombatunit == "1"
+	if not treatAsCombatUnit then
+		if unitDef.customParams.unitgroup == "energy" or unitDef.customParams.unitgroup == "metal" then
+			isEconOrLab[unitDefID] = true
+		elseif unitDef.canResurrect then
+			isEconOrLab[unitDefID] = true
+		elseif (unitDef.isFactory or unitDef.isBuilder) then
+			isEconOrLab[unitDefID] = true
+		end
 	end
 
 	-- Mark combat units and tactical buildings
 	if unitDef.isBuilding and not isEconOrLab[unitDefID] then 
 		isCombatUnitOrTacticalBuilding[unitDefID] = true
-	elseif #unitDef.weapons > 0 then
+	elseif #unitDef.weapons > 0 or treatAsCombatUnit then
 		isCombatUnitOrTacticalBuilding[unitDefID] = true
 	end
 end
-
-
-
 
 
 -- Returns whether the unit is allowed to be shared according to the unit sharing restrictions.

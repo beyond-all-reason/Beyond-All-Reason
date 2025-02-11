@@ -61,6 +61,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmVehicles",
 			unitgroup = "builder",
+			disableunitsharing_treatascombatunit = 1,
 		},
 		featuredefs = {
 			dead = {

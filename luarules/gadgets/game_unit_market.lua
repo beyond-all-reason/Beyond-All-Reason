@@ -113,19 +113,8 @@ if tax_resource_sharing_enabled ~= 0 or Spring.GetModOptions().disable_assist_al
     AllowPlayersSellUnfinished = false -- needs to be off, otherwise the buyer can assist their unfinished blueprint after buying it
 end
 
-
-local t2conNames = {"armack", "armacv", "armaca", "armacsub", "corack", "coracv", "coraca", "coracsub", "legack", "legacv", "legaca", "legacsub"}
-local isT2Con = {}
-for _, name in ipairs(t2conNames) do
-    if UnitDefNames[name] then
-        isT2Con[UnitDefNames[name].id] = true
-    end
-end
-t2conNames = nil
-
 local function setUnitOnSale(unitID, specifiedPrice, toggle)
 
-    
     if not spValidUnitID(unitID) then return false end
     local unitDefID = spGetUnitDefID(unitID)
     if not unitDefID then return false end
@@ -136,7 +125,7 @@ local function setUnitOnSale(unitID, specifiedPrice, toggle)
 
     -- When tax resource sharing is on, only allow selling t2 cons through unit market
     if tax_resource_sharing_enabled then
-        if not isT2Con[unitDefID] then return false end
+        if not unitDef.customParams.shareable_under_resource_tax then return false end
     end
     if toggle and not (unitsForSale[unitID] == nil or unitsForSale[unitID] == 0) then
         setNotForSale(unitID)

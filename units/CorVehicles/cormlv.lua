@@ -61,6 +61,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorVehicles",
 			unitgroup = "builder",
+			disableunitsharing_treatascombatunit = 1,
 		},
 		featuredefs = {
 			dead = {

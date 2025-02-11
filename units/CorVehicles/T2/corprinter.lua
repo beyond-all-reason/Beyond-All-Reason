@@ -55,6 +55,7 @@ return {
 			subfolder = "CorVehicles/T2",
 			techlevel = 2,
 			unitgroup = "buildert2",
+			disableunitsharing_treatascombatunit = 1,
 		},
 		featuredefs = {
 			dead = {

@@ -78,6 +78,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorVehicles/T2",
 			techlevel = 2,
+			shareable_under_resource_tax = 1,
 		},
 		featuredefs = {
 			dead = {

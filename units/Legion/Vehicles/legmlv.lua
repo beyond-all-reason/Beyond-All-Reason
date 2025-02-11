@@ -62,6 +62,7 @@ return {
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/vehicles",
+			disableunitsharing_treatascombatunit = 1,
 		},
 		featuredefs = {
 			dead = {
