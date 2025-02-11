@@ -318,11 +318,13 @@ StopWalking() {
 }
 
 // REMEMBER TO animspeed = 5 in Create() !!
-UnitSpeed(){
+UnitSpeed()
+{
 	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
 	animFramesPerKeyframe = 5; //we need to calc the frames per keyframe value, from the known animtime
 	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
-	while(TRUE){
+	while(TRUE)
+	{
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 5) / animSpeed; 
@@ -333,13 +335,15 @@ UnitSpeed(){
 	}
 }
 
-StartMoving(){
+StartMoving()
+{
 	signal SIGNAL_MOVE;
 	isMoving=TRUE;
 	start-script Walk();
 }
 
-StopMoving(){
+StopMoving()
+{
 	signal SIGNAL_MOVE;
 	isMoving=FALSE;
 	call-script StopWalking();
@@ -361,13 +365,14 @@ HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage i
 	turn BASEPIECE to x-axis <0.000000> speed HITSPEED / 4;
 }
 
+// Disable armored state when 1500 damage is taken
 HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
 {
 	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
 	tdamage = dmg + tdamage;
 	if ((tdamage > 30000) AND (shieldup == 1))
 	{
-		// Only explode 2 pieces to reduce clutter
+		// Start Animation: Break Shield; Only explode 2 pieces to reduce clutter
 		explode armortorso type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode armorlsleeve type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		
@@ -376,6 +381,7 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 		hide armorfrleg;
 		hide armorrshoulder;
 		hide armorlsleeve;
+		// End Animation
 		
 		set ARMORED to 0;
 		shieldup = 0;
@@ -384,13 +390,13 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 	return (100); //return damage percent
 }
 
-// Restore this units hume shield after 15000ms / 15 seconds
+// Restore this units hume shield after 15000ms / 15 seconds, restore armored state
 repairShield()
 {
 	set-signal-mask SIGNAL_REPAIR;
 	sleep 11000;
 	
-	// 5 second countdown
+	// Start Animation: 5 second countdown
 	show armorflleg;
 	emit-sfx 1024 + 1 from armorflleg;
 	sleep 1000;
@@ -409,10 +415,11 @@ repairShield()
 	
 	show armortorso;
 	emit-sfx 1024 + 1 from armortorso;
+	// End Animation
 	
 	// Reset shield status 
 	shieldup = 1;
-	set ARMORED to 0;
+	set ARMORED to 1;
 	tdamage = 0;
 }
 

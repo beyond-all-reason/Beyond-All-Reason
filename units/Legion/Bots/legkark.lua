@@ -19,6 +19,7 @@ return {
 		idletime = 1800,
 		health = 1540,
 		maxslope = 17,
+		mass = 210, -- Testing: this unit has resistance to impulse 
 		speed = 42.0,
 		maxwaterdepth = 12,
 		movementclass = "BOT3",
@@ -154,7 +155,7 @@ return {
 				explosiongenerator = "custom:plasmahit-sparkonly",
 				fallOffRate = 0.2,
 				firestarter = 0,
-				impulsefactor = 2.4,
+				impulsefactor = 3.33,
 				intensity = 1.0,
 				name = "Medium Shotgun",
 				noselfdamage = true,
@@ -173,8 +174,9 @@ return {
 				thickness = 2.0,
 				tolerance = 6000,
 				turret = true,
+				cylindertargeting=true,
 				weapontype = "LaserCannon",
-				weaponvelocity = 960,
+				weaponvelocity = 800,
 				damage = {
 					default = 20,
 					vtol = 6,
