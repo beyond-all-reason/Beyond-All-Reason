@@ -1,209 +1,225 @@
 local labGrids = {
 	-- T1 bot
 	armlab = {
-		"armck", "armrectr", "armpw", "armflea",                -- T1 con, rez bot, peewee, flea
-		"armrock", "armham", "armwar", "",                     -- rocko, hammer, warrior
-		"", "", "armjeth",                                         -- aa bot
+		"armck", "armrectr", "armpw", "armflea",		-- T1 con, rez bot, pawn, tick
+		"armrock", "armham", "armwar", "",				-- rocketeer, mace, centurion
+		"", "", "armjeth",								-- aa bot
 	},
-
 	corlab = {
-		"corck", "cornecro", "corak", "",                      -- T1 con, rez bot, AK
-		"corstorm", "corthud", "", "",                        -- storm, thud
-		"", "", "corcrash",                                        -- aa bot
+		"corck", "cornecro", "corak", "",				-- T1 con, rez bot, grunt
+		"corstorm", "corthud", "", "",					-- aggravator, thug
+		"", "", "corcrash",								-- aa bot
 	},
 	leglab = {
-		"legck", "cornecro", "leggob", "",                      -- T1 con, rez bot, AK
-		"legbal", "leglob", "legkark", "legcen",                        -- storm, thud
-		"", "", "corcrash",                                        -- aa bot
-	},
-	-- T2 bot
-	armalab = {
-		"armack", "armfark", "armfast", "armspy",             -- T2 con, fark, zipper, spy
-		"armmark", "armaser", "armzeus", "armmav",             -- radar bot, jammer bot, zeus, maverick
-		"armfido", "armsnipe", "armaak", "armfboy",            -- fido, sniper, AA bot, fatboi
+		"legck", "cornecro", "leggob", "", 				-- T1 con, rez bot, goblin
+		"legbal", "leglob", "legkark", "legcen",		-- balista, lobber, karkinos, centuar
+		"", "", "corcrash",  							-- aa bot
 	},
 
+	-- T2 bot
+	armalab = {
+		-- page1
+		"armack", "armfark", "armfast", "armspy",			-- T2 con, butler, sprinter, spy
+		"armmark", "armaser", "armzeus", "armmav",			-- radar bot, jammer bot, welder, gunslinger
+		"armfido", "armsnipe", "armaak", "armfboy",			-- hound, sniper, AA bot, fatboy
+		-- page2
+		"armamph", "armsptk", "armspid", "armvader",		-- platypus, recluse, webber, tumbleweed
+		"armdecom", "armscab", 								-- decoy com, antinuke
+	},
 	coralab = {
-		"corack", "corfast", "corpyro", "corspy",               -- T2 con, freaker, pyro, spy
-		"corvoyr", "corspec", "corcan", "corhrk",              -- radar bot, jammer bot, can, dominator
-		"cormort", "corroach", "coraak", "corsumo",             -- morty, skuttle, AA bot, sumo
+		-- page1
+		"corack", "corfast", "corpyro", "corspy",			-- T2 con, twitcher, fiend, spy
+		"corvoyr", "corspec", "corcan", "corhrk",			-- radar bot, jammer bot, sumo, arbiter
+		"cormort", "corroach", "coraak", "corsumo",			-- sheldon, bedbug, AA bot, mammoth
+		-- page2
+		"coramph", "cortermite", "corsktl", "cordecom",		-- duck, termite, skuttle, decoy com
+		"cormando",											-- commando
 	},
 	legalab = {
 		-- page1
-		"legack", "legaceb", "legstr", "corspy",               -- T2 con, proteus, strider, spy
-		"corvoyr", "corspec", "legshot", "leginfestor",              -- radar bot, jammer bot, shotgun, infestor
-		"legbart", "legsrail", "coraak", "leginc",             -- belcher, railgun, AA bot, incinerator
+		"legack", "legaceb", "legstr", "corspy",			-- T2 con, proteus, strider, spy
+		"corvoyr", "corspec", "legshot", "leginfestor",		-- radar bot, jammer bot, phalanx, infestor
+		"legbart", "legsrail", "coraak", "leginc",			-- belcher, arquebus, AA bot, incinerator
 		-- page2
-		"coramph", "corhrk", "legsnapper", "corsktl",				-- amphbious bot, dominator, snapper, skuttle
-		"legdecom",					-- decoycom
+		"coramph", "corhrk", "legsnapper", "corsktl",		-- amphbious bot, arbiter, snapper, skuttle
+		"legdecom",	"", "", "", 							-- decoy com
 	},
+
 	-- T1 vehicle
 	armvp = {
-		"armcv", "armmlv", "armflash", "armfav",        -- T1 con, minelayer, flash, scout
-		"armstump", "armjanus", "armart", "",          -- stumpy, janus, arty
-		"armbeaver", "armpincer", "armsam", "",        -- amphib con, amphib tank, missile truck
+		"armcv", "armmlv", "armflash", "armfav",		-- T1 con, minelayer, blitz, scout
+		"armstump", "armjanus", "armart", "",			-- stout, janus, shellshocker
+		"armbeaver", "armpincer", "armsam", "",			-- amphib con, amphib tank, missile truck
 	},
-
 	corvp = {
-		"corcv", "cormlv", "corgator", "corfav",       -- T1 con, minelayer, gator, scout
-		"corraid", "corlevlr", "corwolv", "",         -- raider, leveler, art
-		"cormuskrat", "corgarp", "cormist", "",       -- amphib con, amphib tank, missile truck
+		"corcv", "cormlv", "corgator", "corfav",		-- T1 con, minelayer, incisor, scout
+		"corraid", "corlevlr", "corwolv", "",			-- brute, pounder, wolverine
+		"cormuskrat", "corgarp", "cormist", "",			-- amphib con, amphib tank, missile truck
 	},
 	legvp = {
-		"legcv", "legmlv", "leghades", "legscout",       -- T1 con, minelayer, gator, scout
-		"leghelios", "leggat", "legbar", "",         -- raider, leveler, art
-		"legotter", "legamphtank", "legrail", "",       -- amphib con, amphib tank, missile truck
-	},
-	-- T2 vehicle
-	armavp = {
-		"armacv", "armconsul", "armbull", "armmart",           -- T2 con, consul, bulldog, luger
-		"armseer", "armjam", "armmanni", "armst",              -- radar, jammer, penetrator, gremlin
-		"armlatnk", "armcroc", "armyork", "armmerl",           -- panther, triton, AA, merl
+		"legcv", "legmlv", "leghades", "legscout",		-- T1 con, minelayer, alaris, scout
+		"leghelios", "leggat", "legbar", ""				-- helios, decurion, barrage
+		"legotter", "legamphtank", "legrail", "",		-- amphib con, amphib tank, railgun truck
 	},
 
+	-- T2 vehicle
+	armavp = {
+		"armacv", "armconsul", "armbull", "armmart",           -- T2 con, consul, bull, mauser
+		"armseer", "armjam", "armmanni", "armst",              -- radar, jammer, starlight, gremlin
+		"armlatnk", "armcroc", "armyork", "armmerl",           -- jaguar, turtle, AA truck, ambassador
+	},
 	coravp = {
-		"coracv", "corban", "correap", "cormart",              -- T2 con, banisher, reaper, pillager
-		"corvrad", "coreter", "corgol", "cortrem",             -- radar, jammer, goli, tremor
-		"corseal", "corparrow", "corsent", "corvroc",          -- croc, poison arrow, AA, diplomat
+		-- page1
+		"coracv", "corban", "correap", "cormart",				-- T2 con, banisher, tiger, quaker
+		"corvrad", "coreter", "corgol", "cortrem",				-- radar, jammer, tzar, tremor
+		"corseal", "corparrow", "corsent", "corvroc",			-- salamander, poison arrow, AA, negotiator
+		-- page2
+		"cormabm", "corvac", "corphantom", "corsiegebreaker",	-- antinuke, printer(RCU), phantom(RCU), siegebreaker(RCU)
 	},
 	legavp = {
 		-- page1
 		"legacv", "legmed", "legaskirmtank", "legamcluster",	-- T2 con, medusa, gladiator, cleaver
-		"legavrad", "legavjam", "legaheattank", "leginf",        -- radar, jammer, prometheus, inferno
-		"legmrv", "legfloat", "legvflak", "legavroc",            -- Quickshot, new triton, AA, boreas
+		"legavrad", "legavjam", "legaheattank", "leginf",		-- radar, jammer, prometheus, inferno
+		"legmrv", "legfloat", "legvflak", "legavroc",			-- Quickshot, triton, AA, boreas
 		-- page2
-		"legvcarry", "cormabm",					-- mantis, veh antinuke
+		"legvcarry", "cormabm",	"", "",							-- mantis, antinuke
 	},
+
 	-- T1 air
 	armap = {
-		"armca", "armfig", "armkam", "armthund",           -- T1 con, fig, gunship, bomber
-		"armpeep", "armatlas", "armhvytrans",                -- radar, light transport, medium transport
+		"armca", "armfig", "armkam", "armthund",		-- T1 con, fig, gunship, bomber
+		"armpeep", "armatlas", "armhvytrans",			-- radar, light transport, heavy transport
 	},
 	corap = {
-		"corca", "corveng", "corbw", "corshad",              -- T1 con, fig, drone, bomber
-		"corfink", "corvalk", "corhvytrans",                 -- radar, light transport, medium transport
+		"corca", "corveng", "corbw", "corshad",			-- T1 con, fig, drone, bomber
+		"corfink", "corvalk", "corhvytrans",			-- radar, light transport, heavy transport
 	},
     legap = {
-		"legca", "legfig", "legmos", "legkam",              -- T1 con, fig, drone, bomber
-		"legcib", "legatrans", "corhvytrans",                -- radar, light transport, medium transport
+		"legca", "legfig", "legmos", "legkam",			-- T1 con, fig/scout, gunship, flyingbomb
+		"legcib", "legatrans", "corhvytrans",			-- junobomber, light transport, heavy transport
 	},
+
 	-- T2 air
 	armaap = {
-		"armaca", "armhawk", "armbrawl", "armpnix",           -- T2 con, fig, gunship, bomber
-		"armawac", "armdfly", "armlance", "armsfig2",                -- radar, transport, torpedo, heavy fighter (mod)
-		"armliche", "armblade", "armstil",                    -- liche, blade, stiletto
+		"armaca", "armhawk", "armbrawl", "armpnix",				-- T2 con, fig, gunship, bomber
+		"armawac", "armdfly", "armlance", "armsfig2",			-- radar, transport, torpedo, heavy fighter (mod)
+		"armliche", "armblade", "armstil",						-- liche, blade, stiletto
 	},
-
 	coraap = {
-		"coraca", "corvamp", "corape", "corhurc",              -- T2 con, fig, gunship, bomber
-		"corawac", "corseah", "cortitan", "corsfig2",                 -- radar, transport, torpedo, heavy fighter (mod)
-		"corcrw","corcrwh",                                              -- krow
+		"coraca", "corvamp", "corape", "corhurc",				-- T2 con, fig, gunship, bomber
+		"corawac", "corseah", "cortitan", "corsfig2",			-- radar, transport, torpedo, heavy fighter (mod)
+		"corcrw","corcrwh",										-- archaic dragon, dragon
 	},
 	legaap = {
-		"legaca", "legionnaire", "legvenator", "legphoenix",					--T2 con, defensive fig, interceptor, phoenix
-		"legwhisper", "legstronghold", "legatorpbomber", "",			--radar, transport(gunship), torpedo,
-		"legfort", "legnap", "legmineb", ""			--flying fort, napalmbomber, minebomber
+		"legaca", "legionnaire", "legvenator", "legphoenix",	-- T2 con, defensive fig, interceptor, phoenix
+		"legwhisper", "legstronghold", "legatorpbomber", "",	-- radar, transport(gunship), torpedo,
+		"legfort", "legnap", "legmineb", ""						-- flying fort, napalmbomber, minebomber
 	},
+
 	-- seaplanes
 	armplat = {
-		"armcsa", "armsfig", "armsaber", "armsb",           -- seaplane con, fig, gunship, bomber
-		"armsehak", "armseap",                              -- radar, torpedo
+		"armcsa", "armsfig", "armsaber", "armsb",		-- seaplane con, fig, gunship, bomber
+		"armsehak", "armseap",							-- radar, torpedo
 	},
-
 	corplat = {
-		"corcsa", "corsfig", "corcut", "corsb",              -- seaplane con, fig, gunship, bomber
-		"corhunt", "corseap",                                -- radar, torpedo
-	},
-	-- T1 boats
-	armsy = {
-		"armcs", "armrecl", "armdecade", "",              -- T1 sea con, rez sub, decade
-		"armpship", "armroy", "", "",                    -- frigate, destroyer, transport ("armtship",)
-		"armsub", "", "armpt",                            -- sub, PT boat
+		"corcsa", "corsfig", "corcut", "corsb",			-- seaplane con, fig, gunship, bomber
+		"corhunt", "corseap",							-- radar, torpedo
 	},
 
-	corsy = {
-		"corcs", "correcl", "coresupp", "",               -- T1 sea con, rez sub, supporter, missile boat
-		"corpship", "corroy", "", "",                    -- frigate, destroyer, transport ("cortship",)
-		"corsub", "", "corpt",                            -- sub, missile boat
+	-- T1 boats 
+	armsy = {
+		"armcs", "armrecl", "armdecade", "",			-- T1 sea con, rez sub, dolphin
+		"armpship", "armroy", "", "",					-- frigate, destroyer, transport ("armtship",)
+		"armsub", "", "armpt", 							-- sub, PT boat
 	},
+	corsy = {
+		"corcs", "correcl", "coresupp", "",				-- T1 sea con, rez sub, supporter
+		"corpship", "corroy", "", "",					-- frigate, destroyer, transport ("cortship",)
+		"corsub", "", "corpt",							-- sub, missile boat
+	},
+
 	-- T2 boats
 	armasy = {
-		"armacsub", "armmls", "armcrus", "armmship",         -- T2 con sub, naval engineer, cruiser, rocket ship
-		"armcarry", "armsjam", "armbats", "armepoch",        -- carrier, jammer, battleship, flagship
-		"armsubk", "armserp", "armaas",                      -- sub killer, battlesub, AA
+		-- page1
+		"armacsub", "armmls", "armcrus", "armmship",		-- T2 con sub, naval engineer, cruiser, rocket ship
+		"armcarry", "armsjam", "armbats", "armepoch",		-- carrier, jammer, battleship, flagship
+		"armsubk", "armserp", "armaas",	"armlship",			-- sub killer, battlesub, AA, lightning ship
+		-- page2
+		"armdronecarry", 									-- drone carrier(RCU)
+	},
+	corasy = {
+		-- page1
+		"coracsub", "cormls", "corcrus", "cormship",		-- T2 con sub, naval engineer, cruiser, rocket ship
+		"corcarry", "corsjam", "corbats", "corblackhy",		-- carrier, jammer, battleship, flagship
+		"corshark", "corssub", "corarch", "corfship",		-- sub killer, battlesub, AA, flamethrower ship
+		-- page2
+		"cordronecarry",									-- drone carrier(RCU)
 	},
 
-	corasy = {
-		"coracsub", "cormls", "corcrus", "cormship",              -- T2 con sub, naval engineer, cruiser, rocket ship
-		"corcarry", "corsjam", "corbats", "corblackhy",            -- carrier, jammer, battleship, flagship
-		"corshark", "corssub", "corarch",                          -- sub killer, battlesub, AA
-	},
 	-- amphibious labs
 	armamsub = {
-		"armbeaver", "armdecom", "armpincer", "",
-		"armcroc", "", "", "",
-		"", "armjeth", "armaak",
+		"armbeaver", "armdecom", "armpincer", "",			-- amphibious con, decoy com, T1 amph tank
+		"armcroc", "", "", "",								-- turtle
+		"", "armjeth", "armaak",							-- T1 AA bot, T2 AA bot
 	},
-
 	coramsub = {
-		"cormuskrat", "cordecom", "corgarp", "",
-		"corseal", "corparrow", "", "",
-		"", "corcrash", "coraak",
+		"cormuskrat", "cordecom", "corgarp", "",			-- amphibious con, decoy com, T1 amph tank
+		"corseal", "corparrow", "", "",						-- salamander, poison arrow
+		"", "corcrash", "coraak",							-- T1 AA bot, T2 AA bot
+	},
+	legamsub = {
+		"legotter", "legdecom", "legamphtank", "",			-- amphibious con, decoy com, t1 amphibious tank,
+		"", "legfloat", "", "",								-- triton,
+		"", "corcrash", "coraak", "",						-- T1 AA bot, T2 AA bot,
 	},
 
-	legamsub = {
-		"legotter", "legdecom", "legamphtank", "", 		-- amphibious con, decoy com, t1 amphibious tank, idk
-		"",         "legfloat", "",            "", 		-- idk, t2 floating tank, idk, idk
-		"",         "corcrash", "coraak",      "",		-- idk, t1 aa bot, t2 aa bot, idk
-	},
 	-- hover labs
 	armhp = {
-		"armch", "", "armsh", "",
-		"armanac", "armmh", "", "",
-		"", "", "armah",
+		"armch", "", "armsh", "",				-- T1 con, seeker
+		"armanac", "armmh", "", "",				-- crocodile, possum
+		"", "", "armah",						-- AA hover
 	},
-
 	corhp = {
-		"corch", "", "corsh", "",
-		"corsnap", "cormh", "corhal", "",
-		"", "", "corah",
+		"corch", "", "corsh", "",				-- T1 con, goon
+		"corsnap", "cormh", "corhal", "",		-- cayman, mangonel, halberd
+		"", "", "corah",						-- AA hover
 	},
-	armfhp = {
-		"armch", "", "armsh", "",
-		"armanac", "armmh", "", "",
-		"", "", "armah",
-	},
-
-	corfhp = {
-		"corch", "", "corsh", "",
-		"corsnap", "cormh", "corhal", "",
-		"", "", "corah",
-	},
-
 	leghp = {
-		"legch", "", "legsh", "",
-		"legner", "legmh", "legcar", "",
-		"", "", "legah",
+		"legch", "", "legsh", "",				-- T1 con, glaucus
+		"legner", "legmh", "legcar", "",		-- nereus, salacia, cardea
+		"", "", "legah",						-- AA
 	},
 
-	legfhp = {
-		"legch", "", "legsh", "",
-		"legner", "legmh", "corhal", "",
-		"", "", "legah",
+	-- floating hover labs
+	armfhp = {
+		"armch", "", "armsh", "",				-- T1 con, seeker
+		"armanac", "armmh", "", "",				-- crocodile, possum
+		"", "", "armah",						-- AA
 	},
+	corfhp = {
+		"corch", "", "corsh", "",				-- T1 con, goon
+		"corsnap", "cormh", "corhal", "",		-- cayman, mangonel, halberd
+		"", "", "corah",						-- AA
+	},
+	legfhp = {
+		"legch", "", "legsh", "",				-- T1 con, glaucus
+		"legner", "legmh", "legcar", "",		-- nereus, salacia, cardea
+		"", "", "legah",						-- AA
+	},
+
 	-- T3 labs
 	armshltx = {
-		"armmar", "armraz", "armvang", "armthor",
-		"armbanth", "armlun"
+		"armmar", "armraz", "armvang", "armthor",		-- marauder, razorback, vanguard, thor
+		"armbanth", "armlun"							-- titan, lunkhead
 	},
 	corgant = {
-		"corcat", "corkarg", "corshiva", "corkorg",
-		"corjugg", "corsok"
+		"corcat", "corkarg", "corshiva", "corkorg",		-- catapult, kargneth, shiva, juggernaut
+		"corjugg", "corsok", "cordemon",				-- behemoth, cataphract, demon
 	},
 	leggant = {
-		"corcat", "corkarg", "legjav", "corkorg", --catapult, kargneth, javelin, juggernaut
-		"corjugg", "corsok", "legpede", "leegmech", --behemoth, hovertank, mukade, praetorian
-		"legkeres","legerailtank","" -- keres, daedalus
+		"corcat", "corkarg", "legjav", "corkorg", 		-- catapult, kargneth, javelin, juggernaut
+		"corjugg", "corsok", "legpede", "leegmech", 	-- behemoth, hovertank, mukade, praetorian
+		"legkeres","legerailtank",						-- keres, daedalus
 	}
 }
 local unitGrids = {
