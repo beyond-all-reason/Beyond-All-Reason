@@ -37,6 +37,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetGameSeconds = Spring.GetGameSeconds
 	local spGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
 
+	local GAME_SPEED = Game.gameSpeed
 	local PRIVATE = { private = true }
 
 	local evolutionMetaList = {}
@@ -45,8 +46,6 @@ if gadgetHandler:IsSyncedCode() then
 	local teamPowerList = {}
 	local highestTeamPower = 0
 
-	local evolutionBatchTimer = Spring.GetTimer()
-	local evolutionBatchIntervalMs = 1000 / Game.gameSpeed
 	local lastCheckIndex = 1
 	local toCheckUnitIDs = {}
 	local nToCheckUnitIDs = 0
@@ -139,7 +138,7 @@ if gadgetHandler:IsSyncedCode() then
 				return newUnitName, 0
 			end
 
-		local defaultTimer = 20 * Game.gameSpeed
+		local defaultTimer = 20 * GAME_SPEED
 		local evolutionMetaNewTimer = tonumber(evolutionMetaNew.evolution_timer) or defaultTimer
 		local delayedSeconds = spGetGameSeconds() - evolutionMetaOld.timeCreated - (tonumber(evolutionMetaOld.evolution_timer) or defaultTimer)
 
@@ -266,7 +265,7 @@ if gadgetHandler:IsSyncedCode() then
 
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-		local defaultTimer = 20 * Game.gameSpeed
+		local defaultTimer = 20 * GAME_SPEED
 		local udcp = UnitDefs[unitDefID].customParams
 		if udcp.evolution_target then
 			evolutionMetaList[unitID] = {
@@ -371,11 +370,9 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:GameFrame(f)
-		if Spring.DiffTimers(Spring.GetTimer(), evolutionBatchTimer, true) < evolutionBatchIntervalMs or FillToCheckUnitIDs() then
+		if f % GAME_SPEED ~= 0 or FillToCheckUnitIDs() then
 			return
 		end
-
-		evolutionBatchTimer = Spring.GetTimer()
 
 		local checkCount = 0
 		local currentTime = spGetGameSeconds()
