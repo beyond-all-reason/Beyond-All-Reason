@@ -1858,7 +1858,7 @@ local unitGrids = {
 		}
 	},
 
-	--fark
+	--butler
 	armfark = {
 		{
 			{ "armmex", "armsolar", "armwin", },   -- mex, solar, wind
@@ -1882,7 +1882,7 @@ local unitGrids = {
 		}
 	},
 
-	--freaker
+	--twitcher
 	corfast = {
 		{
 			{ "cormex", "corsolar", },                                -- mex, solar
@@ -1978,7 +1978,7 @@ local unitGrids = {
 		}
 	},
 
-	--corprinter
+	--printer
 	corprinter = {
 		{
 			{'corsolar', 'cormex' },
