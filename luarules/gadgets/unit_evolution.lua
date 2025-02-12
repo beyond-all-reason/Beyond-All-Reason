@@ -381,7 +381,7 @@ if gadgetHandler:IsSyncedCode() then
 		local currentTime = spGetGameSeconds()
 		local evolutionsBatchSize = UnitsToBatchSizeInterpolation(#Spring.GetAllUnits(), 600, 4000, 200, 15)
 
-		while lastCheckIndex <= nToCheckUnitIDs and checkCount <= evolutionsBatchSize do
+		while lastCheckIndex <= nToCheckUnitIDs and checkCount < evolutionsBatchSize do
 			local unitID = toCheckUnitIDs[lastCheckIndex].id
 
 			local evolution = evolutionMetaList[unitID]
