@@ -257,9 +257,13 @@ local function scavUnitDef_Post(name, uDef)
 	elseif name == "legavp_scav" then
 		local numBuildoptions = #uDef.buildoptions
 	elseif name == "coravp_scav" then
+		local siegebreakerpresent = false
 		local printerpresent = false
 
 		for ix, UnitName in pairs(uDef.buildoptions) do
+			if UnitName == "corsiegebreaker_scav" then
+				siegebreakerpresent = true
+			end
 			if UnitName == "corvac_scav" then
 				printerpresent = true
 			end
@@ -270,7 +274,9 @@ local function scavUnitDef_Post(name, uDef)
 		uDef.buildoptions[numBuildoptions + 2] = "corforge_scav"
 		uDef.buildoptions[numBuildoptions + 3] = "corftiger_scav"
 		uDef.buildoptions[numBuildoptions + 4] = "cortorch_scav"
-		uDef.buildoptions[numBuildoptions + 5] = "corsiegebreaker_scav"
+		if (siegebreakerpresent == false) then
+			uDef.buildoptions[numBuildoptions + 5] = "corsiegebreaker_scav"
+		end
 		if (printerpresent == false) then               -- assuming sala and vac stay paired, this is tidiest solution
 			uDef.buildoptions[numBuildoptions + 6] = "corvac_scav" --corprinter
 		end
