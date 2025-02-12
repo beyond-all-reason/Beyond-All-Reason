@@ -1163,30 +1163,30 @@ local unitGrids = {
 			{ "leghp", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
+
 	-- T1 air con
 	armca = {
 		{
-			{ "armmex", "armsolar", "armwin", "armadvsol", },  -- mex, solar, wind, adv. solar
-			{ "armmakr", "armgeo", "armamex", },               -- T1 converter, geo, twilight, (tidal)
-			{ "armestor", "armmstor", },                       -- e storage, m storage, (uw e stor), (fl. T1 converter)
+			{ "armmex", "armsolar", "armwin", "armadvsol", },  	-- mex, solar, wind, adv. solar
+			{ "armmakr", "armgeo", "armamex", },               	-- T1 converter, geo, twilight, (tidal)
+			{ "armestor", "armmstor", },                       	-- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "armllt", "armbeamer", "armhlt", "armclaw", },  -- LLT, beamer, HLT, lightning turret
-			{ "armrl", "armferret", "armcir", },              -- basic AA, ferret, chainsaw
-			{ "armdl", "armguard", },                         -- coastal torp launcher, guardian
+			{ "armllt", "armbeamer", "armhlt", "armclaw", },  	-- LLT, beamer, HLT, lightning turret
+			{ "armrl", "armferret", "armcir", },              	-- basic AA, ferret, chainsaw
+			{ "armdl", "armguard", },                         	-- coastal torp launcher, guardian
 		},
 		{
-			{ "armrad", "armeyes", "armdrag", "armjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "", "", "armasp", "armfasp" },                  -- air repair pad, floating air repair pad
-			{ "armjuno", }									  -- juno
+			{ "armrad", "armeyes", "armdrag", "armjamt", },   	-- radar, perimeter camera, dragon's teeth, jammer
+			{ "", "", "armasp", "armfasp" },                  	-- air repair pad, floating air repair pad
+			{ "armjuno", }									  	-- juno
 		},
 		{
-			{ "armlab", "armvp", "armap", "armsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "armnanotc", "armaap", },                       -- nano, T2 lab
-			{ "armhp", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
+			{ "armlab", "armvp", "armap", "armsy", },         	-- bot lab, veh lab, air lab, shipyard
+			{ "armnanotc", "armaap", },                       	-- nano, T2 lab
+			{ "armhp", },                                     	-- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
-
 	corca = {
 		{
 			{ "cormex", "corsolar", "corwin", "coradvsol", },   -- mex, solar, wind, adv. solar
@@ -1194,43 +1194,44 @@ local unitGrids = {
 			{ "corestor", "cormstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
-			{ "corllt", "corhllt", "corhlt", "cormaw", },     -- LLT, Double LLT, HLT, flame turret
-			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
-			{ "cordl", "corpun", },                           -- coastal torp launcher, punisher
+			{ "corllt", "corhllt", "corhlt", "cormaw", },     	-- LLT, Double LLT, HLT, flame turret
+			{ "corrl", "cormadsam", "corerad", },             	-- basic AA, SAM, eradicator
+			{ "cordl", "corpun", },                           	-- coastal torp launcher, punisher
 		},
 		{
-			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "", "", "corasp", "corfasp" },                  -- air repair pad, floating air repair pad
-			{ "corjuno", }									  -- juno
+			{ "corrad", "coreyes", "cordrag", "corjamt", },   	-- radar, perimeter camera, dragon's teeth, jammer
+			{ "", "", "corasp", "corfasp" },                  	-- air repair pad, floating air repair pad
+			{ "corjuno", }									  	-- juno
 		},
 		{
-			{ "corlab", "corvp", "corap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "cornanotc", "coraap", },                       -- nano, T2 lab
-			{ "corhp", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
+			{ "corlab", "corvp", "corap", "corsy", },         	-- bot lab, veh lab, air lab, shipyard
+			{ "cornanotc", "coraap", },                       	-- nano, T2 lab
+			{ "corhp", },                                     	-- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
     legca = {
 		{
 			{ "legmex", "legsolar", "legwin", "legadvsol", },   -- mex, solar, wind, adv. solar
-			{ "legeconv", "leggeo", "legmext15", },              -- T1 converter, geo, T1.5 legion mex, (tidal)
+			{ "legeconv", "leggeo", "legmext15", },             -- T1 converter, geo, T1.5 legion mex, (tidal)
 			{ "legestor", "legmstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
 			{ "leglht", "legmg", "", "legdtr", },     			-- LLT, machine gun, HLT, flame turret
-			{ "legrl", "legrhapsis", "leglupara", },             -- basic AA, SAM, eradicator
-			{ "cordl", "legcluster", },                           -- coastal torp launcher, punisher
+			{ "legrl", "legrhapsis", "leglupara", },            -- basic AA, SAM, eradicator
+			{ "cordl", "legcluster", },                         -- coastal torp launcher, punisher
 		},
 		{
-			{ "legrad", "legeyes", "legdrag", "legjam", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "", "", "corasp", "corfasp" },                  -- air repair pad, floating air repair pad
-			{ "corjuno", },                                   -- juno
+			{ "legrad", "legeyes", "legdrag", "legjam", },    	-- radar, perimeter camera, dragon's teeth, jammer
+			{ "", "", "corasp", "corfasp" },                  	-- air repair pad, floating air repair pad
+			{ "corjuno", },                                   	-- juno
 		},
 		{
-			{ "leglab", "legvp", "legap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "legnanotc", "legaap", },                      -- nano, T2 lab
-			{ "leghp", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
+			{ "leglab", "legvp", "legap", "corsy", },         	-- bot lab, veh lab, air lab, shipyard
+			{ "legnanotc", "legaap", },                       	-- nano, T2 lab
+			{ "leghp", },                                     	-- hover lab, floating hover lab, amphibious lab, seaplane lab
 		}
 	},
+
 	-- T1 sea con
 	armcs = {
 		{
@@ -1245,7 +1246,7 @@ local unitGrids = {
 		},
 		{
 			{ "armfrad", "armeyes","armfdrag", },             -- floating radar, perimeter camera, shark's teeth
-			{ "", "armdrag", "armasp", "armfasp"},                        	      -- dragon's teeth
+			{ "", "armdrag", "armasp", "armfasp"},            -- dragon's teeth
 		},
 		{
 			{ "armsy", "armvp", "armap", "armlab", },         -- shipyard, veh lab, air lab, bot lab
@@ -1253,7 +1254,6 @@ local unitGrids = {
 			{ "armfhp", "", "armamsub", "armplat", },         -- floating hover lab, amphibious lab, seaplane lab
 		}
 	},
-
 	corcs = {
 		{
 			{ "cormex", "cortide", },                         -- mex, tidal
