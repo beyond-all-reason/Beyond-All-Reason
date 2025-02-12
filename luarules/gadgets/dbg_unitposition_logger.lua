@@ -72,7 +72,7 @@ if not gadgetHandler:IsSyncedCode() then
 		allUnits[unitID] = {unitDefID, newTeam}
 	end
 
-	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 		allUnits[unitID] = nil
 		allUnitsTotal = allUnitsTotal - 1
 	end

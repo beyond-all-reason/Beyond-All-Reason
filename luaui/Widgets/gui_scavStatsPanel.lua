@@ -126,7 +126,7 @@ local function CreatePanelDisplayList()
 	font:SetTextColor(1, 1, 1, 1)
 	font:SetOutlineColor(0, 0, 0, 1)
 	local currentTime = GetGameSeconds()
-	if currentTime > gameInfo.scavGracePeriod then
+	--if currentTime > gameInfo.scavGracePeriod then
 		if gameInfo.scavBossAnger < 100 then
 
 			local gain = 0
@@ -139,9 +139,15 @@ local function CreatePanelDisplayList()
 			--font:Print(textColor .. Spring.I18N('ui.scavs.bossAngerWithGain', { anger = gameInfo.scavBossAnger, gain = math.round(gain, 3) }), panelMarginX, PanelRow(1), panelFontSize, "")
 			font:Print(textColor .. Spring.I18N('ui.scavs.bossAngerWithTech', { anger = gameInfo.scavBossAnger, techAnger = gameInfo.scavTechAnger}), panelMarginX, PanelRow(1), panelFontSize, "")
 
-			local totalSeconds = (100 - gameInfo.scavBossAnger) / gain
+			local totalSeconds = ((100 - gameInfo.scavBossAnger) / gain)
+			if currentTime <= gameInfo.scavGracePeriod then
+				totalSeconds = totalSeconds - math.min(30, (currentTime - gameInfo.scavGracePeriod + 30))
+			end
 			time = string.formatTime(totalSeconds)
-			font:Print(textColor .. Spring.I18N('ui.scavs.bossETA', { time = time }), panelMarginX+5, PanelRow(2), panelFontSize, "")
+			if totalSeconds < 1800 or revealedBossEta then
+				if not revealedBossEta then revealedBossEta = true end
+				font:Print(textColor .. Spring.I18N('ui.scavs.bossETA', { time = time }), panelMarginX+5, PanelRow(2), panelFontSize, "")
+			end
 			if #currentlyResistantToNames > 0 then
 				currentlyResistantToNames = {}
 				currentlyResistantTo = {}
@@ -155,9 +161,9 @@ local function CreatePanelDisplayList()
 				font:Print(textColor .. currentlyResistantToNames[i], panelMarginX+20, PanelRow(12+i), panelFontSize, "")
 			end
 		end
-	else
-		font:Print(textColor .. Spring.I18N('ui.scavs.gracePeriod', { time = string.formatTime(math.ceil(((currentTime - gameInfo.scavGracePeriod) * -1) - 0.5)) }), panelMarginX, PanelRow(1), panelFontSize, "")
-	end
+	--else
+	--	font:Print(textColor .. Spring.I18N('ui.scavs.gracePeriod', { time = string.formatTime(math.ceil(((currentTime - gameInfo.scavGracePeriod) * -1) - 0.5)) }), panelMarginX, PanelRow(1), panelFontSize, "")
+	--end
 
 	-- font:Print(textColor .. Spring.I18N('ui.scavs.scavKillCount', { count = gameInfo.scavKills }), panelMarginX, PanelRow(6), panelFontSize, "")
 	local endless = ""
@@ -174,10 +180,11 @@ end
 
 local function getMarqueeMessage(scavEventArgs)
 	local messages = {}
-	if scavEventArgs.type == "firstWave" then
-		messages[1] = textColor .. Spring.I18N('ui.scavs.firstWave1')
-		messages[2] = textColor .. Spring.I18N('ui.scavs.firstWave2')
-	elseif scavEventArgs.type == "boss" then
+	--if scavEventArgs.type == "firstWave" then
+	--	messages[1] = textColor .. Spring.I18N('ui.scavs.firstWave1')
+	--	messages[2] = textColor .. Spring.I18N('ui.scavs.firstWave2')
+	--else
+	if scavEventArgs.type == "boss" then
 		messages[1] = textColor .. Spring.I18N('ui.scavs.bossIsAngry1')
 		messages[2] = textColor .. Spring.I18N('ui.scavs.bossIsAngry2')
 	elseif scavEventArgs.type == "airWave" then

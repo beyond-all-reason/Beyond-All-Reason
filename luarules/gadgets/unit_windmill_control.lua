@@ -90,7 +90,7 @@ function gadget:UnitTaken(unitID, unitDefID, unitTeam)
 	end
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	if windDefs[unitDefID] then
 		windmills[unitID] = nil
 	end

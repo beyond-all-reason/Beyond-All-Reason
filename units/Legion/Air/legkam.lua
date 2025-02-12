@@ -47,6 +47,7 @@ return {
 			model_author = "Protar",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "CorAircraft",
+			crashable = 0,
 		},
 		sfxtypes = {
 			explosiongenerators = {

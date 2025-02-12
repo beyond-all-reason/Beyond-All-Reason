@@ -115,6 +115,7 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-small",
 				impactonly = 1,
+				impulsefactor = 1.1,
 				name = "Anti-swarm g2g gauss-impulse guns",
 				nogap = false,
 				noselfdamage = true,

@@ -321,7 +321,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 end
 
 
-function gadget:UnitDestroyed(unitID)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	local index = expireByID[unitID]
 	if spawnNames[unitID] then
 	    spawnNames[unitID] = nil

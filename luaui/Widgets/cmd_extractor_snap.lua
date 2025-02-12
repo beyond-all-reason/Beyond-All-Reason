@@ -323,5 +323,8 @@ end
 
 
 function widget:Shutdown()
+	if not WG.DrawUnitShapeGL4 then
+		return
+	end
 	clear()
 end

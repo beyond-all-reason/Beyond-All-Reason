@@ -99,7 +99,7 @@ return {
 			select = {
 				[1] = "loadwtr1",
 			},
-		},		
+		},
 		weapondefs = {
 			fmd_rocket = {
 					areaofeffect = 420,
@@ -148,6 +148,9 @@ return {
 					weapontimer = 2.5,
 					weapontype = "StarburstLauncher",
 					weaponvelocity = 6000,
+					customparams = {
+						stockpilelimit = 20,
+					},
 					damage = {
 						default = 1500,
 					},

@@ -125,7 +125,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-large-bomb",
 				firestarter = 20,
 				flighttime = 2.33,
-				impulsefactor = 0.123,
+				impulsefactor = 0.9,
 				model = "banishermissile.s3o",
 				name = "Banisher",
 				noselfdamage = true,

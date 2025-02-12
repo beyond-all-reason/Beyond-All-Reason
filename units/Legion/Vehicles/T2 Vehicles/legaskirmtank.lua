@@ -112,7 +112,7 @@ return {
 		},
 		weapondefs = {
 			legmgplasma = {
-				burstrate = 0.15,
+				burstrate = 0.2,
 				burst = 3,
 				sprayangle = 600,
                 --accuracy = 100,
@@ -133,7 +133,7 @@ return {
 				name = "Heavy Rotary Plasma Cannon",
 				noselfdamage = true,
 				range = 600,
-				reloadtime = 1.9,
+				reloadtime = 2,
 				size = 2,
 				soundhit = "xplosml3",
 				soundhitwet = "splshbig",
@@ -142,7 +142,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 320,
 				damage = {
-					default = 60,
+					default = 70,
 					vtol = 20,
 				},
 			},

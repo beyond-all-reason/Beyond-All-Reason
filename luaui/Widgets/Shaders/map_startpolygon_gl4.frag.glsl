@@ -382,7 +382,7 @@ void main(void)
 		// float expboxedge = 0.5 * expSustainedImpulse(-1* closestbox, 32.0, (1/32.0));
 		cellNoise = 0.1 + 1.15 * cellNoise;
 
-		fragColor.a = cellNoise *(gridmerge + 0.9);
+		fragColor.a = cellNoise *(gridmerge + 0.45);
 		//fragColor.a = clamp(expboxedge , 0.4 * anim, 0.5);		
 		if (isMiniMap > 0.5){
 			edgeFactor = 1.0 - clamp((1.0*anyBoxEdgeDistance * fragSizeFactor), 0.0, 1.0);

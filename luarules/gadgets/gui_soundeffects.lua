@@ -344,7 +344,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	end
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	units[unitID] = nil
 	unitsTeam[unitID] = nil
 	unitsAllyTeam[unitID] = nil
