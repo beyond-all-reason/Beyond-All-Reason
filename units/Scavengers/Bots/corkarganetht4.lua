@@ -174,7 +174,7 @@ return {
 					vtol = 750,
 				},
 			},
-			kargkick = {
+			krogkick = {
 				areaofeffect = 160,
 				avoidfeature = false,
 				camerashake = 500,
