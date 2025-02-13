@@ -15,7 +15,7 @@ return {
 		energycost = 216000,
 		energystorage = 4000,
 		exemptcategory = "WEAPON",
-		explodeas = "hugeBuildingexplosiongeneric",
+		explodeas = "fusionExplosion",
 		footprintx = 5,
 		footprintz = 6,
 		health = 18000,
@@ -31,7 +31,7 @@ return {
 		onoffable = false,
 		script = "Units/LEGGATET3.cob",
 		seismicsignature = 0,
-		selfdestructas = "hugeBuildingExplosionGenericSelfd",
+		selfdestructas = "fusionExplosionSelfd",
 		sightdistance = 273,
 		yardmap = "oooooooooooooooo",
 		customparams = {
