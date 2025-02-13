@@ -49,6 +49,7 @@ local config = {
 }
 
 local testReporter = nil
+local headless = false
 
 -- utils
 -- =====
@@ -79,6 +80,7 @@ local function logEndTests(duration)
 	testReporter:endTests(duration)
 
 	testReporter:report(config.testResultsFilePath)
+	headless = false
 end
 
 local function logTestResult(testResult)
@@ -90,6 +92,7 @@ local function logTestResult(testResult)
 		testResult.label,
 		testResult.filename,
 		(testResult.result == TestResults.TEST_RESULT.PASS),
+		(testResult.result == TestResults.TEST_RESULT.SKIP),
 		testResult.milliseconds,
 		testResult.error
 	)
@@ -172,6 +175,9 @@ local function findAllTestFiles(patterns)
 		for _, testFileInfo in ipairs(findTestFiles(path, patterns)) do
 			result[#result + 1] = testFileInfo
 		end
+	end
+	if headless then
+		result[#result+1] = {label="infolog", filename="common/testing/infologtest.lua"}
 	end
 	return result
 end
@@ -1324,6 +1330,7 @@ function widget:Initialize()
 		self,
 		"runtestsheadless",
 		function(cmd, optLine, optWords, data, isRepeat, release, actions)
+			headless = true
 			config.noColorOutput = true
 			config.quitWhenDone = true
 			config.gameStartTestPatterns = Util.splitPhrases(optLine)
