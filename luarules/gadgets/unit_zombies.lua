@@ -206,14 +206,18 @@ local function issueRandomOrders(unitID, unitDefID)
 		end
 	end
 
-	for i = 1, random(ZOMBIE_ORDER_MIN, ZOMBIE_ORDER_MAX) do
-		local randomX = random(0, mapWidth)
-		local randomZ = random(0, mapHeight)
-		local randomY = spGetGroundHeight(randomX, randomZ)
+	if UnitDefs[unitDefID].canMove then
+		for i = 1, random(ZOMBIE_ORDER_MIN, ZOMBIE_ORDER_MAX) do
+			local randomX = random(0, mapWidth)
+			local randomZ = random(0, mapHeight)
+			local randomY = spGetGroundHeight(randomX, randomZ)
 
-		if spTestMoveOrder(unitDefID, randomX, randomY, randomZ) then
-			orders[#orders + 1] = {CMD_FIGHT, {randomX, randomY, randomZ}, CMD_OPT_SHIFT}
+			if spTestMoveOrder(unitDefID, randomX, randomY, randomZ) then
+				orders[#orders + 1] = {CMD_FIGHT, {randomX, randomY, randomZ}, CMD_OPT_SHIFT}
+			end
 		end
+	else
+		orders[#orders + 1] = {CMD_FIGHT, {0, 0, 0}, CMD_OPT_SHIFT} --immobile units only need a single fight order
 	end
 
 	if #orders > 0 then
