@@ -94,13 +94,13 @@ local mapWidth
 local mapHeight
 
 local gameFrame = 0
-local adjustedRezSpeed = ZOMBIES_REZ_SPEED ^ 0.5 --the lowest AverageTechGuesstimate is 0.5
+local adjustedRezSpeed = ZOMBIES_REZ_SPEED * 0.5 --the lowest AverageTechGuesstimate is 0.5
 
 local zombieCorpseDefs = {}
 local zombieWatch = {}
 local corpseCheckFrames = {}
 local corpsesData = {}
-local zombieDefHeaps = {}
+local zombieHeapDefs = {}
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	local corpseDefName = unitDef.name .. "_dead"
@@ -120,7 +120,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		if FeatureDefNames[heapDefName] then
 			zombieDefData.heapDefID = FeatureDefNames[heapDefName].id
 		end
-		zombieDefHeaps[unitDefID] = zombieDefData
+		zombieHeapDefs[unitDefID] = zombieDefData
 	end
 end
 
@@ -347,7 +347,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		local health = spGetUnitHealth(unitID)
 		if damage >= health then
 			local unitX, unitY, unitZ = spGetUnitPosition(unitID)
-			local defData = zombieDefHeaps[unitDefID]
+			local defData = zombieHeapDefs[unitDefID]
 			spDestroyUnit(unitID, false, true, attackerID)
 			spSpawnExplosion(unitX, unitY, unitZ, 0, 0, 0, {weaponDef = defData.explosionDefID} )
 			if defData.heapDefID then
