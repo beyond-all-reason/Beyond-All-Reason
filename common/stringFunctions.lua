@@ -182,3 +182,61 @@ if not string.formatSI then
 		return str .. siPrefix
 	end
 end
+
+if not string.levenshteinDistance then
+	-- reuseable tables
+	local Levenshtein0 = {}
+	local Levenshtein1 = {}
+	local min = math.min
+	local ssub = string.sub
+	
+	--- Calculates edit distance of two strings, O(n*m) time, O(n) memory
+	---@param a string
+	---@param b string
+	---@return number 
+
+	function string.levenshteinDistance(a,b)
+		local lena = string.len(a)
+		local lenb = string.len(b)
+		
+		Levenshtein1[1] = 0
+		for c = 0, lenb do -- initialize the first row
+			Levenshtein0[c+1] = c
+		end
+		for r = 1, lena do
+			for c = 0, lenb do -- 16 ns/loop wtf
+				if c == 0 then
+					Levenshtein1[1] = r
+				else
+					Levenshtein1[c+1] = min(
+						min(Levenshtein0[c+1] + 1,	Levenshtein1[c] + 1),
+						Levenshtein0[c] + (ssub(a,r,r) == ssub(b,c,c) and 0 or 1)
+					)
+				end
+			end
+			Levenshtein0, Levenshtein1 = Levenshtein1, Levenshtein0 -- swap rows
+		end
+		return Levenshtein0[lenb + 1]
+	end
+
+	--- Finds string that is closest to a in a table
+	---@param a string
+	---@param t table, primarily values are strings, keys can be strings too
+	---@return string, number bestresult, bestscore
+	function string.FindClosest(a,t)
+		local lena = string.len(a)
+		local bestscore = lena
+		local bestresult = a
+		for k,v in pairs(t) do 
+			local b = (type(v) == 'string' and v) or (type(k) == 'string' and k) or "" -- whichever is string, or empty
+			if math.abs(string.len(b) - lena) < bestscore then -- heuristics
+				local distance = string.levenshteinDistance(a, b)
+				if distance < bestscore then
+					bestscore = distance
+					bestresult = b
+				end
+			end
+		end
+		return bestresult, bestscore
+	end
+end 
