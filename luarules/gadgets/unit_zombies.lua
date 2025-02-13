@@ -103,7 +103,7 @@ local corpsesData = {}
 local zombieHeapDefs = {}
 
 for unitDefID, unitDef in pairs(UnitDefs) do
-	local corpseDefName = FeatureDefNames[unitDef.corpse]
+	local corpseDefName = unitDef.name .. "_dead"
 	if FeatureDefNames[corpseDefName] then
 		local featureDefID = FeatureDefNames[corpseDefName].id
 		local spawnSeconds = math.floor(unitDef.metalCost / adjustedRezSpeed)
