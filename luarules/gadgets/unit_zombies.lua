@@ -1,5 +1,3 @@
-local version = "0.1.3"
-
 function gadget:GetInfo()
 	return {
 		name      = "Corpse Revival",
@@ -18,21 +16,19 @@ end
 
 local modOptions = Spring.GetModOptions()
 
-if modOptions.revival == false then
+if not modOptions.revival then
 	return false
 end
 
--- configs
 local ZOMBIE_GUARD_RADIUS = 300           -- Radius for zombies to guard allies
 local ZOMBIE_ORDER_MIN = 10               -- Min random orders for zombies
 local ZOMBIE_ORDER_MAX = 30               -- Max random orders for zombies
 local ZOMBIE_GUARD_CHANCE = 0.6           -- Chance a zombie will guard allies
 local WARNING_TIME = 15 * Game.gameSpeed  -- Frames to start warning before reanimation
 
--- constants
-local ZOMBIES_REZ_MIN = tonumber(modOptions.revival_min_delay)
-local ZOMBIE_REZ_MAX = tonumber(modOptions.revival_max_delay)
-local ZOMBIES_REZ_SPEED = tonumber(modOptions.revival_rezspeed)
+local ZOMBIES_REZ_MIN = modOptions.revival_min_delay
+local ZOMBIE_REZ_MAX = modOptions.revival_max_delay
+local ZOMBIES_REZ_SPEED = modOptions.revival_rezspeed
 local ZOMBIES_PARTIAL_RECLAIM = modOptions.revival_partial_reclaim
 
 local ZOMBIE_ORDER_CHECK_INTERVAL = Game.gameSpeed * 10    -- How often (in frames) to check if zombies need new orders
@@ -48,7 +44,6 @@ local CMD_FIRE_STATE = CMD.FIRE_STATE
 local ISNT_ZOMBIE = 0
 local IS_ZOMBIE = 1
 
---localized functions
 local spGetGroundHeight           = Spring.GetGroundHeight
 local spGetUnitPosition           = Spring.GetUnitPosition
 local spGetFeaturePosition        = Spring.GetFeaturePosition
@@ -85,7 +80,6 @@ local spSetUnitExperience		  = Spring.SetUnitExperience
 local random = math.random
 local function disSQ(x1, y1, x2, y2) return (x1 - x2)^2 + (y1 - y2)^2 end
 
---initiated constants
 local teams = Spring.GetTeamList()
 local scavTeamID
 local GaiaTeamID = Spring.GetGaiaTeamID()
@@ -99,25 +93,20 @@ end
 local mapWidth
 local mapHeight
 
---variables
 local gameFrame = 0
-local initiationFrame = 0
 local adjustedRezSpeed = ZOMBIES_REZ_SPEED ^ 0.5 --the lowest AverageTechGuesstimate is 0.5
 
---tables
 local zombieCorpseDefs = {}
 local zombieWatch = {}
 local corpseCheckFrames = {}
 local corpsesData = {}
 local zombieDefHeaps = {}
 
--- Populate zombieUnitDefs with units that have resurrectable _dead corpses
 for unitDefID, unitDef in pairs(UnitDefs) do
 	local corpseDefName = unitDef.name .. "_dead"
 	if FeatureDefNames[corpseDefName] then
 		local featureDefID = FeatureDefNames[corpseDefName].id
-		local metalCost = unitDef.metalCost or 100 --fallback number chosen arbitrarily
-		local spawnSeconds = math.floor(metalCost / adjustedRezSpeed)
+		local spawnSeconds = math.floor(unitDef.metalCost / adjustedRezSpeed)
 		spawnSeconds = math.max(spawnSeconds, ZOMBIES_REZ_MIN)
 		spawnSeconds = math.min(spawnSeconds, ZOMBIE_REZ_MAX)
 		local spawnFrames = spawnSeconds * Game.gameSpeed
@@ -135,28 +124,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
---custom functions
-local function executeInitialize()		
-	local units = spGetAllUnits()
-	for _, unitID in ipairs(units) do
-		local identifiedZombie = spGetUnitRulesParam(unitID, "zombie")
-		if identifiedZombie and identifiedZombie == IS_ZOMBIE then
-			zombieWatch[unitID] = spGetUnitDefID(unitID)
-			spGiveOrderToUnit(unitID, CMD_REPEAT, 1, 0)
-			spGiveOrderToUnit(unitID, CMD_MOVE_STATE, 2, 0)
-			spGiveOrderToUnit(unitID, CMD_FIRE_STATE, 3, 0)
-		end
-	end
-	
-	local features = spGetAllFeatures()
-	for _, featureID in ipairs(features) do
-		gadget:FeatureCreated(featureID, 1)
-	end
-
-	spSetTeamResource(GaiaTeamID, "ms", 500)
-	spSetTeamResource(GaiaTeamID, "es", 10500)
-end
-
 local function GetUnitNearestAlly(unitID, unitDefID, range)
 	local best_ally
 	local best_dist
@@ -165,7 +132,7 @@ local function GetUnitNearestAlly(unitID, unitDefID, range)
 	for i = 1, #units do
 		local allyID = units[i]
 		local allyTeam = spGetUnitTeam(allyID)
-		if (allyID ~= unitID) and (allyTeam == GaiaTeamID) then -- and (getMovetype(UnitDefs[allyDefID]) ~= false)
+		if (allyID ~= unitID) and (allyTeam == GaiaTeamID) then
 			local ox, oy, oz = spGetUnitPosition(allyID)
 			local dist = disSQ(x, z, ox ,oz)
 			if spTestMoveOrder(unitDefID, ox, oy, oz) and ((best_dist == nil) or (dist < best_dist)) then
@@ -177,7 +144,7 @@ local function GetUnitNearestAlly(unitID, unitDefID, range)
 	return best_ally
 end
 
-local function issueRandomFactoryBuildOrders(unitID, unitDefID) -- give factory something to do
+local function issueRandomFactoryBuildOrders(unitID, unitDefID)
 	local buildopts = UnitDefs[unitDefID].buildOptions
 	if (not buildopts) or #buildopts <= 0 then
 		return
@@ -240,7 +207,7 @@ local function issueRandomOrders(unitID, unitDefID)
 	end
 
 	if UnitDefs[unitDefID].isFactory then
-		issueRandomFactoryBuildOrders(unitID, unitDefID) -- Give factory something to do
+		issueRandomFactoryBuildOrders(unitID, unitDefID)
 	end
 end
 
@@ -256,7 +223,6 @@ end
 function gadget:GameFrame(frame)
 	gameFrame = frame
 
-	--spawn this frame's zombies
 	local corpsesToCheck = corpseCheckFrames[frame]
 	if corpsesToCheck then
 		for i = 1, #corpsesToCheck do
@@ -303,7 +269,6 @@ function gadget:GameFrame(frame)
 						corpsesData[featureID] = nil
 						spSetUnitHealth(unitID, unitHealth * healthReductionRatio)
 						if scavTeamID then
-
 							spTransferUnit(unitID, scavTeamID)
 						else
 							zombieWatch[unitID] = unitDefID
@@ -342,10 +307,6 @@ function gadget:GameFrame(frame)
 			end
 		end
 		adjustedRezSpeed = ZOMBIES_REZ_SPEED * GG.PowerLib.AveragePlayerTechGuesstimate()
-	end
-
-	if frame == initiationFrame then
-		executeInitialize()
 	end
 end
 
@@ -399,5 +360,22 @@ end
 function gadget:Initialize()
 	mapWidth = Game.mapSizeX
 	mapHeight = Game.mapSizeZ
-	initiationFrame = spGetGameFrame() + 1 --to avoid race conditions
+	local units = spGetAllUnits()
+	for _, unitID in ipairs(units) do
+		local identifiedZombie = spGetUnitRulesParam(unitID, "zombie")
+		if identifiedZombie and identifiedZombie == IS_ZOMBIE then
+			zombieWatch[unitID] = spGetUnitDefID(unitID)
+			spGiveOrderToUnit(unitID, CMD_REPEAT, 1, 0)
+			spGiveOrderToUnit(unitID, CMD_MOVE_STATE, 2, 0)
+			spGiveOrderToUnit(unitID, CMD_FIRE_STATE, 3, 0)
+		end
+	end
+	
+	local features = spGetAllFeatures()
+	for _, featureID in ipairs(features) do
+		gadget:FeatureCreated(featureID, 1)
+	end
+
+	spSetTeamResource(GaiaTeamID, "ms", 500)
+	spSetTeamResource(GaiaTeamID, "es", 10500)
 end
