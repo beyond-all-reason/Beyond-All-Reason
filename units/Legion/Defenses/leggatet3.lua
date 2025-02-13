@@ -1,7 +1,7 @@
 return {
 	leggatet3 = {
 		activatewhenbuilt = true,
-		buildangle = 2048,
+		buildangle = 4096,
 		buildpic = "ARMGATE.DDS",
 		buildtime = 261000,
 		canattack = false,
@@ -72,7 +72,7 @@ return {
 				category = "heaps",
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
-				damage = 900,
+				damage = 9000,
 				footprintx = 4,
 				footprintz = 4,
 				height = 4,
