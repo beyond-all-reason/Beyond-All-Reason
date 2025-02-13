@@ -248,7 +248,7 @@ function gadget:GameFrame(frame)
 			local corpseData = corpsesData[featureID]
 			local featureX, featureY, featureZ
 			if corpseData then
-			featureX, featureY, featureZ = spGetFeaturePosition(featureID)
+				featureX, featureY, featureZ = spGetFeaturePosition(featureID)
 			end
 			if not featureX then --feature is gone
 				corpsesData[featureID] = nil
