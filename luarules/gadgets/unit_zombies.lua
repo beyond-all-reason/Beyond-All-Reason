@@ -107,8 +107,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if FeatureDefNames[corpseDefName] then
 		local featureDefID = FeatureDefNames[corpseDefName].id
 		local spawnSeconds = math.floor(unitDef.metalCost / adjustedRezSpeed)
-		spawnSeconds = math.max(spawnSeconds, ZOMBIES_REZ_MIN)
-		spawnSeconds = math.min(spawnSeconds, ZOMBIE_REZ_MAX)
+		spawnSeconds = math.clamp(spawnSeconds, ZOMBIES_REZ_MIN, ZOMBIE_REZ_MAX)
 		local spawnFrames = spawnSeconds * Game.gameSpeed
 
 		zombieCorpseDefs[featureDefID] = {unitDefID = unitDefID, spawnDelayFrames = spawnFrames}
