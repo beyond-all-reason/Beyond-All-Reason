@@ -4,7 +4,7 @@ function widget:GetInfo()
       desc      = "Yes this healthbars, just gl4",
       author    = "Beherith",
       date      = "October 2019",
-      license   = "GNU GPL, v2 or later for Lua code, (c) Beherith (mysterme@gmail.com) for GLSL",
+      license   = "GNU GPL, v2",
       layer     = -10,
       enabled   = true
    }

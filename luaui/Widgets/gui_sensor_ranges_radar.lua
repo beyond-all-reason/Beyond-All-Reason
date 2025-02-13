@@ -4,7 +4,7 @@ function widget:GetInfo()
 		desc      = "Shows ranges of all ally radars. (GL4)",
 		author    = "Kev, Beherith GL4",
 		date      = "2021.06.18",
-		license   = "Lua: GPLv2, GLSL: (c) Beherith (mysterme@gmail.com)",
+		license   = "GNU GPL v2",
 		layer     = 0,
 		enabled   = true
 	}
@@ -40,6 +40,9 @@ local circleInstanceVBO = nil
 local vsSrc = [[
 #version 420
 #line 10000
+
+// (C) 2021 Beherith (mysterme@gmail.com)
+// Licenced under the MIT licence
 
 //__DEFINES__
 
@@ -94,6 +97,9 @@ local fsSrc =  [[
 
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
+
+// (C) 2021 Beherith (mysterme@gmail.com)
+// Licenced under the MIT licence
 
 #line 20000
 

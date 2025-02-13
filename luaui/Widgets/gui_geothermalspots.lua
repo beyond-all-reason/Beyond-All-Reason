@@ -4,7 +4,7 @@ function widget:GetInfo()
 		desc    = "Displays rotating circles around geothermal spots",
 		author  = "Floris, Beherith GL4",
 		date    = "August 2021",
-		license = "Lua GNU GPL, v2 or later,   GLSL: (c) Beherith (mysterme@gmail.com)",
+		license = "GNU GPL, v2 or later",
 		layer   = 2,
 		enabled = true,
 	}
@@ -93,6 +93,10 @@ local vsSrc =
 [[
 #version 420
 #line 10000
+
+// (C) 2021 Beherith (mysterme@gmail.com)
+// Licenced under the MIT licence
+
 uniform float timer;
 
 layout (location = 0) in vec4 localpos_dir_angle;
@@ -137,6 +141,9 @@ local fsSrc =
 [[
 #version 420
 #line 20000
+
+// (C) 2021 Beherith (mysterme@gmail.com)
+// Licenced under the MIT licence
 
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require

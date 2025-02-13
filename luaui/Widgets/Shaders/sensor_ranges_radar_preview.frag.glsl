@@ -1,5 +1,7 @@
 #version 420
-// This shader is (c) Beherith (mysterme@gmail.com)
+
+// (C) 2021 Beherith (mysterme@gmail.com)
+// Licenced under the MIT licence
 
 #line 20000
 

@@ -1,5 +1,7 @@
 #version 130
 
+// (C) 2022 Beherith (mysterme@gmail.com)
+// Licenced under the MIT licence
 
 varying vec2 texCoord;
 void main() {

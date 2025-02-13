@@ -1,5 +1,7 @@
 #version 330
-// This shader is (c) Beherith (mysterme@gmail.com)
+
+// (C) 2023 Beherith (mysterme@gmail.com)
+// Licenced under the MIT licence
 
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
