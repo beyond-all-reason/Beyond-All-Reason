@@ -129,13 +129,15 @@ end
 local function calculateHealthRatio(featureID)
 	local partialReclaimRatio = 1
 	local damagedReductionRatio = 1
-	local currentMetal, maxMetal = spGetFeatureResources(featureID)
-	if currentMetal and maxMetal and currentMetal ~= 0 and maxMetal ~= 0 then
-		partialReclaimRatio = currentMetal/maxMetal
-	end
-	local health, maxHealth = spGetFeatureHealth(featureID)
-	if health and maxHealth and health ~= 0 and maxHealth ~= 0 then
-		damagedReductionRatio = health/maxHealth
+	if ZOMBIES_PARTIAL_RECLAIM then
+		local currentMetal, maxMetal = spGetFeatureResources(featureID)
+		if currentMetal and maxMetal and currentMetal ~= 0 and maxMetal ~= 0 then
+			partialReclaimRatio = currentMetal/maxMetal
+		end
+		local health, maxHealth = spGetFeatureHealth(featureID)
+		if health and maxHealth and health ~= 0 and maxHealth ~= 0 then
+			damagedReductionRatio = health/maxHealth
+		end
 	end
 	local result = (partialReclaimRatio + damagedReductionRatio) * 0.5 --average the two ratios to skew the result towards maximum health
 	return result
@@ -234,9 +236,9 @@ end
 
 local function resetSpawn(featureID, featureData, featureDefData)
 	local newFrame = featureData.tamperedFrame + featureDefData.spawnDelayFrames
-	featureData.tamperedFrame = nil
 	featureData.spawnFrame = newFrame
-	featureData.creationFrame = gameFrame
+	featureData.creationFrame = featureData.tamperedFrame
+	featureData.tamperedFrame = nil
 	corpseCheckFrames[newFrame] = corpseCheckFrames[newFrame] or {}
 	corpseCheckFrames[newFrame][#corpseCheckFrames[newFrame] + 1] = featureID
 end
