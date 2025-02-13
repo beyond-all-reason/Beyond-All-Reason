@@ -363,7 +363,7 @@ if gadgetHandler:IsSyncedCode() then
 		return nToCheckUnitIDs == 0
 	end
 
-	function UnitsToBatchSizeInterpolation(value, minLoadUnits, maxLoadUnits, minLoadBatchSize, maxLoadBatchSize)
+	local function UnitsToBatchSizeInterpolation(value, minLoadUnits, maxLoadUnits, minLoadBatchSize, maxLoadBatchSize)
 		value = (value < minLoadUnits) and minLoadUnits or ((value > maxLoadUnits) and maxLoadUnits or value)
   	local t = (value - minLoadUnits) / (maxLoadUnits - minLoadUnits)
   	return minLoadBatchSize * ((maxLoadBatchSize / minLoadBatchSize) ^ (t^0.1))
