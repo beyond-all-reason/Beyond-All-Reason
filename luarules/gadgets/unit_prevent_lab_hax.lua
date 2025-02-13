@@ -23,7 +23,7 @@ end
 
 local spGetGroundHeight     = Spring.GetGroundHeight
 local spGetUnitBuildFacing  = Spring.GetUnitBuildFacing
-local spGetUnitAllyTeam  = Spring.GetUnitAllyTeam
+local spGetUnitTeam  = Spring.GetUnitTeam
 local spGetUnitsInBox  = Spring.GetUnitsInBox
 local spSetUnitPosition  = Spring.SetUnitPosition
 local spGetUnitDefID = Spring.GetUnitDefID
@@ -58,12 +58,10 @@ end
 
 function checkLabs()
   for Lid,Lv in pairs(lab) do
-
-    local units = spGetUnitsInBox(Lv.minx + 8, Lv.miny, Lv.minz + 8, Lv.maxx - 8, Lv.maxy, Lv.maxz - 8)
+    local units = CallAsTeam(Lv.team, spGetUnitsInBox, Lv.minx + 8, Lv.miny, Lv.minz + 8, Lv.maxx - 8, Lv.maxy, Lv.maxz - 8, -4)
   	for i=1,#units do
 	  local id = units[i]
-	  local team = spGetUnitAllyTeam(id)
-	  if (team ~= Lv.team) and not canFly[spGetUnitDefID(id)] then
+	  if not canFly[spGetUnitDefID(id)] then
 
 	    local ux, _, uz  = spGetUnitPosition(id)
 
@@ -118,7 +116,7 @@ function gadget:UnitCreated(unitID, unitDefID)
 	local face = spGetUnitBuildFacing(unitID)
 	local xsize = unitXsize[unitDefID] * 4
 	local ysize = (unitYsize[unitDefID] or unitZsize[unitDefID]) * 4
-	local team = spGetUnitAllyTeam(unitID)
+	local team = spGetUnitTeam(unitID)
 
 	if face == 0 or face == 2 then
 	  lab[unitID] = { team = team, face = 0, minx = ux-ysize, minz = uz-xsize, maxx = ux+ysize, maxz = uz+xsize}
@@ -139,7 +137,7 @@ end
 
 function gadget:UnitGiven(unitID, unitDefID)
   if lab[unitID] then
-    lab[unitID].team = spGetUnitAllyTeam(unitID)
+    lab[unitID].team = spGetUnitTeam(unitID)
   end
 end
 
