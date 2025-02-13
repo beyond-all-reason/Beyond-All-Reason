@@ -123,6 +123,21 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
+local function calculateHealthRatio(featureID)
+	local partialReclaimRatio = 1
+	local damagedReductionRatio = 1
+	local currentMetal, maxMetal = spGetFeatureResources(featureID)
+	if currentMetal and maxMetal and currentMetal ~= 0 and maxMetal ~= 0 then
+		partialReclaimRatio = currentMetal/maxMetal
+	end
+	local health, maxHealth = spGetFeatureHealth(featureID)
+	if health and maxHealth and health ~= 0 and maxHealth ~= 0 then
+		damagedReductionRatio = health/maxHealth
+	end
+	local result = (partialReclaimRatio + damagedReductionRatio) * 0.5 --average the two ratios to skew the result towards maximum health
+	return result
+end
+
 local function GetUnitNearestAlly(unitID, unitDefID, range)
 	local best_ally
 	local best_dist
@@ -246,23 +261,14 @@ function gadget:GameFrame(frame)
 				else
 					local healthReductionRatio = 1
 					if ZOMBIES_PARTIAL_RECLAIM then
-						local partialReclaim = 1
-						local currentMetal, maxMetal = spGetFeatureResources(featureID)
-						if currentMetal and maxMetal and (maxMetal > 0) then
-							partialReclaim = currentMetal/maxMetal
-						end
-						local health, maxHealth = spGetFeatureHealth(featureID)
-						if health and maxHealth and (maxHealth > 0) then
-							healthReductionRatio = health/maxHealth
-						end
-						healthReductionRatio = math.min(healthReductionRatio, partialReclaim)
+						healthReductionRatio = calculateHealthRatio(featureID)
 					end
 					local unitDefID = featureDefData.unitDefID
 					local unitID = spCreateUnit(unitDefID, featureX, featureY, featureZ, 0, GaiaTeamID)
 					if unitID then
 						spDestroyFeature(featureID)
-						local unitHealth = spGetUnitHealth(unitID)
 						spSetUnitExperience(unitID, math.min(random(), random())) --this skews the xp results to lower values
+						local unitHealth = spGetUnitHealth(unitID)
 						spSpawnCEG("scav-spawnexplo", featureX, featureY, featureZ, 0, 0, 0, UnitDefs[unitDefID].xsize)
 						playSpawnSound(featureX, featureY, featureZ)
 						corpsesData[featureID] = nil
