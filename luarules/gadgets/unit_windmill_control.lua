@@ -22,7 +22,7 @@ end
 
 local unitEnergyMultiplier = {}
 for udid, ud in pairs(UnitDefs) do
-	if ud.windgenerator then
+	if ud.windGenerator then
 		if energyMultActive then
 			windDefs[udid] = true
 		end
