@@ -7,19 +7,13 @@ function gadget:GetInfo()
 		date      = "Jul 24, 2007",
 		license   = "GNU GPL, v2 or later",
 		layer     = 0,
-		enabled   = true
+		enabled   = false
 	}
 end
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 if not gadgetHandler:IsSyncedCode() then
   return false
 end
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 local spGetGroundHeight     = Spring.GetGroundHeight
 local spGetUnitBuildFacing  = Spring.GetUnitBuildFacing
@@ -34,7 +28,6 @@ local abs = math.abs
 local min = math.min
 
 local lab = {}
-
 
 local canFly = {}
 local isFactory = {}
@@ -52,9 +45,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		unitZsize[unitDefID] = unitDef.zsize
 	end
 end
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 function checkLabs()
   for Lid,Lv in pairs(lab) do
@@ -148,5 +138,3 @@ function gadget:GameFrame(n)
 	checkLabs()
   end
 end
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
