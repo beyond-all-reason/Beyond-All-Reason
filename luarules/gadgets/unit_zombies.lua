@@ -229,7 +229,37 @@ local function issueRandomOrders(unitID, unitDefID)
 	end
 end
 
---call-ins
+local function resetSpawn(featureID, featureData, featureDefData)
+	local newFrame = featureData.tamperedFrame + featureDefData.spawnDelayFrames
+	featureData.tamperedFrame = nil
+	featureData.spawnFrame = newFrame
+	featureData.creationFrame = gameFrame
+	corpseCheckFrames[newFrame] = corpseCheckFrames[newFrame] or {}
+	corpseCheckFrames[newFrame][#corpseCheckFrames[newFrame] + 1] = featureID
+end
+
+local function spawnZombie(featureID, unitDefID, healthReductionRatio, x, y, z)
+	local unitID = spCreateUnit(unitDefID, x, y, z, 0, GaiaTeamID)
+	if unitID then
+		spDestroyFeature(featureID)
+		spSetUnitExperience(unitID, math.min(random(), random())) -- skew xp to lower values
+		local unitHealth = spGetUnitHealth(unitID)
+		spSpawnCEG("scav-spawnexplo", x, y, z, 0, 0, 0, UnitDefs[unitDefID].xsize)
+		playSpawnSound(x, y, z)
+		corpsesData[featureID] = nil
+		spSetUnitHealth(unitID, unitHealth * healthReductionRatio)
+		
+		if scavTeamID then
+			spTransferUnit(unitID, scavTeamID)
+		else
+			zombieWatch[unitID] = unitDefID
+			spSetUnitRulesParam(unitID, "zombie", IS_ZOMBIE)
+			issueRandomOrders(unitID, unitDefID)
+		end
+	end
+	return unitID
+end
+
 function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part)
 	local featureData = corpsesData[featureID]
 	if featureData then
@@ -255,43 +285,17 @@ function gadget:GameFrame(frame)
 			else --feature is still there
 				local featureData = corpsesData[featureID]
 				local featureDefData = zombieCorpseDefs[featureData.featureDefID]
-				if featureData.tamperedFrame then --tampered means the corpse has been tampered with, so we need to reset the check frame
-					local newFrame = featureData.tamperedFrame + featureDefData.spawnDelayFrames
-					featureData.tamperedFrame = nil
-					featureData.spawnFrame = newFrame
-					featureData.creationFrame = gameFrame
-					corpsesToCheck[newFrame] = corpsesToCheck[newFrame] or {}
-					corpsesToCheck[newFrame][#corpsesToCheck[newFrame] + 1] = featureID
+				if featureData.tamperedFrame then
+					resetSpawn(featureID, featureData, featureDefData)
 				else
-					local healthReductionRatio = 1
-					if ZOMBIES_PARTIAL_RECLAIM then
-						healthReductionRatio = calculateHealthRatio(featureID)
-					end
-					local unitDefID = featureDefData.unitDefID
-					local unitID = spCreateUnit(unitDefID, featureX, featureY, featureZ, 0, GaiaTeamID)
-					if unitID then
-						spDestroyFeature(featureID)
-						spSetUnitExperience(unitID, math.min(random(), random())) --this skews the xp results to lower values
-						local unitHealth = spGetUnitHealth(unitID)
-						spSpawnCEG("scav-spawnexplo", featureX, featureY, featureZ, 0, 0, 0, UnitDefs[unitDefID].xsize)
-						playSpawnSound(featureX, featureY, featureZ)
-						corpsesData[featureID] = nil
-						spSetUnitHealth(unitID, unitHealth * healthReductionRatio)
-						if scavTeamID then
-							spTransferUnit(unitID, scavTeamID)
-						else
-							zombieWatch[unitID] = unitDefID
-							spSetUnitRulesParam(unitID, "zombie", IS_ZOMBIE)
-							issueRandomOrders(unitID, unitDefID)
-						end
-					end
+					local healthReductionRatio = calculateHealthRatio(featureID)
+					spawnZombie(featureID, featureDefData.unitDefID, healthReductionRatio, featureX, featureY, featureZ)
 				end
 			end
 			corpseCheckFrames[frame] = nil
 		end
 	end
 
-	--progress CEGs
 	if frame % ZOMBIE_CHECK_INTERVAL == 0 then
 		for featureID, featureData in pairs(corpsesData) do
 			local featureX, featureY, featureZ = spGetFeaturePosition(featureID)
