@@ -751,7 +751,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 end
 
 
-function gadget:UnitDestroyed(unitID)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	local carrierUnitID = spGetUnitRulesParam(unitID, "carrier_host_unit_id")
 
 	if carrierUnitID then

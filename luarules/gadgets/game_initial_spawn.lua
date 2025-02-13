@@ -195,7 +195,7 @@ if gadgetHandler:IsSyncedCode() then
 			DraftRecvLuaMsg(msg, playerID, playerIsSpec, playerTeam, allyTeamID)
 		end
 	end
-	
+
 	----------------------------------------------------------------
 	-- Startpoints
 	----------------------------------------------------------------
@@ -348,7 +348,7 @@ if gadgetHandler:IsSyncedCode() then
 
 
 		if not scenarioSpawnsUnits then
-			if not (luaAI and (string.find(luaAI, "Scavengers") or luaAI == "RaptorsAI" or luaAI == "ScavReduxAI")) then
+			if not (luaAI and (string.find(luaAI, "Scavengers") or luaAI == "RaptorsAI")) then
 				local unitID = spCreateUnit(startUnit, x, y, z, 0, teamID)
 				if unitID then
 					startUnitList[#startUnitList + 1] = { unitID = unitID, teamID = teamID, x = x, y = y, z = z }
@@ -455,7 +455,7 @@ if gadgetHandler:IsSyncedCode() then
                     local z = startUnitList[i].z
                     Spring.SpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
 					GG.ComSpawnDefoliate(x, y, z)
-					
+
                 end
             end
             if n == 90 then

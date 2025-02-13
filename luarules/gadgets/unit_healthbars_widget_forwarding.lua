@@ -47,7 +47,7 @@ if gadgetHandler:IsSyncedCode() then
 		forwardedFeatureIDs[featureID] = nil
 	end
 
-	function gadget:UnitDestroyed(unitID)
+	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 		forwardedCaptureUnitIDs[unitID] = nil
 		unitreloadframe[unitID] = nil
 	end

@@ -32,6 +32,7 @@ local convertedUnitsNames = {
 	['corstorm'] = 2,
 	['corcrash'] = 5,
 	['legkark'] = 2,
+	['corkark'] = 2,
 	['armsnipe'] = 2,
 	['armfido'] = 3,
 	['armfboy'] = 2,

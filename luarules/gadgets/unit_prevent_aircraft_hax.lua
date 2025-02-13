@@ -55,7 +55,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	end
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	allMobileUnits[unitID] = nil
 end
 
