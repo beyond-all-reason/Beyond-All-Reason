@@ -248,7 +248,9 @@ local function spawnZombie(featureID, unitDefID, healthReductionRatio, x, y, z)
 		playSpawnSound(x, y, z)
 		corpsesData[featureID] = nil
 		spSetUnitHealth(unitID, unitHealth * healthReductionRatio)
-		
+		spGiveOrderToUnit(unitID, CMD_REPEAT, 1, 0)
+		spGiveOrderToUnit(unitID, CMD_MOVE_STATE, 2, 0)
+		spGiveOrderToUnit(unitID, CMD_FIRE_STATE, 3, 0)
 		if scavTeamID then
 			spTransferUnit(unitID, scavTeamID)
 		else
