@@ -33,6 +33,8 @@ local ZOMBIES_PARTIAL_RECLAIM = modOptions.revival_partial_reclaim
 
 local ZOMBIE_ORDER_CHECK_INTERVAL = Game.gameSpeed * 10    -- How often (in frames) to check if zombies need new orders
 local ZOMBIE_CHECK_INTERVAL = Game.gameSpeed    -- How often (in frames) everything else is checked
+local METAL_INCOME_MULTIPLIER = 0.003--the amount of metal income per zombie multiplied by its metalCost
+local ENERGY_INCOME_MULTIPLIER = 0.01 --the amount of energy income per zombie multiplied by its energyCost
 
 local CMD_REPEAT = CMD.REPEAT
 local CMD_MOVE_STATE = CMD.MOVE_STATE
@@ -77,12 +79,13 @@ local spPlaySoundFile 			  = Spring.PlaySoundFile
 local spGetFeatureRadius		  = Spring.GetFeatureRadius
 local spGetUnitCurrentCommand	  = Spring.GetUnitCurrentCommand
 local spSetUnitExperience		  = Spring.SetUnitExperience
+local spSetUnitResourcing		  = Spring.SetUnitResourcing
 local random = math.random
 local function disSQ(x1, y1, x2, y2) return (x1 - x2)^2 + (y1 - y2)^2 end
 
 local teams = Spring.GetTeamList()
 local scavTeamID
-local GaiaTeamID = Spring.GetGaiaTeamID()
+local gaiaTeamID = Spring.GetGaiaTeamID()
 for _, teamID in ipairs(teams) do
 
 	local teamLuaAI = Spring.GetTeamLuaAI(teamID)
@@ -146,7 +149,7 @@ local function GetUnitNearestAlly(unitID, unitDefID, range)
 	for i = 1, #units do
 		local allyID = units[i]
 		local allyTeam = spGetUnitTeam(allyID)
-		if (allyID ~= unitID) and (allyTeam == GaiaTeamID) then
+		if (allyID ~= unitID) and (allyTeam == gaiaTeamID) then
 			local ox, oy, oz = spGetUnitPosition(allyID)
 			local dist = disSQ(x, z, ox ,oz)
 			if spTestMoveOrder(unitDefID, ox, oy, oz) and ((best_dist == nil) or (dist < best_dist)) then
@@ -239,7 +242,7 @@ local function resetSpawn(featureID, featureData, featureDefData)
 end
 
 local function spawnZombie(featureID, unitDefID, healthReductionRatio, x, y, z)
-	local unitID = spCreateUnit(unitDefID, x, y, z, 0, GaiaTeamID)
+	local unitID = spCreateUnit(unitDefID, x, y, z, 0, gaiaTeamID)
 	if unitID then
 		spDestroyFeature(featureID)
 		spSetUnitExperience(unitID, math.min(random(), random())) -- skew xp to lower values
@@ -250,13 +253,16 @@ local function spawnZombie(featureID, unitDefID, healthReductionRatio, x, y, z)
 		spSetUnitHealth(unitID, unitHealth * healthReductionRatio)
 		spGiveOrderToUnit(unitID, CMD_REPEAT, 1, 0)
 		spGiveOrderToUnit(unitID, CMD_MOVE_STATE, 2, 0)
-		spGiveOrderToUnit(unitID, CMD_FIRE_STATE, 3, 0)
+		spGiveOrderToUnit(unitID, CMD_FIRE_STATE, 2, 0)
 		if scavTeamID then
 			spTransferUnit(unitID, scavTeamID)
 		else
 			zombieWatch[unitID] = unitDefID
 			spSetUnitRulesParam(unitID, "zombie", IS_ZOMBIE)
 			issueRandomOrders(unitID, unitDefID)
+			local energyToSet = ENERGY_INCOME_MULTIPLIER * UnitDefs[unitDefID].energyCost
+			local metalToSet = METAL_INCOME_MULTIPLIER * UnitDefs[unitDefID].metalCost
+			spSetUnitResourcing(unitID, {["umm"] = metalToSet, ["ume"] = energyToSet})
 		end
 	end
 	return unitID
@@ -341,7 +347,7 @@ function gadget:FeatureDestroyed(featureID, allyTeam)
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-	if unitTeam == GaiaTeamID then
+	if unitTeam == gaiaTeamID then
 		local identifiedZombie = spGetUnitRulesParam(unitID, "zombie")
 		if identifiedZombie and identifiedZombie == IS_ZOMBIE then
 			zombieWatch[unitID] = unitDefID
@@ -375,22 +381,27 @@ end
 function gadget:Initialize()
 	mapWidth = Game.mapSizeX
 	mapHeight = Game.mapSizeZ
+	gameFrame = spGetGameFrame()
 	local units = spGetAllUnits()
 	for _, unitID in ipairs(units) do
 		local identifiedZombie = spGetUnitRulesParam(unitID, "zombie")
 		if identifiedZombie and identifiedZombie == IS_ZOMBIE then
-			zombieWatch[unitID] = spGetUnitDefID(unitID)
+			local unitDefID = spGetUnitDefID(unitID)
+			zombieWatch[unitID] = unitDefID
 			spGiveOrderToUnit(unitID, CMD_REPEAT, 1, 0)
 			spGiveOrderToUnit(unitID, CMD_MOVE_STATE, 2, 0)
-			spGiveOrderToUnit(unitID, CMD_FIRE_STATE, 3, 0)
+			spGiveOrderToUnit(unitID, CMD_FIRE_STATE, 2, 0)
+			local energyToSet = ENERGY_INCOME_MULTIPLIER * UnitDefs[unitDefID].energyCost
+			local metalToSet = METAL_INCOME_MULTIPLIER * UnitDefs[unitDefID].metalCost
+			spSetUnitResourcing(unitID, {["umm"] = metalToSet, ["ume"] = energyToSet})
 		end
 	end
 	
 	local features = spGetAllFeatures()
 	for _, featureID in ipairs(features) do
-		gadget:FeatureCreated(featureID, 1)
+		gadget:FeatureCreated(featureID, gaiaTeamID)
 	end
 
-	spSetTeamResource(GaiaTeamID, "ms", 500)
-	spSetTeamResource(GaiaTeamID, "es", 10500)
+	spSetTeamResource(gaiaTeamID, "ms", 20000)
+	spSetTeamResource(gaiaTeamID, "es", 100000)
 end
