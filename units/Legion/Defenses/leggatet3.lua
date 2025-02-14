@@ -2,7 +2,7 @@ return {
 	leggatet3 = {
 		activatewhenbuilt = true,
 		buildangle = 4096,
-		buildpic = "ARMGATE.DDS",
+		buildpic = "LEGGATET3.DDS",
 		buildtime = 261000,
 		canattack = false,
 		canrepeat = false,
