@@ -284,7 +284,6 @@ if gadgetHandler:IsSyncedCode() then
 
 				timeCreated = spGetGameSeconds(),
 				combatTimer = nil,
-				inCombat = false,
 			}
 		end
 	end
@@ -370,14 +369,17 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function IsInCombat(unitID, evolution, currentTime)
-		evolution.inCombat = false
-		if evolution.combatRadius and spGetUnitNearestEnemy(unitID, evolution.combatRadius) then
-			evolution.inCombat = true
-			evolution.combatTimer = currentTime
-			return true
-		elseif evolution.combatTimer ~= nil and (currentTime - evolution.combatTimer) <= 5 then
+		if not evolution.combatRadius then
+			return false
+		end
+		if evolution.combatTimer and (currentTime - evolution.combatTimer) <= 5 then
 			return true
 		end
+		if spGetUnitNearestEnemy(unitID, evolution.combatRadius) then
+			evolution.combatTimer = currentTime
+			return true
+		end
+		return false
 	end
 
 	function gadget:GameFrame(f)
