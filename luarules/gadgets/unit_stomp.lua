@@ -22,9 +22,11 @@ local stompable = {
 	armpw = true,
 	leggob = true
 }
-for name,v in pairs(stompable) do
+local stompableCopy = table.copy(stompable)
+for name,v in pairs(stompableCopy) do
 	stompable[name..'_scav'] = true
 end
+stompableCopy = nil
 local stompableDefs = {}
 for udid, ud in pairs(UnitDefs) do
 	if stompable[ud.name] then

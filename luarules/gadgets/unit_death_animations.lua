@@ -31,9 +31,11 @@ local units = {
 	corak = true,
 	corck = true,
 }
-for name,v in pairs(units) do
+local unitsCopy = table.copy(units)
+for name,v in pairs(unitsCopy) do
 	units[name..'_scav'] = true
 end
+unitsCopy = nil
 local hasDeathAnim = {}
 for udid, ud in pairs(UnitDefs) do
 	if units[ud.name] then
