@@ -34,13 +34,14 @@ local threshold = 150000
 
 local modelForPresenter = {
 	resourcesDestroyed = {
-		visible = false,
+		visible = true,
+		size = 3,
 		firstLeader = {
 			playerName = "Test",
 			score = 123111,
 			playerColor = ""
 		},
-		otherOrderedLeaders = {
+		otherLeadersOrdered = {
 			{
 				playerName = "Test-second",
 				score = 12133,
@@ -53,7 +54,9 @@ local modelForPresenter = {
 			}
 		}
 	},
-	enemiesDestroyed = {},
+	enemiesDestroyed = {
+		visible = false
+	},
 	resourcesEfficiency = {},
 	traitor = {},
 	goldenCow = {},
