@@ -1,5 +1,5 @@
 
-#include "../recoil_common_includes.h"
+#include "../../recoil_common_includes.h"
 		
 piece 	flare1, pelvis, aimy1, turret, aimx1, turretarm, sleeve, wedge, barrel, sleelvedeco1, sleevedeco2, armor,
 		hingefl, 	hingefr, 	hingeml, 	hingemr, 	hingebl, 	hingebr,

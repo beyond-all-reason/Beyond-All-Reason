@@ -218,15 +218,15 @@ if gadgetHandler:IsSyncedCode() then
 
 
 			if commandQueue[1] then
+				local teamID = Spring.GetUnitTeam(unitID)
 				for _,command in pairs(commandQueue) do
 					local coded = command.options.coded + (command.options.shift and 0 or CMD.OPT_SHIFT) -- orders without SHIFT can appear at positions other than the 1st due to CMD.INSERT; they'd cancel any previous commands if added raw
 					if command.id < 0 then -- repair case for construction
-						local units = Spring.GetUnitsInRectangle(command.params[1] - 16, command.params[3] - 16, command.params[1] + 16, command.params[3] + 16)
-						local allyTeam = Spring.GetUnitAllyTeam(unitID)
+						local units = CallAsTeam(teamID, Spring.GetUnitsInRectangle, command.params[1] - 16, command.params[3] - 16, command.params[1] + 16, command.params[3] + 16, -3)
 						local notFound = true
 						for j = 1, #units do
 							local areaUnitID = units[j]
-							if allyTeam == Spring.GetUnitAllyTeam(areaUnitID) and Spring.GetUnitDefID(areaUnitID) == -command.id then
+							if Spring.GetUnitDefID(areaUnitID) == -command.id then
 								Spring.GiveOrderToUnit(newUnitID, CMD.REPAIR, areaUnitID, coded)
 								notFound = false
 								break
