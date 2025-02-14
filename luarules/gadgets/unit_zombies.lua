@@ -97,7 +97,7 @@ local mapWidth
 local mapHeight
 
 local gameFrame = 0
-local adjustedRezSpeed = ZOMBIES_REZ_SPEED * 0.5 --the lowest AverageTechGuesstimate is 0.5
+local adjustedRezSpeed = ZOMBIES_REZ_SPEED
 
 local zombieCorpseDefs = {}
 local zombieWatch = {}
@@ -270,6 +270,14 @@ local function spawnZombie(featureID, unitDefID, healthReductionRatio, x, y, z)
 	return unitID
 end
 
+local function updateAdjustedRezSpeed()
+    local multiplier = 2
+    local highestPowerData = GG.PowerLib.HighestPlayerTeamPower()
+    if highestPowerData and highestPowerData.power then
+        adjustedRezSpeed = ZOMBIES_REZ_SPEED * GG.PowerLib.TechGuesstimate(highestPowerData.power) * multiplier
+    end
+end
+
 function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part)
 	local featureData = corpsesData[featureID]
 	if featureData then
@@ -329,10 +337,7 @@ function gadget:GameFrame(frame)
 				end
 			end
 		end
-		local highestPowerData = GG.PowerLib.HighestPlayerTeamPower()
-		if highestPowerData.power then
-			adjustedRezSpeed = ZOMBIES_REZ_SPEED * GG.PowerLib.TechGuesstimate(highestPowerData.power)
-		end
+		updateAdjustedRezSpeed()
 	end
 end
 
