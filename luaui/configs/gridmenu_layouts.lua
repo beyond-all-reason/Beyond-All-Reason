@@ -1457,209 +1457,204 @@ local unitGrids = {
 	--T2 bot cons
 	armack = {
 		{
-			{ "armmoho", "armfus", "armafus", "armgmm", },             -- moho, fusion, afus, safe geo
-			{ "armmmkr", "armageo", "armckfus", "armshockwave" },                     -- T2 converter, T2 geo, cloaked fusion
-			{ "armuwadves", "armuwadvms", },                           -- hardened energy storage, hardened metal storage
+			{ "armmoho", "armfus", "armafus", "armgmm", },          			-- moho, fusion, afus, safe geo
+			{ "armmmkr", "armageo", "armckfus", "armshockwave" },   			-- T2 converter, T2 geo, cloaked fusion
+			{ "armuwadves", "armuwadvms", },                        			-- hardened energy storage, hardened metal storage
 		},
 		{
-			{ "armpb", "armanni", "armamb", "armemp", },        -- pop-up gauss, annihilator, pop-up artillery, EMP missile
-			{ "armflak", "armmercury", "armamd", },             -- flak, long-range AA, anti-nuke
-			{ "armbrtha", "armvulc", "armsilo", },              -- LRPC, ICBM, lolcannon
+			{ "armpb", "armanni", "armamb", "armemp", },        				-- pop-up gauss, annihilator, pop-up artillery, EMP missile
+			{ "armflak", "armmercury", "armamd", },             				-- flak, long-range AA, anti-nuke
+			{ "armbrtha", "armvulc", "armsilo", },              				-- LRPC, lolcannon, ICBM
 		},
 		{
-			{ "armarad", "armtarg", "armfort", "armveil" },     -- adv radar, targeting facility, wall, adv jammer
-			{ "armsd", "armdf", "armasp" },                     -- intrusion counter, decoy fusion, air repair pad
-			{ "armgate", },                                     -- shield
+			{ "armarad", "armtarg", "armfort", "armveil" },     				-- adv radar, targeting facility, wall, adv jammer
+			{ "armsd", "armdf", "armasp" },                     				-- intrusion counter, decoy fusion, air repair pad
+			{ "armgate", },                                     				-- shield
 		},
 		{
-			{ "armlab", },                                      -- T1 lab,
-			{ "armshltx", "armalab", },                         -- T3 lab, T2 lab
-			{ },                                                --
+			{ "armlab", },                                      				-- T1 lab,
+			{ "armshltx", "armalab", },                         				-- T3 lab, T2 lab
+			{ },                                                				--
 		}
 	},
-
 	corack = {
 		{
-			{ "cormoho", "corfus", "corafus", },                -- moho, fusion, afus
-			{ "cormmkr", "corageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
-			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
+			{ "cormoho", "corfus", "corafus", },                				-- moho, fusion, afus
+			{ "cormmkr", "corageo", "cormexp", },               				-- T2 converter, T2 geo, armed moho
+			{ "coruwadves", "coruwadvms", },                    				-- hardened energy storage, hardened metal storage,
 		},
 		{
-			{ "corvipe", "cordoom", "cortoast", "cortron", },   -- pop-up gauss, DDM, pop-up artillery, tac nuke
-			{ "corflak", "corscreamer", "corfmd", "corbhmth", }, -- flak, long-range AA, anti-nuke, cerberus
-			{ "corint", "corbuzz", "corsilo", },                -- LRPC, ICBM, lolcannon
+			{ "corvipe", "cordoom", "cortoast", "cortron", },   				-- pop-up gauss, DDM, pop-up artillery, tac nuke
+			{ "corflak", "corscreamer", "corfmd", "corbhmth", }, 				-- flak, long-range AA, anti-nuke, cerberus
+			{ "corint", "corbuzz", "corsilo", },                				-- LRPC, lolcannon, ICBM
 		},
 		{
-			{ "corarad", "cortarg", "corfort", "corshroud", },  -- adv radar, targeting facility, wall, adv jammer
-			{ "corsd", "", "corasp" },                          -- intrusion counter, air repair pad
-			{ "corgate", },                                     -- anti-nuke, shield
+			{ "corarad", "cortarg", "corfort", "corshroud", },  				-- adv radar, targeting facility, wall, adv jammer
+			{ "corsd", "", "corasp" },                          				-- intrusion counter, air repair pad
+			{ "corgate", },                                     				-- anti-nuke, shield
 		},
 		{
-			{ "corlab", },                                      -- T1 lab,
-			{ "corgant", "coralab", },                          -- T3 lab, T2 lab
-			{ },                                                --
+			{ "corlab", },                                      				-- T1 lab,
+			{ "corgant", "coralab", },                          				-- T3 lab, T2 lab
+			{ },                                                				--
 		}
 	},
-
 	legack = {
 		{
-			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
-			{ "cormmkr", "legageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
-			{ "coruwadves", "legamstor", },                    -- hardened energy storage, hardened metal storage,
+			{ "legmoho", "legfus", "legafus", },                				-- moho, fusion, afus
+			{ "cormmkr", "legageo", "cormexp", },               				-- T2 converter, T2 geo, armed moho
+			{ "coruwadves", "legamstor", },                    					-- hardened energy storage, hardened metal storage,
 		},
 		{
-			{ "legbombard", "legbastion", "legacluster", "legperdition", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
-			{ "legflak", "leglraa", "legabm", "legrampart", }, -- flak, long-range AA, anti-nuke, cerberus
-			{ "leglrpc", "legstarfall", "legsilo", },                -- LRPC, ICBM, lolcannon
+			{ "legbombard", "legbastion", "legacluster", "legperdition", },   	-- pop-up gauss, heavy defence, pop-up artillery, napalm missle
+			{ "legflak", "leglraa", "legabm", "legrampart", }, 					-- flak, long-range AA, anti-nuke, rampart
+			{ "leglrpc", "legstarfall", "legsilo", },                			-- LRPC, lolcannon, ICBM
 		},
 		{
-			{ "corarad", "cortarg", "legforti", "corshroud", },  -- adv radar, targeting facility, wall, adv jammer
-			{ "corsd", "", "corasp" },                          -- intrusion counter, air repair pad
-			{ "corgate", },                                     -- anti-nuke, shield
+			{ "corarad", "cortarg", "legforti", "corshroud", },  				-- adv radar, targeting facility, wall, adv jammer
+			{ "corsd", "", "corasp" },                          				-- intrusion counter, air repair pad
+			{ "corgate", },                                     				-- anti-nuke, shield
 		},
 		{
-			{ "leglab", },                                      -- T1 lab,
-			{ "leggant", "legalab", },                          -- T3 lab, T2 lab
-			{ },                                                --
+			{ "leglab", },                                      				-- T1 lab,
+			{ "leggant", "legalab", },                          				-- T3 lab, T2 lab
+			{ },                                                				--
 		}
 	},
 
 	--T2 vehicle cons
 	armacv = {
 		{
-			{ "armmoho", "armfus", "armafus", "armgmm", },             -- moho, fusion, afus, safe geo
-			{ "armmmkr", "armageo", "armckfus", "armshockwave" },                     -- T2 converter, T2 geo, cloaked fusion
-			{ "armuwadves", "armuwadvms", },                           -- hardened energy storage, hardened metal storage
+			{ "armmoho", "armfus", "armafus", "armgmm", },             			-- moho, fusion, afus, safe geo
+			{ "armmmkr", "armageo", "armckfus", "armshockwave" },               -- T2 converter, T2 geo, cloaked fusion
+			{ "armuwadves", "armuwadvms", },                           			-- hardened energy storage, hardened metal storage
 		},
 		{
-			{ "armpb", "armanni", "armamb", "armemp", },        -- pop-up gauss, annihilator, pop-up artillery, EMP missile
-			{ "armflak", "armmercury", "armamd", },             -- flak, long-range AA, anti-nuke
-			{ "armbrtha", "armvulc", "armsilo", },              -- LRPC, ICBM, lolcannon
+			{ "armpb", "armanni", "armamb", "armemp", },        				-- pop-up gauss, annihilator, pop-up artillery, EMP missile
+			{ "armflak", "armmercury", "armamd", },             				-- flak, long-range AA, anti-nuke
+			{ "armbrtha", "armvulc", "armsilo", },              				-- LRPC, lolcannon, ICBM
 		},
 		{
-			{ "armarad", "armtarg", "armfort", "armveil",  },   -- adv radar, targeting facility, wall, adv jammer
-			{ "armsd", "armdf", "armasp" },                     -- intrusion counter, decoy fusion, air repair pad
-			{ "armgate", },                                     -- shield
+			{ "armarad", "armtarg", "armfort", "armveil",  },   				-- adv radar, targeting facility, wall, adv jammer
+			{ "armsd", "armdf", "armasp" },                     				-- intrusion counter, decoy fusion, air repair pad
+			{ "armgate", },                                     				-- shield
 		},
 		{
-			{ "armvp", },                                       -- T1 lab,
-			{ "armshltx", "armavp", },                          -- T3 lab, T2 lab
-			{ },                                                --
+			{ "armvp", },                                       				-- T1 lab,
+			{ "armshltx", "armavp", },                          				-- T3 lab, T2 lab
+			{ },                                                				--
 		}
 	},
-
 	coracv = {
 		{
-			{ "cormoho", "corfus", "corafus", },                -- moho, fusion, afus
-			{ "cormmkr", "corageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
-			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
+			{ "cormoho", "corfus", "corafus", },                				-- moho, fusion, afus
+			{ "cormmkr", "corageo", "cormexp", },               				-- T2 converter, T2 geo, armed moho
+			{ "coruwadves", "coruwadvms", },                    				-- hardened energy storage, hardened metal storage,
 		},
 		{
-			{ "corvipe", "cordoom", "cortoast", "cortron", },   -- pop-up gauss, DDM, pop-up artillery, tac nuke
-			{ "corflak", "corscreamer", "corfmd", "corbhmth", }, -- flak, long-range AA, anti-nuke, cerberus
-			{ "leglrpc", "corbuzz", "corsilo", },                -- LRPC, ICBM, lolcannon
+			{ "corvipe", "cordoom", "cortoast", "cortron", },   				-- pop-up gauss, DDM, pop-up artillery, tac nuke
+			{ "corflak", "corscreamer", "corfmd", "corbhmth", }, 				-- flak, long-range AA, anti-nuke, cerberus
+			{ "leglrpc", "corbuzz", "corsilo", },                				-- LRPC, lolcannon, ICBM
 		},
 		{
-			{ "corarad", "cortarg", "corfort", "corshroud", },  -- adv radar, targeting facility, wall, adv jammer
-			{ "corsd", "", "corasp" },                          -- intrusion counter, air repair pad
-			{ "corgate", },                                     -- anti-nuke, shield
+			{ "corarad", "cortarg", "corfort", "corshroud", },  				-- adv radar, targeting facility, wall, adv jammer
+			{ "corsd", "", "corasp" },                          				-- intrusion counter, air repair pad
+			{ "corgate", },                                     				-- anti-nuke, shield
 		},
 		{
-			{ "corvp", },                                       -- T1 lab,
-			{ "corgant", "coravp", },                           -- T3 lab, T2 lab
-			{ },                                                --
+			{ "corvp", },                                       				-- T1 lab,
+			{ "corgant", "coravp", },                           				-- T3 lab, T2 lab
+			{ },                                                				--
 		}
 	},
-
 	legacv = {
 		{
-			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
-			{ "cormmkr", "legageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
-			{ "coruwadves", "legamstor", },                    -- hardened energy storage, hardened metal storage,
+			{ "legmoho", "legfus", "legafus", },                				-- moho, fusion, afus
+			{ "cormmkr", "legageo", "cormexp", },               				-- T2 converter, T2 geo, armed moho
+			{ "coruwadves", "legamstor", },                    					-- hardened energy storage, hardened metal storage,
 		},
 		{
-			{ "legbombard", "legbastion", "legacluster", "legperdition", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
-			{ "legflak", "leglraa", "legabm", "legrampart", }, -- flak, long-range AA, anti-nuke, cerberus
-			{ "leglrpc", "legstarfall", "legsilo", },                -- LRPC, ICBM, lolcannon
+			{ "legbombard", "legbastion", "legacluster", "legperdition", },   	-- pop-up gauss, heavy defence, pop-up artillery, napalm missle
+			{ "legflak", "leglraa", "legabm", "legrampart", }, 					-- flak, long-range AA, anti-nuke, rampart
+			{ "leglrpc", "legstarfall", "legsilo", },                			-- LRPC, lolcannon, ICBM
 		},
 		{
-			{ "corarad", "cortarg", "legforti", "corshroud", },  -- adv radar, targeting facility, wall, adv jammer
-			{ "corsd", "", "corasp" },                          -- intrusion counter, air repair pad
-			{ "corgate", },                                     -- anti-nuke, shield
+			{ "corarad", "cortarg", "legforti", "corshroud", },  				-- adv radar, targeting facility, wall, adv jammer
+			{ "corsd", "", "corasp" },                          				-- intrusion counter, air repair pad
+			{ "corgate", },                                     				-- anti-nuke, shield
 		},
 		{
-			{ "legvp", },                                       -- T1 lab,
-			{ "leggant", "legavp", },                           -- T3 lab, T2 lab
-			{ },                                                --
+			{ "legvp", },                                       				-- T1 lab,
+			{ "leggant", "legavp", },                           				-- T3 lab, T2 lab
+			{ },                                                				--
 		}
 	},
 
 	--T2 air cons
 	armaca = {
 		{
-			{ "armmoho", "armfus", "armafus", "armgmm", },             -- moho, fusion, afus, safe geo
-			{ "armmmkr", "armageo", "armckfus", "armshockwave" },                     -- T2 converter, T2 geo, cloaked fusion
-			{ "armuwadves", "armuwadvms", },                           -- hardened energy storage, hardened metal storage
+			{ "armmoho", "armfus", "armafus", "armgmm", },             			-- moho, fusion, afus, safe geo
+			{ "armmmkr", "armageo", "armckfus", "armshockwave" },               -- T2 converter, T2 geo, cloaked fusion
+			{ "armuwadves", "armuwadvms", },                           			-- hardened energy storage, hardened metal storage
 		},
 		{
-			{ "armpb", "armanni", "armamb", "armemp", },        -- pop-up gauss, annihilator, pop-up artillery, EMP missile
-			{ "armflak", "armmercury", "armamd", },             -- flak, long-range AA, anti-nuke
-			{ "armbrtha", "armvulc", "armsilo", },              -- LRPC, ICBM, lolcannon
+			{ "armpb", "armanni", "armamb", "armemp", },        				-- pop-up gauss, annihilator, pop-up artillery, EMP missile
+			{ "armflak", "armmercury", "armamd", },             				-- flak, long-range AA, anti-nuke
+			{ "armbrtha", "armvulc", "armsilo", },              				-- LRPC, lolcannon, ICBM
 		},
 		{
-			{ "armarad", "armtarg", "armfort", "armveil",  },    -- adv radar, targeting facility, wall, adv jammer
-			{ "armsd", "armdf", "armasp", "armfasp" },           -- intrusion counter, decoy fusion, air repair pad, floating air repair pad
-			{ "armgate", },                                      -- shield
+			{ "armarad", "armtarg", "armfort", "armveil",  },    				-- adv radar, targeting facility, wall, adv jammer
+			{ "armsd", "armdf", "armasp", "armfasp" },           				-- intrusion counter, decoy fusion, air repair pad, floating air repair pad
+			{ "armgate", },                                      				-- shield
 		},
 		{
-			{ "armap", },                                       -- T1 lab,
-			{ "armshltx", "armaap", },                          -- T3 lab, T2 lab
-			{ "armplat", },                                     -- seaplane lab (aircon only)
+			{ "armap", },                                       				-- T1 lab,
+			{ "armshltx", "armaap", },                          				-- T3 lab, T2 lab
+			{ "armplat", },                                     				-- seaplane lab (aircon only)
 		}
 	},
-
 	coraca = {
 		{
-			{ "cormoho", "corfus", "corafus", },                -- moho, fusion, afus
-			{ "cormmkr", "corageo", "cormexp","coruwageo", },               -- T2 converter, T2 geo, armed moho
-			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
+			{ "cormoho", "corfus", "corafus", },                				-- moho, fusion, afus
+			{ "cormmkr", "corageo", "cormexp","coruwageo", },               	-- T2 converter, T2 geo, armed moho
+			{ "coruwadves", "coruwadvms", },                    				-- hardened energy storage, hardened metal storage,
 		},
 		{
-			{ "corvipe", "cordoom", "cortoast", "cortron" },    -- pop-up gauss, DDM, pop-up artillery, tac nuke
-			{ "corflak", "corscreamer", "corfmd", "corbhmth" }, -- flak, long-range AA, anti-nuke, cerberus
-			{ "corint", "corbuzz", "corsilo" },                 -- LRPC, ICBM, lolcannon
+			{ "corvipe", "cordoom", "cortoast", "cortron" },    				-- pop-up gauss, DDM, pop-up artillery, tac nuke
+			{ "corflak", "corscreamer", "corfmd", "corbhmth" }, 				-- flak, long-range AA, anti-nuke, cerberus
+			{ "corint", "corbuzz", "corsilo" },                 				-- LRPC, lolcannon, ICBM
 		},
 		{
-			{ "corarad", "cortarg", "corfort", "corshroud" },   -- adv radar, targeting facility, wall, adv jammer
-			{ "corsd", "", "corasp", "corfasp" },               -- intrusion counter, air repair pad, floating air repair pad
-			{ "corgate", },                                     -- anti-nuke, shield
+			{ "corarad", "cortarg", "corfort", "corshroud" },   				-- adv radar, targeting facility, wall, adv jammer
+			{ "corsd", "", "corasp", "corfasp" },               				-- intrusion counter, air repair pad, floating air repair pad
+			{ "corgate", },                                     				-- shield
 		},
 		{
-			{ "corap", },                                       -- T1 lab,
-			{ "corgant", "coraap", },                           -- T3 lab, T2 lab
-			{ "corplat", },                                     -- seaplane lab (aircon only)
+			{ "corap", },                                       				-- T1 lab,
+			{ "corgant", "coraap", },                           				-- T3 lab, T2 lab
+			{ "corplat", },                                     				-- seaplane lab (aircon only)
 		}
 	},
 	legaca = {
 		{
-			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
-			{ "cormmkr", "legageo", "cormexp","coruwageo", },               -- T2 converter, T2 geo, armed moho
-			{ "coruwadves", "legamstor", },                    -- hardened energy storage, hardened metal storage,
+			{ "legmoho", "legfus", "legafus", },                				-- moho, fusion, afus
+			{ "cormmkr", "legageo", "cormexp","coruwageo", },               	-- T2 converter, T2 geo, armed moho
+			{ "coruwadves", "legamstor", },                    					-- hardened energy storage, hardened metal storage,
 		},
 		{
-			{ "legbombard", "legbastion", "legacluster", "legperdition", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
-			{ "legflak", "leglraa", "legabm", "legrampart", }, -- flak, long-range AA, anti-nuke, cerberus
-			{ "corint", "legstarfall", "legsilo", },                -- LRPC, ICBM, lolcannon
+			{ "legbombard", "legbastion", "legacluster", "legperdition", },   	-- pop-up gauss, heavy defence, pop-up artillery, napalm missle
+			{ "legflak", "leglraa", "legabm", "legrampart", }, 					-- flak, long-range AA, anti-nuke, rampart
+			{ "corint", "legstarfall", "legsilo", },                			-- LRPC, lolcannon, ICBM
 		},
 		{
-			{ "corarad", "cortarg", "legforti", "corshroud", },  -- adv radar, targeting facility, wall, adv jammer
-			{ "corsd", "", "corasp", "corfasp" },               -- intrusion counter, air repair pad, floating air repair pad
-			{ "corgate", },                                     -- anti-nuke, shield
+			{ "corarad", "cortarg", "legforti", "corshroud", },  				-- adv radar, targeting facility, wall, adv jammer
+			{ "corsd", "", "corasp", "corfasp" },               				-- intrusion counter, air repair pad, floating air repair pad
+			{ "corgate", },                                     				-- shield
 		},
 		{
-			{ "legap", },                                       -- T1 lab,
-			{ "leggant", "legaap", },                           -- T3 lab, T2 lab
-			{ "corplat", },                                     -- seaplane lab (aircon only)
+			{ "legap", },                                       				-- T1 lab,
+			{ "leggant", "legaap", },                           				-- T3 lab, T2 lab
+			{ "corplat", },                                     				-- seaplane lab (aircon only)
 		}
 	},
 
@@ -1686,7 +1681,6 @@ local unitGrids = {
 			{ },                                               --
 		}
 	},
-
 	coracsub = {
 		{
 			{ "coruwmme", "coruwfus", },                       -- uw moho, uw fusion,
