@@ -1,6 +1,6 @@
 -- run test using BAR command (in chat): `/runtests select_api`
 local spGetUnitDefID = Spring.GetUnitDefID
-local selectApi = VFS.Include("luaui/Widgets/Include/select_api.lua")
+local selectApi = VFS.Include("luaui/Include/select_api.lua")
 local nameLookup = {}
 local passed = true
 

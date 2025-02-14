@@ -42,7 +42,7 @@ local shaderConfig = { -- These will be replaced in the shader using #defines's
 }
 
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir .. "LuaShader.lua")
 
 local vsSrc = [[
