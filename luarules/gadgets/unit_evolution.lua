@@ -283,7 +283,7 @@ if gadgetHandler:IsSyncedCode() then
 				evolution_health_transfer =  udcp.evolution_health_transfer or "flat",
 
 				timeCreated = spGetGameSeconds(),
-				combatTimer = spGetGameSeconds(),
+				combatTimer = nil,
 				inCombat = false,
 			}
 		end
@@ -369,6 +369,17 @@ if gadgetHandler:IsSyncedCode() then
   	return minLoadBatchSize * ((maxLoadBatchSize / minLoadBatchSize) ^ (t^0.1))
 	end
 
+	local function IsInCombat(unitID, evolution, currentTime)
+		evolution.inCombat = false
+		if evolution.combatRadius and spGetUnitNearestEnemy(unitID, evolution.combatRadius) then
+			evolution.inCombat = true
+			evolution.combatTimer = currentTime
+			return true
+		elseif evolution.combatTimer ~= nil and (currentTime - evolution.combatTimer) <= 5 then
+			return true
+		end
+	end
+
 	function gadget:GameFrame(f)
 		if f % GAME_SPEED ~= 0 or FillToCheckUnitIDs() then
 			return
@@ -383,19 +394,11 @@ if gadgetHandler:IsSyncedCode() then
 
 			local evolution = evolutionMetaList[unitID]
 			if evolution then
-				if (evolution.evolution_condition == 'timer' and (currentTime - evolution.timeCreated) >= evolution.evolution_timer) or
-				(evolution.evolution_condition == 'timer_global' and currentTime >= evolution.evolution_timer)
-				then
-					local enemyNearby = spGetUnitNearestEnemy(unitID, evolution.combatRadius)
-					local inCombat = false
-					if enemyNearby then
-						inCombat = true
-						evolution.combatTimer = currentTime
-					end
-
-					if not inCombat and (currentTime - evolution.combatTimer) >= 5 then
+				if (evolution.evolution_condition == 'timer'
+					and (currentTime - evolution.timeCreated) >= evolution.evolution_timer) or
+						(evolution.evolution_condition == 'timer_global' and currentTime >= evolution.evolution_timer)
+					and not IsInCombat(unitID, evolution, currentTime) then
 						Evolve(unitID, evolution.evolution_target)
-					end
 				end
 
 				local teamID = spGetUnitTeam(unitID)
@@ -407,16 +410,11 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 
-				if evolution.evolution_condition == "power" and not Spring.GetUnitTransporter(unitID) and highestTeamPower > evolution.evolution_power_threshold then
-					local enemyNearby = spGetUnitNearestEnemy(unitID, evolution.combatRadius)
-					local inCombat = false
-					if enemyNearby then
-						inCombat = true
-						evolution.combatTimer = currentTime
-					end
-					if not inCombat and (currentTime-evolution.combatTimer) >= 5 then
+				if evolution.evolution_condition == "power"
+					and not Spring.GetUnitTransporter(unitID)
+					and highestTeamPower > evolution.evolution_power_threshold
+					and not IsInCombat(unitID, evolution, currentTime) then
 						Evolve(unitID, evolution.evolution_target)
-					end
 				end
 			end
 
