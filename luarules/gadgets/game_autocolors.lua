@@ -375,6 +375,14 @@ local teamColors = {
 	},
 }
 
+local r = math.random()
+math.randomseed(1)	-- make sure the next sequence of randoms can be reproduced
+local teamRandoms = {}
+for i = 1, #teamList do
+	teamRandoms[teamList[i]] = { math.random(), math.random(), math.random() }
+end
+math.randomseed(r)
+
 local function shuffleTable(Table)
 	local originalTable = {}
 	table.append(originalTable, Table)
@@ -765,15 +773,10 @@ else -- UNSYNCED
 				elseif allyTeamID ~= myAllyTeamID then
 					color = {Spring.GetConfigInt("SimpleTeamColorsEnemyR", 255), Spring.GetConfigInt("SimpleTeamColorsEnemyG", 16), Spring.GetConfigInt("SimpleTeamColorsEnemyB", 5)}
 				end
-				color[1] = math.min(color[1] + brightnessVariation, 255) + math.random(-maxColorVariation, maxColorVariation)
-				color[2] = math.min(color[2] + brightnessVariation, 255) + math.random(-maxColorVariation, maxColorVariation)
-				color[3] = math.min(color[3] + brightnessVariation, 255) + math.random(-maxColorVariation, maxColorVariation)
-				Spring.SetTeamColor(
-					teamID,
-					color[1] / 255,
-					color[2] / 255,
-					color[3] / 255
-				)
+				color[1] = math.min(color[1] + brightnessVariation, 255) + ((teamRandoms[teamID][1] * (maxColorVariation * 2)) - maxColorVariation)
+				color[2] = math.min(color[2] + brightnessVariation, 255) + ((teamRandoms[teamID][2] * (maxColorVariation * 2)) - maxColorVariation)
+				color[3] = math.min(color[3] + brightnessVariation, 255) + ((teamRandoms[teamID][3] * (maxColorVariation * 2)) - maxColorVariation)
+				Spring.SetTeamColor(teamID, color[1] / 255, color[2] / 255, color[3] / 255)
 
 			-- auto ffa gradient colored for huge player games
 			elseif
@@ -789,22 +792,14 @@ else -- UNSYNCED
 				elseif teamID == myTeamID then
 					brightnessVariation = 0
 					maxColorVariation = 0
-					color[1] = color[1] + 210
-					color[2] = color[2] + 210
-					color[3] = color[3] + 210
-				elseif allyTeamID == myAllyTeamID then
-					brightnessVariation = brightnessVariation - 40
-					maxColorVariation = math.ceil(maxColorVariation * 1.2)
+					color[1] = color[1] + 200
+					color[2] = color[2] + 200
+					color[3] = color[3] + 200
 				end
-				color[1] = math.min(color[1] + brightnessVariation, 255) + math.random(-maxColorVariation, maxColorVariation)
-				color[2] = math.min(color[2] + brightnessVariation, 255) + math.random(-maxColorVariation, maxColorVariation)
-				color[3] = math.min(color[3] + brightnessVariation, 255) + math.random(-maxColorVariation, maxColorVariation)
-				Spring.SetTeamColor(
-					teamID,
-					color[1] / 255,
-					color[2] / 255,
-					color[3] / 255
-				)
+				color[1] = math.min(color[1] + brightnessVariation, 255) + ((teamRandoms[teamID][1] * (maxColorVariation * 2)) - maxColorVariation)
+				color[2] = math.min(color[2] + brightnessVariation, 255) + ((teamRandoms[teamID][2] * (maxColorVariation * 2)) - maxColorVariation)
+				color[3] = math.min(color[3] + brightnessVariation, 255) + ((teamRandoms[teamID][3] * (maxColorVariation * 2)) - maxColorVariation)
+				Spring.SetTeamColor(teamID, color[1] / 255, color[2] / 255, color[3] / 255)
 
 			else
 				Spring.SetTeamColor(teamID, r, g, b)
@@ -833,9 +828,7 @@ else -- UNSYNCED
 		if playerID ~= myPlayerID then
 			return
 		end
-
 		mySpecState = Spring.GetSpectatingState()
-
 		Spring.SetConfigInt("UpdateTeamColors", 1)
 	end
 end

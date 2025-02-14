@@ -53,14 +53,14 @@ function gadget:UnitCreated(unitID, unitDefID)
 	end
 end
 
-function gadget:UnitDestroyed(unitID)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	if Bombers[unitID] then
 		Bombers[unitID] = nil
 	end
 end
 function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 	if Bombers[unitID] and spGetUnitMoveTypeData(unitID).aircraftState == "crashing" then
-		gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
+		gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	end
 end
 

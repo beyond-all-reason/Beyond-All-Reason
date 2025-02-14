@@ -2077,7 +2077,7 @@ local function UpdateUnit(unitID, flag)
 	destroyedUnitDrawFlags[numdestroyedUnits] = flag
 end
 
-function gadget:UnitDestroyed(unitID)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	--UpdateUnit(unitID, 0) -- having this here means that dying units lose CUS, RenderUnitDestroyed _should_ be fine
 end
 

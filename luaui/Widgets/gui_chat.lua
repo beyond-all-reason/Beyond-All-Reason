@@ -458,6 +458,7 @@ function widget:LanguageChanged()
 		cmd = Spring.I18N('ui.chat.cmd'),
 		shortcut = Spring.I18N('ui.chat.shortcut'),
 		nohistory = Spring.I18N('ui.chat.nohistory'),
+		scroll = Spring.I18N('ui.chat.scroll', { textColor = "\255\255\255\255", highlightColor = "\255\255\255\001" }),
 	}
 	refreshUnitDefs()
 end
@@ -482,12 +483,12 @@ local teams = Spring.GetTeamList()
 for i = 1, #teams do
 	local teamID = teams[i]
 	local r, g, b = spGetTeamColor(teamID)
-	local _, playerID, _, isAiTeam = spGetTeamInfo(teamID, false)
+	local _, playerID, _, isAiTeam, _, allyTeamID = spGetTeamInfo(teamID, false)
 	teamColorKeys[teamID] = r..'_'..g..'_'..b
 	local aiName
 	if isAiTeam then
 		aiName = getAIName(teamID)
-		playernames[aiName] = true
+		playernames[aiName] = { allyTeamID, false, teamID, playerID }
 	end
 	if teamID == gaiaTeamID then
 		teamNames[teamID] = "Gaia"
@@ -572,11 +573,6 @@ end
 local function teamcolorPlayername(playername)
 	if playernames[playername] then
 		return colourNames(playernames[playername][3])..playername
-	end
-	for i = 1, #teams do
-		if select(4, spGetTeamInfo(teams[i], false)) then
-			return colourNames(teams[i])..playername
-		end
 	end
 	return ColorString(0.7, 0.7, 0.7)..playername
 end
@@ -2111,7 +2107,7 @@ function widget:WorldTooltip(ttType,data1,data2,data3)
 	local x,y,_ = Spring.GetMouseState()
 	local chatlogHeightDiff = historyMode and floor(vsy*(scrollingPosY-posY)) or 0
 	if #chatLines > 0 and math_isInRect(x, y, activationArea[1],activationArea[2]+chatlogHeightDiff,activationArea[3],activationArea[4]) then
-		return Spring.I18N('ui.chat.scroll', { textColor = "\255\255\255\255", highlightColor = "\255\255\255\001" })
+		return I18N.scroll
 	end
 end
 

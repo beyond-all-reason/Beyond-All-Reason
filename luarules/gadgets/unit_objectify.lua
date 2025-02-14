@@ -77,7 +77,7 @@ if gadgetHandler:IsSyncedCode() then
 		Spring.SetUnitSensorRadius(unitID, 'sonar', 0)
 	end
 
-	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 		if isDecoration[unitDefID] then
 			numDecorations = numDecorations - 1
 		end

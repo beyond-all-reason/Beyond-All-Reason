@@ -27,10 +27,10 @@ This may be necessary if the turret's turn speed is so slow it triggers false mi
 
 --static
 local frameCheckModulo = Game.gameSpeed -- once per second is sufficient
-local aggroDecayRate = 0.65 --aggro is multiplied by this until it falls within priority aiming state range
+local aggroDecayRate = 0.7 --aggro is multiplied by this until it falls within priority aiming state range
 local aggroDecayCap = 10  -- this caps the aggro decay so that misfire state can last a significant amount of time
-local aggroPriorityCap = 8 * aggroDecayCap --The maximum aggro that can be accumulated. This prevents manual targetting from getting stuck in a fire mode for too long.
-local aggroBackupCap = 4 * aggroDecayCap * -1 --Like above, but a negative value because backup is triggered with negative aggro.
+local aggroPriorityCap = 1 --The maximum aggro that can be accumulated. This prevents manual targetting from getting stuck in a fire mode for too long.
+local aggroBackupCap = -16 --Like above, but a negative value because backup is triggered with negative aggro.
 
 --misfire occurs when the weapon thinks it can shoot a target due to faulty Spring.GetUnitWeaponHaveFreeLineOfFire return values. We must detect when this failure occurs and force high for a long duration.
 local misfireMultiplier = Game.gameSpeed * 1.5
@@ -42,11 +42,14 @@ local backupMisfireAggro = -200 --how much aggro is given multiplied by the misf
 
 local priorityAutoAggro = 12 -- how much aggro is accumulated per frameCheckModulo that the priority weapon successfully aims
 local priorityManualAggro = 24 -- how much aggro is accumulated per frameCheckModulo that the priority weapon successfully aims with a manually assigned target
-local prioritySwitchThreshold = -1 --the aggro at which priority weapon switch is triggered. Aggro is decayed closer to 0 every frameCheckModulo
+local prioritySwitchThreshold = -5 --the aggro at which priority weapon switch is triggered. Aggro is decayed closer to 0 every frameCheckModulo
 
-local backupAutoAggro = 5.5 -- how much aggro is accumulated per frameCheckModulo that the priority weapon fails to aim
+local backupAutoAggro = 8 -- how much aggro is accumulated per frameCheckModulo that the priority weapon fails to aim
 local backupManualAggro = 16 --how much aggro is accumulated per frameCheckModulo that the priority weapon fails to aim with a manually assigned target
-local backupSwitchThreshold = backupAutoAggro * 2.4 * -1 --the aggro at which backup weapon switch is triggered. Aggro is decayed closer to 0 every frameCheckModulo
+local backupSwitchThreshold = backupAutoAggro * 1.2 * -1 --the aggro at which backup weapon switch is triggered. Aggro is decayed closer to 0 every frameCheckModulo
+
+local priorityCooldownFrames = Game.gameSpeed * 1.5 -- so that no matter how the aggro weights are set, the mode switches will happen no sooner than this.
+local backupCooldownFrames = Game.gameSpeed * 4
 
 local PRIORITY_AIMINGSTATE = 1
 local BACKUP_AIMINGSTATE = 2
@@ -68,6 +71,7 @@ local mathMax = math.max
 
 local smartUnits = {}
 local smartUnitDefs = {}
+local modeSwitchFrames = {}
 
 function gadget:Initialize()
 	local units = Spring.GetAllUnits()
@@ -87,6 +91,7 @@ for unitDefID, def in ipairs(UnitDefs) do
 					smartUnitDefs[unitDefID] = smartUnitDefs[unitDefID] or {}
 					smartUnitDefs[unitDefID].priorityWeapon = weaponNumber
 					smartUnitDefs[unitDefID].failedToFireFrameThreshold = WeaponDefs[weaponDefID].customParams.smart_misfire_frames or mathMax(WeaponDefs[weaponDefID].reload * misfireMultiplier, minimumMisfireFrames)
+					smartUnitDefs[unitDefID].reloadFrames = math.floor(WeaponDefs[weaponDefID].reload * Game.gameSpeed)
 					if def.speed and def.speed ~= 0 then
 						smartUnitDefs[unitDefID].canMove = true
 					end
@@ -104,18 +109,22 @@ for unitDefID, def in ipairs(UnitDefs) do
 	end
 end
 
---custom functions
-local function failureToFireCheck(attackerID, data, defData)
-	if not data.suspendMisfireUntilFrame or data.aggroBias < prioritySwitchThreshold then return false end
-
-	if data.failedShotFrame < gameFrame - defData.failedToFireFrameThreshold then
-		data.failedShotFrame = mathMax(
+local function updatePredictedShotFrame(attackerID, unitData, defData)
+	if unitData.predictedShotFrame < gameFrame - defData.failedToFireFrameThreshold then
+		unitData.predictedShotFrame = mathMax(
 			spGetUnitWeaponState(attackerID, defData.priorityWeapon, 'reloadFrame'),
 			spGetUnitWeaponState(attackerID, defData.backupWeapon, 'reloadFrame')
 		)
 	end
+end
 
-	if data.failedShotFrame < gameFrame - defData.failedToFireFrameThreshold and
+--custom functions
+local function failureToFireCheck(attackerID, data, defData)
+	if not data.suspendMisfireUntilFrame or data.aggroBias < prioritySwitchThreshold then return false end
+
+	updatePredictedShotFrame(attackerID, data, defData)
+
+	if data.predictedShotFrame < gameFrame - defData.failedToFireFrameThreshold and
 		gameFrame > data.suspendMisfireUntilFrame then
 		return true
 	else
@@ -135,6 +144,41 @@ local function handleMisfire(data, defData)
 	data.suspendMisfireUntilFrame = gameFrame + defData.failedToFireFrameThreshold
 end
 
+--switch the fire mode in the middle of the next reloadtime when available to both make transitions at the ideal time
+--and completely eliminate indecisive wobbling
+local function queueSwitchFrame(attackerID, data, defData, setState)
+    if data.state ~= setState and data.switchCooldownFrame < gameFrame then
+        local idealSubtraction = defData.reloadFrames * 0.75 -- so the switch occurs soon after a shot
+        local idealAddition = defData.reloadFrames - idealSubtraction
+        local idealFrame
+        
+		updatePredictedShotFrame(attackerID, data, defData)
+
+        if data.predictedShotFrame < gameFrame then
+            -- we're so far past the last reloadtime, weapon is either stuck or otherwise can't fire
+            spCallCOBScript(attackerID, data.setStateScriptID, 0, setState)
+        else
+			-- is now just before the ideal frame to switch on?
+            idealFrame = data.predictedShotFrame - idealSubtraction
+            if idealFrame <= gameFrame then
+                -- remaining possibility, queue switch for after next predicted shot
+                idealFrame = data.predictedShotFrame + idealAddition
+            end
+			idealFrame = math.floor(idealFrame)
+			modeSwitchFrames[idealFrame] = modeSwitchFrames[idealFrame] or {}
+			modeSwitchFrames[idealFrame][attackerID] = setState
+        end
+        
+        data.state = setState
+		if data.state == PRIORITY_AIMINGSTATE then
+        	data.switchCooldownFrame = gameFrame + priorityCooldownFrames
+		else
+			data.switchCooldownFrame = gameFrame + backupCooldownFrames
+		end
+    end
+end
+
+
 local function updateAimingState(attackerID)
 	local data = smartUnits[attackerID]
 	local defData = smartUnitDefs[data.unitDefID]
@@ -151,15 +195,11 @@ local function updateAimingState(attackerID)
 	if priorityTargetType == UNIT_TARGET then
 		priorityCanShoot = spGetUnitWeaponHaveFreeLineOfFire(attackerID, defData.trajectoryCheckWeapon, priorityTarget)
 		newMatchTargetNumber = priorityTarget
-		if data.aggroBias >= prioritySwitchThreshold then
-			spSetUnitTarget(attackerID, priorityTarget, false, priorityIsUserTarget, defData.backupWeapon)
-		end
+		spSetUnitTarget(attackerID, priorityTarget, false, priorityIsUserTarget, defData.backupWeapon)
 	elseif priorityTargetType == GROUND_TARGET then
 		priorityCanShoot = spGetUnitWeaponHaveFreeLineOfFire(attackerID, defData.trajectoryCheckWeapon, nil, nil, nil, priorityTarget[1], priorityTarget[2], priorityTarget[3])
 		newMatchTargetNumber = priorityTarget[1]
-		if data.aggroBias >= prioritySwitchThreshold then
-			spSetUnitTarget(attackerID, priorityTarget[1], priorityTarget[2], priorityTarget[3], false, priorityIsUserTarget, defData.backupWeapon)
-		end
+		spSetUnitTarget(attackerID, priorityTarget[1], priorityTarget[2], priorityTarget[3], false, priorityIsUserTarget, defData.backupWeapon)
 	end
 
 	-- prevent misfire from triggering when a target is first acquired from idle state
@@ -210,10 +250,10 @@ local function updateAimingState(attackerID)
 	-- Switch aiming state based on aggro bias thresholds
 	if data.aggroBias >= prioritySwitchThreshold then
 		data.aggroBias = mathMax(data.aggroBias * aggroDecayRate, data.aggroBias - aggroDecayCap)
-		spCallCOBScript(attackerID, data.setStateScriptID, 0, PRIORITY_AIMINGSTATE)
+		queueSwitchFrame(attackerID, data, defData, PRIORITY_AIMINGSTATE)
 	elseif data.aggroBias < backupSwitchThreshold then
 		data.aggroBias = mathMin(data.aggroBias * aggroDecayRate, data.aggroBias + aggroDecayCap)
-		spCallCOBScript(attackerID, data.setStateScriptID, 0, BACKUP_AIMINGSTATE)
+		queueSwitchFrame(attackerID, data, defData, BACKUP_AIMINGSTATE)
 	else
 		data.aggroBias = data.aggroBias * aggroDecayRate
 	end
@@ -225,19 +265,25 @@ end
 --call-ins
 function gadget:UnitCreated(unitID, unitDefID)
 	if smartUnitDefs[unitDefID] then
-		smartUnits[unitID] = {
-			unitDefID = unitDefID,
-			setStateScriptID = Spring.GetCOBScriptID(unitID, "SetAimingState"),
-			aggroBias = 0,
-			failedShotFrame = 0,
-			misfireTallyMultiplier = 0,
-			lastTargetMatchNumber = 0, --this exists so that a player switching targets frequently doesn't trigger a faulty misfire.
-		}
-		spCallCOBScript(unitID, smartUnits[unitID].setStateScriptID, 0, smartUnitDefs[unitDefID].priorityWeapon)
+		local scriptID = Spring.GetCOBScriptID(unitID, "SetAimingState")
+		if scriptID then
+			smartUnits[unitID] = {
+				unitDefID = unitDefID,
+				setStateScriptID = scriptID,
+				aggroBias = 0,
+				predictedShotFrame = 0,
+				misfireTallyMultiplier = 0,
+				lastTargetMatchNumber = 0, --this exists so that a player switching targets frequently doesn't trigger a faulty misfire.
+				switchCooldownFrame = 0,
+				state = PRIORITY_AIMINGSTATE
+			}
+			spCallCOBScript(unitID, smartUnits[unitID].setStateScriptID, 0, smartUnitDefs[unitDefID].priorityWeapon)
+		end
 	end
+
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	smartUnits[unitID] = nil
 end
 
@@ -246,6 +292,15 @@ function gadget:GameFrame(frame)
 		gameFrame = frame
 		for attackerID in pairs(smartUnits) do
 			updateAimingState(attackerID)
+		end
+	end --zzz need to add the execution of the queueSwitchFrame
+	local switchModeQueue = modeSwitchFrames[frame]
+	if switchModeQueue then
+		for unitID, setState in pairs(switchModeQueue) do
+			local data = smartUnits[unitID]
+			if data then
+				spCallCOBScript(unitID, data.setStateScriptID, 0, setState)
+			end
 		end
 	end
 end

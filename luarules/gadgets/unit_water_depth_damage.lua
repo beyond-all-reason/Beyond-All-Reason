@@ -125,7 +125,7 @@ function gadget:UnitLeftWater(unitID, unitDefID, unitTeam)
 	drowningUnitsWatch[unitID] = nil
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	transportDrops[unitID] = nil
 	expiringTransportDrops[unitID] = nil
 	livingTransports[unitID] = nil

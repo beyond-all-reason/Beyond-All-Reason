@@ -37,14 +37,14 @@ return {
     oo oo oo oo oo oo
     oo oo oo oo oo oo
     oo oo oo oo oo oo
-    oc cc cc cc oo oo
-    oc cc cc cc oo oo
-    oc cc cc cc oo oo
-    oc cc cc cc oo oo
-    oc cc cc cc oo oo
-    oc cc cc cc oo oo
-    oc cc cc cc oo oo
-    oc cc cc cc oo oo
+    oe ee ee ee oo oo
+    oe ee ee ee oo oo
+    oe ee ee ee oo oo
+    oe ee ee ee oo oo
+    oe ee ee ee oo oo
+    oe ee ee ee oo oo
+    oe ee ee ee oo oo
+    oe ee ee ee oo oo
     ]],
 		buildoptions = {
 			[1] = "legscout",
