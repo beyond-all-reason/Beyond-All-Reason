@@ -329,7 +329,11 @@ function gadget:GameFrame(frame)
 				end
 			end
 		end
-		adjustedRezSpeed = ZOMBIES_REZ_SPEED * GG.PowerLib.AveragePlayerTechGuesstimate()
+		local highestPowerData = GG.PowerLib.HighestPlayerTeamPower()
+		if highestPowerData.power then
+			adjustedRezSpeed = ZOMBIES_REZ_SPEED * GG.PowerLib.TechGuesstimate(highestPowerData.power)
+			Spring.Echo("Adjusted rez speed: " .. adjustedRezSpeed)
+		end
 	end
 end
 
