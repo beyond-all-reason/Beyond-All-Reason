@@ -66,8 +66,8 @@ VFS.Include(luaShaderDir.."instancevbotable.lua")
 local minY, maxY = Spring.GetGroundExtremes()
 
 local shaderSourceCache = {
-		vssrcpath = "LuaUI/Widgets/Shaders/map_startpolygon_gl4.vert.glsl",
-		fssrcpath = "LuaUI/Widgets/Shaders/map_startpolygon_gl4.frag.glsl",
+		vssrcpath = "LuaUI/Shaders/map_startpolygon_gl4.vert.glsl",
+		fssrcpath = "LuaUI/Shaders/map_startpolygon_gl4.frag.glsl",
 		uniformInt = {
 			mapDepths = 0,
 			myAllyTeamID = -1,

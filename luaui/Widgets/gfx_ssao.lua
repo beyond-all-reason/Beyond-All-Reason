@@ -190,7 +190,7 @@ ActivatePreset(preset)
 -- File path Constants
 -----------------------------------------------------------------
 
-local shadersDir = "LuaUI/Widgets/Shaders/"
+local shadersDir = "LuaUI/Shaders/"
 local luaShaderDir = "LuaUI/Widgets/Include/"
 
 -----------------------------------------------------------------

@@ -699,8 +699,8 @@ local function makeGrassInstanceVBO()
 	end
 end
 
-local vsSrcPath = "LuaUI/Widgets/Shaders/map_grass_gl4.vert.glsl"
-local fsSrcPath = "LuaUI/Widgets/Shaders/map_grass_gl4.frag.glsl"
+local vsSrcPath = "LuaUI/Shaders/map_grass_gl4.vert.glsl"
+local fsSrcPath = "LuaUI/Shaders/map_grass_gl4.frag.glsl"
 
 
 

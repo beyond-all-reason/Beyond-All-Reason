@@ -212,8 +212,8 @@ VFS.Include(luaShaderDir.."instancevbotable.lua")
 -- Spring.Echo('Spring.GetGroundExtremes', minY, maxY, waterlevel)
 
 local shaderSourceCache = {
-		vssrcpath = "LuaUI/Widgets/Shaders/map_startpolygon_gl4.vert.glsl",
-		fssrcpath = "LuaUI/Widgets/Shaders/map_startpolygon_gl4.frag.glsl",
+		vssrcpath = "LuaUI/Shaders/map_startpolygon_gl4.vert.glsl",
+		fssrcpath = "LuaUI/Shaders/map_startpolygon_gl4.frag.glsl",
 		uniformInt = {
 			mapDepths = 0,
 			myAllyTeamID = -1,
@@ -245,8 +245,8 @@ local startPolygonShader
 local startPolygonBuffer = nil -- GL.SHADER_STORAGE_BUFFER for polygon
 
 local coneShaderSourceCache = {
-	vssrcpath = "LuaUI/Widgets/Shaders/map_startcone_gl4.vert.glsl",
-	fssrcpath = "LuaUI/Widgets/Shaders/map_startcone_gl4.frag.glsl",
+	vssrcpath = "LuaUI/Shaders/map_startcone_gl4.vert.glsl",
+	fssrcpath = "LuaUI/Shaders/map_startcone_gl4.frag.glsl",
 	uniformInt = {
 		mapDepths = 0,
 		flipMiniMap = 0,

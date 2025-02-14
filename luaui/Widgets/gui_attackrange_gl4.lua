@@ -389,8 +389,8 @@ local attackRangeShader = nil
 
 local shaderSourceCache = {
 	shaderName = 'Attack Range GL4',
-	vssrcpath = "LuaUI/Widgets/Shaders/attack_range_gl4.vert.glsl",
-	fssrcpath = "LuaUI/Widgets/Shaders/attack_range_gl4.frag.glsl",
+	vssrcpath = "LuaUI/Shaders/attack_range_gl4.vert.glsl",
+	fssrcpath = "LuaUI/Shaders/attack_range_gl4.frag.glsl",
 	shaderConfig = {MYGRAVITY = Game.gravity + 0.1,},
 	uniformInt = {
 		heightmapTex = 0,

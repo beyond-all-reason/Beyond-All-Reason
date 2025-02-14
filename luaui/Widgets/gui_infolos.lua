@@ -69,8 +69,8 @@ local luaShaderDir = "LuaUI/Widgets/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 
-local vsSrcPath = "LuaUI/Widgets/Shaders/infolos.vert.glsl"
-local fsSrcPath = "LuaUI/Widgets/Shaders/infolos.frag.glsl"
+local vsSrcPath = "LuaUI/Shaders/infolos.vert.glsl"
+local fsSrcPath = "LuaUI/Shaders/infolos.frag.glsl"
 
 local miplevels = {2^3, 2^4, 2^3, 1} -- los, airlos and radar mip levels
 

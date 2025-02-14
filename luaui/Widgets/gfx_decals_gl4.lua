@@ -244,11 +244,11 @@ local luaShaderDir = "LuaUI/Widgets/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 
-local vsSrcPath = "LuaUI/Widgets/Shaders/decals_gl4.vert.glsl"
-local fsSrcPath = "LuaUI/Widgets/Shaders/decals_gl4.frag.glsl"
-local gsSrcPath = "LuaUI/Widgets/Shaders/decals_gl4.geom.glsl"
+local vsSrcPath = "LuaUI/Shaders/decals_gl4.vert.glsl"
+local fsSrcPath = "LuaUI/Shaders/decals_gl4.frag.glsl"
+local gsSrcPath = "LuaUI/Shaders/decals_gl4.geom.glsl"
 
-local vsSrcLargePath = "LuaUI/Widgets/Shaders/decals_large_gl4.vert.glsl"
+local vsSrcLargePath = "LuaUI/Shaders/decals_large_gl4.vert.glsl"
 
 local uniformInts =  {
 

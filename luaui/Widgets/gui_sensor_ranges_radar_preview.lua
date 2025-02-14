@@ -58,8 +58,8 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 local shaderConfig = {}
-local vsSrcPath = "LuaUI/Widgets/Shaders/sensor_ranges_radar_preview.vert.glsl"
-local fsSrcPath = "LuaUI/Widgets/Shaders/sensor_ranges_radar_preview.frag.glsl"
+local vsSrcPath = "LuaUI/Shaders/sensor_ranges_radar_preview.vert.glsl"
+local fsSrcPath = "LuaUI/Shaders/sensor_ranges_radar_preview.frag.glsl"
 
 local shaderSourceCache = {
 		vssrcpath = vsSrcPath,

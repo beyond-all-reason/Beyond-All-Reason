@@ -438,9 +438,9 @@ if debugmode then
 	shaderConfig.DEBUGSHOW = 1 -- comment this to always show all bars
 end
 
-local vsSrcPath = "LuaUI/Widgets/Shaders/HealthbarsGL4.vert.glsl"
-local gsSrcPath = "LuaUI/Widgets/Shaders/HealthbarsGL4.geom.glsl"
-local fsSrcPath = "LuaUI/Widgets/Shaders/HealthbarsGL4.frag.glsl"
+local vsSrcPath = "LuaUI/Shaders/HealthbarsGL4.vert.glsl"
+local gsSrcPath = "LuaUI/Shaders/HealthbarsGL4.geom.glsl"
+local fsSrcPath = "LuaUI/Shaders/HealthbarsGL4.frag.glsl"
 
 local shaderSourceCache = {
 		vssrcpath = vsSrcPath,

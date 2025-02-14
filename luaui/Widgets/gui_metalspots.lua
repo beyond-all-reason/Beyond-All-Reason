@@ -101,8 +101,8 @@ local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 
 local shaderConfig = {}
-local vsSrcPath = "LuaUI/Widgets/Shaders/metalspots_gl4.vert.glsl"
-local fsSrcPath = "LuaUI/Widgets/Shaders/metalspots_gl4.frag.glsl"
+local vsSrcPath = "LuaUI/Shaders/metalspots_gl4.vert.glsl"
+local fsSrcPath = "LuaUI/Shaders/metalspots_gl4.frag.glsl"
 
 local shaderSourceCache = {
 		vssrcpath = vsSrcPath,

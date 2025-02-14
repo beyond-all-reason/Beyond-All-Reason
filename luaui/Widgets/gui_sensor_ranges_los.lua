@@ -53,8 +53,8 @@ local shaderConfig = {
 
 local shaderSourceCache = {
 	shaderName = 'LOS Ranges GL4',
-	vssrcpath = "LuaUI/Widgets/Shaders/sensor_ranges_los.vert.glsl",
-	fssrcpath = "LuaUI/Widgets/Shaders/sensor_ranges_los.frag.glsl",
+	vssrcpath = "LuaUI/Shaders/sensor_ranges_los.vert.glsl",
+	fssrcpath = "LuaUI/Shaders/sensor_ranges_los.frag.glsl",
 	shaderConfig = shaderConfig,
 	uniformInt = {
 		heightmapTex = 0,
