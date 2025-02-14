@@ -63,7 +63,7 @@ local function makeAtlas()
 end
 
 ------------- SHADERS ----------------------------------------------
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 local chiliShader = nil
 

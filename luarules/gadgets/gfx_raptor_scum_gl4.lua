@@ -377,7 +377,7 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then
 
 	---- GL4 Backend Stuff----
 
-	local luaShaderDir = "LuaUI/widgets/Include/"
+	local luaShaderDir = "LuaUI/Include/"
 	local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 	VFS.Include(luaShaderDir.."instancevbotable.lua")
 

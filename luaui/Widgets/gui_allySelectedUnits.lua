@@ -28,7 +28,7 @@ local useHexagons = true
 
 local selectionVBO = nil
 local selectShader = nil
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 
 local glStencilFunc         = gl.StencilFunc
 local glStencilOp           = gl.StencilOp

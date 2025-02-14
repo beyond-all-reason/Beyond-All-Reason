@@ -382,7 +382,7 @@ local circleInstanceVBOLayout = {
 	{ id = 6, name = 'instData',         size = 4, type = GL.UNSIGNED_INT },
 }
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir .. "LuaShader.lua")
 VFS.Include(luaShaderDir .. "instancevbotable.lua")
 local attackRangeShader = nil

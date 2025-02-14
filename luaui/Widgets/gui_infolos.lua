@@ -65,7 +65,7 @@ local infoTextures = {} -- A table of allyteam/texture mappings
 local currentAllyTeam = nil
 
 local texX, texY
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 

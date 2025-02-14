@@ -27,7 +27,7 @@ local mousepos = { 0, 0, 0 }
 local spGetActiveCommand = Spring.GetActiveCommand
 
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir .. "LuaShader.lua")
 VFS.Include(luaShaderDir .. "instancevbotable.lua")
 

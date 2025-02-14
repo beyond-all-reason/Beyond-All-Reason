@@ -289,7 +289,7 @@ local trackedProjectileTypes = {} -- we have to track the types [point, light, c
 local lastGameFrame = -2
 
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 
