@@ -45,7 +45,7 @@ function animBurn(id, piece)
 		inProgress = Spring.GetUnitIsBeingBuilt(id)
 		if (inProgress ~= last_inb) then
 			last_inb = inProgress
-			if (!inProgress) then
+			if (not inProgress) then
 				while (true) do
 					if (GetUnitValue(COB.HEALTH)<=10) then
 						EmitSfx(piece, 1024+0)
