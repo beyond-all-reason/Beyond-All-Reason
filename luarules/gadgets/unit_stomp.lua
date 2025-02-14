@@ -22,7 +22,8 @@ local stompable = {
 	armpw = true,
 	leggob = true
 }
-for name,v in pairs(stompable) do
+local stompableCopy = table.copy(stompable)
+for name,v in pairs(stompableCopy) do
 	stompable[name..'_scav'] = true
 end
 local stompableDefs = {}
@@ -31,7 +32,6 @@ for udid, ud in pairs(UnitDefs) do
 		stompableDefs[udid] = v
 	end
 end
-stompable = nil
 
 local krogkickWeapon = {}
 for weaponDefID, def in pairs(WeaponDefs) do
