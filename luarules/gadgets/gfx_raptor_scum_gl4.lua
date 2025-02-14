@@ -105,9 +105,21 @@ if gadgetHandler:IsSyncedCode() then
 				scumSpawnerIDs[UnitDefNames[unitDefName].id] = scumParams
 			end
 		end
-
+		local scumSpawnerExclusions = {
+			lootdroppod_gold_scav = true,
+			lootdroppod_printer_scav = true,
+			meteor_scav = true,
+			mission_command_tower_scav = true,
+			nuketest_scav = true,
+			nuketestcor_scav = true,
+			nuketestorg_scav = true,
+			scavempspawner_scav = true,
+			scavengerdroppod_scav = true,
+			scavengerdroppodfriendly_scav = true,
+			scavtacnukespawner_scav = true
+		}
 		for unitDefID, unitDef in pairs(UnitDefs) do
-			if unitDef.customParams.isscavenger and not unitDef.canMove and not string.find(unitDef.name, "lootbox") and not scumSpawnerIDs[unitDefID] and not unitDef.customParams.objectify and not unitDef.canCloak then
+			if unitDef.customParams.isscavenger and not scumSpawnerExclusions[unitDef.name] and not unitDef.canMove and not string.find(unitDef.name, "lootbox") and not scumSpawnerIDs[unitDefID] and not unitDef.customParams.objectify and not unitDef.canCloak then
 				scumSpawnerIDs[unitDefID] = {radius = 600, growthrate = 1.2}
 			end
 		end
