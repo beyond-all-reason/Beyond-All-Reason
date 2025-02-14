@@ -222,147 +222,143 @@ local labGrids = {
 		"legkeres","legerailtank",						-- keres, daedalus
 	}
 }
+
 local unitGrids = {
 	-- Air assist drones
 	armassistdrone = {
 		{
-			{ "armmex", "armsolar", "armwin", },              -- mex, solar, wind
-			{ "armmakr", "", "armuwms", "armtide"},             -- T1 converter, uw m storage, tidal
-			{ "armestor", "armmstor", "armuwes", "armfmkr", }, -- e storage, m storage, uw e storage, floating converter
+			{ "armmex", "armsolar", "armwin", },              		-- mex, solar, wind
+			{ "armmakr", "", "armuwms", "armtide"},             	-- T1 converter, uw m storage, tidal
+			{ "armestor", "armmstor", "armuwes", "armfmkr", }, 		-- e storage, m storage, uw e storage, floating converter
 		},
 		{
-			{ "armllt", "armtl", },                          -- LLT, offshore torp launcher
-			{ "armrl", "armfrt", },                          -- basic AA, floating AA
-			{ "armdl", },                                    -- coastal torp launcher
+			{ "armllt", "armtl", },                          		-- LLT, offshore torp launcher
+			{ "armrl", "armfrt", },                          		-- basic AA, floating AA
+			{ "armdl", },                                    		-- coastal torp launcher
 		},
 		{
-			{ "armrad", "armeyes", "armdrag", },             -- radar, perimeter camera, dragon's teeth
-			{ "armfrad", "armfdrag", },                      -- floating radar, shark's teeth
-			{ },                                             -- empty
+			{ "armrad", "armeyes", "armdrag", },             		-- radar, perimeter camera, dragon's teeth
+			{ "armfrad", "armfdrag", },                      		-- floating radar, shark's teeth
+			{ },                                             		-- empty
 		},
 		{
-			{ "armlab", "armvp", "armap", "armsy", },        -- bot lab, veh lab, air lab, shipyard
-			{ },                                             -- empty row
-			{ "armhp", "armfhp", },                          -- hover lab, floating hover lab
+			{ "armlab", "armvp", "armap", "armsy", },        		-- bot lab, veh lab, air lab, shipyard
+			{ },                                             		-- empty row
+			{ "armhp", "armfhp", },                          		-- hover lab, floating hover lab
 		}
 	},
-
 	corassistdrone = {
 		{
-			{ "cormex", "corsolar", "corwin", },                -- mex, solar, wind
-			{ "cormakr", "", "coruwms", "cortide"},             -- T1 converter, uw m storage, tidal
-			{ "corestor", "cormstor", "coruwes", "corfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
+			{ "cormex", "corsolar", "corwin", },                	-- mex, solar, wind
+			{ "cormakr", "", "coruwms", "cortide"},             	-- T1 converter, uw m storage, tidal
+			{ "corestor", "cormstor", "coruwes", "corfmkr",  }, 	-- e storage, m sotrage, uw e storage, floating converter
 		},
 		{
-			{ "corllt", "cortl", },                          -- LLT, offshore torp launcher
-			{ "corrl", "corfrt", },                          -- basic AA, floating AA
-			{ "cordl", },                                    -- coastal torp launcher
+			{ "corllt", "cortl", },                          		-- LLT, offshore torp launcher
+			{ "corrl", "corfrt", },                          		-- basic AA, floating AA
+			{ "cordl", },                                    		-- coastal torp launcher
 		},
 		{
-			{ "corrad", "coreyes", "cordrag", },             -- radar, perimeter camera, dragon's teeth
-			{ "corfrad", "corfdrag", },                      -- floating radar, shark's teeth
-			{ },                                             -- empty
+			{ "corrad", "coreyes", "cordrag", },             		-- radar, perimeter camera, dragon's teeth
+			{ "corfrad", "corfdrag", },                      		-- floating radar, shark's teeth
+			{ },                                             		-- empty
 		},
 		{
-			{ "corlab", "corvp", "corap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
-			{ },                                             -- empty row
-			{ "corhp", "corfhp", },                          -- hover lab, floating hover lab
+			{ "corlab", "corvp", "corap", "corsy", },        		-- bot lab, veh lab, air lab, shipyard
+			{ },                                             		-- empty row
+			{ "corhp", "corfhp", },                          		-- hover lab, floating hover lab
 		}
 	},
 	legassistdrone = {
 		{
-			{ "legmex", "legsolar", "legwin", },                -- mex, solar, wind
-			{ "cormakr", "", "coruwms", "legtide"},             -- T1.5 mex, uw m storage, tidal
-			{ "corestor", "cormstor", "coruwes", "legfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
-			{ "legeconv", "", "coruwms", "legtide"},             -- T1.5 mex, uw m storage, tidal
-			{ "legestor", "legmstor", "coruwes", "legfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
-			{ "legeconv", "", "coruwms", "legtide"},             -- T1.5 mex, uw m storage, tidal
-			{ "corestor", "legmstor", "coruwes", "legfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
+			{ "legmex", "legsolar", "legwin", },                	-- mex, solar, wind
+			{ "legeconv", "", "coruwms", "legtide"},             	-- T1 converter, uw m storage, tidal
+			{ "legestor", "legmstor", "coruwes", "legfmkr",  }, 	-- e storage, m sotrage, uw e storage, floating converter
 		},
 		{
-			{ "leglht", "cortl", },                          -- LLT, offshore torp launcher
-			{ "legrl", "corfrt", },                          -- basic AA, floating AA
-			{ "cordl", },                                    -- coastal torp launcher
+			{ "leglht", "cortl", },                          		-- LLT, offshore torp launcher
+			{ "legrl", "corfrt", },                          		-- basic AA, floating AA
+			{ "cordl", },                                    		-- coastal torp launcher
 		},
 		{
-			{ "legrad", "legeyes", "legdrag", },             -- radar, perimeter camera, dragon's teeth
-			{ "corfrad", "corfdrag", },                      -- floating radar, shark's teeth
-			{ },                                             -- empty
+			{ "legrad", "legeyes", "legdrag", },             		-- radar, perimeter camera, dragon's teeth
+			{ "corfrad", "corfdrag", },                      		-- floating radar, shark's teeth
+			{ },                                             		-- empty
 		},
 		{
-			{ "leglab", "legvp", "legap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
-			{ },                                             -- empty row
-			{ "leghp", "legfhp", },                          -- hover lab, floating hover lab
+			{ "leglab", "legvp", "legap", "corsy", },        		-- bot lab, veh lab, air lab, shipyard
+			{ },                                             		-- empty row
+			{ "leghp", "legfhp", },                          		-- hover lab, floating hover lab
 		}
 	},
 	-- Land assist drones (mini amphibs)
 	armassistdrone_land = {
 		{
-			{ "armmex", "armsolar", "armwin", },               -- mex, solar, wind
-			{ "armmakr", "", "armuwms", "armtide"},            -- T1 converter, uw m storage, tidal
-			{ "armestor", "armmstor", "armuwes", "armfmkr", }, -- e storage, m storage, uw e storage, floating converter
+			{ "armmex", "armsolar", "armwin", },               		-- mex, solar, wind
+			{ "armmakr", "", "armuwms", "armtide"},            		-- T1 converter, uw m storage, tidal
+			{ "armestor", "armmstor", "armuwes", "armfmkr", }, 		-- e storage, m storage, uw e storage, floating converter
 		},
 		{
-			{ "armllt", "armtl", },                          -- LLT, offshore torp launcher
-			{ "armrl", "armfrt", },                          -- basic AA, floating AA
-			{ "armdl", },                                    -- coastal torp launcher
+			{ "armllt", "armtl", },                          		-- LLT, offshore torp launcher
+			{ "armrl", "armfrt", },                          		-- basic AA, floating AA
+			{ "armdl", },                                    		-- coastal torp launcher
 		},
 		{
-			{ "armrad", "armeyes", "armdrag", },             -- radar, perimeter camera, dragon's teeth
-			{ "armfrad", "armfdrag", },                      -- floating radar, shark's teeth
-			{ },                                             -- empty
+			{ "armrad", "armeyes", "armdrag", },             		-- radar, perimeter camera, dragon's teeth
+			{ "armfrad", "armfdrag", },                      		-- floating radar, shark's teeth
+			{ },                                             		-- empty
 		},
 		{
-			{ "armlab", "armvp", "armap", "armsy", },        -- bot lab, veh lab, air lab, shipyard
-			{ },                                             -- empty row
-			{ "armhp", "armfhp", },                          -- hover lab, floating hover lab
+			{ "armlab", "armvp", "armap", "armsy", },        		-- bot lab, veh lab, air lab, shipyard
+			{ },                                             		-- empty row
+			{ "armhp", "armfhp", },                          		-- hover lab, floating hover lab
 		}
 	},
-
 	corassistdrone_land = {
 		{
-			{ "cormex", "corsolar", "corwin", },                -- mex, solar, wind
-			{ "cormakr", "", "coruwms", "cortide"},             -- T1 converter, uw m storage, tidal
-			{ "corestor", "cormstor", "coruwes", "corfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
+			{ "cormex", "corsolar", "corwin", },                	-- mex, solar, wind
+			{ "cormakr", "", "coruwms", "cortide"},             	-- T1 converter, uw m storage, tidal
+			{ "corestor", "cormstor", "coruwes", "corfmkr",  }, 	-- e storage, m sotrage, uw e storage, floating converter
 		},
 		{
-			{ "corllt", "cortl", },                          -- LLT, offshore torp launcher
-			{ "corrl", "corfrt", },                          -- basic AA, floating AA
-			{ "cordl", },                                    -- coastal torp launcher
+			{ "corllt", "cortl", },                          		-- LLT, offshore torp launcher
+			{ "corrl", "corfrt", },                          		-- basic AA, floating AA
+			{ "cordl", },                                    		-- coastal torp launcher
 		},
 		{
-			{ "corrad", "coreyes", "cordrag", },             -- radar, perimeter camera, dragon's teeth
-			{ "corfrad", "corfdrag", },                      -- floating radar, shark's teeth
-			{ },                                             -- empty
+			{ "corrad", "coreyes", "cordrag", },             		-- radar, perimeter camera, dragon's teeth
+			{ "corfrad", "corfdrag", },                      		-- floating radar, shark's teeth
+			{ },                                             		-- empty
 		},
 		{
-			{ "corlab", "corvp", "corap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
-			{ },                                             -- empty row
-			{ "corhp", "corfhp", },                          -- hover lab, floating hover lab
+			{ "corlab", "corvp", "corap", "corsy", },        		-- bot lab, veh lab, air lab, shipyard
+			{ },                                             		-- empty row
+			{ "corhp", "corfhp", },                          		-- hover lab, floating hover lab
 		}
 	},
 	legassistdrone_land = {
 		{
-			{ "legmex", "legsolar", "legwin", },                -- mex, solar, wind
-			{ "cormakr", "", "coruwms", "legtide"},             -- T1.5 mex, uw m storage, tidal
-			{ "legestor", "cormstor", "coruwes", "legfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
+			{ "legmex", "legsolar", "legwin", },                	-- mex, solar, wind
+			{ "legeconv", "", "coruwms", "legtide"},             	-- T1 converter, uw m storage, tidal
+			{ "legestor", "legmstor", "coruwes", "legfmkr",  }, 	-- e storage, m sotrage, uw e storage, floating converter
 		},
 		{
-			{ "corllt", "cortl", },                          -- LLT, offshore torp launcher
-			{ "corrl", "corfrt", },                          -- basic AA, floating AA
-			{ "cordl", },                                    -- coastal torp launcher
+			{ "corllt", "cortl", },                          		-- LLT, offshore torp launcher
+			{ "corrl", "corfrt", },                          		-- basic AA, floating AA
+			{ "cordl", },                                    		-- coastal torp launcher
 		},
 		{
-			{ "corrad", "coreyes", "cordrag", },             -- radar, perimeter camera, dragon's teeth
-			{ "corfrad", "corfdrag", },                      -- floating radar, shark's teeth
-			{ },                                             -- empty
+			{ "corrad", "coreyes", "cordrag", },             		-- radar, perimeter camera, dragon's teeth
+			{ "corfrad", "corfdrag", },                      		-- floating radar, shark's teeth
+			{ },                                             		-- empty
 		},
 		{
-			{ "leglab", "legvp", "legap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
-			{ },                                             -- empty row
-			{ "leghp", "legfhp", },                          -- hover lab, floating hover lab
+			{ "leglab", "legvp", "legap", "corsy", },        		-- bot lab, veh lab, air lab, shipyard
+			{ },                                             		-- empty row
+			{ "leghp", "legfhp", },                          		-- hover lab, floating hover lab
 		}
 	},
+
 	-- Commanders
 	-- Armada commander
 	armcom = {
