@@ -39,7 +39,6 @@ local config = {
 	gameStartTestPatterns = nil,
 	testResultsFilePath = nil,
 	testRoots = {
-		"LuaUI/Widgets/tests",
 		"LuaUI/Tests",
 	},
 	scenarioRoots = {
