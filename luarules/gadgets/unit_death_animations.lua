@@ -35,7 +35,6 @@ local unitsCopy = table.copy(units)
 for name,v in pairs(unitsCopy) do
 	units[name..'_scav'] = true
 end
-unitsCopy = nil
 local hasDeathAnim = {}
 for udid, ud in pairs(UnitDefs) do
 	if units[ud.name] then
@@ -46,7 +45,6 @@ for udid, ud in pairs(UnitDefs) do
 		hasDeathAnim[udid] = true
 	end
 end
-units = nil
 
 local dyingUnits = {}
 
