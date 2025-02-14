@@ -25,7 +25,7 @@ function animSmoke(id, piece)
 		inProgress = Spring.GetUnitIsBeingBuilt(id)
 		if (inProgress ~= last_inbt) then
 			last_inbt = inProgress
-			if (!inProgress) then
+			if (not inProgress) then
 				while (true) do
 					EmitSfx(piece, SFX.BLACK_SMOKE)
 					Sleep(100)
