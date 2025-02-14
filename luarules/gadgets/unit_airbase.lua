@@ -254,10 +254,8 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function FlyAway(unitID, airbaseID)
-		--
 		-- hack, after detaching units don't always continue with their command q
 		GiveWaitWaitOrder(unitID)
-		--
 
 		-- if the unit has no orders, tell it to move a little away from the airbase
 		local q = Spring.GetCommandQueue(unitID, 0)
@@ -622,7 +620,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 
-
 else	-- Unsynced
 
 
@@ -634,7 +631,6 @@ else	-- Unsynced
 	local spGetSelectedUnits = Spring.GetSelectedUnits
 
 	local myTeamID = Spring.GetMyTeamID()
-	local myAllyTeamID = Spring.GetMyAllyTeamID()
 
 	function gadget:Initialize()
 		Spring.SetCustomCommandDrawData(CMD_LAND_AT_SPECIFIC_AIRBASE, "landatairbase", landAtAirBaseCmdColor, false)
@@ -644,7 +640,6 @@ else	-- Unsynced
 
 	function gadget:PlayerChanged()
 		myTeamID = Spring.GetMyTeamID()
-		myAllyTeamID = Spring.GetMyAllyTeamID()
 	end
 
 	function gadget:DefaultCommand(type, id, cmd)

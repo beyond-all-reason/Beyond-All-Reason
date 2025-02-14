@@ -59,8 +59,8 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
     	Spring.SetUnitBlocking(unitID,false) -- non blocking while dying
 		Spring.UnitIconSetDraw(unitID, false) -- dont draw icons
 		Spring.GiveOrderToUnit(unitID, CMD_STOP, 0, 0)
-		Spring.MoveCtrlEnable(unitID)
-		Spring.MoveCtrlSetVelocity(unitID, 0, 0, 0)
+		Spring.MoveCtrl.Enable(unitID)
+		Spring.MoveCtrl.SetVelocity(unitID, 0, 0, 0)
     	dyingUnits[unitID] = true
 	end
 end
@@ -72,7 +72,7 @@ end
 
 function gadget:RenderUnitDestroyed(unitID, unitDefID, unitTeam) --called when killed anim finishes
 	if dyingUnits[unitID] then
-		Spring.MoveCtrlDisable(unitID) -- just in case, not sure if it's needed
+		Spring.MoveCtrl.Disable(unitID) -- just in case, not sure if it's needed
 		dyingUnits[unitID] = nil
 	end
 end
