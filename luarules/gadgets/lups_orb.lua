@@ -51,16 +51,22 @@ local UnitEffects = {
 
 
 	["corgate"] = {
-		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 42, 0 }, size = 13.5, precision = 22, repeatEffect = true } },
+		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 42, 0 }, size = 12.5, precision = 22, repeatEffect = true } },
 	},
 	["corfgate"] = {
-		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 42, 0 }, size = 13.5, precision = 22, repeatEffect = true } },
+		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 42, 0 }, size = 12.5, precision = 22, repeatEffect = true } },
+	},
+	["corgatet3"] = {
+		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 78, 0 }, size = 20, precision = 22, repeatEffect = true } },
 	},
 	["armgate"] = {
 		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 23.5, -5 }, size = 17, precision = 22, repeatEffect = true } },
 	},
 	["armfgate"] = {
 		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 25, 0 }, size = 17, precision = 22, repeatEffect = true } },
+	},
+	["armgatet3"] = {
+		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 45, -5 }, size = 23, precision = 22, repeatEffect = true } },
 	},
 
 
