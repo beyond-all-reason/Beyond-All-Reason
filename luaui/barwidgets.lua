@@ -318,6 +318,10 @@ local function loadWidgetFiles(vfsMode)
 	local fromZip = vfsMode ~= VFS.RAW
 	local widgetFiles = VFS.DirList(WIDGET_DIRNAME, "*.lua", vfsMode)
 
+	for _, subDirectory in ipairs( VFS.SubDirs(WIDGET_DIRNAME) ) do
+		table.append( widgetFiles, VFS.DirList(subDirectory, "*.lua", vfsMode) )
+	end
+
 	for _, file in ipairs(widgetFiles) do
 		local widget = widgetHandler:LoadWidget(file, fromZip)
 		local excludeWidget = not fromZip and zipOnly[widget.whInfo.name]
