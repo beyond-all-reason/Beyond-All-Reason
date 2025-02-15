@@ -300,7 +300,7 @@ end
 
 
 --------------------------------------------------------------------------------
-local unsortedWidgets = {}
+local unsortedWidgets
 local doMoreYield = (Spring.Yield ~= nil);
 
 local function Yield()
@@ -342,9 +342,10 @@ function widgetHandler:Initialize()
 		self.allowUserWidgets = true
 	end
 
-	
 	Spring.CreateDir(LUAUI_DIRNAME .. 'Config')
-	
+
+	unsortedWidgets = {}
+
 	if self.allowUserWidgets and allowuserwidgets then
 		Spring.Echo("LuaUI: Allowing User Widgets")
 		loadWidgetFiles(VFS.RAW)
