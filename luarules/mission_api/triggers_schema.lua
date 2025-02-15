@@ -1,32 +1,50 @@
+--============================================================--
+
 local triggerTypes = {
-	TimeElapsed = 1,
-	UnitExists = 2,
-	UnitNotExists = 3,
-	ConstructionStarted = 4,
-	ConstructionFinished = 5,
-	UnitKilled = 6,
-	UnitCaptured = 7,
-	UnitResurrected = 8,
-	UnitEnteredLocation = 9,
-	UnitLeftLocation = 10,
-	UnitDwellLocation = 11,
-	UnitSpotted = 12,
-	UnitUnspotted = 13,
-	FeatureNotExists = 14,
-	FeatureReclaimed = 15,
-	FeatureDestroyed = 16,
-	ResourceStored = 17,
-	ResourceProduction = 18,
-	TotalUnitsLost = 19,
-	TotalUnitsBuilt = 20,
-	TotalUnitsKilled = 21,
-	TotalUnitsCaptured = 22,
-	TeamDestroyed = 23,
-	Victory = 24,
-	Defeat = 25,
+	-- Time
+	TimeElapsed          = 100, --
+
+	-- Units
+	UnitExists           = 200, --
+	UnitNotExists        = 201, --
+	UnitKilled           = 202, --
+	UnitCaptured         = 203, --
+	UnitResurrected      = 204,
+	UnitEnteredLocation  = 205,
+	UnitLeftLocation     = 206,
+	UnitDwellLocation    = 207,
+	UnitSpotted          = 208,
+	UnitUnspotted        = 209,
+	ConstructionStarted  = 210, --
+	ConstructionFinished = 211, --
+
+	-- Features
+	FeatureNotExists     = 300,
+	FeatureReclaimed     = 301,
+	FeatureDestroyed     = 302,
+
+	-- Resources
+	ResourceStored       = 400,
+	ResourceProduction   = 401,
+
+	-- Statistics
+	TotalUnitsLost       = 500,
+	TotalUnitsBuilt      = 501,
+	TotalUnitsKilled     = 502,
+	TotalUnitsCaptured   = 503,
+
+	-- Team
+	TeamDestroyed        = 601, --
+
+	-- Mission Control
+	Victory              = 700,
+	Defeat               = 701,
 }
 
+--============================================================--
+
 local parameters = {
+	-- Time
 	[triggerTypes.TimeElapsed] = {
 		[1] = {
 			name = 'gameFrame',
@@ -36,36 +54,125 @@ local parameters = {
 		[2] = {
 			name = 'interval',
 			required = false,
-			type = 'number'
+			type = 'number',
 		},
 	},
-	[triggerTypes.UnitExists] = {  },
-	[triggerTypes.UnitNotExists] = {  },
-	[triggerTypes.ConstructionStarted] = {  },
-	[triggerTypes.ConstructionFinished] = {  },
-	[triggerTypes.UnitKilled] = {  },
-	[triggerTypes.UnitCaptured] = {  },
+	
+	-- Units
+	[triggerTypes.UnitExists] = { 
+		[1] = {
+			name = 'unitDefID',
+			required = true,
+			type = 'number',
+		},
+		[2] = {
+			name = 'teamID',
+			required = false,
+			type = 'number',
+		},
+		[3] = {
+			name = 'quantity',
+			required = false,
+			type = 'number',
+		},
+	},
+	[triggerTypes.UnitNotExists] = { 
+		[1] = {
+			name = 'unit',
+			required = true,
+			type = 'Unit',
+		},
+	},
+	[triggerTypes.UnitKilled] = { 
+		[1] = {
+			name = 'unit',
+			required = true,
+			type = 'Unit'
+		},
+	},
+	[triggerTypes.UnitCaptured] = { 
+		[1] = {
+			name = 'unit',
+			required = true,
+			type = 'Unit'
+		},
+	},
 	[triggerTypes.UnitResurrected] = {  },
-	[triggerTypes.UnitEnteredLocation] = {  },
+	[triggerTypes.UnitEnteredLocation] = { 
+		[1] = {
+			name = 'unit',
+			required = true,
+			type = 'Unit'
+		},
+		[2] = {
+			name = 'position',
+			required = true,
+			type = 'Vec2',
+		},
+		[3] = {
+			name = 'width',
+			required = true,
+			type = 'number',
+		},
+		[4] = {
+			name = 'height',
+			required = false,
+			type = 'number',
+		},
+	},
 	[triggerTypes.UnitLeftLocation] = {  },
 	[triggerTypes.UnitDwellLocation] = {  },
 	[triggerTypes.UnitSpotted] = {  },
 	[triggerTypes.UnitUnspotted] = {  },
+	[triggerTypes.ConstructionStarted] = { 
+		[1] = {
+			name = 'unit',
+			required = true,
+			type = 'Unit',
+		},
+	 },
+	[triggerTypes.ConstructionFinished] = { 
+		[1] = {
+			name = 'unit',
+			required = true,
+			type = 'Unit',
+		},
+	 },
+
+	-- Features
 	[triggerTypes.FeatureNotExists] = {  },
 	[triggerTypes.FeatureReclaimed] = {  },
 	[triggerTypes.FeatureDestroyed] = {  },
+
+	-- Resources
 	[triggerTypes.ResourceStored] = {  },
 	[triggerTypes.ResourceProduction] = {  },
+
+	-- Statistics
 	[triggerTypes.TotalUnitsLost] = {  },
 	[triggerTypes.TotalUnitsBuilt] = {  },
 	[triggerTypes.TotalUnitsKilled] = {  },
 	[triggerTypes.TotalUnitsCaptured] = {  },
-	[triggerTypes.TeamDestroyed] = {  },
+
+	-- Team
+	[triggerTypes.TeamDestroyed] = { 
+		[1] = {
+			name = 'teamID',
+			required = true,
+			type = 'number',
+		},
+	 },
+
+	-- Win Condition
 	[triggerTypes.Victory] = {  },
 	[triggerTypes.Defeat] = {  },
 }
+
+--============================================================--
 
 return {
 	Types = triggerTypes,
 	Parameters = parameters,
 }
+
+--============================================================--
