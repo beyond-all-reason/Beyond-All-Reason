@@ -26,11 +26,10 @@ local function ParseTypes(types, def)
   if (type(types) ~= "string") then
     types = def
   end
-  local text       = (string.find(types, "t") ~= nil)
-  local keyPress   = (string.find(types, "p") ~= nil)
-  local keyRepeat  = (string.find(types, "R") ~= nil)
-  local keyRelease = (string.find(types, "r") ~= nil)
-  return text, keyPress, keyRepeat, keyRelease
+  return (string.find(types, "t") ~= nil), -- text
+        (string.find(types, "p") ~= nil), -- keyPress 
+        (string.find(types, "R") ~= nil), -- keyRepeat
+        (string.find(types, "r") ~= nil) -- keyRelease
 end
 
 --------------------------------------------------------------------------------
@@ -41,9 +40,9 @@ end
 
 local function InsertCallInfo(callInfoList, widget, func, data)
   local layer = widget.whInfo.layer
-  local index = 1
+  local index, w = 1
   for i,ci in ipairs(callInfoList) do
-    local w = ci[1]
+    w = ci[1]
     if (w == widget) then
       return false  --  already in the table
     end
@@ -55,6 +54,18 @@ local function InsertCallInfo(callInfoList, widget, func, data)
   return true
 end
 
+function actionHandler:TSuccessTest(types, val)
+  local text, keyPress, keyRepeat, keyRelease = ParseTypes(types, val)
+
+  local tSuccess, pSuccess, RSuccess, rSuccess = false, false, false, false
+
+  if (text)       then tSuccess = add(self.textActions)       end
+  if (keyPress)   then pSuccess = add(self.keyPressActions)   end
+  if (keyRepeat)  then RSuccess = add(self.keyRepeatActions)  end
+  if (keyRelease) then rSuccess = add(self.keyReleaseActions) end
+
+  return tSuccess, pSuccess, RSuccess, rSuccess
+end
 
 function actionHandler:AddAction(widget, cmd, func, data, types)
   local function add(actionMap)
@@ -67,21 +78,10 @@ function actionHandler:AddAction(widget, cmd, func, data, types)
   end
 
   -- make sure that this is a fully initialized widget
-  if (not widget.whInfo) then
-    error("LuaUI error adding action: please use widget:Initialize()")
-  end
+  assert(widget.whInfo, "LuaUI error adding action: please use widget:Initialize()")
 
   -- default to text and keyPress  (not repeat or releases)
-  local text, keyPress, keyRepeat, keyRelease = ParseTypes(types, "tp")
-
-  local tSuccess, pSuccess, RSuccess, rSuccess = false, false, false, false
-
-  if (text)       then tSuccess = add(self.textActions)       end
-  if (keyPress)   then pSuccess = add(self.keyPressActions)   end
-  if (keyRepeat)  then RSuccess = add(self.keyRepeatActions)  end
-  if (keyRelease) then rSuccess = add(self.keyReleaseActions) end
-
-  return tSuccess, pSuccess, RSuccess, rSuccess
+  return self:TSuccessTest(types, "tp")
 end
 
 
@@ -108,9 +108,9 @@ end
 --
 
 local function RemoveCallInfo(callInfoList, widget)
-  local count = 0
+  local count, w = 0
   for i,callInfo in ipairs(callInfoList) do
-    local w = callInfo[1]
+    w = callInfo[1]
     if (w == widget) then
       table.remove(callInfoList, i)
       count = count + 1
@@ -135,16 +135,7 @@ function actionHandler:RemoveAction(widget, cmd, types)
   end
 
   -- default to removing all
-  local text, keyPress, keyRepeat, keyRelease = ParseTypes(types, "tpRr")
-
-  local tSuccess, pSuccess, RSuccess, rSuccess = false, false, false, false
-
-  if (text)       then tSuccess = remove(self.textActions)       end
-  if (keyPress)   then pSuccess = remove(self.keyPressActions)   end
-  if (keyRepeat)  then RSuccess = remove(self.keyRepeatActions)  end
-  if (keyRelease) then rSuccess = remove(self.keyReleaseActions) end
-
-  return tSuccess, pSuccess, RSuccess, rSuccess
+  return self:TSuccessTest(types, "tpRr")
 end
 
 
@@ -188,13 +179,14 @@ end
 
 local function TryAction(actionMap, cmd, optLine, optWords, isRepeat, release, actions)
   local callInfoList = actionMap[cmd]
+  local func, data
   if (callInfoList == nil) then
     return false
   end
   for _, callInfo in ipairs(callInfoList) do
     --local widget = callInfo[1]
-    local func   = callInfo[2]
-    local data   = callInfo[3]
+    func   = callInfo[2]
+    data   = callInfo[3]
     if (func(cmd, optLine, optWords, data, isRepeat, release, actions)) then
       return true
     end
@@ -213,10 +205,11 @@ function actionHandler:KeyAction(press, _, _, isRepeat, _, actions)
     actionSet = self.keyReleaseActions
   end
 
+  local cmd, extra, words
   for _, bAction in ipairs(actions) do
-    local cmd = bAction["command"]
-    local extra = bAction["extra"]
-    local words = string.split(extra)
+    cmd = bAction["command"]
+    extra = bAction["extra"]
+    words = string.split(extra)
 
     if (TryAction(actionSet, cmd, extra, words, isRepeat, not press, actions)) then
       return true
@@ -251,10 +244,10 @@ function actionHandler:RecvFromSynced(...)
     if (callInfoList == nil) then
       return false
     end
-
+    local func
     for _,callInfo in ipairs(callInfoList) do
       -- local widget = callInfo[1]
-      local func = callInfo[2]
+      func = callInfo[2]
       if (func(...)) then
         return true
       end
