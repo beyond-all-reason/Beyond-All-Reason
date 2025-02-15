@@ -8,11 +8,25 @@
 piece 	upperTorso, lArmUpperArm, lArmLowerArm, lArmGun, lArmGunCover1, lArmGunCover2, lArmGunCover3, lArmGunCover4, lArmShoulderJoint, lArmShoulderPivot, 
 		lArmShoulderGun, midTorso, lowerTorso, legJointTorso, lLegThighPivot, lLegUpperThigh, lLegLowerThigh, lLegtTibio, lLegShin, lLegBackFoot, lLegFrontFoot, 
 		lLegThighJoint, rLegThighPivot, rLegUpperThigh, rLegLowerThigh, rLegTibio, rLegShin, rLegBackFoot, rLegFrontFoot, rLegThighJoint, neck, head, rArmUpperArm, rArmLowerArm, 
-		rArmGun, rArmGunCover1, rArmGunCover2, rArmGunCover3, rArmGunCover4, rArmShoulderJoint, rArmShoulderPivot, rArmShoulderGun, rArmFlare, lArmFlare;
+		rArmGun, rArmGunCover1, rArmGunCover2, rArmGunCover3, rArmGunCover4, rArmShoulderJoint, rArmShoulderPivot, rArmShoulderGun, rArmFlare, lArmFlare, rShoulderFlare, lShoulderFlare,
+		rStompFlare, lStompFlare;
 
 
-static-var  ShootingArm, WhichShoulderRocket, InMotion, Aim_while_moving, WhichFootStompsBool, NotReadytoStomp, StompXZ, StompHeading,
-            restore_delay, aimingPose, wpn1_lasthead, wpn2_lasthead, timeLeft, targetswap, isfiring, gameframe, lastfired, timer, firetime, oldhead, aimAdj, oldsteerheading;
+static-var  InMotion, 
+			restore_delay, 
+			aimingPose, 
+			wpn1_lasthead, 
+			wpn2_lasthead, 
+			timeLeft, 
+			targetswap, 
+			isfiring, 
+			gameframe, 
+			lastfired, 
+			timer, 
+			firetime, 
+			oldhead, 
+			aimAdj, 
+			oldsteerheading;
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
@@ -787,7 +801,7 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 // Call this from StopMoving()!
 StopWalking() {
 	animSpeed = 10; // tune restore speed here, higher values are slower restore speeds
-	move legJointTorso to 	y-axis [0] speed [99.999847] / animSpeed;
+	move legJointTorso to 	y-axis [-5] speed [99.999847] / animSpeed;
 	turn lArmGun to 		x-axis <15> speed <198.744161> / animSpeed;
 	turn lArmGun to 		y-axis <0> speed <187.660497> / animSpeed;
 	turn lArmGun to 		z-axis <0> speed <293.256578> / animSpeed;
@@ -809,7 +823,7 @@ StopWalking() {
 	turn lLegThighJoint to 	y-axis <0> speed <214.407395> / animSpeed;
 	turn lLegThighJoint to 	z-axis <0> speed <188.447703> / animSpeed;
 	turn lLegThighPivot to 	x-axis <0> speed <338.438990> / animSpeed;
-	turn lLegThighPivot to 	y-axis <0> speed <154.090220> / animSpeed;
+	turn lLegThighPivot to 	y-axis <10> speed <154.090220> / animSpeed;
 	turn lLegThighPivot to 	z-axis <0> speed <521.232621> / animSpeed;
 	turn lLegUpperThigh to 	x-axis <0> speed <323.202024> / animSpeed;
 	turn lLegUpperThigh to 	y-axis <0> speed <135.804092> / animSpeed;
@@ -838,7 +852,7 @@ StopWalking() {
 	turn rLegThighJoint to 	y-axis <0> speed <258.063572> / animSpeed;
 	turn rLegThighJoint to 	z-axis <0> speed <190.274091> / animSpeed;
 	turn rLegThighPivot to 	x-axis <0> speed <243.502528> / animSpeed;
-	turn rLegThighPivot to 	y-axis <0> speed <158.516397> / animSpeed;
+	turn rLegThighPivot to 	y-axis <-10> speed <158.516397> / animSpeed;
 	turn rLegThighPivot to 	z-axis <0> speed <523.023324> / animSpeed;
 	turn rLegTibio to 		x-axis <0> speed <904.012462> / animSpeed;
 	turn rLegTibio to 		y-axis <0> speed <63.958883> / animSpeed;
@@ -847,6 +861,8 @@ StopWalking() {
 	turn rLegUpperThigh to 	y-axis <0> speed <132.335311> / animSpeed;
 	turn rLegUpperThigh to 	z-axis <0> speed <213.673445> / animSpeed;
 	turn legJointTorso to 	y-axis <0> speed <194.050073> / animSpeed;
+//	move legJointTorso to y-axis [-5] speed [100];
+
 }
 // REMEMBER TO animspeed = 4 in Create() !!
 UnitSpeed(){
@@ -907,6 +923,15 @@ Open()
 		turn rArmLowerArm to 	z-axis <18> speed <58.005416> / animSpeed;
 		turn rArmUpperArm to 	x-axis <0> speed <12.752184> / animSpeed;
 		turn rArmUpperArm to 	z-axis <0> speed <144.983261> / animSpeed;
+
+		move lArmShoulderPivot to y-axis [0] speed [25];
+		move rArmShoulderPivot to y-axis [0] speed [25];
+		//wait-for-move lArmShoulderPivot along y-axis;
+		turn lArmShoulderGun to x-axis <-15> speed <100>;
+		turn rArmShoulderGun to x-axis <-15> speed <100>;
+		turn lArmShoulderJoint to x-axis <-35> speed <50>;
+		turn rArmShoulderJoint to x-axis <-35> speed <50>;
+
 		wait-for-turn rArmLowerArm around z-axis;
 		wait-for-turn lArmLowerArm around z-axis;
 		wait-for-turn lArmGun around x-axis;
@@ -919,7 +944,7 @@ Close()
 	if( aimingPose )
 	{
 		aimingPose = 0;
-		move legJointTorso to 	y-axis [0] speed [99.999847] / animSpeed;
+		move legJointTorso to 	y-axis [-5] speed [99.999847] / animSpeed;
 		turn lArmGun to 		x-axis <15> speed <198.744161> / animSpeed;
 		turn lArmGun to 		y-axis <0> speed <187.660497> / animSpeed;
 		turn lArmGun to 		z-axis <0> speed <293.256578> / animSpeed;
@@ -941,7 +966,7 @@ Close()
 		turn lLegThighJoint to 	y-axis <0> speed <214.407395> / animSpeed;
 		turn lLegThighJoint to 	z-axis <0> speed <188.447703> / animSpeed;
 		turn lLegThighPivot to 	x-axis <0> speed <338.438990> / animSpeed;
-		turn lLegThighPivot to 	y-axis <0> speed <154.090220> / animSpeed;
+		turn lLegThighPivot to 	y-axis <10> speed <154.090220> / animSpeed;
 		turn lLegThighPivot to 	z-axis <0> speed <521.232621> / animSpeed;
 		turn lLegUpperThigh to 	x-axis <0> speed <323.202024> / animSpeed;
 		turn lLegUpperThigh to 	y-axis <0> speed <135.804092> / animSpeed;
@@ -970,7 +995,7 @@ Close()
 		turn rLegThighJoint to 	y-axis <0> speed <258.063572> / animSpeed;
 		turn rLegThighJoint to 	z-axis <0> speed <190.274091> / animSpeed;
 		turn rLegThighPivot to 	x-axis <0> speed <243.502528> / animSpeed;
-		turn rLegThighPivot to 	y-axis <0> speed <158.516397> / animSpeed;
+		turn rLegThighPivot to 	y-axis <-10> speed <158.516397> / animSpeed;
 		turn rLegThighPivot to 	z-axis <0> speed <523.023324> / animSpeed;
 		turn rLegTibio to 		x-axis <0> speed <904.012462> / animSpeed;
 		turn rLegTibio to 		y-axis <0> speed <63.958883> / animSpeed;
@@ -979,6 +1004,37 @@ Close()
 		turn rLegUpperThigh to 	y-axis <0> speed <132.335311> / animSpeed;
 		turn rLegUpperThigh to 	z-axis <0> speed <213.673445> / animSpeed;
 		turn legJointTorso to 	y-axis <0> speed <194.050073> / animSpeed;
+
+		turn lArmShoulderGun to x-axis <15> speed <100>;
+		turn rArmShoulderGun to x-axis <15> speed <100>;
+		turn lArmShoulderJoint to x-axis <0> speed <100>;
+		turn rArmShoulderJoint to x-axis <0> speed <100>;
+		move lArmShoulderPivot to y-axis [-21] speed [15];
+		move rArmShoulderPivot to y-axis [-21] speed [15];
+
+		move rArmGunCover1 to z-axis [-1] speed [1];
+		move rArmGunCover2 to z-axis [-1] speed [1];
+		move rArmGunCover3 to z-axis [-1] speed [1];
+		move rArmGunCover4 to z-axis [-1] speed [1];
+		move rArmGunCover1 to y-axis [0] speed [1];
+		move rArmGunCover2 to y-axis [0] speed [1];
+		move rArmGunCover3 to y-axis [0] speed [1];
+		move rArmGunCover4 to y-axis [0] speed [1];
+
+		move lArmGunCover1 to z-axis [-1] speed [1];
+		move lArmGunCover2 to z-axis [-1] speed [1];
+		move lArmGunCover3 to z-axis [-1] speed [1];
+		move lArmGunCover4 to z-axis [-1] speed [1];
+		move lArmGunCover1 to y-axis [0] speed [1];
+		move lArmGunCover2 to y-axis [0] speed [1];
+		move lArmGunCover3 to y-axis [0] speed [1];
+		move lArmGunCover4 to y-axis [0] speed [1];
+
+		// move legJointTorso to y-axis [-5] now;
+
+
+		//move rArmShoulderPivot to y-axis [-21] speed [10];
+		//move lArmShoulderPivot to y-axis [-21] speed [10];
 		}
 	InMotion = 0;
 }
@@ -988,29 +1044,25 @@ Create()
 {
 	hide rArmFlare;
 	hide lArmFlare;
-	// hide eyeflare;
-	// hide aimy2;
-	// hide lgunflare;
-	// hide lshoulder;
-	// hide rgunflare;
-	// hide rshoulder;
-	// hide aimx1;
-	// hide rmispoint;
-	// hide lmispoint;
-	// hide aimy1;
+
+	move rArmShoulderPivot to y-axis [-21] now;
+	move lArmShoulderPivot to y-axis [-21] now;
+	turn lArmShoulderGun to x-axis <15> now;
+	turn rArmShoulderGun to x-axis <15> now;
+
+	move rArmGunCover1 to z-axis [-1] now;
+	move rArmGunCover2 to z-axis [-1] now;
+	move rArmGunCover3 to z-axis [-1] now;
+	move rArmGunCover4 to z-axis [-1] now;
+
+	move legJointTorso to y-axis [-5] now;
+
 	set ARMORED to 1;
-	// hide eyeflare;
-	// hide lgunflare;
-	// hide rgunflare;
 	animSpeed = 6;
 	isMoving = FALSE;
 	InMotion = 0;
-	// Aim_while_moving = 1;
 	aimingPose = 0;
 	isfiring = 0;
-	// ShootingArm = 1;
-	// WhichShoulderRocket = 0;
-	// NotReadytoStomp=1;
 	timeLeft = 0;
     isfiring = 0;
 	oldsteerheading = get HEADING;
@@ -1023,8 +1075,10 @@ Create()
 	restore_delay = 2000;
 	call-script SweepFire();
 
-	move rArmShoulderPivot to y-axis [-21] now;
-	move lArmShoulderPivot to y-axis [-21] now;
+	//
+	//
+	//turn lArmShoulderJoint to x-axis <35> now;
+	//turn rArmShoulderJoint to x-axis <35> now;
 
 	//call-script CATT1_Init();
 }
@@ -1055,9 +1109,10 @@ SweepFire()
 }
 
 TimeToRestore(addTime){
+
 	signal SIGNAL_RESTORE;
 	set-signal-mask SIGNAL_RESTORE;
-	// sleep 3000;
+	sleep 3000;
 
 
     // This function may not be signal terminated
@@ -1071,9 +1126,9 @@ TimeToRestore(addTime){
     }
 	//get PRINT(77, timeLeft, get GAME_FRAME);
     // The restore section must be atomic :/
-	turn lArmGun to x-axis <0.0> speed <30>;
-	turn rArmGun to x-axis <0.0> speed <30>;
-	turn midTorso to y-axis <0.0> speed <60.0>;
+	turn lArmGun to x-axis <0.0> speed <10>;
+	turn rArmGun to x-axis <0.0> speed <10>;
+	turn midTorso to y-axis <0.0> speed <25.0>;
 	start-script Close();
 
     timeLeft = 0;
@@ -1082,9 +1137,7 @@ TimeToRestore(addTime){
 	aimAdj = 0;
 	timer = 0;
 	targetswap = 0;
-		
-	//stop-spin barrelMid around z-axis decelerate <5>;
-	//wait-for-turn turretBase around y-axis;
+	
 }
 
 SetMaxReloadTime(reloadMS)
@@ -1092,53 +1145,6 @@ SetMaxReloadTime(reloadMS)
 	restore_delay = reloadMS * 2;
 }
 
-
-// RestoreHead()
-// {
-// 	signal SIGNAL_HEAD; //kills all sleeping threads that overlap the bitmask. 
-// 	set-signal-mask SIGNAL_HEAD; //sets what signals kill the current thread
-// 	sleep 3000;
-// 	turn aimy2 to y-axis <0.0> speed <110.0>;
-// 	turn aimy2 to x-axis <0.0> speed <110.0>;
-// 	wpn2_lasthead = 0;
-// }
-
-AimWeapon3(heading, pitch)
-{
-	return (1);
-}
-
-FireWeapon3()
-{
-	//WhichShoulderRocket = !WhichShoulderRocket;
-}
-
-AimFromWeapon3(pieceIndex)
-{
-	pieceIndex = lArmShoulderGun;
-}
-
-QueryWeapon3(pieceIndex)
-{
-	pieceIndex = head;
-}
-
-
-//-------------------------------CONSTANT ACCELERATION TURRET TURNING---------------------------
-// MaxVelocity and acceleration are in degrees per frame (not second!)
-// Jerk is the minimum velocity of the turret
-// A high precision requirement can result in overshoots if desired 
-// Author Beherith mysterme@gmail.com. License: GNU GPL v2.
-
-// #define CATT1_PIECE_Y upperTorso
-
-// #define CATT1_MAX_VELOCITY <5.0>
-// #define CATT1_ACCELERATION <0.60>
-// #define CATT1_JERK <0.5>
-// #define CATT1_PRECISION <10>
-// #define CATT1_RESTORE_SPEED <1.0>
-
-// #include "../constant_acceleration_turret_turning_1.h"
 
 RestoreBody() // no need to signal, as threads inherit parents signal masks
 {
@@ -1155,32 +1161,7 @@ AimWeapon1(heading, pitch)
 {
 
 	start-script Open();
-	//signal SIGNAL_BODY;
-	//set-signal-mask SIGNAL_BODY;
 
-
-	
-	// if( !aimingPose )
-	// {
-	// 	return (0);
-	// }
-	// //turn lArmGun to x-axis <0.0> - (pitch-1000) speed <50>;
-	// //turn rArmGun to x-axis <0.0> - (pitch-1000) speed <50>;
-	// turn midTorso to y-axis (heading) speed <100>;
-	// //turn lArmGun to x-axis <-7.0> - pitch speed <30>;
-	// turn lArmGun to x-axis <0> - (pitch+600) speed <30>;
-	// //turn rArmGun to x-axis <0.0> - pitch speed <30>;
-	// //turn lArmGun to y-axis <10> + pitch speed <30>;
-	// turn lArmGun to y-axis <0> + (pitch+1050) speed <30>;
-	// //turn rArmGun to y-axis <0.0> - pitch speed <30>;
-	// turn lArmGun to z-axis <0.0> - pitch speed <30>;
-	// //turn rArmGun to z-axis <0.0> + pitch speed <30>;
-	// //turn lArmGun to y-axis (0) speed <100.0>;	
-
-	// //call-script CATT1_Aim(heading,pitch);
-	// wait-for-turn midTorso around y-axis;
-	// start-script RestoreBody();
-	// return (1);
 
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
@@ -1206,6 +1187,7 @@ AimWeapon1(heading, pitch)
 	{
 		oldhead = 1000000;
 		wait-for-turn midTorso around y-axis;
+		wait-for-turn rArmGun around x-axis;
 	}
 	oldhead = heading;
 	isfiring = 1;
@@ -1216,6 +1198,15 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {	
+	move rArmGunCover1 to y-axis [1] speed [10];
+	move rArmGunCover2 to y-axis [1] speed [10];
+	move rArmGunCover3 to y-axis [-1] speed [10];
+	move rArmGunCover4 to y-axis [-1] speed [10];
+	wait-for-move rArmGunCover1 along y-axis;
+	move rArmGunCover1 to z-axis [0] speed [10];
+	move rArmGunCover2 to z-axis [0] speed [10];
+	move rArmGunCover3 to z-axis [0] speed [10];
+	move rArmGunCover4 to z-axis [0] speed [10];
 	gameframe = get(GAME_FRAME);
 	lastfired = gameframe;
 	return (0);
@@ -1223,7 +1214,7 @@ FireWeapon1()
 
 AimFromWeapon1(pieceIndex)
 {
-	pieceIndex = upperTorso;
+	pieceIndex = lArmGun;
 }
 
 QueryWeapon1(pieceIndex)
@@ -1231,15 +1222,13 @@ QueryWeapon1(pieceIndex)
 	pieceIndex = lArmFlare;
 }
 
-AimWeapon2(heading, pitch) //headlazor
+AimWeapon2(heading, pitch) 
 {
-	// signal SIG_AIM_2;
-	// set-signal-mask SIG_AIM_2;
-
 	if (((get ABS(oldhead - heading)) > 65536) OR(((get ABS(oldhead - heading)) > 5000) AND ((get ABS(oldhead - heading)) < 64236)))
 	{
 		oldhead = 1000000;
 		wait-for-turn midTorso around y-axis;
+		wait-for-turn rArmGun around x-axis;
 	}
 	//start-script RestoreBody();
 	isfiring = 1;
@@ -1248,18 +1237,19 @@ AimWeapon2(heading, pitch) //headlazor
 
 FireWeapon2()
 {
+	move lArmGunCover1 to y-axis [1] speed [10];
+	move lArmGunCover2 to y-axis [1] speed [10];
+	move lArmGunCover3 to y-axis [-1] speed [10];
+	move lArmGunCover4 to y-axis [-1] speed [10];
+	wait-for-move rArmGunCover1 along y-axis;
+	move lArmGunCover1 to z-axis [0] speed [10];
+	move lArmGunCover2 to z-axis [0] speed [10];
+	move lArmGunCover3 to z-axis [0] speed [10];
+	move lArmGunCover4 to z-axis [0] speed [10];
 	gameframe = get(GAME_FRAME);
 	lastfired = gameframe;
 	return (0);
 }
-
-// Shot2(zero)
-// {
-// 	signal SIG_FIRE1;
-// 	set-signal-mask SIG_FIRE1;
-// 	//emit-sfx 1024 + 1 from lflare;
-// 	return(1);
-// }
 
 AimFromWeapon2(pieceIndex)
 {
@@ -1270,44 +1260,75 @@ QueryWeapon2(pieceIndex)
 {
 	pieceIndex = rArmFlare;
 }
+/////////////////////////////////////////////////////
+AimWeapon3(heading, pitch) 
+{
+	turn rArmShoulderGun to x-axis <35> - pitch speed <60>;
+	if (((get ABS(oldhead - heading)) > 65536) OR(((get ABS(oldhead - heading)) > 5000) AND ((get ABS(oldhead - heading)) < 64236)))
+	{
+		oldhead = 1000000;
+		wait-for-turn midTorso around y-axis;
+		wait-for-turn rArmShoulderGun around x-axis;
+		wait-for-turn rArmShoulderJoint around x-axis;
+		wait-for-move rArmShoulderPivot along y-axis;
+	}
+	//start-script RestoreBody();
+	
+	isfiring = 1;
+    return (1);
+}
+
+FireWeapon3()
+{
+	gameframe = get(GAME_FRAME);
+	lastfired = gameframe;
+	return (0);
+}
+
+AimFromWeapon3(pieceIndex)
+{
+	pieceIndex = rArmShoulderGun;
+}
+
+QueryWeapon3(pieceIndex)
+{
+	pieceIndex = rShoulderFlare;
+}
 
 
 
-// AimWeapon4(heading, pitch)
-// {
-// 	// signal SIGNAL_FOOTSTOMP_L;
-// 	// set-signal-mask SIGNAL_FOOTSTOMP_L;
-// 	// while(NotReadytoStomp OR !WhichFootStompsBool) sleep 65;
-// 	return (0);
-// }
+AimWeapon4(heading, pitch) 
+{
+	turn lArmShoulderGun to x-axis <35> - pitch speed <60>;
+	if (((get ABS(oldhead - heading)) > 65536) OR(((get ABS(oldhead - heading)) > 5000) AND ((get ABS(oldhead - heading)) < 64236)))
+	{
+		oldhead = 1000000;
+		wait-for-turn midTorso around y-axis;
+		wait-for-turn lArmShoulderGun around x-axis;
+		wait-for-turn lArmShoulderJoint around x-axis;
+		wait-for-move lArmShoulderPivot along y-axis;
+	}
+	//start-script RestoreBody();
+	isfiring = 1;
+    return (1);
+}
 
-// AimFromWeapon4(pieceIndex)
-// {
-// 	pieceIndex = head;
-// }
+FireWeapon4()
+{
+	gameframe = get(GAME_FRAME);
+	lastfired = gameframe;
+	return (0);
+}
 
-// QueryWeapon4(pieceIndex)
-// {
-// 	pieceIndex = head;
-// }
+AimFromWeapon4(pieceIndex)
+{
+	pieceIndex = lArmShoulderGun;
+}
 
-// AimWeapon5(heading, pitch)
-// {
-// 	// signal SIGNAL_FOOTSTOMP_R;
-// 	// set-signal-mask SIGNAL_FOOTSTOMP_R;
-// 	// while(NotReadytoStomp OR WhichFootStompsBool) sleep 65;
-// 	return (0);
-// }
-
-// AimFromWeapon5(pieceIndex)
-// {
-// 	pieceIndex = head;
-// }
-
-// QueryWeapon5(pieceIndex)
-// {
-// 	pieceIndex = head;
-// }
+QueryWeapon4(pieceIndex)
+{
+	pieceIndex = lShoulderFlare;
+}
 
 
 Killed(severity, corpsetype)
