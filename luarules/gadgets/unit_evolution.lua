@@ -167,8 +167,8 @@ if gadgetHandler:IsSyncedCode() then
 		spSetUnitRulesParam(unitID, "unit_evolved", newUnitID, PRIVATE)
 
 		SendToUnsynced("unit_evolve_finished", unitID, newUnitID, announcement,announcementSize)
-		if evolution.evolution_health_transfer == "full" then
-		elseif evolution.evolution_health_transfer == "percentage" then
+		if evolutionMetaList[unitID].evolution_health_transfer == "full" then
+		elseif evolutionMetaList[unitID].evolution_health_transfer == "percentage" then
 			local _, newUnitMaxHealth = spGetUnitHealth(newUnitID)
 			local pHealth = (health/maxHealth) * newUnitMaxHealth
 			spSetUnitHealth(newUnitID, pHealth)
