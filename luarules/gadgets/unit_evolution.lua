@@ -17,6 +17,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spCreateUnit            = Spring.CreateUnit
 	local spDestroyUnit           = Spring.DestroyUnit
 	local spGiveOrderToUnit       = Spring.GiveOrderToUnit
+	local spGiveOrderArrayToUnit  = Spring.GiveOrderArrayToUnit
 	local spSetUnitRulesParam     = Spring.SetUnitRulesParam
 	local spGetUnitPosition       = Spring.GetUnitPosition
 	local spGetUnitStates = Spring.GetUnitStates
@@ -163,6 +164,7 @@ if gadgetHandler:IsSyncedCode() then
 			announcement = evolution.evolution_announcement
 			announcementSize = evolution.evolution_announcement_size
 		end
+
 
 		spSetUnitRulesParam(unitID, "unit_evolved", newUnitID, PRIVATE)
 
