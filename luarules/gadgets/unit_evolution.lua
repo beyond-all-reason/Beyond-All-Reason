@@ -395,28 +395,24 @@ if gadgetHandler:IsSyncedCode() then
 			local unitID = toCheckUnitIDs[lastCheckIndex].id
 
 			local evolution = evolutionMetaList[unitID]
-			if evolution then
-				if (evolution.evolution_condition == 'timer'
-					and (currentTime - evolution.timeCreated) >= evolution.evolution_timer) or
-						(evolution.evolution_condition == 'timer_global' and currentTime >= evolution.evolution_timer)
-					and not IsInCombat(unitID, evolution, currentTime) then
-						Evolve(unitID, evolution.evolution_target)
+			if evolution and not IsInCombat(unitID, evolution, currentTime) then
+				if (not evolution.evolution_condition or evolution.evolution_condition == 'timer'
+						and (currentTime - evolution.timeCreated) >= evolution.evolution_timer)
+					or (evolution.evolution_condition == 'timer_global' and currentTime >= evolution.evolution_timer) then
+					Evolve(unitID, evolution.evolution_target)
 				end
 
-				local teamID = spGetUnitTeam(unitID)
-				for team, power in pairs(teamPowerList) do
-					if team and teamID and power then
-						if highestTeamPower < power then
+				if evolution.evolution_condition == "power" and not Spring.GetUnitTransporter(unitID) then
+					local teamID = spGetUnitTeam(unitID)
+					for team, power in pairs(teamPowerList) do
+						if team ~= nil and teamID ~= nil and power ~= nil and highestTeamPower < power then
 							highestTeamPower = power * evolution.evolution_power_multiplier
 						end
 					end
-				end
 
-				if evolution.evolution_condition == "power"
-					and not Spring.GetUnitTransporter(unitID)
-					and highestTeamPower > evolution.evolution_power_threshold
-					and not IsInCombat(unitID, evolution, currentTime) then
+					if highestTeamPower > evolution.evolution_power_threshold then
 						Evolve(unitID, evolution.evolution_target)
+					end
 				end
 			end
 
