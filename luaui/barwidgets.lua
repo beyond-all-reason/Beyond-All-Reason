@@ -354,7 +354,6 @@ function widgetHandler:Initialize()
 	end
 
 	loadWidgetFiles(VFS.ZIP)
-	loadWidgetFiles(VFS.MAP)
 
 	table.sort(unsortedWidgets, function(w1, w2)
 		local l1 = w1.whInfo.layer
