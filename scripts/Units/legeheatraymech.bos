@@ -25,6 +25,7 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 #define SIG_AIM_3			128
 #define SIG_AIM_4			256
 #define SIG_AIM_5			512
+#define SIGNAL_RESTORE		1024
 
 #define SIGNAL_FOOTSTOMP_L 8
 #define SIGNAL_FOOTSTOMP_R 16
@@ -189,7 +190,7 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 			turn rLegUpperThigh to z-axis <-4.859374> speed <95.798074> / animSpeed; 
 			turn rLegUpperThigh to y-axis <2.819601> speed <30.038487> / animSpeed; 
 			move legJointTorso to y-axis [0.000000] speed [19.999924] / animSpeed; 
-			turn legJointTorso to y-axis <3.652885> speed <54.284431> / animSpeed;
+			// turn legJointTorso to y-axis <3.652885> speed <54.284431> / animSpeed;
 			if( !aimingPose )
 				{
 					turn lArmGun to x-axis <43.853554> speed <57.094200> / animSpeed; 
@@ -206,7 +207,8 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 					turn rArmLowerArm to x-axis <-1.451938> speed <189.596945> / animSpeed; 
 					turn rArmLowerArm to y-axis <0.133837> speed <11.950125> / animSpeed; 
 					turn rArmUpperArm to x-axis <0.240013> speed <3.563692> / animSpeed; 
-					turn rArmUpperArm to z-axis <2.729546> speed <40.586263> / animSpeed; 					 
+					turn rArmUpperArm to z-axis <2.729546> speed <40.586263> / animSpeed;
+					turn legJointTorso to y-axis <3.652885> speed <54.284431> / animSpeed; 					 
 				}  
 		sleep ((33*animSpeed) -1);
 		}
@@ -253,7 +255,7 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 			turn rLegUpperThigh to x-axis <3.713520> speed <94.493917> / animSpeed; 
 			turn rLegUpperThigh to z-axis <-6.113326> speed <37.618556> / animSpeed; 
 			turn rLegUpperThigh to y-axis <2.494035> speed <9.766970> / animSpeed; 
-			turn legJointTorso to y-axis <0.666506> speed <89.591377> / animSpeed;
+			// turn legJointTorso to y-axis <0.666506> speed <89.591377> / animSpeed;
 			if( !aimingPose )
 				{
 					turn lArmGun to x-axis <40.804069> speed <91.484544> / animSpeed; 
@@ -271,7 +273,8 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 					turn rArmLowerArm to z-axis <16.162886> speed <5.158295> / animSpeed; 
 					turn rArmLowerArm to y-axis <-1.187270> speed <39.633212> / animSpeed; 
 					turn rArmUpperArm to x-axis <0.043802> speed <5.886321> / animSpeed; 
-					turn rArmUpperArm to z-axis <0.497955> speed <66.947749> / animSpeed; 					 
+					turn rArmUpperArm to z-axis <0.497955> speed <66.947749> / animSpeed; 
+					turn legJointTorso to y-axis <0.666506> speed <89.591377> / animSpeed;
 				}   
 		sleep ((33*animSpeed) -1);
 		}
@@ -320,7 +323,7 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 			turn rLegUpperThigh to x-axis <-1.440796> speed <154.629487> / animSpeed; 
 			turn rLegUpperThigh to z-axis <-4.263925> speed <55.482041> / animSpeed; 
 			turn rLegUpperThigh to y-axis <0.356787> speed <64.117444> / animSpeed; 
-			turn legJointTorso to y-axis <-2.535041> speed <96.046428> / animSpeed;
+			// turn legJointTorso to y-axis <-2.535041> speed <96.046428> / animSpeed;
 			if( !aimingPose )
 				{
 					turn lArmGun to x-axis <37.763044> speed <91.230768> / animSpeed; 
@@ -337,7 +340,8 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 					turn rArmLowerArm to z-axis <16.795194> speed <18.969245> / animSpeed; 
 					turn rArmLowerArm to y-axis <-3.609382> speed <72.663382> / animSpeed; 
 					turn rArmUpperArm to x-axis <-0.166585> speed <6.311621> / animSpeed;
-					turn rArmUpperArm to z-axis <-1.894111> speed <71.761976> / animSpeed;  
+					turn rArmUpperArm to z-axis <-1.894111> speed <71.761976> / animSpeed;
+					turn legJointTorso to y-axis <-2.535041> speed <96.046428> / animSpeed;  
 				}    
 		sleep ((33*animSpeed) -1);
 		}
@@ -385,7 +389,7 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 			turn rLegUpperThigh to x-axis <-5.248241> speed <114.223369> / animSpeed; 
 			turn rLegUpperThigh to z-axis <-0.799644> speed <103.928437> / animSpeed; 
 			turn rLegUpperThigh to y-axis <-0.075833> speed <12.978610> / animSpeed; 
-			turn legJointTorso to y-axis <-4.918961> speed <71.517587> / animSpeed;
+			// turn legJointTorso to y-axis <-4.918961> speed <71.517587> / animSpeed;
 			if( !aimingPose )
 				{
 					turn lArmGun to x-axis <36.211289> speed <46.552623> / animSpeed; 
@@ -401,7 +405,8 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 					turn rArmLowerArm to z-axis <17.761951> speed <29.002708> / animSpeed; 
 					turn rArmLowerArm to y-axis <-6.207280> speed <77.936924> / animSpeed; 
 					turn rArmUpperArm to x-axis <-0.323140> speed <4.696637> / animSpeed; 
-					turn rArmUpperArm to z-axis <-3.676055> speed <53.458303> / animSpeed; 
+					turn rArmUpperArm to z-axis <-3.676055> speed <53.458303> / animSpeed;
+					turn legJointTorso to y-axis <-4.918961> speed <71.517587> / animSpeed; 
 				}  
 		sleep ((33*animSpeed) -1);
 		}
@@ -449,7 +454,7 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 			turn rLegUpperThigh to z-axis <1.787183> speed <77.604800> / animSpeed; 
 			turn rLegUpperThigh to y-axis <0.124111> speed <5.998338> / animSpeed; 
 			move legJointTorso to y-axis [-1.666664] speed [49.999924] / animSpeed; 
-			turn legJointTorso to y-axis <-5.720769> speed <24.054249> / animSpeed;
+			// turn legJointTorso to y-axis <-5.720769> speed <24.054249> / animSpeed;
 			if( !aimingPose )
 				{
 					turn lArmGun to x-axis <37.042035> speed <24.922370> / animSpeed; 
@@ -464,7 +469,8 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 					turn rArmLowerArm to x-axis <29.820141> speed <74.472507> / animSpeed; 
 					turn rArmLowerArm to z-axis <18.215568> speed <13.608503> / animSpeed; 
 					turn rArmLowerArm to y-axis <-7.258478> speed <31.535944> / animSpeed; 
-					turn rArmUpperArm to z-axis <-4.275689> speed <17.989041> / animSpeed;  
+					turn rArmUpperArm to z-axis <-4.275689> speed <17.989041> / animSpeed;
+					turn legJointTorso to y-axis <-5.720769> speed <24.054249> / animSpeed;  
 				}  
 		sleep ((33*animSpeed) -1);
 		}
@@ -511,7 +517,7 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 			turn rLegUpperThigh to z-axis <1.177166> speed <18.300497> / animSpeed; 
 			turn rLegUpperThigh to y-axis <-0.064975> speed <5.672596> / animSpeed; 
 			move legJointTorso to y-axis [-0.666664] speed [30.000000] / animSpeed; 
-			turn legJointTorso to y-axis <-4.685040> speed <31.071884> / animSpeed; 
+			// turn legJointTorso to y-axis <-4.685040> speed <31.071884> / animSpeed; 
 			if( !aimingPose )
 				{
 					turn lArmGun to x-axis <39.849209> speed <84.215208> / animSpeed; 
@@ -527,7 +533,8 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 					turn rArmLowerArm to x-axis <26.603940> speed <96.486036> / animSpeed; 
 					turn rArmLowerArm to z-axis <17.642988> speed <17.177396> / animSpeed; 
 					turn rArmLowerArm to y-axis <-5.918392> speed <40.202583> / animSpeed; 
-					turn rArmUpperArm to z-axis <-3.501146> speed <23.236310> / animSpeed;  
+					turn rArmUpperArm to z-axis <-3.501146> speed <23.236310> / animSpeed;
+					turn legJointTorso to y-axis <-4.685040> speed <31.071884> / animSpeed;  
 				}  
 		sleep ((33*animSpeed) -1);
 		}
@@ -568,7 +575,7 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 			turn rLegUpperThigh to x-axis <1.199290> speed <85.353494> / animSpeed; 
 			turn rLegUpperThigh to y-axis <-0.222448> speed <4.724198> / animSpeed; 
 			move legJointTorso to y-axis [0.000000] speed [19.999924] / animSpeed; 
-			turn legJointTorso to y-axis <-2.141908> speed <76.293939> / animSpeed;
+			// turn legJointTorso to y-axis <-2.141908> speed <76.293939> / animSpeed;
 			if( !aimingPose )
 				{
 					turn lArmGun to x-axis <43.161611> speed <99.372081> / animSpeed; 
@@ -586,7 +593,8 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 					turn rArmLowerArm to z-axis <16.682233> speed <28.822647> / animSpeed; 
 					turn rArmLowerArm to y-axis <-3.250170> speed <80.046639> / animSpeed; 
 					turn rArmUpperArm to x-axis <-0.140755> speed <5.010881> / animSpeed; 
-					turn rArmUpperArm to z-axis <-1.600335> speed <57.024337> / animSpeed;   
+					turn rArmUpperArm to z-axis <-1.600335> speed <57.024337> / animSpeed;  
+					turn legJointTorso to y-axis <-2.141908> speed <76.293939> / animSpeed; 
 				}   
 		sleep ((33*animSpeed) -1);
 		}
@@ -630,7 +638,7 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 			turn rLegUpperThigh to x-axis <4.034346> speed <85.051694> / animSpeed; 
 			turn rLegUpperThigh to z-axis <1.508217> speed <10.382900> / animSpeed; 
 			turn rLegUpperThigh to y-axis <-0.374821> speed <4.571180> / animSpeed; 
-			turn legJointTorso to y-axis <1.092259> speed <97.025037> / animSpeed;
+			// turn legJointTorso to y-axis <1.092259> speed <97.025037> / animSpeed;
 			if( !aimingPose )
 				{
 					turn lArmGun to x-axis <45.505497> speed <70.316558> / animSpeed; 
@@ -648,7 +656,8 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 					turn rArmLowerArm to z-axis <16.119810> speed <16.872702> / animSpeed; 
 					turn rArmLowerArm to y-axis <-0.946521> speed <69.109488> / animSpeed; 
 					turn rArmUpperArm to x-axis <0.071782> speed <6.376092> / animSpeed; 
-					turn rArmUpperArm to z-axis <0.816053> speed <72.491631> / animSpeed;   
+					turn rArmUpperArm to z-axis <0.816053> speed <72.491631> / animSpeed;
+					turn legJointTorso to y-axis <1.092259> speed <97.025037> / animSpeed;   
 				} 
 		sleep ((33*animSpeed) -1);
 		}
@@ -694,7 +703,7 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 			turn rLegUpperThigh to z-axis <2.225993> speed <21.533281> / animSpeed; 
 			turn rLegUpperThigh to y-axis <-0.627600> speed <7.583369> / animSpeed; 
 			move legJointTorso to y-axis [-0.333336] speed [10.000076] / animSpeed; 
-			turn legJointTorso to y-axis <3.973846> speed <86.447607> / animSpeed;
+			// turn legJointTorso to y-axis <3.973846> speed <86.447607> / animSpeed;
 			if( !aimingPose )
 				{
 					turn lArmGun to x-axis <46.410855> speed <27.160759> / animSpeed; 
@@ -712,7 +721,8 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 					turn rArmLowerArm to z-axis <15.986174> speed <4.009082> / animSpeed; 
 					turn rArmLowerArm to y-axis <0.226197> speed <35.181530> / animSpeed; 
 					turn rArmUpperArm to x-axis <0.261090> speed <5.679262> / animSpeed; 
-					turn rArmUpperArm to z-axis <2.969460> speed <64.602211> / animSpeed;   
+					turn rArmUpperArm to z-axis <2.969460> speed <64.602211> / animSpeed;
+					turn legJointTorso to y-axis <3.973846> speed <86.447607> / animSpeed;   
 				}  
 		sleep ((33*animSpeed) -1);
 		}
@@ -761,7 +771,7 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 			turn rLegUpperThigh to z-axis <1.371224> speed <25.643084> / animSpeed; 
 			turn rLegUpperThigh to y-axis <-0.064312> speed <16.898634> / animSpeed; 
 			move legJointTorso to y-axis [-2.000000] speed [49.999924] / animSpeed; 
-			turn legJointTorso to y-axis <5.575621> speed <48.053237> / animSpeed;
+			// turn legJointTorso to y-axis <5.575621> speed <48.053237> / animSpeed;
 			if( !aimingPose )
 				{
 					turn lArmGun to z-axis <4.607411> speed <6.229901> / animSpeed; 
@@ -774,7 +784,8 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 					turn rArmLowerArm to x-axis <-8.167168> speed <167.842125> / animSpeed; 
 					turn rArmLowerArm to y-axis <0.547238> speed <9.631249> / animSpeed; 
 					turn rArmUpperArm to x-axis <0.366233> speed <3.154293> / animSpeed; 
-					turn rArmUpperArm to z-axis <4.167119> speed <35.929775> / animSpeed;   
+					turn rArmUpperArm to z-axis <4.167119> speed <35.929775> / animSpeed;
+					turn legJointTorso to y-axis <5.575621> speed <48.053237> / animSpeed;   
 				}  
 		sleep ((33*animSpeed) -1);
 		}
@@ -1099,7 +1110,7 @@ SweepFire()
             emit-sfx 2048+1 from rArmFlare;
 			timer = timer + 1;
 		}
-		if (timer > 300)
+		if (timer > 500)
 		{
 			timer = 0;
 			start-script ExecuteRestoreAfterDelay();
@@ -1108,13 +1119,46 @@ SweepFire()
 	}
 }
 
-ExecuteRestoreAfterDelay()
+ExecuteRestoreAfterDelay(addTime)
 {
-	signal SIG_AIM;
+	// signal SIG_AIM;
+	// turn lArmGun to x-axis <0.0> speed <10>;
+	// turn rArmGun to x-axis <0.0> speed <10>;
+	// turn midTorso to y-axis <0.0> speed <25.0>;
+	// start-script Close();
+    // timeLeft = 0;
+    // isfiring1 = 0;
+	// isfiring2 = 0;
+    // isfiring3 = 0;
+	// isfiring4 = 0;
+	// oldhead1 = 1000000;
+	// oldhead2 = 1000000;
+	// oldhead3 = 1000000;
+	// oldhead4 = 1000000;
+	// timer = 0;
+	// targetswap1 = 0;
+	// targetswap2 = 0;
+	// targetswap3 = 0;
+	// targetswap4 = 0;
+
+
+	signal SIGNAL_RESTORE;
+	set-signal-mask SIGNAL_RESTORE;
+    // This function may not be signal terminated
+    // If it has to be, it _must_ be immediately restarted
+    // PROBLEM: the time that is slept depends on number of aim calls.
+    while((timeLeft > 1)){
+		//get PRINT(timeLeft, get GAME_FRAME);
+        addTime = timeLeft;
+        timeLeft = 1;
+        sleep addTime;//can sometimes sleep 6000 but never wake up again?
+    }
+	//get PRINT(77, timeLeft, get GAME_FRAME);
+    // The restore section must be atomic :/
 	turn lArmGun to x-axis <0.0> speed <10>;
 	turn rArmGun to x-axis <0.0> speed <10>;
 	turn midTorso to y-axis <0.0> speed <25.0>;
-	start-script Close();
+
     timeLeft = 0;
     isfiring1 = 0;
 	isfiring2 = 0;
@@ -1129,6 +1173,12 @@ ExecuteRestoreAfterDelay()
 	targetswap2 = 0;
 	targetswap3 = 0;
 	targetswap4 = 0;
+		
+	//stop-spin barrelMid around z-axis decelerate <5>;
+	//wait-for-turn turretBase around y-axis;
+
+
+
 }
 
 RestoreAfterDelay()
@@ -1203,7 +1253,7 @@ AimWeapon1(heading, pitch)
     cauface = get ATAN(face_z, face_x);                        //use arctan (ATAN) to calculate the angle of the hull. The result is in cau, which is the unit this code format uses for angles. Its up to 32768 (180°), positive or negative depending on direction
     
     //var torsoaim;
-    torsoaim = (cauface - cauaim) + 900;                                //calculate angle of turret relative to the hull
+    torsoaim = (cauface - cauaim)  + 400;                                //calculate angle of turret relative to the hull
 	//torsoaim = heading;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
@@ -1211,7 +1261,11 @@ AimWeapon1(heading, pitch)
 		wait-for-turn midTorso around y-axis;
 	}
 	wpn1_lasthead = heading;
-	start-script RestoreAfterDelay();
+    if (timeLeft == 0)
+    {
+        start-script RestoreAfterDelay();
+    }
+	timeLeft = restore_delay;
 	return (1);
 }
 
@@ -1234,7 +1288,7 @@ AimWeapon2(heading, pitch)
 {
 	signal SIG_AIM_2;
 	set-signal-mask SIG_AIM_2;
-	turn lArmShoulderJoint to y-axis heading - torsoaim speed <45>;
+	turn lArmShoulderJoint to y-axis (heading - torsoaim) + <3> speed <45>;
 	turn lArmShoulderGun to x-axis (-1*pitch) + <35> speed <60>;
 	if (get ABS(oldhead1 - heading + torsoaim) > 500)
 	{
@@ -1244,12 +1298,20 @@ AimWeapon2(heading, pitch)
 	{
 		oldhead1 = heading;
 		isfiring1 = 1;
-		start-script RestoreAfterDelay();
+		if (timeLeft == 0)
+		{
+			start-script RestoreAfterDelay();
+		}
+		timeLeft = restore_delay;
 		return (1);
 	}
 	wait-for-turn lArmShoulderJoint around y-axis;
 	wait-for-turn lArmShoulderGun around x-axis;
-	start-script RestoreAfterDelay();
+    if (timeLeft == 0)
+    {
+        start-script RestoreAfterDelay();
+    }
+	timeLeft = restore_delay;
 	isfiring1 = 1;
 	//show flare;
 	oldhead1 = heading;
@@ -1258,7 +1320,11 @@ AimWeapon2(heading, pitch)
 
 FireWeapon2()
 {
-	start-script RestoreAfterDelay();
+    if (timeLeft == 0)
+    {
+        start-script RestoreAfterDelay();
+    }
+	timeLeft = restore_delay;
 	targetswap1 = 0;
 	timer = timer + 1;
 	return (0);
@@ -1278,7 +1344,7 @@ AimWeapon3(heading, pitch)
 {
 	signal SIG_AIM_3;
 	set-signal-mask SIG_AIM_3;
-	turn rArmShoulderJoint to y-axis heading - (torsoaim) speed <45>;
+	turn rArmShoulderJoint to y-axis (heading - torsoaim) + <3> speed <45>;
 	turn rArmShoulderGun to x-axis (-1*pitch) + <35> speed <60>;
 	if (get ABS(oldhead2 - heading + torsoaim) > 500)
 	{
@@ -1288,12 +1354,20 @@ AimWeapon3(heading, pitch)
 	{
 		oldhead2 = heading;
 		isfiring2 = 1;
-		start-script RestoreAfterDelay();
+		if (timeLeft == 0)
+		{
+			start-script RestoreAfterDelay();
+		}
+		timeLeft = restore_delay;
 		return (1);
 	}
 	wait-for-turn rArmShoulderJoint around y-axis;
 	wait-for-turn rArmShoulderGun around x-axis;
-	start-script RestoreAfterDelay();
+    if (timeLeft == 0)
+    {
+        start-script RestoreAfterDelay();
+    }
+	timeLeft = restore_delay;
 	isfiring2 = 1;
 	//show flare;
 	oldhead2 = heading;
@@ -1302,7 +1376,11 @@ AimWeapon3(heading, pitch)
 
 FireWeapon3()
 {
-	start-script RestoreAfterDelay();
+    if (timeLeft == 0)
+    {
+        start-script RestoreAfterDelay();
+    }
+	timeLeft = restore_delay;
 	targetswap2 = 0;
 	timer = timer + 1;
 	return (0);
@@ -1335,12 +1413,20 @@ AimWeapon4(heading, pitch)
 	{
 		oldhead3 = heading;
 		isfiring3 = 1;
-		start-script RestoreAfterDelay();
+		if (timeLeft == 0)
+		{
+			start-script RestoreAfterDelay();
+		}
+		timeLeft = restore_delay;
 		return (1);
 	}
 	wait-for-turn lArmGun around y-axis;
 	wait-for-turn lArmGun around x-axis;
-	start-script RestoreAfterDelay();
+    if (timeLeft == 0)
+    {
+        start-script RestoreAfterDelay();
+    }
+	timeLeft = restore_delay;
 	isfiring3 = 1;
 	//show flare;
 	oldhead3 = heading;
@@ -1349,7 +1435,11 @@ AimWeapon4(heading, pitch)
 
 FireWeapon4()
 {
-	start-script RestoreAfterDelay();
+    if (timeLeft == 0)
+    {
+        start-script RestoreAfterDelay();
+    }
+	timeLeft = restore_delay;
 	targetswap3 = 0;
 	timer = timer + 1;
 	return (0);
@@ -1381,12 +1471,20 @@ AimWeapon5(heading, pitch)
 	{
 		oldhead4 = heading;
 		isfiring4 = 1;
-		start-script RestoreAfterDelay();
+		if (timeLeft == 0)
+		{
+			start-script RestoreAfterDelay();
+		}
+		timeLeft = restore_delay;
 		return (1);
 	}
 	wait-for-turn rArmGun around y-axis;
 	wait-for-turn rArmGun around x-axis;
-	start-script RestoreAfterDelay();
+    if (timeLeft == 0)
+    {
+        start-script RestoreAfterDelay();
+    }
+	timeLeft = restore_delay;
 	isfiring4 = 1;
 	//show flare;
 	oldhead4 = heading;
@@ -1395,7 +1493,11 @@ AimWeapon5(heading, pitch)
 
 FireWeapon5()
 {
-	start-script RestoreAfterDelay();
+    if (timeLeft == 0)
+    {
+        start-script RestoreAfterDelay();
+    }
+	timeLeft = restore_delay;
 	targetswap4 = 0;
 	timer = timer + 1;
 	return (0);
