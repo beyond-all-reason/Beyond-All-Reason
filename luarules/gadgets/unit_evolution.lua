@@ -17,6 +17,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spCreateUnit            = Spring.CreateUnit
 	local spDestroyUnit           = Spring.DestroyUnit
 	local spGiveOrderToUnit       = Spring.GiveOrderToUnit
+	local spGiveOrderArrayToUnit  = Spring.GiveOrderArrayToUnit
 	local spSetUnitRulesParam     = Spring.SetUnitRulesParam
 	local spGetUnitPosition       = Spring.GetUnitPosition
 	local spGetUnitStates = Spring.GetUnitStates
@@ -145,75 +146,85 @@ if gadgetHandler:IsSyncedCode() then
 		local commandQueue = Spring.GetCommandQueue(unitID, -1)
 		local transporter = Spring.GetUnitTransporter(unitID)
 
+		local evolution = evolutionMetaList[unitID]
+		if not evolution then
+			return
+		end
+
 		local newUnitID = spCreateUnit(newUnit, x,y,z, face, team)
 
-		if newUnitID then
-			local announcement = nil
-			local announcementSize = nil
-			local evolution = evolutionMetaList[unitID]
-			if evolution and evolution.evolution_announcement then
-				spEcho(evolution.evolution_announcement)
-				announcement = evolution.evolution_announcement
-				announcementSize = evolution.evolution_announcement_size
-			end
+		if not newUnitID then
+			return
+		end
 
-			spSetUnitRulesParam(unitID, "unit_evolved", newUnitID, PRIVATE)
+		local announcement = nil
+		local announcementSize = nil
+		if evolution.evolution_announcement then
+			spEcho(evolution.evolution_announcement)
+			announcement = evolution.evolution_announcement
+			announcementSize = evolution.evolution_announcement_size
+		end
 
-			SendToUnsynced("unit_evolve_finished", unitID, newUnitID, announcement,announcementSize)
-			if evolution.evolution_health_transfer == "full" then
-			elseif evolution.evolution_health_transfer == "percentage" then
-				local _, newUnitMaxHealth = spGetUnitHealth(newUnitID)
-				local pHealth = (health/maxHealth) * newUnitMaxHealth
-				spSetUnitHealth(newUnitID, pHealth)
-			else
-				spSetUnitHealth(newUnitID, health)
-			end
+		spSetUnitRulesParam(unitID, "unit_evolved", newUnitID, PRIVATE)
 
-			spDestroyUnit(unitID, false, true)
-			spSetUnitExperience(newUnitID, experience)
-			spSetUnitStockpile(newUnitID, stockpile, stockpilebuildpercent)
-			spSetUnitDirection(newUnitID, dx, dy, dz)
+		SendToUnsynced("unit_evolve_finished", unitID, newUnitID, announcement,announcementSize)
+		if evolution.evolution_health_transfer == "full" then
+		elseif evolution.evolution_health_transfer == "percentage" then
+			local _, newUnitMaxHealth = spGetUnitHealth(newUnitID)
+			local pHealth = (health/maxHealth) * newUnitMaxHealth
+			spSetUnitHealth(newUnitID, pHealth)
+		else
+			spSetUnitHealth(newUnitID, health)
+		end
+
+		spDestroyUnit(unitID, false, true)
+		spSetUnitExperience(newUnitID, experience)
+		spSetUnitStockpile(newUnitID, stockpile, stockpilebuildpercent)
+		spSetUnitDirection(newUnitID, dx, dy, dz)
+
+		-- FIXME TODO, this only works for MOVE_STATE and FIRE_STATE on (for example) evocom
+		spGiveOrderArrayToUnit(newUnitID, {
+			{ CMD.MOVE_STATE, states.movestate,             0 },
+			{ CMD.FIRE_STATE, states.firestate,            	0 },
+		})
+		-- spGiveOrderArrayToUnit(newUnitID, {
+		-- 	{ CMD.REPEAT,   	states["repeat"] and 1 or 0,  0 },
+		-- 	{ CMD_WANT_CLOAK, states.cloak and 1 or 0,  		0 },
+		-- 	{ CMD.ONOFF,      1,                            0 },
+		-- 	{ CMD.TRAJECTORY, states.trajectory and 1 or 0, 0 },
+		-- })
+
+		ReAssignAssists(newUnitID,unitID)
 
 
-			spGiveOrderToUnit(newUnitID, CMD.FIRE_STATE, { states.firestate },             { })
-			spGiveOrderToUnit(newUnitID, CMD.MOVE_STATE, { states.movestate },             { })
-			spGiveOrderToUnit(newUnitID, CMD.REPEAT,     { states["repeat"] and 1 or 0 },  { })
-			spGiveOrderToUnit(newUnitID, CMD_WANT_CLOAK,      {states.cloak and 1 or 0 },  { })
-			spGiveOrderToUnit(newUnitID, CMD.ONOFF,      { 1 },                            { })
-			spGiveOrderToUnit(newUnitID, CMD.TRAJECTORY, { states.trajectory and 1 or 0 }, { })
-
-			ReAssignAssists(newUnitID,unitID)
-
-
-			if commandQueue[1] then
-				local teamID = Spring.GetUnitTeam(unitID)
-				for _,command in pairs(commandQueue) do
-					local coded = command.options.coded + (command.options.shift and 0 or CMD.OPT_SHIFT) -- orders without SHIFT can appear at positions other than the 1st due to CMD.INSERT; they'd cancel any previous commands if added raw
-					if command.id < 0 then -- repair case for construction
-						local units = CallAsTeam(teamID, Spring.GetUnitsInRectangle, command.params[1] - 16, command.params[3] - 16, command.params[1] + 16, command.params[3] + 16, -3)
-						local notFound = true
-						for j = 1, #units do
-							local areaUnitID = units[j]
-							if Spring.GetUnitDefID(areaUnitID) == -command.id then
-								Spring.GiveOrderToUnit(newUnitID, CMD.REPAIR, areaUnitID, coded)
-								notFound = false
-								break
-							end
+		if commandQueue[1] then
+			local teamID = Spring.GetUnitTeam(unitID)
+			for _,command in pairs(commandQueue) do
+				local coded = command.options.coded + (command.options.shift and 0 or CMD.OPT_SHIFT) -- orders without SHIFT can appear at positions other than the 1st due to CMD.INSERT; they'd cancel any previous commands if added raw
+				if command.id < 0 then -- repair case for construction
+					local units = CallAsTeam(teamID, Spring.GetUnitsInRectangle, command.params[1] - 16, command.params[3] - 16, command.params[1] + 16, command.params[3] + 16, -3)
+					local notFound = true
+					for j = 1, #units do
+						local areaUnitID = units[j]
+						if Spring.GetUnitDefID(areaUnitID) == -command.id then
+							Spring.GiveOrderToUnit(newUnitID, CMD.REPAIR, areaUnitID, coded)
+							notFound = false
+							break
 						end
-						if notFound then
-							Spring.GiveOrderToUnit(newUnitID, command.id, command.params, coded)
-						end
-					else
+					end
+					if notFound then
 						Spring.GiveOrderToUnit(newUnitID, command.id, command.params, coded)
 					end
+				else
+					Spring.GiveOrderToUnit(newUnitID, command.id, command.params, coded)
 				end
 			end
-
-			if transporter then
-				spGiveOrderToUnit(transporter, CMD.LOAD_UNITS, { newUnitID }, 0)
-			end
-
 		end
+
+		if transporter then
+			spGiveOrderToUnit(transporter, CMD.LOAD_UNITS, { newUnitID }, 0)
+		end
+
 	end
 
 
