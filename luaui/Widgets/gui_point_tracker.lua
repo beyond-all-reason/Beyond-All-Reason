@@ -14,7 +14,7 @@ end
 local timeToLive = 330
 local lineWidth = 1.0
 
-local getMiniMapFlipped = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").getMiniMapFlipped
+local getMiniMapFlipped = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapFlipped
 
 ----------------------------------------------------------------
 --speedups
@@ -60,7 +60,7 @@ end
 local mapMarkInstanceVBO = nil
 local mapMarkShader= nil
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 

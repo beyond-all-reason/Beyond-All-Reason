@@ -37,13 +37,13 @@ local shaderConfig = {
 local DrawPrimitiveAtUnitVBO = nil
 local DrawPrimitiveAtUnitShader = nil
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 
-local vsSrcPath = "LuaUI/Widgets/Shaders/DrawPrimitiveAtUnit.vert.glsl"
-local gsSrcPath = "LuaUI/Widgets/Shaders/DrawPrimitiveAtUnit.geom.glsl"
-local fsSrcPath = "LuaUI/Widgets/Shaders/DrawPrimitiveAtUnit.frag.glsl"
+local vsSrcPath = "LuaUI/Shaders/DrawPrimitiveAtUnit.vert.glsl"
+local gsSrcPath = "LuaUI/Shaders/DrawPrimitiveAtUnit.geom.glsl"
+local fsSrcPath = "LuaUI/Shaders/DrawPrimitiveAtUnit.frag.glsl"
 
 local shaderSourceCache = {
 		vssrcpath = vsSrcPath,

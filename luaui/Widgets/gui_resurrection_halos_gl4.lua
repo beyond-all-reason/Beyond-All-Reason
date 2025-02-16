@@ -12,7 +12,7 @@ end
 
 local resurrectionHalosVBO = nil
 local resurrectionHalosShader = nil
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local texture = 'LuaUI/Images/halo.dds'
 local chobbyInterface
 
