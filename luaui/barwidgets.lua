@@ -324,7 +324,7 @@ local function loadWidgetFiles(vfsMode)
 
 	for _, file in ipairs(widgetFiles) do
 		local widget = widgetHandler:LoadWidget(file, fromZip)
-		local excludeWidget = not fromZip and zipOnly[widget.whInfo.name]
+		local excludeWidget = widget and not fromZip and zipOnly[widget.whInfo.name]
 
 		if widget and not excludeWidget then
 			table.insert(unsortedWidgets, widget)
