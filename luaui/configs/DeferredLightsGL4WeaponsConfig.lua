@@ -746,6 +746,23 @@ GetLightClass("LaserProjectile", "Warm", "Smallest", {r = 1.0, g = 0.65, b = 0.1
 											modelfactor = 0.3, specular = -0.05, scattering = 0.3, lensflare = 16,
 											sustain = 2, lifetime = 3, })
 
+--legeheatraymech
+explosionLightsNames["legeheatraymech_heatray1"] =
+GetLightClass("Explosion", "Fire", "Smaller", {r = 0.54, g = 0.45, b = 0.12, a = 0.15,
+										 color2r = 1.2, color2g = 0.5, color2b = 0.2, colortime = 0.3,
+										 sustain = 2, lifetime = 3,
+										 modelfactor = -0.3, specular = -0.1, scattering = 1.95, lensflare = 0})
+
+explosionLightsNames["legeheatraymech_heatray1"].yOffset = 32
+
+projectileDefLightsNames["legeheatraymech_heatray1"] =
+GetLightClass("LaserProjectile", "Warm", "Smallest", {r = 1.0, g = 0.65, b = 0.1, a = 0.15,
+											color2r = 0.15, color2g = 0.05, color2b = 0.015, colortime = 0.03,
+											--pos2x = 0, pos2y = 0, pos2z = 0,
+											modelfactor = 0.3, specular = -0.05, scattering = 0.3, lensflare = 16,
+											sustain = 2, lifetime = 3, })
+
+
 --armthundt4
 explosionLightsNames["armthundt4_armbomb"] =
 GetLightClass("Explosion", nil, "Large", {r = 2, g = 1.5, b = 1.0, a = 0.22,
