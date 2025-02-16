@@ -10,10 +10,10 @@ function widget:GetInfo()
 	}
 end
 local factions = {
-	{ startUnit = UnitDefNames.corcom.id, faction = 'cor' },
-	{ startUnit = UnitDefNames.armcom.id, faction = 'arm' },
+	UnitDefNames.corcom and { startUnit = UnitDefNames.corcom.id, faction = 'cor' },
+	UnitDefNames.armcom and { startUnit = UnitDefNames.armcom.id, faction = 'arm' },
 }
-if Spring.GetModOptions().experimentallegionfaction then
+if Spring.GetModOptions().experimentallegionfaction and UnitDefNames.legcom then
 	factions[#factions+1] = { startUnit = UnitDefNames.legcom.id, faction = 'leg' }
 end
 
