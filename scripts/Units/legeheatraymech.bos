@@ -1,9 +1,18 @@
 
 #include "../recoil_common_includes.h"
 
-piece 	upperTorso, lArmUpperArm, lArmLowerArm, lArmGun, lArmGunCover1, lArmGunCover2, lArmGunCover3, lArmGunCover4, lArmShoulderJoint, lArmShoulderPivot, lArmShoulderGun, midTorso, lowerTorso, legJointTorso, lLegThighPivot, lLegUpperThigh, lLegLowerThigh, lLegtTibio, lLegShin, lLegBackFoot, lLegFrontFoot, lLegThighJoint, rLegThighPivot, rLegUpperThigh, rLegLowerThigh, rLegTibio, rLegShin, rLegBackFoot, rLegFrontFoot, rLegThighJoint, neck, head, rArmUpperArm, rArmLowerArm, rArmGun, rArmGunCover1, rArmGunCover2, rArmGunCover3, rArmGunCover4, rArmShoulderJoint, rArmShoulderPivot, rArmShoulderGun, rArmFlare, lArmFlare, rShoulderFlare, lShoulderFlare,	rStompFlare, lStompFlare, front, front2;
+piece 	upperTorso, lArmUpperArm, lArmLowerArm, lArmGun, lArmGunCover1, 
+		lArmGunCover2, lArmGunCover3, lArmGunCover4, lArmShoulderJoint, 
+		lArmShoulderPivot, lArmShoulderGun, midTorso, lowerTorso, legJointTorso, 
+		lLegThighPivot, lLegUpperThigh, lLegLowerThigh, lLegtTibio, lLegShin, lLegBackFoot,
+		 lLegFrontFoot, lLegThighJoint, rLegThighPivot, rLegUpperThigh, rLegLowerThigh, 
+		 rLegTibio, rLegShin, rLegBackFoot, rLegFrontFoot, rLegThighJoint, neck, head, 
+		 rArmUpperArm, rArmLowerArm, rArmGun, rArmGunCover1, rArmGunCover2, rArmGunCover3, 
+		 rArmGunCover4, rArmShoulderJoint, rArmShoulderPivot, rArmShoulderGun, rArmFlare, 
+		 lArmFlare, rShoulderFlare, lShoulderFlare,	rStompFlare, lStompFlare, front, front2;
 
-static-var  InMotion, restore_delay, aimingPose, wpn1_lasthead, timeLeft, targetswap1, isfiring1, targetswap2, isfiring2, timer, oldhead1, oldhead2, torsoaim; 			
+static-var  InMotion, restore_delay, aimingPose, wpn1_lasthead, timeLeft, targetswap1, isfiring1, targetswap2, isfiring2, timer, oldhead1, oldhead2, oldhead3, oldhead4, torsoaim,
+			targetswap3, targetswap4, isfiring3, isfiring4; 			
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
@@ -14,6 +23,8 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 #define SIG_AIM				32
 #define SIG_AIM_2			64
 #define SIG_AIM_3			128
+#define SIG_AIM_4			256
+#define SIG_AIM_5			512
 
 #define SIGNAL_FOOTSTOMP_L 8
 #define SIGNAL_FOOTSTOMP_R 16
@@ -1035,12 +1046,18 @@ Create()
 	aimingPose = 0;
 	isfiring1 = 0;
 	isfiring2 = 0;
+	isfiring3 = 0;
+	isfiring4 = 0;
 	timeLeft = 0;
 	oldhead1 = 1000000;
 	oldhead2 = 1000000;
+	oldhead3 = 1000000;
+	oldhead4 = 1000000;
 	timer = 0;
 	targetswap1 = 0;
 	targetswap2 = 0;
+	targetswap3 = 0;
+	targetswap4 = 0;
 	restore_delay = 2000;
 	call-script SweepFire();
 
@@ -1066,6 +1083,16 @@ SweepFire()
             emit-sfx 2048+1 from rShoulderFlare;
 			timer = timer + 1;
 		}
+		if (targetswap3 == 1 AND isfiring3 == 1)
+		{
+            emit-sfx 2048+1 from lArmFlare;
+			timer = timer + 1;
+		}
+		if (targetswap4 == 1 AND isfiring4 == 1)
+		{
+            emit-sfx 2048+1 from rArmFlare;
+			timer = timer + 1;
+		}
 		if (timer > 300)
 		{
 			timer = 0;
@@ -1085,11 +1112,17 @@ ExecuteRestoreAfterDelay()
     timeLeft = 0;
     isfiring1 = 0;
 	isfiring2 = 0;
+    isfiring3 = 0;
+	isfiring4 = 0;
 	oldhead1 = 1000000;
 	oldhead2 = 1000000;
+	oldhead3 = 1000000;
+	oldhead4 = 1000000;
 	timer = 0;
 	targetswap1 = 0;
 	targetswap2 = 0;
+	targetswap3 = 0;
+	targetswap4 = 0;
 }
 
 RestoreAfterDelay()
@@ -1098,6 +1131,8 @@ RestoreAfterDelay()
 	sleep restore_delay;
 	oldhead1 = -1000000;
 	oldhead2 = -1000000;
+	oldhead3 = -1000000;
+	oldhead4 = -1000000;
 	start-script ExecuteRestoreAfterDelay();
 }
 
@@ -1113,6 +1148,7 @@ AimFromWeapon1(piecenum)
 
 AimWeapon1(heading, pitch)
 {
+	start-script Open();
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	turn upperTorso to y-axis heading speed <15.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
@@ -1265,6 +1301,100 @@ FireWeapon3()
 	timer = timer + 1;
 	return (0);
 }
+
+// arm weapons
+/////////////////////////////////////////////////////////////////////////////////////
+
+QueryWeapon4(pieceIndex)
+{
+	pieceIndex = lArmFlare;
+}
+
+AimFromWeapon4(pieceIndex)
+{
+	pieceIndex = lArmGun;
+}
+
+AimWeapon4(heading, pitch)
+{
+	signal SIG_AIM_4;
+	set-signal-mask SIG_AIM_4;
+	turn lArmGun to y-axis heading - torsoaim speed <30>;
+	turn lArmGun to x-axis -1*pitch speed <15>;
+	if (get ABS(oldhead1 - heading + torsoaim) > 500)
+	{
+		targetswap3 = 1;
+	}
+	if (get ABS(oldhead1 - heading + torsoaim) < 500)
+	{
+		oldhead3 = heading;
+		isfiring3 = 1;
+		start-script RestoreAfterDelay();
+		return (1);
+	}
+	wait-for-turn lArmGun around y-axis;
+	wait-for-turn lArmGun around x-axis;
+	start-script RestoreAfterDelay();
+	isfiring3 = 1;
+	//show flare;
+	oldhead3 = heading;
+	return (1);
+}
+
+FireWeapon4()
+{
+	start-script RestoreAfterDelay();
+	targetswap3 = 0;
+	timer = timer + 1;
+	return (0);
+}
+
+////
+
+QueryWeapon5(pieceIndex)
+{
+	pieceIndex = rArmFlare;
+}
+
+AimFromWeapon5(pieceIndex)
+{
+	pieceIndex = rArmGun;
+}
+
+AimWeapon5(heading, pitch)
+{
+	signal SIG_AIM_5;
+	set-signal-mask SIG_AIM_5;
+	turn rArmGun to y-axis heading - torsoaim speed <30>;
+	turn rArmGun to x-axis -1*pitch speed <15>;
+	if (get ABS(oldhead1 - heading + torsoaim) > 500)
+	{
+		targetswap4 = 1;
+	}
+	if (get ABS(oldhead1 - heading + torsoaim) < 500)
+	{
+		oldhead4 = heading;
+		isfiring4 = 1;
+		start-script RestoreAfterDelay();
+		return (1);
+	}
+	wait-for-turn rArmGun around y-axis;
+	wait-for-turn rArmGun around x-axis;
+	start-script RestoreAfterDelay();
+	isfiring4 = 1;
+	//show flare;
+	oldhead4 = heading;
+	return (1);
+}
+
+FireWeapon5()
+{
+	start-script RestoreAfterDelay();
+	targetswap4 = 0;
+	timer = timer + 1;
+	return (0);
+}
+
 
 Killed(severity, corpsetype)
 {

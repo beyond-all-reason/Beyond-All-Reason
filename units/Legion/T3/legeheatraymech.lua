@@ -204,6 +204,22 @@ return {
 				--burstControlWhenOutOfArc = 2,
 				--slaveTo = 1,
 			},
+			[4] = {
+				badtargetcategory = "VTOL GROUNDSCOUT",
+				def = "heatray1",
+				onlytargetcategory = "SURFACE",
+				fastautoretargeting = true,
+				--burstControlWhenOutOfArc = 2,
+				slaveTo = 2,
+			},
+			[5] = {
+				badtargetcategory = "VTOL GROUNDSCOUT",
+				def = "heatray1",
+				onlytargetcategory = "SURFACE",
+				fastautoretargeting = true,
+				--burstControlWhenOutOfArc = 2,
+				slaveTo = 3,
+			},
 		},
 	},
 }
