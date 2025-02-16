@@ -56,17 +56,17 @@ for udid, ud in pairs(UnitDefs) do
 end
 
 local unitDefCanWearHats = {
-	[UnitDefNames.corcom and UnitDefNames.corcom.id or -1] = UnitDefNames.corcom and true or nil,
-	[UnitDefNames.cordecom and UnitDefNames.cordecom.id or -1] = UnitDefNames.cordecom and true or nil,
-	[UnitDefNames.armcom and UnitDefNames.armcom.id or -1] = UnitDefNames.armcom and true or nil,
-	[UnitDefNames.armdecom and UnitDefNames.armdecom.id or -1] = UnitDefNames.armdecom and true or nil,
+	[UnitDefNames.corcom.id] = true,
+	[UnitDefNames.cordecom.id] = true,
+	[UnitDefNames.armcom.id] = true,
+	[UnitDefNames.armdecom.id] = true,
 }
 
  if Spring.GetModOptions().experimentallegionfaction then
-	if UnitDefNames.legcom then unitDefCanWearHats[UnitDefNames.legcom.id] = true end
-	if UnitDefNames.legcomlvl2 then unitDefCanWearHats[UnitDefNames.legcomlvl2.id] = true end
-	if UnitDefNames.legcomlvl3 then unitDefCanWearHats[UnitDefNames.legcomlvl3.id] = true end
-	if UnitDefNames.legcomlvl4 then unitDefCanWearHats[UnitDefNames.legcomlvl4.id] = true end
+	unitDefCanWearHats[UnitDefNames.legcom.id] = true
+	unitDefCanWearHats[UnitDefNames.legcomlvl2.id] = true
+	unitDefCanWearHats[UnitDefNames.legcomlvl3.id] = true
+	unitDefCanWearHats[UnitDefNames.legcomlvl4.id] = true
  end
  local halloween = { -- Halloween Fight Night winner
  	[139750] = true, ---Sashkorin

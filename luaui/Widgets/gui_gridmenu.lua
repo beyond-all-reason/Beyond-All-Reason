@@ -325,7 +325,7 @@ local function refreshUnitDefs()
 end
 
 -- starting units
-local startUnits = { UnitDefNames.armcom and UnitDefNames.armcom.id, UnitDefNames.corcom and UnitDefNames.corcom.id }
+local startUnits = { UnitDefNames.armcom.id, UnitDefNames.corcom.id }
 if Spring.GetModOptions().experimentallegionfaction then
 	startUnits[#startUnits + 1] = UnitDefNames.legcom.id
 end
