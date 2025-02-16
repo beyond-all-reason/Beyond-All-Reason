@@ -1282,7 +1282,7 @@ FireWeapon1()
 
 QueryWeapon2(pieceIndex)
 {
-	pieceIndex = lArmShoulderGun;
+	pieceIndex = lShoulderFlare;
 }
 
 AimFromWeapon2(pieceIndex)
@@ -1293,14 +1293,16 @@ AimFromWeapon2(pieceIndex)
 AimWeapon2(heading, pitch)
 {
 	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
 	turn lArmShoulderJoint to y-axis (heading - torsoaim) + <3> speed <45>;
 	turn lArmShoulderGun to x-axis (-1*pitch) + <35> speed <60>;
-	if (get ABS(oldhead1 - heading + torsoaim) > 500)
+	if (((get ABS(oldhead1 - heading)) > 65536) OR ((get ABS(oldhead1 - heading) > <1>) AND ((get ABS(oldhead1 - heading)) < 65536 - <1>)))
 	{
+		oldhead1 = 1000000;
 		targetswap1 = 1;
+		wait-for-turn lArmShoulderJoint around y-axis;
+		wait-for-turn lArmShoulderGun around x-axis;
 	}
-	if (get ABS(oldhead1 - heading + torsoaim) < 500)
+	if (get ABS(oldhead1 - heading) < <1>)
 	{
 		oldhead1 = heading;
 		isfiring1 = 1;
@@ -1309,10 +1311,8 @@ AimWeapon2(heading, pitch)
 			start-script RestoreAfterDelay();
 		}
 		timeLeft = restore_delay;
-		return (1);
+		return (0);
 	}
-	wait-for-turn lArmShoulderJoint around y-axis;
-	wait-for-turn lArmShoulderGun around x-axis;
     if (timeLeft == 0)
     {
         start-script RestoreAfterDelay();
@@ -1321,7 +1321,7 @@ AimWeapon2(heading, pitch)
 	isfiring1 = 1;
 	//show flare;
 	oldhead1 = heading;
-	return (1);
+	return (0);
 }
 
 FireWeapon2()
@@ -1338,7 +1338,7 @@ FireWeapon2()
 
 QueryWeapon3(pieceIndex)
 {
-	pieceIndex = rArmShoulderGun;
+	pieceIndex = rShoulderFlare;
 }
 
 AimFromWeapon3(pieceIndex)
@@ -1349,14 +1349,16 @@ AimFromWeapon3(pieceIndex)
 AimWeapon3(heading, pitch)
 {
 	signal SIG_AIM_3;
-	set-signal-mask SIG_AIM_3;
 	turn rArmShoulderJoint to y-axis (heading - torsoaim) + <3> speed <45>;
 	turn rArmShoulderGun to x-axis (-1*pitch) + <35> speed <60>;
-	if (get ABS(oldhead2 - heading + torsoaim) > 500)
+	if (((get ABS(oldhead2 - heading)) > 65536) OR ((get ABS(oldhead2 - heading) > <1>) AND ((get ABS(oldhead2 - heading)) < 65536 - <1>)))
 	{
+		oldhead2 = 1000000;
 		targetswap2 = 1;
+		wait-for-turn rArmShoulderJoint around y-axis;
+		wait-for-turn rArmShoulderGun around x-axis;
 	}
-	if (get ABS(oldhead2 - heading + torsoaim) < 500)
+	if (get ABS(oldhead2 - heading) < <1>)
 	{
 		oldhead2 = heading;
 		isfiring2 = 1;
@@ -1365,10 +1367,8 @@ AimWeapon3(heading, pitch)
 			start-script RestoreAfterDelay();
 		}
 		timeLeft = restore_delay;
-		return (1);
+		return (0);
 	}
-	wait-for-turn rArmShoulderJoint around y-axis;
-	wait-for-turn rArmShoulderGun around x-axis;
     if (timeLeft == 0)
     {
         start-script RestoreAfterDelay();
@@ -1377,7 +1377,7 @@ AimWeapon3(heading, pitch)
 	isfiring2 = 1;
 	//show flare;
 	oldhead2 = heading;
-	return (1);
+	return (0);
 }
 
 FireWeapon3()
@@ -1408,14 +1408,16 @@ AimFromWeapon4(pieceIndex)
 AimWeapon4(heading, pitch)
 {
 	signal SIG_AIM_4;
-	set-signal-mask SIG_AIM_4;
 	turn lArmGun to y-axis (heading - torsoaim) + <1> speed <45>;
 	turn lArmGun to x-axis (-1*pitch) - 400 speed <15>;
-	if (get ABS(oldhead1 - heading + torsoaim) > 500)
+	if (((get ABS(oldhead3 - heading)) > 65536) OR ((get ABS(oldhead3 - heading) > <1>) AND ((get ABS(oldhead3 - heading)) < 65536 - <1>)))
 	{
+		oldhead3 = 1000000;
 		targetswap3 = 1;
+		wait-for-turn lArmGun around y-axis;
+		wait-for-turn lArmGun around x-axis;
 	}
-	if (get ABS(oldhead1 - heading + torsoaim) < 500)
+	if (get ABS(oldhead3 - heading) < 500)
 	{
 		oldhead3 = heading;
 		isfiring3 = 1;
@@ -1424,10 +1426,8 @@ AimWeapon4(heading, pitch)
 			start-script RestoreAfterDelay();
 		}
 		timeLeft = restore_delay;
-		return (1);
+		return (0);
 	}
-	wait-for-turn lArmGun around y-axis;
-	wait-for-turn lArmGun around x-axis;
     if (timeLeft == 0)
     {
         start-script RestoreAfterDelay();
@@ -1436,7 +1436,7 @@ AimWeapon4(heading, pitch)
 	isfiring3 = 1;
 	//show flare;
 	oldhead3 = heading;
-	return (1);
+	return (0);
 }
 
 FireWeapon4()
@@ -1466,14 +1466,16 @@ AimFromWeapon5(pieceIndex)
 AimWeapon5(heading, pitch)
 {
 	signal SIG_AIM_5;
-	set-signal-mask SIG_AIM_5;
 	turn rArmGun to y-axis (heading - torsoaim) + <5> speed <45>;
 	turn rArmGun to x-axis (-1*pitch) - 400  speed <15>;
-	if (get ABS(oldhead1 - heading + torsoaim) > 500)
+	if (((get ABS(oldhead4 - heading)) > 65536) OR ((get ABS(oldhead4 - heading) > <1>) AND ((get ABS(oldhead4 - heading)) < 65536 - <1>)))
 	{
+		oldhead4 = 1000000;
 		targetswap4 = 1;
+		wait-for-turn rArmGun around y-axis;
+	wait-for-turn rArmGun around x-axis;
 	}
-	if (get ABS(oldhead1 - heading + torsoaim) < 500)
+	if (get ABS(oldhead4 - heading) < 500)
 	{
 		oldhead4 = heading;
 		isfiring4 = 1;
@@ -1482,10 +1484,8 @@ AimWeapon5(heading, pitch)
 			start-script RestoreAfterDelay();
 		}
 		timeLeft = restore_delay;
-		return (1);
+		return (0);
 	}
-	wait-for-turn rArmGun around y-axis;
-	wait-for-turn rArmGun around x-axis;
     if (timeLeft == 0)
     {
         start-script RestoreAfterDelay();
@@ -1494,7 +1494,7 @@ AimWeapon5(heading, pitch)
 	isfiring4 = 1;
 	//show flare;
 	oldhead4 = heading;
-	return (1);
+	return (0);
 }
 
 FireWeapon5()
