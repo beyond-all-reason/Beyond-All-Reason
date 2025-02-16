@@ -88,6 +88,7 @@
 			"hideSpecs": "Click to hide",
 			"showSpecs": "Click to show",
 			"leaderboard": "Leaderboard",
+			"leaderboardTooltip": "Players get ranked by their total unit cost worth + stored resources",
 			"hideEnemies": "Click to hide",
 			"showEnemies": "Click to show",
 			"trackPlayer": "Double-click player name to track",
