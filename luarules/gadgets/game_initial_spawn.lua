@@ -326,11 +326,14 @@ if gadgetHandler:IsSyncedCode() then
 		local luaAI = Spring.GetTeamLuaAI(teamID)
 
 		local _, _, _, isAI, sideName = spGetTeamInfo(teamID)
-		if sideName == "random" then
-			if math.random() > 0.5 then
-				startUnit = corcomDefID
-			else
-				startUnit = armcomDefID
+		if sideName == "random" or not startUnit then
+			local roll = math.random(table.count(validStartUnits))
+			for def, _ in pairs(validStartUnits) do
+				if roll == 1 then
+					startUnit = def
+					break
+				end
+				roll = roll - 1
 			end
 		end
 
