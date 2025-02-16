@@ -39,7 +39,7 @@ return {
 		upright = true,
 		customparams = {
 			customrange = "590",
-			model_author = "Protar (concept), ZephyrSkies (model)",
+			model_author = "Protar & ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/T3",
 			techlevel = 3,
@@ -165,7 +165,7 @@ return {
 				rgbcolor2 = "0.9 1.0 0.5",
 				soundhitdry = "flamhit1",
 				soundhitwet = "sizzle",
-				soundstart = "heatray3burn",
+				soundstart = "heatray4burn",
 				soundstartvolume = 11,
 				soundtrigger = 1,
 				targetmoveerror = 0.1,
@@ -181,7 +181,35 @@ return {
 				customparams = {
 					exclude_preaim = true,
 					--sweepfire=0.4,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
-				}
+				},
+			},
+			bigfootstep = {
+				areaofeffect = 128,
+				avoidfeature = false,
+				camerashake = 300,
+				canattackground = false,
+				collidefriendly = false,
+				craterareaofeffect = 0,
+				craterboost = 0,
+				cratermult = 0,
+				edgeeffectiveness = 0,
+				explosiongenerator = "custom:footstep-huge",
+				impactonly = 1,
+				name = "Footsteps",
+				noselfdamage = true,
+				range = 0,
+				reloadtime = 1.5,
+				soundhit = "banthstep",
+				soundhitvolume = 35,
+				soundhitwet = "splssml",
+				weapontype = "Cannon",
+				customparams = {
+					nodecal = true,
+					noexplosionlight = 1,
+				},
+				damage = {
+					default = 0,
+				},
 			},
 		},
 		weapons = {
@@ -219,6 +247,9 @@ return {
 				fastautoretargeting = true,
 				--burstControlWhenOutOfArc = 2,
 				slaveTo = 4,
+			},
+			[6] = {
+				def = "bigfootstep",
 			},
 		},
 	},

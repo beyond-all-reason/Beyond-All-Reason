@@ -9,7 +9,7 @@ piece 	upperTorso, lArmUpperArm, lArmLowerArm, lArmGun, lArmGunCover1,
 		 rLegTibio, rLegShin, rLegBackFoot, rLegFrontFoot, rLegThighJoint, neck, head, 
 		 rArmUpperArm, rArmLowerArm, rArmGun, rArmGunCover1, rArmGunCover2, rArmGunCover3, 
 		 rArmGunCover4, rArmShoulderJoint, rArmShoulderPivot, rArmShoulderGun, rArmFlare, 
-		 lArmFlare, rShoulderFlare, lShoulderFlare,	rStompFlare, lStompFlare, front, front2;
+		 lArmFlare, rShoulderFlare, lShoulderFlare,	lStompFlare, rStompFlare, front, front2;
 
 static-var  InMotion, restore_delay, aimingPose, wpn1_lasthead, timeLeft, targetswap1, isfiring1, targetswap2, isfiring2, timer, oldhead1, oldhead2, oldhead3, oldhead4, torsoaim,
 			targetswap3, targetswap4, isfiring3, isfiring4; 			
@@ -347,6 +347,7 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 		}
 		if (isMoving) { //Frame:25
 
+
 			turn lLegFrontFoot to x-axis <-31.455050> speed <285.793522> / animSpeed; 
 			turn lLegFrontFoot to z-axis <4.350954> speed <62.297914> / animSpeed; 
 			turn lLegFrontFoot to y-axis <3.034128> speed <67.632454> / animSpeed; 
@@ -411,7 +412,8 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:30
-
+			emit-sfx 4096 + 5 from rStompFlare;
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(rStompFlare) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rStompFlare) & 0x0000ffff),   get HEADING(0));
 			turn lLegFrontFoot to x-axis <-38.612548> speed <214.724960> / animSpeed; 
 			turn lLegFrontFoot to z-axis <2.984958> speed <40.979899> / animSpeed; 
 			turn lLegFrontFoot to y-axis <4.039856> speed <30.171842> / animSpeed; 
@@ -727,7 +729,7 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:55
- 
+
 			turn lLegFrontFoot to x-axis <17.586730> speed <83.858621> / animSpeed; 
 			turn lLegFrontFoot to z-axis <1.066081> speed <125.496197> / animSpeed; 
 			turn lLegFrontFoot to y-axis <-3.697915> speed <93.539561> / animSpeed; 
@@ -770,7 +772,9 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 			turn rLegUpperThigh to x-axis <10.003283> speed <98.178800> / animSpeed; 
 			turn rLegUpperThigh to z-axis <1.371224> speed <25.643084> / animSpeed; 
 			turn rLegUpperThigh to y-axis <-0.064312> speed <16.898634> / animSpeed; 
-			move legJointTorso to y-axis [-2.000000] speed [49.999924] / animSpeed; 
+			move legJointTorso to y-axis [-2.000000] speed [49.999924] / animSpeed;
+			emit-sfx 4096 + 5 from lStompFlare;
+			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lStompFlare) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lStompFlare) & 0x0000ffff),   get HEADING(0)); 
 			// turn legJointTorso to y-axis <5.575621> speed <48.053237> / animSpeed;
 			if( !aimingPose )
 				{
@@ -1173,6 +1177,7 @@ ExecuteRestoreAfterDelay(addTime)
 	targetswap2 = 0;
 	targetswap3 = 0;
 	targetswap4 = 0;
+	start-script Close();
 		
 	//stop-spin barrelMid around z-axis decelerate <5>;
 	//wait-for-turn turretBase around y-axis;
@@ -1189,6 +1194,7 @@ RestoreAfterDelay()
 	oldhead2 = -1000000;
 	oldhead3 = -1000000;
 	oldhead4 = -1000000;
+
 	start-script ExecuteRestoreAfterDelay();
 }
 
