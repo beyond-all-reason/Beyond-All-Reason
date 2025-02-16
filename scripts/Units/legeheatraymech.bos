@@ -909,10 +909,13 @@ Open()
 		move lArmShoulderPivot to y-axis [0] speed [25];
 		move rArmShoulderPivot to y-axis [0] speed [25];
 		//wait-for-move lArmShoulderPivot along y-axis;
-		turn lArmShoulderGun to x-axis <-15> speed <100>;
-		turn rArmShoulderGun to x-axis <-15> speed <100>;
+		turn lArmShoulderGun to x-axis <35> speed <100>;
+		turn rArmShoulderGun to x-axis <35> speed <100>;
 		turn lArmShoulderJoint to x-axis <-35> speed <50>;
 		turn rArmShoulderJoint to x-axis <-35> speed <50>;
+
+		turn lArmGun to z-axis <18> speed <100>;
+		turn rArmGun to z-axis <-18> speed <100>;		
 
 		wait-for-turn rArmLowerArm around z-axis;
 		wait-for-turn lArmLowerArm around z-axis;
@@ -1011,6 +1014,9 @@ Close()
 		move lArmGunCover2 to y-axis [0] speed [1];
 		move lArmGunCover3 to y-axis [0] speed [1];
 		move lArmGunCover4 to y-axis [0] speed [1];
+
+		turn lArmShoulderJoint to y-axis <0> speed <50>;
+		turn rArmShoulderJoint to y-axis <0> speed <50>;
 
 		// move legJointTorso to y-axis [-5] now;
 
@@ -1138,12 +1144,12 @@ RestoreAfterDelay()
 
 QueryWeapon1(piecenum) //Hull Rotation
 {
-	piecenum = upperTorso;
+	piecenum = midTorso;
 }
 
 AimFromWeapon1(piecenum)
 {
-	piecenum = upperTorso;
+	piecenum = midTorso;
 }
 
 AimWeapon1(heading, pitch)
@@ -1151,9 +1157,9 @@ AimWeapon1(heading, pitch)
 	start-script Open();
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	turn upperTorso to y-axis heading speed <15.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
+	turn midTorso to y-axis heading speed <30.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
 	var gun_xz;
-    gun_xz = get PIECE_XZ(upperTorso);                                //get packed gun coordinates
+    gun_xz = get PIECE_XZ(midTorso);                                //get packed gun coordinates
     var gun_x;
     gun_x = (gun_xz & 0xffff0000) / 0x00010000;                //unpack x coordinates of gun (credit for unpack code goes to Beherith)
     var gun_z;
@@ -1197,12 +1203,12 @@ AimWeapon1(heading, pitch)
     cauface = get ATAN(face_z, face_x);                        //use arctan (ATAN) to calculate the angle of the hull. The result is in cau, which is the unit this code format uses for angles. Its up to 32768 (180°), positive or negative depending on direction
     
     //var torsoaim;
-    torsoaim = cauface - cauaim;                                //calculate angle of turret relative to the hull
+    torsoaim = (cauface - cauaim) + 900;                                //calculate angle of turret relative to the hull
 	//torsoaim = heading;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
 		wpn1_lasthead = 1000000;
-		wait-for-turn upperTorso around y-axis;
+		wait-for-turn midTorso around y-axis;
 	}
 	wpn1_lasthead = heading;
 	start-script RestoreAfterDelay();
@@ -1228,8 +1234,8 @@ AimWeapon2(heading, pitch)
 {
 	signal SIG_AIM_2;
 	set-signal-mask SIG_AIM_2;
-	turn lArmShoulderPivot to y-axis heading - torsoaim speed <30>;
-	turn lArmShoulderGun to x-axis -1*pitch speed <15>;
+	turn lArmShoulderJoint to y-axis heading - torsoaim speed <45>;
+	turn lArmShoulderGun to x-axis (-1*pitch) + <35> speed <60>;
 	if (get ABS(oldhead1 - heading + torsoaim) > 500)
 	{
 		targetswap1 = 1;
@@ -1241,7 +1247,7 @@ AimWeapon2(heading, pitch)
 		start-script RestoreAfterDelay();
 		return (1);
 	}
-	wait-for-turn lArmShoulderPivot around y-axis;
+	wait-for-turn lArmShoulderJoint around y-axis;
 	wait-for-turn lArmShoulderGun around x-axis;
 	start-script RestoreAfterDelay();
 	isfiring1 = 1;
@@ -1272,8 +1278,8 @@ AimWeapon3(heading, pitch)
 {
 	signal SIG_AIM_3;
 	set-signal-mask SIG_AIM_3;
-	turn rArmShoulderPivot to y-axis heading - torsoaim speed <30>;
-	turn rArmShoulderGun to x-axis -1*pitch speed <15>;
+	turn rArmShoulderJoint to y-axis heading - (torsoaim) speed <45>;
+	turn rArmShoulderGun to x-axis (-1*pitch) + <35> speed <60>;
 	if (get ABS(oldhead2 - heading + torsoaim) > 500)
 	{
 		targetswap2 = 1;
@@ -1285,7 +1291,7 @@ AimWeapon3(heading, pitch)
 		start-script RestoreAfterDelay();
 		return (1);
 	}
-	wait-for-turn rArmShoulderPivot around y-axis;
+	wait-for-turn rArmShoulderJoint around y-axis;
 	wait-for-turn rArmShoulderGun around x-axis;
 	start-script RestoreAfterDelay();
 	isfiring2 = 1;
@@ -1319,8 +1325,8 @@ AimWeapon4(heading, pitch)
 {
 	signal SIG_AIM_4;
 	set-signal-mask SIG_AIM_4;
-	turn lArmGun to y-axis heading - torsoaim speed <30>;
-	turn lArmGun to x-axis -1*pitch speed <15>;
+	turn lArmGun to y-axis (heading - torsoaim) + <1> speed <45>;
+	turn lArmGun to x-axis (-1*pitch) - 400 speed <15>;
 	if (get ABS(oldhead1 - heading + torsoaim) > 500)
 	{
 		targetswap3 = 1;
@@ -1365,8 +1371,8 @@ AimWeapon5(heading, pitch)
 {
 	signal SIG_AIM_5;
 	set-signal-mask SIG_AIM_5;
-	turn rArmGun to y-axis heading - torsoaim speed <30>;
-	turn rArmGun to x-axis -1*pitch speed <15>;
+	turn rArmGun to y-axis (heading - torsoaim) + <5> speed <45>;
+	turn rArmGun to x-axis (-1*pitch) - 400  speed <15>;
 	if (get ABS(oldhead1 - heading + torsoaim) > 500)
 	{
 		targetswap4 = 1;
