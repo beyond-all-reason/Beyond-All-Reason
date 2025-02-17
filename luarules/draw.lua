@@ -1,3 +1,5 @@
+do return end
+
 if (select == nil) then
   select = function(n,...) 
     local arg = arg
