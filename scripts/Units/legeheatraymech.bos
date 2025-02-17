@@ -1054,8 +1054,8 @@ Create()
 	timeLeft = 0;
 	oldhead1 = 1000000;
 	oldhead2 = 1000000;
-	oldhead3 = 1000000;
-	oldhead4 = 1000000;
+	oldhead3 = 0;
+	oldhead4 = 0;
 	timer = 0;
 	targetswap1 = 0;
 	targetswap2 = 0;
@@ -1146,8 +1146,8 @@ ExecuteRestoreAfterDelay(addTime)
 	isfiring2 = 0;
 	oldhead1 = 1000000;
 	oldhead2 = 1000000;
-	oldhead3 = 1000000;
-	oldhead4 = 1000000;
+	oldhead3 = 0;
+	oldhead4 = 0;
 	timer = 0;
 	targetswap1 = 0;
 	targetswap2 = 0;
@@ -1160,8 +1160,8 @@ RestoreAfterDelay()
 	sleep restore_delay;
 	oldhead1 = -1000000;
 	oldhead2 = -1000000;
-	oldhead3 = -1000000;
-	oldhead4 = -1000000;
+	oldhead3 = 0;
+	oldhead4 = 0;
 
 	start-script ExecuteRestoreAfterDelay();
 }
