@@ -19,7 +19,6 @@ local gl = gl
 
 local CONFIG_FILENAME = LUAUI_DIRNAME .. 'Config/' .. Game.gameShortName .. '.lua'
 local WIDGET_DIRNAME = LUAUI_DIRNAME .. 'Widgets/'
-local WIDGET_DIRNAME_MAP = LUAUI_DIRNAME .. 'Widgets/'
 
 local SELECTOR_BASENAME = 'selector.lua'
 
@@ -301,6 +300,7 @@ end
 
 
 --------------------------------------------------------------------------------
+local unsortedWidgets
 local doMoreYield = (Spring.Yield ~= nil);
 
 local function Yield()
@@ -314,59 +314,47 @@ local zipOnly = {
 	["Widget Profiler"] = true,
 }
 
+local function loadWidgetFiles(vfsMode)
+	local fromZip = vfsMode ~= VFS.RAW
+	local widgetFiles = VFS.DirList(WIDGET_DIRNAME, "*.lua", vfsMode)
+
+	for _, subDirectory in ipairs( VFS.SubDirs(WIDGET_DIRNAME) ) do
+		table.append( widgetFiles, VFS.DirList(subDirectory, "*.lua", vfsMode) )
+	end
+
+	for _, file in ipairs(widgetFiles) do
+		local widget = widgetHandler:LoadWidget(file, fromZip)
+		local excludeWidget = widget and not fromZip and zipOnly[widget.whInfo.name]
+
+		if widget and not excludeWidget then
+			table.insert(unsortedWidgets, widget)
+			Yield()
+		end
+	end
+end
+
 function widgetHandler:Initialize()
 	widgetHandler:CreateQueuedReorderFuncs()
 	widgetHandler:HookReorderSpecialFuncs()
 	self:LoadConfigData()
 
-	-- do we allow userland widgets?
 	if self.allowUserWidgets == nil then
 		self.allowUserWidgets = true
 	end
+
+	Spring.CreateDir(LUAUI_DIRNAME .. 'Config')
+
+	unsortedWidgets = {}
+
 	if self.allowUserWidgets and allowuserwidgets then
 		Spring.Echo("LuaUI: Allowing User Widgets")
+		loadWidgetFiles(VFS.RAW)
 	else
 		Spring.Echo("LuaUI: Disallowing User Widgets")
 	end
 
-	-- create the "LuaUI/Config" directory
-	Spring.CreateDir(LUAUI_DIRNAME .. 'Config')
+	loadWidgetFiles(VFS.ZIP)
 
-	local unsortedWidgets = {}
-
-	-- stuff the raw widgets into unsortedWidgets
-	if self.allowUserWidgets and allowuserwidgets then
-		local widgetFiles = VFS.DirList(WIDGET_DIRNAME, "*.lua", VFS.RAW)
-		for k, wf in ipairs(widgetFiles) do
-			local widget = self:LoadWidget(wf, false)
-			if widget and not zipOnly[widget.whInfo.name] then
-				table.insert(unsortedWidgets, widget)
-				Yield()
-			end
-		end
-	end
-
-	-- stuff the zip widgets into unsortedWidgets
-	local widgetFiles = VFS.DirList(WIDGET_DIRNAME, "*.lua", VFS.ZIP)
-	for k, wf in ipairs(widgetFiles) do
-		local widget = self:LoadWidget(wf, true)
-		if widget then
-			table.insert(unsortedWidgets, widget)
-			Yield()
-		end
-	end
-
-	-- stuff the map widgets into unsortedWidgets
-	local widgetFiles = VFS.DirList(WIDGET_DIRNAME_MAP, "*.lua", VFS.MAP)
-	for k, wf in ipairs(widgetFiles) do
-		local widget = self:LoadWidget(wf, true)
-		if widget then
-			table.insert(unsortedWidgets, widget)
-			Yield()
-		end
-	end
-
-	-- sort the widgets
 	table.sort(unsortedWidgets, function(w1, w2)
 		local l1 = w1.whInfo.layer
 		local l2 = w2.whInfo.layer
@@ -384,7 +372,6 @@ function widgetHandler:Initialize()
 		end
 	end)
 
-	-- add the widgets
 	for _, w in ipairs(unsortedWidgets) do
 		local name = w.whInfo.name
 		local basename = w.whInfo.basename
@@ -394,8 +381,7 @@ function widgetHandler:Initialize()
 		widgetHandler:InsertWidgetRaw(w)
 	end
 
-	-- Since Initialize is run out of the normal callin wrapper by InsertWidget,
-	-- we, need to reorder explicitly here.
+	-- Since Initialize is run out of the normal callin wrapper by InsertWidget, we, need to reorder explicitly here.
 	widgetHandler:PerformReorders()
 
 	-- save the active widgets, and their ordering
