@@ -9,7 +9,8 @@ piece 	upperTorso, lArmUpperArm, lArmLowerArm, lArmGun, lArmGunCover1,
 		 rLegTibio, rLegShin, rLegBackFoot, rLegFrontFoot, rLegThighJoint, neck, head, 
 		 rArmUpperArm, rArmLowerArm, rArmGun, rArmGunCover1, rArmGunCover2, rArmGunCover3, 
 		 rArmGunCover4, rArmShoulderJoint, rArmShoulderPivot, rArmShoulderGun, rArmFlare, 
-		 lArmFlare, rShoulderFlare, lShoulderFlare,	lStompFlare, rStompFlare, front, front2;
+		 lArmFlare, rShoulderFlare, lShoulderFlare,	lStompFlare, rStompFlare, front, front2,
+		 lArmBarrel, lArmPin, rArmBarrel, rArmPin;
 
 static-var  InMotion, restore_delay, aimingPose, wpn1_lasthead, timeLeft, targetswap1, isfiring1, targetswap2, isfiring2, timer, oldhead1, oldhead2, oldhead3, oldhead4, torsoaim,
 			targetswap3, targetswap4, isfiring3, isfiring4; 			
