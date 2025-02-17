@@ -1,14 +1,12 @@
 
 #include "../recoil_common_includes.h"
 
-piece 	upperTorso, lArmUpperArm, lArmLowerArm, lArmGun, lArmGunCover1, 
-		lArmGunCover2, lArmGunCover3, lArmGunCover4, lArmShoulderJoint, 
+piece 	upperTorso, lArmUpperArm, lArmLowerArm, lArmGun, lArmShoulderJoint, 
 		lArmShoulderPivot, lArmShoulderGun, midTorso, lowerTorso, legJointTorso, 
 		lLegThighPivot, lLegUpperThigh, lLegLowerThigh, lLegtTibio, lLegShin, lLegBackFoot,
 		 lLegFrontFoot, lLegThighJoint, rLegThighPivot, rLegUpperThigh, rLegLowerThigh, 
 		 rLegTibio, rLegShin, rLegBackFoot, rLegFrontFoot, rLegThighJoint, neck, head, 
-		 rArmUpperArm, rArmLowerArm, rArmGun, rArmGunCover1, rArmGunCover2, rArmGunCover3, 
-		 rArmGunCover4, rArmShoulderJoint, rArmShoulderPivot, rArmShoulderGun, rArmFlare, 
+		 rArmUpperArm, rArmLowerArm, rArmGun, rArmShoulderJoint, rArmShoulderPivot, rArmShoulderGun, rArmFlare, 
 		 lArmFlare, rShoulderFlare, lShoulderFlare,	lStompFlare, rStompFlare, front, front2,
 		 lArmBarrel, lArmPin, rArmBarrel, rArmPin;
 
@@ -84,7 +82,13 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 					turn lArmLowerArm to x-axis <28.111214> speed <32.445584> / animSpeed; 
 					turn lArmLowerArm to z-axis <-17.922927> speed <5.104354> / animSpeed; 
 					turn lArmLowerArm to y-axis <6.563704> speed <12.535002> / animSpeed; 
-					turn lArmUpperArm to z-axis <3.865950> speed <7.708974> / animSpeed; 					
+					turn lArmUpperArm to z-axis <3.865950> speed <7.708974> / animSpeed;
+
+					turn lArmLowerArm to 	z-axis <-18> speed <51.627009> / animSpeed;
+					turn rArmLowerArm to 	z-axis <18> speed <58.005416> / animSpeed;
+					turn lArmGun to 		x-axis <15> speed <198.744161> / animSpeed;
+					turn rArmGun to 		x-axis <15> speed <198.744161> / animSpeed;
+
 				} 
 		sleep ((33*animSpeed) -1);
 	}
@@ -1013,24 +1017,6 @@ Close()
 		move lArmShoulderPivot to y-axis [-21] speed [15];
 		move rArmShoulderPivot to y-axis [-21] speed [15];
 
-		move rArmGunCover1 to z-axis [-1] speed [1];
-		move rArmGunCover2 to z-axis [-1] speed [1];
-		move rArmGunCover3 to z-axis [-1] speed [1];
-		move rArmGunCover4 to z-axis [-1] speed [1];
-		move rArmGunCover1 to y-axis [0] speed [1];
-		move rArmGunCover2 to y-axis [0] speed [1];
-		move rArmGunCover3 to y-axis [0] speed [1];
-		move rArmGunCover4 to y-axis [0] speed [1];
-
-		move lArmGunCover1 to z-axis [-1] speed [1];
-		move lArmGunCover2 to z-axis [-1] speed [1];
-		move lArmGunCover3 to z-axis [-1] speed [1];
-		move lArmGunCover4 to z-axis [-1] speed [1];
-		move lArmGunCover1 to y-axis [0] speed [1];
-		move lArmGunCover2 to y-axis [0] speed [1];
-		move lArmGunCover3 to y-axis [0] speed [1];
-		move lArmGunCover4 to y-axis [0] speed [1];
-
 		turn lArmShoulderJoint to y-axis <0> speed <50>;
 		turn rArmShoulderJoint to y-axis <0> speed <50>;
 
@@ -1054,10 +1040,6 @@ Create()
 	turn lArmShoulderGun to x-axis <15> now;
 	turn rArmShoulderGun to x-axis <15> now;
 
-	move rArmGunCover1 to z-axis [-1] now;
-	move rArmGunCover2 to z-axis [-1] now;
-	move rArmGunCover3 to z-axis [-1] now;
-	move rArmGunCover4 to z-axis [-1] now;
 
 	move legJointTorso to y-axis [-5] now;
 
