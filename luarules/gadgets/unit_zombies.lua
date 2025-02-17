@@ -45,7 +45,6 @@ local CMD_FIRE_STATE = CMD.FIRE_STATE
 
 local ISNT_ZOMBIE = 0
 local IS_ZOMBIE = 1
-local NULL_FEATURE_ID = -1
 
 local spGetGroundHeight           = Spring.GetGroundHeight
 local spGetUnitPosition           = Spring.GetUnitPosition
@@ -127,6 +126,27 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		end
 
 		zombieHeapDefs[unitDefID] = zombieDefData
+	end
+end
+
+local function setGaiaStorage()
+	local metalStorageToSet = 20000
+	local energyStorageToSet = 100000
+
+	local globallySetGaiaMetalStorage = Spring.GetTeamRulesParam(gaiaTeamID, "override_metal_storage")
+	if not globallySetGaiaMetalStorage then
+		Spring.SetTeamRulesParam(gaiaTeamID, "override_metal_storage", metalStorageToSet)
+	elseif globallySetGaiaMetalStorage < metalStorageToSet then
+		Spring.SetTeamRulesParam(gaiaTeamID, "override_metal_storage", metalStorageToSet)
+		spSetTeamResource(gaiaTeamID, "ms", metalStorageToSet)
+	end
+	
+	local globallySetGaiaEnergyStorage = Spring.GetTeamRulesParam(gaiaTeamID, "override_energy_storage")
+	if not globallySetGaiaEnergyStorage then
+		Spring.SetTeamRulesParam(gaiaTeamID, "override_energy_storage", energyStorageToSet)
+	elseif globallySetGaiaEnergyStorage < energyStorageToSet then
+		Spring.SetTeamRulesParam(gaiaTeamID, "override_energy_storage", energyStorageToSet)
+		spSetTeamResource(gaiaTeamID, "es", energyStorageToSet)
 	end
 end
 
@@ -417,14 +437,5 @@ function gadget:Initialize()
 		gadget:FeatureCreated(featureID, gaiaTeamID)
 	end
 
-	local metalStorageToSet = 20000
-	local energyStorageToSet = 100000
-	local _, metalStorage = Spring.GetTeamResources(gaiaTeamID, "metal")
-	if metalStorage < metalStorageToSet then
-		spSetTeamResource(gaiaTeamID, "ms", metalStorageToSet)
-	end
-	local _, energyStorage = Spring.GetTeamResources(gaiaTeamID, "energy")
-	if energyStorage < energyStorageToSet then
-		spSetTeamResource(gaiaTeamID, "es", energyStorageToSet)
-	end
+	setGaiaStorage()
 end
