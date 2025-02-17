@@ -328,7 +328,7 @@ if gadgetHandler:IsSyncedCode() then
 					Evolve(unitID, evolution.evolution_target)
 				end
 
-				if evolution.evolution_condition == "power" then
+				if evolution.evolution_condition == 'power' then
 					local teamID = spGetUnitTeam(unitID)
 					for team, power in pairs(teamPowerList) do
 						if team ~= nil and teamID ~= nil and power ~= nil and highestTeamPower < power then
