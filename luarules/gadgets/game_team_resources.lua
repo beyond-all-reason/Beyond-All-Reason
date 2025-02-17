@@ -50,8 +50,10 @@ local function setup(addResources)
 				commanderMinEnergy = com.energyStorage or 0
 			end
 
-			Spring.SetTeamResource(teamID, 'ms', math.max(minStorageMetal, startMetalStorage * multiplier, startMetal * multiplier, commanderMinMetal))
-			Spring.SetTeamResource(teamID, 'es',  math.max(minStorageEnergy, startEnergyStorage * multiplier, startEnergy * multiplier, commanderMinEnergy))
+			local newMetalStorage = Spring.GetTeamRulesParam(teamID, "override_metal_storage") or math.max(minStorageMetal, startMetalStorage * multiplier, startMetal * multiplier, commanderMinMetal)
+			Spring.SetTeamResource(teamID, 'ms', newMetalStorage)
+			local newEnergyStorage = Spring.GetTeamRulesParam(teamID, "override_energy_storage") or math.max(minStorageEnergy, startEnergyStorage * multiplier, startEnergy * multiplier, commanderMinEnergy)
+			Spring.SetTeamResource(teamID, 'es', newEnergyStorage)
 			if addResources then
 				Spring.SetTeamResource(teamID, 'm', startMetal * multiplier)
 				Spring.SetTeamResource(teamID, 'e', startEnergy * multiplier)
@@ -69,8 +71,11 @@ local function setup(addResources)
 				commanderMinEnergy = com.energyStorage or 0
 			end
 
-			Spring.SetTeamResource(teamID, 'ms', math.max(minStorageMetal, startMetalStorage, startMetal, commanderMinMetal))
-			Spring.SetTeamResource(teamID, 'es',  math.max(minStorageEnergy, startEnergyStorage,  startEnergy, commanderMinEnergy))
+			local newMetalStorage = Spring.GetTeamRulesParam(teamID, "override_metal_storage") or math.max(minStorageMetal, startMetalStorage, startMetal, commanderMinMetal)
+			Spring.Echo("newMetalStorage", newMetalStorage)
+			Spring.SetTeamResource(teamID, 'ms', newMetalStorage)
+			local newEnergyStorage = Spring.GetTeamRulesParam(teamID, "override_energy_storage") or math.max(minStorageEnergy, startEnergyStorage,  startEnergy, commanderMinEnergy)
+			Spring.SetTeamResource(teamID, 'es', newEnergyStorage)
 			if addResources then
 				Spring.SetTeamResource(teamID, 'm', startMetal)
 				Spring.SetTeamResource(teamID, 'e', startEnergy)
