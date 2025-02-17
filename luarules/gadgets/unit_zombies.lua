@@ -80,8 +80,8 @@ local spGetFeatureRadius		  = Spring.GetFeatureRadius
 local spGetUnitCurrentCommand	  = Spring.GetUnitCurrentCommand
 local spSetUnitExperience		  = Spring.SetUnitExperience
 local spSetUnitResourcing		  = Spring.SetUnitResourcing
-local random = math.random
-local function disSQ(x1, y1, x2, y2) return (x1 - x2)^2 + (y1 - y2)^2 end
+local random 					  = math.random
+local distance2dSquared 		  = math.distance2dSquared
 
 local teams = Spring.GetTeamList()
 local scavTeamID
@@ -144,8 +144,8 @@ local function calculateHealthRatio(featureID)
 end
 
 local function GetUnitNearestAlly(unitID, unitDefID, range)
-	local best_ally
-	local best_dist
+	local bestAllySq
+	local bestDistanceSq
 	local x, y, z = spGetUnitPosition(unitID)
 	local units = spGetUnitsInCylinder(x, z, range)
 	for i = 1, #units do
@@ -153,14 +153,14 @@ local function GetUnitNearestAlly(unitID, unitDefID, range)
 		local allyTeam = spGetUnitTeam(allyID)
 		if (allyID ~= unitID) and (allyTeam == gaiaTeamID) then
 			local ox, oy, oz = spGetUnitPosition(allyID)
-			local dist = disSQ(x, z, ox ,oz)
-			if spTestMoveOrder(unitDefID, ox, oy, oz) and ((best_dist == nil) or (dist < best_dist)) then
-				best_ally = allyID
-				best_dist = dist
+			local distanceSq = distance2dSquared(x, z, ox ,oz)
+			if spTestMoveOrder(unitDefID, ox, oy, oz) and ((bestDistanceSq == nil) or (distanceSq < bestDistanceSq)) then
+				bestAllySq = allyID
+				bestDistanceSq = distance
 			end
 		end
 	end
-	return best_ally
+	return bestAllySq
 end
 
 local function issueRandomFactoryBuildOrders(unitID, unitDefID)
