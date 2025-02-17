@@ -185,8 +185,8 @@ return {
 			},
 			ultraheavyriotcannon = {
 				areaofeffect = 200,
-				burst = 3;
-				burstrate = 0.2;
+				--burst = 3;
+				--burstrate = 0.2;
 				avoidfeature = false,
 				burnblow = true,
 				craterboost = 0,
@@ -199,7 +199,7 @@ return {
 				range = 550,
 				firetolerance = 5000,
 				tolerance = 5000,
-				reloadtime = 2.4,
+				reloadtime = 1.2,
 				rgbcolor = "1 0.7 0.25",
 				soundhit = "xplomed1",
 				soundhitwet = "splslrg",
