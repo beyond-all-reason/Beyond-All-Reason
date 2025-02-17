@@ -133,19 +133,15 @@ local function setGaiaStorage()
 	local metalStorageToSet = 20000
 	local energyStorageToSet = 100000
 
-	local globallySetGaiaMetalStorage = Spring.GetTeamRulesParam(gaiaTeamID, "override_metal_storage")
-	if not globallySetGaiaMetalStorage then
-		Spring.SetTeamRulesParam(gaiaTeamID, "override_metal_storage", metalStorageToSet)
-	elseif globallySetGaiaMetalStorage < metalStorageToSet then
-		Spring.SetTeamRulesParam(gaiaTeamID, "override_metal_storage", metalStorageToSet)
+	local globallySetGaiaMetalStorage = GG.TeamData[gaiaTeamID].metalStorageOverride
+	if not globallySetGaiaMetalStorage or globallySetGaiaMetalStorage < metalStorageToSet then
+		GG.TeamData[gaiaTeamID].metalStorageOverride = metalStorageToSet
 		spSetTeamResource(gaiaTeamID, "ms", metalStorageToSet)
 	end
 	
-	local globallySetGaiaEnergyStorage = Spring.GetTeamRulesParam(gaiaTeamID, "override_energy_storage")
-	if not globallySetGaiaEnergyStorage then
-		Spring.SetTeamRulesParam(gaiaTeamID, "override_energy_storage", energyStorageToSet)
-	elseif globallySetGaiaEnergyStorage < energyStorageToSet then
-		Spring.SetTeamRulesParam(gaiaTeamID, "override_energy_storage", energyStorageToSet)
+	local globallySetGaiaEnergyStorage = GG.TeamData[gaiaTeamID].energyStorageOverride
+	if not globallySetGaiaEnergyStorage or globallySetGaiaEnergyStorage < energyStorageToSet then
+		GG.TeamData[gaiaTeamID].energyStorageOverride = energyStorageToSet
 		spSetTeamResource(gaiaTeamID, "es", energyStorageToSet)
 	end
 end
