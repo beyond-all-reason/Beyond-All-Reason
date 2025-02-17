@@ -10,8 +10,7 @@ piece 	upperTorso, lArmUpperArm, lArmLowerArm, lArmGun, lArmShoulderJoint,
 		 lArmFlare, rShoulderFlare, lShoulderFlare,	lStompFlare, rStompFlare, front, front2,
 		 lArmBarrel, lArmPin, rArmBarrel, rArmPin;
 
-static-var  InMotion, restore_delay, aimingPose, wpn1_lasthead, timeLeft, targetswap1, isfiring1, targetswap2, isfiring2, timer, oldhead1, oldhead2, oldhead3, oldhead4, torsoaim,
-			targetswap3, targetswap4, isfiring3, isfiring4; 			
+static-var  InMotion, restore_delay, aimingPose, wpn1_lasthead, timeLeft, targetswap1, isfiring1, targetswap2, isfiring2, timer, oldhead1, oldhead2, oldhead3, oldhead4, torsoaim, gun_4, gun_5; 			
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
@@ -25,6 +24,8 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 #define SIG_AIM_4			256
 #define SIG_AIM_5			512
 #define SIGNAL_RESTORE		1024
+#define SIG_FIRE_4			2048
+#define SIG_FIRE_5			4096
 
 #define SIGNAL_FOOTSTOMP_L 8
 #define SIGNAL_FOOTSTOMP_R 16
@@ -1050,8 +1051,6 @@ Create()
 	aimingPose = 0;
 	isfiring1 = 0;
 	isfiring2 = 0;
-	isfiring3 = 0;
-	isfiring4 = 0;
 	timeLeft = 0;
 	oldhead1 = 1000000;
 	oldhead2 = 1000000;
@@ -1060,18 +1059,44 @@ Create()
 	timer = 0;
 	targetswap1 = 0;
 	targetswap2 = 0;
-	targetswap3 = 0;
-	targetswap4 = 0;
 	restore_delay = 2000;
+	gun_4 = 0;
+	gun_5 = 0;
 	call-script SweepFire();
-
-	//
-	//
-	//turn lArmShoulderJoint to x-axis <35> now;
-	//turn rArmShoulderJoint to x-axis <35> now;
-
-	//call-script CATT1_Init();
+	call-script CATT1_Init();
+	call-script CATT2_Init();
 }
+
+//-------------------------------CONSTANT ACCELERATION TURRET TURNING---------------------------
+// MaxVelocity and acceleration are in degrees per frame (not second!)
+// Jerk is the minimum velocity of the turret
+// A high precision requirement can result in overshoots if desired 
+// Author Beherith mysterme@gmail.com. License: GNU GPL v2.
+
+#define CATT1_PIECE_X lArmGun
+#define CATT1_PIECE_Y lArmGun
+
+#define CATT1_MAX_VELOCITY <3>
+#define CATT1_ACCELERATION <0.15>
+#define CATT1_JERK <0.5>
+#define CATT1_PRECISION <10>
+//#define CATT1_PITCH_SPEED <85>
+#define CATT1_RESTORE_DELAY 3000
+#define CATT1_RESTORE_SPEED <1>
+
+#define CATT2_PIECE_X rArmGun
+#define CATT2_PIECE_Y rArmGun
+
+#define CATT2_MAX_VELOCITY <3>
+#define CATT2_ACCELERATION <0.15>
+#define CATT2_JERK <0.5>
+#define CATT2_PRECISION <10>
+//#define CATT2_PITCH_SPEED <85>
+#define CATT2_RESTORE_DELAY 3000
+#define CATT2_RESTORE_SPEED <1>
+
+#include "../constant_acceleration_turret_turning_1.h"
+#include "../constant_acceleration_turret_turning_2.h"
 
 SweepFire()
 {
@@ -1087,16 +1112,6 @@ SweepFire()
             emit-sfx 2048+1 from rShoulderFlare;
 			timer = timer + 1;
 		}
-		// if (targetswap3 == 1 AND isfiring3 == 1)
-		// {
-        //     emit-sfx 2048+1 from lArmFlare;
-		// 	timer = timer + 1;
-		// }
-		// if (targetswap4 == 1 AND isfiring4 == 1)
-		// {
-        //     emit-sfx 2048+1 from rArmFlare;
-		// 	timer = timer + 1;
-		// }
 		if (timer > 500)
 		{
 			timer = 0;
@@ -1108,27 +1123,6 @@ SweepFire()
 
 ExecuteRestoreAfterDelay(addTime)
 {
-	// signal SIG_AIM;
-	// turn lArmGun to x-axis <0.0> speed <10>;
-	// turn rArmGun to x-axis <0.0> speed <10>;
-	// turn midTorso to y-axis <0.0> speed <25.0>;
-	// start-script Close();
-    // timeLeft = 0;
-    // isfiring1 = 0;
-	// isfiring2 = 0;
-    // isfiring3 = 0;
-	// isfiring4 = 0;
-	// oldhead1 = 1000000;
-	// oldhead2 = 1000000;
-	// oldhead3 = 1000000;
-	// oldhead4 = 1000000;
-	// timer = 0;
-	// targetswap1 = 0;
-	// targetswap2 = 0;
-	// targetswap3 = 0;
-	// targetswap4 = 0;
-
-
 	signal SIGNAL_RESTORE;
 	set-signal-mask SIGNAL_RESTORE;
     // This function may not be signal terminated
@@ -1142,15 +1136,14 @@ ExecuteRestoreAfterDelay(addTime)
     }
 	//get PRINT(77, timeLeft, get GAME_FRAME);
     // The restore section must be atomic :/
+	start-script CATT1_Restore();
+	start-script CATT2_Restore();
 	turn lArmGun to x-axis <0.0> speed <10>;
 	turn rArmGun to x-axis <0.0> speed <10>;
 	turn midTorso to y-axis <0.0> speed <25.0>;
-
     timeLeft = 0;
     isfiring1 = 0;
 	isfiring2 = 0;
-    isfiring3 = 0;
-	isfiring4 = 0;
 	oldhead1 = 1000000;
 	oldhead2 = 1000000;
 	oldhead3 = 1000000;
@@ -1158,15 +1151,7 @@ ExecuteRestoreAfterDelay(addTime)
 	timer = 0;
 	targetswap1 = 0;
 	targetswap2 = 0;
-	targetswap3 = 0;
-	targetswap4 = 0;
 	start-script Close();
-		
-	//stop-spin barrelMid around z-axis decelerate <5>;
-	//wait-for-turn turretBase around y-axis;
-
-
-
 }
 
 RestoreAfterDelay()
@@ -1408,81 +1393,47 @@ AimFromWeapon4(pieceIndex)
 
 AimWeapon4(heading, pitch)
 {
-	// signal SIG_AIM_4;
-	// set-signal-mask SIG_AIM_4;
-	// turn lArmGun to y-axis (heading - torsoaim) + <1> speed <45>;
-	// turn lArmGun to x-axis (-1*pitch) - 400 speed <15>;
-	// if (get ABS(oldhead1 - heading + torsoaim) > 500)
-	// {
-	// 	targetswap3 = 1;
-	// }
-	// if (get ABS(oldhead1 - heading + torsoaim) < 500)
-	// {
-	// 	oldhead3 = heading;
-	// 	isfiring3 = 1;
-	// 	if (timeLeft == 0)
-	// 	{
-	// 		start-script RestoreAfterDelay();
-	// 	}
-	// 	timeLeft = restore_delay;
-	// 	return (1);
-	// }
-	// wait-for-turn lArmGun around y-axis;
-	// wait-for-turn lArmGun around x-axis;
-    // if (timeLeft == 0)
-    // {
-    //     start-script RestoreAfterDelay();
-    // }
-	// timeLeft = restore_delay;
-	// isfiring3 = 1;
-	// //show flare;
-	// oldhead3 = heading;
-	// return (1);
-
 	signal SIG_AIM_4;
-	turn lArmGun to y-axis (heading - torsoaim) + <1> speed <45>;
-	turn lArmGun to x-axis (-1*pitch) - 400 speed <15>;
-	if (((get ABS(oldhead3 - heading)) > 65536) OR ((get ABS(oldhead3 - heading) > <1>) AND ((get ABS(oldhead3 - heading)) < 65536 - <1>)))
-	{
-		oldhead3 = 1000000;
-		targetswap3 = 1;
-		wait-for-turn lArmGun around y-axis;
-		wait-for-turn lArmGun around x-axis;
-	}
-	if (get ABS(oldhead3 - heading) < 500)
-	{
-		oldhead3 = heading;
-		isfiring3 = 1;
-		if (timeLeft == 0)
-		{
-			start-script RestoreAfterDelay();
-		}
-		timeLeft = restore_delay;
-		return (0);
-	}
-    if (timeLeft == 0)
-    {
-        start-script RestoreAfterDelay();
-    }
-	timeLeft = restore_delay;
-	isfiring3 = 1;
-	//show flare;
+	set-signal-mask SIG_AIM_4;
+	call-script CATT1_Aim((heading - torsoaim) + <1>,pitch+400);
 	oldhead3 = heading;
-	return (0);
+	return(1);
 }
 
 FireWeapon4()
 {
-    // if (timeLeft == 0)
-    // {
-    //     start-script RestoreAfterDelay();
-    // }
-	// timeLeft = restore_delay;
-	// targetswap3 = 0;
-	// timer = timer + 1;
-	// return (0);
+	return(1);
 }
 
+Shot4(zero)
+{
+	signal SIG_FIRE_4;
+	set-signal-mask SIG_FIRE_4;
+	if (gun_4 == 0)
+	{
+		emit-sfx 1024 + 0 from lArmFlare;
+		move lArmBarrel to z-axis [-2.000000] speed [70.000000];
+	}
+	else if (gun_4 == 1)
+	{
+		emit-sfx 1024 + 0 from lArmFlare;
+		move lArmBarrel to z-axis [-4.000000] speed [70.000000];
+	}
+	else if (gun_4 == 2)
+	{
+		emit-sfx 1024 + 0 from lArmFlare;
+		move lArmBarrel to z-axis [-6.000000] speed [70.000000];
+		sleep 150;
+		move lArmBarrel to z-axis [0] speed [4.000000];
+	}
+	sleep 32;
+	++gun_4;
+	if(gun_4>=3)
+	{
+		gun_4=0;
+	}
+	return(1);
+}
 ////
 
 QueryWeapon5(pieceIndex)
@@ -1497,82 +1448,47 @@ AimFromWeapon5(pieceIndex)
 
 AimWeapon5(heading, pitch)
 {
-	// signal SIG_AIM_5;
-	// set-signal-mask SIG_AIM_5;
-	// turn rArmGun to y-axis (heading - torsoaim) + <5> speed <45>;
-	// turn rArmGun to x-axis (-1*pitch) - 400  speed <15>;
-	// if (get ABS(oldhead1 - heading + torsoaim) > 500)
-	// {
-	// 	targetswap4 = 1;
-	// }
-	// if (get ABS(oldhead1 - heading + torsoaim) < 500)
-	// {
-	// 	oldhead4 = heading;
-	// 	isfiring4 = 1;
-	// 	if (timeLeft == 0)
-	// 	{
-	// 		start-script RestoreAfterDelay();
-	// 	}
-	// 	timeLeft = restore_delay;
-	// 	return (1);
-	// }
-	// wait-for-turn rArmGun around y-axis;
-	// wait-for-turn rArmGun around x-axis;
-    // if (timeLeft == 0)
-    // {
-    //     start-script RestoreAfterDelay();
-    // }
-	// timeLeft = restore_delay;
-	// isfiring4 = 1;
-	// //show flare;
-	// oldhead4 = heading;
-	// return (1);
-
 	signal SIG_AIM_5;
-	turn rArmGun to y-axis (heading - torsoaim) + <5> speed <45>;
-	turn rArmGun to x-axis (-1*pitch) - 400  speed <15>;
-	if (((get ABS(oldhead4 - heading)) > 65536) OR ((get ABS(oldhead4 - heading) > <1>) AND ((get ABS(oldhead4 - heading)) < 65536 - <1>)))
-	{
-		oldhead4 = 1000000;
-		targetswap4 = 1;
-		wait-for-turn rArmGun around y-axis;
-	wait-for-turn rArmGun around x-axis;
-	}
-	if (get ABS(oldhead4 - heading) < 500)
-	{
-		oldhead4 = heading;
-		isfiring4 = 1;
-		if (timeLeft == 0)
-		{
-			start-script RestoreAfterDelay();
-		}
-		timeLeft = restore_delay;
-		return (0);
-	}
-    if (timeLeft == 0)
-    {
-        start-script RestoreAfterDelay();
-    }
-	timeLeft = restore_delay;
-	isfiring4 = 1;
-	//show flare;
+	set-signal-mask SIG_AIM_5;
+	call-script CATT2_Aim((heading - torsoaim) + <1>,pitch+400);
 	oldhead4 = heading;
-	return (0);
+	return(1);
 }
 
 FireWeapon5()
 {
-	get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed);
-    // if (timeLeft == 0)
-    // {
-    //     start-script RestoreAfterDelay();
-    // }
-	// timeLeft = restore_delay;
-	// targetswap4 = 0;
-	// timer = timer + 1;
-	// return (0);
+	return(1);
 }
 
+Shot5(zero)
+{
+	signal SIG_FIRE_5;
+	set-signal-mask SIG_FIRE_5;
+	if (gun_5 == 0)
+	{
+		emit-sfx 1024 + 0 from rArmFlare;
+		move rArmBarrel to z-axis [-2.000000] speed [70.000000];
+	}
+	else if (gun_5 == 1)
+	{
+		emit-sfx 1024 + 0 from rArmFlare;
+		move rArmBarrel to z-axis [-4.000000] speed [70.000000];
+	}
+	else if (gun_5 == 2)
+	{
+		emit-sfx 1024 + 0 from rArmFlare;
+		move rArmBarrel to z-axis [-6.000000] speed [70.000000];
+		sleep 150;
+		move rArmBarrel to z-axis [0] speed [4.000000];
+	}
+	sleep 32;
+	++gun_5;
+	if(gun_5>=3)
+	{
+		gun_5=0;
+	}
+	return(1);
+}
 
 Killed(severity, corpsetype)
 {

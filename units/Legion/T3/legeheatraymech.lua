@@ -35,7 +35,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.089,
-		turnrate = 1214.40002,
+		turnrate = 360,
 		upright = true,
 		customparams = {
 			customrange = "590",
@@ -78,7 +78,7 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:barrelshot-tiny",
+				[1] = "custom:barrelshot-large",
 				[2] = "custom:subbubbles",
 				[3] = "custom:footstep-medium",
 			},
@@ -123,7 +123,7 @@ return {
 				impulsefactor = 0.123,
 				name = "HeavyCannon",
 				noselfdamage = true,
-				range = 900,
+				range = 750,
 				reloadtime = 2.5,
 				size = 0,
 				soundhit = "",
@@ -199,7 +199,7 @@ return {
 				range = 550,
 				firetolerance = 5000,
 				tolerance = 5000,
-				reloadtime = 1.7,
+				reloadtime = 2.4,
 				rgbcolor = "1 0.7 0.25",
 				soundhit = "xplomed1",
 				soundhitwet = "splslrg",
@@ -274,7 +274,6 @@ return {
 				onlytargetcategory = "SURFACE",
 				fastautoretargeting = true,
 				--burstControlWhenOutOfArc = 2,
-				slaveTo = 2,
 			},
 			[4] = {
 				badtargetcategory = "VTOL GROUNDSCOUT",
@@ -282,7 +281,6 @@ return {
 				onlytargetcategory = "SURFACE",
 				fastautoretargeting = true,
 				--burstControlWhenOutOfArc = 2,
-				slaveTo = 3,
 			},
 			[5] = {
 				badtargetcategory = "VTOL GROUNDSCOUT",
@@ -290,7 +288,6 @@ return {
 				onlytargetcategory = "SURFACE",
 				fastautoretargeting = true,
 				--burstControlWhenOutOfArc = 2,
-				slaveTo = 4,
 			},
 			[6] = {
 				def = "bigfootstep",
