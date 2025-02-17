@@ -159,7 +159,6 @@ if gadgetHandler:IsSyncedCode() then
 	function Evolve(unitID, newUnitName)
 		local x,y,z = spGetUnitPosition(unitID)
 		if not z then
-			evolutionMetaList[unitID] = nil
 			return
 		end
 		local health, maxHealth = spGetUnitHealth(unitID)
@@ -173,21 +172,25 @@ if gadgetHandler:IsSyncedCode() then
 		local commandQueue = Spring.GetCommandQueue(unitID, -1)
 		local transporter = Spring.GetUnitTransporter(unitID)
 
-		local evolutionMetaOld = evolutionMetaList[unitID]
+		local evolution = evolutionMetaList[unitID]
 
-		local delayedSeconds
-		newUnitName, delayedSeconds = SkipEvolutions(evolutionMetaOld, newUnitName)
-		local newUnitID = spCreateUnit(newUnitName, x,y,z, face, team)
-
-		evolutionMetaList[unitID] = nil
-
-		if not newUnitID or not evolutionMetaOld then
+		if not evolution then
 			return
 		end
 
-		if (not evolutionMetaOld.evolution_condition
-			or evolutionMetaOld.evolution_condition == 'timer'
-			or evolutionMetaOld.evolution_condition == 'timer_global')
+		local delayedSeconds
+		newUnitName, delayedSeconds = SkipEvolutions(evolution, newUnitName)
+		local newUnitID = spCreateUnit(newUnitName, x,y,z, face, team)
+
+		if not newUnitID then
+			return
+		end
+
+		evolutionMetaList[unitID] = nil
+
+		if (not evolution.evolution_condition
+			or evolution.evolution_condition == 'timer'
+			or evolution.evolution_condition == 'timer_global')
 			and evolutionMetaList[newUnitID] and evolutionMetaList[newUnitID].timeCreated
 			and delayedSeconds > 0 then
 			evolutionMetaList[newUnitID].timeCreated = spGetGameSeconds() - delayedSeconds
@@ -195,17 +198,17 @@ if gadgetHandler:IsSyncedCode() then
 
 		local announcement = nil
 		local announcementSize = nil
-		if evolutionMetaOld and evolutionMetaOld.evolution_announcement then
-			spEcho(evolutionMetaOld.evolution_announcement)
-			announcement = evolutionMetaOld.evolution_announcement
-			announcementSize = evolutionMetaOld.evolution_announcement_size
+		if evolution.evolution_announcement then
+			spEcho(evolution.evolution_announcement)
+			announcement = evolution.evolution_announcement
+			announcementSize = evolution.evolution_announcement_size
 		end
 
 		spSetUnitRulesParam(unitID, "unit_evolved", newUnitID, PRIVATE)
 
 		SendToUnsynced("unit_evolve_finished", unitID, newUnitID, announcement,announcementSize)
-		if evolutionMetaOld.evolution_health_transfer == "full" then
-		elseif evolutionMetaOld.evolution_health_transfer == "percentage" then
+		if evolution.evolution_health_transfer == "full" then
+		elseif evolution.evolution_health_transfer == "percentage" then
 			local _, newUnitMaxHealth = spGetUnitHealth(newUnitID)
 			local pHealth = (health/maxHealth) * newUnitMaxHealth
 			spSetUnitHealth(newUnitID, pHealth)
@@ -265,9 +268,9 @@ if gadgetHandler:IsSyncedCode() then
 
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-		local defaultTimer = 20 * GAME_SPEED
 		local udcp = UnitDefs[unitDefID].customParams
 		if udcp.evolution_target then
+			local defaultTimer = 20 * GAME_SPEED
 			evolutionMetaList[unitID] = {
 				evolution_target = udcp.evolution_target,
 				evolution_condition = udcp.evolution_condition or "timer",
@@ -328,11 +331,12 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-		if evolutionMetaList[unitID] then
-			if evolutionMetaList[unitID].evolution_condition == "health" then
-				local h, mh = spGetUnitHealth(unitID)
-				if (h-damage) <= evolutionMetaList[unitID].evolution_health_threshold then
-						Evolve(unitID, evolutionMetaList[unitID].evolution_target)
+		local evolution = evolutionMetaList[unitID]
+		if evolution then
+			if evolution.evolution_condition == "health" then
+				local h = spGetUnitHealth(unitID)
+				if (h-damage) <= evolution.evolution_health_threshold then
+						Evolve(unitID, evolution.evolution_target)
 						return 0, 0
 				end
 			end
