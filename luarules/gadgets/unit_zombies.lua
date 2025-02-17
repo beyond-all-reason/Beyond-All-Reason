@@ -45,6 +45,7 @@ local CMD_FIRE_STATE = CMD.FIRE_STATE
 
 local ISNT_ZOMBIE = 0
 local IS_ZOMBIE = 1
+local NULL_FEATURE_ID = -1
 
 local spGetGroundHeight           = Spring.GetGroundHeight
 local spGetUnitPosition           = Spring.GetUnitPosition
@@ -106,22 +107,25 @@ local corpsesData = {}
 local zombieHeapDefs = {}
 
 for unitDefID, unitDef in pairs(UnitDefs) do
-	local corpseDefName = unitDef.name .. "_dead"
+	local corpseDefName = unitDef.corpse
 	if FeatureDefNames[corpseDefName] then
-		local featureDefID = FeatureDefNames[corpseDefName].id
+		local corpseDefID = FeatureDefNames[corpseDefName].id
 		local spawnSeconds = math.floor(unitDef.metalCost / adjustedRezSpeed)
+
 		spawnSeconds = math.clamp(spawnSeconds, ZOMBIES_REZ_MIN, ZOMBIE_REZ_MAX)
 		local spawnFrames = spawnSeconds * Game.gameSpeed
+		zombieCorpseDefs[corpseDefID] = {unitDefID = unitDefID, spawnDelayFrames = spawnFrames}
 
-		zombieCorpseDefs[featureDefID] = {unitDefID = unitDefID, spawnDelayFrames = spawnFrames}
-		local heapDefName = unitDef.name .. "_heap"
 		local zombieDefData = {}
 		local deathExplosionName = unitDef.deathExplosion
 		local explosionDefID = WeaponDefNames[deathExplosionName].id
 		zombieDefData.explosionDefID = explosionDefID
+		
+		local heapDefName = FeatureDefs[corpseDefID].deathFeatureID
 		if FeatureDefNames[heapDefName] then
 			zombieDefData.heapDefID = FeatureDefNames[heapDefName].id
 		end
+
 		zombieHeapDefs[unitDefID] = zombieDefData
 	end
 end
@@ -212,7 +216,7 @@ local function issueRandomOrders(unitID, unitDefID)
 		end
 	end
 
-	if unitDef.canMove then
+	if unitDef.speed > 0 then
 		for i = 1, random(ZOMBIE_ORDER_MIN, ZOMBIE_ORDER_MAX) do
 			local randomX = random(0, mapWidth)
 			local randomZ = random(0, mapHeight)
@@ -222,7 +226,7 @@ local function issueRandomOrders(unitID, unitDefID)
 				orders[#orders + 1] = {CMD_FIGHT, {randomX, randomY, randomZ}, CMD_OPT_SHIFT}
 			end
 		end
-	else
+	elseif not unitDef.isFactory then
 		orders[#orders + 1] = {CMD_FIGHT, {0, 0, 0}, CMD_OPT_SHIFT} --immobile units only need a single fight order
 	end
 
@@ -244,6 +248,16 @@ local function resetSpawn(featureID, featureData, featureDefData)
 	corpseCheckFrames[newFrame][#corpseCheckFrames[newFrame] + 1] = featureID
 end
 
+local function setZombieStates(unitID, unitDefID)
+	local unitDef = UnitDefs[unitDefID]
+	spGiveOrderToUnit(unitID, CMD_REPEAT, 1, 0)
+	spGiveOrderToUnit(unitID, CMD_MOVE_STATE, 2, 0)
+	spGiveOrderToUnit(unitID, CMD_FIRE_STATE, 2, 0)
+	local energyToSet = ENERGY_INCOME_MULTIPLIER * unitDef.energyCost
+	local metalToSet = METAL_INCOME_MULTIPLIER * unitDef.metalCost
+	spSetUnitResourcing(unitID, {["umm"] = metalToSet, ["ume"] = energyToSet})
+end
+
 local function spawnZombie(featureID, unitDefID, healthReductionRatio, x, y, z)
 	local unitID = spCreateUnit(unitDefID, x, y, z, 0, gaiaTeamID)
 	if unitID then
@@ -254,18 +268,13 @@ local function spawnZombie(featureID, unitDefID, healthReductionRatio, x, y, z)
 		playSpawnSound(x, y, z)
 		corpsesData[featureID] = nil
 		spSetUnitHealth(unitID, unitHealth * healthReductionRatio)
-		spGiveOrderToUnit(unitID, CMD_REPEAT, 1, 0)
-		spGiveOrderToUnit(unitID, CMD_MOVE_STATE, 2, 0)
-		spGiveOrderToUnit(unitID, CMD_FIRE_STATE, 2, 0)
 		if scavTeamID then
 			spTransferUnit(unitID, scavTeamID)
 		else
 			zombieWatch[unitID] = unitDefID
 			spSetUnitRulesParam(unitID, "zombie", IS_ZOMBIE)
 			issueRandomOrders(unitID, unitDefID)
-			local energyToSet = ENERGY_INCOME_MULTIPLIER * UnitDefs[unitDefID].energyCost
-			local metalToSet = METAL_INCOME_MULTIPLIER * UnitDefs[unitDefID].metalCost
-			spSetUnitResourcing(unitID, {["umm"] = metalToSet, ["ume"] = energyToSet})
+			setZombieStates(unitID, unitDefID)
 		end
 	end
 	return unitID
@@ -399,12 +408,7 @@ function gadget:Initialize()
 		if identifiedZombie and identifiedZombie == IS_ZOMBIE then
 			local unitDefID = spGetUnitDefID(unitID)
 			zombieWatch[unitID] = unitDefID
-			spGiveOrderToUnit(unitID, CMD_REPEAT, 1, 0)
-			spGiveOrderToUnit(unitID, CMD_MOVE_STATE, 2, 0)
-			spGiveOrderToUnit(unitID, CMD_FIRE_STATE, 2, 0)
-			local energyToSet = ENERGY_INCOME_MULTIPLIER * UnitDefs[unitDefID].energyCost
-			local metalToSet = METAL_INCOME_MULTIPLIER * UnitDefs[unitDefID].metalCost
-			spSetUnitResourcing(unitID, {["umm"] = metalToSet, ["ume"] = energyToSet})
+			setZombieStates(unitID, unitDefID)
 		end
 	end
 	
@@ -413,6 +417,14 @@ function gadget:Initialize()
 		gadget:FeatureCreated(featureID, gaiaTeamID)
 	end
 
-	spSetTeamResource(gaiaTeamID, "ms", 20000)
-	spSetTeamResource(gaiaTeamID, "es", 100000)
+	local metalStorageToSet = 20000
+	local energyStorageToSet = 100000
+	local _, metalStorage = Spring.GetTeamResources(gaiaTeamID, "metal")
+	if metalStorage < metalStorageToSet then
+		spSetTeamResource(gaiaTeamID, "ms", metalStorageToSet)
+	end
+	local _, energyStorage = Spring.GetTeamResources(gaiaTeamID, "energy")
+	if energyStorage < energyStorageToSet then
+		spSetTeamResource(gaiaTeamID, "es", energyStorageToSet)
+	end
 end
