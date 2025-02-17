@@ -202,16 +202,17 @@ end
 
 local function issueRandomOrders(unitID, unitDefID)
 	if spGetUnitIsDead(unitID) then return end
+	local unitDef = UnitDefs[unitDefID]
 	
 	local orders = {}
-	local nearAlly = (UnitDefs[unitDefID].canAttack) and GetUnitNearestAlly(unitID, unitDefID, ZOMBIE_GUARD_RADIUS) or nil
+	local nearAlly = (unitDef.canAttack) and GetUnitNearestAlly(unitID, unitDefID, ZOMBIE_GUARD_RADIUS) or nil
 	if nearAlly and spGetUnitCurrentCommand(nearAlly) ~= CMD_GUARD then
 		if random() < ZOMBIE_GUARD_CHANCE then
 			orders[#orders + 1] = {CMD_GUARD, {nearAlly}, 0}
 		end
 	end
 
-	if UnitDefs[unitDefID].canMove then
+	if unitDef.canMove then
 		for i = 1, random(ZOMBIE_ORDER_MIN, ZOMBIE_ORDER_MAX) do
 			local randomX = random(0, mapWidth)
 			local randomZ = random(0, mapHeight)
@@ -229,7 +230,7 @@ local function issueRandomOrders(unitID, unitDefID)
 		spGiveOrderArrayToUnitArray({unitID}, orders)
 	end
 
-	if UnitDefs[unitDefID].isFactory then
+	if unitDef.isFactory then
 		issueRandomFactoryBuildOrders(unitID, unitDefID)
 	end
 end
