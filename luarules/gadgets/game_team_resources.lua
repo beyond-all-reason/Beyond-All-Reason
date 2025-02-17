@@ -14,6 +14,13 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+local teamList = Spring.GetTeamList()
+GG.TeamData = {}
+for i = 1, #teamList do
+	local teamID = teamList[i]
+	GG.TeamData[teamID] = {}
+end
+
 local minStorageMetal = 1000
 local minStorageEnergy = 1000
 
@@ -38,7 +45,6 @@ local function setup(addResources)
 			end
 		end
 
-		local teamList = Spring.GetTeamList()
 		for i = 1, #teamList do
 			local teamID = teamList[i]
 			local multiplier = teamPlayerCounts[teamID] or 1 -- Gaia has no players
@@ -50,10 +56,22 @@ local function setup(addResources)
 				commanderMinEnergy = com.energyStorage or 0
 			end
 
-			local newMetalStorage = Spring.GetTeamRulesParam(teamID, "override_metal_storage") or math.max(minStorageMetal, startMetalStorage * multiplier, startMetal * multiplier, commanderMinMetal)
+			local newMetalStorage
+			if GG.TeamData[teamID].metalStorageOverride then
+				newMetalStorage = GG.TeamData[teamID].metalStorageOverride
+			else
+				newMetalStorage = math.max(minStorageMetal, startMetalStorage * multiplier, startMetal * multiplier, commanderMinMetal)
+			end
 			Spring.SetTeamResource(teamID, 'ms', newMetalStorage)
-			local newEnergyStorage = Spring.GetTeamRulesParam(teamID, "override_energy_storage") or math.max(minStorageEnergy, startEnergyStorage * multiplier, startEnergy * multiplier, commanderMinEnergy)
+
+			local newEnergyStorage
+			if GG.TeamData[teamID].energyStorageOverride then
+				newEnergyStorage = GG.TeamData[teamID].energyStorageOverride
+			else
+				newEnergyStorage = math.max(minStorageEnergy, startEnergyStorage * multiplier, startEnergy * multiplier, commanderMinEnergy)
+			end
 			Spring.SetTeamResource(teamID, 'es', newEnergyStorage)
+			
 			if addResources then
 				Spring.SetTeamResource(teamID, 'm', startMetal * multiplier)
 				Spring.SetTeamResource(teamID, 'e', startEnergy * multiplier)
@@ -70,12 +88,23 @@ local function setup(addResources)
 				commanderMinMetal = com.metalStorage or 0
 				commanderMinEnergy = com.energyStorage or 0
 			end
-
-			local newMetalStorage = Spring.GetTeamRulesParam(teamID, "override_metal_storage") or math.max(minStorageMetal, startMetalStorage, startMetal, commanderMinMetal)
-			Spring.Echo("newMetalStorage", newMetalStorage)
+			
+			local newMetalStorage
+			if GG.TeamData[teamID].metalStorageOverride then
+				newMetalStorage = GG.TeamData[teamID].metalStorageOverride
+			else
+				newMetalStorage = math.max(minStorageMetal, startMetalStorage, startMetal, commanderMinMetal)
+			end
 			Spring.SetTeamResource(teamID, 'ms', newMetalStorage)
-			local newEnergyStorage = Spring.GetTeamRulesParam(teamID, "override_energy_storage") or math.max(minStorageEnergy, startEnergyStorage,  startEnergy, commanderMinEnergy)
+			
+			local newEnergyStorage
+			if GG.TeamData[teamID].energyStorageOverride then
+				newEnergyStorage = GG.TeamData[teamID].energyStorageOverride
+			else
+				newEnergyStorage = math.max(minStorageEnergy, startEnergyStorage,  startEnergy, commanderMinEnergy)
+			end
 			Spring.SetTeamResource(teamID, 'es', newEnergyStorage)
+
 			if addResources then
 				Spring.SetTeamResource(teamID, 'm', startMetal)
 				Spring.SetTeamResource(teamID, 'e', startEnergy)
