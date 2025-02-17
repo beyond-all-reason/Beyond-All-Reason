@@ -34,8 +34,8 @@ return {
 		speed = 40,
 		turninplace = true,
 		turninplaceanglelimit = 90,
-		turninplacespeedlimit = 0.7392,
-		turnrate = 120,
+		turninplacespeedlimit = 1.089,
+		turnrate = 1214.40002,
 		upright = true,
 		customparams = {
 			customrange = "590",
