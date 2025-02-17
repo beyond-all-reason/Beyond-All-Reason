@@ -139,7 +139,7 @@ local function calculateHealthRatio(featureID)
 			damagedReductionRatio = health/maxHealth
 		end
 	end
-	local result = (partialReclaimRatio + damagedReductionRatio) * 0.5 --average the two ratios to skew the result towards maximum health
+	local healthRatio = (partialReclaimRatio + damagedReductionRatio) * 0.5 --average the two ratios to skew the result towards maximum health
 	return result
 end
 
