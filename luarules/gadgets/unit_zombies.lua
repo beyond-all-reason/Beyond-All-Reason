@@ -128,7 +128,7 @@ end
 
 local function calculateHealthRatio(featureID)
 	local partialReclaimRatio = 1
-	local damageReductionRatio = 1
+	local damagedReductionRatio = 1
 	if ZOMBIES_PARTIAL_RECLAIM then
 		local currentMetal, maxMetal = spGetFeatureResources(featureID)
 		if currentMetal and maxMetal and currentMetal ~= 0 and maxMetal ~= 0 then
