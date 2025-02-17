@@ -140,7 +140,7 @@ local function calculateHealthRatio(featureID)
 		end
 	end
 	local healthRatio = (partialReclaimRatio + damagedReductionRatio) * 0.5 --average the two ratios to skew the result towards maximum health
-	return result
+	return healthRatio
 end
 
 local function GetUnitNearestAlly(unitID, unitDefID, range)
