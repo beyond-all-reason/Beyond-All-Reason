@@ -21,7 +21,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitPosition       = Spring.GetUnitPosition
 	local spGetUnitStates = Spring.GetUnitStates
 	local spGetUnitHealth 		= Spring.GetUnitHealth
-	local spGetUnitTransporter 		= Spring.GetUnittransporter
+	local spGetUnitTransporter 		= Spring.GetUnitTransporter
 
 	local spGetTeamList			= Spring.GetTeamList
 	local spGetUnitExperience	= Spring.GetUnitExperience
