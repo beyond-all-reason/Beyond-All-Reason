@@ -183,6 +183,50 @@ return {
 					--sweepfire=0.4,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
 				},
 			},
+			ultraheavyriotcannon = {
+				areaofeffect = 200,
+				burst = 3;
+				burstrate = 0.2;
+				avoidfeature = false,
+				burnblow = true,
+				craterboost = 0,
+				cratermult = 0,
+				edgeeffectiveness = 0.9,
+				explosiongenerator = "custom:genericshellexplosion-large",
+				impulsefactor = 2.4,
+				name = "Ultra Heavy Riot Autocannon",
+				noselfdamage = true,
+				range = 550,
+				firetolerance = 5000,
+				tolerance = 5000,
+				reloadtime = 1.7,
+				rgbcolor = "1 0.7 0.25",
+				soundhit = "xplomed1",
+				soundhitwet = "splslrg",
+				soundstart = "largegun",
+				soundhitvolume = 14,
+				soundstartvolume = 13.0,
+				separation = 2.0,
+				nogap = false,
+				size = 4,
+				sizeDecay = 0.06,
+				stages = 9,
+				alphaDecay = 0.10,
+				turret = true,
+				weapontype = "Cannon",
+				weaponvelocity = 650,
+				damage = {
+					bombers = 50,
+					default = 400,
+					fighters = 50,
+					subs = 150,
+					vtol = 50,
+				},
+				customparams = {
+					exclude_preaim = true,
+					--sweepfire=0.4,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
+				},
+			},
 			bigfootstep = {
 				areaofeffect = 128,
 				avoidfeature = false,
@@ -234,7 +278,7 @@ return {
 			},
 			[4] = {
 				badtargetcategory = "VTOL GROUNDSCOUT",
-				def = "heatray1",
+				def = "ultraheavyriotcannon",
 				onlytargetcategory = "SURFACE",
 				fastautoretargeting = true,
 				--burstControlWhenOutOfArc = 2,
@@ -242,7 +286,7 @@ return {
 			},
 			[5] = {
 				badtargetcategory = "VTOL GROUNDSCOUT",
-				def = "heatray1",
+				def = "ultraheavyriotcannon",
 				onlytargetcategory = "SURFACE",
 				fastautoretargeting = true,
 				--burstControlWhenOutOfArc = 2,
