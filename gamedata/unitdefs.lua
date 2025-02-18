@@ -46,23 +46,8 @@ end
 local luaFiles = VFS.DirList('units/', '*.lua', nil, true)
 
 local legionEnabled = Spring.GetModOptions().experimentallegionfaction
-local scavengersEnabled = true
-local raptorsEnabled = true
-if Spring.GetTeamList then
-	scavengersEnabled = false
-	raptorsEnabled = false
-	local teamList = Spring.GetTeamList()
-	for _, teamID in ipairs(teamList) do
-		local luaAI = Spring.GetTeamLuaAI(teamID)
-		if luaAI then
-			if luaAI:find("Raptors") then
-				raptorsEnabled = true
-			elseif luaAI:find("Scavengers") then
-				scavengersEnabled = true
-			end
-		end
-	end
-end
+local scavengersEnabled = Spring.Utilities.Gametype.IsScavengers()
+local raptorsEnabled = Spring.Utilities.Gametype.IsRaptors()
 
 if Spring.GetModOptions().ruins == "enabled" then
 	legionEnabled = true
@@ -71,38 +56,38 @@ elseif scavengersEnabled then
 	legionEnabled = true
 end
 
-if Spring.GetModOptions().experimentalextraunits == true then
+if Spring.GetModOptions().experimentalextraunits then
 	scavengersEnabled = true
 end
 
-if Spring.GetModOptions().forceallunits == true then
+if Spring.GetModOptions().forceallunits then
 	raptorsEnabled = true
 	scavengersEnabled = true
 	legionEnabled = true
 end
 
 for _, filename in ipairs(luaFiles) do
-	if legionEnabled or not filename:find('legion') then
-		if scavengersEnabled or not filename:find('scavengers') then
-			if raptorsEnabled or not filename:find('raptors') then
-				local udEnv = {}
-				udEnv._G = udEnv
-				udEnv.Shared = shared
-				udEnv.GetFilename = function() return filename end
-				setmetatable(udEnv, { __index = system })
-				local success, uds = pcall(VFS.Include, filename, udEnv, VFS_MODES)
-				if not success then
-					Spring.Log(section, LOG.ERROR, 'Error parsing ' .. filename .. ': ' .. tostring(uds))
-				elseif type(uds) ~= 'table' then
-					Spring.Log(section, LOG.ERROR, 'Bad return table from: ' .. filename)
+	local loadFile = (legionEnabled or not filename:find('legion'))
+					and (scavengersEnabled or not filename:find('scavengers'))
+					and (raptorsEnabled or not filename:find('raptors'))
+
+	if loadFile then
+		local udEnv = {}
+		udEnv._G = udEnv
+		udEnv.Shared = shared
+		udEnv.GetFilename = function() return filename end
+		setmetatable(udEnv, { __index = system })
+		local success, uds = pcall(VFS.Include, filename, udEnv, VFS_MODES)
+		if not success then
+			Spring.Log(section, LOG.ERROR, 'Error parsing ' .. filename .. ': ' .. tostring(uds))
+		elseif type(uds) ~= 'table' then
+			Spring.Log(section, LOG.ERROR, 'Bad return table from: ' .. filename)
+		else
+			for udName, ud in pairs(uds) do
+				if ((type(udName) == 'string') and (type(ud) == 'table')) then
+					unitDefs[udName] = ud
 				else
-					for udName, ud in pairs(uds) do
-						if ((type(udName) == 'string') and (type(ud) == 'table')) then
-							unitDefs[udName] = ud
-						else
-							Spring.Log(section, LOG.ERROR, 'Bad return table entry from: ' .. filename)
-						end
-					end
+					Spring.Log(section, LOG.ERROR, 'Bad return table entry from: ' .. filename)
 				end
 			end
 		end
