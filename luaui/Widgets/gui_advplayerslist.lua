@@ -212,7 +212,7 @@ local tipTextTime = 0
 local Background, ShareSlider, BackgroundGuishader, tipText, drawTipText, tipY
 --local specJoinedOnce, scheduledSpecFullView
 --local prevClickedPlayer, clickedPlayerTime, clickedPlayerID
---local lockPlayerID, leftPosX, lastSliderSound, release
+local lockPlayerID  --leftPosX, lastSliderSound, release
 local MainList, MainList2, MainList3, drawListOffset
 
 local deadPlayerHeightReduction = 8
@@ -667,7 +667,8 @@ local function LockCamera(playerID)
 	if not WG.lockcamera then
 		return
 	end
-	lockPlayerID = WG.lockcamera.SetLockPlayerID(playerID)
+	WG.lockcamera.SetLockPlayerID(playerID)
+    lockPlayerID = WG.lockcamera and WG.lockcamera.GetLockPlayerID() or false
     UpdateRecentBroadcasters()
 end
 
@@ -3438,6 +3439,7 @@ function widget:Update(delta)
 
     if clickedPlayerTime and os.clock() - clickedPlayerTime > dblclickPeriod then
         Spring_SendCommands("specteam " .. player[clickedPlayerID].team)
+        lockPlayerID = WG.lockcamera and WG.lockcamera.GetLockPlayerID() or false
         if lockPlayerID then
             LockCamera(player[clickedPlayerID].ai and nil or clickedPlayerID)
         end
@@ -3446,6 +3448,7 @@ function widget:Update(delta)
         clickedPlayerTime = nil
         clickedPlayerID = nil
     end
+
 
     timeCounter = timeCounter + delta
     timeFastCounter = timeFastCounter + delta
