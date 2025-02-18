@@ -72,20 +72,20 @@ for _, filename in ipairs(luaFiles) do
 					and (raptorsEnabled or not filename:find('raptors'))
 
 	if loadFile then
-		local udEnv = {}
-		udEnv._G = udEnv
-		udEnv.Shared = shared
-		udEnv.GetFilename = function() return filename end
-		setmetatable(udEnv, { __index = system })
-		local success, uds = pcall(VFS.Include, filename, udEnv, VFS_MODES)
+		local unitDefsEnv = {}
+		unitDefsEnv._G = unitDefsEnv
+		unitDefsEnv.Shared = shared
+		unitDefsEnv.GetFilename = function() return filename end
+		setmetatable(unitDefsEnv, { __index = system })
+		local success, defs = pcall(VFS.Include, filename, unitDefsEnv, VFS_MODES)
 		if not success then
-			Spring.Log(section, LOG.ERROR, 'Error parsing ' .. filename .. ': ' .. tostring(uds))
-		elseif type(uds) ~= 'table' then
+			Spring.Log(section, LOG.ERROR, 'Error parsing ' .. filename .. ': ' .. tostring(defs))
+		elseif type(defs) ~= 'table' then
 			Spring.Log(section, LOG.ERROR, 'Bad return table from: ' .. filename)
 		else
-			for udName, ud in pairs(uds) do
-				if ((type(udName) == 'string') and (type(ud) == 'table')) then
-					unitDefs[udName] = ud
+			for unitDefName, unitDef in pairs(defs) do
+				if ((type(unitDefName) == 'string') and (type(unitDef) == 'table')) then
+					unitDefs[unitDefName] = unitDef
 				else
 					Spring.Log(section, LOG.ERROR, 'Bad return table entry from: ' .. filename)
 				end
@@ -116,16 +116,16 @@ end
 
 for name, def in pairs(unitDefs) do
 	local cob = 'scripts/'   .. name .. '.cob'
-	local obj = def.objectName or def.objectname
-	if obj == nil then
+	local model = def.objectName or def.objectname
+	if model == nil then
 		unitDefs[name] = nil
 		Spring.Log(section, LOG.ERROR, 'removed ' .. name .. ' unitDef, missing objectname param')
 		for k,v in pairs(def) do print('',k,v) end
 	else
-		local objfile = 'objects3d/' .. obj
+		local objfile = 'objects3d/' .. model
 		if not VFS.FileExists(objfile) and not VFS.FileExists(objfile .. '.s3o') then
 			unitDefs[name] = nil
-			Spring.Log(section, LOG.ERROR, 'removed ' .. name .. ' unitDef, missing model file  (' .. obj .. ')')
+			Spring.Log(section, LOG.ERROR, 'removed ' .. name .. ' unitDef, missing model file  (' .. model .. ')')
 		end
 	end
 end
