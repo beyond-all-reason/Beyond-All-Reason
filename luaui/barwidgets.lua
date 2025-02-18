@@ -558,28 +558,21 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 	return widget
 end
 
+local SystemMeta =
+{
+	__index = System,
+	__metatable = true,
+}
+
 function widgetHandler:NewWidget()
 	tracy.ZoneBeginN("W:NewWidget")
-	local widget = {}
-	if true then
-		-- copy the system calls into the widget table
-		for k, v in pairs(System) do
-			widget[k] = v
-		end
-	else
-		-- use metatable redirection
-		setmetatable(widget, {
-			__index = System,
-			__metatable = true,
-		})
-	end
+	local widget = setmetatable({}, SystemMeta)
 	widget.WG = self.WG    -- the shared table
 	widget.widget = widget -- easy self referencing
 
 	-- wrapped calls (closures)
 	widget.widgetHandler = {}
 	local wh = widget.widgetHandler
-	local self = self
 	widget.include = function(f)
 		return include(f, widget)
 	end
