@@ -225,7 +225,7 @@ if gadgetHandler:IsSyncedCode() then
 				evolution_target = udcp.evolution_target,
 				evolution_condition = udcp.evolution_condition or "timer",
 				evolution_timer = tonumber(udcp.evolution_timer) or defaultTimer,
-				evolution_power_threshold = tonumber(udcp.evolution_power_threshold) or defaultTimer,
+				evolution_power_threshold = tonumber(udcp.evolution_power_threshold) or 600,
 				evolution_power_enemy_multiplier = tonumber(udcp.evolution_power_enemy_multiplier) or 1,
 				evolution_power_multiplier = tonumber(udcp.evolution_power_multiplier) or 1,
 				evolution_health_threshold = tonumber(udcp.evolution_health_threshold) or 0,
