@@ -3641,7 +3641,7 @@ function widget:Update(delta)
     end
 
     if clickedPlayerTime and os.clock() - clickedPlayerTime > dblclickPeriod then
-        local curMapDrawMode = Spring.GetMapDrawMode()
+        -- local curMapDrawMode = Spring.GetMapDrawMode()
         Spring_SendCommands("specteam " .. player[clickedPlayerID].team)
         if lockPlayerID then
             LockCamera(player[clickedPlayerID].ai and nil or clickedPlayerID)

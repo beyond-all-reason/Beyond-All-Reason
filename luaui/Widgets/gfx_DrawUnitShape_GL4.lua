@@ -503,8 +503,6 @@ function widget:Initialize()
 		end
 	end 
 
-	local unitIDs = Spring.GetAllUnits()
-	local featuresIDs = Spring.GetAllFeatures()
 
 	local communitdefid = UnitDefNames["armcom"].id
 	local pwdefid = UnitDefNames["armpw"].id

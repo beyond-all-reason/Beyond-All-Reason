@@ -466,7 +466,6 @@ local function Init()
 			allyData[allyDataIndex].exists = #teamList > 0
 
 			for _, teamID in pairs(teamList) do
-				local myAllyID = select(6, GetTeamInfo(teamID, false))
 				setTeamTable(teamID)
 				Button[teamID] = {}
 			end

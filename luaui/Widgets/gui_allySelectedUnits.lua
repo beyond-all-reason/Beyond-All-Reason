@@ -239,7 +239,6 @@ function widget:PlayerChanged(playerID)
 	local prevFullview = fullview
 	spec, fullview = spGetSpectatingState()
 	if prevFullview ~= fullview then
-		local myAllyID = Spring.GetMyAllyTeamID()
 		for unitID, drawn in pairs(selectedUnits) do
 			if fullview then
 				addUnit(unitID)

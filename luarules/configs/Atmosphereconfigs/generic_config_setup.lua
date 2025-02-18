@@ -1,7 +1,6 @@
 Spring.Echo("Enabled generic atmosphere config")
 
 local math_random = math.random
-local GaiaTeamID = Spring.GetGaiaTeamID()
 
 local mapsizex = Game.mapSizeX
 local mapsizez = Game.mapSizeZ
