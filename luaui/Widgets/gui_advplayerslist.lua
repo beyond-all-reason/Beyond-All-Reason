@@ -668,7 +668,7 @@ local function LockCamera(playerID)
 		return
 	end
 	WG.lockcamera.SetLockPlayerID(playerID)
-    lockPlayerID = WG.lockcamera and WG.lockcamera.GetLockPlayerID() or false
+    lockPlayerID = WG.lockcamera.GetLockPlayerID()
     UpdateRecentBroadcasters()
 end
 
@@ -1942,8 +1942,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
         tipY = true
     end
 
-    if onlyMainList and lockPlayerID ~= nil and lockPlayerID == playerID then
-        -- active
+    if onlyMainList and lockPlayerID and lockPlayerID == playerID then
         DrawCamera(posY, true)
     end
 
@@ -3436,10 +3435,11 @@ function widget:Update(delta)
         end
         Spring.SetMouseCursor('cursornormal')
     end
+    
+    lockPlayerID = WG.lockcamera and WG.lockcamera.GetLockPlayerID() or false
 
     if clickedPlayerTime and os.clock() - clickedPlayerTime > dblclickPeriod then
         Spring_SendCommands("specteam " .. player[clickedPlayerID].team)
-        lockPlayerID = WG.lockcamera and WG.lockcamera.GetLockPlayerID() or false
         if lockPlayerID then
             LockCamera(player[clickedPlayerID].ai and nil or clickedPlayerID)
         end
@@ -3448,7 +3448,6 @@ function widget:Update(delta)
         clickedPlayerTime = nil
         clickedPlayerID = nil
     end
-
 
     timeCounter = timeCounter + delta
     timeFastCounter = timeFastCounter + delta
@@ -3508,6 +3507,7 @@ function widget:Update(delta)
         gameStartRefreshed = true
         forceMainListRefresh = true
     end
+    
     if forceMainListRefresh then
         SortList()
         SetModulesPositionX()
