@@ -115,12 +115,10 @@ end
 --
 
 for name, def in pairs(unitDefs) do
-	local cob = 'scripts/'   .. name .. '.cob'
 	local model = def.objectName or def.objectname
 	if model == nil then
 		unitDefs[name] = nil
 		Spring.Log(section, LOG.ERROR, 'removed ' .. name .. ' unitDef, missing objectname param')
-		for k,v in pairs(def) do print('',k,v) end
 	else
 		local objfile = 'objects3d/' .. model
 		if not VFS.FileExists(objfile) and not VFS.FileExists(objfile .. '.s3o') then
@@ -137,7 +135,6 @@ for name, def in pairs(unitDefs) do
 		for i, option in ipairs(buildOptions) do
 			if unitDefs[option] == nil then
 				table.insert(badOptions, i)
-				--Spring.Log(section, LOG.ERROR, 'removed the "' .. option ..'" entry' .. ' from the "' .. name .. '" build menu')
 			end
 		end
 		if #badOptions > 0 then
