@@ -17,8 +17,6 @@ local shared = {} -- shared amongst the lua unitdef enviroments
 local preProcFile  = 'gamedata/unitdefs_pre.lua'
 local postProcFile = 'gamedata/unitdefs_post.lua'
 
-local DownloadBuilds = VFS.Include('gamedata/download_builds.lua')
-
 local system = VFS.Include('gamedata/system.lua')
 
 local section = 'unitdefs.lua'
@@ -110,14 +108,6 @@ for _, filename in ipairs(luaFiles) do
 		end
 	end
 end
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
---
---  Insert the download build entries
---
-
-DownloadBuilds.Execute(unitDefs)
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
