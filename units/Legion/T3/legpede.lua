@@ -147,6 +147,10 @@ return {
 					default = 200,
 					subs = 100,
 				},
+				customparams = {
+					projectile_destruction_method = "descend",
+					overrange_distance = 690,
+				},
 			},
 			armmg_weapon = {
 				accuracy = 7,

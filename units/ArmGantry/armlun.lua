@@ -144,6 +144,10 @@ return {
 					subs = 165,
 					vtol = 35,
 				},
+				customparams = {
+					projectile_destruction_method = "descend",
+					overrange_distance = 633,
+				},
 			},
 			cannon = {
 				areaofeffect = 160,
@@ -215,7 +219,6 @@ return {
 				areaofeffect = 24,
 				avoidfeature = false,
 				avoidfriendly = false,
-				burnblow = true,
 				collidefriendly = false,
 				craterareaofeffect = 0,
 				craterboost = 0,

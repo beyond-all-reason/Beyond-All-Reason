@@ -146,7 +146,9 @@ return {
 					vtol = 26,
 				},
 				customparams = {
-					exclude_preaim = true
+					exclude_preaim = true,
+					overrange_distance = 840,
+					projectile_destruction_method = "descend",
 				}
 			},
 		},
