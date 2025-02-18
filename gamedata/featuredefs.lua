@@ -49,7 +49,7 @@ for _, filename in ipairs(luaFiles) do
 	fdEnv.Shared = shared
 	fdEnv.GetFilename = function() return filename end
 	setmetatable(fdEnv, { __index = system })
-	local success, fds = pcall(VFS.Include, filename, fdEnv, vfs_modes)
+	local success, fds = pcall(VFS.Include, filename, fdEnv, VFS_MODES)
 
 	if (not success) then
 		Spring.Log(section, LOG.ERROR, 'Error parsing ' .. filename .. ': ' .. tostring(fds))

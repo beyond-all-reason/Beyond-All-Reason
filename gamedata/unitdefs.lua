@@ -108,7 +108,7 @@ for _, filename in ipairs(luaFiles) do
 				udEnv.Shared = shared
 				udEnv.GetFilename = function() return filename end
 				setmetatable(udEnv, { __index = system })
-				local success, uds = pcall(VFS.Include, filename, udEnv, vfs_modes)
+				local success, uds = pcall(VFS.Include, filename, udEnv, VFS_MODES)
 				if not success then
 					Spring.Log(section, LOG.ERROR, 'Error parsing ' .. filename .. ': ' .. tostring(uds))
 				elseif type(uds) ~= 'table' then

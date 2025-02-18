@@ -49,7 +49,7 @@ for _, filename in ipairs(luaFiles) do
 	wdEnv.Shared = shared
 	wdEnv.GetFilename = function() return filename end
 	setmetatable(wdEnv, { __index = system })
-	local success, wds = pcall(VFS.Include, filename, wdEnv, vfs_modes)
+	local success, wds = pcall(VFS.Include, filename, wdEnv, VFS_MODES)
 	if (not success) then
 		Spring.Log(section, LOG.ERROR, 'Error parsing ' .. filename .. ': ' .. tostring(wds))
 	elseif (wds == nil) then
