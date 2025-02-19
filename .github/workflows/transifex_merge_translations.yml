@@ -16,14 +16,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout master branch
-        uses: actions/checkout@v4
-        with:
-          ref: master
-          ssh-key: ${{ secrets.ACTION_RUNNER_PRIVATE }}
+        # uses: actions/checkout@v4
+        # with:
+        #   ref: master
+        #   ssh-key: ${{ secrets.ACTION_RUNNER_PRIVATE }}
 
       - name: Setup Git User
         run: |
-          git config --global user.name "github-actions[bot]"
+          git config --global user.name "transifex-integration[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Force merge translation directories (excluding English)
