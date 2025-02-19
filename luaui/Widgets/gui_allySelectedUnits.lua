@@ -283,10 +283,10 @@ end
 local updateTime = 0
 local checkLockPlayerInterval = 1
 function widget:Update(dt)
-	if WG['advplayerlist_api'] ~= nil then
+	if WG.lockcamera then
 		updateTime = updateTime + dt
 		if updateTime > checkLockPlayerInterval then
-			lockPlayerID = WG['advplayerlist_api'].GetLockPlayerID()
+			lockPlayerID = WG.lockcamera.GetPlayerID()
 			if lockPlayerID ~= nil and selectPlayerUnits then
 				selectPlayerSelectedUnits(lockPlayerID)
 			end
