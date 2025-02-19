@@ -44,12 +44,12 @@ end
 local luaFiles = VFS.DirList('features/', '*.lua', nil, true)
 
 for _, filename in ipairs(luaFiles) do
-	local fetureDefsEnv = {}
-	fetureDefsEnv._G = fetureDefsEnv
-	fetureDefsEnv.Shared = shared
-	fetureDefsEnv.GetFilename = function() return filename end
-	setmetatable(fetureDefsEnv, { __index = system })
-	local success, defs = pcall(VFS.Include, filename, fetureDefsEnv, VFS_MODES)
+	local featureDefsEnv = {}
+	featureDefsEnv._G = featureDefsEnv
+	featureDefsEnv.Shared = shared
+	featureDefsEnv.GetFilename = function() return filename end
+	setmetatable(featureDefsEnv, { __index = system })
+	local success, defs = pcall(VFS.Include, filename, featureDefsEnv, VFS_MODES)
 
 	if (not success) then
 		Spring.Log(section, LOG.ERROR, 'Error parsing ' .. filename .. ': ' .. tostring(defs))
