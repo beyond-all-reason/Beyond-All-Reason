@@ -44,31 +44,22 @@ end
 function AttackHST:Update()
 	if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
 	local f = self.game:Frame()
--- 	local RAM = gcinfo()
 	self:DraftAttackSquads()
--- 	Spring:Echo('attackhstupdate1',gcinfo()-RAM)
 	for index , squad in pairs(self.squads) do
 		if self:SquadCheck(squad) then
--- 			Spring:Echo('attackhstupdate2',gcinfo()-RAM)
 			self:Watchdog(squad)
--- 			Spring:Echo('attackhstupdate3',gcinfo()-RAM)
 			if not self:SquadAttack(squad) then
--- 				Spring:Echo('attackhstupdate4',gcinfo()-RAM)
 				self:SquadAdvance(squad)
--- 				Spring:Echo('attackhstupdate5',gcinfo()-RAM)
 			end
 		end
 	end
--- 	Spring:Echo('attackhstupdate6',gcinfo()-RAM)
 	self:SquadsTargetUpdate2()
--- 	Spring:Echo('attackhstupdate7',gcinfo()-RAM)
 	self:visualDBG(squad)
 end
 
 function AttackHST:DraftAttackSquads()
 	local f = self.game:Frame()
 	for mtype,soldiers in pairs(self.recruits) do
-
 		for index,soldier in pairs(soldiers) do
 		self:EchoDebug(index,mtype,soldier.squad)
 			if soldier and soldier.unit and not soldier.squad then
@@ -310,12 +301,9 @@ function AttackHST:SquadAdvance(squad)
 	if not squad.target or not squad.path then
 		return
 	end
--- 	local RAM = gcinfo()
 	local x,y,z
 	self:EchoDebug('squad.pathStep',squad.step,'#squad.path',#squad.path)
 	self:SquadStepComplete(squad)
--- 	RAM1 = gcinfo()
--- 	if RAM1-RAM > 0 then Spring.Echo('squad advance1',RAM1-RAM) end
 	local members = squad.members
 	local nextPos = squad.path[squad.step]
 	local angle = math.min (squad.step + 1,#squad.path)
@@ -323,8 +311,6 @@ function AttackHST:SquadAdvance(squad)
 	local nextPerpendicularAngle = self.ai.tool:AngleAdd(nextAngle, halfPi)
  	squad.lastValidMove = nextPos -- attackers use this to correct bad move orders
 	self:EchoDebug('advance #members',#members)
--- 	RAM2 = gcinfo()
--- 	if RAM2-RAM1 > 0 then Spring.Echo('squad advance2',RAM2-RAM1 ) end
 	for i,member in pairs(members) do
 		local pos
  		if member.formationBack and squad.step ~= #squad.path then
@@ -334,11 +320,8 @@ function AttackHST:SquadAdvance(squad)
  		if squad.step == #squad.path then
  			reverseAttackAngle = self.ai.tool:AngleAdd(nextAngle, pi)
  		end
- 		--self:EchoDebug('advance',pos,nextPerpendicularAngle,reverseAttackAngle)
 		member:Advance(pos or nextPos, nextPerpendicularAngle, reverseAttackAngle)
 	end
--- 	RAM3 = gcinfo()
--- 	if RAM3-RAM2 > 0 then Spring.Echo('squad advance3',RAM3-RAM2) end
 	self:EchoDebug('advance after members move')
 end
 

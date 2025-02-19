@@ -12,7 +12,7 @@ end
 function ArmyHST:Init()
 
 
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 	self.unitTable = {}
 	self.wrecks = {}
 	self.featureTable = {}
@@ -1117,6 +1117,10 @@ function ArmyHST:GetUnitTable()
 	local builtBy = GetBuiltBy()
 	local unitTable = {}
 	local wrecks = {}
+	for k,v in UnitDefNames['armflea']:pairs() do
+		Spring.Echo(k,v)
+	end
+	Spring.Echo('diocanetest',UnitDefNames['armflea'])
 	for unitDefID,unitDef in pairs(UnitDefs) do
 		local side = GetUnitSide(unitDef.name)
 		--if unitsLevels[unitDef.name] then
@@ -1136,7 +1140,8 @@ function ArmyHST:GetUnitTable()
 		utable.defId = unitDefID
 		utable.radarDistance = unitDef["radarDistance"]
 		utable.airSightDistance = unitDef["airSightDistance"]
-		utable.sightDistance = unitDef["sightDistance"]
+		utable.sightDistance = unitDef["losRadius"]
+		self:EchoDebug(utable.name,utable.sightDistance)
 		utable.sonarDistance = unitDef["sonarDistance"]
 		utable.radarDistanceJam = unitDef["radarDistanceJam"]
 		utable.stealth = unitDef.stealth

@@ -44,35 +44,32 @@ end
 function RaidHST:Update()
 	if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
 	local f = self.game:Frame()
--- 	local RAM = gcinfo()
 	self:DraftAttackSquads()
--- 	Spring:Echo('raidhstupdate1',gcinfo()-RAM)
 	for index , squad in pairs(self.squads) do
 		if self:SquadCheck(squad) then
--- 			Spring:Echo('raidhstupdate2',gcinfo()-RAM)
 			self:Watchdog(squad)
--- 			Spring:Echo('raidhstupdate3',gcinfo()-RAM)
 			if not self:SquadAttack(squad) then
--- 				Spring:Echo('raidhstupdate4',gcinfo()-RAM)
 				self:SquadAdvance(squad)
--- 				Spring:Echo('raidhstupdate5',gcinfo()-RAM)
 			end
 		end
 	end
--- 	Spring:Echo('raidhstupdate6',gcinfo()-RAM)
 	self:SquadsTargetUpdate2()
--- 	Spring:Echo('raidhstupdate7',gcinfo()-RAM)
 	self:visualDBG(squad)
 end
 
 function RaidHST:DraftAttackSquads()
 	local f = self.game:Frame()
 	for mtype,soldiers in pairs(self.recruits) do
-
+		self:EchoDebug('soldiers',#soldiers,'mina')
+		--print('sdcsdc',soldiers)
 		for index,soldier in pairs(soldiers) do
-		self:EchoDebug(index,mtype,soldier.squad)
+		--	print('rtrbgtasdadasdsada',type(soldier),soldier,#soldier,soldier.unit,soldier.squad)
+		--self:EchoDebug(index,soldier)--index,mtype,
+		--	print('oknoikjmijn')
 			if soldier and soldier.unit and not soldier.squad then
+		--		print('asdadasdsada')
 				for idx,squad in pairs(self.squads) do
+					print('kjdvkjdvkjdvjk')
 					self:EchoDebug(idx,squad.squadID,squad.lock,squad.mtype)
 					if not squad.lock and squad.mtype == mtype  then
 						table.insert(squad.members , soldier)

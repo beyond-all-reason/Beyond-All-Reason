@@ -12,12 +12,13 @@ if tracy then
 		tracy.ZoneBeginN(fname)
 	end
 
-	tracyZoneEndMem = function()
+	tracyZoneEndMem = function(fname)
+		fname = fname or "STAI"
 		if logRAM then
 			local nowGCinfo = gcinfo()
 			local delta = nowGCinfo - lastGCinfo
 			if delta > 0 then
-				tracy.Message(tostring(nowGCinfo - lastGCinfo))
+				tracy.Message(tostring(fname .. nowGCinfo - lastGCinfo))
 			end
 			lastGCinfo = nowGCinfo
 		end
@@ -111,7 +112,7 @@ function ShardAI:Update()
 		return
 	end
 
-	tracyZoneBeginMem("ShardAI:Update")
+	--tracyZoneBeginMem("ShardAI:Update")
 	--self.game:StartTimer('UPDATE')
 	for i,m in ipairs(self.modules) do
 		if m == nil then
@@ -120,9 +121,9 @@ function ShardAI:Update()
  			--self.game:StartTimer(m:Name() .. ' hst')
 			--local RAM = gcinfo()
 
-			--tracyZoneBeginMem(m:Name())
+			tracyZoneBeginMem('STAI'..m:Name())
 			m:Update()
-			--tracyZoneEndMem()
+			tracyZoneEndMem('STAI'..m:Name())
  			--self.game:StopTimer(m:Name() .. ' hst')
 			--RAM = gcinfo() - RAM
 			--if RAM > 1 --[[and m:Name() ~= 'UnitHandler']] then
