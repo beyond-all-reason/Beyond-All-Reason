@@ -3113,7 +3113,13 @@ function widget:MouseRelease(x, y, button)
 end
 
 function Spec(teamID)
+    local oldMapDrawMode = Spring.GetMapDrawMode()
     Spring_SendCommands("specteam " .. teamID)
+    -- restore current los drawmode (doing specteam makes it non normal non los view)
+    local newMapDrawMode = Spring.GetMapDrawMode()
+    if oldMapDrawMode == 'los' and oldMapDrawMode ~= newMapDrawMode then
+        Spring.SendCommands("togglelos")
+    end
     SortList()
 end
 
@@ -3439,14 +3445,7 @@ function widget:Update(delta)
     lockPlayerID = WG.lockcamera and WG.lockcamera.GetLockPlayerID() or false
 
     if clickedPlayerTime and os.clock() - clickedPlayerTime > dblclickPeriod then
-        local oldMapDrawMode = Spring.GetMapDrawMode()
-        Spring_SendCommands("specteam " .. player[clickedPlayerID].team)
-        -- restore current los drawmode (doing specteam makes it non normal non los view)
-        local newMapDrawMode = Spring.GetMapDrawMode()
-        if oldMapDrawMode == 'los' and oldMapDrawMode ~= newMapDrawMode then
-            Spring.SendCommands("togglelos")
-        end
-
+        Spec(player[clickedPlayerID].team)
         if lockPlayerID then
             LockCamera(player[clickedPlayerID].ai and nil or clickedPlayerID)
         end
