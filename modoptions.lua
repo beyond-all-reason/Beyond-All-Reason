@@ -1007,7 +1007,6 @@ local options = {
         type    = "separator",
     },
 
-
     {
         key 	= "evocom",
         name 	= "Evolving Commanders",
@@ -1199,7 +1198,66 @@ local options = {
         step   	= 1,
     },
 
+    {
+        key     = "sub_header",
+        section = "options_extra",
+        type    = "separator",
+    },
 
+    {
+        key     = 'revival',
+        name    = 'Reviving Corpses',
+        desc    = "All unit corpses resurrect themselves over time with allegience to the Scavengers. They attack everything else.",
+        type    = 'bool',
+        section = 'options_extra',
+        def     = false,
+        unlock  = {"revival_min_delay","revival_rezspeed","revival_partial_reclaim", "revival_max_delay"},
+    },
+
+    {
+        key     = 'revival_min_delay',
+        name    = 'Minimum Revival Time',
+        desc    = "In seconds, corpse will resurrect no faster than this.",
+        type    = 'number',
+        section = 'options_extra',
+        def     = 20,
+        min     = 1,
+        max     = 600,
+        step    = 1,
+    },
+
+    {
+        key     = 'revival_max_delay',
+        name    = 'Maximum Revival Time',
+        desc    = "In seconds, corpse will resurrect no slower than this.",
+        type    = 'number',
+        section = 'options_extra',
+        def     = 120,
+        min     = 1,
+        max     = 1200,
+        step    = 1,
+    },
+
+    {
+        key     = 'revival_rezspeed',
+        name    = 'Base Revival Speed',
+        desc    = "In metal per second. This changes over the course of the game based on player progression.",
+        type    = 'number',
+        section = 'options_extra',
+        def     = 16,
+        min     = 1,
+        max     = 10000,
+        step    = 1,
+    },
+
+    {
+        key     = 'revival_partial_reclaim',
+        name    = 'Zombies partially reclaimable',
+        desc    = "Corpses that are partially reclaimed or damaged will revive with less health.",
+        type    = 'bool',
+        section = 'options_extra',
+        def     = true,
+    },
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     -- Experimental Options
