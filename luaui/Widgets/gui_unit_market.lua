@@ -85,7 +85,6 @@ local spGetUnitHealth       = Spring.GetUnitHealth
 
 local myTeamID              = Spring.GetMyTeamID()
 local myAllyTeamID          = Spring.GetMyAllyTeamID()
-local gaiaTeamID            = Spring.GetGaiaTeamID()
 local myPlayerID            = Spring.GetMyPlayerID()
 local isSpectating, fullview = Spring.GetSpectatingState()
 
@@ -112,7 +111,6 @@ local glTexRect = gl.TexRect
 local glDepthTest = gl.DepthTest
 
 local unitMarket = Spring.GetModOptions().unit_market
-local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
 
 local math_sqrt = math.sqrt

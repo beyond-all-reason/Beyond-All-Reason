@@ -11,7 +11,7 @@ function widget:GetInfo()
 	}
 end
 
-local getMiniMapFlipped = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapFlipped
+-- local getMiniMapFlipped = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapFlipped
 
 if Game.startPosType ~= 2 then
 	return false

@@ -93,7 +93,6 @@ if gadgetHandler:IsSyncedCode() then
 					if env then
 						lus = true
 					end
-					local undefid = Spring.GetUnitDefID(uid)
 
 					--Spring.Echo("Processing unit :- ",undefid)
 					if lus then
