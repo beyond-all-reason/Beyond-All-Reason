@@ -667,8 +667,8 @@ local function LockCamera(playerID)
 	if not WG.lockcamera then
 		return
 	end
-	WG.lockcamera.SetLockPlayerID(playerID)
-    lockPlayerID = WG.lockcamera.GetLockPlayerID()
+	WG.lockcamera.SetPlayerID(playerID)
+    lockPlayerID = WG.lockcamera.GetPlayerID()
     UpdateRecentBroadcasters()
 end
 
@@ -3442,7 +3442,7 @@ function widget:Update(delta)
         Spring.SetMouseCursor('cursornormal')
     end
     
-    lockPlayerID = WG.lockcamera and WG.lockcamera.GetLockPlayerID() or false
+    lockPlayerID = WG.lockcamera and WG.lockcamera.GetPlayerID() or false
 
     if clickedPlayerTime and os.clock() - clickedPlayerTime > dblclickPeriod then
         Spec(player[clickedPlayerID].team)

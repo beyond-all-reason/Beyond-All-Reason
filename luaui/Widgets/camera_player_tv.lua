@@ -123,8 +123,8 @@ local function SelectTrackingPlayer(playerID)
 	if newTrackedPlayer ~= nil and newTrackedPlayer ~= currentTrackedPlayer then
 		currentTrackedPlayer = newTrackedPlayer
 
-		if WG.lockcamera ~= nil and WG.lockcamera.SetLockPlayerID ~= nil then
-			WG.lockcamera.SetLockPlayerID(currentTrackedPlayer)
+		if WG.lockcamera ~= nil and WG.lockcamera.SetPlayerID ~= nil then
+			WG.lockcamera.SetPlayerID(currentTrackedPlayer)
 		end
 	end
 
@@ -427,8 +427,8 @@ function widget:Update(dt)
 	if isSpec and toggled and Spring.GetGameFrame() % 30 == 5 then
 		if rejoining and prevRejoining ~= rejoining then
 			SelectTrackingPlayer()
-		elseif rejoining and WG.lockcamera and WG.lockcamera.GetLockPlayerID() ~= nil then
-			WG.lockcamera.SetLockPlayerID()
+		elseif rejoining and WG.lockcamera and WG.lockcamera.GetPlayerID() ~= nil then
+			WG.lockcamera.SetPlayerID()
 		end
 
 		if currentTrackedPlayer ~= nil and not rejoining then
@@ -517,9 +517,9 @@ function widget:DrawScreen()
 	end
 	if displayPlayername then
 		if WG['advplayerlist_api'] and WG.lockcamera then
-			if not lockPlayerID or lockPlayerID ~= WG.lockcamera.GetLockPlayerID() and nextTrackingPlayerChange-os.clock() < 0 then
+			if not lockPlayerID or lockPlayerID ~= WG.lockcamera.GetPlayerID() and nextTrackingPlayerChange-os.clock() < 0 then
 				--nextTrackingPlayerChange = os.clock() - 2
-				lockPlayerID = WG.lockcamera.GetLockPlayerID()
+				lockPlayerID = WG.lockcamera.GetPlayerID()
 				if not toggled and prevLockPlayerID ~= lockPlayerID then
 					createList()
 					prevLockPlayerID = lockPlayerID
@@ -528,7 +528,7 @@ function widget:DrawScreen()
 			if myTeamPlayerID and alwaysDisplayName and isSpec then
 				if lockPlayerID then
 					prevLockPlayerID = lockPlayerID
-					lockPlayerID = WG.lockcamera.GetLockPlayerID()
+					lockPlayerID = WG.lockcamera.GetPlayerID()
 				end
 				local name, _, spec, teamID, _, _, _, _, _ = spGetPlayerInfo(myTeamPlayerID, false)
 				if select(4, Spring.GetTeamInfo(myTeamID,false)) then	-- is AI?
@@ -577,7 +577,7 @@ local function togglePlayerTV(state)
 		toggled = false
 		toggled2 = false
 		if WG.lockcamera then
-			WG.lockcamera.SetLockPlayerID()
+			WG.lockcamera.SetPlayerID()
 		end
 		lockPlayerID = nil
 		prevLockPlayerID = nil
@@ -598,7 +598,7 @@ local function togglePlayerCamera()
 	currentTrackedPlayer = nil
 	toggled2 = true
 	if WG.lockcamera then
-		WG.lockcamera.SetLockPlayerID(myTeamPlayerID)
+		WG.lockcamera.SetPlayerID(myTeamPlayerID)
 	end
 	prevLockPlayerID = nil
 	lockPlayerID = nil
@@ -776,9 +776,9 @@ function widget:TextCommand(command)
 		if #words > 1 then
 			local playerID = tonumber(words[#words])
 			local teamID = select(4, spGetPlayerInfo(playerID))
-			if teamID and WG.lockcamera and WG.lockcamera.SetLockPlayerID then
+			if teamID and WG.lockcamera and WG.lockcamera.SetPlayerID then
 				Spring.SendCommands("specteam " .. teamID)
-				WG.lockcamera.SetLockPlayerID(playerID)
+				WG.lockcamera.SetPlayerID(playerID)
 			else
 				togglePlayerTV()
 			end
@@ -805,7 +805,7 @@ function widget:Shutdown()
 	end
 	drawlist = {}
 	if toggled and WG.lockcamera then
-		WG.lockcamera.SetLockPlayerID()
+		WG.lockcamera.SetPlayerID()
 	end
 end
 

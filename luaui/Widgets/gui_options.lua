@@ -971,7 +971,7 @@ function widget:Update(dt)
 	--if tonumber(Spring.GetConfigInt("CameraSmoothing", 0)) == 1 then
 	--	Spring.SetCameraState(nil, 1)
 	--else
-		if WG.lockcamera and not WG.lockcamera.GetLockPlayerID() and WG.setcamera_bugfix == true then
+		if WG.lockcamera and not WG.lockcamera.GetPlayerID() and WG.setcamera_bugfix == true then
 			Spring.SetCameraState(nil, cameraTransitionTime)
 		end
 	--end
@@ -3198,7 +3198,7 @@ function init()
 		{ id = "camoverviewrestore", group = "control", category = types.advanced, widget = "Overview Camera Keep Position", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.camoverviewrestore'), type = "bool", value = GetWidgetToggleValue("Overview Camera Keep Position"), description = Spring.I18N('ui.settings.option.camoverviewrestore_descr') },
 
 
-		{ id = "lockcamera_transitiontime", group = "control", category = types.advanced, name = Spring.I18N('ui.settings.option.lockcamera')..widgetOptionColor .. "   " ..Spring.I18N('ui.settings.option.lockcamera_transitiontime'), type = "slider", min = 0.5, max = 1.7, step = 0.01, value = (WGLockcamera and WG.lockcamera.GetLockTransitionTime ~= nil and WG.lockcamera.GetLockTransitionTime()), description = Spring.I18N('ui.settings.option.lockcamera_transitiontime_descr'),
+		{ id = "lockcamera_transitiontime", group = "control", category = types.advanced, name = Spring.I18N('ui.settings.option.lockcamera')..widgetOptionColor .. "   " ..Spring.I18N('ui.settings.option.lockcamera_transitiontime'), type = "slider", min = 0.5, max = 1.7, step = 0.01, value = (WG.lockcamera and WG.lockcamera.GetTransitionTime ~= nil and WG.lockcamera.GetTransitionTime()), description = Spring.I18N('ui.settings.option.lockcamera_transitiontime_descr'),
 		  onload = function(i)
 			  loadWidgetData("Lockcamera", "lockcamera_transitiontime", { 'transitionTime' })
 		  end,
@@ -3215,7 +3215,7 @@ function init()
 			  saveOptionValue('Ally Selected Units', 'allyselectedunits', 'setSelectPlayerUnits', { 'selectPlayerUnits' }, value)
 		  end,
 		},
-		{ id = "lockcamera_hideenemies", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.lockcamera_hideenemies'), type = "bool", value = (WGLockcamera and WGLockcamera.GetLockHideEnemies()), description = Spring.I18N('ui.settings.option.lockcamera_hideenemies_descr'),
+		{ id = "lockcamera_hideenemies", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.lockcamera_hideenemies'), type = "bool", value = (WG.lockcamera and WG.lockcamera.GetHideEnemies()), description = Spring.I18N('ui.settings.option.lockcamera_hideenemies_descr'),
 		  onload = function(i)
 			  loadWidgetData("Lockcamera", "lockcamera_hideenemies", { 'lockcameraHideEnemies' })
 		  end,
@@ -3223,7 +3223,7 @@ function init()
 			  saveOptionValue('Lockcamera', 'lockcamera', 'SetLockHideEnemies', { 'lockcameraHideEnemies' }, value)
 		  end,
 		},
-		{ id = "lockcamera_los", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.lockcamera_los'), type = "bool", value = (WGLockcamera and WGLockcamera.GetLockLos()), description = Spring.I18N('ui.settings.option.lockcamera_los_descr'),
+		{ id = "lockcamera_los", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.lockcamera_los'), type = "bool", value = (WG.lockcamera and WG.lockcamera.GetLos()), description = Spring.I18N('ui.settings.option.lockcamera_los_descr'),
 		  onload = function(i)
 			  loadWidgetData("Lockcamera", "lockcamera_los", { 'lockcameraLos' })
 		  end,
@@ -6239,7 +6239,9 @@ function init()
 		options[getOptionByID('sameteamcolors')] = nil
 	end
 
-	if WG['advplayerlist_api'] == nil or WG['advplayerlist_api'].GetLockTransitionTime == nil then
+	if WG.lockcamera == nil then
+		options[getOptionByID('lockcamera_transitiontime')] = nil
+		options[getOptionByID('lockcamera_hideenemies')] = nil
 	end
 
 

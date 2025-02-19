@@ -286,7 +286,7 @@ function widget:Update(dt)
 	if WG.lockcamera then
 		updateTime = updateTime + dt
 		if updateTime > checkLockPlayerInterval then
-			lockPlayerID = WG.lockcamera.GetLockPlayerID()
+			lockPlayerID = WG.lockcamera.GetPlayerID()
 			if lockPlayerID ~= nil and selectPlayerUnits then
 				selectPlayerSelectedUnits(lockPlayerID)
 			end

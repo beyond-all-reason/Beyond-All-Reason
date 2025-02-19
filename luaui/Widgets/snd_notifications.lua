@@ -763,8 +763,8 @@ function widget:Update(dt)
 	passedTime = passedTime + dt
 	if passedTime > 0.2 then
 		passedTime = passedTime - 0.2
-		if WG.lockcamera and WG.lockcamera.GetLockPlayerID ~= nil then
-			lockPlayerID = WG.lockcamera.GetLockPlayerID()
+		if WG.lockcamera and WG.lockcamera.GetPlayerID ~= nil then
+			lockPlayerID = WG.lockcamera.GetPlayerID()
 		end
 
 		-- process sound queue

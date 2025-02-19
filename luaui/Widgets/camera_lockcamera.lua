@@ -176,16 +176,16 @@ end
 
 function widget:Initialize()
 	WG.lockcamera = {}
-	WG.lockcamera.GetLockPlayerID = function()
+	WG.lockcamera.GetPlayerID = function()
 		return lockPlayerID
 	end
-	WG.lockcamera.SetLockPlayerID = function(playerID)
+	WG.lockcamera.SetPlayerID = function(playerID)
 		LockCamera(playerID)
 	end
-	WG.lockcamera.GetLockHideEnemies = function()
+	WG.lockcamera.GetHideEnemies = function()
 		return lockcameraHideEnemies
 	end
-	WG.lockcamera.SetLockHideEnemies = function(value)
+	WG.lockcamera.SetHideEnemies = function(value)
 		lockcameraHideEnemies = value
 		if lockPlayerID and not select(3, Spring.GetPlayerInfo(lockPlayerID)) then
 			if not lockcameraHideEnemies then
@@ -208,16 +208,16 @@ function widget:Initialize()
 			end
 		end
 	end
-	WG.lockcamera.GetLockTransitionTime = function()
+	WG.lockcamera.GetTransitionTime = function()
 	    return transitionTime
 	end
-	WG.lockcamera.SetLockTransitionTime = function(value)
+	WG.lockcamera.SetTransitionTime = function(value)
 	    transitionTime = value
 	end
-	WG.lockcamera.GetLockLos = function()
+	WG.lockcamera.GetLos = function()
 	    return lockcameraLos
 	end
-	WG.lockcamera.SetLockLos = function(value)
+	WG.lockcamera.SetLos = function(value)
 		lockcameraLos = value
 		if lockcameraHideEnemies and mySpecStatus and lockPlayerID and not select(3, Spring.GetPlayerInfo(lockPlayerID)) then
 			if lockcameraLos and mySpecStatus then
