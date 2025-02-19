@@ -331,30 +331,28 @@ function widget:GameStart()
 end
 
 function widget:PlayerChanged(playerID)
-	if Spring.GetGameFrame() > 0 then
-		myTeamID = Spring.GetMyTeamID()
-		myTeamPlayerID = select(2, Spring.GetTeamInfo(myTeamID))
-		isSpec, fullview = Spring.GetSpectatingState()
-		tsOrderPlayers()
-		local receateLists = false
-		if not rejoining then
-			if playerID == currentTrackedPlayer then
-				SelectTrackingPlayer()
-				receateLists = true
-			end
+	myTeamID = Spring.GetMyTeamID()
+	myTeamPlayerID = select(2, Spring.GetTeamInfo(myTeamID))
+	isSpec, fullview = Spring.GetSpectatingState()
+	tsOrderPlayers()
+	local receateLists = false
+	if not rejoining then
+		if playerID == currentTrackedPlayer then
+			SelectTrackingPlayer()
+			receateLists = true
 		end
-		local name = spGetPlayerInfo(playerID, false)
-		if select(4, Spring.GetTeamInfo(myTeamID,false)) then	-- is AI?
-			local _, _, _, aiName = Spring.GetAIInfo(myTeamID)
-			local niceName = Spring.GetGameRulesParam('ainame_' .. myTeamID)
-			name = niceName or aiName
-		end
-		if name and drawlistsPlayername[name] then
-			drawlistsPlayername[name] = gl.DeleteList(drawlistsPlayername[name])
-		end
-		if receateLists then
-			createList()
-		end
+	end
+	local name = spGetPlayerInfo(playerID, false)
+	if select(4, Spring.GetTeamInfo(myTeamID,false)) then	-- is AI?
+		local _, _, _, aiName = Spring.GetAIInfo(myTeamID)
+		local niceName = Spring.GetGameRulesParam('ainame_' .. myTeamID)
+		name = niceName or aiName
+	end
+	if name and drawlistsPlayername[name] then
+		drawlistsPlayername[name] = gl.DeleteList(drawlistsPlayername[name])
+	end
+	if receateLists then
+		createList()
 	end
 end
 
@@ -440,10 +438,10 @@ function widget:Update(dt)
 			end
 		end
 	end
-	if not toggled2 and Spring.GetMapDrawMode() == 'los' then
+	if not toggled2 and not fullview then
 		toggled2 = true
 		createList()
-	elseif toggled2 and Spring.GetMapDrawMode() ~= 'los' then
+	elseif toggled2 and fullview then
 		toggled2 = false
 		createList()
 	end
