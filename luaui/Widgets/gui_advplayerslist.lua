@@ -3439,7 +3439,14 @@ function widget:Update(delta)
     lockPlayerID = WG.lockcamera and WG.lockcamera.GetLockPlayerID() or false
 
     if clickedPlayerTime and os.clock() - clickedPlayerTime > dblclickPeriod then
+        local oldMapDrawMode = Spring.GetMapDrawMode()
         Spring_SendCommands("specteam " .. player[clickedPlayerID].team)
+        -- restore current los drawmode (doing specteam makes it non normal non los view)
+        local newMapDrawMode = Spring.GetMapDrawMode()
+        if oldMapDrawMode == 'los' and oldMapDrawMode ~= newMapDrawMode then
+            Spring.SendCommands("togglelos")
+        end
+
         if lockPlayerID then
             LockCamera(player[clickedPlayerID].ai and nil or clickedPlayerID)
         end
