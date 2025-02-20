@@ -392,6 +392,10 @@ local effectDefs = {
 		{ color = { 0.1, 0.6, 0.4 }, width = 5, length = 36, piece = "lthrust", emitVector = { 0, 1, 0 }, light = 0.6 },
 		{ color = { 0.1, 0.6, 0.4 }, width = 5, length = 36, piece = "llthrust", emitVector = { 0, 1, 0 }, light = 0.6 },
 	},
+	["leglts"] = {
+		{ color = { 0.1, 0.6, 0.4 }, width = 5, length = 32, piece = "lthrust", emitVector = { 0, 1, 0 }, light = 0.5 },
+		{ color = { 0.1, 0.6, 0.4 }, width = 5, length = 32, piece = "rthrust", emitVector = { 0, 1, 0 }, light = 0.5 },
+	},
 	-- construction
 	["armca"] = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 24, piece = "thrust", xzVelocity = 1.2 },

@@ -135,6 +135,10 @@ local icontypes = {
 		bitmap = "icons/air_trans.png",
 		size = 1.36499989
 	},
+	leglts = {
+		bitmap = "icons/air_trans.png",
+		size = 1.36499989
+	},
 	armhvytrans = {
 		bitmap = "icons/air_trans.png",
 		size = 1.5
@@ -2245,7 +2249,7 @@ local icontypes = {
 	},
 	legatrans = {
 		bitmap = "icons/air_trans.png",
-		size = 1.36499989
+		size = 1.5
 	},
 	legavp = {
 		bitmap = "icons/factory_vehicle_t2.png",

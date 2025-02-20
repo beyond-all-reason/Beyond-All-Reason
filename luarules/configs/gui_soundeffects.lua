@@ -3125,6 +3125,11 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "arm-air-transport-small-ok",
 		BaseSoundWeaponType = "transport-large",
 	},
+	leglts = {
+		BaseSoundSelectType = "arm-air-transport-small-sel",
+		BaseSoundMovementType = "arm-air-transport-small-ok",
+		BaseSoundWeaponType = "transport-large",
+	},
 	legfig = {
 		BaseSoundSelectType = "arm-air-small-sel",
 		BaseSoundMovementType = "arm-air-small-ok",
