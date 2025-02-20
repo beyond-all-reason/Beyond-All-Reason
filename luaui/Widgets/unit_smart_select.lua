@@ -10,8 +10,8 @@ function widget:GetInfo()
 	}
 end
 
-local minimapToWorld = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").minimapToWorld
-local selectApi = VFS.Include("luaui/Widgets/Include/select_api.lua")
+local minimapToWorld = VFS.Include("luaui/Include/minimap_utils.lua").minimapToWorld
+local selectApi = VFS.Include("luaui/Include/select_api.lua")
 
 local skipSel
 local inSelection = false

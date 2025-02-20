@@ -215,7 +215,7 @@ local grassShader = nil
 local grassVertexShaderDebug = ""
 local grassFragmentShaderDebug = ""
 local grassPatchCount = 0
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 local grassRowInstance = {0} -- a table of row, instanceidx from top side of the view
 
@@ -257,7 +257,7 @@ local function makeGrassPatchVBO(grassPatchSize) -- grassPatchSize = 1|4, see th
 	  {id = 5, name = "texcoords1", size = 2},
 	  {id = 6, name = "pieceindex", size = 1},} --khm, this should be unsigned int
   
-	local VBOData = VFS.Include("LuaUI/Widgets/Include/grassPatches.lua")
+	local VBOData = VFS.Include("LuaUI/Include/grassPatches.lua")
 	
 	if grassPatchSize == 1 then
 		grassPatchVBOsize = 36
@@ -699,8 +699,8 @@ local function makeGrassInstanceVBO()
 	end
 end
 
-local vsSrcPath = "LuaUI/Widgets/Shaders/map_grass_gl4.vert.glsl"
-local fsSrcPath = "LuaUI/Widgets/Shaders/map_grass_gl4.frag.glsl"
+local vsSrcPath = "LuaUI/Shaders/map_grass_gl4.vert.glsl"
+local fsSrcPath = "LuaUI/Shaders/map_grass_gl4.frag.glsl"
 
 
 

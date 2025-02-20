@@ -405,7 +405,7 @@ local circleInstanceVBOLayout = {
 		  {id = 4, name = 'projectileParams', size = 4}, --- heightboost gradient
 		}
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 local defenseRangeShader = nil

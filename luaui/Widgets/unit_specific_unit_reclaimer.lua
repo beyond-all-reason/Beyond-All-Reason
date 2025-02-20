@@ -75,9 +75,10 @@ function widget:CommandNotify(id, params, options)
 
 			local targetEnemy = reclaimEnemy and spGetUnitAllyTeam(id) ~= allyTeam
 			local unitDef = spGetUnitDefID(id)
-			local areaUnits = spGetUnitsInCylinder(cx ,cz , cr)
-
-			if not targetEnemy then
+			local areaUnits
+			if targetEnemy then
+				areaUnits = spGetUnitsInCylinder(cx, cz, cr, -4)
+			else
 				areaUnits = spGetUnitsInCylinder(cx ,cz , cr, team)
 			end
 
@@ -85,7 +86,7 @@ function widget:CommandNotify(id, params, options)
 			local count = 0
 			for i=1,#areaUnits do
 				local unitID    = areaUnits[i]
-				if (targetEnemy and spGetUnitAllyTeam(unitID) ~= allyTeam) or (options.alt and not targetEnemy and spGetUnitDefID(unitID) == unitDef ) or  (options.ctrl and not targetEnemy) then
+				if targetEnemy or (options.alt and spGetUnitDefID(unitID) == unitDef) or options.ctrl then
 					local cmdOpts = {}
 					if count ~= 0 or options.shift then
 						cmdOpts = {"shift"}

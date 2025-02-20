@@ -163,7 +163,7 @@ function gadget:GameFrame(frame)
 	end
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 
 	local evoID = Spring.GetUnitRulesParam(unitID, "unit_evolved")
 	if evoID then

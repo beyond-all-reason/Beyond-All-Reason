@@ -28,7 +28,7 @@ return {
 		sightdistance = 234,
 		terraformspeed = 750,
 		workertime = 150,
-		yardmap = "oooooo oooooo occcco occcco occcco occcco",
+		yardmap = "oooooo oooooo oeeeeo oeeeeo oeeeeo oeeeeo",
 		buildoptions = {
 			[1] = "armbeaver",
 			[2] = "armpincer",

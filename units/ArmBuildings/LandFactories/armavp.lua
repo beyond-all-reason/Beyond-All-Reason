@@ -31,7 +31,7 @@ return {
 		sightdistance = 283.39999,
 		terraformspeed = 1000,
 		workertime = 300,
-		yardmap = "ooooooooo ooooooooo ooooooooo ooooooooo oocccccoo oocccccoo oocccccoo oocccccoo oocccccoo",
+		yardmap = "ooooooooo ooooooooo ooooooooo ooooooooo ooeeeeeoo ooeeeeeoo ooeeeeeoo ooeeeeeoo ooeeeeeoo",
 		buildoptions = {
 			[1] = "armacv",
 			[2] = "armconsul",

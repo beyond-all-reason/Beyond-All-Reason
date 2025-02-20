@@ -1655,6 +1655,18 @@ local icontypes = {
 		bitmap = "icons/mine.png",
 		size = 0.55649996
 	},
+	legmine1 = {
+		bitmap = "icons/mine.png",
+		size = 0.37799999
+	},
+	legmine2 = {
+		bitmap = "icons/mine.png",
+		size = 0.46199998
+	},
+	legmine3 = {
+		bitmap = "icons/mine.png",
+		size = 0.55649996
+	},
 	cormine4 = {
 		bitmap = "icons/mine.png",
 		size = 0.46199998

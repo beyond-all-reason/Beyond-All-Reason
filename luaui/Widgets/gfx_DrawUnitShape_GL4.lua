@@ -47,7 +47,7 @@ end
 
 -- void LuaVAOImpl::RemoveFromSubmission(int idx)
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevboidtable.lua")
 
