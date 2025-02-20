@@ -789,18 +789,18 @@ local function ArrayInsert(t, f, w)
 	end
 end
 
-local function ArrayRemove(t, w)
-	local i = 1
-	local n = #t
-	while i <= n do
-	  	if t[i] == w then
+---Removes all elements equal to value from given array.
+---@generic V
+---@param t V[]
+---@param value V
+local function ArrayRemove(t, value)
+	for i = #t, 1, -1 do
+		if t[i] == value then
 			table.remove(t, i)
-			n = n - 1
-		else
-			i = i + 1
-	  	end
+		end
 	end
 end
+
 
 --------------------------------------------------------------------------------
 --- Safe reordering
