@@ -790,11 +790,14 @@ local function ArrayInsert(t, f, w)
 end
 
 local function ArrayRemove(t, w)
-	for k, v in ipairs(t) do
-		if v == w then
-			table.remove(t, k)
-			--break
-		end
+	local i = 1
+	local n = #t
+	while i < n do
+	  	if t[i] == w then
+			table.remove(t, i)
+		else
+			i = i + 1
+	  	end
 	end
 end
 
