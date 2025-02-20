@@ -558,7 +558,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 	return widget
 end
 
-local SystemMeta =
+local WidgetMeta =
 {
 	__index = System,
 	__metatable = true,
@@ -566,7 +566,7 @@ local SystemMeta =
 
 function widgetHandler:NewWidget()
 	tracy.ZoneBeginN("W:NewWidget")
-	local widget = setmetatable({}, SystemMeta)
+	local widget = setmetatable({}, WidgetMeta)
 	widget.WG = self.WG    -- the shared table
 	widget.widget = widget -- easy self referencing
 
