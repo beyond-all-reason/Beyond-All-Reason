@@ -792,9 +792,10 @@ end
 local function ArrayRemove(t, w)
 	local i = 1
 	local n = #t
-	while i < n do
+	while i <= n do
 	  	if t[i] == w then
 			table.remove(t, i)
+			n = n - 1
 		else
 			i = i + 1
 	  	end
