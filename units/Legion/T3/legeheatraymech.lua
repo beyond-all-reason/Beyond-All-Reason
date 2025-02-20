@@ -208,7 +208,7 @@ return {
 				soundstartvolume = 13.0,
 				separation = 2.0,
 				nogap = false,
-				size = 4,
+				size = 9,
 				sizeDecay = 0.06,
 				stages = 9,
 				alphaDecay = 0.10,
