@@ -143,8 +143,7 @@ return {
 				customparams = {
 					exclude_preaim = true,
 					--sweepfire=0.4,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
-				}
-
+				},
 			},
 		},
 		weapons = {
