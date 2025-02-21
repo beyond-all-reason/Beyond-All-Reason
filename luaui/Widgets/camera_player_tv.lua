@@ -47,7 +47,7 @@ local vsx, vsy = Spring.GetViewGeometry()
 local widgetScale = (0.7 + (vsx * vsy / 5000000))
 
 local toggled = false
-local toggled2 = Spring.GetMapDrawMode() == 'los'
+local toggled2 = not fullview
 local forceRefresh = false
 local drawlist = {}
 local desiredLosmodeChanged = 0
@@ -448,7 +448,7 @@ function widget:Update(dt)
 
 	updatePosition()
 
-	if isSpec and Spring.GetGameFrame() > 0 and not rejoining then
+	if isSpec and not rejoining then
 		if WG['tooltip'] and not toggled and not lockPlayerID then
 			local mx, my, mb = Spring.GetMouseState()
 			if toggleButton ~= nil and math_isInRect(mx, my, toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4]) then
@@ -489,25 +489,23 @@ function widget:DrawScreen()
 		showBackgroundGuishader =  true
 	end
 
-	if gameFrame > 0 or lockPlayerID then
-		if drawlist[1] then
-			gl.PushMatrix()
-			gl.CallList(drawlist[1])
-			gl.PopMatrix()
-			local mx, my, mb = Spring.GetMouseState()
-			if toggleButton ~= nil and drawlist[2] and math_isInRect(mx, my, toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4]) then
-				gl.CallList(drawlist[2])
-			end
-			if toggleButton2 ~= nil and drawlist[3] and math_isInRect(mx, my, toggleButton2[1], toggleButton2[2], toggleButton2[3], toggleButton2[4]) then
-				gl.CallList(drawlist[3])
-			end
-			if not toggled and not lockPlayerID and toggleButton3 ~= nil and drawlist[4] and math_isInRect(mx, my, toggleButton3[1], toggleButton3[2], toggleButton3[3], toggleButton3[4]) then
-				gl.CallList(drawlist[4])
-			end
+	if drawlist[1] then
+		gl.PushMatrix()
+		gl.CallList(drawlist[1])
+		gl.PopMatrix()
+		local mx, my, mb = Spring.GetMouseState()
+		if toggleButton ~= nil and drawlist[2] and math_isInRect(mx, my, toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4]) then
+			gl.CallList(drawlist[2])
+		end
+		if toggleButton2 ~= nil and drawlist[3] and math_isInRect(mx, my, toggleButton2[1], toggleButton2[2], toggleButton2[3], toggleButton2[4]) then
+			gl.CallList(drawlist[3])
+		end
+		if not toggled and not lockPlayerID and toggleButton3 ~= nil and drawlist[4] and math_isInRect(mx, my, toggleButton3[1], toggleButton3[2], toggleButton3[3], toggleButton3[4]) then
+			gl.CallList(drawlist[4])
 		end
 	end
 
-	if toggled and not rejoining and gameFrame > 0 then
+	if toggled and not rejoining then
 		local countDown = math.floor(nextTrackingPlayerChange - os.clock())
 		if drawlistsCountdown[countDown] ~= nil then
 			gl.PushMatrix()
@@ -685,7 +683,7 @@ function widget:Initialize()
 end
 
 function widget:MousePress(mx, my, mb)
-	if isSpec and (Spring.GetGameFrame() > 0 or lockPlayerID) then
+	if isSpec then
 		-- player tv
 		if toggleButton ~= nil and math_isInRect(mx, my, toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4]) then
 			if mb == 1 then
