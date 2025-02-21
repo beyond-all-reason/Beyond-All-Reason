@@ -19,7 +19,6 @@ local gl = gl
 
 local CONFIG_FILENAME = LUAUI_DIRNAME .. 'Config/' .. Game.gameShortName .. '.lua'
 local WIDGET_DIRNAME = LUAUI_DIRNAME .. 'Widgets/'
-local WIDGET_DIRNAME_MAP = LUAUI_DIRNAME .. 'Widgets/'
 
 local SELECTOR_BASENAME = 'selector.lua'
 
@@ -170,6 +169,7 @@ for _, ci in ipairs(flexCallIns) do
 end
 
 local callInLists = {
+	'FontsChanged',
 	'GamePreload',
 	'GameStart',
 	'Shutdown',
@@ -300,6 +300,7 @@ end
 
 
 --------------------------------------------------------------------------------
+local unsortedWidgets
 local doMoreYield = (Spring.Yield ~= nil);
 
 local function Yield()
@@ -313,59 +314,47 @@ local zipOnly = {
 	["Widget Profiler"] = true,
 }
 
+local function loadWidgetFiles(vfsMode)
+	local fromZip = vfsMode ~= VFS.RAW
+	local widgetFiles = VFS.DirList(WIDGET_DIRNAME, "*.lua", vfsMode)
+
+	for _, subDirectory in ipairs( VFS.SubDirs(WIDGET_DIRNAME) ) do
+		table.append( widgetFiles, VFS.DirList(subDirectory, "*.lua", vfsMode) )
+	end
+
+	for _, file in ipairs(widgetFiles) do
+		local widget = widgetHandler:LoadWidget(file, fromZip)
+		local excludeWidget = widget and not fromZip and zipOnly[widget.whInfo.name]
+
+		if widget and not excludeWidget then
+			table.insert(unsortedWidgets, widget)
+			Yield()
+		end
+	end
+end
+
 function widgetHandler:Initialize()
 	widgetHandler:CreateQueuedReorderFuncs()
 	widgetHandler:HookReorderSpecialFuncs()
 	self:LoadConfigData()
 
-	-- do we allow userland widgets?
 	if self.allowUserWidgets == nil then
 		self.allowUserWidgets = true
 	end
+
+	Spring.CreateDir(LUAUI_DIRNAME .. 'Config')
+
+	unsortedWidgets = {}
+
 	if self.allowUserWidgets and allowuserwidgets then
 		Spring.Echo("LuaUI: Allowing User Widgets")
+		loadWidgetFiles(VFS.RAW)
 	else
 		Spring.Echo("LuaUI: Disallowing User Widgets")
 	end
 
-	-- create the "LuaUI/Config" directory
-	Spring.CreateDir(LUAUI_DIRNAME .. 'Config')
+	loadWidgetFiles(VFS.ZIP)
 
-	local unsortedWidgets = {}
-
-	-- stuff the raw widgets into unsortedWidgets
-	if self.allowUserWidgets and allowuserwidgets then
-		local widgetFiles = VFS.DirList(WIDGET_DIRNAME, "*.lua", VFS.RAW)
-		for k, wf in ipairs(widgetFiles) do
-			local widget = self:LoadWidget(wf, false)
-			if widget and not zipOnly[widget.whInfo.name] then
-				table.insert(unsortedWidgets, widget)
-				Yield()
-			end
-		end
-	end
-
-	-- stuff the zip widgets into unsortedWidgets
-	local widgetFiles = VFS.DirList(WIDGET_DIRNAME, "*.lua", VFS.ZIP)
-	for k, wf in ipairs(widgetFiles) do
-		local widget = self:LoadWidget(wf, true)
-		if widget then
-			table.insert(unsortedWidgets, widget)
-			Yield()
-		end
-	end
-
-	-- stuff the map widgets into unsortedWidgets
-	local widgetFiles = VFS.DirList(WIDGET_DIRNAME_MAP, "*.lua", VFS.MAP)
-	for k, wf in ipairs(widgetFiles) do
-		local widget = self:LoadWidget(wf, true)
-		if widget then
-			table.insert(unsortedWidgets, widget)
-			Yield()
-		end
-	end
-
-	-- sort the widgets
 	table.sort(unsortedWidgets, function(w1, w2)
 		local l1 = w1.whInfo.layer
 		local l2 = w2.whInfo.layer
@@ -383,7 +372,6 @@ function widgetHandler:Initialize()
 		end
 	end)
 
-	-- add the widgets
 	for _, w in ipairs(unsortedWidgets) do
 		local name = w.whInfo.name
 		local basename = w.whInfo.basename
@@ -393,8 +381,7 @@ function widgetHandler:Initialize()
 		widgetHandler:InsertWidgetRaw(w)
 	end
 
-	-- Since Initialize is run out of the normal callin wrapper by InsertWidget,
-	-- we, need to reorder explicitly here.
+	-- Since Initialize is run out of the normal callin wrapper by InsertWidget, we, need to reorder explicitly here.
 	widgetHandler:PerformReorders()
 
 	-- save the active widgets, and their ordering
@@ -450,16 +437,16 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 
 		local widget = widgetHandler:NewWidget()
 		setfenv(chunk, widget)
-		local success, valOrErr = pcall(chunk)
+		local success, err = pcall(chunk)
 		if not success then
-			Spring.Echo('Failed to load: ' .. basename .. '  (' .. valOrErr .. ')')
+			Spring.Echo('Failed to load: ' .. basename .. '  (' .. err .. ')')
 			return nil
 		end
 		if err == false then
 			return nil -- widget asked for a silent death
 		end
 
-		local localsNames = valOrErr
+		local localsNames = err
 
 		text = text .. localsAccess.generateLocalsAccessStr(localsNames)
 	end
@@ -571,28 +558,21 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 	return widget
 end
 
+local WidgetMeta =
+{
+	__index = System,
+	__metatable = true,
+}
+
 function widgetHandler:NewWidget()
 	tracy.ZoneBeginN("W:NewWidget")
-	local widget = {}
-	if true then
-		-- copy the system calls into the widget table
-		for k, v in pairs(System) do
-			widget[k] = v
-		end
-	else
-		-- use metatable redirection
-		setmetatable(widget, {
-			__index = System,
-			__metatable = true,
-		})
-	end
+	local widget = setmetatable({}, WidgetMeta)
 	widget.WG = self.WG    -- the shared table
 	widget.widget = widget -- easy self referencing
 
 	-- wrapped calls (closures)
 	widget.widgetHandler = {}
 	local wh = widget.widgetHandler
-	local self = self
 	widget.include = function(f)
 		return include(f, widget)
 	end
@@ -1572,7 +1552,7 @@ function widgetHandler:DrawPreDecals()
 end
 
 function widgetHandler:DrawWorldPreParticles()
-	-- NOTE: This is called TWICE per draw frame, once before water and once after, even if no water is present. The second is the refraction pass. 
+	-- NOTE: This is called TWICE per draw frame, once before water and once after, even if no water is present. The second is the refraction pass.
 	tracy.ZoneBeginN("W:DrawWorldPreParticles")
 	for _, w in r_ipairs(self.DrawWorldPreParticlesList) do
 		w:DrawWorldPreParticles()
@@ -1667,6 +1647,14 @@ function widgetHandler:SunChanged()
 	return
 end
 
+function widgetHandler:FontsChanged()
+	tracy.ZoneBeginN("FontsChanged")
+	for _, w in r_ipairs(self.FontsChangedList) do
+		w:FontsChanged()
+	end
+	tracy.ZoneEnd()
+	return
+end
 
 --------------------------------------------------------------------------------
 --
@@ -2253,11 +2241,11 @@ function widgetHandler:UnitFromFactory(unitID, unitDefID, unitTeam, factID, fact
 	return
 end
 
-function widgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam)
+function widgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	widgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 	tracy.ZoneBeginN("W:UnitDestroyed")
 	for _, w in ipairs(self.UnitDestroyedList) do
-		w:UnitDestroyed(unitID, unitDefID, unitTeam)
+		w:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	end
 	tracy.ZoneEnd()
 	return

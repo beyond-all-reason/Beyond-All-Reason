@@ -22,7 +22,7 @@ door3,
 door4,
 door5,
 door6,
-mainStrut, supportStrut, housingStrut, sleeveHousing, sleeveBottom, sleeveTop, barrelBottom, barrelTop, flareBottom, flareTop;
+mainStrut, supportStrut, housingStrut, sleeveHousing, sleeveBottom, sleeveTop, barrelBottom, barrelTop, flareBottom, flareTop, turretmidpoint;
 
 static-var  turretOpen, nextBarrel, lastHeading, stunned, restoreDelay;
 
@@ -327,7 +327,7 @@ QuerySecondary(piecenum)
 
 QueryTertiary(piecenum)
 {
-	piecenum = base;
+	piecenum = turretmidpoint;
 }
 
 SweetSpot(piecenum)

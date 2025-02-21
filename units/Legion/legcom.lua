@@ -80,7 +80,6 @@ return {
 			[16] = "legtide",
 			[17] = "coruwms",
 			[18] = "coruwes",
-			--[19] = "armuwmex",
 			[20] = "legfmkr",
 			[21] = "corsy",
 			[22] = "corfdrag",

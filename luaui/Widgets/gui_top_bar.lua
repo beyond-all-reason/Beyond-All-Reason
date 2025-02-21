@@ -1929,7 +1929,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 	comcountChanged = true
 end
 
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	if not isCommander[unitDefID] then
 		return
 	end

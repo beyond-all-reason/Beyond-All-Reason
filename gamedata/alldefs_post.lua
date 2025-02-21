@@ -259,30 +259,13 @@ function UnitDef_Post(name, uDef)
 		end
 
 		if modOptions.unit_restrictions_nonukes then
-			local Nukes = {
-				armamd = true,
-				armsilo = true,
-				armscab = true,
-				armseadragon = true,
-				corfmd = true,
-				corsilo = true,
-				cormabm = true,
-				cordesolator = true,
-				legsilo =  true,
-				legabm = true,
-				armamd_scav = true,
-				armsilo_scav = true,
-				armscab_scav = true,
-				armseadragon_scav = true,
-				corfmd_scav = true,
-				corsilo_scav = true,
-				cormabm_scav = true,
-				cordesolator_scav = true,
-				legsilo_scav =  true,
-				legabm_scav = true,
-			}
-			if Nukes[name] then
-				uDef.maxthisunit = 0
+			if uDef.weapondefs then
+				for _, weapon in pairs(uDef.weapondefs) do
+					if (weapon.interceptor and weapon.interceptor == 1) or (weapon.targetable and weapon.targetable == 1) then
+						uDef.maxthisunit = 0
+						break
+					end
+				end
 			end
 		end
 
@@ -531,6 +514,9 @@ function UnitDef_Post(name, uDef)
 				uDef.buildoptions[numBuildoptions+7] = "corvac" --corprinter
 
 			end
+		elseif name == "corlab" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "corkark"
 		elseif name == "coralab" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "cordeadeye"
@@ -877,10 +863,15 @@ function UnitDef_Post(name, uDef)
 
 	-- Shield Rework
 	if modOptions.shieldsrework == true and uDef.weapondefs then
+		local shieldPowerMultiplier = 1.9-- To compensate for always taking full damage from projectiles in contrast to bounce-style only taking partial
+
 		for _, weapon in pairs(uDef.weapondefs) do
 			if weapon.shield and weapon.shield.repulser then
 				uDef.onoffable = true
 			end
+		end
+		if uDef.customparams.shield_power then
+			uDef.customparams.shield_power = uDef.customparams.shield_power * shieldPowerMultiplier
 		end
 	end
 
@@ -1413,8 +1404,8 @@ function WeaponDef_Post(name, wDef)
 				wDef.mygravity = 0.1445
 			end
 		end
-      
-		-- Accurate Lasers		
+
+		-- Accurate Lasers
 		if modOptions.proposed_unit_reworks then
 			if wDef.weapontype and wDef.weapontype == 'BeamLaser' then
 				wDef.targetmoveerror = nil
@@ -1496,7 +1487,8 @@ function WeaponDef_Post(name, wDef)
 		--Shields Rework
 		if modOptions.shieldsrework == true then
 			-- To compensate for always taking full damage from projectiles in contrast to bounce-style only taking partial
-			local shieldRechargeRateMultiplier = 2.5
+			local shieldPowerMultiplier = 1.9
+			local shieldRegenMultiplier = 2.5
 			local shieldRechargeCostMultiplier = 1
 
 			-- For balance, paralyzers need to do reduced damage to shields, as their raw raw damage is outsized
@@ -1540,7 +1532,8 @@ function WeaponDef_Post(name, wDef)
 			if wDef.shield then
 				wDef.shield.exterior = true
 				if wDef.shield.repulser == true then --isn't an evocom
-					wDef.shield.powerregen = wDef.shield.powerregen * shieldRechargeRateMultiplier
+					wDef.shield.powerregen = wDef.shield.powerregen * shieldRegenMultiplier
+					wDef.shield.power = wDef.shield.power * shieldPowerMultiplier
 					wDef.shield.powerregenenergy = wDef.shield.powerregenenergy * shieldRechargeCostMultiplier
 				end
 				wDef.shield.repulser = false

@@ -4,7 +4,7 @@
 #include "exptype.h"
 #include "smart_weapon_select.h"
 
-piece  base, flare, turret, door1, door2, door3, door4, barrel, stand, aimpoint;
+piece  base, flare, turret, door1, door2, door3, door4, barrel, stand, aimpoint, turretmidpoint;
 
 static-var  turretOpen, restoreDelay, stunned;
 
@@ -243,7 +243,7 @@ QuerySecondary(piecenum)
 
 QueryTertiary(piecenum)
 {
-	piecenum = base;
+	piecenum = turretmidpoint;
 }
 
 SweetSpot(piecenum)

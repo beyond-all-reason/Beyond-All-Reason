@@ -1519,6 +1519,45 @@ local options = {
 
     {
         key     = "sub_header",
+        name    = "-- AI Cheats",
+        desc    = "",
+        section = "options_cheats",
+        type    = "subheader",
+        def     =  true,
+    },
+
+    {
+        key 	= "dynamiccheats",
+        name 	= "Dynamic Cheats",
+        desc   	= "Cheats marked as [Dynamic] react to the game state and are suspended when the opposition is losing",
+        type 	= "bool",
+        def 	= true,
+        section = "options_cheats",
+    },
+
+    {
+        key		= "nowasting",
+        name	= "No Resource Wasting",
+        desc	= "[Dynamic] Increases Buildpower for the affected team's builders and factories to prevent resource",
+        type	= "list",
+        def		= "default",
+        section	= "options_cheats",
+        items	= {
+            { key= "default", 	name= "Default", 		desc="Disabled, unless other features use it"},
+            { key= "disabled", 	name= "Disabled", 		desc="Disabled"},
+            { key= "ai", 		name= "AI Only", 	    desc="All AI except Scavengers and Raptors"},
+            { key= "all", 	    name= "All",			desc="AI and Player Teams both excluding Scavengers and Raptors" },
+        }
+    },
+
+    {
+        key     = "sub_header",
+        section = "options_cheats",
+        type    = "separator",
+    },
+
+    {
+        key     = "sub_header",
         name    = "-- Starting Resources",
         desc    = "",
         section = "options_cheats",

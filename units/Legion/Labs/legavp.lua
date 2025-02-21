@@ -42,16 +42,16 @@ return {
         oo oo oo oo oo oo oo oo oo
         oo oo oo oo oo oo oo oo oo
         oo oo oo oo oo oo oo oo oo
-        oo oo oc cc cc cc co oo oo
-        oo oo oc cc cc cc co oo oo
-        oo oo oc cc cc cc co oo oo
-        oo oo oc cc cc cc co oo oo
-        oo oo oc cc cc cc co oo oo
-        oo oo oc cc cc cc co oo oo
-        oo oo oc cc cc cc co oo oo
-        oo oo oc cc cc cc co oo oo
-        oo oo oc cc cc cc co oo oo
-        ]], 
+        oo oo oe ee ee ee eo oo oo
+        oo oo oe ee ee ee eo oo oo
+        oo oo oe ee ee ee eo oo oo
+        oo oo oe ee ee ee eo oo oo
+        oo oo oe ee ee ee eo oo oo
+        oo oo oe ee ee ee eo oo oo
+        oo oo oe ee ee ee eo oo oo
+        oo oo oe ee ee ee eo oo oo
+        oo oo oe ee ee ee eo oo oo
+        ]],
 		buildoptions = {
 			"legacv",
 			"legmrv",
@@ -63,10 +63,10 @@ return {
 			"legvcarry",
 			"legavroc",
 			"leginf",
-			"corsent",
+			"legvflak",
 			"cormabm",
-			"coreter",
-			"corvrad",
+			"legavjam",
+			"legavrad",
 		},
 		customparams = {
 			usebuildinggrounddecal = false,

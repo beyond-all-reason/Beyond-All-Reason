@@ -118,6 +118,7 @@ return {
 				beamttl = 0.099,
 				camerashake = 0.1,
 				corethickness = 0.4,
+				collidefriendly = false,
 				craterareaofeffect = 120,
 				craterboost = 0,
 				cratermult = 0,

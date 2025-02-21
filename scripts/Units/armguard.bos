@@ -4,7 +4,7 @@
 #include "exptype.h"
 #include "smart_weapon_select.h"
 
-piece  flare1, flare2, base, turret, barrel1, barrel2, sleeves;
+piece  flare1, flare2, base, turret, barrel1, barrel2, sleeves, turretmidpoint;
 
 static-var  nextBarrel, lastHeading;
 
@@ -175,7 +175,7 @@ QuerySecondary(piecenum)
 
 QueryTertiary(piecenum)
 {
-	piecenum = base;
+	piecenum = turretmidpoint;
 }
 
 AimTertiary(piecenum)
