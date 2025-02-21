@@ -451,6 +451,7 @@ StopWalking() {
 	move body to z-axis [0] speed [100] / animSpeed;
 	
 	turn body to x-axis <0> speed <200> / animSpeed;
+	turn body to y-axis <0> speed <200> / animSpeed;
 	turn body to z-axis <0> speed <200> / animSpeed;
 	turn turret to y-axis <0> speed <200> / animSpeed; 
 	turn sleeve to x-axis <0> speed <200> / animSpeed;
