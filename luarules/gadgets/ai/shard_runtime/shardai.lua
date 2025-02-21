@@ -48,7 +48,7 @@ function ShardAI:Init()
 	self.game.ai = self
 	self.map.ai = self
 	self.data = {}
-	self.game:DrawDisplay(true)
+	self.game:DrawDisplay(false)
 	self:Info(
 		self.fullname .. " - playing: " .. self.game:GameName() .. " on: " .. self.map:MapName()
 	)
@@ -329,7 +329,6 @@ function ShardAI:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
 end
 
 function ShardAI:UnitMoveFailed(engineunit)
-	print('UNIT MOVE FAILED')
 	if self.gameend == true then
 		return
 	end

@@ -122,14 +122,17 @@ function AttackHST:SquadCheck(squad)
 			table.remove(squad.members,i)
 			self:RemoveRecruit(member)
 		else
-			check = true
 			local ux,uy,uz = member.unit:Internal():GetRawPos()
--- 			pos = self.ai.tool:sumPos(pos,uPos)
-			x = x + ux--member.unit.x
--- 			y = y + uy--member.unit.y
-			z = z + uz--member.unit.z
-			memberCount = memberCount + 1
-			mass = mass + member.mass
+			if ux then
+				check = true
+			
+	-- 			pos = self.ai.tool:sumPos(pos,uPos)
+				x = x + ux--member.unit.x
+	-- 			y = y + uy--member.unit.y
+				z = z + uz--member.unit.z
+				memberCount = memberCount + 1
+				mass = mass + member.mass
+			end
 		end
 	end
 	if not check then
@@ -326,6 +329,10 @@ function AttackHST:SquadAdvance(squad)
 end
 
 function AttackHST:SquadsTargetHandled(target)
+	if not target then
+		self:EchoDebug('no target to handle')
+		return
+	end
 	for squadID,squad in pairs(self.squads) do
 		if squad.target and squad.target.X == target.X and squad.target.Z == target.Z then
 			return squad.squadID
@@ -500,8 +507,8 @@ function AttackHST:RemoveRecruit(attkbhvr)
 	return false
 end
 
-function AttackHST:MemberIdle(attkbhvr, squad)
-	if attkbhvr then
+function AttackHST:MemberIdle(attkbhvr)
+	if attkbhvr and attkbhvr.squad then
 		squad = attkbhvr.squad
 		squad.idleCount = (squad.idleCount or 0) + 1
 	end

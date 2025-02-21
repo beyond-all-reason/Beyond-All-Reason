@@ -40,7 +40,6 @@ end
 
 function Unit:Update()
 	-- Handle activating a new behaviour if we switched
-	--local RAM = gcinfo()
 	if self.nextBehaviour ~= nil then
 		self.activeBehaviour = self.nextBehaviour
 		self.nextBehaviour = nil

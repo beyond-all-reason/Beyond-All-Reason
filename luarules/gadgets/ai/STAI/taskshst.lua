@@ -783,7 +783,7 @@ function TasksHST:startRolesParams()
 				end,--economicParameters
 			duplicate = false , --duplicateFilter
 			numeric = false , --numericalParameter
-			location = {categories = {'selfCat','_nano_','factoryMobilities'},himself = true} ,
+			location = {categories = {'_nano_','selfCat','factoryMobilities'},himself = true} ,
 			special = true } , --specialFilter
 
 		{ 	category = '_fus_' ,

@@ -56,7 +56,7 @@ end
 function map:CanBuildHere(unittype,position) -- returns boolean
 	local newX, newY, newZ = Spring.Pos2BuildPos(unittype:ID(), position.x, position.y, position.z)
 	local blocked = Spring.TestBuildOrder(unittype:ID(), newX, newY, newZ, 1) == 0
-	-- Spring.Echo(unittype:Name(), newX, newY, newZ, blocked)
+	-- self:EchoDebug(unittype:Name(), newX, newY, newZ, blocked)
 	return ( not blocked ), {x=newX, y=newY, z=newZ}
 end
 

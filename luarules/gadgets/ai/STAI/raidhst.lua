@@ -12,7 +12,7 @@ local floor = math.floor
 local ceil = math.ceil
 
 function RaidHST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	self.recruits = {}
 	self.squads = {}
 	self.squadID = 1
@@ -67,9 +67,7 @@ function RaidHST:DraftAttackSquads()
 		--self:EchoDebug(index,soldier)--index,mtype,
 		--	print('oknoikjmijn')
 			if soldier and soldier.unit and not soldier.squad then
-		--		print('asdadasdsada')
 				for idx,squad in pairs(self.squads) do
-					print('kjdvkjdvkjdvjk')
 					self:EchoDebug(idx,squad.squadID,squad.lock,squad.mtype)
 					if not squad.lock and squad.mtype == mtype  then
 						table.insert(squad.members , soldier)
@@ -251,8 +249,10 @@ function RaidHST:SquadAttack(squad)
 	if self.ai.loshst.ENEMY[squad.target.X] and self.ai.loshst.ENEMY[squad.target.X][squad.target.Z]  and self.ai.tool:distance(squad.position,squad.target.POS) < 256 then
 		self:EchoDebug('squad',squad.squadID,'are near to offensive target, do raid')
 		for i,member in pairs(squad.members) do
-			for id,_ in pairs(squad.target.units) do
-				member.unit:Internal():Attack(id)
+			if squad.target.units then
+				for id,_ in pairs(squad.target.units) do
+					member.unit:Internal():Attack(id)
+				end
 			end
 		end
 		return true
@@ -311,12 +311,9 @@ function RaidHST:SquadAdvance(squad)
 	if not squad.target or not squad.path then
 		return
 	end
--- 	local RAM = gcinfo()
 	local x,y,z
 	self:EchoDebug('squad.pathStep',squad.step,'#squad.path',#squad.path)
 	self:SquadStepComplete(squad)
--- 	RAM1 = gcinfo()
--- 	if RAM1-RAM > 0 then Spring.Echo('squad advance1',RAM1-RAM) end
 	local members = squad.members
 	local nextPos = squad.path[squad.step]
 	local angle = math.min (squad.step + 1,#squad.path)
@@ -324,8 +321,6 @@ function RaidHST:SquadAdvance(squad)
 	local nextPerpendicularAngle = self.ai.tool:AngleAdd(nextAngle, halfPi)
  	squad.lastValidMove = nextPos -- raiders use this to correct bad move orders
 	self:EchoDebug('advance #members',#members)
--- 	RAM2 = gcinfo()
--- 	if RAM2-RAM1 > 0 then Spring.Echo('squad advance2',RAM2-RAM1 ) end
 	for i,member in pairs(members) do
 		local pos
  		if member.formationBack and squad.step ~= #squad.path then
@@ -338,12 +333,14 @@ function RaidHST:SquadAdvance(squad)
  		--self:EchoDebug('advance',pos,nextPerpendicularAngle,reverseAttackAngle)
 		member:Advance(pos or nextPos, nextPerpendicularAngle, reverseAttackAngle)
 	end
--- 	RAM3 = gcinfo()
--- 	if RAM3-RAM2 > 0 then Spring.Echo('squad advance3',RAM3-RAM2) end
 	self:EchoDebug('advance after members move')
 end
 
 function RaidHST:SquadsTargetHandled(target)
+	if not target then
+		self:EchoDebug('target handler no target to check')
+		return
+	end
 	for squadID,squad in pairs(self.squads) do
 		if squad.target and squad.target.X == target.X and squad.target.Z == target.Z then
 			return squad.squadID

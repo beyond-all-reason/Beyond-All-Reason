@@ -223,7 +223,7 @@ else	-- UNSYNCED CODE
 
 			if i == 1 and n % 121 == 0 then
 				local ramuse = gcinfo()
-				Spring.Echo("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%RAMUSE",i,n, ramuse)
+				Spring.Echo("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%RAMUSE",i,n, ramuse .. '/' .. garbagelimit)
 				if ramuse > garbagelimit then
 					collectgarbage("collect")
 					collectgarbage("collect")

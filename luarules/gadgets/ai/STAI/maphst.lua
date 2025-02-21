@@ -13,12 +13,8 @@ local pathGraphs = {}
 local mCeil = math.ceil
 
 function MapHST:Init()
-	local mcmcmcmc = Spring.GetGameRulesParam("mex_count")
-	Spring.Echo('mcmcmcmc',mcmcmcmc)
-	for i=1,80 do
--- 		Spring.Echo(i)
-		Spring.Echo(Spring.GetGameRulesParam("mex_x" .. i))
-	end
+	local rules_param_mex_count = Spring.GetGameRulesParam("mex_count")
+	self:EchoDebug('games rules param mex_count:',rules_param_mex_count)
 
 	self.DebugEnabled = false
 	self:EchoDebug('MapHST START')
@@ -761,23 +757,15 @@ function MapHST:ClosestFreeMex(unittype, builder, position)--get the closest fre
 	if not layer or not net then return end
 	local sortlist = self.ai.tool:sortByDistance(position,self.networks[layer][net].metals)
 -- 	for index, spot in ipairs(sortlist) do
--- 		Spring.Echo(index,spot)
+-- 		self:EchoDebug(index,spot)
 -- 	end
--- 	local RAM = gcinfo()
 	for index, spot in pairs(sortlist) do
--- 		local spot = self.networks[layer][net].metals[index]
-
 		if self:UnitCanGoHere(builder, spot) then
--- 			Spring.Echo('mexRAM1',gcinfo()-RAM)
 			if not self.ai.buildingshst:PlansOverlap(spot, uname) then
--- 				Spring.Echo('mexRAM2',gcinfo()-RAM)
 				if self.ai.targethst:IsSafeCell(spot, builder) then
--- 					Spring.Echo('mexRAM3',gcinfo()-RAM)
 					if map:CanBuildHere(unittype, spot) then
--- 					Spring.Echo('mexRAM4',gcinfo()-RAM)
 						local CELL = self:GetCell(spot,self.ai.loshst.ENEMY)
 						if not CELL or CELL.ENEMY == 0 then
---						Spring.Echo('mexRAM5',gcinfo()-RAM]])
 							return spot
 -- 							local distance = self.ai.tool:distance(position,spot)
 -- 							--print(distance-Distance)
