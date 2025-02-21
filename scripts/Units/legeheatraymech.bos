@@ -10,7 +10,7 @@ piece 	upperTorso, lArmUpperArm, lArmLowerArm, lArmGun, lArmShoulderJoint,
 		 lArmFlare, rShoulderFlare, lShoulderFlare,	lStompFlare, rStompFlare, front, front2,
 		 lArmBarrel, lArmPin, rArmBarrel, rArmPin;
 
-static-var  InMotion, restore_delay, aimingPose, wpn1_lasthead, timeLeft, targetswap1, isfiring1, targetswap2, isfiring2, timer, oldhead1, oldhead2, oldhead3, oldhead4, torsoaim, gun_4, gun_5; 			
+static-var  InMotion, restore_delay, aimingPose, wpn1_lasthead, timeLeft, isfiring1, isfiring2, timer, oldhead1, oldhead2, oldhead3, oldhead4, torsoaim, gun_4, gun_5; 			
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
@@ -24,8 +24,6 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 #define SIG_AIM_4			256
 #define SIG_AIM_5			512
 #define SIGNAL_RESTORE		1024
-#define SIG_FIRE_4			2048
-#define SIG_FIRE_5			4096
 
 #define SIGNAL_FOOTSTOMP_L 8
 #define SIGNAL_FOOTSTOMP_R 16
@@ -1057,9 +1055,7 @@ Create()
 	oldhead3 = 0;
 	oldhead4 = 0;
 	timer = 0;
-	targetswap1 = 0;
-	targetswap2 = 0;
-	restore_delay = 2000;
+	restore_delay = 1000;
 	gun_4 = 0;
 	gun_5 = 0;
 	call-script SweepFire();
@@ -1102,17 +1098,17 @@ SweepFire()
 {
 	while (TRUE)
 	{
-		if (targetswap1 == 1 AND isfiring1 == 1)
+		if (isfiring1 == 1)
 		{
             emit-sfx 2048+1 from lShoulderFlare;
 			timer = timer + 1;
 		}
-		if (targetswap2 == 1 AND isfiring2 == 1)
+		if (isfiring2 == 1)
 		{
             emit-sfx 2048+1 from rShoulderFlare;
 			timer = timer + 1;
 		}
-		if (timer > 500)
+		if (timer > 30)
 		{
 			timer = 0;
 			start-script ExecuteRestoreAfterDelay();
@@ -1131,7 +1127,7 @@ ExecuteRestoreAfterDelay(addTime)
     while((timeLeft > 1)){
 		//get PRINT(timeLeft, get GAME_FRAME);
         addTime = timeLeft;
-        timeLeft = 1;
+		timeLeft = 1;
         sleep addTime;//can sometimes sleep 6000 but never wake up again?
     }
 	//get PRINT(77, timeLeft, get GAME_FRAME);
@@ -1149,8 +1145,6 @@ ExecuteRestoreAfterDelay(addTime)
 	oldhead3 = 0;
 	oldhead4 = 0;
 	timer = 0;
-	targetswap1 = 0;
-	targetswap2 = 0;
 	start-script Close();
 }
 
@@ -1158,30 +1152,12 @@ RestoreAfterDelay()
 {
 	set-signal-mask SIG_AIM;
 	sleep restore_delay;
-	oldhead1 = -1000000;
-	oldhead2 = -1000000;
+	oldhead1 = 1000000;
+	oldhead2 = 1000000;
 	oldhead3 = 0;
 	oldhead4 = 0;
 
 	start-script ExecuteRestoreAfterDelay();
-}
-
-RestoreAfterDelay2()
-{
-	set-signal-mask SIG_AIM_4 | SIG_AIM_5;
-	sleep 3000;
-	start-script ExecuteRestoreAfterDelay2();
-}
-
-ExecuteRestoreAfterDelay2()
-{
-	set-signal-mask 0;
-	// turn turret to y-axis <0.000000> speed <90.000000>;
-	// turn gun to x-axis <0.000000> speed <50.000000>;
-	// turn lgun to x-axis <0.000000> speed <50.000000>;
-	// turn rgun to x-axis <0.000000> speed <50.000000>;
-	// stop-spin lgatling around z-axis decelerate <10.000000>;
-	// stop-spin rgatling around z-axis decelerate <10.000000>;
 }
 
 QueryWeapon1(piecenum) //Hull Rotation
@@ -1199,7 +1175,7 @@ AimWeapon1(heading, pitch)
 	start-script Open();
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	turn midTorso to y-axis (oldhead3+oldhead4)/2 speed <45.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
+	turn midTorso to y-axis (oldhead3+oldhead4)/2 speed <30.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
 	var gun_xz;
     gun_xz = get PIECE_XZ(midTorso);                                //get packed gun coordinates
     var gun_x;
@@ -1279,12 +1255,12 @@ AimFromWeapon2(pieceIndex)
 AimWeapon2(heading, pitch)
 {
 	signal SIG_AIM_2;
-	turn lArmShoulderJoint to y-axis (heading - torsoaim) + <3> speed <45>;
+	timer = 0;
+	turn lArmShoulderJoint to y-axis (heading - torsoaim) + <3> speed <35>;
 	turn lArmShoulderGun to x-axis (-1*pitch) + <35> speed <60>;
 	if (((get ABS(oldhead1 - heading)) > 65536) OR ((get ABS(oldhead1 - heading) > <1>) AND ((get ABS(oldhead1 - heading)) < 65536 - <1>)))
 	{
 		oldhead1 = 1000000;
-		targetswap1 = 1;
 		wait-for-turn lArmShoulderJoint around y-axis;
 		wait-for-turn lArmShoulderGun around x-axis;
 	}
@@ -1312,13 +1288,6 @@ AimWeapon2(heading, pitch)
 
 FireWeapon2()
 {
-    if (timeLeft == 0)
-    {
-        start-script RestoreAfterDelay();
-    }
-	timeLeft = restore_delay;
-	targetswap1 = 0;
-	timer = timer + 1;
 	return (0);
 }
 
@@ -1335,12 +1304,12 @@ AimFromWeapon3(pieceIndex)
 AimWeapon3(heading, pitch)
 {
 	signal SIG_AIM_3;
-	turn rArmShoulderJoint to y-axis (heading - torsoaim) + <3> speed <45>;
+	timer = 0;
+	turn rArmShoulderJoint to y-axis (heading - torsoaim) + <3> speed <35>;
 	turn rArmShoulderGun to x-axis (-1*pitch) + <35> speed <60>;
 	if (((get ABS(oldhead2 - heading)) > 65536) OR ((get ABS(oldhead2 - heading) > <1>) AND ((get ABS(oldhead2 - heading)) < 65536 - <1>)))
 	{
 		oldhead2 = 1000000;
-		targetswap2 = 1;
 		wait-for-turn rArmShoulderJoint around y-axis;
 		wait-for-turn rArmShoulderGun around x-axis;
 	}
@@ -1368,13 +1337,6 @@ AimWeapon3(heading, pitch)
 
 FireWeapon3()
 {
-    if (timeLeft == 0)
-    {
-        start-script RestoreAfterDelay();
-    }
-	timeLeft = restore_delay;
-	targetswap2 = 0;
-	timer = timer + 1;
 	return (0);
 }
 
@@ -1402,38 +1364,13 @@ AimWeapon4(heading, pitch)
 
 FireWeapon4()
 {
+	emit-sfx 1024 + 0 from lArmFlare;
+	move lArmBarrel to z-axis [-4.000000] speed [70.000000];
+	sleep 150;
+	move lArmBarrel to z-axis [0] speed [6.000000];
 	return(1);
 }
 
-Shot4(zero)
-{
-	signal SIG_FIRE_4;
-	set-signal-mask SIG_FIRE_4;
-	if (gun_4 == 0)
-	{
-		emit-sfx 1024 + 0 from lArmFlare;
-		move lArmBarrel to z-axis [-2.000000] speed [70.000000];
-	}
-	else if (gun_4 == 1)
-	{
-		emit-sfx 1024 + 0 from lArmFlare;
-		move lArmBarrel to z-axis [-4.000000] speed [70.000000];
-	}
-	else if (gun_4 == 2)
-	{
-		emit-sfx 1024 + 0 from lArmFlare;
-		move lArmBarrel to z-axis [-6.000000] speed [70.000000];
-		sleep 150;
-		move lArmBarrel to z-axis [0] speed [4.000000];
-	}
-	sleep 32;
-	++gun_4;
-	if(gun_4>=3)
-	{
-		gun_4=0;
-	}
-	return(1);
-}
 ////
 
 QueryWeapon5(pieceIndex)
@@ -1457,37 +1394,10 @@ AimWeapon5(heading, pitch)
 
 FireWeapon5()
 {
-	return(1);
-}
-
-Shot5(zero)
-{
-	signal SIG_FIRE_5;
-	set-signal-mask SIG_FIRE_5;
-	if (gun_5 == 0)
-	{
-		emit-sfx 1024 + 0 from rArmFlare;
-		move rArmBarrel to z-axis [-2.000000] speed [70.000000];
-	}
-	else if (gun_5 == 1)
-	{
-		emit-sfx 1024 + 0 from rArmFlare;
-		move rArmBarrel to z-axis [-4.000000] speed [70.000000];
-	}
-	else if (gun_5 == 2)
-	{
-		emit-sfx 1024 + 0 from rArmFlare;
-		move rArmBarrel to z-axis [-6.000000] speed [70.000000];
-		sleep 150;
-		move rArmBarrel to z-axis [0] speed [4.000000];
-	}
-	sleep 32;
-	++gun_5;
-	if(gun_5>=3)
-	{
-		gun_5=0;
-	}
-	return(1);
+	emit-sfx 1024 + 0 from rArmFlare;
+	move rArmBarrel to z-axis [-4.000000] speed [70.000000];
+	sleep 150;
+	move rArmBarrel to z-axis [0] speed [6.000000];
 }
 
 Killed(severity, corpsetype)
