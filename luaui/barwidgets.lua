@@ -558,28 +558,21 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 	return widget
 end
 
+local WidgetMeta =
+{
+	__index = System,
+	__metatable = true,
+}
+
 function widgetHandler:NewWidget()
 	tracy.ZoneBeginN("W:NewWidget")
-	local widget = {}
-	if true then
-		-- copy the system calls into the widget table
-		for k, v in pairs(System) do
-			widget[k] = v
-		end
-	else
-		-- use metatable redirection
-		setmetatable(widget, {
-			__index = System,
-			__metatable = true,
-		})
-	end
+	local widget = setmetatable({}, WidgetMeta)
 	widget.WG = self.WG    -- the shared table
 	widget.widget = widget -- easy self referencing
 
 	-- wrapped calls (closures)
 	widget.widgetHandler = {}
 	local wh = widget.widgetHandler
-	local self = self
 	widget.include = function(f)
 		return include(f, widget)
 	end
@@ -789,14 +782,18 @@ local function ArrayInsert(t, f, w)
 	end
 end
 
-local function ArrayRemove(t, w)
-	for k, v in ipairs(t) do
-		if v == w then
-			table.remove(t, k)
-			--break
+---Removes all elements equal to value from given array.
+---@generic V
+---@param t V[]
+---@param value V
+local function ArrayRemove(t, value)
+	for i = #t, 1, -1 do
+		if t[i] == value then
+			table.remove(t, i)
 		end
 	end
 end
+
 
 --------------------------------------------------------------------------------
 --- Safe reordering
