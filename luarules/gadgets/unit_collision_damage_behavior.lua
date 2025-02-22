@@ -197,7 +197,7 @@ function gadget:UnitLeftAir(unitID, unitDefID, unitTeam)
 	launchedUnits[unitID] = nil
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	transportedUnits[unitID] = nil
 	unitInertiaCheckFlags[unitID] = nil
 	launchedUnits[unitID] = nil

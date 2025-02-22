@@ -135,6 +135,10 @@ local icontypes = {
 		bitmap = "icons/air_trans.png",
 		size = 1.36499989
 	},
+	leglts = {
+		bitmap = "icons/air_trans.png",
+		size = 1.36499989
+	},
 	armhvytrans = {
 		bitmap = "icons/air_trans.png",
 		size = 1.5
@@ -2245,7 +2249,7 @@ local icontypes = {
 	},
 	legatrans = {
 		bitmap = "icons/air_trans.png",
-		size = 1.36499989
+		size = 1.5
 	},
 	legavp = {
 		bitmap = "icons/factory_vehicle_t2.png",
@@ -2496,8 +2500,12 @@ local icontypes = {
 		size = 1
 	},
 	legkark = {
+		bitmap = "icons/bot_t15_heat_shot.png",
+		size = 1.3
+	},
+	corkark = {
 		bitmap = "icons/legkark.png",
-		size = 1.20000005
+		size = 1.3
 	},
 	legkeres = {
 		bitmap = "icons/vehicle_t3_tank_mgun.png",

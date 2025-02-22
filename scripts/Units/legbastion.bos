@@ -19,7 +19,7 @@ static-var  restore_delay, shotcount, timer, lastfired, gameframe, state, statec
 // A high precision requirement can result in overshoots if desired 
 // (c) CC BY NC ND Beherith mysterme@gmail.com
 //#define MAX_AIMY1_VELOCITY <3.00>
-#define AIMY1_maxacc<0.16>
+#define AIMY1_maxacc <0.16>
 //#define AIMY1_JERK <0.5>
 //#define AIMY1_PRECISION <1.2>
 //#define AIMY1_RESTORE_SPEED <1.0>

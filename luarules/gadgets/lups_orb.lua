@@ -21,7 +21,7 @@ local defaults = {
 	repeatEffect = true,
 }
 
-local corafusShieldSphere = table.merge(defaults, {
+local corafusShieldSphere = table.merge(defaults, { 
 	pos = { 0, 60, 0 },
 	size = 32,
 	light = 4,
@@ -82,47 +82,44 @@ local leggatet3ShieldSphere = table.merge(defaults, {
 
 local UnitEffects = {
 	["armjuno"] = {
---		{ class = 'ShieldSphere', options = armjunoShieldSphere },
 		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 72, 0 }, size = 15.5, precision = 22, repeatEffect = true } },
 	},
 	["corjuno"] = {
---		{ class = 'ShieldSphere', options = corjunoShieldSphere },
 		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 72, 0 }, size = 15.5, precision = 22, repeatEffect = true } },
 	},
 
 	--// FUSIONS //--------------------------
 	["corafus"] = {
---		{ class = 'ShieldSphere', options = corafusShieldSphere },
 		{ class = 'ShieldJitter', options = { layer = -16, life = math.huge, pos = { 0, 60, 0 }, size = 34.5, precision = 22, repeatEffect = true } },
 	},
 	["corfus"] = {
---		{ class = 'ShieldSphere', options = corfusShieldSphere },
-		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 50, 0 }, size = 25.5, precision = 22, repeatEffect = true } },
+		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 50, 0 }, size = 25, precision = 22, repeatEffect = true } },
 	},
 	["armafus"] = {
---		{ class = 'ShieldSphere', options = armafusShieldSphere },
 		{ class = 'ShieldJitter', options = { layer = -16, life = math.huge, pos = { 0, 60, 0 }, size = 30.5, precision = 22, repeatEffect = true } },
+	},
+	["legfus"] = {
+		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 10.5, 0 }, size = 23, precision = 22, repeatEffect = true } },
+	},
+	["legafus"] = {
+		{ class = 'ShieldJitter', options = { layer = -16, life = math.huge, pos = { 0,60, 0 }, size = 39, precision = 22, repeatEffect = true } },
 	},
 	["resourcecheat"] = {
---		{ class = 'ShieldSphere', options = armafusShieldSphere },
 		{ class = 'ShieldJitter', options = { layer = -16, life = math.huge, pos = { 0, 60, 0 }, size = 30.5, precision = 22, repeatEffect = true } },
 	},
+
+
 	["corgate"] = {
-		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 42, 0 }, size = 13.5, precision = 22, repeatEffect = true } },
---		{ class = 'ShieldSphere', options = corgateShieldSphere },
-		--{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,42,0.0}, size=555, precision=0, strength= 0.001, repeatEffect=true}},
-		--{class='ShieldJitter',options={life=math.huge, pos={0,42,0}, size=20, precision=2, repeatEffect=true}},
+		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 42, 0 }, size = 12.5, precision = 22, repeatEffect = true } },
 	},
 	["corfgate"] = {
-		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 42, 0 }, size = 13.5, precision = 22, repeatEffect = true } },
---		{ class = 'ShieldSphere', options = corgateShieldSphere },
-		--{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,42,0.0}, size=555, precision=0, strength= 0.001, repeatEffect=true}},
-		--{class='ShieldJitter',options={life=math.huge, pos={0,42,0}, size=20, precision=2, repeatEffect=true}},
+		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 42, 0 }, size = 12.5, precision = 22, repeatEffect = true } },
+	},
+	["corgatet3"] = {
+		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 78, 0 }, size = 20, precision = 22, repeatEffect = true } },
 	},
 	["armgate"] = {
 		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 23.5, -5 }, size = 17, precision = 22, repeatEffect = true } },
---		{ class = 'ShieldSphere', options = armgateShieldSphere },
-		--{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,23.5,-5}, size=555, precision=0, strength=0.001, repeatEffect=true}},
 	},
 	["leggatet3"] = {
 		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 45, 0 }, size = 20, precision = 22, repeatEffect = true } },
@@ -131,23 +128,22 @@ local UnitEffects = {
 	},
 	["armfgate"] = {
 		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 25, 0 }, size = 17, precision = 22, repeatEffect = true } },
---		{ class = 'ShieldSphere', options = table.merge(armgateShieldSphere, { pos = { 0, 25, 0 } }) },
-		--{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,25,0}, size=555, precision=0, strength= 0.001, repeatEffect=true}},
 	},
+	["armgatet3"] = {
+		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 45, -5 }, size = 23, precision = 22, repeatEffect = true } },
+	},
+
+
 	["lootboxbronze"] = {
---		{ class = 'ShieldSphere', options = table.merge(corfusShieldSphere,  {pos = { 0, 34, 0 }, size = 10} ) },
 		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 34, 0 }, size = 10.5, precision = 22, repeatEffect = true } },
 	},
 	["lootboxsilver"] = {
---		{ class = 'ShieldSphere', options = table.merge(corfusShieldSphere,  {pos = { 0, 52, 0 }, size = 15} ) },
 		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 52, 0 }, size = 15.5, precision = 22, repeatEffect = true } },
 	},
 	["lootboxgold"] = {
---		{ class = 'ShieldSphere', options = table.merge(corfusShieldSphere,  {pos = { 0, 69, 0 }, size = 20} ) },
 		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 69, 0 }, size = 20.5, precision = 22, repeatEffect = true } },
 	},
 	["lootboxplatinum"] = {
---		{ class = 'ShieldSphere', options = table.merge(corfusShieldSphere,  {pos = { 0, 87, 0 }, size = 25} ) },
 		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 87, 0 }, size = 25.5, precision = 22, repeatEffect = true } },
 	},
 
@@ -156,7 +152,7 @@ local UnitEffects = {
 local scavEffects = {}
 if UnitDefNames['armcom_scav'] then
 	for k, effect in pairs(UnitEffects) do
-		if UnitDefNames[k .. '_scav'] then 
+		if UnitDefNames[k .. '_scav'] then
 			scavEffects[k .. '_scav'] = effect
 			if scavEffects[k .. '_scav'].options then
 				if scavEffects[k .. '_scav'].options.color then
@@ -182,7 +178,13 @@ end
 
 local newEffects = {}
 for unitname, effect in pairs(UnitEffects) do
-	newEffects[UnitDefNames[unitname].id] = effect
+	if UnitDefNames[unitname] then
+		newEffects[UnitDefNames[unitname].id] = effect
+	end
+end
+local newEffectsCopy = table.copy(UnitEffects)
+for name,effect in pairs(newEffectsCopy) do
+	newEffects[name..'_scav'] = effect
 end
 UnitEffects = newEffects
 newEffects = nil
@@ -192,7 +194,6 @@ local myAllyTeamID = Spring.GetMyAllyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 local mySpec, fullview = Spring.GetSpectatingState()
 
-local spGetUnitRulesParam = Spring.GetUnitRulesParam
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitIsActive = Spring.GetUnitIsActive
 local IsPosInLos = Spring.IsPosInLos
@@ -250,7 +251,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	end
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	if UnitEffects[unitDefID] then
 		ClearFxs(unitID)
 	end

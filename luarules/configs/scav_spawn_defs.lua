@@ -337,6 +337,7 @@ local LandUnitsList = {
 			--Legion
 			["leggat_scav"] = 4,
 			["legkark_scav"] = 4,
+			["corkark_scav"] = 4,
 			["legner_scav"] = 4,
 		},
 		[4] = {

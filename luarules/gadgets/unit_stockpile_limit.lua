@@ -131,7 +131,7 @@ if gadgetHandler:IsSyncedCode() then
 		UpdateStockpile(unitID, unitDefID)
 	end
 
-	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 		StockpileDesiredTarget[unitID] = nil
 	end
 

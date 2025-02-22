@@ -10,22 +10,22 @@ function gadget:GetInfo()
 	}
 end
 
-local teams = Spring.GetTeamList()
-for i = 1, #teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
+local teamList = Spring.GetTeamList()
+for i = 1, #teamList do
+	local luaAI = Spring.GetTeamLuaAI(teamList[i])
 	if luaAI ~= "" then
-		if (type(luaAI) == "string") and (VFS.FileExists("luarules/gadgets/ai/" .. luaAI .. "/boot.lua")) then
+		if type(luaAI) == "string" and (VFS.FileExists("luarules/gadgets/ai/" .. luaAI .. "/boot.lua")) then
 			shardEnabled = true
 		end
 	end
 end
 
-if shardEnabled == true then
-	Spring.Echo("[AI Loader] ShardLua bot Activated!")
-else
+if not shardEnabled then
 	Spring.Echo("[AI Loader] ShardLua bot Deactivated!")
 	return false
 end
+
+Spring.Echo("[AI Loader] ShardLua bot Activated!")
 
 -- globals
 ShardSpringLua = true
@@ -49,32 +49,21 @@ Shard.AIsByTeamID = {}
 
 -- localization
 local spEcho = Spring.Echo
-local spGetTeamList = Spring.GetTeamList
 local spGetTeamInfo = Spring.GetTeamInfo
 local spGetTeamLuaAI = Spring.GetTeamLuaAI
 local spAreTeamsAllied = Spring.AreTeamsAllied
 local spGetTeamStartPosition = Spring.GetTeamStartPosition
-local spGetTeamUnits = Spring.GetTeamUnits
 local spGetAllUnits = Spring.GetAllUnits
 local spGetUnitTeam = Spring.GetUnitTeam
-local spGetUnitNeutral = Spring.GetUnitNeutral
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 local spGetGaiaTeamID = Spring.GetGaiaTeamID()
 
 
---SYNCED CODE
 if gadgetHandler:IsSyncedCode() then
+
 	function gadget:Initialize()
 		--GG.AiHelpers.Start()
 	end
-
-
-
-
-
-
-
-
 
 	function gadget:RecvLuaMsg(msg, playerID)
 		--msg = 'StGiveOrderToSync'..';'..id..';'..cmd..';'..pos..';'..opts..';'..timeout..';'..uname..';'.'StEndGOTS'
@@ -115,21 +104,24 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 -- 		Spring.Echo('GOTS ORDER ISSUES',id,cmd,pos,opts)
-		local order = Spring.GiveOrderToUnit(id,cmd,pos,opts)
-		if order ~= true then
-			spEcho('order error in STAI unsync to sync give order to unit',msg)
-			spEcho('order', order,id,cmd,pos,opts)
--- 		else
--- 			spEcho('STAI give order to unit OK')
+		if Spring.ValidUnitID(id) then
+			local order = Spring.GiveOrderToUnit(id,cmd,pos,opts)
+			if order ~= true then
+				spEcho('order error in STAI unsync to sync give order to unit',msg)
+				spEcho('order', order,id,cmd,pos,opts)
+	-- 		else
+	-- 			spEcho('STAI give order to unit OK')
+			end
+		else
+			spEcho('order error in STAI unsync to sync: unitID is invalid')
 		end
 	end
 
 
-else
+else	-- UNSYNCED CODE
 
-	-- UNSYNCED CODE
+
 	function gadget:Initialize()
-		local teamList = spGetTeamList()
 		spEcho("Looking for AIs")
 		for i = 1, #teamList do
 			local id = teamList[i]
@@ -157,7 +149,6 @@ else
 
 	function gadget:SetupAI(id)
 		local aiInfo = spGetTeamLuaAI(id)
-		local teamList = spGetTeamList()
 		if type(aiInfo) == "string" then
 			spEcho("AI Player " .. id .. " is a " .. aiInfo)
 		else

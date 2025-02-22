@@ -289,7 +289,7 @@ local trackedProjectileTypes = {} -- we have to track the types [point, light, c
 local lastGameFrame = -2
 
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 
@@ -297,8 +297,8 @@ local deferredLightShader = nil
 
 local shaderSourceCache = {
 	shaderName = 'Deferred Lights GL4',
-	vssrcpath = "LuaUI/Widgets/Shaders/deferred_lights_gl4.vert.glsl",
-	fssrcpath = "LuaUI/Widgets/Shaders/deferred_lights_gl4.frag.glsl",
+	vssrcpath = "LuaUI/Shaders/deferred_lights_gl4.vert.glsl",
+	fssrcpath = "LuaUI/Shaders/deferred_lights_gl4.frag.glsl",
 	shaderConfig = shaderConfig,
 	uniformInt = {
 		mapDepths = 0,

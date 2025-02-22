@@ -46,7 +46,7 @@ end
 -- GL4 Backend stuff:
 local iconVBO = nil
 local energyIconShader = nil
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 
 local function initGL4()
 	local DrawPrimitiveAtUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")

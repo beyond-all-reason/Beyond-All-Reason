@@ -17,7 +17,7 @@ local fadespeed = 0.005
 ---- GL4 Backend Stuff----
 local flankingVBO = nil
 local flankingShader = nil
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local glTexture             = gl.Texture
 
 local udefHasFlankingIcon = {}

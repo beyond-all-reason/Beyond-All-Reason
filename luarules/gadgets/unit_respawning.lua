@@ -200,7 +200,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	
 
-	function gadget:UnitDestroyed(unitID)
+	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 		if respawnMetaList[unitID] then
 			if respawnMetaList[unitID].respawn_pad == "false" then
 				local newID = spGetUnitRulesParam(unitID, "unit_evolved")
