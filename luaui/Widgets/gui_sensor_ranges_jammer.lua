@@ -28,7 +28,7 @@ local circleSegments = 64
 	-- color
 -- TODO: draw ally ranges in diff color!
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 

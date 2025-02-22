@@ -99,7 +99,7 @@ local function assertThrowsMessage(fn, testMsg, errorMsg, depthOffset)
 		error(errorMsg or "assertThrowsMessage: error was not a string", depthOffset)
 	end
 	-- split "standard" error format
-	-- it's in the form: [string "LuaUI/Widgets/tests/selftests/test_assertions.lua"]:17: error2
+	-- it's in the form: [string "LuaUI/tests/selftests/test_assertions.lua"]:17: error2
 	local match = result
 	local errorIndex = result:match'^%[string "[%p%a%s]*%"]:[%d]+:().*'
 	if errorIndex and errorIndex > 0 then

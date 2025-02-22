@@ -195,6 +195,7 @@ local unitOrderTable = {
 
 	['armwar']         = 005600, --STRONK
 	['legkark']        = 005610,
+	['corkark']        = 005620,
 
 	['armsam']         = 005800, --LAND + AA
 	['cormist']        = 005810,
@@ -416,8 +417,11 @@ local unitOrderTable = {
 
 	-- TRANSPORTS
 	['armatlas']       = 010500,
-	['corvalk']        = 010510,
-	['legatrans']      = 010520,
+	['corvalk']        = 010505,
+	['corhvytrans']      = 010510,
+	['armhvytrans']      = 010515,
+	['leglts']      = 010520,
+	['legatrans']      = 010525,
 
 	['armtship']       = 010540,
 	['cortship']       = 010550,
@@ -558,6 +562,7 @@ local unitOrderTable = {
 
    ['armeyes']        = 103000,
    ['coreyes']        = 103050,
+   ['legeyes']        = 103075,
    ['armrad']         = 103100,
    ['corrad']         = 103150,
    ['legrad']         = 103160,
@@ -604,11 +609,14 @@ local unitOrderTable = {
    --MINES
    ['armmine1']       = 105100,
    ['cormine1']       = 105200,
+   ['legmine1']       = 105250,
    ['armmine2']       = 105300,
    ['cormine2']       = 105400,
+   ['legmine2']       = 105450,
    ['cormine4']       = 105500, --cormando
    ['armmine3']       = 105600,
    ['cormine3']       = 105700,
+   ['legmine3']       = 105750,
 
    --DEFENSES LAND T1
    ['armllt']         = 106100,

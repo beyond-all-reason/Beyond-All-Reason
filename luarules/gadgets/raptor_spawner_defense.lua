@@ -670,11 +670,14 @@ if gadgetHandler:IsSyncedCode() then
 			squad = { count .. " " .. raptorType }
 			for i, sString in pairs(squad) do
 				local nEnd, _ = string.find(sString, " ")
-				local unitNumber = mRandom(1, string.sub(sString, 1, (nEnd - 1)))
-				local raptorName = string.sub(sString, (nEnd + 1))
-				for j = 1, unitNumber, 1 do
-					squadCounter = squadCounter + 1
-					table.insert(spawnQueue, { burrow = burrowID, unitName = raptorName, team = raptorTeamID, squadID = squadCounter })
+				if nEnd then
+					local total = tonumber(string.sub(sString, 1, (nEnd - 1)))
+					local unitNumber = total and math.random(1, total) or 1
+					local raptorName = string.sub(sString, (nEnd + 1))
+					for j = 1, unitNumber, 1 do
+						squadCounter = squadCounter + 1
+						table.insert(spawnQueue, { burrow = burrowID, unitName = raptorName, team = raptorTeamID, squadID = squadCounter })
+					end
 				end
 			end
 		else
@@ -700,11 +703,14 @@ if gadgetHandler:IsSyncedCode() then
 			if squad then
 				for i, sString in pairs(squad.units) do
 					local nEnd, _ = string.find(sString, " ")
-					local unitNumber = mRandom(1, string.sub(sString, 1, (nEnd - 1)))
-					local raptorName = string.sub(sString, (nEnd + 1))
-					for j = 1, unitNumber, 1 do
-						squadCounter = squadCounter + 1
-						table.insert(spawnQueue, { burrow = burrowID, unitName = raptorName, team = raptorTeamID, squadID = squadCounter })
+					if nEnd then
+						local total = tonumber(string.sub(sString, 1, (nEnd - 1)))
+						local unitNumber = total and math.random(1, total) or 1
+						local raptorName = string.sub(sString, (nEnd + 1))
+						for j = 1, unitNumber, 1 do
+							squadCounter = squadCounter + 1
+							table.insert(spawnQueue, { burrow = burrowID, unitName = raptorName, team = raptorTeamID, squadID = squadCounter })
+						end
 					end
 				end
 			end
@@ -1103,13 +1109,16 @@ if gadgetHandler:IsSyncedCode() then
 					if squad then
 						for i, sString in pairs(squad.units) do
 							local nEnd, _ = string.find(sString, " ")
-							local unitNumber = mRandom(1, string.sub(sString, 1, (nEnd - 1)))
-							local raptorName = string.sub(sString, (nEnd + 1))
-							for j = 1, unitNumber, 1 do
-								squadCounter = squadCounter + 1
-								table.insert(spawnQueue, { burrow = burrowID, unitName = raptorName, team = raptorTeamID, squadID = squadCounter })
+							if nEnd then
+								local total = tonumber(string.sub(sString, 1, (nEnd - 1)))
+								local unitNumber = total and math.random(1, total) or 1
+								local raptorName = string.sub(sString, (nEnd + 1))
+								for j = 1, unitNumber, 1 do
+									squadCounter = squadCounter + 1
+									table.insert(spawnQueue, { burrow = burrowID, unitName = raptorName, team = raptorTeamID, squadID = squadCounter })
+								end
+								cCount = cCount + unitNumber
 							end
-							cCount = cCount + unitNumber
 						end
 					end
 					if loopCounter <= 1 then
@@ -1125,13 +1134,16 @@ if gadgetHandler:IsSyncedCode() then
 						if squad then
 							for i, sString in pairs(squad.units) do
 								local nEnd, _ = string.find(sString, " ")
-								local unitNumber = mRandom(1, string.sub(sString, 1, (nEnd - 1)))
-								local raptorName = string.sub(sString, (nEnd + 1))
-								for j = 1, unitNumber, 1 do
-									squadCounter = squadCounter + 1
-									table.insert(spawnQueue, { burrow = burrowID, unitName = raptorName, team = raptorTeamID, squadID = squadCounter })
+								if nEnd then
+									local total = tonumber(string.sub(sString, 1, (nEnd - 1)))
+									local unitNumber = total and math.random(1, total) or 1
+									local raptorName = string.sub(sString, (nEnd + 1))
+									for j = 1, unitNumber, 1 do
+										squadCounter = squadCounter + 1
+										table.insert(spawnQueue, { burrow = burrowID, unitName = raptorName, team = raptorTeamID, squadID = squadCounter })
+									end
+									cCount = cCount + unitNumber
 								end
-								cCount = cCount + unitNumber
 							end
 						end
 					end
@@ -1398,11 +1410,14 @@ if gadgetHandler:IsSyncedCode() then
 							if squad then
 								for i, sString in pairs(squad.units) do
 									local nEnd, _ = string.find(sString, " ")
-									local unitNumber = mRandom(1, string.sub(sString, 1, (nEnd - 1)))
-									local raptorName = string.sub(sString, (nEnd + 1))
-									for j = 1, unitNumber, 1 do
-										squadCounter = squadCounter + 1
-										table.insert(spawnQueue, { burrow = queenID, unitName = raptorName, team = raptorTeamID, squadID = squadCounter })
+				 					if nEnd then
+										local total = tonumber(string.sub(sString, 1, (nEnd - 1)))
+										local unitNumber = total and math.random(1, total) or 1
+										local raptorName = string.sub(sString, (nEnd + 1))
+										for j = 1, unitNumber, 1 do
+											squadCounter = squadCounter + 1
+											table.insert(spawnQueue, { burrow = queenID, unitName = raptorName, team = raptorTeamID, squadID = squadCounter })
+										end
 									end
 								end
 							end
@@ -1976,7 +1991,7 @@ if gadgetHandler:IsSyncedCode() then
 					local scavengersFoundAlive = false
 					for _, teamID in ipairs(Spring.GetTeamList(raptorAllyTeamID)) do
 						local luaAI = Spring.GetTeamLuaAI(teamID)
-						if luaAI and (luaAI:find("Scavengers") or luaAI:find("ScavReduxAI")) and not select(3, Spring.GetTeamInfo(teamID, false)) then
+						if luaAI and luaAI:find("Scavengers") and not select(3, Spring.GetTeamInfo(teamID, false)) then
 							scavengersFoundAlive = true
 						end
 					end

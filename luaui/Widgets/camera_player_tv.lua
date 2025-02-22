@@ -1,7 +1,7 @@
 function widget:GetInfo()
 	return {
 		name = "Player-TV",
-		desc = "Automatically tracks players camera, (shows player-switch countdown on top of advplayerlist)",
+		desc = "Automatically tracks players camera, (shows player-switch countdown on top of the playerlist)",
 		author = "Floris",
 		date = "January 2018",
 		license = "GNU GPL, v2 or later",
@@ -47,7 +47,7 @@ local vsx, vsy = Spring.GetViewGeometry()
 local widgetScale = (0.7 + (vsx * vsy / 5000000))
 
 local toggled = false
-local toggled2 = false
+local toggled2 = not fullview
 local forceRefresh = false
 local drawlist = {}
 local desiredLosmodeChanged = 0
@@ -101,7 +101,6 @@ local function SelectTrackingPlayer(playerID)
 	local newTrackedPlayer
 	local active = false
 	local spec = false
-
 	if playerID then
 		_, active, spec = spGetPlayerInfo(playerID, false)
 	end
@@ -124,8 +123,8 @@ local function SelectTrackingPlayer(playerID)
 	if newTrackedPlayer ~= nil and newTrackedPlayer ~= currentTrackedPlayer then
 		currentTrackedPlayer = newTrackedPlayer
 
-		if WG['advplayerlist_api'] ~= nil and WG['advplayerlist_api'].SetLockPlayerID ~= nil then
-			WG['advplayerlist_api'].SetLockPlayerID(currentTrackedPlayer)
+		if WG.lockcamera ~= nil and WG.lockcamera.SetPlayerID ~= nil then
+			WG.lockcamera.SetPlayerID(currentTrackedPlayer)
 		end
 	end
 
@@ -332,30 +331,28 @@ function widget:GameStart()
 end
 
 function widget:PlayerChanged(playerID)
-	if Spring.GetGameFrame() > 0 then
-		myTeamID = Spring.GetMyTeamID()
-		myTeamPlayerID = select(2, Spring.GetTeamInfo(myTeamID))
-		isSpec, fullview = Spring.GetSpectatingState()
-		tsOrderPlayers()
-		local receateLists = false
-		if not rejoining then
-			if playerID == currentTrackedPlayer then
-				SelectTrackingPlayer()
-				receateLists = true
-			end
+	myTeamID = Spring.GetMyTeamID()
+	myTeamPlayerID = select(2, Spring.GetTeamInfo(myTeamID))
+	isSpec, fullview = Spring.GetSpectatingState()
+	tsOrderPlayers()
+	local receateLists = false
+	if not rejoining then
+		if playerID == currentTrackedPlayer then
+			SelectTrackingPlayer()
+			receateLists = true
 		end
-		local name = spGetPlayerInfo(playerID, false)
-		if select(4, Spring.GetTeamInfo(myTeamID,false)) then	-- is AI?
-			local _, _, _, aiName = Spring.GetAIInfo(myTeamID)
-			local niceName = Spring.GetGameRulesParam('ainame_' .. myTeamID)
-			name = niceName or aiName
-		end
-		if name and drawlistsPlayername[name] then
-			drawlistsPlayername[name] = gl.DeleteList(drawlistsPlayername[name])
-		end
-		if receateLists then
-			createList()
-		end
+	end
+	local name = spGetPlayerInfo(playerID, false)
+	if select(4, Spring.GetTeamInfo(myTeamID,false)) then	-- is AI?
+		local _, _, _, aiName = Spring.GetAIInfo(myTeamID)
+		local niceName = Spring.GetGameRulesParam('ainame_' .. myTeamID)
+		name = niceName or aiName
+	end
+	if name and drawlistsPlayername[name] then
+		drawlistsPlayername[name] = gl.DeleteList(drawlistsPlayername[name])
+	end
+	if receateLists then
+		createList()
 	end
 end
 
@@ -430,8 +427,8 @@ function widget:Update(dt)
 	if isSpec and toggled and Spring.GetGameFrame() % 30 == 5 then
 		if rejoining and prevRejoining ~= rejoining then
 			SelectTrackingPlayer()
-		elseif rejoining and WG['advplayerlist_api'] and WG['advplayerlist_api'].GetLockPlayerID() ~= nil then
-			WG['advplayerlist_api'].SetLockPlayerID()
+		elseif rejoining and WG.lockcamera and WG.lockcamera.GetPlayerID() ~= nil then
+			WG.lockcamera.SetPlayerID()
 		end
 
 		if currentTrackedPlayer ~= nil and not rejoining then
@@ -441,20 +438,17 @@ function widget:Update(dt)
 			end
 		end
 	end
-	if not toggled2 and Spring.GetMapDrawMode() == 'los' then
+	if not toggled2 and not fullview then
 		toggled2 = true
-		if WG['advplayerlist_api'] and WG['advplayerlist_api'].SetLosMode then
-			WG['advplayerlist_api'].SetLosMode('los')
-		end
 		createList()
-	elseif toggled2 and Spring.GetMapDrawMode() ~= 'los' then
+	elseif toggled2 and fullview then
 		toggled2 = false
 		createList()
 	end
 
 	updatePosition()
 
-	if isSpec and Spring.GetGameFrame() > 0 and not rejoining then
+	if isSpec and not rejoining then
 		if WG['tooltip'] and not toggled and not lockPlayerID then
 			local mx, my, mb = Spring.GetMouseState()
 			if toggleButton ~= nil and math_isInRect(mx, my, toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4]) then
@@ -495,25 +489,23 @@ function widget:DrawScreen()
 		showBackgroundGuishader =  true
 	end
 
-	if gameFrame > 0 or lockPlayerID then
-		if drawlist[1] then
-			gl.PushMatrix()
-			gl.CallList(drawlist[1])
-			gl.PopMatrix()
-			local mx, my, mb = Spring.GetMouseState()
-			if toggleButton ~= nil and drawlist[2] and math_isInRect(mx, my, toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4]) then
-				gl.CallList(drawlist[2])
-			end
-			if toggleButton2 ~= nil and drawlist[3] and math_isInRect(mx, my, toggleButton2[1], toggleButton2[2], toggleButton2[3], toggleButton2[4]) then
-				gl.CallList(drawlist[3])
-			end
-			if not toggled and not lockPlayerID and toggleButton3 ~= nil and drawlist[4] and math_isInRect(mx, my, toggleButton3[1], toggleButton3[2], toggleButton3[3], toggleButton3[4]) then
-				gl.CallList(drawlist[4])
-			end
+	if drawlist[1] then
+		gl.PushMatrix()
+		gl.CallList(drawlist[1])
+		gl.PopMatrix()
+		local mx, my, mb = Spring.GetMouseState()
+		if toggleButton ~= nil and drawlist[2] and math_isInRect(mx, my, toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4]) then
+			gl.CallList(drawlist[2])
+		end
+		if toggleButton2 ~= nil and drawlist[3] and math_isInRect(mx, my, toggleButton2[1], toggleButton2[2], toggleButton2[3], toggleButton2[4]) then
+			gl.CallList(drawlist[3])
+		end
+		if not toggled and not lockPlayerID and toggleButton3 ~= nil and drawlist[4] and math_isInRect(mx, my, toggleButton3[1], toggleButton3[2], toggleButton3[3], toggleButton3[4]) then
+			gl.CallList(drawlist[4])
 		end
 	end
 
-	if toggled and not rejoining and gameFrame > 0 then
+	if toggled and not rejoining then
 		local countDown = math.floor(nextTrackingPlayerChange - os.clock())
 		if drawlistsCountdown[countDown] ~= nil then
 			gl.PushMatrix()
@@ -522,10 +514,10 @@ function widget:DrawScreen()
 		end
 	end
 	if displayPlayername then
-		if WG['advplayerlist_api'] then
-			if not lockPlayerID or lockPlayerID ~= WG['advplayerlist_api'].GetLockPlayerID() and nextTrackingPlayerChange-os.clock() < 0 then
+		if WG['advplayerlist_api'] and WG.lockcamera then
+			if not lockPlayerID or lockPlayerID ~= WG.lockcamera.GetPlayerID() and nextTrackingPlayerChange-os.clock() < 0 then
 				--nextTrackingPlayerChange = os.clock() - 2
-				lockPlayerID = WG['advplayerlist_api'].GetLockPlayerID()
+				lockPlayerID = WG.lockcamera.GetPlayerID()
 				if not toggled and prevLockPlayerID ~= lockPlayerID then
 					createList()
 					prevLockPlayerID = lockPlayerID
@@ -534,7 +526,7 @@ function widget:DrawScreen()
 			if myTeamPlayerID and alwaysDisplayName and isSpec then
 				if lockPlayerID then
 					prevLockPlayerID = lockPlayerID
-					lockPlayerID = WG['advplayerlist_api'].GetLockPlayerID()
+					lockPlayerID = WG.lockcamera.GetPlayerID()
 				end
 				local name, _, spec, teamID, _, _, _, _, _ = spGetPlayerInfo(myTeamPlayerID, false)
 				if select(4, Spring.GetTeamInfo(myTeamID,false)) then	-- is AI?
@@ -582,8 +574,8 @@ local function togglePlayerTV(state)
 	if (state~= nil and not state) or toggled or lockPlayerID then
 		toggled = false
 		toggled2 = false
-		if WG['advplayerlist_api'] then
-			WG['advplayerlist_api'].SetLockPlayerID()
+		if WG.lockcamera then
+			WG.lockcamera.SetPlayerID()
 		end
 		lockPlayerID = nil
 		prevLockPlayerID = nil
@@ -591,8 +583,8 @@ local function togglePlayerTV(state)
 	elseif not rejoining then
 		toggled = true
 		toggled2 = true
-		if WG['advplayerlist_api'] and WG['advplayerlist_api'].SetLosMode then
-			WG['advplayerlist_api'].SetLosMode('los')
+		if WG.lockcamera and WG.lockcamera.SetLosMode then
+			WG.lockcamera.SetLosMode('los')
 		end
 		switchPlayerCam()
 		createList()
@@ -603,8 +595,8 @@ local function togglePlayerCamera()
 	prevOrderID = nil
 	currentTrackedPlayer = nil
 	toggled2 = true
-	if WG['advplayerlist_api'] then
-		WG['advplayerlist_api'].SetLockPlayerID(myTeamPlayerID)
+	if WG.lockcamera then
+		WG.lockcamera.SetPlayerID(myTeamPlayerID)
 	end
 	prevLockPlayerID = nil
 	lockPlayerID = nil
@@ -652,7 +644,7 @@ function widget:Initialize()
 
 	local humanPlayers = 0
 	for _, playerID in ipairs(playersList) do
-		local _, active, spec, team = spGetPlayerInfo(playerID, false)
+		local _, _, spec, team = spGetPlayerInfo(playerID, false)
 		if not spec then
 			playersTS[playerID] = GetSkill(playerID)
 			if not select(3, Spring.GetTeamInfo(team, false)) and not select(4, Spring.GetTeamInfo(team, false)) then
@@ -688,16 +680,10 @@ function widget:Initialize()
 	WG['playertv'].SetAlwaysDisplayName = function(value)
 		alwaysDisplayName = value
 	end
-	WG['playertv'].TogglePlayerView = function(value)
-		togglePlayerView(value)
-	end
-	WG['playertv'].TogglePlayerCamera = function()
-		togglePlayerCamera()
-	end
 end
 
 function widget:MousePress(mx, my, mb)
-	if isSpec and (Spring.GetGameFrame() > 0 or lockPlayerID) then
+	if isSpec then
 		-- player tv
 		if toggleButton ~= nil and math_isInRect(mx, my, toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4]) then
 			if mb == 1 then
@@ -788,9 +774,9 @@ function widget:TextCommand(command)
 		if #words > 1 then
 			local playerID = tonumber(words[#words])
 			local teamID = select(4, spGetPlayerInfo(playerID))
-			if teamID and WG['advplayerlist_api'] and WG['advplayerlist_api'].SetLockPlayerID then
+			if teamID and WG.lockcamera and WG.lockcamera.SetPlayerID then
 				Spring.SendCommands("specteam " .. teamID)
-				WG['advplayerlist_api'].SetLockPlayerID(playerID)
+				WG.lockcamera.SetPlayerID(playerID)
 			else
 				togglePlayerTV()
 			end
@@ -816,8 +802,8 @@ function widget:Shutdown()
 		gl.DeleteList(drawlist[i])
 	end
 	drawlist = {}
-	if toggled and WG['advplayerlist_api'] then
-		WG['advplayerlist_api'].SetLockPlayerID()
+	if toggled and WG.lockcamera then
+		WG.lockcamera.SetPlayerID()
 	end
 end
 

@@ -215,7 +215,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	unitDefIDCache[unitID] = unitDefID
 end
 
-function gadget:UnitDestroyed(unitID)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	if not reworkEnabled then return end --remove when shield rework is permanent
 	shieldUnitsData[unitID] = nil
 	unitDefIDCache[unitID] = nil

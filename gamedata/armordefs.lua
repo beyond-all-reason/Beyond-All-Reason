@@ -461,6 +461,9 @@ local armorDefs = {
 		"cormine2",
 		"cormine3",
 		"cormine4",
+		"legmine1",
+		"legmine2",
+		"legmine3",
 	},
 	nanos = {
 		"armnanotc",
@@ -547,6 +550,7 @@ local armorDefs = {
 		"legkam",
 		"legcib",
 		"legatrans",
+		"leglts",
 		"legmineb",
 		"raptor_air_kamikaze_basic_t2_v1",
 		"raptor_air_bomber_brood_t4_v2",

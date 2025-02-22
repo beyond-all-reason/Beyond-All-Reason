@@ -40,7 +40,7 @@ local atlassedImages = {}
 
 local rankVBO = nil
 local rankShader = nil
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 
 local debugmode = false
 

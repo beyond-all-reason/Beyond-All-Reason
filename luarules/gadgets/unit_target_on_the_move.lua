@@ -353,7 +353,7 @@ if gadgetHandler:IsSyncedCode() then
 		removeUnit(unitID)
 	end
 
-	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
+	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 		removeUnit(unitID)
 	end
 
@@ -389,10 +389,10 @@ if gadgetHandler:IsSyncedCode() then
 							top = cmdParams[3]
 						end
 
-						targets = CallAsTeam(teamID, spGetUnitsInRectangle, left, top, right, bot)
+						targets = CallAsTeam(teamID, spGetUnitsInRectangle, left, top, right, bot, -4)
 					elseif #cmdParams == 4 then
 						--circle
-						targets = CallAsTeam(teamID, spGetUnitsInCylinder, cmdParams[1], cmdParams[3], cmdParams[4])
+						targets = CallAsTeam(teamID, spGetUnitsInCylinder, cmdParams[1], cmdParams[3], cmdParams[4], -4)
 					end
 					if targets then
 						local orders = {}

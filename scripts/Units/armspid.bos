@@ -463,7 +463,7 @@ StartMoving(){
 	start-script Walk();
 }
 StopMoving(){
-	\signal SIG_WALK;
+	signal SIG_WALK;
 	bMoving=FALSE;
 	call-script StopWalking();
 }

@@ -79,7 +79,7 @@ local unitDefCanWearHats = {
 local champion = { --   Fight Night 1v1 winner
 	[139738] = true, -- [DmE]FlyingDuck
 	[82263] = true, -- PRO_Autopilot
-	[975] = true, -- StarDoM 
+	[975] = true, -- StarDoM
 	[2377] = true, -- Therxyy
 }
  local vikings = { -- Omega Series 3: Winners
@@ -216,7 +216,11 @@ function gadget:GameFrame(gf)
 		for unitID, hatUnitID in pairs(unitsWearingHats) do
 			local health, maxHealth = Spring.GetUnitHealth(unitID)
 			local hatHealth, hatMaxHealth = Spring.GetUnitHealth(hatUnitID)
-			Spring.SetUnitHealth(hatUnitID, (health / maxHealth) * hatMaxHealth)
+			if hatMaxHealth then
+				Spring.SetUnitHealth(hatUnitID, (health / maxHealth) * hatMaxHealth)
+			else
+				unitsWearingHats[hatUnitID] = nil
+			end
 		end
 	end
 end
