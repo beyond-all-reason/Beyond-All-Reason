@@ -43,12 +43,6 @@ local teamList = {}
 local additionalStorage = {}
 
 function gadget:Initialize()
-	teamList = Spring.GetTeamList()
-	startMetal = Spring.GetModOptions().startmetal
-	startEnergy = Spring.GetModOptions().startenergy
-	teamList = Spring.GetTeamList()
-	startMetal = Spring.GetModOptions().startmetal
-	startEnergy = Spring.GetModOptions().startenergy
 end
 
 function gadget:GamePreload()

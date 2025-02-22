@@ -588,7 +588,6 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 	return decalIndex, lifetime
 end
 
--- local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 
 local skipdraw = false
 local firstRun = true
@@ -1941,7 +1940,6 @@ function widget:Initialize()
 		for i= 1, 100 do
 			local w = math.random() * 15 + 7
 			w = w * w
-			-- local j = math.floor(math.random()*20+1)
 			--local texture = string.format(groundscarsPath.."t_groundcrack_%02d_a.tga", j)
 			local texture =  randtablechoice(atlas)
 			--Spring.Echo(texture)
