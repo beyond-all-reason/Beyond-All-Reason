@@ -1772,7 +1772,7 @@ local function applyButtonAction(button)
 			graphsWindowVisible = true
 		end
 	elseif button == 'test' then
-		WG['rml_ui_widget'].toggle()
+		WG['endgame_awards_widget'].toggle()
 	end
 end
 

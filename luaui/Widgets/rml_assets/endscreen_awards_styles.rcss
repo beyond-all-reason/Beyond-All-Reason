@@ -18,11 +18,8 @@ tr {
 td {
   box-sizing: border-box;
   display: table-cell;
-  vertical-align: middle;
-  text-align: center; /* Center text in all cells */
-}
-
-span {
+  text-align: center;
+  vertical-align: top;
 }
 
 thead, tbody, tfoot {
@@ -40,8 +37,12 @@ h1, h2, h3 {
 }
 
 img {
-  vertical-align: top;
-  max-width: 100px;
+  height: 100px;
+
+}
+
+#mainTable {
+  min-height: 300px;
 }
 
 .category-row {
@@ -49,20 +50,12 @@ img {
 }
 
 td.align-left {
-  text-align: left
-}
-
-thead td {
-  padding: 0 35px;
+  text-align: left;
+  vertical-align: middle;
 }
 
 .leader {
   font-size: 1.1em;
-}
-
-.first {
-  font-size: 1.3em;
-  font-weight: bold;
 }
 
 .score {
@@ -71,9 +64,9 @@ thead td {
   padding: 3px 0;
 }
 
-.first-leader-score {
+.first {
+  font-size: 1.3em;
   font-weight: bold;
-  font-size: 1.4em;
 }
 
 .buttons-area {
@@ -118,6 +111,7 @@ thead td {
     display: flex;
     flex-direction: column;
     align-items: center;
+    margin-top: 20px;
 }
 
 .honorable-header {
@@ -144,3 +138,6 @@ span {
   padding: 0;
 }
 
+p {
+  min-height: 50px;
+}
