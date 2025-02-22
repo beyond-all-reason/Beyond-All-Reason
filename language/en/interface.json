@@ -717,7 +717,11 @@
 			"sleptLongest": "%{playerColor}%{player}%{textColor} slept longest, for %{score} minutes.",
 			"traitor": "The Traitor - Destroying allied units",
 			"leave": "Leave",
-			"showGraphs": "Show Graphs"
+			"showGraphs": "Show Graphs",
+			"ecoAward": "produced the most resources",
+			"damageReceivedAward": "took the most damage",
+			"commanderSleepAward": "had the longest sleep"
+
 		},
 		"autogroups": {
 			"unitAdded": "Added %{unit} to autogroup #%{groupNumber}.",

@@ -1,8 +1,5 @@
 if not RmlUi then
-	Spring.Echo("RmlUi not loaded")
 	return false
-else
-	Spring.Echo("RmlUi is ok")
 end
 
 function widget:GetInfo()
@@ -34,42 +31,111 @@ local threshold = 150000
 
 local modelForPresenter = {
 	resourcesDestroyed = {
-		visible = true,
+		visible = false,
 		size = 3,
 		firstLeader = {
 			playerName = "Test",
-			score = 123111,
-			playerColor = ""
+			score = -1,
+			playerColor = "rgb(255,0,0)",
 		},
 		otherLeadersOrdered = {
 			{
-				playerName = "Test-second",
-				score = 12133,
-				playerColor = ""
+				playerName = "Test",
+				score = -1,
+				playerColor = "rgb(255,0,0)",
 			},
 			{
-				playerName = "Test-third",
-				score = 12130,
-				playerColor = ""
-			}
+				playerName = "Test",
+				score = -1,
+				playerColor = "rgb(255,0,0)",
+			},
 		}
 	},
 	enemiesDestroyed = {
-		visible = false
-	},
-	resourcesEfficiency = {},
-	traitor = {},
-	goldenCow = {},
-	ecoAward = {},
-	damageRecieved = {},
-	commanderSleep = {
-		playerName = "SleepTest",
-		score = 123221,
 		visible = false,
-	}
+		size = 3,
+		firstLeader = {
+			playerName = "Test",
+			score = -1,
+			playerColor = "rgb(255,0,0)",
+		},
+		otherLeadersOrdered = {
+			{
+				playerName = "Test",
+				score = -1,
+				playerColor = "rgb(255,0,0)",
+			},
+			{
+				playerName = "Test",
+				score = -1,
+				playerColor = "rgb(255,0,0)",
+			},
+		}
+	},
+	resourcesEfficiency = {
+		visible = false,
+		size = 3,
+		firstLeader = {
+			playerName = "Test",
+			score = -1,
+			playerColor = "rgb(255,0,0)",
+		},
+		otherLeadersOrdered = {
+			{
+				playerName = "Test",
+				score = -1,
+				playerColor = "rgb(255,0,0)",
+			},
+			{
+				playerName = "Test",
+				score = -1,
+				playerColor = "rgb(255,0,0)",
+			},
+		}
+	},
+	traitor = {
+		visible = false,
+		size = 3,
+		firstLeader = {
+			playerName = "Test",
+			score = -1,
+			playerColor = "rgb(255,0,0)",
+		},
+		otherLeadersOrdered = {
+			{
+				playerName = "Test",
+				score = -1,
+				playerColor = "rgb(255,0,0)",
+			},
+			{
+				playerName = "Test",
+				score = -1,
+				playerColor = "rgb(255,0,0)",
+			},
+		}
+	},
+	goldenCow = {
+		visible = false,
+		leader = {
+			playerName = "Test",
+			playerColor = "rgb(255,0,0)",
+		},
+	},
+	otherAwards = {}
 }
 
-local function initializeContext()
+local function getCSSColorByPlayer(teamID)
+	if teamID < 0 then
+		return "rgb(0,0,0)"
+	end
+	local redF, greenF, blueF, opacity = Spring.GetTeamColor(teamID)
+	local redNumColor = math.floor(redF * 255)
+	local greenNumColor = math.floor(greenF * 255)
+	local blueNumColor = math.floor(blueF * 255)
+	return string.format("rgb(%d, %d, %d)", redNumColor, greenNumColor, blueNumColor)
+end
+
+local function initializeRmlContext()
 	widget.rmlContext = RmlUi.CreateContext(widget.whInfo.name)
 	-- use the DataModel handle to set values
 	-- only keys declared at the DataModel's creation can be used
@@ -106,7 +172,10 @@ local function findPlayerName(teamID)
 	return name
 end
 
-local function putAwardIntoModel(award, num, winnersTable)
+local function putMainAwardIntoModel(award, num, winnersTable)
+	if num > modelForPresenter[award].size then
+		return
+	end
 	local teamID = winnersTable[num].teamID
 	local score = winnersTable[num].score
 
@@ -116,19 +185,52 @@ local function putAwardIntoModel(award, num, winnersTable)
 
 	local name = findPlayerName(teamID)
 
+	local playerToSet
 	if num == 1 then
-		modelForPresenter[award].firstLeader.score = score
-		modelForPresenter[award].firstLeader.playerName = name
+		playerToSet = modelForPresenter[award].firstLeader
 	else
-		modelForPresenter[award].otherOrderedLeaders[num].score = score
-		modelForPresenter[award].otherOrderedLeaders[num].playerName = name
+		playerToSet = modelForPresenter[award].otherOrderedLeaders[num]
+	end
+	playerToSet.score = score
+	playerToSet.playerName = name
+	playerToSet.playerColor = getCSSColorByPlayer(teamID)
+	modelForPresenter[award].visible = true
+end
+
+local function calculateAwardScore(award, score)
+	if award == 'commanderSleepAward' then
+		return math.round(score/60) .. ' minutes'
+	else
+		return math.floor(score)
 	end
 end
 
-local function createAward(award, winnersTable)
-	putAwardIntoModel(award, 1, winnersTable)
-	putAwardIntoModel(award, 2, winnersTable)
-	putAwardIntoModel(award, 3, winnersTable)
+local function putOtherAwardIntoModel(award, winnersTable)
+	local teamID = winnersTable[1].teamID
+	local score = calculateAwardScore(winnersTable[1].score)
+	if teamID < 0 then
+		return
+	end
+	local name = findPlayerName(teamID)
+	table.insert(modelForPresenter.otherAwards, {
+		visible = true,
+		award = award,
+		leader = {
+			playerName = name,
+			score = score,
+			playerColor = getCSSColorByPlayer(teamID)
+		}
+	})
+end
+
+local function createMainAward(award, winnersTable)
+	putMainAwardIntoModel(award, 1, winnersTable)
+	putMainAwardIntoModel(award, 2, winnersTable)
+	putMainAwardIntoModel(award, 3, winnersTable)
+end
+
+local function createOtherAward(award, winnersTable)
+	putOtherAwardIntoModel(award, winnersTable)
 end
 
 local function ProcessAwards(awards)
@@ -136,52 +238,48 @@ local function ProcessAwards(awards)
 		return
 	end
 	WG.awards = awards
-	local traitorWinner = awards.traitor[1]
-	local cowAwardWinner = awards.goldenCow[1].teamID
-	local compoundAwards = {}
-	table.insert(compoundAwards, awards.eco[1])
-	table.insert(compoundAwards, awards.damageReceived[1])
-	table.insert(compoundAwards, awards.sleep[1])
-	-- if awards.ecoKill[1].teamID >= 0 then
-	-- 	createAward("resourcesDestroyed", awards.ecoKill)
-	-- end
-	-- if awards.eco[1].teamID >= 0 then
-	-- 	createAward("ecoAward", awards.ecoKill)
-	-- end
-	-- if awards.damageReceived[1].teamID >= 0 then
-	-- 	createAward("damageRecieved", awards.ecoKill)
-	-- end
-	-- if awards.sleep[1].teamID >= 0 then
-	-- 	createAward("sleep", awards.ecoKill)
-	-- end
+	createMainAward("resourcesDestroyed", awards.ecoKill)
+	createMainAward("enemiesDestroyed", awards.fightKill)
+	createMainAward("resourcesEfficiency", awards.efficiency)
+	createMainAward("traitor", awards.traitor)
+	createOtherAward("ecoAward", awards.eco)
+	createOtherAward("damageReceivedAward", awards.damageReceived)
+	createOtherAward("commanderSleepAward", awards.sleep)
 	dm_handle.model = modelForPresenter
 end
 
-function showDocument()
-	document = widget.rmlContext:LoadDocument("LuaUI/Widgets/rml_assets/simple_demo.rml", widget)
-	document:ReloadStyleSheet()
-	document:Show()
+local function showDocument()
+	if isVisible == false then
+		isVisible = true
+		document = widget.rmlContext:LoadDocument("LuaUI/Widgets/rml_assets/endscreen_awards.rml", widget)
+		document:Show()
+	end
 end
 
-function hideDocument()
-	if document then
+local function hideDocument()
+	if isVisible == true then
+		isVisible = false
 		document:Close()
 	end
 end
 
 local function initializeWidget()
-	initializeContext()
-	WG["rml_ui_widget"] = {}
-	WG["rml_ui_widget"].toggle = function()
+	initializeRmlContext()
+	WG["endgame_awards_widget"] = {}
+	WG["endgame_awards_widget"].toggle = function()
 		if isVisible == false then
 			showDocument()
-			isVisible = true
 		else
 			hideDocument()
-			isVisible = false
 		end
 	end
-	WG["rml_ui_widget"].isvisible = function()
+	WG["endgame_awards_widget"].show = function()
+		showDocument()
+	end
+	WG["endgame_awards_widget"].hide = function()
+		showDocument()
+	end
+	WG["endgame_awards_widget"].isvisible = function()
 		return isVisible
 	end
 end
@@ -207,7 +305,6 @@ end
 
 local function registerGlobalFunctionForReceivingAwardsFromHandler()
 	widgetHandler:RegisterGlobal("GadgetReceiveAwardsNew", ProcessAwards)
-	Spring.Echo("Registered gnew ")
 end
 
 function widget:Initialize()
@@ -215,7 +312,6 @@ function widget:Initialize()
 	registerGlobalFunctionForReceivingAwardsFromHandler()
 	initializeWidget()
 	initializeTeamList()
-	-- ProcessAwards(WG.awards)
 end
 
 function widget:Shutdown()
