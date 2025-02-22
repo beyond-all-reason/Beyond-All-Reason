@@ -57,8 +57,7 @@ function widget:UnitCmdDone(unitID, unitDefID, unitTeam,
             local fdDef = spGetUnitDefID(fact)
             local factDef = UnitDefs[fdDef]
             if factDef.isFactory then
-              local OrderUnit = spGiveOrderToUnit
-              OrderUnit(unitID, CMD_GUARD, { fact },            { "shift" })
+              spGiveOrderToUnit(unitID, CMD_GUARD, fact, CMD.OPT_SHIFT)
               break
             end
           end
