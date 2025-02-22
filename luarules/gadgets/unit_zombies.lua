@@ -5,7 +5,7 @@ function gadget:GetInfo()
 		author    = "SethDGamre, code snippets/inspiration from Rafal",
 		date      = "March 2024",
 		license   = "GNU GPL, v2 or later",
-		layer     = 0,
+		layer     = 2,
 		enabled   = true
 	}
 end
@@ -133,15 +133,13 @@ local function setGaiaStorage()
 	local metalStorageToSet = 20000
 	local energyStorageToSet = 100000
 
-	local globallySetGaiaMetalStorage = GG.TeamData[gaiaTeamID].metalStorageOverride
-	if not globallySetGaiaMetalStorage or globallySetGaiaMetalStorage < metalStorageToSet then
-		GG.TeamData[gaiaTeamID].metalStorageOverride = metalStorageToSet
+	local _, currentMetalStorage = Spring.GetTeamResources(gaiaTeamID, "metal")
+	if currentMetalStorage and currentMetalStorage < metalStorageToSet then
 		spSetTeamResource(gaiaTeamID, "ms", metalStorageToSet)
 	end
 	
-	local globallySetGaiaEnergyStorage = GG.TeamData[gaiaTeamID].energyStorageOverride
-	if not globallySetGaiaEnergyStorage or globallySetGaiaEnergyStorage < energyStorageToSet then
-		GG.TeamData[gaiaTeamID].energyStorageOverride = energyStorageToSet
+	local _, currentEnergyStorage = Spring.GetTeamResources(gaiaTeamID, "energy")
+	if currentEnergyStorage and currentEnergyStorage < energyStorageToSet then
 		spSetTeamResource(gaiaTeamID, "es", energyStorageToSet)
 	end
 end
@@ -432,6 +430,8 @@ function gadget:Initialize()
 	for _, featureID in ipairs(features) do
 		gadget:FeatureCreated(featureID, gaiaTeamID)
 	end
+end
 
+function gadget:GameStart()
 	setGaiaStorage()
 end
