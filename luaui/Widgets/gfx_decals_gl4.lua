@@ -602,7 +602,6 @@ local function DrawDecals()
 
 	if skipdraw then return end
 	--local alt, ctrl = Spring.GetModKeyState()
-	--if alt and (isSinglePlayer) and (Spring.GetConfigInt('DevUI', 0) == 1) then return end
 	if decalVBO.usedElements > 0 or decalLargeVBO.usedElements > 0 or decalExtraLargeVBO.usedElements > 0 then
 
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) -- the default mode
@@ -1940,7 +1939,6 @@ function widget:Initialize()
 		for i= 1, 100 do
 			local w = math.random() * 15 + 7
 			w = w * w
-			--local texture = string.format(groundscarsPath.."t_groundcrack_%02d_a.tga", j)
 			local texture =  randtablechoice(atlas)
 			--Spring.Echo(texture)
 			AddDecal(

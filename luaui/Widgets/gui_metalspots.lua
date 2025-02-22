@@ -272,7 +272,6 @@ local function checkMetalspots()
 				break
 			end
 		end
-		spots[i][7] = now
 		spots[i][6] = occupied
 		]]--
 		if changed then

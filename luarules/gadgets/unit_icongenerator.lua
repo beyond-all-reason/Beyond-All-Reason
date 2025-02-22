@@ -94,7 +94,6 @@ if gadgetHandler:IsSyncedCode() then
 						lus = true
 					end
 
-					--Spring.Echo("Processing unit :- ",undefid)
 					if lus then
 						if env.Activate then
 							Spring.UnitScript.CallAsUnit(uid, env.Activate)

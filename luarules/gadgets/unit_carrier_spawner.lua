@@ -1123,7 +1123,6 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 										elseif carrierMetaData.dronebombingside == 1 then
 											carrierMetaData.dronebombingside = -1
 										end
-										--Spring.Echo("movetype: ", mt.name)
 										Spring.MoveCtrl.SetAirMoveTypeData(subUnitID, "maxRudder", 0.05)
 										carrierMetaData.dronebombertimer = spGetGameSeconds()
 										carrierMetaData.subUnitsList[subUnitID].bomberStage = 1

@@ -1476,9 +1476,6 @@ local function drawUnitInfo()
 			addTextInfo(Spring.I18N('ui.info.reversespeed'), unitDefInfo[displayUnitDefID].reverseSpeed)
 		end
 
-		--if metalExtraction then
-		--  addTextInfo('metal extraction', round(metalExtraction, 2))
-		--end
 		if unitDefInfo[displayUnitDefID].buildSpeed then
 			addTextInfo(Spring.I18N('ui.info.buildpower'), unitDefInfo[displayUnitDefID].buildSpeed)
 		end
