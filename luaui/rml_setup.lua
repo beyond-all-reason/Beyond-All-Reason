@@ -82,3 +82,12 @@ RmlUi.SetMouseCursorAlias("ns-resize", 'uiresizev')
 RmlUi.SetMouseCursorAlias("ew-resize", 'uiresizeh')
 
 RmlUi.CreateContext("shared")
+RmlUi.AddTranslationString("ui.awards.enemiesDestroyed", Spring.I18N('ui.awards.enemiesDestroyed'))
+RmlUi.AddTranslationString("ui.awards.resourcesDestroyed", Spring.I18N('ui.awards.enemiesDestroyed'))
+RmlUi.AddTranslationString("ui.awards.resourcesEfficiency", Spring.I18N('ui.awards.resourcesEfficiency'))
+RmlUi.AddTranslationString("ui.awards.traitor", Spring.I18N('ui.awards.traitor'))
+RmlUi.AddTranslationString("ui.awards.didEverything", Spring.I18N('ui.awards.didEverything'))
+
+RmlUi.AddTranslationString("ui.awards.ecoAward", Spring.I18N('ui.awards.ecoAward'))
+RmlUi.AddTranslationString("ui.awards.damageReceivedAward", Spring.I18N('ui.awards.damageReceivedAward'))
+RmlUi.AddTranslationString("ui.awards.commanderSleepAward", Spring.I18N('ui.awards.commanderSleepAward'))
