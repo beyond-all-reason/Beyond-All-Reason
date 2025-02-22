@@ -2307,30 +2307,7 @@ function gadget:DrawOpaqueUnitsLua(deferredPass, drawReflection, drawRefraction)
 	local batches, units = ExecuteDrawPass(drawPass)
 end
 
--- function gadget:DrawAlphaUnitsLua(drawReflection, drawRefraction)
--- 	if unitDrawBins == nil then return end
--- 	local drawPass = drawPassBitsToNumber(false, false, drawReflection, drawRefraction)
--- 	--local batches, units = ExecuteDrawPass(drawPass)
--- end
-
--- function gadget:DrawOpaqueFeaturesLua(deferredPass, drawReflection, drawRefraction)
--- 	if unitDrawBins == nil then return end
--- 	local drawPass = drawPassBitsToNumber(true, deferredPass, drawReflection, drawRefraction)
--- 	--local batches, units = ExecuteDrawPass(drawPass)
--- end
-
--- function gadget:DrawAlphaFeaturesLua(drawReflection, drawRefraction)
--- 	if unitDrawBins == nil then return end
--- 	local drawPass = drawPassBitsToNumber(true, false, drawReflection, drawRefraction)
--- 	--local batches, units = ExecuteDrawPass(drawPass)
--- end
-
 function gadget:DrawShadowUnitsLua()
 	if unitDrawBins == nil then return end
 	local batches, units = ExecuteDrawPass(16)
 end
-
--- function gadget:DrawShadowFeaturesLua() -- These are drawn together with units
--- 	if unitDrawBins == nil then return end
--- 	--ExecuteDrawPass(16)
--- end
