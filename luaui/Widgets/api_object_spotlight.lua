@@ -4,7 +4,8 @@ function widget:GetInfo()
 		desc = "Shows a vertical spotlight on units, features, or positions",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
+		depends = { "gl4" },
 	}
 end
 
@@ -497,12 +498,6 @@ function widget:DrawWorld()
 end
 
 function widget:Initialize()
-	if not gl.CreateShader then
-		-- no shader support, so just remove the widget itself, especially for headless
-		widgetHandler:RemoveWidget()
-		return
-	end
-
 	if not initGL4() then
 		widgetHandler:RemoveWidget()
 		return
