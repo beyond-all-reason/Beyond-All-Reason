@@ -480,9 +480,6 @@ function widget:DrawWorld()
 	end
 
 	shader:Deactivate()
-
-	-- other widgets are lazy, so let's reset it to a safe default
-	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 end
 
 function widget:Initialize()
