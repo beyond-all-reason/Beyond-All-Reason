@@ -508,7 +508,7 @@ function widget:Initialize()
 		---Removes the spotlight for a given object. This can be called even if a spotlight might not be present.
 		---@param objectType string "unit" or "feature", or "ground"
 		---@param owner string An identifier used to prevent name collisions. You can have one spotlight per objectID per owner.
-		---@param objectID number unitID or featureID
+		---@param objectID number|table unitID, featureID, or {x,y,z} table for a location
 		---@return nil
 		removeSpotlight = removeSpotlight,
 	}
