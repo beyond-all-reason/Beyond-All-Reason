@@ -60,6 +60,17 @@ function map:CanBuildHere(unittype,position) -- returns boolean
 	return ( not blocked ), {x=newX, y=newY, z=newZ}
 end
 
+function map:TestMoveOrder(UnitDefID, p) -- returns boolean
+	return Spring.TestMoveOrder(UnitDefID, p.x, p.z, p.y )
+end
+
+
+function map:RequestPath(mclass, POS1, POS2,radius) -- returns a path
+	radius = radius or 8
+	return Spring.RequestPath(mclass, POS1.x,POS1.y,POS1.z,POS2.x,POS2.y,POS2.z,radius)
+
+end
+
 function map:GetMapFeatures()
 	local fv = Spring.GetAllFeatures()
 	if not fv then return {} end

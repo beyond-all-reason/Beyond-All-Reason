@@ -31,6 +31,10 @@ function AttackHST:Watchdog(squad)
 	local f = game:Frame()
 	squad.watchdogCell = squad.watchdogCell or self.ai.maphst:GetCell(squad.position,self.ai.maphst.GRID)
 	local watchdogCell = self.ai.maphst:GetCell(squad.position,self.ai.maphst.GRID)
+	if not watchdogCell then
+		self:EchoDebug('no watchdog cell')
+		return
+	end
 	if squad.watchdogCell and squad.watchdogCell.X == watchdogCell.X and squad.watchdogCell.Z == watchdogCell.Z then
 		if f > squad.watchdogTimer + self.squadFreezedTime then
 			self:SquadResetTarget(squad)
@@ -61,7 +65,7 @@ function AttackHST:DraftAttackSquads()
 	local f = self.game:Frame()
 	for mtype,soldiers in pairs(self.recruits) do
 		for index,soldier in pairs(soldiers) do
-		self:EchoDebug(index,mtype,soldier.squad)
+		--self:EchoDebug(index,mtype,soldier.squad)--TODO fix thes fucking debug trouble
 			if soldier and soldier.unit and not soldier.squad then
 				for idx,squad in pairs(self.squads) do
 					self:EchoDebug(idx,squad.squadID,squad.lock,squad.mtype)
@@ -152,23 +156,11 @@ function AttackHST:SquadCheck(squad)
 
 		if member.unit then
 			squad.leader = member.unit:Internal()
-			--leaderPos = {x = member.unit.x, y = member.unit.y  , z = member.unit.z}
 			squad.leaderPos.x,squad.leaderPos.y,squad.leaderPos.z = member.unit:Internal():GetRawPos()
 			break
--- 			local d = self.ai.tool:distance(p,squad.position)
--- 			if d < memberDist then
--- 				memberDist = d
-
--- 			end
 		end
 	end
--- 	self:EchoDebug('set Leader',leader,leader.x,leader.z)
--- 	squad.leader = leader
---
--- 	squad.leaderPos = squad.leaderPos or {}
--- 	squad.leaderPos.x = leader.x
--- 	squad.leaderPos.y = leader.y
--- 	squad.leaderPos.z = leader.z
+
 	return true
 end
 
@@ -248,9 +240,14 @@ function AttackHST:SquadAttack(squad)
 	if self.ai.loshst.ENEMY[squad.target.X] and self.ai.loshst.ENEMY[squad.target.X][squad.target.Z]  and self.ai.tool:distance(squad.position,squad.target.POS) < 256 then
 		self:EchoDebug('squad',squad.squadID,'are near to offensive target, do attack')
 		for i,member in pairs(squad.members) do
+			if not squad.target.units then
+				self:EchoDebug('squad',squad.squadID,'no target units')
+				return
+			end
 			for id,_ in pairs(squad.target.units) do
 				member.unit:Internal():Attack(id)
 			end
+			
 		end
 		return true
 	end
@@ -272,27 +269,12 @@ function AttackHST:SquadFindPath(squad,target)
 		return
 	end
 	self:EchoDebug('search a path for ',squad.squadID,target.POS.x,target.POS.z)
-	--self:SquadNewPath(squad,target)
-
-	--if not squad.pathfinder then
-	--	self:Warn('no pathfinder')
-	--	return
-	--end
-
-	--local path, remaining, maxInvalid = squad.pathfinder:Find(25)
 	local path = self.ai.maphst:getPath(squad.leader:Name(),squad.leaderPos,target.POS,true)
 	if path then
-		--local pt = {}
 		table.insert(path,#path,target.POS)
  		self:EchoDebug("got path of", #path, "nodes", maxInvalid, "maximum invalid neighbors!!!!!!!!!!!!!!!!!!")
-  		--for index,cell in pairs(path) do
- 		--	table.insert(pt,cell.position)
-   		--	self:EchoDebug('path','index',index,'pos',cell.position.x,cell.position.z)
-  		--end
-
 		step = 1
 		squad.pathfinder = nil
-		--return pt,step
 		return path,step
 	end
 	self:EchoDebug('path not found')
@@ -352,7 +334,7 @@ function AttackHST:SquadsTargetUpdate2()
 -- 				squad.role = 'defense'
 -- 				self:EchoDebug('set defensive target for',squad.squadID,squad.target.X,squad.target.Z)
 -- 			else
-				local offense = self:SquadsTargetAttack2(squad)
+				local offense,setPath = self:SquadsTargetAttack2(squad)
 				if offense and squad.lock then
 					path, step = self:SquadFindPath(squad,offense)
 					if path and step then
@@ -427,10 +409,27 @@ function AttackHST:SquadsTargetAttack2(squad)
 	local bestTarget = nil
 	local bestDist = math.huge
 	local worstDist = 0
-
+	
 	for ref, blob in pairs(self.ai.targethst.IMMOBILE_BLOBS) do
 		if not self:SquadsTargetHandled(blob) then
-			if self.ai.maphst:UnitCanGoHere(squad.leader, blob.position) then
+			--if squad.leader:TestMoveOrder(blob.position) then
+			-- self:EchoDebug(squad.leader)
+			-- self:EchoDebug(self.ai.armyhst[squad.leader:Name()])
+			-- self:EchoDebug('request path',squad.leaderPos,blob.position)
+			-- self:EchoDebug(squad.leader:Name())
+			-- self:EchoDebug(self.ai.armyhst[squad.leader:Name()].mclass)
+			-- self:EchoDebug(squad.leaderPos)
+			-- self:EchoDebug(blob.position)
+			self.DebugEnabled = true
+			local mclass = self.ai.armyhst.unitTable[squad.leader:Name()].mclass
+
+			self:EchoDebug('mclass',mclass)
+			self:EchoDebug('squad.leadername',	 squad.leader:Name()	)
+			self.DebugEnabled = false
+			local path = map:RequestPath(mclass,squad.leaderPos,blob.position)
+			
+			if path then
+			--if self.ai.maphst:UnitCanGoHere(squad.leader, blob.position) then
 				local dist = self.ai.tool:distance(blob.position,self.ai.targethst.enemyCenter)
 				if dist > worstDist then
 					worstDist = dist
@@ -439,7 +438,7 @@ function AttackHST:SquadsTargetAttack2(squad)
 			end
 		end
 	end
-	return bestTarget
+	return bestTarget, setPath
 end
 
 function AttackHST:SquadResetTarget(squad)

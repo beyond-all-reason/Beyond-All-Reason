@@ -16,7 +16,7 @@ function MapHST:Init()
 	local rules_param_mex_count = Spring.GetGameRulesParam("mex_count")
 	self:EchoDebug('games rules param mex_count:',rules_param_mex_count)
 
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 	self:EchoDebug('MapHST START')
 	if self.map_loaded then
 		print('map already loaded')
@@ -26,7 +26,23 @@ function MapHST:Init()
 	self:InitPathCost()
 	self.topology = {air = {}}
 	self:createGrid()
+	--local ram = gcinfo()
+	--local testpath
+	--for i = 0,100 do
+	--testpath = map:RequestPath(self.ai.armyhst.unitTable['armpw'].mclass, {x=10, y=map:GetGroundHeight(10,10), z=10}, {x=40000, y=map:GetGroundHeight(40000,40000), z=40000})
+	--end
+	--self:EchoDebug(gcinfo()-ram)
+	--self:EchoDebug('testpath',testpath,self.ai.armyhst.unitTable['armpw'].mclass)
+	--if testpath then
+	--	self:EchoDebug('testpath found')
+		
+	--	local waypoints, pathStartIdx = testpath:GetPathWayPoints()	
+	--	self:EchoDebug('waypoints',waypoints,#waypoints)
+	--	self:EchoDebug('pathStartIdx',pathStartIdx,#pathStartIdx)
 
+	--else
+	--	self:EchoDebug('testpath not found')
+	--end
 	self.METALS = map:GetMetalSpots()
 	self.GEOS = map:GetGeoSpots()
 	self.METALS = self:SimplifyMetalSpots(self.gridSize * 2)-- is a random choice, can be 1 or 9999999999
@@ -545,32 +561,30 @@ function MapHST:getPath(unitName,POS1,POS2,toGrid)
 		self:Warn('getPath receive a nil mclass',unitName,mclass)
 		return
 	end
-	local metapath = Spring.RequestPath(mclass, POS1.x,POS1.y,POS1.z,POS2.x,POS2.y,POS2.z)
-	if metapath then
-		local waypoints, pathStartIdx = metapath:GetPathWayPoints()
-		if not waypoints then
-			self:Warn(unitName,'no path found',POS1.x,POS1.z,POS2.x,POS2.z)
-			return
-		elseif #waypoints == 0 then
-			self:Warn(unitName,'path have 0 lenght',POS1.x,POS1.z,POS2.x,POS2.z)
-			return
--- 		elseif self.ai.tool:distance(POS1,POS2) < 256 then
--- 			self:Warn(unitName,'path too short',POS1,POS2)
--- 			return
-		else
-
-			local last = waypoints[#waypoints]
-			local distance_to_goal = self.ai.tool:distance(POS2, {x=last[1],z=last[3]})
-			if distance_to_goal > self.gridSize then
-				self:Warn('invalid path find',POS1,POS2)
-				return
-			end
-			if toGrid then
-				return self:gridThePath(waypoints)
-			else
-				return waypoints
-			end
-		end
+	local metapath = map:RequestPath(mclass, POS1,POS2)
+	if not metapath then
+		self:Warn(unitName,'no path found',POS1.x,POS1.z,POS2.x,POS2.z)
+		return
+	end
+	local waypoints, pathStartIdx = metapath:GetPathWayPoints()
+	if not waypoints then
+		self:Warn(unitName,'no waypoints found',POS1.x,POS1.z,POS2.x,POS2.z)
+		return
+	end
+	if #waypoints == 0 then
+		self:Warn(unitName,'path have 0 lenght',POS1.x,POS1.z,POS2.x,POS2.z)
+		return
+	end
+	local last = waypoints[#waypoints]
+	local distance_to_goal = self.ai.tool:distance(POS2, {x=last[1],z=last[3]})
+	if distance_to_goal > self.gridSize/2 then
+		self:Warn('invalid path find',POS1,POS2)
+		return
+	end
+	if toGrid then
+		return self:gridThePath(waypoints)
+	else
+		return waypoints
 	end
 end
 

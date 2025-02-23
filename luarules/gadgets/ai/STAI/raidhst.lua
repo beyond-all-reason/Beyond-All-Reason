@@ -31,6 +31,10 @@ function RaidHST:Watchdog(squad)
 	local f = game:Frame()
 	squad.watchdogCell = squad.watchdogCell or self.ai.maphst:GetCell(squad.position,self.ai.maphst.GRID)
 	local watchdogCell = self.ai.maphst:GetCell(squad.position,self.ai.maphst.GRID)
+	if not watchdogCell then
+		self:EchoDebug('no watchdog cell')
+		return
+	end
 	if squad.watchdogCell and squad.watchdogCell.X == watchdogCell.X and squad.watchdogCell.Z == watchdogCell.Z then
 		if f > squad.watchdogTimer + self.squadFreezedTime then
 			self:SquadResetTarget(squad)
@@ -283,7 +287,7 @@ function RaidHST:SquadFindPath(squad,target)
 	--end
 
 	--local path, remaining, maxInvalid = squad.pathfinder:Find(25)
-	if not self.ai.armyhst[airgun][squad.leader:Name()] then --TODO workaraund for airgun that do not have mclass
+	if not self.ai.armyhst['airgun'][squad.leader:Name()] then --TODO workaraund for airgun that do not have mclass
 
 		local path = self.ai.maphst:getPath(squad.leader:Name(),squad.leaderPos,target.POS,true)
 	end
@@ -539,6 +543,10 @@ function RaidHST:RemoveRecruit(attkbhvr)
 end
 
 function RaidHST:MemberIdle(attkbhvr, squad)
+	if not squad then
+		self:EchoDebug('no squad for idle member')
+		return
+	end
 	if attkbhvr then
 		squad = attkbhvr.squad
 		squad.idleCount = (squad.idleCount or 0) + 1
