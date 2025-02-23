@@ -186,8 +186,8 @@ if gadgetHandler:IsSyncedCode() then
 		-- FIXME TODO Does not work. Could also use GiveOrderArrayToUnit.
 		-- spGiveOrderToUnit(newUnitID, CMD.REPEAT,     states["repeat"] and 1 or 0,  {})
 		-- spGiveOrderToUnit(newUnitID, CMD.CLOAK,      states.cloak and 1 or 0, 		 {})
-		-- spGiveOrderToUnit(newUnitID, CMD.ONOFF,      1,                       		 {})
-		-- spGiveOrderToUnit(newUnitID, CMD.TRAJECTORY, states.trajectory and 1 or 0, {})
+		spGiveOrderToUnit(newUnitID, CMD.ONOFF,      1,                       		 {})
+		spGiveOrderToUnit(newUnitID, CMD.TRAJECTORY, states.trajectory and 1 or 0, {})
 
 		ReAssignAssists(newUnitID,unitID)
 
