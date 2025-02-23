@@ -45,7 +45,7 @@ missileFlare3;
 ///
 
 static-var gun_1, torsoaim, miniguncount, movespeed,
-            restore_delay, wpn1_lasthead, wpn2_lasthead, wpn3_lasthead, wpn4_lasthead, bMoving, missile_count, shottieArm;
+            restore_delay, wpn1_lasthead, wpn2_lasthead, wpn3_lasthead, wpn4_lasthead, bMoving, missile_count, shottieArm, Delay;
 
 
 ///
@@ -476,6 +476,11 @@ Close()
 	InMotion = 0;
 }
 
+DelaySwap(){
+	sleep 500;
+	Delay = 0;
+}
+
 Create(){
 
 	gun_1 = 0;
@@ -491,7 +496,8 @@ Create(){
     wpn2_lasthead = 1000000;
     wpn3_lasthead = 1000000;
     wpn4_lasthead = 1000000;
-
+	Delay = 0;
+	
     hide fronthipFlare;
     hide fronttorsoFlare;
     hide rArmFlare;
@@ -528,6 +534,7 @@ RestoreAfterDelay(){
     wpn2_lasthead = 1000000;
     wpn3_lasthead = 1000000;
     wpn4_lasthead = 1000000;
+	Delay = 0;
     // start-script Close();
 }
 
@@ -664,12 +671,12 @@ AimFromWeapon2(piecenum)
 {
 	if(shottieArm==0)
 	{
-		piecenum=torso;
+		piecenum=rArmFlare;
         return(0);	
 	}
 	if(shottieArm==1)
 	{
-		piecenum=torso;
+		piecenum=lArmFlare;
         return(0);	
 	}
 
@@ -683,8 +690,11 @@ AimWeapon2(heading, pitch) //pew pew
 {
 	signal SIG_AIM_2;
 	set-signal-mask SIG_AIM_2;
-	//turn Right_turret_main to y-axis heading - torsoaim speed <100.0000>; //-- Turn(torso, y-axis, heading, math.rad(300))
-    if(shottieArm==0)
+    if (Delay==1)
+	{
+		return (0);
+	}
+	if(shottieArm==0)
 	{
 		turn rArmGun to y-axis heading - torsoaim speed <95.0000>;
 		turn rArmGun to x-axis -1*pitch speed <100.0000>;
@@ -694,7 +704,7 @@ AimWeapon2(heading, pitch) //pew pew
 		turn lArmGun to y-axis heading - torsoaim speed <95.0000>;
 		turn lArmGun to x-axis -1*pitch speed <100.0000>;
 	}
-	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 2500) AND ((get ABS(wpn2_lasthead - heading)) < 64236)))
+	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > <10>) AND ((get ABS(wpn2_lasthead - heading)) < 65536 - <10>)))
 	{
 		wpn2_lasthead = 1000000;
 		wait-for-turn torso around y-axis;
@@ -706,8 +716,9 @@ AimWeapon2(heading, pitch) //pew pew
 
 FireWeapon2()
 {
-
-    if(shottieArm==0)
+    Delay = 1;
+	start-script DelaySwap();
+	if(shottieArm==0)
 	{
         emit-sfx 1024 from rArmFlare;
         move rArmPump to z-axis [-5.5] speed [27.5];
@@ -733,8 +744,6 @@ FireWeapon2()
         move lArmPump to z-axis [0] speed [8];
         return (1);
 	}
-
-
 }
 
 
