@@ -131,7 +131,7 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 
 
             if(!aimingPose){
-			turn hip to y-axis <5.112379> speed <75.881566> / animSpeed; 
+			turn hip to y-axis <2.556190> speed <37.940783> / animSpeed;
 			turn lArmGun to x-axis <5.483378> speed <14.651767> / animSpeed; 
 			turn lArmUpper to y-axis <2.840910> speed <7.683124> / animSpeed; 			
             turn rArmGun to x-axis <5.483378> speed <14.651767> / animSpeed; 
@@ -157,7 +157,7 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 
 
             if(!aimingPose){
-			turn hip to y-axis <0.933099> speed <125.378398> / animSpeed; 
+			turn hip to y-axis <0.466550> speed <62.689199> / animSpeed; 
 			turn lArmGun to x-axis <2.873913> speed <78.283944> / animSpeed; 
 			turn lArmUpper to y-axis <2.183334> speed <19.727287> / animSpeed;			
             turn rArmGun to x-axis <2.873913> speed <78.283944> / animSpeed; 
@@ -184,7 +184,7 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 
 
             if(!aimingPose){
-			turn hip to y-axis <-3.548502> speed <134.448010> / animSpeed; 
+			turn hip to y-axis <-1.774251> speed <67.224005> / animSpeed;
 			turn lArmGun to x-axis <0.253653> speed <78.607811> / animSpeed; 
 			turn lArmUpper to y-axis <0.823564> speed <40.793108> / animSpeed;			
             turn rArmGun to x-axis <0.253653> speed <78.607811> / animSpeed; 
@@ -210,7 +210,7 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 
 
             if(!aimingPose){
-			turn hip to y-axis <-6.882489> speed <100.019615> / animSpeed; 
+			turn hip to y-axis <-3.441245> speed <50.009808> / animSpeed;
 			turn lArmGun to x-axis <0.722431> speed <14.063350> / animSpeed; 
 			turn lArmUpper to y-axis <-0.801077> speed <48.739230> / animSpeed; 			
             turn rArmGun to x-axis <0.722431> speed <14.063350> / animSpeed; 
@@ -237,7 +237,7 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 
 
             if(!aimingPose){
-			turn hip to y-axis <-8.002700> speed <33.606349> / animSpeed; 
+			turn hip to y-axis <-4.001350> speed <16.803175> / animSpeed;
 			turn lArmGun to x-axis <3.725673> speed <90.097262> / animSpeed; 
 			turn lArmUpper to y-axis <-2.168079> speed <41.010070> / animSpeed; 			
             turn rArmGun to x-axis <3.725673> speed <90.097262> / animSpeed; 
@@ -264,7 +264,7 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 
 
             if(!aimingPose){
-			turn hip to y-axis <-6.555552> speed <43.414467> / animSpeed; 
+			turn hip to y-axis <-3.277776> speed <21.707234> / animSpeed;
 			turn lArmGun to x-axis <5.710465> speed <59.543771> / animSpeed; 
 			turn lArmUpper to y-axis <-2.837794> speed <20.091443> / animSpeed; 			
             turn rArmGun to x-axis <5.710465> speed <59.543771> / animSpeed; 
@@ -291,7 +291,7 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 
 
             if(!aimingPose){
-			turn hip to y-axis <-2.998336> speed <106.716476> / animSpeed; 
+			turn hip to y-axis <-1.499168> speed <53.358238> / animSpeed;
 			turn lArmGun to x-axis <4.328753> speed <41.451381> / animSpeed; 
 			turn lArmUpper to y-axis <-2.594830> speed <7.288917> / animSpeed;			
             turn rArmGun to x-axis <4.328753> speed <41.451381> / animSpeed; 
@@ -318,7 +318,7 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 
 
             if(!aimingPose){
-			turn hip to y-axis <1.529118> speed <135.823619> / animSpeed; 
+			turn hip to y-axis <0.764559> speed <67.911809> / animSpeed;
 			turn lArmGun to x-axis <1.215132> speed <93.408631> / animSpeed; 
 			turn lArmUpper to y-axis <-1.517328> speed <32.325061> / animSpeed; 			
             turn rArmGun to x-axis <1.215132> speed <93.408631> / animSpeed; 
@@ -344,7 +344,7 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 
 
             if(!aimingPose){
-			turn hip to y-axis <5.561245> speed <120.963789> / animSpeed; 
+			turn hip to y-axis <2.780623> speed <60.481895> / animSpeed;
 			turn lArmGun to x-axis <0.053097> speed <34.861028> / animSpeed; 
 			turn lArmUpper to y-axis <0.048169> speed <46.964919> / animSpeed; 			
             turn rArmGun to x-axis <0.053097> speed <34.861028> / animSpeed; 
@@ -371,7 +371,7 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 
 
             if(!aimingPose){
-			turn hip to y-axis <7.799968> speed <67.161690> / animSpeed; 
+			turn hip to y-axis <3.899984> speed <33.580845> / animSpeed;
 			turn lArmGun to x-axis <2.217365> speed <64.928020> / animSpeed; 
 			turn lArmUpper to y-axis <1.598174> speed <46.500135> / animSpeed; 			
             turn rArmGun to x-axis <2.217365> speed <64.928020> / animSpeed; 
@@ -423,7 +423,7 @@ UnitSpeed(){
 StartMoving(){
 	signal SIGNAL_MOVE;
 	isMoving=TRUE;
-    animSpeed = 4;
+    animSpeed = 5;
 	start-script Walk();
 }
 StopMoving(){
@@ -439,7 +439,7 @@ Open()
 	{
 		//emit-sfx 4096 + 6 from upperTorso;
 		aimingPose = 1;
-        move clusterSleeve to y-axis [8] speed [20];
+        move clusterSleeve to y-axis [4] speed [10];
 	}
 }
 
@@ -775,7 +775,7 @@ AimWeapon3(heading, pitch) //pew pew
 {
 	signal SIG_AIM_3;
 	set-signal-mask SIG_AIM_3;
-	//turn clusterHeadingPivot to y-axis heading - torsoaim speed <90.0000>; //-- Turn(torso, y-axis, heading, math.rad(300))
+	turn clusterHeadingPivot to y-axis heading - torsoaim speed <90.0000>; //-- Turn(torso, y-axis, heading, math.rad(300))
 	turn clusterPitchPivot to x-axis -1*pitch speed <90.0000>;
 	if (((get ABS(wpn3_lasthead - heading)) > 65536) OR(((get ABS(wpn3_lasthead - heading)) > 2500) AND ((get ABS(wpn3_lasthead - heading)) < 64236)))
 	{
