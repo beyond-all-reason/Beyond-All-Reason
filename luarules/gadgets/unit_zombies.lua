@@ -25,7 +25,7 @@ local ZOMBIE_ORDER_MIN = 5                -- Min random orders for zombies
 local ZOMBIE_ORDER_MAX = 15               -- Max random orders for zombies
 local ZOMBIE_GUARD_CHANCE = 0.65          -- Chance a zombie will guard allies
 local WARNING_TIME = 15 * Game.gameSpeed  -- Frames to start warning before reanimation
-local ZOMBIES_REZ_MIN = 20 				  -- in seconds
+local ZOMBIES_REZ_MIN = 30 				  -- in seconds
 local ZOMBIE_REZ_MAX = 120 				  -- in seconds
 
 local ZOMBIES_REZ_SPEED = modOptions.revival_rezspeed
