@@ -252,7 +252,7 @@ return {
 				firestarter = 70,
 				flighttime = 2,
 				impulsefactor = 0.6,
-				model = "legmediumrocket.s3o",
+				model = "legsmallrocket.s3o",
 				name = "Parabolic Trajectory Multi-Rocket Launcher",
 				noselfdamage = true,
                 proximitypriority = -1,
