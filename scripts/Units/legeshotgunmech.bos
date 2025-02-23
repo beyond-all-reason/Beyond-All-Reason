@@ -489,7 +489,7 @@ Create(){
 	missile_count=0;
     shottieArm =  0;
 	moveSpeed = get MAX_SPEED;
-	animSpeed = 4;
+	animSpeed = 5;
 	wpn1_lasthead = 1000000;
     wpn2_lasthead = 0;
     wpn3_lasthead = 0;
@@ -705,8 +705,11 @@ AimWeapon2(heading, pitch) //pew pew
 	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > <10>) AND ((get ABS(wpn2_lasthead - heading)) < 65536 - <10>)))
 	{
 		wpn2_lasthead = 1000000;
-		wait-for-turn torso around y-axis;
+		//wait-for-turn torso around y-axis;
 		wait-for-turn rArmGun around x-axis;
+		wait-for-turn rArmGun around y-axis;
+		wait-for-turn lArmGun around x-axis;
+		wait-for-turn lArmGun around y-axis;
 	}
 	wpn2_lasthead = heading;
 	return (1);
@@ -825,6 +828,7 @@ AimWeapon4(heading, pitch)
 	set-signal-mask SIG_AIM_4;
 	if (((get ABS(wpn4_lasthead - heading)) > 65536) OR(((get ABS(wpn4_lasthead - heading)) > 1300) AND ((get ABS(wpn4_lasthead - heading)) < 64236)))
 	{
+		wait-for-turn torso around y-axis;
 		wpn4_lasthead = 1000000;
 	}
 	wpn4_lasthead = heading;
