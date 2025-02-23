@@ -189,9 +189,27 @@ local function putMainAwardIntoModel(award, num, winnersTable)
 	if num == 1 then
 		playerToSet = modelForPresenter[award].firstLeader
 	else
-		playerToSet = modelForPresenter[award].otherOrderedLeaders[num]
+-- First player(num = 1) corresponds to firstLeader. Other players in otherLeadersOrdered. Thus num -1
+-- second player in leaderboard corresponds to first player in otherLeadersOrdered
+-- third player in leaderboard corresponds to second player in list
+		playerToSet = modelForPresenter[award].otherLeadersOrdered[num - 1]
 	end
 	playerToSet.score = score
+	playerToSet.playerName = name
+	playerToSet.playerColor = getCSSColorByPlayer(teamID)
+	modelForPresenter[award].visible = true
+end
+
+local function createCowAward(winnersTable)
+	local award = "goldenCow"
+	local teamID = winnersTable[1].teamID
+
+	if teamID < 0 then
+		return
+	end
+
+	local name = findPlayerName(teamID)
+	local playerToSet = modelForPresenter[award].leader
 	playerToSet.playerName = name
 	playerToSet.playerColor = getCSSColorByPlayer(teamID)
 	modelForPresenter[award].visible = true
@@ -245,6 +263,7 @@ local function ProcessAwards(awards)
 	createOtherAward("ecoAward", awards.eco)
 	createOtherAward("damageReceivedAward", awards.damageReceived)
 	createOtherAward("commanderSleepAward", awards.sleep)
+	createCowAward(awards.goldenCow)
 	dm_handle.model = modelForPresenter
 end
 
