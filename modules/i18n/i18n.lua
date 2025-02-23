@@ -9,15 +9,15 @@ local translationDirs = VFS.SubDirs('language')
 local languageTranslations = {}
 
 local function loadTranslationTable(languageCode, currentContext, data)
-  local composedKey
-  for k,v in pairs(data) do
-    composedKey = (currentContext and (currentContext .. '.') or "") .. tostring(k)
-    if type(v) == 'string' then
-		languageTranslations[languageCode][composedKey] = v
-    elseif type(v) == 'table' then
-      loadTranslationTable(languageCode, composedKey, v)
-    end
-  end
+	local composedKey
+	for k,v in pairs(data) do
+		composedKey = (currentContext and (currentContext .. '.') or "") .. tostring(k)
+		if type(v) == 'string' then
+			languageTranslations[languageCode][composedKey] = v
+		elseif type(v) == 'table' then
+			loadTranslationTable(languageCode, composedKey, v)
+		end
+	end
 end
 
 local function loadRmlTranslations(languageCode)
