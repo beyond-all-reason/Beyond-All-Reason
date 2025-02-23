@@ -306,8 +306,8 @@ else
 		Spring.SendLuaRulesMsg(awardsMsg)
 
 		-- send to awards widget
-		if Script.LuaUI("GadgetReceiveAwardsNew") then
-			Script.LuaUI.GadgetReceiveAwardsNew(awards)
+		if Script.LuaUI("GadgetReceiveAwards") then
+			Script.LuaUI.GadgetReceiveAwards(awards)
 			Script.LuaUI.ShowEndgameAwards()
 		end
 	end
