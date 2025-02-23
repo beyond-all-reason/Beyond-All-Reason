@@ -329,18 +329,6 @@ local function addSpotlight(objectType, owner, objectID, color, options)
 		return
 	end
 
-	-- protect against engine crash
-	if objectType == "feature" then
-		local featureDefID = Spring.GetFeatureDefID(objectID)
-		if featureDefID then
-			local featureDef = FeatureDefs[featureDefID]
-			if featureDef.name == "geovent" then
-				Spring.Echo("cannot spotlight geothermal vents")
-				return
-			end
-		end
-	end
-
 	options = options or {}
 
 	-- radius
