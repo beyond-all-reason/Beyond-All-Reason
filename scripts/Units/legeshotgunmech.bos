@@ -32,7 +32,11 @@ lBackFoot,
 lLowerLeg,
 lUpperLeg,
 lFootPivot,
+aaMinigunBase,
+aaMinigunTurret,
+aaMinigunBarrel,
 
+aaMinigunFlare,
 fronthipFlare,
 fronttorsoFlare,
 rArmFlare,
@@ -40,12 +44,13 @@ lArmFlare,
 clusterFlare,
 missileFlare1,
 missileFlare2,
-missileFlare3;
+missileFlare3,
+batteryPivotFlare;
 
 ///
 
 static-var gun_1, torsoaim, miniguncount, movespeed,
-            restore_delay, wpn1_lasthead, wpn2_lasthead, wpn3_lasthead, wpn4_lasthead, bMoving, missile_count, shottieArm, Delay;
+            restore_delay, wpn1_lasthead, wpn2_lasthead, wpn3_lasthead, wpn4_lasthead, wpn5_lasthead, bMoving, missile_count, shottieArm, Delay;
 
 
 ///
@@ -67,6 +72,8 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 	set-signal-mask SIGNAL_MOVE;
 	if (isMoving) { //Frame:1
 
+            turn rUpperLeg to y-axis <0> speed <100>;
+            turn lUpperLeg to y-axis <0> speed <100>;
 			turn lFootPivot to x-axis <-47.494789> speed <77.377506> / animSpeed; 
 			turn lFootPivot to z-axis <-3.278511> speed <18.928776> / animSpeed; 
 			turn lLowerLeg to x-axis <24.915591> speed <232.897942> / animSpeed; 
@@ -423,7 +430,7 @@ UnitSpeed(){
 StartMoving(){
 	signal SIGNAL_MOVE;
 	isMoving=TRUE;
-    animSpeed = 5;
+    animSpeed = 4;
 	start-script Walk();
 }
 StopMoving(){
@@ -439,7 +446,16 @@ Open()
 	{
 		//emit-sfx 4096 + 6 from upperTorso;
 		aimingPose = 1;
+        move missileBattery to y-axis [0] speed [20];
         move clusterSleeve to y-axis [4] speed [10];
+
+        move clusterHeadingPivot to y-axis [0] speed [50];
+        // wait-for-move clusterHeadingPivot along y-axis;
+        move clusterHeadingPivot to z-axis [0] speed [20];
+        wait-for-move clusterPitchPivot along z-axis;
+        turn clusterPitchPivot to x-axis <0> speed <20>;
+        wait-for-turn clusterPitchPivot around x-axis;
+        
 	}
 }
 
@@ -468,8 +484,32 @@ Close()
         turn rLowerLeg to x-axis <0> speed <1944.440289> / animSpeed;
         turn rUpperLeg to x-axis <0> speed <1688.428654> / animSpeed;
         turn rUpperLeg to z-axis <0> speed <125.703468> / animSpeed;
+
+
+        turn rArmGun to z-axis <15> speed <50>;
+        turn lArmGun to z-axis <-15> speed <50>;
+        turn rUpperLeg to y-axis <-15> speed <50>;
+        turn lUpperLeg to y-axis <15> speed <50>;
         
-        move clusterSleeve to y-axis [0] speed [20];
+        turn clusterHeadingPivot to y-axis <0> speed <10>;
+        turn clusterPitchPivot to x-axis <0> speed <10>;
+        wait-for-turn clusterHeadingPivot around y-axis;
+        wait-for-turn clusterPitchPivot around x-axis;
+
+        move aaMinigunBase to y-axis [4] speed [10];
+        turn aaMinigunTurret to x-axis <-45> speed <10>;
+        spin aaMinigunBase around y-axis speed <20> accelerate <0.5>;
+        
+        move missileBattery to y-axis [-8.5] speed [10];
+        move clusterSleeve to y-axis [0] speed [5];
+
+        turn clusterPitchPivot to x-axis <-90> speed <90>;
+        wait-for-turn clusterPitchPivot around x-axis;
+        move clusterHeadingPivot to z-axis [-10] speed [10];
+        //wait-for-move clusterHeadingPivot along z-axis;
+        move clusterHeadingPivot to y-axis [-5] speed [5];
+
+
 		}
 	InMotion = 0;
 }
@@ -489,12 +529,15 @@ Create(){
 	missile_count=0;
     shottieArm =  0;
 	moveSpeed = get MAX_SPEED;
-	animSpeed = 5;
+	animSpeed = 4;
 	wpn1_lasthead = 1000000;
     wpn2_lasthead = 0;
     wpn3_lasthead = 0;
     wpn4_lasthead = 0;
+    wpn5_lasthead = 0;
 	Delay = 0;
+
+    turn batteryPivotFlare to z-axis <65> now;
 	
     hide fronthipFlare;
     hide fronttorsoFlare;
@@ -504,6 +547,30 @@ Create(){
     hide missileFlare1;
     hide missileFlare2;
     hide missileFlare3;
+    start-script RestoreAfterDelay();
+    sleep 1000;
+    turn rArmGun to z-axis <15> speed <50>;
+    turn lArmGun to z-axis <-15> speed <50>;
+    turn rUpperLeg to y-axis <-15> speed <50>;
+    turn lUpperLeg to y-axis <15> speed <50>;
+    
+    turn clusterHeadingPivot to y-axis <0> speed <10>;
+    turn clusterPitchPivot to x-axis <0> speed <10>;
+    wait-for-turn clusterHeadingPivot around y-axis;
+    wait-for-turn clusterPitchPivot around x-axis;
+
+    move aaMinigunBase to y-axis [4] speed [10];
+    turn aaMinigunTurret to x-axis <-45> speed <10>;
+    spin aaMinigunBase around y-axis speed <20> accelerate <0.5>;
+    
+    move missileBattery to y-axis [-8.5] speed [10];
+    move clusterSleeve to y-axis [0] speed [5];
+
+    turn clusterPitchPivot to x-axis <-90> speed <90>;
+    wait-for-turn clusterPitchPivot around x-axis;
+    move clusterHeadingPivot to z-axis [-10] speed [10];
+    //wait-for-move clusterHeadingPivot along z-axis;
+    move clusterHeadingPivot to y-axis [-5] speed [5];
 }
 
 RestoreAfterDelay(){
@@ -532,6 +599,7 @@ RestoreAfterDelay(){
     wpn2_lasthead = 0;
     wpn3_lasthead = 0;
     wpn4_lasthead = 0;
+    wpn5_lasthead = 0;
 	Delay = 0;
     // start-script Close();
 }
@@ -695,12 +763,12 @@ AimWeapon2(heading, pitch) //pew pew
 	if(shottieArm==0)
 	{
 		turn rArmGun to y-axis heading - torsoaim speed <95.0000>;
-		turn rArmGun to x-axis -1*pitch speed <100.0000>;
+		turn rArmUpper to x-axis -1*pitch speed <100.0000>;
 	}
 	if(shottieArm==1)
 	{
 		turn lArmGun to y-axis heading - torsoaim speed <95.0000>;
-		turn lArmGun to x-axis -1*pitch speed <100.0000>;
+		turn lArmUpper to x-axis -1*pitch speed <100.0000>;
 	}
 	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > <10>) AND ((get ABS(wpn2_lasthead - heading)) < 65536 - <10>)))
 	{
@@ -776,6 +844,7 @@ AimFromWeapon3(piecenum)
 
 AimWeapon3(heading, pitch) //pew pew
 {
+        start-script Open();
 	signal SIG_AIM_3;
 	set-signal-mask SIG_AIM_3;
 	turn clusterHeadingPivot to y-axis heading - torsoaim speed <90.0000>; //-- Turn(torso, y-axis, heading, math.rad(300))
@@ -783,16 +852,18 @@ AimWeapon3(heading, pitch) //pew pew
 	if (((get ABS(wpn3_lasthead - heading)) > 65536) OR(((get ABS(wpn3_lasthead - heading)) > 2500) AND ((get ABS(wpn3_lasthead - heading)) < 64236)))
 	{
 		wpn3_lasthead = 1000000;
-		wait-for-turn torso around y-axis;
+		wait-for-turn clusterHeadingPivot around y-axis;
 		wait-for-turn clusterPitchPivot around x-axis;
+        
 	}
 	wpn3_lasthead = heading;
+    //start-script RestoreAfterDelay();
 	return (1);
 }
 
 FireWeapon3()
 {
-	emit-sfx 1024 from clusterFlare;
+	//emit-sfx 1024 from clusterFlare;
 	move clusterBarrel to z-axis [-5.5] speed [27.5];
 	sleep 200;
 	move clusterBarrel to z-axis [0] speed [4.4];
@@ -838,21 +909,6 @@ AimWeapon4(heading, pitch)
 FireWeapon4()
 {
 
-    // if(missile_count==0)
-	// {
-    //     emit-sfx 1024 from missileFlare1;
-    //     return (1);
-	// }
-	// if(missile_count==1)
-	// {
-    //     emit-sfx 1024 from missileFlare2;
-    //     return (1);
-	// }
-    // if(missile_count==2)
-	// {
-    //     emit-sfx 1024 from missileFlare3;
-    //     return (1);
-	// }
 	return (1);
 
 }
@@ -868,6 +924,44 @@ Shot4(zero)
 		missile_count=0;
 	}
 	return(1);
+}
+
+
+
+QueryWeapon5(piecenum) 
+{
+	piecenum = aaMinigunFlare;
+	// return (0);
+}
+
+AimFromWeapon5(piecenum)
+{
+	piecenum = aaMinigunBase;
+	// return (0);
+}
+
+AimWeapon5(heading, pitch) //pew pew
+{
+	signal SIG_AIM_5;
+	set-signal-mask SIG_AIM_5;
+    stop-spin aaMinigunBase around y-axis;
+	turn aaMinigunBase to y-axis heading - torsoaim speed <90.0000>; //-- Turn(torso, y-axis, heading, math.rad(300))
+	turn aaMinigunTurret to x-axis -1*pitch speed <90.0000>;
+	if (((get ABS(wpn5_lasthead - heading)) > 65536) OR(((get ABS(wpn5_lasthead - heading)) > 2500) AND ((get ABS(wpn5_lasthead - heading)) < 64236)))
+	{
+		wpn5_lasthead = 1000000;
+		wait-for-turn aaMinigunBase around y-axis;
+		wait-for-turn aaMinigunTurret around x-axis;
+	}
+	wpn5_lasthead = heading;
+	return (1);
+}
+
+FireWeapon5()
+{
+	spin aaMinigunBarrel around z-axis speed <-2000.0>;
+
+	stop-spin aaMinigunBarrel around z-axis decelerate <12>;
 }
 
 
