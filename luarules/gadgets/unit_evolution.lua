@@ -181,13 +181,14 @@ if gadgetHandler:IsSyncedCode() then
 		spSetUnitStockpile(newUnitID, stockpile, stockpilebuildpercent)
 		spSetUnitDirection(newUnitID, dx, dy, dz)
 
-		spGiveOrderToUnit(newUnitID, CMD.FIRE_STATE, states.firestate, {})
-		spGiveOrderToUnit(newUnitID, CMD.MOVE_STATE, states.movestate, {})
-		-- FIXME TODO Does not work. Could also use GiveOrderArrayToUnit.
-		-- spGiveOrderToUnit(newUnitID, CMD.REPEAT,     states["repeat"] and 1 or 0,  {})
-		-- spGiveOrderToUnit(newUnitID, CMD.CLOAK,      states.cloak and 1 or 0, 		 {})
-		spGiveOrderToUnit(newUnitID, CMD.ONOFF,      1,                       		 {})
+		spGiveOrderToUnit(newUnitID, CMD.FIRE_STATE, states.firestate, 						 {})
+		spGiveOrderToUnit(newUnitID, CMD.MOVE_STATE, states.movestate, 						 {})
+		-- TODO Untested
 		spGiveOrderToUnit(newUnitID, CMD.TRAJECTORY, states.trajectory and 1 or 0, {})
+		-- FIXME TODO Does not work. Could also use GiveOrderArrayToUnit.
+		-- spGiveOrderToUnit(newUnitID, CMD.REPEAT, states["repeat"] and 1 or 0, {})
+		-- spGiveOrderToUnit(newUnitID, CMD.CLOAK,  states.cloak and 1 or 0, 		 {})
+		-- spGiveOrderToUnit(newUnitID, CMD.ONOFF,  1,                       		 {})
 
 		ReAssignAssists(newUnitID,unitID)
 
