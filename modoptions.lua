@@ -1211,31 +1211,7 @@ local options = {
         type    = 'bool',
         section = 'options_extra',
         def     = false,
-        unlock  = {"revival_min_delay","revival_rezspeed","revival_partial_reclaim", "revival_max_delay"},
-    },
-
-    {
-        key     = 'revival_min_delay',
-        name    = 'Minimum Revival Time',
-        desc    = "In seconds, corpse will resurrect no faster than this.",
-        type    = 'number',
-        section = 'options_extra',
-        def     = 20,
-        min     = 1,
-        max     = 600,
-        step    = 1,
-    },
-
-    {
-        key     = 'revival_max_delay',
-        name    = 'Maximum Revival Time',
-        desc    = "In seconds, corpse will resurrect no slower than this.",
-        type    = 'number',
-        section = 'options_extra',
-        def     = 120,
-        min     = 1,
-        max     = 1200,
-        step    = 1,
+        unlock  = {"revival_min_delay","revival_rezspeed","revival_partial_reclaim", "revival_max_delay", "revival_count_multiplier"},
     },
 
     {
@@ -1252,11 +1228,23 @@ local options = {
 
     {
         key     = 'revival_partial_reclaim',
-        name    = 'Zombies partially reclaimable',
+        name    = 'Reclaim/Damage Reduces Health',
         desc    = "Corpses that are partially reclaimed or damaged will revive with less health.",
         type    = 'bool',
         section = 'options_extra',
         def     = true,
+    },
+
+    {
+        key     = 'revival_count_multiplier',
+        name    = 'Spawn Count Multiplier',
+        desc    = "Changes the number of mobile units spawned per corpse.",
+        type    = 'number',
+        section = 'options_extra',
+        def     = 2,
+        min     = 1,
+        max     = 10,
+        step    = 1,
     },
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

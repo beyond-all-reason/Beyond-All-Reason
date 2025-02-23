@@ -25,11 +25,12 @@ local ZOMBIE_ORDER_MIN = 10               -- Min random orders for zombies
 local ZOMBIE_ORDER_MAX = 30               -- Max random orders for zombies
 local ZOMBIE_GUARD_CHANCE = 0.6           -- Chance a zombie will guard allies
 local WARNING_TIME = 15 * Game.gameSpeed  -- Frames to start warning before reanimation
+local ZOMBIES_REZ_MIN = 20 				  -- in seconds
+local ZOMBIE_REZ_MAX = 120 				  -- in seconds
 
-local ZOMBIES_REZ_MIN = modOptions.revival_min_delay
-local ZOMBIE_REZ_MAX = modOptions.revival_max_delay
 local ZOMBIES_REZ_SPEED = modOptions.revival_rezspeed
 local ZOMBIES_PARTIAL_RECLAIM = modOptions.revival_partial_reclaim
+local ZOMBIES_COUNT_MULTIPLIER = modOptions.revival_count_multiplier
 
 local ZOMBIE_ORDER_CHECK_INTERVAL = Game.gameSpeed * 10    -- How often (in frames) to check if zombies need new orders
 local ZOMBIE_CHECK_INTERVAL = Game.gameSpeed    -- How often (in frames) everything else is checked
@@ -121,8 +122,8 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		zombieDefData.explosionDefID = explosionDefID
 		
 		local heapDefName = FeatureDefs[corpseDefID].deathFeatureID
-		if FeatureDefNames[heapDefName] then
-			zombieDefData.heapDefID = FeatureDefNames[heapDefName].id
+		if heapDefName then
+			zombieDefData.heapDefID = heapDefName
 		end
 
 		zombieHeapDefs[unitDefID] = zombieDefData
@@ -272,26 +273,38 @@ local function setZombieStates(unitID, unitDefID)
 	spSetUnitResourcing(unitID, {["umm"] = metalToSet, ["ume"] = energyToSet})
 end
 
-local function spawnZombie(featureID, unitDefID, healthReductionRatio, x, y, z)
-	local unitID = spCreateUnit(unitDefID, x, y, z, 0, gaiaTeamID)
-	if unitID then
-		spDestroyFeature(featureID)
-		spSetUnitExperience(unitID, math.min(random(), random())) -- skew xp to lower values
-		local unitHealth = spGetUnitHealth(unitID)
-		spSpawnCEG("scav-spawnexplo", x, y, z, 0, 0, 0, UnitDefs[unitDefID].xsize)
-		playSpawnSound(x, y, z)
-		corpsesData[featureID] = nil
-		spSetUnitHealth(unitID, unitHealth * healthReductionRatio)
-		if scavTeamID then
-			spTransferUnit(unitID, scavTeamID)
-		else
-			zombieWatch[unitID] = unitDefID
-			spSetUnitRulesParam(unitID, "zombie", IS_ZOMBIE)
-			issueRandomOrders(unitID, unitDefID)
-			setZombieStates(unitID, unitDefID)
+local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z)
+	local unitDef = UnitDefs[unitDefID]
+	local spawnCount = unitDef.speed > 0 and ZOMBIES_COUNT_MULTIPLIER or 1 -- units that can't move will stay stacked, which is not desired
+	local size = unitDef.xsize
+
+	spDestroyFeature(featureID)
+	corpsesData[featureID] = nil
+	playSpawnSound(x, y, z)
+
+	for i = 1, spawnCount do
+		local randomX = x + random(-size * ZOMBIES_COUNT_MULTIPLIER, size * ZOMBIES_COUNT_MULTIPLIER)
+		local randomZ = z + random(-size * ZOMBIES_COUNT_MULTIPLIER, size * ZOMBIES_COUNT_MULTIPLIER)
+		local adjustedY = spGetGroundHeight(randomX, randomZ)
+
+	
+		local unitID = spCreateUnit(unitDefID, randomX, adjustedY, randomZ, 0, gaiaTeamID)
+		if unitID then
+			spSpawnCEG("scav-spawnexplo", randomX, adjustedY, randomZ, 0, 0, 0, unitDef.xsize)
+			spSetUnitExperience(unitID, math.min(random(), random()))
+			local unitHealth = spGetUnitHealth(unitID)
+			spSetUnitHealth(unitID, unitHealth * healthReductionRatio)
+			
+			if scavTeamID then
+				spTransferUnit(unitID, scavTeamID)
+			else
+				zombieWatch[unitID] = unitDefID
+				spSetUnitRulesParam(unitID, "zombie", IS_ZOMBIE)
+				issueRandomOrders(unitID, unitDefID)
+				setZombieStates(unitID, unitDefID)
+			end
 		end
 	end
-	return unitID
 end
 
 local function updateAdjustedRezSpeed()
@@ -331,7 +344,7 @@ function gadget:GameFrame(frame)
 					resetSpawn(featureID, featureData, featureDefData)
 				else
 					local healthReductionRatio = calculateHealthRatio(featureID)
-					spawnZombie(featureID, featureDefData.unitDefID, healthReductionRatio, featureX, featureY, featureZ)
+					spawnZombies(featureID, featureDefData.unitDefID, healthReductionRatio, featureX, featureY, featureZ)
 				end
 			end
 			corpseCheckFrames[frame] = nil
