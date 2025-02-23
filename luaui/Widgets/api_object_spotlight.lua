@@ -508,7 +508,7 @@ function widget:Initialize()
 		return
 	end
 
-	WG["object_spotlight"] = {
+	WG["ObjectSpotlight"] = {
 		---Adds a new spotlight for a given object. Only one call is needed to create the spotlight (the position is handled in
 		---the shader), but this can be called again to update extra options. Unless a duration is provided, calling
 		---removeSpotlight later is necessary to remove the spotlight.
@@ -545,5 +545,5 @@ function widget:Shutdown()
 		shader:Finalize()
 	end
 
-	WG["object_spotlight"] = nil
+	WG["ObjectSpotlight"] = nil
 end
