@@ -485,14 +485,16 @@ Close()
         turn rUpperLeg to x-axis <0> speed <1688.428654> / animSpeed;
         turn rUpperLeg to z-axis <0> speed <125.703468> / animSpeed;
 
+        turn rArmUpper to x-axis <0> speed <20>;
+        turn lArmUpper to x-axis <0> speed <20>;
 
         turn rArmGun to z-axis <15> speed <50>;
         turn lArmGun to z-axis <-15> speed <50>;
         turn rUpperLeg to y-axis <-15> speed <50>;
         turn lUpperLeg to y-axis <15> speed <50>;
         
-        turn clusterHeadingPivot to y-axis <0> speed <10>;
-        turn clusterPitchPivot to x-axis <0> speed <10>;
+        turn clusterHeadingPivot to y-axis <0> speed <50>;
+        turn clusterPitchPivot to x-axis <0> speed <50>;
         wait-for-turn clusterHeadingPivot around y-axis;
         wait-for-turn clusterPitchPivot around x-axis;
 
@@ -547,7 +549,7 @@ Create(){
     hide missileFlare1;
     hide missileFlare2;
     hide missileFlare3;
-    start-script RestoreAfterDelay();
+    // start-script RestoreAfterDelay();
     sleep 1000;
     turn rArmGun to z-axis <15> speed <50>;
     turn lArmGun to z-axis <-15> speed <50>;
