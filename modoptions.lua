@@ -1227,15 +1227,6 @@ local options = {
     },
 
     {
-        key     = 'revival_partial_reclaim',
-        name    = 'Reclaim/Damage Reduces Health',
-        desc    = "Corpses that are partially reclaimed or damaged will revive with less health.",
-        type    = 'bool',
-        section = 'options_extra',
-        def     = true,
-    },
-
-    {
         key     = 'revival_count_multiplier',
         name    = 'Spawn Count Multiplier',
         desc    = "Changes the number of mobile units spawned per corpse.",
@@ -1246,6 +1237,16 @@ local options = {
         max     = 10,
         step    = 1,
     },
+
+    {
+        key     = 'revival_partial_reclaim',
+        name    = 'Reclaim/Damage Reduces Health',
+        desc    = "Corpses that are partially reclaimed or damaged will revive with less health.",
+        type    = 'bool',
+        section = 'options_extra',
+        def     = true,
+    },
+
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     -- Experimental Options

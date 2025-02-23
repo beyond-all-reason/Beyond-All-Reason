@@ -21,9 +21,9 @@ if not modOptions.revival then
 end
 
 local ZOMBIE_GUARD_RADIUS = 300           -- Radius for zombies to guard allies
-local ZOMBIE_ORDER_MIN = 10               -- Min random orders for zombies
-local ZOMBIE_ORDER_MAX = 30               -- Max random orders for zombies
-local ZOMBIE_GUARD_CHANCE = 0.6           -- Chance a zombie will guard allies
+local ZOMBIE_ORDER_MIN = 5                -- Min random orders for zombies
+local ZOMBIE_ORDER_MAX = 15               -- Max random orders for zombies
+local ZOMBIE_GUARD_CHANCE = 0.65          -- Chance a zombie will guard allies
 local WARNING_TIME = 15 * Game.gameSpeed  -- Frames to start warning before reanimation
 local ZOMBIES_REZ_MIN = 20 				  -- in seconds
 local ZOMBIE_REZ_MAX = 120 				  -- in seconds
@@ -163,23 +163,24 @@ local function calculateHealthRatio(featureID)
 end
 
 local function GetUnitNearestAlly(unitID, unitDefID, range)
-	local bestAllySq
-	local bestDistanceSq
+	local bestAllyID
+	local bestDistanceSquared
 	local x, y, z = spGetUnitPosition(unitID)
 	local units = spGetUnitsInCylinder(x, z, range)
 	for i = 1, #units do
 		local allyID = units[i]
 		local allyTeam = spGetUnitTeam(allyID)
-		if (allyID ~= unitID) and (allyTeam == gaiaTeamID) then
+		local allyDefID = spGetUnitDefID(allyID)
+		if (allyID ~= unitID) and (allyTeam == gaiaTeamID) and UnitDefs[allyDefID].canAttack and spGetUnitCurrentCommand(allyID) ~= CMD_GUARD then
 			local ox, oy, oz = spGetUnitPosition(allyID)
-			local distanceSq = distance2dSquared(x, z, ox ,oz)
-			if spTestMoveOrder(unitDefID, ox, oy, oz) and ((bestDistanceSq == nil) or (distanceSq < bestDistanceSq)) then
-				bestAllySq = allyID
-				bestDistanceSq = distance
+			local currentDistanceSquared = distance2dSquared(x, z, ox, oz)
+			if spTestMoveOrder(unitDefID, ox, oy, oz) and ((bestDistanceSquared == nil) or (currentDistanceSquared < bestDistanceSquared)) then
+				bestAllyID = allyID
+				bestDistanceSquared = currentDistanceSquared
 			end
 		end
 	end
-	return bestAllySq
+	return bestAllyID
 end
 
 local function issueRandomFactoryBuildOrders(unitID, unitDefID)
@@ -225,7 +226,7 @@ local function issueRandomOrders(unitID, unitDefID)
 	
 	local orders = {}
 	local nearAlly = (unitDef.canAttack) and GetUnitNearestAlly(unitID, unitDefID, ZOMBIE_GUARD_RADIUS) or nil
-	if nearAlly and spGetUnitCurrentCommand(nearAlly) ~= CMD_GUARD then
+	if nearAlly then
 		if random() < ZOMBIE_GUARD_CHANCE then
 			orders[#orders + 1] = {CMD_GUARD, {nearAlly}, 0}
 		end
@@ -294,12 +295,12 @@ local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z)
 			spSetUnitExperience(unitID, math.min(random(), random()))
 			local unitHealth = spGetUnitHealth(unitID)
 			spSetUnitHealth(unitID, unitHealth * healthReductionRatio)
-			
+			spSetUnitRulesParam(unitID, "zombie", IS_ZOMBIE)
+
 			if scavTeamID then
 				spTransferUnit(unitID, scavTeamID)
 			else
 				zombieWatch[unitID] = unitDefID
-				spSetUnitRulesParam(unitID, "zombie", IS_ZOMBIE)
 				issueRandomOrders(unitID, unitDefID)
 				setZombieStates(unitID, unitDefID)
 			end
