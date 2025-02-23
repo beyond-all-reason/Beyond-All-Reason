@@ -17,17 +17,10 @@ end
 local document
 widget.rmlContext = nil
 
-local playerListByTeam = {} -- does not contain specs
-
--- this can be overwritten later to change what code exampleEventHook calls
-local eventCallback = function(ev, ...)
-	Spring.Echo("orig function says", ...)
-end
-
+local playerListByTeam = {}
 local isVisible = false
 local dm_handle
-
-local threshold = 150000
+local chobbyLoaded = (Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), "chobby") ~= nil)
 
 local modelForPresenter = {
 	resourcesDestroyed = {
@@ -49,7 +42,7 @@ local modelForPresenter = {
 				score = -1,
 				playerColor = "rgb(255,0,0)",
 			},
-		}
+		},
 	},
 	enemiesDestroyed = {
 		visible = false,
@@ -70,7 +63,7 @@ local modelForPresenter = {
 				score = -1,
 				playerColor = "rgb(255,0,0)",
 			},
-		}
+		},
 	},
 	resourcesEfficiency = {
 		visible = false,
@@ -91,7 +84,7 @@ local modelForPresenter = {
 				score = -1,
 				playerColor = "rgb(255,0,0)",
 			},
-		}
+		},
 	},
 	traitor = {
 		visible = false,
@@ -112,7 +105,7 @@ local modelForPresenter = {
 				score = -1,
 				playerColor = "rgb(255,0,0)",
 			},
-		}
+		},
 	},
 	goldenCow = {
 		visible = false,
@@ -121,7 +114,7 @@ local modelForPresenter = {
 			playerColor = "rgb(255,0,0)",
 		},
 	},
-	otherAwards = {}
+	otherAwards = {},
 }
 
 local function getCSSColorByPlayer(teamID)
@@ -135,25 +128,32 @@ local function getCSSColorByPlayer(teamID)
 	return string.format("rgb(%d, %d, %d)", redNumColor, greenNumColor, blueNumColor)
 end
 
+local function leave()
+	if chobbyLoaded then
+		Spring.Reload("")
+	else
+		Spring.SendCommands("quitforce")
+	end
+end
+
+local function showGraph()
+	document:Close()
+	Spring.SendCommands("endgraph 2")
+end
+
 local function initializeRmlContext()
 	widget.rmlContext = RmlUi.CreateContext(widget.whInfo.name)
 	-- use the DataModel handle to set values
 	-- only keys declared at the DataModel's creation can be used
 	dm_handle = widget.rmlContext:OpenDataModel("data_model_test", {
 		model = modelForPresenter,
-		exampleValue = "Changes when clicked",
-		-- Functions inside a DataModel cannot be changed later
-		-- so instead a function variable external to the DataModel is called and _that_ can be changed
-		exampleEventHook = function(...)
-			eventCallback(...)
+		onLeaveClick = function()
+			leave()
+		end,
+		onShowGraphClick = function()
+			showGraph()
 		end,
 	})
-
-	eventCallback = function(ev, ...)
-		Spring.Echo(ev.parameters.mouse_x, ev.parameters.mouse_y, ev.parameters.button, ...)
-		local options = { "ow", "oof!", "stop that!", "clicking go brrrr" }
-		dm_handle.exampleValue = options[math.random(1, 4)]
-	end
 end
 
 local function findPlayerName(teamID)
@@ -198,8 +198,8 @@ local function putMainAwardIntoModel(award, num, winnersTable)
 end
 
 local function calculateAwardScore(award, score)
-	if award == 'commanderSleepAward' then
-		return math.round(score/60) .. ' minutes'
+	if award == "commanderSleepAward" then
+		return math.round(score / 60) .. " minutes"
 	else
 		return math.floor(score)
 	end
@@ -207,7 +207,7 @@ end
 
 local function putOtherAwardIntoModel(award, winnersTable)
 	local teamID = winnersTable[1].teamID
-	local score = calculateAwardScore(winnersTable[1].score)
+	local score = calculateAwardScore(award, winnersTable[1].score)
 	if teamID < 0 then
 		return
 	end
@@ -218,8 +218,8 @@ local function putOtherAwardIntoModel(award, winnersTable)
 		leader = {
 			playerName = name,
 			score = score,
-			playerColor = getCSSColorByPlayer(teamID)
-		}
+			playerColor = getCSSColorByPlayer(teamID),
+		},
 	})
 end
 
@@ -249,6 +249,7 @@ local function ProcessAwards(awards)
 end
 
 local function showDocument()
+	Spring.SendCommands("endgraph 0")
 	if isVisible == false then
 		isVisible = true
 		document = widget.rmlContext:LoadDocument("LuaUI/Widgets/rml_assets/endscreen_awards.rml", widget)
@@ -277,7 +278,7 @@ local function initializeWidget()
 		showDocument()
 	end
 	WG["endgame_awards_widget"].hide = function()
-		showDocument()
+		hideDocument()
 	end
 	WG["endgame_awards_widget"].isvisible = function()
 		return isVisible
@@ -285,7 +286,7 @@ local function initializeWidget()
 end
 
 local function disableShowEndGraph()
-	Spring.SendCommands("endgraph 2")
+	Spring.SendCommands("endgraph 0")
 end
 
 local function initializeTeamList()
@@ -305,6 +306,7 @@ end
 
 local function registerGlobalFunctionForReceivingAwardsFromHandler()
 	widgetHandler:RegisterGlobal("GadgetReceiveAwardsNew", ProcessAwards)
+	widgetHandler:RegisterGlobal("ShowEndgameAwards", showDocument)
 end
 
 function widget:Initialize()
@@ -322,4 +324,5 @@ function widget:Shutdown()
 		RmlUi.RemoveContext(widget.whInfo.name)
 	end
 	widgetHandler:DeregisterGlobal("GadgetReceiveAwardsNew")
+	widgetHandler:DeregisterGlobal("ShowEndgameAwards")
 end

@@ -5,6 +5,13 @@
     vertical-align: middle;
 }
 
+body {
+  position: absolute; 
+  left: 50%; 
+  top: 50%; 
+  transform: translateX(-50%) translateY(-50%);
+}
+
 table {
   box-sizing: border-box;
   display: table;
@@ -41,17 +48,30 @@ img {
 
 }
 
-#mainTable {
-  min-height: 300px;
-}
-
-.category-row {
-  margin-top: 33px;
+span {
+  display: inline-block;
+  margin: 0;
+  padding: 0;
 }
 
 td.align-left {
   text-align: left;
   vertical-align: middle;
+}
+
+#main-container {
+  min-width: 750px; 
+  border-radius: 10px; 
+  padding: 8px; 
+  background-color: rgba(0%, 0%, 0%, 70%);
+}
+
+#main-table {
+  min-height: 300px;
+}
+
+.category-row {
+  margin-top: 33px;
 }
 
 .leader {
@@ -69,10 +89,35 @@ td.align-left {
   font-weight: bold;
 }
 
+.honorable-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.honorable-header {
+  margin-bottom: 5px;
+}
+
+.honorable-container div.row-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.honorable-container div.row {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
 .buttons-area {
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
+  justify-content: flex-end;
 }
 
 .button {
@@ -96,48 +141,14 @@ td.align-left {
 }
 
 .button:hover {
-    opacity: 0.8;
+  opacity: 0.8;
 }
 
 .button:active {
-    background-color: #0056b3;
+  background-color: #0056b3;
 }
 
 .leave:active {
-    background-color: #a71d2a;
+  background-color: #a71d2a;
 }
 
-.honorable-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-top: 20px;
-}
-
-.honorable-header {
-    margin-bottom: 5px;
-  }
-
-.honorable-container div.row-container {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-
-.honorable-container div.row {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-}
-
-span {
-  display: inline-block;
-  margin: 0;
-  padding: 0;
-}
-
-p {
-  min-height: 50px;
-}
