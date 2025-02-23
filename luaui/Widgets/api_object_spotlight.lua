@@ -18,7 +18,7 @@ local REMOVE_EXPIRED_SPOTLIGHTS_PERIOD = 1
 
 local spotlightTypes = {
 	unit = {
-		getRadius = function(unitID)
+		getDefaultRadius = function(unitID)
 			if not unitID then
 				return nil
 			end
@@ -33,7 +33,7 @@ local spotlightTypes = {
 		end,
 	},
 	feature = {
-		getRadius = function(featureID)
+		getDefaultRadius = function(featureID)
 			return FeatureDefs[Spring.GetFeatureDefID(featureID)].radius
 		end,
 		isValid = function(featureID)
@@ -44,7 +44,7 @@ local spotlightTypes = {
 		end,
 	},
 	ground = {
-		getRadius = function(position)
+		getDefaultRadius = function(position)
 			return 100
 		end,
 		isValid = function(position)
@@ -344,7 +344,7 @@ local function addSpotlight(type, owner, objectID, color, options)
 
 	-- radius
 	local radius = (options.radiusCoefficient or 1) *
-		(options.radius or spotlightTypes[type].getRadius(objectID) or DEFAULT_RADIUS)
+		(options.radius or spotlightTypes[type].getDefaultRadius(objectID) or DEFAULT_RADIUS)
 
 	-- height
 	local height = (options.heightCoefficient or 1) * (options.height or DEFAULT_CYLINDER_HEIGHT)
