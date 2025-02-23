@@ -452,6 +452,9 @@ Close()
 	if( aimingPose )
 	{
 		aimingPose = 0;
+        turn torso to y-axis <0> speed <50>;
+        turn rArmGun to y-axis <0> speed <50>;
+        turn lArmGun to y-axis <0> speed <50>;
         move torso to y-axis [0.000000] speed [48.383546] / animSpeed;
         move torso to z-axis [0.000000] speed [38.890266] / animSpeed;
         turn hip to y-axis <0> speed <271.647238> / animSpeed;
@@ -661,12 +664,12 @@ AimFromWeapon2(piecenum)
 {
 	if(shottieArm==0)
 	{
-		piecenum=rArmFlare;
+		piecenum=torso;
         return(0);	
 	}
 	if(shottieArm==1)
 	{
-		piecenum=lArmFlare;
+		piecenum=torso;
         return(0);	
 	}
 
@@ -694,7 +697,7 @@ AimWeapon2(heading, pitch) //pew pew
 	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 2500) AND ((get ABS(wpn2_lasthead - heading)) < 64236)))
 	{
 		wpn2_lasthead = 1000000;
-		wait-for-turn rArmGun around y-axis;
+		wait-for-turn torso around y-axis;
 		wait-for-turn rArmGun around x-axis;
 	}
 	wpn2_lasthead = heading;
@@ -708,16 +711,26 @@ FireWeapon2()
 	{
         emit-sfx 1024 from rArmFlare;
         move rArmPump to z-axis [-5.5] speed [27.5];
+        move rArmPin to z-axis [-5.5] speed [27.5];
         sleep 200;
-        move rArmPump to z-axis [0] speed [4.4];
+        move rArmPin to z-axis [0] speed [4.4];
+        sleep 300;
+        move rArmPump to z-axis [2] speed [20];
+        wait-for-move rArmPump along z-axis;
+        move rArmPump to z-axis [0] speed [8];
         return (1);
 	}
 	if(shottieArm==1)
 	{
         emit-sfx 1024 from lArmFlare;
         move lArmPump to z-axis [-5.5] speed [27.5];
+        move lArmPin to z-axis [-5.5] speed [27.5];
         sleep 200;
-        move lArmPump to z-axis [0] speed [4.4];
+        move lArmPin to z-axis [0] speed [4.4];
+        sleep 300;
+        move lArmPump to z-axis [2] speed [20];
+        wait-for-move lArmPump along z-axis;
+        move lArmPump to z-axis [0] speed [8];
         return (1);
 	}
 
@@ -755,12 +768,12 @@ AimWeapon3(heading, pitch) //pew pew
 {
 	signal SIG_AIM_3;
 	set-signal-mask SIG_AIM_3;
-	turn clusterHeadingPivot to y-axis heading - torsoaim speed <100.0000>; //-- Turn(torso, y-axis, heading, math.rad(300))
-	turn clusterPitchPivot to x-axis -1*pitch speed <100.0000>;
+	//turn clusterHeadingPivot to y-axis heading - torsoaim speed <90.0000>; //-- Turn(torso, y-axis, heading, math.rad(300))
+	turn clusterPitchPivot to x-axis -1*pitch speed <90.0000>;
 	if (((get ABS(wpn3_lasthead - heading)) > 65536) OR(((get ABS(wpn3_lasthead - heading)) > 2500) AND ((get ABS(wpn3_lasthead - heading)) < 64236)))
 	{
 		wpn3_lasthead = 1000000;
-		wait-for-turn clusterHeadingPivot around y-axis;
+		wait-for-turn torso around y-axis;
 		wait-for-turn clusterPitchPivot around x-axis;
 	}
 	wpn3_lasthead = heading;
@@ -814,22 +827,22 @@ AimWeapon4(heading, pitch)
 FireWeapon4()
 {
 
-    if(missile_count==0)
-	{
-        emit-sfx 1024 from missileFlare1;
-        return (1);
-	}
-	if(missile_count==1)
-	{
-        emit-sfx 1024 from missileFlare2;
-        return (1);
-	}
-    if(missile_count==2)
-	{
-        emit-sfx 1024 from missileFlare3;
-        return (1);
-	}
-
+    // if(missile_count==0)
+	// {
+    //     emit-sfx 1024 from missileFlare1;
+    //     return (1);
+	// }
+	// if(missile_count==1)
+	// {
+    //     emit-sfx 1024 from missileFlare2;
+    //     return (1);
+	// }
+    // if(missile_count==2)
+	// {
+    //     emit-sfx 1024 from missileFlare3;
+    //     return (1);
+	// }
+	return (1);
 
 }
 

@@ -257,7 +257,7 @@ return {
 				name = "Parabolic Trajectory g2g Multi-Rocket Launcher",
 				noselfdamage = true,
 				range = 600,
-				reloadtime = 3.75,
+				reloadtime = 8,
 				smokecolor = 0.5,
 				smokeperiod = 7,
 				smokesize = 6.5,
