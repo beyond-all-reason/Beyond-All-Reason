@@ -273,19 +273,19 @@ local function initGL4()
 	local cylinderVBO, cylinderVertices = makeCylinderVBO(CYLINDER_SECTIONS)
 
 	instanceVBOs = {}
-	for type, spec in pairs(spotlightTypes) do
+	for spotlightType, spec in pairs(spotlightTypes) do
 		local vbo = makeInstanceVBO(
 			instanceVBOLayout,
 			cylinderVBO,
 			cylinderVertices,
-			"api_object_spotlight_" .. type
+			"api_object_spotlight_" .. spotlightType
 		)
 
 		if spec.postProcessVBO then
 			spec.postProcessVBO(vbo)
 		end
 
-		instanceVBOs[type] = vbo
+		instanceVBOs[spotlightType] = vbo
 	end
 
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
@@ -303,13 +303,13 @@ end
 -- widget code
 -- ===========
 
--- objectInstanceIDs[type][objectID][owner] = instanceID
+-- objectInstanceIDs[objectType][objectID][owner] = instanceID
 local objectInstanceIDs = {}
 
--- objectOwners[type][objectID] = set{owner, ...}
+-- objectOwners[objectType][objectID] = set{owner, ...}
 local objectOwners = {}
 
--- objectExpireTimes[type][objectID][owner] = time (s)
+-- objectExpireTimes[objectType][objectID][owner] = time (s)
 local objectExpireTimes = {}
 
 for k in pairs(spotlightTypes) do
@@ -318,18 +318,18 @@ for k in pairs(spotlightTypes) do
 	objectOwners[k] = {}
 end
 
-local function addSpotlight(type, owner, objectID, color, options)
-	if not spotlightTypes[type] then
-		error("invalid spotlight target type: " .. (type or "<nil>"))
+local function addSpotlight(objectType, owner, objectID, color, options)
+	if not spotlightTypes[objectType] then
+		error("invalid spotlight target type: " .. (objectType or "<nil>"))
 	end
 
-	if not spotlightTypes[type].isValid(objectID) then
+	if not spotlightTypes[objectType].isValid(objectID) then
 		Spring.Echo("invalid spotlight object id: " .. (objectID or "<nil>"))
 		return
 	end
 
 	-- protect against engine crash
-	if type == "feature" then
+	if objectType == "feature" then
 		local featureDefID = Spring.GetFeatureDefID(objectID)
 		if featureDefID then
 			local featureDef = FeatureDefs[featureDefID]
@@ -344,7 +344,7 @@ local function addSpotlight(type, owner, objectID, color, options)
 
 	-- radius
 	local radius = (options.radiusCoefficient or 1) *
-		(options.radius or spotlightTypes[type].getDefaultRadius(objectID) or DEFAULT_RADIUS)
+		(options.radius or spotlightTypes[objectType].getDefaultRadius(objectID) or DEFAULT_RADIUS)
 
 	-- height
 	local height = (options.heightCoefficient or 1) * (options.height or DEFAULT_CYLINDER_HEIGHT)
@@ -357,21 +357,21 @@ local function addSpotlight(type, owner, objectID, color, options)
 		expireTime = startTime + options.duration
 	end
 
-	if not objectExpireTimes[type][objectID] then
-		objectExpireTimes[type][objectID] = {}
+	if not objectExpireTimes[objectType][objectID] then
+		objectExpireTimes[objectType][objectID] = {}
 	end
-	objectExpireTimes[type][objectID][owner] = expireTime
+	objectExpireTimes[objectType][objectID][owner] = expireTime
 
 	-- owner
-	if not objectOwners[type][objectID] then
-		objectOwners[type][objectID] = {}
+	if not objectOwners[objectType][objectID] then
+		objectOwners[objectType][objectID] = {}
 	end
-	objectOwners[type][objectID][owner] = true
+	objectOwners[objectType][objectID][owner] = true
 
 	local instanceObjectID
 	local instanceWorldPosOverride
 
-	if type == "ground" then
+	if objectType == "ground" then
 		instanceObjectID = nil
 		instanceWorldPosOverride = objectID
 	else
@@ -380,11 +380,11 @@ local function addSpotlight(type, owner, objectID, color, options)
 	end
 
 	-- instance
-	if not objectInstanceIDs[type][objectID] then
-		objectInstanceIDs[type][objectID] = {}
+	if not objectInstanceIDs[objectType][objectID] then
+		objectInstanceIDs[objectType][objectID] = {}
 	end
-	objectInstanceIDs[type][objectID][owner] = pushElementInstance(
-		instanceVBOs[type],
+	objectInstanceIDs[objectType][objectID][owner] = pushElementInstance(
+		instanceVBOs[objectType],
 		{
 			radius, -- { id = 2, name = "radius", size = 1 }
 			height, -- { id = 3, name = "height", size = 1 }
@@ -394,34 +394,34 @@ local function addSpotlight(type, owner, objectID, color, options)
 			0, 0, 0, 0, -- { id = 5, name = "instData", size = 4, type = GL.UNSIGNED_INT }
 			instanceWorldPosOverride[1], instanceWorldPosOverride[2], instanceWorldPosOverride[3], -- { id = 8, name = "worldPosOverride", size = 3 },
 		},
-		objectInstanceIDs[type][objectID][owner],
+		objectInstanceIDs[objectType][objectID][owner],
 		true,
 		false,
 		instanceObjectID
 	)
 end
 
-local function removeSpotlight(type, owner, objectID)
-	if not spotlightTypes[type] then
-		error("invalid spotlight target type: " .. (type or "<nil>"))
+local function removeSpotlight(objectType, owner, objectID)
+	if not spotlightTypes[objectType] then
+		error("invalid spotlight target type: " .. (objectType or "<nil>"))
 	end
 
-	if not objectInstanceIDs[type][objectID] or not objectInstanceIDs[type][objectID][owner] then
+	if not objectInstanceIDs[objectType][objectID] or not objectInstanceIDs[objectType][objectID][owner] then
 		return
 	end
 
 	-- owner
-	objectOwners[type][objectID][owner] = nil
+	objectOwners[objectType][objectID][owner] = nil
 
 	-- instance
-	if instanceVBOs[type].instanceIDtoIndex[objectInstanceIDs[type][objectID][owner]] then
-		popElementInstance(instanceVBOs[type], objectInstanceIDs[type][objectID][owner], false)
+	if instanceVBOs[objectType].instanceIDtoIndex[objectInstanceIDs[objectType][objectID][owner]] then
+		popElementInstance(instanceVBOs[objectType], objectInstanceIDs[objectType][objectID][owner], false)
 	end
-	objectInstanceIDs[type][objectID][owner] = nil
+	objectInstanceIDs[objectType][objectID][owner] = nil
 
 	-- duration
-	if objectExpireTimes[type][objectID] and objectExpireTimes[type][objectID][owner] then
-		objectExpireTimes[type][objectID][owner] = nil
+	if objectExpireTimes[objectType][objectID] and objectExpireTimes[objectType][objectID][owner] then
+		objectExpireTimes[objectType][objectID][owner] = nil
 	end
 end
 
@@ -452,11 +452,11 @@ function widget:Update(dt)
 	-- remove expired spotlights
 	local toRemove = {}
 	local gs = Spring.GetDrawSeconds()
-	for type, objectOwnerTimes in pairs(objectExpireTimes) do
+	for objectType, objectOwnerTimes in pairs(objectExpireTimes) do
 		for objectID, ownerTimes in pairs(objectOwnerTimes) do
 			for owner, expireTime in pairs(ownerTimes) do
 				if gs > expireTime then
-					table.insert(toRemove, { type, owner, objectID })
+					table.insert(toRemove, { objectType, owner, objectID })
 				end
 			end
 		end
@@ -478,7 +478,7 @@ function widget:DrawWorld()
 
 	shader:Activate()
 
-	for type, vbo in pairs(instanceVBOs) do
+	for spotlightType, vbo in pairs(instanceVBOs) do
 		if vbo.usedElements > 0 then
 			vbo.VAO:DrawArrays(
 				GL.TRIANGLE_STRIP,
@@ -512,7 +512,7 @@ function widget:Initialize()
 		---Adds a new spotlight for a given object. Only one call is needed to create the spotlight (the position is handled in
 		---the shader), but this can be called again to update extra options. Unless a duration is provided, calling
 		---removeSpotlight later is necessary to remove the spotlight.
-		---@param type string "unit", "feature", or "ground"
+		---@param objectType string "unit", "feature", or "ground"
 		---@param owner string An identifier used to prevent name collisions. You can have one spotlight per objectID per owner.
 		---@param objectID number|table unitID, featureID, or {x,y,z} table for a location
 		---@param color table RGBA color used for the spotlight
@@ -526,7 +526,7 @@ function widget:Initialize()
 		addSpotlight = addSpotlight,
 
 		---Removes the spotlight for a given object. This can be called even if a spotlight might not be present.
-		---@param type string "unit" or "feature"
+		---@param objectType string "unit" or "feature", or "ground"
 		---@param owner string An identifier used to prevent name collisions. You can have one spotlight per objectID per owner.
 		---@param objectID number unitID or featureID
 		---@return nil
