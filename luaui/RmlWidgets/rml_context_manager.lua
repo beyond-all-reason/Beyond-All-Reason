@@ -43,6 +43,8 @@ function widget:ViewResize()
     updateContextsDpRatio()
 end
 
+-- include also a listener for the ui_scale config variable changes
+
 function widget:Shutdown()
     Spring.Echo("Rml Context Manager shutdown, dynamic context dp ratio updates to contexts disabled." )
 end
