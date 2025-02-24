@@ -130,8 +130,8 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 local function setGaiaStorage()
-	local metalStorageToSet = 20000
-	local energyStorageToSet = 100000
+	local metalStorageToSet = 1000000
+	local energyStorageToSet = 1000000
 
 	local _, currentMetalStorage = Spring.GetTeamResources(gaiaTeamID, "metal")
 	if currentMetalStorage and currentMetalStorage < metalStorageToSet then
