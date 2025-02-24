@@ -39,7 +39,7 @@ static-var ToggleState;
 
 #define AIMING_PRIORITY		0
 #define AIMING_BACKUP		1
-#define AIMING_AUTO			2
+#define AIMING_AUTO		2
 
 SetAimingState(newState)
 {
