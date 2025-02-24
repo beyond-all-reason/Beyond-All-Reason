@@ -480,7 +480,7 @@
 			"gone": "%{player} (ушёл)",
 			"damage": "Урон",
 			"damageDealt": "Нанесено",
-			"damageReceived": "Полученный",
+			"damageReceived": "Получено",
 			"damageEfficiency": "Эффективность",
 			"units": "Юнитов",
 			"unitsProduced": "Произведено",
