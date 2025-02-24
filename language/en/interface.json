@@ -15,7 +15,6 @@
 				"scavengers": "Scavengers",
 				"stats": "Statistics",
 				"graphs": "Graphs",
-				"test": "Test",
 				"save": "Save"
 			},
 			"quit": {
@@ -720,7 +719,8 @@
 			"showGraphs": "Show Graphs",
 			"ecoAward": "produced the most resources",
 			"damageReceivedAward": "took the most damage",
-			"commanderSleepAward": "had the longest sleep"
+			"commanderSleepAward": "had the longest sleep",
+      "honorableMentions": "Honorable mentions"
 
 		},
 		"autogroups": {

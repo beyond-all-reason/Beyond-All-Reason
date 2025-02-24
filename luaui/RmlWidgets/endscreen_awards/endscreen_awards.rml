@@ -82,7 +82,7 @@
 <!-- Other -->
           <div class="honorable-container">
             <div class="honorable-header">
-              <h2>Honorable mentions</h2>
+              <h2>ui.awards.resourcesEfficiency</h2>
             </div>
             <div class="row-container" data-for="award : model.otherAwards">
               <div class="row" data-if="award.visible">

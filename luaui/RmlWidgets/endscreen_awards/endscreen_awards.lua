@@ -1,7 +1,3 @@
-if not RmlUi then
-	return false
-end
-
 function widget:GetInfo()
 	return {
 		name = "Awards",
@@ -19,7 +15,7 @@ widget.rmlContext = nil
 
 local playerListByTeam = {}
 local isVisible = false
-local dm_handle
+local documentModelHandle
 local chobbyLoaded = (Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), "chobby") ~= nil)
 
 local modelForPresenter = {
@@ -145,7 +141,7 @@ local function initializeRmlContext()
 	widget.rmlContext = RmlUi.CreateContext(widget.whInfo.name)
 	-- use the DataModel handle to set values
 	-- only keys declared at the DataModel's creation can be used
-	dm_handle = widget.rmlContext:OpenDataModel("data_model_test", {
+	documentModelHandle = widget.rmlContext:OpenDataModel("data_model_test", {
 		model = modelForPresenter,
 		onLeaveClick = function()
 			leave()
@@ -251,7 +247,7 @@ local function createOtherAward(award, winnersTable)
 	putOtherAwardIntoModel(award, winnersTable)
 end
 
-local function ProcessAwards(awards)
+local function processAwards(awards)
 	if not awards then
 		return
 	end
@@ -264,7 +260,7 @@ local function ProcessAwards(awards)
 	createOtherAward("damageReceivedAward", awards.damageReceived)
 	createOtherAward("commanderSleepAward", awards.sleep)
 	createCowAward(awards.goldenCow)
-	dm_handle.model = modelForPresenter
+	documentModelHandle.model = modelForPresenter
 end
 
 local function showDocument()
@@ -323,14 +319,14 @@ local function initializeTeamList()
 	end
 end
 
-local function registerGlobalFunctionForReceivingAwardsFromHandler()
-	widgetHandler:RegisterGlobal("GadgetReceiveAwards", ProcessAwards)
+local function registerGlobals()
+	widgetHandler:RegisterGlobal("GadgetReceiveAwards", processAwards)
 	widgetHandler:RegisterGlobal("ShowEndgameAwards", showDocument)
 end
 
 function widget:Initialize()
 	disableShowEndGraph()
-	registerGlobalFunctionForReceivingAwardsFromHandler()
+	registerGlobals()
 	initializeWidget()
 	initializeTeamList()
 end
