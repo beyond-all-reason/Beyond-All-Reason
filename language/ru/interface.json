@@ -479,7 +479,7 @@
 			"dead": "%{player} (мёртв)",
 			"gone": "%{player} (ушёл)",
 			"damage": "Урон",
-			"damageDealt": "Нанесённый",
+			"damageDealt": "Нанесено",
 			"damageReceived": "Полученный",
 			"damageEfficiency": "Эффективность",
 			"units": "Юнитов",
