@@ -243,6 +243,10 @@ Create()
 	turn armPivot2 to y-axis <120> now;
 	turn armPivot3 to y-axis <-120> now;
 	move turret to y-axis [6] now;
+
+	turn leftAimingArm to z-axis <45> speed <45>;
+	turn rightAimingArm to z-axis <-45> speed <45>;
+	turn bottomAimingArm to x-axis <0> speed <85>;
 	
 	
 	lastfired = get(GAME_FRAME)-200;
