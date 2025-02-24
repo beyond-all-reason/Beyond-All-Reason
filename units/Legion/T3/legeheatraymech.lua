@@ -80,7 +80,8 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-large",
 				[2] = "custom:subbubbles",
-				[3] = "custom:footstep-medium",
+				[3] = "custom:barrelshot-flak",
+				[4] = "custom:footstep-medium",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
@@ -335,12 +336,12 @@ return {
 				--burstControlWhenOutOfArc = 2,
 			},
 			[6] = {
-				def = "bigfootstep",
-			},
-			[7] = {
 				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
 				def = "LEGFLAK_GUN",
 				onlytargetcategory = "VTOL",
+			},
+			[7] = {
+				def = "bigfootstep",
 			},
 		},
 	},

@@ -10,7 +10,7 @@ piece 	upperTorso, lArmUpperArm, lArmLowerArm, lArmGun, lArmShoulderJoint,
 		 lArmFlare, rShoulderFlare, lShoulderFlare,	lStompFlare, rStompFlare, front, front2,
 		 lArmBarrel, lArmPin, rArmBarrel, rArmPin, aaBase, aaTurret, aaBarrel, aaFlare;
 
-static-var  InMotion, restore_delay, aimingPose, wpn1_lasthead, timeLeft, isfiring1, isfiring2, timer, oldhead1, oldhead2, oldhead3, oldhead4, torsoaim, gun_4, gun_5; 			
+static-var  InMotion, restore_delay, aimingPose, wpn1_lasthead, timeLeft, isfiring1, isfiring2, timer, oldhead1, oldhead2, oldhead3, oldhead4, torsoaim, gun_4, gun_5, oldhead5; 			
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
@@ -23,7 +23,8 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 #define SIG_AIM_3			128
 #define SIG_AIM_4			256
 #define SIG_AIM_5			512
-#define SIGNAL_RESTORE		1024
+#define SIG_AIM_6			1024
+#define SIGNAL_RESTORE		2048
 
 #define SIGNAL_FOOTSTOMP_L 8
 #define SIGNAL_FOOTSTOMP_R 16
@@ -416,7 +417,7 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 		sleep ((33*animSpeed) -1);
 		}
 		if (isMoving) { //Frame:30
-			emit-sfx 4096 + 5 from rStompFlare;
+			emit-sfx 4096 + 6 from rStompFlare;
 			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(rStompFlare) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(rStompFlare) & 0x0000ffff),   get HEADING(0));
 			turn lLegFrontFoot to x-axis <-38.612548> speed <214.724960> / animSpeed; 
 			turn lLegFrontFoot to z-axis <2.984958> speed <40.979899> / animSpeed; 
@@ -777,7 +778,7 @@ Walk() {// For C:\Users\Siam\Desktop\BAR Development\Unit Modelling\Models\Bots\
 			turn rLegUpperThigh to z-axis <1.371224> speed <25.643084> / animSpeed; 
 			turn rLegUpperThigh to y-axis <-0.064312> speed <16.898634> / animSpeed; 
 			move legJointTorso to y-axis [-2.000000] speed [49.999924] / animSpeed;
-			emit-sfx 4096 + 5 from lStompFlare;
+			emit-sfx 4096 + 6 from lStompFlare;
 			call-script lua_UnitScriptDecal(1, (get PIECE_XZ(lStompFlare) & 0xffff0000) / 0x00010000 , (get PIECE_XZ(lStompFlare) & 0x0000ffff),   get HEADING(0)); 
 			// turn legJointTorso to y-axis <5.575621> speed <48.053237> / animSpeed;
 			if( !aimingPose )
@@ -1054,6 +1055,7 @@ Create()
 	oldhead2 = 1000000;
 	oldhead3 = 0;
 	oldhead4 = 0;
+	oldhead5 = 1000000;
 	timer = 0;
 	restore_delay = 1000;
 	gun_4 = 0;
@@ -1144,6 +1146,7 @@ ExecuteRestoreAfterDelay(addTime)
 	oldhead2 = 1000000;
 	oldhead3 = 0;
 	oldhead4 = 0;
+	oldhead5 = 1000000;
 	timer = 0;
 	start-script Close();
 }
@@ -1403,6 +1406,40 @@ FireWeapon5()
 // flak cannon
 ///////////////////
 
+QueryWeapon6(pieceIndex)
+{
+	pieceIndex = aaFlare;
+}
+
+AimFromWeapon6(pieceIndex)
+{
+	pieceIndex = aaTurret;
+}
+
+AimWeapon6(heading, pitch)
+{
+	signal SIG_AIM_6;
+	set-signal-mask SIG_AIM_6;
+	turn aaBase to y-axis (heading - torsoaim + <180>) speed <150>;
+	turn aaTurret to x-axis -1*pitch speed <150>;
+	if (((get ABS(oldhead5 - heading)) > 65536) OR(((get ABS(oldhead5 - heading)) > 5000) AND ((get ABS(oldhead5 - heading)) < 60536)))
+	{
+		oldhead5 = 1000000;
+		wait-for-turn aaBase around y-axis;
+		wait-for-turn aaTurret around y-axis;
+	}
+	oldhead5 = heading;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FireWeapon6()
+{
+	emit-sfx 1024 + 2 from aaFlare;
+	move aaBarrel to z-axis [3.000000] speed [70.000000];
+	sleep 150;
+	move aaBarrel to z-axis [0] speed [6.000000];
+}
 
 Killed(severity, corpsetype)
 {
