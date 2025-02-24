@@ -1062,7 +1062,6 @@ Create()
 	call-script SweepFire();
 	call-script CATT1_Init();
 	call-script CATT2_Init();
-	call-script CATT3_Init();
 }
 
 //-------------------------------CONSTANT ACCELERATION TURRET TURNING---------------------------
@@ -1093,20 +1092,8 @@ Create()
 #define CATT2_RESTORE_DELAY 3000
 #define CATT2_RESTORE_SPEED <1>
 
-#define CATT3_PIECE_X aaTurret
-#define CATT3_PIECE_Y aaBase
-
-#define CATT3_MAX_VELOCITY <3>
-#define CATT3_ACCELERATION <0.3>
-#define CATT3_JERK <0.6>
-#define CATT3_PRECISION <10>
-//#define CATT3_PITCH_SPEED <85>
-#define CATT3_RESTORE_DELAY 3000
-#define CATT3_RESTORE_SPEED <2>
-
 #include "../constant_acceleration_turret_turning_1.h"
 #include "../constant_acceleration_turret_turning_2.h"
-#include "../constant_acceleration_turret_turning_3.h"
 
 SweepFire()
 {
@@ -1148,7 +1135,6 @@ ExecuteRestoreAfterDelay(addTime)
     // The restore section must be atomic :/
 	start-script CATT1_Restore();
 	start-script CATT2_Restore();
-	start-script CATT3_Restore();
 	turn lArmGun to x-axis <0.0> speed <10>;
 	turn rArmGun to x-axis <0.0> speed <10>;
 	turn midTorso to y-axis <0.0> speed <25.0>;
@@ -1171,7 +1157,6 @@ RestoreAfterDelay()
 	oldhead2 = 1000000;
 	oldhead3 = 0;
 	oldhead4 = 0;
-
 	start-script ExecuteRestoreAfterDelay();
 }
 
@@ -1432,8 +1417,10 @@ AimWeapon6(heading, pitch)
 {
 	signal SIG_AIM_6;
 	set-signal-mask SIG_AIM_6;
-	call-script CATT3_Aim(heading - torsoaim + <180>,pitch);
-	return(1);
+	turn aaBase to y-axis (heading - torsoaim + <180>) speed <300>;
+	turn aaTurret to x-axis pitch speed <150>;
+	start-script RestoreAfterDelay();
+	return (1);
 }
 
 FireWeapon6()
