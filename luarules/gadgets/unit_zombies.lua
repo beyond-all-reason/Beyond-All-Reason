@@ -27,6 +27,7 @@ local ZOMBIE_GUARD_CHANCE = 0.65          -- Chance a zombie will guard allies
 local WARNING_TIME = 15 * Game.gameSpeed  -- Frames to start warning before reanimation
 local ZOMBIES_REZ_MIN = 30 				  -- in seconds
 local ZOMBIE_REZ_MAX = 120 				  -- in seconds
+local ZOMBIE_MAX_XP = 2					  -- Maximum experience value for zombies, skewed towards median
 
 local ZOMBIES_REZ_SPEED = modOptions.revival_rezspeed
 local ZOMBIES_PARTIAL_RECLAIM = modOptions.revival_partial_reclaim
@@ -34,8 +35,6 @@ local ZOMBIES_COUNT_MULTIPLIER = modOptions.revival_count_multiplier
 
 local ZOMBIE_ORDER_CHECK_INTERVAL = Game.gameSpeed * 10    -- How often (in frames) to check if zombies need new orders
 local ZOMBIE_CHECK_INTERVAL = Game.gameSpeed    -- How often (in frames) everything else is checked
-local METAL_INCOME_MULTIPLIER = 0.003--the amount of metal income per zombie multiplied by its metalCost
-local ENERGY_INCOME_MULTIPLIER = 0.01 --the amount of energy income per zombie multiplied by its energyCost
 
 local CMD_REPEAT = CMD.REPEAT
 local CMD_MOVE_STATE = CMD.MOVE_STATE
@@ -269,9 +268,6 @@ local function setZombieStates(unitID, unitDefID)
 	spGiveOrderToUnit(unitID, CMD_REPEAT, 1, 0)
 	spGiveOrderToUnit(unitID, CMD_MOVE_STATE, 2, 0)
 	spGiveOrderToUnit(unitID, CMD_FIRE_STATE, 2, 0)
-	local energyToSet = ENERGY_INCOME_MULTIPLIER * unitDef.energyCost
-	local metalToSet = METAL_INCOME_MULTIPLIER * unitDef.metalCost
-	spSetUnitResourcing(unitID, {["umm"] = metalToSet, ["ume"] = energyToSet})
 end
 
 local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z)
@@ -292,7 +288,7 @@ local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z)
 		local unitID = spCreateUnit(unitDefID, randomX, adjustedY, randomZ, 0, gaiaTeamID)
 		if unitID then
 			spSpawnCEG("scav-spawnexplo", randomX, adjustedY, randomZ, 0, 0, 0, unitDef.xsize)
-			spSetUnitExperience(unitID, math.min(random(), random()))
+			spSetUnitExperience(unitID, (random() * ZOMBIE_MAX_XP + random() * ZOMBIE_MAX_XP) / 2)
 			local unitHealth = spGetUnitHealth(unitID)
 			spSetUnitHealth(unitID, unitHealth * healthReductionRatio)
 			spSetUnitRulesParam(unitID, "zombie", IS_ZOMBIE)
@@ -353,6 +349,8 @@ function gadget:GameFrame(frame)
 	end
 
 	if frame % ZOMBIE_CHECK_INTERVAL == 0 then
+		Spring.AddTeamResource(gaiaTeamID, "metal", 1000000)
+		Spring.AddTeamResource(gaiaTeamID, "energy", 1000000)
 		for featureID, featureData in pairs(corpsesData) do
 			local featureX, featureY, featureZ = spGetFeaturePosition(featureID)
 			if not featureX then --doesn't exist anymore
