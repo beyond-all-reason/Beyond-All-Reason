@@ -19,6 +19,7 @@ local gl = gl
 
 local CONFIG_FILENAME = LUAUI_DIRNAME .. 'Config/' .. Game.gameShortName .. '.lua'
 local WIDGET_DIRNAME = LUAUI_DIRNAME .. 'Widgets/'
+local RML_WIDGET_DIRNAME = LUAUI_DIRNAME .. 'RmlWidgets/'
 
 local SELECTOR_BASENAME = 'selector.lua'
 
@@ -314,11 +315,11 @@ local zipOnly = {
 	["Widget Profiler"] = true,
 }
 
-local function loadWidgetFiles(vfsMode)
+local function loadWidgetFiles(folder, vfsMode)
 	local fromZip = vfsMode ~= VFS.RAW
-	local widgetFiles = VFS.DirList(WIDGET_DIRNAME, "*.lua", vfsMode)
+	local widgetFiles = VFS.DirList(folder, "*.lua", vfsMode)
 
-	for _, subDirectory in ipairs( VFS.SubDirs(WIDGET_DIRNAME) ) do
+	for _, subDirectory in ipairs( VFS.SubDirs(folder) ) do
 		table.append( widgetFiles, VFS.DirList(subDirectory, "*.lua", vfsMode) )
 	end
 
@@ -348,12 +349,14 @@ function widgetHandler:Initialize()
 
 	if self.allowUserWidgets and allowuserwidgets then
 		Spring.Echo("LuaUI: Allowing User Widgets")
-		loadWidgetFiles(VFS.RAW)
+		loadWidgetFiles(WIDGET_DIRNAME, VFS.RAW)
+		loadWidgetFiles(RML_WIDGET_DIRNAME, VFS.RAW)
 	else
 		Spring.Echo("LuaUI: Disallowing User Widgets")
 	end
 
-	loadWidgetFiles(VFS.ZIP)
+	loadWidgetFiles(WIDGET_DIRNAME, VFS.ZIP)
+	loadWidgetFiles(RML_WIDGET_DIRNAME, VFS.ZIP)
 
 	table.sort(unsortedWidgets, function(w1, w2)
 		local l1 = w1.whInfo.layer

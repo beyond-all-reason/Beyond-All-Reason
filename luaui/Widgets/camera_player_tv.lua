@@ -157,9 +157,11 @@ local function createList()
 	end
 	drawlist = {}
 	drawlist[1] = gl.CreateList(function()
-		-- Player TV Button
 		local fontSize = (widgetHeight * widgetScale) * 0.5
 		local text, color1, color2
+		font:Begin()
+		
+		-- Player TV Button
 		if not toggled and not lockPlayerID then
 			text = '\255\222\255\222   ' .. Spring.I18N('ui.playerTV.playerTV') .. '    '
 			color1 = { 0, 0.8, 0, 0.66 }
@@ -170,11 +172,14 @@ local function createList()
 			color2 = { 0.6, 0.05, 0.05, 0.66 }
 		end
 		local textWidth = font:GetTextWidth(text) * fontSize
-		toggleButton = { right - textWidth, bottom, right, top }
-		RectRound(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], elementCorner, 1, 0, 1, 0, color1, color2)
-		RectRound(toggleButton[1] + bgpadding, toggleButton[2], toggleButton[3], toggleButton[4] - bgpadding, elementCorner*0.66, 1, 0, 1, 0, { 0.3, 0.3, 0.3, 0.25 }, { 0.05, 0.05, 0.05, 0.25 })
-		font:Begin()
-		font:Print(text, toggleButton[3]-((toggleButton[3]-toggleButton[1])/2), toggleButton[2] + (7 * widgetScale), fontSize, 'oc')
+		if isSpec or lockPlayerID then
+			toggleButton = { right - textWidth, bottom, right, top }
+			RectRound(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], elementCorner, 1, 0, 1, 0, color1, color2)
+			RectRound(toggleButton[1] + bgpadding, toggleButton[2], toggleButton[3], toggleButton[4] - bgpadding, elementCorner*0.66, 1, 0, 1, 0, { 0.3, 0.3, 0.3, 0.25 }, { 0.05, 0.05, 0.05, 0.25 })
+			font:Print(text, toggleButton[3]-((toggleButton[3]-toggleButton[1])/2), toggleButton[2] + (7 * widgetScale), fontSize, 'oc')
+		else
+			toggleButton = { right, bottom, right, top }
+		end
 
 		-- Player Camera Button
 		if not toggled and not lockPlayerID and not aiTeams[myTeamID] then
@@ -186,6 +191,8 @@ local function createList()
 			RectRound(toggleButton3[1], toggleButton3[2], toggleButton3[3], toggleButton3[4], elementCorner, 1, 1, 0, toggleButton3[1] < left and 1 or 0, color1, color2)
 			RectRound(toggleButton3[1] + bgpadding, toggleButton3[2], toggleButton3[3]-bgpadding, toggleButton3[4] - bgpadding, elementCorner*0.66, 1, 1, 0, toggleButton3[1] < left and 1 or 0, { 0.3, 0.3, 0.3, 0.25 }, { 0.05, 0.05, 0.05, 0.25 })
 			font:Print(text, toggleButton3[3]-((toggleButton3[3]-toggleButton3[1])/2), toggleButton3[2] + (7 * widgetScale), fontSize, 'oc')
+		else
+			toggleButton3 = toggleButton
 		end
 
 		-- Player Viewpoint Button
@@ -204,10 +211,11 @@ local function createList()
 		else
 			toggleButton2 = { toggleButton3[1] - textWidth-bgpadding, bottom, toggleButton3[1]-bgpadding, top }
 		end
-		RectRound(toggleButton2[1], toggleButton2[2], toggleButton2[3], toggleButton2[4], elementCorner, 1, 1, 0, toggleButton2[1] < left and 1 or 0, color1, color2)
-		RectRound(toggleButton2[1] + bgpadding, toggleButton2[2], toggleButton2[3]-bgpadding, toggleButton2[4] - bgpadding, elementCorner*0.66, 1, 1, 0, toggleButton2[1] < left and 1 or 0, { 0.3, 0.3, 0.3, 0.25 }, { 0.05, 0.05, 0.05, 0.25 })
-
-		font:Print(text, toggleButton2[3]-((toggleButton2[3]-toggleButton2[1])/2), toggleButton2[2] + (7 * widgetScale), fontSize, 'oc')
+		if isSpec then
+			RectRound(toggleButton2[1], toggleButton2[2], toggleButton2[3], toggleButton2[4], elementCorner, 1, 1, 0, toggleButton2[1] < left and 1 or 0, color1, color2)
+			RectRound(toggleButton2[1] + bgpadding, toggleButton2[2], toggleButton2[3]-bgpadding, toggleButton2[4] - bgpadding, elementCorner*0.66, 1, 1, 0, toggleButton2[1] < left and 1 or 0, { 0.3, 0.3, 0.3, 0.25 }, { 0.05, 0.05, 0.05, 0.25 })
+			font:Print(text, toggleButton2[3]-((toggleButton2[3]-toggleButton2[1])/2), toggleButton2[2] + (7 * widgetScale), fontSize, 'oc')
+		end
 		font:End()
 	end)
 	drawlist[2] = gl.CreateList(function()
@@ -252,7 +260,7 @@ local function createList()
 		font:Print(text, toggleButton2[3] - (textWidth / 2), toggleButton2[2] + (0.32 * widgetHeight * widgetScale), fontSize, 'oc')
 		font:End()
 	end)
-	if not toggled and not lockPlayerID and not aiTeams[myTeamID] then
+	if not toggled and not aiTeams[myTeamID] then
 		drawlist[4] = gl.CreateList(function()
 			-- Player Camera Button highlight
 			if toggled2 then
@@ -273,14 +281,16 @@ local function createList()
 		end)
 	end
 
-	if WG['guishader'] and isSpec then
+	if WG['guishader'] and (isSpec or lockPlayerID) then
 		if backgroundGuishader then
 			backgroundGuishader = gl.DeleteList(backgroundGuishader)
 		end
 		backgroundGuishader = gl.CreateList(function()
-			RectRound(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], elementCorner, 1, 0, 0, 0)
-			if toggleButton2 then
-				RectRound(toggleButton2[1], toggleButton2[2], toggleButton2[3], toggleButton2[4], elementCorner, 1, 1, 0, toggleButton2[1] < left and 1 or 0)
+			if isSpec then
+				RectRound(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], elementCorner, 1, 0, 0, 0)
+				if toggleButton2 then
+					RectRound(toggleButton2[1], toggleButton2[2], toggleButton2[3], toggleButton2[4], elementCorner, 1, 1, 0, toggleButton2[1] < left and 1 or 0)
+				end
 			end
 			if not toggled and not lockPlayerID and not aiTeams[myTeamID] then
 				RectRound(toggleButton3[1], toggleButton3[2], toggleButton3[3], toggleButton3[4], elementCorner, 1, 1, 0, toggleButton3[1] < left and 1 or 0)
@@ -325,7 +335,7 @@ function widget:GameStart()
 	if isSpec and not rejoining and toggled then
 		SelectTrackingPlayer()
 	end
-	if isSpec then
+	if isSpec or lockPlayerID then
 		createList()
 	end
 end
@@ -448,7 +458,7 @@ function widget:Update(dt)
 
 	updatePosition()
 
-	if isSpec and not rejoining then
+	if (isSpec or lockPlayerID) and not rejoining then
 		if WG['tooltip'] and not toggled and not lockPlayerID then
 			local mx, my, mb = Spring.GetMouseState()
 			if toggleButton ~= nil and math_isInRect(mx, my, toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4]) then
@@ -474,10 +484,6 @@ end
 
 
 function widget:DrawScreen()
-	if not isSpec then
-		return
-	end
-
 	local gameFrame = Spring.GetGameFrame()
 
 	if (rejoining or gameFrame == 0) and not lockPlayerID then
@@ -489,18 +495,19 @@ function widget:DrawScreen()
 		showBackgroundGuishader =  true
 	end
 
+	-- hover highlight
 	if drawlist[1] then
 		gl.PushMatrix()
 		gl.CallList(drawlist[1])
 		gl.PopMatrix()
 		local mx, my, mb = Spring.GetMouseState()
-		if toggleButton ~= nil and drawlist[2] and math_isInRect(mx, my, toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4]) then
+		if (isSpec or lockPlayerID) and toggleButton ~= nil and drawlist[2] and math_isInRect(mx, my, toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4]) then
 			gl.CallList(drawlist[2])
 		end
-		if toggleButton2 ~= nil and drawlist[3] and math_isInRect(mx, my, toggleButton2[1], toggleButton2[2], toggleButton2[3], toggleButton2[4]) then
+		if isSpec and toggleButton2 ~= nil and drawlist[3] and math_isInRect(mx, my, toggleButton2[1], toggleButton2[2], toggleButton2[3], toggleButton2[4]) then
 			gl.CallList(drawlist[3])
 		end
-		if not toggled and not lockPlayerID and toggleButton3 ~= nil and drawlist[4] and math_isInRect(mx, my, toggleButton3[1], toggleButton3[2], toggleButton3[3], toggleButton3[4]) then
+		if (isSpec and not lockPlayerID) and not toggled and toggleButton3 ~= nil and drawlist[4] and math_isInRect(mx, my, toggleButton3[1], toggleButton3[2], toggleButton3[3], toggleButton3[4]) then
 			gl.CallList(drawlist[4])
 		end
 	end
@@ -683,16 +690,16 @@ function widget:Initialize()
 end
 
 function widget:MousePress(mx, my, mb)
-	if isSpec then
+	if isSpec or lockPlayerID then
 		-- player tv
-		if toggleButton ~= nil and math_isInRect(mx, my, toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4]) then
+		if isSpec and toggleButton ~= nil and math_isInRect(mx, my, toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4]) then
 			if mb == 1 then
 				togglePlayerTV()
 			end
 			return true
 		end
 		-- player viewpoint
-		if toggleButton2 ~= nil and math_isInRect(mx, my, toggleButton2[1], toggleButton2[2], toggleButton2[3], toggleButton2[4]) then
+		if isSpec and toggleButton2 ~= nil and math_isInRect(mx, my, toggleButton2[1], toggleButton2[2], toggleButton2[3], toggleButton2[4]) then
 			isSpec, fullview = Spring.GetSpectatingState()
 			if mb == 1 then
 				togglePlayerView()
@@ -700,7 +707,7 @@ function widget:MousePress(mx, my, mb)
 			return true
 		end
 		-- player camera
-		if not lockPlayerID and toggleButton3 ~= nil and math_isInRect(mx, my, toggleButton3[1], toggleButton3[2], toggleButton3[3], toggleButton3[4]) then
+		if (isSpec or lockPlayerID) and toggleButton3 ~= nil and math_isInRect(mx, my, toggleButton3[1], toggleButton3[2], toggleButton3[3], toggleButton3[4]) then
 			isSpec, fullview = Spring.GetSpectatingState()
 			if mb == 1 then
 				togglePlayerCamera()
