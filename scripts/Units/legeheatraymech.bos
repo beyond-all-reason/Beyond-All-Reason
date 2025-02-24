@@ -8,7 +8,7 @@ piece 	upperTorso, lArmUpperArm, lArmLowerArm, lArmGun, lArmShoulderJoint,
 		 rLegTibio, rLegShin, rLegBackFoot, rLegFrontFoot, rLegThighJoint, neck, head, 
 		 rArmUpperArm, rArmLowerArm, rArmGun, rArmShoulderJoint, rArmShoulderPivot, rArmShoulderGun, rArmFlare, 
 		 lArmFlare, rShoulderFlare, lShoulderFlare,	lStompFlare, rStompFlare, front, front2,
-		 lArmBarrel, lArmPin, rArmBarrel, rArmPin;
+		 lArmBarrel, lArmPin, rArmBarrel, rArmPin, aaBase, aaTurret, aaBarrel, aaFlare;
 
 static-var  InMotion, restore_delay, aimingPose, wpn1_lasthead, timeLeft, isfiring1, isfiring2, timer, oldhead1, oldhead2, oldhead3, oldhead4, torsoaim, gun_4, gun_5; 			
 
@@ -1399,6 +1399,10 @@ FireWeapon5()
 	sleep 150;
 	move rArmBarrel to z-axis [0] speed [6.000000];
 }
+
+// flak cannon
+///////////////////
+
 
 Killed(severity, corpsetype)
 {
