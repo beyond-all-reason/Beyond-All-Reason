@@ -9,7 +9,7 @@ function widget:GetInfo()
         author = "Mupersega",
         date = "2025",
         license = "GNU GPL, v2 or later",
-        layer = 0,
+        layer = -1000000,
         enabled = true
     }
 end
