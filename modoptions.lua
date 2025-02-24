@@ -1211,7 +1211,7 @@ local options = {
         type    = 'bool',
         section = 'options_extra',
         def     = false,
-        unlock  = {"revival_min_delay","revival_rezspeed","revival_partial_reclaim", "revival_max_delay", "revival_count_multiplier"},
+        unlock  = {"revival_rezspeed", "revival_count_multiplier"},
     },
 
     {
@@ -1236,15 +1236,6 @@ local options = {
         min     = 1,
         max     = 10,
         step    = 1,
-    },
-
-    {
-        key     = 'revival_partial_reclaim',
-        name    = 'Reclaim/Damage Reduces Health',
-        desc    = "Corpses that are partially reclaimed or damaged will revive with less health.",
-        type    = 'bool',
-        section = 'options_extra',
-        def     = true,
     },
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

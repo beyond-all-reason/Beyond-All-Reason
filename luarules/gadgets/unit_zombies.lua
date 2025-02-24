@@ -30,7 +30,6 @@ local ZOMBIE_REZ_MAX = 120 				  -- in seconds
 local ZOMBIE_MAX_XP = 2					  -- Maximum experience value for zombies, skewed towards median
 
 local ZOMBIES_REZ_SPEED = modOptions.revival_rezspeed
-local ZOMBIES_PARTIAL_RECLAIM = modOptions.revival_partial_reclaim
 local ZOMBIES_COUNT_MULTIPLIER = modOptions.revival_count_multiplier
 
 local ZOMBIE_ORDER_CHECK_INTERVAL = Game.gameSpeed * 10    -- How often (in frames) to check if zombies need new orders
@@ -146,15 +145,13 @@ end
 local function calculateHealthRatio(featureID)
 	local partialReclaimRatio = 1
 	local damagedReductionRatio = 1
-	if ZOMBIES_PARTIAL_RECLAIM then
-		local currentMetal, maxMetal = spGetFeatureResources(featureID)
-		if currentMetal and maxMetal and currentMetal ~= 0 and maxMetal ~= 0 then
-			partialReclaimRatio = currentMetal/maxMetal
-		end
-		local health, maxHealth = spGetFeatureHealth(featureID)
-		if health and maxHealth and health ~= 0 and maxHealth ~= 0 then
-			damagedReductionRatio = health/maxHealth
-		end
+	local currentMetal, maxMetal = spGetFeatureResources(featureID)
+	if currentMetal and maxMetal and currentMetal ~= 0 and maxMetal ~= 0 then
+		partialReclaimRatio = currentMetal/maxMetal
+	end
+	local health, maxHealth = spGetFeatureHealth(featureID)
+	if health and maxHealth and health ~= 0 and maxHealth ~= 0 then
+		damagedReductionRatio = health/maxHealth
 	end
 	local healthRatio = (partialReclaimRatio + damagedReductionRatio) * 0.5 --average the two ratios to skew the result towards maximum health
 	return healthRatio
