@@ -2264,7 +2264,7 @@ local icontypes = {
 		size = 1.60000002
 	},
 	legbastion = {
-		bitmap = "icons/def_t2_tachyon.png",
+		bitmap = "icons/cordoom.png",
 		size = 2.0474999
 	},
 	legbombard = {
