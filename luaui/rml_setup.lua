@@ -35,7 +35,19 @@ local oldCreateContext = RmlUi.CreateContext
 
 local function NewCreateContext(name)
 	local context = oldCreateContext(name)
-	context.dp_ratio = Spring.GetConfigFloat("ui_scale", 1)
+
+	-- set up dp_ratio considering the user's UI scale preference and the screen resolution
+	local viewSizeX, viewSizeY = Spring.GetViewGeometry()
+
+	local userScale = Spring.GetConfigFloat("ui_scale", 1)
+
+	local baseWidth = 1920
+	local baseHeight = 1080
+	local resFactor = math.min(viewSizeX / baseWidth, viewSizeY / baseHeight)
+
+	context.dp_ratio = resFactor * userScale
+
+	context.dp_ratio = math.floor(context.dp_ratio * 100) / 100
 	return context
 end
 
