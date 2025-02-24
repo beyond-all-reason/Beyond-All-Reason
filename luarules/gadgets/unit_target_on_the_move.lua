@@ -110,7 +110,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local unitSetTargetNoGroundCmdDesc = {
 		id = CMD_UNIT_SET_TARGET_NO_GROUND,
-		type = CMDTYPE.ICON_UNIT,
+		type = CMDTYPE.ICON_UNIT_OR_AREA,
 		name = 'Set Unit Target',
 		action = 'settargetnoground',
 		cursor = 'settarget',
@@ -432,6 +432,10 @@ if gadgetHandler:IsSyncedCode() then
 					if #cmdParams == 3 or #cmdParams == 4 then
 						-- if radius is 0, it's a single click
 						if cmdParams[4] == 0 then
+							if cmdID == CMD_UNIT_SET_TARGET_NO_GROUND then
+								SendToUnsynced("failCommand", teamID)
+								return false
+							end
 							cmdParams[4] = nil
 						end
 						local target = cmdParams
@@ -663,7 +667,7 @@ else	-- UNSYNCED
 
 	local myAllyTeam = spGetMyAllyTeamID()
 	local myTeam = spGetMyTeamID()
-	local _, fullview = spGetSpectatingState()
+	local mySpec, fullview = spGetSpectatingState()
 
 	local lineWidth = 1.4
 	local queueColour = { 1, 0.75, 0, 0.3 }
@@ -678,6 +682,7 @@ else	-- UNSYNCED
 		gadgetHandler:AddChatAction("targetdrawunit", handleUnitTargetDrawEvent, "toggles drawing targets for units, params: unitID")
 		gadgetHandler:AddSyncAction("targetList", handleTargetListEvent)
 		gadgetHandler:AddSyncAction("targetIndex", handleTargetIndexEvent)
+		gadgetHandler:AddSyncAction("failCommand", handleFailCommand)
 
 		-- register cursor
 		Spring.AssignMouseCursor("settarget", "cursorsettarget", false)
@@ -691,7 +696,7 @@ else	-- UNSYNCED
 	function gadget:PlayerChanged(playerID)
 		myAllyTeam = spGetMyAllyTeamID()
 		myTeam = spGetMyTeamID()
-		_, fullview = spGetSpectatingState()
+		mySpec, fullview = spGetSpectatingState()
 	end
 
 	function gadget:Shutdown()
@@ -707,6 +712,13 @@ else	-- UNSYNCED
 
 	function GG.getUnitTargetIndex(unitID)
 		return targetList[unitID] and targetList[unitID].currentIndex
+	end
+
+	function handleFailCommand(_, teamID)
+		if teamID == myTeam and not mySpec then
+			Spring.PlaySoundFile("FailedCommand", 0.75, "ui")
+			Spring.SetActiveCommand('settargetnoground')
+		end
 	end
 
 	function handleTargetListEvent(_, unitID, index, alwaysSeen, ignoreStop, userTarget, targetA, targetB, targetC)
