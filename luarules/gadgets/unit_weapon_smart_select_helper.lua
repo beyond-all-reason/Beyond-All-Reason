@@ -51,8 +51,9 @@ local backupSwitchThreshold = backupAutoAggro * 1.2 * -1 --the aggro at which ba
 local priorityCooldownFrames = Game.gameSpeed * 1.5 -- so that no matter how the aggro weights are set, the mode switches will happen no sooner than this.
 local backupCooldownFrames = Game.gameSpeed * 4
 
-local PRIORITY_AIMINGSTATE = 1
-local BACKUP_AIMINGSTATE = 2
+local PRIORITY_AIMINGSTATE = 0
+local BACKUP_AIMINGSTATE = 1
+local AUTO_TOGGLESTATE = 2
 local UNIT_TARGET = 1
 local GROUND_TARGET = 2
 
@@ -73,7 +74,26 @@ local smartUnits = {}
 local smartUnitDefs = {}
 local modeSwitchFrames = {}
 
+-- Add with other local function declarations
+local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
+local spEditUnitCmdDesc = Spring.EditUnitCmdDesc
+local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
+
+include("luarules/configs/customcmds.h.lua")
+
+local trajectoryCmdDesc = {
+    id = CMD_SMART_TOGGLE,
+    type = CMDTYPE.ICON_MODE,
+    tooltip = 'trajectory_tooltip',
+    name = 'trajectory_toggle',
+    cursor = 'cursornormal',
+    action = 'trajectory_toggle',
+    params = { AUTO_TOGGLESTATE, "trajectory_low", "trajectory_high", "trajectory_auto" },
+}
+local defaultCmdDesc = trajectoryCmdDesc
+
 function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD_SMART_TOGGLE)
 	local units = Spring.GetAllUnits()
 	local spGetUnitDefID = Spring.GetUnitDefID
 	for i = 1, #units do
@@ -94,6 +114,13 @@ for unitDefID, def in ipairs(UnitDefs) do
 					smartUnitDefs[unitDefID].reloadFrames = math.floor(WeaponDefs[weaponDefID].reload * Game.gameSpeed)
 					if def.speed and def.speed ~= 0 then
 						smartUnitDefs[unitDefID].canMove = true
+					end
+					if def.customParams and def.customParams.smart_weapon_cmddesc then
+						if def.customParams.smart_weapon_cmddesc == "trajectory" then
+							smartUnitDefs[unitDefID].smartCmdDesc = trajectoryCmdDesc
+						end
+					else
+						smartUnitDefs[unitDefID].smartCmdDesc = defaultCmdDesc
 					end
 				end
 				if WeaponDefs[weaponDefID].customParams.smart_backup then
@@ -118,7 +145,6 @@ local function updatePredictedShotFrame(attackerID, unitData, defData)
 	end
 end
 
---custom functions
 local function failureToFireCheck(attackerID, data, defData)
 	if not data.suspendMisfireUntilFrame or data.aggroBias < prioritySwitchThreshold then return false end
 
@@ -147,39 +173,41 @@ end
 --switch the fire mode in the middle of the next reloadtime when available to both make transitions at the ideal time
 --and completely eliminate indecisive wobbling
 local function queueSwitchFrame(attackerID, data, defData, setState)
-    if data.state ~= setState and data.switchCooldownFrame < gameFrame then
-        local idealSubtraction = defData.reloadFrames * 0.75 -- so the switch occurs soon after a shot
-        local idealAddition = defData.reloadFrames - idealSubtraction
-        local idealFrame
-        
+	if data.state ~= setState and data.switchCooldownFrame < gameFrame then
+		local idealSubtraction = defData.reloadFrames * 0.75 -- so the switch occurs soon after a shot
+		local idealAddition = defData.reloadFrames - idealSubtraction
+		local idealFrame
+		
 		updatePredictedShotFrame(attackerID, data, defData)
 
-        if data.predictedShotFrame < gameFrame then
-            -- we're so far past the last reloadtime, weapon is either stuck or otherwise can't fire
-            spCallCOBScript(attackerID, data.setStateScriptID, 0, setState)
-        else
+		if data.predictedShotFrame < gameFrame then
+			-- we're so far past the last reloadtime, weapon is either stuck or otherwise can't fire
+			spCallCOBScript(attackerID, data.setStateScriptID, 0, setState)
+		else
 			-- is now just before the ideal frame to switch on?
-            idealFrame = data.predictedShotFrame - idealSubtraction
-            if idealFrame <= gameFrame then
-                -- remaining possibility, queue switch for after next predicted shot
-                idealFrame = data.predictedShotFrame + idealAddition
-            end
+			idealFrame = data.predictedShotFrame - idealSubtraction
+			if idealFrame <= gameFrame then
+				-- remaining possibility, queue switch for after next predicted shot
+				idealFrame = data.predictedShotFrame + idealAddition
+			end
 			idealFrame = math.floor(idealFrame)
 			modeSwitchFrames[idealFrame] = modeSwitchFrames[idealFrame] or {}
 			modeSwitchFrames[idealFrame][attackerID] = setState
-        end
-        
-        data.state = setState
+		end
+		
+		data.state = setState
 		if data.state == PRIORITY_AIMINGSTATE then
-        	data.switchCooldownFrame = gameFrame + priorityCooldownFrames
+			data.switchCooldownFrame = gameFrame + priorityCooldownFrames
 		else
 			data.switchCooldownFrame = gameFrame + backupCooldownFrames
 		end
-    end
+	end
 end
 
-
 local function updateAimingState(attackerID)
+	if smartUnits[attackerID].toggleState ~= AUTO_TOGGLESTATE then
+		return
+	end
 	local data = smartUnits[attackerID]
 	local defData = smartUnitDefs[data.unitDefID]
 
@@ -262,7 +290,21 @@ local function updateAimingState(attackerID)
 	data.misfireTallyMultiplier = data.misfireTallyMultiplier * misfireTallyDecayRate
 end
 
---call-ins
+local function toggleTrajectory(unitID, state)
+    local cmdDescID = spFindUnitCmdDesc(unitID, CMD_SMART_TOGGLE)
+    if cmdDescID then
+		local unitData = smartUnits[unitID]
+        state = (state % 3)
+        trajectoryCmdDesc.params[1] = state
+        spEditUnitCmdDesc(unitID, cmdDescID, {params = trajectoryCmdDesc.params})
+		unitData.toggleState = state
+		unitData.state = state
+		if state ~= AUTO_TOGGLESTATE then
+			spCallCOBScript(unitID, smartUnits[unitID].setStateScriptID, 0, state)
+		end
+    end
+end
+
 function gadget:UnitCreated(unitID, unitDefID)
 	if smartUnitDefs[unitDefID] then
 		local scriptID = Spring.GetCOBScriptID(unitID, "SetAimingState")
@@ -275,9 +317,13 @@ function gadget:UnitCreated(unitID, unitDefID)
 				misfireTallyMultiplier = 0,
 				lastTargetMatchNumber = 0, --this exists so that a player switching targets frequently doesn't trigger a faulty misfire.
 				switchCooldownFrame = 0,
-				state = PRIORITY_AIMINGSTATE
+				state = PRIORITY_AIMINGSTATE,
+				toggleState = AUTO_TOGGLESTATE
 			}
-			spCallCOBScript(unitID, smartUnits[unitID].setStateScriptID, 0, smartUnitDefs[unitDefID].priorityWeapon)
+			spCallCOBScript(unitID, smartUnits[unitID].setStateScriptID, 0, PRIORITY_AIMINGSTATE)
+			
+			smartUnitDefs[unitDefID].smartCmdDesc.params[1] = AUTO_TOGGLESTATE
+			spInsertUnitCmdDesc(unitID, smartUnitDefs[unitDefID].smartCmdDesc)
 		end
 	end
 
@@ -293,7 +339,7 @@ function gadget:GameFrame(frame)
 		for attackerID in pairs(smartUnits) do
 			updateAimingState(attackerID)
 		end
-	end --zzz need to add the execution of the queueSwitchFrame
+	end 
 	local switchModeQueue = modeSwitchFrames[frame]
 	if switchModeQueue then
 		for unitID, setState in pairs(switchModeQueue) do
@@ -303,4 +349,12 @@ function gadget:GameFrame(frame)
 			end
 		end
 	end
+end
+
+function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
+    if smartUnitDefs[unitDefID] and cmdID == CMD_SMART_TOGGLE then
+        toggleTrajectory(unitID, cmdParams[1])
+        return false  -- command was used
+    end
+    return true  -- command was not used
 end
