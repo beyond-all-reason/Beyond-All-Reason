@@ -102,7 +102,6 @@ return {
 			adv_rocket = {
 				areaofeffect = 90,
 				avoidfeature = false,
-				burnblow = true,
 				burst = 3,
 				burstrate = 0.3,
 				castshadow = true,
@@ -146,6 +145,8 @@ return {
 					cruise_max_height = "20",
 					cruise_min_height = "15",
 					lockon_dist = "150",
+					overrange_distance = 690,
+					projectile_destruction_method = "descend",
 					speceffect = "cruise",
 					when = "distance>0",
 				},

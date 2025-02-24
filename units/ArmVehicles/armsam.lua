@@ -158,7 +158,6 @@ return {
 			armtruck_missile = {
 				areaofeffect = 48,
 				avoidfeature = false,
-				burnblow = true,
 				castshadow = true,
 				cegtag = "missiletrailtiny",
 				craterareaofeffect = 0,
@@ -198,6 +197,10 @@ return {
 				weaponvelocity = 350,
 				damage = {
 					default = 86,
+				},
+				customparams = {
+					projectile_destruction_method = "descend",
+					overrange_distance = 633,
 				},
 			},
 		},

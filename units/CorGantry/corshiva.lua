@@ -135,7 +135,6 @@ return {
 			shiva_rocket = {
 				areaofeffect = 60,
 				avoidfeature = false,
-				burnblow = true,
 				castshadow = true,
 				cegtag = "missiletrailmedium-starburst",
 				craterareaofeffect = 0,
@@ -171,6 +170,10 @@ return {
 				weaponvelocity = 800,
 				damage = {
 					default = 750,
+				},
+				customparams = {
+					projectile_destruction_method = "descend",
+					overrange_distance = 920,
 				},
 			},
 		},
