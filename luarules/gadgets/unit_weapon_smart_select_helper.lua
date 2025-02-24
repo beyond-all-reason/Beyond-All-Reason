@@ -326,7 +326,6 @@ function gadget:UnitCreated(unitID, unitDefID)
 			spInsertUnitCmdDesc(unitID, smartUnitDefs[unitDefID].smartCmdDesc)
 		end
 	end
-
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
