@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, base2, base3, sauron, sauronarms, ring1, ring2, ring3, fr1, fr2, fr3, aimfromy, aimy, flare, fireline, lineflare, lightpoint, ambienttop, lp1, lp2, lp3, lp4;
+piece  base, armature1, armature2, armature3, piston1, piston2, rail1, rail2, rail3, turret, aiming_arm, ring, ring2, ring3, ring4, aimfromy, aimy, flare, fireline, lineflare, lightpoint, ambienttop, armPivot2, armPivot3, topArmsPivot, leftAimingArm, rightAimingArm, bottomAimingArm;
 
 static-var  restore_delay, shotcount, timer, lastfired, gameframe, state, statechg_DesiredState, statechg_StateChanging, firetime;
 
@@ -31,10 +31,50 @@ static-var oldhead, aimy1delta, aimy1velocity, aimy1target, aimy1position, gameF
 
 
 activatescr () {
-	move base2 to y-axis [0] speed [20];
-	move base3 to y-axis [0] speed [20];
+	// turn armature1 to x-axis <0.000000> speed <85>;
+	// move piston1 to y-axis [0] speed [20];
+	// move piston2 to y-axis [0] speed [20];
+	// move turret to y-axis [0] speed [20];
 
-	turn sauronarms to x-axis <0.000000> speed <85>;
+	// turn aiming_arm to x-axis <0.000000> speed <85>;
+
+
+	move armature1 to z-axis [0] speed [2];
+	move armature1 to y-axis [0] speed [28];
+	turn armature1 to x-axis <0> speed <13>;
+
+	move armature2 to z-axis [0] speed [2];
+	move armature2 to y-axis [0] speed [28];
+	turn armature2 to x-axis <0> speed <13>;
+
+	move armature3 to z-axis [0] speed [2];
+	move armature3 to y-axis [0] speed [28];
+	turn armature3 to x-axis <0> speed <13>;
+
+	move piston1 to y-axis [2] speed [40];
+	move rail1 to y-axis [0] speed [20];
+	move rail2 to y-axis [0] speed [20];
+	move rail3 to y-axis [0] speed [20];
+	wait-for-move piston1 along y-axis;
+	move piston2 to y-axis [2] speed [24];
+	wait-for-move piston2 along y-axis;
+	move turret to y-axis [6] speed [32];
+	turn topArmsPivot to x-axis <0> speed <100>;
+	//turn aiming_arm to x-axis <0> speed <40>;
+	turn leftAimingArm to z-axis <45> speed <45>;
+	turn rightAimingArm to z-axis <-45> speed <45>;
+	turn bottomAimingArm to x-axis <0> speed <85>;
+
+	wait-for-turn rightAimingArm around z-axis;
+
+	show flare;
+	show fireline;
+	show lineflare;
+	show lightpoint;
+	show ambienttop;
+
+
+
 	start-script SpinIdle();
 	//show fireline;
 	state=1;
@@ -45,27 +85,68 @@ deactivatescr() {
 	state=0;
 	//hide fireline;
 	
-	move base2 to y-axis [-10] speed [15];
-	move base3 to y-axis [-16] speed [15];
-	wait-for-move base2 along y-axis;
-	wait-for-move base3 along y-axis;
-	
-	
-	turn sauronarms to x-axis <-90.000000> speed <85>;
-	turn sauron to y-axis <0> speed <35>;
+	// turn armature1 to x-axis <-0.0872664626> speed <85>;
+	// move piston1 to y-axis [-20] speed [20];
+	// move piston2 to y-axis [-32] speed [20];
+	// move turret to y-axis [-40] speed [20];
+	// wait-for-move piston1 along y-axis;
+	// wait-for-move piston2 along y-axis;
+	// wait-for-move turret along y-axis;
+
+	turn turret to y-axis <0> speed <100>;
+	turn topArmsPivot to x-axis <0> speed <100>;
+	turn aiming_arm to x-axis <0> speed <40>;
+	wait-for-turn turret around y-axis;
+	wait-for-turn aiming_arm around x-axis;
+
+
+
+	turn topArmsPivot to x-axis <-91> speed <65>;
+	// turn aiming_arm to x-axis <35> speed <30>;
+	turn bottomAimingArm to x-axis <-85> speed <85>;
+	turn leftAimingArm to z-axis <0> speed <45>;
+	turn rightAimingArm to z-axis <0> speed <45>;
+
+	wait-for-turn topArmsPivot around x-axis;
+	wait-for-turn bottomAimingArm around x-axis;
+
+	move turret to y-axis [-16] speed [16];
+	wait-for-move turret along y-axis;
+	move piston2 to y-axis [-12] speed [12];
+	wait-for-move piston2 along y-axis;
+	move piston1 to y-axis [-19] speed [19];
+
+	move armature1 to z-axis [2] speed [2];
+	move armature1 to y-axis [-28] speed [28];
+	turn armature1 to x-axis <-13> speed <13>;
+
+	move armature2 to z-axis [2] speed [2];
+	move armature2 to y-axis [-28] speed [28];
+	turn armature2 to x-axis <-13> speed <13>;
+
+	move armature3 to z-axis [2] speed [2];
+	move armature3 to y-axis [-28] speed [28];
+	turn armature3 to x-axis <-13> speed <13>;
+
+	move rail1 to y-axis [-19] speed [19];
+	move rail2 to y-axis [-19] speed [19];
+	move rail3 to y-axis [-19] speed [19];
 	
 	
 	turn ring1 to x-axis <0.000000> speed <85>;
 	turn ring2 to x-axis <0.000000> speed <85>;
-	turn ring2 to y-axis <0.000000> speed <85>;
-	turn ring3 to z-axis <0.000000> speed <85>;
-	stop-spin ring1 around x-axis;
-	stop-spin ring2 around x-axis;
-	stop-spin ring2 around y-axis;
-	stop-spin ring3 around z-axis;
-	stop-spin fr1 around z-axis;
-	stop-spin fr2 around z-axis;
-	stop-spin fr3 around z-axis;
+	turn ring3 to x-axis <0.000000> speed <85>;
+	turn ring4 to z-axis <0.000000> speed <85>;
+	stop-spin ring around y-axis decelerate <100>;
+	stop-spin ring2 around x-axis decelerate <100>;
+	stop-spin ring3 around x-axis decelerate <100>;
+	stop-spin ring4 around z-axis decelerate <100>;
+
+	hide flare;
+	hide fireline;
+	hide lineflare;
+	hide lightpoint;
+	hide ambienttop;
 }
 
 
@@ -163,6 +244,11 @@ Create()
 	state=1;
 	call-script InitState();
 	isfiring = 0;
+
+	turn armPivot2 to y-axis <120> now;
+	turn armPivot3 to y-axis <-120> now;
+	move turret to y-axis [6] now;
+	
 	
 	lastfired = get(GAME_FRAME)-200;
 	shotcount = 0;
@@ -253,8 +339,9 @@ AimPrimary(heading, pitch)
 	if (state==0) return 0;
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	turn sauron to y-axis heading speed <25>;
-	turn sauronarms to x-axis -1*pitch speed <10>;
+	turn turret to y-axis heading speed <25>;
+	turn aiming_arm to x-axis -1*pitch speed <10>;
+	turn topArmsPivot to x-axis -1*pitch speed <10>;
 	if (get ABS(oldhead - heading) > 500)
 	{
 		targetswap = 1;
