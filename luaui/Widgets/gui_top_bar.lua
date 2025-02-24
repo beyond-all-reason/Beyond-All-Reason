@@ -335,6 +335,7 @@ local function updateButtons()
 		if isSinglePlayer and allowSavegame and WG['savegame'] ~= nil then
 			addButton('save', Spring.I18N('ui.topbar.button.save'))
 		end
+
 		buttonsArea['buttons'][lastbutton][1] = buttonsArea['buttons'][lastbutton][1] - sidePadding
 		offset = offset + sidePadding
 
