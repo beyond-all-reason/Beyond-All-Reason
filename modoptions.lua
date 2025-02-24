@@ -1007,7 +1007,6 @@ local options = {
         type    = "separator",
     },
 
-
     {
         key 	= "evocom",
         name 	= "Evolving Commanders",
@@ -1199,6 +1198,45 @@ local options = {
         step   	= 1,
     },
 
+    {
+        key     = "sub_header",
+        section = "options_extra",
+        type    = "separator",
+    },
+
+    {
+        key     = 'revival',
+        name    = 'Reviving Corpses',
+        desc    = "All unit corpses resurrect themselves over time with allegience to the Scavengers. They attack everything else.",
+        type    = 'bool',
+        section = 'options_extra',
+        def     = false,
+        unlock  = {"revival_rezspeed", "revival_count_multiplier"},
+    },
+
+    {
+        key     = 'revival_rezspeed',
+        name    = 'Base Revival Speed',
+        desc    = "In metal per second. This changes over the course of the game based on player progression.",
+        type    = 'number',
+        section = 'options_extra',
+        def     = 16,
+        min     = 1,
+        max     = 10000,
+        step    = 1,
+    },
+
+    {
+        key     = 'revival_count_multiplier',
+        name    = 'Spawn Count Multiplier',
+        desc    = "Changes the number of mobile units spawned per corpse.",
+        type    = 'number',
+        section = 'options_extra',
+        def     = 1,
+        min     = 1,
+        max     = 10,
+        step    = 1,
+    },
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
