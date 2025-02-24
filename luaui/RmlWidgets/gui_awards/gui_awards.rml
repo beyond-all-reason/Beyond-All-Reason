@@ -1,7 +1,7 @@
 <rml>
     <head>
     <meta charset="UTF-8" />
-        <link type="text/rcss" href="/LuaUI/Widgets/rml_assets/endscreen_awards_styles.rcss"/>
+        <link type="text/rcss" href="/LuaUI/RmlWidgets/gui_awards/gui_awards.rcss"/>
     </head>
     <body>
       <handle move_target="#document">
