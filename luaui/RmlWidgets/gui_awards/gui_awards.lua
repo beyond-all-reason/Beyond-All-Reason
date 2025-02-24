@@ -113,17 +113,6 @@ local modelForPresenter = {
 	otherAwards = {},
 }
 
-local function getCSSColorByPlayer(teamID)
-	if teamID < 0 then
-		return "rgb(0,0,0)"
-	end
-	local redF, greenF, blueF, opacity = Spring.GetTeamColor(teamID)
-	local redNumColor = math.floor(redF * 255)
-	local greenNumColor = math.floor(greenF * 255)
-	local blueNumColor = math.floor(blueF * 255)
-	return string.format("rgb(%d, %d, %d)", redNumColor, greenNumColor, blueNumColor)
-end
-
 local function leave()
 	if chobbyLoaded then
 		Spring.Reload("")
@@ -192,7 +181,7 @@ local function putMainAwardIntoModel(award, num, winnersTable)
 	end
 	playerToSet.score = score
 	playerToSet.playerName = name
-	playerToSet.playerColor = getCSSColorByPlayer(teamID)
+	playerToSet.playerColor = RmlUi.ColorUtils.getCSSColorByPlayer(teamID)
 	modelForPresenter[award].visible = true
 end
 
@@ -207,7 +196,7 @@ local function createCowAward(winnersTable)
 	local name = findPlayerName(teamID)
 	local playerToSet = modelForPresenter[award].leader
 	playerToSet.playerName = name
-	playerToSet.playerColor = getCSSColorByPlayer(teamID)
+	playerToSet.playerColor = RmlUi.ColorUtils.getCSSColorByPlayer(teamID)
 	modelForPresenter[award].visible = true
 end
 
@@ -232,7 +221,7 @@ local function putOtherAwardIntoModel(award, winnersTable)
 		leader = {
 			playerName = name,
 			score = score,
-			playerColor = getCSSColorByPlayer(teamID),
+			playerColor = RmlUi.ColorUtils.getCSSColorByPlayer(teamID),
 		},
 	})
 end
@@ -267,7 +256,7 @@ local function showDocument()
 	Spring.SendCommands("endgraph 0")
 	if isVisible == false then
 		isVisible = true
-		document = widget.rmlContext:LoadDocument("LuaUI/Widgets/rml_assets/endscreen_awards.rml", widget)
+		document = widget.rmlContext:LoadDocument("LuaUI/RmlWidgets/gui_awards/gui_awards.rml", widget)
 		document:Show()
 	end
 end
