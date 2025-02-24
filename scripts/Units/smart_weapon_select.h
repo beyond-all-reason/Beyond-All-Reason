@@ -33,18 +33,36 @@ to this script the manual targetting events.
 #ifndef __SMARTSELECT_H_
 
 static-var AimingState;
+static-var ToggleState;
 
 #define __SMARTSELECT_H_
 
-#define AIMING_PRIORITY		1
-#define AIMING_BACKUP		2
+#define AIMING_PRIORITY		0
+#define AIMING_BACKUP		1
+#define AIMING_AUTO			2
 
 SetAimingState(newState)
 {
-	if (newState == AIMING_PRIORITY){
+	if (ToggleState != AIMING_AUTO)
+	{
+		return(0);
+	}
+	else if(newState == AIMING_PRIORITY)
+	{
 		AimingState = AIMING_PRIORITY;
-	} else{
+	} 
+	else
+	{
 		AimingState = AIMING_BACKUP;
+	}
+}
+
+SetToggleState(newState)
+{
+	ToggleState = newState;
+	if (ToggleState != AIMING_AUTO)
+	{
+		AimingState = ToggleState;
 	}
 }
 
