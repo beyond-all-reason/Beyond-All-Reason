@@ -269,7 +269,7 @@
 			"hound_weapon_plasma": "Плазма-пушка",
 			"hound_weapon_gauss": "Гаусса-пушка",
 			"hound_weapon_toggle_tooltip": "Переключает орудие между медленными плазменными снарядами с широким радиусом и быстрой гаусс-пушкой",
-			"blueprint_place": "Разместить Чертеж",
+			"blueprint_place": "Чертеж",
 			"blueprint_place_tooltip": "Разместить сохраненный чертеж",
 			"blueprint_create": "Сохранить Чертеж",
 			"blueprint_create_tooltip": "Сохранить выбранные юниты в новый чертеж, в порядке их выделения",
