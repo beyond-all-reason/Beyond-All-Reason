@@ -37,6 +37,7 @@ return {
 			unitgroup = 'weapon',
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
+			smart_weapon_cmddesc = "trajectory",
 			subfolder = "CorBuildings/LandDefenceOffence",
 		},
 		featuredefs = {

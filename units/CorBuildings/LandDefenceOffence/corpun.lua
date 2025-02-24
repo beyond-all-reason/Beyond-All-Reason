@@ -35,6 +35,7 @@ return {
 			buildinggrounddecaltype = "decals/corpun_aoplane.dds",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
+			smart_weapon_cmddesc = "trajectory",
 			subfolder = "CorBuildings/LandDefenceOffence",
 			unitgroup = "weapon",
 			usebuildinggrounddecal = true,

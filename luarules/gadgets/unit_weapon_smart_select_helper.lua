@@ -79,9 +79,10 @@ local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
 local spEditUnitCmdDesc = Spring.EditUnitCmdDesc
 local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
 
--- Add after other static declarations
+include("luarules/configs/customcmds.h.lua")
+
 local trajectoryCmdDesc = {
-    id = CMD_TRAJECTORY_TOGGLE,
+    id = CMD_SMART_TOGGLE,
     type = CMDTYPE.ICON_MODE,
     tooltip = 'trajectory_tooltip',
     name = 'trajectory_toggle',
@@ -89,11 +90,10 @@ local trajectoryCmdDesc = {
     action = 'trajectory_toggle',
     params = { 1, "trajectory_low", "trajectory_high", "trajectory_auto" },
 }
-
-include("luarules/configs/customcmds.h.lua")
+local defaultCmdDesc = trajectoryCmdDesc
 
 function gadget:Initialize()
-	gadgetHandler:RegisterAllowCommand(CMD_TRAJECTORY_TOGGLE)
+	gadgetHandler:RegisterAllowCommand(CMD_SMART_TOGGLE)
 	local units = Spring.GetAllUnits()
 	local spGetUnitDefID = Spring.GetUnitDefID
 	for i = 1, #units do
@@ -114,6 +114,13 @@ for unitDefID, def in ipairs(UnitDefs) do
 					smartUnitDefs[unitDefID].reloadFrames = math.floor(WeaponDefs[weaponDefID].reload * Game.gameSpeed)
 					if def.speed and def.speed ~= 0 then
 						smartUnitDefs[unitDefID].canMove = true
+					end
+					if def.customParams and def.customParams.smart_weapon_cmddesc then
+						if def.customParams.smart_weapon_cmddesc == "trajectory" then
+							smartUnitDefs[unitDefID].smartCmdDesc = trajectoryCmdDesc
+						end
+					else
+						smartUnitDefs[unitDefID].smartCmdDesc = defaultCmdDesc
 					end
 				end
 				if WeaponDefs[weaponDefID].customParams.smart_backup then
@@ -284,7 +291,7 @@ local function updateAimingState(attackerID)
 end
 
 local function toggleTrajectory(unitID, state)
-    local cmdDescID = spFindUnitCmdDesc(unitID, CMD_TRAJECTORY_TOGGLE)
+    local cmdDescID = spFindUnitCmdDesc(unitID, CMD_SMART_TOGGLE)
     if cmdDescID then
         state = (state % 3)
         trajectoryCmdDesc.params[1] = state
@@ -311,8 +318,9 @@ function gadget:UnitCreated(unitID, unitDefID)
 			}
 			spCallCOBScript(unitID, smartUnits[unitID].setStateScriptID, 0, smartUnitDefs[unitDefID].priorityWeapon)
 			
-			trajectoryCmdDesc.params[1] = AUTO_TOGGLESTATE
-			spInsertUnitCmdDesc(unitID, trajectoryCmdDesc)
+			smartUnitDefs[unitDefID].smartCmdDesc.params[1] = AUTO_TOGGLESTATE
+			spInsertUnitCmdDesc(unitID, smartUnitDefs[unitDefID].smartCmdDesc)
+			spCallCOBScript(unitID, "SetToggleState", 0, AUTO_TOGGLESTATE)
 		end
 	end
 
@@ -341,7 +349,7 @@ function gadget:GameFrame(frame)
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
-    if smartUnitDefs[unitDefID] and cmdID == CMD_TRAJECTORY_TOGGLE then
+    if smartUnitDefs[unitDefID] and cmdID == CMD_SMART_TOGGLE then
         toggleTrajectory(unitID, cmdParams[1])
         return false  -- command was used
     end
