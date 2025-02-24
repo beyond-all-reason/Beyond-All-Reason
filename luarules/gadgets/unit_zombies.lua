@@ -16,24 +16,39 @@ end
 
 local modOptions = Spring.GetModOptions()
 
-if not modOptions.revival then
+if modOptions.zombies == "disabled" then
 	return false
 end
 
-local ZOMBIE_GUARD_RADIUS = 300           -- Radius for zombies to guard allies
-local ZOMBIE_ORDER_MIN = 5                -- Min random orders for zombies
-local ZOMBIE_ORDER_MAX = 15               -- Max random orders for zombies
-local ZOMBIE_GUARD_CHANCE = 0.65          -- Chance a zombie will guard allies
-local WARNING_TIME = 15 * Game.gameSpeed  -- Frames to start warning before reanimation
-local ZOMBIES_REZ_MIN = 30 				  -- in seconds
-local ZOMBIE_REZ_MAX = 120 				  -- in seconds
-local ZOMBIE_MAX_XP = 2					  -- Maximum experience value for zombies, skewed towards median
+local ZOMBIE_GUARD_RADIUS = 300			-- Radius for zombies to guard allies
+local ZOMBIE_ORDER_MIN = 5				-- Min random orders for zombies
+local ZOMBIE_ORDER_MAX = 15				-- Max random orders for zombies
+local ZOMBIE_GUARD_CHANCE = 0.65		-- Chance a zombie will guard allies
+local WARNING_TIME = 15 * Game.gameSpeed-- Frames to start warning before reanimation
 
-local ZOMBIES_REZ_SPEED = modOptions.revival_rezspeed
-local ZOMBIES_COUNT_MULTIPLIER = modOptions.revival_count_multiplier
+local ZOMBIE_MAX_XP = 2					-- Maximum experience value for zombies, skewed towards median
 
-local ZOMBIE_ORDER_CHECK_INTERVAL = Game.gameSpeed * 10    -- How often (in frames) to check if zombies need new orders
-local ZOMBIE_CHECK_INTERVAL = Game.gameSpeed    -- How often (in frames) everything else is checked
+--default is normal
+local ZOMBIES_REZ_SPEED = 16			--metal per second
+local ZOMBIES_COUNT_MIN = 1
+local ZOMBIES_COUNT_MAX = 1
+local ZOMBIES_REZ_MIN = 30				-- in seconds
+local ZOMBIE_REZ_MAX = 120				-- in seconds
+
+if modOptions.zombies == "hard" then
+	ZOMBIES_REZ_SPEED = 24
+	ZOMBIES_REZ_MIN = 20
+	ZOMBIE_REZ_MAX = 90
+elseif modOptions.zombies == "nightmare" then
+	ZOMBIES_REZ_SPEED = 24
+	ZOMBIES_COUNT_MIN = 2
+	ZOMBIES_COUNT_MAX = 5
+	ZOMBIES_REZ_MIN = 20
+	ZOMBIE_REZ_MAX = 60
+end
+
+local ZOMBIE_ORDER_CHECK_INTERVAL = Game.gameSpeed * 10 -- How often (in frames) to check if zombies need new orders
+local ZOMBIE_CHECK_INTERVAL = Game.gameSpeed -- How often (in frames) everything else is checked
 
 local CMD_REPEAT = CMD.REPEAT
 local CMD_MOVE_STATE = CMD.MOVE_STATE
@@ -45,41 +60,41 @@ local CMD_FIRE_STATE = CMD.FIRE_STATE
 local ISNT_ZOMBIE = 0
 local IS_ZOMBIE = 1
 
-local spGetGroundHeight           = Spring.GetGroundHeight
-local spGetUnitPosition           = Spring.GetUnitPosition
-local spGetFeaturePosition        = Spring.GetFeaturePosition
-local spCreateUnit                = Spring.CreateUnit
-local spTransferUnit              = Spring.TransferUnit
-local spGetUnitDefID              = Spring.GetUnitDefID
-local spGetUnitTeam               = Spring.GetUnitTeam
-local spGetAllUnits               = Spring.GetAllUnits
-local spGetGameFrame              = Spring.GetGameFrame
-local spGetAllFeatures            = Spring.GetAllFeatures
-local spGiveOrderToUnit           = Spring.GiveOrderToUnit
-local spGetUnitCommandCount       = Spring.GetUnitCommandCount
-local spDestroyFeature            = Spring.DestroyFeature
-local spGetUnitIsDead             = Spring.GetUnitIsDead
+local spGetGroundHeight			= Spring.GetGroundHeight
+local spGetUnitPosition			= Spring.GetUnitPosition
+local spGetFeaturePosition		= Spring.GetFeaturePosition
+local spCreateUnit				= Spring.CreateUnit
+local spTransferUnit			= Spring.TransferUnit
+local spGetUnitDefID			= Spring.GetUnitDefID
+local spGetUnitTeam				= Spring.GetUnitTeam
+local spGetAllUnits				= Spring.GetAllUnits
+local spGetGameFrame			= Spring.GetGameFrame
+local spGetAllFeatures			= Spring.GetAllFeatures
+local spGiveOrderToUnit			= Spring.GiveOrderToUnit
+local spGetUnitCommandCount		= Spring.GetUnitCommandCount
+local spDestroyFeature			= Spring.DestroyFeature
+local spGetUnitIsDead			= Spring.GetUnitIsDead
 local spGiveOrderArrayToUnitArray = Spring.GiveOrderArrayToUnitArray
-local spGetUnitsInCylinder        = Spring.GetUnitsInCylinder
-local spSetTeamResource           = Spring.SetTeamResource
-local spGetUnitHealth             = Spring.GetUnitHealth
-local spSetUnitHealth             = Spring.SetUnitHealth
-local spSetUnitRulesParam         = Spring.SetUnitRulesParam
-local spGetUnitRulesParam         = Spring.GetUnitRulesParam
-local spGetFeatureDefID           = Spring.GetFeatureDefID
-local spTestMoveOrder             = Spring.TestMoveOrder
-local spSpawnCEG 				  = Spring.SpawnCEG
-local spGetFeatureResources 	  = Spring.GetFeatureResources
-local spGetFeatureHealth		  = Spring.GetFeatureHealth
-local spDestroyUnit 			  = Spring.DestroyUnit
-local spCreateFeature			  = Spring.CreateFeature
-local spSpawnExplosion 			  = Spring.SpawnExplosion
-local spPlaySoundFile 			  = Spring.PlaySoundFile
-local spGetFeatureRadius		  = Spring.GetFeatureRadius
-local spGetUnitCurrentCommand	  = Spring.GetUnitCurrentCommand
-local spSetUnitExperience		  = Spring.SetUnitExperience
-local random 					  = math.random
-local distance2dSquared 		  = math.distance2dSquared
+local spGetUnitsInCylinder		= Spring.GetUnitsInCylinder
+local spSetTeamResource			= Spring.SetTeamResource
+local spGetUnitHealth			= Spring.GetUnitHealth
+local spSetUnitHealth			= Spring.SetUnitHealth
+local spSetUnitRulesParam		= Spring.SetUnitRulesParam
+local spGetUnitRulesParam		= Spring.GetUnitRulesParam
+local spGetFeatureDefID			= Spring.GetFeatureDefID
+local spTestMoveOrder			= Spring.TestMoveOrder
+local spSpawnCEG				= Spring.SpawnCEG
+local spGetFeatureResources		= Spring.GetFeatureResources
+local spGetFeatureHealth		= Spring.GetFeatureHealth
+local spDestroyUnit				= Spring.DestroyUnit
+local spCreateFeature			= Spring.CreateFeature
+local spSpawnExplosion			= Spring.SpawnExplosion
+local spPlaySoundFile			= Spring.PlaySoundFile
+local spGetFeatureRadius		= Spring.GetFeatureRadius
+local spGetUnitCurrentCommand	= Spring.GetUnitCurrentCommand
+local spSetUnitExperience		= Spring.SetUnitExperience
+local random					= math.random
+local distance2dSquared			= math.distance2dSquared
 
 local teams = Spring.GetTeamList()
 local scavTeamID
@@ -268,7 +283,10 @@ end
 
 local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z)
 	local unitDef = UnitDefs[unitDefID]
-	local spawnCount = unitDef.speed > 0 and ZOMBIES_COUNT_MULTIPLIER or 1 -- units that can't move will stay stacked, which is not desired
+		local spawnCount = 1
+	if unitDef.speed > 0 then
+		spawnCount = math.floor((random(ZOMBIES_COUNT_MIN, ZOMBIES_COUNT_MAX) + random(ZOMBIES_COUNT_MIN, ZOMBIES_COUNT_MAX)) / 2) --skew results towards average to produce better gameplay
+	end
 	local size = unitDef.xsize
 
 	spDestroyFeature(featureID)
@@ -276,15 +294,17 @@ local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z)
 	playSpawnSound(x, y, z)
 
 	for i = 1, spawnCount do
-		local randomX = x + random(-size * ZOMBIES_COUNT_MULTIPLIER, size * ZOMBIES_COUNT_MULTIPLIER)
-		local randomZ = z + random(-size * ZOMBIES_COUNT_MULTIPLIER, size * ZOMBIES_COUNT_MULTIPLIER)
+		local randomX = x + random(-size * spawnCount, size * spawnCount)
+		local randomZ = z + random(-size * spawnCount, size * spawnCount)
 		local adjustedY = spGetGroundHeight(randomX, randomZ)
 
 	
 		local unitID = spCreateUnit(unitDefID, randomX, adjustedY, randomZ, 0, gaiaTeamID)
 		if unitID then
 			spSpawnCEG("scav-spawnexplo", randomX, adjustedY, randomZ, 0, 0, 0, unitDef.xsize)
-			spSetUnitExperience(unitID, (random() * ZOMBIE_MAX_XP + random() * ZOMBIE_MAX_XP) / 2)
+			if modOptions.zombies ~= "normal" then
+				spSetUnitExperience(unitID, (random() * ZOMBIE_MAX_XP + random() * ZOMBIE_MAX_XP) / 2)
+			end
 			local unitHealth = spGetUnitHealth(unitID)
 			spSetUnitHealth(unitID, unitHealth * healthReductionRatio)
 			spSetUnitRulesParam(unitID, "zombie", IS_ZOMBIE)

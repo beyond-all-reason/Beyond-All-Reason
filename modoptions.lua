@@ -1205,37 +1205,17 @@ local options = {
     },
 
     {
-        key     = 'revival',
-        name    = 'Reviving Corpses',
-        desc    = "All unit corpses resurrect themselves over time with allegience to the Scavengers. They attack everything else.",
-        type    = 'bool',
-        section = 'options_extra',
-        def     = false,
-        unlock  = {"revival_rezspeed", "revival_count_multiplier"},
-    },
-
-    {
-        key     = 'revival_rezspeed',
-        name    = 'Base Revival Speed',
-        desc    = "In metal per second. This changes over the course of the game based on player progression.",
-        type    = 'number',
-        section = 'options_extra',
-        def     = 16,
-        min     = 1,
-        max     = 10000,
-        step    = 1,
-    },
-
-    {
-        key     = 'revival_count_multiplier',
-        name    = 'Spawn Count Multiplier',
-        desc    = "Changes the number of mobile units spawned per corpse.",
-        type    = 'number',
-        section = 'options_extra',
-        def     = 1,
-        min     = 1,
-        max     = 10,
-        step    = 1,
+        key 	= "zombies",
+        name 	= "Scavenger Zombies",
+        type 	= "list",
+        def 	= "disabled",
+        section = "options_extra",
+        items 	= {
+            { key = "disabled", name = "Disabled", desc = "Disabled"},
+            { key = "normal", name = "Normal", desc = "Slow revival rate, normal strength."},
+            { key = "hard", name = "Hard", desc = "Fast revival rate, stronger Scavenger Zombies." },
+            { key = "nightmare", name = "Nightmare", desc = "Extreme revival rate, stronger Scavenger Zombies, 2-5 spawn per corpse." },
+        }
     },
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
