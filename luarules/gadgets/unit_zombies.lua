@@ -79,7 +79,6 @@ local spPlaySoundFile 			  = Spring.PlaySoundFile
 local spGetFeatureRadius		  = Spring.GetFeatureRadius
 local spGetUnitCurrentCommand	  = Spring.GetUnitCurrentCommand
 local spSetUnitExperience		  = Spring.SetUnitExperience
-local spSetUnitResourcing		  = Spring.SetUnitResourcing
 local random 					  = math.random
 local distance2dSquared 		  = math.distance2dSquared
 
