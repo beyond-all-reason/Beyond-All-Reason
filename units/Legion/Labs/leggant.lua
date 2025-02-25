@@ -40,7 +40,7 @@ return {
 			[6] = "corsok",
 			[7] = "legerailtank",
 			[8] = "legpede",
-			[9] = "leegmech",
+			[9] = "legeshotgunmech",
 			[10] = "legkeres",
 		},
 		customparams = {
