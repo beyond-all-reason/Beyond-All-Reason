@@ -104,7 +104,7 @@ end
 
 function gadget:GameFrame(gf)
 	if gf % 150 == 1 then
-		if Script.LuaUI("rankingEvent") then
+		if Script.LuaUI("RankingEvent") then
 			local temp = {}
 			for allyTeamID, totalCost in pairs(allyteamCost) do
 				-- get current resources in storage
@@ -135,7 +135,7 @@ function gadget:GameFrame(gf)
 			end
 			if rankingChanged then
 				prevRanking = ranking
-				Script.LuaUI.rankingEvent(ranking)
+				Script.LuaUI.RankingEvent(ranking)
 			end
 		end
 	end

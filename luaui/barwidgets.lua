@@ -19,6 +19,7 @@ local gl = gl
 
 local CONFIG_FILENAME = LUAUI_DIRNAME .. 'Config/' .. Game.gameShortName .. '.lua'
 local WIDGET_DIRNAME = LUAUI_DIRNAME .. 'Widgets/'
+local RML_WIDGET_DIRNAME = LUAUI_DIRNAME .. 'RmlWidgets/'
 
 local SELECTOR_BASENAME = 'selector.lua'
 
@@ -314,11 +315,11 @@ local zipOnly = {
 	["Widget Profiler"] = true,
 }
 
-local function loadWidgetFiles(vfsMode)
+local function loadWidgetFiles(folder, vfsMode)
 	local fromZip = vfsMode ~= VFS.RAW
-	local widgetFiles = VFS.DirList(WIDGET_DIRNAME, "*.lua", vfsMode)
+	local widgetFiles = VFS.DirList(folder, "*.lua", vfsMode)
 
-	for _, subDirectory in ipairs( VFS.SubDirs(WIDGET_DIRNAME) ) do
+	for _, subDirectory in ipairs( VFS.SubDirs(folder) ) do
 		table.append( widgetFiles, VFS.DirList(subDirectory, "*.lua", vfsMode) )
 	end
 
@@ -348,12 +349,14 @@ function widgetHandler:Initialize()
 
 	if self.allowUserWidgets and allowuserwidgets then
 		Spring.Echo("LuaUI: Allowing User Widgets")
-		loadWidgetFiles(VFS.RAW)
+		loadWidgetFiles(WIDGET_DIRNAME, VFS.RAW)
+		loadWidgetFiles(RML_WIDGET_DIRNAME, VFS.RAW)
 	else
 		Spring.Echo("LuaUI: Disallowing User Widgets")
 	end
 
-	loadWidgetFiles(VFS.ZIP)
+	loadWidgetFiles(WIDGET_DIRNAME, VFS.ZIP)
+	loadWidgetFiles(RML_WIDGET_DIRNAME, VFS.ZIP)
 
 	table.sort(unsortedWidgets, function(w1, w2)
 		local l1 = w1.whInfo.layer
@@ -558,28 +561,21 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 	return widget
 end
 
+local WidgetMeta =
+{
+	__index = System,
+	__metatable = true,
+}
+
 function widgetHandler:NewWidget()
 	tracy.ZoneBeginN("W:NewWidget")
-	local widget = {}
-	if true then
-		-- copy the system calls into the widget table
-		for k, v in pairs(System) do
-			widget[k] = v
-		end
-	else
-		-- use metatable redirection
-		setmetatable(widget, {
-			__index = System,
-			__metatable = true,
-		})
-	end
+	local widget = setmetatable({}, WidgetMeta)
 	widget.WG = self.WG    -- the shared table
 	widget.widget = widget -- easy self referencing
 
 	-- wrapped calls (closures)
 	widget.widgetHandler = {}
 	local wh = widget.widgetHandler
-	local self = self
 	widget.include = function(f)
 		return include(f, widget)
 	end
@@ -789,14 +785,18 @@ local function ArrayInsert(t, f, w)
 	end
 end
 
-local function ArrayRemove(t, w)
-	for k, v in ipairs(t) do
-		if v == w then
-			table.remove(t, k)
-			--break
+---Removes all elements equal to value from given array.
+---@generic V
+---@param t V[]
+---@param value V
+local function ArrayRemove(t, value)
+	for i = #t, 1, -1 do
+		if t[i] == value then
+			table.remove(t, i)
 		end
 	end
 end
+
 
 --------------------------------------------------------------------------------
 --- Safe reordering

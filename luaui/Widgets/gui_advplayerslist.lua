@@ -759,7 +759,7 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal('ApmEvent', ApmEvent)
 	widgetHandler:RegisterGlobal('GpuMemEvent', GpuMemEvent)
 	widgetHandler:RegisterGlobal('SystemEvent', SystemEvent)
-	widgetHandler:RegisterGlobal('rankingEvent', RankingEvent)
+	widgetHandler:RegisterGlobal('RankingEvent', RankingEvent)
 	UpdateRecentBroadcasters()
 
 	mySpecStatus, fullView, _ = Spring.GetSpectatingState()
@@ -3441,7 +3441,7 @@ function widget:Update(delta)
         end
         Spring.SetMouseCursor('cursornormal')
     end
-    
+
     lockPlayerID = WG.lockcamera and WG.lockcamera.GetPlayerID() or false
 
     if clickedPlayerTime and os.clock() - clickedPlayerTime > dblclickPeriod then
@@ -3513,7 +3513,7 @@ function widget:Update(delta)
         gameStartRefreshed = true
         forceMainListRefresh = true
     end
-    
+
     if forceMainListRefresh then
         SortList()
         SetModulesPositionX()
