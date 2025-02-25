@@ -115,7 +115,7 @@ return {
 				gravityaffected = "true",
 				hightrajectory = 1,
 				impulsefactor = 0.123,
-				name = "Targetting System",
+				name = "Targeting System",
 				noselfdamage = true,
 				range = 397,
 				reloadtime = 2.5,
