@@ -1719,6 +1719,10 @@ local icontypes = {
 		bitmap = "icons/metalmaker_t2.png",
 		size = 1.20749986
 	},
+	legadveconv = {
+		bitmap = "icons/metalmaker_t2.png",
+		size = 1.20749986
+	},
 	cormoho = {
 		bitmap = "icons/mex_t2.png",
 		size = 1.20749986

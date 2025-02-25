@@ -518,6 +518,7 @@ local unitOrderTable = {
    ['legestor']       = 101875,
    ['armuwadves']     = 101900,
    ['coruwadves']     = 101950,
+   ['legadvestore']   = 101951,
 
    --NANOS
    ['armnanotc']      = 102010,
@@ -730,7 +731,6 @@ local unitOrderTable = {
    --WATER ECO NRG STORAGE
    ['armuwes']        = 207000,
    ['coruwes']        = 207500,
-   ['legadvestore']   = 207501,
 
    --WATER CONSTRUCTION
    ['armnanotcplat']  = 210000,
