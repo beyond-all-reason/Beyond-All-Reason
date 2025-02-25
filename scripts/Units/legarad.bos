@@ -3,7 +3,8 @@
 piece  base, pole, 
 		dishAStrut, dishA, dishATop1, dishATop2, dishABot1, dishABot2,
 		dishBStrut, dishB, dishBTop1, dishBTop2, dishBBot1, dishBBot2,
-		dishCStrut, dishC, dishCTop1, dishCTop2, dishCBot1, dishCBot2;
+		dishCStrut, dishC, dishCTop1, dishCTop2, dishCBot1, dishCBot2,
+        dishALight, dishBLight, dishCLight, blinkLight;
 
 static-var  Stunned;
 
@@ -68,7 +69,7 @@ Lights()
 	while( TRUE )
 	{
 	    if (!Stunned) {
-		    //emit-sfx 1024 + 0 from blink;
+		    emit-sfx 1024 + 0 from blinkLight;
 		}
 		sleep 2500;
 	}
@@ -125,6 +126,9 @@ Activate()
 
 	spin pole around y-axis speed <-50> accelerate <2>;
 
+    show dishALight;
+    show dishBLight;
+    show dishCLight;
 
 	start-script Lights();
 }
@@ -160,6 +164,10 @@ Deactivate()
     move dishCBot1 to z-axis [-1]   	speed [3];
     turn dishCTop1 to x-axis <10>   	speed <30>;
     turn dishCBot1 to x-axis <-10>   	speed <30>;
+
+    hide dishALight;
+    hide dishBLight;
+    hide dishCLight;
 
 }
 

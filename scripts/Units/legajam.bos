@@ -1,7 +1,7 @@
 
 #include "../recoil_common_includes.h"
 
-piece  base, dishA, dishB, dishC, pole, strutA, antennaA, strutB, antennaB, strutC, antennaC;
+piece  base, dishA, dishB, dishC, pole, strutA, antennaA, strutB, antennaB, strutC, antennaC, jamLight;
 
 static-var  Stunned;
 
@@ -20,6 +20,7 @@ Create()
 
 	turn strutB to y-axis <120> now;
 	turn strutC to y-axis <-120> now;
+	hide jamLight;
 
 }
 
@@ -45,6 +46,7 @@ Activate()
 	spin dishA around y-axis speed <50> accelerate <1>;
 	spin dishB around y-axis speed <-75> accelerate <2>;
 	spin dishC around y-axis speed <100> accelerate <3>;
+	show jamLight;
 
 }
 
@@ -65,6 +67,7 @@ Deactivate()
 	stop-spin dishA around y-axis decelerate <10>;
 	stop-spin dishB around y-axis decelerate <10>;
 	stop-spin dishC around y-axis decelerate <10>;
+	hide jamLight;
 }
 
 

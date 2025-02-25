@@ -1,6 +1,6 @@
 #include "../recoil_common_includes.h"
 
-piece  base, core, rotor1, rotor2, rotor3, rotor4, swivel, wall1;
+piece  base, core, rotor1, rotor2, rotor3, rotor4, swivel, wall1, topLight, botLeftLight, botRightLight, topLeftLight, topRightLight;
 
 static-var  Active;
 
@@ -14,10 +14,21 @@ MMStatus(State)
         turn rotor4 to y-axis <0> speed <20>;
         move wall1 to y-axis [0] speed [5];
         move core to y-axis [0] speed [5];
+		wait-for-move core along y-axis;
+		show topLight;
+		show botLeftLight;
+		show botrightLight;
+		show toprightLight;
+		show topLeftLight;
 
 	}
 	else
 	{
+		hide topLight;
+		hide botLeftLight;
+		hide botrightLight;
+		hide toprightLight;
+		hide topLeftLight;
         move wall1 to y-axis [5] speed [5];
         move core to y-axis [-5] speed [5];
         turn rotor1 to y-axis <-80> speed <20>;
@@ -31,7 +42,13 @@ MMStatus(State)
 
 Create()
 {
+			hide topLight;
+		hide botLeftLight;
+		hide botrightLight;
+		hide toprightLight;
+		hide topLeftLight;
 	Active = 0;
+
 }
 
 
