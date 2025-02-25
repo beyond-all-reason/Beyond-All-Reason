@@ -25,26 +25,25 @@ local ZOMBIE_ORDER_MIN = 5				-- Min random orders for zombies
 local ZOMBIE_ORDER_MAX = 15				-- Max random orders for zombies
 local ZOMBIE_GUARD_CHANCE = 0.65		-- Chance a zombie will guard allies
 local WARNING_TIME = 15 * Game.gameSpeed-- Frames to start warning before reanimation
-
-local ZOMBIE_MAX_XP = 2					-- Maximum experience value for zombies, skewed towards median
+local ZOMBIE_MAX_XP = 2					-- Maximum experience value for zombies, skewed towards 0 for gameplay balance
 
 --default is normal
 local ZOMBIES_REZ_SPEED = 16			--metal per second
 local ZOMBIES_COUNT_MIN = 1
 local ZOMBIES_COUNT_MAX = 1
-local ZOMBIES_REZ_MIN = 30				-- in seconds
-local ZOMBIE_REZ_MAX = 120				-- in seconds
+local ZOMBIES_REZ_MIN = 60				-- in seconds
+local ZOMBIE_REZ_MAX = 180				-- in seconds
 
 if modOptions.zombies == "hard" then
 	ZOMBIES_REZ_SPEED = 24
-	ZOMBIES_REZ_MIN = 20
-	ZOMBIE_REZ_MAX = 90
+	ZOMBIES_REZ_MIN = 30
+	ZOMBIE_REZ_MAX = 120
 elseif modOptions.zombies == "nightmare" then
 	ZOMBIES_REZ_SPEED = 24
 	ZOMBIES_COUNT_MIN = 2
 	ZOMBIES_COUNT_MAX = 5
-	ZOMBIES_REZ_MIN = 20
-	ZOMBIE_REZ_MAX = 60
+	ZOMBIES_REZ_MIN = 30
+	ZOMBIE_REZ_MAX = 120
 end
 
 local ZOMBIE_ORDER_CHECK_INTERVAL = Game.gameSpeed * 10 -- How often (in frames) to check if zombies need new orders
@@ -303,7 +302,8 @@ local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z)
 		if unitID then
 			spSpawnCEG("scav-spawnexplo", randomX, adjustedY, randomZ, 0, 0, 0, unitDef.xsize)
 			if modOptions.zombies ~= "normal" then
-				spSetUnitExperience(unitID, (random() * ZOMBIE_MAX_XP + random() * ZOMBIE_MAX_XP) / 2)
+				local xp = math.min(random() * ZOMBIE_MAX_XP, random() * ZOMBIE_MAX_XP)
+				spSetUnitExperience(unitID, xp)
 			end
 			local unitHealth = spGetUnitHealth(unitID)
 			spSetUnitHealth(unitID, unitHealth * healthReductionRatio)
