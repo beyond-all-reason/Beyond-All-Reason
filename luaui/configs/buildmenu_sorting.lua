@@ -464,6 +464,7 @@ local unitOrderTable = {
    ['legeconv']       = 100550,
    ['armmmkr']        = 100600,
    ['cormmkr']        = 100650,
+   ['legadveconv']    = 100651,
 
    --ECO METAL STORAGE
    ['armmstor']       = 100800,
@@ -517,6 +518,7 @@ local unitOrderTable = {
    ['legestor']       = 101875,
    ['armuwadves']     = 101900,
    ['coruwadves']     = 101950,
+   ['legadvestore']   = 101951,
 
    --NANOS
    ['armnanotc']      = 102010,
@@ -568,19 +570,24 @@ local unitOrderTable = {
    ['legrad']         = 103160,
    ['armarad']        = 103200,
    ['corarad']        = 103250,
+   ['legarad']        = 103251,
    ['armjamt']        = 103300,
    ['corjamt']        = 103350,
    ['legjam']         = 103360,
    ['armveil']        = 103400,
    ['corshroud']      = 103450,
+   ['legajam']        = 103451,
    ['armjuno']        = 103500,
    ['corjuno']        = 103550,
 
    ['armsd']          = 103600,
    ['corsd']          = 103625,
+   ['legsd']          = 103626,
    ['armtarg']        = 103650,
    ['cortarg']        = 103675,
+   ['legtarg']        = 103676,
    ['armgate']        = 103700,
+   ['legdeflector']   = 103701,
    ['corgate']        = 103725,
    ['armdf']          = 103750, --Fake Fusion
 
@@ -592,7 +599,7 @@ local unitOrderTable = {
    ['armfort']        = 104300,
    ['corfort']        = 104400,
    ['corscavfort']    = 104505, --scavengers
-   ['legforti']        = 104506, --exscavengers
+   ['legforti']       = 104506, --exscavengers
    ['armclaw']        = 104600,
    ['armlwall']       = 104650,
    ['legdtr']     	  = 104704, --legion
