@@ -1692,6 +1692,14 @@ if gadgetHandler:IsSyncedCode() then
 			lsz1 = math.max(RaptorStartboxZMin - ((MAPSIZEZ*0.01) * techAnger), 0)
 			lsx2 = math.min(RaptorStartboxXMax + ((MAPSIZEX*0.01) * techAnger), MAPSIZEX)
 			lsz2 = math.min(RaptorStartboxZMax + ((MAPSIZEZ*0.01) * techAnger), MAPSIZEZ)
+			if not lsx2 or lsx2-lsx1 < 512 then
+				lsx1 = math.floor((lsx1 + lsx2) / 2) - 256
+				lsx2 = lsx1 + 512
+			end
+			if not lsz2 or lsz2-lsz1 < 512 then
+				lsz1 = math.floor((lsz1 + lsz2) / 2) - 256
+				lsz2 = lsz1 + 512
+			end
 		end
 	end
 
