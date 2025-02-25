@@ -123,6 +123,7 @@ local convertedUnitsNames = {
 	['legvenator'] = 5,
     ['legmed'] = 5,
 	['legaheattank'] = 3,
+	['legeheatraymech'] = 1,
 	['legrwall'] = 4,
 	['legjav'] = 1,
 	['legeshotgunmech'] = 3,
