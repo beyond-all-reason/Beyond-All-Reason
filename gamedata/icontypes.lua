@@ -988,8 +988,8 @@ local icontypes = {
 		size = 1.10249984
 	},
 	legadvestore = {
-		bitmap = "icons/energystorage.png",
-		size = 1.10249984
+		bitmap = "icons/energystorage_t2.png",
+		size = 1.3125
 	},
 	armuwfus = {
 		bitmap = "icons/fusion.png",
