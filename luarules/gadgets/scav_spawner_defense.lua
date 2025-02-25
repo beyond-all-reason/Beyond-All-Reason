@@ -1883,11 +1883,11 @@ if gadgetHandler:IsSyncedCode() then
 			lsz1 = math.max(ScavStartboxZMin - ((MAPSIZEZ*0.01) * (techAnger+15)), 0)
 			lsx2 = math.min(ScavStartboxXMax + ((MAPSIZEX*0.01) * (techAnger+15)), MAPSIZEX)
 			lsz2 = math.min(ScavStartboxZMax + ((MAPSIZEZ*0.01) * (techAnger+15)), MAPSIZEZ)
-			if not lsx2 or math.abs(lsx1, lsx2) < 512 or lsx1 > lsx2 then
+			if not lsx2 or lsx2-lsx1 < 512 or lsx1 > lsx2 then
 				lsx1 = math.floor((lsx1 + lsx2) / 2) - 256
 				lsx2 = lsx1 + 512
 			end
-			if not lsz2 or math.abs(lsz1, lsz2) < 512 or lsz1 > lsz2 then
+			if not lsz2 or lsz2-lsz1 < 512 or lsz1 > lsz2 then
 				lsz1 = math.floor((lsz1 + lsz2) / 2) - 256
 				lsz2 = lsz1 + 512
 			end
