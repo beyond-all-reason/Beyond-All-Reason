@@ -8,8 +8,8 @@ return {
 		buildpic = "legeshotgunmech.DDS",
 		buildtime = 120000,
 		canmove = true,
-		collisionvolumeoffsets = "0 -11 0",
-		collisionvolumescales = "66 86 66",
+		collisionvolumeoffsets = "0 0 0",
+		collisionvolumescales = "63 105 52",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		explodeas = "explosiont3",
@@ -37,7 +37,7 @@ return {
 		customparams = {
 			unitgroup = 'weapon',
 			customrange = 400,
-			model_author = "Ghoulsih & ZephyrSkies",
+			model_author = "Ghoulish & ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "leggantry",
 			techlevel = 3,
@@ -46,8 +46,8 @@ return {
 			dead = {
 				blocking = true,
 				category = "corpses",
-				collisionvolumeoffsets = "5 -2 0",
-				collisionvolumescales = "73 24 87",
+				collisionvolumeoffsets = "0 0 0",
+				collisionvolumescales = "103 35 107",
 				collisionvolumetype = "Box",
 				damage = 30000,
 				featuredead = "HEAP",
@@ -55,7 +55,7 @@ return {
 				footprintz = 3,
 				height = 20,
 				metal = 6350,
-				object = "Units/legmech_dead.s3o",
+				object = "Units/legeshotgunmech_dead.s3o",
 				reclaimable = true,
 			},
 			heap = {
@@ -174,9 +174,6 @@ return {
 				areaofeffect = 120,
 				avoidfeature = false,
 				avoidneutral = true,
-				-- burst = 3,
-				-- burstrate = 0.2,
-				-- sprayangle = 200,
 				cegtag = "starfire_arty",
 				craterboost = 0,
 				cratermult = 0,
@@ -292,7 +289,7 @@ return {
 					subs = 100,
 				},
 			},
-			legflak_gun = {
+			aa_minigun = {
 				accuracy = 100,
 				areaofeffect = 42,
 				avoidfeature = false,
@@ -366,7 +363,7 @@ return {
 			},
 			[5] = {
 				badtargetcategory = "SURFACE",
-				def = "legflak_gun",
+				def = "aa_minigun",
 				onlytargetcategory = "VTOL",
 			},
 		},
