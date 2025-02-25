@@ -40,7 +40,7 @@ local atlassedImages = {}
 
 local rankVBO = nil
 local rankShader = nil
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 
 local debugmode = false
 
@@ -320,7 +320,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 	end
 end
 
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	unitRanks[unitID] = nil
 	RemovePrimitive(unitID, "UnitDestroyed")
 end

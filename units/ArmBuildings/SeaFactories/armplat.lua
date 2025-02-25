@@ -30,7 +30,7 @@ return {
 		terraformspeed = 1000,
 		waterline = 39,
 		workertime = 200,
-		yardmap = "wwwwww wCCCCw wCCCCw wCCCCw wCCCCw wwwwww",
+		yardmap = "wwwwww weeeew weeeew weeeew weeeew wwwwww",
 		buildoptions = {
 			[1] = "armcsa",
 			[2] = "armsaber",

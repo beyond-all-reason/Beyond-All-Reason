@@ -29,7 +29,7 @@ return {
 		terraformspeed = 1000,
 		waterline = 19,
 		workertime = 300,
-		yardmap = "wCCCCCCCCCCw wCCCCCCCCCCw wCCCCCCCCCCw wCCCCCCCCCCw wCCCCCCCCCCw wCCCCCCCCCCw wCCCCCCCCCCw wCCCCCCCCCCw wCCCCCCCCCCw wCCCCCCCCCCw wCCCCCCCCCCw wCCCCCCCCCCw",
+		yardmap = "weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew weeeeeeeeeew",
 		buildoptions = {
 			[1] = "coracsub",
 			[2] = "cormls",

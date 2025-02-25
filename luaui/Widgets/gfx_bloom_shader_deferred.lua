@@ -70,7 +70,7 @@ local rectVAO = nil
 
 local combineShader = nil
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 
 local glGetSun = gl.GetSun
@@ -511,7 +511,7 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	MakeBloomShaders()
 end
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 
 function widget:Initialize()

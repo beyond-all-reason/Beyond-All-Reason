@@ -16,7 +16,7 @@ end
 
 local unitsWithCaptureProgress = {}
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
     unitsWithCaptureProgress[unitID] = nil
 end
 

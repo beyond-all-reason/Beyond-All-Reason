@@ -5,7 +5,7 @@
 
 piece  body, head, barrel1, barrel2, flare1, flare2,  leg1a,leg1b,leg2a,leg2b,leg3a,leg3b,leg4a,leg4b,leg5a,leg5b,leg6a,leg6b, aimy1, turretr, borer, barrelr, flameflarer;
 
-static-var  moving, Static_Var_2, restore_delay, gun_1,moveSpeed, currentSpeed,WALK_PERIOD, wpn1_lasthead, wpn2_lasthead, wpn3_lasthead, shotcount, shotcount2, rand, chillshots, isreset, rollingchill;
+static-var  moving, Static_Var_2, restore_delay, gun_1,moveSpeed, currentSpeed,WALK_PERIOD, wpn1_lasthead, wpn2_lasthead, wpn3_lasthead, shotcount, shotcount2, randTemp, chillshots, isreset, rollingchill;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -248,7 +248,7 @@ Create()
 	hide flare1;
 	hide flare2;
 	hide aimy1;
-	rand = 0;
+	randTemp = 0;
 	moving = FALSE;
 	//firing = FALSE;
 	isreset = TRUE;
@@ -305,10 +305,10 @@ puff() {
 			set-signal-mask SIG_PUFF;
 			emit-sfx 1024 + 1 from flameflarer;
 			sleep 5000;
-			rand = Rand( 3, 5 );
-			sleep rand * 1000;
-			rand = Rand( 1, 5 );
-			if (rand<5) start-script puff();
+			randTemp = Rand( 3, 5 );
+			sleep randTemp * 1000;
+			randTemp = Rand( 1, 5 );
+			if (randTemp<5) start-script puff();
 		}
 
 }// nothing to see here */

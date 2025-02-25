@@ -118,7 +118,7 @@ end
 -- GL4
 -- ===
 
-local includeDir = "LuaUI/Widgets/Include/"
+local includeDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(includeDir .. "LuaShader.lua")
 VFS.Include(includeDir .. "instancevbotable.lua")
 
@@ -527,7 +527,9 @@ local BUILD_MODES_HANDLERS = {
 local instanceIDs = {}
 
 local function clearInstances()
-	clearInstanceTable(outlineInstanceVBO)
+	if outlineInstanceVBO then
+		clearInstanceTable(outlineInstanceVBO)
+	end
 
 	if WG.StopDrawUnitShapeGL4 then
 		WG.StopDrawAll(widget:GetInfo().name)

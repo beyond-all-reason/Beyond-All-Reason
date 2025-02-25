@@ -8,7 +8,8 @@ function widget:GetInfo()
 		date      = "2021.04.26",
 		license   = "Lua: GPLv2, GLSL: (c) Beherith (mysterme@gmail.com)",
 		layer     = -100,
-		enabled   = false
+		enabled   = false,
+		depends   = {'gl4'},
 	}
 end
 
@@ -404,7 +405,7 @@ local circleInstanceVBOLayout = {
 		  {id = 4, name = 'projectileParams', size = 4}, --- heightboost gradient
 		}
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 local defenseRangeShader = nil

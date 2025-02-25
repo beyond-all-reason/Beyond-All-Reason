@@ -811,7 +811,7 @@ function widget:TextCommand(command)
     end
 end
 
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	ClearUnitData(unitID)
 end
 
