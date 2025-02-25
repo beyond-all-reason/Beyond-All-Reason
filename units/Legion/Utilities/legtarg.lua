@@ -2,7 +2,7 @@ return {
 	legtarg = {
 		activatewhenbuilt = true,
 		buildangle = 4096,
-		buildpic = "ARMTARG.DDS",
+		buildpic = "LEGTARG.DDS",
 		buildtime = 8700,
 		canrepeat = false,
 		collisionvolumeoffsets = "0 0 0",

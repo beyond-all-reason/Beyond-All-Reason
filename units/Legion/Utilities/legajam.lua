@@ -2,7 +2,7 @@ return {
 	legajam = {
 		activatewhenbuilt = true,
 		buildangle = 8192,
-		buildpic = "ARMVEIL.DDS",
+		buildpic = "LEGAJAM.DDS",
 		buildtime = 9100,
 		canattack = false,
 		canrepeat = false,

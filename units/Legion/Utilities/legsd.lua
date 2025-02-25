@@ -2,7 +2,7 @@ return {
 	legsd = {
 		activatewhenbuilt = true,
 		buildangle = 4096,
-		buildpic = "ARMSD.DDS",
+		buildpic = "LEGSD.DDS",
 		buildtime = 11900,
 		canrepeat = false,
 		collisionvolumeoffsets = "0 0 0",
