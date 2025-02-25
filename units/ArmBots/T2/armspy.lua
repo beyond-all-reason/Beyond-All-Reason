@@ -114,5 +114,38 @@ return {
 				[1] = "kbarmsel",
 			},
 		},
+		weapondefs = {
+			crawl_dummy = {
+				areaofeffect = 0,
+				avoidfeature = false,
+				avoidground = false,
+				craterareaofeffect = 0,
+				craterboost = 0,
+				cratermult = 0,
+				cylindertargeting = 128,
+				edgeeffectiveness = 0.15,
+				explosiongenerator = "",
+				firesubmersed = true,
+				impulsefactor = 0,
+				name = "Dummy Weapon",
+				range = 55,
+				reloadtime = 0.1,
+				soundhitwet = "sizzle",
+				tolerance = 100000,
+				waterweapon = true,
+				weapontype = "Melee",
+				weaponvelocity = 100000,
+				damage = {
+					default = 0,
+				},
+			},
+		},
+		weapons = {
+			[1] = {
+				badtargetcategory = "VTOL",
+				def = "CRAWL_DUMMY",
+				onlytargetcategory = "SURFACE",
+			},
+		},
 	},
 }
