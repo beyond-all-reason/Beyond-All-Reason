@@ -1146,6 +1146,7 @@ ExecuteRestoreAfterDelay(addTime)
 	oldhead3 = 0;
 	oldhead4 = 0;
 	timer = 0;
+	torsoaim = 0;
 	start-script Close();
 }
 
