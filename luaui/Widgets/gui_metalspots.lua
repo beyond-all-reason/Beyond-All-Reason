@@ -96,13 +96,13 @@ local spotVBO = nil
 local spotInstanceVBO = nil
 local spotShader = nil
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 
 local shaderConfig = {}
-local vsSrcPath = "LuaUI/Widgets/Shaders/metalspots_gl4.vert.glsl"
-local fsSrcPath = "LuaUI/Widgets/Shaders/metalspots_gl4.frag.glsl"
+local vsSrcPath = "LuaUI/Shaders/metalspots_gl4.vert.glsl"
+local fsSrcPath = "LuaUI/Shaders/metalspots_gl4.frag.glsl"
 
 local shaderSourceCache = {
 		vssrcpath = vsSrcPath,
@@ -120,7 +120,7 @@ local shaderSourceCache = {
 
 local MetalSpotTextAtlas
 local AtlasTextureID
-local MakeAtlasOnDemand = VFS.Include("LuaUI/Widgets/include/AtlasOnDemand.lua")
+local MakeAtlasOnDemand = VFS.Include("LuaUI/Include/AtlasOnDemand.lua")
 local valueToUVs = {} -- key value string to uvCoords object from atlas in xXyYwh array
 
 local function goodbye(reason)

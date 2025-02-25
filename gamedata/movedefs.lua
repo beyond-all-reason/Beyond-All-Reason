@@ -1,4 +1,3 @@
--- the commented out slopemod were there to compensate for modoption betterunitmovementmrectr
 ----------------------------------------------------------------------------------
 --README
 --for organizational purposes all unit deffs must be added to thge movedeff name.
@@ -572,15 +571,8 @@ for moveName, moveData in pairs(moveDatas) do
 	moveData.allowTerrainCollisions = false
 	if moveName and string.find(moveName, "BOT") and moveData.maxslope then
 		moveData.slopemod = 4
-		--if moveData.IsAllTerrain then
-		--	moveData.slopemod = 2
-		--else
-		--	moveData.speedModClass = 0
-		--end
-	else
-		--moveData.slopemod = 60
 	end
-	--moveData.IsAllTerrain = nil
+
 	defs[#defs + 1] = moveData
 end
 

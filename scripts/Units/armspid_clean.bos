@@ -449,7 +449,7 @@ StartMoving(reversing){
 	start-script Walk();
 }
 StopMoving(){
-	\signal SIGNAL_MOVE;
+	signal SIGNAL_MOVE;
 	isMoving=FALSE;
 	call-script StopWalking();
 }

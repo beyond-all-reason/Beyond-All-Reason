@@ -257,7 +257,7 @@ else  -- UNSYCNED
 
 
 	local autoreload = false -- set to true to reload the shader every time it is edited
-	local luaShaderDir = "LuaUI/Widgets/Include/"
+	local luaShaderDir = "LuaUI/Include/"
 	local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 	VFS.Include(luaShaderDir.."instancevbotable.lua") -- we are only gonna use the plane maker func of this
 

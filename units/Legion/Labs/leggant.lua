@@ -30,7 +30,7 @@ return {
 		sightdistance = 273,
 		terraformspeed = 3000,
 		workertime = 600,
-		yardmap = "oooooooooooo oooooooooooo oooooooooooo ooccccccccoo ooccccccccoo ooccccccccoo ooccccccccoo ooccccccccoo ooccccccccoo ooccccccccoo ooccccccccoo yoccccccccoy",
+		yardmap = "oooooooooooo oooooooooooo oooooooooooo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo yoeeeeeeeeoy",
 		buildoptions = {
 			[1] = "corkorg",
 			[2] = "corkarg",
@@ -39,9 +39,8 @@ return {
 			[5] = "corcat",
 			[6] = "corsok",
 			[7] = "legerailtank",
-			[8] = "legpede",
-			[9] = "leegmech",
-			[10] = "legkeres",
+			[8] = "legeshotgunmech",
+			[9] = "legkeres",
 		},
 		customparams = {
 			usebuildinggrounddecal = true,

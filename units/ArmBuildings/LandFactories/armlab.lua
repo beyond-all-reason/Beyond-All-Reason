@@ -30,7 +30,7 @@ return {
 		sightdistance = 290,
 		terraformspeed = 500,
 		workertime = 100,
-		yardmap = "oooooooooooooooooocccccccccccccccccc",
+		yardmap = "ooooooooooooooooooeeeeeeeeeeeeeeeeee",
 		buildoptions = {
 			[1] = "armck",
 			[2] = "armpw",
