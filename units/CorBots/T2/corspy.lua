@@ -10,8 +10,8 @@ return {
 		canmove = true,
 		canrepair = false,
 		canrestore = false,
-		cloakcost = 50,
-		cloakcostmoving = 100,
+		cloakcost = 30,
+		cloakcostmoving = 60,
 		collisionvolumeoffsets = "0 -2 0",
 		collisionvolumescales = "26 32 20",
 		collisionvolumetype = "Box",
@@ -50,7 +50,6 @@ return {
 		customparams = {
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
-			paralyzemultiplier = 0,
 			subfolder = "CorBots/T2",
 			techlevel = 2,
 			unitgroup = "buildert2",

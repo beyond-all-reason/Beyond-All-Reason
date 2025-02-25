@@ -10,8 +10,8 @@ return {
 		canmove = true,
 		canrepair = false,
 		canrestore = false,
-		cloakcost = 50,
-		cloakcostmoving = 100,
+		cloakcost = 30,
+		cloakcostmoving = 60,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "26 28 15",
 		collisionvolumetype = "box",
@@ -50,7 +50,6 @@ return {
 		customparams = {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
-			paralyzemultiplier = 0,
 			subfolder = "ArmBots/T2",
 			techlevel = 2,
 			unitgroup = "buildert2",
