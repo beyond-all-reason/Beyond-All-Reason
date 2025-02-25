@@ -138,7 +138,7 @@ return {
 				},
 			},
 			heatray1 = {
-				areaofeffect = 72,
+				areaofeffect = 90,
 				avoidfeature = false,
 				beamtime = 0.033,
 				beamttl = 0.033,
@@ -175,9 +175,9 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
 				damage = {
-					commanders = 16,
-					default = 33,
-					vtol = 11,
+					commanders = 18,
+					default = 36,
+					vtol = 14,
 				},
 				customparams = {
 					exclude_preaim = true,
@@ -217,11 +217,11 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 650,
 				damage = {
-					bombers = 50,
-					default = 400,
-					fighters = 50,
-					subs = 150,
-					vtol = 50,
+					bombers = 52,
+					default = 420,
+					fighters = 52,
+					subs = 160,
+					vtol = 52,
 				},
 				customparams = {
 					exclude_preaim = true,

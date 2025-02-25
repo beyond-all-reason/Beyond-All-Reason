@@ -2205,7 +2205,7 @@ local icontypes = {
 	},
 	legeheatraymech = {
 		bitmap = "icons/t3_solinvictus.png",
-		size = 1.93749986
+		size = 3.46499968
 	},
 	legaap = {
 		bitmap = "icons/factory_air_t2.png",

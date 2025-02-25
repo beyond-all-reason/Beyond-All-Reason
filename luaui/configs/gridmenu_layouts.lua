@@ -202,7 +202,7 @@ local labGrids = {
 	},
 	leggant = {
 		"corcat", "corkarg", "legjav", "legeheatraymech", --catapult, kargneth, javelin, juggernaut
-		"corjugg", "corsok", "legpede", "legeshotgunmech", --behemoth, hovertank, mukade, praetorian
+		"corjugg", "corsok", "legeshotgunmech", "legpede", --behemoth, hovertank, mukade, praetorian
 		"legkeres","legerailtank","" -- keres, daedalus
 	}
 }
