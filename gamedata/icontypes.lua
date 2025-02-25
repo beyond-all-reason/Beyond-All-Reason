@@ -2199,6 +2199,14 @@ local icontypes = {
 		bitmap = "icons/bantha.png",
 		size = 2.29999995
 	},
+	legeshotgunmech = {
+		bitmap = "icons/t3_bot_shotgun.png",
+		size = 1.93749986
+	},
+	legeheatraymech = {
+		bitmap = "icons/t3_solinvictus.png",
+		size = 3.46499968
+	},
 	legaap = {
 		bitmap = "icons/factory_air_t2.png",
 		size = 1.9425
