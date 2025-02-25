@@ -377,13 +377,14 @@ local autocompleteCommands = {
 	'luarules reloadcusgl4',
 	'luarules removeunits',
 	'luarules removeunitdef',
+	'luarules removenearbyunits',
 	'luarules spawnceg',
 	'luarules undo',
 	'luarules unitcallinsgadget',
 	'luarules updatesun',
 	'luarules waterlevel',
 	'luarules wreckunits',
-	'luarules xpunits',
+	'luarules xp',
 
 	-- widgets
 	'devmode',
