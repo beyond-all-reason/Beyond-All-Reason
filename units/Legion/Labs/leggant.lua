@@ -39,9 +39,8 @@ return {
 			[5] = "corcat",
 			[6] = "corsok",
 			[7] = "legerailtank",
-			[8] = "legpede",
-			[9] = "leegmech",
-			[10] = "legkeres",
+			[8] = "legeshotgunmech",
+			[9] = "legkeres",
 		},
 		customparams = {
 			usebuildinggrounddecal = true,
