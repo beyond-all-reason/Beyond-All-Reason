@@ -182,7 +182,7 @@ local function createList()
 		end
 
 		-- Player Camera Button
-		if not toggled and not lockPlayerID and not aiTeams[myTeamID] then
+		if isSpec and not toggled and not lockPlayerID and not aiTeams[myTeamID] then
 			text = '\255\240\240\240   ' .. Spring.I18N('ui.playerTV.playerCamera') .. '   '
 			color1 = { 0.6, 0.6, 0.6, 0.66 }
 			color2 = { 0.4, 0.4, 0.4, 0.66 }
