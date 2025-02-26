@@ -439,6 +439,7 @@ function widget:Update(dt)
 			SelectTrackingPlayer()
 		elseif rejoining and WG.lockcamera and WG.lockcamera.GetPlayerID() ~= nil then
 			WG.lockcamera.SetPlayerID()
+			nextTrackingPlayerChange = 0
 		end
 
 		if currentTrackedPlayer ~= nil and not rejoining then
@@ -584,6 +585,7 @@ local function togglePlayerTV(state)
 		if WG.lockcamera then
 			WG.lockcamera.SetPlayerID()
 		end
+		nextTrackingPlayerChange = 0
 		lockPlayerID = nil
 		prevLockPlayerID = nil
 		createList()
