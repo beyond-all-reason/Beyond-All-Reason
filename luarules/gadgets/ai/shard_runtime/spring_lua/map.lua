@@ -65,9 +65,32 @@ function map:TestMoveOrder(UnitDefID, p) -- returns boolean
 end
 
 
-function map:RequestPath(mclass, POS1, POS2,radius) -- returns a path
+function map:RequestPath(moveClass, POS1, POS2,radius) -- returns a path
+
 	radius = radius or 8
-	return Spring.RequestPath(mclass, POS1.x,POS1.y,POS1.z,POS2.x,POS2.y,POS2.z,radius)
+	if not moveClass then
+		Spring.Echo('RequestPath receive a nil moveClass',moveClass)
+		return
+	end
+	if not POS1 or not POS2 then
+		Spring.Echo('RequestPath receive a nil POS1',POS1,POS2)
+		return
+	end
+	local metapath = Spring.RequestPath(moveClass, POS1.x,POS1.y,POS1.z,POS2.x,POS2.y,POS2.z,radius)
+	if not metapath then
+		Spring.Echo(unitName,'no path found',POS1.x,POS1.z,POS2.x,POS2.z)
+		return
+	end
+	local waypoints, pathStartIdx = metapath:GetPathWayPoints()
+	if not waypoints then
+		Spring.Echo(unitName,'no waypoints found',POS1.x,POS1.z,POS2.x,POS2.z)
+		return
+	end
+	if #waypoints == 0 then
+		Spring.Echo(unitName,'path have 0 lenght',POS1.x,POS1.z,POS2.x,POS2.z)
+		return
+	end	
+	return waypoints, pathStartIdx
 
 end
 

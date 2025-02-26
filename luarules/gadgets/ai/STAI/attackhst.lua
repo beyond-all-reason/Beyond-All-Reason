@@ -412,21 +412,8 @@ function AttackHST:SquadsTargetAttack2(squad)
 	
 	for ref, blob in pairs(self.ai.targethst.IMMOBILE_BLOBS) do
 		if not self:SquadsTargetHandled(blob) then
-			--if squad.leader:TestMoveOrder(blob.position) then
-			-- self:EchoDebug(squad.leader)
-			-- self:EchoDebug(self.ai.armyhst[squad.leader:Name()])
-			-- self:EchoDebug('request path',squad.leaderPos,blob.position)
-			-- self:EchoDebug(squad.leader:Name())
-			-- self:EchoDebug(self.ai.armyhst[squad.leader:Name()].mclass)
-			-- self:EchoDebug(squad.leaderPos)
-			-- self:EchoDebug(blob.position)
-			self.DebugEnabled = true
-			local mclass = self.ai.armyhst.unitTable[squad.leader:Name()].mclass
-
-			self:EchoDebug('mclass',mclass)
-			self:EchoDebug('squad.leadername',	 squad.leader:Name()	)
-			self.DebugEnabled = false
-			local path = map:RequestPath(mclass,squad.leaderPos,blob.position)
+			local mclass = squad.leader:Name()
+			local path = self.ai.maphst:getPath(mclass,squad.leaderPos,blob.position)
 			
 			if path then
 			--if self.ai.maphst:UnitCanGoHere(squad.leader, blob.position) then
@@ -438,7 +425,7 @@ function AttackHST:SquadsTargetAttack2(squad)
 			end
 		end
 	end
-	return bestTarget, setPath
+	return bestTarget
 end
 
 function AttackHST:SquadResetTarget(squad)

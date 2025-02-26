@@ -224,11 +224,16 @@ function BuildersBST:findPlace(utype, value,cat,loc)
 			end
 		end
 		if not POS and loc.list then
-
+			self:EchoDebug('loc.max',loc.max)
 			POS = site:searchPosInList(utype, builder, loc.min,loc.max,loc.list,loc.neighbours)
 			self:EchoDebug('POS2',POS)
 		end
 		if not POS and loc.himself then
+-- 			POS = site:ClosestBuildSpot(builder, builderPos, utype)
+			POS = site:FindClosestBuildSite(utype, builderPos.x,builderPos.y,builderPos.z, loc.min, loc.max,builder)
+			self:EchoDebug('POS3',POS)
+		end
+		if not POS and loc.friendlyGrid then
 -- 			POS = site:ClosestBuildSpot(builder, builderPos, utype)
 			POS = site:FindClosestBuildSite(utype, builderPos.x,builderPos.y,builderPos.z, loc.min, loc.max,builder)
 			self:EchoDebug('POS3',POS)
