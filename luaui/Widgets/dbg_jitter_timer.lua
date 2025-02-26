@@ -143,9 +143,7 @@ function widget:DrawScreen()
 	avgjitter = (1.0 - alpha) * avgjitter + math.abs(alpha * deltajitter)
 	correctionfactor = correctionfactor + deltajitter * alpha
 
-	local lastframeduration = spDiffTimers(timernew, timerold)*1000 -- in MILLISECONDS
 	timerold = timernew
-	local lastframetime = spDiffTimers(timernew, timerstart) * 1000 -- in MILLISECONDS
 
 	local CTOError = 0
 

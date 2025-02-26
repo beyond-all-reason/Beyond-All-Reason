@@ -256,7 +256,6 @@ local function IsSpotOccupied(spot)
 end
 
 local function checkMetalspots()
-	local now = os.clock()
 	for i=1, #mySpots do
 		local spot = mySpots[i]
 		local ally, enemy, changed = IsSpotOccupied(spot)
@@ -273,7 +272,6 @@ local function checkMetalspots()
 				break
 			end
 		end
-		spots[i][7] = now
 		spots[i][6] = occupied
 		]]--
 		if changed then
@@ -441,7 +439,6 @@ function widget:Initialize()
 
 	if not initGL4() then return end
 
-	local currentClock = os.clock()
 	local mSpots = WG['resource_spot_finder'].metalSpotsList
 	if not mSpots then return end
 	InitializeAtlas(mSpots)

@@ -1,11 +1,9 @@
 Spring.Echo("Enabled generic atmosphere config")
 
 local math_random = math.random
-local GaiaTeamID = Spring.GetGaiaTeamID()
 
 local mapsizex = Game.mapSizeX
 local mapsizez = Game.mapSizeZ
-local mapheightmin, mapheightmax = Spring.GetGroundExtremes()
 local transitionSpeed = (mapsizez/mapsizex) * 0.66
 
 local windmin = Game.windMin
