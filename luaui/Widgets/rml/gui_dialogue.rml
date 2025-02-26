@@ -1,0 +1,26 @@
+<rml style="border: 0">
+    <head style="border: 0">
+        <link type="text/rcss" href="/LuaUI/Widgets/rcss/default_styles.rcss"/>
+        <link type="text/rcss" href="/LuaUI/Widgets/rcss/bar_ui.rcss"/>
+    </head>
+    <body
+            data-model="mission_dialogue"
+            style="top: 55%; left: 21%; width: 600px; height: 70%; border: 0"
+    >
+
+        <div style="background-color: transparent; border: 0; min-width: 600px;">
+            <!-- "margin-left: auto" puts the image on the right side of the dialogue, leaving it out puts it on the left side -->
+            <!-- todo: make the actual image area smaller so player can click through the transparent part-->
+            <!-- todo: make it possible to mirror images so that all art can be drawn "left side" and then flipped when needed to be displayed on the right side-->
+            <!-- todo: style the widget more into BAR UI graphical style-->
+            <img width="300" height="250" id="characterPortrait" style="display: block; margin-left: 0px" src="";/>   <!--&gt-->
+        </div>
+        <div class="element">
+            <h3 class="element" style="margin: 0.1em">{{characterName}}</h3>
+            <div style="height: 150px">{{message}}
+
+            </div>
+
+        </div>
+    </body>
+</rml>
