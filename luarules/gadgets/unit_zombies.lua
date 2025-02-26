@@ -287,7 +287,7 @@ end
 
 local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z)
 	local unitDef = UnitDefs[unitDefID]
-		local spawnCount = 1
+	local spawnCount = 1
 	if unitDef.isMobile then
 		spawnCount = math.floor((random(ZOMBIES_COUNT_MIN, ZOMBIES_COUNT_MAX) + random(ZOMBIES_COUNT_MIN, ZOMBIES_COUNT_MAX)) / 2) --skew results towards average to produce better gameplay
 	end
