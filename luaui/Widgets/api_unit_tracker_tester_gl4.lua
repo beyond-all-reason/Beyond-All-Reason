@@ -14,7 +14,7 @@ local myvisibleUnits = {} -- table of unitID : unitDefID
 
 local unitTrackerVBO = nil
 local unitTrackerShader = nil
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local texture = "luaui/images/solid.png"
 
 local function initGL4()

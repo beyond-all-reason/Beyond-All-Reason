@@ -1,4 +1,3 @@
-
 function gadget:GetInfo()
 	return {
 		name = "Windmill Control",
@@ -15,32 +14,27 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-
-local windDefs = {}
-
-for _, unitDefName in ipairs({'armwint2', 'corwint2', 'armwint2_scav', 'corwint2_scav', 'legwint2'}) do
-	if UnitDefNames[unitDefName] then
-		windDefs[UnitDefNames[unitDefName].id] = true
-	end
+ -- Only apply these when resource multipliers are active, to save performance
+local energyMultActive = false
+if Spring.GetModOptions().multiplier_energyproduction * Spring.GetModOptions().multiplier_resourceincome ~= 1 then
+	energyMultActive = true
 end
 
-
-if Spring.GetModOptions().multiplier_energyproduction * Spring.GetModOptions().multiplier_resourceincome ~= 1 then -- Only apply these when resource multipliers are active, to save performance
-	for _, unitDefName in ipairs({'armwin', 'corwin', 'armwin_scav', 'corwin_scav', 'legwin'}) do
-		if UnitDefNames[unitDefName] then
-			windDefs[UnitDefNames[unitDefName].id] = true
+local windDefs = {}
+local unitEnergyMultiplier = {}
+for udid, ud in pairs(UnitDefs) do
+	if ud.windGenerator > 0 then
+		if energyMultActive then
+			windDefs[udid] = true
+		end
+		if ud.customParams.energymultiplier then
+			unitEnergyMultiplier[udid] = tonumber(ud.customParams.energymultiplier)
+			windDefs[udid] = true
 		end
 	end
 end
 
 local windmills = {}
-
-local unitEnergyMultiplier = {}
-for udid, ud in pairs(UnitDefs) do
-	if ud.customParams.energymultiplier then
-		unitEnergyMultiplier[udid] = tonumber(ud.customParams.energymultiplier)
-	end
-end
 
 local GetCOBScriptID = Spring.GetCOBScriptID
 local AddUnitResource = Spring.AddUnitResource

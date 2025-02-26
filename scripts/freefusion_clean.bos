@@ -5,7 +5,7 @@ piece  base, column1,column2,column3,column4,fusionsphere, emit;
 
 #define BASEPIECE base
 #define MAXTILT 0
-#include "../unit_hitbyweaponid_and_smoke.h"
+#include "unit_hitbyweaponid_and_smoke.h"
 
 Activate()
 {

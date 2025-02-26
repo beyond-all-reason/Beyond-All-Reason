@@ -3105,7 +3105,14 @@ GUIUnitSoundEffects = {
 	},
 
 
-	-- LEGION T3 VEHICLES
+	-- LEGION T3 UNITS
+
+	legeheatraymech = {
+		BaseSoundSelectType = "leg-t3u-mech-sel",
+		BaseSoundMovementType = { "leg-t3u-mech-ok-1", "leg-t3u-mech-ok-2", },
+		BaseSoundWeaponType = "heatray4burn",
+	},
+
 
 
 
@@ -3121,6 +3128,11 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "conalt-small",
 	},
 	legatrans = {
+		BaseSoundSelectType = "arm-air-transport-small-sel",
+		BaseSoundMovementType = "arm-air-transport-small-ok",
+		BaseSoundWeaponType = "transport-large",
+	},
+	leglts = {
 		BaseSoundSelectType = "arm-air-transport-small-sel",
 		BaseSoundMovementType = "arm-air-transport-small-ok",
 		BaseSoundWeaponType = "transport-large",
