@@ -21,11 +21,11 @@ if modOptions.zombies == "disabled" then
 end
 
 local ZOMBIE_GUARD_RADIUS = 300			-- Radius for zombies to guard allies
-local ZOMBIE_ORDER_MIN = 5				-- Min random orders for zombies
-local ZOMBIE_ORDER_MAX = 15				-- Max random orders for zombies
+local ZOMBIE_ORDER_COUNT = 10
 local ZOMBIE_GUARD_CHANCE = 0.65		-- Chance a zombie will guard allies
 local WARNING_TIME = 15 * Game.gameSpeed-- Frames to start warning before reanimation
-local ZOMBIE_MAX_XP = 2					-- Maximum experience value for zombies, skewed towards 0 for gameplay balance
+
+local ZOMBIE_MAX_XP = 2					-- Maximum experience value for zombies, skewed towards median
 
 --default is normal
 local ZOMBIES_REZ_SPEED = 16			--metal per second
@@ -37,13 +37,13 @@ local ZOMBIE_REZ_MAX = 180				-- in seconds
 if modOptions.zombies == "hard" then
 	ZOMBIES_REZ_SPEED = 24
 	ZOMBIES_REZ_MIN = 30
-	ZOMBIE_REZ_MAX = 120
+	ZOMBIE_REZ_MAX = 90
 elseif modOptions.zombies == "nightmare" then
 	ZOMBIES_REZ_SPEED = 24
 	ZOMBIES_COUNT_MIN = 2
 	ZOMBIES_COUNT_MAX = 5
 	ZOMBIES_REZ_MIN = 30
-	ZOMBIE_REZ_MAX = 120
+	ZOMBIE_REZ_MAX = 90
 end
 
 local ZOMBIE_ORDER_CHECK_INTERVAL = Game.gameSpeed * 10 -- How often (in frames) to check if zombies need new orders
@@ -55,9 +55,6 @@ local CMD_FIGHT = CMD.FIGHT
 local CMD_OPT_SHIFT = CMD.OPT_SHIFT
 local CMD_GUARD = CMD.GUARD
 local CMD_FIRE_STATE = CMD.FIRE_STATE
-
-local ISNT_ZOMBIE = 0
-local IS_ZOMBIE = 1
 
 local spGetGroundHeight			= Spring.GetGroundHeight
 local spGetUnitPosition			= Spring.GetUnitPosition
@@ -73,7 +70,7 @@ local spGiveOrderToUnit			= Spring.GiveOrderToUnit
 local spGetUnitCommandCount		= Spring.GetUnitCommandCount
 local spDestroyFeature			= Spring.DestroyFeature
 local spGetUnitIsDead			= Spring.GetUnitIsDead
-local spGiveOrderArrayToUnitArray = Spring.GiveOrderArrayToUnitArray
+local spGiveOrderArrayToUnit 	= Spring.GiveOrderArrayToUnit
 local spGetUnitsInCylinder		= Spring.GetUnitsInCylinder
 local spSetTeamResource			= Spring.SetTeamResource
 local spGetUnitHealth			= Spring.GetUnitHealth
@@ -156,6 +153,14 @@ local function setGaiaStorage()
 	end
 end
 
+local function updateAdjustedRezSpeed()
+    local multiplier = 2
+    local highestPowerData = GG.PowerLib.HighestPlayerTeamPower()
+    if highestPowerData and highestPowerData.power then
+        adjustedRezSpeed = ZOMBIES_REZ_SPEED * GG.PowerLib.TechGuesstimate(highestPowerData.power) * multiplier
+    end
+end
+
 local function calculateHealthRatio(featureID)
 	local partialReclaimRatio = 1
 	local damagedReductionRatio = 1
@@ -198,13 +203,11 @@ local function issueRandomFactoryBuildOrders(unitID, unitDefID)
 		return
 	end
 	local orders = {}
-	for i = 1, random(ZOMBIE_ORDER_MIN, ZOMBIE_ORDER_MAX) do
+	for i = 1, ZOMBIE_ORDER_COUNT do
 		orders[#orders + 1] = {-buildopts[random(1, #buildopts)], 0, 0 }
 	end
 	if (#orders > 0) then
-		if not spGetUnitIsDead(unitID) then
-			spGiveOrderArrayToUnitArray({unitID}, orders)
-		end
+		spGiveOrderArrayToUnit(unitID, orders)
 	end
 end
 
@@ -230,7 +233,6 @@ local function playSpawnSound(x, y, z)
 end
 
 local function issueRandomOrders(unitID, unitDefID)
-	if spGetUnitIsDead(unitID) then return end
 	local unitDef = UnitDefs[unitDefID]
 	
 	local orders = {}
@@ -242,7 +244,7 @@ local function issueRandomOrders(unitID, unitDefID)
 	end
 
 	if unitDef.speed > 0 then
-		for i = 1, random(ZOMBIE_ORDER_MIN, ZOMBIE_ORDER_MAX) do
+		for i = 1, ZOMBIE_ORDER_COUNT do
 			local randomX = random(0, mapWidth)
 			local randomZ = random(0, mapHeight)
 			local randomY = spGetGroundHeight(randomX, randomZ)
@@ -256,7 +258,7 @@ local function issueRandomOrders(unitID, unitDefID)
 	end
 
 	if #orders > 0 then
-		spGiveOrderArrayToUnitArray({unitID}, orders)
+		spGiveOrderArrayToUnit(unitID, orders)
 	end
 
 	if unitDef.isFactory then
@@ -302,13 +304,11 @@ local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z)
 		if unitID then
 			spSpawnCEG("scav-spawnexplo", randomX, adjustedY, randomZ, 0, 0, 0, unitDef.xsize)
 			if modOptions.zombies ~= "normal" then
-				local xp = math.min(random() * ZOMBIE_MAX_XP, random() * ZOMBIE_MAX_XP)
-				spSetUnitExperience(unitID, xp)
+				spSetUnitExperience(unitID, (random() * ZOMBIE_MAX_XP + random() * ZOMBIE_MAX_XP) / 2)
 			end
 			local unitHealth = spGetUnitHealth(unitID)
 			spSetUnitHealth(unitID, unitHealth * healthReductionRatio)
-			spSetUnitRulesParam(unitID, "zombie", IS_ZOMBIE)
-
+			spSetUnitRulesParam(unitID, "zombie", true)
 			if scavTeamID then
 				spTransferUnit(unitID, scavTeamID)
 			else
@@ -320,12 +320,13 @@ local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z)
 	end
 end
 
-local function updateAdjustedRezSpeed()
-    local multiplier = 2
-    local highestPowerData = GG.PowerLib.HighestPlayerTeamPower()
-    if highestPowerData and highestPowerData.power then
-        adjustedRezSpeed = ZOMBIES_REZ_SPEED * GG.PowerLib.TechGuesstimate(highestPowerData.power) * multiplier
-    end
+local identifyZombie = function(unitID)
+	local unitDefID = spGetUnitDefID(unitID)
+	if unitDefID then
+		spSetUnitRulesParam(unitID, "zombie", true)
+		zombieWatch[unitID] = unitDefID
+		setZombieStates(unitID, unitDefID)
+	end
 end
 
 function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part)
@@ -384,7 +385,7 @@ function gadget:GameFrame(frame)
 				zombieWatch[unitID] = nil
 			else
 				local queueSize = spGetUnitCommandCount(unitID)
-				if not (queueSize) or (queueSize == 0) then
+				if not (queueSize) or (queueSize == 0)  and Spring.GetTeamID(unitID) == gaiaTeamID then
 					issueRandomOrders(unitID, unitDefID)
 				end
 			end
@@ -411,13 +412,13 @@ end
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	if unitTeam == gaiaTeamID then
 		local identifiedZombie = spGetUnitRulesParam(unitID, "zombie")
-		if identifiedZombie and identifiedZombie == IS_ZOMBIE then
+		if identifiedZombie then
 			zombieWatch[unitID] = unitDefID
 		else
-			spSetUnitRulesParam(unitID, "zombie", ISNT_ZOMBIE)
+			spSetUnitRulesParam(unitID, "zombie", false)
 		end
 	else
-		spSetUnitRulesParam(unitID, "zombie", ISNT_ZOMBIE)
+		spSetUnitRulesParam(unitID, "zombie", false)
 	end
 end
 
@@ -447,10 +448,8 @@ function gadget:Initialize()
 	local units = spGetAllUnits()
 	for _, unitID in ipairs(units) do
 		local identifiedZombie = spGetUnitRulesParam(unitID, "zombie")
-		if identifiedZombie and identifiedZombie == IS_ZOMBIE then
-			local unitDefID = spGetUnitDefID(unitID)
-			zombieWatch[unitID] = unitDefID
-			setZombieStates(unitID, unitDefID)
+		if identifiedZombie then
+			identifyZombie(unitID)
 		end
 	end
 	
@@ -458,6 +457,8 @@ function gadget:Initialize()
 	for _, featureID in ipairs(features) do
 		gadget:FeatureCreated(featureID, gaiaTeamID)
 	end
+
+	GG.IdentifyZombie = identifyZombie
 end
 
 function gadget:GameStart()
