@@ -70,3 +70,25 @@ RmlUi.SetMouseCursorAlias("ns-resize", 'uiresizev')
 RmlUi.SetMouseCursorAlias("ew-resize", 'uiresizeh')
 
 RmlUi.CreateContext("shared")
+RmlUi.AddTranslationString("ui.awards.enemiesDestroyed", Spring.I18N('ui.awards.enemiesDestroyed'))
+RmlUi.AddTranslationString("ui.awards.resourcesDestroyed", Spring.I18N('ui.awards.enemiesDestroyed'))
+RmlUi.AddTranslationString("ui.awards.resourcesEfficiency", Spring.I18N('ui.awards.resourcesEfficiency'))
+RmlUi.AddTranslationString("ui.awards.traitor", Spring.I18N('ui.awards.traitor'))
+RmlUi.AddTranslationString("ui.awards.didEverything", Spring.I18N('ui.awards.didEverything'))
+
+RmlUi.AddTranslationString("ui.awards.ecoAward", Spring.I18N('ui.awards.ecoAward'))
+RmlUi.AddTranslationString("ui.awards.damageReceivedAward", Spring.I18N('ui.awards.damageReceivedAward'))
+RmlUi.AddTranslationString("ui.awards.commanderSleepAward", Spring.I18N('ui.awards.commanderSleepAward'))
+
+RmlUi.ColorUtils = {
+	getCSSColorByPlayer = function(teamID)
+		if teamID < 0 then
+			return "rgb(0,0,0)"
+		end
+		local redF, greenF, blueF, opacity = Spring.GetTeamColor(teamID)
+		local redNumColor = math.floor(redF * 255)
+		local greenNumColor = math.floor(greenF * 255)
+		local blueNumColor = math.floor(blueF * 255)
+		return string.format("rgb(%d, %d, %d)", redNumColor, greenNumColor, blueNumColor)
+	end
+}
