@@ -56,6 +56,10 @@ local CMD_OPT_SHIFT = CMD.OPT_SHIFT
 local CMD_GUARD = CMD.GUARD
 local CMD_FIRE_STATE = CMD.FIRE_STATE
 
+local FIRE_STATE_FIRE_AT_WILL = 2
+local MOVE_STATE_ROAM = 2
+local ENABLE_REPEAT = 1
+
 local spGetGroundHeight			= Spring.GetGroundHeight
 local spGetUnitPosition			= Spring.GetUnitPosition
 local spGetFeaturePosition		= Spring.GetFeaturePosition
@@ -96,7 +100,6 @@ local teams = Spring.GetTeamList()
 local scavTeamID
 local gaiaTeamID = Spring.GetGaiaTeamID()
 for _, teamID in ipairs(teams) do
-
 	local teamLuaAI = Spring.GetTeamLuaAI(teamID)
 	if (teamLuaAI and string.find(teamLuaAI, "ScavengersAI")) then
 		scavTeamID = teamID
@@ -113,6 +116,14 @@ local zombieWatch = {}
 local corpseCheckFrames = {}
 local corpsesData = {}
 local zombieHeapDefs = {}
+local warningEffects = {
+	"scavmist",
+	"scavradiation-lightning",
+}
+local spawnEffects = {
+	"xploelc2",
+	"xploelc3",
+}
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	local corpseDefName = unitDef.corpse
@@ -214,21 +225,13 @@ end
 local function warningCEG(featureID, x, y, z)
 	local radius = spGetFeatureRadius(featureID)
 
-	local effects = {
-		"scavmist",
-		"scavradiation-lightning",
-	}
-	local selectedEffect = effects[random(#effects)]
+	local selectedEffect = warningEffects[random(#warningEffects)]
 	spSpawnCEG(selectedEffect, x, y, z, 0, 0, 0, radius * 0.25)
 	spSpawnCEG("scaspawn-trail", x, y, z, 0, 0, 0, radius)
 end
 
 local function playSpawnSound(x, y, z)
-	local effects = {
-		"xploelc2",
-		"xploelc3",
-	}
-	local selectedEffect = effects[random(#effects)]
+	local selectedEffect = spawnEffects[random(#spawnEffects)]
 	spPlaySoundFile(selectedEffect, 0.5, x, y, z, 'sfx')
 end
 
@@ -243,7 +246,7 @@ local function issueRandomOrders(unitID, unitDefID)
 		end
 	end
 
-	if unitDef.speed > 0 then
+	if unitDef.isMobile then
 		for i = 1, ZOMBIE_ORDER_COUNT do
 			local randomX = random(0, mapWidth)
 			local randomZ = random(0, mapHeight)
@@ -277,15 +280,15 @@ end
 
 local function setZombieStates(unitID, unitDefID)
 	local unitDef = UnitDefs[unitDefID]
-	spGiveOrderToUnit(unitID, CMD_REPEAT, 1, 0)
-	spGiveOrderToUnit(unitID, CMD_MOVE_STATE, 2, 0)
-	spGiveOrderToUnit(unitID, CMD_FIRE_STATE, 2, 0)
+	spGiveOrderToUnit(unitID, CMD_REPEAT, ENABLE_REPEAT, 0)
+	spGiveOrderToUnit(unitID, CMD_MOVE_STATE, MOVE_STATE_ROAM, 0)
+	spGiveOrderToUnit(unitID, CMD_FIRE_STATE, FIRE_STATE_FIRE_AT_WILL, 0)
 end
 
 local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z)
 	local unitDef = UnitDefs[unitDefID]
 		local spawnCount = 1
-	if unitDef.speed > 0 then
+	if unitDef.isMobile then
 		spawnCount = math.floor((random(ZOMBIES_COUNT_MIN, ZOMBIES_COUNT_MAX) + random(ZOMBIES_COUNT_MIN, ZOMBIES_COUNT_MAX)) / 2) --skew results towards average to produce better gameplay
 	end
 	local size = unitDef.xsize
