@@ -897,6 +897,7 @@ AimFromWeapon4(piecenum)
 
 AimWeapon4(heading, pitch)
 {
+	start-script Open();
 	signal SIG_AIM_4;
 	set-signal-mask SIG_AIM_4;
 	if (((get ABS(wpn4_lasthead - heading)) > 65536) OR(((get ABS(wpn4_lasthead - heading)) > 1300) AND ((get ABS(wpn4_lasthead - heading)) < 64236)))
