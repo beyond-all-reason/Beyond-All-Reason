@@ -187,6 +187,7 @@ local function calculateHealthRatio(featureID)
 	return healthRatio
 end
 
+--we use this instead of spGetUnitNearestAlly to make sure the unit is not guarding something on terrain it cannot traverse (like boats/land)
 local function GetUnitNearestAlly(unitID, unitDefID, range)
 	local bestAllyID
 	local bestDistanceSquared
