@@ -129,10 +129,7 @@ function AttackHST:SquadCheck(squad)
 			local ux,uy,uz = member.unit:Internal():GetRawPos()
 			if ux then
 				check = true
-			
-	-- 			pos = self.ai.tool:sumPos(pos,uPos)
 				x = x + ux--member.unit.x
-	-- 			y = y + uy--member.unit.y
 				z = z + uz--member.unit.z
 				memberCount = memberCount + 1
 				mass = mass + member.mass
@@ -416,7 +413,6 @@ function AttackHST:SquadsTargetAttack2(squad)
 			local path = self.ai.maphst:getPath(mclass,squad.leaderPos,blob.position)
 			
 			if path then
-			--if self.ai.maphst:UnitCanGoHere(squad.leader, blob.position) then
 				local dist = self.ai.tool:distance(blob.position,self.ai.targethst.enemyCenter)
 				if dist > worstDist then
 					worstDist = dist

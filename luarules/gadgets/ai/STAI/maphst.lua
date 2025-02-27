@@ -26,23 +26,6 @@ function MapHST:Init()
 	self:InitPathCost()
 	self.topology = {air = {}}
 	self:createGrid()
-	--local ram = gcinfo()
-	--local testpath
-	--for i = 0,100 do
-	--testpath = map:RequestPath(self.ai.armyhst.unitTable['armpw'].mclass, {x=10, y=map:GetGroundHeight(10,10), z=10}, {x=40000, y=map:GetGroundHeight(40000,40000), z=40000})
-	--end
-	--self:EchoDebug(gcinfo()-ram)
-	--self:EchoDebug('testpath',testpath,self.ai.armyhst.unitTable['armpw'].mclass)
-	--if testpath then
-	--	self:EchoDebug('testpath found')
-		
-	--	local waypoints, pathStartIdx = testpath:GetPathWayPoints()	
-	--	self:EchoDebug('waypoints',waypoints,#waypoints)
-	--	self:EchoDebug('pathStartIdx',pathStartIdx,#pathStartIdx)
-
-	--else
-	--	self:EchoDebug('testpath not found')
-	--end
 	self.METALS = map:GetMetalSpots()
 	self.GEOS = map:GetGeoSpots()
 	self.METALS = self:SimplifyMetalSpots(self.gridSize * 2)-- is a random choice, can be 1 or 9999999999
@@ -59,8 +42,6 @@ function MapHST:Init()
 	self:metalScan()
 	self:geoScan()
 	self:LayerScan()
-	--self:spotToCellMoveTest()
-	--self:MexMoveTest()
 	self.trampledCells = {}
 	self:DrawDebug()
 	self.map_loaded = true
@@ -619,9 +600,6 @@ function MapHST:UnitMexMoveTest(testUnit)--check how many time a unit(i chose co
 			first = table.remove(waypoints)
 			
 			for i,v in pairs(waypoints) do
-				--self:EchoDebug('counter',counter)
-				
-				
 				firstX,firstZ = self:PosToGrid(first)
 				wpos = table.remove(waypoints)
 				wposX,wposZ = self:PosToGrid(wpos)
@@ -630,8 +608,6 @@ function MapHST:UnitMexMoveTest(testUnit)--check how many time a unit(i chose co
 					total = total + 1
 
 					self.ttt.trampled = math.max(self.ttt.trampled,self.GRID[firstX][firstZ].trampled)
-					--self:EchoDebug('trampled',self.GRID[firstX][firstZ].trampled)
-					
 					first = wpos
 				end
 			end
@@ -657,11 +633,8 @@ function MapHST:UnitMexMoveTest(testUnit)--check how many time a unit(i chose co
 		for Z, CELL in pairs(Zetas) do
 			if CELL.trampled < average * 1.5 then
 				CELL.trampled = nil
-				
-				--Spring.MarkerAddPoint(CELL.POS.x,CELL.POS.y,CELL.POS.z,'trampled ' ..CELL.trampled)
 			else 
 				table.insert(self.trampledCells,CELL.POS)
-				--Spring.MarkerAddPoint(CELL.POS.x,CELL.POS.y,CELL.POS.z,'trampled ' ..CELL.trampled)
 			end
 
 		end

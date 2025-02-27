@@ -1117,10 +1117,6 @@ function ArmyHST:GetUnitTable()
 	local builtBy = GetBuiltBy()
 	local unitTable = {}
 	local wrecks = {}
-	--for k,v in UnitDefNames['armham']:pairs() do
-	--	Spring.Echo(k,v)
-	--end
-	
 	for unitDefID,unitDef in pairs(UnitDefs) do
 		local side = GetUnitSide(unitDef.name)
 		--if unitsLevels[unitDef.name] then

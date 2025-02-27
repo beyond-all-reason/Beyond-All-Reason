@@ -65,11 +65,7 @@ function RaidHST:DraftAttackSquads()
 	local f = self.game:Frame()
 	for mtype,soldiers in pairs(self.recruits) do
 		self:EchoDebug('soldiers',#soldiers,'mina')
-		--print('sdcsdc',soldiers)
 		for index,soldier in pairs(soldiers) do
-		--	print('rtrbgtasdadasdsada',type(soldier),soldier,#soldier,soldier.unit,soldier.squad)
-		--self:EchoDebug(index,soldier)--index,mtype,
-		--	print('oknoikjmijn')
 			if soldier and soldier.unit and not soldier.squad then
 				for idx,squad in pairs(self.squads) do
 					self:EchoDebug(idx,squad.squadID,squad.lock,squad.mtype)

@@ -82,9 +82,9 @@ function ShardAI:Init()
 			else
 				--local RAM = gcinfo()
 
-				tracyZoneBeginMem(m:Name())
+				--tracyZoneBeginMem(m:Name())
 				m:Init()
-				tracyZoneEndMem()
+				--tracyZoneEndMem()
 				--print (m:Name(),gcinfo() - RAM)
 			end
 		end
