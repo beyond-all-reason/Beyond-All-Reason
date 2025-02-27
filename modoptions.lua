@@ -1338,6 +1338,14 @@ local options = {
         section = "options_experimental",
         def 	= false,
     },
+    {
+        key    	= "allowrandomcomstart",
+        name   	= "Allow Random Start",
+        desc   	= "Adds an option to pick Random as your starting choice in game",
+        type   	= "bool",
+        section = "options_experimental",
+        def  	= false,
+    },
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

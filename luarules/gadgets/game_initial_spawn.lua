@@ -53,6 +53,10 @@ if gadgetHandler:IsSyncedCode() then
 	if legcomDefID then
 		validStartUnits[legcomDefID] = true
 	end
+
+	local allowRandom = Spring.GetModOptions().allowrandomcomstart or false
+	local RANDOM_DUMMY = UnitDefNames.dicecom and UnitDefNames.dicecom.id
+
 	local teams = {} -- teams[teamID] = allyID
 	local teamsCount
 
@@ -148,7 +152,7 @@ if gadgetHandler:IsSyncedCode() then
 			startUnit = tonumber(msg:match(changeStartUnitRegex))
 		end
 		local _, _, playerIsSpec, playerTeam, allyTeamID = spGetPlayerInfo(playerID, false)
-		if startUnit and validStartUnits[startUnit] then
+		if startUnit and (validStartUnits[startUnit] or (allowRandom and startUnit == RANDOM_DUMMY)) then
 			if not playerIsSpec then
 				playerStartingUnits[playerID] = startUnit
 				spSetTeamRulesParam(playerTeam, startUnitParamName, startUnit, { allied = true, public = false }) -- visible to allies only, set visible to all on GameStart
@@ -326,7 +330,7 @@ if gadgetHandler:IsSyncedCode() then
 		local luaAI = Spring.GetTeamLuaAI(teamID)
 
 		local _, _, _, isAI, sideName = spGetTeamInfo(teamID)
-		if sideName == "random" or not startUnit then
+		if (startUnit or RANDOM_DUMMY) == RANDOM_DUMMY then
 			local roll = math.random(table.count(validStartUnits))
 			for def, _ in pairs(validStartUnits) do
 				if roll == 1 then

@@ -12,6 +12,6 @@ return {
     },
     {
         name = "Random",
-        startunit = 'armcom',
+        startunit = 'dicecom',
     },
 }
