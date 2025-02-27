@@ -12,6 +12,7 @@ function widget:GetInfo()
 		license = "Lua: GPLv2, GLSL: (c) Beherith (mysterme@gmail.com)",
 		layer   = -99,
 		enabled = true,
+		depends = {'gl4'},
 	}
 end
 
@@ -381,15 +382,15 @@ local circleInstanceVBOLayout = {
 	{ id = 6, name = 'instData',         size = 4, type = GL.UNSIGNED_INT },
 }
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir .. "LuaShader.lua")
 VFS.Include(luaShaderDir .. "instancevbotable.lua")
 local attackRangeShader = nil
 
 local shaderSourceCache = {
 	shaderName = 'Attack Range GL4',
-	vssrcpath = "LuaUI/Widgets/Shaders/attack_range_gl4.vert.glsl",
-	fssrcpath = "LuaUI/Widgets/Shaders/attack_range_gl4.frag.glsl",
+	vssrcpath = "LuaUI/Shaders/attack_range_gl4.vert.glsl",
+	fssrcpath = "LuaUI/Shaders/attack_range_gl4.frag.glsl",
 	shaderConfig = {MYGRAVITY = Game.gravity + 0.1,},
 	uniformInt = {
 		heightmapTex = 0,
@@ -670,10 +671,6 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
-	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
-		widgetHandler:RemoveWidget(self)
-		return
-	end
 	initUnitList()
 
 	if initGL4() == false then

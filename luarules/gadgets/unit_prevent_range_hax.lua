@@ -19,6 +19,11 @@ local spGetGroundHeight = Spring.GetGroundHeight
 local CMD_ATTACK = CMD.ATTACK
 local CMD_INSERT = CMD.INSERT
 
+function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD_INSERT)
+	gadgetHandler:RegisterAllowCommand(CMD_ATTACK)
+end
+
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	if fromSynced then
 		return true

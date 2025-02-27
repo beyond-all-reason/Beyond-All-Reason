@@ -32,7 +32,8 @@ local factoryQuotaCmdDesc = {
 }
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
-	if cmdID == CMD_QUOTA_BUILD_TOGGLE and isFactory[unitDefID] then
+	-- accepts: CMD_QUOTA_BUILD_TOGGLE
+	if isFactory[unitDefID] then
         local cmdDescID = Spring.FindUnitCmdDesc(unitID, CMD_QUOTA_BUILD_TOGGLE)
         if cmdDescID then
             factoryQuotaCmdDesc.params[1] = cmdParams[1]
@@ -51,6 +52,7 @@ function gadget:UnitCreated(unitID, unitDefID, _)
 end
 
 function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD_QUOTA_BUILD_TOGGLE)
 	for _, unitID in ipairs(Spring.GetAllUnits()) do -- handle /luarules reload
 		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
 	end

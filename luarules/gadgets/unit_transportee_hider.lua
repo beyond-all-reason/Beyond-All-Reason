@@ -42,10 +42,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-	if cmdID == CMD_LOAD_ONTO then
-		local transportID = cmdParams[1]
-		toBeLoaded[unitID] = transportID
-	end
+	-- accepts: CMD.LOAD_ONTO
+	local transportID = cmdParams[1]
+	toBeLoaded[unitID] = transportID
 	return true
 end
 
@@ -55,12 +54,13 @@ function gadget:UnitCreated(unitID, unitDefID, teamID)
 	end
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	massLeft[unitID] = nil
 	toBeLoaded[unitID] = nil
 end
 
 function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD_LOAD_ONTO)
 	local allUnits = Spring.GetAllUnits()
 	for _, unitID in ipairs(allUnits) do
 		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))

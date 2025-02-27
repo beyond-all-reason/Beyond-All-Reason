@@ -119,7 +119,7 @@ return {
 				intensity = 0.8,
 				name = "Rapid-fire a2g machine guns",
 				noselfdamage = true,
-				ownerExpAccWeight = 4,
+				ownerexpaccweight = 4,
 				proximitypriority = 1,
 				range = 300,
 				reloadtime = 1.5,

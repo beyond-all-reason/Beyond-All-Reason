@@ -127,4 +127,7 @@ if (System == nil) then
 
 		_VERSION       = _VERSION
 	}
+
+	System.CMD.ANY = 'a'
+	System.CMD.NIL = 'n'
 end

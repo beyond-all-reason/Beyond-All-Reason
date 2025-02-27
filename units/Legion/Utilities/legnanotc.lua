@@ -19,7 +19,6 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "31 32 31",
 		collisionvolumetype = "CylY",
-		energyupkeep = 30,
 		explodeas = "nanoboom",
 		footprintx = 3,
 		footprintz = 3,
@@ -41,7 +40,7 @@ return {
 		workertime = 200,
 		customparams = {
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/cornanotc_aoplane.dds",
+			buildinggrounddecaltype = "decals/legnanotc_aoplane.dds",
 			buildinggrounddecalsizey = 5,
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,

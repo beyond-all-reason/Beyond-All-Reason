@@ -260,6 +260,9 @@ return {
 				weapontimer = 1.1,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 1000,
+				customparams = {
+					stockpilelimit = 3,
+				},
 				damage = {
 					default = 800,
 				},

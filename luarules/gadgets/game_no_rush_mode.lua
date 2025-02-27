@@ -66,6 +66,9 @@ end
 
 
 if gadgetHandler:IsSyncedCode() then
+	function gadget:Initialize()
+		gadgetHandler:RegisterAllowCommand(CMD.ANY)
+	end
 	function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
 		local allowed = true
 		local frame = Spring.GetGameFrame()

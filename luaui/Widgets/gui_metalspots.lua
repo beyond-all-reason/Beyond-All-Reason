@@ -36,7 +36,7 @@ if Spring.GetModOptions().unit_restrictions_noextractorDefs then
 	return
 end
 
-
+local needsInit			= true
 local showValue			= false
 local metalViewOnly		= false
 
@@ -96,13 +96,13 @@ local spotVBO = nil
 local spotInstanceVBO = nil
 local spotShader = nil
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 
 local shaderConfig = {}
-local vsSrcPath = "LuaUI/Widgets/Shaders/metalspots_gl4.vert.glsl"
-local fsSrcPath = "LuaUI/Widgets/Shaders/metalspots_gl4.frag.glsl"
+local vsSrcPath = "LuaUI/Shaders/metalspots_gl4.vert.glsl"
+local fsSrcPath = "LuaUI/Shaders/metalspots_gl4.frag.glsl"
 
 local shaderSourceCache = {
 		vssrcpath = vsSrcPath,
@@ -120,7 +120,7 @@ local shaderSourceCache = {
 
 local MetalSpotTextAtlas
 local AtlasTextureID
-local MakeAtlasOnDemand = VFS.Include("LuaUI/Widgets/include/AtlasOnDemand.lua")
+local MakeAtlasOnDemand = VFS.Include("LuaUI/Include/AtlasOnDemand.lua")
 local valueToUVs = {} -- key value string to uvCoords object from atlas in xXyYwh array
 
 local function goodbye(reason)
@@ -195,8 +195,8 @@ local function makeSpotVBO()
 		arrayAppend(VBOData, {billboardsize, billboardsize, 1, 2})
 		arrayAppend(VBOData, {-billboardsize, 0, 1, 2})
 		arrayAppend(VBOData, {billboardsize, billboardsize, 1, 2})
-		arrayAppend(VBOData, {-billboardsize, 0, 1, 2})
 		arrayAppend(VBOData, {-billboardsize, billboardsize, 1, 2})
+		arrayAppend(VBOData, {-billboardsize, 0, 1, 2})
 	end
 
 	spotVBO:Define(#VBOData/4, VBOLayout)
@@ -498,7 +498,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID) -- THIS IS F
 	end
 end
 
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam) -- THIS IS RETARDED TOO
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID) -- THIS IS RETARDED TOO
 	if extractorDefs[unitDefID] then
 		sceduledCheckedSpotsFrame = Spring.GetGameFrame() + 3	-- delay needed, i don't know why
 	end
@@ -519,6 +519,7 @@ function widget:DrawWorldPreUnit()
 	local clockDifference = (os.clock() - previousOsClock)
 	previousOsClock = os.clock()
 
+	gl.Culling(true)
 	gl.Texture(0, "$heightmap")
 	gl.Texture(1, AtlasTextureID)
 	gl.DepthTest(false)
@@ -527,10 +528,12 @@ function widget:DrawWorldPreUnit()
 	drawInstanceVBO(spotInstanceVBO)
 	spotShader:Deactivate()
 
-	if Spring.GetGameFrame() == 0 then
+	if needsInit and Spring.GetGameFrame() == 0 then
 		checkMetalspots()
+		needsInit = false
 	end
 
+	gl.Culling(false)
 	gl.Texture(0, false)
 	gl.Texture(1, false)
 end

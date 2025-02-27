@@ -68,6 +68,9 @@ local unitDefCanWearHats = {
 	unitDefCanWearHats[UnitDefNames.legcomlvl3.id] = true
 	unitDefCanWearHats[UnitDefNames.legcomlvl4.id] = true
  end
+ local halloween = { -- Halloween Fight Night winner
+ 	[139750] = true, ---Sashkorin
+ }
  local legchamps = { -- Legion Fight Night winner(s)
 	[144092] = true, -- [DmE]Wraxell
 	[42178] = true,  -- [pretor]
@@ -76,18 +79,19 @@ local unitDefCanWearHats = {
 local champion = { --   Fight Night 1v1 winner
 	[139738] = true, -- [DmE]FlyingDuck
 	[82263] = true, -- PRO_Autopilot
+	[975] = true, -- StarDoM
+	[2377] = true, -- Therxyy
 }
- local vikings = {
-	[59340] = true,  -- [HELO]Austin
-	[3913] = true,   -- [teh]Teddy
-	[7137] = true,	-- MightySheep
-	[54088] = true,  -- Lostdeadman
-	[123900] = true, -- Narnuk
-	[38971] = true,  -- Yanami
-	[5467] = true,   -- HellsHound
+ local vikings = { -- Omega Series 3: Winners
+	[59340] = true,  -- Austin
+	[1830] = true,   -- Zow
+	[59916] = true,	 -- Kuchy
+	[24665] = true,  -- Shoty
+	[38971] = true,  -- Chisato
+	[87571] = true,  -- Nezah
 }
 local kings = {
-	[38971] = true,  -- Yanami
+	[64215] = true,  -- XFactorLive
 }
 local goldMedals = { -- Nation Wars 1st place
 	[59340] = true,  -- [HELO]Austin
@@ -140,6 +144,12 @@ function gadget:GameFrame(gf)
 					local unitPosX, unitPosY, unitPosZ = Spring.GetUnitPosition(unitID)
 
 					if unitDefCanWearHats[unitDefID] then
+
+						if MatchPlayer(halloween, playerName, accountID) and UnitDefNames['cor_hat_hw'] then
+							local hatDefID = UnitDefNames['cor_hat_hw'].id
+							local unitID = Spring.CreateUnit(hatDefID, unitPosX, unitPosY, unitPosZ, 0, teamID)
+							gadget:UnitGiven(unitID, hatDefID, teamID)
+						end
 
 						if MatchPlayer(legchamps, playerName, accountID) and UnitDefNames['cor_hat_legfn'] then
 							local hatDefID = UnitDefNames['cor_hat_legfn'].id
@@ -206,7 +216,11 @@ function gadget:GameFrame(gf)
 		for unitID, hatUnitID in pairs(unitsWearingHats) do
 			local health, maxHealth = Spring.GetUnitHealth(unitID)
 			local hatHealth, hatMaxHealth = Spring.GetUnitHealth(hatUnitID)
-			Spring.SetUnitHealth(hatUnitID, (health / maxHealth) * hatMaxHealth)
+			if hatMaxHealth then
+				Spring.SetUnitHealth(hatUnitID, (health / maxHealth) * hatMaxHealth)
+			else
+				unitsWearingHats[hatUnitID] = nil
+			end
 		end
 	end
 end

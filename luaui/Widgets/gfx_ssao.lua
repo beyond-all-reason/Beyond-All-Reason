@@ -20,6 +20,7 @@ function widget:GetInfo()
         license   = "GPL",
         layer     = 999999,
         enabled   = not isPotatoGpu,
+        depends   = {'gl4'},
     }
 end
 
@@ -189,8 +190,8 @@ ActivatePreset(preset)
 -- File path Constants
 -----------------------------------------------------------------
 
-local shadersDir = "LuaUI/Widgets/Shaders/"
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local shadersDir = "LuaUI/Shaders/"
+local luaShaderDir = "LuaUI/Include/"
 
 -----------------------------------------------------------------
 -- Global Variables

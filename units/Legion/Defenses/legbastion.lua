@@ -10,8 +10,8 @@ return {
 		buildtime = 79000,
 		canrepeat = false,
 		collisionvolumeoffsets = "0.0 0.0 0.0",
-		collisionvolumescales = "60 150 60",
-		collisionvolumetype = "box",
+		collisionvolumescales = "102 151 97",
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		damagemodifier = 0.25,
 		energystorage = 1000,
@@ -42,8 +42,8 @@ return {
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'weapon',
-			model_author = "Hornet",
-			normaltex = "unittextures/cor_normal.dds",
+			model_author = "Gabs",
+			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
 			subfolder = "CorBuildings/LandDefenceOffence",
 			techlevel = 2,
@@ -52,9 +52,9 @@ return {
 			dead = {
 				blocking = true,
 				category = "corpses",
-				collisionvolumeoffsets = "0 0 0",
-				collisionvolumescales = "60 150 60",
-				collisionvolumetype = "Box",
+				collisionvolumeoffsets = "0.0 0.0 0.0",
+				collisionvolumescales = "102 151 97",
+				collisionvolumetype = "CylY",
 				damage = 5400,
 				featuredead = "HEAP",
 				footprintx = 3,
@@ -108,7 +108,7 @@ return {
 			},
 		},
 		weapondefs = {
-			pineappleofdoom = {
+			t2heatray = {
 				areaofeffect = 120,
 				avoidfeature = false,
 				avoidfriendly = true,
@@ -125,7 +125,7 @@ return {
 				firetolerance = 300,
 				impulsefactor = 0,
 				laserflaresize = 6,
-				name = "Heavy g2g Cleansing Heat Ray",
+				name = "Heavy Sustained Sweepfire Heat Ray",
 				noselfdamage = true,
 				predictboost = 0.3,
 				proximitypriority = 1,
@@ -155,7 +155,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL GROUNDSCOUT",
-				def = "pineappleofdoom",
+				def = "t2heatray",
 				onlytargetcategory = "SURFACE",
 			}
 		},

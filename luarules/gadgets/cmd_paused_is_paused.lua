@@ -31,3 +31,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 		return true
 	end
 end
+
+function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD.ANY)
+end

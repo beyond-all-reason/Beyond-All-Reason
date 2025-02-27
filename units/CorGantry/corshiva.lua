@@ -36,7 +36,7 @@ return {
 		upright = true,
 		customparams = {
 			customrange = 650,
-			model_author = "FireStorm",
+			model_author = "Tharsis",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorGantry",
 			techlevel = 3,
@@ -76,6 +76,8 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-large",
+				[2] = "custom:subbubbles",
+				[3] = "custom:footstep-medium",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
@@ -113,7 +115,7 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-large-aoe",
 				gravityaffected = "true",
-				impulsefactor = 0.123,
+				impulsefactor = 0.8,
 				name = "HeavyCannon",
 				noselfdamage = true,
 				range = 650,
@@ -143,7 +145,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-large-bomb",
 				firestarter = 100,
 				flighttime = 7,
-				impulsefactor = 0.123,
+				impulsefactor = 0.8,
 				metalpershot = 0,
 				model = "corkbmissl1.s3o",
 				name = "HeavyRockets",

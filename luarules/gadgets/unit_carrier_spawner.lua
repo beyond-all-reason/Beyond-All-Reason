@@ -691,7 +691,7 @@ function gadget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdTag, cmdParam
 			if carrierMetaList[carrierUnitID].subUnitsList[unitID].dronetype == "bomber" and (cmdID == CMD.MOVE or cmdID == CMD.ATTACK) and carrierMetaList[carrierUnitID].subUnitsList[unitID].bomberStage > 0 then
 				if carrierMetaList[carrierUnitID].subUnitsList[unitID].bomberStage == 1 then
 					--Spring.Echo(carrierMetaList[carrierUnitID].subUnitsList[unitID].originalmaxrudder)
-					--Spring.MoveCtrl.SetAirMoveTypeData(unitID, {maxRudder = carrierMetaList[carrierUnitID].subUnitsList[unitID].originalmaxrudder})
+					--Spring.MoveCtrl.SetAirMoveTypeData(unitID, "maxRudder", carrierMetaList[carrierUnitID].subUnitsList[unitID].originalmaxrudder)
 				end
 				if (not carrierMetaList[carrierUnitID].docking) and carrierMetaList[carrierUnitID].subUnitsList[unitID].bomberStage >= 4 + carrierMetaList[carrierUnitID].dronebombingruns then
 					carrierMetaList[carrierUnitID].subUnitsList[unitID].bomberStage = 0
@@ -723,7 +723,7 @@ function gadget:ProjectileCreated(proID, proOwnerID, proWeaponDefID)
 			    if carrierMetaList[carrierUnitID].subUnitsList[proOwnerID].dronetype == "bomber" and carrierMetaList[carrierUnitID].subUnitsList[proOwnerID].bomberStage > 0 then
 				    local currentTime =  spGetGameSeconds()
 				    if ((currentTime - carrierMetaList[carrierUnitID].subUnitsList[proOwnerID].lastBombing) >= 4) then
-					    Spring.MoveCtrl.SetAirMoveTypeData(proOwnerID, {maxRudder = carrierMetaList[carrierUnitID].subUnitsList[proOwnerID].originalmaxrudder})
+					    Spring.MoveCtrl.SetAirMoveTypeData(proOwnerID, "maxRudder", carrierMetaList[carrierUnitID].subUnitsList[proOwnerID].originalmaxrudder)
 					    carrierMetaList[carrierUnitID].subUnitsList[proOwnerID].bomberStage = carrierMetaList[carrierUnitID].subUnitsList[proOwnerID].bomberStage + 1
 					    carrierMetaList[carrierUnitID].subUnitsList[proOwnerID].lastBombing = spGetGameSeconds()
 				    end
@@ -738,7 +738,8 @@ end
 
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-	if (cmdID == 31200) and carrierMetaList[unitID] then
+	-- accepts: 31200 (spawning)
+	if carrierMetaList[unitID] then
 		local cmdDescID = FindUnitCmdDesc(unitID, 31200)
 		spawnCmd.params[1] = cmdParams[1]
 		EditUnitCmdDesc(unitID, cmdDescID, spawnCmd)
@@ -750,7 +751,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 end
 
 
-function gadget:UnitDestroyed(unitID)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	local carrierUnitID = spGetUnitRulesParam(unitID, "carrier_host_unit_id")
 
 	if carrierUnitID then
@@ -1124,7 +1125,7 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 										end
 										local mt = Spring.GetUnitMoveTypeData(subUnitID)
 										--Spring.Echo("movetype: ", mt.name)
-										Spring.MoveCtrl.SetAirMoveTypeData(subUnitID, {maxRudder = 0.05})
+										Spring.MoveCtrl.SetAirMoveTypeData(subUnitID, "maxRudder", 0.05)
 										carrierMetaData.dronebombertimer = spGetGameSeconds()
 										carrierMetaData.subUnitsList[subUnitID].bomberStage = 1
 									end
@@ -1487,6 +1488,7 @@ function gadget:GameFrame(f)
 end
 
 function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(31200) -- Spawning
 	local allUnits = Spring.GetAllUnits()
 	for i = 1, #allUnits do
 		local unitID = allUnits[i]

@@ -187,7 +187,7 @@ local function drawWindow(activetab)
 end
 
 local function refreshText()
-	actionHotkeys = VFS.Include("luaui/Widgets/Include/action_hotkeys.lua")
+	actionHotkeys = VFS.Include("luaui/Include/action_hotkeys.lua")
 	currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
 
 	keybindsText = {

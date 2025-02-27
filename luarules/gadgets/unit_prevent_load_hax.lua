@@ -36,6 +36,12 @@ local CMD_REMOVE = CMD.REMOVE
 
 local watchList = {}
 
+function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD_INSERT)
+	gadgetHandler:RegisterAllowCommand(CMD_REMOVE)
+	gadgetHandler:RegisterAllowCommand(CMD_LOAD_UNITS)
+end
+
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
   if fromSynced then return true end
   if (cmdID == CMD_INSERT) then

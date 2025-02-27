@@ -160,6 +160,10 @@ local function MaintainWantedSpeed(unitID)
 	end
 end
 
+function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD.ANY)
+end
+
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
 -- Command Handling
@@ -191,7 +195,7 @@ end
 -------------------------------------------------------------------------------------
 -- Cleanup
 
-function gadget:UnitDestroyed(unitID)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	units[unitID] = nil
 end
 

@@ -285,6 +285,7 @@ local function processScaling()
 	cW = math.floor(cW * sizeMultiplier)
 	textsize = math.floor(textsize * sizeMultiplier)
 	borderPadding = math.floor(borderPadding * sizeMultiplier)
+	widgetHeight = getNbTeams() * tH + (2 * sizeMultiplier)
 end
 
 local function getTeamProduction(teamID)
@@ -452,7 +453,6 @@ local function Init()
 	Button = {}
 
 	right = widgetPosX / vsx > 0.5
-	widgetHeight = getNbTeams() * tH + (2 * sizeMultiplier)
 
 	allyData = {}
 	for _, allyID in ipairs(Spring.GetAllyTeamList()) do
@@ -534,8 +534,8 @@ function widget:Initialize()
 		cfgResText = value
 	end
 
-	widget:ViewResize()
 	Init()
+	widget:ViewResize()
 end
 
 local function removeGuiShaderRects()
@@ -1065,6 +1065,10 @@ local function drawListStandard()
 		end
 	end
 
+	if maxMetal == 0 or maxEnergy == 0 then
+		return -- protect from NaN
+	end
+
 	for _, data in ipairs(allyData) do
 		local aID = data.aID
 		if aID ~= nil then
@@ -1338,7 +1342,7 @@ function widget:DrawScreen()
 	gl.PopMatrix()
 
 	local mx, my, mb = Spring.GetMouseState()
-	widgetHeight = getNbTeams() * tH + (2 * sizeMultiplier)    -- not sure why i have to redefine this again, height was just 2 px
+
 	if math_isInRect(mx, my, widgetPosX, widgetPosY, widgetPosX + widgetWidth, widgetPosY + widgetHeight) then
 		Spring.SetMouseCursor('cursornormal')
 	end

@@ -107,6 +107,14 @@ return {
 				soundhitwet = "splslrg",
 				soundstart = "bombrelxl",
 				weapontype = "AircraftBomb",
+				customparams = {
+					area_onhit_ceg = "fire-area-150-repeat",
+					area_onhit_damageCeg = "burnflamexl-gen",
+					area_onhit_resistance = "fire",
+					area_onhit_damage = 30,
+					area_onhit_range = 150,
+					area_onhit_time = 15,
+				},
 				damage = {
 					default = 50,
 					subs = 20,

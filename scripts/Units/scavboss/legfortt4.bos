@@ -1,5 +1,5 @@
 
-#include "../recoil_common_includes.h"
+#include "../../recoil_common_includes.h"
 
 piece  	leftplasmaflare1, leftplasmaflare2, leftplasmaflare3, rightplasmaflare1, rightplasmaflare2, rightplasmaflare3, 
 		rocketflare1, rocketflare2, rocketflare3, rocketflare4, rocketflare5, rocketflare6, 

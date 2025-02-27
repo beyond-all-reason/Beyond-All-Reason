@@ -709,12 +709,15 @@ if gadgetHandler:IsSyncedCode() then
 			squad = { count .. " " .. scavType }
 			for i, sString in pairs(squad) do
 				local nEnd, _ = string.find(sString, " ")
-				local unitNumber = mRandom(1, string.sub(sString, 1, (nEnd - 1)))
-				local scavName = string.sub(sString, (nEnd + 1))
-				for j = 1, unitNumber, 1 do
-					if mRandom() <= config.spawnChance or j == 1 then
-						squadCounter = squadCounter + 1
-						table.insert(spawnQueue, { burrow = burrowID, unitName = scavName, team = scavTeamID, squadID = squadCounter, attackNearestEnemy = attackNearestEnemy })
+				if nEnd then
+					local total = tonumber(string.sub(sString, 1, (nEnd - 1)))
+					local unitNumber = total and math.random(1, total) or 1
+					local scavName = string.sub(sString, (nEnd + 1))
+					for j = 1, unitNumber, 1 do
+						if mRandom() <= config.spawnChance or j == 1 then
+							squadCounter = squadCounter + 1
+							table.insert(spawnQueue, { burrow = burrowID, unitName = scavName, team = scavTeamID, squadID = squadCounter, attackNearestEnemy = attackNearestEnemy })
+						end
 					end
 				end
 			end
@@ -785,12 +788,15 @@ if gadgetHandler:IsSyncedCode() then
 			if squad then
 				for i, sString in pairs(squad.units) do
 					local nEnd, _ = string.find(sString, " ")
-					local unitNumber = mRandom(1, string.sub(sString, 1, (nEnd - 1)))
-					local scavName = string.sub(sString, (nEnd + 1))
-					for j = 1, unitNumber, 1 do
-						if mRandom() <= config.spawnChance or j == 1 then
-							squadCounter = squadCounter + 1
-							table.insert(spawnQueue, { burrow = burrowID, unitName = scavName, team = scavTeamID, squadID = squadCounter, attackNearestEnemy = attackNearestEnemy })
+					if nEnd then
+						local total = tonumber(string.sub(sString, 1, (nEnd - 1)))
+						local unitNumber = total and math.random(1, total) or 1
+						local scavName = string.sub(sString, (nEnd + 1))
+						for j = 1, unitNumber, 1 do
+							if mRandom() <= config.spawnChance or j == 1 then
+								squadCounter = squadCounter + 1
+								table.insert(spawnQueue, { burrow = burrowID, unitName = scavName, team = scavTeamID, squadID = squadCounter, attackNearestEnemy = attackNearestEnemy })
+							end
 						end
 					end
 				end
@@ -815,12 +821,15 @@ if gadgetHandler:IsSyncedCode() then
 				if squad then
 					for i, sString in pairs(squad.units) do
 						local nEnd, _ = string.find(sString, " ")
-						local unitNumber = mRandom(1, string.sub(sString, 1, (nEnd - 1)))
-						local scavName = string.sub(sString, (nEnd + 1))
-						for j = 1, unitNumber, 1 do
-							if mRandom() <= config.spawnChance or j == 1 then
-								squadCounter = squadCounter + 1
-								table.insert(spawnQueue, { burrow = burrowID, unitName = scavName, team = scavTeamID, squadID = squadCounter })
+						if nEnd then
+							local total = tonumber(string.sub(sString, 1, (nEnd - 1)))
+							local unitNumber = total and math.random(1, total) or 1
+							local scavName = string.sub(sString, (nEnd + 1))
+							for j = 1, unitNumber, 1 do
+								if mRandom() <= config.spawnChance or j == 1 then
+									squadCounter = squadCounter + 1
+									table.insert(spawnQueue, { burrow = burrowID, unitName = scavName, team = scavTeamID, squadID = squadCounter })
+								end
 							end
 						end
 					end
@@ -923,7 +932,7 @@ if gadgetHandler:IsSyncedCode() then
 						end
 					end
 				end
-				
+
 			else -- Avoid Players burrow setup. Spawns anywhere that isn't in player sensor range.
 
 				for _ = 1,100 do  -- Attempt #1 Avoid all sensors
@@ -1112,12 +1121,12 @@ if gadgetHandler:IsSyncedCode() then
 		elseif ratio <= lowerScavPowerRatio then
 			dynamicDifficulty = 1
 		else
-			dynamicDifficulty = (upperScavPowerRatio - ratio) / (upperScavPowerRatio - lowerScavPowerRatio) 
+			dynamicDifficulty = (upperScavPowerRatio - ratio) / (upperScavPowerRatio - lowerScavPowerRatio)
 		end
-	
+
 		dynamicDifficultyClamped = minDynamicDifficulty + (dynamicDifficulty * (maxDynamicDifficulty - minDynamicDifficulty))
 	end
-	
+
 	function Wave()
 
 		if gameOver then
@@ -1313,13 +1322,16 @@ if gadgetHandler:IsSyncedCode() then
 					if squad then
 						for i, sString in pairs(squad.units) do
 							local nEnd, _ = string.find(sString, " ")
-							local unitNumber = mRandom(1, string.sub(sString, 1, (nEnd - 1)))
-							local scavName = string.sub(sString, (nEnd + 1))
-							for j = 1, unitNumber, 1 do
-								if mRandom() <= config.spawnChance or j == 1 then
-									squadCounter = squadCounter + 1
-									table.insert(spawnQueue, { burrow = burrowID, unitName = scavName, team = scavTeamID, squadID = squadCounter })
-									cCount = cCount + 1
+							if nEnd then
+								local total = tonumber(string.sub(sString, 1, (nEnd - 1)))
+								local unitNumber = total and math.random(1, total) or 1
+								local scavName = string.sub(sString, (nEnd + 1))
+								for j = 1, unitNumber, 1 do
+									if mRandom() <= config.spawnChance or j == 1 then
+										squadCounter = squadCounter + 1
+										table.insert(spawnQueue, { burrow = burrowID, unitName = scavName, team = scavTeamID, squadID = squadCounter })
+										cCount = cCount + 1
+									end
 								end
 							end
 						end
@@ -1344,13 +1356,16 @@ if gadgetHandler:IsSyncedCode() then
 						if squad then
 							for i, sString in pairs(squad.units) do
 								local nEnd, _ = string.find(sString, " ")
-								local unitNumber = mRandom(1, string.sub(sString, 1, (nEnd - 1)))
-								local scavName = string.sub(sString, (nEnd + 1))
-								for j = 1, unitNumber, 1 do
-									if mRandom() <= config.spawnChance or j == 1 then
-										squadCounter = squadCounter + 1
-										table.insert(spawnQueue, { burrow = burrowID, unitName = scavName, team = scavTeamID, squadID = squadCounter })
-										cCount = cCount + 1
+								if nEnd then
+									local total = tonumber(string.sub(sString, 1, (nEnd - 1)))
+									local unitNumber = total and math.random(1, total) or 1
+									local scavName = string.sub(sString, (nEnd + 1))
+									for j = 1, unitNumber, 1 do
+										if mRandom() <= config.spawnChance or j == 1 then
+											squadCounter = squadCounter + 1
+											table.insert(spawnQueue, { burrow = burrowID, unitName = scavName, team = scavTeamID, squadID = squadCounter })
+											cCount = cCount + 1
+										end
 									end
 								end
 							end
@@ -1538,7 +1553,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			return
 		end
-		
+
 		capturableUnits[unitID] = true
 		if squadPotentialTarget[unitID] or squadPotentialHighValueTarget[unitID] then
 			squadPotentialTarget[unitID] = nil
@@ -1868,7 +1883,14 @@ if gadgetHandler:IsSyncedCode() then
 			lsz1 = math.max(ScavStartboxZMin - ((MAPSIZEZ*0.01) * (techAnger+15)), 0)
 			lsx2 = math.min(ScavStartboxXMax + ((MAPSIZEX*0.01) * (techAnger+15)), MAPSIZEX)
 			lsz2 = math.min(ScavStartboxZMax + ((MAPSIZEZ*0.01) * (techAnger+15)), MAPSIZEZ)
-			--Spring.Echo("lsx1", lsx1, "lsx2", lsx2, "lsz1", lsz1, "lsz2", lsz2)
+			if not lsx2 or lsx2-lsx1 < 512 then
+				lsx1 = math.max(0, math.floor((lsx1 + lsx2) / 2) - 256)
+				lsx2 = lsx1 + 512
+			end
+			if not lsz2 or lsz2-lsz1 < 512 then
+				lsz1 = math.max(0, math.floor((lsz1 + lsz2) / 2) - 256)
+				lsz2 = lsz1 + 512
+			end
 		end
 	end
 
@@ -2222,7 +2244,7 @@ if gadgetHandler:IsSyncedCode() then
 					local scavengersFoundAlive = false
 					for _, teamID in ipairs(Spring.GetTeamList(scavAllyTeamID)) do
 						local luaAI = Spring.GetTeamLuaAI(teamID)
-						if luaAI and (luaAI:find("Scavengers") or luaAI:find("ScavReduxAI")) and not select(3, Spring.GetTeamInfo(teamID, false)) then
+						if luaAI and luaAI:find("Scavengers") and not select(3, Spring.GetTeamInfo(teamID, false)) then
 							scavengersFoundAlive = true
 						end
 					end

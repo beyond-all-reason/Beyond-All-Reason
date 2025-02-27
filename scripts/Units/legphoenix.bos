@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, triparent, x, z, lthrust, mthrust, rthrust, ring1, ring2, ring3, ringlight, fireline, lineflare;
+piece  base, triparent, x, z, lthrust, llthrust, rthrust, rrthrust, ring1, ring2, ring3, ringlight, fireline, lineflare, wingr, wingl, wingbr, wingbl;
 static-var maxSpeed, currentSpeed, shotcount, timer, isfiring;
 
 
@@ -74,37 +74,53 @@ lua_UnitScriptLight(lightIndex, count)
 Create()
 {
 	call-script FakeUprightInit();
-	turn fireline to x-axis <50> speed <50>;
-	turn fireline to y-axis <0> speed <50>;
+	turn fireline to x-axis <115> now;
 	shotcount = 0;
 	timer = 0;
 	isfiring = 0;
 	//hide lthrust;
-	//hide mthrust;
+	//hide llthrust;
 	//hide rthrust;
+	//hide rrthrust;
 
 }
 
 Activate()
 {
 	show rthrust;
-	show mthrust;
+	show rrthrust;
 	show lthrust;
+	show llthrust;
 	spin ring1 around x-axis speed <60> accelerate <200>;
 	spin ring2 around x-axis speed <40> accelerate <200>;
 	spin ring2 around y-axis speed <30> accelerate <200>;
 	spin ring3 around z-axis speed <20> accelerate <200>;
+	
+	turn wingr to z-axis <-25> speed <30>;
+	turn wingl to z-axis <25> speed <30>;
+
 }
 
 Deactivate()
 {
 	hide rthrust;
-	hide mthrust;
+	hide rrthrust;
 	hide lthrust;
+	hide llthrust;
 	stop-spin ring1 around x-axis;
 	stop-spin ring2 around x-axis;
 	stop-spin ring2 around y-axis;
 	stop-spin ring3 around z-axis;
+	move wingr to z-axis [0] speed [30];
+	move wingl to z-axis [0] speed [30];
+	move wingbr to z-axis [0] speed [30];
+	move wingbl to z-axis [0] speed [30];
+	
+	turn wingr to z-axis <0> speed <30>;
+	turn wingl to z-axis <0> speed <30>;
+
+
+	
 	turn ring1 to x-axis <0> speed <60>;
 	turn ring2 to x-axis <0> speed <60>;
 	turn ring2 to y-axis <0> speed <60>;
@@ -153,15 +169,41 @@ FirePrimary() {
 	isfiring = 1;
 	start-script StrafeFire();
 
+	move wingr to z-axis [5] speed [15];
+	move wingl to z-axis [5] speed [15];
+	move wingbr to z-axis [-8] speed [15];
+	move wingbl to z-axis [-8] speed [15];
+	turn wingr to y-axis <10> speed <15>;
+	turn wingbr to y-axis <-20> speed <15>;
+	turn wingbr to z-axis <-10> speed <15>;
+	turn wingl to y-axis <-10> speed <15>;
+	turn wingbl to y-axis <20> speed <15>;
+	turn wingbl to z-axis <10> speed <15>;
+
+
 	spin ring1 around x-axis speed <180> accelerate <200>;
 	spin ring2 around x-axis speed <120> accelerate <200>;
 	spin ring2 around y-axis speed <60> accelerate <200>;
 	spin ring3 around z-axis speed <70> accelerate <200>;
 	emit-sfx 4096 + 2 from base;
 	sleep 2900;
+
+	move wingr to z-axis [0] speed [20];
+	move wingl to z-axis [0] speed [20];
+	move wingbr to z-axis [0] speed [20];
+	move wingbl to z-axis [0] speed [20];
+	turn wingr to y-axis <0> speed <20>;
+	turn wingbr to y-axis <0> speed <20>;
+	turn wingl to y-axis <0> speed <20>;
+	turn wingbl to y-axis <0> speed <20>;
+	wait-for-turn wingr around y-axis;
+	turn wingbr to z-axis <0> speed <20>;
+	turn wingbl to z-axis <0> speed <20>;
+	
 	if (Rand(0,20)==20) {
 		start-script DoBarrelRoll();
 	}
+
 
 	return 0;
 

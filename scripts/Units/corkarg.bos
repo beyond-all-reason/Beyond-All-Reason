@@ -535,7 +535,7 @@ UnitSpeed(){
 	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
 	while(TRUE){
 		animSpeed = (get CURRENT_SPEED);
-	\if (animSpeed<1) animSpeed=1;
+	if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 20/9) / animSpeed;
 		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<1) animSpeed=1;

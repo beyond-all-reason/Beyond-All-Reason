@@ -58,6 +58,12 @@ return {
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_l_normals.png",
 			paralyzemultiplier = 0,
+			area_ondeath_ceg = "acid-area-150-repeat",
+			area_ondeath_damageCeg = "acid-damage-gen",
+			area_ondeath_time = 10,
+			area_ondeath_damage = 100,
+			area_ondeath_range = 150,
+			area_ondeath_resistance = "_RAPTORACID_",
 		},
 		sfxtypes = {
 			explosiongenerators = {
@@ -110,6 +116,14 @@ return {
 				turret = true,
 				weapontimer = 0.2,
 				weaponvelocity = 520,
+				customparams = {
+					area_onhit_ceg = "acid-area-150-repeat",
+					area_onhit_damageCeg = "acid-damage-gen",
+					area_onhit_time = 10,
+					area_onhit_damage = 100,
+					area_onhit_range = 150,
+					area_onhit_resistance = "_RAPTORACID_",
+				},
 				damage = {
 					default = 1, --damage done in unit_area_timed_damage.lua
 					shields = 160,

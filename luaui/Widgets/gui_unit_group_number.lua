@@ -50,7 +50,7 @@ end
 
 local unitGroupVBO = nil
 local unitGroupShader = nil
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local vbocachetables = {} -- A table of tables for speed
 
 local function initGL4()
