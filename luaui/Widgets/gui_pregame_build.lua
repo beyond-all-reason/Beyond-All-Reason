@@ -543,7 +543,7 @@ function widget:DrawWorld()
 	if prevStartDefID ~= startDefID then
 		local prevFaction = UnitDefs[prevStartDefID].name
 		local prevFactionToIndex
-		if prevFaction == "armcom" then
+		if prevFaction == "armcom" or prevFaction == "dicecom" then
 			prevFactionToIndex = armToIndex
 		elseif prevFaction == "corcom" then
 			prevFactionToIndex = corToIndex
@@ -552,7 +552,7 @@ function widget:DrawWorld()
 		end
 		local currentFaction = UnitDefs[startDefID].name
 		local indexToCurrentFaction
-		if currentFaction == "armcom" then
+		if currentFaction == "armcom" or currentFaction == "dicecom" then
 			indexToCurrentFaction = indexToArm
 		elseif currentFaction == "corcom" then
 			indexToCurrentFaction = indexToCor
@@ -685,6 +685,44 @@ end
 
 function widget:GameStart()
 	preGamestartPlayer = false
+
+	if startDefID ~= Spring.GetTeamRulesParam(myTeamID, "startUnit") then
+		startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
+	end
+
+	if prevStartDefID ~= startDefID then
+		local prevFaction = UnitDefs[prevStartDefID].name
+		local prevFactionToIndex
+		if prevFaction == "armcom" or prevFaction == "dicecom" then
+			prevFactionToIndex = armToIndex
+		elseif prevFaction == "corcom" then
+			prevFactionToIndex = corToIndex
+		elseif prevFaction == "legcom" then
+			prevFactionToIndex = legToIndex
+		end
+		local currentFaction = UnitDefs[startDefID].name
+		local indexToCurrentFaction
+		if currentFaction == "armcom" or currentFaction == "dicecom" then
+			indexToCurrentFaction = indexToArm
+		elseif currentFaction == "corcom" then
+			indexToCurrentFaction = indexToCor
+		elseif currentFaction == "legcom" then
+			indexToCurrentFaction = indexToLeg
+		end
+
+		if prevFactionToIndex and indexToCurrentFaction then
+			for b = 1, #buildQueue do
+				local buildData = buildQueue[b]
+				local buildDataId = buildData[1]
+				if buildDataId > 0 then
+					buildData[1] = indexToCurrentFaction[prevFactionToIndex[buildDataId]]
+					buildQueue[b] = buildData
+				end
+			end
+		end
+		prevStartDefID = startDefID
+	end
+
 
 	-- Deattach pregame action handlers
 	widgetHandler.actionHandler:RemoveAction(self, "stop")
