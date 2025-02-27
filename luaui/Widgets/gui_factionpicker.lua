@@ -11,7 +11,7 @@ function widget:GetInfo()
 end
 local factions = {}
 
-if Spring.GetModOptions().allowrandomcomstart and UnitDefNames.dicecom then
+if UnitDefNames.dicecom then
 	factions[#factions+1] = { startUnit = UnitDefNames.dicecom.id, faction = 'random' }
 end
 if UnitDefNames.corcom then

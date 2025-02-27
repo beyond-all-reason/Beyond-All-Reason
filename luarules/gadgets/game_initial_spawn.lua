@@ -54,7 +54,6 @@ if gadgetHandler:IsSyncedCode() then
 		validStartUnits[legcomDefID] = true
 	end
 
-	local allowRandom = Spring.GetModOptions().allowrandomcomstart or false
 	local RANDOM_DUMMY = UnitDefNames.dicecom and UnitDefNames.dicecom.id
 
 	local function isUnitValid(unitDefID)
@@ -64,7 +63,7 @@ if gadgetHandler:IsSyncedCode() then
 		if validStartUnits[unitDefID] then
 			return true
 		end
-		if allowRandom and unitDefID == RANDOM_DUMMY then
+		if unitDefID == RANDOM_DUMMY then
 			return true
 		end
 	end
