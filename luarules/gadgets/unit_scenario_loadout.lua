@@ -43,13 +43,6 @@ local teamList = {}
 local additionalStorage = {}
 
 function gadget:Initialize()
-	teamList = Spring.GetTeamList()
-	startMetal = Spring.GetModOptions().startmetal
-	startEnergy = Spring.GetModOptions().startenergy
-	teamList = Spring.GetTeamList()
-	startMetal = Spring.GetModOptions().startmetal
-	startEnergy = Spring.GetModOptions().startenergy
-	local gaiateamid = Spring.GetGaiaTeamID()
 end
 
 function gadget:GamePreload()
@@ -103,7 +96,7 @@ function gadget:GamePreload()
 					for k, feature in pairs(featureloadout) do
 						if FeatureDefNames[feature.name] then
 							local rot = tonumber(feature.rot) or 0
-							local featureID = Spring.CreateFeature(feature.name, feature.x, Spring.GetGroundHeight(feature.x, feature.z), feature.z, rot, gaiateamid)
+							local featureID = Spring.CreateFeature(feature.name, feature.x, Spring.GetGroundHeight(feature.x, feature.z), feature.z, rot)
 							if feature.resurrectas and UnitDefNames[feature.resurrectas] then
 								Spring.SetFeatureResurrect(featureID, feature.resurrectas)
 							end
