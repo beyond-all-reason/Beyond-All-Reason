@@ -55,7 +55,7 @@ local function LockCamera(playerID)
                 scheduledSpecFullView = 2 -- this is needed else the minimap/world doesnt update properly
                 Spring.SendCommands("specfullview")
             end
-            if lockcameraLos and mySpecStatus then
+            if not isSpec and lockcameraLos and mySpecStatus then
                 desiredLosmode = 'los'
                 desiredLosmodeChanged = os.clock()
             end
@@ -67,7 +67,7 @@ local function LockCamera(playerID)
             desiredLosmodeChanged = os.clock()
         end
         lockPlayerID = playerID
-        if lockcameraLos and mySpecStatus then
+        if not isSpec and lockcameraLos and mySpecStatus then
             desiredLosmode = 'los'
             desiredLosmodeChanged = os.clock()
         end
@@ -171,7 +171,6 @@ function widget:PlayerChanged(playerID)
     myTeamID = Spring.GetLocalTeamID()
     myTeamPlayerID = select(2, Spring.GetTeamInfo(myTeamID))
     mySpecStatus, fullView = Spring.GetSpectatingState()
-
 end
 
 function widget:Initialize()
@@ -239,6 +238,8 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal('CameraBroadcastEvent', CameraBroadcastEvent)
 
 	UpdateRecentBroadcasters()
+
+    widget:PlayerChanged(Spring.GetMyPlayerID())
 end
 
 function widget:Shutdown()
