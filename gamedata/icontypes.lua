@@ -95,6 +95,10 @@ local icontypes = {
 		bitmap = "icons/radar_t2.png",
 		size = 1.25999999
 	},
+	legarad = {
+		bitmap = "icons/radar_t2.png",
+		size = 1.25999999
+	},
 	armart = {
 		bitmap = "icons/vehicle_arty.png",
 		size = 1.10000002
@@ -424,6 +428,10 @@ local icontypes = {
 		size = 1.46999991
 	},
 	armgate = {
+		bitmap = "icons/shield.png",
+		size = 1.57499993
+	},
+	legdeflector = {
 		bitmap = "icons/shield.png",
 		size = 1.57499993
 	},
@@ -799,6 +807,10 @@ local icontypes = {
 		bitmap = "icons/seismic.png",
 		size = 1.46999991
 	},
+	legsd = {
+		bitmap = "icons/seismic.png",
+		size = 1.46999991
+	},
 	armseadragon = {
 		bitmap = "icons/sub_t3_nuke.png",
 		size = 2.8
@@ -915,6 +927,10 @@ local icontypes = {
 		bitmap = "icons/targetting.png",
 		size = 1.36499989
 	},
+	legtarg = {
+		bitmap = "icons/targetting.png",
+		size = 1.36499989
+	},
 	armthor = {
 		bitmap = "icons/armthor.png",
 		size = 2.4000001
@@ -971,6 +987,10 @@ local icontypes = {
 		bitmap = "icons/energystorage.png",
 		size = 1.10249984
 	},
+	legadvestore = {
+		bitmap = "icons/energystorage_t2.png",
+		size = 1.3125
+	},
 	armuwfus = {
 		bitmap = "icons/fusion.png",
 		size = 1.46999991
@@ -1004,6 +1024,10 @@ local icontypes = {
 		size = 2.51999998
 	},
 	armveil = {
+		bitmap = "icons/jammer_t2.png",
+		size = 1.25999999
+	},
+	legajam = {
 		bitmap = "icons/jammer_t2.png",
 		size = 1.25999999
 	},
@@ -1695,6 +1719,10 @@ local icontypes = {
 		bitmap = "icons/metalmaker_t2.png",
 		size = 1.20749986
 	},
+	legadveconv = {
+		bitmap = "icons/metalmaker_t2.png",
+		size = 1.20749986
+	},
 	cormoho = {
 		bitmap = "icons/mex_t2.png",
 		size = 1.20749986
@@ -2171,6 +2199,14 @@ local icontypes = {
 		bitmap = "icons/bantha.png",
 		size = 2.29999995
 	},
+	legeshotgunmech = {
+		bitmap = "icons/t3_bot_shotgun.png",
+		size = 1.93749986
+	},
+	legeheatraymech = {
+		bitmap = "icons/t3_solinvictus.png",
+		size = 3.46499968
+	},
 	legaap = {
 		bitmap = "icons/factory_air_t2.png",
 		size = 1.9425
@@ -2268,7 +2304,7 @@ local icontypes = {
 		size = 1.60000002
 	},
 	legbastion = {
-		bitmap = "icons/cordoom.png",
+		bitmap = "icons/def_t2_tachyon.png",
 		size = 2.0474999
 	},
 	legbombard = {
