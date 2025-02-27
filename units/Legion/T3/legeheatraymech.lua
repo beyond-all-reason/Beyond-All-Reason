@@ -38,7 +38,7 @@ return {
 		turnrate = 360,
 		upright = true,
 		customparams = {
-			customrange = "550",
+			maxrange = "450",
 			paralyzemultiplier = 0,
 			model_author = "Protar & ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
@@ -125,7 +125,7 @@ return {
 				impulsefactor = 0.123,
 				name = "Targeting System",
 				noselfdamage = true,
-				range = 750,
+				range = 650,
 				reloadtime = 2.5,
 				size = 0,
 				soundhit = "",

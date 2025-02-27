@@ -36,7 +36,7 @@ return {
 		upright = true,
 		customparams = {
 			unitgroup = 'weapon',
-			customrange = 415,
+			maxrange = "315",
 			model_author = "Ghoulish & ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "leggantry",
@@ -235,7 +235,7 @@ return {
 			adv_rocket = {
 				areaofeffect = 100,
 				avoidfeature = false,
-				burnblow = true,
+				--burnblow = true,
 				burst = 3,
 				burstrate = 0.3,
 				castshadow = true,
@@ -283,6 +283,8 @@ return {
 					lockon_dist = "150",
 					speceffect = "cruise",
 					when = "distance>0",
+					projectile_destruction_method = "descend",
+					overrange_distance = 750,
 				},
 				damage = {
 					default = 200,
