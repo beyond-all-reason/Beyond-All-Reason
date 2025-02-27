@@ -82,7 +82,7 @@ local spawnableTypes = {
     EMGCannon       = true  ,
 }
 
-local dataTable = {}
+local clusterWeaponDefs = {}
 
 for weaponDefID, weaponDef in pairs(WeaponDefs) do
     local custom = weaponDef.customParams
@@ -121,7 +121,7 @@ for weaponDefID, weaponDef in pairs(WeaponDefs) do
                     speedRatio = min(1, scatterSpeed / (weaponDef.projectilespeed ^ 2) * scatterScale)
                 end
 
-                dataTable[weaponDefID] = {
+                clusterWeaponDefs[weaponDefID] = {
                     number      = clusterCount,
                     weaponID    = clusterDef.id,
                     weaponSpeed = clusterSpeed,
@@ -138,16 +138,15 @@ for weaponDefID, weaponDef in pairs(WeaponDefs) do
 end
 
 local removeIDs = {}
-for weaponDefID, weaponData in pairs(dataTable) do
-    if dataTable[weaponData.weaponID] and dataTable[dataTable[weaponData.weaponID].weaponID] then
+for weaponDefID, weaponData in pairs(clusterWeaponDefs) do
+    if clusterWeaponDefs[weaponData.weaponID] and clusterWeaponDefs[clusterWeaponDefs[weaponData.weaponID].weaponID] then
         removeIDs[weaponData.weaponID] = true
     end
 end
 for weaponDefID in pairs(removeIDs) do
     Spring.Log(gadget:GetInfo().name, LOG.ERROR, 'Preventing nested explosions: '..WeaponDefs[weaponDefID].name)
-    dataTable[weaponDefID] = nil
+    clusterWeaponDefs[weaponDefID] = nil
 end
-removeIDs = nil
 
 local unitBulks = {} -- How sturdy the unit is. Projectiles scatter less with lower bulk values.
 
@@ -184,7 +183,7 @@ local spawnCache  = {
 
 local directions = DirectionsUtil.Directions
 local maxDataNum = 2
-for _, data in pairs(dataTable) do
+for _, data in pairs(clusterWeaponDefs) do
     if data.number > maxDataNum then maxDataNum = data.number end
 end
 DirectionsUtil.ProvisionDirections(maxDataNum)
@@ -309,19 +308,19 @@ end
 -- Gadget callins --------------------------------------------------------------
 
 function gadget:Initialize()
-    if not next(dataTable) then
+    if not next(clusterWeaponDefs) then
         Spring.Log(gadget:GetInfo().name, LOG.INFO, "Removing gadget. No weapons found.")
         gadgetHandler:RemoveGadget(self)
         return
     end
 
-    for weaponDefID in pairs(dataTable) do
+    for weaponDefID in pairs(clusterWeaponDefs) do
         Script.SetWatchExplosion(weaponDefID, true)
     end
 end
 
 function gadget:Explosion(weaponDefID, ex, ey, ez, attackerID, projectileID)
-    local weaponData = dataTable[weaponDefID]
+    local weaponData = clusterWeaponDefs[weaponDefID]
     if weaponData then
         SpawnClusterProjectiles(weaponData, projectileID, attackerID, ex, ey, ez)
     end
