@@ -503,10 +503,8 @@ function widget:Initialize()
 		end
 	end 
 
-
-	local communitdefid = UnitDefNames["armcom"].id
-	local pwdefid = UnitDefNames["armpw"].id
-	local corcomunitdefid = UnitDefNames["corcom"].id
+	armcomUnitDefID = UnitDefNames["armcom"].id
+	corcomUnitDefID = UnitDefNames["corcom"].id
 
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
