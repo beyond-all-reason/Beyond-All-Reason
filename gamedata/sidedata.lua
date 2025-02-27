@@ -14,4 +14,8 @@ return {
         name = "Random",
         startunit = 'dicecom',
     },
+    {
+        name = "Legion",
+        startunit = 'legcom',
+    },
 }
