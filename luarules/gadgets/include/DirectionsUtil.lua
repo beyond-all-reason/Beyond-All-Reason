@@ -46,18 +46,22 @@ local spherePackings = {
 DirectionsUtil.GetRandomDirections = function(n)
     n = n > 1 and n or 1
     local vecs = {}
-    for ii = 1, 3 * (n - 1) + 1, 3 do
+
+    for i = 1, 3 * (n - 1) + 1, 3 do
         local m1, m2, m3, m4    -- Marsaglia procedure:
+
         repeat                  -- The method begins by sampling & rejecting points.
-            m1 = 2 * rand() - 1 -- The result can be transformed into radial coords.
-            m2 = 2 * rand() - 1
+            m1 = 2 * math.random() - 1 -- The result can be transformed into radial coords.
+            m2 = 2 * math.random() - 1
             m3 = m1 * m1 + m2 * m2
         until (m3 < 1)
+
         m4 = (1 - m3) ^ 0.5
-        vecs[ii    ] = 2 * m1 * m4 -- x
-        vecs[ii + 1] = 2 * m2 * m4 -- y
-        vecs[ii + 2] = 1 -  2 * m3  -- z
+        vecs[i    ] = 2 * m1 * m4 -- x
+        vecs[i + 1] = 2 * m2 * m4 -- y
+        vecs[i + 2] = 1 -  2 * m3  -- z
     end
+
     return vecs
 end
 
@@ -70,13 +74,16 @@ end
 ---@return boolean randomized
 DirectionsUtil.GetDirections = function(n)
     if not n or n < 1 then return end
+
     local distributed = DirectionsUtil.Directions[n]
+
     if distributed then
         return distributed, false
     end
+
     if n <= DIRECTION_SET_SIZE_MAX then
-        for ii = 1, 3 * (n - 1) + 1, 3 do
-            return getRandomDirections(n), true
+        for i = 1, 3 * (n - 1) + 1, 3 do
+            return DirectionsUtil.GetRandomDirections(n), true
         end
     end
 end
@@ -86,16 +93,19 @@ end
 ---@return boolean success
 DirectionsUtil.ProvisionDirections = function(n)
     if n < 2 or n > DIRECTION_SET_SIZE_MAX then return false end
+
     local directions = DirectionsUtil.Directions
+
     if not directions then return false end
-    for ii = #directions + 1, n do
-        directions[ii] = DirectionsUtil.GetRandomDirections(ii)
+
+    for i = #directions + 1, n do
+        directions[i] = DirectionsUtil.GetRandomDirections(i)
     end
+
     return true
 end
 
 --------------------------------------------------------------------------------------------------------------
-
 -- Choose a spacing method:
 DirectionsUtil.Directions = spherePackings
 
