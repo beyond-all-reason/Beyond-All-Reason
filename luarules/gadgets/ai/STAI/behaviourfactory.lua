@@ -79,7 +79,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 	end
 	if army.radars[un] then
 		--self:EchoDebug()
-		table.insert(b, AttackerBST)
+		--table.insert(b, AttackerBST)
 	end
 	if army.scouts[un] then
 		--self:EchoDebug()

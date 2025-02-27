@@ -88,6 +88,20 @@ function LabsBST:Update()
 
 	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'LabsBST' then return end
 	local f = self.game:Frame()
+	local dist = 0
+	local targetBuilder = nil
+	for builderID,data in pairs (self.ai.buildingshst.roles) do
+		if data.role == 'expand' then
+			local builder = game:GetUnitByID(builderID)
+			local d = self.ai.tool:distance(self.position,builder:GetPosition())
+			if d > dist then
+				dist = d
+				targetBuilder = builder
+			end
+		end
+		self.unit:Internal():Guard(game:GetUnitByID(builderID))
+		
+	end
 	self:preFilter() -- work or no resource??
 	if Spring.GetFactoryCommands(self.id,0) > 1 then return end --factory alredy work
 	self:GetAmpOrGroundWeapon() -- need more amph to attack in this map?
