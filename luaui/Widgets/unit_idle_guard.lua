@@ -26,10 +26,9 @@ function widget:UnitCmdDone(unitID, unitDefID, unitTeam,
 														cmdID, cmdParams, _, _)
 	if not validGuardingBuilders[unitDefID] then return end
 	local isRepair = (cmdID == CMD.REPAIR)
+	if not (isRepair or cmdID < 0) then return end
 	if unitTeam ~= spGetMyTeamID() then return end
 	if Spring.GetUnitCommandCount(unitID) > 0 then return end
-
-	if not (isRepair or cmdID < 0) then return end
 
 	local buildeeDef = isRepair
 			and UnitDefs[spGetUnitDefID(cmdParams[1])]
