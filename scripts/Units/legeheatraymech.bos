@@ -1256,6 +1256,7 @@ AimFromWeapon2(pieceIndex)
 AimWeapon2(heading, pitch)
 {
 	signal SIG_AIM_2;
+	start-script Open();
 	timer = 0;
 	turn lArmShoulderJoint to y-axis (heading - torsoaim) + <3> speed <35>;
 	turn lArmShoulderGun to x-axis (-1*pitch) + <35> speed <60>;
@@ -1305,6 +1306,7 @@ AimFromWeapon3(pieceIndex)
 AimWeapon3(heading, pitch)
 {
 	signal SIG_AIM_3;
+	start-script Open();
 	timer = 0;
 	turn rArmShoulderJoint to y-axis (heading - torsoaim) + <3> speed <35>;
 	turn rArmShoulderGun to x-axis (-1*pitch) + <35> speed <60>;

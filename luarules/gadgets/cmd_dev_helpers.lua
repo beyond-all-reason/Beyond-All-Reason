@@ -29,9 +29,6 @@ function isAuthorized(playerID)
 		return true
 	else
 		local playername = Spring.GetPlayerInfo(playerID, false)
-		local authorized = false
-
-		local authorized = false
 		if (_G and _G.permissions.devhelpers[playername]) or (SYNCED and SYNCED.permissions.devhelpers[playername]) then
 			if startPlayers == nil or startPlayers[playername] == nil then
 				return true
@@ -842,7 +839,7 @@ else	-- UNSYNCED
 		gadgetHandler:AddChatAction('wreckunits', wreckUnits, "")  -- turns the selected units into wrecks /luarules wreckunits
 		gadgetHandler:AddChatAction('reclaimunits', reclaimUnits, "")  -- reclaims and refunds the selected units /luarules reclaimUnits
 		gadgetHandler:AddChatAction('removeunits', removeUnits, "")  -- removes the selected units /luarules removeunits
-		gadgetHandler:AddChatAction('removenearbyunits', removeNearbyUnits, "")  -- removes the selected units /luarules removenearbyunits #teamID radius
+		gadgetHandler:AddChatAction('removenearbyunits', removeNearbyUnits, "")  -- removes the selected units /luarules removenearbyunits radius #teamid
 
 		gadgetHandler:AddChatAction('xp', xpUnits, "")
 
