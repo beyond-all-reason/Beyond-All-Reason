@@ -273,7 +273,7 @@ local function refreshUnitInfo()
 			local prevMinDps = unitDefInfo[unitDefID].mindps or 0
 			local prevMaxDps = unitDefInfo[unitDefID].maxdps or 0
 
-			local munition = def.customParams.cluster_def     or unitDef.name .. '_' .. 'cluster_munition'
+			local munition = unitDef.name .. '_' .. def.customParams.cluster_def
 			local cmNumber = def.customParams.cluster_number  or 5 -- note: keep in sync with cluster defaults.
 			local cmDamage = WeaponDefNames[munition].damages[0]
 

@@ -18,7 +18,6 @@ if not gadgetHandler:IsSyncedCode() then return false end
 
 -- Default settings ------------------------------------------------------------
 
-local defaultSpawnDef = "cluster_munition"	-- short def name used, by default
 local defaultSpawnNum = 5					-- number of spawned projectiles, by default
 local defaultSpawnTtl = 5					-- detonate projectiles after time = ttl, by default
 
@@ -74,7 +73,6 @@ local mapGravity = Game.gravity / (gameSpeed * gameSpeed) * -1
 --------------------------------------------------------------------------------
 -- Initialize ------------------------------------------------------------------
 
-defaultSpawnDef = string.lower(defaultSpawnDef)
 defaultSpawnTtl = defaultSpawnTtl * gameSpeed
 
 local spawnableTypes = {
@@ -84,55 +82,60 @@ local spawnableTypes = {
 
 local clusterWeaponDefs = {}
 
-for weaponDefID, weaponDef in pairs(WeaponDefs) do
-	local custom = weaponDef.customParams
-	if custom.cluster then
-		local clusterCount = max(3, min(maxSpawnNumber, tonumber(custom.cluster_number or defaultSpawnNum)))
-		local clusterRange = max(0, tonumber(custom.cluster_range or 0))
-		local speedRatio = min(1, tonumber(custom.cluster_speed_ratio or -1))
+for unitDefName, unitDef in pairs(UnitDefNames) do
+	for _, weapon in pairs(unitDef.weapons) do
+		local weaponDefID, weaponDef = weapon.weaponDef, WeaponDefs[weapon.weaponDef]
+		local custom = weaponDef.customParams
 
-		local clusterDefName = custom.cluster_def
-		if not clusterDefName or not WeaponDefNames[clusterDefName] then
-			local unitName -- Every weapon name contains its unit's name, per weapondefs_post.
-			for word in string.gmatch(weaponDef.name, '([^_]+)') do
-				unitName = not unitName and word or unitName..'_'..word
-				if UnitDefNames[unitName] and WeaponDefNames[unitName..'_'..defaultSpawnDef] then
-					clusterDefName = unitName..'_'..defaultSpawnDef
-					break
+		if custom.cluster then
+			local clusterDefName = custom.cluster_def
+			local clusterCount = max(3, min(maxSpawnNumber, tonumber(custom.cluster_number or defaultSpawnNum)))
+			local clusterRange = max(0, tonumber(custom.cluster_range or 0))
+			local speedRatio = min(1, tonumber(custom.cluster_speed_ratio or -1))
+
+			if clusterDefName then
+				if not WeaponDefNames[clusterDefName] then
+					-- Every weapon name contains its unit's name, per weapondefs_post.
+					clusterDefName = unitDefName .. '_' .. clusterDefName
 				end
-			end
-		end
-
-		if clusterDefName then
-			local clusterDef = WeaponDefNames[clusterDefName]
-			if spawnableTypes[clusterDef.type] then
-				local clusterSpeed
-				if clusterRange > 0 or clusterDef.range > 10 then
-					clusterRange = clusterRange ~= 0 and clusterRange or clusterDef.range
-					clusterSpeed = sqrt(clusterRange * math.abs(mapGravity)) -- velocity @ 45deg to hit range
-				else
-					clusterSpeed = clusterDef.projectilespeed
-				end
-
-				if speedRatio < 0 then
-					-- Give a reasonable default, assuming clusters are spread by the parent projectile's explosion.
-					local scatterSpeed = (clusterSpeed + weaponDef.explosionSpeed) / 2
-					local scatterScale = 0.5 -- Keep this closer to a game mechanic than an immsim behavior.
-					speedRatio = min(1, scatterSpeed / (weaponDef.projectilespeed ^ 2) * scatterScale)
-				end
-
-				clusterWeaponDefs[weaponDefID] = {
-					number      = clusterCount,
-					weaponID    = clusterDef.id,
-					weaponSpeed = clusterSpeed,
-					weaponTtl   = clusterDef.flighttime or defaultSpawnTtl,
-					speedRatio  = speedRatio,
-				}
 			else
-				Spring.Log(gadget:GetInfo().name, LOG.ERROR, 'Invalid weapon spawn type ('..clusterDef.type..')')
+				Spring.Log(gadget:GetInfo().name, LOG.ERROR, 'No cluster_def specified for weapon: ' .. weaponDef.name)
 			end
-		else
-			Spring.Log(gadget:GetInfo().name, LOG.ERROR, 'Did not find cluster def for weapon '..weaponDef.name)
+
+			if clusterDefName then
+				local clusterDef = WeaponDefNames[clusterDefName]
+
+				if clusterDef then
+					if spawnableTypes[clusterDef.type] then
+						local clusterSpeed
+						if clusterRange > 0 or clusterDef.range > 10 then
+							clusterRange = clusterRange ~= 0 and clusterRange or clusterDef.range
+							clusterSpeed = sqrt(clusterRange * math.abs(mapGravity)) -- velocity @ 45deg to hit range
+						else
+							clusterSpeed = clusterDef.projectilespeed
+						end
+
+						if speedRatio < 0 then
+							-- Give a reasonable default, assuming clusters are spread by the parent projectile's explosion.
+							local scatterSpeed = (clusterSpeed + weaponDef.explosionSpeed) / 2
+							local scatterScale = 0.5 -- Keep this closer to a game mechanic than an immsim behavior.
+							speedRatio = min(1, scatterSpeed / (weaponDef.projectilespeed ^ 2) * scatterScale)
+						end
+
+						clusterWeaponDefs[weaponDefID] = {
+							number      = clusterCount,
+							weaponID    = clusterDef.id,
+							weaponSpeed = clusterSpeed,
+							weaponTtl   = clusterDef.flighttime or defaultSpawnTtl,
+							speedRatio  = speedRatio,
+						}
+					else
+						Spring.Log(gadget:GetInfo().name, LOG.ERROR, 'Invalid weapon spawn type: ' .. clusterDef.type)
+					end
+				else
+					Spring.Log(gadget:GetInfo().name, LOG.ERROR, 'Weapon def not found: ' .. clusterDefName)
+				end
+			end
 		end
 	end
 end

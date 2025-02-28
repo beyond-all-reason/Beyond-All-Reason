@@ -129,6 +129,7 @@ return {
 				weaponvelocity = 450,
 				customparams = {
 					cluster = true,
+					cluster_def = 'cluster_munition',
 					cluster_number = 3,
 					cluster_range = 80,
 					cluster_speed_ratio = 0.02,
@@ -193,6 +194,7 @@ return {
 				weaponvelocity = 450,
 				customparams = {
 					cluster = true,
+					cluster_def = 'cluster_munition',
 					cluster_number = 6,
 					cluster_range = 125,
 					cluster_speed_ratio = 0.01,
