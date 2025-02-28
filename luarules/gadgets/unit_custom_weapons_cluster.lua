@@ -89,9 +89,9 @@ for unitDefName, unitDef in pairs(UnitDefNames) do
 
 		if custom.cluster then
 			local clusterDefName = custom.cluster_def
-			local clusterCount = max(3, min(maxSpawnNumber, tonumber(custom.cluster_number or defaultSpawnNum)))
-			local clusterRange = max(0, tonumber(custom.cluster_range or 0))
-			local speedRatio = min(1, tonumber(custom.cluster_speed_ratio or -1))
+			local clusterCount = max(3, min(maxSpawnNumber, custom.cluster_number or defaultSpawnNum))
+			local clusterRange = max(0, custom.cluster_range or 0)
+			local speedRatio = min(1, custom.cluster_speed_ratio or -1)
 
 			if clusterDefName then
 				if not WeaponDefNames[clusterDefName] then
