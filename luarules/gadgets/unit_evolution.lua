@@ -323,8 +323,8 @@ if gadgetHandler:IsSyncedCode() then
 				and not IsInCombat(unitID, evolution, currentTime)
 				and not spGetUnitTransporter(unitID) then
 				if (not evolution.evolution_condition or evolution.evolution_condition == 'timer'
-						and (currentTime - evolution.timeCreated) >= evolution.evolution_timer)
-					or (evolution.evolution_condition == 'timer_global' and currentTime >= evolution.evolution_timer) then
+							and (currentTime - evolution.timeCreated) >= evolution.evolution_timer)
+						or (evolution.evolution_condition == 'timer_global' and currentTime >= evolution.evolution_timer) then
 					Evolve(unitID, evolution.evolution_target)
 				elseif evolution.evolution_condition == 'power' then
 					local teamID = spGetUnitTeam(unitID)
