@@ -260,20 +260,7 @@ local function checkMetalspots()
 		local spot = mySpots[i]
 		local ally, enemy, changed = IsSpotOccupied(spot)
 		local occupied = ally or enemy
-		--[[
-		spots[i][2] = spGetGroundHeight(spots[i][1], spots[i][3])
-		local spot = spots[i]
-		local units = spGetUnitsInSphere(spot[1], spot[2], spot[3], 110*spot[5])
-		local occupied = false
-		local prevOccupied = spots[i][6]
-		for j=1, #units do
-			if extractorDefs[spGetUnitDefID(units[j])] then
-				occupied = true
-				break
-			end
-		end
-		spots[i][6] = occupied
-		]]--
+
 		if changed then
 			local oldinstance = getElementInstanceData(spotInstanceVBO, spot.instanceID)
 			oldinstance[5] = (occupied and 0) or 1
