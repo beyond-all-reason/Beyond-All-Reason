@@ -1,7 +1,7 @@
 
 #include "../recoil_common_includes.h"
 
-piece  base;
+piece  Cube;
 
 
 Create()
@@ -9,7 +9,7 @@ Create()
 }
 
 
-#define BASEPIECE base
+#define BASEPIECE Cube
 #define MAXTILT 0
 #include "../unit_hitbyweaponid_and_smoke.h"
 
@@ -19,22 +19,22 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode Cube type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode Cube type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode Cube type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode Cube type BITMAPONLY | NOHEATCLOUD;
 	return corpsetype;
 }

@@ -14,16 +14,16 @@ Activate()
 
     move targ1 to y-axis [1] speed [0.5];
     move targ1 to x-axis [-1] speed [0.5];
-    sleep 100;
+    sleep 500;
     move targ2 to y-axis [1] speed [0.5];
     move targ2 to x-axis [1] speed [0.5];
-    sleep 100;
+    sleep 500;
     move targ3 to y-axis [-1] speed [0.5];
     move targ3 to x-axis [-1] speed [0.5];
-    sleep 100;
+    sleep 500;
     move targ4 to y-axis [-1] speed [0.5];
     move targ4 to x-axis [1] speed [0.5];
-    sleep 100;
+    sleep 500;
 
     move leftAntenna to y-axis [-2] speed [2];
     move rightAntenna to y-axis [-2] speed [2];
@@ -34,7 +34,7 @@ Activate()
 
 Deactivate()
 {
-	sleep 1220;
+	//sleep 1220;
 	set ARMORED to 1;
 
     move targ1 to y-axis [0] speed [0.5];
@@ -49,6 +49,7 @@ Deactivate()
     move targ4 to y-axis [0] speed [0.5];
     move targ4 to x-axis [0] speed [0.5];
 
+	sleep 500;
 
     move leftAntenna to y-axis [0] speed [1];
     move rightAntenna to y-axis [0] speed [1];

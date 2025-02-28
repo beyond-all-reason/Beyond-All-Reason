@@ -182,7 +182,7 @@ local function createList()
 		end
 
 		-- Player Camera Button
-		if not toggled and not lockPlayerID and not aiTeams[myTeamID] then
+		if isSpec and not toggled and not lockPlayerID and not aiTeams[myTeamID] then
 			text = '\255\240\240\240   ' .. Spring.I18N('ui.playerTV.playerCamera') .. '   '
 			color1 = { 0.6, 0.6, 0.6, 0.66 }
 			color2 = { 0.4, 0.4, 0.4, 0.66 }
@@ -439,6 +439,7 @@ function widget:Update(dt)
 			SelectTrackingPlayer()
 		elseif rejoining and WG.lockcamera and WG.lockcamera.GetPlayerID() ~= nil then
 			WG.lockcamera.SetPlayerID()
+			nextTrackingPlayerChange = 0
 		end
 
 		if currentTrackedPlayer ~= nil and not rejoining then
@@ -584,6 +585,7 @@ local function togglePlayerTV(state)
 		if WG.lockcamera then
 			WG.lockcamera.SetPlayerID()
 		end
+		nextTrackingPlayerChange = 0
 		lockPlayerID = nil
 		prevLockPlayerID = nil
 		createList()
