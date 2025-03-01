@@ -795,19 +795,19 @@ else	-- UNSYNCED
 				(#Spring.GetTeamList(allyTeamCount-1) > 1 and (not teamColors[allyTeamCount] or not teamColors[allyTeamCount][1][#Spring.GetTeamList(allyTeamCount-1)])) --or #Spring.GetTeamList() > 30
 				or (#Spring.GetTeamList(allyTeamCount-1) == 1 and not ffaColors[allyTeamCount])
 			then
-				local brightnessVariation = (0.7 - ((1.05 / #Spring.GetTeamList(allyTeamID)) * dimmingCount[allyTeamID])) * 255
-				local maxColorVariation = (120 / (allyTeamCount-1))
 				local color = hex2RGB(ffaColors[allyTeamID+1] or '#333333')
-				if teamID == gaiaTeamID then
+				local brightnessVariation = (0.73 - ((1.05 / #Spring.GetTeamList(allyTeamID)) * dimmingCount[allyTeamID])) * 255
+				local maxColorVariation = (120 / (allyTeamCount-1))
+				if teamID == myTeamID and #teamList-1 > 40 then
+					brightnessVariation = 0
+					maxColorVariation = 0
+					color[1] = color[1] + 170
+					color[2] = color[2] + 170
+					color[3] = color[3] + 170
+				elseif teamID == gaiaTeamID then
 					brightnessVariation = 0
 					maxColorVariation = 0
 					color = hex2RGB(gaiaGrayColor)
-				elseif teamID == myTeamID then
-					brightnessVariation = 0
-					maxColorVariation = 0
-					color[1] = color[1] + 200
-					color[2] = color[2] + 200
-					color[3] = color[3] + 200
 				end
 				color[1] = math.min(color[1] + brightnessVariation, 255) + ((teamRandoms[teamID][1] * (maxColorVariation * 2)) - maxColorVariation)
 				color[2] = math.min(color[2] + brightnessVariation, 255) + ((teamRandoms[teamID][2] * (maxColorVariation * 2)) - maxColorVariation)
