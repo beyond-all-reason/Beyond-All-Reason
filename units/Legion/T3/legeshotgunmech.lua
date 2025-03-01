@@ -194,6 +194,7 @@ return {
 				weaponvelocity = 350,
 				customparams = {
 					cluster = true,
+					cluster_def = 'cluster_munition',
 					exclude_preaim = true,
 					number = 6,
 					smart_priority = true,
