@@ -126,7 +126,7 @@ function test()
 
 	Test.waitFrames(delay)
 
-	local builderQueue = Spring.GetCommandQueue(builderUnitID, -1)
+	local builderQueue = Spring.GetUnitCommands(builderUnitID, -1)
 
 	assert(#builderQueue == bpCount, #builderQueue)
 	assert(builderQueue[1].id == -blueprintUnitDefID)

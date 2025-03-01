@@ -177,7 +177,7 @@ local spGetGroundHeight = Spring.GetGroundHeight
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitPosition = Spring.GetUnitPosition
-local spGetCommandQueue = Spring.GetCommandQueue
+local spGetUnitCommands = Spring.GetUnitCommands
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 local spGetTeamResources = Spring.GetTeamResources
@@ -482,7 +482,7 @@ if gadgetHandler:IsSyncedCode() then
 						local unitDefID = spGetUnitDefID(unitID)
 						local unitTeam = teamID
 						local unitHealth, unitMaxHealth, _, _, _ = spGetUnitHealth(unitID)
-						local unitCommands = spGetCommandQueue(unitID, 0)
+						local unitCommands = spGetUnitCommands(unitID, 0)
 						local unitposx, unitposy, unitposz = spGetUnitPosition(unitID)
 						--Spring.Echo(UnitDefs[unitDefID].name, "has commands:",unitCommands, SimpleConstructorDefs[unitDefID] , SimpleCommanderDefs[unitDefID], SimpleFactoriesDefs[unitDefID] ,SimpleUndefinedUnitDefs[unitDefID] )
 						-- Commanders

@@ -41,7 +41,7 @@ local spGetMouseState = Spring.GetMouseState
 local spGetModKeyState = Spring.GetModKeyState
 local spGetSelectionBox = Spring.GetSelectionBox
 
-local spGetCommandQueue = Spring.GetCommandQueue
+local spGetUnitCommands = Spring.GetUnitCommands
 local spIsGodModeEnabled = Spring.IsGodModeEnabled
 
 local spGetUnitsInScreenRectangle = Spring.GetUnitsInScreenRectangle
@@ -276,7 +276,7 @@ function widget:Update()
 		for i = 1, #mouseSelection do
 			uid = mouseSelection[i]
 			udid = spGetUnitDefID(uid)
-			if spGetCommandQueue(uid, 0) == 0 then
+			if spGetUnitCommands(uid, 0) == 0 then
 				tmp[#tmp + 1] = uid
 			end
 		end

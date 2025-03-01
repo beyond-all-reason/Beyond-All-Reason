@@ -24,7 +24,7 @@ local SetUnitNoSelect			= Spring.SetUnitNoSelect
 local spGetUnitRulesParam		= Spring.GetUnitRulesParam
 local spUseTeamResource 		= Spring.UseTeamResource
 local spGetTeamResources 		= Spring.GetTeamResources
-local GetCommandQueue     		= Spring.GetCommandQueue
+local GetUnitCommands     		= Spring.GetUnitCommands
 local spSetUnitArmored 			= Spring.SetUnitArmored
 local spGetUnitStates			= Spring.GetUnitStates
 local spGetUnitDefID        	= Spring.GetUnitDefID
@@ -874,7 +874,7 @@ local function UpdateStandaloneDrones(frame)
 	for unitID,value in pairs(droneMetaList) do
 		if droneMetaList[unitID].wild then
 			-- move around unless in combat
-			local cQueue = GetCommandQueue(unitID, -1)
+			local cQueue = GetUnitCommands(unitID, -1)
 			local engaged = false
 			for j = 1, (cQueue and #cQueue or 0) do
 				if cQueue[j].id == CMD.ATTACK then
@@ -1181,7 +1181,7 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 									end
 								else
 									if fightOrder then
-										local cQueue = GetCommandQueue(subUnitID, -1)
+										local cQueue = GetUnitCommands(subUnitID, -1)
 										for j = 1, (cQueue and #cQueue or 0) do
 											if cQueue[j].id == CMD.ATTACK and carrierStates.firestate > 0 then
 													idleTarget = cQueue[j].params
@@ -1229,7 +1229,7 @@ local function UpdateCarrier(carrierID, carrierMetaData, frame)
 						end
 					elseif not carrierMetaData.subUnitsList[subUnitID].stayDocked and not (carrierMetaData.subUnitsList[subUnitID].dronetype == "bomber") then
 						-- return to carrier unless in combat
-						local cQueue = GetCommandQueue(subUnitID, -1)
+						local cQueue = GetUnitCommands(subUnitID, -1)
 						local engaged = false
 						for j = 1, (cQueue and #cQueue or 0) do
 							if cQueue[j].id == CMD.ATTACK and carrierStates.firestate > 0 then

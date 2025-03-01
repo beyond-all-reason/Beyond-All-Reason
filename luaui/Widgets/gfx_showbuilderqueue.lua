@@ -28,7 +28,7 @@ local maxQueueDepth = 2000	-- not literal depth
 local myPlayerID = Spring.GetMyPlayerID()
 local _,fullview,_ = Spring.GetSpectatingState()
 
-local spGetCommandQueue = Spring.GetCommandQueue
+local spGetUnitCommands = Spring.GetUnitCommands
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetGroundHeight = Spring.GetGroundHeight
@@ -102,9 +102,9 @@ local function clearbuilderCommands(unitID)
 end
 
 local function checkBuilder(unitID)
-	local queueDepth = spGetCommandQueue(unitID, 0)
+	local queueDepth = spGetUnitCommands(unitID, 0)
 	if queueDepth and queueDepth > 0 then
-		local queue = spGetCommandQueue(unitID, math.min(queueDepth, maxQueueDepth))
+		local queue = spGetUnitCommands(unitID, math.min(queueDepth, maxQueueDepth))
 		for i=1, #queue do
 			local cmd = queue[i]
 			if cmd.id < 0 then
