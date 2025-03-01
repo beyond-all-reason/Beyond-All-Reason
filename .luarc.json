@@ -10,5 +10,8 @@
       "VFS.Include": "require",
       "include": "require",
       "shard_include": "require"
-  }
+  },
+  "workspace.library": [
+    "recoil-lua-library"
+  ]
 }
