@@ -137,6 +137,7 @@ function BuildingsHST:FindClosestBuildSite(unittype, bx,by,bz, minDist, maxDist,
 	local maxX, maxZ = Game.mapSizeX, Game.mapSizeZ
 	---map:DrawPoint({x=bx,y=by,z=bz}, {1,0,0,1},'origin',  ch)
 	local attempt = 1
+	self:EchoDebug('maxDist',maxDist)
 	local maxtest = math.max(10,(maxDist - minDist) / 100)
 	local checkpos = recycledPos or {}
 	--self:EchoDebug('FindClosestBuildSite',unittype,bx,bz,minDist,maxDist,maxtest)
@@ -167,7 +168,7 @@ function BuildingsHST:FindClosestBuildSite(unittype, bx,by,bz, minDist, maxDist,
 			local x, z = bx+dx, bz+dz
 			if x < 0 then x = 0 elseif x > maxX then x = maxX end
 			if z < 0 then z = 0 elseif z > maxZ then z = maxZ end
-			--print('attempt',attempt,radius, maxDist, angle,realAngle,maxtest,dx,dz)
+			--self:EchoDebug('attempt',attempt,radius, maxDist, angle,realAngle,maxtest,dx,dz)
 			local y = map:GetGroundHeight(x,z)
 			checkpos.x = x
 			checkpos.y = y
@@ -190,7 +191,7 @@ end
 function BuildingsHST:CanBuildHere(unittype,x,y,z) -- returns boolean
 	local newX, newY, newZ = Spring.Pos2BuildPos(unittype:ID(), x, y, z)
 	local blocked = Spring.TestBuildOrder(unittype:ID(), newX, newY, newZ, 1) == 0
-	-- Spring.Echo(unittype:Name(), newX, newY, newZ, blocked)
+	-- self:EchoDebug(unittype:Name(), newX, newY, newZ, blocked)
 	return ( not blocked ), newX, newY, newZ
 end
 
@@ -261,23 +262,19 @@ function BuildingsHST:searchPosNearCategories(utype,builder,minDist,maxDist,cate
 
 	for i,cat in pairs(categories) do
 		for name, _ in pairs(army[cat]) do
--- 			local RAM = gcinfo()
 			local defId = army.unitTable[name].defId
 			local units = self.game:GetTeamUnitsByDefs(self.ai.id,defId)
--- 			Spring.Echo('teamunitbydefsram',gcinfo()-RAM)
 			for index,uID in pairs(units) do
 				self:EchoDebug('unit', index,uID)
 				local dist = self.game:GetUnitSeparation(uID,builder:ID())
 				self:EchoDebug('dist = ', dist)
 				table.insert(Units,dist,uID)
 			end
--- 			Spring.Echo('teamunitbydefsram',gcinfo()-RAM)
 			local k,sortedUnits = self.ai.tool:tableSorting(Units)
 			for index, uID in pairs(sortedUnits) do
 				local unitID = table.remove(sortedUnits,index)--self.game:GetUnitByID(uID)
 				local unit = self.game:GetUnitByID(unitID)
 				local unitName = unit:Name()
-				--local unitPos = unit:GetPosition()
 				local  bx,by,bz = unit:GetRawPos()
 				if not neighbours or not self:unitsNearCheck(bx,by,bz, maxDist,number,neighbours) then
 					p = self:FindClosestBuildSite(utype, bx,by,bz, minDist, maxDist,builder,p)
@@ -286,29 +283,33 @@ function BuildingsHST:searchPosNearCategories(utype,builder,minDist,maxDist,cate
 					end
 				end
 			end
--- 			Spring.Echo('forsortedram',gcinfo()-RAM)
 		end
 	end
 
 end
 
 function BuildingsHST:searchPosInList(utype, builder,minDist,maxDist,list,neighbours,number)
-	self:EchoDebug('search pos in list for')
+	
+	self:EchoDebug('search pos in list for',utype:Name())
 	local maxDist = maxDist or 390
 	local d = math.huge
 	local p
 	local tmpDist
 	local tmpPos = {}
-	if not list then return end
+	if not list then 		return	end
 	for  index, pos in pairs(self.ai.tool:sortByDistance(builder:GetPosition(),list)) do
 		if not neighbours or not self:unitsNearCheck(pos.x,pos.y,pos.z, maxDist,number,neighbours)then
 			tmpPos = self:FindClosestBuildSite(utype, pos.x,pos.y,pos.z, minDist, maxDist,builder,tmpPos)
 			if tmpPos and tmpPos.x then
+				self:EchoDebug('found Position in list at: ' , tmpPos.x ,tmpPos.z,'for',utype:Name())
 				return tmpPos
+				
 			end
 		end
 	end
 end
+
+
 
 function BuildingsHST:BuildNearNano(builder, utype,minDist)
 	minDist = minDist or 50

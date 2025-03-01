@@ -56,8 +56,42 @@ end
 function map:CanBuildHere(unittype,position) -- returns boolean
 	local newX, newY, newZ = Spring.Pos2BuildPos(unittype:ID(), position.x, position.y, position.z)
 	local blocked = Spring.TestBuildOrder(unittype:ID(), newX, newY, newZ, 1) == 0
-	-- Spring.Echo(unittype:Name(), newX, newY, newZ, blocked)
+	-- self:EchoDebug(unittype:Name(), newX, newY, newZ, blocked)
 	return ( not blocked ), {x=newX, y=newY, z=newZ}
+end
+
+function map:TestMoveOrder(UnitDefID, p) -- returns boolean
+	return Spring.TestMoveOrder(UnitDefID, p.x, p.z, p.y )
+end
+
+
+function map:RequestPath(moveClass, POS1, POS2,radius) -- returns a path
+
+	radius = radius or 8
+	if not moveClass then
+		Spring.Echo('RequestPath receive a nil moveClass',moveClass)
+		return
+	end
+	if not POS1 or not POS2 then
+		Spring.Echo('RequestPath receive a nil POS1',POS1,POS2)
+		return
+	end
+	local metapath = Spring.RequestPath(moveClass, POS1.x,POS1.y,POS1.z,POS2.x,POS2.y,POS2.z,radius)
+	if not metapath then
+		Spring.Echo(unitName,'no path found',POS1.x,POS1.z,POS2.x,POS2.z)
+		return
+	end
+	local waypoints, pathStartIdx = metapath:GetPathWayPoints()
+	if not waypoints then
+		Spring.Echo(unitName,'no waypoints found',POS1.x,POS1.z,POS2.x,POS2.z)
+		return
+	end
+	if #waypoints == 0 then
+		Spring.Echo(unitName,'path have 0 lenght',POS1.x,POS1.z,POS2.x,POS2.z)
+		return
+	end	
+	return waypoints, pathStartIdx
+
 end
 
 function map:GetMapFeatures()
