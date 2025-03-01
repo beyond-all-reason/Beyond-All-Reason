@@ -1668,7 +1668,7 @@ function widget:DrawScreen()
 							if orgLines[orgLineID] then
 								local firstWordrappedChatLine = i
 								for c=1, 6 do
-									if chatLines[firstWordrappedChatLine-c].orgLineID ~= orgLineID then
+									if not chatLines[firstWordrappedChatLine-c] or chatLines[firstWordrappedChatLine-c].orgLineID ~= orgLineID then
 										break
 									else
 										firstWordrappedChatLine = firstWordrappedChatLine - c

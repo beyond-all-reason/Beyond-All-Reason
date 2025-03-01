@@ -116,7 +116,6 @@ return {
 			banisher = {
 				areaofeffect = 128,
 				avoidfeature = false,
-				burnblow = true,
 				cegtag = "missiletraillarge-red",
 				craterareaofeffect = 128,
 				craterboost = 0,
@@ -155,6 +154,10 @@ return {
 				damage = {
 					default = 1000,
 					subs = 500,
+				},
+				customparams = {
+					projectile_destruction_method = "descend",
+					overrange_distance = 920,
 				},
 			},
 		},

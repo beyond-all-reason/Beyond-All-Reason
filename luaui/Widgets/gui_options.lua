@@ -3203,7 +3203,7 @@ function init()
 			  loadWidgetData("Lockcamera", "lockcamera_transitiontime", { 'transitionTime' })
 		  end,
 		  onchange = function(i, value)
-			  saveOptionValue('Lockcamera', '.lockcamera', 'SetLockTransitionTime', { 'transitionTime' }, value)
+			  saveOptionValue('Lockcamera', 'lockcamera', 'SetTransitionTime', { 'transitionTime' }, value)
 		  end,
 		},
 
@@ -3220,7 +3220,7 @@ function init()
 			  loadWidgetData("Lockcamera", "lockcamera_hideenemies", { 'lockcameraHideEnemies' })
 		  end,
 		  onchange = function(i, value)
-			  saveOptionValue('Lockcamera', 'lockcamera', 'SetLockHideEnemies', { 'lockcameraHideEnemies' }, value)
+			  saveOptionValue('Lockcamera', 'lockcamera', 'SetHideEnemies', { 'lockcameraHideEnemies' }, value)
 		  end,
 		},
 		{ id = "lockcamera_los", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.lockcamera_los'), type = "bool", value = (WG.lockcamera and WG.lockcamera.GetLos()), description = Spring.I18N('ui.settings.option.lockcamera_los_descr'),
@@ -3228,7 +3228,7 @@ function init()
 			  loadWidgetData("Lockcamera", "lockcamera_los", { 'lockcameraLos' })
 		  end,
 		  onchange = function(i, value)
-			  saveOptionValue('Lockcamera', 'lockcamera', 'SetLockLos', { 'lockcameraLos' }, value)
+			  saveOptionValue('Lockcamera', 'lockcamera', 'SetLos', { 'lockcameraLos' }, value)
 		  end,
 		},
 
