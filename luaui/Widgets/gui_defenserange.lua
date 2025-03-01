@@ -403,7 +403,6 @@ function UnitDetected( unitID, allyTeam, teamId )
 	end
 	local unitDefID = spGetUnitDefID(unitID)
 
-	local key = tostring(unitID)
 	local x, y, z = spGetUnitPosition(unitID)
 
 	local range = 0
