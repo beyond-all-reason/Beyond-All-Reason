@@ -156,10 +156,6 @@ function widget:Update(dt)
 			scheduledSpecFullView = nil
 		end
 	end
-
-    if lockPlayerID ~= nil then
-        Spring.SetCameraState(Spring.GetCameraState(), transitionTime)
-    end
 end
 
 function widget:PlayerChanged(playerID)
