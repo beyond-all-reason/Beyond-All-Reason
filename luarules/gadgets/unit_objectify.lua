@@ -70,7 +70,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		Spring.SetUnitNoSelect(unitID, true)
 		Spring.SetUnitNoMinimap(unitID, true)
-		Spring.UnitIconSetDraw(unitID, false)
+		Spring.SetUnitIconDraw(unitID, false)
 		Spring.SetUnitSensorRadius(unitID, 'los', 0)
 		Spring.SetUnitSensorRadius(unitID, 'airLos', 0)
 		Spring.SetUnitSensorRadius(unitID, 'radar', 0)
