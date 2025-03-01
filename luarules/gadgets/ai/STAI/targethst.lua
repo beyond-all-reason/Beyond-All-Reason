@@ -21,23 +21,17 @@ end
 
 function TargetHST:Update()
 	if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
-	--local RAM = gcinfo()
 	self:EnemiesCellsAnalisy()
-	--Spring:Echo('targeth1',gcinfo()-RAM)
-
 	--self:ScanEnemyCell()
 	--self:perifericalTarget()
 	--self:enemyFront()
 	self:GetMobileBlobs()
-	--Spring:Echo('targeth2',gcinfo()-RAM)
 	self:GetImmobileBlobs()
-	--Spring:Echo('targeth3',gcinfo()-RAM)
 	--self:EnemyCenter()
 	self:drawDBG()
-	--Spring:Echo('targeth4',gcinfo()-RAM)
 end
 
-function TargetHST:EnemiesCellsAnalisy() --MOVE TO TACTICALHST!!!
+function TargetHST:EnemiesCellsAnalisy() --TODO:--MOVE TO TACTICALHST!!!
 	local enemybasecount = 0
 	self.enemyBasePosition = nil
 	self.enemyCenter = {x = 0,y = 0,z = 0}
