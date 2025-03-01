@@ -43,15 +43,15 @@ if gadgetHandler:IsSyncedCode() then
 	local validStartUnits = {}
 	local armcomDefID = UnitDefNames.armcom and UnitDefNames.armcom.id
 	if armcomDefID then
-		validStartUnits[armcomDefID] = true
+		validStartUnits[#validStartUnits+1] = armcomDefID
 	end
 	local corcomDefID = UnitDefNames.corcom and UnitDefNames.corcom.id
 	if corcomDefID then
-		validStartUnits[corcomDefID] = true
+		validStartUnits[#validStartUnits+1] = corcomDefID
 	end
 	local legcomDefID = UnitDefNames.legcom and UnitDefNames.legcom.id
 	if legcomDefID then
-		validStartUnits[legcomDefID] = true
+		validStartUnits[#validStartUnits+1] = legcomDefID
 	end
 
 	local RANDOM_DUMMY = UnitDefNames.dicecom and UnitDefNames.dicecom.id
@@ -60,7 +60,7 @@ if gadgetHandler:IsSyncedCode() then
 		if not unitDefID then
 			return false
 		end
-		if validStartUnits[unitDefID] then
+		if table.contains(validStartUnits, unitDefID) then
 			return true
 		end
 		if unitDefID == RANDOM_DUMMY then
@@ -122,7 +122,7 @@ if gadgetHandler:IsSyncedCode() then
 					if isAI then
 						comDefID = RANDOM_DUMMY
 					else
-						comDefID, _ =  next(validStartUnits)
+						comDefID = validStartUnits[1]
 					end
 				end
 
@@ -348,14 +348,8 @@ if gadgetHandler:IsSyncedCode() then
 
 		local _, _, _, isAI, sideName = spGetTeamInfo(teamID)
 		if (startUnit or RANDOM_DUMMY) == RANDOM_DUMMY then
-			local roll = math.random(table.count(validStartUnits))
-			for def, _ in pairs(validStartUnits) do
-				if roll == 1 then
-					startUnit = def
-					break
-				end
-				roll = roll - 1
-			end
+			local roll = math.random(#validStartUnits)
+			startUnit = validStartUnits[roll]
 		end
 
 		-- spawn starting unit
