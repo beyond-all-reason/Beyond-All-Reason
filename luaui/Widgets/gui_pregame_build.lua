@@ -112,22 +112,20 @@ local legNames = {
 }
 
 -- convert unitname -> unitDefID
-local indexToCor = {}
-local indexToArm = {}
-local indexToLeg = {}
+local indexToDefs = {corcom = {}, armcom = {}, legcom = {}}
 for index, corUnitName in ipairs(corNames) do
 	if UnitDefNames[corUnitName] then
-		indexToCor[index] = UnitDefNames[corUnitName].id
+		indexToDefs['corcom'][index] = UnitDefNames[corUnitName].id
 	end
 end
 for index, armUnitName in ipairs(armNames) do
 	if UnitDefNames[armUnitName] then
-		indexToArm[index] = UnitDefNames[armUnitName].id
+		indexToDefs['armcom'][index] = UnitDefNames[armUnitName].id
 	end
 end
 for index, legUnitName in ipairs(legNames) do
 	if UnitDefNames[legUnitName] then
-		indexToLeg[index] = UnitDefNames[legUnitName].id
+		indexToDefs['legcom'][index] = UnitDefNames[legUnitName].id
 	end
 end
 
@@ -135,9 +133,13 @@ corNames = nil
 armNames = nil
 legNames = nil
 
-local corToIndex = table.invert(indexToCor)
-local armToIndex = table.invert(indexToArm)
-local legToIndex = table.invert(indexToLeg)
+local defsToIndex = {}
+for k, v in pairs(indexToDefs) do
+	defsToIndex[k] = table.invert(v)
+end
+
+indexToDefs['dicecom'] = indexToDefs['armcom']
+defsToIndex['dicecom'] = defsToIndex['armcom']
 
 local function buildFacingHandler(_, _, args)
 	if not (preGamestartPlayer and selBuildQueueDefID) then
@@ -542,23 +544,9 @@ function widget:DrawWorld()
 	-- Check for faction change
 	if prevStartDefID ~= startDefID then
 		local prevFaction = UnitDefs[prevStartDefID].name
-		local prevFactionToIndex
-		if prevFaction == "armcom" or prevFaction == "dicecom" then
-			prevFactionToIndex = armToIndex
-		elseif prevFaction == "corcom" then
-			prevFactionToIndex = corToIndex
-		elseif prevFaction == "legcom" then
-			prevFactionToIndex = legToIndex
-		end
+		local prevFactionToIndex = defsToIndex[prevFaction]
 		local currentFaction = UnitDefs[startDefID].name
-		local indexToCurrentFaction
-		if currentFaction == "armcom" or currentFaction == "dicecom" then
-			indexToCurrentFaction = indexToArm
-		elseif currentFaction == "corcom" then
-			indexToCurrentFaction = indexToCor
-		elseif currentFaction == "legcom" then
-			indexToCurrentFaction = indexToLeg
-		end
+		local indexToCurrentFaction = indexToDefs[currentFaction]
 
 		if prevFactionToIndex and indexToCurrentFaction then
 			for b = 1, #buildQueue do
@@ -692,23 +680,9 @@ function widget:GameStart()
 
 	if prevStartDefID ~= startDefID then
 		local prevFaction = UnitDefs[prevStartDefID].name
-		local prevFactionToIndex
-		if prevFaction == "armcom" or prevFaction == "dicecom" then
-			prevFactionToIndex = armToIndex
-		elseif prevFaction == "corcom" then
-			prevFactionToIndex = corToIndex
-		elseif prevFaction == "legcom" then
-			prevFactionToIndex = legToIndex
-		end
+		local prevFactionToIndex = defsToIndex[prevFaction]
 		local currentFaction = UnitDefs[startDefID].name
-		local indexToCurrentFaction
-		if currentFaction == "armcom" or currentFaction == "dicecom" then
-			indexToCurrentFaction = indexToArm
-		elseif currentFaction == "corcom" then
-			indexToCurrentFaction = indexToCor
-		elseif currentFaction == "legcom" then
-			indexToCurrentFaction = indexToLeg
-		end
+		local indexToCurrentFaction = indexToDefs[currentFaction]
 
 		if prevFactionToIndex and indexToCurrentFaction then
 			for b = 1, #buildQueue do
