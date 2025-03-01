@@ -1318,7 +1318,7 @@ AimWeapon1(heading, pitch)
     cauface = get ATAN(face_z, face_x);                        //use arctan (ATAN) to calculate the angle of the hull. The result is in cau, which is the unit this code format uses for angles. Its up to 32768 (180°), positive or negative depending on direction
     
     //var torsoaim;
-    torsoaim = (cauface - cauaim) +100;                                //calculate angle of turret relative to the hull
+    torsoaim = (cauface - cauaim) +400;                                //calculate angle of turret relative to the hull
 	//torsoaim = heading;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
@@ -1356,15 +1356,15 @@ AimWeapon2(heading, pitch)
 	timer = 0;
 	//shotcount = shotcount + 1;
 	call-script lua_UnitScriptLight(1, shotcount);
-		start-script SmokeItUp();
+	start-script SmokeItUp();
 
 	if (isturning == 1)
 	{
-		turn lArmShoulderJoint to y-axis (heading - torsoaim - aimAdj) speed <70>;
+		turn lArmShoulderJoint to y-axis (heading - torsoaim - aimAdj) + <3> speed <70>;
 	}
 	if (isturning == 0)
 	{
-		turn lArmShoulderJoint to y-axis (heading - torsoaim) speed <35>;
+		turn lArmShoulderJoint to y-axis (heading - torsoaim) + <3> speed <35>;
 	}
 	turn lArmShoulderGun to x-axis (-1*pitch) + <35> speed <60>;
 	if (((get ABS(oldhead1 - heading)) > 65536) OR ((get ABS(oldhead1 - heading) > <1>) AND ((get ABS(oldhead1 - heading)) < 65536 - <1>)))
@@ -1397,14 +1397,7 @@ AimWeapon2(heading, pitch)
 
 FireWeapon2()
 {
-	shotcount = shotcount + 1;
-	call-script lua_UnitScriptLight(1, shotcount);
-
 	return (0);
-}
-
-Shot2(){
-	start-script SmokeItUp();
 }
 
 QueryWeapon3(pieceIndex)
@@ -1424,11 +1417,11 @@ AimWeapon3(heading, pitch)
 	timer = 0;
 	if (isturning == 1)
 	{
-		turn rArmShoulderJoint to y-axis (heading - torsoaim - aimAdj) speed <70>;
+		turn rArmShoulderJoint to y-axis (heading - torsoaim - aimAdj) + <3> speed <70>;
 	}
 	if (isturning == 0)
 	{
-		turn rArmShoulderJoint to y-axis (heading - torsoaim) speed <35>;
+		turn rArmShoulderJoint to y-axis (heading - torsoaim) + <3> speed <35>;
 	}
 	turn rArmShoulderGun to x-axis (-1*pitch) + <35> speed <60>;
 	if (((get ABS(oldhead2 - heading)) > 65536) OR ((get ABS(oldhead2 - heading) > <1>) AND ((get ABS(oldhead2 - heading)) < 65536 - <1>)))
@@ -1461,9 +1454,6 @@ AimWeapon3(heading, pitch)
 
 FireWeapon3()
 {
-	shotcount = shotcount + 1;
-	call-script lua_UnitScriptLight(2, shotcount);
-	start-script SmokeItUp();
 	return (0);
 }
 
