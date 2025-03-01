@@ -1,18 +1,16 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
 piece  base, lflare, rflare, lfin, rfin, rturret, lturret, thrusta, thrustb, engines;
 
 // Signal definitions
-#define SIG_MOVE			2
+#define SIGNAL_MOVE 1
 
 
 #define IDLEHOVERSCALE 32
 #define IDLEHOVERSPEED 60
 #define IDLEBASEPIECE base
-#include "idlehover.h"
+#include "../idlehover.h"
 
 static-var gun_1;
 Create()
@@ -24,10 +22,7 @@ Create()
 	turn thrusta to x-axis <-90> now; 
 	turn thrustb to x-axis <-90> now; 
 	gun_1=0;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
+	SLEEP_UNTIL_UNITFINISHED;
 	start-script IdleHover();
 }
 
@@ -50,8 +45,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn lturret to x-axis <0.000000> speed <50.000000>;
-	turn rturret to x-axis <0.000000> speed <50.000000>;
+	turn lturret to x-axis <0.0> speed <50.0>;
+	turn rturret to x-axis <0.0> speed <50.0>;
 }
 SetStunned(State)
 {
@@ -76,78 +71,84 @@ RestoreAfterDelay()
 MoveRate1()
 {
 	start-script RestoreAfterDelay();
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
-	turn base to z-axis <0.000000> speed <120.000000>;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	turn base to z-axis <0.0> speed <120.0>;
 	//start-script ProcessFlames();
 }
 
 MoveRate2()
 {
 	start-script RestoreAfterDelay();
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	turn engines to x-axis <90> speed <90>;
 	//start-script ProcessFlames();
 	sleep 1000;
-	turn base to z-axis <240.000000> speed <120.000000>;
+	turn base to z-axis <240.0> speed <120.0>;
 	wait-for-turn base around z-axis;
-	turn base to z-axis <120.000000> speed <180.000000>;
+	turn base to z-axis <120.0> speed <180.0>;
 	wait-for-turn base around z-axis;
-	turn base to z-axis <0.000000> speed <120.000000>;
+	turn base to z-axis <0.0> speed <120.0>;
 	
 }
 
 MoveRate3()
 {
 	start-script RestoreAfterDelay();
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	//start-script ProcessFlames();
-	turn base to z-axis <0.000000> speed <120.000000>;
+	turn base to z-axis <0.0> speed <120.0>;
 	
 	turn engines to x-axis <90> speed <90>;
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = base;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	return (1);
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(pieceIndex)
+{
+	pieceIndex = lflare + gun_1;
+}
+
+FireWeapon1()
+{
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
+	
+	gun_1=!gun_1;
+	start-script RestoreAfterDelay();
+	
+	sleep 200;
+	turn engines to x-axis <0> speed <90>;
+}
+
+Shot1(zero)
 {
 	if (gun_1==0)
 	{
-		piecenum = lflare;
-		gun_1=1;
+		emit-sfx 1024 + 0 from lflare;
 	}
 	else 
 	{
-		piecenum=rflare;
-		gun_1=0;
+		emit-sfx 1024 + 0 from rflare;
 	}
+	return(1);
 }
 
-FirePrimary()
-{
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
-	sleep 200;
-	turn engines to x-axis <0> speed <90>;
-	
-	start-script RestoreAfterDelay();
-}
-
-StartMoving()
+StartMoving(reversing)
 {
 	start-script RestoreAfterDelay();
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	move lfin to z-axis [-8] speed [8];
 	move rfin to z-axis [-8] speed [8];
 	turn engines to x-axis <90> speed <90>;
@@ -157,8 +158,8 @@ StartMoving()
 StopMoving()
 {
 	start-script RestoreAfterDelay();
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
+	signal SIGNAL_MOVE;
+	set-signal-mask SIGNAL_MOVE;
 	move lfin to z-axis [0] speed [8];
 	move rfin to z-axis [0] speed [8];
 	
@@ -166,10 +167,7 @@ StopMoving()
 	wait-for-move lfin along z-axis;
 }
 
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
+
 
 Killed(severity, corpsetype)
 {
