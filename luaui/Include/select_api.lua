@@ -9,6 +9,7 @@ local vtoldamagetag = Game.armorTypes['vtol']
 
 local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
 local spGetUnitCommands = Spring.GetUnitCommands
+local spGetUnitCommandCount = Spring.GetUnitCommandCount
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitGroup = Spring.GetUnitGroup
 local spGetUnitHealth = Spring.GetUnitHealth
@@ -95,7 +96,7 @@ local function checkCmd(uid, cmdId, indexTemp)
 end
 
 local function isIdle(udef, _udefid, uid)
-	return spGetUnitCommands(uid, 0) == CMD.STOP
+	return spGetUnitCommandCount(uid) == 0
 end
 
 local function stringContains(mainString, searchString)

@@ -1907,7 +1907,7 @@ if gadgetHandler:IsSyncedCode() then
 						unitCowardCooldown[raptors[i]] = nil
 						Spring.GiveOrderToUnit(raptors[i], CMD.STOP, 0, 0)
 					end
-					if Spring.GetUnitCommands(raptors[i], 0) <= 0 then
+					if Spring.GetUnitCommandCount(raptors[i]) == 0 then
 						if unitCowardCooldown[raptors[i]] then
 							unitCowardCooldown[raptors[i]] = nil
 						end
