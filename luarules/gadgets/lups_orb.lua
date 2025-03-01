@@ -49,7 +49,7 @@ local UnitEffects = {
 		{ class = 'ShieldJitter', options = { layer = -16, life = math.huge, pos = { 0, 60, 0 }, size = 30.5, precision = 22, repeatEffect = true } },
 	},
 
-
+	--// DEFLECTORS //--------------------------
 	["corgate"] = {
 		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 42, 0 }, size = 12.5, precision = 22, repeatEffect = true } },
 	},
@@ -67,6 +67,12 @@ local UnitEffects = {
 	},
 	["armgatet3"] = {
 		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 45, -5 }, size = 23, precision = 22, repeatEffect = true } },
+	},
+	["legdeflector"] = {
+		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 38, 0 }, size = 12.5, precision = 22, repeatEffect = true } },
+	},	
+	["leggatet3"] = {
+		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 45, 0 }, size = 20, precision = 22, repeatEffect = true } },
 	},
 
 
