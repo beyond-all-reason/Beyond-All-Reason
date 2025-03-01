@@ -17,6 +17,7 @@ end
 local cfgResText = true
 local cfgSticktotopbar = true
 local cfgRemoveDead = false
+local cfgTrackReclaim = true
 
 local teamData = {}
 local allyData = {}
@@ -281,16 +282,18 @@ end
 
 local function getTeamReclaim(teamID)
 	local totalEnergyReclaim, totalMetalReclaim = 0, 0
-	if inSpecMode and reclaimerUnits[teamID] ~= nil then
-		local teamUnits = reclaimerUnits[teamID]
-		for unitID, unitDefID in pairs(teamUnits) do
-			local metalMake, _, energyMake = GetUnitResources(unitID)
-			if metalMake ~= nil then
-				if metalMake > 0 then
-					totalMetalReclaim = totalMetalReclaim + (metalMake - reclaimerUnitDefs[unitDefID][1])
-				end
-				if energyMake > 0 then
-					totalEnergyReclaim = totalEnergyReclaim + (energyMake - reclaimerUnitDefs[unitDefID][2])
+	if cfgTrackReclaim then
+		if inSpecMode and reclaimerUnits[teamID] ~= nil then
+			local teamUnits = reclaimerUnits[teamID]
+			for unitID, unitDefID in pairs(teamUnits) do
+				local metalMake, _, energyMake = GetUnitResources(unitID)
+				if metalMake ~= nil then
+					if metalMake > 0 then
+						totalMetalReclaim = totalMetalReclaim + (metalMake - reclaimerUnitDefs[unitDefID][1])
+					end
+					if energyMake > 0 then
+						totalEnergyReclaim = totalEnergyReclaim + (energyMake - reclaimerUnitDefs[unitDefID][2])
+					end
 				end
 			end
 		end
@@ -499,6 +502,12 @@ function widget:Initialize()
 	WG['ecostats'].setShowText = function(value)
 		cfgResText = value
 	end
+	WG['ecostats'].getReclaim = function()
+		return cfgTrackReclaim
+	end
+	WG['ecostats'].setReclaim = function(value)
+		cfgTrackReclaim = value
+	end
 
 	Init()
 	widget:ViewResize()
@@ -621,12 +630,14 @@ function widget:GetConfigData(data)
 		yRelPos = yRelPos,
 		cfgRemoveDeadOn = cfgRemoveDead,
 		cfgResText2 = cfgResText,
+		cfgTrackReclaim = cfgTrackReclaim,
 		right = right,
 	}
 end
 
 function widget:SetConfigData(data)
 	cfgResText = data.cfgResText2 or cfgResText
+	cfgTrackReclaim = data.cfgTrackReclaim or cfgTrackReclaim
 	cfgSticktotopbar = data.cfgSticktotopbar or true
 	cfgRemoveDead = false
 	xRelPos = data.xRelPos or xRelPos
@@ -638,6 +649,10 @@ function widget:TextCommand(command)
 	if string.sub(command,1, 13) == "ecostatstext" then
 		cfgResText = not cfgResText
 		Spring.Echo('ecostats: text: '..(cfgResText and 'enabled' or 'disabled'))
+	end
+	if string.sub(command,1, 16) == "ecostatsreclaim" then
+		cfgTrackReclaim = not cfgTrackReclaim
+		Spring.Echo('ecostats: reclaim: '..(cfgTrackReclaim and 'enabled' or 'disabled'))
 	end
 end
 
