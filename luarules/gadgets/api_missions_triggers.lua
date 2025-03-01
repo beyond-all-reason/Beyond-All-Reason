@@ -1,3 +1,5 @@
+--============================================================--
+
 function gadget:GetInfo()
 	return {
 		name = "Mission API triggers",
@@ -8,54 +10,21 @@ function gadget:GetInfo()
 	}
 end
 
+--============================================================--
+
 if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+--============================================================--
+
+local actionsDefs = VFS.Include('luarules/mission_api/types.lua')
+
 local actionsDispatcher, trackedUnits
 
-local types, timeTypes, unitTypes, featureTypes, gameTypes
-local triggers, timeTriggers, unitTriggers, featureTriggers, gameTriggers
+local types, triggers
 
---[[
-local function populateTriggerTypes()
-	timeTypes = {
-		[types.TimeElapsed] = true,
-		[types.ResourceStored] = true,
-		[types.ResourceProduction] = true,
-		[types.UnitEnteredLocation] = true,
-		[types.UnitLeftLocation] = true,
-		[types.UnitDwellLocation] = true,
-	}
-
-	unitTypes = {
-		[types.UnitExists] = true,
-		[types.UnitNotExists] = true,
-		[types.ConstructionStarted] = true,
-		[types.ConstructionFinished] = true,
-		[types.UnitKilled] = true,
-		[types.UnitCaptured] = true,
-		[types.UnitResurrected] = true,
-		[types.UnitSpotted] = true,
-		[types.UnitUnspotted] = true,
-		[types.FeatureNotExists] = true,
-		[types.FeatureReclaimed] = true,
-		[types.FeatureDestroyed] = true,
-		[types.TotalUnitsLost] = true,
-		[types.TotalUnitsBuilt] = true,
-		[types.TotalUnitsKilled] = true,
-		[types.TotalUnitsCaptured] = true,
-		[types.TeamDestroyed] = true,
-		[types.Victory] = true,
-		[types.Defeat] = true,
-end
-
-local function populateTriggerLists()
-	for triggerId, trigger in pairs(triggers) do
-		
-	end
-end
-]]
+--============================================================--
 
 local function triggerValid(trigger)
 	if not trigger.settings.active then return false end
@@ -76,6 +45,8 @@ local function triggerValid(trigger)
 	return true
 end
 
+----------------------------------------------------------------
+
 local function activateTrigger(trigger)
 	if not triggerValid(trigger) then
 		return
@@ -84,10 +55,118 @@ local function activateTrigger(trigger)
 	trigger.triggered = true
 	trigger.repeatCount = trigger.repeatCount + 1
 
-	for _, actionId in ipairs(trigger.actions) do
-		actionsDispatcher.Invoke(actionId)
+	for _, actionID in ipairs(trigger.actions) do
+		actionsDispatcher.Invoke(actionID)
 	end
 end
+
+--============================================================--
+
+-- Time
+
+----------------------------------------------------------------
+
+local function checkTimeElapsed(trigger, gameframe)
+	local targetframe = trigger.parameters.gameFrame
+	local interval = trigger.parameters.interval
+
+	if gameframe == targetframe or (trigger.settings.repeating and gameframe > targetframe and (gameframe - targetframe) % interval == 0) then
+		activateTrigger(trigger)
+		return
+	end
+end
+
+----------------------------------------------------------------
+
+-- Units
+
+----------------------------------------------------------------
+
+local function checkUnitExists(trigger)
+	local quantity = trigger.parameters.quantity or 1
+
+	local units = Spring.GetTeamUnitsByDefs(trigger.parameters.unitDef.team, trigger.parameters.unitDef.getName())
+	if #units >= quantity then
+		activateTrigger(trigger)
+		return
+	end
+end
+
+----------------------------------------------------------------
+
+local function checkUnitNotExists(trigger)
+	local unit = trigger.parameters.unit
+
+	if unit.type == actionsDefs.type.name then
+		if trackedUnits[unit.ID] == nil then
+			activateTrigger(trigger)
+			return
+		end
+	elseif unit.type == actionsDefs.type.unitID then
+		if not Spring.IsValidUnit(unit.ID) then
+			activateTrigger(trigger)
+			return
+		end
+	elseif unit.type == actionsDefs.type.unitDefID then
+		if #(Spring.GetTeamUnitsByDefs(unit.team, unit.ID)) == 0 then
+			activateTrigger(trigger)
+			return
+		end
+	elseif unit.type == actionsDefs.type.unitDefName then
+		if #(Spring.GetTeamUnitsByDefs(unit.team, UnitDefNames[unit.ID])) == 0 then
+			activateTrigger(trigger)
+			return
+		end
+	end
+end
+
+----------------------------------------------------------------
+
+local function checkUnitKilled(trigger, unitID, unitDefID)
+	if trigger.parameters.unit.isUnit(unitID, unitDefID) then
+		activateTrigger(trigger)
+	end
+end
+
+----------------------------------------------------------------
+
+local function checkUnitCaptured(trigger, unitID, unitDefID)
+	if trigger.parameters.unit.isUnit(unitID, unitDefID) then
+		activateTrigger(trigger)
+	end
+end
+
+----------------------------------------------------------------
+
+local function checkConstructionStarted(trigger, unitID, unitDefID)
+	if trigger.parameters.unit.isUnit(unitID, unitDefID) then
+		activateTrigger(trigger)
+		return
+	end
+end
+
+----------------------------------------------------------------
+
+local function checkConstructionFinished(trigger, unitID, unitDefID)
+	if trigger.parameters.unit.isUnit(unitID, unitDefID) then
+		activateTrigger(trigger)
+		return
+	end
+end
+
+----------------------------------------------------------------
+
+-- Team
+
+----------------------------------------------------------------
+
+local function checkTeamDestroyed(trigger, teamID)
+	if teamID == trigger.parameters.teamID then
+		activateTrigger(trigger)
+	end
+end
+
+--============================================================--
 
 function gadget:Initialize()
 	if not GG['MissionAPI'] then
@@ -101,30 +180,84 @@ function gadget:Initialize()
 	trackedUnits = GG['MissionAPI'].TrackedUnits
 end
 
+----------------------------------------------------------------
+
 function gadget:GameFrame(n)
-	for triggerId, trigger in pairs(triggers) do
+	for triggerID, trigger in pairs(triggers) do
 		if trigger.type == types.TimeElapsed then
-			local gameframe = trigger.parameters.gameFrame
-			local interval = trigger.parameters.interval
-
-			if n == gameframe or (trigger.settings.repeating and n > gameframe and (n - gameframe) % interval == 0) then
-				activateTrigger(trigger)
-			end
+			checkTimeElapsed(trigger, n)
+		elseif trigger.type == types.UnitExists then
+			checkUnitExists(trigger)
+		elseif trigger.type == types.UnitNotExists then
+			checkUnitNotExists(trigger)
 		end
 	end
 end
 
-function gadget:MetaUnitAdded(unitId, unitDefId, unitTeam)
-	for triggerId, trigger in pairs(triggers) do
-		if trigger.type == types.UnitExists then
-			local unitName = trigger.parameters.unitName
-			local unitDefName = trigger.parameters.unitDefName
+----------------------------------------------------------------
 
-			if unitName and unitName == trackedUnits[unitId] then
-				activateTrigger(trigger)
-			elseif unitDefName == unitDefId.name then
-				activateTrigger(trigger)
-			end
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+	for triggerID, trigger in pairs(triggers) do
+		if trigger.type == types.UnitKilled then
+			checkUnitKilled(trigger, unitID, unitDefID)
+		end
+	end
+
+	-- Remove destroyed tracked units
+	local trackedUnits = GG['MissionAPI'].TrackedUnits
+	local name = trackedUnits[unitID]
+
+	if not name then return end
+
+	for i, id in ipairs(trackedUnits[name]) do
+		if id == unitID then
+			table.remove(trackedUnits[name], i)
+		end
+	end
+
+	if #trackedUnits[name] == 0 then trackedUnits[name] = nil end
+	
+	trackedUnits[unitID] = nil
+end
+
+----------------------------------------------------------------
+
+function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
+	for triggerID, trigger in pairs(triggers) do
+		if trigger.type == types.UnitCaptured then
+			checkUnitCaptured(trigger, unitID, unitDefID)
 		end
 	end
 end
+
+----------------------------------------------------------------
+
+function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+	for triggerID, trigger in pairs(triggers) do
+		if trigger.type == types.ConstructionStarted then
+			checkConstructionStarted(trigger, unitID, unitDefID)
+		end
+	end
+end
+
+----------------------------------------------------------------
+
+function gadget:UnitFinished(unitID, unitDefID, unitTeam)
+	for triggerID, trigger in pairs(triggers) do
+		if trigger.type == types.ConstructionFinished then
+			checkConstructionFinished(trigger, unitID, unitDefID)
+		end
+	end
+end
+
+----------------------------------------------------------------
+
+function gadget:TeamDied(teamID)
+	for triggerID, trigger in pairs(triggers) do
+		if trigger.type == types.TeamDestroyed then
+			checkTeamDestroyed(trigger, teamID)
+		end
+	end
+end
+
+--============================================================--
