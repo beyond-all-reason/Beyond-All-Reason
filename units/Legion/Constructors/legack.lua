@@ -76,6 +76,7 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "CorBots/T2",
 			techlevel = 2,
+			shareable_under_resource_tax = 1,
 		},
 		featuredefs = {
 			dead = {
