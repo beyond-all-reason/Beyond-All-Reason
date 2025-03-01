@@ -21,6 +21,7 @@ local cfgTrackReclaim = true
 
 local teamData = {}
 local allyData = {}
+local allyIDdata = {}
 local reclaimerUnits = {}
 local textLists = {}
 local avgData = {}
@@ -386,6 +387,8 @@ local function setAllyData(allyID)
 		end
 	end
 
+	allyIDdata[allyID] = index
+	
 	allyData[index].teams = teamList
 	allyData[index].tE = getTeamSum(index, "einc")
 	allyData[index].tEr = getTeamSum(index, "erecl")
@@ -1048,13 +1051,26 @@ local function drawListStandard()
 		return -- protect from NaN
 	end
 
+	if WG.allyTeamRanking then
+		local drawpos = 0
+		for _, allyID in pairs(WG.allyTeamRanking) do
+			local dataID = allyIDdata[allyID]
+			local data = allyData[dataID]
+			if data then
+				if isTeamReal(allyID) and (allyID == GetMyAllyTeamID() or inSpecMode) and data.isAlive then
+					drawpos = drawpos + 1
+					allyData[dataID].drawpos = drawpos
+				end
+			end
+		end
+	end
+
 	for _, data in ipairs(allyData) do
 		local aID = data.aID
 		if aID ~= nil then
 			local drawpos = data.drawpos
-
+	
 			if data.exists and type(data.tE) == "number" and drawpos and #(data.teams) > 0 and (aID == myAllyID or inSpecMode) and (aID ~= gaiaAllyID) then
-
 				if not data.isAlive then
 					data.isAlive = isTeamAlive(aID)
 				end
