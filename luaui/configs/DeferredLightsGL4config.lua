@@ -16244,6 +16244,55 @@ local unitLights = {
 
 	},
 
+	['legeheatraymech'] = {
+		bigtoroid = {
+			lightType = 'point',
+			pieceName = 'bigToroidLight',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 78,
+							color2r = 0.3, color2g = 0.8, color2b = 0.8, colortime = 0,
+							r = 0.9, g = 0.7, b = 0.45, a = 0.2,
+							modelfactor = 0.4, specular = 0.5, scattering = 1.2, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		righttoroid = {
+			lightType = 'point',
+			pieceName = 'rightToroidLight',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 60,
+							color2r = 0.3, color2g = 0.8, color2b = 0.8, colortime = 0,
+							r = 0.9, g = 0.7, b = 0.45, a = 0.2,
+							modelfactor = 0.4, specular = 0.5, scattering = 1.2, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		lefttoroid = {
+			lightType = 'point',
+			pieceName = 'leftToroidLight',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 60,
+							color2r = 0.3, color2g = 0.8, color2b = 0.8, colortime = 0,
+							r = 0.9, g = 0.7, b = 0.45, a = 0.2,
+							modelfactor = 0.4, specular = 0.5, scattering = 1.2, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		beaconright = {
+			lightType = 'cone',
+			pieceName = 'rShoulderFlare',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 900,
+							dirx = 0, diry = 0, dirz = 1, theta = 0.04,
+							r = 0.9, g = 0.65, b = 0.15, a = 0.65,
+							modelfactor = 0, specular = 1, scattering = 4, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		beaconleft = {
+			lightType = 'cone',
+			pieceName = 'lShoulderFlare',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 900,
+							dirx = 0, diry = 0, dirz = 1, theta = 0.04,
+							r = 0.9, g = 0.65, b = 0.15, a = 0.65,
+							modelfactor = 0, specular = 1, scattering = 4, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+
+	},
+
 
 	['armvader'] = {
 		-- redlight = {
@@ -22844,6 +22893,31 @@ local unitEventLightsNames = {
 					r = 1.0, g = 0.8, b = 0.1, a = 0.66,
 					modelfactor = 2, specular = 1, scattering = 0.5, lensflare = 9,
 					lifetime = 200, sustain = 15, animtype = 0},
+			},
+		},
+
+		['legeheatraymech'] = {
+			[1] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
+				lightType = 'point',
+				pieceName = 'rightToroidLight',
+				lightName = 'righttoroidlight',
+				alwaysVisible = true,
+				lightConfig = { posx = 0, posy = 0, posz = 0, radius = 78,
+					color2r = 1, color2g = 0.87, color2b = 0.3, colortime = 400,
+					r = 1.0, g = 0.8, b = 0.1, a = 0.66,
+					modelfactor = 2, specular = 1, scattering = 0.5, lensflare = 9,
+					lifetime = 200, sustain = 15, animtype = 0},
+			},
+			[2] = { --lightIndex as above, MUST BE AN INTEGER, Give it a nice name in a comment,
+			lightType = 'point',
+			pieceName = 'leftToroidLight',
+			lightName = 'lefttoroidlight',
+			alwaysVisible = true,
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 78,
+				color2r = 1, color2g = 0.87, color2b = 0.3, colortime = 400,
+				r = 1.0, g = 0.8, b = 0.1, a = 0.66,
+				modelfactor = 2, specular = 1, scattering = 0.5, lensflare = 9,
+				lifetime = 200, sustain = 15, animtype = 0},
 			},
 		},
 

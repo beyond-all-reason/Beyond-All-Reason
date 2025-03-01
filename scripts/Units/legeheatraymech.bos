@@ -8,9 +8,10 @@ piece 	upperTorso, lArmUpperArm, lArmLowerArm, lArmGun, lArmShoulderJoint,
 		 rLegTibio, rLegShin, rLegBackFoot, rLegFrontFoot, rLegThighJoint, neck, head, 
 		 rArmUpperArm, rArmLowerArm, rArmGun, rArmShoulderJoint, rArmShoulderPivot, rArmShoulderGun, rArmFlare, 
 		 lArmFlare, rShoulderFlare, lShoulderFlare,	lStompFlare, rStompFlare, front, front2,
-		 lArmBarrel, lArmPin, rArmBarrel, rArmPin, aaBase, aaTurret, aaBarrel, aaFlare;
+		 lArmBarrel, lArmPin, rArmBarrel, rArmPin, aaBase, aaTurret, aaBarrel, aaFlare, rightFrontSmoke, leftFrontSmoke,
+		 bigToroidLight, leftToroidLight, rightToroidLight;
 
-static-var  InMotion, restore_delay, aimingPose, wpn1_lasthead, timeLeft, isfiring1, isfiring2, timer, oldhead1, oldhead2, oldhead3, oldhead4, oldsteerheading, torsoaim, gun_4, gun_5, isturning, aimAdj; 			
+static-var  InMotion, restore_delay, aimingPose, wpn1_lasthead, timeLeft, isfiring1, isfiring2, timer, oldhead1, oldhead2, oldhead3, oldhead4, oldsteerheading, torsoaim, gun_4, gun_5, isturning, aimAdj, shotcount, issmoking; 			
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
@@ -1029,6 +1030,46 @@ Close()
 	InMotion = 0;
 }
 
+lua_UnitScriptLight(lightIndex, count) {
+	return 0;
+}
+
+#define SMOKEPIECE base
+// #include "smokeunit_thread_nohit.h"
+
+SmokeItUp()
+{	
+	if (issmoking == 0 OR TRUE)
+	{
+		issmoking = 1;
+		emit-sfx 257 from leftFrontSmoke;
+		emit-sfx 257 from rightFrontSmoke;
+		sleep 3000;
+		// emit-sfx 257 from leftFrontSmoke;
+		// emit-sfx 257 from rightFrontSmoke;
+		// sleep 1000;
+		// emit-sfx 257 from leftFrontSmoke;
+		// emit-sfx 257 from rightFrontSmoke;
+		// sleep 1000;
+		// emit-sfx 257 from leftFrontSmoke;
+		// emit-sfx 257 from rightFrontSmoke;
+		// sleep 1000;
+		// emit-sfx 257 from leftFrontSmoke;
+		// emit-sfx 257 from rightFrontSmoke;
+		// sleep 1000;
+		// emit-sfx 257 from leftFrontSmoke;
+		// emit-sfx 257 from rightFrontSmoke;
+		// sleep 1000;
+		// emit-sfx 257 from leftFrontSmoke;
+		// emit-sfx 257 from rightFrontSmoke;
+		// sleep 1000;
+		// emit-sfx 257 from leftFrontSmoke;
+		// emit-sfx 257 from rightFrontSmoke;
+		// sleep 1000;
+		issmoking = 0;
+	}
+}
+
 
 Create()
 {
@@ -1062,6 +1103,8 @@ Create()
 	oldsteerheading = get HEADING;;
 	isturning = 0;
 	aimAdj = 0;
+	shotcount = 0;
+	issmoking = 0;
 	call-script Steering();
 	call-script CATT1_Init();
 	call-script CATT2_Init();
@@ -1275,7 +1318,7 @@ AimWeapon1(heading, pitch)
     cauface = get ATAN(face_z, face_x);                        //use arctan (ATAN) to calculate the angle of the hull. The result is in cau, which is the unit this code format uses for angles. Its up to 32768 (180°), positive or negative depending on direction
     
     //var torsoaim;
-    torsoaim = (cauface - cauaim)  + 400;                                //calculate angle of turret relative to the hull
+    torsoaim = (cauface - cauaim) +400;                                //calculate angle of turret relative to the hull
 	//torsoaim = heading;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
@@ -1311,6 +1354,10 @@ AimWeapon2(heading, pitch)
 	signal SIG_AIM_2;
 	start-script Open();
 	timer = 0;
+	//shotcount = shotcount + 1;
+	call-script lua_UnitScriptLight(1, shotcount);
+	start-script SmokeItUp();
+
 	if (isturning == 1)
 	{
 		turn lArmShoulderJoint to y-axis (heading - torsoaim - aimAdj) + <3> speed <70>;
