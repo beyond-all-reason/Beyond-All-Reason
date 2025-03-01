@@ -205,6 +205,32 @@ local function getNbPlacedPositions(teamID)
 	return nbPlayers
 end
 
+local function updateDrawPos()
+	local drawpos = 0
+	aliveAllyTeams = 0
+	if WG.allyTeamRanking then
+		for _, allyID in pairs(WG.allyTeamRanking) do
+			local dataID = allyIDdata[allyID]
+			if allyData[dataID] then
+				if isTeamReal(allyID) and (allyID == GetMyAllyTeamID() or inSpecMode) and allyData[dataID].isAlive then
+					aliveAllyTeams = aliveAllyTeams + 1
+					drawpos = drawpos + 1
+					allyData[dataID].drawpos = drawpos
+				end
+			end
+		end
+	else
+		for _, data in ipairs(allyData) do
+			local allyID = data.aID
+			if isTeamReal(allyID) and (allyID == GetMyAllyTeamID() or inSpecMode) and data.isAlive then
+				aliveAllyTeams = aliveAllyTeams + 1
+				drawpos = drawpos + 1
+			end
+			data.drawpos = drawpos
+		end
+	end
+end
+
 local function updateButtons()
 	if widgetPosX < 0 then
 		widgetPosX = 0
@@ -233,16 +259,7 @@ local function updateButtons()
 		right = false
 	end
 
-	local drawpos = 0
-	aliveAllyTeams = 0
-	for _, data in ipairs(allyData) do
-		local allyID = data.aID
-		if isTeamReal(allyID) and (allyID == GetMyAllyTeamID() or inSpecMode) and data.isAlive then
-			aliveAllyTeams = aliveAllyTeams + 1
-			drawpos = drawpos + 1
-		end
-		data.drawpos = drawpos
-	end
+	updateDrawPos()
 end
 
 local function setDefaults()
@@ -1051,20 +1068,6 @@ local function drawListStandard()
 		return -- protect from NaN
 	end
 
-	if WG.allyTeamRanking then
-		local drawpos = 0
-		for _, allyID in pairs(WG.allyTeamRanking) do
-			local dataID = allyIDdata[allyID]
-			local data = allyData[dataID]
-			if data then
-				if isTeamReal(allyID) and (allyID == GetMyAllyTeamID() or inSpecMode) and data.isAlive then
-					drawpos = drawpos + 1
-					allyData[dataID].drawpos = drawpos
-				end
-			end
-		end
-	end
-
 	for _, data in ipairs(allyData) do
 		local aID = data.aID
 		if aID ~= nil then
@@ -1322,16 +1325,7 @@ function widget:Update(dt)
 	if sec > 5 then
 		sec = 0
 		if WG.allyTeamRanking then
-			local drawpos = 0
-			for _, allyID in pairs(WG.allyTeamRanking) do
-				local dataID = allyIDdata[allyID]
-				if allyData[dataID] then
-					if isTeamReal(allyID) and (allyID == GetMyAllyTeamID() or inSpecMode) and allyData[dataID].isAlive then
-						drawpos = drawpos + 1
-						allyData[dataID].drawpos = drawpos
-					end
-				end
-			end
+			updateDrawPos()
 		end
 	end
 	
