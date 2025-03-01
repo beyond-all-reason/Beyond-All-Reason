@@ -17,8 +17,8 @@ local spGetTeamUnits		= Spring.GetTeamUnits
 local spGetUnitDefID		= Spring.GetUnitDefID
 local spGetUnitPosition		= Spring.GetUnitPosition
 local spGiveOrderToUnit		= Spring.GiveOrderToUnit
-local spGetUnitCommands     = Spring.GetUnitCommands
-local spGetUnitCurrentCommand   = Spring.GetUnitCurrentCommand
+local spGetUnitCommandCount = Spring.GetUnitCommandCount
+local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 
 local halfMapSizeX = Game.mapSizeX / 2
 local halfMapSizeZ = Game.mapSizeZ / 2
@@ -109,7 +109,7 @@ end
 
 function widget:UnitCommand(unitID, unitDefID, _, cmdID, _, cmdOpts)
 	if isImmobileBuilder[unitDefID] and cmdOpts.shift and cmdID ~= CMD_FIGHT then
-		local count = spGetUnitCommands(unitID, 0)
+		local count = spGetUnitCommandCount(unitID)
 		if count == 0 then
 			return
 		end
