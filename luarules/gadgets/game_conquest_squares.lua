@@ -14,7 +14,7 @@ end
 if  not gadgetHandler:IsSyncedCode() then return false end
 
 --configs
-local debugmode = false
+local debugmode = true
 local MINUTES_TO_MAX = 20 --how many minutes until the threshold reaches max threshold from start time
 local MINUTES_TO_START = 5 --how many minutes until threshold can start to increment
 local MAX_TERRITORY_PERCENTAGE = 100 --how much territory/# of allies is factored in to bombardment threshold.
@@ -28,6 +28,7 @@ local sqrt = math.sqrt
 local floor = math.floor
 local max = math.max
 local min = math.min
+local random = math.random
 local spGetGroundHeight = Spring.GetGroundHeight
 local spGetGameFrame = Spring.GetGameFrame
 local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
@@ -44,7 +45,6 @@ local mapSizeZ = Game.mapSizeZ
 local SQUARE_BOUNDARY = 128 -- how many elmos closer to the center of the scum than the actual edge of the scum the unit must be to be considered on the scum
 local GRID_SIZE = 1024 -- the size of the squares in elmos
 local FINISHED_BUILDING = 1
-local NO_OWNER = -1
 local FRAME_MODULO = Game.gameSpeed * 3
 local STARTING_PROGRESS = 50
 
@@ -54,6 +54,7 @@ local initialized = false
 local scavengerTeamID = 999
 local raptorsTeamID = 999
 local gaiaTeamID = Spring.GetGaiaTeamID()
+local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(gaiaTeamID))
 local teams = Spring.GetTeamList()
 local allyTeamsCount = 0
 local defeatThreshold = 0
@@ -71,7 +72,6 @@ exemptTeams[gaiaTeamID] = true
 --start-up
 for _, teamID in ipairs(teams) do --first figure out which teams are exempt
 
-	Spring.Echo("A Team: ", teamID)
 	local luaAI = Spring.GetTeamLuaAI(teamID)
 	if luaAI and luaAI ~= "" then
 		if string.sub(luaAI, 1, 12) == 'ScavengersAI' then
@@ -84,7 +84,7 @@ for _, teamID in ipairs(teams) do --first figure out which teams are exempt
 	end
 end
 
-local function updateAllyTeamsWatch()
+local function updateLivingTeamsData()
     allyTeamsCount = 0  -- Reset count first
     allyTeamsWatch = {}  -- Clear existing watch list
     
@@ -102,7 +102,7 @@ local function updateAllyTeamsWatch()
 		allyTeamsCount = allyTeamsCount + 1
 	end
 end
-updateAllyTeamsWatch()
+
 
 for defID, def in pairs(UnitDefs) do
 	local defData
@@ -127,14 +127,14 @@ local function generateCaptureGrid()
 		for z = 0, numSquaresZ - 1 do
 			local originX = x * GRID_SIZE
 			local originZ = z * GRID_SIZE
-			points[#points + 1] = {x = originX, z = originZ, allyOwner = NO_OWNER, progress = STARTING_PROGRESS}
+			points[#points + 1] = {x = originX, z = originZ, allyOwnerIDID = gaiaAllyTeamID, progress = STARTING_PROGRESS}
 		end
 	end
 	return points
 
 end
 
-local function updateCurrentThreshold()
+local function updateCurrentDefeatThreshold()
 	local seconds = spGetGameSeconds()
 	local totalMinutes = seconds / 60  -- Convert seconds to minutes
 	if totalMinutes < MINUTES_TO_START then return end
@@ -146,22 +146,22 @@ local function updateCurrentThreshold()
 	end
 end
 
-local function updateAlliesScores()
+local function convertTalliesToScores(tallies)
     local totalSquares = #captureGrid
-    if totalSquares == 0 then return end  -- Prevent division by zero
-    
-    -- Convert tallies to percentages
-    for allyTeam, tally in pairs(allyScores) do
+    if totalSquares == 0 then return {} end
+	local allyScoreTable = {}
+
+    for allyID, tally in pairs(tallies) do
         local percentage = math.floor((tally / totalSquares) * 100)
-        allyScores[allyTeam] = percentage
+        allyScoreTable[allyID] = percentage
     end
+	return allyScoreTable
 end
 
 local function triggerAllyDefeat(allyID)
-	Spring.Echo("AllyTeam ", allyID, " has lost the game")
 	for i, data in ipairs(captureGrid) do
-		if data.allyOwner == allyID then
-			squaresToRaze[i] = true
+		if data.allyOwnerID == allyID then
+			--squaresToRaze[i] = true
 		end
 	end
 end
@@ -181,7 +181,9 @@ local function razeSquare(squareID, data)
 	end
 end
 
-local function attributeUnitPowersToAllies(units)
+local function getAllyPowersInSquare(gridID)
+	local data = captureGrid[gridID]
+	local units = spGetUnitsInRectangle(data.x, data.z, data.x + GRID_SIZE, data.z + GRID_SIZE)
     local allyPowers = {}
     for _, unitID in ipairs(units) do
         local isFinishedBuilding = select(5, spGetUnitHealth(unitID)) == FINISHED_BUILDING
@@ -191,18 +193,85 @@ local function attributeUnitPowersToAllies(units)
             local allyTeam = spGetUnitAllyTeam(unitID)
             
             if unitData and unitData.power and allyTeamsWatch[allyTeam] then
-                -- Accumulate power for the unit's ally team
-                allyPowers[allyTeam] = (allyPowers[allyTeam] or 0) + unitData.power
+                local power = unitData.power
                 if unitWatchDefs[unitDefID].isStatic then
-                    Spring.Echo("allyProgressBlockers: ", allyTeam, UnitDefs[unitDefID].name)
+                    power = power * 3
                 end
+				allyPowers[allyTeam] = (allyPowers[allyTeam] or 0) + power
             end
         end
     end
-    return allyPowers
+	if next(allyPowers) then
+    	return allyPowers
+	end
 end
 
---call-ins
+local function getCaptureProgress(gridID, allyPowers)
+	if not allyPowers then return nil, 0 end
+	local data = captureGrid[gridID]
+	local currentOwnerID = data.allyOwnerID
+	
+	local sortedTeams = {}
+	
+	for team, power in pairs(allyPowers) do
+		table.insert(sortedTeams, {team = team, power = power})
+	end
+	table.sort(sortedTeams, function(a,b) return a.power > b.power end)
+	
+	local winningAllyID = sortedTeams[1] and sortedTeams[1].team
+	local secondPlaceAllyID = sortedTeams[2] and sortedTeams[2].team
+
+	local topPower = allyPowers[winningAllyID]
+	local comparedPower = 0
+	if winningAllyID ~= currentOwnerID and allyPowers[currentOwnerID] then
+		comparedPower = allyPowers[currentOwnerID]
+	elseif allyPowers[secondPlaceAllyID] then
+		comparedPower = allyPowers[secondPlaceAllyID]
+	else
+		comparedPower = 0
+	end
+	
+	local powerRatio = 1
+	if topPower ~= 0 and comparedPower ~= 0 then
+		powerRatio = math.abs(comparedPower / topPower - 1) --need a value between 0 and 1
+	end
+	
+	local progressChange = 0
+	if winningAllyID then
+		if currentOwnerID == winningAllyID then
+			progressChange = PROGRESS_INCREMENT * powerRatio
+		else
+			progressChange = -(powerRatio * PROGRESS_INCREMENT)
+		end
+	end
+	return winningAllyID, progressChange
+end
+
+local function applyAndGetSquareOwnership(gridID, progressChange, winningAllyID)
+    local data = captureGrid[gridID]
+    data.progress = data.progress + progressChange
+    
+    if data.progress < 0 then
+        data.allyOwnerID = winningAllyID
+        data.progress = math.abs(data.progress)
+    elseif data.progress > MAX_PROGRESS then
+        data.progress = MAX_PROGRESS
+    end
+	if allyTeamsWatch[data.allyOwnerID] then -- don't return a score for invalid or dead allyTeams
+		return true
+	else
+		return false
+	end
+end
+
+local function getClearedAllyTallies()
+	local allies = {}
+	for allyID, teamIDs in pairs(allyTeamsWatch) do
+		allies[allyID] = 0
+	end
+	return allies
+end
+
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 end
 
@@ -211,103 +280,43 @@ end
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 end
 
-local oscillatingRemainder = 0
 function gadget:GameFrame(frame)
 	if frame % 60 == 0 then
-		updateAllyTeamsWatch()
-		updateCurrentThreshold()
-		Spring.Echo("defeatThreshold: ", defeatThreshold .. "%")
+		updateLivingTeamsData()
+		updateCurrentDefeatThreshold()
+		local allyTallies = getClearedAllyTallies()
 
-		allyScores = {} -- 
-		for i, data in ipairs(captureGrid) do
-			local units = spGetUnitsInRectangle(data.x, data.z, data.x + GRID_SIZE, data.z + GRID_SIZE)
-			if next(units) then
-				data.hasUnits = true
-			else
-				data.hasUnits = false
+		for gridID, data in pairs(captureGrid) do
+			local allyPowers = getAllyPowersInSquare(gridID)
+			local winningAllyID, progressChange = getCaptureProgress(gridID, allyPowers)
+
+			local addAllyScore = false
+			if winningAllyID then
+				addAllyScore = applyAndGetSquareOwnership(gridID, progressChange, winningAllyID)
 			end
-
-			local allyPowers = attributeUnitPowersToAllies(units)
-
-			-- Find which ally team has the highest power in this square
-			local winningAllyTeam --zzz i think i can make winningAllyTeam a variable from a return value from a function, then later I can make a function that executes if the return value exists
-			local secondPlaceAllyTeam
-			local sortedTeams = {}
-			for team, power in pairs(allyPowers) do
-				table.insert(sortedTeams, {team = team, power = power})
-			end
-			table.sort(sortedTeams, function(a,b) return a.power > b.power end)
-			winningAllyTeam = sortedTeams[1] and sortedTeams[1].team
-			secondPlaceAllyTeam = sortedTeams[2] and sortedTeams[2].team
-
-			local powerRatio = 1
-			if winningAllyTeam and secondPlaceAllyTeam then
-
-				powerRatio = math.abs(allyPowers[secondPlaceAllyTeam] / allyPowers[winningAllyTeam] - 1) --need a value between 0 and 1
-				Spring.Echo("custom Calc powerRatio: ", powerRatio)
-			end
-			local currentOwner = captureGrid[i].allyOwner
-
-			if winningAllyTeam then
-				if currentOwner == winningAllyTeam then
-
-					-- Increment progress for current owner
-					captureGrid[i].progress = math.min(captureGrid[i].progress + PROGRESS_INCREMENT * powerRatio, MAX_PROGRESS)
-				else
-					captureGrid[i].progress = captureGrid[i].progress - (powerRatio * PROGRESS_INCREMENT)
-
-					-- Check if we need to flip ownership
-					if captureGrid[i].progress < 0 then
-						captureGrid[i].allyOwner = winningAllyTeam
-						captureGrid[i].progress = math.abs(captureGrid[i].progress)
-					end
-				end
-			
-				Spring.Echo(string.format("AllyTeam %d dominates square %d,%d with %d progress", 
-				captureGrid[i].allyOwner,
-				data.x, data.z, captureGrid[i].progress))
+			if addAllyScore then
+				allyTallies[data.allyOwnerID] = allyTallies[data.allyOwnerID] + 1
 			end
 
 			if debugmode then --to show origins of each square
 				Spring.SpawnCEG("scaspawn-trail", data.x, Spring.GetGroundHeight(data.x, data.z), data.z, 0,0,0)
 				Spring.SpawnCEG("scav-spawnexplo", data.x, Spring.GetGroundHeight(data.x, data.z), data.z, 0,0,0)
 			end
-
-			allyScores[data.allyOwner] = (allyScores[data.allyOwner] or 0) + 1
 		end
 		
-		updateAlliesScores()
-		for allyTeam, score in pairs(allyScores) do
-			if score >= defeatThreshold then
-				triggerAllyDefeat(allyTeam)
+		allyScores = convertTalliesToScores(allyTallies)
+		for allyID, score in pairs(allyScores) do
+			Spring.Echo("allyID: ", allyID, " score: ", score)
+			if allyTeamsWatch[allyID] and score >= defeatThreshold then
+				triggerAllyDefeat(allyID)
 			end
 		end
-	end
-
-	if frame % 30 == oscillatingRemainder then
-		local shouldContinue = false
-		for id, _ in pairs(squaresToRaze) do
-			local data = captureGrid[id]
-			if data.hasUnits then
-				razeSquare(id, data)
-				shouldContinue = true
-			else
-				data.allyOwner = NO_OWNER
-				data.progress = STARTING_PROGRESS
-			end
-		end
-		if not shouldContinue then
-			squaresToRaze = {}
-		end
-		oscillatingRemainder = random(0, 15)
 	end
 end
-
-
 
 function gadget:Initialize()
 	captureGrid = generateCaptureGrid()
+	updateLivingTeamsData()
 end
 
 --zzz need to spawn projectiles in the raze function to fall from the sky and destroy squares, or some other method of razing
---zzz need to extract the complicated logic in gameframe into functions
