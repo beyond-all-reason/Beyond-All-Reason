@@ -209,7 +209,7 @@ local aliveAllyTeams = {}
 local allyTeamMaxStorage = {}
 
 local tipTextTime = 0
-local Background, ShareSlider, BackgroundGuishader, tipText, drawTipText, tipY
+local Background, ShareSlider, BackgroundGuishader, tipText, tipTextTitle, drawTipText, tipY
 --local specJoinedOnce, scheduledSpecFullView
 --local prevClickedPlayer, clickedPlayerTime, clickedPlayerID
 local lockPlayerID  --leftPosX, lastSliderSound, release
@@ -1554,6 +1554,7 @@ function CreateLists(onlyMainList, onlyMainList2, onlyMainList3)
     if onlyMainList2 then
         if tipTextTime+(updateFastRate*updateFastRateMult) < os.clock() then
             tipText = nil
+			tipTextTitle = nil
             drawTipText = nil
             tipTextTime = 0
         end
@@ -3431,13 +3432,14 @@ function widget:Update(delta)
 		if leaderboardOffset then
 			local posY = widgetPosY + widgetHeight - (leaderboardOffset or 0)
 			if IsOnRect(mx, my, widgetPosX, posY, widgetPosX + widgetWidth, posY + (playerOffset*playerScale)) then
-				tipText = "\255\222\255\222"..Spring.I18N('ui.playersList.leaderboard').."\n\255\222\222\222  "..Spring.I18N('ui.playersList.leaderboardTooltip')
+				tipText = "\255\222\222\222  "..Spring.I18N('ui.playersList.leaderboardTooltip')
 				tipTextTime = os.clock()
+				tipTextTitle = Spring.I18N('ui.playersList.leaderboard')
 			end
 		end
 
         if tipText and WG['tooltip'] then
-            WG['tooltip'].ShowTooltip('advplayerlist', tipText)
+            WG['tooltip'].ShowTooltip('advplayerlist', tipText, nil, tipTextTitle)
         end
         Spring.SetMouseCursor('cursornormal')
     end
