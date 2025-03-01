@@ -1316,7 +1316,25 @@ function widget:GameFrame(frameNum)
 	end
 end
 
+local sec = 0
 function widget:Update(dt)
+	sec = sec + dt
+	if sec > 5 then
+		sec = 0
+		if WG.allyTeamRanking then
+			local drawpos = 0
+			for _, allyID in pairs(WG.allyTeamRanking) do
+				local dataID = allyIDdata[allyID]
+				if allyData[dataID] then
+					if isTeamReal(allyID) and (allyID == GetMyAllyTeamID() or inSpecMode) and allyData[dataID].isAlive then
+						drawpos = drawpos + 1
+						allyData[dataID].drawpos = drawpos
+					end
+				end
+			end
+		end
+	end
+	
 	local prevTopbarShowButtons = topbarShowButtons
 	topbarShowButtons =  WG['topbar'] and WG['topbar'].getShowButtons()
 	if topbarShowButtons ~= prevTopbarShowButtons then
