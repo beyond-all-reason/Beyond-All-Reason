@@ -1470,47 +1470,8 @@ SweetSpot(piecenum)
 	piecenum = barrel;
 }
 
-
 AimPrimary(heading, pitch)
 {
-	// if current weapon is the secondary plasma, return 0, False
-	if( weaponToggleState == 1 )
-	{
-		return(0);
-	}
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	// values in <> are degrees per second
-	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
-	// In general, 6 cau per frame ~= 1 degree per second
-	turn aimy1 to y-axis heading speed <150.000000>;
-	turn aimx1 to x-axis <0.000000> - pitch speed <50.000000>;
-	if ( (get ABS(last_primary_heading - heading)>900) OR (get ABS(last_primary_pitch - pitch)>300) )
-	{
-		// seems to take 3 frames for wait-for-turn to process
-        wait-for-turn aimy1 around y-axis;
-        wait-for-turn aimx1 around x-axis;
-	}
-	last_primary_heading = heading;
-	last_primary_pitch = pitch;
-	start-script RestoreAfterDelay();
-	// Prevent "bonus shots" while alternative weapon is reloading
-	var reloading;
-	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(2));
-	if( reloading )
-	{
-		return(0);
-	}
-	return (1);
-}
-
-AimSecondary(heading, pitch)
-{
-	// if current weapon is the primary gauss, return 0, False
-	if( weaponToggleState == 0 )
-	{
-		return(0);
-	}
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	turn aimy1 to y-axis heading speed <150.000000>;
@@ -1524,13 +1485,6 @@ AimSecondary(heading, pitch)
 	start-script RestoreAfterDelay();
 	last_primary_heading = heading;
 	last_primary_pitch = pitch;
-	// Prevent "bonus shots" while alternative weapon is reloading
-	var reloading;
-	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(1));
-	if( reloading )
-	{
-		return(0);
-	}
 	return (1);
 }
 
@@ -1539,20 +1493,7 @@ AimFromPrimary(piecenum)
 	piecenum = loturret;
 }
 
-AimFromSecondary(piecenum)
-{
-	piecenum = loturret;
-}
-
 FirePrimary()
-{
-	emit-sfx 1024 + 0 from flare;
-	move barrel to z-axis [-3.0] now;
-	sleep 150;
-	move barrel to z-axis [0.000000] speed [3.00000];
-}
-
-FireSecondary()
 {
 	emit-sfx 1024 + 1 from flare;
 	move barrel to z-axis [-3.0] now;
@@ -1565,10 +1506,6 @@ QueryPrimary(piecenum)
 	piecenum = flare;
 }
 
-QuerySecondary(piecenum)
-{
-	piecenum = flare;
-}
 // For C:\Users\ptasz\Documents\GitHub\support\Animation_sources\death_anims\armfido_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 9))
 //use call-script DeathAnim(); from Killed()
 DeathAnim() {// For C:\Users\ptasz\Documents\GitHub\support\Animation_sources\death_anims\armfido_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 9)) 
