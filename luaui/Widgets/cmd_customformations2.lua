@@ -139,7 +139,7 @@ local spGetInvertQueueKey = Spring.GetInvertQueueKey
 local spIsAboveMiniMap = Spring.IsAboveMiniMap
 local spGiveOrder = Spring.GiveOrder
 local spGetUnitIsTransporting = Spring.GetUnitIsTransporting
-local spGetCommandQueue = Spring.GetCommandQueue
+local spGetUnitCommands = Spring.GetUnitCommands
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetGroundHeight = Spring.GetGroundHeight
 local spGetFeaturePosition = Spring.GetFeaturePosition
@@ -188,7 +188,7 @@ end
 
 local function GetUnitFinalPosition(uID)
     local ux, uy, uz = spGetUnitPosition(uID)
-    local cmds = spGetCommandQueue(uID,5000)
+    local cmds = spGetUnitCommands(uID,5000)
 
 	if cmds then
 		for i = #cmds, 1, -1 do

@@ -36,7 +36,7 @@ local spValidUnitID = Spring.ValidUnitID
 local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetMouseState = Spring.GetMouseState
-local spGetCommandQueue = Spring.GetCommandQueue
+local spGetUnitCommands = Spring.GetUnitCommands
 local spGetFactoryCommands = Spring.GetFactoryCommands
 local myTeamID = Spring.GetMyTeamID()
 
@@ -149,7 +149,7 @@ local function updateList(force)
 	idleList = {}
 	local queue
 	for unitID, unitDefID in pairs(unitList) do
-		queue = unitConf[unitDefID] and spGetFactoryCommands(unitID, 1) or spGetCommandQueue(unitID, 1)
+		queue = unitConf[unitDefID] and spGetFactoryCommands(unitID, 1) or spGetUnitCommands(unitID, 1)
 		if not (queue and queue[1]) then
 			if spValidUnitID(unitID) and not spGetUnitIsDead(unitID) and not spGetUnitIsBeingBuilt(unitID) then
 				if idleList[unitDefID] then
