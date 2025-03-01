@@ -149,10 +149,8 @@ local function offerUnitForSale(unitID, sale_price, msgFromTeamID)
     end
 end
 
-local disable_unit_sharing = (
-    Spring.GetModOptions().disable_unit_sharing
- or (Spring.GetModOptions().tax_resource_sharing_amount or 0) ~= 0)
-and Spring.GetModOptions().unit_market
+local disable_unit_sharing = Spring.GetModOptions().disable_unit_sharing
+    and Spring.GetModOptions().unit_market
 local saleWhitelist = {}
 
 local function tryToBuyUnit(unitID, msgFromTeamID)
