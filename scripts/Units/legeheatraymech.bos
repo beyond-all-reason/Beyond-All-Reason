@@ -10,7 +10,7 @@ piece 	upperTorso, lArmUpperArm, lArmLowerArm, lArmGun, lArmShoulderJoint,
 		 lArmFlare, rShoulderFlare, lShoulderFlare,	lStompFlare, rStompFlare, front, front2,
 		 lArmBarrel, lArmPin, rArmBarrel, rArmPin, aaBase, aaTurret, aaBarrel, aaFlare;
 
-static-var  InMotion, restore_delay, aimingPose, wpn1_lasthead, timeLeft, isfiring1, isfiring2, timer, oldhead1, oldhead2, oldhead3, oldhead4, torsoaim, gun_4, gun_5; 			
+static-var  InMotion, restore_delay, aimingPose, wpn1_lasthead, timeLeft, isfiring1, isfiring2, timer, oldhead1, oldhead2, oldhead3, oldhead4, oldsteerheading, torsoaim, gun_4, gun_5, isturning, aimAdj; 			
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
@@ -1059,7 +1059,10 @@ Create()
 	restore_delay = 1000;
 	gun_4 = 0;
 	gun_5 = 0;
-	call-script SweepFire();
+	oldsteerheading = get HEADING;;
+	isturning = 0;
+	aimAdj = 0;
+	call-script Steering();
 	call-script CATT1_Init();
 	call-script CATT2_Init();
 }
@@ -1095,7 +1098,7 @@ Create()
 #include "../constant_acceleration_turret_turning_1.h"
 #include "../constant_acceleration_turret_turning_2.h"
 
-SweepFire()
+Steering(heading, currentSpeed)
 {
 	while (TRUE)
 	{
@@ -1109,6 +1112,17 @@ SweepFire()
             emit-sfx 2048+1 from rShoulderFlare;
 			timer = timer + 1;
 		}
+		heading = get HEADING;
+		aimAdj = (heading - oldsteerheading);
+		if ((get ABS(oldsteerheading - heading)) > <1>)
+		{
+			isturning = 1;
+		}
+		else
+		{
+			isturning = 0;
+		}
+		oldsteerheading = heading;
 		if (timer > 30)
 		{
 			timer = 0;
@@ -1147,6 +1161,9 @@ ExecuteRestoreAfterDelay(addTime)
 	oldhead4 = 0;
 	timer = 0;
 	torsoaim = 0;
+	oldsteerheading = get HEADING;;
+	isturning = 0;
+	aimAdj = 0;
 	start-script Close();
 }
 
@@ -1176,7 +1193,14 @@ AimWeapon1(heading, pitch)
 	start-script Open();
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	turn midTorso to y-axis (oldhead3+oldhead4)/2 speed <30.0000> ; //-- Turn(torso, y-axis, heading, math.rad(300))
+	if (isturning == 1)
+	{
+		turn midTorso to y-axis (oldhead3+oldhead4)/2 speed <60.0000> ;
+	}
+	if (isturning == 0)
+	{
+		turn midTorso to y-axis (oldhead3+oldhead4)/2 speed <30.0000> ;
+	}
 	var gun_xz;
     gun_xz = get PIECE_XZ(midTorso);                                //get packed gun coordinates
     var gun_x;
@@ -1258,7 +1282,14 @@ AimWeapon2(heading, pitch)
 	signal SIG_AIM_2;
 	start-script Open();
 	timer = 0;
-	turn lArmShoulderJoint to y-axis (heading - torsoaim) + <3> speed <35>;
+	if (isturning == 1)
+	{
+		turn lArmShoulderJoint to y-axis (heading - torsoaim - aimAdj) + <3> speed <70>;
+	}
+	if (isturning == 0)
+	{
+		turn lArmShoulderJoint to y-axis (heading - torsoaim) + <3> speed <35>;
+	}
 	turn lArmShoulderGun to x-axis (-1*pitch) + <35> speed <60>;
 	if (((get ABS(oldhead1 - heading)) > 65536) OR ((get ABS(oldhead1 - heading) > <1>) AND ((get ABS(oldhead1 - heading)) < 65536 - <1>)))
 	{
@@ -1308,7 +1339,14 @@ AimWeapon3(heading, pitch)
 	signal SIG_AIM_3;
 	start-script Open();
 	timer = 0;
-	turn rArmShoulderJoint to y-axis (heading - torsoaim) + <3> speed <35>;
+	if (isturning == 1)
+	{
+		turn rArmShoulderJoint to y-axis (heading - torsoaim - aimAdj) + <3> speed <70>;
+	}
+	if (isturning == 0)
+	{
+		turn rArmShoulderJoint to y-axis (heading - torsoaim) + <3> speed <35>;
+	}
 	turn rArmShoulderGun to x-axis (-1*pitch) + <35> speed <60>;
 	if (((get ABS(oldhead2 - heading)) > 65536) OR ((get ABS(oldhead2 - heading) > <1>) AND ((get ABS(oldhead2 - heading)) < 65536 - <1>)))
 	{
