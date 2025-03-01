@@ -53,6 +53,21 @@ if gadgetHandler:IsSyncedCode() then
 	if legcomDefID then
 		validStartUnits[legcomDefID] = true
 	end
+
+	local RANDOM_DUMMY = UnitDefNames.dicecom and UnitDefNames.dicecom.id
+
+	local function isUnitValid(unitDefID)
+		if not unitDefID then
+			return false
+		end
+		if validStartUnits[unitDefID] then
+			return true
+		end
+		if unitDefID == RANDOM_DUMMY then
+			return true
+		end
+	end
+
 	local teams = {} -- teams[teamID] = allyID
 	local teamsCount
 
@@ -98,13 +113,19 @@ if gadgetHandler:IsSyncedCode() then
 			local teamID = teamList[i]
 			if teamID ~= gaiaTeamID then
 				-- set & broadcast (current) start unit
-				local _, _, _, _, teamSide, teamAllyID = spGetTeamInfo(teamID, false)
-				local comDefID = armcomDefID
-				if teamSide == 'cortex' then
-					comDefID = corcomDefID
-				elseif teamSide == 'legion' then
-					comDefID = legcomDefID
+				local _, _, _, isAI, teamSide, teamAllyID = spGetTeamInfo(teamID, false)
+				local comName = Spring.GetSideData(teamSide)
+				local comDefID = UnitDefNames[comName] and UnitDefNames[comName].id
+
+				if not isUnitValid(comDefID) then
+					-- ai can't make a decision after their option is denied
+					if isAI then
+						comDefID = RANDOM_DUMMY
+					else
+						comDefID, _ =  next(validStartUnits)
+					end
 				end
+
 				spSetTeamRulesParam(teamID, startUnitParamName, comDefID, { allied = true, public = false })
 				teams[teamID] = teamAllyID
 			end
@@ -148,7 +169,7 @@ if gadgetHandler:IsSyncedCode() then
 			startUnit = tonumber(msg:match(changeStartUnitRegex))
 		end
 		local _, _, playerIsSpec, playerTeam, allyTeamID = spGetPlayerInfo(playerID, false)
-		if startUnit and validStartUnits[startUnit] then
+		if isUnitValid(startUnit) then
 			if not playerIsSpec then
 				playerStartingUnits[playerID] = startUnit
 				spSetTeamRulesParam(playerTeam, startUnitParamName, startUnit, { allied = true, public = false }) -- visible to allies only, set visible to all on GameStart
@@ -326,11 +347,14 @@ if gadgetHandler:IsSyncedCode() then
 		local luaAI = Spring.GetTeamLuaAI(teamID)
 
 		local _, _, _, isAI, sideName = spGetTeamInfo(teamID)
-		if sideName == "random" then
-			if math.random() > 0.5 then
-				startUnit = corcomDefID
-			else
-				startUnit = armcomDefID
+		if (startUnit or RANDOM_DUMMY) == RANDOM_DUMMY then
+			local roll = math.random(table.count(validStartUnits))
+			for def, _ in pairs(validStartUnits) do
+				if roll == 1 then
+					startUnit = def
+					break
+				end
+				roll = roll - 1
 			end
 		end
 
