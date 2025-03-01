@@ -1850,7 +1850,7 @@ function widget:MouseRelease(x, y, button)
 						local x,y,z = Spring.GetUnitPosition(displayUnitID)
 						local alt, ctrl, meta, shift = spGetModKeyState()
 						if shift then
-							local cmdQueue = Spring.GetCommandQueue(displayUnitID, 35) or {}
+							local cmdQueue = Spring.GetUnitCommands(displayUnitID, 35) or {}
 							if cmdQueue[1] then
 								if cmdQueue[#cmdQueue] and cmdQueue[#cmdQueue].id == CMD.MOVE and cmdQueue[#cmdQueue].params[3] then
 									x, z = cmdQueue[#cmdQueue].params[1], cmdQueue[#cmdQueue].params[3]

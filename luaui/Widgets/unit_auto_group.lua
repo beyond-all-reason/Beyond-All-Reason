@@ -275,7 +275,7 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 		finiGroup[unitID] = 1
 	end
 
-	if not immediate and ((builtInPlace[unitID] and #Spring.GetCommandQueue(unitID, 1) == 0) or builtInFrame) then
+	if not immediate and ((builtInPlace[unitID] and #Spring.GetUnitCommands(unitID, 1) == 0) or builtInFrame) then
 		local gr = unit2group[unitDefID]
 		if gr ~= nil and GetUnitGroup(unitID) == nil then
 			SetUnitGroup(unitID, gr)

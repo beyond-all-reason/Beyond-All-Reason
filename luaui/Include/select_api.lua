@@ -8,7 +8,7 @@ local defaultdamagetag = Game.armorTypes['default']
 local vtoldamagetag = Game.armorTypes['vtol']
 
 local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
-local spGetCommandQueue = Spring.GetCommandQueue
+local spGetUnitCommands = Spring.GetUnitCommands
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitGroup = Spring.GetUnitGroup
 local spGetUnitHealth = Spring.GetUnitHealth
@@ -87,7 +87,7 @@ end
 
 local function checkCmd(uid, cmdId, indexTemp)
 	local index = indexTemp or 1
-	local cmd = spGetCommandQueue(uid, index)
+	local cmd = spGetUnitCommands(uid, index)
 	if cmd and cmd[index] and cmd[index]["id"] == cmdId then
 		return true
 	end
@@ -95,7 +95,7 @@ local function checkCmd(uid, cmdId, indexTemp)
 end
 
 local function isIdle(udef, _udefid, uid)
-	return spGetCommandQueue(uid, 0) == CMD.STOP
+	return spGetUnitCommands(uid, 0) == CMD.STOP
 end
 
 local function stringContains(mainString, searchString)

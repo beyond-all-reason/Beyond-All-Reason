@@ -258,7 +258,7 @@ if gadgetHandler:IsSyncedCode() then
 		GiveWaitWaitOrder(unitID)
 
 		-- if the unit has no orders, tell it to move a little away from the airbase
-		local q = Spring.GetCommandQueue(unitID, 0)
+		local q = Spring.GetUnitCommands(unitID, 0)
 		if q == 0 then
 			local px, _, pz = spGetUnitPosition(airbaseID)
 			local theta = math_random() * 2 * math_pi

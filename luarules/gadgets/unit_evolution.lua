@@ -107,7 +107,7 @@ if gadgetHandler:IsSyncedCode() then
 				GG.SetUnitTarget(unitID, newUnit)
 			end
 
-			local cmds = Spring.GetCommandQueue(unitID, -1)
+			local cmds = Spring.GetUnitCommands(unitID, -1)
 			for j = 1, #cmds do
 				local cmd = cmds[j]
 				local params = cmd.params
@@ -142,7 +142,7 @@ if gadgetHandler:IsSyncedCode() then
 		local heading = Spring.GetUnitHeading(unitID)
 		local face = Spring.GetFacingFromHeading(heading)
 		local stockpile, stockpilequeued, stockpilebuildpercent = spGetUnitStockpile(unitID)
-		local commandQueue = Spring.GetCommandQueue(unitID, -1)
+		local commandQueue = Spring.GetUnitCommands(unitID, -1)
 		local transporter = Spring.GetUnitTransporter(unitID)
 
 		local evolution = evolutionMetaList[unitID]
