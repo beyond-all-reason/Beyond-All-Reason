@@ -1193,13 +1193,43 @@ AimWeapon1(heading, pitch)
 	start-script Open();
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	if (isturning == 1)
+	var cauaim;
+    var cauface;
+	if ((((oldhead3 > 0) AND (oldhead4 < 0) AND (oldhead3 > 15000) AND (oldhead4 < (-15000))) OR ((oldhead3 < 0) AND (oldhead4 > 0) AND (oldhead3 < (-15000)) AND (oldhead4 > 15000))) AND (15000 > get ABS(cauface - cauaim)))
 	{
-		turn midTorso to y-axis (oldhead3+oldhead4)/2 speed <60.0000> ;
+		if (((oldhead3+oldhead4)/2) < 0)
+		{
+			if (isturning == 1)
+			{
+				turn midTorso to y-axis <179> speed <60.0000> ;
+			}
+			if (isturning == 0)
+			{
+				turn midTorso to y-axis <179> speed <30.0000> ;
+			}
+		}
+		if (((oldhead3+oldhead4)/2) > 0)
+		{
+			if (isturning == 1)
+			{
+				turn midTorso to y-axis <-179> speed <60.0000> ;
+			}
+			if (isturning == 0)
+			{
+				turn midTorso to y-axis <-179> speed <30.0000> ;
+			}
+		}
 	}
-	if (isturning == 0)
+	else
 	{
-		turn midTorso to y-axis (oldhead3+oldhead4)/2 speed <30.0000> ;
+		if (isturning == 1)
+		{
+			turn midTorso to y-axis (oldhead3+oldhead4)/2 speed <60.0000> ;
+		}
+		if (isturning == 0)
+		{
+			turn midTorso to y-axis (oldhead3+oldhead4)/2 speed <30.0000> ;
+		}
 	}
 	var gun_xz;
     gun_xz = get PIECE_XZ(midTorso);                                //get packed gun coordinates
@@ -1240,8 +1270,7 @@ AimWeapon1(heading, pitch)
     face_x = hull_x - smoke_x;                                //calculate relative coordinates of the hull to the smoke (how far away it is in each direction)
     face_z = hull_z - smoke_z;
 	
-	var cauaim;
-    var cauface;
+	
     cauaim = get ATAN(aim_z, aim_x);                        //use arctan (ATAN) to calculate the angle of the turret. The result is in cau, which is the unit this code format uses for angles. Its up to 32768 (180°), positive or negative depending on direction
     cauface = get ATAN(face_z, face_x);                        //use arctan (ATAN) to calculate the angle of the hull. The result is in cau, which is the unit this code format uses for angles. Its up to 32768 (180°), positive or negative depending on direction
     
