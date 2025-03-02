@@ -1,7 +1,7 @@
 return {
 	corgator = {
 		buildpic = "CORGATOR.DDS",
-		buildtime = 1761,
+		buildtime = 2200,
 		canmove = true,
 		collisionvolumeoffsets = "0 -1 1",
 		collisionvolumescales = "30 15 38",
@@ -26,7 +26,7 @@ return {
 		script = "Units/CORGATOR.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 273,
+		sightdistance = 330,
 		speed = 85.5,
 		trackoffset = 8,
 		trackstrength = 5,
