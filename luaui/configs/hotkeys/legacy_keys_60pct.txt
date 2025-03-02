@@ -79,7 +79,6 @@ bind sc_w wait
 bind Shift+sc_w wait queued
 bind sc_x onoff
 bind Shift+sc_x onoff
-bind sc_X  trajectory_toggle
 
 bind Any+sc_l togglelos
 
