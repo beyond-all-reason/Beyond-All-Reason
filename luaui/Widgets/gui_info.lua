@@ -799,7 +799,7 @@ function widget:Update(dt)
 		return
 	end
 
-	if alwaysShow or not emptyInfo or isPregame then
+	if alwaysShow or not emptyInfo or (isPregame and not mySpec) then
 		infoShows = true
 	end
 end
@@ -2013,7 +2013,6 @@ function widget:DrawScreen()
 				end
 			end
 		elseif displayMode == 'unit' then
-
 			if WG['unitstats'] and WG['unitstats'].showUnit then
 				WG['unitstats'].showUnit(displayUnitID)
 			end
@@ -2128,9 +2127,13 @@ function checkChanges()
 	end
 
 	if displayMode == 'text' and isPregame then
-		displayMode = 'unitdef'
-		displayUnitDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
-		hideBuildlist = true
+		if not mySpec then
+			displayMode = 'unitdef'
+			displayUnitDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
+			hideBuildlist = true
+		else
+			emptyInfo = true
+		end
 	end
 end
 
