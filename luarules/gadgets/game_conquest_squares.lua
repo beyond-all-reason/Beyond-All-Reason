@@ -20,6 +20,7 @@ local MINUTES_TO_START = 5 --how many minutes until threshold can start to incre
 local MAX_TERRITORY_PERCENTAGE = 100 --how much territory/# of allies is factored in to bombardment threshold.
 local MAX_PROGRESS = 100 --how much progress a square can have
 local PROGRESS_INCREMENT = 3 --how much progress a square gains per frame
+local CONTIGUOUS_PROGRESS_INCREMENT = 0.5 --how much progress a square gains per calculation when it's contiguous
 local STATIC_POWER_MULTIPLIER = 3 --how much more conquest-power static units have over mobile units
 
 
@@ -58,6 +59,8 @@ local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(gaiaTeamID))
 local teams = Spring.GetTeamList()
 local allyTeamsCount = 0
 local defeatThreshold = 0
+local numberOfSquaresX = 0
+local numberOfSquaresZ = 0
 
 --tables
 local allyTeamsWatch = {}
@@ -66,6 +69,12 @@ local unitWatchDefs = {}
 local captureGrid = {}
 local allyScores = {}
 local squaresToRaze = {}
+
+local debugOwnershipCegs = {
+	[0] = "corpsedestroyed",
+	[1] = "botrailspawn",
+	[2] = "wallexplosion-water"
+}
 
 exemptTeams[gaiaTeamID] = true
 
@@ -81,6 +90,9 @@ for _, teamID in ipairs(teams) do --first figure out which teams are exempt
 			raptorsTeamID = teamID
 			exemptTeams[teamID] = true
 		end
+	end
+	if teamID == gaiaTeamID then
+		exemptTeams[teamID] = true
 	end
 end
 
@@ -120,18 +132,26 @@ end
 
 local function generateCaptureGrid()
 	local points = {}
-	local numSquaresX = math.ceil(mapSizeX / GRID_SIZE)
-	local numSquaresZ = math.ceil(mapSizeZ / GRID_SIZE)
 	
-	for x = 0, numSquaresX - 1 do
-		for z = 0, numSquaresZ - 1 do
+	for x = 0, numberOfSquaresX - 1 do
+		for z = 0, numberOfSquaresZ - 1 do
 			local originX = x * GRID_SIZE
 			local originZ = z * GRID_SIZE
-			points[#points + 1] = {x = originX, z = originZ, allyOwnerIDID = gaiaAllyTeamID, progress = STARTING_PROGRESS}
+			local index = x * numberOfSquaresZ + z + 1
+			points[index] = {
+				x = originX, 
+				z = originZ, 
+				middleX = originX + GRID_SIZE / 2, 
+				middleZ = originZ + GRID_SIZE / 2, 
+				allyOwnerID = gaiaAllyTeamID, 
+				progress = STARTING_PROGRESS, 
+				hasUnits = false,
+				gridX = x,
+				gridZ = z
+			}
 		end
 	end
 	return points
-
 end
 
 local function updateCurrentDefeatThreshold()
@@ -185,6 +205,7 @@ local function getAllyPowersInSquare(gridID)
 	local data = captureGrid[gridID]
 	local units = spGetUnitsInRectangle(data.x, data.z, data.x + GRID_SIZE, data.z + GRID_SIZE)
     local allyPowers = {}
+	data.hasUnits = false
     for _, unitID in ipairs(units) do
         local isFinishedBuilding = select(5, spGetUnitHealth(unitID)) == FINISHED_BUILDING
         if isFinishedBuilding then
@@ -193,6 +214,7 @@ local function getAllyPowersInSquare(gridID)
             local allyTeam = spGetUnitAllyTeam(unitID)
             
             if unitData and unitData.power and allyTeamsWatch[allyTeam] then
+				data.hasUnits = true
                 local power = unitData.power
                 if unitWatchDefs[unitDefID].isStatic then
                     power = power * 3
@@ -201,7 +223,7 @@ local function getAllyPowersInSquare(gridID)
             end
         end
     end
-	if next(allyPowers) then
+	if 	data.hasUnits then
     	return allyPowers
 	end
 end
@@ -258,9 +280,7 @@ local function applyAndGetSquareOwnership(gridID, progressChange, winningAllyID)
         data.progress = MAX_PROGRESS
     end
 	if allyTeamsWatch[data.allyOwnerID] then -- don't return a score for invalid or dead allyTeams
-		return true
-	else
-		return false
+		return data.allyOwnerID
 	end
 end
 
@@ -280,8 +300,78 @@ end
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 end
 
+
+local function getSquareContiguityProgress(gridID)
+    local data = captureGrid[gridID]
+    
+    -- Skip if this square has units or is owned by Gaia
+    if data.hasUnits then
+        return
+    end
+    
+	local neighborAllyCounts = {}
+	local topAllyCount = 0
+	local totalCount = 0
+	local NUMBER_OF_NEIGHBORS_TO_CHECK = 8
+	local allyIDToSet
+	local HALF = 0.5
+	
+	local x = data.gridX
+	local z = data.gridZ
+
+    for dx = -1, 1 do
+        for dz = -1, 1 do
+            if not (dx == 0 and dz == 0) then  -- Skip the center cell
+                local nx, nz = x + dx, z + dz
+                -- Check if neighbor is within bounds
+                if nx >= 0 and nx < numberOfSquaresX and nz >= 0 and nz < numberOfSquaresZ then
+                    local neighborID = nx * numberOfSquaresZ + nz + 1
+                    local neighborData = captureGrid[neighborID]
+                    
+                    if neighborData and allyTeamsWatch[neighborData.allyOwnerID] then
+                        neighborAllyCounts[neighborData.allyOwnerID] = (neighborAllyCounts[neighborData.allyOwnerID] or 0) + 1
+                    end
+                end
+            end
+        end
+    end
+
+	for allyID, count in pairs(neighborAllyCounts) do
+		if count > topAllyCount then
+			allyIDToSet = allyID
+			topAllyCount = count
+		end
+		totalCount = totalCount + count
+	end
+
+	if allyIDToSet and topAllyCount > totalCount * HALF then
+		if allyIDToSet ~= data.allyOwnerID then
+			return allyIDToSet, -CONTIGUOUS_PROGRESS_INCREMENT
+		else
+			return allyIDToSet, CONTIGUOUS_PROGRESS_INCREMENT
+		end
+	end
+end
+
+local function getRandomizedGridIDs(grid)
+    local randomizedIDs = {}
+    
+    -- Create a list of all grid IDs
+    for gridID in pairs(grid) do
+        table.insert(randomizedIDs, gridID)
+    end
+    
+    -- Shuffle the grid IDs using Fisher-Yates algorithm
+    for i = #randomizedIDs, 2, -1 do
+        local j = math.random(i)
+        randomizedIDs[i], randomizedIDs[j] = randomizedIDs[j], randomizedIDs[i]
+    end
+    
+    return randomizedIDs
+end
+
 function gadget:GameFrame(frame)
-	if frame % 60 == 0 then
+	if frame % 30 == 0 then
 		updateLivingTeamsData()
 		updateCurrentDefeatThreshold()
 		local allyTallies = getClearedAllyTallies()
@@ -289,25 +379,33 @@ function gadget:GameFrame(frame)
 		for gridID, data in pairs(captureGrid) do
 			local allyPowers = getAllyPowersInSquare(gridID)
 			local winningAllyID, progressChange = getCaptureProgress(gridID, allyPowers)
-
-			local addAllyScore = false
 			if winningAllyID then
-				addAllyScore = applyAndGetSquareOwnership(gridID, progressChange, winningAllyID)
+				data.ownerAllyID = applyAndGetSquareOwnership(gridID, progressChange, winningAllyID)
 			end
-			if addAllyScore then
+			if allyTeamsWatch[data.allyOwnerID] then
 				allyTallies[data.allyOwnerID] = allyTallies[data.allyOwnerID] + 1
 			end
 
 			if debugmode then --to show origins of each square
 				Spring.SpawnCEG("scaspawn-trail", data.x, Spring.GetGroundHeight(data.x, data.z), data.z, 0,0,0)
 				Spring.SpawnCEG("scav-spawnexplo", data.x, Spring.GetGroundHeight(data.x, data.z), data.z, 0,0,0)
+				if allyTeamsWatch[data.allyOwnerID] then
+					Spring.SpawnCEG(debugOwnershipCegs[data.allyOwnerID], data.middleX, Spring.GetGroundHeight(data.middleX, data.middleZ), data.middleZ, 0,0,0)
+				end
+			end
+		end
+
+		local randomizedGridIDs = getRandomizedGridIDs(captureGrid)
+		for _, gridID in ipairs(randomizedGridIDs) do
+			local contiguousAllyID, progressChange = getSquareContiguityProgress(gridID)
+			if contiguousAllyID then
+				applyAndGetSquareOwnership(gridID, progressChange, contiguousAllyID)
 			end
 		end
 		
 		allyScores = convertTalliesToScores(allyTallies)
 		for allyID, score in pairs(allyScores) do
-			Spring.Echo("allyID: ", allyID, " score: ", score)
-			if allyTeamsWatch[allyID] and score >= defeatThreshold then
+			if allyTeamsWatch[allyID] and score < defeatThreshold then
 				triggerAllyDefeat(allyID)
 			end
 		end
@@ -315,8 +413,10 @@ function gadget:GameFrame(frame)
 end
 
 function gadget:Initialize()
+	numberOfSquaresX = math.ceil(mapSizeX / GRID_SIZE)
+	numberOfSquaresZ = math.ceil(mapSizeZ / GRID_SIZE)
 	captureGrid = generateCaptureGrid()
 	updateLivingTeamsData()
 end
 
---zzz need to spawn projectiles in the raze function to fall from the sky and destroy squares, or some other method of razing
+--zzz need to spawn projectiles in the raze function to fall from the sky and destroy squares, or some other method of razin
