@@ -38,6 +38,7 @@ if SYNCED then
 	local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
 	local spGetUnitHealth = Spring.GetUnitHealth
 	local spGetUnitDefID = Spring.GetUnitDefID
+	local spGetUnitPosition = Spring.GetUnitPosition
 	local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 	local spGetGameSeconds = Spring.GetGameSeconds
 	local mapSizeX = Game.mapSizeX
@@ -73,6 +74,9 @@ if SYNCED then
 	local allyScores = {}
 	local squaresToRaze = {}
 	local allyTeamIDs = {} -- Store ally team IDs for unsynced to get colors
+	local livingCommanders = {}
+	local killQueue = {}
+	local commandersDefs = {}
 
 	local debugOwnershipCegs = {
 		[0] = "corpsedestroyed",
@@ -136,6 +140,10 @@ if SYNCED then
 			end
 		end
 		unitWatchDefs[defID] = defData
+
+		if def.customParams and def.customParams.iscommander then
+			commandersDefs[defID] = true
+		end
 	end
 
 	--custom functions
@@ -169,7 +177,7 @@ if SYNCED then
 		local totalMinutes = seconds / 60  -- Convert seconds to minutes
 		if totalMinutes < MINUTES_TO_START then return end
 
-		local progressRatio = math.min(totalMinutes - MINUTES_TO_START / MINUTES_TO_MAX, 1)
+		local progressRatio = math.min((totalMinutes - MINUTES_TO_START) / MINUTES_TO_MAX, 1)
 		local wantedThreshold = math.floor((progressRatio * MAX_TERRITORY_PERCENTAGE) / allyTeamsCount) -- do not want the threshold to be unobtainable in an exaact tie situation
 		if wantedThreshold > defeatThreshold then
 			defeatThreshold = defeatThreshold + 1
@@ -188,10 +196,27 @@ if SYNCED then
 		return allyScoreTable
 	end
 
+	local function queueCommanderTeleportRetreat(unitID)
+		local killDelayFrames = math.floor(Game.gameSpeed * 0.5)
+		local killFrame = spGetGameFrame() + killDelayFrames
+		killQueue[killFrame] = killQueue[killFrame] or {}
+		killQueue[killFrame][unitID] = true
+
+		local x,y,z = spGetUnitPosition(unitID)
+		Spring.SpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
+		Spring.PlaySoundFile("commanderspawn-mono", 1.0, x, y, z, 0, 0, 0, "sfx")
+		GG.ComSpawnDefoliate(x, y, z)
+	end
+
 	local function triggerAllyDefeat(allyID)
-		for i, data in ipairs(captureGrid) do
-			if data.allyOwnerID == allyID then
-				--squaresToRaze[i] = true
+		for teamID, _ in pairs(allyTeamsWatch[allyID]) do
+			Spring.Echo("Triggering ally defeat for teamID: ", teamID)
+			for unitID, unitTeam in pairs(livingCommanders) do
+				Spring.Echo("Checking unitID: ", unitID, "unitTeam: ", unitTeam)
+				if unitTeam == teamID then
+					Spring.Echo("Queueing commander teleport retreat for unitID: ", unitID)
+					queueCommanderTeleportRetreat(unitID)
+				end
 			end
 		end
 	end
@@ -303,13 +328,14 @@ if SYNCED then
 	end
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
+		if commandersDefs[unitDefID] then
+			livingCommanders[unitID] = unitTeam
+		end
 	end
-
-
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+		livingCommanders[unitID] = nil
 	end
-
 
 	local function getSquareContiguityProgress(gridID)
 		local data = captureGrid[gridID]
@@ -409,6 +435,16 @@ if SYNCED then
 		end
 	end
 
+	local function setAllyGridToGaia(allyID)
+		for gridID, _ in pairs(captureGrid) do
+			local data = captureGrid[gridID]
+			if data.allyOwnerID == allyID then
+				data.allyOwnerID = gaiaAllyTeamID
+				data.progress = math.min(data.progress, STARTING_PROGRESS)
+			end
+		end
+	end
+
 	function gadget:GameFrame(frame)
 		if frame % 30 == 0 then
 			updateLivingTeamsData()
@@ -444,13 +480,23 @@ if SYNCED then
 			
 			allyScores = convertTalliesToScores(allyTallies)
 			for allyID, score in pairs(allyScores) do
+				Spring.Echo("allyID: ", allyID, "score: ", score, "defeatThreshold: ", defeatThreshold)
 				if allyTeamsWatch[allyID] and score < defeatThreshold then
 					triggerAllyDefeat(allyID)
+					setAllyGridToGaia(allyID)
+					Spring.Echo("Triggering ally defeat for ", allyID, "score: ", score, "defeatThreshold: ", defeatThreshold)
 				end
 			end
 			
 			-- Send updated grid data to unsynced
 			sendGridToUnsynced()
+		end
+
+		if killQueue[frame] then
+			for unitID, _ in pairs(killQueue[frame]) do
+				Spring.DestroyUnit(unitID, false, true)
+			end
+			killQueue[frame] = nil
 		end
 	end
 
@@ -459,6 +505,11 @@ if SYNCED then
 		numberOfSquaresZ = math.ceil(mapSizeZ / GRID_SIZE)
 		captureGrid = generateCaptureGrid()
 		updateLivingTeamsData()
+
+		local units = Spring.GetAllUnits()
+		for _, unitID in ipairs(units) do
+			gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
+		end
 	end
 
 	--zzz need to spawn projectiles in the raze function to fall from the sky and destroy squares, or some other method of razin
