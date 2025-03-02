@@ -5,7 +5,7 @@ function gadget:GetInfo()
 		author = "SethDGamre",
 		date = "2025.02.08",
 		license = "GNU GPL, v2 or later",
-		layer = -1,
+		layer = -10,
 		enabled = true,
 	}
 end
@@ -17,7 +17,7 @@ if SYNCED then
 -- SYNCED CODE
 
 	--configs
-	local debugmode = true
+	local debugmode = false
 	local MINUTES_TO_MAX = 20 --how many minutes until the threshold reaches max threshold from start time
 	local MINUTES_TO_START = 5 --how many minutes until threshold can start to increment
 	local MAX_TERRITORY_PERCENTAGE = 100 --how much territory/# of allies is factored in to bombardment threshold.
@@ -72,6 +72,7 @@ if SYNCED then
 	local captureGrid = {}
 	local allyScores = {}
 	local squaresToRaze = {}
+	local allyTeamIDs = {} -- Store ally team IDs for unsynced to get colors
 
 	local debugOwnershipCegs = {
 		[0] = "corpsedestroyed",
@@ -102,6 +103,7 @@ if SYNCED then
 	local function updateLivingTeamsData()
 		allyTeamsCount = 0  -- Reset count first
 		allyTeamsWatch = {}  -- Clear existing watch list
+		allyTeamIDs = {}    -- Clear ally team IDs list
 		
 		-- Rebuild list with living teams and count allies
 		for _, teamID in ipairs(teams) do
@@ -110,6 +112,11 @@ if SYNCED then
 				if not isDead and allyTeam then
 					allyTeamsWatch[allyTeam] = allyTeamsWatch[allyTeam] or {}
 					allyTeamsWatch[allyTeam][teamID] = true
+					
+					-- Store the first team ID for each ally team
+					if not allyTeamIDs[allyTeam] then
+						allyTeamIDs[allyTeam] = teamID
+					end
 				end
 			end
 		end
@@ -373,6 +380,35 @@ if SYNCED then
 		return randomizedIDs
 	end
 
+	-- Function to send grid data to unsynced
+	local function sendGridToUnsynced()
+		local gridData = {}
+		for gridID, data in pairs(captureGrid) do
+			gridData[gridID] = {
+				x = data.x,
+				z = data.z,
+				gridX = data.gridX,
+				gridZ = data.gridZ,
+				allyOwnerID = data.allyOwnerID,
+				progress = data.progress
+			}
+		end
+		
+		-- Send the grid data and ally team IDs to unsynced
+		-- Convert tables to strings for SendToUnsynced
+		SendToUnsynced("UpdateGridData", numberOfSquaresX, numberOfSquaresZ, GRID_SIZE)
+		
+		-- Send grid data in smaller chunks to avoid data type issues
+		for gridID, data in pairs(gridData) do
+			SendToUnsynced("UpdateGridSquare", gridID, data.gridX, data.gridZ, data.allyOwnerID, data.progress)
+		end
+		
+		-- Send ally team IDs
+		for allyTeamID, teamID in pairs(allyTeamIDs) do
+			SendToUnsynced("UpdateAllyTeamID", allyTeamID, teamID)
+		end
+	end
+
 	function gadget:GameFrame(frame)
 		if frame % 30 == 0 then
 			updateLivingTeamsData()
@@ -412,6 +448,9 @@ if SYNCED then
 					triggerAllyDefeat(allyID)
 				end
 			end
+			
+			-- Send updated grid data to unsynced
+			sendGridToUnsynced()
 		end
 	end
 
@@ -433,59 +472,151 @@ local glRect = gl.Rect
 local glPushMatrix = gl.PushMatrix
 local glPopMatrix = gl.PopMatrix
 local glTranslate = gl.Translate
+local glBeginEnd = gl.BeginEnd
+local GL_QUADS = GL.QUADS
 
--- Variables for the square
+-- Spring functions
+local spGetTeamColor = Spring.GetTeamColor
+local spGetGameFrame = Spring.GetGameFrame
+
+-- Variables for the squares
 local squareOpacity = 0.7
 local minimapDrawEnabled = true
+local blinkFrame = false  -- Toggle for blinking effect
+local LOW_PROGRESS_THRESHOLD = 50  -- Progress threshold for blinking
+local BLINK_OPACITY = 0.75 --how much opacity to multiply by when blinking
+local BLINK_INTERVAL = Game.gameSpeed * 4
+local MAX_OPACITY = 0.15
+local MIN_OPACITY = 0.075
 
 -- Get map dimensions
 local mapSizeX = Game.mapSizeX
 local mapSizeZ = Game.mapSizeZ
 local GRID_SIZE = 1024 -- Same as in synced code
 
--- Function to draw a single grid square on the minimap
-local function DrawGridSquare()
-	-- Get minimap dimensions and position
-	local minimapPosX, minimapPosY, minimapSizeX, minimapSizeY, _, _ = Spring.GetMiniMapGeometry()
-	minimapPosY = minimapPosY
-	
-	-- Calculate the size of one grid square on the minimap
-	-- This converts from map coordinates to minimap coordinates
-	local gridSquareWidth = (GRID_SIZE / mapSizeX) * minimapSizeX
-	local gridSquareHeight = (GRID_SIZE / mapSizeZ) * minimapSizeY
-	
-	-- Set color to red with opacity
-	glColor(1, 0, 0, squareOpacity)
-	
-	-- Draw a rectangle in the upper left corner of the minimap
-	glRect(
-		minimapPosX,                      -- left
-		minimapPosY + minimapSizeY,       -- top
-		minimapPosX + gridSquareWidth,    -- right
-		minimapPosY + minimapSizeY - gridSquareHeight  -- bottom
-	)
-	
-	-- Reset color to white
-	glColor(1, 1, 1, 1)
+-- Tables to store grid data from synced
+local gridData = {}
+local allyTeamIDs = {}
+local allyTeamColors = {}
+local numberOfSquaresX = 0
+local numberOfSquaresZ = 0
+
+-- Function to calculate opacity based on progress
+local function getOpacityFromProgress(progress)
+    -- Map progress (0-100) to opacity (0.2-0.8)
+    return math.max(MIN_OPACITY, (progress / 100) * MAX_OPACITY)
 end
 
--- Hook into DrawScreenPost to draw our grid square AFTER the minimap
-function gadget:DrawScreenPost()
-	if minimapDrawEnabled then
-		-- Save the current matrix
-		glPushMatrix()
-		
-		-- Draw a grid square on the minimap
-		DrawGridSquare()
-		
-		-- Restore the matrix
-		glPopMatrix()
+-- Function to draw all grid squares on the minimap
+local function DrawGridSquares()
+	
+    -- Get minimap dimensions and position
+    local minimapPosX, minimapPosY, minimapSizeX, minimapSizeY = Spring.GetMiniMapGeometry()
+    
+    -- Calculate the size of one grid square on the minimap
+    local gridSquareWidth = (GRID_SIZE / mapSizeX) * minimapSizeX
+    local gridSquareHeight = (GRID_SIZE / mapSizeZ) * minimapSizeY
+    
+    -- Draw each grid square
+    for gridID, data in pairs(gridData) do
+        local allyOwnerID = data.allyOwnerID
+        local progress = data.progress
+        local gridX = data.gridX
+        local gridZ = data.gridZ
+        
+        -- Only draw if there's a valid ally team color
+        if allyTeamColors[allyOwnerID] then
+            -- Get the color for this ally team
+            local r = allyTeamColors[allyOwnerID].r
+            local g = allyTeamColors[allyOwnerID].g
+            local b = allyTeamColors[allyOwnerID].b
+            
+            -- Calculate opacity based on progress
+            local opacity = getOpacityFromProgress(progress)
+            
+            -- Apply blinking effect for low progress squares by reducing opacity
+            if progress < LOW_PROGRESS_THRESHOLD and blinkFrame then
+                opacity = opacity * BLINK_OPACITY
+            end
+            
+            -- Set color with opacity
+            glColor(r, g, b, opacity)
+            
+            -- Calculate position on minimap
+            local left = minimapPosX + (gridX * GRID_SIZE / mapSizeX) * minimapSizeX
+            local top = minimapPosY + minimapSizeY - (gridZ * GRID_SIZE / mapSizeZ) * minimapSizeY
+            local right = left + gridSquareWidth
+            local bottom = top - gridSquareHeight
+            
+            -- Draw the rectangle
+            glRect(left, top, right, bottom)
+        end
+    end
+    
+    -- Reset color to white
+    glColor(1, 1, 1, 1)
+end
+
+-- Receive grid data from synced
+function gadget:RecvFromSynced(cmd, ...)
+    local args = {...}
+    
+    if cmd == "UpdateGridData" then
+        -- Reset data structures when receiving new grid data
+        gridData = {}
+        numberOfSquaresX = args[1]
+        numberOfSquaresZ = args[2]
+        GRID_SIZE = args[3]
+    elseif cmd == "UpdateGridSquare" then
+        local gridID = args[1]
+        local gridX = args[2]
+        local gridZ = args[3]
+        local allyOwnerID = args[4]
+        local progress = args[5]
+        
+        gridData[gridID] = {
+            gridX = gridX,
+            gridZ = gridZ,
+            allyOwnerID = allyOwnerID,
+            progress = progress
+        }
+    elseif cmd == "UpdateAllyTeamID" then
+        local allyTeamID = args[1]
+        local teamID = args[2]
+        allyTeamIDs[allyTeamID] = teamID
+        
+        -- Update colors when receiving new team IDs
+        local r, g, b = spGetTeamColor(teamID)
+        allyTeamColors[allyTeamID] = {r = r, g = g, b = b}
+    end
+end
+
+-- Update function to toggle the blink state
+local updateFrame = 0
+function gadget:Update()
+	updateFrame = updateFrame + 1
+	if updateFrame % BLINK_INTERVAL == 0 then
+		blinkFrame = not blinkFrame
 	end
+end
+
+-- Hook into DrawInMiniMap to draw our grid squares on the minimap
+function gadget:DrawInMiniMap(mmsx, mmsy)
+    if minimapDrawEnabled and next(gridData) then
+        -- Save the current matrix
+        glPushMatrix()
+        
+        -- Draw all grid squares
+        DrawGridSquares()
+        
+        -- Restore the matrix
+        glPopMatrix()
+    end
 end
 
 -- Toggle function that can be called from elsewhere if needed
 function gadget:ToggleMinimapDraw()
-	minimapDrawEnabled = not minimapDrawEnabled
+    minimapDrawEnabled = not minimapDrawEnabled
 end
 
 end -- end of UNSYNCED/SYNCED split
