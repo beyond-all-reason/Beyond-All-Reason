@@ -13,7 +13,6 @@ local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 
 local CMD_SET_TARGET = 34923
 
-local allyTeam = Spring.GetMyAllyTeamID()
 local gameStarted
 
 function maybeRemoveSelf()

@@ -923,7 +923,6 @@ function widget:PlayerChanged(playerID)
 	local GetMyTeamID = Spring.GetMyTeamID ( )
 	--Spring.Echo("GetMyTeamID", GetMyTeamID)
 	]]--
-	local nowspGetSpectatingState = Spring.GetSpectatingState()
 	local nowspec, nowfullview = spGetSpectatingState()
 	local nowmyAllyTeam = Spring.GetMyAllyTeamID()
 	-- When we start, check if there are >2 allyteams
