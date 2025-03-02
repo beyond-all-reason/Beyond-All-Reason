@@ -677,24 +677,19 @@ function widget:TextCommand(command)
 end
 
 local function DrawEText(numberE, vOffset)
-	if cfgResText then
-		local label = string.formatSI(numberE)
-		font:Begin()
-		font:SetTextColor({ 1, 1, 0, 1 })
-		font:Print(label or "", widgetPosX + widgetWidth - (5 * sizeMultiplier), widgetPosY + widgetHeight - vOffset + (tH * 0.22), tH / 2.3, 'rs')
-		font:End()
-	end
+	local label = string.formatSI(numberE)
+	font:Begin()
+	font:SetTextColor({ 1, 1, 0, 1 })
+	font:Print(label or "", widgetPosX + widgetWidth - (5 * sizeMultiplier), widgetPosY + widgetHeight - vOffset + (tH * 0.22), tH / 2.3, 'rs')
+	font:End()
 end
 
 local function DrawMText(numberM, vOffset)
-	vOffset = vOffset - (borderPadding * 0.5)
-	if cfgResText then
-		local label = string.formatSI(numberM)
-		font:Begin()
-		font:SetTextColor({ 0.85, 0.85, 0.85, 1 })
-		font:Print(label or "", widgetPosX + widgetWidth - (5 * sizeMultiplier), widgetPosY + widgetHeight - vOffset + (tH * 0.58), tH / 2.3, 'rs')
-		font:End()
-	end
+	local label = string.formatSI(numberM)
+	font:Begin()
+	font:SetTextColor({ 0.85, 0.85, 0.85, 1 })
+	font:Print(label or "", widgetPosX + widgetWidth - (5 * sizeMultiplier), widgetPosY + widgetHeight - vOffset + (borderPadding * 0.5) + (tH * 0.58), tH / 2.3, 'rs')
+	font:End()
 end
 
 local function DrawEBar(tE, tEp, vOffset)
@@ -1036,7 +1031,6 @@ local function drawListStandard()
 	end
 
 	if os.clock() > lastBarsUpdate + 0.15 then
-		updateTextLists = true
 		lastBarsUpdate = os.clock()
 		maxMetal, maxEnergy = 0, 0
 		for _, data in ipairs(allyData) do
@@ -1064,10 +1058,6 @@ local function drawListStandard()
 		end
 	end
 
-	if maxMetal == 0 or maxEnergy == 0 then
-		return -- protect from NaN
-	end
-
 	for _, data in ipairs(allyData) do
 		local aID = data.aID
 		if aID ~= nil then
@@ -1080,17 +1070,17 @@ local function drawListStandard()
 				local posy = tH * (drawpos)
 				local t = GetGameSeconds()
 				if data.isAlive and t > 0 and gamestarted and not gameover then
-					DrawEBar(avgData[aID].tE / maxEnergy, (avgData[aID].tE - avgData[aID].tEr) / maxEnergy, posy - 1)
-				end
-				if data.isAlive and t > 5 and not gameover then
-					DrawMBar(avgData[aID].tM / maxMetal, (avgData[aID].tM - avgData[aID].tMr) / maxMetal, posy + 2)
+					if maxEnergy > 0 then
+						DrawEBar(avgData[aID].tE / maxEnergy, (avgData[aID].tE - avgData[aID].tEr) / maxEnergy, posy - 1)
+					end
+					if maxEnergy > 0 then
+						DrawMBar(avgData[aID].tM / maxMetal, (avgData[aID].tM - avgData[aID].tMr) / maxMetal, posy + 2)
+					end
 				end
 				if updateTextLists then
 					textLists[aID] = gl.CreateList(function()
-						if data.isAlive and t > 0 and gamestarted and not gameover then
+						if cfgResText and data.isAlive and t > 0 and gamestarted and not gameover then
 							DrawEText(avgData[aID].tE, posy)
-						end
-						if data.isAlive and t > 5 and not gameover then
 							DrawMText(avgData[aID].tM, posy)
 						end
 					end)
