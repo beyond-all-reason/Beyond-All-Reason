@@ -379,8 +379,6 @@ for id = 1, #UnitDefs do
 	if not cusUnitMaterials[id] and udef.modeltype == "s3o" then
 
 		local udefCM = udef.customParams
-		local lm = tonumber(udefCM.lumamult) or 1
-		local scvd = tonumber(udefCM.scavvertdisp) or 0
 
 		local udefName = udef.name or ""
 		local facName = string.sub(udefName, 1, 3)
