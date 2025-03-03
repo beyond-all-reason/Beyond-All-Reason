@@ -6,7 +6,7 @@ return {
 		buildangle = 8192,
 		energycost = 850,
 		metalcost = 32,
-		buildpic = "COREYES.DDS",
+		buildpic = "legeyes.DDS",
 		buildtime = 750,
 		canrepeat = false,
 		collisionvolumeoffsets = "0 0 0",

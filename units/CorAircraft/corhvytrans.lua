@@ -39,6 +39,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0,
 			subfolder = "CorAircraft",
+			crashable = 0,
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {

@@ -16,7 +16,7 @@ local canOutline
 local haveTerrainOutline
 local haveUnitsOutline
 
-local LuaShader = VFS.Include("LuaUI/Widgets/Include/LuaShader.lua")
+local LuaShader = VFS.Include("LuaUI/Include/LuaShader.lua")
 local shieldShader
 local checkStunned = true
 

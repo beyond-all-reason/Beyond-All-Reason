@@ -19,13 +19,12 @@ local iconSequenceNum = 59	-- always starts at 1
 local iconSequenceFrametime = 0.02	-- duration per frame
 
 local unitScope = {} -- table of teamid to table of stallable unitID : unitDefID
-local teamList = {} -- {team1, team2, team3....}
 local idleUnitList = {}
 
-local spGetCommandQueue = Spring.GetCommandQueue
+local spGetUnitCommands = Spring.GetUnitCommands
 local spGetFactoryCommands = Spring.GetFactoryCommands
 local spGetUnitTeam = Spring.GetUnitTeam
-local spec, fullview = Spring.GetSpectatingState()
+local spec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
 local spValidUnitID = Spring.ValidUnitID
 local spGetUnitIsDead = Spring.GetUnitIsDead
@@ -46,7 +45,7 @@ end
 -- GL4 Backend stuff:
 local iconVBO = nil
 local energyIconShader = nil
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 
 local function initGL4()
 	local DrawPrimitiveAtUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
@@ -62,7 +61,7 @@ local function initGL4()
 	shaderConfig.BREATHESIZE = 0--0.1
   -- MATCH CUS position as seed to sin, then pass it through geoshader into fragshader
 	--shaderConfig.POST_VERTEX = "v_parameters.w = max(-0.2, sin(timeInfo.x * 2.0/30.0 + (v_centerpos.x + v_centerpos.z) * 0.1)) + 0.2; // match CUS glow rate"
-	shaderConfig.POST_GEOMETRY = " gl_Position.z = (gl_Position.z) - 512.0 / (gl_Position.w); // send 16 elmos forward in depth buffer"
+	shaderConfig.ZPULL = 512.0 -- send 16 elmos forward in depth buffer"
 	shaderConfig.POST_SHADING = "fragColor.rgba = vec4(texcolor.rgb, texcolor.a * g_uv.z);"
 	shaderConfig.MAXVERTICES = 4
 	shaderConfig.USE_CIRCLES = nil
@@ -80,7 +79,6 @@ end
 
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
-	teamList = fullview and Spring.GetTeamList() or Spring.GetTeamList(Spring.GetMyAllyTeamID())
 	clearInstanceTable(iconVBO) -- clear all instances
 	unitScope = {}
 	for unitID, unitDefID in pairs(extVisibleUnits) do
@@ -105,7 +103,7 @@ local function updateIcons()
 	local gf = Spring.GetGameFrame()
 	local queue
 	for unitID, unitDefID in pairs(unitScope) do
-		queue = unitConf[unitDefID][3] and spGetFactoryCommands(unitID, 1) or spGetCommandQueue(unitID, 1)
+		queue = unitConf[unitDefID][3] and spGetFactoryCommands(unitID, 1) or spGetUnitCommands(unitID, 1)
 		if not (queue and queue[1]) then
 			if iconVBO.instanceIDtoIndex[unitID] == nil then -- not already being drawn
 				if spValidUnitID(unitID) and not spGetUnitIsDead(unitID) and not spGetUnitIsBeingBuilt(unitID) then

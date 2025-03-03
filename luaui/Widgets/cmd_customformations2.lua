@@ -21,7 +21,7 @@ end
 -- To deselect non-default command and return to default command: right click and don't drag
 -- To deselect default command: left click
 
-local getMiniMapFlipped = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").getMiniMapFlipped
+local getMiniMapFlipped = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapFlipped
 local dotImage			= "LuaUI/Images/formationDot.dds"
 
 
@@ -139,7 +139,7 @@ local spGetInvertQueueKey = Spring.GetInvertQueueKey
 local spIsAboveMiniMap = Spring.IsAboveMiniMap
 local spGiveOrder = Spring.GiveOrder
 local spGetUnitIsTransporting = Spring.GetUnitIsTransporting
-local spGetCommandQueue = Spring.GetCommandQueue
+local spGetUnitCommands = Spring.GetUnitCommands
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetGroundHeight = Spring.GetGroundHeight
 local spGetFeaturePosition = Spring.GetFeaturePosition
@@ -188,7 +188,7 @@ end
 
 local function GetUnitFinalPosition(uID)
     local ux, uy, uz = spGetUnitPosition(uID)
-    local cmds = spGetCommandQueue(uID,5000)
+    local cmds = spGetUnitCommands(uID,5000)
 
 	if cmds then
 		for i = #cmds, 1, -1 do
@@ -205,7 +205,7 @@ local function GetUnitFinalPosition(uID)
 						local pID = params[1]
 						local px, py, pz
 
-						if pID > maxUnits then
+						if pID >= maxUnits then
 							px, py, pz = spGetFeaturePosition(pID - maxUnits)
 						else
 							px, py, pz = spGetUnitPosition(pID)

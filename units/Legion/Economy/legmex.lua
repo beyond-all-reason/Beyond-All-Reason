@@ -15,6 +15,7 @@ return {
 		collisionvolumescales = "48 30 48",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
+		-- negative energyupkeep means it's conditional so when unit is off won't produce
 		energyupkeep = -7,
 		explodeas = "smallBuildingexplosiongeneric",
 		extractsmetal = 0.0008,
@@ -35,7 +36,7 @@ return {
 		yardmap = "h cbbbbbbc bsbssbsb bbobbobb bsbbbbsb bsbbbbsb bbobbobb bsbssbsb cbbbbbbc",
 		customparams = {
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/cormex_aoplane.dds",
+			buildinggrounddecaltype = "decals/legmex_aoplane.dds",
 			buildinggrounddecalsizey = 5,
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,

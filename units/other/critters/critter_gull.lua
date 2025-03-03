@@ -46,6 +46,7 @@ return {
 			paralyzemultiplier = 0,
 			nohealthbars = true,
 			subfolder = "other/critters",
+			crashable = 0,
 		},
 --		weapondefs = {
 --			gullbomb = {

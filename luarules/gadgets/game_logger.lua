@@ -71,7 +71,7 @@ else
 		end
 	end
 
-	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 		--Spring.Echo("gadget:UnitDestroyed", unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 		-- Only send a message from the attacker, when attacking a different team
 		if (not mySpec and attackerTeam == myTeamID) and (unitTeam ~= attackerTeam) then 

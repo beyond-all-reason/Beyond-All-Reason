@@ -111,7 +111,6 @@ return {
 			cormexp_rocket = {
 				areaofeffect = 128,
 				avoidfeature = false,
-				burnblow = true,
 				burst = 5,
 				burstrate = 0.3,
 				cegtag = "missiletrailsmall",
@@ -143,6 +142,11 @@ return {
 					default = 260,
 					vtol = 45,
 				},
+				customparams = {
+					exclude_preaim = true,
+					overrange_distance = 748,
+					projectile_destruction_method = "descend",
+				}
 			},
 			corsumo_weapon = {
 				areaofeffect = 12,
@@ -178,6 +182,9 @@ return {
 					default = 215,
 					vtol = 50,
 				},
+				customparams = {
+					exclude_preaim = true
+				}
 			},
 		},
 		weapons = {

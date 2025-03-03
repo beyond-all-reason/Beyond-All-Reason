@@ -116,7 +116,6 @@ return {
 			banisher = {
 				areaofeffect = 128,
 				avoidfeature = false,
-				burnblow = true,
 				cegtag = "missiletraillarge-red",
 				craterareaofeffect = 128,
 				craterboost = 0,
@@ -125,7 +124,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-large-bomb",
 				firestarter = 20,
 				flighttime = 2.33,
-				impulsefactor = 0.123,
+				impulsefactor = 0.9,
 				model = "banishermissile.s3o",
 				name = "Banisher",
 				noselfdamage = true,
@@ -155,6 +154,10 @@ return {
 				damage = {
 					default = 1000,
 					subs = 500,
+				},
+				customparams = {
+					projectile_destruction_method = "descend",
+					overrange_distance = 920,
 				},
 			},
 		},

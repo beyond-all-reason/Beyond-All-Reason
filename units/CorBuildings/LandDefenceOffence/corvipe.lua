@@ -145,6 +145,11 @@ return {
 					subs = 5,
 					vtol = 26,
 				},
+				customparams = {
+					exclude_preaim = true,
+					overrange_distance = 840,
+					projectile_destruction_method = "descend",
+				}
 			},
 		},
 		weapons = {

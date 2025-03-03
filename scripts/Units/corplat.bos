@@ -1,14 +1,19 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
+#include "../factories_common.h"
 
-piece  base, pad, beam1, beam2, beam3, beam4, nano1,nano2,nano3,nano4;
+piece  base, pad, beam1, beam2, beam3, beam4, nano1, nano2, nano3, nano4, cagelight1, cagelight_emit1, cagelight2, cagelight_emit2;
 
-static-var  spray, unitviewer, statechg_DesiredState, statechg_StateChanging;
+static-var  spray;
 
 // Signal definitions
-#define SIG_ACTIVATE			2
+#define SIGNAL_TURNON 4
+
+
+#define WATER_ROCK_UNITSIZE 23
+#define WATER_ROCK_AMPLITUDE <1.5>
+#define WATER_ROCK_FREQ_Y 0
+#include "../floatmotion.h"
 
 
 #define BASEPIECE base
@@ -17,111 +22,8 @@ static-var  spray, unitviewer, statechg_DesiredState, statechg_StateChanging;
 #define UNITSIZE 10
 #define MAXTILT 200
 
-#include "unit_hitbyweaponid_and_smoke.h"
+#include "../unit_hitbyweaponid_and_smoke.h"
 
-activatescr()
-{
-	move base to y-axis [0.000000] now;
-	move base to y-axis [28] speed [25.000000];
-	sleep 735;
-	set ARMORED to 0;
-
-}
-
-deactivatescr()
-{
-	move base to y-axis [28.000000] now;
-	move base to y-axis [0.000000] speed [25.000000];
-	sleep 738;
-	set ARMORED to 1;
-}
-
-
-RockOnWaves()
-{
-	var rockDir, rockAng, rockSpeed;
-	rockDir = <-0.1>;
-	rockAng = <-0.1>;
-	while( TRUE )
-	{
-		while( get ABS(rockAng) < <1.31> )
-		{
-			rockSpeed = <1.45> - get ABS(rockAng);
-			turn base to x-axis rockAng speed rockSpeed*5;
-			turn base to z-axis rockAng speed rockSpeed*5;
-			wait-for-turn base around x-axis;
-			wait-for-turn base around z-axis;
-			rockAng = rockAng + rockDir;
-		}
-		rockDir = 0 - rockDir;
-		rockAng = rockAng + rockDir + rockDir;
-	}
-}
-
-
-OpenYard()
-{
-	set YARD_OPEN to 1;
-	while( !get YARD_OPEN )
-	{
-		set BUGGER_OFF to 1;
-		sleep 1500;
-		set YARD_OPEN to 1;
-	}
-}
-
-CloseYard()
-{
-	set YARD_OPEN to 0;
-	while( get YARD_OPEN )
-	{
-		set BUGGER_OFF to 1;
-		sleep 1500;
-		set YARD_OPEN to 0;
-	}
-}
-
-Go()
-{
-
-	call-script activatescr();
-	call-script OpenYard();
-	set INBUILDSTANCE to 1;
-}
-
-Stop()
-{
-	set INBUILDSTANCE to 0;
-	call-script CloseYard();
-	call-script deactivatescr();
-
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-		else
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
 
 Create()
 {
@@ -129,61 +31,48 @@ Create()
 	hide nano3;
 	hide nano1;
 	hide nano2;
-	unitviewer = FALSE;
-	spray = base;
-	set ARMORED to 1;
-	move base to y-axis [5.000000] now;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 1000;
-	}
-	move base to y-axis [0.000000] speed [10.000000];
-	start-script RockOnWaves();
+	hide cagelight_emit1;
+	hide cagelight_emit2;
+	start-script Deactivate();
+	spray = nano1;
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script FloatMotion();
 }
 
-QueryNanoPiece(piecenum)
+QueryNanoPiece(pieceIndex)
 {
-	if( spray ==0)
-	{
-		piecenum = beam1;
-	}
-	
-	if( spray ==1)
-	{
-		piecenum = beam2;
-	}
-	
-	if( spray ==2)
-	{
-		piecenum = beam3;
-	}
-	
-	if( spray ==3)
-	{
-		piecenum = beam4;
-	}
-	spray=spray+1;
-	if (spray>3)
-	{
-		spray = 0;
-	};
+
+	spray = (spray + 1) % 4;
+	pieceIndex = nano1 + spray;
 }
 
 Activate()
 {
-	signal SIG_ACTIVATE;
-	start-script RequestState(0);
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	
+	move base to y-axis [35] speed [35.0];
+	wait-for-move base along y-axis;
+	
+	set ARMORED to 0;
+	set INBUILDSTANCE to 1;
+	
+	FACTORY_OPEN_BUILD;
 }
 
 Deactivate()
 {
-	signal SIG_ACTIVATE;
-	set-signal-mask SIG_ACTIVATE;
-  sleep 5000;
-	set-signal-mask 0;
-	start-script RequestState(1);
+	signal SIGNAL_TURNON;
+	set-signal-mask SIGNAL_TURNON;
+	sleep 5000;
+	
+	move base to y-axis [-15.0] speed [35.0];
+	wait-for-move base along y-axis;
+	
+	set ARMORED to 1;
+	set INBUILDSTANCE to 0;
+	
+	FACTORY_CLOSE_BUILD;
 }
 
 StartBuilding()
@@ -192,7 +81,12 @@ StartBuilding()
 	show nano2;
 	show nano3;
 	show nano4;
-	spin pad around y-axis speed <30.005495>;
+	spin pad around y-axis speed <10>;
+	
+	show cagelight_emit1;
+	show cagelight_emit2;
+	spin cagelight1 around y-axis speed <200> accelerate <1>;
+	spin cagelight2 around y-axis speed <-200> accelerate <1>;
 }
 
 StopBuilding()
@@ -202,16 +96,16 @@ StopBuilding()
 	hide nano3;
 	hide nano4;
 	stop-spin pad around y-axis;
+	
+	hide cagelight_emit1;
+	hide cagelight_emit2;
+	stop-spin cagelight1 around y-axis decelerate <1>;
+	stop-spin cagelight2 around y-axis decelerate <1>;
 }
 
-QueryBuildInfo(piecenum)
+QueryBuildInfo(pieceIndex)
 {
-	piecenum = pad;
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
+	pieceIndex = pad;
 }
 
 Killed(severity, corpsetype)

@@ -30,7 +30,7 @@ return {
 		yardmap = "h cbgybsyybc bsbssbbssb ysbsbssbbg ybsssbsssy sbsbsssbsb bsbsssbsbs ysssbsssby gbbssbsbsy bssbbssbsb cbyysbygbc",
 		customparams = {
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/LEGAGEO_aoplane.dds",
+			buildinggrounddecaltype = "decals/legageo_aoplane.dds",
 			buildinggrounddecalsizey = 8,
 			buildinggrounddecalsizex = 8,
 			buildinggrounddecaldecayspeed = 30,

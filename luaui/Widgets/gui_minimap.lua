@@ -10,7 +10,7 @@ function widget:GetInfo()
 	}
 end
 
-local minimapToWorld = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").minimapToWorld
+local minimapToWorld = VFS.Include("luaui/Include/minimap_utils.lua").minimapToWorld
 
 local maxAllowedWidth = 0.26
 local maxAllowedHeight = 0.32

@@ -7,6 +7,7 @@ function widget:GetInfo()
 		license = "Lua code: GNU GPL, v2 or later, Shader GLSL code: (c) Beherith (mysterme@gmail.com)",
 		layer = 999,
 		enabled = true,
+		depends = {'gl4'},
 	}
 end
 
@@ -214,7 +215,7 @@ local decalExtraLargeVBO = nil
 local decalShader = nil
 local decalLargeShader = nil
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 
 local hasBadCulling = false -- AMD+Linux combo
 
@@ -239,15 +240,15 @@ local spec, fullview = Spring.GetSpectatingState()
 
 ---- GL4 Backend Stuff----
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 
-local vsSrcPath = "LuaUI/Widgets/Shaders/decals_gl4.vert.glsl"
-local fsSrcPath = "LuaUI/Widgets/Shaders/decals_gl4.frag.glsl"
-local gsSrcPath = "LuaUI/Widgets/Shaders/decals_gl4.geom.glsl"
+local vsSrcPath = "LuaUI/Shaders/decals_gl4.vert.glsl"
+local fsSrcPath = "LuaUI/Shaders/decals_gl4.frag.glsl"
+local gsSrcPath = "LuaUI/Shaders/decals_gl4.geom.glsl"
 
-local vsSrcLargePath = "LuaUI/Widgets/Shaders/decals_large_gl4.vert.glsl"
+local vsSrcLargePath = "LuaUI/Shaders/decals_large_gl4.vert.glsl"
 
 local uniformInts =  {
 
@@ -1925,10 +1926,6 @@ local function UnitScriptDecal(unitID, unitDefID, whichDecal, posx, posz, headin
 end
 
 function widget:Initialize()
-	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
-		widgetHandler:RemoveWidget()
-		return
-	end
 	local t0 = Spring.GetTimer()
 	--if makeAtlases() == false then
 	--	goodbye("Failed to init texture atlas for DecalsGL4")

@@ -13,7 +13,7 @@ return {
 		canmove = true,
 		canpatrol = true,
 		canstop = "1",
-		cantbetransported = false,
+		cantbetransported = true,
 		capturable = false,
 		category = "OBJECT",
 		defaultmissiontype = "Standby",

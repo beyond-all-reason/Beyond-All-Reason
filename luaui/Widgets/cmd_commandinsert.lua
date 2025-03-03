@@ -102,10 +102,10 @@ end
 --]]
 
 local function GetUnitOrFeaturePosition(id)
-	if id <= Game.maxUnits then
+	if id < Game.maxUnits then
 		return Spring.GetUnitPosition(id)
 	else
-		return Spring.GetFeaturePosition(id-Game.maxUnits)
+		return Spring.GetFeaturePosition(id - Game.maxUnits)
 	end
 end
 
@@ -157,7 +157,7 @@ function widget:CommandNotify(id, params, options)
   local units = Spring.GetSelectedUnits()
   for i=1,#units do
     local unit_id = units[i]
-    local commands = Spring.GetCommandQueue(unit_id,100)
+    local commands = Spring.GetUnitCommands(unit_id,100)
     local px,py,pz = Spring.GetUnitPosition(unit_id)
     local min_dlen = 1000000
     local insert_pos = 0

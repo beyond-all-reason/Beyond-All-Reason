@@ -45,8 +45,8 @@ function SpawnAssistTurret(unitID, unitDefID, unitTeam)
     local spawnpadunit = spawnpads[unitDefID]
     local spawnpadID
     for k = 1,10000 do
-        posx = posx + math.random(-k-64, k+64)
-        posz = posz + math.random(-k-64, k+64)
+        posx = math.ceil((posx + math.random(-k-64, k+64))/16)*16
+        posz = math.ceil((posz + math.random(-k-64, k+64))/16)*16
         posy = Spring.GetGroundHeight(posx, posz)
         local canSpawnTurret = positionCheckLibrary.FlatAreaCheck(posx, posy, posz, 96)
         if canSpawnTurret then
@@ -72,7 +72,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
     end
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
     if commandersList[unitID] then
         commandersList[unitID] = nil
     end

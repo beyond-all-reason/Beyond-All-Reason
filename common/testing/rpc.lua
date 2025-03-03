@@ -91,6 +91,9 @@ function RPC:deserializeFunctionCall(serializedCall, env)
 
 	local callableFunction = function()
 		local pcallOk, pcallResult = Util.splitFirstElement(Util.pack(pcall(fn, unpack(data.args))))
+		if not pcallOk then
+			pcallResult = pcallResult[1]
+		end
 		return pcallOk, pcallResult
 	end
 
@@ -134,6 +137,9 @@ function RPC:deserializeFunctionRun(serializedFn)
 
 	local callableFunction = function()
 		local pcallOk, pcallResult = Util.splitFirstElement(Util.pack(pcall(data.fn, localsDictionary)))
+		if not pcallOk then
+			pcallResult = pcallResult[1]
+		end
 		return pcallOk, pcallResult
 	end
 

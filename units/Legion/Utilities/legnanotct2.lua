@@ -19,7 +19,6 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "46 80 46",
 		collisionvolumetype = "CylY",
-		energyupkeep = 30,
 		explodeas = "nanoboom",
 		footprintx = 4,
 		footprintz = 4,
@@ -42,8 +41,8 @@ return {
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/legnanotct2_aoplane.dds",
-			buildinggrounddecalsizey = 5,
-			buildinggrounddecalsizex = 5,
+			buildinggrounddecalsizey = 6,
+			buildinggrounddecalsizex = 6,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'builder',
 			model_author = "Tharsis",

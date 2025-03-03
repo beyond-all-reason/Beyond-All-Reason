@@ -12,7 +12,6 @@ return {
 		energycost = 6900,
 		energymake = 14,
 		energystorage = 100,
-		energyupkeep = 14,
 		explodeas = "mediumexplosiongeneric-builder",
 		footprintx = 2,
 		footprintz = 2,

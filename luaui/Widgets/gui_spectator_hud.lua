@@ -49,7 +49,7 @@ metrics or changing from spectating view to player view.
 local viewScreenWidth
 local viewScreenHeight
 
-local includeDir = "LuaUI/Widgets/Include/"
+local includeDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(includeDir .. "LuaShader.lua")
 
 local mathfloor = math.floor
@@ -62,7 +62,7 @@ local gaiaID = Spring.GetGaiaTeamID()
 local gaiaAllyID = select(6, Spring.GetTeamInfo(gaiaID, false))
 
 local widgetEnabled = nil
-local ecostatsWidget = nil
+local ecostatsHidden = false
 
 local haveFullView = false
 
@@ -86,6 +86,7 @@ local regenerateTextTextures = true
 local titleTexture = nil
 local titleTextureDone = false
 local statsTexture = nil
+local updateNow = false
 
 local knobVertexShaderSource = [[
 #version 420
@@ -1710,10 +1711,10 @@ end
 
 local function addMiddleKnobs()
 	for metricIndex,_ in ipairs(metricsEnabled) do
-		local bottom = widgetDimensions.top - metricIndex * metricDimensions.height
+		local bottom = widgetDimensions.top - metricIndex * metricDimensions.height + 1.0
 		local textBottom = bottom + titleDimensions.padding
 
-		local middleKnobLeft = (knobDimensions.rightKnobLeft + knobDimensions.leftKnobRight) / 2 - knobDimensions.width
+		local middleKnobLeft = (knobDimensions.rightKnobLeft + knobDimensions.leftKnobRight) / 2 - knobDimensions.width / 2
 		local middleKnobBottom = textBottom
 
 		local middleKnobColor = colorKnobMiddleGrey
@@ -1824,16 +1825,17 @@ end
 
 local function hideEcostats()
 	if widgetEnabled and widgetHandler:IsWidgetKnown("Ecostats") then
-		ecostatsWidget = widgetHandler:FindWidget("Ecostats")
+		local ecostatsWidget = widgetHandler:FindWidget("Ecostats")
 		if (not ecostatsWidget) then return end
+		ecostatsHidden = true
 		widgetHandler:RemoveWidget(ecostatsWidget)
 	end
 end
 
 local function showEcostats()
-	if ecostatsWidget then
-		widgetHandler:InsertWidget(ecostatsWidget)
-		ecostatsWidget = nil
+	if ecostatsHidden then
+		widgetHandler:EnableWidget("Ecostats")
+		ecostatsHidden = false
 	end
 end
 
@@ -1884,8 +1886,8 @@ local function init()
 
 	if haveFullView then
 		updateStats()
-
 		moveMiddleKnobs()
+		updateNow = true
 	end
 end
 
@@ -1957,6 +1959,7 @@ end
 
 function widget:Shutdown()
 	deInit()
+	WG["spectator_hud"] = {}
 	showEcostats()
 
 	if shader then
@@ -2067,10 +2070,11 @@ function widget:GameFrame(frameNum)
 		addMiddleKnobs()
 	end
 
-	if frameNum % settings.statsUpdateFrequency == 1 then
+	if frameNum % settings.statsUpdateFrequency == 1 or updateNow then
 		updateStats()
 
 		moveMiddleKnobs()
+		updateNow = false
 	end
 end
 

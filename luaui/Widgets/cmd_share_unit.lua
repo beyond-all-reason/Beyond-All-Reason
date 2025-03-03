@@ -130,7 +130,11 @@ local function getMouseTargetPosition()
 			return mouseTarget[1], mouseTarget[2], mouseTarget[3]
 		elseif mouseTargetType == "unit" then
 			local _, coordinates = TraceScreenRay(mx, my, true)
-			return coordinates[1], coordinates[2], coordinates[3], mouseTarget
+			if coordinates then
+				return coordinates[1], coordinates[2], coordinates[3], mouseTarget
+			else
+				return nil, nil, nil, mouseTarget
+			end
 		elseif mouseTargetType == "feature" then
 			local _, coordinates = TraceScreenRay(mx, my, true)
 			if coordinates then
@@ -241,7 +245,7 @@ local function findTeamInArea(mx, my)
 		return nil
 	end
 
-	local foundUnits = GetUnitsInCylinder(cUnitID[1], cUnitID[3], range)
+	local foundUnits = GetUnitsInCylinder(cUnitID[1], cUnitID[3], range, -3)
 
 	if #foundUnits < 1 then
 		return nil
@@ -251,7 +255,7 @@ local function findTeamInArea(mx, my)
 
 	for _, unitId in ipairs(foundUnits) do
 		local unitTeamId = GetUnitTeam(unitId)
-		if isAlly(unitTeamId) then
+		if unitTeamId ~= myTeamID then
 			unitTeamId = tostring(unitTeamId)
 			if unitTeamCounters[unitTeamId] == nil then
 				unitTeamCounters[unitTeamId] = 1
@@ -285,7 +289,7 @@ local function getSelectedTeam()
 
 	local tx, ty, tz, targetUnitID = getMouseTargetPosition()
 
-	if (not tx) then
+	if (not tx and not targetUnitID) then
 		return nil
 	end
 

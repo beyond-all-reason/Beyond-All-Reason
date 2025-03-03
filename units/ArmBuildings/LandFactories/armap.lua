@@ -5,7 +5,7 @@ return {
 		buildpic = "ARMAP.DDS",
 		buildtime = 7250,
 		canmove = true,
-		collisionvolumeoffsets = "0 0 1",
+		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "134 49 82",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",

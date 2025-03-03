@@ -1,7 +1,13 @@
 
 #include "../recoil_common_includes.h"
 
-piece  base, dish, turret, eye, fwheel, rwheel;
+//piece  base, dish, turret, eye, fwheel, rwheel;
+piece 	chassis, dishTower, 
+		dishAStrut, dishA, dishATop1, dishATop2, dishABot1, dishABot2,
+		dishBStrut, dishB, dishBTop1, dishBTop2, dishBBot1, dishBBot2,
+		dishCStrut, dishC, dishCTop1, dishCTop2, dishCBot1, dishCBot2,
+		dishDStrut, dishD, dishDTop1, dishDTop2, dishDBot1, dishDBot2,
+		lTrack, rTrack, trackGuards;
 
 static-var  Stunned;
 

@@ -347,7 +347,7 @@ end
 
 local function reloadBindings()
 	currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
-	actionHotkeys = VFS.Include("luaui/Widgets/Include/action_hotkeys.lua")
+	actionHotkeys = VFS.Include("luaui/Include/action_hotkeys.lua")
 end
 
 function widget:Initialize()
@@ -616,7 +616,7 @@ local function drawCell(cell, zoom)
 					if isFactory[Spring.GetUnitDefID(referenceUnit)] then
 						commandQueue = Spring.GetFactoryCommands(referenceUnit, 1)
 					else
-						commandQueue = Spring.GetCommandQueue(referenceUnit, 1)
+						commandQueue = Spring.GetUnitCommands(referenceUnit, 1)
 					end
 					if commandQueue and commandQueue[1] and commandQueue[1].id == CMD.WAIT then
 						curstate = 2
