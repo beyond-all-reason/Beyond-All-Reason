@@ -75,6 +75,7 @@ bind          sc_b,sc_b  onoff 0
 bind               sc_b  onoff 1
 bind Shift+sc_b,Shift+sc_b  onoff 0
 bind         Shift+sc_b  onoff 1
+bind               sc_b  trajectory_toggle
 
 bind     sc_l,sc_l,sc_l  firestate 1
 bind          sc_l,sc_l  firestate 0
