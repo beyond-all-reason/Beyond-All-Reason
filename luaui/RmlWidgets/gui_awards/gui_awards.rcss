@@ -2,7 +2,6 @@
     font-family: "Exo 2";
     font-size: 18px;
     color: white;
-    vertical-align: middle;
 }
 
 body {
@@ -54,9 +53,13 @@ span {
   padding: 0;
 }
 
+p, span {
+  vertical-align: center;
+}
+
 td.align-left {
   text-align: left;
-  vertical-align: middle;
+  vertical-align: center;
 }
 
 #main-container {
@@ -76,6 +79,15 @@ td.align-left {
 
 .leader {
   font-size: 1.1em;
+}
+
+.other-awards-leader {
+  font-weight: bold;
+  font-size: 1.1em;
+}
+
+.other-awards-score {
+  font-weight: bold;
 }
 
 .score {
