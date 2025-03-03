@@ -462,7 +462,8 @@ function gadget:Initialize()
 		gadget:FeatureCreated(featureID, gaiaTeamID)
 	end
 
-	GG.SetZombie = setZombie
+	GG.Zombies = {}
+	GG.Zombies.SetZombie = setZombie
 end
 
 function gadget:GameStart()
