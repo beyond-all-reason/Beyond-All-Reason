@@ -324,7 +324,7 @@ local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z)
 	end
 end
 
-local identifyZombie = function(unitID)
+local setZombie = function(unitID)
 	local unitDefID = spGetUnitDefID(unitID)
 	if unitDefID then
 		spSetUnitRulesParam(unitID, "zombie", true)
