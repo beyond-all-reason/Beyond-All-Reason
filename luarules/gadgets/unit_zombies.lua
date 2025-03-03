@@ -308,7 +308,7 @@ local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z)
 		if unitID then
 			spSpawnCEG("scav-spawnexplo", randomX, adjustedY, randomZ, 0, 0, 0, unitDef.xsize)
 			if modOptions.zombies ~= "normal" then
-				spSetUnitExperience(unitID, (random() * ZOMBIE_MAX_XP + random() * ZOMBIE_MAX_XP) / 2)
+				spSetUnitExperience(unitID, (random() * ZOMBIE_MAX_XP + random() * ZOMBIE_MAX_XP) / 2) -- to skew the experience towards the median
 			end
 			local unitHealth = spGetUnitHealth(unitID)
 			spSetUnitHealth(unitID, unitHealth * healthReductionRatio)
