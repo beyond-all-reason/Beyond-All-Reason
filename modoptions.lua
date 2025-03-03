@@ -255,11 +255,17 @@ local options = {
 	},
 	{
 		key		= "disable_unit_sharing",
-		name	= "Disable Unit Sharing",
-		desc	= "Disable sharing units and structures to allies",
-		type	= "bool",
+		name	= "Unit Sharing",
+		desc	= "Controls which units can be shared with allies",
+		type	= "list",
 		section	= "options_main",
-		def		= false,
+		def		= "enabled",
+		column	= 1,
+		items   = {
+			{ key = "enabled",     name = "Enabled",                     desc = "All unit sharing allowed" },
+			{ key = "t2cons_only", name = "T2 Constructor Sharing Only", desc = "Only T2 constructors can be shared between allies" },
+			{ key = "disabled",    name = "Disabled",                    desc = "No unit sharing allowed" },
+		},
 	},
 	{
 		key		= "disable_assist_ally_construction",
@@ -268,7 +274,7 @@ local options = {
 		type	= "bool",
 		section	= "options_main",
 		def		=  false,
-		column	= 1.76,
+		column	= 2.33,
 	},
 	{
 		key		= "unit_market",
@@ -278,7 +284,7 @@ local options = {
 		def		= false,
 		section	= "options_main",
 	},
-
+    
 
     {
         key     = "sub_header",
