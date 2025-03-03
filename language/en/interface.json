@@ -701,7 +701,7 @@
 			"substitutedPlayers": "%{incoming} was substituted in for %{outgoing}"
 		},
 		"awards": {
-			"awards": "Awards",
+			"award": "Award",
 			"score": "Score",
 			"notAwarded": "(not awarded)",
 			"unknown": "(unknown)",
@@ -710,18 +710,14 @@
 			"enemiesDestroyed": "Destroying enemy units and defences",
 			"resourcesDestroyed": "Destroying enemy resource production",
 			"resourcesEfficiency": "Efficient use of resources",
-			"resourcesProduced": "%{playerColor}%{player}%{textColor} produced the most resources (%{score}).",
+			"resourcesProduced": "<span class=\"other-awards-leader\" style=\"color: %{playerColor};\">%{player}</span> produced the most resources - <span class=\"other-awards-score\">%{score}</span>",
 			"didEverything": "Doing everything",
-			"damageTaken": "%{playerColor}%{player}%{textColor} took the most damage (%{score}).",
-			"sleptLongest": "%{playerColor}%{player}%{textColor} slept longest, for %{score} minutes.",
+			"damageTaken": "<span class=\"other-awards-leader\" style=\"color: %{playerColor};\">%{player}</span> took the most damage - <span class=\"other-awards-score\">%{score}</span>",
+			"sleptLongest": "<span class=\"other-awards-leader\" style=\"color: %{playerColor};\">%{player}</span> slept longest, for <span class=\"other-awards-score\">%{score}</span> minutes",
 			"traitor": "The Traitor - Destroying allied units",
 			"leave": "Leave",
 			"showGraphs": "Show Graphs",
-			"ecoAward": "produced the most resources",
-			"damageReceivedAward": "took the most damage",
-			"commanderSleepAward": "had the longest sleep",
       "honorableMentions": "Honorable mentions"
-
 		},
 		"autogroups": {
 			"unitAdded": "Added %{unit} to autogroup #%{groupNumber}.",

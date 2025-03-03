@@ -5,7 +5,7 @@
 --  Copyright (C) 2024.
 --  Licensed under the terms of the GNU GPL, v2 or later.
 
-if (RmlGuard or not RmlUi) then
+if RmlGuard or not RmlUi then
 	return
 end
 -- don't allow this initialization code to be run multiple times
@@ -55,7 +55,7 @@ RmlUi.CreateContext = NewCreateContext
 
 -- Load fonts
 RmlUi.LoadFontFace("fonts/Poppins-Regular.otf", true)
-local font_files = VFS.DirList('fonts/exo2', '*.ttf')
+local font_files = VFS.DirList("fonts/exo2", "*.ttf")
 for _, file in ipairs(font_files) do
 	Spring.Echo("loading font", file)
 	RmlUi.LoadFontFace(file, true)
@@ -73,24 +73,24 @@ end
 ]]
 
 -- when "cursor: normal" is set via RCSS, "cursornormal" will be sent to the engine... and so on for the rest
-RmlUi.SetMouseCursorAlias("default", 'cursornormal')
-RmlUi.SetMouseCursorAlias("pointer", 'Move') -- command cursors use the command name. TODO: replace with actual pointer cursor?
-RmlUi.SetMouseCursorAlias("move", 'uimove')
-RmlUi.SetMouseCursorAlias("nesw-resize", 'uiresized2')
-RmlUi.SetMouseCursorAlias("nwse-resize", 'uiresized1')
-RmlUi.SetMouseCursorAlias("ns-resize", 'uiresizev')
-RmlUi.SetMouseCursorAlias("ew-resize", 'uiresizeh')
+RmlUi.SetMouseCursorAlias("default", "cursornormal")
+RmlUi.SetMouseCursorAlias("pointer", "Move") -- command cursors use the command name. TODO: replace with actual pointer cursor?
+RmlUi.SetMouseCursorAlias("move", "uimove")
+RmlUi.SetMouseCursorAlias("nesw-resize", "uiresized2")
+RmlUi.SetMouseCursorAlias("nwse-resize", "uiresized1")
+RmlUi.SetMouseCursorAlias("ns-resize", "uiresizev")
+RmlUi.SetMouseCursorAlias("ew-resize", "uiresizeh")
 
 RmlUi.CreateContext("shared")
-RmlUi.AddTranslationString("ui.awards.enemiesDestroyed", Spring.I18N('ui.awards.enemiesDestroyed'))
-RmlUi.AddTranslationString("ui.awards.resourcesDestroyed", Spring.I18N('ui.awards.enemiesDestroyed'))
-RmlUi.AddTranslationString("ui.awards.resourcesEfficiency", Spring.I18N('ui.awards.resourcesEfficiency'))
-RmlUi.AddTranslationString("ui.awards.traitor", Spring.I18N('ui.awards.traitor'))
-RmlUi.AddTranslationString("ui.awards.didEverything", Spring.I18N('ui.awards.didEverything'))
+RmlUi.AddTranslationString("ui.awards.enemiesDestroyed", Spring.I18N("ui.awards.enemiesDestroyed"))
+RmlUi.AddTranslationString("ui.awards.resourcesDestroyed", Spring.I18N("ui.awards.enemiesDestroyed"))
+RmlUi.AddTranslationString("ui.awards.resourcesEfficiency", Spring.I18N("ui.awards.resourcesEfficiency"))
+RmlUi.AddTranslationString("ui.awards.traitor", Spring.I18N("ui.awards.traitor"))
+RmlUi.AddTranslationString("ui.awards.didEverything", Spring.I18N("ui.awards.didEverything"))
+RmlUi.AddTranslationString("ui.awards.award", Spring.I18N("ui.awards.award"))
+RmlUi.AddTranslationString("ui.awards.score", Spring.I18N("ui.awards.score"))
 
-RmlUi.AddTranslationString("ui.awards.ecoAward", Spring.I18N('ui.awards.ecoAward'))
-RmlUi.AddTranslationString("ui.awards.damageReceivedAward", Spring.I18N('ui.awards.damageReceivedAward'))
-RmlUi.AddTranslationString("ui.awards.commanderSleepAward", Spring.I18N('ui.awards.commanderSleepAward'))
+RmlUi.AddTranslationString("ui.awards.honorableMentions", Spring.I18N("ui.awards.honorableMentions"))
 
 RmlUi.ColorUtils = {
 	getCSSColorByPlayer = function(teamID)
@@ -102,5 +102,5 @@ RmlUi.ColorUtils = {
 		local greenNumColor = math.floor(greenF * 255)
 		local blueNumColor = math.floor(blueF * 255)
 		return string.format("rgb(%d, %d, %d)", redNumColor, greenNumColor, blueNumColor)
-	end
+	end,
 }
