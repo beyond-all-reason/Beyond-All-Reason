@@ -134,14 +134,9 @@ Deactivate()
 	FACTORY_CLOSE_BUILD;
 }
 
-QueryBuildInfo(piecenum)
+QueryBuildInfo(pieceIndex)
 {
-	piecenum = pad;
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
+	pieceIndex = pad;
 }
 
 Killed(severity, corpsetype)
