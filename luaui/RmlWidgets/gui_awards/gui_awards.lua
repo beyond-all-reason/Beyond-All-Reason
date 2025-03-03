@@ -6,7 +6,7 @@ function widget:GetInfo()
 		date = "July 2021",
 		license = "GNU GPL, v2 or later",
 		layer = -3,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -174,9 +174,9 @@ local function putMainAwardIntoModel(award, num, winnersTable)
 	if num == 1 then
 		playerToSet = modelForPresenter[award].firstLeader
 	else
--- First player(num = 1) corresponds to firstLeader. Other players in otherLeadersOrdered. Thus num -1
--- second player in leaderboard corresponds to first player in otherLeadersOrdered
--- third player in leaderboard corresponds to second player in list
+		-- First player(num = 1) corresponds to firstLeader. Other players in otherLeadersOrdered. Thus num -1
+		-- second player in leaderboard corresponds to first player in otherLeadersOrdered
+		-- third player in leaderboard corresponds to second player in list
 		playerToSet = modelForPresenter[award].otherLeadersOrdered[num - 1]
 	end
 	playerToSet.score = score
@@ -215,15 +215,12 @@ local function putOtherAwardIntoModel(award, winnersTable)
 		return
 	end
 	local name = findPlayerName(teamID)
-	table.insert(modelForPresenter.otherAwards, {
-		visible = true,
-		award = award,
-		leader = {
-			playerName = name,
-			score = score,
-			playerColor = RmlUi.ColorUtils.getCSSColorByPlayer(teamID),
-		},
+	local awardText = Spring.I18N("ui.awards." .. award, {
+		playerColor = RmlUi.ColorUtils.getCSSColorByPlayer(teamID),
+		player = name,
+		score = score,
 	})
+	table.insert(modelForPresenter.otherAwards, awardText)
 end
 
 local function createMainAward(award, winnersTable)
@@ -245,9 +242,9 @@ local function processAwards(awards)
 	createMainAward("enemiesDestroyed", awards.fightKill)
 	createMainAward("resourcesEfficiency", awards.efficiency)
 	createMainAward("traitor", awards.traitor)
-	createOtherAward("ecoAward", awards.eco)
-	createOtherAward("damageReceivedAward", awards.damageReceived)
-	createOtherAward("commanderSleepAward", awards.sleep)
+	createOtherAward("resourcesProduced", awards.eco)
+	createOtherAward("damageTaken", awards.damageReceived)
+	createOtherAward("sleptLongest", awards.sleep)
 	createCowAward(awards.goldenCow)
 	documentModelHandle.model = modelForPresenter
 end
