@@ -244,6 +244,23 @@ local function buildmenuPregameDeselectHandler()
 	return true
 end
 
+local function unitDefsToIndexes(oldDefID, newDefID)
+	local prevFaction = UnitDefs[prevStartDefID].name
+	local currentFaction = UnitDefs[startDefID].name
+	return defsToIndex[prevFaction], indexToDefs[currentFaction]
+end
+
+local function convertBuildQueueFaction(prevFactionToIndex, indexToCurrentFaction)
+	for b = 1, #buildQueue do
+		local buildData = buildQueue[b]
+		local buildDataId = buildData[1]
+		if buildDataId > 0 then
+			buildData[1] = indexToCurrentFaction[prevFactionToIndex[buildDataId]]
+			buildQueue[b] = buildData
+		end
+	end
+end
+
 ------------------------------------------
 ---               INIT                 ---
 ------------------------------------------
@@ -543,20 +560,10 @@ function widget:DrawWorld()
 
 	-- Check for faction change
 	if prevStartDefID ~= startDefID then
-		local prevFaction = UnitDefs[prevStartDefID].name
-		local prevFactionToIndex = defsToIndex[prevFaction]
-		local currentFaction = UnitDefs[startDefID].name
-		local indexToCurrentFaction = indexToDefs[currentFaction]
+		local prevFactionToIndex, indexToCurrentFaction = unitDefsToIndexes(prevStartDefID, startDefID)
 
 		if prevFactionToIndex and indexToCurrentFaction then
-			for b = 1, #buildQueue do
-				local buildData = buildQueue[b]
-				local buildDataId = buildData[1]
-				if buildDataId > 0 then
-					buildData[1] = indexToCurrentFaction[prevFactionToIndex[buildDataId]]
-					buildQueue[b] = buildData
-				end
-			end
+			convertBuildQueueFaction(prevFactionToIndex, indexToCurrentFaction)
 
 			local selBuildQueueDefIDConverted = indexToCurrentFaction[prevFactionToIndex[selBuildQueueDefID]]
 			if selBuildQueueDefIDConverted ~= nil then
@@ -679,20 +686,10 @@ function widget:GameStart()
 	end
 
 	if prevStartDefID ~= startDefID then
-		local prevFaction = UnitDefs[prevStartDefID].name
-		local prevFactionToIndex = defsToIndex[prevFaction]
-		local currentFaction = UnitDefs[startDefID].name
-		local indexToCurrentFaction = indexToDefs[currentFaction]
+		local prevFactionToIndex, indexToCurrentFaction = unitDefsToIndexes(prevStartDefID, startDefID)
 
 		if prevFactionToIndex and indexToCurrentFaction then
-			for b = 1, #buildQueue do
-				local buildData = buildQueue[b]
-				local buildDataId = buildData[1]
-				if buildDataId > 0 then
-					buildData[1] = indexToCurrentFaction[prevFactionToIndex[buildDataId]]
-					buildQueue[b] = buildData
-				end
-			end
+			convertBuildQueueFaction(prevFactionToIndex, indexToCurrentFaction)
 		end
 		prevStartDefID = startDefID
 	end
