@@ -138,8 +138,8 @@ for k, v in pairs(indexToDefs) do
 	defsToIndex[k] = table.invert(v)
 end
 
-indexToDefs['dicecom'] = indexToDefs['armcom']
-defsToIndex['dicecom'] = defsToIndex['armcom']
+indexToDefs['dummycom'] = indexToDefs['armcom']
+defsToIndex['dummycom'] = defsToIndex['armcom']
 
 local function buildFacingHandler(_, _, args)
 	if not (preGamestartPlayer and selBuildQueueDefID) then

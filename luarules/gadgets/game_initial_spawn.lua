@@ -54,7 +54,7 @@ if gadgetHandler:IsSyncedCode() then
 		validStartUnits[#validStartUnits+1] = legcomDefID
 	end
 
-	local RANDOM_DUMMY = UnitDefNames.dicecom and UnitDefNames.dicecom.id
+	local RANDOM_DUMMY = UnitDefNames.dummycom and UnitDefNames.dummycom.id
 
 	local function isUnitValid(unitDefID)
 		if not unitDefID then

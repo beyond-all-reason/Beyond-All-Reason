@@ -12,7 +12,7 @@ return {
     },
     {
         name = "Random",
-        startunit = 'dicecom',
+        startunit = 'dummycom',
     },
     {
         name = "Legion",

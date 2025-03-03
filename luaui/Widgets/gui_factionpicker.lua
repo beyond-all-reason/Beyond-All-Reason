@@ -11,8 +11,8 @@ function widget:GetInfo()
 end
 local factions = {}
 
-if UnitDefNames.dicecom then
-	factions[#factions+1] = { startUnit = UnitDefNames.dicecom.id, faction = 'random' }
+if UnitDefNames.dummycom then
+	factions[#factions+1] = { startUnit = UnitDefNames.dummycom.id, faction = 'random' }
 end
 if UnitDefNames.corcom then
 	factions[#factions+1] = { startUnit = UnitDefNames.corcom.id, faction = 'cor' }
