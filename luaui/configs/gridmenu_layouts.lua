@@ -1010,28 +1010,6 @@ local unitGrids = {
 			{ "leghp", "legfhp", },                          -- hover lab, floating hover lab
 		}
 	},
-	dicecom = {
-		{
-			{ "armmex", "armsolar", "armwin", },              -- mex, solar, wind
-			{ "armmakr", "", "armuwms", "armtide"},           -- T1 converter, uw m storage, tidal
-			{ "armestor", "armmstor", "armuwes", "armfmkr", }, -- e storage, m storage, uw e storage, floating converter
-		},
-		{
-			{ "armllt", "armtl", },                          -- LLT, offshore torp launcher
-			{ "armrl", "armfrt", },                          -- basic AA, floating AA
-			{ "armdl", },                                    -- coastal torp launcher
-		},
-		{
-			{ "armrad", "armeyes", "armdrag", },             -- radar, perimeter camera, dragon's teeth
-			{ "armfrad", "armfdrag", },                      -- floating radar, shark's teeth
-			{ },                                             -- empty
-		},
-		{
-			{ "armlab", "armvp", "armap", "armsy", },        -- bot lab, veh lab, air lab, shipyard
-			{ },                                             -- empty row
-			{ "armhp", "armfhp", },                          -- hover lab, floating hover lab
-		}
-	},
 	-- T1 bot con
 	armck = {
 		{
@@ -2055,6 +2033,8 @@ local unitGrids = {
 		}
 	},
 }
+
+unitGrids["dicecom"] = unitGrids["armcom"]
 
 if Spring.Utilities.Gametype.IsScavengers() or Spring.GetModOptions().forceallunits then
 	local scavLabGrids = {}
