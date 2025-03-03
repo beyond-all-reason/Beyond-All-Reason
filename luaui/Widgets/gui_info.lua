@@ -1892,7 +1892,7 @@ function widget:DrawScreen()
 			drawInfo()
 		end)
 	end
-	if alwaysShow or not emptyInfo or isPregame then
+	if alwaysShow or not emptyInfo or (isPregame and not mySpec) then
 		gl.CallList(dlistInfo)
 	elseif dlistGuishader then
 		WG['guishader'].DeleteDlist('info')
@@ -2041,7 +2041,7 @@ function checkChanges()
 	displayUnitID = nil
 	displayUnitDefID = nil
 
-	if isPregame then
+	if isPregame and not mySpec then
  		activeCmdID = WG["pregame-build"] and WG["pregame-build"].getPreGameDefID()
 		activeCmdID = activeCmdID and -activeCmdID
 	else
