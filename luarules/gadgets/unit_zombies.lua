@@ -453,7 +453,7 @@ function gadget:Initialize()
 	for _, unitID in ipairs(units) do
 		local identifiedZombie = spGetUnitRulesParam(unitID, "zombie")
 		if identifiedZombie then
-			identifyZombie(unitID)
+			setZombie(unitID)
 		end
 	end
 	
@@ -462,7 +462,7 @@ function gadget:Initialize()
 		gadget:FeatureCreated(featureID, gaiaTeamID)
 	end
 
-	GG.IdentifyZombie = identifyZombie
+	GG.SetZombie = setZombie
 end
 
 function gadget:GameStart()
