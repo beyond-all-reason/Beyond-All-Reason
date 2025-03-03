@@ -165,10 +165,10 @@ local function setGaiaStorage()
 end
 
 local function updateAdjustedRezSpeed()
-    local multiplier = 2
+    local techGuesstimateMultiplier = 2 -- to compensate for TechGuesstimate starting at 0.5
     local highestPowerData = GG.PowerLib.HighestPlayerTeamPower()
     if highestPowerData and highestPowerData.power then
-        adjustedRezSpeed = ZOMBIES_REZ_SPEED * GG.PowerLib.TechGuesstimate(highestPowerData.power) * multiplier
+        adjustedRezSpeed = ZOMBIES_REZ_SPEED * GG.PowerLib.TechGuesstimate(highestPowerData.power) * techGuesstimateMultiplier
     end
 end
 
