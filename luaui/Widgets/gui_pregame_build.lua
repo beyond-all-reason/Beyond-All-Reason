@@ -190,11 +190,9 @@ local function setPreGamestartDefID(uDefID)
 	local isMex = UnitDefs[uDefID] and UnitDefs[uDefID].extractsMetal > 0
 
 	if isMex then
-		if Spring.GetMapDrawMode() ~= "metal" then
-			Spring.SendCommands("ShowMetalMap")
-		end
-	elseif Spring.GetMapDrawMode() == "metal" then
-		Spring.SendCommands("ShowStandard")
+		Spring.SendCommands("showinfometal 1")
+	else
+		Spring.SendCommands("showinfometal 0")
 	end
 end
 
