@@ -37,7 +37,6 @@ local deepWaterDepth  = -40					-- used for the surface deflection on water, lav
 	-- 		cluster_def    := <string> | nil (see defaults)
 	-- 		cluster_number := <number> | nil (see defaults)
 	-- 		cluster_range  := <number> | nil (see cluster_def)
-	-- 		cluster_speed_ratio := <number> | nil
 	-- 	},
 	-- },
 	-- <cluster_def> = {
@@ -60,7 +59,6 @@ local atan2 = math.atan2
 
 local spGetGroundHeight       = Spring.GetGroundHeight
 local spGetGroundNormal       = Spring.GetGroundNormal
-local spGetProjectileVelocity = Spring.GetProjectileVelocity
 local spGetUnitDefID          = Spring.GetUnitDefID
 local spGetUnitPosition       = Spring.GetUnitPosition
 local spGetUnitRadius         = Spring.GetUnitRadius
@@ -91,7 +89,6 @@ for unitDefName, unitDef in pairs(UnitDefNames) do
 			local clusterDefName = custom.cluster_def
 			local clusterCount = max(3, min(maxSpawnNumber, custom.cluster_number or defaultSpawnNum))
 			local clusterRange = max(0, custom.cluster_range or 0)
-			local speedRatio = min(1, custom.cluster_speed_ratio or -1)
 
 			if clusterDefName then
 				if not WeaponDefNames[clusterDefName] then
@@ -115,19 +112,11 @@ for unitDefName, unitDef in pairs(UnitDefNames) do
 							clusterSpeed = clusterDef.projectilespeed
 						end
 
-						if speedRatio < 0 then
-							-- Give a reasonable default, assuming clusters are spread by the parent projectile's explosion.
-							local scatterSpeed = (clusterSpeed + weaponDef.explosionSpeed) / 2
-							local scatterScale = 0.5 -- Keep this closer to a game mechanic than an immsim behavior.
-							speedRatio = min(1, scatterSpeed / (weaponDef.projectilespeed ^ 2) * scatterScale)
-						end
-
 						clusterWeaponDefs[weaponDefID] = {
 							number      = clusterCount,
 							weaponID    = clusterDef.id,
 							weaponSpeed = clusterSpeed,
 							weaponTtl   = clusterDef.flighttime or defaultSpawnTtl,
-							speedRatio  = speedRatio,
 						}
 					else
 						Spring.Log(gadget:GetInfo().name, LOG.ERROR, 'Invalid weapon spawn type: ' .. clusterDef.type)
@@ -251,15 +240,6 @@ local function GetSurfaceDeflection(data, projectileID, ex, ey, ez)
 				end
 			end
 		end
-	end
-
-	-- Inherited speed adds to deflection, which is unitless, by treating it as a ratio.
-	local speedRatio = data.speedRatio
-	if speedRatio > 0 then
-		local vx, vy, vz = spGetProjectileVelocity(projectileID)
-		dx = dx + vx * speedRatio
-		dy = dy + vy * speedRatio
-		dz = dz + vz * speedRatio
 	end
 
 	return dx, dy, dz

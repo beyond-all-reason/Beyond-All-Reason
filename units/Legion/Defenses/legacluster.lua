@@ -133,7 +133,6 @@ return {
 					cluster_def = 'cluster_munition',
 					cluster_number = 6,
 					cluster_range = 130,
-					cluster_speed_ratio = 0.02,
 					exclude_preaim = true,
 					number = 6,
 					smart_priority = true,

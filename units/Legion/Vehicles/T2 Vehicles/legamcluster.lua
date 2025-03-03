@@ -141,7 +141,6 @@ return {
 					cluster_def = 'cluster_munition',
 					cluster_number = 4,
 					cluster_range = 100,
-					cluster_speed_ratio = 0.033,
 				},
 				damage = {
 					default = 150,
