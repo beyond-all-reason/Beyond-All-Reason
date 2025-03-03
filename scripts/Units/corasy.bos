@@ -134,7 +134,7 @@ Deactivate()
 	FACTORY_CLOSE_BUILD;
 }
 
-QueryBuildInfo(pieceIndex)
+QueryBuildInfo(piecenum)
 {
 	piecenum = pad;
 }
