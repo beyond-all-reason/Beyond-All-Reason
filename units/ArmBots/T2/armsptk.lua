@@ -100,7 +100,7 @@ return {
 		},
 		weapondefs = {
 			adv_rocket = {
-				areaofeffect = 90,
+				areaofeffect = 75,
 				avoidfeature = false,
 				burnblow = true,
 				burst = 3,
@@ -118,7 +118,7 @@ return {
 				model = "cormissile2.s3o",
 				name = "Parabolic trajectory g2g multi-rocket launcher",
 				noselfdamage = true,
-				range = 600,
+				range = 550,
 				reloadtime = 3.75,
 				smokecolor = 0.5,
 				smokeperiod = 7,
