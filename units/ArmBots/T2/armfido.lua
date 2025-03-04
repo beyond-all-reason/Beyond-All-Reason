@@ -19,7 +19,7 @@ return {
 		maxdec = 1.29375,
 		maxslope = 14,
 		maxwaterdepth = 12,
-		metalcost = 300,
+		metalcost = 285,
 		movementclass = "BOT4",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMFIDO.s3o",
@@ -123,7 +123,7 @@ return {
 				soundstart = "cannon1",
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 370,
+				weaponvelocity = 292,
 				damage = {
 					default = 255,
 					vtol = 35,

@@ -26,11 +26,11 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 440,
-		speed = 51.6,
+		speed = 47,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.1352,
-		turnrate = 1290.29993,
+		turnrate = 1290,
 		customparams = {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
@@ -100,7 +100,7 @@ return {
 		},
 		weapondefs = {
 			adv_rocket = {
-				areaofeffect = 75,
+				areaofeffect = 90,
 				avoidfeature = false,
 				burnblow = true,
 				burst = 3,
@@ -118,7 +118,7 @@ return {
 				model = "cormissile2.s3o",
 				name = "Parabolic trajectory g2g multi-rocket launcher",
 				noselfdamage = true,
-				range = 550,
+				range = 575,
 				reloadtime = 3.75,
 				smokecolor = 0.5,
 				smokeperiod = 7,
