@@ -799,7 +799,7 @@ function widget:Update(dt)
 		return
 	end
 
-	if alwaysShow or not emptyInfo or isPregame then
+	if alwaysShow or not emptyInfo or (isPregame and not mySpec) then
 		infoShows = true
 	end
 end
@@ -1838,7 +1838,7 @@ function widget:MouseRelease(x, y, button)
 						local x,y,z = Spring.GetUnitPosition(displayUnitID)
 						local alt, ctrl, meta, shift = spGetModKeyState()
 						if shift then
-							local cmdQueue = Spring.GetCommandQueue(displayUnitID, 35) or {}
+							local cmdQueue = Spring.GetUnitCommands(displayUnitID, 35) or {}
 							if cmdQueue[1] then
 								if cmdQueue[#cmdQueue] and cmdQueue[#cmdQueue].id == CMD.MOVE and cmdQueue[#cmdQueue].params[3] then
 									x, z = cmdQueue[#cmdQueue].params[1], cmdQueue[#cmdQueue].params[3]
@@ -1879,7 +1879,7 @@ function widget:DrawScreen()
 			drawInfo()
 		end)
 	end
-	if alwaysShow or not emptyInfo or isPregame then
+	if alwaysShow or not emptyInfo or (isPregame and not mySpec) then
 		gl.CallList(dlistInfo)
 	elseif dlistGuishader then
 		WG['guishader'].DeleteDlist('info')
@@ -1999,7 +1999,6 @@ function widget:DrawScreen()
 				end
 			end
 		elseif displayMode == 'unit' then
-
 			if WG['unitstats'] and WG['unitstats'].showUnit then
 				WG['unitstats'].showUnit(displayUnitID)
 			end
@@ -2028,7 +2027,7 @@ function checkChanges()
 	displayUnitID = nil
 	displayUnitDefID = nil
 
-	if isPregame then
+	if isPregame and not mySpec then
  		activeCmdID = WG["pregame-build"] and WG["pregame-build"].getPreGameDefID()
 		activeCmdID = activeCmdID and -activeCmdID
 	else
@@ -2114,9 +2113,13 @@ function checkChanges()
 	end
 
 	if displayMode == 'text' and isPregame then
-		displayMode = 'unitdef'
-		displayUnitDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
-		hideBuildlist = true
+		if not mySpec then
+			displayMode = 'unitdef'
+			displayUnitDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
+			hideBuildlist = true
+		else
+			emptyInfo = true
+		end
 	end
 end
 

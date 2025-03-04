@@ -616,7 +616,7 @@ local function drawCell(cell, zoom)
 					if isFactory[Spring.GetUnitDefID(referenceUnit)] then
 						commandQueue = Spring.GetFactoryCommands(referenceUnit, 1)
 					else
-						commandQueue = Spring.GetCommandQueue(referenceUnit, 1)
+						commandQueue = Spring.GetUnitCommands(referenceUnit, 1)
 					end
 					if commandQueue and commandQueue[1] and commandQueue[1].id == CMD.WAIT then
 						curstate = 2
