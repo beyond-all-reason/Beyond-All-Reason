@@ -17,7 +17,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local unitSharingMode = Spring.GetModOptions().disable_unit_sharing or "enabled"
+local unitSharingMode = Spring.GetModOptions().unit_sharing_mode or "enabled"
 local unitMarketEnabled = Spring.GetModOptions().unit_market
 
 -- If unit sharing is fully enabled and unit market isn't handling restrictions, disable this gadget
@@ -27,10 +27,10 @@ end
 
 local function isT2Constructor(unitDef)
 	if not unitDef then return false end
-	
-	return not unitDef.isFactory 
-		and #(unitDef.buildOptions or {}) > 0 
-		and unitDef.customParams.techlevel == "2"
+
+	return not unitDef.isFactory
+			and #(unitDef.buildOptions or {}) > 0
+			and unitDef.customParams.techlevel == "2"
 end
 
 function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, capture)
