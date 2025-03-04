@@ -133,7 +133,6 @@ return {
 					cluster_def = 'cluster_munition',
 					cluster_number = 6,
 					exclude_preaim = true,
-					number = 6,
 					smart_priority = true,
 				},
 				damage = {
@@ -195,8 +194,8 @@ return {
 				customparams = {
 					cluster = true,
 					cluster_def = 'cluster_munition',
+					cluster_number = 6,
 					exclude_preaim = true,
-					number = 6,
 					smart_backup = true,
 				},
 				damage = {
@@ -229,10 +228,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 450,
 				customparams = {
-					cluster = true,
-					cluster_def = 'cluster_munition',
 					exclude_preaim = true,
-					number = 6,
 					smart_trajectory_checker = true,
 				},
 				damage = {

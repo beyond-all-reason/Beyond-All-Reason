@@ -132,7 +132,6 @@ return {
 					cluster_def = 'cluster_munition',
 					cluster_number = 3,
 					exclude_preaim = true,
-					number = 3,
 					smart_priority = true,
 				},
 				damage = {
@@ -196,7 +195,6 @@ return {
 					cluster_def = 'cluster_munition',
 					cluster_number = 6,
 					exclude_preaim = true,
-					number = 3,
 					smart_backup = true,
 				},
 				damage = {
