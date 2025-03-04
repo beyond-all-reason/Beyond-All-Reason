@@ -11,7 +11,7 @@ return {
 		name = "spyexplosion",
 		noselfdamage = 1,
 		paralyzer = 1,
-		paralyzetime = 35,
+		paralyzetime = 8,
 		range = 1280,
 		reloadtime = 0.30000001192093,
 		soundhit = "EMGPULS1",
@@ -20,7 +20,7 @@ return {
 		tolerance = 7000,
 		turret = 1,
 		damage = {
-			default = 56000,
+			default = 3700,
 		},
 	},
 	spybombxscav = {
