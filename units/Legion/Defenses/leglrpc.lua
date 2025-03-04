@@ -140,7 +140,6 @@ return {
 					cluster = true,
 					cluster_def = 'cluster_munition',
 					cluster_number = 4,
-					cluster_range = 160,
 				},
 				damage = {
 					default = 500,
@@ -161,6 +160,7 @@ return {
 				name = "Plasma Burst",
 				noselfdamage = true,
 				maxvelocity = 720,
+				range = 160,
 				rgbcolor = "0.7 0.7 1.0",
 				soundhit = "xplomed2",
 				soundhitwet = "splsmed",

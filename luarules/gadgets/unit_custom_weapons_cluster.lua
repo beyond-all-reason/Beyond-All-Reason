@@ -36,10 +36,10 @@ local deepWaterDepth  = -40					-- used for the surface deflection on water, lav
 	-- 		cluster        := true
 	-- 		cluster_def    := <string> | nil (see defaults)
 	-- 		cluster_number := <number> | nil (see defaults)
-	-- 		cluster_range  := <number> | nil (see cluster_def)
 	-- 	},
 	-- },
-	-- <cluster_def> = {
+    --
+    -- <cluster_def> = {
 	-- 	weaponvelocity := <number> -- Will be ignored in favor of range if possible.
 	-- 	range          := <number> -- Preferred over and replaces weaponvelocity.
 	-- }
@@ -88,7 +88,6 @@ for unitDefName, unitDef in pairs(UnitDefNames) do
 		if custom.cluster then
 			local clusterDefName = custom.cluster_def
 			local clusterCount = max(3, min(maxSpawnNumber, custom.cluster_number or defaultSpawnNum))
-			local clusterRange = max(0, custom.cluster_range or 0)
 
 			if clusterDefName then
 				if not WeaponDefNames[clusterDefName] then
@@ -104,9 +103,9 @@ for unitDefName, unitDef in pairs(UnitDefNames) do
 
 				if clusterDef then
 					if spawnableTypes[clusterDef.type] then
+                        local clusterRange = clusterDef.range or 0
 						local clusterSpeed
-						if clusterRange > 0 or clusterDef.range > 10 then
-							clusterRange = clusterRange ~= 0 and clusterRange or clusterDef.range
+						if clusterRange > 0 then
 							clusterSpeed = sqrt(clusterRange * math.abs(mapGravity)) -- velocity @ 45deg to hit range
 						else
 							clusterSpeed = clusterDef.projectilespeed
@@ -136,7 +135,7 @@ for weaponDefID, weaponData in pairs(clusterWeaponDefs) do
 	end
 end
 for weaponDefID in pairs(removeIDs) do
-	Spring.Log(gadget:GetInfo().name, LOG.ERROR, 'Preventing nested explosions: '..WeaponDefs[weaponDefID].name)
+	Spring.Log(gadget:GetInfo().name, LOG.ERROR, 'Preventing nested explosions: ' .. WeaponDefs[weaponDefID].name)
 	clusterWeaponDefs[weaponDefID] = nil
 end
 

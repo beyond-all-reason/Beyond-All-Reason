@@ -140,7 +140,6 @@ return {
 					cluster = true,
 					cluster_def = 'cluster_munition',
 					cluster_number = 4,
-					cluster_range = 100,
 				},
 				damage = {
 					default = 150,
@@ -160,6 +159,7 @@ return {
 				impulsefactor = 0.5,
 				name = "Cluster Munitions",
 				noselfdamage = true,
+				range = 100,
 				rgbcolor = "0.7 0.7 1.0 1.0 1.0 1.0 1.0 1.0",
 				soundhit = "xplomed4",
 				soundhitwet = "splsmed",
