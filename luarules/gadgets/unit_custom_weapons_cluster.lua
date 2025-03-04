@@ -23,10 +23,11 @@ local defaultSpawnTtl = 5					-- detonate projectiles after time = ttl, by defau
 
 -- General settings ------------------------------------------------------------
 
-local maxSpawnNumber  = 24					-- protect game performance against stupid ideas
-local minUnitBounces  = "armpw"				-- smallest unit (name) that bounces projectiles at all
-local minBulkReflect  = 64000				-- smallest unit bulk that causes reflection as if terrain
-local deepWaterDepth  = -40					-- used for the surface deflection on water, lava, ...
+local minSpawnNumber = 3					-- minimum number of spawned projectiles
+local maxSpawnNumber = 24					-- protect game performance against stupid ideas
+local minUnitBounces = "armpw"				-- smallest unit (name) that bounces projectiles at all
+local minBulkReflect = 64000				-- smallest unit bulk that causes reflection as if terrain
+local deepWaterDepth = -40					-- used for the surface deflection on water, lava, ...
 
 -- CustomParams setup ----------------------------------------------------------
 --
@@ -87,7 +88,12 @@ for unitDefName, unitDef in pairs(UnitDefNames) do
 
 		if custom.cluster then
 			local clusterDefName = custom.cluster_def
-			local clusterCount = max(3, min(maxSpawnNumber, custom.cluster_number or defaultSpawnNum))
+			local clusterCount = tonumber(custom.cluster_number) or defaultSpawnNum
+
+			if clusterCount < minSpawnNumber or clusterCount > maxSpawnNumber then
+				Spring.Log(gadget:GetInfo().name, LOG.WARNING, weaponDef.name .. ': cluster_count of ' .. clusterCount .. ', clamping to ' .. minSpawnNumber .. '-' .. maxSpawnNumber)
+				clusterCount = math.clamp(clusterCount, minSpawnNumber, maxSpawnNumber)
+			end
 
 			if clusterDefName then
 				if not WeaponDefNames[clusterDefName] then
