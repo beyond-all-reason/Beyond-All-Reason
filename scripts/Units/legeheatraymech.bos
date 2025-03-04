@@ -926,6 +926,7 @@ Open()
 		turn rArmLowerArm to 	z-axis <18> speed <58.005416> / animSpeed;
 		turn rArmUpperArm to 	x-axis <0> speed <12.752184> / animSpeed;
 		turn rArmUpperArm to 	z-axis <0> speed <144.983261> / animSpeed;
+		turn legJointTorso to 	y-axis <0> speed <194.050073> / animSpeed;
 
 		move lArmShoulderPivot to y-axis [0] speed [25];
 		move rArmShoulderPivot to y-axis [0] speed [25];
@@ -947,6 +948,9 @@ Open()
 
 Close()
 {
+	//set-signal-mask SIG_AIM;
+	//set-signal-mask SIG_AIM_2;
+	//set-signal-mask SIG_AIM_3;
 	if( aimingPose )
 	{
 		aimingPose = 0;
@@ -1075,16 +1079,11 @@ Create()
 {
 	hide rArmFlare;
 	hide lArmFlare;
-
 	move rArmShoulderPivot to y-axis [-21] now;
 	move lArmShoulderPivot to y-axis [-21] now;
 	turn lArmShoulderGun to x-axis <15> now;
 	turn rArmShoulderGun to x-axis <15> now;
-
-
 	move legJointTorso to y-axis [-5] now;
-
-	set ARMORED to 1;
 	animSpeed = 6;
 	isMoving = FALSE;
 	InMotion = 0;
@@ -1169,7 +1168,7 @@ Steering(heading, currentSpeed)
 		if (timer > 30)
 		{
 			timer = 0;
-			start-script ExecuteRestoreAfterDelay();
+			start-script RestoreAfterDelay();
 		}
 		sleep 20;
 	}
@@ -1213,12 +1212,28 @@ ExecuteRestoreAfterDelay(addTime)
 RestoreAfterDelay()
 {
 	set-signal-mask SIG_AIM;
+	set-signal-mask SIG_AIM_2;
+	set-signal-mask SIG_AIM_3;
 	sleep restore_delay;
 	oldhead1 = 1000000;
 	oldhead2 = 1000000;
 	oldhead3 = 0;
 	oldhead4 = 0;
 	start-script ExecuteRestoreAfterDelay();
+}
+
+RestoreLRay()
+{
+	set-signal-mask SIG_AIM_2;
+	sleep restore_delay;
+	isfiring1 = 0;
+}
+
+RestoreRRay()
+{
+	set-signal-mask SIG_AIM_3;
+	sleep restore_delay;
+	isfiring2 = 0;
 }
 
 QueryWeapon1(piecenum) //Hull Rotation
@@ -1357,7 +1372,7 @@ AimWeapon2(heading, pitch)
 	//shotcount = shotcount + 1;
 	call-script lua_UnitScriptLight(1, shotcount);
 	start-script SmokeItUp();
-
+	start-script RestoreLRay();
 	if (isturning == 1)
 	{
 		turn lArmShoulderJoint to y-axis (heading - torsoaim - aimAdj) + <3> speed <70>;
@@ -1386,7 +1401,7 @@ AimWeapon2(heading, pitch)
 	}
     if (timeLeft == 0)
     {
-        start-script RestoreAfterDelay();
+		start-script RestoreAfterDelay();
     }
 	timeLeft = restore_delay;
 	isfiring1 = 1;
@@ -1415,6 +1430,7 @@ AimWeapon3(heading, pitch)
 	signal SIG_AIM_3;
 	start-script Open();
 	timer = 0;
+	start-script RestoreRRay();
 	if (isturning == 1)
 	{
 		turn rArmShoulderJoint to y-axis (heading - torsoaim - aimAdj) + <3> speed <70>;
@@ -1443,7 +1459,7 @@ AimWeapon3(heading, pitch)
 	}
     if (timeLeft == 0)
     {
-        start-script RestoreAfterDelay();
+		start-script RestoreAfterDelay();
     }
 	timeLeft = restore_delay;
 	isfiring2 = 1;
