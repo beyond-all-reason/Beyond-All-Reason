@@ -14,7 +14,7 @@ return {
 		floater = true,
 		footprintx = 3,
 		footprintz = 3,
-		health = 630,
+		health = 1450,
 		idleautoheal = 5,
 		idletime = 1800,
 		maxacc = 0.03574,
