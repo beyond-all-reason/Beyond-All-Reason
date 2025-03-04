@@ -193,7 +193,7 @@ return {
 				customparams = {
 					cluster = true,
 					cluster_def = 'cluster_munition',
-					cluster_number = 6,
+					cluster_number = 3,
 					exclude_preaim = true,
 					smart_backup = true,
 				},
