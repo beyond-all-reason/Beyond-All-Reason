@@ -12,7 +12,7 @@ return {
 		explodeas = "tinyexplosiongeneric",
 		footprintx = 1,
 		footprintz = 1,
-		health = 61,
+		health = 60,
 		idleautoheal = 5,
 		idletime = 1800,
 		maxacc = 0.575,
@@ -32,7 +32,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 2.904,
-		turnrate = 1807.79993,
+		turnrate = 1807,
 		customparams = {
 			model_author = "Kaiser",
 			normaltex = "unittextures/Arm_normal.dds",
