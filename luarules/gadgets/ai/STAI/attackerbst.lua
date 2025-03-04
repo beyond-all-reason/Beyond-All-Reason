@@ -122,29 +122,21 @@ end
 function AttackerBST:Advance(pos, perpendicularAttackAngle, reverseAttackAngle)
 	self.idle = false
 	self.attacking = true
--- 	local RAM = gcinfo()
 	if reverseAttackAngle then
 		self:EchoDebug('adv reverse')
+		self:EchoDebug('self.sightDistance',self.sightDistance)
 		local awayDistance = math.min(self.sightDistance, self.weaponDistance)
 		if not self.sturdy or self.ai.loshst:posInLos(pos) then
 			awayDistance = self.weaponDistance
 		end
 		local myAngle = self.ai.tool:AngleAdd(reverseAttackAngle, self.formationAngle)
 		self.target = self.ai.tool:RandomAway( pos, awayDistance, nil, myAngle)
--- 			RAM11 = gcinfo()
--- 		if RAM11-RAM > 0 then Spring.Echo('member advance11',RAM11-RAM) end
 	else
 		self:EchoDebug('adv drit')
 		self.target = self.ai.tool:RandomAway2( pos, self.formationDist, nil, perpendicularAttackAngle,self.target)
--- 			RAM12 = gcinfo()
--- 	if RAM12-RAM > 0 then Spring.Echo('member advance12',RAM12-RAM) end
 	end
--- 	RAM1 = gcinfo()
--- 	if RAM1-RAM > 0 then Spring.Echo('member advance1',RAM1-RAM) end
 	--local canMoveThere = self.ai.maphst:UnitCanGoHere(self.unit:Internal(), self.target)
 	local canMoveThere = Spring.TestMoveOrder(self.defID, self.target.x, self.target.y, self.target.z,nil,nil,nil,true,true,true)--TEST
--- 	RAM2 = gcinfo()
--- 	if RAM2-RAM1 > 0 then Spring.Echo('member advance2',RAM2-RAM1 ) end
 	if canMoveThere and self.squad then
 		self:EchoDebug('adv', canMoveThere)
 		self.squad.lastValidMove = self.target
@@ -153,19 +145,15 @@ function AttackerBST:Advance(pos, perpendicularAttackAngle, reverseAttackAngle)
 		self.target = self.ai.tool:RandomAway( self.squad.lastValidMove, self.congSize)
 		canMoveThere = self.ai.maphst:UnitCanGoHere(self.unit:Internal(), self.target)
 	end
--- 	RAM3 = gcinfo()
--- 	if RAM3-RAM2 > 0 then Spring.Echo('member advance3',RAM3-RAM2) end
 	self:EchoDebug('adv',self.attacking,self.active,self.target.x,self.target.z)
 	if self.active and canMoveThere then
 		self:EchoDebug('adv move',self.target.x,self.target.z)
 		self.unit:Internal():Move(self.target) --need to check this
 	end
-	--Spring.Echo('advance4',gcinfo()-RAM)
 	return canMoveThere
 end
 
 function AttackerBST:Free()
--- Spring.Echo('freeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee')
 	self.attacking = false
 	self.target = nil
 	self.idle = nil

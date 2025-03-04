@@ -149,6 +149,11 @@ function DamageHST:VisualDBG()
 	for X,cells in pairs(self.DAMAGED) do
 		for Z, cell in pairs(cells) do
 			local p = cell.POS
+			if not p then
+				self:EchoDebug('no p in draw debug')
+				
+				return
+			end
 			local pos1, pos2 = api.Position(), api.Position()--z,api.Position(),api.Position(),api.Position()
 			pos1.x, pos1.z = p.x - cellElmosHalf, p.z - cellElmosHalf
 			pos2.x, pos2.z = p.x + cellElmosHalf, p.z + cellElmosHalf

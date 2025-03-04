@@ -64,7 +64,73 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:Initialize()
 		--GG.AiHelpers.Start()
 	end
+	--[[	function gadget:RecvLuaMsg(msg, playerID)
+		--msg = 'StGiveOrderToSync'..';'..id..';'..cmd..';'..pos..';'..opts..';'..timeout..';'..uname..';'.'StEndGOTS'
+		
 
+		local datas = string.split(msg,';')
+
+		if datas[1] ~= 'StGiveOrderToSync' or datas[7] ~= 'StEndGOTS' then
+			Spring.Echo('ST RECEIVEDGOTS INCOMPLETE GOTS ',#datas,msg)
+			return
+		end
+
+		if #datas ~= 7 then
+			Spring.Echo('ST RECEIVEDGOTS INCOMPLETE GOTS ',#datas,msg)
+			return
+		end
+
+		local id = datas[2]
+		if string.split(id,',') then
+			id = string.split(id,',')
+			Spring.Echo('id',id,#id,id[1],type(id[1]),datas[6])
+
+		end
+		for i = 1, #id do
+			id[i] = tonumber(id[i])
+			if not Spring.ValidUnitID(id[i]) then
+				spEcho('order error in STAI unsync to sync: unitID is invalid')
+				table.remove(id,i)
+			end
+		end
+		if #id == 0 then
+			spEcho('order error in STAI unsync to sync: no valid ids')
+			return
+		end
+		local cmd = datas[3]
+		local pos = datas[4]
+		local opts = datas[5]
+		--local timeout = datas[6]
+		local unit = datas[6]
+
+		pos = string.split(pos,',')
+		if not pos or not pos[1] or pos[1] == '' then
+			Spring.Echo(pos)
+			spEcho('warn! invalid POS argument in STAI gotu luarules message')
+			return
+		end
+		if opts ~= 0 then
+			opts = string.split(opts,',')
+			if not opts or not opts[1] or opts[1] == '' then
+				Spring.Echo(opts)
+				spEcho('warn! invalid OPTS argument in STAI gotu luarules message')
+				return
+			end
+		end
+-- 		Spring.Echo('GOTS ORDER ISSUES',id,cmd,pos,opts)
+		
+		--Spring.GiveOrderToUnitArray ( table unitArray = { [1] = number unitID, etc... }, number cmdID, table params = {number, etc...}, table options = {"alt", "ctrl", "shift", "right"} )
+		--return: nil | bool true
+		--local order = Spring.GiveOrderToUnit(id,cmd,pos,opts)
+		local order = Spring.GiveOrderToUnitArray(id,cmd,pos,opts)
+		if not order  then
+			spEcho('order error in STAI unsync to sync give order to unit',msg)
+			spEcho('order', order,id,cmd,pos,opts,unit)
+-- 		else
+-- 			spEcho('STAI give order to unit OK')
+		end
+	end
+]]--
 	function gadget:RecvLuaMsg(msg, playerID)
 		--msg = 'StGiveOrderToSync'..';'..id..';'..cmd..';'..pos..';'..opts..';'..timeout..';'..uname..';'.'StEndGOTS'
 		if string.sub(msg,1,17) ~= 'StGiveOrderToSync' then
@@ -207,7 +273,9 @@ else	-- UNSYNCED CODE
 			thisAI:Prepare()
 			--thisAI:Init()
 			garbagelimit = math.min(1000000,garbagelimit + pershardmemlimit)
+			Spring.Echo(string.format("AI %d (%s) using %d MB RAM, adjusting limit to %d MB", thisAI.id, thisAI.fullname, basememlimit/1000, garbagelimit/1000))
 			numShards = numShards + 1
+
 		end
 	end
 
@@ -223,9 +291,8 @@ else	-- UNSYNCED CODE
 
 			if i == 1 and n % 121 == 0 then
 				local ramuse = gcinfo()
-				Spring.Echo("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%RAMUSE",i,n, ramuse)
+				--Spring.Echo("STAI use",ramuse .. ' kb of RAM of ' .. garbagelimit, 'available' )
 				if ramuse > garbagelimit then
-					collectgarbage("collect")
 					collectgarbage("collect")
 					local notgarbagemem = gcinfo()
 					local newgarbagelimit = math.min(1000000, notgarbagemem + basememlimit + pershardmemlimit * numShards) -- peak 1 GB
