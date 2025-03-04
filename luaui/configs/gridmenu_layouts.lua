@@ -2034,6 +2034,8 @@ local unitGrids = {
 	},
 }
 
+unitGrids["dummycom"] = unitGrids["armcom"]
+
 if Spring.Utilities.Gametype.IsScavengers() or Spring.GetModOptions().forceallunits then
 	local scavLabGrids = {}
 	local scavUnitGrids = {}

@@ -9,11 +9,18 @@ function widget:GetInfo()
 		enabled = true
 	}
 end
-local factions = {
-	{ startUnit = UnitDefNames.corcom.id, faction = 'cor' },
-	{ startUnit = UnitDefNames.armcom.id, faction = 'arm' },
-}
-if Spring.GetModOptions().experimentallegionfaction then
+local factions = {}
+
+if UnitDefNames.dummycom then
+	factions[#factions+1] = { startUnit = UnitDefNames.dummycom.id, faction = 'random' }
+end
+if UnitDefNames.corcom then
+	factions[#factions+1] = { startUnit = UnitDefNames.corcom.id, faction = 'cor' }
+end
+if UnitDefNames.armcom then
+	factions[#factions+1] = { startUnit = UnitDefNames.armcom.id, faction = 'arm' }
+end
+if Spring.GetModOptions().experimentallegionfaction and UnitDefNames.legcom then
 	factions[#factions+1] = { startUnit = UnitDefNames.legcom.id, faction = 'leg' }
 end
 
