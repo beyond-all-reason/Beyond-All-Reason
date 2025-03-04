@@ -888,6 +888,7 @@ local unitDeaths = {
 		damage = {
 			default = 610,
 			walls = 0,
+			buildings = 0,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -904,6 +905,7 @@ local unitDeaths = {
 		damage = {
 			default = 1530,
 			walls = 0,
+			buildings = 0,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -920,6 +922,7 @@ local unitDeaths = {
 		damage = {
 			default = 610,
 			walls = 0,
+			buildings = 0,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -936,6 +939,7 @@ local unitDeaths = {
 		damage = {
 			default = 1530,
 			walls = 0,
+			buildings = 0,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -952,6 +956,7 @@ local unitDeaths = {
 		damage = {
 			default = 560,
 			walls = 0,
+			buildings = 0,
 		},
 		customparams = {
 			unitexplosion = 1,
