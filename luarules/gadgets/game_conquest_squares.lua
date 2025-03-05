@@ -17,7 +17,7 @@ if SYNCED then
 -- SYNCED CODE
 
 	--configs
-	local DEBUGMODE = true -- Changed to uppercase as it's a constant
+	local DEBUGMODE = false -- Changed to uppercase as it's a constant
 	local MINUTES_TO_MAX = 20
 	local MINUTES_TO_START = 5
 	local MAX_TERRITORY_PERCENTAGE = 100
@@ -163,12 +163,12 @@ if SYNCED then
 
 	--custom functions
 	local function generateCaptureGrid()
-		local points = {}
+		local gridData = {}
 		local totalSquares = numberOfSquaresX * numberOfSquaresZ
 		
 		-- Pre-allocate table size for better performance
 		for i = 1, totalSquares do
-			points[i] = {}
+			gridData[i] = {}
 		end
 		
 		for x = 0, numberOfSquaresX - 1 do
@@ -176,20 +176,22 @@ if SYNCED then
 				local originX = x * GRID_SIZE
 				local originZ = z * GRID_SIZE
 				local index = x * numberOfSquaresZ + z + 1
-				local point = points[index]
-				point.x = originX
-				point.z = originZ
-				point.middleX = originX + GRID_SIZE / 2
-				point.middleZ = originZ + GRID_SIZE / 2
-				point.allyOwnerID = gaiaAllyTeamID
-				point.progress = STARTING_PROGRESS
-				point.hasUnits = false
-				point.decayDelay = 0
-				point.gridX = x
-				point.gridZ = z
+				local data = gridData[index]
+				data.x = originX
+				data.z = originZ
+				data.middleX = originX + GRID_SIZE / 2
+				data.middleZ = originZ + GRID_SIZE / 2
+				data.allyOwnerID = gaiaAllyTeamID
+				data.progress = STARTING_PROGRESS
+				data.hasUnits = false
+				data.decayDelay = 0
+				data.gridX = x
+				data.gridZ = z
+				data.sentAllyID = gaiaAllyTeamID
+				data.sentBlinkingState = false
 			end
 		end
-		return points
+		return gridData
 	end
 
 	local function updateCurrentDefeatThreshold()
@@ -440,46 +442,33 @@ if SYNCED then
 		return randomizedGridIDs
 	end
 
-	-- Function to send grid data to unsynced
-	local function sendGridToUnsynced()
-		-- Only send static grid structure data once during initialization
-		if not sentGridStructure then
-			SendToUnsynced("InitGridStructure", numberOfSquaresX, numberOfSquaresZ)
-			
-			for gridID, data in pairs(captureGrid) do
-				SendToUnsynced("InitGridSquare", gridID, data.gridX, data.gridZ, data.x, data.z)
-			end
-			
-			sentGridStructure = true
-		end
-		
-		-- Only send ally team colors when they change
-		for allyTeamID, teamID in pairs(allyTeamIDs) do
-			if not sentAllyTeams[allyTeamID] or sentAllyTeams[allyTeamID] ~= teamID then
-				SendToUnsynced("UpdateAllyTeamID", allyTeamID, teamID)
-				sentAllyTeams[allyTeamID] = teamID
-			end
-		end
-		
-		-- Only send ownership and progress data which changes frequently
+	local function initializeUnsyncedGrid()
 		for gridID, data in pairs(captureGrid) do
-			local cachedData = cachedGridData[gridID]
-			
-			-- Initialize cache entry if it doesn't exist
-			if not cachedData then
-				cachedData = {allyOwnerID = -1, progress = -1}
-				cachedGridData[gridID] = cachedData
-			end
-			
-			-- Only send if data has changed
-			if data.allyOwnerID ~= cachedData.allyOwnerID or data.progress ~= cachedData.progress then
-				SendToUnsynced("UpdateGridState", gridID, data.allyOwnerID, data.progress)
-				
-				-- Update cache
-				cachedData.allyOwnerID = data.allyOwnerID
-				cachedData.progress = data.progress
-			end
+			SendToUnsynced("InitializeGridSquare", gridID, data.gridX, data.gridZ, data.allyOwnerID, data.progress)
 		end
+	end
+
+	local function updateUnsyncedSquare(gridID)
+		local data = captureGrid[gridID]
+		local blinking = false
+		local allyIDtoSend = gaiaAllyTeamID
+		
+		if data.progress > OWNERSHIP_THRESHOLD then
+			allyIDtoSend = data.allyOwnerID
+		end
+		if data.progress < MAX_PROGRESS then
+			blinking = true
+		end
+		if data.sentAllyID == allyIDtoSend and data.sentBlinkingState == blinking then
+			return -- data is the same as last time
+		end
+		data.sentAllyID = allyIDtoSend
+		data.sentBlinkingState = blinking
+		SendToUnsynced("UpdateGridSquare", gridID, allyIDtoSend, blinking)
+	end
+
+	local function updateUnsyncedScore(allyID, score)
+		SendToUnsynced("UpdateAllyScore", allyID, score)
 	end
 
 	local function setAllyGridToGaia(allyID)
@@ -524,12 +513,13 @@ if SYNCED then
 				local winningAllyID, progressChange = getCaptureProgress(gridID, allyPowers)
 				if winningAllyID then
 					applyProgress(gridID, progressChange, winningAllyID)
+					updateUnsyncedSquare(gridID)
 				end
 				if allyTeamsWatch[data.allyOwnerID] and data.progress > OWNERSHIP_THRESHOLD then
 					allyTallies[data.allyOwnerID] = allyTallies[data.allyOwnerID] + 1
 				end
 
-				if DEBUGMODE and false then -- Simplified debug condition
+				if DEBUGMODE then -- Simplified debug condition
 					spSpawnCEG("scaspawn-trail", data.x, spGetGroundHeight(data.x, data.z), data.z, 0,0,0)
 					spSpawnCEG("scav-spawnexplo", data.x, spGetGroundHeight(data.x, data.z), data.z, 0,0,0)
 					if allyTeamsWatch[data.allyOwnerID] then
@@ -544,17 +534,20 @@ if SYNCED then
 				local contiguousAllyID, progressChange = getSquareContiguityProgress(gridID)
 				if contiguousAllyID and progressChange ~= 0 then
 					applyProgress(gridID, progressChange, contiguousAllyID)
+					updateUnsyncedSquare(gridID)
 				end
 			end
 
 			for gridID, data in pairs(captureGrid) do
 				if data.decayDelay < frame and data.progress < MAX_PROGRESS then
 					decayProgress(gridID)
+					updateUnsyncedSquare(gridID)
 				end
 			end
 		elseif frameModulo == 2 then
 			allyScores = convertTalliesToScores(allyTallies)
 			for allyID, score in pairs(allyScores) do
+				updateUnsyncedScore(allyID, score)
 				if allyTeamsWatch[allyID] and score < defeatThreshold and not DEBUGMODE then
 					triggerAllyDefeat(allyID)
 					setAllyGridToGaia(allyID)
@@ -562,7 +555,10 @@ if SYNCED then
 			end
 			
 			-- Send updated grid data to unsynced
-			sendGridToUnsynced()
+			if not sentGridStructure then
+				initializeUnsyncedGrid()
+				sentGridStructure = true
+			end
 		end
 
 		-- Process kill queue
@@ -592,6 +588,8 @@ if SYNCED then
 			gadget:UnitCreated(unitID, spGetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
 		end
 	end
+
+--zzz need to prevent defeat in the case that all remaining teams are tied, or there is only one team left
 
 else
 -- UNSYNCED CODE
