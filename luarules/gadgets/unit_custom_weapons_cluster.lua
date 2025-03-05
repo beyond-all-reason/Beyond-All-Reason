@@ -34,7 +34,6 @@ local deepWaterDepth = -40					-- used for the surface deflection on water, lava
 	-- weapon = {
 	-- 	type := "Cannon" | "EMGCannon"
 	-- 	customparams = {
-	-- 		cluster        := true
 	-- 		cluster_def    := <string> | nil (see defaults)
 	-- 		cluster_number := <number> | nil (see defaults)
 	-- 	},
@@ -86,7 +85,7 @@ for unitDefName, unitDef in pairs(UnitDefNames) do
 		local weaponDefID, weaponDef = weapon.weaponDef, WeaponDefs[weapon.weaponDef]
 		local custom = weaponDef.customParams
 
-		if custom.cluster then
+		if custom.cluster_def then
 			local clusterDefName = custom.cluster_def
 			local clusterCount = tonumber(custom.cluster_number) or defaultSpawnNum
 
