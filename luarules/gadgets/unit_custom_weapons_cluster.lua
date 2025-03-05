@@ -67,6 +67,11 @@ local spSpawnProjectile       = Spring.SpawnProjectile
 
 local gameSpeed  = Game.gameSpeed
 local mapGravity = Game.gravity / (gameSpeed * gameSpeed) * -1
+local maxUnitRadius = 0
+
+for _, unitDef in pairs(UnitDefs) do
+	maxUnitRadius = max(maxUnitRadius, unitDef.radius)
+end
 
 --------------------------------------------------------------------------------
 -- Initialize ------------------------------------------------------------------
@@ -223,7 +228,7 @@ local function GetSurfaceDeflection(data, projectileID, ex, ey, ez)
 	dz = dz * separation
 
 	-- Additional deflection from units, from none to solid-terrain-like.
-	local unitsNearby = spGetUnitsInSphere(ex, ey, ez, 270/2) -- gettin yuge (air repair pad size)
+	local unitsNearby = spGetUnitsInSphere(ex, ey, ez, maxUnitRadius)
 	local bounce, ux, uy, uz, radius
 	for _, unitID in ipairs(unitsNearby) do
 		bounce = unitBulks[spGetUnitDefID(unitID)]
