@@ -752,23 +752,6 @@ WG.FlowUI.Draw.Unit = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  zoom,  bor
 		--gl.TexRect(sx - iconPadding - iconSize, py + iconPadding, sx - iconPadding, py + iconPadding + iconSize)
 		gl.Texture(false)
 	end
-	if price then
-		local priceSize = math.floor((sx - px) * 0.15)
-		local iconPadding = math.floor((sx - px) * 0.03)
-		--font2:Print("\255\245\245\245" .. price[1] .. "\n\255\255\255\000" .. price[2], px + iconPadding, py + iconPadding + (priceSize * 1.35), priceSize, "o")
-	end
-	if queueCount and queueCount > 0 then
-		local pad = math.floor(halfSize * 0.06)
-		--local textWidth = math.floor(font2:GetTextWidth(queueCount .. '  ') * halfSize * 0.57)
-		--WG.FlowUI.Draw.RectRound(sx - pad - textWidth, sy + ((py-sy) * 0.365), sx, sy, cs * 3.3, 0, 0, 0, 1, { 0.15, 0.15, 0.15, 0.95 }, { 0.25, 0.25, 0.25, 0.95 })
-		--WG.FlowUI.Draw.RectRound(sx - pad - textWidth, sy + ((py-sy) * 0.15), sx, sy, 0, 0, 0, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.05 })
-		--WG.FlowUI.Draw.RectRound(sx - pad - textWidth + pad, sy + ((py-sy) * 0.365) + pad, sx, sy, cs * 2.6, 0, 0, 0, 1, { 0.7, 0.7, 0.7, 0.1 }, { 1, 1, 1, 0.1 })
-		--font2:Print("\255\190\255\190" .. queueCount,
-		--	px + (halfSize * 1.88) - pad2,
-		--	py + (halfSize * 1.43) - pad2,
-		--	(sx - px) * 0.29, "ro"
-		--)
-	end
 end
 
 --[[
