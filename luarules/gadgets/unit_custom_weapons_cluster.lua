@@ -192,7 +192,7 @@ DirectionsUtil.ProvisionDirections(maxDataNum)
 --------------------------------------------------------------------------------
 -- Functions -------------------------------------------------------------------
 
-local function GetSurfaceDeflection(data, projectileID, ex, ey, ez)
+local function getSurfaceDeflection(data, projectileID, ex, ey, ez)
 	-- Deflection from deep water, shallow water, and solid terrain.
 	local elevation = spGetGroundHeight(ex, ez)
 	local separation
@@ -254,7 +254,7 @@ local function GetSurfaceDeflection(data, projectileID, ex, ey, ez)
 	return dx, dy, dz
 end
 
-local function SpawnClusterProjectiles(data, projectileID, attackerID, ex, ey, ez)
+local function spawnClusterProjectiles(data, projectileID, attackerID, ex, ey, ez)
 	local clusterDefID = data.weaponID
 	local projectileCount = data.number
 	local projectileSpeed = data.weaponSpeed
@@ -265,7 +265,7 @@ local function SpawnClusterProjectiles(data, projectileID, attackerID, ex, ey, e
 	local pos = spawnCache.pos
 
 	local directions = directions[projectileCount]
-	local deflectX, deflectY, deflectZ = GetSurfaceDeflection(data, projectileID, ex, ey, ez)
+	local deflectX, deflectY, deflectZ = getSurfaceDeflection(data, projectileID, ex, ey, ez)
 	local randomness = 1 / sqrt(projectileCount - 2)
 
 	for ii = 0, projectileCount - 1 do
@@ -314,6 +314,6 @@ end
 function gadget:Explosion(weaponDefID, ex, ey, ez, attackerID, projectileID)
 	local weaponData = clusterWeaponDefs[weaponDefID]
 	if weaponData then
-		SpawnClusterProjectiles(weaponData, projectileID, attackerID, ex, ey, ez)
+		spawnClusterProjectiles(weaponData, projectileID, attackerID, ex, ey, ez)
 	end
 end
