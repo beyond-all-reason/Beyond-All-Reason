@@ -501,10 +501,7 @@ function widget:Initialize()
 			-- to use to retrive the corresponding texture bucket
 			unitDeftoUnitShapeVBOTable[unitDefID].UnitShapeTexturesUnitDefID = unitDefID
 		end
-	end 
-
-	armcomUnitDefID = UnitDefNames["armcom"].id
-	corcomUnitDefID = UnitDefNames["corcom"].id
+	end
 
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
