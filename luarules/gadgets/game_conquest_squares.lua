@@ -17,7 +17,7 @@ if SYNCED then
 -- SYNCED CODE
 
 	--configs
-	local DEBUGMODE = false -- Changed to uppercase as it's a constant
+	local DEBUGMODE = true -- Changed to uppercase as it's a constant
 	local MINUTES_TO_MAX = 20
 	local MINUTES_TO_START = 5
 	local MAX_TERRITORY_PERCENTAGE = 100
@@ -188,7 +188,7 @@ if SYNCED then
 				data.gridX = x
 				data.gridZ = z
 				data.sentAllyID = gaiaAllyTeamID
-				data.sentBlinkingState = false
+				data.sentBlinkingState = true
 			end
 		end
 		return gridData
@@ -444,7 +444,7 @@ if SYNCED then
 
 	local function initializeUnsyncedGrid()
 		for gridID, data in pairs(captureGrid) do
-			SendToUnsynced("InitializeGridSquare", gridID, data.gridX, data.gridZ, data.allyOwnerID, data.progress)
+			SendToUnsynced("InitializeGridSquare", gridID, data.allyOwnerID, data.sentBlinkingState, data.gridX, data.gridZ)
 		end
 	end
 
@@ -519,13 +519,13 @@ if SYNCED then
 					allyTallies[data.allyOwnerID] = allyTallies[data.allyOwnerID] + 1
 				end
 
-				if DEBUGMODE then -- Simplified debug condition
-					spSpawnCEG("scaspawn-trail", data.x, spGetGroundHeight(data.x, data.z), data.z, 0,0,0)
-					spSpawnCEG("scav-spawnexplo", data.x, spGetGroundHeight(data.x, data.z), data.z, 0,0,0)
-					if allyTeamsWatch[data.allyOwnerID] then
-						spSpawnCEG(debugOwnershipCegs[data.allyOwnerID], data.middleX, spGetGroundHeight(data.middleX, data.middleZ), data.middleZ, 0,0,0)
-					end
-				end
+				-- if DEBUGMODE then -- Simplified debug condition
+				-- 	spSpawnCEG("scaspawn-trail", data.x, spGetGroundHeight(data.x, data.z), data.z, 0,0,0)
+				-- 	spSpawnCEG("scav-spawnexplo", data.x, spGetGroundHeight(data.x, data.z), data.z, 0,0,0)
+				-- 	if allyTeamsWatch[data.allyOwnerID] then
+				-- 		spSpawnCEG(debugOwnershipCegs[data.allyOwnerID], data.middleX, spGetGroundHeight(data.middleX, data.middleZ), data.middleZ, 0,0,0)
+				-- 	end
+				-- end
 			end
 		elseif frameModulo == 1 then
 			local randomizedIDs = getRandomizedGridIDs()
@@ -592,31 +592,27 @@ if SYNCED then
 --zzz need to prevent defeat in the case that all remaining teams are tied, or there is only one team left
 
 else
+
+VFS.Include("luaui/Widgets/Include/instancevbotable.lua")
 -- UNSYNCED CODE
 
 -- Localize GL functions for better performance
 local glColor = gl.Color
 local glPushMatrix = gl.PushMatrix
 local glPopMatrix = gl.PopMatrix
-local glCreateList = gl.CreateList
-local glCallList = gl.CallList
-local glDeleteList = gl.DeleteList
 local glShape = gl.Shape
+local glRect = gl.Rect
 local GL_QUADS = GL.QUADS
 
 -- Spring functions
 local spGetTeamColor = Spring.GetTeamColor
-local spGetGameFrame = Spring.GetGameFrame
+local spGetMiniMapGeometry = Spring.GetMiniMapGeometry
 
 -- Variables for the squares
-local SQUARE_OPACITY = 0.7
 local MINIMAP_DRAW_ENABLED = true
 local blinkFrame = false  -- Toggle for blinking effect
-local LOW_PROGRESS_THRESHOLD = 50  -- Progress threshold for blinking
-local BLINK_INTERVAL = Game.gameSpeed * 4
-local MINIMAP_SQUARE_OPACITY = 0.15
-local OWNERSHIP_THRESHOLD = 33
-local MAX_PROGRESS = 100
+local BLINK_INTERVAL = 30 -- Frames between blinks (reduced from gameSpeed*4)
+local MINIMAP_SQUARE_OPACITY = 0.3 -- Increased from 0.15 for better visibility
 
 -- Get map dimensions
 local mapSizeX = Game.mapSizeX
@@ -625,32 +621,21 @@ local GRID_SIZE = 1024 -- Same as in synced code
 
 -- Tables to store grid data from synced
 local gridData = {}
-local gridStateData = {}  -- Only stores dynamic state (ownership and progress)
-local allyTeamIDs = {}
 local allyTeamColors = {}
-local numberOfSquaresX = 0
-local numberOfSquaresZ = 0
-local gridInitialized = false
+local allyScores = {}
 
--- Display lists for normal and blinking squares
-local normalDisplayLists = {}
-local blinkingDisplayLists = {}
-local displayListsNeedUpdate = true
-
--- Cache for minimap dimensions and calculated square sizes
+-- Minimap cache
 local minimapCache = {
 	posX = 0,
 	posY = 0,
 	sizeX = 0,
 	sizeY = 0,
-	gridSquareWidth = 0,
-	gridSquareHeight = 0,
 	needsUpdate = true
 }
 
 -- Function to check if minimap dimensions have changed and update cache
 local function updateMinimapCache()
-	local minimapPosX, minimapPosY, minimapSizeX, minimapSizeY = Spring.GetMiniMapGeometry()
+	local minimapPosX, minimapPosY, minimapSizeX, minimapSizeY = spGetMiniMapGeometry()
 	
 	if minimapPosX ~= minimapCache.posX or 
 	   minimapPosY ~= minimapCache.posY or
@@ -663,160 +648,58 @@ local function updateMinimapCache()
 		minimapCache.sizeX = minimapSizeX
 		minimapCache.sizeY = minimapSizeY
 		
-		-- Recalculate grid square dimensions
-		minimapCache.gridSquareWidth = (GRID_SIZE / mapSizeX) * minimapSizeX
-		minimapCache.gridSquareHeight = (GRID_SIZE / mapSizeZ) * minimapSizeY
-		
 		minimapCache.needsUpdate = false
-		displayListsNeedUpdate = true
 		return true
 	end
 	
 	return false
 end
 
--- Initialize the grid structure (called once from synced)
-local function initializeGridStructure(numberOfSquaresX, numberOfSquaresZ)
-	-- Clear existing data if any
-	gridData = {}
-	
-	-- Create the grid structure
-	for x = 0, numberOfSquaresX - 1 do
-		for z = 0, numberOfSquaresZ - 1 do
-			local gridID = x * numberOfSquaresZ + z + 1
-			local originX = x * GRID_SIZE
-			local originZ = z * GRID_SIZE
-			
-			gridData[gridID] = {
-				gridX = x,
-				gridZ = z,
-				x = originX,
-				z = originZ,
-				middleX = originX + GRID_SIZE / 2,
-				middleZ = originZ + GRID_SIZE / 2
-			}
-			
-			-- Initialize state data
-			gridStateData[gridID] = {
-				allyOwnerID = 0,  -- Default to Gaia
-				progress = 0      -- Default progress
-			}
-		end
-	end
-	
-	gridInitialized = true
-	displayListsNeedUpdate = true
-	return true
-end
-
--- Function to create display lists for all grid squares
-local function createDisplayLists()
-	-- Clean up old display lists if they exist
-	for allyID, listID in pairs(normalDisplayLists) do
-		glDeleteList(listID)
-	end
-	for allyID, listID in pairs(blinkingDisplayLists) do
-		glDeleteList(listID)
-	end
-	
-	normalDisplayLists = {}
-	blinkingDisplayLists = {}
-	
-	-- Update minimap cache if needed
-	updateMinimapCache()
-	
-	-- Use cached values
-	local minimapPosX = minimapCache.posX
-	local minimapPosY = minimapCache.posY
-	local minimapSizeY = minimapCache.sizeY
-	local gridSquareWidth = minimapCache.gridSquareWidth
-	local gridSquareHeight = minimapCache.gridSquareHeight
-	
-	-- Group squares by ally team and blink state
-	local normalSquaresByAlly = {}
-	local blinkingSquaresByAlly = {}
-	
-	-- First pass: organize squares by ally team and blink state
-	for gridID, staticData in pairs(gridData) do
-		local stateData = gridStateData[gridID]
-		if stateData then
-			local allyOwnerID = stateData.allyOwnerID
-			local progress = stateData.progress
-			local shouldBlink = progress < MAX_PROGRESS and progress >= OWNERSHIP_THRESHOLD
-			
-			-- Skip squares with no color data
-			if allyTeamColors[allyOwnerID] then
-				local left = minimapPosX + (staticData.gridX * GRID_SIZE / mapSizeX) * minimapCache.sizeX
-				local top = minimapPosY + minimapSizeY - (staticData.gridZ * GRID_SIZE / mapSizeZ) * minimapCache.sizeY
-				local right = left + gridSquareWidth
-				local bottom = top - gridSquareHeight
-				
-				local vertices = {
-					{v = {left, top, 0}},
-					{v = {right, top, 0}},
-					{v = {right, bottom, 0}},
-					{v = {left, bottom, 0}}
-				}
-				
-				if shouldBlink then
-					blinkingSquaresByAlly[allyOwnerID] = blinkingSquaresByAlly[allyOwnerID] or {}
-					table.insert(blinkingSquaresByAlly[allyOwnerID], vertices)
-				else
-					normalSquaresByAlly[allyOwnerID] = normalSquaresByAlly[allyOwnerID] or {}
-					table.insert(normalSquaresByAlly[allyOwnerID], vertices)
-				end
-			end
-		end
-	end
-	
-	-- Create display lists for normal squares
-	for allyOwnerID, squaresData in pairs(normalSquaresByAlly) do
-		local color = allyTeamColors[allyOwnerID]
-		
-		normalDisplayLists[allyOwnerID] = glCreateList(function()
-			glColor(color.r, color.g, color.b, MINIMAP_SQUARE_OPACITY)
-			
-			for _, vertices in ipairs(squaresData) do
-				glShape(GL_QUADS, vertices)
-			end
-		end)
-	end
-	
-	-- Create display lists for blinking squares
-	for allyOwnerID, squaresData in pairs(blinkingSquaresByAlly) do
-		local color = allyTeamColors[allyOwnerID]
-		local r = color.r + 0.3 * (1 - color.r)
-		local g = color.g + 0.3 * (1 - color.g)
-		local b = color.b + 0.3 * (1 - color.b)
-		
-		blinkingDisplayLists[allyOwnerID] = glCreateList(function()
-			glColor(r, g, b, MINIMAP_SQUARE_OPACITY)
-			
-			for _, vertices in ipairs(squaresData) do
-				glShape(GL_QUADS, vertices)
-			end
-		end)
-	end
-	
-	displayListsNeedUpdate = false
-end
-
--- Function to draw all grid squares on the minimap using display lists
+-- Function to draw all grid squares directly
 local function drawGridSquares()
-	-- Check if we need to update the display lists
-	if displayListsNeedUpdate then
-		createDisplayLists()
+	-- Update minimap cache if needed
+	if minimapCache.needsUpdate then
+		updateMinimapCache()
 	end
 	
-	-- Draw normal squares
-	for _, listID in pairs(normalDisplayLists) do
-		glCallList(listID)
-	end
+	-- Calculate grid square dimensions on minimap
+	local gridSquareWidth = (GRID_SIZE / mapSizeX) * minimapCache.sizeX
+	local gridSquareHeight = (GRID_SIZE / mapSizeZ) * minimapCache.sizeY
 	
-	-- Draw blinking squares if in blink state
-	if blinkFrame then
-		for _, listID in pairs(blinkingDisplayLists) do
-			glCallList(listID)
+	-- Draw each grid square
+	for gridID, data in pairs(gridData) do
+		local allyOwnerID = data.allyOwnerID
+		local color = allyTeamColors[allyOwnerID]
+		
+		if color then
+			-- Skip drawing if we should be blinking and blink is off
+			if data.blinking and not blinkFrame then
+				-- Skip this square during off-blink frames
+			else
+				-- Calculate square position on minimap
+				local left = minimapCache.posX + (data.gridX * GRID_SIZE / mapSizeX) * minimapCache.sizeX
+				
+				-- Fix for vertical mirroring - calculate from the top of the minimap instead of bottom
+				local bottom = minimapCache.posY + minimapCache.sizeY - ((data.gridZ + 1) * GRID_SIZE / mapSizeZ) * minimapCache.sizeY
+				local right = left + gridSquareWidth
+				local top = bottom + gridSquareHeight
+				
+				-- Adjust color for blinking squares
+				if data.blinking and blinkFrame then
+					-- Brighter color for blinking
+					glColor(
+						math.min(1.0, color.r * 1.5),
+						math.min(1.0, color.g * 1.5),
+						math.min(1.0, color.b * 1.5),
+						MINIMAP_SQUARE_OPACITY
+					)
+				else
+					glColor(color.r, color.g, color.b, MINIMAP_SQUARE_OPACITY)
+				end
+				
+				-- Draw the rectangle
+				glRect(left, bottom, right, top)
+			end
 		end
 	end
 	
@@ -824,72 +707,76 @@ local function drawGridSquares()
 	glColor(1, 1, 1, 1)
 end
 
-local args = {...}
 -- Receive grid data from synced
 function gadget:RecvFromSynced(cmd, ...)
-	args = {...}
+	local args = {...}
 	
-	if cmd == "InitGridStructure" then
-		-- Initialize the entire grid structure (once)
-		local numSquaresX = args[1]
-		local numSquaresZ = args[2]
-		numberOfSquaresX = numSquaresX
-		numberOfSquaresZ = numSquaresZ
-		initializeGridStructure(numSquaresX, numSquaresZ)
-	elseif cmd == "InitGridSquare" then
-		-- Initialize a single grid square (part of initialization)
+	if cmd == "InitializeGridSquare" then
+		-- Initialize a single grid square
 		local gridID = args[1]
-		local gridX = args[2]
-		local gridZ = args[3]
-		local x = args[4]
-		local z = args[5]
+		local allyOwnerID = args[2]
+		local blinking = args[3]
+		local gridX = args[4]
+		local gridZ = args[5]
 		
+		-- Store the grid square data
 		gridData[gridID] = {
 			gridX = gridX,
 			gridZ = gridZ,
-			x = x,
-			z = z,
-			middleX = x + GRID_SIZE / 2,
-			middleZ = z + GRID_SIZE / 2
+			allyOwnerID = allyOwnerID,
+			blinking = blinking
 		}
 		
-		-- Initialize state data if not already present
-		if not gridStateData[gridID] then
-			gridStateData[gridID] = {
-				allyOwnerID = 0,  -- Default to Gaia
-				progress = 0      -- Default progress
-			}
-		end
-	elseif cmd == "UpdateGridState" then
-		-- Update only the changing state of a grid square (frequent)
+		-- Mark minimap cache for update
+		minimapCache.needsUpdate = true
+		
+	elseif cmd == "UpdateGridSquare" then
+		-- Update a grid square's ownership and blinking state
 		local gridID = args[1]
 		local allyOwnerID = args[2]
-		local progress = args[3]
+		local blinking = args[3]
 		
 		-- Only update if the grid square exists
-		if gridStateData[gridID] then
-			-- Check if state actually changed
-			if gridStateData[gridID].allyOwnerID ~= allyOwnerID or 
-			   gridStateData[gridID].progress ~= progress then
-				
-				gridStateData[gridID].allyOwnerID = allyOwnerID
-				gridStateData[gridID].progress = progress
-				displayListsNeedUpdate = true
-			end
+		if gridData[gridID] then
+			gridData[gridID].allyOwnerID = allyOwnerID
+			gridData[gridID].blinking = blinking
 		end
-	elseif cmd == "UpdateAllyTeamID" then
-		local allyTeamID = args[1]
-		local teamID = args[2]
-		allyTeamIDs[allyTeamID] = teamID
 		
-		-- Update colors when receiving new team IDs
-		local r, g, b = spGetTeamColor(teamID)
-		allyTeamColors[allyTeamID] = {r = r, g = g, b = b}
-		displayListsNeedUpdate = true
+	elseif cmd == "UpdateAllyScore" then
+		-- Update an ally team's score
+		local allyID = args[1]
+		local score = args[2]
+		allyScores[allyID] = score
 	end
 end
 
--- Update function to toggle the blink state
+-- Initialize team colors
+function gadget:Initialize()
+	-- Get all teams
+	local teams = Spring.GetTeamList()
+	
+	-- For each team, get its ally team and color
+	for _, teamID in ipairs(teams) do
+		local _, _, _, _, _, allyTeamID = Spring.GetTeamInfo(teamID)
+		
+		-- Only store the first team's color for each ally team
+		if not allyTeamColors[allyTeamID] then
+			local r, g, b = spGetTeamColor(teamID)
+			allyTeamColors[allyTeamID] = {r = r, g = g, b = b}
+		end
+	end
+	
+	-- Also add Gaia team color (usually gray)
+	local gaiaTeamID = Spring.GetGaiaTeamID()
+	local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(gaiaTeamID))
+	local r, g, b = spGetTeamColor(gaiaTeamID)
+	allyTeamColors[gaiaAllyTeamID] = {r = r, g = g, b = b}
+	
+	-- Initialize minimap cache
+	updateMinimapCache()
+end
+
+-- Update function to toggle the blink state and check for minimap resizing
 local updateFrame = 0
 function gadget:Update()
 	updateFrame = updateFrame + 1
@@ -902,18 +789,19 @@ function gadget:Update()
 	-- Check for minimap resize occasionally
 	if updateFrame % 30 == 0 then
 		if updateMinimapCache() then
-			displayListsNeedUpdate = true
+			-- Mark for update if minimap dimensions changed
+			minimapCache.needsUpdate = true
 		end
 	end
 end
 
 -- Hook into DrawInMiniMap to draw our grid squares on the minimap
-function gadget:DrawInMiniMap(mmsx, mmsy)
-	if MINIMAP_DRAW_ENABLED and gridInitialized and next(gridData) then
+function gadget:DrawInMiniMap()
+	if MINIMAP_DRAW_ENABLED and next(gridData) then
 		-- Save the current matrix
 		glPushMatrix()
 		
-		-- Draw all grid squares using display lists
+		-- Draw all grid squares
 		drawGridSquares()
 		
 		-- Restore the matrix
@@ -921,14 +809,9 @@ function gadget:DrawInMiniMap(mmsx, mmsy)
 	end
 end
 
--- Clean up display lists when gadget is removed
+-- Clean up when gadget is removed
 function gadget:Shutdown()
-	for allyID, listID in pairs(normalDisplayLists) do
-		glDeleteList(listID)
-	end
-	for allyID, listID in pairs(blinkingDisplayLists) do
-		glDeleteList(listID)
-	end
+	-- No explicit cleanup needed
 end
 
 -- Toggle function that can be called from elsewhere if needed
