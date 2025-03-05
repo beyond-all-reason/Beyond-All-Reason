@@ -17,14 +17,17 @@ if SYNCED then
 -- SYNCED CODE
 
 	--configs
-	local debugmode = false
+	local debugmode = true
 	local MINUTES_TO_MAX = 20 --how many minutes until the threshold reaches max threshold from start time
 	local MINUTES_TO_START = 5 --how many minutes until threshold can start to increment
 	local MAX_TERRITORY_PERCENTAGE = 100 --how much territory/# of allies is factored in to bombardment threshold.
 	local MAX_PROGRESS = 100 --how much progress a square can have
 	local PROGRESS_INCREMENT = 3 --how much progress a square gains per frame
-	local CONTIGUOUS_PROGRESS_INCREMENT = 0.5 --how much progress a square gains per calculation when it's contiguous
+	local CONTIGUOUS_PROGRESS_INCREMENT = 1 --how much progress a square gains per calculation when it's contiguous
+	local DECAY_PROGRESS_INCREMENT = 0.5 --how much progress a square loses per calculation when it's not contiguous or has units
 	local STATIC_POWER_MULTIPLIER = 3 --how much more conquest-power static units have over mobile units
+	local SQUARE_CHECK_INTERVAL = Game.gameSpeed
+	local DECAY_DELAY_FRAMES = Game.gameSpeed * 10 -- how long before progress gained begins to be lost
 
 
 	--localized functions
@@ -51,7 +54,8 @@ if SYNCED then
 	local GRID_SIZE = 1024 -- the size of the squares in elmos
 	local FINISHED_BUILDING = 1
 	local FRAME_MODULO = Game.gameSpeed * 3
-	local STARTING_PROGRESS = 50
+	local STARTING_PROGRESS = 0
+	local OWNERSHIP_THRESHOLD = 33
 
 
 	--variables
@@ -65,6 +69,10 @@ if SYNCED then
 	local defeatThreshold = 0
 	local numberOfSquaresX = 0
 	local numberOfSquaresZ = 0
+	local gameFrame = 0
+	local sentGridStructure = false
+	local sentAllyTeams = {}
+	local cachedGridData = {}
 
 	--tables
 	local allyTeamsWatch = {}
@@ -77,6 +85,7 @@ if SYNCED then
 	local livingCommanders = {}
 	local killQueue = {}
 	local commandersDefs = {}
+	local allyTallies = {}
 
 	local debugOwnershipCegs = {
 		[0] = "corpsedestroyed",
@@ -159,11 +168,12 @@ if SYNCED then
 				points[index] = {
 					x = originX, 
 					z = originZ, 
-					middleX = originX + GRID_SIZE / 2, 
-					middleZ = originZ + GRID_SIZE / 2, 
-					allyOwnerID = gaiaAllyTeamID, 
-					progress = STARTING_PROGRESS, 
+					middleX = originX + GRID_SIZE / 2,
+					middleZ = originZ + GRID_SIZE / 2,
+					allyOwnerID = gaiaAllyTeamID,
+					progress = STARTING_PROGRESS,
 					hasUnits = false,
+					decayDelay = 0,
 					gridX = x,
 					gridZ = z
 				}
@@ -210,28 +220,10 @@ if SYNCED then
 
 	local function triggerAllyDefeat(allyID)
 		for teamID, _ in pairs(allyTeamsWatch[allyID]) do
-			Spring.Echo("Triggering ally defeat for teamID: ", teamID)
 			for unitID, unitTeam in pairs(livingCommanders) do
-				Spring.Echo("Checking unitID: ", unitID, "unitTeam: ", unitTeam)
 				if unitTeam == teamID then
-					Spring.Echo("Queueing commander teleport retreat for unitID: ", unitID)
 					queueCommanderTeleportRetreat(unitID)
 				end
-			end
-		end
-	end
-
-	local function razeSquare(squareID, data)
-		local attempts = 3
-		local margin = GRID_SIZE * 0.1
-		local chance = 0.5
-
-
-		local data = captureGrid[squareID]
-		local targetX, targetZ = random(data.x + margin, data.x + GRID_SIZE - margin), random(data.z + margin, data.z + GRID_SIZE - margin)
-		for i = 1, attempts do
-			if random() > chance then
-				Spring.Echo("Razing square ", squareID, " at ", targetX, targetZ)
 			end
 		end
 	end
@@ -304,7 +296,7 @@ if SYNCED then
 		return winningAllyID, progressChange
 	end
 
-	local function applyAndGetSquareOwnership(gridID, progressChange, winningAllyID)
+	local function applyProgress(gridID, progressChange, winningAllyID)
 		local data = captureGrid[gridID]
 		data.progress = data.progress + progressChange
 		
@@ -314,9 +306,8 @@ if SYNCED then
 		elseif data.progress > MAX_PROGRESS then
 			data.progress = MAX_PROGRESS
 		end
-		if allyTeamsWatch[data.allyOwnerID] then -- don't return a score for invalid or dead allyTeams
-			return data.allyOwnerID
-		end
+
+		data.decayDelay = gameFrame + DECAY_DELAY_FRAMES
 	end
 
 	local function getClearedAllyTallies()
@@ -327,64 +318,69 @@ if SYNCED then
 		return allies
 	end
 
-	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-		if commandersDefs[unitDefID] then
-			livingCommanders[unitID] = unitTeam
-		end
-	end
-
-	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-		livingCommanders[unitID] = nil
-	end
-
 	local function getSquareContiguityProgress(gridID)
-		local data = captureGrid[gridID]
+		local currentSquareData = captureGrid[gridID]
 		
 		-- Skip if this square has units or is owned by Gaia
-		if data.hasUnits then
+		if currentSquareData.hasUnits then
 			return
 		end
 		
-		local neighborAllyCounts = {}
-		local topAllyCount = 0
-		local totalCount = 0
-		local NUMBER_OF_NEIGHBORS_TO_CHECK = 8
-		local allyIDToSet
-		local HALF = 0.5
+		local neighborAllyTeamCounts = {}
+		local dominantAllyTeamCount = 0
+		local totalNeighborCount = 0
+		local MAJORITY_THRESHOLD = 0.5
+		local dominantAllyTeamID
 		
-		local x = data.gridX
-		local z = data.gridZ
+		local currentGridX = currentSquareData.gridX
+		local currentGridZ = currentSquareData.gridZ
 
-		for dx = -1, 1 do
-			for dz = -1, 1 do
-				if not (dx == 0 and dz == 0) then  -- Skip the center cell
-					local nx, nz = x + dx, z + dz
-					-- Check if neighbor is within bounds
-					if nx >= 0 and nx < numberOfSquaresX and nz >= 0 and nz < numberOfSquaresZ then
-						local neighborID = nx * numberOfSquaresZ + nz + 1
-						local neighborData = captureGrid[neighborID]
+		-- Check all 8 surrounding neighbors
+		for deltaX = -1, 1 do
+			for deltaZ = -1, 1 do
+				-- Skip the center cell (the current square itself)
+				if not (deltaX == 0 and deltaZ == 0) then
+					local neighborGridX = currentGridX + deltaX
+					local neighborGridZ = currentGridZ + deltaZ
+					
+					-- Check if neighbor is within map boundaries
+					if neighborGridX >= 0 and neighborGridX < numberOfSquaresX and 
+					   neighborGridZ >= 0 and neighborGridZ < numberOfSquaresZ then
+						local neighborGridID = neighborGridX * numberOfSquaresZ + neighborGridZ + 1
+						local neighborSquareData = captureGrid[neighborGridID]
 						
-						if neighborData and allyTeamsWatch[neighborData.allyOwnerID] then
-							neighborAllyCounts[neighborData.allyOwnerID] = (neighborAllyCounts[neighborData.allyOwnerID] or 0) + 1
+						-- Only count neighbors owned by active ally teams (not Gaia)
+						if neighborSquareData then
+							local neighborOwnerID
+							if neighborSquareData.progress == MAX_PROGRESS then
+								neighborOwnerID = neighborSquareData.allyOwnerID
+							else
+								neighborOwnerID = gaiaAllyTeamID
+							end
+							neighborAllyTeamCounts[neighborOwnerID] = (neighborAllyTeamCounts[neighborOwnerID] or 0) + 1
+							totalNeighborCount = totalNeighborCount + 1
 						end
 					end
 				end
 			end
 		end
 
-		for allyID, count in pairs(neighborAllyCounts) do
-			if count > topAllyCount then
-				allyIDToSet = allyID
-				topAllyCount = count
+		-- Find the ally team that owns the most neighboring squares
+		for allyTeamID, neighborCount in pairs(neighborAllyTeamCounts) do
+			if neighborCount > dominantAllyTeamCount and allyTeamsWatch[allyTeamID] then
+				dominantAllyTeamID = allyTeamID
+				dominantAllyTeamCount = neighborCount
 			end
-			totalCount = totalCount + count
 		end
 
-		if allyIDToSet and topAllyCount > totalCount * HALF then
-			if allyIDToSet ~= data.allyOwnerID then
-				return allyIDToSet, -CONTIGUOUS_PROGRESS_INCREMENT
+		-- Only apply contiguity effect if the dominant ally team owns more than half of all neighbors
+		if dominantAllyTeamID and dominantAllyTeamCount > totalNeighborCount * MAJORITY_THRESHOLD then
+			-- If dominant ally is different from current owner, return negative progress (capture)
+			if dominantAllyTeamID ~= currentSquareData.allyOwnerID then
+				return dominantAllyTeamID, -CONTIGUOUS_PROGRESS_INCREMENT
 			else
-				return allyIDToSet, CONTIGUOUS_PROGRESS_INCREMENT
+				-- If dominant ally is same as current owner, return positive progress (reinforce)
+				return dominantAllyTeamID, CONTIGUOUS_PROGRESS_INCREMENT
 			end
 		end
 	end
@@ -408,30 +404,40 @@ if SYNCED then
 
 	-- Function to send grid data to unsynced
 	local function sendGridToUnsynced()
-		local gridData = {}
-		for gridID, data in pairs(captureGrid) do
-			gridData[gridID] = {
-				x = data.x,
-				z = data.z,
-				gridX = data.gridX,
-				gridZ = data.gridZ,
-				allyOwnerID = data.allyOwnerID,
-				progress = data.progress
-			}
+		-- Only send static grid structure data once during initialization
+		if not sentGridStructure then
+			SendToUnsynced("UpdateGridStructure", numberOfSquaresX, numberOfSquaresZ, GRID_SIZE)
+			
+			-- Send static grid position data
+			for gridID, data in pairs(captureGrid) do
+				SendToUnsynced("InitGridSquare", gridID, data.gridX, data.gridZ, data.x, data.z)
+			end
+			
+			sentGridStructure = true
 		end
 		
-		-- Send the grid data and ally team IDs to unsynced
-		-- Convert tables to strings for SendToUnsynced
-		SendToUnsynced("UpdateGridData", numberOfSquaresX, numberOfSquaresZ, GRID_SIZE)
-		
-		-- Send grid data in smaller chunks to avoid data type issues
-		for gridID, data in pairs(gridData) do
-			SendToUnsynced("UpdateGridSquare", gridID, data.gridX, data.gridZ, data.allyOwnerID, data.progress)
-		end
-		
-		-- Send ally team IDs
+		-- Only send ally team colors when they change
 		for allyTeamID, teamID in pairs(allyTeamIDs) do
-			SendToUnsynced("UpdateAllyTeamID", allyTeamID, teamID)
+			if not sentAllyTeams[allyTeamID] or sentAllyTeams[allyTeamID] ~= teamID then
+				SendToUnsynced("UpdateAllyTeamID", allyTeamID, teamID)
+				sentAllyTeams[allyTeamID] = teamID
+			end
+		end
+		
+		-- Only send ownership and progress data which changes frequently
+		for gridID, data in pairs(captureGrid) do
+			local cachedData = cachedGridData[gridID] or {allyOwnerID = -1, progress = -1}
+			
+			-- Only send if data has changed
+			if data.allyOwnerID ~= cachedData.allyOwnerID or data.progress ~= cachedData.progress then
+				SendToUnsynced("UpdateGridState", gridID, data.allyOwnerID, data.progress)
+				
+				-- Update cache
+				cachedGridData[gridID] = {
+					allyOwnerID = data.allyOwnerID,
+					progress = data.progress
+				}
+			end
 		end
 	end
 
@@ -445,23 +451,44 @@ if SYNCED then
 		end
 	end
 
+	local function decayProgress(gridID)
+		local data = captureGrid[gridID]
+		if data.progress > OWNERSHIP_THRESHOLD then
+			applyProgress(gridID, DECAY_PROGRESS_INCREMENT, data.allyOwnerID)
+		else
+			applyProgress(gridID, -DECAY_PROGRESS_INCREMENT, gaiaAllyTeamID)
+		end
+	end
+
+	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
+		if commandersDefs[unitDefID] then
+			livingCommanders[unitID] = unitTeam
+		end
+	end
+
+	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+		livingCommanders[unitID] = nil
+	end
+
 	function gadget:GameFrame(frame)
-		if frame % 30 == 0 then
+		gameFrame = frame
+
+		if frame % SQUARE_CHECK_INTERVAL == 0 then
 			updateLivingTeamsData()
 			updateCurrentDefeatThreshold()
-			local allyTallies = getClearedAllyTallies()
+			allyTallies = getClearedAllyTallies()
 
 			for gridID, data in pairs(captureGrid) do
 				local allyPowers = getAllyPowersInSquare(gridID)
 				local winningAllyID, progressChange = getCaptureProgress(gridID, allyPowers)
 				if winningAllyID then
-					data.ownerAllyID = applyAndGetSquareOwnership(gridID, progressChange, winningAllyID)
+					applyProgress(gridID, progressChange, winningAllyID)
 				end
-				if allyTeamsWatch[data.allyOwnerID] then
+				if allyTeamsWatch[data.allyOwnerID] and data.progress > OWNERSHIP_THRESHOLD then
 					allyTallies[data.allyOwnerID] = allyTallies[data.allyOwnerID] + 1
 				end
 
-				if debugmode then --to show origins of each square
+				if debugmode and 1 == 2 then --to show origins of each square
 					Spring.SpawnCEG("scaspawn-trail", data.x, Spring.GetGroundHeight(data.x, data.z), data.z, 0,0,0)
 					Spring.SpawnCEG("scav-spawnexplo", data.x, Spring.GetGroundHeight(data.x, data.z), data.z, 0,0,0)
 					if allyTeamsWatch[data.allyOwnerID] then
@@ -469,22 +496,30 @@ if SYNCED then
 					end
 				end
 			end
+		end
+		if frame % SQUARE_CHECK_INTERVAL == 1 then
 
 			local randomizedGridIDs = getRandomizedGridIDs(captureGrid)
 			for _, gridID in ipairs(randomizedGridIDs) do
 				local contiguousAllyID, progressChange = getSquareContiguityProgress(gridID)
 				if contiguousAllyID then
-					applyAndGetSquareOwnership(gridID, progressChange, contiguousAllyID)
+					applyProgress(gridID, progressChange, contiguousAllyID)
 				end
 			end
-			
+
+			for gridID, data in pairs(captureGrid) do
+				if data.decayDelay < frame and data.progress < MAX_PROGRESS then
+					decayProgress(gridID)
+				end
+			end
+		end
+
+		if frame % SQUARE_CHECK_INTERVAL == 2 then
 			allyScores = convertTalliesToScores(allyTallies)
 			for allyID, score in pairs(allyScores) do
-				Spring.Echo("allyID: ", allyID, "score: ", score, "defeatThreshold: ", defeatThreshold)
-				if allyTeamsWatch[allyID] and score < defeatThreshold then
+				if allyTeamsWatch[allyID] and score < defeatThreshold and not debugmode then
 					triggerAllyDefeat(allyID)
 					setAllyGridToGaia(allyID)
-					Spring.Echo("Triggering ally defeat for ", allyID, "score: ", score, "defeatThreshold: ", defeatThreshold)
 				end
 			end
 			
@@ -505,6 +540,11 @@ if SYNCED then
 		numberOfSquaresZ = math.ceil(mapSizeZ / GRID_SIZE)
 		captureGrid = generateCaptureGrid()
 		updateLivingTeamsData()
+		
+		-- Initialize caching variables
+		sentGridStructure = false
+		sentAllyTeams = {}
+		cachedGridData = {}
 
 		local units = Spring.GetAllUnits()
 		for _, unitID in ipairs(units) do
@@ -535,10 +575,10 @@ local squareOpacity = 0.7
 local minimapDrawEnabled = true
 local blinkFrame = false  -- Toggle for blinking effect
 local LOW_PROGRESS_THRESHOLD = 50  -- Progress threshold for blinking
-local BLINK_OPACITY = 0.75 --how much opacity to multiply by when blinking
 local BLINK_INTERVAL = Game.gameSpeed * 4
-local MAX_OPACITY = 0.15
-local MIN_OPACITY = 0.075
+local MINIMAP_SQUARE_OPACITY = 0.15
+local OWNERSHIP_THRESHOLD = 33
+local MAX_PROGRESS = 100
 
 -- Get map dimensions
 local mapSizeX = Game.mapSizeX
@@ -553,14 +593,10 @@ local numberOfSquaresX = 0
 local numberOfSquaresZ = 0
 
 -- Function to calculate opacity based on progress
-local function getOpacityFromProgress(progress)
-    -- Map progress (0-100) to opacity (0.2-0.8)
-    return math.max(MIN_OPACITY, (progress / 100) * MAX_OPACITY)
-end
 
 -- Function to draw all grid squares on the minimap
 local function DrawGridSquares()
-	
+    
     -- Get minimap dimensions and position
     local minimapPosX, minimapPosY, minimapSizeX, minimapSizeY = Spring.GetMiniMapGeometry()
     
@@ -582,16 +618,15 @@ local function DrawGridSquares()
             local g = allyTeamColors[allyOwnerID].g
             local b = allyTeamColors[allyOwnerID].b
             
-            -- Calculate opacity based on progress
-            local opacity = getOpacityFromProgress(progress)
-            
-            -- Apply blinking effect for low progress squares by reducing opacity
-            if progress < LOW_PROGRESS_THRESHOLD and blinkFrame then
-                opacity = opacity * BLINK_OPACITY
+            -- Apply color shifting for blinking effect (shift towards white by 0.3)
+            if progress < MAX_PROGRESS and progress >= OWNERSHIP_THRESHOLD and blinkFrame then
+                r = r + 0.3 * (1 - r)
+                g = g + 0.3 * (1 - g)
+                b = b + 0.3 * (1 - b)
             end
             
             -- Set color with opacity
-            glColor(r, g, b, opacity)
+            glColor(r, g, b, MINIMAP_SQUARE_OPACITY)
             
             -- Calculate position on minimap
             local left = minimapPosX + (gridX * GRID_SIZE / mapSizeX) * minimapSizeX
@@ -612,25 +647,41 @@ end
 function gadget:RecvFromSynced(cmd, ...)
     local args = {...}
     
-    if cmd == "UpdateGridData" then
-        -- Reset data structures when receiving new grid data
-        gridData = {}
+    if cmd == "UpdateGridStructure" then
+        -- Receive static grid structure data (once)
         numberOfSquaresX = args[1]
         numberOfSquaresZ = args[2]
         GRID_SIZE = args[3]
-    elseif cmd == "UpdateGridSquare" then
+        
+        -- Reset data structures when receiving new grid data
+        gridData = {}
+    elseif cmd == "InitGridSquare" then
+        -- Initialize a grid square with static position data (once)
         local gridID = args[1]
         local gridX = args[2]
         local gridZ = args[3]
-        local allyOwnerID = args[4]
-        local progress = args[5]
+        local x = args[4]
+        local z = args[5]
         
         gridData[gridID] = {
             gridX = gridX,
             gridZ = gridZ,
-            allyOwnerID = allyOwnerID,
-            progress = progress
+            x = x,
+            z = z,
+            allyOwnerID = 0,  -- Default values
+            progress = 0      -- Default values
         }
+    elseif cmd == "UpdateGridState" then
+        -- Update only the changing state of a grid square (frequent)
+        local gridID = args[1]
+        local allyOwnerID = args[2]
+        local progress = args[3]
+        
+        -- Only update if the grid square exists
+        if gridData[gridID] then
+            gridData[gridID].allyOwnerID = allyOwnerID
+            gridData[gridID].progress = progress
+        end
     elseif cmd == "UpdateAllyTeamID" then
         local allyTeamID = args[1]
         local teamID = args[2]
