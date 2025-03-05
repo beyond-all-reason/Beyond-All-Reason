@@ -33,11 +33,11 @@ return {
 		upright = true,
 		usesmoothmesh = 0,
 		customparams = {
+			crashable = 0,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorAircraft",
 			unitgroup = "emp",
-			crashable = 0,
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {
@@ -90,7 +90,7 @@ return {
 				paralyzer = true,
 				paralyzetime = 7,
 				range = 220,
-				reloadtime = 1.2,
+				reloadtime = 1.3,
 				rgbcolor = "0.7 0.7 1",
 				soundhitdry = "",
 				soundhitwet = "sizzle",

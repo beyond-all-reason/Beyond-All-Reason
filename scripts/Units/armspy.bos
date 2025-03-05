@@ -306,6 +306,27 @@ HitByWeapon(anglex, anglez)
 	return (0);
 }
 
+
+AimWeapon1()
+{
+	return (TRUE);
+}
+
+FireWeapon1()
+{
+	get KILL_UNIT(get MY_ID,TRUE,FALSE);
+}
+
+QueryWeapon1(piecenum)
+{
+	piecenum = body;
+}
+
+AimFromWeapon1(piecenum)
+{
+	piecenum = body;
+}
+
 SweetSpot(piecenum)
 {
 	piecenum = pelvis;
