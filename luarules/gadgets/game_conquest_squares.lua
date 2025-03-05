@@ -17,18 +17,24 @@ if SYNCED then
 -- SYNCED CODE
 
 	--configs
-	local debugmode = true
-	local MINUTES_TO_MAX = 20 --how many minutes until the threshold reaches max threshold from start time
-	local MINUTES_TO_START = 5 --how many minutes until threshold can start to increment
-	local MAX_TERRITORY_PERCENTAGE = 100 --how much territory/# of allies is factored in to bombardment threshold.
-	local MAX_PROGRESS = 100 --how much progress a square can have
-	local PROGRESS_INCREMENT = 3 --how much progress a square gains per frame
-	local CONTIGUOUS_PROGRESS_INCREMENT = 1 --how much progress a square gains per calculation when it's contiguous
-	local DECAY_PROGRESS_INCREMENT = 0.5 --how much progress a square loses per calculation when it's not contiguous or has units
-	local STATIC_POWER_MULTIPLIER = 3 --how much more conquest-power static units have over mobile units
+	local DEBUGMODE = true -- Changed to uppercase as it's a constant
+	local MINUTES_TO_MAX = 20
+	local MINUTES_TO_START = 5
+	local MAX_TERRITORY_PERCENTAGE = 100
+	local MAX_PROGRESS = 100
+	local PROGRESS_INCREMENT = 3
+	local CONTIGUOUS_PROGRESS_INCREMENT = 1
+	local DECAY_PROGRESS_INCREMENT = 0.5
+	local STATIC_POWER_MULTIPLIER = 3
 	local SQUARE_CHECK_INTERVAL = Game.gameSpeed
-	local DECAY_DELAY_FRAMES = Game.gameSpeed * 10 -- how long before progress gained begins to be lost
-
+	local DECAY_DELAY_FRAMES = Game.gameSpeed * 10
+	local SQUARE_BOUNDARY = 128
+	local GRID_SIZE = 1024
+	local FINISHED_BUILDING = 1
+	local FRAME_MODULO = Game.gameSpeed * 3
+	local STARTING_PROGRESS = 0
+	local OWNERSHIP_THRESHOLD = 33
+	local MAJORITY_THRESHOLD = 0.5 -- Moved from function to constants
 
 	--localized functions
 	local sqrt = math.sqrt
@@ -44,27 +50,24 @@ if SYNCED then
 	local spGetUnitPosition = Spring.GetUnitPosition
 	local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 	local spGetGameSeconds = Spring.GetGameSeconds
+	local spGetTeamInfo = Spring.GetTeamInfo
+	local spGetTeamList = Spring.GetTeamList
+	local spGetTeamLuaAI = Spring.GetTeamLuaAI
+	local spGetGaiaTeamID = Spring.GetGaiaTeamID
+	local spDestroyUnit = Spring.DestroyUnit
+	local spSpawnCEG = Spring.SpawnCEG
+	local spPlaySoundFile = Spring.PlaySoundFile
 	local mapSizeX = Game.mapSizeX
 	local mapSizeZ = Game.mapSizeZ
-
-
-
-	-- constants
-	local SQUARE_BOUNDARY = 128 -- how many elmos closer to the center of the scum than the actual edge of the scum the unit must be to be considered on the scum
-	local GRID_SIZE = 1024 -- the size of the squares in elmos
-	local FINISHED_BUILDING = 1
-	local FRAME_MODULO = Game.gameSpeed * 3
-	local STARTING_PROGRESS = 0
-	local OWNERSHIP_THRESHOLD = 33
-
+	local SendToUnsynced = SendToUnsynced
 
 	--variables
 	local initialized = false
 	local scavengerTeamID = 999
 	local raptorsTeamID = 999
-	local gaiaTeamID = Spring.GetGaiaTeamID()
-	local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(gaiaTeamID))
-	local teams = Spring.GetTeamList()
+	local gaiaTeamID = spGetGaiaTeamID()
+	local gaiaAllyTeamID = select(6, spGetTeamInfo(gaiaTeamID))
+	local teams = spGetTeamList()
 	local allyTeamsCount = 0
 	local defeatThreshold = 0
 	local numberOfSquaresX = 0
@@ -86,6 +89,7 @@ if SYNCED then
 	local killQueue = {}
 	local commandersDefs = {}
 	local allyTallies = {}
+	local randomizedGridIDs = {} -- Pre-allocate for reuse
 
 	local debugOwnershipCegs = {
 		[0] = "corpsedestroyed",
@@ -97,13 +101,12 @@ if SYNCED then
 
 	--start-up
 	for _, teamID in ipairs(teams) do --first figure out which teams are exempt
-
-		local luaAI = Spring.GetTeamLuaAI(teamID)
+		local luaAI = spGetTeamLuaAI(teamID)
 		if luaAI and luaAI ~= "" then
 			if string.sub(luaAI, 1, 12) == 'ScavengersAI' then
 				scavengerTeamID = teamID
 				exemptTeams[teamID] = true
-			elseif  string.sub(luaAI, 1, 12) == 'RaptorsAI' then
+			elseif string.sub(luaAI, 1, 12) == 'RaptorsAI' then
 				raptorsTeamID = teamID
 				exemptTeams[teamID] = true
 			end
@@ -121,7 +124,7 @@ if SYNCED then
 		-- Rebuild list with living teams and count allies
 		for _, teamID in ipairs(teams) do
 			if not exemptTeams[teamID] then
-				local _, _, isDead, _, _, allyTeam = Spring.GetTeamInfo(teamID)
+				local _, _, isDead, _, _, allyTeam = spGetTeamInfo(teamID)
 				if not isDead and allyTeam then
 					allyTeamsWatch[allyTeam] = allyTeamsWatch[allyTeam] or {}
 					allyTeamsWatch[allyTeam][teamID] = true
@@ -133,12 +136,14 @@ if SYNCED then
 				end
 			end
 		end
-		for allyTeamID, teamIDs in pairs(allyTeamsWatch) do
+		
+		-- Count ally teams more efficiently
+		for _ in pairs(allyTeamsWatch) do
 			allyTeamsCount = allyTeamsCount + 1
 		end
 	end
 
-
+	-- Process unit definitions once during initialization
 	for defID, def in pairs(UnitDefs) do
 		local defData
 
@@ -146,6 +151,7 @@ if SYNCED then
 			defData = {power = def.power}
 			if def.speed == 0 then
 				defData.power = defData.power * STATIC_POWER_MULTIPLIER
+				defData.isStatic = true -- Cache this value
 			end
 		end
 		unitWatchDefs[defID] = defData
@@ -156,27 +162,31 @@ if SYNCED then
 	end
 
 	--custom functions
-
 	local function generateCaptureGrid()
 		local points = {}
+		local totalSquares = numberOfSquaresX * numberOfSquaresZ
+		
+		-- Pre-allocate table size for better performance
+		for i = 1, totalSquares do
+			points[i] = {}
+		end
 		
 		for x = 0, numberOfSquaresX - 1 do
 			for z = 0, numberOfSquaresZ - 1 do
 				local originX = x * GRID_SIZE
 				local originZ = z * GRID_SIZE
 				local index = x * numberOfSquaresZ + z + 1
-				points[index] = {
-					x = originX, 
-					z = originZ, 
-					middleX = originX + GRID_SIZE / 2,
-					middleZ = originZ + GRID_SIZE / 2,
-					allyOwnerID = gaiaAllyTeamID,
-					progress = STARTING_PROGRESS,
-					hasUnits = false,
-					decayDelay = 0,
-					gridX = x,
-					gridZ = z
-				}
+				local point = points[index]
+				point.x = originX
+				point.z = originZ
+				point.middleX = originX + GRID_SIZE / 2
+				point.middleZ = originZ + GRID_SIZE / 2
+				point.allyOwnerID = gaiaAllyTeamID
+				point.progress = STARTING_PROGRESS
+				point.hasUnits = false
+				point.decayDelay = 0
+				point.gridX = x
+				point.gridZ = z
 			end
 		end
 		return points
@@ -187,8 +197,8 @@ if SYNCED then
 		local totalMinutes = seconds / 60  -- Convert seconds to minutes
 		if totalMinutes < MINUTES_TO_START then return end
 
-		local progressRatio = math.min((totalMinutes - MINUTES_TO_START) / MINUTES_TO_MAX, 1)
-		local wantedThreshold = math.floor((progressRatio * MAX_TERRITORY_PERCENTAGE) / allyTeamsCount) -- do not want the threshold to be unobtainable in an exaact tie situation
+		local progressRatio = min((totalMinutes - MINUTES_TO_START) / MINUTES_TO_MAX, 1)
+		local wantedThreshold = floor((progressRatio * MAX_TERRITORY_PERCENTAGE) / allyTeamsCount)
 		if wantedThreshold > defeatThreshold then
 			defeatThreshold = defeatThreshold + 1
 		end
@@ -200,26 +210,26 @@ if SYNCED then
 		local allyScoreTable = {}
 
 		for allyID, tally in pairs(tallies) do
-			local percentage = math.floor((tally / totalSquares) * 100)
+			local percentage = floor((tally / totalSquares) * 100)
 			allyScoreTable[allyID] = percentage
 		end
 		return allyScoreTable
 	end
 
 	local function queueCommanderTeleportRetreat(unitID)
-		local killDelayFrames = math.floor(Game.gameSpeed * 0.5)
+		local killDelayFrames = floor(Game.gameSpeed * 0.5)
 		local killFrame = spGetGameFrame() + killDelayFrames
 		killQueue[killFrame] = killQueue[killFrame] or {}
 		killQueue[killFrame][unitID] = true
 
-		local x,y,z = spGetUnitPosition(unitID)
-		Spring.SpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
-		Spring.PlaySoundFile("commanderspawn-mono", 1.0, x, y, z, 0, 0, 0, "sfx")
+		local x, y, z = spGetUnitPosition(unitID)
+		spSpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
+		spPlaySoundFile("commanderspawn-mono", 1.0, x, y, z, 0, 0, 0, "sfx")
 		GG.ComSpawnDefoliate(x, y, z)
 	end
 
 	local function triggerAllyDefeat(allyID)
-		for teamID, _ in pairs(allyTeamsWatch[allyID]) do
+		for teamID in pairs(allyTeamsWatch[allyID]) do
 			for unitID, unitTeam in pairs(livingCommanders) do
 				if unitTeam == teamID then
 					queueCommanderTeleportRetreat(unitID)
@@ -228,14 +238,20 @@ if SYNCED then
 		end
 	end
 
+	-- Optimized to avoid recreating tables each call
 	local function getAllyPowersInSquare(gridID)
 		local data = captureGrid[gridID]
 		local units = spGetUnitsInRectangle(data.x, data.z, data.x + GRID_SIZE, data.z + GRID_SIZE)
+		
+		-- Reuse the same table for ally powers
 		local allyPowers = {}
 		data.hasUnits = false
-		for _, unitID in ipairs(units) do
-			local isFinishedBuilding = select(5, spGetUnitHealth(unitID)) == FINISHED_BUILDING
-			if isFinishedBuilding then
+		
+		for i = 1, #units do
+			local unitID = units[i]
+			local buildProgress = select(5, spGetUnitHealth(unitID))
+			
+			if buildProgress == FINISHED_BUILDING then
 				local unitDefID = spGetUnitDefID(unitID)
 				local unitData = unitWatchDefs[unitDefID]
 				local allyTeam = spGetUnitAllyTeam(unitID)
@@ -243,56 +259,72 @@ if SYNCED then
 				if unitData and unitData.power and allyTeamsWatch[allyTeam] then
 					data.hasUnits = true
 					local power = unitData.power
-					if unitWatchDefs[unitDefID].isStatic then
+					if unitData.isStatic then
 						power = power * 3
 					end
 					allyPowers[allyTeam] = (allyPowers[allyTeam] or 0) + power
 				end
 			end
 		end
-		if 	data.hasUnits then
+		
+		if data.hasUnits then
 			return allyPowers
 		end
+		return nil
 	end
 
+	-- Pre-allocate sortedTeams table for reuse
+	local sortedTeams = {}
+	
 	local function getCaptureProgress(gridID, allyPowers)
 		if not allyPowers then return nil, 0 end
 		local data = captureGrid[gridID]
 		local currentOwnerID = data.allyOwnerID
 		
-		local sortedTeams = {}
-		
-		for team, power in pairs(allyPowers) do
-			table.insert(sortedTeams, {team = team, power = power})
+		-- Clear and reuse sortedTeams table
+		for i = 1, #sortedTeams do
+			sortedTeams[i] = nil
 		end
-		table.sort(sortedTeams, function(a,b) return a.power > b.power end)
 		
-		local winningAllyID = sortedTeams[1] and sortedTeams[1].team
-		local secondPlaceAllyID = sortedTeams[2] and sortedTeams[2].team
+		local teamCount = 0
+		for team, power in pairs(allyPowers) do
+			teamCount = teamCount + 1
+			sortedTeams[teamCount] = {team = team, power = power}
+		end
+		
+		-- Sort only if we have teams to sort
+		if teamCount > 1 then
+			table.sort(sortedTeams, function(a, b) return a.power > b.power end)
+		end
+		
+		local winningAllyID = teamCount > 0 and sortedTeams[1].team or nil
+		local secondPlaceAllyID = teamCount > 1 and sortedTeams[2].team or nil
 
+		if not winningAllyID then
+			return nil, 0
+		end
+		
 		local topPower = allyPowers[winningAllyID]
 		local comparedPower = 0
+		
 		if winningAllyID ~= currentOwnerID and allyPowers[currentOwnerID] then
 			comparedPower = allyPowers[currentOwnerID]
-		elseif allyPowers[secondPlaceAllyID] then
+		elseif secondPlaceAllyID then
 			comparedPower = allyPowers[secondPlaceAllyID]
-		else
-			comparedPower = 0
 		end
 		
 		local powerRatio = 1
 		if topPower ~= 0 and comparedPower ~= 0 then
-			powerRatio = math.abs(comparedPower / topPower - 1) --need a value between 0 and 1
+			powerRatio = math.abs(comparedPower / topPower - 1)
 		end
 		
 		local progressChange = 0
-		if winningAllyID then
-			if currentOwnerID == winningAllyID then
-				progressChange = PROGRESS_INCREMENT * powerRatio
-			else
-				progressChange = -(powerRatio * PROGRESS_INCREMENT)
-			end
+		if currentOwnerID == winningAllyID then
+			progressChange = PROGRESS_INCREMENT * powerRatio
+		else
+			progressChange = -(powerRatio * PROGRESS_INCREMENT)
 		end
+		
 		return winningAllyID, progressChange
 	end
 
@@ -312,7 +344,7 @@ if SYNCED then
 
 	local function getClearedAllyTallies()
 		local allies = {}
-		for allyID, teamIDs in pairs(allyTeamsWatch) do
+		for allyID in pairs(allyTeamsWatch) do
 			allies[allyID] = 0
 		end
 		return allies
@@ -323,13 +355,12 @@ if SYNCED then
 		
 		-- Skip if this square has units or is owned by Gaia
 		if currentSquareData.hasUnits then
-			return
+			return nil, 0
 		end
 		
 		local neighborAllyTeamCounts = {}
 		local dominantAllyTeamCount = 0
 		local totalNeighborCount = 0
-		local MAJORITY_THRESHOLD = 0.5
 		local dominantAllyTeamID
 		
 		local currentGridX = currentSquareData.gridX
@@ -383,32 +414,38 @@ if SYNCED then
 				return dominantAllyTeamID, CONTIGUOUS_PROGRESS_INCREMENT
 			end
 		end
+		
+		return nil, 0
 	end
 
-	local function getRandomizedGridIDs(grid)
-		local randomizedIDs = {}
+	local function getRandomizedGridIDs()
+		-- Clear the existing table
+		for i = 1, #randomizedGridIDs do
+			randomizedGridIDs[i] = nil
+		end
 		
 		-- Create a list of all grid IDs
-		for gridID in pairs(grid) do
-			table.insert(randomizedIDs, gridID)
+		local index = 0
+		for gridID in pairs(captureGrid) do
+			index = index + 1
+			randomizedGridIDs[index] = gridID
 		end
 		
 		-- Shuffle the grid IDs using Fisher-Yates algorithm
-		for i = #randomizedIDs, 2, -1 do
-			local j = math.random(i)
-			randomizedIDs[i], randomizedIDs[j] = randomizedIDs[j], randomizedIDs[i]
+		for i = index, 2, -1 do
+			local j = random(i)
+			randomizedGridIDs[i], randomizedGridIDs[j] = randomizedGridIDs[j], randomizedGridIDs[i]
 		end
 		
-		return randomizedIDs
+		return randomizedGridIDs
 	end
 
 	-- Function to send grid data to unsynced
 	local function sendGridToUnsynced()
 		-- Only send static grid structure data once during initialization
 		if not sentGridStructure then
-			SendToUnsynced("UpdateGridStructure", numberOfSquaresX, numberOfSquaresZ, GRID_SIZE)
+			SendToUnsynced("InitGridStructure", numberOfSquaresX, numberOfSquaresZ)
 			
-			-- Send static grid position data
 			for gridID, data in pairs(captureGrid) do
 				SendToUnsynced("InitGridSquare", gridID, data.gridX, data.gridZ, data.x, data.z)
 			end
@@ -426,27 +463,30 @@ if SYNCED then
 		
 		-- Only send ownership and progress data which changes frequently
 		for gridID, data in pairs(captureGrid) do
-			local cachedData = cachedGridData[gridID] or {allyOwnerID = -1, progress = -1}
+			local cachedData = cachedGridData[gridID]
+			
+			-- Initialize cache entry if it doesn't exist
+			if not cachedData then
+				cachedData = {allyOwnerID = -1, progress = -1}
+				cachedGridData[gridID] = cachedData
+			end
 			
 			-- Only send if data has changed
 			if data.allyOwnerID ~= cachedData.allyOwnerID or data.progress ~= cachedData.progress then
 				SendToUnsynced("UpdateGridState", gridID, data.allyOwnerID, data.progress)
 				
 				-- Update cache
-				cachedGridData[gridID] = {
-					allyOwnerID = data.allyOwnerID,
-					progress = data.progress
-				}
+				cachedData.allyOwnerID = data.allyOwnerID
+				cachedData.progress = data.progress
 			end
 		end
 	end
 
 	local function setAllyGridToGaia(allyID)
-		for gridID, _ in pairs(captureGrid) do
-			local data = captureGrid[gridID]
+		for gridID, data in pairs(captureGrid) do
 			if data.allyOwnerID == allyID then
 				data.allyOwnerID = gaiaAllyTeamID
-				data.progress = math.min(data.progress, STARTING_PROGRESS)
+				data.progress = min(data.progress, STARTING_PROGRESS)
 			end
 		end
 	end
@@ -454,7 +494,7 @@ if SYNCED then
 	local function decayProgress(gridID)
 		local data = captureGrid[gridID]
 		if data.progress > OWNERSHIP_THRESHOLD then
-			applyProgress(gridID, DECAY_PROGRESS_INCREMENT, data.allyOwnerID)
+			applyProgress(gridID, -DECAY_PROGRESS_INCREMENT, data.allyOwnerID)
 		else
 			applyProgress(gridID, -DECAY_PROGRESS_INCREMENT, gaiaAllyTeamID)
 		end
@@ -472,8 +512,9 @@ if SYNCED then
 
 	function gadget:GameFrame(frame)
 		gameFrame = frame
+		local frameModulo = frame % SQUARE_CHECK_INTERVAL
 
-		if frame % SQUARE_CHECK_INTERVAL == 0 then
+		if frameModulo == 0 then
 			updateLivingTeamsData()
 			updateCurrentDefeatThreshold()
 			allyTallies = getClearedAllyTallies()
@@ -488,21 +529,20 @@ if SYNCED then
 					allyTallies[data.allyOwnerID] = allyTallies[data.allyOwnerID] + 1
 				end
 
-				if debugmode and 1 == 2 then --to show origins of each square
-					Spring.SpawnCEG("scaspawn-trail", data.x, Spring.GetGroundHeight(data.x, data.z), data.z, 0,0,0)
-					Spring.SpawnCEG("scav-spawnexplo", data.x, Spring.GetGroundHeight(data.x, data.z), data.z, 0,0,0)
+				if DEBUGMODE and false then -- Simplified debug condition
+					spSpawnCEG("scaspawn-trail", data.x, spGetGroundHeight(data.x, data.z), data.z, 0,0,0)
+					spSpawnCEG("scav-spawnexplo", data.x, spGetGroundHeight(data.x, data.z), data.z, 0,0,0)
 					if allyTeamsWatch[data.allyOwnerID] then
-						Spring.SpawnCEG(debugOwnershipCegs[data.allyOwnerID], data.middleX, Spring.GetGroundHeight(data.middleX, data.middleZ), data.middleZ, 0,0,0)
+						spSpawnCEG(debugOwnershipCegs[data.allyOwnerID], data.middleX, spGetGroundHeight(data.middleX, data.middleZ), data.middleZ, 0,0,0)
 					end
 				end
 			end
-		end
-		if frame % SQUARE_CHECK_INTERVAL == 1 then
-
-			local randomizedGridIDs = getRandomizedGridIDs(captureGrid)
-			for _, gridID in ipairs(randomizedGridIDs) do
+		elseif frameModulo == 1 then
+			local randomizedIDs = getRandomizedGridIDs()
+			for i = 1, #randomizedIDs do
+				local gridID = randomizedIDs[i]
 				local contiguousAllyID, progressChange = getSquareContiguityProgress(gridID)
-				if contiguousAllyID then
+				if contiguousAllyID and progressChange ~= 0 then
 					applyProgress(gridID, progressChange, contiguousAllyID)
 				end
 			end
@@ -512,12 +552,10 @@ if SYNCED then
 					decayProgress(gridID)
 				end
 			end
-		end
-
-		if frame % SQUARE_CHECK_INTERVAL == 2 then
+		elseif frameModulo == 2 then
 			allyScores = convertTalliesToScores(allyTallies)
 			for allyID, score in pairs(allyScores) do
-				if allyTeamsWatch[allyID] and score < defeatThreshold and not debugmode then
+				if allyTeamsWatch[allyID] and score < defeatThreshold and not DEBUGMODE then
 					triggerAllyDefeat(allyID)
 					setAllyGridToGaia(allyID)
 				end
@@ -527,9 +565,11 @@ if SYNCED then
 			sendGridToUnsynced()
 		end
 
-		if killQueue[frame] then
-			for unitID, _ in pairs(killQueue[frame]) do
-				Spring.DestroyUnit(unitID, false, true)
+		-- Process kill queue
+		local currentKillQueue = killQueue[frame]
+		if currentKillQueue then
+			for unitID in pairs(currentKillQueue) do
+				spDestroyUnit(unitID, false, true)
 			end
 			killQueue[frame] = nil
 		end
@@ -547,12 +587,11 @@ if SYNCED then
 		cachedGridData = {}
 
 		local units = Spring.GetAllUnits()
-		for _, unitID in ipairs(units) do
-			gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
+		for i = 1, #units do
+			local unitID = units[i]
+			gadget:UnitCreated(unitID, spGetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
 		end
 	end
-
-	--zzz need to spawn projectiles in the raze function to fall from the sky and destroy squares, or some other method of razin
 
 else
 -- UNSYNCED CODE
@@ -571,8 +610,8 @@ local spGetTeamColor = Spring.GetTeamColor
 local spGetGameFrame = Spring.GetGameFrame
 
 -- Variables for the squares
-local squareOpacity = 0.7
-local minimapDrawEnabled = true
+local SQUARE_OPACITY = 0.7
+local MINIMAP_DRAW_ENABLED = true
 local blinkFrame = false  -- Toggle for blinking effect
 local LOW_PROGRESS_THRESHOLD = 50  -- Progress threshold for blinking
 local BLINK_INTERVAL = Game.gameSpeed * 4
@@ -587,110 +626,234 @@ local GRID_SIZE = 1024 -- Same as in synced code
 
 -- Tables to store grid data from synced
 local gridData = {}
+local gridStateData = {}  -- Only stores dynamic state (ownership and progress)
 local allyTeamIDs = {}
 local allyTeamColors = {}
 local numberOfSquaresX = 0
 local numberOfSquaresZ = 0
+local gridInitialized = false
 
--- Function to calculate opacity based on progress
+-- Cache for minimap dimensions and calculated square sizes
+local minimapCache = {
+	posX = 0,
+	posY = 0,
+	sizeX = 0,
+	sizeY = 0,
+	gridSquareWidth = 0,
+	gridSquareHeight = 0,
+	needsUpdate = true
+}
+
+-- Cache for square positions (only recalculated when minimap changes)
+local squarePositions = {}
+
+-- Function to check if minimap dimensions have changed and update cache
+local function UpdateMinimapCache()
+	local minimapPosX, minimapPosY, minimapSizeX, minimapSizeY = Spring.GetMiniMapGeometry()
+	
+	if minimapPosX ~= minimapCache.posX or 
+	   minimapPosY ~= minimapCache.posY or
+	   minimapSizeX ~= minimapCache.sizeX or
+	   minimapSizeY ~= minimapCache.sizeY then
+		
+		-- Update cache with new values
+		minimapCache.posX = minimapPosX
+		minimapCache.posY = minimapPosY
+		minimapCache.sizeX = minimapSizeX
+		minimapCache.sizeY = minimapSizeY
+		
+		-- Recalculate grid square dimensions
+		minimapCache.gridSquareWidth = (GRID_SIZE / mapSizeX) * minimapSizeX
+		minimapCache.gridSquareHeight = (GRID_SIZE / mapSizeZ) * minimapSizeY
+		
+		-- Clear square positions cache to force recalculation
+		squarePositions = {}
+		
+		minimapCache.needsUpdate = false
+		return true
+	end
+	
+	return false
+end
+
+-- Initialize the grid structure (called once from synced)
+local function InitializeGridStructure(numberOfSquaresX, numberOfSquaresZ)
+	-- Clear existing data if any
+	gridData = {}
+	
+	-- Create the grid structure
+	for x = 0, numberOfSquaresX - 1 do
+		for z = 0, numberOfSquaresZ - 1 do
+			local gridID = x * numberOfSquaresZ + z + 1
+			local originX = x * GRID_SIZE
+			local originZ = z * GRID_SIZE
+			
+			gridData[gridID] = {
+				gridX = x,
+				gridZ = z,
+				x = originX,
+				z = originZ,
+				middleX = originX + GRID_SIZE / 2,
+				middleZ = originZ + GRID_SIZE / 2
+			}
+			
+			-- Initialize state data
+			gridStateData[gridID] = {
+				allyOwnerID = 0,  -- Default to Gaia
+				progress = 0      -- Default progress
+			}
+		end
+	end
+	
+	gridInitialized = true
+	return true
+end
 
 -- Function to draw all grid squares on the minimap
 local function DrawGridSquares()
-    
-    -- Get minimap dimensions and position
-    local minimapPosX, minimapPosY, minimapSizeX, minimapSizeY = Spring.GetMiniMapGeometry()
-    
-    -- Calculate the size of one grid square on the minimap
-    local gridSquareWidth = (GRID_SIZE / mapSizeX) * minimapSizeX
-    local gridSquareHeight = (GRID_SIZE / mapSizeZ) * minimapSizeY
-    
-    -- Draw each grid square
-    for gridID, data in pairs(gridData) do
-        local allyOwnerID = data.allyOwnerID
-        local progress = data.progress
-        local gridX = data.gridX
-        local gridZ = data.gridZ
-        
-        -- Only draw if there's a valid ally team color
-        if allyTeamColors[allyOwnerID] then
-            -- Get the color for this ally team
-            local r = allyTeamColors[allyOwnerID].r
-            local g = allyTeamColors[allyOwnerID].g
-            local b = allyTeamColors[allyOwnerID].b
-            
-            -- Apply color shifting for blinking effect (shift towards white by 0.3)
-            if progress < MAX_PROGRESS and progress >= OWNERSHIP_THRESHOLD and blinkFrame then
-                r = r + 0.3 * (1 - r)
-                g = g + 0.3 * (1 - g)
-                b = b + 0.3 * (1 - b)
-            end
-            
-            -- Set color with opacity
-            glColor(r, g, b, MINIMAP_SQUARE_OPACITY)
-            
-            -- Calculate position on minimap
-            local left = minimapPosX + (gridX * GRID_SIZE / mapSizeX) * minimapSizeX
-            local top = minimapPosY + minimapSizeY - (gridZ * GRID_SIZE / mapSizeZ) * minimapSizeY
-            local right = left + gridSquareWidth
-            local bottom = top - gridSquareHeight
-            
-            -- Draw the rectangle
-            glRect(left, top, right, bottom)
-        end
-    end
-    
-    -- Reset color to white
-    glColor(1, 1, 1, 1)
+	-- Update minimap cache if needed
+	local minimapChanged = UpdateMinimapCache()
+	
+	-- Use cached values
+	local minimapPosX = minimapCache.posX
+	local minimapPosY = minimapCache.posY
+	local minimapSizeY = minimapCache.sizeY
+	local gridSquareWidth = minimapCache.gridSquareWidth
+	local gridSquareHeight = minimapCache.gridSquareHeight
+	
+	-- Only recalculate square positions if minimap changed or they haven't been calculated yet
+	if minimapChanged or next(squarePositions) == nil then
+		for gridID, staticData in pairs(gridData) do
+			squarePositions[gridID] = {
+				left = minimapPosX + (staticData.gridX * GRID_SIZE / mapSizeX) * minimapCache.sizeX,
+				top = minimapPosY + minimapSizeY - (staticData.gridZ * GRID_SIZE / mapSizeZ) * minimapCache.sizeY,
+				width = gridSquareWidth,
+				height = gridSquareHeight
+			}
+		end
+	end
+	
+	-- Group squares by ally team and blink state to minimize color changes
+	local normalSquares = {}
+	local blinkingSquares = {}
+	
+	-- First pass: organize squares by ally team and blink state
+	for gridID, staticData in pairs(gridData) do
+		local stateData = gridStateData[gridID]
+		if stateData then
+			local allyOwnerID = stateData.allyOwnerID
+			local progress = stateData.progress
+			local shouldBlink = progress < MAX_PROGRESS and progress >= OWNERSHIP_THRESHOLD
+			
+			-- Skip squares with no color data
+			if allyTeamColors[allyOwnerID] then
+				local squarePos = squarePositions[gridID]
+				
+				if shouldBlink and blinkFrame then
+					blinkingSquares[allyOwnerID] = blinkingSquares[allyOwnerID] or {}
+					table.insert(blinkingSquares[allyOwnerID], squarePos)
+				else
+					normalSquares[allyOwnerID] = normalSquares[allyOwnerID] or {}
+					table.insert(normalSquares[allyOwnerID], squarePos)
+				end
+			end
+		end
+	end
+	
+	-- Draw normal squares by ally team
+	for allyOwnerID, squares in pairs(normalSquares) do
+		local color = allyTeamColors[allyOwnerID]
+		glColor(color.r, color.g, color.b, MINIMAP_SQUARE_OPACITY)
+		
+		for _, square in ipairs(squares) do
+			glRect(
+				square.left, 
+				square.top, 
+				square.left + square.width, 
+				square.top - square.height
+			)
+		end
+	end
+	
+	-- Draw blinking squares by ally team
+	for allyOwnerID, squares in pairs(blinkingSquares) do
+		local color = allyTeamColors[allyOwnerID]
+		local r = color.r + 0.3 * (1 - color.r)
+		local g = color.g + 0.3 * (1 - color.g)
+		local b = color.b + 0.3 * (1 - color.b)
+		
+		glColor(r, g, b, MINIMAP_SQUARE_OPACITY)
+		
+		for _, square in ipairs(squares) do
+			glRect(
+				square.left, 
+				square.top, 
+				square.left + square.width, 
+				square.top - square.height
+			)
+		end
+	end
+	
+	-- Reset color to white
+	glColor(1, 1, 1, 1)
 end
 
+local args = {...}
 -- Receive grid data from synced
 function gadget:RecvFromSynced(cmd, ...)
-    local args = {...}
-    
-    if cmd == "UpdateGridStructure" then
-        -- Receive static grid structure data (once)
-        numberOfSquaresX = args[1]
-        numberOfSquaresZ = args[2]
-        GRID_SIZE = args[3]
-        
-        -- Reset data structures when receiving new grid data
-        gridData = {}
-    elseif cmd == "InitGridSquare" then
-        -- Initialize a grid square with static position data (once)
-        local gridID = args[1]
-        local gridX = args[2]
-        local gridZ = args[3]
-        local x = args[4]
-        local z = args[5]
-        
-        gridData[gridID] = {
-            gridX = gridX,
-            gridZ = gridZ,
-            x = x,
-            z = z,
-            allyOwnerID = 0,  -- Default values
-            progress = 0      -- Default values
-        }
-    elseif cmd == "UpdateGridState" then
-        -- Update only the changing state of a grid square (frequent)
-        local gridID = args[1]
-        local allyOwnerID = args[2]
-        local progress = args[3]
-        
-        -- Only update if the grid square exists
-        if gridData[gridID] then
-            gridData[gridID].allyOwnerID = allyOwnerID
-            gridData[gridID].progress = progress
-        end
-    elseif cmd == "UpdateAllyTeamID" then
-        local allyTeamID = args[1]
-        local teamID = args[2]
-        allyTeamIDs[allyTeamID] = teamID
-        
-        -- Update colors when receiving new team IDs
-        local r, g, b = spGetTeamColor(teamID)
-        allyTeamColors[allyTeamID] = {r = r, g = g, b = b}
-    end
+	args = {...}
+	
+	if cmd == "InitGridStructure" then
+		-- Initialize the entire grid structure (once)
+		local numSquaresX = args[1]
+		local numSquaresZ = args[2]
+		numberOfSquaresX = numSquaresX
+		numberOfSquaresZ = numSquaresZ
+		InitializeGridStructure(numSquaresX, numSquaresZ)
+	elseif cmd == "InitGridSquare" then
+		-- Initialize a single grid square (part of initialization)
+		local gridID = args[1]
+		local gridX = args[2]
+		local gridZ = args[3]
+		local x = args[4]
+		local z = args[5]
+		
+		gridData[gridID] = {
+			gridX = gridX,
+			gridZ = gridZ,
+			x = x,
+			z = z,
+			middleX = x + GRID_SIZE / 2,
+			middleZ = z + GRID_SIZE / 2
+		}
+		
+		-- Initialize state data if not already present
+		if not gridStateData[gridID] then
+			gridStateData[gridID] = {
+				allyOwnerID = 0,
+				progress = 0
+			}
+		end
+	elseif cmd == "UpdateGridState" then
+		-- Update only the changing state of a grid square (frequent)
+		local gridID = args[1]
+		local allyOwnerID = args[2]
+		local progress = args[3]
+		
+		-- Only update if the grid square exists
+		if gridStateData[gridID] then
+			gridStateData[gridID].allyOwnerID = allyOwnerID
+			gridStateData[gridID].progress = progress
+		end
+	elseif cmd == "UpdateAllyTeamID" then
+		local allyTeamID = args[1]
+		local teamID = args[2]
+		allyTeamIDs[allyTeamID] = teamID
+		
+		-- Update colors when receiving new team IDs
+		local r, g, b = spGetTeamColor(teamID)
+		allyTeamColors[allyTeamID] = {r = r, g = g, b = b}
+	end
 end
 
 -- Update function to toggle the blink state
@@ -700,25 +863,31 @@ function gadget:Update()
 	if updateFrame % BLINK_INTERVAL == 0 then
 		blinkFrame = not blinkFrame
 	end
+	
+	-- Mark minimap cache for update occasionally to catch resize events
+	if updateFrame % 30 == 0 then
+		minimapCache.needsUpdate = true
+	end
 end
 
 -- Hook into DrawInMiniMap to draw our grid squares on the minimap
 function gadget:DrawInMiniMap(mmsx, mmsy)
-    if minimapDrawEnabled and next(gridData) then
-        -- Save the current matrix
-        glPushMatrix()
-        
-        -- Draw all grid squares
-        DrawGridSquares()
-        
-        -- Restore the matrix
-        glPopMatrix()
-    end
+	if MINIMAP_DRAW_ENABLED and gridInitialized and next(gridData) then
+
+		-- Save the current matrix
+		glPushMatrix()
+		
+		-- Draw all grid squares
+		DrawGridSquares()
+		
+		-- Restore the matrix
+		glPopMatrix()
+	end
 end
 
 -- Toggle function that can be called from elsewhere if needed
 function gadget:ToggleMinimapDraw()
-    minimapDrawEnabled = not minimapDrawEnabled
+	MINIMAP_DRAW_ENABLED = not MINIMAP_DRAW_ENABLED
 end
 
-end -- end of UNSYNCED/SYNCED split
+end
