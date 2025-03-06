@@ -192,24 +192,24 @@ DirectionsUtil.ProvisionDirections(maxDataNum)
 --------------------------------------------------------------------------------
 -- Functions -------------------------------------------------------------------
 
-local function getSurfaceDeflection(data, projectileID, ex, ey, ez)
+local function getSurfaceDeflection(data, projectileID, x, y, z)
 	-- Deflection from deep water, shallow water, and solid terrain.
-	local elevation = spGetGroundHeight(ex, ez)
+	local elevation = spGetGroundHeight(x, z)
 	local separation
 	local dx, dy, dz
 	local slope
 
-	separation = ey - elevation
-	dx, dy, dz, slope = spGetGroundNormal(ex, ez, true)
+	separation = y - elevation
+	dx, dy, dz, slope = spGetGroundNormal(x, z, true)
 
 	if slope > 0.1 or slope * separation > 10 then
 		separation = separation * cos(slope)
 		local shift = separation * sin(slope) / sqrt(dx*dx + dz*dz)
-		local sx = ex - dx * shift -- Next surface x, z
-		local sz = ez - dz * shift
-		elevation = max(elevation, spGetGroundHeight(sx, sz))
-		separation = ey - elevation
-		dx, dy, dz = spGetGroundNormal(sx, sz, true)
+		local shiftX = x - dx * shift -- Next surface x, z
+		local shiftZ = z - dz * shift
+		elevation = max(elevation, spGetGroundHeight(shiftX, shiftZ))
+		separation = y - elevation
+		dx, dy, dz = spGetGroundNormal(shiftX, shiftZ, true)
 	end
 
 	separation = 1.3 / sqrt(max(1, separation))
@@ -218,25 +218,25 @@ local function getSurfaceDeflection(data, projectileID, ex, ey, ez)
 	dz = dz * separation
 
 	-- Additional deflection from units, from none to solid-terrain-like.
-	local unitsNearby = spGetUnitsInSphere(ex, ey, ez, maxUnitRadius)
-	local bounce, ux, uy, uz, radius
+	local unitsNearby = spGetUnitsInSphere(x, y, z, maxUnitRadius)
+	local bounce, unitX, unitY, unitZ, radius
 
 	for _, unitID in ipairs(unitsNearby) do
 		bounce = unitBulks[spGetUnitDefID(unitID)]
 		if bounce then
-			_,_,_,ux,uy,uz = spGetUnitPosition(unitID, true)
+			_,_,_,unitX,unitY,unitZ = spGetUnitPosition(unitID, true)
 			radius         = spGetUnitRadius(unitID)
-			if uy + radius > 0 then
-				ux, uy, uz = ex-ux, ey-uy, ez-uz
-				separation = sqrt(ux*ux + uy*uy + uz*uz) / radius
+			if unitY + radius > 0 then
+				unitX, unitY, unitZ = x - unitX, y - unitY, z - unitZ
+				separation = sqrt(unitX*unitX + unitY*unitY + unitZ*unitZ) / radius
 				if separation < 1.24 then
 					bounce = bounce / max(1, separation)
-					local th_z = atan2(ux, uz)
-					local ph_y = atan2(uy, sqrt(ux*ux + uz*uz))
-					local cosy = cos(ph_y)
-					dx = dx + bounce * sin(th_z) * cosy
-					dy = dy + bounce * sin(ph_y)
-					dz = dz + bounce * cos(th_z) * cosy
+					local theta_z = atan2(unitX, unitZ)
+					local phi_y = atan2(unitY, sqrt(unitX*unitX + unitZ*unitZ))
+					local cosy = cos(phi_y)
+					dx = dx + bounce * sin(theta_z) * cosy
+					dy = dy + bounce * sin(phi_y)
+					dz = dz + bounce * cos(theta_z) * cosy
 				end
 			end
 		end
@@ -245,7 +245,7 @@ local function getSurfaceDeflection(data, projectileID, ex, ey, ez)
 	return dx, dy, dz
 end
 
-local function spawnClusterProjectiles(data, projectileID, attackerID, ex, ey, ez)
+local function spawnClusterProjectiles(data, projectileID, attackerID, x, y, z)
 	local clusterDefID = data.weaponID
 	local projectileCount = data.number
 	local projectileSpeed = data.weaponSpeed
@@ -253,35 +253,35 @@ local function spawnClusterProjectiles(data, projectileID, attackerID, ex, ey, e
 	spawnCache.owner = attackerID or -1
 	spawnCache.ttl = data.weaponTtl
 	local speed = spawnCache.speed
-	local pos = spawnCache.pos
+	local position = spawnCache.pos
 
 	local directions = directions[projectileCount]
-	local deflectX, deflectY, deflectZ = getSurfaceDeflection(data, projectileID, ex, ey, ez)
+	local deflectX, deflectY, deflectZ = getSurfaceDeflection(data, projectileID, x, y, z)
 	local randomness = 1 / sqrt(projectileCount - 2)
 
-	for ii = 0, projectileCount - 1 do
-		local vx = directions[3*ii+1] + deflectX
-		local vy = directions[3*ii+2] + deflectY
-		local vz = directions[3*ii+3] + deflectZ
+	for i = 0, projectileCount - 1 do
+		local velocityX = directions[3 * i + 1] + deflectX
+		local velocityY = directions[3 * i + 2] + deflectY
+		local velocityZ = directions[3 * i + 3] + deflectZ
 
-		vx = vx + (rand() - 0.5) * randomness * 2
-		vy = vy + (rand() - 0.5) * randomness * 2
-		vz = vz + (rand() - 0.5) * randomness * 2
+		velocityX = velocityX + (rand() - 0.5) * randomness * 2
+		velocityY = velocityY + (rand() - 0.5) * randomness * 2
+		velocityZ = velocityZ + (rand() - 0.5) * randomness * 2
 
 		-- Higher projectile counts will have less variation in projectile speed.
 		local normalization = (1 + rand() * randomness) / (1 + randomness)
-		normalization = normalization * projectileSpeed / sqrt(vx*vx + vy*vy + vz*vz)
-		vx = vx * normalization
-		vy = vy * normalization
-		vz = vz * normalization
+		normalization = normalization * projectileSpeed / sqrt(velocityX*velocityX + velocityY*velocityY + velocityZ*velocityZ)
+		velocityX = velocityX * normalization
+		velocityY = velocityY * normalization
+		velocityZ = velocityZ * normalization
 
-		speed[1] = vx
-		speed[2] = vy
-		speed[3] = vz
+		speed[1] = velocityX
+		speed[2] = velocityY
+		speed[3] = velocityZ
 
-		pos[1] = ex + vx * gameSpeed / 2
-		pos[2] = ey + vy * gameSpeed / 2
-		pos[3] = ez + vz * gameSpeed / 2
+		position[1] = x + velocityX * gameSpeed / 2
+		position[2] = y + velocityY * gameSpeed / 2
+		position[3] = z + velocityZ * gameSpeed / 2
 
 		spSpawnProjectile(clusterDefID, spawnCache)
 	end
@@ -302,9 +302,9 @@ function gadget:Initialize()
 	end
 end
 
-function gadget:Explosion(weaponDefID, ex, ey, ez, attackerID, projectileID)
+function gadget:Explosion(weaponDefID, x, y, z, attackerID, projectileID)
 	local weaponData = clusterWeaponDefs[weaponDefID]
 	if weaponData then
-		spawnClusterProjectiles(weaponData, projectileID, attackerID, ex, ey, ez)
+		spawnClusterProjectiles(weaponData, projectileID, attackerID, x, y, z)
 	end
 end
