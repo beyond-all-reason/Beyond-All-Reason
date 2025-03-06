@@ -102,7 +102,7 @@ if gadgetHandler:IsSyncedCode() then
 					return true
 				else
 					if StockpileDesiredTarget[unitID] then
-						StockpileDesiredTarget[unitID] = math.max(math.min(StockpileDesiredTarget[unitID] + addQ, unitStockpileLimit[unitDefID]), 0) -- let's make sure desired target doesn't go above maximum of this unit, and doesn't go below 0
+						StockpileDesiredTarget[unitID] = math.clamp(StockpileDesiredTarget[unitID] + addQ, 0, unitStockpileLimit[unitDefID])
 						UpdateStockpile(unitID, unitDefID)
 					end
 					return false
