@@ -18,32 +18,27 @@ if gadgetHandler:IsSyncedCode() then
 	local CMD_INSERT = CMD.INSERT
 	local StockpileDesiredTarget = {}
 
-	local defaultStockpileLimit = 99
 	local unitStockpileLimit = {}
-
-	----------------------------------------------------------------------------
-	----------------------------------------------------------------------------
 
 	local GetUnitStockpile	= Spring.GetUnitStockpile
 	local GiveOrderToUnit	= Spring.GiveOrderToUnit
 
-	local canStockpile = {}
 	for udid, ud in pairs(UnitDefs) do
 		if ud.canStockpile then
-			canStockpile[udid] = true
-		end
-		if ud.weapons then
-			for i = 1, #ud.weapons do
-				local weaponDef = WeaponDefs[ud.weapons[i].weaponDef]
-				if weaponDef.stockpile and weaponDef.customParams and weaponDef.customParams.stockpilelimit then
-					unitStockpileLimit[udid] = tonumber(weaponDef.customParams.stockpilelimit)
+			unitStockpileLimit[udid] = 99	-- default stockpile limit
+			if ud.weapons then
+				for i = 1, #ud.weapons do
+					local weaponDef = WeaponDefs[ud.weapons[i].weaponDef]
+					if weaponDef.stockpile and weaponDef.customParams and weaponDef.customParams.stockpilelimit then
+						unitStockpileLimit[udid] = tonumber(weaponDef.customParams.stockpilelimit)
+					end
 				end
 			end
 		end
 	end
 
 	function UpdateStockpile(unitID, unitDefID)
-		local MaxStockpile = math.max(math.min(unitStockpileLimit[unitDefID] or defaultStockpileLimit, StockpileDesiredTarget[unitID]), 0)
+		local MaxStockpile = math.max(math.min(unitStockpileLimit[unitDefID], StockpileDesiredTarget[unitID]), 0)
 
 		local stock,queued = GetUnitStockpile(unitID)
 		if queued and stock then
@@ -104,8 +99,10 @@ if gadgetHandler:IsSyncedCode() then
 				if fromLua == true and fromSynced == true then 	-- fromLua is *true* if command is sent from a gadget and *false* if it's sent by a player.
 					return true
 				else
-					StockpileDesiredTarget[unitID] = math.max(math.min(StockpileDesiredTarget[unitID] + addQ, unitStockpileLimit[unitDefID] or defaultStockpileLimit), 0) -- let's make sure desired target doesn't go above maximum of this unit, and doesn't go below 0
-					UpdateStockpile(unitID, unitDefID)
+					if StockpileDesiredTarget[unitID] then
+						StockpileDesiredTarget[unitID] = math.max(math.min(StockpileDesiredTarget[unitID] + addQ, unitStockpileLimit[unitDefID]), 0) -- let's make sure desired target doesn't go above maximum of this unit, and doesn't go below 0
+						UpdateStockpile(unitID, unitDefID)
+					end
 					return false
 				end
 			end
@@ -114,17 +111,14 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-		if canStockpile[unitDefID] then
-			StockpileDesiredTarget[unitID] = unitStockpileLimit[unitDefID] or defaultStockpileLimit
+		if unitStockpileLimit[unitDefID] then
+			StockpileDesiredTarget[unitID] = unitStockpileLimit[unitDefID]
 			UpdateStockpile(unitID, unitDefID)
 		end
 	end
 
 	function gadget:UnitGiven(unitID, unitDefID, unitTeam)
-		if canStockpile[unitDefID] then
-			StockpileDesiredTarget[unitID] = unitStockpileLimit[unitDefID] or defaultStockpileLimit
-			UpdateStockpile(unitID, unitDefID)
-		end
+		gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	end
 
 	function gadget:StockpileChanged(unitID, unitDefID, unitTeam)
