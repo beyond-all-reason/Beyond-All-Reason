@@ -311,6 +311,32 @@ if gadgetHandler:IsSyncedCode() then
 		return false
 	end
 
+	local function IsEvolutionTimePassed(evolution, currentTime)
+		return (
+							(not evolution.evolution_condition or evolution.evolution_condition == 'timer')
+							and (currentTime - evolution.timeCreated) >= evolution.evolution_timer
+						)
+						or (evolution.evolution_condition == 'timer_global' and currentTime >= evolution.evolution_timer)
+	end
+
+local function IsEvolutionPowerPassed(evolution, unitID)
+	if evolution.evolution_condition ~= 'power' then
+		return false
+	end
+
+	local teamID = spGetUnitTeam(unitID)
+	for team, power in pairs(teamPowerList) do
+		if team ~= nil and teamID ~= nil and power ~= nil and highestTeamPower < power then
+			highestTeamPower = power * evolution.evolution_power_multiplier
+		end
+	end
+
+	if highestTeamPower > evolution.evolution_power_threshold then
+		return true
+	end
+	return false
+end
+
 	function gadget:GameFrame(f)
 		if f % GAME_SPEED ~= 0 then
 			return
@@ -321,27 +347,12 @@ if gadgetHandler:IsSyncedCode() then
 
 			if evolution
 				and not IsInCombat(unitID, evolution, currentTime)
-				and not spGetUnitTransporter(unitID) then
-				if (not evolution.evolution_condition or evolution.evolution_condition == 'timer'
-							and (currentTime - evolution.timeCreated) >= evolution.evolution_timer)
-						or (evolution.evolution_condition == 'timer_global' and currentTime >= evolution.evolution_timer) then
+				and not spGetUnitTransporter(unitID)
+				and (IsEvolutionTimePassed(evolution, currentTime) or IsEvolutionPowerPassed(evolution, unitID)) then
 					Evolve(unitID, evolution.evolution_target)
-				elseif evolution.evolution_condition == 'power' then
-					local teamID = spGetUnitTeam(unitID)
-					for team, power in pairs(teamPowerList) do
-						if team ~= nil and teamID ~= nil and power ~= nil and highestTeamPower < power then
-							highestTeamPower = power * evolution.evolution_power_multiplier
-						end
-					end
-
-					if highestTeamPower > evolution.evolution_power_threshold then
-						Evolve(unitID, evolution.evolution_target)
-					end
 				end
 			end
 		end
-	end
-
 
 else
 
