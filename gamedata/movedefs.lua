@@ -307,8 +307,8 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	-- corshiva armmar
-	HABOT4 = {
+	-- corshiva armmar armbanth legjav
+	HABOT5 = {
 		crushstrength = 252,
 		depthmod = 0,
 		footprintx = 5,
@@ -330,13 +330,13 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	-- corkorg armbanth
-	VBOT5 = {
+	-- corkorg legeheatraymech
+	VBOT6 = {
 		crushstrength = 1400,
 		depthmod = 0,
-		footprintx = 5,
-		footprintz = 5,
-		maxslope = 24,
+		footprintx = 6,
+		footprintz = 6,
+		maxslope = 36,
 		maxwaterdepth = 5000,
 		maxwaterslope = 30,
 	},

@@ -1114,9 +1114,6 @@ function ArmyHST:getThreatRange(unitName)
 end
 
 function ArmyHST:GetUnitTable()
-	local builtBy = GetBuiltBy()
-	local unitTable = {}
-	local wrecks = {}
 	for unitDefID,unitDef in pairs(UnitDefs) do
 		local side = GetUnitSide(unitDef.name)
 		--if unitsLevels[unitDef.name] then

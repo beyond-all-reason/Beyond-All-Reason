@@ -799,7 +799,7 @@ function widget:Update(dt)
 		return
 	end
 
-	if alwaysShow or not emptyInfo or isPregame then
+	if alwaysShow or not emptyInfo or (isPregame and not mySpec) then
 		infoShows = true
 	end
 end
@@ -1376,7 +1376,6 @@ local function drawUnitInfo()
 		-- get unit specific data
 		if displayMode == 'unit' then
 			-- get lots of unit info from functions: https://springrts.com/wiki/Lua_SyncedRead
-			metalMake, metalUse, energyMake, energyUse = spGetUnitResources(displayUnitID)
 			if unitDefInfo[displayUnitDefID].mainWeapon ~= nil then
 				maxRange = Spring.GetUnitWeaponState(displayUnitID, unitDefInfo[displayUnitDefID].mainWeapon, "range")
 			else
@@ -1384,13 +1383,6 @@ local function drawUnitInfo()
 			end
 			if not exp then
 				exp = spGetUnitExperience(displayUnitID)
-			end
-			if unitDefInfo[displayUnitDefID].mex then
-				metalExtraction = spGetUnitMetalExtraction(displayUnitID)
-			end
-			local unitStates = spGetUnitStates(displayUnitID)
-			if unitDefInfo[displayUnitDefID].canStockpile then
-				stockpile = spGetUnitStockpile(displayUnitID)
 			end
 
 		else
@@ -1484,9 +1476,6 @@ local function drawUnitInfo()
 			addTextInfo(Spring.I18N('ui.info.reversespeed'), unitDefInfo[displayUnitDefID].reverseSpeed)
 		end
 
-		--if metalExtraction then
-		--  addTextInfo('metal extraction', round(metalExtraction, 2))
-		--end
 		if unitDefInfo[displayUnitDefID].buildSpeed then
 			addTextInfo(Spring.I18N('ui.info.buildpower'), unitDefInfo[displayUnitDefID].buildSpeed)
 		end
@@ -1845,12 +1834,11 @@ function widget:MouseRelease(x, y, button)
 			local units = Spring.GetUnitIsTransporting(displayUnitID)
 			if units and #units > 0 then
 				for cellID, unitID in pairs(units) do
-					local unitDefID = spGetUnitDefID(unitID)
 					if cellRect[cellID] and math_isInRect(x, y, cellRect[cellID][1], cellRect[cellID][2], cellRect[cellID][3], cellRect[cellID][4]) then
 						local x,y,z = Spring.GetUnitPosition(displayUnitID)
 						local alt, ctrl, meta, shift = spGetModKeyState()
 						if shift then
-							local cmdQueue = Spring.GetCommandQueue(displayUnitID, 35) or {}
+							local cmdQueue = Spring.GetUnitCommands(displayUnitID, 35) or {}
 							if cmdQueue[1] then
 								if cmdQueue[#cmdQueue] and cmdQueue[#cmdQueue].id == CMD.MOVE and cmdQueue[#cmdQueue].params[3] then
 									x, z = cmdQueue[#cmdQueue].params[1], cmdQueue[#cmdQueue].params[3]
@@ -1875,7 +1863,6 @@ function widget:MouseRelease(x, y, button)
 end
 
 
-local doUpdateClock2 = os_clock() + 0.9
 function widget:DrawScreen()
 	local x, y, b, b2, b3, mouseOffScreen, cameraPanMode = spGetMouseState()
 
@@ -1892,7 +1879,7 @@ function widget:DrawScreen()
 			drawInfo()
 		end)
 	end
-	if alwaysShow or not emptyInfo or isPregame then
+	if alwaysShow or not emptyInfo or (isPregame and not mySpec) then
 		gl.CallList(dlistInfo)
 	elseif dlistGuishader then
 		WG['guishader'].DeleteDlist('info')
@@ -1977,7 +1964,6 @@ function widget:DrawScreen()
 			if #units > 0 then
 				local cellHovered
 				for cellID, unitID in pairs(units) do
-					local unitDefID = spGetUnitDefID(unitID)
 
 					if cellRect[cellID] and math_isInRect(x, y, cellRect[cellID][1], cellRect[cellID][2], cellRect[cellID][3], cellRect[cellID][4]) then
 
@@ -2013,7 +1999,6 @@ function widget:DrawScreen()
 				end
 			end
 		elseif displayMode == 'unit' then
-
 			if WG['unitstats'] and WG['unitstats'].showUnit then
 				WG['unitstats'].showUnit(displayUnitID)
 			end
@@ -2042,7 +2027,7 @@ function checkChanges()
 	displayUnitID = nil
 	displayUnitDefID = nil
 
-	if isPregame then
+	if isPregame and not mySpec then
  		activeCmdID = WG["pregame-build"] and WG["pregame-build"].getPreGameDefID()
 		activeCmdID = activeCmdID and -activeCmdID
 	else
@@ -2128,9 +2113,13 @@ function checkChanges()
 	end
 
 	if displayMode == 'text' and isPregame then
-		displayMode = 'unitdef'
-		displayUnitDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
-		hideBuildlist = true
+		if not mySpec then
+			displayMode = 'unitdef'
+			displayUnitDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
+			hideBuildlist = true
+		else
+			emptyInfo = true
+		end
 	end
 end
 

@@ -501,14 +501,7 @@ function widget:Initialize()
 			-- to use to retrive the corresponding texture bucket
 			unitDeftoUnitShapeVBOTable[unitDefID].UnitShapeTexturesUnitDefID = unitDefID
 		end
-	end 
-
-	local unitIDs = Spring.GetAllUnits()
-	local featuresIDs = Spring.GetAllFeatures()
-
-	local communitdefid = UnitDefNames["armcom"].id
-	local pwdefid = UnitDefNames["armpw"].id
-	local corcomunitdefid = UnitDefNames["corcom"].id
+	end
 
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
