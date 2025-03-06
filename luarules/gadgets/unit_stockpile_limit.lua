@@ -112,16 +112,13 @@ if gadgetHandler:IsSyncedCode() then
 		return true
 	end
 
-	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
+	function UnitCreated(unitID, unitDefID, unitTeam)
 		if unitStockpileLimit[unitDefID] then
 			StockpileDesiredTarget[unitID] = unitStockpileLimit[unitDefID]
 			UpdateStockpile(unitID, unitDefID)
 		end
 	end
-
-	function gadget:UnitGiven(unitID, unitDefID, unitTeam)
-		gadget:UnitCreated(unitID, unitDefID, unitTeam)
-	end
+	gadget.UnitGiven = gadget.UnitCreated
 
 	function gadget:StockpileChanged(unitID, unitDefID, unitTeam)
 		UpdateStockpile(unitID, unitDefID)
