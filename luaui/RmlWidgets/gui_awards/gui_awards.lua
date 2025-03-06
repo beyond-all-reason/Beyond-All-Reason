@@ -18,6 +18,11 @@ local isVisible = false
 local documentModelHandle
 local chobbyLoaded = (Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), "chobby") ~= nil)
 
+local injectableRml = {
+	player = "<span class=\"other-awards-leader\" style=\"color: %s;\">%s</span>",
+	score = "<span class=\"other-awards-score\">%s</span>"
+}
+
 local modelForPresenter = {
 	resourcesDestroyed = {
 		visible = false,
@@ -174,7 +179,7 @@ local function putMainAwardIntoModel(award, num, winnersTable)
 	if num == 1 then
 		playerToSet = modelForPresenter[award].firstLeader
 	else
-		-- First player(num = 1) corresponds to firstLeader. Other players in otherLeadersOrdered. Thus num -1
+		-- First player(num = 1) corresponds to firstLeader. Other players in otherLeadersOrdered. Thus array element is [num -1]
 		-- second player in leaderboard corresponds to first player in otherLeadersOrdered
 		-- third player in leaderboard corresponds to second player in list
 		playerToSet = modelForPresenter[award].otherLeadersOrdered[num - 1]
@@ -202,7 +207,7 @@ end
 
 local function calculateAwardScore(award, score)
 	if award == "commanderSleepAward" then
-		return math.round(score / 60) .. " minutes"
+		return math.round(score / 60)
 	else
 		return math.floor(score)
 	end
@@ -214,12 +219,15 @@ local function putOtherAwardIntoModel(award, winnersTable)
 	if teamID < 0 then
 		return
 	end
+	local playerColor = RmlUi.ColorUtils.getCSSColorByPlayer(teamID)
 	local name = findPlayerName(teamID)
+	local playerRmlTag = string.format(injectableRml.player, playerColor, name)
+	local scoreRmlTag = string.format(injectableRml.score, score)
 	local awardText = Spring.I18N("ui.awards." .. award, {
-		playerColor = RmlUi.ColorUtils.getCSSColorByPlayer(teamID),
-		player = name,
-		score = score,
+		player = playerRmlTag,
+		score = scoreRmlTag,
 	})
+
 	table.insert(modelForPresenter.otherAwards, awardText)
 end
 
