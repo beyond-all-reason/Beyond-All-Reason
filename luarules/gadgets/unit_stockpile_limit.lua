@@ -14,6 +14,8 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 
+	local defaultStockpileLimit = 99
+
 	local CMD_STOCKPILE = CMD.STOCKPILE
 	local CMD_INSERT = CMD.INSERT
 	local StockpileDesiredTarget = {}
@@ -25,7 +27,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	for udid, ud in pairs(UnitDefs) do
 		if ud.canStockpile then
-			unitStockpileLimit[udid] = 99	-- default stockpile limit
+			unitStockpileLimit[udid] = defaultStockpileLimit
 			if ud.weapons then
 				for i = 1, #ud.weapons do
 					local weaponDef = WeaponDefs[ud.weapons[i].weaponDef]
