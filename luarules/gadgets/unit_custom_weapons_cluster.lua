@@ -197,31 +197,21 @@ local function getSurfaceDeflection(data, projectileID, ex, ey, ez)
 	local elevation = spGetGroundHeight(ex, ez)
 	local separation
 	local dx, dy, dz
-	if elevation < deepWaterDepth then
-		separation = ey - deepWaterDepth * (1/2.4)
-		dx = 0
-		dy = 1
-		dz = 0
-	else
+	local slope
+
+	separation = ey - elevation
+	dx, dy, dz, slope = spGetGroundNormal(ex, ez, true)
+
+	if slope > 0.1 or slope * separation > 10 then
+		separation = separation * cos(slope)
+		local shift = separation * sin(slope) / sqrt(dx*dx + dz*dz)
+		local sx = ex - dx * shift -- Next surface x, z
+		local sz = ez - dz * shift
+		elevation = max(elevation, spGetGroundHeight(sx, sz))
 		separation = ey - elevation
-		local slope
-		dx, dy, dz, slope = spGetGroundNormal(ex, ez, true)
-		if slope > 0.1 or slope * separation > 10 then
-			separation = separation * cos(slope)
-			local shift = separation * sin(slope) / sqrt(dx*dx + dz*dz)
-			local sx = ex - dx * shift -- Next surface x, z
-			local sz = ez - dz * shift
-			elevation = max(elevation, spGetGroundHeight(sx, sz))
-			separation = ey - elevation
-			dx, dy, dz = spGetGroundNormal(sx, sz, true)
-		end
-		if elevation <= 0 then
-			separation = ey - max(elevation * (1/1.8), deepWaterDepth * (1/2.4))
-			dx = dx * 0.94
-			dz = dz * 0.94
-			dy = dy < 0.94 and dy / sqrt(dx*dx + dz*dz) * (1/0.94) or 0.94
-		end
+		dx, dy, dz = spGetGroundNormal(sx, sz, true)
 	end
+
 	separation = 1.3 / sqrt(max(1, separation))
 	dx = dx * separation
 	dy = dy * separation
@@ -230,6 +220,7 @@ local function getSurfaceDeflection(data, projectileID, ex, ey, ez)
 	-- Additional deflection from units, from none to solid-terrain-like.
 	local unitsNearby = spGetUnitsInSphere(ex, ey, ez, maxUnitRadius)
 	local bounce, ux, uy, uz, radius
+
 	for _, unitID in ipairs(unitsNearby) do
 		bounce = unitBulks[spGetUnitDefID(unitID)]
 		if bounce then
