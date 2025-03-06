@@ -38,7 +38,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function UpdateStockpile(unitID, unitDefID)
-		local MaxStockpile = math.max(math.min(unitStockpileLimit[unitDefID], StockpileDesiredTarget[unitID]), 0)
+		local MaxStockpile = math.clamp(unitStockpileLimit[unitDefID], 0, StockpileDesiredTarget[unitID])
 
 		local stock,queued = GetUnitStockpile(unitID)
 		if queued and stock then
