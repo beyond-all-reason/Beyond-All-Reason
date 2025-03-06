@@ -27,7 +27,6 @@ local minSpawnNumber = 3					-- minimum number of spawned projectiles
 local maxSpawnNumber = 24					-- protect game performance against stupid ideas
 local minUnitBounces = "armpw"				-- smallest unit (name) that bounces projectiles at all
 local minBulkReflect = 64000				-- smallest unit bulk that causes reflection as if terrain
-local deepWaterDepth = -40					-- used for the surface deflection on water, lava, ...
 
 -- CustomParams setup ----------------------------------------------------------
 --
@@ -192,7 +191,7 @@ DirectionsUtil.ProvisionDirections(maxDataNum)
 --------------------------------------------------------------------------------
 -- Functions -------------------------------------------------------------------
 
-local function getSurfaceDeflection(data, projectileID, x, y, z)
+local function getSurfaceDeflection(x, y, z)
 	-- Deflection from deep water, shallow water, and solid terrain.
 	local elevation = spGetGroundHeight(x, z)
 	local separation
@@ -245,7 +244,7 @@ local function getSurfaceDeflection(data, projectileID, x, y, z)
 	return dx, dy, dz
 end
 
-local function spawnClusterProjectiles(data, projectileID, attackerID, x, y, z)
+local function spawnClusterProjectiles(data, attackerID, x, y, z)
 	local clusterDefID = data.weaponID
 	local projectileCount = data.number
 	local projectileSpeed = data.weaponSpeed
@@ -256,7 +255,7 @@ local function spawnClusterProjectiles(data, projectileID, attackerID, x, y, z)
 	local position = spawnCache.pos
 
 	local directions = directions[projectileCount]
-	local deflectX, deflectY, deflectZ = getSurfaceDeflection(data, projectileID, x, y, z)
+	local deflectX, deflectY, deflectZ = getSurfaceDeflection(x, y, z)
 	local randomness = 1 / sqrt(projectileCount - 2)
 
 	for i = 0, projectileCount - 1 do
@@ -305,6 +304,6 @@ end
 function gadget:Explosion(weaponDefID, x, y, z, attackerID, projectileID)
 	local weaponData = clusterWeaponDefs[weaponDefID]
 	if weaponData then
-		spawnClusterProjectiles(weaponData, projectileID, attackerID, x, y, z)
+		spawnClusterProjectiles(weaponData, attackerID, x, y, z)
 	end
 end
