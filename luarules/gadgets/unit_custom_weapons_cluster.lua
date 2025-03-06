@@ -254,14 +254,14 @@ local function spawnClusterProjectiles(data, attackerID, x, y, z)
 	local speed = spawnCache.speed
 	local position = spawnCache.pos
 
-	local directions = directions[projectileCount]
+	local directionVectors = directions[projectileCount]
 	local deflectX, deflectY, deflectZ = getSurfaceDeflection(x, y, z)
 	local randomness = 1 / sqrt(projectileCount - 2)
 
 	for i = 0, projectileCount - 1 do
-		local velocityX = directions[3 * i + 1] + deflectX
-		local velocityY = directions[3 * i + 2] + deflectY
-		local velocityZ = directions[3 * i + 3] + deflectZ
+		local velocityX = directionVectors[3 * i + 1] + deflectX
+		local velocityY = directionVectors[3 * i + 2] + deflectY
+		local velocityZ = directionVectors[3 * i + 3] + deflectZ
 
 		velocityX = velocityX + (rand() - 0.5) * randomness * 2
 		velocityY = velocityY + (rand() - 0.5) * randomness * 2
