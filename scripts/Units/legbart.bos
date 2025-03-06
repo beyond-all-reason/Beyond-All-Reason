@@ -394,7 +394,7 @@ RestoreAfterDelay()
 
 Create()
 {
-
+	move chassis to y-axis [0.5] now;
 	isMoving = FALSE;
 	animSpeed = 5; 
 
