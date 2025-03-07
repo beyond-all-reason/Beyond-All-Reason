@@ -592,162 +592,338 @@ if SYNCED then
 --zzz need to prevent defeat in the case that all remaining teams are tied, or there is only one team left
 
 else
+	-- UNSYNCED CODE
+	local luaShaderDir = "LuaUI/Widgets/Include/"
+	local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
+	VFS.Include(luaShaderDir.."instancevbotable.lua")
 
-VFS.Include("LuaUI/Widgets/Include/instancevbotable.lua")
--- UNSYNCED CODE
+	-- Localized GL functions for better performance
+	local glColor = gl.Color
+	local glPushMatrix = gl.PushMatrix
+	local glPopMatrix = gl.PopMatrix
+	local glShape = gl.Shape
+	local glRect = gl.Rect
+	local GL_QUADS = GL.QUADS
 
--- Localized GL functions for better performance
-local glColor = gl.Color
-local glPushMatrix = gl.PushMatrix
-local glPopMatrix = gl.PopMatrix
-local glShape = gl.Shape
-local glRect = gl.Rect
-local GL_QUADS = GL.QUADS
+	-- Spring functions
+	local spGetTeamColor = Spring.GetTeamColor
+	local spGetMiniMapGeometry = Spring.GetMiniMapGeometry
 
--- Spring functions
-local spGetTeamColor = Spring.GetTeamColor
-local spGetMiniMapGeometry = Spring.GetMiniMapGeometry
+	-- Variables for the squares
+	local MINIMAP_DRAW_ENABLED = true
+	local blinkFrame = false  -- Toggle for blinking effect
+	local BLINK_INTERVAL = 30 -- Frames between blinks
+	local MINIMAP_SQUARE_OPACITY = 0.3
+	local SQUARE_OPACITY = 0.25
+	local BLINK_MULTIPLIER = 1.5
 
--- Variables for the squares
-local MINIMAP_DRAW_ENABLED = true
-local blinkFrame = false  -- Toggle for blinking effect
-local BLINK_INTERVAL = 30 -- Frames between blinks (reduced from gameSpeed*4)
-local MINIMAP_SQUARE_OPACITY = 0.3 -- Increased from 0.15 for better visibility
+	-- Get map dimensions
+	local mapSizeX = Game.mapSizeX
+	local mapSizeZ = Game.mapSizeZ
+	local GRID_SIZE = 1024 -- must be same as in synced code
 
--- Get map dimensions
-local mapSizeX = Game.mapSizeX
-local mapSizeZ = Game.mapSizeZ
-local GRID_SIZE = 1024 -- must be same as in synced code
+	local gridData = {}
+	local allyTeamColors = {}
+	local allyScores = {}
 
-local gridData = {}
-local allyTeamColors = {}
-local allyScores = {}
+	-- Shader and VBO variables
+	local squareShader = nil
+	local squareInstanceVBO = nil
+	local squareVBO = nil
+	local vboKeyToGridID = {}
+	local gridIDToVBOKey = {}
+	local nextVBOKey = 1
 
+	-- Shader source code
+	local vsSrc = [[
+	#version 420
+	#line 10000
+	layout (location = 0) in vec4 squareVertex; // vertices of the square
+	layout (location = 1) in vec4 posSize;      // position and size of the square
+	layout (location = 2) in vec4 color;        // color of the square
+	layout (location = 3) in vec4 blinkData;    // blinking state and other data
 
-local function drawGridSquares(minimapSizeX, minimapSizeY)
-	local gridSquareWidth = (GRID_SIZE / mapSizeX) * minimapSizeX
-	local gridSquareHeight = (GRID_SIZE / mapSizeZ) * minimapSizeY
-	
-	local xScaleFactor = minimapSizeX / mapSizeX
-	local zScaleFactor = minimapSizeY / mapSizeZ
-	
+	uniform vec4 squareUniforms; // time for blinking effect
 
-	for gridID, data in pairs(gridData) do
-		local allyOwnerID = data.allyOwnerID
-		local color = allyTeamColors[allyOwnerID]
+	out DataVS {
+		vec4 vertexColor;
+		float blinking;
+	};
+
+	//__ENGINEUNIFORMBUFFERDEFS__
+	#line 11000
+
+	void main() {
+		// Calculate world position
+		vec4 worldPos = vec4(0.0);
+		worldPos.x = squareVertex.x * posSize.z + posSize.x;
+		worldPos.z = squareVertex.z * posSize.w + posSize.y;
+		worldPos.y = 0.0;
 		
-		if color then
-			-- Calculate square position on minimap using pre-calculated values
-			local left = data.gridX * GRID_SIZE * xScaleFactor
-			local bottom = minimapSizeY - ((data.gridZ + 1) * GRID_SIZE * zScaleFactor)
-			local right = left + gridSquareWidth
-			local top = bottom + gridSquareHeight
-			
-			-- Adjust color for blinking squares
-			if data.blinking and blinkFrame then
-				-- Brighter color for blinking
-				glColor(
-					math.min(1.0, color.r * 1.5),
-					math.min(1.0, color.g * 1.5),
-					math.min(1.0, color.b * 1.5),
-					MINIMAP_SQUARE_OPACITY
-				)
-			else
-				glColor(color.r, color.g, color.b, MINIMAP_SQUARE_OPACITY)
-			end
-			
-			-- Draw the rectangle
-			glRect(left, bottom, right, top)
-		end
-	end
-	
-	-- Reset color to white
-	glColor(1, 1, 1, 1)
-end
-
--- Receive grid data from synced
-function gadget:RecvFromSynced(cmd, ...)
-	local args = {...}
-	
-	if cmd == "InitializeGridSquare" then
-		-- Initialize a single grid square
-		local gridID = args[1]
-		local allyOwnerID = args[2]
-		local blinking = args[3]
-		local gridX = args[4]
-		local gridZ = args[5]
+		// Get height at position
+		vec2 uvhm = vec2(clamp(worldPos.x, 8.0, mapSize.x-8.0), clamp(worldPos.z, 8.0, mapSize.y-8.0)) / mapSize.xy;
+		worldPos.y = textureLod(heightmapTex, uvhm, 0.0).x + 5.0; // Slightly above ground
 		
-		-- Store the grid square data
-		gridData[gridID] = {
-			gridX = gridX,
-			gridZ = gridZ,
-			allyOwnerID = allyOwnerID,
-			blinking = blinking
+		// Set color with blinking effect
+		vertexColor = color;
+		blinking = blinkData.x;
+		
+		// Apply blinking effect
+		if (blinking > 0.5 && mod(squareUniforms.x, 60.0) < 30.0) {
+			vertexColor.rgb *= 1.5; // Brighter during blink
 		}
 		
-	elseif cmd == "UpdateGridSquare" then
-		-- Update a grid square's ownership and blinking state
-		local gridID = args[1]
-		local allyOwnerID = args[2]
-		local blinking = args[3]
+		gl_Position = cameraViewProj * worldPos;
+	}
+	]]
+
+	local fsSrc = [[
+	#version 330
+	#extension GL_ARB_uniform_buffer_object : require
+	#extension GL_ARB_shading_language_420pack: require
+	#line 20000
+
+	//__ENGINEUNIFORMBUFFERDEFS__
+
+	in DataVS {
+		vec4 vertexColor;
+		float blinking;
+	};
+
+	out vec4 fragColor;
+
+	void main() {
+		fragColor = vertexColor;
+	}
+	]]
+
+	-- Create a square VBO for the grid squares
+	local function makeSquareVBO()
+		local vboTable = {
+			{0, 0, 0, 0}, -- bottom left
+			{1, 0, 0, 0}, -- bottom right
+			{1, 0, 1, 0}, -- top right
+			{0, 0, 1, 0}, -- top left
+			{0, 0, 0, 0}, -- bottom left (repeat for GL_TRIANGLE_STRIP)
+			{1, 0, 1, 0}  -- top right (repeat for GL_TRIANGLE_STRIP)
+		}
+		return gl.GetVBO(GL.ARRAY_BUFFER, false, true):Define(#vboTable, 4):Upload(vboTable)
+	end
+
+	-- Initialize GL4 resources
+	local function initGL4()
+		local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
+		vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+		fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 		
-		-- Only update if the grid square exists
-		if gridData[gridID] then
-			gridData[gridID].allyOwnerID = allyOwnerID
-			gridData[gridID].blinking = blinking
+		squareShader = LuaShader({
+			vertex = vsSrc,
+			fragment = fsSrc,
+			uniformFloat = {
+				squareUniforms = {0, 0, 0, 0}, -- time for blinking
+			},
+		}, "conquest squares shader GL4")
+		
+		local shaderCompiled = squareShader:Initialize()
+		if not shaderCompiled then
+			Spring.Echo("Failed to compile conquest squares shader")
+			return false
 		end
 		
-	elseif cmd == "UpdateAllyScore" then
-		-- Update an ally team's score
-		local allyID = args[1]
-		local score = args[2]
-		allyScores[allyID] = score
-	end
-end
-
--- Initialize team colors
-function gadget:Initialize()
-	-- Get all teams
-	local teams = Spring.GetTeamList()
-	
-	-- For each team, get its ally team and color
-	for _, teamID in ipairs(teams) do
-		local _, _, _, _, _, allyTeamID = Spring.GetTeamInfo(teamID)
+		squareVBO = makeSquareVBO()
 		
-		-- Only store the first team's color for each ally team
-		if not allyTeamColors[allyTeamID] then
-			local r, g, b = spGetTeamColor(teamID)
-			allyTeamColors[allyTeamID] = {r = r, g = g, b = b}
+		local squareInstanceVBOLayout = {
+			{id = 1, name = 'posSize', size = 4}, -- x, z, width, height
+			{id = 2, name = 'color', size = 4},   -- r, g, b, a
+			{id = 3, name = 'blinkData', size = 4} -- blinking state and other data
+		}
+		
+		squareInstanceVBO = makeInstanceVBOTable(squareInstanceVBOLayout, 1024, "conquestsquaresvbo")
+		squareInstanceVBO.numVertices = 6 -- 6 vertices for a square (using GL_TRIANGLE_STRIP)
+		squareInstanceVBO.vertexVBO = squareVBO
+		squareInstanceVBO.VAO = makeVAOandAttach(squareInstanceVBO.vertexVBO, squareInstanceVBO.instanceVBO)
+		
+		return true
+	end
+
+	-- Update VBO data for a grid square
+	local function updateSquareVBO(gridID, allyOwnerID, blinking)
+		local data = gridData[gridID]
+		if not data then return end
+		
+		local color = allyTeamColors[allyOwnerID] or {r=0.5, g=0.5, b=0.5}
+		local vboKey = gridIDToVBOKey[gridID]
+		
+		if not vboKey then
+			vboKey = nextVBOKey
+			nextVBOKey = nextVBOKey + 1
+			gridIDToVBOKey[gridID] = vboKey
+			vboKeyToGridID[vboKey] = gridID
+		end
+		
+		pushElementInstance(squareInstanceVBO, {
+			data.gridX * GRID_SIZE, data.gridZ * GRID_SIZE, GRID_SIZE, GRID_SIZE, -- posSize
+			color.r, color.g, color.b, SQUARE_OPACITY, -- color
+			blinking and 1.0 or 0.0, 0.0, 0.0, 0.0 -- blinkData
+		}, vboKey, true) -- overwrite
+	end
+
+	-- Draw grid squares on the minimap
+	local function drawGridSquares(minimapSizeX, minimapSizeY)
+		local gridSquareWidth = (GRID_SIZE / mapSizeX) * minimapSizeX
+		local gridSquareHeight = (GRID_SIZE / mapSizeZ) * minimapSizeY
+		
+		local xScaleFactor = minimapSizeX / mapSizeX
+		local zScaleFactor = minimapSizeY / mapSizeZ
+		
+		for gridID, data in pairs(gridData) do
+			local allyOwnerID = data.allyOwnerID
+			local color = allyTeamColors[allyOwnerID]
+			
+			if color then
+				-- Calculate square position on minimap
+				local left = data.gridX * GRID_SIZE * xScaleFactor
+				local bottom = minimapSizeY - ((data.gridZ + 1) * GRID_SIZE * zScaleFactor)
+				local right = left + gridSquareWidth
+				local top = bottom + gridSquareHeight
+				
+				-- Adjust color for blinking squares
+				if data.blinking and blinkFrame then
+					-- Brighter color for blinking
+					glColor(
+						math.min(1.0, color.r * BLINK_MULTIPLIER),
+						math.min(1.0, color.g * BLINK_MULTIPLIER),
+						math.min(1.0, color.b * BLINK_MULTIPLIER),
+						MINIMAP_SQUARE_OPACITY
+					)
+				else
+					glColor(color.r, color.g, color.b, MINIMAP_SQUARE_OPACITY)
+				end
+				
+				-- Draw the rectangle
+				glRect(left, bottom, right, top)
+			end
+		end
+		
+		-- Reset color to white
+		glColor(1, 1, 1, 1)
+	end
+
+	-- Receive grid data from synced
+	function gadget:RecvFromSynced(cmd, ...)
+		local args = {...}
+		
+		if cmd == "InitializeGridSquare" then
+			-- Initialize a single grid square
+			local gridID = args[1]
+			local allyOwnerID = args[2]
+			local blinking = args[3]
+			local gridX = args[4]
+			local gridZ = args[5]
+			
+			-- Store the grid square data
+			gridData[gridID] = {
+				gridX = gridX,
+				gridZ = gridZ,
+				allyOwnerID = allyOwnerID,
+				blinking = blinking
+			}
+			
+			-- Update VBO data
+			updateSquareVBO(gridID, allyOwnerID, blinking)
+			
+		elseif cmd == "UpdateGridSquare" then
+			-- Update a grid square's ownership and blinking state
+			local gridID = args[1]
+			local allyOwnerID = args[2]
+			local blinking = args[3]
+			
+			-- Only update if the grid square exists
+			if gridData[gridID] then
+				gridData[gridID].allyOwnerID = allyOwnerID
+				gridData[gridID].blinking = blinking
+				
+				-- Update VBO data
+				updateSquareVBO(gridID, allyOwnerID, blinking)
+			end
+			
+		elseif cmd == "UpdateAllyScore" then
+			-- Update an ally team's score
+			local allyID = args[1]
+			local score = args[2]
+			allyScores[allyID] = score
 		end
 	end
-	
-	-- Also add Gaia team color (usually gray)
-	local gaiaTeamID = Spring.GetGaiaTeamID()
-	local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(gaiaTeamID))
-	allyTeamColors[gaiaAllyTeamID] = nil -- don't draw gaia team
-end
 
-local updateFrame = 0
-function gadget:Update()
-	updateFrame = updateFrame + 1
-	
-	if updateFrame % BLINK_INTERVAL == 0 then
-		blinkFrame = not blinkFrame
-	end
-end
-
--- Hook into DrawInMiniMap to draw our grid squares on the minimap
-function gadget:DrawInMiniMap(minimapSizeX, minimapSizeY)
-	if MINIMAP_DRAW_ENABLED and next(gridData) then
-		-- Save the current matrix
-		glPushMatrix()
+	-- Initialize team colors and GL resources
+	function gadget:Initialize()
+		-- Get all teams
+		local teams = Spring.GetTeamList()
 		
-		-- Draw all grid squares
-		drawGridSquares(minimapSizeX, minimapSizeY)
+		-- For each team, get its ally team and color
+		for _, teamID in ipairs(teams) do
+			local _, _, _, _, _, allyTeamID = Spring.GetTeamInfo(teamID)
+			
+			-- Only store the first team's color for each ally team
+			if not allyTeamColors[allyTeamID] then
+				local r, g, b = spGetTeamColor(teamID)
+				allyTeamColors[allyTeamID] = {r = r, g = g, b = b}
+			end
+		end
 		
-		-- Restore the matrix
-		glPopMatrix()
+		-- Also add Gaia team color (usually gray)
+		local gaiaTeamID = Spring.GetGaiaTeamID()
+		local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(gaiaTeamID))
+		allyTeamColors[gaiaAllyTeamID] = nil -- don't draw gaia team
+		
+		-- Initialize GL4 resources
+		initGL4()
 	end
-end
 
+	local updateFrame = 0
+	function gadget:Update()
+		updateFrame = updateFrame + 1
+		
+		if updateFrame % BLINK_INTERVAL == 0 then
+			blinkFrame = not blinkFrame
+		end
+	end
+
+	-- Draw grid squares in the 3D world
+	function gadget:DrawWorld()
+		if squareInstanceVBO and squareInstanceVBO.usedElements > 0 then
+			gl.DepthTest(false)
+			gl.DepthMask(false)
+			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+			
+			squareShader:Activate()
+			squareShader:SetUniform("squareUniforms", updateFrame, 0, 0, 0)
+			squareInstanceVBO.VAO:DrawArrays(GL.TRIANGLE_STRIP, squareInstanceVBO.numVertices, 0, squareInstanceVBO.usedElements, 0)
+			squareShader:Deactivate()
+			
+			gl.DepthTest(false)
+			gl.DepthMask(false)
+			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+		end
+	end
+
+	-- Hook into DrawInMiniMap to draw our grid squares on the minimap
+	function gadget:DrawInMiniMap(minimapSizeX, minimapSizeY)
+		if MINIMAP_DRAW_ENABLED and next(gridData) then
+			-- Save the current matrix
+			glPushMatrix()
+			
+			-- Draw all grid squares
+			drawGridSquares(minimapSizeX, minimapSizeY)
+			
+			-- Restore the matrix
+			glPopMatrix()
+		end
+	end
+
+	function gadget:Shutdown()
+		if squareShader then
+			squareShader:Finalize()
+		end
+	end
 end
