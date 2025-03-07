@@ -31,16 +31,12 @@ if gadgetHandler:IsSyncedCode() then
 	local mcSetVelocity         = Spring.MoveCtrl.SetVelocity
 	local mcSetPosition         = Spring.MoveCtrl.SetPosition
 
-	local mapsizeX 				  = Game.mapSizeX
-	local mapsizeZ 				  = Game.mapSizeZ
 
 	local diag = math.diag
 
 
-	local GAME_SPEED = Game.gameSpeed
 	local TAU = 2 * math.pi
 	local PRIVATE = { private = true }
-	local CMD_WAIT = CMD.WAIT
 	local EMPTY_TABLE = {}
 
 	local respawnMetaList = {}
@@ -271,8 +267,6 @@ if gadgetHandler:IsSyncedCode() then
 else
 
 
-	local spSelectUnitArray = Spring.SelectUnitArray
-	local spGetSelectedUnits = Spring.GetSelectedUnits
 	local spGetGameSeconds = Spring.GetGameSeconds
 
 	local announcementStart = 0

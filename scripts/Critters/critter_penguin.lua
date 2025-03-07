@@ -5,16 +5,13 @@ local wing1 = piece "wing1"
 local wing2 = piece "wing2"
 local flare1 = piece "flare1"
 local flare2 = piece "flare2"
-local tail = piece "tail"
 
 local SIG_WALK = 2
 
 local tspeed = math.rad (180)
 local ta = math.rad (30)
-local volume 			= 0.5
 local soundPause 		= 300
 local lastSound		 	= 0
-local PlaySoundFile 	= Spring.PlaySoundFile
 local GetUnitPosition 	= Spring.GetUnitPosition
 local GetGameFrame 		= Spring.GetGameFrame
 function script.Create ()
@@ -74,14 +71,7 @@ function script.setSFXoccupy (curTerrainType)
 		StartThread (jump)
 		Turn (body, x_axis, 0, tspeed*2)
 		--bodyWiggleAxis = z_axis
-	end	--[[
-	if  GetGameFrame () -lastSound > soundPause then
-		local x,y,z = GetUnitPosition(unitID)
-		local snd = 'sounds/critters/penbray2.wav'
-		PlaySoundFile(snd,volume,x,y,z,0,0,0,'sfx')
-		lastSound = GetGameFrame ()
-	end]]--
-	--Spring.Echo (curTerrainType)
+	end
 end
 
 local lastJump = 0
@@ -93,7 +83,6 @@ function jump()
 	WaitForMove (body,y_axis)
 	Move (body, y_axis, 0,40)
 	lastJump = Spring.GetGameFrame ()
-	--PlaySoundFile(snd,volume,x,y,z,0,0,0,'battle')
 end
 
 
@@ -142,5 +131,4 @@ function script.Killed(recentDamage, maxHealth)
 	else
 		snd = 'sounds/critters/pensquawk3.wav'
 	end
-	--PlaySoundFile(snd,volume,x,y,z,0,0,0,'battle')
 end

@@ -50,23 +50,17 @@ local font
 -- speedups
 ----------------------------------------------------------------
 
-local ArePlayersAllied = Spring.ArePlayersAllied
 local GetPlayerInfo = Spring.GetPlayerInfo
 local GetTeamColor = Spring.GetTeamColor
-local GetSpectatingState = Spring.GetSpectatingState
 local WorldToScreenCoords = Spring.WorldToScreenCoords
 local GetUnitPosition = Spring.GetUnitPosition
 local GetMyTeamID = Spring.GetMyTeamID
-local PlaySoundFile = Spring.PlaySoundFile
 local glColor = gl.Color
 local glRect = gl.Rect
 local glLineWidth = gl.LineWidth
 local glShape = gl.Shape
 local glPolygonMode = gl.PolygonMode
-local glText = gl.Text
-local max = math.max
 local abs = math.abs
-local strSub = string.sub
 local GL_LINES = GL.LINES
 local GL_TRIANGLES = GL.TRIANGLES
 local GL_LINE = GL.LINE

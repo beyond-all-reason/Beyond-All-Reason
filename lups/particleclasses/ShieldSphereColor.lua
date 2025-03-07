@@ -144,8 +144,6 @@ function ShieldSphereColorParticle:EndDraw()
 		shieldShader:SetUniformMatrix("viewMat", "view")
 		shieldShader:SetUniformMatrix("projMat", "projection")
 		
-		local shieldShader_SetUniformInt = shieldShader.SetUniformInt		
-		local shieldShader_SetUniformFloat = shieldShader.SetUniformFloat
 		
 
 		for _, rb in pairs(renderBuckets) do

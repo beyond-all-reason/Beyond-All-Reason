@@ -56,7 +56,6 @@ local getMovetype = Spring.Utilities.getMovetype
 
 local spSetUnitCOBValue = Spring.SetUnitCOBValue
 local WACKY_CONVERSION_FACTOR_1 = 2184.53
-local CMD_WAIT = CMD.WAIT
 
 local HALF_FRAME = 1/60
 

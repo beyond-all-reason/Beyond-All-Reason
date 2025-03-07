@@ -2352,7 +2352,6 @@ if gadgetHandler:IsSyncedCode() then
 else	-- UNSYNCED
 
 	local hasScavEvent = false
-	local mRandom = math.random
 
 	function HasScavEvent(ce)
 		hasScavEvent = (ce ~= "0")

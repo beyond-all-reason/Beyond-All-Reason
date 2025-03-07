@@ -67,7 +67,6 @@ local function makeAtlas()
 	end
 end
 
-local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
 local GetUnitDefID = Spring.GetUnitDefID
 local GetUnitExperience = Spring.GetUnitExperience
 local GetAllUnits = Spring.GetAllUnits
@@ -310,33 +309,6 @@ function widget:UnitExperience(unitID, unitDefID, unitTeam, xp, oldXP)
 		AddPrimitiveAtUnit(unitID, unitDefID, false, "promoted", rank, 1)
 	end
 end
-
---[[
--- Switch over to API
-function widget:UnitCreated(unitID, unitDefID, unitTeam)
-	if IsUnitAllied(unitID) or GetSpectatingState() then
-		updateUnitRank(unitID, GetUnitDefID(unitID))
-	end
-end
-
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-	unitRanks[unitID] = nil
-	RemovePrimitive(unitID, "UnitDestroyed")
-end
-
-function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
-	if isAirUnit[unitDefID] and spGetUnitMoveTypeData(unitID).aircraftState == "crashing" then
-		widget:UnitDestroyed(unitID, unitDefID, unitTeam)
-	end
-end
-
-function widget:UnitGiven(unitID, unitDefID, oldTeam, newTeam)
-	if not IsUnitAllied(unitID) and not GetSpectatingState() then
-		unitRanks[unitID] = nil
-		RemovePrimitive(unitID, "UnitGiven")
-	end
-end
-]]--
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	if IsUnitAllied(unitID) or GetSpectatingState() then

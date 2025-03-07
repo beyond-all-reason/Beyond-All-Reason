@@ -723,7 +723,6 @@ function MapHST:ClosestFreeMex(unittype, builder, position)--get the closest fre
 	local builderPos = builder:GetPosition()
 	local uname = unittype:Name()
 	local spotPosition = nil
-	local spotDistance = math.huge
 
 	if not layer or not net then return end
 	local sortlist = self.ai.tool:sortByDistance(position,self.networks[layer][net].metals)
@@ -738,16 +737,6 @@ function MapHST:ClosestFreeMex(unittype, builder, position)--get the closest fre
 						local CELL = self:GetCell(spot,self.ai.loshst.ENEMY)
 						if not CELL or CELL.ENEMY == 0 then
 							return spot
--- 							local distance = self.ai.tool:distance(position,spot)
--- 							--print(distance-Distance)
---  							--if distance < 300 then
---  							--	return spot
---  							--else
--- 								if distance < spotDistance then
--- 									spotPosition = spot
--- 									spotDistance = distance
--- 								end
- 							--end
 						else
 							self:EchoDebug(spot.x,spot.z,'reject cause ENEMY')
 						end

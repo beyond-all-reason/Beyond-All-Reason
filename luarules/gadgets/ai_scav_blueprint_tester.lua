@@ -4,7 +4,6 @@ local blueprintspath = "luarules/gadgets/scavengers/Blueprints/BYAR/Blueprints/"
 local enabled = Spring.Utilities.IsDevMode() -- only enable in test environment
 local queue = {}
 local mapsizeX = Game.mapSizeX
-local mapsizeZ = Game.mapSizeZ
 local lastposX = 0
 local lastposZ = 0
 local blueprintpositions = {}

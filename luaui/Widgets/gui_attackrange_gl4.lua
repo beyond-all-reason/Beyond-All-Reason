@@ -328,7 +328,6 @@ local spGetUnitAllyTeam     = Spring.GetUnitAllyTeam
 local spGetMouseState       = Spring.GetMouseState
 local spTraceScreenRay      = Spring.TraceScreenRay
 local GetModKeyState        = Spring.GetModKeyState
-local GetInvertQueueKey     = Spring.GetInvertQueueKey
 local GetActiveCommand      = Spring.GetActiveCommand
 local GetSelectedUnits      = Spring.GetSelectedUnits
 local chobbyInterface

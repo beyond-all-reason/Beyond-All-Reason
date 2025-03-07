@@ -17,9 +17,6 @@ end
 
 local debugmode = false
 
-local glLineWidth = gl.LineWidth
-local glDepthTest = gl.DepthTest
-local GL_LINES = GL.LINES
 local font, loadedFontSize
 local rectRoundVBO = nil
 local vsx, vsy = Spring.GetViewGeometry()
@@ -459,7 +456,6 @@ function metaElement:UpdateVBOKeys(keyname, value, delta)
 			end
 
 			if delta then
-				local cache = self.vboCache
 
 				self.vboCache[self.vbokeys[keyname]] = self.vboCache[self.vbokeys[keyname]] + delta
 			else

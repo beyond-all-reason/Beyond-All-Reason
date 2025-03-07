@@ -47,7 +47,6 @@ local selectionChanged
 --------------------------------------------------------------------------------
 local GetActiveCommand = Spring.GetActiveCommand
 local GetCameraPosition = Spring.GetCameraPosition
-local GetFeaturePosition = Spring.GetFeaturePosition
 local GetGroundHeight = Spring.GetGroundHeight
 local GetMouseState = Spring.GetMouseState
 local GetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
@@ -165,7 +164,6 @@ local function GetMouseTargetPosition(dgun)
 			if mouseTarget then
 				return mouseTarget[1], mouseTarget[2], mouseTarget[3]
 			end
-			--return GetFeaturePosition(mouseTarget)
 		else
 			return nil
 		end
