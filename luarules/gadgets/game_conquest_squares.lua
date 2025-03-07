@@ -596,7 +596,7 @@ else
 VFS.Include("luaui/Widgets/Include/instancevbotable.lua")
 -- UNSYNCED CODE
 
--- Localize GL functions for better performance
+-- Localized GL functions for better performance
 local glColor = gl.Color
 local glPushMatrix = gl.PushMatrix
 local glPopMatrix = gl.PopMatrix
@@ -617,89 +617,47 @@ local MINIMAP_SQUARE_OPACITY = 0.3 -- Increased from 0.15 for better visibility
 -- Get map dimensions
 local mapSizeX = Game.mapSizeX
 local mapSizeZ = Game.mapSizeZ
-local GRID_SIZE = 1024 -- Same as in synced code
+local GRID_SIZE = 1024 -- must be same as in synced code
 
--- Tables to store grid data from synced
 local gridData = {}
 local allyTeamColors = {}
 local allyScores = {}
 
--- Minimap cache
-local minimapCache = {
-	posX = 0,
-	posY = 0,
-	sizeX = 0,
-	sizeY = 0,
-	needsUpdate = true
-}
 
--- Function to check if minimap dimensions have changed and update cache
-local function updateMinimapCache()
-	local minimapPosX, minimapPosY, minimapSizeX, minimapSizeY = spGetMiniMapGeometry()
+local function drawGridSquares(minimapSizeX, minimapSizeY)
+	local gridSquareWidth = (GRID_SIZE / mapSizeX) * minimapSizeX
+	local gridSquareHeight = (GRID_SIZE / mapSizeZ) * minimapSizeY
 	
-	if minimapPosX ~= minimapCache.posX or 
-	   minimapPosY ~= minimapCache.posY or
-	   minimapSizeX ~= minimapCache.sizeX or
-	   minimapSizeY ~= minimapCache.sizeY then
-		
-		-- Update cache with new values
-		minimapCache.posX = minimapPosX
-		minimapCache.posY = minimapPosY
-		minimapCache.sizeX = minimapSizeX
-		minimapCache.sizeY = minimapSizeY
-		
-		minimapCache.needsUpdate = false
-		return true
-	end
+	local xScaleFactor = minimapSizeX / mapSizeX
+	local zScaleFactor = minimapSizeY / mapSizeZ
 	
-	return false
-end
 
--- Function to draw all grid squares directly
-local function drawGridSquares()
-	-- Update minimap cache if needed
-	if minimapCache.needsUpdate then
-		updateMinimapCache()
-	end
-	
-	-- Calculate grid square dimensions on minimap
-	local gridSquareWidth = (GRID_SIZE / mapSizeX) * minimapCache.sizeX
-	local gridSquareHeight = (GRID_SIZE / mapSizeZ) * minimapCache.sizeY
-	
-	-- Draw each grid square
 	for gridID, data in pairs(gridData) do
 		local allyOwnerID = data.allyOwnerID
 		local color = allyTeamColors[allyOwnerID]
 		
 		if color then
-			-- Skip drawing if we should be blinking and blink is off
-			if data.blinking and not blinkFrame then
-				-- Skip this square during off-blink frames
+			-- Calculate square position on minimap using pre-calculated values
+			local left = data.gridX * GRID_SIZE * xScaleFactor
+			local bottom = minimapSizeY - ((data.gridZ + 1) * GRID_SIZE * zScaleFactor)
+			local right = left + gridSquareWidth
+			local top = bottom + gridSquareHeight
+			
+			-- Adjust color for blinking squares
+			if data.blinking and blinkFrame then
+				-- Brighter color for blinking
+				glColor(
+					math.min(1.0, color.r * 1.5),
+					math.min(1.0, color.g * 1.5),
+					math.min(1.0, color.b * 1.5),
+					MINIMAP_SQUARE_OPACITY
+				)
 			else
-				-- Calculate square position on minimap
-				local left = minimapCache.posX + (data.gridX * GRID_SIZE / mapSizeX) * minimapCache.sizeX
-				
-				-- Fix for vertical mirroring - calculate from the top of the minimap instead of bottom
-				local bottom = minimapCache.posY + minimapCache.sizeY - ((data.gridZ + 1) * GRID_SIZE / mapSizeZ) * minimapCache.sizeY
-				local right = left + gridSquareWidth
-				local top = bottom + gridSquareHeight
-				
-				-- Adjust color for blinking squares
-				if data.blinking and blinkFrame then
-					-- Brighter color for blinking
-					glColor(
-						math.min(1.0, color.r * 1.5),
-						math.min(1.0, color.g * 1.5),
-						math.min(1.0, color.b * 1.5),
-						MINIMAP_SQUARE_OPACITY
-					)
-				else
-					glColor(color.r, color.g, color.b, MINIMAP_SQUARE_OPACITY)
-				end
-				
-				-- Draw the rectangle
-				glRect(left, bottom, right, top)
+				glColor(color.r, color.g, color.b, MINIMAP_SQUARE_OPACITY)
 			end
+			
+			-- Draw the rectangle
+			glRect(left, bottom, right, top)
 		end
 	end
 	
@@ -726,9 +684,6 @@ function gadget:RecvFromSynced(cmd, ...)
 			allyOwnerID = allyOwnerID,
 			blinking = blinking
 		}
-		
-		-- Mark minimap cache for update
-		minimapCache.needsUpdate = true
 		
 	elseif cmd == "UpdateGridSquare" then
 		-- Update a grid square's ownership and blinking state
@@ -769,54 +724,30 @@ function gadget:Initialize()
 	-- Also add Gaia team color (usually gray)
 	local gaiaTeamID = Spring.GetGaiaTeamID()
 	local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(gaiaTeamID))
-	local r, g, b = spGetTeamColor(gaiaTeamID)
-	allyTeamColors[gaiaAllyTeamID] = {r = r, g = g, b = b}
-	
-	-- Initialize minimap cache
-	updateMinimapCache()
+	allyTeamColors[gaiaAllyTeamID] = nil -- don't draw gaia team
 end
 
--- Update function to toggle the blink state and check for minimap resizing
 local updateFrame = 0
 function gadget:Update()
 	updateFrame = updateFrame + 1
 	
-	-- Toggle blink state
 	if updateFrame % BLINK_INTERVAL == 0 then
 		blinkFrame = not blinkFrame
-	end
-	
-	-- Check for minimap resize occasionally
-	if updateFrame % 30 == 0 then
-		if updateMinimapCache() then
-			-- Mark for update if minimap dimensions changed
-			minimapCache.needsUpdate = true
-		end
 	end
 end
 
 -- Hook into DrawInMiniMap to draw our grid squares on the minimap
-function gadget:DrawInMiniMap()
+function gadget:DrawInMiniMap(minimapSizeX, minimapSizeY)
 	if MINIMAP_DRAW_ENABLED and next(gridData) then
 		-- Save the current matrix
 		glPushMatrix()
 		
 		-- Draw all grid squares
-		drawGridSquares()
+		drawGridSquares(minimapSizeX, minimapSizeY)
 		
 		-- Restore the matrix
 		glPopMatrix()
 	end
-end
-
--- Clean up when gadget is removed
-function gadget:Shutdown()
-	-- No explicit cleanup needed
-end
-
--- Toggle function that can be called from elsewhere if needed
-function gadget:ToggleMinimapDraw()
-	MINIMAP_DRAW_ENABLED = not MINIMAP_DRAW_ENABLED
 end
 
 end
