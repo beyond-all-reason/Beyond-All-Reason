@@ -346,8 +346,6 @@ function widget:Initialize()
 	highlightUnitVBOTable.vertexVBO = vertVBO
 	highlightUnitVBOTable.debugZombies = false
 
-	local unitIDs = Spring.GetAllUnits()
-	local featuresIDs = Spring.GetAllFeatures()
 
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)

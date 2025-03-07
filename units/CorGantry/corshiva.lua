@@ -21,7 +21,7 @@ return {
 		maxslope = 36,
 		maxwaterdepth = 32,
 		metalcost = 1550,
-		movementclass = "HABOT4",
+		movementclass = "HABOT5",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORSHIVA.s3o",
 		script = "Units/CORSHIVA.cob",

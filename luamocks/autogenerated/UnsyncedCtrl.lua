@@ -429,7 +429,7 @@ function Spring.FreeUnitIcon(iconName) end
 ---@param unitID number
 ---@param drawIcon boolean
 ---@return nil
-function Spring.UnitIconSetDraw(unitID, drawIcon) end
+function Spring.SetUnitIconDraw(unitID, drawIcon) end
 
 ---Parameters
 ---@param unitDefID number

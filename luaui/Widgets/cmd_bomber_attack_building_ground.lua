@@ -17,7 +17,7 @@ local CMD_STOP = CMD.STOP
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGiveOrder = Spring.GiveOrder
-local spGetCommandQueue = Spring.GetCommandQueue
+local spGetUnitCommands = Spring.GetUnitCommands
 local spIsPosInLos = Spring.IsPosInLos
 local spValidUnitID = Spring.ValidUnitID
 
@@ -51,7 +51,7 @@ function widget:GameFrame(gf)
 				then
 					for bomberID, _ in pairs(params[4]) do
 						if spValidUnitID(bomberID) then
-							local cmds = spGetCommandQueue(bomberID,100)
+							local cmds = spGetUnitCommands(bomberID,100)
 
 							-- remove commands
 							spGiveOrderToUnit(bomberID, CMD_STOP, {}, 0)
