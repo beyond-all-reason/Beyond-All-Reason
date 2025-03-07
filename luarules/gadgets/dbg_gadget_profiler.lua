@@ -638,9 +638,7 @@ else
 
 		for i = 1, #list do
 			local v = list[i]
-			local name = v.plainname
 			local gname = v.fullname
-			local tTime = v.tTime
 			local tLoad = v.tLoad
 			local sLoad = v.sLoad
 			local tColour = v.tColourString

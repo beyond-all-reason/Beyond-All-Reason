@@ -46,7 +46,6 @@ local opacity			= 0.5
 
 local innersize			= 1.8		-- outersize-innersize = circle width
 local outersize			= 1.98		-- outersize-innersize = circle width
-local centersize 		= 1.3
 local billboardsize 	= 0.5
 
 local maxValue			= 15		-- ignore spots above this metal value (probably metalmap)
@@ -54,7 +53,6 @@ local maxScale			= 4			-- ignore spots above this scale (probably metalmap)
 
 local extractorRadius = Game.extractorRadius * 1.2
 
-local spIsSphereInView = Spring.IsSphereInView
 local spGetUnitsInSphere = Spring.GetUnitsInSphere
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetGroundHeight = Spring.GetGroundHeight
@@ -175,19 +173,6 @@ local function makeSpotVBO()
 			end
 		end
 	end
-
-	-- Add the 32 tris for the inner circle of color:
-	-- TODO: FIX THIS
-	--[[
-	for i = 1, 32 do
-		local d1 = (i/32) * math.pi * 2.0
-		local d2 = ((i+1)/32) * math.pi * 2.0
-
-		arrayAppend(VBOData, {math.sin(d1)*centersize, math.cos(d1)*centersize, 1, 1})
-		arrayAppend(VBOData, {math.sin(d2)*centersize, math.cos(d2)*centersize, 1, 1})
-		arrayAppend(VBOData, {0, 0, 0, 1})
-	end
-	]]--
 
 	-- Add the 2 tris for the billboard:
 	do

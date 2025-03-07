@@ -78,7 +78,6 @@ local function GetSkillByPlayer(playerID)
 	local customtable = select(11, spGetPlayerInfo(playerID))
 	if type(customtable) == 'table' then
 		local tsMu = customtable.skill
-		local tsSigma = customtable.skilluncertainty
 		local ts = tsMu and tonumber(tsMu:match("%d+%.?%d*"))
 		if (ts == nil) then return 0 else return ts end
 	end

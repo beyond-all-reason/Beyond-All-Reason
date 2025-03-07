@@ -203,7 +203,6 @@ local buttonCommands = { -- key is button number, value is command like you woul
 
 --------------------------------------------------------------------------------
 local spGetCameraState	 = Spring.GetCameraState
-local spGetCameraVectors = Spring.GetCameraVectors
 local spSetCameraState	 = Spring.SetCameraState
 
 --------------------------------------------------------------------------------

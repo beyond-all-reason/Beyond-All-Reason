@@ -9,7 +9,6 @@ function AttackHST:internalName()
 end
 
 local floor = math.floor
-local ceil = math.ceil
 
 function AttackHST:Init()
 	self.DebugEnabled = false
@@ -150,7 +149,6 @@ function AttackHST:SquadCheck(squad)
 	squad.position.z = z / memberCount
 	squad.position.y = map:GetGroundHeight(squad.position.x,squad.position.x)
 	squad.mass = mass
-	local memberDist = math.huge
 	local leader = nil
 	local leaderPos = nil
 	squad.leaderPos = squad.leaderPos or {}
@@ -435,7 +433,6 @@ end
 function AttackHST:SquadsTargetAttack2(squad)
 	local bestValue = 0
 	local bestTarget = nil
-	local bestDist = math.huge
 	local worstDist = 0
 
 	for ref, blob in pairs(self.ai.targethst.IMMOBILE_BLOBS) do
@@ -494,7 +491,6 @@ function AttackHST:AddRecruit(attkbhvr)
 		if attkbhvr.unit ~= nil then
 			local mtype = self.ai.maphst:MobilityOfUnit(attkbhvr.unit:Internal())
 			if self.recruits[mtype] == nil then self.recruits[mtype] = {} end
-			local level = attkbhvr.level
 			table.insert(self.recruits[mtype], attkbhvr)
 			attkbhvr:SetMoveState()
 			attkbhvr:Free()
@@ -508,7 +504,6 @@ function AttackHST:RemoveRecruit(attkbhvr)
 	for mtype, recruits in pairs(self.recruits) do
 		for i,v in ipairs(recruits) do
 			if v == attkbhvr then
-				local level = attkbhvr.level
 				table.remove(self.recruits[mtype], i)
 				return true
 			end

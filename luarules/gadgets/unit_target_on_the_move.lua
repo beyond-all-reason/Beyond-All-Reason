@@ -657,7 +657,6 @@ else	-- UNSYNCED
 	local GL_LINES = GL.LINES
 
 	local spGetUnitPosition = Spring.GetUnitPosition
-	local spGetUnitLosState = Spring.GetUnitLosState
 	local spValidUnitID = Spring.ValidUnitID
 	local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
 	local spGetMyTeamID = Spring.GetMyTeamID

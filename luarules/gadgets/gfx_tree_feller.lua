@@ -85,7 +85,6 @@ if gadgetHandler:IsSyncedCode() then
 	local GetFeaturePosition = Spring.GetFeaturePosition
 	local GetFeatureHealth = Spring.GetFeatureHealth
 	local GetFeatureDirection = Spring.GetFeatureDirection
-  local GetGroundHeight = Spring.GetGroundHeight
 	local GetFeatureResources = Spring.GetFeatureResources
 	local SetFeatureDirection = Spring.SetFeatureDirection
 	local SetFeatureBlocking = Spring.SetFeatureBlocking

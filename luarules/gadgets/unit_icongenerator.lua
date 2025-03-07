@@ -1025,7 +1025,6 @@ else
 
 		--// take screenshot
 		gl.ActiveFBO(final_fbo, true, function()
-			local scale = cfg.scale
 
 			gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
 			gl.Color(1, 1, 1, 1)

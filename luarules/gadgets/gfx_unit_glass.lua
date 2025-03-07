@@ -99,9 +99,7 @@ local glGetSun = gl.GetSun
 
 local glDepthTest = gl.DepthTest
 local glCulling = gl.Culling
-local glBlending = gl.Blending
 
-local glPushPopMatrix = gl.PushPopMatrix
 local glPushMatrix = gl.PushMatrix
 local glPopMatrix = gl.PopMatrix
 local glUnitMultMatrix = gl.UnitMultMatrix
