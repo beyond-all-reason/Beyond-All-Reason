@@ -574,7 +574,7 @@ function addon.DrawLoadScreen()
 	if loadProgress == 0 then
 		loadProgress = lastProgress[1]
 	else
-		loadProgress = math.min(math.max(loadProgress, lastProgress[1]), lastProgress[2])
+		loadProgress = math.clamp(loadProgress, lastProgress[1], lastProgress[2])
 	end
 
 	vsx, vsy, vpx, vpy = Spring.GetViewGeometry()

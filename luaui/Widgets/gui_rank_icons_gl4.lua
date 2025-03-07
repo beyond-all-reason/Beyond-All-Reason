@@ -83,7 +83,7 @@ local GL_GREATER = GL.GREATER
 local unitIconMult = {}
 local isAirUnit = {}
 for udid, unitDef in pairs(UnitDefs) do
-	unitIconMult[udid] = math.min(1.4, math.max(1.25, (Spring.GetUnitDefDimensions(udid).radius / 40) + math.min(unitDef.power / 400, 2)))
+	unitIconMult[udid] = math.clamp((Spring.GetUnitDefDimensions(udid).radius / 40) + math.min(unitDef.power / 400, 2), 1.25, 1,4)
 	if unitDef.canFly then
 		isAirUnit[udid] = true
 	end
