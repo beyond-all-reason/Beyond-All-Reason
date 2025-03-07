@@ -1,6 +1,5 @@
 
 local base = piece("base")
-local GetUnitPosition 	= Spring.GetUnitPosition
 local unitDefID = Spring.GetUnitDefID(unitID)
 local triggerRange = tonumber(UnitDefs[unitDefID].customParams.detonaterange) or 64
 
