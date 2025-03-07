@@ -201,7 +201,7 @@ local yresolution = math.max(Spring.GetConfigInt("YResolution", 1080), Spring.Ge
 
 local baseDragThreshold = 16
 baseDragThreshold = math.round(baseDragThreshold * (xresolution + yresolution) * ( 1/3000) ) -- is 16 at 1080p
-baseDragThreshold = math.max(8, math.min(40, baseDragThreshold)) -- clamp between 8 and 40
+baseDragThreshold = math.clamp(baseDragThreshold, 8, 40)
 Spring.Echo(string.format("Setting Mouse Drag thresholds based on resolution (%dx%d) for Selection to %d, and Command to %d", xresolution,yresolution,baseDragThreshold, baseDragThreshold + 16))
 Spring.SetConfigInt("MouseDragSelectionThreshold", baseDragThreshold)
 Spring.SetConfigInt("MouseDragCircleCommandThreshold", baseDragThreshold + 16)

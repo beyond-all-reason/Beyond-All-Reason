@@ -1180,7 +1180,7 @@ local function drawUnitInfo()
 		-- display health value/bar
 		health, maxHealth, _, _, buildProgress = spGetUnitHealth(displayUnitID)
 		if health then
-			local color = bfcolormap[math_min(math_max(math_floor((health / maxHealth) * 100), 0), 100)]
+			local color = bfcolormap[math.clamp(math_floor((health / maxHealth) * 100), 0, 100)]
 			valueY3 = convertColor(color[1], color[2], color[3]) .. math_floor(health)
 		end
 
