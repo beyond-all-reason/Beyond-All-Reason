@@ -593,7 +593,7 @@ if SYNCED then
 
 else
 
-VFS.Include("luaui/Widgets/Include/instancevbotable.lua")
+VFS.Include("LuaUI/Widgets/Include/instancevbotable.lua")
 -- UNSYNCED CODE
 
 -- Localized GL functions for better performance
