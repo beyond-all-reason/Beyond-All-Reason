@@ -621,6 +621,7 @@ else
 	local mapSizeX = Game.mapSizeX
 	local mapSizeZ = Game.mapSizeZ
 	local GRID_SIZE = 1024 -- must be same as in synced code
+	local TOTAL_SQUARES = mapSizeX * mapSizeZ / GRID_SIZE^2
 
 	local gridData = {}
 	local allyTeamColors = {}
@@ -738,7 +739,7 @@ else
 			{id = 3, name = 'blinkData', size = 4} -- blinking state and other data
 		}
 		
-		squareInstanceVBO = makeInstanceVBOTable(squareInstanceVBOLayout, 1024, "conquestsquaresvbo")
+		squareInstanceVBO = makeInstanceVBOTable(squareInstanceVBOLayout, TOTAL_SQUARES, "conquestsquaresvbo")
 		squareInstanceVBO.numVertices = 6 -- 6 vertices for a square (using GL_TRIANGLE_STRIP)
 		squareInstanceVBO.vertexVBO = squareVBO
 		squareInstanceVBO.VAO = makeVAOandAttach(squareInstanceVBO.vertexVBO, squareInstanceVBO.instanceVBO)
@@ -761,6 +762,7 @@ else
 			vboKeyToGridID[vboKey] = gridID
 		end
 		
+		if not squareInstanceVBO then return end
 		pushElementInstance(squareInstanceVBO, {
 			data.gridX * GRID_SIZE, data.gridZ * GRID_SIZE, GRID_SIZE, GRID_SIZE, -- posSize
 			color.r, color.g, color.b, SQUARE_OPACITY, -- color
