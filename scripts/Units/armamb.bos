@@ -6,7 +6,7 @@
 
 piece  base, flare, turret, door1, door2, door3, door4, barrel, stand, aimpoint, turretmidpoint;
 
-static-var  turretOpen, restoreDelay, stunned, lastHeading, cardinalHeading, degreeConversion;
+static-var  turretOpen, restoreDelay, stunned, lastHeading;
 
 #define SIGNAL_AIM			1
 
@@ -36,32 +36,27 @@ openTurret()
 
 closeTurret()
 {
-    degreeConversion = (lastHeading * 360) / 65536;
-    if (degreeConversion < 0)
+    if (lastHeading > <-180.000000>)
     {
-         degreeConversion = degreeConversion + 360;
+        turn stand to y-axis <180.000000> speed <30.000000>;
+    }
+    if (lastHeading > <-135.000000>)
+    {
+        turn stand to y-axis <270.000000> speed <30.000000>;
+    }
+    if (lastHeading > <-45.000000>)
+    {
+        turn stand to y-axis <0.000000> speed <30.000000>;
+    }
+    if (lastHeading > <45.000000>)
+    {
+        turn stand to y-axis <90.000000> speed <30.000000>;
+    }
+    if (lastHeading > <135.000000>)
+    {
+        turn stand to y-axis <180.000000> speed <30.000000>;
     }
     
-    if ((degreeConversion >= 315.0) or (degreeConversion < 45.0))
-    {
-         cardinalHeading = 0.0;
-    }
-    else if ((degreeConversion >= 45.0) and (degreeConversion < 135.0))
-    {
-         cardinalHeading = 90.0; 
-    }
-    else if ((degreeConversion >= 135.0) and (degreeConversion < 225.0))
-    {
-         cardinalHeading = 180.0; 
-    }
-    else
-    {
-         cardinalHeading = 270.0; 
-    }
-	
-	cardinalHeading = (cardinalHeading * 65536) / 360;
-    
-    turn stand to y-axis cardinalHeading speed <100>;
     turn turret to x-axis <0> speed <50>;
     move barrel to z-axis [-16] speed [51];
     sleep 300;
