@@ -85,6 +85,7 @@ closeTurret()
     return (0);
 }
 
+
 Go()
 {
 	if(!turretOpen)
@@ -114,7 +115,6 @@ ExecuteRestoreAfterDelay()
 	//set-signal-mask 0;
 	turn turret to y-axis <0.000000> speed <100.016484>;
 	turn turret to x-axis <0.000000> speed <50.005495>;
-	
 	wait-for-turn turret around y-axis;
 	wait-for-turn turret around x-axis;
 

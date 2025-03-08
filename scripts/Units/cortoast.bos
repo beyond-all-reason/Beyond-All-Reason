@@ -7,7 +7,7 @@
 
 piece  base, flare, turret, door1, door2, barrel, bore, aimpoint, turretmidpoint;
 
-static-var  turretOpen, restoreDelay, stunned;
+static-var turretOpen, restoreDelay, stunned, lastHeading, cardinalHeading, degreeConversion;
 #define SIGNAL_AIM			1
 
 openTurret()
