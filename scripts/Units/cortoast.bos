@@ -20,6 +20,7 @@ openTurret()
 	move door1 to y-axis [0] speed [17];
 	move door2 to y-axis [0] speed [17];
 	move turret to y-axis [0] speed [17];
+	turn turret to y-axis cardinalHeading speed <100>;
 	sleep 700;
 
 	move bore to z-axis [0] speed [12];
@@ -67,7 +68,6 @@ closeTurret()
 	turn door2 to z-axis <90> speed <300>;
 	wait-for-turn door1 around z-axis;
 	sleep 100;
-	turn turret to y-axis cardinalHeading speed <100>;
 
 	sleep 10;
 	return (0);;
