@@ -592,7 +592,6 @@ if SYNCED then
 --zzz need to prevent defeat in the case that all remaining teams are tied, or there is only one team left
 
 else
-	include("keysym.h.lua")
 --zzz need to remove all button config stuff so things don't break
 	
 	local colorConfig = { --An array of R, G, B, Alpha
@@ -674,12 +673,12 @@ else
 	local luaShaderDir = "LuaUI/Widgets/Include/"
 	local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 	VFS.Include(luaShaderDir.."instancevbotable.lua")
-	local testRangeShader = nil
+	local defenseRangeShader = nil
 	
 	
 	local function goodbye(reason)
-	  Spring.Echo("DefenseRange GL4 widget exiting with reason: "..reason)
-	  widgetHandler:RemoveWidget()
+	  Spring.Echo("DefenseRange GL4 gadget exiting with reason: "..reason)
+	  gadgetHandler:RemoveGadget()
 	end
 	
 	local function makeCircleVBO(circleSegments)
@@ -978,18 +977,40 @@ else
 		return makeShaders()
 	end
 	
-	function widget:Initialize()
+	function gadget:Initialize()
 		if initGL4() == false then
 			return
 		end
+		-- -------------------------------------------------------------------------------------------------- zzz test example code
+		-- -- Add a test circle in the middle of the map
+		-- local mapCenterX = Game.mapSizeX / 2
+		-- local mapCenterZ = Game.mapSizeZ / 2
+		-- local groundHeight = Spring.GetGroundHeight(mapCenterX, mapCenterZ)
+		-- local testCircleRadius = 512  -- Size of the circle
+		
+		-- -- Create a test instance for the circle
+		-- local testInstanceID = "testCircle"
+		-- local testVAO = defenseRangeVAOs['testLargeCircle']
+		
+		-- -- Add the instance data
+		-- local instanceData = {
+		-- 	posscale = {mapCenterX, groundHeight, mapCenterZ, testCircleRadius}, -- position (x,y,z) and radius
+		-- 	color1 = {1.0, 0.5, 0.0, 0.8}, -- orange color with 0.8 alpha
+		-- 	visibility = {2000, 5000, 1.0, 0.0}, -- visibility parameters
+		-- 	projectileParams = {0.0, 0.0, 0.0, 0.0} -- no special projectile params
+		-- }
+		
+		-- pushElementInstance(testVAO, testInstanceID, instanceData)
+		-- uploadAllElements(testVAO)
+		-------------------------------------------------------------------------------------------------- zzzz test example code
 	end
 
 	local function UnitDetected(unitID, unitDefID, unitTeam, noUpload)
--- zzz this appears to be where the coordinates for where to draw the rings was made, check original widget for reference
+-- zzz this appears to be where the coordinates for where to draw the rings was made, check original gadget for reference
 	end
 	
 	
-	function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
+	function gadget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 		-- the set of visible units changed. Now is a good time to reevalueate our life choices
 		-- This happens when we move from team to team, or when we move from spec to other
 		-- zzz this seems to be how to update changed instances?
@@ -1014,13 +1035,13 @@ else
 		end
 	end
 	
-	function widget:GameFrame(gf)
+	function gadget:GameFrame(gf)
 	end
 	
-	function widget:Update(dt)
+	function gadget:Update(dt)
 	end
 	
-	function widget:RecvLuaMsg(msg, playerID)
+	function gadget:RecvLuaMsg(msg, playerID)
 		if msg:sub(1,18) == 'LobbyOverlayActive' then
 			chobbyInterfaceActive = (msg:sub(1,19) == 'LobbyOverlayActive1')
 		end
@@ -1078,12 +1099,12 @@ else
 		end
 	end
 	
-	function widget:DrawWorldPreUnit()
+	function gadget:DrawWorldPreUnit()
 		--if fullview and not enabledAsSpec then
 		--	return
 		--end
 		if chobbyInterface then return end
-		if not Spring.IsGUIHidden() and (not WG['topbar'] or not WG['topbar'].showingQuit()) then
+		if not Spring.IsGUIHidden() then
 			cameraHeightFactor = GetCameraHeightFactor() * 0.5 + 0.5
 			glTexture(0, "$heightmap")
 			glTexture(1, "$info")
