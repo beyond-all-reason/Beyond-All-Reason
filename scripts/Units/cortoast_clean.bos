@@ -32,23 +32,23 @@ openTurret()
 
 closeTurret()
 { 
-	if (lastHeading > <-180.000000>)
+    if (lastHeading <= <-135.000000>)
     {
         cardinalHeading = <180.000000>;
     }
-    if (lastHeading > <-135.000000>)
+    else if (lastHeading <= <-45.000000>)
     {
         cardinalHeading = <270.000000>;
     }
-    if (lastHeading > <-45.000000>)
+    else if (lastHeading <= <45.000000>)
     {
         cardinalHeading = <0.000000>;
     }
-    if (lastHeading > <45.000000>)
+    else if (lastHeading <= <135.000000>)
     {
         cardinalHeading = <90.000000>;
     }
-    if (lastHeading > <135.000000>)
+    else
     {
         cardinalHeading = <180.000000>;
     }
