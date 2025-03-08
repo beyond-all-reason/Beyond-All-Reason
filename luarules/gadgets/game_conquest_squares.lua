@@ -1038,7 +1038,8 @@ else
 		--return camheight * camheight * (3 - 2 *camheight)
 		return 1
 	end
-	
+
+	local allyenemypairs = {"ally","enemy"}
 	local groundnukeair = {"ground","air","nuke"}
 	local function DRAWRINGS(primitiveType, linethickness)
 		local stencilMask
@@ -1049,7 +1050,7 @@ else
 				local iT = defenseRangeVAOs[defRangeClass]
 				stencilMask = 2 ^ ( 4 * (i-1) + (j-1)) -- from 1 to 128
 				drawcounts[stencilMask] = iT.usedElements
-				if iT.usedElements > 0 and buttonConfig[allyState][wt] then
+				if iT.usedElements > 0 then
 					if linethickness then
 						glLineWidth(colorConfig[wt][linethickness] * cameraHeightFactor)
 					end
@@ -1066,7 +1067,7 @@ else
 			local iT = defenseRangeVAOs[defRangeClass]
 			stencilMask = 2 ^ ( 4 * (i-1) + 3)
 			drawcounts[stencilMask] = iT.usedElements
-			if iT.usedElements > 0 and buttonConfig[allyState]["ground"] then
+			if iT.usedElements > 0 then
 				if linethickness then
 					glLineWidth(colorConfig['cannon'][linethickness] * cameraHeightFactor)
 				end
@@ -1127,6 +1128,9 @@ else
 			end
 		end
 	end
+
+	local gridData = {}
+	local allyScores = {}
 		-- Receive grid data from synced
 	function gadget:RecvFromSynced(cmd, ...)
 		local args = {...}
@@ -1148,7 +1152,7 @@ else
 			}
 			
 			-- Update VBO data
-			updateSquareVBO(gridID, allyOwnerID, blinking)
+			--updateSquareVBO(gridID, allyOwnerID, blinking)
 			
 		elseif cmd == "UpdateGridSquare" then
 			-- Update a grid square's ownership and blinking state
@@ -1162,7 +1166,7 @@ else
 				gridData[gridID].blinking = blinking
 				
 				-- Update VBO data
-				updateSquareVBO(gridID, allyOwnerID, blinking)
+				--updateSquareVBO(gridID, allyOwnerID, blinking)
 			end
 			
 		elseif cmd == "UpdateAllyScore" then
