@@ -335,7 +335,7 @@ function widget:ViewResize()
 		minColls = math_max(8, math_floor((width/vsx)*25))
 		maxColls = 30
 	else
-		posY = math_min(maxPosY, math_max(0.4615, (vsy - minimapHeight) / vsy) - (widgetSpaceMargin/vsy))
+		posY = math.clamp(((vsy - minimapHeight) / vsy) - (widgetSpaceMargin/vsy), 0.4615, maxPosY)
 		posY2 = math_floor(0.14 * ui_scale * vsy) / vsy
 		posY2 = posY2 + (widgetSpaceMargin/vsy)
 		posX = 0

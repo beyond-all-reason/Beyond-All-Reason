@@ -36,6 +36,7 @@ local math_floor = math.floor
 local math_ceil = math.ceil
 local math_max = math.max
 local math_min = math.min
+local math_clamp = math.clamp
 local math_bit_and = math.bit_and
 
 local GL_SRC_ALPHA = GL.SRC_ALPHA
@@ -1693,8 +1694,8 @@ local function drawButton(rect)
 
 	local color = highlight and 0.2 or 0
 
-	local color1 = { color, color, color, math_max(0.55, math_min(0.95, ui_opacity * 1.25)) } -- bottom
-	local color2 = { color, color, color, math_max(0.55, math_min(0.95, ui_opacity * 1.25)) } -- top
+	local color1 = { color, color, color, math_clamp(ui_opacity * 1.25, 0.55, 0.95) } -- bottom
+	local color2 = { color, color, color, math_clamp(ui_opacity * 1.25, 0.55, 0.95) } -- top
 
 	if highlight then
 		gl.Blending(GL_SRC_ALPHA, GL_ONE)

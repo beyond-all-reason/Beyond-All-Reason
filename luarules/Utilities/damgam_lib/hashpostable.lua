@@ -1,7 +1,7 @@
 -- Author: Beherith (mysterme@gmail.com)
 
--- A quick rundown on what this algorithm does  
--- It takes the map and splits it up into resolution sized squares 
+-- A quick rundown on what this algorithm does
+-- It takes the map and splits it up into resolution sized squares
 -- Then for each square, it will lazily initialize a list of all other map squares
 -- and sorts those in order of distance from the current square
 -- To get then Nth closest other square from the current position, simply call:
@@ -14,7 +14,7 @@ local function MakeHashedPosTable(resolution)
 	resolution = resolution or 512
 	local mx = Game and Game.mapSizeX or 8192
 	local mz = Game and Game.mapSizeZ or 8192
-	
+
 	local HashPos = {
 		resolution = resolution,
 		mx = mx,
@@ -24,19 +24,19 @@ local function MakeHashedPosTable(resolution)
 	function HashPos:hashPos(px,pz)
 		return math.floor(pz/self.resolution) * 1000 + math.floor(px/self.resolution)
 	end
-	
+
 	-- return x,y
 	function HashPos:unhash(h)
-		local z = math.floor(h/1000)		
+		local z = math.floor(h/1000)
 		return h - 1000*z, z
 	end
 	function HashPos:hashtopos(h)
-		local z = math.floor(h/1000)	
+		local z = math.floor(h/1000)
 		local cx = (h - 1000*z) * self.resolution + self.resolution/2
 		local cz = z*self.resolution + self.resolution/2
 		return cx,cz
 	end
-	
+
 	function HashPos:distancesqr(hp1, hp2)
 		local x1, z1 = self:unhash(hp1)
 		local x2, z2 = self:unhash(hp2)
@@ -45,9 +45,9 @@ local function MakeHashedPosTable(resolution)
 		return x1*x1 + z1*z1
 	end
 	local hashIDs = {}
-	
-	for x=1, mx, resolution do 
-		for z = 1, mz, resolution do 
+
+	for x=1, mx, resolution do
+		for z = 1, mz, resolution do
 			local hp = HashPos:hashPos(x,z)
 			hashIDs[#hashIDs+1] = hp
 		end
@@ -60,7 +60,7 @@ local function MakeHashedPosTable(resolution)
 
 	function HashPos:SortNewRegion(hp)
 		local thispos = {}
-		for j,hp2 in ipairs(hashIDs) do 
+		for j,hp2 in ipairs(hashIDs) do
 			thispos[j] = hp2
 		end
 		local function comparetome(a,b)
@@ -69,19 +69,19 @@ local function MakeHashedPosTable(resolution)
 		table.sort(thispos, comparetome)
 		self.sortedPositions[hp] = thispos
 	end
-	
+
 	function HashPos:GetNthCenter(px,pz, n)
 		local hp = self:hashPos(px,pz)
 		local sorted = self.sortedPositions[hp]
-		if sorted == nil then 
+		if sorted == nil then
 			self:SortNewRegion(hp)
 			sorted = self.sortedPositions[hp]
 		end
-		n = math.min(#sorted, math.max(1,n))
+		n = math.clamp(n, 1, #sorted)
 		local hpn = sorted[n]
 		return self:hashtopos(hpn)
 	end
-	
+
 	return HashPos
 end
 

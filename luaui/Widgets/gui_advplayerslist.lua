@@ -986,7 +986,7 @@ function GetSkill(playerID)
             -- show sigma
             local tsRed, tsGreen, tsBlue = 195, 195, 195
             if osSigma then
-                local color = math.max(0.5, math.min(1,(1-((tonumber(osSigma-2) * 0.4)-1))))
+                local color = math.clamp(1-((tonumber(osSigma-2) * 0.4)-1), 0.5, 1)
                 color = math.max(0.7, color * color)
                 local color2 = math.max(0.35, color * color)
                 tsRed, tsGreen, tsBlue = math.floor(222 * color), math.floor(222 * color2), math.floor(222 * color2)
@@ -1205,8 +1205,8 @@ function UpdatePlayerResources()
         end
     end
 
-    updateRateMult = math.min(2, math.max(1, displayedPlayers*0.05))
-    updateFastRateMult = math.min(3.3, math.max(1, displayedPlayers*0.07))
+    updateRateMult = math.clamp(displayedPlayers*0.05, 1, 2)
+    updateFastRateMult = math.clamp(displayedPlayers*0.07, 1, 3.3)
 end
 
 function GetDark(red, green, blue)
@@ -1440,7 +1440,7 @@ function SortSpecs(vOffset)
             numSpecs = numSpecs + 1
         end
     end
-    specScale = math.max(0.45, math.min(1, 45 / numSpecs))
+    specScale = math.clamp(45 / numSpecs, 0.45, 1)
 
     -- Adds specs to the draw list
     local noSpec = true
@@ -1926,13 +1926,13 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
 
     -- keyboard/mouse activity
     if lastActivity[playerID] ~= nil and type(lastActivity[playerID]) == "number" then
-        alphaActivity = math.max(0, math.min(1, (8 - math.floor(now - lastActivity[playerID])) / 5.5))
+        alphaActivity = math.clamp((8 - math.floor(now - lastActivity[playerID])) / 5.5, 0, 1)
         alphaActivity = 0.33 + (alphaActivity * 0.21)
         alpha = alphaActivity
     end
     -- camera activity
     if recentBroadcasters[playerID] ~= nil and type(recentBroadcasters[playerID]) == "number" then
-        local alphaCam =  math.max(0, math.min(1, (13 - math.floor(recentBroadcasters[playerID])) / 8.5))
+        local alphaCam =  math.clamp((13 - math.floor(recentBroadcasters[playerID])) / 8.5, 0, 1)
         alpha = 0.33 + (alphaCam * 0.42)
         if alpha < alphaActivity then
             alpha = alphaActivity
