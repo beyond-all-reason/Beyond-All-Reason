@@ -43,13 +43,6 @@ local weapons = {
 
 local SIG_AIM = 2
 local SIG_WALK = 4
-local PlaySoundFile 	= Spring.PlaySoundFile
-local GetUnitPosition 	= Spring.GetUnitPosition
-local GetGameFrame 		= Spring.GetGameFrame
-local HealRefreshTime	= 15
-local CEGHeal = "heal"
-local CEGLevelUp = "commander-levelup"
-local ValidID = Spring.ValidUnitID
 
 local function BelowWater(piecename)
 	local _,y,_ = Spring.GetUnitPiecePosition(unitID, piecename)

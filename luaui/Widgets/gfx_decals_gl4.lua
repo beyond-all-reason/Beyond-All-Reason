@@ -115,7 +115,6 @@ for k,v in pairs(atlas) do
 	end
 end
 
-local getUVCoords = atlas.getUVCoords
 atlas.flip(atlas)
 
 
@@ -222,17 +221,13 @@ local hasBadCulling = false -- AMD+Linux combo
 --------------------------- Localization for faster access -------------------
 
 local spGetGroundHeight = Spring.GetGroundHeight
-local sqrt = math.sqrt
-local diag = math.diag
 local abs = math.abs
 
 local glTexture = gl.Texture
 local glCulling = gl.Culling
 local glDepthTest = gl.DepthTest
-local GL_BACK = GL.BACK
 local GL_LEQUAL = GL.LEQUAL
 
-local spValidUnitID = Spring.ValidUnitID
 
 local spec, fullview = Spring.GetSpectatingState()
 
