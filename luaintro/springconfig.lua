@@ -214,6 +214,6 @@ Spring.SetConfigInt("UpdateBoundingVolumeMT", 1)
 Spring.SetConfigInt("UpdateWeaponVectorsMT", 1)
 
 -- Breaking/limiting the curse of RA 𓀀 𓀁 𓀂 𓀃 𓀄 𓀅 𓀆 𓀇 𓀈 𓀉 𓀊 𓀋 𓀌 𓀍 𓀎 𓀏 𓀐 𓀑 𓀒 𓀓 𓀔 𓀕 𓀖
-Spring.SetConfigInt("MaxFontTries", 1)
---Spring.SetConfigInt("UseFontConfigLib", 0)
+Spring.SetConfigInt("MaxFontTries", 2)
+--Spring.SetConfigInt("UseFontConfigLib", 1)
 
