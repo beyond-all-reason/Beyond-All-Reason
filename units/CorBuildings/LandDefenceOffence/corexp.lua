@@ -4,7 +4,7 @@ return {
 		buildangle = 32768,
 		buildingmask = 0,
 		buildpic = "COREXP.DDS",
-		buildtime = 2720,
+		buildtime = 2900,
 		canattack = true,
 		canrepeat = false,
 		collisionvolumeoffsets = "0 -10 0",
@@ -143,14 +143,14 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 2250,
+				customparams = {
+					exclude_preaim = true,
+				},
 				damage = {
 					commanders = 112.5,
 					default = 75,
 					vtol = 5,
 				},
-				customparams = {
-					exclude_preaim = true
-				}
 			},
 		},
 		weapons = {
