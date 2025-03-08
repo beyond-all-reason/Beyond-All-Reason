@@ -32,7 +32,7 @@ openTurret()
 
 closeTurret()
 { 
-	    if (lastHeading > <-180.000000>)
+	if (lastHeading > <-180.000000>)
     {
         cardinalHeading = <180.000000>;
     }
