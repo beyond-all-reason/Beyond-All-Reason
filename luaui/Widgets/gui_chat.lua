@@ -79,6 +79,7 @@ local lastLineUnitShare
 local myName = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
 local isSpec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
+local myAllyTeamID = Spring.GetMyAllyTeamID()
 
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local fontfile3 = "fonts/monospaced/" .. Spring.GetConfigString("bar_font3", "SourceCodePro-Medium.otf")
@@ -137,7 +138,7 @@ local inputMode = ''
 if isSpec then
 	inputMode = 's:'
 else
-	if #Spring.GetTeamList(Spring.GetMyAllyTeamID()) > 1 then
+	if #Spring.GetTeamList(myAllyTeamID) > 1 then
 		inputMode = 'a:'
 	end
 end
@@ -166,7 +167,7 @@ local slen = string.len
 local ssub = string.sub
 local sfind = string.find
 local spGetTeamColor = Spring.GetTeamColor
-local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
+local spGetPlayerInfo = Spring.GetPlayerInfo
 local spPlaySoundFile = Spring.PlaySoundFile
 local spGetGameFrame = Spring.GetGameFrame
 local spGetTeamInfo = Spring.GetTeamInfo
@@ -414,13 +415,14 @@ local autocompleteCommands = {
 	'hidespecchat',
 	'speclist',
 }
+
 local autocompleteText
 local autocompletePlayernames = {}
 local playersList = Spring.GetPlayerList()
 local playernames = {}
 for _, playerID in ipairs(playersList) do
-	local name, _, isSpec, teamID, allyTeamID = Spring.GetPlayerInfo(playerID, false)
-	playernames[name] = { allyTeamID, isSpec, teamID, playerID }
+	local name, _, isSpec, teamID, allyTeamID = spGetPlayerInfo(playerID, false)
+	playernames[name] = { allyTeamID, isSpec, teamID, playerID, not isSpec and { spGetTeamColor(teamID) } }
 	autocompletePlayernames[#autocompletePlayernames+1] = name
 end
 
@@ -489,7 +491,7 @@ for i = 1, #teams do
 	local aiName
 	if isAiTeam then
 		aiName = getAIName(teamID)
-		playernames[aiName] = { allyTeamID, false, teamID, playerID }
+		playernames[aiName] = { allyTeamID, false, teamID, playerID, { r, g, b } }
 	end
 	if teamID == gaiaTeamID then
 		teamNames[teamID] = "Gaia"
@@ -497,7 +499,7 @@ for i = 1, #teams do
 		if isAiTeam then
 			teamNames[teamID] = aiName
 		else
-			local name, _, spec, _ = Spring.GetPlayerInfo(playerID)
+			local name, _, spec, _ = spGetPlayerInfo(playerID)
 			if not spec then
 				teamNames[teamID] = name
 			end
@@ -563,17 +565,13 @@ local function addConsoleLine(gameFrame, lineType, text, orgLineID, consoleLineI
 	end
 end
 
-local function colourNames(teamID)
-	local nameColourR, nameColourG, nameColourB = Spring.GetTeamColor(teamID)
-	if (not isSpec) and anonymousMode ~= "disabled" then
-		nameColourR, nameColourG, nameColourB = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
-	end
-	return ColorString(nameColourR, nameColourG, nameColourB)
-end
-
-local function teamcolorPlayername(playername)
+local function teamcolorPlayername(playername, gameFrame)
 	if playernames[playername] then
-		return colourNames(playernames[playername][3])..playername
+		if playernames[playername][5] and (not playernames[playername][6] or playernames[playername][6] < gameFrame) then
+			return ColorString(playernames[playername][5][1], playernames[playername][5][2], playernames[playername][5][3])..playername
+		else
+			return ColorString(colorSpec[1], colorSpec[2], colorSpec[3])..playername
+		end
 	end
 	return ColorString(0.7, 0.7, 0.7)..playername
 end
@@ -609,7 +607,7 @@ local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID,
 					local pair = string.split(v, '=')
 					if pair[2] then
 						if playernames[pair[2]] then
-							t[ pair[1] ] = teamcolorPlayername(pair[2])..msgColor
+							t[ pair[1] ] = teamcolorPlayername(pair[2], gameFrame)..msgColor
 						elseif params[1]:lower():find('energy', nil, true) then
 							t[ pair[1] ] = energyValueColor..pair[2]..msgColor
 						elseif params[1]:lower():find('metal', nil, true) then
@@ -737,10 +735,6 @@ local function clearDisplayLists()
 	end
 end
 
-local function convertColor(r,g,b)
-	return schar(255, (r*255), (g*255), (b*255))
-end
-
 local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 	local orgLine = line
 	local name = ''
@@ -759,7 +753,7 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 
 		if sfind(text,'Allies: ', nil, true) == 1 then
 			text = ssub(text,9)
-			if playernames[name][1] == spGetMyAllyTeamID() then
+			if playernames[name][1] == myAllyTeamID then
 				c = colorAlly
 			else
 				c = colorOtherAlly
@@ -777,11 +771,11 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		end
 
 		if not isSpec and anonymousMode ~= "disabled" then
-			nameText = convertColor(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3])..name
+			nameText = ColorString(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3])..name
 		else
-			nameText = convertColor(spGetTeamColor(playernames[name][3]))..name
+			nameText = ColorString(spGetTeamColor(playernames[name][3]))..name
 		end
-		line = convertColor(c[1],c[2],c[3])..text
+		line = ColorString(c[1],c[2],c[3])..text
 
 		-- spectator message
 	elseif playernames[ssub(line,2,(sfind(line,"] ", nil, true) or 1)-1)] ~= nil  or  playernames[ssub(line,2,(sfind(line," (replay)] ", nil, true) or 1)-1)] ~= nil then
@@ -814,8 +808,8 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 			text = ssub(text,2)
 		end
 
-		nameText = convertColor(colorSpec[1],colorSpec[2],colorSpec[3])..'(s) '..name
-		line = convertColor(c[1],c[2],c[3])..text
+		nameText = ColorString(colorSpec[1],colorSpec[2],colorSpec[3])..'(s) '..name
+		line = ColorString(c[1],c[2],c[3])..text
 
 		-- point
 	elseif playernames[ssub(line,1,(sfind(line," added point: ", nil, true) or 1)-1)] ~= nil then
@@ -832,8 +826,8 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 			spectator = playernames[name][2]
 		end
 		if spectator then
-			namecolor = convertColor(colorSpec[1],colorSpec[2],colorSpec[3])
-			textcolor = convertColor(colorSpec[1],colorSpec[2],colorSpec[3])
+			namecolor = ColorString(colorSpec[1],colorSpec[2],colorSpec[3])
+			textcolor = ColorString(colorSpec[1],colorSpec[2],colorSpec[3])
 
 			-- filter specs
 			if hideSpecChat then
@@ -841,15 +835,15 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 			end
 		else
 			if not isSpec and anonymousMode ~= "disabled" then
-				namecolor = convertColor(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3])
+				namecolor = ColorString(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3])
 			else
-				namecolor =  convertColor(spGetTeamColor(playernames[name][3]))
+				namecolor =  ColorString(spGetTeamColor(playernames[name][3]))
 			end
 
-			if playernames[name][1] == spGetMyAllyTeamID() then
-				textcolor = convertColor(colorAlly[1],colorAlly[2],colorAlly[3])
+			if playernames[name][1] == myAllyTeamID then
+				textcolor = ColorString(colorAlly[1],colorAlly[2],colorAlly[3])
 			else
-				textcolor = convertColor(colorOtherAlly[1],colorOtherAlly[2],colorOtherAlly[3])
+				textcolor = ColorString(colorOtherAlly[1],colorOtherAlly[2],colorOtherAlly[3])
 			end
 		end
 
@@ -885,8 +879,8 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 			text = ssub(text,2)
 		end
 
-		nameText = convertColor(colorGame[1],colorGame[2],colorGame[3])..'<'..name..'>'
-		line = convertColor(colorGame[1],colorGame[2],colorGame[3])..text
+		nameText = ColorString(colorGame[1],colorGame[2],colorGame[3])..'<'..name..'>'
+		line = ColorString(colorGame[1],colorGame[2],colorGame[3])..text
 
 		-- units given
 	elseif playernames[ssub(line,1,(sfind(line," shared units to ", nil, true) or 1)-1)] ~= nil then
@@ -900,11 +894,11 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		if newTeamName and shareDesc then
 			text = msgColor .. Spring.I18N('ui.unitShare.shared', {
 				units = msgHighlightColor .. shareDesc .. msgColor,
-				name = teamcolorPlayername(newTeamName)
+				name = teamcolorPlayername(newTeamName, gameFrame)
 			})
 		end
 
-		nameText = teamcolorPlayername(oldTeamName)
+		nameText = teamcolorPlayername(oldTeamName, gameFrame)
 		line = text
 
 		-- console chat
@@ -973,12 +967,12 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 			if playernames[playername] then
 				if not playernames[playername][2] then
 					if not isSpec and anonymousMode ~= "disabled" then
-						line = line..convertColor(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3])..playername
+						line = line..ColorString(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3])..playername
 					else
-						line = line..convertColor(spGetTeamColor(playernames[playername][3]))..playername
+						line = line..ColorString(spGetTeamColor(playernames[playername][3]))..playername
 					end
 				else
-					line = line..convertColor(colorConsole[1],colorConsole[2],colorConsole[3])..playername
+					line = line..ColorString(colorConsole[1],colorConsole[2],colorConsole[3])..playername
 				end
 			else
 				line = line..playername
@@ -1001,12 +995,12 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 			if playernames[playername] then
 				if not playernames[playername][2] then
 					if not isSpec and anonymousMode ~= "disabled" then
-						line = line..convertColor(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3])..playername
+						line = line..ColorString(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3])..playername
 					else
-						line = line..convertColor(spGetTeamColor(playernames[playername][3]))..playername
+						line = line..ColorString(spGetTeamColor(playernames[playername][3]))..playername
 					end
 				else
-					line = line..'(spectator) '..convertColor(colorConsole[1],colorConsole[2],colorConsole[3])..playername
+					line = line..'(spectator) '..ColorString(colorConsole[1],colorConsole[2],colorConsole[3])..playername
 				end
 			else
 				line = line..playername
@@ -1015,7 +1009,7 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		if color ~= '' then
 			line = color..line
 		else
-			line = convertColor(colorConsole[1],colorConsole[2],colorConsole[3])..line
+			line = ColorString(colorConsole[1],colorConsole[2],colorConsole[3])..line
 		end
 	end
 
@@ -1076,7 +1070,6 @@ end
 function widget:UnitTaken(unitID, _, oldTeamID, newTeamID)
 	local oldAllyTeamID = select(6, spGetTeamInfo(oldTeamID))
 	local newAllyTeamID = select(6, spGetTeamInfo(newTeamID))
-	local myAllyTeamID = Spring.GetMyAllyTeamID()
 
 	local allyTeamShare = (oldAllyTeamID == myAllyTeamID and newAllyTeamID == myAllyTeamID)
 	local selfShare = (oldTeamID == newTeamID) -- may happen if took other player
@@ -1217,7 +1210,7 @@ function widget:Update(dt)
 				teamColorKeys[teams[i]] = r..'_'..g..'_'..b
 				changeDetected = true
 				for _, playerID in ipairs(Spring.GetPlayerList(teams[i])) do
-					local name = Spring.GetPlayerInfo(playerID, false)
+					local name = spGetPlayerInfo(playerID, false)
 					changedPlayers[name] = true
 				end
 			end
@@ -2185,7 +2178,7 @@ function widget:ViewResize()
 	local namePrefix = '(s)'
 	maxPlayernameWidth = font:GetTextWidth(namePrefix..longestPlayername) * usedFontSize
 	for _, playerID in ipairs(playersList) do
-		local name = Spring.GetPlayerInfo(playerID, false)
+		local name = spGetPlayerInfo(playerID, false)
 		if name ~= longestPlayername and font:GetTextWidth(namePrefix..name)*usedFontSize > maxPlayernameWidth then
 			longestPlayername = name
 			maxPlayernameWidth = font:GetTextWidth(namePrefix..longestPlayername) * usedFontSize
@@ -2229,14 +2222,26 @@ end
 function widget:PlayerChanged(playerID)
 	isSpec = Spring.GetSpectatingState()
 	myTeamID = Spring.GetMyTeamID()
+	myAllyTeamID = Spring.GetMyAllyTeamID()
 	if isSpec and inputMode == 'a:' then
 		inputMode = 's:'
+	end
+	local name, _, isSpec = spGetPlayerInfo(playerID, false)
+	if not playernames[name] then
+		widget:PlayerAdded(playerID)
+	else
+		if isSpec ~= playernames[name].isSpec then
+			playernames[name][2] = isSpec
+			if isSpec then
+				playernames[name][6] = Spring.GetGameFrame()	-- log frame of death
+			end
+		end
 	end
 end
 
 function widget:PlayerAdded(playerID)
-	local name, _, isSpec, teamID, allyTeamID = Spring.GetPlayerInfo(playerID, false)
-	playernames[name] = { allyTeamID, isSpec, teamID, playerID }
+	local name, _, isSpec, teamID, allyTeamID = spGetPlayerInfo(playerID, false)
+	playernames[name] = { allyTeamID, isSpec, teamID, playerID, not isSpec and { spGetTeamColor(teamID) } }
 	autocompletePlayernames[#autocompletePlayernames+1] = name
 end
 
@@ -2248,7 +2253,7 @@ function widget:Initialize()
 	end
 
 	widget:ViewResize()
-	widget:PlayerChanged()
+	widget:PlayerChanged(Spring.GetMyPlayerID())
 
 	Spring.SendCommands("console 0")
 
@@ -2373,6 +2378,7 @@ function widget:GetConfigData(data)
 		showHistoryWhenCtrlShift = showHistoryWhenCtrlShift,
 		enableShortcutClick = enableShortcutClick,
 		soundErrors = soundErrors,
+		playernames = playernames,
 		version = 1,
 	}
 end
@@ -2380,6 +2386,9 @@ end
 function widget:SetConfigData(data)
 	if data.orgLines ~= nil then
 		if Spring.GetGameFrame() > 0 or (data.gameID and data.gameID == (Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID"))) then
+			if data.playernames then
+				playernames = data.playernames
+			end
 			orgLines = data.orgLines
 			if data.soundErrors then
 				soundErrors = data.soundErrors
