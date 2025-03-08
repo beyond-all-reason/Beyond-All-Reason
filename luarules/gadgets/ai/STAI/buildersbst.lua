@@ -224,12 +224,15 @@ function BuildersBST:findPlace(utype, value,cat,loc)
 			end
 		end
 		if not POS and loc.list then
-
+			self:EchoDebug('loc.max',loc.max)
 			POS = site:searchPosInList(utype, builder, loc.min,loc.max,loc.list,loc.neighbours)
 			self:EchoDebug('POS2',POS)
 		end
 		if not POS and loc.himself then
--- 			POS = site:ClosestBuildSpot(builder, builderPos, utype)
+			POS = site:FindClosestBuildSite(utype, builderPos.x,builderPos.y,builderPos.z, loc.min, loc.max,builder)
+			self:EchoDebug('POS3',POS)
+		end
+		if not POS and loc.friendlyGrid then
 			POS = site:FindClosestBuildSite(utype, builderPos.x,builderPos.y,builderPos.z, loc.min, loc.max,builder)
 			self:EchoDebug('POS3',POS)
 		end
@@ -255,6 +258,7 @@ function BuildersBST:findPlace(utype, value,cat,loc)
 				end
 			end
 		end
+	local minDist = nil
 	elseif cat == '_nano_' then
 		self:EchoDebug("looking for factory for nano")
 		local currentLevel = 0
@@ -268,13 +272,15 @@ function BuildersBST:findPlace(utype, value,cat,loc)
 					self:EchoDebug( self.name, ' can push up self mtype ', lab.name)
 					currentLevel = lab.level
 					target = lab
+					minDist = 0
 				end
 			end
 		end
+		
 		if target then
 			self:EchoDebug(self.name,' search position for nano near ',target.name )
 -- 			POS = site:ClosestBuildSpot(builder, target.position, utype,nil,nil,nil,390)
-			POS = site:FindClosestBuildSite(utype, target.position.x,target.position.y,target.position.z, nil, maxDist,builder)
+			POS = site:FindClosestBuildSite(utype, target.position.x,target.position.y,target.position.z, minDist, maxDist,builder)
 
 		end
 		if not POS then
@@ -282,7 +288,7 @@ function BuildersBST:findPlace(utype, value,cat,loc)
 			if lab then
 				self:EchoDebug("searching for top level factory")
 -- 				POS = site:ClosestBuildSpot(builder, lab.position, utype,nil,nil,nil,390)
-				POS = site:FindClosestBuildSite(utype, lab.position.x,lab.position.y,lab.position.z, nil, maxDist,builder)
+				POS = site:FindClosestBuildSite(utype, lab.position.x,lab.position.y,lab.position.z, minDist, maxDist,builder)
 
 			end
 		end
