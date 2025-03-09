@@ -2011,6 +2011,7 @@ function checkChanges()
 	local x, y, b, b2, b3, mouseOffScreen, cameraPanMode = spGetMouseState()
 	lastHoverData = hoverData
 	hoverType, hoverData = spTraceScreenRay(x, y)
+	
 	if hoverType == 'unit' or hoverType == 'feature' then
 		if lastHoverData ~= hoverData then
 			lastHoverDataClock = os_clock()
@@ -2058,6 +2059,14 @@ function checkChanges()
 		displayMode = 'unit'
 		displayUnitID = hoverData
 		displayUnitDefID = spGetUnitDefID(displayUnitID)
+		if not displayUnitDefID and SelectedUnitsCount >= 1 then
+			if SelectedUnitsCount == 1 then
+				displayUnitID = selectedUnits[1]
+				displayUnitDefID = spGetUnitDefID(selectedUnits[1])
+			else
+				displayMode = 'selection'
+			end
+		end
 		if lastUpdateClock + 0.4 < os_clock() then
 			-- unit stats could have changed meanwhile
 			doUpdate = true
