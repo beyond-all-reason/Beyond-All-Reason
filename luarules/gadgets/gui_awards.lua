@@ -308,6 +308,7 @@ else
 		-- send to awards widget
 		if Script.LuaUI("GadgetReceiveAwards") then
 			Script.LuaUI.GadgetReceiveAwards(awards)
+			Script.LuaUI.ShowEndgameAwards()
 		end
 	end
 
