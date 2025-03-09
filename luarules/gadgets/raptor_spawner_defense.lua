@@ -76,7 +76,6 @@ if gadgetHandler:IsSyncedCode() then
 	--------------------------------------------------------------------------------
 	--------------------------------------------------------------------------------
 	Spring.SetGameRulesParam("BossFightStarted", 0)
-	local queenLifePercent = 100
 	local nKilledQueens = 0
 	local nSpawnedQueens = 0
 	local nTotalQueens = Spring.GetModOptions().raptor_queen_count or 1
