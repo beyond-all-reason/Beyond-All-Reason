@@ -4,6 +4,7 @@ ShardUnit = class(function(a, id)
 	a.id = id
 	a.className = "unit"
 	local udefid = Spring.GetUnitDefID(id)
+	a.UnitDefID = udefid
 	a.type = ShardUnitType(udefid)
 end)
 
@@ -703,6 +704,10 @@ function ShardUnit:GetResourceUsage( idx )
 		SResourceTransfer.consumption = energyUse
 	end
 	return SResourceTransfer
+end
+
+function ShardUnit:TestMoveOrder( p )
+	return Spring.TestMoveOrder( self.UnitDefID, p.x, p.y, p.z, nil, nil, nil, true, true,false )
 end
 
 --- Issue an arbitrary command to the spring engine
