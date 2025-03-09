@@ -62,7 +62,6 @@ local gotScore
 local scoreCount = 0
 local resistancesTable = {}
 local currentlyResistantTo = {}
-local currentlyResistantToNames = {}
 local queenHealths = {}
 local queenResistances = {}
 
@@ -190,28 +189,19 @@ local function CreatePanelDisplayList()
 				if not revealedQueenEta then revealedQueenEta = true end
 				font:Print(textColor .. Spring.I18N('ui.raptors.queenETA', { time = time }), panelMarginX+5, PanelRow(2), panelFontSize, "")
 			end
-			if #currentlyResistantToNames > 0 then
-				currentlyResistantToNames = {}
-				currentlyResistantTo = {}
-			end
 		else
 			font:Print(textColor .. Spring.I18N('ui.raptors.queenHealth', { health = queenHealths[1] or '' }), panelMarginX, PanelRow(1), panelFontSize, "")
 			for i = 2, math.min(#queenHealths, 5) do
 				font:Print(queenHealths[i]..'%'.. (i == 5 and #queenHealths > 5 and '...' or ''), panelMarginX + panelFontSize * font:GetTextWidth(Spring.I18N('ui.raptors.queenHealth'):gsub('(:%s).*', '%1')), PanelRow(i), panelFontSize, "")
 			end
-			if #currentlyResistantToNames > 0 then
+			if #queenResistances > 0 then
 				font:Print(textColor .. Spring.I18N('ui.raptors.queenResistantToList'), panelMarginX, PanelRow(11), panelFontSize, "")
 			end
-			if #queenHealths > 1 then
-				for i = 1, #queenResistances do
-					local queenResistance = queenResistances[i]
-					font:Print(textColor .. queenResistance.name .. (queenResistance.count > 1 and ' (' .. queenResistance.count .. ' queens)' or ''), panelMarginX+20, PanelRow(11+i), panelFontSize, "")
-				end
-			else
-				for i = 1, #currentlyResistantToNames do
-					font:Print(textColor .. currentlyResistantToNames[i], panelMarginX+20, PanelRow(11+i), panelFontSize, "")
-				end
+			for i = 1, #queenResistances do
+				local queenResistance = queenResistances[i]
+				font:Print(textColor .. queenResistance.name .. (queenResistance.count > 1 and ' (' .. queenResistance.count .. ' queens)' or ''), panelMarginX+20, PanelRow(11+i), panelFontSize, "")
 			end
+
 		end
 	else
 		font:Print(textColor .. Spring.I18N('ui.raptors.gracePeriod', { time = string.formatTime(math.ceil(((currentTime - gameInfo.raptorGracePeriod) * -1) - 0.5)) }), panelMarginX, PanelRow(1), panelFontSize, "")
@@ -261,7 +251,6 @@ local function getResistancesMessage()
 			attackerName = UnitDefNames[attackerName].customParams.i18nfromunit
 		end
 		messages[i+1] = textColor .. Spring.I18N('units.names.' .. attackerName)
-		currentlyResistantToNames[#currentlyResistantToNames+1] = Spring.I18N('units.names.' .. attackerName)
 	end
 	resistancesTable = {}
 
