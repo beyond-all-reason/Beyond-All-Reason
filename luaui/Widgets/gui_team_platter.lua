@@ -17,7 +17,7 @@ local skipOwnTeam = false
 ---- GL4 Backend Stuff----
 local teamplatterVBO = nil
 local teamplatterShader = nil
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 
 -- Localize for speedups:
 local glStencilFunc         = gl.StencilFunc

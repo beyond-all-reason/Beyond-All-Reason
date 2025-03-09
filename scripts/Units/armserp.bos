@@ -5,12 +5,13 @@
 
 piece  lturret, rturret, base, lprop, rprop, bprop;
 
-static-var  gun_1, turnClock, turnCounter, wheelSpeed, currentSpeed, moveSpeed, pivotAngle;
+static-var  turnClock, turnCounter, wheelSpeed, currentSpeed, moveSpeed, pivotAngle;
 
 // Signal definitions
 #define SIG_MOVE			2
 
 #define SIG_AIM				4
+#define SIG_AIM_2			8
 
 
 #define BASEPIECE base
@@ -59,7 +60,6 @@ Propcontrol()
 
 Create()
 {
-	gun_1 = lturret;
 	moveSpeed = get MAX_SPEED;
 	start-script Propcontrol();
 	start-script TurnControl();
@@ -87,12 +87,22 @@ StopMoving()
 
 FirePrimary()
 {
-	gun_1 = !gun_1;
+	sleep 200;
+}
+
+FireSecondary()
+{
+	sleep 200;
 }
 
 QueryPrimary(piecenum)
 {
-	piecenum = gun_1;
+	piecenum = lturret;
+}
+
+QuerySecondary(piecenum)
+{
+	piecenum = rturret;
 }
 
 SweetSpot(piecenum)
@@ -128,9 +138,17 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	move rturret to x-axis [9] speed [30];
 	move lturret to x-axis [-9] speed [30];
-	
+	wait-for-move lturret along x-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+AimSecondary(heading, pitch)
+{
+	signal SIG_AIM_2;
+	set-signal-mask SIG_AIM_2;
+	move rturret to x-axis [9] speed [30];
 	wait-for-move rturret along x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
@@ -140,6 +158,12 @@ AimFromPrimary(piecenum)
 {
 	piecenum = lturret;
 }
+
+AimFromSecondary(piecenum)
+{
+	piecenum = rturret;
+}
+
 Killed(severity, corpsetype)
 {
 	if( severity <= 25 )

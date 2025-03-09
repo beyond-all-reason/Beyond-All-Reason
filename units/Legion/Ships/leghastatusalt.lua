@@ -10,7 +10,6 @@ return {
 		buildpic = "leghastatusalt.DDS",
 		buildtime = 4400,
 		canmove = true,
-		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -4 1",
 		collisionvolumescales = "26 26 76",
 		collisionvolumetype = "CylZ",
@@ -38,7 +37,7 @@ return {
 		customparams = {
 			unitgroup = 'weapon',
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armships",
+			subfolder = "ArmShips",
 		},
 		featuredefs = {
 			dead = {
@@ -120,7 +119,6 @@ return {
 				firestarter = 90,
 				fireTolerance = 1820,
 				tolerance = 1820,
-				impulseboost = 0,
 				impulsefactor = 0,
 				name = "HeatRay",
 				noselfdamage = true,

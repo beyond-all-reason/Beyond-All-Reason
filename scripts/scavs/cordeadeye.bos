@@ -138,7 +138,7 @@ StopWalking() {
 	turn rfhigh to x-axis <0.000000> speed <3419.999890> / animSpeed;
 	turn rfhip to y-axis <-45.000001> speed <2324.999894> / animSpeed;
 	turn rfleg to x-axis <0.000000> speed <2039.999920> / animSpeed;
-	turn turrethead to y-axis <0.000000> speed <60.000000> / animSpeed;
+	turn turrethead to y-axis <0.000000> speed <6.000000> / animSpeed;
 }
 // REMEMBER TO animspeed = 5 in Create() !!
 UnitSpeed(){
@@ -174,7 +174,7 @@ StopMoving(){
 #define MAXTILT 100
 
 
-#include "unit_hitbyweaponid_and_smoke.h"
+//#include "unit_hitbyweaponid_and_smoke.h"
 
 
 Create()
@@ -185,7 +185,7 @@ Create()
 	gun_1 = 1;
 	bMoving = FALSE;
 	bAiming = FALSE;
-	animSpeed = 10;
+	animSpeed = 5;
 	wpnheading  = 0;
 	return (0);
 }
@@ -215,8 +215,8 @@ RestoreAfterDelay()
 {
 	set-signal-mask SIG_AIM;
 	sleep 3000;
-	turn aimx1 to x-axis <0> speed <300>;
-	turn aimy1 to y-axis <0> speed <300>;
+	turn aimx1 to x-axis <0> speed <80>;
+	turn aimy1 to y-axis <0> speed <80>;
 	wait-for-turn aimy1 around y-axis;
 	wait-for-turn aimx1 around x-axis;
 	bAiming = FALSE;
@@ -228,8 +228,8 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	if (bAiming == 1) return;
-	turn aimy1 to y-axis heading speed <300.00000>;
-	turn aimx1 to x-axis <0.000000> - pitch speed <300.000000>;
+	turn aimy1 to y-axis heading speed <80.00000>;
+	turn aimx1 to x-axis <0.000000> - pitch speed <80.000000>;
 	//needed for luarules\gadgets\unit_continuous_aim.lua
 	if ((get ABS(wpnheading - heading)) > 2000){
 		bAiming = 1;
@@ -244,17 +244,25 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-	move cannonbarrel to z-axis [-1] speed [1000];
-	sleep 100;
-	move cannonbarrel to z-axis [0] speed [6];
+	move cannonbarrel to z-axis [-0.4] speed [4];
+	sleep(100);
+	move cannonbarrel to z-axis [-0.3] speed [0.25];
+	sleep(400);
+	move cannonbarrel to z-axis [-0.7] speed [4];
+	sleep(100);
+	move cannonbarrel to z-axis [-0.6] speed [0.25];
+	sleep(400);
+	move cannonbarrel to z-axis [-1] speed [4];
+	sleep(100);
+	move cannonbarrel to z-axis [0] speed [0.2];
 	return (1);
 }
 
 
 Killed(severity, corpsetype)
 {
-	turn aimy1 to y-axis <0> speed <300>;
-	turn aimx1 to x-axis <0> speed <300>;
+	turn aimy1 to y-axis <0> speed <50>;
+	turn aimx1 to x-axis <0> speed <50>;
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;

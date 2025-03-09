@@ -7,7 +7,6 @@ return {
 		buildpic = "LEGBAL.DDS",
 		buildtime = 2400,
 		canmove = true,
-		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -2 -1",
 		collisionvolumescales = "26 36 20",
 		collisionvolumetype = "box",
@@ -17,7 +16,7 @@ return {
 		footprintz = 2,
 		idleautoheal = 5,
 		idletime = 1800,
-		health = 1000,
+		health = 900,
 		maxslope = 14,
 		speed = 43.5,
 		maxwaterdepth = 21,
@@ -37,7 +36,7 @@ return {
 			unitgroup = 'weapon',
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "corbots",
+			subfolder = "CorBots",
 		},
 		featuredefs = {
 			dead = {
@@ -111,7 +110,6 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				firestarter = 70,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				intensity = 1.5,
 				metalpershot = 0,
@@ -140,6 +138,10 @@ return {
 				weaponvelocity = 230,
 				damage = {
 					default = 250,
+				},
+				customparams = {
+					projectile_destruction_method = "descend",
+					overrange_distance = 529,
 				},
 			},
 		},

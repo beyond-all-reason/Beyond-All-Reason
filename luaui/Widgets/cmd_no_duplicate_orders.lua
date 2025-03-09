@@ -27,7 +27,7 @@ end
 --------------------------------------------------------------------------------
 
 local GetSelectedUnits        = Spring.GetSelectedUnits
-local GetCommandQueue         = Spring.GetCommandQueue
+local GetUnitCommands         = Spring.GetUnitCommands
 local GetUnitCurrentCommand   = Spring.GetUnitCurrentCommand
 local GetUnitPosition         = Spring.GetUnitPosition
 local GiveOrderToUnit         = Spring.GiveOrderToUnit
@@ -68,7 +68,7 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
   buildList[locString] = nil
 end
 
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
   local locString = toLocString(GetUnitPosition(unitID))
   buildList[locString] = nil
 end
@@ -95,7 +95,7 @@ function widget:CommandNotify(id, params, options)
           if not blockUnits[unitID] then
             GiveOrderToUnit(unitID, id, params, options)
           else
-            local cQueue = GetCommandQueue(unitID,50) or {}
+            local cQueue = GetUnitCommands(unitID,50) or {}
             for i=1,#cQueue do
               local v = cQueue[i]
               if (v.tag ~= cQueue[1].tag) then
@@ -113,7 +113,7 @@ function widget:CommandNotify(id, params, options)
       local blockUnits = {}
       for i=1,#selUnits do
         local unitID = selUnits[i]
-        local cQueue = GetCommandQueue(unitID,50) or {}
+        local cQueue = GetUnitCommands(unitID,50) or {}
         if (#cQueue > 0) and (params[1] == cQueue[1].params[1]) then
           blockUnits[unitID] = true
         end
@@ -124,7 +124,7 @@ function widget:CommandNotify(id, params, options)
           if not blockUnits[unitID] then
             GiveOrderToUnit(unitID, id, params, options)
           else
-            local cQueue = GetCommandQueue(unitID,50) or {}
+            local cQueue = GetUnitCommands(unitID,50) or {}
             for i=1,#cQueue do
               local v = cQueue[i]
               if (v.tag ~= cQueue[1].tag) then

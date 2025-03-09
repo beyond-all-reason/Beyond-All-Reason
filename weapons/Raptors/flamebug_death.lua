@@ -5,7 +5,6 @@ return {
 		camerashake = 48,
 		edgeeffectiveness = 0.9,
 		explosiongenerator = "custom:genericunitexplosion-huge-fire",
-		impulseboost = 0,
 		impulsefactor = 0.4,
 		soundhit = "bigraptordead",
 		soundstart = "bigbugdie",

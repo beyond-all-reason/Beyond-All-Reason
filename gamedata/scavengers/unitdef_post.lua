@@ -244,6 +244,9 @@ local function scavUnitDef_Post(name, uDef)
 		uDef.buildoptions[numBuildoptions + 2] = "armpwt4_scav"
 		uDef.buildoptions[numBuildoptions + 3] = "armvadert4_scav"
 		uDef.buildoptions[numBuildoptions + 4] = "armmeatball_scav"
+	elseif name == "armap_scav" then
+		local numBuildoptions = #uDef.buildoptions
+		uDef.buildoptions[numBuildoptions + 1] = "armfify_scav"
 	elseif name == "corgantuw_scav" then
 		local numBuildoptions = #uDef.buildoptions
 		uDef.buildoptions[numBuildoptions + 1] = "corgolt4_scav"
@@ -253,12 +256,6 @@ local function scavUnitDef_Post(name, uDef)
 		uDef.buildoptions[numBuildoptions + 1] = "armzapper_scav"
 	elseif name == "legavp_scav" then
 		local numBuildoptions = #uDef.buildoptions
-
-		uDef.buildoptions[numBuildoptions + 1] = "corgatreap_scav"
-		uDef.buildoptions[numBuildoptions + 2] = "corforge_scav"
-		uDef.buildoptions[numBuildoptions + 3] = "corftiger_scav"
-		uDef.buildoptions[numBuildoptions + 4] = "cortorch_scav"
-		uDef.buildoptions[numBuildoptions + 5] = "corvac_scav" --corprinter
 	elseif name == "coravp_scav" then
 		local printerpresent = false
 
@@ -283,13 +280,16 @@ local function scavUnitDef_Post(name, uDef)
 	elseif name == "coraap_scav" then
 		local numBuildoptions = #uDef.buildoptions
 		uDef.buildoptions[numBuildoptions + 1] = "corcrw_scav"
-	elseif name == "corgant_scav" or name == "leggant_scav" then
+	elseif name == "corgant_scav" then
 		local numBuildoptions = #uDef.buildoptions
 		uDef.buildoptions[numBuildoptions + 1] = "corkarganetht4_scav"
 		uDef.buildoptions[numBuildoptions + 2] = "corgolt4_scav"
 		uDef.buildoptions[numBuildoptions + 3] = "corakt4_scav"
 		uDef.buildoptions[numBuildoptions + 4] = "corthermite_scav"
 		uDef.buildoptions[numBuildoptions + 5] = "cormandot4_scav"
+	elseif name == "leggant_scav" then
+		local numBuildoptions = #uDef.buildoptions
+		uDef.buildoptions[numBuildoptions + 1] = "legsrailt4_scav"
 	elseif name == "armca_scav" or name == "armck_scav" or name == "armcv_scav" then
 		--local numBuildoptions = #uDef.buildoptions
 	elseif name == "corca_scav" or name == "corck_scav" or name == "corcv_scav" then
@@ -322,6 +322,7 @@ local function scavUnitDef_Post(name, uDef)
 		uDef.buildoptions[numBuildoptions + 7] = "armnanotct2_scav"
 		uDef.buildoptions[numBuildoptions + 8] = "armlwall_scav"
 		uDef.buildoptions[numBuildoptions + 9] = "armshockwave_scav"
+		uDef.buildoptions[numBuildoptions + 10] = "armgatet3_scav"
 	elseif name == "coraca_scav" or name == "corack_scav" or name == "coracv_scav" then
 		local numBuildoptions = #uDef.buildoptions
 		uDef.buildoptions[numBuildoptions + 1] = "corapt3_scav"
@@ -331,14 +332,15 @@ local function scavUnitDef_Post(name, uDef)
 		uDef.buildoptions[numBuildoptions + 6] = "cordoomt3_scav"
 		uDef.buildoptions[numBuildoptions + 7] = "cornanotct2_scav"
 		uDef.buildoptions[numBuildoptions + 8] = "cormwall_scav"
+		uDef.buildoptions[numBuildoptions + 9] = "corgatet3_scav"
 	elseif name == "legaca_scav" or name == "legack_scav" or name == "legacv_scav" then
 		local numBuildoptions = #uDef.buildoptions
-		uDef.buildoptions[numBuildoptions + 1] = "corapt3_scav"
+		uDef.buildoptions[numBuildoptions + 1] = "legapt3_scav"
 		uDef.buildoptions[numBuildoptions + 2] = "legministarfall_scav"
 		uDef.buildoptions[numBuildoptions + 3] = "legwint2_scav"
-		uDef.buildoptions[numBuildoptions + 4] = "corhllllt_scav"
-		uDef.buildoptions[numBuildoptions + 6] = "cordoomt3_scav"
-		uDef.buildoptions[numBuildoptions + 7] = "cornanotct2_scav"
+		uDef.buildoptions[numBuildoptions + 4] = "legnanotct2_scav"
+		uDef.buildoptions[numBuildoptions + 5] = "legrwall_scav"
+		uDef.buildoptions[numBuildoptions + 6] = "corgatet3_scav"
 	elseif name == "armasy_scav" then
 		local numBuildoptions = #uDef.buildoptions
 		uDef.buildoptions[numBuildoptions + 1] = "armptt2_scav"

@@ -204,7 +204,7 @@ function LabsBST:countCheck(soldier,numeric)
 	local counter = self.game:GetTeamUnitDefCount(team,spec.defId)
 	local mtypeLvCount = self.ai.tool:mtypedLvCount(self.ai.armyhst.unitTable[soldier].mtypedLv)
 	local mTypeRelative = mtypeLvCount / mtypeFactor
-	func = math.min(math.max(Min , mTypeRelative), Max)
+	func = math.clamp(mTypeRelative, Min, Max)
 	self:EchoDebug('mmType',mType , '/',counter,'func',func)
 	if counter < func then
 		self:EchoDebug('counter',soldier)

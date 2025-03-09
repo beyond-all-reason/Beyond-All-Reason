@@ -11,7 +11,6 @@ return {
 		canattack = false,
 		canrepeat = false,
 		cantbetransported = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -12 0",
 		collisionvolumescales = "32 99 32",
 		collisionvolumetype = "CylY",
@@ -37,16 +36,16 @@ return {
 		yardmap = "oooo",
 		customparams = {
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/corrad_aoplane.dds",
-			buildinggrounddecalsizey = 1,
-			buildinggrounddecalsizex = 1,
+			buildinggrounddecaltype = "decals/legrad_aoplane.dds",
+			buildinggrounddecalsizey = 5,
+			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'util',
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "legion/utilities",
+			subfolder = "Legion/utilities",
 		},
 		featuredefs = {
 			dead = {

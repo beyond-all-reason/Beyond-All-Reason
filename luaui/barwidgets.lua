@@ -19,7 +19,7 @@ local gl = gl
 
 local CONFIG_FILENAME = LUAUI_DIRNAME .. 'Config/' .. Game.gameShortName .. '.lua'
 local WIDGET_DIRNAME = LUAUI_DIRNAME .. 'Widgets/'
-local WIDGET_DIRNAME_MAP = LUAUI_DIRNAME .. 'Widgets/'
+local RML_WIDGET_DIRNAME = LUAUI_DIRNAME .. 'RmlWidgets/'
 
 local SELECTOR_BASENAME = 'selector.lua'
 
@@ -105,6 +105,7 @@ local flexCallIns = {
 	'ShockFront',
 	'WorldTooltip',
 	'MapDrawCmd',
+	'ActiveCommandChanged',
 	'DefaultCommand',
 	'UnitCreated',
 	'UnitFinished',
@@ -139,6 +140,7 @@ local flexCallIns = {
 	'StockpileChanged',
 	'SelectionChanged',
 	'DrawGenesis',
+	'DrawGroundDeferred',
 	'DrawWorld',
 	'DrawWorldPreUnit',
 	'DrawPreDecals',
@@ -168,6 +170,7 @@ for _, ci in ipairs(flexCallIns) do
 end
 
 local callInLists = {
+	'FontsChanged',
 	'GamePreload',
 	'GameStart',
 	'Shutdown',
@@ -207,6 +210,7 @@ local callInLists = {
 	'VisibleExplosion',
 	'Barrelfire',
 	'CrashingAircraft',
+	'ClearMapMarks',
 
 	-- these use mouseOwner instead of lists
 	--  'MouseMove',
@@ -297,6 +301,7 @@ end
 
 
 --------------------------------------------------------------------------------
+local unsortedWidgets
 local doMoreYield = (Spring.Yield ~= nil);
 
 local function Yield()
@@ -310,57 +315,49 @@ local zipOnly = {
 	["Widget Profiler"] = true,
 }
 
+local function loadWidgetFiles(folder, vfsMode)
+	local fromZip = vfsMode ~= VFS.RAW
+	local widgetFiles = VFS.DirList(folder, "*.lua", vfsMode)
+
+	for _, subDirectory in ipairs( VFS.SubDirs(folder) ) do
+		table.append( widgetFiles, VFS.DirList(subDirectory, "*.lua", vfsMode) )
+	end
+
+	for _, file in ipairs(widgetFiles) do
+		local widget = widgetHandler:LoadWidget(file, fromZip)
+		local excludeWidget = widget and not fromZip and zipOnly[widget.whInfo.name]
+
+		if widget and not excludeWidget then
+			table.insert(unsortedWidgets, widget)
+			Yield()
+		end
+	end
+end
+
 function widgetHandler:Initialize()
+	widgetHandler:CreateQueuedReorderFuncs()
+	widgetHandler:HookReorderSpecialFuncs()
 	self:LoadConfigData()
 
-	-- do we allow userland widgets?
 	if self.allowUserWidgets == nil then
 		self.allowUserWidgets = true
 	end
+
+	Spring.CreateDir(LUAUI_DIRNAME .. 'Config')
+
+	unsortedWidgets = {}
+
 	if self.allowUserWidgets and allowuserwidgets then
 		Spring.Echo("LuaUI: Allowing User Widgets")
+		loadWidgetFiles(WIDGET_DIRNAME, VFS.RAW)
+		loadWidgetFiles(RML_WIDGET_DIRNAME, VFS.RAW)
 	else
 		Spring.Echo("LuaUI: Disallowing User Widgets")
 	end
 
-	-- create the "LuaUI/Config" directory
-	Spring.CreateDir(LUAUI_DIRNAME .. 'Config')
+	loadWidgetFiles(WIDGET_DIRNAME, VFS.ZIP)
+	loadWidgetFiles(RML_WIDGET_DIRNAME, VFS.ZIP)
 
-	local unsortedWidgets = {}
-
-	-- stuff the raw widgets into unsortedWidgets
-	if self.allowUserWidgets and allowuserwidgets then
-		local widgetFiles = VFS.DirList(WIDGET_DIRNAME, "*.lua", VFS.RAW)
-		for k, wf in ipairs(widgetFiles) do
-			local widget = self:LoadWidget(wf, false)
-			if widget and not zipOnly[widget.whInfo.name] then
-				table.insert(unsortedWidgets, widget)
-				Yield()
-			end
-		end
-	end
-
-	-- stuff the zip widgets into unsortedWidgets
-	local widgetFiles = VFS.DirList(WIDGET_DIRNAME, "*.lua", VFS.ZIP)
-	for k, wf in ipairs(widgetFiles) do
-		local widget = self:LoadWidget(wf, true)
-		if widget then
-			table.insert(unsortedWidgets, widget)
-			Yield()
-		end
-	end
-
-	-- stuff the map widgets into unsortedWidgets
-	local widgetFiles = VFS.DirList(WIDGET_DIRNAME_MAP, "*.lua", VFS.MAP)
-	for k, wf in ipairs(widgetFiles) do
-		local widget = self:LoadWidget(wf, true)
-		if widget then
-			table.insert(unsortedWidgets, widget)
-			Yield()
-		end
-	end
-
-	-- sort the widgets
 	table.sort(unsortedWidgets, function(w1, w2)
 		local l1 = w1.whInfo.layer
 		local l2 = w2.whInfo.layer
@@ -378,15 +375,17 @@ function widgetHandler:Initialize()
 		end
 	end)
 
-	-- add the widgets
 	for _, w in ipairs(unsortedWidgets) do
 		local name = w.whInfo.name
 		local basename = w.whInfo.basename
 		local source = self.knownWidgets[name].fromZip and "mod: " or "user:"
 		Spring.Echo(string.format("Loading widget from %s  %-18s  <%s> ...", source, name, basename))
 		Yield()
-		widgetHandler:InsertWidget(w)
+		widgetHandler:InsertWidgetRaw(w)
 	end
+
+	-- Since Initialize is run out of the normal callin wrapper by InsertWidget, we, need to reorder explicitly here.
+	widgetHandler:PerformReorders()
 
 	-- save the active widgets, and their ordering
 	self:SaveConfigData()
@@ -441,16 +440,16 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 
 		local widget = widgetHandler:NewWidget()
 		setfenv(chunk, widget)
-		local success, valOrErr = pcall(chunk)
+		local success, err = pcall(chunk)
 		if not success then
-			Spring.Echo('Failed to load: ' .. basename .. '  (' .. valOrErr .. ')')
+			Spring.Echo('Failed to load: ' .. basename .. '  (' .. err .. ')')
 			return nil
 		end
 		if err == false then
 			return nil -- widget asked for a silent death
 		end
 
-		local localsNames = valOrErr
+		local localsNames = err
 
 		text = text .. localsAccess.generateLocalsAccessStr(localsNames)
 	end
@@ -562,28 +561,21 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess)
 	return widget
 end
 
+local WidgetMeta =
+{
+	__index = System,
+	__metatable = true,
+}
+
 function widgetHandler:NewWidget()
 	tracy.ZoneBeginN("W:NewWidget")
-	local widget = {}
-	if true then
-		-- copy the system calls into the widget table
-		for k, v in pairs(System) do
-			widget[k] = v
-		end
-	else
-		-- use metatable redirection
-		setmetatable(widget, {
-			__index = System,
-			__metatable = true,
-		})
-	end
+	local widget = setmetatable({}, WidgetMeta)
 	widget.WG = self.WG    -- the shared table
 	widget.widget = widget -- easy self referencing
 
 	-- wrapped calls (closures)
 	widget.widgetHandler = {}
 	local wh = widget.widgetHandler
-	local self = self
 	widget.include = function(f)
 		return include(f, widget)
 	end
@@ -793,17 +785,126 @@ local function ArrayInsert(t, f, w)
 	end
 end
 
-local function ArrayRemove(t, w)
-	for k, v in ipairs(t) do
-		if v == w then
-			table.remove(t, k)
-			--break
+---Removes all elements equal to value from given array.
+---@generic V
+---@param t V[]
+---@param value V
+local function ArrayRemove(t, value)
+	for i = #t, 1, -1 do
+		if t[i] == value then
+			table.remove(t, i)
 		end
 	end
 end
 
-function widgetHandler:InsertWidget(widget)
+
+--------------------------------------------------------------------------------
+--- Safe reordering
+
+-- Since we are traversing lists, some of the widgetHandler api would be dangerous to use.
+--
+-- We will queue all the dangerous methods to process after callin loop finishes iterating.
+-- The 'real' methods have 'Raw' appended to them, and are unsafe to use unless you know what
+-- you are doing.
+
+local reorderQueue = {}
+local reorderNeeded = false
+local reorderFuncs = {}
+local callinDepth = 0
+
+function widgetHandler:HookReorderSpecialFuncs()
+	-- Methods that need manual PerformReorders calls because of not
+	-- being wrapped by UpdateCallIns.
+	self:HookReorderPost('DrawScreen', true)
+	self:HookReorderPost('Update', true)
+	self:HookReorderPost('MouseMove')
+	self:HookReorderPost('MouseRelease')
+	self:HookReorderPost('ConfigureLayout')
+end
+
+function widgetHandler:HookReorderPost(name, topMethod)
+	-- Add callinDepth updating and PerformReorders to methods not getting it through UpdateCallIns.
+	-- Can only be used for methods returning just one result.
+	-- We define some methods to be topMethod, those will hard set the callinDepth as a consistency
+	-- measure.
+	local func = self[name]
+	if not func or not type(func) == 'function' then
+		Spring.Log("barwidgets.lua", LOG.WARNING, name .. " does not exist or isn't a function")
+		return
+	end
+	if self[name .. 'Raw'] then
+		Spring.Log("barwidgets.lua", LOG.WARNING, name .. "Raw already exists")
+		return
+	end
+	self[name .. 'Raw'] = func
+	self[name] = function(...)
+		callinDepth = topMethod and 1 or callinDepth + 1
+		local res = func(...)
+		callinDepth = topMethod and 0 or callinDepth - 1
+
+		if reorderNeeded and callinDepth == 0 then
+			self:PerformReorders()
+		end
+		return res
+	end
+end
+
+function widgetHandler:CreateQueuedReorderFuncs()
+	-- This will create an array with linked Raw methods so we can find them by index.
+	-- It will also create the widgetHandler usual api queing the calls.
+	local reorderFuncNames = {'InsertWidget', 'RemoveWidget', 'EnableWidget', 'DisableWidget',
+		'ToggleWidget', 'LowerWidget', 'RaiseWidget', 'UpdateWidgetCallIn', 'RemoveWidgetCallIn'}
+	local queueReorder = widgetHandler.QueueReorder
+
+	for idx, name in ipairs(reorderFuncNames) do
+		-- linked method index
+		reorderFuncs[#reorderFuncs + 1] = widgetHandler[name .. 'Raw']
+
+		-- widgetHandler api
+		widgetHandler[name] = function(s, ...)
+			queueReorder(s, idx, ...)
+		end
+	end
+end
+
+function widgetHandler:QueueReorder(methodIndex, ...)
+	reorderQueue[#reorderQueue + 1] = {methodIndex, ...}
+	reorderNeeded = true
+end
+
+function widgetHandler:PerformReorder(methodIndex, ...)
+	reorderFuncs[methodIndex](self, ...)
+end
+
+function widgetHandler:PerformReorders()
+	-- Reset and store the list so we can support nested reorderings
+	reorderNeeded = false
+	local nextReorder = reorderQueue
+	reorderQueue = {}
+	-- Process the reorder queue
+	for _, elmts in ipairs(nextReorder) do
+		self:PerformReorder(unpack(elmts))
+	end
+	-- Check for further reordering
+	if reorderNeeded then
+		self:PerformReorders()
+	end
+end
+
+--------------------------------------------------------------------------------
+--- Unsafe insert/remove
+
+
+function widgetHandler:InsertWidgetRaw(widget)
 	if widget == nil then
+		return
+	end
+	if widget.GetInfo and not Platform.check(widget:GetInfo().depends) then
+		local name = widget.whInfo.name
+		if self.knownWidgets[name] then
+			self.knownWidgets[name].active = false
+		end
+		Spring.Echo('Missing capabilities:  ' .. name .. '. Disabling.')
 		return
 	end
 
@@ -823,8 +924,11 @@ function widgetHandler:InsertWidget(widget)
 	end
 end
 
-function widgetHandler:RemoveWidget(widget)
+function widgetHandler:RemoveWidgetRaw(widget)
 	if widget == nil or widget.whInfo == nil then
+		return
+	end
+	if not Platform.check(widget.whInfo.depends) then
 		return
 	end
 
@@ -859,8 +963,20 @@ function widgetHandler:UpdateCallIn(name)
 	if #self[listName] > 0 or not flexCallInMap[name] or (name == 'GotChatMsg' and actionHandler.HaveChatAction()) or (name == 'RecvFromSynced' and actionHandler.HaveSyncAction()) then
 		-- always assign these call-ins
 		local selffunc = self[name]
+
+		-- max two return parameters for top level callins!
 		_G[name] = function(...)
-			return selffunc(self, ...)
+			callinDepth = callinDepth + 1
+
+			local res1, res2 = selffunc(self, ...)
+
+			callinDepth = callinDepth - 1
+
+			if reorderNeeded and callinDepth == 0 then
+				self:PerformReorders()
+			end
+
+			return res1, res2
 		end
 	else
 		_G[name] = nil
@@ -868,7 +984,7 @@ function widgetHandler:UpdateCallIn(name)
 	Script.UpdateCallIn(name)
 end
 
-function widgetHandler:UpdateWidgetCallIn(name, w)
+function widgetHandler:UpdateWidgetCallInRaw(name, w)
 	local listName = name .. 'List'
 	local ciList = self[listName]
 	if ciList then
@@ -884,7 +1000,7 @@ function widgetHandler:UpdateWidgetCallIn(name, w)
 	end
 end
 
-function widgetHandler:RemoveWidgetCallIn(name, w)
+function widgetHandler:RemoveWidgetCallInRaw(name, w)
 	local listName = name .. 'List'
 	local ciList = self[listName]
 	if ciList then
@@ -907,7 +1023,7 @@ function widgetHandler:IsWidgetKnown(name)
 	return self.knownWidgets[name] and true or false
 end
 
-function widgetHandler:EnableWidget(name, enableLocalsAccess)
+function widgetHandler:EnableWidgetRaw(name, enableLocalsAccess)
 	local ki = self.knownWidgets[name]
 	if not ki then
 		Spring.Echo("EnableWidget(), could not find widget: " .. tostring(name))
@@ -923,13 +1039,13 @@ function widgetHandler:EnableWidget(name, enableLocalsAccess)
 		if not w then
 			return false
 		end
-		self:InsertWidget(w)
+		self:InsertWidgetRaw(w)
 		self:SaveConfigData()
 	end
 	return true
 end
 
-function widgetHandler:DisableWidget(name)
+function widgetHandler:DisableWidgetRaw(name)
 	local ki = self.knownWidgets[name]
 	if not ki then
 		Spring.Echo("DisableWidget(), could not find widget: " .. tostring(name))
@@ -941,23 +1057,23 @@ function widgetHandler:DisableWidget(name)
 			return false
 		end
 		Spring.Echo('Removed:  ' .. ki.filename)
-		self:RemoveWidget(w)     -- deactivate
+		self:RemoveWidgetRaw(w)     -- deactivate
 		self.orderList[name] = 0 -- disable
 		self:SaveConfigData()
 	end
 	return true
 end
 
-function widgetHandler:ToggleWidget(name)
+function widgetHandler:ToggleWidgetRaw(name)
 	local ki = self.knownWidgets[name]
 	if not ki then
 		Spring.Echo("ToggleWidget(), could not find widget: " .. tostring(name))
 		return
 	end
 	if ki.active then
-		return self:DisableWidget(name)
+		return self:DisableWidgetRaw(name)
 	elseif self.orderList[name] <= 0 then
-		return self:EnableWidget(name)
+		return self:EnableWidgetRaw(name)
 	else
 		-- the widget is not active, but enabled; disable it
 		self.orderList[name] = 0
@@ -987,7 +1103,7 @@ local function FindLowestIndex(t, i, layer)
 	return 1
 end
 
-function widgetHandler:RaiseWidget(widget)
+function widgetHandler:RaiseWidgetRaw(widget)
 	if widget == nil then
 		return
 	end
@@ -1018,10 +1134,10 @@ local function FindHighestIndex(t, i, layer)
 			return (x - 1)
 		end
 	end
-	return (ts + 1)
+	return ts
 end
 
-function widgetHandler:LowerWidget(widget)
+function widgetHandler:LowerWidgetRaw(widget)
 	if widget == nil then
 		return
 	end
@@ -1035,7 +1151,7 @@ function widgetHandler:LowerWidget(widget)
 		end
 		local n = FindHighestIndex(t, i, w.whInfo.layer)
 		if n and n > i then
-			table.insert(t, n, w)
+			table.insert(t, n+1, w)
 			table.remove(t, i)
 		end
 	end
@@ -1188,17 +1304,17 @@ function widgetHandler:ConfigureLayout(command)
 			end
 		end
 		local sw = self:LoadWidget(LUAUI_DIRNAME .. SELECTOR_BASENAME, true) -- load the game's included widget_selector.lua, instead of the default selector.lua
-		self:InsertWidget(sw)
-		self:RaiseWidget(sw)
+		self:InsertWidgetRaw(sw)
+		self:RaiseWidgetRaw(sw)
 		return true
 	elseif string.find(command, 'togglewidget') == 1 then
-		self:ToggleWidget(string.sub(command, 14))
+		self:ToggleWidgetRaw(string.sub(command, 14))
 		return true
 	elseif string.find(command, 'enablewidget') == 1 then
-		self:EnableWidget(string.sub(command, 14))
+		self:EnableWidgetRaw(string.sub(command, 14))
 		return true
 	elseif string.find(command, 'disablewidget') == 1 then
-		self:DisableWidget(string.sub(command, 15))
+		self:DisableWidgetRaw(string.sub(command, 15))
 		return true
 	end
 
@@ -1212,6 +1328,14 @@ function widgetHandler:ConfigureLayout(command)
 		end
 	end
 	return false
+end
+
+function widgetHandler:ActiveCommandChanged(id, cmdType)
+	tracy.ZoneBeginN("W:ActiveCommandChanged")
+	for _, w in ipairs(self.ActiveCommandChangedList) do
+		w:ActiveCommandChanged(id, cmdType)
+	end
+	tracy.ZoneEnd()
 end
 
 function widgetHandler:CommandNotify(id, params, options)
@@ -1336,6 +1460,15 @@ function widgetHandler:DrawGenesis()
 	return
 end
 
+function widgetHandler:DrawGroundDeferred()
+	tracy.ZoneBeginN("W:DrawGroundDeferred")
+	for _, w in r_ipairs(self.DrawGroundDeferredList) do
+		w:DrawGroundDeferred()
+	end
+	tracy.ZoneEnd()
+	return
+end
+
 function widgetHandler:DrawWorld()
 	tracy.ZoneBeginN("W:DrawWorld")
 	if not self.chobbyInterface  then
@@ -1426,7 +1559,7 @@ function widgetHandler:DrawPreDecals()
 end
 
 function widgetHandler:DrawWorldPreParticles()
-	-- NOTE: This is called TWICE per draw frame, once before water and once after, even if no water is present. The second is the refraction pass. 
+	-- NOTE: This is called TWICE per draw frame, once before water and once after, even if no water is present. The second is the refraction pass.
 	tracy.ZoneBeginN("W:DrawWorldPreParticles")
 	for _, w in r_ipairs(self.DrawWorldPreParticlesList) do
 		w:DrawWorldPreParticles()
@@ -1521,6 +1654,14 @@ function widgetHandler:SunChanged()
 	return
 end
 
+function widgetHandler:FontsChanged()
+	tracy.ZoneBeginN("FontsChanged")
+	for _, w in r_ipairs(self.FontsChangedList) do
+		w:FontsChanged()
+	end
+	tracy.ZoneEnd()
+	return
+end
 
 --------------------------------------------------------------------------------
 --
@@ -2010,6 +2151,15 @@ function widgetHandler:MapDrawCmd(playerID, cmdType, px, py, pz, ...)
 	return retval
 end
 
+function widgetHandler:ClearMapMarks()
+	tracy.ZoneBeginN("W:ClearMapMarks")
+	for _, w in ipairs(self.ClearMapMarksList) do
+		w:ClearMapMarks()
+	end
+	tracy.ZoneEnd()
+	return
+end
+
 function widgetHandler:GameSetup(state, ready, playerStates)
 	tracy.ZoneBeginN("W:GameSetup")
 	for _, w in ipairs(self.GameSetupList) do
@@ -2098,11 +2248,11 @@ function widgetHandler:UnitFromFactory(unitID, unitDefID, unitTeam, factID, fact
 	return
 end
 
-function widgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam)
+function widgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	widgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 	tracy.ZoneBeginN("W:UnitDestroyed")
 	for _, w in ipairs(self.UnitDestroyedList) do
-		w:UnitDestroyed(unitID, unitDefID, unitTeam)
+		w:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	end
 	tracy.ZoneEnd()
 	return
@@ -2435,6 +2585,7 @@ function widgetHandler:CrashingAircraft(unitID, unitDefID, unitTeam)
 	tracy.ZoneEnd()
 	return
 end
+
 
 --------------------------------------------------------------------------------
 --

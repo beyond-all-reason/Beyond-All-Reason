@@ -19,6 +19,8 @@ local textcolor = "\255\200\200\200"
 local spGetUnitDefID = Spring.GetUnitDefID
 local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 
+local ColorString = Spring.Utilities.Color.ToString
+
 local unitdefMobileDps = {}
 local unitdefStaticDps = {}
 local unitdefBuildespeed = {}
@@ -60,22 +62,6 @@ function widget:Initialize()
 	end
 end
 
-local function ColourString(R, G, B)
-	local R255 = math.floor(R * 255)
-	local G255 = math.floor(G * 255)
-	local B255 = math.floor(B * 255)
-	if R255 % 10 == 0 then
-		R255 = R255 + 1
-	end
-	if G255 % 10 == 0 then
-		G255 = G255 + 1
-	end
-	if B255 % 10 == 0 then
-		B255 = B255 + 1
-	end
-	return "\255" .. string.char(R255) .. string.char(G255) .. string.char(B255)
-end
-
 local function GetAllyTeamStats(allyTeamID)
 	local teamlist = Spring.GetTeamList(allyTeamID)
 	local unitCount = 0
@@ -87,7 +73,7 @@ local function GetAllyTeamStats(allyTeamID)
 	local buildspeed = 0
 	if not allyTeamName[allyTeamID] then
 		local _, playerID, _, isAiTeam = Spring.GetTeamInfo(teamlist[1], false)
-		allyTeamName[allyTeamID] = ColourString(Spring.GetTeamColor(teamlist[1]))..Spring.GetPlayerInfo(playerID, false)
+		allyTeamName[allyTeamID] = ColorString(Spring.GetTeamColor(teamlist[1]))..Spring.GetPlayerInfo(playerID, false)
 	end
 	for i, teamID in ipairs(teamlist) do
 		local units = Spring.GetTeamUnits(teamID)

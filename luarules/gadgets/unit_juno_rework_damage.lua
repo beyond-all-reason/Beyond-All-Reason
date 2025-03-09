@@ -78,6 +78,9 @@ local toStunUnitsNames = {--this could maybe use customparams later, at least in
 		['cormine3'] = true,
 		['armfmine3'] = true,		
 		['corfmine3'] = true,
+		['legmine1'] = true,
+		['legmine2'] = true,
+		['legmine3'] = true,
 
 }
 

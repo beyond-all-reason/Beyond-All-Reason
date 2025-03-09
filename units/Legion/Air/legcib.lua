@@ -9,7 +9,6 @@ return {
 		buildtime = 4200,
 		canfly = true,
 		canmove = true,
-		category = "ALL MOBILE WEAPON NOTLAND VTOL NOTSUB NOTSHIP NOTHOVER",
 		collide = true,
 		cruisealtitude = 130,
 		explodeas = "mediumexplosiongeneric",
@@ -44,7 +43,7 @@ return {
 			unitgroup = 'weapon',
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "coraircraft",
+			subfolder = "CorAircraft",
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {
@@ -94,7 +93,6 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 1,
 				explosiongenerator = "custom:juno-explo-mini",
-				impulseboost = 0,
 				impulsefactor = 0,
 				model = "epulse_mini.s3o",
 				model = "legmediumrocket.s3o",

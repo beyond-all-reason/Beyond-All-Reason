@@ -78,7 +78,6 @@ if gadgetHandler:IsSyncedCode() then
 
     function ReturnToBase(unitID, friendlyFire)
 		local x,y,z = spGetUnitPosition(unitID) -- usefull if you want to spawn explosions or other effects where you were.
-		local team = spGetUnitTeam(unitID)
 
 
 		if respawnMetaList[unitID].effigyID then
@@ -200,7 +199,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	
 
-	function gadget:UnitDestroyed(unitID)
+	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 		if respawnMetaList[unitID] then
 			if respawnMetaList[unitID].respawn_pad == "false" then
 				local newID = spGetUnitRulesParam(unitID, "unit_evolved")

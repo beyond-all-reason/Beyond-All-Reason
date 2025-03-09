@@ -10,7 +10,6 @@ return {
 		buildtime = 500,
 		cancapture = true,
 		canmove = true,
-		category = "ALL TANK PHIB NOTSUB  NOWEAPON NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		collisionvolumeoffsets = "0 -1 1",
 		collisionvolumescales = "11 8 21",
 		collisionvolumetype = "Box",
@@ -59,7 +58,6 @@ return {
 			[16] = "cortide",
 			[17] = "coruwms",
 			[18] = "coruwes",
-			--[19] = "coruwmex",
 			[20] = "corfmkr",
 			[21] = "corsy",
 			[22] = "corfdrag",
@@ -74,7 +72,7 @@ return {
 			unitgroup = 'builder',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corvehicles",
+			subfolder = "CorVehicles",
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {

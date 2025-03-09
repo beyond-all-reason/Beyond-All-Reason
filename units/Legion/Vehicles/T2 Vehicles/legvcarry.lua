@@ -7,7 +7,6 @@ return {
 		buildpic = "LEGVCARRY.DDS",
 		buildtime = 6000,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 10 0",
 		collisionvolumescales = "44 38 44",
 		collisionvolumetype = "Box",
@@ -46,12 +45,13 @@ return {
 			lumamult = "1.2",
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armvehicles",
+			subfolder = "ArmVehicles",
 			weapon1turretx = 45,
 			weapon1turrety = 80,
 			inheritxpratemultiplier = 1,
 			childreninheritxp = "DRONE",
 			parentsinheritxp = "DRONE",
+			disable_when_no_air = true,
 		},
 		featuredefs = {
 			dead = {
@@ -125,7 +125,6 @@ return {
 				explosiongenerator = "",
 				gravityaffected = "true",
 				hightrajectory = 1,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				name = "HeavyCannon",
 				noselfdamage = true,
@@ -157,9 +156,7 @@ return {
 					docktohealthreshold = 66,
 					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					dockingHelperSpeed = 5,
-					dockingpiecestart = 5,		--First model piece to be used for docking.
-					dockingpieceinterval = 2,	--Number of pieces to skip when docking the next unit.
-					dockingpieceend = 11,		--Last model piece used for docking. Will loop back to first when exceeded.
+					dockingpieces = "5 7 9 11",
 					dockingradius = 120,			--The range at which the units snap to the carrier unit when docking.
 				}
 			},

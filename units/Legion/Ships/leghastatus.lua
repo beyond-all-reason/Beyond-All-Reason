@@ -10,7 +10,6 @@ return {
 		buildpic = "leghastatus.DDS",
 		buildtime = 4400,
 		canmove = true,
-		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -4 1",
 		collisionvolumescales = "26 26 76",
 		collisionvolumetype = "CylZ",
@@ -38,7 +37,7 @@ return {
 		customparams = {
 			unitgroup = 'weapon',
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armships",
+			subfolder = "ArmShips",
 		},
 		featuredefs = {
 			dead = {
@@ -112,7 +111,6 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-small",
 				gravityaffected = "true",
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				name = "Medium g2g plasma cannon",
 				noselfdamage = true,

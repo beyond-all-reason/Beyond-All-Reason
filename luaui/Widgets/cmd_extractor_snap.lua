@@ -122,7 +122,7 @@ local function clashesWithBuildQueue(uid, pos)
 		end
 	else
 		for i = 1, #units do
-			local queue = Spring.GetCommandQueue(units[i], 100)
+			local queue = Spring.GetUnitCommands(units[i], 100)
 			for j=1, #queue do
 				local command = queue[j]
 				local id = command.id and command.id or command[1]
@@ -323,5 +323,8 @@ end
 
 
 function widget:Shutdown()
+	if not WG.DrawUnitShapeGL4 then
+		return
+	end
 	clear()
 end

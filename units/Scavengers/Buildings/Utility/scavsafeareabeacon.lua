@@ -10,7 +10,6 @@ return {
 		buildtime = 100000,
 		blocking = false,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		cloakcost = 10,
 		explodeas = "scavcomexplosion",
 		footprintx = 5,
@@ -36,7 +35,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "armbuildings/landutil",
+			subfolder = "ArmBuildings/LandUtil",
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {

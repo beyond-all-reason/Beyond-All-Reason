@@ -1,0 +1,197 @@
+
+#include "../recoil_common_includes.h"
+
+//#define DEBUG
+#include "../debug.h"
+// Signal definitions
+#define SIGNAL_AIM1 256
+#define SIGNAL_SMOKE 512;
+
+piece  base, antinuke, anpanelf, anpanell, anpanelr, turbineb, turbinel, turbiner, bladesf, bladesl, bladesr, pad0, pad1, pad2, flare;
+
+static-var  resourceRate, Stunned, restore_delay;
+
+SetStunned(State)
+{
+	Stunned = State;
+	if (State) {
+	    call-script Deactivate();
+	}else{
+	    call-script Activate();
+	}
+}
+
+Create()
+{
+	turn turbiner to y-axis <-60> now;
+	turn turbinel to y-axis <60> now;
+	
+	turn bladesf to x-axis <-45> now;
+	turn bladesl to x-axis <-45> now;
+	turn bladesr to x-axis <-45> now;
+	turn bladesl to y-axis <120> now;
+	turn bladesr to y-axis <-120> now;
+	
+	turn anpanell to y-axis <30> now;
+	turn anpanelr to y-axis <-30> now;
+	
+	restore_delay = 12000;
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script Activate();
+}
+
+
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+Activate()
+{
+	if (Stunned){
+		return (0);
+	}
+	spin bladesf around z-axis speed <-150> accelerate <5>;
+	spin bladesl around z-axis speed <-150> accelerate <5>;
+	spin bladesr around z-axis speed <-150> accelerate <5>;
+	spin turbineb around x-axis speed <50> accelerate <1>;
+	spin turbinel around x-axis speed <-50> accelerate <1>;
+	spin turbiner around x-axis speed <-50> accelerate <1>;
+	
+	signal SIGNAL_SMOKE;
+	start-script repeatsmoke();
+}
+
+Deactivate()
+{	
+	stop-spin bladesf around z-axis decelerate <5>;
+	stop-spin bladesl around z-axis decelerate <5>;
+	stop-spin bladesr around z-axis decelerate <5>;
+	stop-spin turbineb around x-axis decelerate <1>;
+	stop-spin turbinel around x-axis decelerate <1>;
+	stop-spin turbiner around x-axis decelerate <1>;
+	
+	signal SIGNAL_SMOKE;
+}
+
+openAbm()
+{
+	move anpanell to x-axis [-8.66]/2 speed [17.32];
+	move anpanell to z-axis [-5]/2 speed [10];
+	move anpanelr to x-axis [8.66]/2 speed [17.32];
+	move anpanelr to z-axis [-5]/2 speed [10];
+	move anpanelf to z-axis [10]/2 speed [20];
+	
+	turn anpanelf to x-axis <60> speed <180>;
+	turn anpanell to z-axis <60> speed <180>;
+	turn anpanelr to z-axis <-60> speed <180>;
+	
+	move anpanelf to y-axis [-5] speed [5];
+	move anpanell to y-axis [-5] speed [5];
+	move anpanelr to y-axis [-5] speed [5];
+	
+	start-script RestoreAfterDelay();
+}
+
+closeAbm()
+{
+	move anpanelf to y-axis [0] speed [8];
+	move anpanell to y-axis [0] speed [8];
+	move anpanelr to y-axis [0] speed [8];
+	
+	wait-for-move anpanelf along y-axis;
+	
+	move anpanell to x-axis [0] speed [8.66];
+	move anpanell to z-axis [0] speed [5];
+	move anpanelr to x-axis [0] speed [8.66];
+	move anpanelr to z-axis [0] speed [5];
+	move anpanelf to z-axis [0] speed [10];
+	
+	turn anpanelf to x-axis <0> speed <120>;
+	turn anpanell to z-axis <0> speed <120>;
+	turn anpanelr to z-axis <0> speed <120>;
+}
+
+AimFromWeapon1(pieceIndex)
+{
+	pieceIndex = flare;
+}
+
+AimFromWeapon2(pieceIndex)
+{
+	pieceIndex = flare;
+}
+
+QueryWeapon1(pieceIndex)
+{
+	pieceIndex = flare;
+}
+
+QueryWeapon2(pieceIndex)
+{
+	pieceIndex = flare;
+}
+
+AimWeapon1(heading, pitch)
+{	
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	start-script openAbm();
+	return (1);
+}
+
+repeatsmoke()
+{
+	set-signal-mask SIGNAL_SMOKE;
+	while (TRUE)
+	{
+		sleep(250);
+		emit-sfx 257 from bladesf;
+		emit-sfx 257 from bladesl;
+		emit-sfx 257 from bladesr;
+	}
+}
+
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
+}
+
+ExecuteRestoreAfterDelay()
+{
+	start-script closeAbm();
+}
+
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode antinuke type BITMAPONLY | NOHEATCLOUD;
+		explode turbinel type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode antinuke type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode turbinel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode antinuke type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode turbinel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode antinuke type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode turbinel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}

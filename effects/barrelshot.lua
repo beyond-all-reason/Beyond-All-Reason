@@ -747,7 +747,7 @@ definitions["barrelshot-lightning"] = {
     },
     centerflare = {
         air                = true,
-        class              = [[heatcloud]],
+        class              = [[CHeatCloudProjectile]],
         count              = 0,
         ground             = true,
         water              = true,

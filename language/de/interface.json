@@ -229,7 +229,7 @@
 			"customOnOff": {
 				"lowTrajectory": "Direktes Feuer",
 				"highTrajectory": "Indirektes Feuer",
-				"trajectory_tooltip": "Schaltet den Artillerie-Abschusswinkel zwischen flacher und steiler Flugbahn um",
+				"trajectory_tooltip": "Schaltet den Artillerie-Abschusswinkel zwischen flacher und steiler Flugbahn um"
 			}
 		},
 		"idleBuilders": {

@@ -4,7 +4,7 @@ return {
   ["sparklegreen"] = {
     explosionspikes = {
       air                = true,
-      class              = [[explspike]],
+      class              = [[CExploSpikeProjectile]],
       count              = 6,
       ground             = true,
       water              = true,
@@ -222,7 +222,7 @@ return {
     },
     pop1 = {
       air                = true,
-      class              = [[heatcloud]],
+      class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
       water              = true,

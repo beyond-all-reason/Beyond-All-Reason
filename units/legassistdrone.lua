@@ -12,7 +12,6 @@ return {
 		cancapture = true,
 		canfly = true,
 		canmove = true,
-		category = "ALL MOBILE NOTLAND NOTSUB VTOL NOWEAPON NOTSHIP NOTHOVER",
 		collide = true,
 		cruisealtitude = 100,
 		explodeas = "smallexplosiongeneric-builder",
@@ -39,9 +38,9 @@ return {
 			"legsolar",
 			"legadvsol",
 			"legwin",
-			"corgeo",
+			"leggeo",
 			"legmstor",
-			"corestor",
+			"legestor",
 			"legmex",
 			"legmext15",
 			"legeconv",
@@ -71,7 +70,7 @@ return {
 			unitgroup = 'builder',
 			model_author = "Mr Bob, Flaka",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "coraircraft",
+			subfolder = "CorAircraft",
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {

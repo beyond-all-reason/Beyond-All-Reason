@@ -8,7 +8,6 @@ return {
 		buildpic = "LEGMSTOR.DDS",
 		buildtime = 2920,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -10 0",
 		collisionvolumescales = "64 60 64",
 		collisionvolumetype = "Box",
@@ -31,15 +30,15 @@ return {
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/legmstor_aoplane.dds",
-			buildinggrounddecalsizey = 8,
-			buildinggrounddecalsizex = 8,
+			buildinggrounddecalsizey = 6,
+			buildinggrounddecalsizex = 6,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'metal',
 			model_author = "Protar",
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "corbuildings/landeconomy",
+			subfolder = "CorBuildings/LandEconomy",
 		},
 		featuredefs = {
 			dead = {

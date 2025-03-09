@@ -1,5 +1,6 @@
 return {
 	legoptio = {
+		activatewhenbuilt = true,
 		maxacc = 0.03127,
 		airsightdistance = 850,
 		maxdec = 0.03127,
@@ -9,7 +10,6 @@ return {
 		buildpic = "legoptio.DDS",
 		buildtime = 10000,
 		canmove = true,
-		category = "ALL MOBILE WEAPON NOTLAND SHIP NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -4 3",
 		collisionvolumescales = "37 37 74",
 		collisionvolumetype = "CylZ",
@@ -41,7 +41,7 @@ return {
 			unitgroup = 'aa',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "corships/t2",
+			subfolder = "CorShips/T2",
 			techlevel = 2,
 		},
 		featuredefs = {
@@ -126,7 +126,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-medium-aa",
 				firestarter = 72,
 				flighttime = 2.5,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "cormissile.s3o",
 				name = "Advanced g2a Salvo Missile Launcher",

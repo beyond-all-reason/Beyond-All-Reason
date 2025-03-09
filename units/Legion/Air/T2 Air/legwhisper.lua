@@ -1,6 +1,5 @@
 return {
 	legwhisper = {
-		maxacc= 0.25,
 		blocking = false,
 		maxdec = 0.0375,
 		energycost = 9000,
@@ -9,7 +8,6 @@ return {
 		buildtime = 14000,
 		canfly = true,
 		canmove = true,
-		category = "ALL NOTLAND MOBILE NOTSUB VTOL NOWEAPON NOTSHIP NOTHOVER",
 		collide = false,
 		cruisealtitude = 130,
 		explodeas = "mediumexplosiongeneric",
@@ -45,7 +43,7 @@ return {
 			unitgroup = 'util',
 			model_author = "Unknown (c/o Hornet)",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "coraircraft/t2",
+			subfolder = "CorAircraft/T2",
 			techlevel = 2,
 		},
 		sfxtypes = {

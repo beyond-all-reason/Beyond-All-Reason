@@ -9,7 +9,6 @@ return {
 		buildpic = "LEGLAB.DDS",
 		buildtime = 6500,
 		canmove = true,
-		category = "ALL NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 5 0",
 		collisionvolumescales = "100 45 100",
 		collisionvolumetype = "CylY",
@@ -32,7 +31,7 @@ return {
 		sightdistance = 290,
 		terraformspeed = 500,
 		workertime = 100,
-		yardmap = "coooocoooooococcococcccooccccocccccc",
+		yardmap = "oooooo oooooo oeeeeo oeeeeo oeeeeo oeeeeo",
 		buildoptions = {
 			[1] = "legck",
 			[2] = "cornecro",
@@ -46,13 +45,13 @@ return {
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/leglab_aoplane.dds",
-			buildinggrounddecalsizey = 8,
-			buildinggrounddecalsizex = 8,
+			buildinggrounddecalsizey = 9,
+			buildinggrounddecalsizex = 9,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'builder',
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "corbuildings/landfactories",
+			subfolder = "CorBuildings/LandFactories",
 		},
 		featuredefs = {
 			dead = {

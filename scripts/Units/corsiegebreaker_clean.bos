@@ -112,7 +112,7 @@ Create()
 	animSpeed = 100;
 	restore_delay = 3000;
 	
-	call-script SweepFire();
+	//call-script SweepFire();
 	
 }
 
@@ -179,7 +179,7 @@ SweepFire()
 		if (isfiring == 1 AND lastfired+firetime>gameframe)
 		{
 			
-			emit-sfx 2049 from flare;
+			emit-sfx 2049 from chamber_flare;
 			
 			
 		}

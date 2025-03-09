@@ -1806,7 +1806,7 @@ local definitions = {
             length             = 40,
             sidetexture        = [[none]],
             size               = 1100,
-            sizegrowth         = [[0.1.2 r0.2]],
+            sizegrowth         = [[0.1 r0.2]],
             ttl                = 15,
             pos                = [[0, 10, 0]],
           },

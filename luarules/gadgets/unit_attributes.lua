@@ -381,7 +381,6 @@ local function UpdateMovementSpeed(unitID, unitDefID, speedFactor, turnAccelFact
 				maxAcc          = state.origMaxAcc      *maxAccelerationFactor, --(speedFactor > 0.001 and speedFactor or 0.001)
 			}
 			spSetAirMoveTypeData (unitID, attribute)
-			spSetAirMoveTypeData (unitID, attribute)
 		elseif state.movetype == 1 then
 			local attribute =  {
 				maxSpeed        = state.origSpeed       *speedFactor,
@@ -648,6 +647,7 @@ local function SetAllowUnitCoast(unitID, allowed)
 end
 
 function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(70)
 	GG.UpdateUnitAttributes = UpdateUnitAttributes
 	GG.SetAllowUnitCoast = SetAllowUnitCoast
 
@@ -670,7 +670,7 @@ function gadget:GameFrame(f)
 
 end
 
-function gadget:UnitDestroyed(unitID)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	removeUnit(unitID)
 end
 
@@ -683,7 +683,8 @@ function gadget:AllowCommand_GetWantedUnitDefID()
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
-	if (cmdID == 70 and unitSlowed[unitID]) then
+	-- accepts: 70 (SET_WANTED_MAX_SPEED, but not registered anywhere)
+	if unitSlowed[unitID] then
 		return false
 	else
 		return true

@@ -7,7 +7,6 @@ return {
 		buildpic = "LEGASKIRMTANK.DDS",
 		buildtime = 8750,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "30 30 34", ---not respected used collisionvolumes.lua
 		collisionvolumetype = "BOX",
@@ -113,7 +112,7 @@ return {
 		},
 		weapondefs = {
 			legmgplasma = {
-				burstrate = 0.15,
+				burstrate = 0.2,
 				burst = 3,
 				sprayangle = 600,
                 --accuracy = 100,
@@ -130,12 +129,11 @@ return {
 				tolerance = 7000,
 				gravityaffected = "true",
 				predictboost = 0.5,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				name = "Heavy Rotary Plasma Cannon",
 				noselfdamage = true,
 				range = 600,
-				reloadtime = 1.9,
+				reloadtime = 2,
 				size = 2,
 				soundhit = "xplosml3",
 				soundhitwet = "splshbig",
@@ -144,7 +142,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 320,
 				damage = {
-					default = 60,
+					default = 70,
 					vtol = 20,
 				},
 			},

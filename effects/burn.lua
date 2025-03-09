@@ -968,7 +968,7 @@ return {
       ground             = true,
       properties = {
         airdrag            = 0.91,
-        colormap           = [[0.75 0.45 0.99 0.3   0.96 0.90 0.95 095   0.98 0.95 0.90 0.33  0.94 0.88 0.80 0.12   0.78 0.45 0.1 0.07    0.01 0 0 0.01]],
+        colormap           = [[0.75 0.45 0.99 0.3   0.96 0.90 0.95 0.95   0.98 0.95 0.90 0.33  0.94 0.88 0.80 0.12   0.78 0.45 0.1 0.07    0.01 0 0 0.01]],
         directional        = true,
         emitrot            = 2,
         emitrotspread      = 2,
@@ -1248,7 +1248,21 @@ return {
       },
     },
   },
-  
+  ["burnflamexl-gen"] = {
+    burnrandom = {
+      class              = [[CExpGenSpawner]],
+      count              = 1,
+      air                = true,
+      ground             = true,
+      water              = true,
+      underwater         = true,
+      properties = {
+          delay              = [[r12]],
+          explosiongenerator = [[custom:burnflamexl]],
+          pos                = [[-10 r20, 0 r20, -10 r20]],
+      },
+    },
+  },
   
    ["demonflame"] = {
     extrafire = {

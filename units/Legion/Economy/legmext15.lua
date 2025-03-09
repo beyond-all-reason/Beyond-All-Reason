@@ -10,7 +10,7 @@ return {
 		buildpic = "LEGMEXT15.DDS",
 		buildtime = 5000,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE CANBEUW UNDERWATER",
+		category = "CANBEUW",
 		collisionvolumeoffsets = "0 -3 0",
 		collisionvolumescales = "48 30 48",
 		collisionvolumetype = "CylY",
@@ -35,9 +35,9 @@ return {
 		yardmap = "h cbbbbbbc bssssssb bssobssb bsbbbosb bsobbbsb bssbossb bssssssb cbbbbbbc",
 		customparams = {
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/cormex_aoplane.dds",
-			buildinggrounddecalsizey = 2,
-			buildinggrounddecalsizex = 2,
+			buildinggrounddecaltype = "decals/legmext15_aoplane.dds",
+			buildinggrounddecalsizey = 5,
+			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'metal',
 			cvbuildable = true,
@@ -46,7 +46,7 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "corbuildings/landeconomy",
+			subfolder = "CorBuildings/LandEconomy",
 		},
 		featuredefs = {
 			dead = {

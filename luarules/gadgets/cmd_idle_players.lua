@@ -253,6 +253,7 @@ else	-- UNSYNCED
 
 	local min = math.min
 	local max = math.max
+	local clamp = math.clamp
 
 	local lastActionTime = 0
 	local timer = 0
@@ -388,7 +389,7 @@ else	-- UNSYNCED
 					queueTime = thisQueueTime
 				end
 			end
-			lastActionTime = min(max(lastActionTime, timer+queueTime),gameStartTime+maxInitialQueueSlack) --treat this queue as though is was an initial queue
+			lastActionTime = clamp(lastActionTime, timer+queueTime, gameStartTime+maxInitialQueueSlack) --treat this queue as though is was an initial queue
 			checkQueueTime = nil
 		end
 

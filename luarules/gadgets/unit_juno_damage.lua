@@ -48,6 +48,8 @@ if gadgetHandler:IsSyncedCode() then
 		['corspec'] = true,
 		['corvoyr'] = true,
 		['corvrad'] = true,
+		['legarad'] = true,
+		['legajam'] = true,
 		
 		['armmine1'] = true,
 		['armmine2'] = true,
@@ -57,7 +59,10 @@ if gadgetHandler:IsSyncedCode() then
 		['cormine2'] = true,
 		['cormine3'] = true,		
 		['cormine4'] = true,		
-		['corfmine3'] = true,		
+		['corfmine3'] = true,	
+		['legmine1'] = true,
+		['legmine2'] = true,
+		['legmine3'] = true,		
 
 		['corfav'] = true,
 		['armfav'] = true,

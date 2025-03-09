@@ -21,49 +21,123 @@ local isSpec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
 local preGamestartPlayer = Spring.GetGameFrame() == 0 and not isSpec
 local startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
+local prevStartDefID = startDefID
 local metalMap = false
 
 local unitshapes = {}
 
-local armToCorNames = {
-	["armmex"] = "cormex",
-	["armuwmex"] = "coruwmex",
-	["armsolar"] = "corsolar",
-	["armwin"] = "corwin",
-	["armtide"] = "cortide",
-	["armllt"] = "corllt",
-	["armrad"] = "corrad",
-	["armrl"] = "corrl",
-	["armtl"] = "cortl",
-	["armsonar"] = "corsonar",
-	["armfrt"] = "corfrt",
-	["armlab"] = "corlab",
-	["armvp"] = "corvp",
-	["armsy"] = "corsy",
-	["armmstor"] = "cormstor",
-	["armestor"] = "corestor",
-	["armmakr"] = "cormakr",
-	["armeyes"] = "coreyes",
-	["armdrag"] = "cordrag",
-	["armdl"] = "cordl",
-	["armap"] = "corap",
-	["armfrad"] = "corfrad",
-	["armuwms"] = "coruwms",
-	["armuwes"] = "coruwes",
-	["armfmkr"] = "corfmkr",
-	["armfdrag"] = "corfdrag",
-	["armptl"] = "corptl",
+local corNames = {
+	"cormex",
+	"corsolar",
+	"corwin",
+	"cortide",
+	"corllt",
+	"corrad",
+	"corrl",
+	"cortl",
+	"corfrt",
+	"corlab",
+	"corvp",
+	"corsy",
+	"cormstor",
+	"corestor",
+	"cormakr",
+	"coreyes",
+	"cordrag",
+	"cordl",
+	"corap",
+	"corfrad",
+	"coruwms",
+	"coruwes",
+	"corfmkr",
+	"corfdrag",
+	"corhp",
+	"corfhp",
 }
+local armNames = {
+	"armmex",
+	"armsolar",
+	"armwin",
+	"armtide",
+	"armllt",
+	"armrad",
+	"armrl",
+	"armtl",
+	"armfrt",
+	"armlab",
+	"armvp",
+	"armsy",
+	"armmstor",
+	"armestor",
+	"armmakr",
+	"armeyes",
+	"armdrag",
+	"armdl",
+	"armap",
+	"armfrad",
+	"armuwms",
+	"armuwes",
+	"armfmkr",
+	"armfdrag",
+	"armhp",
+	"armfhp",
+}
+local legNames = {
+	"legmex",
+	"legsolar",
+	"legwin",
+	"legtide",
+	"leglht",
+	"legrad",
+	"legrl",
+	"cortl",
+	"corfrt",
+	"leglab",
+	"legvp",
+	"corsy",
+	"legmstor",
+	"legestor",
+	"legeconv",
+	"legeyes",
+	"legdrag",
+	"cordl",
+	"legap",
+	"corfrad",
+	"coruwms",
+	"coruwes",
+	"legfmkr",
+	"corfdrag",
+	"leghp",
+	"legfhp",
+}
+
 -- convert unitname -> unitDefID
-local armToCor = {}
-for unitName, corUnitName in pairs(armToCorNames) do
-	if UnitDefNames[unitName] and UnitDefNames[corUnitName] then
-		armToCor[UnitDefNames[unitName].id] = UnitDefNames[corUnitName].id
+local indexToCor = {}
+local indexToArm = {}
+local indexToLeg = {}
+for index, corUnitName in ipairs(corNames) do
+	if UnitDefNames[corUnitName] then
+		indexToCor[index] = UnitDefNames[corUnitName].id
 	end
 end
-armToCorNames = nil
+for index, armUnitName in ipairs(armNames) do
+	if UnitDefNames[armUnitName] then
+		indexToArm[index] = UnitDefNames[armUnitName].id
+	end
+end
+for index, legUnitName in ipairs(legNames) do
+	if UnitDefNames[legUnitName] then
+		indexToLeg[index] = UnitDefNames[legUnitName].id
+	end
+end
 
-local corToArm = table.invert(armToCor)
+corNames = nil
+armNames = nil
+legNames = nil
+
+local corToIndex = table.invert(indexToCor)
+local armToIndex = table.invert(indexToArm)
+local legToIndex = table.invert(indexToLeg)
 
 local function buildFacingHandler(_, _, args)
 	if not (preGamestartPlayer and selBuildQueueDefID) then
@@ -466,34 +540,43 @@ function widget:DrawWorld()
 	end
 
 	-- Check for faction change
-	for b = 1, #buildQueue do
-		local buildData = buildQueue[b]
-		local buildDataId = buildData[1]
-		if buildDataId > 0 then
-			if startDefID == UnitDefNames["armcom"].id then
-				if corToArm[buildDataId] ~= nil then
-					buildData[1] = corToArm[buildDataId]
-					buildQueue[b] = buildData
-				end
-			elseif startDefID == UnitDefNames["corcom"].id then
-				if armToCor[buildDataId] ~= nil then
-					buildData[1] = armToCor[buildDataId]
+	if prevStartDefID ~= startDefID then
+		local prevFaction = UnitDefs[prevStartDefID].name
+		local prevFactionToIndex
+		if prevFaction == "armcom" then
+			prevFactionToIndex = armToIndex
+		elseif prevFaction == "corcom" then
+			prevFactionToIndex = corToIndex
+		elseif prevFaction == "legcom" then
+			prevFactionToIndex = legToIndex
+		end
+		local currentFaction = UnitDefs[startDefID].name
+		local indexToCurrentFaction
+		if currentFaction == "armcom" then
+			indexToCurrentFaction = indexToArm
+		elseif currentFaction == "corcom" then
+			indexToCurrentFaction = indexToCor
+		elseif currentFaction == "legcom" then
+			indexToCurrentFaction = indexToLeg
+		end
+
+		if prevFactionToIndex and indexToCurrentFaction then
+			for b = 1, #buildQueue do
+				local buildData = buildQueue[b]
+				local buildDataId = buildData[1]
+				if buildDataId > 0 then
+					buildData[1] = indexToCurrentFaction[prevFactionToIndex[buildDataId]]
 					buildQueue[b] = buildData
 				end
 			end
-		end
-	end
 
-	if startDefID == UnitDefNames["armcom"].id then
-		if corToArm[selBuildQueueDefID] ~= nil then
-			selBuildData[1] = corToArm[selBuildQueueDefID]
-			selBuildQueueDefID = corToArm[selBuildQueueDefID]
+			local selBuildQueueDefIDConverted = indexToCurrentFaction[prevFactionToIndex[selBuildQueueDefID]]
+			if selBuildQueueDefIDConverted ~= nil then
+				selBuildData[1] = selBuildQueueDefIDConverted
+				selBuildQueueDefID = selBuildQueueDefIDConverted
+			end
 		end
-	elseif startDefID == UnitDefNames["corcom"].id then
-		if armToCor[selBuildQueueDefID] ~= nil then
-			selBuildData[1] = armToCor[selBuildQueueDefID]
-			selBuildQueueDefID = armToCor[selBuildQueueDefID]
-		end
+		prevStartDefID = startDefID
 	end
 
 	-- Draw all the buildings

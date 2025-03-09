@@ -8,6 +8,7 @@ function gadget:GetInfo()
 		license = "GNU GPL, v2 or later",
 		layer	= 0,
 		enabled	= true,
+		depends = {'gl4'},
 	}
 end
 
@@ -536,7 +537,7 @@ local function SetShaderUniforms(drawPass, shaderID, uniformBinID)
 end
 ------------------------- SHADERS                   ----------------------
 ------------------------- LOADING OLD CUS MATERIALS ----------------------
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 
@@ -1518,7 +1519,6 @@ local function ProcessUnits(units, drawFlags, reason)
 		local unitID = units[i]
 		local drawFlag = drawFlags[i]
 		if debugmode then Spring.Echo("ProcessUnits", unitID, drawFlag, reason) end
-		local isBuilding = spGetUnitIsBeingBuilt(unitID)
 
 
 		if math_bit_and(drawFlag, 34) > 0 then -- has alpha (2) or alphashadow(32) flag 
@@ -2076,7 +2076,7 @@ local function UpdateUnit(unitID, flag)
 	destroyedUnitDrawFlags[numdestroyedUnits] = flag
 end
 
-function gadget:UnitDestroyed(unitID)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	--UpdateUnit(unitID, 0) -- having this here means that dying units lose CUS, RenderUnitDestroyed _should_ be fine
 end
 
@@ -2307,30 +2307,7 @@ function gadget:DrawOpaqueUnitsLua(deferredPass, drawReflection, drawRefraction)
 	local batches, units = ExecuteDrawPass(drawPass)
 end
 
-function gadget:DrawAlphaUnitsLua(drawReflection, drawRefraction)
-	if unitDrawBins == nil then return end
-	local drawPass = drawPassBitsToNumber(false, false, drawReflection, drawRefraction)
-	--local batches, units = ExecuteDrawPass(drawPass)
-end
-
-function gadget:DrawOpaqueFeaturesLua(deferredPass, drawReflection, drawRefraction)
-	if unitDrawBins == nil then return end
-	local drawPass = drawPassBitsToNumber(true, deferredPass, drawReflection, drawRefraction)
-	--local batches, units = ExecuteDrawPass(drawPass)
-end
-
-function gadget:DrawAlphaFeaturesLua(drawReflection, drawRefraction)
-	if unitDrawBins == nil then return end
-	local drawPass = drawPassBitsToNumber(true, false, drawReflection, drawRefraction)
-	--local batches, units = ExecuteDrawPass(drawPass)
-end
-
 function gadget:DrawShadowUnitsLua()
 	if unitDrawBins == nil then return end
 	local batches, units = ExecuteDrawPass(16)
-end
-
-function gadget:DrawShadowFeaturesLua() -- These are drawn together with units
-	if unitDrawBins == nil then return end
-	--ExecuteDrawPass(16)
 end

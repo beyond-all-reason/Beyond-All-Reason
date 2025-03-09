@@ -6,7 +6,7 @@ function widget:GetInfo()
 		author = "Beherith",
 		date = "20211020",
 		license = "GNU GPL, v2 or later",
-		layer = 0,
+		layer = 20, -- below most GUI elements, which generally go up to 10
 		enabled = true
 	}
 end
@@ -14,7 +14,7 @@ end
 local timeToLive = 330
 local lineWidth = 1.0
 
-local getMiniMapFlipped = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").getMiniMapFlipped
+local getMiniMapFlipped = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapFlipped
 
 ----------------------------------------------------------------
 --speedups
@@ -60,7 +60,7 @@ end
 local mapMarkInstanceVBO = nil
 local mapMarkShader= nil
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 
@@ -306,4 +306,8 @@ function widget:DrawInMiniMap(sx, sy)
   gl.ClipDistance ( 1, false)
   gl.ClipDistance ( 3, false)
   DrawMapMarksWorld(1)
+end
+
+function widget:ClearMapMarks()
+	ClearPoints()
 end

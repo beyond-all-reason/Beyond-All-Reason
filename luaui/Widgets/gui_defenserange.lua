@@ -116,6 +116,9 @@ modConfig["BYAR"]["unitList"] = {
 	
 	legtl = { weapons = { 1 } }, --torp launcher
 
+	legabm = { weapons = { 3 } },
+	legrampart = { weapons = { 3 }},
+
 	-- SCAVENGERS
 	scavbeacon_t1_scav = { weapons = { 1 } },
 	scavbeacon_t2_scav = { weapons = { 1 } },
@@ -400,7 +403,6 @@ function UnitDetected( unitID, allyTeam, teamId )
 	end
 	local unitDefID = spGetUnitDefID(unitID)
 
-	local key = tostring(unitID)
 	local x, y, z = spGetUnitPosition(unitID)
 
 	local range = 0

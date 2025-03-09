@@ -1,0 +1,134 @@
+
+#include "../recoil_common_includes.h"
+		
+piece 	base, rgturret, rgturretarm, rgsleeve, rgbarrel, rgflare, sleevedeco2;
+
+static-var  isAiming, shotcount;
+
+// Signal definitions
+#define SIGNAL_AIM 1
+
+Create()
+{
+	isAiming = 0;
+	shotcount = 0;
+	spin sleevedeco2 around z-axis speed <-360> accelerate <6>;
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script ExecuteRestoreAfterDelay();
+	return (0);
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+	turn rgturret to y-axis <0.0> speed <60.0>;
+	turn rgsleeve to x-axis <-15.0> speed <30.0>;
+	turn rgturretarm to x-axis <-15.0> speed <30.0>;
+	wait-for-turn rgturret around y-axis;
+	
+	isAiming = 0;
+}
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+RestoreAfterDelay()
+{
+	set-signal-mask SIGNAL_AIM;
+	sleep 8000;
+	start-script ExecuteRestoreAfterDelay();
+}
+
+QueryWeapon1(piecenum) //railgun
+{
+	piecenum = rgflare;
+	return (0);
+}
+
+AimFromWeapon1(piecenum)
+{
+	piecenum = rgturretarm;
+	return (0);
+}
+
+FireWeapon1()
+{
+	call-script lua_UnitScriptLight(1, shotcount);
+	++shotcount;
+	move rgbarrel to z-axis [-8] now;
+	move rgbarrel to z-axis [0] speed [5];
+	return (0);
+}
+
+AimWeapon1(heading, pitch)
+{
+	signal SIGNAL_AIM;
+	set-signal-mask SIGNAL_AIM;
+	
+	turn rgturret to y-axis heading speed <120.0>;
+	
+	turn rgturretarm to x-axis 0-(pitch/2) speed <60.0>;
+	turn rgsleeve to x-axis 0-(pitch/2) speed <60.0>;
+	
+	wait-for-turn rgturret around y-axis;
+	wait-for-turn rgturretarm around x-axis;
+	wait-for-turn rgsleeve around x-axis;
+	
+	isAiming = 1;
+	start-script RestoreAfterDelay();
+	
+	return (1);
+}
+
+lua_UnitScriptLight(lightIndex, count)
+{
+	return 0;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode rgturret type BITMAPONLY | NOHEATCLOUD;
+		explode rgturretarm type BITMAPONLY | NOHEATCLOUD;
+		explode rgbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode rgturret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rgturretarm type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rgbarrel type FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rgturret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rgturretarm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rgbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rgturret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rgturretarm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rgbarrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}

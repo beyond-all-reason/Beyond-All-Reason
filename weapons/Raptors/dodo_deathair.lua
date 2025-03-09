@@ -6,7 +6,6 @@ return {
 		edgeeffectiveness = 0.5,
 		explosiongenerator = "custom:blood_explode_xl",
 		explosionspeed = 999999,
-		impulseboost = 0.5,
 		impulsefactor = 0.5,
 		interceptedbyshieldtype = 1,
 		name = "CrawlingBomb",

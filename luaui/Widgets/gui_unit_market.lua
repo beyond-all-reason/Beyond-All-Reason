@@ -84,9 +84,6 @@ local spGetGameFrame        = Spring.GetGameFrame
 local spGetUnitHealth       = Spring.GetUnitHealth
 
 local myTeamID              = Spring.GetMyTeamID()
-local myAllyTeamID          = Spring.GetMyAllyTeamID()
-local gaiaTeamID            = Spring.GetGaiaTeamID()
-local myPlayerID            = Spring.GetMyPlayerID()
 local isSpectating, fullview = Spring.GetSpectatingState()
 
 local spIsGUIHidden = Spring.IsGUIHidden
@@ -112,7 +109,6 @@ local glTexRect = gl.TexRect
 local glDepthTest = gl.DepthTest
 
 local unitMarket = Spring.GetModOptions().unit_market
-local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
 
 local math_sqrt = math.sqrt
@@ -166,7 +162,7 @@ local uiScale = (0.7 + (vsx * vsy / 6500000))
 
 local fontSize = fontfileSize * 0.4
 
-local RectRound, UiElement, UiUnit, UiButton, elementPadding, uiPadding, uiScale
+local RectRound, UiElement, UiUnit, UiButton, elementPadding, uiScale
 
 local uiElementRect = {0,0,0,0}
 local buyButtons = {}
@@ -423,29 +419,6 @@ function widget:UnitSold(unitID, price, old_ownerID, msgFromTeamID)
     unitSold(unitID, price, old_ownerID, msgFromTeamID)
 end
 
-local function colourNames(teamID)
-	local nameColourR, nameColourG, nameColourB = 0.9, 0.9, 0.9
-	if teamID ~= nil then
-	    nameColourR, nameColourG, nameColourB = spGetTeamColor(teamID)
-    end
-	if anonymousMode ~= "disabled" and teamID ~= myTeamID then
-		nameColourR, nameColourG, nameColourB = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
-	end
-	local R255 = math_floor(nameColourR * 255)
-	local G255 = math_floor(nameColourG * 255)
-	local B255 = math_floor(nameColourB * 255)
-	if R255 % 10 == 0 then
-		R255 = R255 + 1
-	end
-	if G255 % 10 == 0 then
-		G255 = G255 + 1
-	end
-	if B255 % 10 == 0 then
-		B255 = B255 + 1
-	end
-	return "\255" .. string.char(R255) .. string.char(G255) .. string.char(B255)
-end
-
 local function OfferToBuy(unitID)
     spSendLuaRulesMsg("unitTryToBuy " .. unitID) -- Tell gadget we are buying (or trying to)
     triedToBuyTime = os.clock()+0.3
@@ -677,16 +650,6 @@ local function DrawT2TradeDock()
     t2conDockShown = true
 end
 
-local function DoIhaveAllies()
-    local alliedTeams = spGetTeamList(myAllyTeamID)
-    for i = 1, #alliedTeams do
-        if myTeamID ~= alliedTeams[i] then
-            return true
-        end
-    end
-    return false
-end
-
 local function updatedSeePrices(value)
     if value then
         DrawUnitTradeInfo = function()
@@ -746,7 +709,6 @@ local function getIgnoreList()
         ignoreTeam[teamID] = false
 	end
     -- if you are debugging, comment this section
-    loneTeamPlayer = not DoIhaveAllies()
     for _, allyTeamID in ipairs(spGetAllyTeamList()) do
         local allyTeamTeams = spGetTeamList(allyTeamID)
         local hasHumanPlayers = false
@@ -820,11 +782,8 @@ function widget:Initialize()
 end
 
 function widget:PlayerChanged(playerID)
-    myPlayerID = Spring.GetMyPlayerID()
 	myTeamID = Spring.GetMyTeamID()
-    myAllyTeamID = Spring.GetMyAllyTeamID()
     isSpectating, fullview = spGetSpectatingState()
-    loneTeamPlayer = not DoIhaveAllies()
     InitFindSales()
 end
 
@@ -834,7 +793,7 @@ function widget:TextCommand(command)
     end
 end
 
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	ClearUnitData(unitID)
 end
 
@@ -998,8 +957,7 @@ function widget:ViewResize(n_vsx, n_vsy)
 	UiButton = WG.FlowUI.Draw.Button
 	RectRound = WG.FlowUI.Draw.RectRound
 	elementPadding = WG.FlowUI.elementPadding
-	uiPadding = math_floor(elementPadding * 4.5)
-    
+
     -- I'll dynamically resize it before showing it...
 	uiElementRect = {
 		(vsx * 0.7), vsy * 0.959 - 80,

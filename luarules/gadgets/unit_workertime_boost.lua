@@ -20,6 +20,7 @@ if not gadgetHandler:IsSyncedCode() then return false end
 
 local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
 local spGetUnitDefID = Spring.GetUnitDefID
+local spSetUnitRulesParam = Spring.SetUnitRulesParam
 local boostableUnits = {}
 local builderWatchDefs = {}
 local builderWatch = {}
@@ -39,11 +40,9 @@ for id, def in pairs(UnitDefs) do
 	end
 	if def.speed == 0 and not def.weapons[1] and def.buildSpeed < 1 then
 		table.insert(boostableUnits[id], "PASSIVE")
-		Spring.Echo("Passive: ", def.name)
 	end
 	if def.buildSpeed and def.buildSpeed > 0 then
 		table.insert(boostableUnits[id], "BUILDER")
-		Spring.Echo("Builder: ", def.name)
 	end
 end
 
@@ -57,7 +56,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	end
 end
 
-function gadget:UnitDestroyed(unitID)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	builderWatch[unitID] = nil
 end
 
@@ -77,9 +76,11 @@ function gadget:GameFrame(frame)
 					end
 					if enableBoost == true then
 						Spring.SetUnitBuildSpeed(id, data.boost)
+						spSetUnitRulesParam(id, "workertimeBoosted", data.boost)
 					else
 						Spring.SetUnitBuildSpeed(id, data.buildspeed)
 						data.timestamp = frame+60
+						spSetUnitRulesParam(id, "workertimeBoosted", 0)
 					end
 				else
 					Spring.SetUnitBuildSpeed(id, data.buildspeed)

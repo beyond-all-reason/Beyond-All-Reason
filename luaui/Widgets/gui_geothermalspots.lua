@@ -85,7 +85,7 @@ local spotVBO = nil
 local spotInstanceVBO = nil
 local spotShader = nil
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 
@@ -355,7 +355,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	end
 end
 
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	if extractors[unitDefID] then
 		sceduledCheckedSpotsFrame = Spring.GetGameFrame() + 3	-- delay needed, i don't know why
 	end

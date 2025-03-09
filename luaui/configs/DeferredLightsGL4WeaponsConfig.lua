@@ -297,7 +297,7 @@ local function AssignLightsToAllWeapons()
 		damage = (damage / globalDamageMult) + ((damage * (globalDamageMult-1))*0.25)
 
 		local radius = ((weaponDef.damageAreaOfEffect*2) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
-		local orgMult = math.max(0.1, math.min(damage/1600, 0.6)) + (radius/2800)
+		local orgMult = math.clamp(damage/1600, 0.1, 0.6) + (radius/2800)
 		local life = 8 + (5*(radius/2000)+(orgMult * 5))
 		radius = ((orgMult * 75) + (radius * 2.4)) * 0.33
 
@@ -666,30 +666,38 @@ GetLightClass("Explosion", nil, "Large", {r = 3, g = 2.5, b = 2.0, a = 0.25,
 
 --legbart
 explosionLightsNames["legbart_clusternapalm"] =
-GetLightClass("Explosion", "Fire", "SmallMedium", {r = 0.54, g = 0.45, b = 0.12, a = 0.29,
-										 color2r = 1.2, color2g = 0.5, color2b = 0.2, colortime = 0.03,
-										 sustain = 40, lifetime = 150,
-										 modelfactor = 0.3, specular = 0.8, scattering = 1.5, lensflare = 0})
+GetLightClass("Explosion", "Fire", "SmallMedium", {r = 0.32, g = 0.24, b = 0.1, a = 0.1,
+										 color2r = 0.8, color2g = 0.4, color2b = 0.1, colortime = 44,
+										 sustain = 120, lifetime = 180,
+										 modelfactor = -0.3, specular = -0.3, scattering = 0.3, lensflare = 0})
 
 --legbar
 explosionLightsNames["legbar_clusternapalm"] =
-GetLightClass("Explosion", "Fire", "Small", {r = 0.52, g = 0.46, b = 0.18, a = 0.24,
-										 color2r = 1.2, color2g = 0.5, color2b = 0.2, colortime = 0.12,
-										 sustain = 30, lifetime = 125,
-										 modelfactor = -0.3, specular = -0.3, scattering = 0.15, lensflare = 0})
+GetLightClass("Explosion", "Fire", "Small", {r = 0.32, g = 0.24, b = 0.1, a = 0.005,
+										 color2r = 0.8, color2g = 0.4, color2b = 0.1, colortime = 44,
+										 sustain = 120, lifetime = 180,
+										 modelfactor = -0.3, specular = -0.3, scattering = 0.3, lensflare = 0})
+
+--leginf
+explosionLightsNames["leginf_rapidnapalm"] =
+GetLightClass("Explosion", "Fire", "Small", {r = 0.32, g = 0.24, b = 0.1, a = 0.001,
+										 color2r = 0.8, color2g = 0.4, color2b = 0.1, colortime = 180,
+										 sustain = 30, lifetime = 180,
+										 modelfactor = -0.3, specular = -0.3, scattering = 0.3, lensflare = 0})
 
 --legnap
 explosionLightsNames["legnap_napalmbombs"] =
-GetLightClass("Explosion", "Fire", "Small", {r = 0.54, g = 0.45, b = 0.12, a = 0.28,
-										 color2r = 1.2, color2g = 0.5, color2b = 0.2, colortime = 0.12,
-										 sustain = 30, lifetime = 125,
-										 modelfactor = -0.3, specular = -0.3, scattering = 0.15, lensflare = 0})
+GetLightClass("Explosion", "Fire", "Small", {r = 0.32, g = 0.24, b = 0.1, a = 0.1,
+										 color2r = 0.8, color2g = 0.4, color2b = 0.1, colortime = 44,
+										 sustain = 120, lifetime = 180,
+										 modelfactor = -0.3, specular = -0.3, scattering = 0.3, lensflare = 0})
+
 --legperdition
 explosionLightsNames["legperdition_napalmmissile"] =
-GetLightClass("Explosion", "Fire", "Large", {r = 0.54, g = 0.45, b = 0.12, a = 0.28,
-										 color2r = 1.2, color2g = 0.5, color2b = 0.2, colortime = 0.12,
-										 sustain = 30, lifetime = 1250,
-										 modelfactor = -0.3, specular = -0.3, scattering = 0.15, lensflare = 0})
+GetLightClass("Explosion", "Fire", "Large", {r = 0.32, g = 0.24, b = 0.1, a = 0.1,
+										 color2r = 0.8, color2g = 0.4, color2b = 0.1, colortime = 44,
+										 sustain = 120, lifetime = 180,
+										 modelfactor = -0.3, specular = -0.3, scattering = 0.3, lensflare = 0})
 
 --legphoenix
 explosionLightsNames["legphoenix_skybeam"] =
@@ -737,6 +745,23 @@ GetLightClass("LaserProjectile", "Warm", "Smallest", {r = 1.0, g = 0.65, b = 0.1
 											--pos2x = 0, pos2y = 0, pos2z = 0,
 											modelfactor = 0.3, specular = -0.05, scattering = 0.3, lensflare = 16,
 											sustain = 2, lifetime = 3, })
+
+--legeheatraymech
+explosionLightsNames["legeheatraymech_heatray1"] =
+GetLightClass("Explosion", "Fire", "Smaller", {r = 0.54, g = 0.45, b = 0.12, a = 0.15,
+										 color2r = 1.2, color2g = 0.5, color2b = 0.2, colortime = 0.3,
+										 sustain = 2, lifetime = 3,
+										 modelfactor = -0.3, specular = -0.1, scattering = 1.95, lensflare = 0})
+
+explosionLightsNames["legeheatraymech_heatray1"].yOffset = 32
+
+projectileDefLightsNames["legeheatraymech_heatray1"] =
+GetLightClass("LaserProjectile", "Warm", "Smallest", {r = 1.0, g = 0.65, b = 0.1, a = 0.15,
+											color2r = 0.15, color2g = 0.05, color2b = 0.015, colortime = 0.03,
+											--pos2x = 0, pos2y = 0, pos2z = 0,
+											modelfactor = 0.3, specular = -0.05, scattering = 0.3, lensflare = 16,
+											sustain = 2, lifetime = 3, })
+
 
 --armthundt4
 explosionLightsNames["armthundt4_armbomb"] =

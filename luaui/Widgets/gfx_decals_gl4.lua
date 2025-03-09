@@ -7,6 +7,7 @@ function widget:GetInfo()
 		license = "Lua code: GNU GPL, v2 or later, Shader GLSL code: (c) Beherith (mysterme@gmail.com)",
 		layer = 999,
 		enabled = true,
+		depends = {'gl4'},
 	}
 end
 
@@ -214,7 +215,7 @@ local decalExtraLargeVBO = nil
 local decalShader = nil
 local decalLargeShader = nil
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 
 local hasBadCulling = false -- AMD+Linux combo
 
@@ -239,15 +240,15 @@ local spec, fullview = Spring.GetSpectatingState()
 
 ---- GL4 Backend Stuff----
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 
-local vsSrcPath = "LuaUI/Widgets/Shaders/decals_gl4.vert.glsl"
-local fsSrcPath = "LuaUI/Widgets/Shaders/decals_gl4.frag.glsl"
-local gsSrcPath = "LuaUI/Widgets/Shaders/decals_gl4.geom.glsl"
+local vsSrcPath = "LuaUI/Shaders/decals_gl4.vert.glsl"
+local fsSrcPath = "LuaUI/Shaders/decals_gl4.frag.glsl"
+local gsSrcPath = "LuaUI/Shaders/decals_gl4.geom.glsl"
 
-local vsSrcLargePath = "LuaUI/Widgets/Shaders/decals_large_gl4.vert.glsl"
+local vsSrcLargePath = "LuaUI/Shaders/decals_large_gl4.vert.glsl"
 
 local uniformInts =  {
 
@@ -587,7 +588,6 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 	return decalIndex, lifetime
 end
 
-local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 
 local skipdraw = false
 local firstRun = true
@@ -602,7 +602,6 @@ local function DrawDecals()
 
 	if skipdraw then return end
 	--local alt, ctrl = Spring.GetModKeyState()
-	--if alt and (isSinglePlayer) and (Spring.GetConfigInt('DevUI', 0) == 1) then return end
 	if decalVBO.usedElements > 0 or decalLargeVBO.usedElements > 0 or decalExtraLargeVBO.usedElements > 0 then
 
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) -- the default mode
@@ -1076,6 +1075,29 @@ for weaponDefID=1, #WeaponDefs do
 			glowsustain = 45
 			glowadd = 1.8
 			bwfactor = 0.1
+
+		elseif string.find(weaponDef.name, 'pineappleofdoom') or string.find(weaponDef.name, 'heatraylarge') or string.find(weaponDef.name, 'skybeam') or string.find(weaponDef.name, 'heat_ray') then --legbastion leginc legphoenix legaheattank
+			textures = { "t_groundcrack_16_a.tga", "t_groundcrack_17_a.tga", "t_groundcrack_05_a.tga" }
+			--textures = { "t_groundcrack_16_a.tga", "t_groundcrack_17_a.tga", "t_groundcrack_10_a.tga" }
+			alphadecay = 0.004
+			radius = radius * 0.8
+			--radiusVariation = 0.3
+			heatstart = 8000
+			heatdecay = 3.95
+			glowsustain = 20
+			glowadd = 2.8
+			bwfactor = 0.1
+
+		elseif string.find(weaponDef.name, 'starfire') then
+			textures = { "t_groundcrack_16_a.tga", "t_groundcrack_09_a.tga", "t_groundcrack_10_a.tga" }
+			alphadecay = 0.003
+			radius = radius * 1.2 --* (math.random() * 20 + 0.2)
+			radiusVariation = 0.6
+			heatstart = 9000
+			heatdecay = 2.5
+			glowsustain = 0
+			glowadd = 2.5
+			bwfactor = 0.3
 
 		elseif string.find(weaponDef.name, 'footstep') then
 			--textures = { "f_corkorg_a.tga" }
@@ -1902,11 +1924,6 @@ local function UnitScriptDecal(unitID, unitDefID, whichDecal, posx, posz, headin
 end
 
 function widget:Initialize()
-	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
-		widgetHandler:RemoveWidget()
-		return
-	end
-	local t0 = Spring.GetTimer()
 	--if makeAtlases() == false then
 	--	goodbye("Failed to init texture atlas for DecalsGL4")
 	--	return
@@ -1922,8 +1939,6 @@ function widget:Initialize()
 		for i= 1, 100 do
 			local w = math.random() * 15 + 7
 			w = w * w
-			local j = math.floor(math.random()*20+1)
-			--local texture = string.format(groundscarsPath.."t_groundcrack_%02d_a.tga", j)
 			local texture =  randtablechoice(atlas)
 			--Spring.Echo(texture)
 			AddDecal(

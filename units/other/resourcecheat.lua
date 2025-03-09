@@ -8,7 +8,6 @@ return {
 		buildpic = "other/resourcecheat.dds",
 		buildtime = 312500,
 		canrepeat = false,
-		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "110 110 110",
 		collisionvolumetype = "Box",

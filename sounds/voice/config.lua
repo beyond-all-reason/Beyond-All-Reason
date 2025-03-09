@@ -185,7 +185,7 @@ return {
 		delay = 9999999,
 		tutorial = true,
 	},
-	MakeFactory = {
+	BuildFactory = {
 		delay = 9999999,
 		tutorial = true,
 	},

@@ -10,7 +10,6 @@ return {
 		--builder = true,
 		buildpic = "scavengers/scavengerdroppod.DDS",
 		buildtime = 10,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		canmove = false,
 		capturable = false,
 		collisionvolumeoffsets = "0 0 0",
@@ -40,7 +39,7 @@ return {
 		waterline = 0,
 		yardmap = "",
 		customparams = {
-			subfolder = "scavengers",
+			subfolder = "Scavengers",
 			normaltex = "unittextures/cor_normal.dds",
 		},
 		featuredefs = {},

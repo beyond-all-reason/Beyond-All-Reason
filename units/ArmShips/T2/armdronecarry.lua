@@ -11,7 +11,6 @@ return {
 		canmove = true,
 		canreclaim = false,
 		canrepair = false,
-		category = "ALL NOTLAND MOBILE NOTSUB NOWEAPON SHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "3 -7 -3",
 		collisionvolumescales = "48 48 140",
 		collisionvolumetype = "CylZ",
@@ -47,11 +46,12 @@ return {
 		customparams = {
 			model_author = "Odin",
 			normaltex = "unittextures/Arm_normal.dds",
-			subfolder = "armships/t2",
+			subfolder = "ArmShips/T2",
 			techlevel = 2,
 			inheritxpratemultiplier = 1,
 			childreninheritxp = "DRONE",
 			parentsinheritxp = "DRONE",
+			disable_when_no_air = true,
 		},
 		featuredefs = {
 			dead = {
@@ -126,7 +126,6 @@ return {
 				explosiongenerator = "",
 				gravityaffected = "true",
 				hightrajectory = 1,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				name = "HeavyCannon",
 				noselfdamage = true,
@@ -160,9 +159,7 @@ return {
 					docktohealthreshold = 65,
 					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					dockingHelperSpeed = 5,
-					dockingpiecestart = 11,		--First model piece to be used for docking.
-					dockingpieceinterval = 1,	--Number of pieces to skip when docking the next unit.
-					dockingpieceend = 27,		--Last model piece used for docking. Will loop back to first when exceeded.
+					dockingpieces = "11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27",
 					dockingradius = 300,			--The range at which the units snap to the carrier unit when docking.
 				}
 			},
@@ -180,7 +177,6 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-medium-air",
 				firestarter = 70,
 				flighttime = 1.75,
-				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				metalpershot = 0,
 				model = "cormissile.s3o",

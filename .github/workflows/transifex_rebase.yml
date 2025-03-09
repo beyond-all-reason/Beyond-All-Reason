@@ -25,4 +25,4 @@ jobs:
         run: |
           git checkout transifex-synchronization-source
           git reset origin/master --hard
-          git push origin transifex-synchronization-source --force-with-lease
+          git push origin transifex-synchronization-source --force

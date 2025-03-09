@@ -26,10 +26,6 @@ function widget:Initialize()
 	WG['autoeraser'].getRecentlyErased = function(value)	-- so mapmarks fx widget can call this and wont activate on auto erasing
 		return recentlyErased
 	end
-	WG['autoeraser'].clearedMapmarks = function()	-- so mapmarks fx widget can call this and wont activate on auto erasing
-		pointsToErase = {}
-		recentlyErased = {}
-	end
 end
 
 function widget:MapDrawCmd(playerID, cmdType, px, py, pz, arg1, arg2, arg3, arg4) -- cmdType can be 'erase', 'point', or 'line', arg1 is the text or line length(?)
@@ -81,4 +77,9 @@ function widget:SetConfigData(data)
 	if data.pointsToErase ~= nil and Spring.GetGameFrame() > 0 then
 		pointsToErase = data.pointsToErase
 	end
+end
+
+function widget:ClearMapMarks()
+	pointsToErase = {}
+	recentlyErased = {}
 end

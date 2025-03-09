@@ -8,7 +8,6 @@ return {
 		buildpic = "ARMBOTRAIL.DDS",
 		buildtime = 255000,
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 -20",
 		collisionvolumescales = "48 90 48",
 		collisionvolumetype = "CylY",
@@ -40,7 +39,7 @@ return {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			--removewait = true,
-			subfolder = "armbuildings/landdefenceoffence",
+			subfolder = "ArmBuildings/LandDefenceOffence",
 			techlevel = 2,
 			inheritxpratemultiplier = 1,
 			childreninheritxp = "BOTCANNON",
@@ -126,7 +125,6 @@ return {
 				gravityaffected = "true",
 				heightboostfactor = 8,
 				hightrajectory = 0,
-				impulseboost = 0.5,
 				impulsefactor = 0.5,
 				leadbonus = 0,
 				metalpershot = 96,
@@ -153,6 +151,7 @@ return {
 				customparams = {
 					spawns_name = "armpw",
 					spawns_surface = "LAND", -- Available: "LAND SEA" blah
+					stockpilelimit = 50,
 				},
 				damage = {
 					default = 10,

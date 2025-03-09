@@ -8,7 +8,7 @@ local function skyshiftUnitTweaks(name, uDef)
 	if name == "armca" then
 		uDef.health = 720
 	end
-	
+
 	if name == "armpeep" then
 		uDef.acceleration = 0.8
 		uDef.blocking = false
@@ -51,7 +51,7 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.wingangle = 0.06315
 		uDef.wingdrag = 0.0575
 	end
-	
+
 	if name == "armfig" then
 		uDef.acceleration = 0.6
 		uDef.airsightdistance = 950
@@ -138,7 +138,7 @@ local function skyshiftUnitTweaks(name, uDef)
 			},
 		}
 	end
-	
+
 	if name == "armthund" then
 		uDef.acceleration = 0.3
 		uDef.maxdec = 0.3
@@ -220,11 +220,10 @@ local function skyshiftUnitTweaks(name, uDef)
 			},
 		}
 	end
-	
+
 	if name == "armkam" then
 		uDef.acceleration = 0.7
 		uDef.airstrafe = false
-		uDef.attackSafetyDistance = 200
 		uDef.blocking = false
 		uDef.energycost = 2600
 		uDef.metalcost = 240
@@ -318,12 +317,11 @@ local function skyshiftUnitTweaks(name, uDef)
 			},
 		}
 	end
-	
+
 	if name == "armsfig" then
 		uDef.acceleration = 0.35
 		uDef.airsightdistance = 950
 		uDef.airstrafe = false
-		uDef.attackSafetyDistance = 40
 		uDef.blocking = false
 		uDef.maxdec = 0.1
 		uDef.energycost = 440
@@ -467,7 +465,7 @@ local function skyshiftUnitTweaks(name, uDef)
 	if name == "corca" then
 		uDef.health = 720
 	end
-	
+
 	if name == "corveng" then
 		uDef.acceleration = 0.45
 		uDef.airsightdistance = 950
@@ -558,7 +556,7 @@ local function skyshiftUnitTweaks(name, uDef)
 			},
 		}
 	end
-	
+
 	if name == "corshad" then
 		uDef.acceleration = 0.045
 		uDef.blocking = false
@@ -637,10 +635,9 @@ local function skyshiftUnitTweaks(name, uDef)
 			},
 		}
 	end
-	
+
 	if name == "corbw" then
-		uDef.acceleration = 0.5		
-		uDef.attackSafetyDistance = 40
+		uDef.acceleration = 0.5
 		uDef.blocking = false
 		uDef.maxdec = 0.4
 		uDef.energycost = 700
@@ -731,11 +728,10 @@ local function skyshiftUnitTweaks(name, uDef)
 			},
 		}
 	end
-	
+
 	if name == "corcut" then
 		uDef.acceleration = 1
 		uDef.airstrafe = false
-		uDef.attackSafetyDistance = 200
 		uDef.blocking = false
 		uDef.maxdec = 0.85
 		uDef.energycost = 2600
@@ -812,21 +808,21 @@ local function skyshiftUnitTweaks(name, uDef)
 			},
 		}
 	end
-	
+
 ---------------------------------------------
 			--------------------
 			---CORTEX AIR T2 ---
 			--------------------
----------------------------------------------	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+---------------------------------------------
+
+
+
+
+
+
+
+
+
 ---------------------------------------------
 			--------------------
 			----GROUND UNITS----
@@ -841,7 +837,7 @@ local function skyshiftUnitTweaks(name, uDef)
 			end
 		end
 	end
-	
+
 	if name == "armsam" then
 		uDef.energycost = 1350
 		uDef.buildtime = 2000
@@ -857,7 +853,7 @@ local function skyshiftUnitTweaks(name, uDef)
 			},
 		}
 	end
-	
+
 	if name == "cormist" then
 		uDef.energycost = 1400
 		uDef.buildtime = 2000
@@ -873,16 +869,16 @@ local function skyshiftUnitTweaks(name, uDef)
 			},
 		}
 	end
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
+
+
+
+
 ---------------------------------------------
 			--------------------
 			----BUILDOPTIONS----
@@ -895,7 +891,7 @@ local function skyshiftUnitTweaks(name, uDef)
 	if name == "corap" then
 		uDef.buildoptions[7] = "corcut"
 	end
-	
+
 	return uDef
 
 end
@@ -910,15 +906,14 @@ end
 --[[
 
 local function skyshiftWeaponTweaks(name, wDef)
-	
+
 		--wDef.damage.vtol = wDef.damage.default
 
 	return wDef
-	
+
 end
 ]]
 return {
 	skyshiftUnitTweaks = skyshiftUnitTweaks,
 	--skyshiftWeaponTweaks = skyshiftWeaponTweaks,
 	}
-	

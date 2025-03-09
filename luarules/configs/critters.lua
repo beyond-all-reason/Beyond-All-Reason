@@ -1,7 +1,4 @@
 local rnd = math.random
-local ceil = math.ceil
-local multiplier = rnd(1, 100) / 100        -- use this if you want a bit of uniformity amongst multiple randoms
-
 
 -- USE LOWERCASE MAPNAMES (partial mapnames work too!)
 local critterConfig = {
@@ -190,6 +187,19 @@ local critterConfig = {
 
 	["sulphur springs"] = {
 		{ spawnCircle = { x = 4300, z = 8000, r = 2000 }, unitNames = { ["critter_ant"] = rnd(3, 10) } },
+	},
+
+	["supreme isthmus winter"] = {
+		{ spawnCircle = { x = 3500, z = 8500, r = 400 }, unitNames = { ["critter_penguin"] = rnd(2, 4) } },
+		{ spawnCircle = { x = 8800, z = 3800, r = 400 }, unitNames = { ["critter_penguin"] = rnd(2, 4) } },
+		{ spawnCircle = { x = 990, z = 1900, r = 400 }, unitNames = { ["critter_penguin"] = rnd(3, 5) } },
+		{ spawnCircle = { x = 11000, z = 10000, r = 400 }, unitNames = { ["critter_penguin"] = rnd(3, 5) } },
+		{ spawnCircle = { x = 6200, z = 300, r = 400 }, unitNames = { ["critter_penguin"] = rnd(2, 4) } },
+		{ spawnCircle = { x = 6000, z = 12000, r = 400 }, unitNames = { ["critter_penguin"] = rnd(2, 4) } },
+		{ spawnCircle = { x = 5500, z = 6400, r = 400 }, unitNames = { ["critter_penguin"] = rnd(2, 4) } },
+		{ spawnCircle = { x = 6600, z = 6200, r = 400 }, unitNames = { ["critter_penguin"] = rnd(2, 4) } },
+		{ spawnCircle = { x = 4000, z = 4800, r = 400 }, unitNames = { ["critter_penguin"] = rnd(2, 4) } },
+		{ spawnCircle = { x = 11800, z = 7300, r = 400 }, unitNames = { ["critter_penguin"] = rnd(2, 4) } },
 	},
 
 	["supreme battlefield"] = {

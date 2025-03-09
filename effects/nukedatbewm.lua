@@ -35,7 +35,7 @@ return {
     },
 
     pop1 = {
-      class=[[heatcloud]],
+      class=[[CHeatCloudProjectile]],
       air=1,
       water=1,
       ground=1,

@@ -15,6 +15,7 @@ CallInsList = {
 	"Shutdown",
 	"LayoutButtons",
 	"ConfigureLayout",
+	"ActiveCommandChanged",
 	"CommandNotify",
 
 	"KeyPress",
@@ -106,6 +107,8 @@ CallInsList = {
 	"DrawShadowUnitsLua",
 	"DrawShadowFeaturesLua",
 
+	"FontsChanged",
+
 	"SunChanged",
 
 	"ShockFront",
@@ -142,6 +145,7 @@ CallInsList = {
 	"VisibleExplosion",
 	"Barrelfire",
 	"CrashingAircraft",
+	"ClearMapMarks",
 }
 
 CallInsMap = {}

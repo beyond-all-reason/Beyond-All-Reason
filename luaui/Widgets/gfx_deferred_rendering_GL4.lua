@@ -9,7 +9,8 @@ function widget:GetInfo()
 		date = "2022.06.10",
 		license = "Lua code is GPL V2, GLSL is (c) Beherith (mysterme@gmail.com)",
 		layer = -99999990,
-		enabled = true
+		enabled = true,
+		depends = {'gl4'},
 	}
 end
 
@@ -288,7 +289,7 @@ local trackedProjectileTypes = {} -- we have to track the types [point, light, c
 local lastGameFrame = -2
 
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 
@@ -296,8 +297,8 @@ local deferredLightShader = nil
 
 local shaderSourceCache = {
 	shaderName = 'Deferred Lights GL4',
-	vssrcpath = "LuaUI/Widgets/Shaders/deferred_lights_gl4.vert.glsl",
-	fssrcpath = "LuaUI/Widgets/Shaders/deferred_lights_gl4.frag.glsl",
+	vssrcpath = "LuaUI/Shaders/deferred_lights_gl4.vert.glsl",
+	fssrcpath = "LuaUI/Shaders/deferred_lights_gl4.frag.glsl",
 	shaderConfig = shaderConfig,
 	uniformInt = {
 		mapDepths = 0,
@@ -875,7 +876,13 @@ local function RemoveLight(lightshape, instanceID, unitID, noUpload)
 			Spring.Echo("RemoveLight tried to remove a non-existing unitlight", lightshape, instanceID, unitID)
 		end
 	elseif lightshape then
-		return popElementInstance(lightVBOMap[lightshape], instanceID)
+		if lightVBOMap[lightshape].instanceIDtoIndex[instanceID] then
+			return popElementInstance(lightVBOMap[lightshape], instanceID)
+		else
+			if not noUpload then
+				Spring.Echo("RemoveLight tried to remove a non-existing light", lightshape, instanceID, unitID)
+			end
+		end
 	else
 		Spring.Echo("RemoveLight tried to remove a non-existing light", lightshape, instanceID, unitID)
 	end
@@ -993,7 +1000,6 @@ function widget:Barrelfire(px, py, pz, weaponID, ownerID)
 	if muzzleFlashLights[weaponID] then
 		local lightParamTable = muzzleFlashLights[weaponID].lightParamTable
 		if muzzleFlashLights[weaponID].alwaysVisible or spIsSphereInView(px,py,pz, lightParamTable[4]) then
-			local groundHeight = spGetGroundHeight(px,pz) or 1
 			lightParamTable[1] = px
 			lightParamTable[2] = py
 			lightParamTable[3] = pz
@@ -1236,31 +1242,35 @@ function widget:StockpileChanged(unitID, unitDefID, teamID, weaponNum, oldCount,
 	end
 end
 
-function widget:FeatureCreated(featureID,allyteam)
+function widget:FeatureCreated(featureID, noUpload)
+	if type(noUpload) ~= 'boolean' then noUpload = nil end
 	-- TODO: Allow team-colored feature lights by getting teamcolor and putting it into lightCacheTable
 	local featureDefID = Spring.GetFeatureDefID(featureID)
 	if featureDefLights[featureDefID] then
 		for lightname, lightTable in pairs(featureDefLights[featureDefID]) do
 			if not lightTable.initComplete then InitializeLight(lightTable) end
 			local px, py, pz = Spring.GetFeaturePosition(featureID)
-			if px then
+			if px and featureID%(lightTable.fraction or 1 ) == 0 then
 
 				local lightParamTable = lightTable.lightParamTable
 				for i=1, lightParamTableSize do lightCacheTable[i] = lightParamTable[i] end
-				lightCacheTable[1] = lightCacheTable[1] + px
-				lightCacheTable[2] = lightCacheTable[2] + py
-				lightCacheTable[3] = lightCacheTable[3] + pz
-				AddLight(tostring(featureID) ..  lightname, nil, nil, lightVBOMap[lightTable.lightType], lightCacheTable)
+				lightCacheTable[1] = lightParamTable[1] + px
+				lightCacheTable[2] = lightParamTable[2] + py
+				lightCacheTable[3] = lightParamTable[3] + pz
+				AddLight(tostring(featureID) ..  lightname, nil, nil, lightVBOMap[lightTable.lightType], lightCacheTable, noUpload)
 			end
 		end
 	end
 end
 
-function widget:FeatureDestroyed(featureID)
+function widget:FeatureDestroyed(featureID, noUpload)
+	if type(noUpload) ~= 'boolean' then noUpload = nil end
 	local featureDefID = Spring.GetFeatureDefID(featureID)
 	if featureDefLights[featureDefID] then
 		for lightname, lightTable in pairs(featureDefLights[featureDefID]) do
-			RemoveLight(lightTable.lightType, tostring(featureID) ..  lightname)
+			if featureID % (lightTable.fraction or 1 ) == 0 then
+				RemoveLight(lightTable.lightType, tostring(featureID) ..  lightname, nil, noUpload)
+			end
 		end
 	end
 end
@@ -1308,7 +1318,6 @@ local function updateProjectileLights(newgameframe)
 				-- add projectile
 				local weapon, piece = spGetProjectileType(projectileID)
 				if piece then
-					local explosionflags = spGetPieceProjectileParams(projectileID)
 					local gib = gibLight.lightParamTable
 					gib[1] = px
 					gib[2] = py
@@ -1406,6 +1415,13 @@ local function checkConfigUpdates()
 			if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 				widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
 			end
+			for i, featureID in pairs(Spring.GetAllFeatures()) do
+				widget:FeatureDestroyed(featureID, true)
+			end
+			for i, featureID in pairs(Spring.GetAllFeatures()) do
+				widget:FeatureCreated(featureID, true)
+			end
+			if pointLightVBO.dirty then uploadAllElements(pointLightVBO) end
 			configCache.confa = newconfa
 			configCache.confb = newconfb
 		end

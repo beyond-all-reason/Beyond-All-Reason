@@ -1,5 +1,6 @@
 return {
 	raptor_allterrain_swarmer_basic_t4_v1 = {
+		activatewhenbuilt = true,
 		maxacc = 1.4375,
 		maxdec = 2.3,
 		energycost = 5280,
@@ -13,7 +14,7 @@ return {
 		canpatrol = true,
 		canstop = "1",
 		capturable = false,
-		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE RAPTOR EMPABLE",
+		category = "RAPTOR",
 		collisionvolumeoffsets = "0 -3 -3",
 		collisionvolumescales = "18 28 40",
 		collisionvolumetype = "box",
@@ -31,7 +32,7 @@ return {
 		maxwaterdepth = 15,
 		movementclass = "RAPTORALLTERRAINHOVER",
 		noautofire = false,
-		nochasecategory = "VTOL SPACE",
+		nochasecategory = "VTOL",
 		objectname = "Raptors/raptorc3c.s3o",
 		script = "Raptors/raptorc3c.cob",
 		seismicsignature = 0,
@@ -82,7 +83,6 @@ return {
 				edgeeffectiveness = 0.3,
 				explosiongenerator = "custom:raptorspike-small-sparks-burn",
 				firesubmersed = true,
-				impulseboost = 2.2,
 				impulsefactor = 1,
 				interceptedbyshieldtype = 0,
 				model = "Raptors/spike.s3o",

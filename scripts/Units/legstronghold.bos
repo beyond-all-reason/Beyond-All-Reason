@@ -1,26 +1,14 @@
-#define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
 
-piece  base, pole, turret, sleeve, barrel, flare, link, thrustrr, thrustrl, thrustfr, thrustfl, 
-		thrustrra, thrustrla, thrustfra, thrustfla, 
-		thrustrr2, thrustrl2, thrustfr2, thrustfl2, thrustrra2, thrustrla2, thrustfra2, thrustfla2;
+piece  	base, armor, ljet, rjet, bjet, gears1, gears2, turret, sleeve, barrel,
+		bthrust1, bthrust2, rthrust1, rthrust2, lthrust1, lthrust2, flare, link, aimpoint;
+       
 
-static-var  moverate, unitviewer, statechg_DesiredState, statechg_StateChanging, restore_delay, wpn1_lasthead;
+static-var  restore_delay, gun_1, isAiming;
 
-#define SIG_AIM				2
-
-
-pickupscr()
-{
-	sleep 11;
-}
-
-dropoffscr()
-{
-	sleep 15;
-}
+// Signal definitions
+#define SIGNAL_AIM1 256
 
 #define BASEPIECE base
 #define HITSPEED <55.0>
@@ -28,194 +16,76 @@ dropoffscr()
 #define UNITSIZE 5
 #define MAXTILT 100
 
-
-Create()
-{
-	hide thrustfra;
-	hide thrustfla;
-	hide thrustrla;
-	hide thrustrra;
-	hide thrustfra2;
-	hide thrustfla2;
-	hide thrustrla2;
-	hide thrustrra2;
-	
-	turn thrustfra to x-axis <-90> now; 
-	turn thrustfla to x-axis <-90> now; 
-	turn thrustrla to x-axis <-90> now; 
-	turn thrustrra to x-axis <-90> now; 
-	turn thrustfra2 to x-axis <-90> now; 
-	turn thrustfla2 to x-axis <-90> now; 
-	turn thrustrla2 to x-axis <-90> now; 
-	turn thrustrra2 to x-axis <-90> now; 
-	
-	turn pole to x-axis <45> now;
-	
-	hide link;
-	unitviewer = FALSE;
-	moverate = 0;
-	call-script InitState();
-	restore_delay = 300;
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	start-script IdleHover();
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script pickupscr();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script dropoffscr();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
 #define IDLEHOVERSCALE 32
 #define IDLEHOVERSPEED 60
 #define IDLEBASEPIECE base
-#include "idlehover.h"
 
-//nani the what now
-Demo()
+Create()
 {
-	unitviewer = TRUE;
-}
-
-
-QueryTransport(Func_Var_1, Func_Var_2)
-{
-	Func_Var_1 = link;
-}
-
-BeginTransport(Func_Var_1)
-{
-	move link to y-axis [0.000000] - Func_Var_1 now;
-	start-script RequestState(0);
-}
-
-EndTransport()
-{
-	start-script RequestState(1);
+	gun_1 = 1;
+	isAiming = 0;
+	
+	hide bthrust1;
+	hide bthrust2;
+	hide rthrust1;
+	hide rthrust2;
+	hide lthrust1;
+	hide lthrust2;
+	
+	hide flare;
+	
+	hide link;
+	hide aimpoint;
+	
+	SLEEP_UNTIL_UNITFINISHED;
 }
 
 Activate()
 {
-	show thrustfra;
-	show thrustfla;
-	show thrustrla;
-	show thrustrra;
-	show thrustfra2;
-	show thrustfla2;
-	show thrustrla2;
-	show thrustrra2;
-	start-script RequestState(0);
+	show bthrust1;
+	show bthrust2;
+	show rthrust1;
+	show rthrust2;
+	show lthrust1;
+	show lthrust2;
+	
+	move gears1 to z-axis [12.0] speed [12];
+	turn gears1 to x-axis <-30> speed <30>;
+	turn gears2 to x-axis <60> speed <45>;
 }
 
 Deactivate()
 {
-	hide thrustfra;
-	hide thrustfla;
-	hide thrustrla;
-	hide thrustrra;
-	hide thrustfra2;
-	hide thrustfla2;
-	hide thrustrla2;
-	hide thrustrra2;
-	start-script RequestState(1);
+	hide bthrust1;
+	hide bthrust2;
+	hide rthrust1;
+	hide rthrust2;
+	hide lthrust1;
+	hide lthrust2;
+	
+	move gears1 to z-axis [0.0] speed [18];
+	turn gears1 to x-axis <0> speed <45>;
+	turn gears2 to x-axis <0> speed <90>;
 }
 
-SweetSpot(piecenum)
+QueryTransport(pieceIndex)
 {
-	piecenum = base;
+	pieceIndex = link;
 }
 
-StopMoving()
+BeginTransport(targetHeight)
 {
-	signal 8;
-	moverate = 0;
+	move link to y-axis [0.0] - targetHeight now;
 }
 
-MoveRate0()
+EndTransport()
 {
-	turn thrustrr to x-axis <0.000000> speed <80.000000>;
-	turn thrustrl to x-axis <0.000000> speed <80.000000>;
-	turn thrustfr to x-axis <0.000000> speed <80.000000>;
-	turn thrustfl to x-axis <0.000000> speed <80.000000>;
-	turn thrustrr2 to x-axis <0.000000> speed <80.000000>;
-	turn thrustrl2 to x-axis <0.000000> speed <80.000000>;
-	turn thrustfr2 to x-axis <0.000000> speed <80.000000>;
-	turn thrustfl2 to x-axis <0.000000> speed <80.000000>;
+	move link to y-axis [0.0] now;
 }
 
-MoveRate1()
+SetMaxReloadTime(reloadMS)
 {
-	//get PRINT(1);
-	signal 8;
-	set-signal-mask 8;
-	moverate = 1;
-	turn thrustrr to x-axis <10.000000> speed <60.000000>;
-	turn thrustrl to x-axis <10.000000> speed <60.000000>;
-	turn thrustfr to x-axis <10.000000> speed <60.000000>;
-	turn thrustfl to x-axis <10.000000> speed <60.000000>;
-	turn thrustrr2 to x-axis <10.000000> speed <60.000000>;
-	turn thrustrl2 to x-axis <10.000000> speed <60.000000>;
-	turn thrustfr2 to x-axis <10.000000> speed <60.000000>;
-	turn thrustfl2 to x-axis <10.000000> speed <60.000000>;
-}
-
-MoveRate2()
-{
-	signal 8;
-	set-signal-mask 8;
-	moverate = 2;
-	turn thrustrr to x-axis <20.000000> speed <45.000000>;
-	turn thrustrl to x-axis <20.000000> speed <45.000000>;
-	turn thrustfr to x-axis <20.000000> speed <45.000000>;
-	turn thrustfl to x-axis <20.000000> speed <45.000000>;
-	turn thrustrr2 to x-axis <20.000000> speed <45.000000>;
-	turn thrustrl2 to x-axis <20.000000> speed <45.000000>;
-	turn thrustfr2 to x-axis <20.000000> speed <45.000000>;
-	turn thrustfl2 to x-axis <20.000000> speed <45.000000>;
-}
-
-MoveRate3()
-{
-	signal 8;
-	set-signal-mask 8;
-	moverate = 3;
-	turn thrustrr to x-axis <0.000000> speed <70.000000>;
-	turn thrustrl to x-axis <0.000000> speed <70.000000>;
-	turn thrustfr to x-axis <0.000000> speed <70.000000>;
-	turn thrustfl to x-axis <0.000000> speed <70.000000>;
-	turn thrustrr2 to x-axis <0.000000> speed <70.000000>;
-	turn thrustrl2 to x-axis <0.000000> speed <70.000000>;
-	turn thrustfr2 to x-axis <0.000000> speed <70.000000>;
-	turn thrustfl2 to x-axis <0.000000> speed <70.000000>;
+	restore_delay = reloadMS * 2;
 }
 
 static-var  Stunned;
@@ -224,15 +94,11 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	spin barrel around z-axis speed <600.000000>;
-	sleep restore_delay;
-	spin barrel around z-axis speed <300.000000>;
-	sleep (restore_delay / 2);
-	spin barrel around z-axis speed <150.000000>;
-	sleep (restore_delay / 4);
-	stop-spin barrel around z-axis;
-	wpn1_lasthead = 1000000;
-	set-signal-mask 0;
+	
+	isAiming = 0;
+	
+	turn turret to y-axis <0>  speed <60>;
+	turn sleeve to x-axis <0> speed <60>;
 }
 
 SetStunned(State)
@@ -249,38 +115,92 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+StartMoving(reversing)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	turn sleeve to y-axis heading speed <200.000000>;
-	turn sleeve to x-axis <0.000000> - <45> - pitch speed <100.000000>;
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
+	
+}
+
+StopMoving()
+{	
+	
+}
+
+MoveRate0()
+{
+	turn bjet to x-axis <-90> speed <80.0>;
+	turn ljet to x-axis <-90> speed <80.0>;
+	turn rjet to x-axis <-90> speed <80.0>;
+}
+
+MoveRate1()
+{
+	turn bjet to x-axis <-45> speed <60.0>;
+	turn ljet to x-axis <-45> speed <60.0>;
+	turn rjet to x-axis <-45> speed <60.0>;
+}
+
+MoveRate2()
+{
+	if (isAiming)
 	{
-		wpn1_lasthead = 1000000;
-		wait-for-turn pole around y-axis;
-		wait-for-turn sleeve around x-axis;
+		turn bjet to x-axis <-80> speed <40.0>;
+		turn ljet to x-axis <-80> speed <40.0>;
+		turn rjet to x-axis <-80> speed <40.0>;
 	}
-	wpn1_lasthead = heading;
+	else
+	{
+		turn bjet to x-axis <0> speed <45.0>;
+		turn ljet to x-axis <0> speed <45.0>;
+		turn rjet to x-axis <0> speed <45.0>;
+	}
+}
+
+MoveRate3()
+{
+	turn bjet to x-axis <-90> speed <70.0>;
+	turn ljet to x-axis <-90> speed <70.0>;
+	turn rjet to x-axis <-90> speed <70.0>;
+}
+
+
+AimFromWeapon1(pieceIndex)
+{
+	pieceIndex = aimpoint;
+}
+
+AimWeapon1(heading, pitch)
+{
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	
+	isAiming = 1;
+	
+	turn bjet to x-axis <-75> speed <25.0>;
+	turn ljet to x-axis <-75> speed <25.0>;
+	turn rjet to x-axis <-75> speed <25.0>;
+	
+	turn turret to y-axis heading  speed <180>;
+	turn sleeve to x-axis 0-pitch speed <180>;
+	
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
-	spin barrel around z-axis speed <900.000000>;
-	emit-sfx 1024 + 0 from flare;
+		move barrel to z-axis [-3] now;
+		emit-sfx 1024 + 0 from flare;
+		sleep 150;
+		wait-for-move barrel along z-axis;
+		move barrel to z-axis [0.0] speed [6.0];
+		return (0);
 }
 
-AimFromPrimary(piecenum)
+QueryWeapon1(pieceIndex)
 {
-	piecenum = sleeve;
+	pieceIndex = flare;
 }
 
-QueryPrimary(piecenum)
-{
-	piecenum = flare;
-}
 
 Killed(severity, corpsetype)
 {
@@ -288,58 +208,33 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode thrustfl type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrustfla type BITMAPONLY | NOHEATCLOUD;
-		explode thrustfr type BITMAPONLY | NOHEATCLOUD;
-		explode thrustfra type BITMAPONLY | NOHEATCLOUD;
-		explode thrustrl type BITMAPONLY | NOHEATCLOUD;
-		explode thrustrla type BITMAPONLY | NOHEATCLOUD;
-		explode thrustrr type BITMAPONLY | NOHEATCLOUD;
-		explode thrustrra type BITMAPONLY | NOHEATCLOUD;
-		explode link type BITMAPONLY | NOHEATCLOUD;
+		explode armor type BITMAPONLY | NOHEATCLOUD;
+		explode ljet type BITMAPONLY | NOHEATCLOUD;
+		explode rjet type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode thrustfl type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrustfla type BITMAPONLY | NOHEATCLOUD;
-		explode thrustfr type BITMAPONLY | NOHEATCLOUD;
-		explode thrustfra type BITMAPONLY | NOHEATCLOUD;
-		explode thrustrl type BITMAPONLY | NOHEATCLOUD;
-		explode thrustrla type BITMAPONLY | NOHEATCLOUD;
-		explode thrustrr type BITMAPONLY | NOHEATCLOUD;
-		explode thrustrra type BITMAPONLY | NOHEATCLOUD;
-		explode link type BITMAPONLY | NOHEATCLOUD;
-		explode link type FALL | NOHEATCLOUD;
+		explode armor type BITMAPONLY | NOHEATCLOUD;
+		explode ljet type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rjet type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode thrustfl type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrustfla type BITMAPONLY | NOHEATCLOUD;
-		explode thrustfr type BITMAPONLY | NOHEATCLOUD;
-		explode thrustfra type BITMAPONLY | NOHEATCLOUD;
-		explode thrustrl type BITMAPONLY | NOHEATCLOUD;
-		explode thrustrla type BITMAPONLY | NOHEATCLOUD;
-		explode thrustrr type BITMAPONLY | NOHEATCLOUD;
-		explode thrustrra type BITMAPONLY | NOHEATCLOUD;
-		explode link type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode armor type BITMAPONLY | NOHEATCLOUD;
+		explode ljet type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rjet type SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode thrustfl type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode thrustfla type BITMAPONLY | NOHEATCLOUD;
-		explode thrustfr type BITMAPONLY | NOHEATCLOUD;
-		explode thrustfra type BITMAPONLY | NOHEATCLOUD;
-		explode thrustrl type BITMAPONLY | NOHEATCLOUD;
-		explode thrustrla type BITMAPONLY | NOHEATCLOUD;
-		explode thrustrr type BITMAPONLY | NOHEATCLOUD;
-		explode thrustrra type BITMAPONLY | NOHEATCLOUD;
-		explode link type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-	return corpsetype;
+		explode armor type BITMAPONLY | NOHEATCLOUD;
+		explode ljet type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rjet type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+	return(corpsetype);
 }

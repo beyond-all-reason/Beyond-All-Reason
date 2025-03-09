@@ -164,6 +164,9 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 end
 
+function widget:ClearMapMarks()
+	commands = {}
+end
 
 function widget:DrawWorldPreUnit()
 	if chobbyInterface then return end
