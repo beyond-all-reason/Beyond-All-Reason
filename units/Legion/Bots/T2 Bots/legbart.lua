@@ -7,8 +7,8 @@ return {
 		buildpic = "LEGBART.DDS",
 		buildtime = 10000,
 		canmove = true,
-		collisionvolumeoffsets = "0 -5 -5",
-		collisionvolumescales = "28 45 35",
+		collisionvolumeoffsets = "0 0 0",
+		collisionvolumescales = "40 60 34",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		explodeas = "pyro",
@@ -34,17 +34,17 @@ return {
 		upright = true,
 		customparams = {
 			unitgroup = 'weapon',
-			model_author = "Zecrus",
-			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "CorBots/T2",
+			model_author = "ZephyrSkies (Model), Phill-Art (Concept)",
+			normaltex = "unittextures/leg_normal.dds",
+			subfolder = "Legion/Bots/T2 Bots",
 			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {
 				blocking = true,
 				category = "corpses",
-				collisionvolumeoffsets = "-2.46048736572 -3.00319400146 6.99045562744",
-				collisionvolumescales = "41.948348999 14.0481719971 51.4421844482",
+				collisionvolumeoffsets = "0 0 0",
+				collisionvolumescales = "56 31 70",
 				collisionvolumetype = "Box",
 				damage = 600,
 				featuredead = "HEAP",
@@ -120,6 +120,8 @@ return {
 				noselfdamage = true,
 				projectiles = 4,
 				range = 625,
+				tolerance = 5000;
+				firetolerance = 5000;
 				reloadtime = 5,
 				rgbcolor = "1 0.25 0.1",
 				size = 4,

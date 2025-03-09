@@ -16244,6 +16244,18 @@ local unitLights = {
 
 	},
 
+	['legbart'] = {
+		cannisterlight = {
+			lightType = 'point',
+			pieceName = 'cannisterFlare',
+			lightConfig = { posx = -1, posy = 1, posz = 0, radius = 38,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = 0.9, g = 0.7, b = 0.45, a = 0.25,
+							modelfactor = 0.4, specular = 0, scattering = 0.4, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
+
 	['legeheatraymech'] = {
 		bigtoroid = {
 			lightType = 'point',
