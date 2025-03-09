@@ -131,7 +131,6 @@ if gadgetHandler:IsSyncedCode() then
 	local humanTeams = {}
 	local spawnQueue = {}
 	local deathQueue = {}
-	local queenResistance = {}
 	local queens = {}
 	local raptorTeamID, raptorAllyTeamID
 	local lsx1, lsz1, lsx2, lsz2
@@ -869,13 +868,14 @@ if gadgetHandler:IsSyncedCode() then
 			SetGameRulesParam("raptorQueenHealth", 0)
 			return
 		end
-		local curH, maxH = GetUnitHealth(queenID)
-		local lifeCheck = math.ceil(((curH / maxH) * 100) - 0.5)
-		if queenLifePercent ~= lifeCheck then
-			-- health changed since last update, update it
-			queenLifePercent = lifeCheck
-			SetGameRulesParam("raptorQueenHealth", queenLifePercent)
+		local queenHealths = {}
+		for queenID, queen in pairs(queens) do
+			local health, maxHealth = GetUnitHealth(queenID)
+			queen.healthPercent = math.ceil(((health / maxHealth) * 100) - 0.5)
+			table.insert(queenHealths, queen.healthPercent)
 		end
+		table.sort(queenHealths, function(a, b) return a.healthPercent < b.healthPercent end)
+		SetGameRulesParam("raptorQueenHealth", queenHealths[1])
 	end
 
 	function SpawnQueen()
@@ -1392,16 +1392,18 @@ if gadgetHandler:IsSyncedCode() then
 				if weaponID == -1 and damage > 1 then
 					damage = 1
 				end
-				if not queenResistance[attackerDefID] then
-					queenResistance[attackerDefID] = {}
-					queenResistance[attackerDefID].damage = (damage * 4 * config.queenResistanceMult)
-					queenResistance[attackerDefID].notify = 0
+				local queenResistances = queens[unitID].resistances
+				if not queenResistances[attackerDefID] then
+					queenResistances[attackerDefID] = {
+						damage = damage * 4 * config.queenResistanceMult,
+						notify = 0
+					}
 				end
-				local resistPercent = math.min((queenResistance[attackerDefID].damage) / queenMaxHP, 0.95)
+				local resistPercent = math.min((queenResistances[attackerDefID].damage) / queenMaxHP, 0.95)
 				if resistPercent > 0.5 then
-					if queenResistance[attackerDefID].notify == 0 then
+					if queenResistances[attackerDefID].notify == 0 then
 						raptorEvent("queenResistance", attackerDefID)
-						queenResistance[attackerDefID].notify = 1
+						queenResistances[attackerDefID].notify = 1
 						if mRandom() < config.spawnChance then
 							local squad
 							local squadCounter = 0
@@ -1437,7 +1439,7 @@ if gadgetHandler:IsSyncedCode() then
 					damage = damage - (damage * resistPercent)
 
 				end
-				queenResistance[attackerDefID].damage = queenResistance[attackerDefID].damage + (damage * 4 * config.queenResistanceMult)
+				queenResistances[attackerDefID].damage = queenResistances[attackerDefID].damage + (damage * 4 * config.queenResistanceMult)
 			else
 				damage = 1
 			end
