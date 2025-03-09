@@ -471,8 +471,15 @@
 			"everyone": "everyone",
 			"allies": "allies",
 			"spectators": "spectators",
+			"spectator": "spectator",
 			"cmd": "COMMAND",
-			"nohistory": "No chat history"
+			"nohistory": "No chat history",
+			"syncerrorfor": "%{textColor}Sync error for %{name}",
+			"laggingbehind": "%{name} %{textColor}is lagging behind",
+			"pausedthegame": "%{name} %{textColor}paused the game",
+			"connectionattemptfrom": "%{textColor}Connection attempt from: %{name}",
+			"leftthegamenormal": "%{name} %{textColor}left the game %{textColor2}(normal quit)",
+			"leftthegametimeout": "%{name} %{textColor}left the game %{textColor2}(timeout)"
 		},
 		"teamStats": {
 			"player": "Player",
