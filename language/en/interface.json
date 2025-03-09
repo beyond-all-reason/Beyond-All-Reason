@@ -701,8 +701,9 @@
 			"substitutedPlayers": "%{incoming} was substituted in for %{outgoing}"
 		},
 		"awards": {
-			"award": "Award",
+			"awards": "Awards",
 			"score": "Score",
+			"player": "Player",
 			"notAwarded": "(not awarded)",
 			"unknown": "(unknown)",
 			"coop": "%{name} (co-op)",
