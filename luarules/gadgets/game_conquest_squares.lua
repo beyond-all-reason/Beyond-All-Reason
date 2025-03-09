@@ -7,6 +7,7 @@ function gadget:GetInfo()
 		license = "GNU GPL, v2 or later",
 		layer = -10,
 		enabled = true,
+		depends   = {'gl4'},
 	}
 end
 
@@ -592,566 +593,255 @@ if SYNCED then
 --zzz need to prevent defeat in the case that all remaining teams are tied, or there is only one team left
 
 else
---zzz need to remove all button config stuff so things don't break
-	
-	local colorConfig = { --An array of R, G, B, Alpha
-		drawStencil = true, -- wether to draw the outer, merged rings (quite expensive!)
-		drawInnerRings = true, -- wether to draw inner, per defense rings (very cheap)
-		externalalpha = 0.70, -- alpha of outer rings
-		internalalpha = 0.0, -- alpha of inner rings
-		distanceScaleStart = 2000, -- Linewidth is 100% up to this camera height
-		distanceScaleEnd = 4000, -- Linewidth becomes 50% above this camera height
-		ground = { --kept as a functional example of params temporarily
-			color = {1.0, 0.2, 0.0, 1.0},
-			fadeparams = { 2000, 5000, 1.0, 0.0}, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
-			externallinethickness = 4.0,
-			internallinethickness = 2.0,
-		},
-	}
-	--- Camera Height based line shrinkage: zzz-- ???? does this reference the above? It was an empty gap
-	
-	
-	local unitDefRings = {} --each entry should be  a unitdefIDkey to very specific table:
-		-- a list of tables, ideally ranged from 0 where
-	
-	local function initializeUnitDefRing(unitDefID)
-		local color = colorConfig.ground
-		local fadeparams = colorConfig.ground.fadeparams
-		local range = 100
-		local someOtherParamRelatedToWeaponCharacteristics = 1
 
-		local ringParams = {range, color[1],color[2], color[3], color[4],
-			fadeparams[1], fadeparams[2], fadeparams[3], fadeparams[4], someOtherParamRelatedToWeaponCharacteristics }
-		unitDefRings[unitDefID]['rings'][420360] = ringParams
-	end
 	
+	-- Note: this is now updated to support arbitrary start polygons via GL.SHADER_STORAGE_BUFFER
 	
-	--------------------------------------------------------------------------------
+	-- The format of the buffer is the following:
+	-- Triplets of :teamID, triangleID, x, z
 	
-	local glDepthTest           = gl.DepthTest
-	local glLineWidth           = gl.LineWidth
-	local glTexture             = gl.Texture
-	local glClear				= gl.Clear
-	local glColorMask			= gl.ColorMask
-	local glStencilTest			= gl.StencilTest
-	local glStencilMask			= gl.StencilMask
-	local glStencilFunc			= gl.StencilFunc
-	local glStencilOp			= gl.StencilOp
+	-- Spring.Echo(Spring.GetTeamInfo(Spring.GetMyTeamID()))
 	
-	local GL_KEEP = 0x1E00 --GL.KEEP
-	local GL_REPLACE = GL.REPLACE --GL.KEEP
+	-- TODO:
+	-- [ ] Handle overlapping of boxes and myAllyTeamID
+	-- [X] Handle Minimap drawing too 
+		-- [X] handle flipped minimaps 
+	-- [ ] Pass in my team too
+	-- [ ] Handle Scavengers in scavenger color
+	-- [ ] Handle Raptors in raptor color
 	
-	local spGetPositionLosState = Spring.GetPositionLosState
-	local spGetUnitDefID        = Spring.GetUnitDefID
-	local spGetUnitPosition     = Spring.GetUnitPosition
+	local scavengerStartBoxTexture = "LuaUI/Images/scav-tileable_v002_small.tga"
 	
-	------ GL4 THINGS  -----
-	-- nukes and cannons:
-	local largeCircleVBO = nil
-	local largeCircleSegments = 512
+	local raptorStartBoxTexture = "LuaUI/Images/rapt-tileable_v002_small.tga"
 	
-	-- others:
-	local smallCircleVBO = nil
-	local smallCircleSegments = 128
+	local getMiniMapFlipped = VFS.Include("LuaUI/Widgets/Include/minimap_utils.lua").getMiniMapFlipped
+	
+	local scavengerAITeamID = 999
+	local raptorsAITeamID = 999
+	local scavengerAIAllyTeamID
+	local raptorsAIAllyTeamID
+	local teams = Spring.GetTeamList()
+		
+	local gridData = {}
+	local allyScores = {}
+	local allyColors = {} -- doesn't include gaia
+	local exemptFromAllyColors = {}
 
-	local chobbyInterfaceActive = false
-	
-	local cameraHeightFactor = 0
-
-	local myAllyTeam = nil
-	local allyTeamsList = {}
-	local drawcounts = {}
-	local defenseRangeVAOs = {}
-	
-	local circleInstanceVBOLayout = {
-			  {id = 1, name = 'posscale', size = 4}, -- a vec4 for pos + scale
-			  {id = 2, name = 'color1', size = 4}, --  vec4 the color of this new
-			  {id = 3, name = 'visibility', size = 4}, --- vec4 heightdrawstart, heightdrawend, fadefactorin, fadefactorout
-			  {id = 4, name = 'projectileParams', size = 4}, --- heightboost gradient
-			}
-	
-	local luaShaderDir = "LuaUI/Widgets/Include/"
-	local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-	VFS.Include(luaShaderDir.."instancevbotable.lua")
-	local defenseRangeShader = nil
-	
-	
-	local function goodbye(reason)
-	  Spring.Echo("DefenseRange GL4 gadget exiting with reason: "..reason)
-	  gadgetHandler:RemoveGadget()
-	end
-	
-	local function makeCircleVBO(circleSegments)
-		circleSegments  = circleSegments -1 -- for po2 buffers
-		local circleVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
-		if circleVBO == nil then goodbye("Failed to create circleVBO") end
-	
-		local VBOLayout = {
-		 {id = 0, name = "position", size = 4},
-		}
-	
-		local VBOData = {}
-	
-		for i = 0, circleSegments  do -- this is +1
-			VBOData[#VBOData+1] = math.sin(math.pi*2* i / circleSegments) -- X
-			VBOData[#VBOData+1] = math.cos(math.pi*2* i / circleSegments) -- Y
-			VBOData[#VBOData+1] = i / circleSegments -- circumference [0-1]
-			VBOData[#VBOData+1] = 0
+	for i = 1, #teams do
+		local luaAI = Spring.GetTeamLuaAI(teams[i])
+		if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
+			scavengerAITeamID = i - 1
+			scavengerAIAllyTeamID = select(6, Spring.GetTeamInfo(scavengerAITeamID))
+			exemptFromAllyColors[scavengerAIAllyTeamID] = true
+			break
 		end
-	
-		circleVBO:Define(
-			circleSegments + 1,
-			VBOLayout
-		)
-		circleVBO:Upload(VBOData)
-		return circleVBO
 	end
-	
-	local vsSrc = [[
-	#version 420
-	#line 10000
-	
-	//__DEFINES__
-	
-	layout (location = 0) in vec4 circlepointposition;
-	layout (location = 1) in vec4 posscale;
-	layout (location = 2) in vec4 color1;
-	layout (location = 3) in vec4 visibility; // FadeStart, FadeEnd, StartAlpha, EndAlpha
-	layout (location = 4) in vec4 projectileParams; // projectileSpeed, iscylinder!!!! , heightBoostFactor , heightMod
-	
-	uniform float lineAlphaUniform = 1.0;
-	uniform float cannonmode = 0.0;
-	
-	uniform sampler2D heightmapTex;
-	uniform sampler2D losTex; // hmm maybe?
-	
-	out DataVS {
-		flat vec4 blendedcolor;
-	};
-	
-	//__ENGINEUNIFORMBUFFERDEFS__
-	
-	#line 11000
-	
-	float heightAtWorldPos(vec2 w){
-		vec2 uvhm =  heightmapUVatWorldPos(w);
-		return textureLod(heightmapTex, uvhm, 0.0).x;
-	}
-	
-	float GetRangeFactor(float projectileSpeed) { // returns >0 if weapon can shoot here, <0 if it cannot, 0 if just right
-		// on first run, with yDiff = 0, what do we get?
-		float speed2d = projectileSpeed * 0.707106;
-		float gravity =  120.0 	* (0.001111111);
-		return ((speed2d * speed2d) * 2.0 ) / (gravity);
-	}
-	
-	float GetRange2DCannon(float yDiff,float projectileSpeed,float rangeFactor,float heightBoostFactor) { // returns >0 if weapon can shoot here, <0 if it cannot, 0 if just right
-		// on first run, with yDiff = 0, what do we get?
-	
-		//float factor = 0.707106;
-		float smoothHeight = 100.0;
-		float speed2d = projectileSpeed*0.707106;
-		float speed2dSq = speed2d * speed2d;
-		float gravity = -1.0*  (120.0 /900);
-	
-		if (heightBoostFactor < 0){
-			heightBoostFactor = (2.0 - rangeFactor) / sqrt(rangeFactor);
+	for i = 1, #teams do
+		local luaAI = Spring.GetTeamLuaAI(teams[i])
+		if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'RaptorsAI' then
+			raptorsAITeamID = i - 1
+			raptorsAIAllyTeamID = select(6, Spring.GetTeamInfo(raptorsAITeamID))
+			exemptFromAllyColors[raptorsAIAllyTeamID] = true
+			break
+		end
+	end
+
+	local gaiaAllyTeamID = Spring.GetGaiaTeamID()
+	for i = 1, #teams do
+		local allyID = select(6, Spring.GetTeamInfo(i))
+		if i == gaiaAllyTeamID then
+			exemptFromAllyColors[allyID] = true
+		elseif allyID and not exemptFromAllyColors[allyID] and not allyColors[allyID] then -- we want the first available color per ally team
+		Spring.Echo("allyID", allyID, Spring.GetTeamColor(i))
+			allyColors[allyID] = Spring.GetTeamColor(i)
+		end
+	end
+
+	local GRID_SIZE = 1024
+	local mapSizeX = Game.mapSizeX
+	local mapSizeZ = Game.mapSizeZ
+	local numberOfSquaresX = math.ceil(mapSizeX / GRID_SIZE)
+	local numberOfSquaresZ = math.ceil(mapSizeZ / GRID_SIZE)
+	local totalSquares = numberOfSquaresX * numberOfSquaresZ
+		-- Initialize gridData with default values
+	for gridID = 1, numberOfSquaresX * numberOfSquaresZ do
+		local gridX = (gridID - 1) % numberOfSquaresX
+		local gridZ = math.floor((gridID - 1) / numberOfSquaresX)
+		gridData[gridID] = {
+			gridX = gridX,
+			gridZ = gridZ,
+			allyOwnerID = gaiaAllyTeamID, -- Default owner
+			blinking = true -- Default blinking state
 		}
+	end
+
+	---- Config stuff ------------------
+	local autoReload = true -- refresh shader code every second (disable in production!)
 	
-		if (yDiff < -100.0){
-			yDiff = yDiff * heightBoostFactor;
-		}else {
-			if (yDiff < 0.0) {
-				yDiff = yDiff * (1.0 + (heightBoostFactor - 1.0 ) * (-1.0 * yDiff) * 0.01);
-			}
-		}
+	local StartPolygons = {} -- list of points in clockwise order
 	
-		float root1 = speed2dSq + 2 * gravity *yDiff;
-		if (root1 < 0.0 ){
-			return 0.0;
-		}else{
-			return rangeFactor * ( speed2dSq + speed2d * sqrt( root1 ) ) / (-1.0 * gravity);
-		}
-	}
+	local LuaShader = VFS.Include("LuaUI/Widgets/Include/LuaShader.lua")
+	VFS.Include("LuaUI/Widgets/Include/instancevbotable.lua")
 	
-	//float heightMod  default: 0.2 (0.8 for #Cannon, 1.0 for #BeamLaser and #LightningCannon)
-	//Changes the spherical weapon range into an ellipsoid. Values above 1.0 mean the weapon cannot target as high as it can far, values below 1.0 mean it can target higher than it can far. For example 0.5 would allow the weapon to target twice as high as far.
+	local minY, maxY = Spring.GetGroundExtremes()
 	
-	//float heightBoostFactor default: -1.0
-	//Controls the boost given to range by high terrain. Values > 1.0 result in increased range, 0.0 means the cannon has fixed range regardless of height difference to target. Any value < 0.0 (i.e. the default value) result in an automatically calculated value based on range and theoretical maximum range.
-	
-	#define RANGE posscale.w
-	#define PROJECTILESPEED projectileParams.x
-	#define ISCYLINDER projectileParams.y
-	#define HEIGHTBOOSTFACTOR projectileParams.z
-	#define HEIGHTMOD projectileParams.w
-	#define YGROUND posscale.y
-	
-	#define OUTOFBOUNDSALPHA alphaControl.y
-	#define FADEALPHA alphaControl.z
-	#define MOUSEALPHA alphaControl.w
-	
-	
-	void main() {
-		// translate to world pos:
-		vec4 circleWorldPos = vec4(1.0);
-		circleWorldPos.xz = circlepointposition.xy * RANGE +  posscale.xz;
-	
-		vec4 alphaControl = vec4(1.0);
-	
-		// get heightmap
-		circleWorldPos.y = heightAtWorldPos(circleWorldPos.xz);
-	
-	
-		if (cannonmode > 0.5){
-	
-			// BAR only has 3 distinct ballistic projectiles, heightBoostFactor is only a handful from -1 to 2.8 and 6 and 8
-			// gravity we can assume to be linear
-	
-			float heightDiff = (circleWorldPos.y - YGROUND) * 0.5;
-	
-			float rangeFactor = RANGE /  GetRangeFactor(PROJECTILESPEED); //correct
-			if (rangeFactor > 1.0 ) rangeFactor = 1.0;
-			if (rangeFactor <= 0.0 ) rangeFactor = 1.0;
-			float radius = RANGE;// - heightDiff;
-			float adjRadius = GetRange2DCannon(heightDiff * HEIGHTMOD, PROJECTILESPEED, rangeFactor, HEIGHTBOOSTFACTOR);
-			float adjustment = radius * 0.5;
-			float yDiff = 0;
-			float adds = 0;
-			//for (int i = 0; i < mod(timeInfo.x/8,16); i ++){ //i am a debugging god
-			for (int i = 0; i < 16; i ++){
-					if (adjRadius > radius){
-						radius = radius + adjustment;
-						adds = adds + 1;
-					}else{
-						radius = radius - adjustment;
-						adds = adds - 1;
-					}
-					adjustment = adjustment * 0.5;
-					circleWorldPos.xz = circlepointposition.xy * radius + posscale.xz;
-					float newY = heightAtWorldPos(circleWorldPos.xz );
-					yDiff = abs(circleWorldPos.y - newY);
-					circleWorldPos.y = max(0, newY);
-					heightDiff = circleWorldPos.y - posscale.y;
-					adjRadius = GetRange2DCannon(heightDiff * HEIGHTMOD, PROJECTILESPEED, rangeFactor, HEIGHTBOOSTFACTOR);
-			}
-		}else{
-			if (ISCYLINDER < 0.5){ // isCylinder
-				//simple implementation, 4 samples per point
-				//for (int i = 0; i<mod(timeInfo.x/4,30); i++){
-				for (int i = 0; i<8; i++){
-					// draw vector from centerpoint to new height point and normalize it to range length
-					vec3 tonew = circleWorldPos.xyz - posscale.xyz;
-					tonew.y *= HEIGHTMOD;
-					tonew = normalize(tonew) * RANGE;
-					circleWorldPos.xz = posscale.xz + tonew.xz;
-					circleWorldPos.y = heightAtWorldPos(circleWorldPos.xz);
-				}
-			}
-		}
-	
-		circleWorldPos.y += 6; // lift it from the ground
-	
-		// -- MAP OUT OF BOUNDS
-		vec2 mymin = min(circleWorldPos.xz,mapSize.xy - circleWorldPos.xz);
-		float inboundsness = min(mymin.x, mymin.y);
-		OUTOFBOUNDSALPHA = 1.0 - clamp(inboundsness*(-0.02),0.0,1.0);
-	
-	
-		//--- DISTANCE FADE ---
-		vec4 camPos = cameraViewInv[3];
-		float distToCam = length(posscale.xyz - camPos.xyz); //dist from cam
-		// FadeStart, FadeEnd, StartAlpha, EndAlpha
-		float fadeDist = visibility.y - visibility.x;
-		FADEALPHA  = clamp((visibility.y - distToCam)/(fadeDist),0,1);//,visibility.z,visibility.w);
-	
-		//--- Optimize by anything faded out getting transformed back to origin with 0 range?
-		//seems pretty ok!
-		if (FADEALPHA < 0.001) {
-			circleWorldPos.xyz = posscale.xyz;
-		}
-	
-		if (cannonmode > 0.5){
-		// cannons should fade distance based on their range
-			float cvmin = max(visibility.x, 2* RANGE);
-			float cvmax = max(visibility.y, 4* RANGE);
-			//FADEALPHA = clamp((cvmin - distToCam)/(cvmax - cvmin + 1.0),visibility.z,visibility.w);
-		}
-	
-		blendedcolor = color1;
-	
-		// -- DARKEN OUT OF LOS
-		vec4 losTexSample = texture(losTex, vec2(circleWorldPos.x / mapSize.z, circleWorldPos.z / mapSize.w)); // lostex is PO2
-		float inlos = dot(losTexSample.rgb,vec3(0.33));
-		inlos = clamp(inlos*5 -1.4	, 0.5,1.0); // fuck if i know why, but change this if LOSCOLORS are changed!
-		blendedcolor.rgb *= inlos;
-	
-		// --- YES FOG
-		float fogDist = length((cameraView * vec4(circleWorldPos.xyz,1.0)).xyz);
-		float fogFactor = clamp((fogParams.y - fogDist) * fogParams.w, 0, 1);
-		blendedcolor.rgb = mix(fogColor.rgb, vec3(blendedcolor), fogFactor);
-	
-	
-		// -- IN-SHADER MOUSE-POS BASED HIGHLIGHTING
-		float disttomousefromunit = 1.0 - smoothstep(48, 64, length(posscale.xz - mouseWorldPos.xz));
-		// this will be positive if in mouse, negative else
-		float highightme = clamp( (disttomousefromunit ) + 0.0, 0.0, 1.0);
-		MOUSEALPHA = highightme;
-	
-		// ------------ dump the stuff for FS --------------------
-		//worldPos = circleWorldPos;
-		//worldPos.a = RANGE;
-		alphaControl.x = circlepointposition.z; // save circle progress here
-		gl_Position = cameraViewProj * vec4(circleWorldPos.xyz, 1.0);
-	
-	
-		//lets blend the alpha here, and save work in FS:
-		float outalpha = OUTOFBOUNDSALPHA * (MOUSEALPHA + FADEALPHA *  lineAlphaUniform);
-		blendedcolor.a *= outalpha ;
-		//blendedcolor.rgb = vec3(fract(distToCam/100));
-	}
-	]]
-	
-	local fsSrc =  [[
-	#version 330
-	
-	#extension GL_ARB_uniform_buffer_object : require
-	#extension GL_ARB_shading_language_420pack: require
-	
-	//_DEFINES__
-	
-	#line 21000
-	
-	
-	//_ENGINEUNIFORMBUFFERDEFS__
-	
-	in DataVS {
-		flat vec4 blendedcolor;
-	};
-	
-	out vec4 fragColor;
-	
-	void main() {
-		fragColor = blendedcolor; // now pared down to only this, all work is done in vertex shader now
-	}
-	]]
-	
-	
-	local compileSuccess = false
-	local function makeShaders()
-		local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
-		vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-		fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-		testRangeShader =  LuaShader(
-		{
-			vertex = vsSrc:gsub("//__DEFINES__", "#define MYGRAVITY "..tostring(Game.gravity+0.1)),
-			fragment = fsSrc,
-			--geometry = gsSrc, no geom shader for now
+	local shaderSourceCache = {
+			vssrcpath = "LuaUI/Widgets/Shaders/map_startpolygon_gl4.vert.glsl",
+			fssrcpath = "LuaUI/Widgets/Shaders/map_startpolygon_gl4.frag.glsl",
 			uniformInt = {
-				heightmapTex = 0,
-				losTex = 1,
+				mapDepths = 0,
+				myAllyTeamID = -1,
+				isMiniMap = 0,
+				flipMiniMap = 0,
+				mapNormals = 1,
+				heightMapTex = 2, 
+				scavTexture = 3,
+				raptorTexture = 4,
 			},
 			uniformFloat = {
-				lineAlphaUniform = 1,
-				cannonmode = 0,
+				pingData = {0,0,0,-10000}, -- x,y,z, time
 			},
-		},
-		"testRangeShader GL4"
-		)
-		compileSuccess = testRangeShader:Initialize()
-		if not compileSuccess then
-			goodbye("Failed to compile testRangeShader GL4 ")
-			return false
-		end
-		return true
-	end
+			shaderName = "Start Polygons GL4",
+			shaderConfig = {
+				ALPHA = 0.5,
+				NUM_POLYGONS = 0,
+				NUM_POINTS = 0,
+				MINY = minY - 10,
+				MAXY = maxY + 100,
+				MAX_STEEPNESS = 0.5877, -- 45 degrees yay (cos is 0.7071? (54 degrees, so cos of that is 0.5877	)
+				SCAV_ALLYTEAM_ID = scavengerAIAllyTeamID, -- these neatly become undefined if not present
+				RAPTOR_ALLYTEAM_ID = raptorsAIAllyTeamID,
+			},
+		}
 	
-	local function initGL4()
-		smallCircleVBO = makeCircleVBO(smallCircleSegments)
-		largeCircleVBO = makeCircleVBO(largeCircleSegments)
-		defenseRangeVAOs['testLargeCircle'] = makeInstanceVBOTable(circleInstanceVBOLayout,16,"test_range_vbo")
-		defenseRangeVAOs['testLargeCircle'].vertexVBO = largeCircleVBO
-		defenseRangeVAOs['testLargeCircle'].numVertices = largeCircleSegments
-		local newVAO = makeVAOandAttach(defenseRangeVAOs['testLargeCircle'].vertexVBO,defenseRangeVAOs['testLargeCircle'].instanceVBO)
-		defenseRangeVAOs['testLargeCircle'].VAO = newVAO
-		return makeShaders()
-	end
+	local fullScreenRectVAO
+	local startPolygonShader
+	local startPolygonBuffer = nil -- GL.SHADER_STORAGE_BUFFER for polygon
 	
-	function gadget:Initialize()
-		if initGL4() == false then
-			return
-		end
-		-- -------------------------------------------------------------------------------------------------- zzz test example code
-		-- -- Add a test circle in the middle of the map
-		-- local mapCenterX = Game.mapSizeX / 2
-		-- local mapCenterZ = Game.mapSizeZ / 2
-		-- local groundHeight = Spring.GetGroundHeight(mapCenterX, mapCenterZ)
-		-- local testCircleRadius = 512  -- Size of the circle
+	local function DrawStartPolygons(inminimap)	
+		local advUnitShading, advMapShading = Spring.HaveAdvShading()
 		
-		-- -- Create a test instance for the circle
-		-- local testInstanceID = "testCircle"
-		-- local testVAO = defenseRangeVAOs['testLargeCircle']
-		
-		-- -- Add the instance data
-		-- local instanceData = {
-		-- 	posscale = {mapCenterX, groundHeight, mapCenterZ, testCircleRadius}, -- position (x,y,z) and radius
-		-- 	color1 = {1.0, 0.5, 0.0, 0.8}, -- orange color with 0.8 alpha
-		-- 	visibility = {2000, 5000, 1.0, 0.0}, -- visibility parameters
-		-- 	projectileParams = {0.0, 0.0, 0.0, 0.0} -- no special projectile params
-		-- }
-		
-		-- pushElementInstance(testVAO, testInstanceID, instanceData)
-		-- uploadAllElements(testVAO)
-		-------------------------------------------------------------------------------------------------- zzzz test example code
-	end
-
-	local function UnitDetected(unitID, unitDefID, unitTeam, noUpload)
--- zzz this appears to be where the coordinates for where to draw the rings was made, check original gadget for reference
-	end
-	
-	
-	function gadget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
-		-- the set of visible units changed. Now is a good time to reevalueate our life choices
-		-- This happens when we move from team to team, or when we move from spec to other
-		-- zzz this seems to be how to update changed instances?
-
-		for vaokey, instanceTable in pairs(defenseRangeVAOs) do
-			clearInstanceTable(instanceTable) -- clear all instances
-		end
-		for unitID, unitDefID in pairs(extVisibleUnits) do
-			UnitDetected(unitID, unitDefID, Spring.GetUnitTeam(unitID), true) -- add them with noUpload = true
-		end
-		for vaokey, instanceTable in pairs(defenseRangeVAOs) do
-			uploadAllElements(instanceTable) -- clear all instances
-		end
-	end
-	
-	local function removeUnit(unitID,defense)
-		for instanceKey,vaoKey in pairs(defense.vaokeys) do
-			--Spring.Echo(vaoKey,instanceKey)
-			if defenseRangeVAOs[vaoKey].instanceIDtoIndex[instanceKey] then
-				popElementInstance(defenseRangeVAOs[vaoKey],instanceKey)
+		if advMapShading then 
+			gl.Texture(0, "$map_gbuffer_zvaltex")
+		else
+			if 1 == 2 and WG['screencopymanager'] and WG['screencopymanager'].GetDepthCopy() then
+				gl.Texture(0, WG['screencopymanager'].GetDepthCopy())
+			else 
+				Spring.Echo("Start Polygons: Adv map shading not available, and no depth copy available")
+				return
 			end
 		end
+		
+		gl.Texture(1, "$normals")
+		gl.Texture(2, "$heightmap")-- Texture file
+		gl.Texture(3, scavengerStartBoxTexture)
+		gl.Texture(4, raptorStartBoxTexture)
+	
+		startPolygonBuffer:BindBufferRange(4)
+	
+		gl.Culling(true)
+		gl.DepthTest(false)
+		gl.DepthMask(false)
+	
+		startPolygonShader:Activate()
+	
+		startPolygonShader:SetUniform("noRushTimer", noRushTime)
+		startPolygonShader:SetUniformInt("isMiniMap", inminimap and 1 or 0)
+		startPolygonShader:SetUniformInt("flipMiniMap", getMiniMapFlipped() and 1 or 0)
+		startPolygonShader:SetUniformInt("myAllyTeamID", Spring.GetMyAllyTeamID() or -1) 
+	
+		fullScreenRectVAO:DrawArrays(GL.TRIANGLES)
+		startPolygonShader:Deactivate()
+		gl.Texture(0, false)
+		gl.Culling(false)
+		gl.DepthTest(false)
 	end
 	
-	function gadget:GameFrame(gf)
-	end
-	
-	function gadget:Update(dt)
-	end
-	
-	function gadget:RecvLuaMsg(msg, playerID)
-		if msg:sub(1,18) == 'LobbyOverlayActive' then
-			chobbyInterfaceActive = (msg:sub(1,19) == 'LobbyOverlayActive1')
-		end
-	end
-	
-	local function GetCameraHeightFactor() -- returns a smoothstepped value between 0 and 1 for height based rescaling of line width.
-		local camX, camY, camZ = Spring.GetCameraPosition()
-		local camheight = camY - math.max(Spring.GetGroundHeight(camX, camZ), 0)
-		-- Smoothstep to half line width as camera goes over 2k height to 4k height
-		--genType t;  /* Or genDType t; */
-		--t = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
-		--return t * t * (3.0 - 2.0 * t);
-	
-		camheight = math.max(0.0, math.min(1.0, (camheight - colorConfig.distanceScaleStart) / (colorConfig.distanceScaleEnd - colorConfig.distanceScaleStart)))
-		--return camheight * camheight * (3 - 2 *camheight)
-		return 1
-	end
-
-	local allyenemypairs = {"ally","enemy"}
-	local groundnukeair = {"ground","air","nuke"}
-	local function DRAWRINGS(primitiveType, linethickness)
-		local stencilMask
-		testRangeShader:SetUniform("cannonmode",0)
-		for i,allyState in ipairs(allyenemypairs) do
-			for j, wt in ipairs(groundnukeair) do
-				local defRangeClass = allyState..wt
-				local iT = defenseRangeVAOs[defRangeClass]
-				stencilMask = 2 ^ ( 4 * (i-1) + (j-1)) -- from 1 to 128
-				drawcounts[stencilMask] = iT.usedElements
-				if iT.usedElements > 0 then
-					if linethickness then
-						glLineWidth(colorConfig[wt][linethickness] * cameraHeightFactor)
-					end
-					glStencilMask(stencilMask)  -- only allow these bits to get written
-					glStencilFunc(GL.NOTEQUAL, stencilMask, stencilMask) -- what to do with the stencil
-					iT.VAO:DrawArrays(primitiveType,iT.numVertices,0,iT.usedElements,0) -- +1!!!
-				end
-			end
-		end
-	
-		testRangeShader:SetUniform("cannonmode",1)
-		for i,allyState in ipairs(allyenemypairs) do
-			local defRangeClass = allyState.."cannon"
-			local iT = defenseRangeVAOs[defRangeClass]
-			stencilMask = 2 ^ ( 4 * (i-1) + 3)
-			drawcounts[stencilMask] = iT.usedElements
-			if iT.usedElements > 0 then
-				if linethickness then
-					glLineWidth(colorConfig['cannon'][linethickness] * cameraHeightFactor)
-				end
-				glStencilMask(stencilMask)
-				glStencilFunc(GL.NOTEQUAL, stencilMask, stencilMask)
-				iT.VAO:DrawArrays(primitiveType,iT.numVertices,0,iT.usedElements,0) -- +1!!!
-			end
-		end
+	function gadget:DrawInMiniMap(sx, sz)
+		DrawStartPolygons(true)
 	end
 	
 	function gadget:DrawWorldPreUnit()
-		--if fullview and not enabledAsSpec then
-		--	return
-		--end
-		if chobbyInterface then return end
-		if not Spring.IsGUIHidden() then
-			cameraHeightFactor = GetCameraHeightFactor() * 0.5 + 0.5
-			glTexture(0, "$heightmap")
-			glTexture(1, "$info")
+		if autoReload then
+			startPolygonShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or startPolygonShader
+		end
+		DrawStartPolygons(false)
+	end
 	
-			-- Stencil Setup
-			-- 	-- https://learnopengl.com/Advanced-OpenGL/Stencil-testing
-			if colorConfig.drawStencil then
-				glClear(GL.STENCIL_BUFFER_BIT) -- clear prev stencil
-				glDepthTest(false) -- always draw
-				glColorMask(false, false, false, false) -- disable color drawing
-				glStencilTest(true) -- enable stencil test
-				glStencilMask(255) -- all 8 bits
-				glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon
+	function gadget:GameFrame(n)
+		-- TODO: Remove the gadget when the timer is up?
+	end
 	
-				testRangeShader:Activate()
-				DRAWRINGS(GL.TRIANGLE_FAN) -- FILL THE CIRCLES
-				--glLineWidth(math.max(0.1,4 + math.sin(gameFrame * 0.04) * 10))
-				glColorMask(true, true, true, true)	-- re-enable color drawing
-				glStencilMask(0)
-	
-				testRangeShader:SetUniform("lineAlphaUniform",colorConfig.externalalpha)
-				glDepthTest(GL.LEQUAL) -- test for depth on these outside cases
-				DRAWRINGS(GL.LINE_LOOP, 'externallinethickness') -- DRAW THE OUTER RINGS
-				glStencilTest(false)
-	
-			end
-	
-			if colorConfig.drawInnerRings then
-				testRangeShader:SetUniform("lineAlphaUniform",colorConfig.internalalpha)
-				DRAWRINGS(GL.LINE_LOOP, 'internallinethickness') -- DRAW THE INNER RINGS
-			end
-	
-			testRangeShader:Deactivate()
-	
-			glTexture(0, false)
-			glTexture(1, false)
-			glDepthTest(false)
-			if false and Spring.GetDrawFrame() % 60 == 0 then
-				local s = 'drawcounts: '
-				for k,v in pairs(drawcounts) do s = s .. " " .. tostring(k) .. ":" .. tostring(v) end
-				Spring.Echo(s)
+	function gadget:Initialize()
+		local gaiaAllyTeamID
+		if Spring.GetGaiaTeamID() then 
+			gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID() , false))
+		end
+		for i, teamID in ipairs(Spring.GetAllyTeamList()) do
+			if teamID ~= gaiaAllyTeamID then 
+				--and teamID ~= scavengerAIAllyTeamID and teamID ~= raptorsAIAllyTeamID then
+				local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(teamID)
+				--Spring.Echo("Allyteam",teamID,"startbox",xn, zn, xp, zp)	
+				StartPolygons[teamID] = {{xn, zn}, {xp, zn}, {xp, zp}, {xn, zp}}
 			end
 		end
+		
+		-- MANUAL OVERRIDE FOR DEBUGGING
+		-- Draw a single 1024x1024 square in the middle of the map
+		StartPolygons = {}
+		local centerX = Game.mapSizeX / 2
+		local centerZ = Game.mapSizeZ / 2
+		local halfSize = 1024 / 2
+
+		StartPolygons[1] = {
+			{centerX - halfSize, centerZ - halfSize},
+			{centerX + halfSize, centerZ - halfSize},
+			{centerX + halfSize, centerZ + halfSize},
+			{centerX - halfSize, centerZ + halfSize}
+		}
+	
+		shaderSourceCache.shaderConfig.NUM_BOXES = #StartPolygons
+	
+		local numvertices = 0
+		local bufferdata = {}
+		local numPolygons = 0
+		for teamID, polygon in pairs(StartPolygons) do
+			numPolygons = numPolygons + 1
+			local numPoints = #polygon
+			local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(teamID)
+			--Spring.Echo("teamID", teamID, "at " ,xn, zn, xp, zp)
+			for vertexID, vertex in ipairs(polygon) do
+				local x, z = vertex[1], vertex[2]
+				bufferdata[#bufferdata+1] = teamID
+				bufferdata[#bufferdata+1] = numPoints
+				bufferdata[#bufferdata+1] = x
+				bufferdata[#bufferdata+1] = z
+				numvertices = numvertices + 1
+			end
+		end
+	
+		-- SHADER_STORAGE_BUFFER MUST HAVE 64 byte aligned data 
+		if numvertices % 4 ~= 0 then 
+			for i=1, ((4 - (numvertices % 4)) * 4) do bufferdata[#bufferdata+1] = -1 end
+			numvertices = numvertices + (4 - numvertices % 4)
+		end
+	
+		startPolygonBuffer = gl.GetVBO(GL.SHADER_STORAGE_BUFFER, false) -- not updated a lot
+		startPolygonBuffer:Define(numvertices, {{id = 0, name = 'starttriangles', size = 4}})
+		startPolygonBuffer:Upload(bufferdata)--, -1, 0, 0, numvertices-1)
+	
+		shaderSourceCache.shaderConfig.NUM_POLYGONS = numPolygons
+		shaderSourceCache.shaderConfig.NUM_POINTS = numvertices
+		startPolygonShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or startPolygonShader
+	
+		if not startPolygonShader then
+			Spring.Echo("Error: Norush Timer GL4 shader not initialized")
+			gadgetHandler:RemoveGadget()
+			return
+		end
+		fullScreenRectVAO = MakeTexRectVAO()
 	end
 
-	local gridData = {}
-	local allyScores = {}
 		-- Receive grid data from synced
 	function gadget:RecvFromSynced(cmd, ...)
 		local args = {...}
