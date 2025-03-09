@@ -11,7 +11,7 @@ return {
 		explodeas = "smallExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
-		health = 485,
+		health = 320,
 		hoverattack = true,
 		idleautoheal = 5,
 		idletime = 1800,
@@ -76,7 +76,7 @@ return {
 		weapondefs = {
 			emg = {
 				accuracy = 13,
-				areaofeffect = 8,
+				areaofeffect = 16,
 				avoidfeature = false,
 				burst = 3,
 				burstrate = 0.1,
@@ -100,12 +100,11 @@ return {
 				soundtrigger = true,
 				sprayangle = 1024,
 				tolerance = 5000,
-				turret = true,
 				weapontimer = 0.1,
 				weapontype = "Cannon",
 				weaponvelocity = 800,
 				damage = {
-					default = 9,
+					default = 11,
 					vtol = 3,
 				},
 			},
