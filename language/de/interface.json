@@ -588,10 +588,10 @@
 			"enemiesDestroyed": "Zerstörung von feindlichen Einheiten und Verteidigungen",
 			"resourcesDestroyed": "Zerstörung der feindlichen Ressourcenproduktion",
 			"resourcesEfficiency": "Effiziente Ressourcennutzung",
-			"resourcesProduced": "%{playerColor}%{player}%{textColor} produzierte die meisten Ressourcen (%{score}).",
+			"resourcesProduced": "%{player} produzierte die meisten Ressourcen - %{score}",
 			"didEverything": "Alleskönner",
-			"damageTaken": "%{playerColor}%{player}%{textColor} erlitt den meisten Schaden (%{score}).",
-			"sleptLongest": "%{playerColor}%{player}%{textColor} hat mit %{score} Minuten am längsten geschlafen.",
+			"damageTaken": "%{player} erlitt den meisten Schaden - %{score}",
+			"sleptLongest": "%{player} hat mit %{score} Minuten am längsten geschlafen",
 			"traitor": "Der Verräter - Zerstörung verbündeter Einheiten",
 			"leave": "Verlassen",
 			"showGraphs": "Graphen anzeigen"
