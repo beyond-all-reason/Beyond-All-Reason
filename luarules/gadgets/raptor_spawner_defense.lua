@@ -1853,7 +1853,6 @@ if gadgetHandler:IsSyncedCode() then
 			SetGameRulesParam("raptorQueenAnger", queenAnger)
 			SetGameRulesParam("raptorTechAnger", techAnger)
 
-			Spring.Echo("Queen Anger: " .. queenAnger)
 			if queenAnger >= 100 or (burrowCount <= 1 and t > config.gracePeriod) then
 				-- check if the queen should be alive
 				updateSpawnQueen()
