@@ -97,6 +97,7 @@ local sndChatFileVolume = 0.55
 local colorOther = {1,1,1} -- normal chat color
 local colorAlly = {0,1,0}
 local colorSpec = {1,1,0}
+local colorSpecName = {1,1,1}
 local colorOtherAlly = {1,0.7,0.45} -- enemy ally messages (seen only when spectating)
 local colorGame = {0.4,1,1} -- server (autohost) chat
 local colorConsole = {0.85,0.85,0.85}
@@ -565,15 +566,19 @@ local function addConsoleLine(gameFrame, lineType, text, orgLineID, consoleLineI
 	end
 end
 
-local function teamcolorPlayername(playername, gameFrame)
+local function getPlayerColorString(playername, gameFrame)
 	if playernames[playername] then
-		if playernames[playername][5] and (not playernames[playername][6] or playernames[playername][6] < gameFrame) then
-			return ColorString(playernames[playername][5][1], playernames[playername][5][2], playernames[playername][5][3])..playername
+		if playernames[playername][5] and (not gameFrame or not playernames[playername][6] or playernames[playername][6] < gameFrame) then
+			if not isSpec and anonymousMode ~= "disabled" then
+				return ColorString(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3])
+			else
+				return ColorString(playernames[playername][5][1], playernames[playername][5][2], playernames[playername][5][3])
+			end
 		else
-			return ColorString(colorSpec[1], colorSpec[2], colorSpec[3])..playername
+			return ColorString(colorSpecName[1], colorSpecName[2], colorSpecName[3])
 		end
 	end
-	return ColorString(0.7, 0.7, 0.7)..playername
+	return ColorString(0.7, 0.7, 0.7)
 end
 
 local function setCurrentChatLine(line)
@@ -607,7 +612,7 @@ local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID,
 					local pair = string.split(v, '=')
 					if pair[2] then
 						if playernames[pair[2]] then
-							t[ pair[1] ] = teamcolorPlayername(pair[2], gameFrame)..msgColor
+							t[ pair[1] ] = getPlayerColorString(pair[2], gameFrame)..pair[2]..msgColor
 						elseif params[1]:lower():find('energy', nil, true) then
 							t[ pair[1] ] = energyValueColor..pair[2]..msgColor
 						elseif params[1]:lower():find('metal', nil, true) then
@@ -770,11 +775,7 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 			text = ssub(text,2)
 		end
 
-		if not isSpec and anonymousMode ~= "disabled" then
-			nameText = ColorString(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3])..name
-		else
-			nameText = ColorString(spGetTeamColor(playernames[name][3]))..name
-		end
+		nameText = getPlayerColorString(name, gameFrame)..name
 		line = ColorString(c[1],c[2],c[3])..text
 
 		-- spectator message
@@ -820,7 +821,7 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 			text = 'Look here!'
 		end
 
-		local namecolor
+		local namecolor = getPlayerColorString(name, gameFrame)
 		local spectator = true
 		if playernames[name] ~= nil then
 			spectator = playernames[name][2]
@@ -829,24 +830,17 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 			namecolor = ColorString(colorSpec[1],colorSpec[2],colorSpec[3])
 			textcolor = ColorString(colorSpec[1],colorSpec[2],colorSpec[3])
 
-			-- filter specs
 			if hideSpecChat then
 				skipThisMessage = true
 			end
 		else
-			if not isSpec and anonymousMode ~= "disabled" then
-				namecolor = ColorString(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3])
-			else
-				namecolor =  ColorString(spGetTeamColor(playernames[name][3]))
-			end
-
 			if playernames[name][1] == myAllyTeamID then
 				textcolor = ColorString(colorAlly[1],colorAlly[2],colorAlly[3])
 			else
 				textcolor = ColorString(colorOtherAlly[1],colorOtherAlly[2],colorOtherAlly[3])
 			end
 		end
-
+		
 		nameText = namecolor..(spectator and '(s) ' or '')..name
 		line = textcolor..text
 
@@ -891,19 +885,20 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		local oldTeamName, newTeamName, shareDesc = string.match(line, format)
 
 		-- shared 5 Wind Turbine to Player2
-		if newTeamName and shareDesc then
+		if newTeamName and newTeamName ~= '' and shareDesc and shareDesc ~= '' then
 			text = msgColor .. Spring.I18N('ui.unitShare.shared', {
 				units = msgHighlightColor .. shareDesc .. msgColor,
-				name = teamcolorPlayername(newTeamName, gameFrame)
+				name = getPlayerColorString(newTeamName, gameFrame)..newTeamName
 			})
 		end
 
-		nameText = teamcolorPlayername(oldTeamName, gameFrame)
+		nameText = getPlayerColorString(oldTeamName, gameFrame)..oldTeamName
 		line = text
 
 		-- console chat
 	else
 		lineType = LineTypes.Console
+		local lineColor = ''
 
 		if sfind(line, "Input grabbing is ", nil, true) then
 			bypassThisMessage = true
@@ -923,7 +918,6 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 			else
 				soundErrors[line] = true
 			end
-
 			-- filter chobby (debug) messages
 		elseif sfind(line,"Chobby]", nil, true) then
 			bypassThisMessage = true
@@ -941,6 +935,9 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		elseif sfind(line,"server=[0-9a-z][0-9a-z][0-9a-z][0-9a-z]") or sfind(line,"client=[0-9a-z][0-9a-z][0-9a-z][0-9a-z]") then	-- filter hash messages: server= / client=
 			bypassThisMessage = true
 
+			
+		elseif ssub(line,1,6) == "[i18n]" then
+			lineColor = msgColor
 			--2 lines (instead of 4) appears when player connects
 		elseif sfind(line,'-> Version', nil, true) or sfind(line,'ClientReadNet', nil, true) or sfind(line,'Address', nil, true) then
 			bypassThisMessage = true
@@ -949,68 +946,83 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 			if n ~= nil then
 				line = ssub(line,1,n-3) --shorten so as these messages don't get clipped and can be detected as duplicates
 			end
-		elseif gameOver and sfind(line,'left the game', nil, true) then
-			bypassThisMessage = true
 		elseif sfind(line, 'self%-destruct in ', nil, true) then
 			bypassThisMessage = true
+
+		elseif sfind(line,'paused the game', nil, true) then
+			lineColor = '\255\255\255\255'
+			local playername = ssub(line, 1, sfind(line, ' paused the game')-1)
+			line = Spring.I18N('ui.chat.pausedthegame', { name = getPlayerColorString(playername, gameFrame)..playername, textColor = lineColor } )
+
+		elseif sfind(line,'Sync error for', nil, true) then
+			local playername = ssub(line, 16, sfind(line, ' in frame')-1)
+			if playernames[playername] and not playernames[playername][2] then
+				lineColor = '\255\255\133\133'	-- player
+			else
+				lineColor = '\255\255\200\200'	-- spectator
+			end
+			line = Spring.I18N('ui.chat.syncerrorfor', { name = getPlayerColorString(playername, gameFrame)..playername, textColor = lineColor } )
+
+		elseif sfind(line,' is lagging behind', nil, true) then
+			local playername = ssub(line, 1, sfind(line, ' is lagging behind')-1)
+			if playernames[playername] and not playernames[playername][2] then
+				lineColor = '\255\255\133\133'	-- player
+			else
+				lineColor = '\255\255\200\200'	-- spectator
+			end
+			line = Spring.I18N('ui.chat.laggingbehind', { name = getPlayerColorString(playername, gameFrame)..playername, textColor = lineColor } )
+
+		elseif sfind(line,'Connection attempt from ', nil, true) then
+			lineColor = msgHighlightColor
+			local playername = ssub(line, sfind(line, 'Connection attempt from ')+24)
+			local spectator = ''
+			if playernames[playername] and playernames[playername][2] then
+				spectator = msgColor..' ('..Spring.I18N('ui.chat.spectator')..')'
+			end
+			line = Spring.I18N('ui.chat.connectionattemptfrom', { name = getPlayerColorString(playername, gameFrame)..playername .. spectator, textColor = lineColor, textColor2 = msgColor } )
+		
+		elseif gameOver and sfind(line,'left the game', nil, true) then
+			bypassThisMessage = true
+
+		elseif sfind(line,'left the game:  normal quit', nil, true) then
+			lineColor = msgHighlightColor
+			local playername = ''
+			local spectator = ''
+			if sfind(line,'Spectator', nil, true) then
+				playername = ssub(line, 11, sfind(line, ' left the game')-1)
+				spectator =  msgColor..' ('..Spring.I18N('ui.chat.spectator')..')'
+			else	-- Player
+				playername = ssub(line, 8, sfind(line, ' left the game')-1)
+				lineColor = '\255\255\133\133'	-- player
+			end
+			line = Spring.I18N('ui.chat.leftthegamenormal', { name = getPlayerColorString(playername, gameFrame)..playername..spectator, textColor = lineColor, textColor2 = msgColor } )
+
+		elseif sfind(line,'left the game:  timeout', nil, true) then
+			lineColor = msgHighlightColor
+			local playername = ''
+			local spectator = ''
+			if sfind(line,'Spectator', nil, true) then
+				playername = ssub(line, 11, sfind(line, ' left the game')-1)
+				spectator =  msgColor..' ('..Spring.I18N('ui.chat.spectator')..')'
+			else	-- Player
+				playername = ssub(line, 8, sfind(line, ' left the game')-1)
+				lineColor = '\255\255\133\133'	-- player
+			end
+			line = Spring.I18N('ui.chat.leftthegametimeout', { name = getPlayerColorString(playername, gameFrame)..playername..spectator, textColor = lineColor } )
+
+		elseif sfind(line,'Error', nil, true) then
+			lineColor = '\255\255\133\133'
+		elseif sfind(line,'Warning', nil, true) then
+			lineColor = '\255\255\190\170'
+		elseif sfind(line,'Failed to load', nil, true) then
+			lineColor = '\255\200\200\255'
+		elseif sfind(line,'Loaded ', nil, true) or sfind(ssub(line, 1, 25),'Loading ', nil, true) or sfind(ssub(line, 1, 25),'Loading: ', nil, true) then
+			lineColor = '\255\200\255\200'
+		elseif sfind(line,'Removed: ', nil, true) or  sfind(line,'Removed widget: ', nil, true) then
+			lineColor = '\255\255\230\200'
 		end
 
-		local color = ''
-		if sfind(line,'Error', nil, true) then
-			color = '\255\255\133\133'
-		elseif sfind(line,'Sync error for', nil, true) then
-			color = '\255\255\133\133'
-		elseif sfind(line,' is lagging behind', nil, true) then
-			color = '\255\255\133\133'
-			local playername = ssub(line, 1, sfind(line, ' is lagging behind'))
-			line = ''
-			if playernames[playername] then
-				if not playernames[playername][2] then
-					if not isSpec and anonymousMode ~= "disabled" then
-						line = line..ColorString(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3])..playername
-					else
-						line = line..ColorString(spGetTeamColor(playernames[playername][3]))..playername
-					end
-				else
-					line = line..ColorString(colorConsole[1],colorConsole[2],colorConsole[3])..playername
-				end
-			else
-				line = line..playername
-			end
-			line = line .. ' is lagging behind'
-		elseif sfind(line,'Warning', nil, true) then
-			color = '\255\255\190\170'
-		elseif sfind(line,'Failed to load', nil, true) then
-			color = '\255\200\200\255'
-		elseif sfind(line,'Loaded ', nil, true) or sfind(ssub(line, 1, 25),'Loading ', nil, true) or sfind(ssub(line, 1, 25),'Loading: ', nil, true) then
-			color = '\255\200\255\200'
-		elseif sfind(line,'Removed: ', nil, true) or  sfind(line,'Removed widget: ', nil, true) then
-			color = '\255\255\230\200'
-		elseif sfind(line,'paused the game', nil, true) then
-			color = '\255\255\255\255'
-		elseif sfind(line,'Connection attempt from ', nil, true) then
-			color = '\255\255\255\255'
-			local playername = ssub(line, sfind(line, 'Connection attempt from ')+24)
-			line = 'Connection attempt from: '
-			if playernames[playername] then
-				if not playernames[playername][2] then
-					if not isSpec and anonymousMode ~= "disabled" then
-						line = line..ColorString(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3])..playername
-					else
-						line = line..ColorString(spGetTeamColor(playernames[playername][3]))..playername
-					end
-				else
-					line = line..'(spectator) '..ColorString(colorConsole[1],colorConsole[2],colorConsole[3])..playername
-				end
-			else
-				line = line..playername
-			end
-		end
-		if color ~= '' then
-			line = color..line
-		else
-			line = ColorString(colorConsole[1],colorConsole[2],colorConsole[3])..line
-		end
+		line = ColorString(colorConsole[1],colorConsole[2],colorConsole[3])..lineColor.. line
 	end
 
 	if not bypassThisMessage then
@@ -1022,26 +1034,24 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		if sfind(line, 'My player ID is', nil, true) then
 			bypassThisMessage = true
 		end
-	end
 
-	if not bypassThisMessage and line ~= '' then
-
-		-- ignore muted players
-		if ignoredPlayers[name] then
-			skipThisMessage = true
-		end
-		if not orgLineID then
-			orgLineID = #orgLines+1
-			orgLines[orgLineID] = {gameFrame, orgLine}
-			-- if your name has been mentioned, pass it on
-			if lineType > 0 and WG.logo and sfind(text, myName, nil, true) then -- and myName ~= "Player"
-				WG.logo.mention()
+		if not bypassThisMessage and line ~= '' then
+			if ignoredPlayers[name] then
+				skipThisMessage = true
 			end
-		end
-		if lineType < 1 then
-			addConsoleLine(gameFrame, lineType, line, orgLineID, reprocessID)
-		else
-			addChatLine(gameFrame, lineType, name, nameText, line, orgLineID, skipThisMessage, reprocessID)
+			if not orgLineID then
+				orgLineID = #orgLines+1
+				orgLines[orgLineID] = {gameFrame, orgLine}
+				-- if your name has been mentioned, pass it on
+				if lineType > 0 and WG.logo and sfind(text, myName, nil, true) then -- and myName ~= "Player"
+					WG.logo.mention()
+				end
+			end
+			if lineType < 1 then
+				addConsoleLine(gameFrame, lineType, line, orgLineID, reprocessID)
+			else
+				addChatLine(gameFrame, lineType, name, nameText, line, orgLineID, skipThisMessage, reprocessID)
+			end
 		end
 	end
 end
