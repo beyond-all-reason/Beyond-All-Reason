@@ -289,7 +289,7 @@ local trackedProjectileTypes = {} -- we have to track the types [point, light, c
 local lastGameFrame = -2
 
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 
@@ -297,8 +297,8 @@ local deferredLightShader = nil
 
 local shaderSourceCache = {
 	shaderName = 'Deferred Lights GL4',
-	vssrcpath = "LuaUI/Widgets/Shaders/deferred_lights_gl4.vert.glsl",
-	fssrcpath = "LuaUI/Widgets/Shaders/deferred_lights_gl4.frag.glsl",
+	vssrcpath = "LuaUI/Shaders/deferred_lights_gl4.vert.glsl",
+	fssrcpath = "LuaUI/Shaders/deferred_lights_gl4.frag.glsl",
 	shaderConfig = shaderConfig,
 	uniformInt = {
 		mapDepths = 0,
@@ -1000,7 +1000,6 @@ function widget:Barrelfire(px, py, pz, weaponID, ownerID)
 	if muzzleFlashLights[weaponID] then
 		local lightParamTable = muzzleFlashLights[weaponID].lightParamTable
 		if muzzleFlashLights[weaponID].alwaysVisible or spIsSphereInView(px,py,pz, lightParamTable[4]) then
-			local groundHeight = spGetGroundHeight(px,pz) or 1
 			lightParamTable[1] = px
 			lightParamTable[2] = py
 			lightParamTable[3] = pz
@@ -1319,7 +1318,6 @@ local function updateProjectileLights(newgameframe)
 				-- add projectile
 				local weapon, piece = spGetProjectileType(projectileID)
 				if piece then
-					local explosionflags = spGetPieceProjectileParams(projectileID)
 					local gib = gibLight.lightParamTable
 					gib[1] = px
 					gib[2] = py

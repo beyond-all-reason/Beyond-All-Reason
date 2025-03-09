@@ -144,6 +144,10 @@ return {
 					commanders = 200,
 					default = 500,
 				},
+				customparams = {
+					projectile_destruction_method = "descend",
+					overrange_distance = 1093,
+				},
 			},
 			laser = {
 				areaofeffect = 8,

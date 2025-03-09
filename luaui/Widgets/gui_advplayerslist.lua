@@ -4,7 +4,7 @@ function widget:GetInfo()
         desc = "List of players and spectators",
         author = "Marmoth. (spiced up by Floris)",
         date = "2008",
-        version = 42,
+        version = 43,
         license = "GNU GPL, v2 or later",
         layer = -4,
         enabled = true,
@@ -51,6 +51,7 @@ end
 	v40   (Floris): draw a faint pencil/eraser when player is drawing/erasing
 	v41   (Floris): added APM info to cpu/ping tooltip
 	v42   (Floris): support FFA allyteam ranking leaderboard style
+	v43   (Floris): extracted lockcamera execution
 ]]
 --------------------------------------------------------------------------------
 -- Config
@@ -61,8 +62,6 @@ local pointDuration = 45
 local pencilDuration = 5
 local drawAlliesLabel = false
 local alwaysHideSpecs = true
-local lockcameraHideEnemies = true            -- specfullview
-local lockcameraLos = true                    -- togglelos
 local minWidth = 170	-- for the sake of giving the addons some room
 
 local hideDeadAllyTeams = true
@@ -99,9 +98,6 @@ local Spring_GetAIInfo = Spring.GetAIInfo
 local Spring_GetTeamRulesParam = Spring.GetTeamRulesParam
 local Spring_GetMyTeamID = Spring.GetMyTeamID
 local Spring_AreTeamsAllied = Spring.AreTeamsAllied
-
-local GetCameraState = Spring.GetCameraState
-local SetCameraState = Spring.SetCameraState
 
 local ColorString = Spring.Utilities.Color.ToString
 local ColorArray = Spring.Utilities.Color.ToIntArray
@@ -209,26 +205,15 @@ local hoverPlayerlist = false
 local updateRateMult = 1	-- goes up when more players	auto adjusts in UpdatePlayerResources()
 local updateFastRateMult = 1	-- goes up when more players	auto adjusts in UpdatePlayerResources()
 
---------------------------------------------------------------------------------
--- LockCamera variables
---------------------------------------------------------------------------------
-
-local transitionTime = 1.3 -- how long it takes the camera to move when tracking a player
-local listTime = 14 -- how long back to look for recent broadcasters
-
-local totalTime = 0
-local lastBroadcasts = {}
-local recentBroadcasters = {}
-local newBroadcaster = false
 local aliveAllyTeams = {}
 local allyTeamMaxStorage = {}
 
 local tipTextTime = 0
-local Background, ShareSlider, BackgroundGuishader, tipText, drawTipText, tipY, myLastCameraState
+local Background, ShareSlider, BackgroundGuishader, tipText, tipTextTitle, drawTipText, tipY
 --local specJoinedOnce, scheduledSpecFullView
 --local prevClickedPlayer, clickedPlayerTime, clickedPlayerID
---local lockPlayerID, leftPosX, lastSliderSound, release
-local MainList, MainList2, MainList3, desiredLosmode, drawListOffset
+local lockPlayerID  --leftPosX, lastSliderSound, release
+local MainList, MainList2, MainList3, drawListOffset
 
 local deadPlayerHeightReduction = 8
 
@@ -302,8 +287,6 @@ local firstclick = 0
 local dblclickPeriod = 0.4
 local backgroundMargin = 8
 local widgetRelRight = 0
-
-local desiredLosmodeChanged = 0
 
 --------------------------------------------------------------------------------
 -- GEOMETRY VARIABLES
@@ -672,73 +655,20 @@ local function UpdateAlliances()
     end
 end
 
----------------------------------------------------------------------------------------------------
---  LockCamera stuff
----------------------------------------------------------------------------------------------------
-
 local function UpdateRecentBroadcasters()
-    recentBroadcasters = {}
-    for playerID, info in pairs(lastBroadcasts) do
-        local prevTime = info[1]
-        if totalTime - prevTime <= listTime or playerID == lockPlayerID then
-            if totalTime - prevTime <= listTime then
-                recentBroadcasters[playerID] = totalTime - prevTime
-            end
-        end
-    end
+	if not WG.lockcamera then
+		recentBroadcasters = {}
+		return
+	end
+	recentBroadcasters = WG.lockcamera.recentBroadcasters
 end
 
 local function LockCamera(playerID)
-    mySpecStatus, fullView, _ = Spring.GetSpectatingState()
-    if playerID and playerID ~= myPlayerID and playerID ~= lockPlayerID and Spring_GetPlayerInfo(playerID) then
-        if lockcameraHideEnemies and not select(3, Spring_GetPlayerInfo(playerID)) then
-            Spring.SendCommands("specteam " .. select(4, Spring_GetPlayerInfo(playerID)))
-            if not fullView then
-                scheduledSpecFullView = 1 -- this is needed else the minimap/world doesnt update properly
-                Spring.SendCommands("specfullview")
-            else
-                scheduledSpecFullView = 2 -- this is needed else the minimap/world doesnt update properly
-                Spring.SendCommands("specfullview")
-            end
-            if lockcameraLos and mySpecStatus then
-                desiredLosmode = 'los'
-                desiredLosmodeChanged = os.clock()
-            end
-        elseif lockcameraHideEnemies and select(3, Spring_GetPlayerInfo(playerID)) then
-            if not fullView then
-                Spring.SendCommands("specfullview")
-            end
-            desiredLosmode = 'normal'
-            desiredLosmodeChanged = os.clock()
-        end
-        lockPlayerID = playerID
-        if lockcameraLos and mySpecStatus then
-            desiredLosmode = 'los'
-            desiredLosmodeChanged = os.clock()
-        end
-        myLastCameraState = myLastCameraState or GetCameraState()
-        local info = lastBroadcasts[lockPlayerID]
-        if info then
-            SetCameraState(info[2], transitionTime)
-        end
-    else
-        if myLastCameraState then
-            SetCameraState(myLastCameraState, transitionTime)
-            myLastCameraState = nil
-        end
-        if lockcameraHideEnemies and lockPlayerID and not select(3, Spring_GetPlayerInfo(lockPlayerID)) then
-            if not fullView then
-                Spring.SendCommands("specfullview")
-            end
-            if lockcameraLos and mySpecStatus then
-                desiredLosmode = 'normal'
-                desiredLosmodeChanged = os.clock()
-            end
-        end
-        lockPlayerID = nil
-        desiredLosmode = 'normal'
-        desiredLosmodeChanged = os.clock()
-    end
+	if not WG.lockcamera then
+		return
+	end
+	WG.lockcamera.SetPlayerID(playerID)
+    lockPlayerID = WG.lockcamera.GetPlayerID()
     UpdateRecentBroadcasters()
 end
 
@@ -784,30 +714,6 @@ function ActivityEvent(playerID)
     lastActivity[playerID] = os.clock()
 end
 
-function CameraBroadcastEvent(playerID, cameraState)
-    --if cameraState is empty then transmission has stopped
-    if not cameraState then
-        if lastBroadcasts[playerID] then
-            lastBroadcasts[playerID] = nil
-            newBroadcaster = true
-        end
-        if lockPlayerID == playerID then
-            LockCamera()
-        end
-        return
-    end
-
-    if not lastBroadcasts[playerID] and not newBroadcaster then
-        newBroadcaster = true
-    end
-
-    lastBroadcasts[playerID] = { totalTime, cameraState }
-
-    if playerID == lockPlayerID then
-        SetCameraState(cameraState, transitionTime)
-    end
-end
-
 ---------------------------------------------------------------------------------------------------
 --  Init/GameStart (creating players)
 ---------------------------------------------------------------------------------------------------
@@ -848,13 +754,12 @@ end
 function widget:Initialize()
 	widget:ViewResize()
 
-	widgetHandler:RegisterGlobal('CameraBroadcastEvent', CameraBroadcastEvent)
 	widgetHandler:RegisterGlobal('ActivityEvent', ActivityEvent)
 	widgetHandler:RegisterGlobal('FpsEvent', FpsEvent)
 	widgetHandler:RegisterGlobal('ApmEvent', ApmEvent)
 	widgetHandler:RegisterGlobal('GpuMemEvent', GpuMemEvent)
 	widgetHandler:RegisterGlobal('SystemEvent', SystemEvent)
-	widgetHandler:RegisterGlobal('rankingEvent', RankingEvent)
+	widgetHandler:RegisterGlobal('RankingEvent', RankingEvent)
 	UpdateRecentBroadcasters()
 
 	mySpecStatus, fullView, _ = Spring.GetSpectatingState()
@@ -909,65 +814,6 @@ function widget:Initialize()
 	WG['advplayerlist_api'].SetAbsoluteResbars = function(value)
 		absoluteResbarValues = value
 	end
-	WG['advplayerlist_api'].GetLockPlayerID = function()
-		return lockPlayerID
-	end
-	WG['advplayerlist_api'].SetLockPlayerID = function(playerID)
-		LockCamera(playerID)
-	end
-	WG['advplayerlist_api'].GetLockHideEnemies = function()
-		return lockcameraHideEnemies
-	end
-	WG['advplayerlist_api'].SetLockHideEnemies = function(value)
-		lockcameraHideEnemies = value
-		if lockPlayerID and not select(3, Spring_GetPlayerInfo(lockPlayerID)) then
-			if not lockcameraHideEnemies then
-				if not fullView then
-					Spring.SendCommands("specfullview")
-					if lockcameraLos and mySpecStatus then
-						desiredLosmode = 'normal'
-						desiredLosmodeChanged = os.clock()
-						Spring.SendCommands("togglelos")
-					end
-				end
-			else
-				if fullView then
-					Spring.SendCommands("specfullview")
-					if lockcameraLos and mySpecStatus then
-						desiredLosmode = 'los'
-						desiredLosmodeChanged = os.clock()
-					end
-				end
-			end
-		end
-	end
-	WG['advplayerlist_api'].GetLockTransitionTime = function()
-	    return transitionTime
-	end
-	WG['advplayerlist_api'].SetLockTransitionTime = function(value)
-	    transitionTime = value
-	end
-	WG['advplayerlist_api'].GetLockLos = function()
-	    return lockcameraLos
-	end
-	WG['advplayerlist_api'].SetLockLos = function(value)
-		lockcameraLos = value
-		if lockcameraHideEnemies and mySpecStatus and lockPlayerID and not select(3, Spring_GetPlayerInfo(lockPlayerID)) then
-			if lockcameraLos and mySpecStatus then
-				desiredLosmode = 'los'
-				desiredLosmodeChanged = os.clock()
-				Spring.SendCommands("togglelos")
-			elseif not lockcameraLos and Spring.GetMapDrawMode() == "los" then
-				desiredLosmode = 'normal'
-				desiredLosmodeChanged = os.clock()
-				Spring.SendCommands("togglelos")
-			end
-		end
-	end
-	WG['advplayerlist_api'].SetLosMode = function(value)
-		desiredLosmode = value
-		desiredLosmodeChanged = os.clock()
-	end
 	WG['advplayerlist_api'].GetModuleActive = function(module)
 		return modules[module].active
 	end
@@ -1017,7 +863,6 @@ function widget:Shutdown()
         WG['guishader'].RemoveDlist('advplayerlist')
     end
     WG['advplayerlist_api'] = nil
-    widgetHandler:DeregisterGlobal('CameraBroadcastEvent')
     widgetHandler:DeregisterGlobal('ActivityEvent')
 	widgetHandler:DeregisterGlobal('FpsEvent')
 	widgetHandler:DeregisterGlobal('ApmEvent')
@@ -1034,15 +879,6 @@ function widget:Shutdown()
     end
     if Background then
         gl_DeleteList(Background)
-    end
-    if lockPlayerID then
-        LockCamera()
-    end
-end
-
-function widget:GameOver()
-    if lockPlayerID then
-        LockCamera()
     end
 end
 
@@ -1150,7 +986,7 @@ function GetSkill(playerID)
             -- show sigma
             local tsRed, tsGreen, tsBlue = 195, 195, 195
             if osSigma then
-                local color = math.max(0.5, math.min(1,(1-((tonumber(osSigma-2) * 0.4)-1))))
+                local color = math.clamp(1-((tonumber(osSigma-2) * 0.4)-1), 0.5, 1)
                 color = math.max(0.7, color * color)
                 local color2 = math.max(0.35, color * color)
                 tsRed, tsGreen, tsBlue = math.floor(222 * color), math.floor(222 * color2), math.floor(222 * color2)
@@ -1369,8 +1205,8 @@ function UpdatePlayerResources()
         end
     end
 
-    updateRateMult = math.min(2, math.max(1, displayedPlayers*0.05))
-    updateFastRateMult = math.min(3.3, math.max(1, displayedPlayers*0.07))
+    updateRateMult = math.clamp(displayedPlayers*0.05, 1, 2)
+    updateFastRateMult = math.clamp(displayedPlayers*0.07, 1, 3.3)
 end
 
 function GetDark(red, green, blue)
@@ -1604,7 +1440,7 @@ function SortSpecs(vOffset)
             numSpecs = numSpecs + 1
         end
     end
-    specScale = math.max(0.45, math.min(1, 45 / numSpecs))
+    specScale = math.clamp(45 / numSpecs, 0.45, 1)
 
     -- Adds specs to the draw list
     local noSpec = true
@@ -1654,7 +1490,6 @@ end
 function widget:DrawScreen()
 	AdvPlayersListAtlas:RenderTasks()
 	--AdvPlayersListAtlas:DrawToScreen()
-    local mouseX, mouseY, mouseButtonL, mmb, rmb, mouseOffScreen, cameraPanMode = Spring.GetMouseState()
 
     -- draws the background
     if Background then
@@ -1719,6 +1554,7 @@ function CreateLists(onlyMainList, onlyMainList2, onlyMainList3)
     if onlyMainList2 then
         if tipTextTime+(updateFastRate*updateFastRateMult) < os.clock() then
             tipText = nil
+            tipTextTitle = nil
             drawTipText = nil
             tipTextTime = 0
         end
@@ -1943,7 +1779,9 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
                         end
 						if WG.allyTeamRanking and enemyListShow then
                         	DrawLabel(" "..Spring.I18N('ui.playersList.leaderboard'), drawListOffset[i], true)
+							leaderboardOffset = drawListOffset[i]
 						else
+							leaderboardOffset = nil
                         	DrawLabel(" "..Spring.I18N('ui.playersList.enemies', { amount = enemyAmount }), drawListOffset[i], true)
 						end
                         if Spring.GetGameFrame() <= 0 then
@@ -2088,13 +1926,13 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
 
     -- keyboard/mouse activity
     if lastActivity[playerID] ~= nil and type(lastActivity[playerID]) == "number" then
-        alphaActivity = math.max(0, math.min(1, (8 - math.floor(now - lastActivity[playerID])) / 5.5))
+        alphaActivity = math.clamp((8 - math.floor(now - lastActivity[playerID])) / 5.5, 0, 1)
         alphaActivity = 0.33 + (alphaActivity * 0.21)
         alpha = alphaActivity
     end
     -- camera activity
     if recentBroadcasters[playerID] ~= nil and type(recentBroadcasters[playerID]) == "number" then
-        local alphaCam =  math.max(0, math.min(1, (13 - math.floor(recentBroadcasters[playerID])) / 8.5))
+        local alphaCam =  math.clamp((13 - math.floor(recentBroadcasters[playerID])) / 8.5, 0, 1)
         alpha = 0.33 + (alphaCam * 0.42)
         if alpha < alphaActivity then
             alpha = alphaActivity
@@ -2105,8 +1943,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
         tipY = true
     end
 
-    if onlyMainList and lockPlayerID ~= nil and lockPlayerID == playerID then
-        -- active
+    if onlyMainList and lockPlayerID and lockPlayerID == playerID then
         DrawCamera(posY, true)
     end
 
@@ -2190,13 +2027,13 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
                     if onlyMainList3 and m_resources.active and e and (not dead or (e > 0 or m > 0)) then
                         DrawResources(e, es, esh, ec, m, ms, msh, posY, dead, (absoluteResbarValues and (allyTeamMaxStorage[allyteam] and allyTeamMaxStorage[allyteam][1])), (absoluteResbarValues and (allyTeamMaxStorage[allyteam] and allyTeamMaxStorage[allyteam][2])))
                         if tipY then
-                            ResourcesTip(mouseX, e, es, ei, m, ms, mi)
+                            ResourcesTip(mouseX, e, es, ei, m, ms, mi, name, team)
                         end
                     end
                     if onlyMainList2 and m_income.active and ei and playerScale >= 0.7 then
                         DrawIncome(ei, mi, posY, dead)
                         if tipY then
-                            IncomeTip(mouseX, ei, mi)
+                            IncomeTip(mouseX, ei, mi, name, team)
                         end
                     end
                 end
@@ -2839,7 +2676,7 @@ function AllyTip(mouseX, playerID)
     end
 end
 
-function ResourcesTip(mouseX, energy, energyStorage, energyIncome, metal, metalStorage, metalIncome)
+function ResourcesTip(mouseX, energy, energyStorage, energyIncome, metal, metalStorage, metalIncome, name, teamID)
     if mouseX >= widgetPosX + (m_resources.posX + 1) * widgetScale and mouseX <= widgetPosX + (m_resources.posX + m_resources.width) * widgetScale then
         if energy > 1000 then
             energy = math.floor(energy / 100) * 100
@@ -2877,12 +2714,13 @@ function ResourcesTip(mouseX, energy, energyStorage, energyIncome, metal, metalS
         if metalIncome >= 10000 then
             metalIncome = Spring.I18N('ui.playersList.thousands', { number = math.floor(metalIncome / 1000) })
         end
+        tipTextTitle = (spec and "\255\240\240\240" or colourNames(teamID)) .. name
         tipText = "\255\255\255\255+" .. metalIncome.. "\n\255\255\255\255" .. metal .. "\n\255\255\255\000" .. energy .. "\n\255\255\255\000+" .. energyIncome
         tipTextTime = os.clock()
     end
 end
 
-function IncomeTip(mouseX, energyIncome, metalIncome)
+function IncomeTip(mouseX, energyIncome, metalIncome, name, teamID)
     if mouseX >= widgetPosX + (m_income.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_income.posX + m_resources.width) * widgetScale then
         if energyIncome == nil then
             energyIncome = 0
@@ -2904,6 +2742,7 @@ function IncomeTip(mouseX, energyIncome, metalIncome)
         if metalIncome >= 10000 then
             metalIncome = Spring.I18N('ui.playersList.thousands', { number = math.floor(metalIncome / 1000) })
         end
+        tipTextTitle = (spec and "\255\240\240\240" or colourNames(teamID)) .. name
         tipText = Spring.I18N('ui.playersList.resincome') .. "\n\255\255\255\000+" .. energyIncome .. "\n\255\255\255\255+" .. metalIncome
         tipTextTime = os.clock()
     end
@@ -2917,6 +2756,7 @@ function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, system, name, teamID, 
             pingLvl = Spring.I18N('ui.playersList.seconds', { number = round(pingLvl / 1000, 0) })
         end
         tipText = Spring.I18N('ui.playersList.commandDelay', { labelColor = "\255\190\190\190", delayColor = "\255\255\255\255", delay = pingLvl })
+        tipTextTitle = (spec and "\255\240\240\240" or colourNames(teamID)) .. name
         tipTextTime = os.clock()
     elseif mouseX >= widgetPosX + (m_cpuping.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_cpuping.posX + (11*playerScale)) * widgetScale then
 		tipText = ''
@@ -2930,7 +2770,7 @@ function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, system, name, teamID, 
         if gpumem ~= nil then
             tipText = tipText .. "    " .. Spring.I18N('ui.playersList.gpuMemory', { gpuUsage = gpumem })
         end
-        tipText = (spec and "\255\240\240\240" or colourNames(teamID)) .. name .. "\n" .. tipText
+        tipTextTitle = (spec and "\255\240\240\240" or colourNames(teamID)) .. name
         if system ~= nil then
             tipText = tipText .. system
         end
@@ -3277,7 +3117,13 @@ function widget:MouseRelease(x, y, button)
 end
 
 function Spec(teamID)
+    local oldMapDrawMode = Spring.GetMapDrawMode()
     Spring_SendCommands("specteam " .. teamID)
+    -- restore current los drawmode (doing specteam makes it non normal non los view)
+    local newMapDrawMode = Spring.GetMapDrawMode()
+    if oldMapDrawMode == 'los' and oldMapDrawMode ~= newMapDrawMode then
+        Spring.SendCommands("togglelos")
+    end
     SortList()
 end
 
@@ -3322,15 +3168,12 @@ function widget:GetConfigData()
             m_pointActive = m_point.active,
             m_takeActive = m_take.active,
             m_active_Table = m_active_Table,
-            lockPlayerID = lockPlayerID,
             specListShow = specListShow,
             enemyListShow = enemyListShow,
             gameFrame = Spring.GetGameFrame(),
             lastSystemData = lastSystemData,
             alwaysHideSpecs = alwaysHideSpecs,
             transitionTime = transitionTime,
-            lockcameraHideEnemies = lockcameraHideEnemies,
-            lockcameraLos = lockcameraLos,
             hasresetskill = true,
             absoluteResbarValues = absoluteResbarValues,
             originalColourNames = originalColourNames,
@@ -3360,18 +3203,6 @@ function widget:SetConfigData(data)
 
     if data.version ~= nil and data.alwaysHideSpecs ~= nil then
         alwaysHideSpecs = data.alwaysHideSpecs
-    end
-
-    if data.lockcameraHideEnemies ~= nil then
-        lockcameraHideEnemies = data.lockcameraHideEnemies
-    end
-
-    if data.lockcameraLos ~= nil then
-        lockcameraLos = data.lockcameraLos
-    end
-
-    if data.lockcameraLos ~= nil then
-        transitionTime = data.transitionTime
     end
 
     --view
@@ -3408,29 +3239,6 @@ function widget:SetConfigData(data)
     if Spring.GetGameFrame() > 0 then
         if data.originalColourNames then
             originalColourNames = data.originalColourNames
-        end
-
-        if data.lockPlayerID ~= nil then
-            lockPlayerID = data.lockPlayerID
-            if lockPlayerID and not select(3, Spring_GetPlayerInfo(lockPlayerID), false) then
-                if not lockcameraHideEnemies then
-                    if not fullView then
-                        Spring.SendCommands("specfullview")
-                        if lockcameraLos and mySpecStatus and Spring.GetMapDrawMode() == "los" then
-                            desiredLosmode = 'normal'
-                            desiredLosmodeChanged = os.clock()
-                        end
-                    end
-                else
-                    if fullView then
-                        Spring.SendCommands("specfullview")
-                        if lockcameraLos and mySpecStatus then
-                            desiredLosmode = 'los'
-                            desiredLosmodeChanged = os.clock()
-                        end
-                    end
-                end
-            end
         end
     end
 
@@ -3623,25 +3431,28 @@ function widget:Update(delta)
     hoverPlayerlist = false
     if math_isInRect(mx, my, apiAbsPosition[2] - 1, apiAbsPosition[3] - 1, apiAbsPosition[4] + 1, apiAbsPosition[1] + 1 ) then
         hoverPlayerlist = true
+
+		if leaderboardOffset then
+			local posY = widgetPosY + widgetHeight - (leaderboardOffset or 0)
+			if IsOnRect(mx, my, widgetPosX, posY, widgetPosX + widgetWidth, posY + (playerOffset*playerScale)) then
+				tipText = Spring.I18N('ui.playersList.leaderboardTooltip')
+				tipTextTime = os.clock()
+				tipTextTitle = Spring.I18N('ui.playersList.leaderboard')
+			end
+		end
+
         if tipText and WG['tooltip'] then
-            WG['tooltip'].ShowTooltip('advplayerlist', tipText)
+            WG['tooltip'].ShowTooltip('advplayerlist', tipText, nil, nil, tipTextTitle)
         end
         Spring.SetMouseCursor('cursornormal')
     end
 
+    lockPlayerID = WG.lockcamera and WG.lockcamera.GetPlayerID() or false
+
     if clickedPlayerTime and os.clock() - clickedPlayerTime > dblclickPeriod then
-        local curMapDrawMode = Spring.GetMapDrawMode()
-        Spring_SendCommands("specteam " .. player[clickedPlayerID].team)
+        Spec(player[clickedPlayerID].team)
         if lockPlayerID then
             LockCamera(player[clickedPlayerID].ai and nil or clickedPlayerID)
-        else
-            if not fullView then
-                desiredLosmode = 'los'
-                desiredLosmodeChanged = os.clock()
-                if Spring.GetMapDrawMode() ~= 'los' then
-                    Spring.SendCommands("togglelos")
-                end
-            end
         end
         --CreateMainList()
         forceMainListRefresh = true
@@ -3649,7 +3460,6 @@ function widget:Update(delta)
         clickedPlayerID = nil
     end
 
-    totalTime = totalTime + delta
     timeCounter = timeCounter + delta
     timeFastCounter = timeFastCounter + delta
     curFrame = Spring.GetGameFrame()
@@ -3664,20 +3474,6 @@ function widget:Update(delta)
         end
     end
 
-    if desiredLosmode and desiredLosmodeChanged + 0.9 > os.clock() then
-        if (desiredLosmode == "los" and Spring.GetMapDrawMode() == "normal") or (desiredLosmode == "normal" and Spring.GetMapDrawMode() == "los") then
-            -- this is needed else the minimap/world doesnt update properly
-            Spring.SendCommands("togglelos")
-        end
-        if desiredLosmodeChanged + 2 < os.clock() then
-            desiredLosmode = nil
-        end
-    end
-
-    if lockPlayerID ~= nil then
-        Spring.SetCameraState(Spring.GetCameraState(), transitionTime)
-    end
-
     if sliderPosition and sliderPosition ~= prevSliderPosition then
         prevSliderPosition = sliderPosition
         CreateShareSlider()
@@ -3689,12 +3485,10 @@ function widget:Update(delta)
             local afterE = Spring_GetTeamResources(teamID, "energy")
             local afterM = Spring_GetTeamResources(teamID, "metal")
             local afterU = Spring_GetTeamUnitCount(teamID)
-            local toSay = "say a:" .. Spring.I18N('ui.playersList.chat.takeTeam', { name = tookTeamName })
 			local detailedToSay = false
             if afterE and afterM and afterU then
                 if afterE > 1.0 or afterM > 1.0 or afterU > 0 then
-                    toSay = "say a:" .. Spring.I18N('ui.playersList.chat.takeTeamAmount', { name = tookTeamName, units = math.floor(afterU), energy = math.floor(afterE), metal = math.floor(afterE) })
-					detailedToSay = true
+                    detailedToSay = true
 				end
             end
 			if detailedToSay then
@@ -3702,7 +3496,6 @@ function widget:Update(delta)
 			else
 				Spring.SendLuaRulesMsg('msg:ui.playersList.chat.takeTeam:name='..tookTeamName)
 			end
-			--Spring_SendCommands(toSay)
 
             for j = 0, (specOffset*2)-1 do
                 if player[j].allyteam == myAllyTeamID then
@@ -3725,6 +3518,7 @@ function widget:Update(delta)
         gameStartRefreshed = true
         forceMainListRefresh = true
     end
+
     if forceMainListRefresh then
         SortList()
         SetModulesPositionX()
@@ -3774,7 +3568,7 @@ function widget:ViewResize()
     font = WG['fonts'].getFont()
     font2 = WG['fonts'].getFont(fontfile2, 1.1, math.max(0.16, 0.25 / widgetScale), math.max(4.5, 6 / widgetScale))
 
-	local MakeAtlasOnDemand = VFS.Include("LuaUI/Widgets/include/AtlasOnDemand.lua")
+	local MakeAtlasOnDemand = VFS.Include("LuaUI/Include/AtlasOnDemand.lua")
 	if AdvPlayersListAtlas then
 		--AdvPlayersListAtlas:Delete()
 	end

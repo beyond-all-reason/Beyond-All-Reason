@@ -52,6 +52,8 @@ if gadgetHandler:IsSyncedCode() then
 		['corspec'] = true,
 		['corvoyr'] = true,
 		['corvrad'] = true,
+		['legarad'] = true,
+		['legajam'] = true,
 
 		['corfav'] = true,
 		['armfav'] = true,

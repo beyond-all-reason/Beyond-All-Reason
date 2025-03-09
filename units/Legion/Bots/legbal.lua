@@ -16,7 +16,7 @@ return {
 		footprintz = 2,
 		idleautoheal = 5,
 		idletime = 1800,
-		health = 1000,
+		health = 900,
 		maxslope = 14,
 		speed = 43.5,
 		maxwaterdepth = 21,
@@ -138,6 +138,10 @@ return {
 				weaponvelocity = 230,
 				damage = {
 					default = 250,
+				},
+				customparams = {
+					projectile_destruction_method = "descend",
+					overrange_distance = 529,
 				},
 			},
 		},

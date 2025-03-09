@@ -534,6 +534,7 @@ function UnitDef_Post(name, uDef)
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "legsrailt4"
 			uDef.buildoptions[numBuildoptions + 2] = "leggobt3"
+			uDef.buildoptions[numBuildoptions + 3] = "legpede"
 		elseif name == "armca" or name == "armck" or name == "armcv" then
 			--local numBuildoptions = #uDef.buildoptions
 		elseif name == "corca" or name == "corck" or name == "corcv" then
@@ -776,12 +777,12 @@ function UnitDef_Post(name, uDef)
 	}
 
 	local amphibList = {
-		VBOT5 = true,
+		VBOT6 = true,
 		COMMANDERBOT = true,
 		SCAVCOMMANDERBOT = true,
 		ATANK3 = true,
 		ABOT2 = true,
-		HABOT4 = true,
+		HABOT5 = true,
 		ABOTBOMB2 = true,
 		EPICBOT = true,
 		EPICALLTERRAIN = true
@@ -815,7 +816,6 @@ function UnitDef_Post(name, uDef)
 	categories["MINE"] = function(uDef) return uDef.weapondefs and uDef.weapondefs.minerange end
 	categories["COMMANDER"] = function(uDef) return commanderList[uDef.movementclass] end
 	categories["EMPABLE"] = function(uDef) return categories.SURFACE(uDef) and uDef.customparams and uDef.customparams.paralyzemultiplier ~= 0 end
-	categories["SURFACERAIDER"] = function(uDef) return categories.SURFACE(uDef) and not uDef.workertime and uDef.speed and uDef.speed > 70 end --78 is the speed of rezbots, the fastest intentional exclusion.
 
 	uDef.category = uDef.category or ""
 	if not string.find(uDef.category, "OBJECT") then -- objects should not be targetable and therefore are not assigned any other category

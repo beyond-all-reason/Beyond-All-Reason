@@ -1692,6 +1692,14 @@ if gadgetHandler:IsSyncedCode() then
 			lsz1 = math.max(RaptorStartboxZMin - ((MAPSIZEZ*0.01) * techAnger), 0)
 			lsx2 = math.min(RaptorStartboxXMax + ((MAPSIZEX*0.01) * techAnger), MAPSIZEX)
 			lsz2 = math.min(RaptorStartboxZMax + ((MAPSIZEZ*0.01) * techAnger), MAPSIZEZ)
+			if not lsx2 or lsx2-lsx1 < 512 then
+				lsx1 = math.max(0, math.floor((lsx1 + lsx2) / 2) - 256)
+				lsx2 = lsx1 + 512
+			end
+			if not lsz2 or lsz2-lsz1 < 512 then
+				lsz1 = math.max(0, math.floor((lsz1 + lsz2) / 2) - 256)
+				lsz2 = lsz1 + 512
+			end
 		end
 	end
 
@@ -1801,10 +1809,11 @@ if gadgetHandler:IsSyncedCode() then
 				currentMaxWaveSize = math.ceil((minWaveSize + math.ceil((techAnger*0.01)*(maxWaveSize - minWaveSize)))*(config.bossFightWaveSizeScale*0.01))
 			end
 			if pastFirstQueen or Spring.GetModOptions().raptor_graceperiodmult <= 1 then
-				techAnger = math.max(math.min((t - config.gracePeriod) / ((queenTime/(Spring.GetModOptions().raptor_queentimemult)) - config.gracePeriod) * 100, 999), 0)
+				techAnger = (t - config.gracePeriod) / ((queenTime/(Spring.GetModOptions().raptor_queentimemult)) - config.gracePeriod) * 100
 			else
-				techAnger = math.max(math.min((t - (config.gracePeriod/Spring.GetModOptions().raptor_graceperiodmult)) / ((queenTime/(Spring.GetModOptions().raptor_queentimemult)) - (config.gracePeriod/Spring.GetModOptions().raptor_graceperiodmult)) * 100, 999), 0)
+				techAnger = (t - (config.gracePeriod/Spring.GetModOptions().raptor_graceperiodmult)) / ((queenTime/(Spring.GetModOptions().raptor_queentimemult)) - (config.gracePeriod/Spring.GetModOptions().raptor_graceperiodmult)) * 100
 			end
+			techAnger = math.clamp(techAnger, 0, 999)
 
 			techAnger = math.ceil(techAnger*((config.economyScale*0.5)+0.5))
 
@@ -1813,7 +1822,7 @@ if gadgetHandler:IsSyncedCode() then
 				minBurrows = math.ceil(math.max(4, 2*SetCount(humanTeams))*(t/config.gracePeriod))
 			else
 				if not queenID then
-					queenAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (queenTime - config.gracePeriod) * 100) + queenAngerAggressionLevel, 100), 0)
+					queenAnger = math.clamp(math.ceil((t - config.gracePeriod) / (queenTime - config.gracePeriod) * 100) + queenAngerAggressionLevel, 0, 100)
 					minBurrows = 1
 				else
 					queenAnger = 100
@@ -1899,7 +1908,7 @@ if gadgetHandler:IsSyncedCode() then
 						unitCowardCooldown[raptors[i]] = nil
 						Spring.GiveOrderToUnit(raptors[i], CMD.STOP, 0, 0)
 					end
-					if Spring.GetCommandQueue(raptors[i], 0) <= 0 then
+					if Spring.GetUnitCommandCount(raptors[i]) == 0 then
 						if unitCowardCooldown[raptors[i]] then
 							unitCowardCooldown[raptors[i]] = nil
 						end

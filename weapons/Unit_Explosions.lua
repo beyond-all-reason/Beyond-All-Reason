@@ -886,8 +886,7 @@ local unitDeaths = {
 		--soundstart = "metalhit",
 		explosiongenerator = "custom:wallexplosion-metal",
 		damage = {
-			default = 610,
-			walls = 0,
+			default = 0,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -902,8 +901,7 @@ local unitDeaths = {
 		--soundstart = "metalhit",
 		explosiongenerator = "custom:wallexplosion-metal",
 		damage = {
-			default = 1530,
-			walls = 0,
+			default = 0,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -918,8 +916,7 @@ local unitDeaths = {
 		--soundstart = "metalhit",
 		explosiongenerator = "custom:wallexplosion-concrete",
 		damage = {
-			default = 610,
-			walls = 0,
+			default = 0,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -934,8 +931,7 @@ local unitDeaths = {
 		--soundstart = "metalhit",
 		explosiongenerator = "custom:wallexplosion-concrete",
 		damage = {
-			default = 1530,
-			walls = 0,
+			default = 0,
 		},
 		customparams = {
 			unitexplosion = 1,
@@ -950,8 +946,7 @@ local unitDeaths = {
 		--soundstart = "metalhit",
 		explosiongenerator = "custom:wallexplosion-water",
 		damage = {
-			default = 560,
-			walls = 0,
+			default = 0,
 		},
 		customparams = {
 			unitexplosion = 1,

@@ -1883,7 +1883,14 @@ if gadgetHandler:IsSyncedCode() then
 			lsz1 = math.max(ScavStartboxZMin - ((MAPSIZEZ*0.01) * (techAnger+15)), 0)
 			lsx2 = math.min(ScavStartboxXMax + ((MAPSIZEX*0.01) * (techAnger+15)), MAPSIZEX)
 			lsz2 = math.min(ScavStartboxZMax + ((MAPSIZEZ*0.01) * (techAnger+15)), MAPSIZEZ)
-			--Spring.Echo("lsx1", lsx1, "lsx2", lsx2, "lsz1", lsz1, "lsz2", lsz2)
+			if not lsx2 or lsx2-lsx1 < 512 then
+				lsx1 = math.max(0, math.floor((lsx1 + lsx2) / 2) - 256)
+				lsx2 = lsx1 + 512
+			end
+			if not lsz2 or lsz2-lsz1 < 512 then
+				lsz1 = math.max(0, math.floor((lsz1 + lsz2) / 2) - 256)
+				lsz2 = lsz1 + 512
+			end
 		end
 	end
 
@@ -2032,7 +2039,7 @@ if gadgetHandler:IsSyncedCode() then
 						unitCowardCooldown[scavs[i]] = nil
 						Spring.GiveOrderToUnit(scavs[i], CMD.STOP, 0, 0)
 					end
-					if Spring.GetCommandQueue(scavs[i], 0) <= 0 then
+					if Spring.GetUnitCommandCount(scavs[i]) == 0 then
 						if unitCowardCooldown[scavs[i]] then
 							unitCowardCooldown[scavs[i]] = nil
 						end

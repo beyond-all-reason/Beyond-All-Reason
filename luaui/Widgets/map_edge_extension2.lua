@@ -45,7 +45,7 @@ local normalTex = '$ssmf_normals'
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 
 --------------------------------------------------------------------------------

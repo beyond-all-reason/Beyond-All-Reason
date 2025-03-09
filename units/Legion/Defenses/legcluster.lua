@@ -134,10 +134,9 @@ return {
 					smart_priority = true,
 				},
 				damage = {
-					default = 150,
-					lboats = 150,
-					subs = 37,
-					vtol = 37,
+					default = 200,
+					subs = 50,
+					vtol = 50,
 				},
 			},
 			cluster_munition = {
@@ -236,17 +235,18 @@ return {
 		},
 		weapons = {
 			[1] = {
+				badtargetcategory = "VTOL",
 				def = "PLASMA",
 				maindir = "0 1 0",
 				maxangledif = 230,
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
-				badtargetcategory = "SURFACERAIDER",
 				def = "PLASMA_HIGH",
 				onlytargetcategory = "SURFACE",
 			},
 			[3] = {
+				badtargetcategory = "VTOL",
 				def = "smart_trajectory_dummy",
 				maindir = "0 1 0",
 				maxangledif = 230,
