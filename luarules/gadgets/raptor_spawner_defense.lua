@@ -77,6 +77,7 @@ if gadgetHandler:IsSyncedCode() then
 	--------------------------------------------------------------------------------
 	Spring.SetGameRulesParam("BossFightStarted", 0)
 	local queenLifePercent = 100
+	local nKilledQueens = 0
 	local nSpawnedQueens = 0
 	local nTotalQueens = Spring.GetModOptions().raptor_queen_count or 1
 	local maxTries = 30
@@ -340,6 +341,8 @@ if gadgetHandler:IsSyncedCode() then
 		playerAggression = 0
 		queenAngerAggressionLevel = 0
 		pastFirstQueen = true
+		nSpawnedQueens = 0
+		nKilledQueens = 0
 		SetGameRulesParam("raptorQueenAnger", queenAnger)
 		SetGameRulesParam("raptorTechAnger", techAnger)
 		local nextDifficulty
@@ -1679,6 +1682,8 @@ if gadgetHandler:IsSyncedCode() then
 				Spring.SetGameRulesParam("BossFightStarted", 1)
 				Spring.SetUnitAlwaysVisible(queenID, true)
 			end
+			return
+		end
 
 		for queenID, _ in pairs(queens) do
 			if mRandom() < config.spawnChance / 15 then
@@ -1943,7 +1948,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
 
 		if unitTeam == raptorTeamID then
-			if config.useEggs and (not gameIsOver) then
+			if config.useEggs and (not gameOver) then
 				local x,y,z = Spring.GetUnitPosition(unitID)
 				spawnRandomEgg(x,y,z, UnitDefs[unitDefID].name)
 			end
@@ -1985,35 +1990,36 @@ if gadgetHandler:IsSyncedCode() then
 		if queens[unitID] then
 			nKilledQueens = nKilledQueens + 1
 			queens[unitID] = nil
-			Spring.SetGameRulesParam("BossFightStarted", 0)
 
-			if Spring.GetModOptions().raptor_endless then
-				updateDifficultyForSurvival()
-			else
-				gameOver = GetGameFrame() + 200
-				spawnQueue = {}
-				gameIsOver = true
+			if nKilledQueens == nTotalQueens then
+				Spring.SetGameRulesParam("BossFightStarted", 0)
+				if Spring.GetModOptions().raptor_endless then
+					updateDifficultyForSurvival()
+				else
+					gameOver = GetGameFrame() + 200
+					spawnQueue = {}
 
-				if not killedRaptorsAllyTeam then
-					killedRaptorsAllyTeam = true
+					if not killedRaptorsAllyTeam then
+						killedRaptorsAllyTeam = true
 
-					-- kill raptor team
-					Spring.KillTeam(raptorTeamID)
+						-- kill raptor team
+						Spring.KillTeam(raptorTeamID)
 
-					-- check if scavengers are in the same allyteam and alive
-					local scavengersFoundAlive = false
-					for _, teamID in ipairs(Spring.GetTeamList(raptorAllyTeamID)) do
-						local luaAI = Spring.GetTeamLuaAI(teamID)
-						if luaAI and luaAI:find("Scavengers") and not select(3, Spring.GetTeamInfo(teamID, false)) then
-							scavengersFoundAlive = true
-						end
-					end
-
-					-- kill whole allyteam
-					if not scavengersFoundAlive then
+						-- check if scavengers are in the same allyteam and alive
+						local scavengersFoundAlive = false
 						for _, teamID in ipairs(Spring.GetTeamList(raptorAllyTeamID)) do
-							if not select(3, Spring.GetTeamInfo(teamID, false)) then
-								Spring.KillTeam(teamID)
+							local luaAI = Spring.GetTeamLuaAI(teamID)
+							if luaAI and luaAI:find("Scavengers") and not select(3, Spring.GetTeamInfo(teamID, false)) then
+								scavengersFoundAlive = true
+							end
+						end
+
+						-- kill whole allyteam
+						if not scavengersFoundAlive then
+							for _, teamID in ipairs(Spring.GetTeamList(raptorAllyTeamID)) do
+								if not select(3, Spring.GetTeamInfo(teamID, false)) then
+									Spring.KillTeam(teamID)
+								end
 							end
 						end
 					end
