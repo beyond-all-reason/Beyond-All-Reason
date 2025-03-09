@@ -190,12 +190,14 @@ local function CreatePanelDisplayList()
 				font:Print(textColor .. Spring.I18N('ui.raptors.queenETA', { time = time }), panelMarginX+5, PanelRow(2), panelFontSize, "")
 			end
 		else
-			font:Print(textColor .. Spring.I18N('ui.raptors.queenHealth', { health = queenHealths[1] or '' }), panelMarginX, PanelRow(1), panelFontSize, "")
-			for i = 2, math.min(#queenHealths, 5) do
-				font:Print(queenHealths[i]..'%'.. (i == 5 and #queenHealths > 5 and '...' or ''), panelMarginX + panelFontSize * font:GetTextWidth(Spring.I18N('ui.raptors.queenHealth'):gsub('(:%s).*', '%1')), PanelRow(i), panelFontSize, "")
+			local nQueens = #queenHealths
+			local healthLabel = 'ui.raptors.queenHealth'..(nQueens > 1 and 's' or '')
+			font:Print(textColor .. Spring.I18N(healthLabel, { health = queenHealths[1] or '' }), panelMarginX, PanelRow(1), panelFontSize, "")
+			for i = 2, math.min(nQueens, 5) do
+				font:Print(queenHealths[i]..'%'.. (i == 5 and nQueens > 5 and '...' or ''), panelMarginX + panelFontSize * font:GetTextWidth(Spring.I18N(healthLabel):gsub('(:%s).*', '%1')), PanelRow(i), panelFontSize, "")
 			end
 			if #queenResistances > 0 then
-				font:Print(textColor .. Spring.I18N('ui.raptors.queenResistantToList'), panelMarginX, PanelRow(11), panelFontSize, "")
+				font:Print(textColor .. Spring.I18N('ui.raptors.queen'..(nQueens > 1 and 's' or '')..'ResistantToList'), panelMarginX, PanelRow(11), panelFontSize, "")
 			end
 			for i = 1, #queenResistances do
 				local queenResistance = queenResistances[i]
