@@ -388,7 +388,6 @@ if gadgetHandler:IsSyncedCode() then
 	--
 
 	SetGameRulesParam("raptorQueenTime", queenTime)
-	SetGameRulesParam("raptorQueenHealth", queenLifePercent)
 	SetGameRulesParam("raptorQueenAnger", queenAnger)
 	SetGameRulesParam("raptorTechAnger", techAnger)
 	SetGameRulesParam("raptorGracePeriod", config.gracePeriod)
@@ -865,17 +864,20 @@ if gadgetHandler:IsSyncedCode() then
 
 	function updateQueenLife()
 		if nKilledQueens == nTotalQueens then
-			SetGameRulesParam("raptorQueenHealth", 0)
+			SetGameRulesParam("raptorQueens", Json.encode({}))
 			return
 		end
-		local queenHealths = {}
+
+		local queensWithStringKeys = {}
 		for queenID, queen in pairs(queens) do
 			local health, maxHealth = GetUnitHealth(queenID)
-			queen.healthPercent = math.ceil(((health / maxHealth) * 100) - 0.5)
-			table.insert(queenHealths, queen.healthPercent)
+			local healthPercent = math.ceil(((health / maxHealth) * 100) - 0.5)
+			if healthPercent ~= queen.healthPercent then
+				queen.healthPercent = healthPercent
+			end
+			queensWithStringKeys[tostring(queenID)] = queen
 		end
-		table.sort(queenHealths, function(a, b) return a.healthPercent < b.healthPercent end)
-		SetGameRulesParam("raptorQueenHealth", queenHealths[1])
+		SetGameRulesParam("raptorQueens", Json.encode(queensWithStringKeys))
 	end
 
 	function SpawnQueen()
@@ -1661,7 +1663,8 @@ if gadgetHandler:IsSyncedCode() then
 			local queenID = SpawnQueen()
 			nSpawnedQueens = nSpawnedQueens + 1
 			if queenID then
-				queens[queenID] = {resistances = {}}
+				queens[queenID] = {resistances = {}, healthPercent = 100}
+				SetGameRulesParam("raptorQueens", Json.encode(queens))
 				local queenSquad = table.copy(squadCreationQueueDefaults)
 				queenSquad.life = 999999
 				queenSquad.role = "raid"

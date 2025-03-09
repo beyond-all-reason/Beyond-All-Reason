@@ -63,6 +63,8 @@ local scoreCount = 0
 local resistancesTable = {}
 local currentlyResistantTo = {}
 local currentlyResistantToNames = {}
+local queenHealths = {}
+local queenResistances = {}
 
 local guiPanel --// a displayList
 local updatePanel
@@ -193,12 +195,22 @@ local function CreatePanelDisplayList()
 				currentlyResistantTo = {}
 			end
 		else
-			font:Print(textColor .. Spring.I18N('ui.raptors.queenHealth', { health = gameInfo.raptorQueenHealth }), panelMarginX, PanelRow(1), panelFontSize, "")
-			for i = 1,#currentlyResistantToNames do
-				if i == 1 then
-					font:Print(textColor .. Spring.I18N('ui.raptors.queenResistantToList'), panelMarginX, PanelRow(11), panelFontSize, "")
+			font:Print(textColor .. Spring.I18N('ui.raptors.queenHealth', { health = queenHealths[1] or '' }), panelMarginX, PanelRow(1), panelFontSize, "")
+			for i = 2, math.min(#queenHealths, 5) do
+				font:Print(queenHealths[i]..'%'.. (i == 5 and #queenHealths > 5 and '...' or ''), panelMarginX + panelFontSize * font:GetTextWidth(Spring.I18N('ui.raptors.queenHealth'):gsub('(:%s).*', '%1')), PanelRow(i), panelFontSize, "")
+			end
+			if #currentlyResistantToNames > 0 then
+				font:Print(textColor .. Spring.I18N('ui.raptors.queenResistantToList'), panelMarginX, PanelRow(11), panelFontSize, "")
+			end
+			if #queenHealths > 1 then
+				for i = 1, #queenResistances do
+					local queenResistance = queenResistances[i]
+					font:Print(textColor .. queenResistance.name .. (queenResistance.count > 1 and ' (' .. queenResistance.count .. ' queens)' or ''), panelMarginX+20, PanelRow(11+i), panelFontSize, "")
 				end
-				font:Print(textColor .. currentlyResistantToNames[i], panelMarginX+20, PanelRow(11+i), panelFontSize, "")
+			else
+				for i = 1, #currentlyResistantToNames do
+					font:Print(textColor .. currentlyResistantToNames[i], panelMarginX+20, PanelRow(11+i), panelFontSize, "")
+				end
 			end
 		end
 	else
@@ -314,6 +326,26 @@ local function UpdateRules()
 	gameInfo.raptorCounts = getRaptorCounts('Count')
 	gameInfo.raptorKills = getRaptorCounts('Kills')
 
+	local raptorQueensTable = Json.decode(Spring.GetGameRulesParam('raptorQueens') or '{}')
+
+	queenHealths = {}
+	queenResistances = {}
+	local resistanceCounts = {}
+	for _, queen in pairs(raptorQueensTable) do
+		table.insert(queenHealths, queen.healthPercent)
+		for restistanceDefId, resistance in pairs(queen.resistances) do
+			if resistance.notify == 1 then
+				local name = UnitDefs[restistanceDefId].translatedHumanName
+				resistanceCounts[name] = (resistanceCounts[name] or 0) + 1
+			end
+		end
+	end
+
+	for name, resistanceCount in pairs(resistanceCounts) do
+		table.insert(queenResistances, {name = name, count = resistanceCount})
+	end
+
+	table.sort(queenResistances, function(a, b) return a.count > b.count end)
 	updatePanel = true
 end
 
