@@ -681,18 +681,6 @@ local options = {
         section	= "raptor_defense_options",
     },
 
-    {
-        key		= "raptor_queen_count",
-        name	= "Raptor Queen Count",
-        desc	= "(Range: 1 - 100). Number of queens that will spawn.",
-        type	= "number",
-        def		= 1,
-        min		= 1,
-        max		= 100,
-        step	= 1,
-        section	= "raptor_defense_options",
-    },
-
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1257,6 +1245,18 @@ local options = {
         type   	= "bool",
         section = "options_experimental",
         def  	= false,
+    },
+
+    {
+        key		= "raptor_queen_count",
+        name	= "Raptor Queen Count",
+        desc	= "(Range: 1 - 20). Number of queens that will spawn.",
+        type	= "number",
+        def		= 1,
+        min		= 1,
+        max		= 20,
+        step	= 1,
+        section	= "options_experimental",
     },
 
     -- Hidden Tests
