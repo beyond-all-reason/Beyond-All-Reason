@@ -75,13 +75,13 @@ local vsSrc = [[
 
 layout (location = 0) in vec3 localPos;
 
-layout (location = 2) in float radius;
-layout (location = 3) in float height;
-layout (location = 4) in vec4 color;
-layout (location = 5) in float startTime;
-layout (location = 6) in float expireTime;
-layout (location = 7) in uvec4 instData;
-layout (location = 8) in vec3 worldPosOverride;
+layout (location = 1) in float radius;
+layout (location = 2) in float height;
+layout (location = 3) in vec4 color;
+layout (location = 4) in float startTime;
+layout (location = 5) in float expireTime;
+layout (location = 6) in uvec4 instData;
+layout (location = 7) in vec3 worldPosOverride;
 
 out DataVS {
 	vec4 color;
@@ -218,13 +218,13 @@ local spotlightVBOLayout = {
 
 local instanceVBOs = nil
 local instanceVBOLayout = {
-	{ id = 2, name = "radius", size = 1 },
-	{ id = 3, name = "height", size = 1 },
-	{ id = 4, name = "color", size = 4 },
-	{ id = 5, name = "startTime", size = 1 },
-	{ id = 6, name = "expireTime", size = 1 },
-	{ id = 7, name = "instData", size = 4, type = GL.UNSIGNED_INT },
-	{ id = 8, name = "worldPosOverride", size = 3 },
+	{ id = 1, name = "radius", size = 1 },
+	{ id = 2, name = "height", size = 1 },
+	{ id = 3, name = "color", size = 4 },
+	{ id = 4, name = "startTime", size = 1 },
+	{ id = 5, name = "expireTime", size = 1 },
+	{ id = 6, name = "instData", size = 4, type = GL.UNSIGNED_INT },
+	{ id = 7, name = "worldPosOverride", size = 3 },
 }
 
 local function makeCylinderVBO(sections)
@@ -262,7 +262,7 @@ local function makeInstanceVBO(layout, vertexVBO, numVertices, name)
 		layout,
 		nil,
 		name,
-		7
+		6
 	)
 	vbo.vertexVBO = vertexVBO
 	vbo.numVertices = numVertices
@@ -387,13 +387,13 @@ local function addSpotlight(objectType, owner, objectID, color, options)
 	objectInstanceIDs[objectType][objectID][owner] = pushElementInstance(
 		instanceVBOs[objectType],
 		{
-			radius, -- { id = 2, name = "radius", size = 1 }
-			height, -- { id = 3, name = "height", size = 1 }
-			color[1], color[2], color[3], color[4], -- { id = 4, name = "color", size = 4 }
-			startTime or 0, -- { id = 5, name = "startTime", size = 1 },
-			expireTime or 0, -- { id = 6, name = "expireTime", size = 1 },
-			0, 0, 0, 0, -- { id = 5, name = "instData", size = 4, type = GL.UNSIGNED_INT }
-			instanceWorldPosOverride[1], instanceWorldPosOverride[2], instanceWorldPosOverride[3], -- { id = 8, name = "worldPosOverride", size = 3 },
+			radius, -- { id = 1, name = "radius", size = 1 }
+			height, -- { id = 2, name = "height", size = 1 }
+			color[1], color[2], color[3], color[4], -- { id = 3, name = "color", size = 4 }
+			startTime or 0, -- { id = 4, name = "startTime", size = 1 },
+			expireTime or 0, -- { id = 5, name = "expireTime", size = 1 },
+			0, 0, 0, 0, -- { id = 6, name = "instData", size = 4, type = GL.UNSIGNED_INT }
+			instanceWorldPosOverride[1], instanceWorldPosOverride[2], instanceWorldPosOverride[3], -- { id = 7, name = "worldPosOverride", size = 3 },
 		},
 		objectInstanceIDs[objectType][objectID][owner],
 		true,
