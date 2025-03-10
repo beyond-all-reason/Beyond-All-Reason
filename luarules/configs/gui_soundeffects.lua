@@ -2504,8 +2504,8 @@ GUIUnitSoundEffects = {
 	-- LEGION COMMANDER
 
 	legdecom = {
-		BaseSoundSelectType = "cor-com-sel",
-		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4", },
+		BaseSoundSelectType = { "leg-com-sel-1", "leg-com-sel-2", "leg-com-sel-3", },
+		BaseSoundMovementType = { "leg-com-ok-1", "leg-com-ok-2", },
 		BaseSoundWeaponType = "fastemg-small",
 	},
 	legdecomlvl3 = {
@@ -2524,8 +2524,8 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "fastemg-small",
 	},
 	legcom = {
-		BaseSoundSelectType = "cor-com-sel",
-		BaseSoundMovementType = { "cor-com-ok-1", "cor-com-ok-2", "cor-com-ok-3", "cor-com-ok-4", },
+		BaseSoundSelectType = { "leg-com-sel-1", "leg-com-sel-2", "leg-com-sel-3", },
+		BaseSoundMovementType = { "leg-com-ok-1", "leg-com-ok-2", },
 		BaseSoundWeaponType = "fastemg-small",
 	},
 	legcomlvl2 = {

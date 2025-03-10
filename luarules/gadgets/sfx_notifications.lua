@@ -81,7 +81,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	-- NUKE LAUNCH send to all but ally team
 	function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
-		local proDefID = Spring.GetProjectileDefID(proID)
 		if nukeWeapons[Spring.GetProjectileDefID(proID)] then
 			local players = AllButAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(proOwnerID)))
 			for ct, player in pairs (players) do

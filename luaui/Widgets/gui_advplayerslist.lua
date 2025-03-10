@@ -209,7 +209,7 @@ local aliveAllyTeams = {}
 local allyTeamMaxStorage = {}
 
 local tipTextTime = 0
-local Background, ShareSlider, BackgroundGuishader, tipText, drawTipText, tipY
+local Background, ShareSlider, BackgroundGuishader, tipText, tipTextTitle, drawTipText, tipY
 --local specJoinedOnce, scheduledSpecFullView
 --local prevClickedPlayer, clickedPlayerTime, clickedPlayerID
 local lockPlayerID  --leftPosX, lastSliderSound, release
@@ -986,7 +986,7 @@ function GetSkill(playerID)
             -- show sigma
             local tsRed, tsGreen, tsBlue = 195, 195, 195
             if osSigma then
-                local color = math.max(0.5, math.min(1,(1-((tonumber(osSigma-2) * 0.4)-1))))
+                local color = math.clamp(1-((tonumber(osSigma-2) * 0.4)-1), 0.5, 1)
                 color = math.max(0.7, color * color)
                 local color2 = math.max(0.35, color * color)
                 tsRed, tsGreen, tsBlue = math.floor(222 * color), math.floor(222 * color2), math.floor(222 * color2)
@@ -1205,8 +1205,8 @@ function UpdatePlayerResources()
         end
     end
 
-    updateRateMult = math.min(2, math.max(1, displayedPlayers*0.05))
-    updateFastRateMult = math.min(3.3, math.max(1, displayedPlayers*0.07))
+    updateRateMult = math.clamp(displayedPlayers*0.05, 1, 2)
+    updateFastRateMult = math.clamp(displayedPlayers*0.07, 1, 3.3)
 end
 
 function GetDark(red, green, blue)
@@ -1440,7 +1440,7 @@ function SortSpecs(vOffset)
             numSpecs = numSpecs + 1
         end
     end
-    specScale = math.max(0.45, math.min(1, 45 / numSpecs))
+    specScale = math.clamp(45 / numSpecs, 0.45, 1)
 
     -- Adds specs to the draw list
     local noSpec = true
@@ -1554,6 +1554,7 @@ function CreateLists(onlyMainList, onlyMainList2, onlyMainList3)
     if onlyMainList2 then
         if tipTextTime+(updateFastRate*updateFastRateMult) < os.clock() then
             tipText = nil
+            tipTextTitle = nil
             drawTipText = nil
             tipTextTime = 0
         end
@@ -1925,13 +1926,13 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
 
     -- keyboard/mouse activity
     if lastActivity[playerID] ~= nil and type(lastActivity[playerID]) == "number" then
-        alphaActivity = math.max(0, math.min(1, (8 - math.floor(now - lastActivity[playerID])) / 5.5))
+        alphaActivity = math.clamp((8 - math.floor(now - lastActivity[playerID])) / 5.5, 0, 1)
         alphaActivity = 0.33 + (alphaActivity * 0.21)
         alpha = alphaActivity
     end
     -- camera activity
     if recentBroadcasters[playerID] ~= nil and type(recentBroadcasters[playerID]) == "number" then
-        local alphaCam =  math.max(0, math.min(1, (13 - math.floor(recentBroadcasters[playerID])) / 8.5))
+        local alphaCam =  math.clamp((13 - math.floor(recentBroadcasters[playerID])) / 8.5, 0, 1)
         alpha = 0.33 + (alphaCam * 0.42)
         if alpha < alphaActivity then
             alpha = alphaActivity
@@ -2026,13 +2027,13 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
                     if onlyMainList3 and m_resources.active and e and (not dead or (e > 0 or m > 0)) then
                         DrawResources(e, es, esh, ec, m, ms, msh, posY, dead, (absoluteResbarValues and (allyTeamMaxStorage[allyteam] and allyTeamMaxStorage[allyteam][1])), (absoluteResbarValues and (allyTeamMaxStorage[allyteam] and allyTeamMaxStorage[allyteam][2])))
                         if tipY then
-                            ResourcesTip(mouseX, e, es, ei, m, ms, mi)
+                            ResourcesTip(mouseX, e, es, ei, m, ms, mi, name, team)
                         end
                     end
                     if onlyMainList2 and m_income.active and ei and playerScale >= 0.7 then
                         DrawIncome(ei, mi, posY, dead)
                         if tipY then
-                            IncomeTip(mouseX, ei, mi)
+                            IncomeTip(mouseX, ei, mi, name, team)
                         end
                     end
                 end
@@ -2675,7 +2676,7 @@ function AllyTip(mouseX, playerID)
     end
 end
 
-function ResourcesTip(mouseX, energy, energyStorage, energyIncome, metal, metalStorage, metalIncome)
+function ResourcesTip(mouseX, energy, energyStorage, energyIncome, metal, metalStorage, metalIncome, name, teamID)
     if mouseX >= widgetPosX + (m_resources.posX + 1) * widgetScale and mouseX <= widgetPosX + (m_resources.posX + m_resources.width) * widgetScale then
         if energy > 1000 then
             energy = math.floor(energy / 100) * 100
@@ -2713,12 +2714,13 @@ function ResourcesTip(mouseX, energy, energyStorage, energyIncome, metal, metalS
         if metalIncome >= 10000 then
             metalIncome = Spring.I18N('ui.playersList.thousands', { number = math.floor(metalIncome / 1000) })
         end
+        tipTextTitle = (spec and "\255\240\240\240" or colourNames(teamID)) .. name
         tipText = "\255\255\255\255+" .. metalIncome.. "\n\255\255\255\255" .. metal .. "\n\255\255\255\000" .. energy .. "\n\255\255\255\000+" .. energyIncome
         tipTextTime = os.clock()
     end
 end
 
-function IncomeTip(mouseX, energyIncome, metalIncome)
+function IncomeTip(mouseX, energyIncome, metalIncome, name, teamID)
     if mouseX >= widgetPosX + (m_income.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_income.posX + m_resources.width) * widgetScale then
         if energyIncome == nil then
             energyIncome = 0
@@ -2740,6 +2742,7 @@ function IncomeTip(mouseX, energyIncome, metalIncome)
         if metalIncome >= 10000 then
             metalIncome = Spring.I18N('ui.playersList.thousands', { number = math.floor(metalIncome / 1000) })
         end
+        tipTextTitle = (spec and "\255\240\240\240" or colourNames(teamID)) .. name
         tipText = Spring.I18N('ui.playersList.resincome') .. "\n\255\255\255\000+" .. energyIncome .. "\n\255\255\255\255+" .. metalIncome
         tipTextTime = os.clock()
     end
@@ -2753,6 +2756,7 @@ function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, system, name, teamID, 
             pingLvl = Spring.I18N('ui.playersList.seconds', { number = round(pingLvl / 1000, 0) })
         end
         tipText = Spring.I18N('ui.playersList.commandDelay', { labelColor = "\255\190\190\190", delayColor = "\255\255\255\255", delay = pingLvl })
+        tipTextTitle = (spec and "\255\240\240\240" or colourNames(teamID)) .. name
         tipTextTime = os.clock()
     elseif mouseX >= widgetPosX + (m_cpuping.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_cpuping.posX + (11*playerScale)) * widgetScale then
 		tipText = ''
@@ -2766,7 +2770,7 @@ function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, system, name, teamID, 
         if gpumem ~= nil then
             tipText = tipText .. "    " .. Spring.I18N('ui.playersList.gpuMemory', { gpuUsage = gpumem })
         end
-        tipText = (spec and "\255\240\240\240" or colourNames(teamID)) .. name .. "\n" .. tipText
+        tipTextTitle = (spec and "\255\240\240\240" or colourNames(teamID)) .. name
         if system ~= nil then
             tipText = tipText .. system
         end
@@ -3431,13 +3435,14 @@ function widget:Update(delta)
 		if leaderboardOffset then
 			local posY = widgetPosY + widgetHeight - (leaderboardOffset or 0)
 			if IsOnRect(mx, my, widgetPosX, posY, widgetPosX + widgetWidth, posY + (playerOffset*playerScale)) then
-				tipText = "\255\222\255\222"..Spring.I18N('ui.playersList.leaderboard').."\n\255\222\222\222  "..Spring.I18N('ui.playersList.leaderboardTooltip')
+				tipText = Spring.I18N('ui.playersList.leaderboardTooltip')
 				tipTextTime = os.clock()
+				tipTextTitle = Spring.I18N('ui.playersList.leaderboard')
 			end
 		end
 
         if tipText and WG['tooltip'] then
-            WG['tooltip'].ShowTooltip('advplayerlist', tipText)
+            WG['tooltip'].ShowTooltip('advplayerlist', tipText, nil, nil, tipTextTitle)
         end
         Spring.SetMouseCursor('cursornormal')
     end

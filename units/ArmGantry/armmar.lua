@@ -21,7 +21,7 @@ return {
 		maxslope = 17,
 		maxwaterdepth = 32,
 		metalcost = 970,
-		movementclass = "HABOT4",
+		movementclass = "HABOT5",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMMAR.s3o",
 		script = "Units/armmar.cob",

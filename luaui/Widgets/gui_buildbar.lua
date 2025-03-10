@@ -419,9 +419,8 @@ function widget:SetConfigData(data)
 	bar_side = data.side or 2
 	bar_offset = data.offset or 0
 	bar_align = data.align or 0
-
-	bar_side = math.min(math.max(bar_side, 0), 3)
-	bar_align = math.min(math.max(bar_align, -1), 1)
+	bar_side = math.clamp(bar_side, 0, 3)
+	bar_align = math.clamp(bar_align, -1, 1)
 end
 
 -------------------------------------------------------------------------------

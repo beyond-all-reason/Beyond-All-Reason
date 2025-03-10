@@ -134,10 +134,9 @@ return {
 					smart_priority = true,
 				},
 				damage = {
-					default = 150,
-					lboats = 150,
-					subs = 37,
-					vtol = 37,
+					default = 200,
+					subs = 50,
+					vtol = 50,
 				},
 			},
 			cluster_munition = {

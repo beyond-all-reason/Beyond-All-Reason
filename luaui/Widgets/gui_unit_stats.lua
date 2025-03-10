@@ -386,7 +386,6 @@ local function drawStats(uDefID, uID)
 	cY = cY - (bgpadding/2)
 
 	local titleFontSize = fontSize*1.07
-	local cornersize = ceil(bgpadding*0.2)
 	cY = cY - 2 * titleFontSize
 	textBuffer = {}
 	textBufferCount = 0

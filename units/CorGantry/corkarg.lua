@@ -152,7 +152,6 @@ return {
 			super_missile = {
 				areaofeffect = 64,
 				avoidfeature = false,
-				burnblow = true,
 				castshadow = true,
 				cegtag = "missiletrailsmall-simple",
 				craterareaofeffect = 0,
@@ -189,6 +188,8 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 600,
 				customparams = {
+					overrange_distance = 690,
+					projectile_destruction_method = "descend",
 					speceffect = "retarget",
 					when = "always",
 				},
