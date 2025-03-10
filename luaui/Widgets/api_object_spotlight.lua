@@ -435,6 +435,19 @@ local function removeSpotlight(objectType, owner, objectID)
 	end
 end
 
+local function getSpotlights(objectType, owner)
+	return table.reduce(
+		objectOwners[objectType],
+		function(acc, v, k)
+			if v[owner] then
+				acc[#acc + 1] = k
+			end
+			return acc
+		end,
+		{}
+	)
+end
+
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	if objectOwners["unit"][unitID] then
 		for owner in pairs(objectOwners["unit"][unitID]) do
@@ -532,6 +545,12 @@ function widget:Initialize()
 		---@param objectID number|number[] unitID, featureID, or {x,y,z} table for a location
 		---@return nil
 		removeSpotlight = removeSpotlight,
+
+		---Returns the objectID for all spotlights with the specified type and owner.
+		---@param objectType string "unit" or "feature", or "ground"
+		---@param owner string An identifier used to prevent name collisions. You can have one spotlight per objectID per owner.
+		---@return (number|number[])[]
+		getSpotlights = getSpotlights,
 	}
 end
 
