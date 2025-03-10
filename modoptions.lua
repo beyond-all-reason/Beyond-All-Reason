@@ -1247,6 +1247,18 @@ local options = {
         def  	= false,
     },
 
+    {
+        key		= "raptor_queen_count",
+        name	= "Raptor Queen Count",
+        desc	= "(Range: 1 - 20). Number of queens that will spawn.",
+        type	= "number",
+        def		= 1,
+        min		= 1,
+        max		= 20,
+        step	= 1,
+        section	= "options_experimental",
+    },
+
     -- Hidden Tests
     {
         key    	= "shieldsrework",
