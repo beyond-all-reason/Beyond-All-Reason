@@ -304,13 +304,18 @@ end
 -- widget code
 -- ===========
 
--- objectInstanceIDs[objectType][objectID][owner] = instanceID
+---@alias ObjectType string
+---@alias ObjectID number|number[]
+---@alias OwnerID string
+---@alias InstanceID number
+
+---@type table<ObjectType, table<ObjectID, table<OwnerID, InstanceID>>>
 local objectInstanceIDs = {}
 
--- objectOwners[objectType][objectID] = set{owner, ...}
+---@type table<ObjectType, table<ObjectID, table<OwnerID, boolean>>>
 local objectOwners = {}
 
--- objectExpireTimes[objectType][objectID][owner] = time (s)
+---@type table<ObjectType, table<ObjectID, table<OwnerID, number>>>
 local objectExpireTimes = {}
 
 for k in pairs(spotlightTypes) do
@@ -494,7 +499,7 @@ function widget:Initialize()
 		---removeSpotlight later is necessary to remove the spotlight.
 		---@param objectType string "unit", "feature", or "ground"
 		---@param owner string An identifier used to prevent name collisions. You can have one spotlight per objectID per owner.
-		---@param objectID number|table unitID, featureID, or {x,y,z} table for a location
+		---@param objectID number|number[] unitID, featureID, or {x,y,z} table for a location
 		---@param color table RGBA color used for the spotlight
 		---@param options table extra optional parameters
 		---@param options.duration number if specified, the spotlight will fade out over this period of seconds
@@ -508,7 +513,7 @@ function widget:Initialize()
 		---Removes the spotlight for a given object. This can be called even if a spotlight might not be present.
 		---@param objectType string "unit" or "feature", or "ground"
 		---@param owner string An identifier used to prevent name collisions. You can have one spotlight per objectID per owner.
-		---@param objectID number|table unitID, featureID, or {x,y,z} table for a location
+		---@param objectID number|number[] unitID, featureID, or {x,y,z} table for a location
 		---@return nil
 		removeSpotlight = removeSpotlight,
 	}
