@@ -69,6 +69,7 @@ local updatePanel
 local hasScavEvent = false
 
 local difficultyOption = Spring.GetModOptions().scav_difficulty
+local scav_boss_count = Spring.GetModOptions().scav_boss_count
 
 local rules = {
 	"scavBossTime",
@@ -153,10 +154,10 @@ local function CreatePanelDisplayList()
 				currentlyResistantTo = {}
 			end
 		else
-			font:Print(textColor .. Spring.I18N('ui.scavs.bossHealth', { health = gameInfo.scavBossHealth }), panelMarginX, PanelRow(1), panelFontSize, "")
+			font:Print(textColor .. Spring.I18N('ui.scavs.bossHealth'..(scav_boss_count > 1 and 's' or ''), { health = gameInfo.scavBossHealth }), panelMarginX, PanelRow(1), panelFontSize, "")
 			for i = 1,#currentlyResistantToNames do
 				if i == 1 then
-					font:Print(textColor .. Spring.I18N('ui.scavs.bossResistantToList'), panelMarginX, PanelRow(12), panelFontSize, "")
+					font:Print(textColor .. Spring.I18N('ui.scavs.boss'..(scav_boss_count > 1 and 'es' or '')..'ResistantToList'), panelMarginX, PanelRow(12), panelFontSize, "")
 				end
 				font:Print(textColor .. currentlyResistantToNames[i], panelMarginX+20, PanelRow(12+i), panelFontSize, "")
 			end

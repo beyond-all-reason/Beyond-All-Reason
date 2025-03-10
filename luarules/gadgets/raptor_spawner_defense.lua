@@ -886,7 +886,7 @@ if gadgetHandler:IsSyncedCode() then
 		for burrowID, _ in pairs(burrows) do
 			-- Try to spawn the queen at the 'best' burrow
 			local x, y, z = GetUnitPosition(burrowID)
-			if x and y and z then
+			if x and y and z and not queenIDs[burrowID] then
 				local score = 0
 				score = mRandom(1,1000)
 				if score > bestScore then
