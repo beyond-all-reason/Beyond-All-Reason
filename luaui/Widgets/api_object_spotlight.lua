@@ -324,6 +324,13 @@ for k in pairs(spotlightTypes) do
 	objectOwners[k] = {}
 end
 
+local function isEmpty(tbl)
+	for _ in pairs(tbl) do
+		return false
+	end
+	return true
+end
+
 local function addSpotlight(objectType, owner, objectID, color, options)
 	if not spotlightTypes[objectType] then
 		error("invalid spotlight target type: " .. (objectType or "<nil>"))
@@ -406,16 +413,25 @@ local function removeSpotlight(objectType, owner, objectID)
 
 	-- owner
 	objectOwners[objectType][objectID][owner] = nil
+	if isEmpty(objectOwners[objectType][objectID]) then
+		objectOwners[objectType][objectID] = nil
+	end
 
 	-- instance
 	if instanceVBOs[objectType].instanceIDtoIndex[objectInstanceIDs[objectType][objectID][owner]] then
 		popElementInstance(instanceVBOs[objectType], objectInstanceIDs[objectType][objectID][owner], false)
 	end
 	objectInstanceIDs[objectType][objectID][owner] = nil
+	if isEmpty(objectInstanceIDs[objectType][objectID]) then
+		objectInstanceIDs[objectType][objectID] = nil
+	end
 
 	-- duration
 	if objectExpireTimes[objectType][objectID] and objectExpireTimes[objectType][objectID][owner] then
 		objectExpireTimes[objectType][objectID][owner] = nil
+		if isEmpty(objectExpireTimes[objectType][objectID]) then
+			objectExpireTimes[objectType][objectID] = nil
+		end
 	end
 end
 
