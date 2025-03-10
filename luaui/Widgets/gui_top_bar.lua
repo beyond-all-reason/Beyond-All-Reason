@@ -11,55 +11,81 @@ function widget:GetInfo()
 	}
 end
 
-local allowSavegame = true--Spring.Utilities.ShowDevUI()
-
-local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
-
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-
-local textWarnColor = "\255\255\215\215"
-
-local vsx, vsy = Spring.GetViewGeometry()
-
-local orgHeight = 46
-local height = orgHeight * (1 + (ui_scale - 1) / 1.7)
-
-local escapeKeyPressesQuit = false
-
+-- Configuration
 local relXpos = 0.3
 local borderPadding = 5
 local bladeSpeedMultiplier = 0.2
+local escapeKeyPressesQuit = false
+local allowSavegame = true -- Spring.Utilities.ShowDevUI()
 
-local wholeTeamWastingMetalCount = 0
-
-
-local noiseBackgroundTexture = ":g:LuaUI/Images/rgbnoise.png"
-local showButtons = true
-local autoHideButtons = false
-
-local playSounds = true
-local leftclick = 'LuaUI/Sounds/tock.wav'
-local resourceclick = 'LuaUI/Sounds/buildbar_click.wav'
-
-local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
-local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
-local bladesTexture = ":n:LuaUI/Images/wind-blades.png"
-local wavesTexture = ":n:LuaUI/Images/tidal-waves.png"
-local comTexture = ":n:Icons/corcom.png"
-
+-- Math
+local math_isInRect = math.isInRect
 local math_floor = math.floor
 local math_min = math.min
-local math_isInRect = math.isInRect
+local sformat = string.format
 
-local widgetScale = (0.80 + (vsx * vsy / 6000000))
-local xPos = math_floor(vsx * relXpos)
-local currentWind = 0
+-- Spring API
+local spGetSpectatingState = Spring.GetSpectatingState
+local spGetTeamResources = Spring.GetTeamResources
+local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMouseState = Spring.GetMouseState
+local spGetWind = Spring.GetWind
+
+-- System
+local guishaderEnabled = false
+local gaiaTeamID = Spring.GetGaiaTeamID()
+local spec = spGetSpectatingState()
+local myAllyTeamID = Spring.GetMyAllyTeamID()
+local myTeamID = Spring.GetMyTeamID()
+local myPlayerID = Spring.GetMyPlayerID()
+local mmLevel = Spring.GetTeamRulesParam(myTeamID, 'mmLevel')
+local myAllyTeamList = Spring.GetTeamList(myAllyTeamID)
+local numTeamsInAllyTeam = #myAllyTeamList
+
+-- Game mode / state
+local numPlayers = Spring.Utilities.GetPlayerCount()
+local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
+local chobbyLoaded = false
+local isSingle = false
 local gameStarted = (Spring.GetGameFrame() > 0)
-local displayComCounter = false
-local displayTidalSpeed = not Spring.Lava.isLavaMap
 local updateTextClock = os.clock()
+local gameFrame = Spring.GetGameFrame()
+local gameIsOver = false
+local graphsWindowVisible = false
 
+-- Resources
+local r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') } }
+local currentResValue = { metal = 1000, energy = 1000 }
+local currentStorageValue = { metal = -1, energy = -1 }
+local energyOverflowLevel, metalOverflowLevel
+local wholeTeamWastingMetalCount = 0
+local allyteamOverflowingMetal = false
+local allyteamOverflowingEnergy = false
+local overflowingMetal = false
+local overflowingEnergy = false
+local showOverflowTooltip = {}
+local supressOverflowNotifs = false
+local isMetalmap = false
+
+-- Wind + tide
+local avgWindValue, riskWindValue
+local currentWind = 0
+local displayTidalSpeed = not Spring.Lava.isLavaMap
+local tidalSpeed = Spring.GetTidal() -- for now assumed that it is not dynamically changed
+local tidalWaveAnimationHeight = 10
+local windRotation = 0
+local minWind = Game.windMin
+local maxWind = Game.windMax
+
+-- Commanders
+local allyComs = 0
+local enemyComs = 0 -- if we are counting ourselves because we are a spec
+local enemyComCount = 0 -- if we are receiving a count from the gadget part (needs modoption on)
+local prevEnemyComCount = 0
+local isCommander = {}
+local displayComCounter = false
+
+-- OpenGL
 local glTranslate = gl.Translate
 local glColor = gl.Color
 local glPushMatrix = gl.PushMatrix
@@ -71,104 +97,75 @@ local glRotate = gl.Rotate
 local glCreateList = gl.CreateList
 local glCallList = gl.CallList
 local glDeleteList = gl.DeleteList
-
 local glBlending = gl.Blending
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
-local spGetSpectatingState = Spring.GetSpectatingState
-local spGetTeamResources = Spring.GetTeamResources
-local spGetMyTeamID = Spring.GetMyTeamID
-local spGetMouseState = Spring.GetMouseState
-local spGetWind = Spring.GetWind
+-- Graphics
+local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
+local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+local noiseBackgroundTexture = ":g:LuaUI/Images/rgbnoise.png"
+local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
+local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
+local bladesTexture = ":n:LuaUI/Images/wind-blades.png"
+local wavesTexture = ":n:LuaUI/Images/tidal-waves.png"
+local comTexture = ":n:Icons/corcom.png"
+local textWarnColor = "\255\255\215\215"
 
-local isMetalmap = false
-
-local widgetSpaceMargin, bgpadding, RectRound, TexturedRectRound, UiElement, UiButton, UiSliderKnob
-
-local gaiaTeamID = Spring.GetGaiaTeamID()
-local spec = spGetSpectatingState()
-local myAllyTeamID = Spring.GetMyAllyTeamID()
-local myTeamID = Spring.GetMyTeamID()
-local myPlayerID = Spring.GetMyPlayerID()
-local mmLevel = Spring.GetTeamRulesParam(myTeamID, 'mmLevel')
-
-local myAllyTeamList = Spring.GetTeamList(myAllyTeamID)
-local numTeamsInAllyTeam = #myAllyTeamList
-
-local supressOverflowNotifs = false
-
-local sformat = string.format
-
-local minWind = Game.windMin
-local maxWind = Game.windMax
-local avgWindValue, riskWindValue
-
-local tidalSpeed = Spring.GetTidal() -- for now assumed that it is not dynamiccally changed
-local tidalWaveAnimationHeight = 10
-local windRotation = 0
-
-local lastFrame = -1
+-- UI Elements
 local topbarArea = {}
 local resbarArea = { metal = {}, energy = {} }
 local resbarDrawinfo = { metal = {}, energy = {} }
 local shareIndicatorArea = { metal = {}, energy = {} }
-local dlistResbar = { metal = {}, energy = {} }
 local windArea = {}
 local tidalarea = {}
 local comsArea = {}
 local buttonsArea = {}
+
+-- UI State
+local orgHeight = 46
+local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
+local height = orgHeight * (1 + (ui_scale - 1) / 1.7)
+local vsx, vsy = Spring.GetViewGeometry()
+local widgetScale = (0.80 + (vsx * vsy / 6000000))
+local xPos = math_floor(vsx * relXpos)
+local showButtons = true
+local autoHideButtons = false
+local widgetSpaceMargin, bgpadding, RectRound, TexturedRectRound, UiElement, UiButton, UiSliderKnob
+
+-- Display Lists
 local dlistWindText = {}
 local dlistResValuesBar = { metal = {}, energy = {} }
 local dlistResValues = { metal = {}, energy = {} }
-local currentResValue = { metal = 1000, energy = 1000 }
-local currentStorageValue = { metal = -1, energy = -1 }
-local energyOverflowLevel, metalOverflowLevel
-
-local r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') } }
-
-local showOverflowTooltip = {}
-
-local allyComs = 0
-local enemyComs = 0 -- if we are counting ourselves because we are a spec
-local enemyComCount = 0 -- if we are receiving a count from the gadget part (needs modoption on)
-local prevEnemyComCount = 0
-
-local guishaderEnabled = false
-local guishaderCheckUpdateRate = 0.5
-local nextGuishaderCheck = guishaderCheckUpdateRate
-local now = os.clock()
-local gameFrame = Spring.GetGameFrame()
-
-local draggingShareIndicatorValue = {}
-
-local font, font2, firstButton, fontSize, comcountChanged, showQuitscreen, resbarHover
-local draggingConversionIndicatorValue, draggingShareIndicator, draggingConversionIndicator
-local conversionIndicatorArea, quitscreenArea, quitscreenStayArea, quitscreenQuitArea, quitscreenResignArea, hoveringTopbar, hideQuitWindow
+local dlistResbar = { metal = {}, energy = {} }
 local dlistButtonsGuishader, dlistComsGuishader, dlistWindGuishader, dlistTidalGuishader, dlistQuit
 local dlistButtons1, dlistButtons2, dlistComs1, dlistComs2, dlistWind1, dlistWind2
 
-local chobbyLoaded = false
+-- Interactions
+local draggingShareIndicatorValue = {}
+local draggingConversionIndicatorValue, draggingShareIndicator, draggingConversionIndicator
+local conversionIndicatorArea, quitscreenArea, quitscreenStayArea, quitscreenQuitArea, quitscreenResignArea, hoveringTopbar, hideQuitWindow
+local font, font2, firstButton, fontSize, comcountChanged, showQuitscreen, resbarHover
 
-local numPlayers = Spring.Utilities.GetPlayerCount()
-local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
+-- Audio
+local playSounds = true
+local leftclick = 'LuaUI/Sounds/tock.wav'
+local resourceclick = 'LuaUI/Sounds/buildbar_click.wav'
 
-local isSingle = false
+-- Timers + intervals
+local now = os.clock()
+local sec = 0
+local sec2 = 0
+local secComCount = 0
+local lastFrame = -1
+local blinkDirection = true
+local blinkProgress = 0
+local guishaderCheckUpdateRate = 0.5
+local nextGuishaderCheck = guishaderCheckUpdateRate
 
-local allyteamOverflowingMetal = false
-local allyteamOverflowingEnergy = false
-local overflowingMetal = false
-local overflowingEnergy = false
-
-local isCommander = {}
 
 --------------------------------------------------------------------------------
--- Graphs window
---------------------------------------------------------------------------------
-
-local gameIsOver = false
-local graphsWindowVisible = false
 
 local function RectQuad(px, py, sx, sy, offset)
 	gl.TexCoord(offset, 1 - offset)
@@ -180,6 +177,7 @@ local function RectQuad(px, py, sx, sy, offset)
 	gl.TexCoord(offset, offset)
 	gl.Vertex(px, sy, 0)
 end
+
 local function DrawRect(px, py, sx, sy, zoom)
 	gl.BeginEnd(GL.QUADS, RectQuad, px, py, sx, sy, zoom)
 end
@@ -1123,11 +1121,6 @@ local function updateAllyTeamOverflowing()
 	end
 end
 
-local sec = 0
-local sec2 = 0
-local secComCount = 0
-local blinkDirection = true
-local blinkProgress = 0
 function widget:Update(dt)
 
 	local prevMyTeamID = myTeamID
