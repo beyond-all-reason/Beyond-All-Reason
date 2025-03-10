@@ -192,9 +192,9 @@ local function CreatePanelDisplayList()
 		else
 			local nQueens = #queenHealths
 			local healthLabel = 'ui.raptors.queenHealth'..(nQueens > 1 and 's' or '')
-			font:Print(I18N(healthLabel, { health = queenHealths[1] or '' }), panelMarginX, PanelRow(1), panelFontSize, "")
+			font:Print(I18N(healthLabel)..((queenHealths[1]..'%') or ''), panelMarginX, PanelRow(1), panelFontSize, "")
 			for i = 2, math.min(nQueens, 5) do
-				font:Print(queenHealths[i]..'%'.. (i == 5 and nQueens > 5 and '...' or ''), panelMarginX + panelFontSize * font:GetTextWidth(Spring.I18N(healthLabel):gsub('(:%s).*', '%1')), PanelRow(i), panelFontSize, "")
+				font:Print(queenHealths[i]..'%'.. (i == 5 and nQueens > 5 and '...' or ''), panelMarginX + panelFontSize * font:GetTextWidth(I18N(healthLabel)), PanelRow(i), panelFontSize, "")
 			end
 			if #queenResistances > 0 then
 				font:Print(I18N('ui.raptors.queen'..(nQueens > 1 and 's' or '')..'ResistantToList'), panelMarginX, PanelRow(11), panelFontSize, "")
