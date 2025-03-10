@@ -125,18 +125,6 @@ local raptorTypes = {
 	"raptor_turret",
 }
 
-local function commaValue(amount)
-	local formatted = amount
-	local k
-	while true do
-		formatted, k = string.gsub(formatted, "^(-?%d+)(%d%d%d)", '%1,%2')
-		if k == 0 then
-			break
-		end
-	end
-	return formatted
-end
-
 local function getRaptorCounts(type)
 	local total = 0
 	local subtotal
@@ -212,9 +200,9 @@ local function CreatePanelDisplayList()
 	font:Print(I18N('ui.raptors.raptorKillCount', { count = gameInfo.raptorKills }), panelMarginX, PanelRow(6), panelFontSize, "")
 	local endless = ""
 	if Spring.GetModOptions().raptor_endless then
-		endless = ' (' .. Spring.I18N('ui.raptors.difficulty.endless') .. ')'
+		endless = ' (' .. I18N('ui.raptors.difficulty.endless') .. ')'
 	end
-	local difficultyCaption = Spring.I18N('ui.raptors.difficulty.' .. difficultyOption)
+	local difficultyCaption = I18N('ui.raptors.difficulty.' .. difficultyOption)
 	font:Print(I18N('ui.raptors.mode', { mode = difficultyCaption }) .. endless, 80, h - 170, panelFontSize, "")
 	font:End()
 
@@ -225,18 +213,18 @@ end
 local function getMarqueeMessage(raptorEventArgs)
 	local messages = {}
 	if raptorEventArgs.type == "firstWave" then
-		messages[1] = textColor .. Spring.I18N('ui.raptors.firstWave1')
-		messages[2] = textColor .. Spring.I18N('ui.raptors.firstWave2')
+		messages[1] = textColor .. I18N('ui.raptors.firstWave1')
+		messages[2] = textColor .. I18N('ui.raptors.firstWave2')
 	elseif raptorEventArgs.type == "queen" then
-		messages[1] = textColor .. Spring.I18N('ui.raptors.queenIsAngry1')
-		messages[2] = textColor .. Spring.I18N('ui.raptors.queenIsAngry2')
+		messages[1] = textColor .. I18N('ui.raptors.queenIsAngry1')
+		messages[2] = textColor .. I18N('ui.raptors.queenIsAngry2')
 	elseif raptorEventArgs.type == "airWave" then
-		messages[1] = textColor .. Spring.I18N('ui.raptors.wave1', {waveNumber = raptorEventArgs.waveCount})
-		messages[2] = textColor .. Spring.I18N('ui.raptors.airWave1')
-		messages[3] = textColor .. Spring.I18N('ui.raptors.airWave2', {unitCount = raptorEventArgs.number})
+		messages[1] = textColor .. I18N('ui.raptors.wave1', {waveNumber = raptorEventArgs.waveCount})
+		messages[2] = textColor .. I18N('ui.raptors.airWave1')
+		messages[3] = textColor .. I18N('ui.raptors.airWave2', {unitCount = raptorEventArgs.number})
 	elseif raptorEventArgs.type == "wave" then
-		messages[1] = textColor .. Spring.I18N('ui.raptors.wave1', {waveNumber = raptorEventArgs.waveCount})
-		messages[2] = textColor .. Spring.I18N('ui.raptors.wave2', {unitCount = raptorEventArgs.number})
+		messages[1] = textColor .. I18N('ui.raptors.wave1', {waveNumber = raptorEventArgs.waveCount})
+		messages[2] = textColor .. I18N('ui.raptors.wave2', {unitCount = raptorEventArgs.number})
 	end
 
 	refreshMarqueeMessage = false
@@ -246,13 +234,13 @@ end
 
 local function getResistancesMessage()
 	local messages = {}
-	messages[1] = textColor .. Spring.I18N('ui.raptors.resistanceUnits')
+	messages[1] = textColor .. I18N('ui.raptors.resistanceUnits')
 	for i = 1,#resistancesTable do
 		local attackerName = UnitDefs[resistancesTable[i]].name
 		if UnitDefNames[attackerName].customParams.i18nfromunit then
 			attackerName = UnitDefNames[attackerName].customParams.i18nfromunit
 		end
-		messages[i+1] = textColor .. Spring.I18N('units.names.' .. attackerName)
+		messages[i+1] = textColor .. I18N('units.names.' .. attackerName)
 	end
 	resistancesTable = {}
 
