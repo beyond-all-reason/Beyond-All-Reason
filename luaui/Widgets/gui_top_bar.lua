@@ -1180,16 +1180,6 @@ local function hoveringElement(x, y)
 	return false
 end
 
-function widget:drawTidal()
-	if displayTidalSpeed and tidaldlist1 then
-		glPushMatrix()
-		glCallList(tidaldlist1)
-		glTranslate(tidalarea[1] + ((tidalarea[3] - tidalarea[1]) / 2), math.sin(now/math.pi) * tidalWaveAnimationHeight + tidalarea[2] + (bgpadding/2) + ((tidalarea[4] - tidalarea[2]) / 2), 0)
-		glCallList(tidaldlist2)
-		glPopMatrix()
-	end
-end
-
 local function drawResBars()
 	glPushMatrix()
 
@@ -1291,7 +1281,13 @@ function widget:DrawScreen()
 		end
 	end
 
-    self:drawTidal()
+	if displayTidalSpeed and tidaldlist1 then
+		glPushMatrix()
+		glCallList(tidaldlist1)
+		glTranslate(tidalarea[1] + ((tidalarea[3] - tidalarea[1]) / 2), math.sin(now/math.pi) * tidalWaveAnimationHeight + tidalarea[2] + (bgpadding/2) + ((tidalarea[4] - tidalarea[2]) / 2), 0)
+		glCallList(tidaldlist2)
+		glPopMatrix()
+	end
 
 	glPushMatrix()
 	if displayComCounter and dlistComs1 then
@@ -1509,45 +1505,25 @@ function widget:MouseMove(x, y)
 	adjustSliders(x, y)
 end
 
+local function closeWindow(name)
+	if WG[name] ~= nil and WG[name].isvisible() then
+		WG[name].toggle(false)
+		return true
+	end
+	return false
+end
+
 local function hideWindows()
 	local closedWindow = false
-
-	if WG['options'] and WG['options'].isvisible() then
-		WG['options'].toggle(false)
-		closedWindow = true
-	end
-
-	if WG['scavengerinfo'] and WG['scavengerinfo'].isvisible() then
-		WG['scavengerinfo'].toggle(false)
-		closedWindow = true
-	end
-
-	if WG['keybinds'] and WG['keybinds'].isvisible() then
-		WG['keybinds'].toggle(false)
-		closedWindow = true
-	end
-
-	if WG['changelog'] and WG['changelog'].isvisible() then
-		WG['changelog'].toggle(false)
-		closedWindow = true
-	end
-
-	if WG['gameinfo'] and WG['gameinfo'].isvisible() then
-		WG['gameinfo'].toggle(false)
-		closedWindow = true
-	end
-
-	if WG['teamstats'] and WG['teamstats'].isvisible() then
-		WG['teamstats'].toggle(false)
-		closedWindow = true
-	end
-
-	if WG['widgetselector'] and WG['widgetselector'].isvisible() then
-		WG['widgetselector'].toggle(false)
-		closedWindow = true
-	end
-
+	closedWindow = closeWindow('options') or closedWindow
+	closedWindow = closeWindow('scavengerinfo') or closedWindow
+	closedWindow = closeWindow('keybinds') or closedWindow
+	closedWindow = closeWindow('changelog') or closedWindow
+	closedWindow = closeWindow('gameinfo') or closedWindow
+	closedWindow = closeWindow('teamstats') or closedWindow
+	closedWindow = closeWindow('widgetselector') or closedWindow
 	if showQuitscreen then closedWindow = true end
+
 	showQuitscreen = nil
 
 	if WG['guishader'] then WG['guishader'].setScreenBlur(false) end
@@ -1559,6 +1535,20 @@ local function hideWindows()
 	end
 
 	return closedWindow
+end
+
+local function toggleWindow(name)
+	local isvisible = false
+
+	if WG[name] ~= nil then
+		isvisible = WG[name].isvisible()
+	end
+	hideWindows()
+	if WG[name] ~= nil and isvisible ~= true then
+		WG[name].toggle()
+	end
+
+	return isvisible
 end
 
 local function applyButtonAction(button)
@@ -1587,15 +1577,7 @@ local function applyButtonAction(button)
 			end
 		end
 	elseif button == 'options' then
-		if WG['options'] then
-			isvisible = WG['options'].isvisible()
-		end
-
-		hideWindows()
-
-		if WG['options'] and isvisible ~= true then
-			WG['options'].toggle()
-		end
+		toggleWindow('options')
 	elseif button == 'save' then
 		if isSinglePlayer and allowSavegame and WG['savegame'] then
 			--local gameframe = Spring.GetGameFrame()
@@ -1610,37 +1592,13 @@ local function applyButtonAction(button)
 			Spring.SendCommands("savegame "..time)
 		end
 	elseif button == 'scavengers' then
-		if WG['scavengerinfo'] then
-			isvisible = WG['scavengerinfo'].isvisible()
-		end
-		hideWindows()
-		if WG['scavengerinfo'] and isvisible ~= true then
-			WG['scavengerinfo'].toggle()
-		end
+		toggleWindow('scavengerinfo')
 	elseif button == 'keybinds' then
-		if WG['keybinds'] then
-			isvisible = WG['keybinds'].isvisible()
-		end
-		hideWindows()
-		if WG['keybinds'] and isvisible ~= true then
-			WG['keybinds'].toggle()
-		end
+		toggleWindow('keybinds')
 	elseif button == 'changelog' then
-		if WG['changelog'] then
-			isvisible = WG['changelog'].isvisible()
-		end
-		hideWindows()
-		if WG['changelog'] and isvisible ~= true then
-			WG['changelog'].toggle()
-		end
+		toggleWindow('changelog')
 	elseif button == 'stats' then
-		if WG['teamstats'] then
-			isvisible = WG['teamstats'].isvisible()
-		end
-		hideWindows()
-		if WG['teamstats'] and isvisible ~= true then
-			WG['teamstats'].toggle()
-		end
+		toggleWindow('teamstats')
 	elseif button == 'graphs' then
 		isvisible = graphsWindowVisible
 		hideWindows()
@@ -1817,11 +1775,9 @@ function widget:Initialize()
 	for _, teamID in ipairs(myAllyTeamList) do
 		if select(4,Spring.GetTeamInfo(teamID,false)) then	-- is AI?
 			local luaAI = Spring.GetTeamLuaAI(teamID)
-			if luaAI and luaAI ~= "" then
-				if string.find(luaAI, 'Scavengers') or string.find(luaAI, 'Raptors') then
-					supressOverflowNotifs = true
-					break
-				end
+			if luaAI and luaAI ~= "" and string.find(luaAI, 'Scavengers') or string.find(luaAI, 'Raptors') then
+				supressOverflowNotifs = true
+				break
 			end
 		end
 	end
@@ -1885,7 +1841,9 @@ function widget:Initialize()
 	updateWindRisk()
 end
 
-function shutdown()
+function widget:Shutdown()
+	--Spring.SendCommands("resbar 1")
+
 	if dlistButtons1 then
 		dlistWindGuishader = glDeleteList(dlistWindGuishader)
 		dlistTidalGuishader = glDeleteList(dlistTidalGuishader)
@@ -1945,11 +1903,7 @@ function shutdown()
 		WG['tooltip'].RemoveTooltip(res .. '_storage')
 		WG['tooltip'].RemoveTooltip(res .. '_current')
 	end
-end
 
-function widget:Shutdown()
-	--Spring.SendCommands("resbar 1")
-	shutdown()
 	WG['topbar'] = nil
 end
 
