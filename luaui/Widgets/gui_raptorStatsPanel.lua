@@ -226,7 +226,7 @@ local function getMarqueeMessage(raptorEventArgs)
 		messages[1] = textColor .. Spring.I18N('ui.raptors.firstWave1')
 		messages[2] = textColor .. Spring.I18N('ui.raptors.firstWave2')
 	elseif raptorEventArgs.type == "queen" then
-		messages[1] = textColor .. Spring.I18N('ui.raptors.queenIsAngry1')
+		messages[1] = textColor .. Spring.I18N(raptor_queen_count > 1 and 'ui.raptors.queensAreAngry1' or 'ui.raptors.queenIsAngry1')
 		messages[2] = textColor .. Spring.I18N('ui.raptors.queenIsAngry2')
 	elseif raptorEventArgs.type == "airWave" then
 		messages[1] = textColor .. Spring.I18N('ui.raptors.wave1', {waveNumber = raptorEventArgs.waveCount})
