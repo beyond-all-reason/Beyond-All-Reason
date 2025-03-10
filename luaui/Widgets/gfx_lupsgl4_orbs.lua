@@ -139,6 +139,13 @@ local armgatet3ShieldSphere = table.merge(defaults, {
 	colormap2 = { { 0.2, 0.6, 0.2, 0.4 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.4 } },
 	isShield = true, 
 })
+local leggatet3ShieldSphere = table.merge(defaults, {
+	pos = { 0, 45, 0 },
+	size = 18,
+	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
+	colormap2 = { { 0.2, 0.6, 0.2, 0.4 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.4 } },
+	isShield = true, 
+})
 
 local legdeflectorShieldSphere = table.merge(defaults, {
 	pos = { 0, 21, 0 },
@@ -209,6 +216,11 @@ local UnitEffects = {
 	["armgatet3"] = {
 		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 37, -5 }, size = 21, precision = 22, repeatEffect = true } },
 		{ class = 'ShieldSphere', options = armgatet3ShieldSphere },
+		--{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,23.5,-5}, size=555, precision=0, strength=0.001, repeatEffect=true}},
+	},
+	["leggatet3"] = {
+		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 45, 0 }, size = 20, precision = 22, repeatEffect = true } },
+		{ class = 'ShieldSphere', options = leggatet3ShieldSphere },
 		--{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,23.5,-5}, size=555, precision=0, strength=0.001, repeatEffect=true}},
 	},
 	["armfgate"] = {
