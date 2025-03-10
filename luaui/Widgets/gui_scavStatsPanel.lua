@@ -57,6 +57,7 @@ local gameInfo
 local waveSpeed = 0.1
 local waveCount = 0
 local waveTime
+local bossToastTimer = Spring.GetTimer()
 local enabled
 local gotScore
 local scoreCount = 0
@@ -289,11 +290,14 @@ local function UpdateRules()
 end
 
 function ScavEvent(scavEventArgs)
-	if scavEventArgs.type == "firstWave" or scavEventArgs.type == "boss" then
+	if scavEventArgs.type == "firstWave" or (scavEventArgs.type == "boss" and Spring.DiffTimers(Spring.GetTimer(), bossToastTimer) > 10) then
 		showMarqueeMessage = true
 		refreshMarqueeMessage = true
 		messageArgs = scavEventArgs
 		waveTime = Spring.GetTimer()
+		if scavEventArgs.type == "boss" then
+			bossToastTimer = Spring.GetTimer()
+		end
 	end
 
 	if scavEventArgs.type == "bossResistance" then

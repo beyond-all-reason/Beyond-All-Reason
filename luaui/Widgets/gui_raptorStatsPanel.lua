@@ -57,6 +57,7 @@ local gameInfo
 local waveSpeed = 0.1
 local waveCount = 0
 local waveTime
+local bossToastTimer = Spring.GetTimer()
 local enabled
 local gotScore
 local scoreCount = 0
@@ -319,11 +320,14 @@ local function UpdateRules()
 end
 
 function RaptorEvent(raptorEventArgs)
-	if raptorEventArgs.type == "firstWave" or raptorEventArgs.type == "queen" then
+	if raptorEventArgs.type == "firstWave" or (raptorEventArgs.type == "queen" and Spring.DiffTimers(Spring.GetTimer(), bossToastTimer) > 10) then
 		showMarqueeMessage = true
 		refreshMarqueeMessage = true
 		messageArgs = raptorEventArgs
 		waveTime = Spring.GetTimer()
+		if raptorEventArgs.type == "queen" then
+			bossToastTimer = Spring.GetTimer()
+		end
 	end
 
 	if raptorEventArgs.type == "queenResistance" then
