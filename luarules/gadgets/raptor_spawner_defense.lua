@@ -87,7 +87,7 @@ if gadgetHandler:IsSyncedCode() then
 	local t = 0 -- game time in secondstarget
 	local queenAnger = 0
 	local techAnger = 0
-	local queenMaxHP = 0
+	local totalQueenMaxHealth
 	local playerAggression = 0
 	local playerAggressionLevel = 0
 	local playerAggressionEcoValue = 0
@@ -130,7 +130,8 @@ if gadgetHandler:IsSyncedCode() then
 	local humanTeams = {}
 	local spawnQueue = {}
 	local deathQueue = {}
-	local queens = {}
+	local queenResistance = {}
+	local queenIDs = {}
 	local raptorTeamID, raptorAllyTeamID
 	local lsx1, lsz1, lsx2, lsz2
 	local burrows = {}
@@ -861,22 +862,20 @@ if gadgetHandler:IsSyncedCode() then
 		tracy.ZoneEnd()
 	end
 
-	function updateQueenLife()
+	function updateQueenHealth()
 		if nKilledQueens == nTotalQueens then
-			SetGameRulesParam("raptorQueens", Json.encode({}))
+			SetGameRulesParam("raptorQueenHealth", 0)
 			return
 		end
 
-		local queensWithStringKeys = {}
-		for queenID, queen in pairs(queens) do
+		local totalHealth = 0
+		totalQueenMaxHealth = 0
+		for queenID, _ in pairs(queenIDs) do
 			local health, maxHealth = GetUnitHealth(queenID)
-			local healthPercent = math.ceil(((health / maxHealth) * 100) - 0.5)
-			if healthPercent ~= queen.healthPercent then
-				queen.healthPercent = healthPercent
-			end
-			queensWithStringKeys[tostring(queenID)] = queen
+			totalHealth = totalHealth + health
+			totalQueenMaxHealth = totalQueenMaxHealth + maxHealth
 		end
-		SetGameRulesParam("raptorQueens", Json.encode(queensWithStringKeys))
+		SetGameRulesParam("raptorQueenHealth", math.floor(0.5 + ((totalHealth / totalQueenMaxHealth) * 100)))
 	end
 
 	function SpawnQueen()
@@ -1388,23 +1387,25 @@ if gadgetHandler:IsSyncedCode() then
 			damage = (damage * heroRaptor[unitID])
 		end
 
-		if queens[unitID] then -- Queen Resistance
+		if queenIDs[unitID] then -- Queen Resistance
 			if attackerDefID then
 				if weaponID == -1 and damage > 1 then
 					damage = 1
 				end
-				local queenResistances = queens[unitID].resistances
-				if not queenResistances[attackerDefID] then
-					queenResistances[attackerDefID] = {
+				if not queenResistance[attackerDefID] then
+					queenResistance[attackerDefID] = {
 						damage = damage * 4 * config.queenResistanceMult,
 						notify = 0
 					}
 				end
-				local resistPercent = math.min((queenResistances[attackerDefID].damage) / queenMaxHP, 0.95)
+				if not totalQueenMaxHealth then
+					updateQueenHealth()
+				end
+				local resistPercent = math.min((queenResistance[attackerDefID].damage) / totalQueenMaxHealth, 0.95)
 				if resistPercent > 0.5 then
-					if queenResistances[attackerDefID].notify == 0 then
+					if queenResistance[attackerDefID].notify == 0 then
 						raptorEvent("queenResistance", attackerDefID)
-						queenResistances[attackerDefID].notify = 1
+						queenResistance[attackerDefID].notify = 1
 						if mRandom() < config.spawnChance then
 							local squad
 							local squadCounter = 0
@@ -1440,7 +1441,7 @@ if gadgetHandler:IsSyncedCode() then
 					damage = damage - (damage * resistPercent)
 
 				end
-				queenResistances[attackerDefID].damage = queenResistances[attackerDefID].damage + (damage * 4 * config.queenResistanceMult)
+				queenResistance[attackerDefID].damage = queenResistance[attackerDefID].damage + (damage * 4 * config.queenResistanceMult)
 			else
 				damage = 1
 			end
@@ -1524,7 +1525,7 @@ if gadgetHandler:IsSyncedCode() then
 				unitCowardCooldown[attackerID] = Spring.GetGameFrame() + 900
 			end
 		end
-		if queens[unitID] then
+		if queenIDs[unitID] then
 			local curH, maxH = GetUnitHealth(unitID)
 			if curH and maxH then
 				curH = math.max(curH, maxH*0.05)
@@ -1662,8 +1663,7 @@ if gadgetHandler:IsSyncedCode() then
 			local queenID = SpawnQueen()
 			nSpawnedQueens = nSpawnedQueens + 1
 			if queenID then
-				queens[queenID] = {resistances = {}, healthPercent = 100}
-				SetGameRulesParam("raptorQueens", Json.encode(queens))
+				queenIDs[queenID] = true
 				local queenSquad = table.copy(squadCreationQueueDefaults)
 				queenSquad.life = 999999
 				queenSquad.role = "raid"
@@ -1671,7 +1671,7 @@ if gadgetHandler:IsSyncedCode() then
 				createSquad(queenSquad)
 				spawnQueue = {}
 				raptorEvent("queen") -- notify unsynced about queen spawn
-				_, queenMaxHP = GetUnitHealth(queenID)
+				local _, queenMaxHP = GetUnitHealth(queenID)
 				Spring.SetUnitHealth(queenID, math.max(queenMaxHP*(techAnger*0.01), queenMaxHP*0.2))
 				SetUnitExperience(queenID, 0)
 				timeOfLastWave = t
@@ -1689,7 +1689,7 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 
-		for queenID, _ in pairs(queens) do
+		for queenID, _ in pairs(queenIDs) do
 			if mRandom() < config.spawnChance / 15 then
 				for i = 1,config.queenSpawnMult do
 					SpawnMinions(queenID, Spring.GetUnitDefID(queenID))
@@ -1856,7 +1856,7 @@ if gadgetHandler:IsSyncedCode() then
 			if queenAnger >= 100 or (burrowCount <= 1 and t > config.gracePeriod) then
 				-- check if the queen should be alive
 				updateSpawnQueen()
-				updateQueenLife()
+				updateQueenHealth()
 			end
 
 
@@ -1991,9 +1991,9 @@ if gadgetHandler:IsSyncedCode() then
 			SetGameRulesParam("raptor" .. "Kills", kills + 1)
 		end
 
-		if queens[unitID] then
+		if queenIDs[unitID] then
 			nKilledQueens = nKilledQueens + 1
-			queens[unitID] = nil
+			queenIDs[unitID] = nil
 
 			if nKilledQueens == nTotalQueens then
 				Spring.SetGameRulesParam("BossFightStarted", 0)
