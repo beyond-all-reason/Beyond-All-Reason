@@ -448,6 +448,18 @@ local function getSpotlights(objectType, owner)
 	)
 end
 
+local function removeAllSpotlights(owner)
+	for objectType in pairs(spotlightTypes) do
+		for _, id in ipairs(getSpotlights(objectType, owner)) do
+			removeSpotlight(
+				objectType,
+				owner,
+				id
+			)
+		end
+	end
+end
+
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	if objectOwners["unit"][unitID] then
 		for owner in pairs(objectOwners["unit"][unitID]) do
@@ -551,6 +563,11 @@ function widget:Initialize()
 		---@param owner string An identifier used to prevent name collisions. You can have one spotlight per objectID per owner.
 		---@return (number|number[])[]
 		getSpotlights = getSpotlights,
+
+		---Removes all spotlights with the specified owner.
+		---@param owner string An identifier used to prevent name collisions. You can have one spotlight per objectID per owner.
+		---@return nil
+		removeAllSpotlights = removeAllSpotlights,
 	}
 end
 
