@@ -184,8 +184,7 @@ end
 
 function widget:ViewResize()
 	vsx, vsy = gl.GetViewSizes()
-	widgetScale = (vsy / height) * 0.0425
-	widgetScale = widgetScale * ui_scale
+	widgetScale = (vsy / height) * 0.0425 * ui_scale
 	xPos = math_floor(vsx * relXpos)
 
 	widgetSpaceMargin = WG.FlowUI.elementMargin
@@ -617,7 +616,7 @@ local function updateResbarText(res)
 										wholeTeamWastingMetalCount = wholeTeamWastingMetalCount + 1
 										WG['notifications'].addEvent('WholeTeamWastingMetal')
 									end
-								else
+								--else
 									--WG['notifications'].addEvent('YouAreWastingMetal')
 								end
 							elseif r[res][6] > 0.75 then	-- supress if you are deliberately overflowing by adjustingthe share slider down
@@ -626,17 +625,17 @@ local function updateResbarText(res)
 						end
 					else
 						text = (allyteamOverflowingEnergy and '   ' .. Spring.I18N('ui.topbar.resources.wastingEnergy') .. '   '  or '   ' .. Spring.I18N('ui.topbar.resources.overflowing') .. '   ')
-						if not supressOverflowNotifs and WG['notifications'] and (not WG.sharedEnergyFrame or WG.sharedEnergyFrame+60 < gameFrame) then
-							if allyteamOverflowingEnergy then
-								if numTeamsInAllyTeam > 3 then
-									--WG['notifications'].addEvent('WholeTeamWastingEnergy')
-								else
-									--WG['notifications'].addEvent('YouAreWastingEnergy')
-								end
-							elseif r[res][6] > 0.75 then	-- supress if you are deliberately overflowing by adjustingthe share slider down
-								--WG['notifications'].addEvent('YouAreOverflowingEnergy')	-- this annoys the fuck out of em and makes them build energystoages too much
-							end
-						end
+						--if not supressOverflowNotifs and WG['notifications'] and (not WG.sharedEnergyFrame or WG.sharedEnergyFrame+60 < gameFrame) then
+						--	if allyteamOverflowingEnergy then
+						--		if numTeamsInAllyTeam > 3 then
+						--			--WG['notifications'].addEvent('WholeTeamWastingEnergy')
+						--		else
+						--			--WG['notifications'].addEvent('YouAreWastingEnergy')
+						--		end
+						--	elseif r[res][6] > 0.75 then	-- supress if you are deliberately overflowing by adjustingthe share slider down
+						--		--WG['notifications'].addEvent('YouAreOverflowingEnergy')	-- this annoys the fuck out of em and makes them build energystoages too much
+						--	end
+						--end
 					end
 					local fontSize = (orgHeight * (1 + (ui_scale - 1) / 1.33) / 4) * widgetScale
 					local textWidth = font2:GetTextWidth(text) * fontSize
@@ -1347,18 +1346,16 @@ function widget:DrawScreen()
 		glCallList(dlistWind2)
 		glPopMatrix()
 		-- current wind
-		if gameFrame > 0 then
-			if minWind+maxWind >= 0.5 then
-				local fontSize = (height / 2.66) * widgetScale
-				if not dlistWindText[currentWind] then
-					dlistWindText[currentWind] = glCreateList(function()
-						font2:Begin()
-						font2:Print("\255\255\255\255" .. currentWind, windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.05) - (fontSize / 5), fontSize, 'oc') -- Wind speed text
-						font2:End()
-					end)
-				end
-				glCallList(dlistWindText[currentWind])
+		if gameFrame > 0 and minWind+maxWind >= 0.5 then
+			local fontSize = (height / 2.66) * widgetScale
+			if not dlistWindText[currentWind] then
+				dlistWindText[currentWind] = glCreateList(function()
+					font2:Begin()
+					font2:Print("\255\255\255\255" .. currentWind, windArea[1] + ((windArea[3] - windArea[1]) / 2), windArea[2] + ((windArea[4] - windArea[2]) / 2.05) - (fontSize / 5), fontSize, 'oc') -- Wind speed text
+					font2:End()
+				end)
 			end
+			glCallList(dlistWindText[currentWind])
 		end
 	end
 
