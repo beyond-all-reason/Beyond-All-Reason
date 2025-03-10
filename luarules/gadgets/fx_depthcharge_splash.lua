@@ -16,7 +16,6 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local GetProjectilePosition = Spring.GetProjectilePosition
-local random = math.random
 
 
 local depthChargeWeapons = {}

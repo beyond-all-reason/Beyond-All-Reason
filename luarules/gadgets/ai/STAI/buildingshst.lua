@@ -295,7 +295,6 @@ end
 function BuildingsHST:searchPosInList(utype, builder,minDist,maxDist,list,neighbours,number)
 	self:EchoDebug('search pos in list for')
 	local maxDist = maxDist or 390
-	local d = math.huge
 	local p
 	local tmpDist
 	local tmpPos = {}

@@ -58,7 +58,6 @@ end
 
 --// locals
 
-local push = table.insert
 local pop  = table.remove
 local StrToLower = string.lower
 
@@ -67,17 +66,11 @@ local ipairs = ipairs
 local next   = next
 
 local spGetUnitRadius        = Spring.GetUnitRadius
-local spIsUnitVisible        = Spring.IsUnitVisible
 local spIsSphereInView       = Spring.IsSphereInView
-local spGetUnitLosState      = Spring.GetUnitLosState
-local spGetUnitViewPosition  = Spring.GetUnitViewPosition
-local spGetUnitDirection     = Spring.GetUnitDirection
-local spGetHeadingFromVector = Spring.GetHeadingFromVector
 local spGetUnitIsActive      = Spring.GetUnitIsActive
 local spGetUnitRulesParam    = Spring.GetUnitRulesParam
 local spGetGameFrame         = Spring.GetGameFrame
 local spGetFrameTimeOffset   = Spring.GetFrameTimeOffset
-local spGetUnitPieceList     = Spring.GetUnitPieceList
 local spGetSpectatingState   = Spring.GetSpectatingState
 local spGetLocalAllyTeamID   = Spring.GetLocalAllyTeamID
 local scGetReadAllyTeam      = Script.GetReadAllyTeam
@@ -87,11 +80,9 @@ local spGetUnitIsStunned     = Spring.GetUnitIsStunned
 local spGetProjectilePosition = Spring.GetProjectilePosition
 local spGetUnitHealth		 = Spring.GetUnitHealth
 
-local glUnitPieceMatrix = gl.UnitPieceMatrix
 local glPushMatrix      = gl.PushMatrix
 local glPopMatrix       = gl.PopMatrix
 local glTranslate       = gl.Translate
-local glRotate          = gl.Rotate
 local glScale           = gl.Scale
 local glBlending        = gl.Blending
 local glAlphaTest       = gl.AlphaTest

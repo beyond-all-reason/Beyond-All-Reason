@@ -23,7 +23,6 @@ local totalTime = 0
 
 local GetProjectilePosition = Spring.GetProjectilePosition
 local GetProjectileDirection = Spring.GetProjectileDirection
-local random = math.random
 
 local missiles = {} --subMissiles that are below the surface still
 local missileWeapons = {}
