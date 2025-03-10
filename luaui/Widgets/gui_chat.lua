@@ -949,13 +949,18 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		elseif sfind(line, 'self%-destruct in ', nil, true) then
 			bypassThisMessage = true
 
-		elseif sfind(line,'paused the game', nil, true) then
-			lineColor = '\255\255\255\255'
-			local playername = ssub(line, 1, sfind(line, ' paused the game')-1)
+		elseif sfind(line,' paused the game', nil, true) then
+			lineColor = '\255\225\225\255'
+			local playername = ssub(line, 1, sfind(line, ' paused the game', nil, true)-1)
 			line = Spring.I18N('ui.chat.pausedthegame', { name = getPlayerColorString(playername, gameFrame)..playername, textColor = lineColor } )
 
+		elseif sfind(line,' unpaused the game', nil, true) then
+			lineColor = '\255\225\255\225'
+			local playername = ssub(line, 1, sfind(line, ' unpaused the game', nil, true)-1)
+			line = Spring.I18N('ui.chat.unpausedthegame', { name = getPlayerColorString(playername, gameFrame)..playername, textColor = lineColor } )
+
 		elseif sfind(line,'Sync error for', nil, true) then
-			local playername = ssub(line, 16, sfind(line, ' in frame')-1)
+			local playername = ssub(line, 16, sfind(line, ' in frame', nil, true)-1)
 			if playernames[playername] and not playernames[playername][2] then
 				lineColor = '\255\255\133\133'	-- player
 			else
@@ -964,7 +969,7 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 			line = Spring.I18N('ui.chat.syncerrorfor', { name = getPlayerColorString(playername, gameFrame)..playername, textColor = lineColor } )
 
 		elseif sfind(line,' is lagging behind', nil, true) then
-			local playername = ssub(line, 1, sfind(line, ' is lagging behind')-1)
+			local playername = ssub(line, 1, sfind(line, ' is lagging behind', nil, true)-1)
 			if playernames[playername] and not playernames[playername][2] then
 				lineColor = '\255\255\133\133'	-- player
 			else
@@ -974,7 +979,7 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 
 		elseif sfind(line,'Connection attempt from ', nil, true) then
 			lineColor = msgHighlightColor
-			local playername = ssub(line, sfind(line, 'Connection attempt from ')+24)
+			local playername = ssub(line, sfind(line, 'Connection attempt from ', nil, true)+24)
 			local spectator = ''
 			if playernames[playername] and playernames[playername][2] then
 				spectator = msgColor..' ('..Spring.I18N('ui.chat.spectator')..')'
@@ -989,10 +994,10 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 			local playername = ''
 			local spectator = ''
 			if sfind(line,'Spectator', nil, true) then
-				playername = ssub(line, 11, sfind(line, ' left the game')-1)
+				playername = ssub(line, 11, sfind(line, ' left the game', nil, true)-1)
 				spectator =  msgColor..' ('..Spring.I18N('ui.chat.spectator')..')'
 			else	-- Player
-				playername = ssub(line, 8, sfind(line, ' left the game')-1)
+				playername = ssub(line, 8, sfind(line, ' left the game', nil, true)-1)
 				lineColor = '\255\255\133\133'	-- player
 			end
 			line = Spring.I18N('ui.chat.leftthegamenormal', { name = getPlayerColorString(playername, gameFrame)..playername..spectator, textColor = lineColor, textColor2 = msgColor } )
@@ -1002,10 +1007,10 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 			local playername = ''
 			local spectator = ''
 			if sfind(line,'Spectator', nil, true) then
-				playername = ssub(line, 11, sfind(line, ' left the game')-1)
+				playername = ssub(line, 11, sfind(line, ' left the game', nil, true)-1)
 				spectator =  msgColor..' ('..Spring.I18N('ui.chat.spectator')..')'
 			else	-- Player
-				playername = ssub(line, 8, sfind(line, ' left the game')-1)
+				playername = ssub(line, 8, sfind(line, ' left the game', nil, true)-1)
 				lineColor = '\255\255\133\133'	-- player
 			end
 			line = Spring.I18N('ui.chat.leftthegametimeout', { name = getPlayerColorString(playername, gameFrame)..playername..spectator, textColor = lineColor } )

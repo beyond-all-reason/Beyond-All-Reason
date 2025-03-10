@@ -477,6 +477,7 @@
 			"syncerrorfor": "%{textColor}Sync error for %{name}",
 			"laggingbehind": "%{name} %{textColor}is lagging behind",
 			"pausedthegame": "%{name} %{textColor}paused the game",
+			"unpausedthegame": "%{name} %{textColor}unpaused the game",
 			"connectionattemptfrom": "%{textColor}Connection attempt from: %{name}",
 			"leftthegamenormal": "%{name} %{textColor}left the game %{textColor2}(normal quit)",
 			"leftthegametimeout": "%{name} %{textColor}left the game %{textColor2}(timeout)"
