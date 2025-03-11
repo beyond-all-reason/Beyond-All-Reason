@@ -86,7 +86,7 @@ for i=1, #Spring.GetAllyTeamList()-1 do
 		maxTeamsize = #Spring.GetTeamList(i)
 	end
 end
-local playerScale = math.max(0.15, math.min(1, 14 / maxTeamsize))
+local playerScale = math.clamp(14 / maxTeamsize, 0.15, 1)
 
 local widgetScale = 0.95 + (vsx * vsy / 7500000)        -- only used for rounded corners atm
 local sizeMultiplier = 1
@@ -405,7 +405,7 @@ local function setAllyData(allyID)
 	end
 
 	allyIDdata[allyID] = index
-	
+
 	allyData[index].teams = teamList
 	allyData[index].tE = getTeamSum(index, "einc")
 	allyData[index].tEr = getTeamSum(index, "erecl")
@@ -1062,7 +1062,7 @@ local function drawListStandard()
 		local aID = data.aID
 		if aID ~= nil then
 			local drawpos = data.drawpos
-	
+
 			if data.exists and type(data.tE) == "number" and drawpos and #(data.teams) > 0 and (aID == myAllyID or inSpecMode) and (aID ~= gaiaAllyID) then
 				if not data.isAlive then
 					data.isAlive = isTeamAlive(aID)
@@ -1318,7 +1318,7 @@ function widget:Update(dt)
 			updateDrawPos()
 		end
 	end
-	
+
 	local prevTopbarShowButtons = topbarShowButtons
 	topbarShowButtons =  WG['topbar'] and WG['topbar'].getShowButtons()
 	if topbarShowButtons ~= prevTopbarShowButtons then

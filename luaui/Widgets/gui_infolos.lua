@@ -207,7 +207,7 @@ function widget:DrawWorldPreUnit()
 	-- local nowtime = Spring.GetTimer()
 	-- local deltat = Spring.DiffTimers(nowtime, lastUpdate)
 	-- keeping outputAlpha identical is a very important trick for never-before-seen areas!
-	-- outputAlpha = math.min(1.0, math.max(0.07,deltat))
+	-- outputAlpha = math.clamp(deltat, 0.07, 1)
 	-- Spring.Echo(deltat,outputAlpha)
 
 

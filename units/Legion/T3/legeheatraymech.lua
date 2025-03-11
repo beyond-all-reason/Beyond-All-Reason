@@ -278,7 +278,7 @@ return {
 				gravityaffected = "true",
 				impulsefactor = 0,
 				mygravity = 0.01,
-				name = "Dual-Shot Anti-Air Flak Cannon",
+				name = "Anti-Air Flak Cannon",
 				noselfdamage = true,
 				predictboost = 1,
 				range = 700,

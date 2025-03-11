@@ -386,7 +386,7 @@ if gadgetHandler:IsSyncedCode() then
 		local function sampleMode(pos)
 			if pos == nil then return modeArray[1][2] end
 			if pos == -1 then return modeArray[#modeArray][2] end
-			return modeArray[math.min(math.max(1,pos), #modeArray)][2] or 0
+			return modeArray[math.clamp(pos, 1, #modeArray)][2] or 0
 		end
 		-- end of mode height related sampling
 

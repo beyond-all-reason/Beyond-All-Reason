@@ -47,7 +47,7 @@ local unitWadeCeg = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if not unitDef.isBuilding then
 		local footprint = math.max(unitDef.xsize, unitDef.zsize)
-		unitWadeCeg[unitDefID] = cegSizes[math.min(#cegSizes, math.max(1, footprint - 2))]
+		unitWadeCeg[unitDefID] = cegSizes[math.clamp(footprint - 2, 1, #cegSizes)]
 	end
 end
 

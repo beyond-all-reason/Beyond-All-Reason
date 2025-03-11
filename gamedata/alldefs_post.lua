@@ -44,20 +44,15 @@ end
 --[[ Sanitize to whole frames (plus leeways because float arithmetic is bonkers).
      The engine uses full frames for actual reload times, but forwards the raw
      value to LuaUI (so for example calculated DPS is incorrect without sanitisation). ]]
-local function round_to_frames(name, wd, key)
+local function round_to_frames(wd, key)
 	local original_value = wd[key]
 	if not original_value then
 		-- even reloadtime can be nil (shields, death explosions)
 		return
 	end
 
-	local Game_gameSpeed = 30 --for mission editor backwards compat (engine 104.0.1-287)
-	if Game and Game.gameSpeed then
-		Game_gameSpeed = Game.gameSpeed
-	end
-
-	local frames = math.max(1, math.floor((original_value + 1E-3) * Game_gameSpeed))
-	local sanitized_value = frames / Game_gameSpeed
+	local frames = math.max(1, math.floor((original_value + 1E-3) * Game.gameSpeed))
+	local sanitized_value = frames / Game.gameSpeed
 
 	return sanitized_value
 end
@@ -69,9 +64,8 @@ local function processWeapons(unitDefName, unitDef)
 	end
 
 	for weaponDefName, weaponDef in pairs(weaponDefs) do
-		local fullWeaponName = unitDefName .. "." .. weaponDefName
-		weaponDef.reloadtime = round_to_frames(fullWeaponName, weaponDef, "reloadtime")
-		weaponDef.burstrate = round_to_frames(fullWeaponName, weaponDef, "burstrate")
+		weaponDef.reloadtime = round_to_frames(weaponDef, "reloadtime")
+		weaponDef.burstrate = round_to_frames(weaponDef, "burstrate")
 	end
 end
 

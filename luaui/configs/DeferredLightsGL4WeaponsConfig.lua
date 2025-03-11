@@ -297,7 +297,7 @@ local function AssignLightsToAllWeapons()
 		damage = (damage / globalDamageMult) + ((damage * (globalDamageMult-1))*0.25)
 
 		local radius = ((weaponDef.damageAreaOfEffect*2) + (weaponDef.damageAreaOfEffect * weaponDef.edgeEffectiveness * 1.35))
-		local orgMult = math.max(0.1, math.min(damage/1600, 0.6)) + (radius/2800)
+		local orgMult = math.clamp(damage/1600, 0.1, 0.6) + (radius/2800)
 		local life = 8 + (5*(radius/2000)+(orgMult * 5))
 		radius = ((orgMult * 75) + (radius * 2.4)) * 0.33
 

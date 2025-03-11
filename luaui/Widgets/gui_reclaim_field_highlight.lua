@@ -53,6 +53,7 @@ local abs = math.abs
 local floor = math.floor
 local min = math.min
 local max = math.max
+local clamp = math.clamp
 local sqrt = math.sqrt
 local mathHuge = math.huge
 
@@ -436,7 +437,7 @@ do
 		featureConvexHulls[clusterID] = convexHull
 
 		cluster.area = hullArea
-		local areaSize = max(0, min(1, (hullArea - 2 * areaTextMin) / areaTextRange))
+		local areaSize = clamp((hullArea - 2 * areaTextMin) / areaTextRange, 0, 1)
 		cluster.font = fontSizeMin + (fontSizeMax - fontSizeMin) * areaSize
 	end
 end

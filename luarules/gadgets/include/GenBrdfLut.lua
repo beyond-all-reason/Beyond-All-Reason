@@ -134,7 +134,7 @@ local GL_COLOR_ATTACHMENT0_EXT = 0x8CE0
 local function new(class, textureSize, gOption)
 	return setmetatable(
 	{
-		gOption = math.min(math.max(gOption or 3, 1), 4), --clamp between 1 and 3
+		gOption = math.clamp(gOption or 3, 1, 4), --clamp between 1 and 3
 		textureSize = textureSize or 512,
 
 		shader = nil,

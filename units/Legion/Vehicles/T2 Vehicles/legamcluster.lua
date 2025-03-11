@@ -141,9 +141,9 @@ return {
 					number = 4,
 				},
 				damage = {
-					default = 150,
-					subs = 34,
-					vtol = 22,
+					default = 200,
+					subs = 50,
+					vtol = 50,
 				},
 			},
 			cluster_munition = {
