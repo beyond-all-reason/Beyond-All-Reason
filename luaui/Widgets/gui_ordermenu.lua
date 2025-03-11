@@ -125,6 +125,7 @@ local GL_ONE = GL.ONE
 
 local math_min = math.min
 local math_max = math.max
+local math_clamp = math.clamp
 local math_ceil = math.ceil
 local math_floor = math.floor
 
@@ -503,17 +504,17 @@ local function drawCell(cell, zoom)
 		local color1, color2
 		if isActiveCmd then
 			zoom = cellClickedZoom
-			color1 = { 0.66, 0.66, 0.66, math_max(0.75, math_min(0.95, uiOpacity)) }	-- bottom
-			color2 = { 1, 1, 1, math_max(0.75, math_min(0.95, uiOpacity)) }			-- top
+			color1 = { 0.66, 0.66, 0.66, math_clamp(uiOpacity, 0.75, 0.95) }	-- bottom
+			color2 = { 1, 1, 1, math_clamp(uiOpacity, 0.75, 0.95) }			-- top
 		else
 			if WG['guishader'] then
-				color1 = (isStateCommand[cmd.id]) and { 0.5, 0.5, 0.5, math_max(0.35, math_min(0.55, uiOpacity/1.5)) } or { 0.6, 0.6, 0.6, math_max(0.35, math_min(0.55, uiOpacity/1.5)) }
-				color1[4] = math_max(0, math_min(0.35, (uiOpacity-0.3)))
-				color2 = { 1,1,1, math_max(0, math_min(0.35, (uiOpacity-0.3))) }
+				color1 = (isStateCommand[cmd.id]) and { 0.5, 0.5, 0.5, math_clamp(uiOpacity/1.5, 0.35, 0.55) } or { 0.6, 0.6, 0.6, math_clamp(uiOpacity/1.5, 0.35, 0.55) }
+				color1[4] = math_clamp(uiOpacity-0.3, 0, 0.35)
+				color2 = { 1,1,1, math_clamp(uiOpacity-0.3, 0, 0.35) }
 			else
 				color1 = (isStateCommand[cmd.id]) and { 0.33, 0.33, 0.33, 1 } or { 0.33, 0.33, 0.33, 1 }
-				color1[4] = math_max(0, math_min(0.4, (uiOpacity-0.3)))
-				color2 = { 1,1,1, math_max(0, math_min(0.4, (uiOpacity-0.3))) }
+				color1[4] = math_clamp(uiOpacity-0.4, 0, 0.35)
+				color2 = { 1,1,1, math_clamp(uiOpacity-0.4, 0, 0.35) }
 			end
 			if color1[4] > 0.06 then
 				-- white bg (outline)
@@ -523,8 +524,8 @@ local function drawCell(cell, zoom)
 				color2 = {0,0,0, color2[4]*0.85}
 				RectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, padding, 2, 2, 2, 2, color1, color2)
 			end
-			color1 = { 0, 0, 0, math_max(0.55, math_min(0.95, uiOpacity)) }	-- bottom
-			color2 = { 0, 0, 0, math_max(0.55, math_min(0.95, uiOpacity)) }	-- top
+			color1 = { 0, 0, 0, math_clamp(uiOpacity, 0.55, 0.95) }	-- bottom
+			color2 = { 0, 0, 0,  math_clamp(uiOpacity, 0.55, 0.95) }	-- top
 		end
 
 		UiButton(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, 1,1,1,1, 1,1,1,1, nil, color1, color2, padding)
