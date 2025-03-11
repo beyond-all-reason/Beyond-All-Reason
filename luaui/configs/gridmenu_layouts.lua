@@ -1498,7 +1498,7 @@ local unitGrids = {
 		{
 			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
 			{ "legadveconv", "legageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
-			{ "legadvestore", "legamstor", "legwint2", },       -- hardened energy storage, hardened metal storage, T2 wind energy generator,
+			{ "legadvestore", "legamstor", "legwint2", },        -- hardened energy storage, hardened metal storage, T2 wind energy generator,
 		},
 		{
 			{ "legbombard", "legbastion", "legacluster", "legperdition", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
@@ -1635,7 +1635,7 @@ local unitGrids = {
 	},
 	legaca = {
 		{
-			{ "legmoho", "legfus", "legafus", },                 -- moho, fusion, afus
+			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
 			{ "legadveconv", "legageo", "cormexp","coruwageo", },               -- T2 converter, T2 geo, armed moho
 			{ "legadvestore", "legamstor", "legwint2", },        -- hardened energy storage, hardened metal storage, T2 wind energy generator,
 		},
