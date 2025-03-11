@@ -1452,7 +1452,7 @@ local unitGrids = {
 		{
 			{ "armmoho", "armfus", "armafus", "armgmm", },             -- moho, fusion, afus, safe geo
 			{ "armmmkr", "armageo", "armckfus", "armshockwave" },                     -- T2 converter, T2 geo, cloaked fusion
-			{ "armuwadves", "armuwadvms", },                           -- hardened energy storage, hardened metal storage
+			{ "armuwadves", "armuwadvms", "armwint2", },                           -- hardened energy storage, hardened metal storage
 		},
 		{
 			{ "armpb", "armanni", "armamb", "armemp", },        -- pop-up gauss, annihilator, pop-up artillery, EMP missile
@@ -1475,7 +1475,7 @@ local unitGrids = {
 		{
 			{ "cormoho", "corfus", "corafus", },                -- moho, fusion, afus
 			{ "cormmkr", "corageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
-			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
+			{ "coruwadves", "coruwadvms", "corwint2", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
 			{ "corvipe", "cordoom", "cortoast", "cortron", },   -- pop-up gauss, DDM, pop-up artillery, tac nuke
@@ -1498,7 +1498,7 @@ local unitGrids = {
 		{
 			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
 			{ "legadveconv", "legageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
-			{ "legadvestore", "legamstor", },                    -- hardened energy storage, hardened metal storage,
+			{ "legadvestore", "legamstor", "legwint2", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
 			{ "legbombard", "legbastion", "legacluster", "legperdition", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
@@ -1522,7 +1522,7 @@ local unitGrids = {
 		{
 			{ "armmoho", "armfus", "armafus", "armgmm", },             -- moho, fusion, afus, safe geo
 			{ "armmmkr", "armageo", "armckfus", "armshockwave" },                     -- T2 converter, T2 geo, cloaked fusion
-			{ "armuwadves", "armuwadvms", },                           -- hardened energy storage, hardened metal storage
+			{ "armuwadves", "armuwadvms", "armwint2", },                           -- hardened energy storage, hardened metal storage
 		},
 		{
 			{ "armpb", "armanni", "armamb", "armemp", },        -- pop-up gauss, annihilator, pop-up artillery, EMP missile
@@ -1545,7 +1545,7 @@ local unitGrids = {
 		{
 			{ "cormoho", "corfus", "corafus", },                -- moho, fusion, afus
 			{ "cormmkr", "corageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
-			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
+			{ "coruwadves", "coruwadvms", "corwint2", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
 			{ "corvipe", "cordoom", "cortoast", "cortron", },   -- pop-up gauss, DDM, pop-up artillery, tac nuke
@@ -1568,7 +1568,7 @@ local unitGrids = {
 		{
 			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
 			{ "legadveconv", "legageo", "cormexp", },               -- T2 converter, T2 geo, armed moho
-			{ "legadvestore", "legamstor", },                    -- hardened energy storage, hardened metal storage,
+			{ "legadvestore", "legamstor", "legwint2", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
 			{ "legbombard", "legbastion", "legacluster", "legperdition", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
@@ -1592,7 +1592,7 @@ local unitGrids = {
 		{
 			{ "armmoho", "armfus", "armafus", "armgmm", },             -- moho, fusion, afus, safe geo
 			{ "armmmkr", "armageo", "armckfus", "armshockwave" },                     -- T2 converter, T2 geo, cloaked fusion
-			{ "armuwadves", "armuwadvms", },                           -- hardened energy storage, hardened metal storage
+			{ "armuwadves", "armuwadvms", "armwint2", },                           -- hardened energy storage, hardened metal storage
 		},
 		{
 			{ "armpb", "armanni", "armamb", "armemp", },        -- pop-up gauss, annihilator, pop-up artillery, EMP missile
@@ -1615,7 +1615,7 @@ local unitGrids = {
 		{
 			{ "cormoho", "corfus", "corafus", },                -- moho, fusion, afus
 			{ "cormmkr", "corageo", "cormexp","coruwageo", },               -- T2 converter, T2 geo, armed moho
-			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
+			{ "coruwadves", "coruwadvms", "corwint2", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
 			{ "corvipe", "cordoom", "cortoast", "cortron" },    -- pop-up gauss, DDM, pop-up artillery, tac nuke
@@ -1637,7 +1637,7 @@ local unitGrids = {
 		{
 			{ "legmoho", "legfus", "legafus", },                -- moho, fusion, afus
 			{ "legadveconv", "legageo", "cormexp","coruwageo", },               -- T2 converter, T2 geo, armed moho
-			{ "legadvestore", "legamstor", },                    -- hardened energy storage, hardened metal storage,
+			{ "legadvestore", "legamstor", "legwint2", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
 			{ "legbombard", "legbastion", "legacluster", "legperdition", },   -- pop-up gauss, heavy defence, pop-up artillery, tac nuke
