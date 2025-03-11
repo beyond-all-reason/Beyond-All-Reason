@@ -4,7 +4,7 @@ end
 
 function widget:GetInfo()
 	return {
-		name      = "Auto cheat",
+		name      = "Dev Auto cheat",
 		desc      = "Enables cheats for $VERSION game versions",
 		author    = "ivand",
 		date      = "2017",
