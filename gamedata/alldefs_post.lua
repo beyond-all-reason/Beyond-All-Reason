@@ -68,6 +68,7 @@ local function processWeapons(unitDefName, unitDef)
 		weaponDef.burstrate = round_to_frames(weaponDef, "burstrate")
 
 		if weaponDef.customparams and weaponDef.customparams.cluster_def then
+			weaponDef.customparams.cluster_def = unitDefName .. "_" .. weaponDef.customparams.cluster_def
 			weaponDef.customparams.cluster_number = weaponDef.customparams.cluster_number or 5
 		end
 	end

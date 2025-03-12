@@ -86,51 +86,38 @@ local clusterWeaponDefs = {}
 for unitDefName, unitDef in pairs(UnitDefNames) do
 	for _, weapon in pairs(unitDef.weapons) do
 		local weaponDefID, weaponDef = weapon.weaponDef, WeaponDefs[weapon.weaponDef]
-		local custom = weaponDef.customParams
+		local clusterDefName = weaponDef.customParams.cluster_def
 
-		if custom.cluster_def then
-			local clusterDefName = custom.cluster_def
-			local clusterCount = tonumber(custom.cluster_number)
+		if clusterDefName then
+			local clusterDef = WeaponDefNames[clusterDefName]
+			local clusterCount = tonumber(weaponDef.customParams.cluster_number)
 
 			if clusterCount < minSpawnNumber or clusterCount > maxSpawnNumber then
 				Spring.Log(gadget:GetInfo().name, LOG.WARNING, weaponDef.name .. ': cluster_count of ' .. clusterCount .. ', clamping to ' .. minSpawnNumber .. '-' .. maxSpawnNumber)
 				clusterCount = math.clamp(clusterCount, minSpawnNumber, maxSpawnNumber)
 			end
 
-			if clusterDefName then
-				if not WeaponDefNames[clusterDefName] then
-					-- Every weapon name contains its unit's name, per weapondefs_post.
-					clusterDefName = unitDefName .. '_' .. clusterDefName
+			if clusterDef then
+				if spawnableTypes[clusterDef.type] then
+					local clusterRange = clusterDef.range or 0
+					local clusterSpeed
+					if clusterRange > 0 then
+						clusterSpeed = sqrt(clusterRange * math.abs(mapGravity)) -- velocity @ 45deg to hit range
+					else
+						clusterSpeed = clusterDef.projectilespeed
+					end
+
+					clusterWeaponDefs[weaponDefID] = {
+						number      = clusterCount,
+						weaponID    = clusterDef.id,
+						weaponSpeed = clusterSpeed,
+						weaponTtl   = clusterDef.flighttime or defaultSpawnTtl,
+					}
+				else
+					Spring.Log(gadget:GetInfo().name, LOG.ERROR, 'Invalid weapon spawn type: ' .. clusterDef.type)
 				end
 			else
-				Spring.Log(gadget:GetInfo().name, LOG.ERROR, 'No cluster_def specified for weapon: ' .. weaponDef.name)
-			end
-
-			if clusterDefName then
-				local clusterDef = WeaponDefNames[clusterDefName]
-
-				if clusterDef then
-					if spawnableTypes[clusterDef.type] then
-                        local clusterRange = clusterDef.range or 0
-						local clusterSpeed
-						if clusterRange > 0 then
-							clusterSpeed = sqrt(clusterRange * math.abs(mapGravity)) -- velocity @ 45deg to hit range
-						else
-							clusterSpeed = clusterDef.projectilespeed
-						end
-
-						clusterWeaponDefs[weaponDefID] = {
-							number      = clusterCount,
-							weaponID    = clusterDef.id,
-							weaponSpeed = clusterSpeed,
-							weaponTtl   = clusterDef.flighttime or defaultSpawnTtl,
-						}
-					else
-						Spring.Log(gadget:GetInfo().name, LOG.ERROR, 'Invalid weapon spawn type: ' .. clusterDef.type)
-					end
-				else
-					Spring.Log(gadget:GetInfo().name, LOG.ERROR, 'Weapon def not found: ' .. clusterDefName)
-				end
+				Spring.Log(gadget:GetInfo().name, LOG.ERROR, 'Could not find weapon def matching cluster_def: ' .. clusterDefName)
 			end
 		end
 	end
