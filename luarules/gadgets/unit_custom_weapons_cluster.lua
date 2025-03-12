@@ -18,7 +18,6 @@ if not gadgetHandler:IsSyncedCode() then return false end
 
 -- Default settings ------------------------------------------------------------
 
-local defaultSpawnNum = 5					-- number of spawned projectiles, by default
 local defaultSpawnTtl = 5					-- detonate projectiles after time = ttl, by default
 
 -- General settings ------------------------------------------------------------
@@ -91,7 +90,7 @@ for unitDefName, unitDef in pairs(UnitDefNames) do
 
 		if custom.cluster_def then
 			local clusterDefName = custom.cluster_def
-			local clusterCount = tonumber(custom.cluster_number) or defaultSpawnNum
+			local clusterCount = tonumber(custom.cluster_number)
 
 			if clusterCount < minSpawnNumber or clusterCount > maxSpawnNumber then
 				Spring.Log(gadget:GetInfo().name, LOG.WARNING, weaponDef.name .. ': cluster_count of ' .. clusterCount .. ', clamping to ' .. minSpawnNumber .. '-' .. maxSpawnNumber)
