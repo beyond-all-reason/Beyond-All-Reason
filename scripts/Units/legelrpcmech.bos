@@ -1,0 +1,787 @@
+
+#include "../recoil_common_includes.h"
+
+piece 
+
+chassis,
+leftCannister1,
+leftCannister2,
+leftCannister3,
+leftFrontLegPivot,
+leftFrontLegJoint1,
+leftFrontLegJoint2,
+leftFrontLegJoint3,
+leftFrontLegFoot,
+leftRearLegPivot,
+leftRearLegJoint1,
+leftRearLegJoint2,
+leftRearLegJoint3,
+leftRearLegFoot,
+rightCannister1,
+rightCannister2,
+rightCannister3,
+rightFrontLegPivot,
+rightFrontLegJoint1,
+rightFrontLegJoint2,
+rightFrontLegJoint3,
+rightFrontLegFoot,
+rightRearLegPivot,
+rightRearLegJoint1,
+rightRearLegJoint2,
+rightRearLegJoint3,
+rightRearLegFoot,
+turretHeadingPivot,
+turretPitchPivot,
+turretMain,
+leftBottomChamber,
+leftBottomBarrel,
+leftTopChamber,
+leftTopBarrel,
+leftTurretPlate,
+rightBottomChamber,
+rightBottomBarrel,
+rightTopChamber,
+rightTopBarrel,
+rightTurretPlate,
+topTurretPlate,
+
+leftTopFlare,
+rightTopFlare,
+leftBottomFlare,
+rightBottomFlare;
+
+static-var  isMoving, oldHeading, bSteering, wpn1_lasthead, last_primary_heading, last_primary_pitch, speedmult, trajectoryMode, whichBarrel;
+
+#define SIGNAL_MOVE 1
+#define SIGNAL_AIM1 256
+
+#define LOW_TRAJECTORY		0
+#define HIGH_TRAJECTORY		1
+
+// Generated for N:\animations\armvang_anim_walk_2legs_v2.blend
+// Using https://github.com/Beherith/Skeletor_S3O
+// this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
+// Author Beherith mysterme@gmail.com. License: GNU GPL v2.
+
+static-var animSpeed, maxSpeed, animFramesPerKeyframe;
+
+lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
+{
+	return 0;
+}
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
+
+#define SIGNAL_MOVE 1
+Walk() {
+	set-signal-mask SIGNAL_MOVE;
+	if (isMoving) { //Frame:1
+			move chassis to y-axis [-1.455414] speed [43.662415] / animSpeed; //Failed to find previous position for bonechassisaxislocation2
+			turn chassis to y-axis <-0.667766> speed <7.904589> / animSpeed; 
+			turn leftFrontLegFoot to z-axis <33.770938> speed <17.976170> / animSpeed; 
+			turn leftFrontLegJoint1 to z-axis <-52.104262> speed <67.976126> / animSpeed; 
+			turn leftFrontLegJoint2 to z-axis <-33.770931> speed <17.976170> / animSpeed; 
+			turn leftFrontLegJoint3 to z-axis <33.770935> speed <17.976170> / animSpeed; 
+			turn leftFrontLegPivot to y-axis <-27.493899> speed <86.664650> / animSpeed; 
+			turn leftRearLegFoot to z-axis <1.318894> speed <39.566828> / animSpeed; 
+			turn leftRearLegJoint1 to z-axis <-3.956683> speed <118.700487> / animSpeed; 
+			turn leftRearLegJoint2 to z-axis <-3.956683> speed <118.700487> / animSpeed; 
+			turn leftRearLegJoint3 to z-axis <3.956683> speed <118.700487> / animSpeed; 
+			turn leftRearLegPivot to y-axis <56.523814> speed <21.006008> / animSpeed; 
+			turn rightFrontLegPivot to y-axis <29.801878> speed <86.664650> / animSpeed; 
+			turn rightRearLegPivot to y-axis <-0.771962> speed <21.005982> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+	}
+	while(isMoving) {
+		if (isMoving) { //Frame:6
+			move chassis to y-axis [-0.309753] speed [34.369812] / animSpeed; 
+			turn chassis to y-axis <-1.985197> speed <39.522943> / animSpeed; 
+			turn leftFrontLegFoot to z-axis <30.774910> speed <89.880850> / animSpeed; 
+			move leftFrontLegJoint1 to y-axis [0.154877] speed [17.760944] / animSpeed; 
+			turn leftFrontLegJoint1 to z-axis <-40.774904> speed <339.880732> / animSpeed; 
+			turn leftFrontLegJoint2 to z-axis <-30.774903> speed <89.880850> / animSpeed; 
+			turn leftFrontLegJoint3 to z-axis <30.774903> speed <89.880952> / animSpeed; 
+			move leftFrontLegPivot to y-axis [0.154875] speed [17.761002] / animSpeed; 
+			turn leftFrontLegPivot to y-axis <-41.938010> speed <433.323354> / animSpeed; 
+			turn leftRearLegFoot to z-axis <7.913366> speed <197.834147> / animSpeed; 
+			move leftRearLegJoint1 to y-axis [0.154877] speed [17.761002] / animSpeed; 
+			turn leftRearLegJoint1 to z-axis <-33.740096> speed <893.502402> / animSpeed; 
+			turn leftRearLegJoint2 to z-axis <-13.740097> speed <293.502420> / animSpeed; 
+			turn leftRearLegJoint3 to z-axis <33.740096> speed <893.502402> / animSpeed; 
+			move leftRearLegPivot to y-axis [0.154877] speed [17.761002] / animSpeed; 
+			turn leftRearLegPivot to y-axis <53.022820> speed <105.029834> / animSpeed; 
+			move rightFrontLegJoint1 to y-axis [0.154875] speed [17.761059] / animSpeed; 
+			move rightFrontLegPivot to y-axis [0.154875] speed [17.761002] / animSpeed; 
+			turn rightFrontLegPivot to y-axis <15.357771> speed <433.323201> / animSpeed; 
+			move rightRearLegJoint1 to y-axis [0.154875] speed [17.761059] / animSpeed; 
+			move rightRearLegPivot to y-axis [0.154877] speed [17.761002] / animSpeed; 
+			turn rightRearLegPivot to y-axis <-4.272960> speed <105.029911> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:12
+			move chassis to y-axis [1.311455] speed [48.636246] / animSpeed; 
+			turn chassis to y-axis <-2.817885> speed <24.980614> / animSpeed; 
+			turn leftFrontLegFoot to z-axis <11.702850> speed <572.161805> / animSpeed; 
+			move leftFrontLegJoint1 to y-axis [-0.655727] speed [24.318123] / animSpeed; 
+			turn leftFrontLegJoint1 to z-axis <-11.702842> speed <872.161873> / animSpeed; 
+			turn leftFrontLegJoint2 to z-axis <-11.702844> speed <572.161779> / animSpeed; 
+			turn leftFrontLegJoint3 to z-axis <11.702848> speed <572.161651> / animSpeed; 
+			move leftFrontLegPivot to y-axis [-0.655727] speed [24.318066] / animSpeed; 
+			turn leftFrontLegPivot to y-axis <-54.261820> speed <369.714281> / animSpeed; 
+			turn leftRearLegFoot to z-axis <11.250357> speed <100.109741> / animSpeed; 
+			move leftRearLegJoint1 to y-axis [-0.655727] speed [24.318123] / animSpeed; 
+			turn leftRearLegJoint1 to z-axis <-53.751075> speed <600.329368> / animSpeed; 
+			turn leftRearLegJoint2 to z-axis <-23.751076> speed <300.329377> / animSpeed; 
+			turn leftRearLegJoint3 to z-axis <53.751079> speed <600.329471> / animSpeed; 
+			move leftRearLegPivot to y-axis [-0.655727] speed [24.318123] / animSpeed; 
+			turn leftRearLegPivot to y-axis <39.634608> speed <401.646371> / animSpeed; 
+			move rightFrontLegJoint1 to y-axis [-0.655729] speed [24.318123] / animSpeed; 
+			move rightFrontLegPivot to y-axis [-0.655727] speed [24.318066] / animSpeed; 
+			turn rightFrontLegPivot to y-axis <3.033955> speed <369.714486> / animSpeed; 
+			move rightRearLegJoint1 to y-axis [-0.655727] speed [24.318066] / animSpeed; 
+			move rightRearLegPivot to y-axis [-0.655727] speed [24.318123] / animSpeed; 
+			turn rightRearLegPivot to y-axis <-17.661177> speed <401.646525> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:18
+			move chassis to y-axis [1.081863] speed [6.887741] / animSpeed; 
+			turn chassis to y-axis <-2.588500> speed <6.881539> / animSpeed; 
+			turn leftFrontLegFoot to z-axis <0.000000> speed <351.085486> / animSpeed; 
+			move leftFrontLegJoint1 to y-axis [-0.540932] speed [3.443871] / animSpeed; 
+			turn leftFrontLegJoint1 to z-axis <0.000000> speed <351.085256> / animSpeed; 
+			turn leftFrontLegJoint2 to z-axis <0.000000> speed <351.085307> / animSpeed; 
+			turn leftFrontLegJoint3 to z-axis <0.000000> speed <351.085435> / animSpeed; 
+			move leftFrontLegPivot to y-axis [-0.540934] speed [3.443813] / animSpeed; 
+			turn leftFrontLegPivot to y-axis <-56.931631> speed <80.094350> / animSpeed; 
+			move leftRearLegJoint1 to y-axis [-0.540932] speed [3.443871] / animSpeed; 
+			turn leftRearLegJoint1 to z-axis <-53.454426> speed <8.899463> / animSpeed; 
+			turn leftRearLegJoint2 to z-axis <-23.454432> speed <8.899310> / animSpeed; 
+			turn leftRearLegJoint3 to z-axis <53.454437> speed <8.899258> / animSpeed; 
+			move leftRearLegPivot to y-axis [-0.540932] speed [3.443871] / animSpeed; 
+			turn leftRearLegPivot to y-axis <22.105460> speed <525.874433> / animSpeed; 
+			turn rightFrontLegFoot to z-axis <-12.179994> speed <365.399812> / animSpeed; 
+			move rightFrontLegJoint1 to y-axis [-0.540932] speed [3.443928] / animSpeed; 
+			turn rightFrontLegJoint1 to z-axis <12.179999> speed <365.399966> / animSpeed; 
+			turn rightFrontLegJoint2 to z-axis <12.179998> speed <365.399941> / animSpeed; 
+			turn rightFrontLegJoint3 to z-axis <-12.179998> speed <365.399941> / animSpeed; 
+			move rightFrontLegPivot to y-axis [-0.540934] speed [3.443813] / animSpeed; 
+			turn rightFrontLegPivot to y-axis <0.364134> speed <80.094616> / animSpeed; 
+			move rightRearLegJoint1 to y-axis [-0.540932] speed [3.443871] / animSpeed; 
+			move rightRearLegPivot to y-axis [-0.540932] speed [3.443871] / animSpeed; 
+			turn rightRearLegPivot to y-axis <-35.190316> speed <525.874176> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:24
+			move chassis to y-axis [-0.674519] speed [52.691460] / animSpeed; 
+			turn chassis to y-axis <-1.383498> speed <36.150071> / animSpeed; 
+			move leftFrontLegJoint1 to y-axis [0.337259] speed [26.345730] / animSpeed; 
+			move leftFrontLegPivot to y-axis [0.337257] speed [26.345730] / animSpeed; 
+			turn leftFrontLegPivot to y-axis <-48.941188> speed <239.713309> / animSpeed; 
+			turn leftRearLegFoot to z-axis <7.693203> speed <103.748405> / animSpeed; 
+			move leftRearLegJoint1 to y-axis [0.337259] speed [26.345730] / animSpeed; 
+			turn leftRearLegJoint1 to z-axis <-33.079597> speed <611.244899> / animSpeed; 
+			turn leftRearLegJoint2 to z-axis <-13.079597> speed <311.245061> / animSpeed; 
+			turn leftRearLegJoint3 to z-axis <33.079597> speed <611.245206> / animSpeed; 
+			move leftRearLegPivot to y-axis [0.337259] speed [26.345730] / animSpeed; 
+			turn leftRearLegPivot to y-axis <7.042168> speed <451.898745> / animSpeed; 
+			turn rightFrontLegFoot to z-axis <-31.336027> speed <574.680992> / animSpeed; 
+			move rightFrontLegJoint1 to y-axis [0.337259] speed [26.345730] / animSpeed; 
+			turn rightFrontLegJoint1 to z-axis <41.336028> speed <874.680881> / animSpeed; 
+			turn rightFrontLegJoint2 to z-axis <31.336034> speed <574.681069> / animSpeed; 
+			turn rightFrontLegJoint3 to z-axis <-31.336027> speed <574.680864> / animSpeed; 
+			move rightFrontLegPivot to y-axis [0.337257] speed [26.345730] / animSpeed; 
+			turn rightFrontLegPivot to y-axis <8.354588> speed <239.713626> / animSpeed; 
+			move rightRearLegJoint1 to y-axis [0.337259] speed [26.345730] / animSpeed; 
+			move rightRearLegPivot to y-axis [0.337259] speed [26.345730] / animSpeed; 
+			turn rightRearLegPivot to y-axis <-50.253598> speed <451.898464> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:30
+			move chassis to y-axis [-1.478977] speed [24.133759] / animSpeed; 
+			turn chassis to y-axis <0.342951> speed <51.793467> / animSpeed; 
+			move leftFrontLegJoint1 to y-axis [0.739489] speed [12.066879] / animSpeed; 
+			move leftFrontLegPivot to y-axis [0.739487] speed [12.066879] / animSpeed; 
+			turn leftFrontLegPivot to y-axis <-33.302100> speed <469.172627> / animSpeed; 
+			turn leftRearLegFoot to z-axis <0.000000> speed <230.796096> / animSpeed; 
+			move leftRearLegJoint1 to y-axis [0.739489] speed [12.066879] / animSpeed; 
+			turn leftRearLegJoint1 to z-axis <0.000000> speed <992.387896> / animSpeed; 
+			turn leftRearLegJoint2 to z-axis <0.000000> speed <392.387913> / animSpeed; 
+			turn leftRearLegJoint3 to z-axis <0.000000> speed <992.387896> / animSpeed; 
+			move leftRearLegPivot to y-axis [0.739489] speed [12.066879] / animSpeed; 
+			turn leftRearLegPivot to y-axis <0.122178> speed <207.599696> / animSpeed; 
+			turn rightFrontLegFoot to z-axis <-34.370144> speed <91.023506> / animSpeed; 
+			move rightFrontLegJoint1 to y-axis [0.739487] speed [12.066822] / animSpeed; 
+			turn rightFrontLegJoint1 to z-axis <54.370140> speed <391.023344> / animSpeed; 
+			turn rightFrontLegJoint2 to z-axis <34.370147> speed <91.023404> / animSpeed; 
+			turn rightFrontLegJoint3 to z-axis <-34.370144> speed <91.023506> / animSpeed; 
+			move rightFrontLegPivot to y-axis [0.739487] speed [12.066879] / animSpeed; 
+			turn rightFrontLegPivot to y-axis <23.993679> speed <469.172729> / animSpeed; 
+			move rightRearLegJoint1 to y-axis [0.739487] speed [12.066822] / animSpeed; 
+			move rightRearLegPivot to y-axis [0.739489] speed [12.066879] / animSpeed; 
+			turn rightRearLegPivot to y-axis <-57.173608> speed <207.600287> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:36
+			move chassis to y-axis [-0.196213] speed [38.482933] / animSpeed; 
+			turn chassis to y-axis <1.940140> speed <47.915655> / animSpeed; 
+			move leftFrontLegJoint1 to y-axis [0.098104] speed [19.241524] / animSpeed; 
+			move leftFrontLegPivot to y-axis [0.098106] speed [19.241409] / animSpeed; 
+			turn leftFrontLegPivot to y-axis <-15.908817> speed <521.798500> / animSpeed; 
+			move leftRearLegJoint1 to y-axis [0.098106] speed [19.241467] / animSpeed; 
+			move leftRearLegPivot to y-axis [0.098106] speed [19.241467] / animSpeed; 
+			turn leftRearLegPivot to y-axis <3.953652> speed <114.944193> / animSpeed; 
+			turn rightFrontLegFoot to z-axis <-30.774906> speed <107.857122> / animSpeed; 
+			move rightFrontLegJoint1 to y-axis [0.098106] speed [19.241409] / animSpeed; 
+			turn rightFrontLegJoint1 to z-axis <40.774904> speed <407.857062> / animSpeed; 
+			turn rightFrontLegJoint2 to z-axis <30.774906> speed <107.857225> / animSpeed; 
+			turn rightFrontLegJoint3 to z-axis <-30.774906> speed <107.857122> / animSpeed; 
+			move rightFrontLegPivot to y-axis [0.098106] speed [19.241409] / animSpeed; 
+			turn rightFrontLegPivot to y-axis <41.386961> speed <521.798449> / animSpeed; 
+			turn rightRearLegFoot to z-axis <-7.913366> speed <237.400975> / animSpeed; 
+			move rightRearLegJoint1 to y-axis [0.098106] speed [19.241409] / animSpeed; 
+			turn rightRearLegJoint1 to z-axis <33.740096> speed <1012.202889> / animSpeed; 
+			turn rightRearLegJoint2 to z-axis <13.740097> speed <412.202907> / animSpeed; 
+			turn rightRearLegJoint3 to z-axis <-33.740096> speed <1012.202889> / animSpeed; 
+			move rightRearLegPivot to y-axis [0.098106] speed [19.241467] / animSpeed; 
+			turn rightRearLegPivot to y-axis <-53.342125> speed <114.944502> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:42
+			move chassis to y-axis [1.363461] speed [46.790199] / animSpeed; 
+			turn chassis to y-axis <2.806082> speed <25.978268> / animSpeed; 
+			move leftFrontLegJoint1 to y-axis [-0.681730] speed [23.395042] / animSpeed; 
+			move leftFrontLegPivot to y-axis [-0.681732] speed [23.395157] / animSpeed; 
+			turn leftFrontLegPivot to y-axis <-3.316955> speed <377.755849> / animSpeed; 
+			move leftRearLegJoint1 to y-axis [-0.681732] speed [23.395157] / animSpeed; 
+			move leftRearLegPivot to y-axis [-0.681730] speed [23.395100] / animSpeed; 
+			turn leftRearLegPivot to y-axis <17.092492> speed <394.165214> / animSpeed; 
+			turn rightFrontLegFoot to z-axis <-11.702847> speed <572.161779> / animSpeed; 
+			move rightFrontLegJoint1 to y-axis [-0.681730] speed [23.395100] / animSpeed; 
+			turn rightFrontLegJoint1 to z-axis <11.702844> speed <872.161822> / animSpeed; 
+			turn rightFrontLegJoint2 to z-axis <11.702847> speed <572.161779> / animSpeed; 
+			turn rightFrontLegJoint3 to z-axis <-11.702847> speed <572.161779> / animSpeed; 
+			move rightFrontLegPivot to y-axis [-0.681732] speed [23.395157] / animSpeed; 
+			turn rightFrontLegPivot to y-axis <53.978821> speed <377.755804> / animSpeed; 
+			turn rightRearLegFoot to z-axis <-11.250355> speed <100.109690> / animSpeed; 
+			move rightRearLegJoint1 to y-axis [-0.681730] speed [23.395100] / animSpeed; 
+			turn rightRearLegJoint1 to z-axis <53.751079> speed <600.329471> / animSpeed; 
+			turn rightRearLegJoint2 to z-axis <23.751080> speed <300.329480> / animSpeed; 
+			turn rightRearLegJoint3 to z-axis <-53.751079> speed <600.329471> / animSpeed; 
+			move rightRearLegPivot to y-axis [-0.681730] speed [23.395100] / animSpeed; 
+			turn rightRearLegPivot to y-axis <-40.203279> speed <394.165368> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:48
+			move chassis to y-axis [0.998936] speed [10.935745] / animSpeed; 
+			turn chassis to y-axis <2.614399> speed <5.750505> / animSpeed; 
+			turn leftFrontLegFoot to z-axis <11.497300> speed <344.919004> / animSpeed; 
+			move leftFrontLegJoint1 to y-axis [-0.499470] speed [5.467815] / animSpeed; 
+			turn leftFrontLegJoint1 to z-axis <-11.497300> speed <344.919004> / animSpeed; 
+			turn leftFrontLegJoint2 to z-axis <-11.497298> speed <344.918952> / animSpeed; 
+			turn leftFrontLegJoint3 to z-axis <11.497301> speed <344.919029> / animSpeed; 
+			move leftFrontLegPivot to y-axis [-0.499470] speed [5.467873] / animSpeed; 
+			turn leftFrontLegPivot to y-axis <-0.272424> speed <91.335943> / animSpeed; 
+			move leftRearLegJoint1 to y-axis [-0.499468] speed [5.467930] / animSpeed; 
+			move leftRearLegPivot to y-axis [-0.499468] speed [5.467873] / animSpeed; 
+			turn leftRearLegPivot to y-axis <34.586609> speed <524.823523> / animSpeed; 
+			turn rightFrontLegFoot to z-axis <0.000000> speed <351.085409> / animSpeed; 
+			move rightFrontLegJoint1 to y-axis [-0.499468] speed [5.467873] / animSpeed; 
+			turn rightFrontLegJoint1 to z-axis <0.000000> speed <351.085307> / animSpeed; 
+			turn rightFrontLegJoint2 to z-axis <0.000000> speed <351.085409> / animSpeed; 
+			turn rightFrontLegJoint3 to z-axis <0.000000> speed <351.085409> / animSpeed; 
+			move rightFrontLegPivot to y-axis [-0.499470] speed [5.467873] / animSpeed; 
+			turn rightFrontLegPivot to y-axis <57.023351> speed <91.335885> / animSpeed; 
+			move rightRearLegJoint1 to y-axis [-0.499468] speed [5.467873] / animSpeed; 
+			turn rightRearLegJoint1 to z-axis <53.454423> speed <8.899668> / animSpeed; 
+			turn rightRearLegJoint2 to z-axis <23.454438> speed <8.899258> / animSpeed; 
+			turn rightRearLegJoint3 to z-axis <-53.454437> speed <8.899258> / animSpeed; 
+			move rightRearLegPivot to y-axis [-0.499468] speed [5.467873] / animSpeed; 
+			turn rightRearLegPivot to y-axis <-22.709165> speed <524.823420> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:54
+			move chassis to y-axis [-0.775345] speed [53.228416] / animSpeed; 
+			turn chassis to y-axis <1.437337> speed <35.311837> / animSpeed; 
+			turn leftFrontLegFoot to z-axis <30.522568> speed <570.758047> / animSpeed; 
+			move leftFrontLegJoint1 to y-axis [0.387671] speed [26.614208] / animSpeed; 
+			turn leftFrontLegJoint1 to z-axis <-40.522566> speed <870.757987> / animSpeed; 
+			turn leftFrontLegJoint2 to z-axis <-30.522568> speed <570.758099> / animSpeed; 
+			turn leftFrontLegJoint3 to z-axis <30.522572> speed <570.758124> / animSpeed; 
+			move leftFrontLegPivot to y-axis [0.387672] speed [26.614265] / animSpeed; 
+			turn leftFrontLegPivot to y-axis <-7.922727> speed <229.509110> / animSpeed; 
+			move leftRearLegJoint1 to y-axis [0.387672] speed [26.614208] / animSpeed; 
+			move leftRearLegPivot to y-axis [0.387672] speed [26.614208] / animSpeed; 
+			turn leftRearLegPivot to y-axis <49.842407> speed <457.673935> / animSpeed; 
+			move rightFrontLegJoint1 to y-axis [0.387672] speed [26.614208] / animSpeed; 
+			move rightFrontLegPivot to y-axis [0.387672] speed [26.614265] / animSpeed; 
+			turn rightFrontLegPivot to y-axis <49.373057> speed <229.508802> / animSpeed; 
+			turn rightRearLegFoot to z-axis <-7.693198> speed <103.748354> / animSpeed; 
+			move rightRearLegJoint1 to y-axis [0.387672] speed [26.614208] / animSpeed; 
+			turn rightRearLegJoint1 to z-axis <33.079597> speed <611.244796> / animSpeed; 
+			turn rightRearLegJoint2 to z-axis <13.079600> speed <311.245138> / animSpeed; 
+			turn rightRearLegJoint3 to z-axis <-33.079597> speed <611.245206> / animSpeed; 
+			move rightRearLegPivot to y-axis [0.387672] speed [26.614208] / animSpeed; 
+			turn rightRearLegPivot to y-axis <-7.453376> speed <457.673679> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+		if (isMoving) { //Frame:60
+			move chassis to y-axis [-1.455414] speed [20.402069] / animSpeed; 
+			turn chassis to y-axis <-0.281463> speed <51.564006> / animSpeed; 
+			turn leftFrontLegFoot to z-axis <34.352433> speed <114.895940> / animSpeed; 
+			move leftFrontLegJoint1 to y-axis [0.727707] speed [10.201092] / animSpeed; 
+			turn leftFrontLegJoint1 to z-axis <-54.352429> speed <414.895880> / animSpeed; 
+			turn leftFrontLegJoint2 to z-axis <-34.352430> speed <114.895837> / animSpeed; 
+			turn leftFrontLegJoint3 to z-axis <34.352433> speed <114.895837> / animSpeed; 
+			move leftFrontLegPivot to y-axis [0.727707] speed [10.201035] / animSpeed; 
+			turn leftFrontLegPivot to y-axis <-23.384454> speed <463.851790> / animSpeed; 
+			move leftRearLegJoint1 to y-axis [0.727707] speed [10.201035] / animSpeed; 
+			move leftRearLegPivot to y-axis [0.727707] speed [10.201035] / animSpeed; 
+			turn leftRearLegPivot to y-axis <57.109886> speed <218.024351> / animSpeed; 
+			move rightFrontLegJoint1 to y-axis [0.727707] speed [10.201035] / animSpeed; 
+			move rightFrontLegPivot to y-axis [0.727707] speed [10.201035] / animSpeed; 
+			turn rightFrontLegPivot to y-axis <33.911322> speed <463.852046> / animSpeed; 
+			turn rightRearLegFoot to z-axis <0.000000> speed <230.795943> / animSpeed; 
+			move rightRearLegJoint1 to y-axis [0.727707] speed [10.201035] / animSpeed; 
+			turn rightRearLegJoint1 to z-axis <0.000000> speed <992.387896> / animSpeed; 
+			turn rightRearLegJoint2 to z-axis <0.000000> speed <392.387990> / animSpeed; 
+			turn rightRearLegJoint3 to z-axis <0.000000> speed <992.387896> / animSpeed; 
+			move rightRearLegPivot to y-axis [0.727707] speed [10.201035] / animSpeed; 
+			turn rightRearLegPivot to y-axis <-0.185892> speed <218.024504> / animSpeed; 
+		sleep ((33*animSpeed) -1);
+		}
+	}
+}
+// Call this from StopMoving()!
+StopWalking() {
+	animSpeed = 10; // tune restore speed here, higher values are slower restore speeds
+	move chassis to y-axis [0.000000] speed [436.624146] / animSpeed;
+	move leftFrontLegJoint1 to y-axis [0] speed [44.357014] / animSpeed;
+	move leftFrontLegPivot to y-axis [0] speed [44.357109] / animSpeed;
+	move leftRearLegJoint1 to y-axis [0] speed [44.357014] / animSpeed;
+	move leftRearLegPivot to y-axis [0] speed [44.357014] / animSpeed;
+	move rightFrontLegJoint1 to y-axis [0] speed [44.357014] / animSpeed;
+	move rightFrontLegPivot to y-axis [0] speed [44.357109] / animSpeed;
+	move rightRearLegJoint1 to y-axis [0] speed [44.357014] / animSpeed;
+	move rightRearLegPivot to y-axis [0] speed [44.357014] / animSpeed;
+	turn chassis to y-axis <0> speed <86.322445> / animSpeed;
+	turn leftFrontLegFoot to z-axis <0> speed <953.603008> / animSpeed;
+	turn leftFrontLegJoint1 to z-axis <0> speed <953.603222> / animSpeed;
+	turn leftFrontLegJoint2 to z-axis <0> speed <953.602965> / animSpeed;
+	turn leftFrontLegJoint3 to z-axis <0> speed <953.602752> / animSpeed;
+	turn leftFrontLegPivot to y-axis <-45> speed <869.664167> / animSpeed;
+	turn leftRearLegFoot to z-axis <0.000000> speed <395.668293> / animSpeed;
+	turn leftRearLegJoint1 to z-axis <0.000000> speed <1187.004873> / animSpeed;
+	turn leftRearLegJoint2 to z-axis <0.000000> speed <1187.004873> / animSpeed;
+	turn leftRearLegJoint3 to z-axis <0.000000> speed <1187.004924> / animSpeed;
+	turn leftRearLegPivot to y-axis <45> speed <876.457388> / animSpeed;
+	turn rightFrontLegFoot to z-axis <0.000000> speed <957.801653> / animSpeed;
+	turn rightFrontLegJoint1 to z-axis <0.000000> speed <957.801397> / animSpeed;
+	turn rightFrontLegJoint2 to z-axis <0.000000> speed <957.801782> / animSpeed;
+	turn rightFrontLegJoint3 to z-axis <0.000000> speed <957.801440> / animSpeed;
+	turn rightFrontLegPivot to y-axis <45> speed <869.664081> / animSpeed;
+	turn rightRearLegFoot to z-axis <0.000000> speed <395.668291> / animSpeed;
+	turn rightRearLegJoint1 to z-axis <0.000000> speed <1187.004915> / animSpeed;
+	turn rightRearLegJoint2 to z-axis <0.000000> speed <1187.004830> / animSpeed;
+	turn rightRearLegJoint3 to z-axis <0.000000> speed <1187.004830> / animSpeed;
+	turn rightRearLegPivot to y-axis <-45> speed <876.456961> / animSpeed;
+}
+// REMEMBER TO animspeed = 5 in Create() !!
+UnitSpeed(){
+	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
+	animFramesPerKeyframe = 5; //we need to calc the frames per keyframe value, from the known animtime
+	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
+	while(TRUE){
+		animSpeed = (get CURRENT_SPEED);
+		if (animSpeed<1) animSpeed=1;
+		animSpeed = (maxSpeed * 5) / animSpeed; 
+		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
+		if (animSpeed<2) animSpeed=2;
+		if (animspeed>11) animSpeed = 11;
+		sleep 193;
+	}
+}
+StartMoving(){
+	signal SIGNAL_MOVE;
+	isMoving=TRUE;
+    animSpeed = 8;
+	start-script Walk();
+}
+StopMoving(){
+	signal SIGNAL_MOVE;
+	isMoving=FALSE;
+	call-script StopWalking();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Steering(heading)
+{
+	while( 1 )
+	{
+		heading = get HEADING;
+
+		if ( heading < oldheading )	bSteering=TRUE;
+		if ( heading > oldheading )	bSteering=TRUE;
+		if (heading == oldheading ) bSteering=FALSE;
+
+		sleep 66;
+		oldheading = heading;
+	}
+}
+
+#define BASEPIECE chassis
+#define HITSPEED <35.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 10
+#define MAXTILT 100
+
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+RockUnit(anglex, anglez)
+{
+
+}
+
+Create()
+{
+	isMoving = FALSE;
+	bSteering = FALSE;
+	oldHeading = get HEADING;
+	start-script Steering();
+	turn leftFrontLegPivot to y-axis <-45> now;
+    turn leftRearLegPivot to y-axis <45> now;
+	turn rightFrontLegPivot to y-axis <45> now;
+	turn rightRearLegPivot to y-axis <-45> now;
+	speedmult = 70;
+	// set last heading values to large negative, ensure first aim waits for the turn
+	last_primary_heading = -1000000;
+	last_primary_pitch = -1000000;
+	trajectoryMode = LOW_TRAJECTORY;
+    whichBarrel = 0;
+}
+
+Activate()
+{
+	signal SIGNAL_AIM1;
+	trajectoryMode = HIGH_TRAJECTORY;
+	// set last heading values to large negative, ensure first aim waits for the turn
+	last_primary_heading = -1000000;
+	last_primary_pitch = -1000000;
+}
+
+Deactivate()
+{
+	signal SIGNAL_AIM1;
+	trajectoryMode = LOW_TRAJECTORY;
+	// set last heading values to large negative, ensure first aim waits for the turn
+	last_primary_heading = -1000000;
+	last_primary_pitch = -1000000;
+}
+
+
+
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned)
+	{
+        return (1);
+    }
+	set-signal-mask 0;
+	turn turretHeadingPivot to y-axis <0.0> speed <36.0>;
+	turn turretPitchPivot to x-axis <0.0> speed <30.0>;
+	// set last heading values to large negative, ensure first aim waits for the turn
+	last_primary_heading = -1000000;
+	last_primary_pitch = -1000000;
+	wait-for-turn turretHeadingPivot around y-axis;
+	wait-for-turn turretPitchPivot around x-axis;
+	wpn1_lasthead = 0xbadface;
+}
+
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+
+RestoreAfterDelay()
+{
+	set-signal-mask SIGNAL_AIM1;
+	sleep 8000;
+	start-script ExecuteRestoreAfterDelay();
+}
+
+fireCommon()
+{
+	//emit-sfx 1024 + 0 from flare;
+	// sleep 1;
+	// move leftTopBarrel to z-axis [-10] speed [25];
+	// move leftTopChamber to z-axis [-1] speed [12];
+	// sleep 751;
+	// move leftTopBarrel to z-axis [0] speed [1];
+	// move leftTopChamber to z-axis [0.0] speed [8];
+
+
+    if (whichBarrel == 0){
+        sleep 1;
+        move rightTopBarrel to z-axis [-20] speed [50];
+        move rightTopChamber to z-axis [-4] speed [12];
+        //sleep 751;
+
+        whichBarrel = 1;
+    }
+    if (whichBarrel == 1){
+        sleep 1;
+        move leftTopBarrel to z-axis [-20] speed [50];
+        move leftTopChamber to z-axis [-4] speed [12];
+        //sleep 751;
+        whichBarrel = 2;
+    }
+    if (whichBarrel == 2){
+        sleep 1;
+        move leftBottomBarrel to z-axis [-20] speed [50];
+        move leftBottomChamber to z-axis [-4] speed [12];
+        //sleep 751;
+        
+        
+        whichBarrel = 3;
+    }
+    if (whichBarrel == 3){
+        sleep 1;
+        move rightBottomBarrel to z-axis [-20] speed [50];
+        move rightBottomChamber to z-axis [-4] speed [12];
+        //sleep 751;
+
+        whichBarrel = 0;
+    }
+    sleep 500;
+    move rightTopBarrel to z-axis [0] speed [6];
+    move rightTopChamber to z-axis [0.0] speed [8];
+    sleep 150;
+    move leftTopBarrel to z-axis [0] speed [6];
+    move leftTopChamber to z-axis [0.0] speed [8];
+    sleep 150;
+    move leftBottomBarrel to z-axis [0] speed [6];
+    move leftBottomChamber to z-axis [0.0] speed [8];
+    sleep 150;
+    move rightBottomBarrel to z-axis [0] speed [6];
+    move rightBottomChamber to z-axis [0.0] speed [8];
+
+}
+
+AimFromWeapon1(pieceIndex)
+{
+	pieceIndex = turretMain;
+}
+
+QueryWeapon1(pieceIndex)
+{
+    if (whichBarrel == 0){
+        pieceIndex = rightTopBarrel;
+    }
+    if (whichBarrel == 1){
+        pieceIndex = leftTopBarrel;
+    }
+    if (whichBarrel == 2){
+        pieceIndex = leftBottomBarrel;
+    }
+    if (whichBarrel == 3){
+        pieceIndex = rightBottomBarrel;
+    }
+}
+
+AimWeapon1(heading, pitch)
+{
+	if (trajectoryMode == HIGH_TRAJECTORY)
+	{
+		return(0);
+	}
+
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	// values in <> are degrees per second
+	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
+	// In general, 6 cau per frame ~= 1 degree per second
+	turn turretHeadingPivot to y-axis heading speed <30.0>;
+	turn turretPitchPivot to x-axis <0.0> - pitch speed <45.0>;
+	if ( (get ABS(last_primary_heading - heading)>180) OR (get ABS(last_primary_pitch - pitch)>270) )
+	{
+		// seems to take 3 frames for wait-for-turn to process
+		wait-for-turn turretHeadingPivot around y-axis;
+		wait-for-turn turretPitchPivot around x-axis;
+	}
+	last_primary_heading=heading;
+	last_primary_pitch=pitch;
+	start-script RestoreAfterDelay();
+
+	// Prevent low-trajectory "bonus shots" while high-trajectory is reloading
+	var reloading;
+	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(2));
+	if( reloading )
+	{
+		return(0);
+	}
+
+	return (1);
+}
+
+FireWeapon1()
+{
+	call-script fireCommon();
+}
+
+Shot1(heading, pitch) {
+    if (whichBarrel == 0){
+        emit-sfx 1024 + 0 from rightTopBarrel;
+        whichBarrel = 1;
+    }
+    if (whichBarrel == 1){
+        emit-sfx 1024 + 0 from leftTopBarrel;
+        whichBarrel = 2;
+    }
+    if (whichBarrel == 2){
+        emit-sfx 1024 + 0 from leftBottomBarrel;
+        whichBarrel = 3;
+    }
+    if (whichBarrel == 3){
+        emit-sfx 1024 + 0 from rightBottomBarrel;
+        whichBarrel = 0;
+    }
+    if (whichBarrel >= 4) whichBarrel = 0;
+}
+
+AimFromWeapon2(pieceIndex)
+{
+	pieceIndex = turretMain;
+}
+
+QueryWeapon2(pieceIndex)
+{
+    if (whichBarrel == 0){
+        pieceIndex = rightTopBarrel;
+    }
+    if (whichBarrel == 1){
+        pieceIndex = leftTopBarrel;
+    }
+    if (whichBarrel == 2){
+        pieceIndex = leftBottomBarrel;
+    }
+    if (whichBarrel == 3){
+        pieceIndex = rightBottomBarrel;
+    }
+}
+
+AimWeapon2(heading, pitch)
+{
+	if (trajectoryMode == LOW_TRAJECTORY)
+	{
+		return(0);
+	}
+
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	// values in <> are degrees per second
+	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
+	// In general, 6 cau per frame ~= 1 degree per second
+	turn turretHeadingPivot to y-axis heading speed <30.0>;
+	turn turretPitchPivot to x-axis <0.0> - pitch speed <45.0>;
+	if ( (get ABS(last_primary_heading - heading)>180) OR (get ABS(last_primary_pitch - pitch)>270) )
+	{
+		// seems to take 3 frames for wait-for-turn to process
+		wait-for-turn turretHeadingPivot around y-axis;
+		wait-for-turn turretPitchPivot around x-axis;
+	}
+	last_primary_heading=heading;
+	last_primary_pitch=pitch;
+	start-script RestoreAfterDelay();
+
+	// Prevent high-trajectory "bonus shots" while low-trajectory is reloading
+	var reloading;
+	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(1));
+	if( reloading )
+	{
+		return(0);
+	}
+
+	return (1);
+}
+
+FireWeapon2()
+{	
+	call-script fireCommon();
+}
+
+Shot2(heading, pitch) {
+    if (whichBarrel == 0){
+        emit-sfx 1024 + 0 from rightTopBarrel;
+        whichBarrel = 1;
+    }
+    if (whichBarrel == 1){
+        emit-sfx 1024 + 0 from leftTopBarrel;
+        whichBarrel = 2;
+    }
+    if (whichBarrel == 2){
+        emit-sfx 1024 + 0 from leftBottomBarrel;
+        whichBarrel = 3;
+    }
+    if (whichBarrel == 3){
+        emit-sfx 1024 + 0 from rightBottomBarrel;
+        whichBarrel = 0;
+    }
+    if (whichBarrel >= 4) whichBarrel = 0;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode chassis type BITMAPONLY | NOHEATCLOUD;
+		explode leftFrontLegPivot type BITMAPONLY | NOHEATCLOUD;
+		explode leftFrontLegJoint1 type BITMAPONLY | NOHEATCLOUD;
+		explode leftFrontLegFoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode turretMain type BITMAPONLY | NOHEATCLOUD;
+		explode leftTopBarrel type BITMAPONLY | NOHEATCLOUD;
+		explode leftTopChamber type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode chassis type BITMAPONLY | NOHEATCLOUD;
+		explode leftFrontLegPivot type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode leftFrontLegJoint1 type FALL | NOHEATCLOUD;
+		explode leftFrontLegFoot type FALL | NOHEATCLOUD;
+		explode turretMain type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode leftTopBarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode leftTopChamber type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode chassis type BITMAPONLY | NOHEATCLOUD;
+		explode leftFrontLegPivot type SMOKE | FALL | NOHEATCLOUD;
+		explode leftFrontLegJoint1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode leftFrontLegFoot type SMOKE | FALL | NOHEATCLOUD;
+		explode turretMain type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode leftTopBarrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode leftTopChamber type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+
+	corpsetype = 3 ;
+		explode chassis type BITMAPONLY | NOHEATCLOUD;
+		explode leftFrontLegPivot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode leftFrontLegJoint1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode leftFrontLegFoot type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode turretMain type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode leftTopBarrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode leftTopChamber type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}
