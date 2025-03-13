@@ -8,8 +8,10 @@
 piece
 head,
 pelvis,
-aimy1,
+frontPelvis,
 torso,
+frontTorso,
+aimy1,
 aimxarml,
 aimyarml,
 aimxarmr,
@@ -65,13 +67,14 @@ pile;
 // Hit ctrl-shift-B to compile any .bos file
 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
-static-var torsoHeading, isAiming, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, restore_delay, stunned, wpn1_lasthead, wpn2_lasthead;
+static-var torsoHeading, isAiming, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, restore_delay, stunned, oldHeadingTS, isturning, torsofunkyHeading, oldHeadingBunker, oldHeadingRailgun;
 #define MOVESCALE 100
 #define SIGNAL_MOVE 1
 #define SIG_WALK			2
 #define SIG_AIM				4
 #define SIG_AIM_2			8
-#define SIG_ARMOR			16
+#define SIG_AIM_3			16
+#define SIG_ARMOR			32
 #define SIG_FIRE1			64
 
 #define UNITSIZE 			8
@@ -79,13 +82,16 @@ static-var torsoHeading, isAiming, animSpeed, maxSpeed, animFramesPerKeyframe, i
 #define HITSPEED			100
 #define BASEPIECE 			pelvis
 
-Create()
-{
+Create(){
 	isMoving = FALSE;
 	animSpeed = 2; // Set to 4 for 75ms, 4.3733 for 82ms
 	restore_delay = 3000; // Delay from returning to relaxed idle stance
 	call-script StopWalking(); //Start in power pose! Thank you cleaned Pawn <3
 	start-script UnitSpeed();
+
+	hide frontPelvis;
+	hide frontTorso;
+
 
 	hide aimy1;
 	hide aimxarml;
@@ -103,40 +109,55 @@ Create()
 	hide flaresmokegun5;
 	hide flaresmokegun6;
 
-	spin fingers around z-axis speed <360> accelerate <6>;
+	torsofunkyHeading = 0;
+	oldHeadingBunker = 0;
+	oldHeadingRailgun = 0;
+	isturning = 0;
 
-}
+
+
+	call-script CATT1_Init();
+	call-script CATT2_Init();
+
+	spin fingers around z-axis speed <360> accelerate <6>;}
+
+//-------------------------------CONSTANT ACCELERATION TURRET TURNING---------------------------
+// MaxVelocity and acceleration are in degrees per frame (not second!)
+// Jerk is the minimum velocity of the turret
+// A high precision requirement can result in overshoots if desired
+// Author Beherith mysterme@gmail.com. License: GNU GPL v2.
+
+#define CATT1_PIECE_X aimxarml
+#define CATT1_PIECE_Y aimyarml
+
+#define CATT1_MAX_VELOCITY <3>
+#define CATT1_ACCELERATION <0.3>
+#define CATT1_JERK <1.2>
+#define CATT1_PRECISION <10>
+//#define CATT1_PITCH_SPEED <85>
+#define CATT1_RESTORE_DELAY 3000
+#define CATT1_RESTORE_SPEED <1>
+
+#define CATT2_PIECE_X aimxarmr
+#define CATT2_PIECE_Y aimyarmr
+
+#define CATT2_MAX_VELOCITY <3>
+#define CATT2_ACCELERATION <0.3>
+#define CATT2_JERK <1.2>
+#define CATT2_PRECISION <10>
+//#define CATT2_PITCH_SPEED <85>
+#define CATT2_RESTORE_DELAY 3000
+#define CATT2_RESTORE_SPEED <1>
+
+#include "../constant_acceleration_turret_turning_1.h"
+#include "../constant_acceleration_turret_turning_2.h"
+
 
 SweetSpot(piecenum)
 {
 	piecenum = torso;
 }
 
-ExecuteRestoreAfterDelay()
-{
-    if (stunned) {
-        return (1);
-    }
-	turn aimy1 to y-axis <0.000000> speed <45.000000>;
-	turn aimxarml to x-axis <0.000000> speed <45.000000>;
-	turn aimyarml to y-axis <0.000000> speed <45.000000>;
-	turn aimxarmr to x-axis <0.000000> speed <45.000000>;
-	turn aimyarmr to y-axis <0.000000> speed <45.000000>;
-
-	turn piledriver to x-axis <15> speed <713.166646> / animSpeed;
-	turn railgun to x-axis <15> speed <1106.486067> / animSpeed;
-
-	call-script Retract_bunker();
-	wait-for-turn aimy1 around y-axis;
-	wait-for-turn aimxarml around x-axis;
-	wait-for-turn aimyarml around y-axis;
-	wait-for-turn aimxarmr around x-axis;
-	wait-for-turn aimyarmr around y-axis;
-
-	isAiming = FALSE;
-	wpn1_lasthead = 0xbadface;
-	wpn2_lasthead = 0xbadface;
-}
 
 Setstunned(State)
 {
@@ -148,6 +169,17 @@ Setstunned(State)
 	}
 }
 
+QueryWeapon1(piecenum) //Hull Rotation
+{
+	piecenum = torso;
+}
+
+AimFromWeapon1(piecenum)
+{
+	piecenum = torso;
+}
+
+
 AimFromWeapon2(piecenum)
 {
 	piecenum = aimflarebunker; // Point the barrel at the dude, not your chest
@@ -158,40 +190,125 @@ QueryWeapon2(piecenum)
 	piecenum = piledriver;
 }
 
-//Pile Driver
-AimWeapon2(heading, pitch)
-//PROBLEM: It looks really good if you target fire, but have actual targets enter its zone and it fires away without waiting to turn first.
-//Temporary Fix: Disabled Y Arm rotation of both weapons. Its a tragedy, but the system was too unstable. Hopefully I can figure something out to bring it back.
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
-	isAiming = TRUE;
-
-	turn piledriver to x-axis <0> speed <713.166646> / animSpeed;
-
 	set-signal-mask SIG_AIM;
-
-	if (heading-torsoHeading < 12000 AND heading-torsoHeading > -6000)
+	var cauaim;
+    var cauface;
+	if (
+		(
+			((oldHeadingBunker > 0) AND (oldHeadingRailgun < 0) AND (oldHeadingBunker > 15000) AND (oldHeadingRailgun < (-15000))) OR
+			((oldHeadingBunker < 0) AND (oldHeadingRailgun > 0) AND (oldHeadingBunker < (-15000)) AND (oldHeadingRailgun > 15000))) AND (15000 > get ABS(cauface - cauaim)
+		))
 	{
-		turn aimyarml to y-axis heading-torsoHeading speed <250.000000>; //Now the aiming around Y is split between the torso and the arm!
-		turn aimxarml to x-axis <0.000000> - pitch * 2 / 4 speed <90.000000>; //Moves the arm up/
-
+		if (((oldHeadingBunker+oldHeadingRailgun)/2) < 0)
+		{
+			if (isturning == 1)
+			{
+				turn torso to y-axis <179> speed <60.0000> ;
+			}
+			if (isturning == 0)
+			{
+				turn torso to y-axis <179> speed <30.0000> ;
+			}
+		}
+		if (((oldHeadingBunker+oldHeadingRailgun)/2) > 0)
+		{
+			if (isturning == 1)
+			{
+				turn torso to y-axis <-179> speed <60.0000> ;
+			}
+			if (isturning == 0)
+			{
+				turn torso to y-axis <-179> speed <30.0000> ;
+			}
+		}
 	}
 	else
 	{
-		return(0);
+		if (isturning == 1)
+		{
+			turn torso to y-axis (oldHeadingBunker+oldHeadingRailgun)/2 speed <60.0000> ;
+		}
+		if (isturning == 0)
+		{
+			turn torso to y-axis (oldHeadingBunker+oldHeadingRailgun)/2 speed <30.0000> ;
+		}
 	}
 
-	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <4>)){
-		wpn1_lasthead = 0xbadface; //Straight up stolen from Beherit's armrock_clean.bos
-		wait-for-turn aimyarml around y-axis;
-		wait-for-turn aimxarml around x-axis;
-		wait-for-turn aimy1 around y-axis;
-	}
+	//Seriously, who the fuck came up with these variable names. (I will not check gitBlame)
+	//Anyways, I think this will get the direction of the torso in worldspace
+	var gun_xz;
+    gun_xz = get PIECE_XZ(torso);                                //get packed gun coordinates
+    var gun_x;
+    gun_x = (gun_xz & 0xffff0000) / 0x00010000;                //unpack x coordinates of gun (credit for unpack code goes to Beherith)
+    var gun_z;
+    gun_z = (gun_xz & 0x0000ffff);                            //unpack z coordinates of gun
 
-	start-script ResetWeapon();
-	start-script RestoreAfterDelay();
-	wpn1_lasthead = heading;
+    var turret_xz;
+    turret_xz = get PIECE_XZ(frontTorso);                        //get packed turret coordinates
+    var turret_x;
+    turret_x = (turret_xz & 0xffff0000) / 0x00010000;        //unpack x coordinates of turret
+    var turret_z;
+    turret_z = (turret_xz & 0x0000ffff);                    //unpack z coordinates of turret
+
+    var aim_x;
+    var aim_z;
+    aim_x = gun_x - turret_x;                                //calculate relative coordinates of the gun to the turret (how far away it is in each direction)
+    aim_z = gun_z - turret_z;
+
+	//And this will get direction of the pelvis/base in worldspace
+    var hull_xz;
+    hull_xz = get PIECE_XZ(pelvis);                            //get packed hull coordinates
+    var hull_x;
+    hull_x = (hull_xz & 0xffff0000) / 0x00010000;            //unpack x coordinates of hull
+    var hull_z;
+    hull_z = (hull_xz & 0x0000ffff);                        //unpack z coordinates of hull
+
+    var smoke_xz;
+    smoke_xz = get PIECE_XZ(frontPelvis);                            //get packed smoke coordinates
+    var smoke_x;
+    smoke_x = (smoke_xz & 0xffff0000) / 0x00010000;            //unpack x coordinates of smoke
+    var smoke_z;
+    smoke_z = (smoke_xz & 0x0000ffff);                        //unpack z coordinates of smoke
+
+    var face_x;
+    var face_z;
+    face_x = hull_x - smoke_x;                                //calculate relative coordinates of the hull to the smoke (how far away it is in each direction)
+    face_z = hull_z - smoke_z;
+
+
+    cauaim = get ATAN(aim_z, aim_x);                        //use arctan (ATAN) to calculate the angle of the turret. The result is in cau, which is the unit this code format uses for angles. Its up to 32768 (180°), positive or negative depending on direction
+    cauface = get ATAN(face_z, face_x);                        //use arctan (ATAN) to calculate the angle of the hull. The result is in cau, which is the unit this code format uses for angles. Its up to 32768 (180°), positive or negative depending on direction
+
+    //var torsofunkyHeading;
+    torsofunkyHeading = (cauface - cauaim) +400;                                //calculate angle of turret relative to the hull
+	//torsofunkyHeading = heading;
+	if (((get ABS(oldHeadingTS - heading)) > 65536) OR(((get ABS(oldHeadingTS - heading)) > 1300) AND ((get ABS(oldHeadingTS - heading)) < 64236)))
+	{
+		oldHeadingTS = 1000000;
+		wait-for-turn torso around y-axis;
+	}
+	oldHeadingTS = heading;
+    call-script RestoreAfterDelay();
 	return (1);
+}
+
+
+
+
+//Pile Driver
+//PROBLEM: It looks really good if you target fire, but have actual targets enter its zone and it fires away without waiting to turn first.
+//Temporary Fix: Disabled Y Arm rotation of both weapons. Its a tragedy, but the system was too unstable. Hopefully I can figure something out to bring it back.
+AimWeapon2(heading, pitch)
+{
+	signal SIG_AIM_2;
+	set-signal-mask SIG_AIM_2;
+	turn piledriver to x-axis <0> speed <30> / animSpeed;
+	oldHeadingBunker = heading;
+	call-script CATT1_Aim((heading - torsofunkyHeading) + <1>,pitch+400);
+	return(1);
 }
 
 FireWeapon2()
@@ -218,32 +335,12 @@ QueryWeapon3(piecenum)
 
 //Railgun
 AimWeapon3(heading, pitch) {
-
-	signal SIG_AIM_2;
-
-	turn railgun to x-axis <0> speed <1106.486067> / animSpeed;
-
-	set-signal-mask SIG_AIM_2;
-
-	isAiming = TRUE;
-
-	torsoHeading = heading;
-
-	turn aimy1 to y-axis heading speed <250.000000>; //This shit is delicious
-	//turn aimyarmr to y-axis heading / 3 speed <125.000000>; //Now the aiming around Y is split between the torso and the arm!
-	turn aimxarmr to x-axis <0.000000> - pitch speed <90.000000>; //Moves the arm up/down
-
-
-	if ((wpn2_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn2_lasthead), <7>)){
-		wpn2_lasthead = 0xbadface; //Straight up stolen from Beherit's armrock_clean.bos
-		//wait-for-turn aimyarmr around y-axis;
-		wait-for-turn aimxarmr around x-axis;
-		wait-for-turn aimy1 around y-axis;
-	}
-
-	start-script RestoreAfterDelay();
-	wpn2_lasthead = heading;
-	return (1);}
+	signal SIG_AIM_3;
+	set-signal-mask SIG_AIM_3;
+	turn railgun to x-axis <0> speed <30> / animSpeed;
+	oldHeadingRailgun = heading;
+	call-script CATT2_Aim((heading - torsofunkyHeading) + <1>,pitch+400);
+	return(1);}
 
 
 FireWeapon3(){
@@ -265,6 +362,33 @@ RestoreAfterDelay(){
 	set-signal-mask SIG_AIM;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();}
+
+ExecuteRestoreAfterDelay() {
+    if (stunned) {
+        return (1);
+    }
+	turn aimy1 to y-axis <0.000000> speed <45.000000>;
+	turn aimxarml to x-axis <0.000000> speed <45.000000>;
+	turn aimyarml to y-axis <0.000000> speed <45.000000>;
+	turn aimxarmr to x-axis <0.000000> speed <45.000000>;
+	turn aimyarmr to y-axis <0.000000> speed <45.000000>;
+
+	turn piledriver to x-axis <15> speed <713.166646> / animSpeed;
+	turn railgun to x-axis <15> speed <1106.486067> / animSpeed;
+
+	call-script Retract_bunker();
+	wait-for-turn aimy1 around y-axis;
+	wait-for-turn aimxarml around x-axis;
+	wait-for-turn aimyarml around y-axis;
+	wait-for-turn aimxarmr around x-axis;
+	wait-for-turn aimyarmr around y-axis;
+
+	isAiming = FALSE;
+
+	oldHeadingBunker = 0;
+	oldHeadingRailgun = 0;
+
+	oldHeadingTS = 0xbadface;}
 
 FireBunkerExhausts(){
 	emit-sfx 1024 + 0 from flaresmoke1;
@@ -330,8 +454,7 @@ Retract_bunker() {
 	show pileextension8;
 	show pileextension9;}
 
-Killed(severity, corpsetype)
-{
+Killed(severity, corpsetype) {
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
@@ -939,8 +1062,8 @@ Walk() {
 		sleep ((33*animSpeed) -1);
 		}
 	}}
-// Call this from StopMoving()!
-StopWalking() {
+
+StopWalking() { // Call this from StopMoving()!
 	animSpeed = 10; // tune restore speed here, higher values are slower restore speeds
 
 	//Customized parts go here
@@ -980,8 +1103,8 @@ StopWalking() {
 	turn rtoes to x-axis <0> speed <2178.393982> / animSpeed;
 	turn torso to x-axis <0> speed <420.584506> / animSpeed;
 	turn torso to y-axis <0> speed <643.462474> / animSpeed;}
-// REMEMBER TO animspeed = 2 in Create() !!
-UnitSpeed(){
+
+UnitSpeed(){ // REMEMBER TO animspeed = 2 in Create() !!
 	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
 	animFramesPerKeyframe = 2; //we need to calc the frames per keyframe value, from the known animtime
 	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
