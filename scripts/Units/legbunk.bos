@@ -67,7 +67,7 @@ pile;
 // Hit ctrl-shift-B to compile any .bos file
 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
-static-var torsoHeading, isAiming, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, restore_delay, stunned, oldHeadingTS, isturning, torsofunkyHeading, oldHeadingBunker, oldHeadingRailgun;
+static-var torsoHeading, isAiming, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, restore_delay, stunned, oldHeadingTS, torsofunkyHeading, oldHeadingBunker, oldHeadingRailgun, fuelSaver, isturning;
 #define MOVESCALE 100
 #define SIGNAL_MOVE 1
 #define SIG_WALK			2
@@ -112,9 +112,8 @@ Create(){
 	torsofunkyHeading = 0;
 	oldHeadingBunker = 0;
 	oldHeadingRailgun = 0;
-	isturning = 0;
 
-
+	fuelSaver = FALSE;
 
 	call-script CATT1_Init();
 	call-script CATT2_Init();
@@ -127,6 +126,7 @@ Create(){
 // A high precision requirement can result in overshoots if desired
 // Author Beherith mysterme@gmail.com. License: GNU GPL v2.
 
+//CATT1 as Pilebunker
 #define CATT1_PIECE_X aimxarml
 #define CATT1_PIECE_Y aimyarml
 
@@ -138,6 +138,7 @@ Create(){
 #define CATT1_RESTORE_DELAY 3000
 #define CATT1_RESTORE_SPEED <1>
 
+//CATT2 as Railgun
 #define CATT2_PIECE_X aimxarmr
 #define CATT2_PIECE_Y aimyarmr
 
@@ -196,11 +197,7 @@ AimWeapon1(heading, pitch)
 	set-signal-mask SIG_AIM;
 	var cauaim;
     var cauface;
-	if (
-		(
-			((oldHeadingBunker > 0) AND (oldHeadingRailgun < 0) AND (oldHeadingBunker > 15000) AND (oldHeadingRailgun < (-15000))) OR
-			((oldHeadingBunker < 0) AND (oldHeadingRailgun > 0) AND (oldHeadingBunker < (-15000)) AND (oldHeadingRailgun > 15000))) AND (15000 > get ABS(cauface - cauaim)
-		))
+	if ((((oldHeadingBunker > 0) AND (oldHeadingRailgun < 0) AND (oldHeadingBunker > 15000) AND (oldHeadingRailgun < (-15000))) OR ((oldHeadingBunker < 0) AND (oldHeadingRailgun > 0) AND (oldHeadingBunker < (-15000)) AND (oldHeadingRailgun > 15000))) AND (15000 > get ABS(cauface - cauaim)))
 	{
 		if (((oldHeadingBunker+oldHeadingRailgun)/2) < 0)
 		{
@@ -288,7 +285,7 @@ AimWeapon1(heading, pitch)
 	if (((get ABS(oldHeadingTS - heading)) > 65536) OR(((get ABS(oldHeadingTS - heading)) > 1300) AND ((get ABS(oldHeadingTS - heading)) < 64236)))
 	{
 		oldHeadingTS = 1000000;
-		wait-for-turn torso around y-axis;
+		wait-for-turn aimy1 around y-axis;
 	}
 	oldHeadingTS = heading;
     call-script RestoreAfterDelay();
@@ -315,7 +312,7 @@ FireWeapon2()
 {
 	signal SIG_FIRE1;
 	call-script Attack_bunker();
-	stop-spin fingers around z-axis decelerate <30>;
+	stop-spin fingers around z-axis decelerate <60>;
 	start-script FireBunkerExhausts();
 	call-script Retract_bunker();
 	sleep 100;
@@ -352,8 +349,8 @@ FireWeapon3(){
 
 //When the Driver turns stupid and pouty and doesn't reset rotation during combat without targets
 ResetWeapon() {
-	set-signal-mask SIG_FIRE1;
-	sleep 3000;
+	set-signal-mask SIG_FIRE1; //Set this to whichever signal the weapon emits when firing!
+	sleep restore_delay;
 	turn aimxarml to x-axis <0.000000> speed <45.000000>;
 	turn aimyarml to y-axis <0.000000> speed <45.000000>;}
 
@@ -397,12 +394,17 @@ FireBunkerExhausts(){
 
 FireGunExhausts() {
 	//TODO: Make these alternate, or sequential, or something.
-	emit-sfx 1024 + 0 from flaresmokegun1;
-	emit-sfx 1024 + 0 from flaresmokegun2;
-	emit-sfx 1024 + 0 from flaresmokegun3;
-	emit-sfx 1024 + 0 from flaresmokegun4;
-	emit-sfx 1024 + 0 from flaresmokegun5;
-	emit-sfx 1024 + 0 from flaresmokegun6;
+
+	if(fuelSaver){
+		emit-sfx 1024 + 0 from flaresmokegun1;
+		emit-sfx 1024 + 0 from flaresmokegun3;
+		emit-sfx 1024 + 0 from flaresmokegun5;
+	} else {
+		emit-sfx 1024 + 0 from flaresmokegun2;
+		emit-sfx 1024 + 0 from flaresmokegun4;
+		emit-sfx 1024 + 0 from flaresmokegun6;
+	}
+	fuelSaver = !fuelSaver;
 	return (1);}
 
 
