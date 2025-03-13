@@ -109,6 +109,32 @@ return {
 			},
 		},
 		weapondefs = {
+			aimhull = { --Stolen from legeheatraymech.lua
+				areaofeffect = 4,
+				avoidfeature = false,
+				craterareaofeffect = 0,
+				craterboost = 0,
+				cratermult = 0,
+				edgeeffectiveness = 0.15,
+				explosiongenerator = "",
+				gravityaffected = "true",
+				hightrajectory = 1,
+				impulsefactor = 0.123,
+				name = "Targeting System",
+				noselfdamage = true,
+				range = 850, --Remember to adjust this to the Railgun's attack range!
+				reloadtime = 2.5,
+				size = 0,
+				soundhit = "",
+				soundhitwet = "",
+				soundstart = "",
+				turret = true,
+				weapontype = "Cannon",
+				weaponvelocity = 360,
+				damage = {
+					default = 0,
+				},
+			},
 			piledriver = {
 				areaofeffect = 65,
 				avoidfeature = false,
@@ -191,13 +217,18 @@ return {
 		},
 		weapons = {
 			[1] = {
+				def = "AIMHULL",
+				onlytargetcategory = "SURFACE",
+			},
+			[2] = {
 				badtargetcategory = "GROUNDSCOUT",
 				def = "PILEDRIVER",
 				onlytargetcategory = "SURFACE",
 				fastautoretargeting = false,
 			},
-			[2] = {
+			[3] = {
 				def = "RAILGUNT2",
+				badtargetcategory = "GROUNDSCOUT",
 				onlytargetcategory = "NOTSUB",
 			},
 		},

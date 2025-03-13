@@ -148,36 +148,18 @@ Setstunned(State)
 	}
 }
 
-AimFromWeapon1(piecenum)
+AimFromWeapon2(piecenum)
 {
 	piecenum = aimflarebunker; // Point the barrel at the dude, not your chest
 }
 
-AimFromWeapon2(piecenum)
-{
-	piecenum = aimflarerailgun;
-}
-
-QueryWeapon1(piecenum)
+QueryWeapon2(piecenum)
 {
 	piecenum = piledriver;
 }
 
-QueryWeapon2(piecenum)
-{
-	piecenum = railgun;
-}
-
-//When the Driver turns stupid and pouty and doesn't reset rotation during combat without targets
-ResetWeapon() {
-	set-signal-mask SIG_FIRE1;
-	sleep 3000;
-	turn aimxarml to x-axis <0.000000> speed <45.000000>;
-	turn aimyarml to y-axis <0.000000> speed <45.000000>;
-}
-
 //Pile Driver
-AimWeapon1(heading, pitch)
+AimWeapon2(heading, pitch)
 //PROBLEM: It looks really good if you target fire, but have actual targets enter its zone and it fires away without waiting to turn first.
 //Temporary Fix: Disabled Y Arm rotation of both weapons. Its a tragedy, but the system was too unstable. Hopefully I can figure something out to bring it back.
 {
@@ -212,11 +194,30 @@ AimWeapon1(heading, pitch)
 	return (1);
 }
 
+FireWeapon2()
+{
+	signal SIG_FIRE1;
+	call-script Attack_bunker();
+	stop-spin fingers around z-axis decelerate <30>;
+	start-script FireBunkerExhausts();
+	call-script Retract_bunker();
+	sleep 100;
+	move piledriver to z-axis [0.0] speed [8.0];
+	spin fingers around z-axis speed <360> accelerate <24>;
+}
 
+AimFromWeapon3(piecenum)
+{
+	piecenum = aimflarerailgun;
+}
+
+QueryWeapon3(piecenum)
+{
+	piecenum = railgun;
+}
 
 //Railgun
-AimWeapon2(heading, pitch)
-{
+AimWeapon3(heading, pitch) {
 
 	signal SIG_AIM_2;
 
@@ -242,48 +243,35 @@ AimWeapon2(heading, pitch)
 
 	start-script RestoreAfterDelay();
 	wpn2_lasthead = heading;
-	return (1);
+	return (1);}
 
-}
 
-FireWeapon1()
-{
-	signal SIG_FIRE1;
-	call-script Attack_bunker();
-	stop-spin fingers around z-axis decelerate <30>;
-	start-script FireBunkerExhausts();
-	call-script Retract_bunker();
-	sleep 100;
-	move piledriver to z-axis [0.0] speed [8.0];
-	spin fingers around z-axis speed <360> accelerate <24>;
-}
-
-FireWeapon2()
-{
+FireWeapon3(){
 	move railgunfingers to z-axis [-2.5] speed [50];
 	start-script FireGunExhausts();
 	sleep 500;
 	move railgunfingers to z-axis [0] speed [8.0];
-	return (1);
-}
+	return (1);}
+
+//When the Driver turns stupid and pouty and doesn't reset rotation during combat without targets
+ResetWeapon() {
+	set-signal-mask SIG_FIRE1;
+	sleep 3000;
+	turn aimxarml to x-axis <0.000000> speed <45.000000>;
+	turn aimyarml to y-axis <0.000000> speed <45.000000>;}
 
 
-RestoreAfterDelay()
-{
+RestoreAfterDelay(){
 	set-signal-mask SIG_AIM;
 	sleep restore_delay;
-	start-script ExecuteRestoreAfterDelay();
-}
+	start-script ExecuteRestoreAfterDelay();}
 
-FireBunkerExhausts()
-{
+FireBunkerExhausts(){
 	emit-sfx 1024 + 0 from flaresmoke1;
 	emit-sfx 1024 + 0 from flaresmoke2;
-	return (1);
-}
+	return (1);}
 
-FireGunExhausts()
-{
+FireGunExhausts() {
 	//TODO: Make these alternate, or sequential, or something.
 	emit-sfx 1024 + 0 from flaresmokegun1;
 	emit-sfx 1024 + 0 from flaresmokegun2;
@@ -291,21 +279,8 @@ FireGunExhausts()
 	emit-sfx 1024 + 0 from flaresmokegun4;
 	emit-sfx 1024 + 0 from flaresmokegun5;
 	emit-sfx 1024 + 0 from flaresmokegun6;
-	return (1);
-}
+	return (1);}
 
-Killed(severity, corpsetype)
-{
-	if( severity <= 25 )
-	{
-		corpsetype = 1 ;
-		explode pelvis type BITMAPONLY | NOHEATCLOUD;
-		explode rthigh type BITMAPONLY | NOHEATCLOUD;
-		explode head type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode torso type BITMAPONLY | NOHEATCLOUD;
-		return(corpsetype);
-	}
-}
 
 Attack_bunker() {
 	move pile to z-axis [15] speed [1200] / animSpeed;
@@ -330,8 +305,7 @@ Attack_bunker() {
 	hide pileextension6;
 	hide pileextension7;
 	hide pileextension8;
-	hide pileextension9;
-}
+	hide pileextension9;}
 
 Retract_bunker() {
 	move pile to z-axis [0] now;
@@ -354,8 +328,19 @@ Retract_bunker() {
 	show pileextension6;
 	show pileextension7;
 	show pileextension8;
-	show pileextension9;
-}
+	show pileextension9;}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode pelvis type BITMAPONLY | NOHEATCLOUD;
+		explode rthigh type BITMAPONLY | NOHEATCLOUD;
+		explode head type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode torso type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}}
 
 Walk() {
 	set-signal-mask SIGNAL_MOVE;
@@ -953,8 +938,7 @@ Walk() {
 			turn torso to y-axis <0.277442> speed <126.674758> / animSpeed;
 		sleep ((33*animSpeed) -1);
 		}
-	}
-}
+	}}
 // Call this from StopMoving()!
 StopWalking() {
 	animSpeed = 10; // tune restore speed here, higher values are slower restore speeds
@@ -995,8 +979,7 @@ StopWalking() {
 	turn rshin to x-axis <0> speed <5398.189232> / animSpeed;
 	turn rtoes to x-axis <0> speed <2178.393982> / animSpeed;
 	turn torso to x-axis <0> speed <420.584506> / animSpeed;
-	turn torso to y-axis <0> speed <643.462474> / animSpeed;
-}
+	turn torso to y-axis <0> speed <643.462474> / animSpeed;}
 // REMEMBER TO animspeed = 2 in Create() !!
 UnitSpeed(){
 	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
@@ -1009,15 +992,12 @@ UnitSpeed(){
 		if (animSpeed<1) animSpeed=1;
 		if (animspeed>4) animSpeed = 4;
 		sleep 65;
-	}
-}
+	}}
 StartMoving(){
 	signal SIGNAL_MOVE;
 	isMoving=TRUE;
-	start-script Walk();
-}
+	start-script Walk();}
 StopMoving(){
 	signal SIGNAL_MOVE;
 	isMoving=FALSE;
-	call-script StopWalking();
-}
+	call-script StopWalking();}
