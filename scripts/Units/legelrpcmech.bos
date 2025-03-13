@@ -715,7 +715,7 @@ UnitSpeed(){
 StartMoving(){
 	signal SIGNAL_MOVE;
 	isMoving=TRUE;
-    animSpeed = 8;
+    animSpeed = 6;
 	start-script Walk();
 }
 StopMoving(){
