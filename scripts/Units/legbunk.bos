@@ -1,9 +1,9 @@
 //#define TA			// This is a TA script
 
 #include "../recoil_common_includes.h"
-#include "../debug.h"
 
-#define DEBUG
+//#define DEBUG
+#include "../debug.h"
 
 piece
 head,
@@ -65,7 +65,7 @@ pile;
 // Hit ctrl-shift-B to compile any .bos file
 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
-static-var torsoHeading, isAiming, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, restore_delay, isShooting, Stunned, wpn1_lasthead, wpn2_lasthead;
+static-var torsoHeading, isAiming, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, restore_delay, stunned, wpn1_lasthead, wpn2_lasthead;
 #define MOVESCALE 100
 #define SIGNAL_MOVE 1
 #define SIG_WALK			2
@@ -76,7 +76,8 @@ static-var torsoHeading, isAiming, animSpeed, maxSpeed, animFramesPerKeyframe, i
 
 #define UNITSIZE 			8
 #define MAXTILT				100
-#define BASEPIECE pelvis
+#define HITSPEED			100
+#define BASEPIECE 			pelvis
 
 Create()
 {
@@ -113,7 +114,7 @@ SweetSpot(piecenum)
 
 ExecuteRestoreAfterDelay()
 {
-    if (Stunned) {
+    if (stunned) {
         return (1);
     }
 	turn aimy1 to y-axis <0.000000> speed <45.000000>;
@@ -126,7 +127,6 @@ ExecuteRestoreAfterDelay()
 	turn railgun to x-axis <15> speed <1106.486067> / animSpeed;
 
 	call-script Retract_bunker();
-	//stop-spin fingers around z-axis;
 	wait-for-turn aimy1 around y-axis;
 	wait-for-turn aimxarml around x-axis;
 	wait-for-turn aimyarml around y-axis;
@@ -138,11 +138,10 @@ ExecuteRestoreAfterDelay()
 	wpn2_lasthead = 0xbadface;
 }
 
-SetStunned(State)
+Setstunned(State)
 {
-    Stunned = State;
-	if (!Stunned) {
-		//call-script RestoreArmor(); //Should this be here, or in the ExecuteRestoreAfterDelay? It should be seperate from it, so when yer getting healed it does it.
+    stunned = State;
+	if (!stunned) {
 	    start-script ExecuteRestoreAfterDelay();
 	} else {
 		stop-spin fingers around z-axis;
@@ -157,7 +156,6 @@ AimFromWeapon1(piecenum)
 AimFromWeapon2(piecenum)
 {
 	piecenum = aimflarerailgun;
-	//piecenum = torso;
 }
 
 QueryWeapon1(piecenum)
@@ -189,7 +187,6 @@ AimWeapon1(heading, pitch)
 	turn piledriver to x-axis <0> speed <713.166646> / animSpeed;
 
 	set-signal-mask SIG_AIM;
-	//The Kark bos script didnt help.
 
 	if (heading-torsoHeading < 12000 AND heading-torsoHeading > -6000)
 	{
@@ -202,15 +199,6 @@ AimWeapon1(heading, pitch)
 		return(0);
 	}
 
-	//Buggy as hell
-	//turn aimyarml to y-axis heading-torsoHeading speed <250.000000>; //Now the aiming around Y is split between the torso and the arm!
-
-	//pitch / 2 so the pile doesn't head straight to the ground.
-	//turn aimxarml to x-axis <0.000000> - pitch / 2 speed <90.000000>; //Moves the arm up/
-
-
-
-
 	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <4>)){
 		wpn1_lasthead = 0xbadface; //Straight up stolen from Beherit's armrock_clean.bos
 		wait-for-turn aimyarml around y-axis;
@@ -218,24 +206,13 @@ AimWeapon1(heading, pitch)
 		wait-for-turn aimy1 around y-axis;
 	}
 
-	//dbg(heading,pitch);
-	//start-script DebuggerHelper();
 	start-script ResetWeapon();
 	start-script RestoreAfterDelay();
 	wpn1_lasthead = heading;
 	return (1);
 }
-/*AimWeapon1(heading, pitch)
-{
-    KT1_SET_TARGET(heading,pitch, restore_delay);
-    if (KT1_CAN_FIRE) return (1);
-    return (0);
-}*/
 
 
-DebuggerHelper() {
-
-}
 
 //Railgun
 AimWeapon2(heading, pitch)
@@ -243,7 +220,6 @@ AimWeapon2(heading, pitch)
 
 	signal SIG_AIM_2;
 
-	//return (0);
 	turn railgun to x-axis <0> speed <1106.486067> / animSpeed;
 
 	set-signal-mask SIG_AIM_2;
@@ -275,7 +251,6 @@ FireWeapon1()
 	signal SIG_FIRE1;
 	call-script Attack_bunker();
 	stop-spin fingers around z-axis decelerate <30>;
-	//move piledriver to z-axis [-2.5] speed [50];
 	start-script FireBunkerExhausts();
 	call-script Retract_bunker();
 	sleep 100;
@@ -285,7 +260,6 @@ FireWeapon1()
 
 FireWeapon2()
 {
-	isShooting = FALSE;
 	move railgunfingers to z-axis [-2.5] speed [50];
 	start-script FireGunExhausts();
 	sleep 500;
@@ -303,20 +277,21 @@ RestoreAfterDelay()
 
 FireBunkerExhausts()
 {
-		emit-sfx 1024 + 0 from flaresmoke1;
-		emit-sfx 1024 + 0 from flaresmoke2;
-		return (1);
+	emit-sfx 1024 + 0 from flaresmoke1;
+	emit-sfx 1024 + 0 from flaresmoke2;
+	return (1);
 }
 
 FireGunExhausts()
 {
-		emit-sfx 1024 + 0 from flaresmokegun1;
-		emit-sfx 1024 + 0 from flaresmokegun2;
-		emit-sfx 1024 + 0 from flaresmokegun3;
-		emit-sfx 1024 + 0 from flaresmokegun4;
-		emit-sfx 1024 + 0 from flaresmokegun5;
-		emit-sfx 1024 + 0 from flaresmokegun6;
-		return (1);
+	//TODO: Make these alternate, or sequential, or something.
+	emit-sfx 1024 + 0 from flaresmokegun1;
+	emit-sfx 1024 + 0 from flaresmokegun2;
+	emit-sfx 1024 + 0 from flaresmokegun3;
+	emit-sfx 1024 + 0 from flaresmokegun4;
+	emit-sfx 1024 + 0 from flaresmokegun5;
+	emit-sfx 1024 + 0 from flaresmokegun6;
+	return (1);
 }
 
 Killed(severity, corpsetype)
@@ -327,15 +302,7 @@ Killed(severity, corpsetype)
 		explode pelvis type BITMAPONLY | NOHEATCLOUD;
 		explode rthigh type BITMAPONLY | NOHEATCLOUD;
 		explode head type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rleg type BITMAPONLY | NOHEATCLOUD;
-		//explode rfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lthigh type BITMAPONLY | NOHEATCLOUD;
-		//explode lleg type BITMAPONLY | NOHEATCLOUD;
-		//explode lfoot type BITMAPONLY | NOHEATCLOUD;
 		explode torso type BITMAPONLY | NOHEATCLOUD;
-		//explode luparm type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode ruparm type BITMAPONLY | NOHEATCLOUD;
-		//explode flare type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 }
@@ -367,17 +334,17 @@ Attack_bunker() {
 }
 
 Retract_bunker() {
-	move pile to z-axis [0] speed [400] / animSpeed;
-	move pileextension1 to z-axis [0] speed [400] * 2 / animSpeed;
-	move pileextension2 to z-axis [0] speed [400] * 2 / animSpeed;
-	move pileextension3 to z-axis [0] speed [400] * 2 / animSpeed;
-	move pileextension4 to z-axis [0] speed [400] * 2 / animSpeed;
-	move pileextension5 to z-axis [0] speed [400] * 2 / animSpeed;
-	move pileextension6 to z-axis [0] speed [400] * 2 / animSpeed;
-	move pileextension7 to z-axis [0] speed [400] * 2 / animSpeed;
-	move pileextension8 to z-axis [0] speed [400] * 2 / animSpeed;
-	move pileextension9 to z-axis [0] speed [400] * 2 / animSpeed;
-	wait-for-move pileextension9 along z-axis;
+	move pile to z-axis [0] now;
+	move pileextension1 to z-axis [0] now;
+	move pileextension2 to z-axis [0] now;
+	move pileextension3 to z-axis [0] now;
+	move pileextension4 to z-axis [0] now;
+	move pileextension5 to z-axis [0] now;
+	move pileextension6 to z-axis [0] now;
+	move pileextension7 to z-axis [0] now;
+	move pileextension8 to z-axis [0] now;
+	move pileextension9 to z-axis [0] now;
+
 	show pile;
 	show pileextension1;
 	show pileextension2;
@@ -392,6 +359,13 @@ Retract_bunker() {
 
 Walk() {
 	set-signal-mask SIGNAL_MOVE;
+
+	//"Deactivate" Idle pose before going into the main walk script
+	turn lthigh to y-axis <0> speed <525.118567> / animSpeed;
+	turn rthigh to y-axis <0> speed <527.117224> / animSpeed;
+	turn piledriver to x-axis <0> speed <713.166646> / animSpeed;
+	turn railgun to x-axis <0> speed <1106.486067> / animSpeed;
+
 	if (isMoving) { //Frame:3
 		if (!isAiming) {
 			turn larm to x-axis <2.655874> speed <45.709910> / animSpeed;
@@ -984,6 +958,13 @@ Walk() {
 // Call this from StopMoving()!
 StopWalking() {
 	animSpeed = 10; // tune restore speed here, higher values are slower restore speeds
+
+	//Customized parts go here
+	turn lthigh to y-axis <15> speed <525.118567> / animSpeed;
+	turn rthigh to y-axis <-15> speed <527.117224> / animSpeed;
+	turn piledriver to x-axis <15> speed <713.166646> / animSpeed;
+	turn railgun to x-axis <15> speed <1106.486067> / animSpeed;
+
 	move pelvis to y-axis [0] speed (([277.894878]*MOVESCALE)/100) / animSpeed;
 	move pelvis to z-axis [0] speed (([149.983241]*MOVESCALE)/100) / animSpeed;
 	turn larm to x-axis <0> speed <305.609707> / animSpeed;
@@ -995,15 +976,11 @@ StopWalking() {
 	turn lmidleg to x-axis <0> speed <2363.298558> / animSpeed;
 	turn lshin to x-axis <0> speed <4551.901964> / animSpeed;
 	turn lthigh to x-axis <0> speed <2139.843284> / animSpeed;
-	turn lthigh to y-axis <15> speed <525.118567> / animSpeed;
 	turn rthigh to x-axis <0> speed <2182.065123> / animSpeed;
-	turn rthigh to y-axis <-15> speed <527.117224> / animSpeed;
 	turn ltoes to x-axis <0> speed <3268.230218> / animSpeed;
 	turn pelvis to y-axis <0> speed <537.398494> / animSpeed;
-	turn piledriver to x-axis <15> speed <713.166646> / animSpeed;
 	turn piledriver to y-axis <0> speed <387.566318> / animSpeed;
 	turn piledriver to z-axis <0> speed <149.047011> / animSpeed;
-	turn railgun to x-axis <15> speed <1106.486067> / animSpeed;
 	turn railgun to y-axis <0> speed <951.006298> / animSpeed;
 	turn railgun to z-axis <0> speed <453.069756> / animSpeed;
 	turn rarm to x-axis <0> speed <769.946585> / animSpeed;
@@ -1029,7 +1006,6 @@ UnitSpeed(){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
 		animSpeed = (maxSpeed * 2) / animSpeed;
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<1) animSpeed=1;
 		if (animspeed>4) animSpeed = 4;
 		sleep 65;
@@ -1038,10 +1014,6 @@ UnitSpeed(){
 StartMoving(){
 	signal SIGNAL_MOVE;
 	isMoving=TRUE;
-	turn lthigh to y-axis <0> speed <525.118567> / animSpeed;
-	turn rthigh to y-axis <0> speed <527.117224> / animSpeed;
-	turn piledriver to x-axis <0> speed <713.166646> / animSpeed;
-	turn railgun to x-axis <0> speed <1106.486067> / animSpeed;
 	start-script Walk();
 }
 StopMoving(){
