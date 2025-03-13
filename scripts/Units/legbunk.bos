@@ -26,7 +26,14 @@ rarm,
 rarmorshoulder,
 rforearm,
 railgun,
+railgunfingers,
 aimflarerailgun,
+flaresmokegun1,
+flaresmokegun2,
+flaresmokegun3,
+flaresmokegun4,
+flaresmokegun5,
+flaresmokegun6,
 armorbody,
 torch,
 lthigh,
@@ -88,6 +95,12 @@ Create()
 	hide aimflarerailgun;
 	hide flaresmoke1;
 	hide flaresmoke2;
+	hide flaresmokegun1;
+	hide flaresmokegun2;
+	hide flaresmokegun3;
+	hide flaresmokegun4;
+	hide flaresmokegun5;
+	hide flaresmokegun6;
 
 	spin fingers around z-axis speed <360> accelerate <6>;
 
@@ -181,7 +194,7 @@ AimWeapon1(heading, pitch)
 	if (heading-torsoHeading < 12000 AND heading-torsoHeading > -6000)
 	{
 		turn aimyarml to y-axis heading-torsoHeading speed <250.000000>; //Now the aiming around Y is split between the torso and the arm!
-		turn aimxarml to x-axis <0.000000> - pitch / 2 speed <90.000000>; //Moves the arm up/
+		turn aimxarml to x-axis <0.000000> - pitch * 2 / 4 speed <90.000000>; //Moves the arm up/
 
 	}
 	else
@@ -273,6 +286,10 @@ FireWeapon1()
 FireWeapon2()
 {
 	isShooting = FALSE;
+	move railgunfingers to z-axis [-2.5] speed [50];
+	start-script FireGunExhausts();
+	sleep 500;
+	move railgunfingers to z-axis [0] speed [8.0];
 	return (1);
 }
 
@@ -288,6 +305,17 @@ FireBunkerExhausts()
 {
 		emit-sfx 1024 + 0 from flaresmoke1;
 		emit-sfx 1024 + 0 from flaresmoke2;
+		return (1);
+}
+
+FireGunExhausts()
+{
+		emit-sfx 1024 + 0 from flaresmokegun1;
+		emit-sfx 1024 + 0 from flaresmokegun2;
+		emit-sfx 1024 + 0 from flaresmokegun3;
+		emit-sfx 1024 + 0 from flaresmokegun4;
+		emit-sfx 1024 + 0 from flaresmokegun5;
+		emit-sfx 1024 + 0 from flaresmokegun6;
 		return (1);
 }
 
