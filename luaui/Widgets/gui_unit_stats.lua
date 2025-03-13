@@ -595,8 +595,8 @@ local function drawStats(uDefID, uID)
 				uWep = WeaponDefNames[uWep.customParams.def] or uWep
 				defaultDamage = uWep.damages[0]
 			elseif uWep.customParams.cluster then
-				local munition = uWep.customParams.def    or uDef.name .. '_' .. 'cluster_munition'
-				local cmNumber = uWep.customParams.number or 5 -- note: keep in sync with cluster defaults
+				local munition = uDef.name .. '_' .. uWep.customParams.cluster_def
+				local cmNumber = uWep.customParams.cluster_number
 				local cmDamage = WeaponDefNames[munition].damages[0]
 				defaultDamage = defaultDamage + cmDamage * cmNumber
 			end
