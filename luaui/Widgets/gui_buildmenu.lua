@@ -909,7 +909,9 @@ function widget:DrawScreen()
 									end
 
 									-- re-draw cell with hover zoom (and price shown)
+									font2:Begin()
 									drawCell(hoveredCellID, usedZoom, cellColor, units.unitRestricted[uDefID])
+									font2:End()
 
 									if unsetShowPrice then
 										showPrice = false
