@@ -13,6 +13,12 @@ local function getMiniMapFlipped()
 	return rot > math.pi/2 and rot <= 3 * math.pi/2;
 end
 
+local function getMiniMapRotationOptions() -- Spring.GetMiniMapRotation() returns rads, instead here we return iterations of 90 degrees (0, 1, 2, 3)
+	if not spGetMiniMapRotation then return 0 end
+
+	return math.floor((spGetMiniMapRotation() / math.pi * 2 + 0.5) % 4)
+end
+
 local function minimapToWorld(x, y, vpy, dualScreen)
 	local px, py, sx, sy = spGetMiniMapGeometry()
 	if dualScreen == "left" then
@@ -21,9 +27,17 @@ local function minimapToWorld(x, y, vpy, dualScreen)
 	x = ((x - px) / sx) * mapWidth
 	local z = (1 - (y - py + vpy)/sy) * mapHeight
 
-	if getMiniMapFlipped() then
+	if getMiniMapRotationOptions() == 1 then
+		local temp = x
+		x = mapWidth - z
+		z = temp
+	elseif getMiniMapRotationOptions() == 2 then
 		x = mapWidth - x
 		z = mapHeight - z
+	elseif getMiniMapRotationOptions() == 3 then
+		local temp = x
+		x = z
+		z = mapHeight - temp
 	end
 
 	y = spGetGroundHeight(x, z)
@@ -31,4 +45,4 @@ local function minimapToWorld(x, y, vpy, dualScreen)
 	return x, y, z
 end
 
-return { getMiniMapFlipped = getMiniMapFlipped, minimapToWorld = minimapToWorld }
+return { getMiniMapFlipped = getMiniMapFlipped, minimapToWorld = minimapToWorld, getMiniMapRotationOptions = getMiniMapRotationOptions }
