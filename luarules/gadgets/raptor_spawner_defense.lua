@@ -1663,10 +1663,9 @@ if gadgetHandler:IsSyncedCode() then
 			-- spawn queen if not exists
 			local queenID = SpawnQueen()
 			if queenID then
-				queenIDs[queenID] = true
 				nSpawnedQueens = nSpawnedQueens + 1
-				Spring.Echo("Spawned queen " .. nSpawnedQueens.. "/" .. nTotalQueens)
-				SetGameRulesParam("nSpawnedQueens", nSpawnedQueens)
+				queenIDs[queenID] = true
+				Spring.Echo({func="updateSpawnQueen", queen_status = {spawned = nSpawnedQueens, killed = nKilledQueens, ids = queenIDs}})
 
 				local queenSquad = table.copy(squadCreationQueueDefaults)
 				queenSquad.life = 999999
@@ -1998,8 +1997,7 @@ if gadgetHandler:IsSyncedCode() then
 		if queenIDs[unitID] then
 			nKilledQueens = nKilledQueens + 1
 			queenIDs[unitID] = nil
-			Spring.Echo("Killed " .. nKilledQueens .. " of " .. nSpawnedQueens .. " spawned queens")
-			SetGameRulesParam("nKilledQueens", nKilledQueens)
+			Spring.Echo({func="UnitDestroyed", boss_status = {spawned = nSpawnedQueens, killed = nKilledQueens, ids = queenIDs}})
 
 			if nKilledQueens >= nTotalQueens then
 				Spring.SetGameRulesParam("BossFightStarted", 0)
