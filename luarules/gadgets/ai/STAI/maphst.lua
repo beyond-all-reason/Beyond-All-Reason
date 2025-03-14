@@ -13,12 +13,8 @@ local pathGraphs = {}
 local mCeil = math.ceil
 
 function MapHST:Init()
-	local mcmcmcmc = Spring.GetGameRulesParam("mex_count")
-	Spring:Echo('mcmcmcmc',mcmcmcmc)
-	for i=1,80 do
--- 		Spring.Echo(i)
-		Spring.Echo(Spring.GetGameRulesParam("mex_x" .. i))
-	end
+	local rules_param_mex_count = Spring.GetGameRulesParam("mex_count")
+	self:EchoDebug('games rules param mex_count:',rules_param_mex_count)
 
 	self.DebugEnabled = false
 	self:EchoDebug('MapHST START')
@@ -30,7 +26,6 @@ function MapHST:Init()
 	self:InitPathCost()
 	self.topology = {air = {}}
 	self:createGrid()
-
 	self.METALS = map:GetMetalSpots()
 	self.GEOS = map:GetGeoSpots()
 	self.METALS = self:SimplifyMetalSpots(self.gridSize * 2)-- is a random choice, can be 1 or 9999999999
@@ -47,9 +42,10 @@ function MapHST:Init()
 	self:metalScan()
 	self:geoScan()
 	self:LayerScan()
-	--self:spotToCellMoveTest()
+	self.trampledCells = {}
 	self:DrawDebug()
 	self.map_loaded = true
+	collectgarbage("collect")
 	self:EchoDebug('MapHST STOP')
 end
 
@@ -173,7 +169,7 @@ function MapHST:PosToGrid(pos)
 	local X = math.ceil(pos.x / self.gridSize)
 	local Z = math.ceil(pos.z / self.gridSize)
 	if not self.GRID[X] or not self.GRID[X][Z] then
-		self:Warn( X,Z,'is out of GRID',pos.x,pos.z)
+		self:EchoDebug( X,Z,'is out of GRID',pos.x,pos.z)
 	end
 	return X, Z
 end
@@ -182,7 +178,7 @@ function MapHST:RawPosToGrid(x,y,z)
 	local X = math.ceil(x / self.gridSize)
 	local Z = math.ceil(z / self.gridSize)
 	if not self.GRID[X] or not self.GRID[X][Z] then
-		self:Warn( X,Z,'is out of GRID',x,z)
+		self:EchoDebug( X,Z,'is out of GRID',x,z)
 	end
 	return X, Z
 end
@@ -541,40 +537,21 @@ end
 
 function MapHST:getPath(unitName,POS1,POS2,toGrid)
 	local mclass = self.ai.armyhst.unitTable[unitName].mclass
-	if not unitName then
-		self:Warn('getPath receive a nil unitName',unitName)
+	local waypoints = map:RequestPath(mclass, POS1, POS2)
+	if not waypoints then
+		self:Warn('no path found',POS1,POS2)
 		return
 	end
-	if not mclass then
-		self:Warn('getPath receive a nil mclass',unitName,mclass)
+	local last = waypoints[#waypoints]
+	local distance_to_goal = self.ai.tool:distance(POS2, {x=last[1],z=last[3]})
+	if distance_to_goal > self.gridSize/2 then
+		self:Warn('invalid path find',POS1,POS2)
 		return
 	end
-	local metapath = Spring.RequestPath(mclass, POS1.x,POS1.y,POS1.z,POS2.x,POS2.y,POS2.z)
-	if metapath then
-		local waypoints, pathStartIdx = metapath:GetPathWayPoints()
-		if not waypoints then
-			self:Warn(unitName,'no path found',POS1.x,POS1.z,POS2.x,POS2.z)
-			return
-		elseif #waypoints == 0 then
-			self:Warn(unitName,'path have 0 lenght',POS1.x,POS1.z,POS2.x,POS2.z)
-			return
--- 		elseif self.ai.tool:distance(POS1,POS2) < 256 then
--- 			self:Warn(unitName,'path too short',POS1,POS2)
--- 			return
-		else
-
-			local last = waypoints[#waypoints]
-			local distance_to_goal = self.ai.tool:distance(POS2, {x=last[1],z=last[3]})
-			if distance_to_goal > self.gridSize then
-				self:Warn('invalid path find',POS1,POS2)
-				return
-			end
-			if toGrid then
-				return self:gridThePath(waypoints)
-			else
-				return waypoints
-			end
-		end
+	if toGrid then
+		return self:gridThePath(waypoints)
+	else
+		return waypoints
 	end
 end
 
@@ -596,83 +573,73 @@ function MapHST:gridThePath(wp)
 	return gridPath
 end
 
-function MapHST:spotToCellMoveTest()--check how many time a unit(i chose commander) walk on a CELL, the analisy is from cell to cell foreach cell, CAUTION is heavy computable
-	self:EchoDebug('mobility commander rank START')
+function MapHST:UnitMexMoveTest(testUnit)--check how many time a unit(i chose commander) walk on a CELL, the analisy is from cell to cell foreach cell, CAUTION is heavy computable
+	self:EchoDebug('UnitMexMoveTest  START')
 	local counter = 0
-	local utable = self.ai.armyhst.unitTable
-	local className = UnitDefNames['armcom'].moveDef.name
-	local classID = utable.armcom.defId--UnitDefNames['armcom'].id
-	local layer = 'amp'
-	local doing = {}
+	local testUnitName = testUnit.unit:Internal():Name()
+	local testUnitPos = testUnit.unit:Internal():GetPosition()
+	local className = UnitDefNames[testUnitName].moveDef.name
+	local classID = UnitDefNames[testUnitName].id
+	local parsed = {}
 	self.ttt={trampled = 0}
-	--for index , spotPos in pairs(spot) do
-	for X1 = 1,self.gridSideX - 1 , 2 do
-		for Z1 = 1,self.gridSideZ - 1, 2 do
-			for X2 = 2,self.gridSideX, 2 do
-				for Z2 = 2,self.gridSideZ, 2 do
-					--print(X1,Z1,X2,Z2)
-					local POS1 = self:GridToPos(X1,Z1)
-					local POS2 = self:GridToPos(X2,Z2)
-					local POS1ToCenter = self.ai.tool:distance(POS1,self.elmoMapCenter)/self.elmoMapMaxCenterDistance
-					local POS2ToCenter = self.ai.tool:distance(POS2,self.elmoMapCenter)/self.elmoMapMaxCenterDistance
-					local POS1toPOS2 = self.ai.tool:distance(POS1,POS2)/ self.elmoMapMaxDistance
-					local proportional = ((POS1ToCenter +POS2ToCenter) / 2 )
-					--print('proportional',proportional,X1,Z1,X2,Z2)
-					--local proportional = (((POS1ToCenter +POS2ToCenter) / 2 ) + POS1toPOS2) / 2
-					--local proportional = (POS1ToCenter + POS2ToCenter + POS1toPOS2) / 3
--- 					print(POS1.x,POS1.z,POS2.x,POS2.z)
-					if X1 ~= X2 or  Z1 ~= Z2 then
+	local last 
+	local first,firstX,firstZ
+	local wpos,wposX,wposZ
+	local waypoints
+	local  total = 0
+	local average = 0
+	
+	for index1 , POS1 in pairs(self.METALS) do
+		
+		
+		waypoints = self:getPath(testUnitName,testUnitPos,POS1,true)
+		if  waypoints then
+			local waypointsNumber = #waypoints
+			last = waypoints[#waypoints]
+			counter = counter + 1
+			first = table.remove(waypoints)
+			
+			for i,v in pairs(waypoints) do
+				firstX,firstZ = self:PosToGrid(first)
+				wpos = table.remove(waypoints)
+				wposX,wposZ = self:PosToGrid(wpos)
+				if firstX ~= wposX or firstZ ~= wposZ then
+					self.GRID[firstX][firstZ].trampled = self.GRID[firstX][firstZ].trampled + (2 + (self.ai.tool:distance(wpos,self.elmoMapCenter)/self.elmoMapMaxCenterDistance)) *(1-((self.ai.tool:distance(testUnitPos,POS1)/self.elmoMapMaxDistance)))
+					total = total + 1
 
--- 						if self.GRID[X1][Z1].moveLayers[layer] == self.GRID[X2][Z2].moveLayers[layer] then
--- 							self:EchoDebug('')
--- 						else
-							if Spring.TestMoveOrder(classID,POS1.x,POS1.y,POS1.z) and Spring.TestMoveOrder(classID,POS2.x,POS2.y,POS2.z)then
-
-								if doing[X1..';'..Z1] == X2..';'..Z2  or doing[X2..';'..Z2] == X1..';'..Z1 then
-									---
-								else
-
-									local dist  = self.ai.tool:distance(POS1,POS2)
-									local metapath = Spring.RequestPath(className, POS1.x,POS1.y,POS1.z,POS2.x,POS2.y,POS2.z)
-									if metapath then
-										local waypoints, pathStartIdx = metapath:GetPathWayPoints()
-										if  waypoints and  #waypoints  > 1 then
-											local waypointsNumber = #waypoints
-											local last = waypoints[#waypoints]
-											doing[X2..';'..Z2] = X1..';'..Z1
-											doing[X1..';'..Z1] = X2..';'..Z2
-											local distance_to_goal = self.ai.tool:distance(POS2, {x=last[1], z=last[3]})
-											if distance_to_goal > self.gridSizeHalf then
-												self:Warn('WARNING THIS PATH IS INCOMPLETE',POS1.x, POS1.z, last[1], last[3],className,POS2.x,POS2.z,distance_to_goal)
-											else
-												counter = counter + 1
-												local first = table.remove(waypoints)
-												first = {x = first[1],y = first[2],z = first[3]}
-												for i,v in pairs(waypoints) do
-													local wpos = table.remove(waypoints)
-													wpos = {x = wpos[1],y = wpos[2],z = wpos[3]}
-													local firstX,firstZ = self:PosToGrid(first)
-													local wposX,wposZ = self:PosToGrid(wpos)
-													if firstX ~= wposX or firstZ ~= wposZ then
-														self.GRID[firstX][firstZ].trampled = self.GRID[firstX][firstZ].trampled + (self.ai.tool:distance(wpos,self.elmoMapCenter)/self.elmoMapMaxCenterDistance)
-														if self.GRID[firstX][firstZ].trampled > self.ttt.trampled then
-															self.ttt = self.GRID[firstX][firstZ]
-														end
-														first = wpos
-													end
-												end
-											end
-										end
-									end
-								end
-							end
-						--end
-					end
+					self.ttt.trampled = math.max(self.ttt.trampled,self.GRID[firstX][firstZ].trampled)
+					first = wpos
 				end
 			end
 		end
+	
 	end
-	self:EchoDebug(counter,'mobility commander evalutated:', 'most trampled',self.ttt.X,self.ttt.Z,self.ttt.trampled)
+	average = total / counter
+	local sum = 0
+	local count = 0
+	local average = 0
+	for X, Zetas in pairs(self.GRID) do
+		for Z, CELL in pairs(Zetas) do
+			if CELL.trampled > 0 then
+				
+				sum = sum + CELL.trampled
+				count = count + 1
+			end
+		end
+	end	
+	average = sum / count
+	self:EchoDebug('average trampled',average)
+	for X, Zetas in pairs(self.GRID) do
+		for Z, CELL in pairs(Zetas) do
+			if CELL.trampled < average * 1.5 then
+				CELL.trampled = nil
+			else 
+				table.insert(self.trampledCells,CELL.POS)
+			end
+
+		end
+	end
+	self:EchoDebug(counter,'mobility commander evalutated:', 'most trampled',self.ttt.trampled,'average',average)
 end
 
 function MapHST:SetStartLocation()-- find start locations (loading them into air's list for later localization)
@@ -761,23 +728,15 @@ function MapHST:ClosestFreeMex(unittype, builder, position)--get the closest fre
 	if not layer or not net then return end
 	local sortlist = self.ai.tool:sortByDistance(position,self.networks[layer][net].metals)
 -- 	for index, spot in ipairs(sortlist) do
--- 		Spring:Echo(index,spot)
+-- 		self:EchoDebug(index,spot)
 -- 	end
--- 	local RAM = gcinfo()
 	for index, spot in pairs(sortlist) do
--- 		local spot = self.networks[layer][net].metals[index]
-
 		if self:UnitCanGoHere(builder, spot) then
--- 			Spring:Echo('mexRAM1',gcinfo()-RAM)
 			if not self.ai.buildingshst:PlansOverlap(spot, uname) then
--- 				Spring:Echo('mexRAM2',gcinfo()-RAM)
 				if self.ai.targethst:IsSafeCell(spot, builder) then
--- 					Spring:Echo('mexRAM3',gcinfo()-RAM)
 					if map:CanBuildHere(unittype, spot) then
--- 					Spring:Echo('mexRAM4',gcinfo()-RAM)
 						local CELL = self:GetCell(spot,self.ai.loshst.ENEMY)
 						if not CELL or CELL.ENEMY == 0 then
---						Spring:Echo('mexRAM5',gcinfo()-RAM]])
 							return spot
 -- 							local distance = self.ai.tool:distance(position,spot)
 -- 							--print(distance-Distance)
@@ -928,9 +887,9 @@ function MapHST:DrawDebug()
 	for X,Zetas in pairs(self.GRID) do
 		for Z, CELL in pairs(Zetas) do
 			map:DrawPoint(CELL.POS, nil, X .. ':' ..Z.. ' = ' ..((X - 1) *self.ai.maphst.gridSideX) + Z, 9)
--- 			if CELL.trampled > self.ttt.trampled / 2 then --CELL.trampled > 1 then --
--- 				map:DrawPoint(CELL.POS, {1,1,1,1}, math.ceil(CELL.trampled), 9)
--- 			end
+ 			if CELL.trampled then --and CELL.trampled > self.ttt.trampled / 2 then --CELL.trampled > 1 then --
+ 				map:DrawPoint(CELL.POS, {1,1,1,1}, math.ceil(CELL.trampled), 9)
+ 			end
 			local pos1, pos2 = {},{}
 			pos1.x, pos1.z = CELL.POS.x - self.gridSizeHalf, CELL.POS.z - self.gridSizeHalf
 			pos2.x, pos2.z = CELL.POS.x + self.gridSizeHalf, CELL.POS.z + self.gridSizeHalf

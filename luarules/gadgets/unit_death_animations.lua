@@ -57,7 +57,7 @@ end
 function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
 	if hasDeathAnim[unitDefID] then
     	Spring.SetUnitBlocking(unitID,false) -- non blocking while dying
-		Spring.UnitIconSetDraw(unitID, false) -- dont draw icons
+		Spring.SetUnitIconDraw(unitID, false) -- dont draw icons
 		Spring.GiveOrderToUnit(unitID, CMD_STOP, 0, 0)
 		Spring.MoveCtrl.Enable(unitID)
 		Spring.MoveCtrl.SetVelocity(unitID, 0, 0, 0)

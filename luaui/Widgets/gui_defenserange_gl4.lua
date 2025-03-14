@@ -923,7 +923,6 @@ function widget:PlayerChanged(playerID)
 	local GetMyTeamID = Spring.GetMyTeamID ( )
 	--Spring.Echo("GetMyTeamID", GetMyTeamID)
 	]]--
-	local nowspGetSpectatingState = Spring.GetSpectatingState()
 	local nowspec, nowfullview = spGetSpectatingState()
 	local nowmyAllyTeam = Spring.GetMyAllyTeamID()
 	-- When we start, check if there are >2 allyteams
@@ -1038,7 +1037,7 @@ local function GetCameraHeightFactor() -- returns a smoothstepped value between 
     --t = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
     --return t * t * (3.0 - 2.0 * t);
 
-	camheight = math.max(0.0, math.min(1.0, (camheight - colorConfig.distanceScaleStart) / (colorConfig.distanceScaleEnd - colorConfig.distanceScaleStart)))
+	camheight = math.clamp((camheight - colorConfig.distanceScaleStart) / (colorConfig.distanceScaleEnd - colorConfig.distanceScaleStart), 0, 1)
 	--return camheight * camheight * (3 - 2 *camheight)
 	return 1
 end

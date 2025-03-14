@@ -49,6 +49,7 @@ if gadgetHandler:IsSyncedCode() then
 	local floor = math.floor
 	local max = math.max
 	local min = math.min
+	local clamp = math.clamp
 	local spGetGroundHeight = Spring.GetGroundHeight
 	local spGetGameFrame = Spring.GetGameFrame
 	local mapSizeX = Game.mapSizeX
@@ -59,9 +60,9 @@ if gadgetHandler:IsSyncedCode() then
 	local function GetScumCurrentRadius(scum, gf)
 		gf = gf or spGetGameFrame()
 		if scum.growthrate > 0 then
-			return max(0, min(scum.radius, (gf - scum.spawnframe) * scum.growthrate))
+			return clamp((gf - scum.spawnframe) * scum.growthrate, 0, scum.radius)
 		else
-			return min(scum.radius, max(0,scum.radius - (gf - scum.spawnframe) *(-1.0 * scum.growthrate)) )
+			return clamp(scum.radius - (gf - scum.spawnframe) *(-1.0 * scum.growthrate), 0, scum.radius)
 		end
 	end
 
@@ -642,8 +643,7 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then	-- UNSYNCED
 
 	local sqrt = math.sqrt
 	local floor = math.floor
-	local max = math.max
-	local min = math.min
+	local clamp = math.clamp
 	local spGetGroundHeight = Spring.GetGroundHeight
 	local mapSizeX = Game.mapSizeX
 	local mapSizeZ = Game.mapSizeZ
@@ -663,9 +663,9 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then	-- UNSYNCED
 	local function GetScumCurrentRadius(scum, gf)
 		gf = gf or gameFrame
 		if scum.growthrate > 0 then
-			return max(0, min(scum.radius, (gf - scum.spawnframe) * scum.growthrate))
+			return clamp((gf - scum.spawnframe) * scum.growthrate, 0, scum.radius)
 		else
-			return min(scum.radius, max(0,scum.radius - (gf - scum.spawnframe) *(-1.0 * scum.growthrate)) )
+			return clamp(scum.radius - (gf - scum.spawnframe) *(-1.0 * scum.growthrate), 0, scum.radius)
 		end
 	end
 

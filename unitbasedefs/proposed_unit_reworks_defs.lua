@@ -50,28 +50,29 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		if name == "corgator" then
 			uDef.buildtime = 2200
 			uDef.sightdistance = 330
+			uDef.weapondefs.gator_laserx.range = 225
 		end
 		if name == "armflash" then
 			uDef.sightdistance = 350
 			uDef.health = 725
 		end
 		if name == "armflea" then
-			uDef.metalcost = 20
+			uDef.metalcost = 21
 			uDef.energycost = 300
-			uDef.sightdistance = 500
+			uDef.sightdistance = 550
 		end
 		if name == "armpw" then
-			uDef.metalcost = 54
+			uDef.metalcost = 56
 			uDef.energycost = 870
 			uDef.health = 370
 		end
 		if name == "corak" then
-			uDef.metalcost = 48
+			uDef.metalcost = 50
 			uDef.energycost = 840
 			uDef.turnrate = 1200
 			uDef.maxacc = 0.4
 			uDef.maxdec = 0.7
-			--uDef.health = 300
+			uDef.weapondefs.gator_laser.range = 225
 		end
 		if name == "armfav" then
 			uDef.health = 103
@@ -81,7 +82,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		end
 
 		if name == "corbw" then
-			uDef.weapondefs.bladewing_lyzer.reloadtime = 1.4
+			uDef.weapondefs.bladewing_lyzer.reloadtime = 1.3
 		end
 		if name == "armkam" then
 			uDef.health = 560
