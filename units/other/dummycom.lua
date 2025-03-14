@@ -1,60 +1,8 @@
-return {
-	-- implemented as an actual unit partially because stuff assumes choice is always a real unit
-	-- and partially because the dice model is still drawn pregame so allies get visual feedback "for free"
-	dummycom = {
-		blocking = true,
-		buildpic = "other/dice.dds",
-		builddistance = 145,
-		canmove = true,
-		cantbetransported = true,
-		capturable = false,
-		category = "OBJECT",
-		collisionvolumeoffsets = "0 3 0",
-		collisionvolumescales = "28 52 28",
-		collisionvolumetype = "CylY",
-		crushresistance = 2500,
-		footprintx = 3,
-		footprintz = 3,
-		maxslope = 20,
-		maxwaterdepth = 0,
-		movementclass = "BOT1",
-		objectname = "cordice.s3o",
-		script = "dice.lua",
-		selfdestructas = "blank",
-		icontype = "armcom",
-		customparams = {
-			nohealthbars = true,
-			subfolder = "other",
-			decoration = 1,
-			i18nfromunit = "random",
-		},
-		buildoptions = {
-			[1] = "armsolar",
-			[2] = "armwin",
-			[3] = "armmstor",
-			[4] = "armestor",
-			[5] = "armmex",
-			[6] = "armmakr",
-			[7] = "armlab",
-			[8] = "armvp",
-			[9] = "armap",
-			[10] = "armeyes",
-			[11] = "armrad",
-			[12] = "armdrag",
-			[13] = "armllt",
-			[14] = "armrl",
-			[15] = "armdl",
-			[16] = "armtide",
-			[17] = "armuwms",
-			[18] = "armuwes",
-			[20] = "armfmkr",
-			[21] = "armsy",
-			[22] = "armfdrag",
-			[23] = "armtl",
-			[24] = "armfrt",
-			[25] = "armfrad",
-			[26] = "armhp",
-			[27] = "armfhp",
-		},
-	},
-}
+-- implemented as an actual unit partially because stuff assumes choice is always a real unit
+-- and partially because the dice model is still drawn pregame so allies get visual feedback "for free"
+local def = VFS.Include("units/armcom.lua").armcom
+def.buildpic = "other/dice.dds"
+def.customparams = {i18nfromunit = "random",}
+def.objectname = "cordice.s3o"
+def.script = "dice.lua"
+return { dummycom = def }
