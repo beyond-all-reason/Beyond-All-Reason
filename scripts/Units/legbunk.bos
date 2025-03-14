@@ -203,22 +203,22 @@ AimWeapon1(heading, pitch)
 		{
 			if (isturning == 1)
 			{
-				turn torso to y-axis <179> speed <60.0000> ;
+				turn aimy1 to y-axis <179> speed <60.0000> ;
 			}
 			if (isturning == 0)
 			{
-				turn torso to y-axis <179> speed <30.0000> ;
+				turn aimy1 to y-axis <179> speed <30.0000> ;
 			}
 		}
 		if (((oldHeadingBunker+oldHeadingRailgun)/2) > 0)
 		{
 			if (isturning == 1)
 			{
-				turn torso to y-axis <-179> speed <60.0000> ;
+				turn aimy1 to y-axis <-179> speed <60.0000> ;
 			}
 			if (isturning == 0)
 			{
-				turn torso to y-axis <-179> speed <30.0000> ;
+				turn aimy1 to y-axis <-179> speed <30.0000> ;
 			}
 		}
 	}
@@ -226,11 +226,11 @@ AimWeapon1(heading, pitch)
 	{
 		if (isturning == 1)
 		{
-			turn torso to y-axis (oldHeadingBunker+oldHeadingRailgun)/2 speed <60.0000> ;
+			turn aimy1 to y-axis (oldHeadingBunker+oldHeadingRailgun)/2 speed <60.0000> ;
 		}
 		if (isturning == 0)
 		{
-			turn torso to y-axis (oldHeadingBunker+oldHeadingRailgun)/2 speed <30.0000> ;
+			turn aimy1 to y-axis (oldHeadingBunker+oldHeadingRailgun)/2 speed <30.0000> ;
 		}
 	}
 
