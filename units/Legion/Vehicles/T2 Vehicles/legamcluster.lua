@@ -137,13 +137,13 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 345,
 				customparams = {
-					cluster_def = 'cluster_munition',
-					cluster_number = 4,
+					cluster = true,
+					number = 4,
 				},
 				damage = {
-					default = 200,
-					subs = 50,
-					vtol = 50,
+					default = 150,
+					subs = 34,
+					vtol = 22,
 				},
 			},
 			cluster_munition = {
@@ -158,12 +158,13 @@ return {
 				impulsefactor = 0.5,
 				name = "Cluster Munitions",
 				noselfdamage = true,
-				range = 100,
+				range = 180,
 				rgbcolor = "0.7 0.7 1.0 1.0 1.0 1.0 1.0 1.0",
 				soundhit = "xplomed4",
 				soundhitwet = "splsmed",
 				soundstart = "cannhvy2",
 				weapontype = "Cannon",
+				weaponvelocity = 450,
 				damage = {
 					default = 100,
 					lboats = 100,

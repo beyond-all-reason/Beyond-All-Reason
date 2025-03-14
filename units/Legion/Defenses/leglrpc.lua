@@ -137,8 +137,8 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1100,
 				customparams = {
-					cluster_def = 'cluster_munition',
-					cluster_number = 4,
+					cluster = true,
+					number = 4,
 				},
 				damage = {
 					default = 500,
@@ -159,12 +159,13 @@ return {
 				name = "Plasma Burst",
 				noselfdamage = true,
 				maxvelocity = 720,
-				range = 160,
+				range = 400,
 				rgbcolor = "0.7 0.7 1.0",
 				soundhit = "xplomed2",
 				soundhitwet = "splsmed",
 				soundstart = "cannhvy5",
 				weapontype = "Cannon",
+				weaponvelocity = 450,
 				damage = {
 					default = 100,
 					lboats = 200,

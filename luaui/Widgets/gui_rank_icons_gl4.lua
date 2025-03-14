@@ -17,6 +17,7 @@ local falloffDistance = 1300
 local cutoffDistance = 2300
 
 local distanceMult = 1
+local usedFalloffDistance = falloffDistance * distanceMult
 local usedCutoffDistance = cutoffDistance * distanceMult
 local iconsizeMult = 1
 local usedIconsize = iconsize * iconsizeMult
@@ -82,7 +83,7 @@ local GL_GREATER = GL.GREATER
 local unitIconMult = {}
 local isAirUnit = {}
 for udid, unitDef in pairs(UnitDefs) do
-	unitIconMult[udid] = math.clamp((Spring.GetUnitDefDimensions(udid).radius / 40) + math.min(unitDef.power / 400, 2), 1.25, 1.4)
+	unitIconMult[udid] = math.clamp((Spring.GetUnitDefDimensions(udid).radius / 40) + math.min(unitDef.power / 400, 2), 1.25, 1,4)
 	if unitDef.canFly then
 		isAirUnit[udid] = true
 	end
@@ -101,6 +102,7 @@ end
 function widget:SetConfigData(data)
 	if data.distanceMult ~= nil then
 		distanceMult = data.distanceMult
+		usedFalloffDistance = falloffDistance * distanceMult
 		usedCutoffDistance = cutoffDistance * distanceMult
 	end
 	if data.iconsizeMult ~= nil then
@@ -252,6 +254,7 @@ function widget:Initialize()
 	end
 	WG['rankicons'].setDrawDistance = function(value)
 		distanceMult = value
+		usedFalloffDistance = falloffDistance * distanceMult
 		usedCutoffDistance = cutoffDistance * distanceMult
 	end
 	WG['rankicons'].getScale = function()

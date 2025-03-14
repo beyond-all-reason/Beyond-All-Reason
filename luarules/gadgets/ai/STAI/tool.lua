@@ -260,7 +260,7 @@ function Tool:sortByDistance(POS,list)
 	end
 	table.sort(dix)
 	for i,v in pairs(dix) do
-		self:EchoDebug(i,v)
+		--Spring:Echo(i,v)
 		dix[i] = list[distanceIndex[v]]
 	end
 	return dix

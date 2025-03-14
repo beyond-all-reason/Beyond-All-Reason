@@ -190,7 +190,6 @@ function ArmyHST:Init()
 		corcrus = true,
 		armcrus = true,
 		armbanth = true,--t3a
-		cordemon = true,
 
 
 
@@ -280,6 +279,7 @@ function ArmyHST:Init()
 
 	self.airgun = {
 		armkam = true,
+		corcrw = true,
 		corcrwh = true,
 		corape = true,
 		armbrawl = true,
@@ -1133,7 +1133,7 @@ function ArmyHST:GetUnitTable()
 		utable.defId = unitDefID
 		utable.radarDistance = unitDef["radarDistance"]
 		utable.airSightDistance = unitDef["airSightDistance"]
-		utable.sightDistance = unitDef["losRadius"]
+		utable.sightDistance = unitDef["sightDistance"]
 		utable.sonarDistance = unitDef["sonarDistance"]
 		utable.radarDistanceJam = unitDef["radarDistanceJam"]
 		utable.stealth = unitDef.stealth

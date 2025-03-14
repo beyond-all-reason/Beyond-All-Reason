@@ -12,13 +12,12 @@ if tracy then
 		tracy.ZoneBeginN(fname)
 	end
 
-	tracyZoneEndMem = function(fname)
-		fname = fname or "STAI"
+	tracyZoneEndMem = function()
 		if logRAM then
 			local nowGCinfo = gcinfo()
 			local delta = nowGCinfo - lastGCinfo
 			if delta > 0 then
-				tracy.Message(tostring(fname .. nowGCinfo - lastGCinfo))
+				tracy.Message(tostring(nowGCinfo - lastGCinfo))
 			end
 			lastGCinfo = nowGCinfo
 		end
@@ -48,7 +47,7 @@ function ShardAI:Init()
 	self.game.ai = self
 	self.map.ai = self
 	self.data = {}
-	self.game:DrawDisplay(false)
+	self.game:DrawDisplay(true)
 	self:Info(
 		self.fullname .. " - playing: " .. self.game:GameName() .. " on: " .. self.map:MapName()
 	)
@@ -82,9 +81,9 @@ function ShardAI:Init()
 			else
 				--local RAM = gcinfo()
 
-				--tracyZoneBeginMem(m:Name())
+				tracyZoneBeginMem(m:Name())
 				m:Init()
-				--tracyZoneEndMem()
+				tracyZoneEndMem()
 				--print (m:Name(),gcinfo() - RAM)
 			end
 		end
@@ -112,7 +111,7 @@ function ShardAI:Update()
 		return
 	end
 
-	--tracyZoneBeginMem("ShardAI:Update")
+	tracyZoneBeginMem("ShardAI:Update")
 	--self.game:StartTimer('UPDATE')
 	for i,m in ipairs(self.modules) do
 		if m == nil then
@@ -121,9 +120,9 @@ function ShardAI:Update()
  			--self.game:StartTimer(m:Name() .. ' hst')
 			--local RAM = gcinfo()
 
-			tracyZoneBeginMem('STAI'..m:Name())
+			--tracyZoneBeginMem(m:Name())
 			m:Update()
-			tracyZoneEndMem('STAI'..m:Name())
+			--tracyZoneEndMem()
  			--self.game:StopTimer(m:Name() .. ' hst')
 			--RAM = gcinfo() - RAM
 			--if RAM > 1 --[[and m:Name() ~= 'UnitHandler']] then
@@ -329,6 +328,7 @@ function ShardAI:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
 end
 
 function ShardAI:UnitMoveFailed(engineunit)
+	print('UNIT MOVE FAILED')
 	if self.gameend == true then
 		return
 	end

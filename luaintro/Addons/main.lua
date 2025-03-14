@@ -383,9 +383,9 @@ end
 local function bartexture(px,py,sx,sy, texLength, texHeight)
 	local texHeight = texHeight or 1
 	local width = (sx-px) / texLength * 4
-	gl.TexCoord(width or 1, texHeight)
+	gl.TexCoord(width, texHeight)
 	gl.Vertex(sx, sy, 0)
-	gl.TexCoord(width or 1, 0)
+	gl.TexCoord(width, 0)
 	gl.Vertex(sx, py, 0)
 	gl.TexCoord(0,0)
 	gl.Vertex(px, py, 0)
