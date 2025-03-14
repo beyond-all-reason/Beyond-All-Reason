@@ -1662,9 +1662,12 @@ if gadgetHandler:IsSyncedCode() then
 		if nSpawnedQueens < nTotalQueens and not gameOver then
 			-- spawn queen if not exists
 			local queenID = SpawnQueen()
-			nSpawnedQueens = nSpawnedQueens + 1
 			if queenID then
 				queenIDs[queenID] = true
+				nSpawnedQueens = nSpawnedQueens + 1
+				Spring.Echo("Spawned queen " .. nSpawnedQueens.. "/" .. nTotalQueens)
+				SetGameRulesParam("nSpawnedQueens", nSpawnedQueens)
+
 				local queenSquad = table.copy(squadCreationQueueDefaults)
 				queenSquad.life = 999999
 				queenSquad.role = "raid"
@@ -1995,8 +1998,10 @@ if gadgetHandler:IsSyncedCode() then
 		if queenIDs[unitID] then
 			nKilledQueens = nKilledQueens + 1
 			queenIDs[unitID] = nil
+			Spring.Echo("Killed " .. nKilledQueens .. " of " .. nSpawnedQueens .. " spawned queens")
+			SetGameRulesParam("nKilledQueens", nKilledQueens)
 
-			if nKilledQueens == nTotalQueens then
+			if nKilledQueens >= nTotalQueens then
 				Spring.SetGameRulesParam("BossFightStarted", 0)
 				if Spring.GetModOptions().raptor_endless then
 					updateDifficultyForSurvival()
