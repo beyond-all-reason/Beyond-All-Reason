@@ -59,7 +59,12 @@ local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 local spGetGaiaTeamID = Spring.GetGaiaTeamID()
 local commandcounter = {}
 local syncTables = {}
-
+local data = {}
+local id = {}
+local cmd = {}
+local params = {}
+local options = {}
+local method = {}
 
 if gadgetHandler:IsSyncedCode() then
 
@@ -88,6 +93,71 @@ if gadgetHandler:IsSyncedCode() then
 				table.insert(syncTables, t)
 			end
 		end
+	end
+
+	function gadget:ResetTable(t)
+		if type(t) == 'table' then
+			gadget:KillTable(t)
+		end
+		return gadget:RezTable()
+	end
+
+	function gadget:ParseMessage(message)
+		
+		
+		data = gadget:ResetTable(data)
+		id = gadget:ResetTable(id)
+		cmd = gadget:ResetTable(cmd)
+		params = gadget:ResetTable(params)
+		options = gadget:ResetTable(options)
+		method = gadget:ResetTable(method)
+
+		for part in string.gmatch(message, "([^;]+)") do
+			local key, value = string.match(part, "([^:]+):(.+)")
+			if key and value then
+				data[key] = value
+			end
+		end
+		
+		--Spring.Echo('id',data.id,'cmd',data.cmd,'params',data.params,'options',data.options)
+		for part in string.gmatch(data.id, "([^,]+)") do
+			table.insert(id, tonumber(part))
+		end
+		for part in string.gmatch(data.cmd, "([^,]+)") do
+			table.insert(cmd, tonumber(part))
+		end
+		
+		if string.find(data.params, '|') then
+			for part in string.gmatch(data.params, "([^|]+)") do
+				table.insert(params,{})
+				for value in string.gmatch(part, "([^,]+)") do
+					table.insert(params[#params], tonumber(value))
+				end
+			end
+
+		else
+			--table.insert(params,{})
+			for value in string.gmatch(data.params, "([^,]+)") do
+				table.insert(params, tonumber(value))
+			end
+		end
+
+		if string.find(data.options, '|') then
+			for part in string.gmatch(data.options, "([^|]+)") do
+				table.insert(options,{})
+				for value in string.gmatch(part, "([^,]+)") do
+					table.insert(options[#options], tonumber(value))
+					
+				end
+			end
+		else
+			--table.insert(options,{})
+				for value in string.gmatch(data.options, "([^,]+)") do
+					table.insert(options, tonumber(value))
+					
+				end
+		end
+		return id,cmd,params,options,method
 	end
 
 	function gadget:RecvLuaMsg(msg, playerID)
