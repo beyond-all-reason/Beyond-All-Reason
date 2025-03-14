@@ -61,34 +61,10 @@ function widget:Shutdown()
 	--WG.FlowUI = nil	-- commented out so it keeps at least working somewhat after an error
 end
 
-function widget:Update(dt)
-end
-
 function widget:DrawScreenEffects()
 	if Spring.IsGUIHidden() then
 		return
 	end
-end
-
-function widget:MouseMove(mx, my, dx, dy, button)
-end
-
-function widget:MousePress(mx, my, button)
-end
-
-function widget:MouseRelease(mx, my,button)
-end
-
-function widget:MouseWheel(up, value)
-end
-
-function widget:KeyPress(key, mods, isRepeat, label, unicode)
-end
-
-function widget:KeyRelease(key, mods, label, unicode)
-end
-
-function widget:TextInput(utf8, ...)
 end
 
 ---------------------------------------------------------------------------------------
@@ -320,9 +296,11 @@ end
 ]]
 WG.FlowUI.Draw.TexturedRectRound = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  size, offset, offsetY,  texture)
 	local function DrawTexturedRectRound(px, py, sx, sy, cs, tl, tr, br, bl, size, offset, offsetY)
-		local scale = size and (size / (sx-px)) or 1
+		local scale = size and (size / (sx-px))
+		if not scale then
+			scale = 1
+		end
 		local offset = offset or 0
-		local csyMult = 1 / ((sy - py) / cs)
 		local ycMult = (sy-py) / (sx-px)
 
 		local function drawTexCoordVertex(x, y)

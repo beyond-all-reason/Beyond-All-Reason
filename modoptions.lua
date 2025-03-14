@@ -634,6 +634,18 @@ local options = {
     },
 
     {
+        key		= "raptor_queen_count",
+        name	= "Raptor Queen Count",
+        desc	= "(Range: 1 - 20). Number of queens that will spawn.",
+        type	= "number",
+        def		= 1,
+        min		= 1,
+        max		= 20,
+        step	= 1,
+        section	= "raptor_defense_options",
+    },
+
+    {
         key		= "raptor_spawncountmult",
         name	= "Unit Spawn Per Wave Multiplier",
         desc	= "(Range: 1 - 5). How many times more raptors will spawn per wave.",
@@ -789,6 +801,18 @@ local options = {
         min		= 0.1,
         max		= 2,
         step	= 0.1,
+        section	= "scav_defense_options",
+    },
+
+    {
+        key		= "scav_boss_count",
+        name	= "Scavengers Boss Count",
+        desc	= "(Range: 1 - 20). Number of bosses that will spawn.",
+        type	= "number",
+        def		= 1,
+        min		= 1,
+        max		= 20,
+        step	= 1,
         section	= "scav_defense_options",
     },
 
