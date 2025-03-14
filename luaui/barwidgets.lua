@@ -106,6 +106,7 @@ local flexCallIns = {
 	'WorldTooltip',
 	'MapDrawCmd',
 	'ActiveCommandChanged',
+	"CameraRotationChanged",
 	'DefaultCommand',
 	'UnitCreated',
 	'UnitFinished',
@@ -1334,6 +1335,14 @@ function widgetHandler:ActiveCommandChanged(id, cmdType)
 	tracy.ZoneBeginN("W:ActiveCommandChanged")
 	for _, w in ipairs(self.ActiveCommandChangedList) do
 		w:ActiveCommandChanged(id, cmdType)
+	end
+	tracy.ZoneEnd()
+end
+
+function widgetHandler:CameraRotationChanged(rot)
+	tracy.ZoneBeginN("W:CameraRotationChanged")
+	for _,w in ipairs(self.CameraRotationChangedList) do
+		w:CameraRotationChanged(rot)
 	end
 	tracy.ZoneEnd()
 end
