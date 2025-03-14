@@ -119,11 +119,7 @@ if gadgetHandler:IsSyncedCode() then
 
 				if not isUnitValid(comDefID) then
 					-- ai can't make a decision after their option is denied
-					if isAI then
-						comDefID = RANDOM_DUMMY
-					else
-						comDefID = validStartUnits[1]
-					end
+					comDefID = isAI and RANDOM_DUMMY or validStartUnits[1]
 				end
 
 				spSetTeamRulesParam(teamID, startUnitParamName, comDefID, { allied = true, public = false })

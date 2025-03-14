@@ -681,9 +681,7 @@ end
 function widget:GameStart()
 	preGamestartPlayer = false
 
-	if startDefID ~= Spring.GetTeamRulesParam(myTeamID, "startUnit") then
-		startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
-	end
+	startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
 
 	if prevStartDefID ~= startDefID then
 		local prevFactionToIndex, indexToCurrentFaction = unitDefsToIndexes(prevStartDefID, startDefID)
