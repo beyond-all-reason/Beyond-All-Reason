@@ -58,12 +58,36 @@ local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 local spGetGaiaTeamID = Spring.GetGaiaTeamID()
 local commandcounter = {}
+local syncTables = {}
 
 
 if gadgetHandler:IsSyncedCode() then
 
 	function gadget:Initialize()
 		--GG.AiHelpers.Start()
+	end
+
+	function gadget:RezTable()
+			return table.remove(syncTables) or {} 
+	end
+
+
+	-- Function to recursively process a table and discard everything that is not a table
+	function gadget:KillTable(t)
+		if not t or type(t) ~= 'table' then
+			Spring.Echo("incorrect type in SIT_TABLE",t)    
+			return
+		end
+		--Spring.Echo("SIT_TABLE: Before clearing", t)
+		for key, value in pairs(t) do
+			if type(value) == 'table' then
+				gadget:KillTable(value)
+			end
+			t[key] = nil
+			if  next(t) == nil then
+				table.insert(syncTables, t)
+			end
+		end
 	end
 
 	function gadget:RecvLuaMsg(msg, playerID)
