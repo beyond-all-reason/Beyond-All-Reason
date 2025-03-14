@@ -2,7 +2,7 @@
 
 #include "../recoil_common_includes.h"
 
-//#define DEBUG
+#define DEBUG
 #include "../debug.h"
 
 piece
@@ -136,7 +136,7 @@ Create(){
 #define CATT1_PRECISION <10>
 //#define CATT1_PITCH_SPEED <85>
 #define CATT1_RESTORE_DELAY 3000
-#define CATT1_RESTORE_SPEED <1>
+#define CATT1_RESTORE_SPEED <30>
 
 //CATT2 as Railgun
 #define CATT2_PIECE_X aimxarmr
@@ -144,11 +144,11 @@ Create(){
 
 #define CATT2_MAX_VELOCITY <3>
 #define CATT2_ACCELERATION <0.3>
-#define CATT2_JERK <1.2>
+#define CATT2_JERK <2>
 #define CATT2_PRECISION <10>
 //#define CATT2_PITCH_SPEED <85>
-#define CATT2_RESTORE_DELAY 3000
-#define CATT2_RESTORE_SPEED <1>
+#define CATT2_RESTORE_DELAY 6000
+#define CATT2_RESTORE_SPEED <30>
 
 #include "../constant_acceleration_turret_turning_1.h"
 #include "../constant_acceleration_turret_turning_2.h"
@@ -203,22 +203,22 @@ AimWeapon1(heading, pitch)
 		{
 			if (isturning == 1)
 			{
-				turn aimy1 to y-axis <179> speed <60.0000> ;
+				turn aimy1 to y-axis <179> speed <180.0000> ;
 			}
 			if (isturning == 0)
 			{
-				turn aimy1 to y-axis <179> speed <30.0000> ;
+				turn aimy1 to y-axis <179> speed <120.0000> ;
 			}
 		}
 		if (((oldHeadingBunker+oldHeadingRailgun)/2) > 0)
 		{
 			if (isturning == 1)
 			{
-				turn aimy1 to y-axis <-179> speed <60.0000> ;
+				turn aimy1 to y-axis <-179> speed <180.0000> ;
 			}
 			if (isturning == 0)
 			{
-				turn aimy1 to y-axis <-179> speed <30.0000> ;
+				turn aimy1 to y-axis <-179> speed <120.0000> ;
 			}
 		}
 	}
@@ -226,11 +226,11 @@ AimWeapon1(heading, pitch)
 	{
 		if (isturning == 1)
 		{
-			turn aimy1 to y-axis (oldHeadingBunker+oldHeadingRailgun)/2 speed <60.0000> ;
+			turn aimy1 to y-axis (oldHeadingBunker+oldHeadingRailgun)/2 speed <120.0000> ;
 		}
 		if (isturning == 0)
 		{
-			turn aimy1 to y-axis (oldHeadingBunker+oldHeadingRailgun)/2 speed <30.0000> ;
+			turn aimy1 to y-axis (oldHeadingBunker+oldHeadingRailgun)/2 speed <60.0000> ;
 		}
 	}
 
@@ -317,7 +317,7 @@ FireWeapon2()
 	call-script Retract_bunker();
 	sleep 100;
 	move piledriver to z-axis [0.0] speed [8.0];
-	spin fingers around z-axis speed <360> accelerate <24>;
+	spin fingers around z-axis speed <360> accelerate <12>;
 }
 
 AimFromWeapon3(piecenum)
@@ -334,8 +334,17 @@ QueryWeapon3(piecenum)
 AimWeapon3(heading, pitch) {
 	signal SIG_AIM_3;
 	set-signal-mask SIG_AIM_3;
-	turn railgun to x-axis <0> speed <30> / animSpeed;
+	var new_heading;
+	new_heading = (heading - torsofunkyHeading);
 	oldHeadingRailgun = heading;
+
+	//Trying to make the railgun not rotato towards an insane angle relative to the torso. It should be allowed to rotate more freely clockwise than counterclockwise since it is on the right arm. Since the torso rotates to the other side if it tries rotating beyond -180 degrees a (new_heading < <ang>) isnt necessary.
+	dbg(new_heading);
+
+	if(new_heading > 11645) {
+		return (0);}
+
+	turn railgun to x-axis <0> speed <30> / animSpeed;
 	call-script CATT2_Aim((heading - torsofunkyHeading) + <1>,pitch+400);
 	return(1);}
 
@@ -351,8 +360,8 @@ FireWeapon3(){
 ResetWeapon() {
 	set-signal-mask SIG_FIRE1; //Set this to whichever signal the weapon emits when firing!
 	sleep restore_delay;
-	turn aimxarml to x-axis <0.000000> speed <45.000000>;
-	turn aimyarml to y-axis <0.000000> speed <45.000000>;}
+	turn aimxarml to x-axis <0.000000> speed <30.000000>;
+	turn aimyarml to y-axis <0.000000> speed <30.000000>;}
 
 
 RestoreAfterDelay(){
