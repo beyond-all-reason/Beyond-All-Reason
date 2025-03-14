@@ -5,4 +5,6 @@ def.buildpic = "other/dice.dds"
 def.customparams = {i18nfromunit = "random",}
 def.objectname = "cordice.s3o"
 def.script = "dice.lua"
+def.weapondefs = nil
+def.weapons = nil
 return { dummycom = def }
