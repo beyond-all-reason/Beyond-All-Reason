@@ -84,7 +84,7 @@ function BomberBST:BombTarget(targetUnit, path)
 		self:EchoDebug("no unit or no engine unit")
 		return
 	end
-	self.BombPosition(self.target.POS,32)
+	self:BombPosition(self.target.POS,32)
 end
 
 function BomberBST:SetIdleMode()
