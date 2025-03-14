@@ -300,6 +300,7 @@ local function clear()
 	dlistBuildmenu = gl.DeleteList(dlistBuildmenu)
 	dlistBuildmenuBg = gl.DeleteList(dlistBuildmenuBg)
 	hoverDlist = gl.DeleteList(hoverDlist)
+	prevHoveredCellID = nil
 end
 
 function widget:ViewResize()
@@ -445,6 +446,7 @@ function widget:Update(dt)
 			ordermenuHeight = oheight
 		end
 		if not prevAdvplayerlistLeft or advplayerlistLeft ~= prevAdvplayerlistLeft or not prevOrdermenuLeft or ordermenuLeft ~= prevOrdermenuLeft  or not prevOrdermenuHeight or ordermenuHeight ~= prevOrdermenuHeight then
+			prevAdvplayerlistLeft = advplayerlistLeft
 			widget:ViewResize()
 		end
 
