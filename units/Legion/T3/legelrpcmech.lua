@@ -259,14 +259,14 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL GROUNDSCOUT",
 				def = "SHOCKER_LOW",
-				maindir = "1 0 0",
+				maindir = "0 0 1",
 				maxangledif = 180,
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
 				badtargetcategory = "VTOL GROUNDSCOUT",
 				def = "SHOCKER_HIGH",
-				maindir = "1 0 0",
+				maindir = "0 0 1",
 				maxangledif = 180,
 				onlytargetcategory = "SURFACE",
 			},
