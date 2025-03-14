@@ -66,7 +66,9 @@ if gadgetHandler:IsSyncedCode() then
 	--------------------------------------------------------------------------------
 	--------------------------------------------------------------------------------
 	Spring.SetGameRulesParam("BossFightStarted", 0)
-	local bossLifePercent = 100
+	local nKilledBosses = 0
+	local nSpawnedBosses = 0
+	local nTotalBosses = Spring.GetModOptions().scav_boss_count or 1
 	local maxTries = 30
 	local scavUnitCap = math.floor(Game.maxUnits*0.80)
 	local minBurrows = 1
@@ -75,7 +77,7 @@ if gadgetHandler:IsSyncedCode() then
 	local t = 0 -- game time in secondstarget
 	local bossAnger = 0
 	local techAnger = 0
-	local bossMaxHP = 0
+	local totalBossesMaxHealth
 	local playerAggression = 0
 	local playerAggressionLevel = 0
 	local playerAggressionEcoValue = 0
@@ -130,7 +132,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spawnQueue = {}
 	local deathQueue = {}
 	local bossResistance = {}
-	local bossID
+	local bossIDs = {}
 	local scavTeamID, scavAllyTeamID
 	local lsx1, lsz1, lsx2, lsz2
 	local burrows = {}
@@ -339,6 +341,9 @@ if gadgetHandler:IsSyncedCode() then
 		playerAggression = 0
 		bossAngerAggressionLevel = 0
 		pastFirstBoss = true
+		nSpawnedBosses = 0
+		nKilledBosses = 0
+		bossResistance = {}
 		SetGameRulesParam("scavBossAnger", bossAnger)
 		SetGameRulesParam("scavTechAnger", techAnger)
 		local nextDifficulty
@@ -385,7 +390,6 @@ if gadgetHandler:IsSyncedCode() then
 	--
 
 	SetGameRulesParam("scavBossTime", bossTime)
-	SetGameRulesParam("scavBossHealth", bossLifePercent)
 	SetGameRulesParam("scavBossAnger", bossAnger)
 	SetGameRulesParam("scavTechAnger", techAnger)
 	SetGameRulesParam("scavGracePeriod", config.gracePeriod)
@@ -439,7 +443,7 @@ if gadgetHandler:IsSyncedCode() then
 			if squadsTable[i].squadLife <= 0 then
 				-- Spring.Echo("Life is 0, time to do some killing")
 				if SetCount(squadsTable[i].squadUnits) > 0 then
-					if squadsTable[i].squadBurrow and (not bossID) then
+					if squadsTable[i].squadBurrow and nSpawnedBosses == 0 then
 						Spring.DestroyUnit(squadsTable[i].squadBurrow, true, false)
 					end
 					-- Spring.Echo("There are some units to kill, so let's kill them")
@@ -1017,17 +1021,19 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function updateBossLife()
-		if not bossID then
+		if nKilledBosses == nTotalBosses then
 			SetGameRulesParam("scavBossHealth", 0)
 			return
 		end
-		local curH, maxH = GetUnitHealth(bossID)
-		local lifeCheck = math.ceil(((curH / maxH) * 100) - 0.5)
-		if bossLifePercent ~= lifeCheck then
-			-- health changed since last update, update it
-			bossLifePercent = lifeCheck
-			SetGameRulesParam("scavBossHealth", bossLifePercent)
+
+		local totalHealth = 0
+		totalBossesMaxHealth = 0
+		for bossID, _ in pairs(bossIDs) do
+			local health, maxHealth = GetUnitHealth(bossID)
+			totalHealth = totalHealth + health
+			totalBossesMaxHealth = totalBossesMaxHealth + maxHealth
 		end
+		SetGameRulesParam("scavBossHealth", math.floor(0.5 + ((totalHealth / totalBossesMaxHealth) * 100)))
 	end
 
 	function SpawnBoss()
@@ -1037,7 +1043,7 @@ if gadgetHandler:IsSyncedCode() then
 		for burrowID, _ in pairs(burrows) do
 			-- Try to spawn the boss at the 'best' burrow
 			local x, y, z = GetUnitPosition(burrowID)
-			if x and y and z then
+			if x and y and z and not bossIDs[burrowID] then
 				local score = 0
 				score = mRandom(1,1000)
 				if score > bestScore then
@@ -1596,17 +1602,21 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
-		if unitID == bossID then -- Boss Resistance
+		if bossIDs[unitID] then -- Boss Resistance
 			if attackerDefID then
 				if weaponID == -1 and damage > 1 then
 					damage = 1
 				end
 				if not bossResistance[attackerDefID] then
-					bossResistance[attackerDefID] = {}
-					bossResistance[attackerDefID].damage = (damage * 4 * config.bossResistanceMult)
-					bossResistance[attackerDefID].notify = 0
+					bossResistance[attackerDefID] = {
+						damage = damage * 4 * config.bossResistanceMult,
+						notify = 0
+					}
 				end
-				local resistPercent = math.min((bossResistance[attackerDefID].damage) / bossMaxHP, 0.98)
+				if not totalBossesMaxHealth then
+					updateBossLife()
+				end
+				local resistPercent = math.min((bossResistance[attackerDefID].damage) / totalBossesMaxHealth, 0.98)
 				if resistPercent > 0.5 then
 					if bossResistance[attackerDefID].notify == 0 then
 						scavEvent("bossResistance", attackerDefID)
@@ -1700,14 +1710,14 @@ if gadgetHandler:IsSyncedCode() then
 				unitCowardCooldown[attackerID] = Spring.GetGameFrame() + 900
 			end
 		end
-		if bossID and unitID == bossID then
+		if bossIDs[unitID] then
 			local curH, maxH = GetUnitHealth(unitID)
 			if curH and maxH then
 				curH = math.max(curH, maxH*0.05)
 				local spawnChance = math.max(0, math.ceil(curH/maxH*10000))
 				if mRandom(0,spawnChance) == 1 then
-					SpawnMinions(bossID, Spring.GetUnitDefID(bossID))
-					SpawnMinions(bossID, Spring.GetUnitDefID(bossID))
+					SpawnMinions(unitID, Spring.GetUnitDefID(unitID))
+					SpawnMinions(unitID, Spring.GetUnitDefID(unitID))
 				end
 			end
 		end
@@ -1845,18 +1855,20 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function updateSpawnBoss()
-		if not bossID and not gameOver then
+		if nSpawnedBosses < nTotalBosses and not gameOver then
 			-- spawn boss if not exists
-			bossID = SpawnBoss()
+			local bossID = SpawnBoss()
+			nSpawnedBosses = nSpawnedBosses + 1
 			if bossID then
-				bossSquad = table.copy(squadCreationQueueDefaults)
+				bossIDs[bossID] = true
+				local bossSquad = table.copy(squadCreationQueueDefaults)
 				bossSquad.life = 999999
 				bossSquad.role = "raid"
 				bossSquad.units = {bossID}
 				createSquad(bossSquad)
 				spawnQueue = {}
 				scavEvent("boss") -- notify unsynced about boss spawn
-				_, bossMaxHP = GetUnitHealth(bossID)
+				local _, bossMaxHP = GetUnitHealth(bossID)
 				Spring.SetUnitHealth(bossID, math.max(bossMaxHP*(techAnger*0.01), bossMaxHP*0.2))
 				SetUnitExperience(bossID, 0)
 				timeOfLastWave = t
@@ -1942,7 +1954,7 @@ if gadgetHandler:IsSyncedCode() then
 			playerAggression = playerAggression*0.995
 			playerAggressionLevel = math.floor(playerAggression)
 			SetGameRulesParam("scavPlayerAggressionLevel", playerAggressionLevel)
-			if not bossID then
+			if nSpawnedBosses == 0 then
 				currentMaxWaveSize = (minWaveSize + math.ceil((techAnger*0.01)*(maxWaveSize - minWaveSize)))
 			else
 				currentMaxWaveSize = math.ceil((minWaveSize + math.ceil((techAnger*0.01)*(maxWaveSize - minWaveSize)))*(config.bossFightWaveSizeScale*0.01))
@@ -1953,7 +1965,7 @@ if gadgetHandler:IsSyncedCode() then
 				bossAnger = 0
 				minBurrows = math.ceil(math.max(4, 2*SetCount(humanTeams))*(t/config.gracePeriod))
 			else
-				if not bossID then
+				if nSpawnedBosses == 0 then
 					bossAnger = math.max(math.ceil(math.min((t - config.gracePeriod) / (bossTime - config.gracePeriod) * 100) + bossAngerAggressionLevel, 100), 0)
 					minBurrows = 1
 				else
@@ -2221,39 +2233,40 @@ if gadgetHandler:IsSyncedCode() then
 			SetGameRulesParam("scav" .. "Kills", kills + 1)
 		end
 
-		if unitID == bossID then
-			-- boss destroyed
-			bossID = nil
-			bossResistance = {}
-			Spring.SetGameRulesParam("BossFightStarted", 0)
+		if bossIDs[unitID] then
+			nKilledBosses = nKilledBosses + 1
+			bossIDs[unitID] = nil
 
-			if Spring.GetModOptions().scav_endless then
-				updateDifficultyForSurvival()
-			else
-				gameOver = GetGameFrame() + 200
-				spawnQueue = {}
-				gameIsOver = true
+			if nKilledBosses == nTotalBosses then
+				Spring.SetGameRulesParam("BossFightStarted", 0)
 
-				if not killedScavsAllyTeam then
-					killedScavsAllyTeam = true
+				if Spring.GetModOptions().scav_endless then
+					updateDifficultyForSurvival()
+				else
+					gameOver = GetGameFrame() + 200
+					spawnQueue = {}
 
-					-- kill scav team
-					Spring.KillTeam(scavTeamID)
+					if not killedScavsAllyTeam then
+						killedScavsAllyTeam = true
 
-					-- check if scavengers are in the same allyteam and alive
-					local scavengersFoundAlive = false
-					for _, teamID in ipairs(Spring.GetTeamList(scavAllyTeamID)) do
-						local luaAI = Spring.GetTeamLuaAI(teamID)
-						if luaAI and luaAI:find("Scavengers") and not select(3, Spring.GetTeamInfo(teamID, false)) then
-							scavengersFoundAlive = true
-						end
-					end
+						-- kill scav team
+						Spring.KillTeam(scavTeamID)
 
-					-- kill whole allyteam
-					if not scavengersFoundAlive then
+						-- check if scavengers are in the same allyteam and alive
+						local scavengersFoundAlive = false
 						for _, teamID in ipairs(Spring.GetTeamList(scavAllyTeamID)) do
-							if not select(3, Spring.GetTeamInfo(teamID, false)) then
-								Spring.KillTeam(teamID)
+							local luaAI = Spring.GetTeamLuaAI(teamID)
+							if luaAI and luaAI:find("Scavengers") and not select(3, Spring.GetTeamInfo(teamID, false)) then
+								scavengersFoundAlive = true
+							end
+						end
+
+						-- kill whole allyteam
+						if not scavengersFoundAlive then
+							for _, teamID in ipairs(Spring.GetTeamList(scavAllyTeamID)) do
+								if not select(3, Spring.GetTeamInfo(teamID, false)) then
+									Spring.KillTeam(teamID)
+								end
 							end
 						end
 					end
