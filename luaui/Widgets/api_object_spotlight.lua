@@ -89,7 +89,7 @@ out DataVS {
 	float unitID;
 	float cameraDistance;
 	float lifetimeElapsed;
-} output;
+} outputVars;
 
 uint SO_NODRAW_FLAG = 0;
 uint SO_OPAQUE_FLAG = 1;
@@ -142,16 +142,16 @@ void main() {
 
 	gl_Position = cameraViewProj * vec4(resultPos, 1.0);
 
-	output.color = color;
-	output.localPos = localPos;
-	output.unitID = instData.y;
-	output.cameraDistance = cameraDistance;
+	outputVars.color = color;
+	outputVars.localPos = localPos;
+	outputVars.unitID = instData.y;
+	outputVars.cameraDistance = cameraDistance;
 
 	if (startTime != 0 && expireTime != 0 && startTime != expireTime) {
 		// percent of lifetime that has passed so far
-		output.lifetimeElapsed = clamp((timeInfo.y - startTime) / (expireTime - startTime), 0.0, 1.0);
+		outputVars.lifetimeElapsed = clamp((timeInfo.y - startTime) / (expireTime - startTime), 0.0, 1.0);
 	} else {
-		output.lifetimeElapsed = 0;
+		outputVars.lifetimeElapsed = 0;
 	}
 }
 ]]
@@ -169,7 +169,7 @@ in DataVS {
 	float unitID;
 	float cameraDistance;
 	float lifetimeElapsed;
-} input;
+} inputVars;
 
 out vec4 outputColor;
 
@@ -190,22 +190,22 @@ vec3 transformRGB(vec3 c, float v) {
 
 #line 25000
 void main() {
-	float effectiveY = input.localPos.y;
+	float effectiveY = inputVars.localPos.y;
 	if (effectiveY < 0) {
 		// spotlights below the object fade closer
 		effectiveY = clamp(abs(effectiveY) * 4, 0.0, 1.0);
 	}
 	float t = 0.25 * timeInfo.y;
-	float v1 = clamp(0.05 * noise(input.localPos, t), -0.25, 0.25);
-	float v2 = clamp(0.5 * noise(input.localPos, t * 2), -0.5, 0.5);
+	float v1 = clamp(0.05 * noise(inputVars.localPos, t), -0.25, 0.25);
+	float v2 = clamp(0.5 * noise(inputVars.localPos, t * 2), -0.5, 0.5);
 
 	outputColor.rgba = vec4(
-		transformRGB(input.color.rgb, v1),
-		input.color.a
+		transformRGB(inputVars.color.rgb, v1),
+		inputVars.color.a
 		 * (1 + v2)
 		 * pow(1 - effectiveY, 4) // more opacity near the unit
-		 * clamp(input.cameraDistance / 4500, 0.1, 1.1) // more opacity viewing from far away
-		 * pow(1 - input.lifetimeElapsed, 1) // less opacity as it gets closer to expiring
+		 * clamp(inputVars.cameraDistance / 4500, 0.1, 1.1) // more opacity viewing from far away
+		 * pow(1 - inputVars.lifetimeElapsed, 1) // less opacity as it gets closer to expiring
 	);
 }
 ]]
