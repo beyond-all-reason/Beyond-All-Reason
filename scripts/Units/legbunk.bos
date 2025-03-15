@@ -72,8 +72,8 @@ static-var torsoHeading, isAiming, animSpeed, maxSpeed, animFramesPerKeyframe, i
 #define SIGNAL_MOVE 1
 #define SIG_WALK			2
 #define SIG_AIM				4
-#define SIG_AIM_2			8
-#define SIG_AIM_3			16
+#define SIG_AIM_BUNKER			8
+#define SIG_AIM_GUN			16
 #define SIG_ARMOR			32
 #define SIG_FIRE_BUNKER		64
 
@@ -132,10 +132,10 @@ Create(){
 
 #define CATT1_MAX_VELOCITY <3>
 #define CATT1_ACCELERATION <0.3>
-#define CATT1_JERK <1.2>
+#define CATT1_JERK <0.5>
 #define CATT1_PRECISION <10>
 //#define CATT1_PITCH_SPEED <85>
-//#define CATT1_RESTORE_DELAY 3000
+#define CATT1_RESTORE_DELAY 3000
 #define CATT1_RESTORE_SPEED <30>
 
 //CATT2 as Railgun
@@ -143,12 +143,16 @@ Create(){
 #define CATT2_PIECE_Y aimyarmr
 
 #define CATT2_MAX_VELOCITY <3>
-#define CATT2_ACCELERATION <0.3>
-#define CATT2_JERK <1.2>
-#define CATT2_PRECISION <10>
+#define CATT2_ACCELERATION <0.6>
+#define CATT2_JERK <0.5>
+#define CATT2_PRECISION <5>
 //#define CATT2_PITCH_SPEED <85>
-#define CATT2_RESTORE_DELAY 6000
+#define CATT2_RESTORE_DELAY 3000
 #define CATT2_RESTORE_SPEED <30>
+
+#define HAS_STUN
+#define CATT2_DEBUG
+
 
 #include "../constant_acceleration_turret_turning_1.h"
 #include "../constant_acceleration_turret_turning_2.h"
@@ -288,6 +292,7 @@ AimWeapon1(heading, pitch)
 		wait-for-turn aimy1 around y-axis;
 	}
 	oldHeadingTS = heading;
+	//dbg(heading,oldHeadingBunker,oldHeadingRailgun,cauaim,cauface,torsofunkyHeading,oldHeadingTS)
     call-script RestoreAfterDelay();
 	return (1);
 }
@@ -300,8 +305,8 @@ AimWeapon1(heading, pitch)
 //Temporary Fix: Disabled Y Arm rotation of both weapons. Its a tragedy, but the system was too unstable. Hopefully I can figure something out to bring it back.
 AimWeapon2(heading, pitch)
 {
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
+	signal SIG_AIM_BUNKER;
+	set-signal-mask SIG_AIM_BUNKER;
 	//dbg()
 	//call-script ResetWeapon();
 	turn piledriver to x-axis <0> speed <60> / animSpeed;
@@ -332,29 +337,30 @@ QueryWeapon3(piecenum)
 
 //Railgun
 AimWeapon3(heading, pitch) {
-	signal SIG_AIM_3;
-	set-signal-mask SIG_AIM_3;
+	signal SIG_AIM_GUN;
+	set-signal-mask SIG_AIM_GUN;
 	var new_heading;
 	new_heading = (heading - torsofunkyHeading);
 
 	//Trying to make the railgun not rotato towards an insane angle relative to the torso. It should be allowed to rotate more freely clockwise than counterclockwise since it is on the right arm. Since the torso rotates to the other side if it tries rotating beyond -180 degrees a (new_heading < <ang>) isnt necessary.
 	//dbg(heading,torsofunkyHeading,new_heading);
-	if(new_heading > 15000) {
-		wait-for-turn aimy1 around y-axis;
-	}
-	if(new_heading > 12000) {
-		//turn aimyarmr to y-axis <0> speed <60>;
-		//oldHeadingRailgun = heading;
-		//return (0);
-	}
+	dbg(oldHeadingRailgun,new_heading);
+	/*if ((oldHeadingRailgun == 0xbadface) OR ANGLE_DIFFERENCE_GREATER_THAN(new_heading, <90>))
+	{
+		oldHeadingRailgun = 1000000;
+		wait-for-turn aimyarmr around y-axis;
+		//return(0);
+	}*/
 	turn railgun to x-axis <0> speed <30>;
 
 	oldHeadingRailgun = heading;
 	call-script CATT2_Aim((heading - torsofunkyHeading) + <1>,pitch+400);
+	start-script RestoreAfterDelay();
 	return(1);}
 
 
 FireWeapon3(){
+	signal SIG_AIM_GUN;
 	move railgunfingers to z-axis [-10] speed [100];
 	start-script FireGunExhausts();
 	sleep 500;
@@ -365,7 +371,7 @@ FireWeapon3(){
 ResetWeapon() {
 	set-signal-mask SIG_FIRE_BUNKER; //Set this to whichever signal the weapon emits when firing!
 	sleep restore_delay;
-	dbg()
+	dbg();
 	turn aimxarml to x-axis <0.000000> speed <30.000000>;
 	turn aimyarml to y-axis <0.000000> speed <30.000000>;}
 
@@ -379,6 +385,9 @@ ExecuteRestoreAfterDelay() {
     if (stunned) {
         return (1);
     }
+	signal SIG_AIM_BUNKER;
+	signal SIG_AIM_GUN;
+
 	turn aimy1 to y-axis <0.000000> speed <60.000000>;
 	turn aimxarml to x-axis <0.000000> speed <60.000000>;
 	turn aimyarml to y-axis <0.000000> speed <60.000000>;
