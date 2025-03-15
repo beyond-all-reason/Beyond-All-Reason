@@ -59,8 +59,9 @@ return {
 			minesweeper = 450,
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "Legion/Vehicles",
+			subfolder = "Legion/vehicles",
 			unitgroup = "builder",
+      disableunitsharing_treatascombatunit = 1,
 		},
 		featuredefs = {
 			dead = {
