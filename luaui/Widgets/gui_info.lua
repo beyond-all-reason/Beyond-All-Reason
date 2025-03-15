@@ -273,8 +273,8 @@ local function refreshUnitInfo()
 			local prevMinDps = unitDefInfo[unitDefID].mindps or 0
 			local prevMaxDps = unitDefInfo[unitDefID].maxdps or 0
 
-			local munition = def.customParams.def     or unitDef.name .. '_' .. 'cluster_munition'
-			local cmNumber = def.customParams.number  or 5 -- note: keep in sync with cluster defaults.
+			local munition = unitDef.name .. '_' .. def.customParams.cluster_def
+			local cmNumber = def.customParams.cluster_number
 			local cmDamage = WeaponDefNames[munition].damages[0]
 
 			local mainDps = math_floor((def.salvoSize * def.projectiles) / def.reload * (damage))
@@ -2011,6 +2011,7 @@ function checkChanges()
 	local x, y, b, b2, b3, mouseOffScreen, cameraPanMode = spGetMouseState()
 	lastHoverData = hoverData
 	hoverType, hoverData = spTraceScreenRay(x, y)
+	
 	if hoverType == 'unit' or hoverType == 'feature' then
 		if lastHoverData ~= hoverData then
 			lastHoverDataClock = os_clock()
@@ -2058,6 +2059,14 @@ function checkChanges()
 		displayMode = 'unit'
 		displayUnitID = hoverData
 		displayUnitDefID = spGetUnitDefID(displayUnitID)
+		if not displayUnitDefID and SelectedUnitsCount >= 1 then
+			if SelectedUnitsCount == 1 then
+				displayUnitID = selectedUnits[1]
+				displayUnitDefID = spGetUnitDefID(selectedUnits[1])
+			else
+				displayMode = 'selection'
+			end
+		end
 		if lastUpdateClock + 0.4 < os_clock() then
 			-- unit stats could have changed meanwhile
 			doUpdate = true
