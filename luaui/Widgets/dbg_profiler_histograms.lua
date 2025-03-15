@@ -16,8 +16,6 @@ function widget:GetInfo()
 end
 
 ---------------------------Speedups-----------------------------
-local spGetTimer = Spring.GetTimer
-local spDiffTimers = Spring.DiffTimers
 local spGetProfilerTimeRecord = Spring.GetProfilerTimeRecord
 ---------------------------Internal vars---------------------------
 local timerstart = nil

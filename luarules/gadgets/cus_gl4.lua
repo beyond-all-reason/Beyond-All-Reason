@@ -13,7 +13,6 @@ function gadget:GetInfo()
 end
 
 if gadgetHandler:IsSyncedCode() then
-	local itsXmas = GG.itsXmas
 	return false
 end
 
@@ -342,9 +341,6 @@ do --save a ton of locals
 	} -- maps uniformbins to a table of uniform names/values
 end
 
-local alphaMult = 0.35
-local alphaThresholdOpaque = 0.5
-local alphaThresholdAlpha  = 0.1
 local overrideDrawFlags = {
 	[0]  = true , --SO_OPAQUE_FLAG = 1, deferred hack
 	[1]  = true , --SO_OPAQUE_FLAG = 1,
@@ -511,17 +507,12 @@ local function SetFixedStatePost(drawPass, shaderID)
 end
 
 local function SetShaderUniforms(drawPass, shaderID, uniformBinID)
-	--if true then return end
 	gl.UniformInt(gl.GetUniformLocation(shaderID, "drawPass"), drawPass)
 	if drawPass <= 2 then
 		gl.Uniform(gl.GetUniformLocation(shaderID, "clipPlane2"), 0.0, 0.0, 0.0, 1.0)
-	elseif drawPass == 16 then
-		--gl.Uniform(gl.GetUniformLocation(shaderID, "alphaCtrl"), alphaThresholdOpaque, 1.0, 0.0, 0.0)
-		-- set properly by default
 	end
 
 	for uniformLocationName, uniformValue in pairs(uniformBins[uniformBinID]) do
-		--Spring.Echo("Setting uniform",uniformLocationName, uniformValue)
 		if uniformLocationName == 'bitOptions' then
 			gl.UniformInt(gl.GetUniformLocation(shaderID, uniformLocationName), uniformValue)
 		else
