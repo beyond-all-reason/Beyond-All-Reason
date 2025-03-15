@@ -22,7 +22,7 @@ return {
 		maxslope = 17,
 		maxwaterdepth = 0,
 		metalcost = 11000,
-		movementclass = "HTBOT7",
+		movementclass = "HBOT7",
 		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/LEGELRPCMECH.s3o",
