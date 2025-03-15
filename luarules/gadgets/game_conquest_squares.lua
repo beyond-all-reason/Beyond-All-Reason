@@ -594,297 +594,312 @@ if SYNCED then
 
 else
 
+-- UNSYNCED CODE
+
+--localized Functions
+local glDepthTest = gl.DepthTest
+local glTexture = gl.Texture
+
+-- Constants
+local GRID_SIZE = 1024
+local NORMAL_ALPHA = 0.5
+local BLINKING_ALPHA = 0.5
+local SQUARE_REVEAL_DISTANCE = math.hypot(GRID_SIZE, GRID_SIZE) * 1.1
+
+local luaShaderDir = "LuaUI/Widgets/Include/"
+local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
+VFS.Include(luaShaderDir.."instancevbotable.lua")
+
+local vsSrc = [[
+#version 420
+#extension GL_ARB_shading_language_420pack: require
+
+layout (location = 0) in vec4 position;
+layout (location = 1) in vec4 posscale;
+layout (location = 2) in vec4 color1;
+layout (location = 3) in vec4 visibility;
+layout (location = 4) in vec4 capturestate;
+
+uniform sampler2D heightmapTex;
+uniform float gameFrame;
+
+out DataVS {
+	vec4 color;
+	float progress;
+};
+
+//__ENGINEUNIFORMBUFFERDEFS__
+
+void main() {
+	// Calculate world position
+	vec4 worldPos = vec4(position.x * posscale.w, 0.0, position.z * posscale.w, 1.0);
+	worldPos.xz += posscale.xz;
 	
-	-- Note: this is now updated to support arbitrary start polygons via GL.SHADER_STORAGE_BUFFER
+	// Get height from heightmap
+	vec2 uvhm = heightmapUVatWorldPos(worldPos.xz);
+	worldPos.y = textureLod(heightmapTex, uvhm, 0.0).x + posscale.y;
 	
-	-- The format of the buffer is the following:
-	-- Triplets of :teamID, triangleID, x, z
+	// Calculate pulsing effect based on game frame
+	float pulse = 0.3 + 0.7 * sin(gameFrame * 0.05);
 	
-	-- Spring.Echo(Spring.GetTeamInfo(Spring.GetMyTeamID()))
+	// Pass color to fragment shader with pulsing alpha
+	color = color1;
+	color.a *= mix(visibility.z, visibility.w, pulse);
 	
-	-- TODO:
-	-- [ ] Handle overlapping of boxes and myAllyTeamID
-	-- [X] Handle Minimap drawing too 
-		-- [X] handle flipped minimaps 
-	-- [ ] Pass in my team too
-	-- [ ] Handle Scavengers in scavenger color
-	-- [ ] Handle Raptors in raptor color
+	// Pass progress for visualization
+	progress = capturestate.y;
 	
-	local scavengerStartBoxTexture = "LuaUI/Images/scav-tileable_v002_small.tga"
+	// Transform to clip space
+	gl_Position = cameraViewProj * worldPos;
+}
+]]
+
+-- Fragment shader source
+local fsSrc = [[
+#version 420
+#extension GL_ARB_shading_language_420pack: require
+
+in DataVS {
+	vec4 color;
+	float progress;
+};
+
+out vec4 fragColor;
+
+void main() {
+	// Create a progress bar effect
+	fragColor = color;
 	
-	local raptorStartBoxTexture = "LuaUI/Images/rapt-tileable_v002_small.tga"
+	// Optional: Add a progress indicator
+	if (progress > 0.0) {
+		// Add a highlight based on progress
+		fragColor.rgb = mix(fragColor.rgb, vec3(1.0, 1.0, 1.0), progress * 0.3);
+	}
+}
+]]
+
+-- Variables
+local mapSizeX = Game.mapSizeX
+local mapSizeZ = Game.mapSizeZ
+local numberOfSquaresX = math.ceil(mapSizeX / GRID_SIZE)
+local numberOfSquaresZ = math.ceil(mapSizeZ / GRID_SIZE)
+local totalSquares = numberOfSquaresX * numberOfSquaresZ
+local teams = Spring.GetTeamList()
+local myAllyTeamID = Spring.GetMyAllyTeamID()
+local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID()))
+
+-- Tables
+local gridData = {}
+local allyScores = {}
+local planeVBO
+local planeInstanceTable
+local dominionShader
+local planeVAO
+
+local blankColor = {0.5, 0.5, 0.5, 0.0} -- grey and transparent for gaia
+local enemyColor = {1, 0, 0, NORMAL_ALPHA} -- red for enemy
+local alliedColor = {0, 1, 0, NORMAL_ALPHA} -- green for ally
+local allyColors = {}
+for _, teamID in ipairs(teams) do
+local allyID = select(6, Spring.GetTeamInfo(teamID))-- Store the first team color for each ally team
+	if allyID then
+		if not allyColors[allyID] and allyID ~= gaiaAllyTeamID then
+			local r, g, b, a = Spring.GetTeamColor(teamID)
+			allyColors[allyID] = {r, g, b, NORMAL_ALPHA}
+		else
+			allyColors[allyID] = blankColor
+		end
+	end
+end
+
+
+
+-- Function to create and initialize the shader
+local function makeShader()
+	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
+	local vsShader = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+	local fsShader = fsSrc
 	
-	local getMiniMapFlipped = VFS.Include("LuaUI/Widgets/Include/minimap_utils.lua").getMiniMapFlipped
+	dominionShader = LuaShader({
+		vertex = vsShader,
+		fragment = fsShader,
+		uniformInt = {
+			heightmapTex = 0,
+		},
+		uniformFloat = {
+			gameFrame = 0,
+		},
+	}, "dominionShader")
 	
-	local scavengerAITeamID = 999
-	local raptorsAITeamID = 999
-	local scavengerAIAllyTeamID
-	local raptorsAIAllyTeamID
-	local teams = Spring.GetTeamList()
+	local shaderCompiled = dominionShader:Initialize()
+	if not shaderCompiled then
+		Spring.Echo("Failed to compile dominionShader")
+		return false
+	end
+	return true
+end
+
+-- Pre-populate gridData with default values
+for gridID = 1, totalSquares do
+	local gridXIndex = math.floor((gridID - 1) / numberOfSquaresZ)
+	local gridZIndex = (gridID - 1) % numberOfSquaresZ
+	
+	-- Calculate the actual map coordinates for the origin of the square
+	local gridX = gridXIndex * GRID_SIZE
+	local gridZ = gridZIndex * GRID_SIZE
+	
+	gridData[gridID] = {
+		gridX = gridX,
+		gridZ = gridZ,
+		middleX = gridX + GRID_SIZE / 2,
+		middleZ = gridZ + GRID_SIZE / 2,
+		allyOwnerID = gaiaAllyTeamID,
+		blinking = true,
+		progress = 0
+	}
+end
+
+
+local planeLayout = {
+	{id = 1, name = 'posscale', size = 4}, -- a vec4 for pos + scale
+	{id = 2, name = 'color1', size = 4}, --  vec4 the color of this new
+	{id = 3, name = 'visibility', size = 4}, --- vec4 heightdrawstart, heightdrawend, fadefactorin, fadefactorout
+	{id = 4, name = 'capturestate', size = 4}, -- vec4 blinking, progress
+}
+
+local function updateSquareInstance(gridID, isSpectator)
+	local data = gridData[gridID]
+	local colorTable = blankColor
+
+	if data.needsUpdate then
+		if isSpectator then
+			colorTable = allyColors[data.allyOwnerID]
+		elseif data.allyOwnerID == myAllyTeamID then
+			colorTable = alliedColor
+		elseif data.allyOwnerID ~= gaiaAllyTeamID then
+			colorTable = enemyColor
+		end
+	end
+	
+	data.needsUpdate = false
+end
+
+-- Update a square's instance data
+local function updateAllSquareInstances()
+	local isSpectator = Spring.GetSpectatingState()
+
+	for gridID, data in pairs(gridData) do
+		updateSquareInstance(gridID, isSpectator)
+	end
+end
+
+-- Draw the squares
+local function DrawSquares()
+	if not planeVBO or not dominionShader then return end
+	
+	glTexture(0, "$heightmap")
+	glDepthTest(true)
+	
+	dominionShader:Activate()
+	dominionShader:SetUniform("gameFrame", Spring.GetGameFrame())
+	
+	-- Draw the square as two triangles (using triangle strip)
+	planeInstanceTable.VAO:DrawArrays(GL.TRIANGLE_FAN, 4, 0, planeInstanceTable.usedElements, 0)
+	
+	dominionShader:Deactivate()
+	glTexture(0, false)
+	glDepthTest(false)
+end
+
+function gadget:DrawWorldPreUnit()
+	DrawSquares()
+end
+
+function gadget:Initialize()
+	local planeVBO = makePlaneVBO(GRID_SIZE, GRID_SIZE, 1, 1)
+	local planeInstanceTable = makeInstanceVBOTable(planeLayout, totalSquares, "planeVBO")
+	local planeVAO = makeVAOandAttach(planeVBO, planeInstanceTable.instanceVBO)
+	planeInstanceTable.VAO = planeVAO
+	--zzz mid refactor, trying to learn how to use instancing
+	makeShader()
+	updateAllSquareInstances()
+
+	---TEST DRAW SQUARE
+	---	-- Add a single instance for our square
+	local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
+	local centerX, centerZ = mapSizeX / 2, mapSizeZ / 2
+	local groundHeight = Spring.GetGroundHeight(centerX, centerZ)
+	
+	local instanceData = {
+		centerX, GRID_SIZE, centerZ, GRID_SIZE,  -- posscale: x, y, z, scale
+		1.0, 0.5, 0.2, 0.8,                           -- color1: r, g, b, a
+		2000, 5000, 0.8, 0.2,                         -- visibility: fadeStart, fadeEnd, minAlpha, maxAlpha
+		1.0, 0.0, 0.0, 0.0                            -- capturestate: blinking, progress, unused, unused
+	}
+	
+	pushElementInstance(planeInstanceTable, instanceData, 1, true, false)
+	uploadAllElements(planeInstanceTable)
+	----
+end
+
+	-- Receive grid data from synced
+function gadget:RecvFromSynced(cmd, ...)
+	local args = {...}
+	
+	if cmd == "InitializeGridSquare" then
+		-- Initialize a single grid square
+		local gridID = args[1]
+		local allyOwnerID = args[2]
+		local blinking = args[3]
+		local gridX = args[4]
+		local gridZ = args[5]
 		
-	local gridData = {}
-	local allyScores = {}
-	local allyColors = {} -- doesn't include gaia
-	local exemptFromAllyColors = {}
-
-	for i = 1, #teams do
-		local luaAI = Spring.GetTeamLuaAI(teams[i])
-		if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
-			scavengerAITeamID = i - 1
-			scavengerAIAllyTeamID = select(6, Spring.GetTeamInfo(scavengerAITeamID))
-			exemptFromAllyColors[scavengerAIAllyTeamID] = true
-			break
-		end
-	end
-	for i = 1, #teams do
-		local luaAI = Spring.GetTeamLuaAI(teams[i])
-		if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'RaptorsAI' then
-			raptorsAITeamID = i - 1
-			raptorsAIAllyTeamID = select(6, Spring.GetTeamInfo(raptorsAITeamID))
-			exemptFromAllyColors[raptorsAIAllyTeamID] = true
-			break
-		end
-	end
-
-	local gaiaAllyTeamID = Spring.GetGaiaTeamID()
-	for i = 1, #teams do
-		local allyID = select(6, Spring.GetTeamInfo(i))
-		if i == gaiaAllyTeamID then
-			exemptFromAllyColors[allyID] = true
-		elseif allyID and not exemptFromAllyColors[allyID] and not allyColors[allyID] then -- we want the first available color per ally team
-		Spring.Echo("allyID", allyID, Spring.GetTeamColor(i))
-			allyColors[allyID] = Spring.GetTeamColor(i)
-		end
-	end
-
-	local GRID_SIZE = 1024
-	local mapSizeX = Game.mapSizeX
-	local mapSizeZ = Game.mapSizeZ
-	local numberOfSquaresX = math.ceil(mapSizeX / GRID_SIZE)
-	local numberOfSquaresZ = math.ceil(mapSizeZ / GRID_SIZE)
-	local totalSquares = numberOfSquaresX * numberOfSquaresZ
-		-- Initialize gridData with default values
-	for gridID = 1, numberOfSquaresX * numberOfSquaresZ do
-		local gridX = (gridID - 1) % numberOfSquaresX
-		local gridZ = math.floor((gridID - 1) / numberOfSquaresX)
+		-- Store the grid square data
 		gridData[gridID] = {
 			gridX = gridX,
 			gridZ = gridZ,
-			allyOwnerID = gaiaAllyTeamID, -- Default owner
-			blinking = true -- Default blinking state
+			gridMiddleX = gridX + GRID_SIZE / 2,
+			gridMiddleZ = gridZ + GRID_SIZE / 2,
+			allyOwnerID = allyOwnerID,
+			blinking = blinking,
+			needsUpdate = true
 		}
-	end
-
-	---- Config stuff ------------------
-	local autoReload = true -- refresh shader code every second (disable in production!)
-	
-	local StartPolygons = {} -- list of points in clockwise order
-	
-	local LuaShader = VFS.Include("LuaUI/Widgets/Include/LuaShader.lua")
-	VFS.Include("LuaUI/Widgets/Include/instancevbotable.lua")
-	
-	local minY, maxY = Spring.GetGroundExtremes()
-	
-	local shaderSourceCache = {
-			vssrcpath = "LuaUI/Widgets/Shaders/map_startpolygon_gl4.vert.glsl",
-			fssrcpath = "LuaUI/Widgets/Shaders/map_startpolygon_gl4.frag.glsl",
-			uniformInt = {
-				mapDepths = 0,
-				myAllyTeamID = -1,
-				isMiniMap = 0,
-				flipMiniMap = 0,
-				mapNormals = 1,
-				heightMapTex = 2, 
-				scavTexture = 3,
-				raptorTexture = 4,
-			},
-			uniformFloat = {
-				pingData = {0,0,0,-10000}, -- x,y,z, time
-			},
-			shaderName = "Start Polygons GL4",
-			shaderConfig = {
-				ALPHA = 0.5,
-				NUM_POLYGONS = 0,
-				NUM_POINTS = 0,
-				MINY = minY - 10,
-				MAXY = maxY + 100,
-				MAX_STEEPNESS = 0.5877, -- 45 degrees yay (cos is 0.7071? (54 degrees, so cos of that is 0.5877	)
-				SCAV_ALLYTEAM_ID = scavengerAIAllyTeamID, -- these neatly become undefined if not present
-				RAPTOR_ALLYTEAM_ID = raptorsAIAllyTeamID,
-			},
-		}
-	
-	local fullScreenRectVAO
-	local startPolygonShader
-	local startPolygonBuffer = nil -- GL.SHADER_STORAGE_BUFFER for polygon
-	
-	local function DrawStartPolygons(inminimap)	
-		local advUnitShading, advMapShading = Spring.HaveAdvShading()
 		
-		if advMapShading then 
-			gl.Texture(0, "$map_gbuffer_zvaltex")
-		else
-			if 1 == 2 and WG['screencopymanager'] and WG['screencopymanager'].GetDepthCopy() then
-				gl.Texture(0, WG['screencopymanager'].GetDepthCopy())
-			else 
-				Spring.Echo("Start Polygons: Adv map shading not available, and no depth copy available")
-				return
-			end
-		end
+		-- Update VBO data
+		updateSquareInstance(gridID)
 		
-		gl.Texture(1, "$normals")
-		gl.Texture(2, "$heightmap")-- Texture file
-		gl.Texture(3, scavengerStartBoxTexture)
-		gl.Texture(4, raptorStartBoxTexture)
-	
-		startPolygonBuffer:BindBufferRange(4)
-	
-		gl.Culling(true)
-		gl.DepthTest(false)
-		gl.DepthMask(false)
-	
-		startPolygonShader:Activate()
-	
-		startPolygonShader:SetUniform("noRushTimer", noRushTime)
-		startPolygonShader:SetUniformInt("isMiniMap", inminimap and 1 or 0)
-		startPolygonShader:SetUniformInt("flipMiniMap", getMiniMapFlipped() and 1 or 0)
-		startPolygonShader:SetUniformInt("myAllyTeamID", Spring.GetMyAllyTeamID() or -1) 
-	
-		fullScreenRectVAO:DrawArrays(GL.TRIANGLES)
-		startPolygonShader:Deactivate()
-		gl.Texture(0, false)
-		gl.Culling(false)
-		gl.DepthTest(false)
-	end
-	
-	function gadget:DrawInMiniMap(sx, sz)
-		DrawStartPolygons(true)
-	end
-	
-	function gadget:DrawWorldPreUnit()
-		if autoReload then
-			startPolygonShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or startPolygonShader
-		end
-		DrawStartPolygons(false)
-	end
-	
-	function gadget:GameFrame(n)
-		-- TODO: Remove the gadget when the timer is up?
-	end
-	
-	function gadget:Initialize()
-		local gaiaAllyTeamID
-		if Spring.GetGaiaTeamID() then 
-			gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID() , false))
-		end
-		for i, teamID in ipairs(Spring.GetAllyTeamList()) do
-			if teamID ~= gaiaAllyTeamID then 
-				--and teamID ~= scavengerAIAllyTeamID and teamID ~= raptorsAIAllyTeamID then
-				local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(teamID)
-				--Spring.Echo("Allyteam",teamID,"startbox",xn, zn, xp, zp)	
-				StartPolygons[teamID] = {{xn, zn}, {xp, zn}, {xp, zp}, {xn, zp}}
-			end
-		end
+	elseif cmd == "UpdateGridSquare" then
+		-- Update a grid square's ownership and blinking state
+		local gridID = args[1]
+		local allyOwnerID = args[2]
+		local blinking = args[3]
 		
-		-- MANUAL OVERRIDE FOR DEBUGGING
-		-- Draw a single 1024x1024 square in the middle of the map
-		StartPolygons = {}
-		local centerX = Game.mapSizeX / 2
-		local centerZ = Game.mapSizeZ / 2
-		local halfSize = 1024 / 2
-
-		StartPolygons[1] = {
-			{centerX - halfSize, centerZ - halfSize},
-			{centerX + halfSize, centerZ - halfSize},
-			{centerX + halfSize, centerZ + halfSize},
-			{centerX - halfSize, centerZ + halfSize}
-		}
-	
-		shaderSourceCache.shaderConfig.NUM_BOXES = #StartPolygons
-	
-		local numvertices = 0
-		local bufferdata = {}
-		local numPolygons = 0
-		for teamID, polygon in pairs(StartPolygons) do
-			numPolygons = numPolygons + 1
-			local numPoints = #polygon
-			local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(teamID)
-			--Spring.Echo("teamID", teamID, "at " ,xn, zn, xp, zp)
-			for vertexID, vertex in ipairs(polygon) do
-				local x, z = vertex[1], vertex[2]
-				bufferdata[#bufferdata+1] = teamID
-				bufferdata[#bufferdata+1] = numPoints
-				bufferdata[#bufferdata+1] = x
-				bufferdata[#bufferdata+1] = z
-				numvertices = numvertices + 1
-			end
-		end
-	
-		-- SHADER_STORAGE_BUFFER MUST HAVE 64 byte aligned data 
-		if numvertices % 4 ~= 0 then 
-			for i=1, ((4 - (numvertices % 4)) * 4) do bufferdata[#bufferdata+1] = -1 end
-			numvertices = numvertices + (4 - numvertices % 4)
-		end
-	
-		startPolygonBuffer = gl.GetVBO(GL.SHADER_STORAGE_BUFFER, false) -- not updated a lot
-		startPolygonBuffer:Define(numvertices, {{id = 0, name = 'starttriangles', size = 4}})
-		startPolygonBuffer:Upload(bufferdata)--, -1, 0, 0, numvertices-1)
-	
-		shaderSourceCache.shaderConfig.NUM_POLYGONS = numPolygons
-		shaderSourceCache.shaderConfig.NUM_POINTS = numvertices
-		startPolygonShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or startPolygonShader
-	
-		if not startPolygonShader then
-			Spring.Echo("Error: Norush Timer GL4 shader not initialized")
-			gadgetHandler:RemoveGadget()
-			return
-		end
-		fullScreenRectVAO = MakeTexRectVAO()
-	end
-
-		-- Receive grid data from synced
-	function gadget:RecvFromSynced(cmd, ...)
-		local args = {...}
-		
-		if cmd == "InitializeGridSquare" then
-			-- Initialize a single grid square
-			local gridID = args[1]
-			local allyOwnerID = args[2]
-			local blinking = args[3]
-			local gridX = args[4]
-			local gridZ = args[5]
-			
-			-- Store the grid square data
-			gridData[gridID] = {
-				gridX = gridX,
-				gridZ = gridZ,
-				allyOwnerID = allyOwnerID,
-				blinking = blinking
-			}
+		-- Only update if the grid square exists
+		if gridData[gridID] then
+			gridData[gridID].allyOwnerID = allyOwnerID
+			gridData[gridID].blinking = blinking
+			gridData[gridID].needsUpdate = true
 			
 			-- Update VBO data
-			--updateSquareVBO(gridID, allyOwnerID, blinking)
-			
-		elseif cmd == "UpdateGridSquare" then
-			-- Update a grid square's ownership and blinking state
-			local gridID = args[1]
-			local allyOwnerID = args[2]
-			local blinking = args[3]
-			
-			-- Only update if the grid square exists
-			if gridData[gridID] then
-				gridData[gridID].allyOwnerID = allyOwnerID
-				gridData[gridID].blinking = blinking
-				
-				-- Update VBO data
-				--updateSquareVBO(gridID, allyOwnerID, blinking)
-			end
-			
-		elseif cmd == "UpdateAllyScore" then
-			-- Update an ally team's score
-			local allyID = args[1]
-			local score = args[2]
-			allyScores[allyID] = score
+			updateSquareInstance(gridID)
 		end
+		
+	elseif cmd == "UpdateAllyScore" then
+		-- Update an ally team's score
+		local allyID = args[1]
+		local score = args[2]
+		allyScores[allyID] = score
 	end
+end
+
+function gadget:Shutdown()
+	if planeVBO then
+		planeVBO.Delete()
+	end
+	
+	if dominionShader then
+		gl.DeleteShader(dominionShader)
+	end
+end
+
 end
