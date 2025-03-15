@@ -400,6 +400,7 @@ function UnitDef_Post(name, uDef)
 				corint = true,
 				corbuzz = true,
 				leglrpc = true,
+				legelrpcmech = true,
 				legstarfall = true,
 				armbotrail_scav = true,
 				armbrtha_scav = true,
@@ -407,6 +408,8 @@ function UnitDef_Post(name, uDef)
 				corint_scav = true,
 				corbuzz_scav = true,
 				legstarfall_scav = true,
+				leglrpc_scav = true,
+				legelrpcmech_scav = true,
 			}
 			if LRPCs[name] then
 				uDef.maxthisunit = 0
