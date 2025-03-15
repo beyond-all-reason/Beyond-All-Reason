@@ -36,7 +36,7 @@ return {
 			[2] = "corkarg",
 			[3] = "corjugg",
 			[4] = "legjav",
-			[5] = "leglrpcmech",
+			[5] = "legelrpcmech",
 			[6] = "corsok",
 			[7] = "legerailtank",
 			[8] = "legeshotgunmech",
