@@ -1439,9 +1439,9 @@ if gadgetHandler:IsSyncedCode() then
 						end
 						spawnCreepStructuresWave()
 					end
-					damage = damage - (damage * resistPercent)
 
 				end
+				damage = damage - (damage * resistPercent)
 				queenResistance[attackerDefID].damage = queenResistance[attackerDefID].damage + (damage * 4 * config.queenResistanceMult)
 			else
 				damage = 1
