@@ -361,11 +361,22 @@ AimWeapon3(heading, pitch) {
 
 FireWeapon3(){
 	signal SIG_AIM_GUN;
-	move railgunfingers to z-axis [-10] speed [100];
-	start-script FireGunExhausts();
-	sleep 500;
-	move railgunfingers to z-axis [0] speed [10.0];
+	call-script Recoil_Gun();
 	return (1);}
+
+Recoil_Gun() {
+	move railgunfingers to z-axis [-10] speed [100];
+	turn rarm to x-axis <25> speed [6.25];
+	turn rarmorshoulder to x-axis <-15> speed [6.25];
+	turn rforearm to x-axis <-25> speed [6.25];
+	start-script FireGunExhausts();
+	sleep 400;
+	turn rarm to x-axis <0> speed [0.2];
+	turn rarmorshoulder to x-axis <0> speed [0.2];
+	turn rforearm to x-axis <0> speed [0.2];
+	sleep 100;
+	move railgunfingers to z-axis [0] speed [10.0];
+}
 
 //When the Driver turns stupid and pouty and doesn't reset rotation during combat without targets
 ResetWeapon() {
@@ -484,6 +495,7 @@ Retract_bunker() {
 
 	move piledriver to z-axis [0.0] speed [8.0];
 	spin fingers around z-axis speed <360> accelerate <12>;}
+
 
 Killed(severity, corpsetype) {
 	if( severity <= 25 )
