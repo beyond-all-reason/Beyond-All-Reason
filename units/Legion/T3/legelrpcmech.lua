@@ -139,8 +139,8 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1000,
 				customparams = {
-					cluster = true,
-					number = 4,
+					cluster_def = 'cluster_munition',
+					cluster_number = 4,
 				},
 				damage = {
 					default = 500,
@@ -209,8 +209,8 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1000,
 				customparams = {
-					cluster = true,
-					number = 4,
+					cluster_def = 'cluster_munition',
+					cluster_number = 4,
 				},
 				damage = {
 					default = 500,
