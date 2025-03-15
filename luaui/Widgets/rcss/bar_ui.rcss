@@ -1,0 +1,10 @@
+.element {
+    padding: 4px;
+    /*border-radius: 8px;*/
+    border: 2px black;
+    background-color: rgba(0%, 0%, 0%, 60%);
+    image-color: rgba(100%, 100%, 100%, 1%);
+    /*backdrop-filter is not working :( */
+    backdrop-filter: blur(5px);
+}
+
