@@ -50,6 +50,116 @@ Tool.COLOURS = {
 			}
 
 
+function Tool:SerializeOrder(id,cmd,parameters,options,method)
+	if not id or not cmd or not parameters or not options or not method then
+		Spring.Echo('Serialize Order missing parameters',id,cmd,parameters,options,method)
+		return
+	end
+	--if type(id) ~= ('number' or 'table') or type(cmd) ~= ('number' or 'table') or type(parameters) ~= ('number' or 'table') or type(options) ~= ('number' or 'table') or type(method) ~= 'string' then
+	--	Spring.Echo('Serialize Order wrong arg types',type(id),type(cmd),type(parameters),type(options),type(method))
+	--	return
+	--end
+
+	local order = ''
+	order = order .. '&id:'
+	if type(id) == 'number' then
+		order = order .. tostring(id)
+	else
+		order = order .. self:TableToString(id)
+	end
+	Spring.Echo('oder',order)
+	order = order .. '&cmd:'
+	if type(cmd) == 'number' then
+		order = order .. tostring(cmd)
+	else
+		order = order .. self:TableToString(cmd)
+	end
+	Spring.Echo('oder',order)
+	order = order .. '&parameters:'
+	if type(parameters) == 'number' then
+		order = order .. tostring(parameters)
+	else
+		order = order .. self:TableToString(parameters)
+	end
+	Spring.Echo('oder',order)
+	order = order .. '&options:'
+	if type(options) == 'number' then
+		order = order .. tostring(options)
+	else
+		order = order .. self:TableToString(options)
+	end
+	Spring.Echo('oder',order)
+	order = order .. '&method:'.. method
+	Spring.Echo('Serialized Order:',order)
+	return order
+end
+
+
+function Tool:DeserializeOrder(str)
+	if not str then
+		Spring.Echo('Deserialize Order missing parameters')
+		return
+	end
+	local order = {}
+	for s in string.gmatch(str, "([^&]+)") do
+		print(s)
+		local key, value = string.match(s, "(%w+):(.+)")
+		print(key,value)
+		if string.find(value,'|') or string.find(value,',') then
+			order[key] = self:StringToTable(value)
+		else
+			order[key] = tonumber(value) or value
+		end
+		
+
+			
+		
+	end
+	Spring.Echo('order',order)
+	return order
+end
+local serialized = ''
+
+function Tool:TableToString(t)
+	if not t then
+		return
+	end
+    for k,v in pairs(t) do
+		if type(v) == 'number' then
+			serialized = serialized ..v ..','
+		else
+			self:TableToString(v)
+			serialized = serialized ..'|'
+		end
+	end
+	
+    Spring.Echo("Serialized:", serialized)
+    return serialized
+end
+
+
+
+function Tool:StringToTable(str)
+	local t = {}
+	local i = 1
+	if string.find(str,'|') then
+		for s in string.gmatch(str, "([^|]+)") do
+			
+			t[i] = {}
+			for value in string.gmatch(s, "([^,]+)") do
+			table.insert(t[i],tonumber(value) or value)
+			end
+			i = i + 1
+		end
+	else
+		for value in string.gmatch(str, "([^,]+)") do
+			table.insert(t,tonumber(value) or value)
+		end
+	end
+	Spring.Echo("Deserialized:", t)
+	return t
+end
+
 function Tool:RandomAway(pos, dist, opposite, angle)
 	if angle == nil then
 		angle = random() * twicePi
