@@ -463,7 +463,7 @@
           "awards":{
             "showGraphs":"显示图表",
             "resourcesEfficiency":"有效利用资源",
-            "damageTaken":"%{playerColor}%{player}%{textColor}造成了最多伤害(%{score}).",
+            "damageTaken":"%{player}造成了最多伤害(%{score})",
             "score":"分数",
             "traitor":"叛徒 - 摧毁盟军单位",
             "coop":"%{name} (合作)",
@@ -471,10 +471,10 @@
             "enemiesDestroyed":"摧毁了敌方单位和防御设施",
             "resourcesDestroyed":"摧毁了敌人的资源生产单位",
             "leave":"离开",
-            "resourcesProduced":"%{playerColor}%{player}%{textColor}生产了最多资源(%{score}).",
+            "resourcesProduced":"%{player}生产了最多资源(%{score})",
             "notAwarded":"(没奖杯)",
             "unknown":"(未知)",
-            "sleptLongest":"%{playerColor}%{player}%{textColor}睡得最久,大概%{score}分钟.",
+            "sleptLongest":"%{player}睡得最久,大概%{score}分钟.",
             "awards":"奖杯",
             "runnersUp":"亚军:"
           },
