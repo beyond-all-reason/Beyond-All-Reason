@@ -4,7 +4,7 @@
         <link type="text/rcss" href="/LuaUI/RmlWidgets/gui_awards/gui_awards.rcss"/>
     </head>
     <body>
-      <handle move_target="#document">
+      <handle move_target="main-container">
         <div id="main-container" data-model="data_model_test">
           <table id="main-table">
               <thead>

@@ -262,6 +262,7 @@ local function showDocument()
 	if isVisible == false then
 		isVisible = true
 		document = widget.rmlContext:LoadDocument("LuaUI/RmlWidgets/gui_awards/gui_awards.rml", widget)
+		document:ReloadStyleSheet()
 		document:Show()
 	end
 end

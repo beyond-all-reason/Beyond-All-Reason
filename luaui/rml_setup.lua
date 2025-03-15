@@ -87,8 +87,11 @@ RmlUi.AddTranslationString("ui.awards.resourcesDestroyed", Spring.I18N("ui.award
 RmlUi.AddTranslationString("ui.awards.resourcesEfficiency", Spring.I18N("ui.awards.resourcesEfficiency"))
 RmlUi.AddTranslationString("ui.awards.traitor", Spring.I18N("ui.awards.traitor"))
 RmlUi.AddTranslationString("ui.awards.didEverything", Spring.I18N("ui.awards.didEverything"))
-RmlUi.AddTranslationString("ui.awards.award", Spring.I18N("ui.awards.award"))
+RmlUi.AddTranslationString("ui.awards.awards", Spring.I18N("ui.awards.awards"))
+RmlUi.AddTranslationString("ui.awards.player", Spring.I18N("ui.awards.player"))
 RmlUi.AddTranslationString("ui.awards.score", Spring.I18N("ui.awards.score"))
+RmlUi.AddTranslationString("ui.awards.showGraphs", Spring.I18N("ui.awards.showGraphs"))
+RmlUi.AddTranslationString("ui.awards.leave", Spring.I18N("ui.awards.leave"))
 
 RmlUi.AddTranslationString("ui.awards.honorableMentions", Spring.I18N("ui.awards.honorableMentions"))
 
