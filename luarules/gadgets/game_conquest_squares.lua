@@ -815,10 +815,13 @@ function gadget:DrawWorldPreUnit()
 	DrawSquares()
 end
 
+local planeVBO
+local planeInstanceTable
+local planeVAO
 function gadget:Initialize()
-	local planeVBO = makePlaneVBO(GRID_SIZE, GRID_SIZE, 1, 1)
-	local planeInstanceTable = makeInstanceVBOTable(planeLayout, totalSquares, "planeVBO")
-	local planeVAO = makeVAOandAttach(planeVBO, planeInstanceTable.instanceVBO)
+	planeVBO = makePlaneVBO(GRID_SIZE, GRID_SIZE, 1, 1)
+	planeInstanceTable = makeInstanceVBOTable(planeLayout, totalSquares, "planeVBO")
+	planeVAO = makeVAOandAttach(planeVBO, planeInstanceTable.instanceVBO)
 	planeInstanceTable.VAO = planeVAO
 	--zzz mid refactor, trying to learn how to use instancing
 	makeShader()
@@ -894,11 +897,13 @@ end
 
 function gadget:Shutdown()
 	if planeVBO then
-		planeVBO.Delete()
+		planeVBO:Delete()
 	end
-	
+	if planeInstanceTable and planeInstanceTable.instanceVBO then
+		planeInstanceTable.instanceVBO:Delete()
+	end
 	if dominionShader then
-		gl.DeleteShader(dominionShader)
+		dominionShader:Finalize()
 	end
 end
 
