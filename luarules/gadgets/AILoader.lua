@@ -57,6 +57,10 @@ local spGetAllUnits = Spring.GetAllUnits
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 local spGetGaiaTeamID = Spring.GetGaiaTeamID()
+local spGiveOrderTounit = Spring.GiveOrderToUnit
+local spGiveOrderArrayTounit = Spring.GiveOrderArrayToUnit
+local spGiveOrderTounitArray = Spring.GiveOrderToUnitArray
+local spGiveOrderArrayTounitArray = Spring.GiveOrderArrayToUnitArray
 local commandcounter = {}
 local syncTables = {}
 local data = {}
@@ -102,66 +106,65 @@ if gadgetHandler:IsSyncedCode() then
 		return gadget:RezTable()
 	end
 
-	function gadget:ParseMessage(message)
-		
-		
-		data = gadget:ResetTable(data)
-		id = gadget:ResetTable(id)
-		cmd = gadget:ResetTable(cmd)
-		params = gadget:ResetTable(params)
-		options = gadget:ResetTable(options)
-		method = gadget:ResetTable(method)
-
-		for part in string.gmatch(message, "([^;]+)") do
-			local key, value = string.match(part, "([^:]+):(.+)")
-			if key and value then
-				data[key] = value
+	function gadget:DeserializeOrder(str)
+		if not str then
+			Spring.Echo('Deserialize Order missing parameters')
+			return
+		end
+		local order = {}
+		for s in string.gmatch(str, "([^&]+)") do
+			print(s)
+			local key, value = string.match(s, "(%w+):(.+)")
+			print(key,value)
+			if string.find(value,'|') or string.find(value,',') then
+				order[key] = self:StringToTable(value)
+			else
+				order[key] = tonumber(value) or value
 			end
 		end
-		
-		--Spring.Echo('id',data.id,'cmd',data.cmd,'params',data.params,'options',data.options)
-		for part in string.gmatch(data.id, "([^,]+)") do
-			table.insert(id, tonumber(part))
-		end
-		for part in string.gmatch(data.cmd, "([^,]+)") do
-			table.insert(cmd, tonumber(part))
-		end
-		
-		if string.find(data.params, '|') then
-			for part in string.gmatch(data.params, "([^|]+)") do
-				table.insert(params,{})
-				for value in string.gmatch(part, "([^,]+)") do
-					table.insert(params[#params], tonumber(value))
+		Spring.Echo('order',order)
+		return order
+	end
+
+	function gadget:StringToTable(str)
+		local t = {}
+		local i = 1
+		if string.find(str,'|') then
+			for s in string.gmatch(str, "([^|]+)") do
+				
+				t[i] = {}
+				for value in string.gmatch(s, "([^,]+)") do
+				table.insert(t[i],tonumber(value) or value)
 				end
-			end
-
-		else
-			--table.insert(params,{})
-			for value in string.gmatch(data.params, "([^,]+)") do
-				table.insert(params, tonumber(value))
-			end
-		end
-
-		if string.find(data.options, '|') then
-			for part in string.gmatch(data.options, "([^|]+)") do
-				table.insert(options,{})
-				for value in string.gmatch(part, "([^,]+)") do
-					table.insert(options[#options], tonumber(value))
-					
-				end
+				i = i + 1
 			end
 		else
-			--table.insert(options,{})
-				for value in string.gmatch(data.options, "([^,]+)") do
-					table.insert(options, tonumber(value))
-					
-				end
+			for value in string.gmatch(str, "([^,]+)") do
+				table.insert(t,tonumber(value) or value)
+			end
 		end
-		return id,cmd,params,options,method
+		Spring.Echo("Deserialized:", t)
+		return t
 	end
 
 	function gadget:RecvLuaMsg(msg, playerID)
 		--msg = 'StGiveOrderToSync'..';'..id..';'..cmd..';'..pos..';'..opts..';'..timeout..';'..uname..';'.'StEndGOTS'
+		
+		if string.sub(msg,1,10) ~= '@Shard[ST]' or string.sub(msg,-10,-1) ~= '[ST]Shard@' then
+			Spring.Echo(string.sub(msg,1,10),string.sub(msg,-10,-1))
+			
+		else
+			print('msg',msg)
+			msg = string.sub(msg,11,-11)
+			local order = gadget:DeserializeOrder(msg)
+			
+			
+		end
+		if order.method == '1:1' then
+			spGiveOrderTounit(order.id,order.cmd,order.parameters,order.options)
+		elseif order.method == '2:1' then
+			spGiveOrderArrayTounit(order.id,order.cmd,order.parameters,order.options)
+		end
 		if string.sub(msg,1,17) ~= 'StGiveOrderToSync' then
 			return
 		end

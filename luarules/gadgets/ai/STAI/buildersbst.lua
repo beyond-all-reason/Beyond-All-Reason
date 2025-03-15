@@ -390,10 +390,10 @@ function BuildersBST:ProgressQueue()
 				self.ai.buildingshst:NewPlan(jobName, p, self.id, self.name)
 				local facing = self.ai.buildingshst:GetFacing(p)
 
-				local s = self.ai.tool:SerializeOrder(self.id,-234,{p.x,p.y,p.z,f,},0,'1-1')
-				local t = self.ai.tool:DeserializeOrder(s)
-
-				local command = self.unit:Internal():Build(jobName, p, facing)
+				local command = self.ai.tool:SerializeOrder(self.id,game:GetTypeByName(jobName):ID()*-1,{p.x,p.y,p.z,f,},0,'1-1')
+				--local t = self.ai.tool:DeserializeOrder(s)
+				game:GiveOrder(command)
+				--local command = self.unit:Internal():Build(jobName, p, facing)
 				self.watchdogTimeout = math.huge
 				self.fails = 0
 				self.failOut = nil

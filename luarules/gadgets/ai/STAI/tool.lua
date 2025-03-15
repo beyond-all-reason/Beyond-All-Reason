@@ -49,7 +49,7 @@ Tool.COLOURS = {
 			black = {0,0,0,1}, --veh
 			}
 
-
+local serialized = ''
 function Tool:SerializeOrder(id,cmd,parameters,options,method)
 	if not id or not cmd or not parameters or not options or not method then
 		Spring.Echo('Serialize Order missing parameters',id,cmd,parameters,options,method)
@@ -59,8 +59,8 @@ function Tool:SerializeOrder(id,cmd,parameters,options,method)
 	--	Spring.Echo('Serialize Order wrong arg types',type(id),type(cmd),type(parameters),type(options),type(method))
 	--	return
 	--end
-
-	local order = ''
+	serialized = ''
+	local order = '[ST]'
 	order = order .. '&id:'
 	if type(id) == 'number' then
 		order = order .. tostring(id)
@@ -90,6 +90,7 @@ function Tool:SerializeOrder(id,cmd,parameters,options,method)
 	end
 	Spring.Echo('oder',order)
 	order = order .. '&method:'.. method
+	order = order .. '[ST]'
 	Spring.Echo('Serialized Order:',order)
 	return order
 end
@@ -99,6 +100,13 @@ function Tool:DeserializeOrder(str)
 	if not str then
 		Spring.Echo('Deserialize Order missing parameters')
 		return
+	end
+	print(string.sub(str,1,4))
+	if string.sub(str,1,4) ~= '[ST]' or string.sub(str,-4,-1) ~= '[ST]' then
+		Spring.Echo(string.sub(str,1,4),string.sub(str,-4,-1))
+		return
+	else
+		str = string.sub(str,5,-5)
 	end
 	local order = {}
 	for s in string.gmatch(str, "([^&]+)") do
@@ -110,15 +118,11 @@ function Tool:DeserializeOrder(str)
 		else
 			order[key] = tonumber(value) or value
 		end
-		
-
-			
-		
 	end
 	Spring.Echo('order',order)
 	return order
 end
-local serialized = ''
+
 
 function Tool:TableToString(t)
 	if not t then
