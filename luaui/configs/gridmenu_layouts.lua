@@ -2034,6 +2034,8 @@ local unitGrids = {
 	},
 }
 
+unitGrids["dummycom"] = unitGrids["armcom"]
+
 if Spring.GetModOptions().experimentalextraunits then
 	for _, builder in pairs({"armaca", "coraca", "legaca", "armack", "corack", "legack", "armacv", "coracv", "legacv"}) do
 		unitGrids[builder][1][3][3] = builder:sub(1, 3) .. "wint2"
