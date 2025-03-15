@@ -281,7 +281,6 @@ local unitOrderTable = {
 	['armraz']         		= 007020,
 	['corkarg']        		= 007030,
 	['armvang']        		= 007040,
-	['legelrpcmech']       	= 007041,
 	['corshiva']       		= 007050,
 	['legkeres']	   		= 007051,
 	['legerailtank']   		= 007052,

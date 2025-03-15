@@ -384,9 +384,8 @@ local LandUnitsList = {
 			["corthermite"] = 4,
 			["corsok_scav"] = 2,
 			--Legion
-			["legpede_scav"] = 3,
+			["legpede_scav"] = 2,
 			["legkeres_scav"] = 4,
-			["legeshotgunmech_scav"] = 2,
 		},
 		[7] = {
 			--Armada
@@ -402,9 +401,7 @@ local LandUnitsList = {
 			["corgolt4_scav"] = 2,
 			--Legion
 			["leegmech_scav"] = 2,
-			["legerailtank_scav"] = 3,
-			["legeheatraymech_scav"] = 2,
-			["legelrpcmech_scav"] = 3,
+			["legerailtank_scav"] = 2,
 		},
 	},
 	Support = {
@@ -1318,6 +1315,7 @@ local Turrets = {
 		--misc
 		["armgatet3_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 2},
 		["corgatet3_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 2},
+		["leggatet3_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 2},
 	},
 	[7] = {
 		--Epic Bulwark and Pulsar/rag/cal

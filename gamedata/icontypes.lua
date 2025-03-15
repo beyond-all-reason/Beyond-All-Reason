@@ -2207,10 +2207,6 @@ local icontypes = {
 		bitmap = "icons/t3_solinvictus.png",
 		size = 3.46499968
 	},
-	legelrpcmech = {
-		bitmap = "icons/t3_bot_clusterarty.png",
-		size = 2.75
-	},
 	legaap = {
 		bitmap = "icons/factory_air_t2.png",
 		size = 1.9425

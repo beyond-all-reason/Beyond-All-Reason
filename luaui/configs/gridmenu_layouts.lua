@@ -201,7 +201,7 @@ local labGrids = {
 		"corjugg", "corsok"
 	},
 	leggant = {
-		"legelrpcmech", "corkarg", "legjav", "legeheatraymech", --catapult, kargneth, javelin, juggernaut
+		"corcat", "corkarg", "legjav", "legeheatraymech", --catapult, kargneth, javelin, juggernaut
 		"corjugg", "corsok", "legeshotgunmech", "legpede", --behemoth, hovertank, mukade, praetorian
 		"legkeres","legerailtank","" -- keres, daedalus
 	}
@@ -2033,6 +2033,12 @@ local unitGrids = {
 		}
 	},
 }
+
+if Spring.GetModOptions().experimentalextraunits then
+	for _, builder in pairs({"armaca", "coraca", "legaca", "armack", "corack", "legack", "armacv", "coracv", "legacv"}) do
+		unitGrids[builder][1][3][3] = builder:sub(1, 3) .. "wint2"
+	end
+end
 
 if Spring.Utilities.Gametype.IsScavengers() or Spring.GetModOptions().forceallunits then
 	local scavLabGrids = {}
