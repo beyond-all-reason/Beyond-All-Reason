@@ -48,10 +48,51 @@ Tool.COLOURS = {
 			white = {1,1,1,1},
 			black = {0,0,0,1}, --veh
 			}
+Tool._TABLES = {}
+function Tool:REZ_TABLE()
+	if self._TABLES[1] then
+		--Spring.Echo('GET_TABLE REZ a table')
+		return table.remove(self._TABLES)
+	else
+		--Spring.Echo('GET_TABLE CREATE a NEW table')
+		return {}
+	end
+		
+end
 
+
+-- Function to recursively process a table and discard everything that is not a table
+function Tool:KILL_TABLE(t)
+	if not t or type(t) ~= 'table' then
+		Spring.Echo("incorrect type in KILL_TABLE",t,type(t))    
+		return
+	end
+	--Spring.Echo("SIT_TABLE: Before clearing", t)
+	for key, value in pairs(t) do
+		
+		if type(value) == 'table' then
+			self:KILL_TABLE(value)
+		end
+		
+		t[key] = nil
+		if  next(t) == nil then
+			table.insert(self._TABLES, t)
+		end
+		
+		
+	end
+	--if next(t) == nil then
+	--	table.insert(Shard._TABLES, t)
+	--else
+	--	Spring.Echo("WARNING: Table not empty, skipping insertion into Shard._TABLES")
+	--end
+	--Spring.Echo('Shard._TABLES after SIT TABLE',Shard._TABLES)
+	
+	
+end
 
 function Tool:StoreOrder (id,cmd,params,options,method)
-	if not id or not cmd or not params or not options then
+	if not id or not cmd or not params or not options or not method then
 		Spring.Echo('storeorder failed :',id,cmd,params,options)
 		return
 	end
