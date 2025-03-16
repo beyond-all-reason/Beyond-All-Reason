@@ -49,6 +49,39 @@ Tool.COLOURS = {
 			black = {0,0,0,1}, --veh
 			}
 
+
+function Tool:StoreOrder (id,cmd,params,options,method)
+	if not id or not cmd or not params or not options then
+		Spring.Echo('storeorder failed :',id,cmd,params,options)
+		return
+	end
+	for i,v in pairs(params) do
+		params[i] = tonumber(v) or v
+	end
+	--Spring.Echo('storeorder received :',id,cmd,params,opts)
+	game.orders = game.orders or game:REZ_TABLE()
+	game.lastGameFrame = game.lastGameFrame or 0
+	
+	local new = game:REZ_TABLE()
+	new.cmd = nil
+	new.params = game:REZ_TABLE()
+	new.options = game:REZ_TABLE()
+	
+	new.cmd = cmd
+	new.id = id
+	table.insert(new.params, params)
+	table.insert(new.options, options)
+	game.orders[id]=new
+	
+	local frame = game:Frame()
+	if frame < game.lastGameFrame + 30 then
+		
+		return
+	end
+	game.lastGameFrame = frame
+end
+		
+
 local serialized = ''
 function Tool:SerializeOrder(id,cmd,parameters,options,method)
 	if not id or not cmd or not parameters or not options or not method then
