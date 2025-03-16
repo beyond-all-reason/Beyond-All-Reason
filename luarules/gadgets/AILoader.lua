@@ -163,7 +163,14 @@ if gadgetHandler:IsSyncedCode() then
 				spGiveOrderTounit(order.id,order.cmd,order.parameters,order.options)
 			elseif order.method == '2-1' then
 				print('GiveOrderArrayTounit')
-				local cmd = spGiveOrderArrayTounit(order.id,{order.cmd[1],order.parameters[1],order.options[1]})
+				local arrayOfCmd = {}
+				for i in pairs(order.cmd) do
+					arrayOfCmd[i] = {}
+					arrayOfCmd[i][1] = order.cmd[i]
+					arrayOfCmd[i][2] = order.parameters[i]
+					arrayOfCmd[i][3] = order.options[i]
+				end
+				local cmd = spGiveOrderArrayTounit(order.id,arrayOfCmd)
 				print('GiveOrderArrayTounit',cmd)
 			end
 			return
