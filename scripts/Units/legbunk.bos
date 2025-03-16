@@ -306,9 +306,8 @@ AimWeapon1(heading, pitch)
 AimWeapon2(heading, pitch)
 {
 	signal SIG_AIM_BUNKER;
+	start-script ResetWeapon();
 	set-signal-mask SIG_AIM_BUNKER;
-	//dbg()
-	//call-script ResetWeapon();
 	turn piledriver to x-axis <0> speed <60> / animSpeed;
 	oldHeadingBunker = heading;
 	call-script CATT1_Aim((heading - torsofunkyHeading) + <1>,pitch+400);
@@ -320,7 +319,7 @@ FireWeapon2()
 	signal SIG_FIRE_BUNKER;
 	call-script Attack_bunker();
 	//spin fingers around z-axis speed <-360> accelerate <12>;
-	start-script FireBunkerExhausts();
+	call-script Recoil_Bunker();
 	sleep 100;
 	call-script Retract_bunker();
 }
@@ -367,21 +366,35 @@ FireWeapon3(){
 Recoil_Gun() {
 	move railgunfingers to z-axis [-10] speed [100];
 	turn rarm to x-axis <25> speed [6.25];
-	turn rarmorshoulder to x-axis <-15> speed [6.25];
+	turn rarmorshoulder to x-axis <-25> speed [6.25];
 	turn rforearm to x-axis <-25> speed [6.25];
 	start-script FireGunExhausts();
 	sleep 400;
-	turn rarm to x-axis <0> speed [0.2];
-	turn rarmorshoulder to x-axis <0> speed [0.2];
-	turn rforearm to x-axis <0> speed [0.2];
+	turn rarm to x-axis <0> speed [0.4];
+	turn rarmorshoulder to x-axis <0> speed [0.4];
+	turn rforearm to x-axis <0> speed [0.4];
 	sleep 100;
 	move railgunfingers to z-axis [0] speed [10.0];
 }
 
+Recoil_Bunker() {
+	move piledriver to z-axis [-2] speed [20];
+	turn larm to x-axis <25> speed [6.25];
+	turn larmorshoulder to x-axis <-25> speed [6.25];
+	turn lforearm to x-axis <-25> speed [6.25];
+	start-script FireBunkerExhausts();
+	sleep 400;
+	turn larm to x-axis <0> speed [0.4];
+	turn larmorshoulder to x-axis <0> speed [0.4];
+	turn lforearm to x-axis <0> speed [0.4];
+	move piledriver to z-axis [0.0] speed [8.0];
+	sleep 100;}
+
 //When the Driver turns stupid and pouty and doesn't reset rotation during combat without targets
 ResetWeapon() {
 	set-signal-mask SIG_FIRE_BUNKER; //Set this to whichever signal the weapon emits when firing!
-	sleep restore_delay;
+	sleep CATT1_RESTORE_DELAY;
+	signal SIG_AIM_BUNKER;
 	dbg();
 	turn aimxarml to x-axis <0.000000> speed <30.000000>;
 	turn aimyarml to y-axis <0.000000> speed <30.000000>;}
@@ -446,16 +459,16 @@ FireGunExhausts() {
 Attack_bunker() {
 	stop-spin fingers around z-axis decelerate <150>;
 
-	move pile to z-axis [15] speed [600] / animSpeed;
-	move pileextension1 to z-axis [30] speed [600] * 2 / animSpeed;
-	move pileextension2 to z-axis [45] speed [600] * 3 / animSpeed;
-	move pileextension3 to z-axis [60] speed [600] * 4 / animSpeed;
-	move pileextension4 to z-axis [75] speed [600] * 5 / animSpeed;
-	move pileextension5 to z-axis [90] speed [600] * 6 / animSpeed;
-	move pileextension6 to z-axis [105] speed [600] * 7 / animSpeed;
-	move pileextension7 to z-axis [120] speed [600] * 8 / animSpeed;
-	move pileextension8 to z-axis [135] speed [600] * 9 / animSpeed;
-	move pileextension9 to z-axis [150] speed [600] * 10 / animSpeed;
+	move pile to z-axis [15] speed [300] / animSpeed;
+	move pileextension1 to z-axis [30] speed [300] * 2 / animSpeed;
+	move pileextension2 to z-axis [45] speed [300] * 3 / animSpeed;
+	move pileextension3 to z-axis [60] speed [300] * 4 / animSpeed;
+	move pileextension4 to z-axis [75] speed [300] * 5 / animSpeed;
+	move pileextension5 to z-axis [90] speed [300] * 6 / animSpeed;
+	move pileextension6 to z-axis [105] speed [300] * 7 / animSpeed;
+	move pileextension7 to z-axis [120] speed [300] * 8 / animSpeed;
+	move pileextension8 to z-axis [135] speed [300] * 9 / animSpeed;
+	move pileextension9 to z-axis [150] speed [300] * 10 / animSpeed;
 
 	wait-for-move pileextension9 along z-axis;
 
@@ -493,8 +506,7 @@ Retract_bunker() {
 	show pileextension8;
 	show pileextension9;
 
-	move piledriver to z-axis [0.0] speed [8.0];
-	spin fingers around z-axis speed <360> accelerate <12>;}
+	spin fingers around z-axis speed <360> accelerate <120>;}
 
 
 Killed(severity, corpsetype) {
