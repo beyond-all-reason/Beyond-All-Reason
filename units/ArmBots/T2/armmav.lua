@@ -104,7 +104,7 @@ return {
 			},
 		},
 		weapondefs = {
-			armmav_weapon = {
+			gunslinger_plasma_cannon = {
 				alphadecay = 0.1,
 				areaofeffect = 8,
 				avoidfeature = false,
@@ -116,7 +116,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-small",
 				impactonly = 1,
 				impulsefactor = 1.1,
-				name = "Anti-swarm g2g gauss-impulse guns",
+				name = "Standard Riot-Gauss Cannon",
 				nogap = false,
 				noselfdamage = true,
 				predictboost = 0.3,
@@ -141,7 +141,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "ARMMAV_WEAPON",
+				def = "gunslinger_plasma_cannon",
 				onlytargetcategory = "NOTSUB",
 			},
 		},

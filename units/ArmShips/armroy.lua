@@ -139,7 +139,7 @@ return {
 					default = 225,
 				},
 			},
-			plasma = {
+			corsair_plasma_cannon = {
 				areaofeffect = 48,
 				avoidfeature = false,
 				craterareaofeffect = 0,
@@ -149,7 +149,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				gravityaffected = "true",
 				impulsefactor = 0.123,
-				name = "Heavy long-range plasma cannon",
+				name = "Standard Artillery Cannons",
 				noselfdamage = true,
 				range = 700,
 				reloadtime = 1.6,
@@ -168,7 +168,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "PLASMA",
+				def = "corsair_plasma_cannon",
 				fastautoretargeting = true,
 				onlytargetcategory = "SURFACE",
 			},

@@ -114,7 +114,7 @@ return {
 			},
 		},
 		weapondefs = {
-			arm_artillery = {
+			mauser_plasma_cannon = {
 				accuracy = 600,
 				areaofeffect = 120,
 				avoidfeature = false,
@@ -125,7 +125,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-medium-bomb",
 				gravityaffected = "true",
 				impulsefactor = 0.123,
-				name = "Long-range g2g plasma cannon",
+				name = "Standard Blast Artillery Cannon",
 				noselfdamage = true,
 				range = 820,
 				reloadtime = 3.05,
@@ -145,7 +145,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "NOTLAND",
-				def = "ARM_ARTILLERY",
+				def = "mauser_plasma_cannon",
 				maindir = "0 0 1",
 				maxangledif = 180,
 				onlytargetcategory = "SURFACE",

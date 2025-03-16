@@ -101,7 +101,7 @@ return {
 			},
 		},
 		weapondefs = {
-			arm_fatboy_notalaser = {
+			fatboy_plasma_cannon = {
 				areaofeffect = 240,
 				avoidfeature = false,
 				craterareaofeffect = 240,
@@ -112,7 +112,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-large-aoe",
 				gravityaffected = "true",
 				impulsefactor = 0.9,
-				name = "Heavy AoE g2g plasma cannon",
+				name = "Single-Fire Heavy Blast Artillery Cannon",
 				noselfdamage = true,
 				range = 700,
 				reloadtime = 6.73333,
@@ -132,7 +132,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "ARM_FATBOY_NOTALASER",
+				def = "fatboy_plasma_cannon",
 				fastautoretargeting = true,
 				onlytargetcategory = "SURFACE",
 			},

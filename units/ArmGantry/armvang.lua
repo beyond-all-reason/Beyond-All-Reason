@@ -105,7 +105,7 @@ return {
 			},
 		},
 		weapondefs = {
-			shocker_high = {
+			vanguard_high_plasma_cannon = {
 				areaofeffect = 192,
 				avoidfeature = false,
 				avoidfriendly = true,
@@ -121,7 +121,7 @@ return {
 				heightboostfactor = 2.8,
 				hightrajectory = 1,
 				impulsefactor = 0.5,
-				name = "Heavy long-range g2g plasma cannon",
+				name = "Heavy High-Trajectory Blast Artillery Cannon",
 				noselfdamage = true,
 				predictboost = 0.25,
 				range = 1450,
@@ -144,7 +144,7 @@ return {
 					smart_backup = true,
 				}
 			},
-			shocker_low = {
+			vanguard_plasma_cannon = {
 				areaofeffect = 192,
 				avoidfeature = false,
 				avoidfriendly = true,
@@ -160,7 +160,7 @@ return {
 				gravityaffected = "true",
 				heightboostfactor = 2.8,
 				impulsefactor = 0.5,
-				name = "Heavy long-range g2g plasma cannon",
+				name = "Heavy Blast Artillery Cannon",
 				noselfdamage = true,
 				predictboost = 0.25,
 				range = 1450,
@@ -223,12 +223,12 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL GROUNDSCOUT",
-				def = "SHOCKER_LOW",
+				def = "vanguard_plasma_cannon",
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
 				badtargetcategory = "VTOL GROUNDSCOUT",
-				def = "SHOCKER_HIGH",
+				def = "vanguard_high_plasma_cannon",
 				onlytargetcategory = "SURFACE",
 			},
 			[3] = {

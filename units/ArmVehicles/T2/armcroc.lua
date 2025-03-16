@@ -114,7 +114,7 @@ return {
 			},
 		},
 		weapondefs = {
-			arm_triton = {
+			turtle_plasma_cannon = {
 				areaofeffect = 64,
 				avoidfeature = false,
 				craterareaofeffect = 64,
@@ -124,7 +124,7 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				impulsefactor = 0.123,
-				name = "Medium g2g gauss-cannon",
+				name = "Standard Blast Cannon",
 				noselfdamage = true,
 				predictboost = 1,
 				range = 480,
@@ -190,7 +190,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				def = "ARM_TRITON",
+				def = "turtle_plasma_cannon",
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {

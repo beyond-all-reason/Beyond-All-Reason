@@ -104,7 +104,7 @@ return {
 			},
 		},
 		weapondefs = {
-			bfido = {
+			hound_blast_cannon = {
 				areaofeffect = 72,
 				avoidfeature = false,
 				craterareaofeffect = 72,
@@ -114,7 +114,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-small",
 				gravityaffected = "true",
 				impulsefactor = 0.123,
-				name = "Ballistic g2g AoE plasma cannon",
+				name = "Standard Blast Cannon",
 				noselfdamage = true,
 				range = 650,
 				reloadtime = 3.16667,
@@ -129,7 +129,7 @@ return {
 					vtol = 35,
 				},
 			},
-			gauss = {
+			hound_gauss_cannon = {
 				alphadecay = 0.1,
 				areaofeffect = 8,
 				avoidfeature = false,
@@ -140,7 +140,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-small",
 				impactonly = 1,
 				impulsefactor = 0.123,
-				name = "Close-quarters g2g gauss-cannon",
+				name = "Standard Gauss Cannon",
 				nogap = false,
 				noselfdamage = true,
 				range = 650,
@@ -163,12 +163,12 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "GAUSS",
+				def = "hound_gauss_cannon",
 				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
 				badtargetcategory = "VTOL",
-				def = "BFIDO",
+				def = "hound_blast_cannon",
 				onlytargetcategory = "NOTSUB",
 			},
 		},
