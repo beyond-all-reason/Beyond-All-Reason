@@ -97,6 +97,10 @@ local function ReloadMusicPlaylists()
 		table.append(loadingTracksNew, VFS.DirList(musicDirNew..'/events/aprilfools/loading', allowedExtensions))
 	end
 
+	if (tonumber(os.date("%m")) == 12 and tonumber(os.date("%d")) >= 12) then
+		table.append(menuTracksNew, VFS.DirList(musicDirNew..'/events/xmas/menu', allowedExtensions))
+	end
+
 	local boomboxTracksNew			= {}
 	table.append(boomboxTracksNew, VFS.DirList(musicDirNew..'/events/aprilfools/menu', allowedExtensions))
 	table.append(boomboxTracksNew, VFS.DirList(musicDirNew..'/events/aprilfools/loading', allowedExtensions))
