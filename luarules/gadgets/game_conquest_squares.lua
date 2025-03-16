@@ -602,6 +602,7 @@ VFS.Include(luaShaderDir.."instancevbotable.lua")
 
 --testing variables
 local TEST_SPEED = 1
+local TEST_SQUARE_COUNT = 7
 
 --constants
 local SQUARE_SIZE = 1024
@@ -639,23 +640,19 @@ local planeLayout = {
 }
 local glDepthTest = gl.DepthTest
 local glTexture = gl.Texture
-local glClear = gl.Clear
-local glColorMask = gl.ColorMask
 local random = math.random
+local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 
 -- Constants
 local SQUARE_HEIGHT = 20
-local MOVE_INTERVAL = 60  -- Move every 60 frames
-local NUM_SQUARES = 3     -- Number of squares tzo render
+local MOVE_INTERVAL = 60
 
--- Shader-related variables
 local squareVBO = nil
 local squareVAO = nil
 local squareShader = nil
 local instanceVBO = nil
-local lastMoveFrame = 0  -- Track when we last moved the square
+local lastMoveFrame = 0
 
--- Vertex shader source
 local vsSrc = [[
 #version 420
 #extension GL_ARB_shading_language_420pack: require
@@ -729,7 +726,6 @@ void main() {
 }
 ]]
 
--- Function to create and initialize the shader
 local function makeShader()
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 	local vsShader = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
@@ -753,7 +749,7 @@ local function makeShader()
 	end
 	return true
 end
--- Layout for instance data
+
 local planeLayout = {
 	{id = 1, name = 'posscale', size = 4}, -- a vec4 for pos + scale
 	{id = 2, name = 'color1', size = 4}, -- vec4 the color of this square
@@ -761,55 +757,31 @@ local planeLayout = {
 	{id = 4, name = 'capturestate', size = 4}, -- vec4 blinking, progress
 }
 
--- Function to create the square VBO
-local function makeSquareVBO()
-	-- Use makePlaneVBO from instancevbotable.lua
-	-- Parameters: width, height, xSegments, zSegments
-	-- Using 1024 for both width and height to create a square of size SQUARE_SIZE
-	local planeVBO, numVertices = makePlaneVBO(1, 1, 1, 1)
-	
-	if planeVBO == nil then 
-		Spring.Echo("Failed to create squareVBO")
-		return nil
-	end
-	
-	return planeVBO, numVertices
-end
--- Function to initialize GL resources
+
 local function initGL4()
 	local squareVBO, numVertices = makePlaneVBO(1, 1, 1, 1)
-	if not squareVBO then return false end
 	
-	-- Create instance VBO table
 	instanceVBO = makeInstanceVBOTable(planeLayout, 16, "test_square_shader")
 	instanceVBO.vertexVBO = squareVBO
 	instanceVBO.numVertices = numVertices
-	
-	-- Create VAO
+
 	squareVAO = makeVAOandAttach(squareVBO, instanceVBO.instanceVBO)
 	instanceVBO.VAO = squareVAO
 	
-	-- Add multiple instances for our squares
-	local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
-	
-	-- Create NUM_SQUARES instances at random positions
-	for i = 1, NUM_SQUARES do
+	for i = 1, TEST_SQUARE_COUNT do
 		local randomX = random(SQUARE_SIZE, mapSizeX - SQUARE_SIZE)
 		local randomZ = random(SQUARE_SIZE, mapSizeZ - SQUARE_SIZE)
-		local groundHeight = Spring.GetGroundHeight(randomX, randomZ)
 		
 		local instanceData = {
 			randomX, SQUARE_HEIGHT, randomZ, SQUARE_SIZE,  -- posscale: x, y, z, scale
-			1.0, 0.5, 0.2, 0.8,                           -- color1: r, g, b, a
+			random(), random(), random(), 0.8,                           -- color1: r, g, b, a
 			2000, 5000, 0.8, 0.2,                         -- visibility: fadeStart, fadeEnd, minAlpha, maxAlpha
 			1.0, 0.0, 0.0, 0.0                            -- capturestate: blinking, progress, unused, unused
 		}
 		
 		pushElementInstance(instanceVBO, instanceData, i, true, false)
 	end
-	
 	uploadAllElements(instanceVBO)
-	
 	return makeShader()
 end
 
@@ -827,18 +799,16 @@ end
 function gadget:Update()
 	local currentFrame = Spring.GetGameFrame()
 	
-	-- Move squares to new random positions periodically
 	if currentFrame > 0 and currentFrame % MOVE_INTERVAL == 0 and currentFrame ~= lastMoveFrame then
 		local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 		
-		-- Update all squares
-		for i = 1, NUM_SQUARES do
+		for i = 1, TEST_SQUARE_COUNT do
 			local instanceData = getElementInstanceData(instanceVBO, i)
 			if instanceData then
 				-- Update progress (4th element in capturestate)
 				instanceData[14] = (instanceData[14] + 0.005) % 1.0
 				
-				-- Generate random coordinates within map boundaries
+				--test code, move squares to new random positions periodically
 				local randomX = random(SQUARE_SIZE, mapSizeX - SQUARE_SIZE)
 				local randomZ = random(SQUARE_SIZE, mapSizeZ - SQUARE_SIZE)
 				
@@ -866,7 +836,7 @@ function gadget:DrawWorldPreUnit()
 	squareShader:SetUniform("gameFrame", Spring.GetGameFrame())
 	
 	-- Draw the square using triangle strip mode which is more appropriate for a grid
-	instanceVBO.VAO:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, instanceVBO.usedElements, 0)
+	instanceVBO.VAO:DrawArrays(GL.TRIANGLE_STRIP, nil, 0, instanceVBO.usedElements, 0)
 	
 	squareShader:Deactivate()
 	glTexture(0, false)
