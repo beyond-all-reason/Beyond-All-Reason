@@ -218,6 +218,6 @@ Spring.SetConfigInt("MaxFontTries", 0)
 Spring.SetConfigInt("UseFontConfigLib", 0)
 
 local language = Spring.GetConfigString("language", 'en')
-if language ~= 'en' or language ~= 'fr' then
+if language ~= 'en' and language ~= 'fr' then
 	Spring.SetConfigString("language", 'en')
 end
