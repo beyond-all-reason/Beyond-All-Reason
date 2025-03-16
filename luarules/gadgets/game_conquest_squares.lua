@@ -593,23 +593,69 @@ if SYNCED then
 --zzz need to prevent defeat in the case that all remaining teams are tied, or there is only one team left
 
 else
+--unsynced code
 
--- UNSYNCED CODE
-
---localized Functions
-local glDepthTest = gl.DepthTest
-local glTexture = gl.Texture
-
--- Constants
-local GRID_SIZE = 1024
-local NORMAL_ALPHA = 0.5
-local BLINKING_ALPHA = 0.5
-local SQUARE_REVEAL_DISTANCE = math.hypot(GRID_SIZE, GRID_SIZE) * 1.1
-
+-- Include necessary files
 local luaShaderDir = "LuaUI/Widgets/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 
+--testing variables
+local TEST_SPEED = 1
+
+--constants
+local SQUARE_SIZE = 1024
+
+local SQUARE_ALPHA = 0.5
+
+--team stuff
+local myAllyID = select(6, Spring.GetTeamInfo(Spring.GetMyTeamID()))
+local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID()))
+local teams = Spring.GetTeamList()
+
+--colors
+local blankColor = {0.5, 0.5, 0.5, 0.0} -- grey and transparent for gaia
+local enemyColor = {1, 0, 0, SQUARE_ALPHA} -- red for enemy
+local alliedColor = {0, 1, 0, SQUARE_ALPHA} -- green for ally
+
+local allyColors = {}
+for _, teamID in ipairs(teams) do
+local allyID = select(6, Spring.GetTeamInfo(teamID))-- Store the first team color for each ally team
+	if allyID then
+		if not allyColors[allyID] and allyID ~= gaiaAllyTeamID then
+			local r, g, b, a = Spring.GetTeamColor(teamID)
+			allyColors[allyID] = {r, g, b, SQUARE_ALPHA}
+		else
+			allyColors[allyID] = blankColor
+		end
+	end
+end
+
+local planeLayout = {
+	{id = 1, name = 'posscale', size = 4}, -- a vec4 for pos + scale
+	{id = 2, name = 'ownercolor', size = 4}, --  vec4 the color of this new
+	{id = 3, name = 'takercolor', size = 4}, -- vec4 the color of this new
+	{id = 4, name = 'capturestate', size = 4}, -- vec4 progress, speed
+}
+local glDepthTest = gl.DepthTest
+local glTexture = gl.Texture
+local glClear = gl.Clear
+local glColorMask = gl.ColorMask
+local random = math.random
+
+-- Constants
+local SQUARE_HEIGHT = 20
+local MOVE_INTERVAL = 60  -- Move every 60 frames
+local NUM_SQUARES = 3     -- Number of squares tzo render
+
+-- Shader-related variables
+local squareVBO = nil
+local squareVAO = nil
+local squareShader = nil
+local instanceVBO = nil
+local lastMoveFrame = 0  -- Track when we last moved the square
+
+-- Vertex shader source
 local vsSrc = [[
 #version 420
 #extension GL_ARB_shading_language_420pack: require
@@ -637,7 +683,11 @@ void main() {
 	
 	// Get height from heightmap
 	vec2 uvhm = heightmapUVatWorldPos(worldPos.xz);
-	worldPos.y = textureLod(heightmapTex, uvhm, 0.0).x + posscale.y;
+	float terrainHeight = textureLod(heightmapTex, uvhm, 0.0).x;
+	
+	// Set Y position to be terrain height plus offset
+	// The position.y (which is 1.0) is used as a multiplier for the height offset
+	worldPos.y = terrainHeight + (position.y * posscale.y);
 	
 	// Calculate pulsing effect based on game frame
 	float pulse = 0.3 + 0.7 * sin(gameFrame * 0.05);
@@ -678,49 +728,13 @@ void main() {
 }
 ]]
 
--- Variables
-local mapSizeX = Game.mapSizeX
-local mapSizeZ = Game.mapSizeZ
-local numberOfSquaresX = math.ceil(mapSizeX / GRID_SIZE)
-local numberOfSquaresZ = math.ceil(mapSizeZ / GRID_SIZE)
-local totalSquares = numberOfSquaresX * numberOfSquaresZ
-local teams = Spring.GetTeamList()
-local myAllyTeamID = Spring.GetMyAllyTeamID()
-local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID()))
-
--- Tables
-local gridData = {}
-local allyScores = {}
-local planeVBO
-local planeInstanceTable
-local dominionShader
-local planeVAO
-
-local blankColor = {0.5, 0.5, 0.5, 0.0} -- grey and transparent for gaia
-local enemyColor = {1, 0, 0, NORMAL_ALPHA} -- red for enemy
-local alliedColor = {0, 1, 0, NORMAL_ALPHA} -- green for ally
-local allyColors = {}
-for _, teamID in ipairs(teams) do
-local allyID = select(6, Spring.GetTeamInfo(teamID))-- Store the first team color for each ally team
-	if allyID then
-		if not allyColors[allyID] and allyID ~= gaiaAllyTeamID then
-			local r, g, b, a = Spring.GetTeamColor(teamID)
-			allyColors[allyID] = {r, g, b, NORMAL_ALPHA}
-		else
-			allyColors[allyID] = blankColor
-		end
-	end
-end
-
-
-
 -- Function to create and initialize the shader
 local function makeShader()
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 	local vsShader = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	local fsShader = fsSrc
 	
-	dominionShader = LuaShader({
+	squareShader = LuaShader({
 		vertex = vsShader,
 		fragment = fsShader,
 		uniformInt = {
@@ -729,182 +743,157 @@ local function makeShader()
 		uniformFloat = {
 			gameFrame = 0,
 		},
-	}, "dominionShader")
+	}, "testSquareShader")
 	
-	local shaderCompiled = dominionShader:Initialize()
+	local shaderCompiled = squareShader:Initialize()
 	if not shaderCompiled then
-		Spring.Echo("Failed to compile dominionShader")
+		Spring.Echo("Failed to compile testSquareShader")
 		return false
 	end
 	return true
 end
-
--- Pre-populate gridData with default values
-for gridID = 1, totalSquares do
-	local gridXIndex = math.floor((gridID - 1) / numberOfSquaresZ)
-	local gridZIndex = (gridID - 1) % numberOfSquaresZ
-	
-	-- Calculate the actual map coordinates for the origin of the square
-	local gridX = gridXIndex * GRID_SIZE
-	local gridZ = gridZIndex * GRID_SIZE
-	
-	gridData[gridID] = {
-		gridX = gridX,
-		gridZ = gridZ,
-		middleX = gridX + GRID_SIZE / 2,
-		middleZ = gridZ + GRID_SIZE / 2,
-		allyOwnerID = gaiaAllyTeamID,
-		blinking = true,
-		progress = 0
-	}
-end
-
-
+-- Layout for instance data
 local planeLayout = {
 	{id = 1, name = 'posscale', size = 4}, -- a vec4 for pos + scale
-	{id = 2, name = 'color1', size = 4}, --  vec4 the color of this new
-	{id = 3, name = 'visibility', size = 4}, --- vec4 heightdrawstart, heightdrawend, fadefactorin, fadefactorout
+	{id = 2, name = 'color1', size = 4}, -- vec4 the color of this square
+	{id = 3, name = 'visibility', size = 4}, -- vec4 heightdrawstart, heightdrawend, fadefactorin, fadefactorout
 	{id = 4, name = 'capturestate', size = 4}, -- vec4 blinking, progress
 }
 
-local function updateSquareInstance(gridID, isSpectator)
-	local data = gridData[gridID]
-	local colorTable = blankColor
+-- Function to create the square VBO
+local function makeSquareVBO()
+	local squareVBO = gl.GetVBO(GL.ARRAY_BUFFER, true)
+	if squareVBO == nil then 
+		Spring.Echo("Failed to create squareVBO")
+		return nil
+	end
 
-	if data.needsUpdate then
-		if isSpectator then
-			colorTable = allyColors[data.allyOwnerID]
-		elseif data.allyOwnerID == myAllyTeamID then
-			colorTable = alliedColor
-		elseif data.allyOwnerID ~= gaiaAllyTeamID then
-			colorTable = enemyColor
-		end
+	local VBOLayout = {
+		{id = 0, name = "position", size = 4},
+	}
+
+	-- Create a simple square with 4 vertices, but now with Y=1.0 instead of 0.0
+	-- This creates a square that's elevated above the origin
+	local VBOData = {
+		-0.5, 1.0, -0.5, 1.0, -- bottom left
+		 0.5, 1.0, -0.5, 1.0, -- bottom right
+		 0.5, 1.0,  0.5, 1.0, -- top right
+		-0.5, 1.0,  0.5, 1.0, -- top left
+	}
+
+	squareVBO:Define(4, VBOLayout)
+	squareVBO:Upload(VBOData)
+	return squareVBO
+end
+
+-- Function to initialize GL resources
+local function initGL4()
+	squareVBO = makeSquareVBO()
+	if not squareVBO then return false end
+	
+	-- Create instance VBO table
+	instanceVBO = makeInstanceVBOTable(planeLayout, 16, "test_square_shader")
+	instanceVBO.vertexVBO = squareVBO
+	instanceVBO.numVertices = 4
+	
+	-- Create VAO
+	squareVAO = makeVAOandAttach(squareVBO, instanceVBO.instanceVBO)
+	instanceVBO.VAO = squareVAO
+	
+	-- Add multiple instances for our squares
+	local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
+	
+	-- Create NUM_SQUARES instances at random positions
+	for i = 1, NUM_SQUARES do
+		local randomX = random(SQUARE_SIZE, mapSizeX - SQUARE_SIZE)
+		local randomZ = random(SQUARE_SIZE, mapSizeZ - SQUARE_SIZE)
+		local groundHeight = Spring.GetGroundHeight(randomX, randomZ)
+		
+		local instanceData = {
+			randomX, SQUARE_HEIGHT, randomZ, SQUARE_SIZE,  -- posscale: x, y, z, scale
+			1.0, 0.5, 0.2, 0.8,                           -- color1: r, g, b, a
+			2000, 5000, 0.8, 0.2,                         -- visibility: fadeStart, fadeEnd, minAlpha, maxAlpha
+			1.0, 0.0, 0.0, 0.0                            -- capturestate: blinking, progress, unused, unused
+		}
+		
+		pushElementInstance(instanceVBO, instanceData, i, true, false)
 	end
 	
-	data.needsUpdate = false
+	uploadAllElements(instanceVBO)
+	
+	return makeShader()
 end
 
--- Update a square's instance data
-local function updateAllSquareInstances()
-	local isSpectator = Spring.GetSpectatingState()
+-- Initialize the gadget
+function gadget:Initialize()
+	if initGL4() == false then
+		gadgetHandler:RemoveGadget()
+		return
+	end
+	
+	Spring.Echo("Test Shader Square initialized successfully")
+end
 
-	for gridID, data in pairs(gridData) do
-		updateSquareInstance(gridID, isSpectator)
+-- Update the shader parameters
+function gadget:Update()
+	local currentFrame = Spring.GetGameFrame()
+	
+	-- Move squares to new random positions periodically
+	if currentFrame > 0 and currentFrame % MOVE_INTERVAL == 0 and currentFrame ~= lastMoveFrame then
+		local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
+		
+		-- Update all squares
+		for i = 1, NUM_SQUARES do
+			local instanceData = getElementInstanceData(instanceVBO, i)
+			if instanceData then
+				-- Update progress (4th element in capturestate)
+				instanceData[14] = (instanceData[14] + 0.005) % 1.0
+				
+				-- Generate random coordinates within map boundaries
+				local randomX = random(SQUARE_SIZE, mapSizeX - SQUARE_SIZE)
+				local randomZ = random(SQUARE_SIZE, mapSizeZ - SQUARE_SIZE)
+				
+				-- Update position (first 3 elements in posscale)
+				instanceData[1] = randomX
+				instanceData[3] = randomZ
+				
+				pushElementInstance(instanceVBO, instanceData, i, true)
+			end
+		end
+		
+		uploadAllElements(instanceVBO)
+		lastMoveFrame = currentFrame
 	end
 end
 
--- Draw the squares
-local function DrawSquares()
-	if not planeVBO or not dominionShader then return end
+-- Draw the square
+function gadget:DrawWorldPreUnit()
+	if not squareShader or not squareVAO or not instanceVBO then return end
 	
 	glTexture(0, "$heightmap")
 	glDepthTest(true)
 	
-	dominionShader:Activate()
-	dominionShader:SetUniform("gameFrame", Spring.GetGameFrame())
+	squareShader:Activate()
+	squareShader:SetUniform("gameFrame", Spring.GetGameFrame())
 	
 	-- Draw the square as two triangles (using triangle strip)
-	planeInstanceTable.VAO:DrawArrays(GL.TRIANGLE_FAN, 4, 0, planeInstanceTable.usedElements, 0)
+	instanceVBO.VAO:DrawArrays(GL.TRIANGLE_FAN, 4, 0, instanceVBO.usedElements, 0)
 	
-	dominionShader:Deactivate()
+	squareShader:Deactivate()
 	glTexture(0, false)
 	glDepthTest(false)
 end
 
-function gadget:DrawWorldPreUnit()
-	DrawSquares()
-end
-
-local planeVBO
-local planeInstanceTable
-local planeVAO
-function gadget:Initialize()
-	planeVBO = makePlaneVBO(GRID_SIZE, GRID_SIZE, 1, 1)
-	planeInstanceTable = makeInstanceVBOTable(planeLayout, totalSquares, "planeVBO")
-	planeVAO = makeVAOandAttach(planeVBO, planeInstanceTable.instanceVBO)
-	planeInstanceTable.VAO = planeVAO
-	--zzz mid refactor, trying to learn how to use instancing
-	makeShader()
-	updateAllSquareInstances()
-
-	---TEST DRAW SQUARE
-	---	-- Add a single instance for our square
-	local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
-	local centerX, centerZ = mapSizeX / 2, mapSizeZ / 2
-	local groundHeight = Spring.GetGroundHeight(centerX, centerZ)
-	
-	local instanceData = {
-		centerX, GRID_SIZE, centerZ, GRID_SIZE,  -- posscale: x, y, z, scale
-		1.0, 0.5, 0.2, 0.8,                           -- color1: r, g, b, a
-		2000, 5000, 0.8, 0.2,                         -- visibility: fadeStart, fadeEnd, minAlpha, maxAlpha
-		1.0, 0.0, 0.0, 0.0                            -- capturestate: blinking, progress, unused, unused
-	}
-	
-	pushElementInstance(planeInstanceTable, instanceData, 1, true, false)
-	uploadAllElements(planeInstanceTable)
-	----
-end
-
-	-- Receive grid data from synced
-function gadget:RecvFromSynced(cmd, ...)
-	local args = {...}
-	
-	if cmd == "InitializeGridSquare" then
-		-- Initialize a single grid square
-		local gridID = args[1]
-		local allyOwnerID = args[2]
-		local blinking = args[3]
-		local gridX = args[4]
-		local gridZ = args[5]
-		
-		-- Store the grid square data
-		gridData[gridID] = {
-			gridX = gridX,
-			gridZ = gridZ,
-			gridMiddleX = gridX + GRID_SIZE / 2,
-			gridMiddleZ = gridZ + GRID_SIZE / 2,
-			allyOwnerID = allyOwnerID,
-			blinking = blinking,
-			needsUpdate = true
-		}
-		
-		-- Update VBO data
-		updateSquareInstance(gridID)
-		
-	elseif cmd == "UpdateGridSquare" then
-		-- Update a grid square's ownership and blinking state
-		local gridID = args[1]
-		local allyOwnerID = args[2]
-		local blinking = args[3]
-		
-		-- Only update if the grid square exists
-		if gridData[gridID] then
-			gridData[gridID].allyOwnerID = allyOwnerID
-			gridData[gridID].blinking = blinking
-			gridData[gridID].needsUpdate = true
-			
-			-- Update VBO data
-			updateSquareInstance(gridID)
-		end
-		
-	elseif cmd == "UpdateAllyScore" then
-		-- Update an ally team's score
-		local allyID = args[1]
-		local score = args[2]
-		allyScores[allyID] = score
-	end
-end
-
+-- Clean up
 function gadget:Shutdown()
-	if planeVBO then
-		planeVBO:Delete()
+	if squareVBO then
+		squareVBO:Delete()
 	end
-	if planeInstanceTable and planeInstanceTable.instanceVBO then
-		planeInstanceTable.instanceVBO:Delete()
+	if instanceVBO and instanceVBO.instanceVBO then
+		instanceVBO.instanceVBO:Delete()
 	end
-	if dominionShader then
-		dominionShader:Finalize()
+	if squareShader then
+		squareShader:Finalize()
 	end
 end
-
 end
