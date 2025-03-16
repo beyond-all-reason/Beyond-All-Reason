@@ -2161,21 +2161,21 @@ function gadgetHandler:ActiveCommandChanged(id, cmdType)
 	end
 end
 
-function gadgetHandler:CameraRotationChanged(rot)
+function gadgetHandler:CameraRotationChanged(rotx, roty, rotz)
 	for _, g in r_ipairs(self.CameraRotationChangedList) do
-	  g:CameraRotationChanged(rot)
+	  g:CameraRotationChanged(rotx, roty, rotz)
 	end
 end
 
-function gadgetHandler:CameraPositionChanged(pos)
+function gadgetHandler:CameraPositionChanged(posx, posy, posz)
 	for _, g in r_ipairs(self.CameraPositionChangedList) do
-	  g:CameraPositionChanged(pos)
+	  g:CameraPositionChanged(posx, posy, posz)
 	end
 end
 
-function gadgetHandler:CameraDirectionChanged(dir)
+function gadgetHandler:CameraDirectionChanged(dirx, diry, dirz)
 	for _, g in r_ipairs(self.CameraDirectionChangedList) do
-	  g:CameraDirectionChanged(dir)
+	  g:CameraDirectionChanged(dirx, diry, dirz)
 	end
 end
 

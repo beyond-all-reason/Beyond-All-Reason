@@ -1341,26 +1341,26 @@ function widgetHandler:ActiveCommandChanged(id, cmdType)
 	tracy.ZoneEnd()
 end
 
-function widgetHandler:CameraRotationChanged(rot)
+function widgetHandler:CameraRotationChanged(rotx, roty, rotz)
 	tracy.ZoneBeginN("W:CameraRotationChanged")
 	for _,w in ipairs(self.CameraRotationChangedList) do
-		w:CameraRotationChanged(rot)
+		w:CameraRotationChanged(rotx, roty, rotz)
 	end
 	tracy.ZoneEnd()
 end
 
-function widgetHandler:CameraPositionChanged(pos)
+function widgetHandler:CameraPositionChanged(posx, posy, posz)
 	tracy.ZoneBeginN("W:CameraPositionChanged")
 	for _,w in ipairs(self.CameraPositionChangedList) do
-		w:CameraPositionChanged(pos)
+		w:CameraPositionChanged(posx, posy, posz)
 	end
 	tracy.ZoneEnd()
 end
 
-function widgetHandler:CameraDirectionChanged(dir)
+function widgetHandler:CameraDirectionChanged(dirx, diry, dirz)
 	tracy.ZoneBeginN("W:CameraDirectionChanged")
 	for _,w in ipairs(self.CameraDirectionChangedList) do
-		w:CameraDirectionChanged(dir)
+		w:CameraDirectionChanged(dirx, diry, dirz)
 	end
 	tracy.ZoneEnd()
 end
