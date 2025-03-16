@@ -61,15 +61,8 @@ local spGiveOrderTounit = Spring.GiveOrderToUnit
 local spGiveOrderArrayTounit = Spring.GiveOrderArrayToUnit
 local spGiveOrderTounitArray = Spring.GiveOrderToUnitArray
 local spGiveOrderArrayTounitArray = Spring.GiveOrderArrayToUnitArray
-local commandcounter = {}
 local syncTables = {}
-local data = {}
-local id = {}
-local cmd = {}
-local params = {}
-local options = {}
-local method = {}
-
+local cmdCounter = {ii = 0 ,zi=0,iz=0,zz=0}
 if gadgetHandler:IsSyncedCode() then
 
 	function gadget:Initialize()
@@ -149,7 +142,10 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:RecvLuaMsg(msg, playerID)
 		--msg = 'StGiveOrderToSync'..';'..id..';'..cmd..';'..pos..';'..opts..';'..timeout..';'..uname..';'.'StEndGOTS'
-		
+		if string.sub(msg,1,17) == 'StGiveOrderToSync' then
+			Spring.Echo('warn: ST receive a old give order protocol',msg)
+			return
+		end
 		if string.sub(msg,1,10) ~= '@Shard[ST]' or string.sub(msg,-10,-1) ~= '[ST]Shard@' then
 			Spring.Echo(string.sub(msg,1,10),string.sub(msg,-10,-1))
 			return
@@ -161,6 +157,7 @@ if gadgetHandler:IsSyncedCode() then
 
 			if order.method == '1-1' then
 				spGiveOrderTounit(order.id,order.cmd,order.parameters,order.options)
+				cmdCounter.ii = cmdCounter.ii + 1
 			elseif order.method == '2-1' then
 				print('GiveOrderArrayTounit')
 				local arrayOfCmd = {}
@@ -171,10 +168,12 @@ if gadgetHandler:IsSyncedCode() then
 					arrayOfCmd[i][3] = order.options[i]
 				end
 				local cmd = spGiveOrderArrayTounit(order.id,arrayOfCmd)
+				cmdCounter.zi = cmdCounter.zi + 1
 				print('GiveOrderArrayTounit',cmd)
 			elseif order.method == '1-2' then
 				Spring.Echo(type(order.id),type(order.cmd),type(order.parameters[1]),type(order.options))
 				local cmd = spGiveOrderTounitArray(order.id,order.cmd,order.parameters,order.options)
+				cmdCounter.iz = cmdCounter.iz + 1
 				Spring.Echo('GiveOrderToUnitArray',cmd)
 				--Spring.GiveOrderToUnitArray ( unitArray = { [1] = unitID, etc... }, number cmdID, params = { number, etc...}, options = {"alt", "ctrl", "shift", "right"} )
 				
@@ -187,64 +186,12 @@ if gadgetHandler:IsSyncedCode() then
 					arrayOfCmd[i][3] = order.options[i]
 				end
 				local cmd = spGiveOrderArrayTounitArray(order.id,arrayOfCmd,true)
+				cmdCounter.zz = cmdCounter.zz + 1
 				print('GiveOrderArrayTounitArray',cmd)
 			end
-			return
+			
 		end
-		
-		if string.sub(msg,1,17) ~= 'StGiveOrderToSync' then
-			return
-		end
-		
-		local datas = string.split(msg,';')
-
-		if datas[1] ~= 'StGiveOrderToSync' or datas[7] ~= 'StEndGOTS' then
-			Spring.Echo('ST RECEIVEDGOTS INCOMPLETE GOTS ',#datas,msg)
-			return
-		end
-
-		if #datas ~= 7 then
-			Spring.Echo('ST RECEIVEDGOTS INCOMPLETE GOTS ',#datas,msg)
-			return
-		end
-
-		local id = datas[2]
-		local cmd = datas[3]
-		local pos = datas[4]
-		local opts = datas[5]
-		commandcounter[cmd] = commandcounter[cmd] or 0
-		commandcounter[cmd] = commandcounter[cmd] + 1
-		--local timeout = datas[6]
-		local unit = datas[6]
-
-		pos = string.split(pos,',')
-		if not pos or not pos[1] or pos[1] == '' then
-			Spring.Echo(pos)
-			spEcho('warn! invalid POS argument in STAI gotu luarules message')
-			return
-		end
-		if opts ~= 0 then
-			opts = string.split(opts,',')
-			if not opts or not opts[1] or opts[1] == '' then
-				Spring.Echo(opts)
-				spEcho('warn! invalid OPTS argument in STAI gotu luarules message')
-				return
-			end
-		end
--- 		Spring.Echo('GOTS ORDER ISSUES',id,cmd,pos,opts)
-		if Spring.ValidUnitID(id) then
-			local order = Spring.GiveOrderToUnit(id,cmd,pos,opts)
-			Spring.Echo('commandcounter',commandcounter)
-			if order ~= true then
-				spEcho('order error in STAI unsync to sync give order to unit',msg)
-				spEcho('order', order,id,cmd,pos,opts)
-
-	-- 		else
-	-- 			spEcho('STAI give order to unit OK')
-			end
-		else
-			spEcho('order error in STAI unsync to sync: unitID is invalid')
-		end
+		Spring.Echo('cmdCounter','1-1',cmdCounter.ii,'2-1',cmdCounter.zi,'1-2',cmdCounter.iz,'2-2',cmdCounter.zz)
 	end
 
 

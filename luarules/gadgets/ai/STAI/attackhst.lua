@@ -313,9 +313,12 @@ function AttackHST:SquadAdvance(squad)
 			p[3] = pos.z
 		else
 			local nx,nz = member:Advance(pos or nextPos, nextPerpendicularAngle, reverseAttackAngle)
-			p[1] = nx
-			p[2] = Spring.GetGroundHeight(nx,nz)
-			p[3] = nz
+			if nx then
+				Spring.Echo('advance',nx,nz)
+				p[1] = nx
+				p[2] = Spring.GetGroundHeight(nx,nz)
+				p[3] = nz
+			end
 			
 		end
 		table.insert(cmdUnitId, member.unit:Internal():ID())

@@ -148,6 +148,7 @@ function AttackerBST:Advance(pos, perpendicularAttackAngle, reverseAttackAngle)
 	self:EchoDebug('adv',self.attacking,self.active,self.target.x,self.target.z)
 	if self.active and canMoveThere then
 		self:EchoDebug('adv move',self.target.x,self.target.z)
+		print('adv move',self.target.x,self.target.z)
 		return self.target.x,self.target.z
 		--self.unit:Internal():Move(self.target) --need to check this
 	end
