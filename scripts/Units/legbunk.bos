@@ -86,13 +86,14 @@ Create(){
 	isMoving = FALSE;
 	animSpeed = 2; // Set to 4 for 75ms, 4.3733 for 82ms
 	restore_delay = 3000; // Delay from returning to relaxed idle stance
-	call-script StopWalking(); //Start in power pose! Thank you cleaned Pawn <3
+
+
+	//Start in power pose! Thank you cleaned Pawn <3
+	call-script StopWalking();
 	start-script UnitSpeed();
 
 	hide frontPelvis;
 	hide frontTorso;
-
-
 	hide aimy1;
 	hide aimxarml;
 	hide aimyarml;
@@ -109,15 +110,18 @@ Create(){
 	hide flaresmokegun5;
 	hide flaresmokegun6;
 
+	//For the funky Targetting System ofc
 	torsofunkyHeading = 0;
 	oldHeadingBunker = 0;
 	oldHeadingRailgun = 0;
 
 	fuelSaver = FALSE;
 
+	//Needed for CATT to do its thing ig.
 	call-script CATT1_Init();
 	call-script CATT2_Init();
 
+	//Booting up!
 	spin fingers around z-axis speed <360> accelerate <6>;}
 
 //-------------------------------CONSTANT ACCELERATION TURRET TURNING---------------------------
@@ -341,20 +345,12 @@ AimWeapon3(heading, pitch) {
 	var new_heading;
 	new_heading = (heading - torsofunkyHeading);
 
-	//Trying to make the railgun not rotato towards an insane angle relative to the torso. It should be allowed to rotate more freely clockwise than counterclockwise since it is on the right arm. Since the torso rotates to the other side if it tries rotating beyond -180 degrees a (new_heading < <ang>) isnt necessary.
-	//dbg(heading,torsofunkyHeading,new_heading);
-	dbg(oldHeadingRailgun,new_heading);
-	/*if ((oldHeadingRailgun == 0xbadface) OR ANGLE_DIFFERENCE_GREATER_THAN(new_heading, <90>))
-	{
-		oldHeadingRailgun = 1000000;
-		wait-for-turn aimyarmr around y-axis;
-		//return(0);
-	}*/
-	turn railgun to x-axis <0> speed <30>;
-
+	//turn railgun to x-axis <0> speed <30>;
 	oldHeadingRailgun = heading;
-	call-script CATT2_Aim((heading - torsofunkyHeading) + <1>,pitch+400);
-	start-script RestoreAfterDelay();
+
+	turn railgun to x-axis pitch/2 speed <30>;
+	call-script CATT2_Aim((heading - torsofunkyHeading) + <1>,(pitch+400)/2);
+	//wait-for-turn aimyarmr around y-axis;
 	return(1);}
 
 
