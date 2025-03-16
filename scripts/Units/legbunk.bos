@@ -69,13 +69,13 @@ pile;
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 static-var torsoHeading, isAiming, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, restore_delay, stunned, oldHeadingTS, torsofunkyHeading, oldHeadingBunker, oldHeadingRailgun, fuelSaver, isturning;
 #define MOVESCALE 100
-#define SIGNAL_MOVE 1
+#define SIGNAL_MOVE 		1
 #define SIG_WALK			2
-#define SIG_AIM				4
-#define SIG_AIM_BUNKER			8
+#define SIG_AIM_TC			4
+#define SIG_AIM_BUNKER		8
 #define SIG_AIM_GUN			16
-#define SIG_ARMOR			32
-#define SIG_FIRE_BUNKER		64
+#define SIG_FIRE_BUNKER		32
+#define SIG_FIRE_GUN		64
 
 #define UNITSIZE 			8
 #define MAXTILT				100
@@ -197,8 +197,8 @@ QueryWeapon2(piecenum)
 
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal SIG_AIM_TC;
+	set-signal-mask SIG_AIM_TC + SIG_FIRE_BUNKER + SIG_FIRE_GUN;
 	var cauaim;
     var cauface;
 	if ((((oldHeadingBunker > 0) AND (oldHeadingRailgun < 0) AND (oldHeadingBunker > 15000) AND (oldHeadingRailgun < (-15000))) OR ((oldHeadingBunker < 0) AND (oldHeadingRailgun > 0) AND (oldHeadingBunker < (-15000)) AND (oldHeadingRailgun > 15000))) AND (15000 > get ABS(cauface - cauaim)))
@@ -395,13 +395,12 @@ ResetWeapon() {
 	set-signal-mask SIG_FIRE_BUNKER; //Set this to whichever signal the weapon emits when firing!
 	sleep CATT1_RESTORE_DELAY;
 	signal SIG_AIM_BUNKER;
-	dbg();
 	turn aimxarml to x-axis <0.000000> speed <30.000000>;
 	turn aimyarml to y-axis <0.000000> speed <30.000000>;}
 
 
 RestoreAfterDelay(){
-	set-signal-mask SIG_AIM;
+	set-signal-mask SIG_AIM_TC;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();}
 
