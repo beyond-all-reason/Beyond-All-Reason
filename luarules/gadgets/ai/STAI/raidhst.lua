@@ -145,6 +145,7 @@ function RaidHST:SquadCheck(squad)
 	squad.position.z = z / memberCount
 	squad.position.y = map:GetGroundHeight(squad.position.x,squad.position.x)
 	squad.mass = mass
+	squad.lastAdvance = squad.lastAdvance or 0
 	local memberDist = math.huge
 	local leader = nil
 	local leaderPos = nil
@@ -307,11 +308,13 @@ end
 
 function RaidHST:SquadAdvance(squad)
 	self:EchoDebug("advance",squad.squadID)
+	if game:Frame() < squad.lastAdvance + 30 then
+		return
+	end
 	squad.idleCount = 0
 	if not squad.target or not squad.path then
 		return
 	end
-	local x,y,z
 	self:EchoDebug('squad.pathStep',squad.step,'#squad.path',#squad.path)
 	self:SquadStepComplete(squad)
 	local members = squad.members
@@ -349,8 +352,10 @@ function RaidHST:SquadAdvance(squad)
 		p[2] = nextPos.y
 		p[3] = nextPos.z
 	end
+
 	local command = self.ai.tool:SerializeOrder(cmdUnitId,CMD.MOVE ,p,0,'1-2')
 	game:GiveOrder(command)
+	squad.lastAdvance = game:Frame()
 	self:EchoDebug('advance after members move')
 end
 

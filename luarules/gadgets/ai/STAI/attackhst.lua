@@ -145,6 +145,7 @@ function AttackHST:SquadCheck(squad)
 	squad.position.z = z / memberCount
 	squad.position.y = map:GetGroundHeight(squad.position.x,squad.position.x)
 	squad.mass = mass
+	squad.lastAdvance = squad.lastAdvance or 0
 	local memberDist = math.huge
 	local leader = nil
 	local leaderPos = nil
@@ -280,6 +281,9 @@ end
 function AttackHST:SquadAdvance(squad)
 	self:EchoDebug("advance",squad.squadID)
 	squad.idleCount = 0
+	if game:Frame() < squad.lastAdvance + 30 then
+		return
+	end
 	if not squad.target or not squad.path then
 		return
 	end
@@ -313,7 +317,9 @@ function AttackHST:SquadAdvance(squad)
 			p[3] = pos.z
 		else
 			local nx,nz = member:Advance(pos or nextPos, nextPerpendicularAngle, reverseAttackAngle)
-			if nx then
+			if not nx or not nz then
+				return
+			else
 				Spring.Echo('advance',nx,nz)
 				p[1] = nx
 				p[2] = Spring.GetGroundHeight(nx,nz)
@@ -330,6 +336,7 @@ function AttackHST:SquadAdvance(squad)
 	end
 	local command = self.ai.tool:SerializeOrder(cmdUnitId,cmdUnitCommand ,cmdUnitParams,cmdUnitOptions,'2-2')
 	game:GiveOrder(command)
+	squad.lastAdvance = game:Frame()
 	self:EchoDebug('advance after members move')
 end
 

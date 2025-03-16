@@ -152,7 +152,7 @@ function AttackerBST:Advance(pos, perpendicularAttackAngle, reverseAttackAngle)
 		return self.target.x,self.target.z
 		--self.unit:Internal():Move(self.target) --need to check this
 	end
-	return canMoveThere
+	return
 end
 
 function AttackerBST:Free()
