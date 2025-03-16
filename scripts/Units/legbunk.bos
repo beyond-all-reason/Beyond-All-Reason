@@ -130,28 +130,28 @@ Create(){
 #define CATT1_PIECE_X aimxarml
 #define CATT1_PIECE_Y aimyarml
 
-#define CATT1_MAX_VELOCITY <3>
-#define CATT1_ACCELERATION <0.3>
-#define CATT1_JERK <0.5>
+#define CATT1_MAX_VELOCITY <6>
+#define CATT1_ACCELERATION <0.9>
+#define CATT1_JERK <2>
 #define CATT1_PRECISION <10>
 //#define CATT1_PITCH_SPEED <85>
 #define CATT1_RESTORE_DELAY 3000
-#define CATT1_RESTORE_SPEED <30>
+#define CATT1_RESTORE_SPEED 2
 
 //CATT2 as Railgun
 #define CATT2_PIECE_X aimxarmr
 #define CATT2_PIECE_Y aimyarmr
 
-#define CATT2_MAX_VELOCITY <3>
-#define CATT2_ACCELERATION <0.6>
-#define CATT2_JERK <0.5>
-#define CATT2_PRECISION <5>
+#define CATT2_MAX_VELOCITY <6>
+#define CATT2_ACCELERATION <0.9>
+#define CATT2_JERK <2>
+#define CATT2_PRECISION <10>
 //#define CATT2_PITCH_SPEED <85>
 #define CATT2_RESTORE_DELAY 3000
-#define CATT2_RESTORE_SPEED <30>
+#define CATT2_RESTORE_SPEED 2
 
 #define HAS_STUN
-#define CATT2_DEBUG
+//#define CATT2_DEBUG
 
 
 #include "../constant_acceleration_turret_turning_1.h"
