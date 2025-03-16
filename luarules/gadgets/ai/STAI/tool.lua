@@ -67,31 +67,36 @@ function Tool:SerializeOrder(id,cmd,parameters,options,method)
 	else
 		order = order .. self:TableToString(id)
 	end
-	Spring.Echo('oder',order)
+	Spring.Echo('serialized oder id:',order)
+	serialized = ''
 	order = order .. '&cmd:'
 	if type(cmd) == 'number' then
 		order = order .. tostring(cmd)
 	else
 		order = order .. self:TableToString(cmd)
 	end
-	Spring.Echo('oder',order)
+	Spring.Echo('serialized oder cmd',order)
+	serialized = ''
 	order = order .. '&parameters:'
 	if type(parameters) == 'number' then
 		order = order .. tostring(parameters)
 	else
 		order = order .. self:TableToString(parameters)
 	end
-	Spring.Echo('oder',order)
+	Spring.Echo('serialized oder params',order)
+	serialized = ''
 	order = order .. '&options:'
 	if type(options) == 'number' then
 		order = order .. tostring(options)
 	else
 		order = order .. self:TableToString(options)
 	end
-	Spring.Echo('oder',order)
+	Spring.Echo('serialized ordero ptions',order)
+	serialized = ''
 	order = order .. '&method:'.. method
 	order = order .. '[ST]'
-	Spring.Echo('Serialized Order:',order)
+	Spring.Echo('Serialized Order complete:',order)
+	serialized = ''
 	return order
 end
 

@@ -168,7 +168,10 @@ local game = {}
 	end
 
 	function game:GiveOrder(message) -- sends a message to the engine to give an order
-		Spring.SendLuaRulesMsg('@Shard' .. message .. 'Shard@')
+		message = '@Shard' .. message .. 'Shard@'
+		Spring.Echo('game:GiveOrder: ' .. message)
+		
+		Spring.SendLuaRulesMsg(message)
 	end
 
 	function game:GetResources() -- returns a table of Resource objects, takes the name of the resource

@@ -122,7 +122,7 @@ if gadgetHandler:IsSyncedCode() then
 				order[key] = tonumber(value) or value
 			end
 		end
-		Spring.Echo('order',order)
+		Spring.Echo('sync order',order)
 		return order
 	end
 
@@ -143,7 +143,7 @@ if gadgetHandler:IsSyncedCode() then
 				table.insert(t,tonumber(value) or value)
 			end
 		end
-		Spring.Echo("Deserialized:", t)
+		Spring.Echo("Sync Deserialized:", t)
 		return t
 	end
 
@@ -152,19 +152,23 @@ if gadgetHandler:IsSyncedCode() then
 		
 		if string.sub(msg,1,10) ~= '@Shard[ST]' or string.sub(msg,-10,-1) ~= '[ST]Shard@' then
 			Spring.Echo(string.sub(msg,1,10),string.sub(msg,-10,-1))
+			return
 			
 		else
 			print('msg',msg)
 			msg = string.sub(msg,11,-11)
 			local order = gadget:DeserializeOrder(msg)
-			
-			
+
+			if order.method == '1-1' then
+				spGiveOrderTounit(order.id,order.cmd,order.parameters,order.options)
+			elseif order.method == '2-1' then
+				print('GiveOrderArrayTounit')
+				local cmd = spGiveOrderArrayTounit(order.id,{order.cmd[1],order.parameters[1],order.options[1]})
+				print('GiveOrderArrayTounit',cmd)
+			end
+			return
 		end
-		if order.method == '1:1' then
-			spGiveOrderTounit(order.id,order.cmd,order.parameters,order.options)
-		elseif order.method == '2:1' then
-			spGiveOrderArrayTounit(order.id,order.cmd,order.parameters,order.options)
-		end
+		
 		if string.sub(msg,1,17) ~= 'StGiveOrderToSync' then
 			return
 		end

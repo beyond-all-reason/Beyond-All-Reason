@@ -100,10 +100,19 @@ function LabsBST:Update()
 		end
 
 		self:EchoDebug('param.wave',param.wave,soldier)
+		local unitList = {}
+		unitCmd = self.game:GetTypeByName(soldier):ID() *-1
+		unitParams = {}
+		unitOptions = {}
 		for i=1,limit or 1 do
-			utype = self.game:GetTypeByName(soldier)
-			self.unit:Internal():Build(utype,self.position,0,{-1})
+			unitList[i] = unitCmd
+			unitParams[i] = 0
+			unitOptions[i] = 0
+			
+			--self.unit:Internal():Build(utype,self.position,0,{-1})
 		end
+		local command = self.ai.tool:SerializeOrder(self.id,unitList,unitParams,unitOptions,'2-1')
+		game:GiveOrder(command)
 	end
 end
 
