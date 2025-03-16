@@ -321,7 +321,10 @@ function RaidHST:SquadAdvance(squad)
 	local nextPerpendicularAngle = self.ai.tool:AngleAdd(nextAngle, halfPi)
  	squad.lastValidMove = nextPos -- raiders use this to correct bad move orders
 	self:EchoDebug('advance #members',#members)
+	local cmdUnitId = {}
+
 	for i,member in pairs(members) do
+		cmdUnitId[i] = member.unit:Internal():ID()
 		local pos
  		if member.formationBack and squad.step ~= #squad.path then
  			pos = self.ai.tool:RandomAway( nextPos, -member.formationBack, nil, nextAngle)
@@ -331,8 +334,11 @@ function RaidHST:SquadAdvance(squad)
  			reverseAttackAngle = self.ai.tool:AngleAdd(nextAngle, pi)
  		end
  		--self:EchoDebug('advance',pos,nextPerpendicularAngle,reverseAttackAngle)
-		member:Advance(pos or nextPos, nextPerpendicularAngle, reverseAttackAngle)
+
+		--member:Advance(pos or nextPos, nextPerpendicularAngle, reverseAttackAngle)
 	end
+	local command = self.ai.tool:SerializeOrder(cmdUnitId,CMD.MOVE ,pos or nextPos,0,'1-2')
+	game:GiveOrder(command)
 	self:EchoDebug('advance after members move')
 end
 
