@@ -28,6 +28,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "ScavComBossExplo",
 		sightdistance = 273,
+		yardmap = "oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo",
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
 			buildinggrounddecalsizex = 16,
