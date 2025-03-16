@@ -33,17 +33,26 @@ local UnitEffects = {
 	["corafus"] = {
 		{ class = 'ShieldJitter', options = { layer = -16, life = math.huge, pos = { 0, 60, 0 }, size = 34.5, precision = 22, repeatEffect = true } },
 	},
+	["corafust3"] = {
+		{ class = 'ShieldJitter', options = { layer = -16, life = math.huge, pos = { 0, 120, 0 }, size = 74, precision = 22, repeatEffect = true } },
+	},
 	["corfus"] = {
 		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 50, 0 }, size = 25, precision = 22, repeatEffect = true } },
 	},
 	["armafus"] = {
 		{ class = 'ShieldJitter', options = { layer = -16, life = math.huge, pos = { 0, 60, 0 }, size = 30.5, precision = 22, repeatEffect = true } },
 	},
+	["armafust3"] = {
+		{ class = 'ShieldJitter', options = { layer = -16, life = math.huge, pos = { 0, 120, 0 }, size = 61, precision = 22, repeatEffect = true } },
+	},
 	["legfus"] = {
 		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 10.5, 0 }, size = 23, precision = 22, repeatEffect = true } },
 	},
 	["legafus"] = {
 		{ class = 'ShieldJitter', options = { layer = -16, life = math.huge, pos = { 0,60, 0 }, size = 39, precision = 22, repeatEffect = true } },
+	},
+	["legafust3"] = {
+		{ class = 'ShieldJitter', options = { layer = -16, life = math.huge, pos = { 0,120, 0 }, size = 78, precision = 22, repeatEffect = true } },
 	},
 	["resourcecheat"] = {
 		{ class = 'ShieldJitter', options = { layer = -16, life = math.huge, pos = { 0, 60, 0 }, size = 30.5, precision = 22, repeatEffect = true } },

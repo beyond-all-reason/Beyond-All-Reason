@@ -62,10 +62,26 @@ local corafusShieldSphere = table.merge(defaults, {
 	--colormap2 = { {0.2, 0.2, 1, 0.7},{0.2, 0.2, 1, 0.75},{0.2, 0.2, 1, 0.75},{0.2, 0.2, 1, 0.7} },
 })
 
+local corafust3ShieldSphere = table.merge(defaults, {
+	pos = { 0, 120, 0 },
+	size = 64,
+	light = 8,
+	--colormap1 = { {0.9, 0.9, 1, 0.75},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 0.75} },
+	--colormap2 = { {0.2, 0.2, 1, 0.7},{0.2, 0.2, 1, 0.75},{0.2, 0.2, 1, 0.75},{0.2, 0.2, 1, 0.7} },
+})
+
 local armafusShieldSphere = table.merge(defaults, {
 	pos = { 0, 60, 0 },
 	size = 28,
 	light = 4.25,
+	--colormap1 = { {0.9, 0.9, 1, 0.75},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 0.75} },
+	--colormap2 = { {0.2, 0.2, 1, 0.7},{0.2, 0.2, 1, 0.75},{0.2, 0.2, 1, 0.75},{0.2, 0.2, 1, 0.7} },
+})
+
+local armafust3ShieldSphere = table.merge(defaults, {
+	pos = { 0, 120, 0 },
+	size = 56,
+	light = 8.5,
 	--colormap1 = { {0.9, 0.9, 1, 0.75},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 0.75} },
 	--colormap2 = { {0.2, 0.2, 1, 0.7},{0.2, 0.2, 1, 0.75},{0.2, 0.2, 1, 0.75},{0.2, 0.2, 1, 0.7} },
 })
@@ -77,6 +93,15 @@ local legafusShieldSphere = table.merge(defaults, {
 	--colormap1 = { {0.9, 0.9, 1, 0.75},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 0.75} },
 	--colormap2 = { {0.2, 0.2, 1, 0.7},{0.2, 0.2, 1, 0.75},{0.2, 0.2, 1, 0.75},{0.2, 0.2, 1, 0.7} },
 })
+
+local legafust3ShieldSphere = table.merge(defaults, {
+	pos = { 0, 120, 0 },
+	size = 72,
+	light = 8.5,
+	--colormap1 = { {0.9, 0.9, 1, 0.75},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 0.75} },
+	--colormap2 = { {0.2, 0.2, 1, 0.7},{0.2, 0.2, 1, 0.75},{0.2, 0.2, 1, 0.75},{0.2, 0.2, 1, 0.7} },
+})
+
 local corfusShieldSphere = table.merge(defaults, {
 	pos = { 0, 51, 0 },
 	size = 23,
@@ -185,6 +210,18 @@ local UnitEffects = {
 	["legafus"] = {
 		{ class = 'ShieldSphere', options = legafusShieldSphere },
 		{ class = 'ShieldJitter', options = { layer = -16, life = math.huge, pos = { 0, 60, 0 }, size = 38.5, precision = 22, repeatEffect = true } },
+	},
+	["armafust3"] = {
+		{ class = 'ShieldSphere', options = armafust3ShieldSphere },
+		{ class = 'ShieldJitter', options = { layer = -16, life = math.huge, pos = { 0, 120, 0 }, size = 57, precision = 22, repeatEffect = true } },
+	},
+	["corafust3"] = {
+		{ class = 'ShieldSphere', options = corafust3ShieldSphere },
+		{ class = 'ShieldJitter', options = { layer = -16, life = math.huge, pos = { 0, 120, 0 }, size = 65, precision = 22, repeatEffect = true } },
+	},
+	["legafust3"] = {
+		{ class = 'ShieldSphere', options = legafust3ShieldSphere },
+		{ class = 'ShieldJitter', options = { layer = -16, life = math.huge, pos = { 0, 120, 0 }, size = 77, precision = 22, repeatEffect = true } },
 	},
 	["resourcecheat"] = {
 		{ class = 'ShieldSphere', options = armafusShieldSphere },
