@@ -322,10 +322,10 @@ function RaidHST:SquadAdvance(squad)
  	squad.lastValidMove = nextPos -- raiders use this to correct bad move orders
 	self:EchoDebug('advance #members',#members)
 	local cmdUnitId = {}
-
+	local pos
 	for i,member in pairs(members) do
 		cmdUnitId[i] = member.unit:Internal():ID()
-		local pos
+		
  		if member.formationBack and squad.step ~= #squad.path then
  			pos = self.ai.tool:RandomAway( nextPos, -member.formationBack, nil, nextAngle)
  		end
@@ -337,7 +337,19 @@ function RaidHST:SquadAdvance(squad)
 
 		--member:Advance(pos or nextPos, nextPerpendicularAngle, reverseAttackAngle)
 	end
-	local command = self.ai.tool:SerializeOrder(cmdUnitId,CMD.MOVE ,pos or nextPos,0,'1-2')
+
+	Spring.Echo(pos,nextPos)
+	local p = {}
+	if pos then
+		p[1] = pos.x
+		p[2] = pos.y
+		p[3] = pos.z
+	else
+		p[1] = nextPos.x
+		p[2] = nextPos.y
+		p[3] = nextPos.z
+	end
+	local command = self.ai.tool:SerializeOrder(cmdUnitId,CMD.MOVE ,p,0,'1-2')
 	game:GiveOrder(command)
 	self:EchoDebug('advance after members move')
 end

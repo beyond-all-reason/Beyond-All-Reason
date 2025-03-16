@@ -173,6 +173,7 @@ if gadgetHandler:IsSyncedCode() then
 				local cmd = spGiveOrderArrayTounit(order.id,arrayOfCmd)
 				print('GiveOrderArrayTounit',cmd)
 			elseif order.method == '1-2' then
+				Spring.Echo(type(order.id),type(order.cmd),type(order.parameters[1]),type(order.options))
 				local cmd = spGiveOrderTounitArray(order.id,order.cmd,order.parameters,order.options)
 				Spring.Echo('GiveOrderToUnitArray',cmd)
 				--Spring.GiveOrderToUnitArray ( unitArray = { [1] = unitID, etc... }, number cmdID, params = { number, etc...}, options = {"alt", "ctrl", "shift", "right"} )
