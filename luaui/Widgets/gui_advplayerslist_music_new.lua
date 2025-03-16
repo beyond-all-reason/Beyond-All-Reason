@@ -93,6 +93,7 @@ local function ReloadMusicPlaylists()
 	end
 
 	if (tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) <= 3) then
+		table.append(menuTracksNew, VFS.DirList(musicDirNew..'/events/aprilfools/menu', allowedExtensions))
 		table.append(loadingTracksNew, VFS.DirList(musicDirNew..'/events/aprilfools/loading', allowedExtensions))
 	end
 
