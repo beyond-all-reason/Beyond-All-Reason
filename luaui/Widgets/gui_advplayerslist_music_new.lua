@@ -83,6 +83,7 @@ local function ReloadMusicPlaylists()
 	local loadingTracksNew   		= VFS.DirList(musicDirNew..'/loading', allowedExtensions)
 	local boomboxTracksNew			= VFS.DirList(musicDirNew..'/boombox', allowedExtensions)
 	local bossFightTracksNew		= {}
+
 	if Spring.Utilities.Gametype.IsRaptors() then
 		table.append(bossFightTracksNew, VFS.DirList(musicDirNew..'/bossfight/raptors', allowedExtensions))
 	elseif Spring.Utilities.Gametype.IsScavengers() then
@@ -90,6 +91,10 @@ local function ReloadMusicPlaylists()
 	else
 		table.append(bossFightTracksNew, VFS.DirList(musicDirNew..'/bossfight/raptors', allowedExtensions))
 		table.append(bossFightTracksNew, VFS.DirList(musicDirNew..'/bossfight/scavengers', allowedExtensions))
+	end
+
+	if (tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) <= 3) then
+		table.append(loadingTracksNew, VFS.DirList(musicDirNew..'/events/aprilfools/loading', allowedExtensions))
 	end
 
 	-- Custom Soundtrack List

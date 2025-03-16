@@ -39,6 +39,9 @@ function addon.Initialize()
 		if originalSoundtrackEnabled == 1 then
 			local musicDirOriginal 		= 'music/original'
 			table.append(musicPlaylist, VFS.DirList(musicDirOriginal..'/loading', allowedExtensions))
+			if (tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) <= 3) then
+				table.append(musicPlaylist, VFS.DirList(musicDirOriginal..'/events/aprilfools/loading', allowedExtensions))
+			end
 		end
 
 		-- Custom Soundtrack List
