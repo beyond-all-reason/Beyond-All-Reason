@@ -293,6 +293,11 @@ function AttackHST:SquadAdvance(squad)
 	local nextPerpendicularAngle = self.ai.tool:AngleAdd(nextAngle, halfPi)
  	squad.lastValidMove = nextPos -- attackers use this to correct bad move orders
 	self:EchoDebug('advance #members',#members)
+	local p = {}
+	local cmdUnitId = {}
+	local cmdUnitCommand = {}
+	local cmdUnitParams = {}
+	local cmdUnitOptions = {}
 	for i,member in pairs(members) do
 		local pos
  		if member.formationBack and squad.step ~= #squad.path then
@@ -302,8 +307,26 @@ function AttackHST:SquadAdvance(squad)
  		if squad.step == #squad.path then
  			reverseAttackAngle = self.ai.tool:AngleAdd(nextAngle, pi)
  		end
-		member:Advance(pos or nextPos, nextPerpendicularAngle, reverseAttackAngle)
+		if pos then
+			p[1] = pos.x
+			p[2] = pos.y
+			p[3] = pos.z
+		else
+			local nx,nz = member:Advance(pos or nextPos, nextPerpendicularAngle, reverseAttackAngle)
+			p[1] = nx
+			p[2] = Spring.GetGroundHeight(nx,nz)
+			p[3] = nz
+			
+		end
+		table.insert(cmdUnitId, member.unit:Internal():ID())
+		table.insert(cmdUnitParams, p)
+		table.insert(cmdUnitOptions, 0)
+		table.insert(cmdUnitCommand, CMD.MOVE)
+
+		
 	end
+	local command = self.ai.tool:SerializeOrder(cmdUnitId,cmdUnitCommand ,cmdUnitParams,cmdUnitOptions,'2-2')
+	game:GiveOrder(command)
 	self:EchoDebug('advance after members move')
 end
 
