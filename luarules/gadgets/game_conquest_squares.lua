@@ -677,8 +677,9 @@ out DataVS {
 //__ENGINEUNIFORMBUFFERDEFS__
 
 void main() {
-	// Calculate world position
-	vec4 worldPos = vec4(position.x * posscale.w, 0.0, position.z * posscale.w, 1.0);
+	// Calculate world position - MODIFIED LINE HERE
+	// Use position.y as Z coordinate since makePlaneVBO creates X-Y plane
+	vec4 worldPos = vec4(position.x * posscale.w, 0.0, position.y * posscale.w, 1.0);
 	worldPos.xz += posscale.xz;
 	
 	// Get height from heightmap
@@ -686,8 +687,8 @@ void main() {
 	float terrainHeight = textureLod(heightmapTex, uvhm, 0.0).x;
 	
 	// Set Y position to be terrain height plus offset
-	// The position.y (which is 1.0) is used as a multiplier for the height offset
-	worldPos.y = terrainHeight + (position.y * posscale.y);
+	// Using a constant value for height offset since position.y is now used for Z
+	worldPos.y = terrainHeight + posscale.y;
 	
 	// Calculate pulsing effect based on game frame
 	float pulse = 0.3 + 0.7 * sin(gameFrame * 0.05);
@@ -762,39 +763,27 @@ local planeLayout = {
 
 -- Function to create the square VBO
 local function makeSquareVBO()
-	local squareVBO = gl.GetVBO(GL.ARRAY_BUFFER, true)
-	if squareVBO == nil then 
+	-- Use makePlaneVBO from instancevbotable.lua
+	-- Parameters: width, height, xSegments, zSegments
+	-- Using 1024 for both width and height to create a square of size SQUARE_SIZE
+	local planeVBO, numVertices = makePlaneVBO(1, 1, 1, 1)
+	
+	if planeVBO == nil then 
 		Spring.Echo("Failed to create squareVBO")
 		return nil
 	end
-
-	local VBOLayout = {
-		{id = 0, name = "position", size = 4},
-	}
-
-	-- Create a simple square with 4 vertices, but now with Y=1.0 instead of 0.0
-	-- This creates a square that's elevated above the origin
-	local VBOData = {
-		-0.5, 1.0, -0.5, 1.0, -- bottom left
-		 0.5, 1.0, -0.5, 1.0, -- bottom right
-		 0.5, 1.0,  0.5, 1.0, -- top right
-		-0.5, 1.0,  0.5, 1.0, -- top left
-	}
-
-	squareVBO:Define(4, VBOLayout)
-	squareVBO:Upload(VBOData)
-	return squareVBO
+	
+	return planeVBO, numVertices
 end
-
 -- Function to initialize GL resources
 local function initGL4()
-	squareVBO = makeSquareVBO()
+	local squareVBO, numVertices = makePlaneVBO(1, 1, 1, 1)
 	if not squareVBO then return false end
 	
 	-- Create instance VBO table
 	instanceVBO = makeInstanceVBOTable(planeLayout, 16, "test_square_shader")
 	instanceVBO.vertexVBO = squareVBO
-	instanceVBO.numVertices = 4
+	instanceVBO.numVertices = numVertices
 	
 	-- Create VAO
 	squareVAO = makeVAOandAttach(squareVBO, instanceVBO.instanceVBO)
@@ -876,8 +865,8 @@ function gadget:DrawWorldPreUnit()
 	squareShader:Activate()
 	squareShader:SetUniform("gameFrame", Spring.GetGameFrame())
 	
-	-- Draw the square as two triangles (using triangle strip)
-	instanceVBO.VAO:DrawArrays(GL.TRIANGLE_FAN, 4, 0, instanceVBO.usedElements, 0)
+	-- Draw the square using triangle strip mode which is more appropriate for a grid
+	instanceVBO.VAO:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, instanceVBO.usedElements, 0)
 	
 	squareShader:Deactivate()
 	glTexture(0, false)
