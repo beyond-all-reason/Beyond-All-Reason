@@ -1127,7 +1127,7 @@ local icontypes = {
 		bitmap = "icons/energy5_1.85.png",
 		size = 1.9425
 	},
-	corafus = {
+	corafust3 = {
 		bitmap = "icons/energy5_1.85.png",
 		size = 3.9
 	},
@@ -1143,7 +1143,7 @@ local icontypes = {
 		bitmap = "icons/energy5_1.85.png",
 		size = 1.9425
 	},
-	legafus = {
+	legafust3 = {
 		bitmap = "icons/energy5_1.85.png",
 		size = 3.9
 	},

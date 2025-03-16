@@ -1309,6 +1309,7 @@ local Turrets = {
 		--Eco
 		["armafus_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 5},
 		["corafus_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 5},
+		["legafus_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 5},
 		--Factories
 		["armshltx_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},
 		["corgant_scav"] = {type = "normal", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},
@@ -1327,6 +1328,10 @@ local Turrets = {
 		["armvulc_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},
 		["corbuzz_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},
 		["legstarfall_scav"] = {type = "lrpc", surface = "land", spawnedPerWave = 0.1, maxExisting = 1},
+		--Eco
+		["armafust3_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 1},
+		["corafust3_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 1},
+		["legafust3_scav"] = {type = "normal", surface = "land", spawnedPerWave = 1, maxExisting = 1},
 	},
 }
 
@@ -2018,6 +2023,10 @@ local highValueTargetsNames = { -- Priority targets for Scav. Must be immobile t
 	["corageo"] = true,
 	["armafus"] = true,
 	["corafus"] = true,
+	["legafus"] = true,
+	["armafust3"] = true,
+	["corafust3"] = true,
+	["legafust3"] = true,
 	-- T2 Metal Makers
 	["armmmkr"] = true,
 	["cormmkr"] = true,
