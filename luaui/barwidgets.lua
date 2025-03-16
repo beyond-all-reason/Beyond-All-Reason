@@ -108,6 +108,7 @@ local flexCallIns = {
 	'ActiveCommandChanged',
 	'CameraRotationChanged',
 	'CameraPositionChanged',
+	'CameraDirectionChanged',
 	'DefaultCommand',
 	'UnitCreated',
 	'UnitFinished',
@@ -1352,6 +1353,14 @@ function widgetHandler:CameraPositionChanged(pos)
 	tracy.ZoneBeginN("W:CameraPositionChanged")
 	for _,w in ipairs(self.CameraPositionChangedList) do
 		w:CameraPositionChanged(pos)
+	end
+	tracy.ZoneEnd()
+end
+
+function widgetHandler:CameraDirectionChanged(dir)
+	tracy.ZoneBeginN("W:CameraDirectionChanged")
+	for _,w in ipairs(self.CameraDirectionChangedList) do
+		w:CameraDirectionChanged(dir)
 	end
 	tracy.ZoneEnd()
 end

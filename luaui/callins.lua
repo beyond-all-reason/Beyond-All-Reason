@@ -18,6 +18,7 @@ CallInsList = {
 	"ActiveCommandChanged",
 	"CameraRotationChanged",
 	"CameraPositionChanged",
+	"CameraDirectionChanged",
 	"CommandNotify",
 
 	"KeyPress",
