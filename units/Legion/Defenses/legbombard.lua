@@ -113,7 +113,7 @@ return {
 			},
 		},
 		weapondefs = {
-			bombardier_weapon = {
+			bombardier_plasma_cannon = {
 				avoidfeature = false,
 				burnblow = true,
 				craterareaofeffect = 0,
@@ -122,7 +122,7 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				impulsefactor = 0.123,
-				name = "Pop-up heavy g2g grenade launcher",
+				name = "Medium Burst Blast Cannon",
 				noselfdamage = true,
 				range = 750,
 				reloadtime = 3,
@@ -193,7 +193,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL GROUNDSCOUT",
-				def = "bombardier_weapon",
+				def = "bombardier_plasma_cannon",
 				onlytargetcategory = "SURFACE",
 				maindir = "0 0 1",
 				maxangledif = 300,

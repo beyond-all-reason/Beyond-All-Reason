@@ -102,7 +102,7 @@ return {
 			},
 		},
 		weapondefs = {
-			clusternapalm = {
+			belcher_plasma_cannon = {
 				areaofeffect = 150,
 				avoidfeature = false,
 				cegtag = "burnflame",
@@ -116,7 +116,7 @@ return {
 				flamegfxtime = 1,
 				gravityaffected = "true",
 				impulsefactor = 0.123,
-				name = "HeavyCannon",
+				name = "Standard Napalm Blast Quad-Cannon",
 				noselfdamage = true,
 				projectiles = 4,
 				range = 625,
@@ -150,7 +150,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "CLUSTERNAPALM",
+				def = "belcher_plasma_cannon",
 				onlytargetcategory = "SURFACE",
 			},
 		},

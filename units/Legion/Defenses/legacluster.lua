@@ -105,7 +105,7 @@ return {
 			},
 		},
 		weapondefs = {
-			plasma = {
+			eviscerator_plasma_cannon = {
 				accuracy = 50,
 				areaofeffect = 120,
 				avoidfeature = false,
@@ -117,7 +117,7 @@ return {
 				explosiongenerator = "custom:ministarfire-explosion",
 				gravityaffected = "true",
 				impulsefactor = 0.5,
-				name = "Pop-Up Long-range g2g Cluster Plasma Cannon",
+				name = "Medium Blast Artillery Cluster Cannon",
 				noselfdamage = true,
 				range = 1380,
 				reloadtime = 2.6,
@@ -151,7 +151,7 @@ return {
 				explosiongenerator = "custom:ministarfire-explosion",
 				gravityaffected = "true",
 				impulsefactor = 0.5,
-				name = "Pop-up Long-Range Heavy g2g Cluster Plasma Cannon",
+				name = "Cluster Munitions",
 				noselfdamage = true,
 				range = 130,
 				rgbcolor = "0.7 0.7 1.0",
@@ -166,7 +166,7 @@ return {
 					vtol = 25,
 				},
 			},
-			plasma_high = {
+			eviscerator_vertical_plasma_cannon = {
 				accuracy = 50,
 				areaofeffect = 120,
 				avoidfeature = false,
@@ -179,7 +179,7 @@ return {
 				gravityaffected = "true",
 				hightrajectory = 1,
 				impulsefactor = 0.5,
-				name = "Pop-Up Long-range g2g Cluster Plasma Cannon",
+				name = "Medium Blast Vertical Artillery Cluster Cannon",
 				noselfdamage = true,
 				range = 1380,
 				reloadtime = 2.6,
@@ -214,7 +214,7 @@ return {
 				explosiongenerator = "custom:ministarfire-explosion",
 				gravityaffected = "true",
 				impulsefactor = 0.5,
-				name = "Pop-Up Long-range g2g Cluster Plasma Cannon",
+				name = "Trajectory System",
 				noselfdamage = true,
 				range = 1380,
 				reloadtime = 2.6,
@@ -237,13 +237,13 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "PLASMA",
+				def = "eviscerator_plasma_cannon",
 				maindir = "0 1 0",
 				maxangledif = 230,
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
-				def = "PLASMA_HIGH",
+				def = "eviscerator_vertical_plasma_cannon",
 				onlytargetcategory = "SURFACE",
 			},
 			[3] = {

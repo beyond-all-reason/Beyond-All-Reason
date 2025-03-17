@@ -102,7 +102,7 @@ return {
 			},
 		},
 		weapondefs = {
-			gauss = {
+			centaur_plasma_cannon = {
 				areaofeffect = 8,
 				avoidfeature = false,
 				burst = 3,
@@ -114,7 +114,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-small",
 				impactonly = 1,
 				impulsefactor = 0.123,
-				name = "Close-quarters g2g gauss-cannon",
+				name = "Light Burst Gauss Cannon",
 				noselfdamage = true,
 				range = 180,
 				reloadtime = 2.25,
@@ -136,7 +136,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "GAUSS",
+				def = "centaur_plasma_cannon",
 				onlytargetcategory = "NOTSUB",
 			},
 		},

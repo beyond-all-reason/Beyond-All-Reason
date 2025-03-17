@@ -118,7 +118,7 @@ return {
 					default = 36,
 				},
 			},
-			plasma = {
+			tyrannus_plasma_cannon = {
 				accuracy = 960,
 				areaofeffect = 160,
 				avoidfeature = false,
@@ -129,7 +129,7 @@ return {
 				explosiongenerator = "custom:ministarfire-explosion",
 				gravityaffected = "true",
 				impulsefactor = 1.25,
-				name = "PlasmaCannon",
+				name = "Standard Blast Artillery Cannons",
 				noselfdamage = true,
 				range = 915,
 				reloadtime = 1.7,
@@ -194,14 +194,14 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "NOTLAND",
-				def = "PLASMA",
+				def = "tyrannus_plasma_cannon",
 				maindir = "-1 0 0",
 				maxangledif = 210,
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
 				badtargetcategory = "NOTLAND",
-				def = "PLASMA",
+				def = "tyrannus_plasma_cannon",
 				maindir = "1 0 0",
 				maxangledif = 210,
 				onlytargetcategory = "SURFACE",
