@@ -106,7 +106,7 @@ return {
 			},
 		},
 		weapondefs = {
-			corkorg_fire = {
+			juggernaut_arm_plasma_cannon = {
 				alphadecay = 0.66,
 				areaofeffect = 112,
 				avoidfeature = false,
@@ -116,7 +116,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				impulsefactor = 0.8,
 				intensity = 5,
-				name = "GaussCannon",
+				name = "Dual Standard Gauss Scattershot Blast Cannons",
 				noselfdamage = true,
 				predictboost = 1,
 				projectiles = 10,
@@ -321,7 +321,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "corkorg_FIRE",
+				def = "juggernaut_arm_plasma_cannon",
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {

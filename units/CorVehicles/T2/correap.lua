@@ -112,7 +112,7 @@ return {
 			},
 		},
 		weapondefs = {
-			cor_reap = {
+			tiger_plasma_cannon = {
 				areaofeffect = 64,
 				avoidfeature = false,
 				craterareaofeffect = 0,
@@ -122,7 +122,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-small-t2",
 				gravityaffected = "true",
 				impulsefactor = 0.123,
-				name = "PlasmaCannon",
+				name = "Standard Rapid-Fire Blast Cannon",
 				noselfdamage = true,
 				predictboost = 0.5,
 				range = 410,
@@ -142,7 +142,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "COR_REAP",
+				def = "tiger_plasma_cannon",
 				onlytargetcategory = "SURFACE",
 			},
 		},

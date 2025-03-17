@@ -115,7 +115,7 @@ return {
 			},
 		},
 		weapondefs = {
-			corwolv_gun = {
+			wolverine_plasma_cannon = {
 				accuracy = 275,
 				areaofeffect = 113,
 				avoidfeature = false,
@@ -128,7 +128,7 @@ return {
 				hightrajectory = 1,
 				impulsefactor = 0.123,
 				mygravity = 0.276,
-				name = "LightArtillery",
+				name = "Medium Blast Artillery Cannon",
 				noselfdamage = true,
 				range = 710,
 				reloadtime = 7.1,
@@ -148,7 +148,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "CORWOLV_GUN",
+				def = "wolverine_plasma_cannon",
 				maindir = "0 0 1",
 				maxangledif = 180,
 				onlytargetcategory = "SURFACE",

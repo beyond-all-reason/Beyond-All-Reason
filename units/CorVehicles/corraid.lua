@@ -111,7 +111,7 @@ return {
 			},
 		},
 		weapondefs = {
-			arm_lightcannon = {
+			brute_plasma_cannon = {
 				areaofeffect = 48,
 				avoidfeature = false,
 				craterareaofeffect = 0,
@@ -122,7 +122,7 @@ return {
 				firestarter = 100,
 				gravityaffected = "true",
 				impulsefactor = 0.123,
-				name = "LightCannon",
+				name = "Light Cannon",
 				noselfdamage = true,
 				range = 350,
 				reloadtime = 1.16667,
@@ -142,7 +142,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "ARM_LIGHTCANNON",
+				def = "brute_plasma_cannon",
 				onlytargetcategory = "NOTSUB",
 			},
 		},
