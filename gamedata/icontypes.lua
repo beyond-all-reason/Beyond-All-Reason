@@ -35,6 +35,10 @@ local icontypes = {
 		bitmap = "icons/energy5_1.85.png",
 		size = 1.9425
 	},
+	armafust3 = {
+		bitmap = "icons/energy5_1.85.png",
+		size = 3.9
+	},
 	armageo = {
 		bitmap = "icons/hazardous.png",
 		size = 1.88999987
@@ -1123,6 +1127,10 @@ local icontypes = {
 		bitmap = "icons/energy5_1.85.png",
 		size = 1.9425
 	},
+	corafust3 = {
+		bitmap = "icons/energy5_1.85.png",
+		size = 3.9
+	},
 	corageo = {
 		bitmap = "icons/hazardous.png",
 		size = 1.88999987
@@ -1134,6 +1142,10 @@ local icontypes = {
 	legafus = {
 		bitmap = "icons/energy5_1.85.png",
 		size = 1.9425
+	},
+	legafust3 = {
+		bitmap = "icons/energy5_1.85.png",
+		size = 3.9
 	},
 	legatorpbomber = {
 		bitmap = "icons/air_t2_torpbomber.png",

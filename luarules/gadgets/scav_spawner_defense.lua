@@ -1858,9 +1858,11 @@ if gadgetHandler:IsSyncedCode() then
 		if nSpawnedBosses < nTotalBosses and not gameOver then
 			-- spawn boss if not exists
 			local bossID = SpawnBoss()
-			nSpawnedBosses = nSpawnedBosses + 1
 			if bossID then
+				nSpawnedBosses = nSpawnedBosses + 1
 				bossIDs[bossID] = true
+				Spring.Echo({func="updateSpawnBoss", boss_status = {spawned = nSpawnedBosses, killed = nKilledBosses, ids = bossIDs}})
+
 				local bossSquad = table.copy(squadCreationQueueDefaults)
 				bossSquad.life = 999999
 				bossSquad.role = "raid"
@@ -2236,8 +2238,9 @@ if gadgetHandler:IsSyncedCode() then
 		if bossIDs[unitID] then
 			nKilledBosses = nKilledBosses + 1
 			bossIDs[unitID] = nil
+			Spring.Echo({func="UnitDestroyed", boss_status = {spawned = nSpawnedBosses, killed = nKilledBosses, ids = bossIDs}})
 
-			if nKilledBosses == nTotalBosses then
+			if nKilledBosses >= nTotalBosses then
 				Spring.SetGameRulesParam("BossFightStarted", 0)
 
 				if Spring.GetModOptions().scav_endless then
