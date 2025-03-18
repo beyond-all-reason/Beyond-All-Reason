@@ -301,7 +301,7 @@ if gadgetHandler:IsSyncedCode() then
 		if not evolution.combatRadius then
 			return false
 		end
-		if evolution.combatTimer and (currentTime - evolution.combatTimer) <= 5 then
+		if evolution.combatTimer and (currentTime - evolution.combatTimer) <= inCombatTimeoutSeconds then
 			return true
 		end
 		if spGetUnitNearestEnemy(unitID, evolution.combatRadius) then
