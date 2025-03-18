@@ -4,7 +4,7 @@ function widget:GetInfo()
         desc = "List of players and spectators",
         author = "Marmoth. (spiced up by Floris)",
         date = "2008",
-        version = 43,
+        version = 44,
         license = "GNU GPL, v2 or later",
         layer = -4,
         enabled = true,
@@ -52,10 +52,14 @@ end
 	v41   (Floris): added APM info to cpu/ping tooltip
 	v42   (Floris): support FFA allyteam ranking leaderboard style
 	v43   (Floris): extracted lockcamera execution
+	v44   (Floris): added rendertotexture draw method
 ]]
 --------------------------------------------------------------------------------
 -- Config
 --------------------------------------------------------------------------------
+
+-- NOTE: currently this widget rendertotexture scaling/dimentions arent correct which results blurriness on non high res screens
+local useRenderToTexture = false		-- much faster than drawing via DisplayLists only
 
 local customScale = 1
 local pointDuration = 45
@@ -862,6 +866,10 @@ function widget:Shutdown()
     if WG['guishader'] then
         WG['guishader'].RemoveDlist('advplayerlist')
     end
+	if mainListTex then
+		gl.DeleteTexture(mainListTex)
+		mainListTex = nil
+	end
     WG['advplayerlist_api'] = nil
     widgetHandler:DeregisterGlobal('ActivityEvent')
 	widgetHandler:DeregisterGlobal('FpsEvent')
@@ -1488,6 +1496,11 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function widget:DrawScreen()
+    if updateMainLists then
+        doCreateLists(updateMainLists[1], updateMainLists[2], updateMainLists[3])
+        updateMainLists = nil
+    end
+    
 	AdvPlayersListAtlas:RenderTasks()
 	--AdvPlayersListAtlas:DrawToScreen()
 
@@ -1498,6 +1511,13 @@ function widget:DrawScreen()
         CreateBackground()
     end
 
+    if useRenderToTexture and mainListTex then
+        gl.Color(1,1,1,1)
+        gl.Texture(mainListTex)
+        gl.TexRect(apiAbsPosition[2], apiAbsPosition[3], apiAbsPosition[4], apiAbsPosition[1], false, true)
+        gl.Texture(false)
+    end
+
     local scaleDiffX = -((widgetPosX * widgetScale) - widgetPosX) / widgetScale
     local scaleDiffY = -((widgetPosY * widgetScale) - widgetPosY) / widgetScale
     gl.Scale(widgetScale, widgetScale, 0)
@@ -1506,8 +1526,10 @@ function widget:DrawScreen()
     if not MainList2 then
         CreateMainList(true, true, true)
     end
-    if MainList and MainList2 and MainList3 then
-        gl_CallList(MainList)
+    if (MainList or mainListTex) and MainList2 and MainList3 then
+        if not useRenderToTexture and MainList then
+            gl_CallList(MainList)
+        end
         gl_CallList(MainList2)
         gl_CallList(MainList3)
     end
@@ -1536,7 +1558,12 @@ function widget:DrawScreen()
     gl.Scale(scaleReset, scaleReset, 0)
 end
 
+-- old funcion called from wherever but it must run in DrawScreen now so we scedule its execution
 function CreateLists(onlyMainList, onlyMainList2, onlyMainList3)
+    updateMainLists = {onlyMainList, onlyMainList2, onlyMainList3}
+end
+-- must run in DrawScreen due to
+function doCreateLists(onlyMainList, onlyMainList2, onlyMainList3)
     if not onlyMainList and not onlyMainList2 and not onlyMainList3 then
         onlyMainList = true
         onlyMainList2 = true
@@ -1634,6 +1661,11 @@ function CreateBackground()
             UiElement(absLeft, absBottom, absRight, absTop, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), math.min(paddingRight, paddingBottom), math.min(paddingBottom, paddingLeft))
             gl_Color(1, 1, 1, 1)
         end)
+
+        if mainListTex then
+            gl.DeleteTexture(mainListTex)
+            mainListTex = nil
+        end
     end
 end
 
@@ -1707,6 +1739,75 @@ function CheckTime()
     end
 end
 
+function drawMainList()
+    local leader
+    for i, drawObject in ipairs(drawList) do
+        if drawObject == -5 then
+            specsLabelOffset = drawListOffset[i]
+            local specAmount = numberOfSpecs
+            if numberOfSpecs == 0 or (specListShow and numberOfSpecs < 10) then
+                specAmount = ""
+            end
+            DrawLabel(" ".. Spring.I18N('ui.playersList.spectators', { amount = specAmount }), drawListOffset[i], specListShow)
+            if Spring.GetGameFrame() <= 0 then
+                if specListShow then
+                    DrawLabelTip( Spring.I18N('ui.playersList.hideSpecs'), drawListOffset[i], 95)
+                else
+                    DrawLabelTip(Spring.I18N('ui.playersList.showSpecs'), drawListOffset[i], 95)
+                end
+            end
+        elseif drawObject == -4 then -- enemy teams separator
+            if enemyListShow then
+                DrawSeparator(drawListOffset[i])
+            end
+        elseif drawObject == -3 then
+            if numberOfEnemies > 0 then
+                enemyLabelOffset = drawListOffset[i]
+                local enemyAmount = numberOfEnemies
+                if numberOfEnemies == 0 or enemyListShow then
+                    enemyAmount = ""
+                end
+                if WG.allyTeamRanking and enemyListShow then
+                    DrawLabel(" "..Spring.I18N('ui.playersList.leaderboard'), drawListOffset[i], true)
+                    leaderboardOffset = drawListOffset[i]
+                else
+                    leaderboardOffset = nil
+                    DrawLabel(" "..Spring.I18N('ui.playersList.enemies', { amount = enemyAmount }), drawListOffset[i], true)
+                end
+                if Spring.GetGameFrame() <= 0 then
+                    if enemyListShow then
+                        DrawLabelTip( Spring.I18N('ui.playersList.hideEnemies'), drawListOffset[i], 95)
+                    else
+                        DrawLabelTip(Spring.I18N('ui.playersList.showEnemies'), drawListOffset[i], 95)
+                    end
+                end
+            end
+        elseif drawObject == -2 then
+            DrawLabel(" " .. Spring.I18N('ui.playersList.allies'), drawListOffset[i], true)
+            if Spring.GetGameFrame() <= 0 then
+                DrawLabelTip(Spring.I18N('ui.playersList.trackPlayer'), drawListOffset[i], 46)
+            end
+        elseif drawObject == -1 then
+            leader = true
+        else
+            if not mouseX then
+                mouseX, mouseY = Spring_GetMouseState()
+            end
+            DrawPlayer(drawObject, leader, drawListOffset[i], mouseX, mouseY, true, false, false)
+        end
+
+        -- draw player tooltip later so they will be on top of players drawn below
+        if tipText ~= nil then
+            drawTipText = tipText
+        end
+    end
+
+    if drawTipText ~= nil then
+        tipText = drawTipText
+        tipTextTime = os.clock()
+    end
+end
+
 function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
     forceMainListRefresh = false
 
@@ -1746,74 +1847,41 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
         forceMainListRefresh = true
     end
     if onlyMainList then
-        local leader
-        if MainList then
-            MainList = gl_DeleteList(MainList)
+        if useRenderToTexture then
+            if not mainListTex then
+                mainListTex = gl.CreateTexture(math.floor((apiAbsPosition[4]-apiAbsPosition[2])), math.floor((apiAbsPosition[1]-apiAbsPosition[3])), {
+                    target = GL.TEXTURE_2D,
+                    format = GL.RGBA,
+                    fbo = true,
+                })
+            end
+            if mainListTex then
+                gl.RenderToTexture(mainListTex, function()
+                    gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+                    gl.PushMatrix()
+                    gl.Translate(-1, -1, 0)
+                    
+                    -- cant get this as sharp as not using rendertotexture method yet :/
+                    --Spring.Echo(widgetWidth*widgetScale, (apiAbsPosition[4]-apiAbsPosition[2]), widgetHeight*widgetScale, (apiAbsPosition[1]-apiAbsPosition[3]))
+                    gl.Scale(2 / (apiAbsPosition[4]-apiAbsPosition[2]), 2 / (apiAbsPosition[1]-apiAbsPosition[3]), 0)
+                    --gl.Scale(2 / widgetWidth*widgetScale, 2 / widgetHeight*widgetScale, 0)
+
+                    gl.Scale(widgetScale, widgetScale, 0)
+                    --gl.Translate(-apiAbsPosition[2]-bgpadding, -apiAbsPosition[3]-bgpadding, 0)
+                    gl.Translate(-widgetPosX+bgpadding, -widgetPosY+bgpadding, 0)
+
+                    drawMainList()
+                    gl.PopMatrix()
+                end)
+            end
+        else
+            if MainList then
+                MainList = gl_DeleteList(MainList)
+            end
+            MainList = gl_CreateList(function()
+                drawMainList()
+            end)
         end
-        MainList = gl_CreateList(function()
-            for i, drawObject in ipairs(drawList) do
-                if drawObject == -5 then
-                    specsLabelOffset = drawListOffset[i]
-                    local specAmount = numberOfSpecs
-                    if numberOfSpecs == 0 or (specListShow and numberOfSpecs < 10) then
-                        specAmount = ""
-                    end
-                    DrawLabel(" ".. Spring.I18N('ui.playersList.spectators', { amount = specAmount }), drawListOffset[i], specListShow)
-                    if Spring.GetGameFrame() <= 0 then
-                        if specListShow then
-                            DrawLabelTip( Spring.I18N('ui.playersList.hideSpecs'), drawListOffset[i], 95)
-                        else
-                            DrawLabelTip(Spring.I18N('ui.playersList.showSpecs'), drawListOffset[i], 95)
-                        end
-                    end
-                elseif drawObject == -4 then -- enemy teams separator
-					if enemyListShow then
-						DrawSeparator(drawListOffset[i])
-					end
-                elseif drawObject == -3 then
-                    if numberOfEnemies > 0 then
-                        enemyLabelOffset = drawListOffset[i]
-                        local enemyAmount = numberOfEnemies
-                        if numberOfEnemies == 0 or enemyListShow then
-                            enemyAmount = ""
-                        end
-						if WG.allyTeamRanking and enemyListShow then
-                        	DrawLabel(" "..Spring.I18N('ui.playersList.leaderboard'), drawListOffset[i], true)
-							leaderboardOffset = drawListOffset[i]
-						else
-							leaderboardOffset = nil
-                        	DrawLabel(" "..Spring.I18N('ui.playersList.enemies', { amount = enemyAmount }), drawListOffset[i], true)
-						end
-                        if Spring.GetGameFrame() <= 0 then
-                            if enemyListShow then
-                                DrawLabelTip( Spring.I18N('ui.playersList.hideEnemies'), drawListOffset[i], 95)
-                            else
-                                DrawLabelTip(Spring.I18N('ui.playersList.showEnemies'), drawListOffset[i], 95)
-                            end
-                        end
-                    end
-                elseif drawObject == -2 then
-                    DrawLabel(" " .. Spring.I18N('ui.playersList.allies'), drawListOffset[i], true)
-                    if Spring.GetGameFrame() <= 0 then
-                        DrawLabelTip(Spring.I18N('ui.playersList.trackPlayer'), drawListOffset[i], 46)
-                    end
-                elseif drawObject == -1 then
-                    leader = true
-                else
-                    DrawPlayer(drawObject, leader, drawListOffset[i], mouseX, mouseY, true, false, false)
-                end
-
-                -- draw player tooltip later so they will be on top of players drawn below
-                if tipText ~= nil then
-                    drawTipText = tipText
-                end
-            end
-
-            if drawTipText ~= nil then
-                tipText = drawTipText
-                tipTextTime = os.clock()
-            end
-        end)
     end
 
     if onlyMainList2 then
@@ -1938,7 +2006,6 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
             alpha = alphaActivity
         end
     end
-
     if mouseY >= tipPosY and mouseY <= tipPosY + (16 * widgetScale * playerScale) then
         tipY = true
     end

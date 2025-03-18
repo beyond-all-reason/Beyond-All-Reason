@@ -719,11 +719,6 @@ local function updateGrid()
 	updateBuildProgress()
 
 	redraw = true
-
-	if buildmenuTex then
-		gl.DeleteTexture(buildmenuTex)
-		buildmenuTex = nil
-	end
 end
 
 local function setupBuilderRects()
@@ -1570,6 +1565,11 @@ function widget:ViewResize()
 	checkGuishader(true)
 
 	redraw = true
+
+	if buildmenuTex then
+		gl.DeleteTexture(buildmenuTex)
+		buildmenuTex = nil
+	end
 	updateGrid()
 end
 
@@ -2769,7 +2769,10 @@ end
 function widget:Shutdown()
 	dlistBuildmenu = gl.DeleteList(dlistBuildmenu)
 	dlistProgress = gl.DeleteList(dlistProgress)
-
+	if buildmenuTex then
+		gl.DeleteTexture(buildmenuTex)
+		buildmenuTex = nil
+	end
 	if WG["guishader"] and dlistGuishader then
 		WG["guishader"].DeleteDlist("buildmenu")
 		WG["guishader"].DeleteDlist("buildmenubuilders")
