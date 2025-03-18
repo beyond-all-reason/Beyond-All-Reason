@@ -623,6 +623,10 @@ local icontypes = {
 		bitmap = "icons/metalmaker_t2.png",
 		size = 1.20749986
 	},
+	armmmkrt3 = {
+		bitmap = "icons/metalmaker_t2.png",
+		size = 2.40749986
+	},
 	armmoho = {
 		bitmap = "icons/mex_t2.png",
 		size = 1.20749986
@@ -1731,9 +1735,17 @@ local icontypes = {
 		bitmap = "icons/metalmaker_t2.png",
 		size = 1.20749986
 	},
+	cormmkrt3 = {
+		bitmap = "icons/metalmaker_t2.png",
+		size = 2.40749986
+	},
 	legadveconv = {
 		bitmap = "icons/metalmaker_t2.png",
 		size = 1.20749986
+	},
+	legadveconvt3 = {
+		bitmap = "icons/metalmaker_t2.png",
+		size = 2.40749986
 	},
 	cormoho = {
 		bitmap = "icons/mex_t2.png",
