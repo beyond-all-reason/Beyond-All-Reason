@@ -677,34 +677,27 @@ out DataVS {
 //__ENGINEUNIFORMBUFFERDEFS__
 
 void main() {
+	// Calculate color with pulsing effect
+	float pulse = 0.3 + 0.7 * sin(gameFrame * 0.05);
+	color = color1;
+	color.a *= mix(visibility.z, visibility.w, pulse);
+	
+	// Pass progress for visualization
+	progress = capturestate.y;
+	
 	if (isMinimapRendering == 1) {
-		// Minimap rendering - follow the same approach as map_startcone_gl4.vert.glsl
+		// Minimap rendering mode
+		// Scale position to minimap coordinates (0-1)
+		vec2 minimapPos = (posscale.xz / vec2(mapSizeX, mapSizeZ));
+		vec2 squareSize = vec2(posscale.w / mapSizeX, posscale.w / mapSizeZ);
 		
-		// Take the world position from posscale (like worldposrad in the example)
-		vec2 worldPos = posscale.xz;
+		// Calculate vertex position in minimap space
+		vec2 vertexPos = position.xy * squareSize + minimapPos;
 		
-		// Scale the vertex position appropriately for the square
-		// position.xy is in range [-1,1], so scale it to match the square size
-		vec2 vertexOffset = position.xy * (posscale.w / mapSizeX * 0.5);
-		
-		// Combine world position with vertex offset to get minimap coords
-		vec2 ndcxy = (worldPos / vec2(mapSizeX, mapSizeZ) + vertexOffset) * 2.0 - 1.0;
-		
-		// Handle minimap flipping
-		if (flipMiniMap < 1) {
-			ndcxy.y *= -1;
-		} else {
-			ndcxy.x *= -1;
-		}
-		
-		// Set final position - no camera matrix involved!
-		gl_Position = vec4(ndcxy, 0.0, 1.0);
-		
-		// Pass through other data
-		color = color1;
-		progress = capturestate.y;
+		// Keep full minimap coordinates (0-1)
+		gl_Position = vec4(vertexPos.x * 2.0 - 1.0, 1.0 - vertexPos.y * 2.0, 0.0, 1.0);
 	} else {
-		// World rendering - keep your existing code
+		// World rendering mode
 		// Use position.y as Z coordinate since makePlaneVBO creates X-Y plane
 		vec4 worldPos = vec4(position.x * posscale.w, 0.0, position.y * posscale.w, 1.0);
 		worldPos.xz += posscale.xz;
@@ -933,7 +926,7 @@ function gadget:DrawWorldPreUnit()
 	
 	squareShader:Activate()
 	squareShader:SetUniform("gameFrame", Spring.GetGameFrame())
-	squareShader:SetUniform("isMinimapRendering", 0)
+	squareShader:SetUniformInt("isMinimapRendering", 0)
 	
 	-- Draw the square using indexed triangles
 	instanceVBO.VAO:DrawElements(GL.TRIANGLES, instanceVBO.numVertices, 0, instanceVBO.usedElements)
@@ -949,7 +942,7 @@ function gadget:DrawInMiniMap()
 	
 	squareShader:Activate()
 	squareShader:SetUniform("gameFrame", Spring.GetGameFrame())
-	squareShader:SetUniform("isMinimapRendering", 1)
+	squareShader:SetUniformInt("isMinimapRendering", 1)
 	
 	-- Draw the square using indexed triangles
 	instanceVBO.VAO:DrawElements(GL.TRIANGLES, instanceVBO.numVertices, 0, instanceVBO.usedElements)
