@@ -1314,7 +1314,6 @@ end
 function SortAllyTeams(vOffset)
     -- adds ally teams to the draw list (own ally team first)
     -- (labels and separators are drawn)
-    local allyTeamID
     local allyTeamList = Spring_GetAllyTeamList()
 	if WG.allyTeamRanking then
 		allyTeamList = WG.allyTeamRanking
@@ -1904,7 +1903,9 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
                 if drawObject == -1 then
                     leader = true
                 elseif drawObject >= 0 then
-                    DrawPlayer(drawObject, leader, drawListOffset[i], mouseX, mouseY, false, false, true)
+                    if not player[drawObject].spec then     -- specs have no resources
+                        DrawPlayer(drawObject, leader, drawListOffset[i], mouseX, mouseY, false, false, true)
+                    end
                 end
             end
         end)
@@ -1934,20 +1935,21 @@ function DrawLabelTip(text, vOffset, xOffset)
 end
 
 function DrawSeparator(vOffset)
+    -- I dont know the fuck why the following RectRound or a plain gl.Rect) hardly shows up when using rendertotexture so lets brighten it!
+    local alpha = useRenderToTexture and 0.7 or 0.35
     vOffset = vOffset - (3*playerScale)
     RectRound(
 		widgetPosX + 2,
 		widgetPosY + widgetHeight - vOffset - (1.5 / widgetScale),
 		widgetPosX + widgetWidth - 2,
 		widgetPosY + widgetHeight - vOffset + (1.5 / widgetScale), (0.5 / widgetScale),
-		1, 1, 1, 1, { 0.66, 0.66, 0.66, 0.35 }, { 0, 0, 0, 0.35 }
+		1, 1, 1, 1, { 0.66, 0.66, 0.66, alpha }, { 0, 0, 0, alpha }
 	)
 end
 
 -- onlyMainList2 to only draw dynamic stuff like ping/alliances/buttons
 -- onlyMainList3 to only draw resources
 function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onlyMainList2, onlyMainList3)
-
     player[playerID].posY = vOffset
 
     tipY = nil
@@ -2102,7 +2104,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
         end
     else
         -- spectator
-        if specListShow and m_name.active then
+        if onlyMainList and specListShow and m_name.active then
             DrawSmallName(name, team, posY, false, playerID, alpha)
         end
     end
@@ -2578,9 +2580,12 @@ function DrawSmallName(name, team, posY, dark, playerID, alpha)
         name = "\255" .. string.char(originalColourNames[playerID][1]) .. string.char(originalColourNames[playerID][2]) .. string.char(originalColourNames[playerID][3]) .. name
     end
 
+    -- I dont know the fuck why the following RectRound or a plain gl.Rect) hardly shows up when using rendertotexture so lets brighten it!
+    local alphaMult = useRenderToTexture and 2.2 or 1
+
     font2:Begin()
-    font2:SetOutlineColor(0, 0, 0, 0.3)
-    font2:SetTextColor(1, 1, 1, alpha)
+    font2:SetOutlineColor(0, 0, 0, 0.3*alphaMult)
+    font2:SetTextColor(1, 1, 1, math.min(0.9, alpha*alphaMult))
     font2:Print(name, m_name.posX + textindent + widgetPosX + 3, posY + (4*specScale), (10*specScale), "n")
     font2:End()
 
@@ -2603,11 +2608,13 @@ function DrawID(playerID, posY, dark, dead)
         spacer = " "
     end
     local fontsize = 9.5 * (playerScale + ((1-playerScale)*0.25))
+    -- I dont know the fuck why the following RectRound or a plain gl.Rect) hardly shows up when using rendertotexture so lets brighten it!
+    local alphaMult = useRenderToTexture and 1.5 or 1
     font:Begin()
     if dead then
-        font:SetTextColor(1, 1, 1, 0.4)
+        font:SetTextColor(1, 1, 1, 0.4*alphaMult)
     else
-        font:SetTextColor(1, 1, 1, 0.66)
+        font:SetTextColor(1, 1, 1, math.min(0.8, 0.66*alphaMult))
     end
     font:Print(spacer .. playerID, m_ID.posX + widgetPosX + (4.5*playerScale), posY + (5.3*playerScale), fontsize, "on")
     font:End()
