@@ -52,8 +52,9 @@ function CleanerBST:Clean(targetId)
 	if not currentOrder or not  currentOrder.id or currentOrder.id ~= 90 then
 		local target = self.game:GetUnitByID(targetId)
 
-		local exec = self.unit:Internal():Reclaim(target)
-		self:EchoDebug('exec',exec,'target',targetId)
+		--local exec = self.unit:Internal():Reclaim(target)
+		self.ai.tool:GiveOrderToUnit(self.unit:Internal(),CMD.RECLAIM,{targetId},0,'1-1')
+		
 	end
 end
 
@@ -101,6 +102,7 @@ function CleanerBST:Patroling()
 	local currentOrder = self.unit:Internal():GetUnitCommands(1)[1]
 
 	if not currentOrder or not  currentOrder.id  then
-		self.unit:Internal():Patrol({self.position.x,self.position.y,self.position.z,0})
+		--self.unit:Internal():Patrol({self.position.x,self.position.y,self.position.z,0})
+		self.ai.tool:GiveOrder(self.unit:Internal():ID(),CMD.PATROL,{self.position.x,self.position.y,self.position.z,0},0,'1-1')
 	end
 end

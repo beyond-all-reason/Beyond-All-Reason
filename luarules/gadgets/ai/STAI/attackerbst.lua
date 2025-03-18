@@ -15,6 +15,7 @@ function AttackerBST:Init()
 	self.mtype = mtype
 	self.network = network
 	self.name = self.unit:Internal():Name()
+	self.id = self.unit:Internal():ID()
 	self.x = self.unit:Internal().x
 	self.y = self.unit:Internal().y
 	self.z = self.unit:Internal().z
@@ -172,6 +173,7 @@ function AttackerBST:SetMoveState()
 	self.movestateSet = true
 	local thisUnit = self.unit
 	if thisUnit then
-		thisUnit:Internal():HoldPosition()
+		self.ai.tool:GiveOrder(self.id,CMD.MOVE_STATE, 0, 0,'1-1')
+		--thisUnit:Internal():HoldPosition()
 	end
 end

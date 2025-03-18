@@ -34,7 +34,8 @@ function EngineerBST:Update()
 		local myBuilder = self:GetBuilder()
 		self:EchoDebug('myBuilder',myBuilder)
 		if myBuilder then
-			self.unit:Internal():Guard(myBuilder)
+			--self.unit:Internal():Guard(myBuilder)
+			self.ai.tool:GiveOrder(self.id,CMD.GUARD,myBuilder,0,'1-1')
 			self:EchoDebug('guarding')
 			self.ai.engineerhst.Engineers[self.id] = myBuilder
 			self.builder = myBuilder

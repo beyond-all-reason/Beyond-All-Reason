@@ -167,9 +167,15 @@ local game = {}
 		return Shard:shardify_unit( unit_id )
 	end
 
-	function game:GiveOrder(message) -- sends a message to the engine to give an order
+
+	function game:GiveOrder(message)
+		message = '[STGO]' .. message .. '[STGO]'
+		self:SendLuaRulesMessage(message)
+	end
+	
+	function game:SendLuaRulesMessage(message) -- sends a message to the engine to give an order
 		message = '@Shard' .. message .. 'Shard@'
-		Spring.Echo('game:GiveOrder: ' .. message)
+		--Spring.Echo('game:GiveOrder: ' .. message)
 		
 		Spring.SendLuaRulesMsg(message)
 	end

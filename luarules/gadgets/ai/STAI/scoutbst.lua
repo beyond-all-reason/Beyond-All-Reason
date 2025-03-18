@@ -61,7 +61,8 @@ function ScoutBST:Evading()
 
 	home = self.ai.tool:RandomAway2(home,300)
 	if home then
-		self.unit:Internal():Move(home)
+		self.ai.tool:GiveOrder(self.id,CMD.MOVE, home, 0,'1-1')
+		--self.unit:Internal():Move(home)
 	end
 end
 
@@ -73,13 +74,15 @@ function ScoutBST:Attacking()
 		return
 	end
 	self.target = nil
-	self:AttackMove( self.attacking.POS )
+	self.ai.tool:GiveOrder(self.id,CMD.FIGHT, self.attacking.POS, 0,'1-1')
+	--self:AttackMove( self.attacking.POS )
 end
 
 function ScoutBST:Scouting()
 	self:EchoDebug('scouting')
 	local randomAway = self.ai.tool:RandomAway2(self.target,128)
-	self.unit:Internal():Move(randomAway)
+	self.ai.tool:GiveOrder(self.id,CMD.MOVE, randomAway, 0,'1-1')
+	--self.unit:Internal():Move(randomAway)
 end
 
 function ScoutBST:ImmediateTarget()

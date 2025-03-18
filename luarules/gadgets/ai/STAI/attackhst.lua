@@ -320,7 +320,6 @@ function AttackHST:SquadAdvance(squad)
 			if not nx or not nz then
 				return
 			else
-				Spring.Echo('advance',nx,nz)
 				p[1] = nx
 				p[2] = Spring.GetGroundHeight(nx,nz)
 				p[3] = nz
@@ -334,8 +333,7 @@ function AttackHST:SquadAdvance(squad)
 
 		
 	end
-	local command = self.ai.tool:SerializeOrder(cmdUnitId,cmdUnitCommand ,cmdUnitParams,cmdUnitOptions,'2-2')
-	game:GiveOrder(command)
+	local command = self.ai.tool:GiveOrder(cmdUnitId,cmdUnitCommand ,cmdUnitParams,cmdUnitOptions,'2-2')
 	squad.lastAdvance = game:Frame()
 	self:EchoDebug('advance after members move')
 end

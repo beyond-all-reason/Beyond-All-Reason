@@ -56,6 +56,7 @@ function BomberBST:Deactivate()
 	self:EchoDebug("deactivate")
 	self.active = false
 	self.unit:Internal():Move(self.ai.tool:RandomAway( self.homepos, math.random(100,300))) -- you're drunk go home
+	self.ai.tool:GiveOrderToUnit(self.unit:Internal(),CMD.MOVE, self.homepos, 0,'1-1')
 end
 
 function BomberBST:Update()
@@ -70,12 +71,14 @@ end
 
 function BomberBST:BombPosition(position)
 	self:EchoDebug("bomb position")
-	self.unit:Internal():Attack(position,32)
+	--self.unit:Internal():Attack(position,32)
+	self.ai.tool:GiveOrderToUnit(self.unit:Internal(),CMD.ATTACK, position, 0,'1-1')
 end
 
 function BomberBST:BombUnit(targetUnit)
 	self:EchoDebug("bomb unit")
-	self.unit:Internal():Attack(targetUnit,32)
+	--self.unit:Internal():Attack(targetUnit,32)
+	self.ai.tool:GiveOrderToUnit(self.unit:Internal(),CMD.ATTACK, targetUnit, 0,'1-1')
 end
 
 function BomberBST:BombTarget(targetUnit, path)
@@ -88,5 +91,7 @@ function BomberBST:BombTarget(targetUnit, path)
 end
 
 function BomberBST:SetIdleMode()
- 	self.unit:Internal():IdleModeFly()
+ 	--self.unit:Internal():IdleModeFly()
+	self.ai.tool:GiveOrderToUnit(self.unit:Internal(),CMD.IDLEMODE, 1, 0,'1-1')
+
 end

@@ -89,7 +89,8 @@ end
 function BootBST:SetMoveState()
 	local thisUnit = self.unit
 	if thisUnit then
-		thisUnit:Internal():HoldPosition()
+		self.ai.tool:GiveOrder(self.id, CMD.MOVE_STATE, 0, 0,'1-1')
+		--thisUnit:Internal():HoldPosition()
 	end
 end
 
@@ -141,6 +142,7 @@ function BootBST:ExitFactory(face)
 		out.z = 1
 	end
  	u:Move(out)
+	self.ai.tool:GiveOrderToUnit(u, CMD.MOVE, {out.x, out.y, out.z}, 0,'1-1')
 	self.lastOrderFrame = self.game:Frame()
 	self.lastExitSide = face
 end

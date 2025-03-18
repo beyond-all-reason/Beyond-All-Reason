@@ -51,10 +51,10 @@ Tool.COLOURS = {
 Tool._TABLES = {}
 function Tool:REZ_TABLE()
 	if self._TABLES[1] then
-		--Spring.Echo('GET_TABLE REZ a table')
+		--self:EchoDebug('GET_TABLE REZ a table')
 		return table.remove(self._TABLES)
 	else
-		--Spring.Echo('GET_TABLE CREATE a NEW table')
+		--self:EchoDebug('GET_TABLE CREATE a NEW table')
 		return {}
 	end
 		
@@ -64,10 +64,10 @@ end
 -- Function to recursively process a table and discard everything that is not a table
 function Tool:KILL_TABLE(t)
 	if not t or type(t) ~= 'table' then
-		Spring.Echo("incorrect type in KILL_TABLE",t,type(t))    
+		self:EchoDebug("incorrect type in KILL_TABLE",t,type(t))    
 		return
 	end
-	--Spring.Echo("SIT_TABLE: Before clearing", t)
+	--self:EchoDebug("SIT_TABLE: Before clearing", t)
 	for key, value in pairs(t) do
 		
 		if type(value) == 'table' then
@@ -84,22 +84,22 @@ function Tool:KILL_TABLE(t)
 	--if next(t) == nil then
 	--	table.insert(Shard._TABLES, t)
 	--else
-	--	Spring.Echo("WARNING: Table not empty, skipping insertion into Shard._TABLES")
+	--	self:EchoDebug("WARNING: Table not empty, skipping insertion into Shard._TABLES")
 	--end
-	--Spring.Echo('Shard._TABLES after SIT TABLE',Shard._TABLES)
+	--self:EchoDebug('Shard._TABLES after SIT TABLE',Shard._TABLES)
 	
 	
 end
 
 function Tool:StoreOrder (id,cmd,params,options,method)
 	if not id or not cmd or not params or not options or not method then
-		Spring.Echo('storeorder failed :',id,cmd,params,options)
+		self:EchoDebug('storeorder failed :',id,cmd,params,options)
 		return
 	end
 	for i,v in pairs(params) do
 		params[i] = tonumber(v) or v
 	end
-	--Spring.Echo('storeorder received :',id,cmd,params,opts)
+	--self:EchoDebug('storeorder received :',id,cmd,params,opts)
 	game.orders = game.orders or game:REZ_TABLE()
 	game.lastGameFrame = game.lastGameFrame or 0
 	
@@ -125,23 +125,17 @@ end
 
 local serialized = ''
 function Tool:SerializeOrder(id,cmd,parameters,options,method)
-	if not id or not cmd or not parameters or not options or not method then
-		Spring.Echo('Serialize Order missing parameters',id,cmd,parameters,options,method)
-		return
-	end
-	--if type(id) ~= ('number' or 'table') or type(cmd) ~= ('number' or 'table') or type(parameters) ~= ('number' or 'table') or type(options) ~= ('number' or 'table') or type(method) ~= 'string' then
-	--	Spring.Echo('Serialize Order wrong arg types',type(id),type(cmd),type(parameters),type(options),type(method))
-	--	return
-	--end
+	
+	self:EchoDebug('SerializeOrder',id,cmd,parameters,options,method)
 	serialized = ''
-	local order = '[ST]'
+	order = ''
 	order = order .. '&id:'
 	if type(id) == 'number' then
 		order = order .. tostring(id)
 	else
 		order = order .. self:TableToString(id)
 	end
-	Spring.Echo('serialized oder id:',order)
+	self:EchoDebug('serialized oder id:',order)
 	serialized = ''
 	order = order .. '&cmd:'
 	if type(cmd) == 'number' then
@@ -149,7 +143,7 @@ function Tool:SerializeOrder(id,cmd,parameters,options,method)
 	else
 		order = order .. self:TableToString(cmd)
 	end
-	Spring.Echo('serialized oder cmd',order)
+	self:EchoDebug('serialized oder cmd',order)
 	serialized = ''
 	order = order .. '&parameters:'
 	if type(parameters) == 'number' then
@@ -157,7 +151,7 @@ function Tool:SerializeOrder(id,cmd,parameters,options,method)
 	else
 		order = order .. self:TableToString(parameters)
 	end
-	Spring.Echo('serialized oder params',order)
+	self:EchoDebug('serialized oder params',order)
 	serialized = ''
 	order = order .. '&options:'
 	if type(options) == 'number' then
@@ -165,40 +159,48 @@ function Tool:SerializeOrder(id,cmd,parameters,options,method)
 	else
 		order = order .. self:TableToString(options)
 	end
-	Spring.Echo('serialized ordero ptions',order)
+	self:EchoDebug('serialized ordero ptions',order)
 	serialized = ''
 	order = order .. '&method:'.. method
-	order = order .. '[ST]'
-	Spring.Echo('Serialized Order complete:',order)
+	self:EchoDebug('Serialized Order complete:',order)
 	serialized = ''
 	return order
 end
 
+function Tool:GiveOrder(id,cmd,parameters,options,method)
+	if not id or not cmd or not parameters or not options or not method then
+		self:EchoDebug('Serialize Order missing parameters',id,cmd,parameters,options,method)
+		return
+	end
+	--if type(id) ~= ('number' or 'table') or type(cmd) ~= ('number' or 'table') or type(parameters) ~= ('number' or 'table') or type(options) ~= ('number' or 'table') or type(method) ~= 'string' then
+	--	self:EchoDebug('Serialize Order wrong arg types',type(id),type(cmd),type(parameters),type(options),type(method))
+	--	return
+	--end
+	local order = self:SerializeOrder(id,cmd,parameters,options,method)
+	game:GiveOrder(order)
+end
 
 function Tool:DeserializeOrder(str)
 	if not str then
-		Spring.Echo('Deserialize Order missing parameters')
+		self:EchoDebug('Deserialize Order missing parameters')
 		return
 	end
-	print(string.sub(str,1,4))
 	if string.sub(str,1,4) ~= '[ST]' or string.sub(str,-4,-1) ~= '[ST]' then
-		Spring.Echo(string.sub(str,1,4),string.sub(str,-4,-1))
+		self:EchoDebug(string.sub(str,1,4),string.sub(str,-4,-1))
 		return
 	else
 		str = string.sub(str,5,-5)
 	end
 	local order = {}
 	for s in string.gmatch(str, "([^&]+)") do
-		print(s)
 		local key, value = string.match(s, "(%w+):(.+)")
-		print(key,value)
 		if string.find(value,'|') or string.find(value,',') then
 			order[key] = self:StringToTable(value)
 		else
 			order[key] = tonumber(value) or value
 		end
 	end
-	Spring.Echo('order',order)
+	self:EchoDebug('order',order)
 	return order
 end
 
@@ -207,6 +209,7 @@ function Tool:TableToString(t)
 	if not t then
 		return
 	end
+
     for k,v in pairs(t) do
 		if type(v) == 'number' then
 			serialized = serialized ..v ..','
@@ -216,7 +219,7 @@ function Tool:TableToString(t)
 		end
 	end
 	
-    Spring.Echo("Serialized:", serialized)
+    self:EchoDebug("Serialized:", serialized)
     return serialized
 end
 
@@ -239,7 +242,7 @@ function Tool:StringToTable(str)
 			table.insert(t,tonumber(value) or value)
 		end
 	end
-	Spring.Echo("Deserialized:", t)
+	self:EchoDebug("Deserialized:", t)
 	return t
 end
 

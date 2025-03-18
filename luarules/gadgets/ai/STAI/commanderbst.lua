@@ -86,14 +86,17 @@ end
 
 function CommanderBST:HelpFactory()
 	local angle = math.random() * twicePi
-	self.unit:Internal():Move(self.ai.tool:RandomAway( self.safeHouse.position, 200, nil, angle))
+	--self.unit:Internal():Move(self.ai.tool:RandomAway( self.safeHouse.position, 200, nil, angle))
+	self.ai.tool:GiveOrder(self.id,CMD.MOVE, self.ai.tool:RandomAway( self.safeHouse.position, 200, nil, angle), 0,'1-1')
 	for i = 1, 3 do
 		local a = self.ai.tool:AngleAdd(angle, halfPi*i)
 		local pos = self.ai.tool:RandomAway( self.safeHouse.position, 200, nil, a)
 		if math.random() > 0.5 then --TODO workaround, wait to rework it better
-			self.unit:Internal():Patrol({pos.x,pos.y,pos.z,0})
+			self.ai.tool:GiveOrder(self.id,CMD.PATROL, pos, 0,'1-1')
+			--self.unit:Internal():Patrol({pos.x,pos.y,pos.z,0})
 		else
-			self.unit:Internal():Guard(game:GetUnitByID(self.safeHouse.id))
+			self.ai.tool:GiveOrder(self.id,CMD.GUARD, self.safeHouse.id, 0,'1-1')
+			--self.unit:Internal():Guard(game:GetUnitByID(self.safeHouse.id))
 		end
 	end
 end

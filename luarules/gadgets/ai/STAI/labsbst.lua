@@ -62,7 +62,8 @@ function LabsBST:OwnerBuilt()
 		outX = 200
 		outZ = 0
 	end
-	self.unit:Internal():Move({x= self.position.x + outX, y = self.position.y, z = self.position.z + outZ})
+	self.ai.tool:GiveOrder(self.id,CMD.MOVE,{self.position.x + outX, self.position.y, self.position.z + outZ},0,'1-1')
+	--self.unit:Internal():Move({x= self.position.x + outX, y = self.position.y, z = self.position.z + outZ})
 end
 
 function LabsBST:OwnerDead()
@@ -71,16 +72,22 @@ end
 
 function LabsBST:preFilter()
 	self:EchoDebug('prefilter')
+
 	if self.ai.ecohst.Energy.full > 0.1  then
-		self.unit:Internal():FactoryUnWait()
+		if self.unit:Internal():IsWaiting() then
+			self.ai.tool:GiveOrder(self.id,CMD.WAIT,0,0,'1-1')
+		end
+		
 	elseif self.ai.ecohst.Metal.full < 0.1 then
 		for id, lab in pairs(self.ai.labshst.labs) do
-			if lab.underConstruction then
-				self.unit:Internal():FactoryWait()
+			if lab.underConstruction  and not self.unit:Internal():IsWaiting() then
+				self.ai.tool:GiveOrder(self.id,CMD.WAIT,0,0,'1-1')
 			end
 		end
 	else
-		self.unit:Internal():FactoryWait()
+		if not self.unit:Internal():IsWaiting() then
+			self.ai.tool:GiveOrder(self.id,CMD.WAIT,0,0,'1-1')
+		end
 	end
 end
 
@@ -109,8 +116,7 @@ function LabsBST:Update()
 			unitParams[i] = 0
 			unitOptions[i] = 0
 		end
-		local command = self.ai.tool:SerializeOrder(self.id,unitList,unitParams,unitOptions,'2-1')
-		game:GiveOrder(command)
+		self.ai.tool:GiveOrder(self.id,unitList,unitParams,unitOptions,'2-1')
 	end
 end
 

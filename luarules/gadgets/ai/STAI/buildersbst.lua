@@ -390,10 +390,8 @@ function BuildersBST:ProgressQueue()
 				self.ai.buildingshst:NewPlan(jobName, p, self.id, self.name)
 				local facing = self.ai.buildingshst:GetFacing(p)
 
-				local command = self.ai.tool:SerializeOrder(self.id,game:GetTypeByName(jobName):ID()*-1,{p.x,p.y,p.z,f,},0,'1-1')
-				--local t = self.ai.tool:DeserializeOrder(s)
-				game:GiveOrder(command)
-				--local command = self.unit:Internal():Build(jobName, p, facing)
+				self.ai.tool:GiveOrder(self.id,game:GetTypeByName(jobName):ID()*-1,{p.x,p.y,p.z,facing},0,'1-1')
+				
 				self.watchdogTimeout = math.huge
 				self.fails = 0
 				self.failOut = nil
@@ -438,7 +436,8 @@ function BuildersBST:Assist()
 			end
 		end
 		if bossTarget then
-			self.unit:Internal():Guard(bossTarget)
+			--self.unit:Internal():Guard(bossTarget)
+			self.ai.tool:GiveOrder(self.id, CMD.GUARD, bossTarget,0,'1-1')
 			self.assistant = true
 		end
 	else
@@ -456,7 +455,7 @@ function BuildersBST:Assist()
 			end
 		end
 		if bossTarget then
-			self.unit:Internal():Guard(bossTarget)
+			self.ai.tool:GiveOrder(self.id, CMD.GUARD, bossTarget,0,'1-1')
 			self.assistant = true
 		else
 			local unitsNear = self.game:getUnitsInCylinder(builderPos, 2500)
@@ -468,18 +467,6 @@ function BuildersBST:Assist()
 					return
 				end
 			end
-		end
-	end
-	for i = 1, 3 do
-		local r = 2000 * i
-		local doing = self.unit:Internal():AreaResurrect(builderPos, r) or
-			self.unit:Internal():AreaReclaim(builderPos, r) or
-			self.unit:Internal():AreaRepair(builderPos, r)
-		if doing then
-			self:EchoDebug('assistant reclaim or repair')
-			self.assitant = true
-		else
-			self:EchoDebug('assistant not work')
 		end
 	end
 end

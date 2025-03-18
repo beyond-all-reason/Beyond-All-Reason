@@ -15,6 +15,7 @@ function RaidBST:Init()
 	self.mtype = mtype
 	self.network = network
 	self.name = self.unit:Internal():Name()
+	self.id = self.unit:Internal():ID()
 	self.x = self.unit:Internal().x
 	self.y = self.unit:Internal().y
 	self.z = self.unit:Internal().z
@@ -108,7 +109,9 @@ function RaidBST:Update()
 	end
 	if self.active and self.needToMoveToTarget then
 		self.needToMoveToTarget = false
-		self.unit:Internal():AttackMove(self.target) --need to check this
+		
+		--self.unit:Internal():AttackMove(self.target) --need to check this
+		self.ai.tool:GiveOrder(self.unit:Internal():ID(),CMD.FIGHT,self.target,0,'1-1')
 
 	end
 end
@@ -116,7 +119,8 @@ end
 function RaidBST:MoveRandom(pos,dist)
 	local away = self.ai.tool:RandomAway(pos, dist)
 	if not self.unit then return end
-	self.unit:Internal():AttackMove(away)
+	self.ai.tool:GiveOrder(self.unit:Internal():ID(),CMD.FIGHT,{away.x,away.y,away.z},0,'1-1')
+	--self.unit:Internal():AttackMove(away)
 end
 
 function RaidBST:Advance(pos, perpendicularAttackAngle, reverseAttackAngle)
@@ -132,7 +136,7 @@ function RaidBST:Advance(pos, perpendicularAttackAngle, reverseAttackAngle)
 		self.target = self.ai.tool:RandomAway( pos, awayDistance, nil, myAngle)
 	else
 		self:EchoDebug('adv drit')
-		self.target = self.ai.tool:RandomAway2( pos, self.formationDist, nil, perpendicularAttackAngle,self.target)
+		--self.target = self.ai.tool:RandomAway2( pos, self.formationDist, nil, perpendicularAttackAngle,self.target)
 	end
 	--local canMoveThere = self.ai.maphst:UnitCanGoHere(self.unit:Internal(), self.target)
 	local canMoveThere = Spring.TestMoveOrder(self.defID, self.target.x, self.target.y, self.target.z,nil,nil,nil,true,true,true)--TEST
@@ -147,9 +151,10 @@ function RaidBST:Advance(pos, perpendicularAttackAngle, reverseAttackAngle)
 	self:EchoDebug('adv',self.attacking,self.active,self.target.x,self.target.z)
 	if self.active and canMoveThere then
 		self:EchoDebug('adv move',self.target.x,self.target.z)
-		self.unit:Internal():Move(self.target) --need to check this
+
+		--self.unit:Internal():Move(self.target) --need to check this
 	end
-	return canMoveThere
+	return self.target.x,self.target.z
 end
 
 function RaidBST:Free()
@@ -169,6 +174,7 @@ function RaidBST:SetMoveState()
 	self.movestateSet = true
 	local thisUnit = self.unit
 	if thisUnit then
-		thisUnit:Internal():HoldPosition()
+		self.ai.tool:GiveOrder(self.id,CMD.MOVE_STATE, 0, 0,'1-1')
+		--thisUnit:Internal():HoldPosition()
 	end
 end

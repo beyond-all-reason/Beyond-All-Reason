@@ -62,7 +62,7 @@ local spGiveOrderArrayTounit = Spring.GiveOrderArrayToUnit
 local spGiveOrderTounitArray = Spring.GiveOrderToUnitArray
 local spGiveOrderArrayTounitArray = Spring.GiveOrderArrayToUnitArray
 local syncTables = {}
-local cmdCounter = {ii = 0 ,zi=0,iz=0,zz=0}
+local cmdCounter = {ii = 0 ,zi=0,iz=0,zz=0,old=0}
 if gadgetHandler:IsSyncedCode() then
 
 	function gadget:Initialize()
@@ -106,16 +106,14 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		local order = {}
 		for s in string.gmatch(str, "([^&]+)") do
-			print(s)
 			local key, value = string.match(s, "(%w+):(.+)")
-			print(key,value)
 			if string.find(value,'|') or string.find(value,',') then
 				order[key] = self:StringToTable(value)
 			else
 				order[key] = tonumber(value) or value
 			end
 		end
-		Spring.Echo('sync order',order)
+		--Spring.Echo('sync order',order)
 		return order
 	end
 
@@ -136,30 +134,33 @@ if gadgetHandler:IsSyncedCode() then
 				table.insert(t,tonumber(value) or value)
 			end
 		end
-		Spring.Echo("Sync Deserialized:", t)
+		--Spring.Echo("Sync Deserialized:", t)
 		return t
 	end
 
 	function gadget:RecvLuaMsg(msg, playerID)
+		
 		--msg = 'StGiveOrderToSync'..';'..id..';'..cmd..';'..pos..';'..opts..';'..timeout..';'..uname..';'.'StEndGOTS'
 		if string.sub(msg,1,17) == 'StGiveOrderToSync' then
-			Spring.Echo('warn: ST receive a old give order protocol',msg)
+			Spring.Echo('warn:  Shard  receive a old give order protocol',msg)
+			cmdCounter.old = cmdCounter.old + 1
 			return
 		end
-		if string.sub(msg,1,10) ~= '@Shard[ST]' or string.sub(msg,-10,-1) ~= '[ST]Shard@' then
+		if string.sub(msg,1,12) ~= '@Shard[STGO]' or string.sub(msg,-12,-1) ~= '[STGO]Shard@' then
 			Spring.Echo(string.sub(msg,1,10),string.sub(msg,-10,-1))
 			return
 			
 		else
-			print('msg',msg)
-			msg = string.sub(msg,11,-11)
+			msg = string.sub(msg,13,-13)
 			local order = gadget:DeserializeOrder(msg)
 
 			if order.method == '1-1' then
-				spGiveOrderTounit(order.id,order.cmd,order.parameters,order.options)
+				local cmd = spGiveOrderTounit(order.id,order.cmd,order.parameters,order.options)
 				cmdCounter.ii = cmdCounter.ii + 1
+				if not cmd then
+					Spring.Echo('GiveOrderToUnit Error:',cmd)
+				end
 			elseif order.method == '2-1' then
-				print('GiveOrderArrayTounit')
 				local arrayOfCmd = {}
 				for i in pairs(order.cmd) do
 					arrayOfCmd[i] = {}
@@ -169,12 +170,18 @@ if gadgetHandler:IsSyncedCode() then
 				end
 				local cmd = spGiveOrderArrayTounit(order.id,arrayOfCmd)
 				cmdCounter.zi = cmdCounter.zi + 1
-				print('GiveOrderArrayTounit',cmd)
+				if not cmd then
+					print('GiveOrderArrayTounit Error:',cmd)
+				end
+				
 			elseif order.method == '1-2' then
-				Spring.Echo(type(order.id),type(order.cmd),type(order.parameters[1]),type(order.options))
+				--Spring.Echo(type(order.id),type(order.cmd),type(order.parameters[1]),type(order.options))
 				local cmd = spGiveOrderTounitArray(order.id,order.cmd,order.parameters,order.options)
 				cmdCounter.iz = cmdCounter.iz + 1
-				Spring.Echo('GiveOrderToUnitArray',cmd)
+				if not cmd then
+					Spring.Echo('GiveOrderToUnitArray Error:',cmd)	
+				end
+				
 				--Spring.GiveOrderToUnitArray ( unitArray = { [1] = unitID, etc... }, number cmdID, params = { number, etc...}, options = {"alt", "ctrl", "shift", "right"} )
 				
 			elseif order.method == '2-2' then
@@ -187,11 +194,15 @@ if gadgetHandler:IsSyncedCode() then
 				end
 				local cmd = spGiveOrderArrayTounitArray(order.id,arrayOfCmd,true)
 				cmdCounter.zz = cmdCounter.zz + 1
-				print('GiveOrderArrayTounitArray',cmd)
+				if not cmd then
+					print('GiveOrderArrayTounitArray Error:',cmd)
+				end
+			else
+				Spring.Echo('Shard AI Loader: unknown method',order.method)
 			end
 			
 		end
-		Spring.Echo('cmdCounter','1-1',cmdCounter.ii,'2-1',cmdCounter.zi,'1-2',cmdCounter.iz,'2-2',cmdCounter.zz)
+		Spring.Echo('cmdCounter','1-1',cmdCounter.ii,'2-1',cmdCounter.zi,'1-2',cmdCounter.iz,'2-2',cmdCounter.zz,'old',cmdCounter.old)
 	end
 
 
@@ -289,10 +300,14 @@ else	-- UNSYNCED CODE
 
 		end
 	end
-
+local lastRamRead= 0
+local RAM
 	function gadget:GameFrame(n)
 		-- for each AI...
-
+		
+		RAM = gcinfo()
+		print('ram used by AI',RAM, 'sync or other use ', RAM - lastRamRead)
+		
 		for i, thisAI in ipairs(Shard.AIs) do
 			--local RAM = gcinfo()
 			-- update sets of unit ids : own, friendlies, enemies
@@ -312,15 +327,16 @@ else	-- UNSYNCED CODE
 					garbagelimit = newgarbagelimit
 				end
 			end
-			--RAM = gcinfo() - RAM
-			--if RAM > 1000 then
-			--	print ('AIloader',RAM/1000)
-			--end
+			
 		end
+		lastRamRead = gcinfo()
+		RAM = lastRamRead - RAM
+		print(RAM .. ' kb of RAM used by AI in this update',lastRamRead)
 	end
 
 	function gadget:UnitCreated(unitId, unitDefId, teamId, builderId)
 		-- for each AI...
+		
 		local unit = Shard:shardify_unit(unitId)
 		for _, thisAI in ipairs(Shard.AIs) do
 			if spGetUnitTeam(unitId) == thisAI.id then
@@ -493,7 +509,19 @@ else	-- UNSYNCED CODE
 			Shard.randomseed = rseed
 		end
 	end
+	
+	function gadget:Shutdown()
+		Spring.Echo("Shard AI unsync gadget shutdown")
+		gadgetHandler:RemoveSyncAction("shard_debug_position")
+	end
 
+	function handleShardDebugPosEvent(_, x, z, col)
+		if Script.LuaUI("shard_debug_position") then
+			Script.LuaUI.shard_debug_position(x, z, col)
+		end
+	end
+
+end
 
 
 	--UNSYNCED CODE
@@ -643,15 +671,4 @@ else	-- UNSYNCED CODE
 		gadgetHandler:AddSyncAction('ShardStartTimer', sStartTimer)
 		gadgetHandler:AddSyncAction('ShardStopTimer', sStopTimer)
 		gadgetHandler:AddSyncAction('ShardSaveTable', sSaveTable)]]
-	function gadget:Shutdown()
-		Spring.Echo("Shard AI unsync gadget shutdown")
-		gadgetHandler:RemoveSyncAction("shard_debug_position")
-	end
 
-	function handleShardDebugPosEvent(_, x, z, col)
-		if Script.LuaUI("shard_debug_position") then
-			Script.LuaUI.shard_debug_position(x, z, col)
-		end
-	end
-
-end

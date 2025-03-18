@@ -341,7 +341,6 @@ function RaidHST:SquadAdvance(squad)
 		--member:Advance(pos or nextPos, nextPerpendicularAngle, reverseAttackAngle)
 	end
 
-	Spring.Echo(pos,nextPos)
 	local p = {}
 	if pos then
 		p[1] = pos.x
@@ -353,8 +352,7 @@ function RaidHST:SquadAdvance(squad)
 		p[3] = nextPos.z
 	end
 
-	local command = self.ai.tool:SerializeOrder(cmdUnitId,CMD.MOVE ,p,0,'1-2')
-	game:GiveOrder(command)
+	local command = self.ai.tool:GiveOrder(cmdUnitId,CMD.MOVE ,p,0,'1-2')
 	squad.lastAdvance = game:Frame()
 	self:EchoDebug('advance after members move')
 end
@@ -540,6 +538,7 @@ function RaidHST:AddRecruit(attkbhvr)
 			if self.recruits[mtype] == nil then self.recruits[mtype] = {} end
 			local level = attkbhvr.level
 			table.insert(self.recruits[mtype], attkbhvr)
+			--self.ai.tool:GiveOrder(attkbhvr.unit:Internal():ID(),CMD.MOVE_STATE,0,0,'1-1')
 			attkbhvr:SetMoveState()
 			attkbhvr:Free()
 		else

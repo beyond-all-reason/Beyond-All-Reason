@@ -10,7 +10,8 @@ end
 
 function ReclaimBST:Act()
 	local timearea = 10000
-	self.act = self.unit:Internal():AreaReclaim(self.position,timearea)
+	self.ai.tool:GiveOrder(self.unit:Internal():ID(),CMD.RECLAIM,{self.position.x,self.position.y,self.position.z,timearea},0,'1-1')
+	--self.act = self.unit:Internal():AreaReclaim(self.position,timearea)
 	self.unit:ElectBehaviour()
 end
 
