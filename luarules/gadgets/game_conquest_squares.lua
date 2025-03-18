@@ -665,6 +665,9 @@ layout (location = 4) in vec4 capturestate;
 
 uniform sampler2D heightmapTex;
 uniform float gameFrame;
+uniform int isMinimapRendering;
+uniform float mapSizeX;
+uniform float mapSizeZ;
 
 out DataVS {
 	vec4 color;
@@ -674,31 +677,48 @@ out DataVS {
 //__ENGINEUNIFORMBUFFERDEFS__
 
 void main() {
-	// Calculate world position - MODIFIED LINE HERE
-	// Use position.y as Z coordinate since makePlaneVBO creates X-Y plane
-	vec4 worldPos = vec4(position.x * posscale.w, 0.0, position.y * posscale.w, 1.0);
-	worldPos.xz += posscale.xz;
-	
-	// Get height from heightmap
-	vec2 uvhm = heightmapUVatWorldPos(worldPos.xz);
-	float terrainHeight = textureLod(heightmapTex, uvhm, 0.0).x;
-	
-	// Set Y position to be terrain height plus offset
-	// Using a constant value for height offset since position.y is now used for Z
-	worldPos.y = terrainHeight + posscale.y;
-	
-	// Calculate pulsing effect based on game frame
-	float pulse = 0.3 + 0.7 * sin(gameFrame * 0.05);
-	
-	// Pass color to fragment shader with pulsing alpha
-	color = color1;
-	color.a *= mix(visibility.z, visibility.w, pulse);
-	
-	// Pass progress for visualization
-	progress = capturestate.y;
-	
-	// Transform to clip space
-	gl_Position = cameraViewProj * worldPos;
+	if (isMinimapRendering == 1) {
+		// Minimap rendering - follow the same approach as map_startcone_gl4.vert.glsl
+		
+		// Take the world position from posscale (like worldposrad in the example)
+		vec2 worldPos = posscale.xz;
+		
+		// Scale the vertex position appropriately for the square
+		// position.xy is in range [-1,1], so scale it to match the square size
+		vec2 vertexOffset = position.xy * (posscale.w / mapSizeX * 0.5);
+		
+		// Combine world position with vertex offset to get minimap coords
+		vec2 ndcxy = (worldPos / vec2(mapSizeX, mapSizeZ) + vertexOffset) * 2.0 - 1.0;
+		
+		// Handle minimap flipping
+		if (flipMiniMap < 1) {
+			ndcxy.y *= -1;
+		} else {
+			ndcxy.x *= -1;
+		}
+		
+		// Set final position - no camera matrix involved!
+		gl_Position = vec4(ndcxy, 0.0, 1.0);
+		
+		// Pass through other data
+		color = color1;
+		progress = capturestate.y;
+	} else {
+		// World rendering - keep your existing code
+		// Use position.y as Z coordinate since makePlaneVBO creates X-Y plane
+		vec4 worldPos = vec4(position.x * posscale.w, 0.0, position.y * posscale.w, 1.0);
+		worldPos.xz += posscale.xz;
+		
+		// Get height from heightmap
+		vec2 uvhm = heightmapUVatWorldPos(worldPos.xz);
+		float terrainHeight = textureLod(heightmapTex, uvhm, 0.0).x;
+		
+		// Set Y position to be terrain height plus offset
+		worldPos.y = terrainHeight + posscale.y;
+		
+		// Transform to clip space
+		gl_Position = cameraViewProj * worldPos;
+	}
 }
 ]]
 
@@ -736,9 +756,12 @@ local function makeShader()
 		fragment = fsShader,
 		uniformInt = {
 			heightmapTex = 0,
+			isMinimapRendering = 0,
 		},
 		uniformFloat = {
 			gameFrame = 0,
+			mapSizeX = Game.mapSizeX,
+			mapSizeZ = Game.mapSizeZ,
 		},
 	}, "testSquareShader")
 	
@@ -901,7 +924,7 @@ function gadget:Update()
 	end
 end
 
--- Draw the square
+-- Draw the square in world view
 function gadget:DrawWorldPreUnit()
 	if not squareShader or not squareVAO or not instanceVBO then return end
 	
@@ -910,6 +933,7 @@ function gadget:DrawWorldPreUnit()
 	
 	squareShader:Activate()
 	squareShader:SetUniform("gameFrame", Spring.GetGameFrame())
+	squareShader:SetUniform("isMinimapRendering", 0)
 	
 	-- Draw the square using indexed triangles
 	instanceVBO.VAO:DrawElements(GL.TRIANGLES, instanceVBO.numVertices, 0, instanceVBO.usedElements)
@@ -917,6 +941,20 @@ function gadget:DrawWorldPreUnit()
 	squareShader:Deactivate()
 	glTexture(0, false)
 	glDepthTest(false)
+end
+
+-- Draw on minimap using the same shader with a flag
+function gadget:DrawInMiniMap()
+	if not squareShader or not squareVAO or not instanceVBO then return end
+	
+	squareShader:Activate()
+	squareShader:SetUniform("gameFrame", Spring.GetGameFrame())
+	squareShader:SetUniform("isMinimapRendering", 1)
+	
+	-- Draw the square using indexed triangles
+	instanceVBO.VAO:DrawElements(GL.TRIANGLES, instanceVBO.numVertices, 0, instanceVBO.usedElements)
+	
+	squareShader:Deactivate()
 end
 
 -- Clean up
