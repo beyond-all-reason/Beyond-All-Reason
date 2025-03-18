@@ -10,6 +10,8 @@ function widget:GetInfo()
 	}
 end
 
+local useRenderToTexture = true		-- much faster than drawing via DisplayLists only
+
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local currentLayout
 
@@ -344,6 +346,11 @@ function widget:ViewResize()
 	checkGuiShader(true)
 	setupCellGrid(true)
 	doUpdate = true
+
+	if ordermenuTex then
+		gl.DeleteTexture(ordermenuTex)
+		ordermenuTex = nil
+	end
 end
 
 local function reloadBindings()
@@ -407,6 +414,10 @@ function widget:Shutdown()
 		displayListGuiShader = nil
 	end
 	displayListOrders = gl.DeleteList(displayListOrders)
+	if ordermenuTex then
+		gl.DeleteTexture(ordermenuTex)
+		ordermenuTex = nil
+	end
 	WG['ordermenu'] = nil
 end
 
@@ -515,6 +526,11 @@ local function drawCell(cell, zoom)
 				color1 = (isStateCommand[cmd.id]) and { 0.33, 0.33, 0.33, 1 } or { 0.33, 0.33, 0.33, 1 }
 				color1[4] = math_clamp(uiOpacity-0.4, 0, 0.35)
 				color2 = { 1,1,1, math_clamp(uiOpacity-0.4, 0, 0.35) }
+			end
+			if useRenderToTexture then
+				-- I dont know the fuck why the following RectRound or a plain gl.Rect) hardly shows up when using rendertotexture so lets brighten it!
+				color1[4] = color1[4] * 2.2
+				color2[4] = color2[4] * 2.2
 			end
 			if color1[4] > 0.06 then
 				-- white bg (outline)
@@ -684,13 +700,13 @@ local function drawCell(cell, zoom)
 		end
 	end
 end
-
-local function drawOrders()
+local function drawOrdersBackground()
 	-- just making sure blending mode is correct
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
 	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0))
+end
 
+local function drawOrders()
 	if #commands > 0 then
 		font:Begin()
 		for cell = 1, #commands do
@@ -701,7 +717,7 @@ local function drawOrders()
 end
 
 function widget:DrawScreen()
-	local x, y, b = Spring.GetMouseState()
+	local x, y = Spring.GetMouseState()
 	local cellHovered
 	if not WG['topbar'] or not WG['topbar'].showingQuit() then
 		if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
@@ -770,11 +786,41 @@ function widget:DrawScreen()
 		end
 		if not displayListOrders then
 			displayListOrders = gl.CreateList(function()
-				drawOrders()
+				drawOrdersBackground()
+				if not useRenderToTexture then
+					drawOrders()
+				end
 			end)
+			if useRenderToTexture then
+				if not ordermenuTex then
+					ordermenuTex = gl.CreateTexture(math_floor(width*viewSizeX), math_floor(height*viewSizeY), {
+						target = GL.TEXTURE_2D,
+						format = GL.RGBA,
+						fbo = true,
+					})
+				end
+				if ordermenuTex then
+					gl.RenderToTexture(ordermenuTex, function()
+						gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+						gl.PushMatrix()
+						gl.Translate(-1, -1, 0)
+						gl.Scale(2 / (width*viewSizeX), 2 / (height*viewSizeY),	0)
+						gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
+						drawOrders()
+						gl.PopMatrix()
+					end)
+				end
+			end
 		end
 
 		gl.CallList(displayListOrders)
+
+		if useRenderToTexture and ordermenuTex then
+			gl.Color(1,1,1,1)
+			gl.Texture(ordermenuTex)
+			gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)
+			gl.Texture(false)
+		end
 
 		if #commands >0 then
 			-- draw highlight on top of button
