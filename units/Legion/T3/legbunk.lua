@@ -221,6 +221,8 @@ return {
 			[1] = {
 				def = "AIMHULL",
 				onlytargetcategory = "SURFACE",
+				maindir = "0 0 1",
+				maxangledif = 340,
 			},
 			[2] = {
 				badtargetcategory = "GROUNDSCOUT",

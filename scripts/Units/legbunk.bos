@@ -165,7 +165,7 @@ Create(){
 #define CATT1_PIECE_X aimxarml
 #define CATT1_PIECE_Y aimyarml
 
-#define CATT1_MAX_VELOCITY <6>
+#define CATT1_MAX_VELOCITY <4>
 #define CATT1_ACCELERATION <0.9>
 #define CATT1_JERK <2>
 #define CATT1_PRECISION <10>
@@ -177,7 +177,7 @@ Create(){
 #define CATT2_PIECE_X aimxarmr
 #define CATT2_PIECE_Y aimyarmr
 
-#define CATT2_MAX_VELOCITY <6>
+#define CATT2_MAX_VELOCITY <4>
 #define CATT2_ACCELERATION <0.9>
 #define CATT2_JERK <2>
 #define CATT2_PRECISION <10>
@@ -233,7 +233,8 @@ QueryWeapon2(piecenum)
 AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM_TC;
-	set-signal-mask SIG_AIM_TC + SIG_FIRE_BUNKER + SIG_FIRE_GUN;
+	set-signal-mask SIG_AIM_TC;
+	//set-signal-mask SIG_AIM_TC + SIG_FIRE_BUNKER + SIG_FIRE_GUN;
 	var cauaim;
     var cauface;
 	if ((((oldHeadingBunker > 0) AND (oldHeadingRailgun < 0) AND (oldHeadingBunker > 15000) AND (oldHeadingRailgun < (-15000))) OR ((oldHeadingBunker < 0) AND (oldHeadingRailgun > 0) AND (oldHeadingBunker < (-15000)) AND (oldHeadingRailgun > 15000))) AND (15000 > get ABS(cauface - cauaim)))
