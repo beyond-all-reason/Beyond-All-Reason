@@ -1906,7 +1906,7 @@ function widget:DrawScreen()
 					fbo = true,
 				})
 			end
-			if infoTex and not emptyInfo then
+			if infoTex then
 				gl.RenderToTexture(infoTex, function()
 					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
 					gl.PushMatrix()
