@@ -10,6 +10,8 @@ function widget:GetInfo()
 	}
 end
 
+local useRenderToTexture = true		-- much faster than drawing via DisplayLists only
+
 local alwaysShow = false
 
 local width = 0
@@ -61,7 +63,7 @@ local dlistGuishader, bgpadding, ViewResizeUpdate, texOffset, displayMode
 local loadedFontSize, font, font2, font3, cfgDisplayUnitID, cfgDisplayUnitDefID, rankTextures
 local cellRect, cellPadding, cornerSize, cellsize, cellHovered
 local gridHeight, selUnitsSorted, selUnitsCounts, selectionCells, customInfoArea, contentPadding
-local displayUnitID, displayUnitDefID, doUpdateClock, lastHoverDataClock, lastHoverData
+local displayUnitID, displayUnitDefID, doUpdateClock
 local contentWidth, dlistInfo, bfcolormap, selUnitTypes
 
 local RectRound, UiElement, UiUnit, elementCorner
@@ -84,9 +86,6 @@ local spSelectUnitMap = Spring.SelectUnitMap
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitResources = Spring.GetUnitResources
 local spGetUnitExperience = Spring.GetUnitExperience
-local spGetUnitMetalExtraction = Spring.GetUnitMetalExtraction
-local spGetUnitStates = Spring.GetUnitStates
-local spGetUnitStockpile = Spring.GetUnitStockpile
 local spGetUnitWeaponState = Spring.GetUnitWeaponState
 local spGetUnitRulesParam = Spring.GetUnitRulesParam
 local spColorString = Spring.Utilities.Color.ToString
@@ -583,6 +582,10 @@ function widget:ViewResize()
 
 	doUpdate = true
 	clear()
+	if infoTex then
+		gl.DeleteTexture(infoTex)
+		infoTex = nil
+	end
 
 	checkGuishader(true)
 
@@ -718,6 +721,10 @@ function widget:Shutdown()
 	Spring.SetDrawSelectionInfo(true) --disables springs default display of selected units count
 	Spring.SendCommands("tooltip 1")
 	clear()
+	if infoTex then
+		gl.DeleteTexture(infoTex)
+		infoTex = nil
+	end
 	if WG['guishader'] and dlistGuishader then
 		WG['guishader'].DeleteDlist('info')
 		dlistGuishader = nil
@@ -1009,7 +1016,7 @@ local function drawSelection()
 	for row = 1, rows do
 		for coll = 1, colls do
 			if selectionCells[cellID] then
-				local uDefID = selectionCells[cellID]
+				--local uDefID = selectionCells[cellID]
 				cellRect[cellID] = { math_ceil(customInfoArea[3] - cellPadding - (coll * cellsize)), math_ceil(customInfoArea[2] + cellPadding + ((row - 1) * cellsize)), math_ceil(customInfoArea[3] - cellPadding - ((coll - 1) * cellsize)), math_ceil(customInfoArea[2] + cellPadding + ((row) * cellsize)) }
 				drawSelectionCell(cellID, selectionCells[cellID], texOffset)
 			end
@@ -1073,8 +1080,11 @@ local function drawUnitInfo()
 		local metalPriceText = "\255\245\245\245" .. AddSpaces(unitDefInfo[displayUnitDefID].metalCost)
 		local energyPriceText = "\n\255\255\255\000" .. AddSpaces(unitDefInfo[displayUnitDefID].energyCost)
 		local energyPriceTextHeight = font2:GetTextHeight(energyPriceText) * size
+
+		font3:Begin()
 		font3:Print(metalPriceText, iconX + iconSize - padding, iconY - halfSize - halfSize + padding + (size * 1.07) + energyPriceTextHeight, size, "ro")
 		font3:Print(energyPriceText, iconX + iconSize - padding, iconY - halfSize - halfSize + padding + (size * 1.07), size, "ro")
+		font3:End()
 	end
 	iconSize = iconSize + iconPadding
 
@@ -1156,7 +1166,12 @@ local function drawUnitInfo()
 	customInfoArea = { math_floor(backgroundRect[3] - width - bgpadding), math_floor(backgroundRect[2]), math_floor(backgroundRect[3] - bgpadding), math_floor(backgroundRect[2] + height) }
 
 	if displayMode ~= 'unitdef' or not showBuilderBuildlist or not unitDefInfo[displayUnitDefID].buildOptions or (not (WG['buildmenu'] and WG['buildmenu'].hoverID)) then
-		RectRound(customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4], elementCorner*0.66, 1, 0, 0, 0, { 0.8, 0.8, 0.8, 0.08 }, { 0.8, 0.8, 0.8, 0.15 })
+		local alphaMult = 1
+		if useRenderToTexture then
+			-- I dont know the fuck why the following RectRound or a plain gl.Rect) hardly shows up when using rendertotexture so lets brighten it!
+			alphaMult = 3.5
+		end
+		RectRound(customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4], elementCorner*0.66, 1, 0, 0, 0, { 0.8, 0.8, 0.8, 0.08*alphaMult }, { 0.8, 0.8, 0.8, 0.15*alphaMult })
 	end
 
 	local contentPaddingLeft = contentPadding * 0.6
@@ -1178,7 +1193,7 @@ local function drawUnitInfo()
 		end
 
 		-- display health value/bar
-		health, maxHealth, _, _, buildProgress = spGetUnitHealth(displayUnitID)
+		health, maxHealth = spGetUnitHealth(displayUnitID)
 		if health then
 			local color = bfcolormap[math.clamp(math_floor((health / maxHealth) * 100), 0, 100)]
 			valueY3 = convertColor(color[1], color[2], color[3]) .. math_floor(health)
@@ -1662,9 +1677,12 @@ local function drawEngineTooltip()
 	end
 end
 
+local function drawInfoBackground()
+	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 0, 1, 0, 0)
+end
+
 local function drawInfo()
 	emptyInfo = false
-	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 0, 1, 0, 0)
 
 	contentPadding = (height * vsy * 0.075) * (0.95 - ((1 - ui_scale) * 0.5))
 	contentWidth = backgroundRect[3] - backgroundRect[1] - contentPadding - contentPadding
@@ -1873,14 +1891,41 @@ function widget:DrawScreen()
 		end
 		return
 	end
-
 	if not dlistInfo then
 		dlistInfo = gl.CreateList(function()
-			drawInfo()
+			drawInfoBackground()
+			if not useRenderToTexture then
+				drawInfo()
+			end
 		end)
+		if useRenderToTexture then
+			if not infoTex then
+				infoTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
+					target = GL.TEXTURE_2D,
+					format = GL.RGBA,
+					fbo = true,
+				})
+			end
+			if infoTex then
+				gl.RenderToTexture(infoTex, function()
+					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+					gl.PushMatrix()
+					gl.Translate(-1, -1, 0)
+					gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
+					drawInfo()
+					gl.PopMatrix()
+				end)
+			end
+		end
 	end
 	if alwaysShow or not emptyInfo or (isPregame and not mySpec) then
 		gl.CallList(dlistInfo)
+		if useRenderToTexture and infoTex then
+			gl.Color(1,1,1,1)
+			gl.Texture(infoTex)
+			gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)
+			gl.Texture(false)
+		end
 	elseif dlistGuishader then
 		WG['guishader'].DeleteDlist('info')
 		dlistGuishader = nil
@@ -1894,7 +1939,6 @@ function widget:DrawScreen()
 		-- selection grid
 		if displayMode == 'selection' and selectionCells and selectionCells[1] and cellRect then
 
-			local cellHovered
 			for cellID, unitDefID in pairs(selectionCells) do
 				if cellRect[cellID] and math_isInRect(x, y, cellRect[cellID][1], cellRect[cellID][2], cellRect[cellID][3], cellRect[cellID][4]) then
 
@@ -1930,7 +1974,7 @@ function widget:DrawScreen()
 					)
 					glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-					cellHovered = cellID
+					--cellHovered = cellID
 					break
 				end
 			end
@@ -1938,7 +1982,7 @@ function widget:DrawScreen()
 			if WG['tooltip'] then
 				local statsIndent = '  '
 				local stats = ''
-				local cells = cellHovered and { [cellHovered] = selectionCells[cellHovered] } or selectionCells
+				--local cells = cellHovered and { [cellHovered] = selectionCells[cellHovered] } or selectionCells
 				-- description
 				if cellHovered then
 					local text, numLines = font:WrapText(unitDefInfo[selectionCells[cellHovered]].description, (backgroundRect[3] - backgroundRect[1]) * (loadedFontSize / 16))
@@ -1962,7 +2006,6 @@ function widget:DrawScreen()
 		if displayMode == 'unit' and unitDefInfo[displayUnitDefID].transport and cellRect then
 			local units = Spring.GetUnitIsTransporting(displayUnitID)
 			if #units > 0 then
-				local cellHovered
 				for cellID, unitID in pairs(units) do
 
 					if cellRect[cellID] and math_isInRect(x, y, cellRect[cellID][1], cellRect[cellID][2], cellRect[cellID][3], cellRect[cellID][4]) then
@@ -1993,7 +2036,7 @@ function widget:DrawScreen()
 						)
 						glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-						cellHovered = cellID
+						--cellHovered = cellID
 						break
 					end
 				end
@@ -2008,17 +2051,9 @@ end
 
 function checkChanges()
 	hideBuildlist = nil	-- only set for pregame startunit
-	local x, y, b, b2, b3, mouseOffScreen, cameraPanMode = spGetMouseState()
-	lastHoverData = hoverData
+	local x, y, b, _, _, _, cameraPanMode = spGetMouseState()
 	hoverType, hoverData = spTraceScreenRay(x, y)
-	
-	if hoverType == 'unit' or hoverType == 'feature' then
-		if lastHoverData ~= hoverData then
-			lastHoverDataClock = os_clock()
-		end
-	else
-		lastHoverDataClock = os_clock()
-	end
+
 	local prevDisplayMode = displayMode
 	local prevDisplayUnitDefID = displayUnitDefID
 	local prevDisplayUnitID = displayUnitID
@@ -2055,7 +2090,7 @@ function checkChanges()
 		end
 
 		-- hovered unit
-	elseif not cameraPanMode and not b and not math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) and hoverType and hoverType == 'unit' then-- and os_clock() - lastHoverDataClock > 0.07 then		-- add small hover delay against eplilepsy
+	elseif not cameraPanMode and not b and not math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) and hoverType and hoverType == 'unit' then
 		displayMode = 'unit'
 		displayUnitID = hoverData
 		displayUnitDefID = spGetUnitDefID(displayUnitID)
@@ -2073,7 +2108,7 @@ function checkChanges()
 		end
 
 		-- hovered feature
-	elseif not cameraPanMode and not math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) and hoverType and hoverType == 'feature' then-- and os_clock() - lastHoverDataClock > 0.07 then		-- add small hover delay against eplilepsy
+	elseif not cameraPanMode and not math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) and hoverType and hoverType == 'feature' then
 		displayMode = 'feature'
 		local featureID = hoverData
 		local featureDefID = spGetFeatureDefID(featureID)
