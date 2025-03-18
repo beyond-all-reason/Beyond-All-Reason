@@ -323,14 +323,7 @@ local function IsEvolutionPowerPassed(evolution, unitID)
 		return false
 	end
 
-	local teamID = spGetUnitTeam(unitID)
-	for team, power in pairs(teamPowerList) do
-		if team ~= nil and teamID ~= nil and power ~= nil and highestTeamPower < power then
-			highestTeamPower = power * evolution.evolution_power_multiplier
-		end
-	end
-
-	if highestTeamPower > evolution.evolution_power_threshold then
+	if highestTeamPower * evolution.evolution_power_multiplier > evolution.evolution_power_threshold then
 		return true
 	end
 	return false
@@ -342,10 +335,14 @@ end
 		end
 
 		local currentTime =  spGetGameSeconds()
+
+		for _, power in pairs(teamPowerList) do
+			highestTeamPower = math.max(power, highestTeamPower)
+		end
+
 		for unitID, evolution in pairs(evolutionMetaList) do
 
-			if evolution
-				and not IsInCombat(unitID, evolution, currentTime)
+			if not IsInCombat(unitID, evolution, currentTime)
 				and not spGetUnitTransporter(unitID)
 				and (IsEvolutionTimePassed(evolution, currentTime) or IsEvolutionPowerPassed(evolution, unitID)) then
 					Evolve(unitID, evolution.evolution_target)
