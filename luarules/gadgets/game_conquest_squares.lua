@@ -750,22 +750,98 @@ local function makeShader()
 	return true
 end
 
-local planeLayout = {
-	{id = 1, name = 'posscale', size = 4}, -- a vec4 for pos + scale
-	{id = 2, name = 'color1', size = 4}, -- vec4 the color of this square
-	{id = 3, name = 'visibility', size = 4}, -- vec4 heightdrawstart, heightdrawend, fadefactorin, fadefactorout
-	{id = 4, name = 'capturestate', size = 4}, -- vec4 blinking, progress
-}
-
+local function makeSquareVBO(xsize, ysize, xresolution, yresolution)
+	-- Default parameter handling
+	if not xsize then xsize = 1 end
+	if not ysize then ysize = xsize end
+	if not xresolution then xresolution = 1 end
+	if not yresolution then yresolution = xresolution end
+	
+	xresolution = math.floor(xresolution)
+	yresolution = math.floor(yresolution)
+	
+	-- Create vertex buffer
+	local squareVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
+	if squareVBO == nil then return nil end
+	
+	-- Define the layout - using position only since that's what the shader expects
+	local VBOLayout = {
+		{id = 0, name = "position", size = 4},
+	}
+	
+	local vertexData = {}
+	
+	-- Generate vertices for a grid of triangles
+	-- We'll create 2 triangles per grid cell, forming 6 vertices total
+	local vertexCount = 0
+	
+	for x = 0, xresolution do
+		for y = 0, yresolution do
+			-- Calculate normalized position [-1 to 1]
+			local xPos = xsize * ((x / xresolution) - 0.5) * 2
+			local yPos = ysize * ((y / yresolution) - 0.5) * 2
+			
+			-- Add vertex with position and placeholder values
+			vertexData[#vertexData + 1] = xPos  -- x
+			vertexData[#vertexData + 1] = yPos  -- y (used as z in the shader)
+			vertexData[#vertexData + 1] = 0     -- z (unused)
+			vertexData[#vertexData + 1] = 1     -- w
+			
+			vertexCount = vertexCount + 1
+		end
+	end
+	
+	-- Create index data for triangles
+	local indexData = {}
+	local colSize = yresolution + 1
+	
+	for x = 0, xresolution - 1 do
+		for y = 0, yresolution - 1 do
+			local baseIndex = x * colSize + y
+			
+			-- First triangle (top-left)
+			indexData[#indexData + 1] = baseIndex
+			indexData[#indexData + 1] = baseIndex + 1
+			indexData[#indexData + 1] = baseIndex + colSize
+			
+			-- Second triangle (bottom-right)
+			indexData[#indexData + 1] = baseIndex + 1
+			indexData[#indexData + 1] = baseIndex + colSize + 1
+			indexData[#indexData + 1] = baseIndex + colSize
+		end
+	end
+	
+	-- Define and upload vertex data
+	squareVBO:Define((xresolution + 1) * (yresolution + 1), VBOLayout)
+	squareVBO:Upload(vertexData)
+	
+	-- Create index buffer
+	local squareIndexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
+	if squareIndexVBO == nil then 
+		squareVBO:Delete()
+		return nil 
+	end
+	
+	-- Define and upload index data
+	squareIndexVBO:Define(#indexData)
+	squareIndexVBO:Upload(indexData)
+	
+	return squareVBO, (xresolution + 1) * (yresolution + 1), squareIndexVBO, #indexData
+end
 
 local function initGL4()
-	local squareVBO, numVertices = makePlaneVBO(1, 1, 1, 1)
+	-- Create square VBO with index buffer - increased resolution to 10x10
+	local squareVBO, numVertices, squareIndexVBO, numIndices = makeSquareVBO(1, 1, 32, 32)
+	if not squareVBO then return false end
 	
 	instanceVBO = makeInstanceVBOTable(planeLayout, 16, "test_square_shader")
 	instanceVBO.vertexVBO = squareVBO
-	instanceVBO.numVertices = numVertices
-
-	squareVAO = makeVAOandAttach(squareVBO, instanceVBO.instanceVBO)
+	instanceVBO.indexVBO = squareIndexVBO
+	instanceVBO.numVertices = numIndices
+	instanceVBO.primitiveType = GL.TRIANGLES
+	
+	-- Attach both vertex and index buffers
+	squareVAO = makeVAOandAttach(squareVBO, instanceVBO.instanceVBO, squareIndexVBO)
 	instanceVBO.VAO = squareVAO
 	
 	for i = 1, TEST_SQUARE_COUNT do
@@ -774,7 +850,7 @@ local function initGL4()
 		
 		local instanceData = {
 			randomX, SQUARE_HEIGHT, randomZ, SQUARE_SIZE,  -- posscale: x, y, z, scale
-			random(), random(), random(), 0.8,                           -- color1: r, g, b, a
+			random(), random(), random(), 0.8,             -- color1: r, g, b, a
 			2000, 5000, 0.8, 0.2,                         -- visibility: fadeStart, fadeEnd, minAlpha, maxAlpha
 			1.0, 0.0, 0.0, 0.0                            -- capturestate: blinking, progress, unused, unused
 		}
@@ -835,8 +911,8 @@ function gadget:DrawWorldPreUnit()
 	squareShader:Activate()
 	squareShader:SetUniform("gameFrame", Spring.GetGameFrame())
 	
-	-- Draw the square using triangle strip mode which is more appropriate for a grid
-	instanceVBO.VAO:DrawArrays(GL.TRIANGLE_STRIP, nil, 0, instanceVBO.usedElements, 0)
+	-- Draw the square using indexed triangles
+	instanceVBO.VAO:DrawElements(GL.TRIANGLES, instanceVBO.numVertices, 0, instanceVBO.usedElements)
 	
 	squareShader:Deactivate()
 	glTexture(0, false)
