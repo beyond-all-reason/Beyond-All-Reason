@@ -160,7 +160,6 @@ local callInLists = {
 	"ActiveCommandChanged",
 	"CameraRotationChanged",
 	"CameraPositionChanged",
-	"CameraDirectionChanged",
 	"CommandNotify",
 
 	-- Feature CallIns
@@ -2170,12 +2169,6 @@ end
 function gadgetHandler:CameraPositionChanged(posx, posy, posz)
 	for _, g in r_ipairs(self.CameraPositionChangedList) do
 		g:CameraPositionChanged(posx, posy, posz)
-	end
-end
-
-function gadgetHandler:CameraDirectionChanged(dirx, diry, dirz)
-	for _, g in r_ipairs(self.CameraDirectionChangedList) do
-		g:CameraDirectionChanged(dirx, diry, dirz)
 	end
 end
 
