@@ -58,8 +58,11 @@ end
 -- Config
 --------------------------------------------------------------------------------
 
+local vsx, vsy = Spring.GetViewGeometry()
+
 -- NOTE: currently this widget rendertotexture scaling/dimentions arent correct which results blurriness on non high res screens
-local useRenderToTexture = false		-- much faster than drawing via DisplayLists only
+local useRenderToTextureAboveVsy = 1300
+local useRenderToTexture = vsy > useRenderToTextureAboveVsy		-- much faster than drawing via DisplayLists only
 
 local customScale = 1
 local pointDuration = 45
@@ -72,8 +75,6 @@ local hideDeadAllyTeams = true
 local absoluteResbarValues = false
 
 local curFrame = Spring.GetGameFrame()
-
-local vsx, vsy = Spring.GetViewGeometry()
 
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local font, font2
@@ -1860,16 +1861,9 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
                     gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
                     gl.PushMatrix()
                     gl.Translate(-1, -1, 0)
-                    
-                    -- cant get this as sharp as not using rendertotexture method yet :/
-                    --Spring.Echo(widgetWidth*widgetScale, (apiAbsPosition[4]-apiAbsPosition[2]), widgetHeight*widgetScale, (apiAbsPosition[1]-apiAbsPosition[3]))
                     gl.Scale(2 / (apiAbsPosition[4]-apiAbsPosition[2]), 2 / (apiAbsPosition[1]-apiAbsPosition[3]), 0)
-                    --gl.Scale(2 / widgetWidth*widgetScale, 2 / widgetHeight*widgetScale, 0)
-
                     gl.Scale(widgetScale, widgetScale, 0)
-                    --gl.Translate(-apiAbsPosition[2]-bgpadding, -apiAbsPosition[3]-bgpadding, 0)
-                    gl.Translate(-widgetPosX+bgpadding, -widgetPosY+bgpadding, 0)
-
+                    gl.Translate(-apiAbsPosition[2]-(backgroundMargin*0.5*widgetScale), -apiAbsPosition[3]-(backgroundMargin*0.5*widgetScale), 0)
                     drawMainList()
                     gl.PopMatrix()
                 end)
@@ -3622,6 +3616,8 @@ end
 
 function widget:ViewResize()
     vsx, vsy = Spring.GetViewGeometry()
+
+    useRenderToTexture = vsy > useRenderToTextureAboveVsy
 
     bgpadding = WG.FlowUI.elementPadding
     elementCorner = WG.FlowUI.elementCorner
