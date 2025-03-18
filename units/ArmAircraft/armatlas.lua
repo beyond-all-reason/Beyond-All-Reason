@@ -11,7 +11,7 @@ return {
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 2,
 		footprintz = 3,
-		health = 265,
+		health = 350,
 		idleautoheal = 5,
 		idletime = 1800,
 		loadingradius = 300,
