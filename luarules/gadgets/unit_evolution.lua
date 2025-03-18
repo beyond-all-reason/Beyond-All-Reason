@@ -45,6 +45,7 @@ if gadgetHandler:IsSyncedCode() then
 	local neutralTeamNumber = tonumber(teamList[#teamList])
 	local teamPowerList = {}
 	local highestTeamPower = 0
+	local inCombatTimeoutSeconds = 5
 
 
 
