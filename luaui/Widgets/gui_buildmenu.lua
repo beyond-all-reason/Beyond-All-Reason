@@ -16,7 +16,7 @@ VFS.Include('luarules/configs/customcmds.h.lua')
 
 SYMKEYS = table.invert(KEYSYMS)
 
-local useRenderToTexture = true		-- much faster than drawing buildmenu via DisplayLists only
+local useRenderToTexture = true		-- much faster than drawing via DisplayLists only
 
 local comBuildOptions
 local boundUnits = {}
@@ -592,10 +592,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
 	end
 end
 
-function drawBuildmenu(noOffset)
-	if noOffset then
-		gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-	end
+function drawBuildmenu()
 	local activeArea = {
 		backgroundRect[1] + (stickToBottom and bgpadding or 0) + activeAreaMargin,
 		backgroundRect[2] + (stickToBottom and 0 or bgpadding) + activeAreaMargin,
@@ -741,10 +738,6 @@ function drawBuildmenu(noOffset)
 	end
 
 	font2:End()
-
-	if noOffset then
-		gl.Translate(backgroundRect[1], backgroundRect[2], 0)
-	end
 end
 
 
@@ -814,8 +807,9 @@ function widget:DrawScreen()
 						gl.PushMatrix()
 						gl.Translate(-1, -1, 0)
 						gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
-						--UiElement(0, 0, width*vsx, height*vsy, (posX > 0 and 1 or 0), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), 0)
-						drawBuildmenu(true)
+						gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
+						--drawBuildmenuBg()	-- doesnt render correct
+						drawBuildmenu()
 						gl.PopMatrix()
 					end)
 				end
