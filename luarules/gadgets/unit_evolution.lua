@@ -312,11 +312,10 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function IsEvolutionTimePassed(evolution, currentTime)
-		return (
-							(not evolution.evolution_condition or evolution.evolution_condition == 'timer')
-							and (currentTime - evolution.timeCreated) >= evolution.evolution_timer
-						)
-						or (evolution.evolution_condition == 'timer_global' and currentTime >= evolution.evolution_timer)
+		return ((not evolution.evolution_condition or evolution.evolution_condition == 'timer')
+			and (currentTime - evolution.timeCreated) >= evolution.evolution_timer
+			)
+			or (evolution.evolution_condition == 'timer_global' and currentTime >= evolution.evolution_timer)
 	end
 
 local function IsEvolutionPowerPassed(evolution, unitID)
