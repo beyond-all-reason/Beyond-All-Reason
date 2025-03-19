@@ -29,9 +29,6 @@ function isAuthorized(playerID)
 		return true
 	else
 		local playername = Spring.GetPlayerInfo(playerID, false)
-		local authorized = false
-
-		local authorized = false
 		if (_G and _G.permissions.devhelpers[playername]) or (SYNCED and SYNCED.permissions.devhelpers[playername]) then
 			if startPlayers == nil or startPlayers[playername] == nil then
 				return true
@@ -389,7 +386,7 @@ if gadgetHandler:IsSyncedCode() then
 		local function sampleMode(pos)
 			if pos == nil then return modeArray[1][2] end
 			if pos == -1 then return modeArray[#modeArray][2] end
-			return modeArray[math.min(math.max(1,pos), #modeArray)][2] or 0
+			return modeArray[math.clamp(pos, 1, #modeArray)][2] or 0
 		end
 		-- end of mode height related sampling
 
@@ -842,7 +839,7 @@ else	-- UNSYNCED
 		gadgetHandler:AddChatAction('wreckunits', wreckUnits, "")  -- turns the selected units into wrecks /luarules wreckunits
 		gadgetHandler:AddChatAction('reclaimunits', reclaimUnits, "")  -- reclaims and refunds the selected units /luarules reclaimUnits
 		gadgetHandler:AddChatAction('removeunits', removeUnits, "")  -- removes the selected units /luarules removeunits
-		gadgetHandler:AddChatAction('removenearbyunits', removeNearbyUnits, "")  -- removes the selected units /luarules removenearbyunits #teamID radius
+		gadgetHandler:AddChatAction('removenearbyunits', removeNearbyUnits, "")  -- removes the selected units /luarules removenearbyunits radius #teamid
 
 		gadgetHandler:AddChatAction('xp', xpUnits, "")
 

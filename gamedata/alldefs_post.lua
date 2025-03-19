@@ -44,20 +44,15 @@ end
 --[[ Sanitize to whole frames (plus leeways because float arithmetic is bonkers).
      The engine uses full frames for actual reload times, but forwards the raw
      value to LuaUI (so for example calculated DPS is incorrect without sanitisation). ]]
-local function round_to_frames(name, wd, key)
+local function round_to_frames(wd, key)
 	local original_value = wd[key]
 	if not original_value then
 		-- even reloadtime can be nil (shields, death explosions)
 		return
 	end
 
-	local Game_gameSpeed = 30 --for mission editor backwards compat (engine 104.0.1-287)
-	if Game and Game.gameSpeed then
-		Game_gameSpeed = Game.gameSpeed
-	end
-
-	local frames = math.max(1, math.floor((original_value + 1E-3) * Game_gameSpeed))
-	local sanitized_value = frames / Game_gameSpeed
+	local frames = math.max(1, math.floor((original_value + 1E-3) * Game.gameSpeed))
+	local sanitized_value = frames / Game.gameSpeed
 
 	return sanitized_value
 end
@@ -69,9 +64,13 @@ local function processWeapons(unitDefName, unitDef)
 	end
 
 	for weaponDefName, weaponDef in pairs(weaponDefs) do
-		local fullWeaponName = unitDefName .. "." .. weaponDefName
-		weaponDef.reloadtime = round_to_frames(fullWeaponName, weaponDef, "reloadtime")
-		weaponDef.burstrate = round_to_frames(fullWeaponName, weaponDef, "burstrate")
+		weaponDef.reloadtime = round_to_frames(weaponDef, "reloadtime")
+		weaponDef.burstrate = round_to_frames(weaponDef, "burstrate")
+
+		if weaponDef.customparams and weaponDef.customparams.cluster_def then
+			weaponDef.customparams.cluster_def = unitDefName .. "_" .. weaponDef.customparams.cluster_def
+			weaponDef.customparams.cluster_number = weaponDef.customparams.cluster_number or 5
+		end
 	end
 end
 
@@ -401,6 +400,7 @@ function UnitDef_Post(name, uDef)
 				corint = true,
 				corbuzz = true,
 				leglrpc = true,
+				legelrpcmech = true,
 				legstarfall = true,
 				armbotrail_scav = true,
 				armbrtha_scav = true,
@@ -408,6 +408,8 @@ function UnitDef_Post(name, uDef)
 				corint_scav = true,
 				corbuzz_scav = true,
 				legstarfall_scav = true,
+				leglrpc_scav = true,
+				legelrpcmech_scav = true,
 			}
 			if LRPCs[name] then
 				uDef.maxthisunit = 0
@@ -534,6 +536,7 @@ function UnitDef_Post(name, uDef)
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "legsrailt4"
 			uDef.buildoptions[numBuildoptions + 2] = "leggobt3"
+			uDef.buildoptions[numBuildoptions + 3] = "legpede"
 		elseif name == "armca" or name == "armck" or name == "armcv" then
 			--local numBuildoptions = #uDef.buildoptions
 		elseif name == "corca" or name == "corck" or name == "corcv" then
@@ -583,7 +586,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 3] = "legwint2"
 			uDef.buildoptions[numBuildoptions + 4] = "legnanotct2"
 			uDef.buildoptions[numBuildoptions + 5] = "legrwall"
-			uDef.buildoptions[numBuildoptions + 6] = "corgatet3"
+			uDef.buildoptions[numBuildoptions + 6] = "leggatet3"
 		elseif name == "armasy" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "armptt2"
@@ -776,12 +779,12 @@ function UnitDef_Post(name, uDef)
 	}
 
 	local amphibList = {
-		VBOT5 = true,
+		VBOT6 = true,
 		COMMANDERBOT = true,
 		SCAVCOMMANDERBOT = true,
 		ATANK3 = true,
 		ABOT2 = true,
-		HABOT4 = true,
+		HABOT5 = true,
 		ABOTBOMB2 = true,
 		EPICBOT = true,
 		EPICALLTERRAIN = true

@@ -588,7 +588,6 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 	return decalIndex, lifetime
 end
 
-local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 
 local skipdraw = false
 local firstRun = true
@@ -603,7 +602,6 @@ local function DrawDecals()
 
 	if skipdraw then return end
 	--local alt, ctrl = Spring.GetModKeyState()
-	--if alt and (isSinglePlayer) and (Spring.GetConfigInt('DevUI', 0) == 1) then return end
 	if decalVBO.usedElements > 0 or decalLargeVBO.usedElements > 0 or decalExtraLargeVBO.usedElements > 0 then
 
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) -- the default mode
@@ -1082,7 +1080,7 @@ for weaponDefID=1, #WeaponDefs do
 			textures = { "t_groundcrack_16_a.tga", "t_groundcrack_17_a.tga", "t_groundcrack_05_a.tga" }
 			--textures = { "t_groundcrack_16_a.tga", "t_groundcrack_17_a.tga", "t_groundcrack_10_a.tga" }
 			alphadecay = 0.004
-			radius = radius * 0.8 
+			radius = radius * 0.8
 			--radiusVariation = 0.3
 			heatstart = 8000
 			heatdecay = 3.95
@@ -1926,7 +1924,6 @@ local function UnitScriptDecal(unitID, unitDefID, whichDecal, posx, posz, headin
 end
 
 function widget:Initialize()
-	local t0 = Spring.GetTimer()
 	--if makeAtlases() == false then
 	--	goodbye("Failed to init texture atlas for DecalsGL4")
 	--	return
@@ -1942,8 +1939,6 @@ function widget:Initialize()
 		for i= 1, 100 do
 			local w = math.random() * 15 + 7
 			w = w * w
-			local j = math.floor(math.random()*20+1)
-			--local texture = string.format(groundscarsPath.."t_groundcrack_%02d_a.tga", j)
 			local texture =  randtablechoice(atlas)
 			--Spring.Echo(texture)
 			AddDecal(

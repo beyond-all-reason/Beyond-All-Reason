@@ -35,7 +35,7 @@ return {
 		waterline = 0,
 		customparams = {
 			unitgroup = 'weapon',
-			model_author = "Mr Bob",
+			model_author = "ZephyrSkies & Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorShips",
 			techlevel = 3,
@@ -113,7 +113,7 @@ return {
 				firestarter = 90,
 				impulsefactor = 0,
 				laserflaresize = 8.25,
-				name = "KrogHeatRay",
+				name = "Ultra Heavy Juggernaut-Spec Heatray",
 				noselfdamage = true,
 				proximitypriority = -1,
 				range = 900,

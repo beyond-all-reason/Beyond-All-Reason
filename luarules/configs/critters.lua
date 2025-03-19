@@ -1,7 +1,4 @@
 local rnd = math.random
-local ceil = math.ceil
-local multiplier = rnd(1, 100) / 100        -- use this if you want a bit of uniformity amongst multiple randoms
-
 
 -- USE LOWERCASE MAPNAMES (partial mapnames work too!)
 local critterConfig = {

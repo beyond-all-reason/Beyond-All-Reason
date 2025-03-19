@@ -61,7 +61,8 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
 	local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 	local spSetUnitRulesParam = Spring.SetUnitRulesParam
-	local spGetCommandQueue = Spring.GetCommandQueue
+	local spGetUnitCommands = Spring.GetUnitCommands
+	local spGetUnitCommandCount = Spring.GetUnitCommandCount
 	local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 	local spGiveOrderArrayToUnit = Spring.GiveOrderArrayToUnit
 	local spGetUnitWeaponTryTarget = Spring.GetUnitWeaponTryTarget
@@ -110,7 +111,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local unitSetTargetNoGroundCmdDesc = {
 		id = CMD_UNIT_SET_TARGET_NO_GROUND,
-		type = CMDTYPE.ICON_UNIT,
+		type = CMDTYPE.ICON_UNIT_OR_AREA,
 		name = 'Set Unit Target',
 		action = 'settargetnoground',
 		cursor = 'settarget',
@@ -432,6 +433,10 @@ if gadgetHandler:IsSyncedCode() then
 					if #cmdParams == 3 or #cmdParams == 4 then
 						-- if radius is 0, it's a single click
 						if cmdParams[4] == 0 then
+							if cmdID == CMD_UNIT_SET_TARGET_NO_GROUND then
+								SendToUnsynced("failCommand", teamID)
+								return false
+							end
 							cmdParams[4] = nil
 						end
 						local target = cmdParams
@@ -558,7 +563,7 @@ if gadgetHandler:IsSyncedCode() then
 				pausedTargets[unitID] = nil
 			end
 		else
-			local activeCommandIsDgun = spGetCommandQueue(unitID, 0) ~= 0 and spGetCommandQueue(unitID, 1)[1].id == CMD_DGUN
+			local activeCommandIsDgun = spGetUnitCommandCount(unitID) ~= 0 and spGetUnitCommands(unitID, 1)[1].id == CMD_DGUN
 			if pausedTargets[unitID] and not activeCommandIsDgun then
 				if waitingForInsertRemoval[unitID] then
 					waitingForInsertRemoval[unitID] = nil
@@ -572,7 +577,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-		if spGetCommandQueue(unitID, 0) == 0 or not cmdOptions.meta then
+		if spGetUnitCommandCount(unitID) == 0 or not cmdOptions.meta then
 			if processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions) then
 				return false --command was used & fully processed, so block command
 			elseif cmdID == CMD_STOP then
@@ -663,7 +668,7 @@ else	-- UNSYNCED
 
 	local myAllyTeam = spGetMyAllyTeamID()
 	local myTeam = spGetMyTeamID()
-	local _, fullview = spGetSpectatingState()
+	local mySpec, fullview = spGetSpectatingState()
 
 	local lineWidth = 1.4
 	local queueColour = { 1, 0.75, 0, 0.3 }
@@ -678,6 +683,7 @@ else	-- UNSYNCED
 		gadgetHandler:AddChatAction("targetdrawunit", handleUnitTargetDrawEvent, "toggles drawing targets for units, params: unitID")
 		gadgetHandler:AddSyncAction("targetList", handleTargetListEvent)
 		gadgetHandler:AddSyncAction("targetIndex", handleTargetIndexEvent)
+		gadgetHandler:AddSyncAction("failCommand", handleFailCommand)
 
 		-- register cursor
 		Spring.AssignMouseCursor("settarget", "cursorsettarget", false)
@@ -691,7 +697,7 @@ else	-- UNSYNCED
 	function gadget:PlayerChanged(playerID)
 		myAllyTeam = spGetMyAllyTeamID()
 		myTeam = spGetMyTeamID()
-		_, fullview = spGetSpectatingState()
+		mySpec, fullview = spGetSpectatingState()
 	end
 
 	function gadget:Shutdown()
@@ -707,6 +713,13 @@ else	-- UNSYNCED
 
 	function GG.getUnitTargetIndex(unitID)
 		return targetList[unitID] and targetList[unitID].currentIndex
+	end
+
+	function handleFailCommand(_, teamID)
+		if teamID == myTeam and not mySpec then
+			Spring.PlaySoundFile("FailedCommand", 0.75, "ui")
+			Spring.SetActiveCommand('settargetnoground')
+		end
 	end
 
 	function handleTargetListEvent(_, unitID, index, alwaysSeen, ignoreStop, userTarget, targetA, targetB, targetC)

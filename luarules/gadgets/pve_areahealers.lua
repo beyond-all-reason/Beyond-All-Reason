@@ -29,7 +29,6 @@ local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitsInSphere = Spring.GetUnitsInSphere
 local spGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
 
-local gaiaTeamID = Spring.GetGaiaTeamID()
 
 local unitTeams = {}
 

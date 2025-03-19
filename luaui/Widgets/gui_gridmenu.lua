@@ -21,6 +21,8 @@ function widget:GetInfo()
 	}
 end
 
+local useRenderToTexture = true		-- much faster than drawing via DisplayLists only
+
 -------------------------------------------------------------------------------
 --- CACHED VALUES
 -------------------------------------------------------------------------------
@@ -36,6 +38,7 @@ local math_floor = math.floor
 local math_ceil = math.ceil
 local math_max = math.max
 local math_min = math.min
+local math_clamp = math.clamp
 local math_bit_and = math.bit_and
 
 local GL_SRC_ALPHA = GL.SRC_ALPHA
@@ -215,7 +218,7 @@ local ui_opacity, ui_scale
 
 local vsx, vsy = Spring.GetViewGeometry()
 
-local ordermenuLeft = vsx / 5
+local ordermenuLeft = math.floor(vsx / 5)
 local advplayerlistLeft = vsx * 0.8
 
 local zoomMult = 1.5
@@ -1431,7 +1434,7 @@ function widget:ViewResize()
 	if stickToBottom then
 		local posY = math_floor(0.14 * ui_scale * vsy)
 		local posYEnd = 0
-		local posX = math_floor(ordermenuLeft * vsx) + widgetSpaceMargin
+		local posX = ordermenuLeft + widgetSpaceMargin
 		local height = posY
 		builderButtonSize = categoryButtonHeight * 1.75
 
@@ -1562,6 +1565,12 @@ function widget:ViewResize()
 	checkGuishader(true)
 
 	redraw = true
+
+	if buildmenuTex then
+		gl.DeleteTexture(buildmenuTex)
+		buildmenuTex = nil
+	end
+	updateGrid()
 end
 
 -- PERF: It seems we get i18n resources inside draw functions, we should do that in state instead
@@ -1604,7 +1613,7 @@ function widget:Update(dt)
 		local prevOrdermenuHeight = ordermenuHeight
 		if WG["ordermenu"] then
 			local oposX, _, owidth, oheight = WG["ordermenu"].getPosition()
-			ordermenuLeft = oposX + owidth
+			ordermenuLeft = math_floor((oposX + owidth) * vsx)
 			ordermenuHeight = oheight
 		end
 		if
@@ -1693,8 +1702,8 @@ local function drawButton(rect)
 
 	local color = highlight and 0.2 or 0
 
-	local color1 = { color, color, color, math_max(0.55, math_min(0.95, ui_opacity * 1.25)) } -- bottom
-	local color2 = { color, color, color, math_max(0.55, math_min(0.95, ui_opacity * 1.25)) } -- top
+	local color1 = { color, color, color, math_clamp(ui_opacity * 1.25, 0.55, 0.95) } -- bottom
+	local color2 = { color, color, color, math_clamp(ui_opacity * 1.25, 0.55, 0.95) } -- top
 
 	if highlight then
 		gl.Blending(GL_SRC_ALPHA, GL_ONE)
@@ -2516,10 +2525,40 @@ function widget:DrawScreen()
 		if not dlistBuildmenu then
 			dlistBuildmenu = gl.CreateList(function()
 				drawBuildMenuBg()
-				drawBuildMenu()
+				if not useRenderToTexture then
+					drawBuildMenu()
+				end
 			end)
+			if useRenderToTexture then
+				if not buildmenuTex then
+					buildmenuTex = gl.CreateTexture(math_floor(backgroundRect.xEnd-backgroundRect.x), math_floor(backgroundRect.yEnd-backgroundRect.y), {
+						target = GL.TEXTURE_2D,
+						format = GL.RGBA,
+						fbo = true,
+					})
+				end
+				if buildmenuTex then
+					gl.RenderToTexture(buildmenuTex, function()
+						gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+						gl.PushMatrix()
+						gl.Translate(-1, -1, 0)
+						gl.Scale(2 / math_floor(backgroundRect.xEnd-backgroundRect.x), 2 / math_floor(backgroundRect.yEnd-backgroundRect.y), 0)
+						gl.Translate(-backgroundRect.x, -backgroundRect.y, 0)
+						--drawBuildmenuBg()	-- doesnt render correct
+						drawBuildMenu()
+						gl.PopMatrix()
+					end)
+				end
+			end
 		end
 		gl.CallList(dlistBuildmenu)
+
+		if buildmenuTex then
+			gl.Color(1,1,1,1)
+			gl.Texture(buildmenuTex)
+			gl.TexRect(backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, backgroundRect.yEnd, false, true)
+			gl.Texture(false)
+		end
 
 		if redrawProgress then
 			dlistProgress = gl.DeleteList(dlistProgress)
@@ -2730,7 +2769,10 @@ end
 function widget:Shutdown()
 	dlistBuildmenu = gl.DeleteList(dlistBuildmenu)
 	dlistProgress = gl.DeleteList(dlistProgress)
-
+	if buildmenuTex then
+		gl.DeleteTexture(buildmenuTex)
+		buildmenuTex = nil
+	end
 	if WG["guishader"] and dlistGuishader then
 		WG["guishader"].DeleteDlist("buildmenu")
 		WG["guishader"].DeleteDlist("buildmenubuilders")

@@ -112,7 +112,7 @@ return {
 		},
 		weapondefs = {
 			t3_rail_accelerator = {
-				areaofeffect = 200,
+				areaofeffect = 5,
 				avoidfeature = false,
 				burst = 3,
 				burstrate = 0.33,
@@ -139,7 +139,7 @@ return {
 				rgbcolor = "0.34 0.64 0.94",
 				soundhit = "mavgun3",
 				soundhitwet = "splshbig",
-				soundstart = "heavyrailgun",
+				soundstart = "railgunxl",
 				soundstartvolume = 30,
 				thickness = 4,
 				firetolerance = 7000,
