@@ -60,9 +60,7 @@ end
 
 local vsx, vsy = Spring.GetViewGeometry()
 
--- NOTE: currently this widget rendertotexture scaling/dimentions arent correct which results blurriness on non high res screens
-local useRenderToTextureAboveVsy = 1300
-local useRenderToTexture = vsy > useRenderToTextureAboveVsy		-- much faster than drawing via DisplayLists only
+local useRenderToTexture = true		-- much faster than drawing via DisplayLists only
 
 local customScale = 1
 local pointDuration = 45
@@ -1500,7 +1498,7 @@ function widget:DrawScreen()
         doCreateLists(updateMainLists[1], updateMainLists[2], updateMainLists[3])
         updateMainLists = nil
     end
-    
+
 	AdvPlayersListAtlas:RenderTasks()
 	--AdvPlayersListAtlas:DrawToScreen()
 
@@ -1849,7 +1847,8 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
     if onlyMainList then
         if useRenderToTexture then
             if not mainListTex then
-                mainListTex = gl.CreateTexture(math.floor((apiAbsPosition[4]-apiAbsPosition[2])), math.floor((apiAbsPosition[1]-apiAbsPosition[3])), {
+				local ui_sharpness = Spring.GetConfigFloat("ui_sharpness", 1)
+                mainListTex = gl.CreateTexture(math.floor((apiAbsPosition[4]-apiAbsPosition[2])*ui_sharpness), math.floor((apiAbsPosition[1]-apiAbsPosition[3])*ui_sharpness), {
                     target = GL.TEXTURE_2D,
                     format = GL.RGBA,
                     fbo = true,
@@ -3623,8 +3622,6 @@ end
 
 function widget:ViewResize()
     vsx, vsy = Spring.GetViewGeometry()
-
-    useRenderToTexture = vsy > useRenderToTextureAboveVsy
 
     bgpadding = WG.FlowUI.elementPadding
     elementCorner = WG.FlowUI.elementCorner

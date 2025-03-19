@@ -795,7 +795,8 @@ function widget:DrawScreen()
 			refreshBuildmenu = false
 			if useRenderToTexture then
 				if not buildmenuTex and width > 0.05 and height > 0.05 then
-					buildmenuTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
+					local ui_sharpness = Spring.GetConfigFloat("ui_sharpness", 1)
+					buildmenuTex = gl.CreateTexture(math_floor(width*vsx*ui_sharpness), math_floor(height*vsy*ui_sharpness), {
 						target = GL.TEXTURE_2D,
 						format = GL.RGBA,
 						fbo = true,
