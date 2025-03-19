@@ -793,7 +793,8 @@ function widget:DrawScreen()
 			end)
 			if useRenderToTexture then
 				if not ordermenuTex then
-					ordermenuTex = gl.CreateTexture(math_floor(width*viewSizeX), math_floor(height*viewSizeY), {
+					local ui_sharpness = Spring.GetConfigFloat("ui_sharpness", 1)
+					ordermenuTex = gl.CreateTexture(math_floor(width*viewSizeX*ui_sharpness), math_floor(height*viewSizeY*ui_sharpness), {
 						target = GL.TEXTURE_2D,
 						format = GL.RGBA,
 						fbo = true,
