@@ -801,8 +801,14 @@ void main() {
 	
 	// Apply edge glow if needed
 	if (edgeIntensity > 0.0) {
-		vec3 glowColor = mix(color.rgb, vec3(1.0), 0.3); // Mix with white for glow
-		fragColor = mix(baseColor, vec4(glowColor, color.a), edgeIntensity);
+		// CHANGE HERE: Instead of mixing with white, we'll just intensify the original color
+		// but maintain its original hue - cap at the original color's RGB values
+		vec3 glowColor = color.rgb * (1.0 + 0.3 * edgeIntensity); // Intensify by up to 30% but don't change hue
+		
+		// Make sure we don't exceed the original color components
+		glowColor = min(glowColor, color.rgb);
+		
+		fragColor = vec4(glowColor, color.a);
 	} else {
 		fragColor = baseColor;
 	}
