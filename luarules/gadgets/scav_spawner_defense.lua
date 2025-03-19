@@ -77,7 +77,8 @@ if gadgetHandler:IsSyncedCode() then
 	local t = 0 -- game time in secondstarget
 	local bossAnger = 0
 	local techAnger = 0
-	local totalBossesMaxHealth
+	local totalBossesMaxHealth = 0
+	local currentTotalBossesMaxHealth = 0
 	local playerAggression = 0
 	local playerAggressionLevel = 0
 	local playerAggressionEcoValue = 0
@@ -1027,12 +1028,13 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		local totalHealth = 0
-		totalBossesMaxHealth = 0
+		currentTotalBossesMaxHealth = 0
 		for bossID, _ in pairs(bossIDs) do
 			local health, maxHealth = GetUnitHealth(bossID)
 			totalHealth = totalHealth + health
-			totalBossesMaxHealth = totalBossesMaxHealth + maxHealth
+			currentTotalBossesMaxHealth = totalBossesMaxHealth + maxHealth
 		end
+		totalBossesMaxHealth = math.max(currentTotalBossesMaxHealth, totalBossesMaxHealth)
 		SetGameRulesParam("scavBossHealth", math.floor(0.5 + ((totalHealth / totalBossesMaxHealth) * 100)))
 	end
 
@@ -1613,10 +1615,7 @@ if gadgetHandler:IsSyncedCode() then
 						notify = 0
 					}
 				end
-				if not totalBossesMaxHealth then
-					updateBossLife()
-				end
-				local resistPercent = math.min((bossResistance[attackerDefID].damage) / totalBossesMaxHealth, 0.98)
+				local resistPercent = math.min((bossResistance[attackerDefID].damage) / currentTotalBossesMaxHealth, 0.98)
 				if resistPercent > 0.5 then
 					if bossResistance[attackerDefID].notify == 0 then
 						scavEvent("bossResistance", attackerDefID)
@@ -1861,7 +1860,6 @@ if gadgetHandler:IsSyncedCode() then
 			if bossID then
 				nSpawnedBosses = nSpawnedBosses + 1
 				bossIDs[bossID] = true
-				Spring.Echo({func="updateSpawnBoss", boss_status = {spawned = nSpawnedBosses, killed = nKilledBosses, ids = bossIDs}})
 
 				local bossSquad = table.copy(squadCreationQueueDefaults)
 				bossSquad.life = 999999
@@ -2238,7 +2236,6 @@ if gadgetHandler:IsSyncedCode() then
 		if bossIDs[unitID] then
 			nKilledBosses = nKilledBosses + 1
 			bossIDs[unitID] = nil
-			Spring.Echo({func="UnitDestroyed", boss_status = {spawned = nSpawnedBosses, killed = nKilledBosses, ids = bossIDs}})
 
 			if nKilledBosses >= nTotalBosses then
 				Spring.SetGameRulesParam("BossFightStarted", 0)
