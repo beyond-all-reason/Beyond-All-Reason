@@ -344,6 +344,7 @@ if gadgetHandler:IsSyncedCode() then
 		nSpawnedQueens = 0
 		nKilledQueens = 0
 		queenResistance = {}
+		totalQueenMaxHealth = 0
 		SetGameRulesParam("raptorQueenAnger", queenAnger)
 		SetGameRulesParam("raptorTechAnger", techAnger)
 		local nextDifficulty

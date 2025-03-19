@@ -78,7 +78,6 @@ if gadgetHandler:IsSyncedCode() then
 	local bossAnger = 0
 	local techAnger = 0
 	local totalBossesMaxHealth = 0
-	local currentTotalBossesMaxHealth = 0
 	local playerAggression = 0
 	local playerAggressionLevel = 0
 	local playerAggressionEcoValue = 0
@@ -134,6 +133,7 @@ if gadgetHandler:IsSyncedCode() then
 	local deathQueue = {}
 	local bossResistance = {}
 	local bossIDs = {}
+	local bossMaxHealths = {}
 	local scavTeamID, scavAllyTeamID
 	local lsx1, lsz1, lsx2, lsz2
 	local burrows = {}
@@ -345,6 +345,8 @@ if gadgetHandler:IsSyncedCode() then
 		nSpawnedBosses = 0
 		nKilledBosses = 0
 		bossResistance = {}
+		bossMaxHealths = {}
+		totalBossesMaxHealth = 0
 		SetGameRulesParam("scavBossAnger", bossAnger)
 		SetGameRulesParam("scavTechAnger", techAnger)
 		local nextDifficulty
@@ -1028,13 +1030,15 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		local totalHealth = 0
-		currentTotalBossesMaxHealth = 0
 		for bossID, _ in pairs(bossIDs) do
-			local health, maxHealth = GetUnitHealth(bossID)
+			local health = GetUnitHealth(bossID)
 			totalHealth = totalHealth + health
-			currentTotalBossesMaxHealth = totalBossesMaxHealth + maxHealth
 		end
-		totalBossesMaxHealth = math.max(currentTotalBossesMaxHealth, totalBossesMaxHealth)
+
+		totalBossesMaxHealth = 0
+		for _, maxHealth in pairs(bossMaxHealths) do
+			totalBossesMaxHealth = totalBossesMaxHealth + maxHealth
+		end
 		SetGameRulesParam("scavBossHealth", math.floor(0.5 + ((totalHealth / totalBossesMaxHealth) * 100)))
 	end
 
@@ -1615,7 +1619,7 @@ if gadgetHandler:IsSyncedCode() then
 						notify = 0
 					}
 				end
-				local resistPercent = math.min((bossResistance[attackerDefID].damage) / currentTotalBossesMaxHealth, 0.98)
+				local resistPercent = math.min((bossResistance[attackerDefID].damage) / totalBossesMaxHealth, 0.98)
 				if resistPercent > 0.5 then
 					if bossResistance[attackerDefID].notify == 0 then
 						scavEvent("bossResistance", attackerDefID)
@@ -1870,6 +1874,7 @@ if gadgetHandler:IsSyncedCode() then
 				scavEvent("boss") -- notify unsynced about boss spawn
 				local _, bossMaxHP = GetUnitHealth(bossID)
 				Spring.SetUnitHealth(bossID, math.max(bossMaxHP*(techAnger*0.01), bossMaxHP*0.2))
+				table.insert(bossMaxHealths, bossMaxHP)
 				SetUnitExperience(bossID, 0)
 				timeOfLastWave = t
 				burrows[bossID] = {
