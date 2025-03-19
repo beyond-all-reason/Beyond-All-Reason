@@ -148,7 +148,7 @@ local function CreatePanelDisplayList()
 			time = string.formatTime(totalSeconds)
 			if totalSeconds < 1800 or revealedBossEta then
 				if not revealedBossEta then revealedBossEta = true end
-				font:Print(textColor .. Spring.I18N('ui.scavs.bossETA', { time = time }), panelMarginX+5, PanelRow(2), panelFontSize, "")
+				font:Print(textColor .. (scav_boss_count > 1 and Spring.I18N('ui.scavs.bossesETA', { count=scav_boss_count, time = time }) or Spring.I18N('ui.scavs.bossETA', { time = time })), panelMarginX+5, PanelRow(2), panelFontSize, "")
 			end
 			if #currentlyResistantToNames > 0 then
 				currentlyResistantToNames = {}
@@ -205,7 +205,7 @@ end
 
 local function getResistancesMessage()
 	local messages = {}
-	messages[1] = textColor .. Spring.I18N('ui.scavs.resistanceUnits')
+	messages[1] = textColor .. (scav_boss_count > 1 and Spring.I18N('ui.scavs.resistanceUnitsMulti') or Spring.I18N('ui.scavs.resistanceUnits'))
 	for i = 1,#resistancesTable do
 		local attackerName = UnitDefs[resistancesTable[i]].name
 		if string.sub(attackerName, -5,-1) == "_scav" then

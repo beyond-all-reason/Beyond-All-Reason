@@ -188,7 +188,7 @@ local function CreatePanelDisplayList()
 			time = string.formatTime(totalSeconds)
 			if totalSeconds < 1800 or revealedQueenEta then
 				if not revealedQueenEta then revealedQueenEta = true end
-				font:Print(textColor .. Spring.I18N('ui.raptors.queenETA', { time = time }), panelMarginX+5, PanelRow(2), panelFontSize, "")
+				font:Print(textColor .. (raptor_queen_count > 1 and Spring.I18N('ui.raptors.queensETA', { count = raptor_queen_count, time = time }) or Spring.I18N('ui.raptors.queenETA', { time = time })), panelMarginX+5, PanelRow(2), panelFontSize, "")
 			end
 			if #currentlyResistantToNames > 0 then
 				currentlyResistantToNames = {}
@@ -244,7 +244,7 @@ end
 
 local function getResistancesMessage()
 	local messages = {}
-	messages[1] = textColor .. Spring.I18N('ui.raptors.resistanceUnits')
+	messages[1] = textColor .. (raptor_queen_count > 1 and Spring.I18N('ui.raptors.resistanceUnitsMulti') or Spring.I18N('ui.raptors.resistanceUnits'))
 	for i = 1,#resistancesTable do
 		local attackerName = UnitDefs[resistancesTable[i]].name
 		if UnitDefNames[attackerName].customParams.i18nfromunit then
