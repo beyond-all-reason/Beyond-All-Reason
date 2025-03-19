@@ -95,7 +95,6 @@ function LosHST:Update()
 	self:FreeCellsToPool('ENEMY')
 	self:FreeCellsToPool('OWN')
 	self:FreeCellsToPool('ALLY')
--- 	LosHST:tracyZoneBeginN("losEnemy")
 
 	for id,def in pairs(self.losEnemy) do
 		local unit = game:GetUnitByID(id)
@@ -109,8 +108,6 @@ function LosHST:Update()
 			self:setCellLos(self.ENEMY,unit,X,Z)
 		end
 	end
--- 	LosHST:tracyZoneEnd()
--- 	LosHST:tracyZoneBeginN("radarEnemy")
 	for id,def in pairs(self.radarEnemy) do
 		local unit = game:GetUnitByID(id)
 		local x,y,z = unit:GetRawPos()
@@ -125,23 +122,6 @@ function LosHST:Update()
 			self:setCellRadar(self.ENEMY,unit,X,Z)
 		end
 	end
-
--- 	LosHST:tracyZoneEnd()
--- self:EchoDebug(gcinfo()-RAM)
--- 	LosHST:tracyZoneBeginN("ownImmobile")
--- 	for id,def in pairs(self.ownImmobile) do
--- 		local unit = game:GetUnitByID(id)
--- 		local x,y,z = unit:GetRawPos()
--- 		if not  x or not unit:IsAlive()then
--- 			self.ownImmobile[id] = nil
--- 		else
--- 			local X,Z = self.ai.maphst:RawPosToGrid(x,y,z)
--- 			self:setCellLos(self.OWN,unit,X,Z)
--- 		end
--- 	end
--- 	LosHST:tracyZoneEnd()
--- 	self:EchoDebug(gcinfo()-RAM)
-	--self:Draw()
 end
 
 function LosHST:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
@@ -335,9 +315,6 @@ function LosHST:setupCell(grid,X,Z)--GAS are 3 layer. Unit of measure is usually
 	--A = air
 	--S = submerged
 
-	LosHST:tracyZoneBeginN("setupCell")
-
-
 	local CELL = self:GetCellFromPool(X,Z,grid)
 	CELL.X = X
 	CELL.Z = Z
@@ -409,8 +386,6 @@ function LosHST:setupCell(grid,X,Z)--GAS are 3 layer. Unit of measure is usually
 	CELL.ENEMY = 0 --total amount of metal in cell
 	CELL.ENEMY_BALANCE = 0 -- this is balanced SOLDIERS - TURRETS
 	CELL.SPEED = 0
-
-	LosHST:tracyZoneEnd()
 	return CELL
 end
 
@@ -494,8 +469,6 @@ function LosHST:setCellLos(grid,unit,X,Z)
 	if not self.ai.maphst:IsCellInGrid(X,Z) then
 		return
 	end
-
-	LosHST:tracyZoneBeginN("setCellLos")
 	grid[X] = grid[X] or {}
 	grid[X][Z] = grid[X][Z] or self:setupCell(grid,X,Z)
 	local CELL = grid[X][Z]
@@ -587,17 +560,15 @@ function LosHST:setCellLos(grid,unit,X,Z)
 	CELL.ENEMY_BALANCE = CELL.ARMED - CELL.UNARM
 	CELL.IM_balance = CELL.MOBILE - CELL.IMMOBILE
 	grid[X][Z] = CELL
-
-	LosHST:tracyZoneEnd()
 end
 
 
 function LosHST:Draw()
-	local ch = 5
-	self.map:EraseAll(ch)
 	if not self.ai.drawDebug then
 		return
 	end
+	local ch = 5
+	self.map:EraseAll(ch)
 	for id,def in pairs(self.losEnemy) do
 		local u = self.game:GetUnitByID(id)
 		u:DrawHighlight({1,0,0,1} , nil, ch )

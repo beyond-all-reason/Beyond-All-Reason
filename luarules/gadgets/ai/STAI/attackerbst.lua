@@ -109,7 +109,8 @@ function AttackerBST:Update()
 	end
 	if self.active and self.needToMoveToTarget then
 		self.needToMoveToTarget = false
-		self.unit:Internal():AttackMove(self.target) --need to check this
+		self.ai.tool:GiveOrder(self.id,CMD.FIGHT,self.target,0,'1-1')
+		--self.unit:Internal():AttackMove(self.target) --need to check this
 
 	end
 end
@@ -117,7 +118,8 @@ end
 function AttackerBST:MoveRandom(pos,dist)
 	local away = self.ai.tool:RandomAway(pos, dist)
 	if not self.unit then return end
-	self.unit:Internal():AttackMove(away)
+	self.ai.tool:GiveOrder(self.id,CMD.FIGHT,away,0,'1-1')
+	--self.unit:Internal():AttackMove(away)
 end
 
 function AttackerBST:Advance(pos, perpendicularAttackAngle, reverseAttackAngle)

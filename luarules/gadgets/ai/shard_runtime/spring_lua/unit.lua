@@ -667,6 +667,7 @@ end
 -- end
 
 function ShardUnit:DrawHighlight( color, label, channel )
+	print('ShardUnit:DrawHighlight')
 	channel = channel or 1
 	color = color or {}
 	if (Script.LuaUI('ShardDrawAddUnit')) then

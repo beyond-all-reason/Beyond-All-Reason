@@ -608,11 +608,12 @@ function BuildingsHST:NearestBuilderRole(unit, targetRole)
 end
 
 function BuildingsHST:VisualDBG()
-	local ch = 8
-	map:EraseAll(ch)
+	
 	if not self.ai.drawDebug then
 		return
 	end
+	local ch = 8
+	map:EraseAll(ch)
 	local colours = {
 		starter = {1,1,0,1},
 		default = {1,0,0,1},

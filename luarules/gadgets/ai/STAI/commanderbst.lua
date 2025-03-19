@@ -30,7 +30,7 @@ function CommanderBST:Update()
 	if self.active and self.save == 1 then
 		self.safeBuilder = self.ai.buildingshst:NearestBuilderRole(self.unit:Internal(), 'eco')
 		if self.safeBuilder then
-			self.unit:Internal():Guard(game:GetUnitByID(self.safeBuilder))
+			self.ai.tool:GiveOrder(self.id,CMD.GUARD,self.safeBuilder,0,'1-1')
 		else
 			self.safeHouse = self.ai.labshst:ClosestHighestLevelFactory(self.unit:Internal())
 			if self.safeHouse then

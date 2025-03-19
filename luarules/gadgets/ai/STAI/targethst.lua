@@ -267,11 +267,13 @@ end
 
 
 function TargetHST:drawDBG()
-	local ch = 4
-	self.map:EraseAll(ch)
+	
+	
 	if not self.ai.drawDebug then
 		return
 	end
+	local ch = 4
+	self.map:EraseAll(ch)
 	local colours = self.ai.tool.COLOURS
 	if self.enemyBasePosition then
 		map:DrawPoint(self.enemyBasePosition, colours.black, 'BASE',  ch)

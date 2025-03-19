@@ -66,7 +66,6 @@ local cmdCounter = {ii = 0 ,zi=0,iz=0,zz=0,old=0}
 if gadgetHandler:IsSyncedCode() then
 
 	function gadget:Initialize()
-		--GG.AiHelpers.Start()
 	end
 
 	function gadget:RezTable()
@@ -99,47 +98,47 @@ if gadgetHandler:IsSyncedCode() then
 		return gadget:RezTable()
 	end
 
+	local deserializedOrder = {}
 	function gadget:DeserializeOrder(str)
 		if not str then
 			Spring.Echo('Deserialize Order missing parameters')
 			return
 		end
-		local order = {}
+		deserializedOrder = gadget:ResetTable(deserializedOrder)
 		for s in string.gmatch(str, "([^&]+)") do
 			local key, value = string.match(s, "(%w+):(.+)")
 			if string.find(value,'|') or string.find(value,',') then
-				order[key] = self:StringToTable(value)
+				deserializedOrder[key] = self:StringToTable(value)
 			else
-				order[key] = tonumber(value) or value
+				deserializedOrder[key] = tonumber(value) or value
 			end
 		end
 		--Spring.Echo('sync order',order)
-		return order
+		return deserializedOrder
 	end
-
+	local StrToTbl = {}
 	function gadget:StringToTable(str)
-		local t = {}
+		StrToTbl = gadget:ResetTable()
 		local i = 1
 		if string.find(str,'|') then
 			for s in string.gmatch(str, "([^|]+)") do
 				
-				t[i] = {}
+				StrToTbl[i] = gadget:RezTable()
 				for value in string.gmatch(s, "([^,]+)") do
-				table.insert(t[i],tonumber(value) or value)
+				table.insert(StrToTbl[i],tonumber(value) or value)
 				end
 				i = i + 1
 			end
 		else
 			for value in string.gmatch(str, "([^,]+)") do
-				table.insert(t,tonumber(value) or value)
+				table.insert(StrToTbl,tonumber(value) or value)
 			end
 		end
 		--Spring.Echo("Sync Deserialized:", t)
-		return t
+		return StrToTbl
 	end
 
-	function gadget:RecvLuaMsg(msg, playerID)
-		
+	function gadget:RecvLuaMsg(msg)
 		--msg = 'StGiveOrderToSync'..';'..id..';'..cmd..';'..pos..';'..opts..';'..timeout..';'..uname..';'.'StEndGOTS'
 		if string.sub(msg,1,17) == 'StGiveOrderToSync' then
 			Spring.Echo('warn:  Shard  receive a old give order protocol',msg)
@@ -152,8 +151,20 @@ if gadgetHandler:IsSyncedCode() then
 			
 		else
 			msg = string.sub(msg,13,-13)
-			local order = gadget:DeserializeOrder(msg)
-
+			local order = gadget:RezTable()
+			order = gadget:DeserializeOrder(msg)
+			--Spring.Echo('order',order)
+			if not order then
+				Spring.Echo('Deserialize Order failed')
+				return
+			end
+			--if type(order.id) == 'table' then
+			--	for i,index in pairs(order.id) do
+			--		Spring.GetUnitDefID(index)
+			--	end
+			--else
+			--	order.method = '1'
+			--end
 			if order.method == '1-1' then
 				local cmd = spGiveOrderTounit(order.id,order.cmd,order.parameters,order.options)
 				cmdCounter.ii = cmdCounter.ii + 1
@@ -161,9 +172,9 @@ if gadgetHandler:IsSyncedCode() then
 					Spring.Echo('GiveOrderToUnit Error:',cmd)
 				end
 			elseif order.method == '2-1' then
-				local arrayOfCmd = {}
+				local arrayOfCmd = gadget:RezTable()
 				for i in pairs(order.cmd) do
-					arrayOfCmd[i] = {}
+					arrayOfCmd[i] = gadget:RezTable()
 					arrayOfCmd[i][1] = order.cmd[i]
 					arrayOfCmd[i][2] = order.parameters[i]
 					arrayOfCmd[i][3] = order.options[i]
@@ -173,7 +184,8 @@ if gadgetHandler:IsSyncedCode() then
 				if not cmd then
 					print('GiveOrderArrayTounit Error:',cmd)
 				end
-				
+				gadget:KillTable(arrayOfCmd)
+				gadget:KillTable(order)
 			elseif order.method == '1-2' then
 				--Spring.Echo(type(order.id),type(order.cmd),type(order.parameters[1]),type(order.options))
 				local cmd = spGiveOrderTounitArray(order.id,order.cmd,order.parameters,order.options)
@@ -185,9 +197,9 @@ if gadgetHandler:IsSyncedCode() then
 				--Spring.GiveOrderToUnitArray ( unitArray = { [1] = unitID, etc... }, number cmdID, params = { number, etc...}, options = {"alt", "ctrl", "shift", "right"} )
 				
 			elseif order.method == '2-2' then
-				local arrayOfCmd = {}
+				local arrayOfCmd = gadget:RezTable()
 				for i in pairs(order.cmd) do
-					arrayOfCmd[i] = {}
+					arrayOfCmd[i] = gadget:RezTable()
 					arrayOfCmd[i][1] = order.cmd[i]
 					arrayOfCmd[i][2] = order.parameters[i]
 					arrayOfCmd[i][3] = order.options[i]
@@ -197,6 +209,8 @@ if gadgetHandler:IsSyncedCode() then
 				if not cmd then
 					print('GiveOrderArrayTounitArray Error:',cmd)
 				end
+				gadget:KillTable(arrayOfCmd)
+				gadget:KillTable(order)
 			else
 				Spring.Echo('Shard AI Loader: unknown method',order.method)
 			end

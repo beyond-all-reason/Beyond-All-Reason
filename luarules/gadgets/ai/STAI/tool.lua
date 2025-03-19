@@ -49,46 +49,28 @@ Tool.COLOURS = {
 			black = {0,0,0,1}, --veh
 			}
 Tool._TABLES = {}
-function Tool:REZ_TABLE()
-	if self._TABLES[1] then
-		--self:EchoDebug('GET_TABLE REZ a table')
-		return table.remove(self._TABLES)
-	else
-		--self:EchoDebug('GET_TABLE CREATE a NEW table')
-		return {}
-	end
-		
+function Tool:RezTable()
+	return table.remove(self._TABLES) or {}
 end
 
 
 -- Function to recursively process a table and discard everything that is not a table
-function Tool:KILL_TABLE(t)
+function Tool:KillTable(t)
 	if not t or type(t) ~= 'table' then
-		self:EchoDebug("incorrect type in KILL_TABLE",t,type(t))    
+		self:EchoDebug("incorrect type in KillTable",t,type(t))    
 		return
 	end
 	--self:EchoDebug("SIT_TABLE: Before clearing", t)
 	for key, value in pairs(t) do
 		
 		if type(value) == 'table' then
-			self:KILL_TABLE(value)
+			self:KillTable(value)
 		end
-		
 		t[key] = nil
 		if  next(t) == nil then
 			table.insert(self._TABLES, t)
 		end
-		
-		
 	end
-	--if next(t) == nil then
-	--	table.insert(Shard._TABLES, t)
-	--else
-	--	self:EchoDebug("WARNING: Table not empty, skipping insertion into Shard._TABLES")
-	--end
-	--self:EchoDebug('Shard._TABLES after SIT TABLE',Shard._TABLES)
-	
-	
 end
 
 function Tool:StoreOrder (id,cmd,params,options,method)
@@ -100,13 +82,13 @@ function Tool:StoreOrder (id,cmd,params,options,method)
 		params[i] = tonumber(v) or v
 	end
 	--self:EchoDebug('storeorder received :',id,cmd,params,opts)
-	game.orders = game.orders or game:REZ_TABLE()
+	game.orders = game.orders or game:RezTable()
 	game.lastGameFrame = game.lastGameFrame or 0
 	
-	local new = game:REZ_TABLE()
+	local new = game:RezTable()
 	new.cmd = nil
-	new.params = game:REZ_TABLE()
-	new.options = game:REZ_TABLE()
+	new.params = game:RezTable()
+	new.options = game:RezTable()
 	
 	new.cmd = cmd
 	new.id = id
@@ -128,7 +110,7 @@ function Tool:SerializeOrder(id,cmd,parameters,options,method)
 	
 	self:EchoDebug('SerializeOrder',id,cmd,parameters,options,method)
 	serialized = ''
-	order = ''
+	local order = ''
 	order = order .. '&id:'
 	if type(id) == 'number' then
 		order = order .. tostring(id)
@@ -178,6 +160,7 @@ function Tool:GiveOrder(id,cmd,parameters,options,method)
 	--end
 	local order = self:SerializeOrder(id,cmd,parameters,options,method)
 	game:GiveOrder(order)
+
 end
 
 function Tool:DeserializeOrder(str)

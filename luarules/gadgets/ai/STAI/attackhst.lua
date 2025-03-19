@@ -237,16 +237,23 @@ function AttackHST:SquadAttack(squad)
 	end
 	if self.ai.loshst.ENEMY[squad.target.X] and self.ai.loshst.ENEMY[squad.target.X][squad.target.Z]  and self.ai.tool:distance(squad.position,squad.target.POS) < 256 then
 		self:EchoDebug('squad',squad.squadID,'are near to offensive target, do attack')
+		local _ids = {}
+		local _params = {}
+		local _options = {}
+		local _cmd = {}
 		for i,member in pairs(squad.members) do
 			if not squad.target.units then
 				self:EchoDebug('squad',squad.squadID,'no target units')
 				return
 			end
-			for id,_ in pairs(squad.target.units) do
-				member.unit:Internal():Attack(id)
-			end
+			
+			table.insert(_ids, member.unit:Internal():ID())
+			table.insert(_params, squad.target.POS)
+			table.insert(_options, 0)
+			table.insert(_comds, CMD.FIGHT)
 			
 		end
+		self.ai.tool:GiveOrder(_ids,_cmd,_params,_options,'2-1')
 		return true
 	end
 end
@@ -528,11 +535,12 @@ function AttackHST:MemberIdle(attkbhvr)
 end
 
 function AttackHST:visualDBG()
-	local ch = 6
+	
 
 	if not self.ai.drawDebug then
 		return
 	end
+	local ch = 6
 	self.map:EraseAll(ch)
 	for index , squad in pairs(self.squads) do
 		self.map:DrawCircle(squad.position,100, squad.colour, squad.squadID,squad.lock, ch)

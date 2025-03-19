@@ -537,6 +537,7 @@ end
 
 function MapHST:getPath(unitName,POS1,POS2,toGrid)
 	local mclass = self.ai.armyhst.unitTable[unitName].mclass
+	
 	local waypoints = map:RequestPath(mclass, POS1, POS2)
 	if not waypoints then
 		self:Warn('no path found',POS1,POS2)
@@ -859,13 +860,14 @@ function MapHST:IsUnderWater(position)
 end
 
 function MapHST:DrawDebug()
-	local ch = 1
+	
 	for i=0,9 do
 		self.map:EraseAll(i)
 	end
 	if not self.ai.drawDebug then
 		return
 	end
+	local ch = 1
 	local colours={
 		{1,0,0,1},--'red'
 		{0,1,0,1},--'green'

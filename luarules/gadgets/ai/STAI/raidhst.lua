@@ -572,11 +572,12 @@ function RaidHST:MemberIdle(attkbhvr, squad)
 end
 
 function RaidHST:visualDBG()
-	local ch = 6
+	
 
 	if not self.ai.drawDebug then
 		return
 	end
+	local ch = 6
 	self.map:EraseAll(ch)
 	for index , squad in pairs(self.squads) do
 		self.map:DrawCircle(squad.position,100, squad.colour, squad.squadID,squad.lock, ch)

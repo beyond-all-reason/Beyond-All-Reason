@@ -72,13 +72,13 @@ end
 function BomberBST:BombPosition(position)
 	self:EchoDebug("bomb position")
 	--self.unit:Internal():Attack(position,32)
-	self.ai.tool:GiveOrderToUnit(self.unit:Internal(),CMD.ATTACK, position, 0,'1-1')
+	self.ai.tool:GiveOrder(self.unit:Internal():ID(),CMD.ATTACK, position, 0,'1-1')
 end
 
 function BomberBST:BombUnit(targetUnit)
 	self:EchoDebug("bomb unit")
 	--self.unit:Internal():Attack(targetUnit,32)
-	self.ai.tool:GiveOrderToUnit(self.unit:Internal(),CMD.ATTACK, targetUnit, 0,'1-1')
+	self.ai.tool:GiveOrder(self.unit:Internal():ID(),CMD.ATTACK, targetUnit, 0,'1-1')
 end
 
 function BomberBST:BombTarget(targetUnit, path)
@@ -92,6 +92,6 @@ end
 
 function BomberBST:SetIdleMode()
  	--self.unit:Internal():IdleModeFly()
-	self.ai.tool:GiveOrderToUnit(self.unit:Internal(),CMD.IDLEMODE, 1, 0,'1-1')
+	self.ai.tool:GiveOrder(self.unit:Internal():ID(),CMD.IDLEMODE, 1, 0,'1-1')
 
 end

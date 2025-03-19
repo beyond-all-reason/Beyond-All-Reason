@@ -60,7 +60,9 @@ function BuildersBST:Activate()
 		self:EchoDebug(self.name, self.id, " resuming construction of ", buildings.builders[self.id].unitName,
 			buildings.builders[self.id].unitID)
 		-- resume construction if we were interrupted
+
 		self.unit:Internal():Guard(buildings.builders[self.id].unitID)
+		self.ai.tool:GiveOrder(self.id, CMD.GUARD, buildings.builders[self.id].unitID, 0, '1-1')
 	else
 		self:UnitIdle(self.unit:Internal())
 	end
@@ -462,7 +464,7 @@ function BuildersBST:Assist()
 			for index, unitID in pairs(unitsNear) do
 				local unitName = self.game:GetUnitByID(unitID):Name()
 				if self.ai.armyhst.factoryMobilities[unitName] then
-					self.unit:Internal():Guard(unitID)
+					self.ai.tool:GiveOrder(self.id, CMD.GUARD, unitID,0,'1-1')
 					self.assistant = true
 					return
 				end
