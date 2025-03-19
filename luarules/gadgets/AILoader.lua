@@ -314,13 +314,13 @@ else	-- UNSYNCED CODE
 
 		end
 	end
-local lastRamRead= 0
-local RAM
+--local lastRamRead= 0
+--local RAM
 	function gadget:GameFrame(n)
 		-- for each AI...
 		
-		RAM = gcinfo()
-		print('ram used by AI',RAM, 'sync or other use ', RAM - lastRamRead)
+		--RAM = gcinfo()
+		--print('ram used by AI',RAM, 'sync or other use ', RAM - lastRamRead)
 		
 		for i, thisAI in ipairs(Shard.AIs) do
 			--local RAM = gcinfo()
@@ -343,9 +343,9 @@ local RAM
 			end
 			
 		end
-		lastRamRead = gcinfo()
-		RAM = lastRamRead - RAM
-		print(RAM .. ' kb of RAM used by AI in this update',lastRamRead)
+		--lastRamRead = gcinfo()
+		--RAM = lastRamRead - RAM
+		--print(RAM .. ' kb of RAM used by AI in this update',lastRamRead)
 	end
 
 	function gadget:UnitCreated(unitId, unitDefId, teamId, builderId)
