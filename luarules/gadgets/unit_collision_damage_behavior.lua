@@ -14,6 +14,9 @@ if not gadgetHandler:IsSyncedCode() then return end
 
 --customparams.fall_damage_multiplier = <number> a multiplier that's applied to defaultDamageMultiplier which affects the amount of damage taken from falling/collisions.
 
+--required velocity in a frame for a unit to take collision damage from falling. Chosen empirically.
+local velocityThreshold = 99 / Game.gameSpeed
+
 --the multiplier by which default engine ground/object collision damage is multiplied. change this value to reduce the amount of fall/collision damage taken for all units. Chosen empirically.
 local fallDamageMagnificationFactor = 14
 
@@ -157,7 +160,7 @@ end
 local function isValidCollisionDirection(unitID)
 	local velX, velY, velZ, velLength = spGetUnitVelocity(unitID)
 		-- y-velocity check prevents mostly horizontal object collisions from taking damage, allows damage if dropped from above
-		return velLength > collisionVelocityThreshold and -velY > (velLength * validCollisionAngleMultiplier)
+		return velLength > collisionVelocityThreshold and -velY > (velLength * validCollisionAngleMultiplier) and velLength > velocityThreshold
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
