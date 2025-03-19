@@ -31,6 +31,7 @@ local aggroDecayRate = 0.7 --aggro is multiplied by this until it falls within p
 local aggroDecayCap = 10  -- this caps the aggro decay so that misfire state can last a significant amount of time
 local aggroPriorityCap = 1 --The maximum aggro that can be accumulated. This prevents manual targetting from getting stuck in a fire mode for too long.
 local aggroBackupCap = -16 --Like above, but a negative value because backup is triggered with negative aggro.
+local gameSpeed = Game.gameSpeed
 
 --misfire occurs when the weapon thinks it can shoot a target due to faulty Spring.GetUnitWeaponHaveFreeLineOfFire return values. We must detect when this failure occurs and force high for a long duration.
 local misfireMultiplier = Game.gameSpeed * 1.5
@@ -176,6 +177,7 @@ local function queueSwitchFrame(attackerID, data, defData, setState)
 	if data.state ~= setState and data.switchCooldownFrame < gameFrame then
 		local idealSubtraction = defData.reloadFrames * 0.75 -- so the switch occurs soon after a shot
 		local idealAddition = defData.reloadFrames - idealSubtraction
+		local maxSubtraction = gameSpeed * 2 -- so that very slow reloading units don't refuse to switch within too large of a time frame
 		local idealFrame
 		
 		updatePredictedShotFrame(attackerID, data, defData)
@@ -185,14 +187,16 @@ local function queueSwitchFrame(attackerID, data, defData, setState)
 			spCallCOBScript(attackerID, data.setStateScriptID, 0, setState)
 		else
 			-- is now just before the ideal frame to switch on?
-			idealFrame = data.predictedShotFrame - idealSubtraction
-			if idealFrame <= gameFrame then
+			local tooCloseToFiringToSwitchFrame = mathMax(data.predictedShotFrame - idealSubtraction, data.predictedShotFrame - maxSubtraction)
+			if tooCloseToFiringToSwitchFrame <= gameFrame then
 				-- remaining possibility, queue switch for after next predicted shot
-				idealFrame = data.predictedShotFrame + idealAddition
+				idealFrame = math.floor(data.predictedShotFrame + idealAddition)
+				modeSwitchFrames[idealFrame] = modeSwitchFrames[idealFrame] or {}
+				modeSwitchFrames[idealFrame][attackerID] = setState
+			else
+				spCallCOBScript(attackerID, data.setStateScriptID, 0, setState)
 			end
-			idealFrame = math.floor(idealFrame)
-			modeSwitchFrames[idealFrame] = modeSwitchFrames[idealFrame] or {}
-			modeSwitchFrames[idealFrame][attackerID] = setState
+
 		end
 		
 		data.state = setState
