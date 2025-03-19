@@ -601,9 +601,8 @@ local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 
 --testing variables
-local TEST_SPEED = 1
+local TEST_SPEED = 0.25
 local TEST_SQUARE_COUNT = 7
-local TEST_PROGRESS_RATE = 0.03
 
 --constants
 local SQUARE_SIZE = 1024
@@ -637,7 +636,7 @@ local planeLayout = {
 	{id = 1, name = 'posscale', size = 4}, -- a vec4 for pos + scale
 	{id = 2, name = 'ownercolor', size = 4}, --  vec4 the color of this new
 	{id = 3, name = 'takercolor', size = 4}, -- vec4 the color of this new
-	{id = 4, name = 'capturestate', size = 4}, -- vec4 progress, speed
+	{id = 4, name = 'capturestate', size = 4}, -- vec4 speed, progress, startframe, unused
 }
 local glDepthTest = gl.DepthTest
 local glTexture = gl.Texture
@@ -656,16 +655,20 @@ local lastMoveFrame = 0
 
 local vsSrc = [[
 #version 420
+#extension GL_ARB_uniform_buffer_object : require
+#extension GL_ARB_shader_storage_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
 
+//__ENGINEUNIFORMBUFFERDEFS__
+//__DEFINES__
+
 layout (location = 0) in vec4 position;
-layout (location = 1) in vec4 posscale;
-layout (location = 2) in vec4 color1;
-layout (location = 3) in vec4 visibility;
-layout (location = 4) in vec4 capturestate;
+layout (location = 1) in vec4 posscale; // x, y, z, scale
+layout (location = 2) in vec4 color1; // r, g, b, a
+layout (location = 3) in vec4 visibility; // fadeStart, fadeEnd, minAlpha, maxAlpha
+layout (location = 4) in vec4 capturestate; // speed, progress, startframe, unused
 
 uniform sampler2D heightmapTex;
-uniform float gameFrame;
 uniform int isMinimapRendering;
 uniform float mapSizeX;
 uniform float mapSizeZ;
@@ -673,16 +676,18 @@ uniform float mapSizeZ;
 out DataVS {
 	vec4 color;
 	float progress;
+	float speed;
+	float startframe;
+	float gameFrame;
 	vec2 texCoord;
 };
-
-//__ENGINEUNIFORMBUFFERDEFS__
 
 void main() {
 	// Pass color without pulsing effect
 	color = color1;
 	
 	// Pass progress for visualization
+	speed = capturestate.x;
 	progress = capturestate.y;
 	
 	// Generate texture coordinates for the circle effect
@@ -715,17 +720,28 @@ void main() {
 		// Transform to clip space
 		gl_Position = cameraViewProj * worldPos;
 	}
+	
+	startframe = capturestate.z;
+	gameFrame = timeInfo.x;
 }
 ]]
 
 -- Fragment shader source
 local fsSrc = [[
 #version 420
+#extension GL_ARB_uniform_buffer_object : require
+#extension GL_ARB_shader_storage_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
+
+//__ENGINEUNIFORMBUFFERDEFS__
+//__DEFINES__
 
 in DataVS {
 	vec4 color;
 	float progress;
+	float speed;
+	float startframe;
+	float gameFrame;
 	vec2 texCoord;
 };
 
@@ -736,10 +752,10 @@ void main() {
 	vec2 center = vec2(0.5, 0.5);
 	float distance = length(texCoord - center) * 2.0; // Distance from center, normalized
 	
-	// Maximum distance is to the corner which is sqrt(2) * 0.5 * 2 = sqrt(2)
+	// Maximum distance is to the corner which is sqrt(2) * 0.5 * 2 = sFqrt(2)
 	// So we scale our progress to reach 1.0 at the corner
 	float cornerDistance = sqrt(2.0); // Distance from center to corner in our normalized space
-	float scaledProgress = progress * cornerDistance; // Scale progress to reach corners at 100%
+	float scaledProgress = progress * cornerDistance + (gameFrame - startframe) * speed; // Scale progress to reach corners at 100%
 	
 	// Parameters for square border fade
 	float borderMaxWidth = 0.05; // Full width where border effect applies
@@ -806,7 +822,6 @@ local function makeShader()
 			isMinimapRendering = 0,
 		},
 		uniformFloat = {
-			gameFrame = 0,
 			mapSizeX = Game.mapSizeX,
 			mapSizeZ = Game.mapSizeZ,
 		},
@@ -922,7 +937,7 @@ local function initGL4()
 			randomX, SQUARE_HEIGHT, randomZ, SQUARE_SIZE,  -- posscale: x, y, z, scale
 			random(), random(), random(), 0.8,             -- color1: r, g, b, a
 			2000, 5000, 0.8, 0.2,                         -- visibility: fadeStart, fadeEnd, minAlpha, maxAlpha
-			1.0, 0.0, 0.0, 0.0                            -- capturestate: blinking, progress, unused, unused
+			1.0, 0.5, 0.0, 0.0                            -- capturestate: speed, progress, startframe, unused
 		}
 		
 		pushElementInstance(instanceVBO, instanceData, i, true, false)
@@ -975,11 +990,18 @@ function gadget:Update()
 				-- Keep alpha consistent
 				instanceData[8] = SQUARE_ALPHA
 				
-				-- We don't need the visibility parameters for blinking anymore,
-				-- but keep them in the structure to avoid breaking the data layout
-				
+				local newTestProgress = instanceData[14] + random(-1, 1) * random() * TEST_SPEED
+				-- Update speed (1st element in capturestate) --
+				instanceData[13] = (newTestProgress - instanceData[14]) / MOVE_INTERVAL
+				Spring.Echo(instanceData[13])
 				-- Update progress (2nd element in capturestate)
-				instanceData[14] = randomProgress
+				instanceData[14] = newTestProgress
+				Spring.Echo(instanceData[14])
+
+				-- Update startframe (3rd element in capturestate)
+				instanceData[15] = currentFrame
+
+				-- Update
 				
 				pushElementInstance(instanceVBO, instanceData, i, true)
 			end
@@ -998,7 +1020,7 @@ function gadget:DrawWorldPreUnit()
 	glDepthTest(true)
 	
 	squareShader:Activate()
-	squareShader:SetUniform("gameFrame", Spring.GetGameFrame())
+	--squareShader:SetUniform("gameFrame", Spring.GetGameFrame())
 	squareShader:SetUniformInt("isMinimapRendering", 0)
 	
 	-- Draw the square using indexed triangles
@@ -1014,7 +1036,6 @@ function gadget:DrawInMiniMap()
 	if not squareShader or not squareVAO or not instanceVBO then return end
 	
 	squareShader:Activate()
-	squareShader:SetUniform("gameFrame", Spring.GetGameFrame())
 	squareShader:SetUniformInt("isMinimapRendering", 1)
 	
 	-- Draw the square using indexed triangles
