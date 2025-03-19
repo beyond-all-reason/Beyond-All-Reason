@@ -10,6 +10,8 @@ function widget:GetInfo()
 	}
 end
 
+local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
+
 local alwaysShow = true		-- always show AT LEAST the label
 local alwaysShowLabel = true	-- always show the label regardless
 local showWhenSpec = false
@@ -29,8 +31,7 @@ local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.
 
 local spec = Spring.GetSpectatingState()
 
-local widgetSpaceMargin, backgroundPadding, elementCorner, RectRound, TexturedRectRound, UiElement, UiButton, UiUnit
-
+local widgetSpaceMargin, backgroundPadding, elementCorner, RectRound, UiElement, UiUnit
 
 local spValidUnitID = Spring.ValidUnitID
 local spGetUnitIsDead = Spring.GetUnitIsDead
@@ -58,15 +59,16 @@ local iconMargin = 0
 local iconSize = 0
 local usedWidth = 0
 local usedHeight = 0
+local uiTexWidth = 1
 local hovered = false
 local prevHovered = false
 local numIcons = 0
 local hoveredIcon
 local selectedUnits = Spring.GetSelectedUnits() or {}
-local selectionHasChanged = true
 local buildmenuShowingPosY = 0
 local buildmenuAlwaysShow = false
 local buildmenuIsShowing = true
+local doUpdate = true
 
 local iconButtons = {}
 local existingIcons = {}
@@ -144,6 +146,140 @@ local function drawIcon(unitDefID, rect, lightness, zoom, texSize, highlightOpac
 	end
 end
 
+local function drawContent()
+	local mult = numIcons
+	if numIcons == 0 then
+		mult = 1
+	end
+	if mult > maxIcons then
+		mult = maxIcons
+		numIcons = mult
+	end
+
+	local iconWidth = iconSize - backgroundPadding
+	local startOffsetX = 0
+	if numIcons > 0 and alwaysShowLabel then
+		startOffsetX = iconWidth
+	end
+
+	if numIcons == 0 or alwaysShowLabel then
+		local iconRect = {
+			floor(posX * vsx),
+			floor(posY * vsy),
+			floor(posX * vsx) + usedWidth - (iconWidth * numIcons),
+			floor(posY * vsy) + usedHeight
+		}
+		local fontSize = height*vsy*0.33
+		local offset = ((iconRect[3]-iconRect[1])/5)
+		local offsetY = -(fontSize*(posY > 0 and 0.22 or 0.31))
+		local style = 'c'
+		font2:Begin()
+		font2:SetTextColor(1,1,1,useRenderToTexture and 0.7 or 0.2)
+		offset = (fontSize*0.6)
+		font2:Print(Spring.I18N('ui.idleBuilders.sleeping'), iconRect[1]+((iconRect[3]-iconRect[1])/2)-offset, iconRect[2]+((iconRect[4]-iconRect[2])/2)+offset+offsetY, fontSize, style)
+		fontSize = fontSize * 1.2
+		font2:Print(Spring.I18N('ui.idleBuilders.sleeping'), iconRect[1]+((iconRect[3]-iconRect[1])/2), iconRect[2]+((iconRect[4]-iconRect[2])/2)+offsetY, fontSize, style)
+		fontSize = fontSize * 1.2
+		offset = (fontSize*0.48)
+		font2:Print(Spring.I18N('ui.idleBuilders.sleeping'), iconRect[1]+((iconRect[3]-iconRect[1])/2)+offset, iconRect[2]+((iconRect[4]-iconRect[2])/2)-offset+offsetY, fontSize, style)
+		font2:End()
+	end
+
+
+	if numIcons > 0 then
+		local iconCounter = 0
+		iconButtons = {}
+		for i=1, maxIcons do
+			if existingIcons[i] then
+				local iconRect = {
+					backgroundRect[1]+backgroundPadding+((iconSize-backgroundPadding)*iconCounter)+startOffsetX,
+					backgroundRect[2]+(posY-height > 0 and backgroundPadding or 0),
+					backgroundRect[1]+backgroundPadding+(iconSize-backgroundPadding)+((iconSize-backgroundPadding)*iconCounter)+startOffsetX,
+					backgroundRect[4]-backgroundPadding
+				}
+
+				local unitCount = #idleList[existingIcons[i]]
+				local unitDefID = existingIcons[i]
+
+				gl.Color(1,1,1,1)
+				iconButtons[#iconButtons+1] = {iconRect[1],iconRect[2],iconRect[3],iconRect[4],i}
+				local iconSize = iconRect[3]-iconRect[1]-iconMargin-iconMargin
+				local usedIconSize = iconSize * usedIconSizeMult
+				local offset = 0
+				if showStack then
+					if unitCount > 4 then
+						usedIconSize = floor(usedIconSize*0.78)
+						offset = floor((iconSize - usedIconSize) / 4)
+					elseif unitCount > 3 then
+						usedIconSize = floor(usedIconSize*0.83)
+						offset = floor((iconSize - usedIconSize) / 3)
+					elseif unitCount> 2 then
+						usedIconSize = floor(usedIconSize*0.86)
+						offset = floor((iconSize - usedIconSize) / 2)
+					elseif unitCount > 1 then
+						usedIconSize = floor(usedIconSize*0.88)
+						offset = iconSize - (usedIconSize*1.06)
+					else
+						usedIconSize = floor(usedIconSize*0.94)
+						offset = iconSize - usedIconSize
+					end
+				end
+
+				local texSize = floor(iconSize*1.33)
+				local zoom = i == hoveredIcon and (b and 0.15 or 0.105) or 0.05
+				local highlightOpacity = 0
+				if i == hoveredIcon then
+					highlightOpacity = 0.22
+				end
+				if showStack then
+					if unitCount > 4 then
+						drawIcon(
+							unitDefID,
+							{iconRect[1]+iconMargin+(offset*4), iconRect[4]-iconMargin-(offset*4)-usedIconSize, iconRect[1]+iconMargin+(offset*4)+usedIconSize, iconRect[4]-iconMargin-(offset*4)},
+							0.33, zoom, texSize, highlightOpacity
+						)
+					end
+					if unitCount > 3 then
+						drawIcon(
+							unitDefID,
+							{iconRect[1]+iconMargin+(offset*3), iconRect[4]-iconMargin-(offset*3)-usedIconSize, iconRect[1]+iconMargin+(offset*3)+usedIconSize, iconRect[4]-iconMargin-(offset*3)},
+							0.45, zoom, texSize, highlightOpacity
+						)
+					end
+					if unitCount > 2 then
+						drawIcon(
+							unitDefID,
+							{iconRect[1]+iconMargin+(offset*2), iconRect[4]-iconMargin-(offset*2)-usedIconSize, iconRect[1]+iconMargin+(offset*2)+usedIconSize, iconRect[4]-iconMargin-(offset*2)},
+							0.55, zoom, texSize, highlightOpacity
+						)
+					end
+					if unitCount > 1 then
+						drawIcon(
+							unitDefID,
+							{iconRect[1]+iconMargin+offset, iconRect[4]-iconMargin-offset-usedIconSize, iconRect[1]+iconMargin+offset+usedIconSize, iconRect[4]-iconMargin-offset},
+							0.7, zoom, texSize, highlightOpacity
+						)
+					end
+				end
+				drawIcon(
+					unitDefID,
+					{iconRect[1]+iconMargin, iconRect[4]-iconMargin-usedIconSize, iconRect[1]+iconMargin+usedIconSize, iconRect[4]-iconMargin},
+					1, zoom, texSize, highlightOpacity
+				)
+
+				if unitCount > 1 then
+					local fontSize = height*vsy*0.39
+					font:Begin()
+					font:Print('\255\240\240\240'..unitCount, iconRect[1]+iconMargin+(fontSize*0.18), iconRect[4]-iconMargin-(fontSize*0.92), fontSize, "o")
+					font:End()
+				end
+
+				iconCounter = iconCounter + 1
+			end
+		end
+	end
+end
+
 local function updateList(force)
 	local prevIdleList = idleList
 	idleList = {}
@@ -172,7 +308,7 @@ local function updateList(force)
 
 	local prevhoveredIcon = hoveredIcon
 	hoveredIcon = -1
-	local x, y, b, b2, b3 = spGetMouseState()
+	local x, y = spGetMouseState()
 	if iconButtons then
 		for i,v in pairs(iconButtons) do
 			if math_isInRect(x, y, iconButtons[i][1], iconButtons[i][2], iconButtons[i][3], iconButtons[i][4]) then
@@ -238,6 +374,13 @@ local function updateList(force)
 				startOffsetX = iconWidth
 			end
 			usedWidth = (iconWidth * mult) + backgroundPadding + backgroundPadding + startOffsetX
+			if usedWidth > uiTexWidth then
+				uiTexWidth = usedWidth
+				if uiTex then
+					gl.DeleteTexture(uiTex)
+					uiTex = nil
+				end
+			end
 
 			backgroundRect = {
 				floor(posX * vsx),
@@ -248,122 +391,31 @@ local function updateList(force)
 
 			UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0))
 
-			if numIcons == 0 or alwaysShowLabel then
-				local iconRect = {
-					floor(posX * vsx),
-					floor(posY * vsy),
-					floor(posX * vsx) + usedWidth - (iconWidth * numIcons),
-					floor(posY * vsy) + usedHeight
-				}
-				local fontSize = height*vsy*0.33
-				local offset = ((iconRect[3]-iconRect[1])/5)
-				local offsetY = -(fontSize*(posY > 0 and 0.22 or 0.31))
-				local style = 'c'
-				font2:Begin()
-				font2:SetTextColor(1,1,1,0.2)
-				offset = (fontSize*0.6)
-				font2:Print(Spring.I18N('ui.idleBuilders.sleeping'), iconRect[1]+((iconRect[3]-iconRect[1])/2)-offset, iconRect[2]+((iconRect[4]-iconRect[2])/2)+offset+offsetY, fontSize, style)
-				fontSize = fontSize * 1.2
-				font2:Print(Spring.I18N('ui.idleBuilders.sleeping'), iconRect[1]+((iconRect[3]-iconRect[1])/2), iconRect[2]+((iconRect[4]-iconRect[2])/2)+offsetY, fontSize, style)
-				fontSize = fontSize * 1.2
-				offset = (fontSize*0.48)
-				font2:Print(Spring.I18N('ui.idleBuilders.sleeping'), iconRect[1]+((iconRect[3]-iconRect[1])/2)+offset, iconRect[2]+((iconRect[4]-iconRect[2])/2)-offset+offsetY, fontSize, style)
-				font2:End()
-			end
-
-			if numIcons > 0 then
-				local iconCounter = 0
-				iconButtons = {}
-				for i=1, maxIcons do
-					if existingIcons[i] then
-						local iconRect = {
-							backgroundRect[1]+backgroundPadding+((iconSize-backgroundPadding)*iconCounter)+startOffsetX,
-							backgroundRect[2]+(posY-height > 0 and backgroundPadding or 0),
-							backgroundRect[1]+backgroundPadding+(iconSize-backgroundPadding)+((iconSize-backgroundPadding)*iconCounter)+startOffsetX,
-							backgroundRect[4]-backgroundPadding
-						}
-
-						local unitCount = #idleList[existingIcons[i]]
-						local unitDefID = existingIcons[i]
-
-						gl.Color(1,1,1,1)
-						iconButtons[#iconButtons+1] = {iconRect[1],iconRect[2],iconRect[3],iconRect[4],i}
-						local iconSize = iconRect[3]-iconRect[1]-iconMargin-iconMargin
-						local usedIconSize = iconSize * usedIconSizeMult
-						local offset = 0
-						if showStack then
-							if unitCount > 4 then
-								usedIconSize = floor(usedIconSize*0.78)
-								offset = floor((iconSize - usedIconSize) / 4)
-							elseif unitCount > 3 then
-								usedIconSize = floor(usedIconSize*0.83)
-								offset = floor((iconSize - usedIconSize) / 3)
-							elseif unitCount> 2 then
-								usedIconSize = floor(usedIconSize*0.86)
-								offset = floor((iconSize - usedIconSize) / 2)
-							elseif unitCount > 1 then
-								usedIconSize = floor(usedIconSize*0.88)
-								offset = iconSize - (usedIconSize*1.06)
-							else
-								usedIconSize = floor(usedIconSize*0.94)
-								offset = iconSize - usedIconSize
-							end
-						end
-
-						local texSize = floor(iconSize*1.33)
-						local zoom = i == hoveredIcon and (b and 0.15 or 0.105) or 0.05
-						local highlightOpacity = 0
-						if i == hoveredIcon then
-							highlightOpacity = 0.22
-						end
-						if showStack then
-							if unitCount > 4 then
-								drawIcon(
-									unitDefID,
-									{iconRect[1]+iconMargin+(offset*4), iconRect[4]-iconMargin-(offset*4)-usedIconSize, iconRect[1]+iconMargin+(offset*4)+usedIconSize, iconRect[4]-iconMargin-(offset*4)},
-									0.33, zoom, texSize, highlightOpacity
-								)
-							end
-							if unitCount > 3 then
-								drawIcon(
-									unitDefID,
-									{iconRect[1]+iconMargin+(offset*3), iconRect[4]-iconMargin-(offset*3)-usedIconSize, iconRect[1]+iconMargin+(offset*3)+usedIconSize, iconRect[4]-iconMargin-(offset*3)},
-									0.45, zoom, texSize, highlightOpacity
-								)
-							end
-							if unitCount > 2 then
-								drawIcon(
-									unitDefID,
-									{iconRect[1]+iconMargin+(offset*2), iconRect[4]-iconMargin-(offset*2)-usedIconSize, iconRect[1]+iconMargin+(offset*2)+usedIconSize, iconRect[4]-iconMargin-(offset*2)},
-									0.55, zoom, texSize, highlightOpacity
-								)
-							end
-							if unitCount > 1 then
-								drawIcon(
-									unitDefID,
-									{iconRect[1]+iconMargin+offset, iconRect[4]-iconMargin-offset-usedIconSize, iconRect[1]+iconMargin+offset+usedIconSize, iconRect[4]-iconMargin-offset},
-									0.7, zoom, texSize, highlightOpacity
-								)
-							end
-						end
-						drawIcon(
-							unitDefID,
-							{iconRect[1]+iconMargin, iconRect[4]-iconMargin-usedIconSize, iconRect[1]+iconMargin+usedIconSize, iconRect[4]-iconMargin},
-							1, zoom, texSize, highlightOpacity
-						)
-
-						if unitCount > 1 then
-							local fontSize = height*vsy*0.39
-							font:Begin()
-							font:Print('\255\240\240\240'..unitCount, iconRect[1]+iconMargin+(fontSize*0.18), iconRect[4]-iconMargin-(fontSize*0.92), fontSize, "o")
-							font:End()
-						end
-
-						iconCounter = iconCounter + 1
-					end
-				end
+			if not useRenderToTexture then
+				drawContent()
 			end
 		end)
+		if useRenderToTexture then
+			if not uiTex then
+				local ui_sharpness = Spring.GetConfigFloat("ui_sharpness", 1)
+				uiTex = gl.CreateTexture(math.floor(uiTexWidth*ui_sharpness), math.floor((backgroundRect[4]-backgroundRect[2])*ui_sharpness), {
+					target = GL.TEXTURE_2D,
+					format = GL.RGBA,
+					fbo = true,
+				})
+			end
+			if uiTex then
+				gl.RenderToTexture(uiTex, function()
+					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+					gl.PushMatrix()
+					gl.Translate(-1, -1, 0)
+					gl.Scale(2 / uiTexWidth, 2 / (backgroundRect[4]-backgroundRect[2]),	0)
+					gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
+					drawContent()
+					gl.PopMatrix()
+				end)
+			end
+		end
 		checkGuishader(true)
 	end
 end
@@ -379,7 +431,7 @@ local function checkUnitGroupsPos(isViewresize)
 			if not isViewresize then
 				widget:ViewResize()
 			end
-			updateList(true)
+			doUpdateForce = true
 		end
 	else
 		if buildmenuBottomPosition and not buildmenuAlwaysShow and WG['buildmenu'] and WG['info'] then
@@ -418,9 +470,7 @@ function widget:ViewResize()
 	widgetSpaceMargin = WG.FlowUI.elementMargin
 
 	RectRound = WG.FlowUI.Draw.RectRound
-	TexturedRectRound = WG.FlowUI.Draw.TexturedRectRound
 	UiElement = WG.FlowUI.Draw.Element
-	UiButton = WG.FlowUI.Draw.Button
 	UiUnit = WG.FlowUI.Draw.Unit
 
 	if WG['buildmenu'] then
@@ -500,13 +550,15 @@ function widget:Initialize()
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
 	end
-
-	updateList(true)
 end
 
 function widget:Shutdown()
 	if dlist then
 		gl.DeleteList(dlist)
+	end
+	if uiTex then
+		gl.DeleteTexture(uiTex)
+		uiTex = nil
 	end
 	if WG['guishader'] then
 		WG['guishader'].DeleteDlist('idlebuilders')
@@ -519,7 +571,6 @@ end
 
 local sec = 0
 local sec2 = 0
-local doUpdate = true
 local timerStart = Spring.GetTimer()
 local function Update()
 	if Spring.GetGameFrame() <= initializeGameFrame then
@@ -543,14 +594,13 @@ local function Update()
 
 	checkUnitGroupsPos()
 
-	local x, y, b, b2, b3 = spGetMouseState()
+	local x, y, b = spGetMouseState()
 	if backgroundRect and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 		hovered = true
 
 		local tooltipTitle = Spring.I18N('ui.idleBuilders.name')
 		local tooltipAddition = ''
 		if backgroundRect and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
-			local alt, ctrl, meta, shift = Spring.GetModKeyState()
 			for i,v in pairs(iconButtons) do
 				if math_isInRect(x, y, iconButtons[i][1], iconButtons[i][2], iconButtons[i][3], iconButtons[i][4]) then
 					local unitDefID = existingIcons[i]
@@ -600,16 +650,23 @@ local function Update()
 		sec2 = 0
 		doUpdate = true
 	end
-
-	if doUpdate then
-		updateList()
-	end
 end
 
 function widget:DrawScreen()
 	Update()
+	if doUpdate or doUpdateForce then
+		updateList(doUpdateForce)
+		doUpdate = false
+		doUpdateForce = nil
+	end
 	if (not spec or showWhenSpec) and dlist then
 		gl.CallList(dlist)
+		if uiTex then
+			gl.Color(1,1,1,1)
+			gl.Texture(uiTex)
+			gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[1]+uiTexWidth, backgroundRect[4], false, true)
+			gl.Texture(false)
+		end
 	end
 end
 
@@ -619,7 +676,7 @@ function widget:MousePress(x, y, button)
 	end
 
 	if backgroundRect and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
-		local alt, ctrl, meta, shift = Spring.GetModKeyState()
+		local _, _, _, shift = Spring.GetModKeyState()
 		if button == 1 or button == 3 then
 			for i,v in pairs(iconButtons) do
 				if math_isInRect(x, y, iconButtons[i][1], iconButtons[i][2], iconButtons[i][3], iconButtons[i][4]) then
@@ -658,7 +715,6 @@ end
 
 function widget:SelectionChanged(sel)
 	selectedUnits = sel or {}
-	selectionHasChanged = true
 end
 
 
