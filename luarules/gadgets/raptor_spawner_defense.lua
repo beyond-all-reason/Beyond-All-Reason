@@ -87,7 +87,8 @@ if gadgetHandler:IsSyncedCode() then
 	local t = 0 -- game time in secondstarget
 	local queenAnger = 0
 	local techAnger = 0
-	local totalQueenMaxHealth
+	local totalQueenMaxHealth = 0
+	local currentTotalQueenMaxHealth = 0
 	local playerAggression = 0
 	local playerAggressionLevel = 0
 	local playerAggressionEcoValue = 0
@@ -870,12 +871,13 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		local totalHealth = 0
-		totalQueenMaxHealth = 0
+		currentTotalQueenMaxHealth = 0
 		for queenID, _ in pairs(queenIDs) do
 			local health, maxHealth = GetUnitHealth(queenID)
 			totalHealth = totalHealth + health
-			totalQueenMaxHealth = totalQueenMaxHealth + maxHealth
+			currentTotalQueenMaxHealth = currentTotalQueenMaxHealth + maxHealth
 		end
+		totalQueenMaxHealth = math.max(currentTotalQueenMaxHealth, totalQueenMaxHealth)
 		SetGameRulesParam("raptorQueenHealth", math.floor(0.5 + ((totalHealth / totalQueenMaxHealth) * 100)))
 	end
 
@@ -1399,10 +1401,7 @@ if gadgetHandler:IsSyncedCode() then
 						notify = 0
 					}
 				end
-				if not totalQueenMaxHealth then
-					updateQueenHealth()
-				end
-				local resistPercent = math.min((queenResistance[attackerDefID].damage) / totalQueenMaxHealth, 0.95)
+				local resistPercent = math.min((queenResistance[attackerDefID].damage) / currentTotalQueenMaxHealth, 0.95)
 				if resistPercent > 0.5 then
 					if queenResistance[attackerDefID].notify == 0 then
 						raptorEvent("queenResistance", attackerDefID)
@@ -1665,7 +1664,6 @@ if gadgetHandler:IsSyncedCode() then
 			if queenID then
 				nSpawnedQueens = nSpawnedQueens + 1
 				queenIDs[queenID] = true
-				Spring.Echo({func="updateSpawnQueen", queen_status = {spawned = nSpawnedQueens, killed = nKilledQueens, ids = queenIDs}})
 
 				local queenSquad = table.copy(squadCreationQueueDefaults)
 				queenSquad.life = 999999
@@ -1997,7 +1995,6 @@ if gadgetHandler:IsSyncedCode() then
 		if queenIDs[unitID] then
 			nKilledQueens = nKilledQueens + 1
 			queenIDs[unitID] = nil
-			Spring.Echo({func="UnitDestroyed", boss_status = {spawned = nSpawnedQueens, killed = nKilledQueens, ids = queenIDs}})
 
 			if nKilledQueens >= nTotalQueens then
 				Spring.SetGameRulesParam("BossFightStarted", 0)
