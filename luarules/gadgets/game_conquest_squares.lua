@@ -603,11 +603,12 @@ VFS.Include(luaShaderDir.."instancevbotable.lua")
 --testing variables
 local TEST_SPEED = 1
 local TEST_SQUARE_COUNT = 7
+local TEST_PROGRESS_RATE = 0.03
 
 --constants
 local SQUARE_SIZE = 1024
 
-local SQUARE_ALPHA = 0.5
+local SQUARE_ALPHA = 0.4
 
 --team stuff
 local myAllyID = select(6, Spring.GetTeamInfo(Spring.GetMyTeamID()))
@@ -672,18 +673,20 @@ uniform float mapSizeZ;
 out DataVS {
 	vec4 color;
 	float progress;
+	vec2 texCoord;
 };
 
 //__ENGINEUNIFORMBUFFERDEFS__
 
 void main() {
-	// Calculate color with pulsing effect
-	float pulse = 0.3 + 0.7 * sin(gameFrame * 0.05);
+	// Pass color without pulsing effect
 	color = color1;
-	color.a *= mix(visibility.z, visibility.w, pulse);
 	
 	// Pass progress for visualization
 	progress = capturestate.y;
+	
+	// Generate texture coordinates for the circle effect
+	texCoord = position.xy * 0.5 + 0.5; // Convert from [-1,1] to [0,1]
 	
 	if (isMinimapRendering == 1) {
 		// Minimap rendering mode
@@ -723,18 +726,69 @@ local fsSrc = [[
 in DataVS {
 	vec4 color;
 	float progress;
+	vec2 texCoord;
 };
 
 out vec4 fragColor;
 
 void main() {
-	// Create a progress bar effect
-	fragColor = color;
+	// Calculate center and corner distances
+	vec2 center = vec2(0.5, 0.5);
+	float distance = length(texCoord - center) * 2.0; // Distance from center, normalized
 	
-	// Optional: Add a progress indicator
-	if (progress > 0.0) {
-		// Add a highlight based on progress
-		fragColor.rgb = mix(fragColor.rgb, vec3(1.0, 1.0, 1.0), progress * 0.3);
+	// Maximum distance is to the corner which is sqrt(2) * 0.5 * 2 = sqrt(2)
+	// So we scale our progress to reach 1.0 at the corner
+	float cornerDistance = sqrt(2.0); // Distance from center to corner in our normalized space
+	float scaledProgress = progress * cornerDistance; // Scale progress to reach corners at 100%
+	
+	// Parameters for square border fade
+	float borderMaxWidth = 0.05; // Full width where border effect applies
+	float borderFadeDistance = 16.0 / 1024.0; // Fade distance converted to texture space (16 units / square size)
+	
+	// Parameters for square edge glow
+	float edgeWidth = 0.05; // Width of the edge glow
+	
+	// Calculate how close we are to any edge of the square
+	float distToEdgeX = min(texCoord.x, 1.0 - texCoord.x);
+	float distToEdgeY = min(texCoord.y, 1.0 - texCoord.y);
+	float distToEdge = min(distToEdgeX, distToEdgeY);
+	
+	// Calculate border opacity with fade effect
+	float borderOpacity = 0.0;
+	if (distToEdge < borderFadeDistance) {
+		// Linear fade from edge (1.0) to inner distance (0.0)
+		borderOpacity = 1.0 - (distToEdge / borderFadeDistance);
+	}
+	
+	// Determine base color
+	vec4 baseColor;
+	if (distance < scaledProgress) {
+		// Inside progress circle - use team color with full opacity
+		baseColor = color;
+	} else if (borderOpacity > 0.0) {
+		// In border area - apply calculated fade
+		baseColor = vec4(color.rgb, color.a * 0.6 * borderOpacity);
+	} else {
+		// Outside progress circle and not in border - completely transparent
+		baseColor = vec4(0.0, 0.0, 0.0, 0.0);
+	}
+	
+	// Calculate edge glow intensity (only applied inside the progress circle)
+	float edgeIntensity = 0.0;
+	if (distToEdge < edgeWidth && distance < scaledProgress) {
+		// Fade based on distance to edge
+		edgeIntensity = 1.0 - (distToEdge / edgeWidth);
+		
+		// Scale edge intensity by progress to make it "grow" with capture
+		edgeIntensity *= progress;
+	}
+	
+	// Apply edge glow if needed
+	if (edgeIntensity > 0.0) {
+		vec3 glowColor = mix(color.rgb, vec3(1.0), 0.3); // Mix with white for glow
+		fragColor = mix(baseColor, vec4(glowColor, color.a), edgeIntensity);
+	} else {
+		fragColor = baseColor;
 	}
 }
 ]]
@@ -897,16 +951,35 @@ function gadget:Update()
 		for i = 1, TEST_SQUARE_COUNT do
 			local instanceData = getElementInstanceData(instanceVBO, i)
 			if instanceData then
-				-- Update progress (4th element in capturestate)
-				instanceData[14] = (instanceData[14] + 0.005) % 1.0
-				
-				--test code, move squares to new random positions periodically
+				-- Randomize position
 				local randomX = random(SQUARE_SIZE, mapSizeX - SQUARE_SIZE)
 				local randomZ = random(SQUARE_SIZE, mapSizeZ - SQUARE_SIZE)
+				
+				-- Randomize color (r,g,b values at indices 5,6,7)
+				local randomR = random(0, 1)
+				local randomG = random(0, 1)
+				local randomB = random(0, 1)
+				
+				-- Randomize progress (at index 14)
+				local randomProgress = random()
 				
 				-- Update position (first 3 elements in posscale)
 				instanceData[1] = randomX
 				instanceData[3] = randomZ
+				
+				-- Update color (elements 5-7 in color1)
+				instanceData[5] = randomR
+				instanceData[6] = randomG
+				instanceData[7] = randomB
+				
+				-- Keep alpha consistent
+				instanceData[8] = SQUARE_ALPHA
+				
+				-- We don't need the visibility parameters for blinking anymore,
+				-- but keep them in the structure to avoid breaking the data layout
+				
+				-- Update progress (2nd element in capturestate)
+				instanceData[14] = randomProgress
 				
 				pushElementInstance(instanceVBO, instanceData, i, true)
 			end
