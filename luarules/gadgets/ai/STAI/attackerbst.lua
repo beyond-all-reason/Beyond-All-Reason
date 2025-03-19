@@ -104,9 +104,9 @@ function AttackerBST:Update()
 			self.damaged = nil
 		end
 	end
-	if self.active and not self.movestateSet then
-		self:SetMoveState()
-	end
+	--if self.active and not self.movestateSet then
+	--	self:SetMoveState()
+	--end
 	if self.active and self.needToMoveToTarget then
 		self.needToMoveToTarget = false
 		self.ai.tool:GiveOrder(self.id,CMD.FIGHT,self.target,0,'1-1')
@@ -151,7 +151,6 @@ function AttackerBST:Advance(pos, perpendicularAttackAngle, reverseAttackAngle)
 	self:EchoDebug('adv',self.attacking,self.active,self.target.x,self.target.z)
 	if self.active and canMoveThere then
 		self:EchoDebug('adv move',self.target.x,self.target.z)
-		print('adv move',self.target.x,self.target.z)
 		return self.target.x,self.target.z
 		--self.unit:Internal():Move(self.target) --need to check this
 	end
@@ -171,10 +170,10 @@ function AttackerBST:Free()
 end
 
 -- this will issue the correct move state to all units
-function AttackerBST:SetMoveState()
+function AttackerBST:SetMoveStatenoooooooooooo()
+	print('ksjhdbcakshjbkjhbkadfv')
 	self.movestateSet = true
-	local thisUnit = self.unit
-	if thisUnit then
+	if self.unit then
 		self.ai.tool:GiveOrder(self.id,CMD.MOVE_STATE, 0, 0,'1-1')
 		--thisUnit:Internal():HoldPosition()
 	end

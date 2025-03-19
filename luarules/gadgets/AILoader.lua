@@ -139,7 +139,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:RecvLuaMsg(msg)
-		--msg = 'StGiveOrderToSync'..';'..id..';'..cmd..';'..pos..';'..opts..';'..timeout..';'..uname..';'.'StEndGOTS'
+		
 		if string.sub(msg,1,17) == 'StGiveOrderToSync' then
 			Spring.Echo('warn:  Shard  receive a old give order protocol',msg)
 			cmdCounter.old = cmdCounter.old + 1
@@ -151,6 +151,7 @@ if gadgetHandler:IsSyncedCode() then
 			
 		else
 			msg = string.sub(msg,13,-13)
+			--print(msg)
 			local order = gadget:RezTable()
 			order = gadget:DeserializeOrder(msg)
 			--Spring.Echo('order',order)
@@ -158,16 +159,15 @@ if gadgetHandler:IsSyncedCode() then
 				Spring.Echo('Deserialize Order failed')
 				return
 			end
-			--if type(order.id) == 'table' then
-			--	for i,index in pairs(order.id) do
-			--		Spring.GetUnitDefID(index)
-			--	end
-			--else
-			--	order.method = '1'
-			--end
+			
 			if order.method == '1-1' then
 				local cmd = spGiveOrderTounit(order.id,order.cmd,order.parameters,order.options)
+				print(Spring.GetUnitTooltip ( order.id ) )
+
+				--Spring.Echo('GiveOrderToUnit',order.id,UnitDefs[order.id].name,order.cmd,order.parameters,order.options)
 				cmdCounter.ii = cmdCounter.ii + 1
+				cmdCounter[order.cmd]	= cmdCounter[order.cmd]  or 0	
+				cmdCounter[order.cmd] = cmdCounter[order.cmd] + 1
 				if not cmd then
 					Spring.Echo('GiveOrderToUnit Error:',cmd)
 				end
@@ -216,7 +216,8 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			
 		end
-		Spring.Echo('cmdCounter','1-1',cmdCounter.ii,'2-1',cmdCounter.zi,'1-2',cmdCounter.iz,'2-2',cmdCounter.zz,'old',cmdCounter.old)
+		--Spring.Echo('cmdCounter','1-1',cmdCounter.ii,'2-1',cmdCounter.zi,'1-2',cmdCounter.iz,'2-2',cmdCounter.zz,'old',cmdCounter.old)
+		Spring.Echo('cmdCounter',cmdCounter)
 	end
 
 

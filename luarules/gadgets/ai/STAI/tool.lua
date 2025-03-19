@@ -192,8 +192,20 @@ function Tool:TableToString(t)
 	if not t then
 		return
 	end
-
+	if t.x  and t.z then
+		if not t.y then
+			Spring.Echo('TableToString: missing y value')
+			return
+		end
+		table.insert(t,1,t.x)
+		table.insert(t,2,t.y)
+		table.insert(t,3,t.z)
+		table.x = nil
+		table.y = nil
+		table.z = nil
+	end
     for k,v in pairs(t) do
+
 		if type(v) == 'number' then
 			serialized = serialized ..v ..','
 		else

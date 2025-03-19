@@ -227,20 +227,29 @@ function AttackHST:SquadAttack(squad)
 		self:EchoDebug('squad',squad.squadID,'no target to attack')
 		return
 	end
+	local _ids = {}
+	local _params = {}
+	local _options = {}
+	local _cmd = {}
 	if self.ai.loshst.OWN[squad.target.X] and self.ai.loshst.OWN[squad.target.X][squad.target.Z] then
 		self:EchoDebug('squad',squad.squadID,'attack a defensive position',squad.target.X,squad.target.Z)
 		for i,member in pairs(squad.members) do
-			member:MoveRandom(squad.target.POS,128)
+			
 		end
+		for i,member in pairs(squad.members) do
+			table.insert(_ids, member.unit:Internal():ID())
+			table.insert(_params, squad.target.POS)
+			table.insert(_options, 0)
+			table.insert(_cmd, CMD.FIGHT)
+			
+		end
+		self.ai.tool:GiveOrder(_ids,_cmd,_params,_options,'2-1')
 		self:EchoDebug('squad',squad.squadID,'execute defense')
 		return true
 	end
 	if self.ai.loshst.ENEMY[squad.target.X] and self.ai.loshst.ENEMY[squad.target.X][squad.target.Z]  and self.ai.tool:distance(squad.position,squad.target.POS) < 256 then
 		self:EchoDebug('squad',squad.squadID,'are near to offensive target, do attack')
-		local _ids = {}
-		local _params = {}
-		local _options = {}
-		local _cmd = {}
+	
 		for i,member in pairs(squad.members) do
 			if not squad.target.units then
 				self:EchoDebug('squad',squad.squadID,'no target units')
@@ -294,25 +303,22 @@ function AttackHST:SquadAdvance(squad)
 	if not squad.target or not squad.path then
 		return
 	end
-	local x,y,z
 	self:EchoDebug('squad.pathStep',squad.step,'#squad.path',#squad.path)
 	self:SquadStepComplete(squad)
-	local members = squad.members
-	local nextPos = squad.path[squad.step]
 	local angle = math.min (squad.step + 1,#squad.path)
-	local nextAngle = self.ai.tool:AnglePosPos(nextPos, squad.path[angle])
+	local nextAngle = self.ai.tool:AnglePosPos(squad.path[squad.step], squad.path[angle])
 	local nextPerpendicularAngle = self.ai.tool:AngleAdd(nextAngle, halfPi)
- 	squad.lastValidMove = nextPos -- attackers use this to correct bad move orders
-	self:EchoDebug('advance #members',#members)
+ 	squad.lastValidMove = squad.path[squad.step] -- attackers use this to correct bad move orders
+	self:EchoDebug('advance #squad.members',#squad.members)
 	local p = {}
 	local cmdUnitId = {}
 	local cmdUnitCommand = {}
 	local cmdUnitParams = {}
 	local cmdUnitOptions = {}
-	for i,member in pairs(members) do
+	for i,member in pairs(squad.members) do
 		local pos
  		if member.formationBack and squad.step ~= #squad.path then
- 			pos = self.ai.tool:RandomAway( nextPos, -member.formationBack, nil, nextAngle)
+ 			pos = self.ai.tool:RandomAway( squad.path[squad.step], -member.formationBack, nil, nextAngle)
  		end
  		local reverseAttackAngle
  		if squad.step == #squad.path then
@@ -323,7 +329,7 @@ function AttackHST:SquadAdvance(squad)
 			p[2] = pos.y
 			p[3] = pos.z
 		else
-			local nx,nz = member:Advance(pos or nextPos, nextPerpendicularAngle, reverseAttackAngle)
+			local nx,nz = member:Advance(pos or squad.path[squad.step], nextPerpendicularAngle, reverseAttackAngle)
 			if not nx or not nz then
 				return
 			else
@@ -340,7 +346,7 @@ function AttackHST:SquadAdvance(squad)
 
 		
 	end
-	local command = self.ai.tool:GiveOrder(cmdUnitId,cmdUnitCommand ,cmdUnitParams,cmdUnitOptions,'2-2')
+	self.ai.tool:GiveOrder(cmdUnitId,cmdUnitCommand ,cmdUnitParams,cmdUnitOptions,'2-2')
 	squad.lastAdvance = game:Frame()
 	self:EchoDebug('advance after members move')
 end
@@ -506,7 +512,7 @@ function AttackHST:AddRecruit(attkbhvr)
 			if self.recruits[mtype] == nil then self.recruits[mtype] = {} end
 			local level = attkbhvr.level
 			table.insert(self.recruits[mtype], attkbhvr)
-			attkbhvr:SetMoveState()
+			--attkbhvr:SetMoveState()
 			attkbhvr:Free()
 		else
 			self:EchoDebug("unit is nil!")

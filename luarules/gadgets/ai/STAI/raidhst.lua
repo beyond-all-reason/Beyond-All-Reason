@@ -539,7 +539,7 @@ function RaidHST:AddRecruit(attkbhvr)
 			local level = attkbhvr.level
 			table.insert(self.recruits[mtype], attkbhvr)
 			--self.ai.tool:GiveOrder(attkbhvr.unit:Internal():ID(),CMD.MOVE_STATE,0,0,'1-1')
-			attkbhvr:SetMoveState()
+			--attkbhvr:SetMoveState()
 			attkbhvr:Free()
 		else
 			self:EchoDebug("unit is nil!")
