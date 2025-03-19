@@ -1995,6 +1995,7 @@ if gadgetHandler:IsSyncedCode() then
 		if queenIDs[unitID] then
 			nKilledQueens = nKilledQueens + 1
 			queenIDs[unitID] = nil
+			SetGameRulesParam("raptorQueensKilled", nKilledQueens)
 
 			if nKilledQueens >= nTotalQueens then
 				Spring.SetGameRulesParam("BossFightStarted", 0)
