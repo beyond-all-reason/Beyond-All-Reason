@@ -1231,6 +1231,8 @@
 				"guishader": "blur",
 				"guishader_descr": "Blurs the world under every user interface element",
 				"guishaderintensity": "   intensity",
+				"rendertotexture": "performance mode",
+				"rendertotexture_descr": "Draw various UI elements to texture instead of drawing lists of multiple OpenGL commands repeatedly\n\nNOTE: Quality may be reduced when enabled (especially on lower resolution screens)",
 				"font": "font",
 				"font_descr": "Regular read friendly font used for text",
 				"font2": "font 2",

@@ -60,7 +60,7 @@ end
 
 local vsx, vsy = Spring.GetViewGeometry()
 
-local useRenderToTexture = true		-- much faster than drawing via DisplayLists only
+local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
 
 local customScale = 1
 local pointDuration = 45
@@ -991,12 +991,12 @@ function GetSkill(playerID)
             end
 
             -- show sigma
-            local tsRed, tsGreen, tsBlue = 195, 195, 195
+            local tsRed, tsGreen, tsBlue = 222, 222, 222
             if osSigma then
                 local color = math.clamp(1-((tonumber(osSigma-2) * 0.4)-1), 0.5, 1)
-                color = math.max(0.7, color * color)
-                local color2 = math.max(0.35, color * color)
-                tsRed, tsGreen, tsBlue = math.floor(222 * color), math.floor(222 * color2), math.floor(222 * color2)
+                color = math.max(0.75, color * color)
+                local color2 = math.max(0.75, color * color)
+                tsRed, tsGreen, tsBlue = math.floor(255 * color), math.floor(255 * color2), math.floor(255 * color2)
             end
             osSkill = priv .. "\255" .. string.char(tsRed) .. string.char(tsGreen) .. string.char(tsBlue) .. osSkill
         end
@@ -1861,7 +1861,8 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
                     gl.Translate(-1, -1, 0)
                     gl.Scale(2 / (apiAbsPosition[4]-apiAbsPosition[2]), 2 / (apiAbsPosition[1]-apiAbsPosition[3]), 0)
                     gl.Scale(widgetScale, widgetScale, 0)
-                    gl.Translate(-apiAbsPosition[2]-(backgroundMargin*0.5*widgetScale), -apiAbsPosition[3]-(backgroundMargin*0.5*widgetScale), 0)
+                    local scaleMult = 1 + ((widgetScale-1) * 3.5)   -- dont ask me why but this seems to come closest approximately
+                    gl.Translate(-apiAbsPosition[2]-(backgroundMargin*0.25*scaleMult), -apiAbsPosition[3]-(backgroundMargin*0.25*scaleMult), 0)
                     drawMainList()
                     gl.PopMatrix()
                 end)
@@ -2607,13 +2608,11 @@ function DrawID(playerID, posY, dark, dead)
         spacer = " "
     end
     local fontsize = 9.5 * (playerScale + ((1-playerScale)*0.25))
-    -- I dont know the fuck why the following RectRound or a plain gl.Rect) hardly shows up when using rendertotexture so lets brighten it!
-    local alphaMult = useRenderToTexture and 1.5 or 1
     font:Begin()
     if dead then
-        font:SetTextColor(1, 1, 1, 0.4*alphaMult)
+        font:SetTextColor(1, 1, 1, useRenderToTexture and 0.85 or 0.4)    -- I dont know the fuck why the following RectRound or a plain gl.Rect) hardly shows up when using rendertotexture so lets brighten it!
     else
-        font:SetTextColor(1, 1, 1, math.min(0.8, 0.66*alphaMult))
+        font:SetTextColor(1, 1, 1, 1)
     end
     font:Print(spacer .. playerID, m_ID.posX + widgetPosX + (4.5*playerScale), posY + (5.3*playerScale), fontsize, "on")
     font:End()
