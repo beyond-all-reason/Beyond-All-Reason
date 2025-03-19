@@ -77,6 +77,7 @@ local raptor_queen_count = Spring.GetModOptions().raptor_queen_count
 local rules = {
 	"raptorQueenTime",
 	"raptorQueenAnger",
+	"raptorQueensKilled",
 	"raptorTechAnger",
 	"raptorGracePeriod",
 	"raptorQueenHealth",
@@ -198,6 +199,9 @@ local function CreatePanelDisplayList()
 			end
 		else
 			font:Print(textColor .. Spring.I18N('ui.raptors.queenHealth'..(raptor_queen_count > 1 and 's' or ''), { health = gameInfo.raptorQueenHealth }), panelMarginX, PanelRow(1), panelFontSize, "")
+			if raptor_queen_count > 1 then
+				font:Print(textColor .. Spring.I18N('ui.raptors.queensKilled', { nKilled = gameInfo.raptorQueensKilled, nTotal = raptor_queen_count }), panelMarginX, PanelRow(2), panelFontSize, "")
+			end
 			for i = 1,#currentlyResistantToNames do
 				if i == 1 then
 					font:Print(textColor .. Spring.I18N('ui.raptors.queen'..(raptor_queen_count > 1 and 's' or '')..'ResistantToList'), panelMarginX, PanelRow(11), panelFontSize, "")

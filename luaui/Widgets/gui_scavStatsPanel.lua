@@ -77,6 +77,7 @@ local scav_boss_count = Spring.GetModOptions().scav_boss_count
 local rules = {
 	"scavBossTime",
 	"scavBossAnger",
+	"scavBossesKilled",
 	"scavTechAnger",
 	"scavGracePeriod",
 	"scavBossHealth",
@@ -158,6 +159,9 @@ local function CreatePanelDisplayList()
 			end
 		else
 			font:Print(textColor .. Spring.I18N('ui.scavs.bossHealth'..(scav_boss_count > 1 and 's' or ''), { health = gameInfo.scavBossHealth }), panelMarginX, PanelRow(1), panelFontSize, "")
+			if scav_boss_count > 1 then
+				font:Print(textColor .. Spring.I18N('ui.scavs.bossesKilled', { nKilled = gameInfo.scavBossesKilled, nTotal = scav_boss_count }), panelMarginX, PanelRow(2), panelFontSize, "")
+			end
 			for i = 1,#currentlyResistantToNames do
 				if i == 1 then
 					font:Print(textColor .. Spring.I18N('ui.scavs.boss'..(scav_boss_count > 1 and 'es' or '')..'ResistantToList'), panelMarginX, PanelRow(12), panelFontSize, "")

@@ -2292,7 +2292,7 @@ if gadgetHandler:IsSyncedCode() then
 		if bossIDs[unitID] then
 			nKilledBosses = nKilledBosses + 1
 			bossIDs[unitID] = nil
-			--Spring.Echo({func="UnitDestroyed", boss_status = {spawned = nSpawnedBosses, killed = nKilledBosses, ids = bossIDs}})
+			SetGameRulesParam("scavBossesKilled", nKilledBosses)
 
 			if nKilledBosses >= nTotalBosses then
 				Spring.SetGameRulesParam("BossFightStarted", 0)
