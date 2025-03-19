@@ -81,9 +81,9 @@ end
 function AttackerBST:Activate()
 	self.active = true
 	self.movestateSet = false
-	if self.target then
-		self.needToMoveToTarget = true
-	end
+	--if self.target then
+	--	self.needToMoveToTarget = true
+	--end
 end
 
 function AttackerBST:Deactivate()
@@ -107,12 +107,12 @@ function AttackerBST:Update()
 	--if self.active and not self.movestateSet then
 	--	self:SetMoveState()
 	--end
-	if self.active and self.needToMoveToTarget then
-		self.needToMoveToTarget = false
-		self.ai.tool:GiveOrder(self.id,CMD.FIGHT,self.target,0,'1-1')
+	--if self.active and self.needToMoveToTarget then
+	--	self.needToMoveToTarget = false
+	--	self.ai.tool:GiveOrder(self.id,CMD.FIGHT,self.target,0,'1-1')
 		--self.unit:Internal():AttackMove(self.target) --need to check this
 
-	end
+	--end
 end
 
 function AttackerBST:MoveRandom(pos,dist)
@@ -170,7 +170,7 @@ function AttackerBST:Free()
 end
 
 -- this will issue the correct move state to all units
-function AttackerBST:SetMoveStatenoooooooooooo()
+function AttackerBST:SetMoveState()
 	print('ksjhdbcakshjbkjhbkadfv')
 	self.movestateSet = true
 	if self.unit then

@@ -61,7 +61,7 @@ function CommanderBST:Activate()
 	self.active = true
 
 	if self.safeBuilder then
-		self.unit:Internal():Guard(game:GetUnitByID(self.safeBuilder))
+		self.ai.tool:GiveOrder(self.id,CMD.GUARD,self.safeBuilder,0,'1-1')
 	elseif self.safeHouse then
 		self:HelpFactory()
 	end
@@ -85,6 +85,8 @@ end
 
 
 function CommanderBST:HelpFactory()
+	self.ai.tool:GiveOrder(self.id,CMD.GUARD, self.safeHouse.id, 0,'1-1')
+	--[[
 	local angle = math.random() * twicePi
 	--self.unit:Internal():Move(self.ai.tool:RandomAway( self.safeHouse.position, 200, nil, angle))
 	self.ai.tool:GiveOrder(self.id,CMD.MOVE, self.ai.tool:RandomAway( self.safeHouse.position, 200, nil, angle), 0,'1-1')
@@ -95,8 +97,8 @@ function CommanderBST:HelpFactory()
 			self.ai.tool:GiveOrder(self.id,CMD.PATROL, pos, 0,'1-1')
 			--self.unit:Internal():Patrol({pos.x,pos.y,pos.z,0})
 		else
-			self.ai.tool:GiveOrder(self.id,CMD.GUARD, self.safeHouse.id, 0,'1-1')
+			
 			--self.unit:Internal():Guard(game:GetUnitByID(self.safeHouse.id))
 		end
-	end
+	end]]
 end

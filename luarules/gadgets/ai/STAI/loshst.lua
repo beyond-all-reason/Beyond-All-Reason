@@ -76,7 +76,6 @@ end
 
 function LosHST:FreeCellsToPool(grid)
 	local gridname = 'pool'..grid
-
 	for x, row in pairs(self[grid]) do
 		for z, cell in pairs(row) do
 
@@ -89,9 +88,6 @@ end
 
 function LosHST:Update()
 	if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
--- 	self.ENEMY = self.ENEMY or {} -- WAIT BUT WHY REALLOC EVERY FRAME?
--- 	self.OWN = self.OWN or {}
--- 	self.ALLY = self.ALLY or {}
 	self:FreeCellsToPool('ENEMY')
 	self:FreeCellsToPool('OWN')
 	self:FreeCellsToPool('ALLY')
@@ -128,10 +124,7 @@ function LosHST:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
 	if allyTeam ~= self.ai.allyId then
 		return
 	end
-	local los = game:GetUnitLos(unitID)
-	local unit = game:GetUnitByID(unitID)
-	--local position = unit:GetPosition()
-	self:EchoDebug(	'ENTER LOS',los,unitID,unitTeam,allyTeam,unitDefID,UnitDefs[unitDefID].name)
+	self:EchoDebug(	'ENTER LOS',unitID,unitTeam,allyTeam,unitDefID,UnitDefs[unitDefID].name)
 	self.losEnemy[unitID] = unitDefID
 	self.radarEnemy[unitID] = nil
 end
@@ -140,8 +133,6 @@ function LosHST:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
 	if allyTeam ~= self.ai.allyId then
 		return
 	end
-	local los = game:GetUnitLos(unitID)
-	local unit = game:GetUnitByID(unitID)
 	local speed = UnitDefs[unitDefID].speed
 	if speed == 0  then
 		self.losEnemy[unitID] = unitDefID
@@ -149,31 +140,25 @@ function LosHST:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
 	else
 		self.losEnemy[unitID] = nil
 	end
-	self:EchoDebug('LEFT LOS',los,unitID,unitTeam,allyTeam,unitDefID)
+	self:EchoDebug('LEFT LOS',unitID,unitTeam,allyTeam,unitDefID)
 end
 
 function LosHST:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
 	if allyTeam ~= self.ai.allyId then
 		return
 	end
-	local los = game:GetUnitLos(unitID)
-	local unit = game:GetUnitByID(unitID)
-	local isImmobile = UnitDefs[unitDefID].speed == 0
 	if not self.losEnemy[unitID] then
 		self.radarEnemy[unitID] = unitDefID
 	end
-	self:EchoDebug('ENTER RADAR',los,unitID,unitTeam,allyTeam,unitDefID)
+	self:EchoDebug('ENTER RADAR',unitID,unitTeam,allyTeam,unitDefID)
 end
 
 function LosHST:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
 	if allyTeam ~= self.ai.allyId then
 		return
 	end
-	local los = game:GetUnitLos(unitID)
-	local unit = game:GetUnitByID(unitID)
-	local speed = UnitDefs[unitDefID].speed
 	self.radarEnemy[unitID] = nil
-	self:EchoDebug('LEFT RADAR',los,unitID,unitTeam,allyTeam,unitDefID)
+	self:EchoDebug('LEFT RADAR',unitID,unitTeam,allyTeam,unitDefID)
 end
 
 
@@ -268,23 +253,6 @@ function LosHST:setPosLayer2(unitName,x,y,z)
 	return 0 , floating
 end
 
--- function LosHST:getCenter2()
--- 	self.CENTER = self.CENTER or {}
--- 	self.CENTER.x = 0
--- 	self.CENTER.y = 0
--- 	self.CENTER.z = 0
--- 	local count = 0
--- 	for id,lab in pairs(self.ai.labshst.labs) do
--- 		self.CENTER.x = self.CENTER.x + lab.position.x
--- 		self.CENTER.y = self.CENTER.y + lab.position.y
--- 		self.CENTER.z = self.CENTER.z + lab.position.z
--- 		count = count+1
--- 	end
--- 	self.CENTER.x = self.CENTER.x / count
--- 	self.CENTER.y = self.CENTER.y / count
--- 	self.CENTER.z = self.CENTER.z / count
--- end
-
 function LosHST:getCenter()
 	self.CENTER = self.CENTER or {}
 	self.CENTER.x = 0
@@ -294,7 +262,6 @@ function LosHST:getCenter()
 	for uid,uDef in pairs(self.ownImmobile) do
 		local u = game:GetUnitByID(uid)
 		local x,y,z = u:GetRawPos()
--- 		self:EchoDebug('unitposx',x,u.x,u.y,u.z)
 		if upos then
 			self.CENTER.x = self.CENTER.x + x
 			self.CENTER.y = self.CENTER.y + y
@@ -632,18 +599,17 @@ function LosHST:Draw()
 			local pos1, pos2 = api.Position(), api.Position()--z,api.Position(),api.Position(),api.Position()
 			pos1.x, pos1.z = p.x - cellElmosHalf, p.z - cellElmosHalf
 			pos2.x, pos2.z = p.x + cellElmosHalf, p.z + cellElmosHalf
-			pos1.y=Spring.GetGroundHeight(pos1.x,pos1.z)
-			pos2.y=Spring.GetGroundHeight(pos2.x,pos2.z)
+			pos1.y = Spring.GetGroundHeight(pos1.x,pos1.z)
+			pos2.y = Spring.GetGroundHeight(pos2.x,pos2.z)
 			self:EchoDebug('drawing',pos1.x,pos1.z,pos2.x,pos2.z)
 			if cell.ENEMY_BALANCE > 0 then
 				map:DrawRectangle(pos1, pos2, colours.p, cell.ENEMY_BALANCE, false, ch)
 			else
 				map:DrawRectangle(pos1, pos2, colours.f, cell.ENEMY_BALANCE, false, ch)
 			end
-			posG = {x = p.x - cellElmosHalf/2, y = p.y , z = p.z - cellElmosHalf/2}
-			posS = {x = p.x + cellElmosHalf/2, y = p.y , z = p.z - cellElmosHalf/2}
-			posB = {x = p.x - cellElmosHalf/2, y = p.y , z = p.z + cellElmosHalf/2}
-			posA = {x = p.x + cellElmosHalf/2, y = p.y , z = p.z + cellElmosHalf/2}
+			local posG = {x = p.x - cellElmosHalf/2, y = p.y , z = p.z - cellElmosHalf/2}
+			local posS = {x = p.x + cellElmosHalf/2, y = p.y , z = p.z - cellElmosHalf/2}
+			local posA = {x = p.x + cellElmosHalf/2, y = p.y , z = p.z + cellElmosHalf/2}
 
 			if cell.G > 0 then
 				map:DrawCircle(posG, cellElmosHalf/2,colours.g , cell.G, true, ch)

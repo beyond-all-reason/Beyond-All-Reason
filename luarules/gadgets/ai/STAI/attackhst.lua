@@ -243,7 +243,7 @@ function AttackHST:SquadAttack(squad)
 			table.insert(_cmd, CMD.FIGHT)
 			
 		end
-		self.ai.tool:GiveOrder(_ids,_cmd,_params,_options,'2-1')
+		self.ai.tool:GiveOrder(_ids,_cmd,_params,_options,'1-2')
 		self:EchoDebug('squad',squad.squadID,'execute defense')
 		return true
 	end
@@ -259,10 +259,10 @@ function AttackHST:SquadAttack(squad)
 			table.insert(_ids, member.unit:Internal():ID())
 			table.insert(_params, squad.target.POS)
 			table.insert(_options, 0)
-			table.insert(_comds, CMD.FIGHT)
+			table.insert(_cmd, CMD.FIGHT)
 			
 		end
-		self.ai.tool:GiveOrder(_ids,_cmd,_params,_options,'2-1')
+		self.ai.tool:GiveOrder(_ids,_cmd,_params,_options,'1-2')
 		return true
 	end
 end

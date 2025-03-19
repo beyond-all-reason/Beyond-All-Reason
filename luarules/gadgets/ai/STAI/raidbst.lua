@@ -81,9 +81,9 @@ end
 function RaidBST:Activate()
 	self.active = true
 	self.movestateSet = false
-	if self.target then
-		self.needToMoveToTarget = true
-	end
+	--if self.target then
+	--	self.needToMoveToTarget = true
+	--end
 end
 
 function RaidBST:Deactivate()
@@ -104,16 +104,16 @@ function RaidBST:Update()
 			self.damaged = nil
 		end
 	end
-	if self.active and not self.movestateSet then
-		self:SetMoveState()
-	end
-	if self.active and self.needToMoveToTarget then
-		self.needToMoveToTarget = false
+	--if self.active and not self.movestateSet then
+	--	self:SetMoveState()
+	--end
+	--if self.active and self.needToMoveToTarget then
+	--	self.needToMoveToTarget = false
 		
 		--self.unit:Internal():AttackMove(self.target) --need to check this
-		self.ai.tool:GiveOrder(self.unit:Internal():ID(),CMD.FIGHT,self.target,0,'1-1')
+	--	self.ai.tool:GiveOrder(self.unit:Internal():ID(),CMD.FIGHT,self.target,0,'1-1')
 
-	end
+	--end
 end
 
 function RaidBST:MoveRandom(pos,dist)

@@ -239,23 +239,40 @@ function RaidHST:SquadAttack(squad)
 		self:EchoDebug('squad',squad.squadID,'no target to raid')
 		return
 	end
+	local p = {}
+	local cmdUnitId = {}
+	local cmdUnitCommand = {}
+	local cmdUnitParams = {}
+	local cmdUnitOptions = {}
 	if self.ai.loshst.OWN[squad.target.X] and self.ai.loshst.OWN[squad.target.X][squad.target.Z] then
 		self:EchoDebug('squad',squad.squadID,'raid a defensive position',squad.target.X,squad.target.Z)
+
 		for i,member in pairs(squad.members) do
-			member:MoveRandom(squad.target.POS,128)
+			table.insert(cmdUnitId, member.unit:Internal():ID())
+			table.insert(cmdUnitParams, squad.target.POS)
+			table.insert(cmdUnitOptions, 0)
+			table.insert(cmdUnitCommand, CMD.MOVE)
+			--member:MoveRandom(squad.target.POS,128)
 		end
+		self.ai.tool:GiveOrder(cmdUnitId,cmdUnitCommand,cmdUnitParams,cmdUnitOptions,'1-2')
 		self:EchoDebug('squad',squad.squadID,'execute defense')
 		return true
 	end
 	if self.ai.loshst.ENEMY[squad.target.X] and self.ai.loshst.ENEMY[squad.target.X][squad.target.Z]  and self.ai.tool:distance(squad.position,squad.target.POS) < 256 then
 		self:EchoDebug('squad',squad.squadID,'are near to offensive target, do raid')
 		for i,member in pairs(squad.members) do
-			if squad.target.units then
-				for id,_ in pairs(squad.target.units) do
-					member.unit:Internal():Attack(id)
-				end
-			end
+			table.insert(cmdUnitId, member.unit:Internal():ID())
+			table.insert(cmdUnitParams, squad.target.POS)
+			table.insert(cmdUnitOptions, 0)
+			table.insert(cmdUnitCommand, CMD.FIGHT)
+			--if squad.target.units then
+			--	for id,_ in pairs(squad.target.units) do
+			--		member.unit:Internal():Attack(id)
+			--	end
+			--end
 		end
+		self.ai.tool:GiveOrder(cmdUnitId,cmdUnitCommand,cmdUnitParams,cmdUnitOptions,'1-2')
+		self:EchoDebug('squad',squad.squadID,'execute raid')
 		return true
 	end
 end
