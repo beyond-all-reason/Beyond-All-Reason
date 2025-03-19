@@ -142,7 +142,7 @@ local function CreatePanelDisplayList()
 				gain = math.round(Spring.GetGameRulesParam("ScavBossAngerGain_Base"), 3) + math.round(Spring.GetGameRulesParam("ScavBossAngerGain_Aggression"), 3) + math.round(Spring.GetGameRulesParam("ScavBossAngerGain_Eco"), 3)
 			end
 			--font:Print(textColor .. Spring.I18N('ui.scavs.bossAngerWithGain', { anger = gameInfo.scavBossAnger, gain = math.round(gain, 3) }), panelMarginX, PanelRow(1), panelFontSize, "")
-			font:Print(textColor .. Spring.I18N('ui.scavs.bossAngerWithTech', { anger = gameInfo.scavBossAnger, techAnger = gameInfo.scavTechAnger}), panelMarginX, PanelRow(1), panelFontSize, "")
+			font:Print(textColor .. Spring.I18N('ui.scavs.bossAngerWithTech', { anger = math.floor(0.5+gameInfo.scavBossAnger), techAnger = gameInfo.scavTechAnger}), panelMarginX, PanelRow(1), panelFontSize, "")
 
 			local totalSeconds = ((100 - gameInfo.scavBossAnger) / gain)
 			if currentTime <= gameInfo.scavGracePeriod then
