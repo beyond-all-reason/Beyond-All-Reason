@@ -374,6 +374,23 @@ function UnitDef_Post(name, uDef)
 			end
 		end
 
+		if uDef.customparams.evolution_target then
+			local defaultTimerSeconds             = 20 * Game.gameSpeed
+			local defaultPowerThreshold           = 600
+			local defaultCombatRadius             = 1000
+			local udcp                            = uDef.customparams
+			udcp.combatRadius                     = udcp.combatradius == nil and defaultCombatRadius or tonumber(udcp.combatradius)
+			udcp.evolution_announcement_size      = tonumber(udcp.evolution_announcement_size)
+			udcp.evolution_condition              = udcp.evolution_condition or "timer"
+			udcp.evolution_disable_deathsequence  = udcp.evolution_disable_deathsequence == nil and true or not not tonumber(udcp.evolution_disable_deathsequence)
+			udcp.evolution_health_threshold       = tonumber(udcp.evolution_health_threshold) or 0
+			udcp.evolution_health_transfer        = udcp.evolution_health_transfer or "flat"
+			udcp.evolution_power_enemy_multiplier = tonumber(udcp.evolution_power_enemy_multiplier) or 1
+			udcp.evolution_power_multiplier       = tonumber(udcp.evolution_power_multiplier) or 1
+			udcp.evolution_power_threshold        = tonumber(udcp.evolution_power_threshold) or defaultPowerThreshold
+			udcp.evolution_timer                  = tonumber(udcp.evolution_timer) or defaultTimerSeconds
+		end
+
 		if modOptions.unit_restrictions_notacnukes then
 			local TacNukes = {
 				armemp = true,

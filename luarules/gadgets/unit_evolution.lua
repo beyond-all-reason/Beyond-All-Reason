@@ -225,24 +225,17 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		local udcp = UnitDefs[unitDefID].customParams
 		if udcp.evolution_target then
-			local defaultTimer = 20 * GAME_SPEED
-			evolutionMetaList[unitID] = {
-				evolution_target = udcp.evolution_target,
-				evolution_condition = udcp.evolution_condition or "timer",
-				evolution_timer = tonumber(udcp.evolution_timer) or defaultTimer,
-				evolution_power_threshold = tonumber(udcp.evolution_power_threshold) or 600,
-				evolution_power_enemy_multiplier = tonumber(udcp.evolution_power_enemy_multiplier) or 1,
-				evolution_power_multiplier = tonumber(udcp.evolution_power_multiplier) or 1,
-				evolution_health_threshold = tonumber(udcp.evolution_health_threshold) or 0,
-				evolution_disable_deathsequence = udcp.evolution_disable_deathsequence or true,
-				evolution_announcement = udcp.evolution_announcement,
-				evolution_announcement_size = tonumber(udcp.evolution_announcement_size),
-				combatRadius = tonumber(udcp.combatradius) or 1000,
-				evolution_health_transfer =  udcp.evolution_health_transfer or "flat",
-
-				timeCreated = spGetGameSeconds(),
-				combatTimer = nil,
-			}
+			evolutionMetaList[unitID] = table.merge(udcp, {
+				combatRadius                     = tonumber(udcp.combatradius),
+				evolution_announcement_size      = tonumber(udcp.evolution_announcement_size),
+				evolution_disable_deathsequence  = udcp.evolution_disable_deathsequence == nil and true or not not tonumber(udcp.evolution_disable_deathsequence),
+				evolution_health_threshold       = tonumber(udcp.evolution_health_threshold),
+				evolution_power_enemy_multiplier = tonumber(udcp.evolution_power_enemy_multiplier),
+				evolution_power_multiplier       = tonumber(udcp.evolution_power_multiplier),
+				evolution_power_threshold        = tonumber(udcp.evolution_power_threshold),
+				evolution_timer                  = tonumber(udcp.evolution_timer),
+				timeCreated                      = spGetGameSeconds(),
+			})
 		end
 	end
 
@@ -313,9 +306,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function IsEvolutionTimePassed(evolution, currentTime)
-		return ((not evolution.evolution_condition or evolution.evolution_condition == 'timer')
-			and (currentTime - evolution.timeCreated) >= evolution.evolution_timer
-			)
+		return (evolution.evolution_condition == 'timer' and (currentTime - evolution.timeCreated) >= evolution.evolution_timer)
 			or (evolution.evolution_condition == 'timer_global' and currentTime >= evolution.evolution_timer)
 	end
 
