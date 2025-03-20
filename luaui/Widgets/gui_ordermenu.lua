@@ -348,7 +348,7 @@ function widget:ViewResize()
 	doUpdate = true
 
 	if ordermenuTex then
-		gl.DeleteTexture(ordermenuTex)
+		gl.DeleteTextureFBO(ordermenuTex)
 		ordermenuTex = nil
 	end
 end
@@ -415,7 +415,7 @@ function widget:Shutdown()
 	end
 	displayListOrders = gl.DeleteList(displayListOrders)
 	if ordermenuTex then
-		gl.DeleteTexture(ordermenuTex)
+		gl.DeleteTextureFBO(ordermenuTex)
 		ordermenuTex = nil
 	end
 	WG['ordermenu'] = nil
@@ -793,16 +793,16 @@ function widget:DrawScreen()
 			end)
 			if useRenderToTexture then
 				if not ordermenuTex then
-					local ui_sharpness = Spring.GetConfigFloat("ui_sharpness", 1)
-					ordermenuTex = gl.CreateTexture(math_floor(width*viewSizeX*ui_sharpness), math_floor(height*viewSizeY*ui_sharpness), {
+					ordermenuTex = gl.CreateTexture(math_floor(width*viewSizeX), math_floor(height*viewSizeY), {
 						target = GL.TEXTURE_2D,
-						format = GL.RGBA,
+						format = GL.ALPHA,
 						fbo = true,
 					})
 				end
 				if ordermenuTex then
 					gl.RenderToTexture(ordermenuTex, function()
 						gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+						gl.Color(1,1,1,1)
 						gl.PushMatrix()
 						gl.Translate(-1, -1, 0)
 						gl.Scale(2 / (width*viewSizeX), 2 / (height*viewSizeY),	0)

@@ -377,7 +377,7 @@ local function updateList(force)
 			if usedWidth > uiTexWidth then
 				uiTexWidth = usedWidth
 				if uiTex then
-					gl.DeleteTexture(uiTex)
+					gl.DeleteTextureFBO(uiTex)
 					uiTex = nil
 				end
 			end
@@ -397,8 +397,7 @@ local function updateList(force)
 		end)
 		if useRenderToTexture then
 			if not uiTex then
-				local ui_sharpness = Spring.GetConfigFloat("ui_sharpness", 1)
-				uiTex = gl.CreateTexture(math.floor(uiTexWidth*ui_sharpness), math.floor((backgroundRect[4]-backgroundRect[2])*ui_sharpness), {
+				uiTex = gl.CreateTexture(math.floor(uiTexWidth), math.floor(backgroundRect[4]-backgroundRect[2]), {
 					target = GL.TEXTURE_2D,
 					format = GL.RGBA,
 					fbo = true,
@@ -557,7 +556,7 @@ function widget:Shutdown()
 		gl.DeleteList(dlist)
 	end
 	if uiTex then
-		gl.DeleteTexture(uiTex)
+		gl.DeleteTextureFBO(uiTex)
 		uiTex = nil
 	end
 	if WG['guishader'] then

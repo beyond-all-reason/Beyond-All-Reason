@@ -583,7 +583,7 @@ function widget:ViewResize()
 	doUpdate = true
 	clear()
 	if infoTex then
-		gl.DeleteTexture(infoTex)
+		gl.DeleteTextureFBO(infoTex)
 		infoTex = nil
 	end
 
@@ -722,7 +722,7 @@ function widget:Shutdown()
 	Spring.SendCommands("tooltip 1")
 	clear()
 	if infoTex then
-		gl.DeleteTexture(infoTex)
+		gl.DeleteTextureFBO(infoTex)
 		infoTex = nil
 	end
 	if WG['guishader'] and dlistGuishader then
@@ -1895,8 +1895,7 @@ function widget:DrawScreen()
 		end)
 		if useRenderToTexture then
 			if not infoTex then
-				local ui_sharpness = Spring.GetConfigFloat("ui_sharpness", 1)
-				infoTex = gl.CreateTexture(math_floor(width*vsx*ui_sharpness), math_floor(height*vsy*ui_sharpness), {
+				infoTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
 					target = GL.TEXTURE_2D,
 					format = GL.RGBA,
 					fbo = true,
