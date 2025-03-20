@@ -103,7 +103,7 @@ return {
 			},
 		},
 		weapondefs = {
-			close_plasma = {
+			lobber_plasma_cannon = {
 				areaofeffect = 24,
 				avoidfeature = false,
 				craterareaofeffect = 0,
@@ -114,7 +114,7 @@ return {
 				gravityaffected = "true",
 				impulsefactor = 0.123,
 				mygravity = 0.1,
-				name = "Forwards Plasma Cannon",
+				name = "Light Cannon",
 				noselfdamage = true,
 				predictboost = 0.6,
 				range = 400,
@@ -131,7 +131,7 @@ return {
 					vtol = 21,
 				},
 			},
-			far_plasma = {
+			lobber_vertical_plasma_cannon = {
 				accuracy = 275,
 				areaofeffect = 48,
 				avoidfeature = false,
@@ -144,7 +144,7 @@ return {
 				hightrajectory = 1,
 				impulsefactor = 0.123,
 				mygravity = 0.276,
-				name = "Vertical Plasma Cannon",
+				name = "Vertical Light Cannon",
 				noselfdamage = true,
 				range = 400,
 				reloadtime = 5,
@@ -163,12 +163,12 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "CLOSE_PLASMA",
+				def = "lobber_plasma_cannon",
 				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
 				badtargetcategory = "VTOL",
-				def = "FAR_PLASMA",
+				def = "lobber_vertical_plasma_cannon",
 				onlytargetcategory = "NOTSUB",
 			},
 		},

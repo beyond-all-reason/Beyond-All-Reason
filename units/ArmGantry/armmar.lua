@@ -153,7 +153,7 @@ return {
 					vtol = 90,
 				},
 			},
-			armmech_cannon = {
+			marauder_plasma_cannon = {
 				areaofeffect = 12,
 				avoidfeature = false,
 				craterareaofeffect = 0,
@@ -163,7 +163,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				firestarter = 5,
 				impulsefactor = 0.123,
-				name = "Double close-quarters gauss cannon",
+				name = "Standard Rapid-Fire Gauss Cannons",
 				noselfdamage = true,
 				range = 350,
 				reloadtime = 0.7,
@@ -184,7 +184,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "GROUNDSCOUT",
-				def = "ARMMECH_CANNON",
+				def = "marauder_plasma_cannon",
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {

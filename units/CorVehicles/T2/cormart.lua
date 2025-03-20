@@ -114,7 +114,7 @@ return {
 			},
 		},
 		weapondefs = {
-			cor_artillery = {
+			quaker_plasma_cannon = {
 				accuracy = 640,
 				areaofeffect = 144,
 				avoidfeature = false,
@@ -125,7 +125,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-large-bomb",
 				gravityaffected = "true",
 				impulsefactor = 0.123,
-				name = "PlasmaCannon",
+				name = "Medium Blast Artillery Cannon",
 				noselfdamage = true,
 				range = 800,
 				reloadtime = 5,
@@ -145,7 +145,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "NOTLAND",
-				def = "COR_ARTILLERY",
+				def = "quaker_plasma_cannon",
 				maindir = "0 0 1",
 				maxangledif = 180,
 				onlytargetcategory = "SURFACE",

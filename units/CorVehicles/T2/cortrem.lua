@@ -110,7 +110,7 @@ return {
 			},
 		},
 		weapondefs = {
-			tremor_spread_fire = {
+			tremor_plasma_cannon = {
 				accuracy = 0,
 				areaofeffect = 200,
 				avoidfeature = false,
@@ -122,7 +122,7 @@ return {
 				gravityaffected = "true",
 				impulsefactor = 0.8,
 				mygravity = 0.1333,
-				name = "RapidArtillery",
+				name = "Standard Rapid-Fire Blast Artillery Cannon",
 				noselfdamage = true,
 				proximitypriority = -1,
 				range = 1470,
@@ -149,7 +149,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "TREMOR_SPREAD_FIRE",
+				def = "tremor_plasma_cannon",
 				maindir = "0 0 1",
 				maxangledif = 270,
 				onlytargetcategory = "SURFACE",

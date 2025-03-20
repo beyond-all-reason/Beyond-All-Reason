@@ -139,7 +139,7 @@ return {
 					default = 225,
 				},
 			},
-			plasma = {
+			oppressor_plasma_cannon = {
 				areaofeffect = 64,
 				avoidfeature = false,
 				craterareaofeffect = 0,
@@ -149,7 +149,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				gravityaffected = "true",
 				impulsefactor = 0.123,
-				name = "HeavyCannon",
+				name = "Medium Blast Artillery Cannon",
 				noselfdamage = true,
 				range = 710,
 				reloadtime = 2.5,
@@ -168,7 +168,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "PLASMA",
+				def = "oppressor_plasma_cannon",
 				fastautoretargeting = true,
 				onlytargetcategory = "SURFACE",
 			},

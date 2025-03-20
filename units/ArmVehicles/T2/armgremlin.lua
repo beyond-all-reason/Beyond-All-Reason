@@ -116,7 +116,7 @@ return {
 			},
 		},
 		weapondefs = {
-			armgremlin_gauss = {
+			gremlin_gauss_cannon = {
 				areaofeffect = 8,
 				avoidfeature = false,
 				craterareaofeffect = 0,
@@ -125,7 +125,7 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				impulsefactor = 0.123,
-				name = "Light close-quarters gauss cannon",
+				name = "Standard Gauss Cannons",
 				noselfdamage = true,
 				range = 220,
 				reloadtime = 3,
@@ -144,7 +144,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "ARMGREMLIN_GAUSS",
+				def = "gremlin_gauss_cannon",
 				onlytargetcategory = "NOTSUB",
 			},
 		},

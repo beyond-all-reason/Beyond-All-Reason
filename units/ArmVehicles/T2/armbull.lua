@@ -112,7 +112,7 @@ return {
 			},
 		},
 		weapondefs = {
-			arm_bull = {
+			bull_plasma_cannon = {
 				areaofeffect = 130,
 				avoidfeature = false,
 				craterboost = 0,
@@ -121,7 +121,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				gravityaffected = "true",
 				impulsefactor = 0.123,
-				name = "Heavy g2g plasma cannon",
+				name = "Standard Blast Cannons",
 				noselfdamage = true,
 				range = 460,
 				reloadtime = 1.1,
@@ -141,7 +141,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "ARM_BULL",
+				def = "bull_plasma_cannon",
 				onlytargetcategory = "SURFACE",
 			},
 		},

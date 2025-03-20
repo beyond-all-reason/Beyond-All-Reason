@@ -199,7 +199,7 @@ return {
 					[3] = 0.7,
 				},
 			},
-			heavyplasma = {
+			epoch_heavy_plasma_cannon = {
 				accuracy = 600,
 				areaofeffect = 128,
 				avoidfeature = false,
@@ -213,7 +213,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-large",
 				gravityaffected = "true",
 				impulsefactor = 0.123,
-				name = "Primary rapid-fire heavy long-range plasma cannon",
+				name = "Heavy Blast Artillery Cannons",
 				noselfdamage = true,
 				range = 2450,
 				reloadtime = 2.5,
@@ -229,7 +229,7 @@ return {
 					vtol = 200,
 				},
 			},
-			mediumplasma = {
+			epoch_standard_plasma_cannon = {
 				accuracy = 350,
 				areaofeffect = 128,
 				avoidfeature = false,
@@ -240,7 +240,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				gravityaffected = "true",
 				impulsefactor = 0.123,
-				name = "Secondary rapid-fire heavy plasma cannon",
+				name = "Standard Blast Artillery Cannons",
 				noselfdamage = true,
 				range = 830,
 				reloadtime = 1.2,
@@ -259,29 +259,29 @@ return {
 		},
 		weapons = {
 			[1] = {
-				def = "HEAVYPLASMA",
+				def = "epoch_heavy_plasma_cannon",
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
-				def = "MEDIUMPLASMA",
+				def = "epoch_standard_plasma_cannon",
 				maindir = "0 0 1",
 				maxangledif = 320,
 				onlytargetcategory = "SURFACE",
 			},
 			[3] = {
-				def = "HEAVYPLASMA",
+				def = "epoch_heavy_plasma_cannon",
 				maindir = "0 0 1",
 				maxangledif = 240,
 				onlytargetcategory = "SURFACE",
 			},
 			[4] = {
-				def = "MEDIUMPLASMA",
+				def = "epoch_standard_plasma_cannon",
 				maindir = "-4 0 1",
 				maxangledif = 180,
 				onlytargetcategory = "SURFACE",
 			},
 			[5] = {
-				def = "MEDIUMPLASMA",
+				def = "epoch_standard_plasma_cannon",
 				maindir = "4 0 1",
 				maxangledif = 180,
 				onlytargetcategory = "SURFACE",

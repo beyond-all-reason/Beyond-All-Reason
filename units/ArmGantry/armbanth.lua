@@ -203,7 +203,7 @@ return {
 				edgeeffectiveness = 0,
 				explosiongenerator = "custom:footstep-large",
 				impactonly = 1,
-				name = "BanthStep",
+				name = "Titan Footsteps",
 				noselfdamage = true,
 				range = 0,
 				reloadtime = 1.5,

@@ -99,7 +99,7 @@ return {
 			},
 		},
 		weapondefs = {
-			starfire = {
+			starfall_plasma_cannon = {
 				accuracy = 0,
 				areaofeffect = 256,
 				avoidfeature = false,
@@ -123,7 +123,7 @@ return {
 				explosiongenerator = "custom:starfire-explosion",
 				gravityaffected = "true",
 				impulsefactor = 0.5,
-				name = "Starfire Barrage Launcher",
+				name = "Heavy 61-Burst Blast Artillery Cannon",
 				noselfdamage = true,
 				range = 6100,
 				reloadtime = 15,
@@ -149,7 +149,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "MOBILE",
-				def = "starfire",
+				def = "starfall_plasma_cannon",
 				onlytargetcategory = "SURFACE",
 				--engine bug?
 				burstControlWhenOutOfArc = 1,

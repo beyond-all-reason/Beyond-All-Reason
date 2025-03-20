@@ -102,7 +102,7 @@ return {
 			},
 		},
 		weapondefs = {
-			plasma = {
+			riptide_plasma_cannon = {
 				areaofeffect = 48,
 				avoidfeature = false,
 				craterareaofeffect = 0,
@@ -113,7 +113,7 @@ return {
 				firestarter = 100,
 				gravityaffected = "true",
 				impulsefactor = 0.123,
-				name = "LightCannon",
+				name = "Light Rapid-Fire Cannon",
 				noselfdamage = true,
 				predictboost = 0.4,
 				range = 480,
@@ -133,7 +133,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "LIGHTAIRSCOUT UNDERWATER",
-				def = "PLASMA",
+				def = "riptide_plasma_cannon",
 				onlytargetcategory = "NOTSUB",
 			},
 		},

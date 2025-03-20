@@ -108,7 +108,7 @@ return {
 			},
 		},
 		weapondefs = {
-			rapidnapalm = {
+			inferno_plasma_cannon = {
 				areaofeffect = 150,
 				avoidfeature = false,
 				cegtag = "burnflame-xs",
@@ -123,7 +123,7 @@ return {
 				gravityaffected = "true",
 				impulsefactor = 0.123,
 				mygravity = 0.08,
-				name = "HeavyCannon",
+				name = "Heavy Rapid-Fire Napalm Blast Artillery Quad-Cannon",
 				noselfdamage = true,
 				projectiles = 1,
 				range = 1100,
@@ -155,7 +155,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "RAPIDNAPALM",
+				def = "inferno_plasma_cannon",
 				maindir = "0 0 1",
 				maxangledif = 180,
 				onlytargetcategory = "SURFACE",

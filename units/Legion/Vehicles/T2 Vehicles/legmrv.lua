@@ -111,7 +111,7 @@ return {
 			},
 		},
 		weapondefs = {
-			quickshot_cannon = {
+			quickshot_plasma_cannon = {
 				areaofeffect = 32,
 				avoidfeature = false,
 				burst = 2,
@@ -125,7 +125,7 @@ return {
 				fireTolerance = 3640,
 				tolerance = 3640,
 				impulsefactor = 0.123,
-				name = "Two-Round Burst Fire Plasma Cannon",
+				name = "Standard Dual Gauss Cannon",
 				noselfdamage = true,
 				range = 240,
 				reloadtime = 2.0,
@@ -144,7 +144,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "QUICKSHOT_CANNON",
+				def = "quickshot_plasma_cannon",
 				onlytargetcategory = "SURFACE",
 				burstControlWhenOutOfArc = 2,
 

@@ -112,7 +112,7 @@ return {
 			},
 		},
 		weapondefs = {
-			tawf113_weapon = {
+			shellshocker_plasma_cannon = {
 				accuracy = 175,
 				areaofeffect = 75,
 				avoidfeature = false,
@@ -125,7 +125,7 @@ return {
 				hightrajectory = 1,
 				impulsefactor = 0.123,
 				mygravity = 0.276,
-				name = "Long-range high-trajectory g2g plasma cannon",
+				name = "Standard High-Trajectory Blast Artillery Cannon",
 				noselfdamage = true,
 				range = 710,
 				reloadtime = 4.3,
@@ -145,7 +145,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "TAWF113_WEAPON",
+				def = "shellshocker_plasma_cannon",
 				maindir = "0 0 1",
 				maxangledif = 180,
 				onlytargetcategory = "SURFACE",

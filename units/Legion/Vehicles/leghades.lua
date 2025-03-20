@@ -110,7 +110,7 @@ return {
 			},
 		},
 		weapondefs = {
-			gauss = {
+			hades_plasma_cannon = {
 				areaofeffect = 8,
 				avoidfeature = false,
 				craterareaofeffect = 0,
@@ -120,7 +120,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-small",
 				impactonly = 1,
 				impulsefactor = 0.123,
-				name = "Close-quarters g2g gauss-cannon",
+				name = "Light Gauss Cannon",
 				noselfdamage = true,
 				range = 210,
 				reloadtime = 2.25,
@@ -142,7 +142,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "GAUSS",
+				def = "hades_plasma_cannon",
 				onlytargetcategory = "NOTSUB",
 			},
 		},

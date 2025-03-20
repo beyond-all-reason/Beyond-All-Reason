@@ -111,7 +111,7 @@ return {
 			},
 		},
 		weapondefs = {
-			corlevlr_weapon = {
+			pounder_plasma_cannon = {
 				alphadecay = 0.1,
 				areaofeffect = 144,
 				avoidfeature = false,
@@ -121,7 +121,7 @@ return {
 				edgeeffectiveness = 0.9,
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				impulsefactor = 1.8,
-				name = "RiotCannon",
+				name = "Standard Riot Gauss Blast Cannon",
 				nogap = false,
 				noselfdamage = true,
 				range = 315,
@@ -147,7 +147,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "CORLEVLR_WEAPON",
+				def = "pounder_plasma_cannon",
 				onlytargetcategory = "SURFACE",
 			},
 		},

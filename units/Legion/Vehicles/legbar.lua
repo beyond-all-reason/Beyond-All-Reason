@@ -116,7 +116,7 @@ return {
 			},
 		},
 		weapondefs = {
-			clusternapalm = {
+			barrage_plasma_cannon = {
 				areaofeffect = 150,
 				avoidfeature = false,
 				cegtag = "burnflame",
@@ -131,7 +131,7 @@ return {
 				gravityaffected = "true",
 				impulsefactor = 0.123,
 				mygravity = 0.1,
-				name = "HeavyCannon",
+				name = "Light Napalm Blast Tri-Cannon",
 				noselfdamage = true,
 				projectiles = 3,
 				range = 535,
@@ -162,7 +162,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				def = "CLUSTERNAPALM",
+				def = "barrage_plasma_cannon",
 				onlytargetcategory = "SURFACE",
 			},
 		},

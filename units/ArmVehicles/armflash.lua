@@ -110,7 +110,7 @@ return {
 			},
 		},
 		weapondefs = {
-			emgx = {
+			blitz_plasma_cannon = {
 				areaofeffect = 8,
 				avoidfeature = false,
 				burst = 3,
@@ -123,7 +123,7 @@ return {
 				explosiongenerator = "custom:plasmahit-small",
 				impulsefactor = 0.123,
 				intensity = 0.7,
-				name = "Rapid-fire close-quarters plasma gun",
+				name = "Light Rapid-Fire Gauss Cannon",
 				noselfdamage = true,
 				range = 180,
 				reloadtime = 0.3,
@@ -146,7 +146,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "EMGX",
+				def = "blitz_plasma_cannon",
 				onlytargetcategory = "NOTSUB",
 			},
 		},

@@ -114,7 +114,7 @@ return {
 			},
 		},
 		weapondefs = {
-			arm_artillery = {
+			cleaver_plasma_cannon = {
 				accuracy = 400,
 				areaofeffect = 130,
 				avoidfeature = false,
@@ -125,7 +125,7 @@ return {
 				explosiongenerator = "custom:ministarfire-explosion",
 				gravityaffected = "true",
 				impulsefactor = 0.5,
-				name = "Long-range g2g plasma cannon",
+				name = "Standard Blast Artillery Cluster Cannon",
 				noselfdamage = true,
 				range = 930,
 				reloadtime = 5,
@@ -175,7 +175,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "NOTLAND",
-				def = "ARM_ARTILLERY",
+				def = "cleaver_plasma_cannon",
 				maindir = "0 0 1",
 				maxangledif = 180,
 				onlytargetcategory = "SURFACE",

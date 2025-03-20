@@ -103,7 +103,7 @@ return {
 			},
 		},
 		weapondefs = {
-			arm_bats = {
+			dreadnought_plasma_cannon = {
 				accuracy = 350,
 				areaofeffect = 140,
 				avoidfeature = false,
@@ -113,7 +113,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				gravityaffected = "true",
 				impulsefactor = 0.123,
-				name = "Heavy long-range g2g plasma cannon",
+				name = "Medium Blast Artillery Cannons",
 				noselfdamage = true,
 				range = 880,
 				reloadtime = 1,
@@ -133,12 +133,12 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "ARM_BATS",
+				def = "dreadnought_plasma_cannon",
 				fastautoretargeting = true,
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
-				def = "ARM_BATS",
+				def = "dreadnought_plasma_cannon",
 				fastautoretargeting = true,
 				maindir = "0 0 1",
 				maxangledif = 270,

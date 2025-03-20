@@ -113,7 +113,7 @@ return {
 			},
 		},
 		weapondefs = {
-			leg_amph_gauss = {
+			cetus_plasma_cannon = {
 				areaofeffect = 8,
 				avoidfeature = false,
 				craterareaofeffect = 0,
@@ -123,7 +123,7 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-small",
 				impulsefactor = 0.123,
-				name = "Light Close-quarters Plasma Cannon",
+				name = "Standard Gauss Cannon",
 				noselfdamage = true,
 				range = 305,
 				reloadtime = 1.5,
@@ -142,7 +142,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "LEG_AMPH_GAUSS",
+				def = "cetus_plasma_cannon",
 				onlytargetcategory = "NOTSUB",
 			},
 		},

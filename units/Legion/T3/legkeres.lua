@@ -109,7 +109,7 @@ return {
 			},
 		},
 		weapondefs = {
-			legkeres_cannon = {
+			keres_plasma_cannon = {
 				areaofeffect = 200,
 				avoidfeature = false,
 				burnblow = true,
@@ -118,7 +118,7 @@ return {
 				edgeeffectiveness = 0.9,
 				explosiongenerator = "custom:genericshellexplosion-large",
 				impulsefactor = 2.4,
-				name = "Heavy riot cannon",
+				name = "Medium Riot-Gauss Blast Cannon",
 				noselfdamage = true,
 				range = 450,
 				reloadtime = 1.7,
@@ -186,7 +186,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				def = "LEGKERES_CANNON",
+				def = "keres_plasma_cannon",
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {

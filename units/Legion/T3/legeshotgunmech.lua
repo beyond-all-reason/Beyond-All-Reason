@@ -169,7 +169,7 @@ return {
 					vtol = 25,
 				},
 			},
-			clusterplasma = {
+			eviscerator_plasma_cannon = {
 				accuracy = 50,
 				areaofeffect = 135,
 				avoidfeature = false,
@@ -181,7 +181,7 @@ return {
 				explosiongenerator = "custom:ministarfire-explosion",
 				gravityaffected = "true",
 				impulsefactor = 0.5,
-				name = "Long-Range Cluster Plasma Cannon",
+				name = "Medium Blast Artillery Cluster Cannon",
 				noselfdamage = true,
 				range = 850,
 				reloadtime = 5.5,
@@ -215,7 +215,7 @@ return {
 				explosiongenerator = "custom:ministarfire-explosion",
 				gravityaffected = "true",
 				impulsefactor = 0.5,
-				name = "Long-Range Cluster Plasma Cannon",
+				name = "Cluster Munitions",
 				noselfdamage = true,
 				maxvelocity = 480,
 				range = 200,
@@ -354,7 +354,7 @@ return {
 				slaveto = 1;
 			},
 			[3] = {
-				def = "clusterplasma",
+				def = "eviscerator_plasma_cannon",
 				onlytargetcategory = "SURFACE",
 			},
 			[4] = {

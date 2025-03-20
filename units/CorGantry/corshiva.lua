@@ -107,7 +107,7 @@ return {
 			},
 		},
 		weapondefs = {
-			shiva_gun = {
+			shiva_plasma_cannon = {
 				areaofeffect = 176,
 				avoidfeature = false,
 				craterboost = 0,
@@ -116,7 +116,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-large-aoe",
 				gravityaffected = "true",
 				impulsefactor = 0.8,
-				name = "HeavyCannon",
+				name = "Heavy Blast Cannon",
 				noselfdamage = true,
 				range = 650,
 				reloadtime = 2,
@@ -180,7 +180,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "GROUNDSCOUT",
-				def = "SHIVA_GUN",
+				def = "shiva_plasma_cannon",
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {

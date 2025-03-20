@@ -113,7 +113,7 @@ return {
 			},
 		},
 		weapondefs = {
-			napalmmissile = {
+			perdition_fake_rocket_launcher = {
 				areaofeffect = 425,
 				avoidfeature = false,
 				avoidfriendly = false,
@@ -138,7 +138,7 @@ return {
 				impulsefactor = 0.123,
 				metalpershot = 500,
 				model = "legbomb.s3o",
-				name = "Long-Range Tactical Hellfire Napalm Shell",
+				name = "Super-Heavy Blast Tactical Napalm Artillery Rocket Launcher",
 				energypershot = 17000,
 				noselfdamage = true,
 				range = 2300,
@@ -191,7 +191,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "NOTLAND",
-				def = "napalmmissile",
+				def = "perdition_fake_rocket_launcher",
 				onlytargetcategory = "NOTSUB",
 			},
 		},

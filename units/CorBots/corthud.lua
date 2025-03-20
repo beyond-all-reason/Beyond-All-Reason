@@ -101,7 +101,7 @@ return {
 			},
 		},
 		weapondefs = {
-			arm_ham = {
+			thug_plasma_cannon = {
 				areaofeffect = 36,
 				avoidfeature = false,
 				craterareaofeffect = 0,
@@ -111,7 +111,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-small",
 				gravityaffected = "true",
 				impulsefactor = 0.123,
-				name = "PlasmaCannon",
+				name = "Standard Cannon",
 				noselfdamage = true,
 				predictboost = 0.4,
 				range = 380,
@@ -131,7 +131,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "ARM_HAM",
+				def = "thug_plasma_cannon",
 				onlytargetcategory = "NOTSUB",
 			},
 		},
