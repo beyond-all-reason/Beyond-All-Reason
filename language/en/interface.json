@@ -774,7 +774,8 @@
 			"factions": {
 				"arm": "Outsmart your foes with tactical finesse",
 				"cor": "Smash your foes with brute force",
-				"leg": "This faction is still a work in progress"
+				"leg": "This faction is still a work in progress",
+				"random": "Picks a Random out of the available options"
 			}
 		},
 		"widgetselector": {
