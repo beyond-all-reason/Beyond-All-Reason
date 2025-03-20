@@ -298,7 +298,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local function IsInCombat(unitID, evolution, currentTime)
+	local function CombatCheckUpdate(unitID, evolution, currentTime)
 		if not evolution.combatRadius then
 			return false
 		end
@@ -342,8 +342,7 @@ end
 		end
 
 		for unitID, evolution in pairs(evolutionMetaList) do
-
-			if not IsInCombat(unitID, evolution, currentTime)
+			if not CombatCheckUpdate(unitID, evolution, currentTime)
 				and not spGetUnitTransporter(unitID)
 				and (IsEvolutionTimePassed(evolution, currentTime) or IsEvolutionPowerPassed(evolution, unitID)) then
 					Evolve(unitID, evolution.evolution_target)
