@@ -529,13 +529,8 @@ local function drawCell(cell, zoom)
 			end
 			if useRenderToTexture then
 				-- I dont know the fuck why the following RectRound or a plain gl.Rect) hardly shows up when using rendertotexture so lets brighten it!
-<<<<<<< Updated upstream
-				color1[4] = color1[4] * 2.2
-				color2[4] = color2[4] * 2.2
-=======
 				color1[4] = color1[4] * 2.5
 				color2[4] = color2[4] * 2.5
->>>>>>> Stashed changes
 			end
 			if color1[4] > 0.06 then
 				-- white bg (outline)
