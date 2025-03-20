@@ -462,8 +462,8 @@ function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 	height = setHeight * uiScale
 
-	font2 = WG['fonts'].getFont(nil, 1.3, 0.35, 1.4)
-	font = WG['fonts'].getFont(fontFile, 1.15, 0.35, 1.25)
+	font2 = WG['fonts'].getFont(nil, 1.3 * (useRenderToTexture and 1.3 or 1), 0.35 * (useRenderToTexture and 1.3 or 1), 1.4)
+	font = WG['fonts'].getFont(fontFile, 1.15 * (useRenderToTexture and 1.3 or 1), 0.35 * (useRenderToTexture and 1.3 or 1), 1.25)
 
 	elementCorner = WG.FlowUI.elementCorner
 	backgroundPadding = WG.FlowUI.elementPadding

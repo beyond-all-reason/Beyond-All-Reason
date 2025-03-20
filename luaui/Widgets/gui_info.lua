@@ -589,9 +589,9 @@ function widget:ViewResize()
 
 	checkGuishader(true)
 
-	font, loadedFontSize = WG['fonts'].getFont(fontfile)
-	font2 = WG['fonts'].getFont(fontfile2)
-	font3 = WG['fonts'].getFont(fontfile2, 1.2, 0.28, 1.6)
+	font, loadedFontSize = WG['fonts'].getFont(fontfile, 1.1 * (useRenderToTexture and 1.3 or 1), 0.18 * (useRenderToTexture and 1.3 or 1))
+	font2 = WG['fonts'].getFont(fontfile2, 1.2 * (useRenderToTexture and 1.3 or 1), 0.28 * (useRenderToTexture and 1.3 or 1), 1.6)
+	font3 = WG['fonts'].getFont(fontfile2, 1.2 * (useRenderToTexture and 1.3 or 1), 0.28 * (useRenderToTexture and 1.3 or 1), 1.6)
 end
 
 function GetColor(colormap, slider)
@@ -1166,12 +1166,7 @@ local function drawUnitInfo()
 	customInfoArea = { math_floor(backgroundRect[3] - width - bgpadding), math_floor(backgroundRect[2]), math_floor(backgroundRect[3] - bgpadding), math_floor(backgroundRect[2] + height) }
 
 	if displayMode ~= 'unitdef' or not showBuilderBuildlist or not unitDefInfo[displayUnitDefID].buildOptions or (not (WG['buildmenu'] and WG['buildmenu'].hoverID)) then
-		local alphaMult = 1
-		if useRenderToTexture then
-			-- I dont know the fuck why the following RectRound or a plain gl.Rect) hardly shows up when using rendertotexture so lets brighten it!
-			alphaMult = 3.5
-		end
-		RectRound(customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4], elementCorner*0.66, 1, 0, 0, 0, { 0.8, 0.8, 0.8, 0.08*alphaMult }, { 0.8, 0.8, 0.8, 0.15*alphaMult })
+		RectRound(customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4], elementCorner*0.66, 1, 0, 0, 0, { 0.8, 0.8, 0.8, useRenderToTexture and 0.45 or 0.1 }, { 0.8, 0.8, 0.8, useRenderToTexture and 0.54 or 0.15 })
 	end
 
 	local contentPaddingLeft = contentPadding * 0.6

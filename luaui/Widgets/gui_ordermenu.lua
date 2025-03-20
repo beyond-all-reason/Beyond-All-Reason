@@ -300,7 +300,7 @@ function widget:ViewResize()
 		buildmenuBottomPosition = WG['buildmenu'].getBottomPosition()
 	end
 
-	font = WG['fonts'].getFont(fontFile)
+	font = WG['fonts'].getFont(fontFile, (useRenderToTexture and 1.3 or 1), 0.28 * (useRenderToTexture and 1.3 or 1), 1.3 * (useRenderToTexture and 1.3 or 1))
 
 	elementCorner = WG.FlowUI.elementCorner
 	backgroundPadding = WG.FlowUI.elementPadding
@@ -529,8 +529,8 @@ local function drawCell(cell, zoom)
 			end
 			if useRenderToTexture then
 				-- I dont know the fuck why the following RectRound or a plain gl.Rect) hardly shows up when using rendertotexture so lets brighten it!
-				color1[4] = color1[4] * 2.2
-				color2[4] = color2[4] * 2.2
+				color1[4] = color1[4] * 2.33
+				color2[4] = color2[4] * 2.33
 			end
 			if color1[4] > 0.06 then
 				-- white bg (outline)
