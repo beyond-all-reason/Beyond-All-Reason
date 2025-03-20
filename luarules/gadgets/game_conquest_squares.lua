@@ -764,6 +764,9 @@ void main() {
 	// Parameters for square edge glow
 	float edgeWidth = 0.05; // Width of the edge glow
 	
+	// Add circle edge fade parameters
+	float circleFadeWidth = borderFadeDistance; // Same width as border fade
+	
 	// Calculate how close we are to any edge of the square
 	float distToEdgeX = min(texCoord.x, 1.0 - texCoord.x);
 	float distToEdgeY = min(texCoord.y, 1.0 - texCoord.y);
@@ -776,11 +779,22 @@ void main() {
 		borderOpacity = 1.0 - (distToEdge / borderFadeDistance);
 	}
 	
+	// Calculate circle fade factor
+	float circleFadeFactor = 1.0;
+	float distToCircleEdge = abs(distance - scaledProgress);
+	if (distance > scaledProgress && distToCircleEdge < circleFadeWidth) {
+		// Apply soft fade at the outer edge of the circle
+		circleFadeFactor = 1.0 - (distToCircleEdge / circleFadeWidth);
+	}
+	
 	// Determine base color
 	vec4 baseColor;
 	if (distance < scaledProgress) {
 		// Inside progress circle - use team color with full opacity
 		baseColor = color;
+	} else if (distToCircleEdge < circleFadeWidth) {
+		// In circle fade area - apply calculated fade
+		baseColor = vec4(color.rgb, color.a * circleFadeFactor);
 	} else if (borderOpacity > 0.0) {
 		// In border area - apply calculated fade
 		baseColor = vec4(color.rgb, color.a * 0.6 * borderOpacity);
