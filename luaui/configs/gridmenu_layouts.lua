@@ -2038,8 +2038,13 @@ unitGrids["dummycom"] = unitGrids["armcom"]
 
 if Spring.GetModOptions().experimentalextraunits then
 	for _, builder in pairs({"armaca", "coraca", "legaca", "armack", "corack", "legack", "armacv", "coracv", "legacv"}) do
-		unitGrids[builder][1][3][3] = builder:sub(1, 3) .. "wint2"
+		local faction = builder:sub(1, 3)
+		unitGrids[builder][1][3][3] =  faction .. "wint2"
+		unitGrids[builder][4][1][2] = faction .. "apt3"
+		unitGrids[builder][4][1][3] = faction .. "nanotct2"
 	end
+	unitGrids["armacsub"][4][1][3] = "armnanotc2plat"
+	unitGrids["coracsub"][4][1][3] = "cornanotc2plat"
 end
 
 if Spring.Utilities.Gametype.IsScavengers() or Spring.GetModOptions().forceallunits then
