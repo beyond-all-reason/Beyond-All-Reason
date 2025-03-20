@@ -4,6 +4,9 @@ return {
 		commandfire = 1,
 		craterboost = 0,
 		cratermult = 0,
+		customparams = {
+			fixed_stun_duration_antinuke_building = 20,		-- Ignores damage and paralyzetime. Applies a fixed stun duration
+		},
 		edgeeffectiveness = 0.75,
 		explosiongenerator = "custom:genericshellexplosion-huge-lightning",
 		firestarter = 90,
