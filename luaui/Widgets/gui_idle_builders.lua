@@ -616,7 +616,9 @@ local function Update()
 				end
 			end
 		end
-		WG['tooltip'].ShowTooltip('idlebuilders', tooltipAddition, nil, nil, tooltipTitle)
+		if WG['tooltip'] then
+			WG['tooltip'].ShowTooltip('idlebuilders', tooltipAddition, nil, nil, tooltipTitle)
+		end
 
 		Spring.SetMouseCursor('cursornormal')
 		if b then
