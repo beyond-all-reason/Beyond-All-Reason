@@ -17,7 +17,6 @@ function TargetHST:Init()
 	self.pathModifierFuncs = {}
 	self.enemyFrontList = {}
 	self.blobchecked = {}
-	self.enemyCenter = {}
 	self.enemyBasePosition = {}
 end
 
@@ -30,7 +29,6 @@ function TargetHST:Update()
 	--self:enemyFront()
 	self:GetMobileBlobs()
 	self:GetImmobileBlobs()
-	--self:EnemyCenter()
 	self:drawDBG()
 end
 
@@ -113,8 +111,6 @@ function TargetHST:GetMobileBlobs()
 		end
 		blob.defend = self.ai.loshst.OWN[defendCellX][defendCellZ]
 		blob.defendDist = defendDist
-		--blob.refCell = self.ai.loshst.OWN[defendCellX][defendCellZ]
-		--blob.refDist = defendDist
 		self.MOBILE_BLOBS[ref] = nil
 	end
 end
@@ -122,8 +118,15 @@ end
 function TargetHST:blobMobileCell(grid,param,x,z,blobref)--rolling on the cell to extrapolate blob of param
 	self.blobchecked[x .. ':' .. z] = true
 	if grid[x] and grid[x][z] and grid[x][z][param] and grid[x][z][param] > 0 then
-
-		self.MOBILE_BLOBS[blobref] = self.MOBILE_BLOBS[blobref] or {metal = 0,position = {x=0,y=0,z=0},cells = {},units={},defend = nil}
+		if not self.MOBILE_BLOBS[blobref] then
+			self.MOBILE_BLOBS[blobref] = self.ai.tool:RezTable()
+			self.MOBILE_BLOBS[blobref].metal = 0
+			self.MOBILE_BLOBS[blobref].position = self.ai.tool:RezTable()
+			self.MOBILE_BLOBS[blobref].position.x,self.IMMOBILE_BLOBS[blobref].position.y,self.IMMOBILE_BLOBS[blobref].position.z = 0,0,0
+			self.MOBILE_BLOBS[blobref].cells = self.ai.tool:RezTable()
+			self.MOBILE_BLOBS[blobref].units = self.ai.tool:RezTable()
+			self.MOBILE_BLOBS[blobref].defend =nil
+		end
 		table.insert(self.MOBILE_BLOBS[blobref].cells,grid[x][z])
 		for X = -1, 1,1 do
 			for Z = -1,1,1 do
@@ -182,7 +185,15 @@ end
 function TargetHST:blobImmobileCell(grid,param,x,z,blobref)--rolling on the cell to extrapolate blob of param
 	self.blobchecked[x .. ':' .. z] = true
 	if grid[x] and grid[x][z] and grid[x][z][param] and grid[x][z][param] > 0 then
-		self.IMMOBILE_BLOBS[blobref] = self.IMMOBILE_BLOBS[blobref] or {metal = 0,position = {x=0,y=0,z=0},cells = {},units={},defend = nil}
+		if not self.IMMOBILE_BLOBS[blobref] then
+			self.IMMOBILE_BLOBS[blobref] = self.ai.tool:RezTable()
+			self.IMMOBILE_BLOBS[blobref].metal = 0
+			self.IMMOBILE_BLOBS[blobref].position = self.ai.tool:RezTable()
+			self.IMMOBILE_BLOBS[blobref].position.x,self.IMMOBILE_BLOBS[blobref].position.y,self.IMMOBILE_BLOBS[blobref].position.z = 0,0,0
+			self.IMMOBILE_BLOBS[blobref].cells = self.ai.tool:RezTable()
+			self.IMMOBILE_BLOBS[blobref].units = self.ai.tool:RezTable()
+			self.IMMOBILE_BLOBS[blobref].defend =nil
+		end
 		table.insert(self.IMMOBILE_BLOBS[blobref].cells,grid[x][z])
 		for X = -1, 1,1 do
 			for Z = -1,1,1 do
@@ -229,32 +240,6 @@ function TargetHST:GetPathModifierFunc(unitName, adjacent)
 	self.pathModifierFuncs[unitName] = modifier_node_func
 	return modifier_node_func
 end
-
-function TargetHST:EnemyCenter()
-	local enemyCount = 0
-	local enemyPosSum = {x = 0, y = 0, z = 0}
-	for id,enemy in pairs(self.ai.loshst.losEnemy) do
-		local enemyUnit = game:GetUnitByID(id)
-		local enemyPos = enemyUnit:GetPosition()
-		if enemyPos then
-			enemyCount = enemyCount + 1
-			enemyPosSum = self.ai.tool:sumPos(enemyPosSum, enemyPos)
-		end
-	end
-	for id,enemy in pairs(self.ai.loshst.radarEnemy) do
-		local enemyUnit = game:GetUnitByID(id)
-		local enemyPos = enemyUnit:GetPosition()
-		if enemyPos then
-			enemyCount = enemyCount + 1
-			enemyPosSum = self.ai.tool:sumPos(enemyPosSum, enemyPos)
-		end
-	end
-	enemyPosSum.x = enemyPosSum.x / enemyCount
-	enemyPosSum.z = enemyPosSum.z / enemyCount
-	enemyPosSum.y = map:GetGroundHeight(enemyPosSum.x,enemyPosSum.z)
-	self.enemyCenter = enemyPosSum
-end
-
 
 function TargetHST:drawDBG()
 	if not self.ai.drawDebug then
