@@ -866,8 +866,12 @@ function widget:Shutdown()
         WG['guishader'].RemoveDlist('advplayerlist')
     end
 	if mainListTex then
-		gl.DeleteTexture(mainListTex)
+		gl.DeleteTextureFBO(mainListTex)
 		mainListTex = nil
+	end
+	if mainList2Tex then
+		gl.DeleteTextureFBO(mainList2Tex)
+		mainList2Tex = nil
 	end
     WG['advplayerlist_api'] = nil
     widgetHandler:DeregisterGlobal('ActivityEvent')
@@ -881,7 +885,11 @@ function widget:Shutdown()
     end
     if MainList then
         gl_DeleteList(MainList)
+	end
+    if MainList2 then
         gl_DeleteList(MainList2)
+	end
+    if MainList3 then
         gl_DeleteList(MainList3)
     end
     if Background then
@@ -1509,26 +1517,36 @@ function widget:DrawScreen()
         CreateBackground()
     end
 
-    if useRenderToTexture and mainListTex then
-        gl.Color(1,1,1,1)
-        gl.Texture(mainListTex)
-        gl.TexRect(apiAbsPosition[2], apiAbsPosition[3], apiAbsPosition[4], apiAbsPosition[1], false, true)
-        gl.Texture(false)
-    end
+    if useRenderToTexture then
+		gl.Color(1,1,1,1)
+		if mainListTex then
+			gl.Texture(mainListTex)
+			gl.TexRect(apiAbsPosition[2], apiAbsPosition[3], apiAbsPosition[4], apiAbsPosition[1], false, true)
+		end
+    	if mainList2Tex then
+			gl.Texture(mainList2Tex)
+			gl.TexRect(apiAbsPosition[2], apiAbsPosition[3], apiAbsPosition[4], apiAbsPosition[1], false, true)
+   		end
+		gl.Texture(false)
+	end
 
     local scaleDiffX = -((widgetPosX * widgetScale) - widgetPosX) / widgetScale
     local scaleDiffY = -((widgetPosY * widgetScale) - widgetPosY) / widgetScale
     gl.Scale(widgetScale, widgetScale, 0)
     gl.Translate(scaleDiffX, scaleDiffY, 0)
 
-    if not MainList2 then
+    if not MainList3 then
         CreateMainList(true, true, true)
     end
-    if (MainList or mainListTex) and MainList2 and MainList3 then
-        if not useRenderToTexture and MainList then
-            gl_CallList(MainList)
-        end
-        gl_CallList(MainList2)
+    if (MainList or mainListTex) and (MainList2 or mainList2Tex) and MainList3 then
+        if not useRenderToTexture then
+			if MainList then
+            	gl_CallList(MainList)
+			end
+			if MainList2 then
+				gl_CallList(MainList2)
+			end
+		end
         gl_CallList(MainList3)
     end
 
@@ -1661,9 +1679,13 @@ function CreateBackground()
         end)
 
         if mainListTex then
-            gl.DeleteTexture(mainListTex)
+            gl.DeleteTextureFBO(mainListTex)
             mainListTex = nil
         end
+		if mainList2Tex then
+			gl.DeleteTextureFBO(mainList2Tex)
+			mainList2Tex = nil
+		end
     end
 end
 
@@ -1806,6 +1828,17 @@ function drawMainList()
     end
 end
 
+function drawMainList2()
+	local leader
+	for i, drawObject in ipairs(drawList) do
+		if drawObject == -1 then
+			leader = true
+		elseif drawObject >= 0 then
+			DrawPlayer(drawObject, leader, drawListOffset[i], mouseX, mouseY, false, true, false)
+		end
+	end
+end
+
 function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
     forceMainListRefresh = false
 
@@ -1847,8 +1880,7 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
     if onlyMainList then
         if useRenderToTexture then
             if not mainListTex then
-				local ui_sharpness = Spring.GetConfigFloat("ui_sharpness", 1)
-                mainListTex = gl.CreateTexture(math.floor((apiAbsPosition[4]-apiAbsPosition[2])*ui_sharpness), math.floor((apiAbsPosition[1]-apiAbsPosition[3])*ui_sharpness), {
+                mainListTex = gl.CreateTexture(math.floor(apiAbsPosition[4]-apiAbsPosition[2]), math.floor(apiAbsPosition[1]-apiAbsPosition[3]), {
                     target = GL.TEXTURE_2D,
                     format = GL.RGBA,
                     fbo = true,
@@ -1878,19 +1910,35 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
     end
 
     if onlyMainList2 then
-        if MainList2 then
-            MainList2 = gl_DeleteList(MainList2)
-        end
-        MainList2 = gl_CreateList(function()
-            local leader
-            for i, drawObject in ipairs(drawList) do
-                if drawObject == -1 then
-                    leader = true
-                elseif drawObject >= 0 then
-                    DrawPlayer(drawObject, leader, drawListOffset[i], mouseX, mouseY, false, true, false)
-                end
+        if useRenderToTexture then
+            if not mainList2Tex then
+                mainList2Tex = gl.CreateTexture(math.floor(apiAbsPosition[4]-apiAbsPosition[2]), math.floor(apiAbsPosition[1]-apiAbsPosition[3]), {
+                    target = GL.TEXTURE_2D,
+                    format = GL.RGBA,
+                    fbo = true,
+                })
             end
-        end)
+            if mainList2Tex then
+                gl.RenderToTexture(mainList2Tex, function()
+                    gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+                    gl.PushMatrix()
+                    gl.Translate(-1, -1, 0)
+                    gl.Scale(2 / (apiAbsPosition[4]-apiAbsPosition[2]), 2 / (apiAbsPosition[1]-apiAbsPosition[3]), 0)
+                    gl.Scale(widgetScale, widgetScale, 0)
+                    local scaleMult = 1 + ((widgetScale-1) * 3.5)   -- dont ask me why but this seems to come closest approximately
+                    gl.Translate(-apiAbsPosition[2]-(backgroundMargin*0.25*scaleMult), -apiAbsPosition[3]-(backgroundMargin*0.25*scaleMult), 0)
+                    drawMainList2()
+                    gl.PopMatrix()
+                end)
+            end
+        else
+			if MainList2 then
+				MainList2 = gl_DeleteList(MainList2)
+			end
+			MainList2 = gl_CreateList(function()
+                drawMainList2()
+			end)
+		end
     end
 
     if onlyMainList3 then
@@ -2610,9 +2658,9 @@ function DrawID(playerID, posY, dark, dead)
     local fontsize = 9.5 * (playerScale + ((1-playerScale)*0.25))
     font:Begin()
     if dead then
-        font:SetTextColor(1, 1, 1, useRenderToTexture and 0.85 or 0.4)    -- I dont know the fuck why the following RectRound or a plain gl.Rect) hardly shows up when using rendertotexture so lets brighten it!
+        font:SetTextColor(0.7, 0.7, 0.7, 0.5)
     else
-        font:SetTextColor(1, 1, 1, 1)
+        font:SetTextColor(0.7, 0.7, 0.7, 1)
     end
     font:Print(spacer .. playerID, m_ID.posX + widgetPosX + (4.5*playerScale), posY + (5.3*playerScale), fontsize, "on")
     font:End()

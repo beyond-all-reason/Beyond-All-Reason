@@ -304,7 +304,7 @@ local function clear()
 	hoverDlist = gl.DeleteList(hoverDlist)
 	prevHoveredCellID = nil
 	if buildmenuTex then
-		gl.DeleteTexture(buildmenuTex)
+		gl.DeleteTextureFBO(buildmenuTex)
 		buildmenuTex = nil
 	end
 end
@@ -795,8 +795,7 @@ function widget:DrawScreen()
 			refreshBuildmenu = false
 			if useRenderToTexture then
 				if not buildmenuTex and width > 0.05 and height > 0.05 then
-					local ui_sharpness = Spring.GetConfigFloat("ui_sharpness", 1)
-					buildmenuTex = gl.CreateTexture(math_floor(width*vsx*ui_sharpness), math_floor(height*vsy*ui_sharpness), {
+					buildmenuTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
 						target = GL.TEXTURE_2D,
 						format = GL.RGBA,
 						fbo = true,
