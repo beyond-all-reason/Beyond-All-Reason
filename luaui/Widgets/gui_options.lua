@@ -311,8 +311,9 @@ function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 
 	-- On lower resolutions the rendertotexture method shows its lack on antialias flaws, we can increase the texturesize to compensate a bit for that
-	local ui_sharpness = math.clamp(2800 / vsy, 1, 2)
-	Spring.SetConfigFloat("ui_sharpness", ui_sharpness)
+	--local ui_sharpness = math.clamp(2800 / vsy, 1, 2)
+	--Spring.SetConfigFloat("ui_sharpness", ui_sharpness)
+	Spring.SetConfigFloat("ui_sharpness", 1)
 
 	widgetScale = (vsy / 1080)
 

@@ -509,7 +509,6 @@ WG.FlowUI.Draw.Element = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pb
 	WG.FlowUI.Draw.RectRound(px + pxPad + pad2, py + pyPad + pad2, sx - sxPad - pad2, sy - syPad - pad2, cs*0.3, tl, tr, br, bl, { color1[1], color1[2], color1[3], color1[4]*pad2OpacityMult}, { color1[1], color1[2], color1[3], color1[4]*pad2OpacityMult })
 
 	-- gloss
-	gl.Blending(GL.SRC_ALPHA, GL.ONE)
 	local glossHeight = math.floor(0.02 * WG.FlowUI.vsy * ui_scale)
 	-- top
 	WG.FlowUI.Draw.RectRound(px + pxPad, sy - syPad - glossHeight, sx - sxPad, sy - syPad, cs, tl, tr, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.07 * glossMult })
@@ -527,7 +526,6 @@ WG.FlowUI.Draw.Element = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pb
 	--WG.FlowUI.Draw.RectRound(sx - sxPad - (cs*2), py + syPad, sx - sxPad, sy - syPad, cs, tl, tr, 0, 0, { 1, 1, 1, 0.02 * glossMult }, { 1, 1, 1, 0 })
 
 	--WG.FlowUI.Draw.RectRound(px + (pxPad*1.6), sy - syPad - math.ceil(bgpadding*0.25), sx - (sxPad*1.6), sy - syPad, 0, tl, tr, 0, 0, { 1, 1, 1, 0.012 }, { 1, 1, 1, 0.07 * glossMult })
-	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
 	-- darkening bottom
 	WG.FlowUI.Draw.RectRound(px, py, sx, py + ((sy-py)*0.75), cs*1.66, 0, 0, br, bl, { 0,0,0, 0.05 * glossMult }, { 0,0,0, 0 })
@@ -551,12 +549,12 @@ end
 		color1, color2 = (color1[4] alpha value overrides opacity define above)
 		bgpadding = custom border size
 ]]
-WG.FlowUI.Draw.Button = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pbr, pbl,  opacity, color1, color2, bgpadding)
+WG.FlowUI.Draw.Button = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pbr, pbl,  opacity, color1, color2, bgpadding, glossMult)
 	local opacity = opacity or 1
 	local color1 = color1 or { 0, 0, 0, opacity}
 	local color2 = color2 or { 1, 1, 1, opacity * 0.1}
 	local bgpadding = math.floor(bgpadding or WG.FlowUI.buttonPadding*0.5)
-	local glossMult = 1 + (2 - (opacity * 1.5))
+	glossMult = (1 + (2 - (opacity * 1.5))) * (glossMult and glossMult or 1)
 
 	local tl = tl or 1
 	local tr = tr or 1
@@ -579,14 +577,12 @@ WG.FlowUI.Draw.Button = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pbr
 	WG.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, py + pyPad + (bgpadding*2), bgpadding, 0, 0, br, bl, { 1, 1, 1, 0.02 * glossMult }, { 1 ,1 ,1 , 0 })
 
 	-- gloss
-	gl.Blending(GL.SRC_ALPHA, GL.ONE)
 	local glossHeight = math.floor((sy-py)*0.5)
 	WG.FlowUI.Draw.RectRound(px + pxPad, sy - syPad - math.floor((sy-py)*0.5), sx - sxPad, sy - syPad, bgpadding, tl, tr, 0, 0, { 1, 1, 1, 0.03 }, { 1, 1, 1, 0.1 * glossMult })
 	WG.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, py + pyPad + glossHeight, bgpadding, 0, 0, br, bl, { 1, 1, 1, 0.03 * glossMult }, { 1 ,1 ,1 , 0 })
 	WG.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, py + pyPad + ((sy-py)*0.2), bgpadding, 0, 0, br, bl, { 1,1,1, 0.02 * glossMult }, { 1,1,1, 0 })
 	WG.FlowUI.Draw.RectRound(px + pxPad, sy- ((sy-py)*0.5), sx - sxPad, sy, bgpadding, tl, tr, 0, 0, { 1,1,1, 0 }, { 1,1,1, 0.07 * glossMult })
 	WG.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, py + pyPad + ((sy-py)*0.5), bgpadding, 0, 0, br, bl, { 1,1,1, 0.05 * glossMult }, { 1,1,1, 0 })
-	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 end
 
 -- This was broken out from an internal "Unit" function, to allow drawing similar style icons in other places
