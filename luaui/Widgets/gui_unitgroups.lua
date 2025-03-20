@@ -528,7 +528,9 @@ function widget:Update(dt)
 		if WG['autogroup'] ~= nil then
 			tooltipAddition = tooltipAddition .. (tooltipAddition~='' and '\n\n' or '') .. "\255\200\255\200" .. Spring.I18N('ui.unitGroups.autogroupTooltip')
 		end
-		WG['tooltip'].ShowTooltip('unitgroups', tooltipAddition, nil, nil, Spring.I18N('ui.unitGroups.name'))
+		if WG['tooltip'] then
+			WG['tooltip'].ShowTooltip('unitgroups', tooltipAddition, nil, nil, Spring.I18N('ui.unitGroups.name'))
+		end
 		Spring.SetMouseCursor('cursornormal')
 		if b then
 			sec = sec + 0.4

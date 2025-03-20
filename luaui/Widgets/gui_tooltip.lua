@@ -154,8 +154,10 @@ function widget:ViewResize(x, y)
 	UiElement = WG.FlowUI.Draw.Element
 
 	for name, tooltip in pairs(tooltips) do
-		WG['guishader'].RemoveScreenRect('tooltip_' .. name)
-		WG['guishader'].RemoveScreenRect('2tooltip_' .. name)
+		if WG['guishader'] then
+			WG['guishader'].RemoveScreenRect('tooltip_' .. name)
+			WG['guishader'].RemoveScreenRect('2tooltip_' .. name)
+		end
 		if tooltip.dlist then
 			gl.DeleteList(tooltip.dlist)
 			tooltip.dlist = nil
