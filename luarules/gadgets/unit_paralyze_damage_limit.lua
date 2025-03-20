@@ -139,27 +139,39 @@ end
 -- Special Stun Override: to restore spy bot vs anti-nuke building mechanic (20s stun vs new 8s stun)
 --
 -- Implementation Note: You can only exceed a weapon's paralyzetime by applying the paralyzedamage AFTER the ApplyDamage Spring Engine function (which 
---   clamps the paralyzedamage to paralyzetime.) The UnitDamaged event handler happens right after ApplyDamage so we hook that for this feature.
---   paralyzetime clamp: https://github.com/beyond-all-reason/spring/blob/95d591b7c91f26313b58187692bd4485b39cb050/rts/Sim/Units/Unit.cpp#L1257
+--	clamps the paralyzedamage to paralyzetime.) The UnitDamaged event handler happens right after ApplyDamage so we hook that for this feature.
+--	paralyzetime clamp: https://github.com/beyond-all-reason/spring/blob/95d591b7c91f26313b58187692bd4485b39cb050/rts/Sim/Units/Unit.cpp#L1257
 
 function gadget:UnitDamaged(unitID,unitDefID,unitTeam,damage,paralyzer,weaponDefID,projectileID,attackerID,attackerDefID,attackerTeam)
-    if paralyzer then
-	-- If Weapon is a Spybot Bomb and target is a Building with AntiNuke customParam
-        if weaponDefID and unitDefID and (weaponDefID == WeaponDefNames.spybombx.id) and isBuilding[unitDefID] and isAntiNuke[unitDefID] then
-            local uHealth, uMaxHealth, uParalyze = Spring.GetUnitHealth(unitID)
-	    
-	    -- Support for paralyzeOnMaxHealth Feature
-	    local effectiveHP = Game.paralyzeOnMaxHealth and uMaxHealth or uHealth
-	    
-	    -- Calculate a 20 second effective paralyze duration
-	    local spyBotAntiNukeStunDuration = 20
-	    
-	    -- Still obey the EMP global hard-cap
- 	    stunDuration = math.min(maxTime, spyBotAntiNukeStunDuration)
-	    local paralyzeDamage = (1 + (spyBotAntiNukeStunDuration / Game.paralyzeDeclineRate)) * effectiveHP
-	    
-	    -- Override the paralyzeDamage of the target to apply the stun
-	    Spring.SetUnitHealth(unitID, { paralyze = paralyzeDamage })
-        end
-    end
+	--early return for non-paralyzer weapons
+	if not paralyzer then
+		return
+	end
+	--early return for calls without a weaponDefID or unitDefID
+	if not weaponDefID or not unitDefID then
+		return
+	end
+	--early return for non-anti-nuke or non-building targets
+	if not isAntiNuke[unitDefID] or not isBuilding[unitDefID] then
+		return
+	end
+
+	-- if weapon is a spybot bomb and target is a building with antinuke customParam, we override the paralyzeDamage to apply a longer stun
+	if isAntiNuke[unitDefID] and isBuilding[unitDefID] and (weaponDefID == WeaponDefNames.spybombx.id) then
+
+		local uHealth, uMaxHealth, uParalyze = Spring.GetUnitHealth(unitID)
+
+		-- Support for paralyzeOnMaxHealth Feature
+		local effectiveHP = Game.paralyzeOnMaxHealth and uMaxHealth or uHealth
+
+		-- Calculate a 20 second effective paralyze duration
+		local spyBotAntiNukeStunDuration = 20
+
+		-- Still obey the EMP global hard-cap
+		stunDuration = math.min(maxTime, spyBotAntiNukeStunDuration)
+		local paralyzeDamage = (1 + (spyBotAntiNukeStunDuration / Game.paralyzeDeclineRate)) * effectiveHP
+
+		-- Override the paralyzeDamage of the target to apply the stun
+		Spring.SetUnitHealth(unitID, { paralyze = paralyzeDamage })
+	end
 end
