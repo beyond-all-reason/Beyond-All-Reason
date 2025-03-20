@@ -159,12 +159,16 @@ if gadgetHandler:IsSyncedCode() then
 				Spring.Echo('Deserialize Order failed')
 				return
 			end
-
+			Spring.Echo(order.method)
+			local extraInfo
 			order.method = string.sub(order.method,1,3)
-			local etraInfo = string.sub(order.method,4,-1)
+			if #order.method > 1 then
+				extraInfo = order.method[2]
+			end
+			order.method = order.method[1]
 			
 			if order.method == '1-1' then
-				print(UnitDefs[Spring.GetUnitDefID ( order.id )].name,etraInfo)
+				print(UnitDefs[Spring.GetUnitDefID ( order.id )].name,extraInfo)
 				local cmd = spGiveOrderTounit(order.id,order.cmd,order.parameters,order.options)
 				--Spring.Echo('GiveOrderToUnit',order.id,UnitDefs[order.id].name,order.cmd,order.parameters,order.options)
 				cmdCounter.ii = cmdCounter.ii + 1

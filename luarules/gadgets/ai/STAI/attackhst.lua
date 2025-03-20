@@ -334,7 +334,7 @@ function AttackHST:SquadAdvance(squad)
 				return
 			else
 				p[1] = nx
-				p[2] = Spring.GetGroundHeight(nx,nz)
+				p[2] = map:GetGroundHeight(nx,nz)
 				p[3] = nz
 			end
 			
@@ -541,8 +541,6 @@ function AttackHST:MemberIdle(attkbhvr)
 end
 
 function AttackHST:visualDBG()
-	
-
 	if not self.ai.drawDebug then
 		return
 	end

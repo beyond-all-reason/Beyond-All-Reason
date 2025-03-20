@@ -48,11 +48,19 @@ Tool.COLOURS = {
 			white = {1,1,1,1},
 			black = {0,0,0,1}, --veh
 			}
-Tool._TABLES = {}
+
+
+			Tool._TABLES = {}
 function Tool:RezTable()
 	return table.remove(self._TABLES) or {}
 end
 
+function Tool:ResetTable(t)
+	if type(t) == 'table' then
+		self:KillTable(t)
+	end
+	return self:RezTable()
+end
 
 -- Function to recursively process a table and discard everything that is not a table
 function Tool:KillTable(t)

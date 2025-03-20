@@ -18,6 +18,7 @@ function TargetHST:Init()
 	self.enemyFrontList = {}
 	self.blobchecked = {}
 	self.enemyBasePosition = {}
+	self.enemyCenter = {}
 end
 
 function TargetHST:Update()
