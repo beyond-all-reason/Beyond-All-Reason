@@ -2,8 +2,8 @@ return {
 	legkark = {
 		maxacc = 0.0828,
 		maxdec = 0.8211,
-		energycost = 2800,
-		metalcost = 340,
+		energycost = 2600,
+		metalcost = 310,
 		buildpic = "LEGKARK.DDS",
 		buildtime = 4400,
 		canmove = true,
