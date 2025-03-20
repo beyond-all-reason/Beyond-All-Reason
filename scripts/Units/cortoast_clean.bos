@@ -4,7 +4,7 @@
 
 piece  base, flare, turret, door1, door2, barrel, bore, aimpoint;
 
-static-var  turretOpen, restoreDelay, stunned, trajectoryMode;
+static-var  turretOpen, restoreDelay, stunned, trajectoryMode, lastHeading, cardinalHeading;
 #define SIGNAL_AIM2			1
 #define LOW_TRAJECTORY		0
 #define HIGH_TRAJECTORY		1
@@ -31,6 +31,27 @@ openTurret()
 
 closeTurret()
 { 
+    if (lastHeading <= <-135.000000>)
+    {
+        cardinalHeading = <180.000000>;
+    }
+    else if (lastHeading <= <-45.000000>)
+    {
+        cardinalHeading = <270.000000>;
+    }
+    else if (lastHeading <= <45.000000>)
+    {
+        cardinalHeading = <0.000000>;
+    }
+    else if (lastHeading <= <135.000000>)
+    {
+        cardinalHeading = <90.000000>;
+    }
+    else
+    {
+        cardinalHeading = <180.000000>;
+    }
+
 	turn turret to y-axis <0> speed <100>;
 	move bore to z-axis [-6] speed [12];
 	move barrel to z-axis [-9] speed [18];
@@ -45,7 +66,7 @@ closeTurret()
 	turn door2 to z-axis <90> speed <300>;
 	wait-for-turn door1 around z-axis;
 	sleep 100;
-
+	turn turret to y-axis cardinalHeading speed <100>;
 	sleep 10;
 	return (0);;
 }
@@ -141,6 +162,7 @@ aimCommon(heading, pitch)
 
 	turn turret to y-axis heading speed <30.0>;
 	turn turret to x-axis <0.0> - pitch speed <45.0>;
+	lastHeading = heading;
 	wait-for-turn turret around y-axis;
 	wait-for-turn turret around x-axis;
 }
