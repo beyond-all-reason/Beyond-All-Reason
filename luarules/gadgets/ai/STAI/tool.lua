@@ -50,7 +50,7 @@ Tool.COLOURS = {
 			}
 
 
-			Tool._TABLES = {}
+Tool._TABLES = {}
 function Tool:RezTable()
 	return table.remove(self._TABLES) or {}
 end

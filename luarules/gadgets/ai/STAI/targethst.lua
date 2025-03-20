@@ -35,13 +35,21 @@ end
 
 function TargetHST:EnemiesCellsAnalisy() --TODO:--MOVE TO TACTICALHST!!!
 	local enemybasecount = 0
-	self.enemyCenter.x, self.enemyCenter.y, self.enemyCenter.z = 0,0,0
-	self.enemyBasePosition.x,self.enemyBasePosition.y,self.enemyBasePosition.z = 0,0,0
+	self.enemyCenter.x = 0
+	self.enemyCenter.y = 0
+	self.enemyCenter.z = 0
+	self.enemyBasePosition.x = 0
+	self.enemyBasePosition.y = 0
+	self.enemyBasePosition.z = 0
 	
 	local cellCount = 0
 	for X, cells in pairs(self.ai.loshst.ENEMY) do
 		for Z,cell in pairs(cells) do
-			self.enemyCenter = self.ai.tool:sumPos(cell.POS,self.enemyCenter)
+			--self.enemyCenter = self.ai.tool:sumPos(cell.POS,self.enemyCenter)
+			print(cell.X,cell.Z,cell.POS.x)
+			self.enemyCenter.x = self.enemyCenter.x + cell.POS.x
+			self.enemyCenter.y = self.enemyCenter.y + cell.POS.y
+			self.enemyCenter.z = self.enemyCenter.z + cell.POS.z
 			cellCount = cellCount + 1
 			if cell.base then
 				self.enemyBasePosition.x = self.enemyBasePosition.x + cell.POS.x
@@ -110,6 +118,9 @@ function TargetHST:GetMobileBlobs()
 				end
 			end
 		end
+		Spring.Echo(blob.defend,self.ai.loshst.OWN)
+		
+			
 		blob.defend = self.ai.loshst.OWN[defendCellX][defendCellZ]
 		blob.defendDist = defendDist
 		self.MOBILE_BLOBS[ref] = nil
@@ -121,9 +132,10 @@ function TargetHST:blobMobileCell(grid,param,x,z,blobref)--rolling on the cell t
 	if grid[x] and grid[x][z] and grid[x][z][param] and grid[x][z][param] > 0 then
 		if not self.MOBILE_BLOBS[blobref] then
 			self.MOBILE_BLOBS[blobref] = self.ai.tool:RezTable()
+			
 			self.MOBILE_BLOBS[blobref].metal = 0
 			self.MOBILE_BLOBS[blobref].position = self.ai.tool:RezTable()
-			self.MOBILE_BLOBS[blobref].position.x,self.IMMOBILE_BLOBS[blobref].position.y,self.IMMOBILE_BLOBS[blobref].position.z = 0,0,0
+			self.MOBILE_BLOBS[blobref].position.x,self.MOBILE_BLOBS[blobref].position.y,self.MOBILE_BLOBS[blobref].position.z = 0,0,0
 			self.MOBILE_BLOBS[blobref].cells = self.ai.tool:RezTable()
 			self.MOBILE_BLOBS[blobref].units = self.ai.tool:RezTable()
 			self.MOBILE_BLOBS[blobref].defend =nil

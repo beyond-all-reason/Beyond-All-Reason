@@ -81,7 +81,7 @@ end
 function ScoutBST:Scouting()
 	self:EchoDebug('scouting')
 	local randomAway = self.ai.tool:RandomAway2(self.target,128)
-	self.ai.tool:GiveOrder(self.id,CMD.MOVE, randomAway, 0,'1-1,scoutbst')
+	self.ai.tool:GiveOrder(self.id,CMD.MOVE, randomAway, 0,'1-1scoutbst')
 	--self.unit:Internal():Move(randomAway)
 end
 

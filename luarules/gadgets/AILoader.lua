@@ -160,13 +160,10 @@ if gadgetHandler:IsSyncedCode() then
 				return
 			end
 			Spring.Echo(order.method)
-			local extraInfo
-			order.method = string.sub(order.method,1,3)
-			if #order.method > 1 then
-				extraInfo = order.method[2]
-			end
-			order.method = order.method[1]
 			
+			order.method = string.sub(order.method,1,3)
+			local extraInfo = string.sub(order.method,1,3)
+					
 			if order.method == '1-1' then
 				print(UnitDefs[Spring.GetUnitDefID ( order.id )].name,extraInfo)
 				local cmd = spGiveOrderTounit(order.id,order.cmd,order.parameters,order.options)
