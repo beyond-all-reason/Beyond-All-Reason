@@ -125,7 +125,7 @@ return {
 				gravityaffected = "true",
 				impulsefactor = 0.123,
 				mygravity = 0.08,
-				name = "HeavyCannon",
+				name = "Heavy Rapid-Fire Napalm Blast Artillery Quad-Cannon",
 				noselfdamage = true,
 				projectiles = 1,
 				range = 1100,
