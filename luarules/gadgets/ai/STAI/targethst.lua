@@ -35,23 +35,16 @@ end
 
 function TargetHST:EnemiesCellsAnalisy() --TODO:--MOVE TO TACTICALHST!!!
 	local enemybasecount = 0
-	self.enemyCenter.x = 0
-	self.enemyCenter.y = 0
-	self.enemyCenter.z = 0
-	self.enemyBasePosition.x = 0
-	self.enemyBasePosition.y = 0
-	self.enemyBasePosition.z = 0
-	
+	self.enemyBasePosition = nil
+	self.enemyCenter = {x = 0,y = 0,z = 0}
 	local cellCount = 0
 	for X, cells in pairs(self.ai.loshst.ENEMY) do
 		for Z,cell in pairs(cells) do
-			--self.enemyCenter = self.ai.tool:sumPos(cell.POS,self.enemyCenter)
-			print(cell.X,cell.Z,cell.POS.x)
-			self.enemyCenter.x = self.enemyCenter.x + cell.POS.x
-			self.enemyCenter.y = self.enemyCenter.y + cell.POS.y
-			self.enemyCenter.z = self.enemyCenter.z + cell.POS.z
+			Spring.Echo(cell.POS)
+			self.enemyCenter = self.ai.tool:sumPos(cell.POS,self.enemyCenter)
 			cellCount = cellCount + 1
 			if cell.base then
+				self.enemyBasePosition = self.enemyBasePosition or {x=0,z=0}
 				self.enemyBasePosition.x = self.enemyBasePosition.x + cell.POS.x
 				self.enemyBasePosition.z = self.enemyBasePosition.z + cell.POS.z
 				enemybasecount = enemybasecount + 1
@@ -64,7 +57,7 @@ function TargetHST:EnemiesCellsAnalisy() --TODO:--MOVE TO TACTICALHST!!!
 	if enemybasecount > 0 then
 		self.enemyBasePosition.x = self.enemyBasePosition.x / enemybasecount
 		self.enemyBasePosition.z = self.enemyBasePosition.z / enemybasecount
-		self.enemyBasePosition.y = map:GetGroundHeight(self.enemyBasePosition.x, self.enemyBasePosition.z)
+		self.enemyBasePosition.y = Spring.GetGroundHeight(self.enemyBasePosition.x, self.enemyBasePosition.z)
 	end
 end
 
