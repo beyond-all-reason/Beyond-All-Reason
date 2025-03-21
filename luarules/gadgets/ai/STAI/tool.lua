@@ -71,6 +71,7 @@ function Tool:KillTable(t)
 			table.insert(self._TABLES, t)
 		end
 	end
+	return nil
 end
 
 function Tool:StoreOrder (id,cmd,params,options,method)

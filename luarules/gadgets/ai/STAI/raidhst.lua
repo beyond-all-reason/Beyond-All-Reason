@@ -474,16 +474,12 @@ function RaidHST:SquadsTargetDefense(squad)
 	local targetDist = math.huge
 	local targetCell
 	for index,blob in pairs(self.ai.targethst.MOBILE_BLOBS)do
-		local targetHandled = self:SquadsTargetHandled(blob.defend)
+		local targetHandled = self:SquadsTargetHandled(self.ai.loshst.ENEMY[blob.defendCell.X][blob.defendCell.Z])
 		if not targetHandled or targetHandled == squad.squadID then
 			local dist = self.ai.tool:distance(blob.position,self.ai.loshst.CENTER)
 			if dist < targetDist then
 				targetDist = dist
-				if blob.metal > squad.mass then
-					targetCell = blob.defend
-				else
-					targetCell = blob.refCell
-				end
+				targetCell = self.ai.loshst[blob.defendCell.X][blob.defendCell.Z]
 			end
 		end
 	end
@@ -497,7 +493,7 @@ function RaidHST:SquadsTargetAttack2(squad)
 	local worstDist = 0
 
 	for ref, blob in pairs(self.ai.targethst.IMMOBILE_BLOBS) do
-		if not self:SquadsTargetHandled(blob) then
+		if not self:SquadsTargetHandled(self.ai.loshst.ENEMY[blob.defendCell.X][blob.defendCell.Z]) then
 			if self.ai.maphst:UnitCanGoHere(squad.leader, blob.position) then
 				local dist = self.ai.tool:distance(blob.position,self.ai.targethst.enemyCenter)
 				if dist > worstDist then
