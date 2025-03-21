@@ -19,6 +19,8 @@ if gadgetHandler:IsSyncedCode() then
 		-- Contributors
 		"AF",
 		"ACowAdonis",
+		"AidanNaut",
+		"Ambulatory Cortex",
 		"AKU",
 		"AlexS",
 		"AlKo",
@@ -28,13 +30,18 @@ if gadgetHandler:IsSyncedCode() then
 		"bluejay",
 		"Borg King",
 		"Born2Crawl",
+		"BONELESS DRAGON HAM",
+		"BrassCode",
+		"chesiren",
 		"ChrisFloofyKitsune",
+		"Chirick2051",
 		"citrine",
 		"CMDR*Zod",
 		"Damgam",
 		"deadlypants",
 		"Devious Null",
 		"Doo",
+		"duke_of_gloat",
 		"drivver44",
 		"DrWizzard",
 		"EnderRobo",
@@ -72,6 +79,7 @@ if gadgetHandler:IsSyncedCode() then
 		"Mist-e-Fire",
 		"Monty",
 		"Moose",
+		"mupersega",
 		"Nathan Sharples",
 		"Nightmare",
 		"Nihilore",
@@ -99,6 +107,7 @@ if gadgetHandler:IsSyncedCode() then
 		"Scopa",
 		"SethDGamre",
 		"Shadhunter",
+		"Shadowisperke",
 		"Skymirrh",
 		"skynet",
 		"smile",
@@ -121,6 +130,7 @@ if gadgetHandler:IsSyncedCode() then
 		"Yaribz",
 		"Zagupi",
 		"Zecrus",
+		"ZephyrSkies",
 
 		-- Supporters ($20+ Donation)
 		"aeon",
@@ -146,6 +156,7 @@ if gadgetHandler:IsSyncedCode() then
 		"Hershy",
 		"Jazcash",
 		"JimmiBoy",
+		"kabab",
 		"Kalladin",
 		"kaofeiwei",
 		"keithphw",
@@ -175,6 +186,7 @@ if gadgetHandler:IsSyncedCode() then
 		"Rikerss", --Merch $20+
 		"Sovgut", --Tourney prize $50
 		"Shadowisper",
+		"SkyFire",
 		"[SMRT]Felnious", --Donater $50
 		"[SMRT]RobotRobert03", --Donater $50
 		"Spanker",
