@@ -161,13 +161,8 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			
 			if order.method == '1-1' then
-				print('orderid',Spring.GetUnitTooltip ( order.id ) )
-				print(Spring.GetUnitDefID ( order.id ))
 				print(UnitDefs[Spring.GetUnitDefID ( order.id )].name)
 				local cmd = spGiveOrderTounit(order.id,order.cmd,order.parameters,order.options)
-				
-				
-
 				--Spring.Echo('GiveOrderToUnit',order.id,UnitDefs[order.id].name,order.cmd,order.parameters,order.options)
 				cmdCounter.ii = cmdCounter.ii + 1
 				local cmdTag = order.cmd
