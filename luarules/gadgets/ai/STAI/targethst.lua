@@ -17,6 +17,7 @@ function TargetHST:Init()
 	self.pathModifierFuncs = {}
 	self.enemyFrontList = {}
 	self.blobchecked = {}
+	self.enemyCenter = {x = 0,y = 0,z = 0}
 end
 
 function TargetHST:Update()
@@ -34,7 +35,9 @@ end
 function TargetHST:EnemiesCellsAnalisy() --TODO:--MOVE TO TACTICALHST!!!
 	local enemybasecount = 0
 	self.enemyBasePosition = nil
-	self.enemyCenter = {x = 0,y = 0,z = 0}
+	self.enemyCenter.x = 0
+	self.enemyCenter.y = 0
+	self.enemyCenter.z = 0
 	local cellCount = 0
 	for X, cells in pairs(self.ai.loshst.ENEMY) do
 		for Z,cell in pairs(cells) do
@@ -54,7 +57,7 @@ function TargetHST:EnemiesCellsAnalisy() --TODO:--MOVE TO TACTICALHST!!!
 	if enemybasecount > 0 then
 		self.enemyBasePosition.x = self.enemyBasePosition.x / enemybasecount
 		self.enemyBasePosition.z = self.enemyBasePosition.z / enemybasecount
-		self.enemyBasePosition.y = Spring.GetGroundHeight(self.enemyBasePosition.x, self.enemyBasePosition.z)
+		self.enemyBasePosition.y = map:GetGroundHeight(self.enemyBasePosition.x, self.enemyBasePosition.z)
 	end
 end
 
@@ -69,8 +72,6 @@ function TargetHST:NearbyVulnerable(position)
 	end
 end
 function TargetHST:GetMobileBlobs()
-	--self.blobchecked = {}
--- 	self.MOBILE_BLOBS = {}
 	for X, cells in pairs(self.ai.loshst.ENEMY) do
 		for Z,cell in pairs( cells) do
 			local blobref = X..':'..Z
@@ -79,7 +80,6 @@ function TargetHST:GetMobileBlobs()
 			end
 		end
 	end
- 	--self.blobchecked = nil
 	for i,v in pairs(self.blobchecked) do
 		self.blobchecked[i] = nil
 	end
@@ -110,18 +110,6 @@ function TargetHST:GetMobileBlobs()
 		end
 		blob.defend = defendCell
 		blob.defendDist = defendDist
-
--- 		local refDist = math.huge
--- 		local refCell = nil
---  		for X, cells in pairs(self.ai.loshst.OWN) do
---  			for Z, cell in pairs(cells) do
---  				local dist = self.ai.tool:distance(cell.POS,blob.position)
---  				if dist < refDist then
---  					refDist = dist
---  					refCell = cell
---  				end
---  			end
---  		end
 		blob.refCell = defendCell
 		blob.refDist = defendDist
 		self.MOBILE_BLOBS[ref] = nil
