@@ -1616,6 +1616,9 @@ function doCreateLists(onlyMainList, onlyMainList2, onlyMainList3)
     if onlyMainList then
         CreateBackground()
     end
+	if useRenderToTexture and not mainList2Tex then
+		onlyMainList2 = true
+	end
     CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
 end
 
