@@ -304,6 +304,8 @@ local function clear()
 	hoverDlist = gl.DeleteList(hoverDlist)
 	prevHoveredCellID = nil
 	if buildmenuTex then
+		gl.DeleteTextureFBO(buildmenuBgTex)
+		buildmenuBgTex = nil
 		gl.DeleteTextureFBO(buildmenuTex)
 		buildmenuTex = nil
 	end
@@ -470,7 +472,7 @@ function widget:Update(dt)
 end
 
 function drawBuildmenuBg()
-	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], (posX > 0 and 1 or 0), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), 0)
+	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], (posX > 0 and 1 or 0), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), 0, nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture)
 end
 
 local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
@@ -787,8 +789,6 @@ function widget:DrawScreen()
 		if not dlistBuildmenuBg then
 			dlistBuildmenuBg = gl.CreateList(function() drawBuildmenuBg() end)
 		end
-		-- draw buildmenu background
-		gl.CallList(dlistBuildmenuBg)
 
 		-- create buildmenu
 		if refreshBuildmenu then
@@ -800,6 +800,20 @@ function widget:DrawScreen()
 						format = GL.RGBA,
 						fbo = true,
 					})
+					buildmenuBgTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
+						target = GL.TEXTURE_2D,
+						format = GL.RGBA,
+						fbo = true,
+					})
+					gl.RenderToTexture(buildmenuBgTex, function()
+						gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+						gl.PushMatrix()
+						gl.Translate(-1, -1, 0)
+						gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
+						gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
+						drawBuildmenuBg()
+						gl.PopMatrix()
+					end)
 				end
 				if buildmenuTex then
 					gl.RenderToTexture(buildmenuTex, function()
@@ -808,7 +822,6 @@ function widget:DrawScreen()
 						gl.Translate(-1, -1, 0)
 						gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
 						gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-						--drawBuildmenuBg()	-- doesnt render correct
 						drawBuildmenu()
 						gl.PopMatrix()
 					end)
@@ -816,6 +829,16 @@ function widget:DrawScreen()
 			elseif not dlistBuildmenu then
 				dlistBuildmenu = gl.CreateList(function() drawBuildmenu() end)
 			end
+		end
+
+		-- draw buildmenu background
+		if useRenderToTexture then
+			-- background element
+			gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
+			gl.Texture(buildmenuBgTex)
+			gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)
+		else
+			gl.CallList(dlistBuildmenuBg)
 		end
 
 		local hovering = false
@@ -864,6 +887,7 @@ function widget:DrawScreen()
 
 			-- draw buildmenu content
 			if buildmenuTex then
+				-- content
 				gl.Color(1,1,1,1)
 				gl.Texture(buildmenuTex)
 				gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)

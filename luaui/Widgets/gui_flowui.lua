@@ -466,21 +466,19 @@ end
 		color1, color2 = (color1[4 value overrides the opacity param defined above)
 		bgpadding = custom border size
 ]]
-WG.FlowUI.Draw.Element = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pbr, pbl,  opacity, color1, color2, bgpadding)
+WG.FlowUI.Draw.Element = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pbr, pbl,  opacity, color1, color2, bgpadding, opaque)
 	local opacity = math.min(1, opacity or WG.FlowUI.opacity)
-	local color1 = color1 or { 0, 0, 0, opacity}
-	local color2 = color2 or { 1, 1, 1, opacity * 0.1}
+	local color1 = color1 or { 0.04, 0.04, 0.04, opacity}
+	local color2 = color2 or { 1, 1, 1, opacity * 0.1 }
+	if opaque then
+		color2 = { 0.12, 0.12, 0.12, 1 }
+	end
 	local ui_scale = WG.FlowUI.scale
 	local bgpadding = bgpadding or WG.FlowUI.elementPadding
 	local cs = WG.FlowUI.elementCorner * (bgpadding/WG.FlowUI.elementPadding)
-	local glossMult = 1 + (2 - (opacity * 1.5))
+	local glossMult = 2.3
 	local tileopacity = WG.FlowUI.tileOpacity
 	local bgtexSize = WG.FlowUI.tileSize
-	if opacity > 0.75 then	-- lighten up or background get too dark
-		glossMult = glossMult * (1 + ((opacity - 0.75) * 2))
-		local addition = (opacity - 0.75) * 0.15
-		color1 = {color1[1]+addition, color1[2]+addition, color1[3]+addition, color1[4]}
-	end
 
 	local tl = tl or 1
 	local tr = tr or 1
@@ -494,39 +492,53 @@ WG.FlowUI.Draw.Element = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pb
 
 	-- background / border
 	gl.Texture(false)
-	WG.FlowUI.Draw.RectRound(px, py, sx, sy, cs, tl, tr, br, bl, { color1[1], color1[2], color1[3], color1[4] }, { color1[1], color1[2], color1[3], color1[4] })
+	WG.FlowUI.Draw.RectRound(px, py, sx, sy, cs, tl, tr, br, bl, { color1[1], color1[2], color1[3], opaque and 1 or color1[4] }, { color1[1], color1[2], color1[3], opaque and 1 or color1[4] })
 
 	-- element
 	cs = cs * 0.6
-	WG.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, sy - syPad, cs, tl, tr, br, bl, { color2[1]*0.33, color2[2]*0.33, color2[3]*0.33, color2[4] * 1.25 }, { color2[1], color2[2], color2[3], color2[4] * 1.25 })
+	WG.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, sy - syPad, cs, tl, tr, br, bl, { color2[1]*0.33, color2[2]*0.33, color2[3]*0.33, opaque and opacity or color2[4] * 1.25 }, { color2[1], color2[2], color2[3], opaque and opacity or color2[4] * 1.25 })
 
 	-- element - inner darkening to create highlighted border
 	local pad2 = 1
 	local pad2OpacityMult = 0.2
-	WG.FlowUI.Draw.RectRound(px + pxPad + pad2, py + pyPad + pad2, sx - sxPad - pad2, sy - syPad - pad2, cs*0.65, tl, tr, br, bl, { color1[1], color1[2], color1[3], color1[4]*pad2OpacityMult}, { color1[1], color1[2], color1[3], color1[4]*pad2OpacityMult })
-	pad2 = 2.5
+	local c = opaque and 0.12 or 0
+	WG.FlowUI.Draw.RectRound(px + pxPad + pad2, py + pyPad + pad2, sx - sxPad - pad2, sy - syPad - pad2, cs*0.65, tl, tr, br, bl, { color1[1]+(c*0.55), color1[2]+(c*0.55), color1[3]+(c*0.55), opaque and 1 or color1[4]*pad2OpacityMult}, { color1[1]+c, color1[2]+c, color1[3]+c, opaque and 1 or color1[4]*pad2OpacityMult })
+	pad2 = 2
 	pad2OpacityMult = 0.065
-	WG.FlowUI.Draw.RectRound(px + pxPad + pad2, py + pyPad + pad2, sx - sxPad - pad2, sy - syPad - pad2, cs*0.3, tl, tr, br, bl, { color1[1], color1[2], color1[3], color1[4]*pad2OpacityMult}, { color1[1], color1[2], color1[3], color1[4]*pad2OpacityMult })
+	c = opaque and 0.08 or 0
+	WG.FlowUI.Draw.RectRound(px + pxPad + pad2, py + pyPad + pad2, sx - sxPad - pad2, sy - syPad - pad2, cs*0.3, tl, tr, br, bl, { color1[1]+c, color1[2]+c, color1[3]+c, opaque and 1 or color1[4]*pad2OpacityMult}, { color1[1]+c, color1[2]+c, color1[3]+c, opaque and 1 or color1[4]*pad2OpacityMult })
+
+	local glossHeight = math.floor(0.02 * WG.FlowUI.vsy * ui_scale)
+
+	-- darkening bottom
+	c = opaque and 0.04 or 0
+	c2 = opaque and 0.12 or 0
+	WG.FlowUI.Draw.RectRound(px + pxPad + pad2, py + pad2, sx - sxPad - pad2, py + ((sy-py)*0.75), cs*1.66, 0, 0, br, bl, { c,c,c, opaque and 1 or 0.05 * glossMult }, { c2,c2,c2, opaque and 1 or 0 })
 
 	-- gloss
-	local glossHeight = math.floor(0.02 * WG.FlowUI.vsy * ui_scale)
 	-- top
-	WG.FlowUI.Draw.RectRound(px + pxPad, sy - syPad - glossHeight, sx - sxPad, sy - syPad, cs, tl, tr, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.07 * glossMult })
+	pad2 = 1
+	c = 0.12
+	c2 = opaque and 0.12 * glossMult or 1
+	WG.FlowUI.Draw.RectRound(px + pxPad + pad2, sy - syPad - pad2 - glossHeight, sx - sxPad - pad2, sy - syPad - pad2, cs*0.5, tl, tr, 0, 0, { c, c, c, opaque and 1 or 0 }, { c2, c2, c2, opaque and 1 or 0.07 * glossMult })
 	-- bottom
-	WG.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, py + pyPad + glossHeight, cs, 0, 0, br, bl, { 1, 1, 1, 0.03 * glossMult }, { 1 ,1 ,1 , 0 })
+	c = 0.06
+	c2 = opaque and 0.05 * glossMult or 1
+	WG.FlowUI.Draw.RectRound(px + pxPad + pad2, py + pyPad + pad2, sx - sxPad - pad2, py + pyPad + glossHeight, cs, 0, 0, br, bl, { c2, c2, c2, opaque and 1 or 0.03 * glossMult }, { c, c, c, opaque and 1 or 0 })
 
 	-- highlight edges thinly
 	-- top
-	WG.FlowUI.Draw.RectRound(px + pxPad, sy - syPad - (cs*2.5), sx - sxPad, sy - syPad, cs, tl, tr, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.04 * glossMult })
+	c = opaque and 0.33 or 1
+	c2 = 0.24
+	WG.FlowUI.Draw.RectRound(px + pxPad + pad2, sy - syPad - (cs*2.5), sx - sxPad-pad2, sy - syPad - pad2, cs, tl, tr, 0, 0, { c2, c2, c2, opaque and 1 or 0 }, { c, c, c, opaque and 1 or 0.04 * glossMult })
 	-- bottom
-	WG.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, py + pyPad + (cs*2), cs, 0, 0, br, bl, { 1, 1, 1, 0.02 * glossMult }, { 1 ,1 ,1 , 0 })
-
-	-- darkening bottom
-	WG.FlowUI.Draw.RectRound(px, py, sx, py + ((sy-py)*0.75), cs*1.66, 0, 0, br, bl, { 0,0,0, 0.05 * glossMult }, { 0,0,0, 0 })
+	c = opaque and 0.16 or 1
+	c2 = 0.08
+	WG.FlowUI.Draw.RectRound(px + pxPad + pad2, py + pyPad + pad2, sx - sxPad - pad2, py + pyPad + (cs*2), cs, 0, 0, br, bl, { c, c, c, opaque and 1 or 0.02 * glossMult }, { c2, c2, c2, opaque and 1 or 0 })
 
 	-- tile
-	if tileopacity > 0 then
-		gl.Color(1,1,1, tileopacity)
+	if tileopacity > 0 then	-- when opaque this will introduce some minor transparancy
+		gl.Color(1,1,1, tileopacity * (opaque and 1.33 or 1) )
 		WG.FlowUI.Draw.TexturedRectRound(px + pxPad, py + pyPad, sx - sxPad, sy - syPad, cs, tl, tr, br, bl, bgtexSize, (px+pxPad)/WG.FlowUI.vsx/bgtexSize, (py+pyPad)/WG.FlowUI.vsy/bgtexSize, "luaui/images/backgroundtile.png")
 	end
 end

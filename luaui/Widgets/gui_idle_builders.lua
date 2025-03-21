@@ -146,6 +146,10 @@ local function drawIcon(unitDefID, rect, lightness, zoom, texSize, highlightOpac
 	end
 end
 
+local function drawBackground()
+	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0), nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture)
+end
+
 local function drawContent()
 	local mult = numIcons
 	if numIcons == 0 then
@@ -358,44 +362,57 @@ local function updateList(force)
 			checkGuishader(true)
 		end
 	else
-		dlist = gl.CreateList(function()
-			local mult = numIcons
-			if numIcons == 0 then
-				mult = 1
-			end
-			if mult > maxIcons then
-				mult = maxIcons
-				numIcons = mult
-			end
+		local mult = numIcons
+		if numIcons == 0 then
+			mult = 1
+		end
+		if mult > maxIcons then
+			mult = maxIcons
+			numIcons = mult
+		end
 
-			local iconWidth = iconSize - backgroundPadding
-			local startOffsetX = 0
-			if numIcons > 0 and alwaysShowLabel then
-				startOffsetX = iconWidth
+		local iconWidth = iconSize - backgroundPadding
+		local startOffsetX = 0
+		if numIcons > 0 and alwaysShowLabel then
+			startOffsetX = iconWidth
+		end
+		usedWidth = (iconWidth * mult) + backgroundPadding + backgroundPadding + startOffsetX
+		if usedWidth > uiTexWidth then
+			uiTexWidth = usedWidth
+			if uiTex then
+				gl.DeleteTextureFBO(uiTex)
+				uiTex = nil
 			end
-			usedWidth = (iconWidth * mult) + backgroundPadding + backgroundPadding + startOffsetX
-			if usedWidth > uiTexWidth then
-				uiTexWidth = usedWidth
-				if uiTex then
-					gl.DeleteTextureFBO(uiTex)
-					uiTex = nil
-				end
-			end
+		end
+		local prevBackgroundX2 = backgroundRect and backgroundRect[3] or 0
+		backgroundRect = {
+			floor(posX * vsx),
+			floor(posY * vsy),
+			floor(posX * vsx) + usedWidth,
+			floor(posY * vsy) + usedHeight
+		}
+		if uiBgTex and backgroundRect and backgroundRect[3] ~= prevBackgroundX2 then
+			gl.DeleteTextureFBO(uiBgTex)
+			uiBgTex = nil
+		end
 
-			backgroundRect = {
-				floor(posX * vsx),
-				floor(posY * vsy),
-				floor(posX * vsx) + usedWidth,
-				floor(posY * vsy) + usedHeight
-			}
-
-			UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0))
-
-			if not useRenderToTexture then
-				drawContent()
-			end
-		end)
 		if useRenderToTexture then
+			if not uiBgTex then
+				uiBgTex = gl.CreateTexture(math.floor(uiTexWidth), math.floor(backgroundRect[4]-backgroundRect[2]), {
+					target = GL.TEXTURE_2D,
+					format = GL.RGBA,
+					fbo = true,
+				})
+				gl.RenderToTexture(uiBgTex, function()
+					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+					gl.PushMatrix()
+					gl.Translate(-1, -1, 0)
+					gl.Scale(2 / (backgroundRect[3]-backgroundRect[1]), 2 / (backgroundRect[4]-backgroundRect[2]),	0)
+					gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
+					drawBackground()
+					gl.PopMatrix()
+				end)
+			end
 			if not uiTex then
 				uiTex = gl.CreateTexture(math.floor(uiTexWidth), math.floor(backgroundRect[4]-backgroundRect[2]), {
 					target = GL.TEXTURE_2D,
@@ -403,18 +420,22 @@ local function updateList(force)
 					fbo = true,
 				})
 			end
-			if uiTex then
-				gl.RenderToTexture(uiTex, function()
-					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-					gl.PushMatrix()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / uiTexWidth, 2 / (backgroundRect[4]-backgroundRect[2]),	0)
-					gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-					drawContent()
-					gl.PopMatrix()
-				end)
-			end
+			gl.RenderToTexture(uiTex, function()
+				gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+				gl.PushMatrix()
+				gl.Translate(-1, -1, 0)
+				gl.Scale(2 / uiTexWidth, 2 / (backgroundRect[4]-backgroundRect[2]),	0)
+				gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
+				drawContent()
+				gl.PopMatrix()
+			end)
+		else
+			dlist = gl.CreateList(function()
+				drawBackground()
+				drawContent()
+			end)
 		end
+
 		checkGuishader(true)
 	end
 end
@@ -556,8 +577,8 @@ function widget:Shutdown()
 		gl.DeleteList(dlist)
 	end
 	if uiTex then
+		gl.DeleteTextureFBO(uiBgTex)
 		gl.DeleteTextureFBO(uiTex)
-		uiTex = nil
 	end
 	if WG['guishader'] then
 		WG['guishader'].DeleteDlist('idlebuilders')
@@ -660,13 +681,23 @@ function widget:DrawScreen()
 		doUpdate = false
 		doUpdateForce = nil
 	end
-	if (not spec or showWhenSpec) and dlist then
-		gl.CallList(dlist)
-		if uiTex then
-			gl.Color(1,1,1,1)
-			gl.Texture(uiTex)
-			gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[1]+uiTexWidth, backgroundRect[4], false, true)
-			gl.Texture(false)
+	if (not spec or showWhenSpec) and (dlist or uiTex or uiBgTex) then
+		if useRenderToTexture then
+			if uiBgTex then
+				-- background element
+				gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
+				gl.Texture(uiBgTex)
+				gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)
+			end
+			if uiTex then
+				--content
+				gl.Color(1,1,1,1)
+				gl.Texture(uiTex)
+				gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[1]+uiTexWidth, backgroundRect[4], false, true)
+				gl.Texture(false)
+			end
+		else
+			gl.CallList(dlist)
 		end
 	end
 end
