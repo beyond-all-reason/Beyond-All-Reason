@@ -160,7 +160,6 @@ CATT3_Aim(heading, pitch){
 			turn CATT3_PIECE_Y to y-axis CATT3position now;
 			//turn CATT3_PIECE_Y to y-axis CATT3position speed 30 * CATT3velocity;
 			if ((timetozero < 3) AND (timetozero != 0) AND (get ABS(CATT3velocity) < CATT3_JERK)) {
-				get PRINT(CATT3velocity,CATT3_JERK);
 				CATT3velocity = 0;
 				start-script CATT2_Restore();
 				return;
