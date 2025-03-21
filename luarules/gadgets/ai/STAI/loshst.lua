@@ -47,14 +47,6 @@ function LosHST:GetCellFromPool(X,Z,grid)
 		gn = 'ALLIES'
 	end
  	local gridname = 'pool'..gn
--- 	if not self.ai[gridname][X] or self.ai[gridname][X][Z] then
--- 		return {}
--- 	else
--- 		local CELL = self.cellPool[self.numCellPool]
--- 		self.cellPool[self.numCellPool] = nil
--- 		self.numCellPool = self.numCellPool - 1
--- 		return CELL
--- 	end
 
 local cell =  self[gridname][X][Z]
 self[gridname][X][Z] = nil
@@ -93,29 +85,27 @@ function LosHST:Update()
 	self:FreeCellsToPool('ALLY')
 
 	for id,def in pairs(self.losEnemy) do
-		local unit = game:GetUnitByID(id)
-		local x,y,z = unit:GetRawPos()
+		local x,y,z = game:GetUnitByID(id):GetRawPos()
 		if self.losEnemy[id] and self.radarEnemy[id] then
 			self:Warn('unit in los and in radar, with losStatus:' ,game:GetUnitLos(id))
-		elseif not  x or not unit:IsAlive()then
+		elseif not  x or not game:GetUnitByID(id):IsAlive()then
 			self:cleanEnemy(id)
 		else
 			local X,Z = self.ai.maphst:RawPosToGrid(x,y,z)
-			self:setCellLos(self.ENEMY,unit,X,Z)
+			self:setCellLos(self.ENEMY,game:GetUnitByID(id),X,Z)
 		end
 	end
 	for id,def in pairs(self.radarEnemy) do
-		local unit = game:GetUnitByID(id)
-		local x,y,z = unit:GetRawPos()
+		local x,y,z = game:GetUnitByID(id):GetRawPos()
 		--self:EchoDebug('enemyunitx',x,unit.x,unit.y,unit.z)
 
 		if self.losEnemy[id] and self.radarEnemy[id] then
 			self:Warn('unit in los and in radar, with losStatus:' ,game:GetUnitLos(id))
-		elseif not  x or not unit:IsAlive()then
+		elseif not  x or not game:GetUnitByID(id):IsAlive()then
 			self:cleanEnemy(id)
 		else
 			local X,Z = self.ai.maphst:RawPosToGrid(x,y,z)
-			self:setCellRadar(self.ENEMY,unit,X,Z)
+			self:setCellRadar(self.ENEMY,game:GetUnitByID(id),X,Z)
 		end
 	end
 end
