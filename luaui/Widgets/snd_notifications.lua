@@ -130,8 +130,10 @@ local unitsOfInterestNames = {
 	corsilo = 'NuclearSiloDetected',
 	corint = 'LrpcDetected',
 	armbrtha = 'LrpcDetected',
+	leglrpc = 'LrpcDetected',
 	corbuzz = 'LrpcDetected',
 	armvulc = 'LrpcDetected',
+	legstarfall = 'LrpcDetected',
 	armliche = 'NuclearBomberDetected',
 	corjugg = 'BehemothDetected',
 	corkorg = 'JuggernautDetected',
@@ -143,8 +145,13 @@ local unitsOfInterestNames = {
 	corintr = 'TransportDetected',
 	armatlas = 'AirTransportDetected',
 	corvalk = 'AirTransportDetected',
+	leglts = 'AirTransportDetected',
+	armhvytrans = 'AirTransportDetected',
+	corhvytrans = 'AirTransportDetected',
+	legatrans = 'AirTransportDetected',
 	armdfly = 'AirTransportDetected',
 	corseah = 'AirTransportDetected',
+	legstronghold = 'SeaTransportDetected',
 	armtship = 'SeaTransportDetected',
 	cortship = 'SeaTransportDetected',
 }
@@ -193,7 +200,6 @@ local isSpec = Spring.GetSpectatingState()
 local isReplay = Spring.IsReplay()
 local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
-local myAllyTeamID = Spring.GetMyAllyTeamID()
 local myRank = select(9, Spring.GetPlayerInfo(myPlayerID))
 
 local spGetTeamResources = Spring.GetTeamResources
@@ -310,7 +316,6 @@ function widget:PlayerChanged(playerID)
 	isSpec = Spring.GetSpectatingState()
 	myTeamID = Spring.GetMyTeamID()
 	myPlayerID = Spring.GetMyPlayerID()
-	myAllyTeamID = Spring.GetMyAllyTeamID()
 	doTutorialMode = (not isReplay and not isSpec and tutorialMode)
 	updateCommanders()
 end
@@ -332,9 +337,7 @@ local function gadgetNotificationEvent(msg)
 end
 
 function widget:Initialize()
-	if isReplay or spGetGameFrame() > 0 then
-		widget:PlayerChanged()
-	end
+	widget:PlayerChanged()
 
 	widgetHandler:RegisterGlobal('NotificationEvent', gadgetNotificationEvent)
 
@@ -767,8 +770,8 @@ function widget:Update(dt)
 	passedTime = passedTime + dt
 	if passedTime > 0.2 then
 		passedTime = passedTime - 0.2
-		if WG['advplayerlist_api'] and WG['advplayerlist_api'].GetLockPlayerID ~= nil then
-			lockPlayerID = WG['advplayerlist_api'].GetLockPlayerID()
+		if WG.lockcamera and WG.lockcamera.GetPlayerID ~= nil then
+			lockPlayerID = WG.lockcamera.GetPlayerID()
 		end
 
 		-- process sound queue
@@ -866,6 +869,7 @@ function widget:SetConfigData(data)
 	end
 	if data.tutorialMode ~= nil then
 		tutorialMode = data.tutorialMode
+		doTutorialMode = tutorialMode
 	end
 	if spGetGameFrame() > 0 then
 		if data.LastPlay then

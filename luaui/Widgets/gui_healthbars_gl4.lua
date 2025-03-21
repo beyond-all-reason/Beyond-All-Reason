@@ -393,7 +393,7 @@ local variableBarSizes = true -- Option 'healthbarsvariable'
 local healthBarVBO = nil
 local healthBarShader = nil
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 
@@ -438,9 +438,9 @@ if debugmode then
 	shaderConfig.DEBUGSHOW = 1 -- comment this to always show all bars
 end
 
-local vsSrcPath = "LuaUI/Widgets/Shaders/HealthbarsGL4.vert.glsl"
-local gsSrcPath = "LuaUI/Widgets/Shaders/HealthbarsGL4.geom.glsl"
-local fsSrcPath = "LuaUI/Widgets/Shaders/HealthbarsGL4.frag.glsl"
+local vsSrcPath = "LuaUI/Shaders/HealthbarsGL4.vert.glsl"
+local gsSrcPath = "LuaUI/Shaders/HealthbarsGL4.geom.glsl"
+local fsSrcPath = "LuaUI/Shaders/HealthbarsGL4.frag.glsl"
 
 local shaderSourceCache = {
 		vssrcpath = vsSrcPath,
@@ -565,7 +565,6 @@ local function addBarForUnit(unitID, unitDefID, barname, reason)
 	-- debug units are not present in unittracker api!
 	if (unitDefID == nil) or unitDefIgnore[unitDefID] then return nil end
 
-	local gf = Spring.GetGameFrame()
 	local bt = barTypeMap[barname]
 	--if cnt == 1 then bt = barTypeMap.building end
 	--if cnt == 2 then bt = barTypeMap.reload end
@@ -845,7 +844,6 @@ local function initfeaturebars()
 	clearInstanceTable(featureHealthVBO)
 	clearInstanceTable(featureResurrectVBO)
 	clearInstanceTable(featureReclaimVBO)
-	local gameFrame = Spring.GetGameFrame()
 	for i, featureID in ipairs(Spring.GetAllFeatures()) do
 		local featureDefID = Spring.GetFeatureDefID(featureID)
 		--local resurrectname = Spring.GetFeatureResurrect(featureID)
@@ -1269,7 +1267,6 @@ function widget:DrawWorld()
 	if chobbyInterface then return end
 	if not drawWhenGuiHidden and Spring.IsGUIHidden() then return end
 
-    local now = os.clock()
 	if Spring.GetGameFrame() % 90 == 0 then
 		--Spring.Echo("healthBarVBO",healthBarVBO.usedElements, "featureHealthVBO",featureHealthVBO.usedElements)
 	end

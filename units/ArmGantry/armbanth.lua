@@ -24,7 +24,7 @@ return {
 		maxslope = 17,
 		maxwaterdepth = 12,
 		metalcost = 13500,
-		movementclass = "VBOT5",
+		movementclass = "HABOT5",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMBANTH.s3o",
 		script = "Units/ARMBANTH.cob",
@@ -114,7 +114,6 @@ return {
 				areaofeffect = 64,
 				avoidfeature = false,
 				beamdecay = 12,
-				burnblow = true,
 				corethickness = 0.85,
 				craterareaofeffect = 0,
 				craterboost = 0,
@@ -186,6 +185,10 @@ return {
 				damage = {
 					default = 900,
 					subs = 500,
+				},
+				customparams = {
+					projectile_destruction_method = "descend",
+					overrange_distance = 989,
 				},
 			},
 			banthfootstep = {

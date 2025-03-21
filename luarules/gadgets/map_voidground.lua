@@ -37,10 +37,9 @@ end
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetFeaturePosition = Spring.GetFeaturePosition
-local mapx = Game.mapSizeZ
+local mapx = Game.mapSizeX
 local mapz = Game.mapSizeZ
 
-local gaiaTeamID = Spring.GetGaiaTeamID()
 
 function gadget:FeatureCreated(featureID)
 	if select(2, spGetFeaturePosition(featureID)) <= 1 then

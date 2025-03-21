@@ -126,8 +126,6 @@ end
 -----------------------------------------------------------------------------------------------------------------
 
 local GL_COLOR_BUFFER_BIT = GL.COLOR_BUFFER_BIT
-local GL_DEPTH_BUFFER_BIT = GL.DEPTH_BUFFER_BIT
-local GL_DEPTH_COLOR_BUFFER_BIT = math.bit_or(GL_DEPTH_BUFFER_BIT,GL_COLOR_BUFFER_BIT)
 local glActiveFBO     = gl.ActiveFBO
 local glCopyToTexture = gl.CopyToTexture
 local glCallList      = gl.CallList

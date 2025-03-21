@@ -145,9 +145,6 @@ return {
 				weapontimer = 1,
 				weapontype = "notFlame",
 				weaponvelocity = 600,
-				customparams = {
-					single_hit_multi = "true",
-				},
 				damage = {
 					default = 48,
 					subs = 16,

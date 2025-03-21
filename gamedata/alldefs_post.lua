@@ -44,20 +44,15 @@ end
 --[[ Sanitize to whole frames (plus leeways because float arithmetic is bonkers).
      The engine uses full frames for actual reload times, but forwards the raw
      value to LuaUI (so for example calculated DPS is incorrect without sanitisation). ]]
-local function round_to_frames(name, wd, key)
+local function round_to_frames(wd, key)
 	local original_value = wd[key]
 	if not original_value then
 		-- even reloadtime can be nil (shields, death explosions)
 		return
 	end
 
-	local Game_gameSpeed = 30 --for mission editor backwards compat (engine 104.0.1-287)
-	if Game and Game.gameSpeed then
-		Game_gameSpeed = Game.gameSpeed
-	end
-
-	local frames = math.max(1, math.floor((original_value + 1E-3) * Game_gameSpeed))
-	local sanitized_value = frames / Game_gameSpeed
+	local frames = math.max(1, math.floor((original_value + 1E-3) * Game.gameSpeed))
+	local sanitized_value = frames / Game.gameSpeed
 
 	return sanitized_value
 end
@@ -69,9 +64,13 @@ local function processWeapons(unitDefName, unitDef)
 	end
 
 	for weaponDefName, weaponDef in pairs(weaponDefs) do
-		local fullWeaponName = unitDefName .. "." .. weaponDefName
-		weaponDef.reloadtime = round_to_frames(fullWeaponName, weaponDef, "reloadtime")
-		weaponDef.burstrate = round_to_frames(fullWeaponName, weaponDef, "burstrate")
+		weaponDef.reloadtime = round_to_frames(weaponDef, "reloadtime")
+		weaponDef.burstrate = round_to_frames(weaponDef, "burstrate")
+
+		if weaponDef.customparams and weaponDef.customparams.cluster_def then
+			weaponDef.customparams.cluster_def = unitDefName .. "_" .. weaponDef.customparams.cluster_def
+			weaponDef.customparams.cluster_number = weaponDef.customparams.cluster_number or 5
+		end
 	end
 end
 
@@ -259,28 +258,13 @@ function UnitDef_Post(name, uDef)
 		end
 
 		if modOptions.unit_restrictions_nonukes then
-			local Nukes = {
-				armamd = true,
-				armsilo = true,
-				armscab = true,
-				armseadragon = true,
-				cordesolator = true,
-				corfmd = true,
-				corsilo = true,
-				cormabm = true,
-				legsilo =  true,
-				legabm = true,
-				armamd_scav = true,
-				armsilo_scav = true,
-				armscab_scav = true,
-				corfmd_scav = true,
-				corsilo_scav = true,
-				cormabm_scav = true,
-				legsilo_scav =  true,
-				legabm_scav = true,
-			}
-			if Nukes[name] then
-				uDef.maxthisunit = 0
+			if uDef.weapondefs then
+				for _, weapon in pairs(uDef.weapondefs) do
+					if (weapon.interceptor and weapon.interceptor == 1) or (weapon.targetable and weapon.targetable == 1) then
+						uDef.maxthisunit = 0
+						break
+					end
+				end
 			end
 		end
 
@@ -416,6 +400,7 @@ function UnitDef_Post(name, uDef)
 				corint = true,
 				corbuzz = true,
 				leglrpc = true,
+				legelrpcmech = true,
 				legstarfall = true,
 				armbotrail_scav = true,
 				armbrtha_scav = true,
@@ -423,6 +408,8 @@ function UnitDef_Post(name, uDef)
 				corint_scav = true,
 				corbuzz_scav = true,
 				legstarfall_scav = true,
+				leglrpc_scav = true,
+				legelrpcmech_scav = true,
 			}
 			if LRPCs[name] then
 				uDef.maxthisunit = 0
@@ -529,6 +516,9 @@ function UnitDef_Post(name, uDef)
 				uDef.buildoptions[numBuildoptions+7] = "corvac" --corprinter
 
 			end
+		elseif name == "corlab" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "corkark"
 		elseif name == "coralab" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "cordeadeye"
@@ -546,6 +536,7 @@ function UnitDef_Post(name, uDef)
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "legsrailt4"
 			uDef.buildoptions[numBuildoptions + 2] = "leggobt3"
+			uDef.buildoptions[numBuildoptions + 3] = "legpede"
 		elseif name == "armca" or name == "armck" or name == "armcv" then
 			--local numBuildoptions = #uDef.buildoptions
 		elseif name == "corca" or name == "corck" or name == "corcv" then
@@ -577,6 +568,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 6] = "armannit3"
 			uDef.buildoptions[numBuildoptions + 7] = "armnanotct2"
 			uDef.buildoptions[numBuildoptions + 8] = "armlwall"
+			uDef.buildoptions[numBuildoptions + 9] = "armgatet3"
 		elseif name == "coraca" or name == "corack" or name == "coracv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "corapt3"
@@ -586,6 +578,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 6] = "cordoomt3"
 			uDef.buildoptions[numBuildoptions + 7] = "cornanotct2"
 			uDef.buildoptions[numBuildoptions + 8] = "cormwall"
+			uDef.buildoptions[numBuildoptions + 9] = "corgatet3"
 		elseif name == "legaca" or name == "legack" or name == "legacv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "legapt3"
@@ -593,6 +586,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 3] = "legwint2"
 			uDef.buildoptions[numBuildoptions + 4] = "legnanotct2"
 			uDef.buildoptions[numBuildoptions + 5] = "legrwall"
+			uDef.buildoptions[numBuildoptions + 6] = "leggatet3"
 		elseif name == "armasy" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "armptt2"
@@ -785,12 +779,12 @@ function UnitDef_Post(name, uDef)
 	}
 
 	local amphibList = {
-		VBOT5 = true,
+		VBOT6 = true,
 		COMMANDERBOT = true,
 		SCAVCOMMANDERBOT = true,
 		ATANK3 = true,
 		ABOT2 = true,
-		HABOT4 = true,
+		HABOT5 = true,
 		ABOTBOMB2 = true,
 		EPICBOT = true,
 		EPICALLTERRAIN = true
@@ -872,10 +866,15 @@ function UnitDef_Post(name, uDef)
 
 	-- Shield Rework
 	if modOptions.shieldsrework == true and uDef.weapondefs then
+		local shieldPowerMultiplier = 1.9-- To compensate for always taking full damage from projectiles in contrast to bounce-style only taking partial
+
 		for _, weapon in pairs(uDef.weapondefs) do
 			if weapon.shield and weapon.shield.repulser then
 				uDef.onoffable = true
 			end
+		end
+		if uDef.customparams.shield_power then
+			uDef.customparams.shield_power = uDef.customparams.shield_power * shieldPowerMultiplier
 		end
 	end
 
@@ -1410,7 +1409,7 @@ function WeaponDef_Post(name, wDef)
 		end
 
 		-- Accurate Lasers
-		if modOptions.accuratelasers then
+		if modOptions.proposed_unit_reworks then
 			if wDef.weapontype and wDef.weapontype == 'BeamLaser' then
 				wDef.targetmoveerror = nil
 			end
@@ -1459,6 +1458,13 @@ function WeaponDef_Post(name, wDef)
 		end]]
 
 		---- SHIELD CHANGES
+
+		if wDef.weapontype == "DGun" then
+			wDef.interceptedbyshieldtype = 512 --make dgun (like behemoth) interceptable by shields, optionally
+		elseif wDef.weapontype == "StarburstLauncher" and not string.find(name, "raptor") then
+			wDef.interceptedbyshieldtype = 1024 --separate from combined MissileLauncher, except raptors
+		end
+
 		local shieldModOption = modOptions.experimentalshields
 
 		if shieldModOption == "absorbplasma" then
@@ -1481,7 +1487,13 @@ function WeaponDef_Post(name, wDef)
 			end
 		end
 
+		--Shields Rework
 		if modOptions.shieldsrework == true then
+			-- To compensate for always taking full damage from projectiles in contrast to bounce-style only taking partial
+			local shieldPowerMultiplier = 1.9
+			local shieldRegenMultiplier = 2.5
+			local shieldRechargeCostMultiplier = 1
+
 			-- For balance, paralyzers need to do reduced damage to shields, as their raw raw damage is outsized
 			local paralyzerShieldDamageMultiplier = 0.25
 
@@ -1489,8 +1501,8 @@ function WeaponDef_Post(name, wDef)
 			local vtolShieldDamageMultiplier = 0
 
 			local shieldCollisionExemptions = { --add the name of the weapons (or just the name of the unit followed by _ ) to this table to exempt from shield collision.
-			'corsilo_', 'armsilo_', 'armthor_empmissile', 'armemp_', 'cortron_', 'corjuno_', 'armjuno_'
-		}
+			'corsilo_', 'armsilo_', 'armthor_empmissile', 'armemp_', 'cortron_', 'corjuno_', 'armjuno_',
+			}
 
 			if wDef.damage ~= nil then
 				-- Due to the engine not handling overkill damage, we have to store the original shield damage values as a customParam for unit_shield_behavior.lua to reference
@@ -1521,23 +1533,27 @@ function WeaponDef_Post(name, wDef)
 			end
 
 			if wDef.shield then
-				wDef.shield.repulser = false
 				wDef.shield.exterior = true
+				if wDef.shield.repulser == true then --isn't an evocom
+					wDef.shield.powerregen = wDef.shield.powerregen * shieldRegenMultiplier
+					wDef.shield.power = wDef.shield.power * shieldPowerMultiplier
+					wDef.shield.powerregenenergy = wDef.shield.powerregenenergy * shieldRechargeCostMultiplier
+				end
+				wDef.shield.repulser = false
 			end
 
-			wDef.interceptedbyshieldtype = 1
+			if ((not wDef.interceptedbyshieldtype or wDef.interceptedbyshieldtype ~= 1) and wDef.weapontype ~= "Cannon") then
+				wDef.customparams = wDef.customparams or {}
+				wDef.customparams.shield_aoe_penetration = true
+			end
 
 			for _, exemption in ipairs(shieldCollisionExemptions) do
-				if string.find(name, exemption)then
-					wDef.interceptedbyshieldtype = 2
+				if string.find(name, exemption) then
+					wDef.interceptedbyshieldtype = 0
 					wDef.customparams.shield_aoe_penetration = true
 					break
 				end
 			end
-		end
-
-		if modOptions.evocom == true and wDef.weapontype == "DGun" then
-			wDef.interceptedbyshieldtype = 1
 		end
 
 		if modOptions.multiplier_shieldpower then

@@ -3,13 +3,12 @@
 
 #include "sfxtype.h"
 #include "exptype.h"
+#include "smart_weapon_select.h"
 
-piece  base, flare, turret, door1, door2, barrel, bore, aimpoint;
+piece  base, flare, turret, door1, door2, barrel, bore, aimpoint, turretmidpoint;
 
-static-var  turretOpen, restoreDelay, stunned, trajectoryMode;
+static-var turretOpen, restoreDelay, stunned, lastHeading, cardinalHeading;
 #define SIGNAL_AIM			1
-#define LOW_TRAJECTORY		0
-#define HIGH_TRAJECTORY		1
 
 openTurret()
 {
@@ -33,7 +32,27 @@ openTurret()
 
 closeTurret()
 { 
-	turn turret to y-axis <0> speed <100>;
+    if (lastHeading <= <-135.000000>)
+    {
+        cardinalHeading = <180.000000>;
+    }
+    else if (lastHeading <= <-45.000000>)
+    {
+        cardinalHeading = <270.000000>;
+    }
+    else if (lastHeading <= <45.000000>)
+    {
+        cardinalHeading = <0.000000>;
+    }
+    else if (lastHeading <= <135.000000>)
+    {
+        cardinalHeading = <90.000000>;
+    }
+    else
+    {
+        cardinalHeading = <180.000000>;
+    }
+
 	move bore to z-axis [-6] speed [12];
 	move barrel to z-axis [-9] speed [18];
 	sleep 316;
@@ -47,7 +66,7 @@ closeTurret()
 	turn door2 to z-axis <90> speed <300>;
 	wait-for-turn door1 around z-axis;
 	sleep 100;
-
+	turn turret to y-axis cardinalHeading speed <100>;
 	sleep 10;
 	return (0);;
 }
@@ -69,11 +88,6 @@ Stop()
 	turretOpen = 0;
 	call-script closeTurret();
 	return (0);
-}
-
-RequestState(requestedstate)
-{
-	trajectoryMode = requestedstate;
 }
 
 ExecuteRestoreAfterDelay()
@@ -127,18 +141,6 @@ Create()
 #define SMOKEPIECE base
 #include "smokeunit_thread_nohit.h"
 
-Activate()
-{
-	signal SIGNAL_AIM;
-	start-script RequestState(HIGH_TRAJECTORY);
-}
-
-Deactivate()
-{
-	signal SIGNAL_AIM;
-	start-script RequestState(LOW_TRAJECTORY);
-}
-
 aimCommon(heading, pitch)
 {
 	while( turretOpen == 0 )
@@ -148,51 +150,66 @@ aimCommon(heading, pitch)
 
 	turn turret to y-axis heading speed <30.000000>;
 	turn turret to x-axis <0.000000> - pitch speed <45.000000>;
+	lastHeading = heading;
 	wait-for-turn turret around y-axis;
 	wait-for-turn turret around x-axis;
 }
 
 AimPrimary(heading, pitch)
 {
+	if (AimingState != AIMING_PRIORITY)
+	{
+		return(0);
+	}
+
 	start-script Go();
 
-	if(trajectoryMode != LOW_TRAJECTORY)
-	 {
-	 	return(0);
-	 }
-	
 	signal SIGNAL_AIM;
 	set-signal-mask SIGNAL_AIM;
 
 	call-script aimCommon(heading, pitch);
 	start-script RestoreAfterDelay();
 
-	// Prevent low-trajectory "bonus shots" while high-trajectory is reloading
+	// Prevent "bonus shots" while alternative weapon is reloading
 	var reloading;
 	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(2));
 	if( reloading )
 	{
 		return(0);
 	}
-	
+
 	return (1);
 }
 
 AimSecondary(heading, pitch)
 {
-	start-script Go();
-
-	if(trajectoryMode != HIGH_TRAJECTORY)
+	if (AimingState != AIMING_BACKUP)
 	{
 		return(0);
 	}
+
+	start-script Go();
 
 	signal SIGNAL_AIM;
 	set-signal-mask SIGNAL_AIM;
 
 	call-script aimCommon(heading, pitch);
 	start-script RestoreAfterDelay();
+
+	// Prevent "bonus shots" while alternative weapon is reloading
+	var reloading;
+	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(1));
+	if( reloading )
+	{
+		return(0);
+	}
+
 	return (1);
+}
+
+AimTertiary(piecenum)
+{
+	return (0);
 }
 
 fireCommon()
@@ -233,6 +250,11 @@ QueryPrimary(piecenum)
 QuerySecondary(piecenum)
 {
 	piecenum = flare;
+}
+
+QueryTertiary(piecenum)
+{
+	piecenum = turretmidpoint;
 }
 
 SweetSpot(piecenum)

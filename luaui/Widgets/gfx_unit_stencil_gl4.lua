@@ -6,7 +6,8 @@ function widget:GetInfo()
 		date      = "2022.03.05",
 		license   = "GNU GPL, v2 or later",
 		layer     = 50,
-		enabled   = true
+		enabled   = true,
+		depends   = {'gl4'},
 	}
 end
 
@@ -30,7 +31,7 @@ local addRadius = 10
 -----------------------------------------------------------------
 -- GL4 Backend Stuff
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 

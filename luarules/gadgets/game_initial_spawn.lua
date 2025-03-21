@@ -43,16 +43,31 @@ if gadgetHandler:IsSyncedCode() then
 	local validStartUnits = {}
 	local armcomDefID = UnitDefNames.armcom and UnitDefNames.armcom.id
 	if armcomDefID then
-		validStartUnits[armcomDefID] = true
+		validStartUnits[#validStartUnits+1] = armcomDefID
 	end
 	local corcomDefID = UnitDefNames.corcom and UnitDefNames.corcom.id
 	if corcomDefID then
-		validStartUnits[corcomDefID] = true
+		validStartUnits[#validStartUnits+1] = corcomDefID
 	end
 	local legcomDefID = UnitDefNames.legcom and UnitDefNames.legcom.id
 	if legcomDefID then
-		validStartUnits[legcomDefID] = true
+		validStartUnits[#validStartUnits+1] = legcomDefID
 	end
+
+	local RANDOM_DUMMY = UnitDefNames.dummycom and UnitDefNames.dummycom.id
+
+	local function isUnitValid(unitDefID)
+		if not unitDefID then
+			return false
+		end
+		if table.contains(validStartUnits, unitDefID) then
+			return true
+		end
+		if unitDefID == RANDOM_DUMMY then
+			return true
+		end
+	end
+
 	local teams = {} -- teams[teamID] = allyID
 	local teamsCount
 
@@ -98,13 +113,15 @@ if gadgetHandler:IsSyncedCode() then
 			local teamID = teamList[i]
 			if teamID ~= gaiaTeamID then
 				-- set & broadcast (current) start unit
-				local _, _, _, _, teamSide, teamAllyID = spGetTeamInfo(teamID, false)
-				local comDefID = armcomDefID
-				if teamSide == 'cortex' then
-					comDefID = corcomDefID
-				elseif teamSide == 'legion' then
-					comDefID = legcomDefID
+				local _, _, _, isAI, teamSide, teamAllyID = spGetTeamInfo(teamID, false)
+				local comName = Spring.GetSideData(teamSide)
+				local comDefID = UnitDefNames[comName] and UnitDefNames[comName].id
+
+				if not isUnitValid(comDefID) then
+					-- ai can't make a decision after their option is denied
+					comDefID = isAI and RANDOM_DUMMY or validStartUnits[1]
 				end
+
 				spSetTeamRulesParam(teamID, startUnitParamName, comDefID, { allied = true, public = false })
 				teams[teamID] = teamAllyID
 			end
@@ -148,7 +165,7 @@ if gadgetHandler:IsSyncedCode() then
 			startUnit = tonumber(msg:match(changeStartUnitRegex))
 		end
 		local _, _, playerIsSpec, playerTeam, allyTeamID = spGetPlayerInfo(playerID, false)
-		if startUnit and validStartUnits[startUnit] then
+		if isUnitValid(startUnit) then
 			if not playerIsSpec then
 				playerStartingUnits[playerID] = startUnit
 				spSetTeamRulesParam(playerTeam, startUnitParamName, startUnit, { allied = true, public = false }) -- visible to allies only, set visible to all on GameStart
@@ -195,7 +212,7 @@ if gadgetHandler:IsSyncedCode() then
 			DraftRecvLuaMsg(msg, playerID, playerIsSpec, playerTeam, allyTeamID)
 		end
 	end
-	
+
 	----------------------------------------------------------------
 	-- Startpoints
 	----------------------------------------------------------------
@@ -326,12 +343,9 @@ if gadgetHandler:IsSyncedCode() then
 		local luaAI = Spring.GetTeamLuaAI(teamID)
 
 		local _, _, _, isAI, sideName = spGetTeamInfo(teamID)
-		if sideName == "random" then
-			if math.random() > 0.5 then
-				startUnit = corcomDefID
-			else
-				startUnit = armcomDefID
-			end
+		if (startUnit or RANDOM_DUMMY) == RANDOM_DUMMY then
+			local roll = math.random(#validStartUnits)
+			startUnit = validStartUnits[roll]
 		end
 
 		-- spawn starting unit
@@ -348,7 +362,7 @@ if gadgetHandler:IsSyncedCode() then
 
 
 		if not scenarioSpawnsUnits then
-			if not (luaAI and (string.find(luaAI, "Scavengers") or luaAI == "RaptorsAI" or luaAI == "ScavReduxAI")) then
+			if not (luaAI and (string.find(luaAI, "Scavengers") or luaAI == "RaptorsAI")) then
 				local unitID = spCreateUnit(startUnit, x, y, z, 0, teamID)
 				if unitID then
 					startUnitList[#startUnitList + 1] = { unitID = unitID, teamID = teamID, x = x, y = y, z = z }
@@ -455,7 +469,7 @@ if gadgetHandler:IsSyncedCode() then
                     local z = startUnitList[i].z
                     Spring.SpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
 					GG.ComSpawnDefoliate(x, y, z)
-					
+
                 end
             end
             if n == 90 then
