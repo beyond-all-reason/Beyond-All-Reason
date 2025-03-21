@@ -1436,7 +1436,7 @@ function widget:ViewResize()
 		local posYEnd = 0
 		local posX = ordermenuLeft + widgetSpaceMargin
 		local height = posY
-		builderButtonSize = categoryButtonHeight * 1.75
+		builderButtonSize = math_floor(categoryButtonHeight * 1.75)
 
 		rows = 2
 		columns = 6
@@ -1523,7 +1523,7 @@ function widget:ViewResize()
 			categoriesRect.yEnd + (cellSize * rows)
 		)
 
-		backgroundRect:set(posX, posYEnd, posXEnd, buildpicsRect.yEnd + (bgpadding * 1.5))
+		backgroundRect:set(posX, posYEnd, posXEnd, math_floor(buildpicsRect.yEnd + (bgpadding * 1.5)))
 
 		local buttonWidth = (categoriesRect.xEnd - categoriesRect.x) / 3
 		local padding = math_max(1, math_floor(bgpadding * 0.52))
@@ -1567,6 +1567,8 @@ function widget:ViewResize()
 	redraw = true
 
 	if buildmenuTex then
+		gl.DeleteTexture(buildmenuBgTex)
+		buildmenuBgTex = nil
 		gl.DeleteTexture(buildmenuTex)
 		buildmenuTex = nil
 	end
@@ -1689,7 +1691,8 @@ local function drawBuildMenuBg()
 		(backgroundRect.x > 0 and (#builderRects > 1 and 0 or 1) or 0),
 		1,
 		((posY - height > 0 or backgroundRect.x <= 0) and 1 or 0),
-		0
+		0,
+		nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture
 	)
 end
 
@@ -2509,10 +2512,6 @@ function widget:DrawScreen()
 			end
 		end
 	else
-		if redraw then
-			dlistBuildmenu = gl.DeleteList(dlistBuildmenu)
-			redraw = nil
-		end
 
 		if WG["guishader"] then
 			if dlistGuishader then
@@ -2521,18 +2520,29 @@ function widget:DrawScreen()
 			checkGuishaderBuilders()
 		end
 
-		-- create buildmenu drawlists
-		if not dlistBuildmenu then
-			dlistBuildmenu = gl.CreateList(function()
-				drawBuildMenuBg()
-				if not useRenderToTexture then
-					drawBuildMenu()
-				end
-			end)
+		if redraw then
+			redraw = nil
 			if useRenderToTexture then
+				if not buildmenuBgTex then
+					buildmenuBgTex = gl.CreateTexture(math_floor(backgroundRect.xEnd-backgroundRect.x), math_floor(backgroundRect.yEnd-backgroundRect.y), {
+						target = GL.TEXTURE_2D,
+						format = GL.RGBA,
+						fbo = true,
+					})
+				end
+				if buildmenuBgTex then
+					gl.RenderToTexture(buildmenuBgTex, function()
+						gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+						gl.PushMatrix()
+						gl.Translate(-1, -1, 0)
+						gl.Scale(2 / math_floor(backgroundRect.xEnd-backgroundRect.x), 2 / math_floor(backgroundRect.yEnd-backgroundRect.y), 0)
+						gl.Translate(-backgroundRect.x, -backgroundRect.y, 0)
+						drawBuildMenuBg()
+						gl.PopMatrix()
+					end)
+				end
 				if not buildmenuTex then
-					local ui_sharpness = Spring.GetConfigFloat("ui_sharpness", 1)
-					buildmenuTex = gl.CreateTexture(math_floor((backgroundRect.xEnd-backgroundRect.x)*ui_sharpness), math_floor((backgroundRect.yEnd-backgroundRect.y)*ui_sharpness), {
+					buildmenuTex = gl.CreateTexture(math_floor(backgroundRect.xEnd-backgroundRect.x), math_floor(backgroundRect.yEnd-backgroundRect.y), {
 						target = GL.TEXTURE_2D,
 						format = GL.RGBA,
 						fbo = true,
@@ -2545,20 +2555,35 @@ function widget:DrawScreen()
 						gl.Translate(-1, -1, 0)
 						gl.Scale(2 / math_floor(backgroundRect.xEnd-backgroundRect.x), 2 / math_floor(backgroundRect.yEnd-backgroundRect.y), 0)
 						gl.Translate(-backgroundRect.x, -backgroundRect.y, 0)
-						--drawBuildmenuBg()	-- doesnt render correct
 						drawBuildMenu()
 						gl.PopMatrix()
 					end)
 				end
+			else
+				gl.DeleteList(dlistBuildmenu)
+				dlistBuildmenu = gl.CreateList(function()
+					drawBuildMenuBg()
+					drawBuildMenu()
+				end)
 			end
 		end
-		gl.CallList(dlistBuildmenu)
 
-		if buildmenuTex then
-			gl.Color(1,1,1,1)
-			gl.Texture(buildmenuTex)
-			gl.TexRect(backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, backgroundRect.yEnd, false, true)
-			gl.Texture(false)
+		if useRenderToTexture then
+			if buildmenuBgTex then
+				-- background element
+				gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
+				gl.Texture(buildmenuBgTex)
+				gl.TexRect(backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, backgroundRect.yEnd, false, true)
+				-- content
+				gl.Color(1,1,1,1)
+				gl.Texture(buildmenuTex)
+				gl.TexRect(backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, backgroundRect.yEnd, false, true)
+				gl.Texture(false)
+			end
+		else
+			if dlistBuildmenu then
+				gl.CallList(dlistBuildmenu)
+			end
 		end
 
 		if redrawProgress then
@@ -2771,6 +2796,8 @@ function widget:Shutdown()
 	dlistBuildmenu = gl.DeleteList(dlistBuildmenu)
 	dlistProgress = gl.DeleteList(dlistProgress)
 	if buildmenuTex then
+		gl.DeleteTexture(buildmenuBgTex)
+		buildmenuBgTex = nil
 		gl.DeleteTexture(buildmenuTex)
 		buildmenuTex = nil
 	end
