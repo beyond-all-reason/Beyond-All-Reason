@@ -16,6 +16,8 @@ VFS.Include('luarules/configs/customcmds.h.lua')
 
 SYMKEYS = table.invert(KEYSYMS)
 
+local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
+
 local comBuildOptions
 local boundUnits = {}
 local stickToBottom = false
@@ -63,6 +65,7 @@ local prevHoveredCellID, hoverDlist
 local math_isInRect = math.isInRect
 
 local buildmenuShows = false
+local refreshBuildmenu = true
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -75,7 +78,7 @@ local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.
 
 local vsx, vsy = Spring.GetViewGeometry()
 
-local ordermenuLeft = vsx / 5
+local ordermenuLeft = math.floor(vsx / 5)
 local advplayerlistLeft = vsx * 0.8
 
 local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
@@ -85,7 +88,6 @@ local units = VFS.Include("luaui/configs/unit_buildmenu_config.lua")
 
 local isSpec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
-local myPlayerID = Spring.GetMyPlayerID()
 
 local startDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
 
@@ -239,7 +241,6 @@ end
 function widget:PlayerChanged(playerID)
 	isSpec = Spring.GetSpectatingState()
 	myTeamID = Spring.GetMyTeamID()
-	myPlayerID = Spring.GetMyPlayerID()
 end
 
 local function RefreshCommands()
@@ -297,9 +298,15 @@ local function RefreshCommands()
 end
 
 local function clear()
+	refreshBuildmenu = true
 	dlistBuildmenu = gl.DeleteList(dlistBuildmenu)
 	dlistBuildmenuBg = gl.DeleteList(dlistBuildmenuBg)
 	hoverDlist = gl.DeleteList(hoverDlist)
+	prevHoveredCellID = nil
+	if buildmenuTex then
+		gl.DeleteTextureFBO(buildmenuTex)
+		buildmenuTex = nil
+	end
 end
 
 function widget:ViewResize()
@@ -326,9 +333,9 @@ function widget:ViewResize()
 	if stickToBottom then
 		posY = math_floor(0.14 * ui_scale * vsy) / vsy
 		posY2 = 0
-		posX = math_floor(ordermenuLeft*vsx) + widgetSpaceMargin
+		posX = ordermenuLeft + widgetSpaceMargin
 		posX2 = advplayerlistLeft - widgetSpaceMargin
-		width = posX2 - posX
+		width = (posX2 - posX) / vsx
 		height = posY
 		minColls = math_max(8, math_floor((width/vsx)*25))
 		maxColls = 30
@@ -441,10 +448,11 @@ function widget:Update(dt)
 		local prevOrdermenuHeight = ordermenuHeight
 		if WG['ordermenu'] then
 			local oposX, oposY, owidth, oheight = WG['ordermenu'].getPosition()
-			ordermenuLeft = oposX + owidth
+			ordermenuLeft = math_floor((oposX + owidth) * vsx)
 			ordermenuHeight = oheight
 		end
 		if not prevAdvplayerlistLeft or advplayerlistLeft ~= prevAdvplayerlistLeft or not prevOrdermenuLeft or ordermenuLeft ~= prevOrdermenuLeft  or not prevOrdermenuHeight or ordermenuHeight ~= prevOrdermenuHeight then
+			prevAdvplayerlistLeft = advplayerlistLeft
 			widget:ViewResize()
 		end
 
@@ -760,13 +768,16 @@ function widget:DrawScreen()
 	else
 		local x, y, b, b2, b3 = spGetMouseState()
 		local now = os_clock()
-		if doUpdate or (doUpdateClock and now >= doUpdateClock) then
+		if doUpdate or (doUpdateClock and now >= doUpdateClock) or refreshBuildmenu then
 			if doUpdateClock and now >= doUpdateClock then
 				doUpdateClock = nil
 			end
-			dlistBuildmenu = gl.DeleteList(dlistBuildmenu)
+			if not useRenderToTexture then
+				dlistBuildmenu = gl.DeleteList(dlistBuildmenu)
+			end
 			RefreshCommands()
 			doUpdate = nil
+			refreshBuildmenu = true
 		end
 
 		-- create buildmenu drawlists
@@ -776,8 +787,35 @@ function widget:DrawScreen()
 		if not dlistBuildmenuBg then
 			dlistBuildmenuBg = gl.CreateList(function() drawBuildmenuBg() end)
 		end
-		if not dlistBuildmenu then
-			dlistBuildmenu = gl.CreateList(function() drawBuildmenu() end)
+		-- draw buildmenu background
+		gl.CallList(dlistBuildmenuBg)
+
+		-- create buildmenu
+		if refreshBuildmenu then
+			refreshBuildmenu = false
+			if useRenderToTexture then
+				if not buildmenuTex and width > 0.05 and height > 0.05 then
+					buildmenuTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
+						target = GL.TEXTURE_2D,
+						format = GL.RGBA,
+						fbo = true,
+					})
+				end
+				if buildmenuTex then
+					gl.RenderToTexture(buildmenuTex, function()
+						gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+						gl.PushMatrix()
+						gl.Translate(-1, -1, 0)
+						gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
+						gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
+						--drawBuildmenuBg()	-- doesnt render correct
+						drawBuildmenu()
+						gl.PopMatrix()
+					end)
+				end
+			elseif not dlistBuildmenu then
+				dlistBuildmenu = gl.CreateList(function() drawBuildmenu() end)
+			end
 		end
 
 		local hovering = false
@@ -786,8 +824,6 @@ function widget:DrawScreen()
 			hovering = true
 		end
 
-		-- draw buildmenu background
-		gl.CallList(dlistBuildmenuBg)
 		if preGamestartPlayer or selectedBuilderCount ~= 0 then
 			-- pre process + 'highlight' under the icons
 			local hoveredCellID
@@ -827,7 +863,14 @@ function widget:DrawScreen()
 			end
 
 			-- draw buildmenu content
-			gl.CallList(dlistBuildmenu)
+			if buildmenuTex then
+				gl.Color(1,1,1,1)
+				gl.Texture(buildmenuTex)
+				gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)
+				gl.Texture(false)
+			elseif dlistBuildmenu then
+				gl.CallList(dlistBuildmenu)
+			end
 
 			-- draw highlight
 			local usedZoom
@@ -909,7 +952,9 @@ function widget:DrawScreen()
 									end
 
 									-- re-draw cell with hover zoom (and price shown)
+									font2:Begin()
 									drawCell(hoveredCellID, usedZoom, cellColor, units.unitRestricted[uDefID])
+									font2:End()
 
 									if unsetShowPrice then
 										showPrice = false
@@ -1273,49 +1318,49 @@ function widget:Initialize()
 	end
 	WG['buildmenu'].setShowPrice = function(value)
 		showPrice = value
-		doUpdate = true
+		clear()
 	end
 	WG['buildmenu'].getAlwaysShow = function()
 		return alwaysShow
 	end
 	WG['buildmenu'].setAlwaysShow = function(value)
 		alwaysShow = value
-		doUpdate = true
+		clear()
 	end
 	WG['buildmenu'].getShowRadarIcon = function()
 		return showRadarIcon
 	end
 	WG['buildmenu'].setShowRadarIcon = function(value)
 		showRadarIcon = value
-		doUpdate = true
+		clear()
 	end
 	WG['buildmenu'].getShowGroupIcon = function()
 		return showGroupIcon
 	end
 	WG['buildmenu'].setShowGroupIcon = function(value)
 		showGroupIcon = value
-		doUpdate = true
+		clear()
 	end
 	WG['buildmenu'].getDynamicIconsize = function()
 		return dynamicIconsize
 	end
 	WG['buildmenu'].setDynamicIconsize = function(value)
 		dynamicIconsize = value
-		doUpdate = true
+		clear()
 	end
 	WG['buildmenu'].getMinColls = function()
 		return minColls
 	end
 	WG['buildmenu'].setMinColls = function(value)
 		minColls = value
-		doUpdate = true
+		clear()
 	end
 	WG['buildmenu'].getMaxColls = function()
 		return maxColls
 	end
 	WG['buildmenu'].setMaxColls = function(value)
 		maxColls = value
-		doUpdate = true
+		clear()
 	end
 	WG['buildmenu'].getDefaultColls = function()
 		return defaultColls
@@ -1323,7 +1368,7 @@ function widget:Initialize()
 
 	WG['buildmenu'].setDefaultColls = function(value)
 		defaultColls = value
-		doUpdate = true
+		clear()
 	end
 	WG['buildmenu'].getBottomPosition = function()
 		return stickToBottom
@@ -1332,7 +1377,7 @@ function widget:Initialize()
 		stickToBottom = value
 		widget:Update(1000)
 		widget:ViewResize()
-		doUpdate = true
+		clear()
 	end
 	WG['buildmenu'].getSize = function()
 		return posY, posY2
@@ -1342,7 +1387,7 @@ function widget:Initialize()
 	end
 	WG['buildmenu'].setMaxPosY = function(value)
 		maxPosY = value
-		doUpdate = true
+		clear()
 	end
 	WG['buildmenu'].reloadBindings = function()
 		bindBuildUnits(self)

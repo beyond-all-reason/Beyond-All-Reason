@@ -35,6 +35,10 @@ local icontypes = {
 		bitmap = "icons/energy5_1.85.png",
 		size = 1.9425
 	},
+	armafust3 = {
+		bitmap = "icons/energy5_1.85.png",
+		size = 3.9
+	},
 	armageo = {
 		bitmap = "icons/hazardous.png",
 		size = 1.88999987
@@ -619,6 +623,10 @@ local icontypes = {
 		bitmap = "icons/metalmaker_t2.png",
 		size = 1.20749986
 	},
+	armmmkrt3 = {
+		bitmap = "icons/metalmaker_t2.png",
+		size = 2.40749986
+	},
 	armmoho = {
 		bitmap = "icons/mex_t2.png",
 		size = 1.20749986
@@ -1123,6 +1131,10 @@ local icontypes = {
 		bitmap = "icons/energy5_1.85.png",
 		size = 1.9425
 	},
+	corafust3 = {
+		bitmap = "icons/energy5_1.85.png",
+		size = 3.9
+	},
 	corageo = {
 		bitmap = "icons/hazardous.png",
 		size = 1.88999987
@@ -1134,6 +1146,10 @@ local icontypes = {
 	legafus = {
 		bitmap = "icons/energy5_1.85.png",
 		size = 1.9425
+	},
+	legafust3 = {
+		bitmap = "icons/energy5_1.85.png",
+		size = 3.9
 	},
 	legatorpbomber = {
 		bitmap = "icons/air_t2_torpbomber.png",
@@ -1719,9 +1735,17 @@ local icontypes = {
 		bitmap = "icons/metalmaker_t2.png",
 		size = 1.20749986
 	},
+	cormmkrt3 = {
+		bitmap = "icons/metalmaker_t2.png",
+		size = 2.40749986
+	},
 	legadveconv = {
 		bitmap = "icons/metalmaker_t2.png",
 		size = 1.20749986
+	},
+	legadveconvt3 = {
+		bitmap = "icons/metalmaker_t2.png",
+		size = 2.40749986
 	},
 	cormoho = {
 		bitmap = "icons/mex_t2.png",
@@ -2210,6 +2234,10 @@ local icontypes = {
 	legeheatraymech = {
 		bitmap = "icons/t3_solinvictus.png",
 		size = 3.46499968
+	},
+	legelrpcmech = {
+		bitmap = "icons/t3_bot_clusterarty.png",
+		size = 2.75
 	},
 	legaap = {
 		bitmap = "icons/factory_air_t2.png",

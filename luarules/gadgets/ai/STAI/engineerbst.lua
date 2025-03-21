@@ -89,7 +89,7 @@ function EngineerBST:checkBuilder()
 	end
 
 	local currentOrder = self.unit:Internal():GetUnitCommands(1)[1]
-	self:EchoDebug('currentOrder',self.name,currentOrder.id,self.builder)
+	self:EchoDebug(self.name,'currentOrder',currentOrder,self.builder)
 	if not currentOrder or not  currentOrder.id  then
 		self.ai.engineerhst.Engineers[self.id] = nil
 		if self.ai.engineerhst.Builders[self.builder] and self.ai.engineerhst.Builders[self.builder][self.id]then

@@ -193,9 +193,9 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 350,
 				customparams = {
-					cluster = true,
+					cluster_def = 'cluster_munition',
+					cluster_number = 6,
 					exclude_preaim = true,
-					number = 6,
 					smart_priority = true,
 				},
 				damage = {
