@@ -4,7 +4,7 @@ return {
 		commandfire = 1,
 		craterboost = 0,
 		cratermult = 0,
-		edgeeffectiveness = 0.99,
+		edgeeffectiveness = 1,
 		explosiongenerator = "custom:genericshellexplosion-huge-lightning",
 		firestarter = 90,
 		impulsefactor = 0,
