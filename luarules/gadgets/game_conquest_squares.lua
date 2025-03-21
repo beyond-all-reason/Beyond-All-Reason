@@ -607,7 +607,7 @@ local TEST_SQUARE_COUNT = 7
 --constants
 local SQUARE_SIZE = 1024
 
-local SQUARE_ALPHA = 0.4
+local SQUARE_ALPHA = 0.2
 
 --team stuff
 local myAllyID = select(6, Spring.GetTeamInfo(Spring.GetMyTeamID()))
@@ -752,7 +752,7 @@ void main() {
 	vec2 center = vec2(0.5, 0.5);
 	float distance = length(texCoord - center) * 2.0; // Distance from center, normalized
 	
-	// Maximum distance is to the corner which is sqrt(2) * 0.5 * 2 = sFqrt(2)
+	// Maximum distance is to the corner which is sqrt(2) * 0.5 * 2 = sqrt(2)
 	// So we scale our progress to reach 1.0 at the corner
 	float cornerDistance = sqrt(2.0); // Distance from center to corner in our normalized space
 	float scaledProgress = progress * cornerDistance + (gameFrame - startframe) * speed; // Scale progress to reach corners at 100%
@@ -761,8 +761,13 @@ void main() {
 	float borderMaxWidth = 0.05; // Full width where border effect applies
 	float borderFadeDistance = 16.0 / 1024.0; // Fade distance converted to texture space (16 units / square size)
 	
-	// Parameters for square edge glow
-	float edgeWidth = 0.05; // Width of the edge glow
+	// Parameters for circle edge softness
+	float circleSoftness = 0.05; // Controls how soft the circle edge is (reduced from 0.1 to 0.05)
+	
+	// Calculate pulsing effect for border
+	float pulseSpeed = 0.2; // Speed of the pulse in radians per second
+	float pulseValue = (sin(gameFrame * pulseSpeed) + 1.0) * 0.5; // Value between 0 and 1
+	vec4 borderColor = mix(vec4(0.9, 0.9, 0.9, 0.6), vec4(1.0, 1.0, 1.0, 0.6), pulseValue); // Mix between light grey and white
 	
 	// Calculate how close we are to any edge of the square
 	float distToEdgeX = min(texCoord.x, 1.0 - texCoord.x);
@@ -776,42 +781,36 @@ void main() {
 		borderOpacity = 1.0 - (distToEdge / borderFadeDistance);
 	}
 	
-	// Determine base color
-	vec4 baseColor;
-	if (distance < scaledProgress) {
-		// Inside progress circle - use team color with full opacity
-		baseColor = color;
-	} else if (borderOpacity > 0.0) {
-		// In border area - apply calculated fade
-		baseColor = vec4(color.rgb, color.a * 0.6 * borderOpacity);
-	} else {
-		// Outside progress circle and not in border - completely transparent
-		baseColor = vec4(0.0, 0.0, 0.0, 0.0);
+	// Calculate circle fill with soft edge
+	float circleFill = 0.0;
+	if (distance < scaledProgress + circleSoftness) {
+		// Calculate soft edge fade
+		float circleEdgeFade = 1.0;
+		if (distance > scaledProgress) {
+			circleEdgeFade = 1.0 - ((distance - scaledProgress) / circleSoftness);
+		}
+		
+		// Apply the circle fill with soft edge
+		circleFill = circleEdgeFade;
 	}
 	
-	// Calculate edge glow intensity (only applied inside the progress circle)
-	float edgeIntensity = 0.0;
-	if (distToEdge < edgeWidth && distance < scaledProgress) {
-		// Fade based on distance to edge
-		edgeIntensity = 1.0 - (distToEdge / edgeWidth);
-		
-		// Scale edge intensity by progress to make it "grow" with capture
-		edgeIntensity *= progress;
+	// Calculate final color
+	vec4 finalColor;
+	
+	// First apply the circle fill
+	if (circleFill > 0.0) {
+		finalColor = vec4(color.rgb, color.a * circleFill);
+	} else {
+		finalColor = vec4(0.0);
 	}
 	
-	// Apply edge glow if needed
-	if (edgeIntensity > 0.0) {
-		// CHANGE HERE: Instead of mixing with white, we'll just intensify the original color
-		// but maintain its original hue - cap at the original color's RGB values
-		vec3 glowColor = color.rgb * (1.0 + 0.3 * edgeIntensity); // Intensify by up to 30% but don't change hue
-		
-		// Make sure we don't exceed the original color components
-		glowColor = min(glowColor, color.rgb);
-		
-		fragColor = vec4(glowColor, color.a);
-	} else {
-		fragColor = baseColor;
+	// Then apply the pulsing border on top
+	if (borderOpacity > 0.0) {
+		// Mix the current color with pulsing border color
+		finalColor = mix(finalColor, borderColor, borderOpacity);
 	}
+	
+	fragColor = finalColor;
 }
 ]]
 
