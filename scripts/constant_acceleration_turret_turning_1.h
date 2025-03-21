@@ -180,9 +180,6 @@ CATT1_Aim(heading, pitch){
 			CATT1position = CATT1position + CATT1velocity; 
 			delta = heading - CATT1position ; 	
 
-			#ifdef CATT1_DEBUG
-				get PRINT ( 888888, delta ,  CATT1velocity, CATT1position);
-			#endif 
 			// Perform the turn with a NOW, this means that this will be run every frame!
 			//turn CATT1_PIECE_Y to y-axis CATT1position now;
 
@@ -190,7 +187,6 @@ CATT1_Aim(heading, pitch){
 			turn CATT1_PIECE_Y to y-axis CATT1position speed 30 * CATT1velocity;
 
 			if ((timetozero < 3) AND (timetozero != 0) AND (get ABS(CATT1velocity) < CATT1_JERK)) {
-				get PRINT(CATT1velocity,CATT2_JERK);
 				CATT1velocity = 0;
 				start-script CATT1_Restore();
 				return;}
