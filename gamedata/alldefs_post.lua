@@ -376,7 +376,7 @@ function UnitDef_Post(name, uDef)
 
 		if uDef.customparams.evolution_target then
 			local udcp                            = uDef.customparams
-			udcp.combatradius                     = udcp.combatradius == nil and 1000 or tonumber(udcp.combatradius)
+			udcp.combatradius                     = udcp.combatradius or 1000
 			udcp.evolution_announcement_size      = tonumber(udcp.evolution_announcement_size)
 			udcp.evolution_condition              = udcp.evolution_condition or "timer"
 			udcp.evolution_health_threshold       = tonumber(udcp.evolution_health_threshold) or 0
