@@ -49,8 +49,19 @@ Tool.COLOURS = {
 			black = {0,0,0,1}, --veh
 			}
 Tool._TABLES = {}
+Tool.tablerez = 0
+Tool.tablenew = 0
 function Tool:RezTable()
-	return table.remove(self._TABLES) or {}
+	--print('#RezTable',#self._TABLES,self.tablerez,self.tablenew)
+
+	if self._TABLES[1] then
+		--print('#RezTable rez old table',#self._TABLES)
+		self.tablerez = self.tablerez +1
+		return table.remove(self._TABLES)
+	end
+	self.tablenew = self.tablenew + 1
+	--print('#RezTable not enough, create a new table',#self._TABLES)
+	return {}
 end
 
 
@@ -71,7 +82,13 @@ function Tool:KillTable(t)
 			table.insert(self._TABLES, t)
 		end
 	end
+	--print('#KillTable',#self._TABLES)
 	return nil
+end
+
+function Tool:ResetTable(t)
+	self:KillTable(t) 
+	return self:RezTable()
 end
 
 function Tool:StoreOrder (id,cmd,params,options,method)

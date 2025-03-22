@@ -18,13 +18,14 @@ function TargetHST:Init()
 	self.enemyFrontList = {}
 	self.blobchecked = {}
 	self.enemyCenter = {x = 0,y = 0,z = 0}
+	self.enemyBasePosition = {x = 0,y = 0,z = 0}
+	self.enemybasecount = 0
+	self.cellCount = 0
 end
 
 function TargetHST:Update()
 	if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
 	self:EnemiesCellsAnalisy()
-	--self:GetMobileBlobs()
-	--self:GetImmobileBlobs()
 	self:GetBlobs('MOBILE_BLOBS','SPEED')
 	self:GetBlobs('IMMOBILE_BLOBS','IMMOBILE')
 	self:drawDBG()
@@ -34,12 +35,13 @@ end
 
 
 function TargetHST:GetBlobs(_blobs_,param) --reset all the old blobs
-	for ref,blob in pairs(self[_blobs_]) do --reset all the old blobs
-		self[_blobs_][ref] = self.ai.tool:KillTable(blob)
-	end
+	--for ref,blob in pairs(self[_blobs_]) do --reset all the old blobs
+		self.ai.tool:ResetTable(self[_blobs_])
+	--end
+	local blobref
 	for X, cells in pairs(self.ai.loshst.ENEMY) do --find all the bew blobs
 		for Z,cell in pairs( cells) do
-			local blobref = X..':'..Z
+			blobref = X..':'..Z
 			if not self.blobchecked[blobref] then
 				self:Blobbing(self.ai.loshst.ENEMY,param,X,Z,_blobs_,blobref)
 			end
@@ -51,26 +53,24 @@ function TargetHST:GetBlobs(_blobs_,param) --reset all the old blobs
 	for ref, blob in pairs(self[_blobs_]) do-- fill the blobs with data
 		for i,v in pairs(blob.cells) do
 			
-			local cell = self.ai.loshst.ENEMY[v.X][v.Z]
-			for id,name in pairs(cell.units) do
+			for id,name in pairs(self.ai.loshst.ENEMY[v.X][v.Z].units) do
 				blob.units[id] = name
 			end
-			blob.position.x = blob.position.x + cell.POS.x
-			blob.position.z = blob.position.z + cell.POS.z
-			blob.metal = blob.metal + cell.metal
+			blob.position.x = blob.position.x + self.ai.loshst.ENEMY[v.X][v.Z].POS.x
+			blob.position.z = blob.position.z + self.ai.loshst.ENEMY[v.X][v.Z].POS.z
+			blob.metal = blob.metal + self.ai.loshst.ENEMY[v.X][v.Z].metal
 		end
 		blob.position.x = blob.position.x / #blob.cells
 		blob.position.z = blob.position.z / #blob.cells
 		blob.position.y = map:GetGroundHeight(blob.position.x,blob.position.z)
-		local X,Z = self.ai.maphst:PosToGrid(blob.position)
-		blob.targetCell.X = X
-		blob.targetCell.Z = Z
+		blob.targetCell.X,blob.targetCell.Z = self.ai.maphst:PosToGrid(blob.position)
 	end
 	--Spring.Echo('selfblob',_blobs_,self[_blobs_])
 end
 
 function TargetHST:Blobbing(grid,param,x,z,_blobs_,blobref)--rolling on the cell to extrapolate blob of param
 	self.blobchecked[x .. ':' .. z] = true
+	
 	if grid[x] and grid[x][z] and grid[x][z][param] and grid[x][z][param] > 0 then
 		if not self[_blobs_][blobref] then
 			self[_blobs_][blobref] = self.ai.tool:RezTable()
@@ -81,10 +81,7 @@ function TargetHST:Blobbing(grid,param,x,z,_blobs_,blobref)--rolling on the cell
 			self[_blobs_][blobref].cells = self.ai.tool:RezTable()
 			self[_blobs_][blobref].units = self.ai.tool:RezTable()
 			self[_blobs_][blobref].metal = 0
-			self[_blobs_][blobref].targetCell = self.ai.tool:RezTable()
-			--self[_blobs_][blobref].defendDist = math.huge
-			--self[_blobs_][blobref].defendCell = self.ai.tool:RezTable()
-			
+			self[_blobs_][blobref].targetCell = self.ai.tool:RezTable()			
 		end
 		local cellCoord = self.ai.tool:RezTable()
 		cellCoord.X = x
@@ -270,30 +267,36 @@ end
 
 
 function TargetHST:EnemiesCellsAnalisy() --TODO:--MOVE TO TACTICALHST!!!
-	local enemybasecount = 0
-	self.enemyBasePosition = nil
+	self.enemybasecount = 0
+	self.cellCount = 0
+
+	self.enemyBasePosition.x = 0
+	self.enemyBasePosition.y = 0
+	self.enemyBasePosition.z = 0
+
 	self.enemyCenter.x = 0
 	self.enemyCenter.y = 0
 	self.enemyCenter.z = 0
-	local cellCount = 0
+	
 	for X, cells in pairs(self.ai.loshst.ENEMY) do
 		for Z,cell in pairs(cells) do
-			self.enemyCenter = self.ai.tool:sumPos(cell.POS,self.enemyCenter)
-			cellCount = cellCount + 1
+			self.enemyCenter.x = self.enemyCenter.x + cell.POS.x
+			self.enemyCenter.y = self.enemyCenter.y + cell.POS.y
+			self.enemyCenter.z = self.enemyCenter.z + cell.POS.z
+			self.cellCount = self.cellCount + 1
 			if cell.base then
-				self.enemyBasePosition = self.enemyBasePosition or {x=0,z=0}
 				self.enemyBasePosition.x = self.enemyBasePosition.x + cell.POS.x
 				self.enemyBasePosition.z = self.enemyBasePosition.z + cell.POS.z
-				enemybasecount = enemybasecount + 1
+				self.enemybasecount = self.enemybasecount + 1
 			end
 		end
 	end
-	self.enemyCenter.x = self.enemyCenter.x / cellCount
-	self.enemyCenter.z = self.enemyCenter.z / cellCount
+	self.enemyCenter.x = self.enemyCenter.x / self.cellCount
+	self.enemyCenter.z = self.enemyCenter.z / self.cellCount
 	self.enemyCenter.y = map:GetGroundHeight(self.enemyCenter.x,self.enemyCenter.z)
-	if enemybasecount > 0 then
-		self.enemyBasePosition.x = self.enemyBasePosition.x / enemybasecount
-		self.enemyBasePosition.z = self.enemyBasePosition.z / enemybasecount
+	if self.enemybasecount > 0 then
+		self.enemyBasePosition.x = self.enemyBasePosition.x / self.enemybasecount
+		self.enemyBasePosition.z = self.enemyBasePosition.z / self.enemybasecount
 		self.enemyBasePosition.y = map:GetGroundHeight(self.enemyBasePosition.x, self.enemyBasePosition.z)
 	end
 end
