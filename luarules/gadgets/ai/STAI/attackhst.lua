@@ -429,13 +429,15 @@ function AttackHST:SquadsTargetDefense(squad)
 	local targetDist = math.huge
 	local targetCell
 	for index,blob in pairs(self.ai.targethst.MOBILE_BLOBS)do
-		local targetHandled = self:SquadsTargetHandled(self.ai.loshst.ENEMY[blob.defendCell.X][blob.defendCell.Z])
-		if not targetHandled or targetHandled == squad.squadID then
+		if self.ai.loshst.ENEMY[blob.targetCell.X][blob.targetCell.Z] then
+		--local targetHandled = self:SquadsTargetHandled(self.ai.loshst.OWN[blob.defendCell.X][blob.defendCell.Z])
+		--if not targetHandled or targetHandled == squad.squadID then
 			local dist = self.ai.tool:distance(blob.position,self.ai.loshst.CENTER)
 			if dist < targetDist then
 				targetDist = dist
-				targetCell = self.ai.loshst[blob.defendCell.X][blob.defendCell.Z]
+				targetCell = self.ai.loshst[blob.targetCell.X][blob.targetCell.Z]
 			end
+		--end
 		end
 	end
 	return  targetCell
@@ -448,18 +450,25 @@ function AttackHST:SquadsTargetAttack2(squad)
 	local worstDist = 0
 	
 	for ref, blob in pairs(self.ai.targethst.IMMOBILE_BLOBS) do
-		if not self:SquadsTargetHandled(self.ai.loshst.ENEMY[blob.defendCell.X][blob.defendCell.Z]) then
+		print('1')
+		if self.ai.loshst.ENEMY[blob.targetCell.X][blob.targetCell.Z] then
+			print(2)
+			--if not self:SquadsTargetHandled(self.ai.loshst.ENEMY[blob.defendCell.X][blob.defendCell.Z]) then
 			local mclass = squad.leader:Name()
 			local path = self.ai.maphst:getPath(mclass,squad.leaderPos,blob.position)
 			
 			if path then
+				print(3)
 				local dist = self.ai.tool:distance(blob.position,self.ai.targethst.enemyCenter)
-				if dist > worstDist then
+				--if dist > worstDist then
 					worstDist = dist
-					bestTarget = blob.refCell
-				end
+					bestTarget = self.ai.loshst.ENEMY[blob.targetCell.X][blob.targetCell.Z]
+					print(4)
+					break
+				--end
 			end
 		end
+		--end
 	end
 	return bestTarget
 end

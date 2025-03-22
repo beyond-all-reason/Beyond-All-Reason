@@ -50,7 +50,8 @@ function TargetHST:GetBlobs(_blobs_,param) --reset all the old blobs
 	end
 	for ref, blob in pairs(self[_blobs_]) do-- fill the blobs with data
 		for i,v in pairs(blob.cells) do
-			local cell = self.ai.loshst.ENEMY[v.Z][v.Z]
+			
+			local cell = self.ai.loshst.ENEMY[v.X][v.Z]
 			for id,name in pairs(cell.units) do
 				blob.units[id] = name
 			end
@@ -61,20 +62,14 @@ function TargetHST:GetBlobs(_blobs_,param) --reset all the old blobs
 		blob.position.x = blob.position.x / #blob.cells
 		blob.position.z = blob.position.z / #blob.cells
 		blob.position.y = map:GetGroundHeight(blob.position.x,blob.position.z)
-		for X, cells in pairs(self.ai.loshst.OWN) do
-			for Z, cell in pairs(cells) do
-				local dist = self.ai.tool:distance(cell.POS,blob.position)
-				if dist < blob.defendDist then
-					blob.defendDist =  dist
-					blob.defendCell.X = X
-					blob.defendCell.Z = Z
-				end
-			end
-		end
+		local X,Z = self.ai.maphst:PosToGrid(blob.position)
+		blob.targetCell.X = X
+		blob.targetCell.Z = Z
 	end
+	--Spring.Echo('selfblob',_blobs_,self[_blobs_])
 end
 
-function TargetHST:Blobing(grid,param,x,z,_blobs_,blobref)--rolling on the cell to extrapolate blob of param
+function TargetHST:Blobbing(grid,param,x,z,_blobs_,blobref)--rolling on the cell to extrapolate blob of param
 	self.blobchecked[x .. ':' .. z] = true
 	if grid[x] and grid[x][z] and grid[x][z][param] and grid[x][z][param] > 0 then
 		if not self[_blobs_][blobref] then
@@ -86,14 +81,16 @@ function TargetHST:Blobing(grid,param,x,z,_blobs_,blobref)--rolling on the cell 
 			self[_blobs_][blobref].cells = self.ai.tool:RezTable()
 			self[_blobs_][blobref].units = self.ai.tool:RezTable()
 			self[_blobs_][blobref].metal = 0
-			self[_blobs_][blobref].defendDist = math.huge
-			self[_blobs_][blobref].defendCell = self.ai.tool:RezTable()
-			Spring.Echo(self[_blobs_][blobref])
+			self[_blobs_][blobref].targetCell = self.ai.tool:RezTable()
+			--self[_blobs_][blobref].defendDist = math.huge
+			--self[_blobs_][blobref].defendCell = self.ai.tool:RezTable()
+			
 		end
 		local cellCoord = self.ai.tool:RezTable()
 		cellCoord.X = x
 		cellCoord.Z = z
 		table.insert(self[_blobs_][blobref].cells,cellCoord)
+		--Spring.Echo( _blobs_ , 'blobs insert ',self[_blobs_][blobref])
 		for X = -1, 1,1 do
 			for Z = -1,1,1 do
 				if not self.blobchecked[x+X..':'..z+Z] then
@@ -133,7 +130,7 @@ end
 
 
 
-
+--[[
 
 
 function TargetHST:GetMobileBlobs()
@@ -268,6 +265,8 @@ function TargetHST:blobImmobileCell(grid,param,x,z,blobref)--rolling on the cell
 		end
 	end
 end
+
+]]
 
 
 function TargetHST:EnemiesCellsAnalisy() --TODO:--MOVE TO TACTICALHST!!!

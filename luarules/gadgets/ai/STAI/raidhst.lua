@@ -493,15 +493,18 @@ function RaidHST:SquadsTargetAttack2(squad)
 	local worstDist = 0
 
 	for ref, blob in pairs(self.ai.targethst.IMMOBILE_BLOBS) do
-		if not self:SquadsTargetHandled(self.ai.loshst.ENEMY[blob.defendCell.X][blob.defendCell.Z]) then
+		if self.ai.loshst.ENEMY[blob.targetCell.X][blob.targetCell.Z] then
+		--if not self:SquadsTargetHandled(self.ai.loshst.ENEMY[blob.defendCell.X][blob.defendCell.Z]) then
 			if self.ai.maphst:UnitCanGoHere(squad.leader, blob.position) then
 				local dist = self.ai.tool:distance(blob.position,self.ai.targethst.enemyCenter)
 				if dist > worstDist then
 					worstDist = dist
-					bestTarget = blob.refCell
+					bestTarget = self.ai.loshst.ENEMY[blob.targetCell.X][blob.targetCell.Z]
+					break
 				end
 			end
 		end
+		--end
 	end
 	return bestTarget
 end
