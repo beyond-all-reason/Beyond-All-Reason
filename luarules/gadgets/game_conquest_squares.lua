@@ -18,6 +18,9 @@ end
 -- code cleanup
 --	try to improve efficiency of text drawing
 -- improve time to max accuracy, seems to be a few minutes late every time
+-- need minimum power to ratio power occupying a square to slow its capture rate
+-- obfuscate ally color when not spectating
+-- flip minimap needs to be implemented
 
 local SYNCED = gadgetHandler:IsSyncedCode()
 
