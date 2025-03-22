@@ -119,6 +119,24 @@ function GuessOne(teamID, allyID, xmin, zmin, xmax, zmax, startPointTable)
 				freeMetalSpotScores[i] = freeMetalSpotScores[i] + score
 			end
 		end
+		-- Also check all the walkable spots as some may be on the edge of the startbox
+		for j=1,#walkableMetalSpots do
+			local jx,jz = walkableMetalSpots[j][1],walkableMetalSpots[j][2]
+			if ix ~= jx or iz ~= jz then
+				local r = math.sqrt((ix-jx)^2+(iz-jz)^2)
+				local iy = Spring.GetGroundHeight(ix,iz)
+				local jy = Spring.GetGroundHeight(jx,jz)
+				local isWithinClaimRadius = (r <= claimRadius)
+				local isWithinClaimHeight = (math.abs(iy-jy) <= claimHeight)
+				local score -- Magic formula. Assumes all metal spots are of equal production value, TODO...
+				if isWithinClaimRadius and isWithinClaimHeight then
+					score = 10
+				else
+					score = r^(-1/2)
+				end
+				freeMetalSpotScores[i] = freeMetalSpotScores[i] + score
+			end
+		end
 	end
 
 	-- find free metal spot with highest score
