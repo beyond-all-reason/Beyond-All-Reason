@@ -104,22 +104,12 @@ function RaidBST:Update()
 			self.damaged = nil
 		end
 	end
-	--if self.active and not self.movestateSet then
-	--	self:SetMoveState()
-	--end
-	--if self.active and self.needToMoveToTarget then
-	--	self.needToMoveToTarget = false
-		
-		--self.unit:Internal():AttackMove(self.target) --need to check this
-	--	self.ai.tool:GiveOrder(self.unit:Internal():ID(),CMD.FIGHT,self.target,0,'1-1')
-
-	--end
 end
 
 function RaidBST:MoveRandom(pos,dist)
 	local away = self.ai.tool:RandomAway(pos, dist)
 	if not self.unit then return end
-	self.ai.tool:GiveOrder(self.unit:Internal():ID(),CMD.FIGHT,{away.x,away.y,away.z},0,'1-1')
+	self.ai.tool:GiveOrder(self.unit:Internal():ID(),CMD.FIGHT,away,0,'1-1')
 	--self.unit:Internal():AttackMove(away)
 end
 

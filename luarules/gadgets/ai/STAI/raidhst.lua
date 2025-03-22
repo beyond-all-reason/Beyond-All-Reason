@@ -9,7 +9,6 @@ function RaidHST:internalName()
 end
 
 local floor = math.floor
-local ceil = math.ceil
 
 function RaidHST:Init()
 	self.DebugEnabled = false
@@ -19,6 +18,7 @@ function RaidHST:Init()
 	self.squadMassLimit = 0
 	self.countLimit = 4
 	self.squadFreezedTime = 300
+	self.debugChannel = 6
 end
 
 
@@ -52,9 +52,9 @@ function RaidHST:Update()
 	for index , squad in pairs(self.squads) do
 		if self:SquadCheck(squad) then
 			self:Watchdog(squad)
-			if not self:SquadAttack(squad) then
-				self:SquadAdvance(squad)
-			end
+			--if not self:SquadAttack(squad) then
+			self:SquadAdvance(squad)
+			--end
 		end
 	end
 	self:SquadsTargetUpdate2()
@@ -117,21 +117,14 @@ function RaidHST:SquadCheck(squad)
 	local mass = 0
 	local memberCount = 0
 	for i,member in pairs(squad.members) do
-
-
--- 		local uPos = self.ai.tool:UnitPos(member)
-
 		if not member.unit 	then
-
 			table.remove(squad.members,i)
 			self:RemoveRecruit(member)
 		else
 			check = true
 			local ux,uy,uz = member.unit:Internal():GetRawPos()
--- 			pos = self.ai.tool:sumPos(pos,uPos)
-			x = x + ux--member.unit.x
--- 			y = y + uy--member.unit.y
-			z = z + uz--member.unit.z
+			x = x + ux
+			z = z + uz
 			memberCount = memberCount + 1
 			mass = mass + member.mass
 		end
@@ -166,99 +159,7 @@ function RaidHST:SquadDisband(squad)
 	self.squads[squad.squadID] = nil
 end
 
-function RaidHST:SquadFormation(squad)
-	self:EchoDebug('squad formation')
-	local members = squad.members
-	if #squad.members < 1 then
-		return
-	end
-	local maxMemberSize
-	local lowestSpeed
-	local totalThreat = 0
-	for i, member in pairs(members) do
-		if not maxMemberSize or member.congSize > maxMemberSize then
-			maxMemberSize = member.congSize
-		end
-		if not lowestSpeed or member.speed < lowestSpeed then
-			lowestSpeed = member.speed
-		end
-		totalThreat = totalThreat + member.threat
-	end
-	local backDist = maxMemberSize * 3
-	local backs = {}
-	local backsCount = 0
-	local forwards = {}
-	local forwardsCount = 0
-	for i, member in pairs(members) do
-		if member.sturdy then
-			forwardsCount = forwardsCount + 1
-			forwards[forwardsCount] = member
-		else
-			backsCount = backsCount + 1
-			backs[backsCount] = member
-			member.formationBack = backDist
-		end
-	end
-	local half = floor(#forwards / 2)
-	local anglePerMember = halfPi / #forwards
-	for i = 1, #forwards do
-		local member = forwards[i]
-		member.formationDist = (half - i) * maxMemberSize
-		member.formationAngle = (i - half) * anglePerMember
-	end
-	half = floor(#backs / 2)
-	anglePerMember = #backs / halfPi
-	for i = 1, #backs do
-		local member = backs[i]
-		member.formationDist = (half - i) * maxMemberSize
-		member.formationAngle = (i - half) * anglePerMember
-	end
-	squad.lowestSpeed = lowestSpeed
-	squad.totalThreat = totalThreat
-end
 
-function RaidHST:SquadAttack(squad)
-	if not squad.target then
-		self:EchoDebug('squad',squad.squadID,'no target to raid')
-		return
-	end
-	local p = {}
-	local cmdUnitId = {}
-	local cmdUnitCommand = {}
-	local cmdUnitParams = {}
-	local cmdUnitOptions = {}
-	if self.ai.loshst.OWN[squad.target.X] and self.ai.loshst.OWN[squad.target.X][squad.target.Z] then
-		self:EchoDebug('squad',squad.squadID,'raid a defensive position',squad.target.X,squad.target.Z)
-
-		for i,member in pairs(squad.members) do
-			table.insert(cmdUnitId, member.unit:Internal():ID())
-			table.insert(cmdUnitParams, squad.target.POS)
-			table.insert(cmdUnitOptions, 0)
-			table.insert(cmdUnitCommand, CMD.MOVE)
-			--member:MoveRandom(squad.target.POS,128)
-		end
-		self.ai.tool:GiveOrder(cmdUnitId,cmdUnitCommand,cmdUnitParams,cmdUnitOptions,'1-2')
-		self:EchoDebug('squad',squad.squadID,'execute defense')
-		return true
-	end
-	if self.ai.loshst.ENEMY[squad.target.X] and self.ai.loshst.ENEMY[squad.target.X][squad.target.Z]  and self.ai.tool:distance(squad.position,squad.target.POS) < 256 then
-		self:EchoDebug('squad',squad.squadID,'are near to offensive target, do raid')
-		for i,member in pairs(squad.members) do
-			table.insert(cmdUnitId, member.unit:Internal():ID())
-			table.insert(cmdUnitParams, squad.target.POS)
-			table.insert(cmdUnitOptions, 0)
-			table.insert(cmdUnitCommand, CMD.FIGHT)
-			--if squad.target.units then
-			--	for id,_ in pairs(squad.target.units) do
-			--		member.unit:Internal():Attack(id)
-			--	end
-			--end
-		end
-		self.ai.tool:GiveOrder(cmdUnitId,cmdUnitCommand,cmdUnitParams,cmdUnitOptions,'1-2')
-		self:EchoDebug('squad',squad.squadID,'execute raid')
-		return true
-	end
-end
 
 function RaidHST:SquadStepComplete(squad)
 	self:EchoDebug('step complete',squad.step,squad.position.x,squad.position.z,squad.path[squad.step].x,squad.path[squad.step].z)
@@ -276,34 +177,20 @@ function RaidHST:SquadFindPath(squad,target)
 		return
 	end
 	self:EchoDebug('search a path for ',squad.squadID,target.POS.x,target.POS.z)
-	--self:SquadNewPath(squad,target)
-
-	--if not squad.pathfinder then
-	--	self:Warn('no pathfinder')
-	--	return
-	--end
-
-	--local path, remaining, maxInvalid = squad.pathfinder:Find(25)
 	if not self.ai.armyhst['airgun'][squad.leader:Name()] then --TODO workaraund for airgun that do not have mclass
 
 		local path = self.ai.maphst:getPath(squad.leader:Name(),squad.leaderPos,target.POS,true)
 	end
 
 	if path then
-		--local pt = {}
 		table.insert(path,#path,target.POS)
  		self:EchoDebug("got path of", #path, "nodes", maxInvalid, "maximum invalid neighbors!!!!!!!!!!!!!!!!!!")
-  		--for index,cell in pairs(path) do
- 		--	table.insert(pt,cell.position)
-   		--	self:EchoDebug('path','index',index,'pos',cell.position.x,cell.position.z)
-  		--end
-
-		step = 1
+		local step = 1
 		squad.pathfinder = nil
-		--return pt,step
 		return path,step
 	end
 	self:EchoDebug('path not found')
+	
 end
 
 function RaidHST:SquadAdvance(squad)
@@ -315,47 +202,20 @@ function RaidHST:SquadAdvance(squad)
 	if not squad.target or not squad.path then
 		return
 	end
-	self:EchoDebug('squad.pathStep',squad.step,'#squad.path',#squad.path)
-	self:SquadStepComplete(squad)
-	local members = squad.members
-	local nextPos = squad.path[squad.step]
-	local angle = math.min (squad.step + 1,#squad.path)
-	local nextAngle = self.ai.tool:AnglePosPos(nextPos, squad.path[angle])
-	local nextPerpendicularAngle = self.ai.tool:AngleAdd(nextAngle, halfPi)
- 	squad.lastValidMove = nextPos -- raiders use this to correct bad move orders
-	self:EchoDebug('advance #members',#members)
-	local cmdUnitId = {}
-	local pos
-	for i,member in pairs(members) do
-		cmdUnitId[i] = member.unit:Internal():ID()
-		
- 		if member.formationBack and squad.step ~= #squad.path then
- 			pos = self.ai.tool:RandomAway( nextPos, -member.formationBack, nil, nextAngle)
- 		end
- 		local reverseAttackAngle
- 		if squad.step == #squad.path then
- 			reverseAttackAngle = self.ai.tool:AngleAdd(nextAngle, pi)
- 		end
- 		--self:EchoDebug('advance',pos,nextPerpendicularAngle,reverseAttackAngle)
-
-		--member:Advance(pos or nextPos, nextPerpendicularAngle, reverseAttackAngle)
+	self:EchoDebug('advance #members',#squad.members)
+	squad.cmdUnitId = self.ai.tool:ResetTable(squad.cmdUnitId)
+	for i,member in pairs(squad.members) do
+		squad.cmdUnitId[i] = member.unit:Internal():ID()
 	end
-
-	local p = {}
-	if pos then
-		p[1] = pos.x
-		p[2] = pos.y
-		p[3] = pos.z
+	if self.ai.tool:distance(squad.position,squad.target.POS) < 512 then
+		self.ai.tool:GiveOrder(cmdUnitId,CMD.FIGHT ,squad.path[squad.step],0,'1-2')
 	else
-		p[1] = nextPos.x
-		p[2] = nextPos.y
-		p[3] = nextPos.z
+		self.ai.tool:GiveOrder(cmdUnitId,CMD.MOVE ,squad.path[squad.step],0,'1-2')
 	end
-
-	local command = self.ai.tool:GiveOrder(cmdUnitId,CMD.MOVE ,p,0,'1-2')
-	squad.lastAdvance = game:Frame()
+	
 	self:EchoDebug('advance after members move')
 end
+
 
 function RaidHST:SquadsTargetHandled(target)
 	if not target then
@@ -537,10 +397,7 @@ function RaidHST:AddRecruit(attkbhvr)
 		if attkbhvr.unit ~= nil then
 			local mtype = self.ai.maphst:MobilityOfUnit(attkbhvr.unit:Internal())
 			if self.recruits[mtype] == nil then self.recruits[mtype] = {} end
-			local level = attkbhvr.level
 			table.insert(self.recruits[mtype], attkbhvr)
-			--self.ai.tool:GiveOrder(attkbhvr.unit:Internal():ID(),CMD.MOVE_STATE,0,0,'1-1')
-			--attkbhvr:SetMoveState()
 			attkbhvr:Free()
 		else
 			self:EchoDebug("unit is nil!")
@@ -552,7 +409,6 @@ function RaidHST:RemoveRecruit(attkbhvr)
 	for mtype, recruits in pairs(self.recruits) do
 		for i,v in ipairs(recruits) do
 			if v == attkbhvr then
-				local level = attkbhvr.level
 				table.remove(self.recruits[mtype], i)
 				return true
 			end
@@ -573,143 +429,209 @@ function RaidHST:MemberIdle(attkbhvr, squad)
 end
 
 function RaidHST:visualDBG()
-	
-
 	if not self.ai.drawDebug then
 		return
 	end
-	local ch = 6
-	self.map:EraseAll(ch)
+	self.map:EraseAll(self.debugChannel)
 	for index , squad in pairs(self.squads) do
-		self.map:DrawCircle(squad.position,100, squad.colour, squad.squadID,squad.lock, ch)
+		self.map:DrawCircle(squad.position,100, squad.colour, squad.squadID,squad.lock, self.debugChannel)
 		for i,member in pairs(squad.members) do
 			if member.unit then
-				member.unit:Internal():EraseHighlight(nil, nil, ch )
-				member.unit:Internal():DrawHighlight(squad.colour ,nil , ch )
+				member.unit:Internal():EraseHighlight(nil, nil, self.debugChannel )
+				member.unit:Internal():DrawHighlight(squad.colour ,nil , self.debugChannel )
 			end
 		end
 		if squad.path then
 			for i , p in pairs(squad.path) do
-				self.map:DrawPoint(p, squad.colour, i, ch)
+				self.map:DrawPoint(p, squad.colour, i, self.debugChannel)
 			end
 		end
 		if squad.target then
-			self.map:DrawPoint(squad.target.POS, squad.colour, squad.role .. squad.squadID, ch)
-			map:DrawLine(squad.position,squad.target.POS,squad.colour,nil,nil,ch)
+			self.map:DrawPoint(squad.target.POS, squad.colour, squad.role .. squad.squadID, self.debugChannel)
+			map:DrawLine(squad.position,squad.target.POS,squad.colour,nil,nil,self.debugChannel)
 		end
 	end
 end
 
 
 
---[[
-function RaidHST:SquadMass(squad)
-	squad.mass = 0
-	for i,member in pairs(squad.members) do
-		local mass = member.mass
-		squad.mass = squad.mass + mass
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function RaidHST:SquadAttack(squad)
+	if not squad.target then
+		self:EchoDebug('squad',squad.squadID,'no target to raid')
+		return
 	end
-	self:EchoDebug('squad mass',squad.mass)
+	local p = {}
+	local cmdUnitId = {}
+	local cmdUnitCommand = {}
+	local cmdUnitParams = {}
+	local cmdUnitOptions = {}
+	if self.ai.loshst.OWN[squad.target.X] and self.ai.loshst.OWN[squad.target.X][squad.target.Z] then
+		self:EchoDebug('squad',squad.squadID,'raid a defensive position',squad.target.X,squad.target.Z)
+
+		for i,member in pairs(squad.members) do
+			table.insert(cmdUnitId, member.unit:Internal():ID())
+			table.insert(cmdUnitParams, squad.target.POS)
+			table.insert(cmdUnitOptions, 0)
+			table.insert(cmdUnitCommand, CMD.MOVE)
+			--member:MoveRandom(squad.target.POS,128)
+		end
+		self.ai.tool:GiveOrder(cmdUnitId,cmdUnitCommand,cmdUnitParams,cmdUnitOptions,'1-2')
+		self:EchoDebug('squad',squad.squadID,'execute defense')
+		return true
+	end
+	if self.ai.loshst.ENEMY[squad.target.X] and self.ai.loshst.ENEMY[squad.target.X][squad.target.Z]  and self.ai.tool:distance(squad.position,squad.target.POS) < 256 then
+		self:EchoDebug('squad',squad.squadID,'are near to offensive target, do raid')
+		for i,member in pairs(squad.members) do
+			table.insert(cmdUnitId, member.unit:Internal():ID())
+			table.insert(cmdUnitParams, squad.target.POS)
+			table.insert(cmdUnitOptions, 0)
+			table.insert(cmdUnitCommand, CMD.FIGHT)
+		end
+		self.ai.tool:GiveOrder(cmdUnitId,cmdUnitCommand,cmdUnitParams,cmdUnitOptions,'1-2')
+		self:EchoDebug('squad',squad.squadID,'execute raid')
+		return true
+	end
 end
 
-function RaidHST:SquadPosition(squad)
-	local p = api.Position()
-	local check
-	for i,member in pairs(squad.members) do
-		local uPos = self.ai.tool:UnitPos()
-		if uPos then
-			p.x = p.x + uPos.x
-			p.z = p.z + uPos.z
-			check = true
-		end
+
+function RaidHST:SquadAdvanceBackup(squad)
+	self:EchoDebug("advance",squad.squadID)
+	if game:Frame() < squad.lastAdvance + 30 then
+		return
 	end
-	p.x = p.x / #squad.members
-	p.z = p.z / #squad.members
-	p.y = map:GetGroundHeight(p.x,p.z)
-	if check then
-		squad.position = p
-		self:EchoDebug('squad position',p.x,p.z)
+	squad.lastAdvance = game:Frame()
+	squad.idleCount = 0
+	if not squad.target or not squad.path then
+		return
+	end
+	self:EchoDebug('squad.pathStep',squad.step,'#squad.path',#squad.path)
+	self:SquadStepComplete(squad)
+	local members = squad.members
+	local nextPos = squad.path[squad.step]
+	local angle = math.min (squad.step + 1,#squad.path)
+	local nextAngle = self.ai.tool:AnglePosPos(nextPos, squad.path[angle])
+	local nextPerpendicularAngle = self.ai.tool:AngleAdd(nextAngle, halfPi)
+ 	squad.lastValidMove = nextPos -- raiders use this to correct bad move orders
+	self:EchoDebug('advance #members',#members)
+	local cmdUnitId = {}
+	local pos
+	for i,member in pairs(members) do
+		cmdUnitId[i] = member.unit:Internal():ID()
+		
+ 		if member.formationBack and squad.step ~= #squad.path then
+ 			pos = self.ai.tool:RandomAway( nextPos, -member.formationBack, nil, nextAngle)
+ 		end
+ 		local reverseAttackAngle
+ 		if squad.step == #squad.path then
+ 			reverseAttackAngle = self.ai.tool:AngleAdd(nextAngle, pi)
+ 		end
+ 		--self:EchoDebug('advance',pos,nextPerpendicularAngle,reverseAttackAngle)
+	end
+
+	local p = {}
+	if pos then
+		p[1] = pos.x
+		p[2] = pos.y
+		p[3] = pos.z
 	else
-		self:SquadDisband(squad, squad.squadID)
+		p[1] = nextPos.x
+		p[2] = nextPos.y
+		p[3] = nextPos.z
 	end
+
+	local command = self.ai.tool:GiveOrder(cmdUnitId,CMD.MOVE ,p,0,'1-2')
+	squad.lastAdvance = game:Frame()
+	self:EchoDebug('advance after members move')
 end
-]]
 
 
---[[
-function RaidHST:SquadNewPath(squad,target)
-	self:EchoDebug('search new pathfinder')
-	if not target then
-		self:EchoDebug('no target for pathfinder')
+
+
+
+--[[function RaidHST:SquadFormation(squad)
+	self:EchoDebug('squad formation')
+	local members = squad.members
+	if #squad.members < 1 then
 		return
 	end
-	if not squad.leader then
-		self:EchoDebug('no leader for pathfinder')
-		return
+	local maxMemberSize
+	local lowestSpeed
+	local totalThreat = 0
+	for i, member in pairs(members) do
+		if not maxMemberSize or member.congSize > maxMemberSize then
+			maxMemberSize = member.congSize
+		end
+		if not lowestSpeed or member.speed < lowestSpeed then
+			lowestSpeed = member.speed
+		end
+		totalThreat = totalThreat + member.threat
 	end
-	local leaderName = squad.leader:Name()
-	squad.modifierFunc = self.ai.targethst:GetPathModifierFunc(leaderName, true)
-	squad.pathfinder = squad.graph:PathfinderPosPos(squad.leaderPos, target.POS, nil, nil, nil, squad.modifierFunc)
-	self:EchoDebug('new pathfinder = ', squad.pathfinder)
-end
-]]
-
---[[
-function RaidHST:SquadTargetExist(squad,grid)
-	if not squad.target or not grid[squad.target.X] or not grid[squad.target.X][squad.target.Z] then
-		self:EchoDebug('squad' ,squad.squadID,'target',X,Z,'no more available')
-		return false
-	end
-	return true
-end
-]]
---[[
-function RaidHST:SquadsTargetPrevent(squad)
-	local frontDist = math.huge
-	local preventDist = 0
-	local preventCell = nil
-	local preventSquad = nil
-	for X,cells in pairs(self.ai.loshst.OWN) do
-		for Z, cell in pairs(cells) do
-			local targetHandled = self:SquadsTargetHandled(cell)
-			if not targetHandled or targetHandled == squad.squadID then
-				local dist = self.ai.tool:distance(cell.POS,self.ai.targethst.enemyCenter)
-				if dist < frontDist then
-					preventDist = dist
-					preventCell = cell
-					preventSquad = squad.squadID
-				end
-			end
+	local backDist = maxMemberSize * 3
+	local backs = {}
+	local backsCount = 0
+	local forwards = {}
+	local forwardsCount = 0
+	for i, member in pairs(members) do
+		if member.sturdy then
+			forwardsCount = forwardsCount + 1
+			forwards[forwardsCount] = member
+		else
+			backsCount = backsCount + 1
+			backs[backsCount] = member
+			member.formationBack = backDist
 		end
 	end
-	return preventCell
-end
-]]
-
---[[
-function RaidHST:SquadsTargetAttack(squad)
-	local bestValue = math.huge
-	local bestTarget = nil
-	local bestDist = math.huge
-	local worstDist = 0
-	for X, cells in pairs(self.ai.loshst.ENEMY) do
-		for Z, cell in pairs(cells) do
-			if not self:SquadsTargetHandled(cell) then
-				if cell.IMMOBILE > 0   then
-					if self.ai.maphst:UnitCanGoHere(squad.leader, cell.POS) then
-						local dist = self.ai.tool:distance(cell.POS,self.ai.targethst.enemyCenter)
-						--local dist = self.ai.tool:distance(cell.POS,squad.position)
-						if dist > worstDist then
-							worstDist = dist
-							bestDist = dist
-							bestTarget = cell
-							bestValue = cell.IMMOBILE
-						end
-					end
-				end
-			end
-		end
+	local half = floor(#forwards / 2)
+	local anglePerMember = halfPi / #forwards
+	for i = 1, #forwards do
+		local member = forwards[i]
+		member.formationDist = (half - i) * maxMemberSize
+		member.formationAngle = (i - half) * anglePerMember
 	end
-	return bestTarget
-end
-]]
+	half = floor(#backs / 2)
+	anglePerMember = #backs / halfPi
+	for i = 1, #backs do
+		local member = backs[i]
+		member.formationDist = (half - i) * maxMemberSize
+		member.formationAngle = (i - half) * anglePerMember
+	end
+	squad.lowestSpeed = lowestSpeed
+	squad.totalThreat = totalThreat
+end]]
