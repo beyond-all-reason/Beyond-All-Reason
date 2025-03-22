@@ -56,7 +56,7 @@ local function FindPlayerName(teamID)
 end
 
 local function shuffleArray(array)
-	local n = #array or 0
+	local n = array and #array or 0
 	if n <= 1 then return array end
 	local random = math.random
 	for i = 1, n do
