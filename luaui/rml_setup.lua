@@ -82,3 +82,16 @@ RmlUi.SetMouseCursorAlias("ns-resize", 'uiresizev')
 RmlUi.SetMouseCursorAlias("ew-resize", 'uiresizeh')
 
 RmlUi.CreateContext("shared")
+
+RmlUi.ColorUtils = {
+	getCSSColorByPlayer = function(teamID)
+		if teamID < 0 then
+			return "rgb(0,0,0)"
+		end
+		local redF, greenF, blueF, opacity = Spring.GetTeamColor(teamID)
+		local redNumColor = math.floor(redF * 255)
+		local greenNumColor = math.floor(greenF * 255)
+		local blueNumColor = math.floor(blueF * 255)
+		return string.format("rgb(%d, %d, %d)", redNumColor, greenNumColor, blueNumColor)
+	end,
+}

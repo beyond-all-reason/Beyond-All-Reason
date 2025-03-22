@@ -703,6 +703,7 @@
 		"awards": {
 			"awards": "Awards",
 			"score": "Score",
+			"player": "Player",
 			"notAwarded": "(not awarded)",
 			"unknown": "(unknown)",
 			"coop": "%{name} (co-op)",
@@ -710,13 +711,14 @@
 			"enemiesDestroyed": "Destroying enemy units and defences",
 			"resourcesDestroyed": "Destroying enemy resource production",
 			"resourcesEfficiency": "Efficient use of resources",
-			"resourcesProduced": "%{playerColor}%{player}%{textColor} produced the most resources (%{score}).",
+			"resourcesProduced": "%{player} produced the most resources - %{score}",
 			"didEverything": "Doing everything",
-			"damageTaken": "%{playerColor}%{player}%{textColor} took the most damage (%{score}).",
-			"sleptLongest": "%{playerColor}%{player}%{textColor} slept longest, for %{score} minutes.",
+			"damageTaken": "%{player} took the most damage - %{score}",
+			"sleptLongest": "%{player} slept longest, for %{score} minutes",
 			"traitor": "The Traitor - Destroying allied units",
 			"leave": "Leave",
-			"showGraphs": "Show Graphs"
+			"showGraphs": "Show Graphs",
+      "honorableMentions": "Honorable mentions"
 		},
 		"autogroups": {
 			"unitAdded": "Added %{unit} to autogroup #%{groupNumber}.",

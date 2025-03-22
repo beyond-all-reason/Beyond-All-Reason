@@ -1,0 +1,181 @@
+body {
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  font-family: "Exo 2";
+  font-size: 18dp;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+table {
+  box-sizing: border-box;
+  display: table;
+}
+
+tr {
+  box-sizing: border-box;
+  display: table-row;
+}
+
+td {
+  box-sizing: border-box;
+  display: table-cell;
+  text-align: center;
+  vertical-align: top;
+}
+
+thead, tbody, tfoot {
+  display: table-row-group;
+}
+
+body, div, p, hr, pre,
+h1, h2, h3, h4, h5, h6,
+tabset tabs {
+    display: block;
+}
+
+h1, h2, h3 {
+  font-weight: bold;
+}
+
+img {
+  height: 100dp;
+}
+
+span {
+  display: inline-block;
+  margin: 0;
+  padding: 0;
+}
+
+p, span {
+  vertical-align: center;
+}
+
+td.align-left {
+  text-align: left;
+  vertical-align: middle;
+}
+
+#main-container {
+  position: absolute; 
+  right: 0;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  margin: auto;
+  pointer-events: auto;
+  width: 750dp;
+  border-radius: 10dp;
+  padding: 8dp;
+  background-color: rgba(0%, 0%, 0%, 70%);
+}
+
+#main-table {
+  min-height: 300dp;
+}
+
+.category-row {
+  margin-top: 33dp;
+}
+
+.leader {
+  font-size: 1.1em;
+}
+
+.other-awards-leader {
+  font-weight: bold;
+  font-size: 1.1em;
+}
+
+.other-awards-score {
+  font-weight: bold;
+}
+
+.score {
+  display: inline-block;
+  font-size: 1.1em;
+  padding: 3dp 0;
+}
+
+.first {
+  font-size: 1.3em;
+  font-weight: bold;
+}
+
+.honorable-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20dp;
+  height:80dp;
+}
+
+.honorable-header {
+  margin-bottom: 5dp;
+}
+
+.honorable-container div.row-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.honorable-container div.row {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
+.buttons-area {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+}
+
+.button {
+  padding: 10dp 20dp;
+  font-size: 16dp;
+  cursor: pointer;
+  border-width: 0;
+  border-radius: 5dp;
+  color: white;
+  margin: 10dp;
+  transition: background-color 0.2s;
+  width:100dp;
+  text-align: center;
+}
+
+.show-graph {
+  background-color: #007bff;
+}
+
+.leave {
+  background-color: #dc3545;
+  color: white;
+}
+
+.button:hover {
+  opacity: 0.8;
+}
+
+.button:active {
+  background-color: #0056b3;
+}
+
+.leave:active {
+  background-color: #a71d2a;
+}
+
+.flex-1 {
+  flex: 1
+}
+
+.flex-2 {
+  flex: 2
+}

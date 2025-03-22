@@ -693,10 +693,10 @@
 			"enemiesDestroyed": "Уничтожение вражеских юнитов и обороны",
 			"resourcesDestroyed": "Уничтожение экономики противника",
 			"resourcesEfficiency": "Эффективное использование ресурсов",
-			"resourcesProduced": "%{playerColor}%{player}%{textColor} произвёл больше всего ресурсов (%{score}).",
+			"resourcesProduced": "%{player} произвёл больше всего ресурсов - %{score}",
 			"didEverything": "Отдувался за всех",
-			"damageTaken": "%{player}%{textColor}%{playerColor} принял больше всего урона (%{score}).",
-			"sleptLongest": "%{playerColor}%{player}%{textColor}спал дольше всех: %{score} мин.",
+			"damageTaken": "%{player} принял больше всего урона %{score}",
+			"sleptLongest": "%{player} спал дольше всех: %{score} мин.",
 			"traitor": "Предатель! - Уничтожение союзных юнитов",
 			"leave": "Покинуть",
 			"showGraphs": "Показать Графики"
