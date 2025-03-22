@@ -672,6 +672,9 @@ uniform sampler2D heightmapTex;
 uniform int isMinimapRendering;
 uniform float mapSizeX;
 uniform float mapSizeZ;
+uniform float minCameraDrawHeight;
+uniform float maxCameraDrawHeight;
+
 
 out DataVS {
 	vec4 color;
@@ -682,6 +685,8 @@ out DataVS {
 	vec2 texCoord;
 	float cameraDist;  // Add camera distance to the output struct
 	float inMinimap;
+	float minCamHeight;
+	float maxCamHeight;
 };
 
 void main() {
@@ -731,6 +736,8 @@ void main() {
 	
 	startframe = capturestate.z;
 	gameFrame = timeInfo.x;
+	minCamHeight = minCameraDrawHeight;
+	maxCamHeight = maxCameraDrawHeight;
 }
 ]]
 
@@ -753,15 +760,17 @@ in DataVS {
 	vec2 texCoord;
 	float cameraDist;  // Add camera distance to the input struct
 	float inMinimap;
+	float minCamHeight;
+	float maxCamHeight;
 };
 
 out vec4 fragColor;
 
 void main() {
 	// Skip rendering if camera is too close (less than 3000 units)
-	if (inMinimap == 0 && cameraDist < 15000.0) {
-		discard;
-	}
+	//if (inMinimap == 0 && cameraDist < minCamHeight) {
+	//	discard;
+	//}
 
 	// Calculate center and corner distances
 	vec2 center = vec2(0.5, 0.5);
@@ -774,15 +783,13 @@ void main() {
 	
 	// Parameters for square border fade
 	float borderMaxWidth = 0.05; // Full width where border effect applies
-	float borderFadeDistance = 16.0 / 1024.0; // Fade distance converted to texture space (16 units / square size)
-	
-	// Parameters for circle edge softness
+	float borderFadeDistance = inMinimap == 1 ? 64.0 / 1024.0 : 16.0 / 1024.0; // 4x thicker for minimap
 	float circleSoftness = 0.05; // Controls how soft the circle edge is (reduced from 0.1 to 0.05)
 	
 	// Calculate pulsing effect for border
 	float pulseSpeed = 0.2; // Speed of the pulse in radians per second
 	float pulseValue = (sin(gameFrame * pulseSpeed) + 1.0) * 0.5; // Value between 0 and 1
-	vec4 borderColor = mix(vec4(0.9, 0.9, 0.9, 0.6), vec4(1.0, 1.0, 1.0, 0.6), pulseValue); // Mix between light grey and white
+	vec4 borderColor = mix(vec4(0.9, 0.9, 0.9, 0.45), vec4(1.0, 1.0, 1.0, 0.45), pulseValue); // Mix between light grey and white
 	
 	// Calculate how close we are to any edge of the square
 	float distToEdgeX = min(texCoord.x, 1.0 - texCoord.x);
@@ -825,14 +832,43 @@ void main() {
 		finalColor = mix(finalColor, borderColor, borderOpacity);
 	}
 	
+	// Then apply fade opacity based on camera distance
+	if (inMinimap == 0) {
+		float fadeStart = maxCamHeight;
+		float fadeEnd = minCamHeight;
+		float fadeRange = fadeEnd - fadeStart;
+		float fadeAlpha = 1.0 - clamp((cameraDist - fadeStart) / fadeRange, 0.0, 1.0);
+		finalColor.a *= fadeAlpha;
+	}
+	
 	fragColor = finalColor;
 }
 ]]
+
+local function GetMaxCameraHeight()
+    local mapSizeX = Game.mapSizeX
+    local mapSizeZ = Game.mapSizeZ
+    local maxFactor = Spring.GetConfigFloat("OverheadMaxHeightFactor", 1)
+	local absoluteMinimum = 3800
+	local minimumFactor = 0.80
+    
+    -- The maximum height is calculated based on the larger map dimension
+    local maxDimension = math.max(mapSizeX, mapSizeZ)
+    
+    -- The engine uses this formula to determine max height
+    -- It ensures you can see the entire map at max zoom
+    local maxHeight = maxDimension * maxFactor
+	local minHeight = math.max(absoluteMinimum, maxHeight * minimumFactor)
+    
+	Spring.Echo("maxHeight: " .. maxHeight, "maxFactor: " .. maxFactor, "minHeight: " .. minHeight)
+    return minHeight, maxHeight
+end
 
 local function makeShader()
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 	local vsShader = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	local fsShader = fsSrc
+	local minCameraDrawHeight, maxCameraDrawHeight = GetMaxCameraHeight()
 	
 	squareShader = LuaShader({
 		vertex = vsShader,
@@ -844,6 +880,8 @@ local function makeShader()
 		uniformFloat = {
 			mapSizeX = Game.mapSizeX,
 			mapSizeZ = Game.mapSizeZ,
+			minCameraDrawHeight = minCameraDrawHeight,
+			maxCameraDrawHeight = maxCameraDrawHeight,
 		},
 	}, "testSquareShader")
 	
