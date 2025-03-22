@@ -244,8 +244,7 @@ local options = {
 		key		= "tax_resource_sharing_amount",
 		name	= "Resource Sharing Tax",
 		desc	=	"Taxes resource sharing".."\255\128\128\128".." and overflow (engine TODO:)\n"..
-					"Set to [0] to turn off. Recommened: [0.4]. (Ranges: 0 - 0.99)\n"..
-					"*Disables: Reclaiming of Allied Units, [Unit Sharing] and [Assisting Ally Construction] to prevent loopholes",
+					"Set to [0] to turn off. Recommended: [0.4]. (Ranges: 0 - 0.99)",
 		type	= "number",
 		def		= 0,
 		min		= 0,
@@ -253,8 +252,6 @@ local options = {
 		step	= 0.01,
 		section	= "options_main",
 		column	= 1,
-		lock	= {"disable_unit_sharing","disable_assist_ally_construction"},
-		unlock	= {"disable_unit_sharing_forced","disable_assist_ally_construction_forced"},
 	},
 	{
 		key		= "disable_unit_sharing",
@@ -272,23 +269,6 @@ local options = {
 		section	= "options_main",
 		def		=  false,
 		column	= 1.76,
-	},
-	{	key = "tax_padding", name = "", type = "subheader", section = "options_main", column = -3, },
-	{
-		key		= "disable_unit_sharing_forced",
-		--name	= "\255\252\191\76".."Disable Unit Sharing                              [Forced ON]",
-		name	= "\255\252\191\76".."Disable Unit Sharing                                                             Disable Assist Ally Construction",
-		type	= "subheader",
-		section	= "options_main",
-	},
-	{
-		key		= "disable_assist_ally_construction_forced",
-		--name	= "\255\252\191\76".."Disable Assist Ally Construction           [Forced ON]",
-		name	= "\255\252\191\76".."[■]                                                                          [■]",
-		type	= "subheader",
-		section	= "options_main",
-		column	= 1.505,
-		font	= 4,
 	},
 	{
 		key		= "unit_market",
