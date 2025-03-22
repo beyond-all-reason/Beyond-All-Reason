@@ -161,7 +161,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			
 			if order.method == '1-1' then
-				print(UnitDefs[Spring.GetUnitDefID ( order.id )].name)
+				--print(UnitDefs[Spring.GetUnitDefID ( order.id )].name)
 				local cmd = spGiveOrderTounit(order.id,order.cmd,order.parameters,order.options)
 				--Spring.Echo('GiveOrderToUnit',order.id,UnitDefs[order.id].name,order.cmd,order.parameters,order.options)
 				cmdCounter.ii = cmdCounter.ii + 1
@@ -220,7 +220,7 @@ if gadgetHandler:IsSyncedCode() then
 			
 		end
 		--Spring.Echo('cmdCounter','1-1',cmdCounter.ii,'2-1',cmdCounter.zi,'1-2',cmdCounter.iz,'2-2',cmdCounter.zz,'old',cmdCounter.old)
-		Spring.Echo('cmdCounter',cmdCounter)
+		--Spring.Echo('cmdCounter',cmdCounter)
 	end
 
 
