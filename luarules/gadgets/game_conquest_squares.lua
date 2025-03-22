@@ -22,19 +22,19 @@ if SYNCED then
 	local MINUTES_TO_MAX = 20
 	local MINUTES_TO_START = 5
 	local MAX_TERRITORY_PERCENTAGE = 100
-	local MAX_PROGRESS = 100
-	local PROGRESS_INCREMENT = 3
-	local CONTIGUOUS_PROGRESS_INCREMENT = 1
-	local DECAY_PROGRESS_INCREMENT = 0.5
+	local MAX_PROGRESS = 1.0
+	local PROGRESS_INCREMENT = 0.06
+	local CONTIGUOUS_PROGRESS_INCREMENT = 0.03
+	local DECAY_PROGRESS_INCREMENT = 0.03
 	local STATIC_POWER_MULTIPLIER = 3
-	local SQUARE_CHECK_INTERVAL = Game.gameSpeed
+	local GRID_CHECK_INTERVAL = Game.gameSpeed
 	local DECAY_DELAY_FRAMES = Game.gameSpeed * 10
 	local SQUARE_BOUNDARY = 128
 	local GRID_SIZE = 1024
 	local FINISHED_BUILDING = 1
 	local FRAME_MODULO = Game.gameSpeed * 3
 	local STARTING_PROGRESS = 0
-	local OWNERSHIP_THRESHOLD = 33
+	local OWNERSHIP_THRESHOLD = MAX_PROGRESS / 1.4142135623730951 -- full progress is when the circle drawn within the square reaches the corner, ownership is achieved when it touches the edge.
 	local MAJORITY_THRESHOLD = 0.5 -- Moved from function to constants
 
 	--localized functions
@@ -178,18 +178,17 @@ if SYNCED then
 				local originZ = z * GRID_SIZE
 				local index = x * numberOfSquaresZ + z + 1
 				local data = gridData[index]
-				data.x = originX
-				data.z = originZ
-				data.middleX = originX + GRID_SIZE / 2
-				data.middleZ = originZ + GRID_SIZE / 2
+
+				data.mapOriginX = originX
+				data.mapOriginZ = originZ
+				data.gridX = x
+				data.gridZ = z
+				data.gridMidpointX = originX + GRID_SIZE / 2
+				data.gridMidpointZ = originZ + GRID_SIZE / 2
 				data.allyOwnerID = gaiaAllyTeamID
 				data.progress = STARTING_PROGRESS
 				data.hasUnits = false
 				data.decayDelay = 0
-				data.gridX = x
-				data.gridZ = z
-				data.sentAllyID = gaiaAllyTeamID
-				data.sentBlinkingState = true
 			end
 		end
 		return gridData
@@ -244,7 +243,7 @@ if SYNCED then
 	-- Optimized to avoid recreating tables each call
 	local function getAllyPowersInSquare(gridID)
 		local data = captureGrid[gridID]
-		local units = spGetUnitsInRectangle(data.x, data.z, data.x + GRID_SIZE, data.z + GRID_SIZE)
+		local units = spGetUnitsInRectangle(data.mapOriginX, data.mapOriginZ, data.mapOriginX + GRID_SIZE, data.mapOriginZ + GRID_SIZE)
 		
 		-- Reuse the same table for ally powers
 		local allyPowers = {}
@@ -337,7 +336,11 @@ if SYNCED then
 		
 		if data.progress < 0 then
 			data.allyOwnerID = winningAllyID
-			data.progress = math.abs(data.progress)
+			if winningAllyID == gaiaAllyTeamID then
+				data.progress = 0
+			else
+				data.progress = math.abs(data.progress)
+			end
 		elseif data.progress > MAX_PROGRESS then
 			data.progress = MAX_PROGRESS
 		end
@@ -445,27 +448,14 @@ if SYNCED then
 
 	local function initializeUnsyncedGrid()
 		for gridID, data in pairs(captureGrid) do
-			SendToUnsynced("InitializeGridSquare", gridID, data.allyOwnerID, data.sentBlinkingState, data.gridX, data.gridZ)
+			SendToUnsynced("InitializeGridSquare", gridID, data.allyOwnerID, data.progress, data.gridMidpointX, data.gridMidpointZ)
 		end
 	end
 
 	local function updateUnsyncedSquare(gridID)
 		local data = captureGrid[gridID]
-		local blinking = false
-		local allyIDtoSend = gaiaAllyTeamID
 		
-		if data.progress > OWNERSHIP_THRESHOLD then
-			allyIDtoSend = data.allyOwnerID
-		end
-		if data.progress < MAX_PROGRESS then
-			blinking = true
-		end
-		if data.sentAllyID == allyIDtoSend and data.sentBlinkingState == blinking then
-			return -- data is the same as last time
-		end
-		data.sentAllyID = allyIDtoSend
-		data.sentBlinkingState = blinking
-		SendToUnsynced("UpdateGridSquare", gridID, allyIDtoSend, blinking)
+		SendToUnsynced("UpdateGridSquare", gridID, data.allyOwnerID, data.progress)
 	end
 
 	local function updateUnsyncedScore(allyID, score)
@@ -484,9 +474,9 @@ if SYNCED then
 	local function decayProgress(gridID)
 		local data = captureGrid[gridID]
 		if data.progress > OWNERSHIP_THRESHOLD then
-			applyProgress(gridID, -DECAY_PROGRESS_INCREMENT, data.allyOwnerID)
+			applyProgress(gridID, DECAY_PROGRESS_INCREMENT, data.allyOwnerID)
 		else
-			applyProgress(gridID, -DECAY_PROGRESS_INCREMENT, gaiaAllyTeamID)
+			applyProgress(gridID, DECAY_PROGRESS_INCREMENT, gaiaAllyTeamID)
 		end
 	end
 
@@ -502,7 +492,7 @@ if SYNCED then
 
 	function gadget:GameFrame(frame)
 		gameFrame = frame
-		local frameModulo = frame % SQUARE_CHECK_INTERVAL
+		local frameModulo = frame % GRID_CHECK_INTERVAL
 
 		if frameModulo == 0 then
 			updateLivingTeamsData()
@@ -514,17 +504,16 @@ if SYNCED then
 				local winningAllyID, progressChange = getCaptureProgress(gridID, allyPowers)
 				if winningAllyID then
 					applyProgress(gridID, progressChange, winningAllyID)
-					updateUnsyncedSquare(gridID)
 				end
 				if allyTeamsWatch[data.allyOwnerID] and data.progress > OWNERSHIP_THRESHOLD then
 					allyTallies[data.allyOwnerID] = allyTallies[data.allyOwnerID] + 1
 				end
 
 				-- if DEBUGMODE then -- Simplified debug condition
-				-- 	spSpawnCEG("scaspawn-trail", data.x, spGetGroundHeight(data.x, data.z), data.z, 0,0,0)
-				-- 	spSpawnCEG("scav-spawnexplo", data.x, spGetGroundHeight(data.x, data.z), data.z, 0,0,0)
+				-- 	spSpawnCEG("scaspawn-trail", data.mapOriginX, spGetGroundHeight(data.mapOriginX, data.mapOriginZ), data.mapOriginZ, 0,0,0)
+				-- 	spSpawnCEG("scav-spawnexplo", data.mapOriginX, spGetGroundHeight(data.mapOriginX, data.mapOriginZ), data.mapOriginZ, 0,0,0)
 				-- 	if allyTeamsWatch[data.allyOwnerID] then
-				-- 		spSpawnCEG(debugOwnershipCegs[data.allyOwnerID], data.middleX, spGetGroundHeight(data.middleX, data.middleZ), data.middleZ, 0,0,0)
+				-- 		--spSpawnCEG(debugOwnershipCegs[data.allyOwnerID], data.mapMiddleX, spGetGroundHeight(data.mapMiddleX, data.mapMiddleZ), data.mapMiddleZ, 0,0,0)
 				-- 	end
 				-- end
 			end
@@ -535,15 +524,14 @@ if SYNCED then
 				local contiguousAllyID, progressChange = getSquareContiguityProgress(gridID)
 				if contiguousAllyID and progressChange ~= 0 then
 					applyProgress(gridID, progressChange, contiguousAllyID)
-					updateUnsyncedSquare(gridID)
 				end
 			end
 
 			for gridID, data in pairs(captureGrid) do
 				if data.decayDelay < frame and data.progress < MAX_PROGRESS then
 					decayProgress(gridID)
-					updateUnsyncedSquare(gridID)
 				end
+				updateUnsyncedSquare(gridID)
 			end
 		elseif frameModulo == 2 then
 			allyScores = convertTalliesToScores(allyTallies)
@@ -575,6 +563,7 @@ if SYNCED then
 	function gadget:Initialize()
 		numberOfSquaresX = math.ceil(mapSizeX / GRID_SIZE)
 		numberOfSquaresZ = math.ceil(mapSizeZ / GRID_SIZE)
+		SendToUnsynced("InitializeConfigs", GRID_SIZE, GRID_CHECK_INTERVAL)
 		captureGrid = generateCaptureGrid()
 		updateLivingTeamsData()
 		
@@ -603,11 +592,18 @@ VFS.Include(luaShaderDir.."instancevbotable.lua")
 --testing variables
 local TEST_SPEED = 0.25
 local TEST_SQUARE_COUNT = 7
+local MOVE_INTERVAL = 60
+local UNSYNCED_DEBUG_MODE = true
 
 --constants
-local SQUARE_SIZE = 1024
-
+local SQUARE_SIZE = 1024  -- Match GRID_SIZE from synced part
 local SQUARE_ALPHA = 0.2
+local SQUARE_HEIGHT = 20
+local UPDATE_FRAME_RATE_INTERVAL = Game.gameSpeed
+
+--tables
+local captureGrid = {}
+local allyScores = {}
 
 --team stuff
 local myAllyID = select(6, Spring.GetTeamInfo(Spring.GetMyTeamID()))
@@ -635,17 +631,12 @@ end
 local planeLayout = {
 	{id = 1, name = 'posscale', size = 4}, -- a vec4 for pos + scale
 	{id = 2, name = 'ownercolor', size = 4}, --  vec4 the color of this new
-	{id = 3, name = 'takercolor', size = 4}, -- vec4 the color of this new
-	{id = 4, name = 'capturestate', size = 4}, -- vec4 speed, progress, startframe, unused
+	{id = 3, name = 'capturestate', size = 4}, -- vec4 speed, progress, startframe, unused
 }
 local glDepthTest = gl.DepthTest
 local glTexture = gl.Texture
 local random = math.random
 local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
-
--- Constants
-local SQUARE_HEIGHT = 20
-local MOVE_INTERVAL = 60
 
 local squareVBO = nil
 local squareVAO = nil
@@ -665,8 +656,7 @@ local vsSrc = [[
 layout (location = 0) in vec4 position;
 layout (location = 1) in vec4 posscale; // x, y, z, scale
 layout (location = 2) in vec4 color1; // r, g, b, a
-layout (location = 3) in vec4 visibility; // fadeStart, fadeEnd, minAlpha, maxAlpha
-layout (location = 4) in vec4 capturestate; // speed, progress, startframe, unused
+layout (location = 3) in vec4 capturestate; // speed, progress, startframe, unused
 
 uniform sampler2D heightmapTex;
 uniform int isMinimapRendering;
@@ -674,6 +664,7 @@ uniform float mapSizeX;
 uniform float mapSizeZ;
 uniform float minCameraDrawHeight;
 uniform float maxCameraDrawHeight;
+uniform float updateFrameRateInterval;
 
 
 out DataVS {
@@ -687,6 +678,7 @@ out DataVS {
 	float inMinimap;
 	float minCamHeight;
 	float maxCamHeight;
+	float updateFrameInterval;
 };
 
 void main() {
@@ -708,7 +700,7 @@ void main() {
 		// Minimap rendering mode
 		// Scale position to minimap coordinates (0-1)
 		vec2 minimapPos = (posscale.xz / vec2(mapSizeX, mapSizeZ));
-		vec2 squareSize = vec2(posscale.w / mapSizeX, posscale.w / mapSizeZ);
+		vec2 squareSize = vec2(posscale.w / mapSizeX, posscale.w / mapSizeZ) * 0.5;  // Added 0.5 scaling factor
 		
 		// Calculate vertex position in minimap space
 		vec2 vertexPos = position.xy * squareSize + minimapPos;
@@ -719,7 +711,7 @@ void main() {
 	} else {
 		// World rendering mode
 		// Use position.y as Z coordinate since makePlaneVBO creates X-Y plane
-		vec4 worldPos = vec4(position.x * posscale.w, 0.0, position.y * posscale.w, 1.0);
+		vec4 worldPos = vec4(position.x * posscale.w * 0.5, 0.0, position.y * posscale.w * 0.5, 1.0);  // Multiply by 0.5 to fix scaling
 		worldPos.xz += posscale.xz;
 		
 		// Get height from heightmap
@@ -738,6 +730,7 @@ void main() {
 	gameFrame = timeInfo.x;
 	minCamHeight = minCameraDrawHeight;
 	maxCamHeight = maxCameraDrawHeight;
+	updateFrameInterval = updateFrameRateInterval;
 }
 ]]
 
@@ -762,6 +755,7 @@ in DataVS {
 	float inMinimap;
 	float minCamHeight;
 	float maxCamHeight;
+	float updateFrameInterval;
 };
 
 out vec4 fragColor;
@@ -777,12 +771,13 @@ void main() {
 	float borderOpacity = 1.0 - clamp(distToEdge / borderFadeDistance, 0.0, 1.0);
 	
 	// Calculate circle parameters
-	float distance = length(texCoord - center) * 2.0;
-	float scaledProgress = progress * 1.4142135623730951 + (gameFrame - startframe) * speed; // sqrt(2) pre-calculated
+	float distanceToCorner = 1.4142135623730951;
+	float pixelToCenterDistance = length(texCoord - center) * 2.0;
+	float scaledProgress = (progress + speed * (gameFrame - startframe) * distanceToCorner);
 	float circleSoftness = 0.05;
 	
 	// Calculate circle fill with optimized soft edge
-	float circleFill = 1.0 - clamp((distance - scaledProgress) / circleSoftness, 0.0, 1.0);
+	float circleFill = 1.0 - clamp((pixelToCenterDistance - scaledProgress) / circleSoftness, 0.0, 1.0);
 	circleFill = step(0.0, circleFill) * circleFill;
 	
 	// Calculate pulsing border with optimized math
@@ -813,8 +808,8 @@ local function GetMaxCameraHeight()
 	local minimumFactor = 0.80
     
     local maxDimension = math.max(mapSizeX, mapSizeZ)
-    local maxHeight = maxDimension * maxFactor
-	local minHeight = math.max(absoluteMinimum, maxHeight * minimumFactor)
+    local maxHeight = UNSYNCED_DEBUG_MODE and 1 or maxDimension * maxFactor
+	local minHeight = UNSYNCED_DEBUG_MODE and 0 or math.max(absoluteMinimum, maxHeight * minimumFactor)
 
     return minHeight, maxHeight
 end
@@ -837,6 +832,7 @@ local function makeShader()
 			mapSizeZ = Game.mapSizeZ,
 			minCameraDrawHeight = minCameraDrawHeight,
 			maxCameraDrawHeight = maxCameraDrawHeight,
+			updateFrameInterval = UPDATE_FRAME_RATE_INTERVAL,
 		},
 	}, "testSquareShader")
 	
@@ -927,12 +923,22 @@ local function makeSquareVBO(xsize, ysize, xresolution, yresolution)
 	return squareVBO, (xresolution + 1) * (yresolution + 1), squareIndexVBO, #indexData
 end
 
+local function updateGridSquareInstanceVBO(gridID, posScale, color1, captureState)
+	local instanceData = {
+		posScale[1], posScale[2], posScale[3], posScale[4],  -- posscale: x, y, z, scale
+		color1[1], color1[2], color1[3], color1[4],         -- color1: r, g, b, a
+		captureState[1], captureState[2], captureState[3], captureState[4]  -- capturestate: speed, progress, startframe, unused
+	}
+	pushElementInstance(instanceVBO, instanceData, gridID, true, false)
+end
+
 local function initGL4()
 	-- Create square VBO with index buffer - increased resolution to 10x10
-	local squareVBO, numVertices, squareIndexVBO, numIndices = makeSquareVBO(1, 1, 32, 32)
+	local planeResolution = 32
+	local squareVBO, numVertices, squareIndexVBO, numIndices = makeSquareVBO(1, 1, planeResolution, planeResolution)
 	if not squareVBO then return false end
 	
-	instanceVBO = makeInstanceVBOTable(planeLayout, 16, "test_square_shader")
+	instanceVBO = makeInstanceVBOTable(planeLayout, 12, "test_square_shader")
 	instanceVBO.vertexVBO = squareVBO
 	instanceVBO.indexVBO = squareIndexVBO
 	instanceVBO.numVertices = numIndices
@@ -942,19 +948,12 @@ local function initGL4()
 	squareVAO = makeVAOandAttach(squareVBO, instanceVBO.instanceVBO, squareIndexVBO)
 	instanceVBO.VAO = squareVAO
 	
-	for i = 1, TEST_SQUARE_COUNT do
-		local randomX = random(SQUARE_SIZE, mapSizeX - SQUARE_SIZE)
-		local randomZ = random(SQUARE_SIZE, mapSizeZ - SQUARE_SIZE)
+	-- for i = 1, TEST_SQUARE_COUNT do --zzz this is where to populate the grid, or maybe I should do so by recieving from synced?
+	-- 	local randomX = random(SQUARE_SIZE, mapSizeX - SQUARE_SIZE)
+	-- 	local randomZ = random(SQUARE_SIZE, mapSizeZ - SQUARE_SIZE)
 		
-		local instanceData = {
-			randomX, SQUARE_HEIGHT, randomZ, SQUARE_SIZE,  -- posscale: x, y, z, scale
-			random(), random(), random(), 0.8,             -- color1: r, g, b, a
-			2000, 5000, 0.8, 0.2,                         -- visibility: fadeStart, fadeEnd, minAlpha, maxAlpha
-			1.0, 0.5, 0.0, 0.0                            -- capturestate: speed, progress, startframe, unused
-		}
-		
-		pushElementInstance(instanceVBO, instanceData, i, true, false)
-	end
+	-- 	updateGridSquareInstanceVBO(i, {randomX, SQUARE_HEIGHT, randomZ, SQUARE_SIZE}, {random(), random(), random(), 0.8}, {1.0, 0.5, 0.0, 0.0})
+	-- end
 	uploadAllElements(instanceVBO)
 	return makeShader()
 end
@@ -971,49 +970,23 @@ end
 function gadget:Update()
 	local currentFrame = Spring.GetGameFrame()
 	
-	if currentFrame > 0 and currentFrame % MOVE_INTERVAL == 0 and currentFrame ~= lastMoveFrame then
+	if currentFrame % MOVE_INTERVAL == 0 and currentFrame ~= lastMoveFrame then
 		local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 		
-		for i = 1, TEST_SQUARE_COUNT do
-			local instanceData = getElementInstanceData(instanceVBO, i)
-			if instanceData then
-				-- Randomize position
-				local randomX = random(SQUARE_SIZE, mapSizeX - SQUARE_SIZE)
-				local randomZ = random(SQUARE_SIZE, mapSizeZ - SQUARE_SIZE)
-				
-				-- Randomize color (r,g,b values at indices 5,6,7)
-				local randomR = random(0, 1)
-				local randomG = random(0, 1)
-				local randomB = random(0, 1)
-				
-				-- Randomize progress (at index 14)
-				local randomProgress = random()
-				
-				-- Update position (first 3 elements in posscale)
-				instanceData[1] = randomX
-				instanceData[3] = randomZ
-				
-				-- Update color (elements 5-7 in color1)
-				instanceData[5] = randomR
-				instanceData[6] = randomG
-				instanceData[7] = randomB
-				
-				-- Keep alpha consistent
-				instanceData[8] = SQUARE_ALPHA
-				
-				local newTestProgress = instanceData[14] + random(-1, 1) * random() * TEST_SPEED
-				-- Update speed (1st element in capturestate) --
-				instanceData[13] = (newTestProgress - instanceData[14]) / MOVE_INTERVAL
-				-- Update progress (2nd element in capturestate)
-				instanceData[14] = newTestProgress
-
-				-- Update startframe (3rd element in capturestate)
-				instanceData[15] = currentFrame
-
-				-- Update
-				
-				pushElementInstance(instanceVBO, instanceData, i, true)
+		for gridID, gridData in pairs(captureGrid) do
+			local color = allyColors[gridData.allyOwnerID] or blankColor  -- Use proper team color
+			local captureChangePerFrame = 0
+			if gridData.captureChange then
+				captureChangePerFrame = gridData.captureChange / UPDATE_FRAME_RATE_INTERVAL
 			end
+
+			updateGridSquareInstanceVBO(
+				gridID,
+				{gridData.gridMidpointX, SQUARE_HEIGHT, gridData.gridMidpointZ, SQUARE_SIZE},
+				color,
+				{captureChangePerFrame, gridData.oldProgress, currentFrame, 0.0}
+				)
+			gridData.captureChange = nil
 		end
 		
 		uploadAllElements(instanceVBO)
@@ -1065,4 +1038,44 @@ function gadget:Shutdown()
 		squareShader:Finalize()
 	end
 end
+
+function gadget:RecvFromSynced(messageName, ...)
+    if messageName == "InitializeGridSquare" then
+        local gridID, allyOwnerID, progress, gridMidpointX, gridMidpointZ = ...
+        captureGrid[gridID] = {
+            allyOwnerID = allyOwnerID,
+            oldProgress = progress,
+			newProgress = progress,
+			captureChange = 0,
+            gridMidpointX = gridMidpointX,
+            gridMidpointZ = gridMidpointZ
+        }
+        --Spring.Echo(string.format("DEBUG: Initialized square %d at (%d, %d)", 
+            --gridID, gridMidpointX, gridMidpointX))
+
+	elseif messageName == "InitializeConfigs" then
+		SQUARE_SIZE, UPDATE_FRAME_RATE_INTERVAL = ...
+    elseif messageName == "UpdateGridSquare" then
+        local gridID, allyOwnerID, progress = ...
+        if captureGrid[gridID] then
+            captureGrid[gridID].allyOwnerID = allyOwnerID
+			captureGrid[gridID].oldProgress = captureGrid[gridID].newProgress
+            captureGrid[gridID].captureChange = progress - captureGrid[gridID].oldProgress
+            captureGrid[gridID].newProgress = progress
+			if captureGrid[gridID].captureChange > 0 then
+				Spring.Echo("captureChange", captureGrid[gridID].captureChange)
+			end
+			if captureGrid[gridID].oldProgress ~= captureGrid[gridID].newProgress then
+				Spring.Echo("oldProgress", captureGrid[gridID].oldProgress)
+				Spring.Echo("newProgress", captureGrid[gridID].newProgress)
+			end
+        end
+
+    elseif messageName == "UpdateAllyScore" then
+        local allyID, score = ...
+        allyScores[allyID] = score
+        --Spring.Echo(string.format("Updated ally %d score: %d", allyID, score))
+    end
+end
+
 end
