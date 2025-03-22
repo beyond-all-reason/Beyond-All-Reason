@@ -971,7 +971,7 @@ function widget:DrawScreen()
 			glCallList(drawlist[4])
 		end
 	end
-	if drawlist[1] ~= nil then
+	if drawlist[1] ~= nil or uiTex then
 		if mouseover then
 			-- display play progress
 			local progressPx = math.floor((right - left) * (playedTime / totalTime))
