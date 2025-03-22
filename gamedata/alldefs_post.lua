@@ -384,7 +384,7 @@ function UnitDef_Post(name, uDef)
 			udcp.evolution_power_enemy_multiplier = tonumber(udcp.evolution_power_enemy_multiplier) or 1
 			udcp.evolution_power_multiplier       = tonumber(udcp.evolution_power_multiplier) or 1
 			udcp.evolution_power_threshold        = tonumber(udcp.evolution_power_threshold) or 600
-			udcp.evolution_timer                  = tonumber(udcp.evolution_timer) or (20 * Game.gameSpeed)
+			udcp.evolution_timer                  = tonumber(udcp.evolution_timer) or 20
 		end
 
 		if modOptions.unit_restrictions_notacnukes then
