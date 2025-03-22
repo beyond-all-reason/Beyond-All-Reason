@@ -7,7 +7,7 @@ return {
 		energycost = 0,
 		metalcost = 120,
 		buildpic = "LEGSOLAR.DDS",
-		buildtime = 2800,
+		buildtime = 2200,
 		canrepeat = false,
 		collisionvolumeoffsets = "0.0 -18.0 1.0",
 		collisionvolumescales = "50.0 76.0 50.0",
