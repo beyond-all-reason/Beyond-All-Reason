@@ -66,6 +66,11 @@ local function processWeapons(unitDefName, unitDef)
 	for weaponDefName, weaponDef in pairs(weaponDefs) do
 		weaponDef.reloadtime = round_to_frames(weaponDef, "reloadtime")
 		weaponDef.burstrate = round_to_frames(weaponDef, "burstrate")
+
+		if weaponDef.customparams and weaponDef.customparams.cluster_def then
+			weaponDef.customparams.cluster_def = unitDefName .. "_" .. weaponDef.customparams.cluster_def
+			weaponDef.customparams.cluster_number = weaponDef.customparams.cluster_number or 5
+		end
 	end
 end
 
@@ -408,6 +413,7 @@ function UnitDef_Post(name, uDef)
 				corint = true,
 				corbuzz = true,
 				leglrpc = true,
+				legelrpcmech = true,
 				legstarfall = true,
 				armbotrail_scav = true,
 				armbrtha_scav = true,
@@ -415,6 +421,8 @@ function UnitDef_Post(name, uDef)
 				corint_scav = true,
 				corbuzz_scav = true,
 				legstarfall_scav = true,
+				leglrpc_scav = true,
+				legelrpcmech_scav = true,
 			}
 			if LRPCs[name] then
 				uDef.maxthisunit = 0
@@ -591,7 +599,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 3] = "legwint2"
 			uDef.buildoptions[numBuildoptions + 4] = "legnanotct2"
 			uDef.buildoptions[numBuildoptions + 5] = "legrwall"
-			uDef.buildoptions[numBuildoptions + 6] = "corgatet3"
+			uDef.buildoptions[numBuildoptions + 6] = "leggatet3"
 		elseif name == "armasy" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "armptt2"

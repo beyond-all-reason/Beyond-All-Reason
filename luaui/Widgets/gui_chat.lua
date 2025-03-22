@@ -568,7 +568,7 @@ end
 
 local function getPlayerColorString(playername, gameFrame)
 	if playernames[playername] then
-		if playernames[playername][5] and (not gameFrame or not playernames[playername][6] or playernames[playername][6] < gameFrame) then
+		if playernames[playername][5] and (not gameFrame or not playernames[playername][6] or gameFrame < playernames[playername][6]) then
 			if not isSpec and anonymousMode ~= "disabled" then
 				return ColorString(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3])
 			else
@@ -938,6 +938,10 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 			
 		elseif ssub(line,1,6) == "[i18n]" then
 			lineColor = msgColor
+			
+		elseif ssub(line,1,6) == "[Font]" then
+			lineColor = msgColor
+
 			--2 lines (instead of 4) appears when player connects
 		elseif sfind(line,'-> Version', nil, true) or sfind(line,'ClientReadNet', nil, true) or sfind(line,'Address', nil, true) then
 			bypassThisMessage = true
@@ -991,6 +995,7 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 
 		elseif sfind(line,'left the game:  normal quit', nil, true) then
 			lineColor = msgHighlightColor
+			local color2 = msgColor
 			local playername = ''
 			local spectator = ''
 			if sfind(line,'Spectator', nil, true) then
@@ -999,11 +1004,13 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 			else	-- Player
 				playername = ssub(line, 8, sfind(line, ' left the game', nil, true)-1)
 				lineColor = '\255\255\133\133'	-- player
+				color2 = lineColor
 			end
-			line = Spring.I18N('ui.chat.leftthegamenormal', { name = getPlayerColorString(playername, gameFrame)..playername..spectator, textColor = lineColor, textColor2 = msgColor } )
+			line = Spring.I18N('ui.chat.leftthegamenormal', { name = getPlayerColorString(playername, gameFrame)..playername..spectator, textColor = lineColor, textColor2 = color2 } )
 
 		elseif sfind(line,'left the game:  timeout', nil, true) then
 			lineColor = msgHighlightColor
+			local color2 = msgColor
 			local playername = ''
 			local spectator = ''
 			if sfind(line,'Spectator', nil, true) then
@@ -1012,8 +1019,9 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 			else	-- Player
 				playername = ssub(line, 8, sfind(line, ' left the game', nil, true)-1)
 				lineColor = '\255\255\133\133'	-- player
+				color2 = lineColor
 			end
-			line = Spring.I18N('ui.chat.leftthegametimeout', { name = getPlayerColorString(playername, gameFrame)..playername..spectator, textColor = lineColor } )
+			line = Spring.I18N('ui.chat.leftthegametimeout', { name = getPlayerColorString(playername, gameFrame)..playername..spectator, textColor = lineColor, textColor2 = color2  } )
 
 		elseif sfind(line,'Error', nil, true) then
 			lineColor = '\255\255\133\133'
