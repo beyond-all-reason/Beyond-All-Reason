@@ -348,6 +348,8 @@ function widget:ViewResize()
 	doUpdate = true
 
 	if ordermenuTex then
+		gl.DeleteTextureFBO(ordermenuBgTex)
+		ordermenuBgTex = nil
 		gl.DeleteTextureFBO(ordermenuTex)
 		ordermenuTex = nil
 	end
@@ -415,6 +417,8 @@ function widget:Shutdown()
 	end
 	displayListOrders = gl.DeleteList(displayListOrders)
 	if ordermenuTex then
+		gl.DeleteTextureFBO(ordermenuBgTex)
+		ordermenuBgTex = nil
 		gl.DeleteTextureFBO(ordermenuTex)
 		ordermenuTex = nil
 	end
@@ -528,9 +532,8 @@ local function drawCell(cell, zoom)
 				color2 = { 1,1,1, math_clamp(uiOpacity-0.4, 0, 0.35) }
 			end
 			if useRenderToTexture then
-				-- I dont know the fuck why the following RectRound or a plain gl.Rect) hardly shows up when using rendertotexture so lets brighten it!
-				color1[4] = color1[4] * 2.5
-				color2[4] = color2[4] * 2.5
+				color1[4] = color1[4] * 2
+				color2[4] = color2[4] * 2
 			end
 			if color1[4] > 0.06 then
 				-- white bg (outline)
@@ -703,7 +706,7 @@ end
 local function drawOrdersBackground()
 	-- just making sure blending mode is correct
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0))
+	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0), nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture)
 end
 
 local function drawOrders()
@@ -786,18 +789,35 @@ function widget:DrawScreen()
 		end
 		if not displayListOrders then
 			displayListOrders = gl.CreateList(function()
-				drawOrdersBackground()
 				if not useRenderToTexture then
+					drawOrdersBackground()
 					drawOrders()
 				end
 			end)
 			if useRenderToTexture then
-				if not ordermenuTex then
+				if not ordermenuBgTex then
 					ordermenuTex = gl.CreateTexture(math_floor(width*viewSizeX), math_floor(height*viewSizeY), {
 						target = GL.TEXTURE_2D,
 						format = GL.ALPHA,
 						fbo = true,
 					})
+					ordermenuBgTex = gl.CreateTexture(math_floor(width*viewSizeX), math_floor(height*viewSizeY), {
+						target = GL.TEXTURE_2D,
+						format = GL.ALPHA,
+						fbo = true,
+					})
+					if ordermenuBgTex then
+						gl.RenderToTexture(ordermenuBgTex, function()
+							gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+							gl.Color(1,1,1,1)
+							gl.PushMatrix()
+							gl.Translate(-1, -1, 0)
+							gl.Scale(2 / (width*viewSizeX), 2 / (height*viewSizeY),	0)
+							gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
+							drawOrdersBackground()
+							gl.PopMatrix()
+						end)
+					end
 				end
 				if ordermenuTex then
 					gl.RenderToTexture(ordermenuTex, function()
@@ -814,13 +834,18 @@ function widget:DrawScreen()
 			end
 		end
 
-		gl.CallList(displayListOrders)
-
 		if useRenderToTexture and ordermenuTex then
+			-- background element
+			gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
+			gl.Texture(ordermenuBgTex)
+			gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)
+			-- content
 			gl.Color(1,1,1,1)
 			gl.Texture(ordermenuTex)
 			gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)
 			gl.Texture(false)
+		else
+			gl.CallList(displayListOrders)
 		end
 
 		if #commands >0 then

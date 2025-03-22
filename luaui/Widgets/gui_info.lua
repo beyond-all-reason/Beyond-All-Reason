@@ -581,8 +581,13 @@ function widget:ViewResize()
 	backgroundRect = { 0, 0, width * vsx, height * vsy }
 
 	doUpdate = true
-	clear()
+	if dlistInfo then
+		dlistInfo = gl.DeleteList(dlistInfo)
+		dlistInfo = nil
+	end
 	if infoTex then
+		gl.DeleteTextureFBO(infoBgTex)
+		infoBgTex = nil
 		gl.DeleteTextureFBO(infoTex)
 		infoTex = nil
 	end
@@ -713,17 +718,16 @@ function widget:Initialize()
 	end
 end
 
-function clear()
-	dlistInfo = gl.DeleteList(dlistInfo)
-end
-
 function widget:Shutdown()
 	Spring.SetDrawSelectionInfo(true) --disables springs default display of selected units count
 	Spring.SendCommands("tooltip 1")
-	clear()
+	if dlistInfo then
+		dlistInfo = gl.DeleteList(dlistInfo)
+		dlistInfo = nil
+	end
 	if infoTex then
+		gl.DeleteTextureFBO(infoBgTex)
 		gl.DeleteTextureFBO(infoTex)
-		infoTex = nil
 	end
 	if WG['guishader'] and dlistGuishader then
 		WG['guishader'].DeleteDlist('info')
@@ -791,7 +795,14 @@ function widget:Update(dt)
 	if doUpdate or (doUpdateClock and os_clock() >= doUpdateClock) or (os_clock() >= doUpdateClock2) then
 		doUpdateClock = nil
 		doUpdateClock2 = os_clock() + 0.9
-		clear()
+		if useRenderToTexture then
+			updateTex = true
+		else
+			if dlistInfo then
+				dlistInfo = gl.DeleteList(dlistInfo)
+				dlistInfo = nil
+			end
+		end
 		doUpdate = nil
 		lastUpdateClock = os_clock()
 	end
@@ -1673,7 +1684,7 @@ local function drawEngineTooltip()
 end
 
 local function drawInfoBackground()
-	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 0, 1, 0, 0)
+	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 0, 1, 0, 0, nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture)
 end
 
 local function drawInfo()
@@ -1886,40 +1897,63 @@ function widget:DrawScreen()
 		end
 		return
 	end
-	if not dlistInfo then
+
+	if useRenderToTexture then
+		if not infoBgTex then
+			infoBgTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
+				target = GL.TEXTURE_2D,
+				format = GL.RGBA,
+				fbo = true,
+			})
+			gl.RenderToTexture(infoBgTex, function()
+				gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+				gl.PushMatrix()
+				gl.Translate(-1, -1, 0)
+				gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
+				drawInfoBackground()
+				gl.PopMatrix()
+			end)
+		end
+		if not infoTex then
+			infoTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
+				target = GL.TEXTURE_2D,
+				format = GL.RGBA,
+				fbo = true,
+			})
+		end
+		if infoTex and updateTex then
+			updateTex = nil
+			gl.RenderToTexture(infoTex, function()
+				gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+				gl.PushMatrix()
+				gl.Translate(-1, -1, 0)
+				gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
+				drawInfo()
+				gl.PopMatrix()
+			end)
+		end
+	else
 		dlistInfo = gl.CreateList(function()
-			drawInfoBackground()
 			if not useRenderToTexture then
+				drawInfoBackground()
 				drawInfo()
 			end
 		end)
-		if useRenderToTexture then
-			if not infoTex then
-				infoTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
-					target = GL.TEXTURE_2D,
-					format = GL.RGBA,
-					fbo = true,
-				})
-			end
-			if infoTex then
-				gl.RenderToTexture(infoTex, function()
-					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-					gl.PushMatrix()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
-					drawInfo()
-					gl.PopMatrix()
-				end)
-			end
-		end
 	end
+
 	if alwaysShow or not emptyInfo or (isPregame and not mySpec) then
-		gl.CallList(dlistInfo)
 		if useRenderToTexture and infoTex then
+			-- background element
+			gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
+			gl.Texture(infoBgTex)
+			gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)
+			-- content
 			gl.Color(1,1,1,1)
 			gl.Texture(infoTex)
 			gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)
 			gl.Texture(false)
+		elseif dlistInfo then
+			gl.CallList(dlistInfo)
 		end
 	elseif dlistGuishader then
 		WG['guishader'].DeleteDlist('info')
