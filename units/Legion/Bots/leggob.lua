@@ -2,7 +2,7 @@ return {
 	leggob = {
 		maxacc = 0.36,
 		maxdec = 0.72,
-		energycost = 500,
+		energycost = 490,
 		metalcost = 25,
 		buildpic = "LEGGOB.DDS",
 		buildtime = 900,
@@ -120,7 +120,7 @@ return {
 				ownerExpAccWeight = 4.0,
 				predictboost = 0.5,
 				proximitypriority = 1,
-				range = 280,
+				range = 260,
 				reloadtime = 0.9,
 				rgbcolor = "1 0.95 0.4",
 				soundhit = "bimpact3",
