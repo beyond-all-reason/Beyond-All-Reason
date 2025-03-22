@@ -415,9 +415,6 @@ function widget:Update(dt)
 		selectedBuilderCount = 0
 		selectedFactoryCount = 0
 		local selBuilderDefs = {}
-		if SelectedUnitsCount ~= #prevSelBuilderDefs then
-			doUpdate = true
-		end
 		if SelectedUnitsCount > 0 then
 			local sel = Spring.GetSelectedUnits()
 			for _, unitID in pairs(sel) do
@@ -435,17 +432,21 @@ function widget:Update(dt)
 
 			-- check if builder type selection actually differs from previous selection
 			if not doUpdate then
-				for uDefID, _ in pairs(prevSelBuilderDefs) do
-					if not selBuilderDefs[uDefID] then
-						doUpdate = true
-						break
-					end
-				end
-				if not doUpdate then
-					for uDefID, _ in pairs(selBuilderDefs) do
-						if not prevSelBuilderDefs[uDefID] then
-							doUpdate = true
+				if #selBuilderDefs ~= #prevSelBuilderDefs then
+					doUpdateClock = os_clock() + 0.01
+				else
+					for uDefID, _ in pairs(prevSelBuilderDefs) do
+						if not selBuilderDefs[uDefID] then
+							doUpdateClock = os_clock() + 0.01
 							break
+						end
+					end
+					if not doUpdate then
+						for uDefID, _ in pairs(selBuilderDefs) do
+							if not prevSelBuilderDefs[uDefID] then
+								doUpdateClock = os_clock() + 0.01
+								break
+							end
 						end
 					end
 				end
@@ -644,7 +645,7 @@ function drawBuildmenu()
 
 		rows = math_floor(contentHeight / cellSize)
 		if minColls < maxColls then
-			while cmdsCount or 0 > rows * colls do
+			while cmdsCount > rows * colls do
 				colls = colls + 1
 				cellSize = math_min(maxCellSize, math_floor((contentWidth / colls)))
 				rows = math_floor(contentHeight / cellSize)
@@ -754,7 +755,6 @@ function drawBuildmenu()
 	else
 		local paginatorFontSize = math_max(0.016 * vsy, paginatorCellHeight * 0.2)
 		local paginatorCellWidth = math_floor(contentWidth * 0.3)
-		local paginatorBorderSize = math_floor(cellSize * ((cfgIconPadding + cfgCellPadding)))
 
 		paginatorRects[1] = { activeArea[1], activeArea[2], activeArea[1] + paginatorCellWidth, activeArea[2] + paginatorCellHeight - cellPadding - activeAreaMargin }
 		paginatorRects[2] = { activeArea[3] - paginatorCellWidth, activeArea[2], activeArea[3], activeArea[2] + paginatorCellHeight - cellPadding - activeAreaMargin }
@@ -1172,7 +1172,6 @@ function widget:MousePress(x, y, button)
 
 	if buildmenuShows and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 		if selectedBuilderCount > 0 or (preGamestartPlayer and startDefID) then
-			local paginatorHovered = false
 			if paginatorRects[1] and math_isInRect(x, y, paginatorRects[1][1], paginatorRects[1][2], paginatorRects[1][3], paginatorRects[1][4]) then
 				currentPage = currentPage - 1
 				if currentPage < 1 then
