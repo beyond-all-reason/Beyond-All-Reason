@@ -11,7 +11,13 @@ function gadget:GetInfo()
 	}
 end
 
--- Split the gadget into synced and unsynced parts
+-- TODO:
+-- when there's one team left (including scavengers and raptors) then set the victory threshold to 0% and stop further increases
+-- need the captured territory display to show at all times, by passing the values through initialize?
+-- need to do the modoptions
+-- code cleanup
+--	try to improve efficiency of text drawing
+
 local SYNCED = gadgetHandler:IsSyncedCode()
 
 if SYNCED then
@@ -34,7 +40,8 @@ if SYNCED then
 	local GRID_SIZE = 1024
 	local FINISHED_BUILDING = 1
 	local STARTING_PROGRESS = 0
-	local OWNERSHIP_THRESHOLD = MAX_PROGRESS / 1.4142135623730951 -- full progress is when the circle drawn within the square reaches the corner, ownership is achieved when it touches the edge.
+	local CORNER_MULTIPLIER = 1.4142135623730951
+	local OWNERSHIP_THRESHOLD = MAX_PROGRESS / CORNER_MULTIPLIER -- full progress is when the circle drawn within the square reaches the corner, ownership is achieved when it touches the edge.
 	local MAJORITY_THRESHOLD = 0.5 -- Moved from function to constants
 
 
@@ -76,8 +83,6 @@ if SYNCED then
 	local numberOfSquaresZ = 0
 	local gameFrame = 0
 	local sentGridStructure = false
-	local sentAllyTeams = {}
-	local cachedGridData = {}
 
 	--tables
 	local allyTeamsWatch = {}
@@ -193,10 +198,13 @@ if SYNCED then
 	local function updateCurrentDefeatThreshold()
 		local seconds = spGetGameSeconds()
 		local totalMinutes = seconds / 60  -- Convert seconds to minutes
+		local elapsedMinutes = totalMinutes - MINUTES_TO_START
+		local wantFactor = elapsedMinutes / MINUTES_TO_MAX -- exponential defeat threshold to try to prolong the game closer to the max time
 		if totalMinutes < MINUTES_TO_START then return end
 
-		local progressRatio = min((totalMinutes - MINUTES_TO_START) / MINUTES_TO_MAX, 1)
-		local wantedThreshold = floor((progressRatio * MAX_TERRITORY_PERCENTAGE) / allyTeamsCount)
+		local progressRatio = min(elapsedMinutes / MINUTES_TO_MAX, 1)
+		local wantedThreshold = ((progressRatio * MAX_TERRITORY_PERCENTAGE) / allyTeamsCount) * wantFactor
+		Spring.Echo("wantedThreshold: " .. wantedThreshold, "wantFactor: " .. wantFactor, "allyTeamsCount: " .. allyTeamsCount, "totalMinutes: " .. totalMinutes, "MINUTES_TO_MAX: " .. MINUTES_TO_MAX, "MINUTES_TO_START: " .. MINUTES_TO_START, "progressRatio: " .. progressRatio, "MAX_TERRITORY_PERCENTAGE: " .. MAX_TERRITORY_PERCENTAGE)
 		if wantedThreshold > defeatThreshold then
 			defeatThreshold = defeatThreshold + 1
 		end
@@ -583,9 +591,6 @@ if SYNCED then
 			gadget:UnitCreated(unitID, spGetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
 		end
 	end
-
---zzz need to prevent defeat in the case that all remaining teams are tied, or there is only one team left
---zzz currently a tie goes to the last allyID when it comes to contesting squares
 
 else
 --unsynced code
@@ -1124,12 +1129,12 @@ local function drawScore()
     end
     
     -- Format territory display with more detailed information
-    local format = "Territory Control: %d/%d"
+    local format = "Territory Control: %d%% / %d%%"
     local text = string.format(format, score, threshold)
     
     -- Measure text dimensions for background - add more padding for better visibility
     local textWidth = gl.GetTextWidth(text) * fontSize
-    local paddingX = math.floor(fontSize * 0.8)  -- Increased horizontal padding
+    local paddingX = math.floor(fontSize * 0.6)  -- Increased horizontal padding
     local paddingY = math.floor(fontSize * 0.6)  -- Increased vertical padding
     local bgWidth = textWidth + (paddingX * 2)
     local bgHeight = fontSize + (paddingY * 2)  -- More vertical padding
