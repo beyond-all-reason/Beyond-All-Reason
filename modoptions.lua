@@ -244,8 +244,7 @@ local options = {
 		key		= "tax_resource_sharing_amount",
 		name	= "Resource Sharing Tax",
 		desc	=	"Taxes resource sharing".."\255\128\128\128".." and overflow (engine TODO:)\n"..
-					"Set to [0] to turn off. Recommened: [0.4]. (Ranges: 0 - 0.99)\n"..
-					"*Disables: Reclaiming of Allied Units, [Unit Sharing] and [Assisting Ally Construction] to prevent loopholes",
+					"Set to [0] to turn off. Recommened: [0.4]. (Ranges: 0 - 0.99)",
 		type	= "number",
 		def		= 0,
 		min		= 0,
@@ -253,16 +252,20 @@ local options = {
 		step	= 0.01,
 		section	= "options_main",
 		column	= 1,
-		lock	= {"disable_unit_sharing","disable_assist_ally_construction"},
-		unlock	= {"disable_unit_sharing_forced","disable_assist_ally_construction_forced"},
 	},
 	{
-		key		= "disable_unit_sharing",
-		name	= "Disable Unit Sharing",
-		desc	= "Disable sharing units and structures to allies",
-		type	= "bool",
-		section	= "options_main",
-		def		= false,
+		key     = "unit_sharing_mode",
+		name    = "Unit Sharing",
+		desc    = "Controls which units can be shared with allies",
+		type    = "list",
+		section = "options_main",
+		def     = "enabled",
+		column  = 1,
+		items   = {
+			{ key = "enabled",     name = "Enabled",                     desc = "All unit sharing allowed" },
+			{ key = "t2cons_only", name = "T2 Constructor Sharing Only", desc = "Only T2 constructors can be shared between allies" },
+			{ key = "disabled",    name = "Disabled",                    desc = "No unit sharing allowed" },
+		},
 	},
 	{
 		key		= "disable_assist_ally_construction",
@@ -271,24 +274,7 @@ local options = {
 		type	= "bool",
 		section	= "options_main",
 		def		=  false,
-		column	= 1.76,
-	},
-	{	key = "tax_padding", name = "", type = "subheader", section = "options_main", column = -3, },
-	{
-		key		= "disable_unit_sharing_forced",
-		--name	= "\255\252\191\76".."Disable Unit Sharing                              [Forced ON]",
-		name	= "\255\252\191\76".."Disable Unit Sharing                                                             Disable Assist Ally Construction",
-		type	= "subheader",
-		section	= "options_main",
-	},
-	{
-		key		= "disable_assist_ally_construction_forced",
-		--name	= "\255\252\191\76".."Disable Assist Ally Construction           [Forced ON]",
-		name	= "\255\252\191\76".."[■]                                                                          [■]",
-		type	= "subheader",
-		section	= "options_main",
-		column	= 1.505,
-		font	= 4,
+		column	= 2.33,
 	},
 	{
 		key		= "unit_market",
@@ -298,7 +284,7 @@ local options = {
 		def		= false,
 		section	= "options_main",
 	},
-
+    
 
     {
         key     = "sub_header",
