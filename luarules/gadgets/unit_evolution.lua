@@ -226,7 +226,7 @@ if gadgetHandler:IsSyncedCode() then
 		local udcp = UnitDefs[unitDefID].customParams
 		if udcp.evolution_target then
 			evolutionMetaList[unitID] = table.merge(udcp, {
-				combatRadius                     = tonumber(udcp.combatradius),
+				combatradius                     = tonumber(udcp.combatradius),
 				evolution_announcement_size      = tonumber(udcp.evolution_announcement_size),
 				evolution_disable_deathsequence  = udcp.evolution_disable_deathsequence == nil and true or (tonumber(udcp.evolution_disable_deathsequence) and true or false),
 				evolution_health_threshold       = tonumber(udcp.evolution_health_threshold),
