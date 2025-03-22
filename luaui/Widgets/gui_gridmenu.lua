@@ -847,17 +847,21 @@ local function updateBuilders()
 
 	-- check if builder type selection actually differs from previous selection
 	local changes = false
-	for unitDefID, count in pairs(prevSelectedBuilders) do
-		if not selectedBuilders[unitDefID] then
-			changes = true
-			break
-		end
-	end
-	if not changes then
-		for unitDefID, count in pairs(selectedBuilders) do
-			if not prevSelectedBuilders[unitDefID] then
+	if #selectedBuilders ~= #prevSelectedBuilders then
+		changes = true
+	else
+		for unitDefID, count in pairs(prevSelectedBuilders) do
+			if not selectedBuilders[unitDefID] then
 				changes = true
 				break
+			end
+		end
+		if not changes then
+			for unitDefID, count in pairs(selectedBuilders) do
+				if not prevSelectedBuilders[unitDefID] then
+					changes = true
+					break
+				end
 			end
 		end
 	end
