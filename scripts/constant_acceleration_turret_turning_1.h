@@ -188,7 +188,13 @@ CATT1_Aim(heading, pitch){
 
 			// Needs to use velocity, because if we use NOW, then any previous turn speed command wont be overridden!
 			turn CATT1_PIECE_Y to y-axis CATT1position speed 30 * CATT1velocity;
-		}
+
+			if ((timetozero < 3) AND (timetozero != 0) AND (get ABS(CATT1velocity) < CATT1_JERK)) {
+				get PRINT(CATT1velocity,CATT2_JERK);
+				CATT1velocity = 0;
+				start-script CATT1_Restore();
+				return;}
+			}
 		sleep 32;
 	}
 	CATT1velocity = 0;
