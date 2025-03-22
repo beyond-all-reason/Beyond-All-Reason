@@ -379,7 +379,6 @@ function UnitDef_Post(name, uDef)
 			udcp.combatradius                     = udcp.combatradius == nil and 1000 or tonumber(udcp.combatradius)
 			udcp.evolution_announcement_size      = tonumber(udcp.evolution_announcement_size)
 			udcp.evolution_condition              = udcp.evolution_condition or "timer"
-			udcp.evolution_deathsequence          = udcp.evolution_deathsequence == nil and true or (tonumber(udcp.evolution_deathsequence) and true or false)
 			udcp.evolution_health_threshold       = tonumber(udcp.evolution_health_threshold) or 0
 			udcp.evolution_health_transfer        = udcp.evolution_health_transfer or "flat"
 			udcp.evolution_power_enemy_multiplier = tonumber(udcp.evolution_power_enemy_multiplier) or 1
