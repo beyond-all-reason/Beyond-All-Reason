@@ -240,12 +240,10 @@ if SYNCED then
 		end
 	end
 
-	-- Optimized to avoid recreating tables each call
 	local function getAllyPowersInSquare(gridID)
 		local data = captureGrid[gridID]
 		local units = spGetUnitsInRectangle(data.mapOriginX, data.mapOriginZ, data.mapOriginX + GRID_SIZE, data.mapOriginZ + GRID_SIZE)
 		
-		-- Reuse the same table for ally powers
 		local allyPowers = {}
 		data.hasUnits = false
 		
@@ -275,15 +273,13 @@ if SYNCED then
 		return nil
 	end
 
-	-- Pre-allocate sortedTeams table for reuse
 	local sortedTeams = {}
 	
 	local function getCaptureProgress(gridID, allyPowers)
 		if not allyPowers then return nil, 0 end
 		local data = captureGrid[gridID]
 		local currentOwnerID = data.allyOwnerID
-		
-		-- Clear and reuse sortedTeams table
+
 		for i = 1, #sortedTeams do
 			sortedTeams[i] = nil
 		end
@@ -294,7 +290,6 @@ if SYNCED then
 			sortedTeams[teamCount] = {team = team, power = power}
 		end
 		
-		-- Sort only if we have teams to sort
 		if teamCount > 1 then
 			table.sort(sortedTeams, function(a, b) return a.power > b.power end)
 		end
@@ -332,17 +327,19 @@ if SYNCED then
 
 	local function applyProgress(gridID, progressChange, winningAllyID, delayDecay)
 		local data = captureGrid[gridID]
-		data.progress = data.progress + progressChange
+		local newProgress = data.progress + progressChange
 		
-		if data.progress < 0 then
+		if newProgress < 0 then
 			data.allyOwnerID = winningAllyID
 			if winningAllyID == gaiaAllyTeamID then
 				data.progress = 0
 			else
-				data.progress = math.abs(data.progress)
+				data.progress = math.abs(newProgress)
 			end
-		elseif data.progress > MAX_PROGRESS then
+		elseif newProgress > MAX_PROGRESS then
 			data.progress = MAX_PROGRESS
+		else
+			data.progress = newProgress
 		end
 
 		if delayDecay then
@@ -391,7 +388,7 @@ if SYNCED then
 						-- Only count neighbors owned by active ally teams (not Gaia)
 						if neighborSquareData then
 							local neighborOwnerID
-							if neighborSquareData.progress == MAX_PROGRESS then
+							if neighborSquareData.progress > OWNERSHIP_THRESHOLD then
 								neighborOwnerID = neighborSquareData.allyOwnerID
 							else
 								neighborOwnerID = gaiaAllyTeamID
@@ -461,34 +458,24 @@ if SYNCED then
 	end
 
 	local function updateUnsyncedScore(allyID, score)
-		SendToUnsynced("UpdateAllyScore", allyID, score)
+		SendToUnsynced("UpdateAllyScore", allyID, score, defeatThreshold)
 	end
 
 	local function setAllyGridToGaia(allyID)
 		for gridID, data in pairs(captureGrid) do
 			if data.allyOwnerID == allyID then
 				data.allyOwnerID = gaiaAllyTeamID
-				data.progress = min(data.progress, STARTING_PROGRESS)
+				data.progress = STARTING_PROGRESS
 			end
 		end
 	end
 
 	local function decayProgress(gridID)
 		local data = captureGrid[gridID]
-		Spring.Echo("decay activated")
-		if data.allyOwnerID ~= gaiaAllyTeamID then
-			Spring.Echo("ownership threshold: " .. OWNERSHIP_THRESHOLD, "progress: " .. data.progress)
-		end
 		if data.progress > OWNERSHIP_THRESHOLD then
 			applyProgress(gridID, DECAY_PROGRESS_INCREMENT, data.allyOwnerID, false)
-			if data.allyOwnerID ~= gaiaAllyTeamID then
-				Spring.Echo("decayProgress INCREMENT: " .. gridID .. " " .. data.allyOwnerID .. " " .. data.progress)
-			end
 		else
 			applyProgress(gridID, -DECAY_PROGRESS_INCREMENT, gaiaAllyTeamID, false)
-			if data.allyOwnerID ~= gaiaAllyTeamID then
-				Spring.Echo("decayProgress DECREMENT: " .. gridID .. " " .. gaiaAllyTeamID .. " " .. data.progress)
-			end
 		end
 	end
 
@@ -520,14 +507,6 @@ if SYNCED then
 				if allyTeamsWatch[data.allyOwnerID] and data.progress > OWNERSHIP_THRESHOLD then
 					allyTallies[data.allyOwnerID] = allyTallies[data.allyOwnerID] + 1
 				end
-
-				-- if DEBUGMODE then -- Simplified debug condition
-				-- 	spSpawnCEG("scaspawn-trail", data.mapOriginX, spGetGroundHeight(data.mapOriginX, data.mapOriginZ), data.mapOriginZ, 0,0,0)
-				-- 	spSpawnCEG("scav-spawnexplo", data.mapOriginX, spGetGroundHeight(data.mapOriginX, data.mapOriginZ), data.mapOriginZ, 0,0,0)
-				-- 	if allyTeamsWatch[data.allyOwnerID] then
-				-- 		--spSpawnCEG(debugOwnershipCegs[data.allyOwnerID], data.mapMiddleX, spGetGroundHeight(data.mapMiddleX, data.mapMiddleZ), data.mapMiddleZ, 0,0,0)
-				-- 	end
-				-- end
 			end
 		elseif frameModulo == 1 then
 			local randomizedIDs = getRandomizedGridIDs()
@@ -540,7 +519,7 @@ if SYNCED then
 			end
 
 			for gridID, data in pairs(captureGrid) do
-				if data.decayDelay < frame and data.progress < OWNERSHIP_THRESHOLD then
+				if data.decayDelay < frame then
 					decayProgress(gridID)
 				end
 				updateUnsyncedSquare(gridID)
@@ -555,14 +534,12 @@ if SYNCED then
 				end
 			end
 			
-			-- Send updated grid data to unsynced
 			if not sentGridStructure then
 				initializeUnsyncedGrid()
 				sentGridStructure = true
 			end
 		end
 
-		-- Process kill queue
 		local currentKillQueue = killQueue[frame]
 		if currentKillQueue then
 			for unitID in pairs(currentKillQueue) do
@@ -578,11 +555,6 @@ if SYNCED then
 		SendToUnsynced("InitializeConfigs", GRID_SIZE, GRID_CHECK_INTERVAL)
 		captureGrid = generateCaptureGrid()
 		updateLivingTeamsData()
-		
-		-- Initialize caching variables
-		sentGridStructure = false
-		sentAllyTeams = {}
-		cachedGridData = {}
 
 		local units = Spring.GetAllUnits()
 		for i = 1, #units do
@@ -592,6 +564,7 @@ if SYNCED then
 	end
 
 --zzz need to prevent defeat in the case that all remaining teams are tied, or there is only one team left
+--zzz currently a tie goes to the last allyID when it comes to contesting squares
 
 else
 --unsynced code
@@ -620,6 +593,7 @@ local allyScores = {}
 local myAllyID = select(6, Spring.GetTeamInfo(Spring.GetMyTeamID()))
 local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID()))
 local teams = Spring.GetTeamList()
+local defeatThreshold = 0
 
 --colors
 local blankColor = {0.5, 0.5, 0.5, 0.0} -- grey and transparent for gaia
@@ -856,7 +830,6 @@ local function makeShader()
 end
 
 local function makeSquareVBO(xsize, ysize, xresolution, yresolution)
-	-- Default parameter handling
 	if not xsize then xsize = 1 end
 	if not ysize then ysize = xsize end
 	if not xresolution then xresolution = 1 end
@@ -865,19 +838,14 @@ local function makeSquareVBO(xsize, ysize, xresolution, yresolution)
 	xresolution = math.floor(xresolution)
 	yresolution = math.floor(yresolution)
 	
-	-- Create vertex buffer
 	local squareVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
 	if squareVBO == nil then return nil end
 	
-	-- Define the layout - using position only since that's what the shader expects
 	local VBOLayout = {
 		{id = 0, name = "position", size = 4},
 	}
 	
 	local vertexData = {}
-	
-	-- Generate vertices for a grid of triangles
-	-- We'll create 2 triangles per grid cell, forming 6 vertices total
 	local vertexCount = 0
 	
 	for x = 0, xresolution do
@@ -944,7 +912,6 @@ local function updateGridSquareInstanceVBO(gridID, posScale, color1, captureStat
 end
 
 local function initGL4()
-	-- Create square VBO with index buffer - increased resolution to 10x10
 	local planeResolution = 32
 	local squareVBO, numVertices, squareIndexVBO, numIndices = makeSquareVBO(1, 1, planeResolution, planeResolution)
 	if not squareVBO then return false end
@@ -955,21 +922,12 @@ local function initGL4()
 	instanceVBO.numVertices = numIndices
 	instanceVBO.primitiveType = GL.TRIANGLES
 	
-	-- Attach both vertex and index buffers
 	squareVAO = makeVAOandAttach(squareVBO, instanceVBO.instanceVBO, squareIndexVBO)
 	instanceVBO.VAO = squareVAO
-	
-	-- for i = 1, TEST_SQUARE_COUNT do --zzz this is where to populate the grid, or maybe I should do so by recieving from synced?
-	-- 	local randomX = random(SQUARE_SIZE, mapSizeX - SQUARE_SIZE)
-	-- 	local randomZ = random(SQUARE_SIZE, mapSizeZ - SQUARE_SIZE)
-		
-	-- 	updateGridSquareInstanceVBO(i, {randomX, SQUARE_HEIGHT, randomZ, SQUARE_SIZE}, {random(), random(), random(), 0.8}, {1.0, 0.5, 0.0, 0.0})
-	-- end
 	uploadAllElements(instanceVBO)
 	return makeShader()
 end
 
--- Initialize the gadget
 function gadget:Initialize()
 	if initGL4() == false then
 		gadgetHandler:RemoveGadget()
@@ -977,7 +935,6 @@ function gadget:Initialize()
 	end
 end
 
--- Update the shader parameters
 function gadget:Update()
 	local currentFrame = Spring.GetGameFrame()
 	
@@ -985,7 +942,7 @@ function gadget:Update()
 		local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 		
 		for gridID, gridData in pairs(captureGrid) do
-			local color = allyColors[gridData.allyOwnerID] or blankColor  -- Use proper team color
+			local color = allyColors[gridData.allyOwnerID] or blankColor
 			local captureChangePerFrame = 0
 			if gridData.captureChange then
 				captureChangePerFrame = gridData.captureChange / UPDATE_FRAME_RATE_INTERVAL
@@ -1013,10 +970,8 @@ function gadget:DrawWorldPreUnit()
 	glDepthTest(true)
 	
 	squareShader:Activate()
-	--squareShader:SetUniform("gameFrame", Spring.GetGameFrame())
 	squareShader:SetUniformInt("isMinimapRendering", 0)
 	
-	-- Draw the square using indexed triangles
 	instanceVBO.VAO:DrawElements(GL.TRIANGLES, instanceVBO.numVertices, 0, instanceVBO.usedElements)
 	
 	squareShader:Deactivate()
@@ -1024,20 +979,17 @@ function gadget:DrawWorldPreUnit()
 	glDepthTest(false)
 end
 
--- Draw on minimap using the same shader with a flag
 function gadget:DrawInMiniMap()
 	if not squareShader or not squareVAO or not instanceVBO then return end
 	
 	squareShader:Activate()
 	squareShader:SetUniformInt("isMinimapRendering", 1)
 	
-	-- Draw the square using indexed triangles
 	instanceVBO.VAO:DrawElements(GL.TRIANGLES, instanceVBO.numVertices, 0, instanceVBO.usedElements)
 	
 	squareShader:Deactivate()
 end
 
--- Clean up
 function gadget:Shutdown()
 	if squareVBO then
 		squareVBO:Delete()
@@ -1061,9 +1013,6 @@ function gadget:RecvFromSynced(messageName, ...)
             gridMidpointX = gridMidpointX,
             gridMidpointZ = gridMidpointZ
         }
-        --Spring.Echo(string.format("DEBUG: Initialized square %d at (%d, %d)", 
-            --gridID, gridMidpointX, gridMidpointX))
-
 	elseif messageName == "InitializeConfigs" then
 		SQUARE_SIZE, UPDATE_FRAME_RATE_INTERVAL = ...
     elseif messageName == "UpdateGridSquare" then
@@ -1076,9 +1025,9 @@ function gadget:RecvFromSynced(messageName, ...)
         end
 
     elseif messageName == "UpdateAllyScore" then
-        local allyID, score = ...
+        local allyID, score, defeatThreshold = ...
         allyScores[allyID] = score
-        --Spring.Echo(string.format("Updated ally %d score: %d", allyID, score))
+		Spring.Echo("UpdateAllyScore", allyID, score)
     end
 end
 
