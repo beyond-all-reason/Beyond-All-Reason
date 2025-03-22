@@ -17,7 +17,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local disable_assist = Spring.GetModOptions().disable_assist_ally_construction
+local disableAssist = Spring.GetModOptions().disable_assist_ally_construction
 
 if not disable_assist then
 	return false
