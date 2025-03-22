@@ -346,7 +346,25 @@ StopBuilding()
 	set INBUILDSTANCE to 0;
 }
 
+AimWeapon1()
+{
+	return (TRUE);
+}
 
+FireWeapon1()
+{
+	get KILL_UNIT(get MY_ID,TRUE,FALSE);
+}
+
+QueryWeapon1(piecenum)
+{
+	piecenum = head;
+}
+
+AimFromWeapon1(piecenum)
+{
+	piecenum = head;
+}
 
 
 Killed(severity, corpsetype)
