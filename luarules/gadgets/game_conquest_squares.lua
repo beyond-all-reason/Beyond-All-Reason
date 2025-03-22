@@ -265,6 +265,10 @@ if SYNCED then
 				end
 			end
 		end
+
+		for allyID, power in pairs(allyPowers) do
+			power = power + random() -- randomize power to prevent ties
+		end
 		
 		if data.hasUnits then
 			return allyPowers
