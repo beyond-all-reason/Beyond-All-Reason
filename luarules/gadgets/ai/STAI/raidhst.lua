@@ -72,7 +72,7 @@ function RaidHST:DraftAttackSquads()
 					if not squad.lock and squad.mtype == mtype  then
 						table.insert(squad.members , soldier)
 						soldier.squad = squad
-						self:SquadFormation(squad)
+						--self:SquadFormation(squad)
 						self:EchoDebug('insert' ,index , 'in squad',squad.squadID)
 						if (squad.mass > self.squadMassLimit or #squad.members > self.countLimit) or (squad.mass > 15000)then
 							squad.lock = true
@@ -97,7 +97,7 @@ function RaidHST:DraftAttackSquads()
 					soldier.squad = squad
 
 					squad.colour = {0,math.random(),math.random(),1}
-					self:SquadFormation(squad)
+					--self:SquadFormation(squad)
 					--squad.graph = self.ai.maphst:GetPathGraph(squad.mtype)
 
 					if (squad.mass > self.squadMassLimit or #squad.members > 5 + self.ai.labshst.ECONOMY) or (squad.mass > 15000)then
@@ -146,31 +146,14 @@ function RaidHST:SquadCheck(squad)
 	squad.position.y = map:GetGroundHeight(squad.position.x,squad.position.x)
 	squad.mass = mass
 	squad.lastAdvance = squad.lastAdvance or 0
-	local memberDist = math.huge
-	local leader = nil
-	local leaderPos = nil
 	squad.leaderPos = squad.leaderPos or {}
 	for i,member in pairs(squad.members) do
-
 		if member.unit then
 			squad.leader = member.unit:Internal()
-			--leaderPos = {x = member.unit.x, y = member.unit.y  , z = member.unit.z}
 			squad.leaderPos.x,squad.leaderPos.y,squad.leaderPos.z = member.unit:Internal():GetRawPos()
 			break
--- 			local d = self.ai.tool:distance(p,squad.position)
--- 			if d < memberDist then
--- 				memberDist = d
-
--- 			end
 		end
 	end
--- 	self:EchoDebug('set Leader',leader,leader.x,leader.z)
--- 	squad.leader = leader
---
--- 	squad.leaderPos = squad.leaderPos or {}
--- 	squad.leaderPos.x = leader.x
--- 	squad.leaderPos.y = leader.y
--- 	squad.leaderPos.z = leader.z
 	return true
 end
 
