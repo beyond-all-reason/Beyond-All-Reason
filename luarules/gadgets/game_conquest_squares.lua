@@ -758,7 +758,7 @@ in DataVS {
 	float startframe;
 	float gameFrame;
 	vec2 texCoord;
-	float cameraDist;  // Add camera distance to the input struct
+	float cameraDist;
 	float inMinimap;
 	float minCamHeight;
 	float maxCamHeight;
@@ -767,100 +767,55 @@ in DataVS {
 out vec4 fragColor;
 
 void main() {
-	// Skip rendering if camera is too close (less than 3000 units)
-	//if (inMinimap == 0 && cameraDist < minCamHeight) {
-	//	discard;
-	//}
-
-	// Calculate center and corner distances
-	vec2 center = vec2(0.5, 0.5);
-	float distance = length(texCoord - center) * 2.0; // Distance from center, normalized
+	// Cache frequently used values
+	vec2 center = vec2(0.5);
+	vec2 distToEdges = min(texCoord, 1.0 - texCoord);
+	float distToEdge = min(distToEdges.x, distToEdges.y);
 	
-	// Maximum distance is to the corner which is sqrt(2) * 0.5 * 2 = sqrt(2)
-	// So we scale our progress to reach 1.0 at the corner
-	float cornerDistance = sqrt(2.0); // Distance from center to corner in our normalized space
-	float scaledProgress = progress * cornerDistance + (gameFrame - startframe) * speed; // Scale progress to reach corners at 100%
+	// Pre-calculate border parameters
+	float borderFadeDistance = mix(16.0, 64.0, float(inMinimap)) / 1024.0;
+	float borderOpacity = 1.0 - clamp(distToEdge / borderFadeDistance, 0.0, 1.0);
 	
-	// Parameters for square border fade
-	float borderMaxWidth = 0.05; // Full width where border effect applies
-	float borderFadeDistance = inMinimap == 1 ? 64.0 / 1024.0 : 16.0 / 1024.0; // 4x thicker for minimap
-	float circleSoftness = 0.05; // Controls how soft the circle edge is (reduced from 0.1 to 0.05)
+	// Calculate circle parameters
+	float distance = length(texCoord - center) * 2.0;
+	float scaledProgress = progress * 1.4142135623730951 + (gameFrame - startframe) * speed; // sqrt(2) pre-calculated
+	float circleSoftness = 0.05;
 	
-	// Calculate pulsing effect for border
-	float pulseSpeed = 0.2; // Speed of the pulse in radians per second
-	float pulseValue = (sin(gameFrame * pulseSpeed) + 1.0) * 0.5; // Value between 0 and 1
-	vec4 borderColor = mix(vec4(0.9, 0.9, 0.9, 0.45), vec4(1.0, 1.0, 1.0, 0.45), pulseValue); // Mix between light grey and white
+	// Calculate circle fill with optimized soft edge
+	float circleFill = 1.0 - clamp((distance - scaledProgress) / circleSoftness, 0.0, 1.0);
+	circleFill = step(0.0, circleFill) * circleFill;
 	
-	// Calculate how close we are to any edge of the square
-	float distToEdgeX = min(texCoord.x, 1.0 - texCoord.x);
-	float distToEdgeY = min(texCoord.y, 1.0 - texCoord.y);
-	float distToEdge = min(distToEdgeX, distToEdgeY);
+	// Calculate pulsing border with optimized math
+	float pulseValue = sin(gameFrame * 0.2) * 0.5 + 0.5;
+	vec4 borderColor = mix(vec4(0.9, 0.9, 0.9, 0.45), vec4(1.0, 1.0, 1.0, 0.45), pulseValue);
 	
-	// Calculate border opacity with fade effect
-	float borderOpacity = 0.0;
-	if (distToEdge < borderFadeDistance) {
-		// Linear fade from edge (1.0) to inner distance (0.0)
-		borderOpacity = 1.0 - (distToEdge / borderFadeDistance);
-	}
+	// Calculate final color with optimized blending
+	vec4 finalColor = vec4(color.rgb, color.a * circleFill);
+	finalColor = mix(finalColor, borderColor, borderOpacity * step(0.0, borderOpacity));
 	
-	// Calculate circle fill with soft edge
-	float circleFill = 0.0;
-	if (distance < scaledProgress + circleSoftness) {
-		// Calculate soft edge fade
-		float circleEdgeFade = 1.0;
-		if (distance > scaledProgress) {
-			circleEdgeFade = 1.0 - ((distance - scaledProgress) / circleSoftness);
-		}
-		
-		// Apply the circle fill with soft edge
-		circleFill = circleEdgeFade;
-	}
-	
-	// Calculate final color
-	vec4 finalColor;
-	
-	// First apply the circle fill
-	if (circleFill > 0.0) {
-		finalColor = vec4(color.rgb, color.a * circleFill);
-	} else {
-		finalColor = vec4(0.0);
-	}
-	
-	// Then apply the pulsing border on top
-	if (borderOpacity > 0.0) {
-		// Mix the current color with pulsing border color
-		finalColor = mix(finalColor, borderColor, borderOpacity);
-	}
-	
-	// Then apply fade opacity based on camera distance
+	// Apply camera distance fade only in world view
+	float fadeAlpha = 1.0;
 	if (inMinimap == 0) {
-		float fadeStart = maxCamHeight;
-		float fadeEnd = minCamHeight;
-		float fadeRange = fadeEnd - fadeStart;
-		float fadeAlpha = 1.0 - clamp((cameraDist - fadeStart) / fadeRange, 0.0, 1.0);
-		finalColor.a *= fadeAlpha;
+		float fadeRange = maxCamHeight - minCamHeight;
+		fadeAlpha = clamp((cameraDist - minCamHeight) / fadeRange, 0.0, 1.0);
 	}
 	
-	fragColor = finalColor;
+	fragColor = vec4(finalColor.rgb, finalColor.a * fadeAlpha);
 }
 ]]
 
 local function GetMaxCameraHeight()
     local mapSizeX = Game.mapSizeX
     local mapSizeZ = Game.mapSizeZ
-    local maxFactor = Spring.GetConfigFloat("OverheadMaxHeightFactor", 1)
+	local fallbackMaxFactor = 1.4 --to handle all camera modes
+    local maxFactor = Spring.GetConfigFloat("OverheadMaxHeightFactor", fallbackMaxFactor)
 	local absoluteMinimum = 3800
 	local minimumFactor = 0.80
     
-    -- The maximum height is calculated based on the larger map dimension
     local maxDimension = math.max(mapSizeX, mapSizeZ)
-    
-    -- The engine uses this formula to determine max height
-    -- It ensures you can see the entire map at max zoom
     local maxHeight = maxDimension * maxFactor
 	local minHeight = math.max(absoluteMinimum, maxHeight * minimumFactor)
-    
-	Spring.Echo("maxHeight: " .. maxHeight, "maxFactor: " .. maxFactor, "minHeight: " .. minHeight)
+
     return minHeight, maxHeight
 end
 
@@ -1010,8 +965,6 @@ function gadget:Initialize()
 		gadgetHandler:RemoveGadget()
 		return
 	end
-	
-	Spring.Echo("Test Shader Square initialized successfully")
 end
 
 -- Update the shader parameters
@@ -1051,10 +1004,8 @@ function gadget:Update()
 				local newTestProgress = instanceData[14] + random(-1, 1) * random() * TEST_SPEED
 				-- Update speed (1st element in capturestate) --
 				instanceData[13] = (newTestProgress - instanceData[14]) / MOVE_INTERVAL
-				Spring.Echo(instanceData[13])
 				-- Update progress (2nd element in capturestate)
 				instanceData[14] = newTestProgress
-				Spring.Echo(instanceData[14])
 
 				-- Update startframe (3rd element in capturestate)
 				instanceData[15] = currentFrame
