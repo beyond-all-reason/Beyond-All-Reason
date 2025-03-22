@@ -18,7 +18,9 @@ if SYNCED then
 -- SYNCED CODE
 
 	--configs
-	local DEBUGMODE = true -- Changed to uppercase as it's a constant
+	local DEBUGMODE = false -- Changed to uppercase as it's a constant
+	local FLYING_UNIT_POWER_MULTIPLIER = 0.33
+	local STATIC_UNIT_POWER_MULTIPLIER = 3
 	local MINUTES_TO_MAX = 20
 	local MINUTES_TO_START = 5
 	local MAX_TERRITORY_PERCENTAGE = 100
@@ -29,13 +31,12 @@ if SYNCED then
 	local STATIC_POWER_MULTIPLIER = 3
 	local GRID_CHECK_INTERVAL = Game.gameSpeed
 	local DECAY_DELAY_FRAMES = Game.gameSpeed * 10
-	local SQUARE_BOUNDARY = 128
 	local GRID_SIZE = 1024
 	local FINISHED_BUILDING = 1
-	local FRAME_MODULO = Game.gameSpeed * 3
 	local STARTING_PROGRESS = 0
 	local OWNERSHIP_THRESHOLD = MAX_PROGRESS / 1.4142135623730951 -- full progress is when the circle drawn within the square reaches the corner, ownership is achieved when it touches the edge.
 	local MAJORITY_THRESHOLD = 0.5 -- Moved from function to constants
+
 
 	--localized functions
 	local sqrt = math.sqrt
@@ -91,12 +92,7 @@ if SYNCED then
 	local commandersDefs = {}
 	local allyTallies = {}
 	local randomizedGridIDs = {} -- Pre-allocate for reuse
-
-	local debugOwnershipCegs = {
-		[0] = "corpsedestroyed",
-		[1] = "botrailspawn",
-		[2] = "wallexplosion-water"
-	}
+	local flyingUnits = {}
 
 	exemptTeams[gaiaTeamID] = true
 
@@ -260,7 +256,10 @@ if SYNCED then
 					data.hasUnits = true
 					local power = unitData.power
 					if unitData.isStatic then
-						power = power * 3
+						power = power * STATIC_UNIT_POWER_MULTIPLIER
+					end
+					if flyingUnits[unitID] then
+						power = power * FLYING_UNIT_POWER_MULTIPLIER
 					end
 					allyPowers[allyTeam] = (allyPowers[allyTeam] or 0) + power
 				end
@@ -487,6 +486,15 @@ if SYNCED then
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 		livingCommanders[unitID] = nil
+		flyingUnits[unitID] = nil
+	end
+
+	function gadget:UnitEnteredAir(unitID, unitDefID, unitTeam)
+		flyingUnits[unitID] = true
+	end
+
+	function gadget:UnitLeftAir(unitID, unitDefID, unitTeam)
+		flyingUnits[unitID] = nil
 	end
 
 	function gadget:GameFrame(frame)
@@ -526,14 +534,23 @@ if SYNCED then
 			end
 		elseif frameModulo == 2 then
 			allyScores = convertTalliesToScores(allyTallies)
+			local averageScore = 0
+			local count = 0
 			for allyID, score in pairs(allyScores) do
-				updateUnsyncedScore(allyID, score)
-				if allyTeamsWatch[allyID] and score < defeatThreshold and not DEBUGMODE then
-					triggerAllyDefeat(allyID)
-					setAllyGridToGaia(allyID)
-				end
+				averageScore = averageScore + score
+				count = count + 1
 			end
-			
+			if count > 0 then
+				averageScore = averageScore / count
+				for allyID, score in pairs(allyScores) do
+					updateUnsyncedScore(allyID, score)
+					if allyTeamsWatch[allyID] and score < defeatThreshold and score < averageScore and not DEBUGMODE then
+						--check if score is below average score to prevent defeat in case of a tie
+						triggerAllyDefeat(allyID)
+						setAllyGridToGaia(allyID)
+					end
+				end
+			end	
 			if not sentGridStructure then
 				initializeUnsyncedGrid()
 				sentGridStructure = true
@@ -577,7 +594,7 @@ VFS.Include(luaShaderDir.."instancevbotable.lua")
 --testing variables
 local TEST_SPEED = 0.25
 local TEST_SQUARE_COUNT = 7
-local UNSYNCED_DEBUG_MODE = true
+local UNSYNCED_DEBUG_MODE = false
 
 --constants
 local SQUARE_SIZE = 1024  -- Match GRID_SIZE from synced part
@@ -595,6 +612,22 @@ local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID()))
 local teams = Spring.GetTeamList()
 local defeatThreshold = 0
 
+-- Add font rendering variables
+local minimapSizeX, minimapSizeY = 0, 0
+local minimapPosX, minimapPosY = 0, 0
+local fontSizeMultiplier = 1
+local fontSize = 14
+local lastWarningBlinkTime = 0
+local isWarningVisible = true
+local BLINK_FREQUENCY = 0.5  -- seconds
+local WARNING_THRESHOLD = 5  -- blink red if within 5 points of defeat
+
+-- Font color constants
+local COLOR_WHITE = {1, 1, 1, 1}
+local COLOR_RED = {1, 0, 0, 1}
+local COLOR_YELLOW = {1, 0.8, 0, 1}  -- Yellow for getting close to threshold
+local COLOR_BG = {0, 0, 0, 0.6}  -- Semi-transparent black background
+
 --colors
 local blankColor = {0.5, 0.5, 0.5, 0.0} -- grey and transparent for gaia
 local enemyColor = {1, 0, 0, SQUARE_ALPHA} -- red for enemy
@@ -602,15 +635,15 @@ local alliedColor = {0, 1, 0, SQUARE_ALPHA} -- green for ally
 
 local allyColors = {}
 for _, teamID in ipairs(teams) do
-local allyID = select(6, Spring.GetTeamInfo(teamID))-- Store the first team color for each ally team
-	if allyID then
-		if not allyColors[allyID] and allyID ~= gaiaAllyTeamID then
-			local r, g, b, a = Spring.GetTeamColor(teamID)
-			allyColors[allyID] = {r, g, b, SQUARE_ALPHA}
-		else
-			allyColors[allyID] = blankColor
-		end
-	end
+    local allyID = select(6, Spring.GetTeamInfo(teamID))
+    if allyID and not allyColors[allyID] then
+        if allyID ~= gaiaAllyTeamID then
+            local r, g, b, a = Spring.GetTeamColor(teamID)
+            allyColors[allyID] = {r, g, b, SQUARE_ALPHA}
+        else
+            allyColors[allyID] = blankColor
+        end
+    end
 end
 
 local planeLayout = {
@@ -1025,10 +1058,96 @@ function gadget:RecvFromSynced(messageName, ...)
         end
 
     elseif messageName == "UpdateAllyScore" then
-        local allyID, score, defeatThreshold = ...
+        local allyID, score, threshold = ...
         allyScores[allyID] = score
-		Spring.Echo("UpdateAllyScore", allyID, score)
+        defeatThreshold = threshold
     end
+end
+
+local function drawScore()
+    if not allyScores[myAllyID] then return end
+    
+    -- Get UI viewport data
+    local vsx, vsy = Spring.GetViewGeometry()
+    
+    -- Get minimap position and size
+    local posX, posY, sizeX, sizeY = Spring.GetMiniMapGeometry()
+    minimapPosX, minimapPosY = posX, posY
+    minimapSizeX, minimapSizeY = sizeX, sizeY
+    
+    -- Calculate font size based on resolution - make it 1.5x larger instead of 2x
+    fontSizeMultiplier = math.max(1.2, math.min(2.25, vsy / 1080))
+    fontSize = math.floor(14 * fontSizeMultiplier)
+    
+    -- Calculate score display position (below minimap)
+    local displayX = minimapPosX + minimapSizeX/2
+    local displayY = minimapPosY - fontSize - 5
+    
+    -- Get current score and threshold
+    local score = allyScores[myAllyID] or 0
+    local threshold = defeatThreshold or 0
+    
+    -- Skip rendering if no valid threshold yet
+    if threshold <= 0 then return end
+    
+    -- Calculate danger level
+    local difference = score - threshold
+    local dangerLevel = 0  -- 0 = safe, 1 = warning, 2 = danger
+    
+    if difference < -2 then
+        dangerLevel = 2  -- Critical danger
+    elseif difference < -WARNING_THRESHOLD then
+        dangerLevel = 1  -- Warning
+    end
+    
+    -- Handle warning blink effect
+    local currentTime = Spring.GetGameSeconds()
+    if dangerLevel == 2 then
+        if currentTime - lastWarningBlinkTime > BLINK_FREQUENCY then
+            lastWarningBlinkTime = currentTime
+            isWarningVisible = not isWarningVisible
+        end
+    else
+        isWarningVisible = true
+    end
+    
+    -- Choose text color based on danger level
+    local scoreColor = COLOR_WHITE
+    if dangerLevel == 2 and not isWarningVisible then
+        scoreColor = COLOR_RED
+    elseif dangerLevel == 1 then
+        scoreColor = COLOR_YELLOW
+    end
+    
+    -- Format territory display with more detailed information
+    local format = "Territory Control: %d/%d"
+    local text = string.format(format, score, threshold)
+    
+    -- Measure text dimensions for background - add more padding for better visibility
+    local textWidth = gl.GetTextWidth(text) * fontSize
+    local paddingX = math.floor(fontSize * 0.8)  -- Increased horizontal padding
+    local paddingY = math.floor(fontSize * 0.6)  -- Increased vertical padding
+    local bgWidth = textWidth + (paddingX * 2)
+    local bgHeight = fontSize + (paddingY * 2)  -- More vertical padding
+    
+    -- Draw background rect properly centered on text position
+    gl.PushMatrix()
+    gl.Color(COLOR_BG[1], COLOR_BG[2], COLOR_BG[3], COLOR_BG[4])
+    gl.Rect(
+        displayX - bgWidth/2, 
+        displayY - bgHeight/2 + (paddingY/4), -- Adjust to better center the text 
+        displayX + bgWidth/2, 
+        displayY + bgHeight/2 + (paddingY/4)  -- Adjust to better center the text
+    )
+    
+    -- Draw the text
+    gl.Color(scoreColor[1], scoreColor[2], scoreColor[3], scoreColor[4])
+    gl.Text(text, displayX, displayY, fontSize, "co") -- 'co' = center, no outline
+    gl.PopMatrix()
+end
+
+function gadget:DrawScreen()
+    drawScore()
 end
 
 end
