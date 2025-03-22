@@ -17,6 +17,7 @@ end
 -- need to do the modoptions
 -- code cleanup
 --	try to improve efficiency of text drawing
+-- improve time to max accuracy, seems to be a few minutes late every time
 
 local SYNCED = gadgetHandler:IsSyncedCode()
 
@@ -204,7 +205,6 @@ if SYNCED then
 
 		local progressRatio = min(elapsedMinutes / MINUTES_TO_MAX, 1)
 		local wantedThreshold = ((progressRatio * MAX_TERRITORY_PERCENTAGE) / allyTeamsCount) * wantFactor
-		Spring.Echo("wantedThreshold: " .. wantedThreshold, "wantFactor: " .. wantFactor, "allyTeamsCount: " .. allyTeamsCount, "totalMinutes: " .. totalMinutes, "MINUTES_TO_MAX: " .. MINUTES_TO_MAX, "MINUTES_TO_START: " .. MINUTES_TO_START, "progressRatio: " .. progressRatio, "MAX_TERRITORY_PERCENTAGE: " .. MAX_TERRITORY_PERCENTAGE)
 		if wantedThreshold > defeatThreshold then
 			defeatThreshold = defeatThreshold + 1
 		end
