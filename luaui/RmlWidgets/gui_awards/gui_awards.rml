@@ -9,16 +9,16 @@
           <table id="main-table">
               <thead>
                   <tr>
-                      <td colspan="2"><h3>ui.awards.awards</h3></td>
-                      <td><h3>ui.awards.player</h3></td>
-                      <td><h3>ui.awards.score</h3></td>
+                      <td colspan="2"><h3>!!ui.awards.awards</h3></td>
+                      <td><h3>!!ui.awards.player</h3></td>
+                      <td><h3>!!ui.awards.score</h3></td>
                   </tr>
               </thead>
               <tbody>
 <!-- Resource Destroyed -->
                   <tr data-if="model.resourcesDestroyed.visible" class="category-row">
                       <td data-attr-rowspan="model.resourcesDestroyed.size + 1"><img src="/luarules/images/fuscup.png" alt="" /></td>
-                      <td data-attr-rowspan="model.resourcesDestroyed.size + 1" class="align-left"><p>ui.awards.resourcesDestroyed</p></td>
+                      <td data-attr-rowspan="model.resourcesDestroyed.size + 1" class="align-left"><p>!!ui.awards.resourcesDestroyed</p></td>
                       <td><span data-style-color="model.resourcesDestroyed.firstLeader.playerColor" class="first">{{ model.resourcesDestroyed.firstLeader.playerName }}</span></td>
                       <td><span class="first score">{{ model.resourcesDestroyed.firstLeader.score }}</span></td>
                   </tr>
@@ -32,7 +32,7 @@
 <!-- Units/Defences Destroyed -->
                   <tr data-if="model.enemiesDestroyed.visible" class="category-row">
                       <td data-attr-rowspan="model.enemiesDestroyed.size + 1"> <img src="/luarules/images/bullcup.png" alt="" /></td>
-                      <td data-attr-rowspan="model.enemiesDestroyed.size + 1" class="align-left"><p>ui.awards.enemiesDestroyed</p></td>
+                      <td data-attr-rowspan="model.enemiesDestroyed.size + 1" class="align-left"><p>!!ui.awards.enemiesDestroyed</p></td>
                       <td><span data-style-color="model.enemiesDestroyed.firstLeader.playerColor" class="first">{{ model.enemiesDestroyed.firstLeader.playerName }}</span></td>
                       <td><span class="first score">{{ model.enemiesDestroyed.firstLeader.score }}</span></td>
                   </tr>
@@ -46,7 +46,7 @@
 <!-- Efficient use of resources-->
                   <tr data-if="model.resourcesEfficiency.visible" class="category-row">
                       <td data-attr-rowspan="model.resourcesEfficiency.size + 1"><img src="/luarules/images/comwreath.png" alt="" /></td>
-                      <td data-attr-rowspan="model.resourcesEfficiency.size + 1" class="align-left"><p>ui.awards.resourcesEfficiency</p></td>
+                      <td data-attr-rowspan="model.resourcesEfficiency.size + 1" class="align-left"><p>!!ui.awards.resourcesEfficiency</p></td>
                       <td><span data-style-color="model.resourcesEfficiency.firstLeader.playerColor" class="first">{{ model.resourcesEfficiency.firstLeader.playerName }}</span></td>
                       <td><span class="first score">{{ model.resourcesEfficiency.firstLeader.score }}</span></td>
                   </tr>
@@ -60,7 +60,7 @@
 <!-- Traitor -->
                   <tr data-if="model.traitor.visible" class="category-row">
                       <td data-attr-rowspan="model.traitor.size + 1"> <img src="/luarules/images/traitor.png" alt="" /></td>
-                      <td data-attr-rowspan="model.traitor.size + 1" class="align-left"><p>ui.awards.traitor</p></td>
+                      <td data-attr-rowspan="model.traitor.size + 1" class="align-left"><p>!!ui.awards.traitor</p></td>
                       <td><span data-style-color="model.traitor.firstLeader.playerColor" class="first">{{ model.traitor.firstLeader.playerName }}</span></td>
                       <td><span class="first score">{{ model.traitor.firstLeader.score }}</span></td>
                   </tr>
@@ -74,26 +74,26 @@
 <!-- Golden cow-->
                   <tr data-if="model.goldenCow.visible" class="category-row">
                       <td><img src="/luarules/images/cow.png" alt="" /></td>
-                      <td class="align-left"><p>ui.awards.didEverything</p></td>
+                      <td class="align-left"><p>!!ui.awards.didEverything</p></td>
                       <td colspan="2"><span data-style-color="model.goldenCow.leader.playerColor" class="first">{{ model.goldenCow.leader.playerName }}</span></td>
                   </tr>
               </tbody>
           </table>
 <!-- Other -->
           <div class="honorable-container">
-            <div class="honorable-header">
-              <h2>ui.awards.honorableMentions</h2>
+            <div class="honorable-header flex-1">
+              <h2>!!ui.awards.honorableMentions</h2>
             </div>
-            <div class="row-container" >
-              <p data-for="award : model.otherAwards" data-rml="award"></p>
+            <div class="row-container flex-2" >
+              <p class="flex-1" data-for="award : model.otherAwards" data-rml="award"></p>
             </div>
           </div>
           <div class="buttons-area">
             <button class="button show-graph" data-event-mousedown="onShowGraphClick()">
-              <span>ui.awards.showGraphs</span>
+              <span>!!ui.awards.showGraphs</span>
             </button>
             <button class="button leave" data-event-mousedown="onLeaveClick()">
-              <span>ui.awards.leave</span>
+              <span>!!ui.awards.leave</span>
             </button>
           </div>
         </div>
