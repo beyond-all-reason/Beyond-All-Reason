@@ -330,7 +330,7 @@ if SYNCED then
 		return winningAllyID, progressChange
 	end
 
-	local function applyProgress(gridID, progressChange, winningAllyID)
+	local function applyProgress(gridID, progressChange, winningAllyID, delayDecay)
 		local data = captureGrid[gridID]
 		data.progress = data.progress + progressChange
 		
@@ -345,7 +345,9 @@ if SYNCED then
 			data.progress = MAX_PROGRESS
 		end
 
-		data.decayDelay = gameFrame + DECAY_DELAY_FRAMES
+		if delayDecay then
+			data.decayDelay = gameFrame + DECAY_DELAY_FRAMES
+		end
 	end
 
 	local function getClearedAllyTallies()
@@ -473,10 +475,20 @@ if SYNCED then
 
 	local function decayProgress(gridID)
 		local data = captureGrid[gridID]
+		Spring.Echo("decay activated")
+		if data.allyOwnerID ~= gaiaAllyTeamID then
+			Spring.Echo("ownership threshold: " .. OWNERSHIP_THRESHOLD, "progress: " .. data.progress)
+		end
 		if data.progress > OWNERSHIP_THRESHOLD then
-			applyProgress(gridID, DECAY_PROGRESS_INCREMENT, data.allyOwnerID)
+			applyProgress(gridID, DECAY_PROGRESS_INCREMENT, data.allyOwnerID, false)
+			if data.allyOwnerID ~= gaiaAllyTeamID then
+				Spring.Echo("decayProgress INCREMENT: " .. gridID .. " " .. data.allyOwnerID .. " " .. data.progress)
+			end
 		else
-			applyProgress(gridID, DECAY_PROGRESS_INCREMENT, gaiaAllyTeamID)
+			applyProgress(gridID, -DECAY_PROGRESS_INCREMENT, gaiaAllyTeamID, false)
+			if data.allyOwnerID ~= gaiaAllyTeamID then
+				Spring.Echo("decayProgress DECREMENT: " .. gridID .. " " .. gaiaAllyTeamID .. " " .. data.progress)
+			end
 		end
 	end
 
@@ -503,7 +515,7 @@ if SYNCED then
 				local allyPowers = getAllyPowersInSquare(gridID)
 				local winningAllyID, progressChange = getCaptureProgress(gridID, allyPowers)
 				if winningAllyID then
-					applyProgress(gridID, progressChange, winningAllyID)
+					applyProgress(gridID, progressChange, winningAllyID, true)
 				end
 				if allyTeamsWatch[data.allyOwnerID] and data.progress > OWNERSHIP_THRESHOLD then
 					allyTallies[data.allyOwnerID] = allyTallies[data.allyOwnerID] + 1
@@ -523,12 +535,12 @@ if SYNCED then
 				local gridID = randomizedIDs[i]
 				local contiguousAllyID, progressChange = getSquareContiguityProgress(gridID)
 				if contiguousAllyID and progressChange ~= 0 then
-					applyProgress(gridID, progressChange, contiguousAllyID)
+					applyProgress(gridID, progressChange, contiguousAllyID, true)
 				end
 			end
 
 			for gridID, data in pairs(captureGrid) do
-				if data.decayDelay < frame and data.progress < MAX_PROGRESS then
+				if data.decayDelay < frame and data.progress < OWNERSHIP_THRESHOLD then
 					decayProgress(gridID)
 				end
 				updateUnsyncedSquare(gridID)
@@ -592,7 +604,6 @@ VFS.Include(luaShaderDir.."instancevbotable.lua")
 --testing variables
 local TEST_SPEED = 0.25
 local TEST_SQUARE_COUNT = 7
-local MOVE_INTERVAL = 60
 local UNSYNCED_DEBUG_MODE = true
 
 --constants
@@ -773,7 +784,7 @@ void main() {
 	// Calculate circle parameters
 	float distanceToCorner = 1.4142135623730951;
 	float pixelToCenterDistance = length(texCoord - center) * 2.0;
-	float scaledProgress = (progress + speed * (gameFrame - startframe) * distanceToCorner);
+	float scaledProgress = (progress + speed * (gameFrame - startframe)) * distanceToCorner;
 	float circleSoftness = 0.05;
 	
 	// Calculate circle fill with optimized soft edge
@@ -970,7 +981,7 @@ end
 function gadget:Update()
 	local currentFrame = Spring.GetGameFrame()
 	
-	if currentFrame % MOVE_INTERVAL == 0 and currentFrame ~= lastMoveFrame then
+	if currentFrame % UPDATE_FRAME_RATE_INTERVAL == 0 and currentFrame ~= lastMoveFrame then
 		local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 		
 		for gridID, gridData in pairs(captureGrid) do
@@ -1062,13 +1073,6 @@ function gadget:RecvFromSynced(messageName, ...)
 			captureGrid[gridID].oldProgress = captureGrid[gridID].newProgress
             captureGrid[gridID].captureChange = progress - captureGrid[gridID].oldProgress
             captureGrid[gridID].newProgress = progress
-			if captureGrid[gridID].captureChange > 0 then
-				Spring.Echo("captureChange", captureGrid[gridID].captureChange)
-			end
-			if captureGrid[gridID].oldProgress ~= captureGrid[gridID].newProgress then
-				Spring.Echo("oldProgress", captureGrid[gridID].oldProgress)
-				Spring.Echo("newProgress", captureGrid[gridID].newProgress)
-			end
         end
 
     elseif messageName == "UpdateAllyScore" then
