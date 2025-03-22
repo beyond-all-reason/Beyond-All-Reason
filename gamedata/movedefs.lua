@@ -1,4 +1,3 @@
--- the commented out slopemod were there to compensate for modoption betterunitmovementmrectr
 ----------------------------------------------------------------------------------
 --README
 --for organizational purposes all unit deffs must be added to thge movedeff name.
@@ -308,8 +307,8 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	-- corshiva armmar
-	HABOT4 = {
+	-- corshiva armmar armbanth legjav
+	HABOT5 = {
 		crushstrength = 252,
 		depthmod = 0,
 		footprintx = 5,
@@ -331,13 +330,13 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	-- corkorg armbanth
-	VBOT5 = {
+	-- corkorg legeheatraymech
+	VBOT6 = {
 		crushstrength = 1400,
 		depthmod = 0,
-		footprintx = 5,
-		footprintz = 5,
-		maxslope = 24,
+		footprintx = 6,
+		footprintz = 6,
+		maxslope = 36,
 		maxwaterdepth = 5000,
 		maxwaterslope = 30,
 	},
@@ -572,15 +571,8 @@ for moveName, moveData in pairs(moveDatas) do
 	moveData.allowTerrainCollisions = false
 	if moveName and string.find(moveName, "BOT") and moveData.maxslope then
 		moveData.slopemod = 4
-		--if moveData.IsAllTerrain then
-		--	moveData.slopemod = 2
-		--else
-		--	moveData.speedModClass = 0
-		--end
-	else
-		--moveData.slopemod = 60
 	end
-	--moveData.IsAllTerrain = nil
+
 	defs[#defs + 1] = moveData
 end
 

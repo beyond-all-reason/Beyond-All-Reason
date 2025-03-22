@@ -5,7 +5,7 @@ function widget:GetInfo()
 		author = "Floris",
 		date = "April 2017",
 		license = "GNU GPL, v2 or later",
-		layer = -991000,
+		layer = -1000000,
 		enabled = true,
 	}
 end
@@ -54,7 +54,6 @@ local uiSec = 0
 
 function widget:Initialize()
 	widget:ViewResize(vsx, vsy)
-	Spring.Echo(math.huge)
 
 	if WG['tooltip'] == nil then
 		WG['tooltip'] = {}
@@ -153,6 +152,17 @@ function widget:ViewResize(x, y)
 	bgpadding = math.ceil(WG.FlowUI.elementPadding * 0.66)
 	RectRound = WG.FlowUI.Draw.RectRound
 	UiElement = WG.FlowUI.Draw.Element
+
+	for name, tooltip in pairs(tooltips) do
+		if WG['guishader'] then
+			WG['guishader'].RemoveScreenRect('tooltip_' .. name)
+			WG['guishader'].RemoveScreenRect('2tooltip_' .. name)
+		end
+		if tooltip.dlist then
+			gl.DeleteList(tooltip.dlist)
+			tooltip.dlist = nil
+		end
+	end
 end
 
 local function drawTooltip(name, x, y)

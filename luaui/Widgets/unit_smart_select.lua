@@ -10,8 +10,8 @@ function widget:GetInfo()
 	}
 end
 
-local minimapToWorld = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").minimapToWorld
-local selectApi = VFS.Include("luaui/Widgets/Include/select_api.lua")
+local minimapToWorld = VFS.Include("luaui/Include/minimap_utils.lua").minimapToWorld
+local selectApi = VFS.Include("luaui/Include/select_api.lua")
 
 local skipSel
 local inSelection = false
@@ -41,7 +41,7 @@ local spGetMouseState = Spring.GetMouseState
 local spGetModKeyState = Spring.GetModKeyState
 local spGetSelectionBox = Spring.GetSelectionBox
 
-local spGetCommandQueue = Spring.GetCommandQueue
+local spGetUnitCommandCount = Spring.GetUnitCommandCount
 local spIsGodModeEnabled = Spring.IsGodModeEnabled
 
 local spGetUnitsInScreenRectangle = Spring.GetUnitsInScreenRectangle
@@ -276,7 +276,7 @@ function widget:Update()
 		for i = 1, #mouseSelection do
 			uid = mouseSelection[i]
 			udid = spGetUnitDefID(uid)
-			if spGetCommandQueue(uid, 0) == 0 then
+			if spGetUnitCommandCount(uid) == 0 then
 				tmp[#tmp + 1] = uid
 			end
 		end

@@ -11,7 +11,7 @@ function widget:GetInfo()
 	}
 end
 
-local getMiniMapFlipped = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").getMiniMapFlipped
+local getMiniMapFlipped = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapFlipped
 
 if Game.startPosType ~= 2 then
 	return false
@@ -177,7 +177,7 @@ local scavengerStartBoxTexture = "LuaUI/Images/scav-tileable_v002_small.tga"
 
 local raptorStartBoxTexture = "LuaUI/Images/rapt-tileable_v002_small.tga"
 
-local getMiniMapFlipped = VFS.Include("luaui/Widgets/Include/minimap_utils.lua").getMiniMapFlipped
+local getMiniMapFlipped = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapFlipped
 
 
 local scavengerAIAllyTeamID
@@ -205,15 +205,15 @@ local autoReload = false -- refresh shader code every second (disable in product
 
 local StartPolygons = {} -- list of points in clockwise order
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 
 -- Spring.Echo('Spring.GetGroundExtremes', minY, maxY, waterlevel)
 
 local shaderSourceCache = {
-		vssrcpath = "LuaUI/Widgets/Shaders/map_startpolygon_gl4.vert.glsl",
-		fssrcpath = "LuaUI/Widgets/Shaders/map_startpolygon_gl4.frag.glsl",
+		vssrcpath = "LuaUI/Shaders/map_startpolygon_gl4.vert.glsl",
+		fssrcpath = "LuaUI/Shaders/map_startpolygon_gl4.frag.glsl",
 		uniformInt = {
 			mapDepths = 0,
 			myAllyTeamID = -1,
@@ -245,8 +245,8 @@ local startPolygonShader
 local startPolygonBuffer = nil -- GL.SHADER_STORAGE_BUFFER for polygon
 
 local coneShaderSourceCache = {
-	vssrcpath = "LuaUI/Widgets/Shaders/map_startcone_gl4.vert.glsl",
-	fssrcpath = "LuaUI/Widgets/Shaders/map_startcone_gl4.frag.glsl",
+	vssrcpath = "LuaUI/Shaders/map_startcone_gl4.vert.glsl",
+	fssrcpath = "LuaUI/Shaders/map_startcone_gl4.frag.glsl",
 	uniformInt = {
 		mapDepths = 0,
 		flipMiniMap = 0,

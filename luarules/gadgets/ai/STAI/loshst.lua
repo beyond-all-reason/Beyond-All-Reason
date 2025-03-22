@@ -114,7 +114,7 @@ function LosHST:Update()
 	for id,def in pairs(self.radarEnemy) do
 		local unit = game:GetUnitByID(id)
 		local x,y,z = unit:GetRawPos()
-		--Spring.Echo('enemyunitx',x,unit.x,unit.y,unit.z)
+		--self:EchoDebug('enemyunitx',x,unit.x,unit.y,unit.z)
 
 		if self.losEnemy[id] and self.radarEnemy[id] then
 			self:Warn('unit in los and in radar, with losStatus:' ,game:GetUnitLos(id))
@@ -141,7 +141,7 @@ function LosHST:Update()
 -- 	end
 -- 	LosHST:tracyZoneEnd()
 -- 	self:EchoDebug(gcinfo()-RAM)
-	self:Draw()
+	--self:Draw()
 end
 
 function LosHST:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
@@ -314,7 +314,7 @@ function LosHST:getCenter()
 	for uid,uDef in pairs(self.ownImmobile) do
 		local u = game:GetUnitByID(uid)
 		local x,y,z = u:GetRawPos()
--- 		Spring.Echo('unitposx',x,u.x,u.y,u.z)
+-- 		self:EchoDebug('unitposx',x,u.x,u.y,u.z)
 		if upos then
 			self.CENTER.x = self.CENTER.x + x
 			self.CENTER.y = self.CENTER.y + y

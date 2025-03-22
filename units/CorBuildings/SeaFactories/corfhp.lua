@@ -29,7 +29,7 @@ return {
 		terraformspeed = 1000,
 		waterline = 4,
 		workertime = 100,
-		yardmap = "wCCCCw wCCCCw wCCCCw wCCCCw wCCCCw wCCCCw",
+		yardmap = "weeeew weeeew weeeew weeeew weeeew weeeew",
 		buildoptions = {
 			[1] = "corch",
 			[2] = "corsh",

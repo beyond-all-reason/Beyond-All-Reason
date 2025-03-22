@@ -112,7 +112,7 @@ return {
 				edgeeffectiveness = 0.61,
 				explosiongenerator = "custom:genericshellexplosion-large-bomb",
 				firestarter = 100,
-				flighttime = 7.4,
+				flighttime = 99,
 				impulsefactor = 0.8,
 				metalpershot = 0,
 				model = "corkbmissl1.s3o",
@@ -139,6 +139,10 @@ return {
 				weaponvelocity = 800,
 				damage = {
 					default = 800,
+				},
+				customparams = {
+					projectile_destruction_method = "descend",
+					overrange_distance = 1392,
 				},
 			},
 		},

@@ -182,6 +182,10 @@ return {
 				damage = {
 					default = 125,
 				},
+				customparams = {
+					projectile_destruction_method = "descend",
+					overrange_distance = 1001,
+				},
 			},
 			mobileflak = {
 				accuracy = 1000,

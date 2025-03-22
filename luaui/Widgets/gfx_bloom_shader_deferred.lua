@@ -70,7 +70,7 @@ local rectVAO = nil
 
 local combineShader = nil
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 
 local glGetSun = gl.GetSun
@@ -511,7 +511,7 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	MakeBloomShaders()
 end
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 
 function widget:Initialize()
@@ -579,7 +579,6 @@ local function Bloom()
 		glUniform(   brightShaderFragLoc, glowAmplifier)
 		--glUniform(   brightShaderIvsxLoc, 0.5/qvsx)
 		--glUniform(   brightShaderIvsyLoc, 0.5/qvsy)
-		local gf = Spring.GetGameFrame()
 		glUniform(   brightShaderTimeLoc, df)
 		glTexture(0, "$model_gbuffer_difftex")
 		glTexture(1, "$model_gbuffer_emittex")

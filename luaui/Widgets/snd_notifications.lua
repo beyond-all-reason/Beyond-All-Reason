@@ -130,8 +130,10 @@ local unitsOfInterestNames = {
 	corsilo = 'NuclearSiloDetected',
 	corint = 'LrpcDetected',
 	armbrtha = 'LrpcDetected',
+	leglrpc = 'LrpcDetected',
 	corbuzz = 'LrpcDetected',
 	armvulc = 'LrpcDetected',
+	legstarfall = 'LrpcDetected',
 	armliche = 'NuclearBomberDetected',
 	corjugg = 'BehemothDetected',
 	corkorg = 'JuggernautDetected',
@@ -143,8 +145,13 @@ local unitsOfInterestNames = {
 	corintr = 'TransportDetected',
 	armatlas = 'AirTransportDetected',
 	corvalk = 'AirTransportDetected',
+	leglts = 'AirTransportDetected',
+	armhvytrans = 'AirTransportDetected',
+	corhvytrans = 'AirTransportDetected',
+	legatrans = 'AirTransportDetected',
 	armdfly = 'AirTransportDetected',
 	corseah = 'AirTransportDetected',
+	legstronghold = 'SeaTransportDetected',
 	armtship = 'SeaTransportDetected',
 	cortship = 'SeaTransportDetected',
 }
@@ -763,8 +770,8 @@ function widget:Update(dt)
 	passedTime = passedTime + dt
 	if passedTime > 0.2 then
 		passedTime = passedTime - 0.2
-		if WG['advplayerlist_api'] and WG['advplayerlist_api'].GetLockPlayerID ~= nil then
-			lockPlayerID = WG['advplayerlist_api'].GetLockPlayerID()
+		if WG.lockcamera and WG.lockcamera.GetPlayerID ~= nil then
+			lockPlayerID = WG.lockcamera.GetPlayerID()
 		end
 
 		-- process sound queue
