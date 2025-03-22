@@ -415,6 +415,9 @@ function widget:Update(dt)
 		selectedBuilderCount = 0
 		selectedFactoryCount = 0
 		local selBuilderDefs = {}
+		if SelectedUnitsCount ~= #prevSelBuilderDefs then
+			doUpdate = true
+		end
 		if SelectedUnitsCount > 0 then
 			local sel = Spring.GetSelectedUnits()
 			for _, unitID in pairs(sel) do
@@ -431,17 +434,19 @@ function widget:Update(dt)
 			end
 
 			-- check if builder type selection actually differs from previous selection
-			for uDefID, _ in pairs(prevSelBuilderDefs) do
-				if not selBuilderDefs[uDefID] then
-					doUpdate = true
-					break
-				end
-			end
 			if not doUpdate then
-				for uDefID, _ in pairs(selBuilderDefs) do
-					if not prevSelBuilderDefs[uDefID] then
+				for uDefID, _ in pairs(prevSelBuilderDefs) do
+					if not selBuilderDefs[uDefID] then
 						doUpdate = true
 						break
+					end
+				end
+				if not doUpdate then
+					for uDefID, _ in pairs(selBuilderDefs) do
+						if not prevSelBuilderDefs[uDefID] then
+							doUpdate = true
+							break
+						end
 					end
 				end
 			end
