@@ -680,6 +680,8 @@ out DataVS {
 	float startframe;
 	float gameFrame;
 	vec2 texCoord;
+	float cameraDist;  // Add camera distance to the output struct
+	float inMinimap;
 };
 
 void main() {
@@ -693,6 +695,10 @@ void main() {
 	// Generate texture coordinates for the circle effect
 	texCoord = position.xy * 0.5 + 0.5; // Convert from [-1,1] to [0,1]
 	
+	// Calculate camera distance
+	vec3 cameraPos = cameraViewInv[3].xyz;
+	cameraDist = length(cameraPos);
+	
 	if (isMinimapRendering == 1) {
 		// Minimap rendering mode
 		// Scale position to minimap coordinates (0-1)
@@ -704,6 +710,7 @@ void main() {
 		
 		// Keep full minimap coordinates (0-1)
 		gl_Position = vec4(vertexPos.x * 2.0 - 1.0, 1.0 - vertexPos.y * 2.0, 0.0, 1.0);
+		inMinimap = 1;
 	} else {
 		// World rendering mode
 		// Use position.y as Z coordinate since makePlaneVBO creates X-Y plane
@@ -719,6 +726,7 @@ void main() {
 		
 		// Transform to clip space
 		gl_Position = cameraViewProj * worldPos;
+		inMinimap = 0;
 	}
 	
 	startframe = capturestate.z;
@@ -743,11 +751,18 @@ in DataVS {
 	float startframe;
 	float gameFrame;
 	vec2 texCoord;
+	float cameraDist;  // Add camera distance to the input struct
+	float inMinimap;
 };
 
 out vec4 fragColor;
 
 void main() {
+	// Skip rendering if camera is too close (less than 3000 units)
+	if (inMinimap == 0 && cameraDist < 15000.0) {
+		discard;
+	}
+
 	// Calculate center and corner distances
 	vec2 center = vec2(0.5, 0.5);
 	float distance = length(texCoord - center) * 2.0; // Distance from center, normalized
