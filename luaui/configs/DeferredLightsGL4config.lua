@@ -16321,7 +16321,6 @@ local unitLights = {
 		},
 
 	},
-
 	['legbart'] = {
 		cannisterlight = {
 			lightType = 'point',
@@ -16333,7 +16332,62 @@ local unitLights = {
 							lifetime = 0, sustain = 0, animtype = 0},
 		},
 	},
-
+	['leginf'] = {
+		cannisterlightl = {
+			lightType = 'point',
+			pieceName = 'leftCannisterLight',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 38,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = 0.9, g = 0.7, b = 0.45, a = 0.25,
+							modelfactor = 0.4, specular = 0, scattering = 0.4, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		cannisterlightr = {
+			lightType = 'point',
+			pieceName = 'rightCannisterLight',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 38,
+							color2r = 0, color2g = 0, color2b = 0, colortime = 0,
+							r = 0.9, g = 0.7, b = 0.45, a = 0.25,
+							modelfactor = 0.4, specular = 0, scattering = 0.4, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		topbarrela = {
+			lightType = 'point',
+			pieceName = 'topBarrelLightA',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 5,
+							color2r = 1, color2g = 0.92, color2b = 0.66, colortime = 6,
+							r = 0.88, g = 0.83, b = 0.2, a = 0.3,
+							modelfactor = 0.4, specular = 0.5, scattering = 2.5, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		topbarrelb = {
+			lightType = 'point',
+			pieceName = 'topBarrelLightB',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 5,
+							color2r = 1, color2g = 0.92, color2b = 0.66, colortime = 6,
+							r = 0.88, g = 0.83, b = 0.2, a = 0.3,
+							modelfactor = 0.4, specular = 0.5, scattering = 2.5, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		leftbarrel = {
+			lightType = 'point',
+			pieceName = 'rightBarrelLight',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 5,
+							color2r = 1, color2g = 0.92, color2b = 0.66, colortime = 6,
+							r = 0.88, g = 0.83, b = 0.2, a = 0.3,
+							modelfactor = 0.4, specular = 0.5, scattering = 2.5, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+		rightbarrel = {
+			lightType = 'point',
+			pieceName = 'leftBarrelLight',
+			lightConfig = { posx = 0, posy = 0, posz = 0, radius = 5,
+							color2r = 1, color2g = 0.92, color2b = 0.66, colortime = 6,
+							r = 0.88, g = 0.83, b = 0.2, a = 0.3,
+							modelfactor = 0.4, specular = 0.5, scattering = 2.5, lensflare = 0,
+							lifetime = 0, sustain = 0, animtype = 0},
+		},
+	},
 	['legeheatraymech'] = {
 		bigtoroid = {
 			lightType = 'point',
