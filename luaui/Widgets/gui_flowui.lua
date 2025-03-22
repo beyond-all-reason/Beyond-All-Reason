@@ -511,31 +511,39 @@ WG.FlowUI.Draw.Element = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pb
 	local glossHeight = math.floor(0.02 * WG.FlowUI.vsy * ui_scale)
 
 	-- darkening bottom
-	c = opaque and 0.04 or 0
-	c2 = opaque and 0.12 or 0
-	WG.FlowUI.Draw.RectRound(px + pxPad + pad2, py + pad2, sx - sxPad - pad2, py + ((sy-py)*0.75), cs*1.66, 0, 0, br, bl, { c,c,c, opaque and 1 or 0.05 * glossMult }, { c2,c2,c2, opaque and 1 or 0 })
+	local doBottomFx = (sy-py-syPad-syPad) > (glossHeight*2.3)
+	if doBottomFx then
+		c = opaque and 0.04 or 0
+		c2 = opaque and 0.12 or 0
+		WG.FlowUI.Draw.RectRound(px + pxPad + pad2, py + pad2, sx - sxPad - pad2, py + ((sy-py)*0.75), cs*1.66, 0, 0, br, bl, { c,c,c, opaque and 1 or 0.05 * glossMult }, { c2,c2,c2, opaque and 1 or 0 })
+	end
 
 	-- gloss
+	local glossHeight = math.floor(0.02 * WG.FlowUI.vsy * ui_scale)
 	-- top
 	pad2 = 1
 	c = 0.12
 	c2 = opaque and 0.12 * glossMult or 1
 	WG.FlowUI.Draw.RectRound(px + pxPad + pad2, sy - syPad - pad2 - glossHeight, sx - sxPad - pad2, sy - syPad - pad2, cs*0.5, tl, tr, 0, 0, { c, c, c, opaque and 1 or 0 }, { c2, c2, c2, opaque and 1 or 0.07 * glossMult })
 	-- bottom
-	c = 0.06
-	c2 = opaque and 0.05 * glossMult or 1
-	WG.FlowUI.Draw.RectRound(px + pxPad + pad2, py + pyPad + pad2, sx - sxPad - pad2, py + pyPad + glossHeight, cs, 0, 0, br, bl, { c2, c2, c2, opaque and 1 or 0.03 * glossMult }, { c, c, c, opaque and 1 or 0 })
-
+	if doBottomFx then
+		c = 0.06
+		c2 = opaque and 0.05 * glossMult or 1
+		WG.FlowUI.Draw.RectRound(px + pxPad + pad2, py + pyPad + pad2, sx - sxPad - pad2, py + pyPad + glossHeight, cs, 0, 0, br, bl, { c2, c2, c2, opaque and 1 or 0.03 * glossMult }, { c, c, c, opaque and 1 or 0 })
+	end
 	-- highlight edges thinly
 	-- top
 	c = opaque and 0.33 or 1
 	c2 = 0.24
-	WG.FlowUI.Draw.RectRound(px + pxPad + pad2, sy - syPad - (cs*2.5), sx - sxPad-pad2, sy - syPad - pad2, cs, tl, tr, 0, 0, { c2, c2, c2, opaque and 1 or 0 }, { c, c, c, opaque and 1 or 0.04 * glossMult })
+	if syPad > 0 then
+		WG.FlowUI.Draw.RectRound(px + pxPad + pad2, sy - syPad - (cs*2.5), sx - sxPad-pad2, sy - syPad - pad2, cs, tl, tr, 0, 0, { c2, c2, c2, opaque and 1 or 0 }, { c, c, c, opaque and 1 or 0.04 * glossMult })
+	end
 	-- bottom
 	c = opaque and 0.16 or 1
 	c2 = 0.08
-	WG.FlowUI.Draw.RectRound(px + pxPad + pad2, py + pyPad + pad2, sx - sxPad - pad2, py + pyPad + (cs*2), cs, 0, 0, br, bl, { c, c, c, opaque and 1 or 0.02 * glossMult }, { c2, c2, c2, opaque and 1 or 0 })
-
+	if pyPad > 0 then
+		WG.FlowUI.Draw.RectRound(px + pxPad + pad2, py + pyPad + pad2, sx - sxPad - pad2, py + pyPad + (cs*2), cs, 0, 0, br, bl, { c, c, c, opaque and 1 or 0.02 * glossMult }, { c2, c2, c2, opaque and 1 or 0 })
+	end
 	-- tile
 	if tileopacity > 0 then	-- when opaque this will introduce some minor transparancy
 		gl.Color(1,1,1, tileopacity * (opaque and 1.33 or 1) )
@@ -898,12 +906,10 @@ WG.FlowUI.Draw.Slider = function(px, py, sx, sy, steps, min, max)
 	end
 
 	-- add highlight
-	gl.Blending(GL.SRC_ALPHA, GL.ONE)
 	-- top
-	WG.FlowUI.Draw.RectRound(px, sy-edgeWidth-edgeWidth, sx, sy, edgeWidth, 1,1,1,1, { 1,1,1,0 }, { 1,1,1,0.06 })
+	WG.FlowUI.Draw.RectRound(px, sy-edgeWidth-edgeWidth, sx, sy, edgeWidth, 1,1,1,1, { 1,1,1,0 }, { 1,1,1,0.07 })
 	-- bottom
-	WG.FlowUI.Draw.RectRound(px, py, sx, py+edgeWidth+edgeWidth, edgeWidth, 1,1,1,1, { 1,1,1,0 }, { 1,1,1,0.04 })
-	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	WG.FlowUI.Draw.RectRound(px, py, sx, py+edgeWidth+edgeWidth, edgeWidth, 1,1,1,1, { 1,1,1,0 }, { 1,1,1,0.045 })
 end
 
 --[[
