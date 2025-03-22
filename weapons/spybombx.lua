@@ -5,7 +5,8 @@ return {
 		craterboost = 0,
 		cratermult = 0,
 		customparams = {
-			fixed_stun_duration_antinuke_building = 20,		-- Ignores damage and paralyzetime. Applies a fixed stun duration
+			--fixed_stun_duration = "isBuilding=true:20,customparams.unitgroup=antinuke:20",	-- Fixed 20s stun duration for buildings and antinukes.
+			--paralyzetime_exception = "isBuilding=false:8",									-- UP TO 8s stun duration for mobile units (depending on hp vs damage)
 		},
 		edgeeffectiveness = 0.75,
 		explosiongenerator = "custom:genericshellexplosion-huge-lightning",
@@ -14,7 +15,7 @@ return {
 		name = "spyexplosion",
 		noselfdamage = 1,
 		paralyzer = 1,
-		paralyzetime = 35,
+		paralyzetime = 35,																		-- Absolute max stun duration. See customparams for exceptions.
 		range = 1280,
 		reloadtime = 0.30000001192093,
 		soundhit = "EMGPULS1",
