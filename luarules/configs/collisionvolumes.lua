@@ -206,7 +206,7 @@ pieceCollisionVolume['legerailtank'] = {
 	--['10']={50,50,50,0,0,0,2,1},
 }
 pieceCollisionVolume['leginf'] = {
-	['4']={54,49,88, 0,22.8,14.3, 2,1},
+	['1']={38,49,88, 0,22.8,14.3, 2,1},
 	['0']={35,37,88, 0,21,11, 2,1},
 }
 ---pieceCollisionVolume['legsrailt4'] = {
