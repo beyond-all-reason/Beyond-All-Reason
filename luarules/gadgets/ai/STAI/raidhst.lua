@@ -58,7 +58,7 @@ function RaidHST:Update()
 		end
 	end
 	self:SquadsTargetUpdate2()
-	self:visualDBG(squad)
+	self:visualDBG()
 end
 
 function RaidHST:DraftAttackSquads()
