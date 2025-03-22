@@ -56,8 +56,8 @@ local clickSelectedCellZoom = 0.125 * zoomMult
 local selectedCellZoom = 0.135 * zoomMult
 
 local bgpadding, activeAreaMargin
-local dlistGuishader, dlistBuildmenuBg, dlistBuildmenu, font2, cmdsCount
-local doUpdateClock, ordermenuHeight, prevAdvplayerlistLeft
+local dlistGuishader, dlistBuildmenuBg, dlistBuildmenu, font2
+local doUpdate, doUpdateClock, ordermenuHeight, prevAdvplayerlistLeft
 local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize, priceFontSize
 local activeCmd, selBuildQueueDefID
 local prevHoveredCellID, hoverDlist
@@ -107,6 +107,7 @@ local selectedBuilderCount = 0
 local selectedFactoryCount = 0
 local cellRects = {}
 local cmds = {}
+local cmdsCount = 0
 local currentPage = 1
 local pages = 1
 local paginatorRects = {}
@@ -271,10 +272,12 @@ local function RefreshCommands()
 		local activeCmdDescs = spGetActiveCmdDescs()
 		if smartOrderUnits then
 			local cmdUnitdefs = {}
+			local i = 0
 			for index, cmd in pairs(activeCmdDescs) do
 				if type(cmd) == "table" then
 					if not cmd.disabled and string_sub(cmd.action, 1, 10) == 'buildunit_' then
 						cmdUnitdefs[cmd.id * -1] = index
+						i = i + 1
 					end
 				end
 			end
@@ -401,6 +404,7 @@ end
 
 local sec = 0
 local updateSelection = true
+local prevSelBuilderDefs = {}
 function widget:Update(dt)
 	if updateSelection then
 		updateSelection = false
@@ -410,19 +414,39 @@ function widget:Update(dt)
 		selectedBuilders = {}
 		selectedBuilderCount = 0
 		selectedFactoryCount = 0
+		local selBuilderDefs = {}
 		if SelectedUnitsCount > 0 then
 			local sel = Spring.GetSelectedUnits()
 			for _, unitID in pairs(sel) do
-				if units.isFactory[spGetUnitDefID(unitID)] then
+				local uDefID = spGetUnitDefID(unitID)
+				if units.isFactory[uDefID] then
 					selectedFactoryCount = selectedFactoryCount + 1
+					selBuilderDefs[uDefID] = true
 				end
-				if units.isBuilder[spGetUnitDefID(unitID)] then
+				if units.isBuilder[uDefID] then
 					selectedBuilders[unitID] = true
 					selectedBuilderCount = selectedBuilderCount + 1
+					selBuilderDefs[uDefID] = true
+				end
+			end
+
+			-- check if builder type selection actually differs from previous selection
+			for uDefID, _ in pairs(prevSelBuilderDefs) do
+				if not selBuilderDefs[uDefID] then
 					doUpdate = true
+					break
+				end
+			end
+			if not doUpdate then
+				for uDefID, _ in pairs(selBuilderDefs) do
+					if not prevSelBuilderDefs[uDefID] then
+						doUpdate = true
+						break
+					end
 				end
 			end
 		end
+		prevSelBuilderDefs = selBuilderDefs
 	end
 
 	sec = sec + dt
@@ -615,7 +639,7 @@ function drawBuildmenu()
 
 		rows = math_floor(contentHeight / cellSize)
 		if minColls < maxColls then
-			while cmdsCount > rows * colls do
+			while cmdsCount or 0 > rows * colls do
 				colls = colls + 1
 				cellSize = math_min(maxCellSize, math_floor((contentWidth / colls)))
 				rows = math_floor(contentHeight / cellSize)
@@ -715,7 +739,6 @@ function drawBuildmenu()
 			local cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
 			local usedZoom = cellIsSelected and selectedCellZoom or defaultCellZoom
 
-
 			drawCell(cellRectID, usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, units.unitRestricted[uDefID])
 		end
 	end
@@ -786,9 +809,6 @@ function widget:DrawScreen()
 		if WG['guishader'] and dlistGuishader then
 			WG['guishader'].InsertDlist(dlistGuishader, 'buildmenu')
 		end
-		if not dlistBuildmenuBg then
-			dlistBuildmenuBg = gl.CreateList(function() drawBuildmenuBg() end)
-		end
 
 		-- create buildmenu
 		if refreshBuildmenu then
@@ -826,17 +846,24 @@ function widget:DrawScreen()
 						gl.PopMatrix()
 					end)
 				end
-			elseif not dlistBuildmenu then
-				dlistBuildmenu = gl.CreateList(function() drawBuildmenu() end)
+			else
+				if not dlistBuildmenuBg then
+					dlistBuildmenuBg = gl.CreateList(function() drawBuildmenuBg() end)
+				end
+				if not dlistBuildmenu then
+					dlistBuildmenu = gl.CreateList(function() drawBuildmenu() end)
+				end
 			end
 		end
 
 		-- draw buildmenu background
 		if useRenderToTexture then
 			-- background element
-			gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
-			gl.Texture(buildmenuBgTex)
-			gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)
+			if buildmenuBgTex then
+				gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
+				gl.Texture(buildmenuBgTex)
+				gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)
+			end
 		else
 			gl.CallList(dlistBuildmenuBg)
 		end

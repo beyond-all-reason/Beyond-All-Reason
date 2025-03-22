@@ -251,6 +251,7 @@ local currentPage = 1
 local minimapHeight = 0.235
 
 local selectedBuilders = {}
+local prevSelectedBuilders = {}
 local selectedBuildersCount = 0
 local prevSelectedBuildersCount = 0
 
@@ -841,6 +842,26 @@ local function updateBuilders()
 	end
 
 	if builderTypes == 0 then
+		return
+	end
+
+	-- check if builder type selection actually differs from previous selection
+	local changes = false
+	for unitDefID, count in pairs(prevSelectedBuilders) do
+		if not selectedBuilders[unitDefID] then
+			changes = true
+			break
+		end
+	end
+	if not changes then
+		for unitDefID, count in pairs(selectedBuilders) do
+			if not prevSelectedBuilders[unitDefID] then
+				changes = true
+				break
+			end
+		end
+	end
+	if not changes then
 		return
 	end
 
@@ -2683,6 +2704,7 @@ function widget:SelectionChanged(newSel)
 	activeBuilderID = nil
 	builderIsFactory = false
 	labBuildModeActive = false
+	prevSelectedBuilders = selectedBuilders
 	selectedBuilders = {}
 	selectedBuildersCount = 0
 	currentPage = 1
