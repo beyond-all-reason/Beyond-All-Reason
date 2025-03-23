@@ -27,12 +27,6 @@
 • [Shuriken] Reloadtime 1.2s -> 1.3s
 • [Stormbringer] Drops bombs 17% closer together
 • [Banshee] Health 485 -> 560, Turnrate increased, New weapon graphics with functionally similar stats
-• [Stork] Health 265 -> 350
-• [Hercules] Health 280 -> 370
-• [Osprey] Health 630 -> 570
-• [Hephaestus] Health 800 -> 720
-• [Abductor] Speed 241.5 -> 205, Energycost 6600 -> 7000 
-• [Skyhook] Speed 235 -> 200, Buildtime 10000 -> 11000
 • Inaccuracy removed from all T1 laser weapons
 
 # January 2025
