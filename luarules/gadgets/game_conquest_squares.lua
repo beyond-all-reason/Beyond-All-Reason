@@ -12,15 +12,23 @@ function gadget:GetInfo()
 end
 
 -- TODO:
--- when there's one team left (including scavengers and raptors) then set the victory threshold to 0% and stop further increases
--- need the captured territory display to show at all times, by passing the values through initialize?
--- need to do the modoptions
--- code cleanup
---	try to improve efficiency of text drawing
--- improve time to max accuracy, seems to be a few minutes late every time
+
+-- improve time to max accuracy, seems to be a few minutes late every time. maybe its not factoring the start delay?... The increment rate should be capped as well to make keeping up achievable
 -- need minimum power to ratio power occupying a square to slow its capture rate
 -- obfuscate ally color when not spectating
 -- flip minimap needs to be implemented
+-- need line of sight checks for the squares to know who owns it
+-- when killed via means outside dominion victory, the territories aren't reset to 
+-- spectator selecting various teams doesn't change perspective for score display
+-- percentage of captured territory should become a square count instead of a percentage
+-- decrease the edge fuzziness of the squares drawn on the minimap
+-- need to convert the score text display to use i18n for language localization
+-- need upper limit on camera zoom out fade for the map
+-- left side of score display can be cut off by the left side of the screen (on glitters)
+-- if units are cloaked, don't count them as a power source
+-- warning sounds
+-- code cleanup
+-- need to do the modoptions
 
 local SYNCED = gadgetHandler:IsSyncedCode()
 
@@ -28,7 +36,7 @@ if SYNCED then
 -- SYNCED CODE
 
 	--configs
-	local DEBUGMODE = false -- Changed to uppercase as it's a constant
+	local DEBUGMODE = true -- Changed to uppercase as it's a constant
 	local FLYING_UNIT_POWER_MULTIPLIER = 0.33
 	local STATIC_UNIT_POWER_MULTIPLIER = 3
 	local MINUTES_TO_MAX = 20
@@ -75,13 +83,11 @@ if SYNCED then
 	local SendToUnsynced = SendToUnsynced
 
 	--variables
-	local initialized = false
-	local scavengerTeamID = 999
-	local raptorsTeamID = 999
 	local gaiaTeamID = spGetGaiaTeamID()
 	local gaiaAllyTeamID = select(6, spGetTeamInfo(gaiaTeamID))
 	local teams = spGetTeamList()
 	local allyTeamsCount = 0
+	local allyHordesCount = 0
 	local defeatThreshold = 0
 	local numberOfSquaresX = 0
 	local numberOfSquaresZ = 0
@@ -91,11 +97,11 @@ if SYNCED then
 	--tables
 	local allyTeamsWatch = {}
 	local exemptTeams = {}
+	local hordeModeTeams = {}
+	local hordeModeAllies = {}
 	local unitWatchDefs = {}
 	local captureGrid = {}
 	local allyScores = {}
-	local squaresToRaze = {}
-	local allyTeamIDs = {} -- Store ally team IDs for unsynced to get colors
 	local livingCommanders = {}
 	local killQueue = {}
 	local commandersDefs = {}
@@ -103,18 +109,14 @@ if SYNCED then
 	local randomizedGridIDs = {} -- Pre-allocate for reuse
 	local flyingUnits = {}
 
-	exemptTeams[gaiaTeamID] = true
-
 	--start-up
 	for _, teamID in ipairs(teams) do --first figure out which teams are exempt
 		local luaAI = spGetTeamLuaAI(teamID)
 		if luaAI and luaAI ~= "" then
 			if string.sub(luaAI, 1, 12) == 'ScavengersAI' then
-				scavengerTeamID = teamID
-				exemptTeams[teamID] = true
+				hordeModeTeams[teamID] = true
 			elseif string.sub(luaAI, 1, 12) == 'RaptorsAI' then
-				raptorsTeamID = teamID
-				exemptTeams[teamID] = true
+				hordeModeTeams[teamID] = true
 			end
 		end
 		if teamID == gaiaTeamID then
@@ -124,27 +126,30 @@ if SYNCED then
 
 	local function updateLivingTeamsData()
 		allyTeamsCount = 0  -- Reset count first
+		allyHordesCount = 0
 		allyTeamsWatch = {}  -- Clear existing watch list
-		allyTeamIDs = {}    -- Clear ally team IDs list
 		
 		-- Rebuild list with living teams and count allies
 		for _, teamID in ipairs(teams) do
-			if not exemptTeams[teamID] then
+			if teamID ~= gaiaTeamID then
 				local _, _, isDead, _, _, allyTeam = spGetTeamInfo(teamID)
 				if not isDead and allyTeam then
-					allyTeamsWatch[allyTeam] = allyTeamsWatch[allyTeam] or {}
-					allyTeamsWatch[allyTeam][teamID] = true
-					
-					-- Store the first team ID for each ally team
-					if not allyTeamIDs[allyTeam] then
-						allyTeamIDs[allyTeam] = teamID
+					if hordeModeTeams[teamID] then
+
+						hordeModeAllies[allyTeam] = hordeModeAllies[allyTeam] or {}
+						hordeModeAllies[allyTeam][teamID] = true
+					else
+						allyTeamsWatch[allyTeam] = allyTeamsWatch[allyTeam] or {}
+						allyTeamsWatch[allyTeam][teamID] = true
+						
 					end
 				end
 			end
 		end
-		
-		-- Count ally teams more efficiently
-		for _ in pairs(allyTeamsWatch) do
+		for allyID in pairs(hordeModeAllies) do
+			allyHordesCount = allyHordesCount + 1
+		end
+		for allyID in pairs(allyTeamsWatch) do
 			allyTeamsCount = allyTeamsCount + 1
 		end
 	end
@@ -201,13 +206,16 @@ if SYNCED then
 
 	local function updateCurrentDefeatThreshold()
 		local seconds = spGetGameSeconds()
+		local allyCount = allyTeamsCount + allyHordesCount
 		local totalMinutes = seconds / 60  -- Convert seconds to minutes
-		local elapsedMinutes = totalMinutes - MINUTES_TO_START
-		local wantFactor = elapsedMinutes / MINUTES_TO_MAX -- exponential defeat threshold to try to prolong the game closer to the max time
-		if totalMinutes < MINUTES_TO_START then return end
 
-		local progressRatio = min(elapsedMinutes / MINUTES_TO_MAX, 1)
-		local wantedThreshold = ((progressRatio * MAX_TERRITORY_PERCENTAGE) / allyTeamsCount) * wantFactor
+		if totalMinutes < MINUTES_TO_START or allyCount == 1 then return end
+
+		local elapsedMinutes = totalMinutes - MINUTES_TO_START
+		local adjustedMinutesToMax = MINUTES_TO_MAX - MINUTES_TO_START
+
+		local progressRatio = min(elapsedMinutes / adjustedMinutesToMax, 1)
+		local wantedThreshold = min(((progressRatio * MAX_TERRITORY_PERCENTAGE) / allyCount), 50) -- because two teams must fight for 50%
 		if wantedThreshold > defeatThreshold then
 			defeatThreshold = defeatThreshold + 1
 		end
@@ -263,7 +271,7 @@ if SYNCED then
 				local unitData = unitWatchDefs[unitDefID]
 				local allyTeam = spGetUnitAllyTeam(unitID)
 				
-				if unitData and unitData.power and allyTeamsWatch[allyTeam] then
+				if unitData and unitData.power and (allyTeamsWatch[allyTeam] or hordeModeAllies[allyTeam]) then
 					data.hasUnits = true
 					local power = unitData.power
 					if unitData.isStatic then
@@ -272,13 +280,17 @@ if SYNCED then
 					if flyingUnits[unitID] then
 						power = power * FLYING_UNIT_POWER_MULTIPLIER
 					end
-					allyPowers[allyTeam] = (allyPowers[allyTeam] or 0) + power
+					if hordeModeTeams[allyTeam] then
+						allyPowers[gaiaAllyTeamID] = (allyPowers[gaiaAllyTeamID] or 0) + power -- horde mode units cannot own territory, they give it back to gaia
+					else
+						allyPowers[allyTeam] = (allyPowers[allyTeam] or 0) + power
+					end
 				end
 			end
 		end
 
 		for allyID, power in pairs(allyPowers) do
-			power = power + random() -- randomize power to prevent ties
+			power = power + random() -- randomize power to prevent ties where the last tied victor always wins
 		end
 		
 		if data.hasUnits then
@@ -549,23 +561,13 @@ if SYNCED then
 			end
 		elseif frameModulo == 2 then
 			allyScores = convertTalliesToScores(allyTallies)
-			local averageScore = 0
-			local count = 0
 			for allyID, score in pairs(allyScores) do
-				averageScore = averageScore + score
-				count = count + 1
-			end
-			if count > 0 then
-				averageScore = averageScore / count
-				for allyID, score in pairs(allyScores) do
-					updateUnsyncedScore(allyID, score)
-					if allyTeamsWatch[allyID] and score < defeatThreshold and score < averageScore and not DEBUGMODE then
-						--check if score is below average score to prevent defeat in case of a tie
-						triggerAllyDefeat(allyID)
-						setAllyGridToGaia(allyID)
-					end
+				updateUnsyncedScore(allyID, score)
+				if allyTeamsWatch[allyID] and score < defeatThreshold and not DEBUGMODE then
+					triggerAllyDefeat(allyID)
+					setAllyGridToGaia(allyID)
 				end
-			end	
+			end
 			if not sentGridStructure then
 				initializeUnsyncedGrid()
 				sentGridStructure = true
@@ -628,7 +630,7 @@ local defeatThreshold = 0
 local minimapSizeX, minimapSizeY = 0, 0
 local minimapPosX, minimapPosY = 0, 0
 local fontSizeMultiplier = 1
-local fontSize = 14
+local fontSize = 11
 local lastWarningBlinkTime = 0
 local isWarningVisible = true
 local BLINK_FREQUENCY = 0.5  -- seconds
@@ -1076,86 +1078,102 @@ function gadget:RecvFromSynced(messageName, ...)
     end
 end
 
+-- Cache frequently used functions at file scope
+local floor = math.floor
+local format = string.format
+local GetViewGeometry = Spring.GetViewGeometry
+local GetMiniMapGeometry = Spring.GetMiniMapGeometry
+local GetGameSeconds = Spring.GetGameSeconds
+local glColor = gl.Color
+local glRect = gl.Rect
+local glText = gl.Text
+local glPushMatrix = gl.PushMatrix
+local glPopMatrix = gl.PopMatrix
+local glGetTextWidth = gl.GetTextWidth
+
+-- Cache static values
+local SCORE_FORMAT = "Territories Owned: %d%% Needed: %d%%"
+local PADDING_MULTIPLIER = 0.36
+local TEXT_HEIGHT_MULTIPLIER = 0.33
+
+-- Pre-create color tables to avoid table creation during draw
+local BLINK_COLOR = {1, 0, 0, 0.5}
+local backgroundColor = {0, 0, 0, 0.6}
+local currentTextColor = {1, 1, 1, 1}
+
+-- Initialize font cache
+local fontCache = {
+    initialized = false,
+    fontSizeMultiplier = 1,
+    fontSize = 11,
+    paddingX = 0,
+    paddingY = 0
+}
+
 local function drawScore()
-    if not allyScores[myAllyID] then return end
+    local score = allyScores[myAllyID]
+    if not score then return end
     
-    -- Get UI viewport data
-    local vsx, vsy = Spring.GetViewGeometry()
-    
-    -- Get minimap position and size
-    local posX, posY, sizeX, sizeY = Spring.GetMiniMapGeometry()
-    minimapPosX, minimapPosY = posX, posY
-    minimapSizeX, minimapSizeY = sizeX, sizeY
-    
-    -- Calculate font size based on resolution - make it 1.5x larger instead of 2x
-    fontSizeMultiplier = math.max(1.2, math.min(2.25, vsy / 1080))
-    fontSize = math.floor(14 * fontSizeMultiplier)
-    
-    -- Calculate score display position (below minimap)
-    local displayX = minimapPosX + minimapSizeX/2
-    local displayY = minimapPosY - fontSize - 5
-    
-    -- Get current score and threshold
-    local score = allyScores[myAllyID] or 0
-    local threshold = defeatThreshold or 0
-    
-    -- Skip rendering if no valid threshold yet
-    if threshold <= 0 then return end
-    
-    -- Calculate danger level
-    local difference = score - threshold
-    local dangerLevel = 0  -- 0 = safe, 1 = warning, 2 = danger
-    
-    if difference < -2 then
-        dangerLevel = 2  -- Critical danger
-    elseif difference < -WARNING_THRESHOLD then
-        dangerLevel = 1  -- Warning
+    -- Initialize cached values if needed
+    if not fontCache.initialized then
+        local _, viewportSizeY = GetViewGeometry()
+        fontCache.fontSizeMultiplier = math.max(1.2, math.min(2.25, viewportSizeY / 1080))
+        fontCache.fontSize = floor(14 * fontCache.fontSizeMultiplier)
+        fontCache.paddingX = floor(fontCache.fontSize * PADDING_MULTIPLIER)
+        fontCache.paddingY = fontCache.paddingX
+        fontCache.initialized = true
     end
     
-    -- Handle warning blink effect
-    local currentTime = Spring.GetGameSeconds()
-    if dangerLevel == 2 then
+    -- Get current score and threshold
+    local threshold = defeatThreshold or 0
+    local difference = score - threshold
+    
+    -- Format text once
+    local text = format(SCORE_FORMAT, score, threshold)
+    
+    -- Calculate dimensions
+    local textWidth = glGetTextWidth(text) * fontCache.fontSize
+    local backgroundWidth = textWidth + (fontCache.paddingX * 2)
+    local backgroundHeight = fontCache.fontSize + (fontCache.paddingY * 2)
+    
+    -- Calculate positions
+    local minimapPosX, minimapPosY, minimapSizeX = GetMiniMapGeometry()
+    local displayPositionX = math.max(backgroundWidth/2, minimapPosX + minimapSizeX/2)
+    local backgroundTop = minimapPosY
+    local backgroundBottom = backgroundTop - backgroundHeight
+    local textPositionY = backgroundBottom + (backgroundHeight * TEXT_HEIGHT_MULTIPLIER)
+    local backgroundLeft = displayPositionX - backgroundWidth/2
+    local backgroundRight = displayPositionX + backgroundWidth/2
+    
+    -- Update color values (reusing tables)
+    if difference < 0 then
+        local currentTime = GetGameSeconds()
         if currentTime - lastWarningBlinkTime > BLINK_FREQUENCY then
             lastWarningBlinkTime = currentTime
             isWarningVisible = not isWarningVisible
         end
+        
+        currentTextColor[1], currentTextColor[2], currentTextColor[3], currentTextColor[4] = 
+            COLOR_RED[1], COLOR_RED[2], COLOR_RED[3], 
+            isWarningVisible and COLOR_RED[4] or BLINK_COLOR[4]
+    elseif difference < 10 then
+        currentTextColor[1], currentTextColor[2], currentTextColor[3], currentTextColor[4] = 
+            COLOR_YELLOW[1], COLOR_YELLOW[2], COLOR_YELLOW[3], COLOR_YELLOW[4]
     else
-        isWarningVisible = true
+        currentTextColor[1], currentTextColor[2], currentTextColor[3], currentTextColor[4] = 
+            COLOR_WHITE[1], COLOR_WHITE[2], COLOR_WHITE[3], COLOR_WHITE[4]
     end
     
-    -- Choose text color based on danger level
-    local scoreColor = COLOR_WHITE
-    if dangerLevel == 2 and not isWarningVisible then
-        scoreColor = COLOR_RED
-    elseif dangerLevel == 1 then
-        scoreColor = COLOR_YELLOW
-    end
-    
-    -- Format territory display with more detailed information
-    local format = "Territory Control: %d%% / %d%%"
-    local text = string.format(format, score, threshold)
-    
-    -- Measure text dimensions for background - add more padding for better visibility
-    local textWidth = gl.GetTextWidth(text) * fontSize
-    local paddingX = math.floor(fontSize * 0.6)  -- Increased horizontal padding
-    local paddingY = math.floor(fontSize * 0.6)  -- Increased vertical padding
-    local bgWidth = textWidth + (paddingX * 2)
-    local bgHeight = fontSize + (paddingY * 2)  -- More vertical padding
-    
-    -- Draw background rect properly centered on text position
-    gl.PushMatrix()
-    gl.Color(COLOR_BG[1], COLOR_BG[2], COLOR_BG[3], COLOR_BG[4])
-    gl.Rect(
-        displayX - bgWidth/2, 
-        displayY - bgHeight/2 + (paddingY/4), -- Adjust to better center the text 
-        displayX + bgWidth/2, 
-        displayY + bgHeight/2 + (paddingY/4)  -- Adjust to better center the text
-    )
-    
-    -- Draw the text
-    gl.Color(scoreColor[1], scoreColor[2], scoreColor[3], scoreColor[4])
-    gl.Text(text, displayX, displayY, fontSize, "co") -- 'co' = center, no outline
-    gl.PopMatrix()
+    -- Single push/pop with all drawing operations
+    glPushMatrix()
+        -- Draw background
+        glColor(backgroundColor[1], backgroundColor[2], backgroundColor[3], backgroundColor[4])
+        glRect(backgroundLeft, backgroundBottom, backgroundRight, backgroundTop)
+        
+        -- Draw text
+        glColor(currentTextColor[1], currentTextColor[2], currentTextColor[3], currentTextColor[4])
+        glText(text, displayPositionX, textPositionY, fontCache.fontSize, "co")
+    glPopMatrix()
 end
 
 function gadget:DrawScreen()
