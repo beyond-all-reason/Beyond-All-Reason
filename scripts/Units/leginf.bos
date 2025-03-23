@@ -92,29 +92,34 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	turn turretHeadingPivot to y-axis heading speed <40.000000>;
-	if(-1*pitch > <0>){
-		move topBarrel to y-axis [1] speed [10];
-		move leftBarrel to y-axis [1] speed [10];
-		move rightBarrel to y-axis [1] speed [10];
-		turn turrretPitchPivot to x-axis <0> speed <40.000000>;
+	if(heading < <90> AND heading > <-90>){	
+		turn turretHeadingPivot to y-axis heading speed <40.000000>;
+		if(-1*pitch > <0>){
+			move topBarrel to y-axis [1] speed [10];
+			move leftBarrel to y-axis [1] speed [10];
+			move rightBarrel to y-axis [1] speed [10];
+			turn turrretPitchPivot to x-axis <0> speed <40.000000>;
+		}
+		else if(-1*pitch > <-18> and -1*pitch < <0>){
+			move topBarrel to y-axis [1] speed [10];
+			move leftBarrel to y-axis [1] speed [10];
+			move rightBarrel to y-axis [1] speed [10];
+			turn turrretPitchPivot to x-axis -1*pitch speed <40.000000>;
+		}
+		else {
+			move topBarrel to y-axis [0] speed [10];
+			move leftBarrel to y-axis [0] speed [10];
+			move rightBarrel to y-axis [0] speed [10];
+			turn turrretPitchPivot to x-axis -1*pitch speed <40.000000>;
+		}
+		wait-for-turn turretHeadingPivot around y-axis;
+		wait-for-turn turrretPitchPivot around x-axis;
+		start-script RestoreAfterDelay();
+		return (1);
 	}
-	else if(-1*pitch > <-18> and -1*pitch < <0>){
-		move topBarrel to y-axis [1] speed [10];
-		move leftBarrel to y-axis [1] speed [10];
-		move rightBarrel to y-axis [1] speed [10];
-		turn turrretPitchPivot to x-axis -1*pitch speed <40.000000>;
+	else{
+		return (0);
 	}
-	else {
-		move topBarrel to y-axis [0] speed [10];
-		move leftBarrel to y-axis [0] speed [10];
-		move rightBarrel to y-axis [0] speed [10];
-		turn turrretPitchPivot to x-axis -1*pitch speed <40.000000>;
-	}
-	wait-for-turn turretHeadingPivot around y-axis;
-	wait-for-turn turrretPitchPivot around x-axis;
-	start-script RestoreAfterDelay();
-	return (1);
 }
 
 FirePrimary()
