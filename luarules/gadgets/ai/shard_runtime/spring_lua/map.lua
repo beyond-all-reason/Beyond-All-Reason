@@ -67,7 +67,7 @@ end
 
 function map:RequestPath(moveClass, POS1, POS2,radius) -- returns a path
 
-	radius = radius or 8
+	radius = radius or 128
 	if not moveClass then
 		Spring.Echo('RequestPath receive a nil moveClass',moveClass)
 		return
@@ -94,6 +94,19 @@ function map:RequestPath(moveClass, POS1, POS2,radius) -- returns a path
 
 end
 
+function map:GetPathObject(moveID, start_x, start_y, start_z, end_x, end_y, end_z,radius)
+	if not moveID or not start_x or not start_y or not start_z or not end_x or not end_y or not end_z then
+		print('ksjdbcskcdj')
+		return
+	end
+	radius = radius or 8
+	return Spring.RequestPath(moveID, start_x, start_y, start_z, end_x, end_y, end_z,radius)
+end
+
+function map:GetPathWaypoints(pathObject)
+	if not pathObject then return end
+	return pathObject:GetPathWayPoints()
+end
 function map:GetMapFeatures()
 	local fv = Spring.GetAllFeatures()
 	if not fv then return {} end

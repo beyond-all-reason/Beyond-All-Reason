@@ -535,12 +535,38 @@ end
 
 
 
-function MapHST:getPath(unitName,POS1,POS2,toGrid)
+function MapHST:getPathBackup(unitName,POS1,POS2,toGrid)
 	local mclass = self.ai.armyhst.unitTable[unitName].mclass
 	
 	local waypoints = map:RequestPath(mclass, POS1, POS2)
 	if not waypoints then
 		self:Warn('no path found',POS1,POS2)
+		return
+	end
+	local last = waypoints[#waypoints]
+	local distance_to_goal = self.ai.tool:distance(POS2, {x=last[1],z=last[3]})
+	if distance_to_goal > self.gridSize/2 then
+		self:Warn('invalid path find',POS1,POS2)
+		return
+	end
+	if toGrid then
+		return self:gridThePath(waypoints)
+	else
+		return waypoints
+	end
+end
+
+function MapHST:getPath(unitName,POS1,POS2,toGrid)
+	local mclass = self.ai.armyhst.unitTable[unitName].mclass
+	
+	local pathObject = map:GetPathObject(mclass, POS1.x,POS1.y,POS1.z, POS2.x,POS2.y,POS2.z)
+	if not pathObject then 
+		self:Warn('no path found',POS1,POS2) 
+		return
+	end
+	local waypoints = map:GetPathWaypoints(pathObject)
+	if not waypoints then
+		self:Warn('no waypoints for the object found',POS1,POS2)
 		return
 	end
 	local last = waypoints[#waypoints]

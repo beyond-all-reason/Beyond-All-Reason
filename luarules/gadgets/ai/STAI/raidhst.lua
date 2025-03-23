@@ -85,9 +85,9 @@ function RaidHST:DraftAttackSquads()
 					self:EchoDebug('init a new squad')
 					self:SetMassLimit()
 					self.squadID = self.squadID + 1
-					self.squads[self.squadID] = {}
+					self.squads[self.squadID] = self.ai.tool:RezTable()
 					local squad = self.squads[self.squadID]
-					squad.members = {}
+					squad.members = self.ai.tool:RezTable()
 					squad.squadID = self.squadID
 					table.insert(squad.members , soldier)
 					squad.mtype = mtype
@@ -95,8 +95,11 @@ function RaidHST:DraftAttackSquads()
 					squad.role = nil
 					squad.watchdogTimer = game:Frame()
 					soldier.squad = squad
-
-					squad.colour = {0,math.random(),math.random(),1}
+					squad.colour = self.ai.tool:RezTable()
+					squad.colour[1] = 0
+					squad.colour[2] = math.random()
+					squad.colour[3] = math.random()
+					squad.colour[4] = 1
 					--self:SquadFormation(squad)
 					--squad.graph = self.ai.maphst:GetPathGraph(squad.mtype)
 
@@ -133,13 +136,13 @@ function RaidHST:SquadCheck(squad)
 		self:SquadDisband(squad, squad.squadID)
 		return
 	end
-	squad.position = squad.position or {}
+	squad.position = squad.position or self.ai.tool:RezTable()
 	squad.position.x = x / memberCount
 	squad.position.z = z / memberCount
 	squad.position.y = map:GetGroundHeight(squad.position.x,squad.position.x)
 	squad.mass = mass
 	squad.lastAdvance = squad.lastAdvance or 0
-	squad.leaderPos = squad.leaderPos or {}
+	squad.leaderPos = squad.leaderPos or self.ai.tool:RezTable()
 	for i,member in pairs(squad.members) do
 		if member.unit then
 			squad.leader = member.unit:Internal()
@@ -156,7 +159,7 @@ function RaidHST:SquadDisband(squad)
 		self:AddRecruit(member)
 		member.squad = nil
 	end
-	self.squads[squad.squadID] = nil
+	self.squads[squad.squadID] = self.ai.tool:KillTable(squad)
 end
 
 
@@ -177,9 +180,10 @@ function RaidHST:SquadFindPath(squad,target)
 		return
 	end
 	self:EchoDebug('search a path for ',squad.squadID,target.POS.x,target.POS.z)
+	local path
 	if not self.ai.armyhst['airgun'][squad.leader:Name()] then --TODO workaraund for airgun that do not have mclass
 
-		local path = self.ai.maphst:getPath(squad.leader:Name(),squad.leaderPos,target.POS,true)
+		path = self.ai.maphst:getPath(squad.leader:Name(),squad.leaderPos,target.POS,true)
 	end
 
 	if path then
@@ -270,7 +274,7 @@ function RaidHST:SquadsTargetUpdate2()
 			end
 			local offense = self:SquadsTargetAttack2(squad)
 			if squad.lock and offense then
-				path, step = self:SquadFindPath(squad,offense)
+				local path, step = self:SquadFindPath(squad,offense)
 				if path and step then
 					squad.target = offense
 					squad.role = 'offense'
@@ -363,28 +367,28 @@ function RaidHST:SquadResetTarget(squad)
 	squad.idleCount = 0
 end
 
-function RaidHST:RemoveMember(attkbhvr)
-	if attkbhvr == nil then return end
-	if not attkbhvr.squad then return end
-	local squad = attkbhvr.squad
+function RaidHST:RemoveMember(rdbhvr)
+	if rdbhvr == nil then return end
+	if not rdbhvr.squad then return end
+	local squad = rdbhvr.squad
 	for index,member in pairs(squad.members)do
-		if member == attkbhvr then
+		if member == rdbhvr then
 			table.remove(squad.members, iu)
 			if #squad.members == 0 then
 				self:SquadDisband(squad)
 			end
-			attkbhvr.squad = nil
+			rdbhvr.squad = nil
 			return true
 		end
 	end
 end
 
-function RaidHST:IsRecruit(attkbhvr)
-	if attkbhvr.unit == nil then return false end
-	local mtype = self.ai.maphst:MobilityOfUnit(attkbhvr.unit:Internal())
+function RaidHST:IsRecruit(rdbhvr)
+	if rdbhvr.unit == nil then return false end
+	local mtype = self.ai.maphst:MobilityOfUnit(rdbhvr.unit:Internal())
 	if self.recruits[mtype] ~= nil then
 		for i,v in pairs(self.recruits[mtype]) do
-			if v == attkbhvr then
+			if v == rdbhvr then
 				return true
 			end
 		end
@@ -392,23 +396,23 @@ function RaidHST:IsRecruit(attkbhvr)
 	return false
 end
 
-function RaidHST:AddRecruit(attkbhvr)
-	if not self:IsRecruit(attkbhvr) then
-		if attkbhvr.unit ~= nil then
-			local mtype = self.ai.maphst:MobilityOfUnit(attkbhvr.unit:Internal())
+function RaidHST:AddRecruit(rdbhvr)
+	if not self:IsRecruit(rdbhvr) then
+		if rdbhvr.unit ~= nil then
+			local mtype = self.ai.maphst:MobilityOfUnit(rdbhvr.unit:Internal())
 			if self.recruits[mtype] == nil then self.recruits[mtype] = {} end
-			table.insert(self.recruits[mtype], attkbhvr)
-			attkbhvr:Free()
+			table.insert(self.recruits[mtype], rdbhvr)
+			rdbhvr:Free()
 		else
 			self:EchoDebug("unit is nil!")
 		end
 	end
 end
 
-function RaidHST:RemoveRecruit(attkbhvr)
+function RaidHST:RemoveRecruit(rdbhvr)
 	for mtype, recruits in pairs(self.recruits) do
 		for i,v in ipairs(recruits) do
-			if v == attkbhvr then
+			if v == rdbhvr then
 				table.remove(self.recruits[mtype], i)
 				return true
 			end
@@ -417,13 +421,13 @@ function RaidHST:RemoveRecruit(attkbhvr)
 	return false
 end
 
-function RaidHST:MemberIdle(attkbhvr, squad)
+function RaidHST:MemberIdle(rdbhvr, squad)
 	if not squad then
 		self:EchoDebug('no squad for idle member')
 		return
 	end
-	if attkbhvr then
-		squad = attkbhvr.squad
+	if rdbhvr then
+		squad = rdbhvr.squad
 		squad.idleCount = (squad.idleCount or 0) + 1
 	end
 end
@@ -491,7 +495,7 @@ end
 
 
 
-
+--[[
 function RaidHST:SquadAttack(squad)
 	if not squad.target then
 		self:EchoDebug('squad',squad.squadID,'no target to raid')
@@ -580,7 +584,7 @@ function RaidHST:SquadAdvanceBackup(squad)
 	squad.lastAdvance = game:Frame()
 	self:EchoDebug('advance after members move')
 end
-
+]]
 
 
 

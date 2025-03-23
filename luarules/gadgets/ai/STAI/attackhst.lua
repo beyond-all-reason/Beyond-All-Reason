@@ -450,20 +450,16 @@ function AttackHST:SquadsTargetAttack2(squad)
 	local worstDist = 0
 	
 	for ref, blob in pairs(self.ai.targethst.IMMOBILE_BLOBS) do
-		print('1')
 		if self.ai.loshst.ENEMY[blob.targetCell.X][blob.targetCell.Z] then
-			print(2)
 			--if not self:SquadsTargetHandled(self.ai.loshst.ENEMY[blob.defendCell.X][blob.defendCell.Z]) then
 			local mclass = squad.leader:Name()
 			local path = self.ai.maphst:getPath(mclass,squad.leaderPos,blob.position)
 			
 			if path then
-				print(3)
 				local dist = self.ai.tool:distance(blob.position,self.ai.targethst.enemyCenter)
 				--if dist > worstDist then
 					worstDist = dist
 					bestTarget = self.ai.loshst.ENEMY[blob.targetCell.X][blob.targetCell.Z]
-					print(4)
 					break
 				--end
 			end
