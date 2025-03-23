@@ -60,7 +60,7 @@ end
 
 local vsx, vsy = Spring.GetViewGeometry()
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
+local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
 
 local customScale = 1
 local pointDuration = 45
