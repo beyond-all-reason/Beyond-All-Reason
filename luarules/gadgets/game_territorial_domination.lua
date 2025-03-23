@@ -638,7 +638,7 @@ if SYNCED then
 				averageTally = averageTally / count
 				for allyID, tally in pairs(allyTallies) do
 					updateUnsyncedScore(allyID, tally)
-					if tally < defeatThreshold and (tally > averageTally and count > 1) and not DEBUGMODE then
+					if tally < defeatThreshold and (tally ~= averageTally and count > 1) and not DEBUGMODE then
 						--check if score is below average score to prevent defeat in case of a tie
 						triggerAllyDefeat(allyID)
 						setAllyGridToGaia(allyID)
