@@ -1860,6 +1860,7 @@ function drawMainList()
 end
 
 function drawMainList2()
+    local mouseX, mouseY = Spring_GetMouseState()
 	local leader
 	for i, drawObject in ipairs(drawList) do
 		if drawObject == -1 then
