@@ -12,7 +12,7 @@ return {
 		explodeas = "tinyExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
-		health = 75,
+		health = 90,
 		idleautoheal = 5,
 		idletime = 1800,
 		leavetracks = false,
