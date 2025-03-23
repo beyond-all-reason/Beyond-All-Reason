@@ -50,7 +50,7 @@ if SYNCED then
 	Spring.Echo("SECONDS_TO_START: " .. SECONDS_TO_START)
 
 	--configs
-	local DEBUGMODE = true -- Changed to uppercase as it's a constant
+	local DEBUGMODE = false -- Changed to uppercase as it's a constant
 	local FLYING_UNIT_POWER_MULTIPLIER = 0 -- units cannot capture while flying
 	local CLOAKED_UNIT_POWER_MULTIPLIER = 0 -- units cannot capture while cloaked
 	local STATIC_UNIT_POWER_MULTIPLIER = 3
