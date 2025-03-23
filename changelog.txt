@@ -1,11 +1,48 @@
+# March 2025
+• [Armada solar] Buildtime 2800 -> 2600 
+• [Armada wind] Metalcost 37 -> 40
+• [Cortex wind] Metalcost 45 -> 43, Health 199 -> 220
+• [Armada tidal] Energycost 250 -> 200
+• [Armada asolar] Metalcost 370 -> 350
+• [Cortex cons] +5% BP
+• [Exploiter] Buildtime 2720 -> 2900
+• [T2 radars] Metalcost 560 -> 400, Energycost 19000 -> 14000, Buildtime 11800 -> 8000
+• [Sneaky Pete] Cloaking removed
+• [Jammer ships] Costs +130%, Health +130%, Speed 61 -> 40
+• [Spybots] Cloaking cost 100/50 -> 40/15, EMP immunity removed, Attack command for self-destruct added, Damage 56000 -> 5000, Paralyzetime 35/20 -> 8s
+• [Banisher] Can now fire in all directions, Sightdistance 550 -> 650, Energycost 23000 -> 17000, Improved aim/tracking
+• [Tremor] Damage 150 -> 200, AoE 200 -> 210, Weapon hits a wider area
+• [Poison Arrow] Energycost 29000 -> 21000, Buildtime 22200 -> 19000, Sightdistance 385 -> 500
+• [Turtle] Sightdistance 372 -> 500
+• [Garpike/Pincer] Sightdistance 305 -> 500, Faster turning turrets
+• [Hound] Lost gauss weapon switch, Metalcost 300 -> 285
+• [Recluse] Range 600 -> 575, Speed 52 -> 47
+• [Grunt] Metalcost 36 --> 43, Energycost 880 -> 840, Range 230 -> 210, Turnrate 1391 -> 1200
+• [Tick] Metalcost 17 -> 21, Energycost 340 -> 300,  Health 61 -> 60
+• [Pawn] Metalcost 48 -> 52, Energycost 960 -> 870, Health 335 -> 370
+• [Rover] Health 89 -> 105 
+• [Rascal] Health 75 -> 90
+• [Blitz] Health 690 -> 750, Ellipsoid hitbox, Sightrange 299 -> 350
+• [Incisor] Buildtime 1761 -> 2200, Sightrange 273 -> 330
+• [Shuriken] Reloadtime 1.2s -> 1.3s
+• [Stormbringer] Drops bombs 17% closer together
+• [Banshee] Health 485 -> 560, Turnrate increased, New weapon graphics with functionally similar stats
+• [Stork] Health 265 -> 350
+• [Hercules] Health 280 -> 370
+• [Osprey] Health 630 -> 570
+• [Hephaestus] Health 800 -> 720
+• [Abductor] Speed 241.5 -> 205, Energycost 6600 -> 7000 
+• [Skyhook] Speed 235 -> 200, Buildtime 10000 -> 11000
+• Inaccuracy removed from all T1 laser weapons
+
 # January 2025
 • [Artillery] The High/Low Trajectory toggle has been removed and been automated. Both modes now share the same damage and AOE. Aiming low is preferred, but if there's no low trajectory targets in range  or the manually selected target cannot be shot with low trajectory, high trajectory will be used instead for a short time.
-	The following units are affected:
-	- [Gauntlet] (T1 Plasma Artillery Turret)
-	- [Agitator] (T1 Plasma Artillery Turret)
-	- [Rattlesnake] (T2 Plasma Popup Artillery)
-	- [Persecutor] (T2 Plasma Popup Artillery)
-	- [Vanguard] (T3 Mobile All-Terrain Artillery)
+    The following units are affected:
+    - [Gauntlet] (T1 Plasma Artillery Turret)
+    - [Agitator] (T1 Plasma Artillery Turret)
+    - [Rattlesnake] (T2 Plasma Popup Artillery)
+    - [Persecutor] (T2 Plasma Popup Artillery)
+    - [Vanguard] (T3 Mobile All-Terrain Artillery)
 • [Angler] The T2 Cortex torpedo bomber now drops 1 large torpedo instead of 3 small ones.  The large torpedo is slightly slower but has some aoe  
 • [Serpent] The Arm T2 battlesub now fires 2 medium torpedos at once instead of 1 large one, overall dps unchanged but some aoe is added
 • [Kraken] The Cor T2 battlesub's torpedo aoe increased
