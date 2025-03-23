@@ -1,10 +1,10 @@
 function gadget:GetInfo()
 	return {
-		name = "Unit In Square Tracker",
-		desc = "Cuts the map into squares and tracks which squares units are in",
+		name = "Territorial Domination",
+		desc = "Implements territorial domination victory condition",
 		author = "SethDGamre",
 		date = "2025.02.08",
-		license = "GNU GPL, v2 or later",
+		license = "GNU GPL, v2",
 		layer = -10,
 		enabled = true,
 		depends   = {'gl4'},
@@ -14,22 +14,46 @@ end
 -- TODO:
 -- need to convert the score text display to use i18n for language localization
 
--- need to add entry for C:\Program Files\Beyond-All-Reason\data\games\BAR.sdd\luaui\Widgets\gui_game_type_info.lua to inform players of game type
+-- check and make sure that aircraft aren't already entered air when they're first built
 -- warning sounds
+
 -- code cleanup
 -- need to do the modoptions
+
+local modOptions = Spring.GetModOptions()
+if modOptions.deathmode ~= "territorial_domination" then return false end
+Spring.Echo("Territorial Domination is enabled")
 
 local SYNCED = gadgetHandler:IsSyncedCode()
 
 if SYNCED then
+
+	local territorialDominationConfig = {
+		short = {
+			gracePeriod = 3 * 60,
+			maxTime = 15 * 60,
+		},
+		default = {
+			gracePeriod = 5 * 60,
+			maxTime = 22 * 60,
+		},
+		long = {
+			gracePeriod = 10 * 60,
+			maxTime = 35 * 60,
+		},
+	}
+	
+	local SECONDS_TO_MAX = territorialDominationConfig[modOptions.territorial_domination_config].maxTime
+	local SECONDS_TO_START = territorialDominationConfig[modOptions.territorial_domination_config].gracePeriod
+
+	Spring.Echo("SECONDS_TO_MAX: " .. SECONDS_TO_MAX)
+	Spring.Echo("SECONDS_TO_START: " .. SECONDS_TO_START)
 
 	--configs
 	local DEBUGMODE = true -- Changed to uppercase as it's a constant
 	local FLYING_UNIT_POWER_MULTIPLIER = 0 -- units cannot capture while flying
 	local CLOAKED_UNIT_POWER_MULTIPLIER = 0 -- units cannot capture while cloaked
 	local STATIC_UNIT_POWER_MULTIPLIER = 3
-	local MINUTES_TO_MAX = 20
-	local MINUTES_TO_START = 5
 	local MAX_PROGRESS = 1.0
 	local PROGRESS_INCREMENT = 0.06
 	local CONTIGUOUS_PROGRESS_INCREMENT = 0.03
@@ -209,14 +233,13 @@ if SYNCED then
 		local COOLDOWN_TIME = 10
 		local seconds = spGetGameSeconds()
 		local allyCount = allyTeamsCount + allyHordesCount
-		local totalMinutes = seconds / 60
 
-		if defeatCheckCooldown > seconds or totalMinutes < MINUTES_TO_START or allyCount == 1 then return end
+		if defeatCheckCooldown > seconds or seconds < SECONDS_TO_START or allyCount == 1 then return end
 
-		local elapsedMinutes = totalMinutes - MINUTES_TO_START
-		local adjustedMinutesToMax = MINUTES_TO_MAX - MINUTES_TO_START
+		local elapsedSeconds = seconds - SECONDS_TO_START
+		local adjustedSecondsToMax = SECONDS_TO_MAX - SECONDS_TO_START
 
-		local progressRatio = min(elapsedMinutes / adjustedMinutesToMax, 1)
+		local progressRatio = min(elapsedSeconds / adjustedSecondsToMax, 1)
 		local wantedThreshold = min(((progressRatio * #captureGrid) / allyCount), #captureGrid / 2) -- because two teams must fight for half at most
 		if wantedThreshold > defeatThreshold then
 			defeatThreshold = defeatThreshold + 1
