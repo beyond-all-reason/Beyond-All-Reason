@@ -845,8 +845,14 @@ void main() {
 	vec2 distanceToEdges = min(textureCoordinate, 1.0 - textureCoordinate);
 	float distanceToEdge = min(distanceToEdges.x, distanceToEdges.y);
 	
-	float borderFadeDistance = mix(16.0, 64.0, isInMinimap) / 1024.0;
-	float borderOpacity = 1.0 - clamp(distanceToEdge / borderFadeDistance, 0.0, 1.0);
+	// Border handling - only for main view, not for minimap
+	float borderOpacity = 0.0;
+	
+	// Only show borders in the main view, not in the minimap
+	if (isInMinimap < 0.5) {
+		float borderFadeDistance = 16.0 / 1024.0;
+		borderOpacity = 1.0 - clamp(distanceToEdge / borderFadeDistance, 0.0, 1.0);
+	}
 	
 	float distanceToCorner = 1.4142135623730951; // sqrt(2)
 	float distanceToCenter = length(textureCoordinate - centerPoint) * 2.0;
@@ -856,8 +862,8 @@ void main() {
 	float circleFillAmount = 1.0 - clamp((distanceToCenter - animatedProgress) / circleSoftness, 0.0, 1.0);
 	circleFillAmount = step(0.0, circleFillAmount) * circleFillAmount;
 	
-	float pulseValue = sin(currentGameFrame * 0.2) * 0.5 + 0.5;
-	vec4 borderColor = mix(vec4(0.9, 0.9, 0.9, 0.45), vec4(1.0, 1.0, 1.0, 0.45), pulseValue);
+	// Border color only for main view
+	vec4 borderColor = vec4(0.95, 0.95, 0.95, 0.45);
 	
 	vec4 finalColor = vec4(color.rgb, color.a * circleFillAmount);
 	finalColor = mix(finalColor, borderColor, borderOpacity * step(0.0, borderOpacity));
