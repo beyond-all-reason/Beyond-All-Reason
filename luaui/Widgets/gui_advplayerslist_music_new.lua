@@ -10,6 +10,8 @@ function widget:GetInfo()
 	}
 end
 
+local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
+
 Spring.CreateDir("music/custom/loading")
 Spring.CreateDir("music/custom/peace")
 Spring.CreateDir("music/custom/warlow")
@@ -273,7 +275,7 @@ if volume > 80 then
 end
 
 local RectRound, UiElement, UiButton, UiSlider, UiSliderKnob, bgpadding, elementCorner
-local borderPaddingRight, borderPaddingLeft, font, draggingSlider, doCreateList, mouseover
+local borderPaddingRight, borderPaddingLeft, font, draggingSlider, mouseover
 local buttons = {}
 local drawlist = {}
 local advplayerlistPos = {}
@@ -281,6 +283,7 @@ local widgetScale = 1
 local widgetHeight = 22
 local top, left, bottom, right = 0,0,0,0
 local borderPadding = bgpadding
+local updateDrawing = false
 
 local vsx, vsy = Spring.GetViewGeometry()
 local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
@@ -407,12 +410,90 @@ local function processTrackname(trackname)
 	return capitalize(trackname)
 end
 
-local function createList()
+local function drawBackground()
+	UiElement(left, bottom, right, top, 1,0,0,1, 1,1,0,1, nil, nil, nil, nil, useRenderToTexture)
+	borderPadding = bgpadding
+	borderPaddingRight = borderPadding
+	if right >= vsx-0.2 then
+		borderPaddingRight = 0
+	end
+	borderPaddingLeft = borderPadding
+	if left <= 0.2 then
+		borderPaddingLeft = 0
+	end
+end
+
+local function drawContent()
 	local trackname
 	local padding = math.floor(2.75 * widgetScale) -- button background margin
 	local padding2 = math.floor(2.5 * widgetScale) -- inner icon padding
 	local volumeWidth = math.floor(50 * widgetScale)
 	local heightoffset = -math.floor(0.9 * widgetScale)
+	local textsize = 11 * widgetScale
+	local textXPadding = 10 * widgetScale
+	--local maxTextWidth = right-buttons['playpause'][3]-textXPadding-textXPadding
+	local maxTextWidth = right-textXPadding-textXPadding
+
+	local button = 'playpause'
+	glColor(0.88,0.88,0.88,0.9)
+	if playing then
+		glTexture(pauseTex)
+	else
+		glTexture(playTex)
+	end
+	glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
+
+	button = 'next'
+	glColor(0.88,0.88,0.88,0.9)
+	glTexture(nextTex)
+	glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
+
+	local sliderWidth = math.floor((4.5 * widgetScale)+0.5)
+	local lineHeight = math.floor((1.65 * widgetScale)+0.5)
+
+	local button = 'musicvolumeicon'
+	local sliderY = math.floor(buttons[button][2] + (buttons[button][4] - buttons[button][2])/2)
+	glColor(0.8,0.8,0.8,0.9)
+	glTexture(musicTex)
+	glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
+	glTexture(false)
+
+	button = 'musicvolume'
+	UiSlider(buttons[button][1], sliderY-lineHeight, buttons[button][3], sliderY+lineHeight)
+	UiSliderKnob(buttons[button][5]-(sliderWidth/2), sliderY, sliderWidth)
+
+	button = 'volumeicon'
+	glColor(0.8,0.8,0.8,0.9)
+	glTexture(volumeTex)
+	glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
+	glTexture(false)
+
+	button = 'volume'
+	UiSlider(buttons[button][1], sliderY-lineHeight, buttons[button][3], sliderY+lineHeight)
+	UiSliderKnob(buttons[button][5]-(sliderWidth/2), sliderY, sliderWidth)
+end
+
+local function refreshUiDrawing()
+	if WG['guishader'] then
+		if guishaderList then
+			guishaderList = glDeleteList(guishaderList)
+		end
+		guishaderList = glCreateList( function()
+			RectRound(left, bottom, right, top, elementCorner, 1,0,0,1)
+		end)
+		WG['guishader'].InsertDlist(guishaderList, 'music', true)
+	end
+
+	local trackname
+	local padding = math.floor(2.75 * widgetScale) -- button background margin
+	local padding2 = math.floor(2.5 * widgetScale) -- inner icon padding
+	local volumeWidth = math.floor(50 * widgetScale)
+	local heightoffset = -math.floor(0.9 * widgetScale)
+	local textsize = 11 * widgetScale
+	local textXPadding = 10 * widgetScale
+	--local maxTextWidth = right-buttons['playpause'][3]-textXPadding-textXPadding
+	local maxTextWidth = right-textXPadding-textXPadding
+
 	buttons['playpause'] = {left+padding+padding, bottom+padding+heightoffset, left+(widgetHeight*widgetScale), top-padding+heightoffset}
 	buttons['next'] = {buttons['playpause'][3]+padding, bottom+padding+heightoffset, buttons['playpause'][3]+((widgetHeight*widgetScale)-padding), top-padding+heightoffset}
 
@@ -425,105 +506,121 @@ local function createList()
 	buttons['volume'] = {buttons['volumeicon'][3]+padding, bottom+padding+heightoffset, buttons['volumeicon'][3]+padding+volumeWidth, top-padding+heightoffset}
 	buttons['volume'][5] = buttons['volume'][1] + (buttons['volume'][3] - buttons['volume'][1]) * (getVolumePos(volume/80))
 
-	local textsize = 11 * widgetScale
-	local textXPadding = 10 * widgetScale
-	--local maxTextWidth = right-buttons['playpause'][3]-textXPadding-textXPadding
-	local maxTextWidth = right-textXPadding-textXPadding
-
 	if drawlist[1] ~= nil then
 		for i=1, #drawlist do
 			glDeleteList(drawlist[i])
 		end
 	end
-	if WG['guishader'] then
-		drawlist[5] = glCreateList( function()
-			RectRound(left, bottom, right, top, elementCorner, 1,0,0,1)
-		end)
-		WG['guishader'].InsertDlist(drawlist[5], 'music', true)
-	end
-	drawlist[1] = glCreateList( function()
-		UiElement(left, bottom, right, top, 1,0,0,1, 1,1,0,1)
-		borderPadding = bgpadding
-		borderPaddingRight = borderPadding
-		if right >= vsx-0.2 then
-			borderPaddingRight = 0
-		end
-		borderPaddingLeft = borderPadding
-		if left <= 0.2 then
-			borderPaddingLeft = 0
-		end
-	end)
-	drawlist[2] = glCreateList( function()
-		local button = 'playpause'
-		glColor(0.88,0.88,0.88,0.9)
-		if playing then
-			glTexture(pauseTex)
-		else
-			glTexture(playTex)
-		end
-		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
-
-		button = 'next'
-		glColor(0.88,0.88,0.88,0.9)
-		glTexture(nextTex)
-		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
-	end)
-	drawlist[3] = glCreateList( function()
-		-- track name
-		trackname = currentTrack or ''
-		glColor(0.45,0.45,0.45,1)
-
-		trackname = processTrackname(trackname)
-
-		local text = ''
-		for i = 1, #trackname do
-			local c = string.sub(trackname, i,i)
-			local width = font:GetTextWidth(text..c) * textsize
-			if width > maxTextWidth then
-				break
-			else
-				text = text..c
+	if useRenderToTexture then
+		if right-left >= 1 and top-bottom >= 1 then
+			if not uiBgTex then
+				uiBgTex = gl.CreateTexture(math.floor(right-left), math.floor(top-bottom), {
+					target = GL.TEXTURE_2D,
+					format = GL.RGBA,
+					fbo = true,
+				})
+				gl.RenderToTexture(uiBgTex, function()
+					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+					gl.PushMatrix()
+					gl.Translate(-1, -1, 0)
+					gl.Scale(2 / (right-left), 2 / (top-bottom), 0)
+					gl.Translate(-left, -bottom, 0)
+					drawBackground()
+					gl.PopMatrix()
+				end)
 			end
+			if not uiTex then
+				uiTex = gl.CreateTexture(math.floor(right-left), math.floor(top-bottom), {
+					target = GL.TEXTURE_2D,
+					format = GL.RGBA,
+					fbo = true,
+				})
+			end
+			gl.RenderToTexture(uiTex, function()
+				gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+				gl.PushMatrix()
+				gl.Translate(-1, -1, 0)
+				gl.Scale(2 / (right-left), 2 / (top-bottom), 0)
+				gl.Translate(-left, -bottom, 0)
+				drawContent()
+				gl.PopMatrix()
+			end)
 		end
-		trackname = text
+	else
+		drawlist[1] = glCreateList( function()
+			drawBackground()
+		end)
+		drawlist[2] = glCreateList( function()
+			local button = 'playpause'
+			glColor(0.88,0.88,0.88,0.9)
+			if playing then
+				glTexture(pauseTex)
+			else
+				glTexture(playTex)
+			end
+			glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
 
-		local button = 'playpause'
-		glColor(0.8,0.8,0.8,0.9)
-		glTexture(musicTex)
-		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
-		glTexture(false)
+			button = 'next'
+			glColor(0.88,0.88,0.88,0.9)
+			glTexture(nextTex)
+			glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
+		end)
+		drawlist[3] = glCreateList( function()
+			-- track name
+			trackname = currentTrack or ''
+			glColor(0.45,0.45,0.45,1)
 
-		font:Begin()
-		font:Print("\255\235\235\235"..trackname, buttons[button][3]+math.ceil(padding2*1.1), bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
-		font:End()
-	end)
-	drawlist[4] = glCreateList( function()
+			trackname = processTrackname(trackname)
 
-		local sliderWidth = math.floor((4.5 * widgetScale)+0.5)
-		local lineHeight = math.floor((1.65 * widgetScale)+0.5)
+			local text = ''
+			for i = 1, #trackname do
+				local c = string.sub(trackname, i,i)
+				local width = font:GetTextWidth(text..c) * textsize
+				if width > maxTextWidth then
+					break
+				else
+					text = text..c
+				end
+			end
+			trackname = text
 
-		local button = 'musicvolumeicon'
-		local sliderY = math.floor(buttons[button][2] + (buttons[button][4] - buttons[button][2])/2)
-		glColor(0.8,0.8,0.8,0.9)
-		glTexture(musicTex)
-		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
-		glTexture(false)
+			local button = 'playpause'
+			glColor(0.8,0.8,0.8,0.9)
+			glTexture(musicTex)
+			glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
+			glTexture(false)
 
-		button = 'musicvolume'
-		UiSlider(buttons[button][1], sliderY-lineHeight, buttons[button][3], sliderY+lineHeight)
-		UiSliderKnob(buttons[button][5]-(sliderWidth/2), sliderY, sliderWidth)
+			font:Begin()
+			font:Print("\255\235\235\235"..trackname, buttons[button][3]+math.ceil(padding2*1.1), bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
+			font:End()
+		end)
+		drawlist[4] = glCreateList( function()
 
-		button = 'volumeicon'
-		glColor(0.8,0.8,0.8,0.9)
-		glTexture(volumeTex)
-		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
-		glTexture(false)
+			local sliderWidth = math.floor((4.5 * widgetScale)+0.5)
+			local lineHeight = math.floor((1.65 * widgetScale)+0.5)
 
-		button = 'volume'
-		UiSlider(buttons[button][1], sliderY-lineHeight, buttons[button][3], sliderY+lineHeight)
-		UiSliderKnob(buttons[button][5]-(sliderWidth/2), sliderY, sliderWidth)
+			local button = 'musicvolumeicon'
+			local sliderY = math.floor(buttons[button][2] + (buttons[button][4] - buttons[button][2])/2)
+			glColor(0.8,0.8,0.8,0.9)
+			glTexture(musicTex)
+			glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
+			glTexture(false)
 
-	end)
+			button = 'musicvolume'
+			UiSlider(buttons[button][1], sliderY-lineHeight, buttons[button][3], sliderY+lineHeight)
+			UiSliderKnob(buttons[button][5]-(sliderWidth/2), sliderY, sliderWidth)
+
+			button = 'volumeicon'
+			glColor(0.8,0.8,0.8,0.9)
+			glTexture(volumeTex)
+			glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
+			glTexture(false)
+
+			button = 'volume'
+			UiSlider(buttons[button][1], sliderY-lineHeight, buttons[button][3], sliderY+lineHeight)
+			UiSliderKnob(buttons[button][5]-(sliderWidth/2), sliderY, sliderWidth)
+		end)
+	end
 
 	if WG['tooltip'] ~= nil and trackname then
 		if trackname and trackname ~= '' then
@@ -548,7 +645,7 @@ local function updatePosition(force)
 	top = math.ceil(advplayerlistPos[1]+(widgetHeight * advplayerlistPos[5]))
 	widgetScale = advplayerlistPos[5]
 	if (prevPos[1] == nil or prevPos[1] ~= advplayerlistPos[1] or prevPos[2] ~= advplayerlistPos[2] or prevPos[5] ~= advplayerlistPos[5]) or force then
-		createList()
+		widget:ViewResize()
 	end
 end
 
@@ -578,7 +675,7 @@ function widget:Initialize()
 		if fadeDirection then
 			setMusicVolume(fadeLevel)
 		end
-		createList()
+		updateDrawing = true
 	end
 	WG['music'].GetShowGui = function()
 		return showGUI
@@ -624,7 +721,7 @@ function widget:Initialize()
 		else
 			setMusicVolume(100)
 		end
-		createList()
+		updateDrawing = true
 	end
 	WG['music'].RefreshSettings = function()
 		interruptionEnabled 			= Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1
@@ -650,26 +747,55 @@ function widget:Shutdown()
 	for i=1,#drawlist do
 		glDeleteList(drawlist[i])
 	end
+	if guishaderList then glDeleteList(guishaderList) end
+	if uiTex then
+		gl.DeleteTextureFBO(uiBgTex)
+		uiBgTex = nil
+		gl.DeleteTextureFBO(uiTex)
+		uiTex = nil
+	end
 	WG['music'] = nil
 end
 
+
+
 function widget:ViewResize(newX,newY)
-	local prevVsx, prevVsy = vsx, vsy
 	vsx, vsy = Spring.GetViewGeometry()
 
-	font = WG['fonts'].getFont()
+	font = WG['fonts'].getFont(nil, 1.1 * (useRenderToTexture and 1.2 or 1), 0.35 * (useRenderToTexture and 1.2 or 1), 1.25)
 
 	bgpadding = WG.FlowUI.elementPadding
 	elementCorner = WG.FlowUI.elementCorner
-
 	RectRound = WG.FlowUI.Draw.RectRound
 	UiElement = WG.FlowUI.Draw.Element
 	UiButton = WG.FlowUI.Draw.Button
-	UiSlider = WG.FlowUI.Draw.Slider
 	UiSliderKnob = WG.FlowUI.Draw.SliderKnob
+	UiSlider = function(px, py, sx, sy)
+		local cs = (sy-py)*0.25
+		local edgeWidth = math.max(1, math.floor((sy-py) * 0.1))
+		if useRenderToTexture then
+			-- faint dark outline edge
+			RectRound(px-edgeWidth, py-edgeWidth, sx+edgeWidth, sy+edgeWidth, cs*1.5, 1,1,1,1, { 0,0,0,0.33 })
+			-- bottom
+			RectRound(px, py, sx, sy, cs, 1,1,1,1, { 1, 1, 1, 0.22 }, { 1, 1, 1, 0 })
+			-- top
+			RectRound(px, py, sx, sy, cs, 1,1,1,1, { 0.4, 0.4, 0.4, 0.6 }, { 0.9,0.9,0.9, 0.6 })
+		else
+			-- faint dark outline edge
+			RectRound(px-edgeWidth, py-edgeWidth, sx+edgeWidth, sy+edgeWidth, cs*1.5, 1,1,1,1, { 0,0,0,0.05 })
+			-- bottom
+			RectRound(px, py, sx, sy, cs, 1,1,1,1, { 1, 1, 1, 0.1 }, { 1, 1, 1, 0 })
+			-- top
+			RectRound(px, py, sx, sy, cs, 1,1,1,1, { 0.1, 0.1, 0.1, 0.22 }, { 0.9,0.9,0.9, 0.22 })
+		end
+	end
 
-	if prevVsx ~= vsx or prevVsy ~= vsy then
-		createList()
+	updateDrawing = true
+	if uiTex then
+		gl.DeleteTextureFBO(uiBgTex)
+		uiBgTex = nil
+		gl.DeleteTextureFBO(uiTex)
+		uiTex = nil
 	end
 end
 
@@ -689,12 +815,12 @@ function widget:MouseMove(x, y)
 			if fadeDirection then
 				setMusicVolume(fadeLevel)
 			end
-			createList()
+			updateDrawing = true
 		end
 		if draggingSlider == 'volume' then
 			volume = math.ceil(getVolumeCoef(getSliderValue(draggingSlider, x)) * 80)
 			Spring.SetConfigInt("snd_volmaster", volume)
-			createList()
+			updateDrawing = true
 		end
 	end
 end
@@ -710,14 +836,14 @@ local function mouseEvent(x, y, button, release)
 				draggingSlider = button
 				maxMusicVolume = math.ceil(getVolumeCoef(getSliderValue(button, x)) * 99)
 				Spring.SetConfigInt("snd_volmusic", math.min(99, maxMusicVolume))   -- It took us 2 and half year to realize that the engine is not saving value of a 100 because it's engine default, which is why we're maxing it at 99
-				createList()
+				updateDrawing = true
 			end
 			button = 'volume'
 			if math_isInRect(x, y, buttons[button][1] - sliderWidth, buttons[button][2], buttons[button][3] + sliderWidth, buttons[button][4]) then
 				draggingSlider = button
 				volume = math.ceil(getVolumeCoef(getSliderValue(button, x)) * 80)
 				Spring.SetConfigInt("snd_volmaster", volume)
-				createList()
+				updateDrawing = true
 			end
 		end
 		if release and draggingSlider ~= nil then
@@ -728,7 +854,7 @@ local function mouseEvent(x, y, button, release)
 				playing = not playing
 				Spring.SetConfigInt('music', (playing and 1 or 0))
 				Spring.PauseSoundStream()
-				createList()
+				updateDrawing = true
 			elseif buttons['next'] ~= nil and math_isInRect(x, y, buttons['next'][1], buttons['next'][2], buttons['next'][3], buttons['next'][4]) then
 				playing = true
 				Spring.SetConfigInt('music', (playing and 1 or 0))
@@ -763,12 +889,12 @@ function widget:Update(dt)
 		if playedTime ~= prevPlayedTime then
 			if not playing then
 				playing = true
-				createList()
+				updateDrawing = true
 			end
 		else
 			if playing then
 				playing = false
-				createList()
+				updateDrawing = true
 			end
 		end
 	end
@@ -791,11 +917,7 @@ function widget:Update(dt)
 		local curVolume = Spring.GetConfigInt("snd_volmaster", 80)
 		if volume ~= curVolume then
 			volume = curVolume
-			doCreateList = true
-		end
-		if doCreateList then
-			createList()
-			doCreateList = nil
+			updateDrawing = true
 		end
 	end
 end
@@ -803,7 +925,9 @@ end
 function widget:DrawScreen()
 	if not showGUI then return end
 	updatePosition()
+
 	local mx, my, mlb = Spring.GetMouseState()
+	prevMouseover = mouseover
 	mouseover = false
 	if WG['topbar'] and WG['topbar'].showingQuit() then
 		mouseover = false
@@ -812,13 +936,33 @@ function widget:DrawScreen()
 			local curVolume = Spring.GetConfigInt("snd_volmaster", 80)
 			if volume ~= curVolume then
 				volume = curVolume
-				createList()
+				updateDrawing = true
 			end
 			mouseover = true
 		end
 	end
-	if drawlist[1] ~= nil then
-		glPushMatrix()
+
+	if updateDrawing or (useRenderToTexture and mouseover ~= prevMouseover) then
+		updateDrawing = false
+		refreshUiDrawing()
+	end
+
+	if useRenderToTexture then
+		if uiBgTex then
+			-- background element
+			gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
+			gl.Texture(uiBgTex)
+			gl.TexRect(left, bottom, right, top, false, true)
+			gl.Texture(false)
+		end
+		if uiTex then
+			-- content
+			gl.Color(1,1,1,1)
+			gl.Texture(uiTex)
+			gl.TexRect(left, bottom, right, top, false, true)
+			gl.Texture(false)
+		end
+	else
 		glCallList(drawlist[1])
 		if not mouseover and not draggingSlider and playing and volume > 0 and playedTime < totalTime then
 			glCallList(drawlist[3])
@@ -826,9 +970,9 @@ function widget:DrawScreen()
 			glCallList(drawlist[2])
 			glCallList(drawlist[4])
 		end
-
+	end
+	if drawlist[1] ~= nil or uiTex then
 		if mouseover then
-
 			-- display play progress
 			local progressPx = math.floor((right - left) * (playedTime / totalTime))
 			if progressPx > 1 and playedTime / totalTime < 1 then
@@ -851,7 +995,6 @@ function widget:DrawScreen()
 			end
 			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 		end
-		glPopMatrix()
 	end
 
 	if mouseover then
@@ -953,7 +1096,7 @@ function PlayNewTrack(paused)
 		end
 	end
 
-	createList()
+	updateDrawing = true
 end
 
 function widget:UnitDamaged(unitID, unitDefID, _, damage)
