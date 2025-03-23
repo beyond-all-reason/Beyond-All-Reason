@@ -688,7 +688,7 @@ end
 function RankingEvent(allyTeamRanking)
 	WG.allyTeamRanking = allyTeamRanking
 	SortList()
-	CreateLists()
+	CreateLists(false,true,true)
 end
 
 function ApmEvent(teamID, fps)
@@ -1581,7 +1581,11 @@ end
 
 -- old funcion called from wherever but it must run in DrawScreen now so we scedule its execution
 function CreateLists(onlyMainList, onlyMainList2, onlyMainList3)
-    updateMainLists = {onlyMainList, onlyMainList2, onlyMainList3}
+    if updateMainLists then
+        updateMainLists = {onlyMainList and onlyMainList or updateMainLists[1], onlyMainList2 and onlyMainList2 or updateMainLists[2], onlyMainList3 and onlyMainList3 or updateMainLists[3]}
+    else
+        updateMainLists = {onlyMainList, onlyMainList2, onlyMainList3}
+    end
 end
 -- must run in DrawScreen due to
 function doCreateLists(onlyMainList, onlyMainList2, onlyMainList3)
