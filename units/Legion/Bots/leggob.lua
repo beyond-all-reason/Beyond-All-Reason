@@ -2,7 +2,7 @@ return {
 	leggob = {
 		maxacc = 0.36,
 		maxdec = 0.72,
-		energycost = 490,
+		energycost = 500,
 		metalcost = 25,
 		buildpic = "LEGGOB.DDS",
 		buildtime = 900,
@@ -18,7 +18,7 @@ return {
 		idletime = 1800,
 		health = 200,
 		maxslope = 17,
-		speed = 72.0,
+		speed = 75,
 		maxwaterdepth = 25,
 		movementclass = "BOT3",
 		nochasecategory = "VTOL",
