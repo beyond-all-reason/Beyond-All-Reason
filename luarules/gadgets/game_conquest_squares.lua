@@ -13,7 +13,6 @@ end
 
 -- TODO:
 
--- need line of sight checks for the squares to know who owns it
 -- when killed via means outside dominion victory, the territories aren't reset to 
 -- spectator selecting various teams doesn't change perspective for score display
 -- percentage of captured territory should become a square count instead of a percentage
@@ -33,7 +32,7 @@ if SYNCED then
 
 	--configs
 	local DEBUGMODE = true -- Changed to uppercase as it's a constant
-	local FLYING_UNIT_POWER_MULTIPLIER = 0.33
+	local FLYING_UNIT_POWER_MULTIPLIER = 0 -- units cannot capture while flying
 	local STATIC_UNIT_POWER_MULTIPLIER = 3
 	local MINUTES_TO_MAX = 20
 	local MINUTES_TO_START = 5
@@ -296,7 +295,11 @@ if SYNCED then
 		end
 
 		for allyID, power in pairs(allyPowers) do
-			power = power + random() -- randomize power to prevent ties where the last tied victor always wins
+			if allyPowers[allyID] > 0 then
+				power = power + random() -- randomize power to prevent ties where the last tied victor always wins
+			else
+				allyPowers[allyID] = nil -- not allowed to capture without power.
+			end
 		end
 		
 		if data.hasUnits then
