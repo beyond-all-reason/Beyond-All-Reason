@@ -20,7 +20,6 @@ end
 local SYNCED = gadgetHandler:IsSyncedCode()
 
 if SYNCED then
--- SYNCED CODE
 
 	--configs
 	local DEBUGMODE = true -- Changed to uppercase as it's a constant
@@ -85,12 +84,10 @@ if SYNCED then
 
 	--tables
 	local allyTeamsWatch = {}
-	local exemptTeams = {}
 	local hordeModeTeams = {}
 	local hordeModeAllies = {}
 	local unitWatchDefs = {}
 	local captureGrid = {}
-	local allyScores = {}
 	local livingCommanders = {}
 	local killQueue = {}
 	local commandersDefs = {}
@@ -106,18 +103,6 @@ if SYNCED then
 				hordeModeTeams[teamID] = true
 			elseif string.sub(luaAI, 1, 12) == 'RaptorsAI' then
 				hordeModeTeams[teamID] = true
-			end
-		end
-		if teamID == gaiaTeamID then
-			exemptTeams[teamID] = true
-		end
-	end
-
-	local function setAllyGridToGaia(allyID)
-		for gridID, data in pairs(captureGrid) do
-			if data.allyOwnerID == allyID then
-				data.allyOwnerID = gaiaAllyTeamID
-				data.progress = STARTING_PROGRESS
 			end
 		end
 	end
@@ -149,6 +134,15 @@ if SYNCED then
 		end
 		for allyID in pairs(allyTeamsWatch) do
 			allyTeamsCount = allyTeamsCount + 1
+		end
+	end
+
+	local function setAllyGridToGaia(allyID)
+		for gridID, data in pairs(captureGrid) do
+			if data.allyOwnerID == allyID then
+				data.allyOwnerID = gaiaAllyTeamID
+				data.progress = STARTING_PROGRESS
+			end
 		end
 	end
 
@@ -666,9 +660,6 @@ VFS.Include(luaShaderDir.."instancevbotable.lua")
 
 local getMiniMapFlipped = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapFlipped
 
---testing variables
-local TEST_SPEED = 0.25
-local TEST_SQUARE_COUNT = 7
 local UNSYNCED_DEBUG_MODE = false
 
 --constants
@@ -688,15 +679,11 @@ local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID()))
 local teams = Spring.GetTeamList()
 local defeatThreshold = 0
 
--- Add font rendering variables
-local minimapSizeX, minimapSizeY = 0, 0
-local minimapPosX, minimapPosY = 0, 0
-local fontSizeMultiplier = 1
-local fontSize = 11
 local lastWarningBlinkTime = 0
 local isWarningVisible = true
 local BLINK_FREQUENCY = 0.5  -- seconds
-local WARNING_THRESHOLD = 5  -- blink red if within 5 points of defeat
+local WARNING_THRESHOLD = 3  -- blink red if within 5 points of defeat
+local ALERT_THRESHOLD = 10  -- alert if within 10 points of defeat
 
 -- Font color constants
 local COLOR_WHITE = {1, 1, 1, 1}
@@ -1294,7 +1281,7 @@ local function drawScore()
     local backgroundRight = displayPositionX + backgroundWidth/2
     
     -- Update color values (reusing tables)
-    if difference <= 3 then
+    if difference <= WARNING_THRESHOLD then
         local currentTime = GetGameSeconds()
         if currentTime - lastWarningBlinkTime > BLINK_FREQUENCY then
             lastWarningBlinkTime = currentTime
@@ -1304,7 +1291,7 @@ local function drawScore()
         currentTextColor[1], currentTextColor[2], currentTextColor[3], currentTextColor[4] = 
             COLOR_RED[1], COLOR_RED[2], COLOR_RED[3], 
             isWarningVisible and COLOR_RED[4] or BLINK_COLOR[4]
-    elseif difference <= 10 then
+    elseif difference <= ALERT_THRESHOLD then
         currentTextColor[1], currentTextColor[2], currentTextColor[3], currentTextColor[4] = 
             COLOR_YELLOW[1], COLOR_YELLOW[2], COLOR_YELLOW[3], COLOR_YELLOW[4]
     else
