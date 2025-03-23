@@ -13,7 +13,6 @@ end
 
 -- TODO:
 
--- flip minimap needs to be implemented
 -- need line of sight checks for the squares to know who owns it
 -- when killed via means outside dominion victory, the territories aren't reset to 
 -- spectator selecting various teams doesn't change perspective for score display
@@ -639,7 +638,7 @@ local captureGrid = {}
 local allyScores = {}
 
 --team stuff
-local myAllyID = select(6, Spring.GetTeamInfo(Spring.GetMyTeamID()))
+local myAllyID = Spring.GetMyAllyTeamID()
 local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID()))
 local teams = Spring.GetTeamList()
 local defeatThreshold = 0
@@ -697,7 +696,7 @@ local squareShader = nil
 local instanceVBO = nil
 local lastMoveFrame = 0
 
-local vsSrc = [[
+local vertexShaderSource = [[
 #version 420
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shader_storage_buffer_object : require
@@ -706,91 +705,72 @@ local vsSrc = [[
 //__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
 
-layout (location = 0) in vec4 position;
-layout (location = 1) in vec4 posscale; // x, y, z, scale
-layout (location = 2) in vec4 color1; // r, g, b, a
-layout (location = 3) in vec4 capturestate; // speed, progress, startframe, unused
+layout (location = 0) in vec4 vertexPosition;
+layout (location = 1) in vec4 instancePositionScale; 
+layout (location = 2) in vec4 instanceColor; 
+layout (location = 3) in vec4 captureParameters; // captureSpeed, progressValue, startFrame, unused
 
-uniform sampler2D heightmapTex;
+uniform sampler2D heightmapTexture;
 uniform int isMinimapRendering;
-uniform int flipMiniMap;
-uniform float mapSizeX;
-uniform float mapSizeZ;
+uniform int flipMinimap;
+uniform float mapSizeXAxis;
+uniform float mapSizeZAxis;
 uniform float minCameraDrawHeight;
 uniform float maxCameraDrawHeight;
 uniform float updateFrameRateInterval;
 
-
-out DataVS {
+out VertexOutput {
 	vec4 color;
-	float progress;
-	float speed;
-	float startframe;
-	float gameFrame;
-	vec2 texCoord;
-	float cameraDist;  // Add camera distance to the output struct
-	float inMinimap;
-	float minCamHeight;
-	float maxCamHeight;
-	float updateFrameInterval;
+	float progressValue;
+	float progressSpeed;
+	float startFrame;
+	vec2 textureCoordinate;
+	float cameraDistance;
+	float isInMinimap;
+	float currentGameFrame;
 };
 
 void main() {
-	// Pass color without pulsing effect
-	color = color1;
+	color = instanceColor;
+	progressSpeed = captureParameters.x;
+	progressValue = captureParameters.y;
+	startFrame = captureParameters.z;
+	currentGameFrame = timeInfo.x;
 	
-	// Pass progress for visualization
-	speed = capturestate.x;
-	progress = capturestate.y;
+	textureCoordinate = vertexPosition.xy * 0.5 + 0.5;
 	
-	// Generate texture coordinates for the circle effect
-	texCoord = position.xy * 0.5 + 0.5; // Convert from [-1,1] to [0,1]
-	
-	// Calculate camera distance
-	vec3 cameraPos = cameraViewInv[3].xyz;
-	cameraDist = length(cameraPos);
+	vec3 cameraPosition = cameraViewInv[3].xyz;
+	cameraDistance = length(cameraPosition);
 	
 	if (isMinimapRendering == 1) {
-		vec2 minimapPos = (posscale.xz / vec2(mapSizeX, mapSizeZ));
-		vec2 squareSize = vec2(posscale.w / mapSizeX, posscale.w / mapSizeZ) * 0.5;
+		vec2 minimapPosition = (instancePositionScale.xz / vec2(mapSizeXAxis, mapSizeZAxis));
+		vec2 squareSize = vec2(instancePositionScale.w / mapSizeXAxis, instancePositionScale.w / mapSizeZAxis) * 0.5;
 		
-		vec2 vertexPos = position.xy * squareSize + minimapPos;
+		vec2 vertexPositionMinimap = vertexPosition.xy * squareSize + minimapPosition;
 		
-		if (flipMiniMap == 0) {
-			vertexPos.y = 1.0 - vertexPos.y;  // Invert Y when minimap is not flipped
+		if (flipMinimap == 0) {
+			vertexPositionMinimap.y = 1.0 - vertexPositionMinimap.y;
 		}
 		
-		// Convert to clip space coordinates (-1 to 1)
-		gl_Position = vec4(vertexPos.x * 2.0 - 1.0, vertexPos.y * 2.0 - 1.0, 0.0, 1.0);
-		inMinimap = 1;
+		gl_Position = vec4(vertexPositionMinimap.x * 2.0 - 1.0, vertexPositionMinimap.y * 2.0 - 1.0, 0.0, 1.0);
+		isInMinimap = 1.0;
 	} else {
-		// World rendering mode
-		// Use position.y as Z coordinate since makePlaneVBO creates X-Y plane
-		vec4 worldPos = vec4(position.x * posscale.w * 0.5, 0.0, position.y * posscale.w * 0.5, 1.0);  // Multiply by 0.5 to fix scaling
-		worldPos.xz += posscale.xz;
+		vec4 worldPosition = vec4(vertexPosition.x * instancePositionScale.w * 0.5, 0.0, vertexPosition.y * instancePositionScale.w * 0.5, 1.0);
+		worldPosition.xz += instancePositionScale.xz;
 		
-		// Get height from heightmap
-		vec2 uvhm = heightmapUVatWorldPos(worldPos.xz);
-		float terrainHeight = textureLod(heightmapTex, uvhm, 0.0).x;
+		vec2 heightmapUV = heightmapUVatWorldPos(worldPosition.xz);
+		float terrainHeight = textureLod(heightmapTexture, heightmapUV, 0.0).x;
 		
-		// Set Y position to be terrain height plus offset
-		worldPos.y = terrainHeight + posscale.y;
+		worldPosition.y = terrainHeight + instancePositionScale.y;
 		
-		// Transform to clip space
-		gl_Position = cameraViewProj * worldPos;
-		inMinimap = 0;
+		gl_Position = cameraViewProj * worldPosition;
+		isInMinimap = 0.0;
 	}
-	
-	startframe = capturestate.z;
-	gameFrame = timeInfo.x;
-	minCamHeight = minCameraDrawHeight;
-	maxCamHeight = maxCameraDrawHeight;
-	updateFrameInterval = updateFrameRateInterval;
 }
 ]]
 
 -- Fragment shader source
-local fsSrc = [[
+local fragmentShaderSource = [[
 #version 420
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shader_storage_buffer_object : require
@@ -799,58 +779,52 @@ local fsSrc = [[
 //__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
 
-in DataVS {
+uniform float minCameraDrawHeight;
+uniform float maxCameraDrawHeight;
+uniform float updateFrameRateInterval;
+
+in VertexOutput {
 	vec4 color;
-	float progress;
-	float speed;
-	float startframe;
-	float gameFrame;
-	vec2 texCoord;
-	float cameraDist;
-	float inMinimap;
-	float minCamHeight;
-	float maxCamHeight;
-	float updateFrameInterval;
+	float progressValue;
+	float progressSpeed;
+	float startFrame;
+	vec2 textureCoordinate;
+	float cameraDistance;
+	float isInMinimap;
+	float currentGameFrame;
 };
 
-out vec4 fragColor;
+out vec4 fragmentColor;
 
 void main() {
-	// Cache frequently used values
-	vec2 center = vec2(0.5);
-	vec2 distToEdges = min(texCoord, 1.0 - texCoord);
-	float distToEdge = min(distToEdges.x, distToEdges.y);
+	vec2 centerPoint = vec2(0.5);
+	vec2 distanceToEdges = min(textureCoordinate, 1.0 - textureCoordinate);
+	float distanceToEdge = min(distanceToEdges.x, distanceToEdges.y);
 	
-	// Pre-calculate border parameters
-	float borderFadeDistance = mix(16.0, 64.0, float(inMinimap)) / 1024.0;
-	float borderOpacity = 1.0 - clamp(distToEdge / borderFadeDistance, 0.0, 1.0);
+	float borderFadeDistance = mix(16.0, 64.0, isInMinimap) / 1024.0;
+	float borderOpacity = 1.0 - clamp(distanceToEdge / borderFadeDistance, 0.0, 1.0);
 	
-	// Calculate circle parameters
-	float distanceToCorner = 1.4142135623730951;
-	float pixelToCenterDistance = length(texCoord - center) * 2.0;
-	float scaledProgress = (progress + speed * (gameFrame - startframe)) * distanceToCorner;
+	float distanceToCorner = 1.4142135623730951; // sqrt(2)
+	float distanceToCenter = length(textureCoordinate - centerPoint) * 2.0;
+	float animatedProgress = (progressValue + progressSpeed * (currentGameFrame - startFrame)) * distanceToCorner;
 	float circleSoftness = 0.05;
 	
-	// Calculate circle fill with optimized soft edge
-	float circleFill = 1.0 - clamp((pixelToCenterDistance - scaledProgress) / circleSoftness, 0.0, 1.0);
-	circleFill = step(0.0, circleFill) * circleFill;
+	float circleFillAmount = 1.0 - clamp((distanceToCenter - animatedProgress) / circleSoftness, 0.0, 1.0);
+	circleFillAmount = step(0.0, circleFillAmount) * circleFillAmount;
 	
-	// Calculate pulsing border with optimized math
-	float pulseValue = sin(gameFrame * 0.2) * 0.5 + 0.5;
+	float pulseValue = sin(currentGameFrame * 0.2) * 0.5 + 0.5;
 	vec4 borderColor = mix(vec4(0.9, 0.9, 0.9, 0.45), vec4(1.0, 1.0, 1.0, 0.45), pulseValue);
 	
-	// Calculate final color with optimized blending
-	vec4 finalColor = vec4(color.rgb, color.a * circleFill);
+	vec4 finalColor = vec4(color.rgb, color.a * circleFillAmount);
 	finalColor = mix(finalColor, borderColor, borderOpacity * step(0.0, borderOpacity));
 	
-	// Apply camera distance fade only in world view
 	float fadeAlpha = 1.0;
-	if (inMinimap == 0) {
-		float fadeRange = maxCamHeight - minCamHeight;
-		fadeAlpha = clamp((cameraDist - minCamHeight) / fadeRange, 0.0, 1.0);
+	if (isInMinimap < 0.5) {
+		float fadeRange = maxCameraDrawHeight - minCameraDrawHeight;
+		fadeAlpha = clamp((cameraDistance - minCameraDrawHeight) / fadeRange, 0.0, 1.0);
 	}
 	
-	fragColor = vec4(finalColor.rgb, finalColor.a * fadeAlpha);
+	fragmentColor = vec4(finalColor.rgb, finalColor.a * fadeAlpha);
 }
 ]]
 
@@ -869,32 +843,32 @@ local function GetMaxCameraHeight()
     return minHeight, maxHeight
 end
 
-local function makeShader()
-	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
-	local vsShader = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-	local fsShader = fsSrc
-	local minCameraDrawHeight, maxCameraDrawHeight = GetMaxCameraHeight()
+local function createShader()
+	local engineUniformBufferDefinitions = LuaShader.GetEngineUniformBufferDefs()
+	local processedVertexShader = vertexShaderSource:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefinitions)
+	local processedFragmentShader = fragmentShaderSource
+	local minCameraHeight, maxCameraHeight = GetMaxCameraHeight()
 	
 	squareShader = LuaShader({
-		vertex = vsShader,
-		fragment = fsShader,
+		vertex = processedVertexShader,
+		fragment = processedFragmentShader,
 		uniformInt = {
-			heightmapTex = 0,
+			heightmapTexture = 0,
 			isMinimapRendering = 0,
-			flipMiniMap = 0,
+			flipMinimap = 0,
 		},
 		uniformFloat = {
-			mapSizeX = Game.mapSizeX,
-			mapSizeZ = Game.mapSizeZ,
-			minCameraDrawHeight = minCameraDrawHeight,
-			maxCameraDrawHeight = maxCameraDrawHeight,
+			mapSizeXAxis = Game.mapSizeX,
+			mapSizeZAxis = Game.mapSizeZ,
+			minCameraDrawHeight = minCameraHeight,
+			maxCameraDrawHeight = maxCameraHeight,
 			updateFrameInterval = UPDATE_FRAME_RATE_INTERVAL,
 		},
-	}, "testSquareShader")
+	}, "territorySquareShader")
 	
 	local shaderCompiled = squareShader:Initialize()
 	if not shaderCompiled then
-		Spring.Echo("Failed to compile testSquareShader")
+		Spring.Echo("Failed to compile territory square shader")
 		return false
 	end
 	return true
@@ -987,7 +961,7 @@ local function initGL4()
 	local squareVBO, numVertices, squareIndexVBO, numIndices = makeSquareVBO(1, 1, planeResolution, planeResolution)
 	if not squareVBO then return false end
 	
-	instanceVBO = makeInstanceVBOTable(planeLayout, 12, "test_square_shader")
+	instanceVBO = makeInstanceVBOTable(planeLayout, 12, "territory_square_shader")
 	instanceVBO.vertexVBO = squareVBO
 	instanceVBO.indexVBO = squareIndexVBO
 	instanceVBO.numVertices = numIndices
@@ -996,7 +970,7 @@ local function initGL4()
 	squareVAO = makeVAOandAttach(squareVBO, instanceVBO.instanceVBO, squareIndexVBO)
 	instanceVBO.VAO = squareVAO
 	uploadAllElements(instanceVBO)
-	return makeShader()
+	return createShader()
 end
 
 function gadget:Initialize()
@@ -1061,7 +1035,7 @@ function gadget:DrawWorldPreUnit()
 	
 	squareShader:Activate()
 	squareShader:SetUniformInt("isMinimapRendering", 0)
-	squareShader:SetUniformInt("flipMiniMap", getMiniMapFlipped() and 1 or 0)
+	squareShader:SetUniformInt("flipMinimap", getMiniMapFlipped() and 1 or 0)
 	instanceVBO.VAO:DrawElements(GL.TRIANGLES, instanceVBO.numVertices, 0, instanceVBO.usedElements)
 	
 	squareShader:Deactivate()
@@ -1074,7 +1048,7 @@ function gadget:DrawInMiniMap()
 	
 	squareShader:Activate()
 	squareShader:SetUniformInt("isMinimapRendering", 1)
-	squareShader:SetUniformInt("flipMiniMap", getMiniMapFlipped() and 1 or 0)
+	squareShader:SetUniformInt("flipMinimap", getMiniMapFlipped() and 1 or 0)
 
 	instanceVBO.VAO:DrawElements(GL.TRIANGLES, instanceVBO.numVertices, 0, instanceVBO.usedElements)
 	
