@@ -8,23 +8,23 @@ return {
 			--fixed_stun_duration = "isBuilding=true:20,customparams.unitgroup=antinuke:20",	-- Fixed 20s stun duration for buildings and antinukes.
 			--paralyzetime_exception = "isBuilding=false:8",									-- UP TO 8s stun duration for mobile units (depending on hp vs damage)
 		},
-		edgeeffectiveness = 0.75,
+		edgeeffectiveness = 1,
 		explosiongenerator = "custom:genericshellexplosion-huge-lightning",
 		firestarter = 90,
 		impulsefactor = 0,
 		name = "spyexplosion",
 		noselfdamage = 1,
 		paralyzer = 1,
-		paralyzetime = 35,																		-- Absolute max stun duration. See customparams for exceptions.
+		paralyzetime = 8,
 		range = 1280,
-		reloadtime = 0.30000001192093,
+		reloadtime = 0.3,
 		soundhit = "EMGPULS1",
 		soundstart = "arm-bot-medium-stealth-sel",
 		soundstartvolume = 50,
 		tolerance = 7000,
 		turret = 1,
 		damage = {
-			default = 56000,
+			default = 5000,
 		},
 	},
 	spybombxscav = {
@@ -41,7 +41,7 @@ return {
 		paralyzer = 1,
 		paralyzetime = 45,
 		range = 1280,
-		reloadtime = 0.30000001192093,
+		reloadtime = 0.3,
 		soundhit = "EMGPULS1",
 		soundstart = "bombrel",
 		tolerance = 7000,
