@@ -528,7 +528,6 @@ if SYNCED then
 
 
 	local function initializeUnsyncedGrid()
-		-- Create a fully visible bitmask for initial grid setup
 		-- All ally teams can see all squares initially
 		local allVisibleBitmask = 0
 		for allyTeamID in pairs(allyTeamsWatch) do
