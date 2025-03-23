@@ -13,7 +13,6 @@ end
 
 -- TODO:
 
--- when killed via means outside dominion victory, the territories aren't reset to 
 -- spectator selecting various teams doesn't change perspective for score display
 -- percentage of captured territory should become a square count instead of a percentage
 -- decrease the edge fuzziness of the squares drawn on the minimap
@@ -727,6 +726,7 @@ local alliedColor = {0, 1, 0, SQUARE_ALPHA} -- green for ally
 
 -- Add spectator detection
 local amSpectating = Spring.GetSpectatingState()
+local selectedAllyTeamID = Spring.GetMyAllyTeamID() -- Track the selected team for spectators
 
 local allyColors = {}
 for _, teamID in ipairs(teams) do
@@ -1118,6 +1118,19 @@ function gadget:Update()
         amSpectating = Spring.GetSpectatingState()
         myAllyID = Spring.GetMyAllyTeamID()
         
+        -- Update the selected ally team for spectators
+        if amSpectating then
+            local selectedTeamID = Spring.GetSpectatingState() and Spring.GetSelectedUnitsCount() > 0 and 
+                                  Spring.GetUnitTeam(Spring.GetSelectedUnits()[1])
+            if selectedTeamID then
+                selectedAllyTeamID = select(6, Spring.GetTeamInfo(selectedTeamID)) or myAllyID
+            else
+                selectedAllyTeamID = myAllyID
+            end
+        else
+            selectedAllyTeamID = myAllyID
+        end
+        
         -- If player status changed, we need to re-evaluate visibility for all squares
         local playerStatusChanged = false
         if amSpectating ~= wasSpectating or previousAllyID and myAllyID ~= previousAllyID then
@@ -1250,7 +1263,9 @@ local fontCache = {
 }
 
 local function drawScore()
-    local score = allyScores[myAllyID]
+    -- Choose which ally team score to display
+    local scoreAllyID = amSpectating and selectedAllyTeamID or myAllyID
+    local score = allyScores[scoreAllyID]
     if not score then return end
     
     -- Initialize cached values if needed
@@ -1317,6 +1332,23 @@ end
 
 function gadget:DrawScreen()
     drawScore()
+end
+
+-- Add a player selection handler for spectators
+function gadget:PlayerChanged(playerID)
+    if amSpectating then
+        local selectedTeamID = Spring.GetSpectatingState() and Spring.GetSelectedUnitsCount() > 0 and 
+                              Spring.GetUnitTeam(Spring.GetSelectedUnits()[1])
+        if selectedTeamID then
+            selectedAllyTeamID = select(6, Spring.GetTeamInfo(selectedTeamID)) or myAllyID
+        end
+    end
+end
+
+function gadget:UnitSelected(unitID, unitDefID, unitTeam, selected)
+    if amSpectating and selected and unitTeam then
+        selectedAllyTeamID = select(6, Spring.GetTeamInfo(unitTeam)) or myAllyID
+    end
 end
 
 end
