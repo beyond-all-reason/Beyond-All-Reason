@@ -2,7 +2,7 @@ return {
 	corseah = {
 		blocking = false,
 		buildpic = "CORSEAH.DDS",
-		buildtime = 10000,
+		buildtime = 11000,
 		canfly = true,
 		canmove = true,
 		collide = false,
@@ -29,7 +29,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "hugeExplosionGenericSelfd",
 		sightdistance = 500,
-		speed = 235,
+		speed = 200,
 		transportcapacity = 1,
 		transportsize = 4,
 		transportunloadmethod = 0,
