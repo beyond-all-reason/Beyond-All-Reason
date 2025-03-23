@@ -97,7 +97,7 @@ local goldMedals = { -- Nation Wars 1st place
 	[59340] = true,  -- [HELO]Austin
 	[64215] = true,  -- XFactorLive
 	[1332] = true,  -- Flash
-	[64215] = true,  -- Emre
+	[50820] = true,  -- Emre
 }
 local silverMedals = { -- Nation Wars 2nd place
 	[76221] = true, -- InDaClub
