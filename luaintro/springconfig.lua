@@ -162,6 +162,8 @@ if Spring.GetConfigInt("version", 0) < version then
 end
 version = 6
 if Spring.GetConfigInt("version", 0) < version then
+	Spring.SetConfigInt("version", version)
+
 	-- disabling for now
 	Spring.SetConfigInt("ui_rendertotexture", 0)
 end
