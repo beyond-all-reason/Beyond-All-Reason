@@ -30,6 +30,7 @@ local spGetTeamResources = Spring.GetTeamResources
 local spGetMyTeamID = Spring.GetMyTeamID
 local spGetMouseState = Spring.GetMouseState
 local spGetWind = Spring.GetWind
+local spGetGameSpeed = Spring.GetGameSpeed
 
 -- System
 local guishaderEnabled = false
@@ -108,6 +109,7 @@ local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold
 local noiseBackgroundTexture = ":g:LuaUI/Images/rgbnoise.png"
 local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
 local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
+local energyGlowTexture = "LuaUI/Images/paralyzed.png"
 local bladesTexture = ":n:LuaUI/Images/wind-blades.png"
 local wavesTexture = ":n:LuaUI/Images/tidal-waves.png"
 local comTexture = ":n:Icons/corcom.png"
@@ -589,47 +591,36 @@ local function updateResbarText(res)
 					local textWidth = font2:GetTextWidth(text) * fontSize
 
 					-- background
-					local color1, color2
+					local color1, color2, color3, color4
 
 					if res == 'metal' then
 						if allyteamOverflowingMetal then
 							color1 = { 0.35, 0.1, 0.1, 1 }
 							color2 = { 0.25, 0.05, 0.05, 1 }
+							color3 = { 1, 0.3, 0.3, 0.25 }
+							color4 = { 1, 0.3, 0.3, 0.44 }
 						else
 							color1 = { 0.35, 0.35, 0.35, 1 }
 							color2 = { 0.25, 0.25, 0.25, 1 }
+							color3 = { 1, 1, 1, 0.25 }
+							color4 = { 1, 1, 1, 0.44 }
 						end
 					else
 						if allyteamOverflowingEnergy then
 							color1 = { 0.35, 0.1, 0.1, 1 }
 							color2 = { 0.25, 0.05, 0.05, 1 }
+							color3 = { 1, 0.3, 0.3, 0.25 }
+							color4 = { 1, 0.3, 0.3, 0.44 }
 						else
 							color1 = { 0.35, 0.25, 0, 1 }
 							color2 = { 0.25, 0.16, 0, 1 }
+							color3 = { 1, 0.88, 0, 0.25 }
+							color4 = { 1, 0.88, 0, 0.44 }
 						end
 					end
 
 					RectRound(resbarArea[res][3] - textWidth, resbarArea[res][4] - 15.5 * widgetScale, resbarArea[res][3], resbarArea[res][4], 3.7 * widgetScale, 0, 0, 1, 1, color1, color2)
-
-					if res == 'metal' then
-						if allyteamOverflowingMetal then
-							color1 = { 1, 0.3, 0.3, 0.25 }
-							color2 = { 1, 0.3, 0.3, 0.44 }
-						else
-							color1 = { 1, 1, 1, 0.25 }
-							color2 = { 1, 1, 1, 0.44 }
-						end
-					else
-						if allyteamOverflowingEnergy then
-							color1 = { 1, 0.3, 0.3, 0.25 }
-							color2 = { 1, 0.3, 0.3, 0.44 }
-						else
-							color1 = { 1, 0.88, 0, 0.25 }
-							color2 = { 1, 0.88, 0, 0.44 }
-						end
-					end
-
-					RectRound(resbarArea[res][3] - textWidth + bgpadding2, resbarArea[res][4] - 15.5 * widgetScale + bgpadding2, resbarArea[res][3] - bgpadding2, resbarArea[res][4], 2.8 * widgetScale, 0, 0, 1, 1, color1, color2)
+					RectRound(resbarArea[res][3] - textWidth + bgpadding2, resbarArea[res][4] - 15.5 * widgetScale + bgpadding2, resbarArea[res][3] - bgpadding2, resbarArea[res][4], 2.8 * widgetScale, 0, 0, 1, 1, color3, color4)
 
 					font2:Begin()
 					font2:SetTextColor(1, 0.88, 0.88, 1)
@@ -724,10 +715,10 @@ local function updateResbar(res)
 		local borderSize = 1
 		RectRound(barArea[1] - edgeWidth + borderSize, barArea[2] - edgeWidth + borderSize, barArea[3] + edgeWidth - borderSize, barArea[4] + edgeWidth - borderSize, barHeight * 0.2, 1, 1, 1, 1, { 0,0,0, 0.12 }, { 0,0,0, 0.15 })
 
-		gl.Texture(noiseBackgroundTexture)
-		gl.Color(1,1,1, 0.16)
+		glTexture(noiseBackgroundTexture)
+		glColor(1,1,1, 0.16)
 		TexturedRectRound(barArea[1] - edgeWidth, barArea[2] - edgeWidth, barArea[3] + edgeWidth, barArea[4] + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, barWidth*0.33, 0)
-		gl.Texture(false)
+		glTexture(false)
 		glBlending(GL_SRC_ALPHA, GL_ONE)
 		RectRound(barArea[1] - addedSize - edgeWidth, barArea[2] - addedSize - edgeWidth, barArea[3] + addedSize + edgeWidth, barArea[4] + addedSize + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, { 0, 0, 0, 0.1 }, { 0, 0, 0, 0.1 })
 		RectRound(barArea[1] - addedSize, barArea[2] - addedSize, barArea[3] + addedSize, barArea[4] + addedSize, barHeight * 0.33, 1, 1, 1, 1, { 0.15, 0.15, 0.15, 0.2 }, { 0.8, 0.8, 0.8, 0.16 })
@@ -817,12 +808,13 @@ local function drawResbarValues(res, updateText)
 
 	local barHeight = resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]
 	local barWidth = resbarDrawinfo[res].barArea[3] - resbarDrawinfo[res].barArea[1]
+	local barSize = barHeight * 0.2
 	local valueWidth = math_floor(((cappedCurRes / r[res][2]) * barWidth))
-	if valueWidth < math.ceil(barHeight * 0.2) then valueWidth = math.ceil(barHeight * 0.2) end
+	if valueWidth < math.ceil(barSize) then valueWidth = math.ceil(barSize) end
 
 	if not dlistResValuesBar[res][valueWidth] then
 		dlistResValuesBar[res][valueWidth] = glCreateList(function()
-			local glowSize = (resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]) * 7
+			local glowSize = barHeight * 7
 			local color1, color2, glowAlpha
 
 			if res == 'metal' then
@@ -835,9 +827,9 @@ local function drawResbarValues(res, updateText)
 				glowAlpha = 0.035 + (0.07 * math_min(1, cappedCurRes / r[res][2] * 40))
 			end
 
-			RectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 1, 1, 1, 1, color1, color2)
+			RectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barSize, 1, 1, 1, 1, color1, color2)
 			local borderSize = 1
-			RectRound(resbarDrawinfo[res].barTexRect[1]+borderSize, resbarDrawinfo[res].barTexRect[2]+borderSize, resbarDrawinfo[res].barTexRect[1] + valueWidth-borderSize, resbarDrawinfo[res].barTexRect[4]-borderSize, barHeight * 0.2, 1, 1, 1, 1, { 0,0,0, 0.1 }, { 0,0,0, 0.17 })
+			RectRound(resbarDrawinfo[res].barTexRect[1]+borderSize, resbarDrawinfo[res].barTexRect[2]+borderSize, resbarDrawinfo[res].barTexRect[1] + valueWidth-borderSize, resbarDrawinfo[res].barTexRect[4]-borderSize, barSize, 1, 1, 1, 1, { 0,0,0, 0.1 }, { 0,0,0, 0.17 })
 
 			-- Bar value glow
 			glBlending(GL_SRC_ALPHA, GL_ONE)
@@ -850,10 +842,10 @@ local function drawResbarValues(res, updateText)
 			glTexture(false)
 
 			if res == 'metal' then
-				gl.Texture(noiseBackgroundTexture)
-				gl.Color(1,1,1, 0.37)
-				TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 1, 1, 1, 1, barWidth*0.33, 0)
-				gl.Texture(false)
+				glTexture(noiseBackgroundTexture)
+				glColor(1,1,1, 0.37)
+				TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barSize, 1, 1, 1, 1, barWidth*0.33, 0)
+				glTexture(false)
 			end
 
 			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -863,17 +855,17 @@ local function drawResbarValues(res, updateText)
 
 	if res == 'energy' then
 		-- energy flow effect
-		gl.Color(1,1,1, 0.33)
+		glColor(1,1,1, 0.33)
 		glBlending(GL_SRC_ALPHA, GL_ONE)
-		glTexture("LuaUI/Images/paralyzed.png")
-		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 0, 0, 1, 1, barWidth/0.5, -os.clock()/80)
-		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 0, 0, 1, 1, barWidth/0.33, os.clock()/70)
-		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 0, 0, 1, 1, barWidth/0.45, -os.clock()/55)
+		glTexture(energyGlowTexture)
+		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barSize, 0, 0, 1, 1, barWidth/0.5, -os.clock()/80)
+		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barSize, 0, 0, 1, 1, barWidth/0.33, os.clock()/70)
+		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barSize, 0, 0, 1, 1, barWidth/0.45, -os.clock()/55)
 		glTexture(false)
 
 		-- colorize a bit more (with added size)
-		local addedSize = math_floor(((resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]) * 0.15) + 0.5)
-		gl.Color(1,1,0, 0.14)
+		local addedSize = math_floor((barHeight * 0.15) + 0.5)
+		glColor(1,1,0, 0.14)
 		RectRound(resbarDrawinfo[res].barTexRect[1]-addedSize, resbarDrawinfo[res].barTexRect[2]-addedSize, resbarDrawinfo[res].barTexRect[1] + valueWidth + addedSize, resbarDrawinfo[res].barTexRect[4] + addedSize, barHeight * 0.33)
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	end
@@ -1075,7 +1067,7 @@ function widget:Update(dt)
 	end
 
 	mx, my = spGetMouseState()
-	local speedFactor, _, isPaused = Spring.GetGameSpeed()
+	local speedFactor, _, isPaused = spGetGameSpeed()
 
 	if not isPaused then
 		if blinkDirection then
