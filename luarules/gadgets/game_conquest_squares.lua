@@ -196,6 +196,12 @@ if SYNCED then
 				data.progress = STARTING_PROGRESS
 				data.hasUnits = false
 				data.decayDelay = 0
+				data.corners = {
+					{x = data.mapOriginX, z = data.mapOriginZ},                           -- Bottom-left
+					{x = data.mapOriginX + GRID_SIZE, z = data.mapOriginZ},               -- Bottom-right
+					{x = data.mapOriginX, z = data.mapOriginZ + GRID_SIZE},               -- Top-left
+					{x = data.mapOriginX + GRID_SIZE, z = data.mapOriginZ + GRID_SIZE}    -- Top-right
+				}
 			end
 		end
 		return gridData
@@ -481,18 +487,25 @@ if SYNCED then
 	local function createVisibilityBitmask(squareData)
 		local visibilityBitmask = 0
 		
-		-- Check visibility for each ally team
 		for allyTeamID in pairs(allyTeamsWatch) do
-			local isInLineOfSight, isInRadar = spGetPositionLosState(
-				squareData.gridMidpointX, 
-				0, 
-				squareData.gridMidpointZ, 
-				allyTeamID
-			)
+			local isVisible = false
 			
-			-- If either LOS or radar can see the square, set the bit for this ally team
-			if isInLineOfSight or isInRadar then
-				-- Use 2^allyTeamID to set the appropriate bit
+			if allyTeamID == squareData.allyOwnerID then
+				isVisible = true
+			else --check middle first, more likely to be visible
+				isVisible = spGetPositionLosState(squareData.gridMidpointX, 0, squareData.gridMidpointZ, allyTeamID)
+			end
+			if not isVisible then
+				for _, corner in ipairs(squareData.corners) do
+					isVisible = spGetPositionLosState(corner.x, 0, corner.z, allyTeamID)
+					
+					if isVisible then
+						break
+					end
+				end
+			end
+			
+			if isVisible then
 				visibilityBitmask = visibilityBitmask + (2 ^ allyTeamID)
 			end
 		end
@@ -508,7 +521,6 @@ if SYNCED then
 		for allyTeamID in pairs(allyTeamsWatch) do
 			allVisibleBitmask = allVisibleBitmask + (2 ^ allyTeamID)
 		end
-		
 		for gridID, squareData in pairs(captureGrid) do
 			-- For initialization, set all squares as visible to everyone
 			SendToUnsynced("InitializeGridSquare", 
