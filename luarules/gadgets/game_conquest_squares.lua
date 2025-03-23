@@ -12,7 +12,6 @@ function gadget:GetInfo()
 end
 
 -- TODO:
--- need upper limit on camera zoom out fade for the map
 -- need to convert the score text display to use i18n for language localization
 -- warning sounds
 -- code cleanup
@@ -886,12 +885,15 @@ local function GetMaxCameraHeight()
     local mapSizeZ = Game.mapSizeZ
 	local fallbackMaxFactor = 1.4 --to handle all camera modes
     local maxFactor = Spring.GetConfigFloat("OverheadMaxHeightFactor", fallbackMaxFactor)
-	local absoluteMinimum = 3800
-	local minimumFactor = 0.80
+	local absoluteMinimum = 500
+	local minimumFactor = 0.8
+	local reductionFactor = 0.8
+	local minimumMaxHeight = 3000
+	local maximumMaxHeight = 5000
     
     local maxDimension = math.max(mapSizeX, mapSizeZ)
-    local maxHeight = UNSYNCED_DEBUG_MODE and 1 or maxDimension * maxFactor
-	local minHeight = UNSYNCED_DEBUG_MODE and 0 or math.max(absoluteMinimum, maxHeight * minimumFactor)
+    local maxHeight = UNSYNCED_DEBUG_MODE and 1 or math.min(math.max(maxDimension * maxFactor * reductionFactor, minimumMaxHeight), maximumMaxHeight)
+	local minHeight = UNSYNCED_DEBUG_MODE and 0 or math.max(absoluteMinimum, maxHeight * minimumFactor * reductionFactor)
 
     return minHeight, maxHeight
 end
