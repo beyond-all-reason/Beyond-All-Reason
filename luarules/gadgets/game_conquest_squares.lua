@@ -19,7 +19,6 @@ end
 -- decrease the edge fuzziness of the squares drawn on the minimap
 -- need to convert the score text display to use i18n for language localization
 -- need upper limit on camera zoom out fade for the map
--- left side of score display can be cut off by the left side of the screen (on glitters)
 -- if units are cloaked, don't count them as a power source
 -- warning sounds
 -- code cleanup
@@ -117,6 +116,15 @@ if SYNCED then
 		end
 		if teamID == gaiaTeamID then
 			exemptTeams[teamID] = true
+		end
+	end
+
+	local function setAllyGridToGaia(allyID)
+		for gridID, data in pairs(captureGrid) do
+			if data.allyOwnerID == allyID then
+				data.allyOwnerID = gaiaAllyTeamID
+				data.progress = STARTING_PROGRESS
+			end
 		end
 	end
 
@@ -251,11 +259,9 @@ if SYNCED then
 	end
 
 	local function triggerAllyDefeat(allyID)
-		for teamID in pairs(allyTeamsWatch[allyID]) do
-			for unitID, unitTeam in pairs(livingCommanders) do
-				if unitTeam == teamID then
-					queueCommanderTeleportRetreat(unitID)
-				end
+		for unitID, commanderAllyID in pairs(livingCommanders) do
+			if commanderAllyID == allyID then
+				queueCommanderTeleportRetreat(unitID)
 			end
 		end
 	end
@@ -550,15 +556,6 @@ if SYNCED then
 		SendToUnsynced("UpdateAllyScore", allyID, score, defeatThreshold)
 	end
 
-	local function setAllyGridToGaia(allyID)
-		for gridID, data in pairs(captureGrid) do
-			if data.allyOwnerID == allyID then
-				data.allyOwnerID = gaiaAllyTeamID
-				data.progress = STARTING_PROGRESS
-			end
-		end
-	end
-
 	local function decayProgress(gridID)
 		local data = captureGrid[gridID]
 		if data.progress > OWNERSHIP_THRESHOLD then
@@ -570,7 +567,7 @@ if SYNCED then
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		if commandersDefs[unitDefID] then
-			livingCommanders[unitID] = unitTeam
+			livingCommanders[unitID] = select(6, Spring.GetTeamInfo(unitTeam))
 		end
 	end
 
@@ -585,6 +582,11 @@ if SYNCED then
 
 	function gadget:UnitLeftAir(unitID, unitDefID, unitTeam)
 		flyingUnits[unitID] = nil
+	end
+
+	function gadget:TeamDied(teamID)
+		local allyID = select(6, Spring.GetTeamInfo(teamID))
+		setAllyGridToGaia(allyID)
 	end
 
 	function gadget:GameFrame(frame)
