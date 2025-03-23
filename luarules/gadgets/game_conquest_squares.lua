@@ -13,9 +13,6 @@ end
 
 -- TODO:
 
--- improve time to max accuracy, seems to be a few minutes late every time. maybe its not factoring the start delay?... The increment rate should be capped as well to make keeping up achievable
--- need minimum power to ratio power occupying a square to slow its capture rate
--- obfuscate ally color when not spectating
 -- flip minimap needs to be implemented
 -- need line of sight checks for the squares to know who owns it
 -- when killed via means outside dominion victory, the territories aren't reset to 
@@ -204,12 +201,14 @@ if SYNCED then
 		return gridData
 	end
 
+	local defeatCheckCooldown = 0
 	local function updateCurrentDefeatThreshold()
+		local COOLDOWN_TIME = 10
 		local seconds = spGetGameSeconds()
 		local allyCount = allyTeamsCount + allyHordesCount
 		local totalMinutes = seconds / 60  -- Convert seconds to minutes
 
-		if totalMinutes < MINUTES_TO_START or allyCount == 1 then return end
+		if defeatCheckCooldown > seconds or totalMinutes < MINUTES_TO_START or allyCount == 1 then return end
 
 		local elapsedMinutes = totalMinutes - MINUTES_TO_START
 		local adjustedMinutesToMax = MINUTES_TO_MAX - MINUTES_TO_START
@@ -218,6 +217,7 @@ if SYNCED then
 		local wantedThreshold = min(((progressRatio * MAX_TERRITORY_PERCENTAGE) / allyCount), 50) -- because two teams must fight for 50%
 		if wantedThreshold > defeatThreshold then
 			defeatThreshold = defeatThreshold + 1
+			defeatCheckCooldown = seconds + COOLDOWN_TIME
 		end
 	end
 
@@ -306,6 +306,10 @@ if SYNCED then
 		local data = captureGrid[gridID]
 		local currentOwnerID = data.allyOwnerID
 
+		--to slow the capture rate of tiny units and aircraft on empty and mostly empty squares
+		local maxEmptyImpedencePower = 100
+		local minEmptyImpedenceMultiplier = 0.75
+
 		for i = 1, #sortedTeams do
 			sortedTeams[i] = nil
 		end
@@ -331,9 +335,11 @@ if SYNCED then
 		local comparedPower = 0
 		
 		if winningAllyID ~= currentOwnerID and allyPowers[currentOwnerID] then
-			comparedPower = allyPowers[currentOwnerID]
+			comparedPower = max(allyPowers[currentOwnerID], maxEmptyImpedencePower)
 		elseif secondPlaceAllyID then
-			comparedPower = allyPowers[secondPlaceAllyID]
+			comparedPower = max(allyPowers[secondPlaceAllyID], maxEmptyImpedencePower)
+		else
+			comparedPower = min(topPower * minEmptyImpedenceMultiplier, maxEmptyImpedencePower)
 		end
 		
 		local powerRatio = 1
@@ -561,13 +567,23 @@ if SYNCED then
 			end
 		elseif frameModulo == 2 then
 			allyScores = convertTalliesToScores(allyTallies)
+			local averageScore = 0
+			local count = 0
 			for allyID, score in pairs(allyScores) do
-				updateUnsyncedScore(allyID, score)
-				if allyTeamsWatch[allyID] and score < defeatThreshold and not DEBUGMODE then
-					triggerAllyDefeat(allyID)
-					setAllyGridToGaia(allyID)
-				end
+				averageScore = averageScore + score
+				count = count + 1
 			end
+			if count > 0 then
+				averageScore = averageScore / count
+				for allyID, score in pairs(allyScores) do
+					updateUnsyncedScore(allyID, score)
+					if score < defeatThreshold and (score > averageScore and count > 1) and not DEBUGMODE then
+						--check if score is below average score to prevent defeat in case of a tie
+						triggerAllyDefeat(allyID)
+						setAllyGridToGaia(allyID)
+					end
+				end
+			end	
 			if not sentGridStructure then
 				initializeUnsyncedGrid()
 				sentGridStructure = true
@@ -646,6 +662,9 @@ local COLOR_BG = {0, 0, 0, 0.6}  -- Semi-transparent black background
 local blankColor = {0.5, 0.5, 0.5, 0.0} -- grey and transparent for gaia
 local enemyColor = {1, 0, 0, SQUARE_ALPHA} -- red for enemy
 local alliedColor = {0, 1, 0, SQUARE_ALPHA} -- green for ally
+
+-- Add spectator detection
+local amSpectating = Spring.GetSpectatingState()
 
 local allyColors = {}
 for _, teamID in ipairs(teams) do
@@ -980,16 +999,35 @@ function gadget:Initialize()
 		gadgetHandler:RemoveGadget()
 		return
 	end
+    
+    -- Update spectating state
+    amSpectating = Spring.GetSpectatingState()
 end
 
 function gadget:Update()
 	local currentFrame = Spring.GetGameFrame()
 	
 	if currentFrame % UPDATE_FRAME_RATE_INTERVAL == 0 and currentFrame ~= lastMoveFrame then
-		local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
+		amSpectating = Spring.GetSpectatingState()
 		
 		for gridID, gridData in pairs(captureGrid) do
-			local color = allyColors[gridData.allyOwnerID] or blankColor
+			local color = blankColor
+            
+            -- Color selection based on spectator status and ownership
+            if gridData.allyOwnerID == gaiaAllyTeamID then
+                color = blankColor
+            elseif amSpectating then
+                -- When spectating, use team colors
+                color = allyColors[gridData.allyOwnerID] or blankColor
+            else
+                -- When playing, use green for allied and red for enemy
+                if gridData.allyOwnerID == myAllyID then
+                    color = alliedColor
+                else
+                    color = enemyColor
+                end
+            end
+            
 			local captureChangePerFrame = 0
 			if gridData.captureChange then
 				captureChangePerFrame = gridData.captureChange / UPDATE_FRAME_RATE_INTERVAL
