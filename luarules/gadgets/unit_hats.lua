@@ -95,26 +95,18 @@ local kings = {
 }
 local goldMedals = { -- Nation Wars 1st place
 	[59340] = true,  -- [HELO]Austin
-	[439] = true,    -- goopy
-	[2377] = true,   -- therxyy
-	[79095] = true,  -- GOD_HATES_COWARDS
-	[134184] = true, -- Raigeki
+	[64215] = true,  -- XFactorLive
+	[1332] = true,  -- Flash
+	[64215] = true,  -- Emre
 }
 local silverMedals = { -- Nation Wars 2nd place
-	[116414] = true, -- random_variable
-	[1422] = true,   -- ZaRxT4
-	[134481] = true, -- Blxssom
-	[71083] = true,  -- [Simple]Devil
-	[157708] = true, -- Luisb288
-	[179043] = true, -- TeriyakiThilo
+	[76221] = true, -- InDaClub
+	[82263] = true, -- PRO-autopilot
 }
 local bronzeMedals = { -- Nation Wars 3rd place
-	[66696] = true,  -- Helicopter
-	[82279] = true,  -- Elydrid
-	[149904] = true, -- Zeff
-	[75569] = true,  -- Dunaa
-	[88594] = true,  -- Blackmelon
-	[42214] = true,  -- [BAB]Tenebos
+	[151863] = true,  -- Blodir
+	[38971] = true, -- Yanami
+	[123900] = true, -- Narnuk
 }
 local uniques = {--playername, hat ident, CaSe MaTtErS
 }
