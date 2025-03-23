@@ -29,7 +29,7 @@ return {
 		script = "Units/LEGAMPHTANK.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-phib",
-		sightdistance = 305,
+		sightdistance = 500,
 		sonardistance = 180,
 		trackoffset = 3,
 		trackstrength = 6,
@@ -48,8 +48,8 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.125,
 			subfolder = "Legion/Vehicles",
-			--weapon1turretx = 64,
-			--weapon1turrety = 75,
+			weapon1turretx = 130,
+			weapon1turrety = 130,
 		},
 		featuredefs = {
 			dead = {
@@ -123,7 +123,7 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-small",
 				impulsefactor = 0.123,
-				name = "Light Close-quarters Plasma Cannon",
+				name = "Light Close-quarters Gauss Cannon",
 				noselfdamage = true,
 				range = 305,
 				reloadtime = 1.5,
