@@ -12,9 +12,6 @@ function gadget:GetInfo()
 end
 
 -- TODO:
-
--- spectator selecting various teams doesn't change perspective for score display
--- percentage of captured territory should become a square count instead of a percentage
 -- decrease the edge fuzziness of the squares drawn on the minimap
 -- need to convert the score text display to use i18n for language localization
 -- need upper limit on camera zoom out fade for the map
@@ -34,7 +31,6 @@ if SYNCED then
 	local STATIC_UNIT_POWER_MULTIPLIER = 3
 	local MINUTES_TO_MAX = 20
 	local MINUTES_TO_START = 5
-	local MAX_TERRITORY_PERCENTAGE = 100
 	local MAX_PROGRESS = 1.0
 	local PROGRESS_INCREMENT = 0.06
 	local CONTIGUOUS_PROGRESS_INCREMENT = 0.03
@@ -218,7 +214,7 @@ if SYNCED then
 		local COOLDOWN_TIME = 10
 		local seconds = spGetGameSeconds()
 		local allyCount = allyTeamsCount + allyHordesCount
-		local totalMinutes = seconds / 60  -- Convert seconds to minutes
+		local totalMinutes = seconds / 60
 
 		if defeatCheckCooldown > seconds or totalMinutes < MINUTES_TO_START or allyCount == 1 then return end
 
@@ -226,23 +222,11 @@ if SYNCED then
 		local adjustedMinutesToMax = MINUTES_TO_MAX - MINUTES_TO_START
 
 		local progressRatio = min(elapsedMinutes / adjustedMinutesToMax, 1)
-		local wantedThreshold = min(((progressRatio * MAX_TERRITORY_PERCENTAGE) / allyCount), 50) -- because two teams must fight for 50%
+		local wantedThreshold = min(((progressRatio * #captureGrid) / allyCount), #captureGrid / 2) -- because two teams must fight for half at most
 		if wantedThreshold > defeatThreshold then
 			defeatThreshold = defeatThreshold + 1
 			defeatCheckCooldown = seconds + COOLDOWN_TIME
 		end
-	end
-
-	local function convertTalliesToScores(tallies)
-		local totalSquares = #captureGrid
-		if totalSquares == 0 then return {} end
-		local allyScoreTable = {}
-
-		for allyID, tally in pairs(tallies) do
-			local percentage = floor((tally / totalSquares) * 100)
-			allyScoreTable[allyID] = percentage
-		end
-		return allyScoreTable
 	end
 
 	local function queueCommanderTeleportRetreat(unitID)
@@ -624,18 +608,17 @@ if SYNCED then
 				updateUnsyncedSquare(gridID)
 			end
 		elseif frameModulo == 2 then
-			allyScores = convertTalliesToScores(allyTallies)
-			local averageScore = 0
+			local averageTally = 0
 			local count = 0
-			for allyID, score in pairs(allyScores) do
-				averageScore = averageScore + score
+			for allyID, tally in pairs(allyTallies) do
+				averageTally = averageTally + tally
 				count = count + 1
 			end
 			if count > 0 then
-				averageScore = averageScore / count
-				for allyID, score in pairs(allyScores) do
-					updateUnsyncedScore(allyID, score)
-					if score < defeatThreshold and (score > averageScore and count > 1) and not DEBUGMODE then
+				averageTally = averageTally / count
+				for allyID, tally in pairs(allyTallies) do
+					updateUnsyncedScore(allyID, tally)
+					if tally < defeatThreshold and (tally > averageTally and count > 1) and not DEBUGMODE then
 						--check if score is below average score to prevent defeat in case of a tie
 						triggerAllyDefeat(allyID)
 						setAllyGridToGaia(allyID)
@@ -1244,7 +1227,7 @@ local glPopMatrix = gl.PopMatrix
 local glGetTextWidth = gl.GetTextWidth
 
 -- Cache static values
-local SCORE_FORMAT = "Territories Owned: %d%% Needed: %d%%"
+local SCORE_FORMAT = "Owned: %d Needed: %d"
 local PADDING_MULTIPLIER = 0.36
 local TEXT_HEIGHT_MULTIPLIER = 0.33
 
@@ -1300,7 +1283,7 @@ local function drawScore()
     local backgroundRight = displayPositionX + backgroundWidth/2
     
     -- Update color values (reusing tables)
-    if difference < 0 then
+    if difference <= 3 then
         local currentTime = GetGameSeconds()
         if currentTime - lastWarningBlinkTime > BLINK_FREQUENCY then
             lastWarningBlinkTime = currentTime
@@ -1310,7 +1293,7 @@ local function drawScore()
         currentTextColor[1], currentTextColor[2], currentTextColor[3], currentTextColor[4] = 
             COLOR_RED[1], COLOR_RED[2], COLOR_RED[3], 
             isWarningVisible and COLOR_RED[4] or BLINK_COLOR[4]
-    elseif difference < 10 then
+    elseif difference <= 10 then
         currentTextColor[1], currentTextColor[2], currentTextColor[3], currentTextColor[4] = 
             COLOR_YELLOW[1], COLOR_YELLOW[2], COLOR_YELLOW[3], COLOR_YELLOW[4]
     else
