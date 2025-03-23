@@ -673,7 +673,7 @@ local UNSYNCED_DEBUG_MODE = false
 
 --constants
 local SQUARE_SIZE = 1024  -- Match GRID_SIZE from synced part
-local SQUARE_ALPHA = 0.2
+local SQUARE_ALPHA = 0.15
 local SQUARE_HEIGHT = 20
 local UPDATE_FRAME_RATE_INTERVAL = Game.gameSpeed
 local MAX_CAPTURE_CHANGE = 0.12 -- to prevent super fast capture expansions that look bad
