@@ -12,10 +12,8 @@ function gadget:GetInfo()
 end
 
 -- TODO:
--- decrease the edge fuzziness of the squares drawn on the minimap
--- need to convert the score text display to use i18n for language localization
 -- need upper limit on camera zoom out fade for the map
--- if units are cloaked, don't count them as a power source
+-- need to convert the score text display to use i18n for language localization
 -- warning sounds
 -- code cleanup
 -- need to do the modoptions
@@ -28,6 +26,7 @@ if SYNCED then
 	--configs
 	local DEBUGMODE = true -- Changed to uppercase as it's a constant
 	local FLYING_UNIT_POWER_MULTIPLIER = 0 -- units cannot capture while flying
+	local CLOAKED_UNIT_POWER_MULTIPLIER = 0 -- units cannot capture while cloaked
 	local STATIC_UNIT_POWER_MULTIPLIER = 3
 	local MINUTES_TO_MAX = 20
 	local MINUTES_TO_START = 5
@@ -70,6 +69,7 @@ if SYNCED then
 	local mapSizeX = Game.mapSizeX
 	local mapSizeZ = Game.mapSizeZ
 	local spGetPositionLosState = Spring.GetPositionLosState
+	local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
 	local SendToUnsynced = SendToUnsynced
 
 	--variables
@@ -273,6 +273,9 @@ if SYNCED then
 					end
 					if flyingUnits[unitID] then
 						power = power * FLYING_UNIT_POWER_MULTIPLIER
+					end
+					if spGetUnitIsCloaked(unitID) then
+						power = power * CLOAKED_UNIT_POWER_MULTIPLIER
 					end
 					if hordeModeTeams[allyTeam] then
 						allyPowers[gaiaAllyTeamID] = (allyPowers[gaiaAllyTeamID] or 0) + power -- horde mode units cannot own territory, they give it back to gaia
@@ -784,7 +787,7 @@ void main() {
 	textureCoordinate = vertexPosition.xy * 0.5 + 0.5;
 	
 	vec3 cameraPosition = cameraViewInv[3].xyz;
-	cameraDistance = length(cameraPosition);
+	cameraDistance = cameraPosition.y;
 	
 	if (isMinimapRendering == 1) {
 		vec2 minimapPosition = (instancePositionScale.xz / vec2(mapSizeXAxis, mapSizeZAxis));
