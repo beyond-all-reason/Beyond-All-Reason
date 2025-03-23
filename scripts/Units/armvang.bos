@@ -24,8 +24,6 @@ static-var  bMoving, oldHeading, bSteering, wpn1_lasthead, last_primary_heading,
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 // Author Beherith mysterme@gmail.com. License: GNU GPL v2.
 
-static-var animSpeed, maxSpeed, animFramesPerKeyframe;
-
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
 	return 0;

@@ -10,7 +10,7 @@ function widget:GetInfo()
 	}
 end
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
+local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
 
 local alwaysShow = true		-- always show AT LEAST the label
 local alwaysShowLabel = true	-- always show the label regardless
@@ -144,6 +144,10 @@ local function drawIcon(unitDefID, rect, lightness, zoom, texSize, highlightOpac
 		RectRound(rect[1], rect[2], rect[3], rect[4], min(max(1, floor((rect[3]-rect[1]) * 0.024)), floor((vsy*0.0015)+0.5)))
 		gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	end
+end
+
+local function drawBackground()
+	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0), nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture)
 end
 
 local function drawContent()
@@ -358,64 +362,80 @@ local function updateList(force)
 			checkGuishader(true)
 		end
 	else
-		dlist = gl.CreateList(function()
-			local mult = numIcons
-			if numIcons == 0 then
-				mult = 1
-			end
-			if mult > maxIcons then
-				mult = maxIcons
-				numIcons = mult
-			end
+		local mult = numIcons
+		if numIcons == 0 then
+			mult = 1
+		end
+		if mult > maxIcons then
+			mult = maxIcons
+			numIcons = mult
+		end
 
-			local iconWidth = iconSize - backgroundPadding
-			local startOffsetX = 0
-			if numIcons > 0 and alwaysShowLabel then
-				startOffsetX = iconWidth
+		local iconWidth = iconSize - backgroundPadding
+		local startOffsetX = 0
+		if numIcons > 0 and alwaysShowLabel then
+			startOffsetX = iconWidth
+		end
+		usedWidth = (iconWidth * mult) + backgroundPadding + backgroundPadding + startOffsetX
+		if usedWidth > uiTexWidth then
+			uiTexWidth = usedWidth
+			if uiTex then
+				gl.DeleteTextureFBO(uiTex)
+				uiTex = nil
 			end
-			usedWidth = (iconWidth * mult) + backgroundPadding + backgroundPadding + startOffsetX
-			if usedWidth > uiTexWidth then
-				uiTexWidth = usedWidth
-				if uiTex then
-					gl.DeleteTexture(uiTex)
-					uiTex = nil
-				end
-			end
+		end
+		local prevBackgroundX2 = backgroundRect and backgroundRect[3] or 0
+		backgroundRect = {
+			floor(posX * vsx),
+			floor(posY * vsy),
+			floor(posX * vsx) + usedWidth,
+			floor(posY * vsy) + usedHeight
+		}
+		if uiBgTex and backgroundRect and backgroundRect[3] ~= prevBackgroundX2 then
+			gl.DeleteTextureFBO(uiBgTex)
+			uiBgTex = nil
+		end
 
-			backgroundRect = {
-				floor(posX * vsx),
-				floor(posY * vsy),
-				floor(posX * vsx) + usedWidth,
-				floor(posY * vsy) + usedHeight
-			}
-
-			UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0))
-
-			if not useRenderToTexture then
-				drawContent()
-			end
-		end)
 		if useRenderToTexture then
+			if not uiBgTex then
+				uiBgTex = gl.CreateTexture(math.floor(uiTexWidth), math.floor(backgroundRect[4]-backgroundRect[2]), {
+					target = GL.TEXTURE_2D,
+					format = GL.RGBA,
+					fbo = true,
+				})
+				gl.RenderToTexture(uiBgTex, function()
+					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+					gl.PushMatrix()
+					gl.Translate(-1, -1, 0)
+					gl.Scale(2 / (backgroundRect[3]-backgroundRect[1]), 2 / (backgroundRect[4]-backgroundRect[2]),	0)
+					gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
+					drawBackground()
+					gl.PopMatrix()
+				end)
+			end
 			if not uiTex then
-				local ui_sharpness = Spring.GetConfigFloat("ui_sharpness", 1)
-				uiTex = gl.CreateTexture(math.floor(uiTexWidth*ui_sharpness), math.floor((backgroundRect[4]-backgroundRect[2])*ui_sharpness), {
+				uiTex = gl.CreateTexture(math.floor(uiTexWidth), math.floor(backgroundRect[4]-backgroundRect[2]), {
 					target = GL.TEXTURE_2D,
 					format = GL.RGBA,
 					fbo = true,
 				})
 			end
-			if uiTex then
-				gl.RenderToTexture(uiTex, function()
-					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-					gl.PushMatrix()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / uiTexWidth, 2 / (backgroundRect[4]-backgroundRect[2]),	0)
-					gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-					drawContent()
-					gl.PopMatrix()
-				end)
-			end
+			gl.RenderToTexture(uiTex, function()
+				gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+				gl.PushMatrix()
+				gl.Translate(-1, -1, 0)
+				gl.Scale(2 / uiTexWidth, 2 / (backgroundRect[4]-backgroundRect[2]),	0)
+				gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
+				drawContent()
+				gl.PopMatrix()
+			end)
+		else
+			dlist = gl.CreateList(function()
+				drawBackground()
+				drawContent()
+			end)
 		end
+
 		checkGuishader(true)
 	end
 end
@@ -462,8 +482,8 @@ function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 	height = setHeight * uiScale
 
-	font2 = WG['fonts'].getFont(nil, 1.3, 0.35, 1.4)
-	font = WG['fonts'].getFont(fontFile, 1.15, 0.35, 1.25)
+	font2 = WG['fonts'].getFont(nil, 1.3 * (useRenderToTexture and 1.3 or 1), 0.35 * (useRenderToTexture and 1.3 or 1), 1.4)
+	font = WG['fonts'].getFont(fontFile, 1.15 * (useRenderToTexture and 1.3 or 1), 0.35 * (useRenderToTexture and 1.3 or 1), 1.25)
 
 	elementCorner = WG.FlowUI.elementCorner
 	backgroundPadding = WG.FlowUI.elementPadding
@@ -557,8 +577,8 @@ function widget:Shutdown()
 		gl.DeleteList(dlist)
 	end
 	if uiTex then
-		gl.DeleteTexture(uiTex)
-		uiTex = nil
+		gl.DeleteTextureFBO(uiBgTex)
+		gl.DeleteTextureFBO(uiTex)
 	end
 	if WG['guishader'] then
 		WG['guishader'].DeleteDlist('idlebuilders')
@@ -616,7 +636,9 @@ local function Update()
 				end
 			end
 		end
-		WG['tooltip'].ShowTooltip('idlebuilders', tooltipAddition, nil, nil, tooltipTitle)
+		if WG['tooltip'] then
+			WG['tooltip'].ShowTooltip('idlebuilders', tooltipAddition, nil, nil, tooltipTitle)
+		end
 
 		Spring.SetMouseCursor('cursornormal')
 		if b then
@@ -659,13 +681,23 @@ function widget:DrawScreen()
 		doUpdate = false
 		doUpdateForce = nil
 	end
-	if (not spec or showWhenSpec) and dlist then
-		gl.CallList(dlist)
-		if uiTex then
-			gl.Color(1,1,1,1)
-			gl.Texture(uiTex)
-			gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[1]+uiTexWidth, backgroundRect[4], false, true)
-			gl.Texture(false)
+	if (not spec or showWhenSpec) and (dlist or uiTex or uiBgTex) then
+		if useRenderToTexture then
+			if uiBgTex then
+				-- background element
+				gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
+				gl.Texture(uiBgTex)
+				gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)
+			end
+			if uiTex then
+				--content
+				gl.Color(1,1,1,1)
+				gl.Texture(uiTex)
+				gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[1]+uiTexWidth, backgroundRect[4], false, true)
+				gl.Texture(false)
+			end
+		else
+			gl.CallList(dlist)
 		end
 	end
 end

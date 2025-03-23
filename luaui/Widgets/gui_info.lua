@@ -10,7 +10,7 @@ function widget:GetInfo()
 	}
 end
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
+local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
 
 local alwaysShow = false
 
@@ -581,17 +581,22 @@ function widget:ViewResize()
 	backgroundRect = { 0, 0, width * vsx, height * vsy }
 
 	doUpdate = true
-	clear()
+	if dlistInfo then
+		dlistInfo = gl.DeleteList(dlistInfo)
+		dlistInfo = nil
+	end
 	if infoTex then
-		gl.DeleteTexture(infoTex)
+		gl.DeleteTextureFBO(infoBgTex)
+		infoBgTex = nil
+		gl.DeleteTextureFBO(infoTex)
 		infoTex = nil
 	end
 
 	checkGuishader(true)
 
-	font, loadedFontSize = WG['fonts'].getFont(fontfile)
-	font2 = WG['fonts'].getFont(fontfile2)
-	font3 = WG['fonts'].getFont(fontfile2, 1.2, 0.28, 1.6)
+	font, loadedFontSize = WG['fonts'].getFont(fontfile, 1.1 * (useRenderToTexture and 1.3 or 1), 0.18 * (useRenderToTexture and 1.3 or 1))
+	font2 = WG['fonts'].getFont(fontfile2, 1.2 * (useRenderToTexture and 1.3 or 1), 0.28 * (useRenderToTexture and 1.3 or 1), 1.6)
+	font3 = WG['fonts'].getFont(fontfile2, 1.2 * (useRenderToTexture and 1.3 or 1), 0.28 * (useRenderToTexture and 1.3 or 1), 1.6)
 end
 
 function GetColor(colormap, slider)
@@ -713,17 +718,16 @@ function widget:Initialize()
 	end
 end
 
-function clear()
-	dlistInfo = gl.DeleteList(dlistInfo)
-end
-
 function widget:Shutdown()
 	Spring.SetDrawSelectionInfo(true) --disables springs default display of selected units count
 	Spring.SendCommands("tooltip 1")
-	clear()
+	if dlistInfo then
+		dlistInfo = gl.DeleteList(dlistInfo)
+		dlistInfo = nil
+	end
 	if infoTex then
-		gl.DeleteTexture(infoTex)
-		infoTex = nil
+		gl.DeleteTextureFBO(infoBgTex)
+		gl.DeleteTextureFBO(infoTex)
 	end
 	if WG['guishader'] and dlistGuishader then
 		WG['guishader'].DeleteDlist('info')
@@ -791,7 +795,14 @@ function widget:Update(dt)
 	if doUpdate or (doUpdateClock and os_clock() >= doUpdateClock) or (os_clock() >= doUpdateClock2) then
 		doUpdateClock = nil
 		doUpdateClock2 = os_clock() + 0.9
-		clear()
+		if useRenderToTexture then
+			updateTex = true
+		else
+			if dlistInfo then
+				dlistInfo = gl.DeleteList(dlistInfo)
+				dlistInfo = nil
+			end
+		end
 		doUpdate = nil
 		lastUpdateClock = os_clock()
 	end
@@ -1166,12 +1177,7 @@ local function drawUnitInfo()
 	customInfoArea = { math_floor(backgroundRect[3] - width - bgpadding), math_floor(backgroundRect[2]), math_floor(backgroundRect[3] - bgpadding), math_floor(backgroundRect[2] + height) }
 
 	if displayMode ~= 'unitdef' or not showBuilderBuildlist or not unitDefInfo[displayUnitDefID].buildOptions or (not (WG['buildmenu'] and WG['buildmenu'].hoverID)) then
-		local alphaMult = 1
-		if useRenderToTexture then
-			-- I dont know the fuck why the following RectRound or a plain gl.Rect) hardly shows up when using rendertotexture so lets brighten it!
-			alphaMult = 3.5
-		end
-		RectRound(customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4], elementCorner*0.66, 1, 0, 0, 0, { 0.8, 0.8, 0.8, 0.08*alphaMult }, { 0.8, 0.8, 0.8, 0.15*alphaMult })
+		RectRound(customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4], elementCorner*0.66, 1, 0, 0, 0, { 0.8, 0.8, 0.8, useRenderToTexture and 0.45 or 0.1 }, { 0.8, 0.8, 0.8, useRenderToTexture and 0.54 or 0.15 })
 	end
 
 	local contentPaddingLeft = contentPadding * 0.6
@@ -1678,7 +1684,7 @@ local function drawEngineTooltip()
 end
 
 local function drawInfoBackground()
-	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 0, 1, 0, 0)
+	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 0, 1, 0, 0, nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture)
 end
 
 local function drawInfo()
@@ -1891,41 +1897,65 @@ function widget:DrawScreen()
 		end
 		return
 	end
-	if not dlistInfo then
-		dlistInfo = gl.CreateList(function()
-			drawInfoBackground()
-			if not useRenderToTexture then
+
+	if useRenderToTexture then
+		if not infoBgTex then
+			infoBgTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
+				target = GL.TEXTURE_2D,
+				format = GL.RGBA,
+				fbo = true,
+			})
+			gl.RenderToTexture(infoBgTex, function()
+				gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+				gl.PushMatrix()
+				gl.Translate(-1, -1, 0)
+				gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
+				drawInfoBackground()
+				gl.PopMatrix()
+			end)
+		end
+		if not infoTex then
+			infoTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
+				target = GL.TEXTURE_2D,
+				format = GL.RGBA,
+				fbo = true,
+			})
+		end
+		if infoTex and updateTex then
+			updateTex = nil
+			gl.RenderToTexture(infoTex, function()
+				gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+				gl.PushMatrix()
+				gl.Translate(-1, -1, 0)
+				gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
 				drawInfo()
-			end
-		end)
-		if useRenderToTexture then
-			if not infoTex then
-				local ui_sharpness = Spring.GetConfigFloat("ui_sharpness", 1)
-				infoTex = gl.CreateTexture(math_floor(width*vsx*ui_sharpness), math_floor(height*vsy*ui_sharpness), {
-					target = GL.TEXTURE_2D,
-					format = GL.RGBA,
-					fbo = true,
-				})
-			end
-			if infoTex then
-				gl.RenderToTexture(infoTex, function()
-					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-					gl.PushMatrix()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
+				gl.PopMatrix()
+			end)
+		end
+	else
+		if not dlistInfo then
+			dlistInfo = gl.CreateList(function()
+				if not useRenderToTexture then
+					drawInfoBackground()
 					drawInfo()
-					gl.PopMatrix()
-				end)
-			end
+				end
+			end)
 		end
 	end
+
 	if alwaysShow or not emptyInfo or (isPregame and not mySpec) then
-		gl.CallList(dlistInfo)
 		if useRenderToTexture and infoTex then
+			-- background element
+			gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
+			gl.Texture(infoBgTex)
+			gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)
+			-- content
 			gl.Color(1,1,1,1)
 			gl.Texture(infoTex)
 			gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)
 			gl.Texture(false)
+		elseif dlistInfo then
+			gl.CallList(dlistInfo)
 		end
 	elseif dlistGuishader then
 		WG['guishader'].DeleteDlist('info')

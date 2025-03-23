@@ -60,7 +60,7 @@ end
 
 local vsx, vsy = Spring.GetViewGeometry()
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
+local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
 
 local customScale = 1
 local pointDuration = 45
@@ -866,8 +866,9 @@ function widget:Shutdown()
         WG['guishader'].RemoveDlist('advplayerlist')
     end
 	if mainListTex then
-		gl.DeleteTexture(mainListTex)
-		mainListTex = nil
+		gl.DeleteTextureFBO(mainListTexBg)
+		gl.DeleteTextureFBO(mainListTex)
+		gl.DeleteTextureFBO(mainList2Tex)
 	end
     WG['advplayerlist_api'] = nil
     widgetHandler:DeregisterGlobal('ActivityEvent')
@@ -881,7 +882,11 @@ function widget:Shutdown()
     end
     if MainList then
         gl_DeleteList(MainList)
+	end
+    if MainList2 then
         gl_DeleteList(MainList2)
+	end
+    if MainList3 then
         gl_DeleteList(MainList3)
     end
     if Background then
@@ -1502,33 +1507,51 @@ function widget:DrawScreen()
 	AdvPlayersListAtlas:RenderTasks()
 	--AdvPlayersListAtlas:DrawToScreen()
 
-    -- draws the background
-    if Background then
-        gl_CallList(Background)
-    else
-        CreateBackground()
-    end
+    -- draw the background element
+	if useRenderToTexture then
+		if mainListBgTex then
+			gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
+			gl.Texture(mainListBgTex)
+			gl.TexRect(apiAbsPosition[2], apiAbsPosition[3], apiAbsPosition[4], apiAbsPosition[1], false, true)
+		end
+	else
+		if Background then
+			gl_CallList(Background)
+		else
+			CreateBackground()
+		end
+	end
 
-    if useRenderToTexture and mainListTex then
-        gl.Color(1,1,1,1)
-        gl.Texture(mainListTex)
-        gl.TexRect(apiAbsPosition[2], apiAbsPosition[3], apiAbsPosition[4], apiAbsPosition[1], false, true)
-        gl.Texture(false)
-    end
+    if useRenderToTexture then
+		gl.Color(1,1,1,1)
+		if mainListTex then
+			gl.Texture(mainListTex)
+			gl.TexRect(apiAbsPosition[2], apiAbsPosition[3], apiAbsPosition[4], apiAbsPosition[1], false, true)
+		end
+    	if mainList2Tex then
+			gl.Texture(mainList2Tex)
+			gl.TexRect(apiAbsPosition[2], apiAbsPosition[3], apiAbsPosition[4], apiAbsPosition[1], false, true)
+   		end
+		gl.Texture(false)
+	end
 
     local scaleDiffX = -((widgetPosX * widgetScale) - widgetPosX) / widgetScale
     local scaleDiffY = -((widgetPosY * widgetScale) - widgetPosY) / widgetScale
     gl.Scale(widgetScale, widgetScale, 0)
     gl.Translate(scaleDiffX, scaleDiffY, 0)
 
-    if not MainList2 then
+    if not MainList3 then
         CreateMainList(true, true, true)
     end
-    if (MainList or mainListTex) and MainList2 and MainList3 then
-        if not useRenderToTexture and MainList then
-            gl_CallList(MainList)
-        end
-        gl_CallList(MainList2)
+    if (MainList or mainListTex) and (MainList2 or mainList2Tex) and MainList3 then
+        if not useRenderToTexture then
+			if MainList then
+            	gl_CallList(MainList)
+			end
+			if MainList2 then
+				gl_CallList(MainList2)
+			end
+		end
         gl_CallList(MainList3)
     end
 
@@ -1558,7 +1581,14 @@ end
 
 -- old funcion called from wherever but it must run in DrawScreen now so we scedule its execution
 function CreateLists(onlyMainList, onlyMainList2, onlyMainList3)
-    updateMainLists = {onlyMainList, onlyMainList2, onlyMainList3}
+    if onlyMainList == nil then onlyMainList = true end
+    if onlyMainList2 == nil then onlyMainList2 = true end
+    if onlyMainList3 == nil then onlyMainList3 = true end
+    if updateMainLists then
+        updateMainLists = {onlyMainList and onlyMainList or updateMainLists[1], onlyMainList2 and onlyMainList2 or updateMainLists[2], onlyMainList3 and onlyMainList3 or updateMainLists[3]}
+    else
+        updateMainLists = {onlyMainList, onlyMainList2, onlyMainList3}
+    end
 end
 -- must run in DrawScreen due to
 function doCreateLists(onlyMainList, onlyMainList2, onlyMainList3)
@@ -1598,6 +1628,9 @@ function doCreateLists(onlyMainList, onlyMainList2, onlyMainList3)
     if onlyMainList then
         CreateBackground()
     end
+	if useRenderToTexture and not mainList2Tex then
+		onlyMainList2 = true
+	end
     CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
 end
 
@@ -1644,7 +1677,7 @@ function CreateBackground()
         paddingLeft = 0
     end
 
-    if forceMainListRefresh or not Background or (WG['guishader'] and not BackgroundGuishader) then
+    if forceMainListRefresh or (not Background or not mainListBgTex) or (WG['guishader'] and not BackgroundGuishader) then
         if WG['guishader'] then
             BackgroundGuishader = gl_DeleteList(BackgroundGuishader)
             BackgroundGuishader = gl_CreateList(function()
@@ -1652,18 +1685,45 @@ function CreateBackground()
             end)
             WG['guishader'].InsertDlist(BackgroundGuishader, 'advplayerlist', true)
         end
-        if Background then
-            Background = gl_DeleteList(Background)
-        end
-        Background = gl_CreateList(function()
-            UiElement(absLeft, absBottom, absRight, absTop, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), math.min(paddingRight, paddingBottom), math.min(paddingBottom, paddingLeft))
-            gl_Color(1, 1, 1, 1)
-        end)
+		if useRenderToTexture then
+			local width, height = math.floor(apiAbsPosition[4]-apiAbsPosition[2]), math.floor(apiAbsPosition[1]-apiAbsPosition[3])
+			if width > 0 and height > 0 then
+				mainListBgTex = gl.CreateTexture(width, height, {
+					target = GL.TEXTURE_2D,
+					format = GL.RGBA,
+					fbo = true,
+				})
+				gl.RenderToTexture(mainListBgTex, function()
+					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+					gl.PushMatrix()
+					gl.Translate(-1, -1, 0)
+					gl.Scale(2 / (apiAbsPosition[4]-apiAbsPosition[2]), 2 / (apiAbsPosition[1]-apiAbsPosition[3]), 0)
+					UiElement(0.01, 0, width, height, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), math.min(paddingRight, paddingBottom), math.min(paddingBottom, paddingLeft), nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture)
+					gl.PopMatrix()
+				end)
+			end
+		else
+			if Background then
+				Background = gl_DeleteList(Background)
+			end
+			Background = gl_CreateList(function()
+				UiElement(absLeft, absBottom, absRight, absTop, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), math.min(paddingRight, paddingBottom), math.min(paddingBottom, paddingLeft))
+				gl_Color(1, 1, 1, 1)
+			end)
+		end
 
+		if mainListTexBg then
+			gl.DeleteTextureFBO(mainListTexBg)
+			mainListTexBg = nil
+		end
         if mainListTex then
-            gl.DeleteTexture(mainListTex)
+            gl.DeleteTextureFBO(mainListTex)
             mainListTex = nil
         end
+		if mainList2Tex then
+			gl.DeleteTextureFBO(mainList2Tex)
+			mainList2Tex = nil
+		end
     end
 end
 
@@ -1806,6 +1866,18 @@ function drawMainList()
     end
 end
 
+function drawMainList2()
+    local mouseX, mouseY = Spring_GetMouseState()
+	local leader
+	for i, drawObject in ipairs(drawList) do
+		if drawObject == -1 then
+			leader = true
+		elseif drawObject >= 0 then
+			DrawPlayer(drawObject, leader, drawListOffset[i], mouseX, mouseY, false, true, false)
+		end
+	end
+end
+
 function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
     forceMainListRefresh = false
 
@@ -1847,12 +1919,14 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
     if onlyMainList then
         if useRenderToTexture then
             if not mainListTex then
-				local ui_sharpness = Spring.GetConfigFloat("ui_sharpness", 1)
-                mainListTex = gl.CreateTexture(math.floor((apiAbsPosition[4]-apiAbsPosition[2])*ui_sharpness), math.floor((apiAbsPosition[1]-apiAbsPosition[3])*ui_sharpness), {
-                    target = GL.TEXTURE_2D,
-                    format = GL.RGBA,
-                    fbo = true,
-                })
+				local width, height = math.floor(apiAbsPosition[4]-apiAbsPosition[2]), math.floor(apiAbsPosition[1]-apiAbsPosition[3])
+				if width > 0 and height > 0 then
+					mainListTex = gl.CreateTexture(width, height, {
+						target = GL.TEXTURE_2D,
+						format = GL.RGBA,
+						fbo = true,
+					})
+				end
             end
             if mainListTex then
                 gl.RenderToTexture(mainListTex, function()
@@ -1878,19 +1952,38 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
     end
 
     if onlyMainList2 then
-        if MainList2 then
-            MainList2 = gl_DeleteList(MainList2)
-        end
-        MainList2 = gl_CreateList(function()
-            local leader
-            for i, drawObject in ipairs(drawList) do
-                if drawObject == -1 then
-                    leader = true
-                elseif drawObject >= 0 then
-                    DrawPlayer(drawObject, leader, drawListOffset[i], mouseX, mouseY, false, true, false)
-                end
+        if useRenderToTexture then
+            if not mainList2Tex then
+				local width, height = math.floor(apiAbsPosition[4]-apiAbsPosition[2]), math.floor(apiAbsPosition[1]-apiAbsPosition[3])
+				if width > 0 and height > 0 then
+						mainList2Tex = gl.CreateTexture(width, height, {
+						target = GL.TEXTURE_2D,
+						format = GL.RGBA,
+						fbo = true,
+					})
+				end
             end
-        end)
+            if mainList2Tex then
+                gl.RenderToTexture(mainList2Tex, function()
+                    gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+                    gl.PushMatrix()
+                    gl.Translate(-1, -1, 0)
+                    gl.Scale(2 / (apiAbsPosition[4]-apiAbsPosition[2]), 2 / (apiAbsPosition[1]-apiAbsPosition[3]), 0)
+                    gl.Scale(widgetScale, widgetScale, 0)
+                    local scaleMult = 1 + ((widgetScale-1) * 3.5)   -- dont ask me why but this seems to come closest approximately
+                    gl.Translate(-apiAbsPosition[2]-(backgroundMargin*0.25*scaleMult), -apiAbsPosition[3]-(backgroundMargin*0.25*scaleMult), 0)
+                    drawMainList2()
+                    gl.PopMatrix()
+                end)
+            end
+        else
+			if MainList2 then
+				MainList2 = gl_DeleteList(MainList2)
+			end
+			MainList2 = gl_CreateList(function()
+                drawMainList2()
+			end)
+		end
     end
 
     if onlyMainList3 then
@@ -2112,7 +2205,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
     if onlyMainList2 and m_cpuping.active and not isSinglePlayer then
         if cpuLvl ~= nil then
             -- draws CPU usage and ping icons (except AI and ghost teams)
-            DrawPingCpu(pingLvl, cpuLvl, posY, spec, 1, cpu, lastFpsData[playerID])
+            DrawPingCpu(pingLvl, cpuLvl, posY, spec, cpu, lastFpsData[playerID])
             if tipY then
                 PingCpuTip(mouseX, ping, cpu, lastFpsData[playerID], lastGpuMemData[playerID], lastSystemData[playerID], name, team, spec, lastApmData[team])
             end
@@ -2610,9 +2703,9 @@ function DrawID(playerID, posY, dark, dead)
     local fontsize = 9.5 * (playerScale + ((1-playerScale)*0.25))
     font:Begin()
     if dead then
-        font:SetTextColor(1, 1, 1, useRenderToTexture and 0.85 or 0.4)    -- I dont know the fuck why the following RectRound or a plain gl.Rect) hardly shows up when using rendertotexture so lets brighten it!
+        font:SetTextColor(0.7, 0.7, 0.7, 0.5)
     else
-        font:SetTextColor(1, 1, 1, 1)
+        font:SetTextColor(0.7, 0.7, 0.7, 1)
     end
     font:Print(spacer .. playerID, m_ID.posX + widgetPosX + (4.5*playerScale), posY + (5.3*playerScale), fontsize, "on")
     font:End()
@@ -2625,7 +2718,7 @@ function DrawSkill(skill, posY, dark)
     font:End()
 end
 
-function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu, fps)
+function DrawPingCpu(pingLvl, cpuLvl, posY, spec, cpu, fps)
     gl_Texture(pics["pingPic"])
     local grayvalue
     if spec then
@@ -2637,7 +2730,6 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu, fps)
         DrawRect(m_cpuping.posX + widgetPosX + (12*playerScale), posY + (1*playerScale), m_cpuping.posX + widgetPosX + (24*playerScale), posY + (15*playerScale))
     end
 
-    grayvalue = 0.7 + (cpu / 135)
 
     -- display user fps
     font:Begin()
@@ -2645,19 +2737,20 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu, fps)
         if fps > 99 then
             fps = 99
         end
-        grayvalue = 0.95 - (math.min(fps, 99) / 400)
+        grayvalue = 0.88 - (math.min(fps, 99) / 350)
         if fps < 0 then
             fps = 0
             greyvalue = 1
         end
         if spec then
-            font:SetTextColor(grayvalue, grayvalue, grayvalue, 0.87 * alpha * grayvalue)
+            font:SetTextColor(grayvalue*0.7, grayvalue*0.7, grayvalue*0.7, 1)
             font:Print(fps, m_cpuping.posX + widgetPosX + (11*specScale), posY + (5.3*playerScale), 9*specScale, "ro")
         else
-            font:SetTextColor(grayvalue, grayvalue, grayvalue, alpha * grayvalue)
+            font:SetTextColor(grayvalue, grayvalue, grayvalue, 1)
             font:Print(fps, m_cpuping.posX + widgetPosX + (11*playerScale), posY + (5.3*playerScale), 9.5*playerScale, "ro")
         end
     else
+        grayvalue = 0.7 + (cpu / 135)
         gl_Texture(pics["cpuPic"])
         if spec then
             gl_Color(grayvalue, grayvalue, grayvalue, 0.1 + (0.14 * cpuLvl))
@@ -3632,7 +3725,7 @@ function widget:ViewResize()
     updateWidgetScale()
 
     font = WG['fonts'].getFont()
-    font2 = WG['fonts'].getFont(fontfile2, 1.1, math.max(0.16, 0.25 / widgetScale), math.max(4.5, 6 / widgetScale))
+    font2 = WG['fonts'].getFont(fontfile2, 1.1 * (useRenderToTexture and 1.2 or 1), math.max(0.16, 0.25 / widgetScale) * (useRenderToTexture and 1.2 or 1), math.max(4.5, 6 / widgetScale))
 
 	local MakeAtlasOnDemand = VFS.Include("LuaUI/Include/AtlasOnDemand.lua")
 	if AdvPlayersListAtlas then
