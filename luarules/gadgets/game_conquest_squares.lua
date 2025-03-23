@@ -13,6 +13,8 @@ end
 
 -- TODO:
 -- need to convert the score text display to use i18n for language localization
+
+-- need to add entry for C:\Program Files\Beyond-All-Reason\data\games\BAR.sdd\luaui\Widgets\gui_game_type_info.lua to inform players of game type
 -- warning sounds
 -- code cleanup
 -- need to do the modoptions
@@ -1287,16 +1289,12 @@ local function drawScore()
             lastWarningBlinkTime = currentTime
             isWarningVisible = not isWarningVisible
         end
-        
-        currentTextColor[1], currentTextColor[2], currentTextColor[3], currentTextColor[4] = 
-            COLOR_RED[1], COLOR_RED[2], COLOR_RED[3], 
-            isWarningVisible and COLOR_RED[4] or BLINK_COLOR[4]
+        currentTextColor[1], currentTextColor[2], currentTextColor[3], currentTextColor[4] =  COLOR_RED[1], COLOR_RED[2], COLOR_RED[3], isWarningVisible and COLOR_RED[4] or BLINK_COLOR[4]
+
     elseif difference <= ALERT_THRESHOLD then
-        currentTextColor[1], currentTextColor[2], currentTextColor[3], currentTextColor[4] = 
-            COLOR_YELLOW[1], COLOR_YELLOW[2], COLOR_YELLOW[3], COLOR_YELLOW[4]
+        currentTextColor[1], currentTextColor[2], currentTextColor[3], currentTextColor[4] = COLOR_YELLOW[1], COLOR_YELLOW[2], COLOR_YELLOW[3], COLOR_YELLOW[4]
     else
-        currentTextColor[1], currentTextColor[2], currentTextColor[3], currentTextColor[4] = 
-            COLOR_WHITE[1], COLOR_WHITE[2], COLOR_WHITE[3], COLOR_WHITE[4]
+        currentTextColor[1], currentTextColor[2], currentTextColor[3], currentTextColor[4] = COLOR_WHITE[1], COLOR_WHITE[2], COLOR_WHITE[3], COLOR_WHITE[4]
     end
     
     -- Single push/pop with all drawing operations
