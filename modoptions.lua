@@ -121,12 +121,37 @@ local options = {
         def		= "com",
         section	= "options_main",
         items	= {
-            { key= "neverend", 	name= "Never ending", 				desc="Teams are never eliminated"},
-            { key= "com", 		name= "Kill all enemy Commanders", 	desc="When a team has no Commanders left, it loses"},
-            { key= "builders", 	name= "Kill all Builders",			desc="When a team has no builders left, it loses" },
-            { key= "killall", 	name= "Kill everything", 			desc="Every last unit must be eliminated, no exceptions!"},
-            { key= "own_com", 	name= "Player resign on Com death", desc="When player commander dies, you auto-resign."},
+            { key= "neverend", 	name= "Never ending", 				desc="Teams are never eliminated", lock = {"territorial_domination_grace_period", "territorial_domination_max_minutes"} },
+            { key= "com", 		name= "Kill all enemy Commanders", 	desc="When a team has no Commanders left, it loses", lock = {"territorial_domination_grace_period", "territorial_domination_max_minutes"} },
+            { key= "territorial_domination",  name= "Territorial Domination",     desc="Teams race to capture territory against an ever-increasing quota to stay in the game. Commander retreat or death results in defeat.", unlock = {"territorial_domination_grace_period", "territorial_domination_max_minutes"} },
+            { key= "builders", 	name= "Kill all Builders",			desc="When a team has no builders left, it loses", lock = {"territorial_domination_grace_period", "territorial_domination_max_minutes"} },
+            { key= "killall", 	name= "Kill everything", 			desc="Every last unit must be eliminated, no exceptions!", lock = {"territorial_domination_grace_period", "territorial_domination_max_minutes"} },
+            { key= "own_com", 	name= "Player resign on Com death", desc="When player commander dies, you auto-resign.", lock = {"territorial_domination_grace_period", "territorial_domination_max_minutes"} },
         }
+    },
+
+    {
+        key     = "territorial_domination_grace_period",
+        name    = "Territorial Domination Grace Period",
+        desc    = "The amount of time in minutes that a team has to capture territory before the quota starts increasing.",
+        type    = "number",
+        def     = 5,
+        step    = 0.1,
+        min     = 2,
+        max     = 10,
+        section = "options_main",
+    },
+
+    {
+        key     = "territorial_domination_max_minutes",
+        name    = "Territorial Domination Max Minutes",
+        desc    = "The maximum amount of time in minutes that a team can capture territory.",
+        type    = "number",
+        def     = 22,
+        step    = 0.1,
+        min     = 10,
+        max     = 45,
+        section = "options_main",
     },
 
     {
