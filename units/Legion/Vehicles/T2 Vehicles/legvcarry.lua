@@ -128,7 +128,7 @@ return {
 				impulsefactor = 0.123,
 				name = "HeavyCannon",
 				noselfdamage = true,
-				range = 900,
+				range = 1000,
 				reloadtime = 2.5,
 				size = 0,
 				soundhit = "",
@@ -136,7 +136,7 @@ return {
 				soundstart = "",
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 360,
+				weaponvelocity = 1000,
 				damage = {
 					default = 0,
 				},
@@ -148,7 +148,7 @@ return {
 					maxunits = 4,				--Will spawn units until this amount has been reached.
 					energycost = 500,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					metalcost = 15,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					controlradius = 1000,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
+					controlradius = 1100,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
 					decayrate = 4,
 					carrierdeaththroe = "release",
 					dockingarmor = 0.2,

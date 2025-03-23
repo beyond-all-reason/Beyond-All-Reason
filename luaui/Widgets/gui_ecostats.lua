@@ -86,7 +86,7 @@ for i=1, #Spring.GetAllyTeamList()-1 do
 		maxTeamsize = #Spring.GetTeamList(i)
 	end
 end
-local playerScale = math.max(0.15, math.min(1, 14 / maxTeamsize))
+local playerScale = math.clamp(14 / maxTeamsize, 0.15, 1)
 
 local widgetScale = 0.95 + (vsx * vsy / 7500000)        -- only used for rounded corners atm
 local sizeMultiplier = 1
@@ -405,7 +405,7 @@ local function setAllyData(allyID)
 	end
 
 	allyIDdata[allyID] = index
-	
+
 	allyData[index].teams = teamList
 	allyData[index].tE = getTeamSum(index, "einc")
 	allyData[index].tEr = getTeamSum(index, "erecl")
@@ -677,24 +677,19 @@ function widget:TextCommand(command)
 end
 
 local function DrawEText(numberE, vOffset)
-	if cfgResText then
-		local label = string.formatSI(numberE)
-		font:Begin()
-		font:SetTextColor({ 1, 1, 0, 1 })
-		font:Print(label or "", widgetPosX + widgetWidth - (5 * sizeMultiplier), widgetPosY + widgetHeight - vOffset + (tH * 0.22), tH / 2.3, 'rs')
-		font:End()
-	end
+	local label = string.formatSI(numberE)
+	font:Begin()
+	font:SetTextColor({ 1, 1, 0, 1 })
+	font:Print(label or "", widgetPosX + widgetWidth - (5 * sizeMultiplier), widgetPosY + widgetHeight - vOffset + (tH * 0.22), tH / 2.3, 'rs')
+	font:End()
 end
 
 local function DrawMText(numberM, vOffset)
-	vOffset = vOffset - (borderPadding * 0.5)
-	if cfgResText then
-		local label = string.formatSI(numberM)
-		font:Begin()
-		font:SetTextColor({ 0.85, 0.85, 0.85, 1 })
-		font:Print(label or "", widgetPosX + widgetWidth - (5 * sizeMultiplier), widgetPosY + widgetHeight - vOffset + (tH * 0.58), tH / 2.3, 'rs')
-		font:End()
-	end
+	local label = string.formatSI(numberM)
+	font:Begin()
+	font:SetTextColor({ 0.85, 0.85, 0.85, 1 })
+	font:Print(label or "", widgetPosX + widgetWidth - (5 * sizeMultiplier), widgetPosY + widgetHeight - vOffset + (borderPadding * 0.5) + (tH * 0.58), tH / 2.3, 'rs')
+	font:End()
 end
 
 local function DrawEBar(tE, tEp, vOffset)
@@ -1036,7 +1031,6 @@ local function drawListStandard()
 	end
 
 	if os.clock() > lastBarsUpdate + 0.15 then
-		updateTextLists = true
 		lastBarsUpdate = os.clock()
 		maxMetal, maxEnergy = 0, 0
 		for _, data in ipairs(allyData) do
@@ -1064,15 +1058,11 @@ local function drawListStandard()
 		end
 	end
 
-	if maxMetal == 0 or maxEnergy == 0 then
-		return -- protect from NaN
-	end
-
 	for _, data in ipairs(allyData) do
 		local aID = data.aID
 		if aID ~= nil then
 			local drawpos = data.drawpos
-	
+
 			if data.exists and type(data.tE) == "number" and drawpos and #(data.teams) > 0 and (aID == myAllyID or inSpecMode) and (aID ~= gaiaAllyID) then
 				if not data.isAlive then
 					data.isAlive = isTeamAlive(aID)
@@ -1080,17 +1070,17 @@ local function drawListStandard()
 				local posy = tH * (drawpos)
 				local t = GetGameSeconds()
 				if data.isAlive and t > 0 and gamestarted and not gameover then
-					DrawEBar(avgData[aID].tE / maxEnergy, (avgData[aID].tE - avgData[aID].tEr) / maxEnergy, posy - 1)
-				end
-				if data.isAlive and t > 5 and not gameover then
-					DrawMBar(avgData[aID].tM / maxMetal, (avgData[aID].tM - avgData[aID].tMr) / maxMetal, posy + 2)
+					if maxEnergy > 0 then
+						DrawEBar(avgData[aID].tE / maxEnergy, (avgData[aID].tE - avgData[aID].tEr) / maxEnergy, posy - 1)
+					end
+					if maxEnergy > 0 then
+						DrawMBar(avgData[aID].tM / maxMetal, (avgData[aID].tM - avgData[aID].tMr) / maxMetal, posy + 2)
+					end
 				end
 				if updateTextLists then
 					textLists[aID] = gl.CreateList(function()
-						if data.isAlive and t > 0 and gamestarted and not gameover then
+						if cfgResText and data.isAlive and t > 0 and gamestarted and not gameover then
 							DrawEText(avgData[aID].tE, posy)
-						end
-						if data.isAlive and t > 5 and not gameover then
 							DrawMText(avgData[aID].tM, posy)
 						end
 					end)
@@ -1328,7 +1318,7 @@ function widget:Update(dt)
 			updateDrawPos()
 		end
 	end
-	
+
 	local prevTopbarShowButtons = topbarShowButtons
 	topbarShowButtons =  WG['topbar'] and WG['topbar'].getShowButtons()
 	if topbarShowButtons ~= prevTopbarShowButtons then

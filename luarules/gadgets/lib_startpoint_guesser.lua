@@ -83,8 +83,8 @@ function GuessOne(teamID, allyID, xmin, zmin, xmax, zmax, startPointTable)
 		local bestDist = 2*walkRadius
 		for i=1,#walkableMetalSpots do
 			local mx,mz = walkableMetalSpots[i][1], walkableMetalSpots[i][2]
-			local nx = math.max(math.min(mx,xmax),xmin)
-			local nz = math.max(math.min(mz,zmax),zmin)
+			local nx = math.clamp(mx, xmin, xmax)
+			local nz = math.clamp(mz, zmin, zmax)
 			local dist = math.sqrt((mx-nx)^2 + (mz-nz)^2)
 
 			if not IsSteep(nx,nz) and dist < bestDist then
