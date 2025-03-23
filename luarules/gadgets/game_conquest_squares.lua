@@ -621,6 +621,8 @@ local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 
+local getMiniMapFlipped = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapFlipped
+
 --testing variables
 local TEST_SPEED = 0.25
 local TEST_SQUARE_COUNT = 7
@@ -711,6 +713,7 @@ layout (location = 3) in vec4 capturestate; // speed, progress, startframe, unus
 
 uniform sampler2D heightmapTex;
 uniform int isMinimapRendering;
+uniform int flipMiniMap;
 uniform float mapSizeX;
 uniform float mapSizeZ;
 uniform float minCameraDrawHeight;
@@ -748,16 +751,17 @@ void main() {
 	cameraDist = length(cameraPos);
 	
 	if (isMinimapRendering == 1) {
-		// Minimap rendering mode
-		// Scale position to minimap coordinates (0-1)
 		vec2 minimapPos = (posscale.xz / vec2(mapSizeX, mapSizeZ));
-		vec2 squareSize = vec2(posscale.w / mapSizeX, posscale.w / mapSizeZ) * 0.5;  // Added 0.5 scaling factor
+		vec2 squareSize = vec2(posscale.w / mapSizeX, posscale.w / mapSizeZ) * 0.5;
 		
-		// Calculate vertex position in minimap space
 		vec2 vertexPos = position.xy * squareSize + minimapPos;
 		
-		// Keep full minimap coordinates (0-1)
-		gl_Position = vec4(vertexPos.x * 2.0 - 1.0, 1.0 - vertexPos.y * 2.0, 0.0, 1.0);
+		if (flipMiniMap == 0) {
+			vertexPos.y = 1.0 - vertexPos.y;  // Invert Y when minimap is not flipped
+		}
+		
+		// Convert to clip space coordinates (-1 to 1)
+		gl_Position = vec4(vertexPos.x * 2.0 - 1.0, vertexPos.y * 2.0 - 1.0, 0.0, 1.0);
 		inMinimap = 1;
 	} else {
 		// World rendering mode
@@ -877,6 +881,7 @@ local function makeShader()
 		uniformInt = {
 			heightmapTex = 0,
 			isMinimapRendering = 0,
+			flipMiniMap = 0,
 		},
 		uniformFloat = {
 			mapSizeX = Game.mapSizeX,
@@ -1056,7 +1061,7 @@ function gadget:DrawWorldPreUnit()
 	
 	squareShader:Activate()
 	squareShader:SetUniformInt("isMinimapRendering", 0)
-	
+	squareShader:SetUniformInt("flipMiniMap", getMiniMapFlipped() and 1 or 0)
 	instanceVBO.VAO:DrawElements(GL.TRIANGLES, instanceVBO.numVertices, 0, instanceVBO.usedElements)
 	
 	squareShader:Deactivate()
@@ -1069,7 +1074,8 @@ function gadget:DrawInMiniMap()
 	
 	squareShader:Activate()
 	squareShader:SetUniformInt("isMinimapRendering", 1)
-	
+	squareShader:SetUniformInt("flipMiniMap", getMiniMapFlipped() and 1 or 0)
+
 	instanceVBO.VAO:DrawElements(GL.TRIANGLES, instanceVBO.numVertices, 0, instanceVBO.usedElements)
 	
 	squareShader:Deactivate()
