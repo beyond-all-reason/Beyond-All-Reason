@@ -67,7 +67,7 @@ end
 
 function map:RequestPath(moveClass, POS1, POS2,radius) -- returns a path
 
-	radius = radius or 128
+	radius = radius or 8
 	if not moveClass then
 		Spring.Echo('RequestPath receive a nil moveClass',moveClass)
 		return

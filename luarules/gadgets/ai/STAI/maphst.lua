@@ -239,6 +239,7 @@ function MapHST:areaCells(X,Z,R,grid) -- return alist of cells in range R from a
 end
 
 function MapHST:GetCell(X,Z,grid) --accept 1one position({t.x,t.y,t.z}) OR 2two XZ grid coordinate; return a CEll if exist
+	local grid = grid
 	if type(X) == 'table' and X.x and X.z then
 		grid = Z
 		X,Z = self:PosToGrid(X)

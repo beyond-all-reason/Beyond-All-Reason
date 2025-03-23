@@ -67,11 +67,15 @@ end
 
 -- Function to recursively process a table and discard everything that is not a table
 function Tool:KillTable(t)
+	
 	if not t or type(t) ~= 'table' then
 		self:EchoDebug("incorrect type in KillTable",t,type(t))    
 		return
 	end
 	--self:EchoDebug("SIT_TABLE: Before clearing", t)
+	--if type(t) == 'table' then
+		
+	
 	for key, value in pairs(t) do
 		
 		if type(value) == 'table' then
@@ -80,8 +84,11 @@ function Tool:KillTable(t)
 		t[key] = nil
 		if  next(t) == nil then
 			table.insert(self._TABLES, t)
+			--t = nil
 		end
 	end
+
+	--end
 	--print('#KillTable',#self._TABLES)
 	return nil
 end

@@ -133,7 +133,7 @@ function RaidHST:SquadCheck(squad)
 		end
 	end
 	if not check then
-		self:SquadDisband(squad, squad.squadID)
+		self:SquadDisband(squad)
 		return
 	end
 	squad.position = squad.position or self.ai.tool:RezTable()
@@ -159,10 +159,10 @@ function RaidHST:SquadDisband(squad)
 		self:AddRecruit(member)
 		member.squad = nil
 	end
-	self.squads[squad.squadID] = self.ai.tool:KillTable(squad)
+	--local t = table.remove(self.squads,squad.squadID):TODO do di better
+	--self.ai.tool:KillTable(squad)----:TODO NONFUNGEEEE
+	self.squads[squad.squadID] = nil
 end
-
-
 
 function RaidHST:SquadStepComplete(squad)
 	self:EchoDebug('step complete',squad.step,squad.position.x,squad.position.z,squad.path[squad.step].x,squad.path[squad.step].z)
@@ -400,7 +400,7 @@ function RaidHST:AddRecruit(rdbhvr)
 	if not self:IsRecruit(rdbhvr) then
 		if rdbhvr.unit ~= nil then
 			local mtype = self.ai.maphst:MobilityOfUnit(rdbhvr.unit:Internal())
-			if self.recruits[mtype] == nil then self.recruits[mtype] = {} end
+			if self.recruits[mtype] == nil then self.recruits[mtype] = self.ai.tool:ResetTable(self.recruits[mtype]) end
 			table.insert(self.recruits[mtype], rdbhvr)
 			rdbhvr:Free()
 		else

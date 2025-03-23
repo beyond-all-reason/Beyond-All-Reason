@@ -171,7 +171,6 @@ end
 
 -- this will issue the correct move state to all units
 function AttackerBST:SetMoveState()
-	print('ksjhdbcakshjbkjhbkadfv')
 	self.movestateSet = true
 	if self.unit then
 		self.ai.tool:GiveOrder(self.id,CMD.MOVE_STATE, 0, 0,'1-1')
