@@ -76,6 +76,7 @@ if SYNCED then
 	local spPlaySoundFile = Spring.PlaySoundFile
 	local mapSizeX = Game.mapSizeX
 	local mapSizeZ = Game.mapSizeZ
+	local spGetPositionLosState = Spring.GetPositionLosState
 	local SendToUnsynced = SendToUnsynced
 
 	--variables
@@ -476,16 +477,58 @@ if SYNCED then
 		return randomizedGridIDs
 	end
 
-	local function initializeUnsyncedGrid()
-		for gridID, data in pairs(captureGrid) do
-			SendToUnsynced("InitializeGridSquare", gridID, data.allyOwnerID, data.progress, data.gridMidpointX, data.gridMidpointZ)
+	-- Helper function to create a visibility bitmask for a grid square
+	local function createVisibilityBitmask(squareData)
+		local visibilityBitmask = 0
+		
+		-- Check visibility for each ally team
+		for allyTeamID in pairs(allyTeamsWatch) do
+			local isInLineOfSight, isInRadar = spGetPositionLosState(
+				squareData.gridMidpointX, 
+				0, 
+				squareData.gridMidpointZ, 
+				allyTeamID
+			)
+			
+			-- If either LOS or radar can see the square, set the bit for this ally team
+			if isInLineOfSight or isInRadar then
+				-- Use 2^allyTeamID to set the appropriate bit
+				visibilityBitmask = visibilityBitmask + (2 ^ allyTeamID)
+			end
 		end
+		
+		return visibilityBitmask
+	end
+
+
+	local function initializeUnsyncedGrid()
+		-- Create a fully visible bitmask for initial grid setup
+		-- All ally teams can see all squares initially
+		local allVisibleBitmask = 0
+		for allyTeamID in pairs(allyTeamsWatch) do
+			allVisibleBitmask = allVisibleBitmask + (2 ^ allyTeamID)
+		end
+		
+		for gridID, squareData in pairs(captureGrid) do
+			-- For initialization, set all squares as visible to everyone
+			SendToUnsynced("InitializeGridSquare", 
+				gridID,
+				gaiaAllyTeamID,
+				squareData.progress,
+				squareData.gridMidpointX,
+				squareData.gridMidpointZ,
+				allVisibleBitmask
+			)
+		end
+		
+		sentGridStructure = true
 	end
 
 	local function updateUnsyncedSquare(gridID)
-		local data = captureGrid[gridID]
+		local squareData = captureGrid[gridID]
+		local visibilityBitmask = createVisibilityBitmask(squareData)
 		
-		SendToUnsynced("UpdateGridSquare", gridID, data.allyOwnerID, data.progress)
+		SendToUnsynced("UpdateGridSquare", gridID, squareData.allyOwnerID, squareData.progress, visibilityBitmask)
 	end
 
 	local function updateUnsyncedScore(allyID, score)
@@ -632,6 +675,7 @@ local SQUARE_SIZE = 1024  -- Match GRID_SIZE from synced part
 local SQUARE_ALPHA = 0.2
 local SQUARE_HEIGHT = 20
 local UPDATE_FRAME_RATE_INTERVAL = Game.gameSpeed
+local MAX_CAPTURE_CHANGE = 0.12 -- to prevent super fast capture expansions that look bad
 
 --tables
 local captureGrid = {}
@@ -983,27 +1027,116 @@ function gadget:Initialize()
     amSpectating = Spring.GetSpectatingState()
 end
 
+local wasSpectating = false
+local previousAllyID = nil
+
+-- Helper function that ONLY determines if a square is visible to the local player
+local function getSquareVisibility(newAllyOwnerID, oldAllyOwnerID, visibilityBitmask)
+    if amSpectating or newAllyOwnerID == myAllyID then
+        return true, false
+    end
+
+    -- Otherwise, check the visibility bitmask for LOS/radar
+    local allyTeamBit = 2 ^ myAllyID
+    local isCurrentlyVisible = (visibilityBitmask / allyTeamBit) % 2 >= 1
+    
+    -- Only reset color if the square was owned by player and is now owned by someone else
+    local shouldResetColor = oldAllyOwnerID == myAllyID and newAllyOwnerID ~= myAllyID
+    
+    return isCurrentlyVisible, shouldResetColor
+end
+
+function gadget:RecvFromSynced(messageName, ...)
+    if messageName == "InitializeGridSquare" then
+        local gridID, allyOwnerID, progress, gridMidpointX, gridMidpointZ, visibilityBitmask = ...
+        captureGrid[gridID] = {
+            visibilityBitmask = visibilityBitmask,
+            allyOwnerID = allyOwnerID,
+            oldProgress = progress,
+            newProgress = progress,
+            captureChange = 0,
+            gridMidpointX = gridMidpointX,
+            gridMidpointZ = gridMidpointZ,
+            isVisible = getSquareVisibility(allyOwnerID, allyOwnerID, visibilityBitmask),
+			currentColor = blankColor
+        }
+        
+    elseif messageName == "InitializeConfigs" then
+        SQUARE_SIZE, UPDATE_FRAME_RATE_INTERVAL = ...
+        
+    elseif messageName == "UpdateGridSquare" then
+        local gridID, allyOwnerID, progress, visibilityBitmask = ...
+		local gridData = captureGrid[gridID]
+        if gridData then
+			local oldAllyOwnerID = gridData.allyOwnerID
+			gridData.visibilityBitmask = visibilityBitmask
+			gridData.allyOwnerID = allyOwnerID
+            gridData.oldProgress = gridData.newProgress
+            gridData.captureChange = progress - gridData.oldProgress
+
+			if gridData.captureChange > MAX_CAPTURE_CHANGE then
+				gridData.oldProgress = progress
+			end
+            gridData.newProgress = progress
+
+			local resetColor = false
+			gridData.isVisible, resetColor = getSquareVisibility(allyOwnerID, oldAllyOwnerID, visibilityBitmask)
+			if resetColor then
+				gridData.currentColor = blankColor
+			end
+        end
+        
+    elseif messageName == "UpdateAllyScore" then
+        local allyID, score, threshold = ...
+        allyScores[allyID] = score
+        defeatThreshold = threshold
+    end
+end
+
 function gadget:Update()
-	local currentFrame = Spring.GetGameFrame()
-	
-	if currentFrame % UPDATE_FRAME_RATE_INTERVAL == 0 and currentFrame ~= lastMoveFrame then
-		amSpectating = Spring.GetSpectatingState()
-		
-		for gridID, gridData in pairs(captureGrid) do
-			local color = blankColor
+    local currentFrame = Spring.GetGameFrame()
+    
+    if currentFrame % UPDATE_FRAME_RATE_INTERVAL == 0 and currentFrame ~= lastMoveFrame then
+        -- Update player status (spectating and alliance)
+        amSpectating = Spring.GetSpectatingState()
+        myAllyID = Spring.GetMyAllyTeamID()
+        
+        -- If player status changed, we need to re-evaluate visibility for all squares
+        local playerStatusChanged = false
+        if amSpectating ~= wasSpectating or previousAllyID and myAllyID ~= previousAllyID then
+            playerStatusChanged = true
             
-            -- Color selection based on spectator status and ownership
-            if gridData.allyOwnerID == gaiaAllyTeamID then
-                color = blankColor
-            elseif amSpectating then
-                -- When spectating, use team colors
-                color = allyColors[gridData.allyOwnerID] or blankColor
-            else
-                -- When playing, use green for allied and red for enemy
-                if gridData.allyOwnerID == myAllyID then
-                    color = alliedColor
+            -- Only reevaluate visibility if player status changed
+            if playerStatusChanged then
+                for gridID, gridSquareData in pairs(captureGrid) do
+					local resetColor = false
+                    gridSquareData.isVisible, resetColor = getSquareVisibility(gridSquareData.allyOwnerID, gridSquareData.allyOwnerID, gridSquareData.visibilityBitmask)
+					if resetColor then
+						gridSquareData.currentColor = blankColor
+					end
+                end
+            end
+        end
+		wasSpectating = amSpectating
+		previousAllyID = myAllyID
+        
+        for gridID, _ in pairs(captureGrid) do
+			local gridData = captureGrid[gridID]
+            
+            if gridData.isVisible then
+                -- Show full colored square when visible
+                if gridData.allyOwnerID == gaiaAllyTeamID then
+                    gridData.currentColor = blankColor
+                elseif amSpectating then
+                    -- Use team colors for spectators
+                    gridData.currentColor = allyColors[gridData.allyOwnerID]
                 else
-                    color = enemyColor
+                    -- Use allied/enemy colors for players
+                    if gridData.allyOwnerID == myAllyID then
+                        gridData.currentColor = alliedColor
+                    else
+                        gridData.currentColor = enemyColor
+                    end
                 end
             end
             
@@ -1015,9 +1148,9 @@ function gadget:Update()
 			updateGridSquareInstanceVBO(
 				gridID,
 				{gridData.gridMidpointX, SQUARE_HEIGHT, gridData.gridMidpointZ, SQUARE_SIZE},
-				color,
+				gridData.currentColor,
 				{captureChangePerFrame, gridData.oldProgress, currentFrame, 0.0}
-				)
+			)
 			gridData.captureChange = nil
 		end
 		
@@ -1065,35 +1198,6 @@ function gadget:Shutdown()
 	if squareShader then
 		squareShader:Finalize()
 	end
-end
-
-function gadget:RecvFromSynced(messageName, ...)
-    if messageName == "InitializeGridSquare" then
-        local gridID, allyOwnerID, progress, gridMidpointX, gridMidpointZ = ...
-        captureGrid[gridID] = {
-            allyOwnerID = allyOwnerID,
-            oldProgress = progress,
-			newProgress = progress,
-			captureChange = 0,
-            gridMidpointX = gridMidpointX,
-            gridMidpointZ = gridMidpointZ
-        }
-	elseif messageName == "InitializeConfigs" then
-		SQUARE_SIZE, UPDATE_FRAME_RATE_INTERVAL = ...
-    elseif messageName == "UpdateGridSquare" then
-        local gridID, allyOwnerID, progress = ...
-        if captureGrid[gridID] then
-            captureGrid[gridID].allyOwnerID = allyOwnerID
-			captureGrid[gridID].oldProgress = captureGrid[gridID].newProgress
-            captureGrid[gridID].captureChange = progress - captureGrid[gridID].oldProgress
-            captureGrid[gridID].newProgress = progress
-        end
-
-    elseif messageName == "UpdateAllyScore" then
-        local allyID, score, threshold = ...
-        allyScores[allyID] = score
-        defeatThreshold = threshold
-    end
 end
 
 -- Cache frequently used functions at file scope
