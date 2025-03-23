@@ -151,6 +151,7 @@ Create(){
 	//Needed for CATT to do its thing ig.
 	call-script CATT1_Init();
 	call-script CATT2_Init();
+	start-script Steering();
 
 	//Booting up!
 	spin fingers around z-axis speed <360> accelerate <6>;}
@@ -233,13 +234,11 @@ QueryWeapon2(piecenum)
 AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM_TC;
-	set-signal-mask SIG_AIM_TC;
-	//set-signal-mask SIG_AIM_TC + SIG_FIRE_BUNKER + SIG_FIRE_GUN;
 	var cauaim;
     var cauface;
 	if ((((oldHeadingBunker > 0) AND (oldHeadingRailgun < 0) AND (oldHeadingBunker > 15000) AND (oldHeadingRailgun < (-15000))) OR ((oldHeadingBunker < 0) AND (oldHeadingRailgun > 0) AND (oldHeadingBunker < (-15000)) AND (oldHeadingRailgun > 15000))) AND (15000 > get ABS(cauface - cauaim)))
 	{
-		if (((oldHeadingBunker+oldHeadingRailgun)/2) < 0)
+		if ((oldHeadingBunker+oldHeadingRailgun)/4 + heading/2 < 0)
 		{
 			if (isturning == 1)
 			{
@@ -327,6 +326,7 @@ AimWeapon1(heading, pitch)
 	}
 	oldHeadingTS = heading;
 	//dbg(heading,oldHeadingBunker,oldHeadingRailgun,cauaim,cauface,torsofunkyHeading,oldHeadingTS)
+	dbg(WRAPDELTA(oldHeadingTS),WRAPDELTA(torsofunkyHeading))
     call-script RestoreAfterDelay();
 	return (1);
 }
@@ -339,6 +339,11 @@ AimWeapon1(heading, pitch)
 //Temporary Fix: Disabled Y Arm rotation of both weapons. Its a tragedy, but the system was too unstable. Hopefully I can figure something out to bring it back.
 AimWeapon2(heading, pitch)
 {
+	var new_heading;
+	new_heading = heading - torsofunkyHeading;
+	if (ANGLE_DIFFERENCE_GREATER_THAN(new_heading,<135>)) {
+		return (0);
+	}
 	signal SIG_AIM_BUNKER;
 	start-script ResetWeapon();
 	set-signal-mask SIG_AIM_BUNKER;
@@ -370,11 +375,14 @@ QueryWeapon3(piecenum)
 
 //Railgun
 AimWeapon3(heading, pitch) {
+	var new_heading;
+	new_heading = heading - torsofunkyHeading;
+	if (ANGLE_DIFFERENCE_GREATER_THAN(new_heading,<135>)) {
+		return (0); //TODO: Tell cobbs about this. This block makes sure to only attack things within a sane angle compared to the torso!
+	}
 	signal SIG_AIM_GUN;
 	set-signal-mask SIG_AIM_GUN;
-	var new_heading;
-	new_heading = (heading - torsofunkyHeading);
-
+	
 	//turn railgun to x-axis <0> speed <30>;
 	oldHeadingRailgun = heading;
 
@@ -405,15 +413,17 @@ Recoil_Gun() {
 
 Recoil_Bunker() {
 	move piledriver to z-axis [-2] speed [20];
+	turn piledriver to x-axis <10> speed [4.125];
 	turn larm to x-axis <25> speed [6.25];
 	turn larmorshoulder to x-axis <-25> speed [6.25];
 	turn lforearm to x-axis <-25> speed [6.25];
 	start-script FireBunkerExhausts();
 	sleep 400;
+	move piledriver to z-axis [0.0] speed [8.0];
+	turn piledriver to x-axis <0> speed [0.2];
 	turn larm to x-axis <0> speed [0.4];
 	turn larmorshoulder to x-axis <0> speed [0.4];
 	turn lforearm to x-axis <0> speed [0.4];
-	move piledriver to z-axis [0.0] speed [8.0];
 	sleep 100;}
 
 //When the Driver turns stupid and pouty and doesn't reset rotation during combat without targets
