@@ -236,9 +236,9 @@ AimWeapon1(heading, pitch)
 	signal SIG_AIM_TC;
 	var cauaim;
     var cauface;
-	if ((((oldHeadingBunker > 0) AND (oldHeadingRailgun < 0) AND (oldHeadingBunker > 15000) AND (oldHeadingRailgun < (-15000))) OR ((oldHeadingBunker < 0) AND (oldHeadingRailgun > 0) AND (oldHeadingBunker < (-15000)) AND (oldHeadingRailgun > 15000))) AND (15000 > get ABS(cauface - cauaim)))
+	/*if ((((oldHeadingBunker > 0) AND (oldHeadingRailgun < 0) AND (oldHeadingBunker > 15000) AND (oldHeadingRailgun < (-15000))) OR ((oldHeadingBunker < 0) AND (oldHeadingRailgun > 0) AND (oldHeadingBunker < (-15000)) AND (oldHeadingRailgun > 15000))) AND (15000 > get ABS(cauface - cauaim)))
 	{
-		if ((oldHeadingBunker+oldHeadingRailgun)/4 + heading/2 < 0)
+		if ((oldHeadingBunker+oldHeadingRailgun)/2 < 0)
 		{
 			if (isturning == 1)
 			{
@@ -249,7 +249,7 @@ AimWeapon1(heading, pitch)
 				turn aimy1 to y-axis <179> speed <120.0000> ;
 			}
 		}
-		if (((oldHeadingBunker+oldHeadingRailgun)/2) > 0)
+		if ((oldHeadingBunker+oldHeadingRailgun)/2 > 0)
 		{
 			if (isturning == 1)
 			{
@@ -261,17 +261,17 @@ AimWeapon1(heading, pitch)
 			}
 		}
 	}
-	else
-	{
+	else */
+		//dbg(isturning)
 		if (isturning == 1)
 		{
-			turn aimy1 to y-axis (oldHeadingBunker+oldHeadingRailgun)/2 speed <180.0000> ;
+			turn aimy1 to y-axis (oldHeadingBunker+oldHeadingRailgun)/4 + heading/2 speed <160.0000> ;
 		}
 		if (isturning == 0)
 		{
-			turn aimy1 to y-axis (oldHeadingBunker+oldHeadingRailgun)/2 speed <120.0000> ;
+			turn aimy1 to y-axis (oldHeadingBunker+oldHeadingRailgun)/4 + heading/2 speed <120.0000> ; //TODO: Tell cobbs about this. Without the heading component, if the arms don't move then the targeting computer is dead!
 		}
-	}
+	
 
 	var gun_xz;
     gun_xz = get PIECE_XZ(torso);                                //get packed gun coordinates
