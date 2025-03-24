@@ -16,6 +16,7 @@ end
 
 -- check and make sure that aircraft aren't already entered air when they're first built
 -- warning sounds
+-- some maps have untraversable terrain outside of air movements... should they be uncapturable?
 
 -- code cleanup
 -- need to do the modoptions
@@ -51,7 +52,12 @@ if SYNCED then
 
 	--configs
 	local DEBUGMODE = false -- Changed to uppercase as it's a constant
-	local FLYING_UNIT_POWER_MULTIPLIER = 0 -- units cannot capture while flying
+
+	--to slow the capture rate of tiny units and aircraft on empty and mostly empty squares
+	local maxEmptyImpedencePower = 100
+	local minEmptyImpedenceMultiplier = 0.90
+
+	local FLYING_UNIT_POWER_MULTIPLIER = 0.01 -- units capture territory super slowly while flying, so terrein only accessable via air can be captured
 	local CLOAKED_UNIT_POWER_MULTIPLIER = 0 -- units cannot capture while cloaked
 	local STATIC_UNIT_POWER_MULTIPLIER = 3
 	local MAX_PROGRESS = 1.0
@@ -324,10 +330,6 @@ if SYNCED then
 		if not allyPowers then return nil, 0 end
 		local data = captureGrid[gridID]
 		local currentOwnerID = data.allyOwnerID
-
-		--to slow the capture rate of tiny units and aircraft on empty and mostly empty squares
-		local maxEmptyImpedencePower = 100
-		local minEmptyImpedenceMultiplier = 0.75
 
 		for i = 1, #sortedTeams do
 			sortedTeams[i] = nil
