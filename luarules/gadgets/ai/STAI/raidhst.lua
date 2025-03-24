@@ -159,7 +159,6 @@ function RaidHST:SquadDisband(squad)
 	end
 	--local t = table.remove(self.squads,squad.squadID):TODO do di better
 	--self.ai.tool:KillTable(squad)----:TODO NONFUNGEEEE
-	Spring.Echo(self.squads[squad.squadID])
 	self.squads[squad.squadID] = nil
 end
 
@@ -178,11 +177,11 @@ function RaidHST:SquadFindPath(squad,target)
 		self:Warn('no target to search path')
 		return
 	end
-	self:EchoDebug('search a path for ',squad.squadID,target.POS.x,target.POS.z)
+	self:EchoDebug('search a path for ',squad.squadID,target.X,target.Z)
 	local path
 	if not self.ai.armyhst['airgun'][game:GetUnitByID(squad.leader):Name()] then --TODO workaraund for airgun that do not have mclass
 
-		path = self.ai.maphst:getPath(game:GetUnitByID(squad.leader):Name(),squad.leaderPos,target.POS,true)
+		path = self.ai.maphst:getPath(game:GetUnitByID(squad.leader):Name(),squad.leaderPos,self.ai.maphst:GridToPos(target.X,target.Z),true)
 	end
 
 	if path then
@@ -257,16 +256,15 @@ function RaidHST:SquadsTargetUpdate2()
 -- 				self:EchoDebug('set defensive target for',squad.squadID,squad.target.X,squad.target.Z)
 -- 			else
 
-			local prevent, targetID = self:SquadsTargetPrevent2(squad)
+			local prevent, targetID = self:SquadsTargetPrevent(squad)
 			if prevent then
-
 				squad.target = prevent
 				squad.role = targetID
 				squad.step = 1
 				squad.path = {self.ai.maphst:GridToPos(squad.target.X,squad.target.Z)}
 				self:EchoDebug('set preventive target for',squad.squadID,squad.target.X,squad.target.Z)
 			end
-			local offense = self:SquadsTargetAttack2(squad)
+			local offense = self:SquadsTargetAttack(squad)
 			if squad.lock and offense then
 				local path, step = self:SquadFindPath(squad,offense)
 				if path and step then
@@ -285,7 +283,7 @@ function RaidHST:SquadsTargetUpdate2()
 	end
 end
 
-function RaidHST:SquadsTargetPrevent2(squad)
+function RaidHST:SquadsTargetPrevent(squad)
 	local frontDist = math.huge
 	local preventCell = nil
 	local targetID = nil
@@ -294,14 +292,14 @@ function RaidHST:SquadsTargetPrevent2(squad)
 			local builder = game:GetUnitByID(id)
 			local builderPos = builder:GetPosition()
 			local cell = self.ai.maphst:GetCell(builderPos,self.ai.maphst.GRID)
-			local targetHandled = self:SquadsTargetHandled(cell)
-			if not targetHandled or targetHandled == squad.squadID then
-				local dist = self.ai.tool:distance(cell.POS,squad.position)
-				if dist < frontDist then
-					preventCell = {X=cell.X,Z = cell.Z}
-					targetID = id
-				end
+			--local targetHandled = self:SquadsTargetHandled(cell)
+			--if not targetHandled or targetHandled == squad.squadID then
+			local dist = self.ai.tool:distance(cell.POS,squad.position)
+			if dist < frontDist then
+				preventCell = {X=cell.X,Z = cell.Z}
+				targetID = id
 			end
+			--end
 		end
 	end
 	return preventCell, targetID
@@ -323,7 +321,7 @@ function RaidHST:SquadsTargetDefense(squad)
 	return  targetCell
 end
 
-function RaidHST:SquadsTargetAttack2(squad)
+function RaidHST:SquadsTargetAttack(squad)
 	local bestTarget = nil
 	local worstDist = 0
 	for ref, blob in pairs(self.ai.targethst.IMMOBILE_BLOBS) do
