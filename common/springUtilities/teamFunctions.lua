@@ -42,6 +42,7 @@ local function getSettings()
 					elseif luaAI:find("Scavengers") then
 						isScavengers = true
 						isAllyTeamValid = false
+						ScavTeamID = team
 					end
 				end
 			end
@@ -102,6 +103,7 @@ local function getSettings()
 		isCoop = isCoop,
 		isFFA = isFFA,
 		isSandbox = isSandbox,
+		ScavTeamID = ScavTeamID,
 	}
 
 	return settings
@@ -127,4 +129,5 @@ return {
 		IsFFA          = function () return getSettings().isFFA          end,
 		IsSandbox      = function () return getSettings().isSandbox      end,
 	},
+	GetScavTeamID = function () return getSettings().ScavTeamID end,
 }
