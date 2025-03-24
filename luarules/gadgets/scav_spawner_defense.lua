@@ -1045,7 +1045,12 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		SetGameRulesParam("scavBossHealth", math.floor(0.5 + ((totalHealth / totalBossesMaxHealth) * 100)))
-		SetGameRulesParam("pveBossInfo", Json.encode(bossInfo))
+		local tempBossInfo = table.copy(bossInfo)
+		for resistanceDefID, resistance in pairs(tempBossInfo.resistances) do
+			tempBossInfo.resistances[tostring(resistanceDefID)] = resistance
+			tempBossInfo.resistances[resistanceDefID] = nil
+		end
+		SetGameRulesParam("scavBossInfo", Json.encode(tempBossInfo))
 	end
 
 	function SpawnBoss()
@@ -1619,7 +1624,6 @@ if gadgetHandler:IsSyncedCode() then
 				if weaponID == -1 and damage > 1 then
 					damage = 1
 				end
-				attackerDefID = tostring(attackerDefID)
 				if not bossResistance[attackerDefID] then
 					bossResistance[attackerDefID] = {
 						damage = damage * 4 * config.bossResistanceMult,
@@ -1629,7 +1633,7 @@ if gadgetHandler:IsSyncedCode() then
 				local resistPercent = math.min((bossResistance[attackerDefID].damage) / totalBossesMaxHealth, 0.98)
 				if resistPercent > 0.5 then
 					if bossResistance[attackerDefID].notify == 0 then
-						scavEvent("bossResistance", tonumber(attackerDefID))
+						scavEvent("bossResistance", attackerDefID)
 						bossResistance[attackerDefID].notify = 1
 						spawnCreepStructuresWave()
 					end
@@ -2249,6 +2253,7 @@ if gadgetHandler:IsSyncedCode() then
 		if bossIDs[unitID] then
 			nKilledBosses = nKilledBosses + 1
 			bossIDs[unitID] = nil
+			bossInfo[unitID] = nil
 			SetGameRulesParam("scavBossesKilled", nKilledBosses)
 
 			if nKilledBosses >= nTotalBosses then
