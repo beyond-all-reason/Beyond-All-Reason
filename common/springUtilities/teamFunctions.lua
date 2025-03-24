@@ -17,14 +17,14 @@ local function getSettings()
 	local allyTeamSizes = {}
 	local entirelyHumanAllyTeams = {}
 
-	for _, allyTeam in ipairs(springAllyTeamList) do
+	for allyTeamID, allyTeam in ipairs(springAllyTeamList) do
 		local teamList = Spring.GetTeamList(allyTeam) or {}
 		local allyteamEntirelyHuman = true
 
 		if #teamList > 0 and allyTeam ~= gaiaAllyTeamID then
 			local isAllyTeamValid = true
 
-			for _, team in ipairs(teamList) do
+			for teamID, team in ipairs(teamList) do
 				if select (4, Spring.GetTeamInfo(team, false)) then
 					allyteamEntirelyHuman = false
 				else
@@ -44,6 +44,7 @@ local function getSettings()
 						isScavengers = true
 						isAllyTeamValid = false
 						ScavTeamID = team
+						ScavAllyTeamID = allyTeamID
 					end
 				end
 			end
@@ -105,6 +106,7 @@ local function getSettings()
 		isFFA = isFFA,
 		isSandbox = isSandbox,
 		ScavTeamID = ScavTeamID,
+		ScavAllyTeamID = ScavAllyTeamID,
 	}
 
 	return settings
