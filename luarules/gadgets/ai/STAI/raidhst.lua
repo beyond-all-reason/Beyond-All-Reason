@@ -100,9 +100,7 @@ function RaidHST:DraftAttackSquads()
 					squad.colour[2] = math.random()
 					squad.colour[3] = math.random()
 					squad.colour[4] = 1
-					--self:SquadFormation(squad)
 					--squad.graph = self.ai.maphst:GetPathGraph(squad.mtype)
-
 					if (squad.mass > self.squadMassLimit or #squad.members > 5 + self.ai.labshst.ECONOMY) or (squad.mass > 15000)then
 						squad.lock = true
 
@@ -145,7 +143,7 @@ function RaidHST:SquadCheck(squad)
 	squad.leaderPos = squad.leaderPos or self.ai.tool:RezTable()
 	for i,member in pairs(squad.members) do
 		if member.unit then
-			squad.leader = member.unit:Internal()
+			squad.leader = member.unit:Internal():ID()
 			squad.leaderPos.x,squad.leaderPos.y,squad.leaderPos.z = member.unit:Internal():GetRawPos()
 			break
 		end
@@ -161,6 +159,7 @@ function RaidHST:SquadDisband(squad)
 	end
 	--local t = table.remove(self.squads,squad.squadID):TODO do di better
 	--self.ai.tool:KillTable(squad)----:TODO NONFUNGEEEE
+	Spring.Echo(self.squads[squad.squadID])
 	self.squads[squad.squadID] = nil
 end
 
@@ -181,16 +180,15 @@ function RaidHST:SquadFindPath(squad,target)
 	end
 	self:EchoDebug('search a path for ',squad.squadID,target.POS.x,target.POS.z)
 	local path
-	if not self.ai.armyhst['airgun'][squad.leader:Name()] then --TODO workaraund for airgun that do not have mclass
+	if not self.ai.armyhst['airgun'][game:GetUnitByID(squad.leader):Name()] then --TODO workaraund for airgun that do not have mclass
 
-		path = self.ai.maphst:getPath(squad.leader:Name(),squad.leaderPos,target.POS,true)
+		path = self.ai.maphst:getPath(game:GetUnitByID(squad.leader):Name(),squad.leaderPos,target.POS,true)
 	end
 
 	if path then
 		table.insert(path,#path,target.POS)
  		self:EchoDebug("got path of", #path, "nodes", maxInvalid, "maximum invalid neighbors!!!!!!!!!!!!!!!!!!")
 		local step = 1
-		squad.pathfinder = nil
 		return path,step
 	end
 	self:EchoDebug('path not found')
@@ -211,12 +209,11 @@ function RaidHST:SquadAdvance(squad)
 	for i,member in pairs(squad.members) do
 		squad.cmdUnitId[i] = member.unit:Internal():ID()
 	end
-	if self.ai.tool:distance(squad.position,squad.target.POS) < 512 then
+	if self.ai.tool:distance(squad.position,self.ai.maphst:GridToPos(squad.target.X,squad.target.Z)) < 512 then
 		self.ai.tool:GiveOrder(cmdUnitId,CMD.FIGHT ,squad.path[squad.step],0,'1-2')
 	else
 		self.ai.tool:GiveOrder(cmdUnitId,CMD.MOVE ,squad.path[squad.step],0,'1-2')
 	end
-	
 	self:EchoDebug('advance after members move')
 end
 
@@ -239,10 +236,7 @@ function RaidHST:SquadsTargetUpdate2()
 			self:EchoDebug('squadID',squad.squadID, 'have offense cell', squad.target.X,squad.target.Z)
 		elseif squad.target and type(squad.role) == 'number' and game:GetUnitByID(squad.role) then
 			local targetX,targetY,targetZ = game:GetUnitByID(squad.role):GetRawPos()
-
-
 			self:EchoDebug('update builder prevent pos',targetX,targetY,targetZ)
-
 			if targetX then
 				local X,Z = self.ai.maphst:RawPosToGrid(targetX,targetY,targetZ)
 				squad.target = self.ai.maphst:GetCell(X,Z,self.ai.maphst.GRID)
@@ -269,7 +263,7 @@ function RaidHST:SquadsTargetUpdate2()
 				squad.target = prevent
 				squad.role = targetID
 				squad.step = 1
-				squad.path = {squad.target.POS}
+				squad.path = {self.ai.maphst:GridToPos(squad.target.X,squad.target.Z)}
 				self:EchoDebug('set preventive target for',squad.squadID,squad.target.X,squad.target.Z)
 			end
 			local offense = self:SquadsTargetAttack2(squad)
@@ -293,9 +287,7 @@ end
 
 function RaidHST:SquadsTargetPrevent2(squad)
 	local frontDist = math.huge
-	local preventDist = 0
 	local preventCell = nil
-	local preventSquad = nil
 	local targetID = nil
 	for id,role in pairs(self.ai.buildingshst.roles) do
 		if role.role == 'expand' then
@@ -306,9 +298,7 @@ function RaidHST:SquadsTargetPrevent2(squad)
 			if not targetHandled or targetHandled == squad.squadID then
 				local dist = self.ai.tool:distance(cell.POS,squad.position)
 				if dist < frontDist then
-					preventDist = dist
-					preventCell = cell
-					preventSquad = squad.squadID
+					preventCell = {X=cell.X,Z = cell.Z}
 					targetID = id
 				end
 			end
@@ -322,12 +312,10 @@ function RaidHST:SquadsTargetDefense(squad)
 	local targetCell
 	for index,blob in pairs(self.ai.targethst.MOBILE_BLOBS)do
 		if self.ai.loshst[blob.defendCell.X][blob.defendCell.Z] then
-		--local targetHandled = self:SquadsTargetHandled(self.ai.loshst.ENEMY[blob.defendCell.X][blob.defendCell.Z])
-		--if not targetHandled or targetHandled == squad.squadID then
 			local dist = self.ai.tool:distance(blob.position,self.ai.loshst.CENTER)
 			if dist < targetDist then
 				targetDist = dist
-				targetCell = self.ai.loshst[blob.defendCell.X][blob.defendCell.Z]
+				targetCell = {X = blob.defendCell.X,Z = blob.defendCell.Z}--self.ai.loshst[blob.defendCell.X][blob.defendCell.Z]
 			end
 		end
 		--end
@@ -336,19 +324,15 @@ function RaidHST:SquadsTargetDefense(squad)
 end
 
 function RaidHST:SquadsTargetAttack2(squad)
-	local bestValue = 0
 	local bestTarget = nil
-	local bestDist = math.huge
 	local worstDist = 0
-
 	for ref, blob in pairs(self.ai.targethst.IMMOBILE_BLOBS) do
 		if self.ai.loshst.ENEMY[blob.targetCell.X][blob.targetCell.Z] then
-		--if not self:SquadsTargetHandled(self.ai.loshst.ENEMY[blob.defendCell.X][blob.defendCell.Z]) then
-			if self.ai.maphst:UnitCanGoHere(squad.leader, blob.position) then
+			if self.ai.maphst:UnitCanGoHere(game:GetUnitByID(squad.leader), blob.position) then
 				local dist = self.ai.tool:distance(blob.position,self.ai.targethst.enemyCenter)
 				if dist > worstDist then
 					worstDist = dist
-					bestTarget = self.ai.loshst.ENEMY[blob.targetCell.X][blob.targetCell.Z]
+					bestTarget = {X = blob.targetCell.X,Z = blob.targetCell.Z}--self.ai.loshst.ENEMY[blob.targetCell.X][blob.targetCell.Z]
 					break
 				end
 			end
@@ -361,7 +345,6 @@ end
 function RaidHST:SquadResetTarget(squad)
 	squad.target = nil
 	squad.path = nil
-	squad.pathfinder = nil
 	squad.step = nil
 	squad.role = nil
 	squad.idleCount = 0
@@ -451,8 +434,8 @@ function RaidHST:visualDBG()
 			end
 		end
 		if squad.target then
-			self.map:DrawPoint(squad.target.POS, squad.colour, squad.role .. squad.squadID, self.debugChannel)
-			map:DrawLine(squad.position,squad.target.POS,squad.colour,nil,nil,self.debugChannel)
+			self.map:DrawPoint(self.ai.maphst:GridToPos(squad.target.X,squad.target.Z), squad.colour, squad.role .. squad.squadID, self.debugChannel)
+			map:DrawLine(squad.position,self.ai.maphst:GridToPos(squad.target.X,squad.target.Z),squad.colour,nil,nil,self.debugChannel)
 		end
 	end
 end

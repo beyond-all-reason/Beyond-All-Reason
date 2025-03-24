@@ -80,10 +80,6 @@ end
 
 function RaidBST:Activate()
 	self.active = true
-	self.movestateSet = false
-	--if self.target then
-	--	self.needToMoveToTarget = true
-	--end
 end
 
 function RaidBST:Deactivate()
@@ -106,14 +102,20 @@ function RaidBST:Update()
 	end
 end
 
-function RaidBST:MoveRandom(pos,dist)
-	local away = self.ai.tool:RandomAway(pos, dist)
-	if not self.unit then return end
-	self.ai.tool:GiveOrder(self.unit:Internal():ID(),CMD.FIGHT,away,0,'1-1')
-	--self.unit:Internal():AttackMove(away)
+
+function RaidBST:Free()
+	self.attacking = false
+	self.target = nil
+	self.idle = nil
+	if self.squad and self.squad.disbanding then
+		self.squad = nil
+	else
+		self.ai.raidhst:RemoveMember(self)
+	end
+	self.unit:ElectBehaviour()
 end
 
-function RaidBST:Advance(pos, perpendicularAttackAngle, reverseAttackAngle)
+--[[function RaidBST:Advance(pos, perpendicularAttackAngle, reverseAttackAngle)
 	self.idle = false
 	self.attacking = true
 	if reverseAttackAngle then
@@ -145,21 +147,16 @@ function RaidBST:Advance(pos, perpendicularAttackAngle, reverseAttackAngle)
 		--self.unit:Internal():Move(self.target) --need to check this
 	end
 	return self.target.x,self.target.z
-end
+end]]
 
-function RaidBST:Free()
-	self.attacking = false
-	self.target = nil
-	self.idle = nil
-	if self.squad and self.squad.disbanding then
-		self.squad = nil
-	else
-		self.ai.raidhst:RemoveMember(self)
-	end
-	self.unit:ElectBehaviour()
-end
+--[[
+function RaidBST:MoveRandom(pos,dist)
+	local away = self.ai.tool:RandomAway(pos, dist)
+	if not self.unit then return end
+	self.ai.tool:GiveOrder(self.unit:Internal():ID(),CMD.FIGHT,away,0,'1-1')
+end]]
 
--- this will issue the correct move state to all units
+--[[-- this will issue the correct move state to all units
 function RaidBST:SetMoveState()
 	self.movestateSet = true
 	local thisUnit = self.unit
@@ -167,4 +164,4 @@ function RaidBST:SetMoveState()
 		self.ai.tool:GiveOrder(self.id,CMD.MOVE_STATE, 0, 0,'1-1')
 		--thisUnit:Internal():HoldPosition()
 	end
-end
+end]]

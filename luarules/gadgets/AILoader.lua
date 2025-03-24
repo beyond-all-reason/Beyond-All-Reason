@@ -220,7 +220,7 @@ if gadgetHandler:IsSyncedCode() then
 			
 		end
 		--Spring.Echo('cmdCounter','1-1',cmdCounter.ii,'2-1',cmdCounter.zi,'1-2',cmdCounter.iz,'2-2',cmdCounter.zz,'old',cmdCounter.old)
-		--Spring.Echo('cmdCounter',cmdCounter)
+		Spring.Echo('cmdCounter',cmdCounter)
 	end
 
 
