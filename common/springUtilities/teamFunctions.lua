@@ -107,6 +107,18 @@ local function getSettings()
 	return settings
 end
 
+function GetScavTeamID()
+	local teams = Spring.GetTeamList()
+	for _, teamID in ipairs(teams) do
+    	local teamLuaAI = Spring.GetTeamLuaAI(teamID)
+    	if (teamLuaAI and string.find(teamLuaAI, "Scavengers")) then
+        	scavTeamID = teamID
+        	break
+    	end
+	end
+	return scavTeamID
+end
+
 return {
 	---Get number of ally teams (humans and AIs, but not Raptors and Scavengers).
 	GetAllyTeamCount = function() return getSettings().allyTeamCount end,
