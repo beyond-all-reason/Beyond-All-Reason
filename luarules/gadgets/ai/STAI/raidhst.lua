@@ -11,7 +11,7 @@ end
 local floor = math.floor
 
 function RaidHST:Init()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 	self.recruits = {}
 	self.squads = {}
 	self.squadID = 1
@@ -50,21 +50,27 @@ function RaidHST:Update()
 	local f = self.game:Frame()
 	self:DraftAttackSquads()
 	for index , squad in pairs(self.squads) do
+		
 		if self:SquadCheck(squad) then
+			
 			self:Watchdog(squad)
+			
 			--if not self:SquadAttack(squad) then
 			self:SquadAdvance(squad)
+			
 			--end
 		end
 	end
+	
 	self:SquadsTargetUpdate2()
+	
 	self:visualDBG()
 end
 
 function RaidHST:DraftAttackSquads()
 	local f = self.game:Frame()
 	for mtype,soldiers in pairs(self.recruits) do
-		self:EchoDebug('soldiers',#soldiers,'mina')
+		self:EchoDebug('soldiers',#soldiers	)
 		for index,soldier in pairs(soldiers) do
 			if soldier and soldier.unit and not soldier.squad then
 				for idx,squad in pairs(self.squads) do
@@ -185,8 +191,8 @@ function RaidHST:SquadFindPath(squad,target)
 	end
 
 	if path then
-		table.insert(path,#path,target.POS)
- 		self:EchoDebug("got path of", #path, "nodes", maxInvalid, "maximum invalid neighbors!!!!!!!!!!!!!!!!!!")
+		--table.insert(path,#path,target.POS)
+ 		self:EchoDebug("got path of", #path, "nodes ")
 		local step = 1
 		return path,step
 	end
@@ -195,23 +201,24 @@ function RaidHST:SquadFindPath(squad,target)
 end
 
 function RaidHST:SquadAdvance(squad)
-	self:EchoDebug("advance",squad.squadID)
+	self:EchoDebug("advance squad:",squad.squadID)
 	if game:Frame() < squad.lastAdvance + 30 then
 		return
 	end
+	squad.lastAdvance = game:Frame()
 	squad.idleCount = 0
 	if not squad.target or not squad.path then
 		return
 	end
-	self:EchoDebug('advance #members',#squad.members)
+	self:EchoDebug('advance #members',#squad.members,squad.path,#squad.path)
 	squad.cmdUnitId = self.ai.tool:ResetTable(squad.cmdUnitId)
 	for i,member in pairs(squad.members) do
 		squad.cmdUnitId[i] = member.unit:Internal():ID()
 	end
 	if self.ai.tool:distance(squad.position,self.ai.maphst:GridToPos(squad.target.X,squad.target.Z)) < 512 then
-		self.ai.tool:GiveOrder(cmdUnitId,CMD.FIGHT ,squad.path[squad.step],0,'1-2')
+		self.ai.tool:GiveOrder(squad.cmdUnitId,CMD.FIGHT ,squad.path[squad.step],0,'1-2')
 	else
-		self.ai.tool:GiveOrder(cmdUnitId,CMD.MOVE ,squad.path[squad.step],0,'1-2')
+		self.ai.tool:GiveOrder(squad.cmdUnitId,CMD.MOVE ,squad.path[squad.step],0,'1-2')
 	end
 	self:EchoDebug('advance after members move')
 end
@@ -238,11 +245,11 @@ function RaidHST:SquadsTargetUpdate2()
 			self:EchoDebug('update builder prevent pos',targetX,targetY,targetZ)
 			if targetX then
 				local X,Z = self.ai.maphst:RawPosToGrid(targetX,targetY,targetZ)
-				squad.target = self.ai.maphst:GetCell(X,Z,self.ai.maphst.GRID)
+				squad.target = {X=X, Z=Z}--self.ai.maphst:GetCell(X,Z,self.ai.maphst.GRID)
 				squad.step = 1
-				squad.path[1].x = targetX
-				squad.path[1].y = targetY
-				squad.path[1].z = targetZ
+				--squad.path[1].x = targetX
+				--squad.path[1].y = targetY
+				--squad.path[1].z = targetZ
 				self:EchoDebug('squadID',squad.squadID, 'have preventive cell', squad.role, squad.target.X,squad.target.Z)
 			end
 
