@@ -157,7 +157,8 @@ local function ChangeUnitTypeAutogroupHandler(_, _, args, data)
 			local curUnitDefID = GetUnitDefID(unitID)
 			if selUnitDefIDs[curUnitDefID] then
 				if gr then
-                    if immediate or not GetUnitIsBeingBuilt(unitID) then
+					local finishedBuilding = not GetUnitIsBeingBuilt(unitID)
+					if finishedBuilding then
 						SetUnitGroup(unitID, gr)
 						SelectUnitArray({ unitID }, true)
 					end
