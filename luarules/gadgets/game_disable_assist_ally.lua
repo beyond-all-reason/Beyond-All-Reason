@@ -19,8 +19,8 @@ end
 
 local disableAssist = Spring.GetModOptions().disable_assist_ally_construction
 
-if not disable_assist then
-	return false
+if disableAssist then
+	return true
 end
 
 local function isComplete(u)
