@@ -866,7 +866,7 @@ function widget:Shutdown()
         WG['guishader'].RemoveDlist('advplayerlist')
     end
 	if mainListTex then
-		gl.DeleteTextureFBO(mainListTexBg)
+		gl.DeleteTextureFBO(mainListBgTex)
 		gl.DeleteTextureFBO(mainListTex)
 		gl.DeleteTextureFBO(mainList2Tex)
 	end
@@ -1652,7 +1652,7 @@ function CreateBackground()
     local absTop = math.ceil(TRcornerY - ((widgetPosY - TRcornerY) * (widgetScale - 1)))
 
     local prevApiAbsPosition = apiAbsPosition
-    if prevApiAbsPosition[1] ~= absTop or prevApiAbsPosition[2] ~= absLeft or prevApiAbsPosition[3] ~= absBottom or prevApiAbsPosition[4] ~= absRight then
+    if prevApiAbsPosition[1] ~= absTop or prevApiAbsPosition[2] ~= absLeft or prevApiAbsPosition[3] ~= absBottom then
         forceMainListRefresh = true
     end
     if absRight > vsx+margin then   -- lazy bugfix needed when playerScale < 1 is in effect
@@ -1677,7 +1677,7 @@ function CreateBackground()
         paddingLeft = 0
     end
 
-    if forceMainListRefresh or (not Background or not mainListBgTex) or (WG['guishader'] and not BackgroundGuishader) then
+    if forceMainListRefresh or (not useRenderToTexture and not Background) or (useRenderToTexture and not mainListBgTex) or (WG['guishader'] and not BackgroundGuishader) then
         if WG['guishader'] then
             BackgroundGuishader = gl_DeleteList(BackgroundGuishader)
             BackgroundGuishader = gl_CreateList(function()
@@ -1686,8 +1686,20 @@ function CreateBackground()
             WG['guishader'].InsertDlist(BackgroundGuishader, 'advplayerlist', true)
         end
 		if useRenderToTexture then
+			if mainListBgTex then
+				gl.DeleteTextureFBO(mainListBgTex)
+				mainListBgTex = nil
+			end
+			if mainListTex then
+				gl.DeleteTextureFBO(mainListTex)
+				mainListTex = nil
+			end
+			if mainList2Tex then
+				gl.DeleteTextureFBO(mainList2Tex)
+				mainList2Tex = nil
+			end
 			local width, height = math.floor(apiAbsPosition[4]-apiAbsPosition[2]), math.floor(apiAbsPosition[1]-apiAbsPosition[3])
-			if width > 0 and height > 0 then
+			if not mainListBgTex and width > 0 and height > 0 then
 				mainListBgTex = gl.CreateTexture(width, height, {
 					target = GL.TEXTURE_2D,
 					format = GL.RGBA,
@@ -1710,19 +1722,6 @@ function CreateBackground()
 				UiElement(absLeft, absBottom, absRight, absTop, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), math.min(paddingRight, paddingBottom), math.min(paddingBottom, paddingLeft))
 				gl_Color(1, 1, 1, 1)
 			end)
-		end
-
-		if mainListTexBg then
-			gl.DeleteTextureFBO(mainListTexBg)
-			mainListTexBg = nil
-		end
-        if mainListTex then
-            gl.DeleteTextureFBO(mainListTex)
-            mainListTex = nil
-        end
-		if mainList2Tex then
-			gl.DeleteTextureFBO(mainList2Tex)
-			mainList2Tex = nil
 		end
     end
 end
