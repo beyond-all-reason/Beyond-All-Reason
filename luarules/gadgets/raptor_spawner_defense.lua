@@ -133,7 +133,7 @@ if gadgetHandler:IsSyncedCode() then
 	local deathQueue = {}
 	local queenResistance = {}
 	local queenIDs = {}
-	local bossInfo = {resistances = queenResistance}
+	local bossInfo = {resistances = queenResistance, healths = {}}
 	local raptorTeamID, raptorAllyTeamID
 	local lsx1, lsz1, lsx2, lsz2
 	local burrows = {}
@@ -346,6 +346,7 @@ if gadgetHandler:IsSyncedCode() then
 		nKilledQueens = 0
 		queenResistance = {}
 		totalQueenMaxHealth = 0
+		bossInfo = {resistances = queenResistance, healths = {}}
 		SetGameRulesParam("raptorQueenAnger", queenAnger)
 		SetGameRulesParam("raptorTechAnger", techAnger)
 		local nextDifficulty
