@@ -97,7 +97,7 @@ local goldMedals = { -- Nation Wars 1st place
 	[59340] = true,  -- [HELO]Austin
 	[64215] = true,  -- XFactorLive
 	[1332] = true,  -- Flash
-	[64215] = true,  -- Emre
+	[50820] = true,  -- Emre
 }
 local silverMedals = { -- Nation Wars 2nd place
 	[76221] = true, -- InDaClub
@@ -170,16 +170,16 @@ function gadget:GameFrame(gf)
 						if string.sub(UnitDefs[unitDefID].name, 1, 3) == 'arm' then
 							local scriptEnv = Spring.UnitScript.GetScriptEnv(unitID)
 							if scriptEnv then
-								if kings[playerName] and scriptEnv['ShowCrown'] then
+								if MatchPlayer(kings, playerName, accountID) and scriptEnv['ShowCrown'] then
 									Spring.UnitScript.CallAsUnit(unitID, scriptEnv['ShowCrown'], true)
 								end
-								if goldMedals[playerName] and scriptEnv['ShowMedalGold'] then
+								if MatchPlayer(goldMedals, playerName, accountID) and scriptEnv['ShowMedalGold'] then
 									Spring.UnitScript.CallAsUnit(unitID, scriptEnv['ShowMedalGold'], true)
 								end
-								if silverMedals[playerName] and scriptEnv['ShowMedalSilver'] then
+								if MatchPlayer(silverMedals, playerName, accountID) and scriptEnv['ShowMedalSilver'] then
 									Spring.UnitScript.CallAsUnit(unitID, scriptEnv['ShowMedalSilver'], true)
 								end
-								if bronzeMedals[playerName] and scriptEnv['ShowMedalBronze'] then
+								if MatchPlayer(bronzeMedals, playerName, accountID) and scriptEnv['ShowMedalBronze'] then
 									Spring.UnitScript.CallAsUnit(unitID, scriptEnv['ShowMedalBronze'], true)
 								end
 							end

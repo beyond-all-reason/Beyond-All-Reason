@@ -108,7 +108,7 @@ local function GetUnitsInMinimapRectangle(x, y)
 	left, right = sort(left, right)
 	bottom, top = sort(bottom, top)
 
-	return spGetUnitsInRectangle(left, bottom, right, top)
+	return spGetUnitsInRectangle(left, bottom, right, top, not spec and myTeamID)
 end
 
 local function handleSetModifier(_, _, _, data)
@@ -185,16 +185,28 @@ function widget:PlayerChanged()
 	myTeamID = Spring.GetMyTeamID()
 end
 
-function widget:Update()
+local sec = 0
+local prevSelRect = {}
+function widget:Update(dt)
+	sec = sec + dt
+
 	if skipSel or spGetActiveCommand() ~= 0 then
 		return
 	end
 
-	local x, y, lmb = Spring.GetMouseState()
+	local x, y, lmb = spGetMouseState()
 	if lmb == false then inMiniMapSel = false end
 
-	-- get all units within selection rectangle
 	local x1, y1, x2, y2 = spGetSelectionBox()
+	local selRectChanged = false
+	if (prevSelRect[1] and prevSelRect[1] ~= x1) or (not prevSelRect[1] and x1) or
+		(prevSelRect[2] and prevSelRect[2] ~= y1) or (not prevSelRect[2] and y1) or
+		(prevSelRect[3] and prevSelRect[3] ~= x2) or (not prevSelRect[3] and x2) or
+		(prevSelRect[4] and prevSelRect[4] ~= y2) or (not prevSelRect[4] and y2)
+	then
+		selRectChanged = true
+	end
+	prevSelRect = {x1, y1, x2, y2}
 
 	inSelection = inMiniMapSel or (x1 ~= nil)
 	if not inSelection then return end -- not in valid selection box (mouserelease/minimum threshold/chorded/etc)
@@ -203,17 +215,26 @@ function widget:Update()
 		mods.deselect = false
 	end
 
+	-- limit updaterate  (cause Spring.GetUnitsIn.... expensive mem alloc wise)
+	if (not selRectChanged and sec < 1/30) -- limit to 30 updates per sec when selection rectangle didnt change
+		or selRectChanged and  sec < 1/60	-- limit to 60 updates per sec
+	then
+		return
+	end
+	sec = 0
+
+	-- get units under selection rectangle
 	local mouseSelection
 	if inMiniMapSel then
 		mouseSelection = GetUnitsInMinimapRectangle(x, y)
 	else
-		mouseSelection = spGetUnitsInScreenRectangle(x1, y1, x2, y2, nil) or {}
+		mouseSelection = spGetUnitsInScreenRectangle(x1, y1, x2, y2, not spec and myTeamID) or {}
 	end
 
 	local newSelection = {}
-	local uid, udid, tmp
+	local uid, udid
 
-	tmp = {}
+	local tmp = {}
 	local n = 0
 	local equalsMouseSelection = #mouseSelection == lastMouseSelectionCount
 	local isGodMode = spIsGodModeEnabled()
@@ -221,7 +242,8 @@ function widget:Update()
 	for i = 1, #mouseSelection do
 		uid = mouseSelection[i]
 		if not spGetUnitNoSelect(uid) and -- filter unselectable units
-			(isGodMode or (spGetUnitTeam(uid) ~= GaiaTeamID and not ignoreUnits[spGetUnitDefID(uid)] and (spec or spGetUnitTeam(uid) == myTeamID))) then -- filter gaia units + ignored units (objects) + only own units when not spectating
+			 -- filter gaia units + ignored units (objects)
+			(isGodMode or ((not spec or spGetUnitTeam(uid) ~= GaiaTeamID) and not ignoreUnits[spGetUnitDefID(uid)])) then
 			n = n + 1
 			tmp[n] = uid
 			if equalsMouseSelection and not lastMouseSelection[uid] then
