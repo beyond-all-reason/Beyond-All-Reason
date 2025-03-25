@@ -554,9 +554,7 @@ local function updateResbarText(res)
 		-- Text: pull
 		font2:Print("\255\240\125\125" .. "-" .. short(r[res][3]), resbarDrawinfo[res].textPull[2], resbarDrawinfo[res].textPull[3], resbarDrawinfo[res].textPull[4], resbarDrawinfo[res].textPull[5])
 		-- Text: expense
-		local textcolor = "\255\240\180\145"
-		if r[res][3] == r[res][5] then textcolor = "\255\200\140\130" end
-		font2:Print(textcolor .. "-" .. short(r[res][5]), resbarDrawinfo[res].textExpense[2], resbarDrawinfo[res].textExpense[3], resbarDrawinfo[res].textExpense[4], resbarDrawinfo[res].textExpense[5])
+		--font2:Print("\255\240\180\145" .. "-" .. short(r[res][5]), resbarDrawinfo[res].textExpense[2], resbarDrawinfo[res].textExpense[3], resbarDrawinfo[res].textExpense[4], resbarDrawinfo[res].textExpense[5])
 		-- income
 		font2:Print("\255\120\235\120" .. "+" .. short(r[res][4]), resbarDrawinfo[res].textIncome[2], resbarDrawinfo[res].textIncome[3], resbarDrawinfo[res].textIncome[4], resbarDrawinfo[res].textIncome[5])
 		font2:End()
@@ -575,13 +573,9 @@ local function updateResbarText(res)
 					text = (allyteamOverflowingMetal and '   ' .. Spring.I18N('ui.topbar.resources.wastingMetal') .. '   ' or '   ' .. Spring.I18N('ui.topbar.resources.overflowing') .. '   ')
 					if not supressOverflowNotifs and  WG['notifications'] and not isMetalmap and (not WG.sharedMetalFrame or WG.sharedMetalFrame+60 < gameFrame) then
 						if allyteamOverflowingMetal then
-							if numTeamsInAllyTeam > 1 then
-								if wholeTeamWastingMetalCount < 5 then
-									wholeTeamWastingMetalCount = wholeTeamWastingMetalCount + 1
-									WG['notifications'].addEvent('WholeTeamWastingMetal')
-								end
-							--else
-								--WG['notifications'].addEvent('YouAreWastingMetal')
+							if numTeamsInAllyTeam > 1 and wholeTeamWastingMetalCount < 5 then
+								wholeTeamWastingMetalCount = wholeTeamWastingMetalCount + 1
+								WG['notifications'].addEvent('WholeTeamWastingMetal')
 							end
 						elseif r[res][6] > 0.75 then	-- supress if you are deliberately overflowing by adjustingthe share slider down
 							WG['notifications'].addEvent('YouAreOverflowingMetal')
@@ -1104,6 +1098,14 @@ function widget:Update(dt)
 		end
 
 		mx, my = spGetMouseState()
+
+		if my > topbarArea[2] then
+			hoveringTopbar = hoveringElement(mx, my)
+			if hoveringTopbar then Spring.SetMouseCursor('cursornormal') end
+		else
+			hoveringTopbar = nil
+		end
+
 		local speedFactor, _, isPaused = spGetGameSpeed()
 
 		if not isPaused then
@@ -1139,7 +1141,7 @@ function widget:Update(dt)
 		r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') } }
 
 		if not spec and not showQuitscreen then
-			if math_isInRect(mx, my, resbarArea['energy'][1], resbarArea['energy'][2], resbarArea['energy'][3], resbarArea['energy'][4]) then
+			if hoveringTopbar == 'energy' then
 				if not resbarHover then
 					resbarHover = 'energy'
 					updateResbar('energy')
@@ -1148,7 +1150,7 @@ function widget:Update(dt)
 				resbarHover = nil
 				updateResbar('energy')
 			end
-			if math_isInRect(mx, my, resbarArea['metal'][1], resbarArea['metal'][2], resbarArea['metal'][3], resbarArea['metal'][4]) then
+			if hoveringTopbar == 'metal' then
 				if not resbarHover then
 					resbarHover = 'metal'
 					updateResbar('metal')
@@ -1198,14 +1200,12 @@ function widget:Update(dt)
 end
 
 local function hoveringElement(x, y)
-	if math_isInRect(x, y, topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4]) then
-		if resbarArea.metal[1] and math_isInRect(x, y, resbarArea.metal[1], resbarArea.metal[2], resbarArea.metal[3], resbarArea.metal[4]) then return true end
-		if resbarArea.energy[1] and math_isInRect(x, y, resbarArea.energy[1], resbarArea.energy[2], resbarArea.energy[3], resbarArea.energy[4]) then return true end
-		if windArea[1] and math_isInRect(x, y, windArea[1], windArea[2], windArea[3], windArea[4]) then return true end
-		if displayTidalSpeed and tidalarea[1] and math_isInRect(x, y, tidalarea[1], tidalarea[2], tidalarea[3], tidalarea[4]) then return true end
-		if displayComCounter and comsArea[1] and math_isInRect(x, y, comsArea[1], comsArea[2], comsArea[3], comsArea[4]) then return true end
-		if buttonsArea[1] and math_isInRect(x, y, buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4]) then return true end
-	end
+	if resbarArea.metal[1] and math_isInRect(x, y, resbarArea.metal[1], resbarArea.metal[2], resbarArea.metal[3], resbarArea.metal[4]) then return 'metal' end
+	if resbarArea.energy[1] and math_isInRect(x, y, resbarArea.energy[1], resbarArea.energy[2], resbarArea.energy[3], resbarArea.energy[4]) then return 'energy' end
+	if windArea[1] and math_isInRect(x, y, windArea[1], windArea[2], windArea[3], windArea[4]) then return 'wind' end
+	if displayTidalSpeed and tidalarea[1] and math_isInRect(x, y, tidalarea[1], tidalarea[2], tidalarea[3], tidalarea[4]) then return 'tidal' end
+	if displayComCounter and comsArea[1] and math_isInRect(x, y, comsArea[1], comsArea[2], comsArea[3], comsArea[4]) then return 'com' end
+	if buttonsArea[1] and math_isInRect(x, y, buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4]) then return 'menu' end
 
 	return false
 end
@@ -1410,10 +1410,6 @@ function widget:DrawScreen()
 
 	drawResBars()
 
-    -- mx, my = spGetMouseState()
-	hoveringTopbar = hoveringElement(mx, my)
-	if hoveringTopbar then Spring.SetMouseCursor('cursornormal') end
-
 	if dlistWind1 then
 		glPushMatrix()
 		glCallList(dlistWind1)
@@ -1459,7 +1455,7 @@ function widget:DrawScreen()
 	end
 
 	if autoHideButtons then
-		if buttonsArea[1] and math_isInRect(mx, my, buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4]) then
+		if buttonsArea[1] and hoveringTopbar == 'menu' then
 			if not showButtons then
 				showButtons = true
 
@@ -1489,7 +1485,7 @@ function widget:DrawScreen()
 		end
 
 		-- hovered?
-		if not showQuitscreen and buttonsArea['buttons'] and math_isInRect(mx, my, buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4]) then
+		if not showQuitscreen and buttonsArea['buttons'] and hoveringTopbar == 'menu' then
 			for button, pos in pairs(buttonsArea['buttons']) do
 				if math_isInRect(mx, my, pos[1], pos[2], pos[3], pos[4]) then
 					local paddingsize = 1
