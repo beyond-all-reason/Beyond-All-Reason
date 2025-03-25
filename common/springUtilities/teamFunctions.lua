@@ -9,7 +9,7 @@ local function getSettings()
 
 	local allyTeamCount, playerCount = 0, 0
 	local isSinglePlayer, is1v1, isTeams, isBigTeams, isSmallTeams, isRaptors, isScavengers, isPvE, isCoop, isFFA, isSandbox = false, false, false, false, false, false, false, false, false, false, false
-	local scavTeamID, scavAllyTeamID = nil, nil
+	local scavTeamID, scavAllyTeamID, raptorTeamID, raptorAllyTeamID = nil, nil, nil, nil
 
 	local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID(), false))
 	local springAllyTeamList = Spring.GetAllyTeamList()
@@ -40,6 +40,8 @@ local function getSettings()
 					if luaAI:find("Raptors") then
 						isRaptors = true
 						isAllyTeamValid = false
+						raptorTeamID = team
+						raptorAllyTeamID = allyTeamID
 					elseif luaAI:find("Scavengers") then
 						isScavengers = true
 						isAllyTeamValid = false
@@ -107,6 +109,8 @@ local function getSettings()
 		isSandbox = isSandbox,
 		scavTeamID = scavTeamID,
 		scavAllyTeamID = scavAllyTeamID,
+		raptorTeamID = raptorTeamID,
+		raptorAllyTeamID = raptorAllyTeamID,
 	}
 
 	return settings
@@ -133,4 +137,7 @@ return {
 		IsSandbox      = function () return getSettings().isSandbox      end,
 	},
 	GetScavTeamID = function () return getSettings().scavTeamID end,
+	GetScavAllyTeamID = function () return getSettings().scavAllyTeamID end,
+	GetChickenTeamID = function () return getSettings().raptorTeamID end,
+	GetChickenAllyTeamID = function () return getSettings().raptorAllyTeamID end,
 }
