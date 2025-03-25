@@ -883,12 +883,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		totalQueenMaxHealth = math.max(currentTotalQueenMaxHealth, totalQueenMaxHealth)
 		SetGameRulesParam("raptorQueenHealth", math.floor(0.5 + ((totalHealth / totalQueenMaxHealth) * 100)))
-		local tempBossInfo = table.copy(bossInfo)
-		for resistanceDefID, resistance in pairs(tempBossInfo.resistances) do
-			tempBossInfo.resistances[tostring(resistanceDefID)] = resistance
-			tempBossInfo.resistances[resistanceDefID] = nil
-		end
-		SetGameRulesParam("raptorQueenInfo", Json.encode(tempBossInfo))
+		SetGameRulesParam("pveBossInfo", Json.encode(bossInfo))
 	end
 
 	function SpawnQueen()
@@ -1405,6 +1400,7 @@ if gadgetHandler:IsSyncedCode() then
 				if weaponID == -1 and damage > 1 then
 					damage = 1
 				end
+				attackerDefID = tostring(attackerDefID)
 				if not queenResistance[attackerDefID] then
 					queenResistance[attackerDefID] = {
 						damage = damage * 4 * config.queenResistanceMult,
@@ -1414,7 +1410,7 @@ if gadgetHandler:IsSyncedCode() then
 				local resistPercent = math.min((queenResistance[attackerDefID].damage) / currentTotalQueenMaxHealth, 0.95)
 				if resistPercent > 0.5 then
 					if queenResistance[attackerDefID].notify == 0 then
-						raptorEvent("queenResistance", attackerDefID)
+						raptorEvent("queenResistance", tonumber(attackerDefID))
 						queenResistance[attackerDefID].notify = 1
 						if mRandom() < config.spawnChance then
 							local squad
