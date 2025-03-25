@@ -349,7 +349,11 @@ AimWeapon2(heading, pitch)
 	set-signal-mask SIG_AIM_BUNKER;
 	turn piledriver to x-axis <0> - pitch/2 speed <30>;
 	oldHeadingBunker = heading;
-	call-script CATT1_Aim((heading - torsofunkyHeading) + <1>,(pitch+400)/2);
+	if (new_heading < 0) {
+		call-script CATT1_Aim(new_heading,(pitch+400)/2);
+	} else {
+		call-script CATT1_Aim(new_heading + <5>,(pitch+400)/2);
+	}
 	return(1);
 }
 
@@ -387,7 +391,11 @@ AimWeapon3(heading, pitch) {
 	oldHeadingRailgun = heading;
 
 	turn railgun to x-axis <0> - pitch/2 speed <30>;
-	call-script CATT2_Aim((heading - torsofunkyHeading) + <1>,(pitch+400)/2);
+	if (new_heading < 0) {
+		call-script CATT2_Aim(new_heading,(pitch+400)/2);
+	} else {
+		call-script CATT2_Aim(new_heading + <5>,(pitch+400)/2);
+	}
 	//wait-for-turn aimyarmr around y-axis;
 	return(1);}
 
