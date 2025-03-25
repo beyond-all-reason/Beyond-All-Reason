@@ -13,7 +13,6 @@ end
 
 -- TODO:
 -- need to convert the score text display to use i18n for language localization
---it's possible for units to capture territory slower with units than contiguously. If territory can be captured contiguously,
 
 -- check and make sure that aircraft aren't already entered air when they're first built
 -- warning sounds
@@ -47,6 +46,9 @@ if SYNCED then
 	
 	local SECONDS_TO_MAX = territorialDominationConfig[modOptions.territorial_domination_config].maxTime
 	local SECONDS_TO_START = territorialDominationConfig[modOptions.territorial_domination_config].gracePeriod
+
+	Spring.Echo("SECONDS_TO_MAX: " .. SECONDS_TO_MAX)
+	Spring.Echo("SECONDS_TO_START: " .. SECONDS_TO_START)
 
 	--configs
 	local DEBUGMODE = false -- Changed to uppercase as it's a constant
@@ -219,7 +221,7 @@ if SYNCED then
 				data.gridMidpointZ = originZ + GRID_SIZE / 2
 				data.allyOwnerID = gaiaAllyTeamID
 				data.progress = STARTING_PROGRESS
-				data.progressChange = 0
+				data.hasUnits = false
 				data.decayDelay = 0
 				data.corners = {
 					{x = data.mapOriginX, z = data.mapOriginZ},                           -- Bottom-left
@@ -276,7 +278,7 @@ if SYNCED then
 		local units = spGetUnitsInRectangle(data.mapOriginX, data.mapOriginZ, data.mapOriginX + GRID_SIZE, data.mapOriginZ + GRID_SIZE)
 		
 		local allyPowers = {}
-		local hasUnits = false
+		data.hasUnits = false
 		
 		for i = 1, #units do
 			local unitID = units[i]
@@ -288,7 +290,7 @@ if SYNCED then
 				local allyTeam = spGetUnitAllyTeam(unitID)
 				
 				if unitData and unitData.power and (allyTeamsWatch[allyTeam] or hordeModeAllies[allyTeam]) then
-					hasUnits = true
+					data.hasUnits = true
 					local power = unitData.power
 					if unitData.isStatic then
 						power = power * STATIC_UNIT_POWER_MULTIPLIER
@@ -316,7 +318,7 @@ if SYNCED then
 			end
 		end
 		
-		if hasUnits then
+		if data.hasUnits then
 			return allyPowers
 		end
 		return nil
@@ -379,7 +381,6 @@ if SYNCED then
 	local function applyProgress(gridID, progressChange, winningAllyID, delayDecay)
 		local data = captureGrid[gridID]
 		local newProgress = data.progress + progressChange
-		data.progressChange = progressChange
 		
 		if newProgress < 0 then
 			data.allyOwnerID = winningAllyID
@@ -411,8 +412,8 @@ if SYNCED then
 		local currentSquareData = captureGrid[gridID]
 		
 		-- Skip if this square has units or is owned by Gaia
-		if currentSquareData.progressChange > CONTIGUOUS_PROGRESS_INCREMENT then
-			return nil, nil
+		if currentSquareData.hasUnits then
+			return nil, 0
 		end
 		
 		local neighborAllyTeamCounts = {}
@@ -472,7 +473,7 @@ if SYNCED then
 			end
 		end
 		
-		return nil, nil
+		return nil, 0
 	end
 
 	local function getRandomizedGridIDs()
@@ -617,7 +618,7 @@ if SYNCED then
 			for i = 1, #randomizedIDs do
 				local gridID = randomizedIDs[i]
 				local contiguousAllyID, progressChange = getSquareContiguityProgress(gridID)
-				if contiguousAllyID and progressChange then --zzz unverified that it's working, 
+				if contiguousAllyID and progressChange ~= 0 then
 					applyProgress(gridID, progressChange, contiguousAllyID, true)
 				end
 			end
