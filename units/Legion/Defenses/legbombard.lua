@@ -122,7 +122,7 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				impulsefactor = 0.123,
-				name = "Medium Burst Blast Cannon",
+				name = "Medium Burst-Fire Blast Grenade Launcher",
 				noselfdamage = true,
 				range = 750,
 				reloadtime = 3,
