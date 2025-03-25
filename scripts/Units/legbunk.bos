@@ -236,13 +236,13 @@ AimWeapon1(heading, pitch)
 	signal SIG_AIM_TC;
 	var cauaim;
     var cauface;
-	/*if ((((oldHeadingBunker > 0) AND (oldHeadingRailgun < 0) AND (oldHeadingBunker > 15000) AND (oldHeadingRailgun < (-15000))) OR ((oldHeadingBunker < 0) AND (oldHeadingRailgun > 0) AND (oldHeadingBunker < (-15000)) AND (oldHeadingRailgun > 15000))) AND (15000 > get ABS(cauface - cauaim)))
+	if ((((oldHeadingBunker > 0) AND (oldHeadingRailgun < 0) AND (oldHeadingBunker > 15000) AND (oldHeadingRailgun < (-15000))) OR ((oldHeadingBunker < 0) AND (oldHeadingRailgun > 0) AND (oldHeadingBunker < (-15000)) AND (oldHeadingRailgun > 15000))) AND (15000 > get ABS(cauface - cauaim)))
 	{
 		if ((oldHeadingBunker+oldHeadingRailgun)/2 < 0)
 		{
 			if (isturning == 1)
 			{
-				turn aimy1 to y-axis <179> speed <180.0000> ;
+				turn aimy1 to y-axis <179> speed <160.0000> ;
 			}
 			if (isturning == 0)
 			{
@@ -253,7 +253,7 @@ AimWeapon1(heading, pitch)
 		{
 			if (isturning == 1)
 			{
-				turn aimy1 to y-axis <-179> speed <180.0000> ;
+				turn aimy1 to y-axis <-179> speed <160.0000> ;
 			}
 			if (isturning == 0)
 			{
@@ -261,17 +261,16 @@ AimWeapon1(heading, pitch)
 			}
 		}
 	}
-	else */
-		//dbg(isturning)
+	else {
 		if (isturning == 1)
 		{
 			turn aimy1 to y-axis (oldHeadingBunker+oldHeadingRailgun)/4 + heading/2 speed <160.0000> ;
 		}
 		if (isturning == 0)
 		{
-			turn aimy1 to y-axis (oldHeadingBunker+oldHeadingRailgun)/4 + heading/2 speed <120.0000> ; //TODO: Tell cobbs about this. Without the heading component, if the arms don't move then the targeting computer is dead!
+			turn aimy1 to y-axis (oldHeadingBunker+oldHeadingRailgun)/4 + heading/2 speed <120.0000> ;
 		}
-	
+	}
 
 	var gun_xz;
     gun_xz = get PIECE_XZ(torso);                                //get packed gun coordinates
@@ -325,9 +324,8 @@ AimWeapon1(heading, pitch)
 		wait-for-turn aimy1 around y-axis;
 	}
 	oldHeadingTS = heading;
-	//dbg(heading,oldHeadingBunker,oldHeadingRailgun,cauaim,cauface,torsofunkyHeading,oldHeadingTS)
-	dbg(WRAPDELTA(oldHeadingTS),WRAPDELTA(torsofunkyHeading))
-    call-script RestoreAfterDelay();
+	isAiming = TRUE;
+    start-script RestoreAfterDelay();
 	return (1);
 }
 
@@ -354,6 +352,8 @@ AimWeapon2(heading, pitch)
 	} else {
 		call-script CATT1_Aim(new_heading + <5>,(pitch+400)/2);
 	}
+	start-script RestoreAfterDelay();
+	isAiming = TRUE;
 	return(1);
 }
 
@@ -391,14 +391,23 @@ AimWeapon3(heading, pitch) {
 	oldHeadingRailgun = heading;
 
 	turn railgun to x-axis <0> - pitch/2 speed <30>;
+	call-script dontgetyourlegshotoff(heading);
 	if (new_heading < 0) {
 		call-script CATT2_Aim(new_heading,(pitch+400)/2);
 	} else {
 		call-script CATT2_Aim(new_heading + <5>,(pitch+400)/2);
 	}
-	//wait-for-turn aimyarmr around y-axis;
+	isAiming = TRUE;
+	start-script RestoreAfterDelay();
 	return(1);}
 
+static-var leg_clearance;
+dontgetyourlegshotoff(h) {
+	if ( h > <165> ) { leg_clearance = <25>; } 
+	else if ( h > <135> ) { leg_clearance = <15>; }
+	else { leg_clearance = <0>; }
+	turn CATT2_PIECE_Y to z-axis leg_clearance speed <120>;
+}
 
 FireWeapon3(){
 	signal SIG_AIM_GUN;
@@ -439,12 +448,15 @@ ResetWeapon() {
 	set-signal-mask SIG_FIRE_BUNKER; //Set this to whichever signal the weapon emits when firing!
 	sleep CATT1_RESTORE_DELAY;
 	signal SIG_AIM_BUNKER;
-	turn aimxarml to x-axis <0.000000> speed <30.000000>;
-	turn aimyarml to y-axis <0.000000> speed <30.000000>;}
+	oldHeadingBunker = 0;
+	turn aimxarml to x-axis <0.000000> speed <60.000000>;
+	turn aimyarml to y-axis <0.000000> speed <60.000000>;}
 
 
 RestoreAfterDelay(){
 	set-signal-mask SIG_AIM_TC;
+	set-signal-mask SIG_AIM_BUNKER;
+	set-signal-mask SIG_AIM_GUN;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();}
 
@@ -460,9 +472,11 @@ ExecuteRestoreAfterDelay() {
 	turn aimyarml to y-axis <0.000000> speed <60.000000>;
 	turn aimxarmr to x-axis <0.000000> speed <60.000000>;
 	turn aimyarmr to y-axis <0.000000> speed <60.000000>;
+	turn CATT2_PIECE_Y to z-axis <0.000000> speed <60.000000>;
+	
 
-	turn piledriver to x-axis <25> speed <713.166646> / animSpeed;
-	turn railgun to x-axis <25> speed <1106.486067> / animSpeed;
+	turn piledriver to x-axis <25> speed <60.000000>;
+	turn railgun to x-axis <25> speed <60.000000>;
 
 	call-script Retract_bunker();
 	wait-for-turn aimy1 around y-axis;
