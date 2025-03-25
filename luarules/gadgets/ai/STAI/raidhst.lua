@@ -247,9 +247,9 @@ function RaidHST:SquadsTargetUpdate2()
 				local X,Z = self.ai.maphst:RawPosToGrid(targetX,targetY,targetZ)
 				squad.target = {X=X, Z=Z}--self.ai.maphst:GetCell(X,Z,self.ai.maphst.GRID)
 				squad.step = 1
-				--squad.path[1].x = targetX
-				--squad.path[1].y = targetY
-				--squad.path[1].z = targetZ
+				squad.path[1][1] = targetX
+				squad.path[1][2] = targetY
+				squad.path[1][3] = targetZ
 				self:EchoDebug('squadID',squad.squadID, 'have preventive cell', squad.role, squad.target.X,squad.target.Z)
 			end
 
@@ -268,7 +268,9 @@ function RaidHST:SquadsTargetUpdate2()
 				squad.target = prevent
 				squad.role = targetID
 				squad.step = 1
-				squad.path = {self.ai.maphst:GridToPos(squad.target.X,squad.target.Z)}
+				squad.path = {}
+				squad.path[1] = {}
+				squad.path[1][1],squad.path[1][2],squad.path[1][3] = self.ai.maphst:GridToRawPos(squad.target.X,squad.target.Z)
 				self:EchoDebug('set preventive target for',squad.squadID,squad.target.X,squad.target.Z)
 			end
 			local offense = self:SquadsTargetAttack(squad)

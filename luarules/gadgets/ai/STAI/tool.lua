@@ -218,32 +218,54 @@ function Tool:TableToString(t)
 		return
 	end
 	if t.x  and t.z and not t.y then
-		Spring.Echo('TableToString: missing y value')
-		return
-	elseif t.x and t.y and t.z then
-		serialized = serialized ..t.x ..',' ..t.y ..','..t.z ..','
-		for k,v in pairs(t) do
-			
-			if type(v) == 'number' and k ~= 'x' and k ~= 'y' and k ~= 'z' then
-				serialized = serialized ..v ..','
-	
-			elseif k ~= 'x' and k ~= 'y' and k ~= 'z' then
-				self:TableToString(v)
-				serialized = serialized ..'|'
-			end
+		self:Warn('incomplete position in table to string')
+		return 
+	elseif t.x  and t.z and t.y then
+		serialized = serialized ..t.x ..','..t.y ..','..t.z ..','
+		if t[1] then
+			serialized = serialized .. t[1]
 		end
 	else
 		for k,v in pairs(t) do
 
 			if type(v) == 'number' then
 				serialized = serialized ..v ..','
-
 			else
 				self:TableToString(v)
 				serialized = serialized ..'|'
 			end
 		end
 	end
+    self:EchoDebug("Serialized:", serialized)
+    return serialized
+end
+
+function Tool:TableToStringBackup(t)
+	if not t then
+		return
+	end
+	if t.x  and t.z then
+		if not t.y then
+			Spring.Echo('TableToString: missing y value')
+			return
+		end
+		table.insert(t,1,t.x)
+		table.insert(t,2,t.y)
+		table.insert(t,3,t.z)
+		table.x = nil
+		table.y = nil
+		table.z = nil
+	end
+    for k,v in pairs(t) do
+
+		if type(v) == 'number' then
+			serialized = serialized ..v ..','
+		else
+			self:TableToString(v)
+			serialized = serialized ..'|'
+		end
+	end
+	
     self:EchoDebug("Serialized:", serialized)
     return serialized
 end

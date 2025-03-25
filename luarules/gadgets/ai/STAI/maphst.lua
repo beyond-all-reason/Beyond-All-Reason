@@ -156,6 +156,15 @@ function MapHST:createGrid()
 	end
 end
 
+function MapHST:RawPosIsInMap(x,y,z)
+	if (x <= 0) or (x > self.elmoMapSizeX) or (z <= 0) or (z > self.elmoMapSizeZ) then
+		self:EchoDebug("bad position: " .. pos.x .. ", " .. pos.z)
+		return nil
+	else
+		return x,y,z
+	end
+end
+
 function MapHST:isInMap(pos)
 	if (pos.x <= 0) or (pos.x > self.elmoMapSizeX) or (pos.z <= 0) or (pos.z > self.elmoMapSizeZ) then
 		self:EchoDebug("bad position: " .. pos.x .. ", " .. pos.z)
@@ -200,6 +209,17 @@ function MapHST:GridToPos(X,Z)
 		return
 	end
 	return pos
+end
+
+function MapHST:GridToRawPos(X,Z)
+	local x = X * self.gridSize - self.gridSizeHalf
+	local z = Z * self.gridSize - self.gridSizeHalf
+	local y  = map:GetGroundHeight(x,z)
+	if not self:RawPosIsInMap(x,y,z) then
+		self:Warn(x,z,'is not in map')
+		return
+	end
+	return x,y,z
 end
 
 function MapHST:NewCell(gx, gz)

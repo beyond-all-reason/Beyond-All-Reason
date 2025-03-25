@@ -20,6 +20,7 @@ function CleanerBST:Update()
 	if not self.ai.cleanhst.theCleaner[self.id]   then
 		self:EchoDebug(self.id,'do update')
 		self:Search()
+		self:Patroling()
 	else
 		self:EchoDebug('cleanthis', self.ai.cleanhst.theCleaner[self.id])
 		self:Clean(self.ai.cleanhst.theCleaner[self.id])
@@ -100,9 +101,9 @@ end
 function CleanerBST:Patroling()
 -- 	local uPosX,uPosY,uPosZ = self.unit:Internal():GetRawPos()
 	local currentOrder = self.unit:Internal():GetUnitCommands(1)[1]
-
+	
 	if not currentOrder or not  currentOrder.id  then
 		--self.unit:Internal():Patrol({self.position.x,self.position.y,self.position.z,0})
-		self.ai.tool:GiveOrder(self.unit:Internal():ID(),CMD.PATROL,self.position,0,'1-1')
+		self.ai.tool:GiveOrder(self.unit:Internal():ID(),CMD.PATROL,0,0,'1-1')
 	end
 end

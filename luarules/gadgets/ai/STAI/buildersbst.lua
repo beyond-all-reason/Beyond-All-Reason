@@ -392,7 +392,7 @@ function BuildersBST:ProgressQueue()
 				self.ai.buildingshst:NewPlan(jobName, p, self.id, self.name)
 				local facing = self.ai.buildingshst:GetFacing(p)
 
-				self.ai.tool:GiveOrder(self.id,game:GetTypeByName(jobName):ID()*-1,{p.x,p.y,p.z,facing},0,'1-1')
+				self.ai.tool:GiveOrder(self.id,game:GetTypeByName(jobName):ID()*-1,{p.x,p.y,p.z,facing},0,'1-1')--TODO insert facing at end of p
 				
 				self.watchdogTimeout = math.huge
 				self.fails = 0
