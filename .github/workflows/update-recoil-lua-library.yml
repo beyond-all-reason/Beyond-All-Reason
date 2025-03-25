@@ -17,6 +17,7 @@ jobs:
           submodules: 'true'
           # https://stackoverflow.com/a/77212392/317135
           fetch-depth: 0
+          ssh-key: ${{ secrets.ACTION_RUNNER_PRIVATE }}
       - name: Pull latest submodule
         run: |
           git submodule update --remote --merge recoil-lua-library
