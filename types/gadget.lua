@@ -24,7 +24,6 @@
 ---@see UnsyncedCallins
 ---@see Spring.IsSyncedCode
 ---
----@field GG table Shared table for gadgets.
 ---@field ghInfo FullGadgetInfo
 local Gadget = {}
 
@@ -49,3 +48,6 @@ function Gadget:GetInfo() end
 ---@type Gadget
 ---@diagnostic disable-next-line: lowercase-global
 gadget = nil
+
+---Shared table for gadgets.
+GG = {}
