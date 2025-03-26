@@ -21,3 +21,6 @@
 ---@type Widget
 ---@diagnostic disable-next-line: lowercase-global
 widget = nil
+
+---Shared table for widets.
+WG = {}
