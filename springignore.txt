@@ -6,3 +6,4 @@
 #
 /.git
 /.svn
+/recoil-lua-library

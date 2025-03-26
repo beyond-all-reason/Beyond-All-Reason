@@ -60,7 +60,7 @@ end
 
 local vsx, vsy = Spring.GetViewGeometry()
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
+local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
 
 local customScale = 1
 local pointDuration = 45
@@ -866,12 +866,9 @@ function widget:Shutdown()
         WG['guishader'].RemoveDlist('advplayerlist')
     end
 	if mainListTex then
+		gl.DeleteTextureFBO(mainListBgTex)
 		gl.DeleteTextureFBO(mainListTex)
-		mainListTex = nil
-	end
-	if mainList2Tex then
 		gl.DeleteTextureFBO(mainList2Tex)
-		mainList2Tex = nil
 	end
     WG['advplayerlist_api'] = nil
     widgetHandler:DeregisterGlobal('ActivityEvent')
@@ -1510,12 +1507,20 @@ function widget:DrawScreen()
 	AdvPlayersListAtlas:RenderTasks()
 	--AdvPlayersListAtlas:DrawToScreen()
 
-    -- draws the background
-    if Background then
-        gl_CallList(Background)
-    else
-        CreateBackground()
-    end
+    -- draw the background element
+	if useRenderToTexture then
+		if mainListBgTex then
+			gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
+			gl.Texture(mainListBgTex)
+			gl.TexRect(apiAbsPosition[2], apiAbsPosition[3], apiAbsPosition[4], apiAbsPosition[1], false, true)
+		end
+	else
+		if Background then
+			gl_CallList(Background)
+		else
+			CreateBackground()
+		end
+	end
 
     if useRenderToTexture then
 		gl.Color(1,1,1,1)
@@ -1576,7 +1581,14 @@ end
 
 -- old funcion called from wherever but it must run in DrawScreen now so we scedule its execution
 function CreateLists(onlyMainList, onlyMainList2, onlyMainList3)
-    updateMainLists = {onlyMainList, onlyMainList2, onlyMainList3}
+    if onlyMainList == nil then onlyMainList = true end
+    if onlyMainList2 == nil then onlyMainList2 = true end
+    if onlyMainList3 == nil then onlyMainList3 = true end
+    if updateMainLists then
+        updateMainLists = {onlyMainList and onlyMainList or updateMainLists[1], onlyMainList2 and onlyMainList2 or updateMainLists[2], onlyMainList3 and onlyMainList3 or updateMainLists[3]}
+    else
+        updateMainLists = {onlyMainList, onlyMainList2, onlyMainList3}
+    end
 end
 -- must run in DrawScreen due to
 function doCreateLists(onlyMainList, onlyMainList2, onlyMainList3)
@@ -1616,6 +1628,9 @@ function doCreateLists(onlyMainList, onlyMainList2, onlyMainList3)
     if onlyMainList then
         CreateBackground()
     end
+	if useRenderToTexture and not mainList2Tex then
+		onlyMainList2 = true
+	end
     CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
 end
 
@@ -1637,7 +1652,7 @@ function CreateBackground()
     local absTop = math.ceil(TRcornerY - ((widgetPosY - TRcornerY) * (widgetScale - 1)))
 
     local prevApiAbsPosition = apiAbsPosition
-    if prevApiAbsPosition[1] ~= absTop or prevApiAbsPosition[2] ~= absLeft or prevApiAbsPosition[3] ~= absBottom or prevApiAbsPosition[4] ~= absRight then
+    if prevApiAbsPosition[1] ~= absTop or prevApiAbsPosition[2] ~= absLeft or prevApiAbsPosition[3] ~= absBottom then
         forceMainListRefresh = true
     end
     if absRight > vsx+margin then   -- lazy bugfix needed when playerScale < 1 is in effect
@@ -1662,7 +1677,7 @@ function CreateBackground()
         paddingLeft = 0
     end
 
-    if forceMainListRefresh or not Background or (WG['guishader'] and not BackgroundGuishader) then
+    if forceMainListRefresh or (not useRenderToTexture and not Background) or (useRenderToTexture and not mainListBgTex) or (WG['guishader'] and not BackgroundGuishader) then
         if WG['guishader'] then
             BackgroundGuishader = gl_DeleteList(BackgroundGuishader)
             BackgroundGuishader = gl_CreateList(function()
@@ -1670,21 +1685,43 @@ function CreateBackground()
             end)
             WG['guishader'].InsertDlist(BackgroundGuishader, 'advplayerlist', true)
         end
-        if Background then
-            Background = gl_DeleteList(Background)
-        end
-        Background = gl_CreateList(function()
-            UiElement(absLeft, absBottom, absRight, absTop, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), math.min(paddingRight, paddingBottom), math.min(paddingBottom, paddingLeft))
-            gl_Color(1, 1, 1, 1)
-        end)
-
-        if mainListTex then
-            gl.DeleteTextureFBO(mainListTex)
-            mainListTex = nil
-        end
-		if mainList2Tex then
-			gl.DeleteTextureFBO(mainList2Tex)
-			mainList2Tex = nil
+		if useRenderToTexture then
+			if mainListBgTex then
+				gl.DeleteTextureFBO(mainListBgTex)
+				mainListBgTex = nil
+			end
+			if mainListTex then
+				gl.DeleteTextureFBO(mainListTex)
+				mainListTex = nil
+			end
+			if mainList2Tex then
+				gl.DeleteTextureFBO(mainList2Tex)
+				mainList2Tex = nil
+			end
+			local width, height = math.floor(apiAbsPosition[4]-apiAbsPosition[2]), math.floor(apiAbsPosition[1]-apiAbsPosition[3])
+			if not mainListBgTex and width > 0 and height > 0 then
+				mainListBgTex = gl.CreateTexture(width, height, {
+					target = GL.TEXTURE_2D,
+					format = GL.RGBA,
+					fbo = true,
+				})
+				gl.RenderToTexture(mainListBgTex, function()
+					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+					gl.PushMatrix()
+					gl.Translate(-1, -1, 0)
+					gl.Scale(2 / (apiAbsPosition[4]-apiAbsPosition[2]), 2 / (apiAbsPosition[1]-apiAbsPosition[3]), 0)
+					UiElement(0.01, 0, width, height, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), math.min(paddingRight, paddingBottom), math.min(paddingBottom, paddingLeft), nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture)
+					gl.PopMatrix()
+				end)
+			end
+		else
+			if Background then
+				Background = gl_DeleteList(Background)
+			end
+			Background = gl_CreateList(function()
+				UiElement(absLeft, absBottom, absRight, absTop, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), math.min(paddingRight, paddingBottom), math.min(paddingBottom, paddingLeft))
+				gl_Color(1, 1, 1, 1)
+			end)
 		end
     end
 end
@@ -1829,6 +1866,7 @@ function drawMainList()
 end
 
 function drawMainList2()
+    local mouseX, mouseY = Spring_GetMouseState()
 	local leader
 	for i, drawObject in ipairs(drawList) do
 		if drawObject == -1 then
@@ -1880,11 +1918,14 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
     if onlyMainList then
         if useRenderToTexture then
             if not mainListTex then
-                mainListTex = gl.CreateTexture(math.floor(apiAbsPosition[4]-apiAbsPosition[2]), math.floor(apiAbsPosition[1]-apiAbsPosition[3]), {
-                    target = GL.TEXTURE_2D,
-                    format = GL.RGBA,
-                    fbo = true,
-                })
+				local width, height = math.floor(apiAbsPosition[4]-apiAbsPosition[2]), math.floor(apiAbsPosition[1]-apiAbsPosition[3])
+				if width > 0 and height > 0 then
+					mainListTex = gl.CreateTexture(width, height, {
+						target = GL.TEXTURE_2D,
+						format = GL.RGBA,
+						fbo = true,
+					})
+				end
             end
             if mainListTex then
                 gl.RenderToTexture(mainListTex, function()
@@ -1912,11 +1953,14 @@ function CreateMainList(onlyMainList, onlyMainList2, onlyMainList3)
     if onlyMainList2 then
         if useRenderToTexture then
             if not mainList2Tex then
-                mainList2Tex = gl.CreateTexture(math.floor(apiAbsPosition[4]-apiAbsPosition[2]), math.floor(apiAbsPosition[1]-apiAbsPosition[3]), {
-                    target = GL.TEXTURE_2D,
-                    format = GL.RGBA,
-                    fbo = true,
-                })
+				local width, height = math.floor(apiAbsPosition[4]-apiAbsPosition[2]), math.floor(apiAbsPosition[1]-apiAbsPosition[3])
+				if width > 0 and height > 0 then
+						mainList2Tex = gl.CreateTexture(width, height, {
+						target = GL.TEXTURE_2D,
+						format = GL.RGBA,
+						fbo = true,
+					})
+				end
             end
             if mainList2Tex then
                 gl.RenderToTexture(mainList2Tex, function()
@@ -2160,7 +2204,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
     if onlyMainList2 and m_cpuping.active and not isSinglePlayer then
         if cpuLvl ~= nil then
             -- draws CPU usage and ping icons (except AI and ghost teams)
-            DrawPingCpu(pingLvl, cpuLvl, posY, spec, 1, cpu, lastFpsData[playerID])
+            DrawPingCpu(pingLvl, cpuLvl, posY, spec, cpu, lastFpsData[playerID])
             if tipY then
                 PingCpuTip(mouseX, ping, cpu, lastFpsData[playerID], lastGpuMemData[playerID], lastSystemData[playerID], name, team, spec, lastApmData[team])
             end
@@ -2673,7 +2717,7 @@ function DrawSkill(skill, posY, dark)
     font:End()
 end
 
-function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu, fps)
+function DrawPingCpu(pingLvl, cpuLvl, posY, spec, cpu, fps)
     gl_Texture(pics["pingPic"])
     local grayvalue
     if spec then
@@ -2685,7 +2729,6 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu, fps)
         DrawRect(m_cpuping.posX + widgetPosX + (12*playerScale), posY + (1*playerScale), m_cpuping.posX + widgetPosX + (24*playerScale), posY + (15*playerScale))
     end
 
-    grayvalue = 0.7 + (cpu / 135)
 
     -- display user fps
     font:Begin()
@@ -2693,19 +2736,20 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu, fps)
         if fps > 99 then
             fps = 99
         end
-        grayvalue = 0.95 - (math.min(fps, 99) / 400)
+        grayvalue = 0.88 - (math.min(fps, 99) / 350)
         if fps < 0 then
             fps = 0
             greyvalue = 1
         end
         if spec then
-            font:SetTextColor(grayvalue, grayvalue, grayvalue, 0.87 * alpha * grayvalue)
+            font:SetTextColor(grayvalue*0.7, grayvalue*0.7, grayvalue*0.7, 1)
             font:Print(fps, m_cpuping.posX + widgetPosX + (11*specScale), posY + (5.3*playerScale), 9*specScale, "ro")
         else
-            font:SetTextColor(grayvalue, grayvalue, grayvalue, alpha * grayvalue)
+            font:SetTextColor(grayvalue, grayvalue, grayvalue, 1)
             font:Print(fps, m_cpuping.posX + widgetPosX + (11*playerScale), posY + (5.3*playerScale), 9.5*playerScale, "ro")
         end
     else
+        grayvalue = 0.7 + (cpu / 135)
         gl_Texture(pics["cpuPic"])
         if spec then
             gl_Color(grayvalue, grayvalue, grayvalue, 0.1 + (0.14 * cpuLvl))
@@ -3679,8 +3723,8 @@ function widget:ViewResize()
 
     updateWidgetScale()
 
-    font = WG['fonts'].getFont(nil ,1 * (useRenderToTexture and 1.25 or 1), 0.18 * (useRenderToTexture and 1.25 or 1))
-    font2 = WG['fonts'].getFont(fontfile2, 1.1 * (useRenderToTexture and 1.4 or 1), math.max(0.16, 0.25 / widgetScale) * (useRenderToTexture and 1.4 or 1), math.max(4.5, 6 / widgetScale))
+    font = WG['fonts'].getFont()
+    font2 = WG['fonts'].getFont(fontfile2, 1.1 * (useRenderToTexture and 1.2 or 1), math.max(0.16, 0.25 / widgetScale) * (useRenderToTexture and 1.2 or 1), math.max(4.5, 6 / widgetScale))
 
 	local MakeAtlasOnDemand = VFS.Include("LuaUI/Include/AtlasOnDemand.lua")
 	if AdvPlayersListAtlas then

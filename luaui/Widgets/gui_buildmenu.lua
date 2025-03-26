@@ -16,7 +16,7 @@ VFS.Include('luarules/configs/customcmds.h.lua')
 
 SYMKEYS = table.invert(KEYSYMS)
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
+local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
 
 local comBuildOptions
 local boundUnits = {}
@@ -56,8 +56,8 @@ local clickSelectedCellZoom = 0.125 * zoomMult
 local selectedCellZoom = 0.135 * zoomMult
 
 local bgpadding, activeAreaMargin
-local dlistGuishader, dlistBuildmenuBg, dlistBuildmenu, font2, cmdsCount
-local doUpdateClock, ordermenuHeight, prevAdvplayerlistLeft
+local dlistGuishader, dlistBuildmenuBg, dlistBuildmenu, font2
+local doUpdate, doUpdateClock, ordermenuHeight, prevAdvplayerlistLeft
 local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize, priceFontSize
 local activeCmd, selBuildQueueDefID
 local prevHoveredCellID, hoverDlist
@@ -107,6 +107,7 @@ local selectedBuilderCount = 0
 local selectedFactoryCount = 0
 local cellRects = {}
 local cmds = {}
+local cmdsCount = 0
 local currentPage = 1
 local pages = 1
 local paginatorRects = {}
@@ -271,10 +272,12 @@ local function RefreshCommands()
 		local activeCmdDescs = spGetActiveCmdDescs()
 		if smartOrderUnits then
 			local cmdUnitdefs = {}
+			local i = 0
 			for index, cmd in pairs(activeCmdDescs) do
 				if type(cmd) == "table" then
 					if not cmd.disabled and string_sub(cmd.action, 1, 10) == 'buildunit_' then
 						cmdUnitdefs[cmd.id * -1] = index
+						i = i + 1
 					end
 				end
 			end
@@ -304,6 +307,8 @@ local function clear()
 	hoverDlist = gl.DeleteList(hoverDlist)
 	prevHoveredCellID = nil
 	if buildmenuTex then
+		gl.DeleteTextureFBO(buildmenuBgTex)
+		buildmenuBgTex = nil
 		gl.DeleteTextureFBO(buildmenuTex)
 		buildmenuTex = nil
 	end
@@ -399,6 +404,7 @@ end
 
 local sec = 0
 local updateSelection = true
+local prevSelBuilderDefs = {}
 function widget:Update(dt)
 	if updateSelection then
 		updateSelection = false
@@ -408,19 +414,45 @@ function widget:Update(dt)
 		selectedBuilders = {}
 		selectedBuilderCount = 0
 		selectedFactoryCount = 0
+		local selBuilderDefs = {}
 		if SelectedUnitsCount > 0 then
 			local sel = Spring.GetSelectedUnits()
 			for _, unitID in pairs(sel) do
-				if units.isFactory[spGetUnitDefID(unitID)] then
+				local uDefID = spGetUnitDefID(unitID)
+				if units.isFactory[uDefID] then
 					selectedFactoryCount = selectedFactoryCount + 1
+					selBuilderDefs[uDefID] = true
 				end
-				if units.isBuilder[spGetUnitDefID(unitID)] then
+				if units.isBuilder[uDefID] then
 					selectedBuilders[unitID] = true
 					selectedBuilderCount = selectedBuilderCount + 1
-					doUpdate = true
+					selBuilderDefs[uDefID] = true
+				end
+			end
+
+			-- check if builder type selection actually differs from previous selection
+			if not doUpdate then
+				if #selBuilderDefs ~= #prevSelBuilderDefs then
+					doUpdateClock = os_clock() + 0.01
+				else
+					for uDefID, _ in pairs(prevSelBuilderDefs) do
+						if not selBuilderDefs[uDefID] then
+							doUpdateClock = os_clock() + 0.01
+							break
+						end
+					end
+					if not doUpdate then
+						for uDefID, _ in pairs(selBuilderDefs) do
+							if not prevSelBuilderDefs[uDefID] then
+								doUpdateClock = os_clock() + 0.01
+								break
+							end
+						end
+					end
 				end
 			end
 		end
+		prevSelBuilderDefs = selBuilderDefs
 	end
 
 	sec = sec + dt
@@ -470,7 +502,7 @@ function widget:Update(dt)
 end
 
 function drawBuildmenuBg()
-	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], (posX > 0 and 1 or 0), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), 0)
+	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], (posX > 0 and 1 or 0), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), 0, nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture)
 end
 
 local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
@@ -713,7 +745,6 @@ function drawBuildmenu()
 			local cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
 			local usedZoom = cellIsSelected and selectedCellZoom or defaultCellZoom
 
-
 			drawCell(cellRectID, usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, units.unitRestricted[uDefID])
 		end
 	end
@@ -724,7 +755,6 @@ function drawBuildmenu()
 	else
 		local paginatorFontSize = math_max(0.016 * vsy, paginatorCellHeight * 0.2)
 		local paginatorCellWidth = math_floor(contentWidth * 0.3)
-		local paginatorBorderSize = math_floor(cellSize * ((cfgIconPadding + cfgCellPadding)))
 
 		paginatorRects[1] = { activeArea[1], activeArea[2], activeArea[1] + paginatorCellWidth, activeArea[2] + paginatorCellHeight - cellPadding - activeAreaMargin }
 		paginatorRects[2] = { activeArea[3] - paginatorCellWidth, activeArea[2], activeArea[3], activeArea[2] + paginatorCellHeight - cellPadding - activeAreaMargin }
@@ -784,11 +814,6 @@ function widget:DrawScreen()
 		if WG['guishader'] and dlistGuishader then
 			WG['guishader'].InsertDlist(dlistGuishader, 'buildmenu')
 		end
-		if not dlistBuildmenuBg then
-			dlistBuildmenuBg = gl.CreateList(function() drawBuildmenuBg() end)
-		end
-		-- draw buildmenu background
-		gl.CallList(dlistBuildmenuBg)
 
 		-- create buildmenu
 		if refreshBuildmenu then
@@ -800,6 +825,20 @@ function widget:DrawScreen()
 						format = GL.RGBA,
 						fbo = true,
 					})
+					buildmenuBgTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
+						target = GL.TEXTURE_2D,
+						format = GL.RGBA,
+						fbo = true,
+					})
+					gl.RenderToTexture(buildmenuBgTex, function()
+						gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+						gl.PushMatrix()
+						gl.Translate(-1, -1, 0)
+						gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
+						gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
+						drawBuildmenuBg()
+						gl.PopMatrix()
+					end)
 				end
 				if buildmenuTex then
 					gl.RenderToTexture(buildmenuTex, function()
@@ -808,14 +847,30 @@ function widget:DrawScreen()
 						gl.Translate(-1, -1, 0)
 						gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
 						gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-						--drawBuildmenuBg()	-- doesnt render correct
 						drawBuildmenu()
 						gl.PopMatrix()
 					end)
 				end
-			elseif not dlistBuildmenu then
-				dlistBuildmenu = gl.CreateList(function() drawBuildmenu() end)
+			else
+				if not dlistBuildmenuBg then
+					dlistBuildmenuBg = gl.CreateList(function() drawBuildmenuBg() end)
+				end
+				if not dlistBuildmenu then
+					dlistBuildmenu = gl.CreateList(function() drawBuildmenu() end)
+				end
 			end
+		end
+
+		-- draw buildmenu background
+		if useRenderToTexture then
+			-- background element
+			if buildmenuBgTex then
+				gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
+				gl.Texture(buildmenuBgTex)
+				gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)
+			end
+		else
+			gl.CallList(dlistBuildmenuBg)
 		end
 
 		local hovering = false
@@ -864,6 +919,7 @@ function widget:DrawScreen()
 
 			-- draw buildmenu content
 			if buildmenuTex then
+				-- content
 				gl.Color(1,1,1,1)
 				gl.Texture(buildmenuTex)
 				gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)
@@ -1116,7 +1172,6 @@ function widget:MousePress(x, y, button)
 
 	if buildmenuShows and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 		if selectedBuilderCount > 0 or (preGamestartPlayer and startDefID) then
-			local paginatorHovered = false
 			if paginatorRects[1] and math_isInRect(x, y, paginatorRects[1][1], paginatorRects[1][2], paginatorRects[1][3], paginatorRects[1][4]) then
 				currentPage = currentPage - 1
 				if currentPage < 1 then
