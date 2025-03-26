@@ -11,6 +11,8 @@ function widget:GetInfo()
 	}
 end
 
+local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
+
 -- Configuration
 local relXpos = 0.3
 local borderPadding = 5
@@ -225,6 +227,9 @@ function widget:ViewResize()
 		end
 	end
 
+
+	refreshUi = true
+
 	init()
 end
 
@@ -282,23 +287,24 @@ local function updateButtons()
 		buttonsArea['buttons'][lastbutton][1] = buttonsArea['buttons'][lastbutton][1] - sidePadding
 		offset = offset + sidePadding
 		buttonsArea[1] = buttonsArea[3]-offset-margin
-		UiElement(buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4], 0, 0, 0, 1)
+		if not useRenderToTexture then
+			UiElement(buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4], 0, 0, 0, 1, nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture)
+		end
 	end)
 
 	-- add background blur
-	if dlistButtonsGuishader then
-		if WG['guishader'] then WG['guishader'].RemoveDlist('topbar_buttons') end
-		glDeleteList(dlistButtonsGuishader)
+	if not useRenderToTexture then
+		if dlistButtonsGuishader then
+			if WG['guishader'] then WG['guishader'].RemoveDlist('topbar_buttons') end
+			glDeleteList(dlistButtonsGuishader)
+		end
+		if showButtons then
+			dlistButtonsGuishader = glCreateList(function()
+				RectRound(buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4], 5.5 * widgetScale, 0,0,1,1)
+			end)
+			if WG['guishader'] then WG['guishader'].InsertDlist(dlistButtonsGuishader, 'topbar_buttons') end
+		end
 	end
-
-	if showButtons then
-		dlistButtonsGuishader = glCreateList(function()
-			RectRound(buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4], 5.5 * widgetScale, 0,0,1,1)
-		end)
-
-		if WG['guishader'] then WG['guishader'].InsertDlist(dlistButtonsGuishader, 'topbar_buttons') end
-	end
-
 	if dlistButtons2 then glDeleteList(dlistButtons2) end
 	dlistButtons2 = glCreateList(function()
 		font2:Begin()
@@ -315,19 +321,22 @@ local function updateComs(forceText)
 	local area = comsArea
 
 	-- add background blur
-	if dlistComsGuishader then
-		if WG['guishader'] then WG['guishader'].RemoveDlist('topbar_coms') end
-		glDeleteList(dlistComsGuishader)
+	if not useRenderToTexture then
+		if dlistComsGuishader then
+			if WG['guishader'] then WG['guishader'].RemoveDlist('topbar_coms') end
+			glDeleteList(dlistComsGuishader)
+		end
+		dlistComsGuishader = glCreateList(function()
+			RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0,0,1,1)
+		end)
+		if WG['guishader'] then WG['guishader'].InsertDlist(dlistComsGuishader, 'topbar_coms') end
 	end
-
-	dlistComsGuishader = glCreateList(function()
-		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0,0,1,1)
-	end)
 
 	if dlistComs1 then glDeleteList(dlistComs1) end
 	dlistComs1 = glCreateList(function()
-		UiElement(area[1], area[2], area[3], area[4], 0, 0, 1, 1)
-		if WG['guishader'] then WG['guishader'].InsertDlist(dlistComsGuishader, 'topbar_coms') end
+		if not useRenderToTexture then
+			UiElement(area[1], area[2], area[3], area[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture)
+		end
 	end)
 
 	if dlistComs2 then glDeleteList(dlistComs2) end
@@ -388,20 +397,22 @@ local function updateWind()
 	local bladesSize = height*0.53 * widgetScale
 
 	-- add background blur
-	if dlistWindGuishader then
-		if WG['guishader'] then WG['guishader'].RemoveDlist('topbar_wind') end
-		glDeleteList(dlistWindGuishader)
+	if not useRenderToTexture then
+		if dlistWindGuishader then
+			if WG['guishader'] then WG['guishader'].RemoveDlist('topbar_wind') end
+			glDeleteList(dlistWindGuishader)
+		end
+		dlistWindGuishader = glCreateList(function()
+			RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0,0,1,1)
+		end)
+		if WG['guishader'] then WG['guishader'].InsertDlist(dlistWindGuishader, 'topbar_wind') end
 	end
-
-	dlistWindGuishader = glCreateList(function()
-		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0,0,1,1)
-	end)
 
 	if dlistWind1 then glDeleteList(dlistWind1) end
 	dlistWind1 = glCreateList(function()
-		UiElement(area[1], area[2], area[3], area[4], 0, 0, 1, 1)
-
-		if WG['guishader'] then WG['guishader'].InsertDlist(dlistWindGuishader, 'topbar_wind') end
+		if not useRenderToTexture then
+			UiElement(area[1], area[2], area[3], area[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture)
+		end
 
 		-- blades icon
 		glPushMatrix()
@@ -464,14 +475,16 @@ local function updateTidal()
 	local area = tidalarea
 
 	-- add background blur
-	if dlistTidalGuishader then
-		if WG['guishader'] then WG['guishader'].RemoveDlist('topbar_tidal') end
-		glDeleteList(dlistTidalGuishader)
+	if not useRenderToTexture then
+		if dlistTidalGuishader then
+			if WG['guishader'] then WG['guishader'].RemoveDlist('topbar_tidal') end
+			glDeleteList(dlistTidalGuishader)
+		end
+		dlistTidalGuishader = glCreateList(function()
+			RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0,0,1,1)
+		end)
+		if WG['guishader'] then WG['guishader'].InsertDlist(dlistTidalGuishader, 'topbar_tidal') end
 	end
-
-	dlistTidalGuishader = glCreateList(function()
-		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0,0,1,1)
-	end)
 
 	if tidaldlist1 then glDeleteList(tidaldlist1) end
 	if tidaldlist2 then glDeleteList(tidaldlist2) end
@@ -479,9 +492,9 @@ local function updateTidal()
 	tidalWaveAnimationHeight = height*0.1 * widgetScale
 
 	tidaldlist1 = glCreateList(function()
-		UiElement(area[1], area[2], area[3], area[4], 0, 0, 1, 1)
-		if WG['guishader'] then WG['guishader'].InsertDlist(dlistTidalGuishader, 'topbar_tidal') end
-
+		if not useRenderToTexture then
+			UiElement(area[1], area[2], area[3], area[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture)
+		end
 		-- waves icon
 		glPushMatrix() -- translate will be done between this and tidaldlist2
 	end)
@@ -502,7 +515,7 @@ local function updateTidal()
 	if WG['tooltip'] then WG['tooltip'].AddTooltip('tidal', area, Spring.I18N('ui.topbar.tidalspeedTooltip'), nil, Spring.I18N('ui.topbar.tidalspeed')) end
 end
 
-local function updateResbarText(res)
+local function updateResbarText(res, force)
 	if dlistResbar[res][4] then glDeleteList(dlistResbar[res][4]) end
 	dlistResbar[res][4] = glCreateList(function()
 		RectRound(resbarArea[res][1] + bgpadding, resbarArea[res][2] + bgpadding, resbarArea[res][3] - bgpadding, resbarArea[res][4], bgpadding * 1.25, 0,0,1,1)
@@ -515,7 +528,7 @@ local function updateResbarText(res)
 	end)
 
 	-- storage changed!
-	if lastStorageValue[res] ~= r[res][2] then
+	if lastStorageValue[res] ~= r[res][2] or force then
 		lastStorageValue[res] = r[res][2]
 
 		-- flush old dlist caches
@@ -528,8 +541,7 @@ local function updateResbarText(res)
 
 		-- storage
 		local storageText = short(r[res][2])
-
-		if lastStorageText[res] ~= storageText then
+		if lastStorageText[res] ~= storageText or force then
 			lastStorageText[res] = storageText
 
 			if dlistResbar[res][6] then glDeleteList(dlistResbar[res][6]) end
@@ -560,9 +572,9 @@ local function updateResbarText(res)
 		font2:End()
 	end)
 
-	if not spec and gameFrame > 90 then
+	if not spec and gameFrame > 90 or force then
 		-- display overflow notification
-		if (res == 'metal' and (allyteamOverflowingMetal or overflowingMetal)) or (res == 'energy' and (allyteamOverflowingEnergy or overflowingEnergy)) then
+		if (res == 'metal' and (allyteamOverflowingMetal or overflowingMetal)) or (res == 'energy' and (allyteamOverflowingEnergy or overflowingEnergy)) or force then
 			if not showOverflowTooltip[res] then showOverflowTooltip[res] = now + 1.1 end
 
 			if showOverflowTooltip[res] < now then
@@ -596,7 +608,7 @@ local function updateResbarText(res)
 					--end
 				end
 
-				if lastWarning[res] ~= text then
+				if lastWarning[res] ~= text or force then
 					lastWarning[res] = text
 
 					if dlistResbar[res][7] then glDeleteList(dlistResbar[res][7]) end
@@ -696,18 +708,21 @@ local function updateResbar(res)
 	resbarDrawinfo[res].textIncome = { "\255\100\210\100" .. short(r[res][4]), barArea[1] - (10 * widgetScale), barArea[2] - (barHeight * 0.55), (height / 3) * widgetScale, 'ord' }
 
 	-- add background blur
-	if dlistResbar[res][0] then
-		if WG['guishader'] then WG['guishader'].RemoveDlist('topbar_' .. res) end
-		glDeleteList(dlistResbar[res][0])
+	if not useRenderToTexture then
+		if dlistResbar[res][0] then
+			if WG['guishader'] then WG['guishader'].RemoveDlist('topbar_' .. res) end
+			glDeleteList(dlistResbar[res][0])
+		end
+		dlistResbar[res][0] = glCreateList(function()
+			RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0,0,1,1)
+		end)
+		if WG['guishader'] then WG['guishader'].InsertDlist(dlistResbar[res][0], 'topbar_' .. res) end
 	end
 
-	dlistResbar[res][0] = glCreateList(function()
-		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0,0,1,1)
-	end)
-
 	dlistResbar[res][1] = glCreateList(function()
-		UiElement(area[1], area[2], area[3], area[4], 0, 0, 1, 1)
-		if WG['guishader'] then WG['guishader'].InsertDlist(dlistResbar[res][0], 'topbar_' .. res) end
+		if not useRenderToTexture then
+			UiElement(area[1], area[2], area[3], area[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture)
+		end
 
 		-- Icon
 		glColor(1, 1, 1, 1)
@@ -976,8 +991,8 @@ function init()
 		end
 	end
 
-	updateResbarText('metal')
-	updateResbarText('energy')
+	updateResbarText('metal', true)
+	updateResbarText('energy', true)
 end
 
 local function checkSelfStatus()
@@ -1339,7 +1354,7 @@ local function drawQuitScreen()
 			quitscreenQuitArea   = { x + buttonMargin + 2 * (buttonWidth + buttonMargin), y + buttonMargin, x + buttonMargin + 2 * (buttonWidth + buttonMargin) + buttonWidth, y + buttonMargin + buttonHeight }
 
 			-- window
-			UiElement(quitscreenArea[1], quitscreenArea[2], quitscreenArea[3], quitscreenArea[4], 1,1,1,1, 1,1,1,1, nil, {1, 1, 1, 0.6 + (0.34 * fadeProgress)}, {0.45, 0.45, 0.4, 0.025 + (0.025 * fadeProgress)})
+			UiElement(quitscreenArea[1], quitscreenArea[2], quitscreenArea[3], quitscreenArea[4], 1,1,1,1, 1,1,1,1, nil, {1, 1, 1, 0.6 + (0.34 * fadeProgress)}, {0.45, 0.45, 0.4, 0.025 + (0.025 * fadeProgress)}, nil, useRenderToTexture)
 			local color1, color2
 
 			font:Begin()
@@ -1405,8 +1420,79 @@ local function drawQuitScreen()
 	end
 end
 
+local function drawUiBackground()
+	if resbarArea.energy[1] then
+		UiElement(resbarArea.energy[1], resbarArea.energy[2], resbarArea.energy[3], resbarArea.energy[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture)
+	end
+	if resbarArea.metal[1] then
+		UiElement(resbarArea.metal[1], resbarArea.metal[2], resbarArea.metal[3], resbarArea.metal[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture)
+	end
+	if comsArea[1] then
+		UiElement(comsArea[1], comsArea[2], comsArea[3], comsArea[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture)
+	end
+	if windArea[1] then
+		UiElement(windArea[1], windArea[2], windArea[3], windArea[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture)
+	end
+	if displayTidalSpeed and tidalarea[1] then
+		UiElement(tidalarea[1], tidalarea[2], tidalarea[3], tidalarea[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture)
+	end
+	if showButtons and buttonsArea[1] then
+		UiElement(buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4], 0, 0, 0, 1, nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture)
+	end
+
+end
+
+local prevShowButtons = showButtons
 function widget:DrawScreen()
 	now = os.clock()
+
+	if showButtons ~= prevShowButtons then
+		prevShowButtons = showButtons
+		refreshUi = true
+	end
+	if useRenderToTexture then
+		if refreshUi then
+			refreshUi = false
+			if uiBgTex then
+				gl.DeleteTextureFBO(uiBgTex)
+				uiBgTex = nil
+			end
+			uiBgTex = gl.CreateTexture(math.floor(topbarArea[3]-topbarArea[1]), math.floor(topbarArea[4]-topbarArea[2]), {
+				target = GL.TEXTURE_2D,
+				format = GL.ALPHA,
+				fbo = true,
+			})
+			if uiBgTex then
+				gl.RenderToTexture(uiBgTex, function()
+					gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)	-- needed else on resolution change there be transparancy issues
+					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+					gl.Color(1,1,1,1)
+					gl.PushMatrix()
+					gl.Translate(-1, -1, 0)
+					gl.Scale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
+					gl.Translate(-topbarArea[1], -topbarArea[2], 0)
+					drawUiBackground()
+					gl.PopMatrix()
+				end)
+			end
+			if WG['guishader'] then
+				if uiBgList then glDeleteList(uiBgList) end
+				uiBgList = glCreateList(function()
+					gl.Color(1,1,1,1)
+					gl.Texture(uiBgTex)
+					gl.TexRect(topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], false, true)
+					gl.Texture(false)
+				end)
+				WG['guishader'].InsertDlist(uiBgList, 'topbar_background')
+			end
+		end
+		if uiBgTex then
+			gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
+			gl.Texture(uiBgTex)
+			gl.TexRect(topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], false, true)
+			gl.Texture(false)
+		end
+	end
 
 	drawResBars()
 
@@ -1443,7 +1529,9 @@ function widget:DrawScreen()
 
 	glPushMatrix()
 	if displayComCounter and dlistComs1 then
-		glCallList(dlistComs1)
+		if not useRenderToTexture then
+			glCallList(dlistComs1)
+		end
 
 		if allyComs == 1 and (gameFrame % 12 < 6) then
 			glColor(1, 0.6, 0, 0.45)
@@ -1459,23 +1547,29 @@ function widget:DrawScreen()
 			if not showButtons then
 				showButtons = true
 
-				dlistButtonsGuishader = glCreateList(function()
-					RectRound(buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4], 5.5 * widgetScale, 0,0,1,1)
-				end)
-
-				if WG['guishader'] then WG['guishader'].InsertDlist(dlistButtonsGuishader, 'topbar_buttons') end
+				if not useRenderToTexture then
+					dlistButtonsGuishader = glCreateList(function()
+						RectRound(buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4], 5.5 * widgetScale, 0,0,1,1)
+					end)
+					if WG['guishader'] then WG['guishader'].InsertDlist(dlistButtonsGuishader, 'topbar_buttons') end
+				end
 			end
 		elseif showButtons then
 			showButtons = false
-			if dlistButtonsGuishader then
-				if WG['guishader'] then WG['guishader'].RemoveDlist('topbar_buttons') end
-				glDeleteList(dlistButtonsGuishader)
+				if not useRenderToTexture then
+				if dlistButtonsGuishader then
+					if WG['guishader'] then WG['guishader'].RemoveDlist('topbar_buttons') end
+					glDeleteList(dlistButtonsGuishader)
+				end
 			end
 		end
 	end
 
 	if showButtons and dlistButtons1 and buttonsArea['buttons'] then
-		glCallList(dlistButtons1)
+
+		if not useRenderToTexture then
+			glCallList(dlistButtons1)
+		end
 
 		-- changelog changes highlight
 		if WG['changelog'] and WG['changelog'].haschanges() then
@@ -1844,6 +1938,7 @@ function widget:Initialize()
 	end
 
 	WG['topbar'].setAutoHideButtons = function(value)
+		refreshUi = true
 		autoHideButtons = value
 		showButtons = not value
 		updateButtons()
@@ -1911,12 +2006,21 @@ function widget:Shutdown()
 		end
 	end
 
+	if uiBgTex then
+		gl.DeleteTextureFBO(uiBgTex)
+		uiBgTex = nil
+	end
+
 	if WG['guishader'] then
-		WG['guishader'].RemoveDlist('topbar_energy')
-		WG['guishader'].RemoveDlist('topbar_metal')
-		WG['guishader'].RemoveDlist('topbar_wind')
-		WG['guishader'].RemoveDlist('topbar_coms')
-		WG['guishader'].RemoveDlist('topbar_buttons')
+		if not useRenderToTexture then
+			WG['guishader'].RemoveDlist('topbar_energy')
+			WG['guishader'].RemoveDlist('topbar_metal')
+			WG['guishader'].RemoveDlist('topbar_wind')
+			WG['guishader'].RemoveDlist('topbar_coms')
+			WG['guishader'].RemoveDlist('topbar_buttons')
+		else
+			WG['guishader'].RemoveDlist('topbar_background')
+		end
 	end
 
 	if WG['tooltip'] then
