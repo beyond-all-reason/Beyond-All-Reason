@@ -163,13 +163,15 @@ if gadgetHandler:IsSyncedCode() then
 			if order.method == '1-1' then
 				print(UnitDefs[Spring.GetUnitDefID ( order.id )].name)
 				local cmd = spGiveOrderTounit(order.id,order.cmd,order.parameters,order.options)
+				Spring.Echo(order.id,order.cmd,order.parameters,order.options,cmd)
 				--Spring.Echo('GiveOrderToUnit',order.id,UnitDefs[order.id].name,order.cmd,order.parameters,order.options)
 				cmdCounter.ii = cmdCounter.ii + 1
 				local cmdTag = order.cmd
 				if cmdTag < 0 then
 					cmdTag = 'BUILD'
 				end
-				cmdCounter[cmdTag]	= cmdCounter[cmdTag]  or 0	
+				
+				cmdCounter[cmdTag]	= cmdCounter[cmdTag]  or 0
 				cmdCounter[cmdTag] = cmdCounter[cmdTag] + 1
 				if not cmd then
 					Spring.Echo('GiveOrderToUnit Error:',cmd)

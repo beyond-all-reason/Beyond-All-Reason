@@ -11,7 +11,7 @@ end
 local floor = math.floor
 
 function RaidHST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	self.recruits = {}
 	self.squads = {}
 	self.squadID = 1
@@ -202,6 +202,7 @@ function RaidHST:SquadAdvance(squad)
 	if not squad.target or not squad.path then
 		return
 	end
+	self:SquadStepComplete(squad)
 	self:EchoDebug('advance #members',#squad.members,squad.path,#squad.path)
 	squad.cmdUnitId = self.ai.tool:ResetTable(squad.cmdUnitId)
 	for i,member in pairs(squad.members) do
