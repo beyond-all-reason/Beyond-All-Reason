@@ -36,8 +36,8 @@ static-var AimingState;
 
 #define __SMARTSELECT_H_
 
-#define AIMING_PRIORITY		1
-#define AIMING_BACKUP		2
+#define AIMING_PRIORITY		0
+#define AIMING_BACKUP		1
 
 SetAimingState(newState)
 {

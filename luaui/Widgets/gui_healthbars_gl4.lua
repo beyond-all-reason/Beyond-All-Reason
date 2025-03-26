@@ -314,10 +314,10 @@ local barTypeMap = { -- WHERE SHOULD WE STORE THE FUCKING COLORS?
 	},
 }
 
-for barname, bt in pairs(barTypeMap) do 
+for barname, bt in pairs(barTypeMap) do
 	local cache = {}
-	for i=1,20 do cache[i] = 0 end 
-	
+	for i=1,20 do cache[i] = 0 end
+
 	--cache[1] = unitDefHeights[unitDefID] + additionalheightaboveunit * effectiveScale  -- height
 	--cache[2] = effectiveScale
 	--cache[3] = 0.0 -- unused
@@ -336,7 +336,7 @@ for barname, bt in pairs(barTypeMap) do
 	cache[14] = bt.maxcolor[2]
 	cache[15] = bt.maxcolor[3]
 	cache[16] = bt.maxcolor[4]
-	
+
 	bt['cache'] = cache
 end
 
@@ -458,7 +458,7 @@ local shaderSourceCache = {
 			skipGlyphsNumbers = 0.0,
 			globalSizeMult = 1.0,
 		  },
-		shaderConfig = shaderConfig,		  
+		shaderConfig = shaderConfig,
 	}
 
 
@@ -601,13 +601,13 @@ local function addBarForUnit(unitID, unitDefID, barname, reason)
 	--end -- to keep these on top
 
 	local effectiveScale = ((variableBarSizes and unitDefSizeMultipliers[unitDefID]) or 1.0) * barScale
-	
+
 	local healthBarTableCache = bt.cache
 
 	healthBarTableCache[1] = unitDefHeights[unitDefID] + additionalheightaboveunit * effectiveScale  -- height
 	healthBarTableCache[2] = effectiveScale
 	healthBarTableCache[6] = unitBars[unitID] - 1   -- bar index (how manyeth per unit)
-	
+
 	return pushElementInstance(
 		healthBarVBO, -- push into this Instance VBO Table
 		healthBarTableCache,
@@ -691,7 +691,7 @@ local function addBarsForUnit(unitID, unitDefID, unitTeam, unitAllyTeam, reason)
 			-- moved to CUS gl4
 			--uniformcache[1] = build
 			--unitBeingBuiltWatch[unitID] = build
-			--gl.SetUnitBufferUniforms(unitID, uniformcache, 0) 
+			--gl.SetUnitBufferUniforms(unitID, uniformcache, 0)
 			--uniformcache[1] = Spring.GetUnitHeight(unitID)
 			--gl.SetUnitBufferUniforms(unitID, uniformcache, 11)
 		else
@@ -946,6 +946,17 @@ function widget:Initialize()
 		init()
 		initfeaturebars()
 	end
+	WG['healthbars'].getHeight = function()
+		return barHeight
+	end
+	WG['healthbars'].setHeight = function(value)
+		barHeight = value
+		shaderSourceCache.shaderConfig.BARHEIGHT = barHeight
+		shaderSourceCache.shaderConfig.BARCORNER = 0.06 + (shaderConfig.BARHEIGHT / 9)
+		shaderSourceCache.shaderConfig.SMALLERCORNER = shaderConfig.BARCORNER * 0.6
+		init()
+		initfeaturebars()
+	end
 	WG['healthbars'].getVariableSizes = function()
 		return variableBarSizes
 	end
@@ -1144,7 +1155,7 @@ function widget:GameFrame(n)
 				local health, maxHealth, paralyzeDamage, capture, build = Spring.GetUnitHealth(unitID)
 				--uniformcache[1] = math.floor((paralyzeDamage - maxHealth)) / (maxHealth * empDecline))
 				if paralyzeDamage then
-				
+
 					-- this returns something like 1.20 which somehow turns into seconds somewhere unsearchable, currently wrong display
 					-- this needs conditional fixing within an if Spring.GetModOptions().emprework
 					uniformcache[1] = paralyzeDamage / maxHealth

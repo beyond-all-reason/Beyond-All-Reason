@@ -160,7 +160,13 @@ if Spring.GetConfigInt("version", 0) < version then
 	Spring.SetConfigInt("CamSpringMinZoomDistance", 300)
 	Spring.SetConfigInt("OverheadMinZoomDistance", 300)
 end
+version = 6
+if Spring.GetConfigInt("version", 0) < version then
+	Spring.SetConfigInt("version", version)
 
+	-- disabling for now
+	Spring.SetConfigInt("ui_rendertotexture", 0)
+end
 
 -- apply the old pre-engine implementation stored camera minimum zoom level
 local oldMinCamHeight = Spring.GetConfigInt("MinimumCameraHeight", -1)
@@ -217,3 +223,7 @@ Spring.SetConfigInt("UpdateWeaponVectorsMT", 1)
 Spring.SetConfigInt("MaxFontTries", 0)
 Spring.SetConfigInt("UseFontConfigLib", 0)
 
+local language = Spring.GetConfigString("language", 'en')
+if language ~= 'en' and language ~= 'fr' then
+	Spring.SetConfigString("language", 'en')
+end
