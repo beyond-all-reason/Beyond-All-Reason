@@ -226,7 +226,8 @@ function drawChatInput()
 			local x2 = math.max(textPosX+lineHeight+floor(usedFont:GetTextWidth(inputText) * inputFontSize), floor(activationArea[1]+((activationArea[3]-activationArea[1])/2)))
 			chatInputArea = { activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance }
 			UiElement(chatInputArea[1], chatInputArea[2], chatInputArea[3], chatInputArea[4], 0,0,nil,nil, 0,nil,nil,nil, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
-			if WG['guishader'] then
+
+			if WG['guishader'] and activeGuishader then
 				WG['guishader'].InsertRect(activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance, 'selectorinput')
 			end
 
@@ -433,6 +434,10 @@ function UpdateList(force)
 		activeGuishader = false
 		WG['guishader'].DeleteDlist('widgetselector')
 		WG['guishader'].DeleteDlist('widgetselector2')
+		WG['guishader'].RemoveRect('selectorinput')
+		if textInputDlist then
+			textInputDlist = gl.DeleteList(textInputDlist)
+		end
 	end
 
 	UpdateListScroll()
@@ -457,7 +462,6 @@ function widget:ViewResize(n_vsx, n_vsy)
 	updateUi = true
 	UpdateGeometry()
 end
-
 
 -------------------------------------------------------------------------------
 
@@ -569,12 +573,16 @@ function widget:DrawScreen()
 			activeGuishader = false
 			WG['guishader'].DeleteDlist('widgetselector')
 			WG['guishader'].DeleteDlist('widgetselector2')
+			WG['guishader'].RemoveRect('selectorinput')
 			if textInputDlist then
-				WG['guishader'].RemoveRect('selectorinput')
 				textInputDlist = gl.DeleteList(textInputDlist)
 			end
 		end
 		return
+	end
+
+	if not WG['guishader'] then
+		activeGuishader = false
 	end
 
 	local mx, my, lmb, mmb, rmb = Spring.GetMouseState()
@@ -593,23 +601,15 @@ function widget:DrawScreen()
 	borderx = (yStep * sizeMultiplier) * 0.75
 	bordery = (yStep * sizeMultiplier) * 0.75
 
-	if WG['guishader'] == nil then
-		activeGuishader = false
-	end
 	if updateUi then
-		if WG['guishader'] then
-			activeGuishader = true
-			dlistGuishader = gl.DeleteList(dlistGuishader)
-			dlistGuishader = gl.CreateList(function()
-				RectRound(floor(minx - (bgPadding * sizeMultiplier)), floor(miny - (bgPadding * sizeMultiplier)), floor(maxx + (bgPadding * sizeMultiplier)), floor(maxy + (bgPadding * sizeMultiplier)), 6 * sizeMultiplier)
-			end)
-			dlistGuishader2 = gl.DeleteList(dlistGuishader2)
-			dlistGuishader2 = gl.CreateList(function()
-				RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 6 * sizeMultiplier)
-			end)
-			WG['guishader'].InsertDlist(dlistGuishader, 'widgetselector')
-			WG['guishader'].InsertDlist(dlistGuishader2, 'widgetselector2')
-		end
+		dlistGuishader = gl.DeleteList(dlistGuishader)
+		dlistGuishader = gl.CreateList(function()
+			RectRound(floor(minx - (bgPadding * sizeMultiplier)), floor(miny - (bgPadding * sizeMultiplier)), floor(maxx + (bgPadding * sizeMultiplier)), floor(maxy + (bgPadding * sizeMultiplier)), 6 * sizeMultiplier)
+		end)
+		dlistGuishader2 = gl.DeleteList(dlistGuishader2)
+		dlistGuishader2 = gl.CreateList(function()
+			RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 6 * sizeMultiplier)
+		end)
 
 		uiList = gl.DeleteList(uiList)
 		uiList = gl.CreateList(function()
@@ -626,6 +626,14 @@ function widget:DrawScreen()
 			font2:Print(title, backgroundRect[1] + (titleFontSize * 0.75), backgroundRect[4] + (8*widgetScale), titleFontSize, "on")
 			font2:End()
 		end)
+	end
+
+	if WG['guishader'] and not activeGuishader then
+		activeGuishader = true
+		if dlistGuishader then
+			WG['guishader'].InsertDlist(dlistGuishader, 'widgetselector')
+			WG['guishader'].InsertDlist(dlistGuishader2, 'widgetselector2')
+		end
 	end
 
 	local aboveWidget = aboveLabel(mx, my)
@@ -708,7 +716,6 @@ function widget:DrawScreen()
 				sbsizex = (yStep * sizeMultiplier)
 				sbsizey = sbsize
 
-				local trianglePadding = 4 * sizeMultiplier
 				local scrollerPadding = 8 * sizeMultiplier
 
 				-- background
