@@ -108,7 +108,7 @@ local function GetUnitsInMinimapRectangle(x, y)
 	left, right = sort(left, right)
 	bottom, top = sort(bottom, top)
 
-	return spGetUnitsInRectangle(left, bottom, right, top, not spec and myTeamID)
+	return spGetUnitsInRectangle(left, bottom, right, top, not spec and -2)		-- -2 = own units
 end
 
 local function handleSetModifier(_, _, _, data)
@@ -228,7 +228,7 @@ function widget:Update(dt)
 	if inMiniMapSel then
 		mouseSelection = GetUnitsInMinimapRectangle(x, y)
 	else
-		mouseSelection = spGetUnitsInScreenRectangle(x1, y1, x2, y2, not spec and myTeamID) or {}
+		mouseSelection = spGetUnitsInScreenRectangle(x1, y1, x2, y2, not spec and -2) or {}		-- -2 = own units
 	end
 
 	local newSelection = {}
