@@ -1,6 +1,6 @@
 ---@meta
 
----@class Gadget : Addon, Callins, UnsyncedCallins, SyncedCallins
+---@class Gadget : Addon, RulesSyncedCallins
 ---
 ---Gadgets can control game logic and receive synced and unsynced callins.
 ---
