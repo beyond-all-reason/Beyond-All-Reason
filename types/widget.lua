@@ -1,6 +1,6 @@
 ---@meta
 
----@class Widget : Addon, Callins, UnsyncedCallins
+---@class Widget : Addon, RulesUnsyncedCallins
 ---
 ---Widgets cannot control game logic and receive only unsynced callins.
 ---
