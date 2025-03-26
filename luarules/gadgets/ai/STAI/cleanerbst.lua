@@ -104,6 +104,6 @@ function CleanerBST:Patroling()
 	
 	if not currentOrder or not  currentOrder.id  then
 		--self.unit:Internal():Patrol({self.position.x,self.position.y,self.position.z,0})
-		self.ai.tool:GiveOrder(self.unit:Internal():ID(),CMD.PATROL,0,0,'1-1')
+		self.ai.tool:GiveOrder(self.unit:Internal():ID(),CMD.PATROL,self.position,0,'1-1')
 	end
 end

@@ -50,20 +50,12 @@ function RaidHST:Update()
 	local f = self.game:Frame()
 	self:DraftAttackSquads()
 	for index , squad in pairs(self.squads) do
-		
 		if self:SquadCheck(squad) then
-			
 			self:Watchdog(squad)
-			
-			--if not self:SquadAttack(squad) then
 			self:SquadAdvance(squad)
-			
-			--end
 		end
 	end
-	
-	self:SquadsTargetUpdate2()
-	
+	self:SquadsTargetUpdate()
 	self:visualDBG()
 end
 
@@ -236,7 +228,7 @@ function RaidHST:SquadsTargetHandled(target)
 	end
 end
 
-function RaidHST:SquadsTargetUpdate2()
+function RaidHST:SquadsTargetUpdate()
 	for id,squad in pairs(self.squads) do
 		if squad.target and squad.role == 'offense' and self.ai.maphst:GetCell(squad.target.X,squad.target.Z,self.ai.loshst.ENEMY) then
 			self:EchoDebug('squadID',squad.squadID, 'have offense cell', squad.target.X,squad.target.Z)
@@ -360,12 +352,11 @@ end
 function RaidHST:RemoveMember(rdbhvr)
 	if rdbhvr == nil then return end
 	if not rdbhvr.squad then return end
-	local squad = rdbhvr.squad
-	for index,member in pairs(squad.members)do
+	for index,member in pairs(rdbhvr.squad.members)do
 		if member == rdbhvr then
-			table.remove(squad.members, iu)
-			if #squad.members == 0 then
-				self:SquadDisband(squad)
+			table.remove(rdbhvr.squad.members, iu)
+			if #rdbhvr.squad.members == 0 then
+				self:SquadDisband(rdbhvr.squad)
 			end
 			rdbhvr.squad = nil
 			return true
@@ -417,8 +408,7 @@ function RaidHST:MemberIdle(rdbhvr, squad)
 		return
 	end
 	if rdbhvr then
-		squad = rdbhvr.squad
-		squad.idleCount = (squad.idleCount or 0) + 1
+		rdbhvr.squad.idleCount = (rdbhvr.squad.idleCount or 0) + 1
 	end
 end
 

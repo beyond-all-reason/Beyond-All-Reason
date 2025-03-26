@@ -80,10 +80,6 @@ end
 
 function AttackerBST:Activate()
 	self.active = true
-	self.movestateSet = false
-	--if self.target then
-	--	self.needToMoveToTarget = true
-	--end
 end
 
 function AttackerBST:Deactivate()
@@ -104,23 +100,40 @@ function AttackerBST:Update()
 			self.damaged = nil
 		end
 	end
-	--if self.active and not self.movestateSet then
-	--	self:SetMoveState()
-	--end
-	--if self.active and self.needToMoveToTarget then
-	--	self.needToMoveToTarget = false
-	--	self.ai.tool:GiveOrder(self.id,CMD.FIGHT,self.target,0,'1-1')
-		--self.unit:Internal():AttackMove(self.target) --need to check this
-
-	--end
 end
 
-function AttackerBST:MoveRandom(pos,dist)
+function AttackerBST:Free()
+	self.attacking = false
+	self.target = nil
+	self.idle = nil
+	if self.squad and self.squad.disbanding then
+		self.squad = nil
+	else
+		self.ai.attackhst:RemoveMember(self)
+	end
+	self.unit:ElectBehaviour()
+end
+
+
+--[[-- this will issue the correct move state to all units
+function AttackerBST:SetMoveState()
+	self.movestateSet = true
+	if self.unit then
+		self.ai.tool:GiveOrder(self.id,CMD.MOVE_STATE, 0, 0,'1-1')
+		--thisUnit:Internal():HoldPosition()
+	end
+end]]
+
+--[[function AttackerBST:MoveRandom(pos,dist)
 	local away = self.ai.tool:RandomAway(pos, dist)
 	if not self.unit then return end
 	self.ai.tool:GiveOrder(self.id,CMD.FIGHT,away,0,'1-1')
 	--self.unit:Internal():AttackMove(away)
-end
+end]]
+
+
+
+--[[
 
 function AttackerBST:Advance(pos, perpendicularAttackAngle, reverseAttackAngle)
 	self.idle = false
@@ -155,25 +168,4 @@ function AttackerBST:Advance(pos, perpendicularAttackAngle, reverseAttackAngle)
 		--self.unit:Internal():Move(self.target) --need to check this
 	end
 	return
-end
-
-function AttackerBST:Free()
-	self.attacking = false
-	self.target = nil
-	self.idle = nil
-	if self.squad and self.squad.disbanding then
-		self.squad = nil
-	else
-		self.ai.attackhst:RemoveMember(self)
-	end
-	self.unit:ElectBehaviour()
-end
-
--- this will issue the correct move state to all units
-function AttackerBST:SetMoveState()
-	self.movestateSet = true
-	if self.unit then
-		self.ai.tool:GiveOrder(self.id,CMD.MOVE_STATE, 0, 0,'1-1')
-		--thisUnit:Internal():HoldPosition()
-	end
-end
+end]]
