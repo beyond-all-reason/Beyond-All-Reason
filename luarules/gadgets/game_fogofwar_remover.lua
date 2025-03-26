@@ -7,6 +7,8 @@ if Spring.GetModOptions().disable_fogofwar then
 	gadgetEnabled = true
 end
 
+local gadget = gadget ---@type Gadget
+
 function gadget:GetInfo()
     return {
       name      = "FogOfWarRemover",
