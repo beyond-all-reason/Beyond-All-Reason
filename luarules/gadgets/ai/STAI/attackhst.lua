@@ -169,15 +169,17 @@ function AttackHST:SquadStepComplete(squad)
 end
 
 function AttackHST:SquadFindPath(squad,target)
-	if not target  then
-		self:Warn('no target to search path')
+	if not squad or not target  then
+		self:Warn('missing parameter in find path')
 		return
 	end
-	self:EchoDebug('search a path for ',squad.squadID,target.POS.x,target.POS.z)
-	local path = self.ai.maphst:getPath(squad.leader:Name(),squad.leaderPos,target.POS,true)
+	self:EchoDebug('search a path for ',squad.squadID,target.X,target.Z)
+	local path = self.ai.maphst:getPath(squad.leader:Name(),squad.leaderPos,self.ai.maphst:GridToPos(target.X,target.Y),true)
+	if not path then
+		self:EchoDebug('no path for ', squad.leader:Name(),squad.leaderPos,target.POS,)
+	end
 	if path then
-		table.insert(path,#path,target.POS)
- 		self:EchoDebug("got path of", #path, "nodes", maxInvalid, "maximum invalid neighbors!!!!!!!!!!!!!!!!!!")
+ 		self:EchoDebug("got path of", #path, "nodes")
 		local step = 1
 		squad.pathfinder = nil
 		return path,step
