@@ -279,10 +279,10 @@ function ShardUnit:IsWaiting()
 	end
 end
 
--- function ShardUnit:getFactoryCommands()
--- 	print(self.id)
--- 	return Spring.GetFactoryCommands(self.id,1)
--- end
+ function ShardUnit:getFactoryCommands()
+ 	print(self.id)
+ 	return Spring.GetFactoryCommands(self.id,1)
+end
 
 --[[
 function ShardUnit:FactoryWait()

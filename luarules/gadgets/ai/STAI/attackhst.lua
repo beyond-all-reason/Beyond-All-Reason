@@ -232,7 +232,6 @@ function AttackHST:SquadsTargetUpdate()
 -- 				self:EchoDebug('set defensive target for',squad.squadID,squad.target.X,squad.target.Z)
 -- 			else
 			local offense = self:SquadsTargetAttack(squad)
-			print('offense',offense)
 			if offense and squad.lock then
 				local path, step = self:SquadFindPath(squad,offense)
 				if path and step then

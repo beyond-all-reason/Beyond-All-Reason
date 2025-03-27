@@ -28,7 +28,7 @@ end
 function BomberBST:OwnerBuilt()
 	self:EchoDebug("built")
  	self.ai.bomberhst:AddRecruit(self)
-
+	self:SetIdleMode()
 end
 
 function BomberBST:OwnerDead()
@@ -47,9 +47,9 @@ end
 function BomberBST:Activate()
 	self:EchoDebug("activate")
 	self.active = true
-	if self.squad and self.ai.bomberhst.squads[self.squad] and self.ai.bomberhst.squads[self.squad].target then
-		self:BombUnit(self.ai.bomberhst.squads[self.squad].targetUnit)
-	end
+	--if self.squad and self.ai.bomberhst.squads[self.squad] and self.ai.bomberhst.squads[self.squad].target then
+	--	self:BombUnit(self.ai.bomberhst.squads[self.squad].targetUnit)
+	--end
 end
 
 function BomberBST:Deactivate()
@@ -59,7 +59,7 @@ function BomberBST:Deactivate()
 	self.ai.tool:GiveOrderToUnit(self.unit:Internal(),CMD.MOVE, self.homepos, 0,'1-1')
 end
 
-function BomberBST:Update()
+--[[function BomberBST:Update()
 	if self.ai.schedulerhst.behaviourTeam ~= self.ai.id or self.ai.schedulerhst.behaviourUpdate ~= 'BomberBST' then return end
 self:EchoDebug('update squad',self.squad)
 	if self.squad and self.ai.bomberhst.squads[self.squad] and self.ai.bomberhst.squads[self.squad].target then
@@ -67,7 +67,7 @@ self:EchoDebug('update squad',self.squad)
 		self:EchoDebug('go to bomb',self.ai.bomberhst.squads[self.squad].target)
 		self:BombUnit(self.ai.bomberhst.squads[self.squad].targetUnit)
 	end
-end
+end]]
 
 function BomberBST:BombPosition(position)
 	self:EchoDebug("bomb position")
@@ -75,7 +75,15 @@ function BomberBST:BombPosition(position)
 	self.ai.tool:GiveOrder(self.unit:Internal():ID(),CMD.ATTACK, position, 0,'1-1')
 end
 
-function BomberBST:BombUnit(targetUnit)
+
+
+function BomberBST:SetIdleMode()
+ 	--self.unit:Internal():IdleModeFly()
+	self.ai.tool:GiveOrder(self.unit:Internal():ID(),CMD.IDLEMODE, 1, 0,'1-1')
+
+end
+
+--[[function BomberBST:BombUnit(targetUnit)
 	self:EchoDebug("bomb unit")
 	--self.unit:Internal():Attack(targetUnit,32)
 	self.ai.tool:GiveOrder(self.unit:Internal():ID(),CMD.ATTACK, targetUnit, 0,'1-1')
@@ -88,10 +96,4 @@ function BomberBST:BombTarget(targetUnit, path)
 		return
 	end
 	self:BombPosition(self.target.POS,32)
-end
-
-function BomberBST:SetIdleMode()
- 	--self.unit:Internal():IdleModeFly()
-	self.ai.tool:GiveOrder(self.unit:Internal():ID(),CMD.IDLEMODE, 1, 0,'1-1')
-
-end
+end]]
