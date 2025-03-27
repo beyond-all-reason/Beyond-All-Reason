@@ -17,7 +17,7 @@ local function getSettings()
 	local allyTeamSizes = {}
 	local entirelyHumanAllyTeams = {}
 
-	for allyTeamID, allyTeam in ipairs(springAllyTeamList) do
+	for _, allyTeam in ipairs(springAllyTeamList) do
 		local teamList = Spring.GetTeamList(allyTeam) or {}
 		local allyteamEntirelyHuman = true
 
@@ -41,12 +41,12 @@ local function getSettings()
 						isRaptors = true
 						isAllyTeamValid = false
 						raptorTeamID = team
-						raptorAllyTeamID = allyTeamID
+						raptorAllyTeamID = allyTeam
 					elseif luaAI:find("Scavengers") then
 						isScavengers = true
 						isAllyTeamValid = false
 						scavTeamID = team
-						scavAllyTeamID = allyTeamID
+						scavAllyTeamID = allyTeam
 					end
 				end
 			end
