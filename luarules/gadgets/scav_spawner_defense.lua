@@ -128,6 +128,9 @@ if gadgetHandler:IsSyncedCode() then
 	local squadSpawnOptions = config.squadSpawnOptionsTable
 	--local miniBossCooldown = 0
 	local firstSpawn = true
+	local fullySpawned = false
+	local spawnRetries = 0
+	local spawnRetryTimeDiv = 20
 	local spawnAreaMultiplier = 2
 	local gameOver = nil
 	local humanTeams = {}
@@ -1917,18 +1920,26 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function gadget:TrySpawnBurrow(t)
+	function gadget:TrySpawnBurrow()
+		local maxSpawnRetries = math.floor((config.gracePeriod-t)/spawnRetryTimeDiv)
 		local spawned = SpawnBurrow()
 		timeOfLastSpawn = t
-		if firstSpawn then
-			if spawned then
-				timeOfLastWave = (config.gracePeriod + 10) - config.scavSpawnRate
-				firstSpawn = false
-			else
+		if not fullySpawned then
+			local burrowCount = SetCount(burrows)
+			if burrowCount > 1 then
+				fullySpawned = true
+			elseif spawnRetries >= maxSpawnRetries or firstSpawn then
 				spawnAreaMultiplier = spawnAreaMultiplier + 1
 				ScavStartboxXMin, ScavStartboxZMin, ScavStartboxXMax, ScavStartboxZMax = EnemyLib.GetAdjustedStartBox(scavAllyTeamID, config.burrowSize*1.5*spawnAreaMultiplier)
 				gadget:SetInitialSpawnBox()
+				spawnRetries = 0
+			else
+				spawnRetries = spawnRetries + 1
 			end
+		end
+		if firstSpawn and spawned then
+			timeOfLastWave = (config.gracePeriod + 10) - config.scavSpawnRate
+			firstSpawn = false
 		end
 	end
 
