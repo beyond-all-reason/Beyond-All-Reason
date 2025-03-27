@@ -79,7 +79,7 @@ end
 ---- GL4 Backend Stuff----
 local groundPlateVBO = nil
 local groundPlateShader = nil
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 
 local glTexture = gl.Texture
 local glCulling = gl.Culling

@@ -94,7 +94,7 @@ function widget:Initialize()
 	--font = WG['fonts'].getFont()
 	font = gl.LoadFont("fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf"), 64, 1, 1)
 	
-	local MakeAtlasOnDemand = VFS.Include("LuaUI/Widgets/include/AtlasOnDemand.lua")
+	local MakeAtlasOnDemand = VFS.Include("LuaUI/Include/AtlasOnDemand.lua")
 	if not MakeAtlasOnDemand then
 		Spring.Echo("Failed to load AtlasOnDemand")
 		return 

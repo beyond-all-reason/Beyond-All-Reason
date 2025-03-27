@@ -10,6 +10,8 @@ function widget:GetInfo()
 	}
 end
 
+local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
+
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local currentLayout
 
@@ -125,6 +127,7 @@ local GL_ONE = GL.ONE
 
 local math_min = math.min
 local math_max = math.max
+local math_clamp = math.clamp
 local math_ceil = math.ceil
 local math_floor = math.floor
 
@@ -343,11 +346,18 @@ function widget:ViewResize()
 	checkGuiShader(true)
 	setupCellGrid(true)
 	doUpdate = true
+
+	if ordermenuTex then
+		gl.DeleteTextureFBO(ordermenuBgTex)
+		ordermenuBgTex = nil
+		gl.DeleteTextureFBO(ordermenuTex)
+		ordermenuTex = nil
+	end
 end
 
 local function reloadBindings()
 	currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
-	actionHotkeys = VFS.Include("luaui/Widgets/Include/action_hotkeys.lua")
+	actionHotkeys = VFS.Include("luaui/Include/action_hotkeys.lua")
 end
 
 function widget:Initialize()
@@ -406,6 +416,12 @@ function widget:Shutdown()
 		displayListGuiShader = nil
 	end
 	displayListOrders = gl.DeleteList(displayListOrders)
+	if ordermenuTex then
+		gl.DeleteTextureFBO(ordermenuBgTex)
+		ordermenuBgTex = nil
+		gl.DeleteTextureFBO(ordermenuTex)
+		ordermenuTex = nil
+	end
 	WG['ordermenu'] = nil
 end
 
@@ -503,17 +519,21 @@ local function drawCell(cell, zoom)
 		local color1, color2
 		if isActiveCmd then
 			zoom = cellClickedZoom
-			color1 = { 0.66, 0.66, 0.66, math_max(0.75, math_min(0.95, uiOpacity)) }	-- bottom
-			color2 = { 1, 1, 1, math_max(0.75, math_min(0.95, uiOpacity)) }			-- top
+			color1 = { 0.66, 0.66, 0.66, math_clamp(uiOpacity, 0.75, 0.95) }	-- bottom
+			color2 = { 1, 1, 1, math_clamp(uiOpacity, 0.75, 0.95) }			-- top
 		else
 			if WG['guishader'] then
-				color1 = (isStateCommand[cmd.id]) and { 0.5, 0.5, 0.5, math_max(0.35, math_min(0.55, uiOpacity/1.5)) } or { 0.6, 0.6, 0.6, math_max(0.35, math_min(0.55, uiOpacity/1.5)) }
-				color1[4] = math_max(0, math_min(0.35, (uiOpacity-0.3)))
-				color2 = { 1,1,1, math_max(0, math_min(0.35, (uiOpacity-0.3))) }
+				color1 = (isStateCommand[cmd.id]) and { 0.5, 0.5, 0.5, math_clamp(uiOpacity/1.5, 0.35, 0.55) } or { 0.6, 0.6, 0.6, math_clamp(uiOpacity/1.5, 0.35, 0.55) }
+				color1[4] = math_clamp(uiOpacity-0.3, 0, 0.35)
+				color2 = { 1,1,1, math_clamp(uiOpacity-0.3, 0, 0.35) }
 			else
 				color1 = (isStateCommand[cmd.id]) and { 0.33, 0.33, 0.33, 1 } or { 0.33, 0.33, 0.33, 1 }
-				color1[4] = math_max(0, math_min(0.4, (uiOpacity-0.3)))
-				color2 = { 1,1,1, math_max(0, math_min(0.4, (uiOpacity-0.3))) }
+				color1[4] = math_clamp(uiOpacity-0.4, 0, 0.35)
+				color2 = { 1,1,1, math_clamp(uiOpacity-0.4, 0, 0.35) }
+			end
+			if useRenderToTexture then
+				color1[4] = color1[4] * 2.1
+				color2[4] = color2[4] * 2.1
 			end
 			if color1[4] > 0.06 then
 				-- white bg (outline)
@@ -523,11 +543,11 @@ local function drawCell(cell, zoom)
 				color2 = {0,0,0, color2[4]*0.85}
 				RectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, padding, 2, 2, 2, 2, color1, color2)
 			end
-			color1 = { 0, 0, 0, math_max(0.55, math_min(0.95, uiOpacity)) }	-- bottom
-			color2 = { 0, 0, 0, math_max(0.55, math_min(0.95, uiOpacity)) }	-- top
+			color1 = { 0, 0, 0, math_clamp(uiOpacity, 0.55, 0.95) }	-- bottom
+			color2 = { 0, 0, 0,  math_clamp(uiOpacity, 0.55, 0.95) }	-- top
 		end
 
-		UiButton(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, 1,1,1,1, 1,1,1,1, nil, color1, color2, padding)
+		UiButton(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, 1,1,1,1, 1,1,1,1, nil, color1, color2, padding, useRenderToTexture and 1.66)
 
 		-- icon
 		if showIcons then
@@ -616,7 +636,7 @@ local function drawCell(cell, zoom)
 					if isFactory[Spring.GetUnitDefID(referenceUnit)] then
 						commandQueue = Spring.GetFactoryCommands(referenceUnit, 1)
 					else
-						commandQueue = Spring.GetCommandQueue(referenceUnit, 1)
+						commandQueue = Spring.GetUnitCommands(referenceUnit, 1)
 					end
 					if commandQueue and commandQueue[1] and commandQueue[1].id == CMD.WAIT then
 						curstate = 2
@@ -683,13 +703,13 @@ local function drawCell(cell, zoom)
 		end
 	end
 end
-
-local function drawOrders()
+local function drawOrdersBackground()
 	-- just making sure blending mode is correct
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0), nil, nil, nil, nil, nil, nil, nil, nil, useRenderToTexture)
+end
 
-	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0))
-
+local function drawOrders()
 	if #commands > 0 then
 		font:Begin()
 		for cell = 1, #commands do
@@ -700,7 +720,7 @@ local function drawOrders()
 end
 
 function widget:DrawScreen()
-	local x, y, b = Spring.GetMouseState()
+	local x, y = Spring.GetMouseState()
 	local cellHovered
 	if not WG['topbar'] or not WG['topbar'].showingQuit() then
 		if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
@@ -769,11 +789,64 @@ function widget:DrawScreen()
 		end
 		if not displayListOrders then
 			displayListOrders = gl.CreateList(function()
-				drawOrders()
+				if not useRenderToTexture then
+					drawOrdersBackground()
+					drawOrders()
+				end
 			end)
+			if useRenderToTexture then
+				if not ordermenuBgTex then
+					ordermenuTex = gl.CreateTexture(math_floor(width*viewSizeX), math_floor(height*viewSizeY), {
+						target = GL.TEXTURE_2D,
+						format = GL.ALPHA,
+						fbo = true,
+					})
+					ordermenuBgTex = gl.CreateTexture(math_floor(width*viewSizeX), math_floor(height*viewSizeY), {
+						target = GL.TEXTURE_2D,
+						format = GL.ALPHA,
+						fbo = true,
+					})
+					if ordermenuBgTex then
+						gl.RenderToTexture(ordermenuBgTex, function()
+							gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+							gl.Color(1,1,1,1)
+							gl.PushMatrix()
+							gl.Translate(-1, -1, 0)
+							gl.Scale(2 / (width*viewSizeX), 2 / (height*viewSizeY),	0)
+							gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
+							drawOrdersBackground()
+							gl.PopMatrix()
+						end)
+					end
+				end
+				if ordermenuTex then
+					gl.RenderToTexture(ordermenuTex, function()
+						gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+						gl.Color(1,1,1,1)
+						gl.PushMatrix()
+						gl.Translate(-1, -1, 0)
+						gl.Scale(2 / (width*viewSizeX), 2 / (height*viewSizeY),	0)
+						gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
+						drawOrders()
+						gl.PopMatrix()
+					end)
+				end
+			end
 		end
 
-		gl.CallList(displayListOrders)
+		if useRenderToTexture and ordermenuTex then
+			-- background element
+			gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
+			gl.Texture(ordermenuBgTex)
+			gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)
+			-- content
+			gl.Color(1,1,1,1)
+			gl.Texture(ordermenuTex)
+			gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)
+			gl.Texture(false)
+		else
+			gl.CallList(displayListOrders)
+		end
 
 		if #commands >0 then
 			-- draw highlight on top of button

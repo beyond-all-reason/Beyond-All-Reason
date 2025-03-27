@@ -505,6 +505,38 @@ local definitions = {
 	  },
   },
 
+  ["selfrepair-sparks"] = {
+    sparks = {
+      air                = true,
+      class              = [[CSimpleParticleSystem]],
+      count              = 2,
+      ground             = true,
+      water              = true,
+      underwater         = true,
+      properties = {
+        airdrag            = 0.96,
+        colormap           = [[0.2 0.8 0.2 0.02   0.4 0.8 0.4 0.01   0 0 0 0]],
+        directional        = true,
+        emitrot            = 25,
+        emitrotspread      = 40,
+        emitvector         = [[0, 1, 0]],
+        gravity            = [[0, -0.981, 0]],
+        numparticles       = 3,
+        particlelife       = 10,
+        particlelifespread = 15,
+        particlesize       = 10,
+        particlesizespread = 30,
+        particlespeed      = 2,
+        particlespeedspread = 4,
+        pos                = [[0, 2, 0]],
+        sizegrowth         = 1,
+        sizemod            = 0.75,
+        texture            = [[gunshotglow]],
+        useairlos          = false,
+        drawOrder          = 2,
+      },
+    },
+  },
   ["wallexplosion-metal"] = {
     centerflare = {
       air                = true,

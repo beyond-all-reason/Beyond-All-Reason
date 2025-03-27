@@ -94,17 +94,23 @@ AimPrimary(heading, pitch)
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	
-	turn aimy1 to y-axis heading speed <90>;
-	turn aimx1 to x-axis <0.000000> - pitch speed <90>;
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > <2>) AND ((get ABS(wpn1_lasthead - heading)) < 65536 - <2>)))
-	{
-		wpn1_lasthead = 1000000;
-		wait-for-turn aimy1 around y-axis;
-		wait-for-turn aimx1 around x-axis;
+	if (heading < <105> AND heading > <-105>){
+		turn aimy1 to y-axis heading speed <90>;
+		turn aimx1 to x-axis <0.000000> - pitch speed <90>;
+		if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > <2>) AND ((get ABS(wpn1_lasthead - heading)) < 65536 - <2>)))
+		{
+			wpn1_lasthead = 1000000;
+			wait-for-turn aimy1 around y-axis;
+			wait-for-turn aimx1 around x-axis;
+		}
+		wpn1_lasthead = heading;
+		start-script RestoreAfterDelay();
+		return (1);
 	}
-	wpn1_lasthead = heading;
-	start-script RestoreAfterDelay();
-	return (1);
+	else{
+		return (0);
+	}
+
 }
 
 FirePrimary()

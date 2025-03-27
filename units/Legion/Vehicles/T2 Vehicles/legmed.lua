@@ -144,6 +144,10 @@ return {
 					commanders = 200,
 					default = 500,
 				},
+				customparams = {
+					projectile_destruction_method = "descend",
+					overrange_distance = 1093,
+				},
 			},
 			laser = {
 				areaofeffect = 8,
@@ -185,13 +189,13 @@ return {
 			[1] = {
 				def = "LASER",
 				maindir = "0 0 1",
-				maxangledif = 270,
+				maxangledif = 300,
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
 				def = "LEGMED_MISSILE",
 				maindir = "0 0 1",
-				maxangledif = 270,
+				maxangledif = 300,
 				onlytargetcategory = "SURFACE",
 				slaveto = 1,
 			},

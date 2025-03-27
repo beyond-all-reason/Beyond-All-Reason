@@ -49,7 +49,7 @@ metrics or changing from spectating view to player view.
 local viewScreenWidth
 local viewScreenHeight
 
-local includeDir = "LuaUI/Widgets/Include/"
+local includeDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(includeDir .. "LuaShader.lua")
 
 local mathfloor = math.floor

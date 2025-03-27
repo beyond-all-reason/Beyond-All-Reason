@@ -190,6 +190,7 @@ function ArmyHST:Init()
 		corcrus = true,
 		armcrus = true,
 		armbanth = true,--t3a
+		cordemon = true,
 
 
 
@@ -279,7 +280,6 @@ function ArmyHST:Init()
 
 	self.airgun = {
 		armkam = true,
-		corcrw = true,
 		corcrwh = true,
 		corape = true,
 		armbrawl = true,
@@ -1114,9 +1114,6 @@ function ArmyHST:getThreatRange(unitName)
 end
 
 function ArmyHST:GetUnitTable()
-	local builtBy = GetBuiltBy()
-	local unitTable = {}
-	local wrecks = {}
 	for unitDefID,unitDef in pairs(UnitDefs) do
 		local side = GetUnitSide(unitDef.name)
 		--if unitsLevels[unitDef.name] then
@@ -1136,7 +1133,7 @@ function ArmyHST:GetUnitTable()
 		utable.defId = unitDefID
 		utable.radarDistance = unitDef["radarDistance"]
 		utable.airSightDistance = unitDef["airSightDistance"]
-		utable.sightDistance = unitDef["sightDistance"]
+		utable.sightDistance = unitDef["losRadius"]
 		utable.sonarDistance = unitDef["sonarDistance"]
 		utable.radarDistanceJam = unitDef["radarDistanceJam"]
 		utable.stealth = unitDef.stealth

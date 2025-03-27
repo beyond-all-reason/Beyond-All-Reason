@@ -29,7 +29,7 @@ local circleSegments = 64
 -- TODO: draw ally ranges in diff color!
 -- Dont even do anything if the map does not natively have water.
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 

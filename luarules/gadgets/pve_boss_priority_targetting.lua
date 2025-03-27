@@ -78,9 +78,10 @@ function gadget:GameFrame(frame)
     if frame%30 == 21 then
         for queenID, _ in pairs(aliveQueens) do
             local queenx,queeny,queenz = Spring.GetUnitPosition(queenID)
-            local surroundingUnits = Spring.GetUnitsInSphere(queenx, queeny, queenz, 750)
+            local queenTeamID = Spring.GetUnitTeam(queenID)
+            local surroundingUnits = CallAsTeam(queenTeamID, Spring.GetUnitsInSphere, queenx, queeny, queenz, 750, -4)
             for i = 1,#surroundingUnits do
-				if aliveTargets[surroundingUnits[i]] and Spring.GetUnitAllyTeam(surroundingUnits[i]) ~= Spring.GetUnitAllyTeam(queenID) then
+				if aliveTargets[surroundingUnits[i]] then
                     Spring.GiveOrderToUnit(queenID, CMD.STOP, 0, 0)
                     Spring.GiveOrderToUnit(queenID, CMD.ATTACK, {surroundingUnits[i]}, 0)
                     break

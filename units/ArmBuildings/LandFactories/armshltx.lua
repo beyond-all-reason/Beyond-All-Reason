@@ -29,7 +29,7 @@ return {
 		sightdistance = 273,
 		terraformspeed = 3000,
 		workertime = 600,
-		yardmap = "oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo cccccccccccc cccccccccccc cccccccccccc cccccccccccc cccccccccccc cccccccccccc",
+		yardmap = "oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo eeeeeeeeeeee eeeeeeeeeeee eeeeeeeeeeee eeeeeeeeeeee eeeeeeeeeeee eeeeeeeeeeee",
 		buildoptions = {
 			[1] = "armbanth",
 			[2] = "armraz",

@@ -1,0 +1,105 @@
+
+#include "../recoil_common_includes.h"
+
+piece  base, dishA, dishB, dishC, pole, strutA, antennaA, strutB, antennaB, strutC, antennaC, jamLight;
+
+static-var  Stunned;
+
+SetStunned(State)
+{
+    Stunned = State;
+	if (Stunned) {
+	    call-script Deactivate();
+	} else {
+	    call-script Activate();
+	}
+}
+
+Create()
+{
+
+	turn strutB to y-axis <120> now;
+	turn strutC to y-axis <-120> now;
+	hide jamLight;
+
+}
+
+
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+Activate()
+{
+	turn antennaA to x-axis <30> speed <10>;
+	turn antennaB to x-axis <30> speed <10>;
+	turn antennaC to x-axis <30> speed <10>;
+
+	move strutA to y-axis [10] speed [5];
+	move strutB to y-axis [10] speed [5];
+	move strutC to y-axis [10] speed [5];
+
+	spin strutA around y-axis speed <100> accelerate <0.5>;
+	spin strutB around y-axis speed <100> accelerate <0.5>;
+	spin strutC around y-axis speed <100> accelerate <0.5>;
+
+	spin dishA around y-axis speed <50> accelerate <1>;
+	spin dishB around y-axis speed <-75> accelerate <2>;
+	spin dishC around y-axis speed <100> accelerate <3>;
+	show jamLight;
+
+}
+
+Deactivate()
+{
+	turn antennaA to x-axis <0> speed <20>;
+	turn antennaB to x-axis <0> speed <20>;
+	turn antennaC to x-axis <0> speed <20>;
+
+	move strutA to y-axis [0] speed [10];
+	move strutB to y-axis [0] speed [10];
+	move strutC to y-axis [0] speed [10];
+
+	stop-spin strutA around y-axis decelerate <10>;
+	stop-spin strutB around y-axis decelerate <10>;
+	stop-spin strutC around y-axis decelerate <10>;
+
+	stop-spin dishA around y-axis decelerate <10>;
+	stop-spin dishB around y-axis decelerate <10>;
+	stop-spin dishC around y-axis decelerate <10>;
+	hide jamLight;
+}
+
+
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode pole type BITMAPONLY | NOHEATCLOUD;
+		explode dishA type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode dishA type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode pole type BITMAPONLY | NOHEATCLOUD;
+		explode dishA type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode pole type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode dishA type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}

@@ -12,7 +12,7 @@ local floor = math.floor
 local ceil = math.ceil
 
 function RaidHST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	self.recruits = {}
 	self.squads = {}
 	self.squadID = 1
@@ -31,6 +31,10 @@ function RaidHST:Watchdog(squad)
 	local f = game:Frame()
 	squad.watchdogCell = squad.watchdogCell or self.ai.maphst:GetCell(squad.position,self.ai.maphst.GRID)
 	local watchdogCell = self.ai.maphst:GetCell(squad.position,self.ai.maphst.GRID)
+	if not watchdogCell then
+		self:EchoDebug('no watchdog cell')
+		return
+	end
 	if squad.watchdogCell and squad.watchdogCell.X == watchdogCell.X and squad.watchdogCell.Z == watchdogCell.Z then
 		if f > squad.watchdogTimer + self.squadFreezedTime then
 			self:SquadResetTarget(squad)
@@ -44,33 +48,24 @@ end
 function RaidHST:Update()
 	if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
 	local f = self.game:Frame()
--- 	local RAM = gcinfo()
 	self:DraftAttackSquads()
--- 	Spring:Echo('raidhstupdate1',gcinfo()-RAM)
 	for index , squad in pairs(self.squads) do
 		if self:SquadCheck(squad) then
--- 			Spring:Echo('raidhstupdate2',gcinfo()-RAM)
 			self:Watchdog(squad)
--- 			Spring:Echo('raidhstupdate3',gcinfo()-RAM)
 			if not self:SquadAttack(squad) then
--- 				Spring:Echo('raidhstupdate4',gcinfo()-RAM)
 				self:SquadAdvance(squad)
--- 				Spring:Echo('raidhstupdate5',gcinfo()-RAM)
 			end
 		end
 	end
--- 	Spring:Echo('raidhstupdate6',gcinfo()-RAM)
 	self:SquadsTargetUpdate2()
--- 	Spring:Echo('raidhstupdate7',gcinfo()-RAM)
 	self:visualDBG(squad)
 end
 
 function RaidHST:DraftAttackSquads()
 	local f = self.game:Frame()
 	for mtype,soldiers in pairs(self.recruits) do
-
+		self:EchoDebug('soldiers',#soldiers,'mina')
 		for index,soldier in pairs(soldiers) do
-		self:EchoDebug(index,mtype,soldier.squad)
 			if soldier and soldier.unit and not soldier.squad then
 				for idx,squad in pairs(self.squads) do
 					self:EchoDebug(idx,squad.squadID,squad.lock,squad.mtype)
@@ -254,8 +249,10 @@ function RaidHST:SquadAttack(squad)
 	if self.ai.loshst.ENEMY[squad.target.X] and self.ai.loshst.ENEMY[squad.target.X][squad.target.Z]  and self.ai.tool:distance(squad.position,squad.target.POS) < 256 then
 		self:EchoDebug('squad',squad.squadID,'are near to offensive target, do raid')
 		for i,member in pairs(squad.members) do
-			for id,_ in pairs(squad.target.units) do
-				member.unit:Internal():Attack(id)
+			if squad.target.units then
+				for id,_ in pairs(squad.target.units) do
+					member.unit:Internal():Attack(id)
+				end
 			end
 		end
 		return true
@@ -286,7 +283,7 @@ function RaidHST:SquadFindPath(squad,target)
 	--end
 
 	--local path, remaining, maxInvalid = squad.pathfinder:Find(25)
-	if not self.ai.armyhst[airgun][squad.leader:Name()] then --TODO workaraund for airgun that do not have mclass
+	if not self.ai.armyhst['airgun'][squad.leader:Name()] then --TODO workaraund for airgun that do not have mclass
 
 		local path = self.ai.maphst:getPath(squad.leader:Name(),squad.leaderPos,target.POS,true)
 	end
@@ -314,12 +311,9 @@ function RaidHST:SquadAdvance(squad)
 	if not squad.target or not squad.path then
 		return
 	end
--- 	local RAM = gcinfo()
 	local x,y,z
 	self:EchoDebug('squad.pathStep',squad.step,'#squad.path',#squad.path)
 	self:SquadStepComplete(squad)
--- 	RAM1 = gcinfo()
--- 	if RAM1-RAM > 0 then Spring.Echo('squad advance1',RAM1-RAM) end
 	local members = squad.members
 	local nextPos = squad.path[squad.step]
 	local angle = math.min (squad.step + 1,#squad.path)
@@ -327,8 +321,6 @@ function RaidHST:SquadAdvance(squad)
 	local nextPerpendicularAngle = self.ai.tool:AngleAdd(nextAngle, halfPi)
  	squad.lastValidMove = nextPos -- raiders use this to correct bad move orders
 	self:EchoDebug('advance #members',#members)
--- 	RAM2 = gcinfo()
--- 	if RAM2-RAM1 > 0 then Spring.Echo('squad advance2',RAM2-RAM1 ) end
 	for i,member in pairs(members) do
 		local pos
  		if member.formationBack and squad.step ~= #squad.path then
@@ -341,12 +333,14 @@ function RaidHST:SquadAdvance(squad)
  		--self:EchoDebug('advance',pos,nextPerpendicularAngle,reverseAttackAngle)
 		member:Advance(pos or nextPos, nextPerpendicularAngle, reverseAttackAngle)
 	end
--- 	RAM3 = gcinfo()
--- 	if RAM3-RAM2 > 0 then Spring.Echo('squad advance3',RAM3-RAM2) end
 	self:EchoDebug('advance after members move')
 end
 
 function RaidHST:SquadsTargetHandled(target)
+	if not target then
+		self:EchoDebug('target handler no target to check')
+		return
+	end
 	for squadID,squad in pairs(self.squads) do
 		if squad.target and squad.target.X == target.X and squad.target.Z == target.Z then
 			return squad.squadID
@@ -545,6 +539,10 @@ function RaidHST:RemoveRecruit(attkbhvr)
 end
 
 function RaidHST:MemberIdle(attkbhvr, squad)
+	if not squad then
+		self:EchoDebug('no squad for idle member')
+		return
+	end
 	if attkbhvr then
 		squad = attkbhvr.squad
 		squad.idleCount = (squad.idleCount or 0) + 1

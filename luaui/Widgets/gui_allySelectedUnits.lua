@@ -28,7 +28,7 @@ local useHexagons = true
 
 local selectionVBO = nil
 local selectShader = nil
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 
 local glStencilFunc         = gl.StencilFunc
 local glStencilOp           = gl.StencilOp
@@ -239,7 +239,6 @@ function widget:PlayerChanged(playerID)
 	local prevFullview = fullview
 	spec, fullview = spGetSpectatingState()
 	if prevFullview ~= fullview then
-		local myAllyID = Spring.GetMyAllyTeamID()
 		for unitID, drawn in pairs(selectedUnits) do
 			if fullview then
 				addUnit(unitID)
@@ -283,10 +282,10 @@ end
 local updateTime = 0
 local checkLockPlayerInterval = 1
 function widget:Update(dt)
-	if WG['advplayerlist_api'] ~= nil then
+	if WG.lockcamera then
 		updateTime = updateTime + dt
 		if updateTime > checkLockPlayerInterval then
-			lockPlayerID = WG['advplayerlist_api'].GetLockPlayerID()
+			lockPlayerID = WG.lockcamera.GetPlayerID()
 			if lockPlayerID ~= nil and selectPlayerUnits then
 				selectPlayerSelectedUnits(lockPlayerID)
 			end

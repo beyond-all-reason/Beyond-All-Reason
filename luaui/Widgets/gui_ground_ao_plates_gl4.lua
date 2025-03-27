@@ -21,7 +21,7 @@ local unitDefIDtoDecalInfo = {} -- key unitdef, table of {texfile = "", sizex = 
 
 local groundPlateVBO = nil
 local groundPlateShader = nil
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 
 local debugmode = false
 

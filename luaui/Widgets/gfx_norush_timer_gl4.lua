@@ -41,15 +41,15 @@ local StartBoxes = {} -- list of xXyY
 local noRushTime = Spring.GetModOptions().norushtimer*60*30
 if noRushTime == 0 then return end
 
-local luaShaderDir = "LuaUI/Widgets/Include/"
+local luaShaderDir = "LuaUI/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 
 local minY, maxY = Spring.GetGroundExtremes()
 
 local shaderSourceCache = {
-		vssrcpath = "LuaUI/Widgets/Shaders/norush_timer.vert.glsl",
-		fssrcpath = "LuaUI/Widgets/Shaders/norush_timer.frag.glsl",
+		vssrcpath = "LuaUI/Shaders/norush_timer.vert.glsl",
+		fssrcpath = "LuaUI/Shaders/norush_timer.frag.glsl",
 		uniformInt = {
 			mapDepths = 0,
 			noRushTimer = Spring.GetModOptions().norushtimer*60*30,
