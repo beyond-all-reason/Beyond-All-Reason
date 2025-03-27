@@ -1917,7 +1917,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function gadget:TrySpawnBurrow()
+	function gadget:TrySpawnBurrow(t)
 		local spawned = SpawnBurrow()
 		timeOfLastSpawn = t
 		if firstSpawn then
@@ -2016,14 +2016,14 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			if burrowCount < minBurrows then
-				gadget:TrySpawnBurrow()
+				gadget:TrySpawnBurrow(t)
 			end
 
 			if (t > config.burrowSpawnRate and burrowCount < minBurrows and (t > timeOfLastSpawn + 10 or burrowCount == 0)) or (config.burrowSpawnRate < t - timeOfLastSpawn and burrowCount < maxBurrows) then
 				if (config.burrowSpawnType == "initialbox") and (t > config.gracePeriod) then
 					config.burrowSpawnType = "initialbox_post"
 				end
-				gadget:TrySpawnBurrow()
+				gadget:TrySpawnBurrow(t)
 				scavEvent("burrowSpawn")
 				SetGameRulesParam("scav_hiveCount", SetCount(burrows))
 			elseif config.burrowSpawnRate < t - timeOfLastSpawn and burrowCount >= maxBurrows then
