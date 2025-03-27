@@ -2765,6 +2765,15 @@ function init()
 				end
 			end
 		},
+		{ id = "soundtrackAprilFools", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtrackaprilfools'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackAprilFools', 1) == 1, description = Spring.I18N('ui.settings.option.soundtrackaprilfools_descr'),
+		onchange = function(i, value)
+			Spring.SetConfigInt('UseSoundtrackAprilFools', value and 1 or 0)
+			if WG['music'] and WG['music'].RefreshTrackList then
+				WG['music'].RefreshTrackList()
+				init()
+			end
+		end
+	},
 		{ id = "soundtrackSilenceTimer", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtracksilence'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackSilenceTimer', 1) == 1, description = Spring.I18N('ui.settings.option.soundtracksilence_descr'),
 			onchange = function(i, value)
 				Spring.SetConfigInt('UseSoundtrackSilenceTimer', value and 1 or 0)
@@ -5806,6 +5815,10 @@ function init()
 		options[getOptionByID('spectator_hud_metric_utilityValue')] = nil
 		options[getOptionByID('spectator_hud_metric_economyValue')] = nil
 		options[getOptionByID('spectator_hud_metric_damageDealt')] = nil
+	end
+
+	if not (tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) <= 3) then
+		options[getOptionByID('soundtrackAprilFools')] = nil
 	end
 
 	-- hide English unit names toggle if using English

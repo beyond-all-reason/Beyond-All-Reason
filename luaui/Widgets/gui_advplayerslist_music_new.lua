@@ -92,7 +92,7 @@ local function ReloadMusicPlaylists()
 		table.append(bossFightTracksNew, VFS.DirList(musicDirNew..'/bossfight/scavengers', allowedExtensions))
 	end
 
-	if (tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) <= 3) then
+	if (tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) <= 3) and Spring.GetConfigInt('UseSoundtrackAprilFools', 1) == 1 then
 		table.append(menuTracksNew, VFS.DirList(musicDirNew..'/events/aprilfools/menu', allowedExtensions))
 		table.append(loadingTracksNew, VFS.DirList(musicDirNew..'/events/aprilfools/loading', allowedExtensions))
 	end
