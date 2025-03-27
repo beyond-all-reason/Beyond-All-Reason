@@ -1011,7 +1011,6 @@ local options = {
         type    = "separator",
     },
 
-
     {
         key 	= "evocom",
         name 	= "Evolving Commanders",
@@ -1203,6 +1202,25 @@ local options = {
         step   	= 1,
     },
 
+    {
+        key     = "sub_header",
+        section = "options_extra",
+        type    = "separator",
+    },
+
+    {
+        key 	= "zombies",
+        name 	= "Scavenger Zombies",
+        type 	= "list",
+        def 	= "disabled",
+        section = "options_extra",
+        items 	= {
+            { key = "disabled", name = "Disabled", desc = "Disabled"},
+            { key = "normal", name = "Normal", desc = "Slow revival rate, normal strength."},
+            { key = "hard", name = "Hard", desc = "Fast revival rate, stronger Scavenger Zombies." },
+            { key = "nightmare", name = "Nightmare", desc = "Extreme revival rate, stronger Scavenger Zombies, 2-5 spawn per corpse." },
+        }
+    },
 
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
