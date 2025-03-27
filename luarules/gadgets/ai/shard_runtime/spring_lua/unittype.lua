@@ -27,6 +27,9 @@ end
 function ShardUnitType:CanMove()
 	return self.def.canMove
 end
+function ShardUnitType:MoveName()
+	return self.def.moveDef.name
+end
 
 function ShardUnitType:CanDeploy()
 	-- what does deploy mean for Spring?

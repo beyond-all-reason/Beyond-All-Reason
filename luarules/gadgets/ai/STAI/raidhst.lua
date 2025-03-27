@@ -161,7 +161,7 @@ function RaidHST:SquadDisband(squad)
 end
 
 function RaidHST:SquadStepComplete(squad)
-	self:EchoDebug('step complete',squad.step,squad.position.x,squad.position.z,squad.path[squad.step].x,squad.path[squad.step].z) ::TTODDKSID fixe
+	Spring.Echo('step complete',squad.path,squad.step,squad.position.x,squad.position.z,squad.path[squad.step].x,squad.path[squad.step].z)
 	if self.ai.tool:RawDistance(squad.position.x,squad.position.y,squad.position.z,squad.path[squad.step][1],squad.path[squad.step][2],squad.path[squad.step][3]) < 256 then
 		squad.step = squad.step + 1
 	elseif squad.idleCount > floor(#squad.members * 0.85) then

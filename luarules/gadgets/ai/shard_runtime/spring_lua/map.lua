@@ -102,6 +102,16 @@ function map:GetPathObject(moveID, start_x, start_y, start_z, end_x, end_y, end_
 	return Spring.RequestPath(moveID, start_x, start_y, start_z, end_x, end_y, end_z,radius)
 end
 
+function map:PathTest(moveID, start_x, start_y, start_z, end_x, end_y, end_z,radius)
+	if not moveID or not start_x or not start_y or not start_z or not end_x or not end_y or not end_z then
+		return
+	end
+	radius = radius or 8
+	if Spring.RequestPath(moveID, start_x, start_y, start_z, end_x, end_y, end_z,radius) then
+		return true
+	end
+end
+
 function map:GetPathWaypoints(pathObject)
 	if not pathObject then return end
 	return pathObject:GetPathWayPoints()

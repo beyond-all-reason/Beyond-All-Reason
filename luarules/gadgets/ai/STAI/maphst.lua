@@ -555,28 +555,6 @@ function MapHST:MergePositions(posTable, cutoff, includeNonMerged)
 end
 
 
-
-function MapHST:getPathBackup(unitName,POS1,POS2,toGrid)
-	local mclass = self.ai.armyhst.unitTable[unitName].mclass
-	
-	local waypoints = map:RequestPath(mclass, POS1, POS2)
-	if not waypoints then
-		self:Warn('no path found',POS1,POS2)
-		return
-	end
-	local last = waypoints[#waypoints]
-	local distance_to_goal = self.ai.tool:distance(POS2, {x=last[1],z=last[3]})
-	if distance_to_goal > self.gridSize/2 then
-		self:Warn('invalid path find',POS1,POS2)
-		return
-	end
-	if toGrid then
-		return self:gridThePath(waypoints)
-	else
-		return waypoints
-	end
-end
-
 function MapHST:getPath(unitName,POS1,POS2,toGrid)
 	local mclass = self.ai.armyhst.unitTable[unitName].mclass
 	
@@ -590,20 +568,31 @@ function MapHST:getPath(unitName,POS1,POS2,toGrid)
 		self:Warn('no waypoints for the object found',POS1,POS2)
 		return
 	end
-	local last = waypoints[#waypoints]
-	local distance_to_goal = self.ai.tool:distance(POS2, {x=last[1],z=last[3]})
-	if distance_to_goal > self.gridSize/2 then
-		self:Warn('invalid path find',POS1,POS2)
-		return
-	end
 	if toGrid then
 		return self:gridThePath(waypoints)
 	else
 		return waypoints
 	end
 end
-
-function MapHST:gridThePath(wp)
+function MapHST:gridThePath(wp,factor)
+	factor = factor or self.gridSize
+	local prev = #wp
+	for i = #wp,1,-1 do
+		Spring.Echo('ambassa',#wp,i,wp[i],prev,wp[prev])
+		if i and i ~= prev then
+			if self.ai.tool:RawDistance(wp[prev][1],wp[prev][2],wp[prev][3],wp[i][1],wp[i][2],wp[i][3]) < factor then
+				table.remove(wp,i)
+				prev = prev - 1
+			else
+				prev = i
+				--Spring.MarkerAddPoint(wp[prev][1],wp[prev][2],wp[prev][3]	)
+			end
+		end
+	end
+	print(#wp)
+	return wp
+end
+function MapHST:gridThePathBackup(wp)
 	--local first = table.remove(waypoints)
 	--first = {x = first[1],y = first[2],z = first[3]}
 	local gridPath = {}

@@ -11,7 +11,7 @@ end
 local floor = math.floor
 
 function AttackHST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	self.recruits = {}
 	self.squads = {}
 	self.squadID = 1
@@ -47,14 +47,22 @@ end
 function AttackHST:Update()
 	if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
 	local f = self.game:Frame()
+	local RAM = gcinfo()
 	self:DraftAttackSquads()
+	--print('1',gcinfo()-RAM)
 	for index , squad in pairs(self.squads) do
+
 		if self:SquadCheck(squad) then
+			--print('2',gcinfo()-RAM)
 			self:Watchdog(squad)
+			--print('3',gcinfo()-RAM)
 			self:SquadAdvance(squad)
+			--print('4',gcinfo()-RAM)
 		end
 	end
+	print('5',gcinfo()-RAM)
 	self:SquadsTargetUpdate()
+	print('6',gcinfo()-RAM)
 	self:visualDBG()
 end
 
@@ -220,7 +228,9 @@ function AttackHST:SquadsTargetHandled(target)
 end
 
 function AttackHST:SquadsTargetUpdate()
+
 	for id,squad in pairs(self.squads) do
+		local RAM = gcinfo()
 		if squad.target and squad.role == 'offense' and self.ai.maphst:GetCell(squad.target.X,squad.target.Z,self.ai.loshst.ENEMY) then
 			self:EchoDebug('squadID',squad.squadID, 'offense cell', squad.target.X,squad.target.Z)
 		else
@@ -231,9 +241,12 @@ function AttackHST:SquadsTargetUpdate()
 -- 				squad.role = 'defense'
 -- 				self:EchoDebug('set defensive target for',squad.squadID,squad.target.X,squad.target.Z)
 -- 			else
+			print('7',gcinfo()-RAM)
 			local offense = self:SquadsTargetAttack(squad)
+			print('8',gcinfo()-RAM)
 			if offense and squad.lock then
 				local path, step = self:SquadFindPath(squad,offense)
+				print('9',gcinfo()-RAM)
 				if path and step then
 					squad.target = offense
 					squad.role = 'offense'
@@ -242,6 +255,7 @@ function AttackHST:SquadsTargetUpdate()
 					self:EchoDebug('set offensive target for',squad.squadID,squad.target.X,squad.target.Z)
 				end
 			end
+			print('9',gcinfo()-RAM)
 			if not squad.target then
 				local prevent = self:SquadsTargetPrevent(squad)
 				if prevent then
@@ -249,9 +263,10 @@ function AttackHST:SquadsTargetUpdate()
 					squad.role = 'prevent'
 					self:EchoDebug('set preventive target for',squad.squadID,squad.target.X,squad.target.Z)
 				else
-					self:EchoDebug('squad', squadID, 'have no target')
+					self:EchoDebug('squad', squad.squadID, 'have no target')
 				end
 			end
+			
 			--end
 		end
 	end
@@ -300,11 +315,15 @@ end
 function AttackHST:SquadsTargetAttack(squad)
 	local bestTarget = nil
 	local worstDist = 0
+	self:EchoDebug('search a offensive target for squad ', squad.squadID)
 	for ref, blob in pairs(self.ai.targethst.IMMOBILE_BLOBS) do
 		if self.ai.loshst.ENEMY[blob.targetCell.X][blob.targetCell.Z] then
 			--if not self:SquadsTargetHandled(self.ai.loshst.ENEMY[blob.defendCell.X][blob.defendCell.Z]) then
-			local mclass = game:GetUnitByID(squad.leader):Name()
-			local path = self.ai.maphst:getPath(mclass,squad.leaderPos,blob.position)
+			
+			local mclass =self.ai.armyhst.unitTable[game:GetUnitByID(squad.leader):Name()].mclass
+			--local mclass = game:GetUnitByID(squad.leader):Name()
+			local path = map:PathTest(mclass,squad.leaderPos.x,squad.leaderPos.y,squad.leaderPos.z,blob.position.x,blob.position.y,blob.position.z,8)
+			--local path = self.ai.maphst:getPath(mclass,squad.leaderPos,blob.position)
 			if path then
 				local dist = self.ai.tool:distance(blob.position,self.ai.targethst.enemyCenter)
 				if dist > worstDist then

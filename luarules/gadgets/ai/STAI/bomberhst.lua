@@ -9,7 +9,7 @@ function BomberHST:internalName()
 end
 
 function BomberHST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	self.recruits = {}
 	self.squads = {}
 	self.squadID = 1
@@ -21,7 +21,7 @@ function BomberHST:Update()
 	self:DraftBomberSquads()
 	for index,squad in pairs(self.squads) do
 		if self:SquadsIntegrityCheck(squad) then
-			self:SquadPosition(squad)
+			--self:SquadPosition(squad)
 			self:SquadMass(squad)
 			self:SquadsTargetUpdate(squad)
 			self:SquadsPerformBombing(squad)
@@ -45,7 +45,7 @@ end
 
 function BomberHST:SetMassLimit()
 	self.squadMassLimit = 400 + (math.min(self.ai.ecohst.Metal.income * 20, 4000))
-	self:EchoDebug('squadmasslimit',self.squadMassLimit)
+	--self:EchoDebug('squadmasslimit',self.squadMassLimit)
 end
 
 function BomberHST:SquadsIntegrityCheck(squad)
@@ -101,22 +101,6 @@ function BomberHST:DraftBomberSquads()
 			end
 		end
 	end
-end
-
-function BomberHST:SquadPosition(squad)
-	local p = {x=0,z=0}
-	squad.counter = 0
-	for i,member in pairs(squad.members) do
-		local uPos = self.ai.tool:UnitPos(member)
-		p.x = p.x + uPos.x
-		p.z = p.z + uPos.z
-		squad.counter = squad.counter + 1
-	end
-	p.x = p.x / squad.counter
-	p.z = p.z / squad.counter
-	p.y = map:GetGroundHeight(p.x,p.z)
-	squad.position = p
-	self:EchoDebug('squad position',p.x,p.z)
 end
 
 function BomberHST:SquadMass(squad)
@@ -214,3 +198,19 @@ function BomberHST:GetTarget(squad)
 		end
 	end
 end
+
+--[[function BomberHST:SquadPosition(squad)
+	local p = {x=0,z=0}
+	squad.counter = 0
+	for i,member in pairs(squad.members) do
+		local uPos = self.ai.tool:UnitPos(member)
+		p.x = p.x + uPos.x
+		p.z = p.z + uPos.z
+		squad.counter = squad.counter + 1
+	end
+	p.x = p.x / squad.counter
+	p.z = p.z / squad.counter
+	p.y = map:GetGroundHeight(p.x,p.z)
+	squad.position = p
+	self:EchoDebug('squad position',p.x,p.z)
+end]]

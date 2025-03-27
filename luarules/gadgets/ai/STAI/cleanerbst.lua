@@ -9,6 +9,7 @@ function CleanerBST:Init()
 	self.name = self.unit:Internal():Name()
 	self.id = self.unit:Internal():ID()
 	self.position = self.unit:Internal():GetPosition()
+	self.patrolCommand = {self.position.x,self.position.y,self.position.z,0}
 	self:EchoDebug("init")
 	self.cleaningRadius = 390
 	self.frameCounter = 0
@@ -28,15 +29,18 @@ function CleanerBST:Update()
 end
 
 function CleanerBST:OwnerBuilt()
+	self.ai.tool:GiveOrder(self.id,CMD.MOVE_STATE,2,0,'1-1')
 	self:Patroling()
+	
 end
 
 function CleanerBST:OwnerIdle()
-	self:EchoDebug("idle",self.id)
-	--self:Patroling()
+	print("nano idle",self.id)
 end
 
 function CleanerBST:Activate()
+	self.ai.tool:GiveOrder(self.id,CMD.MOVE_STATE,2,0,'1-1')
+	self:Patroling()
 	self:EchoDebug('activate command',self.ai.cleanhst.theCleaner[self.id])
 
 end
@@ -101,10 +105,11 @@ end
 function CleanerBST:Patroling()
 -- 	local uPosX,uPosY,uPosZ = self.unit:Internal():GetRawPos()
 	local currentOrder = self.unit:Internal():GetUnitCommands(1)[1]
-	print('currentOrder',currentOrder)
+	local currentCommand = self.unit:Internal():GetUnitCommands()
+	Spring.Echo('currentCommand',currentCommand)
+	Spring.Echo('currentOrder nano',currentOrder)
+	
 	if not currentOrder or not  currentOrder.id  then
-		--self.unit:Internal():Patrol({self.position.x,self.position.y,self.position.z,0})
-		Spring.Echo('patroling',self.position)
-		self.ai.tool:GiveOrder(self.id,CMD.FIGHT,self.position,0,'1-1')
+		self.ai.tool:GiveOrder(self.id,CMD.PATROL,self.patrolCommand,0,'1-1')
 	end
 end
