@@ -596,13 +596,19 @@ local function makeTeamCompositionList()
 		areaRect = {}
 		for id, rect in pairs(uiElementRects) do
 			if not areaRect[1] then
-				areaRect = {rect[1], rect[2], rect[3], rect[4] }
+				areaRect = { rect[1], rect[2], rect[3], rect[4] }
 			else
 				if rect[1] < areaRect[1] then
 					areaRect[1] = rect[1]
 				end
 				if rect[2] < areaRect[2] then
 					areaRect[2] = rect[2]
+				end
+				if rect[3] > areaRect[3] then
+					areaRect[3] = rect[3]
+				end
+				if rect[4] > areaRect[4] then
+					areaRect[4] = rect[4]
 				end
 			end
 		end
