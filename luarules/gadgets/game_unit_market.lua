@@ -149,12 +149,6 @@ local function offerUnitForSale(unitID, sale_price, msgFromTeamID)
     end
 end
 
-local disable_unit_sharing = (
-    Spring.GetModOptions().disable_unit_sharing
- or (Spring.GetModOptions().tax_resource_sharing_amount or 0) ~= 0)
-and Spring.GetModOptions().unit_market
-local saleWhitelist = {}
-
 local function tryToBuyUnit(unitID, msgFromTeamID)
     if not unitID or unitsForSale[unitID] == nil or unitsForSale[unitID] == 0 then return end
     local unitDefID = spGetUnitDefID(unitID)
@@ -177,29 +171,12 @@ local function tryToBuyUnit(unitID, msgFromTeamID)
 
     if (current < price) then return end
 
-    if disable_unit_sharing then
-        saleWhitelist[unitID] = true
-    end
-
     TransferUnit(unitID, msgFromTeamID)
     if msgFromTeamID ~= old_ownerTeamID and price > 0 then -- don't send resources to yourself
         ShareTeamResource(msgFromTeamID, old_ownerTeamID, "metal", price)
     end
     setNotForSale(unitID)
     UnitSoldBroadcast(unitID, price, old_ownerTeamID, msgFromTeamID)
-end
-
-if disable_unit_sharing then
-    function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, capture)
-        if(capture) then
-            return true
-        end
-        if saleWhitelist[unitID] then
-            saleWhitelist[unitID] = nil
-            return true
-        end
-        return false
-    end
 end
 
 -- this takes control and makes all cons stop using metal, we remove all limits on a) shutdown b) storage getting full c) widget crash - should be safe enough

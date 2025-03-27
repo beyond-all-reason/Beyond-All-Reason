@@ -16,9 +16,10 @@ end
 if not gadgetHandler:IsSyncedCode() then
 	return false
 end
-if	not (Spring.GetModOptions().disable_assist_ally_construction
-	-- tax force enables this
-	or (Spring.GetModOptions().tax_resource_sharing_amount or 0) ~= 0) then
+
+local allowAssist = not Spring.GetModOptions().disable_assist_ally_construction
+
+if allowAssist then
 	return false
 end
 
