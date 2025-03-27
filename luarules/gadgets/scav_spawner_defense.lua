@@ -1920,7 +1920,7 @@ if gadgetHandler:IsSyncedCode() then
 				firstSpawn = false
 			else
 				spawnAreaMultiplier = spawnAreaMultiplier + 1
-				RaptorStartboxXMin, RaptorStartboxZMin, RaptorStartboxXMax, RaptorStartboxZMax = EnemyLib.GetAdjustedStartBox(raptorAllyTeamID, config.burrowSize*1.5*spawnAreaMultiplier)
+				ScavStartboxXMin, ScavStartboxZMin, ScavStartboxXMax, ScavStartboxZMax = EnemyLib.GetAdjustedStartBox(scavAllyTeamID, config.burrowSize*1.5*spawnAreaMultiplier)
 				gadget:GameStart()
 			end
 		end
