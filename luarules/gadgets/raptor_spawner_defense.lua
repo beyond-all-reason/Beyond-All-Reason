@@ -1784,6 +1784,21 @@ if gadgetHandler:IsSyncedCode() then
 		tracy.ZoneEnd()
 	end
 
+	function gadget:TrySpawnBurrow()
+		local spawned = SpawnBurrow()
+		timeOfLastSpawn = t
+		if firstSpawn then
+			if spawned then
+				timeOfLastWave = (config.gracePeriod + 10) - config.raptorSpawnRate
+				firstSpawn = false
+			else
+				spawnAreaMultiplier = spawnAreaMultiplier + 1
+				RaptorStartboxXMin, RaptorStartboxZMin, RaptorStartboxXMax, RaptorStartboxZMax = EnemyLib.GetAdjustedStartBox(raptorAllyTeamID, config.burrowSize*1.5*spawnAreaMultiplier)
+				gadget:GameStart()
+			end
+		end
+	end
+
 	local announcedFirstWave = false
 	function gadget:GameFrame(n)
 
@@ -1867,33 +1882,14 @@ if gadgetHandler:IsSyncedCode() then
 
 
 			if burrowCount < minBurrows then
-				local spawned = SpawnBurrow()
-				timeOfLastSpawn = t
-				if firstSpawn then
-					if spawned then
-						timeOfLastWave = (config.gracePeriod + 10) - config.raptorSpawnRate
-						firstSpawn = false
-					else
-						spawnAreaMultiplier = spawnAreaMultiplier + 1
-						RaptorStartboxXMin, RaptorStartboxZMin, RaptorStartboxXMax, RaptorStartboxZMax = EnemyLib.GetAdjustedStartBox(raptorAllyTeamID, config.burrowSize*1.5*spawnAreaMultiplier)
-						gadget:GameStart()
-					end
-				end
+				gadget:TrySpawnBurrow()
 			end
 
 			if (t > config.burrowSpawnRate and burrowCount < minBurrows and (t > timeOfLastSpawn + 10 or burrowCount == 0)) or (config.burrowSpawnRate < t - timeOfLastSpawn and burrowCount < maxBurrows) then
 				if (config.burrowSpawnType == "initialbox") and (t > config.gracePeriod) then
 					config.burrowSpawnType = "initialbox_post"
 				end
-				if firstSpawn then
-					SpawnBurrow()
-					timeOfLastWave = (config.gracePeriod + 10) - config.raptorSpawnRate
-					timeOfLastSpawn = t
-					firstSpawn = false
-				else
-					SpawnBurrow()
-					timeOfLastSpawn = t
-				end
+				gadget:TrySpawnBurrow()
 				raptorEvent("burrowSpawn")
 				SetGameRulesParam("raptor_hiveCount", SetCount(burrows))
 			elseif config.burrowSpawnRate < t - timeOfLastSpawn and burrowCount >= maxBurrows then
