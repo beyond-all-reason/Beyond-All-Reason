@@ -9,7 +9,7 @@ local function getSettings()
 
 	local allyTeamCount, playerCount = 0, 0
 	local isSinglePlayer, is1v1, isTeams, isBigTeams, isSmallTeams, isRaptors, isScavengers, isPvE, isCoop, isFFA, isSandbox = false, false, false, false, false, false, false, false, false, false, false
-	local scavTeamID, scavAllyTeamID, raptorTeamID, raptorAllyTeamID = nil, nil, nil, nil
+	local scavTeamID, scavAllyTeamID, raptorTeamID, raptorAllyTeamID
 
 	local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID(), false))
 	local springAllyTeamList = Spring.GetAllyTeamList()
