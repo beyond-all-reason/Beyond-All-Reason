@@ -86,6 +86,8 @@ function widget:LanguageChanged()
 		key = 'killAllUnits'
 	elseif deathmode == "builders" then
 		key = 'killAllBuilders'
+	elseif deathmode == "territorial_domination" then
+		key = 'territorialDomination'
 	else
 		key = 'killAllCommanders'
 	end
