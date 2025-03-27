@@ -611,7 +611,7 @@ Walk() {
 			turn lthigh to x-axis <-8.284470> speed <324.280078> / animSpeed;
 			turn lthigh to y-axis <4.149948> speed <80.423886> / animSpeed;
 			turn ltoes to x-axis <21.788201> speed <653.646044> / animSpeed;
-			move pelvis to y-axis [-0.117973] speed [37.117825] / animSpeed;
+			move pelvis to y-axis [0.466590] speed [37.117822] / animSpeed;
 			turn pelvis to y-axis <-5.063328> speed <98.152393> / animSpeed;
 			turn rarmorhip to x-axis <-30.026782> speed <238.344027> / animSpeed;
 			turn rarmorshoulder to x-axis <3.287117> speed <58.614511> / animSpeed;
@@ -656,7 +656,7 @@ Walk() {
 			turn lthigh to y-axis <6.300840> speed <64.526744> / animSpeed;
 			turn ltoes to x-axis <33.017975> speed <336.893207> / animSpeed;
 			move pelvis to z-axis [0.363090] speed [22.599040] / animSpeed;
-			move pelvis to y-axis [-0.320000] speed [6.060791] / animSpeed;
+			move pelvis to y-axis [0.269401] speed [5.915670] / animSpeed; 
 			turn pelvis to y-axis <-7.454954> speed <71.748798> / animSpeed;
 			turn rarmorhip to x-axis <-36.968392> speed <208.248301> / animSpeed;
 			turn rfootjoint to x-axis <30.970356> speed <307.439245> / animSpeed;
@@ -696,7 +696,7 @@ Walk() {
 			turn lthigh to y-axis <7.808037> speed <45.215908> / animSpeed;
 			turn ltoes to x-axis <38.645159> speed <168.815536> / animSpeed;
 			move pelvis to z-axis [-0.631693] speed [29.843518] / animSpeed;
-			move pelvis to y-axis [-1.826948] speed [45.208454] / animSpeed;
+			move pelvis to y-axis [-1.242385] speed [45.353572] / animSpeed; 
 			turn pelvis to y-axis <-8.550745> speed <32.873709> / animSpeed;
 			turn rarmorhip to x-axis <-36.796749> speed <5.149280> / animSpeed;
 			turn rfootjoint to x-axis <24.633687> speed <190.100062> / animSpeed;
@@ -733,7 +733,7 @@ Walk() {
 			turn lshin to x-axis <-15.451674> speed <467.524010> / animSpeed;
 			turn lthigh to x-axis <1.824277> speed <237.054114> / animSpeed;
 			move pelvis to z-axis [-1.206355] speed [17.239838] / animSpeed;
-			move pelvis to y-axis [-3.636591] speed [54.289284] / animSpeed;
+			move pelvis to y-axis [-3.052028] speed [54.289284] / animSpeed; 
 			turn pelvis to y-axis <-8.160225> speed <11.715584> / animSpeed;
 			turn rarmorhip to x-axis <-33.784475> speed <90.368218> / animSpeed;
 			turn rfootjoint to x-axis <21.533397> speed <93.008684> / animSpeed;
@@ -771,7 +771,7 @@ Walk() {
 			turn lthigh to x-axis <10.939630> speed <273.460589> / animSpeed;
 			turn lthigh to y-axis <6.260573> speed <49.309488> / animSpeed;
 			move pelvis to z-axis [-0.978701] speed [6.829618] / animSpeed;
-			move pelvis to y-axis [-4.545378] speed [27.263603] / animSpeed;
+			move pelvis to y-axis [-3.960814] speed [27.263596] / animSpeed; 
 			turn pelvis to y-axis <-6.351284> speed <54.268231> / animSpeed;
 			turn rarmorhip to x-axis <-26.439635> speed <220.345215> / animSpeed;
 			turn rfootjoint to x-axis <10.872005> speed <319.841776> / animSpeed;
@@ -810,7 +810,7 @@ Walk() {
 			turn lthigh to y-axis <3.320715> speed <88.195738> / animSpeed;
 			turn ltoes to x-axis <33.037188> speed <168.776194> / animSpeed;
 			move pelvis to z-axis [-0.100138] speed [26.356872] / animSpeed;
-			move pelvis to y-axis [-3.948898] speed [17.894382] / animSpeed;
+			move pelvis to y-axis [-3.364335] speed [17.894375] / animSpeed; 
 			turn pelvis to y-axis <-3.438344> speed <87.388198> / animSpeed;
 			turn rarmorhip to x-axis <-16.685486> speed <292.624463> / animSpeed;
 			turn rfootjoint to x-axis <-4.998025> speed <476.100897> / animSpeed;
@@ -850,7 +850,7 @@ Walk() {
 			turn lthigh to y-axis <-0.180075> speed <105.023713> / animSpeed;
 			turn ltoes to x-axis <21.786254> speed <337.528005> / animSpeed;
 			move pelvis to z-axis [0.845023] speed [28.354838] / animSpeed;
-			move pelvis to y-axis [-2.243855] speed [51.151314] / animSpeed;
+			move pelvis to y-axis [-1.659292] speed [51.151314] / animSpeed; 
 			turn pelvis to y-axis <0.072254> speed <105.317936> / animSpeed;
 			turn rarmorhip to x-axis <-6.684342> speed <300.034326> / animSpeed;
 			turn rfootjoint to x-axis <-21.009308> speed <480.338500> / animSpeed;
@@ -889,7 +889,7 @@ Walk() {
 			turn lthigh to y-axis <-3.604510> speed <102.733051> / animSpeed;
 			turn ltoes to x-axis <12.282364> speed <285.116719> / animSpeed;
 			move pelvis to z-axis [1.228181] speed [11.494741] / animSpeed;
-			move pelvis to y-axis [-0.564228] speed [50.388794] / animSpeed;
+			move pelvis to y-axis [0.020335] speed [50.388794] / animSpeed; 
 			turn pelvis to y-axis <3.570295> speed <104.941226> / animSpeed;
 			turn rarmorhip to x-axis <2.169377> speed <265.611568> / animSpeed;
 			turn rfootjoint to x-axis <-32.037675> speed <330.851000> / animSpeed;
@@ -929,7 +929,7 @@ Walk() {
 			turn lthigh to y-axis <-6.579320> speed <89.244285> / animSpeed;
 			turn ltoes to x-axis <5.020107> speed <217.867714> / animSpeed;
 			move pelvis to z-axis [0.794507] speed [13.010218] / animSpeed;
-			move pelvis to y-axis [-0.027096] speed [16.113968] / animSpeed;
+			move pelvis to y-axis [0.557467] speed [16.113968] / animSpeed; 
 			turn pelvis to y-axis <6.447738> speed <86.323297> / animSpeed;
 			turn rarmorhip to x-axis <7.974893> speed <174.165482> / animSpeed;
 			turn rfootjoint to x-axis <-36.778335> speed <142.219804> / animSpeed;
@@ -970,7 +970,7 @@ Walk() {
 			turn lthigh to y-axis <-8.473953> speed <56.838990> / animSpeed;
 			turn ltoes to x-axis <-0.000000> speed <150.603201> / animSpeed;
 			move pelvis to z-axis [-0.167574] speed [28.862425] / animSpeed;
-			move pelvis to y-axis [-0.989693] speed [28.877907] / animSpeed;
+			move pelvis to y-axis [-0.405130] speed [28.877907] / animSpeed; 
 			turn pelvis to y-axis <8.204422> speed <52.700536> / animSpeed;
 			turn rarmorhip to x-axis <5.840844> speed <64.021485> / animSpeed;
 			turn rfootjoint to x-axis <-28.903376> speed <236.248764> / animSpeed;
@@ -1009,7 +1009,7 @@ Walk() {
 			turn lthigh to x-axis <52.098255> speed <71.550091> / animSpeed;
 			turn lthigh to y-axis <-8.574108> speed <3.004660> / animSpeed;
 			move pelvis to z-axis [-1.018206] speed [25.518964] / animSpeed;
-			move pelvis to y-axis [-2.811813] speed [54.663620] / animSpeed;
+			move pelvis to y-axis [-2.227250] speed [54.663620] / animSpeed; 
 			turn pelvis to y-axis <8.534996> speed <9.917204> / animSpeed;
 			turn rarmorhip to x-axis <1.378711> speed <133.863984> / animSpeed;
 			turn rfootjoint to x-axis <-9.354243> speed <586.474005> / animSpeed;
@@ -1048,7 +1048,7 @@ Walk() {
 			turn lthigh to x-axis <44.828171> speed <218.102523> / animSpeed;
 			turn lthigh to y-axis <-7.245373> speed <39.862043> / animSpeed;
 			move pelvis to z-axis [-1.191656] speed [5.203489] / animSpeed;
-			move pelvis to y-axis [-4.281620] speed [44.094200] / animSpeed;
+			move pelvis to y-axis [-3.697057] speed [44.094200] / animSpeed; 
 			turn pelvis to y-axis <7.382001> speed <34.589845> / animSpeed;
 			turn rarmorhip to x-axis <-4.495500> speed <176.226318> / animSpeed;
 			turn rfootjoint to x-axis <10.188462> speed <586.281138> / animSpeed;
@@ -1085,7 +1085,7 @@ Walk() {
 			turn lthigh to x-axis <31.457119> speed <401.131546> / animSpeed;
 			turn lthigh to y-axis <-4.863035> speed <71.470152> / animSpeed;
 			move pelvis to z-axis [-0.572567] speed [18.572661] / animSpeed;
-			move pelvis to y-axis [-4.421579] speed [4.198780] / animSpeed;
+			move pelvis to y-axis [-3.837016] speed [4.198773] / animSpeed; 
 			turn pelvis to y-axis <4.945850> speed <73.084540> / animSpeed;
 			turn rarmorhip to x-axis <-10.687411> speed <185.757342> / animSpeed;
 			turn rfootjoint to x-axis <25.443797> speed <457.660053> / animSpeed;
@@ -1123,7 +1123,7 @@ Walk() {
 			turn lthigh to x-axis <17.191497> speed <427.968657> / animSpeed;
 			turn lthigh to y-axis <-1.672551> speed <95.714524> / animSpeed;
 			move pelvis to z-axis [0.427321] speed [29.996648] / animSpeed;
-			move pelvis to y-axis [-3.138607] speed [38.489170] / animSpeed;
+			move pelvis to y-axis [-2.554044] speed [38.489163] / animSpeed; 
 			turn pelvis to y-axis <1.650000> speed <98.875479> / animSpeed;
 			turn rarmorhip to x-axis <-16.324039> speed <169.098844> / animSpeed;
 			turn rfootjoint to x-axis <34.633895> speed <275.702942> / animSpeed;
@@ -1162,7 +1162,7 @@ Walk() {
 			turn lthigh to x-axis <3.420545> speed <413.128575> / animSpeed;
 			turn lthigh to y-axis <1.601072> speed <98.208684> / animSpeed;
 			move pelvis to z-axis [1.143009] speed [21.470617] / animSpeed;
-			move pelvis to y-axis [-1.285975] speed [55.578976] / animSpeed;
+			move pelvis to y-axis [-0.701411] speed [55.578976] / animSpeed; 
 			turn pelvis to y-axis <-1.932656> speed <107.479699> / animSpeed;
 			turn rarmorhip to x-axis <-20.517946> speed <125.817207> / animSpeed;
 			turn rfootjoint to x-axis <39.279445> speed <139.366492> / animSpeed;
