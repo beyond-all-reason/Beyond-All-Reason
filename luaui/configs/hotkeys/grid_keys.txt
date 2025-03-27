@@ -60,8 +60,8 @@ bind               sc_p  gatherwait
 bind         Shift+sc_p  gatherwait
 bind               sc_r  repair
 bind         Shift+sc_r  repair
-bind               sc_s  settargetnoground
-bind           Alt+sc_s  settarget
+bind               sc_s  settarget
+bind           Alt+sc_s  settargetnoground
 bind          Ctrl+sc_s  canceltarget
 bind               sc_u  unloadunits
 bind         Shift+sc_u  unloadunits
