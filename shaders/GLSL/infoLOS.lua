@@ -52,82 +52,62 @@ return {
 		#define getTexel texture2D
 	#endif
 
-		const mat2 m = mat2(0.707107, -0.707107, 0.707107, 0.707107);
+		float diagLines(vec2 uv) {
+			// Returns a value between 0 and 1 that form a diagonal pattern.
 
-		float diagLines1(vec2 uv) {
-			float col = 1.0;
+			// To produce "diagonal values", we just add x and y.
+			float xy = uv.x + uv.y;
 
-			uv = m * uv;
-			uv *= 2048.0;
-			uv += 2.0 * vec2(-time, -time);
+			// Multiply xy to decrease the period of the sine wave.
+			// This is just an arbitrary number. Lower numbers will result in
+			// wider lines and gaps.
+			xy *= 1000.0;
 
-			float c = sin(uv.x) * 0.15;
-			col -= c;
-			col = pow(col, 2.75);
-
-			return col;
-		}
-		
-		float diagLines2(vec2 uv) {
-			float col = 1.0;
-
-			uv = m * uv;
-			uv *= 2048.0;
-			uv += 2.0 * vec2(-time, -time);
-
-			float c = sin(uv.x) * 0.20;
-			col -= c;
-			col = pow(col, 4.0);
-
-			return col;
-		}
-
-		float radarAnim(vec2 uv) {
-			float d = distance(vec2(0.5), uv);
-			float d0 = 0.1 * time;
-			float dt1 = 1.0 - smoothstep(0.0, 0.1, fract(4.0 * (d0 - d)));
-			dt1 = pow(dt1, 8.0);
-
-			return mix(1.0, 8.0, dt1);
-		}
-
-		float hex2(vec2 p, float width, float coreSize) {
-			p.x *= 0.57735 * 2.0;
-			p.y += mod(floor(p.x), 2.0) * 0.5;
-			p = abs((mod(p, 1.0) - 0.5));
-			float val = abs(max(p.x * 1.5 + p.y, p.y * 2.0) - 1.0);
-			return smoothstep(coreSize, width, val);
+			// We want to return a value between 0 and 1,
+			// so scale the sine wave amplitude and shift it up.
+			// Subtracting time causes the diagonal lines to move down
+			// from the top-left.
+			return sin(xy - time) * 0.5 + 0.5;
 		}
 
 		void main() {
-			gl_FragColor  = vec4(0.0);
-			
-			float height = texture2D(tex3, texCoord).x;
-			float heightStatus = smoothstep(-3.0, 0.0, height);
+			// There are 3 levels of intel, from highest to lowest:
+			// - Line of sight (LOS), direct vision
+			// - Radar
+			// - Fog of war, no vision or radar
+			// We want to color an area using its highest level of intel.
+			// Then, we add a final modifier to show jamming coverage.
 
-			vec2 radarJammer = getTexel(tex2, texCoord).rg;
+			// Fog of war
+			// Draw alternating diagonal lines for the fog of war.
+			// alwaysColor is the fog of war color.
+			// Squaring the diagLines sine wave causes more values to be near zero.
+			float diagonalLineStrength = pow(diagLines(texCoord), 2);
+			gl_FragColor = mix(alwaysColor, alwaysColor * 0.5, diagonalLineStrength);
 
-			float radarFull = step(0.8, radarJammer.r);
-			float radarEdge = float(radarJammer.r > 0.0 && radarJammer.r <= 0.9);
+			// Radar
+			// radarColor2 is the color of ground covered by radar.
+			vec4 tex2Texel = getTexel(tex2, texCoord);
+			float radar = tex2Texel.r;
+			gl_FragColor = max(gl_FragColor, radarColor2 * radar);
 
-			vec4 radarColor = mix(radarColor2 * radarEdge, radarColor1 * radarFull, radarJammer.r);
-
-			gl_FragColor += jamColor * radarJammer.g;
-			gl_FragColor += radarColor;// * hex2(64.0 * texCoord, 0.025, 0.2) * radarAnim(texCoord);
-
-			float los = getTexel(tex0, texCoord).r;
+			// Line of sight (LOS), the higest level of intel
+			// losColor is the color of ground covered by direct vison (LOS).
+			// Often airlos is greater than groundlos.
+			float groundlos = getTexel(tex0, texCoord).r;
 			float airlos = getTexel(tex1, texCoord).r;
-			float losStatus = mix(los, airlos, 0.2);
+			float losCombined = mix(groundlos, airlos, 0.2);
+			gl_FragColor = max(gl_FragColor, losColor * losCombined);
 
-			gl_FragColor += losColor * losStatus;
+			// Radar jamming
+			// Unlike the other cases, we add the jamming color instead of taking the maximum.
+			// The jamming color may contain negative value. For instance, if you subtract
+			// blue and green, then this will give a red jamming color while maintaining a similar
+			// lighting intensity.
+			float jamming = tex2Texel.g;
+			gl_FragColor += jamColor * jamming;
 
-			//gl_FragColor.rgb += alwaysColor.rgb * mix(hex2(64.0 * texCoord, 0.025, 0.2), 1.0, max(radarFull, losStatus));
-
-			float terraIncognitaStatus = 1.0 - max(radarFull, losStatus);
-			float terraIncognitaEffect = mix(diagLines2(texCoord), diagLines1(texCoord), heightStatus);
-			
-			gl_FragColor.rgb += alwaysColor.rgb * mix(1.0, terraIncognitaEffect, terraIncognitaStatus);
-
+			// Finally, make sure nothing has changed our desired alpha value.
 			gl_FragColor.a = 0.03;
 		}
 	]],
