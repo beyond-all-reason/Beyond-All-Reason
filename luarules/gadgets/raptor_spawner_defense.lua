@@ -731,6 +731,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function SpawnBurrow(number)
+		local foundLocation = false
 		tracy.ZoneBeginN("Raptors:SpawnBurrow")
 		for i = 1, (number or 1) do
 			local canSpawnBurrow = false
@@ -853,6 +854,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			if canSpawnBurrow then
+				foundLocation = true
 				local burrowID = CreateUnit(config.burrowName, spawnPosX, spawnPosY, spawnPosZ, mRandom(0,3), raptorTeamID)
 				if burrowID then
 					SetupBurrow(burrowID, spawnPosX, spawnPosY, spawnPosZ)
@@ -863,7 +865,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 		tracy.ZoneEnd()
-		return canSpawnBurrow
+		return foundLocation
 	end
 
 	function updateQueenHealth()

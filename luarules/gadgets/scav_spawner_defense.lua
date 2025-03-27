@@ -873,6 +873,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function SpawnBurrow(number)
+		local foundLocation = false
 		for i = 1, (number or 1) do
 			local canSpawnBurrow = false
 			local spread = config.burrowSize*1.5
@@ -1003,6 +1004,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			if canSpawnBurrow then
+				foundLocation = true
 				for name,data in pairs(config.burrowUnitsList) do
 					if math.random() <= config.spawnChance and data.minAnger < math.max(1, techAnger) and data.maxAnger > math.max(1, techAnger) then
 						local burrowID = CreateUnit(name, spawnPosX, spawnPosY, spawnPosZ, mRandom(0,3), scavTeamID)
@@ -1020,7 +1022,7 @@ if gadgetHandler:IsSyncedCode() then
 				--playerAggression = playerAggression + (config.angerBonus*(bossAnger*0.01))
 			end
 		end
-		return canSpawnBurrow
+		return foundLocation
 	end
 
 	function updateBossLife()
