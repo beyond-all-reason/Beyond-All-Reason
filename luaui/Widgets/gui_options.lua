@@ -4737,7 +4737,7 @@ function init()
 		  end,
 		},
 
-		{ id = "autocheat", group = "dev", category = types.dev, widget = "Auto cheat", name = Spring.I18N('ui.settings.option.autocheat'), type = "bool", value = GetWidgetToggleValue("Auto cheat"), description = Spring.I18N('ui.settings.option.autocheat_descr') },
+		{ id = "autocheat", group = "dev", category = types.dev, widget = "Dev Auto cheat", name = Spring.I18N('ui.settings.option.autocheat'), type = "bool", value = GetWidgetToggleValue("Dev Auto cheat"), description = Spring.I18N('ui.settings.option.autocheat_descr') },
 		{ id = "restart", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.restart'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.restart_descr'),
 		  onchange = function(i, value)
 			  options[getOptionByID('restart')].value = false
