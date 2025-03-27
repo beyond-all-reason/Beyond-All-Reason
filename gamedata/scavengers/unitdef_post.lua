@@ -274,8 +274,10 @@ local function scavUnitDef_Post(name, uDef)
 		uDef.buildoptions[numBuildoptions + 3] = "corftiger_scav"
 		uDef.buildoptions[numBuildoptions + 4] = "cortorch_scav"
 		uDef.buildoptions[numBuildoptions + 5] = "corsiegebreaker_scav"
+		uDef.buildoptions[numBuildoptions + 6] = "corphantom_scav"
 		if (printerpresent == false) then               -- assuming sala and vac stay paired, this is tidiest solution
-			uDef.buildoptions[numBuildoptions + 6] = "corvac_scav" --corprinter
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions + 1] = "corvac_scav" --corprinter
 		end
 	elseif name == "coralab_scav" then
 		local numBuildoptions = #uDef.buildoptions
@@ -293,6 +295,8 @@ local function scavUnitDef_Post(name, uDef)
 	elseif name == "leggant_scav" then
 		local numBuildoptions = #uDef.buildoptions
 		uDef.buildoptions[numBuildoptions + 1] = "legsrailt4_scav"
+		uDef.buildoptions[numBuildoptions + 2] = "leggobt3_scav"
+		uDef.buildoptions[numBuildoptions + 3] = "legpede_scav"
 	elseif name == "armca_scav" or name == "armck_scav" or name == "armcv_scav" then
 		--local numBuildoptions = #uDef.buildoptions
 	elseif name == "corca_scav" or name == "corck_scav" or name == "corcv_scav" then

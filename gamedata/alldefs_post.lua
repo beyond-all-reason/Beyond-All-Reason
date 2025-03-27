@@ -432,7 +432,7 @@ function UnitDef_Post(name, uDef)
 	end
 
 	-- Release candidate units
-	if modOptions.releasecandidates then
+	if modOptions.releasecandidates or modOptions.experimentalextraunits then
 
 		--Shockwave mex
 		if name == "armaca" or name == "armack" or name == "armacv" then
@@ -510,8 +510,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+2] = "corforge"
 			uDef.buildoptions[numBuildoptions+3] = "corftiger"
 			uDef.buildoptions[numBuildoptions+4] = "cortorch"
-			uDef.buildoptions[numBuildoptions+5] = "corsiegebreaker"
-			uDef.buildoptions[numBuildoptions+6] = "corphantom"
+			uDef.buildoptions[numBuildoptions+5] = "corphantom"
 			if (printerpresent==false) then -- assuming sala and vac stay paired, this is tidiest solution
 				uDef.buildoptions[numBuildoptions+7] = "corvac" --corprinter
 
@@ -596,7 +595,6 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 5] = "armexcalibur"
 			uDef.buildoptions[numBuildoptions + 6] = "armseadragon"
 			uDef.buildoptions[numBuildoptions + 7] = "armtrident"
-			uDef.buildoptions[numBuildoptions + 8] = "armdronecarry"
 		elseif name == "corasy" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "corslrpc"
@@ -604,7 +602,6 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 3] = "coronager"
 			uDef.buildoptions[numBuildoptions + 4] = "cordesolator"
 			uDef.buildoptions[numBuildoptions + 5] = "corsentinel"
-			uDef.buildoptions[numBuildoptions + 6] = "cordronecarry"
 		end
 	end
 
