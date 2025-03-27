@@ -16,6 +16,8 @@ local adjustSide = function(sideMin, sideMax, mapSize, spread)
 		sideMin = sideMin - (sideMax - mapSize)
 		sideMax = mapSize
 	end
+	sideMin = math.max(sideMin, 0)
+	sideMax = math.min(sideMax, mapSize)
 	return sideMin, sideMax
 
 end
