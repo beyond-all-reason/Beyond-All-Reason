@@ -14,6 +14,8 @@ function widget:GetInfo()
 	}
 end
 
+local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
+
 local cfgResText = true
 local cfgSticktotopbar = true
 local cfgRemoveDead = false
@@ -25,6 +27,7 @@ local allyIDdata = {}
 local reclaimerUnits = {}
 local textLists = {}
 local avgData = {}
+local uiElementRects = {}
 local tooltipAreas = {}
 local guishaderRects = {}
 local guishaderRectsDlists = {}
@@ -570,10 +573,18 @@ function widget:Shutdown()
 	for k,v in pairs(textLists) do
 		gl.DeleteList(v)
 	end
+	if uiBgTex then
+		gl.DeleteTextureFBO(uiBgTex)
+	end
 	WG['ecostats'] = nil
 end
 
+local areaRect = {}
+local prevAreaRect = {}
 local function createTeamCompositionList()
+	refreshTeamCompositionList = true
+end
+local function makeTeamCompositionList()
 	if not inSpecMode then
 		return
 	end
@@ -581,6 +592,51 @@ local function createTeamCompositionList()
 		gl.DeleteList(teamCompositionList)
 	end
 	teamCompositionList = gl.CreateList(DrawTeamComposition)
+	if useRenderToTexture then
+		areaRect = {}
+		for id, rect in pairs(uiElementRects) do
+			if not areaRect[1] then
+				areaRect = {rect[1], rect[2], rect[3], rect[4] }
+			else
+				if rect[1] < areaRect[1] then
+					areaRect[1] = rect[1]
+				end
+				if rect[2] < areaRect[2] then
+					areaRect[2] = rect[2]
+				end
+			end
+		end
+		local rectAreaChange = false
+		if not prevAreaRect[1] or (areaRect[1] ~= prevAreaRect[1] or areaRect[2] ~= prevAreaRect[2] or areaRect[3] ~= prevAreaRect[3] or areaRect[4] ~= prevAreaRect[4]) then
+			rectAreaChange = true
+		end
+		prevAreaRect = areaRect
+
+		if not uiBgTex or not rectAreaChange then
+			if uiBgTex then
+				gl.DeleteTextureFBO(uiBgTex)
+			end
+			uiBgTex = gl.CreateTexture(math.floor(areaRect[3]-areaRect[1]), math.floor(areaRect[4]-areaRect[2]), {
+				target = GL.TEXTURE_2D,
+				format = GL.ALPHA,
+				fbo = true,
+			})
+		end
+		if uiBgTex then
+			gl.RenderToTexture(uiBgTex, function()
+				gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+				gl.Color(1,1,1,1)
+				gl.PushMatrix()
+				gl.Translate(-1, -1, 0)
+				gl.Scale(2 / (areaRect[3]-areaRect[1]), 2 / (areaRect[4]-areaRect[2]),	0)
+				gl.Translate(-areaRect[1], -areaRect[2], 0)
+				for id, rect in pairs(uiElementRects) do
+					UiElement(rect[1], rect[2], rect[3], rect[4], (widgetPosY+widgetHeight > rect[4]+1 and 1 or 0), 0, 0, 1, 0, 1, 1, 1, nil, nil, nil, nil, useRenderToTexture)
+				end
+				gl.PopMatrix()
+			end)
+		end
+	end
 	if WG['guishader'] then
 		for id, rect in pairs(guishaderRects) do
 			if guishaderRectsDlists[id] then
@@ -884,11 +940,15 @@ local function DrawMBar(tM, tMp, vOffset)
 end
 
 local function DrawBackground(posY, allyID, teamWidth)
-	local y1 = math.ceil(widgetPosY - posY + widgetHeight)
-	local y2 = math.ceil(widgetPosY - posY + tH + widgetHeight)
+	local y1 = math.ceil((widgetPosY - posY) + widgetHeight)
+	local y2 = math.ceil((widgetPosY - posY) + tH + widgetHeight)
 	local area = { widgetPosX, y1, widgetPosX + widgetWidth, y2 }
 
-	UiElement(widgetPosX + teamWidth, y1, widgetPosX + widgetWidth, y2, (posY > tH and 1 or 0), 0, 0, 1, 0, 1, 1, 1)
+	uiElementRects[#uiElementRects+1] = { widgetPosX + teamWidth, y1, widgetPosX + widgetWidth, y2, allyID }
+
+	if not useRenderToTexture then
+		UiElement(widgetPosX + teamWidth, y1, widgetPosX + widgetWidth, y2, (posY > tH and 1 or 0), 0, 0, 1, 0, 1, 1, 1, nil, nil, nil, nil, useRenderToTexture)
+	end
 
 	guishaderRects['ecostats_' .. allyID] = { widgetPosX + teamWidth, y1, widgetPosX + widgetWidth, y2, 4 * widgetScale }
 
@@ -898,7 +958,6 @@ local function DrawBackground(posY, allyID, teamWidth)
 		WG['tooltip'].AddTooltip('ecostats_' .. allyID, area, Spring.I18N('ui.teamEconomy.tooltip'), nil, Spring.I18N('ui.teamEconomy.tooltipTitle'))
 		tooltipAreas['ecostats_' .. allyID] = area[1] .. '_' .. area[2] .. '_' .. area[3] .. '_' .. area[4]
 	end
-	glColor(1, 1, 1, 1)
 end
 
 local function DrawBox(hOffset, vOffset, r, g, b)
@@ -972,7 +1031,7 @@ end
 function DrawTeamComposition()
 	-- do dynamic stuff without display list
 	local t = GetGameSeconds()
-
+	uiElementRects = {}
 	for _, data in pairs(allyData) do
 		local aID = data.aID
 		local drawpos = data.drawpos
@@ -1332,8 +1391,18 @@ function widget:DrawScreen()
 		return
 	end
 
-	if not teamCompositionList then
-		createTeamCompositionList()
+	if not teamCompositionList or refreshTeamCompositionList then
+		refreshTeamCompositionList = false
+		makeTeamCompositionList()
+	end
+
+	if useRenderToTexture then
+		-- background element
+		gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
+		gl.Texture(uiBgTex)
+		gl.TexRect(areaRect[1], areaRect[2], areaRect[3], areaRect[4], false, true)
+		gl.Texture(false)
+		gl.Color(1,1,1,1)
 	end
 
 	gl.PolygonOffset(-7, -10)
