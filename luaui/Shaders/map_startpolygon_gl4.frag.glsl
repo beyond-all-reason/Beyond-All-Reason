@@ -189,6 +189,8 @@ void main(void)
 		mapWorldPos.xz = (v_position.xy * 0.5 + 0.5);
 		if (flipMiniMap == 0){
 			mapWorldPos.z = 1.0 - mapWorldPos.z;
+		}else{
+			mapWorldPos.x = 1.0 - mapWorldPos.x;
 		}
 		mapWorldPos.xz *= mapSize.xy;
 		
