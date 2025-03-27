@@ -42,6 +42,8 @@ local commanderNameList = {}
 local usedFontSize = fontSize
 
 local widgetScale = (1 + (vsx * vsy / 5500000))
+local startPosRatio = 0.0001
+local startPosScale = (vsx*startPosRatio) / select(3, Spring.GetMiniMapGeometry())
 
 local isSpec = Spring.GetSpectatingState() or Spring.IsReplay()
 local myTeamID = Spring.GetMyTeamID()
@@ -311,6 +313,9 @@ local function DrawStartCones(inminimap)
 	startConeShader:Activate()
 	startConeShader:SetUniform("isMinimap", inminimap and 1 or 0)
 	startConeShader:SetUniformInt("flipMiniMap", getMiniMapFlipped() and 1 or 0)
+
+	startConeShader:SetUniformFloat("startPosScale", startPosScale)
+
 	startConeVBOTable:draw()
 	startConeShader:Deactivate()
 end
@@ -559,6 +564,8 @@ end
 function widget:ViewResize(x, y)
 	vsx, vsy = x, y
 	widgetScale = (0.75 + (vsx * vsy / 7500000))
+
+	startPosScale = (vsx*startPosRatio) / select(3, Spring.GetMiniMapGeometry())
 	removeTeamLists()
 	usedFontSize = fontSize * widgetScale
 	local newFontfileScale = (0.5 + (vsx * vsy / 5700000))
