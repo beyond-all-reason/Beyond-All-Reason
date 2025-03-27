@@ -1735,6 +1735,10 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:GameStart()
+		gadget:SetInitialSpawnBox()
+	end
+
+	function gadget:SetInitialSpawnBox()
 		if config.burrowSpawnType == "initialbox" or config.burrowSpawnType == "alwaysbox" or config.burrowSpawnType == "initialbox_post" then
 			local _, _, _, _, _, luaAllyID = Spring.GetTeamInfo(scavTeamID, false)
 			if luaAllyID then
@@ -1921,7 +1925,7 @@ if gadgetHandler:IsSyncedCode() then
 			else
 				spawnAreaMultiplier = spawnAreaMultiplier + 1
 				ScavStartboxXMin, ScavStartboxZMin, ScavStartboxXMax, ScavStartboxZMax = EnemyLib.GetAdjustedStartBox(scavAllyTeamID, config.burrowSize*1.5*spawnAreaMultiplier)
-				gadget:GameStart()
+				gadget:SetInitialSpawnBox()
 			end
 		end
 	end

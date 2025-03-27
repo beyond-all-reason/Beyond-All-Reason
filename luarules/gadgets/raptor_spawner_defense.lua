@@ -1551,6 +1551,10 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:GameStart()
+		gadget:SetInitialSpawnBox()
+	end
+
+	function gadget:SetInitialSpawnBox()
 		if config.burrowSpawnType == "initialbox" or config.burrowSpawnType == "alwaysbox" or config.burrowSpawnType == "initialbox_post" then
 			local _, _, _, _, _, luaAllyID = Spring.GetTeamInfo(raptorTeamID, false)
 			if luaAllyID then
@@ -1794,7 +1798,7 @@ if gadgetHandler:IsSyncedCode() then
 			else
 				spawnAreaMultiplier = spawnAreaMultiplier + 1
 				RaptorStartboxXMin, RaptorStartboxZMin, RaptorStartboxXMax, RaptorStartboxZMax = EnemyLib.GetAdjustedStartBox(raptorAllyTeamID, config.burrowSize*1.5*spawnAreaMultiplier)
-				gadget:GameStart()
+				gadget:SetInitialSpawnBox()
 			end
 		end
 	end
