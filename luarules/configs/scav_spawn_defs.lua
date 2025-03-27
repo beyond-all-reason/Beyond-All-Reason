@@ -275,6 +275,7 @@ local LandUnitsList = {
 			["corpyro_scav"] = 4,
 			["corseal_scav"] = 3,
 			["coramph_scav"] = 3,
+			["corphantom_scav"] = 3,
 			--Legion
 			["legmrv_scav"] = 4,
 			["legstr_scav"] = 4,
@@ -384,7 +385,7 @@ local LandUnitsList = {
 			["corthermite"] = 4,
 			["corsok_scav"] = 2,
 			--Legion
-			["legpede_scav"] = 3,
+			["legpede_scav"] = 1,
 			["legkeres_scav"] = 4,
 			["legeshotgunmech_scav"] = 2,
 		},
