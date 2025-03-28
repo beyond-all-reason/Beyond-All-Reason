@@ -158,6 +158,9 @@ local callInLists = {
 	"StockpileChanged",
 
 	"ActiveCommandChanged",
+	"MiniMapRotationChanged",
+	"MiniMapMinimizationChanged",
+	"MiniMapGeometryChanged",
 	"CommandNotify",
 
 	-- Feature CallIns
@@ -2155,6 +2158,24 @@ end
 function gadgetHandler:ActiveCommandChanged(id, cmdType)
 	for _, g in ipairs(self.ActiveCommandChangedList) do
 		g:ActiveCommandChanged(id, cmdType)
+	end
+end
+
+function gadgetHandler:MiniMapRotationChanged(newRot, oldRot)
+	for _, g in ipairs(self.MiniMapRotationChangedList) do
+		g:MiniMapRotationChanged(newRot, oldRot)
+	end
+end
+
+function gadgetHandler:MiniMapMinimizationChanged(isMinimized)
+	for _, g in ipairs(self.MiniMapMinimizationChangedList) do
+		g:MiniMapMinimizationChanged(isMinimized)
+	end
+end
+
+function gadgetHandler:MiniMapGeometryChanged(newPosX, newPosY, newDimX, newDimY, oldPosX, oldPosY, oldDimX, oldDimY)
+	for _, g in ipairs(self.MiniMapGeometryChangedList) do
+		g:MiniMapGeometryChanged(newPosX, newPosY, newDimX, newDimY, oldPosX, oldPosY, oldDimX, oldDimY)
 	end
 end
 
