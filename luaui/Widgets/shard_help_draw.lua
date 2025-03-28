@@ -66,13 +66,10 @@ local mCos = math.cos
 local mSin = math.sin
 local twicePi = math.pi * 2
 local mMin = math.min
-local mMax = math.max
 
 local spIsSphereInView = Spring.IsSphereInView
 local spGetGroundHeight = Spring.GetGroundHeight
-local spGetGroundInfo = Spring.GetGroundInfo
 local spWorldToScreenCoords = Spring.WorldToScreenCoords
-local spGetCameraState = Spring.GetCameraState
 local spEcho = Spring.Echo
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetUnitPosition = Spring.GetUnitPosition
@@ -83,7 +80,6 @@ local spDiffTimers = Spring.DiffTimers
 
 local glCreateList = gl.CreateList
 local glCallList = gl.CallList
-local glDeleteList = gl.DeleteList
 local glColor = gl.Color
 local glBeginEnd = gl.BeginEnd
 local glVertex = gl.Vertex
@@ -99,7 +95,6 @@ local glBillboard = gl.Billboard
 -- local glEndText = gl.EndText
 local glLoadFont = gl.LoadFont
 local glBlending = gl.Blending
-local glUnitShape = gl.UnitShape
 
 local GL_TRIANGLE_STRIP = GL.TRIANGLE_STRIP
 local GL_TRIANGLE_FAN = GL.TRIANGLE_FAN

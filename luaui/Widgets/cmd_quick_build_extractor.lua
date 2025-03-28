@@ -12,8 +12,6 @@ function widget:GetInfo()
 	}
 end
 
-local CMD_MOVE = CMD.MOVE
-local CMD_GUARD = CMD.GUARD
 local CMD_RECLAIM = CMD.RECLAIM
 
 local spGetActiveCommand = Spring.GetActiveCommand
