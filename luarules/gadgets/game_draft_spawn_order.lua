@@ -228,6 +228,7 @@ local function PreInitDraftOrderData()
 end
 
 local function putLateJoinersLast(array)
+	if not array then return end
 	local lateJoiners = false
 	for _, teamID in ipairs(array) do
 		if not teamPlayerData[teamID] then
@@ -260,6 +261,7 @@ local function putLateJoinersLast(array)
 end
 
 local function InitDraftOrderData(allyTeamID_ready)
+	if not allyTeamID_ready then return end
 	if allyTeamIsInGame[allyTeamID_ready] == true then return end -- already started
 	allyTeamIsInGame[allyTeamID_ready] = true
 	if draftMode == "random" or draftMode == "captain" then
