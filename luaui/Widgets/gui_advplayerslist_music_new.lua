@@ -1171,17 +1171,18 @@ function widget:GameFrame(n)
 		--end
 		if Spring.Utilities.Gametype.IsRaptors() then
 			if (Spring.GetGameRulesParam("raptorQueenAnger", 0)) > 50 then
-				warMeter = warHighLevel*1.1
+				warMeter = warHighLevel+1
 			elseif (Spring.GetGameRulesParam("raptorQueenAnger", 0)) > 10 then
-				warMeter = warLowLevel*1.1
+				warMeter = warLowLevel+1
 			else
 				warMeter = 0
 			end
+			Spring.Echo(warMeter)
 		elseif Spring.Utilities.Gametype.IsScavengers() then
 			if (Spring.GetGameRulesParam("scavBossAnger", 0)) > 50 then
-				warMeter = warHighLevel*1.1
+				warMeter = warHighLevel+1
 			elseif (Spring.GetGameRulesParam("scavBossAnger", 0)) > 10 then
-				warMeter = warLowLevel*1.1
+				warMeter = warLowLevel+1
 			else
 				warMeter = 0
 			end
