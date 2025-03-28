@@ -47,22 +47,14 @@ end
 function AttackHST:Update()
 	if self.ai.schedulerhst.moduleTeam ~= self.ai.id or self.ai.schedulerhst.moduleUpdate ~= self:Name() then return end
 	local f = self.game:Frame()
-	local RAM = gcinfo()
 	self:DraftAttackSquads()
-	--print('1',gcinfo()-RAM)
 	for index , squad in pairs(self.squads) do
-
 		if self:SquadCheck(squad) then
-			--print('2',gcinfo()-RAM)
 			self:Watchdog(squad)
-			--print('3',gcinfo()-RAM)
 			self:SquadAdvance(squad)
-			--print('4',gcinfo()-RAM)
 		end
 	end
-	print('5',gcinfo()-RAM)
 	self:SquadsTargetUpdate()
-	print('6',gcinfo()-RAM)
 	self:visualDBG()
 end
 
@@ -230,7 +222,6 @@ end
 function AttackHST:SquadsTargetUpdate()
 
 	for id,squad in pairs(self.squads) do
-		local RAM = gcinfo()
 		if squad.target and squad.role == 'offense' and self.ai.maphst:GetCell(squad.target.X,squad.target.Z,self.ai.loshst.ENEMY) then
 			self:EchoDebug('squadID',squad.squadID, 'offense cell', squad.target.X,squad.target.Z)
 		else
@@ -241,12 +232,9 @@ function AttackHST:SquadsTargetUpdate()
 -- 				squad.role = 'defense'
 -- 				self:EchoDebug('set defensive target for',squad.squadID,squad.target.X,squad.target.Z)
 -- 			else
-			print('7',gcinfo()-RAM)
 			local offense = self:SquadsTargetAttack(squad)
-			print('8',gcinfo()-RAM)
 			if offense and squad.lock then
 				local path, step = self:SquadFindPath(squad,offense)
-				print('9',gcinfo()-RAM)
 				if path and step then
 					squad.target = offense
 					squad.role = 'offense'
@@ -255,7 +243,6 @@ function AttackHST:SquadsTargetUpdate()
 					self:EchoDebug('set offensive target for',squad.squadID,squad.target.X,squad.target.Z)
 				end
 			end
-			print('9',gcinfo()-RAM)
 			if not squad.target then
 				local prevent = self:SquadsTargetPrevent(squad)
 				if prevent then

@@ -222,7 +222,7 @@ if gadgetHandler:IsSyncedCode() then
 			
 		end
 		--Spring.Echo('cmdCounter','1-1',cmdCounter.ii,'2-1',cmdCounter.zi,'1-2',cmdCounter.iz,'2-2',cmdCounter.zz,'old',cmdCounter.old)
-		--Spring.Echo('cmdCounter',cmdCounter)
+		Spring.Echo('cmdCounter',cmdCounter)
 	end
 
 
@@ -325,7 +325,7 @@ else	-- UNSYNCED CODE
 	function gadget:GameFrame(n)
 		-- for each AI...
 		
-		--RAM = gcinfo()
+		RAM = gcinfo()
 		--print('ram used by AI',RAM, 'sync or other use ', RAM - lastRamRead)
 		
 		for i, thisAI in ipairs(Shard.AIs) do
@@ -349,6 +349,11 @@ else	-- UNSYNCED CODE
 			end
 			
 		end
+		RAM = gcinfo()-RAM
+		if RAM > 0 then
+			print('mainloopram',RAM)
+		end
+		
 		--lastRamRead = gcinfo()
 		--RAM = lastRamRead - RAM
 		--print(RAM .. ' kb of RAM used by AI in this update',lastRamRead)

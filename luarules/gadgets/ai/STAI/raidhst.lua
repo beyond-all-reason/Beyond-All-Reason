@@ -161,8 +161,8 @@ function RaidHST:SquadDisband(squad)
 end
 
 function RaidHST:SquadStepComplete(squad)
-	Spring.Echo('step complete',squad.path,squad.step,squad.position.x,squad.position.z,squad.path[squad.step].x,squad.path[squad.step].z)
-	if self.ai.tool:RawDistance(squad.position.x,squad.position.y,squad.position.z,squad.path[squad.step][1],squad.path[squad.step][2],squad.path[squad.step][3]) < 256 then
+	self:EchoDebug('step complete',squad.path,squad.step,squad.position.x,squad.position.z,squad.path[squad.step].x,squad.path[squad.step].z)
+	if self.ai.tool:RawDistance(squad.position.x,squad.position.y,squad.position.z,squad.path[squad.step].x,squad.path[squad.step].y,squad.path[squad.step].z) < 256 then
 		squad.step = squad.step + 1
 	elseif squad.idleCount > floor(#squad.members * 0.85) then
 		squad.step = squad.step + 1
@@ -229,6 +229,10 @@ function RaidHST:SquadsTargetHandled(target)
 	end
 end
 
+--function hst:HaveTarget(squad)
+	--return squad.target.X and Squad.target.Z
+--end
+
 function RaidHST:SquadsTargetUpdate()
 	for id,squad in pairs(self.squads) do
 		if squad.target and squad.role == 'offense' and self.ai.maphst:GetCell(squad.target.X,squad.target.Z,self.ai.loshst.ENEMY) then
@@ -240,9 +244,9 @@ function RaidHST:SquadsTargetUpdate()
 				local X,Z = self.ai.maphst:RawPosToGrid(targetX,targetY,targetZ)
 				squad.target = {X=X, Z=Z}--self.ai.maphst:GetCell(X,Z,self.ai.maphst.GRID)
 				squad.step = 1
-				squad.path[1][1] = targetX
-				squad.path[1][2] = targetY
-				squad.path[1][3] = targetZ
+				squad.path[1].x = targetX
+				squad.path[1].y = targetY
+				squad.path[1].z = targetZ
 				self:EchoDebug('squadID',squad.squadID, 'have preventive cell', squad.role, squad.target.X,squad.target.Z)
 			end
 
@@ -263,7 +267,7 @@ function RaidHST:SquadsTargetUpdate()
 				squad.step = 1
 				squad.path = {}
 				squad.path[1] = {}
-				squad.path[1][1],squad.path[1][2],squad.path[1][3] = self.ai.maphst:GridToRawPos(squad.target.X,squad.target.Z)
+				squad.path[1].x,squad.path[1].y,squad.path[1].z = self.ai.maphst:GridToRawPos(squad.target.X,squad.target.Z)
 				self:EchoDebug('set preventive target for',squad.squadID,squad.target.X,squad.target.Z)
 			end
 			local offense = self:SquadsTargetAttack(squad)

@@ -128,6 +128,10 @@ function ShardAI:Update()
 			RAM = gcinfo() - RAM
 			if RAM > 1 --[[and m:Name() ~= 'UnitHandler']] then
 				print (m:Name(),RAM)
+				
+			end
+			if RAM > 20 and m:Name() ~= 'UnitHandler' then
+				Spring.SendCommands('pause')
 			end
 		end
 	end

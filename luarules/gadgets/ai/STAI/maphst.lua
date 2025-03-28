@@ -557,8 +557,9 @@ end
 
 function MapHST:getPath(unitName,POS1,POS2,toGrid)
 	local mclass = self.ai.armyhst.unitTable[unitName].mclass
-	
+	local RAM = gcinfo()
 	local pathObject = map:GetPathObject(mclass, POS1.x,POS1.y,POS1.z, POS2.x,POS2.y,POS2.z)
+	print('11',gcinfo()-RAM)
 	if not pathObject then 
 		self:Warn('no path found',POS1,POS2) 
 		return
@@ -568,17 +569,19 @@ function MapHST:getPath(unitName,POS1,POS2,toGrid)
 		self:Warn('no waypoints for the object found',POS1,POS2)
 		return
 	end
+	print('12',gcinfo()-RAM)
 	if toGrid then
-		return self:gridThePath(waypoints)
-	else
-		return waypoints
+		waypoints = self:gridThePath(waypoints)
 	end
+	print('13',gcinfo()-RAM)
+	return waypoints
+	
 end
 function MapHST:gridThePath(wp,factor)
 	factor = factor or self.gridSize
 	local prev = #wp
 	for i = #wp,1,-1 do
-		Spring.Echo('ambassa',#wp,i,wp[i],prev,wp[prev])
+		--Spring.Echo('ambassa',#wp,i,wp[i],prev,wp[prev])
 		if i and i ~= prev then
 			if self.ai.tool:RawDistance(wp[prev][1],wp[prev][2],wp[prev][3],wp[i][1],wp[i][2],wp[i][3]) < factor then
 				table.remove(wp,i)
@@ -590,24 +593,12 @@ function MapHST:gridThePath(wp,factor)
 		end
 	end
 	print(#wp)
-	return wp
-end
-function MapHST:gridThePathBackup(wp)
-	--local first = table.remove(waypoints)
-	--first = {x = first[1],y = first[2],z = first[3]}
-	local gridPath = {}
-	gridPath[1] = gridPath[1] or {x = wp[1][1],y = wp[1][2],z = wp[1][3]}
--- 	table.remove(wp)
-	for i,wpos in pairs(wp) do
-		wpos = {x = wpos[1],y = wpos[2],z = wpos[3]}
-		local lastX,lastZ = self.ai.maphst:PosToGrid(gridPath[#gridPath])
-		local wposX,wposZ = self.ai.maphst:PosToGrid(wpos)
-		if lastX ~= wposX or lastZ ~= wposZ then
-			gridPath[#gridPath + 1] = wpos
-		end
-
+	for index,pos in pairs(wp) do
+		pos.x = table.remove(pos,1)
+		pos.y = table.remove(pos,1)
+		pos.z = table.remove(pos,1)
 	end
-	return gridPath
+	return wp
 end
 
 function MapHST:UnitMexMoveTest(testUnit)--check how many time a unit(i chose commander) walk on a CELL, the analisy is from cell to cell foreach cell, CAUTION is heavy computable
@@ -764,9 +755,6 @@ function MapHST:ClosestFreeMex(unittype, builder, position)--get the closest fre
 
 	if not layer or not net then return end
 	local sortlist = self.ai.tool:sortByDistance(position,self.networks[layer][net].metals)
--- 	for index, spot in ipairs(sortlist) do
--- 		self:EchoDebug(index,spot)
--- 	end
 	for index, spot in pairs(sortlist) do
 		if self:UnitCanGoHere(builder, spot) then
 			if not self.ai.buildingshst:PlansOverlap(spot, uname) then
@@ -775,16 +763,6 @@ function MapHST:ClosestFreeMex(unittype, builder, position)--get the closest fre
 						local CELL = self:GetCell(spot,self.ai.loshst.ENEMY)
 						if not CELL or CELL.ENEMY == 0 then
 							return spot
--- 							local distance = self.ai.tool:distance(position,spot)
--- 							--print(distance-Distance)
---  							--if distance < 300 then
---  							--	return spot
---  							--else
--- 								if distance < spotDistance then
--- 									spotPosition = spot
--- 									spotDistance = distance
--- 								end
- 							--end
 						else
 							self:EchoDebug(spot.x,spot.z,'reject cause ENEMY')
 						end
@@ -808,7 +786,6 @@ function MapHST:ClosestFreeGeo(unittype, builder, position)--get the closest fre
 	self:EchoDebug("closestfreegeo for " .. unittype:Name() .. " by " .. builder:Name())
 	if not position then position = builder:GetPosition() end
 	local layer, net = self:MobilityOfUnit(builder)
-	local bname = builder:Name()
 	local uname = unittype:Name()
 	local bestDistance, bestPos
 	for i,p in pairs(self.networks[layer][net].geos) do----(self.GEOS) do
@@ -1020,3 +997,22 @@ function MapHST:GetPathGraph(mtype, targetNodeSize)
 	pathGraphs[mtype][cellsPerNodeSide] = aGraph
 	return aGraph
 end
+
+
+--[[function MapHST:gridThePathBackup(wp)
+	--local first = table.remove(waypoints)
+	--first = {x = first[1],y = first[2],z = first[3]}
+	local gridPath = {}
+	gridPath[1] = gridPath[1] or {x = wp[1][1],y = wp[1][2],z = wp[1][3]}
+-- 	table.remove(wp)
+	for i,wpos in pairs(wp) do
+		wpos = {x = wpos[1],y = wpos[2],z = wpos[3]}
+		local lastX,lastZ = self.ai.maphst:PosToGrid(gridPath[#gridPath])
+		local wposX,wposZ = self.ai.maphst:PosToGrid(wpos)
+		if lastX ~= wposX or lastZ ~= wposZ then
+			gridPath[#gridPath + 1] = wpos
+		end
+
+	end
+	return gridPath
+end]]
