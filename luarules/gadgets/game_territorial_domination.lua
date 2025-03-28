@@ -24,7 +24,6 @@ end
 
 local modOptions = Spring.GetModOptions()
 if modOptions.deathmode ~= "territorial_domination" then return false end
-Spring.Echo("Territorial Domination is enabled")
 
 local SYNCED = gadgetHandler:IsSyncedCode()
 
@@ -104,13 +103,15 @@ if SYNCED then
 	local gaiaTeamID = spGetGaiaTeamID()
 	local gaiaAllyTeamID = select(6, spGetTeamInfo(gaiaTeamID))
 	local teams = spGetTeamList()
-	local allyTeamsCount = 0
-	local allyHordesCount = 0
+	local allyCount = 0
 	local defeatThreshold = 0
 	local numberOfSquaresX = 0
 	local numberOfSquaresZ = 0
 	local gameFrame = 0
 	local sentGridStructure = false
+	local thresholdSecondsDelay = 0
+	local thresholdDelayTimestamp = 0
+	local maxThreshold = 0
 
 	--tables
 	local allyTeamsWatch = {}
@@ -137,11 +138,38 @@ if SYNCED then
 		end
 	end
 
+	local function setThresholdIncreaseRate()
+		local seconds = spGetGameSeconds()
+		if allyCount == 1 then
+			thresholdSecondsDelay = 0
+		else
+			local startTime = max(Spring.GetGameSeconds(), SECONDS_TO_START)
+			maxThreshold = floor(min(#captureGrid / allyCount, #captureGrid / 2)) -- because two teams must fight for half at most
+			thresholdSecondsDelay = max((SECONDS_TO_MAX - startTime) / maxThreshold, 1)
+		end
+		thresholdDelayTimestamp = seconds + thresholdSecondsDelay
+	end
+
+	local function updateCurrentDefeatThreshold()
+		local seconds = spGetGameSeconds()
+
+		if seconds > SECONDS_TO_START then
+			if thresholdSecondsDelay == 0 and allyCount ~= 1 then
+				setThresholdIncreaseRate()
+			end
+			if thresholdSecondsDelay ~= 0 and thresholdDelayTimestamp < seconds then
+				defeatThreshold = min(defeatThreshold + 1, maxThreshold)
+				thresholdDelayTimestamp = seconds + thresholdSecondsDelay
+			end
+		end
+	end
+
 	local function updateLivingTeamsData()
-		allyTeamsCount = 0  -- Reset count first
-		allyHordesCount = 0
+
 		allyTeamsWatch = {}  -- Clear existing watch list
-		
+		local allyHordesCount = 0
+		local allyTeamsCount = 0
+
 		-- Rebuild list with living teams and count allies
 		for _, teamID in ipairs(teams) do
 			if teamID ~= gaiaTeamID then
@@ -164,6 +192,13 @@ if SYNCED then
 		end
 		for allyID in pairs(allyTeamsWatch) do
 			allyTeamsCount = allyTeamsCount + 1
+		end
+		
+		local oldAllyCount = allyCount
+		allyCount = allyTeamsCount + allyHordesCount --something about flipping from old to new causes things to break
+
+		if allyCount ~= oldAllyCount then
+			setThresholdIncreaseRate()
 		end
 	end
 
@@ -230,25 +265,6 @@ if SYNCED then
 			end
 		end
 		return gridData
-	end
-
-	local defeatCheckCooldown = 0
-	local function updateCurrentDefeatThreshold()
-		local COOLDOWN_TIME = 10
-		local seconds = spGetGameSeconds()
-		local allyCount = allyTeamsCount + allyHordesCount
-
-		if defeatCheckCooldown > seconds or seconds < SECONDS_TO_START or allyCount == 1 then return end
-
-		local elapsedSeconds = seconds - SECONDS_TO_START
-		local adjustedSecondsToMax = SECONDS_TO_MAX - SECONDS_TO_START
-
-		local progressRatio = min(elapsedSeconds / adjustedSecondsToMax, 1)
-		local wantedThreshold = min(((progressRatio * #captureGrid) / allyCount), #captureGrid / 2) -- because two teams must fight for half at most
-		if wantedThreshold > defeatThreshold then
-			defeatThreshold = defeatThreshold + 1
-			defeatCheckCooldown = seconds + COOLDOWN_TIME
-		end
 	end
 
 	local function queueCommanderTeleportRetreat(unitID)
@@ -673,6 +689,8 @@ if SYNCED then
 			local unitID = units[i]
 			gadget:UnitCreated(unitID, spGetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
 		end
+
+		setThresholdIncreaseRate()
 	end
 
 else
