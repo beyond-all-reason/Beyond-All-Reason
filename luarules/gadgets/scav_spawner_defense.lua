@@ -344,8 +344,8 @@ if gadgetHandler:IsSyncedCode() then
 		nSpawnedBosses = 0
 		nKilledBosses = 0
 		bossResistance = {}
-		SetGameRulesParam("scavBossAnger", bossAnger)
-		SetGameRulesParam("scavTechAnger", techAnger)
+		SetGameRulesParam("scavBossAnger", math.floor(bossAnger))
+		SetGameRulesParam("scavTechAnger", math.floor(techAnger))
 		local nextDifficulty
 		difficultyCounter = difficultyCounter + 1
 		endlessLoopCounter = endlessLoopCounter + 1
@@ -390,8 +390,8 @@ if gadgetHandler:IsSyncedCode() then
 	--
 
 	SetGameRulesParam("scavBossTime", bossTime)
-	SetGameRulesParam("scavBossAnger", bossAnger)
-	SetGameRulesParam("scavTechAnger", techAnger)
+	SetGameRulesParam("scavBossAnger", math.floor(bossAnger))
+	SetGameRulesParam("scavTechAnger", math.floor(techAnger))
 	SetGameRulesParam("scavGracePeriod", config.gracePeriod)
 	SetGameRulesParam("scavDifficulty", config.difficulty)
 	SetGameRulesParam("ScavBossAngerGain_Base", 100/config.bossTime)
@@ -1982,8 +1982,8 @@ if gadgetHandler:IsSyncedCode() then
 				SetGameRulesParam("ScavBossAngerGain_Aggression", (playerAggression*0.01)/(config.bossTime/3600))
 				SetGameRulesParam("ScavBossAngerGain_Eco", playerAggressionEcoValue)
 			end
-			SetGameRulesParam("scavBossAnger", bossAnger)
-			SetGameRulesParam("scavTechAnger", techAnger)
+			SetGameRulesParam("scavBossAnger", math.floor(bossAnger))
+			SetGameRulesParam("scavTechAnger", math.floor(techAnger))
 
 			if bossAnger >= 100 or (burrowCount <= 1 and t > config.gracePeriod) then
 				-- check if the boss should be alive

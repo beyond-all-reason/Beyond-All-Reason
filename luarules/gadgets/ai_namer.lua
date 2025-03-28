@@ -201,6 +201,7 @@ if gadgetHandler:IsSyncedCode() then
 		"TIMBO",
 		"Titan",
 		"TopHatButcher",
+		"Unusual Emphasis",
 		"Woody",
 		"Yavarin",
 		"Zagupi",
