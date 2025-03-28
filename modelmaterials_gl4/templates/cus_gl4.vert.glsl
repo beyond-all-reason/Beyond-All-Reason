@@ -8,22 +8,135 @@ layout (location = 4) in vec4 uv;
 layout (location = 5) in uvec2 bonesInfo; //boneIDs, boneWeights
 #define pieceIndex (bonesInfo.x & 0x000000FFu)
 
-#ifndef STATICMODEL
-	layout (location = 6) in uvec4 instData;
-#else
-	layout (location = 6) in vec4 offsetpos_targetpiece;
-	layout (location = 7) in vec4 offsetrot;
-	layout (location = 8) in uvec4 instData;
-#endif
+layout (location = 6) in uvec4 instData;
 
 // u32 matOffset
 // u32 uniOffset
 // u32 {teamIdx, drawFlag, unused, unused}
 // u32 unused
+#ifndef USEQUATERNIONS
+	layout(std140, binding = 0) readonly buffer MatrixBuffer {
+		mat4 mat[];
+	};
+#else
+	struct Transform {
+		vec4 quat;
+		vec4 trSc;
+	};
 
-layout(std140, binding = 0) readonly buffer MatrixBuffer {
-	mat4 mat[];
-};
+	layout(std140, binding = 0) readonly buffer TransformBuffer {
+		Transform transforms[];
+	};
+
+	vec4 MultiplyQuat(vec4 a, vec4 b)
+	{
+		return vec4(a.w * b.w - dot(a.w, b.w), a.w * b.xyz + b.w * a.xyz + cross(a.xyz, b.xyz));
+	}
+
+	vec3 RotateByQuaternion(vec4 q, vec3 v) {
+		return 2.0 * dot(q.xyz, v) * q.xyz + (q.w * q.w - dot(q.xyz, q.xyz)) * v + 2.0 * q.w * cross(q.xyz, v);
+	}
+
+	vec4 RotateByQuaternion(vec4 q, vec4 v) {
+		return vec4(RotateByQuaternion(q, v.xyz), v.w);
+	}
+
+	vec4 InvertNormalizedQuaternion(vec4 q) {
+		return vec4(-q.x, -q.y, -q.z, q.w);
+	}
+
+	vec3 ApplyTransform(Transform tra, vec3 v) {
+		return RotateByQuaternion(tra.quat, v * tra.trSc.w) + tra.trSc.xyz;
+	}
+
+	vec4 ApplyTransform(Transform tra, vec4 v) {
+		return vec4(ApplyTransform(tra, v.xyz), v.w);
+	}
+
+	Transform ApplyTransform(Transform parentTra, Transform childTra) {
+		return Transform(
+			MultiplyQuat(parentTra.quat, childTra.quat),
+			vec4(
+				parentTra.trSc.xyz + RotateByQuaternion(parentTra.quat, parentTra.trSc.w * childTra.trSc.xyz),
+				parentTra.trSc.w * childTra.trSc.w
+			)
+		);
+	}
+
+	Transform InvertTransformAffine(Transform tra) {
+		vec4 invR = InvertNormalizedQuaternion(tra.quat);
+		float invS = 1.0 / tra.trSc.w;
+		return Transform(
+			invR,
+			vec4(
+				RotateByQuaternion(invR, -tra.trSc.xyz * invS),
+				invS
+			)
+		);
+	}
+
+	vec4 Lerp(vec4 qa, vec4 qb, float t) {
+		// Ensure shortest path
+		if (dot(qa, qb) < 0.0)
+			qb = -qb;
+		return normalize(mix(qa, qb, t)); // GLSL's mix() = (1 - t) * qa + t * qb
+	}
+
+	vec4 SLerp(vec4 qa, vec4 qb, float t) {
+		// Calculate angle between them.
+		float cosHalfTheta = dot(qa, qb);
+
+		// Every rotation can be represented by two quaternions: (++++) or (----)
+		// avoid taking the longer way: choose one representation
+		float s = sign(cosHalfTheta);
+		qb *= s;
+		cosHalfTheta *= s;
+		// now cosHalfTheta is >= 0.0
+
+		// if qa and qb (or -qb originally) represent ~ the same rotation
+		if (cosHalfTheta >= (1.0 - 0.005))
+			return normalize(mix(qa, qb, t));
+
+		// Interpolation of orthogonal rotations (i.e. cosHalfTheta ~ 0)
+		// does not require special handling, however this usually represents
+		// "physically impossible" 180 degree turns with infinite speed so perhaps
+		// it can be handled in the following (cuurently disabled) special way
+		#if 0
+		if (cosHalfTheta <= 0.005)
+			return mix(qa, qb, step(0.5, t));
+		#endif
+
+		float halfTheta = acos(cosHalfTheta);
+
+		// both should be divided by sinHalfTheta (calculation skipped),
+		// but it makes no sense to do it due to follow up normalization
+		float ratioA = sin((1.0 - t) * halfTheta);
+		float ratioB = sin((      t) * halfTheta);
+
+		return qa * ratioA + qb * ratioB; // already normalized
+	}
+
+	Transform SLerp(Transform t0, Transform t1, float a) {
+		// generally good idea, otherwise extrapolation artifacts
+		// will be nasty in some cases (e.g. fast rotation)
+		a = clamp(a, 0.0, 1.0);
+		return Transform(
+			SLerp(t0.quat, t1.quat, a),
+			mix(t0.trSc, t1.trSc, a)
+		);
+	}
+
+	Transform Lerp(Transform t0, Transform t1, float a) {
+		// generally good idea, otherwise extrapolation artifacts
+		// will be nasty in some cases (e.g. fast rotation)
+		a = clamp(a, 0.0, 1.0);
+		return Transform(
+			Lerp(t0.quat, t1.quat, a),
+			mix(t0.trSc, t1.trSc, a)
+		);
+	}
+
+#endif
 
 struct SUniformsBuffer {
 	uint composite; //     u8 drawFlag; u8 unused1; u16 id;
@@ -125,7 +238,7 @@ uniform vec4 clipPlane0 = vec4(0.0, 0.0, 0.0, 1.0); //water clip plane
 out Data {
 	// this amount of varyings is already more than we can handle safely
 	//vec4 modelVertexPos;
-	vec4 modelVertexPosOrig; // .w contains model maxY
+	vec4 pieceVertexPosOrig; // .w contains model maxY
 	vec4 worldVertexPos; //.w contains cloakTime
 	// TBN matrix components
 	vec3 worldTangent;
@@ -273,6 +386,12 @@ void DoWindVertexMove(inout vec4 mVP) {
 	//mVP.y += float(UNITID/256);// + sin(simFrame *0.1)+15; // whoops this was meant as debug
 }
 
+// There are multiple switches:
+// Skinning or not (defined by USESKINNING)
+// Quaternions or not (defined by USEQUATERNIONS)
+// SLERPQUATERNIONS or not (defined by SLERPQUATERNIONS)
+
+
 #ifdef USESKINNING
 	uint GetUnpackedValue(uint packedValue, uint byteNum) {
 		return (packedValue >> (8u * byteNum)) & 0xFFu;
@@ -282,11 +401,8 @@ void DoWindVertexMove(inout vec4 mVP) {
 	// The only difference is that displacedPos is passed in, and we always assume staticModel = false
 	void GetModelSpaceVertex(in vec3 displacedPos, out vec4 msPosition, out vec3 msNormal)
 	{
-		#ifndef STATICMODEL
-			bool staticModel = false;// (matrixMode > 0);
-		#else
-			bool staticModel = true;// (matrixMode > 0);
-		#endif
+
+		bool staticModel = false;// (matrixMode > 0);
 
 		vec4 piecePos = vec4(displacedPos, 1.0);
 
@@ -375,36 +491,15 @@ mat4 rotationMatrix(vec3 rot) {
 /***********************************************************************/
 // Vertex shader main()
 
-#define GetPieceMatrix(staticModel) (mat[instData.x + pieceIndex + uint(!staticModel)])
+// #define GetPieceMatrix(staticModel) (mat[instData.x + pieceIndex + uint(!staticModel)]) // This is the non-quat way of getting it
 #line 12000
 void main(void)
 {
 	unitID = int(UNITID);
 	userDefined2 = UNITUNIFORMS.userDefined[2];
 	userDefined2.w = UNITUNIFORMS.userDefined[0].x; // pass in construction progress 0-1
-	#ifndef STATICMODEL
-		// pieceMatrix looks up the model-space transform matrix for unit being drawn
-		mat4 pieceMatrix = mat[instData.x + pieceIndex + 1u];
 
-		// Then it places it in the world
-		mat4 worldMatrix = mat[instData.x];
-	#else
-		// First lets orient the
-
-		// pieceMatrix looks up the model-space transform matrix for the unit we are drawing onto!
-		uint targetPieceIndex = uint(offsetpos_targetpiece.w);
-		mat4 pieceMatrix = mat[instData.x + targetPieceIndex + 1u];
-
-		// Then it places it in the world
-		mat4 worldMatrix = mat[instData.x];
-
-	#endif
-
-
-	mat4 worldPieceMatrix = worldMatrix * pieceMatrix; // for the below
-	mat3 normalMatrix = mat3(worldPieceMatrix);
-
-
+	// 
 	vec4 piecePos = vec4(pos, 1.0);
 
 	uvCoords = uv.xy;
@@ -419,19 +514,16 @@ void main(void)
 		}
 	#endif
 
-	//modelVertexPos = piecePos;
-
 	#ifdef TREE_RANDOMIZATION
 		float randomScale = fract(float(unitID)*0.01)*0.2 + 0.9;
 		piecePos.xyz *= randomScale;
 	#endif
 
-
 	#if (XMAS == 1)
 	//	piecePos.xyz +=  piecePos.xyz * 10.0 * UNITUNIFORMS.userDefined[2].y; // number 9
 	#endif
 
-	modelVertexPosOrig = piecePos;
+	pieceVertexPosOrig = piecePos;
 	vec3 modelVertexNormal = normal;
 
 	%%VERTEX_PRE_TRANSFORM%%
@@ -454,6 +546,13 @@ void main(void)
 		}
 	}
 	#endif
+	
+	// pieceMatrix looks up the model-space transform matrix for unit being drawn
+	mat4 pieceMatrix = mat[instData.x + pieceIndex + 1u];
+	// Then it places it in the world
+	mat4 worldMatrix = mat[instData.x];
+	mat4 worldPieceMatrix = worldMatrix * pieceMatrix; // for the below
+	mat3 normalMatrix = mat3(worldPieceMatrix);
 
 	#ifdef USESKINNING
 		// What in the lords name do we have to do here?
@@ -465,7 +564,7 @@ void main(void)
 		vec4 worldPos = worldPieceMatrix * piecePos;
 	#endif
 	//worldPos.x += 64; // for dem debuggins
-	modelVertexPosOrig.w = modelPos.y / (max(1.0, UNITUNIFORMS.userDefined[2].w)); //11 is unit height
+	pieceVertexPosOrig.w = modelPos.y / (max(1.0, UNITUNIFORMS.userDefined[2].w)); //11 is unit height
 
 	//gl_TexCoord[0] = gl_MultiTexCoord0;
 	uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
@@ -589,8 +688,6 @@ void main(void)
 		} else {
 			selfIllumMod = 1.0;
 		}
-
-		//gl_Position = projectionMatrix * viewMatrix * worldVertexPos; // OOOOLD
 
 		if (BITMASK_FIELD(bitOptions, OPTION_MODELSFOG)) {
 			vec4 ClipVertex = cameraView * worldVertexPos;
