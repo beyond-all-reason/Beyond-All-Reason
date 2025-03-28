@@ -261,8 +261,7 @@ local function putLateJoinersLast(array)
 end
 
 local function InitDraftOrderData(allyTeamID_ready)
-	if not allyTeamID_ready then return end
-	if allyTeamIsInGame[allyTeamID_ready] == true then return end -- already started
+	if not allyTeamID_ready or allyTeamIsInGame[allyTeamID_ready] == true then return end -- already started
 	allyTeamIsInGame[allyTeamID_ready] = true
 	if draftMode == "random" or draftMode == "captain" then
 		local tteams = Spring.GetTeamList()
