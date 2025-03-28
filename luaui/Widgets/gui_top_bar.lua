@@ -128,7 +128,7 @@ local buttonsArea = {}
 -- UI State
 local orgHeight = 46
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
-local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7) * 1.1 or 0.8
+local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
 local height = orgHeight * (1 + (ui_scale - 1) / 1.7)
 local vsx, vsy = Spring.GetViewGeometry()
 local mx = -1
@@ -171,8 +171,7 @@ local now = os.clock()
 local nextStateCheck = 0
 local nextGuishaderCheck = 0
 local nextResBarUpdate = 0
-local nextResTextUpdate = 0
-local nextComWindUpdate = 0
+local nextSlowUpdate = 0
 local nextBarsUpdate = 0
 
 local blinkDirection = true
@@ -516,7 +515,7 @@ local function updateTidal()
 	if WG['tooltip'] then WG['tooltip'].AddTooltip('tidal', area, Spring.I18N('ui.topbar.tidalspeedTooltip'), nil, Spring.I18N('ui.topbar.tidalspeed')) end
 end
 
-local function updateResbarText(res)
+local function updateResbarText(res, force)
 	if dlistResbar[res][4] then glDeleteList(dlistResbar[res][4]) end
 	dlistResbar[res][4] = glCreateList(function()
 		RectRound(resbarArea[res][1] + bgpadding, resbarArea[res][2] + bgpadding, resbarArea[res][3] - bgpadding, resbarArea[res][4], bgpadding * 1.25, 0,0,1,1)
@@ -529,7 +528,7 @@ local function updateResbarText(res)
 	end)
 
 	-- storage changed!
-	if lastStorageValue[res] ~= r[res][2] then
+	if lastStorageValue[res] ~= r[res][2] or force then
 		lastStorageValue[res] = r[res][2]
 
 		-- flush old dlist caches
@@ -542,7 +541,7 @@ local function updateResbarText(res)
 
 		-- storage
 		local storageText = short(r[res][2])
-		if lastStorageText[res] ~= storageText then
+		if lastStorageText[res] ~= storageText or force then
 			lastStorageText[res] = storageText
 
 			if dlistResbar[res][6] then glDeleteList(dlistResbar[res][6]) end
@@ -609,7 +608,7 @@ local function updateResbarText(res)
 					--end
 				end
 
-				if lastWarning[res] ~= text then
+				if lastWarning[res] ~= text or force then
 					lastWarning[res] = text
 
 					if dlistResbar[res][7] then glDeleteList(dlistResbar[res][7]) end
@@ -659,6 +658,11 @@ local function updateResbarText(res)
 				end
 			end
 		else
+			if force then
+				if dlistResbar[res][7] then glDeleteList(dlistResbar[res][7]) end
+				lastWarning[res] = nil
+			end
+
 			showOverflowTooltip[res] = nil
 		end
 	end
@@ -992,8 +996,9 @@ function init()
 		end
 	end
 
-	updateResbarText('metal')
-	updateResbarText('energy')
+
+	updateResbarText('metal', true)
+	updateResbarText('energy', true)
 end
 
 local function checkSelfStatus()
@@ -1205,16 +1210,13 @@ function widget:Update(dt)
 		end
 	end
 
-	if now > nextResTextUpdate then
-		nextResTextUpdate = now + 1.0
+	if now > nextSlowUpdate then
+		nextSlowUpdate = now + 0.5
 
+		-- resbar values and overflow
+		updateAllyTeamOverflowing()
 		updateResbarText('metal')
 		updateResbarText('energy')
-		updateAllyTeamOverflowing()
-	end
-
-	if now > nextComWindUpdate then
-		nextComWindUpdate = now + 0.5
 
 		-- wind
 		currentWind = sformat('%.1f', select(4, spGetWind()))
@@ -1436,10 +1438,6 @@ local function drawUiBackground()
 	end
 end
 
-local function updateUiBackground()
-
-end
-
 function widget:DrawScreen()
 	now = os.clock()
 
@@ -1490,7 +1488,7 @@ function widget:DrawScreen()
 		end
 
 		if uiBgTex then
-			gl.Color(1,1,1,ui_opacity)
+			gl.Color(1, 1, 1, ui_opacity * 1.1)
 			gl.Texture(uiBgTex)
 			gl.TexRect(topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], false, true)
 			gl.Texture(false)
