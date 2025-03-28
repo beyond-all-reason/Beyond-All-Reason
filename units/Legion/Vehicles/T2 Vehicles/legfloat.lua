@@ -2,8 +2,8 @@ return {
 	legfloat = {
 		maxacc = 0.034,
 		maxdec = 0.068,
-		buildcostenergy = 14000,
-		buildcostmetal = 700,
+		buildcostenergy = 12000,
+		buildcostmetal = 650,
 		buildpic = "LEGFLOAT.DDS",
 		buildtime = 16000,
 		canmove = true,

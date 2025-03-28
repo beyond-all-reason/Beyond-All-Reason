@@ -60,7 +60,7 @@ end
 
 local vsx, vsy = Spring.GetViewGeometry()
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
+local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
 
 local customScale = 1
 local pointDuration = 45
@@ -866,7 +866,7 @@ function widget:Shutdown()
         WG['guishader'].RemoveDlist('advplayerlist')
     end
 	if mainListTex then
-		gl.DeleteTextureFBO(mainListTexBg)
+		gl.DeleteTextureFBO(mainListBgTex)
 		gl.DeleteTextureFBO(mainListTex)
 		gl.DeleteTextureFBO(mainList2Tex)
 	end
@@ -1581,7 +1581,14 @@ end
 
 -- old funcion called from wherever but it must run in DrawScreen now so we scedule its execution
 function CreateLists(onlyMainList, onlyMainList2, onlyMainList3)
-    updateMainLists = {onlyMainList, onlyMainList2, onlyMainList3}
+    if onlyMainList == nil then onlyMainList = true end
+    if onlyMainList2 == nil then onlyMainList2 = true end
+    if onlyMainList3 == nil then onlyMainList3 = true end
+    if updateMainLists then
+        updateMainLists = {onlyMainList and onlyMainList or updateMainLists[1], onlyMainList2 and onlyMainList2 or updateMainLists[2], onlyMainList3 and onlyMainList3 or updateMainLists[3]}
+    else
+        updateMainLists = {onlyMainList, onlyMainList2, onlyMainList3}
+    end
 end
 -- must run in DrawScreen due to
 function doCreateLists(onlyMainList, onlyMainList2, onlyMainList3)
@@ -1645,7 +1652,7 @@ function CreateBackground()
     local absTop = math.ceil(TRcornerY - ((widgetPosY - TRcornerY) * (widgetScale - 1)))
 
     local prevApiAbsPosition = apiAbsPosition
-    if prevApiAbsPosition[1] ~= absTop or prevApiAbsPosition[2] ~= absLeft or prevApiAbsPosition[3] ~= absBottom or prevApiAbsPosition[4] ~= absRight then
+    if prevApiAbsPosition[1] ~= absTop or prevApiAbsPosition[2] ~= absLeft or prevApiAbsPosition[3] ~= absBottom then
         forceMainListRefresh = true
     end
     if absRight > vsx+margin then   -- lazy bugfix needed when playerScale < 1 is in effect
@@ -1670,7 +1677,7 @@ function CreateBackground()
         paddingLeft = 0
     end
 
-    if forceMainListRefresh or (not Background or not mainListBgTex) or (WG['guishader'] and not BackgroundGuishader) then
+    if forceMainListRefresh or (not useRenderToTexture and not Background) or (useRenderToTexture and not mainListBgTex) or (WG['guishader'] and not BackgroundGuishader) then
         if WG['guishader'] then
             BackgroundGuishader = gl_DeleteList(BackgroundGuishader)
             BackgroundGuishader = gl_CreateList(function()
@@ -1679,8 +1686,20 @@ function CreateBackground()
             WG['guishader'].InsertDlist(BackgroundGuishader, 'advplayerlist', true)
         end
 		if useRenderToTexture then
+			if mainListBgTex then
+				gl.DeleteTextureFBO(mainListBgTex)
+				mainListBgTex = nil
+			end
+			if mainListTex then
+				gl.DeleteTextureFBO(mainListTex)
+				mainListTex = nil
+			end
+			if mainList2Tex then
+				gl.DeleteTextureFBO(mainList2Tex)
+				mainList2Tex = nil
+			end
 			local width, height = math.floor(apiAbsPosition[4]-apiAbsPosition[2]), math.floor(apiAbsPosition[1]-apiAbsPosition[3])
-			if width > 0 and height > 0 then
+			if not mainListBgTex and width > 0 and height > 0 then
 				mainListBgTex = gl.CreateTexture(width, height, {
 					target = GL.TEXTURE_2D,
 					format = GL.RGBA,
@@ -1703,19 +1722,6 @@ function CreateBackground()
 				UiElement(absLeft, absBottom, absRight, absTop, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), math.min(paddingRight, paddingBottom), math.min(paddingBottom, paddingLeft))
 				gl_Color(1, 1, 1, 1)
 			end)
-		end
-
-		if mainListTexBg then
-			gl.DeleteTextureFBO(mainListTexBg)
-			mainListTexBg = nil
-		end
-        if mainListTex then
-            gl.DeleteTextureFBO(mainListTex)
-            mainListTex = nil
-        end
-		if mainList2Tex then
-			gl.DeleteTextureFBO(mainList2Tex)
-			mainList2Tex = nil
 		end
     end
 end
@@ -1860,6 +1866,7 @@ function drawMainList()
 end
 
 function drawMainList2()
+    local mouseX, mouseY = Spring_GetMouseState()
 	local leader
 	for i, drawObject in ipairs(drawList) do
 		if drawObject == -1 then

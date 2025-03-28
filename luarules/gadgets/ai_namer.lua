@@ -112,6 +112,7 @@ if gadgetHandler:IsSyncedCode() then
 		"Shadowisperke",
 		"Skymirrh",
 		"skynet",
+		"smellymoo",
 		"smile",
 		"sprEEEzy",
 		"Sprung",

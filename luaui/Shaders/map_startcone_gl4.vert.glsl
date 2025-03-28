@@ -19,6 +19,7 @@ layout (location = 4) in vec4 teamcolor;
 
 uniform float isMinimap = 0;
 uniform int flipMiniMap = 0;
+uniform float startPosScale = 0.0005;
 
 out DataVS {
 	vec4 v_worldposrad;
@@ -39,8 +40,11 @@ void main()
 	}else{
 		//vec2 ndcxy = normalize(position.xz);//  * 100/256.0;
 		//if (length(position.xz) < 1e3) { ndcxy = vec2(0);}
-		vec2 ndcxy = position.xz * 0.0005;
-		ndcxy = (worldposrad.xz / mapSize.xy + ndcxy) * 2.0 - 1.0;
+		vec2 ndcxy = position.xz * startPosScale;
+		ndcxy.y *= mapSize.x/mapSize.y;
+
+		vec2 xz = worldposrad.xz;
+		ndcxy = (xz / mapSize.xy + ndcxy) * 2.0 - 1.0;
 		if (flipMiniMap < 1) {
 			ndcxy.y *= -1;
 		}else{

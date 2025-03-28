@@ -10,7 +10,7 @@ function widget:GetInfo()
 	}
 end
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
+local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local currentLayout
@@ -532,8 +532,8 @@ local function drawCell(cell, zoom)
 				color2 = { 1,1,1, math_clamp(uiOpacity-0.4, 0, 0.35) }
 			end
 			if useRenderToTexture then
-				color1[4] = color1[4] * 2
-				color2[4] = color2[4] * 2
+				color1[4] = color1[4] * 2.1
+				color2[4] = color2[4] * 2.1
 			end
 			if color1[4] > 0.06 then
 				-- white bg (outline)

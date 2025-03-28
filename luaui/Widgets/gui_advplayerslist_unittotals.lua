@@ -11,6 +11,8 @@ function widget:GetInfo()
 	}
 end
 
+local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 0) == 1		-- much faster than drawing via DisplayLists only
+
 local displayFeatureCount = false
 
 local vsx, vsy = Spring.GetViewGeometry()
@@ -22,11 +24,10 @@ local glCreateList   = gl.CreateList
 local glDeleteList   = gl.DeleteList
 local glCallList     = gl.CallList
 
-local math_isInRect = math.isInRect
 local spGetTeamUnitCount = Spring.GetTeamUnitCount
 
 local RectRound, UiElement, elementCorner
-local font, hovering
+local font
 
 local drawlist = {}
 local advplayerlistPos = {}
@@ -44,45 +45,87 @@ for i = 1, #allyTeamList do
 end
 
 
-local function updateValues()
+
+local function drawBackground()
+	UiElement(left, bottom, right, top, 1,0,0,1, 1,1,0,1, nil, nil, nil, nil, useRenderToTexture)
+end
+
+local function drawContent()
 	local textsize = 11*widgetScale
 	local textXPadding = 10*widgetScale
 
-	if drawlist[2] ~= nil then
-		glDeleteList(drawlist[2])
+	local maxUnits, currentUnits = Spring.GetTeamMaxUnits(myTeamID)
+	local text = Spring.I18N('ui.unitTotals.totals', { titleColor = '\255\210\210\210', textColor = '\255\255\255\255', units = currentUnits, maxUnits = maxUnits, totalUnits = totalUnits })
+
+	if displayFeatureCount then
+		local features = Spring.GetAllFeatures()
+		text = text..'    \255\170\170\170'..#features
 	end
-	drawlist[2] = glCreateList( function()
-		local maxUnits, currentUnits = Spring.GetTeamMaxUnits(myTeamID)
-		local text = Spring.I18N('ui.unitTotals.totals', { titleColor = '\255\210\210\210', textColor = '\255\255\255\255', units = currentUnits, maxUnits = maxUnits, totalUnits = totalUnits })
-
-		if displayFeatureCount then
-			local features = Spring.GetAllFeatures()
-			text = text..'    \255\170\170\170'..#features
-		end
-
-		font:Begin()
-		font:Print(text, left+textXPadding, bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
-		font:End()
-	end)
+	font:Begin()
+	font:Print(text, left+textXPadding, bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
+	font:End()
 end
 
-local function createList()
-	if drawlist[3] then
-		drawlist[3] = glDeleteList(drawlist[3])
-	end
+local function refreshUiDrawing()
 	if WG['guishader'] then
-		drawlist[3] = glCreateList( function()
-			RectRound(left, bottom, right, top, elementCorner)
+		if guishaderList then
+			guishaderList = glDeleteList(guishaderList)
+		end
+		guishaderList = glCreateList( function()
+			RectRound(left, bottom, right, top, elementCorner, 1,0,0,1)
 		end)
-		WG['guishader'].InsertDlist(drawlist[3], 'unittotals', true)
+		WG['guishader'].InsertDlist(guishaderList, 'unittotals', true)
 	end
-	if drawlist[1] ~= nil then
-		glDeleteList(drawlist[1])
+
+	if useRenderToTexture then
+		if right-left >= 1 and top-bottom >= 1 then
+			if not uiBgTex then
+				uiBgTex = gl.CreateTexture(math.floor(right-left), math.floor(top-bottom), {
+					target = GL.TEXTURE_2D,
+					format = GL.RGBA,
+					fbo = true,
+				})
+				gl.RenderToTexture(uiBgTex, function()
+					gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+					gl.PushMatrix()
+					gl.Translate(-1, -1, 0)
+					gl.Scale(2 / (right-left), 2 / (top-bottom), 0)
+					gl.Translate(-left, -bottom, 0)
+					drawBackground()
+					gl.PopMatrix()
+				end)
+			end
+			if not uiTex then
+				uiTex = gl.CreateTexture(math.floor(right-left), math.floor(top-bottom), {
+					target = GL.TEXTURE_2D,
+					format = GL.RGBA,
+					fbo = true,
+				})
+			end
+			gl.RenderToTexture(uiTex, function()
+				gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+				gl.PushMatrix()
+				gl.Translate(-1, -1, 0)
+				gl.Scale(2 / (right-left), 2 / (top-bottom), 0)
+				gl.Translate(-left, -bottom, 0)
+				drawContent()
+				gl.PopMatrix()
+			end)
+		end
+	else
+		if drawlist[1] ~= nil then
+			glDeleteList(drawlist[1])
+		end
+		drawlist[1] = glCreateList( function()
+			drawBackground()
+		end)
+		if drawlist[2] ~= nil then
+			glDeleteList(drawlist[2])
+		end
+		drawlist[2] = glCreateList( function()
+			drawContent()
+		end)
 	end
-	drawlist[1] = glCreateList( function()
-		UiElement(left, bottom, right, top, 1,0,0,1, 1,1,0,1)
-	end)
-	updateValues()
 end
 
 local function updatePosition(force)
@@ -101,7 +144,7 @@ local function updatePosition(force)
 	top = math.ceil(advplayerlistPos[1]+(widgetHeight*advplayerlistPos[5]))
 	widgetScale = advplayerlistPos[5]
 	if (prevPos[1] == nil or prevPos[1] ~= advplayerlistPos[1] or prevPos[2] ~= advplayerlistPos[2] or prevPos[5] ~= advplayerlistPos[5]) or force then
-		createList()
+		widget:ViewResize()
 	end
 end
 
@@ -125,6 +168,13 @@ function widget:Shutdown()
 	for i=1,#drawlist do
 		glDeleteList(drawlist[i])
 	end
+	if guishaderList then glDeleteList(guishaderList) end
+	if uiTex then
+		gl.DeleteTextureFBO(uiBgTex)
+		uiBgTex = nil
+		gl.DeleteTextureFBO(uiTex)
+		uiTex = nil
+	end
 	WG['unittotals'] = nil
 end
 
@@ -140,44 +190,56 @@ function widget:Update(dt)
 				totalUnits = totalUnits + spGetTeamUnitCount(teamID)
 			end
 		end
-		updateValues()
+		updateDrawing = true
 		passedTime = passedTime - 1
 	end
 end
 
 function widget:ViewResize()
-	local prevVsx, prevVsy = vsx, vsy
 	vsx, vsy = Spring.GetViewGeometry()
 
-	font = WG['fonts'].getFont()
+	font = WG['fonts'].getFont(nil, 1.1 * (useRenderToTexture and 1.2 or 1), 0.35 * (useRenderToTexture and 1 or 1), 1.25)
 
 	elementCorner = WG.FlowUI.elementCorner
-
 	RectRound = WG.FlowUI.Draw.RectRound
 	UiElement = WG.FlowUI.Draw.Element
 
-	if prevVsy ~= vsx or prevVsy ~= vsy then
-		createList()
+	updateDrawing = true
+	if uiTex then
+		gl.DeleteTextureFBO(uiBgTex)
+		uiBgTex = nil
+		gl.DeleteTextureFBO(uiTex)
+		uiTex = nil
 	end
 end
 
 function widget:DrawScreen()
-	hovering = false
-	if drawlist[1] ~= nil then
-		local mx, my, mb = Spring.GetMouseState()
-		if math_isInRect(mx, my, left, bottom, right, top) then
-			Spring.SetMouseCursor('cursornormal')
-			hovering = true
+	if updateDrawing then
+		updateDrawing = false
+		refreshUiDrawing()
+	end
+
+	if useRenderToTexture then
+		if uiBgTex then
+			-- background element
+			gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)
+			gl.Texture(uiBgTex)
+			gl.TexRect(left, bottom, right, top, false, true)
+			gl.Texture(false)
 		end
-		glPushMatrix()
+		if uiTex then
+			-- content
+			gl.Color(1,1,1,1)
+			gl.Texture(uiTex)
+			gl.TexRect(left, bottom, right, top, false, true)
+			gl.Texture(false)
+		end
+	else
+		if drawlist[1] then
+			glPushMatrix()
 			glCallList(drawlist[1])
 			glCallList(drawlist[2])
-		glPopMatrix()
-	end
-end
-
-function widget:MousePress(mx, my, mb)
-	if hovering then
-		return true
+			glPopMatrix()
+		end
 	end
 end

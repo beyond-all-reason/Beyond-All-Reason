@@ -30,7 +30,7 @@ return {
 			buildinggrounddecalsizey = 12,
 			buildinggrounddecaltype = "decals/armmmkr_aoplane.dds",
 			energyconv_capacity = 6000,
-			energyconv_efficiency = 0.01824,
+			energyconv_efficiency = 0.02,
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,
