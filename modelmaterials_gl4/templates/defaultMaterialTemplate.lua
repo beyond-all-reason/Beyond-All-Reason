@@ -44,7 +44,6 @@ local defaultMaterialTemplate = {
 	-- they need to be redefined on every child material that has its own {shader,deferred,shadow}Definitions
 	shaderDefinitions = {
 		"#define RENDERING_MODE 0",
-		"#define SKINSUPPORT " .. SKIN_SUPPORT,
 		"#define SUNMULT pbrParams[6]",
 		"#define EXPOSURE pbrParams[7]",
 
@@ -61,7 +60,6 @@ local defaultMaterialTemplate = {
 	},
 	deferredDefinitions = {
 		"#define RENDERING_MODE 1",
-		"#define SKINSUPPORT " .. SKIN_SUPPORT,
 		"#define SUNMULT pbrParams[6]",
 		"#define EXPOSURE pbrParams[7]",
 
@@ -78,7 +76,6 @@ local defaultMaterialTemplate = {
 	},
 	shadowDefinitions = {
 		"#define RENDERING_MODE 2",
-		"#define SKINSUPPORT " .. SKIN_SUPPORT,
 		"#define SUPPORT_DEPTH_LAYOUT ".. tostring((Platform.glSupportFragDepthLayout and 1) or 0),
 		"#define SUPPORT_CLIP_CONTROL ".. tostring((Platform.glSupportClipSpaceControl and 1) or 0),
 		[[
@@ -95,7 +92,6 @@ local defaultMaterialTemplate = {
 	},
 	reflectionDefinitions = {
 		"#define RENDERING_MODE 0",
-		"#define SKINSUPPORT " .. SKIN_SUPPORT,
 		"#define SUNMULT pbrParams[6]",
 		"#define EXPOSURE pbrParams[7]",
 

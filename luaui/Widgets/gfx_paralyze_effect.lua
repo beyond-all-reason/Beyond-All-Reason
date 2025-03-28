@@ -20,7 +20,6 @@ VFS.Include(luaShaderDir.."instancevboidtable.lua")
 local paralyzedUnitShader, unitShapeShader
 
 local shaderConfig = {
-	SKINSUPPORT = Script.IsEngineMinVersion(105, 0, 1653) and 1 or 0,
 }
 
 local vsSrc = [[
@@ -37,12 +36,10 @@ layout (location = 1) in vec3 normal;
 layout (location = 2) in vec3 T;
 layout (location = 3) in vec3 B;
 layout (location = 4) in vec4 uv;
-#if (SKINSUPPORT == 0)
-	layout (location = 5) in uint pieceIndex;
-#else
-	layout (location = 5) in uvec2 bonesInfo; //boneIDs, boneWeights
-	#define pieceIndex (bonesInfo.x & 0x000000FFu)
-#endif
+
+layout (location = 5) in uvec2 bonesInfo; //boneIDs, boneWeights
+#define pieceIndex (bonesInfo.x & 0x000000FFu)
+
 layout (location = 6) in vec4 startcolorpower;
 layout (location = 7) in vec4 endcolor_endgameframe;
 layout (location = 8) in uvec4 instData;

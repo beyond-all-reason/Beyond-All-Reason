@@ -5,12 +5,9 @@ layout (location = 1) in vec3 normal;
 layout (location = 2) in vec3 T;
 layout (location = 3) in vec3 B;
 layout (location = 4) in vec4 uv;
-#if (SKINSUPPORT == 0)
-	layout (location = 5) in uint pieceIndex;
-#else
-	layout (location = 5) in uvec2 bonesInfo; //boneIDs, boneWeights
-	#define pieceIndex (bonesInfo.x & 0x000000FFu)
-#endif
+layout (location = 5) in uvec2 bonesInfo; //boneIDs, boneWeights
+#define pieceIndex (bonesInfo.x & 0x000000FFu)
+
 #ifndef STATICMODEL
 	layout (location = 6) in uvec4 instData;
 #else
@@ -23,7 +20,6 @@ layout (location = 4) in vec4 uv;
 // u32 uniOffset
 // u32 {teamIdx, drawFlag, unused, unused}
 // u32 unused
-
 
 layout(std140, binding = 0) readonly buffer MatrixBuffer {
 	mat4 mat[];
