@@ -29,8 +29,8 @@ local showGUI = true
 local minSilenceTime = 30
 local maxSilenceTime = 120
 local warLowLevel = 1000
-local warHighLevel = 40000
-local warMeterResetTime = 30 -- seconds
+local warHighLevel = 32500
+local warMeterResetTime = 40 -- seconds
 local interruptionMinimumTime = 20 -- seconds
 local interruptionMaximumTime = 60 -- seconds
 
@@ -1169,8 +1169,23 @@ function widget:GameFrame(n)
 		--	Spring.StopSoundStream()
 		--	return
 		--end
-
-		if warMeter > 0 then
+		if Spring.Utilities.Gametype.IsRaptors() then
+			if (Spring.GetGameRulesParam("raptorQueenAnger", 0)) > 10 then
+				warMeter = warLowLevel+1
+			elseif (Spring.GetGameRulesParam("raptorQueenAnger", 0)) > 50 then
+				warMeter = warHighLevel+1
+			else
+				warMeter = 0
+			end
+		elseif Spring.Utilities.Gametype.IsScavengers() then
+			if (Spring.GetGameRulesParam("scavBossAnger", 0)) > 10 then
+				warMeter = warLowLevel+1
+			elseif (Spring.GetGameRulesParam("scavBossAnger", 0)) > 50 then
+				warMeter = warHighLevel+1
+			else
+				warMeter = 0
+			end
+		elseif warMeter > 0 then
 			warMeter = math.floor(warMeter - (warMeter * 0.04))
 			if warMeter > warHighLevel*3 then
 				warMeter = warHighLevel*3
