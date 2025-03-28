@@ -389,6 +389,7 @@ void DoWindVertexMove(inout vec4 mVP) {
 // Skinning or not (defined by USESKINNING)
 // Quaternions or not (defined by USEQUATERNIONS)
 // SLERPQUATERNIONS or not (defined by SLERPQUATERNIONS)
+// STATICMODEL or not (defined by STATICMODEL)
 
 
 #ifdef USESKINNING
@@ -406,55 +407,130 @@ void DoWindVertexMove(inout vec4 mVP) {
 		vec4 piecePos = vec4(displacedPos, 1.0);
 
 		vec4 weights = vec4(
-			float(GetUnpackedValue(bonesInfo.y, 0)) / 255.0,
-			float(GetUnpackedValue(bonesInfo.y, 1)) / 255.0,
-			float(GetUnpackedValue(bonesInfo.y, 2)) / 255.0,
-			float(GetUnpackedValue(bonesInfo.y, 3)) / 255.0
+			float(GetUnpackedValue(bonesInfo.y, 0u)) / 255.0,
+			float(GetUnpackedValue(bonesInfo.y, 1u)) / 255.0,
+			float(GetUnpackedValue(bonesInfo.y, 2u)) / 255.0,
+			float(GetUnpackedValue(bonesInfo.y, 3u)) / 255.0
 		);
 
-		uint b0 = GetUnpackedValue(bonesInfo.x, 0); //first boneID
-		mat4 b0BoneMat = mat[instData.x + b0 + uint(!staticModel)];
-		mat3 b0NormMat = mat3(b0BoneMat);
+		uint bID0 = GetUnpackedValue(bonesInfo.x, 0u); //first boneID
 
-		weights[0] *= b0BoneMat[3][3];
+		#ifndef USEQUATERNIONS
+			mat4 b0BoneMat = mat[instData.x + bID0 + uint(!staticModel)];
+			mat3 b0NormMat = mat3(b0BoneMat);
 
-		msPosition = b0BoneMat * piecePos;
-		msNormal   = b0NormMat * normal;
+			weights[0] *= b0BoneMat[3][3];
 
-		if (staticModel || weights[0] == 1.0)
-			return;
+			msPosition = b0BoneMat * piecePos;
+			msNormal   = b0NormMat * normal;
+		#else
+			Transform tx;
+			if (staticModel) {
+				tx = transforms[instData.x + bID0];
+			} else {
+				// do interpolation
+				#ifdef SLERPQUATERNIONS
+					tx = SLerp(
+						transforms[instData.x + 2u * (1u + bID0) + 0u],
+						transforms[instData.x + 2u * (1u + bID0) + 1u],
+						timeInfo.w
+					);
+				#else
+					tx = Lerp(
+						transforms[instData.x + 2u * (1u + bID0) + 0u],
+						transforms[instData.x + 2u * (1u + bID0) + 1u],
+						timeInfo.w
+					);
+				#endif
+				//tx = transforms[instData.x + 2u * (1u + bID0) + 1u];
+			}
 
-		float wSum = 0.0;
+			weights[0] *= float(tx.trSc.w > 0.0);
+			msPosition = ApplyTransform(tx, piecePos);
+			tx.trSc = vec4(0, 0, 0, 1); //nullify the transform part
+			msNormal = ApplyTransform(tx, normal);
+		#endif
+		// Without skinning, we can bail quite early here, as we dont need to check all the other bones and weights
+		#if USESKINNING
+			if (staticModel || weights[0] == 1.0)
+				return;
 
-		msPosition *= weights[0];
-		msNormal   *= weights[0];
-		wSum       += weights[0];
+			float wSum = 0.0;
 
-		uint numPieces = GetUnpackedValue(instData.z, 3);
-		mat4 bposeMat    = mat[instData.w + b0];
+			msPosition *= weights[0];
+			msNormal   *= weights[0];
+			wSum       += weights[0];
 
-		// Vertex[ModelSpace,BoneX] = PieceMat[BoneX] * InverseBindPosMat[BoneX] * BindPosMat[Bone0] * Vertex[Bone0]
-		for (uint bi = 1; bi < 3; ++bi) {
-			uint bID = GetUnpackedValue(bonesInfo.x, bi);
+			#ifndef USEQUATERNIONS
+					//mat4 bposeMat = mat[instData.w + b0]; // this is the non-quat way of getting it
 
-			if (bID == 0xFFu || weights[bi] == 0.0)
-				continue;
+				uint numPieces = GetUnpackedValue(instData.z, 3);
+				mat4 bposeMat    = mat[instData.w + b0];
 
-			mat4 bposeInvMat = mat[instData.w + numPieces + bID];
-			mat4 boneMat     = mat[instData.x +        1u + bID];
+				// Vertex[ModelSpace,BoneX] = PieceMat[BoneX] * InverseBindPosMat[BoneX] * BindPosMat[Bone0] * Vertex[Bone0]
+				for (uint bi = 1; bi < 3; ++bi) {
+					uint bID = GetUnpackedValue(bonesInfo.x, bi);
 
-			weights[bi] *= boneMat[3][3];
+					if (bID == 0xFFu || weights[bi] == 0.0)
+						continue;
 
-			mat4 skinMat = boneMat * bposeInvMat * bposeMat;
-			mat3 normMat = mat3(skinMat);
+					mat4 bposeInvMat = mat[instData.w + numPieces + bID];
+					mat4 boneMat     = mat[instData.x +        1u + bID];
 
-			msPosition += skinMat * piecePos * weights[bi];
-			msNormal   += normMat * normal   * weights[bi];
-			wSum       += weights[bi];
-		}
+					weights[bi] *= boneMat[3][3];
 
-		msPosition /= wSum;
-		msNormal   /= wSum;
+					mat4 skinMat = boneMat * bposeInvMat * bposeMat;
+					mat3 normMat = mat3(skinMat);
+
+					msPosition += skinMat * piecePos * weights[bi];
+					msNormal   += normMat * normal   * weights[bi];
+					wSum       += weights[bi];
+				}
+			#else
+				Transform bposeTra = transforms[instData.w + bID0];
+
+				// Vertex[ModelSpace,BoneX] = PieceMat[BoneX] * InverseBindPosMat[BoneX] * BindPosMat[Bone0] * Vertex[Bone0]
+				for (uint bi = 1; bi < 3; ++bi) {
+					uint bID = GetUnpackedValue(bonesInfo.x, bi) + (GetUnpackedValue(bonesInfo.z, bi) << 8u);
+
+					if (bID == 0xFFFFu || weights[bi] == 0.0)
+						continue;
+
+					Transform bposeInvTra = InvertTransformAffine(transforms[instData.w + bID]);
+
+					#ifndef SLERPQUATERNIONS
+						Transform boneTx = Lerp(
+							transforms[instData.x + 2u * (1u + bID) + 0u],
+							transforms[instData.x + 2u * (1u + bID) + 1u],
+							timeInfo.w
+						);
+					#else
+						Transform boneTx = SLerp(
+							transforms[instData.x + 2u * (1u + bID) + 0u],
+							transforms[instData.x + 2u * (1u + bID) + 1u],
+							timeInfo.w
+						);
+					#endif
+
+					weights[bi] *= float(boneTx.trSc.w > 0.0);
+
+					// emulate boneTx * bposeInvTra * bposeTra * piecePos
+					vec4 txPiecePos = ApplyTransform(ApplyTransform(boneTx, ApplyTransform(bposeInvTra, bposeTra)), piecePos);
+
+					tx.trSc = vec4(0, 0, 0, 1); //nullify the transform part
+
+					// emulate boneTx * bposeInvTra * bposeTra * normal
+					vec3 txPieceNormal = ApplyTransform(ApplyTransform(boneTx, ApplyTransform(bposeInvTra, bposeTra)), normal);
+
+					msPosition += txPiecePos    * weights[bi];
+					msNormal   += txPieceNormal * weights[bi];
+					wSum       += weights[bi];
+				}
+			#endif
+
+			msPosition /= wSum;
+			msNormal   /= wSum;
+		#endif
 	}
 #endif
 
@@ -553,15 +629,10 @@ void main(void)
 	mat4 worldPieceMatrix = worldMatrix * pieceMatrix; // for the below
 	mat3 normalMatrix = mat3(worldPieceMatrix);
 
-	#ifdef USESKINNING
-		// What in the lords name do we have to do here?
-		vec4 modelPos; // model-space positision
-		GetModelSpaceVertex(piecePos.xyz, modelPos, modelVertexNormal);
-		vec4 worldPos = worldMatrix * modelPos;
-	#else
-		vec4 modelPos = pieceMatrix * piecePos;
-		vec4 worldPos = worldPieceMatrix * piecePos;
-	#endif
+	vec4 modelPos; // model-space positision
+	GetModelSpaceVertex(piecePos.xyz, modelPos, modelVertexNormal);
+	vec4 worldPos = worldMatrix * modelPos;
+
 	//worldPos.x += 64; // for dem debuggins
 	pieceVertexPosOrig.w = modelPos.y / (max(1.0, UNITUNIFORMS.userDefined[2].w)); //11 is unit height
 
