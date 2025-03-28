@@ -77,7 +77,7 @@ if gadgetHandler:IsSyncedCode() then
 	local t = 0 -- game time in secondstarget
 	local bossAnger = 0
 	local techAnger = 0
-	local totalBossesMaxHealth
+	local totalBossesMaxHealth = 0
 	local playerAggression = 0
 	local playerAggressionLevel = 0
 	local playerAggressionEcoValue = 0
@@ -133,6 +133,8 @@ if gadgetHandler:IsSyncedCode() then
 	local deathQueue = {}
 	local bossResistance = {}
 	local bossIDs = {}
+	local bossInfo = {resistances = bossResistance, healths = {}}
+	local bossSpawnedMaxHealths = {}
 	local scavTeamID, scavAllyTeamID
 	local lsx1, lsz1, lsx2, lsz2
 	local burrows = {}
@@ -344,6 +346,9 @@ if gadgetHandler:IsSyncedCode() then
 		nSpawnedBosses = 0
 		nKilledBosses = 0
 		bossResistance = {}
+		bossSpawnedMaxHealths = {}
+		bossInfo = {resistances = bossResistance, healths = {}}
+		totalBossesMaxHealth = 0
 		SetGameRulesParam("scavBossAnger", bossAnger)
 		SetGameRulesParam("scavTechAnger", techAnger)
 		local nextDifficulty
@@ -1032,8 +1037,15 @@ if gadgetHandler:IsSyncedCode() then
 			local health, maxHealth = GetUnitHealth(bossID)
 			totalHealth = totalHealth + health
 			totalBossesMaxHealth = totalBossesMaxHealth + maxHealth
+			table.mergeInPlace(bossInfo.healths, {[tostring(bossID)] = {health=health, maxHealth=maxHealth}})
 		end
+
+		for bossID, maxHealth in pairs(bossSpawnedMaxHealths) do
+			bossInfo.healths[tostring(bossID)].spawnedMaxHealth = maxHealth
+		end
+
 		SetGameRulesParam("scavBossHealth", math.floor(0.5 + ((totalHealth / totalBossesMaxHealth) * 100)))
+		SetGameRulesParam("pveBossInfo", Json.encode(bossInfo))
 	end
 
 	function SpawnBoss()
@@ -1607,19 +1619,17 @@ if gadgetHandler:IsSyncedCode() then
 				if weaponID == -1 and damage > 1 then
 					damage = 1
 				end
+				attackerDefID = tostring(attackerDefID)
 				if not bossResistance[attackerDefID] then
 					bossResistance[attackerDefID] = {
 						damage = damage * 4 * config.bossResistanceMult,
 						notify = 0
 					}
 				end
-				if not totalBossesMaxHealth then
-					updateBossLife()
-				end
 				local resistPercent = math.min((bossResistance[attackerDefID].damage) / totalBossesMaxHealth, 0.98)
 				if resistPercent > 0.5 then
 					if bossResistance[attackerDefID].notify == 0 then
-						scavEvent("bossResistance", attackerDefID)
+						scavEvent("bossResistance", tonumber(attackerDefID))
 						bossResistance[attackerDefID].notify = 1
 						spawnCreepStructuresWave()
 					end
@@ -1627,6 +1637,7 @@ if gadgetHandler:IsSyncedCode() then
 
 				end
 				bossResistance[attackerDefID].damage = bossResistance[attackerDefID].damage + (damage * 4 * config.bossResistanceMult)
+				bossResistance[attackerDefID].percent = resistPercent
 			else
 				damage = 1
 			end
@@ -1861,7 +1872,6 @@ if gadgetHandler:IsSyncedCode() then
 			if bossID then
 				nSpawnedBosses = nSpawnedBosses + 1
 				bossIDs[bossID] = true
-				Spring.Echo({func="updateSpawnBoss", boss_status = {spawned = nSpawnedBosses, killed = nKilledBosses, ids = bossIDs}})
 
 				local bossSquad = table.copy(squadCreationQueueDefaults)
 				bossSquad.life = 999999
@@ -1872,6 +1882,7 @@ if gadgetHandler:IsSyncedCode() then
 				scavEvent("boss") -- notify unsynced about boss spawn
 				local _, bossMaxHP = GetUnitHealth(bossID)
 				Spring.SetUnitHealth(bossID, math.max(bossMaxHP*(techAnger*0.01), bossMaxHP*0.2))
+				bossSpawnedMaxHealths[bossID] = bossMaxHP
 				SetUnitExperience(bossID, 0)
 				timeOfLastWave = t
 				burrows[bossID] = {
@@ -2238,7 +2249,8 @@ if gadgetHandler:IsSyncedCode() then
 		if bossIDs[unitID] then
 			nKilledBosses = nKilledBosses + 1
 			bossIDs[unitID] = nil
-			Spring.Echo({func="UnitDestroyed", boss_status = {spawned = nSpawnedBosses, killed = nKilledBosses, ids = bossIDs}})
+			bossInfo.healths[tostring(unitID)] = nil
+			SetGameRulesParam("scavBossesKilled", nKilledBosses)
 
 			if nKilledBosses >= nTotalBosses then
 				Spring.SetGameRulesParam("BossFightStarted", 0)
