@@ -343,8 +343,8 @@ if gadgetHandler:IsSyncedCode() then
 		nSpawnedQueens = 0
 		nKilledQueens = 0
 		queenResistance = {}
-		SetGameRulesParam("raptorQueenAnger", queenAnger)
-		SetGameRulesParam("raptorTechAnger", techAnger)
+		SetGameRulesParam("raptorQueenAnger", math.floor(queenAnger))
+		SetGameRulesParam("raptorTechAnger", math.floor(techAnger))
 		local nextDifficulty
 		difficultyCounter = difficultyCounter + 1
 		endlessLoopCounter = endlessLoopCounter + 1
@@ -389,8 +389,8 @@ if gadgetHandler:IsSyncedCode() then
 	--
 
 	SetGameRulesParam("raptorQueenTime", queenTime)
-	SetGameRulesParam("raptorQueenAnger", queenAnger)
-	SetGameRulesParam("raptorTechAnger", techAnger)
+	SetGameRulesParam("raptorQueenAnger", math.floor(queenAnger))
+	SetGameRulesParam("raptorTechAnger", math.floor(techAnger))
 	SetGameRulesParam("raptorGracePeriod", config.gracePeriod)
 	SetGameRulesParam("raptorDifficulty", config.difficulty)
 	SetGameRulesParam("RaptorQueenAngerGain_Base", 100/config.queenTime)
@@ -1853,8 +1853,8 @@ if gadgetHandler:IsSyncedCode() then
 				SetGameRulesParam("RaptorQueenAngerGain_Aggression", (playerAggression*0.01)/(config.queenTime/3600))
 				SetGameRulesParam("RaptorQueenAngerGain_Eco", playerAggressionEcoValue)
 			end
-			SetGameRulesParam("raptorQueenAnger", queenAnger)
-			SetGameRulesParam("raptorTechAnger", techAnger)
+			SetGameRulesParam("raptorQueenAnger", math.floor(queenAnger))
+			SetGameRulesParam("raptorTechAnger", math.floor(techAnger))
 
 			if queenAnger >= 100 or (burrowCount <= 1 and t > config.gracePeriod) then
 				-- check if the queen should be alive
