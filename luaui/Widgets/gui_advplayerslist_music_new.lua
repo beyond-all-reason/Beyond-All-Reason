@@ -95,6 +95,9 @@ local function ReloadMusicPlaylists()
 	if (tonumber(os.date("%m")) == 4 and tonumber(os.date("%d")) <= 3) and Spring.GetConfigInt('UseSoundtrackAprilFools', 1) == 1 then
 		table.append(menuTracksNew, VFS.DirList(musicDirNew..'/events/aprilfools/menu', allowedExtensions))
 		table.append(loadingTracksNew, VFS.DirList(musicDirNew..'/events/aprilfools/loading', allowedExtensions))
+		table.append(peaceTracksNew, VFS.DirList(musicDirNew..'/events/aprilfools/peace', allowedExtensions))
+		table.append(warlowTracksNew, VFS.DirList(musicDirNew..'/events/aprilfools/war', allowedExtensions))
+		table.append(warhighTracksNew, VFS.DirList(musicDirNew..'/events/aprilfools/war', allowedExtensions))
 	end
 
 	if (tonumber(os.date("%m")) == 12 and tonumber(os.date("%d")) >= 12) then
@@ -1022,6 +1025,7 @@ function PlayNewTrack(paused)
 	end
 	currentTrack = nil
 	currentTrackList = nil
+	currentTrackIsEventMusic = nil
 
 	if gameOver then
 		currentTrackList = gameoverTracks
@@ -1088,7 +1092,14 @@ function PlayNewTrack(paused)
 	if currentTrack then
 		Spring.PlaySoundStream(currentTrack, 1)
 		playing = true
-		interruptionTime = math.random(interruptionMinimumTime, interruptionMaximumTime)
+
+		if 	string.find(currentTrack, "aprilfools")
+		or	string.find(currentTrack, "xmas") then
+			interruptionTime = 999999
+		else
+			interruptionTime = math.random(interruptionMinimumTime, interruptionMaximumTime)
+		end
+
 		if fadeDirection then
 			setMusicVolume(fadeLevel)
 		else
@@ -1178,7 +1189,7 @@ function widget:GameFrame(n)
 						fadeDirection = -2
 						fadeOutSkipTrack = true
 					elseif (interruptionEnabled and (playedTime >= interruptionTime) and gameFrame >= serverFrame-300)
-					  and ((currentTrackListString == "intro" and n > 90)
+					  and ((currentTrackListString == "intro" and n > 9000)
 						or (currentTrackListString == "peace" and warMeter > warHighLevel * 0.5 ) -- Peace in battle times, let's play some WarLow music at half of WarHigh threshold
 						or (currentTrackListString == "warLow" and warMeter > warHighLevel * 2 ) -- WarLow music is playing but battle intensity is very high, Let's switch to WarHigh at double of WarHigh threshold
 						or (currentTrackListString == "warHigh" and warMeter <= warLowLevel * 0.5 ) -- WarHigh music is playing, but it has been quite peaceful recently. Let's switch to peace music at 50% of WarLow threshold
