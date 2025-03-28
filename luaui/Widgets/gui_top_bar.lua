@@ -128,7 +128,7 @@ local buttonsArea = {}
 -- UI State
 local orgHeight = 46
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
-local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7) * 1.1 or 0.8
+local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
 local height = orgHeight * (1 + (ui_scale - 1) / 1.7)
 local vsx, vsy = Spring.GetViewGeometry()
 local mx = -1
@@ -1488,7 +1488,7 @@ function widget:DrawScreen()
 		end
 
 		if uiBgTex then
-			gl.Color(1,1,1,ui_opacity)
+			gl.Color(1, 1, 1, ui_opacity * 1.1)
 			gl.Texture(uiBgTex)
 			gl.TexRect(topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], false, true)
 			gl.Texture(false)
