@@ -350,7 +350,7 @@ else	-- UNSYNCED CODE
 			
 		end
 		RAM = gcinfo()-RAM
-		if RAM > 0 then
+		if RAM > 10 then
 			print('mainloopram',RAM)
 		end
 		

@@ -202,9 +202,25 @@ function RaidHST:SquadAdvance(squad)
 	if not squad.target or not squad.path then
 		return
 	end
+	squad.cmdUnitId = self.ai.tool:ResetTable(squad.cmdUnitId)
+	if type(squad.role ) == 'number' then
+		for i,member in pairs(squad.members) do
+			local currentCommand =member.unit:Internal():CurrentCommand()
+			--Spring.Echo(currentCommand)
+			if not currentCommand or currentCommand ~= CMD.GUARD then
+				squad.cmdUnitId[i] = member.unit:Internal():ID()
+			end
+			
+		end
+		if #squad.cmdUnitId > 0 then
+			self.ai.tool:GiveOrder(squad.cmdUnitId,CMD.GUARD ,squad.role,0,'1-2')
+		end
+		
+		return
+	end
 	self:SquadStepComplete(squad)
 	self:EchoDebug('advance #members',#squad.members,squad.path,#squad.path)
-	squad.cmdUnitId = self.ai.tool:ResetTable(squad.cmdUnitId)
+	
 	for i,member in pairs(squad.members) do
 		squad.cmdUnitId[i] = member.unit:Internal():ID()
 	end
@@ -213,6 +229,7 @@ function RaidHST:SquadAdvance(squad)
 	else
 		self.ai.tool:GiveOrder(squad.cmdUnitId,CMD.MOVE ,squad.path[squad.step],0,'1-2')
 	end
+	
 	self:EchoDebug('advance after members move')
 end
 
@@ -238,7 +255,7 @@ function RaidHST:SquadsTargetUpdate()
 		if squad.target and squad.role == 'offense' and self.ai.maphst:GetCell(squad.target.X,squad.target.Z,self.ai.loshst.ENEMY) then
 			self:EchoDebug('squadID',squad.squadID, 'have offense cell', squad.target.X,squad.target.Z)
 		elseif squad.target and type(squad.role) == 'number' and game:GetUnitByID(squad.role) then
-			local targetX,targetY,targetZ = game:GetUnitByID(squad.role):GetRawPos()
+			--[[local targetX,targetY,targetZ = game:GetUnitByID(squad.role):GetRawPos()
 			self:EchoDebug('update builder prevent pos',targetX,targetY,targetZ)
 			if targetX then
 				local X,Z = self.ai.maphst:RawPosToGrid(targetX,targetY,targetZ)
@@ -248,7 +265,8 @@ function RaidHST:SquadsTargetUpdate()
 				squad.path[1].y = targetY
 				squad.path[1].z = targetZ
 				self:EchoDebug('squadID',squad.squadID, 'have preventive cell', squad.role, squad.target.X,squad.target.Z)
-			end
+			end]]
+			return squad.target,squad.role
 
 
 		else
@@ -467,109 +485,6 @@ end
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
---[[
-function RaidHST:SquadAttack(squad)
-	if not squad.target then
-		self:EchoDebug('squad',squad.squadID,'no target to raid')
-		return
-	end
-	local p = {}
-	local cmdUnitId = {}
-	local cmdUnitCommand = {}
-	local cmdUnitParams = {}
-	local cmdUnitOptions = {}
-	if self.ai.loshst.OWN[squad.target.X] and self.ai.loshst.OWN[squad.target.X][squad.target.Z] then
-		self:EchoDebug('squad',squad.squadID,'raid a defensive position',squad.target.X,squad.target.Z)
-
-		for i,member in pairs(squad.members) do
-			table.insert(cmdUnitId, member.unit:Internal():ID())
-			table.insert(cmdUnitParams, squad.target.POS)
-			table.insert(cmdUnitOptions, 0)
-			table.insert(cmdUnitCommand, CMD.MOVE)
-			--member:MoveRandom(squad.target.POS,128)
-		end
-		self.ai.tool:GiveOrder(cmdUnitId,cmdUnitCommand,cmdUnitParams,cmdUnitOptions,'1-2')
-		self:EchoDebug('squad',squad.squadID,'execute defense')
-		return true
-	end
-	if self.ai.loshst.ENEMY[squad.target.X] and self.ai.loshst.ENEMY[squad.target.X][squad.target.Z]  and self.ai.tool:distance(squad.position,squad.target.POS) < 256 then
-		self:EchoDebug('squad',squad.squadID,'are near to offensive target, do raid')
-		for i,member in pairs(squad.members) do
-			table.insert(cmdUnitId, member.unit:Internal():ID())
-			table.insert(cmdUnitParams, squad.target.POS)
-			table.insert(cmdUnitOptions, 0)
-			table.insert(cmdUnitCommand, CMD.FIGHT)
-		end
-		self.ai.tool:GiveOrder(cmdUnitId,cmdUnitCommand,cmdUnitParams,cmdUnitOptions,'1-2')
-		self:EchoDebug('squad',squad.squadID,'execute raid')
-		return true
-	end
-end
-
-
-function RaidHST:SquadAdvanceBackup(squad)
-	self:EchoDebug("advance",squad.squadID)
-	if game:Frame() < squad.lastAdvance + 30 then
-		return
-	end
-	squad.lastAdvance = game:Frame()
-	squad.idleCount = 0
-	if not squad.target or not squad.path then
-		return
-	end
-	self:EchoDebug('squad.pathStep',squad.step,'#squad.path',#squad.path)
-	self:SquadStepComplete(squad)
-	local members = squad.members
-	local nextPos = squad.path[squad.step]
-	local angle = math.min (squad.step + 1,#squad.path)
-	local nextAngle = self.ai.tool:AnglePosPos(nextPos, squad.path[angle])
-	local nextPerpendicularAngle = self.ai.tool:AngleAdd(nextAngle, halfPi)
- 	squad.lastValidMove = nextPos -- raiders use this to correct bad move orders
-	self:EchoDebug('advance #members',#members)
-	local cmdUnitId = {}
-	local pos
-	for i,member in pairs(members) do
-		cmdUnitId[i] = member.unit:Internal():ID()
-		
- 		if member.formationBack and squad.step ~= #squad.path then
- 			pos = self.ai.tool:RandomAway( nextPos, -member.formationBack, nil, nextAngle)
- 		end
- 		local reverseAttackAngle
- 		if squad.step == #squad.path then
- 			reverseAttackAngle = self.ai.tool:AngleAdd(nextAngle, pi)
- 		end
- 		--self:EchoDebug('advance',pos,nextPerpendicularAngle,reverseAttackAngle)
-	end
-
-	local p = {}
-	if pos then
-		p[1] = pos.x
-		p[2] = pos.y
-		p[3] = pos.z
-	else
-		p[1] = nextPos.x
-		p[2] = nextPos.y
-		p[3] = nextPos.z
-	end
-
-	local command = self.ai.tool:GiveOrder(cmdUnitId,CMD.MOVE ,p,0,'1-2')
-	squad.lastAdvance = game:Frame()
-	self:EchoDebug('advance after members move')
-end
-]]
 
 
 

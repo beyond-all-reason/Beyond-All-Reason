@@ -35,7 +35,8 @@ function CleanerBST:OwnerBuilt()
 end
 
 function CleanerBST:OwnerIdle()
-	print("nano idle",self.id)
+	--print("nano idle",self.id)
+	self:Patroling()
 end
 
 function CleanerBST:Activate()
@@ -105,9 +106,6 @@ end
 function CleanerBST:Patroling()
 -- 	local uPosX,uPosY,uPosZ = self.unit:Internal():GetRawPos()
 	local currentOrder = self.unit:Internal():GetUnitCommands(1)[1]
-	local currentCommand = self.unit:Internal():GetUnitCommands()
-	Spring.Echo('currentCommand',currentCommand)
-	Spring.Echo('currentOrder nano',currentOrder)
 	
 	if not currentOrder or not  currentOrder.id  then
 		self.ai.tool:GiveOrder(self.id,CMD.PATROL,self.patrolCommand,0,'1-1')
